@@ -138,7 +138,6 @@ begin
 end
 
 
-
 -- This one could probably use `conn_sub` but I'm too lazy/stupid to figure the neatest way to do things
 lemma eq_of_common_mem (C D : set V) (hC : C ∈ components G K) (hD : D ∈ components G K)
   (x : V) (x_in_C : x ∈ C) (x_in_D : x ∈ D) : C = D :=
@@ -163,6 +162,16 @@ end
 lemma mem_of_mem_of_adj (C : set V) (hC : C ∈ components G K)
   (x y : V) (x_in_C : x ∈ C) (y_notin_K : y ∉ K) (adj : G.adj x y) : y ∈ C :=
 mem_of_mem_of_conn G K C hC x y x_in_C $ of_adj_outside G K x y (not_in_of_in_comp G K C hC x x_in_C) y_notin_K adj
+
+lemma eq_of_adj_mem
+  (C : set V) (hC : C ∈ components G K)
+  (D : set V) (hD : D ∈ components G K)
+  (x y : V) (x_in_C : x ∈ C) (y_in_D : y ∈ D) (adj : G.adj x y) : C = D :=
+begin
+  have y_in_C : y ∈ C, from mem_of_mem_of_adj G K C hC x y x_in_C (not_in_of_in_comp G K D hD y y_in_D) adj,
+  exact (eq_of_common_mem G K C D hC hD y y_in_C y_in_D),
+end
+
 
 
 lemma conn_sub_unique (P : set V)
@@ -204,11 +213,24 @@ lemma walk_outside_is_contained (C : set V) (hC : C ∈ components G K) :
 }
 
 
-lemma is_connected (C : set V) (hC : C ∈ components G K) (x y : V) (hx : x ∈ C) (hy : y ∈ C) :
+lemma is_connected (C : set V) (hC : C ∈ components G K) (x : V) (hx : x ∈ C) (y : V) (hy : y ∈ C) :
   ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ C :=
 begin
   rcases is_c_o G K C hC x hx y hy with ⟨w,dis_K⟩,
   exact ⟨w,walk_outside_is_contained G K C hC x y w hx hy dis_K⟩,
+end
+
+lemma c_o_of_connected_disjoint  (P : set V)
+  (dis : disjoint P K)
+  (conn : ∀ x y ∈ P, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ P) : ∀ x y ∈ P, c_o G K x y :=
+begin
+  rintros x hx y hy,
+  unfold c_o,
+  unfold connected_outside,
+  rcases conn x hx y hy with ⟨w,wgood⟩,
+  use w,
+  exact disjoint_coe.mp (set.disjoint_of_subset_left wgood dis).symm,
+
 end
 
 
@@ -339,13 +361,15 @@ begin
   -- if all are finite, then their union is finite, so that V is finite too
 end
 
-instance inf_components_finite [locally_finite G] :
-  fintype (inf_components G K) := (set.finite.subset (component.finite G K) (inf_components_subset G K)).fintype
+instance inf_components_finite [locally_finite G] : fintype (inf_components G K) :=
+(set.finite.subset (component.finite G K) (inf_components_subset G K)).fintype
 
 def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
   ∀ x y ∈ D, c_o G K x y :=
 λ x xD y yD, connected_outside.monotone G K_sub_L x y (component.is_c_o G L D D_comp x xD y yD)
 
+
+-- TODO: maybe, define bwd_map for (potentially finite) components and then restrict it
 
 def bwd_map : inf_components G L → inf_components G K :=
 λ D,
@@ -471,6 +495,72 @@ end
 def bwd_map_diamond (E : inf_components G M) :
   bwd_map G K_sub_L (bwd_map G L_sub_M E) = bwd_map G K_sub_L' (bwd_map G L'_sub_M E) :=
 by rw [bwd_map_comp',bwd_map_comp']
+
+
+-- Towards Hopf-Freudenthal
+
+lemma bwd_map_non_inj [locally_finite G] (H K : finset V) (C : inf_components G H)
+  (D D' : inf_components G K)
+  (Ddist : D ≠ D')
+  (h : D.val ⊆ C.val) (h' : D'.val ⊆ C.val) :
+  ¬ injective (bwd_map G (finset.subset_union_left H K : H ⊆ H ∪ K)) :=
+begin
+  rcases bwd_map_surjective G (finset.subset_union_right H K) D  with ⟨E,rfl⟩,
+  rcases bwd_map_surjective G (finset.subset_union_right H K) D' with ⟨E',rfl⟩,
+  have Edist : E ≠ E', by {rintro Eeq, rw Eeq at Ddist,exact Ddist (refl _)},
+  have : bwd_map G (finset.subset_union_left H K) E = bwd_map G (finset.subset_union_left H K) E', by {
+    have : E.val ⊆ C.val, by {apply set.subset.trans (bwd_map_sub G _ E) h,},
+    have : E'.val ⊆ C.val, by {apply set.subset.trans (bwd_map_sub G _ E') h',},
+    rw (bwd_map_def G (finset.subset_union_left H K) E C).mpr ‹E.val ⊆ C.val›,
+    rw ←(bwd_map_def G (finset.subset_union_left H K) E' C).mpr ‹E'.val ⊆ C.val›,
+  },
+  rintro inj,
+  exact Edist (inj this),
+end
+
+lemma nicely_arranged [locally_finite G] (H K : finset V)
+  (Knempty : K.nonempty) (Hnempty : H.nonempty)
+  (E E' : inf_components G H) (En : E ≠ E')
+  (F : inf_components G K)
+  (H_F : (H : set V) ⊆ F.val)
+  (K_E : (K : set V) ⊆ E.val) : E'.val ⊆ F.val :=
+begin
+  by_cases h : (E'.val ∩ K).nonempty,
+  { rcases h with ⟨v,v_in⟩,
+    have vE' : v ∈ E'.val, from ((set.mem_inter_iff v E'.val K).mp v_in).left,
+    have vE : v ∈ E.val, from  K_E ((set.mem_inter_iff v E'.val K).mp v_in).right,
+    have := component.eq_of_common_mem G H E.val E'.val E.prop.1 E'.prop.1 v vE vE',
+    exfalso,
+    exact En (subtype.eq this),},
+  {
+    have : ∃ F' : inf_components G K, E'.val ⊆ F'.val, by {
+      have : E'.val.nonempty, from set.infinite.nonempty E'.prop.2,
+
+      have E'_co : ∀ x y ∈ E'.val, c_o G K x y, by {
+        apply component.c_o_of_connected_disjoint G K E'.val,
+        {sorry}, -- the assumption h means E'.val does not intersect K, hence disjoint
+        {exact component.is_connected G H E' E'.prop.1 }
+      },
+
+      rcases component.conn_sub G K E'.val this E'_co with ⟨F',F'comp,sub⟩,
+      have F'inf : F'.infinite, from set.infinite.mono sub E'.prop.2,
+      use ⟨F',F'comp,F'inf⟩,
+      exact sub,
+    },
+    rcases this with ⟨F',E'_sub_F'⟩,
+    by_cases Fe : F' = F,
+    { exact Fe ▸ E'_sub_F',},
+    { rcases component.adjacent_to G H Hnempty E'.val E'.prop.1 with ⟨v,vh,vhH,vF',adj⟩,
+      have : vh ∈ F.val, from H_F vhH,
+      have : F.val = F'.val,
+        from component.eq_of_adj_mem G K F.val F.prop.1 F'.val F'.prop.1 vh v this (E'_sub_F' vF') adj,
+      exfalso,
+      exact Fe (subtype.eq this).symm,
+    },
+  },
+end
+
+
 
 end inf_components
 
@@ -665,7 +755,8 @@ begin
 end
 
 
-/-
+
+
 
 /-
   The goal now would be to be able to bound the number of ends from below.
@@ -674,155 +765,79 @@ end
   The construction to show this needs to extend each infinite component outside of K into an end.
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
-private def φ_fam (φ : ℕ ≃ V) : ℕ → set V := λ n, (K ∪ φ '' {j : ℕ | j < n})
-private lemma φ_fam_fin (Kf : K.finite) (φ : ℕ ≃ V) (n : ℕ) : (@φ_fam _ _ _ K φ n).finite :=
-begin
-  apply set.finite_union.mpr ⟨Kf,_⟩,
-  haveI : {j : ℕ | j < n}.finite, from {j : ℕ | j < n}.to_finite,
-  have lol := finite.set.finite_image {j : ℕ | j < n} φ.to_fun,
-  exact (⇑φ '' {j : ℕ | j < n}).to_finite,
-end
-private lemma φ_fam_mon_succ (φ : ℕ ≃ V) (n : ℕ) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < n.succ}) :=
-begin
-  apply set.union_subset_union (subset_refl K),
-  apply set.image_subset φ.to_fun,
-  rintros x xltn,
-  simp at *,
-  exact lt_of_lt_of_le xltn (nat.le_succ n),
-end
-private lemma φ_fam_mon_add  (φ : ℕ ≃ V) (n k : ℕ) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < n + k}) :=
-begin
-  induction k,
-  {simp,},
-  {exact set.subset.trans k_ih (φ_fam_mon_succ φ (n+k_n))},
-end
-private lemma φ_fam_mon_le  (φ : ℕ ≃ V) {n m : ℕ} (n ≤ m) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < m}) :=
-begin
-  rcases le_iff_exists_add.mp ‹n≤m› with ⟨k,eq⟩,
-  rw eq,
-  exact φ_fam_mon_add φ n k,
-end
-private lemma φ_fam_zero  (φ : ℕ ≃ V) : K = (K ∪ φ '' {j : ℕ | j < 0}) := by simp
+private def φ_fam (K : finset V) (φ : ℕ ≃ V) : ℕ → finset V := λ n, (K ∪ finset.image φ {j : ℕ | j < n}.to_finset)
 
-private lemma φ_fam_zero_comp (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  inf_components G (K ∪ φ.to_fun '' {j : ℕ | j < 0}) :=
-  @eq.rec_on  (set V) K (λ L, inf_components G L) (K ∪ φ.to_fun '' {j : ℕ | j < 0}) (@φ_fam_zero V _ _ _ K φ) C
-
+private lemma φ_fam_mon_succ (φ : ℕ ≃ V) (n : ℕ) : (φ_fam K φ n) ⊆ (φ_fam K φ n.succ) := sorry
+private lemma φ_fam_mon_add  (φ : ℕ ≃ V) (n k : ℕ) : (φ_fam K φ n) ⊆ (φ_fam K φ $ n+k) := sorry
+private lemma φ_fam_mon_le  (φ : ℕ ≃ V) {n m : ℕ} (n ≤ m) : (φ_fam K φ n) ⊆ (φ_fam K φ $ m) := sorry
+private lemma φ_fam_zero  (φ : ℕ ≃ V) : φ_fam K φ 0 = K := sorry
 private lemma φ_fam_cof (φ : ℕ ≃ V) :
-  ∀ F : finset V, ∃ n, F.val ⊆  K ∪ φ '' {j : ℕ | j < n} :=
+  ∀ F : finset V, ∃ n, F ⊆  φ_fam K φ n :=
 begin
-  rintros ⟨F,Ffin⟩,
+  rintros F,
   have : ∃ M : ℕ, ∀ v ∈ F, φ.inv_fun v < M, by {
     by_cases h :  (F.nonempty),
-    { rcases set.finite.exists_maximal_wrt φ.inv_fun F Ffin h with ⟨v,vF,vmax⟩,
+    { rcases finset.exists_max_image F φ.inv_fun h with ⟨v,vF,vmax⟩,
       use (φ.inv_fun v).succ,
       rintros u uF,
-      exact lt_of_le_of_lt (by {apply le_of_not_gt, rintro hgt, have := vmax u uF (le_of_lt (gt.lt hgt)),finish,}) (lt_add_one (φ.inv_fun v)),
+      exact lt_of_le_of_lt
+        (vmax u uF)
+        (lt_add_one (φ.inv_fun v)),
     },
     {use 0,rintros v vF, have := (h ⟨v, vF⟩),simp,exact this},
   },
   rcases this with ⟨M,Mtop⟩,
   use M,
-  apply set.subset.trans _ (set.subset_union_right K _),
+  apply set.subset.trans _ (finset.subset_union_right K _),
   rintros v vF,
-  exact ⟨φ.inv_fun v,⟨Mtop v vF,φ.right_inv v⟩⟩,
+  simp *,
+  use (φ.inv_fun v),
+  split,
+  exact Mtop v vF,
+  exact φ.right_inv v,
 end
 
 
-def φ_fami (Kfin : K.finite) (φ : ℕ ≃ V) : fam := begin
-  let lol := set.range (@φ_fam _ _ _ _ φ),
+def φ_fami [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) : (@fam V _) := begin
+  let lol := set.range (φ_fam K φ),
   use lol,
-  { rintros F ⟨n,Fn⟩,
-    rw ←Fn,
-    exact φ_fam_fin Kfin φ n},
   { rintros L,
     rcases φ_fam_cof φ L with ⟨n,ngood⟩,
-    let F := @φ_fam _ _ _ _ φ n,
-    have : F ∈ lol, by {simp,use n,},
-    use ⟨F,‹F∈lol›⟩,
+    let F := φ_fam K φ n,
+    have : F ∈ lol, by {simp,},
+    use F,
+    split,
+    exact ‹F ∈ lol›,
     exact ngood,},
 end
 
-def φ_fami2 (Kfin : K.finite) (φ : ℕ ≃ V) : fam :=
-⟨ set.range (@φ_fam _ _ _ _ φ)
-, λ F ⟨n,Fn⟩, Fn ▸ (φ_fam_fin Kfin φ n)
-, λ L, let ⟨n,ngood⟩ := @φ_fam_cof V _ _ _ K φ L in ⟨⟨@φ_fam _ _ _ _ φ n,⟨n,refl _⟩⟩,ngood⟩
-⟩
+lemma φ_fami_total  [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) :
+  ∀ L L' : (φ_fami K φ).fam, L.val ⊆ L'.val ∨ L'.val ⊆ L.val := sorry
 
-def extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π i : ℕ, inf_components G (K ∪ φ '' {j : ℕ | j < i}) :=
-@nat.rec
-  (λ i, inf_components G (K ∪ φ '' {j : ℕ | j < i}))
-  (φ_fam_zero_comp G Kfin φ C)
-  (λ k extend_along_k, some $ @bwd_map_surjective V G _ _ _ _ _
-                              (K ∪ φ.to_fun '' {j : ℕ | j < k})
-                              (K ∪ φ.to_fun '' {j : ℕ | j < k.succ})
-                              (φ_fam_mon_succ φ k)
-                              (φ_fam_fin Kfin φ k)
-                              (φ_fam_fin Kfin φ k.succ)
-                              (extend_along_k))
+def sub_φ_fami  [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) :=
+  { ℱ : set (finset V) | ℱ ⊆ (φ_fami K φ).fam ∧ ∀ F L : (φ_fami K φ).fam, L.val ⊆ F.val → F.val ∈ ℱ → L.val ∈ ℱ}
 
-lemma extend_along_comm_succ (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π (i : ℕ), extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_succ φ i) (extend_along G Kfin φ C (i.succ)) := λ i, by {sorry}
-lemma extend_along_comm_add (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π i j : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_add φ i j) (extend_along G Kfin φ C (i + j)) := sorry
--- uses bwd_map_refl
-lemma extend_along_comm_le (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π i j : ℕ, i ≤ j →  extend_along G Kfin φ C i = bwd_map G (by sorry) (extend_along G Kfin φ C j) := sorry
+def sub_sections [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) :=
+  Σ (ℱ : sub_φ_fami K φ),
+     {f : (Π F : ℱ.val, inf_components G F.val) | ∀ F F' : ℱ,
+                                               ∀ h : F.val ⊆ F'.val,
+                                                 bwd_map G h (f F') = f F}
 
-lemma extend_along_zero (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  extend_along G Kfin φ C 0 = (φ_fam_zero_comp G Kfin φ C) := by {finish}
-
-lemma extend_along_const (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K)
-  (i k : ℕ) (ilek : i ≤ k)
-  (fam_eq : K ∪ φ.to_fun '' {j : ℕ | j < i} = K ∪ φ.to_fun '' {j : ℕ | j < k}) :
-  extend_along G Kfin φ C k = @eq.rec_on _ _ (λ x, inf_components G x) _  fam_eq (extend_along G Kfin φ C i)  :=
-begin
-  sorry,
+def sub_sect_order  [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) (S S' : sub_sections G K φ) :=
+match S, S' with
+| ⟨ℱ,f⟩, ⟨ℱ',f'⟩ := ∃ (h : ℱ.val ⊆ ℱ'.val),
+                      ∀ (F : finset V), ∀ (k : F ∈ ℱ.val), f.val ⟨F,k⟩ = f'.val ⟨F,h k⟩
 end
 
 
-lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π (F : (φ_fami Kfin φ).fam), inf_components G F := λ ⟨F,hF⟩,
-eq.rec_on
-  (subtype.coe_mk F hF).symm
-  (eq.rec_on
-    hF.some_spec
-    (extend_along G Kfin φ C hF.some))
-
-
-lemma extend_along_fam_comm (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π (F F' : (φ_fami Kfin φ).fam), F.val ⊆ F'.val →
-  bwd_map G ‹F.val⊆F'.val› (extend_along_fam G Kfin φ C F') = extend_along_fam G Kfin φ C F :=
+lemma end_of_component_φfam (φ : ℕ ≃ V) (C : inf_components G K) :
+  ends_for G (φ_fami K φ) :=
 begin
-  rintros ⟨F,⟨n,hFn⟩⟩ ⟨F',⟨n',hFn'⟩⟩ sub,
-  sorry,
-end
-
-lemma extend_along_fam_spec (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  (extend_along_fam G Kfin φ C) (⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},⟨0,rfl⟩⟩)  = φ_fam_zero_comp G Kfin φ C :=
-begin
-  sorry,
+  let 𝒞 := sub_sections G K φ,
+  -- use Zorn to construct a maximal sub_section, and prove that it must be all of φ_fami
 end
 
 
-
--- we need to assume that V is countable, but that's no big deal:
--- it follows
--- * from local finiteness and connectedness, hence most countable
--- * the existence of C, hence infinite
-lemma end_of_component_φfam (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
-  ends_for G (φ_fami Kfin φ) := ⟨extend_along_fam G Kfin φ C, extend_along_fam_comm G Kfin φ C⟩
-
-lemma end_of_component_φfam_spec (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
-  (end_of_component_φfam G φ Kfin C).val (⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},⟨0,rfl⟩⟩) = φ_fam_zero_comp G Kfin φ C :=
-begin
-  have := extend_along_fam_spec G Kfin φ C,
-  sorry,
-end
-
-
--/
 
 lemma end_from_component [preconnected G] [locally_finite G] (K : finset V) (C : inf_components G K) :
   ∃ e : (ends G), e.val ⟨K,trivial⟩ = C := sorry
@@ -838,8 +853,6 @@ begin
 end
 
 -- should be pretty much only λ C, end_of component G kfinite C
-
-
 -- theorem `card_components_mon` saying htat `λ K, card (inf_components G K)` is monotone
 -- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components G K)` is finite
 -- theorem `finite_ends_card_eq` saying that if `ends` is finite, the cardinality is the sup

@@ -182,6 +182,12 @@ meta def positivity : tactic unit := focus1 $ do
   | ff, (nonnegative p) := pure p
   end >>= tactic.exact
 
+add_tactic_doc
+{ name := "positivity",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.positivity],
+  tags := ["arithmetic", "monotonicity", "finishing"] }
+
 end interactive
 
 variables {R : Type*}

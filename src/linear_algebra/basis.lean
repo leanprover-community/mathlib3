@@ -1114,7 +1114,7 @@ begin
   induction n with n rank_ih generalizing N,
   { suffices : N = ⊥,
     { rwa this },
-    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
+    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, le_zero_iff.mp (rank_le v hv)) },
   apply ih,
   intros N' N'_le x x_mem x_ortho,
   apply rank_ih,

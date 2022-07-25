@@ -88,7 +88,7 @@ not_iff_not.mpr hamming_dist_eq_zero
 
 /-- Corresponds to `dist_pos`. -/
 lemma hamming_dist_pos {x y : Π i, β i} : 0 < hamming_dist x y ↔ x ≠ y :=
-by rw [←hamming_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
+by rw [←hamming_dist_ne_zero, iff_not_comm, not_lt, le_zero_iff]
 
 @[simp] lemma hamming_dist_lt_one {x y : Π i, β i} : hamming_dist x y < 1 ↔ x = y :=
 by {rw nat.lt_one_iff, exact hamming_dist_eq_zero}

@@ -183,7 +183,7 @@ begin
   have hxp : 0 < x := zero_lt_one.trans hx,
 
   have hNp : 0 < N,
-  { by_contra' H, rw [nat.le_zero_iff.mp H] at hN, linarith },
+  { by_contra' H, rw [le_zero_iff.mp H] at hN, linarith },
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)

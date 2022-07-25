@@ -484,7 +484,7 @@ begin
     split_ifs,
     { rw part_enat.coe_le_iff,
       exact λ hn, or.inr (hn _) },
-    { simp only [true_and, not_lt, ne.def, not_false_iff, nat.le_zero_iff, hp.out.ne_one] at h,
+    { simp only [true_and, not_lt, ne.def, not_false_iff, le_zero_iff, hp.out.ne_one] at h,
       exact λ hn, or.inl h } },
   { rintro (rfl|h),
     { exact dvd_zero (p ^ n) },

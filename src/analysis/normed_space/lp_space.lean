@@ -28,7 +28,7 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
   `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_add_comm_group` structure.
   Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
   `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`, `lp.infty_normed_algebra`.
 
@@ -61,7 +61,7 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 noncomputable theory
 open_locale nnreal ennreal big_operators
 
-variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group (E i)]
+variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_comm_group (E i)]
 
 /-!
 ### `mem_ℓp` predicate
@@ -293,12 +293,12 @@ We choose to deal with this issue by making a type synonym for `Π i, E i` rathe
 subgroup itself, because this allows all the spaces `lp E p` (for varying `p`) to be subgroups of
 the same ambient group, which permits lemma statements like `lp.monotone` (below). -/
 @[derive add_comm_group, nolint unused_arguments]
-def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
+def pre_lp (E : α → Type*) [Π i, normed_add_comm_group (E i)] : Type* := Π i, E i
 
 instance pre_lp.unique [is_empty α] : unique (pre_lp E) := pi.unique_of_is_empty E
 
 /-- lp space -/
-def lp (E : α → Type*) [Π i, normed_group (E i)]
+def lp (E : α → Type*) [Π i, normed_add_comm_group (E i)]
   (p : ℝ≥0∞) : add_subgroup (pre_lp E) :=
 { carrier := {f | mem_ℓp f p},
   zero_mem' := zero_mem_ℓp,
@@ -456,8 +456,8 @@ begin
     simpa using lp.has_sum_norm hp f }
 end
 
-instance [hp : fact (1 ≤ p)] : normed_group (lp E p) :=
-normed_group.of_core _
+instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
+normed_add_comm_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
@@ -661,7 +661,7 @@ instance : non_unital_normed_ring (lp B ∞) :=
     ...                    ≤ ∥f∥ * ∥g∥
     : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
         (lp.norm_apply_le_norm ennreal.top_ne_zero g i) (norm_nonneg _) (norm_nonneg _)),
-  .. lp.normed_group }
+  .. lp.normed_add_comm_group }
 
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
 
@@ -905,7 +905,8 @@ begin
   have hp : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
   rw uniform_continuous_pi,
   intros i,
-  rw normed_group.uniformity_basis_dist.uniform_continuous_iff normed_group.uniformity_basis_dist,
+  rw normed_add_comm_group.uniformity_basis_dist.uniform_continuous_iff
+    normed_add_comm_group.uniformity_basis_dist,
   intros ε hε,
   refine ⟨ε, hε, _⟩,
   rintros f g (hfg : ∥f - g∥ < ε),
@@ -991,7 +992,7 @@ begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
   have hε' : {p : (lp E p) × (lp E p) | ∥p.1 - p.2∥ < ε} ∈ 𝓤 (lp E p),
-  { exact normed_group.uniformity_basis_dist.mem_of_mem hε },
+  { exact normed_add_comm_group.uniformity_basis_dist.mem_of_mem hε },
   refine (hF.eventually_eventually hε').mono _,
   rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, F n - f) (F l)∥ < ε),
   refine norm_le_of_tendsto (hn.mono (λ k hk, hk.le)) _,

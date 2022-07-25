@@ -2434,7 +2434,7 @@ begin
   { exact hf (measurable_set_singleton 0).compl },
 end
 
-lemma ae_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]
+lemma ae_measurable_with_density_iff {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
   {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
   ae_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ ae_measurable (λ x, (f x : ℝ) • g x) μ :=
@@ -2731,7 +2731,7 @@ by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
 
 section sigma_finite
 
-variables {E : Type*} [normed_group E] [measurable_space E]
+variables {E : Type*} [normed_add_comm_group E] [measurable_space E]
   [opens_measurable_space E]
 
 lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [sigma_finite (μ.trim hm)]

@@ -5,6 +5,7 @@ Authors: Filippo A. E. Nuccio
 -/
 
 -- import analysis.complex.circle
+import tactic.monotonicity
 import topology.compact_open
 import topology.homotopy.basic
 import topology.homotopy.path
@@ -21,6 +22,51 @@ lemma continuous_to_C_iff_uncurry (X Y Z : Type*) [topological_space X]
   [topological_space Y] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
   continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
 (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
+
+
+-- lemma exists_compact_superset' (α : Type*) [topological_space α] [locally_compact_space α]
+--   {U K : set α} (hK : is_compact K) (hU : is_open U) (h_UK : K ⊆ U) :
+--   ∃ K', is_compact K' ∧ K' ⊆ U :=
+-- begin
+--   obtain ⟨K', ⟨hK', h₀⟩⟩ := exists_compact_superset hK,
+--   use K',
+--   split,
+--   exact hK',
+--   -- rw subset_interior_iff at h₀,
+--   -- obtain ⟨W, hW₁, hW₂, hW₃⟩ := h₀,
+-- end
+
+example (A B C : set ℝ) : A ⊆ B → B ⊆ C → A ⊆ C := set.subset.trans
+
+--This is Prop. 9 of Chap. X, n. 4 of Bourbaki's *Topologie Générale*
+lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
+  [locally_compact_space β] [topological_space γ] :
+  continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
+begin
+  apply continuous_generated_from,
+  rintros M ⟨K, hK, U, hU, hM⟩,
+  apply is_open_iff_forall_mem_open.mpr,--put at the end?
+  rintros ⟨φ₀, ψ₀⟩ H,
+  simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+    set.mem_set_of_eq] at H,
+  obtain ⟨L, ⟨hL, hL_left⟩⟩ := exists_compact_superset (hK.image φ₀.2),
+  have hL_right : L ⊆ ψ₀ ⁻¹' U, sorry,
+  set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
+  have hV : is_open V, sorry,
+  have hV₀ : φ₀ ∈ V, sorry,
+  set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
+  have hW : is_open W, sorry,
+  have hW₀ : ψ₀ ∈ W, sorry,
+  use V ×ˢ W,
+  split,
+  { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
+    simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+    set.mem_set_of_eq],
+    rw ← set.image_subset_iff,
+    rw set.image_comp,
+    exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ,
+  },
+end
 
 end continuous_map
 
@@ -60,6 +106,8 @@ class H_space (X : Type u) [topological_space X]  :=
 
 notation ` ∨ `:65 := H_space.Hmul
 
+section topological_group_H_space
+
 instance topological_group_H_space (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
 { Hmul := function.uncurry has_mul.mul,
@@ -83,21 +131,16 @@ lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] 
 -- instance S3_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := sorry
 -- instance S7_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := sorry
 
+end topological_group_H_space
+
+section path_space_H_space
+
 variables {X : Type u} [topological_space X]
 
 notation ` Ω(` x `)` := path x x
 
 @[simp]
 lemma continuous_coe (x : X) : continuous (coe : Ω(x) → C(↥I, X)) := continuous_induced_dom
-
-@[ext]
-lemma ext_loop (x : X) (γ γ' : Ω(x) ) : γ = γ' ↔ (∀ t, γ t = γ' t) :=
-begin
-  split;
-  intro h,
-  { simp only [h, eq_self_iff_true, forall_const] },
-  { rw [← function.funext_iff] at h, exact path.ext h }
-end
 
 variable {x : X}
 
@@ -109,19 +152,14 @@ lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y] {g : Y → Ω
  continuous g ↔ continuous (↑g : Y → C(I,X)) :=
  ⟨λ h, continuous.comp (continuous_coe x) h, λ h, continuous_to_Ω_if_to_C h⟩
 
-lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y]
-[locally_compact_space Y] {g : Y → Ω(x)} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
+lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y] [locally_compact_space Y]
+  {g : Y → Ω(x)} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
   iff.intro ((λ h, (continuous_to_C_iff_uncurry Y I X ↑g).mp (continuous_to_Ω_iff_to_C.mp h)))
   (λ h, continuous_to_Ω_iff_to_C.mpr ((continuous_to_C_iff_uncurry Y I X ↑g).mpr h))
 
 
-lemma continuous_map.continuous_prod (X Y Z : Type*) [topological_space X] [topological_space Y] [locally_compact_space Y] [topological_space Z] : continuous (λ x : C(X, Y) × C(Y, Z), x.2.comp x.1) :=
-begin
-  sorry,
-end
-
-
-lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.extend (2 * x.2)) :=
+lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
+  x.1.1.extend (2 * x.2)) :=
 begin
   let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2)),
   have H : continuous η,
@@ -161,7 +199,6 @@ begin
     ← subtype.coe_lt_coe, ← set.Iio_def],
 end
 
-
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
   apply continuous.piecewise,
@@ -191,5 +228,6 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   left_Hmul_e := sorry,
   right_Hmul_e := sorry}
 
+end path_space_H_space
 
 end H_space

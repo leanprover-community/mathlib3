@@ -226,8 +226,7 @@ lemma Indep_fun.integrable_exp_mul_sum [is_probability_measure μ]
   integrable (λ ω, exp (t * (∑ i in s, X i) ω)) μ :=
 begin
   classical,
-  revert h_int,
-  refine finset.induction_on s (λ h, _) (λ i s hi_notin_s h_rec h_int, _),
+  induction s using finset.induction_on with i s hi_notin_s h_rec h_int,
   { simp only [pi.zero_apply, sum_apply, sum_empty, mul_zero, exp_zero],
     exact integrable_const _, },
   { have : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), exp (t * X i ω)) μ,
@@ -244,8 +243,7 @@ lemma Indep_fun.mgf_sum [is_probability_measure μ]
   mgf (∑ i in s, X i) μ t = ∏ i in s, mgf (X i) μ t :=
 begin
   classical,
-  revert h_int,
-  refine finset.induction_on s (λ h, _) (λ i s hi_notin_s h_rec h_int, _),
+  induction s using finset.induction_on with i s hi_notin_s h_rec h_int,
   { simp only [sum_empty, mgf_zero_fun, measure_univ, ennreal.one_to_real, prod_empty], },
   { have h_int' : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), exp (t * X i ω)) μ,
       from λ i hi, h_int i (mem_insert_of_mem hi),
@@ -261,8 +259,6 @@ lemma Indep_fun.cgf_sum [is_probability_measure μ]
   cgf (∑ i in s, X i) μ t = ∑ i in s, cgf (X i) μ t :=
 begin
   simp_rw cgf,
-  by_cases hμ : μ = 0,
-  { simp [hμ], },
   rw ← log_prod _ _ (λ j hj, _),
   { rw h_indep.mgf_sum h_meas h_int, },
   { exact (mgf_pos (h_int j hj)).ne', },

@@ -19,12 +19,8 @@ in `A`,
 (a * b) * a^2 = a * (b * a^2)
 ```
 i.e. the operators of multiplication by `a` and `a^2` commute. Every associative algebra can be
-equipped with a symmetrized multiplication (defined by `sym_alg`) making it into a commutative
-Jordan algebra. Jordan algebras arising this way are said to be special.
-
-
-equipped with a symmetrized multiplication (characterized by `sym_alg.sym_mul_sym`) making it into a commutative Jordan
-algebra. Jordan algebras arising this way are said to be special.
+equipped with a symmetrized multiplication (characterized by `sym_alg.sym_mul_sym`) making it into a
+commutative Jordan algebra. Jordan algebras arising this way are said to be special.
 
 There are also exceptional Jordan algebras which can be shown not to be the symmetrization of any
 associative algebra. The 3x3 matrices of octonions is the canonical example.

@@ -471,6 +471,9 @@ section name_me -- TODO
 variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
   (hVortho : orthogonal_family 𝕜 V)
   (hVtotal : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤)
+  {F : ι → submodule 𝕜 E}
+  (hFortho : @orthogonal_family 𝕜 E _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ))
+  (hFtotal : (⨆ i, F i).topological_closure = ⊤)
 
 def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
@@ -482,6 +485,16 @@ def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
       step₃ : lp (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 ≃ₗᵢ[𝕜] lp (λ (i : Σ (i : ι), α i), 𝕜) 2 :=
         (lp.curry_equivₗᵢ 2 (λ _ _, 𝕜) 𝕜).symm in
   step₁.trans $ step₂.trans step₃ }
+
+@[simp] lemma coe_collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
+  collected_hilbert_basis hVortho hVtotal v ia = V (ia.1) (v ia.1 ia.2) :=
+begin
+  sorry
+end
+
+def subordinate_hilbert_basis_span {α : ι → Type*} [∀ i, complete_space (F i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (F i))
 
 --@[irreducible] def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (V i)]
 --  (v_family : Π i, hilbert_basis (α i) 𝕜 (V i)) :

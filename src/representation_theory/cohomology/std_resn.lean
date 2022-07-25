@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
-import representation_theory.cohomology.group_ring
+import representation_theory.group_cohomology_resolution
 import algebra.category.Module.projective
 import category_theory.preadditive.projective_resolution
 import algebra.module.ulift
@@ -53,12 +53,12 @@ begin
   simp only [finsupp.map_domain_smul, finsupp.map_domain_single,
     finsupp.sum_single_index, zero_smul],
   unfold d_aux,
-  rw ←finsupp.map_domain_comp,
-  refl,
+  sorry,
+  --rw ←finsupp.map_domain_comp,
+  --refl,
 end
 
 variables (k G)
-#check finset.sum_product'
 
 def d_hom {i j : ℕ} (hj : i = j + 1) : ((fin i → G) →₀ k) →ₗ[k] ((fin j → G) →₀ k) :=
 finsupp.lift _ k (fin i → G) (d_aux k hj)

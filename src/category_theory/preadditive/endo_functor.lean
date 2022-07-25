@@ -5,47 +5,46 @@ Authors: Julian Kuelshammer
 -/
 
 import category_theory.preadditive.default
-import category_theory.monad.algebra
+import category_theory.endofunctor.algebra
 import category_theory.preadditive.additive_functor
 
 /-!
 # Preadditive structure on algebras over a monad
 
-If `C` is a preadditive categories and `T` is an additive monad on `C` then `algebra T` is also
-preadditive. Dually, if `U` is an additive comonad on `C` then `coalgebra U` is preadditive as well.
-
+If `C` is a preadditive categories and `F` is an additive endofunctor on `C` then `algebra F` is
+also preadditive. Dually, the category `coalgebra F` is also preadditive.
 -/
 
 universes v₁ u₁ -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
-variables (C : Type u₁) [category.{v₁} C] [preadditive C] (T : monad C)
-  [functor.additive (T : C ⥤ C)]
+variables (C : Type u₁) [category.{v₁} C] [preadditive C] (F : C ⥤ C)
+  [functor.additive (F : C ⥤ C)]
 
 open category_theory.limits preadditive
 
-/-- The category of algebras over an additive monad on a preadditive category is preadditive. -/
+/-- The category of algebras over an additive endofunctor on a preadditive category is preadditive.
+-/
 @[simps]
-instance monad.algebra_preadditive : preadditive (monad.algebra T) :=
-{ hom_group := λ F G,
-  { add := λ α β,
+instance endofunctor.algebra_preadditive : preadditive (endofunctor.algebra F) :=
+{ hom_group := λ A₁ A₂, { add := λ α β,
     { f := α.f + β.f,
-      h' := by simp only [functor.map_add, add_comp, monad.algebra.hom.h, comp_add] },
+      h' := by simp only [functor.map_add, add_comp, endofunctor.algebra.hom.h, comp_add] },
     zero :=
     { f := 0,
       h' := by simp only [functor.map_zero, zero_comp, comp_zero] },
     nsmul := λ n α,
     { f := n • α.f,
-      h' := by rw [functor.map_nsmul, nsmul_comp, monad.algebra.hom.h, comp_nsmul] },
+      h' := by rw [comp_nsmul, functor.map_nsmul, nsmul_comp, endofunctor.algebra.hom.h] },
     neg := λ α,
     { f := -α.f,
-      h' := by simp only [functor.map_neg, neg_comp, monad.algebra.hom.h, comp_neg] },
+      h' := by simp only [functor.map_neg, neg_comp, endofunctor.algebra.hom.h, comp_neg] },
     sub := λ α β,
     { f := α.f - β.f,
-      h' := by simp only [functor.map_sub, sub_comp, monad.algebra.hom.h, comp_sub] },
+      h' := by simp only [functor.map_sub, sub_comp, endofunctor.algebra.hom.h, comp_sub] },
     zsmul := λ r α,
     { f := r • α.f,
-      h' := by rw [functor.map_zsmul, zsmul_comp, monad.algebra.hom.h, comp_zsmul] },
+      h' := by rw [comp_zsmul, functor.map_zsmul, zsmul_comp, endofunctor.algebra.hom.h] },
     add_assoc := by { intros, ext, apply add_assoc },
     zero_add := by { intros, ext, apply zero_add },
     add_zero := by { intros, ext, apply add_zero },
@@ -61,32 +60,28 @@ instance monad.algebra_preadditive : preadditive (monad.algebra T) :=
   add_comp' := by { intros, ext, apply add_comp },
   comp_add' := by { intros, ext, apply comp_add } }
 
-instance monad.forget_additive : (monad.forget T).additive := {}
+instance algebra.forget_additive : (endofunctor.algebra.forget F).additive := {}
 
-variables (U : comonad C) [functor.additive (U : C ⥤ C)]
-
-/-- The category of coalgebras over an additive comonad on a preadditive category is preadditive. -/
 @[simps]
-instance comonad.coalgebra_preadditive : preadditive (comonad.coalgebra U) :=
-{ hom_group := λ F G,
-  { add := λ α β,
+instance endofunctor.coalgebra_preadditive : preadditive (endofunctor.coalgebra F) :=
+{ hom_group := λ A₁ A₂, { add := λ α β,
     { f := α.f + β.f,
-      h' := by simp only [functor.map_add, comp_add, comonad.coalgebra.hom.h, add_comp] },
+      h' := by simp only [functor.map_add, comp_add, endofunctor.coalgebra.hom.h, add_comp] },
     zero :=
     { f := 0,
-      h' := by simp only [functor.map_zero, comp_zero, zero_comp] },
+      h' := by simp only [functor.map_zero, zero_comp, comp_zero] },
     nsmul := λ n α,
     { f := n • α.f,
-      h' := by rw [functor.map_nsmul, comp_nsmul, comonad.coalgebra.hom.h, nsmul_comp] },
+      h' := by  rw [functor.map_nsmul, comp_nsmul, endofunctor.coalgebra.hom.h, nsmul_comp] },
     neg := λ α,
     { f := -α.f,
-      h' := by simp only [functor.map_neg, comp_neg, comonad.coalgebra.hom.h, neg_comp] },
+      h' := by simp only [functor.map_neg, comp_neg, endofunctor.coalgebra.hom.h, neg_comp] },
     sub := λ α β,
     { f := α.f - β.f,
-      h' := by simp only [functor.map_sub, comp_sub, comonad.coalgebra.hom.h, sub_comp] },
+      h' := by simp only [functor.map_sub, comp_sub, endofunctor.coalgebra.hom.h, sub_comp] },
     zsmul := λ r α,
     { f := r • α.f,
-      h' := by rw [functor.map_zsmul, comp_zsmul, comonad.coalgebra.hom.h, zsmul_comp] },
+      h' := by rw [functor.map_zsmul, comp_zsmul, endofunctor.coalgebra.hom.h, zsmul_comp] },
     add_assoc := by { intros, ext, apply add_assoc },
     zero_add := by { intros, ext, apply zero_add },
     add_zero := by { intros, ext, apply add_zero },
@@ -102,6 +97,6 @@ instance comonad.coalgebra_preadditive : preadditive (comonad.coalgebra U) :=
   add_comp' := by { intros, ext, apply add_comp },
   comp_add' := by { intros, ext, apply comp_add } }
 
-instance comonad.forget_additive : (comonad.forget U).additive := {}
+instance coalgebra.forget_additive : (endofunctor.coalgebra.forget F).additive := {}
 
 end category_theory

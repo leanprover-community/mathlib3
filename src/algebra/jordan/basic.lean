@@ -153,7 +153,7 @@ lemma two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add (a b : A) :
 begin
   rw ← sub_eq_zero,
   symmetry,
-  calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw commute.lie_eq (commute_lmul_lmul_sq (a + b))
+  calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw (commute_lmul_lmul_sq (a + b)).lie_eq
     ... = ⁅L a + L b, L (a * a + a * b + (b * a + b * b))⁆ :
       by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a * a) + L(a * b) + (L(a * b) + L(b * b))⁆ :

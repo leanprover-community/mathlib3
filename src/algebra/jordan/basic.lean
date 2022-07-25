@@ -144,7 +144,7 @@ add_monoid_hom.ext $ λ b, (is_jordan.lmul_lmul_comm_rmul _ _)
 @[simp] lemma commute_rmul_rmul_sq (a : A) : commute (R a) (R (a * a)) :=
 add_monoid_hom.ext $ λ b, (is_jordan.rmul_comm_rmul_rmul _ _).symm
 
-end lie
+end commute
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 

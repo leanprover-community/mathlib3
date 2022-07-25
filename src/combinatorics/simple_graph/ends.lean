@@ -344,6 +344,9 @@ end component
 
 
 def inf_components (K : finset V) := {C : set V | C ∈ components G K ∧ C.infinite}
+def fin_components (K : finset V) := {C : set V | C ∈ components G K ∧ C.finite}
+
+
 
 section inf_components
 
@@ -353,6 +356,8 @@ variables {K L L' M : finset V}
 
 
 lemma inf_components_subset (K : finset V) : inf_components G K ⊆ components G K := λ C h, h.1
+lemma fin_components_subset (K : finset V) : fin_components G K ⊆ components G K := λ C h, h.1
+
 
 lemma infinite_graph_to_inf_components_nonempty (Vinfinite : (@set.univ V).infinite) : (inf_components G K).nonempty :=
 begin
@@ -367,6 +372,42 @@ instance inf_components_finite [locally_finite G] : fintype (inf_components G K)
 def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
   ∀ x y ∈ D, c_o G K x y :=
 λ x xD y yD, connected_outside.monotone G K_sub_L x y (component.is_c_o G L D D_comp x xD y yD)
+
+def extend_conn_to_finite_comps [locally_finite G]
+  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ K ) :
+  {K' : finset V | K ⊆ K'
+                 ∧ (∀ x y ∈ K, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ K')
+                 ∧ (∀ C : components G K', C.val.infinite)
+  --               ∧ components G K' = inf_components G K
+  } :=
+begin
+  let finite_pieces : set V := ⋃₀ fin_components G K,
+  have : set.finite finite_pieces, by {
+    apply set.finite.sUnion,
+    {exact set.finite.subset (component.finite G K) (fin_components_subset G K)},
+    {rintros C Cgood, exact Cgood.2,}},
+
+  let K' := K ∪ this.to_finset,
+  use K',
+  simp,
+  split,
+  { exact finset.subset_union_left _ _,},
+  { split,
+    {sorry},
+    {sorry},
+  }
+
+end
+
+def extend_to_conn [preconnected G] [locally_finite G] (Knempty : K.nonempty) :
+  {K' : finset V | K ⊆ K'
+                 ∧ ∀ (x y ∈ K'), ∃ (w : G.walk x y), w.support.to_finset ⊆ K' } := sorry
+
+-- take any point v of G, and for each k in K, extend K with a path from v to k.
+-- To prove that it's finite, it's just a union of paths, hence finite
+-- To prove that it's connected, it's just a union of paths, hence connected
+-- To prove that it contains K, it's obvious, almost?
+
 
 
 -- TODO: maybe, define bwd_map for (potentially finite) components and then restrict it
@@ -519,7 +560,7 @@ begin
 end
 
 lemma nicely_arranged [locally_finite G] (H K : finset V)
-  (Knempty : K.nonempty) (Hnempty : H.nonempty)
+  (Hnempty : H.nonempty) (Knempty : K.nonempty)
   (E E' : inf_components G H) (En : E ≠ E')
   (F : inf_components G K)
   (H_F : (H : set V) ⊆ F.val)
@@ -560,6 +601,58 @@ begin
   },
 end
 
+lemma nicely_arranged_bwd_map_not_inj [locally_finite G] (H K : finset V)
+  (Hnempty : H.nonempty) (Knempty : K.nonempty)
+  (E : inf_components G H) (inf_comp_H_large : fintype.card (inf_components G H) ≥ 3)
+  (F : inf_components G K)
+  (H_F : (H : set V) ⊆ F.val)
+  (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map G (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
+begin
+  let E₁ : inf_components G H := sorry,
+  let E₂ : inf_components G H := sorry,
+  have : E ≠ E₁, by sorry,
+  have : E ≠ E₂, by sorry,
+  have : E₁ ≠ E₂, by sorry,
+  -- This follows from the cardinality, but not sure how to do that in lean
+  apply bwd_map_non_inj G K H F E₁ E₂ ‹E₁ ≠ E₂› _ _,
+  {exact nicely_arranged G H K Hnempty Knempty E E₁ ‹E ≠ E₁› F H_F K_E,},
+  {exact nicely_arranged G H K Hnempty Knempty E E₂ ‹E ≠ E₂› F H_F K_E,},
+end
+
+
+/-
+  This is the key part of Hopf-Freudenthal
+  Assuming this is proved:
+  As long as K has at least three infinite connected components, then so does K', and
+  bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
+-/
+lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
+  (K : finset V) (Knempty : K.nonempty)
+  (inf_comp_K_large : fintype.card (inf_components G K) ≥ 3) :
+  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
+begin
+  rcases @extend_to_conn V G _ K (sorry) _ Knempty with ⟨K'',KK'',K''conn⟩ ,
+  rcases @extend_conn_to_finite_comps V G _ K'' _ K''conn with ⟨K',KK',conn,finn⟩,
+  rcases auts K' with ⟨φ,φgood⟩,
+
+  let φK' := finset.image φ K',
+  let K'nempty := finset.nonempty.mono (KK''.trans KK') Knempty,
+  let φK'nempty := finset.nonempty.image K'nempty φ,
+  let L := K' ∪ φK',
+  use [K',L,KK''.trans KK',finset.subset_union_left  K' (φK')],
+
+
+
+  -- now use nicely_arranged_bwd_map_not_inj G K' φK' (K'nempty) (φK'nempty) _ _ _ _ _,
+  -- but need to construct correctly the needed pieces
+  -- have K' connected, hence, since disjoint from φK, must lie in a connected component outside of φK, and this is necessarily infinite
+  -- symmetrically φK in an infinite component outside of K.
+
+  sorry
+
+
+end
 
 
 end inf_components
@@ -765,79 +858,6 @@ end
   The construction to show this needs to extend each infinite component outside of K into an end.
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
-private def φ_fam (K : finset V) (φ : ℕ ≃ V) : ℕ → finset V := λ n, (K ∪ finset.image φ {j : ℕ | j < n}.to_finset)
-
-private lemma φ_fam_mon_succ (φ : ℕ ≃ V) (n : ℕ) : (φ_fam K φ n) ⊆ (φ_fam K φ n.succ) := sorry
-private lemma φ_fam_mon_add  (φ : ℕ ≃ V) (n k : ℕ) : (φ_fam K φ n) ⊆ (φ_fam K φ $ n+k) := sorry
-private lemma φ_fam_mon_le  (φ : ℕ ≃ V) {n m : ℕ} (n ≤ m) : (φ_fam K φ n) ⊆ (φ_fam K φ $ m) := sorry
-private lemma φ_fam_zero  (φ : ℕ ≃ V) : φ_fam K φ 0 = K := sorry
-private lemma φ_fam_cof (φ : ℕ ≃ V) :
-  ∀ F : finset V, ∃ n, F ⊆  φ_fam K φ n :=
-begin
-  rintros F,
-  have : ∃ M : ℕ, ∀ v ∈ F, φ.inv_fun v < M, by {
-    by_cases h :  (F.nonempty),
-    { rcases finset.exists_max_image F φ.inv_fun h with ⟨v,vF,vmax⟩,
-      use (φ.inv_fun v).succ,
-      rintros u uF,
-      exact lt_of_le_of_lt
-        (vmax u uF)
-        (lt_add_one (φ.inv_fun v)),
-    },
-    {use 0,rintros v vF, have := (h ⟨v, vF⟩),simp,exact this},
-  },
-  rcases this with ⟨M,Mtop⟩,
-  use M,
-  apply set.subset.trans _ (finset.subset_union_right K _),
-  rintros v vF,
-  simp *,
-  use (φ.inv_fun v),
-  split,
-  exact Mtop v vF,
-  exact φ.right_inv v,
-end
-
-
-def φ_fami [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) : (@fam V _) := begin
-  let lol := set.range (φ_fam K φ),
-  use lol,
-  { rintros L,
-    rcases φ_fam_cof φ L with ⟨n,ngood⟩,
-    let F := φ_fam K φ n,
-    have : F ∈ lol, by {simp,},
-    use F,
-    split,
-    exact ‹F ∈ lol›,
-    exact ngood,},
-end
-
-lemma φ_fami_total  [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) :
-  ∀ L L' : (φ_fami K φ).fam, L.val ⊆ L'.val ∨ L'.val ⊆ L.val := sorry
-
-def sub_φ_fami  [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) :=
-  { ℱ : set (finset V) | ℱ ⊆ (φ_fami K φ).fam ∧ ∀ F L : (φ_fami K φ).fam, L.val ⊆ F.val → F.val ∈ ℱ → L.val ∈ ℱ}
-
-def sub_sections [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) :=
-  Σ (ℱ : sub_φ_fami K φ),
-     {f : (Π F : ℱ.val, inf_components G F.val) | ∀ F F' : ℱ,
-                                               ∀ h : F.val ⊆ F'.val,
-                                                 bwd_map G h (f F') = f F}
-
-def sub_sect_order  [decidable_eq V] (K : finset V) (φ : ℕ ≃ V) (S S' : sub_sections G K φ) :=
-match S, S' with
-| ⟨ℱ,f⟩, ⟨ℱ',f'⟩ := ∃ (h : ℱ.val ⊆ ℱ'.val),
-                      ∀ (F : finset V), ∀ (k : F ∈ ℱ.val), f.val ⟨F,k⟩ = f'.val ⟨F,h k⟩
-end
-
-
-lemma end_of_component_φfam (φ : ℕ ≃ V) (C : inf_components G K) :
-  ends_for G (φ_fami K φ) :=
-begin
-  let 𝒞 := sub_sections G K φ,
-  -- use Zorn to construct a maximal sub_section, and prove that it must be all of φ_fami
-end
-
-
 
 lemma end_from_component [preconnected G] [locally_finite G] (K : finset V) (C : inf_components G K) :
   ∃ e : (ends G), e.val ⟨K,trivial⟩ = C := sorry
@@ -851,6 +871,13 @@ begin
   -- rcases end_from_component G K C with ⟨e,egood⟩,
   sorry,
 end
+
+lemma finite_ends_to_inj [preconnected G] [locally_finite G] (fin_ends : (ends G).finite) :
+  ∃ K : finset V, ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) := sorry
+-- Choose K maximizing `inf_components G K`.
+
+
+
 
 -- should be pretty much only λ C, end_of component G kfinite C
 -- theorem `card_components_mon` saying htat `λ K, card (inf_components G K)` is monotone

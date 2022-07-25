@@ -165,7 +165,7 @@ begin
       by abel
 end
 
-/-- Linearise the operator form of the Jordan axiom (`lie_L_L_sq`) by substituting in a → a + b + c
+/-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in a → a + b + c
 and expanding. When the Jordan axiom holds in all scalar extensions of `A`, an alternative proof is
 to substitute in a → a + λb + μc and equate coefficients of λμ.-/
 lemma two_lie_L_L_mul_add_lie_L_L_mul_add_lie_L_L_mul (a b c : A) :

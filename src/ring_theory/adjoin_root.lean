@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
+import algebra.distrib_smul
 import data.polynomial.field_division
 import linear_algebra.finite_dimensional
 import ring_theory.adjoin.basic
@@ -81,6 +82,21 @@ quotient.induction_on' x ih
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
 def of : R →+* adjoin_root f := (mk f).comp C
 
+instance [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] : has_smul S (adjoin_root f) :=
+submodule.quotient.has_smul' _
+
+instance [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] :
+  distrib_smul S (adjoin_root f) :=
+submodule.quotient.distrib_smul' _
+
+@[simp]
+lemma smul_mk [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] (a : S) (x : R[X]) :
+  a • mk f x = mk f (a • x) := rfl
+
+lemma smul_of [has_smul S R] [is_scalar_tower S R R] [distrib_smul S R] (a : S) (x : R) :
+  a • of f x = of f (a • x) :=
+by rw [of, ring_hom.comp_apply, ring_hom.comp_apply, smul_mk, polynomial.smul_C']
+
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
@@ -88,6 +104,20 @@ instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algeb
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
+
+instance adjoin_root.is_scalar_tower_right [has_smul S R] [distrib_smul S R] [is_scalar_tower S R R] :
+  is_scalar_tower S (adjoin_root f) (adjoin_root f) :=
+⟨begin
+  rintro x ⟨y⟩ ⟨z⟩,
+  simp only [submodule.quotient.quot_mk_eq_mk, algebra.id.smul_eq_mul],
+  -- we need to copy this lemma for `ideal.quotient`; will make this proof far easier.
+  rw [←submodule.quotient.mk_smul],
+  simp only [ideal.quotient.mk_eq_mk],
+  rw [←_root_.map_mul, ←_root_.map_mul],
+  -- also maybe a `mul_assoc` for the special cases of `is_scalar_tower`
+  simp only [←ideal.quotient.mk_eq_mk, ←algebra.id.smul_eq_mul],
+  rw [←submodule.quotient.mk_smul, is_scalar_tower.smul_assoc]
+end⟩
 
 instance [comm_semiring S] [comm_semiring K] [algebra S R] [algebra K R] [smul_comm_class S K R] :
   smul_comm_class S K (adjoin_root f) :=
@@ -209,8 +239,32 @@ variables [field K] {f : K[X]}
 instance span_maximal_of_irreducible [fact (irreducible f)] : (span {f}).is_maximal :=
 principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 
+noncomputable instance has_inv [fact (irreducible f)] : has_inv (adjoin_root f) :=
+{ ..ideal.quotient.field (span {f} : ideal K[X]) }
+
+@[simp] lemma of_inv [fact (irreducible f)] (x : K) : of f (x⁻¹) = (of f x)⁻¹ :=
+begin
+  unfold has_inv.inv field.inv adjoin_root.has_inv ideal.quotient.field,
+  split_ifs with h,
+  { show of f (x⁻¹) = 0, rw [(ring_hom.map_eq_zero _).mp h, inv_zero, map_zero] },
+  show of f (x⁻¹) = classical.some (ideal.quotient.exists_inv _),
+  conv_lhs { rw [← mul_one (of f (x⁻¹)), ← classical.some_spec (ideal.quotient.exists_inv h)] },
+  have : x ≠ 0 := mt (ring_hom.map_eq_zero _).mpr h,
+  rw [← mul_assoc, ← _root_.map_mul, inv_mul_cancel this, map_one, one_mul],
+end
+
+@[simp] lemma mk_C_rat_cast (x : ℚ) : mk f (C ↑x) = of f x :=
+rfl
+
 noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
-{ ..adjoin_root.comm_ring f,
+{ rat_cast := λ a, of f (a : K),
+  rat_cast_mk := λ a b h1 h2,
+    by rw [rat.cast_mk', _root_.map_mul, ring_hom.map_int_cast, of_inv, map_nat_cast],
+  qsmul := (•),
+  qsmul_eq_mul' := λ a x, adjoin_root.induction_on _ x (λ p,
+    by { rw [smul_mk, ← mk_C_rat_cast, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),
+  ..adjoin_root.has_inv,
+  ..adjoin_root.comm_ring f,
   ..ideal.quotient.field (span {f} : ideal K[X]) }
 
 lemma coe_injective (h : degree f ≠ 0) : function.injective (coe : K → adjoin_root f) :=
@@ -269,7 +323,7 @@ basis.of_equiv_fun
   map_add' := λ f₁ f₂, funext $ λ i,
     by simp only [(mod_by_monic_hom hg).map_add, coeff_add, pi.add_apply],
   map_smul' := λ f₁ f₂, funext $ λ i,
-    by simp only [(mod_by_monic_hom hg).map_smul, coeff_smul, pi.smul_apply, ring_hom.id_apply],
+    by simp only [(mod_by_monic_hom hg).map_smul, polynomial.coeff_smul, pi.smul_apply, ring_hom.id_apply],
   left_inv := λ f, induction_on g f (λ f, eq.symm $ mk_eq_mk.mpr $
     by { simp only [mod_by_monic_hom_mk, sum_mod_by_monic_coeff hg degree_le_nat_degree],
          rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],

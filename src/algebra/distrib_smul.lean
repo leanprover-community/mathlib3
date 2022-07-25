@@ -77,6 +77,15 @@ lemma polynomial.coeff_smul' {α K : Type*} [semiring K] [has_smul α K] [smul_z
   (a • x).coeff n = a • x.coeff n :=
 by { cases x, refl }
 
+-- TODO: replace the existing polynomial.smul_C lemma
+lemma polynomial.smul_C' {α K : Type*} [semiring K] [has_smul α K] [smul_zero_class α K] (a : α) (x : K) :
+  a • polynomial.C x = polynomial.C (a • x) :=
+begin
+  ext i,
+  rw [polynomial.coeff_smul', polynomial.coeff_C, polynomial.coeff_C],
+  split_ifs; simp [smul_zero_class.smul_zero]
+end
+
 instance polynomial.smul_zero_class {α K : Type*} [semiring K] [has_smul α K] [smul_zero_class α K] :
   smul_zero_class α K[X] :=
 { smul_zero := λ a, by { ext, exact smul_zero_class.smul_zero a } }
@@ -114,3 +123,10 @@ instance rat.distrib_smul {K : Type*} [division_ring K] : distrib_smul ℚ K :=
 
 instance rat.is_scalar_tower_right {K : Type*} [division_ring K] : is_scalar_tower ℚ K K :=
 ⟨λ a x y, by simp only [rat.smul_def, smul_eq_mul, mul_assoc]⟩
+
+lemma polynomial.rat_smul_eq_C_mul {K : Type*} [division_ring K] (a : ℚ) (f : K[X]) :
+  a • f = polynomial.C ↑a * f :=
+begin
+  ext i,
+  rw [polynomial.coeff_smul', polynomial.coeff_C_mul, rat.smul_def],
+end

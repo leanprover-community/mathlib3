@@ -168,7 +168,7 @@ end
 /-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in a → a + b + c
 and expanding. When the Jordan axiom holds in all scalar extensions of `A`, an alternative proof is
 to substitute in a → a + λb + μc and equate coefficients of λμ.-/
-lemma two_lie_L_L_mul_add_lie_L_L_mul_add_lie_L_L_mul (a b c : A) :
+lemma two_nsmul_lie_lmul_lmul_add_add_eq_zero (a b c : A) :
   (2:ℤ)•(⁅L a, L (b * c)⁆ + ⁅L b, L (a * c)⁆ + ⁅L c, L (a * b)⁆) = 0 :=
 begin
   symmetry,

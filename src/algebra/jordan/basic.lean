@@ -87,20 +87,20 @@ class is_jordan [has_mul A] :=
 /-- A commutative Jordan multipication -/
 class is_comm_jordan [has_mul A] :=
 (mul_comm : ∀ a b : A, a * b = b * a)
-(jordan : ∀ a b : A, (a * b) * (a * a) = a * (b * (a *a)))
+(lmul_comm_rmul_rmul : ∀ a b : A, (a * b) * (a * a) = a * (b * (a * a)))
 
 /-- A (commutative) Jordan multiplication is also a Jordan multipication -/
 @[priority 100] -- see Note [lower instance priority]
 instance is_comm_jordan.to_is_jordan [has_mul A] [is_comm_jordan A] : is_jordan A :=
 { lmul_comm_rmul := λ a b, by rw [is_comm_jordan.mul_comm, is_comm_jordan.mul_comm a b],
   lmul_lmul_comm_lmul := λ a b, by rw [is_comm_jordan.mul_comm (a * a) (a * b),
-    is_comm_jordan.jordan, is_comm_jordan.mul_comm b (a * a)],
-  lmul_comm_rmul_rmul := is_comm_jordan.jordan,
+    is_comm_jordan.lmul_comm_rmul_rmul, is_comm_jordan.mul_comm b (a * a)],
+  lmul_comm_rmul_rmul := is_comm_jordan.lmul_comm_rmul_rmul,
   lmul_lmul_comm_rmul := λ a b, by rw [is_comm_jordan.mul_comm (a * a) (b * a),
-    is_comm_jordan.mul_comm b a, is_comm_jordan.jordan, is_comm_jordan.mul_comm,
+    is_comm_jordan.mul_comm b a, is_comm_jordan.lmul_comm_rmul_rmul, is_comm_jordan.mul_comm,
     is_comm_jordan.mul_comm b (a * a)],
-  rmul_comm_rmul_rmul := λ a b, by rw [is_comm_jordan.mul_comm b a, is_comm_jordan.jordan,
-    is_comm_jordan.mul_comm], }
+  rmul_comm_rmul_rmul := λ a b, by rw [is_comm_jordan.mul_comm b a,
+    is_comm_jordan.lmul_comm_rmul_rmul, is_comm_jordan.mul_comm], }
 
 /-- Semigroup multiplication satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]
@@ -114,7 +114,7 @@ instance semigroup.is_jordan [semigroup A] : is_jordan A :=
 @[priority 100] -- see Note [lower instance priority]
 instance comm_semigroup.is_comm_jordan [comm_semigroup A] : is_comm_jordan A :=
 { mul_comm := mul_comm,
-  jordan := λ a b, mul_assoc _ _ _, }
+  lmul_comm_rmul_rmul := λ a b, mul_assoc _ _ _, }
 
 local notation `L` := add_monoid.End.mul_left
 local notation `R` := add_monoid.End.mul_right

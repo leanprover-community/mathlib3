@@ -327,6 +327,12 @@ begin
     exact λ j _ hj, not_le.2 (hib j) hj },
   simp only [← heq, hx i],
 end
-#check condexp_mono
+
+lemma submartingale.bdd_above_iff_exists_tendsto [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hlef : 0 ≤ f) (hf0 : f 0 = 0)
+  (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) :
+  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) ↔ ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+by filter_upwards [hf.exists_tendsto_of_bdd_above hlef hf0 hbdd] with x hx using
+  ⟨hx, λ ⟨c, hc⟩, hc.bdd_above_range⟩
 
 end measure_theory

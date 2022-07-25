@@ -163,7 +163,7 @@ end bornology
 
 section uniform_add_group
 
-variables (𝕜) [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables (𝕜) [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
 
 lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
@@ -194,7 +194,7 @@ end uniform_add_group
 
 section vonN_bornology_eq_metric
 
-variables (𝕜 E) [nondiscrete_normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E]
+variables (𝕜 E) [nontrivially_normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 namespace normed_space
 
@@ -224,13 +224,17 @@ begin
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
 
-lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = infer_instance :=
+/-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
+metric bornology. -/
+lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = pseudo_metric_space.to_bornology :=
 begin
   rw bornology.ext_iff_is_bounded,
   intro s,
   rw bornology.is_bounded_iff_is_vonN_bounded,
   exact is_vonN_bounded_iff 𝕜 E s
 end
+
+variable (𝕜)
 
 lemma is_bounded_iff_subset_smul_ball {s : set E} :
   bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.ball 0 1 :=
@@ -248,13 +252,12 @@ end
 lemma is_bounded_iff_subset_smul_closed_ball {s : set E} :
   bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.closed_ball 0 1 :=
 begin
-  rw ← is_vonN_bounded_iff 𝕜,
   split,
-  { intros h,
-    rcases h (metric.closed_ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
-    rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
-    exact ⟨a, hρball a ha.le⟩ },
-  { rintros ⟨a, ha⟩,
+  { rw is_bounded_iff_subset_smul_ball 𝕜,
+    exact exists_imp_exists
+      (λ a ha, ha.trans $ set.smul_set_mono $ metric.ball_subset_closed_ball) },
+  { rw ← is_vonN_bounded_iff 𝕜,
+    rintros ⟨a, ha⟩,
     exact ((is_vonN_bounded_closed_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
 end
 

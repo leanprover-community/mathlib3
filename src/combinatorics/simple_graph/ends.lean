@@ -230,9 +230,14 @@ begin
   rcases conn x hx y hy with ⟨w,wgood⟩,
   use w,
   exact disjoint_coe.mp (set.disjoint_of_subset_left wgood dis).symm,
-
 end
 
+lemma conn_sub_of_connected_disjoint (P : set V)
+  (Pnempty : set.nonempty P)
+  (dis : disjoint P K)
+  (conn : ∀ x y ∈ P, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ P) :
+  ∃ C : set V, C ∈ components G K ∧ P ⊆ C :=
+conn_sub G K P Pnempty (component.c_o_of_connected_disjoint G K P dis conn)
 
 
 --only used in next lemma
@@ -575,15 +580,10 @@ begin
     exact En (subtype.eq this),},
   {
     have : ∃ F' : inf_components G K, E'.val ⊆ F'.val, by {
-      have : E'.val.nonempty, from set.infinite.nonempty E'.prop.2,
-
-      have E'_co : ∀ x y ∈ E'.val, c_o G K x y, by {
-        apply component.c_o_of_connected_disjoint G K E'.val,
-        {sorry}, -- the assumption h means E'.val does not intersect K, hence disjoint
-        {exact component.is_connected G H E' E'.prop.1 }
-      },
-
-      rcases component.conn_sub G K E'.val this E'_co with ⟨F',F'comp,sub⟩,
+      rcases component.conn_sub_of_connected_disjoint G K E'.val
+             (set.infinite.nonempty E'.prop.2)
+             (sorry) -- empty intersection means disjoint
+             (component.is_connected G H E' E'.prop.1) with ⟨F',F'comp,sub⟩,
       have F'inf : F'.infinite, from set.infinite.mono sub E'.prop.2,
       use ⟨F',F'comp,F'inf⟩,
       exact sub,
@@ -648,6 +648,8 @@ begin
   -- but need to construct correctly the needed pieces
   -- have K' connected, hence, since disjoint from φK, must lie in a connected component outside of φK, and this is necessarily infinite
   -- symmetrically φK in an infinite component outside of K.
+
+  -- DO NOT to use conn_sub_of_connected_disjoint : this ensures that K' will lie in a connected component, and for φK' too!
 
   sorry
 

@@ -29,10 +29,10 @@ This file exists mainly to avoid importing `is_R_or_C` in the main normed space 
 open metric
 
 @[simp, is_R_or_C_simps] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
-  {E : Type*} [normed_group E] {z : E} : ∥(∥z∥ : 𝕜)∥ = ∥z∥ :=
+  {E : Type*} [normed_add_comm_group E] {z : E} : ∥(∥z∥ : 𝕜)∥ = ∥z∥ :=
 by { unfold_coes, simp only [norm_algebra_map', ring_hom.to_fun_eq_coe, norm_norm], }
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
 @[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : 𝕜) • x∥ = 1 :=

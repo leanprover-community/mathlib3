@@ -663,7 +663,7 @@ begin
   by_cases hn : n < g 0,
   { apply hf1.2 m n mn,
     rwa [if_pos hn, if_pos (mn.trans hn)] at hmn },
-  { obtain ⟨n', rfl⟩ := le_iff_exists_add.1 (not_lt.1 hn),
+  { obtain ⟨n', rfl⟩ := exists_add_of_le (not_lt.1 hn),
     rw [if_neg hn, add_comm (g 0) n', add_tsub_cancel_right] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),

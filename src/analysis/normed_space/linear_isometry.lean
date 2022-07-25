@@ -19,7 +19,7 @@ the star-linear versions.
 We also prove some trivial lemmas and provide convenience constructors.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_group` and we specialize to `normed_group` when needed.
+theory for `seminormed_add_comm_group` and we specialize to `normed_add_comm_group` when needed.
 -/
 open function set
 
@@ -37,13 +37,13 @@ variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F : Type*} [semiring R] [semiring R
   [ring_hom_comp_triple σ₂₃ σ₃₄ σ₂₄] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
   [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁] [ring_hom_comp_triple σ₄₂ σ₂₁ σ₄₁]
   [ring_hom_comp_triple σ₄₃ σ₃₂ σ₄₂] [ring_hom_comp_triple σ₄₃ σ₃₁ σ₄₁]
-  [semi_normed_group E] [semi_normed_group E₂] [semi_normed_group E₃] [semi_normed_group E₄]
-  [module R E] [module R₂ E₂] [module R₃ E₃] [module R₄ E₄]
-  [normed_group F] [module R F]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [seminormed_add_comm_group E₃]
+  [seminormed_add_comm_group E₄] [module R E] [module R₂ E₂] [module R₃ E₃] [module R₄ E₄]
+  [normed_add_comm_group F] [module R F]
 
 /-- A `σ₁₂`-semilinear isometric embedding of a normed `R`-module into an `R₂`-module. -/
-structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [semi_normed_group E]
-  [semi_normed_group E₂] [module R E] [module R₂ E₂] extends E →ₛₗ[σ₁₂] E₂ :=
+structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] extends E →ₛₗ[σ₁₂] E₂ :=
 (norm_map' : ∀ x, ∥to_linear_map x∥ = ∥x∥)
 
 notation E ` →ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry σ₁₂ E E₂
@@ -81,8 +81,8 @@ fun_like.coe_injective
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
-def simps.apply (σ₁₂ : R →+* R₂) (E E₂ : Type*) [semi_normed_group E]
-  [semi_normed_group E₂] [module R E] [module R₂ E₂] (h : E →ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
+def simps.apply (σ₁₂ : R →+* R₂) (E E₂ : Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] (h : E →ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
 
 initialize_simps_projections linear_isometry (to_linear_map_to_fun → apply)
 
@@ -268,8 +268,8 @@ end submodule
 
 /-- A semilinear isometric equivalence between two normed vector spaces. -/
 structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
-  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [semi_normed_group E] [semi_normed_group E₂]
-  [module R E] [module R₂ E₂] extends E ≃ₛₗ[σ₁₂] E₂ :=
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] extends E ≃ₛₗ[σ₁₂] E₂ :=
 (norm_map' : ∀ x, ∥to_linear_equiv x∥ = ∥x∥)
 
 notation E ` ≃ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry_equiv σ₁₂ E E₂
@@ -422,12 +422,13 @@ def symm : E₂ ≃ₛₗᵢ[σ₂₁] E :=
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
 def simps.apply (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
-  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [semi_normed_group E] [semi_normed_group E₂]
-  [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
 
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
-  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [semi_normed_group E] [semi_normed_group E₂]
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂]
   [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E₂ → E := h.symm
 
 initialize_simps_projections linear_isometry_equiv

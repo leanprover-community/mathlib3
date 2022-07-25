@@ -575,8 +575,9 @@ end
 
 /- The above instance applies in particular to show that an additive Haar measure on a nontrivial
 finite-dimensional real vector space has no atom. -/
-example {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E] [finite_dimensional ℝ E]
-  [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
+example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E]
+  [finite_dimensional ℝ E] [measurable_space E] [borel_space E] (μ : measure E)
+  [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
 
 end

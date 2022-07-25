@@ -289,10 +289,10 @@ end formal_multilinear_series
 end topological
 
 variables [nontrivially_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F]
-  [normed_group G] [normed_space 𝕜 G]
-  [normed_group H] [normed_space 𝕜 H]
+  [normed_add_comm_group E] [normed_space 𝕜 E]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group G] [normed_space 𝕜 G]
+  [normed_add_comm_group H] [normed_space 𝕜 H]
 
 namespace formal_multilinear_series
 

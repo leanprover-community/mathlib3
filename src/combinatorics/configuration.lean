@@ -129,7 +129,7 @@ begin
     finset.one_lt_card_iff.mp (nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hs₀, hs₁⟩),
     exact (eq_or_eq (hp₁ l₁ hl₁) (hp₂ l₁ hl₁) (hp₁ l₂ hl₂) (hp₂ l₂ hl₂)).resolve_right hl₃ },
   by_cases hs₃ : sᶜ.card = 0,
-  { rw [hs₃, nat.le_zero_iff],
+  { rw [hs₃, le_zero_iff],
     rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
         eq_comm, finset.card_eq_iff_eq_univ] at hs₃ ⊢,
     rw hs₃,

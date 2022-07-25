@@ -718,7 +718,7 @@ begin
   apply nat.mod_eq_of_lt,
   apply nat.sub_lt (fact.out (0 < n)),
   contrapose! h,
-  rwa [nat.le_zero_iff, val_eq_zero] at h,
+  rwa [le_zero_iff, val_eq_zero] at h,
 end
 
 /-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,

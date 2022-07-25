@@ -42,7 +42,7 @@ The main definitions are the
  * `measure_theory.finite_measure.tendsto_iff_forall_integral_tendsto` and
    `measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto`: Convergence of finite
    measures and probability measures is characterized by the convergence of integrals of all
-   bounded continuous functions. This shows that the given definition of topology corresponds to
+   bounded continuous functions. This shows that the chosen definition of topology coincides with
    the common textbook definition of weak convergence of measures.
    Similar characterizations by the convergence of integrals (in the `measure_theory.lintegral`
    sense) of all bounded continuous nonnegative functions are

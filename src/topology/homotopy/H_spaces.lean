@@ -147,27 +147,37 @@ begin
   exact (homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm).mp (H.comp continuous_snd),
 end
 
+lemma closure_I_mem (t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ 1 / 2} ↔ (t : ℝ) ≤ 1 /2 := by {rw [(is_closed_le
+  continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq], apply_instance}
+
+lemma interior_I_not_mem (t : I) : t ∉ interior {s : ↥I | (s : ℝ) ≤ 1 / 2} ↔ (1 / 2 : ℝ) ≤ t :=
+begin
+  let halfI : I := ⟨1 / 2, by {simp only [one_div, inv_nonneg, zero_le_bit0, zero_le_one]}
+    , le_of_lt (one_half_lt_one) ⟩,
+  have : {s : ↥I | (s : ℝ) ≤ 1 / 2} = set.Iic (halfI) := rfl,
+  have H_ne : (set.Ioi halfI).nonempty := ⟨1, by {simpa only [set.mem_Ioi, ← subtype.coe_lt_coe]
+    using one_half_lt_one}⟩,
+  simp only [this, interior_Iic' H_ne, not_lt, subtype.coe_mk, set.mem_set_of_eq,
+    ← subtype.coe_lt_coe, ← set.Iio_def],
+end
+
+
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
   apply continuous.piecewise,
   { rintros ⟨_, t⟩ ⟨h_left, h_right⟩,
-    have h_eq : (λ (i : (path x x × path x x) × I), (i.snd : ℝ) ≤ (1 / 2)) =  (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
+    have h_eq : (λ (i : (path x x × path x x) × I), (i.snd : ℝ) ≤ (1 / 2)) =
+      (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
     { ext p,
-      change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ ((@set.univ (Ω(x) × Ω(x))) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2}),
+      change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ (@set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2}),
       simp only [set.mem_prod, set.mem_univ, set.mem_set_of_eq, true_and] },
     erw h_eq at h_left h_right,
     simp only [closure_prod_eq, closure_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ,
       true_and] at h_left,
-    simp only [interior_prod_eq, interior_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h_right,
-
-    have H : (t : ℝ) = 1 / 2,
-    rw closure_induced at h_left,
-    -- haveI : order_closed_topology I, sorry,
-    have := @is_closed_le' ℝ _ _ _ (1 / 2),
-    unfold coe at h_left,
-    -- simp * at *,
-    sorry,
-
+    simp only [interior_prod_eq, interior_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and]
+       at h_right,
+    have H := eq_of_ge_of_not_gt ((interior_I_not_mem t).mp h_right)
+      (not_lt_of_le $ (closure_I_mem t).mp h_left),
     simp only [H, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, unit_interval.mk_one,
       path.target, sub_self, set.Icc_extend_left, unit_interval.mk_zero, path.source, one_div] },
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],

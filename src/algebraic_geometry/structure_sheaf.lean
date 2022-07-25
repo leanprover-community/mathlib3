@@ -358,7 +358,8 @@ by convert is_localization.mk'_mul _ f₁ f₂ ⟨g₁, hu₁ x x.2⟩ ⟨g₂, 
 
 lemma const_ext {f₁ f₂ g₁ g₂ : R} {U hu₁ hu₂} (h : f₁ * g₂ = f₂ * g₁) :
   const R f₁ g₁ U hu₁ = const R f₂ g₂ U hu₂ :=
-subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq h.symm
+subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq
+  (by rw [mul_comm, subtype.coe_mk, ←h, mul_comm, subtype.coe_mk])
 
 lemma const_congr {f₁ f₂ g₁ g₂ : R} {U hu} (hf : f₁ = f₂) (hg : g₁ = g₂) :
   const R f₁ g₁ U hu = const R f₂ g₂ U (hg ▸ hu) :=
@@ -578,14 +579,14 @@ begin
   -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
   -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
   let I : ideal R :=
-  { carrier := {r : R | a * d * r = c * b * r},
-    zero_mem' := by simp only [set.mem_set_of_eq, mul_zero],
-    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [mul_add, hr₁, hr₂] },
-    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
+  { carrier := {r : R | r * (a * d) = r * (c * b)},
+    zero_mem' := by simp only [set.mem_set_of_eq, zero_mul],
+    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [add_mul, hr₁, hr₂] },
+    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
   { cases this with n hn,
-    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩ },
+    exact ⟨⟨f ^ n, n, rfl⟩, by simpa only [subtype.coe_mk, mul_comm d, mul_comm b]⟩, },
   rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
   intros p hfp,
   contrapose hfp,
@@ -593,7 +594,7 @@ begin
   have := congr_fun (congr_arg subtype.val h_eq) ⟨p,hfp⟩,
   rw [const_apply, const_apply, is_localization.eq] at this,
   cases this with r hr,
-  exact ⟨r.1, hr, r.2⟩
+  exact ⟨r.1, by simpa only [subtype.coe_mk, mul_comm d, mul_comm b] using hr, r.2⟩
 end
 
 /-

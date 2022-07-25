@@ -25,6 +25,7 @@ be satisfied by itself and all stricter types.
 ## References
 
 * [Jacobson, Structure of Rings][Jacobson1956]
+* [McCrimmon, A taste of Jordan algebras][mccrimmon2004]
 
 ## Tags
 

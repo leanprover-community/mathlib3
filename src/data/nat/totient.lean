@@ -355,17 +355,13 @@ lemma totient_dvd_of_dvd (a b : ℕ) (h : a ∣ b) : φ a ∣ φ b :=
 begin
   rcases eq_or_ne a 0 with rfl | ha0, { simp [zero_dvd_iff.1 h] },
   rcases eq_or_ne b 0 with rfl | hb0, { simp },
-  have hab : a.factors.to_finset ⊆ b.factors.to_finset,
+  have hab' : a.factorization.support ⊆ b.factorization.support,
   { intro p,
-    simp only [list.mem_to_finset],
+    simp only [support_factorization, list.mem_to_finset],
     apply factors_subset_of_dvd h hb0 },
-  have hab' : a.factorization.support ⊆ b.factorization.support, { sorry },
   rw [totient_eq_prod_factorization ha0, totient_eq_prod_factorization hb0],
-  apply finsupp.prod_dvd_prod_of_subset_of_dvd hab',
-  intros p hp,
-  refine mul_dvd_mul _ dvd_rfl,
-  apply pow_dvd_pow p,
-  exact tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1,
+  refine finsupp.prod_dvd_prod_of_subset_of_dvd hab' (λ p hp, mul_dvd_mul _ dvd_rfl),
+  exact pow_dvd_pow p (tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1),
 end
 
 end nat

@@ -97,7 +97,7 @@ instance is_comm_jordan.to_is_jordan [has_mul A] [is_comm_jordan A] : is_jordan 
     is_comm_jordan.jordan, is_comm_jordan.mul_comm b (a * a)],
   lmul_comm_rmul_rmul := λ a b, by rw [is_comm_jordan.mul_comm, ←is_comm_jordan.jordan,
     is_comm_jordan.mul_comm],
-  lmul_lmul_comm_rmul :=  λ a b, by rw [is_comm_jordan.mul_comm (a * a) (b * a),
+  lmul_lmul_comm_rmul := λ a b, by rw [is_comm_jordan.mul_comm (a * a) (b * a),
     is_comm_jordan.mul_comm b a, is_comm_jordan.jordan, is_comm_jordan.mul_comm,
     is_comm_jordan.mul_comm b (a * a)],
   rmul_comm_rmul_rmul := λ a b, by rw [is_comm_jordan.mul_comm b a, is_comm_jordan.jordan,

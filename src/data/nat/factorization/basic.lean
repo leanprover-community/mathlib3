@@ -317,7 +317,7 @@ lemma mul_ord_proj {a b : ℕ} (p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
 by simp [factorization_mul ha hb, pow_add]
 
 lemma mul_ord_compl (a b p : ℕ) :
-  ord_compl[p] a * ord_compl[p] b = ord_compl[p] (a*b) :=
+  ord_compl[p] (a*b) = ord_compl[p] a * ord_compl[p] b :=
 begin
   rcases eq_or_ne a 0 with rfl | ha, { simp },
   rcases eq_or_ne b 0 with rfl | hb, { simp },

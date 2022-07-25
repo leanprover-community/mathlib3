@@ -1471,8 +1471,9 @@ have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
 by simp_rw [← this hd, ← this hd.symm,
   add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
 
-lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] {f1 f2 : α →₀ M} {g1 g2 : α → M → ℕ}
-  (h1 : f1.support ⊆ f2.support) (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
+lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] [comm_monoid N]
+  {f1 f2 : α →₀ M} {g1 g2 : α → M → N} (h1 : f1.support ⊆ f2.support)
+  (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
   f1.prod g1 ∣ f2.prod g2 :=
 begin
   simp only [finsupp.prod, finsupp.prod_mul],

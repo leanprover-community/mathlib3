@@ -369,8 +369,6 @@ begin
   simpa [hp.factorization] using h p,
 end
 
-
-
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
   a.factorization ≤ (a * b).factorization :=
 begin
@@ -420,8 +418,7 @@ lemma dvd_ord_proj_of_dvd {n p : ℕ} (hn : n ≠ 0) (pp : p.prime) (h : p ∣ n
   p ∣ ord_proj[p] n :=
 dvd_pow_self p (prime.factorization_pos_of_dvd pp hn h).ne'
 
--- TODO: Rename this to `not_dvd_ord_compl`
-lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+lemma not_dvd_ord_compl {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   ¬p ∣ ord_compl[p] n :=
 begin
   rw [nat.prime.dvd_iff_one_le_factorization hp (ord_compl_pos p hn).ne'],
@@ -431,7 +428,7 @@ end
 
 lemma coprime_of_ord_compl {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   coprime p (ord_compl[p] n) :=
-(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
+(or_iff_left (not_dvd_ord_compl hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma factorization_ord_compl (n p : ℕ) :
   (ord_compl[p] n).factorization = n.factorization.erase p :=
@@ -440,7 +437,7 @@ begin
   by_cases pp : p.prime, swap, { simp [pp] },
   ext q,
   rcases eq_or_ne q p with rfl | hqp,
-  { simp only [finsupp.erase_same, factorization_eq_zero_iff', not_dvd_div_pow_factorization pp hn],
+  { simp only [finsupp.erase_same, factorization_eq_zero_iff', not_dvd_ord_compl pp hn],
     simp },
   { rw [finsupp.erase_ne hqp, factorization_div (ord_proj_dvd n p)],
     simp [pp.factorization, hqp.symm] },

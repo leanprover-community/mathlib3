@@ -34,7 +34,7 @@ begin
   { let a := q / (r ^ n),
     /- If `r` is prime, we can write it as `r = a * q^n` ... -/
     have q_eq_a_mul_rn : q = r ^ n * a := by rw nat.mul_div_cancel' (nat.ord_proj_dvd q r),
-    have r_ne_dvd_a := nat.not_dvd_div_pow_factorization r_prime q_pos,
+    have r_ne_dvd_a := nat.not_dvd_ord_compl r_prime q_pos,
 
     have rn_dvd_q: r ^ n ∣ q := ⟨a, q_eq_a_mul_rn⟩,
     rw mul_comm at q_eq_a_mul_rn,

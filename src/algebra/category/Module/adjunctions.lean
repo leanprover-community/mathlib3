@@ -254,29 +254,29 @@ def lift (F : C ⥤ D) : Free R C ⥤ D :=
   map_id' := by { dsimp [category_theory.category_Free], simp },
   map_comp' := λ X Y Z f g, begin
     apply finsupp.induction_linear f,
-    { simp only [limits.zero_comp, sum_zero_index] },
+    { simp, },
     { intros f₁ f₂ w₁ w₂,
       rw add_comp,
       rw [finsupp.sum_add_index, finsupp.sum_add_index],
-      { simp only [w₁, w₂, add_comp] },
-      { intros, rw zero_smul },
+      { simp [w₁, w₂, add_comp], },
+      { simp, },
       { intros, simp only [add_smul], },
-      { intros, rw zero_smul },
+      { simp, },
       { intros, simp only [add_smul], }, },
     { intros f' r,
       apply finsupp.induction_linear g,
-      { simp only [limits.comp_zero, sum_zero_index] },
+      { simp, },
       { intros f₁ f₂ w₁ w₂,
         rw comp_add,
         rw [finsupp.sum_add_index, finsupp.sum_add_index],
-        { simp only [w₁, w₂, comp_add], },
-        { intros, rw zero_smul },
+        { simp [w₁, w₂, add_comp], },
+        { simp, },
         { intros, simp only [add_smul], },
-        { intros, rw zero_smul },
+        { simp, },
         { intros, simp only [add_smul], }, },
       { intros g' s,
         erw single_comp_single,
-        simp [mul_comm r s, mul_smul] } }
+        simp [mul_comm r s, mul_smul], } }
   end, }
 
 @[simp]
@@ -341,3 +341,70 @@ ext R (α.trans (embedding_lift_iso R F).symm)
 end Free
 
 end category_theory
+
+namespace change_of_rings
+
+universes u₁ u₂
+
+namespace restriction_of_scalars
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+variable (M : Module S)
+
+/--Any `S`-module M is also an `R`-module via a ring homomorphism `f : R ⟶ S` by defining
+`r • m := f r • m`. This is called restriction of scalars. -/
+def obj' : Module R :=
+{ carrier := M,
+  is_add_comm_group := infer_instance,
+  is_module := module.comp_hom M f }
+
+section
+
+include f
+
+/--The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m`
+-/
+protected def has_smul : has_smul R M :=
+begin
+  haveI : module R M := (obj' f M).is_module,
+  apply_instance
+end
+
+end
+
+localized "notation r ` r•[` f `] ` m :=
+  @@has_smul.smul (restriction_of_scalars.has_smul f _) r m"
+  in change_of_rings
+
+@[simp] lemma smul_def (r : R) (m : M) :
+  (r r•[f] m) = f r • m := rfl
+
+/--
+Given an `S`-linear map `g : M → M'` between `S`-modules, `g` is also `R`-linear between `M` and
+`M'` by means of restriction of scalars.
+-/
+@[simps] def map' {M M' : Module S} (g : M ⟶ M') :
+  obj' f M ⟶ obj' f M' :=
+{ map_smul' := λ r (x : M), by simp,
+  ..g }
+
+private lemma map_id' : map' f (𝟙 M) = 𝟙 _ := linear_map.ext $ λ (m : M), rfl
+
+private lemma map_comp' {M M' M'' : Module S} (g : M ⟶ M') (h : M' ⟶ M'') :
+  map' f (g ≫ h) = map' f g ≫ map' f h :=
+linear_map.ext $ λ (x : M), rfl
+
+/--
+The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
+* `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
+* `S`-linear map is also `R`-linear
+-/
+@[simps] protected def functor : Module S ⥤ Module R :=
+{ obj := obj' f,
+  map := λ _ _, map' f,
+  map_id' := map_id' f,
+  map_comp' := λ _ _ _ g h, map_comp' f _ _ }
+
+end restriction_of_scalars
+
+end change_of_rings

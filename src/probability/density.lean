@@ -347,12 +347,32 @@ lemma pdf_to_real_ae_eq {m : measurable_space α}
   (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
 filter.eventually_eq.fun_comp hX ennreal.to_real
 
-variables [is_finite_measure ℙ] {X : α → ℝ}
-variables {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
+variables {X : α → ℝ} {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
 
 include hms hns
 
-lemma mul_pdf_integrable (hcs : is_compact s) (huX : is_uniform X s ℙ) :
+lemma measure_preimage {A : set ℝ} (huX : is_uniform X s ℙ) (hA : measurable_set A)
+  (hnt : volume s ≠ ⊤) :
+  ℙ (X ⁻¹' A) = volume (s ∩ A) / volume s :=
+begin
+  haveI := huX.has_pdf hns hnt,
+  rw [←measure.map_apply (has_pdf.measurable X ℙ) hA, map_eq_set_lintegral_pdf X ℙ volume hA,
+    lintegral_congr_ae huX.restrict],
+  simp only [hms, hA, lintegral_indicator, pi.smul_apply, pi.one_apply, algebra.id.smul_eq_mul,
+    mul_one, lintegral_const, restrict_apply', set.univ_inter],
+  rw ennreal.div_eq_inv_mul,
+end
+
+lemma is_probability_measure (huX : is_uniform X s ℙ) (hnt : volume s ≠ ⊤) :
+  is_probability_measure ℙ :=
+⟨begin
+  have : X ⁻¹' set.univ = set.univ,
+  { simp only [set.preimage_univ] },
+  rw [←this, huX.measure_preimage hms hns _ hnt, set.inter_univ, ennreal.div_self hns hnt],
+  exact measurable_set.univ,
+end⟩
+
+lemma mul_pdf_integrable [is_finite_measure ℙ] (hcs : is_compact s) (huX : is_uniform X s ℙ) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
 begin
   by_cases hsupp : volume s = ∞,
@@ -383,8 +403,8 @@ lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X s ℙ) :
   ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
   haveI := has_pdf hns hnt huX,
+  haveI := is_probability_measure hms hns huX hnt,
   rw ← integral_mul_eq_integral,
-  all_goals { try { apply_instance } },
   rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq huX)),
   have : ∀ x, x * (s.indicator ((volume s)⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =
     x * (s.indicator ((volume s)⁻¹.to_real • (1 : ℝ → ℝ)) x),

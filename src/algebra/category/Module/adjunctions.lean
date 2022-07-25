@@ -623,7 +623,7 @@ lemma smul_pure_tensor (s s' : S) (m : M) :
   m ⊗ₜ[R, f] (s * s') :=
 by simp only [smul_by, tensor_product.lift.tmul, linear_map.coe_mk]
 
-@[simp] lemma smul_zero (s : S) : s • (0 : M ⊗[R, f] S) = 0 :=
+lemma smul_zero (s : S) : s • (0 : M ⊗[R, f] S) = 0 :=
 by simp [smul_by]
 
 /--
@@ -681,6 +681,9 @@ def is_module' : module R (M ⊗[R, f] S) := infer_instance
 localized "attribute [instance] extension_of_scalars.is_module extension_of_scalars.is_module'"
   in change_of_rings
 
+/--
+Extension of scalars turn an `R`-module into `S`-module by M ↦ M ⨂ S
+-/
 def obj' : Module S :=
 { carrier := M ⊗[R, f] S,
   is_module := is_module f M }
@@ -1179,4 +1182,3 @@ instance : is_left_adjoint (forget₂ (Module S) AddCommGroup) :=
 end coextension_forget₂_adj
 
 end change_of_rings
-#lint

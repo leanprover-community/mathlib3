@@ -126,7 +126,7 @@ The Jordan axioms can be expressed in terms of commuting multiplication operator
 on an additive monoid `add_monoid.End` form a `ring`, and this may be equipped with a Lie Bracket
 via `ring.has_bracket`.
 -/
-section lie
+section commute
 variables {A} [non_unital_non_assoc_ring A] [is_jordan A]
 
 @[simp] lemma commute_lmul_rmul (a : A) : commute (L a) (R a) :=

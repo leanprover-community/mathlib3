@@ -5,33 +5,23 @@ Authors: Mario Carneiro
 -/
 import data.int.basic
 import data.nat.cast
+import tactic.pi_instances
 
 /-!
-# Cast of integers
+# Cast of integers (additional theorems)
 
-This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
-`1`, `+` and `-` (typically a `ring`).
+This file proves additional properties about the *canonical* homomorphism from
+the integers into an additive group with a one (`int.cast`).
 
 ## Main declarations
 
-* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
 * `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
-
-## Implementation note
-
-Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
 
 open nat
 
 namespace int
-
-@[simp, push_cast] theorem nat_cast_eq_coe_nat : ∀ n,
-  @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
-  @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n
-| 0     := rfl
-| (n+1) := congr_arg (+(1:ℤ)) (nat_cast_eq_coe_nat n)
 
 /-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
 def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
@@ -39,95 +29,18 @@ def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_a
 section cast
 variables {α : Type*}
 
-section
-variables [has_zero α] [has_one α] [has_add α] [has_neg α]
+@[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
+λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, ih])
+  (λ k _ ih n, by simp [sub_mul, ih])
 
-/-- Canonical homomorphism from the integers to any ring(-like) structure `α` -/
-protected def cast : ℤ → α
-| (n : ℕ) := n
-| -[1+ n] := -(n+1)
-
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe : has_coe_t ℤ α := ⟨int.cast⟩
-
-@[simp, norm_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
-
-theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
-@[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
-theorem cast_coe_nat' (n : ℕ) :
-  (@coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n : α) = n :=
-by simp
-
-@[simp, norm_cast] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) := rfl
-
-end
-
-@[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] [has_neg α] :
-  ((1 : ℤ) : α) = 1 := nat.cast_one
-
-@[simp] theorem cast_sub_nat_nat [add_group α] [has_one α] (m n) :
-  ((int.sub_nat_nat m n : ℤ) : α) = m - n :=
-begin
-  unfold sub_nat_nat, cases e : n - m,
-  { simp [sub_nat_nat, e, tsub_eq_zero_iff_le.mp e] },
-  { rw [sub_nat_nat, cast_neg_succ_of_nat, ← nat.cast_succ, ← e,
-        nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
-end
-
-@[simp, norm_cast] theorem cast_neg_of_nat [add_group α] [has_one α] :
-  ∀ n, ((neg_of_nat n : ℤ) : α) = -n
-| 0     := neg_zero.symm
-| (n+1) := rfl
-
-@[simp, norm_cast] theorem cast_add [add_group α] [has_one α] : ∀ m n, ((m + n : ℤ) : α) = m + n
-| (m : ℕ) (n : ℕ) := nat.cast_add _ _
-| (m : ℕ) -[1+ n] := by simpa only [sub_eq_add_neg] using cast_sub_nat_nat _ _
-| -[1+ m] (n : ℕ) := (cast_sub_nat_nat _ _).trans $ sub_eq_of_eq_add $
-  show (n:α) = -(m+1) + n + (m+1),
-  by rw [add_assoc, ← cast_succ, ← nat.cast_add, add_comm,
-         nat.cast_add, cast_succ, neg_add_cancel_left]
-| -[1+ m] -[1+ n] := show -((m + n + 1 + 1 : ℕ) : α) = -(m + 1) + -(n + 1),
-  begin
-    rw [← neg_add_rev, ← nat.cast_add_one, ← nat.cast_add_one, ← nat.cast_add],
-    apply congr_arg (λ x:ℕ, -(x:α)),
-    ac_refl
-  end
-
-@[simp, norm_cast] theorem cast_neg [add_group α] [has_one α] : ∀ n, ((-n : ℤ) : α) = -n
-| (n : ℕ) := cast_neg_of_nat _
-| -[1+ n] := (neg_neg _).symm
-
-@[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
-by simp [sub_eq_add_neg]
-
-@[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
-| (m : ℕ) (n : ℕ) := nat.cast_mul _ _
-| (m : ℕ) -[1+ n] := (cast_neg_of_nat _).trans $
-  show (-(m * (n + 1) : ℕ) : α) = m * -(n + 1),
-  by rw [nat.cast_mul, nat.cast_add_one, neg_mul_eq_mul_neg]
-| -[1+ m] (n : ℕ) := (cast_neg_of_nat _).trans $
-  show (-((m + 1) * n : ℕ) : α) = -(m + 1) * n,
-  by rw [nat.cast_mul, nat.cast_add_one, neg_mul_eq_neg_mul]
-| -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
-  by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
-
-@[simp] theorem cast_div [field α] {m n : ℤ} (n_dvd : n ∣ m) (n_nonzero : (n : α) ≠ 0) :
-  ((m / n : ℤ) : α) = m / n :=
-begin
-  rcases n_dvd with ⟨k, rfl⟩,
-  have : n ≠ 0, { rintro rfl, simpa using n_nonzero },
-  rw [int.mul_div_cancel_left _ this, int.cast_mul, mul_div_cancel_left _ n_nonzero],
-end
-
-@[simp, norm_cast] theorem cast_ite [has_zero α] [has_one α] [has_add α] [has_neg α]
-  (P : Prop) [decidable P] (m n : ℤ) :
+@[simp, norm_cast] theorem cast_ite [add_group_with_one α] (P : Prop) [decidable P] (m n : ℤ) :
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
-def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
+def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
 
-@[simp] lemma coe_cast_add_hom [add_group α] [has_one α] : ⇑(cast_add_hom α) = coe := rfl
+@[simp] lemma coe_cast_add_hom [add_group_with_one α] : ⇑(cast_add_hom α) = coe := rfl
 
 /-- `coe : ℤ → α` as a `ring_hom`. -/
 def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=
@@ -135,32 +48,16 @@ def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
-lemma cast_commute [non_assoc_ring α] (m : ℤ) (x : α) : commute ↑m x :=
-int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
+lemma cast_commute [non_assoc_ring α] : ∀ (m : ℤ) (x : α), commute ↑m x
+| (n : ℕ) x := by simpa using n.cast_commute x
+| -[1+ n] x := by simpa only [cast_neg_succ_of_nat, commute.neg_left_iff, commute.neg_right_iff]
+  using (n + 1).cast_commute (-x)
 
 lemma cast_comm [non_assoc_ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
 (cast_commute m x).eq
 
 lemma commute_cast [non_assoc_ring α] (x : α) (m : ℤ) : commute x m :=
 (m.cast_commute x).symm
-
-@[simp, norm_cast]
-theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold bit0, simp}
-
-@[simp, norm_cast]
-theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
-
-@[simp, norm_cast] theorem cast_bit0 [non_assoc_ring α] (n : ℤ) : ((bit0 n : ℤ) : α) = bit0 n :=
-cast_add _ _
-
-@[simp, norm_cast] theorem cast_bit1 [non_assoc_ring α] (n : ℤ) : ((bit1 n : ℤ) : α) = bit1 n :=
-by rw [bit1, cast_add, cast_one, cast_bit0]; refl
-
-lemma cast_two [non_assoc_ring α] : ((2 : ℤ) : α) = 2 := by simp
-
-lemma cast_three [non_assoc_ring α] : ((3 : ℤ) : α) = 3 := by simp
-
-lemma cast_four [non_assoc_ring α] : ((4 : ℤ) : α) = 4 := by simp
 
 theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
 begin
@@ -213,7 +110,10 @@ lemma cast_one_le_of_pos (h : 0 < a) : (1 : α) ≤ a :=
 by exact_mod_cast int.add_one_le_of_lt h
 
 lemma cast_le_neg_one_of_neg (h : a < 0) : (a : α) ≤ -1 :=
-by exact_mod_cast int.le_sub_one_of_lt h
+begin
+  rw [← int.cast_one, ← int.cast_neg, cast_le],
+  exact int.le_sub_one_of_lt h,
+end
 
 lemma nneg_mul_add_sq_of_abs_le_one {x : α} (hx : |x| ≤ 1) :
   (0 : α) ≤ n * x + n * n :=
@@ -250,14 +150,17 @@ end int
 
 namespace prod
 
-variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
-  [has_zero β] [has_one β] [has_add β] [has_neg β]
+variables {α : Type*} {β : Type*} [add_group_with_one α] [add_group_with_one β]
 
-@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
-by induction n; simp *
+instance : add_group_with_one (α × β) :=
+{ int_cast := λ n, (n, n),
+  int_cast_of_nat := λ _, by simp; refl,
+  int_cast_neg_succ_of_nat := λ _, by simp; refl,
+  .. prod.add_monoid_with_one, .. prod.add_group }
 
-@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
-by induction n; simp *
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n := rfl
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n := rfl
 
 end prod
 
@@ -274,7 +177,7 @@ have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ 
 have ∀ n : ℕ, f n = g n := ext_iff.1 this,
 ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
 
-variables [add_group A] [has_one A]
+variables [add_group_with_one A]
 
 theorem eq_int_cast_hom (f : ℤ →+ A) (h1 : f 1 = 1) : f = int.cast_add_hom A :=
 ext_int $ by simp [h1]
@@ -356,31 +259,31 @@ end ring_hom
 (ring_hom.id ℤ).eq_int_cast'.symm
 
 namespace pi
+variables {α : Type*} {β : α → Type*} [∀ a, has_int_cast (β a)]
 
-variables {α β : Type*}
+instance : has_int_cast (∀ a, β a) :=
+by refine_struct { .. }; tactic.pi_instance_derive_field
 
-lemma int_apply [has_zero β] [has_one β] [has_add β] [has_neg β] :
-  ∀ (n : ℤ) (a : α), (n : α → β) a = n
-| (n:ℕ)  a := pi.nat_apply n a
-| -[1+n] a :=
-by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_apply, nat_apply]
+lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl
 
-@[simp] lemma coe_int [has_zero β] [has_one β] [has_add β] [has_neg β] (n : ℤ) :
-  (n : α → β) = λ _, n :=
-by { ext, rw pi.int_apply }
+@[simp] lemma coe_int (n : ℤ) : (n : ∀ a, β a) = λ _, n := rfl
+
+end pi
+
+namespace pi
+variables {α : Type*} {β : α → Type*} [∀ a, add_group_with_one (β a)]
+
+instance : add_group_with_one (∀ a, β a) :=
+by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
 
 namespace mul_opposite
 
-variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+variables {α : Type*} [add_group_with_one α]
 
-@[simp, norm_cast] lemma op_int_cast : ∀ z : ℤ, op (z : α) = z
-| (n:ℕ) := op_nat_cast n
-| -[1+n] := congr_arg (λ a : αᵐᵒᵖ, -(a + 1)) $ op_nat_cast n
+@[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
 
-@[simp, norm_cast] lemma unop_int_cast : ∀ n : ℤ, unop (n : αᵐᵒᵖ) = n
-| (n:ℕ) := unop_nat_cast n
-| -[1+n] := congr_arg (λ a : α, -(a + 1)) $ unop_nat_cast n
+@[simp, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 end mul_opposite

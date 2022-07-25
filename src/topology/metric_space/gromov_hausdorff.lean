@@ -366,7 +366,8 @@ end
 
 /-- The Gromov-Hausdorff distance defines a genuine distance on the Gromov-Hausdorff space. -/
 instance : metric_space GH_space :=
-{ dist_self := λ x, begin
+{ dist := dist,
+  dist_self := λ x, begin
     rcases exists_rep x with ⟨y, hy⟩,
     refine le_antisymm _ _,
     { apply cInf_le,
@@ -533,8 +534,8 @@ begin
     glue_metric_approx (λ x:s, (x:X)) (λ x, Φ x) (ε₂/2 + δ) (by linarith) this,
   let Fl := @sum.inl X Y,
   let Fr := @sum.inr X Y,
-  have Il : isometry Fl := isometry_emetric_iff_metric.2 (λ x y, rfl),
-  have Ir : isometry Fr := isometry_emetric_iff_metric.2 (λ x y, rfl),
+  have Il : isometry Fl := isometry.of_dist_eq (λ x y, rfl),
+  have Ir : isometry Fr := isometry.of_dist_eq (λ x y, rfl),
   /- The proof goes as follows : the `GH_dist` is bounded by the Hausdorff distance of the images
   in the coupling, which is bounded (using the triangular inequality) by the sum of the Hausdorff
   distances of `X` and `s` (in the coupling or, equivalently in the original space), of `s` and

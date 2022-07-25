@@ -112,7 +112,7 @@ lemma measure_mem_eq (h : ident_distrib f g μ ν) {s : set γ} (hs : measurable
 by rw [← measure.map_apply_of_ae_measurable h.ae_measurable_fst hs,
   ← measure.map_apply_of_ae_measurable h.ae_measurable_snd hs, h.map_eq]
 
-alias measure_mem_eq ← probability_theory.ident_distrib.measure_preimage_eq
+alias measure_mem_eq ← measure_preimage_eq
 
 lemma ae_snd (h : ident_distrib f g μ ν) {p : γ → Prop}
   (pmeas : measurable_set {x | p x}) (hp : ∀ᵐ x ∂μ, p (f x)) :
@@ -171,7 +171,7 @@ begin
       ← lintegral_map' ae_measurable_id h.ae_measurable_snd, h.map_eq],
 end
 
-lemma integral_eq [normed_group γ] [normed_space ℝ γ] [complete_space γ] [borel_space γ]
+lemma integral_eq [normed_add_comm_group γ] [normed_space ℝ γ] [complete_space γ] [borel_space γ]
   (h : ident_distrib f g μ ν) : ∫ x, f x ∂μ = ∫ x, g x ∂ν :=
 begin
   by_cases hf : ae_strongly_measurable f μ,
@@ -191,7 +191,8 @@ begin
     rw integral_non_ae_strongly_measurable hf }
 end
 
-lemma snorm_eq [normed_group γ] [opens_measurable_space γ] (h : ident_distrib f g μ ν) (p : ℝ≥0∞) :
+lemma snorm_eq [normed_add_comm_group γ] [opens_measurable_space γ] (h : ident_distrib f g μ ν)
+  (p : ℝ≥0∞) :
   snorm f p μ = snorm g p ν :=
 begin
   by_cases h0 : p = 0,
@@ -208,7 +209,7 @@ begin
     (measurable.pow_const (measurable_coe_nnreal_ennreal.comp measurable_nnnorm) p.to_real),
 end
 
-lemma mem_ℒp_snd [normed_group γ] [borel_space γ]
+lemma mem_ℒp_snd [normed_add_comm_group γ] [borel_space γ]
   {p : ℝ≥0∞} (h : ident_distrib f g μ ν) (hf : mem_ℒp f p μ) :
   mem_ℒp g p ν :=
 begin
@@ -217,26 +218,26 @@ begin
   exact hf.2
 end
 
-lemma mem_ℒp_iff [normed_group γ] [borel_space γ] {p : ℝ≥0∞} (h : ident_distrib f g μ ν) :
+lemma mem_ℒp_iff [normed_add_comm_group γ] [borel_space γ] {p : ℝ≥0∞} (h : ident_distrib f g μ ν) :
   mem_ℒp f p μ ↔ mem_ℒp g p ν :=
 ⟨λ hf, h.mem_ℒp_snd hf, λ hg, h.symm.mem_ℒp_snd hg⟩
 
-lemma integrable_snd [normed_group γ] [borel_space γ] (h : ident_distrib f g μ ν)
+lemma integrable_snd [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν)
   (hf : integrable f μ) : integrable g ν :=
 begin
   rw ← mem_ℒp_one_iff_integrable at hf ⊢,
   exact h.mem_ℒp_snd hf
 end
 
-lemma integrable_iff [normed_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
+lemma integrable_iff [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
   integrable f μ ↔ integrable g ν :=
 ⟨λ hf, h.integrable_snd hf, λ hg, h.symm.integrable_snd hg⟩
 
-protected lemma norm [normed_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
+protected lemma norm [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
   ident_distrib (λ x, ∥f x∥) (λ x, ∥g x∥) μ ν :=
 h.comp measurable_norm
 
-protected lemma nnnorm [normed_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
+protected lemma nnnorm [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
   ident_distrib (λ x, ∥f x∥₊) (λ x, ∥g x∥₊) μ ν :=
 h.comp measurable_nnnorm
 

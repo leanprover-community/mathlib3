@@ -133,21 +133,18 @@ end
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
 monoid allows us to reuse irreducible for associated elements.
 -/
-class irreducible [monoid α] (p : α) : Prop :=
-(not_unit' : ¬ is_unit p)
+structure irreducible [monoid α] (p : α) : Prop :=
+(not_unit : ¬ is_unit p)
 (is_unit_or_is_unit' : ∀a b, p = a * b → is_unit a ∨ is_unit b)
 
 namespace irreducible
-
-lemma not_unit [monoid α] {p : α} (hp : irreducible p) : ¬ is_unit p :=
-hp.1
 
 lemma not_dvd_one [comm_monoid α] {p : α} (hp : irreducible p) : ¬ p ∣ 1 :=
 mt (is_unit_of_dvd_one _) hp.not_unit
 
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
-irreducible.is_unit_or_is_unit' a b h
+hp.is_unit_or_is_unit' a b h
 
 end irreducible
 
@@ -176,7 +173,7 @@ theorem of_irreducible_pow {α} [monoid α] {x : α} {n : ℕ} (hn : n ≠ 1) :
   irreducible (x ^ n) → is_unit x :=
 begin
   obtain hn|hn := hn.lt_or_lt,
-  { simp only [nat.lt_one_iff.mp hn, forall_false_left, not_irreducible_one, pow_zero] },
+  { simp only [nat.lt_one_iff.mp hn, is_empty.forall_iff, not_irreducible_one, pow_zero] },
   intro h,
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_lt hn,
   rw [pow_succ, add_comm] at h,
@@ -847,7 +844,8 @@ instance : cancel_comm_monoid_with_zero (associates α) :=
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
 instance : canonically_ordered_monoid (associates α) :=
-{ le_iff_exists_mul := λ a b, iff.rfl,
+{ exists_mul_of_le := λ a b, id,
+  le_self_mul := λ a b, ⟨b, rfl⟩,
   ..associates.cancel_comm_monoid_with_zero,
   ..associates.bounded_order,
   ..associates.ordered_comm_monoid}

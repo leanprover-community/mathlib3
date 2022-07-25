@@ -49,6 +49,10 @@ lemma lie_def (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end ring
 
+lemma commute_iff_lie_eq {x y : A} : commute x y ↔ ⁅x, y⁆ = 0 := sub_eq_zero.symm
+
+lemma commute.lie_eq {x y : A} (h : commute x y) : ⁅x, y⁆ = 0 := sub_eq_zero_of_eq h
+
 namespace lie_ring
 
 /-- An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator. -/
@@ -201,12 +205,31 @@ rfl
 
 variables {R L M}
 
-lemma lie_submodule.coe_map_to_endomorphism_le {N : lie_submodule R L M} {x : L} :
+namespace lie_submodule
+
+open lie_module
+
+variables {N : lie_submodule R L M} {x : L}
+
+lemma coe_map_to_endomorphism_le :
   (N : submodule R M).map (lie_module.to_endomorphism R L M x) ≤ N :=
 begin
   rintros n ⟨m, hm, rfl⟩,
   exact N.lie_mem hm,
 end
+
+variables (N x)
+
+lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ N) :
+  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ N :=
+by simpa using N.lie_mem hm
+
+@[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
+  (h := N.to_endomorphism_comp_subtype_mem x) :
+  ((to_endomorphism R L M x).restrict h : (N : submodule R M) →ₗ[R] N) = to_endomorphism R L N x :=
+by { ext, simp [linear_map.restrict_apply], }
+
+end lie_submodule
 
 open lie_algebra
 

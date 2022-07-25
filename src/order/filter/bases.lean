@@ -433,6 +433,62 @@ lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
     exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
 end⟩
 
+lemma has_basis_infi_of_directed' {ι : Type*} {ι' : ι → Sort*}
+  [nonempty ι]
+  {l : ι → filter α} (s : Π i, (ι' i) → set α) (p : Π i, (ι' i) → Prop)
+  (hl : ∀ i, (l i).has_basis (p i) (s i)) (h : directed (≥) l) :
+  (⨅ i, l i).has_basis (λ (ii' : Σ i, ι' i), p ii'.1 ii'.2) (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_infi_of_directed h, sigma.exists],
+  exact exists_congr (λ i, (hl i).mem_iff)
+end
+
+lemma has_basis_infi_of_directed {ι : Type*} {ι' : Sort*}
+  [nonempty ι]
+  {l : ι → filter α} (s : ι → ι' → set α) (p : ι → ι' → Prop)
+  (hl : ∀ i, (l i).has_basis (p i) (s i)) (h : directed (≥) l) :
+  (⨅ i, l i).has_basis (λ (ii' : ι × ι'), p ii'.1 ii'.2) (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_infi_of_directed h, prod.exists],
+  exact exists_congr (λ i, (hl i).mem_iff)
+end
+
+lemma has_basis_binfi_of_directed' {ι : Type*} {ι' : ι → Sort*}
+  {dom : set ι} (hdom : dom.nonempty)
+  {l : ι → filter α} (s : Π i, (ι' i) → set α) (p : Π i, (ι' i) → Prop)
+  (hl : ∀ i ∈ dom, (l i).has_basis (p i) (s i)) (h : directed_on (l ⁻¹'o ge) dom) :
+  (⨅ i ∈ dom, l i).has_basis (λ (ii' : Σ i, ι' i), ii'.1 ∈ dom ∧ p ii'.1 ii'.2)
+    (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_binfi_of_directed h hdom, sigma.exists],
+  refine exists_congr (λ i, ⟨_, _⟩),
+  { rintros ⟨hi, hti⟩,
+    rcases (hl i hi).mem_iff.mp hti with ⟨b, hb, hbt⟩,
+    exact ⟨b, ⟨hi, hb⟩, hbt⟩ },
+  { rintros ⟨b, ⟨hi, hb⟩, hibt⟩,
+    exact ⟨hi, (hl i hi).mem_iff.mpr ⟨b, hb, hibt⟩⟩ }
+end
+
+lemma has_basis_binfi_of_directed {ι : Type*} {ι' : Sort*}
+  {dom : set ι} (hdom : dom.nonempty)
+  {l : ι → filter α} (s : ι → ι' → set α) (p : ι → ι' → Prop)
+  (hl : ∀ i ∈ dom, (l i).has_basis (p i) (s i)) (h : directed_on (l ⁻¹'o ge) dom) :
+  (⨅ i ∈ dom, l i).has_basis (λ (ii' : ι × ι'), ii'.1 ∈ dom ∧ p ii'.1 ii'.2)
+    (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_binfi_of_directed h hdom, prod.exists],
+  refine exists_congr (λ i, ⟨_, _⟩),
+  { rintros ⟨hi, hti⟩,
+    rcases (hl i hi).mem_iff.mp hti with ⟨b, hb, hbt⟩,
+    exact ⟨b, ⟨hi, hb⟩, hbt⟩ },
+  { rintros ⟨b, ⟨hi, hb⟩, hibt⟩,
+    exact ⟨hi, (hl i hi).mem_iff.mpr ⟨b, hb, hibt⟩⟩ }
+end
+
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
 
@@ -521,13 +577,17 @@ by rw [disjoint.comm, disjoint_principal_right]
 
 @[simp] lemma disjoint_principal_principal {s t : set α} :
   disjoint (𝓟 s) (𝓟 t) ↔ disjoint s t :=
-by simp [disjoint_iff_subset_compl_left]
+by simp [←subset_compl_iff_disjoint_left]
 
-alias disjoint_principal_principal ↔ _ disjoint.filter_principal
+alias disjoint_principal_principal ↔ _ _root_.disjoint.filter_principal
 
 @[simp] lemma disjoint_pure_pure {x y : α} :
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
 by simp only [← principal_singleton, disjoint_principal_principal, disjoint_singleton]
+
+@[simp] lemma compl_diagonal_mem_prod {l₁ l₂ : filter α} :
+  (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
+by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
@@ -721,14 +781,14 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 
 end two_types
 
-open equiv
-
-lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
-  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
+lemma map_sigma_mk_comap {π : α → Type*} {π' : β → Type*} {f : α → β}
+  (hf : function.injective f) (g : Π a, π a → π' (f a)) (a : α) (l : filter (π' (f a))) :
+  map (sigma.mk a) (comap (g a) l) = comap (sigma.map f g) (map (sigma.mk (f a)) l) :=
 begin
-  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
-  simpa only [prod_assoc_image, function.comp, and_assoc] using
-    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
+  refine (((basis_sets _).comap _).map _).eq_of_same_basis _,
+  convert ((basis_sets _).map _).comap _,
+  ext1 s,
+  apply image_sigma_mk_preimage_sigma_map hf
 end
 
 end filter
@@ -741,24 +801,24 @@ variables {α β γ ι : Type*} {ι' : Sort*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 class is_countably_generated (f : filter α) : Prop :=
-(out [] : ∃ s : set (set α), countable s ∧ f = generate s)
+(out [] : ∃ s : set (set α), s.countable ∧ f = generate s)
 
 /-- `is_countable_basis p s` means the image of `s` bounded by `p` is a countable filter basis. -/
 structure is_countable_basis (p : ι → Prop) (s : ι → set α) extends is_basis p s : Prop :=
-(countable : countable $ set_of p)
+(countable : (set_of p).countable)
 
 /-- We say that a filter `l` has a countable basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`, and the set
 defined by `p` is countable. -/
 structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α)
   extends has_basis l p s : Prop :=
-(countable : countable $ set_of p)
+(countable : (set_of p).countable)
 
 /-- A countable filter basis `B` on a type `α` is a nonempty countable collection of sets of `α`
 such that the intersection of two elements of this collection contains some element
 of the collection. -/
 structure countable_filter_basis (α : Type*) extends filter_basis α :=
-(countable : countable sets)
+(countable : sets.countable)
 
 -- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
@@ -781,19 +841,12 @@ begin
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 
-lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B)
+lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : B.countable)
   (Bne : B.nonempty) (f : ι → α) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
-begin
-  rw countable_iff_exists_surjective_to_subtype Bne at Bcbl,
-  rcases Bcbl with ⟨g, gsurj⟩,
-  rw infi_subtype',
-  use (λ n, g n), apply le_antisymm; rw le_infi_iff,
-  { intro i, apply infi_le_of_le (g i) _, apply le_rfl },
-  { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
-end
+let ⟨g, hg⟩ := Bcbl.exists_eq_range Bne in ⟨g, hg.symm ▸ infi_range⟩
 
-lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)
+lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : B.countable) (f : ι → α)
   {i₀ : ι} (h : f i₀ = ⊤) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
@@ -804,7 +857,7 @@ begin
   { exact countable_binfi_eq_infi_seq Bcbl Bnonempty f }
 end
 
-lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : countable B) :
+lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : B.countable) :
   ∃ (x : ℕ → set α), (⨅ t ∈ B, 𝓟 t) = ⨅ i, 𝓟 (x i) :=
 countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
@@ -861,13 +914,13 @@ begin
   rcases f.exists_antitone_basis with ⟨s, hs⟩,
   rcases g.exists_antitone_basis with ⟨t, ht⟩,
   exact has_countable_basis.is_countably_generated
-    ⟨hs.to_has_basis.inf ht.to_has_basis, set.countable_encodable _⟩
+    ⟨hs.to_has_basis.inf ht.to_has_basis, set.to_countable _⟩
 end
 
 instance comap.is_countably_generated (l : filter β) [l.is_countably_generated] (f : α → β) :
   (comap f l).is_countably_generated :=
 let ⟨x, hxl⟩ := l.exists_antitone_basis in
-has_countable_basis.is_countably_generated ⟨hxl.to_has_basis.comap _, countable_encodable _⟩
+has_countable_basis.is_countably_generated ⟨hxl.to_has_basis.comap _, to_countable _⟩
 
 instance sup.is_countably_generated (f g : filter α) [is_countably_generated f]
   [is_countably_generated g] :
@@ -876,7 +929,7 @@ begin
   rcases f.exists_antitone_basis with ⟨s, hs⟩,
   rcases g.exists_antitone_basis with ⟨t, ht⟩,
   exact has_countable_basis.is_countably_generated
-    ⟨hs.to_has_basis.sup ht.to_has_basis, set.countable_encodable _⟩
+    ⟨hs.to_has_basis.sup ht.to_has_basis, set.to_countable _⟩
 end
 
 end is_countably_generated
@@ -892,7 +945,7 @@ lemma is_countably_generated_of_seq {f : filter α} (h : ∃ x : ℕ → set α,
   f.is_countably_generated  :=
 let ⟨x, h⟩ := h in by rw h ; apply is_countably_generated_seq
 
-lemma is_countably_generated_binfi_principal {B : set $ set α} (h : countable B) :
+lemma is_countably_generated_binfi_principal {B : set $ set α} (h : B.countable) :
   is_countably_generated (⨅ (s ∈ B), 𝓟 s) :=
 is_countably_generated_of_seq (countable_binfi_principal_eq_seq_infi h)
 

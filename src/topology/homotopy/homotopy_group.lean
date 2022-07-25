@@ -42,7 +42,7 @@ The `n`-dimensional cube.
 -/
 @[derive [has_zero, has_one, topological_space]]
 def cube (n : ℕ) : Type := fin n → I
-notation `I^` := cube
+local notation `I^` := cube
 
 namespace cube
 

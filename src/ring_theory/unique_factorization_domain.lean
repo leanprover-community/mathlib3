@@ -775,7 +775,7 @@ lemma multiplicity_eq_count_normalized_factors {a b : R} (ha : irreducible a) (h
   multiplicity a b = (normalized_factors b).count (normalize a) :=
 begin
   apply le_antisymm,
-  { apply enat.le_of_lt_add_one,
+  { apply part_enat.le_of_lt_add_one,
     rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
       le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
     simp },
@@ -783,6 +783,7 @@ begin
 end
 
 omit dec_dvd
+
 /-- The number of times an irreducible factor `p` appears in `normalized_factors x` is defined by
 the number of times it divides `x`.
 
@@ -795,10 +796,28 @@ begin
   letI : decidable_rel ((∣) : R → R → Prop) := λ _ _, classical.prop_decidable _,
   by_cases hx0 : x = 0,
   { simp [hx0] at hlt, contradiction },
-  rw [← enat.coe_inj],
+  rw [← part_enat.coe_inj],
   convert (multiplicity_eq_count_normalized_factors hp hx0).symm,
   { exact hnorm.symm },
   exact (multiplicity.eq_coe_iff.mpr ⟨hle, hlt⟩).symm
+end
+
+/-- The number of times an irreducible factor `p` appears in `normalized_factors x` is defined by
+the number of times it divides `x`. This is a slightly more general version of
+`unique_factorization_monoid.count_normalized_factors_eq` that allows `p = 0`.
+
+See also `multiplicity_eq_count_normalized_factors` if `n` is given by `multiplicity p x`.
+-/
+lemma count_normalized_factors_eq' {p x : R} (hp : p = 0 ∨ irreducible p) (hnorm : normalize p = p)
+  {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+  (normalized_factors x).count p = n :=
+begin
+  rcases hp with rfl|hp,
+  { cases n,
+    { exact count_eq_zero.2 (zero_not_mem_normalized_factors _) },
+    { rw [zero_pow (nat.succ_pos _)] at hle hlt,
+      exact absurd hle hlt } },
+  { exact count_normalized_factors_eq hp hnorm hle hlt }
 end
 
 end multiplicity

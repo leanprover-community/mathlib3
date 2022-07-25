@@ -293,7 +293,7 @@ variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (
 
 include f h b
 
-local attribute [instance] has_scalar.comp.is_scalar_tower
+local attribute [instance] has_smul.comp.is_scalar_tower
 
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
@@ -561,7 +561,8 @@ section prod
 variables (b' : basis ι' R M')
 
 /-- `basis.prod` maps a `ι`-indexed basis for `M` and a `ι'`-indexed basis for `M'`
-to a `ι ⊕ ι'`-index basis for `M × M'`. -/
+to a `ι ⊕ ι'`-index basis for `M × M'`.
+For the specific case of `R × R`, see also `basis.fin_two_prod`. -/
 protected def prod : basis (ι ⊕ ι') R (M × M') :=
 of_repr ((b.repr.prod b'.repr).trans (finsupp.sum_finsupp_lequiv_prod_finsupp R).symm)
 
@@ -1067,6 +1068,20 @@ mk_fin_cons ⟨y, yO⟩ (b.map (submodule.comap_subtype_equiv_of_le hNO).symm)
   (mk_fin_cons_of_le y yO b hNO hli hsp : fin (n + 1) → O) =
     fin.cons ⟨y, yO⟩ (submodule.of_le hNO ∘ b) :=
 coe_mk_fin_cons _ _ _ _
+
+/-- The basis of `R × R` given by the two vectors `(1, 0)` and `(0, 1)`. -/
+protected def fin_two_prod (R : Type*) [semiring R] : basis (fin 2) R (R × R) :=
+basis.of_equiv_fun (linear_equiv.fin_two_arrow R R).symm
+
+@[simp] lemma fin_two_prod_zero (R : Type*) [semiring R] : basis.fin_two_prod R 0 = (1, 0) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma fin_two_prod_one (R : Type*) [semiring R] : basis.fin_two_prod R 1 = (0, 1) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma coe_fin_two_prod_repr {R : Type*} [semiring R] (x : R × R) :
+  ⇑((basis.fin_two_prod R).repr x) = ![x.fst, x.snd] :=
+rfl
 
 end fin
 

@@ -148,8 +148,7 @@ begin
   intros p hp,
   rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
   rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,
-  convert (trans (congr_arg ϕ hp) ϕ.map_zero),
-  simp only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, hx],
+  simpa only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, ϕ.map_zero, hx] using congr_arg ϕ hp,
 end
 
 /-- Main statement of the Nullstellensatz -/

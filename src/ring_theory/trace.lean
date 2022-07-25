@@ -7,10 +7,12 @@ Authors: Anne Baanen
 import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
+import linear_algebra.finite_dimensional
 import linear_algebra.vandermonde
 import linear_algebra.trace
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
+import field_theory.galois
 import ring_theory.power_basis
 
 /-!
@@ -181,8 +183,8 @@ lemma trace_form_to_matrix [decidable_eq ι] (i j) :
 by rw [bilin_form.to_matrix_apply, trace_form_apply]
 
 lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
-  bilin_form.to_matrix h.basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
-by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
+  bilin_form.to_matrix h.basis (trace_form R S) = of (λ i j, trace R S (h.gen ^ (↑i + ↑j : ℕ))) :=
+by { ext, rw [trace_form_to_matrix, of_apply, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
 
@@ -356,6 +358,21 @@ begin
     exact is_separable.separable K _ }
 end
 
+lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L] :
+  algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
+begin
+  apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
+  rw map_sum (algebra_map L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
+  { rw ←trace_eq_sum_embeddings (algebraic_closure L),
+    { simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    { exact is_galois.to_is_separable } },
+  { intro σ,
+    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
+end
+
 end eq_sum_embeddings
 
 section det_ne_zero
@@ -373,7 +390,8 @@ open finset
 def trace_matrix (b : κ → B) : matrix κ κ A
 | i j := trace_form A B (b i) (b j)
 
-lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
+lemma trace_matrix_def (b : κ → B) : trace_matrix A b = of (λ i j, trace_form A B (b i) (b j)) :=
+rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
   trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
@@ -396,13 +414,13 @@ begin
     trace_form_apply, algebra.smul_mul_assoc],
   rw [mul_comm (b x), ← smul_def],
   ring_nf,
-  simp,
+  simp [mul_comm],
 end
 
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
   trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
 begin
-  refine add_equiv.injective transpose_add_equiv _,
+  refine add_equiv.injective (transpose_add_equiv _ _ _) _,
   rw [transpose_add_equiv_apply, transpose_add_equiv_apply, ← vec_mul_transpose,
     ← transpose_map, trace_matrix_of_matrix_vec_mul, transpose_transpose, transpose_mul,
     transpose_transpose, transpose_mul]
@@ -424,7 +442,7 @@ begin
   simp only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
-    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, of_apply, ← linear_map.map_smul] },
     rw [← linear_map.map_sum],
     congr,
     conv_lhs
@@ -497,7 +515,7 @@ begin
   refine mt mul_self_eq_zero.mp _,
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
     intros i _ j hij h,
-    exact (finset.mem_filter.mp hij).2.ne' (e.injective $ pb.alg_hom_ext h) },
+    exact (finset.mem_Ioi.mp hij).ne' (e.injective $ pb.alg_hom_ext h) },
   { rw [alg_hom.card, pb.finrank] }
 end
 

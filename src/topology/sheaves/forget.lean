@@ -134,6 +134,7 @@ begin
     -- We have that the sheaf condition fork for `F` is a limit fork,
     obtain ⟨t₁⟩ := S U,
     -- and since `G` preserves limits, the image under `G` of this fork is a limit fork too.
+    letI := preserves_smallest_limits_of_preserves_limits G,
     have t₂ := @preserves_limit.preserves _ _ _ _ _ _ _ G _ _ t₁,
     -- As we established above, that image is just the sheaf condition fork
     -- for `F ⋙ G` postcomposed with some natural isomorphism,
@@ -166,6 +167,7 @@ begin
       let c := fork (F ⋙ G) U,
       obtain ⟨hc⟩ := S U,
       let d := G.map_cone (equalizer.fork (left_res F U) (right_res F U)),
+      letI := preserves_smallest_limits_of_preserves_limits G,
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones
       -- (`c` by our hypothesis `S`, and `d` because `G` preserves limits),

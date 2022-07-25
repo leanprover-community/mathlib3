@@ -53,7 +53,7 @@ integral, torus
 -/
 
 variable {n : ℕ}
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 

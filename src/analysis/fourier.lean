@@ -200,7 +200,7 @@ begin
   intros i j,
   rw continuous_map.inner_to_Lp haar_circle (fourier i) (fourier j),
   split_ifs,
-  { simp [h, is_probability_measure.measure_univ, ← fourier_neg, ← fourier_add, -fourier_to_fun] },
+  { simp [h, is_probability_measure.measure_univ, ← fourier_neg, ← fourier_add, -fourier_apply] },
   simp only [← fourier_add, ← fourier_neg],
   have hij : -i + j ≠ 0,
   { rw add_comm,

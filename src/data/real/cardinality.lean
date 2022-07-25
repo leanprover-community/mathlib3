@@ -163,7 +163,7 @@ lemma mk_univ_real : #(set.univ : set ℝ) = 𝔠 :=
 by rw [mk_univ, mk_real]
 
 /-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
-lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
+lemma not_countable_real : ¬ (set.univ : set ℝ).countable :=
 by { rw [← mk_set_le_aleph_0, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/

@@ -42,7 +42,7 @@ variables (R M)
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 ∈ R` and a scalar multiplication
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
 or `m` equals `0`. -/
-class smul_with_zero [has_zero R] [has_zero M] extends has_scalar R M :=
+class smul_with_zero [has_zero R] [has_zero M] extends has_smul R M :=
 (smul_zero : ∀ r : R, r • (0 : M) = 0)
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
@@ -65,7 +65,7 @@ variables {R} (M)
 /-- Note that this lemma has different typeclass assumptions to `smul_zero`. -/
 @[simp] lemma smul_zero' (r : R) : r • (0 : M) = 0 := smul_with_zero.smul_zero r
 
-variables {R M} [has_zero R'] [has_zero M'] [has_scalar R M']
+variables {R M} [has_zero R'] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism.
 See note [reducible non-instances]. -/
@@ -134,7 +134,7 @@ instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zer
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }
 
-variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
+variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism.
 See note [reducible non-instances]. -/

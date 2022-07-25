@@ -77,8 +77,8 @@ output. -/
 Example: ``mk_reflected_definition `foo 17`` constructs the definition
 declaration corresponding to `def foo : ℕ := 17`
 -/
-meta def mk_reflected_definition (decl_name : name) {type} [reflected type]
-  (body : type) [reflected body] : declaration :=
+meta def mk_reflected_definition (decl_name : name) {type} [reflected _ type]
+  (body : type) [reflected _ body] : declaration :=
 mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
 
 /-- If `note_name` and `note` are `pexpr`s representing strings,

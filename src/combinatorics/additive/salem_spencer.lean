@@ -263,8 +263,8 @@ begin
     (add_halves _) hc.2,
 end
 
-lemma add_salem_spencer_sphere [normed_group E] [normed_space ℝ E] [strict_convex_space ℝ E] (x : E)
-  (r : ℝ) : add_salem_spencer (sphere x r) :=
+lemma add_salem_spencer_sphere [normed_add_comm_group E] [normed_space ℝ E]
+  [strict_convex_space ℝ E] (x : E) (r : ℝ) : add_salem_spencer (sphere x r) :=
 begin
   obtain rfl | hr := eq_or_ne r 0,
   { rw sphere_zero,

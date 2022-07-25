@@ -19,9 +19,9 @@ in `A`,
 (a * b) * a^2 = a * (b * a^2)
 ```
 i.e. the operators of multiplication by `a` and `a^2` commute. Every associative algebra can be
-equipped with a symmetrized multiplication making it into a commutative Jordan algebra. Jordan
-algebras arising this way are said to be special. For an algebra `A` over a ring of characteristic
-not 2 this symmetrized multiplication may be defined, for `a` and `b` in `A`, as
+equipped with a symmetrized multiplication `sym_alg.sym` making it into a commutative Jordan
+algebra. Jordan algebras arising this way are said to be special. For an algebra `A` over a ring of
+characteristic not 2 this symmetrized multiplication may be defined, for `a` and `b` in `A`, as
 ```
 a∘b = 1/2(a*b + b*a).
 ```

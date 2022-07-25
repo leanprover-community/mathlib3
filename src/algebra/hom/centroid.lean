@@ -47,6 +47,8 @@ structure centroid_hom (α : Type*) [non_unital_non_assoc_semiring α] extends �
 (map_mul_left' (a b : α) : to_fun (a * b) = a * to_fun b)
 (map_mul_right' (a b : α) : to_fun (a * b) = to_fun a * b)
 
+attribute [nolint doc_blame] centroid_hom.to_add_monoid_hom
+
 end
 
 /-- `centroid_hom_class F α` states that `F` is a type of centroid homomorphisms.

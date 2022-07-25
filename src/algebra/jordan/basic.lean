@@ -139,9 +139,15 @@ end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
-lemma lie_lmul_lmul_add_add_add_eq_zero (a b : A) :
-  ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ = 0 :=
+lemma test (a b c: A) (h: a+b=a+c) : b = c :=
 begin
+exact (add_right_inj a).mp h
+end
+
+lemma two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add (a b : A) :
+  2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) = ⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆ :=
+begin
+  rw ← sub_eq_zero,
   symmetry,
   calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw (lie_lmul_lmul_sq (a + b))
     ... = ⁅L a + L b, L (a * a + a * b + (b * a + b * b))⁆ :
@@ -155,14 +161,18 @@ begin
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
     ... = 2•⁅L a, L (a * b)⁆ + ⁅L a, L(b * b)⁆ + (⁅L b, L (a * a)⁆ + 2•⁅L b,L(a * b)⁆) :
       by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b, lie_nsmul, lie_nsmul, zero_add, add_zero]
-    ... = ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ : by abel
+    ... = 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ + ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ : by abel
+    ... = 2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) - (⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆) : by
+      rw [← nsmul_add, sub_add_eq_sub_sub_swap, sub_eq_add_neg, lie_skew, sub_eq_add_neg,
+       lie_skew, is_comm_jordan.mul_comm b a]
 end
 
 lemma two_nsmul_lie_lmul_lmul_add_add_eq_zero (a b c : A) :
   2•(⁅L a, L (b * c)⁆ + ⁅L b, L (c * a)⁆ + ⁅L c, L (a * b)⁆) = 0 :=
 begin
+
   symmetry,
-  calc 0 = ⁅L (a + b + c), L ((a + b + c) * (a + b + c))⁆ : by rw (lie_lmul_lmul_sq (a + b + c))
+  calc 0 = ⁅L (a + b + c), L ((a + b + c) * (a + b + c))⁆ : by rw lie_lmul_lmul_sq (a + b + c)
   ... = ⁅L a + L b + L c,
     L (a * a) + L (a * b) + L (a * c) + (L (b * a) + L (b * b) + L (b * c))
       + (L (c * a) + L (c * b) + L (c * c))⁆ :
@@ -199,12 +209,22 @@ begin
         + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + 2•⁅L c, L (a * b)⁆ + 2•⁅L c, L (c * a)⁆
           + 2•⁅L c, L (b * c)⁆) :
     by simp only [lie_nsmul]
-  ... = (⁅L a, L (b * b)⁆+ ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆)
-        + (⁅L a, L (c * c)⁆ + ⁅L c, L (a * a)⁆ + 2•⁅L a, L (c * a)⁆ + 2•⁅L c, L (c * a)⁆)
-        + (⁅L b, L (c * c)⁆ + ⁅L c, L (b * b)⁆ + 2•⁅L b, L (b * c)⁆ + 2•⁅L c, L (b * c)⁆)
+  ... = (⁅L a, L (b * b)⁆+ ⁅L b, L (a * a)⁆ + 2•(⁅L a, L (a * b)⁆ + ⁅L b, L (a * b)⁆))
+        + (⁅L a, L (c * c)⁆ + ⁅L c, L (a * a)⁆ + 2•(⁅L a, L (c * a)⁆ + ⁅L c, L (c * a)⁆))
+        + (⁅L b, L (c * c)⁆ + ⁅L c, L (b * b)⁆ + 2•(⁅L b, L (b * c)⁆ + ⁅L c, L (b * c)⁆))
         + (2•⁅L a, L (b * c)⁆ + 2•⁅L b, L (c * a)⁆ + 2•⁅L c, L (a * b)⁆) : by abel
   ... = 2•⁅L a, L (b * c)⁆ + 2•⁅L b, L (c * a)⁆ + 2•⁅L c, L (a * b)⁆ :
-    by rw [lie_lmul_lmul_add_add_add_eq_zero, lie_lmul_lmul_add_add_add_eq_zero,
-      is_comm_jordan.mul_comm c a, lie_lmul_lmul_add_add_add_eq_zero, zero_add, zero_add, zero_add]
+    by begin
+      rw add_left_eq_self,
+      nth_rewrite 1 is_comm_jordan.mul_comm a b,
+      nth_rewrite 0 is_comm_jordan.mul_comm c a,
+      nth_rewrite 1 is_comm_jordan.mul_comm b c,
+      rw [two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add,
+        two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add,
+        two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add,
+        ← lie_skew (L (a * a)), ← lie_skew (L (b * b)), ← lie_skew (L (c * c)),
+        ← lie_skew (L (a * a)), ← lie_skew (L (b * b)), ← lie_skew (L (c * c))],
+      abel,
+    end
   ... = 2•(⁅L a, L (b * c)⁆ + ⁅L b, L (c * a)⁆ + ⁅L c, L (a * b)⁆) : by rw [nsmul_add, nsmul_add]
 end

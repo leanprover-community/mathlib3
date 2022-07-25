@@ -608,7 +608,7 @@ end))
 
 end
 
-/-- Concatecantion forms a group.-/
+/-- Concatenation forms a group.-/
 @[reducible] def is_group : group (π_(n+1) x) :=
 { mul := concat 0, mul_assoc := concat_assoc 0,
   one := const, one_mul := const_concat 0, mul_one := concat_const 0,
@@ -621,7 +621,7 @@ instance : group (π_(n+1) x) := is_group
 lemma is_unital : @eckmann_hilton.is_unital (π_(n+2) x) (+) 1 :=
 ⟨⟨const_concat 1⟩,⟨concat_const 1⟩⟩
 
-/-- Conmutativity of horizontal concatenation is shown by
+/-- Commutativity of horizontal concatenation is shown by
   distributivity with vertical concatenation, given that it respects the unity. -/
 @[reducible] def is_comm_group : comm_group (π_(n+2) x) :=
 @eckmann_hilton.comm_group _ _ 1 is_unital is_group $

@@ -58,11 +58,6 @@ lemma alg_equiv.to_ring_equiv_symm {R A B : Type*} [comm_semiring R] [semiring A
   (f : A ≃+* B).symm = f.symm :=
 rfl
 
-@[simp]
-lemma ring_equiv.symm_trans_apply {R S T : Type*} [semiring R] [semiring S] [semiring T]
-  (f₁ : R ≃+* S) (f₂ : S ≃+* T) (x : T) : (f₁.trans f₂).symm x = f₁.symm (f₂.symm x) :=
-rfl
-
 @[simp] lemma double_quot.quot_quot_equiv_quot_sup_quot_quot_algebra_map {R A : Type*}
   [comm_semiring R] [comm_ring A] [algebra R A]
   (I J : ideal A) (x : R) :
@@ -126,11 +121,12 @@ lemma adjoin_root.quot_equiv_quot_map_symm_apply
 begin
   unfold adjoin_root.quot_equiv_quot_map,
   rw alg_equiv.of_ring_equiv_symm_apply,
-  repeat { rw ring_equiv.symm_trans_apply },
-  sorry
+  unfold adjoin_root.quot_map_of_equiv,
+  unfold adjoin_root.polynomial.quot_quot_equiv_comm,
+
   --rw [ideal.quot_equiv_of_eq_symm, ideal.quot_equiv_of_eq_symm],
 
-  --rw [quotient_equiv_symm_mk,
+  --rw [quotient_equiv_symm_mk
       --quotient_equiv_mk, quot_equiv_of_eq_mk, double_quot.quot_quot_equiv_comm_symm,
       --ring_equiv.symm_symm, ideal.polynomial_quotient_equiv_quotient_polynomial_map_mk,
       --double_quot.quot_quot_equiv_comm_mk_mk, ← ideal.quotient.mk_algebra_map,

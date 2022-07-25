@@ -434,7 +434,7 @@ alias inj_on_iff_injective ↔ inj_on.injective _
 lemma exists_inj_on_iff_injective [nonempty β] :
   (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=
 ⟨λ ⟨f, hf⟩, ⟨_, hf.injective⟩,
-  λ ⟨f, hf⟩, by { lift f to α → β using trivial, exact ⟨f, inj_on_iff_injective.2 hf⟩}⟩
+  λ ⟨f, hf⟩, by { lift f to α → β using trivial, exact ⟨f, inj_on_iff_injective.2 hf⟩ }⟩
 
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=

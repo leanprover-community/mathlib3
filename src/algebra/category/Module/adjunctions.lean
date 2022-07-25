@@ -346,6 +346,67 @@ namespace change_of_rings
 
 universes u₁ u₂
 
+namespace restriction_of_scalars
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+variable (M : Module S)
+
+/--Any `S`-module M is also an `R`-module via a ring homomorphism `f : R ⟶ S` by defining
+`r • m := f r • m`. This is called restriction of scalars. -/
+def obj' : Module R :=
+{ carrier := M,
+  is_add_comm_group := infer_instance,
+  is_module := module.comp_hom M f }
+
+section
+
+include f
+
+/--The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m`
+-/
+protected def has_smul : has_smul R M :=
+begin
+  haveI : module R M := (obj' f M).is_module,
+  apply_instance
+end
+
+end
+
+localized "notation r ` r•[` f `] ` m :=
+  @@has_smul.smul (restriction_of_scalars.has_smul f _) r m"
+  in change_of_rings
+
+@[simp] lemma smul_def (r : R) (m : M) :
+  (r r•[f] m) = f r • m := rfl
+
+/--
+Given an `S`-linear map `g : M → M'` between `S`-modules, `g` is also `R`-linear between `M` and
+`M'` by means of restriction of scalars.
+-/
+@[simps] def map' {M M' : Module S} (g : M ⟶ M') :
+  obj' f M ⟶ obj' f M' :=
+{ map_smul' := λ r (x : M), by simp,
+  ..g }
+
+private lemma map_id' : map' f (𝟙 M) = 𝟙 _ := linear_map.ext $ λ (m : M), rfl
+
+private lemma map_comp' {M M' M'' : Module S} (g : M ⟶ M') (h : M' ⟶ M'') :
+  map' f (g ≫ h) = map' f g ≫ map' f h :=
+linear_map.ext $ λ (x : M), rfl
+
+/--
+The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
+* `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
+* `S`-linear map is also `R`-linear
+-/
+@[simps] protected def functor : Module S ⥤ Module R :=
+{ obj := obj' f,
+  map := λ _ _, map' f,
+  map_id' := map_id' f,
+  map_comp' := λ _ _ _ g h, map_comp' f _ _ }
+
+end restriction_of_scalars
+
 namespace extension_of_scalars
 
 open_locale tensor_product

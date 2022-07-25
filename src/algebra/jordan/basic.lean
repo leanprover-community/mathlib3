@@ -116,7 +116,11 @@ instance comm_semigroup.is_comm_jordan [comm_semigroup A] : is_comm_jordan A :=
 local notation `L` := add_monoid.End.mul_left
 local notation `R` := add_monoid.End.mul_right
 
-/-! The Jordan axioms can be expressed in terms of commuting multiplication operators -/
+/-!
+The Jordan axioms can be expressed in terms of commuting multiplication operators. The endomorphisms
+on an additive monoid `add_monoid.End` form a `ring`, and this may be equipped with a Lie Bracket
+via `ring.has_bracket`.
+-/
 section lie
 variables {A} [non_unital_non_assoc_ring A] [is_jordan A]
 
@@ -138,11 +142,6 @@ add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.rmul_comm_rmul_rmul _ _)
 end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
-
-lemma test (a b c: A) (h: a+b=a+c) : b = c :=
-begin
-exact (add_right_inj a).mp h
-end
 
 lemma two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add (a b : A) :
   2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) = ⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆ :=

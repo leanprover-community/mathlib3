@@ -83,7 +83,7 @@ class is_jordan [has_mul A] :=
 (rmul_comm_rmul_rmul : ∀ a b : A, (b * a) * (a * a) = (b * (a * a)) * a)
 
 /-- A commutative Jordan multipication -/
-class is_comm_jordan [has_mul A]:=
+class is_comm_jordan [has_mul A] :=
 (mul_comm : ∀ a b : A, a * b = b * a)
 (jordan : ∀ a b : A, (a * b) * (a * a) = a * (b * (a *a)))
 

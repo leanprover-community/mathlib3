@@ -173,10 +173,10 @@ by rw [sUnion_eq_bUnion, hs.bUnion_iff]
 alias countable.bUnion_iff ↔ _ countable.bUnion
 alias countable.sUnion_iff ↔ _ countable.sUnion
 
-lemma countable_union {s t : set α} : (s ∪ t).countable ↔ s.countable ∧ t.countable :=
+@[simp] lemma countable_union {s t : set α} : (s ∪ t).countable ↔ s.countable ∧ t.countable :=
 by simp [union_eq_Union, and.comm]
 
-@[simp] lemma countable.union {s t : set α} (hs : s.countable) (ht : t.countable) :
+lemma countable.union {s t : set α} (hs : s.countable) (ht : t.countable) :
   (s ∪ t).countable :=
 countable_union.2 ⟨hs, ht⟩
 

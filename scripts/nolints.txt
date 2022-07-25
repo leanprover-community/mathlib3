@@ -287,10 +287,6 @@ apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer has_inhabited_instance doc_blame
 
--- data/finite/basic.lean
-apply_nolint finite.of_fintype fintype_finite
-apply_nolint fintype.finite fintype_finite
-
 -- data/finset/noncomm_prod.lean
 apply_nolint add_monoid_hom.pi_ext fintype_finite
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc

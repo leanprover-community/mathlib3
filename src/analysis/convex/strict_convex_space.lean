@@ -3,7 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Yury Kudryashov
 -/
-import analysis.convex.linear_isometry
+import analysis.convex.strict
+import analysis.convex.topology
 import analysis.normed_space.ordered
 import analysis.normed_space.pointwise
 
@@ -66,7 +67,7 @@ class strict_convex_space (𝕜 E : Type*) [normed_linear_ordered_field 𝕜] [n
 (strict_convex_closed_ball : ∀ r : ℝ, 0 < r → strict_convex 𝕜 (closed_ball (0 : E) r))
 
 variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- A closed ball in a strictly convex space is strictly convex. -/
 lemma strict_convex_closed_ball [strict_convex_space 𝕜 E] (x : E) (r : ℝ) :
@@ -78,28 +79,13 @@ begin
   exact (strict_convex_space.strict_convex_closed_ball r hr).vadd _,
 end
 
-variables [normed_space ℝ E] [normed_space ℝ F]
+variables [normed_space ℝ E]
 
 /-- A real normed vector space is strictly convex provided that the unit ball is strictly convex. -/
 lemma strict_convex_space.of_strict_convex_closed_unit_ball
   [linear_map.compatible_smul E E 𝕜 ℝ] (h : strict_convex 𝕜 (closed_ball (0 : E) 1)) :
   strict_convex_space 𝕜 E :=
 ⟨λ r hr, by simpa only [smul_closed_unit_ball_of_nonneg hr.le] using h.smul r⟩
-
-lemma linear_isometry_equiv.strict_convex_space_iff (e : E ≃ₗᵢ[ℝ] F) :
-  strict_convex_space ℝ E ↔ strict_convex_space ℝ F :=
-by simp only [strict_convex_space_def, ← map_zero e, ← e.image_closed_ball, e.strict_convex_image]
-
-lemma linear_isometry.strict_convex_space_range_iff (e : E →ₗᵢ[ℝ] F) :
-  strict_convex_space ℝ e.to_linear_map.range ↔ strict_convex_space ℝ E :=lemma linear
-
-instance submodule.strict_convex_space [strict_convex_space ℝ E] (p : submodule ℝ E) :
-  strict_convex_space ℝ p :=
-⟨λ r hr, by { rw [← p.subtypeₗᵢ.isometry.preimage_closed_ball],  }⟩
-
-instance linear_isometry.strict_convex_space_range [strict_convex_space ℝ E] (e : E →ₗᵢ[ℝ] F) :
-  strict_convex_space ℝ e.to_linear_map.range :=
-e.strict_convex_space_range_iff.mpr ‹_›
 
 /-- If `∥x + y∥ = ∥x∥ + ∥y∥` implies that `x y : E` are in the same ray, then `E` is a strictly
 convex space. -/

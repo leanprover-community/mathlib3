@@ -32,26 +32,26 @@ def isometry [pseudo_emetric_space α] [pseudo_emetric_space β] (f : α → β)
 
 /-- On pseudometric spaces, a map is an isometry if and only if it preserves nonnegative
 distances. -/
-lemma isometry_emetric_iff_nndist [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
+lemma isometry_iff_nndist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
   isometry f ↔ (∀x y, nndist (f x) (f y) = nndist x y) :=
 by simp only [isometry, edist_nndist, ennreal.coe_eq_coe]
 
 /-- On pseudometric spaces, a map is an isometry if and only if it preserves distances. -/
-lemma isometry_emetric_iff_metric [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
+lemma isometry_iff_dist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
   isometry f ↔ (∀x y, dist (f x) (f y) = dist x y) :=
-by simp only [isometry_emetric_iff_nndist, ← coe_nndist, nnreal.coe_eq]
+by simp only [isometry_iff_nndist_eq, ← coe_nndist, nnreal.coe_eq]
 
 /-- An isometry preserves distances. -/
-alias isometry_emetric_iff_metric ↔ isometry.dist_eq _
+alias isometry_iff_dist_eq ↔ isometry.dist_eq _
 
 /-- A map that preserves distances is an isometry -/
-alias isometry_emetric_iff_metric ↔ _ isometry.of_dist_eq
+alias isometry_iff_dist_eq ↔ _ isometry.of_dist_eq
 
 /-- An isometry preserves non-negative distances. -/
-alias isometry_emetric_iff_nndist ↔ isometry.nndist_eq _
+alias isometry_iff_nndist_eq ↔ isometry.nndist_eq _
 
 /-- A map that preserves non-negative distances is an isometry. -/
-alias isometry_emetric_iff_nndist ↔ _ isometry.of_nndist_eq
+alias isometry_iff_nndist_eq ↔ _ isometry.of_nndist_eq
 
 namespace isometry
 
@@ -74,7 +74,7 @@ lemma antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 λx y, by rw subsingleton.elim x y; simp
 
 /-- The identity is an isometry -/
-lemma _root_.isometry_id : isometry (id : α → α) := λx y, rfl
+lemma _root_.isometry_id : isometry (id : α → α) := λ x y, rfl
 
 /-- The composition of isometries is an isometry -/
 theorem comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
@@ -212,7 +212,7 @@ lemma uniform_embedding.to_isometry {α β} [uniform_space α] [metric_space β]
       (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
     (by apply_instance) f :=
 begin
-  apply isometry_emetric_iff_metric.2,
+  apply isometry.of_dist_eq,
   assume x y,
   refl
 end
@@ -226,7 +226,7 @@ lemma embedding.to_isometry {α β} [topological_space α] [metric_space β] {f 
       (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
     (by apply_instance) f :=
 begin
-  apply isometry_emetric_iff_metric.2,
+  apply isometry.of_dist_eq,
   assume x y,
   refl
 end

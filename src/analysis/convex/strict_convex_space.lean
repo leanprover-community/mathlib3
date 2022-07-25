@@ -61,12 +61,12 @@ then prove that any closed ball is strictly convex in `strict_convex_closed_ball
 
 See also `strict_convex_space.of_strict_convex_closed_unit_ball`. -/
 @[mk_iff strict_convex_space_def]
-class strict_convex_space (𝕜 E : Type*) [normed_linear_ordered_field 𝕜] [normed_group E]
+class strict_convex_space (𝕜 E : Type*) [normed_linear_ordered_field 𝕜] [normed_add_comm_group E]
   [normed_space 𝕜 E] : Prop :=
 (strict_convex_closed_ball : ∀ r : ℝ, 0 < r → strict_convex 𝕜 (closed_ball (0 : E) r))
 
-variables (𝕜 : Type*) {E F : Type*} [normed_linear_ordered_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 /-- A closed ball in a strictly convex space is strictly convex. -/
 lemma strict_convex_closed_ball [strict_convex_space 𝕜 E] (x : E) (r : ℝ) :
@@ -261,7 +261,7 @@ by rw [norm_smul, real.norm_of_nonneg (one_div_nonneg.2 zero_le_two), ←inv_eq_
     ←div_eq_inv_mul, div_lt_iff (@zero_lt_two ℝ _ _), mul_two, ←not_same_ray_iff_of_norm_eq h,
     not_same_ray_iff_norm_add_lt, h]
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {PF : Type*} {PE : Type*} [metric_space PF] [metric_space PE]
 variables [normed_add_torsor F PF] [normed_add_torsor E PE]
 

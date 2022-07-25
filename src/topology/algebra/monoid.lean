@@ -233,13 +233,15 @@ end pointwise_limits
   @has_continuous_mul M (induced f ‹_›) _ :=
 by { letI := induced f ‹_›, exact inducing.has_continuous_mul f ⟨rfl⟩ }
 
-namespace submonoid
-
-@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+@[to_additive] instance subsemigroup.has_continuous_mul [topological_space M] [semigroup M]
+  [has_continuous_mul M] (S : subsemigroup M) :
   has_continuous_mul S :=
-inducing.has_continuous_mul S.subtype ⟨rfl⟩
+inducing.has_continuous_mul (⟨coe, λ _ _, rfl⟩ : mul_hom S M) ⟨rfl⟩
 
-end submonoid
+@[to_additive] instance submonoid.has_continuous_mul [topological_space M] [monoid M]
+  [has_continuous_mul M] (S : submonoid M) :
+  has_continuous_mul S :=
+S.to_subsemigroup.has_continuous_mul
 
 section has_continuous_mul
 
@@ -563,7 +565,7 @@ variables {ι' : Sort*} [has_mul M]
 @[to_additive] lemma has_continuous_mul_Inf {ts : set (topological_space M)}
   (h : Π t ∈ ts, @has_continuous_mul M t _) :
   @has_continuous_mul M (Inf ts) _ :=
-{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+{ continuous_mul := continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ ht ht
   (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
 
 @[to_additive] lemma has_continuous_mul_infi {ts : ι' → topological_space M}

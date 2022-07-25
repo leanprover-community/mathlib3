@@ -420,7 +420,7 @@ end
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
   trace_matrix A ((P.map (algebra_map A B)).mul_vec b) = P ⬝ (trace_matrix A b) ⬝ Pᵀ :=
 begin
-  refine add_equiv.injective transpose_add_equiv _,
+  refine add_equiv.injective (transpose_add_equiv _ _ _) _,
   rw [transpose_add_equiv_apply, transpose_add_equiv_apply, ← vec_mul_transpose,
     ← transpose_map, trace_matrix_of_matrix_vec_mul, transpose_transpose, transpose_mul,
     transpose_transpose, transpose_mul]

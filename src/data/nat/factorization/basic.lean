@@ -249,7 +249,7 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
-/-! ### Factorization and divisibility -/
+/-! ### Generalisation of the "even part" and "odd part" of a natural number -/
 
 -- The largest power of `p` that divides into `n`.  For `p = 2` this is the even part of `n`.
 notation `ord_proj[` p `]` n:max := p ^ (nat.factorization n p)
@@ -262,19 +262,6 @@ by simp [factorization_eq_zero_of_non_prime n hp]
 
 @[simp] lemma ord_compl_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_compl[p] n = n :=
 by simp [factorization_eq_zero_of_non_prime n hp]
-
--- TODO: Rename the following lemmas
-
--- TODO: Prove:
--- [*] ord_proj[p] n ∣ n
--- [*] ord_compl[p] n ∣ n
--- [*] 0 < ord_proj[p] n ≤ n
--- [*] 0 < ord_compl[p] n ≤ n
--- [*] ord_proj[p] n * ord_compl[p] n = n
--- [*] ord_proj[p] a * ord_proj[p] b = ord_proj[p] (a*b)
--- [*] ord_compl[p] a * ord_compl[p] b = ord_compl[p] (a*b)
--- [*] ord_proj[p] n is the largest power of `p` that divides into `n`
--- [*] ord_compl[p] n is the largest divisor of `n` not divisible by `p`.
 
 lemma ord_proj_dvd (n p : ℕ) : ord_proj[p] n ∣ n :=
 begin
@@ -324,6 +311,8 @@ begin
   simp only [mul_ord_proj p ha hb],
   rw (mul_div_mul_comm_of_dvd_dvd (ord_proj_dvd a p) (ord_proj_dvd b p)),
 end
+
+/-! ### Factorization and divisibility -/
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin

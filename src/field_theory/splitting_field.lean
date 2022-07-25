@@ -496,6 +496,10 @@ section lift_instances
 In order to avoid diamond issues, we have to be careful to define each field of
 an instance of `splitting_field_aux` by recursion, rather than defining the
 whole structure by recursion at once.
+
+We do this in three steps: first define an `add_comm_group` instance to put a `distrib_smul`
+on (which is what is needed to push scalar multiplication through the recursive step),
+then a `comm_ring` instance, and finally a `field` instance.
 -/
 
 protected def zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
@@ -506,6 +510,88 @@ protected def add (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_add.add K _) (λ n ih K fK f, ih)
 
+/-- `K` adjoined `n` roots of `f : K[X]` has addition and zero.
+
+We need this instance to define the `distrib_smul` instance below; a `distrib_smul`
+is required to lift scalar multiplications on `K` to a splitting field of `f : K[X]`.
+-/
+instance add_zero_class (n : ℕ) {K : Type u} [field K] {f : K[X]} :
+  add_zero_class (splitting_field_aux n f) :=
+begin
+  refine_struct
+    { add := splitting_field_aux.add n,
+      zero := splitting_field_aux.zero n },
+  all_goals { unfreezingI { induction n with n ih generalizing K } },
+  -- The `succ` cases follow by induction, handle them first.
+  iterate 2 { rotate, exact ih },
+  -- The `zero` cases follow from the structure of the field `K`.
+  all_goals { intros,
+    dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero],
+    simp },
+end
+
+protected def smul (n : ℕ) : Π (α : Type*) {K : Type u} [field K] [has_smul α K],
+  by exactI Π [distrib_smul α K], by exactI Π [is_scalar_tower α K K] {f : K[X]},
+  α → splitting_field_aux n f → splitting_field_aux n f :=
+nat.rec_on n
+  (λ α K fK hs ds ist f, by exactI @has_smul.smul _ K _)
+  (λ n ih α K fK hs ds ist f, by exactI ih α)
+
+/-- Lift an action of `α` on `K` to `K` adjoined `n` roots of `f : K[X]`.
+
+A `distrib_smul` is required to lift scalar multiplication on `K` to a splitting field of
+`f : K[X]`, i.e. we need this instance to keep the recursive definition going.
+-/
+instance has_smul (α : Type*) (n : ℕ) {K : Type u} [field K] [has_smul α K]
+  [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
+  has_smul α (splitting_field_aux n f) :=
+{ smul := λ a x, splitting_field_aux.smul n α a x }
+
+/-- Lift an action of `α` on `K` to `K` adjoined `n` roots of `f : K[X]`.
+
+A `distrib_scalar` is required to lift scalar multiplication on `K` to a splitting field of
+`f : K[X]`, i.e. we need this instance to keep the recursive definition going.
+-/
+instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]
+  [has_smul α K] [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
+  distrib_smul α (splitting_field_aux n f) :=
+{ smul_zero := begin
+    unfreezingI { induction n with n ih generalizing K };
+      dsimp only [splitting_field_aux, splitting_field_aux.has_smul, splitting_field_aux.smul],
+    { intros a, apply @smul_zero_class.smul_zero α K },
+    { exact ih }
+  end,
+  smul_add := begin
+    unfreezingI { induction n with n ih generalizing K };
+      dsimp only [splitting_field_aux, splitting_field_aux.has_smul, splitting_field_aux.smul],
+    { intros a, apply @distrib_smul.smul_add α K },
+    { exact ih }
+  end, }
+
+instance polynomial.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
+  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K] [distrib_smul R₂ K] [distrib_smul R₁ K]
+  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] :
+  is_scalar_tower R₁ R₂ K[X] :=
+⟨λ a b x, by { ext, simp [polynomial.coeff_smul'] }⟩
+
+instance adjoin_root.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
+  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K] [distrib_smul R₂ K] [distrib_smul R₁ K]
+  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]} :
+  is_scalar_tower R₁ R₂ (adjoin_root f) :=
+⟨begin
+  intros a b x,
+  refine x.induction_on _ (λ p, _),
+  simp only [adjoin_root.smul_mk, smul_assoc a b p],
+end⟩
+
+instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
+  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K],
+  by exactI Π [distrib_smul R₂ K] [distrib_smul R₁ K]
+  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] {f : K[X]},
+    by exactI is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
+nat.rec_on n (λ R₁ R₂ K _ _ hs₁ hs₂ _ _ _ _ h f, by cases hs₁; cases hs₂; exact h) $
+         λ n ih R₁ R₂ K _ _ _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
+
 protected def neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_neg.neg K _) (λ n ih K fK f, ih)
@@ -514,38 +600,92 @@ protected def sub (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_sub.sub K _) (λ n ih K fK f, ih)
 
-instance polynomial.is_scalar_tower_right {α : Type*} [monoid α] [distrib_mul_action α K]
-  [is_scalar_tower α K K] : is_scalar_tower α K[X] K[X] :=
-⟨λ a f g, by ext; simp_rw [smul_eq_mul, coeff_mul, coeff_smul, coeff_mul, smul_mul_assoc, finset.smul_sum]⟩
+protected lemma nsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (x : splitting_field_aux n f), (0 : ℕ) • x = splitting_field_aux.zero n :=
+nat.rec_on n (λ K fK f, by exactI zero_nsmul) (λ n ih K fK f, by exactI ih)
 
-instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K] [distrib_mul_action α K]
-  [is_scalar_tower α K K]
-  {f : K[X]} : distrib_mul_action α (adjoin_root f.factor) :=
-submodule.quotient.distrib_mul_action' _
+protected lemma nsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (k : ℕ) (x : splitting_field_aux n f),
+  (k + 1) • x = splitting_field_aux.add n x (k • x) :=
+nat.rec_on n (λ K fK f n x, by exactI succ_nsmul x n) (λ n ih K fK f, by exactI ih)
 
-instance adjoin_root.is_scalar_tower_right (α : Type*) [comm_semiring α] {K : Type u} [field K] [distrib_mul_action α K]
-  [is_scalar_tower α K K]
-  {f : K[X]} : is_scalar_tower α (adjoin_root f.factor) (adjoin_root f.factor) :=
-⟨begin
-  rintro x ⟨y⟩ ⟨z⟩,
-  simp only [submodule.quotient.quot_mk_eq_mk, algebra.id.smul_eq_mul],
-  -- we need to copy this lemma for `ideal.quotient`; will make this proof far easier.
-  rw [←submodule.quotient.mk_smul],
-  simp only [ideal.quotient.mk_eq_mk],
-  rw [←map_mul, ←map_mul],
-  -- also maybe a `mul_assoc` for the special cases of `is_scalar_tower`
-  simp only [←ideal.quotient.mk_eq_mk, ←algebra.id.smul_eq_mul],
-  rw [←submodule.quotient.mk_smul, is_scalar_tower.smul_assoc]
-end⟩
+protected lemma zsmul_zero (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (x : splitting_field_aux n f), (0 : ℤ) • x = splitting_field_aux.zero n :=
+nat.rec_on n (λ K fK f, by exactI zero_zsmul) (λ n ih K fK f, by exactI ih)
 
-protected def smul (α : Type*) [comm_semiring α] (n : ℕ) : Π {K : Type u} [field K],
-  by exactI Π [distrib_mul_action α K], by exactI Π [is_scalar_tower α K K] {f : K[X]},
-  α → splitting_field_aux n f → splitting_field_aux n f :=
-nat.rec_on n (λ K fK dma ist f, by exactI @has_smul.smul _ K _) (λ n ih K fK dma ist f, by exactI ih)
+protected lemma zsmul_succ (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (k : ℕ) (x : splitting_field_aux n f),
+  (↑(k + 1) : ℤ) • x = splitting_field_aux.add n x ((k : ℤ) • x) :=
+nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_succ' K _ k x)
+  (λ n ih K fK f, by exactI ih)
 
-protected def qsmul (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  ℚ → splitting_field_aux n f → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f, by exactI @has_smul.smul _ K _) (λ n ih K fK f, ih)
+protected lemma zsmul_neg (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (k : ℕ) (x : splitting_field_aux n f),
+  -[1+ k] • x = splitting_field_aux.neg n ((k + 1 : ℤ) • x) :=
+nat.rec_on n (λ K fK f k x, by exactI @subtraction_comm_monoid.zsmul_neg' K _ k x)
+  (λ n ih K fK f, by exactI ih)
+
+/-- `K` adjoined `n` roots of `f : K[X]` is an additive, commutative group.
+
+We need this instance to define the `distrib_mul_action` instance below; a `distrib_mul_action`
+is required to lift scalar multiplications on `K` to a splitting field of `f : K[X]`.
+-/
+instance add_comm_group (n : ℕ) {K : Type u} [field K] {f : K[X]} :
+  add_comm_group (splitting_field_aux n f) :=
+begin
+  refine_struct
+    { add := splitting_field_aux.add n,
+      zero := splitting_field_aux.zero n,
+      neg := splitting_field_aux.neg n,
+      sub := splitting_field_aux.sub n,
+      nsmul := (•),
+      nsmul_zero' := splitting_field_aux.nsmul_zero n,
+      nsmul_succ' := splitting_field_aux.nsmul_succ n,
+      zsmul := (•),
+      zsmul_zero' := splitting_field_aux.zsmul_zero n,
+      zsmul_succ' := splitting_field_aux.zsmul_succ n,
+      zsmul_neg' := splitting_field_aux.zsmul_neg n },
+  all_goals { unfreezingI { induction n with n ih generalizing K } },
+  -- The `succ` cases follow by induction, handle them first.
+  iterate 6 { rotate, exact ih },
+  -- The `zero` cases follow from the structure of the field `K`.
+  all_goals { intros,
+    dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
+      splitting_field_aux.neg, splitting_field_aux.sub] },
+  -- `simp` can handle a couple of them
+  any_goals { simp },
+  -- and `ring` can handle the rest.
+  all_goals { ring },
+end
+
+instance adjoin_root.distrib_mul_action (α : Type*) [comm_semiring α] {K : Type u} [field K]
+  [distrib_mul_action α K] [is_scalar_tower α K K] (f : K[X]) :
+  distrib_mul_action α (adjoin_root f) :=
+{ smul := (•),
+  one_smul := λ x, by { refine x.induction_on _ (λ p, _), rw [adjoin_root.smul_mk, one_smul] },
+  mul_smul := λ a b x,
+    by { refine x.induction_on _ (λ p, _), simp only [adjoin_root.smul_mk, mul_smul] },
+  .. adjoin_root.distrib_smul f }
+
+/-- Lift an action of `α` on `K` to `K` adjoined `n` roots of `f : K[X]`.
+
+A `distrib_mul_action` is required to lift scalar multiplication on `K` to a splitting field of
+`f : K[X]`, i.e. we need this instance to keep the recursive definition going.
+-/
+instance distrib_mul_action (α : Type*) [comm_semiring α] (n : ℕ) {K : Type u} [field K]
+  [distrib_mul_action α K] [is_scalar_tower α K K] {f : K[X]} :
+  distrib_mul_action α (splitting_field_aux n f) :=
+begin
+  refine_struct
+  { smul := @has_smul.smul α (splitting_field_aux n f) _,
+    smul_zero := smul_zero_class.smul_zero,
+    smul_add := distrib_smul.smul_add },
+  recover, any_goals { apply_instance },
+  all_goals { unfreezingI { induction n with n ih generalizing K } },
+  iterate 2 { rotate, exact ih },
+  { intros b, convert @mul_smul α K _ _ b, },
+  { intros b, convert @one_smul α K _ _ b, },
+end
 
 protected def one (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   splitting_field_aux n f :=
@@ -555,20 +695,8 @@ protected def mul (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
   splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @has_mul.mul K _) (λ n ih K fK f, ih)
 
-protected def inv (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  splitting_field_aux n f → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f, by exactI @has_inv.inv K _) (λ n ih K fK f, ih)
-
-protected def div (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f, by exactI @has_div.div K _) (λ n ih K fK f, ih)
-
 protected def npow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
   ℕ → splitting_field_aux n f → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
-
-protected def zpow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  ℤ → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
 
 protected def nat_cast (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
@@ -579,10 +707,6 @@ protected def int_cast (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : 
   ℤ → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f, by exactI @coe _ K _) (λ n ih K fK f, ih)
 
-protected def rat_cast (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  ℚ → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f, by exactI @coe _ K _) (λ n ih K fK f, ih)
-
 instance comm_ring (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   comm_ring (splitting_field_aux n f) :=
 begin
@@ -591,59 +715,90 @@ begin
       zero := splitting_field_aux.zero n,
       neg := splitting_field_aux.neg n,
       sub := splitting_field_aux.sub n,
-      nsmul := splitting_field_aux.smul ℕ n,
-      zsmul := splitting_field_aux.smul ℤ n,
+      nsmul := (•),
+      zsmul := (•),
       mul := splitting_field_aux.mul n,
       one := splitting_field_aux.one n,
       npow := splitting_field_aux.npow n,
       nat_cast := splitting_field_aux.nat_cast n,
-      int_cast := splitting_field_aux.int_cast n },
+      int_cast := splitting_field_aux.int_cast n,
+      .. splitting_field_aux.add_comm_group n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- The `succ` cases follow by induction, handle them first.
-  iterate 23 { rotate, exact ih },
+  iterate 12 { rotate, exact ih },
   -- The `zero` cases follow from the structure of the field `K`.
   all_goals { intros,
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
-      splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.nsmul,
-      splitting_field_aux.zsmul, splitting_field_aux.mul, splitting_field_aux.one,
-      splitting_field_aux.npow, splitting_field_aux.nat_cast, splitting_field_aux.int_cast] },
+      splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
+      splitting_field_aux.one, splitting_field_aux.npow, splitting_field_aux.nat_cast,
+      splitting_field_aux.int_cast] },
   -- `simp` can handle a couple of them
   any_goals { simp [nat.succ_eq_add_one, pow_succ] },
   -- and `ring` can handle the rest.
   all_goals { ring },
 end
 
+instance is_scalar_tower_right (α : Type*) (n : ℕ) {K : Type u} [field K]
+  [has_smul α K] [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :
+  is_scalar_tower α (splitting_field_aux n f) (splitting_field_aux n f) :=
+⟨begin
+   unfreezingI { induction n with n ih generalizing K },
+   { exact @smul_assoc K α K _ _ _ _ },
+   { exact ih }
+ end⟩
+
+protected def inv (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
+  splitting_field_aux n f → splitting_field_aux n f :=
+nat.rec_on n (λ K fK f, by exactI @has_inv.inv K _) (λ n ih K fK f, ih)
+
+protected def div (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
+  splitting_field_aux n f → splitting_field_aux n f → splitting_field_aux n f :=
+nat.rec_on n (λ K fK f, by exactI @has_div.div K _) (λ n ih K fK f, ih)
+
+protected def zpow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
+  ℤ → splitting_field_aux n f → splitting_field_aux n f :=
+nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
+
+protected def rat_cast (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
+  ℚ → splitting_field_aux n f :=
+nat.rec_on n (λ K fK f, by exactI @coe _ K _) (λ n ih K fK f, ih)
+
+protected lemma qsmul_eq_mul (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
+  (a : ℚ) (x : splitting_field_aux n f),
+  a • x = (splitting_field_aux.rat_cast n a) * x :=
+nat.rec_on n (λ K fK f, by exactI rat.smul_def) (λ n ih K fK f, ih)
+
 instance field (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   field (splitting_field_aux n f) :=
 begin
   refine_struct
-    { add := splitting_field_aux.add n,
-      zero := splitting_field_aux.zero n,
-      neg := splitting_field_aux.neg n,
-      sub := splitting_field_aux.sub n,
-      nsmul := splitting_field_aux.smul ℕ n,
-      zsmul := splitting_field_aux.smul ℤ n,
-      qsmul := splitting_field_aux.smul ℚ n,
-      mul := splitting_field_aux.mul n,
-      one := splitting_field_aux.one n,
-      inv := splitting_field_aux.inv n,
-      div := splitting_field_aux.div n,
-      npow := splitting_field_aux.npow n,
-      zpow := splitting_field_aux.zpow n,
-      nat_cast := splitting_field_aux.nat_cast n,
-      int_cast := splitting_field_aux.int_cast n,
-      rat_cast := splitting_field_aux.rat_cast n,
-      .. splitting_field_aux.comm_ring n },
+  { add := splitting_field_aux.add n,
+    zero := splitting_field_aux.zero n,
+    neg := splitting_field_aux.neg n,
+    sub := splitting_field_aux.sub n,
+    nsmul := (•),
+    zsmul := (•),
+    qsmul := (•),
+    qsmul_eq_mul' := splitting_field_aux.qsmul_eq_mul n,
+    mul := splitting_field_aux.mul n,
+    one := splitting_field_aux.one n,
+    inv := splitting_field_aux.inv n,
+    div := splitting_field_aux.div n,
+    npow := splitting_field_aux.npow n,
+    zpow := splitting_field_aux.zpow n,
+    nat_cast := splitting_field_aux.nat_cast n,
+    int_cast := splitting_field_aux.int_cast n,
+    rat_cast := splitting_field_aux.rat_cast n,
+    .. splitting_field_aux.comm_ring n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- The `succ` cases follow by induction, handle them first.
   iterate 5 { rotate, exact ih },
   rotate, { intros a h, exact ih h },
-  iterate 3 { rotate, exact ih },
+  iterate 2 { rotate, exact ih },
   -- The `zero` cases follow from the structure of the field `K`.
   all_goals {
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
-      splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.nsmul,
-      splitting_field_aux.zsmul, splitting_field_aux.qsmul, splitting_field_aux.mul,
+      splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
       splitting_field_aux.one, splitting_field_aux.inv, splitting_field_aux.div,
       splitting_field_aux.npow, splitting_field_aux.zpow, splitting_field_aux.nat_cast,
       splitting_field_aux.int_cast, splitting_field_aux.rat_cast] },
@@ -658,48 +813,35 @@ end
 instance inhabited {n : ℕ} {f : K[X]} :
   inhabited (splitting_field_aux n f) := ⟨37⟩
 
-protected def coe_base (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  K → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f x, x) (λ n ih K fK f x, ih (↑ x))
+protected def algebra_map {R : Type*} [comm_semiring R] (n : ℕ) : Π {K : Type u} [field K],
+  by exactI Π [algebra R K] {f : K[X]},
+  R →+* splitting_field_aux n f :=
+nat.rec_on n (λ K fK alg f, by exactI @algebra_map R K _ _ alg) (λ n ih K fK alg f, by exactI ih)
 
-/-
-Note that the recursive nature of this definition and `splitting_field_aux.field` creates
-non-definitionally-equal diamonds in the `ℕ`- and `ℤ`- actions.
-```lean
-example (n : ℕ) {K : Type u} [field K] {f : K[X]} (hfn : f.nat_degree = n) :
-    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f hfn)) =
-  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _ hfn) :=
-rfl  -- fails
-```
-It's not immediately clear whether this _can_ be fixed; the failure is much the same as the reason
-that the following fails:
-```lean
-def cases_twice {α} (a₀ aₙ : α) : ℕ → α × α
-| 0 := (a₀, a₀)
-| (n + 1) := (aₙ, aₙ)
-
-example (x : ℕ) {α} (a₀ aₙ : α) : (cases_twice a₀ aₙ x).1 = (cases_twice a₀ aₙ x).2 := rfl  -- fails
-```
-We don't really care at this point because this is an implementation detail (which is why this is
-not a docstring), but we do in `splitting_field.algebra'` below. -/
-instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
-  {f : K[X]} : algebra R (splitting_field_aux n f) :=
+protected lemma smul_def {R : Type*} [comm_semiring R] (n : ℕ) {K : Type u} [field K] [algebra R K]
+  {f : K[X]} (a : R) (x : splitting_field_aux n f) :
+  a • x = splitting_field_aux.algebra_map n a * x :=
 begin
-  refine_struct { to_fun := splitting_field_aux.coe_base, smul := nat.rec n _ _ },
+  unfreezingI { induction n with n ih generalizing K },
+  { exact algebra.smul_def _ _ },
+  { exact ih x },
 end
 
+instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
+  {f : K[X]} : algebra R (splitting_field_aux n f) :=
+{ to_fun := splitting_field_aux.algebra_map n,
+  smul := (•),
+  smul_def' := λ a x, splitting_field_aux.smul_def n a x,
+  commutes' := λ a x, by rw [mul_comm],
+  .. splitting_field_aux.algebra_map n }
+
+/-- Because `splitting_field_aux` is defined by recursion, we have to make sure all instances
+on `splitting_field_aux` are defined by recursion within the fields. Otherwise, there will be
+instance diamonds such as: -/
 example (n : ℕ) {K : Type u} [field K] {f : K[X]} :
     (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f)) =
   @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _) :=
-rfl  -- fails
-
-instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
-  by exactI Π [algebra R₁ K] [algebra R₂ K],
-  by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]},
-    is_scalar_tower R₁ R₂ (splitting_field_aux n f) :=
-nat.rec_on n (λ R₁ R₂ K _ _ _ _ _ _ _ _, by exactI ‹is_scalar_tower R₁ R₂ K›) $
-         λ n ih R₁ R₂ K _ _ _ _ _ _ _ f, by exactI ih R₁ R₂
+rfl
 
 end lift_instances
 

@@ -232,9 +232,6 @@ add_right_eq_self.mp $ le_antisymm ((two_mul a).symm.trans_le h) le_add_self
 lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
-theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, λ h, h ▸ le_refl i⟩
-
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 

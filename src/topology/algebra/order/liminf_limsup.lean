@@ -195,7 +195,7 @@ variables {ι R S : Type*} {F : filter ι} [ne_bot F]
 /-- A continuous antitone function between complete linear ordered spaces sends a `filter.limsup`
 to the `filter.liminf` of the images. -/
 lemma antitone.map_limsup_of_continuous
-  (a : ι → R) {f : R → S} (f_decr : antitone f) (f_cont : continuous f ) :
+  (a : ι → R) {f : R → S} (f_decr : antitone f) (f_cont : continuous f) :
   f (F.limsup a) = F.liminf (f ∘ a) :=
 begin
   rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf] at *,

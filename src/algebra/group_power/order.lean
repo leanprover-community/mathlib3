@@ -94,21 +94,25 @@ end covariant_le
 section right
 variables [covariant_class M M (swap (*)) (≤)] {x : M}
 
+@[to_additive right.pow_nonneg]
 lemma right.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n
 | 0       := (pow_zero _).ge
 | (n + 1) := by { rw pow_succ, exact right.one_le_mul hx right.one_le_pow_of_le }
 
+@[to_additive right.pow_nonpos]
 lemma right.pow_le_one_of_le (hx : x ≤ 1) : ∀ {n : ℕ}, x^n ≤ 1
 | 0       := (pow_zero _).le
 | (n + 1) := by { rw pow_succ, exact right.mul_le_one hx right.pow_le_one_of_le }
 
 end right
 
+@[to_additive left.pow_neg]
 lemma left.pow_lt_one_of_lt [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) (h : x < 1) :
   x^n < 1 :=
 nat.le_induction ((pow_one _).trans_lt h) (λ n _ ih, by { rw pow_succ, exact mul_lt_one h ih }) _
   (nat.succ_le_iff.2 hn)
 
+@[to_additive right.pow_neg]
 lemma right.pow_lt_one_of_lt [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M}
   (n0 : 0 < n) (H : x < 1) :
   x^n < 1 :=
@@ -158,10 +162,12 @@ lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono
 
 end covariant_le
 
+@[to_additive left.nsmul_neg_iff]
 lemma left.pow_lt_one_iff [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) :
   x^n < 1 ↔ x < 1 :=
 by { haveI := has_mul.to_covariant_class_left M, exact pow_lt_one_iff hn.ne' }
 
+@[to_additive right.nsmul_neg_iff]
 lemma right.pow_lt_one_iff [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M} (hn : 0 < n) :
   x^n < 1 ↔ x < 1 :=
 ⟨λ H, not_le.mp $ λ k, H.not_le $ by { haveI := has_mul.to_covariant_class_right M,

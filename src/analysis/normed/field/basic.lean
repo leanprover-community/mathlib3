@@ -572,14 +572,14 @@ densely_normed_field.lt_norm_lt r₁ r₂ h₀ h
 lemma exists_lt_nnnorm_lt {r₁ r₂ : ℝ≥0} (h : r₁ < r₂) : ∃ x : α, r₁ < ∥x∥₊ ∧ ∥x∥₊ < r₂ :=
 by exact_mod_cast exists_lt_norm_lt α r₁.prop h
 
-def densely_ordered_range_norm : densely_ordered (set.range (norm : α → ℝ)) :=
+instance densely_ordered_range_norm : densely_ordered (set.range (norm : α → ℝ)) :=
 { dense :=
   begin
     rintro ⟨-, x, rfl⟩ ⟨-, y, rfl⟩ hxy,
     exact let ⟨z, h⟩ := exists_lt_norm_lt α (norm_nonneg _) hxy in ⟨⟨∥z∥, z, rfl⟩, h⟩,
   end }
 
-def densely_ordered_range_nnnorm : densely_ordered (set.range (nnnorm : α → ℝ≥0)) :=
+instance densely_ordered_range_nnnorm : densely_ordered (set.range (nnnorm : α → ℝ≥0)) :=
 { dense :=
   begin
     rintro ⟨-, x, rfl⟩ ⟨-, y, rfl⟩ hxy,

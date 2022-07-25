@@ -142,10 +142,10 @@ end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
-/-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in a → a + b and
-expanding. -/
+/-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in
+a → a + b and expanding. -/
 lemma lie_lmul_lmul_add_add_add_eq_zero (a b : A) :
-  ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (b * a)⁆ = 0 :=
+  ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ = 0 :=
 begin
   symmetry,
   calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw (lie_lmul_lmul_sq (a + b))
@@ -153,16 +153,14 @@ begin
       by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a * a) + L(a * b) + (L(a * b) + L(b * b))⁆ :
       by rw [map_add, map_add, map_add, is_comm_jordan.mul_comm b a]
-    ... = ⁅L a + L b, L (a * a) + (2:ℤ)•L(a * b) + L(b * b)⁆ :
+    ... = ⁅L a + L b, L (a * a) + 2•L(a * b) + L(b * b)⁆ :
       by rw [ two_smul, ← add_assoc, ← add_assoc]
-    ... = ⁅L a, L (a * a)⁆ + ⁅L a, (2:ℤ)•L(a * b)⁆ + ⁅L a, L(b * b)⁆
-      + (⁅L b, L (a * a)⁆ + ⁅L b,(2:ℤ)•L(a * b)⁆ + ⁅L b,L(b * b)⁆) :
+    ... = ⁅L a, L (a * a)⁆ + ⁅L a, 2•L(a * b)⁆ + ⁅L a, L(b * b)⁆
+      + (⁅L b, L (a * a)⁆ + ⁅L b, 2•L(a * b)⁆ + ⁅L b,L(b * b)⁆) :
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
-    ... = (2:ℤ)•⁅L a, L (a * b)⁆ + ⁅L a, L(b * b)⁆ + (⁅L b, L (a * a)⁆ + (2:ℤ)•⁅L b,L(a * b)⁆) :
-      by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b, lie_smul, lie_smul,
-        zero_add, add_zero]
-    ... = ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + (2:ℤ)•⁅L a, L (a * b)⁆ + (2:ℤ)•⁅L b, L (a * b)⁆ :
-      by abel
+    ... = 2•⁅L a, L (a * b)⁆ + ⁅L a, L(b * b)⁆ + (⁅L b, L (a * a)⁆ + 2•⁅L b,L(a * b)⁆) :
+      by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b, lie_nsmul, lie_nsmul, zero_add, add_zero]
+    ... = ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ : by abel
 end
 
 /-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in a → a + b + c

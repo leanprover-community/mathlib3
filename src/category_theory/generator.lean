@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.balanced
+import category_theory.limits.essentially_small
 import category_theory.limits.opposites
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.subobject.lattice
@@ -47,8 +48,6 @@ We
 
 * We currently don't have any examples yet.
 * We will want typeclasses `has_separator C` and similar.
-* To state the Special Adjoint Functor Theorem, we will need to be able to talk about *small*
-  separating sets.
 
 -/
 
@@ -261,6 +260,35 @@ begin
     simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
 end
 
+lemma has_initial_of_is_cosepatating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v} 𝒢]
+  (h𝒢 : is_coseparating 𝒢) : has_initial C :=
+begin
+  haveI := has_products_of_shape_of_small C 𝒢,
+  haveI := λ A, has_products_of_shape_of_small.{v} C (Σ G : 𝒢, A ⟶ (G : C)),
+  letI := complete_lattice_of_complete_semilattice_Inf (subobject (pi_obj (coe : 𝒢 → C))),
+  suffices : ∀ A : C, unique (((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) ⟶ A),
+  { exactI has_initial_of_unique ((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) },
+  refine λ A, ⟨⟨_⟩, λ f, _⟩,
+  { let s := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), id (pi.π (coe : 𝒢 → C)) f.1),
+    let t := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), f.2),
+    haveI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
+    exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
+  { generalize : default = g,
+    suffices : split_epi (equalizer.ι f g),
+    { exactI eq_of_epi_equalizer },
+    exact ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _) bot_le, by { ext, simp }⟩ }
+end
+
+lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v} 𝒢]
+  (h𝒢 : is_separating 𝒢) : has_terminal C :=
+begin
+  haveI : has_limits Cᵒᵖ := has_limits_op_of_has_colimits,
+  have h𝒢op : is_coseparating 𝒢.op := (is_coseparating_op_iff _).2 h𝒢,
+  haveI : small.{v} 𝒢.op := sorry,
+  haveI : has_initial Cᵒᵖ := has_initial_of_is_cosepatating h𝒢op,
+  sorry,
+end
+
 /-- We say that `G` is a separator if the functor `C(G, -)` is faithful. -/
 def is_separator (G : C) : Prop :=
 is_separating ({G} : set C)
@@ -386,23 +414,6 @@ begin
   { haveI := h Y,
     refine (cancel_mono (pi.lift (λ (f : Y ⟶ G), f))).1 (limit.hom_ext (λ j, _)),
     simpa using hh j.as }
-end
-
-lemma has_initial_of_is_cosepatator [well_powered C] [has_limits C] {G : C}
-  (hG : is_coseparator G) : has_initial C :=
-begin
-  letI := complete_lattice_of_complete_semilattice_Inf (subobject G),
-  suffices : ∀ A : C, unique (((⊥ : subobject G) : C) ⟶ A),
-  { exactI has_initial_of_unique ((⊥ : subobject G) : C) },
-  refine λ A, ⟨⟨_⟩, λ f, _⟩,
-  { let s := pi.lift (λ f : A ⟶ G, 𝟙 G),
-    let t := pi.lift (λ f : A ⟶ G, f),
-    haveI : mono t := (is_coseparator_iff_mono G).1 hG A,
-    exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
-  { generalize : default = g,
-    suffices : split_epi (equalizer.ι f g),
-    { exactI eq_of_epi_equalizer },
-    exact ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _) bot_le, by { ext, simp }⟩ }
 end
 
 section zero_morphisms

@@ -164,7 +164,7 @@ begin
       + (⁅L b, L (a * a)⁆ + ⁅L b, 2•L(a * b)⁆ + ⁅L b,L(b * b)⁆) :
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
     ... = 2•⁅L a, L (a * b)⁆ + ⁅L a, L(b * b)⁆ + (⁅L b, L (a * a)⁆ + 2•⁅L b,L(a * b)⁆) :
-      by rw [commute.lie_eq (commute_lmul_lmul_sq a), commute.lie_eq (commute_lmul_lmul_sq  b),
+      by rw [(commute_lmul_lmul_sq a).lie_eq, (commute_lmul_lmul_sq  b).lie_eq,
         lie_nsmul, lie_nsmul, zero_add, add_zero]
     ... = 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ + ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ : by abel
     ... = 2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) - (⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆) : by
@@ -178,7 +178,7 @@ begin
 
   symmetry,
   calc 0 = ⁅L (a + b + c), L ((a + b + c) * (a + b + c))⁆ :
-    by rw commute.lie_eq (commute_lmul_lmul_sq (a + b + c))
+    by rw (commute_lmul_lmul_sq (a + b + c)).lie_eq
   ... = ⁅L a + L b + L c,
     L (a * a) + L (a * b) + L (a * c) + (L (b * a) + L (b * b) + L (b * c))
       + (L (c * a) + L (c * b) + L (c * c))⁆ :
@@ -206,8 +206,8 @@ begin
           + ⁅L b, 2•L (b * c)⁆)
         + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + ⁅L c, 2•L (a * b)⁆ + ⁅L c, 2•L (c * a)⁆
           + ⁅L c, 2•L (b * c)⁆) :
-    by rw [commute.lie_eq (commute_lmul_lmul_sq a), commute.lie_eq (commute_lmul_lmul_sq b),
-      commute.lie_eq (commute_lmul_lmul_sq c), zero_add, add_zero, add_zero]
+    by rw [(commute_lmul_lmul_sq a).lie_eq, (commute_lmul_lmul_sq b).lie_eq,
+      (commute_lmul_lmul_sq c).lie_eq, zero_add, add_zero, add_zero]
   ... = ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L a, L (c * a)⁆
           + 2•⁅L a, L (b * c)⁆
         + (⁅L b, L (a * a)⁆ + ⁅L b, L (c * c)⁆ + 2•⁅L b, L (a * b)⁆ + 2•⁅L b, L (c * a)⁆

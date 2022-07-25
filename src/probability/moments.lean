@@ -183,12 +183,12 @@ by simp_rw [mgf, pi.neg_apply, mul_neg, neg_mul]
 lemma cgf_neg : cgf (-X) μ t = cgf X μ (-t) := by simp_rw [cgf, mgf_neg]
 
 /-- This is a trivial application of `indep_fun.comp` but it will come up frequently. -/
-lemma indep_fun.exp_mul {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ) (t : ℝ) :
-  indep_fun (λ ω, exp (t * X ω)) (λ ω, exp (t * Y ω)) μ :=
+lemma indep_fun.exp_mul {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ) (s t : ℝ) :
+  indep_fun (λ ω, exp (s * X ω)) (λ ω, exp (t * Y ω)) μ :=
 begin
-  have h_meas : measurable (λ x, exp (t * x)) := (measurable_id'.const_mul t).exp,
-  change indep_fun ((λ x, exp (t * x)) ∘ X) ((λ x, exp (t * x)) ∘ Y) μ,
-  exact indep_fun.comp h_indep h_meas h_meas,
+  have h_meas : ∀ t, measurable (λ x, exp (t * x)) := λ t, (measurable_id'.const_mul t).exp,
+  change indep_fun ((λ x, exp (s * x)) ∘ X) ((λ x, exp (t * x)) ∘ Y) μ,
+  exact indep_fun.comp h_indep (h_meas s) (h_meas t),
 end
 
 lemma indep_fun.mgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
@@ -197,7 +197,7 @@ lemma indep_fun.mgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   mgf (X + Y) μ t = mgf X μ t * mgf Y μ t :=
 begin
   simp_rw [mgf, pi.add_apply, mul_add, exp_add],
-  exact (h_indep.exp_mul t).integral_mul_of_integrable' h_int_X h_int_Y,
+  exact (h_indep.exp_mul t t).integral_mul_of_integrable' h_int_X h_int_Y,
 end
 
 lemma indep_fun.cgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
@@ -217,7 +217,7 @@ lemma indep_fun.integrable_exp_mul_add {X Y : Ω → ℝ} (h_indep : indep_fun X
   integrable (λ ω, exp (t * (X + Y) ω)) μ :=
 begin
   simp_rw [pi.add_apply, mul_add, exp_add],
-  exact (h_indep.exp_mul t).integrable_mul h_int_X h_int_Y,
+  exact (h_indep.exp_mul t t).integrable_mul h_int_X h_int_Y,
 end
 
 lemma Indep_fun.integrable_exp_mul_sum [is_probability_measure μ]

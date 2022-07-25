@@ -466,14 +466,31 @@ classical.some (classical.some_spec (exists_hilbert_basis 𝕜 E))
 @[simp] lemma coe_std_hilbert_basis : ⇑(std_hilbert_basis 𝕜 E) = coe :=
 classical.some_spec (classical.some_spec (exists_hilbert_basis 𝕜 E))
 
-section subordinate_hilbert_basis
-open direct_sum
-variables {𝕜 E} [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : is_internal V)
-          [∀ i, complete_space (V i)]
+section name_me -- TODO
 
-@[irreducible] def direct_sum.is_internal.subordinate_hilbert_basis
-  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
-  hilbert_basis (Σ i, hilbert_basis_index 𝕜 (V i)) 𝕜 E :=
-_
+variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
+  (hVortho : orthogonal_family 𝕜 V)
+  (hVtotal : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤)
+
+def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
+  hilbert_basis (Σ i, α i) 𝕜 E :=
+{ repr :=
+  let step₁ : E ≃ₗᵢ[𝕜] lp (λ i, G i) 2 := hVortho.linear_isometry_equiv hVtotal,
+      step₂ : lp (λ i, G i) 2 ≃ₗᵢ[𝕜] lp (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 :=
+        lp.congr_rightₗᵢ 2 (λ i, (v i).repr),
+      step₃ : lp (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 ≃ₗᵢ[𝕜] lp (λ (i : Σ (i : ι), α i), 𝕜) 2 :=
+        (lp.curry_equivₗᵢ 2 (λ _ _, 𝕜) 𝕜).symm in
+  step₁.trans $ step₂.trans step₃ }
+
+--@[irreducible] def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (V i)]
+--  (v_family : Π i, hilbert_basis (α i) 𝕜 (V i)) :
+--  hilbert_basis (Σ i, α i) 𝕜 E :=
+--{ repr :=
+--  let foo : module 𝕜 (lp (λ i, V i) 2) := @lp.module _ _ _ _ _ _ _ in
+--  let step₁ : E ≃ₗᵢ[𝕜] lp (λ i, V i) 2 := hVortho.linear_isometry_equiv in
+--  sorry }
+
+end name_me
 
 end hilbert_basis

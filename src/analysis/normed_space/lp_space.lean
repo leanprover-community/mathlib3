@@ -76,21 +76,6 @@ def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (set.finite {i | f i ≠ 0}) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
 
-lemma mem_ℓp.comp_inj {β : Type*} (φ : β → α) (hφ : function.injective φ) {f : Π i, E i} {p : ℝ≥0∞}
-  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
-begin
-  rw mem_ℓp at *,
-  split_ifs at ⊢ hf with h₁ h₂,
-  { exact hf.preimage (hφ.inj_on _) },
-  { exact hf.mono (set.range_subset_iff.mpr $ λ b, set.mem_range_self (φ b)) },
-  { exact hf.comp_injective hφ }
-end
-
--- TODO : use this to get a continuous linear map between lp spaces.
-lemma mem_ℓp.comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
-  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
-hf.comp_inj φ φ.injective
-
 lemma mem_ℓp_zero_iff {f : Π i, E i} : mem_ℓp f 0 ↔ set.finite {i | f i ≠ 0} :=
 by dsimp [mem_ℓp]; rw [if_pos rfl]
 
@@ -265,6 +250,36 @@ begin
   { intros i s his ih hf,
     simp only [his, finset.sum_insert, not_false_iff],
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
+end
+
+lemma comp_inj {β : Type*} (φ : β → α) (hφ : function.injective φ) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { exact hf.preimage (hφ.inj_on _) },
+  { exact hf.mono (set.range_subset_iff.mpr $ λ b, set.mem_range_self (φ b)) },
+  { exact hf.comp_injective hφ }
+end
+
+-- TODO : use this to get a continuous linear map between lp spaces.
+lemma comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
+hf.comp_inj φ φ.injective
+
+-- TODO : use this to get a continuous linear map between lp spaces.
+lemma comp_linear_isometry {𝕜 : Type*} [normed_field 𝕜] {F : α → Type*}
+  [Π i, normed_group (F i)] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
+  (Φ : Π i, E i →ₗᵢ[𝕜] F i) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, Φ x (f x)) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { refine hf.subset (λ i hi h, hi _),
+    rw ← map_zero (Φ i),
+    exact congr_arg _ h },
+  { simp_rw [linear_isometry.norm_map], assumption },
+  { simp_rw [linear_isometry.norm_map], assumption },
 end
 
 section normed_space
@@ -1037,16 +1052,12 @@ end
 
 end topology
 
-end lp
-
 section curry
-
-#where
 
 variables {β : α → Type*} {F : Π (a : α), β a → Type*} [fact (1 ≤ p)]
   [Π a b, normed_group (F a b)]
 
-def lp.curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
+def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
   lp (λ a, lp (λ b : β a, F a b) p) p :=
 ⟨λ a, ⟨λ b, f ⟨a, b⟩, (lp.mem_ℓp f).comp_inj (sigma.mk a) sigma_mk_injective⟩,
   begin
@@ -1073,7 +1084,7 @@ def lp.curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
       { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
 
-def lp.uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
+def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
 ⟨λ ab, g ab.1 ab.2,
   begin
@@ -1107,7 +1118,7 @@ def lp.uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
 
 variables (p F)
 
-def lp.curry_equiv :
+def curry_equiv :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
 { to_fun := lp.curry,
   inv_fun := lp.uncurry,
@@ -1116,7 +1127,7 @@ def lp.curry_equiv :
 
 variables (𝕜 : Type*) [normed_field 𝕜] [Π a b, normed_space 𝕜 (F a b)]
 
-def lp.curry_equivₗᵢ :
+def curry_equivₗᵢ :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p  :=
 { map_add' := λ f g, by ext; refl,
   map_smul' := λ a f, by ext; refl,
@@ -1145,3 +1156,40 @@ def lp.curry_equivₗᵢ :
   ..lp.curry_equiv p F }
 
 end curry
+
+section congr_right
+
+variables (p) {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] {F : α → Type*}
+  [Π i, normed_group (F i)] [Π i, normed_space 𝕜 (F i)]
+
+noncomputable! def congr_right (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+  lp E p ≃ lp F p :=
+{ to_fun := λ f, ⟨_, mem_ℓp.comp_linear_isometry (λ i, (Φ i).to_linear_isometry) f.2⟩,
+  inv_fun := λ g, ⟨_, mem_ℓp.comp_linear_isometry (λ i, (Φ i).symm.to_linear_isometry) g.2⟩,
+  left_inv := λ f, by ext i; exact (Φ i).symm_apply_apply _,
+  right_inv := λ g, by ext i; exact (Φ i).apply_symm_apply _ }
+
+noncomputable! def congr_rightₗᵢ [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+  lp E p ≃ₗᵢ[𝕜] lp F p :=
+{ map_add' := λ f g, by ext i; exact map_add (Φ i) _ _,
+  map_smul' := λ a f, by ext i; exact linear_isometry_equiv.map_smul _ _, -- TODO morphism classes
+  norm_map' :=
+  begin
+    intros f,
+    change ∥lp.congr_right p Φ f∥ = ∥f∥,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { rw [lp.norm_eq_csupr, lp.norm_eq_csupr],
+      congr,
+      ext i,
+      exact (Φ i).norm_map _ },
+    { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp),
+          lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp)],
+      congr,
+      ext i,
+      exact congr_arg (λ x, x ^ p.to_real) ((Φ i).norm_map _) },
+  end,
+  ..congr_right p Φ }
+
+end congr_right
+
+end lp

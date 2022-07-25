@@ -1039,10 +1039,14 @@ end topology
 
 end lp
 
-section lp_lp
+section curry
 
-def lp.curry {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0∞}
-  [fact (1 ≤ p)] [Π a b, normed_group (F a b)] (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
+#where
+
+variables {β : α → Type*} {F : Π (a : α), β a → Type*} [fact (1 ≤ p)]
+  [Π a b, normed_group (F a b)]
+
+def lp.curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
   lp (λ a, lp (λ b : β a, F a b) p) p :=
 ⟨λ a, ⟨λ b, f ⟨a, b⟩, (lp.mem_ℓp f).comp_inj (sigma.mk a) sigma_mk_injective⟩,
   begin
@@ -1069,8 +1073,7 @@ def lp.curry {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0�
       { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
 
-def lp.uncurry {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0∞}
-  [fact (1 ≤ p)] [Π a b, normed_group (F a b)] (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
+def lp.uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
 ⟨λ ab, g ab.1 ab.2,
   begin
@@ -1102,32 +1105,18 @@ def lp.uncurry {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥
       { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
 
-def lp_sigma_equiv {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0∞}
-  [fact (1 ≤ p)] [Π a b, normed_group (F a b)] :
+variables (p F)
+
+def lp.curry_equiv :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
 { to_fun := lp.curry,
   inv_fun := lp.uncurry,
   left_inv := λ f, by ext ⟨a, b⟩; refl,
   right_inv := λ f, by ext ab; refl }
 
--- TODO : move and generalize to conditionally complete linear order bot
-theorem supr_sigma' {p : α → Type*} {f : sigma p → nnreal} (hf : bdd_above (set.range f)) :
-  (⨆ x, f x) = ⨆ i j, f ⟨i, j⟩ :=
-have hf' : ∀ i, bdd_above (set.range $ λ j, f ⟨i, j⟩),
-  from λ i, hf.mono (set.range_subset_iff.mpr $ λ _, set.mem_range_self _),
-have hf'' : bdd_above (set.range $ λ i, ⨆ j, f ⟨i, j⟩),
-  begin
-    rcases hf with ⟨M, hM⟩,
-    refine ⟨M, _⟩,
-    rw [mem_upper_bounds, set.forall_range_iff] at *,
-    exact λ i, csupr_le' (λ j, hM _)
-  end,
-eq_of_forall_ge_iff $ λ c, by simp only [csupr_le_iff' hf, csupr_le_iff' hf'',
-  csupr_le_iff' (hf' _), sigma.forall]
+variables (𝕜 : Type*) [normed_field 𝕜] [Π a b, normed_space 𝕜 (F a b)]
 
-def lp_sigma_equivₗᵢ {𝕜 : Type*} [normed_field 𝕜] {β : α → Type*}
-  {F : Π (a : α), β a → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [Π a b, normed_group (F a b)]
-  [Π a b, normed_space 𝕜 (F a b)] :
+def lp.curry_equivₗᵢ :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p  :=
 { map_add' := λ f g, by ext; refl,
   map_smul' := λ a f, by ext; refl,
@@ -1153,6 +1142,6 @@ def lp_sigma_equivₗᵢ {𝕜 : Type*} [normed_field 𝕜] {β : α → Type*}
       rw tsum_sigma this,
       refl }
   end,
-  ..lp_sigma_equiv }
+  ..lp.curry_equiv p F }
 
-end lp_lp
+end curry

@@ -52,7 +52,7 @@ variables {A : Type*} [non_unital_non_assoc_ring A] [module ℝ A] [smul_comm_cl
 
 ## Main results
 
-- `two_lie_L_L_mul_add_lie_L_L_mul_add_lie_L_L_mul` : Linearisation of the commutative Jordan axiom
+- `two_nsmul_lie_lmul_lmul_add_add_eq_zero` : Linearisation of the commutative Jordan axiom
 
 ## Implementation notes
 

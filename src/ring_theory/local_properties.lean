@@ -222,8 +222,7 @@ begin
   obtain ⟨m, hm⟩ := this,
   apply m.prop,
   refine hp₂ _,
-  erw submodule.mem_annihilator_span_singleton,
-  rwa mul_comm at hm,
+  erw [submodule.mem_annihilator_span_singleton, smul_eq_mul, hm],
 end
 
 lemma eq_zero_of_localization (r : R)

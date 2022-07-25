@@ -899,6 +899,19 @@ private meta def all_implicitly_included_variables_aux
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
 
+/-- Get the list of explicit arguments of a function. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+/--  `replace_explicit_args f parg` assumes that `f` is an expression corresponding to a function
+application.  It replaces the explicit arguments of `f`, in succession, by the elements of `parg`.
+The implicit arguments of `f` remain unchanged. -/
+meta def replace_explicit_args (f : expr) (parg : list expr) : tactic expr :=
+do finf ← (get_fun_info f.get_app_fn),
+  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
+  let nargs := list.replace_if f.get_app_args is_ex_arg parg,
+  return $ expr.mk_app f.get_app_fn nargs
+
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/
 protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do

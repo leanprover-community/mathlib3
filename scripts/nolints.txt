@@ -287,10 +287,6 @@ apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer has_inhabited_instance doc_blame
 
--- data/finite/basic.lean
-apply_nolint finite.of_fintype fintype_finite
-apply_nolint fintype.finite fintype_finite
-
 -- data/finset/noncomm_prod.lean
 apply_nolint add_monoid_hom.pi_ext fintype_finite
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -546,9 +542,6 @@ apply_nolint wseq.lift_rel_o doc_blame
 apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
-
--- data/set/countable.lean
-apply_nolint set.countable_pi fintype_finite
 
 -- data/set/finite.lean
 apply_nolint infi_supr_of_antitone fintype_finite
@@ -1071,9 +1064,6 @@ apply_nolint algebra.trace_trace_of_basis fintype_finite
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
 
--- set_theory/cardinal/basic.lean
-apply_nolint cardinal.lt_aleph_0_of_fintype fintype_finite
-
 -- set_theory/cardinal/ordinal.lean
 apply_nolint cardinal.extend_function_finite fintype_finite
 apply_nolint cardinal.mk_compl_eq_mk_compl_finite fintype_finite
@@ -1083,7 +1073,7 @@ apply_nolint cardinal.mk_compl_eq_mk_compl_finite_same fintype_finite
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
--- set_theory/zfc.lean
+-- set_theory/zfc/basic.lean
 apply_nolint Set.map_definable_aux unused_arguments
 
 -- tactic/abel.lean
@@ -1594,24 +1584,6 @@ apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
 apply_nolint nonarchimedean_group.prod_self_subset to_additive_doc
 apply_nolint nonarchimedean_group.prod_subset to_additive_doc
 
--- topology/algebra/order/basic.lean
-apply_nolint pi_Icc_mem_nhds fintype_finite
-apply_nolint pi_Icc_mem_nhds' fintype_finite
-apply_nolint pi_Ici_mem_nhds fintype_finite
-apply_nolint pi_Ici_mem_nhds' fintype_finite
-apply_nolint pi_Ico_mem_nhds fintype_finite
-apply_nolint pi_Ico_mem_nhds' fintype_finite
-apply_nolint pi_Iic_mem_nhds fintype_finite
-apply_nolint pi_Iic_mem_nhds' fintype_finite
-apply_nolint pi_Iio_mem_nhds fintype_finite
-apply_nolint pi_Iio_mem_nhds' fintype_finite
-apply_nolint pi_Ioc_mem_nhds fintype_finite
-apply_nolint pi_Ioc_mem_nhds' fintype_finite
-apply_nolint pi_Ioi_mem_nhds fintype_finite
-apply_nolint pi_Ioi_mem_nhds' fintype_finite
-apply_nolint pi_Ioo_mem_nhds fintype_finite
-apply_nolint pi_Ioo_mem_nhds' fintype_finite
-
 -- topology/algebra/order/compact.lean
 apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
 apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
@@ -1624,7 +1596,6 @@ apply_nolint closure_Union_of_fintype fintype_finite
 apply_nolint interior_Inter_of_fintype fintype_finite
 apply_nolint is_closed_Union fintype_finite
 apply_nolint is_open_Inter fintype_finite
-apply_nolint locally_finite_of_fintype fintype_finite
 
 -- topology/bornology/basic.lean
 apply_nolint bornology.is_bounded_Union fintype_finite

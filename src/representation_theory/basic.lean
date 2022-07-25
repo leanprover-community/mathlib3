@@ -69,19 +69,34 @@ A `k`-linear representation of `G` on `V` can be thought of as
 an algebra map from `monoid_algebra k G` into the `k`-linear endomorphisms of `V`.
 -/
 noncomputable def as_algebra_hom : monoid_algebra k G →ₐ[k] (module.End k V) :=
-  (lift k G _) ρ
+(lift k G _) ρ
 
-lemma as_algebra_hom_def :
-  as_algebra_hom ρ = (lift k G _) ρ := rfl
+lemma as_algebra_hom_def : as_algebra_hom ρ = (lift k G _) ρ :=
+rfl
 
 @[simp]
-lemma as_algebra_hom_single (g : G):
-  (as_algebra_hom ρ (finsupp.single g 1)) = ρ g :=
-by simp only [as_algebra_hom_def, monoid_algebra.lift_single, one_smul]
+lemma as_algebra_hom_single (g : G) (r : k) :
+  (as_algebra_hom ρ (finsupp.single g r)) = r • ρ g :=
+by simp only [as_algebra_hom_def, monoid_algebra.lift_single]
 
-lemma as_algebra_hom_of (g : G):
+lemma as_algebra_hom_single_one (g : G):
+  (as_algebra_hom ρ (finsupp.single g 1)) = ρ g :=
+by simp
+
+lemma as_algebra_hom_of (g : G) :
   (as_algebra_hom ρ (of k G g)) = ρ g :=
-by simp only [monoid_algebra.of_apply, as_algebra_hom_single]
+by simp only [monoid_algebra.of_apply, as_algebra_hom_single, one_smul]
+
+/--
+If `ρ : representation k G V`, then `ρ.as_module` is a type synonym for `V`,
+which we equip with an instance `module (monoid_algebra k G) ρ.as_module`.
+
+You should use `as_module_equiv : ρ.as_module ≃+ V` to translate terms.
+-/
+@[nolint unused_arguments, derive add_comm_monoid]
+def as_module (ρ : representation k G V) := V
+
+instance : inhabited ρ.as_module := ⟨0⟩
 
 /--
 If `ρ : representation k G V`, then `ρ.as_module` is a type synonym for `V`,
@@ -100,7 +115,132 @@ a module over `monoid_algebra k G`.
 noncomputable instance as_module_module : module (monoid_algebra k G) ρ.as_module :=
 module.comp_hom V (as_algebra_hom ρ).to_ring_hom
 
+/--
+The additive equivalence from the `module (monoid_algebra k G)` to the original vector space
+of the representative.
+
+This is just the identity, but it is helpful for typechecking and keeping track of instances.
+-/
+def as_module_equiv : ρ.as_module ≃+ V :=
+add_equiv.refl _
+
+@[simp]
+lemma as_module_equiv_map_smul (r : monoid_algebra k G) (x : ρ.as_module) :
+  ρ.as_module_equiv (r • x) = ρ.as_algebra_hom r (ρ.as_module_equiv x) :=
+rfl
+
+@[simp]
+lemma as_module_equiv_symm_map_smul (r : k) (x : V) :
+  ρ.as_module_equiv.symm (r • x) =
+    algebra_map k (monoid_algebra k G) r • (ρ.as_module_equiv.symm x) :=
+begin
+  apply_fun ρ.as_module_equiv,
+  simp,
+end
+
+@[simp]
+lemma as_module_equiv_symm_map_rho (g : G) (x : V) :
+  ρ.as_module_equiv.symm (ρ g x) = monoid_algebra.of k G g • (ρ.as_module_equiv.symm x) :=
+begin
+  apply_fun ρ.as_module_equiv,
+  simp,
+end
+
+/--
+Build a `representation k G M` from a `[module (monoid_algebra k G) M]`.
+
+This version is not always what we want, as it relies on an existing `[module k M]`
+instance, along with a `[is_scalar_tower k (monoid_algebra k G) M]` instance.
+
+We remedy this below in `of_module`
+(with the tradeoff that the representation is defined
+only on a type synonym of the original module.)
+-/
+noncomputable
+def of_module' (M : Type*) [add_comm_monoid M] [module k M] [module (monoid_algebra k G) M]
+  [is_scalar_tower k (monoid_algebra k G) M] : representation k G M :=
+(monoid_algebra.lift k G (M →ₗ[k] M)).symm (algebra.lsmul k M)
+
+section
+variables (k G) (M : Type*) [add_comm_monoid M] [module (monoid_algebra k G) M]
+
+/--
+Build a `representation` from a `[module (monoid_algebra k G) M]`.
+
+Note that the representation is built on `restrict_scalars k (monoid_algebra k G) M`,
+rather than on `M` itself.
+-/
+noncomputable
+def of_module :
+  representation k G (restrict_scalars k (monoid_algebra k G) M) :=
+(monoid_algebra.lift k G
+  (restrict_scalars k (monoid_algebra k G) M →ₗ[k] restrict_scalars k (monoid_algebra k G) M)).symm
+  (restrict_scalars.lsmul k (monoid_algebra k G) M)
+
+/-!
+## `of_module` and `as_module` are inverses.
+
+This requires a little care in both directions:
+this is a categorical equivalence, not an isomorphism.
+
+See `Rep.equivalence_Module_monoid_algebra` for the full statement.
+
+Starting with `ρ : representation k G V`, converting to a module and back again
+we have a `representation k G (restrict_scalars k (monoid_algebra k G) ρ.as_module)`.
+To compare these, we use the composition of `restrict_scalars_add_equiv` and `ρ.as_module_equiv`.
+
+Similarly, starting with `module (monoid_algebra k G) M`,
+after we convert to a representation and back to a module,
+we have `module (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) M)`.
+-/
+
+@[simp] lemma of_module_as_algebra_hom_apply_apply
+  (r : monoid_algebra k G) (m : restrict_scalars k (monoid_algebra k G) M) :
+  ((((of_module k G M).as_algebra_hom) r) m) =
+    (restrict_scalars.add_equiv _ _ _).symm (r • restrict_scalars.add_equiv _ _ _ m) :=
+begin
+  apply monoid_algebra.induction_on r,
+  { intros g,
+    simp only [one_smul, monoid_algebra.lift_symm_apply, monoid_algebra.of_apply,
+      representation.as_algebra_hom_single, representation.of_module,
+      add_equiv.apply_eq_iff_eq, restrict_scalars.lsmul_apply_apply], },
+  { intros f g fw gw,
+    simp only [fw, gw, map_add, add_smul, linear_map.add_apply], },
+  { intros r f w,
+    simp only [w, alg_hom.map_smul, linear_map.smul_apply,
+      restrict_scalars.add_equiv_symm_map_smul_smul], }
+end
+
+@[simp]
+lemma of_module_as_module_act (g : G) (x : restrict_scalars k (monoid_algebra k G) ρ.as_module) :
+  of_module k G (ρ.as_module) g x =
+    (restrict_scalars.add_equiv _ _ _).symm ((ρ.as_module_equiv).symm
+      (ρ g (ρ.as_module_equiv (restrict_scalars.add_equiv _ _ _ x)))) :=
+begin
+  apply_fun restrict_scalars.add_equiv _ _ ρ.as_module using
+    (restrict_scalars.add_equiv _ _ _).injective,
+  dsimp [of_module, restrict_scalars.lsmul_apply_apply],
+  simp,
+end
+
+lemma smul_of_module_as_module (r : monoid_algebra k G)
+  (m : (of_module k G M).as_module) :
+   (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv (r • m)) =
+     r • (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv m) :=
+by { dsimp, simp only [add_equiv.apply_symm_apply, of_module_as_algebra_hom_apply_apply], }
+
+end
+
 end monoid_algebra
+
+section add_comm_group
+
+variables {k G V : Type*} [comm_ring k] [monoid G] [I : add_comm_group V] [module k V]
+variables (ρ : representation k G V)
+
+instance : add_comm_group ρ.as_module := I
+
+end add_comm_group
 
 section mul_action
 variables (k : Type*) [comm_semiring k] (G : Type*) [monoid G] (H : Type*) [mul_action G H]
@@ -143,7 +283,7 @@ When `G` is a group, a `k`-linear representation of `G` on `V` can be thought of
 a group homomorphism from `G` into the invertible `k`-linear endomorphisms of `V`.
 -/
 def as_group_hom : G →* units (V →ₗ[k] V) :=
-  monoid_hom.to_hom_units ρ
+monoid_hom.to_hom_units ρ
 
 lemma as_group_hom_apply (g : G) : ↑(as_group_hom ρ g) = ρ g :=
 by simp only [as_group_hom, monoid_hom.coe_to_hom_units]
@@ -221,6 +361,7 @@ def lin_hom : representation k G (V →ₗ[k] W) :=
   map_mul' := λ g h,  linear_map.ext $ λ x,
     by simp_rw [coe_mul, coe_mk, function.comp_apply, mul_inv_rev, map_mul, mul_eq_comp,
                 comp_assoc ]}
+
 @[simp]
 lemma lin_hom_apply (g : G) (f : V →ₗ[k] W) : (lin_hom ρV ρW) g f = (ρW g) ∘ₗ f ∘ₗ (ρV g⁻¹) := rfl
 

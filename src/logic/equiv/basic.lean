@@ -733,7 +733,7 @@ end perm
 /-- `bool` is equivalent the sum of two `punit`s. -/
 def bool_equiv_punit_sum_punit : bool ≃ punit.{u+1} ⊕ punit.{v+1} :=
 ⟨λ b, cond b (inr punit.star) (inl punit.star),
- λ s, sum.rec_on s (λ_, ff) (λ_, tt),
+ sum.elim (λ _, ff) (λ _, tt),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
 
@@ -1338,10 +1338,11 @@ def sigma_nat_succ (f : ℕ → Type u) :
   by { rintro ⟨(n | n), x⟩; refl }, by { rintro (x | ⟨n, x⟩); refl }⟩
 
 /-- The product `bool × α` is equivalent to `α ⊕ α`. -/
-def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
-calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
-      ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
-      ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+@[simps] def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
+{ to_fun := λ p, cond p.1 (inr p.2) (inl p.2),
+  inv_fun := sum.elim (prod.mk ff) (prod.mk tt),
+  left_inv := by rintro ⟨(_|_), _⟩; refl,
+  right_inv := by rintro (_|_); refl }
 
 /-- The function type `bool → α` is equivalent to `α × α`. -/
 @[simps] def bool_arrow_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
@@ -1356,10 +1357,10 @@ section
 open sum nat
 /-- The set of natural numbers is equivalent to `ℕ ⊕ punit`. -/
 def nat_equiv_nat_sum_punit : ℕ ≃ ℕ ⊕ punit.{u+1} :=
-⟨λ n, match n with zero := inr punit.star | succ a := inl a end,
- λ s, match s with inl n := succ n | inr punit.star := zero end,
- λ n, begin cases n, repeat { refl } end,
- λ s, begin cases s with a u, { refl }, {cases u, { refl }} end⟩
+{ to_fun := λ n, nat.cases_on n (inr punit.star) inl,
+  inv_fun := sum.elim nat.succ (λ _, 0),
+  left_inv := λ n, by cases n; refl,
+  right_inv := by rintro (_|_|_); refl }
 
 /-- `ℕ ⊕ punit` is equivalent to `ℕ`. -/
 def nat_sum_punit_equiv_nat : ℕ ⊕ punit.{u+1} ≃ ℕ :=
@@ -1367,7 +1368,10 @@ nat_equiv_nat_sum_punit.symm
 
 /-- The type of integer numbers is equivalent to `ℕ ⊕ ℕ`. -/
 def int_equiv_nat_sum_nat : ℤ ≃ ℕ ⊕ ℕ :=
-by refine ⟨_, _, _, _⟩; intro z; {cases z; [left, right]; assumption} <|> {cases z; refl}
+{ to_fun := λ z, int.cases_on z inl inr,
+  inv_fun := sum.elim coe int.neg_succ_of_nat,
+  left_inv := by rintro (m|n); refl,
+  right_inv := by rintro (m|n); refl }
 
 end
 

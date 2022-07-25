@@ -1361,9 +1361,9 @@ end
 
 end add_comm_monoid
 
-section normed_group
+section normed_add_comm_group
 
-variables [normed_group β] {p : ℝ≥0∞} {μ : measure α}
+variables [normed_add_comm_group β] {p : ℝ≥0∞} {μ : measure α}
 
 lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
   mem_ℒp (stopped_process u τ n) p μ :=
@@ -1399,7 +1399,7 @@ lemma integrable_stopped_value (hτ : is_stopping_time f τ)
   integrable (stopped_value u τ) μ :=
 by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_value hτ hu hbdd, }
 
-end normed_group
+end normed_add_comm_group
 
 end nat
 

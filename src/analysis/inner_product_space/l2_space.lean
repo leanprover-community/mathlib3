@@ -411,10 +411,9 @@ protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk b.orthonormal
 begin
-  rw [← set.image_univ, ← finset.coe_univ, ← finset.coe_image],
   have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
-  rw [← this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ],
-  exact b.dense_span
+  simpa only [finset.coe_image, finset.coe_univ, set.image_univ, hilbert_basis.dense_span] using
+    this.submodule_topological_closure_eq.symm
 end
 
 @[simp] lemma coe_to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
@@ -472,11 +471,9 @@ protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthon
   hilbert_basis ι 𝕜 E :=
 hilbert_basis.mk b.orthonormal
 begin
-  rw [← set.image_univ, ← finset.coe_univ, ← finset.coe_image],
   have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
-  rw [this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ,
-      ← orthonormal_basis.coe_to_basis],
-  exact b.to_basis.span_eq
+  simpa only [orthonormal_basis.coe_to_basis, finset.coe_image, finset.coe_univ, set.image_univ,
+    ←b.to_basis.span_eq] using this.submodule_topological_closure_eq,
 end
 
 @[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]

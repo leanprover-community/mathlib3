@@ -481,7 +481,7 @@ open topological_vector_bundle
 
 variables (B)
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_group F] [normed_space R F] [topological_space B]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
 /-- The valid transition functions for a topological vector bundle over `B` modelled on
@@ -919,7 +919,7 @@ end
 
 section
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [normed_group F] [normed_space R F] [topological_space B]
+  [normed_add_comm_group F] [normed_space R F] [topological_space B]
 
 open topological_space
 

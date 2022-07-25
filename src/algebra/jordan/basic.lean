@@ -135,14 +135,14 @@ add_monoid_hom.ext $ λ b, (is_jordan.lmul_comm_rmul _ _).symm
 @[simp] lemma commute_lmul_lmul_sq (a : A) : commute (L a) (L (a * a)) :=
 add_monoid_hom.ext $ λ b, (is_jordan.lmul_lmul_comm_lmul _ _).symm
 
-@[simp] lemma lie_lmul_rmul_sq (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
-add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul_rmul _ _).symm
+@[simp] lemma commute_lmul_rmul_sq (a : A) : commute (L a) (R (a * a)) :=
+add_monoid_hom.ext $ λ b, (is_jordan.lmul_comm_rmul_rmul _ _).symm
 
-@[simp] lemma lie_lmul_sq_rmul (a : A) : ⁅L (a * a), R a⁆ = 0 :=
-add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_lmul_comm_rmul _ _)
+@[simp] lemma commute_lmul_sq_rmul (a : A) : commute (L (a * a)) (R a) :=
+add_monoid_hom.ext $ λ b, (is_jordan.lmul_lmul_comm_rmul _ _)
 
-@[simp] lemma lie_rmul_rmul_sq (a : A) : ⁅R a, R (a * a)⁆ = 0 :=
-add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.rmul_comm_rmul_rmul _ _).symm
+@[simp] lemma commute_rmul_rmul_sq (a : A) : commute (R a) (R (a * a)) :=
+add_monoid_hom.ext $ λ b, (is_jordan.rmul_comm_rmul_rmul _ _).symm
 
 end lie
 

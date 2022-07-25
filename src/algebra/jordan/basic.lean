@@ -129,11 +129,11 @@ via `ring.has_bracket`.
 section lie
 variables {A} [non_unital_non_assoc_ring A] [is_jordan A]
 
-@[simp] lemma lie_lmul_rmul (a : A) : ⁅L a, R a⁆ = 0 :=
-add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul _ _).symm
+@[simp] lemma commute_lmul_rmul (a : A) : commute (L a) (R a) :=
+add_monoid_hom.ext $ λ b, (is_jordan.lmul_comm_rmul _ _).symm
 
-@[simp] lemma lie_lmul_lmul_sq (a : A) : ⁅L a, L (a * a)⁆ = 0 :=
-add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_lmul_comm_lmul _ _).symm
+@[simp] lemma commute_lmul_lmul_sq (a : A) : commute (L a) (L (a * a)) :=
+add_monoid_hom.ext $ λ b, (is_jordan.lmul_lmul_comm_lmul _ _).symm
 
 @[simp] lemma lie_lmul_rmul_sq (a : A) : ⁅L a, R (a * a)⁆ = 0 :=
 add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul_rmul _ _).symm
@@ -153,7 +153,7 @@ lemma two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add (a b : A) :
 begin
   rw ← sub_eq_zero,
   symmetry,
-  calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw (lie_lmul_lmul_sq (a + b))
+  calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw commute.lie_eq (commute_lmul_lmul_sq (a + b))
     ... = ⁅L a + L b, L (a * a + a * b + (b * a + b * b))⁆ :
       by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a * a) + L(a * b) + (L(a * b) + L(b * b))⁆ :
@@ -164,7 +164,8 @@ begin
       + (⁅L b, L (a * a)⁆ + ⁅L b, 2•L(a * b)⁆ + ⁅L b,L(b * b)⁆) :
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
     ... = 2•⁅L a, L (a * b)⁆ + ⁅L a, L(b * b)⁆ + (⁅L b, L (a * a)⁆ + 2•⁅L b,L(a * b)⁆) :
-      by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b, lie_nsmul, lie_nsmul, zero_add, add_zero]
+      by rw [commute.lie_eq (commute_lmul_lmul_sq a), commute.lie_eq (commute_lmul_lmul_sq  b),
+        lie_nsmul, lie_nsmul, zero_add, add_zero]
     ... = 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ + ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ : by abel
     ... = 2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) - (⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆) : by
       rw [← nsmul_add, sub_add_eq_sub_sub_swap, sub_eq_add_neg, lie_skew, sub_eq_add_neg,
@@ -176,7 +177,8 @@ lemma two_nsmul_lie_lmul_lmul_add_add_eq_zero (a b c : A) :
 begin
 
   symmetry,
-  calc 0 = ⁅L (a + b + c), L ((a + b + c) * (a + b + c))⁆ : by rw lie_lmul_lmul_sq (a + b + c)
+  calc 0 = ⁅L (a + b + c), L ((a + b + c) * (a + b + c))⁆ :
+    by rw commute.lie_eq (commute_lmul_lmul_sq (a + b + c))
   ... = ⁅L a + L b + L c,
     L (a * a) + L (a * b) + L (a * c) + (L (b * a) + L (b * b) + L (b * c))
       + (L (c * a) + L (c * b) + L (c * c))⁆ :
@@ -189,7 +191,7 @@ begin
   ... = ⁅L a + L b + L c, L (a * a) + L (b * b) + L (c * c) + 2•L (a * b) + 2•L (c * a)
     + 2•L (b * c) ⁆ :
     by {rw [two_smul, two_smul, two_smul],
-      simp only [lie_add, add_lie, lie_lmul_lmul_sq, zero_add, add_zero], abel}
+      simp only [lie_add, add_lie, commute_lmul_lmul_sq, zero_add, add_zero], abel}
   ... = ⁅L a, L (a * a)⁆ + ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + ⁅L a, 2•L (a * b)⁆
         + ⁅L a, 2•L(c * a)⁆ + ⁅L a, 2•L (b * c)⁆
         + (⁅L b, L (a * a)⁆ + ⁅L b, L (b * b)⁆ + ⁅L b, L (c * c)⁆ + ⁅L b, 2•L (a * b)⁆
@@ -204,8 +206,8 @@ begin
           + ⁅L b, 2•L (b * c)⁆)
         + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + ⁅L c, 2•L (a * b)⁆ + ⁅L c, 2•L (c * a)⁆
           + ⁅L c, 2•L (b * c)⁆) :
-    by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b,
-      lie_lmul_lmul_sq c, zero_add, add_zero, add_zero]
+    by rw [commute.lie_eq (commute_lmul_lmul_sq a), commute.lie_eq (commute_lmul_lmul_sq b),
+      commute.lie_eq (commute_lmul_lmul_sq c), zero_add, add_zero, add_zero]
   ... = ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L a, L (c * a)⁆
           + 2•⁅L a, L (b * c)⁆
         + (⁅L b, L (a * a)⁆ + ⁅L b, L (c * c)⁆ + 2•⁅L b, L (a * b)⁆ + 2•⁅L b, L (c * a)⁆

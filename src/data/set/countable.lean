@@ -158,30 +158,27 @@ lemma countable_Union {t : ι → set α} [countable ι] (ht : ∀ i, (t i).coun
   (⋃a, t a).countable :=
 by { haveI := λ a, (ht a).to_subtype, rw Union_eq_range_psigma, apply countable_range }
 
-lemma countable.bUnion
-  {s : set α} {t : Π x ∈ s, set β} (hs : s.countable) (ht : ∀a∈s, (t a ‹_›).countable) :
-  (⋃a∈s, t a ‹_›).countable :=
-begin
-  rw bUnion_eq_Union,
-  haveI := hs.to_subtype,
-  exact countable_Union (by simpa using ht)
-end
+@[simp] lemma countable_Union_iff [countable ι] {t : ι → set α} :
+  (⋃ i, t i).countable ↔ ∀ i, (t i).countable :=
+⟨λ h i, h.mono $ subset_Union _ _, countable_Union⟩
 
-lemma countable.sUnion {s : set (set α)} (hs : s.countable) (h : ∀a∈s, (a : _).countable) :
-  (⋃₀ s).countable :=
-by rw sUnion_eq_bUnion; exact hs.bUnion h
+lemma countable.bUnion_iff {s : set α} {t : Π a ∈ s, set β} (hs : s.countable) :
+  (⋃ a ∈ s, t a ‹_›).countable ↔ ∀ a ∈ s, (t a ‹_›).countable :=
+by { haveI := hs.to_subtype, rw [bUnion_eq_Union, countable_Union_iff, set_coe.forall'] }
 
-lemma countable_Union_Prop {p : Prop} {t : p → set β} (ht : ∀h:p, (t h).countable) :
-  (⋃h:p, t h).countable :=
-by by_cases p; simp [h, ht]
+lemma countable.sUnion_iff {s : set (set α)} (hs : s.countable) :
+  (⋃₀ s).countable ↔ ∀ a ∈ s, (a : _).countable :=
+by rw [sUnion_eq_bUnion, hs.bUnion_iff]
 
-lemma countable.union
-  {s₁ s₂ : set α} (h₁ : s₁.countable) (h₂ : s₂.countable) : (s₁ ∪ s₂).countable :=
-by rw union_eq_Union; exact
-countable_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
+alias countable.bUnion_iff ↔ _ countable.bUnion
+alias countable.sUnion_iff ↔ _ countable.sUnion
 
 @[simp] lemma countable_union {s t : set α} : (s ∪ t).countable ↔ s.countable ∧ t.countable :=
-⟨λ h, ⟨h.mono (subset_union_left s t), h.mono (subset_union_right _ _)⟩, λ h, h.1.union h.2⟩
+by simp [union_eq_Union, and.comm]
+
+lemma countable.union {s t : set α} (hs : s.countable) (ht : t.countable) :
+  (s ∪ t).countable :=
+countable_union.2 ⟨hs, ht⟩
 
 @[simp] lemma countable_insert {s : set α} {a : α} : (insert a s).countable ↔ s.countable :=
 by simp only [insert_eq, countable_union, countable_singleton, true_and]

@@ -111,16 +111,21 @@ instance : has_one ℤ_[p] :=
 
 @[simp, norm_cast] lemma coe_one : ((1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
-@[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n
-| 0 := rfl
-| (k+1) := by simp [coe_coe]
-
-
-@[simp, norm_cast] lemma coe_coe_int : ∀ (z : ℤ), ((z : ℤ_[p]) : ℚ_[p]) = z
-| (int.of_nat n) := by simp
-| -[1+n] := by simp
-
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
+
+instance : add_comm_group ℤ_[p] :=
+by refine_struct
+{ add   := (+),
+  neg   := has_neg.neg,
+  zero  := (0 : ℤ_[p]),
+  sub   := has_sub.sub,
+  nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
+  zsmul := @zsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+intros; try { refl }; ext; simp; ring
+
+instance : add_group_with_one ℤ_[p] :=
+-- TODO: define nat_cast/int_cast so that coe_coe and coe_coe_int are rfl
+{ one := 1, .. padic_int.add_comm_group }
 
 instance : ring ℤ_[p] :=
 by refine_struct
@@ -131,9 +136,16 @@ by refine_struct
   one   := 1,
   sub   := has_sub.sub,
   npow  := @npow_rec _ ⟨(1 : ℤ_[p])⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
-  zsmul := @zsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  .. padic_int.add_group_with_one };
 intros; try { refl }; ext; simp; ring
+
+@[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n
+| 0 := rfl
+| (k+1) := by simp [coe_coe]
+
+@[simp, norm_cast] lemma coe_coe_int : ∀ (z : ℤ), ((z : ℤ_[p]) : ℚ_[p]) = z
+| (int.of_nat n) := by simp
+| -[1+n] := by simp
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
@@ -220,8 +232,9 @@ variables (p)
 
 instance : normed_comm_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
-  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _,
-  mul_comm := padic_int.mul_comm }
+  norm_mul := by simp [norm_def],
+  mul_comm := padic_int.mul_comm,
+  norm := norm, .. padic_int.ring, .. padic_int.metric_space p }
 
 instance : norm_one_class ℤ_[p] := ⟨norm_def.trans norm_one⟩
 
@@ -313,7 +326,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.zpow_pos_of_pos _ _),
-  { rw [zpow_neg₀, inv_inv, zpow_coe_nat],
+  { rw [zpow_neg, inv_inv, zpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -361,7 +374,7 @@ padic.valuation_zero
 padic.valuation_one
 
 @[simp] lemma valuation_p : valuation (p : ℤ_[p]) = 1 :=
-by simp [valuation, -cast_eq_of_rat_of_nat]
+by simp [valuation]
 
 lemma valuation_nonneg (x : ℤ_[p]) : 0 ≤ x.valuation :=
 begin
@@ -445,7 +458,7 @@ def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : ℤ_[p]ˣ :=
 let u : ℚ_[p] := x*p^(-x.valuation) in
 have hu : ∥u∥ = 1,
 by simp [hx, nat.zpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuation,
-         norm_eq_pow_val, zpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
+         norm_eq_pow_val, zpow_neg, inv_mul_cancel],
 mk_units hu
 
 @[simp] lemma unit_coeff_coe {x : ℤ_[p]} (hx : x ≠ 0) :
@@ -474,7 +487,7 @@ lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-  simp only [int.coe_nat_le, zpow_neg₀, zpow_coe_nat],
+  simp only [int.coe_nat_le, zpow_neg, zpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
@@ -505,7 +518,7 @@ lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
 begin
   by_cases hx : x = 0,
   { subst hx,
-    simp only [norm_zero, zpow_neg₀, zpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    simp only [norm_zero, zpow_neg, zpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
     exact_mod_cast nat.zero_le _ },
   rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end
@@ -537,7 +550,7 @@ section dvr
 /-! ### Discrete valuation ring -/
 
 instance : local_ring ℤ_[p] :=
-local_of_nonunits_ideal zero_ne_one $ by simp only [mem_nonunits]; exact λ x h y, norm_lt_one_add h
+local_ring.of_nonunits_add $ by simp only [mem_nonunits]; exact λ x y, norm_lt_one_add
 
 lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.1.one_lt,

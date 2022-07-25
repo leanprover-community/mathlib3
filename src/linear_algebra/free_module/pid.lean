@@ -321,8 +321,7 @@ lemma submodule.basis_of_pid_bot {ι : Type*} [fintype ι] (b : basis ι R M) :
 begin
   obtain ⟨n, b'⟩ := submodule.basis_of_pid b ⊥,
   let e : fin n ≃ fin 0 := b'.index_equiv (basis.empty _ : basis (fin 0) R (⊥ : submodule R M)),
-  have : n = 0 := by simpa using fintype.card_eq.mpr ⟨e⟩,
-  subst this,
+  obtain rfl : n = 0 := by simpa using fintype.card_eq.mpr ⟨e⟩,
   exact sigma.eq rfl (basis.eq_of_apply_eq $ fin_zero_elim)
 end
 

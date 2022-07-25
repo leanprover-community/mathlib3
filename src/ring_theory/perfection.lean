@@ -353,7 +353,7 @@ lemma pre_val_mk {x : O} (hx : (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0)
 begin
   obtain ⟨r, hr⟩ := ideal.mem_span_singleton'.1 (ideal.quotient.eq.1 $ quotient.sound' $
     @quotient.mk_out' O (ideal.span {p} : ideal O).quotient_rel x),
-  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_ge' _),
+  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_le _),
   erw [← ring_hom.map_sub, ← hr, hv.le_iff_dvd],
   exact λ hprx, hx (ideal.quotient.eq_zero_iff_mem.2 $ ideal.mem_span_singleton.2 $
     dvd_of_mul_left_dvd hprx),
@@ -388,7 +388,7 @@ end
 lemma v_p_lt_pre_val {x : mod_p K v O hv p} : v p < pre_val K v O hv p x ↔ x ≠ 0 :=
 begin
   refine ⟨λ h hx, by { rw [hx, pre_val_zero] at h, exact not_lt_zero' h },
-    λ h, lt_of_not_ge' $ λ hp, h _⟩,
+    λ h, lt_of_not_le $ λ hp, h _⟩,
   obtain ⟨r, rfl⟩ := ideal.quotient.mk_surjective x,
   rw [pre_val_mk h, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd] at hp,
   rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton], exact hp
@@ -402,7 +402,7 @@ lemma pre_val_eq_zero {x : mod_p K v O hv p} : pre_val K v O hv p x = 0 ↔ x = 
 variables (hv hvp)
 lemma v_p_lt_val {x : O} :
   v p < v (algebra_map O K x) ↔ (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0 :=
-by rw [lt_iff_not_ge', not_iff_not, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd,
+by rw [lt_iff_not_le, not_iff_not, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd,
       ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton]
 
 open nnreal

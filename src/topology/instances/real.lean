@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
+import topology.algebra.star
 import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.periodic
@@ -34,6 +35,8 @@ let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [real.dist_eq] using h⟩
+
+instance : has_continuous_star ℝ := ⟨continuous_id⟩
 
 instance : uniform_add_group ℝ :=
 uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg

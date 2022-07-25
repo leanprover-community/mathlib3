@@ -10,6 +10,9 @@ import category_theory.filtered
 # Preservation of filtered colimits and cofiltered limits.
 Typically forgetful functors from algebraic categories preserve filtered colimits
 (although not general colimits). See e.g. `algebra/category/Mon/filtered_colimits`.
+
+## Future work
+This could be generalised to allow diagrams in lower universes.
 -/
 
 open category_theory

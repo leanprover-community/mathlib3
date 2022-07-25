@@ -104,7 +104,7 @@ end has_lipschitz_mul
 
 section has_bounded_smul
 
-variables [has_zero α] [has_zero β] [has_scalar α β]
+variables [has_zero α] [has_zero β] [has_smul α β]
 
 /-- Mixin typeclass on a scalar action of a metric space `α` on a metric space `β` both with
 distinguished points `0`, requiring compatibility of the action in the sense that
@@ -168,7 +168,7 @@ instance nnreal.has_bounded_smul : has_bounded_smul ℝ≥0 ℝ≥0 :=
   dist_pair_smul' := λ x₁ x₂ y, by convert dist_pair_smul (x₁:ℝ) x₂ (y:ℝ) using 1 }
 
 /-- If a scalar is central, then its right action is bounded when its left action is. -/
-instance has_bounded_smul.op [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
+instance has_bounded_smul.op [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   has_bounded_smul αᵐᵒᵖ β :=
 { dist_smul_pair' := mul_opposite.rec $ λ x y₁ y₂,
     by simpa only [op_smul_eq_smul] using dist_smul_pair x y₁ y₂,

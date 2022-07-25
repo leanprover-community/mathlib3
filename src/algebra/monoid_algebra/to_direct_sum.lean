@@ -165,7 +165,7 @@ def add_monoid_algebra_equiv_direct_sum [decidable_eq ι] [semiring M] [Π m : M
 /-- The additive version of `add_monoid_algebra.to_add_monoid_algebra`. Note that this is
 `noncomputable` because `add_monoid_algebra.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def add_monoid_algebra_add_equiv_direct_sum
+def add_monoid_algebra_add_equiv_direct_sum
   [decidable_eq ι] [semiring M] [Π m : M, decidable (m ≠ 0)] :
   add_monoid_algebra M ι ≃+ (⨁ i : ι, M) :=
 { to_fun := add_monoid_algebra.to_direct_sum, inv_fun := direct_sum.to_add_monoid_algebra,
@@ -175,7 +175,7 @@ noncomputable def add_monoid_algebra_add_equiv_direct_sum
 /-- The ring version of `add_monoid_algebra.to_add_monoid_algebra`. Note that this is
 `noncomputable` because `add_monoid_algebra.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def add_monoid_algebra_ring_equiv_direct_sum
+def add_monoid_algebra_ring_equiv_direct_sum
   [decidable_eq ι] [add_monoid ι] [semiring M]
   [Π m : M, decidable (m ≠ 0)] :
   add_monoid_algebra M ι ≃+* ⨁ i : ι, M :=
@@ -186,7 +186,7 @@ noncomputable def add_monoid_algebra_ring_equiv_direct_sum
 /-- The algebra version of `add_monoid_algebra.to_add_monoid_algebra`. Note that this is
 `noncomputable` because `add_monoid_algebra.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def add_monoid_algebra_alg_equiv_direct_sum
+def add_monoid_algebra_alg_equiv_direct_sum
   [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
   [Π m : A, decidable (m ≠ 0)] :
   add_monoid_algebra A ι ≃ₐ[R] ⨁ i : ι, A :=

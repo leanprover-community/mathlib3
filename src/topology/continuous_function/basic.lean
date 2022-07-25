@@ -73,6 +73,9 @@ instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_f
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
+-- this must come after the coe_to_fun definition
+initialize_simps_projections continuous_map (to_fun → apply)
+
 @[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 
 /-- Copy of a `continuous_map` with a new `to_fun` equal to the old one. Useful to fix definitional
@@ -96,14 +99,13 @@ protected lemma congr_fun {f g : C(α, β)} (H : f = g) (x : α) : f x = g x := 
 /-- Deprecated. Use `fun_like.congr_arg` instead. -/
 protected lemma congr_arg (f : C(α, β)) {x y : α} (h : x = y) : f x = f y := h ▸ rfl
 
-instance [inhabited β] : inhabited C(α, β) :=
-⟨{ to_fun := λ _, default, }⟩
-
 lemma coe_injective : @function.injective (C(α, β)) (α → β) coe_fn :=
 λ f g h, by cases f; cases g; congr'
 
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
   ⇑(⟨f, h⟩ : C(α, β)) = f := rfl
+
+lemma map_specializes (f : C(α, β)) {x y : α} (h : x ⤳ y) : f x ⤳ f y := h.map f.2
 
 section
 variables (α β)
@@ -129,6 +131,9 @@ protected def id : C(α, α) := ⟨id⟩
 def const (b : β) : C(α, β) := ⟨const α b⟩
 
 @[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
+
+instance [inhabited β] : inhabited C(α, β) :=
+⟨const α default⟩
 
 variables {α}
 
@@ -173,7 +178,7 @@ def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
   continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
 /-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
-def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+@[simps] def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
   C(α₁ × β₁, α₂ × β₂) :=
 { to_fun := prod.map f g,
   continuous_to_fun := continuous.prod_map f.continuous g.continuous }

@@ -404,7 +404,7 @@ end addition
 section distrib_mul_action
 variables [partial_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_action R V]
 
-instance : has_scalar R (hahn_series Γ V) :=
+instance : has_smul R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := r • x.coeff,
           is_pwo_support' := x.is_pwo_support.mono (function.support_smul_subset_right r x.coeff) }⟩
 
@@ -420,7 +420,7 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
 
 variables {S : Type*} [monoid S] [distrib_mul_action S V]
 
-instance [has_scalar R S] [is_scalar_tower R S V] :
+instance [has_smul R S] [is_scalar_tower R S V] :
   is_scalar_tower R S (hahn_series Γ V) :=
 ⟨λ r s a, by { ext, simp }⟩
 
@@ -722,6 +722,7 @@ instance [non_assoc_semiring R] : non_assoc_semiring (hahn_series Γ R) :=
   mul := (*),
   one_mul := λ x, by { ext, exact single_zero_mul_coeff.trans (one_mul _) },
   mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
+  .. add_monoid_with_one.unary,
   .. hahn_series.non_unital_non_assoc_semiring }
 
 instance [semiring R] : semiring (hahn_series Γ R) :=
@@ -732,7 +733,7 @@ instance [semiring R] : semiring (hahn_series Γ R) :=
   .. hahn_series.non_assoc_semiring,
   .. hahn_series.non_unital_semiring }
 
-instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
+instance [non_unital_comm_semiring R] : non_unital_comm_semiring (hahn_series Γ R) :=
 { mul_comm := λ x y, begin
     ext,
     simp_rw [mul_coeff, mul_comm],
@@ -751,11 +752,31 @@ instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
         ne.def, set.mem_set_of_eq] at ha ⊢,
       exact ⟨(add_comm _ _).trans ha.1, ha.2.2, ha.2.1⟩ }
   end,
+  .. hahn_series.non_unital_semiring }
+
+instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_comm_semiring,
   .. hahn_series.semiring }
+
+instance [non_unital_non_assoc_ring R] : non_unital_non_assoc_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_semiring,
+  .. hahn_series.add_group }
+
+instance [non_unital_ring R] : non_unital_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_ring,
+  .. hahn_series.non_unital_semiring }
+
+instance [non_assoc_ring R] : non_assoc_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_ring,
+  .. hahn_series.non_assoc_semiring }
 
 instance [ring R] : ring (hahn_series Γ R) :=
 { .. hahn_series.semiring,
   .. hahn_series.add_comm_group }
+
+instance [non_unital_comm_ring R] : non_unital_comm_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_comm_semiring,
+  .. hahn_series.non_unital_ring }
 
 instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
@@ -1039,9 +1060,8 @@ begin
   ext n,
   simp only [C, single_coeff, of_power_series_apply, ring_hom.coe_mk],
   split_ifs with hn hn,
-  { rw hn,
-    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0,
-    simp },
+  { subst hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0; simp },
   { rw emb_domain_notin_image_support,
     simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
                power_series.coeff_C],
@@ -1070,7 +1090,7 @@ end
 begin
   rw ring_hom.map_pow,
   induction n with n ih,
-  { refl },
+  { simp, refl },
   rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
 end
 
@@ -1159,19 +1179,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
-
-instance : linear_ordered_comm_group (multiplicative Γ) :=
-{ .. (infer_instance : linear_order (multiplicative Γ)),
-  .. (infer_instance : ordered_comm_group (multiplicative Γ)) }
-
-instance : linear_ordered_comm_group_with_zero (with_zero (multiplicative Γ)) :=
-{ zero_le_one := with_zero.zero_le 1,
-  .. (with_zero.ordered_comm_monoid),
-  .. (infer_instance : linear_order (with_zero (multiplicative Γ))),
-  .. (infer_instance : comm_group_with_zero (with_zero (multiplicative Γ))) }
-
-variables (Γ) (R)
+variables (Γ R) [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
 
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
   a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
@@ -1376,7 +1384,7 @@ section semiring
 
 variables [ordered_cancel_add_comm_monoid Γ] [semiring R] {α : Type*}
 
-instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
+instance : has_smul (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
     is_pwo_Union_support' := begin
       apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,
@@ -1386,7 +1394,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,
     end,
     finite_co_support' := λ g, begin
-      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion
+      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion'
         (λ ij hij, _)).subset (λ a ha, _),
       { exact λ ij hij, function.support (λ a, (s a).coeff ij.2) },
       { apply s.finite_co_support },
@@ -1464,10 +1472,8 @@ def of_finsupp (f : α →₀ (hahn_series Γ R)) :
       intros g hg,
       obtain ⟨a, ha⟩ := set.mem_Union.1 hg,
       have haf : a ∈ f.support,
-      { rw finsupp.mem_support_iff,
-        contrapose! ha,
-        rw [ha, support_zero],
-        exact set.not_mem_empty _ },
+      { rw [finsupp.mem_support_iff, ← support_nonempty_iff],
+        exact ⟨g, ha⟩ },
       have h : (λ i, (f i).support) a ≤ _ := le_sup haf,
       exact h ha,
     end,

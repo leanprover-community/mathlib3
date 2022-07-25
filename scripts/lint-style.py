@@ -132,15 +132,15 @@ def reserved_notation_check(lines, path):
         return []
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if line.startswith('reserve') or line.startswith('precedence'):
+        if line.strip().startswith('reserve') or line.strip().startswith('precedence'):
             errors += [(ERR_RNT, line_nr, path)]
     return errors
 
 def set_option_check(lines, path):
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if line.startswith('set_option'):
-            next_two_chars = line.split(' ')[1][:2]
+        if line.strip().startswith('set_option'):
+            next_two_chars = line.strip().split(' ')[1][:2]
             # forbidden options: pp, profiler, trace
             if next_two_chars == 'pp' or next_two_chars == 'pr' or next_two_chars == 'tr':
                 errors += [(ERR_OPT, line_nr, path)]

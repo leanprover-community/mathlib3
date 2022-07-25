@@ -53,6 +53,11 @@ instance : set_like (lie_submodule R L M) M :=
 { coe := carrier,
   coe_injective' := λ N O h, by cases N; cases O; congr' }
 
+instance : add_subgroup_class (lie_submodule R L M) M :=
+{ add_mem := λ N, N.add_mem',
+  zero_mem := λ N, N.zero_mem',
+  neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -78,7 +83,7 @@ iff.rfl
 
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+@[simp] protected lemma zero_mem : (0 : M) ∈ N := zero_mem N
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 
@@ -119,13 +124,13 @@ instance : lie_ring_module L N :=
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   module S N :=
 N.to_submodule.module'
 
 instance : module R N := N.to_submodule.module
 
-instance {S : Type*} [semiring S] [has_scalar S R] [has_scalar Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
+instance {S : Type*} [semiring S] [has_smul S R] [has_smul Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
   [is_scalar_tower S R M] [is_scalar_tower Sᵐᵒᵖ R M] [is_central_scalar S M] :
   is_central_scalar S N :=
 N.to_submodule.is_central_scalar
@@ -172,6 +177,28 @@ instance : has_coe (lie_ideal R L) (lie_subalgebra R L) := ⟨λ I, lie_ideal_su
 
 @[norm_cast] lemma lie_ideal.coe_to_lie_subalgebra_to_submodule (I : lie_ideal R L) :
   ((I : lie_subalgebra R L) : submodule R L) = I := rfl
+
+/-- An ideal of `L` is a Lie subalgebra of `L`, so it is a Lie ring. -/
+instance lie_ideal.lie_ring (I : lie_ideal R L) : lie_ring I := lie_subalgebra.lie_ring R L ↑I
+
+/-- Transfer the `lie_algebra` instance from the coercion `lie_ideal → lie_subalgebra`. -/
+instance lie_ideal.lie_algebra (I : lie_ideal R L) : lie_algebra R I :=
+lie_subalgebra.lie_algebra R L ↑I
+
+/-- Transfer the `lie_module` instance from the coercion `lie_ideal → lie_subalgebra`. -/
+instance lie_ideal.lie_ring_module {R L : Type*} [comm_ring R] [lie_ring L] [lie_algebra R L]
+  (I : lie_ideal R L) [lie_ring_module L M] : lie_ring_module I M :=
+lie_subalgebra.lie_ring_module (I : lie_subalgebra R L)
+
+@[simp]
+theorem lie_ideal.coe_bracket_of_module {R L : Type*} [comm_ring R] [lie_ring L] [lie_algebra R L]
+  (I : lie_ideal R L) [lie_ring_module L M] (x : I) (m : M) :
+  ⁅x,m⁆ = ⁅(↑x : L),m⁆ :=
+lie_subalgebra.coe_bracket_of_module (I : lie_subalgebra R L) x m
+
+/-- Transfer the `lie_module` instance from the coercion `lie_ideal → lie_subalgebra`. -/
+instance lie_ideal.lie_module (I : lie_ideal R L) : lie_module R I M :=
+lie_subalgebra.lie_module (I : lie_subalgebra R L)
 
 end lie_ideal
 
@@ -350,7 +377,7 @@ by { rw eq_bot_iff, exact iff.rfl, }
 lemma subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
 begin
   apply subsingleton_of_bot_eq_top,
-  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_submodule.mem_bot at hx, subst hx,
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
 
@@ -551,6 +578,15 @@ submodule.mem_map
 
 @[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
 
+lemma comap_incl_eq_top : N₂.comap N.incl = ⊤ ↔ N ≤ N₂ :=
+by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_submodule_comap,
+  lie_submodule.incl_coe, lie_submodule.top_coe_submodule, submodule.comap_subtype_eq_top]
+
+lemma comap_incl_eq_bot : N₂.comap N.incl = ⊥ ↔ N ⊓ N₂ = ⊥ :=
+by simpa only [_root_.eq_bot_iff, ← lie_submodule.coe_to_submodule_eq_iff,
+  lie_submodule.coe_submodule_comap, lie_submodule.incl_coe, lie_submodule.bot_coe_submodule,
+  ← submodule.disjoint_iff_comap_eq_bot]
+
 end lie_submodule
 
 namespace lie_ideal
@@ -631,10 +667,10 @@ different (though the latter does naturally inject into the former).
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_ideal R ↥(⊥ : lie_ideal R L)) :=
+lemma subsingleton_of_bot : subsingleton (lie_ideal R (⊥ : lie_ideal R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
-  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_submodule.mem_bot at hx, subst hx,
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
 
@@ -837,7 +873,8 @@ def incl : I →ₗ⁅R⁆ L := (I : lie_subalgebra R L).incl
 @[simp] lemma incl_coe : (I.incl : I →ₗ[R] L) = (I : submodule R L).subtype := rfl
 
 @[simp] lemma comap_incl_self : comap I.incl I = ⊤ :=
-by { rw ← lie_submodule.coe_to_submodule_eq_iff, exact submodule.comap_subtype_self _, }
+by rw [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.top_coe_submodule,
+ lie_ideal.comap_coe_submodule, lie_ideal.incl_coe, submodule.comap_subtype_self]
 
 @[simp] lemma ker_incl : I.incl.ker = ⊥ :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, I.incl.ker_coe_submodule,
@@ -928,26 +965,30 @@ by simp [← lie_submodule.coe_to_submodule_eq_iff]
 
 end lie_submodule
 
-section top_equiv_self
+section top_equiv
 
 variables {R : Type u} {L : Type v}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra. -/
-def lie_subalgebra.top_equiv_self : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
+/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra.
+
+This is the Lie subalgebra version of `submodule.top_equiv`. -/
+def lie_subalgebra.top_equiv : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
 { inv_fun   := λ x, ⟨x, set.mem_univ x⟩,
   left_inv  := λ x, by { ext, refl, },
   right_inv := λ x, rfl,
   ..(⊤ : lie_subalgebra R L).incl, }
 
-@[simp] lemma lie_subalgebra.top_equiv_self_apply (x : (⊤ : lie_subalgebra R L)) :
-  lie_subalgebra.top_equiv_self x = x := rfl
+@[simp] lemma lie_subalgebra.top_equiv_apply (x : (⊤ : lie_subalgebra R L)) :
+  lie_subalgebra.top_equiv x = x := rfl
 
-/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra. -/
-def lie_ideal.top_equiv_self : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
-lie_subalgebra.top_equiv_self
+/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra.
 
-@[simp] lemma lie_ideal.top_equiv_self_apply (x : (⊤ : lie_ideal R L)) :
-  lie_ideal.top_equiv_self x = x := rfl
+This is the Lie ideal version of `submodule.top_equiv`. -/
+def lie_ideal.top_equiv : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
+lie_subalgebra.top_equiv
 
-end top_equiv_self
+@[simp] lemma lie_ideal.top_equiv_apply (x : (⊤ : lie_ideal R L)) :
+  lie_ideal.top_equiv x = x := rfl
+
+end top_equiv

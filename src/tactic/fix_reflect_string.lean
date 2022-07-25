@@ -38,5 +38,5 @@ let chunk_size := 256 in
 if s.length ≤ chunk_size then reflect s else
 have ts : list (thunk string), from (s.to_chunks chunk_size).map (λ s _, s),
 have h : s = string.join (ts.map (λ t, t ())), from undefined,
-suffices reflected (string.join $ ts.map (λ t, t ())), by rwa h,
+suffices reflected _ (string.join $ ts.map (λ t, t ())), by rwa h,
 `(string.join $ list.map _ _)

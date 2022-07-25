@@ -4,18 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.stopping
+import probability.hitting_time
 
 /-!
 # Martingales
 
 A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if every
 `f i` is integrable, `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
-`μ[f j | ℱ.le i] =ᵐ[μ] f i`. On the other hand, `f : ι → α → E` is said to be a supermartingale
+`μ[f j | ℱ i] =ᵐ[μ] f i`. On the other hand, `f : ι → α → E` is said to be a supermartingale
 with respect to the filtration `ℱ` if `f i` is integrable, `f` is adapted with resepct to `ℱ`
-and for all `i ≤ j`, `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. Finally, `f : ι → α → E` is said to be a
+and for all `i ≤ j`, `μ[f j | ℱ i] ≤ᵐ[μ] f i`. Finally, `f : ι → α → E` is said to be a
 submartingale with respect to the filtration `ℱ` if `f i` is integrable, `f` is adapted with
-resepct to `ℱ` and for all `i ≤ j`, `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`.
+resepct to `ℱ` and for all `i ≤ j`, `f i ≤ᵐ[μ] μ[f j | ℱ i]`.
 
 The definitions of filtration and adapted can be found in `probability.stopping`.
 
@@ -40,34 +40,30 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
-variables {α E ι : Type*} [preorder ι] [measurable_space E]
+variables {α E ι : Type*} [preorder ι]
   {m0 : measurable_space α} {μ : measure α}
-  [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space E]
-  [second_countable_topology E]
-  {f g : ι → α → E} {ℱ : filtration ι m0} [sigma_finite_filtration μ ℱ]
+  [normed_group E] [normed_space ℝ E] [complete_space E]
+  {f g : ι → α → E} {ℱ : filtration ι m0}
 
 /-- A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if `f`
-is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ.le i] =ᵐ[μ] f i`. -/
-def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
-adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i
+is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ i] =ᵐ[μ] f i`. -/
+def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
+adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i] =ᵐ[μ] f i
 
 /-- A family of integrable functions `f : ι → α → E` is a supermartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. -/
-def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
-adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
+def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
+adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
 
 /-- A family of integrable functions `f : ι → α → E` is a submartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`. -/
-def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
-adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i, ℱ.le i]) ∧ ∀ i, integrable (f i) μ
+def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
+adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 
 variables (E)
-lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
+lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=
 ⟨adapted_zero E ℱ, λ i j hij, by { rw [pi.zero_apply, condexp_zero], simp, }⟩
 variables {E}
@@ -78,21 +74,22 @@ namespace martingale
 lemma adapted (hf : martingale f ℱ μ) : adapted ℱ f := hf.1
 
 @[protected]
-lemma measurable (hf : martingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) := hf.adapted i
+lemma strongly_measurable (hf : martingale f ℱ μ) (i : ι) : strongly_measurable[ℱ i] (f i) :=
+hf.adapted i
 
 lemma condexp_ae_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i :=
+  μ[f j | ℱ i] =ᵐ[μ] f i :=
 hf.2 i j hij
 
 @[protected]
 lemma integrable (hf : martingale f ℱ μ) (i : ι) : integrable (f i) μ :=
 integrable_condexp.congr (hf.condexp_ae_eq (le_refl i))
 
-lemma set_integral_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) {s : set α}
-  (hs : measurable_set[ℱ i] s) :
+lemma set_integral_eq [sigma_finite_filtration μ ℱ] (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j)
+  {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ = ∫ x in s, f j x ∂μ :=
 begin
-  rw ← @set_integral_condexp _ _ _ _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
+  rw ← @set_integral_condexp _ _ _ _ _ (ℱ i) m0 _ _ _ (ℱ.le i) _ (hf.integrable j) hs,
   refine set_integral_congr_ae (ℱ.le i s hs) _,
   filter_upwards [hf.2 i j hij] with _ heq _ using heq.symm,
 end
@@ -132,8 +129,8 @@ lemma martingale_iff [partial_order E] : martingale f ℱ μ ↔
 
 lemma martingale_condexp (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] :
-  martingale (λ i, μ[f | ℱ i, ℱ.le i]) ℱ μ :=
-⟨λ i, measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩
+  martingale (λ i, μ[f | ℱ i]) ℱ μ :=
+⟨λ i, strongly_measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) (ℱ.le j)⟩
 
 namespace supermartingale
 
@@ -141,17 +138,18 @@ namespace supermartingale
 lemma adapted [has_le E] (hf : supermartingale f ℱ μ) : adapted ℱ f := hf.1
 
 @[protected]
-lemma measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
+lemma strongly_measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) :
+  strongly_measurable[ℱ i] (f i) :=
 hf.adapted i
 
 @[protected]
 lemma integrable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma condexp_ae_le [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  μ[f j | ℱ i, ℱ.le i] ≤ᵐ[μ] f i :=
+  μ[f j | ℱ i] ≤ᵐ[μ] f i :=
 hf.2.1 i j hij
 
-lemma set_integral_le {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
+lemma set_integral_le [sigma_finite_filtration μ ℱ] {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f j x ∂μ ≤ ∫ x in s, f i x ∂μ :=
 begin
@@ -191,14 +189,15 @@ namespace submartingale
 lemma adapted [has_le E] (hf : submartingale f ℱ μ) : adapted ℱ f := hf.1
 
 @[protected]
-lemma measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
+lemma strongly_measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) :
+  strongly_measurable[ℱ i] (f i) :=
 hf.adapted i
 
 @[protected]
 lemma integrable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma ae_le_condexp [has_le E] (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  f i ≤ᵐ[μ] μ[f j | ℱ i, ℱ.le i] :=
+  f i ≤ᵐ[μ] μ[f j | ℱ i] :=
 hf.2.1 i j hij
 
 lemma add [preorder E] [covariant_class E E (+) (≤)]
@@ -223,7 +222,8 @@ begin
   simpa,
 end
 
-lemma set_integral_le {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
+/-- The converse of this lemma is `measure_theory.submartingale_of_set_integral_le`. -/
+lemma set_integral_le [sigma_finite_filtration μ ℱ] {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ ≤ ∫ x in s, f j x ∂μ :=
 begin
@@ -239,6 +239,77 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
   (hf : submartingale f ℱ μ) (hg : martingale g ℱ μ) : submartingale (f - g) ℱ μ :=
 hf.sub_supermartingale hg.supermartingale
 
+protected lemma sup {f g : ι → α → ℝ} (hf : submartingale f ℱ μ) (hg : submartingale g ℱ μ) :
+  submartingale (f ⊔ g) ℱ μ :=
+begin
+  refine ⟨λ i, @strongly_measurable.sup _ _ _ _ (ℱ i) _ _ _ (hf.adapted i) (hg.adapted i),
+    λ i j hij, _, λ i, integrable.sup (hf.integrable _) (hg.integrable _)⟩,
+  refine eventually_le.sup_le _ _,
+  { exact eventually_le.trans (hf.2.1 i j hij)
+      (condexp_mono (hf.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_left _ _))) },
+  { exact eventually_le.trans (hg.2.1 i j hij)
+      (condexp_mono (hg.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_right _ _))) }
+end
+
+protected lemma pos {f : ι → α → ℝ} (hf : submartingale f ℱ μ) :
+  submartingale (f⁺) ℱ μ :=
+hf.sup (martingale_zero _ _ _).submartingale
+
+end submartingale
+
+section submartingale
+
+lemma submartingale_of_set_integral_le [is_finite_measure μ]
+  {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i j : ι, i ≤ j → ∀ s : set α, measurable_set[ℱ i] s →
+    ∫ x in s, f i x ∂μ ≤ ∫ x in s, f j x ∂μ) :
+  submartingale f ℱ μ :=
+begin
+  refine ⟨hadp, λ i j hij, _, hint⟩,
+  suffices : f i ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ i],
+  { exact ae_le_of_ae_le_trim this },
+  suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ i] - f i,
+  { filter_upwards [this] with x hx,
+    rwa ← sub_nonneg },
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure
+    ((integrable_condexp.sub (hint i)).trim _ (strongly_measurable_condexp.sub $ hadp i))
+    (λ s hs, _),
+  specialize hf i j hij s hs,
+  rwa [← set_integral_trim _ (strongly_measurable_condexp.sub $ hadp i) hs,
+    integral_sub' integrable_condexp.integrable_on (hint i).integrable_on, sub_nonneg,
+    set_integral_condexp (ℱ.le i) (hint j) hs],
+end
+
+lemma submartingale_of_condexp_sub_nonneg [is_finite_measure μ]
+  {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i | ℱ i]) :
+  submartingale f ℱ μ :=
+begin
+  refine ⟨hadp, λ i j hij, _, hint⟩,
+  rw [← condexp_of_strongly_measurable (ℱ.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
+  exact eventually_le.trans (hf i j hij) (condexp_sub (hint _) (hint _)).le,
+  apply_instance
+end
+
+lemma submartingale.condexp_sub_nonneg [is_finite_measure μ]
+  {f : ι → α → ℝ} (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
+  0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
+begin
+  refine eventually_le.trans _ (condexp_sub (hf.integrable _) (hf.integrable _)).symm.le,
+  rw [eventually_sub_nonneg,
+    condexp_of_strongly_measurable (ℱ.le _) (hf.adapted _) (hf.integrable _)],
+  exact hf.2.1 i j hij,
+  apply_instance
+end
+
+lemma submartingale_iff_condexp_sub_nonneg [is_finite_measure μ] {f : ι → α → ℝ} :
+  submartingale f ℱ μ ↔ adapted ℱ f ∧ (∀ i, integrable (f i) μ) ∧ ∀ i j, i ≤ j →
+  0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
+⟨λ h, ⟨h.adapted, h.integrable, λ i j, h.condexp_sub_nonneg⟩,
+ λ ⟨hadp, hint, h⟩, submartingale_of_condexp_sub_nonneg hadp hint h⟩
+
 end submartingale
 
 namespace supermartingale
@@ -253,9 +324,8 @@ hf.sub_submartingale hg.submartingale
 
 section
 
-variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
-  [ordered_smul ℝ F]
+variables {F : Type*} [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [ordered_smul ℝ F]
 
 lemma smul_nonneg {f : ι → α → F}
   {c : ℝ} (hc : 0 ≤ c) (hf : supermartingale f ℱ μ) :
@@ -284,9 +354,8 @@ namespace submartingale
 
 section
 
-variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
-  [ordered_smul ℝ F]
+variables {F : Type*} [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [ordered_smul ℝ F]
 
 lemma smul_nonneg {f : ι → α → F}
   {c : ℝ} (hc : 0 ≤ c) (hf : submartingale f ℱ μ) :
@@ -310,7 +379,41 @@ end submartingale
 
 section nat
 
-variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
+variables {𝒢 : filtration ℕ m0}
+
+lemma submartingale_of_set_integral_le_succ [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, ∀ s : set α, measurable_set[𝒢 i] s → ∫ x in s, f i x ∂μ ≤ ∫ x in s, f (i + 1) x ∂μ) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
+  induction hij with k hk₁ hk₂,
+  { exact le_rfl },
+  { exact le_trans hk₂ (hf k s (𝒢.mono hk₁ _ hs)) }
+end
+
+lemma submartingale_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, f i ≤ᵐ[μ] μ[f (i + 1) | 𝒢 i]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_of_set_integral_le_succ hadp hint (λ i s hs, _),
+  have : ∫ x in s, f (i + 1) x ∂μ = ∫ x in s, μ[f (i + 1)|𝒢 i] x ∂μ :=
+    (set_integral_condexp (𝒢.le i) (hint _) hs).symm,
+  rw this,
+  exact set_integral_mono_ae (hint i).integrable_on integrable_condexp.integrable_on (hf i),
+end
+
+lemma submartingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, 0 ≤ᵐ[μ] μ[f (i + 1) - f i | 𝒢 i]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_nat hadp hint (λ i, _),
+  rw [← condexp_of_strongly_measurable (𝒢.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
+  exact eventually_le.trans (hf i) (condexp_sub (hint _) (hint _)).le,
+  apply_instance
+end
 
 namespace submartingale
 
@@ -323,9 +426,10 @@ integrable_stopped_value hτ hf.integrable hbdd
 -- Similarly, generalize `(super/)submartingale.set_integral_le`.
 
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
-expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
+expectation of `stopped_value f τ` is less than or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/
-lemma expected_stopped_value_mono {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
+lemma expected_stopped_value_mono [sigma_finite_filtration μ 𝒢]
+  {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
   μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
@@ -352,6 +456,153 @@ begin
 end
 
 end submartingale
+
+/-- The converse direction of the optional stopping theorem, i.e. an adapted integrable process `f`
+is a submartingale if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`. -/
+lemma submartingale_of_expected_stopped_value_mono [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ τ π : α → ℕ, is_stopping_time 𝒢 τ → is_stopping_time 𝒢 π → τ ≤ π → (∃ N, ∀ x, π x ≤ N) →
+    μ[stopped_value f τ] ≤ μ[stopped_value f π]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
+  classical,
+  specialize hf (s.piecewise (λ _, i) (λ _, j)) _
+    (is_stopping_time_piecewise_const hij hs)
+    (is_stopping_time_const 𝒢 j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
+    ⟨j, λ x, le_rfl⟩,
+  rwa [stopped_value_const, stopped_value_piecewise_const,
+    integral_piecewise (𝒢.le _ _ hs) (hint _).integrable_on (hint _).integrable_on,
+    ← integral_add_compl (𝒢.le _ _ hs) (hint j), add_le_add_iff_right] at hf,
+end
+
+/-- **The optional stopping theorem** (fair game theorem): an adapted integrable process `f`
+is a submartingale if and only if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`. -/
+lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ) :
+  submartingale f 𝒢 μ ↔
+  ∀ τ π : α → ℕ, is_stopping_time 𝒢 τ → is_stopping_time 𝒢 π → τ ≤ π → (∃ N, ∀ x, π x ≤ N) →
+    μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
+⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
+ submartingale_of_expected_stopped_value_mono hadp hint⟩
+
+section maximal
+
+open finset
+
+lemma smul_le_stopped_value_hitting [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
+  ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+    stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :=
+begin
+  have hn : set.Icc 0 n = {k | k ≤ n},
+  { ext x, simp },
+  have : ∀ x, ((ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) →
+    (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x,
+  { intros x hx,
+    simp_rw [le_sup'_iff, mem_range, nat.lt_succ_iff] at hx,
+    refine stopped_value_hitting_mem _,
+    simp only [set.mem_set_of_eq, exists_prop, hn],
+    exact let ⟨j, hj₁, hj₂⟩ := hx in ⟨j, hj₁, hj₂⟩ },
+  have h := set_integral_ge_of_const_le (measurable_set_le measurable_const
+    (finset.measurable_range_sup'' (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))))
+    (measure_ne_top _ _) this
+    (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time
+     hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
+  rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
+  { exact h },
+  { exact ennreal.mul_ne_top (by simp) (measure_ne_top _ _) },
+  { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) h }
+end
+
+/-- **Doob's maximal inequality**: Given a non-negative submartingale `f`, for all `ε : ℝ≥0`,
+we have `ε • μ {ε ≤ f* n} ≤ ∫ x in {ε ≤ f* n}, f n` where `f* n x = max_{k ≤ n}, f k x`.
+
+In some literature, the Doob's maximal inequality refers to what we call Doob's Lp inequality
+(which is a corollary of this lemma and will be proved in an upcomming PR). -/
+lemma maximal_ineq [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
+  ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+    f n x ∂μ) :=
+begin
+  suffices : ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} +
+    ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+      f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
+  { have hadd : ennreal.of_real (∫ (x : α), f n x ∂μ) =
+      ennreal.of_real (∫ (x : α) in
+        {x : α | ↑ε ≤ ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x))}, f n x ∂μ) +
+      ennreal.of_real (∫ (x : α) in
+        {x : α | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ↑ε}, f n x ∂μ),
+    { rw [← ennreal.of_real_add, ← integral_union],
+      { conv_lhs { rw ← integral_univ },
+        convert rfl,
+        ext x,
+        change (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ) ↔ _,
+        simp only [le_or_lt, true_iff] },
+      { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact (not_le.2 hx₂) hx₁ },
+      { exact (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
+      exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
+        integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
+    rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
+  calc ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)}
+    + ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+        f n x ∂μ)
+    ≤ ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ)
+    + ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
+    begin
+      refine add_le_add (smul_le_stopped_value_hitting hsub _)
+        (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
+        (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le))
+        (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) _)),
+      intros x hx,
+      rw set.mem_set_of_eq at hx,
+      have : hitting f {y : ℝ | ↑ε ≤ y} 0 n x = n,
+      { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
+          ite_eq_right_iff, forall_exists_index, and_imp],
+        intros m hm hεm,
+        exact false.elim ((not_le.2 hx)
+          ((le_sup'_iff _).2 ⟨m, mem_range.2 (nat.lt_succ_of_le hm.2), hεm⟩)) },
+      simp_rw [stopped_value, this],
+    end
+    ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
+    begin
+      rw [← ennreal.of_real_add, ← integral_union],
+      { conv_rhs { rw ← integral_univ },
+        convert rfl,
+        ext x,
+        change _ ↔ (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ),
+        simp only [le_or_lt, iff_true] },
+      { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact (not_le.2 hx₂) hx₁ },
+      { exact (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
+      { exact (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
+      exacts [integral_nonneg (λ x, hnonneg _ _), integral_nonneg (λ x, hnonneg _ _)],
+    end
+    ... ≤ ennreal.of_real (μ[f n]) :
+    begin
+      refine ennreal.of_real_le_of_real _,
+      rw ← stopped_value_const f n,
+      exact hsub.expected_stopped_value_mono
+        (hitting_is_stopping_time hsub.adapted measurable_set_Ici)
+        (is_stopping_time_const _ _) (λ x, hitting_le x) (λ x, le_rfl : ∀ x, n ≤ n),
+    end
+end
+
+end maximal
 
 end nat
 

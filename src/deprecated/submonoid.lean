@@ -8,24 +8,21 @@ import algebra.big_operators.basic
 import deprecated.group
 
 /-!
-# Unbundled submonoids
+# Unbundled submonoids (deprecated)
 
-This file defines unbundled multiplicative and additive submonoids `is_submonoid` and
-`is_add_submonoid`. These are not the preferred way to talk about submonoids and should
-not be used for any new projects. The preferred way in mathlib are the bundled
-versions `submonoid G` and `add_submonoid G`.
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines unbundled multiplicative and additive submonoids. Instead of using this file,
+please use `submonoid G` and `add_submonoid A`, defined in `group_theory.submonoid.basic`.
 
 ## Main definitions
 
-`is_add_submonoid (S : set G)` : the predicate that `S` is the underlying subset of an additive
-submonoid of `G`. The bundled variant `add_subgroup G` should be used in preference to this.
+`is_add_submonoid (S : set M)` : the predicate that `S` is the underlying subset of an additive
+submonoid of `M`. The bundled variant `add_submonoid M` should be used in preference to this.
 
-`is_submonoid (S : set G)` : the predicate that `S` is the underlying subset of a submonoid
-of `G`. The bundled variant `submonoid G` should be used in preference to this.
-
-## Tags
-
-subgroup, subgroups, is_subgroup
+`is_submonoid (S : set M)` : the predicate that `S` is the underlying subset of a submonoid
+of `M`. The bundled variant `submonoid M` should be used in preference to this.
 
 ## Tags
 submonoid, submonoids, is_submonoid
@@ -323,7 +320,7 @@ end monoid
 
 /-- Create a bundled submonoid from a set `s` and `[is_submonoid s]`. -/
 @[to_additive "Create a bundled additive submonoid from a set `s` and `[is_add_submonoid s]`."]
-def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, h.1, h.2⟩
+def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, h.2, h.1⟩
 
 @[to_additive]
-lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.2, S.3⟩
+lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.3, S.2⟩

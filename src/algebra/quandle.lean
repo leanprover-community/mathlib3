@@ -3,8 +3,8 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+import algebra.hom.equiv
 import data.zmod.basic
-import data.equiv.mul_add
 import tactic.group
 
 /-!
@@ -354,13 +354,13 @@ by { intro b, dsimp [dihedral_act], ring }
 instance (n : ℕ) : quandle (dihedral n) :=
 { act := dihedral_act n,
   self_distrib := λ x y z, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end,
   inv_act := dihedral_act n,
   left_inv := λ x, (dihedral_act.inv n x).left_inverse,
   right_inv := λ x, (dihedral_act.inv n x).right_inverse,
   fix := λ x, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end }
 
 end quandle
@@ -595,7 +595,7 @@ def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
   { to_fun := λ x, quotient.lift_on x (to_envel_group.map_aux f)
                     (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
     map_one' := begin
-      change quotient.lift_on ⟦unit⟧ (to_envel_group.map_aux f) _ = 1,
+      change quotient.lift_on ⟦rack.pre_envel_group.unit⟧ (to_envel_group.map_aux f) _ = 1,
       simp [to_envel_group.map_aux],
     end,
     map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin

@@ -3,10 +3,19 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import algebra.group.to_additive
 import tactic.lint.frontend
+import tactic.lint.misc
 import tactic.lint.simp
 import tactic.lint.type_classes
-import tactic.lint.misc
+
+/-!
+# Default linters
+
+This file defines the list of linters that are run in mathlib CI. Not all linters are considered
+"default" and run that way. A `linter` is marked as default if it is tagged with the `linter`
+attribute.
+-/
 
 open tactic
 
@@ -54,9 +63,11 @@ The following linters are run by default:
 21. `syn_taut` checks that declarations are not syntactic tautologies.
 22. `check_reducibility` checks whether non-instances with a class as type are reducible.
 23. `unprintable_interactive` checks that interactive tactics have parser documentation.
+24. `to_additive_doc` checks if additive versions of lemmas have documentation.
 
-Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
-This is not run by default.
+The following linters are not run by default:
+1. `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+2. `explicit_vars_of_iff` checks if there are explicit variables used on both sides of an iff.
 
 The command `#list_linters` prints a list of the names of all available linters.
 

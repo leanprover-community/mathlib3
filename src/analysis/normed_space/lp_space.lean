@@ -26,10 +26,11 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 
 * `mem_ℓp f p` : property that the function `f` satisfies, as appropriate, `f` finitely supported
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
-  `p = ∞`
+  `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure; also
-  equipped with `normed_space 𝕜` and `complete_space` instances under appropriate conditions
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
+  Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
+  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`, `lp.infty_normed_algebra`.
 
 ## Main results
 
@@ -576,7 +577,7 @@ variables (E p 𝕜)
 
 /-- The `𝕜`-submodule of elements of `Π i : α, E i` whose `lp` norm is finite.  This is `lp E p`,
 with extra structure. -/
-def lp_submodule : submodule 𝕜 (pre_lp E) :=
+def _root_.lp_submodule : submodule 𝕜 (pre_lp E) :=
 { smul_mem' := λ c f hf, by simpa using mem_lp_const_smul c ⟨f, hf⟩,
   .. lp E p }
 
@@ -618,7 +619,7 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 
 variables {𝕜' : Type*} [normed_field 𝕜']
 
-instance [Π i, normed_space 𝕜' (E i)] [has_scalar 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
+instance [Π i, normed_space 𝕜' (E i)] [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
   is_scalar_tower 𝕜' 𝕜 (lp E p) :=
 begin
   refine ⟨λ r c f, _⟩,
@@ -627,6 +628,152 @@ begin
 end
 
 end normed_space
+
+section non_unital_normed_ring
+
+variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
+
+lemma _root_.mem_ℓp.infty_mul {f g : Π i, B i} (hf : mem_ℓp f ∞) (hg : mem_ℓp g ∞) :
+  mem_ℓp (f * g) ∞ :=
+begin
+  rw mem_ℓp_infty_iff,
+  obtain ⟨⟨Cf, hCf⟩, ⟨Cg, hCg⟩⟩ := ⟨hf.bdd_above, hg.bdd_above⟩,
+  refine ⟨Cf * Cg, _⟩,
+  rintros _ ⟨i, rfl⟩,
+  calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le (f i) (g i)
+  ...             ≤ Cf * Cg       : mul_le_mul (hCf ⟨i, rfl⟩) (hCg ⟨i, rfl⟩) (norm_nonneg _)
+                                      ((norm_nonneg _).trans (hCf ⟨i, rfl⟩))
+end
+
+instance : has_mul (lp B ∞) :=
+{ mul := λ f g, ⟨(f  * g : Π i, B i) , f.property.infty_mul g.property⟩}
+
+@[simp] lemma infty_coe_fn_mul (f g : lp B ∞) : ⇑(f * g) = f * g := rfl
+
+instance : non_unital_ring (lp B ∞) :=
+function.injective.non_unital_ring lp.has_coe_to_fun.coe (subtype.coe_injective)
+  (lp.coe_fn_zero B ∞) lp.coe_fn_add infty_coe_fn_mul lp.coe_fn_neg lp.coe_fn_sub
+  (λ _ _, rfl) (λ _ _,rfl)
+
+instance : non_unital_normed_ring (lp B ∞) :=
+{ norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
+    (λ i, calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le _ _
+    ...                    ≤ ∥f∥ * ∥g∥
+    : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
+        (lp.norm_apply_le_norm ennreal.top_ne_zero g i) (norm_nonneg _) (norm_nonneg _)),
+  .. lp.normed_group }
+
+-- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
+
+instance infty_is_scalar_tower {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+  [Π i, is_scalar_tower 𝕜 (B i) (B i)] :
+  is_scalar_tower 𝕜 (lp B ∞) (lp B ∞) :=
+⟨λ r f g, lp.ext $ smul_assoc r ⇑f ⇑g⟩
+
+instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+  [Π i, smul_comm_class 𝕜 (B i) (B i)] :
+  smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
+⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
+
+end non_unital_normed_ring
+
+section normed_ring
+
+variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)]
+
+instance _root_.pre_lp.ring : ring (pre_lp B) := pi.ring
+
+variables [Π i, norm_one_class (B i)]
+
+lemma _root_.one_mem_ℓp_infty : mem_ℓp (1 : Π i, B i) ∞ :=
+⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
+
+variables (B)
+
+/-- The `𝕜`-subring of elements of `Π i : α, B i` whose `lp` norm is finite. This is `lp E ∞`,
+with extra structure. -/
+def _root_.lp_infty_subring : subring (pre_lp B) :=
+{ carrier := {f | mem_ℓp f ∞},
+  one_mem' := one_mem_ℓp_infty,
+  mul_mem' := λ f g hf hg, hf.infty_mul hg,
+  .. lp B ∞ }
+
+variables {B}
+
+instance infty_ring : ring (lp B ∞) := (lp_infty_subring B).to_ring
+
+lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) : mem_ℓp (f ^ n) ∞ :=
+(lp_infty_subring B).pow_mem hf n
+
+lemma _root_.nat_cast_mem_ℓp_infty (n : ℕ) : mem_ℓp (n : Π i, B i) ∞ :=
+nat_cast_mem (lp_infty_subring B) n
+
+lemma _root_.int_cast_mem_ℓp_infty (z : ℤ) : mem_ℓp (z : Π i, B i) ∞ :=
+coe_int_mem (lp_infty_subring B) z
+
+@[simp] lemma infty_coe_fn_one : ⇑(1 : lp B ∞) = 1 := rfl
+
+@[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+
+@[simp] lemma infty_coe_fn_nat_cast (n : ℕ) : ⇑(n : lp B ∞) = n := rfl
+
+@[simp] lemma infty_coe_fn_int_cast (z : ℤ) : ⇑(z : lp B ∞) = z := rfl
+
+instance [nonempty I] : norm_one_class (lp B ∞) :=
+{ norm_one := by simp_rw [lp.norm_eq_csupr, infty_coe_fn_one, pi.one_apply, norm_one, csupr_const]}
+
+instance infty_normed_ring : normed_ring (lp B ∞) :=
+{ .. lp.infty_ring, .. lp.non_unital_normed_ring }
+
+end normed_ring
+
+section normed_comm_ring
+
+variables {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [∀ i, norm_one_class (B i)]
+
+instance infty_comm_ring : comm_ring (lp B ∞) :=
+{ mul_comm := λ f g, by { ext, simp only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },
+  .. lp.infty_ring }
+
+instance infty_normed_comm_ring : normed_comm_ring (lp B ∞) :=
+{ .. lp.infty_comm_ring, .. lp.infty_normed_ring }
+
+end normed_comm_ring
+
+section algebra
+variables {I : Type*} {𝕜 : Type*} {B : I → Type*}
+variables [normed_field 𝕜] [Π i, normed_ring (B i)] [Π i, normed_algebra 𝕜 (B i)]
+
+/-- A variant of `pi.algebra` that lean can't find otherwise. -/
+instance _root_.pi.algebra_of_normed_algebra : algebra 𝕜 (Π i, B i) :=
+@pi.algebra I 𝕜 B _ _ $ λ i, normed_algebra.to_algebra
+
+instance _root_.pre_lp.algebra : algebra 𝕜 (pre_lp B) := _root_.pi.algebra_of_normed_algebra
+
+variables [∀ i, norm_one_class (B i)]
+
+lemma _root_.algebra_map_mem_ℓp_infty (k : 𝕜) : mem_ℓp (algebra_map 𝕜 (Π i, B i) k) ∞ :=
+begin
+  rw algebra.algebra_map_eq_smul_one,
+  exact (one_mem_ℓp_infty.const_smul k : mem_ℓp (k • 1 : Π i, B i) ∞)
+end
+
+variables (𝕜 B)
+
+/-- The `𝕜`-subalgebra of elements of `Π i : α, B i` whose `lp` norm is finite. This is `lp E ∞`,
+with extra structure. -/
+def _root_.lp_infty_subalgebra : subalgebra 𝕜 (pre_lp B) :=
+{ carrier := {f | mem_ℓp f ∞},
+  algebra_map_mem' := algebra_map_mem_ℓp_infty,
+  .. lp_infty_subring B }
+
+variables {𝕜 B}
+
+instance infty_normed_algebra : normed_algebra 𝕜 (lp B ∞) :=
+{ ..(lp_infty_subalgebra 𝕜 B).algebra,
+  ..(lp.normed_space : normed_space 𝕜 (lp B ∞)) }
+
+end algebra
 
 section single
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]

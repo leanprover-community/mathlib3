@@ -166,7 +166,7 @@ end
 If `G` is cover-preserving and compatible-preserving,
 then `G.op ⋙ _` pulls sheaves back to sheaves.
 
-This result is basically https://stacks.math.columbia.edu/tag/00WW.
+This result is basically <https://stacks.math.columbia.edu/tag/00WW>.
 -/
 theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :
@@ -249,7 +249,7 @@ end
 /-- The pushforward functor is left adjoint to the pullback functor. -/
 def sites.pullback_pushforward_adjunction {G : C ⥤ D} (hG₁ : compatible_preserving K G)
   (hG₂ : cover_preserving J K G) : sites.pushforward A J K G ⊣ sites.pullback A hG₁ hG₂ :=
-((Lan.adjunction A G.op).comp _ _ (sheafification_adjunction K A)).restrict_fully_faithful
+((Lan.adjunction A G.op).comp (sheafification_adjunction K A)).restrict_fully_faithful
   (Sheaf_to_presheaf J A) (𝟭 _)
   (nat_iso.of_components (λ _, iso.refl _)
     (λ _ _ _,(category.comp_id _).trans (category.id_comp _).symm))

@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.basic_smooth_bundle
+import geometry.manifold.tangent_bundle
 
 /-!
 # The derivative of functions between smooth manifolds
@@ -110,7 +110,7 @@ this specific chart.
 We use the names `mdifferentiable` and `mfderiv`, where the prefix letter `m` means "manifold".
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M]
@@ -239,7 +239,7 @@ end derivatives_definitions
 section derivatives_properties
 /-! ### Unique differentiability sets in manifolds -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] --
@@ -853,7 +853,7 @@ manifold structure, coincides with the usual Frechet derivative `fderiv`. In thi
 this and related statements.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {f : E → E'} {s : set E} {x : E}
@@ -959,7 +959,7 @@ section specific_functions
 
 /-! ### Differentiability of specific functions -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -1251,9 +1251,9 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  simp only [chart_at, basic_smooth_bundle_core.chart, subtype.coe_mk, tangent_bundle_core, h,
-    basic_smooth_bundle_core.to_topological_fiber_bundle_core, equiv.sigma_equiv_prod_apply]
-    with mfld_simps,
+  simp only [continuous_linear_map.coe_coe, basic_smooth_vector_bundle_core.chart, h,
+    tangent_bundle_core, basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
+    chart_at, sigma.mk.inj_iff] with mfld_simps,
 end
 
 end charts
@@ -1263,7 +1263,7 @@ end specific_functions
 /-! ### Differentiable local homeomorphisms -/
 namespace local_homeomorph.mdifferentiable
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M]
@@ -1375,7 +1375,7 @@ end local_homeomorph.mdifferentiable
 
 section ext_chart_at
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -1402,7 +1402,7 @@ end ext_chart_at
 /-! ### Unique derivative sets in manifolds -/
 section unique_mdiff
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -1517,12 +1517,12 @@ begin
 end
 
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-(Z : basic_smooth_bundle_core I M F)
+(Z : basic_smooth_vector_bundle_core I M F)
 
 /-- In a smooth fiber bundle constructed from core, the preimage under the projection of a set with
 unique differential in the basis also has unique differential. -/
 lemma unique_mdiff_on.smooth_bundle_preimage (hs : unique_mdiff_on I s) :
-  unique_mdiff_on (I.prod (𝓘(𝕜, F))) (Z.to_topological_fiber_bundle_core.proj ⁻¹' s) :=
+  unique_mdiff_on (I.prod (𝓘(𝕜, F))) (Z.to_topological_vector_bundle_core.proj ⁻¹' s) :=
 begin
   /- Using a chart (and the fact that unique differentiability is invariant under charts), we
   reduce the situation to the model space, where we can use the fact that products respect
@@ -1533,14 +1533,14 @@ begin
   let e := chart_at (model_prod H F) p,
   -- It suffices to prove unique differentiability in a chart
   suffices h : unique_mdiff_on (I.prod (𝓘(𝕜, F)))
-    (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s)),
+    (e.target ∩ e.symm⁻¹' (Z.to_topological_vector_bundle_core.proj ⁻¹' s)),
   { have A : unique_mdiff_on (I.prod (𝓘(𝕜, F))) (e.symm.target ∩
-      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s))),
+      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (Z.to_topological_vector_bundle_core.proj ⁻¹' s))),
     { apply h.unique_mdiff_on_preimage,
       exact (mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)).symm,
       apply_instance },
     have : p ∈ e.symm.target ∩
-      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (Z.to_topological_fiber_bundle_core.proj ⁻¹' s)),
+      e.symm.symm ⁻¹' (e.target ∩ e.symm⁻¹' (Z.to_topological_vector_bundle_core.proj ⁻¹' s)),
         by simp only [e, hp] with mfld_simps,
     apply (A _ this).mono,
     assume q hq,

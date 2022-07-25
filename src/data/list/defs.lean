@@ -68,9 +68,16 @@ it returns `none` otherwise -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}
 
+/-- "default" `nth` function: returns `d` instead of `none` in the case
+  that the index is out of bounds. -/
+def nthd (d : α) : Π (l : list α) (n : ℕ), α
+| []      _       := d
+| (x::xs) 0       := x
+| (x::xs) (n + 1) := nthd xs n
+
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-@[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := (nth l n).iget
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.
@@ -398,6 +405,13 @@ attribute [simp] forall₂.nil
 
 end forall₂
 
+/-- `l.all₂ p` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction, i.e.
+`list.all₂ p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
+@[simp] def all₂ (p : α → Prop) : list α → Prop
+| []        := true
+| (x :: []) := p x
+| (x :: l)  := p x ∧ all₂ l
+
 /-- Auxiliary definition used to define `transpose`.
   `transpose_aux l L` takes each element of `l` and appends it to the start of
   each element of `L`.
@@ -632,6 +646,20 @@ list.decidable_pairwise
 
      dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 def dedup [decidable_eq α] : list α → list α := pw_filter (≠)
+
+/-- Greedily create a sublist of `a :: l` such that, for every two adjacent elements `a, b`,
+`R a b` holds. Mostly used with ≠; for example, `destutter' (≠) 1 [2, 2, 1, 1] = [1, 2, 1]`,
+`destutter' (≠) 1, [2, 3, 3] = [1, 2, 3]`, `destutter' (<) 1 [2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
+def destutter' (R : α → α → Prop) [decidable_rel R] : α → list α → list α
+| a [] := [a]
+| a (h :: l) := if R a h then a :: destutter' h l else destutter' a l
+
+/-- Greedily create a sublist of `l` such that, for every two adjacent elements `a, b ∈ l`,
+`R a b` holds. Mostly used with ≠; for example, `destutter (≠) [1, 2, 2, 1, 1] = [1, 2, 1]`,
+`destutter (≠) [1, 2, 3, 3] = [1, 2, 3]`, `destutter (<) [1, 2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
+def destutter (R : α → α → Prop) [decidable_rel R] : list α → list α
+| (h :: l) := destutter' R h l
+| [] := []
 
 /-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
@@ -988,6 +1016,15 @@ def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → lis
 def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
 | (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
 | _       _       _       _       _       := []
+
+/--  Given a starting list `old`, a list of booleans and a replacement list `new`,
+read the items in `old` in succession and either replace them with the next element of `new` or
+not, according as to whether the corresponding boolean is `tt` or `ff`. -/
+def replace_if : list α → list bool → list α → list α
+| l  _  [] := l
+| [] _  _  := []
+| l  [] _  := l
+| (n::ns) (tf::bs) e@(c::cs) := if tf then c :: ns.replace_if bs cs else n :: ns.replace_if bs e
 
 /-- An auxiliary function for `list.map_with_prefix_suffix`. -/
 def map_with_prefix_suffix_aux {α β} (f : list α → α → list α → β) : list α → list α → list β

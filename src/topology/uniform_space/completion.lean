@@ -149,7 +149,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
     calc comap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ((𝓤 α).lift' gen)
           = (𝓤 α).lift'
               (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
-        comap_lift'_eq monotone_gen
+        comap_lift'_eq
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
@@ -329,16 +329,16 @@ def completion := quotient (separation_setoid $ Cauchy α)
 namespace completion
 
 instance [inhabited α] : inhabited (completion α) :=
-by unfold completion; apply_instance
+quotient.inhabited (separation_setoid (Cauchy α))
 
 @[priority 50]
-instance : uniform_space (completion α) := by dunfold completion ; apply_instance
+instance : uniform_space (completion α) := separation_setoid.uniform_space
 
-instance : complete_space (completion α) := by dunfold completion ; apply_instance
+instance : complete_space (completion α) := uniform_space.complete_space_separation (Cauchy α)
 
-instance : separated_space (completion α) := by dunfold completion ; apply_instance
+instance : separated_space (completion α) := uniform_space.separated_separation
 
-instance : regular_space (completion α) := separated_regular
+instance : t3_space (completion α) := separated_t3
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
 instance : has_coe_t α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩ -- note [use has_coe_t]

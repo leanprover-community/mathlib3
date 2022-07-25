@@ -220,7 +220,7 @@ begin
   apply (to_finset_card_le P.to_poly.roots).trans,
   by_cases hP : P.to_poly = 0,
   { exact (card_roots' P.to_poly).trans (by { rw [hP, nat_degree_zero], exact zero_le 3 }) },
-  { simpa only [← @with_bot.coe_le_coe _ _ _ 3] using (card_roots hP).trans degree_cubic_le }
+  { exact with_bot.coe_le_coe.1 ((card_roots hP).trans degree_cubic_le) }
 end
 
 end extension

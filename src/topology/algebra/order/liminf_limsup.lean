@@ -22,10 +22,7 @@ section order_closed_topology
 variables [semilattice_sup α] [topological_space α] [order_topology α]
 
 lemma is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤) :=
-match forall_le_or_exists_lt_sup a with
-| or.inl h := ⟨a, eventually_of_forall h⟩
-| or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
-end
+(is_top_or_exists_gt a).elim (λ h, ⟨a, eventually_of_forall h⟩) (λ ⟨b, hb⟩, ⟨b, ge_mem_nhds hb⟩)
 
 lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
@@ -51,8 +48,7 @@ end order_closed_topology
 section order_closed_topology
 variables [semilattice_inf α] [topological_space α] [order_topology α]
 
-lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
-@is_bounded_le_nhds (order_dual α) _ _ _ a
+lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) := @is_bounded_le_nhds αᵒᵈ _ _ _ a
 
 lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
@@ -85,7 +81,7 @@ mem_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
   ∀ᶠ a in f, b < a :=
-@lt_mem_sets_of_Limsup_lt (order_dual α) _
+@lt_mem_sets_of_Limsup_lt αᵒᵈ _
 
 variables [topological_space α] [order_topology α]
 
@@ -107,8 +103,7 @@ cInf_eq_of_forall_ge_of_forall_gt_exists_lt (is_bounded_le_nhds a)
     | or.inr ⟨_, h⟩        := ⟨a, (𝓝 a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
     end)
 
-theorem Liminf_nhds : ∀ (a : α), Liminf (𝓝 a) = a :=
-@Limsup_nhds (order_dual α) _ _ _
+theorem Liminf_nhds : ∀ (a : α), Liminf (𝓝 a) = a := @Limsup_nhds αᵒᵈ _ _ _
 
 /-- If a filter is converging, its limsup coincides with its limit. -/
 theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} [ne_bot f] (h : f ≤ 𝓝 a) : f.Liminf = a :=
@@ -125,7 +120,7 @@ le_antisymm
 
 /-- If a filter is converging, its liminf coincides with its limit. -/
 theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ 𝓝 a → f.Limsup = a :=
-@Liminf_eq_of_le_nhds (order_dual α) _ _ _
+@Liminf_eq_of_le_nhds αᵒᵈ _ _ _
 
 /-- If a function has a limit, then its limsup coincides with its limit. -/
 theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]

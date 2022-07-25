@@ -15,7 +15,7 @@ instead of Lie mainly because Lie ring has currently another use in mathematics.
 open_locale manifold
 
 section smooth_ring
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
@@ -42,7 +42,7 @@ instance smooth_ring.to_lie_add_group (I : model_with_corners 𝕜 E H)
 
 end smooth_ring
 
-instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
+instance field_smooth_ring {𝕜 : Type*} [nontrivially_normed_field 𝕜] :
   smooth_ring 𝓘(𝕜) 𝕜 :=
 { smooth_mul :=
   begin
@@ -55,11 +55,11 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
   ..normed_space_lie_add_group }
 
 variables {𝕜 R E H : Type*} [topological_space R] [topological_space H]
-  [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+  [nontrivially_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
   [charted_space H R] (I : model_with_corners 𝕜 E H)
 
 /-- A smooth (semi)ring is a topological (semi)ring. This is not an instance for technical reasons,
 see note [Design choices about smooth algebraic structures]. -/
-lemma topological_ring_of_smooth [semiring R] [smooth_ring I R] :
-  topological_ring R :=
+lemma topological_semiring_of_smooth [semiring R] [smooth_ring I R] :
+  topological_semiring R :=
 { .. has_continuous_mul_of_smooth I, .. has_continuous_add_of_smooth I }

@@ -32,7 +32,7 @@ instance : normed_space 𝕜 (completion E) :=
   norm_smul_le := λ c x, induction_on x
     (is_closed_le (continuous_const_smul _).norm (continuous_const.mul continuous_norm)) $
     λ y, by simp only [← coe_smul, norm_coe, norm_smul],
-  .. completion.module 𝕜 E }
+  .. completion.module }
 
 variables {𝕜 E}
 
@@ -51,7 +51,7 @@ to_complₗᵢ.to_continuous_linear_map
 
 @[simp] lemma coe_to_complL : ⇑(to_complL : E →L[𝕜] completion E) = coe := rfl
 
-@[simp] lemma norm_to_complL {𝕜 E : Type*} [nondiscrete_normed_field 𝕜]
+@[simp] lemma norm_to_complL {𝕜 E : Type*} [nontrivially_normed_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [nontrivial E] : ∥(to_complL : E →L[𝕜] completion E)∥ = 1 :=
 (to_complₗᵢ : E →ₗᵢ[𝕜] completion E).norm_to_continuous_linear_map
 

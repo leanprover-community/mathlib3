@@ -117,14 +117,11 @@ begin
     by simp only [this, norm],
   ext r,
   split,
-  { rintros ⟨m, hm : mk' S m = x, rfl⟩,
-    subst hm,
+  { rintros ⟨m, rfl : mk' S m = x, rfl⟩,
     rw ← norm_neg,
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
-    use -m,
-    simp at hm,
-    simp [hm], }
+    exact ⟨-m, by simpa [eq_comm] using eq_neg_iff_eq_neg.mp ((mk'_apply _ _).symm.trans hm)⟩ }
 end
 
 lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : M ⧸ S) : ∥x - y∥ = ∥y - x∥ :=
@@ -268,7 +265,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
     linarith },
   { rintros ⟨ε, ε_pos, h⟩,
     have : (mk' S) '' (ball (0 : M) ε) ⊆ {x | ∥x∥ < ε},
-    { rintros - ⟨x, x_in, rfl⟩,
+    { rintros _ ⟨x, x_in, rfl⟩,
       rw mem_ball_zero_iff at x_in,
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
     apply filter.mem_of_superset _ (set.subset.trans this h),
@@ -478,7 +475,7 @@ begin
     exact ⟨0, f.ker.zero_mem⟩ },
   rcases real.lt_Inf_add_pos nonemp hε with
     ⟨_, ⟨⟨x, hx, rfl⟩, H : ∥m + x∥ < Inf ((λ (m' : M), ∥m + m'∥) '' f.ker) + ε⟩⟩,
-  exact ⟨m+x, by rw [f.map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
+  exact ⟨m+x, by rw [map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
                by rwa hquot.norm⟩,
 end
 

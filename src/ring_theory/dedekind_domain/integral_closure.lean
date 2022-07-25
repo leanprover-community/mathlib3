@@ -110,7 +110,7 @@ begin
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
       ((is_fraction_ring.is_algebraic_iff A K L).mpr (is_algebraic_of_finite _ _ x))
-      ((algebra_map A L).injective_iff.mp _),
+      ((injective_iff_map_eq_zero (algebra_map A L)).mp _),
     refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),
     { rw [mul_smul, algebra.smul_def, algebra.smul_def, mul_comm _ x'', hx'],
@@ -135,7 +135,7 @@ begin
   let bs' := is_noetherian.finset_basis K L,
   obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),
   have hy' : algebra_map A L y ≠ 0,
-  { refine mt ((algebra_map A L).injective_iff.mp _ _) hy,
+  { refine mt ((injective_iff_map_eq_zero (algebra_map A L)).mp _ _) hy,
     rw is_scalar_tower.algebra_map_eq A K L,
     exact (algebra_map K L).injective.comp (is_fraction_ring.injective A K) },
   refine ⟨s', bs'.map { to_fun := λ x, algebra_map A L y * x,
@@ -157,22 +157,28 @@ include L
 
 /- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is
 integrally closed and Noetherian, the integral closure `C` of `A` in `L` is
-Noetherian. -/
-lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetherian_ring A] :
-  is_noetherian_ring C :=
+Noetherian over `A`. -/
+lemma is_integral_closure.is_noetherian [is_integrally_closed A] [is_noetherian_ring A] :
+  is_noetherian A C :=
 begin
   haveI := classical.dec_eq L,
   obtain ⟨s, b, hb_int⟩ := finite_dimensional.exists_is_basis_integral A K L,
-  rw is_noetherian_ring_iff,
   let b' := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
   letI := is_noetherian_span_of_finite A (set.finite_range b'),
   let f : C →ₗ[A] submodule.span A (set.range b') :=
     (submodule.of_le (is_integral_closure.range_le_span_dual_basis C b hb_int)).comp
     ((algebra.linear_map C L).restrict_scalars A).range_restrict,
-  refine is_noetherian_of_tower A (is_noetherian_of_ker_bot f _),
+  refine is_noetherian_of_ker_bot f _,
   rw [linear_map.ker_comp, submodule.ker_of_le, submodule.comap_bot, linear_map.ker_cod_restrict],
   exact linear_map.ker_eq_bot_of_injective (is_integral_closure.algebra_map_injective C A L)
 end
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is
+integrally closed and Noetherian, the integral closure `C` of `A` in `L` is
+Noetherian. -/
+lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetherian_ring A] :
+  is_noetherian_ring C :=
+is_noetherian_ring_iff.mpr $ is_noetherian_of_tower A (is_integral_closure.is_noetherian A K L C)
 
 variables {A K}
 

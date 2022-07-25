@@ -122,9 +122,11 @@ begin
     { have : y ∈ s := sab ⟨lt_of_le_of_ne hy.1 (ne.symm h), hy.2⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp [deriv_fderiv.symm],
-    refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim' },
+  { simp only [deriv_fderiv.symm],
+    exact tendsto.comp
+      (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
+        .continuous_right.continuous_at
+      (tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim'), },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
@@ -159,9 +161,11 @@ begin
     { have : y ∈ s := sab ⟨hy.1, lt_of_le_of_ne hy.2 h⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp [deriv_fderiv.symm],
-    refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim' },
+  { simp only [deriv_fderiv.symm],
+    exact tendsto.comp
+      (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
+        .continuous_right.continuous_at
+      (tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim'), },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],

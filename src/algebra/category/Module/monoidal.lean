@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 -/
 import category_theory.monoidal.braided
+import category_theory.closed.monoidal
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
+import category_theory.linear.yoneda
+import category_theory.monoidal.linear
 
 /-!
 # The symmetric monoidal category structure on R-modules
@@ -14,11 +17,17 @@ Mostly this uses existing machinery in `linear_algebra.tensor_product`.
 We just need to provide a few small missing pieces to build the
 `monoidal_category` instance and then the `symmetric_category` instance.
 
+Note the universe level of the modules must be at least the universe level of the ring,
+so that we have a monoidal unit.
+For now, we simplify by insisting both universe levels are the same.
+
+We then construct the monoidal closed structure on `Module R`.
+
 If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.
 -/
 
-universes u
+universes v w x u
 
 open category_theory
 
@@ -41,17 +50,18 @@ def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
   tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
-lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=
-by tidy
+lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (M ⊗ N)) :=
+by { ext1, refl }
 
 lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
-by tidy
+by { ext1, refl }
 
 /-- (implementation) the associator for R-modules -/
-def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-linear_equiv.to_Module_iso (tensor_product.assoc R M N K)
+def associator (M : Module.{v} R) (N : Module.{w} R) (K : Module.{x} R) :
+  tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
+(tensor_product.assoc R M N K).to_Module_iso
 
 section
 
@@ -113,7 +123,7 @@ def left_unitor (M : Module.{u} R) : Module.of R (R ⊗[R] M) ≅ M :=
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
+  ext x y, dsimp,
   erw [tensor_product.lid_tmul, tensor_product.lid_tmul],
   rw linear_map.map_smul,
   refl,
@@ -126,7 +136,7 @@ def right_unitor (M : Module.{u} R) : Module.of R (M ⊗[R] R) ≅ M :=
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
+  ext x y, dsimp,
   erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
   rw linear_map.map_smul,
   refl,
@@ -255,5 +265,56 @@ namespace monoidal_category
   ((β_ M N).inv : N ⊗ M ⟶ M ⊗ N) (n ⊗ₜ m) = m ⊗ₜ n := rfl
 
 end monoidal_category
+
+open opposite
+
+instance : monoidal_preadditive (Module.{u} R) :=
+{ tensor_zero' := by { intros, ext, simp, },
+  zero_tensor' := by { intros, ext, simp, },
+  tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
+  add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
+
+instance : monoidal_linear R (Module.{u} R) :=
+{ tensor_smul' := by { intros, ext, simp, },
+  smul_tensor' := by { intros, ext, simp [tensor_product.smul_tmul], }, }
+
+/--
+Auxiliary definition for the `monoidal_closed` instance on `Module R`.
+(This is only a separate definition in order to speed up typechecking. )
+-/
+@[simps]
+def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
+  ((monoidal_category.tensor_left M).obj N ⟶ P) ≃
+    (N ⟶ ((linear_coyoneda R (Module R)).obj (op M)).obj P) :=
+{ to_fun := λ f, linear_map.compr₂ (tensor_product.mk R N M) ((β_ N M).hom ≫ f),
+  inv_fun := λ f, (β_ M N).hom ≫ tensor_product.lift f,
+  left_inv := λ f, begin ext m n,
+    simp only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
+      function.comp_app, coe_comp, monoidal_category.braiding_hom_apply],
+  end,
+  right_inv := λ f, begin ext m n,
+    simp only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
+      symmetric_category.symmetry_assoc],
+  end, }
+
+instance : monoidal_closed (Module.{u} R) :=
+{ closed' := λ M,
+  { is_adj :=
+    { right := (linear_coyoneda R (Module.{u} R)).obj (op M),
+      adj := adjunction.mk_of_hom_equiv
+      { hom_equiv := λ N P, monoidal_closed_hom_equiv M N P, } } } }
+
+-- I can't seem to express the function coercion here without writing `@coe_fn`.
+@[simp]
+lemma monoidal_closed_curry {M N P : Module.{u} R} (f : M ⊗ N ⟶ P) (x : M) (y : N) :
+  @coe_fn _ _ linear_map.has_coe_to_fun ((monoidal_closed.curry f : N →ₗ[R] (M →ₗ[R] P)) y) x =
+    f (x ⊗ₜ[R] y) :=
+rfl
+
+@[simp]
+lemma monoidal_closed_uncurry {M N P : Module.{u} R}
+  (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
+  monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
+by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
 
 end Module

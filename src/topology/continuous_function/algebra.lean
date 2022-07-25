@@ -7,7 +7,8 @@ import topology.algebra.module.basic
 import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
-import algebra.algebra.subalgebra
+import topology.algebra.star
+import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 
 /-!
@@ -61,26 +62,38 @@ lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 
 @[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
 
-instance has_nsmul [add_monoid β] [has_continuous_add β] : has_scalar ℕ C(α, β) :=
+instance [has_nat_cast β] : has_nat_cast C(α, β) :=
+⟨λ n, continuous_map.const _ n⟩
+
+@[simp, norm_cast]
+lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+
+instance [has_int_cast β] : has_int_cast C(α, β) :=
+⟨λ n, continuous_map.const _ n⟩
+
+@[simp, norm_cast]
+lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
+
+instance has_nsmul [add_monoid β] [has_continuous_add β] : has_smul ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
 
-@[to_additive has_nsmul]
+@[to_additive]
 instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 ⟨λ f n, ⟨f ^ n, f.continuous.pow n⟩⟩
 
-@[norm_cast, to_additive coe_nsmul]
+@[norm_cast, to_additive]
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
-  
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+
+-- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_pow
 
-@[to_additive nsmul_comp] lemma pow_comp [monoid γ] [has_continuous_mul γ]
+@[to_additive] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
   (f^n).comp g = (f.comp g)^n :=
 rfl
 
--- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] pow_comp
 
 @[to_additive]
@@ -109,7 +122,7 @@ rfl
   (f / g).comp h = (f.comp h) / (g.comp h) :=
 rfl
 
-instance has_zsmul [add_group β] [topological_add_group β] : has_scalar ℤ C(α, β) :=
+instance has_zsmul [add_group β] [topological_add_group β] : has_smul ℤ C(α, β) :=
 { smul := λ z f, ⟨z • f, f.continuous.zsmul z⟩ }
 
 @[to_additive]
@@ -122,7 +135,7 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+-- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_zpow
 
 @[to_additive]
@@ -130,7 +143,7 @@ lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g :
   (f^z).comp g = (f.comp g)^z :=
 rfl
 
--- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
 
 end continuous_map
@@ -152,14 +165,13 @@ def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topol
   [monoid β] [has_continuous_mul β] : submonoid (α → β) :=
 { carrier := { f : α → β | continuous f },
   one_mem' := @continuous_const _ _ _ _ 1,
-  mul_mem' := λ f g fc gc, continuous.comp
-    has_continuous_mul.continuous_mul (continuous.prod_mk fc gc : _) }
+  mul_mem' := λ f g fc gc, fc.mul gc }
 
 /-- The subgroup of continuous maps `α → β`. -/
 @[to_additive "The `add_subgroup` of continuous maps `α → β`. "]
 def continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : subgroup (α → β) :=
-{ inv_mem' := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
+{ inv_mem' := λ f fc, continuous.inv fc,
   ..continuous_submonoid α β, }.
 
 end subtype
@@ -185,23 +197,40 @@ instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [mul_zero_class β] [has_continuous_mul β] : mul_zero_class C(α, β) :=
 coe_injective.mul_zero_class _ coe_zero coe_mul
 
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero C(α, β) :=
+coe_injective.semigroup_with_zero _ coe_zero coe_mul
+
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
-coe_injective.monoid_pow _ coe_one coe_mul coe_pow
+coe_injective.monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
-{ ..continuous_map.monoid, ..continuous_map.mul_zero_class }
+coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
-{ ..continuous_map.comm_semigroup, ..continuous_map.monoid }
+coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
-{ ..continuous_map.comm_monoid, ..continuous_map.monoid_with_zero }
+coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
+
+@[to_additive]
+instance {α : Type*} {β : Type*} [topological_space α]
+  [locally_compact_space α] [topological_space β]
+  [has_mul β] [has_continuous_mul β] : has_continuous_mul C(α, β) :=
+⟨begin
+  refine continuous_of_continuous_uncurry _ _,
+  have h1 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.fst x.snd) :=
+    continuous_eval'.comp (continuous_fst.prod_map continuous_id),
+  have h2 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.snd x.snd) :=
+    continuous_eval'.comp (continuous_snd.prod_map continuous_id),
+  exact h1.mul h2,
+end⟩
 
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
 @[to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.",
@@ -247,13 +276,12 @@ by simp
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group C(α, β) :=
-coe_injective.group_pow _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+coe_injective.group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
-{ ..continuous_map.group,
-  ..continuous_map.comm_monoid }
+coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
@@ -263,17 +291,17 @@ instance {α : Type*} {β : Type*} [topological_space α]
     rw continuous_iff_continuous_at,
     rintros ⟨f, g⟩,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on, nhds_prod_eq],
-    exactI λ K hK, ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
-      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)).comp'
-      uniform_continuous_mul },
+    exactI λ K hK, uniform_continuous_mul.comp_tendsto_uniformly_on
+      ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)), },
   continuous_inv := by
   { letI : uniform_space β := topological_group.to_uniform_space β,
     have : uniform_group β := topological_group_is_uniform,
     rw continuous_iff_continuous_at,
     intro f,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
-    exactI λ K hK, (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).comp'
-      uniform_continuous_inv } }
+    exactI λ K hK, uniform_continuous_inv.comp_tendsto_uniformly_on
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK), } }
 
 end continuous_map
 
@@ -284,7 +312,7 @@ section ring_structure
 /-!
 ### Ring stucture
 
-In this section we show that continuous functions valued in a topological ring `R` inherit
+In this section we show that continuous functions valued in a topological semiring `R` inherit
 the structure of a ring.
 -/
 
@@ -292,7 +320,7 @@ section subtype
 
 /-- The subsemiring of continuous maps `α → β`. -/
 def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
-  [semiring R] [topological_ring R] : subsemiring (α → R) :=
+  [semiring R] [topological_semiring R] : subsemiring (α → R) :=
 { ..continuous_add_submonoid α R,
   ..continuous_submonoid α R }
 
@@ -307,32 +335,70 @@ end subtype
 namespace continuous_map
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [semiring β] [topological_ring β] : semiring C(α, β) :=
-{ left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
-  right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
-  ..continuous_map.add_comm_monoid,
-  ..continuous_map.monoid_with_zero }
+  [non_unital_non_assoc_semiring β] [topological_semiring β] :
+  non_unital_non_assoc_semiring C(α, β) :=
+coe_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul coe_nsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_semiring β] [topological_semiring β] :
+  non_unital_semiring C(α, β) :=
+coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul coe_nsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [add_monoid_with_one β] [has_continuous_add β] :
+  add_monoid_with_one C(α, β) :=
+coe_injective.add_monoid_with_one _ coe_zero coe_one coe_add coe_nsmul coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_assoc_semiring β] [topological_semiring β] :
+  non_assoc_semiring C(α, β) :=
+coe_injective.non_assoc_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [semiring β] [topological_semiring β] : semiring C(α, β) :=
+coe_injective.semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_non_assoc_ring β] [topological_ring β] : non_unital_non_assoc_ring C(α, β) :=
+coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  coe_nsmul coe_zsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_ring β] [topological_ring β] : non_unital_ring C(α, β) :=
+coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_assoc_ring β] [topological_ring β] : non_assoc_ring C(α, β) :=
+coe_injective.non_assoc_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+  coe_nat_cast coe_int_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring C(α, β) :=
-{ ..continuous_map.semiring,
-  ..continuous_map.add_comm_group, }
+coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul coe_pow
+  coe_nat_cast coe_int_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_semiring β] [topological_semiring β] : non_unital_comm_semiring C(α, β) :=
+coe_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [comm_semiring β] [topological_ring β] : comm_semiring C(α, β) :=
-{ ..continuous_map.semiring,
-  ..continuous_map.comm_monoid, }
+  [topological_space β] [comm_semiring β] [topological_semiring β] : comm_semiring C(α, β) :=
+coe_injective.comm_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_ring β] [topological_ring β] : non_unital_comm_ring C(α, β) :=
+coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_ring β] [topological_ring β] : comm_ring C(α, β) :=
-{ ..continuous_map.comm_semiring,
-  ..continuous_map.ring, }
+coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+  coe_pow coe_nat_cast coe_int_cast
 
-/-- Composition on the left by a (continuous) homomorphism of topological rings, as a `ring_hom`.
-Similar to `ring_hom.comp_left`. -/
+/-- Composition on the left by a (continuous) homomorphism of topological semirings, as a
+`ring_hom`.  Similar to `ring_hom.comp_left`. -/
 @[simps] protected def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [semiring β] [topological_ring β]
-  [topological_space γ] [semiring γ] [topological_ring γ] (g : β →+* γ) (hg : continuous g) :
+  [topological_space α] [topological_space β] [semiring β] [topological_semiring β]
+  [topological_space γ] [semiring γ] [topological_semiring γ] (g : β →+* γ) (hg : continuous g) :
   C(α, β) →+* C(α, γ) :=
 { .. g.to_monoid_hom.comp_left_continuous α hg,
   .. g.to_add_monoid_hom.comp_left_continuous α hg }
@@ -382,35 +448,50 @@ variables {α β : Type*} [topological_space α] [topological_space β]
   {M₂ : Type*} [topological_space M₂]
 
 @[to_additive continuous_map.has_vadd]
-instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M) :=
+instance [has_smul R M] [has_continuous_const_smul R M] : has_smul R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
+@[to_additive]
+instance [locally_compact_space α] [has_smul R M] [has_continuous_const_smul R M] :
+  has_continuous_const_smul R C(α, M) :=
+⟨λ γ, continuous_of_continuous_uncurry _ (continuous_eval'.const_smul γ)⟩
+
+@[to_additive]
+instance [locally_compact_space α] [topological_space R] [has_smul R M]
+  [has_continuous_smul R M] : has_continuous_smul R C(α, M) :=
+⟨begin
+  refine continuous_of_continuous_uncurry _ _,
+  have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
+    continuous_eval'.comp (continuous_snd.prod_map continuous_id),
+  exact (continuous_fst.comp continuous_fst).smul h,
+end⟩
+
 @[simp, to_additive, norm_cast]
-lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]
+lemma coe_smul [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
 @[to_additive]
-lemma smul_apply [has_scalar R M] [has_continuous_const_smul R M]
+lemma smul_apply [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
 
-@[simp, to_additive] lemma smul_comp [has_scalar R M] [has_continuous_const_smul R M]
+@[simp, to_additive] lemma smul_comp [has_smul R M] [has_continuous_const_smul R M]
   (r : R) (f : C(β, M)) (g : C(α, β)) :
   (r • f).comp g = r • (f.comp g) :=
 rfl
 
 @[to_additive]
-instance [has_scalar R M] [has_continuous_const_smul R M]
-  [has_scalar R₁ M] [has_continuous_const_smul R₁ M]
+instance [has_smul R M] [has_continuous_const_smul R M]
+  [has_smul R₁ M] [has_continuous_const_smul R₁ M]
   [smul_comm_class R R₁ M] : smul_comm_class R R₁ C(α, M) :=
 { smul_comm := λ _ _ _, ext $ λ _, smul_comm _ _ _ }
 
-instance [has_scalar R M] [has_continuous_const_smul R M]
-  [has_scalar R₁ M] [has_continuous_const_smul R₁ M]
-  [has_scalar R R₁] [is_scalar_tower R R₁ M] : is_scalar_tower R R₁ C(α, M) :=
+instance [has_smul R M] [has_continuous_const_smul R M]
+  [has_smul R₁ M] [has_continuous_const_smul R₁ M]
+  [has_smul R R₁] [is_scalar_tower R R₁ M] : is_scalar_tower R R₁ C(α, M) :=
 { smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
 
-instance [has_scalar R M] [has_scalar Rᵐᵒᵖ M] [has_continuous_const_smul R M]
+instance [has_smul R M] [has_smul Rᵐᵒᵖ M] [has_continuous_const_smul R M]
   [is_central_scalar R M] : is_central_scalar R C(α, M) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
@@ -457,14 +538,14 @@ section algebra_structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a ring
 `R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra
-is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_ring`.-/
+is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`.-/
 
 section subtype
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
-[algebra R A] [topological_ring A]
+[algebra R A] [topological_semiring A]
 
 /-- The `R`-subalgebra of continuous maps `α → A`. -/
 def continuous_subalgebra : subalgebra R (α → A) :=
@@ -479,9 +560,9 @@ section continuous_map
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
-[algebra R A] [topological_ring A]
+[algebra R A] [topological_semiring A]
 {A₂ : Type*} [topological_space A₂] [semiring A₂]
-[algebra R A₂] [topological_ring A₂]
+[algebra R A₂] [topological_semiring A₂]
 
 /-- Continuous constant functions as a `ring_hom`. -/
 def continuous_map.C : R →+* C(α, A) :=
@@ -602,7 +683,7 @@ end continuous_map
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
-  (R : Type*) [comm_semiring R] [topological_space R] [topological_ring R]
+  (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
 begin
   fsplit,
@@ -633,11 +714,11 @@ is naturally a module over the ring of continuous functions from `α` to `R`. -/
 
 namespace continuous_map
 
-instance has_scalar' {α : Type*} [topological_space α]
+instance has_smul' {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_monoid M]
   [module R M] [has_continuous_smul R M] :
-  has_scalar C(α, R) C(α, M) :=
+  has_smul C(α, R) C(α, M) :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance module' {α : Type*} [topological_space α]
@@ -693,5 +774,56 @@ lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + |f - g|) :
 ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
 
 end lattice
+
+/-!
+### Star structure
+
+If `β` has a continuous star operation, we put a star structure on `C(α, β)` by using the
+star operation pointwise.
+
+If `β` is a ⋆-ring, then `C(α, β)` inherits a ⋆-ring structure.
+
+If `β` is a ⋆-ring and a ⋆-module over `R`, then the space of continuous functions from `α` to `β`
+is a ⋆-module over `R`.
+
+-/
+
+section star_structure
+variables {R α β : Type*}
+variables [topological_space α] [topological_space β]
+
+section has_star
+variables [has_star β] [has_continuous_star β]
+
+instance : has_star C(α, β) :=
+{ star := λ f, star_continuous_map.comp f }
+
+@[simp] lemma coe_star (f : C(α, β)) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : C(α, β)) (x : α) : star f x = star (f x) := rfl
+
+end has_star
+
+instance [has_involutive_star β] [has_continuous_star β] : has_involutive_star C(α, β) :=
+{ star_involutive := λ f, ext $ λ x, star_star _ }
+
+instance [add_monoid β] [has_continuous_add β] [star_add_monoid β] [has_continuous_star β] :
+  star_add_monoid C(α, β) :=
+{ star_add := λ f g, ext $ λ x, star_add _ _ }
+
+instance [semigroup β] [has_continuous_mul β] [star_semigroup β] [has_continuous_star β] :
+  star_semigroup C(α, β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul _ _ }
+
+instance [non_unital_semiring β] [topological_semiring β] [star_ring β] [has_continuous_star β] :
+  star_ring C(α, β) :=
+{ ..continuous_map.star_add_monoid }
+
+instance [has_star R] [has_star β] [has_smul R β] [star_module R β]
+  [has_continuous_star β] [has_continuous_const_smul R β] :
+  star_module R C(α, β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul _ _ }
+
+end star_structure
 
 end continuous_map

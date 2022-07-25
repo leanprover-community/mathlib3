@@ -689,7 +689,7 @@ We may also add coercions to `ℤ` and `ℕ` as well in order to support `char_z
 rings and semirings. -/
 meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic (instance_cache × expr)
 | ic a b na nb := prove_ne_rat ic a b na nb <|> do
-  cz_inst ← mk_mapp ``char_zero [ic.α, none, none] >>= mk_instance,
+  cz_inst ← mk_mapp ``char_zero [ic.α, none] >>= mk_instance,
   if na.denom = 1 ∧ nb.denom = 1 then
     if na ≥ 0 ∧ nb ≥ 0 then do
       guard (ic.α ≠ `(ℕ)),
@@ -1057,9 +1057,10 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
   match match_sign b with
   | sum.inl b := do
     (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (nc, b0) ← prove_pos nc b',
     (ic, c, h) ← prove_pow a na ic b',
     (ic, c', hc) ← c.to_rat >>= prove_inv ic c,
-    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', hb, h, hc],
+    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', b0, hb, h, hc],
     pure (ic, zc, nc, c', p)
   | sum.inr ff := do
     (ic, o) ← ic.mk_app ``has_one.one [],
@@ -1076,7 +1077,7 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
+  c ← mk_instance_cache α,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
   | `(@div_inv_monoid.has_pow %%_ %%_) := do
@@ -1107,6 +1108,12 @@ prod.mk `(false) <$> mk_app ``eq_false_intro [p]
 
 theorem not_refl_false_intro {α} (a : α) : (a ≠ a) = false :=
 eq_false_intro $ not_not_intro rfl
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem gt_intro {α} [has_lt α] (a b : α) (c) (h : a < b = c) : b > a = c := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem ge_intro {α} [has_le α] (a b : α) (c) (h : a ≤ b = c) : b ≥ a = c := h
 
 /-- Evaluates the inequality operations `=`,`<`,`>`,`≤`,`≥`,`≠` on numerals. -/
 meta def eval_ineq : expr → tactic (expr × expr)
@@ -1139,8 +1146,12 @@ meta def eval_ineq : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   if n₁ = n₂ then mk_eq_refl e₁ >>= true_intro
   else do (_, p) ← prove_ne c e₁ e₂ n₁ n₂, false_intro p
-| `(%%e₁ > %%e₂) := mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq
-| `(%%e₁ ≥ %%e₂) := mk_app ``has_le.le [e₂, e₁] >>= eval_ineq
+| `(%%e₁ > %%e₂) := do
+  (e, p) ← mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``gt_intro [e₂, e₁, e, p]
+| `(%%e₁ ≥ %%e₂) := do
+  (e, p) ← mk_app ``has_le.le [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``ge_intro [e₂, e₁, e, p]
 | `(%%e₁ ≠ %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
@@ -1241,7 +1252,7 @@ theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exa
 
 theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
   (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
-  -[1+ a] = -c := by rw [← h₂, ← h₁, int.nat_cast_eq_coe_nat]; refl
+  -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
 
 /-- Evaluates some extra numeric operations on `nat` and `int`, specifically
 `nat.succ`, `/` and `%`, and `∣` (divisibility). -/
@@ -1321,9 +1332,9 @@ meta def eval_cast : expr → tactic (expr × expr)
       (ic, b) ← ic.of_int n,
       (_, _, _, p) ← prove_int_uncast ic zc b,
       pure (b, p)
-    else if inst.app_arg.is_app_of ``int.cast_coe then do
+    else if inst.app_arg.is_app_of ``rat.cast_coe then do
       n ← a.to_rat,
-      cz_inst ← mk_mapp ``char_zero [α, none, none] >>= mk_instance,
+      cz_inst ← mk_mapp ``char_zero [α, none] >>= mk_instance,
       ic ← mk_instance_cache α,
       qc ← mk_instance_cache `(ℚ),
         (ic, b) ← ic.of_rat n,
@@ -1386,17 +1397,17 @@ additional reduction procedures. -/
 meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
 
 /-- Simplify an expression bottom-up using `step` to simplify the subexpressions. -/
-meta def derive' (step : expr → tactic (expr × expr))
-  : expr → tactic (expr × expr) | e :=
-do e ← instantiate_mvars e,
-   (_, e', pr) ←
-    ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
-      (λ _ _ _ _ e,
-        do (new_e, pr) ← step e,
-           guard (¬ new_e =ₐ e),
-           return ((), new_e, some pr, tt))
-      `eq e,
-    return (e', pr)
+meta def derive' (step : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+| e := do
+  e ← instantiate_mvars e,
+  (_, e', pr) ← ext_simplify_core
+    () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
+    (λ _ _ _ _ e, do
+      (new_e, pr) ← step e,
+      guard (¬ new_e =ₐ e),
+      pure ((), new_e, some pr, tt))
+    `eq e,
+  pure (e', pr)
 
 /-- Simplify an expression bottom-up using the default `norm_num` set to simplify the
 subexpressions. -/
@@ -1423,6 +1434,23 @@ meta def tactic.norm_num (step : expr → tactic (expr × expr))
 repeat1 $ orelse' (tactic.norm_num1 step l) $
 interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
   ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
+
+/-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
+Given an expression `e`, returns `(e', ⊢ e = e')`.
+The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
+Unlike `norm_num`, this tactic does not fail. -/
+meta def _root_.expr.norm_num (step : expr → tactic (expr × expr))
+  (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
+  expr → tactic (expr × expr) :=
+let simp_step (e : expr) := do
+      (e', p, _) ← e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+                   no_dflt attr_names (simp_arg_type.except ``one_div :: hs),
+      return (e', p)
+in or_refl_conv $ λ e, do
+  (e', p') ← norm_num.derive' step e <|> simp_step e,
+  (e'', p'') ← _root_.expr.norm_num e',
+  p ← mk_eq_trans p' p'',
+  return (e'', p)
 
 namespace tactic.interactive
 open norm_num interactive interactive.types
@@ -1493,6 +1521,8 @@ add_tactic_doc
 
 end tactic.interactive
 
+/-! ## `conv` tactic -/
+
 namespace conv.interactive
 open conv interactive tactic.interactive
 open norm_num (derive)
@@ -1512,3 +1542,87 @@ conv.interactive.simp ff (simp_arg_type.except ``one_div :: hs) []
   { discharger := tactic.interactive.norm_num1 (loc.ns [none]) }
 
 end conv.interactive
+
+/-!
+## `#norm_num` command
+A user command to run `norm_num`. Mostly copied from the `#simp` command.
+-/
+
+namespace tactic
+
+setup_tactic_parser
+
+/- With this option, turn off the messages if the result is exactly `true` -/
+declare_trace silence_norm_num_if_true
+
+/--
+The basic usage is `#norm_num e`, where `e` is an expression,
+which will print the `norm_num` form of `e`.
+
+Syntax: `#norm_num` (`only`)? (`[` simp lemma list `]`)? (`with` simp sets)? `:`? expression
+
+This accepts the same options as the `#simp` command.
+You can specify additional simp lemmas as usual, for example using
+`#norm_num [f, g] : e`, or `#norm_num with attr : e`.
+(The colon is optional but helpful for the parser.)
+The `only` restricts `norm_num` to using only the provided lemmas, and so
+`#norm_num only : e` behaves similarly to `norm_num1`.
+
+Unlike `norm_num`, this command does not fail when no simplifications are made.
+
+`#norm_num` understands local variables, so you can use them to
+introduce parameters.
+-/
+@[user_command] meta def norm_num_cmd (_ : parse $ tk "#norm_num") : lean.parser unit :=
+do
+  no_dflt ← only_flag,
+  hs ← simp_arg_list,
+  attr_names ← with_ident_list,
+  o ← optional (tk ":"),
+  e ← texpr,
+
+  /- Retrieve the `pexpr`s parsed as part of the simp args, and collate them into a big list. -/
+  let hs_es := list.join $ hs.map $ option.to_list ∘ simp_arg_type.to_pexpr,
+
+  /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
+     may be safely called with expected behaviour given the `variables` in the environment. -/
+  (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
+
+  /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
+  result ← lean.parser.of_tactic $ λ _, do
+  { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+       hypotheses added to the `ts : tactic_state` which we are using. -/
+    e ← to_expr e,
+
+    /- Replace the variables referenced in the passed `simp_arg_list` with the `expr`s corresponding
+       to the local hypotheses we created.
+
+       We would prefer to just elaborate the `pexpr`s encoded in the `simp_arg_list` against the
+       tactic state we have created (as we could with `e` above), but the simplifier expects
+       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simp` do the
+       elaboration when the time comes.
+
+       You might think that we could just examine each of these `pexpr`s, call `to_expr` on them,
+       and then call `to_pexpr` afterward and save the results over the original `pexprs`. Due to
+       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simp`
+       framework is not robust enough to handle this method. When pieces of expressions like
+       annotation macros are injected, the direct patten matches in the `simp_lemmas.*` codebase
+       fail, and the lemmas we want don't get added.
+       -/
+    let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
+
+    /- Try simplifying the expression. -/
+    step ← norm_num.get_step,
+    prod.fst <$> e.norm_num step no_dflt hs attr_names } ts,
+
+  /- Trace the result. -/
+  when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])
+    (trace result)
+
+add_tactic_doc
+{ name                     := "#norm_num",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.norm_num_cmd],
+  tags                     := ["simplification", "arithmetic", "decision procedure"] }
+
+end tactic

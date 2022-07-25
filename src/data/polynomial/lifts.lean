@@ -125,7 +125,8 @@ lemma monomial_mem_lifts_and_degree_eq {s : S} {n : ℕ} (hl : monomial n s ∈ 
 begin
   by_cases hzero : s = 0,
   { use 0,
-    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right, map_zero] },
+    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right,
+               polynomial.map_zero] },
   rw lifts_iff_set_range at hl,
   obtain ⟨q, hq⟩ := hl,
   replace hq := (ext_iff.1 hq) n,
@@ -172,7 +173,7 @@ begin
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),
   use erase + lead,
   split,
-  { simp only [hlead, herase, map_add],
+  { simp only [hlead, herase, polynomial.map_add],
     nth_rewrite 0 erase_lead_add_monomial_nat_degree_leading_coeff p },
   rw [←hdeg, erase_lead] at deg_erase,
   replace deg_erase := lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 deg_erase),
@@ -186,37 +187,26 @@ section monic
 
 /-- A monic polynomial lifts if and only if it can be lifted to a monic polynomial
 of the same degree. -/
-lemma lifts_and_degree_eq_and_monic [nontrivial S] {p : S[X]} (hlifts :p ∈ lifts f)
-  (hmonic : p.monic) : ∃ (q : R[X]), map f q = p ∧ q.degree = p.degree ∧ q.monic :=
+lemma lifts_and_degree_eq_and_monic [nontrivial S] {p : S[X]} (hlifts : p ∈ lifts f)
+  (hp : p.monic) : ∃ (q : R[X]), map f q = p ∧ q.degree = p.degree ∧ q.monic :=
 begin
-  by_cases Rtrivial : nontrivial R,
-  swap,
-  { rw not_nontrivial_iff_subsingleton at Rtrivial,
-    obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq hlifts,
-    use q,
-    exact ⟨hq.1, hq.2, @monic_of_subsingleton _ _ Rtrivial q⟩ },
-  by_cases er_zero : p.erase_lead = 0,
-  { rw [← erase_lead_add_C_mul_X_pow p, er_zero, zero_add, monic.def.1 hmonic, C_1, one_mul],
-    use X ^ p.nat_degree,
-    repeat {split},
-    { simp only [polynomial.map_pow, map_X] },
-    { rw [@degree_X_pow R _ Rtrivial, degree_X_pow] },
-    {exact monic_pow monic_X p.nat_degree } },
+  casesI subsingleton_or_nontrivial R with hR hR,
+  { obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq hlifts,
+    exact ⟨q, hq.1, hq.2, monic_of_subsingleton _⟩ },
+  have H : erase p.nat_degree p + X ^ p.nat_degree = p,
+  { simpa only [hp.leading_coeff, C_1, one_mul, erase_lead] using erase_lead_add_C_mul_X_pow p },
+  by_cases h0 : erase p.nat_degree p = 0,
+  { rw [← H, h0, zero_add],
+    refine ⟨X ^ p.nat_degree, _, _, monic_X_pow p.nat_degree⟩,
+    { rw [polynomial.map_pow, map_X] },
+    { rw [degree_X_pow, degree_X_pow] } },
   obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq (erase_mem_lifts p.nat_degree hlifts),
-  have deg_er : p.erase_lead.nat_degree < p.nat_degree :=
-    or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) er_zero,
-  replace deg_er := with_bot.coe_lt_coe.2 deg_er,
-  rw [← degree_eq_nat_degree er_zero, erase_lead, ← hq.2,
-    ← @degree_X_pow R _ Rtrivial p.nat_degree] at deg_er,
-  use q + X ^ p.nat_degree,
-  repeat {split},
-  { simp only [hq, map_add, polynomial.map_pow, map_X],
-    nth_rewrite 3 [← erase_lead_add_C_mul_X_pow p],
-    rw [erase_lead, monic.leading_coeff hmonic, C_1, one_mul] },
-  { rw [degree_add_eq_right_of_degree_lt deg_er, @degree_X_pow R _ Rtrivial p.nat_degree,
-    degree_eq_nat_degree (monic.ne_zero hmonic)] },
-  { rw [monic.def, leading_coeff_add_of_degree_lt deg_er],
-    exact monic_pow monic_X p.nat_degree }
+  have hdeg : q.degree < (X ^ p.nat_degree).degree,
+  { rw [@degree_X_pow R, hq.2, degree_eq_nat_degree h0, with_bot.coe_lt_coe],
+    exact or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) h0, },
+  refine ⟨q + X ^ p.nat_degree, _, _, (monic_X_pow _).add_of_right hdeg⟩,
+  { rw [polynomial.map_add, hq.1, polynomial.map_pow, map_X, H], },
+  { rw [degree_add_eq_right_of_degree_lt hdeg, degree_X_pow, degree_eq_nat_degree hp.ne_zero] }
 end
 
 end monic

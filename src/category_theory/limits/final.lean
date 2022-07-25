@@ -73,7 +73,7 @@ variables {D : Type v} [small_category D]
 A functor `F : C ⥤ D` is final if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
 is connected.
 
-See https://stacks.math.columbia.edu/tag/04E6
+See <https://stacks.math.columbia.edu/tag/04E6>
 -/
 class final (F : C ⥤ D) : Prop :=
 (out (d : D) : is_connected (structured_arrow d F))
@@ -334,7 +334,7 @@ def colimit_comp_coyoneda_iso (d : D) [is_iso (colimit.pre (coyoneda.obj (op d))
 as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_iso (op d)
 
 lemma zigzag_of_eqv_gen_quot_rel {F : C ⥤ D} {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
-  (t : eqv_gen (types.quot.rel (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
+  (t : eqv_gen (types.quot.rel.{v v} (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
   zigzag (structured_arrow.mk f₁.2) (structured_arrow.mk f₂.2) :=
 begin
   induction t,
@@ -362,16 +362,16 @@ lemma cofinal_of_colimit_comp_coyoneda_iso_punit
 ⟨λ d, begin
   haveI : nonempty (structured_arrow d F),
   { have := (I d).inv punit.star,
-    obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective' this,
+    obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective'.{v v} this,
     exact ⟨structured_arrow.mk y⟩, },
   apply zigzag_is_connected,
-  rintros ⟨⟨⟩,X₁,f₁⟩ ⟨⟨⟩,X₂,f₂⟩,
+  rintros ⟨⟨⟨⟩⟩,X₁,f₁⟩ ⟨⟨⟨⟩⟩,X₂,f₂⟩,
   dsimp at *,
   let y₁ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₁ f₁,
   let y₂ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₂ f₂,
   have e : y₁ = y₂,
   { apply (I d).to_equiv.injective, ext, },
-  have t := types.colimit_eq e,
+  have t := types.colimit_eq.{v v} e,
   clear e y₁ y₂,
   exact zigzag_of_eqv_gen_quot_rel t,
 end⟩

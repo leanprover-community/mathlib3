@@ -42,39 +42,35 @@ variables (M : Type*) [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
 
-local attribute [instance] ray_vector.same_ray_setoid
-
 /-- An orientation of a module, intended to be used when `ι` is a `fintype` with the same
 cardinality as a basis. -/
-abbreviation orientation [nontrivial R] := module.ray R (alternating_map R M R ι)
+abbreviation orientation := module.ray R (alternating_map R M R ι)
 
 /-- A type class fixing an orientation of a module. -/
-class module.oriented [nontrivial R] :=
+class module.oriented :=
 (positive_orientation : orientation R M ι)
 
 variables {R M}
 
 /-- An equivalence between modules implies an equivalence between orientations. -/
-def orientation.map [nontrivial R] (e : M ≃ₗ[R] N) : orientation R M ι ≃ orientation R N ι :=
+def orientation.map (e : M ≃ₗ[R] N) : orientation R M ι ≃ orientation R N ι :=
 module.ray.map $ alternating_map.dom_lcongr R R ι R e
 
-@[simp] lemma orientation.map_apply [nontrivial R] (e : M ≃ₗ[R] N) (v : alternating_map R M R ι)
+@[simp] lemma orientation.map_apply (e : M ≃ₗ[R] N) (v : alternating_map R M R ι)
   (hv : v ≠ 0) :
   orientation.map ι e (ray_of_ne_zero _ v hv) = ray_of_ne_zero _ (v.comp_linear_map e.symm)
       (mt (v.comp_linear_equiv_eq_zero_iff e.symm).mp hv) := rfl
 
-@[simp] lemma orientation.map_refl [nontrivial R] :
+@[simp] lemma orientation.map_refl :
   (orientation.map ι $ linear_equiv.refl R M) = equiv.refl _ :=
 by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 
-@[simp] lemma orientation.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+@[simp] lemma orientation.map_symm (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
 
 end ordered_comm_semiring
 
 section ordered_comm_ring
-
-local attribute [instance] ray_vector.same_ray_setoid
 
 variables {R : Type*} [ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
@@ -93,7 +89,7 @@ by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
 
 /-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
 of `f.det`. -/
-lemma map_orientation_eq_det_inv_smul [nontrivial R] [is_domain R] (e : basis ι R M)
+lemma map_orientation_eq_det_inv_smul (e : basis ι R M)
   (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
 begin
   induction x using module.ray.ind with g hg,
@@ -132,19 +128,19 @@ variables [fintype ι]
 with respect to the other is positive. -/
 lemma orientation_eq_iff_det_pos (e₁ e₂ : basis ι R M) :
   e₁.orientation = e₂.orientation ↔ 0 < e₁.det e₂ :=
-by rw [basis.orientation, basis.orientation, ray_eq_iff,
-       e₁.det.eq_smul_basis_det e₂, alternating_map.smul_apply, basis.det_self, smul_eq_mul,
-       mul_one, same_ray_smul_left_iff e₂.det_ne_zero (_ : R)]
+calc e₁.orientation = e₂.orientation ↔ same_ray R e₁.det e₂.det : ray_eq_iff _ _
+... ↔ same_ray R (e₁.det e₂ • e₂.det) e₂.det : by rw [← e₁.det.eq_smul_basis_det e₂]
+... ↔ 0 < e₁.det e₂ : same_ray_smul_left_iff_of_ne e₂.det_ne_zero (e₁.is_unit_det e₂).ne_zero
 
 /-- Given a basis, any orientation equals the orientation given by that basis or its negation. -/
 lemma orientation_eq_or_eq_neg (e : basis ι R M) (x : orientation R M ι) :
   x = e.orientation ∨ x = -e.orientation :=
 begin
   induction x using module.ray.ind with x hx,
-  rw [basis.orientation, ray_eq_iff, ←ray_neg, ray_eq_iff, x.eq_smul_basis_det e,
-    same_ray_neg_smul_left_iff e.det_ne_zero (_ : R), same_ray_smul_left_iff e.det_ne_zero (_ : R),
-    lt_or_lt_iff_ne, ne_comm, alternating_map.map_basis_ne_zero_iff],
-  exact hx
+  rw ← x.map_basis_ne_zero_iff e at hx,
+  rwa [basis.orientation, ray_eq_iff, neg_ray_of_ne_zero, ray_eq_iff, x.eq_smul_basis_det e,
+    same_ray_neg_smul_left_iff_of_ne e.det_ne_zero hx,
+    same_ray_smul_left_iff_of_ne e.det_ne_zero hx, lt_or_lt_iff_ne, ne_comm]
 end
 
 /-- Given a basis, an orientation equals the negation of that given by that basis if and only

@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
-import measure_theory.function.simple_func_dense
+import measure_theory.function.simple_func_dense_lp
 
 /-!
 # Extension of a linear function from indicators to L1
@@ -65,11 +65,6 @@ also prove order-related properties:
 
 The starting object `T : set α → E →L[ℝ] F` matters only through its restriction on measurable sets
 with finite measure. Its value on other sets is ignored.
-
-The extension step from integrable simple functions to L1 relies on a `second_countable_topology`
-assumption. Without it, we could only extend to `ae_fin_strongly_measurable` functions. (TODO: this
-might be worth doing?)
-
 -/
 
 noncomputable theory
@@ -79,10 +74,10 @@ open set filter topological_space ennreal emetric
 namespace measure_theory
 
 variables {α E F F' G 𝕜 : Type*} {p : ℝ≥0∞}
-  [normed_group E] [measurable_space E] [normed_space ℝ E]
+  [normed_group E] [normed_space ℝ E]
   [normed_group F] [normed_space ℝ F]
   [normed_group F'] [normed_space ℝ F']
-  [normed_group G] [measurable_space G]
+  [normed_group G]
   {m : measurable_space α} {μ : measure α}
 
 local infixr ` →ₛ `:25 := simple_func
@@ -161,7 +156,7 @@ lemma map_Union_fin_meas_set_eq_sum (T : set α → β) (T_empty : T ∅ = 0)
 begin
   revert hSp h_disj,
   refine finset.induction_on sι _ _,
-  { simp only [finset.not_mem_empty, forall_false_left, Union_false, Union_empty, sum_empty,
+  { simp only [finset.not_mem_empty, is_empty.forall_iff, Union_false, Union_empty, sum_empty,
     forall_2_true_iff, implies_true_iff, forall_true_left, not_false_iff, T_empty], },
   intros a s has h hps h_disj,
   rw [finset.sum_insert has, ← h],
@@ -501,7 +496,7 @@ begin
   rw integrable_iff at hg ⊢,
   intros x hx_ne,
   change μ ((has_neg.neg ∘ g) ⁻¹' {x}) < ∞,
-  rw [preimage_comp, neg_preimage, neg_singleton],
+  rw [preimage_comp, neg_preimage, set.neg_singleton],
   refine hg (-x) _,
   simp [hx_ne],
 end
@@ -516,7 +511,7 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f :
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_smul {E} [measurable_space E] [normed_group E] [normed_field 𝕜]
+lemma set_to_simple_func_smul {E} [normed_group E] [normed_field 𝕜]
   [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : fin_meas_additive μ T) (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
   (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
@@ -560,7 +555,7 @@ begin
   simp,
 end
 
-lemma set_to_simple_func_nonneg' [measurable_space G'] (T : set α → G' →L[ℝ] G'')
+lemma set_to_simple_func_nonneg' (T : set α → G' →L[ℝ] G'')
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
   (f : α →ₛ G') (hf : 0 ≤ f) (hfi : integrable f μ) :
   0 ≤ set_to_simple_func T f :=
@@ -576,7 +571,7 @@ begin
   convert (hf y),
 end
 
-lemma set_to_simple_func_mono [measurable_space G'] [borel_space G'] [second_countable_topology G']
+lemma set_to_simple_func_mono
   {T : set α → G' →L[ℝ] G''} (h_add : fin_meas_additive μ T)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x) {f g : α →ₛ G'}
   (hfi : integrable f μ) (hgi : integrable g μ) (hfg : f ≤ g) :
@@ -678,9 +673,7 @@ lemma set_to_simple_func_const (T : set α → F →L[ℝ] F') (hT_empty : T ∅
   simple_func.set_to_simple_func T (simple_func.const α x) = T univ x :=
 begin
   casesI hα : is_empty_or_nonempty α,
-  { have h_univ_empty : (univ : set α) = ∅,
-    { haveI : unique (set α) := unique_empty,
-      exact subsingleton.elim (univ : set α) (∅ : set α), },
+  { have h_univ_empty : (univ : set α) = ∅, from subsingleton.elim _ _,
     rw [h_univ_empty, hT_empty],
     simp only [set_to_simple_func, continuous_linear_map.zero_apply, sum_empty,
       range_eq_empty_of_is_empty], },
@@ -697,11 +690,11 @@ variables {α E μ}
 
 namespace simple_func
 
-lemma norm_eq_sum_mul [second_countable_topology G] [borel_space G] (f : α →₁ₛ[μ] G) :
+lemma norm_eq_sum_mul (f : α →₁ₛ[μ] G) :
   ∥f∥ = ∑ x in (to_simple_func f).range, (μ ((to_simple_func f) ⁻¹' {x})).to_real * ∥x∥ :=
 begin
   rw [norm_to_simple_func, snorm_one_eq_lintegral_nnnorm],
-  have h_eq := simple_func.map_apply (λ x, (nnnorm x : ℝ≥0∞)) (to_simple_func f),
+  have h_eq := simple_func.map_apply (λ x, (∥x∥₊ : ℝ≥0∞)) (to_simple_func f),
   dsimp only at h_eq,
   simp_rw ← h_eq,
   rw [simple_func.lintegral_eq_lintegral, simple_func.map_lintegral, ennreal.to_real_sum],
@@ -718,7 +711,7 @@ end
 
 section set_to_L1s
 
-variables [second_countable_topology E] [borel_space E] [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 local attribute [instance] Lp.simple_func.module
 local attribute [instance] Lp.simple_func.normed_space
@@ -825,9 +818,8 @@ begin
   exact smul_to_simple_func c f,
 end
 
-lemma set_to_L1s_smul {E} [normed_group E] [measurable_space E] [normed_space ℝ E]
-  [normed_space 𝕜 E] [second_countable_topology E] [borel_space E] [normed_space 𝕜 F]
-  [measurable_space 𝕜] [opens_measurable_space 𝕜]
+lemma set_to_L1s_smul {E} [normed_group E] [normed_space ℝ E]
+  [normed_space 𝕜 E] [normed_space 𝕜 F]
   (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α →₁ₛ[μ] E) :
@@ -882,8 +874,6 @@ lemma set_to_L1s_mono_left' {T T' : set α → E →L[ℝ] G''}
   set_to_L1s T f ≤ set_to_L1s T' f :=
 simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
 
-variables [measurable_space G''] [borel_space G''] [second_countable_topology G'']
-
 lemma set_to_L1s_nonneg (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T)
   (hT_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
@@ -912,7 +902,7 @@ end
 
 end order
 
-variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables [normed_space 𝕜 F]
 
 variables (α E μ 𝕜)
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[𝕜] F`. -/
@@ -1002,7 +992,6 @@ section order
 
 variables {G' G'' : Type*} [normed_lattice_add_comm_group G''] [normed_space ℝ G'']
   [normed_lattice_add_comm_group G'] [normed_space ℝ G']
-  [measurable_space G'] [borel_space G'] [second_countable_topology G']
 
 lemma set_to_L1s_clm_mono_left {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
@@ -1043,8 +1032,7 @@ section set_to_L1
 local attribute [instance] Lp.simple_func.module
 local attribute [instance] Lp.simple_func.normed_space
 
-variables (𝕜) [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [second_countable_topology E] [borel_space E] [normed_space 𝕜 E]
+variables (𝕜) [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [normed_space 𝕜 F] [complete_space F]
   {T T' T'' : set α → E →L[ℝ] F} {C C' C'' : ℝ}
 
@@ -1215,7 +1203,6 @@ section order
 variables {G' G'' : Type*} [normed_lattice_add_comm_group G''] [normed_space ℝ G'']
   [complete_space G'']
   [normed_lattice_add_comm_group G'] [normed_space ℝ G']
-  [measurable_space G'] [borel_space G'] [second_countable_topology G']
 
 lemma set_to_L1_mono_left' {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
@@ -1318,7 +1305,7 @@ end L1
 
 section function
 
-variables [second_countable_topology E] [borel_space E] [complete_space F]
+variables [complete_space F]
   {T T' T'': set α → E →L[ℝ] F} {C C' C'' : ℝ} {f g : α → E}
 
 variables (μ T)
@@ -1341,8 +1328,8 @@ lemma set_to_fun_undef (hT : dominated_fin_meas_additive μ T C) (hf : ¬ integr
   set_to_fun μ T hT f = 0 :=
 dif_neg hf
 
-lemma set_to_fun_non_ae_measurable (hT : dominated_fin_meas_additive μ T C)
-  (hf : ¬ ae_measurable f μ) :
+lemma set_to_fun_non_ae_strongly_measurable (hT : dominated_fin_meas_additive μ T C)
+  (hf : ¬ ae_strongly_measurable f μ) :
   set_to_fun μ T hT f = 0 :=
 set_to_fun_undef hT (not_and_of_not_left _ hf)
 
@@ -1470,7 +1457,7 @@ lemma set_to_fun_sub (hT : dominated_fin_meas_additive μ T C)
   set_to_fun μ T hT (f - g) = set_to_fun μ T hT f - set_to_fun μ T hT g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, set_to_fun_add hT hf hg.neg, set_to_fun_neg hT g]
 
-lemma set_to_fun_smul [nondiscrete_normed_field 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+lemma set_to_fun_smul [nontrivially_normed_field 𝕜]
   [normed_space 𝕜 E] [normed_space 𝕜 F] (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α → E) :
   set_to_fun μ T hT (c • f) = c • set_to_fun μ T hT f :=
@@ -1513,7 +1500,7 @@ lemma set_to_fun_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : 
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
   set_to_fun μ T hT (s.indicator (λ _, x)) = T s x :=
 begin
-  rw set_to_fun_congr_ae hT (@indicator_const_Lp_coe_fn _ _ _ 1 _ _ _ _ hs hμs x _ _).symm,
+  rw set_to_fun_congr_ae hT (@indicator_const_Lp_coe_fn _ _ _ 1 _ _ _ hs hμs x).symm,
   rw L1.set_to_fun_eq_set_to_L1 hT,
   exact L1.set_to_L1_indicator_const_Lp hT hs hμs x,
 end
@@ -1531,7 +1518,6 @@ section order
 variables {G' G'' : Type*} [normed_lattice_add_comm_group G''] [normed_space ℝ G'']
   [complete_space G'']
   [normed_lattice_add_comm_group G'] [normed_space ℝ G']
-  [measurable_space G'] [borel_space G'] [second_countable_topology G']
 
 lemma set_to_fun_mono_left' {T T' : set α → E →L[ℝ] G''} {C C' : ℝ}
   (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C')
@@ -1584,9 +1570,60 @@ lemma continuous_set_to_fun (hT : dominated_fin_meas_additive μ T C) :
   continuous (λ (f : α →₁[μ] E), set_to_fun μ T hT f) :=
 by { simp_rw L1.set_to_fun_eq_set_to_L1 hT, exact continuous_linear_map.continuous _, }
 
+/-- If `F i → f` in `L1`, then `set_to_fun μ T hT (F i) → set_to_fun μ T hT f`. -/
+lemma tendsto_set_to_fun_of_L1 (hT : dominated_fin_meas_additive μ T C)
+  {ι} (f : α → E) (hfi : integrable f μ)
+  {fs : ι → α → E} {l : filter ι} (hfsi : ∀ᶠ i in l, integrable (fs i) μ)
+  (hfs : tendsto (λ i, ∫⁻ x, ∥fs i x - f x∥₊ ∂μ) l (𝓝 0)) :
+  tendsto (λ i, set_to_fun μ T hT (fs i)) l (𝓝 $ set_to_fun μ T hT f) :=
+begin
+  classical,
+  let f_lp := hfi.to_L1 f,
+  let F_lp := λ i, if hFi : integrable (fs i) μ then hFi.to_L1 (fs i) else 0,
+  have tendsto_L1 : tendsto F_lp l (𝓝 f_lp),
+  { rw Lp.tendsto_Lp_iff_tendsto_ℒp',
+    simp_rw [snorm_one_eq_lintegral_nnnorm, pi.sub_apply],
+    refine (tendsto_congr' _).mp hfs,
+    filter_upwards [hfsi] with i hi,
+    refine lintegral_congr_ae _,
+    filter_upwards [hi.coe_fn_to_L1, hfi.coe_fn_to_L1] with x hxi hxf,
+    simp_rw [F_lp, dif_pos hi, hxi, hxf], },
+  suffices : tendsto (λ i, set_to_fun μ T hT (F_lp i)) l (𝓝 (set_to_fun μ T hT f)),
+  { refine (tendsto_congr' _).mp this,
+    filter_upwards [hfsi] with i hi,
+    suffices h_ae_eq : F_lp i =ᵐ[μ] fs i, from set_to_fun_congr_ae hT h_ae_eq,
+    simp_rw [F_lp, dif_pos hi],
+    exact hi.coe_fn_to_L1, },
+  rw set_to_fun_congr_ae hT (hfi.coe_fn_to_L1).symm,
+  exact ((continuous_set_to_fun hT).tendsto f_lp).comp tendsto_L1,
+end
+
+lemma tendsto_set_to_fun_approx_on_of_measurable (hT : dominated_fin_meas_additive μ T C)
+  [measurable_space E] [borel_space E]
+  {f : α → E} {s : set E} [separable_space s] (hfi : integrable f μ)
+  (hfm : measurable f) (hs : ∀ᵐ x ∂μ, f x ∈ closure s) {y₀ : E} (h₀ : y₀ ∈ s)
+  (h₀i : integrable (λ x, y₀) μ) :
+  tendsto (λ n, set_to_fun μ T hT (simple_func.approx_on f hfm s y₀ h₀ n)) at_top
+    (𝓝 $ set_to_fun μ T hT f) :=
+tendsto_set_to_fun_of_L1 hT _ hfi
+  (eventually_of_forall (simple_func.integrable_approx_on hfm hfi h₀ h₀i))
+  (simple_func.tendsto_approx_on_L1_nnnorm hfm _ hs (hfi.sub h₀i).2)
+
+lemma tendsto_set_to_fun_approx_on_of_measurable_of_range_subset
+  (hT : dominated_fin_meas_additive μ T C)
+  [measurable_space E] [borel_space E] {f : α → E}
+  (fmeas : measurable f) (hf : integrable f μ) (s : set E) [separable_space s]
+  (hs : range f ∪ {0} ⊆ s) :
+  tendsto (λ n, set_to_fun μ T hT (simple_func.approx_on f fmeas s 0 (hs $ by simp) n)) at_top
+    (𝓝 $ set_to_fun μ T hT f) :=
+begin
+  refine tendsto_set_to_fun_approx_on_of_measurable hT hf fmeas _ _ (integrable_zero _ _ _),
+  exact eventually_of_forall (λ x, subset_closure (hs (set.mem_union_left _ (mem_range_self _)))),
+end
+
 /-- Auxiliary lemma for `set_to_fun_congr_measure`: the function sending `f : α →₁[μ] G` to
 `f : α →₁[μ'] G` is continuous when `μ' ≤ c' • μ` for `c' ≠ ∞`. -/
-lemma continuous_L1_to_L1 [borel_space G] [second_countable_topology G]
+lemma continuous_L1_to_L1
   {μ' : measure α} (c' : ℝ≥0∞) (hc' : c' ≠ ∞) (hμ'_le : μ' ≤ c' • μ) :
   continuous (λ f : α →₁[μ] G,
     (integrable.of_measure_le_smul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) :=
@@ -1747,13 +1784,15 @@ by { rw set_to_fun_eq hT hf, exact L1.norm_set_to_L1_le_mul_norm' hT _, }
   (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
   is easier. -/
 theorem tendsto_set_to_fun_of_dominated_convergence (hT : dominated_fin_meas_additive μ T C)
-  {fs : ℕ → α → E} {f : α → E} (bound : α → ℝ) (fs_measurable : ∀ n, ae_measurable (fs n) μ)
+  {fs : ℕ → α → E} {f : α → E} (bound : α → ℝ)
+  (fs_measurable : ∀ n, ae_strongly_measurable (fs n) μ)
   (bound_integrable : integrable bound μ) (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥fs n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
   tendsto (λ n, set_to_fun μ T hT (fs n)) at_top (𝓝 $ set_to_fun μ T hT f) :=
 begin
   /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
-  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae' fs_measurable h_lim,
+  have f_measurable : ae_strongly_measurable f μ :=
+    ae_strongly_measurable_of_tendsto_ae _ fs_measurable h_lim,
   /- all functions we consider are integrable -/
   have fs_int : ∀ n, integrable (fs n) μ :=
     λ n, bound_integrable.mono' (fs_measurable n) (h_bound _),
@@ -1790,7 +1829,7 @@ end
 lemma tendsto_set_to_fun_filter_of_dominated_convergence (hT : dominated_fin_meas_additive μ T C)
   {ι} {l : _root_.filter ι} [l.is_countably_generated]
   {fs : ι → α → E} {f : α → E} (bound : α → ℝ)
-  (hfs_meas : ∀ᶠ n in l, ae_measurable (fs n) μ)
+  (hfs_meas : ∀ᶠ n in l, ae_strongly_measurable (fs n) μ)
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ∥fs n a∥ ≤ bound a)
   (bound_integrable : integrable bound μ)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, fs n a) l (𝓝 (f a))) :
@@ -1799,7 +1838,7 @@ begin
   rw tendsto_iff_seq_tendsto,
   intros x xl,
   have hxl : ∀ s ∈ l, ∃ a, ∀ b ≥ a, x b ∈ s, by { rwa tendsto_at_top' at xl, },
-  have h : {x : ι | (λ n, ae_measurable (fs n) μ) x}
+  have h : {x : ι | (λ n, ae_strongly_measurable (fs n) μ) x}
       ∩ {x : ι | (λ n, ∀ᵐ a ∂μ, ∥fs n a∥ ≤ bound a) x} ∈ l,
     from inter_mem hfs_meas h_bound,
   obtain ⟨k, h⟩ := hxl _ h,
@@ -1816,7 +1855,8 @@ end
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
 lemma continuous_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
-  {fs : X → α → E} {x₀ : X} {bound : α → ℝ} (hfs_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (fs x) μ)
+  {fs : X → α → E} {x₀ : X} {bound : α → ℝ}
+  (hfs_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (fs x) μ)
   (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥fs x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, fs x a) x₀) :
   continuous_at (λ x, set_to_fun μ T hT (fs x)) x₀ :=
@@ -1824,7 +1864,7 @@ tendsto_set_to_fun_filter_of_dominated_convergence hT bound ‹_› ‹_› ‹_
 
 lemma continuous_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
   {fs : X → α → E} {bound : α → ℝ}
-  (hfs_meas : ∀ x, ae_measurable (fs x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥fs x a∥ ≤ bound a)
+  (hfs_meas : ∀ x, ae_strongly_measurable (fs x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥fs x a∥ ≤ bound a)
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous (λ x, fs x a)) :
   continuous (λ x, set_to_fun μ T hT (fs x)) :=
 continuous_iff_continuous_at.mpr (λ x₀, continuous_at_set_to_fun_of_dominated hT

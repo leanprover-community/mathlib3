@@ -60,12 +60,20 @@ attribute [refl] rel.refl
 @[symm] lemma rel.symm {x y : α × α} : rel α x y → rel α y x :=
 by rintro ⟨_, _⟩; constructor
 
-@[trans] lemma rel.trans {x y z : α × α} : rel α x y → rel α y z → rel α x z :=
-by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
+@[trans] lemma rel.trans {x y z : α × α} (a : rel α x y) (b : rel α y z) : rel α x z :=
+by { cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
 
 lemma rel.is_equivalence : equivalence (rel α) := by tidy; apply rel.trans; assumption
 
 instance rel.setoid (α : Type u) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
+
+@[simp] lemma rel_iff {x y z w : α} :
+  (x, y) ≈ (z, w) ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
+begin
+  split; intro h,
+  { cases h; simp },
+  { cases h; rw [h.1, h.2], constructor }
+end
 
 end sym2
 
@@ -111,11 +119,7 @@ by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-begin
-  split; intro h,
-  { rw quotient.eq at h, cases h; tidy },
-  { cases h; rw [h.1, h.2], rw eq_swap }
-end
+by simp
 
 lemma mk_eq_mk_iff {p q : α × α} :
   ⟦p⟧ = ⟦q⟧ ↔ p = q ∨ p = q.swap :=
@@ -145,10 +149,10 @@ def map (f : α → β) : sym2 α → sym2 β :=
 quotient.map (prod.map f f)
   (by { rintros _ _ h, cases h, { refl }, apply rel.swap })
 
-@[simp]
-lemma map_id : sym2.map (@id α) = id := by tidy
+@[simp] lemma map_id : map (@id α) = id := by { ext ⟨⟨x,y⟩⟩, refl }
 
-lemma map_comp {g : β → γ} {f : α → β} : sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f := by tidy
+lemma map_comp {g : β → γ} {f : α → β} : sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f :=
+by { ext ⟨⟨x, y⟩⟩, refl }
 
 lemma map_map {g : β → γ} {f : α → β} (x : sym2 α) :
   map g (map f x) = map (g ∘ f) x := by tidy
@@ -214,12 +218,12 @@ by { convert mem_mk_right a h.other, rw other_spec h }
 
 lemma mem_and_mem_iff {x y : α} {z : sym2 α} (hne : x ≠ y) : x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
 begin
-  refine ⟨quotient.rec_on_subsingleton z _, _⟩,
-  { rintro ⟨z₁, z₂⟩ ⟨hx, hy⟩,
-    rw eq_iff,
-    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; subst x; subst y;
-    try { exact (hne rfl).elim };
-    simp only [true_or, eq_self_iff_true, and_self, or_true] },
+  split,
+  { induction z using sym2.ind with x' y',
+    rw [mem_iff, mem_iff],
+    rintro ⟨rfl | rfl, rfl | rfl⟩;
+    try { trivial };
+    simp only [sym2.eq_swap] },
   { rintro rfl, simp },
 end
 
@@ -230,22 +234,43 @@ lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
 @[ext]
 protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
 begin
-  refine quotient.rec_on_subsingleton z (λ w, _) h,
-  refine quotient.rec_on_subsingleton z' (λ w', _),
-  intro h,
-  cases w with x y, cases w' with x' y',
-  simp only [mem_iff] at h,
-  apply eq_iff.mpr,
+  induction z using sym2.ind with x y,
+  induction z' using sym2.ind with x' y',
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
-  simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
-  cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' };
-  simp only [eq_self_iff_true, and_self, or_self, true_or, or_true],
+  simp only [mem_iff, eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
+  cases hx; cases hy; cases hx'; cases hy'; subst_vars,
+  simp only [sym2.eq_swap],
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
 quotient.rec_on_subsingleton z (λ ⟨y₁, y₂⟩, decidable_of_iff' _ mem_iff)
 
 end membership
+
+@[simp] lemma mem_map {f : α → β} {b : β} {z : sym2 α} :
+  b ∈ sym2.map f z ↔ ∃ a, a ∈ z ∧ f a = b :=
+begin
+  induction z using sym2.ind with x y,
+  simp only [map, quotient.map_mk, prod.map_mk, mem_iff],
+  split,
+  { rintro (rfl | rfl),
+    { exact ⟨x, by simp⟩, },
+    { exact ⟨y, by simp⟩, } },
+  { rintro ⟨w, rfl | rfl, rfl⟩; simp, },
+end
+
+@[congr] lemma map_congr {f g : α → β} {s : sym2 α} (h : ∀ x ∈ s, f x = g x) :
+  map f s = map g s :=
+begin
+  ext y,
+  simp only [mem_map],
+  split; { rintro ⟨w, hw, rfl⟩, exact ⟨w, hw, by simp [hw, h]⟩ },
+end
+
+/-- Note: `sym2.map_id` will not simplify `sym2.map id z` due to `sym2.map_congr`. -/
+@[simp] lemma map_id' : map (λ (x : α), x) = id := map_id
+
+/-! ### Diagonal -/
 
 /--
 A type `α` is naturally included in the diagonal of `α × α`, and this function gives the image
@@ -273,10 +298,9 @@ lemma diag_is_diag (a : α) : is_diag (diag a) := eq.refl a
 
 lemma is_diag.mem_range_diag {z : sym2 α} : is_diag z → z ∈ set.range (@diag α) :=
 begin
-  induction z using quotient.induction_on,
-  cases z,
-  rintro (rfl : z_fst = z_snd),
-  exact ⟨z_fst, rfl⟩,
+  induction z using sym2.ind with x y,
+  rintro (rfl : x = y),
+  exact ⟨_, rfl⟩,
 end
 
 lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (@diag α) :=
@@ -287,9 +311,9 @@ by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj
 
 lemma other_ne {a : α} {z : sym2 α} (hd : ¬is_diag z) (h : a ∈ z) : h.other ≠ a :=
 begin
-  intro hn, apply hd,
+  contrapose! hd,
   have h' := sym2.other_spec h,
-  rw hn at h',
+  rw hd at h',
   rw ←h',
   simp,
 end

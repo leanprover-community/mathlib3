@@ -105,22 +105,22 @@ coe_eq_iff.symm
 by simp only [@eq_comm _ b, exists_eq_subtype_mk_iff, @eq_comm _ _ a]
 
 /-- Restrict a (dependent) function to a subtype -/
-def restrict {α} {β : α → Type*} (f : Π x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
+def restrict {α} {β : α → Type*} (p : α → Prop) (f : Π x, β x) (x : subtype p) : β x.1 :=
 f x
 
 lemma restrict_apply {α} {β : α → Type*} (f : Π x, β x) (p : α → Prop) (x : subtype p) :
-  restrict f p x = f x.1 :=
+  restrict p f x = f x.1 :=
 by refl
 
-lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict f p = f ∘ coe :=
+lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict p f = f ∘ coe :=
 by refl
 
 lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
-  injective (restrict f p) :=
+  injective (restrict p f) :=
 h.comp coe_injective
 
 lemma surjective_restrict {α} {β : α → Type*} [ne : Π a, nonempty (β a)] (p : α → Prop) :
-  surjective (λ f : Π x, β x, restrict f p) :=
+  surjective (λ f : Π x, β x, restrict p f) :=
 begin
   letI := classical.dec_pred p,
   refine λ f, ⟨λ x, if h : p x then f ⟨x, h⟩ else nonempty.some (ne x), funext $ _⟩,

@@ -137,7 +137,7 @@ instance state : state board :=
 end domineering
 
 /-- Construct a pre-game from a Domineering board. -/
-def domineering (b : domineering.board) : pgame := pgame.of b
+def domineering (b : domineering.board) : pgame := pgame.of_state b
 
 /-- All games of Domineering are short, because each move removes two squares. -/
 instance short_domineering (b : domineering.board) : short (domineering b) :=

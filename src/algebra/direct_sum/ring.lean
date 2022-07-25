@@ -17,24 +17,33 @@ additively-graded ring. The typeclasses are:
 
 * `direct_sum.gnon_unital_non_assoc_semiring A`
 * `direct_sum.gsemiring A`
+* `direct_sum.gring A`
 * `direct_sum.gcomm_semiring A`
+* `direct_sum.gcomm_ring A`
 
 Respectively, these imbue the external direct sum `⨁ i, A i` with:
 
-* `direct_sum.non_unital_non_assoc_semiring`
-* `direct_sum.semiring`, `direct_sum.ring`
-* `direct_sum.comm_semiring`, `direct_sum.comm_ring`
+* `direct_sum.non_unital_non_assoc_semiring`, `direct_sum.non_unital_non_assoc_ring`
+* `direct_sum.semiring`
+* `direct_sum.ring`
+* `direct_sum.comm_semiring`
+* `direct_sum.comm_ring`
 
 the base ring `A 0` with:
 
-* `direct_sum.grade_zero.non_unital_non_assoc_semiring`
-* `direct_sum.grade_zero.semiring`, `direct_sum.grade_zero.ring`
-* `direct_sum.grade_zero.comm_semiring`, `direct_sum.grade_zero.comm_ring`
+* `direct_sum.grade_zero.non_unital_non_assoc_semiring`,
+  `direct_sum.grade_zero.non_unital_non_assoc_ring`
+* `direct_sum.grade_zero.semiring`
+* `direct_sum.grade_zero.ring`
+* `direct_sum.grade_zero.comm_semiring`
+* `direct_sum.grade_zero.comm_ring`
 
 and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplication:
 
-* `direct_sum.grade_zero.has_scalar (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
+* `direct_sum.grade_zero.has_smul (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
 * `direct_sum.grade_zero.module (A 0)`
+* (nothing)
+* (nothing)
 * (nothing)
 
 Note that in the presence of these instances, `⨁ i, A i` itself inherits an `A 0`-action.
@@ -94,11 +103,24 @@ variables (A : ι → Type*)
 
 /-- A graded version of `semiring`. -/
 class gsemiring [add_monoid ι] [Π i, add_comm_monoid (A i)] extends
-  gnon_unital_non_assoc_semiring A, graded_monoid.gmonoid A
+  gnon_unital_non_assoc_semiring A, graded_monoid.gmonoid A :=
+(nat_cast : ℕ → A 0)
+(nat_cast_zero : nat_cast 0 = 0)
+(nat_cast_succ : ∀ n : ℕ, nat_cast (n + 1) = nat_cast n + graded_monoid.ghas_one.one)
 
 /-- A graded version of `comm_semiring`. -/
 class gcomm_semiring [add_comm_monoid ι] [Π i, add_comm_monoid (A i)] extends
   gsemiring A, graded_monoid.gcomm_monoid A
+
+/-- A graded version of `ring`. -/
+class gring [add_monoid ι] [Π i, add_comm_group (A i)] extends gsemiring A :=
+(int_cast : ℤ → A 0)
+(int_cast_of_nat : ∀ n : ℕ, int_cast n = nat_cast n)
+(int_cast_neg_succ_of_nat : ∀ n : ℕ, int_cast (-(n+1 : ℕ)) = -nat_cast (n+1 : ℕ))
+
+/-- A graded version of `comm_ring`. -/
+class gcomm_ring [add_comm_monoid ι] [Π i, add_comm_group (A i)] extends
+  gring A, gcomm_semiring A
 
 end defs
 
@@ -213,6 +235,9 @@ instance semiring : semiring (⨁ i, A i) :=
   one_mul := one_mul A,
   mul_one := mul_one A,
   mul_assoc := mul_assoc A,
+  nat_cast := λ n, of _ _ (gsemiring.nat_cast n),
+  nat_cast_zero := by rw [gsemiring.nat_cast_zero, map_zero],
+  nat_cast_succ := λ n, by { rw [gsemiring.nat_cast_succ, map_add], refl },
   ..direct_sum.non_unital_non_assoc_semiring _, }
 
 lemma of_pow {i} (a : A i) (n : ℕ) :
@@ -282,8 +307,22 @@ instance comm_semiring : comm_semiring (⨁ i, A i) :=
 
 end comm_semiring
 
+section non_unital_non_assoc_ring
+variables [Π i, add_comm_group (A i)] [has_add ι] [gnon_unital_non_assoc_semiring A]
+
+/-- The `ring` derived from `gsemiring A`. -/
+instance non_assoc_ring : non_unital_non_assoc_ring (⨁ i, A i) :=
+{ mul := (*),
+  zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  ..(direct_sum.non_unital_non_assoc_semiring _),
+  ..(direct_sum.add_comm_group _), }
+
+end non_unital_non_assoc_ring
+
 section ring
-variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
+variables [Π i, add_comm_group (A i)] [add_monoid ι] [gring A]
 
 /-- The `ring` derived from `gsemiring A`. -/
 instance ring : ring (⨁ i, A i) :=
@@ -292,14 +331,17 @@ instance ring : ring (⨁ i, A i) :=
   zero := 0,
   add := (+),
   neg := has_neg.neg,
+  int_cast := λ z, of _ _ (gring.int_cast z),
+  int_cast_of_nat := λ z, congr_arg _ $ gring.int_cast_of_nat _,
+  int_cast_neg_succ_of_nat := λ z,
+    (congr_arg _ $ gring.int_cast_neg_succ_of_nat _).trans (map_neg _ _),
   ..(direct_sum.semiring _),
   ..(direct_sum.add_comm_group _), }
-
 
 end ring
 
 section comm_ring
-variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_semiring A]
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_ring A]
 
 /-- The `comm_ring` derived from `gcomm_semiring A`. -/
 instance comm_ring : comm_ring (⨁ i, A i) :=
@@ -330,7 +372,7 @@ variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 end one
 
 section mul
-variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [gnon_unital_non_assoc_semiring A]
+variables [add_zero_class ι] [Π i, add_comm_monoid (A i)] [gnon_unital_non_assoc_semiring A]
 
 @[simp] lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
 (of_eq_of_graded_monoid_eq (graded_monoid.mk_zero_smul a b)).trans (of_mul_of _ _).symm
@@ -340,7 +382,7 @@ of_zero_smul A a b
 
 instance grade_zero.non_unital_non_assoc_semiring : non_unital_non_assoc_semiring (A 0) :=
 function.injective.non_unital_non_assoc_semiring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_zero (of A 0).map_add (of_zero_mul A) (λ x n, dfinsupp.single_smul n x)
 
 instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin
@@ -353,10 +395,20 @@ end mul
 section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gsemiring A]
 
+@[simp] lemma of_zero_pow (a : A 0) : ∀ n : ℕ, of _ 0 (a ^ n) = of _ 0 a ^ n
+| 0 := by rw [pow_zero, pow_zero, direct_sum.of_zero_one]
+| (n + 1) := by rw [pow_succ, pow_succ, of_zero_mul, of_zero_pow]
+
+instance : has_nat_cast (A 0) := ⟨gsemiring.nat_cast⟩
+
+@[simp] lemma of_nat_cast (n : ℕ) : of A 0 n = n :=
+rfl
+
 /-- The `semiring` structure derived from `gsemiring A`. -/
 instance grade_zero.semiring : semiring (A 0) :=
 function.injective.semiring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_nsmul (λ x n, of_zero_pow _ _ _) (of_nat_cast A)
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
@@ -381,28 +433,71 @@ variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_semiring A]
 instance grade_zero.comm_semiring : comm_semiring (A 0) :=
 function.injective.comm_semiring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (λ x n, dfinsupp.single_smul n x) (λ x n, of_zero_pow _ _ _) (of_nat_cast A)
 
 end comm_semiring
 
 section ring
-variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
+variables [Π i, add_comm_group (A i)] [add_zero_class ι] [gnon_unital_non_assoc_semiring A]
+
+/-- The `non_unital_non_assoc_ring` derived from `gnon_unital_non_assoc_semiring A`. -/
+instance grade_zero.non_unital_non_assoc_ring : non_unital_non_assoc_ring (A 0) :=
+function.injective.non_unital_non_assoc_ring (of A 0) dfinsupp.single_injective
+  (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+
+end ring
+
+section ring
+variables [Π i, add_comm_group (A i)] [add_monoid ι] [gring A]
+
+instance : has_int_cast (A 0) := ⟨gring.int_cast⟩
+
+@[simp] lemma of_int_cast (n : ℤ) : of A 0 n = n :=
+rfl
 
 /-- The `ring` derived from `gsemiring A`. -/
 instance grade_zero.ring : ring (A 0) :=
 function.injective.ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end) (λ x n, of_zero_pow _ _ _)
+  (of_nat_cast A) (of_int_cast A)
 
 end ring
 
 section comm_ring
-variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_semiring A]
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_ring A]
 
 /-- The `comm_ring` derived from `gcomm_semiring A`. -/
 instance grade_zero.comm_ring : comm_ring (A 0) :=
 function.injective.comm_ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end) (λ x n, of_zero_pow _ _ _)
+  (of_nat_cast A) (of_int_cast A)
 
 end comm_ring
 
@@ -517,7 +612,11 @@ instance non_unital_non_assoc_semiring.direct_sum_gnon_unital_non_assoc_semiring
 /-- A direct sum of copies of a `semiring` inherits the multiplication structure. -/
 instance semiring.direct_sum_gsemiring {R : Type*} [add_monoid ι] [semiring R] :
   direct_sum.gsemiring (λ i : ι, R) :=
-{ ..non_unital_non_assoc_semiring.direct_sum_gnon_unital_non_assoc_semiring ι, ..monoid.gmonoid ι }
+{ nat_cast := λ n, n,
+  nat_cast_zero := nat.cast_zero,
+  nat_cast_succ := nat.cast_succ,
+  ..non_unital_non_assoc_semiring.direct_sum_gnon_unital_non_assoc_semiring ι,
+  ..monoid.gmonoid ι }
 
 open_locale direct_sum
 

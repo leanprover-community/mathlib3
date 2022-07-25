@@ -9,7 +9,7 @@ import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import topology.opens
+import topology.sets.opens
 import topology.sober
 
 /-!
@@ -161,14 +161,12 @@ section gc
 variable (R)
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc : @galois_connection
-  (ideal R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc : @galois_connection (ideal R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc_set : @galois_connection
-  (set R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc_set : @galois_connection (set R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ s, zero_locus s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
 by simpa [zero_locus_span, function.comp] using ideal_gc.compose (gc R)
@@ -417,7 +415,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -667,7 +665,7 @@ begin
   rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
   use s,
   -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
-  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.diff_eq,
            set.diff_eq_empty, hI, ← zero_locus_supr],
   rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
   apply zero_locus_anti_mono,
@@ -718,8 +716,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=
@@ -740,11 +736,14 @@ by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
 
 lemma le_iff_specializes (x y : prime_spectrum R) :
   x ≤ y ↔ x ⤳ y :=
-le_iff_mem_closure x y
+(le_iff_mem_closure x y).trans specializes_iff_mem_closure.symm
 
-instance : t0_space (prime_spectrum R) :=
-by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
-  ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
+/-- `nhds` as an order embedding. -/
+@[simps { fully_applied := tt }]
+def nhds_order_embedding : prime_spectrum R ↪o filter (prime_spectrum R) :=
+order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
+
+instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
 end order
 

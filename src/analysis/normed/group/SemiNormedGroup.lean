@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Riccardo Brasca
 -/
 import analysis.normed.group.hom
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
+import category_theory.concrete_category.bundled_hom
+import category_theory.elementwise
 
 /-!
 # The category of seminormed groups
@@ -41,30 +43,34 @@ instance (M : SemiNormedGroup) : semi_normed_group M := M.str
 @[simp] lemma coe_comp {M N K : SemiNormedGroup} (f : M ⟶ N) (g : N ⟶ K) :
   ((f ≫ g) : M → K) = g ∘ f := rfl
 
-instance : has_zero SemiNormedGroup := ⟨of punit⟩
-instance : inhabited SemiNormedGroup := ⟨0⟩
+instance : inhabited SemiNormedGroup := ⟨of punit⟩
+
+instance of_unique (V : Type u) [semi_normed_group V] [i : unique V] :
+  unique (SemiNormedGroup.of V) := i
 
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup := {}
 
 @[simp] lemma zero_apply {V W : SemiNormedGroup} (x : V) : (0 : V ⟶ W) x = 0 := rfl
 
+lemma is_zero_of_subsingleton (V : SemiNormedGroup) [subsingleton V] :
+  limits.is_zero V :=
+begin
+  refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
+  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, map_zero], },
+  { ext, apply subsingleton.elim }
+end
+
 instance has_zero_object : limits.has_zero_object SemiNormedGroup.{u} :=
-{ zero := 0,
-  unique_to := λ X,
-  { default := 0,
-    uniq := λ a, by { ext ⟨⟩, exact a.map_zero, }, },
-  unique_from := λ X,
-  { default := 0,
-    uniq := λ f, by ext } }
+⟨⟨of punit, is_zero_of_subsingleton _⟩⟩
 
 lemma iso_isometry_of_norm_noninc {V W : SemiNormedGroup} (i : V ≅ W)
   (h1 : i.hom.norm_noninc) (h2 : i.inv.norm_noninc) :
   isometry i.hom :=
 begin
-  apply normed_group_hom.isometry_of_norm,
+  apply add_monoid_hom_class.isometry_of_norm,
   intro v,
   apply le_antisymm (h1 v),
-  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [coe_hom_inv_id]
+  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
   ... ≤ ∥i.hom v∥ : h2 _,
 end
 
@@ -131,8 +137,10 @@ rfl
 @[simp] lemma coe_comp' {M N K : SemiNormedGroup₁} (f : M ⟶ N) (g : N ⟶ K) :
   ((f ≫ g) : normed_group_hom M K) = (↑g : normed_group_hom N K).comp ↑f := rfl
 
-instance : has_zero SemiNormedGroup₁ := ⟨of punit⟩
-instance : inhabited SemiNormedGroup₁ := ⟨0⟩
+instance : inhabited SemiNormedGroup₁ := ⟨of punit⟩
+
+instance of_unique (V : Type u) [semi_normed_group V] [i : unique V] :
+  unique (SemiNormedGroup₁.of V) := i
 
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
 { has_zero := λ X Y, { zero := ⟨0, normed_group_hom.norm_noninc.zero⟩, },
@@ -141,22 +149,26 @@ instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
 
 @[simp] lemma zero_apply {V W : SemiNormedGroup₁} (x : V) : (0 : V ⟶ W) x = 0 := rfl
 
+lemma is_zero_of_subsingleton (V : SemiNormedGroup₁) [subsingleton V] :
+  limits.is_zero V :=
+begin
+  refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
+  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, map_zero],
+    exact map_zero f.1 },
+  { ext, apply subsingleton.elim }
+end
+
 instance has_zero_object : limits.has_zero_object SemiNormedGroup₁.{u} :=
-{ zero := 0,
-  unique_to := λ X,
-  { default := 0,
-    uniq := λ a, by { ext ⟨⟩, exact a.1.map_zero, }, },
-  unique_from := λ X,
-  { default := 0,
-    uniq := λ f, by ext } }
+⟨⟨of punit, is_zero_of_subsingleton _⟩⟩
 
 lemma iso_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
   isometry i.hom :=
 begin
-  apply normed_group_hom.isometry_of_norm,
+  change isometry (i.hom : V →+ W),
+  refine add_monoid_hom_class.isometry_of_norm i.hom _,
   intro v,
   apply le_antisymm (i.hom.2 v),
-  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [coe_hom_inv_id]
+  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
       ... ≤ ∥i.hom v∥ : i.inv.2 _,
 end
 

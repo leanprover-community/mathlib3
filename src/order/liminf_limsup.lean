@@ -36,7 +36,7 @@ In complete lattices, however, it coincides with the `Inf Sup` definition.
 open filter set
 open_locale filter
 
-variables {α β ι : Type*}
+variables {α β γ ι : Type*}
 namespace filter
 
 section relation
@@ -85,6 +85,14 @@ lemma is_bounded_under.mono {f g : filter β} {u : β → α} (h : f ≤ g) :
   g.is_bounded_under r u → f.is_bounded_under r u :=
 λ hg, hg.mono (map_mono h)
 
+lemma is_bounded_under.mono_le [preorder β] {l : filter α} {u v : α → β}
+  (hu : is_bounded_under (≤) l u) (hv : v ≤ᶠ[l] u) : is_bounded_under (≤) l v :=
+hu.imp $ λ b hb, (eventually_map.1 hb).mp $ hv.mono $ λ x, le_trans
+
+lemma is_bounded_under.mono_ge [preorder β] {l : filter α} {u v : α → β}
+  (hu : is_bounded_under (≥) l u) (hv : u ≤ᶠ[l] v) : is_bounded_under (≥) l v :=
+@is_bounded_under.mono_le α βᵒᵈ _ _ _ _ hu hv
+
 lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
@@ -105,7 +113,7 @@ end
 lemma not_is_bounded_under_of_tendsto_at_bot [preorder β] [no_min_order β] {f : α → β}
   {l : filter α} [l.ne_bot](hf : tendsto f l at_bot) :
   ¬ is_bounded_under (≥) l f :=
-@not_is_bounded_under_of_tendsto_at_top α (order_dual β) _ _ _ _ _ hf
+@not_is_bounded_under_of_tendsto_at_top α βᵒᵈ _ _ _ _ _ hf
 
 lemma is_bounded_under.bdd_above_range_of_cofinite [semilattice_sup β] {f : α → β}
   (hf : is_bounded_under (≤) cofinite f) : bdd_above (range f) :=
@@ -118,7 +126,7 @@ end
 
 lemma is_bounded_under.bdd_below_range_of_cofinite [semilattice_inf β] {f : α → β}
   (hf : is_bounded_under (≥) cofinite f) : bdd_below (range f) :=
-@is_bounded_under.bdd_above_range_of_cofinite α (order_dual β) _ _ hf
+@is_bounded_under.bdd_above_range_of_cofinite α βᵒᵈ _ _ hf
 
 lemma is_bounded_under.bdd_above_range [semilattice_sup β] {f : ℕ → β}
   (hf : is_bounded_under (≤) at_top f) : bdd_above (range f) :=
@@ -126,7 +134,7 @@ by { rw ← nat.cofinite_eq_at_top at hf, exact hf.bdd_above_range_of_cofinite }
 
 lemma is_bounded_under.bdd_below_range [semilattice_inf β] {f : ℕ → β}
   (hf : is_bounded_under (≥) at_top f) : bdd_below (range f) :=
-@is_bounded_under.bdd_above_range (order_dual β) _ _ hf
+@is_bounded_under.bdd_above_range βᵒᵈ _ _ hf
 
 /-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
 also called frequently bounded. Will be usually instantiated with `≤` or `≥`.
@@ -195,17 +203,48 @@ lemma is_bounded_le_of_top [preorder α] [order_top α] {f : filter α} : f.is_b
 lemma is_bounded_ge_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_bounded (≥) :=
 ⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
-lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
+@[simp] lemma _root_.order_iso.is_bounded_under_le_comp [preorder α] [preorder β] (e : α ≃o β)
+  {l : filter γ} {u : γ → α} :
+  is_bounded_under (≤) l (λ x, e (u x)) ↔ is_bounded_under (≤) l u :=
+e.surjective.exists.trans $ exists_congr $ λ a, by simp only [eventually_map, e.le_iff_le]
+
+@[simp] lemma _root_.order_iso.is_bounded_under_ge_comp [preorder α] [preorder β] (e : α ≃o β)
+  {l : filter γ} {u : γ → α} :
+  is_bounded_under (≥) l (λ x, e (u x)) ↔ is_bounded_under (≥) l u :=
+e.dual.is_bounded_under_le_comp
+
+@[simp, to_additive]
+lemma is_bounded_under_le_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
+  is_bounded_under (≤) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≥) l u :=
+(order_iso.inv α).is_bounded_under_ge_comp
+
+@[simp, to_additive]
+lemma is_bounded_under_ge_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
+  is_bounded_under (≥) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≤) l u :=
+(order_iso.inv α).is_bounded_under_le_comp
+
+lemma is_bounded_under.sup [semilattice_sup α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≤ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≤ bv)⟩ :=
   ⟨bu ⊔ bv, show ∀ᶠ x in f, u x ⊔ v x ≤ bu ⊔ bv,
     by filter_upwards [hu, hv] with _ using sup_le_sup⟩
 
-lemma is_bounded_under_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
-  f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a)
-| ⟨bu, (hu : ∀ᶠ x in f, u x ≥ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≥ bv)⟩ :=
-  ⟨bu ⊓ bv, show ∀ᶠ x in f, u x ⊓ v x ≥ bu ⊓ bv,
-    by filter_upwards [hu, hv] with _ using inf_le_inf⟩
+@[simp] lemma is_bounded_under_le_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
+  f.is_bounded_under (≤) (λ a, u a ⊔ v a) ↔ f.is_bounded_under (≤) u ∧ f.is_bounded_under (≤) v :=
+⟨λ h, ⟨h.mono_le $ eventually_of_forall $ λ _, le_sup_left,
+  h.mono_le $ eventually_of_forall $ λ _, le_sup_right⟩, λ h, h.1.sup h.2⟩
+
+lemma is_bounded_under.inf [semilattice_inf α] {f : filter β} {u v : β → α} :
+  f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a) :=
+@is_bounded_under.sup αᵒᵈ β _ _ _ _
+
+@[simp] lemma is_bounded_under_ge_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
+  f.is_bounded_under (≥) (λ a, u a ⊓ v a) ↔ f.is_bounded_under (≥) u ∧ f.is_bounded_under (≥) v :=
+@is_bounded_under_le_sup αᵒᵈ _ _ _ _ _
+
+lemma is_bounded_under_le_abs [linear_ordered_add_comm_group α] {f : filter β} {u : β → α} :
+  f.is_bounded_under (≤) (λ a, |u a|) ↔ f.is_bounded_under (≤) u ∧ f.is_bounded_under (≥) u :=
+is_bounded_under_le_sup.trans $ and_congr iff.rfl is_bounded_under_le_neg
 
 /-- Filters are automatically bounded or cobounded in complete lattices. To use the same statements
 in complete and conditionally complete lattices but let automation fill automatically the
@@ -299,7 +338,7 @@ lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : fil
   (hu : f.is_bounded_under (≥) u . is_bounded_default)
   (hv : f.is_cobounded_under (≥) v . is_bounded_default) :
   f.liminf u ≤ f.liminf v :=
-@limsup_le_limsup (order_dual β) α _ _ _ _ h hv hu
+@limsup_le_limsup βᵒᵈ α _ _ _ _ h hv hu
 
 lemma limsup_le_limsup_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : f ≤ g)
   {u : α → β} (hf : f.is_cobounded_under (≤) u . is_bounded_default)
@@ -319,7 +358,7 @@ by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
 
 theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   (𝓟 s).Liminf = Inf s :=
-@Limsup_principal (order_dual α) _ s h hs
+@Limsup_principal αᵒᵈ _ s h hs
 
 lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : limsup f u = limsup f v :=
@@ -331,7 +370,7 @@ end
 
 lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : liminf f u = liminf f v :=
-@limsup_congr (order_dual β) _ _ _ _ _ h
+@limsup_congr βᵒᵈ _ _ _ _ _ h
 
 lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : limsup f (λ x, b) = b :=
@@ -339,7 +378,7 @@ by simpa only [limsup_eq, eventually_const] using cInf_Ici
 
 lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter α} [ne_bot f]
   (b : β) : liminf f (λ x, b) = b :=
-@limsup_const (order_dual β) α _ f _ b
+@limsup_const βᵒᵈ α _ f _ b
 
 lemma liminf_le_limsup {f : filter β} [ne_bot f] {u : β → α}
   (h : f.is_bounded_under (≤) u . is_bounded_default)
@@ -375,24 +414,24 @@ end
 
 /-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/
 lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤ : α) :=
-@limsup_const_bot (order_dual α) β _ _
+@limsup_const_bot αᵒᵈ β _ _
 
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=
 le_antisymm
-  (le_binfi $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
+  (le_infi₂ $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
   (le_Inf $ assume a ha, let ⟨i, hi, ha⟩ := h.eventually_iff.1 ha in
-    infi_le_of_le _ $ infi_le_of_le hi $ Sup_le ha)
+    infi₂_le_of_le _ hi $ Sup_le ha)
 
 theorem has_basis.Liminf_eq_supr_Inf {p : ι → Prop} {s : ι → set α} {f : filter α}
   (h : f.has_basis p s) : f.Liminf = ⨆ i (hi : p i), Inf (s i) :=
-@has_basis.Limsup_eq_infi_Sup (order_dual α) _ _ _ _ _ h
+@has_basis.Limsup_eq_infi_Sup αᵒᵈ _ _ _ _ _ h
 
 theorem Limsup_eq_infi_Sup {f : filter α} : f.Limsup = ⨅ s ∈ f, Sup s :=
 f.basis_sets.Limsup_eq_infi_Sup
 
 theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
-@Limsup_eq_infi_Sup (order_dual α) _ _
+@Limsup_eq_infi_Sup αᵒᵈ _ _
 
 /-- In a complete lattice, the limsup of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
@@ -414,17 +453,17 @@ theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f :
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : f.liminf u = ⨆ s ∈ f, ⨅ a ∈ s, u a :=
-@limsup_eq_infi_supr (order_dual α) β _ _ _
+@limsup_eq_infi_supr αᵒᵈ β _ _ _
 
 lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆ n : ℕ, ⨅ i ≥ n, u i :=
-@limsup_eq_infi_supr_of_nat (order_dual α) _ u
+@limsup_eq_infi_supr_of_nat αᵒᵈ _ u
 
 lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆ n : ℕ, ⨅ i : ℕ, u (i + n) :=
-@limsup_eq_infi_supr_of_nat' (order_dual α) _ _
+@limsup_eq_infi_supr_of_nat' αᵒᵈ _ _
 
 theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
   (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
-@has_basis.limsup_eq_infi_supr (order_dual α) _ _ _ _ _ _ _ h
+@has_basis.limsup_eq_infi_supr αᵒᵈ _ _ _ _ _ _ _ h
 
 @[simp] lemma liminf_nat_add (f : ℕ → α) (k : ℕ) :
   at_top.liminf (λ i, f (i + k)) = at_top.liminf f :=
@@ -432,7 +471,7 @@ by { simp_rw liminf_eq_supr_infi_of_nat, exact supr_infi_ge_nat_add f k }
 
 @[simp] lemma limsup_nat_add (f : ℕ → α) (k : ℕ) :
   at_top.limsup (λ i, f (i + k)) = at_top.limsup f :=
-@liminf_nat_add (order_dual α) _ f k
+@liminf_nat_add αᵒᵈ _ f k
 
 lemma liminf_le_of_frequently_le' {α β} [complete_lattice β]
   {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, u a ≤ x) :
@@ -450,7 +489,7 @@ end
 lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
   {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, x ≤ u a) :
   x ≤ f.limsup u :=
-@liminf_le_of_frequently_le' _ (order_dual β) _ _ _ _ h
+@liminf_le_of_frequently_le' _ βᵒᵈ _ _ _ _ h
 
 end complete_lattice
 
@@ -468,7 +507,7 @@ end
 lemma eventually_lt_of_limsup_lt {f : filter α} [conditionally_complete_linear_order β]
   {u : α → β} {b : β} (h : limsup f u < b) (hu : f.is_bounded_under (≤) u . is_bounded_default) :
   ∀ᶠ a in f, u a < b :=
-@eventually_lt_of_lt_liminf _ (order_dual β) _ _ _ _ h hu
+@eventually_lt_of_lt_liminf _ βᵒᵈ _ _ _ _ h hu
 
 lemma le_limsup_of_frequently_le {α β} [conditionally_complete_linear_order β] {f : filter α}
   {u : α → β}  {b : β} (hu_le : ∃ᶠ x in f, b ≤ u x)
@@ -485,7 +524,7 @@ lemma liminf_le_of_frequently_le  {α β} [conditionally_complete_linear_order �
   {u : α → β}  {b : β} (hu_le : ∃ᶠ x in f, u x ≤ b)
   (hu : f.is_bounded_under (≥) u . is_bounded_default) :
   f.liminf u ≤ b :=
-@le_limsup_of_frequently_le _ (order_dual β) _ f u b hu_le hu
+@le_limsup_of_frequently_le _ βᵒᵈ _ f u b hu_le hu
 
 lemma frequently_lt_of_lt_limsup {α β} [conditionally_complete_linear_order β] {f : filter α}
   {u : α → β}  {b : β}
@@ -501,7 +540,7 @@ lemma frequently_lt_of_liminf_lt {α β} [conditionally_complete_linear_order β
   {u : α → β}  {b : β}
   (hu : f.is_cobounded_under (≥) u . is_bounded_default) (h : f.liminf u < b) :
   ∃ᶠ x in f, u x < b :=
-@frequently_lt_of_lt_limsup _ (order_dual β) _ f u b hu h
+@frequently_lt_of_lt_limsup _ βᵒᵈ _ f u b hu h
 
 end conditionally_complete_linear_order
 
@@ -510,7 +549,36 @@ end filter
 section order
 open filter
 
-lemma galois_connection.l_limsup_le {α β γ} [conditionally_complete_lattice β]
+lemma monotone.is_bounded_under_le_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_max_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : monotone g)
+  (hg' : tendsto g at_top at_top) :
+  is_bounded_under (≤) l (g ∘ f) ↔ is_bounded_under (≤) l f :=
+begin
+  refine ⟨_, λ h, h.is_bounded_under hg⟩,
+  rintro ⟨c, hc⟩, rw eventually_map at hc,
+  obtain ⟨b, hb⟩ : ∃ b, ∀ a ≥ b, c < g a := eventually_at_top.1 (hg'.eventually_gt_at_top c),
+  exact ⟨b, hc.mono $ λ x hx, not_lt.1 (λ h, (hb _ h.le).not_le hx)⟩
+end
+
+lemma monotone.is_bounded_under_ge_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_min_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : monotone g)
+  (hg' : tendsto g at_bot at_bot) :
+  is_bounded_under (≥) l (g ∘ f) ↔ is_bounded_under (≥) l f :=
+hg.dual.is_bounded_under_le_comp hg'
+
+lemma antitone.is_bounded_under_le_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_max_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : antitone g)
+  (hg' : tendsto g at_bot at_top) :
+  is_bounded_under (≤) l (g ∘ f) ↔ is_bounded_under (≥) l f :=
+hg.dual_right.is_bounded_under_ge_comp hg'
+
+lemma antitone.is_bounded_under_ge_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_min_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : antitone g)
+  (hg' : tendsto g at_top at_bot) :
+  is_bounded_under (≥) l (g ∘ f) ↔ is_bounded_under (≤) l f :=
+hg.dual_right.is_bounded_under_le_comp hg'
+
+lemma galois_connection.l_limsup_le [conditionally_complete_lattice β]
   [conditionally_complete_lattice γ] {f : filter α} {v : α → β}
   {l : β → γ} {u : γ → β} (gc : galois_connection l u)
   (hlv : f.is_bounded_under (≤) (λ x, l (v x)) . is_bounded_default)
@@ -548,6 +616,6 @@ lemma order_iso.liminf_apply {γ} [conditionally_complete_lattice β]
   (hgu : f.is_bounded_under (≥) (λ x, g (u x)) . is_bounded_default)
   (hgu_co : f.is_cobounded_under (≥) (λ x, g (u x)) . is_bounded_default) :
   g (f.liminf u) = f.liminf (λ x, g (u x)) :=
-@order_iso.limsup_apply α (order_dual β) (order_dual γ) _ _ f u g.dual hu hu_co hgu hgu_co
+@order_iso.limsup_apply α βᵒᵈ γᵒᵈ _ _ f u g.dual hu hu_co hgu hgu_co
 
 end order

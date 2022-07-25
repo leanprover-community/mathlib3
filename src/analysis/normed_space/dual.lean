@@ -3,8 +3,9 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.hahn_banach
+import analysis.normed_space.hahn_banach.extension
 import analysis.normed_space.is_R_or_C
+import analysis.locally_convex.polar
 
 /-!
 # The topological dual of a normed space
@@ -39,14 +40,15 @@ universes u v
 namespace normed_space
 
 section general
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 variables (E : Type*) [semi_normed_group E] [normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
 @[derive [inhabited, semi_normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
-instance : add_monoid_hom_class (dual 𝕜 E) E 𝕜 := continuous_linear_map.add_monoid_hom_class
+instance : continuous_linear_map_class (dual 𝕜 E) 𝕜 E 𝕜 :=
+continuous_linear_map.continuous_semilinear_map_class
 
 instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 
@@ -71,6 +73,17 @@ by { rw inclusion_in_double_dual_norm_eq, exact continuous_linear_map.norm_id_le
 
 lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual 𝕜 E) x∥ ≤ ∥x∥ :=
 by simpa using continuous_linear_map.le_of_op_norm_le _ (inclusion_in_double_dual_norm_le 𝕜 E) x
+
+/-- The dual pairing as a bilinear form. -/
+def dual_pairing : (dual 𝕜 E) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_linear_map.coe_lm 𝕜
+
+@[simp] lemma dual_pairing_apply {v : dual 𝕜 E} {x : E} : dual_pairing 𝕜 E v x = v x := rfl
+
+lemma dual_pairing_separating_left : (dual_pairing 𝕜 E).separating_left :=
+begin
+  rw [linear_map.separating_left_iff_ker_eq_bot, linear_map.ker_eq_bot],
+  exact continuous_linear_map.coe_injective,
+end
 
 end general
 
@@ -100,6 +113,7 @@ norm_le_zero_iff.mp (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simp [h f]))
 lemma eq_zero_iff_forall_dual_eq_zero (x : E) : x = 0 ↔ ∀ g : dual 𝕜 E, g x = 0 :=
 ⟨λ hx, by simp [hx], λ h, eq_zero_of_forall_dual_eq_zero 𝕜 h⟩
 
+/-- See also `geometric_hahn_banach_point_point`. -/
 lemma eq_iff_forall_dual_eq {x y : E} :
   x = y ↔ ∀ g : dual 𝕜 E, g x = g y :=
 begin
@@ -122,8 +136,6 @@ def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
 
 end bidual_isometry
 
-end normed_space
-
 section polar_sets
 
 open metric set normed_space
@@ -131,72 +143,33 @@ open metric set normed_space
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
-def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
-{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}
+def polar (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
+(dual_pairing 𝕜 E).flip.polar
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
 
-@[simp] lemma zero_mem_polar (s : set E) :
-  (0 : dual 𝕜 E) ∈ polar 𝕜 s :=
-λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
-
-lemma polar_eq_Inter (s : set E) :
-  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥x' z∥ ≤ 1} :=
-by simp only [polar, set_of_forall]
+lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl
 
 @[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {(0 : dual 𝕜 E)} :=
-begin
-  refine eq_singleton_iff_unique_mem.2 ⟨zero_mem_polar _ _, λ x' hx', _⟩,
-  ext x,
-  refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε hε, _),
-  rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
-  calc ∥x' x∥ = ∥c∥ * ∥x' (c⁻¹ • x)∥ :
-    by rw [x'.map_smul, norm_smul, norm_inv,
-      mul_inv_cancel_left₀ hc.ne']
-  ... ≤ ε * 1 : mul_le_mul hcε.le (hx' _ trivial) (norm_nonneg _) hε.le
-  ... = ε : mul_one _
-end
+(dual_pairing 𝕜 E).flip.polar_univ
+  (linear_map.flip_separating_right.mpr (dual_pairing_separating_left 𝕜 E))
 
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
-  simp only [polar_eq_Inter, ← continuous_linear_map.apply_apply _ (_ : dual 𝕜 E)],
+  dunfold normed_space.polar,
+  simp only [linear_map.polar_eq_Inter, linear_map.flip_apply],
   refine is_closed_bInter (λ z hz, _),
   exact is_closed_Iic.preimage (continuous_linear_map.apply 𝕜 𝕜 z).continuous.norm
 end
 
-variable (E)
-
-/-- `polar 𝕜 : set E → set (normed_space.dual 𝕜 E)` forms an order-reversing Galois connection with
-a similarly defined map `set (normed_space.dual 𝕜 E) → set E`. We use `order_dual.to_dual` and
-`order_dual.of_dual` to express that `polar` is order-reversing. Instead of defining the dual
-operation `unpolar s := {x : E | ∀ x' ∈ s, ∥x' x∥ ≤ 1}` we apply `polar 𝕜` again, then pull the set
-from the double dual space to the original space using `normed_space.inclusion_in_double_dual`. -/
-lemma polar_gc :
-  galois_connection (order_dual.to_dual ∘ polar 𝕜)
-    (λ s, inclusion_in_double_dual 𝕜 E ⁻¹' (polar 𝕜 $ order_dual.of_dual s)) :=
-λ s t, ⟨λ H x hx x' hx', H hx' x hx, λ H x' hx' x hx, H hx x' hx'⟩
-
-variable {E}
-
-@[simp] lemma polar_Union {ι} (s : ι → set E) : polar 𝕜 (⋃ i, s i) = ⋂ i, polar 𝕜 (s i) :=
-(polar_gc 𝕜 E).l_supr
-
-@[simp] lemma polar_union (s t : set E) : polar 𝕜 (s ∪ t) = polar 𝕜 s ∩ polar 𝕜 t :=
-(polar_gc 𝕜 E).l_sup
-
-lemma polar_antitone : antitone (polar 𝕜 : set E → set (dual 𝕜 E)) := (polar_gc 𝕜 E).monotone_l
-
-@[simp] lemma polar_empty : polar 𝕜 (∅ : set E) = univ := (polar_gc 𝕜 E).l_bot
-
-@[simp] lemma polar_zero : polar 𝕜 ({0} : set E) = univ :=
-eq_univ_of_forall $ λ x', forall_eq.2 $ by { rw [map_zero, norm_zero], exact zero_le_one }
-
 @[simp] lemma polar_closure (s : set E) : polar 𝕜 (closure s) = polar 𝕜 s :=
-(polar_antitone 𝕜 subset_closure).antisymm $ (polar_gc 𝕜 E).l_le $
-  closure_minimal ((polar_gc 𝕜 E).le_u_l s) $
-  (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
+((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $
+  (dual_pairing 𝕜 E).flip.polar_gc.l_le $
+  closure_minimal ((dual_pairing 𝕜 E).flip.polar_gc.le_u_l s) $
+  by simpa [linear_map.flip_flip]
+    using (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
 variables {𝕜}
 
@@ -205,7 +178,8 @@ small scalar multiple of `x'` is in `polar 𝕜 s`. -/
 lemma smul_mem_polar {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
   (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : c⁻¹ • x' ∈ polar 𝕜 s :=
 begin
-  by_cases c_zero : c = 0, { simp [c_zero] },
+  by_cases c_zero : c = 0, { simp only [c_zero, inv_zero, zero_smul],
+    exact (dual_pairing 𝕜 E).flip.zero_mem_polar _ },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,
   have le : ∀ z, z ∈ s → ∥ c⁻¹ • (x' z) ∥ ≤ ∥ c⁻¹ ∥ * ∥ c ∥,
   { intros z hzs,
@@ -221,6 +195,7 @@ lemma polar_ball_subset_closed_ball_div {c : 𝕜} (hc : 1 < ∥c∥) {r : ℝ} 
   polar 𝕜 (ball (0 : E) r) ⊆ closed_ball (0 : dual 𝕜 E) (∥c∥ / r) :=
 begin
   intros x' hx',
+  rw mem_polar_iff at hx',
   simp only [polar, mem_set_of_eq, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
   have hcr : 0 < ∥c∥ / r, from div_pos (zero_lt_one.trans hc) hr,
   refine continuous_linear_map.op_norm_le_of_shell hr hcr.le hc (λ x h₁ h₂, _),
@@ -237,7 +212,7 @@ calc ∥x' x∥ ≤ ∥x'∥ * ∥x∥ : x'.le_op_norm x
 ... ≤ r⁻¹ * r :
   mul_le_mul (mem_closed_ball_zero_iff.1 hx') (mem_closed_ball_zero_iff.1 hx)
     (norm_nonneg _) (dist_nonneg.trans hx')
-... = r / r : div_eq_inv_mul.symm
+... = r / r : inv_mul_eq_div _ _
 ... ≤ 1 : div_self_le_one r
 
 /-- The `polar` of closed ball in a normed space `E` is the closed ball of the dual with
@@ -261,8 +236,10 @@ begin
   obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
   obtain ⟨r, r_pos, r_ball⟩ : ∃ (r : ℝ) (hr : 0 < r), ball 0 r ⊆ s :=
     metric.mem_nhds_iff.1 s_nhd,
-  exact bounded_closed_ball.mono ((polar_antitone 𝕜 r_ball).trans $
+  exact bounded_closed_ball.mono (((dual_pairing 𝕜 E).flip.polar_antitone r_ball).trans $
     polar_ball_subset_closed_ball_div ha r_pos)
 end
 
 end polar_sets
+
+end normed_space

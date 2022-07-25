@@ -83,7 +83,7 @@ by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
 example (s₀ s₁ : ℤ → set (ℕ × ℕ))
         (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
 begin
-  ext i ⟨a,b⟩,
+  ext ((i) ⟨a,b⟩),
   apply h
 end
 

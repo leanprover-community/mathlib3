@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.specific_limits
+import analysis.specific_limits.normed
 
 /-!
 # The group of units of a complete normed ring
@@ -120,14 +120,14 @@ begin
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
   { simp only [units.coe_one_sub],
-    rw [← geom_sum, geom_sum_mul_neg],
+    rw [geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
   { simp only [units.coe_one_sub],
-    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
+    rw [← add_mul, geom_sum_mul_neg],
     simp }
 end
 
@@ -152,7 +152,7 @@ begin
   simp [h2.symm]
 end
 
-lemma inverse_one_sub_norm : is_O (λ t, inverse ((1:R) - t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_one_sub_norm : (λ t : R, inverse (1 - t)) =O[𝓝 0] (λ t, 1 : R → ℝ) :=
 begin
   simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
@@ -173,7 +173,7 @@ begin
 end
 
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
-lemma inverse_add_norm (x : Rˣ) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_add_norm (x : Rˣ) : (λ t : R, inverse (↑x + t)) =O[𝓝 0] (λ t, (1:ℝ)) :=
 begin
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
@@ -193,8 +193,8 @@ end
 `λ t, inverse (x + t) - (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹`
 is `O(t ^ n)` as `t → 0`. -/
 lemma inverse_add_norm_diff_nth_order (x : Rˣ) (n : ℕ) :
-  is_O (λ (t : R), inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹)
-  (λ t, ∥t∥ ^ n) (𝓝 (0:R)) :=
+  (λ t : R, inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹) =O[𝓝 (0:R)]
+  (λ t, ∥t∥ ^ n) :=
 begin
   by_cases h : n = 0,
   { simpa [h] using inverse_add_norm x },
@@ -228,14 +228,14 @@ end
 
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
 lemma inverse_add_norm_diff_first_order (x : Rˣ) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹) (λ t, ∥t∥) (𝓝 (0:R)) :=
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥) :=
 by simpa using inverse_add_norm_diff_nth_order x 1
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
 is `O(t ^ 2)` as `t → 0`. -/
 lemma inverse_add_norm_diff_second_order (x : Rˣ) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) (λ t, ∥t∥ ^ 2) (𝓝 (0:R)) :=
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥ ^ 2) :=
 begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
@@ -247,9 +247,8 @@ end
 /-- The function `inverse` is continuous at each unit of `R`. -/
 lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
-  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹) (λ _, 1 : R → ℝ) (𝓝 0),
-    from ((inverse_add_norm_diff_first_order x).trans_is_o
-      (is_o_id_const (@one_ne_zero ℝ _ _)).norm_left),
+  have h_is_o : (λ t : R, inverse (↑x + t) - ↑x⁻¹) =o[𝓝 0] (λ _, 1 : R → ℝ) :=
+    (inverse_add_norm_diff_first_order x).trans_is_o (is_o.norm_left $ is_o_id_const one_ne_zero),
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },

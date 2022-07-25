@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Measure preserving maps
@@ -52,7 +52,11 @@ namespace measure_preserving
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
 ⟨measurable_id, map_id⟩
 
-lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
+protected lemma ae_measurable {f : α → β} (hf : measure_preserving f μa μb) :
+  ae_measurable f μa :=
+hf.1.ae_measurable
+
+lemma symm (e : α ≃ᵐ β) {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
   by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
@@ -86,7 +90,7 @@ lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
-sigma_finite.of_map μa hf.1 (by rwa hf.map_eq)
+sigma_finite.of_map μa hf.ae_measurable (by rwa hf.map_eq)
 
 lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   {s : set β} (hs : measurable_set s) :

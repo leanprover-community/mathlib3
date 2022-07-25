@@ -26,7 +26,7 @@ We prove two versions of the lemma:
 normal space, shrinking lemma
 -/
 
-open set zorn function
+open set function
 open_locale classical
 noncomputable theory
 
@@ -90,11 +90,11 @@ instance : partial_order (partial_refinement u s) :=
 
 /-- If two partial refinements `v₁`, `v₂` belong to a chain (hence, they are comparable)
 and `i` belongs to the carriers of both partial refinements, then `v₁ i = v₂ i`. -/
-lemma apply_eq_of_chain {c : set (partial_refinement u s)} (hc : chain (≤) c) {v₁ v₂}
+lemma apply_eq_of_chain {c : set (partial_refinement u s)} (hc : is_chain (≤) c) {v₁ v₂}
   (h₁ : v₁ ∈ c) (h₂ : v₂ ∈ c) {i} (hi₁ : i ∈ v₁.carrier) (hi₂ : i ∈ v₂.carrier) :
   v₁ i = v₂ i :=
 begin
-  wlog hle : v₁ ≤ v₂ := hc.total_of_refl h₁ h₂ using [v₁ v₂, v₂ v₁],
+  wlog hle : v₁ ≤ v₂ := hc.total h₁ h₂ using [v₁ v₂, v₂ v₁],
   exact hle.2 _ hi₁,
 end
 
@@ -126,15 +126,15 @@ begin
     simp only [this] }
 end
 
-lemma find_apply_of_mem {c : set (partial_refinement u s)} (hc : chain (≤) c) (ne : c.nonempty)
+lemma find_apply_of_mem {c : set (partial_refinement u s)} (hc : is_chain (≤) c) (ne : c.nonempty)
   {i v} (hv : v ∈ c) (hi : i ∈ carrier v) :
   find c ne i i = v i :=
 apply_eq_of_chain hc (find_mem _ _) hv
   ((mem_find_carrier_iff _).2 $ mem_Union₂.2 ⟨v, hv, hi⟩) hi
 
 /-- Least upper bound of a nonempty chain of partial refinements. -/
-def chain_Sup (c : set (partial_refinement u s)) (hc : chain (≤) c)
-  (ne : c.nonempty) (hfin : ∀ x ∈ s, finite {i | x ∈ u i}) (hU : s ⊆ ⋃ i, u i) :
+def chain_Sup (c : set (partial_refinement u s)) (hc : is_chain (≤) c)
+  (ne : c.nonempty) (hfin : ∀ x ∈ s, {i | x ∈ u i}.finite) (hU : s ⊆ ⋃ i, u i) :
   partial_refinement u s :=
 begin
   refine ⟨λ i, find c ne i i, chain_Sup_carrier c,
@@ -154,13 +154,13 @@ begin
     use j,
     have hj' : x ∈ u j := (v i).subset _ hj,
     have : v j ≤ v i,
-      from (hc.total_of_refl (hvc _ hxi) (hvc _ hj')).elim (λ h, (hmax j hj' h).ge) id,
+      from (hc.total (hvc _ hxi) (hvc _ hj')).elim (λ h, (hmax j hj' h).ge) id,
     rwa find_apply_of_mem hc ne (hvc _ hxi) (this.1 $ hiv _ hj') }
 end
 
 /-- `chain_Sup hu c hc ne hfin hU` is an upper bound of the chain `c`. -/
-lemma le_chain_Sup {c : set (partial_refinement u s)} (hc : chain (≤) c)
-  (ne : c.nonempty) (hfin : ∀ x ∈ s, finite {i | x ∈ u i}) (hU : s ⊆ ⋃ i, u i)
+lemma le_chain_Sup {c : set (partial_refinement u s)} (hc : is_chain (≤) c)
+  (ne : c.nonempty) (hfin : ∀ x ∈ s, {i | x ∈ u i}.finite) (hU : s ⊆ ⋃ i, u i)
   {v} (hv : v ∈ c) :
   v ≤ chain_Sup c hc ne hfin hU :=
 ⟨λ i hi, mem_bUnion hv hi, λ i hi, (find_apply_of_mem hc _ hv hi).symm⟩
@@ -207,12 +207,12 @@ variables {u : ι → set X} {s : set X}
 to a new open cover so that the closure of each new open set is contained in the corresponding
 original open set. -/
 lemma exists_subset_Union_closure_subset (hs : is_closed s) (uo : ∀ i, is_open (u i))
-  (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
+  (uf : ∀ x ∈ s, {i | x ∈ u i}.finite) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 begin
   classical,
   haveI : nonempty (partial_refinement u s) := ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩⟩,
-  have : ∀ c : set (partial_refinement u s), chain (≤) c → c.nonempty → ∃ ub, ∀ v ∈ c, v ≤ ub,
+  have : ∀ c : set (partial_refinement u s), is_chain (≤) c → c.nonempty → ∃ ub, ∀ v ∈ c, v ≤ ub,
     from λ c hc ne, ⟨partial_refinement.chain_Sup c hc ne uf us,
       λ v hv, partial_refinement.le_chain_Sup _ _ _ _ hv⟩,
   rcases zorn_nonempty_partial_order this with ⟨v, hv⟩,
@@ -228,7 +228,7 @@ end
 to a new closed cover so that each new closed set is contained in the corresponding original open
 set. See also `exists_subset_Union_closure_subset` for a stronger statement. -/
 lemma exists_subset_Union_closed_subset (hs : is_closed s) (uo : ∀ i, is_open (u i))
-  (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
+  (uf : ∀ x ∈ s, {i | x ∈ u i}.finite) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
 let ⟨v, hsv, hvo, hv⟩ := exists_subset_Union_closure_subset hs uo uf us
 in ⟨λ i, closure (v i), subset.trans hsv (Union_mono $ λ i, subset_closure),
@@ -237,7 +237,7 @@ in ⟨λ i, closure (v i), subset.trans hsv (Union_mono $ λ i, subset_closure),
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
 to a new open cover so that the closure of each new open set is contained in the corresponding
 original open set. -/
-lemma exists_Union_eq_closure_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, finite {i | x ∈ u i})
+lemma exists_Union_eq_closure_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, {i | x ∈ u i}.finite)
   (uU : (⋃ i, u i) = univ) :
   ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 let ⟨v, vU, hv⟩ := exists_subset_Union_closure_subset is_closed_univ uo (λ x _, uf x) uU.ge
@@ -246,7 +246,7 @@ in ⟨v, univ_subset_iff.1 vU, hv⟩
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
 to a new closed cover so that each of the new closed sets is contained in the corresponding
 original open set. See also `exists_Union_eq_closure_subset` for a stronger statement. -/
-lemma exists_Union_eq_closed_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, finite {i | x ∈ u i})
+lemma exists_Union_eq_closed_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, {i | x ∈ u i}.finite)
   (uU : (⋃ i, u i) = univ) :
   ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
 let ⟨v, vU, hv⟩ := exists_subset_Union_closed_subset is_closed_univ uo (λ x _, uf x) uU.ge

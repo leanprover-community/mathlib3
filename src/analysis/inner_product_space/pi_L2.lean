@@ -319,9 +319,24 @@ end
 by {rw [← basis.equiv_fun_apply, orthonormal_basis.coe_to_basis_repr,
       linear_isometry_equiv.coe_to_linear_equiv]}
 
+protected lemma sum_repr (b : orthonormal_basis ι 𝕜 E) (x : E) :
+  ∑ i, b.repr x i • b i = x :=
+by { simp_rw [← b.coe_to_basis_repr_apply, ← b.coe_to_basis], exact b.to_basis.sum_repr x }
+
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+by { simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+
+protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
+  ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
+begin
+  have := congr_arg (@innerSL 𝕜 _ _ _ x) (b.sum_repr y),
+  rw map_sum at this,
+  convert this,
+  ext i,
+  rw [smul_hom_class.map_smul, b.repr_apply_apply, mul_comm],
+  refl,
+end
 
 /-- A basis that is orthonormal is an orthonormal basis. -/
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :

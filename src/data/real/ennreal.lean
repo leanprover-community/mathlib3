@@ -107,9 +107,7 @@ instance : can_lift ℝ≥0∞ ℝ≥0 :=
 @[simp] lemma some_eq_coe (a : ℝ≥0) : (some a : ℝ≥0∞) = (↑a : ℝ≥0∞) := rfl
 
 /-- `to_nnreal x` returns `x` if it is real, otherwise 0. -/
-protected def to_nnreal : ℝ≥0∞ → ℝ≥0
-| (some r) := r
-| none := 0
+protected def to_nnreal : ℝ≥0∞ → ℝ≥0 := with_top.untop' 0
 
 /-- `to_real x` returns `x` if it is real, `0` otherwise. -/
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
@@ -1653,24 +1651,11 @@ lemma of_real_div_of_pos {x y : ℝ} (hy : 0 < y) :
   ennreal.of_real (x / y) = ennreal.of_real x / ennreal.of_real y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, of_real_mul' (inv_nonneg.2 hy.le), of_real_inv_of_pos hy]
 
-lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
-begin
-  by_cases h : a = 0,
-  { rw [h, zero_mul, zero_to_nnreal] },
-  { rw [mul_top, if_neg h, top_to_nnreal] }
-end
-
-lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 :=
-by rw [mul_comm, to_nnreal_mul_top]
-
 @[simp] lemma to_nnreal_mul {a b : ℝ≥0∞} : (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
-begin
-  induction a using with_top.rec_top_coe,
-  { rw [to_nnreal_top_mul, top_to_nnreal, zero_mul] },
-  induction b using with_top.rec_top_coe,
-  { rw [to_nnreal_mul_top, top_to_nnreal, mul_zero] },
-  simp only [to_nnreal_coe, ← coe_mul]
-end
+with_top.untop'_zero_mul a b
+
+lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 := by simp
+lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 := by simp
 
 @[simp] lemma smul_to_nnreal (a : ℝ≥0) (b : ℝ≥0∞) :
   (a • b).to_nnreal = a * b.to_nnreal :=

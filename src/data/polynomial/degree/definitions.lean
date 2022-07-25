@@ -34,7 +34,7 @@ variables [semiring R] {p q r : R[X]}
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
-def degree (p : R[X]) : with_bot ℕ := p.support.sup coe
+def degree (p : R[X]) : with_bot ℕ := p.support.max
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
@@ -161,7 +161,8 @@ lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.deg
 with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
-by { rw [degree, ← monomial_zero_left, support_monomial 0 ha, sup_singleton], refl }
+by rw [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
+    with_bot.coe_zero]
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
 begin
@@ -565,7 +566,7 @@ begin
   rw [degree, support_update],
   split_ifs,
   { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
-  { rw [sup_insert, max_comm],
+  { rw [max_insert, max_comm],
     exact le_rfl },
 end
 
@@ -836,14 +837,15 @@ by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-by simp only [degree, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le, not_imp_comm]
+by simp only [degree, finset.max, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le,
+    not_imp_comm]
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
 begin
   refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
   simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
-    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ, max_eq_sup_coe],
   exact λ h m, mt (h m),
 end
 
@@ -875,7 +877,7 @@ lemma eq_C_of_nat_degree_eq_zero (h : nat_degree p = 0) : p = C (coeff p 0) :=
 eq_C_of_nat_degree_le_zero h.le
 
 lemma ne_zero_of_coe_le_degree (hdeg : ↑n ≤ p.degree) : p ≠ 0 :=
-by rw ← degree_nonneg_iff_ne_zero; exact trans (by exact_mod_cast n.zero_le) hdeg
+degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans hdeg
 
 lemma le_nat_degree_of_coe_le_degree (hdeg : ↑n ≤ p.degree) :
   n ≤ p.nat_degree :=

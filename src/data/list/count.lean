@@ -208,7 +208,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_map_eq_pow_single [decidable_eq α] [monoid β] {l : list α} (a : α) (f : α → β)
+lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α) (f : α → β)
   (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) : (l.map f).prod = (f a) ^ (l.count a) :=
 begin
   induction l with a' as h generalizing a,
@@ -221,7 +221,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_eq_pow_single [decidable_eq α] [monoid α] {l : list α} (a : α)
+lemma prod_eq_pow_single [monoid α] {l : list α} (a : α)
   (h : ∀ a' ≠ a, a' ∈ l → a' = 1) : l.prod = a ^ (l.count a) :=
 trans (by rw [map_id'']) (prod_map_eq_pow_single a id h)
 

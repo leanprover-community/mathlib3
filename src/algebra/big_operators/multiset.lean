@@ -79,17 +79,16 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 by simp [repeat, list.prod_repeat]
 
 @[to_additive]
-lemma prod_map_eq_pow_single {M : Type*} [comm_monoid M] [decidable_eq α]
-  (a : α) (f : α → M) (hf : ∀ a' ≠ a, a' ∈ s → f a' = 1) :
-  (s.map f).prod = (f a) ^ (s.count a) :=
+lemma prod_map_eq_pow_single [decidable_eq ι] (i : ι) (hf : ∀ i' ≠ i, i' ∈ m → f i' = 1) :
+  (m.map f).prod = (f i) ^ (m.count i) :=
 begin
-  induction s using quotient.induction_on with l,
-  simp [list.prod_map_eq_pow_single a f hf],
+  induction m using quotient.induction_on with l,
+  simp [list.prod_map_eq_pow_single i f hf],
 end
 
 @[to_additive]
-lemma prod_eq_pow_single [decidable_eq α] [comm_monoid α]
-  (a : α) (h : ∀ a' ≠ a, a' ∈ s → a' = 1) : s.prod = a ^ (s.count a) :=
+lemma prod_eq_pow_single [decidable_eq α] (a : α) (h : ∀ a' ≠ a, a' ∈ s → a' = 1) :
+  s.prod = a ^ (s.count a) :=
 begin
   induction s using quotient.induction_on with l,
   simp [list.prod_eq_pow_single a h],
@@ -340,7 +339,7 @@ lemma prod_eq_one_iff [canonically_ordered_monoid α] {m : multiset α} :
 quotient.induction_on m $ λ l, by simpa using list.prod_eq_one_iff l
 
 /-- Slightly more general version of `prod_eq_one_iff` for a non-ordered `monoid` -/
-@[to_additive]
+@[to_additive "Slightly more general version of `sum_eq_zero_iff` for a non-ordered `monoid`"]
 lemma prod_eq_one [comm_monoid α] {m : multiset α} (h : ∀ x ∈ m, x = (1 : α)) : m.prod = 1 :=
 begin
   induction m using quotient.induction_on with l,

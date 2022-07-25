@@ -435,7 +435,7 @@ le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
   λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
 
 /-- Slightly more general version of `prod_eq_one_iff` for a non-ordered `monoid` -/
-@[to_additive]
+@[to_additive "Slightly more general version of `sum_eq_zero_iff` for a non-ordered `monoid`"]
 lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
 trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
 

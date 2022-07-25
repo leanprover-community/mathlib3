@@ -208,7 +208,7 @@ begin
           + (2:ℤ)•⁅L b, L (b * c)⁆)
         + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + (2:ℤ)•⁅L c, L (a * b)⁆ + (2:ℤ)•⁅L c, L (a * c)⁆
           + (2:ℤ)•⁅L c, L (b * c)⁆) :
-    by rw [lie_smul, lie_smul, lie_smul, lie_smul, lie_smul, lie_smul, lie_smul, lie_smul, lie_smul]
+    by simp only [lie_nsmul]
   ... = (⁅L a, L (b * b)⁆+ ⁅L b, L (a * a)⁆ + (2:ℤ)•⁅L a, L (a * b)⁆ + (2:ℤ)•⁅L b, L (a * b)⁆)
         + (⁅L a, L (c * c)⁆ + ⁅L c, L (a * a)⁆ + (2:ℤ)•⁅L a, L (a * c)⁆ + (2:ℤ)•⁅L c, L (a * c)⁆)
         + (⁅L b, L (c * c)⁆ + ⁅L c, L (b * b)⁆ + (2:ℤ)•⁅L b, L (b * c)⁆ + (2:ℤ)•⁅L c, L (b * c)⁆)

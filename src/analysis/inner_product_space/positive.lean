@@ -9,7 +9,7 @@ import analysis.inner_product_space.adjoint
 /-!
 # Positive operators
 
-In this file we define positive operators in a Hilbert space. We follow Bourbaki's choic
+In this file we define positive operators in a Hilbert space. We follow Bourbaki's choice
 of requiring self adjointness in the definition.
 
 ## Main definitions
@@ -19,10 +19,11 @@ of requiring self adjointness in the definition.
 
 ## Main statements
 
-* `is_positive.conj_adjoint` : if `T : E →L[𝕜] E` is positive, then for any `S : E →L[𝕜] F`,
-  `S ∘L T ∘L S†` is also positive.
-* `is_positive_iff_complex` : in a ***complex*** hilbert space, checking that `⟪T x, x⟫` is a
-  nonnegative real number for all `x` suffices to prove that `T` is positive
+* `continuous_linear_map.is_positive.conj_adjoint` : if `T : E →L[𝕜] E` is positive,
+  then for any `S : E →L[𝕜] F`, `S ∘L T ∘L S†` is also positive.
+* `continuous_linear_map.is_positive_iff_complex` : in a ***complex*** hilbert space,
+  checking that `⟪T x, x⟫` is a nonnegative real number for all `x` suffices to prove that
+  `T` is positive
 
 ## References
 
@@ -84,17 +85,24 @@ begin
   exact hT.inner_nonneg_left _
 end
 
+lemma is_positive.adjoint_conj [complete_space E] [complete_space F] {T : E →L[𝕜] E}
+  (hT : T.is_positive) (S : F →L[𝕜] E) : (S† ∘L T ∘L S).is_positive :=
+begin
+  convert hT.conj_adjoint (S†),
+  rw adjoint_adjoint
+end
+
 lemma is_positive.conj_orthogonal_projection [complete_space E] (U : submodule 𝕜 E) {T : E →L[𝕜] E}
   (hT : T.is_positive) [complete_space U] :
   (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
     orthogonal_projection U).is_positive :=
 begin
   have := hT.conj_adjoint (U.subtypeL ∘L orthogonal_projection U),
-  rwa ← (orthogonal_projection_is_self_adjoint U).eq_adjoint at this
+  rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this
 end
 
-lemma is_positive.orthogonal_projection_comp [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
-  (U : submodule 𝕜 E) [complete_space U] :
+lemma is_positive.orthogonal_projection_comp [complete_space E] {T : E →L[𝕜] E}
+  (hT : T.is_positive) (U : submodule 𝕜 E) [complete_space U] :
   (orthogonal_projection U ∘L T ∘L U.subtypeL).is_positive :=
 begin
   have := hT.conj_adjoint (orthogonal_projection U : E →L[𝕜] U),

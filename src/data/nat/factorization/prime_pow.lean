@@ -64,12 +64,12 @@ by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_on
 lemma eq_of_dvd_div_eq_one {a b : ℕ} (h1 : b ∣ a) (h2 : a / b = 1) : a = b :=
 by rw [(nat.mul_div_cancel' h1).symm, h2, mul_one]
 
-lemma is_prime_pow_of_p_odd_part_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime) :
+lemma is_prime_pow_of_ord_compl_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime) :
   ord_compl[p] n = 1 → is_prime_pow n :=
 begin
   rw is_prime_pow_nat_iff,
   intro H,
-  rw [eq_of_dvd_div_eq_one (nat.pow_factorization_dvd n p) H] at |- hn,
+  rw [eq_of_dvd_div_eq_one (nat.ord_proj_dvd n p) H] at |- hn,
   refine ⟨p, n.factorization p, pp, _, (by simp)⟩,
   contrapose! hn,
   simp [le_zero_iff.1 hn],
@@ -94,7 +94,7 @@ begin
   -- So assume 0 < n
   refine ⟨p, n.factorization p, hp, hp.factorization_pos_of_dvd hn₀ hn, _⟩,
   simp only [and_imp] at hq,
-  apply nat.dvd_antisymm (nat.pow_factorization_dvd _ _),
+  apply nat.dvd_antisymm (nat.ord_proj_dvd _ _),
   -- We need to show n ∣ p ^ n.factorization p
   apply nat.dvd_of_factors_subperm hn₀,
   rw [hp.factors_pow, list.subperm_ext_iff],

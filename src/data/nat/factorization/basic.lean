@@ -257,10 +257,10 @@ notation `ord_proj[` p `]` n:max := p ^ (nat.factorization n p)
 -- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n`.
 notation `ord_compl[` p `]` n:max := n / ord_proj[p] n
 
-@[simp] lemma padic_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_proj[p] n = 1 :=
+@[simp] lemma ord_proj_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_proj[p] n = 1 :=
 by simp [factorization_eq_zero_of_non_prime n hp]
 
-@[simp] lemma p_odd_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_compl[p] n = n :=
+@[simp] lemma ord_compl_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_compl[p] n = n :=
 by simp [factorization_eq_zero_of_non_prime n hp]
 
 -- TODO: Rename the following lemmas
@@ -276,8 +276,7 @@ by simp [factorization_eq_zero_of_non_prime n hp]
 -- [*] ord_proj[p] n is the largest power of `p` that divides into `n`
 -- [*] ord_compl[p] n is the largest divisor of `n` not divisible by `p`.
 
--- TODO: Rename this to `padic_part_dvd`
-lemma pow_factorization_dvd (n p : ℕ) : ord_proj[p] n ∣ n :=
+lemma ord_proj_dvd (n p : ℕ) : ord_proj[p] n ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [hp] },
   rw [←factors_count_eq],
@@ -287,43 +286,43 @@ begin
   simp [list.eq_of_mem_repeat hq],
 end
 
-lemma p_odd_part_dvd (n p : ℕ) : ord_compl[p] n ∣ n :=
-div_dvd_of_dvd (pow_factorization_dvd n p)
+lemma ord_compl_dvd (n p : ℕ) : ord_compl[p] n ∣ n :=
+div_dvd_of_dvd (ord_proj_dvd n p)
 
-lemma padic_part_pos (n p : ℕ) : 0 < ord_proj[p] n :=
+lemma ord_proj_pos (n p : ℕ) : 0 < ord_proj[p] n :=
 begin
   by_cases pp : p.prime,
   { simp [pow_pos pp.pos] },
   { simp [pp] },
 end
 
-lemma padic_part_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : ord_proj[p] n ≤ n :=
-le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
+lemma ord_proj_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : ord_proj[p] n ≤ n :=
+le_of_dvd hn.bot_lt (nat.ord_proj_dvd n p)
 
-lemma p_odd_part_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < ord_compl[p] n :=
+lemma ord_compl_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < ord_compl[p] n :=
 begin
   cases em' p.prime with pp pp,
   { simpa [nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
-  exact nat.div_pos (padic_part_le p hn) (padic_part_pos n p),
+  exact nat.div_pos (ord_proj_le p hn) (ord_proj_pos n p),
 end
 
-lemma p_odd_part_le (n p : ℕ) : ord_compl[p] n ≤ n :=
+lemma ord_compl_le (n p : ℕ) : ord_compl[p] n ≤ n :=
 nat.div_le_self _ _
 
-lemma padic_mul_p_odd_part_eq_self (n p : ℕ) : ord_proj[p] n * ord_compl[p] n = n :=
-nat.mul_div_cancel' (pow_factorization_dvd n p)
+lemma ord_proj_mul_ord_compl_eq_self (n p : ℕ) : ord_proj[p] n * ord_compl[p] n = n :=
+nat.mul_div_cancel' (ord_proj_dvd n p)
 
-lemma mul_padic_part {a b : ℕ} (p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
+lemma mul_ord_proj {a b : ℕ} (p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
   ord_proj[p] (a*b) = ord_proj[p] a * ord_proj[p] b :=
 by simp [factorization_mul ha hb, pow_add]
 
-lemma mul_p_odd_part (a b p : ℕ) :
+lemma mul_ord_compl (a b p : ℕ) :
   ord_compl[p] a * ord_compl[p] b = ord_compl[p] (a*b) :=
 begin
   rcases eq_or_ne a 0 with rfl | ha, { simp },
   rcases eq_or_ne b 0 with rfl | hb, { simp },
-  simp only [mul_padic_part p ha hb],
-  rw (mul_div_mul_comm_of_dvd_dvd (pow_factorization_dvd a p) (pow_factorization_dvd b p)),
+  simp only [mul_ord_proj p ha hb],
+  rw (mul_div_mul_comm_of_dvd_dvd (ord_proj_dvd a p) (ord_proj_dvd b p)),
 end
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
@@ -337,7 +336,7 @@ lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < 
 begin
   by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
   rw ←pow_lt_iff_lt_right pp.two_le,
-  apply lt_of_le_of_lt (padic_part_le p hn),
+  apply lt_of_le_of_lt (ord_proj_le p hn),
   exact lt_of_lt_of_le (lt_two_pow n) (pow_le_pow_of_le_left (by linarith) pp.two_le n),
 end
 
@@ -346,7 +345,7 @@ lemma factorization_le_of_le_pow {n p b : ℕ} (hb : n ≤ p ^ b) : n.factorizat
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
   by_cases pp : p.prime,
-  { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (padic_part_le p hn) hb) },
+  { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (ord_proj_le p hn) hb) },
   { simp [factorization_eq_zero_of_non_prime n pp] }
 end
 
@@ -417,24 +416,24 @@ begin
       nat.div_mul_cancel h],
 end
 
-lemma dvd_padic_part_of_dvd {n p : ℕ} (hn : n ≠ 0) (pp : p.prime) (h : p ∣ n) :
+lemma dvd_ord_proj_of_dvd {n p : ℕ} (hn : n ≠ 0) (pp : p.prime) (h : p ∣ n) :
   p ∣ ord_proj[p] n :=
 dvd_pow_self p (prime.factorization_pos_of_dvd pp hn h).ne'
 
--- TODO: Rename this to `not_dvd_p_odd_part`
+-- TODO: Rename this to `not_dvd_ord_compl`
 lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   ¬p ∣ ord_compl[p] n :=
 begin
-  rw [nat.prime.dvd_iff_one_le_factorization hp (p_odd_part_pos p hn).ne'],
-  rw [nat.factorization_div (nat.pow_factorization_dvd n p)],
+  rw [nat.prime.dvd_iff_one_le_factorization hp (ord_compl_pos p hn).ne'],
+  rw [nat.factorization_div (nat.ord_proj_dvd n p)],
   simp [hp.factorization],
 end
 
-lemma coprime_of_p_odd_part {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+lemma coprime_of_ord_compl {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   coprime p (ord_compl[p] n) :=
 (or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
-lemma factorization_p_odd_part (n p : ℕ) :
+lemma factorization_ord_compl (n p : ℕ) :
   (ord_compl[p] n).factorization = n.factorization.erase p :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
@@ -443,17 +442,17 @@ begin
   rcases eq_or_ne q p with rfl | hqp,
   { simp only [finsupp.erase_same, factorization_eq_zero_iff', not_dvd_div_pow_factorization pp hn],
     simp },
-  { rw [finsupp.erase_ne hqp, factorization_div (pow_factorization_dvd n p)],
+  { rw [finsupp.erase_ne hqp, factorization_div (ord_proj_dvd n p)],
     simp [pp.factorization, hqp.symm] },
 end
 
 -- `ord_proj[p] n` is the largest divisor of `n` not divisible by `p`.
-lemma dvd_p_odd_part_of_dvd_not_dvd {p d n : ℕ} (hdn : d ∣ n) (hpd : ¬ p ∣ d) :
+lemma dvd_ord_compl_of_dvd_not_dvd {p d n : ℕ} (hdn : d ∣ n) (hpd : ¬ p ∣ d) :
   d ∣ ord_compl[p] n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn0, { simp },
   rcases eq_or_ne d 0 with rfl | hd0, { simp at hpd, cases hpd },
-  rw [←(factorization_le_iff_dvd hd0 (p_odd_part_pos p hn0).ne'), factorization_p_odd_part],
+  rw [←(factorization_le_iff_dvd hd0 (ord_compl_pos p hn0).ne'), factorization_ord_compl],
   intro q,
   rcases eq_or_ne q p with rfl | hqp,
   { simp [factorization_eq_zero_iff', hpd] },
@@ -488,7 +487,7 @@ begin
   intros h p,
   by_cases pp : prime p, swap, { simp [factorization_eq_zero_of_non_prime d pp] },
   rw ←pp.pow_dvd_iff_le_factorization hn,
-  exact h p _ pp (pow_factorization_dvd _ _)
+  exact h p _ pp (ord_proj_dvd _ _)
 end
 
 lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
@@ -626,7 +625,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     -- to use the `factorization` API
     let t := (k+2).factors.count p,
     have ht : t = (k+2).factorization p := factors_count_eq,
-    have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
+    have hpt : p ^ t ∣ k + 2 := by { rw ht, exact ord_proj_dvd _ _ },
     have htp : 0 < t :=
     by { rw ht, exact hp.factorization_pos_of_dvd (nat.succ_ne_zero _) (min_fac_dvd _) },
     convert h ((k + 2) / p ^ t) p t hp _ _ _,

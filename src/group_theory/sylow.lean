@@ -547,7 +547,7 @@ lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow 
   card P = p ^ nat.factorization (card G) p :=
 begin
   obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
-  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd _ p)),
+  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.ord_proj_dvd _ p)),
   rw [heq, ←hp.out.pow_dvd_iff_dvd_pow_factorization (show card G ≠ 0, from card_ne_zero), ←heq],
   exact P.1.card_subgroup_dvd_card,
 end

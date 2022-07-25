@@ -335,4 +335,38 @@ lemma submartingale.bdd_above_iff_exists_tendsto [is_finite_measure μ]
 by filter_upwards [hf.exists_tendsto_of_bdd_above hlef hf0 hbdd] with x hx using
   ⟨hx, λ ⟨c, hc⟩, hc.bdd_above_range⟩
 
+namespace borel_cantelli
+
+/-!
+
+### Lévy's generalization of the Borel-Cantelli lemma
+
+Lévy's generalization of Borel-Cantelli states: given a filtration `ℱ` and a sequence of sets
+`s` such that `s n ∈ ℱ n`, we have
+`limsup s = {∑ μ[s (n + 1) | ℱ n] = ∞}`
+
+-/
+
+noncomputable
+def mgale (ℱ : filtration ℕ m0) (μ : measure α) (s : ℕ → set α) (n : ℕ) : α → ℝ :=
+∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k])
+
+variables {s : ℕ → set α}
+
+lemma adapted_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+  adapted ℱ (mgale ℱ μ s) :=
+λ n, finset.strongly_measurable_sum' _ (λ k hk, (strongly_measurable_one.indicator
+  (ℱ.mono (nat.succ_le_of_lt (finset.mem_range.1 hk)) _ (hs _))).sub
+  (strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range.1 hk).le)))
+
+-- lemma mgale_nonneg : 0 ≤ mgale ℱ μ s :=
+-- begin
+--   intros n x,
+--   simp only [mgale, pi.zero_apply, finset.sum_apply, pi.sub_apply,
+--     finset.sum_sub_distrib, sub_nonneg],
+-- end
+
+
+end borel_cantelli
+
 end measure_theory

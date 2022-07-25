@@ -10,6 +10,7 @@ import ring_theory.localization.at_prime
 import ring_theory.localization.away
 import ring_theory.localization.integer
 import ring_theory.localization.submodule
+import ring_theory.localization.localization_localization
 import ring_theory.nilpotent
 import ring_theory.ring_hom_properties
 
@@ -60,11 +61,39 @@ def localization_preserves : Prop :=
   ∀ {R : Type u} [hR : comm_ring R] (M : by exactI submonoid R) (S : Type u) [hS : comm_ring S]
     [by exactI algebra R S] [by exactI is_localization M S], @P R hR → @P S hS
 
-/-- A property `P` of comm rings satisfies `of_localization_maximal` if
+/-- A property `P` of comm rings satisfies `of_localization_maximal`
   if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideal `m`. -/
 def of_localization_maximal : Prop :=
   ∀ (R : Type u) [comm_ring R],
     by exactI (∀ (J : ideal R) (hJ : J.is_maximal), by exactI P (localization.at_prime J)) → P R
+
+/-- A property `P` of comm rings satisfies `of_localization_span` if `P` holds for `R` whenever
+  `P` holds for `Rᵣ` for each of the elements `r` in a spanning set. -/
+def of_localization_span : Prop :=
+  ∀ (R : Type u) [comm_ring R] (s : set R),
+    by exactI ∀ (h : ideal.span s = ⊤), (∀ r : s, by exactI P (localization.away (r : R))) → P R
+
+lemma of_localization_span_of_localization_maximal
+  (h₁ : of_localization_maximal P) (h₂ : localization_preserves P) : of_localization_span P :=
+begin
+  introsI R _ s hs H,
+  apply h₁,
+  introsI J hJ,
+  have : ¬ s ⊆ J,
+  { intros e, rw [← ideal.span_le, hs, ← eq_top_iff] at e, exact hJ.ne_top e },
+  rw set.not_subset_iff_exists_mem_not_mem at this,
+  obtain ⟨x, hx, hx'⟩ := this,
+  have : submonoid.powers x ≤ J.prime_compl.comap (ring_hom.id R),
+  { rw [submonoid.powers_eq_closure, submonoid.closure_le, set.singleton_subset_iff], exact hx' },
+  letI : algebra (localization.away x) (localization.at_prime J) :=
+    (is_localization.map _ (ring_hom.id R) this).to_algebra,
+  letI : is_scalar_tower R (localization.away x) (localization.at_prime J) :=
+    is_scalar_tower.of_algebra_map_eq' (is_localization.map_comp this).symm,
+  have : submonoid.powers x ≤ J.prime_compl := this,
+  exact @h₂ (localization.away x) _ _ (localization.at_prime J) _ _
+    (is_localization.is_localization_of_submonoid_le _ _ _ _ this) (H ⟨x, hx⟩),
+end
+
 
 end comm_ring
 
@@ -410,16 +439,18 @@ begin
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 
-/-- If `S` is an `R' = M⁻¹R` algebra, and `x ∈ span R' s`,
+variables {X : Type*} [add_comm_group X]
+
+/-- If `X` is an `R' = M⁻¹R` module, and `x ∈ span R' s` for some `s : set X`,
 then `t • x ∈ span R s` for some `t : M`.-/
-lemma multiple_mem_span_of_mem_localization_span [algebra R' S] [algebra R S]
-  [is_scalar_tower R R' S] [is_localization M R']
-  (s : set S) (x : S) (hx : x ∈ submodule.span R' s) :
+lemma multiple_mem_span_of_mem_localization_span [module R' X] [module R X]
+  [is_scalar_tower R R' X] [is_localization M R']
+  (s : set X) (x : X) (hx : x ∈ submodule.span R' s) :
     ∃ t : M, t • x ∈ submodule.span R s :=
 begin
   classical,
   obtain ⟨s', hss', hs'⟩ := submodule.mem_span_finite_of_mem_span hx,
-  suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
+  suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set X),
   { obtain ⟨t, ht⟩ := this,
     exact ⟨t, submodule.span_mono hss' ht⟩ },
   clear hx hss' s,
@@ -431,11 +462,11 @@ begin
     submodule.mem_span_insert] at hx ⊢,
   rcases hx with ⟨y, z, hz, rfl⟩,
   rcases is_localization.surj M y with ⟨⟨y', s'⟩, e⟩,
-  replace e : _ * a = _ * a := (congr_arg (λ x, algebra_map R' S x * a) e : _),
-  simp_rw [ring_hom.map_mul, ← is_scalar_tower.algebra_map_apply, mul_comm (algebra_map R' S y),
-    mul_assoc, ← algebra.smul_def] at e,
+  replace e : _ • a = _ • a := (congr_arg (λ x : R', x • a) e : _),
+  simp_rw [ring_hom.map_mul, ← is_scalar_tower.algebra_map_apply, mul_comm y, mul_smul,
+    algebra_map_smul] at e,
   rcases hs _ hz with ⟨t, ht⟩,
-  refine ⟨t*s', t*y', _, (submodule.span R (s : set S)).smul_mem s' ht, _⟩,
+  refine ⟨t*s', t*y', _, (submodule.span R (s : set X)).smul_mem s' ht, _⟩,
   rw [smul_add, ← smul_smul, mul_comm, ← smul_smul, ← smul_smul, ← e],
   refl,
 end
@@ -501,6 +532,43 @@ begin
 end
 
 end finite
+
+section noetherian
+
+lemma localization_preserves_noetherian :
+  localization_preserves (λ R _, by exactI is_noetherian_ring R) :=
+begin
+  introv R _ H,
+  resetI,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H ⊢,
+  exact (is_localization.order_embedding M S).dual.well_founded H,
+end
+
+lemma ideal.top_fg (R : Type*) [comm_ring R] : (⊤ : ideal R).fg :=
+⟨{1}, by simpa only [finset.coe_singleton] using ideal.span_singleton_one⟩
+
+lemma is_noetherian_ring_of_localization_maximal :
+  of_localization_span (λ R _, by exactI is_noetherian_ring R) :=
+begin
+  introv R hs H,
+  resetI,
+  obtain ⟨s', hs', H'⟩ := (ideal.span_eq_top_iff_finite s).mp hs,
+  rw is_noetherian_ring_iff_ideal_fg,
+  intro I,
+  cases or_iff_not_imp_left.mpr I.exists_le_maximal,
+  { subst h, exact ideal.top_fg R },
+  { have := λ r : s', (is_noetherian_ring_iff_ideal_fg _).mp (H ⟨r, hs' r.prop⟩)
+      (by exactI (I.map $ algebra_map R $ localization.away (r : R))),
+    choose S hS,
+
+  }
+  -- rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded,
+  --   well_founded.well_founded_iff_has_max'],
+  -- refine ⟨λ (I : ideal R), _⟩,
+  -- constructor,
+end
+
+end noetherian
 
 section finite_type
 

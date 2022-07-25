@@ -340,6 +340,19 @@ begin
 end
 
 
+lemma autom [locally_finite G] [G.preconnected] (K : finset V) (φ : G ≃g G) :
+  components G (finset.image φ K) = set.image (λ C, φ '' C) (components G K) :=
+begin
+  apply set.ext,
+  intro C,
+  split,
+  { intro C_comp_im,sorry},
+  {sorry},
+end
+
+
+
+
 end component
 
 
@@ -381,7 +394,7 @@ def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
 def extend_conn_to_finite_comps [locally_finite G]
   (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ K ) :
   {K' : finset V | K ⊆ K'
-                 ∧ (∀ x y ∈ K, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ K')
+                 ∧ (∀ x y ∈ K', ∃ w : G.walk x y, w.support.to_finset ⊆ K')
                  ∧ (∀ C : components G K', C.val.infinite)
   --               ∧ components G K' = inf_components G K
   } :=
@@ -620,41 +633,7 @@ begin
 end
 
 
-/-
-  This is the key part of Hopf-Freudenthal
-  Assuming this is proved:
-  As long as K has at least three infinite connected components, then so does K', and
-  bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
--/
-lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
-  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
-  (K : finset V) (Knempty : K.nonempty)
-  (inf_comp_K_large : fintype.card (inf_components G K) ≥ 3) :
-  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
-begin
-  rcases @extend_to_conn V G _ K (sorry) _ Knempty with ⟨K'',KK'',K''conn⟩ ,
-  rcases @extend_conn_to_finite_comps V G _ K'' _ K''conn with ⟨K',KK',conn,finn⟩,
-  rcases auts K' with ⟨φ,φgood⟩,
 
-  let φK' := finset.image φ K',
-  let K'nempty := finset.nonempty.mono (KK''.trans KK') Knempty,
-  let φK'nempty := finset.nonempty.image K'nempty φ,
-  let L := K' ∪ φK',
-  use [K',L,KK''.trans KK',finset.subset_union_left  K' (φK')],
-
-
-
-  -- now use nicely_arranged_bwd_map_not_inj G K' φK' (K'nempty) (φK'nempty) _ _ _ _ _,
-  -- but need to construct correctly the needed pieces
-  -- have K' connected, hence, since disjoint from φK, must lie in a connected component outside of φK, and this is necessarily infinite
-  -- symmetrically φK in an infinite component outside of K.
-
-  -- DO NOT to use conn_sub_of_connected_disjoint : this ensures that K' will lie in a connected component, and for φK' too!
-
-  sorry
-
-
-end
 
 
 end inf_components
@@ -874,8 +853,8 @@ begin
   sorry,
 end
 
-lemma finite_ends_to_inj [preconnected G] [locally_finite G] (fin_ends : (ends G).finite) :
-  ∃ K : finset V, ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) := sorry
+lemma finite_ends_to_inj [preconnected G] [locally_finite G] [fintype (ends G)] :
+  ∃ K : finset V, K.nonempty ∧ ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) := sorry
 -- Choose K maximizing `inf_components G K`.
 
 
@@ -894,6 +873,80 @@ lemma finite_ends_to_inj [preconnected G] [locally_finite G] (fin_ends : (ends G
 
 section transitivity
 
+lemma transitive_to_good_automs [locally_finite G] [G.preconnected]
+  (trans : ∀ u v : V, ∃ φ : G ≃g G, φ u = v)
+  (Vinf : (@set.univ V).infinite) :
+   ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K) :=
+begin
+  sorry
+end
+
+/-
+  This is the key part of Hopf-Freudenthal
+  Assuming this is proved:
+  As long as K has at least three infinite connected components, then so does K', and
+  bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
+-/
+lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
+  (K : finset V) (Knempty : K.nonempty)
+  (inf_comp_K_large : fintype.card (inf_components G K) ≥ 3) :
+  ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
+begin
+  rcases @extend_to_conn V G _ K (sorry) _ Knempty with ⟨Kp,KKp,Kpconn⟩ ,
+  rcases @extend_conn_to_finite_comps V G _ Kp _ Kpconn with ⟨K',KK',K'conn,finn⟩,
+  rcases auts K' with ⟨φ,φgood⟩,
+
+  let φK' := finset.image φ K',
+  let K'nempty := finset.nonempty.mono (KKp.trans KK') Knempty,
+  let φK'nempty := finset.nonempty.image K'nempty φ,
+  let L := K' ∪ φK',
+  use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
+
+
+  have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by sorry,
+
+  rcases component.conn_sub_of_connected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
+  rcases component.conn_sub_of_connected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
+
+  have Einf : E.infinite := finn ⟨E,Ecomp⟩,
+  have Finf : F.infinite, by {
+    have lol := @component.autom V G _ _ (sorry) K  φ,
+    have : F ∈ set.image (λ C, φ '' C) (components G K'), by {
+      simp,
+      sorry,
+    },
+    rcases this with ⟨FF,FFcomp,rfl⟩,
+    sorry, -- FF is infinite since it's a component for K', and F is its image, hence infinite too
+  },
+
+  apply nicely_arranged_bwd_map_not_inj G φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
+  sorry,
+end
+
+
+lemma HopfFreudenthal [locally_finite G] [G.preconnected]
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
+  [fintype (ends G)] : (fintype.card (ends G)) ≤ 2 :=
+begin
+  by_contradiction h,
+  have many_ends : 3 ≤ (fintype.card (ends G)) := (nat.succ_le_iff.mpr (not_le.mp h)),
+  rcases @finite_ends_to_inj V G _ (sorry) _ _ with ⟨K,Knempty,Kinj⟩,
+
+  have : fintype.card ↥(G.inf_components K) ≥ 3, by {
+    have := fintype.card_le_of_injective (eval G K) (eval_injective G K Kinj),
+    exact many_ends.trans this,
+  },
+
+  rcases (@good_autom_bwd_map_not_inj V G _ _ (sorry) auts K Knempty this) with ⟨K',L,hK',hL,bwd_K_not_inj⟩,
+
+  have : injective (bwd_map G hL) := by {
+    let llo := Kinj  L (hK'.trans hL),
+    rw ((bwd_map_comp G hK' hL).symm) at llo,
+    exact injective.of_comp llo,
+  },
+  exact bwd_K_not_inj this,
+end
 
 
 end transitivity

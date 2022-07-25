@@ -632,7 +632,7 @@ end normed_space
 
 section normed_star_group
 
-variables [Π (i : α), star_add_monoid (E i)] [Π i, normed_star_group (E i)]
+variables [Π i, star_add_monoid (E i)] [Π i, normed_star_group (E i)]
 
 lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
   (hf : mem_ℓp f p) : mem_ℓp (star f) p :=

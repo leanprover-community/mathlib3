@@ -5,8 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.field.basic
 import algebra.group_power.lemmas
-import algebra.group_power.order
-import algebra.order.ring
+import algebra.order.with_zero
 import order.bounds
 import tactic.monotonicity.basic
 
@@ -35,10 +34,21 @@ variables {α β : Type*}
 /-- A linear ordered field is a field with a linear order respecting the operations. -/
 @[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
 
+/-- A canonically linear ordered field is a linear ordered field in which `a ≤ b` iff there exists
+`c` with `b = a + c`. -/
+@[protect_proj] class canonically_linear_ordered_semifield (α : Type*)
+  extends canonically_ordered_comm_semiring α, linear_ordered_semifield α
+
 @[priority 100] -- See note [lower instance priority]
 instance linear_ordered_field.to_linear_ordered_semifield [linear_ordered_field α] :
   linear_ordered_semifield α :=
 { ..linear_ordered_ring.to_linear_ordered_semiring, ..‹linear_ordered_field α› }
+
+@[priority 100] -- See note [lower instance priority]
+instance canonically_linear_ordered_semifield.to_linear_ordered_comm_group_with_zero
+  [canonically_linear_ordered_semifield α] : linear_ordered_comm_group_with_zero α :=
+{ mul_le_mul_left := λ a b h c, mul_le_mul_of_nonneg_left h $ zero_le _,
+  ..‹canonically_linear_ordered_semifield α› }
 
 namespace function
 
@@ -859,3 +869,10 @@ theorem nat.cast_le_pow_div_sub (H : 1 < a) (n : ℕ) : (n : α) ≤ a ^ n / (a 
   (sub_le_self _ zero_le_one)
 
 end
+
+section canonically_linear_ordered_semifield
+variables [canonically_linear_ordered_semifield α] [has_sub α] [has_ordered_sub α]
+
+lemma tsub_div (a b c : α) : (a - b) / c = a / c - b / c := by simp_rw [div_eq_mul_inv, tsub_mul]
+
+end canonically_linear_ordered_semifield

@@ -442,7 +442,7 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
   continuous_to_fun := continuous_subtype_coe,
   continuous_inv_fun := continuous_subtype_mk _ continuous_id }
 
-/-- `set.univ α` is homeomorphic to `α`. -/
+/-- `s ×ˢ t` is homeomorphic to `s × t`. -/
 @[simps] def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ₜ s × t :=
 { to_equiv := equiv.set.prod s t,
   continuous_to_fun := continuous.prod_mk

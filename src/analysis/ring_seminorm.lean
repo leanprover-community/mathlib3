@@ -50,8 +50,13 @@ variables [ring R]
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_seminorm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
 
+instance zero_hom_class : zero_hom_class (ring_seminorm R) R ℝ :=
+ { coe := λ f, f.to_fun,
+   coe_injective' := λ f g h, by cases f; cases g; congr',
+   map_zero := λ f, f.map_zero' }
+
 @[ext] lemma ext {p q : ring_seminorm R} (h : ∀ x, p x = q x) : p = q :=
-by { cases p, cases q, simp only, ext, exact h x }
+fun_like.ext p q h
 
 instance : has_zero (ring_seminorm R) :=
 ⟨{ mul_le' :=  λ _ _, eq.ge (zero_mul _),
@@ -124,8 +129,13 @@ variable [ring R]
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
 
+instance zero_hom_class : zero_hom_class (ring_norm R) R ℝ :=
+ { coe := λ f, f.to_fun,
+   coe_injective' := λ f g h, by cases f; cases g; congr',
+   map_zero := λ f, f.map_zero' }
+
 @[ext] lemma ext {p q : ring_norm R} (h : ∀ x, p x = q x) : p = q :=
-by { cases p, cases q, simp only, ext, exact h x }
+fun_like.ext p q h
 
 variable (R)
 

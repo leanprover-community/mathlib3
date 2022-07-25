@@ -142,7 +142,7 @@ end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
-/-- Linearise the operator form of the Jordan axiom (`lie_L_L_sq`) by substituting in a → a + b and
+/-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in a → a + b and
 expanding. -/
 lemma lie_L_L_sq_add_lie_L_L_sq_add_two_lie_L_L_mul_add_two_lie_L_L_mul (a b : A) :
   ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + (2:ℤ)•⁅L a, L (a * b)⁆ + (2:ℤ)•⁅L b, L (a * b)⁆ = 0 :=

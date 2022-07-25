@@ -108,40 +108,40 @@ homological_complex V (complex_shape.up α)
 namespace chain_complex
 
 @[simp] lemma prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
-  (complex_shape.down α).prev i = some ⟨i+1, rfl⟩ :=
-option.choice_eq _
+  (complex_shape.down α).prev i = i+1 :=
+(complex_shape.down α).prev_eq_some rfl
 
 @[simp] lemma next (α : Type*) [add_group α] [has_one α] (i : α) :
-  (complex_shape.down α).next i = some ⟨i-1, sub_add_cancel i 1⟩ :=
-option.choice_eq _
+  (complex_shape.down α).next i = i-1 :=
+(complex_shape.down α).next_eq_some $ sub_add_cancel _ _
 
 @[simp] lemma next_nat_zero :
-  (complex_shape.down ℕ).next 0 = none :=
-@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
+  (complex_shape.down ℕ).next 0 = 0 :=
+by { classical, refine dif_neg _, push_neg, intro, apply nat.no_confusion }
 
 @[simp] lemma next_nat_succ (i : ℕ) :
-  (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
-option.choice_eq _
+  (complex_shape.down ℕ).next (i+1) = i :=
+(complex_shape.down ℕ).next_eq_some rfl
 
 end chain_complex
 
 namespace cochain_complex
 
 @[simp] lemma prev (α : Type*) [add_group α] [has_one α] (i : α) :
-  (complex_shape.up α).prev i = some ⟨i-1, sub_add_cancel i 1⟩ :=
-option.choice_eq _
+  (complex_shape.up α).prev i = i-1 :=
+(complex_shape.up α).prev_eq_some $ sub_add_cancel _ _
 
 @[simp] lemma next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
-  (complex_shape.up α).next i = some ⟨i+1, rfl⟩ :=
-option.choice_eq _
+  (complex_shape.up α).next i = i+1 :=
+(complex_shape.up α).next_eq_some rfl
 
 @[simp] lemma prev_nat_zero :
-  (complex_shape.up ℕ).prev 0 = none :=
-@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
+  (complex_shape.up ℕ).prev 0 = 0 :=
+by { classical, refine dif_neg _, push_neg, intro, apply nat.no_confusion }
 
 @[simp] lemma prev_nat_succ (i : ℕ) :
-  (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
-option.choice_eq _
+  (complex_shape.up ℕ).prev (i+1) = i :=
+(complex_shape.up ℕ).prev_eq_some rfl
 
 end cochain_complex
 
@@ -290,15 +290,8 @@ end
 
 section
 
-variables [has_zero_object V]
-open_locale zero_object
-
-/-- Either `C.X i`, if there is some `i` with `c.rel i j`, or the zero object. -/
-def X_prev (j : ι) : V :=
-match c.prev j with
-| none := 0
-| (some ⟨i,_⟩) := C.X i
-end
+/-- Either `C.X i`, if there is some `i` with `c.rel i j`, or `C.X j`. -/
+def X_prev (j : ι) : V := C.X (c.prev j)
 
 /-- If `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X i`. -/
 def X_prev_iso {i j : ι} (r : c.rel i j) :
@@ -306,24 +299,20 @@ def X_prev_iso {i j : ι} (r : c.rel i j) :
 eq_to_iso begin
   dsimp [X_prev],
   rw c.prev_eq_some r,
-  refl,
 end
 
-/-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `0`. -/
-def X_prev_iso_zero {j : ι} (h : c.prev j = none) :
-  C.X_prev j ≅ 0 :=
+/-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X j`. -/
+def X_prev_iso_zero {j : ι} (h : ¬c.rel (c.prev j) j) :
+  C.X_prev j ≅ C.X j :=
 eq_to_iso begin
-  dsimp [X_prev],
-  rw h,
-  refl,
+  dsimp [X_prev, complex_shape.prev],
+  rw dif_neg, push_neg, intros i hi,
+  have : c.prev j = i := c.prev_eq_some hi,
+  rw this at h, contradiction,
 end
 
-/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or the zero object. -/
-def X_next (i : ι) : V :=
-match c.next i with
-| none := 0
-| (some ⟨j,_⟩) := C.X j
-end
+/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or `C.X j`. -/
+def X_next (i : ι) : V := C.X (c.next i)
 
 /-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
 def X_next_iso {i j : ι} (r : c.rel i j) :
@@ -331,73 +320,57 @@ def X_next_iso {i j : ι} (r : c.rel i j) :
 eq_to_iso begin
   dsimp [X_next],
   rw c.next_eq_some r,
-  refl,
 end
 
 /-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
-def X_next_iso_zero {i : ι} (h : c.next i = none) :
-  C.X_next i ≅ 0 :=
+def X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
+  C.X_next i ≅ C.X i :=
 eq_to_iso begin
-  dsimp [X_next],
-  rw h,
-  refl,
+  dsimp [X_next, complex_shape.next],
+  rw dif_neg, rintro ⟨j, hj⟩,
+  have : c.next i = j := c.next_eq_some hj,
+  rw this at h, contradiction,
 end
 
 /--
 The differential mapping into `C.X j`, or zero if there isn't one.
 -/
-def d_to (j : ι) : C.X_prev j ⟶ C.X j :=
-match c.prev j with
-| none := (0 : C.X_prev j ⟶ C.X j)
-| (some ⟨i, w⟩) := (C.X_prev_iso w).hom ≫ C.d i j
-end
+def d_to (j : ι) : C.X_prev j ⟶ C.X j := C.d (c.prev j) j
 
 /--
 The differential mapping out of `C.X i`, or zero if there isn't one.
 -/
-def d_from (i : ι) : C.X i ⟶ C.X_next i :=
-match c.next i with
-| none := (0 : C.X i ⟶ C.X_next i)
-| (some ⟨j, w⟩) := C.d i j ≫ (C.X_next_iso w).inv
-end
+def d_from (i : ι) : C.X i ⟶ C.X_next i := C.d i (c.next i)
 
 lemma d_to_eq {i j : ι} (r : c.rel i j) :
   C.d_to j = (C.X_prev_iso r).hom ≫ C.d i j :=
 begin
-  dsimp [d_to, X_prev_iso],
-  rw c.prev_eq_some r,
-  refl,
+  obtain rfl := c.prev_eq_some r,
+  exact (category.id_comp _).symm,
 end
 
 @[simp]
-lemma d_to_eq_zero {j : ι} (h : c.prev j = none) :
+lemma d_to_eq_zero {j : ι} (h : ¬c.rel (c.prev j) j) :
   C.d_to j = 0 :=
-begin
-  dsimp [d_to],
-  rw h, refl,
-end
+C.shape _ _ h
 
 lemma d_from_eq {i j : ι} (r : c.rel i j) :
   C.d_from i = C.d i j ≫ (C.X_next_iso r).inv :=
 begin
-  dsimp [d_from, X_next_iso],
-  rw c.next_eq_some r,
-  refl,
+  obtain rfl := c.next_eq_some r,
+  exact (category.comp_id _).symm,
 end
 
 @[simp]
-lemma d_from_eq_zero {i : ι} (h : c.next i = none) :
+lemma d_from_eq_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.d_from i = 0 :=
-begin
-  dsimp [d_from],
-  rw h, refl,
-end
+C.shape _ _ h
 
 @[simp, reassoc] lemma X_prev_iso_comp_d_to {i j : ι} (r : c.rel i j) :
   (C.X_prev_iso r).inv ≫ C.d_to j = C.d i j :=
 by simp [C.d_to_eq r]
 
-@[simp, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : c.prev j = none) :
+@[simp, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
   (C.X_prev_iso_zero h).inv ≫ C.d_to j = 0 :=
 by simp [h]
 
@@ -405,20 +378,13 @@ by simp [h]
   C.d_from i ≫ (C.X_next_iso r).hom = C.d i j :=
 by simp [C.d_from_eq r]
 
-@[simp, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : c.next i = none) :
+@[simp, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.d_from i ≫ (C.X_next_iso_zero h).hom = 0 :=
 by simp [h]
 
 @[simp]
 lemma d_to_comp_d_from (j : ι) : C.d_to j ≫ C.d_from j = 0 :=
-begin
-  rcases h₁ : c.next j with _ | ⟨k,w₁⟩,
-  { rw [d_from_eq_zero _ h₁], simp },
-  { rw [d_from_eq _ w₁],
-    rcases h₂ : c.prev j with _ | ⟨i,w₂⟩,
-    { rw [d_to_eq_zero _ h₂], simp },
-    { rw [d_to_eq _ w₂], simp } }
-end
+C.d_comp_d _ _ _
 
 lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.rel i j) :
   kernel_subobject (C.d_from i) = kernel_subobject (C.d i j) :=

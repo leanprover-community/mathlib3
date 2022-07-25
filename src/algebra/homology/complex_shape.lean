@@ -133,20 +133,20 @@ end
 /--
 An option-valued arbitary choice of index `j` such that `rel i j`, if such exists.
 -/
-def next (c : complex_shape ι) (i : ι) : option { j // c.rel i j } :=
-option.choice _
+def next (c : complex_shape ι) (i : ι) : ι :=
+if h : ∃ j, c.rel i j then h.some else i
 
 /--
 An option-valued arbitary choice of index `i` such that `rel i j`, if such exists.
 -/
-def prev (c : complex_shape ι) (j : ι) : option { i // c.rel i j } :=
-option.choice _
+def prev (c : complex_shape ι) (j : ι) : ι :=
+if h : ∃ i, c.rel i j then h.some else j
 
-lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.next i = some ⟨j, h⟩ :=
-option.choice_eq _
+lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.next i = j :=
+by { apply c.next_eq _ h, dsimp only [next], rw dif_pos, exact Exists.some_spec ⟨j, h⟩, }
 
-lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = some ⟨i, h⟩ :=
-option.choice_eq _
+lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = i :=
+by { apply c.prev_eq _ h, dsimp only [prev], rw dif_pos, exact Exists.some_spec ⟨i, h⟩, }
 
 /--
 The `complex_shape` allowing differentials from `X i` to `X (i+a)`.

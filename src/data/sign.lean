@@ -205,7 +205,7 @@ end linear_ordered_ring
 
 section add_group
 
-variables [add_group α] [preorder α] [decidable_rel ((<) : α → α → Prop)] {a : α}
+variables [add_group α] [preorder α] [decidable_rel ((<) : α → α → Prop)]
 
 lemma left.sign_neg [covariant_class α α (+) (<)] (a : α) : sign (-a) = - sign a :=
 begin

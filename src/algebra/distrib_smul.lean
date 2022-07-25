@@ -107,3 +107,10 @@ function.surjective.distrib_smul -- S M (M ⧸ P) _ _ _ _
 instance submodule.quotient.distrib_smul {R M : Type*} [ring R] [add_comm_group M] [module R M]
   (P : submodule R M) : distrib_smul R (M ⧸ P) :=
 submodule.quotient.distrib_smul' P
+
+instance rat.distrib_smul {K : Type*} [division_ring K] : distrib_smul ℚ K :=
+{ smul_zero := λ a, by rw [rat.smul_def, mul_zero],
+  smul_add := λ a x y, by simp only [rat.smul_def, mul_add, rat.cast_add] }
+
+instance rat.is_scalar_tower_right {K : Type*} [division_ring K] : is_scalar_tower ℚ K K :=
+⟨λ a x y, by simp only [rat.smul_def, smul_eq_mul, mul_assoc]⟩

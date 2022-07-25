@@ -510,7 +510,7 @@ match match_numeral en with
 | _ := failed
 end
 
-/-- Evaluates the `prime` and `min_fac` functions. -/
+/-- Evaluates the `squarefree` predicate on naturals. -/
 @[norm_num] meta def eval_squarefree : expr → tactic (expr × expr)
 | `(squarefree (%%e : ℕ)) := do
   n ← e.to_nat,

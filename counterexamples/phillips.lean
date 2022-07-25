@@ -379,18 +379,18 @@ by applying the functional to the indicator functions. -/
 def _root_.continuous_linear_map.to_bounded_additive_measure
   [topological_space α] [discrete_topology α]
   (f : (α →ᵇ ℝ) →L[ℝ] ℝ) : bounded_additive_measure α :=
-{ to_fun := λ s, f (of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)),
+{ to_fun := λ s, f (of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)),
   additive' := λ s t hst,
     begin
-      have : of_normed_group_discrete (indicator (s ∪ t) 1) 1 (norm_indicator_le_one (s ∪ t))
-              = of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)
-              + of_normed_group_discrete (indicator t 1) 1 (norm_indicator_le_one t),
+      have : of_normed_add_comm_group_discrete (indicator (s ∪ t) 1) 1 (norm_indicator_le_one _)
+              = of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)
+              + of_normed_add_comm_group_discrete (indicator t 1) 1 (norm_indicator_le_one t),
         by { ext x, simp [indicator_union_of_disjoint hst], },
       rw [this, f.map_add],
     end,
   exists_bound := ⟨∥f∥, λ s, begin
-    have I : ∥of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)∥ ≤ 1,
-      by apply norm_of_normed_group_le _ zero_le_one,
+    have I : ∥of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)∥ ≤ 1,
+      by apply norm_of_normed_add_comm_group_le _ zero_le_one,
     apply le_trans (f.le_op_norm _),
     simpa using mul_le_mul_of_nonneg_left I (norm_nonneg f),
   end⟩ }
@@ -410,7 +410,7 @@ lemma to_functions_to_measure [measurable_space α] (μ : measure α) [is_finite
   μ.extension_to_bounded_functions.to_bounded_additive_measure s = (μ s).to_real :=
 begin
   change μ.extension_to_bounded_functions
-    (of_normed_group_discrete (indicator s (λ x, 1)) 1 (norm_indicator_le_one s)) = (μ s).to_real,
+    (of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)) = (μ s).to_real,
   rw extension_to_bounded_functions_apply,
   { change ∫ x, s.indicator (λ y, (1 : ℝ)) x ∂μ = _,
     simp [integral_indicator hs] },
@@ -498,7 +498,7 @@ which is large (it has countable complement), as in the Sierpinski pathological 
 taking values in `{0, 1}`), indexed by a real parameter `x`, corresponding to the characteristic
 functions of the different fibers of the Sierpinski pathological family -/
 def f (Hcont : #ℝ = aleph 1) (x : ℝ) : (discrete_copy ℝ →ᵇ ℝ) :=
-of_normed_group_discrete (indicator (spf Hcont x) 1) 1 (norm_indicator_le_one _)
+of_normed_add_comm_group_discrete (indicator (spf Hcont x) 1) 1 (norm_indicator_le_one _)
 
 lemma apply_f_eq_continuous_part (Hcont : #ℝ = aleph 1)
   (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) (x : ℝ)
@@ -577,7 +577,7 @@ end
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` is uniformly bounded by `1` in norm. -/
 lemma norm_bound (Hcont : #ℝ = aleph 1) (x : ℝ) : ∥f Hcont x∥ ≤ 1 :=
-norm_of_normed_group_le _ zero_le_one _
+norm_of_normed_add_comm_group_le _ zero_le_one _
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` has no Pettis integral. -/
 theorem no_pettis_integral (Hcont : #ℝ = aleph 1) :

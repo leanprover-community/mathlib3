@@ -92,6 +92,17 @@ lemma mk_eq_mk_iff (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
   mk K v hv = mk K w hw ↔ ∃ (a : Kˣ), a • w = v :=
 quotient.eq'
 
+/-- Two nonzero vectors go to the same point in projective space if and only if one is
+a scalar multiple of the other. -/
+lemma mk_eq_mk_iff' (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) : mk K v hv = mk K w hw ↔
+  ∃ (a : K), a • w = v :=
+begin
+  rw mk_eq_mk_iff K v w hv hw,
+  split,
+  { rintro ⟨a, ha⟩, exact ⟨a, ha⟩ },
+  { rintro ⟨a, ha⟩, refine ⟨units.mk0 a (λ c, hv.symm _), ha⟩, rwa [c, zero_smul] at ha }
+end
+
 lemma exists_smul_eq_mk_rep
   (v : V) (hv : v ≠ 0) : ∃ (a : Kˣ), a • v = (mk K v hv).rep :=
 show (projectivization_setoid K V).rel _ _, from quotient.mk_out' ⟨v, hv⟩

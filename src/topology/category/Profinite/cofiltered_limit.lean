@@ -90,7 +90,7 @@ begin
     if hs : s ∈ G then F.map (f s hs) ⁻¹' (V s) else set.univ,
   -- Conclude, using the `j0` and the clopen set of `F.obj j0` obtained above.
   refine ⟨j0, ⋃ (s : S) (hs : s ∈ G), W s, _, _⟩,
-  { apply is_clopen_bUnion,
+  { apply is_clopen_bUnion_finset,
     intros s hs,
     dsimp only [W],
     rw dif_pos hs,

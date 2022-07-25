@@ -333,6 +333,16 @@ Analysis:
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
     change of variables formula: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
 
+  Complex analysis:
+    Cauchy integral formula: 'diff_cont_on_cl.circle_integral_sub_inv_smul'
+    Liouville theorem: 'differentiable.apply_eq_apply_of_bounded'
+    maximum modulus principle: 'complex.eventually_eq_of_is_local_max_norm'
+    analyticity of holomorphic functions: 'differentiable_on.analytic_at'
+    Schwarz lemma: 'complex.abs_le_abs_of_maps_to_ball_self'
+    removable singularity: 'complex.differentiable_on_update_lim_insert_of_is_o'
+    Phragmen-Lindelöf principle: 'phragmen_lindelof.horizontal_strip'
+    fundamental theorem of algebra: 'complex.is_alg_closed'
+
 Probability Theory:
   Definitions in probability theory:
     probability measure: 'measure_theory.is_probability_measure'

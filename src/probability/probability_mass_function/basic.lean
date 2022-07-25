@@ -26,7 +26,7 @@ so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
 probability mass function, discrete probability measure
 -/
 noncomputable theory
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that
@@ -200,7 +200,7 @@ lemma to_measure_apply_of_finite (hs : s.finite) :
 @[simp]
 lemma to_measure_apply_fintype [fintype α] :
   p.to_measure s = ↑(∑ x, s.indicator p x) :=
-(p.to_measure_apply_eq_to_outer_measure_apply s (set.finite.of_fintype s).measurable_set).trans
+(p.to_measure_apply_eq_to_outer_measure_apply s s.to_finite.measurable_set).trans
   (p.to_outer_measure_apply_fintype s)
 
 end measurable_singleton_class

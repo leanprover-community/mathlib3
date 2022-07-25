@@ -169,7 +169,7 @@ end
 and expanding. When the Jordan axiom holds in all scalar extensions of `A`, an alternative proof is
 to substitute in a → a + λb + μc and equate coefficients of λμ.-/
 lemma two_nsmul_lie_lmul_lmul_add_add_eq_zero (a b c : A) :
-  (2:ℤ)•(⁅L a, L (b * c)⁆ + ⁅L b, L (a * c)⁆ + ⁅L c, L (a * b)⁆) = 0 :=
+  2•(⁅L a, L (b * c)⁆ + ⁅L b, L (c * a)⁆ + ⁅L c, L (a * b)⁆) = 0 :=
 begin
   symmetry,
   calc 0 = ⁅L (a + b + c), L ((a + b + c) * (a + b + c))⁆ : by rw (lie_lmul_lmul_sq (a + b + c))

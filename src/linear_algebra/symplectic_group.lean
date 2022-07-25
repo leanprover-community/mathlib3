@@ -226,11 +226,7 @@ end
 
 lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ symplectic_group l R) :
   A⁻¹ = - (J l R) ⬝ Aᵀ ⬝ (J l R) :=
-begin
-  have H := inv_left_mul_aux hA,
-  simp only [←matrix.neg_mul] at H,
-  exact inv_eq_left_inv H
-end
+inv_eq_left_inv (by simp only [matrix.neg_mul, inv_left_mul_aux hA])
 
 instance : group (symplectic_group l R) :=
 { mul_left_inv :=

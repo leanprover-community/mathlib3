@@ -144,7 +144,7 @@ end commute
 
 variables {A} [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
-/-
+/-!
 The endomorphisms on an additive monoid `add_monoid.End` form a `ring`, and this may be equipped
 with a Lie Bracket via `ring.has_bracket`.
 -/

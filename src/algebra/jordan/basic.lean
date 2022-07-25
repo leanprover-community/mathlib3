@@ -145,7 +145,7 @@ add_monoid_hom.ext $ λ b, (is_jordan.rmul_comm_rmul_rmul _ _).symm
 
 end commute
 
-variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
+variables {A} [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
 lemma two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add (a b : A) :
   2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) = ⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆ :=

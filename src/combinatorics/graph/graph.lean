@@ -104,6 +104,20 @@ begin
   simp,
 end
 
+lemma inc_card (G : graph V E) :
+  ∀ (x : E), nat.card {x_1 // G.inc x_1 x} = 1 ∨ nat.card {x_1 // G.inc x_1 x} = 2 :=
+begin
+  intros e,
+  have h2 := G.edges_card e,
+  induction G,
+  cases h2 with h1 h2,
+  left,
+  rw ← h1,
+  sorry,
+  sorry,
+  refl,
+end
+
 /-- Noncomputably gives a bijection between `α` and `fin n`, where `nat.card α = n ≠ 0`. This is
 only a very slight variation on `nat.equiv_fin_of_card_pos` but might be useful to PR -/
 noncomputable def nat.equiv_fin_of_card_eq_pos {α : Type u} {n : ℕ} (hn : n ≠ 0)
@@ -385,8 +399,12 @@ namespace subgraph
 protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
 begin
   apply graph.mk (λ v : G'.verts, λ e : G'.edges, G.inc v e),
-  simp,
+  simp only [set.coe_set_of, set_coe.forall, subtype.coe_mk],
   intros x h,
+  have h2 := G.edges_card,
+  specialize h2 x,
+  rw ends_set at h2,
+  simp at h2,
   sorry,
 --   unfold graph,
 --   unfold graph at G,

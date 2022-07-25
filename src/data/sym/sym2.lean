@@ -184,6 +184,27 @@ def mem (x : α) (z : sym2 α) : Prop :=
 
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
+def to_set (e : sym2 α) : set α := {x : α | x ∈ e}
+
+lemma to_set_mem1 (e : sym2 α) : (quotient.out e).1 ∈ e.to_set :=
+begin
+  unfold to_set,
+  simp,
+  fconstructor,
+  use (quotient.out e).2,
+  simp,
+end
+
+lemma to_set_mem2 (e : sym2 α) : (quotient.out e).2 ∈ e.to_set :=
+begin
+  unfold to_set,
+  simp,
+  fconstructor,
+  use (quotient.out e).1,
+  rw eq_swap,
+  simp,
+end
+
 lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := eq_swap.subst $ mem_mk_left y x
 

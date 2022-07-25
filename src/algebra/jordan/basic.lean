@@ -30,9 +30,9 @@ There are also exceptional Jordan algebras which can be shown not to be the symm
 associative algebra. The 3x3 matrices of octonions is the canonical example.
 
 Every Jordan algebra `A` has a triple product defined, for `a` `b` and `c` in `A` by
-```
-⦃a b c⦄ = (a * b) * c - (a * c) * b + a * (b * c).
-```
+$$
+{a\,b\,c} = (a * b) * c - (a * c) * b + a * (b * c).
+$$
 Via this triple product Jordan algebras are related to a number of other mathematical structures:
 Jordan triples, partial Jordan triples, Jordan pairs and quadratic Jordan algebras. In addition to
 their considerable algebraic interest ([mccrimmon2004]) these structures have been shown to have

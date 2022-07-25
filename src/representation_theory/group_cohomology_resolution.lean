@@ -101,7 +101,6 @@ lemma of_tensor_aux_comm_of_mul_action (g h : G) (x : Gⁿ) :
   (1 : module.End k (Gⁿ →₀ k)) (single h (1 : k) ⊗ₜ single x (1 : k))) =
   of_mul_action k G Gⁿ⁺¹ g (of_tensor_aux k G n (single h 1 ⊗ₜ single x 1)) :=
 begin
-  dsimp,
   simp [of_mul_action_def, of_tensor_aux_single, mul_smul],
 end
 
@@ -194,49 +193,6 @@ Action.mk_iso (linear_equiv.to_Module_iso
 @[simp] lemma equiv_tensor_inv_def :
   (equiv_tensor k G n).inv = of_tensor k G n := rfl
 
-/- A few things from #13713... which this PR should maybe wait for. -/
-
-variables {k G}
-
-lemma to_Module_monoid_algebra_map_aux
-  {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V] [module k W]
-  (ρ : G →* V →ₗ[k] V) (σ : G →* W →ₗ[k] W)
-  (f : V →ₗ[k] W) (w : ∀ (g : G), f.comp (ρ g) = (σ g).comp f)
-  (r : monoid_algebra k G) (x : V) :
-  f ((((monoid_algebra.lift k G (V →ₗ[k] V)) ρ) r) x) =
-    (((monoid_algebra.lift k G (W →ₗ[k] W)) σ) r) (f x) :=
-begin
-  apply monoid_algebra.induction_on r,
-  { intro g,
-      simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
-      exact linear_map.congr_fun (w g) x, },
-  { intros g h gw hw, simp only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
-  { intros r g w,
-    simp only [alg_hom.map_smul, w, ring_hom.id_apply,
-      linear_map.smul_apply, linear_map.map_smulₛₗ], }
-end
-
-/-- Given a morphism of `k`-linear `G`-representations `ρ ⟶ σ` on `V, W`
-respectively, defines a `k[G]`-linear map `V → W`, where the module structure comes from the
-representations. -/
-def to_Module_monoid_algebra_map {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V]
-  [module k W] (ρ : representation k G V) (σ : representation k G W) (f : Rep.of ρ ⟶ Rep.of σ) :
-  ρ.as_module →ₗ[monoid_algebra k G] σ.as_module :=
-{ map_smul' := λ r x, to_Module_monoid_algebra_map_aux ρ σ f.hom f.comm r x, ..f.hom }
-
-/-- Given an isomorphism of `k`-linear `G`-representations `ρ ≃ σ` on `V, W`
-respectively, defines a `k[G]`-linear isomorphism `V ≃ W`, where the module structure comes from
-the representations. -/
-def iso_to_linear_equiv {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V]
-  [module k W] (ρ : representation k G V) (τ : representation k G W)
-  (f : Rep.of ρ ≅ Rep.of τ) :
-  ρ.as_module ≃ₗ[monoid_algebra k G] τ.as_module :=
-{ inv_fun := to_Module_monoid_algebra_map τ ρ f.inv,
-  left_inv := f.hom_inv_id_apply,
-  right_inv := f.inv_hom_id_apply, ..to_Module_monoid_algebra_map ρ τ f.hom }
-
-variables (k G n)
-
 /-- The `k[G]`-linear isomorphism `k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹]`, where the `k[G]`-module structure on
 the lefthand side is `tensor_product.left_module`, whilst that of the righthand side comes from
 `representation.as_module`. Allows us to use `basis.algebra_tensor_product` to get a `k[G]`-basis
@@ -245,8 +201,7 @@ def of_mul_action_basis_aux : (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k
   (of_mul_action k G (fin (n + 1) → G)).as_module :=
 { map_smul' := λ r x,
   begin
-    dsimp,
-    rw ←linear_equiv.map_smul _ r,
+    rw [ring_hom.id_apply, linear_equiv.to_fun_eq_coe, ←linear_equiv.map_smul],
     congr' 1,
     refine x.induction_on _ (λ x y, _) (λ y z hy hz, _),
     { simp only [smul_zero] },
@@ -254,7 +209,8 @@ def of_mul_action_basis_aux : (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k
       show (r * x) ⊗ₜ y = _,
       rw [←of_mul_action_as_module_eq_mul, tprod_one_as_module] },
     { rw [smul_add, hz, hy, smul_add], }
-  end, .. iso_to_linear_equiv _ _ (equiv_tensor k G n).symm }
+  end, .. ((Rep.equivalence_Module_monoid_algebra.1).map_iso
+    (equiv_tensor k G n).symm).to_linear_equiv }
 
 /-- A `k[G]`-basis of `k[Gⁿ⁺¹]`, coming from the `k[G]`-linear isomorphism
 `k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹].` -/

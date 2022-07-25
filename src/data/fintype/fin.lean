@@ -54,8 +54,9 @@ begin
   split_ifs; simp,
 end
 
-lemma card_filter_univ_succ (p : (fin (n + 1)) → Prop) [decidable_pred p] : (univ.filter p).card =
-  if (p 0) then (univ.filter (p ∘ fin.succ)).card + 1 else (univ.filter (p ∘ fin.succ)).card :=
+lemma card_filter_univ_succ (p : fin (n + 1) → Prop) [decidable_pred p] :
+  (univ.filter p).card =
+    if p 0 then (univ.filter (p ∘ fin.succ)).card + 1 else (univ.filter (p ∘ fin.succ)).card :=
 (card_filter_univ_succ' p).trans (by split_ifs; simp [add_comm 1])
 
 lemma card_filter_univ_eq_vector_nth_eq_count [decidable_eq α] (a : α) (v : vector α n) :

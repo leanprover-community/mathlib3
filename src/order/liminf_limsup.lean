@@ -514,6 +514,18 @@ end complete_lattice
 
 section conditionally_complete_linear_order
 
+lemma frequently_lt_of_lt_Limsup {f : filter α} [conditionally_complete_linear_order α] {a : α}
+  (hf : f.is_cobounded (≤) . is_bounded_default) (h : a < f.Limsup) : ∃ᶠ n in f, a < n :=
+begin
+  contrapose! h,
+  simp only [not_frequently, not_lt] at h,
+  exact Limsup_le_of_le hf h,
+end
+
+lemma frequently_lt_of_Liminf_lt {f : filter α} [conditionally_complete_linear_order α] {a : α}
+  (hf : f.is_cobounded (≥) . is_bounded_default) (h : f.Liminf < a) : ∃ᶠ n in f, n < a :=
+@frequently_lt_of_lt_Limsup (order_dual α) f _ a hf h
+
 lemma eventually_lt_of_lt_liminf {f : filter α} [conditionally_complete_linear_order β]
   {u : α → β} {b : β} (h : b < liminf f u) (hu : f.is_bounded_under (≥) u . is_bounded_default) :
   ∀ᶠ a in f, b < u a :=

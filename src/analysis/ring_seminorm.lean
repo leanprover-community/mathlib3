@@ -107,9 +107,9 @@ end
 end ring_seminorm
 
 /-- The norm of a semi_normed_ring as a ring_seminorm. -/
-def seminormed_ring.to_ring_seminorm (R : Type*) [semi_normed_ring R] :
+def norm_ring_seminorm (R : Type*) [semi_normed_ring R] :
   ring_seminorm R :=
-{ to_fun    := (λ r : R, ∥r∥),
+{ to_fun    := norm,
   map_zero' := norm_zero,
   nonneg'   := norm_nonneg,
   add_le'   := norm_add_le,
@@ -183,6 +183,6 @@ def of_ring_seminorm {K : Type*} [field K] (f : ring_seminorm K)
 end ring_norm
 
 /-- The norm of a normed_ring as a ring_norm. -/
-def normed_ring.to_ring_norm (R : Type*) [normed_ring R] : ring_norm R :=
+def norm_ring_norm (R : Type*) [normed_ring R] : ring_norm R :=
 { ne_zero := λ x, norm_pos_iff.mpr,
-  ..seminormed_ring.to_ring_seminorm R }
+  ..norm_ring_seminorm R }

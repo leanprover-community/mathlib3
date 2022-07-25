@@ -53,8 +53,8 @@ local postfix `̂`:100 := uniform_space.completion
 
 namespace complex
 
-variables {E F : Type*} [normed_group E] [normed_space ℂ E] [normed_group F] [normed_space ℂ F]
-  {r R R₁ R₂ : ℝ} {n : ℕ}
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℂ E] [normed_add_comm_group F]
+  [normed_space ℂ F] {r R R₁ R₂ : ℝ} {n : ℕ}
 
 lemma exists_differentiable_on_eq_zpow_succ_smul_add_of_is_o [complete_space E] {f : ℂ → E} {c : ℂ}
   {n : ℤ} (hd : differentiable_on ℂ f (ball c R₁))

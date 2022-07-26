@@ -258,9 +258,9 @@ variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ �
   {M₁ M₂ : Type*} [topological_space M₁] [topological_space M₂]
   [add_comm_monoid M₁] [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
 
-lemma is_compact_operator.cod_restrict {f: M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f)
+lemma is_compact_operator.cod_restrict {f : M₁ → M₂} (hf : is_compact_operator f)
   {V : submodule R₂ M₂} (hV : ∀ x, f x ∈ V) (h_closed : is_closed (V : set M₂)):
-  is_compact_operator (f.cod_restrict V hV) :=
+  is_compact_operator (set.cod_restrict f V hV) :=
 let ⟨K, hK, hKf⟩ := hf in
 ⟨coe ⁻¹' K, (closed_embedding_subtype_coe h_closed).is_compact_preimage hK, hKf⟩
 
@@ -275,14 +275,14 @@ variables {R₁ R₂ R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R�
 
 /-- If a compact operator preserves a closed submodule, its restriction to that submodule is
 compact. -/
-lemma is_compact_operator.restrict_invariant {f: M₁ →ₗ[R₁] M₁} (hf : is_compact_operator f)
+lemma is_compact_operator.restrict_invariant {f : M₁ →ₗ[R₁] M₁} (hf : is_compact_operator f)
   {V : submodule R₁ M₁} (hV : ∀ v ∈ V, f v ∈ V) (h_closed : is_closed (V : set M₁)):
   is_compact_operator (f.restrict hV) :=
-(hf.comp_clm V.subtypeL).cod_restrict sorry sorry
+(hf.comp_clm V.subtypeL).cod_restrict (set_like.forall.2 hV) h_closed
 
 /-- If a compact operator preserves a complete submodule, its restriction to that submodule is
 compact. -/
-lemma is_compact_operator.restrict_invariant' [separated_space M₂] {f: M₂ →ₗ[R₂] M₂}
+lemma is_compact_operator.restrict_invariant' [separated_space M₂] {f : M₂ →ₗ[R₂] M₂}
   (hf : is_compact_operator f) {V : submodule R₂ M₂} (hV : ∀ v ∈ V, f v ∈ V)
   [hcomplete : complete_space V] : is_compact_operator (f.restrict hV) :=
 hf.restrict_invariant hV (complete_space_coe_iff_is_complete.mp hcomplete).is_closed

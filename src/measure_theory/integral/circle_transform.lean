@@ -234,7 +234,7 @@ end
 lemma circle_transform_deriv_ae_measurable {R : ℝ} (hR : 0 < R)
   (z x : ℂ) (hx : x ∈ ball z R) (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
    ae_measurable (( λ w, (λ θ, (circle_transform_deriv R z w f θ))) x)
-  (volume.restrict (Ι 0 (2 * π))):=
+  (volume.restrict (Ι 0 (2 * π))) :=
 begin
  apply continuous_on.ae_measurable ((continuous_circle_transform_deriv hR hf (hx))).continuous_on
     (measurable_set_interval_oc),
@@ -247,7 +247,7 @@ begin
   simp_rw [circle_integral_form, ←circle_transform_circle_int R z _ f,
     differentiable_on, differentiable_within_at],
   intros x hx,
-  have h4R: 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
+  have h4R : 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
   set F : ℂ → ℝ → ℂ := λ w, (λ θ, (circle_transform R z w f θ)),
   set F' : ℂ → ℝ → ℂ := λ w, circle_transform_deriv R z w f,
   have hF_meas : ∀ᶠ y in 𝓝 x, ae_strongly_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
@@ -260,7 +260,7 @@ begin
     by {simp_rw [F', _root_.ae_strongly_measurable_iff_ae_measurable],
     apply circle_transform_deriv_ae_measurable hR z x hx f hf},
   have BOU := circle_transform_deriv_bound hR hx hf,
-  obtain ⟨bound, ε, hε ,h_ball, h_boun⟩:= BOU,
+  obtain ⟨bound, ε, hε ,h_ball, h_boun⟩ := BOU,
   have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε , ∥F' y t∥ ≤ bound,
     by {apply eventually_of_forall,
     refine (λ _,(λ _, by {apply h_boun})) },
@@ -318,7 +318,7 @@ end
 
 lemma circle_transform_integrable {R : ℝ} {F : ℂ → ℂ} (hR : 0 < R) (z : ℂ)
   (F_cts : continuous_on F (sphere z R))
-  (w : ball z R): integrable (circle_transform R z w F) (volume.restrict (Ioc 0 (2*π))) :=
+  (w : ball z R) : integrable (circle_transform R z w F) (volume.restrict (Ioc 0 (2*π))) :=
 begin
   apply integrable_on.integrable,
   rw ←(interval_integrable_iff_integrable_Ioc_of_le real.two_pi_pos.le),
@@ -344,15 +344,15 @@ begin
 end
 
 lemma circle_transform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R) (f : ℂ → ℂ)
-  (z : ℂ) (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) (w : ball z R) :
-  ∀ (a : ℝ), tendsto (λ n, ((circle_transform R z w (F n))) a)
-  at_top (𝓝 (((circle_transform R z w f )) a)) :=
+  (z : ℂ) (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) (w : ball z R) (y : ℝ) :
+  tendsto (λ n, ((circle_transform R z w (F n))) y)
+  at_top (𝓝 (((circle_transform R z w f )) y)) :=
 begin
   rw metric.tendsto_uniformly_on_iff at hlim,
   simp only [metric.tendsto_nhds, dist_comm, circle_transform, one_div,
   algebra.id.smul_eq_mul, gt_iff_lt, mem_closed_ball, nat.cast_bit0, real_smul, ge_iff_le,
   nsmul_eq_mul, nat.cast_one, eventually_at_top] at *,
-  intros y ε hε,
+  intros ε hε,
   set r : ℂ := (2 * π * I : ℂ)⁻¹ * circle_map 0 R y * I * ((circle_map z R y - ↑w)⁻¹),
   have hr : 0 < ∥ r ∥,
   by {simp only [r, norm_eq_abs, abs_mul, abs_inv, abs_two, abs_of_real, abs_I, mul_one,

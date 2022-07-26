@@ -777,8 +777,6 @@ end
 
 
 
-
-
 end inf_components
 
 section ends
@@ -1020,12 +1018,10 @@ begin
   { exact finset.insert_nonempty v K, },
   { rintros L KvsubL,
     by_contradiction notinj,
-    have lol := @fintype.card_lt_of_surjective_not_injective _ _ (all_fin L) (all_fin Kv) (bwd_map G KvsubL) (bwd_map_surjective G KvsubL) notinj,
-    have lol2 := @fintype.card_le_of_surjective _ _ (all_fin Kv) (all_fin K) (bwd_map G KsubKv) (bwd_map_surjective G KsubKv),
-    have lol3 := lt_of_le_of_lt lol2 lol,
-    have lol4 := Kmax L,
-    have lol5 := lol4.not_lt,
-    --exact lol5 lol3, -- it's not happy!
+    have Kv_lt_L := @fintype.card_lt_of_surjective_not_injective _ _ (all_fin L) (all_fin Kv) (bwd_map G KvsubL) (bwd_map_surjective G KvsubL) notinj,
+    have K_le_Kv := @fintype.card_le_of_surjective _ _ (all_fin Kv) (all_fin K) (bwd_map G KsubKv) (bwd_map_surjective G KsubKv),
+    have K_lt_L := lt_of_le_of_lt K_le_Kv Kv_lt_L,
+    --exact (Kmax L).not_lt K_lt_L,
     sorry
   },
 
@@ -1105,9 +1101,9 @@ lemma HopfFreudenthal [locally_finite G] [G.preconnected]
 begin
   by_contradiction h,
   have many_ends : 3 ≤ (fintype.card (ends G)) := (nat.succ_le_iff.mpr (not_le.mp h)),
-  rcases @finite_ends_to_inj V G _ (sorry) _ _ with ⟨K,Knempty,Kinj⟩,
+  rcases @finite_ends_to_inj V G _ (sorry) _ _ (sorry) with ⟨K,Knempty,Kinj⟩,
 
-  have : fintype.card ↥(G.inf_components K) ≥ 3, by {
+  have : @fintype.card ↥(G.inf_components K)  ≥ 3, by {
     have := fintype.card_le_of_injective (eval G K) (eval_injective G K Kinj),
     exact many_ends.trans this,
   },

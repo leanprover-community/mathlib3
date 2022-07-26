@@ -231,10 +231,8 @@ begin
   by_cases hmax' : is_max (succ (succ^[k] x)),
   { rw succ_eq_iff_is_max.2 hmax' at hxy ⊢,
     exact ih (le_trans (le_succ _) hy) hxy },
-  refine lt_trans (ih (le_trans (le_succ _) hy) _) _,
-  { refine lt_of_le_of_lt (le_succ_iterate k _) _,
-    rw lt_succ_iff_not_is_max,
-    exact hmax },
+  refine lt_trans (ih (le_trans (le_succ _) hy)
+    (lt_of_le_of_lt (le_succ_iterate k _) (lt_succ_iff_not_is_max.2 hmax))) _,
   rw [← function.comp_apply succ, ← function.iterate_succ'],
   refine hψ _ (lt_of_lt_of_le _ hy),
   rwa [function.iterate_succ', function.comp_apply, lt_succ_iff_not_is_max],

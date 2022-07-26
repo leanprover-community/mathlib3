@@ -555,7 +555,7 @@ lemma has_basis.inf_principal_ne_bot_iff (hl : l.has_basis p s) {t : set α} :
   ne_bot (l ⊓ 𝓟 t) ↔ ∀ ⦃i⦄ (hi : p i), (s i ∩ t).nonempty :=
 (hl.inf_principal t).ne_bot_iff
 
-lemma has_basis.disjoint_basis_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+lemma has_basis.disjoint_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   disjoint l l' ↔ ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
 not_iff_not.mp $ by simp only [disjoint_iff, ← ne.def, ← ne_bot_iff, hl.inf_basis_ne_bot_iff hl',
   not_exists, bot_eq_empty, ne_empty_iff_nonempty, inf_eq_inter]

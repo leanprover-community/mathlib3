@@ -77,24 +77,24 @@ by rw [hT x y, inner_conj_sym]
   ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
-lemma is_self_adjoint_zero : is_self_adjoint (0 : E →ₗ[𝕜] E) :=
+lemma is_symmetric_zero : (0 : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, (inner_zero_right : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left : ⟪0, y⟫ = 0)
 
-lemma is_self_adjoint_id : is_self_adjoint (linear_map.id : E →ₗ[𝕜] E) :=
+lemma is_symmetric_id : (linear_map.id : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, rfl
 
-lemma is_self_adjoint.add {T S : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
-  (hS : is_self_adjoint S) : is_self_adjoint (T + S) :=
+lemma is_symmetric.add {T S : E →ₗ[𝕜] E} (hT : T.is_symmetric) (hS : S.is_symmetric) :
+  (T + S).is_symmetric :=
 begin
   intros x y,
   rw [linear_map.add_apply, inner_add_left, hT x y, hS x y, ← inner_add_right],
   refl
 end
 
-/-- The orthogonal projection is self-adjoint. -/
-lemma orthogonal_projection_is_self_adjoint [complete_space E] (U : submodule 𝕜 E)
+/-- The orthogonal projection is symmetric. -/
+lemma _root_.orthogonal_projection_is_symmetric [complete_space E] (U : submodule 𝕜 E)
   [complete_space U] :
-  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U : E →ₗ[𝕜] E):=
+  (U.subtypeL ∘L orthogonal_projection U : E →ₗ[𝕜] E).is_symmetric :=
 inner_orthogonal_projection_left_eq_right U
 
 /-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
@@ -115,7 +115,7 @@ begin
   exact hu.sub_const _,
 end
 
-/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
+/-- For a symmetric operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
 @[simp] lemma is_symmetric.coe_re_apply_inner_self_apply
   {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E)) (x : E) :
   (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
@@ -127,8 +127,8 @@ begin
   exact hT.conj_inner_sym x x
 end
 
-/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
-self-adjoint. -/
+/-- If a symmetric operator preserves a submodule, its restriction to that submodule is
+symmetric. -/
 lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric T)
   {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
   is_symmetric (T.restrict hV) :=
@@ -146,7 +146,7 @@ section complex
 variables {V : Type*}
   [inner_product_space ℂ V]
 
-/-- A linear operator on a complex inner product space is self-adjoint precisely when
+/-- A linear operator on a complex inner product space is symmetric precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/
 lemma is_symmetric_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
   is_symmetric T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
@@ -272,41 +272,6 @@ begin
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end
 
-@[simp] lemma is_self_adjoint_iff_adjoint_eq (A : E →L[𝕜] E) :
-  is_self_adjoint (A : E →ₗ[𝕜] E) ↔ A† = A :=
-by simp_rw [is_self_adjoint, coe_coe, ← eq_adjoint_iff, eq_comm]
-
-lemma _root_.inner_product_space.is_self_adjoint.adjoint_eq {A : E →L[𝕜] E}
-  (hA : is_self_adjoint (A : E →ₗ[𝕜] E)) : A† = A :=
-by rwa is_self_adjoint_iff_adjoint_eq at hA
-
-lemma _root_.inner_product_space.is_self_adjoint.conj_adjoint {T : E →L[𝕜] E}
-  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (S : E →L[𝕜] F) :
-  is_self_adjoint (S ∘L T ∘L S† : F →ₗ[𝕜] F) :=
-begin
-  intros x y,
-  rw [coe_coe, comp_apply, comp_apply, ← adjoint_inner_right, ← coe_coe, hT, coe_coe,
-      adjoint_inner_left],
-  refl
-end
-
-lemma _root_.inner_product_space.is_self_adjoint.adjoint_conj {T : E →L[𝕜] E}
-  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (S : F →L[𝕜] E) :
-  is_self_adjoint (S† ∘L T ∘L S : F →ₗ[𝕜] F) :=
-begin
-  convert hT.conj_adjoint (S†),
-  rw adjoint_adjoint
-end
-
-lemma _root_.inner_product_space.is_self_adjoint.conj_orthogonal_projection {T : E →L[𝕜] E}
-  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (U : submodule 𝕜 E) [complete_space U] :
-  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
-    orthogonal_projection U : E →ₗ[𝕜] E) :=
-begin
-  have := hT.conj_adjoint (U.subtypeL ∘L orthogonal_projection U),
-  rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this
-end
-
 lemma _root_.submodule.adjoint_subtypeL (U : submodule 𝕜 E)
   [complete_space U] :
   (U.subtypeL)† = orthogonal_projection U :=
@@ -377,17 +342,55 @@ lemma is_self_adjoint_iff {A : E →L[𝕜] E} : A.is_self_adjoint ↔
 
 namespace is_self_adjoint
 
+lemma adjoint_eq {A : E →L[𝕜] E} (hA : A.is_self_adjoint) : A.adjoint = A := hA
+
 /-- Every self-adjoint operator on an inner product space is symmetric. -/
 lemma is_symmetric {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
   (A : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, by rw_mod_cast [←adjoint_inner_right, is_self_adjoint_iff.mp hA]
 
-end is_self_adjoint
+lemma conj_adjoint {T : E →L[𝕜] E} (hT : T.is_self_adjoint) (S : E →L[𝕜] F) :
+  (S ∘L T ∘L S†).is_self_adjoint :=
+begin
+  rw is_self_adjoint_iff at ⊢ hT,
+  simp only [hT, adjoint_comp, adjoint_adjoint],
+  exact continuous_linear_map.comp_assoc _ _ _,
+end
 
-lemma is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
+lemma adjoint_conj {T : E →L[𝕜] E} (hT : T.is_self_adjoint) (S : F →L[𝕜] E) :
+  (S† ∘L T ∘L S).is_self_adjoint :=
+begin
+  rw is_self_adjoint_iff at ⊢ hT,
+  simp only [hT, adjoint_comp, adjoint_adjoint],
+  exact continuous_linear_map.comp_assoc _ _ _,
+end
+
+lemma _root_.continuous_linear_map.is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
   A.is_self_adjoint ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
 ⟨λ hA, hA.is_symmetric, λ hA, ext $ λ x, inner_product_space.ext_inner_right 𝕜 $
   λ y, (A.adjoint_inner_left y x).symm ▸ (hA x y).symm⟩
+
+lemma _root_.linear_map.is_symmetric.is_self_adjoint {A : E →L[𝕜] E}
+  (hA : (A : E →ₗ[𝕜] E).is_symmetric) : A.is_self_adjoint :=
+by rwa ←is_self_adjoint_iff_is_symmetric at hA
+
+/-- The orthogonal projection is self-adjoint. -/
+lemma _root_.orthogonal_projection_is_self_adjoint (U : submodule 𝕜 E)
+  [complete_space U] :
+  (U.subtypeL ∘L orthogonal_projection U).is_self_adjoint :=
+(orthogonal_projection_is_symmetric U).is_self_adjoint
+
+lemma conj_orthogonal_projection {T : E →L[𝕜] E}
+  (hT : T.is_self_adjoint) (U : submodule 𝕜 E) [complete_space U] :
+  (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
+    orthogonal_projection U).is_self_adjoint :=
+begin
+  rw ←continuous_linear_map.comp_assoc,
+  nth_rewrite 0 ←(orthogonal_projection_is_self_adjoint U).adjoint_eq,
+  refine hT.adjoint_conj _,
+end
+
+end is_self_adjoint
 
 end continuous_linear_map
 

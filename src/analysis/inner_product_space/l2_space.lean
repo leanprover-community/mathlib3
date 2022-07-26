@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.lp_space
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Hilbert sum of a family of inner product spaces
@@ -403,6 +404,22 @@ protected lemma tsum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   ∑' i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
 (b.has_sum_inner_mul_inner x y).tsum_eq
 
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) p` with
+-- `pi_Lp p (λ i : ι, 𝕜)` (in this case with `p = 2`), but we don't have this yet (July 2022).
+/-- A finite Hilbert basis is an orthonormal basis. -/
+protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
+  orthonormal_basis ι 𝕜 E :=
+orthonormal_basis.mk b.orthonormal
+begin
+  have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
+  simpa only [finset.coe_image, finset.coe_univ, set.image_univ, hilbert_basis.dense_span] using
+    this.submodule_topological_closure_eq.symm
+end
+
+@[simp] lemma coe_to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
+  (b.to_orthonormal_basis : ι → E) = b :=
+orthonormal_basis.coe_mk _ _
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 
@@ -436,6 +453,19 @@ hilbert_basis.mk hv
 hilbert_basis.coe_mk hv _
 
 omit hv
+
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) p` with
+-- `pi_Lp p (λ i : ι, 𝕜)` (in this case with `p = 2`), but we don't have this yet (July 2022).
+/-- An orthonormal basis is an Hilbert basis. -/
+protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthonormal_basis ι 𝕜 E) :
+  hilbert_basis ι 𝕜 E :=
+hilbert_basis.mk b.orthonormal $
+by simpa only [← orthonormal_basis.coe_to_basis, b.to_basis.span_eq, eq_top_iff]
+  using @subset_closure E _ _
+
+@[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]
+  (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=
+hilbert_basis.coe_mk _ _
 
 /-- A Hilbert space admits a Hilbert basis extending a given orthonormal subset. -/
 lemma _root_.orthonormal.exists_hilbert_basis_extension

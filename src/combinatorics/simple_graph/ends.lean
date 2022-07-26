@@ -391,8 +391,17 @@ def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
   ∀ x y ∈ D, c_o G K x y :=
 λ x xD y yD, connected_outside.monotone G K_sub_L x y (component.is_c_o G L D D_comp x xD y yD)
 
-def extend_conn_to_finite_comps [locally_finite G]
-  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ K ) :
+
+
+lemma conn_adj_conn_to_conn {X Y : set V}
+    (Xconn : ∀ x y ∈ X, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X )
+    (Yconn : ∀ x y ∈ Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ Y )
+    (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) :
+     ∀ x y ∈ X∪Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X∪Y := sorry
+
+
+def extend_conn_to_finite_comps [locally_finite G] [Knempty : K.nonempty]
+  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
   {K' : finset V | K ⊆ K'
                  ∧ (∀ x y ∈ K', ∃ w : G.walk x y, w.support.to_finset ⊆ K')
                  ∧ (∀ C : components G K', C.val.infinite)
@@ -411,8 +420,31 @@ begin
   split,
   { exact finset.subset_union_left _ _,},
   { split,
-    {sorry},
-    {sorry},
+    { rintros x xK' y yK',
+      rcases xK' with xK | ⟨C,⟨Ccomp,Cfin⟩,xC⟩,
+      { rcases yK' with yK | ⟨D,⟨Dcomp,Dfin⟩,yD⟩,
+        { rcases (Kconn x xK y yK) with ⟨w,wK⟩,
+          use w,
+          exact wK.trans (finset.subset_union_left _ _),
+        },
+        {
+          let Dconn := component.is_connected G K D Dcomp,
+          let d := component.to_bdry_point G K (sorry) ⟨D,Dcomp⟩,
+          rcases component.to_bdry_point_spec G K (sorry) ⟨D,Dcomp⟩ with ⟨k,kK,dD,adj⟩,
+          --rcases conn_adj_conn_to_conn G K D Kconn Dconn adj x xK y yD,
+          sorry,
+        },
+      },
+      { rcases yK' with yK | ⟨D,Dfin,yD⟩,
+        {sorry},
+        {sorry},
+      },
+    },
+    { rintros C CcompK',
+      by_contradiction Cfin,
+      rw set.not_infinite at Cfin,
+      sorry, -- and then what?!
+    },
   }
 
 end

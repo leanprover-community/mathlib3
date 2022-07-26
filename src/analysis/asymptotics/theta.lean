@@ -23,9 +23,9 @@ variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {R : Type*} {R' : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 variables [has_norm E] [has_norm F] [has_norm G]
-variables [semi_normed_group E'] [semi_normed_group F'] [semi_normed_group G']
-variables [normed_group E''] [normed_group F''] [normed_group G'']
-variables [semi_normed_ring R] [semi_normed_ring R']
+variables [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
+  [seminormed_add_comm_group G'] [normed_add_comm_group E''] [normed_add_comm_group F'']
+  [normed_add_comm_group G''] [semi_normed_ring R] [semi_normed_ring R']
 variables [normed_field 𝕜] [normed_field 𝕜']
 variables {c c' c₁ c₂ : ℝ} {f : α → E} {g : α → F} {k : α → G}
 variables {f' : α → E'} {g' : α → F'} {k' : α → G'}
@@ -40,7 +40,8 @@ notation f ` =Θ[`:100 l `] ` g:100 := is_Theta l f g
 
 lemma is_O.antisymm (h₁ : f =O[l] g) (h₂ : g =O[l] f) : f =Θ[l] g := ⟨h₁, h₂⟩
 
-@[refl] lemma is_Theta_refl : f =Θ[l] f := ⟨is_O_refl _ _, is_O_refl _ _⟩
+@[refl] lemma is_Theta_refl (f : α → E) (l : filter α) : f =Θ[l] f := ⟨is_O_refl _ _, is_O_refl _ _⟩
+lemma is_Theta_rfl : f =Θ[l] f := is_Theta_refl _ _
 @[symm] lemma is_Theta.symm (h : f =Θ[l] g) : g =Θ[l] f := h.symm
 
 lemma is_Theta_comm : f =Θ[l] g ↔ g =Θ[l] f := ⟨λ h, h.symm, λ h, h.symm⟩
@@ -64,6 +65,27 @@ h₁.trans_is_O h₂.1
 @[trans] lemma is_Theta.trans_is_o {f : α → E} {g : α → F'} {k : α → G} (h₁ : f =Θ[l] g)
   (h₂ : g =o[l] k) : f =o[l] k :=
 h₁.1.trans_is_o h₂
+
+@[trans] lemma is_Theta.trans_eventually_eq {f : α → E} {g₁ g₂ : α → F} (h : f =Θ[l] g₁)
+  (hg : g₁ =ᶠ[l] g₂) : f =Θ[l] g₂ :=
+⟨h.1.trans_eventually_eq hg, hg.symm.trans_is_O h.2⟩
+
+@[trans] lemma _root_.filter.eventually_eq.trans_is_Theta {f₁ f₂ : α → E} {g : α → F}
+  (hf : f₁ =ᶠ[l] f₂) (h : f₂ =Θ[l] g) : f₁ =Θ[l] g :=
+⟨hf.trans_is_O h.1, h.2.trans_eventually_eq hf.symm⟩
+
+@[simp] lemma is_Theta_norm_left : (λ x, ∥f' x∥) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
+@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ∥g' x∥) ↔ f =Θ[l] g' := by simp [is_Theta]
+
+alias is_Theta_norm_left ↔ is_Theta.of_norm_left is_Theta.norm_left
+alias is_Theta_norm_right ↔ is_Theta.of_norm_right is_Theta.norm_right
+
+lemma is_Theta_of_norm_eventually_eq (h : (λ x, ∥f x∥) =ᶠ[l] (λ x, ∥g x∥)) : f =Θ[l] g :=
+⟨is_O.of_bound 1 $ by simpa only [one_mul] using h.le,
+  is_O.of_bound 1 $ by simpa only [one_mul] using h.symm.le⟩
+
+lemma is_Theta_of_norm_eventually_eq' {g : α → ℝ} (h : (λ x, ∥f' x∥) =ᶠ[l] g) : f' =Θ[l] g :=
+is_Theta_of_norm_eventually_eq $ h.mono $ λ x hx, by simp only [← hx, norm_norm]
 
 lemma is_Theta.is_o_congr_left (h : f' =Θ[l] g') : f' =o[l] k ↔ g' =o[l] k :=
 ⟨h.symm.trans_is_o, h.trans_is_o⟩
@@ -115,6 +137,10 @@ lemma is_Theta.inv {f : α → 𝕜} {g : α → 𝕜'} (h : f =Θ[l] g) : (λ x
   (λ x, (f x)⁻¹) =Θ[l] (λ x, (g x)⁻¹) ↔ f =Θ[l] g :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, is_Theta.inv⟩
 
+lemma is_Theta.div {f₁ f₂ : α → 𝕜} {g₁ g₂ : α → 𝕜'} (h₁ : f₁ =Θ[l] g₁) (h₂ : f₂ =Θ[l] g₂) :
+  (λ x, f₁ x / f₂ x) =Θ[l] (λ x, g₁ x / g₂ x) :=
+by simpa only [div_eq_mul_inv] using h₁.mul h₂.inv
+
 lemma is_Theta.pow {f : α → 𝕜} {g : α → 𝕜'} (h : f =Θ[l] g) (n : ℕ) :
   (λ x, (f x) ^ n) =Θ[l] (λ x, (g x) ^ n) :=
 ⟨h.1.pow n, h.2.pow n⟩
@@ -145,28 +171,24 @@ lemma is_Theta_const_smul_left [normed_space 𝕜 E'] {c : 𝕜} (hc : c ≠ 0) 
   (λ x, c • f' x) =Θ[l] g ↔ f' =Θ[l] g :=
 and_congr (is_O_const_smul_left hc) (is_O_const_smul_right hc)
 
-alias is_Theta_const_smul_left ↔ asymptotics.is_Theta.of_const_smul_left
-  asymptotics.is_Theta.const_smul_left
+alias is_Theta_const_smul_left ↔ is_Theta.of_const_smul_left is_Theta.const_smul_left
 
 lemma is_Theta_const_smul_right [normed_space 𝕜 F'] {c : 𝕜} (hc : c ≠ 0) :
   f =Θ[l] (λ x, c • g' x) ↔ f =Θ[l] g' :=
 and_congr (is_O_const_smul_right hc) (is_O_const_smul_left hc)
 
-alias is_Theta_const_smul_right ↔ asymptotics.is_Theta.of_const_smul_right
-  asymptotics.is_Theta.const_smul_right
+alias is_Theta_const_smul_right ↔ is_Theta.of_const_smul_right is_Theta.const_smul_right
 
 lemma is_Theta_const_mul_left {c : 𝕜} {f : α → 𝕜} (hc : c ≠ 0) :
   (λ x, c * f x) =Θ[l] g ↔ f =Θ[l] g :=
 by simpa only [← smul_eq_mul] using is_Theta_const_smul_left hc
 
-alias is_Theta_const_mul_left ↔ asymptotics.is_Theta.of_const_mul_left
-  asymptotics.is_Theta.const_mul_left
+alias is_Theta_const_mul_left ↔ is_Theta.of_const_mul_left is_Theta.const_mul_left
 
 lemma is_Theta_const_mul_right {c : 𝕜} {g : α → 𝕜} (hc : c ≠ 0) :
   f =Θ[l] (λ x, c * g x) ↔ f =Θ[l] g :=
 by simpa only [← smul_eq_mul] using is_Theta_const_smul_right hc
 
-alias is_Theta_const_mul_right ↔ asymptotics.is_Theta.of_const_mul_right
-  asymptotics.is_Theta.const_mul_right
+alias is_Theta_const_mul_right ↔ is_Theta.of_const_mul_right is_Theta.const_mul_right
 
 end asymptotics

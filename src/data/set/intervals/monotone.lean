@@ -97,7 +97,7 @@ end
 
 section Ixx
 
-variables {α β : Type*} [preorder α] [preorder β] {f g : α → β}
+variables {α β : Type*} [preorder α] [preorder β] {f g : α → β} {s : set α}
 
 lemma antitone_Ici : antitone (Ici : α → set α) := λ _ _, Ici_subset_Ici.2
 
@@ -110,57 +110,113 @@ lemma monotone_Iio : monotone (Iio : α → set α) := λ _ _, Iio_subset_Iio
 protected lemma monotone.Ici (hf : monotone f) : antitone (λ x, Ici (f x)) :=
 antitone_Ici.comp_monotone hf
 
+protected lemma monotone_on.Ici (hf : monotone_on f s) : antitone_on (λ x, Ici (f x)) s :=
+antitone_Ici.comp_monotone_on hf
+
 protected lemma antitone.Ici (hf : antitone f) : monotone (λ x, Ici (f x)) :=
 antitone_Ici.comp hf
+
+protected lemma antitone_on.Ici (hf : antitone_on f s) : monotone_on (λ x, Ici (f x)) s :=
+antitone_Ici.comp_antitone_on hf
 
 protected lemma monotone.Iic (hf : monotone f) : monotone (λ x, Iic (f x)) :=
 monotone_Iic.comp hf
 
+protected lemma monotone_on.Iic (hf : monotone_on f s) : monotone_on (λ x, Iic (f x)) s :=
+monotone_Iic.comp_monotone_on hf
+
 protected lemma antitone.Iic (hf : antitone f) : antitone (λ x, Iic (f x)) :=
 monotone_Iic.comp_antitone hf
+
+protected lemma antitone_on.Iic (hf : antitone_on f s) : antitone_on (λ x, Iic (f x)) s :=
+monotone_Iic.comp_antitone_on hf
 
 protected lemma monotone.Ioi (hf : monotone f) : antitone (λ x, Ioi (f x)) :=
 antitone_Ioi.comp_monotone hf
 
+protected lemma monotone_on.Ioi (hf : monotone_on f s) : antitone_on (λ x, Ioi (f x)) s :=
+antitone_Ioi.comp_monotone_on hf
+
 protected lemma antitone.Ioi (hf : antitone f) : monotone (λ x, Ioi (f x)) :=
 antitone_Ioi.comp hf
+
+protected lemma antitone_on.Ioi (hf : antitone_on f s) : monotone_on (λ x, Ioi (f x)) s :=
+antitone_Ioi.comp_antitone_on hf
 
 protected lemma monotone.Iio (hf : monotone f) : monotone (λ x, Iio (f x)) :=
 monotone_Iio.comp hf
 
+protected lemma monotone_on.Iio (hf : monotone_on f s) : monotone_on (λ x, Iio (f x)) s :=
+monotone_Iio.comp_monotone_on hf
+
 protected lemma antitone.Iio (hf : antitone f) : antitone (λ x, Iio (f x)) :=
 monotone_Iio.comp_antitone hf
 
+protected lemma antitone_on.Iio (hf : antitone_on f s) : antitone_on (λ x, Iio (f x)) s :=
+monotone_Iio.comp_antitone_on hf
+
 protected lemma monotone.Icc (hf : monotone f) (hg : antitone g) :
   antitone (λ x, Icc (f x) (g x)) :=
+hf.Ici.inter hg.Iic
+
+protected lemma monotone_on.Icc (hf : monotone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, Icc (f x) (g x)) s :=
 hf.Ici.inter hg.Iic
 
 protected lemma antitone.Icc (hf : antitone f) (hg : monotone g) :
   monotone (λ x, Icc (f x) (g x)) :=
 hf.Ici.inter hg.Iic
 
+protected lemma antitone_on.Icc (hf : antitone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, Icc (f x) (g x)) s :=
+hf.Ici.inter hg.Iic
+
 protected lemma monotone.Ico (hf : monotone f) (hg : antitone g) :
   antitone (λ x, Ico (f x) (g x)) :=
+hf.Ici.inter hg.Iio
+
+protected lemma monotone_on.Ico (hf : monotone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, Ico (f x) (g x)) s :=
 hf.Ici.inter hg.Iio
 
 protected lemma antitone.Ico (hf : antitone f) (hg : monotone g) :
   monotone (λ x, Ico (f x) (g x)) :=
 hf.Ici.inter hg.Iio
 
+protected lemma antitone_on.Ico (hf : antitone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, Ico (f x) (g x)) s :=
+hf.Ici.inter hg.Iio
+
 protected lemma monotone.Ioc (hf : monotone f) (hg : antitone g) :
   antitone (λ x, Ioc (f x) (g x)) :=
+hf.Ioi.inter hg.Iic
+
+protected lemma monotone_on.Ioc (hf : monotone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, Ioc (f x) (g x)) s :=
 hf.Ioi.inter hg.Iic
 
 protected lemma antitone.Ioc (hf : antitone f) (hg : monotone g) :
   monotone (λ x, Ioc (f x) (g x)) :=
 hf.Ioi.inter hg.Iic
 
+protected lemma antitone_on.Ioc (hf : antitone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, Ioc (f x) (g x)) s :=
+hf.Ioi.inter hg.Iic
+
 protected lemma monotone.Ioo (hf : monotone f) (hg : antitone g) :
   antitone (λ x, Ioo (f x) (g x)) :=
 hf.Ioi.inter hg.Iio
 
+protected lemma monotone_on.Ioo (hf : monotone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, Ioo (f x) (g x)) s :=
+hf.Ioi.inter hg.Iio
+
 protected lemma antitone.Ioo (hf : antitone f) (hg : monotone g) :
   monotone (λ x, Ioo (f x) (g x)) :=
+hf.Ioi.inter hg.Iio
+
+protected lemma antitone_on.Ioo (hf : antitone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, Ioo (f x) (g x)) s :=
 hf.Ioi.inter hg.Iio
 
 end Ixx

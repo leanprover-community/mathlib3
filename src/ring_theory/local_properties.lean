@@ -11,6 +11,7 @@ import ring_theory.localization.away
 import ring_theory.localization.integer
 import ring_theory.localization.submodule
 import ring_theory.nilpotent
+import ring_theory.ring_hom_properties
 
 /-!
 # Local properties of commutative rings
@@ -20,9 +21,10 @@ In this file, we provide the proofs of various local properties.
 ## Naming Conventions
 
 * `localization_P` : `P` holds for `S⁻¹R` if `P` holds for `R`.
-* `P_of_localization_maximal` : `P` holds for `R` if `P` holds for `Aₘ` for all maximal `m`.
+* `P_of_localization_maximal` : `P` holds for `R` if `P` holds for `Rₘ` for all maximal `m`.
+* `P_of_localization_prime` : `P` holds for `R` if `P` holds for `Rₘ` for all prime `m`.
 * `P_of_localization_span` : `P` holds for `R` if given a spanning set `{fᵢ}`, `P` holds for all
-  `A_{fᵢ}`.
+  `R_{fᵢ}`.
 
 ## Main results
 
@@ -75,10 +77,10 @@ include P
 /-- A property `P` of ring homs is said to be preserved by localization
  if `P` holds for `M⁻¹R →+* M⁻¹S` whenever `P` holds for `R →+* S`. -/
 def ring_hom.localization_preserves :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S) (M : by exactI submonoid R)
+  ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S) (M : by exactI submonoid R)
     (R' S' : Type u) [comm_ring R'] [comm_ring S'] [by exactI algebra R R']
     [by exactI algebra S S'] [by exactI is_localization M R']
-    [by exactI is_localization (M.map (f : R →* S)) S'],
+    [by exactI is_localization (M.map f) S'],
     by exactI (P f → P (is_localization.map S' f (submonoid.le_comap_map M) : R' →+* S'))
 
 /-- A property `P` of ring homs satisfies `ring_hom.of_localization_finite_span`
@@ -88,7 +90,7 @@ if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spa
 Note that this is equivalent to `ring_hom.of_localization_span` via
 `ring_hom.of_localization_span_iff_finite`, but this is easier to prove. -/
 def ring_hom.of_localization_finite_span :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
     (s : finset R) (hs : by exactI ideal.span (s : set R) = ⊤)
     (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
 
@@ -99,9 +101,39 @@ if `P` holds for `R →+* S` whenever there exists a set `{ r }` that spans `R` 
 Note that this is equivalent to `ring_hom.of_localization_finite_span` via
 `ring_hom.of_localization_span_iff_finite`, but this has less restrictions when applying. -/
 def ring_hom.of_localization_span :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
     (s : set R) (hs : by exactI ideal.span s = ⊤)
     (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
+
+/-- A property `P` of ring homs satisfies `ring_hom.holds_for_localization_away`
+ if `P` holds for each localization map `R →+* Rᵣ`. -/
+def ring_hom.holds_for_localization_away : Prop :=
+∀ ⦃R : Type u⦄ (S : Type u) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
+  [by exactI is_localization.away r S], by exactI P (algebra_map R S)
+
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
+if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spans `S` such that
+`P` holds for `R →+* Sᵣ`. -/
+def ring_hom.of_localization_span_target : Prop :=
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  (s : set S) (hs : by exactI ideal.span s = ⊤)
+  (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
+  by exactI P f
+
+/-- A property `P` of ring homs satisfies `of_localization_prime` if
+  if `P` holds for `R` whenever `P` holds for `Rₘ` for all prime ideals `p`. -/
+def ring_hom.of_localization_prime : Prop :=
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
+  by exactI (∀ (J : ideal S) (hJ : J.is_prime),
+    by exactI P (localization.local_ring_hom _ J f rfl)) → P f
+
+/-- A property of ring homs is local if it is preserved by localizations and compositions, and for
+each `{ r }` that spans `S`, we have `P (R →+* S) ↔ ∀ r, P (R →+* Sᵣ)`. -/
+structure ring_hom.property_is_local : Prop :=
+(localization_preserves : ring_hom.localization_preserves @P)
+(of_localization_span_target : ring_hom.of_localization_span_target @P)
+(stable_under_composition : ring_hom.stable_under_composition @P)
+(holds_for_localization_away : ring_hom.holds_for_localization_away @P)
 
 lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
@@ -118,16 +150,43 @@ end
 
 variables {P f R' S'}
 
+lemma _root_.ring_hom.property_is_local.respects_iso (hP : ring_hom.property_is_local @P) :
+  ring_hom.respects_iso @P :=
+begin
+  apply hP.stable_under_composition.respects_iso,
+  introv,
+  resetI,
+  letI := e.to_ring_hom.to_algebra,
+  apply_with hP.holds_for_localization_away { instances := ff },
+  apply is_localization.away_of_is_unit_of_bijective _ is_unit_one,
+  exact e.bijective
+end
+
 -- Almost all arguments are implicit since this is not intended to use mid-proof.
-lemma ring_hom.localization_away_of_localization_preserves
-  (H : ring_hom.localization_preserves @P) {r : R} [is_localization.away r R']
+lemma ring_hom.localization_preserves.away
+  (H : ring_hom.localization_preserves @P) (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : P f) :
     P (by exactI is_localization.away.map R' S' f r) :=
 begin
   resetI,
-  haveI : is_localization ((submonoid.powers r).map (f : R →* S)) S',
+  haveI : is_localization ((submonoid.powers r).map f) S',
   { rw submonoid.map_powers, assumption },
   exact H f (submonoid.powers r) R' S' hf,
+end
+
+lemma ring_hom.property_is_local.of_localization_span (hP : ring_hom.property_is_local @P) :
+  ring_hom.of_localization_span @P :=
+begin
+  introv R hs hs',
+  resetI,
+  apply_fun (ideal.map f) at hs,
+  rw [ideal.map_span, ideal.map_top] at hs,
+  apply hP.of_localization_span_target _ _ hs,
+  rintro ⟨_, r, hr, rfl⟩,
+  have := hs' ⟨r, hr⟩,
+  convert hP.stable_under_composition _ _ (hP.holds_for_localization_away (localization.away r) r)
+    (hs' ⟨r, hr⟩) using 1,
+  exact (is_localization.map_comp _).symm
 end
 
 end ring_hom
@@ -224,6 +283,41 @@ end
 
 end reduced
 
+section surjective
+
+lemma localization_preserves_surjective :
+  ring_hom.localization_preserves (λ R S _ _ f, function.surjective f) :=
+begin
+  introv R H x,
+  resetI,
+  obtain ⟨x, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective (M.map f) x,
+  obtain ⟨y, rfl⟩ := H x,
+  use is_localization.mk' R' y ⟨s, hs⟩,
+  rw is_localization.map_mk',
+  refl,
+end
+
+lemma surjective_of_localization_span :
+  ring_hom.of_localization_span (λ R S _ _ f, function.surjective f) :=
+begin
+  introv R e H,
+  rw [← set.range_iff_surjective, set.eq_univ_iff_forall],
+  resetI,
+  letI := f.to_algebra,
+  intro x,
+  apply submodule.mem_of_span_eq_top_of_smul_pow_mem (algebra.of_id R S).to_linear_map.range s e,
+  intro r,
+  obtain ⟨a, e'⟩ := H r (algebra_map _ _ x),
+  obtain ⟨b, ⟨_, n, rfl⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers (r : R)) a,
+  erw is_localization.map_mk' at e',
+  rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, subtype.coe_mk, subtype.coe_mk, ← map_mul] at e',
+  obtain ⟨⟨_, n', rfl⟩, e''⟩ := (is_localization.eq_iff_exists (submonoid.powers (f r)) _).mp e',
+  rw [subtype.coe_mk, mul_assoc, ← map_pow, ← map_mul, ← map_mul, ← pow_add, mul_comm] at e'',
+  exact ⟨n + n', _, e''.symm⟩
+end
+
+end surjective
+
 section finite
 
 /-- If `S` is a finite `R`-algebra, then `S' = M⁻¹S` is a finite `R' = M⁻¹R`-algebra. -/
@@ -249,7 +343,7 @@ begin
 
   -- By the hypotheses, for each `x : S'`, we have `x = y / (f r)` for some `y : S` and `r : M`.
   -- Since `S` is generated by `T`, the image of `y` should fall in the span of the image of `T`.
-  obtain ⟨y, ⟨_, ⟨r, hr, rfl⟩⟩, rfl⟩ := is_localization.mk'_surjective (M.map (f : R →* S)) x,
+  obtain ⟨y, ⟨_, ⟨r, hr, rfl⟩⟩, rfl⟩ := is_localization.mk'_surjective (M.map f) x,
   rw [is_localization.mk'_eq_mul_mk'_one, mul_comm, finset.coe_image],
   have hy : y ∈ submodule.span R ↑T, by { rw hT, trivial },
   replace hy : algebra_map S S' y ∈ submodule.map fₐ.to_linear_map (submodule.span R T) :=
@@ -271,7 +365,7 @@ end
 lemma localization_away_map_finite (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : f.finite) :
     (is_localization.away.map R' S' f r).finite :=
-ring_hom.localization_away_of_localization_preserves @localization_finite hf
+localization_finite.away r hf
 
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.
@@ -323,6 +417,7 @@ lemma multiple_mem_span_of_mem_localization_span [algebra R' S] [algebra R S]
   (s : set S) (x : S) (hx : x ∈ submodule.span R' s) :
     ∃ t : M, t • x ∈ submodule.span R s :=
 begin
+  classical,
   obtain ⟨s', hss', hs'⟩ := submodule.mem_span_finite_of_mem_span hx,
   suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
   { obtain ⟨t, ht⟩ := this,
@@ -426,7 +521,7 @@ begin
   use T.image (algebra_map S S'),
   rw eq_top_iff,
   rintro x -,
-  obtain ⟨y, ⟨_, ⟨r, hr, rfl⟩⟩, rfl⟩ := is_localization.mk'_surjective (M.map (f : R →* S)) x,
+  obtain ⟨y, ⟨_, ⟨r, hr, rfl⟩⟩, rfl⟩ := is_localization.mk'_surjective (M.map f) x,
   rw [is_localization.mk'_eq_mul_mk'_one, mul_comm, finset.coe_image],
   have hy : y ∈ algebra.adjoin R (T : set S), by { rw hT, trivial },
   replace hy : algebra_map S S' y ∈ (algebra.adjoin R (T : set S)).map fₐ :=
@@ -446,7 +541,7 @@ end
 lemma localization_away_map_finite_type (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : f.finite_type) :
     (is_localization.away.map R' S' f r).finite_type :=
-ring_hom.localization_away_of_localization_preserves @localization_finite_type hf
+localization_finite_type.away r hf
 
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.
@@ -483,7 +578,7 @@ begin
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
   convert ha₂.symm,
   { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-        algebra.smul_def, submonoid_class.coe_pow], refl },
+      algebra.smul_def, submonoid_class.coe_pow], refl },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 

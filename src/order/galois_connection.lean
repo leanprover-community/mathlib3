@@ -382,7 +382,7 @@ end order_iso
 namespace nat
 
 lemma galois_connection_mul_div {k : ℕ} (h : 0 < k) : galois_connection (λ n, n * k) (λ n, n / k) :=
-λ x y, (le_div_iff_mul_le x y h).symm
+λ x y, (le_div_iff_mul_le h).symm
 
 end nat
 
@@ -719,7 +719,6 @@ gi.dual.is_lub_of_u_image hs
 lemma is_lub_of_l_image [preorder α] [preorder β] (gi : galois_coinsertion l u) {s : set α} {a : β}
   (hs : is_lub (l '' s) a) : is_lub s (u a) :=
 gi.dual.is_glb_of_u_image hs
-
 
 section lift
 

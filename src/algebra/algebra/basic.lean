@@ -56,7 +56,7 @@ Given a commutative (semi)ring `R`, there are two ways to define an `R`-algebra 
 * By requiring `A` be an `R`-module such that the action associates and commutes with multiplication
   as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
 
-We define `algebra R A` in a way that subsumes both definitions, by extending `has_scalar R A` and
+We define `algebra R A` in a way that subsumes both definitions, by extending `has_smul R A` and
 requiring that this scalar action `r • x` must agree with left multiplication by the image of the
 structure morphism `algebra_map R A r * x`.
 
@@ -105,7 +105,7 @@ open_locale big_operators
 section prio
 -- We set this priority to 0 later in this file
 set_option extends_priority 200 /- control priority of
-`instance [algebra R A] : has_scalar R A` -/
+`instance [algebra R A] : has_smul R A` -/
 
 /--
 An associative unital `R`-algebra is a semiring `A` equipped with a map into its center `R → A`.
@@ -114,7 +114,7 @@ See the implementation notes in this file for discussion of the details of this 
 -/
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  extends has_scalar R A, R →+* A :=
+  extends has_smul R A, R →+* A :=
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
@@ -179,7 +179,7 @@ section semiring
 variables [comm_semiring R] [comm_semiring S]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
-/-- We keep this lemma private because it picks up the `algebra.to_has_scalar` instance
+/-- We keep this lemma private because it picks up the `algebra.to_has_smul` instance
 which we set to priority 0 shortly. See `smul_def` below for the public version. -/
 private lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -218,7 +218,7 @@ instance to_module : module R A :=
 
 -- From now on, we don't want to use the following instance anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.
-attribute [instance, priority 0] algebra.to_has_scalar
+attribute [instance, priority 0] algebra.to_has_smul
 
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -447,7 +447,7 @@ instance : algebra R Aᵐᵒᵖ :=
   smul_def' := λ c x, unop_injective $
     by { dsimp, simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop] },
   commutes' := λ r, mul_opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
-  .. mul_opposite.has_scalar A R }
+  .. mul_opposite.has_smul A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵐᵒᵖ c = op (algebra_map R A c) := rfl
 
@@ -687,7 +687,7 @@ by { ext, refl }
   of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
 ext $ λ _, rfl
 
-lemma map_smul_of_tower {R'} [has_scalar R' A] [has_scalar R' B]
+lemma map_smul_of_tower {R'} [has_smul R' A] [has_smul R' B]
   [linear_map.compatible_smul A B R' R] (r : R') (x : A) : φ (r • x) = r • φ x :=
 φ.to_linear_map.map_smul_of_tower r x
 
@@ -758,7 +758,7 @@ end division_ring
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
-  m • (1 : A) = ↑m :=
+  @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
 by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
 
 set_option old_structure_cmd true
@@ -1291,17 +1291,49 @@ def to_int_alg_hom [ring R] [ring S] [algebra ℤ R] [algebra ℤ S] (f : R →+
   (f : R →+* S) (r : ℚ) : f (algebra_map ℚ R r) = algebra_map ℚ S r :=
 ring_hom.ext_iff.1 (subsingleton.elim (f.comp (algebra_map ℚ R)) (algebra_map ℚ S)) r
 
-/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. -/
+/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. This actually yields an equivalence,
+see `ring_hom.equiv_rat_alg_hom`. -/
 def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S) :
   R →ₐ[ℚ] S :=
 { commutes' := f.map_rat_algebra_map, .. f }
 
+@[simp]
+lemma to_rat_alg_hom_to_ring_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
+  (f : R →+* S) : ↑f.to_rat_alg_hom = f :=
+ring_hom.ext $ λ x, rfl
+
 end ring_hom
+
+section
+
+variables {R S : Type*}
+
+@[simp]
+lemma alg_hom.to_ring_hom_to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
+  (f : R →ₐ[ℚ] S) : (f : R →+* S).to_rat_alg_hom = f :=
+alg_hom.ext $ λ x, rfl
+
+/-- The equivalence between `ring_hom` and `ℚ`-algebra homomorphisms. -/
+@[simps]
+def ring_hom.equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
+  (R →+* S) ≃ (R →ₐ[ℚ] S) :=
+{ to_fun := ring_hom.to_rat_alg_hom,
+  inv_fun := alg_hom.to_ring_hom,
+  left_inv := ring_hom.to_rat_alg_hom_to_ring_hom,
+  right_inv := alg_hom.to_ring_hom_to_rat_alg_hom, }
+
+end
 
 section rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
+{ smul := (•),
+  smul_def' := division_ring.qsmul_eq_mul',
+  to_ring_hom := rat.cast_hom α,
+  commutes' := rat.cast_commute }
+
+/-- The two `algebra ℚ ℚ` instances should coincide. -/
+example : algebra_rat = algebra.id ℚ := rfl
 
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _
@@ -1579,7 +1611,7 @@ are all defined in `linear_algebra/basic.lean`. -/
 section module
 open module
 
-variables (R S M N : Type*) [semiring R] [semiring S] [has_scalar R S]
+variables (R S M N : Type*) [semiring R] [semiring S] [has_smul R S]
 variables [add_comm_monoid M] [module R M] [module S M] [is_scalar_tower R S M]
 variables [add_comm_monoid N] [module R N] [module S N] [is_scalar_tower R S N]
 

@@ -66,7 +66,7 @@ namespace sheaf
 
 open presheaf
 
-variables [has_products C]
+variables [has_products.{v} C]
 
 /--
 The pushforward of a sheaf (by a continuous map) is a sheaf.

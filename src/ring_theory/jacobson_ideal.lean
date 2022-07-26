@@ -277,7 +277,7 @@ open polynomial
 variables [comm_ring R]
 
 lemma jacobson_bot_polynomial_le_Inf_map_maximal :
-  jacobson (⊥ : ideal R[X]) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
+  jacobson (⊥ : ideal R[X]) ≤ Inf (map (C : R →+* R[X]) '' {J : ideal R | J.is_maximal}) :=
 begin
   refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
   haveI : j.is_maximal := hj.1,

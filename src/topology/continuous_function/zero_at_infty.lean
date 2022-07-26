@@ -159,7 +159,7 @@ variables [add_monoid β] [has_continuous_add β] (f g : C₀(α, β))
 | 0 := by rw [nsmul_rec, zero_smul, coe_zero]
 | (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
-instance has_nat_scalar : has_scalar ℕ C₀(α, β) :=
+instance has_nat_scalar : has_smul ℕ C₀(α, β) :=
 ⟨λ n f, ⟨n • f, by simpa [coe_nsmul_rec] using zero_at_infty (nsmul_rec n f)⟩⟩
 
 instance : add_monoid C₀(α, β) :=
@@ -190,7 +190,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 | (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
 | -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
-instance has_int_scalar : has_scalar ℤ C₀(α, β) :=
+instance has_int_scalar : has_smul ℤ C₀(α, β) :=
 ⟨λ n f, ⟨n • f, by simpa using zero_at_infty (zsmul_rec n f)⟩⟩
 
 instance : add_group C₀(α, β) :=
@@ -202,7 +202,7 @@ instance [add_comm_group β] [topological_add_group β] : add_comm_group C₀(α
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
-  [has_continuous_const_smul R β] : has_scalar R C₀(α, β) :=
+  [has_continuous_const_smul R β] : has_smul R C₀(α, β) :=
 ⟨λ r f, ⟨r • f, by simpa [smul_zero] using (zero_at_infty f).const_smul r⟩⟩
 
 @[simp] lemma coe_smul [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
@@ -382,7 +382,7 @@ field `𝕜` whenever `β` is as well.
 
 section normed_space
 
-variables [normed_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_add_comm_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 /-- The natural inclusion `to_bcf : C₀(α, β) → (α →ᵇ β)` realized as an additive monoid
 homomorphism. -/
@@ -394,8 +394,8 @@ def to_bcf_add_monoid_hom : C₀(α, β) →+ (α →ᵇ β) :=
 @[simp]
 lemma coe_to_bcf_add_monoid_hom (f : C₀(α, β)) : (f.to_bcf_add_monoid_hom : α → β) = f := rfl
 
-noncomputable instance : normed_group C₀(α, β) :=
-normed_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
+noncomputable instance : normed_add_comm_group C₀(α, β) :=
+normed_add_comm_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
 
 @[simp]
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ∥f.to_bcf∥ = ∥f∥ := rfl
@@ -412,7 +412,7 @@ variables [non_unital_normed_ring β]
 noncomputable instance : non_unital_normed_ring C₀(α, β) :=
 { norm_mul := λ f g, norm_mul_le f.to_bcf g.to_bcf,
   ..zero_at_infty_continuous_map.non_unital_ring,
-  ..zero_at_infty_continuous_map.normed_group }
+  ..zero_at_infty_continuous_map.normed_add_comm_group }
 
 end normed_ring
 
@@ -453,7 +453,7 @@ end star
 
 section normed_star
 
-variables [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables [normed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
 
 instance : normed_star_group C₀(α, β) :=
 { norm_star := λ f, (norm_star f.to_bcf : _) }

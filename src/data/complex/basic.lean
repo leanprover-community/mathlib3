@@ -31,7 +31,8 @@ open_locale complex_conjugate
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
-@[simps] def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
+@[simps apply]
+def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
@@ -160,33 +161,53 @@ lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
 lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
 lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 
+@[simp] lemma equiv_real_prod_symm_apply (p : ℝ × ℝ) :
+  equiv_real_prod.symm p = p.1 + p.2 * I :=
+by { ext; simp [equiv_real_prod] }
+
 /-! ### Commutative ring instance and lemmas -/
 
 /- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
 diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
 defined in `data.complex.module.lean`. -/
-instance : comm_ring ℂ :=
+
+instance : add_comm_group ℂ :=
 by refine_struct
   { zero := (0 : ℂ),
     add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
-    one := 1,
-    mul := (*),
-    zero_add := λ z, by { apply ext_iff.2, simp },
-    add_zero := λ z, by { apply ext_iff.2, simp },
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
-    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-/-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
-`complex.normed_group` instance. -/
-instance : add_comm_group ℂ := by apply_instance
+instance : add_group_with_one ℂ :=
+{ nat_cast := λ n, ⟨n, 0⟩,
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  int_cast_neg_succ_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  one := 1,
+  .. complex.add_comm_group }
+
+instance : comm_ring ℂ :=
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    one := 1,
+    mul := (*),
+    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
+    .. complex.add_group_with_one };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
 instance : ring ℂ := by apply_instance
+
+/-- This shortcut instance ensures we do not find `comm_semiring` via the noncomputable
+`complex.field` instance. -/
+instance : comm_semiring ℂ := infer_instance
 
 /-- The "real part" map, considered as an additive group homomorphism. -/
 def re_add_group_hom : ℂ →+ ℝ :=
@@ -569,6 +590,18 @@ abs_abv_sub_le_abv_sub abs
 
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ |z.re| + |z.im| :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
+
+lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
+begin
+  cases z with x y,
+  simp only [abs, norm_sq_mk, ← sq],
+  wlog hle : |x| ≤ |y| := le_total (|x|) (|y|) using [x y, y x] tactic.skip,
+  { calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
+      real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
+    ... = real.sqrt 2 * max (|x|) (|y|) :
+      by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs] },
+  { rwa [add_comm, max_comm] }
+end
 
 lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]

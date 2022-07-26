@@ -44,10 +44,9 @@ def is_limit_map_cone_pullback_cone_equiv :
   is_limit (G.map_cone (pullback_cone.mk h k comm)) ≃
     is_limit (pullback_cone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pullback_cone (G.map f) (G.map g)) :=
-(is_limit.whisker_equivalence_equiv walking_cospan_equiv.{v₂ v₁}).trans $
-  (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₂} _) _).symm.trans $
-  is_limit.equiv_iso_limit $ cones.ext (iso.refl _) $
-    (by rintro (_|_|_); dsimp; simpa only [category.comp_id, category.id_comp, ← G.map_comp])
+(is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₂} _) _).symm.trans $
+is_limit.equiv_iso_limit $ cones.ext (iso.refl _) $
+  (by rintro (_|_|_); dsimp; simp only [comp_id, id_comp, G.map_comp])
 
 /-- The property of preserving pullbacks expressed in terms of binary fans. -/
 def is_limit_pullback_cone_map_of_is_limit [preserves_limit (cospan f g) G]
@@ -73,13 +72,12 @@ is_limit_pullback_cone_map_of_is_limit G _ (pullback_is_pullback f g)
 def preserves_pullback_symmetry : preserves_limit (cospan g f) G :=
 { preserves := λ c hc,
   begin
-    apply (is_limit.whisker_equivalence_equiv walking_cospan_equiv.{v₂ v₁}).symm.to_fun,
     apply (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₂} _) _).to_fun,
     apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _).symm,
     apply pullback_cone.flip_is_limit,
     apply (is_limit_map_cone_pullback_cone_equiv _ _).to_fun,
     { apply_with preserves_limit.preserves { instances := ff },
-      { dsimp [walking_cospan_equiv], apply_instance },
+      { dsimp, apply_instance },
       apply pullback_cone.flip_is_limit,
       apply is_limit.of_iso_limit _ (pullback_cone.iso_mk _),
       exact (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₁} _) _).inv_fun hc },
@@ -128,10 +126,9 @@ def is_colimit_map_cocone_pushout_cocone_equiv :
   is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃
     is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
       : pushout_cocone (G.map f) (G.map g)) :=
-(is_colimit.whisker_equivalence_equiv walking_span_equiv.{v₂ v₁}).trans $
-  (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₂} _).symm _).symm.trans $
-  is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) $
-    (by rintro (_|_|_); dsimp; simpa only [category.comp_id, category.id_comp, ← G.map_comp])
+(is_colimit.precompose_hom_equiv (diagram_iso_span.{v₂} _).symm _).symm.trans $
+is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) $
+  (by rintro (_|_|_); dsimp; simp only [category.comp_id, category.id_comp, ← G.map_comp])
 
 /-- The property of preserving pushouts expressed in terms of binary cofans. -/
 def is_colimit_pushout_cocone_map_of_is_colimit [preserves_colimit (span f g) G]
@@ -157,13 +154,12 @@ is_colimit_pushout_cocone_map_of_is_colimit G _ (pushout_is_pushout f g)
 def preserves_pushout_symmetry : preserves_colimit (span g f) G :=
 { preserves := λ c hc,
   begin
-    apply (is_colimit.whisker_equivalence_equiv walking_span_equiv.{v₂ v₁}).symm.to_fun,
     apply (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₂} _).symm _).to_fun,
     apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _).symm,
     apply pushout_cocone.flip_is_colimit,
     apply (is_colimit_map_cocone_pushout_cocone_equiv _ _).to_fun,
     { apply_with preserves_colimit.preserves { instances := ff },
-      { dsimp [walking_span_equiv], apply_instance },
+      { dsimp, apply_instance },
       apply pushout_cocone.flip_is_colimit,
       apply is_colimit.of_iso_colimit _ (pushout_cocone.iso_mk _),
       exact (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₁} _) _).inv_fun hc },

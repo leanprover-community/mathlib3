@@ -445,9 +445,8 @@ lemma map_is_pullback [preserves_limit (cospan h i) F] (s : is_pullback f g h i)
 -- and so the relevant `walking_cospan` diagrams live in different universes too!
 begin
   refine is_pullback.of_is_limit' (F.map_comm_sq s.to_comm_sq)
-    (is_limit.of_whisker_equivalence walking_cospan_equiv
-      (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
-        (is_limit_of_preserves F s.is_limit))),
+    (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
+      (is_limit_of_preserves F s.is_limit)),
   { refl, },
   { dsimp, simp, refl, },
   { dsimp, simp, refl, },
@@ -457,9 +456,8 @@ lemma map_is_pushout [preserves_colimit (span f g) F] (s : is_pushout f g h i) :
   is_pushout (F.map f) (F.map g) (F.map h) (F.map i) :=
 begin
   refine is_pushout.of_is_colimit' (F.map_comm_sq s.to_comm_sq)
-    (is_colimit.of_whisker_equivalence walking_span_equiv
-      (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
-        (is_colimit_of_preserves F s.is_colimit))),
+    (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
+      (is_colimit_of_preserves F s.is_colimit)),
   { refl, },
   { dsimp, simp, refl, },
   { dsimp, simp, refl, },

@@ -60,7 +60,7 @@ lemma is_prime_pow_iff_card_support_factorization_eq_one {n : ℕ} :
 by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_one', exists_prop,
   pos_iff_ne_zero]
 
-lemma exists_ord_compl_eq_one_of_is_prime_pow (n : ℕ) (h : is_prime_pow n):
+lemma exists_ord_compl_eq_one_of_is_prime_pow {n : ℕ} (h : is_prime_pow n) :
   (∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn0, { cases not_is_prime_pow_zero h },
@@ -75,7 +75,7 @@ begin
   simp,
 end
 
-lemma is_prime_pow_of_ord_compl_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime)
+lemma is_prime_pow_of_ord_compl_eq_one {n p : ℕ} (hn : n ≠ 1) (pp : p.prime)
   (h : ord_compl[p] n = 1) : is_prime_pow n :=
 begin
   rw is_prime_pow_nat_iff,

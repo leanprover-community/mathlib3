@@ -65,16 +65,6 @@ lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] �
 show ∥(to_dual_map 𝕜 E).to_continuous_linear_map∥ = 1,
   from linear_isometry.norm_to_continuous_linear_map _
 
-variable (𝕜)
-include 𝕜
-
-lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
-by rw [←sub_eq_zero, ←inner_self_eq_zero, inner_sub_right, sub_eq_zero, h (x - y)]
-
-lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
-by rw [←sub_eq_zero, ←inner_self_eq_zero, inner_sub_left, sub_eq_zero, h (x - y)]
-
-omit 𝕜
 variable {𝕜}
 
 lemma ext_inner_left_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)

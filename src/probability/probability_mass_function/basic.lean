@@ -26,7 +26,7 @@ so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
 probability mass function, discrete probability measure
 -/
 noncomputable theory
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that

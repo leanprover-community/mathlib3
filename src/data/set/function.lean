@@ -48,6 +48,14 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 
 @[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : s.restrict f x = f x := rfl
 
+lemma restrict_eq_iff {f : Π a, π a} {s : set α} {g : Π a : s, π a} :
+  restrict s f = g ↔ ∀ a (ha : a ∈ s), f a = g ⟨a, ha⟩ :=
+funext_iff.trans subtype.forall
+
+lemma eq_restrict_iff {s : set α} {f : Π a : s, π a} {g : Π a, π a} :
+  f = restrict s g ↔ ∀ a (ha : a ∈ s), f ⟨a, ha⟩ = g a :=
+funext_iff.trans subtype.forall
+
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (s.restrict f) = f '' s :=
 (range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
@@ -133,6 +141,9 @@ def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+
+@[simp] lemma restrict_eq_restrict_iff : restrict s f₁ = restrict s f₂ ↔ eq_on f₁ f₂ s :=
+restrict_eq_iff
 
 @[symm] lemma eq_on.symm (h : eq_on f₁ f₂ s) : eq_on f₂ f₁ s :=
 λ x hx, (h hx).symm

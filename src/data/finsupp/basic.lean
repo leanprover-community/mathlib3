@@ -780,198 +780,6 @@ end graph
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Start of initial `sum` and `prod` definitions
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-/-!
-### Declarations about `sum` and `prod`
-
-In most of this section, the domain `β` is assumed to be an `add_monoid`.
--/
-
-section sum_prod
-
-/-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
-@[to_additive "`sum f g` is the sum of `g a (f a)` over the support of `f`. "]
-def prod [has_zero M] [comm_monoid N] (f : α →₀ M) (g : α → M → N) : N :=
-∏ a in f.support, g a (f a)
-
-variables [has_zero M] [has_zero M'] [comm_monoid N]
-
-@[to_additive]
-lemma prod_of_support_subset (f : α →₀ M) {s : finset α}
-  (hs : f.support ⊆ s) (g : α → M → N) (h : ∀ i ∈ s, g i 0 = 1) :
-  f.prod g = ∏ x in s, g x (f x) :=
-finset.prod_subset hs $ λ x hxs hx, h x hxs ▸ congr_arg (g x) $ not_mem_support_iff.1 hx
-
-@[to_additive]
-lemma prod_fintype [fintype α] (f : α →₀ M) (g : α → M → N) (h : ∀ i, g i 0 = 1) :
-  f.prod g = ∏ i, g i (f i) :=
-f.prod_of_support_subset (subset_univ _) g (λ x _, h x)
-
-@[simp, to_additive]
-lemma prod_single_index {a : α} {b : M} {h : α → M → N} (h_zero : h a 0 = 1) :
-  (single a b).prod h = h a b :=
-calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
-  prod_of_support_subset _ support_single_subset h $
-    λ x hx, (mem_singleton.1 hx).symm ▸ h_zero
-... = h a b : by simp
-
-@[to_additive]
-lemma prod_map_range_index {f : M → M'} {hf : f 0 = 0} {g : α →₀ M} {h : α → M' → N}
-  (h0 : ∀a, h a 0 = 1) : (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
-finset.prod_subset support_map_range $ λ _ _ H,
-  by rw [not_mem_support_iff.1 H, h0]
-
-@[simp, to_additive]
-lemma prod_zero_index {h : α → M → N} : (0 : α →₀ M).prod h = 1 := rfl
-
-@[to_additive]
-lemma prod_comm (f : α →₀ M) (g : β →₀ M') (h : α → M → β → M' → N) :
-  f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
-finset.prod_comm
-
-@[simp, to_additive]
-lemma prod_ite_eq [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
-  f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
-by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
-
-@[simp] lemma sum_ite_self_eq
-  [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
-  f.sum (λ x v, ite (a = x) v 0) = f a :=
-by { convert f.sum_ite_eq a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
-
-/-- A restatement of `prod_ite_eq` with the equality test reversed. -/
-@[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
-lemma prod_ite_eq' [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
-  f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
-by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
-
-@[simp] lemma sum_ite_self_eq'
-  [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
-  f.sum (λ x v, ite (x = a) v 0) = f a :=
-by { convert f.sum_ite_eq' a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
-
-@[simp] lemma prod_pow [fintype α] (f : α →₀ ℕ) (g : α → N) :
-  f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
-f.prod_fintype _ $ λ a, pow_zero _
-
-/-- If `g` maps a second argument of 0 to 1, then multiplying it over the
-result of `on_finset` is the same as multiplying it over the original
-`finset`. -/
-@[to_additive "If `g` maps a second argument of 0 to 0, summing it over the
-result of `on_finset` is the same as summing it over the original
-`finset`."]
-lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
-    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
-  (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
-finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
-
-/-- Taking a product over `f : α →₀ M` is the same as multiplying the value on a single element
-`y ∈ f.support` by the product over `erase y f`. -/
-@[to_additive /-" Taking a sum over over `f : α →₀ M` is the same as adding the value on a
-single element `y ∈ f.support` to the sum over `erase y f`. "-/]
-lemma mul_prod_erase (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
-  g y (f y) * (erase y f).prod g = f.prod g :=
-begin
-  rw [finsupp.prod, finsupp.prod, ←finset.mul_prod_erase _ _ hyf, finsupp.support_erase,
-    finset.prod_congr rfl],
-  intros h hx,
-  rw finsupp.erase_ne (ne_of_mem_erase hx),
-end
-
-/-- Generalization of `finsupp.mul_prod_erase`: if `g` maps a second argument of 0 to 1,
-then its product over `f : α →₀ M` is the same as multiplying the value on any element
-`y : α` by the product over `erase y f`. -/
-@[to_additive /-" Generalization of `finsupp.add_sum_erase`: if `g` maps a second argument of 0
-to 0, then its sum over `f : α →₀ M` is the same as adding the value on any element
-`y : α` to the sum over `erase y f`. "-/]
-lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :
-  g y (f y) * (erase y f).prod g = f.prod g :=
-begin
-  classical,
-  by_cases hyf : y ∈ f.support,
-  { exact finsupp.mul_prod_erase f y g hyf },
-  { rw [not_mem_support_iff.mp hyf, hg y, erase_of_not_mem_support hyf, one_mul] },
-end
-
-@[to_additive]
-lemma _root_.submonoid_class.finsupp_prod_mem {S : Type*} [set_like S N] [submonoid_class S N]
-  (s : S) (f : α →₀ M) (g : α → M → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
-prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
-
-@[to_additive]
-lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
-  (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
-finset.prod_congr rfl h
-
-end sum_prod
-
-end finsupp
-
-
-@[to_additive]
-lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
-  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
-  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_prod h _ _
-
-/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
-@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
-protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_finsupp_prod h f g
-
-/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
-@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
-protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_finsupp_prod h f g
-
-/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
-protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-map_finsupp_sum h f g
-
-/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
-protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_finsupp_prod h f g
-
-@[to_additive]
-lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
-  (f : α →₀ β) (g : α → β → N →* P) :
-  ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
-monoid_hom.coe_finset_prod _ _
-
-@[simp, to_additive]
-lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
-  (f : α →₀ β) (g : α → β → N →* P) (x : N) :
-  f.prod g x = f.prod (λ i fi, g i fi x) :=
-monoid_hom.finset_prod_apply _ _ _
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- End of initial `sum` and `prod` definitions
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-
-namespace finsupp
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- section add_zero_class   vvvvv
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1179,6 +987,201 @@ end add_zero_class
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Start of initial `sum` and `prod` definitions
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+/-!
+### Declarations about `sum` and `prod`
+
+In most of this section, the domain `β` is assumed to be an `add_monoid`.
+-/
+
+section sum_prod
+
+/-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
+@[to_additive "`sum f g` is the sum of `g a (f a)` over the support of `f`. "]
+def prod [has_zero M] [comm_monoid N] (f : α →₀ M) (g : α → M → N) : N :=
+∏ a in f.support, g a (f a)
+
+variables [has_zero M] [has_zero M'] [comm_monoid N]
+
+@[to_additive]
+lemma prod_of_support_subset (f : α →₀ M) {s : finset α}
+  (hs : f.support ⊆ s) (g : α → M → N) (h : ∀ i ∈ s, g i 0 = 1) :
+  f.prod g = ∏ x in s, g x (f x) :=
+finset.prod_subset hs $ λ x hxs hx, h x hxs ▸ congr_arg (g x) $ not_mem_support_iff.1 hx
+
+@[to_additive]
+lemma prod_fintype [fintype α] (f : α →₀ M) (g : α → M → N) (h : ∀ i, g i 0 = 1) :
+  f.prod g = ∏ i, g i (f i) :=
+f.prod_of_support_subset (subset_univ _) g (λ x _, h x)
+
+@[simp, to_additive]
+lemma prod_single_index {a : α} {b : M} {h : α → M → N} (h_zero : h a 0 = 1) :
+  (single a b).prod h = h a b :=
+calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
+  prod_of_support_subset _ support_single_subset h $
+    λ x hx, (mem_singleton.1 hx).symm ▸ h_zero
+... = h a b : by simp
+
+@[to_additive]
+lemma prod_map_range_index {f : M → M'} {hf : f 0 = 0} {g : α →₀ M} {h : α → M' → N}
+  (h0 : ∀a, h a 0 = 1) : (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
+finset.prod_subset support_map_range $ λ _ _ H,
+  by rw [not_mem_support_iff.1 H, h0]
+
+@[simp, to_additive]
+lemma prod_zero_index {h : α → M → N} : (0 : α →₀ M).prod h = 1 := rfl
+
+@[to_additive]
+lemma prod_comm (f : α →₀ M) (g : β →₀ M') (h : α → M → β → M' → N) :
+  f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
+finset.prod_comm
+
+@[simp, to_additive]
+lemma prod_ite_eq [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
+  f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
+by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
+
+@[simp] lemma sum_ite_self_eq
+  [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
+  f.sum (λ x v, ite (a = x) v 0) = f a :=
+by { convert f.sum_ite_eq a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
+
+/-- A restatement of `prod_ite_eq` with the equality test reversed. -/
+@[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
+lemma prod_ite_eq' [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
+  f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
+by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
+
+@[simp] lemma sum_ite_self_eq'
+  [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
+  f.sum (λ x v, ite (x = a) v 0) = f a :=
+by { convert f.sum_ite_eq' a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
+
+@[simp] lemma prod_pow [fintype α] (f : α →₀ ℕ) (g : α → N) :
+  f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
+f.prod_fintype _ $ λ a, pow_zero _
+
+/-- If `g` maps a second argument of 0 to 1, then multiplying it over the
+result of `on_finset` is the same as multiplying it over the original
+`finset`. -/
+@[to_additive "If `g` maps a second argument of 0 to 0, summing it over the
+result of `on_finset` is the same as summing it over the original
+`finset`."]
+lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
+    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
+  (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
+finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
+
+/-- Taking a product over `f : α →₀ M` is the same as multiplying the value on a single element
+`y ∈ f.support` by the product over `erase y f`. -/
+@[to_additive /-" Taking a sum over over `f : α →₀ M` is the same as adding the value on a
+single element `y ∈ f.support` to the sum over `erase y f`. "-/]
+lemma mul_prod_erase (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
+  g y (f y) * (erase y f).prod g = f.prod g :=
+begin
+  rw [finsupp.prod, finsupp.prod, ←finset.mul_prod_erase _ _ hyf, finsupp.support_erase,
+    finset.prod_congr rfl],
+  intros h hx,
+  rw finsupp.erase_ne (ne_of_mem_erase hx),
+end
+
+/-- Generalization of `finsupp.mul_prod_erase`: if `g` maps a second argument of 0 to 1,
+then its product over `f : α →₀ M` is the same as multiplying the value on any element
+`y : α` by the product over `erase y f`. -/
+@[to_additive /-" Generalization of `finsupp.add_sum_erase`: if `g` maps a second argument of 0
+to 0, then its sum over `f : α →₀ M` is the same as adding the value on any element
+`y : α` to the sum over `erase y f`. "-/]
+lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :
+  g y (f y) * (erase y f).prod g = f.prod g :=
+begin
+  classical,
+  by_cases hyf : y ∈ f.support,
+  { exact finsupp.mul_prod_erase f y g hyf },
+  { rw [not_mem_support_iff.mp hyf, hg y, erase_of_not_mem_support hyf, one_mul] },
+end
+
+@[to_additive]
+lemma _root_.submonoid_class.finsupp_prod_mem {S : Type*} [set_like S N] [submonoid_class S N]
+  (s : S) (f : α →₀ M) (g : α → M → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
+
+@[to_additive]
+lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
+  (h : ∀ x ∈ f.support, g1 x (f x) = g2 x (f x)) : f.prod g1 = f.prod g2 :=
+finset.prod_congr rfl h
+
+end sum_prod
+
+end finsupp
+
+
+@[to_additive]
+lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
+  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_prod h _ _
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_finsupp_prod h f g
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_finsupp_prod h f g
+
+/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
+protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
+  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+map_finsupp_sum h f g
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
+  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_finsupp_prod h f g
+
+@[to_additive]
+lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) :
+  ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
+monoid_hom.coe_finset_prod _ _
+
+@[simp, to_additive]
+lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) (x : N) :
+  f.prod g x = f.prod (λ i fi, g i fi x) :=
+monoid_hom.finset_prod_apply _ _ _
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- End of initial `sum` and `prod` definitions
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+
+namespace finsupp
 
 
 

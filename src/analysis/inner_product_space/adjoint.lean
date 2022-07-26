@@ -363,7 +363,7 @@ by { rw is_self_adjoint_iff at ⊢ hA hB, simp [hA, hB] }
   (A - B).is_self_adjoint :=
 by { rw is_self_adjoint_iff at ⊢ hA hB, simp [hA, hB] }
 
-@[protected] lemma neg {A B : E →L[𝕜] E} (hA : A.is_self_adjoint) :
+@[protected] lemma neg {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
   (-A).is_self_adjoint :=
 by { rw is_self_adjoint_iff at ⊢ hA, simp [hA] }
 

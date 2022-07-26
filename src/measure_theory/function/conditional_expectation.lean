@@ -2156,9 +2156,9 @@ lemma tendsto_condexp_L1_of_dominated_convergence (hm : m ≤ m0) [sigma_finite 
   tendsto (λ n, condexp_L1 hm μ (fs n)) at_top (𝓝 (condexp_L1 hm μ f)) :=
 tendsto_set_to_fun_of_dominated_convergence _ bound_fs hfs_meas h_int_bound_fs hfs_bound hfs
 
-/-- If two sequences of functions are almost everywhere equal at each step, converge and verify
-dominated convergence hypotheses, then the conditional expectations of their limits are a.e.
-equal. -/
+/-- If two sequences of functions have a.e. equal conditional expectations at each step, converge
+and verify dominated convergence hypotheses, then the conditional expectations of their limits are
+a.e. equal. -/
 lemma tendsto_condexp_unique (fs gs : ℕ → α → F') (f g : α → F')
   (hfs_int : ∀ n, integrable (fs n) μ) (hgs_int : ∀ n, integrable (gs n) μ)
   (hfs : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)))

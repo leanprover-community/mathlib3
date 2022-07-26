@@ -5,6 +5,7 @@ Authors: Christopher Hoskin
 -/
 import algebra.module.basic
 import tactic.abel
+import algebra.jordan.basic
 
 /-!
 # Symmetrized algebra
@@ -221,30 +222,29 @@ lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commu
 instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
 { mul_comm := sym_alg.mul_comm,
   lmul_comm_rmul_rmul := λ a b, begin
-  -- Rearrange LHS
-  rw [],
     -- Rearrange LHS
-  rw [mul_def, mul_def a b, unsym_sym, ← mul_assoc, ← commute.eq (half_commute (unsym (a*a))),
-    mul_assoc, mul_assoc, ← mul_add, ← mul_assoc, add_mul, mul_add (unsym (a * a)), ← add_assoc,
-    ← mul_assoc, ← mul_assoc],
+    rw [mul_def, mul_def a b, unsym_sym, ← mul_assoc, ← commute.eq (half_commute (unsym (a*a))),
+      mul_assoc, mul_assoc, ← mul_add, ← mul_assoc, add_mul, mul_add (unsym (a * a)), ← add_assoc,
+      ← mul_assoc, ← mul_assoc],
 
-  -- Rearrange RHS
-  nth_rewrite_rhs 0 [mul_def],
-  nth_rewrite_rhs 0 [mul_def],
-  nth_rewrite_rhs 2 [mul_def],
+    -- Rearrange RHS
+    nth_rewrite_rhs 0 [mul_def],
+    nth_rewrite_rhs 0 [mul_def],
+    nth_rewrite_rhs 2 [mul_def],
 
-  rw [unsym_sym, sym_inj, ← mul_assoc, ← commute.eq (half_commute (unsym a)),
-    mul_assoc (⅟2) (unsym a), mul_assoc (⅟2) _ (unsym a), ← mul_add, ← mul_assoc],
+    rw [unsym_sym, sym_inj, ← mul_assoc, ← commute.eq (half_commute (unsym a)),
+      mul_assoc (⅟2) (unsym a), mul_assoc (⅟2) _ (unsym a), ← mul_add, ← mul_assoc],
 
-  nth_rewrite_rhs 0 mul_add (unsym a),
-  rw [add_mul, ← add_assoc, ← mul_assoc, ← mul_assoc],
+    nth_rewrite_rhs 0 mul_add (unsym a),
+    rw [add_mul, ← add_assoc, ← mul_assoc, ← mul_assoc],
 
-  rw unsym_mul_self,
-  rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc, ← sub_eq_zero, ← mul_sub],
+    rw unsym_mul_self,
+    rw [← mul_assoc, ← mul_assoc, ← mul_assoc, ← mul_assoc, ← sub_eq_zero, ← mul_sub],
 
-  convert mul_zero (⅟(2:α) * ⅟(2:α)),
-  rw [add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub, add_comm,
-    add_sub_add_right_eq_sub, sub_eq_zero],
-end
+    convert mul_zero (⅟(2:α) * ⅟(2:α)),
+    rw [add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub, add_comm,
+      add_sub_add_right_eq_sub, sub_eq_zero],
+  end
+}
 
 end sym_alg

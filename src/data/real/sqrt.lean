@@ -22,7 +22,7 @@ Then we prove some basic properties of these functions.
 We define `nnreal.sqrt` as the noncomputable inverse to the function `x ↦ x * x`. We use general
 theory of inverses of strictly monotone functions to prove that `nnreal.sqrt x` exists. As a side
 effect, `nnreal.sqrt` is a bundled `order_iso`, so for `nnreal` numbers we get continuity as well as
-theorems like `sqrt x ≤ y ↔ x * x ≤ y` for free.
+theorems like `sqrt x ≤ y ↔ x ≤ y * y` for free.
 
 Then we define `real.sqrt x` to be `nnreal.sqrt (real.to_nnreal x)`. We also define a Cauchy
 sequence `real.sqrt_aux (f : cau_seq ℚ abs)` which converges to `sqrt (mk f)` but do not prove (yet)
@@ -305,6 +305,10 @@ lemma sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y := by rw [←abs_lt, ←sq_
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
+
+lemma lt_sq_of_sqrt_lt {x y : ℝ} (h : sqrt x < y) : x < y ^ 2 :=
+by { have hy := x.sqrt_nonneg.trans_lt h,
+  rwa [←sqrt_lt_sqrt_iff_of_pos (sq_pos_of_pos hy), sqrt_sq hy.le] }
 
 /-- The natural square root is at most the real square root -/
 lemma nat_sqrt_le_real_sqrt {a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=

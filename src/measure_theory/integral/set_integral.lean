@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Yury Kudryashov
 import measure_theory.integral.integrable_on
 import measure_theory.integral.bochner
 import order.filter.indicator_function
+import topology.metric_space.thickened_indicator
 
 /-!
 # Set integral
@@ -53,9 +54,9 @@ variables {α β E F : Type*} [measurable_space α]
 
 namespace measure_theory
 
-section normed_group
+section normed_add_comm_group
 
-variables [normed_group E]  {f g : α → E} {s t : set α} {μ ν : measure α}
+variables [normed_add_comm_group E]  {f g : α → E} {s t : set α} {μ ν : measure α}
   {l l' : filter α}
 
 variables [complete_space E] [normed_space ℝ E]
@@ -140,6 +141,28 @@ begin
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
   ... = ∫ x in s, f x ∂μ : by simp
 end
+
+lemma set_integral_indicator (ht : measurable_set t) :
+  ∫ x in s, t.indicator f x ∂μ = ∫ x in s ∩ t, f x ∂μ :=
+by rw [integral_indicator ht, measure.restrict_restrict ht, set.inter_comm]
+
+lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
+  {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+calc
+ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
+    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [norm_one]
+... = ∫⁻ x in s, 1 ∂μ :
+begin
+  rw of_real_integral_norm_eq_lintegral_nnnorm (integrable_on_const.2 (or.inr hs.lt_top)),
+  simp only [nnnorm_one, ennreal.coe_one],
+end
+... = μ s : set_lintegral_one _
+
+lemma of_real_set_integral_one {α : Type*} {m : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] (s : set α) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+of_real_set_integral_one_of_measure_ne_top (measure_ne_top μ s)
 
 lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
   {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
@@ -394,7 +417,7 @@ lemma integral_Ioc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} 
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 integral_Ioc_eq_integral_Ioo' $ measure_singleton b
 
-end normed_group
+end normed_add_comm_group
 
 section mono
 
@@ -428,6 +451,14 @@ lemma set_integral_mono_set (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ.restr
   (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 integral_mono_measure (measure.restrict_mono_ae hst) hf hfi
+
+lemma set_integral_ge_of_const_le {c : ℝ} (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (hf : ∀ x ∈ s, c ≤ f x) (hfint : integrable_on (λ (x : α), f x) s μ) :
+  c * (μ s).to_real ≤ ∫ x in s, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← set_integral_const c],
+  exact set_integral_mono_on (integrable_on_const.2 (or.inr hμs.lt_top)) hfint hs hf,
+end
 
 end mono
 
@@ -490,7 +521,7 @@ end nonneg
 
 section tendsto_mono
 
-variables {μ : measure α} [normed_group E] [complete_space E] [normed_space ℝ E]
+variables {μ : measure α} [normed_add_comm_group E] [complete_space E] [normed_space ℝ E]
   {s : ℕ → set α} {f : α → E}
 
 lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
@@ -521,8 +552,8 @@ end tendsto_mono
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
 section continuous_set_integral
-variables [normed_group E] {𝕜 : Type*} [is_R_or_C 𝕜] [normed_group F] [normed_space 𝕜 F]
-  {p : ℝ≥0∞} {μ : measure α}
+variables [normed_add_comm_group E] {𝕜 : Type*} [normed_field 𝕜] [normed_add_comm_group F]
+  [normed_space 𝕜 F] {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
 `(Lp.mem_ℒp f).restrict s).to_Lp f`. This map is additive. -/
@@ -603,7 +634,7 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables {ι : Type*} [normed_group E]
+variables {ι : Type*} [normed_add_comm_group E]
 
 /-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
 filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
@@ -621,9 +652,9 @@ lemma filter.tendsto.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li l.small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • b) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • b) =o[li] m :=
 begin
-  suffices : is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) (λ s, (μ s).to_real) l.small_sets,
+  suffices : (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) =o[l.small_sets] (λ s, (μ s).to_real),
     from (this.comp_tendsto hs).congr' (hsμ.mono $ λ a ha, ha ▸ rfl) hsμ,
   refine is_o_iff.2 (λ ε ε₀, _),
   have : ∀ᶠ s in l.small_sets, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
@@ -655,7 +686,7 @@ lemma continuous_within_at.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝[t] a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
 exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
   hfm (μ.finite_at_nhds_within a t) hs m hsμ
@@ -677,7 +708,7 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝 a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a) hs m hsμ
 
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
@@ -696,7 +727,7 @@ lemma continuous_on.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝[t] a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 (hft a ha).integral_sub_linear_is_o_ae ht
   ⟨t, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩ hs m hsμ
 
@@ -713,7 +744,7 @@ as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 open_locale complex_conjugate
 
 variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
   {p : ennreal}
 
 namespace continuous_linear_map
@@ -755,7 +786,7 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_apply {H : Type*} [normed_group H] [normed_space 𝕜 H]
+lemma integral_apply {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
   {φ : α → H →L[𝕜] E} (φ_int : integrable φ μ) (v : H) :
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
 ((continuous_linear_map.apply 𝕜 E v).integral_comp_comm φ_int).symm
@@ -944,3 +975,30 @@ lemma set_integral_with_density_eq_set_integral_smul₀ {f : α → ℝ≥0} {s 
 by rw [restrict_with_density hs, integral_with_density_eq_integral_smul₀ hf]
 
 end
+
+section thickened_indicator
+
+variables [pseudo_emetric_space α]
+
+lemma measure_le_lintegral_thickened_indicator_aux
+  (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
+  μ E ≤ ∫⁻ a, (thickened_indicator_aux δ E a : ℝ≥0∞) ∂μ :=
+begin
+  convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
+              ≤ lintegral μ (thickened_indicator_aux δ E),
+  { rw [lintegral_indicator _ E_mble],
+    simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
+  { apply lintegral_mono,
+    apply indicator_le_thickened_indicator_aux, },
+end
+
+lemma measure_le_lintegral_thickened_indicator
+  (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
+  μ E ≤ ∫⁻ a, (thickened_indicator δ_pos E a : ℝ≥0∞) ∂μ :=
+begin
+  convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
+  dsimp,
+  simp only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
+end
+
+end thickened_indicator

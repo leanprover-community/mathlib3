@@ -102,7 +102,7 @@ lemma mem_range_map_to_fraction_ring_iff_of_field
   ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ :=
 begin
   rw mem_range_map_to_fraction_ring_iff,
-  iterate 3 { congr' with }, convert iff.rfl, rw units.coe_inv', refl,
+  iterate 3 { congr' with }, convert iff.rfl, rw units.coe_inv, refl,
 end
 
 /--

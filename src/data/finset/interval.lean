@@ -68,7 +68,7 @@ end
 /-- Cardinality of a non-empty `Icc` of finsets. -/
 lemma card_Icc_finset (h : s ⊆ t) : (Icc s t).card = 2 ^ (t.card - s.card) :=
 begin
-  rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_eq_iff_inj_on],
+  rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_iff],
   rintro u hu v hv (huv : s ⊔ u = s ⊔ v),
   rw [mem_coe, mem_powerset] at hu hv,
   rw [←(disjoint_sdiff.mono_right hu : disjoint s u).sup_sdiff_cancel_left,

@@ -47,7 +47,7 @@ finite_dimensional_vector_span_of_finite k (set.finite_range _)
 is finite-dimensional. -/
 instance finite_dimensional_vector_span_image_of_fintype [fintype ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (vector_span k (p '' s)) :=
-finite_dimensional_vector_span_of_finite k ((set.finite.of_fintype _).image _)
+finite_dimensional_vector_span_of_finite k (set.to_finite _)
 
 /-- The direction of the affine span of a finite set is
 finite-dimensional. -/
@@ -65,7 +65,7 @@ finite_dimensional_direction_affine_span_of_finite k (set.finite_range _)
 by a `fintype` is finite-dimensional. -/
 instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
-finite_dimensional_direction_affine_span_of_finite k ((set.finite.of_fintype _).image _)
+finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
 noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
@@ -75,7 +75,7 @@ begin
   let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,
   letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
-  exact fintype_of_fintype_ne _ (fintype_of_is_noetherian_linear_independent hi)
+  exact fintype_of_fintype_ne _ (@fintype.of_finite _ hi.finite_of_is_noetherian),
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
@@ -356,7 +356,7 @@ begin
 end
 
 /-- Two points are collinear. -/
-lemma collinear_insert_singleton (p₁ p₂ : P) : collinear k ({p₁, p₂} : set P) :=
+lemma collinear_pair (p₁ p₂ : P) : collinear k ({p₁, p₂} : set P) :=
 begin
   rw collinear_iff_exists_forall_eq_smul_vadd,
   use [p₁, p₂ -ᵥ p₁],

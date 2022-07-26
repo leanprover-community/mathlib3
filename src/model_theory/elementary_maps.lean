@@ -57,18 +57,43 @@ instance fun_like : fun_like (M ↪ₑ[L] N) M (λ _, N) :=
     ext x,
     exact function.funext_iff.1 h x end }
 
-@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} [fintype α] (φ : L.formula α) (x : α → M) :
-  φ.realize (f ∘ x) ↔ φ.realize x :=
+instance : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) := fun_like.has_coe_to_fun
+
+@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type} {n : ℕ}
+  (φ : L.bounded_formula α n) (v : α → M) (xs : fin n → M) :
+  φ.realize (f ∘ v) (f ∘ xs) ↔ φ.realize v xs :=
 begin
-  have g := fintype.equiv_fin α,
-  have h := f.map_formula' (φ.relabel g) (x ∘ g.symm),
-  rw [formula.realize_relabel, formula.realize_relabel, function.comp.assoc x g.symm g,
-    g.symm_comp_self, function.comp.right_id] at h,
-  rw [← h, iff_eq_eq],
-  congr,
-  ext y,
-  simp,
+  classical,
+  rw [← bounded_formula.realize_restrict_free_var set.subset.rfl, set.inclusion_eq_id, iff_eq_eq],
+  swap, { apply_instance },
+  have h := f.map_formula' ((φ.restrict_free_var id).to_formula.relabel (fintype.equiv_fin _))
+    ((sum.elim (v ∘ coe) xs) ∘ (fintype.equiv_fin _).symm),
+  simp only [formula.realize_relabel, bounded_formula.realize_to_formula, iff_eq_eq] at h,
+  rw [← function.comp.assoc _ _ ((fintype.equiv_fin _).symm),
+    function.comp.assoc _ ((fintype.equiv_fin _).symm) (fintype.equiv_fin _),
+    equiv.symm_comp_self, function.comp.right_id, function.comp.assoc, sum.elim_comp_inl,
+    function.comp.assoc _ _ sum.inr, sum.elim_comp_inr,
+    ← function.comp.assoc] at h,
+  refine h.trans _,
+  rw [function.comp.assoc _ _ (fintype.equiv_fin _), equiv.symm_comp_self,
+    function.comp.right_id, sum.elim_comp_inl, sum.elim_comp_inr, ← set.inclusion_eq_id,
+    bounded_formula.realize_restrict_free_var set.subset.rfl],
 end
+
+@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} (φ : L.formula α) (x : α → M) :
+  φ.realize (f ∘ x) ↔ φ.realize x :=
+by rw [formula.realize, formula.realize, ← f.map_bounded_formula, unique.eq_default (f ∘ default)]
+
+lemma map_sentence (f : M ↪ₑ[L] N) (φ : L.sentence) :
+  M ⊨ φ ↔ N ⊨ φ :=
+by rw [sentence.realize, sentence.realize, ← f.map_formula, unique.eq_default (f ∘ default)]
+
+lemma Theory_model_iff (f : M ↪ₑ[L] N) (T : L.Theory) :
+  M ⊨ T ↔ N ⊨ T :=
+by simp only [Theory.model_iff, f.map_sentence]
+
+lemma elementarily_equivalent (f : M ↪ₑ[L] N) : M ≅[L] N :=
+elementarily_equivalent_iff.2 f.map_sentence
 
 @[simp] lemma injective (φ : M ↪ₑ[L] N) :
   function.injective φ :=
@@ -83,9 +108,6 @@ end
 
 instance embedding_like : embedding_like (M ↪ₑ[L] N) M N :=
 { injective' := injective }
-
-instance has_coe_to_fun : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) :=
-⟨λ f, f.to_fun⟩
 
 @[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) :=
@@ -292,6 +314,9 @@ instance : set_like (L.elementary_substructure M) M :=
   exact h,
 end⟩
 
+instance induced_Structure (S : L.elementary_substructure M) : L.Structure S :=
+substructure.induced_Structure
+
 @[simp] lemma is_elementary (S : L.elementary_substructure M) :
   (S : L.substructure M).is_elementary := S.is_elementary'
 
@@ -314,12 +339,7 @@ instance : inhabited (L.elementary_substructure M) := ⟨⊤⟩
 
 @[simp] lemma realize_sentence (S : L.elementary_substructure M) (φ : L.sentence)  :
   S ⊨ φ ↔ M ⊨ φ :=
-begin
-  have h := S.is_elementary (φ.relabel (empty.elim : empty → fin 0)) default,
-  rw [formula.realize_relabel, formula.realize_relabel] at h,
-  exact (congr (congr rfl (congr rfl (unique.eq_default _))) (congr rfl (unique.eq_default _))).mp
-    h.symm,
-end
+S.subtype.map_sentence φ
 
 @[simp] lemma Theory_model_iff (S : L.elementary_substructure M) (T : L.Theory) :
   S ⊨ T ↔ M ⊨ T :=
@@ -330,6 +350,9 @@ instance Theory_model {T : L.Theory} [h : M ⊨ T] {S : L.elementary_substructur
 
 instance [h : nonempty M] {S : L.elementary_substructure M} : nonempty S :=
 (model_nonempty_theory_iff L).1 infer_instance
+
+lemma elementarily_equivalent (S : L.elementary_substructure M) : S ≅[L] M :=
+S.subtype.elementarily_equivalent
 
 end elementary_substructure
 

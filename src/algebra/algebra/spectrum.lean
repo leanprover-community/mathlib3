@@ -37,6 +37,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 * `σ a` : `spectrum R a` of `a : A`
 -/
 
+open set
+
 universes u v
 
 section defs
@@ -350,10 +352,10 @@ begin
     have : k ≠ 0,
     { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
     lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
-    rw ←units.coe_inv' k at hk,
+    rw ←units.coe_inv k at hk,
     exact inv_mem_iff.mp hk },
   { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
-    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
+    simpa only [units.coe_inv] using inv_mem_iff.mp hk, }
 end
 
 open polynomial

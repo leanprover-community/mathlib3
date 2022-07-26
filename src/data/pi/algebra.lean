@@ -3,12 +3,13 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
-import tactic.split_ifs
-import tactic.simpa
-import tactic.congr
 import algebra.group.to_additive
-import data.prod
+import data.prod.basic
 import logic.unique
+import tactic.congr
+import tactic.simpa
+import tactic.split_ifs
+
 /-!
 # Instances and theorems on pi types
 

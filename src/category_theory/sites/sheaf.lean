@@ -396,7 +396,7 @@ end multiequalizer_conditions
 
 section
 
-variables [has_products A]
+variables [has_products.{(max u₁ v₁)} A]
 
 /--
 The middle object of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
@@ -493,6 +493,7 @@ begin
     rw equalizer.presieve.sheaf_condition,
     refine ⟨_⟩,
     refine is_sheaf_for_is_sheaf_for' _ _ _ _ _,
+    letI := preserves_smallest_limits_of_preserves_limits (coyoneda.obj (op U)),
     apply is_limit_of_preserves,
     apply classical.choice (h _ S _),
     simpa }
@@ -525,8 +526,10 @@ begin
     is_sheaf_for_is_sheaf_for' P s U R,
   rw ←equiv.nonempty_congr this,
   split,
-  { exact nonempty.map (λ t, is_limit_of_preserves s t) },
-  { exact nonempty.map (λ t, is_limit_of_reflects s t) }
+  { haveI := preserves_smallest_limits_of_preserves_limits s,
+    exact nonempty.map (λ t, is_limit_of_preserves s t) },
+  { haveI := reflects_smallest_limits_of_reflects_limits s,
+    exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 
 end concrete

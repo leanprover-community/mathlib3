@@ -603,7 +603,7 @@ prod.of
 (@prod (multiplicative _) _).map_one
 
 @[simp] lemma sum.map_inv : sum x⁻¹ = -sum x :=
-(@prod (multiplicative _) _).map_inv _
+(prod : free_group (multiplicative α) →* multiplicative α).map_inv _
 
 end sum
 

@@ -515,8 +515,7 @@ begin
       simp only [stream_nth_fr_ne_zero, conts_eq.symm, pred_conts_eq.symm] at tmp,
       rw tmp,
       simp only [denom'],
-      ring_nf,
-      ac_refl },
+      ring_nf },
     rwa this },
   -- derive some tedious inequalities that we need to rewrite our goal
   have nextConts_b_ineq : (fib (n + 2) : K) ≤ (pred_conts.b + gp.b * conts.b), by

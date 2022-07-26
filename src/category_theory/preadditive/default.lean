@@ -226,8 +226,12 @@ section
 variables {X Y : C} {f : X ⟶ Y} {g : X ⟶ Y}
 
 /-- Map a kernel cone on the difference of two morphisms to the equalizer fork. -/
+@[simps X]
 def fork_of_kernel_fork (c : kernel_fork (f - g)) : fork f g :=
 fork.of_ι c.ι $ by rw [← sub_eq_zero, ← comp_sub, c.condition]
+
+@[simp] lemma fork_of_kernel_fork_ι (c : kernel_fork (f - g)) :
+  (fork_of_kernel_fork c).ι = c.ι := rfl
 
 /-- Map any equalizer fork to a cone on the difference of the two morphisms. -/
 def kernel_fork_of_fork (c : fork f g) : kernel_fork (f - g) :=
@@ -271,8 +275,12 @@ has_limit.mk { cone := kernel_fork_of_fork (equalizer.fork f g),
 variables {f g}
 
 /-- Map a cokernel cocone on the difference of two morphisms to the coequalizer cofork. -/
+@[simps X]
 def cofork_of_cokernel_cofork (c : cokernel_cofork (f - g)) : cofork f g :=
 cofork.of_π c.π $ by rw [← sub_eq_zero, ← sub_comp, c.condition]
+
+@[simp] lemma cofork_of_cokernel_cofork_π (c : cokernel_cofork (f - g)) :
+  (cofork_of_cokernel_cofork c).π = c.π := rfl
 
 /-- Map any coequalizer cofork to a cocone on the difference of the two morphisms. -/
 def cokernel_cofork_of_cofork (c : cofork f g) : cokernel_cofork (f - g) :=

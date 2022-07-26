@@ -192,14 +192,12 @@ begin
   intros c,
   rw [linear_equiv.trans_apply, linear_equiv.trans_apply,
       linear_equiv.smul_of_ne_zero_apply, linear_equiv.smul_of_ne_zero_apply,
-      show F (units.mk0 b hb • Φ(p,k) c) = _, from linear_equiv.map_smul _ _ _,
-      show F (units.mk0 b hb • c) = _, from linear_equiv.map_smul _ _ _],
-  simp only [hax, units.coe_mk0, linear_equiv.of_bijective_apply,
-    linear_map.to_span_singleton_apply, linear_equiv.map_smulₛₗ,
-    standard_one_dim_isocrystal.frobenius_apply, algebra.id.smul_eq_mul],
+      linear_equiv.map_smul, linear_equiv.map_smul],
+  simp only [hax, linear_equiv.of_bijective_apply, linear_map.to_span_singleton_apply,
+    linear_equiv.map_smulₛₗ, standard_one_dim_isocrystal.frobenius_apply, algebra.id.smul_eq_mul],
   simp only [←mul_smul],
   congr' 1,
-  linear_combination (hmb, φ(p,k) c),
+  linear_combination φ(p,k) c * hmb,
 end
 
 end witt_vector

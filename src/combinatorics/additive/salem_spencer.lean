@@ -194,7 +194,7 @@ lemma mul_salem_spencer_insert_of_lt (hs : ∀ i ∈ s, i < a) :
 begin
   refine mul_salem_spencer_insert.trans _,
   rw ←and_assoc,
-  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul''' (hs _ hb) (hs _ hc)).ne h).elim),
+  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul_of_lt_of_lt (hs _ hb) (hs _ hc)).ne h).elim),
 end
 
 end ordered_cancel_comm_monoid
@@ -263,8 +263,8 @@ begin
     (add_halves _) hc.2,
 end
 
-lemma add_salem_spencer_sphere [normed_group E] [normed_space ℝ E] [strict_convex_space ℝ E] (x : E)
-  (r : ℝ) : add_salem_spencer (sphere x r) :=
+lemma add_salem_spencer_sphere [normed_add_comm_group E] [normed_space ℝ E]
+  [strict_convex_space ℝ E] (x : E) (r : ℝ) : add_salem_spencer (sphere x r) :=
 begin
   obtain rfl | hr := eq_or_ne r 0,
   { rw sphere_zero,
@@ -452,12 +452,11 @@ end
 open asymptotics filter
 
 lemma roth_number_nat_is_O_with_id :
-  is_O_with 1 (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
-is_O_with.of_bound $ by simpa only [one_mul, real.norm_coe_nat, nat.cast_le]
-  using eventually_of_forall roth_number_nat_le
+  is_O_with 1 at_top (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) :=
+is_O_with_of_le _ $ by simpa only [real.norm_coe_nat, nat.cast_le] using roth_number_nat_le
 
 /-- The Roth number has the trivial bound `roth_number_nat N = O(N)`. -/
-lemma roth_number_nat_is_O_id : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+lemma roth_number_nat_is_O_id : (λ N, (roth_number_nat N : ℝ)) =O[at_top] (λ N, (N : ℝ)) :=
 roth_number_nat_is_O_with_id.is_O
 
 end roth_number_nat

@@ -63,13 +63,15 @@ local attribute [ext] tensor_product.ext
 def ε : 𝟙_ (Module.{u} R) ⟶ (free R).obj (𝟙_ (Type u)) :=
 finsupp.lsingle punit.star
 
+@[simp] lemma ε_apply (r : R) : ε R r = finsupp.single punit.star r := rfl
+
 /-- (Implementation detail) The tensorator for `free R`. -/
-def μ (α β : Type u) : (free R).obj α ⊗ (free R).obj β ⟶ (free R).obj (α ⊗ β) :=
-(finsupp_tensor_finsupp' R α β).to_linear_map
+def μ (α β : Type u) : (free R).obj α ⊗ (free R).obj β ≅ (free R).obj (α ⊗ β) :=
+(finsupp_tensor_finsupp' R α β).to_Module_iso
 
 lemma μ_natural {X Y X' Y' : Type u} (f : X ⟶ Y) (g : X' ⟶ Y') :
-  ((free R).map f ⊗ (free R).map g) ≫ (μ R Y Y') =
-    (μ R X X') ≫ (free R).map (f ⊗ g) :=
+  ((free R).map f ⊗ (free R).map g) ≫ (μ R Y Y').hom =
+    (μ R X X').hom ≫ (free R).map (f ⊗ g) :=
 begin
   intros,
   ext x x' ⟨y, y'⟩,
@@ -80,7 +82,7 @@ end
 
 lemma left_unitality (X : Type u) :
   (λ_ ((free R).obj X)).hom =
-  (ε R ⊗ 𝟙 ((free R).obj X)) ≫ μ R (𝟙_ (Type u)) X ≫ map (free R).obj (λ_ X).hom :=
+  (ε R ⊗ 𝟙 ((free R).obj X)) ≫ (μ R (𝟙_ (Type u)) X).hom ≫ map (free R).obj (λ_ X).hom :=
 begin
   intros,
   ext,
@@ -92,7 +94,7 @@ end
 
 lemma right_unitality (X : Type u) :
   (ρ_ ((free R).obj X)).hom =
-  (𝟙 ((free R).obj X) ⊗ ε R) ≫ μ R X (𝟙_ (Type u)) ≫ map (free R).obj (ρ_ X).hom :=
+  (𝟙 ((free R).obj X) ⊗ ε R) ≫ (μ R X (𝟙_ (Type u))).hom ≫ map (free R).obj (ρ_ X).hom :=
 begin
   intros,
   ext,
@@ -103,9 +105,9 @@ begin
 end
 
 lemma associativity (X Y Z : Type u) :
-  (μ R X Y ⊗ 𝟙 ((free R).obj Z)) ≫ μ R (X ⊗ Y) Z ≫ map (free R).obj (α_ X Y Z).hom =
+  ((μ R X Y).hom ⊗ 𝟙 ((free R).obj Z)) ≫ (μ R (X ⊗ Y) Z).hom ≫ map (free R).obj (α_ X Y Z).hom =
   (α_ ((free R).obj X) ((free R).obj Y) ((free R).obj Z)).hom ≫
-    (𝟙 ((free R).obj X) ⊗ μ R Y Z) ≫ μ R X (Y ⊗ Z) :=
+    (𝟙 ((free R).obj X) ⊗ (μ R Y Z).hom) ≫ (μ R X (Y ⊗ Z)).hom :=
 begin
   intros,
   ext,
@@ -116,17 +118,32 @@ end
 
 /-- The free R-module functor is lax monoidal. -/
 -- In fact, it's strong monoidal, but we don't yet have a typeclass for that.
+@[simps]
 instance : lax_monoidal.{u} (free R).obj :=
 { -- Send `R` to `punit →₀ R`
   ε := ε R,
   -- Send `(α →₀ R) ⊗ (β →₀ R)` to `α × β →₀ R`
-  μ := μ R,
+  μ := λ X Y, (μ R X Y).hom,
   μ_natural' := λ X Y X' Y' f g, μ_natural R f g,
   left_unitality' := left_unitality R,
   right_unitality' := right_unitality R,
   associativity' := associativity R, }
 
+instance : is_iso (lax_monoidal.ε (free R).obj) :=
+⟨⟨finsupp.lapply punit.star, ⟨by { ext, simp, }, by { ext ⟨⟩ ⟨⟩, simp, }⟩⟩⟩
+
 end free
+
+variables [comm_ring R]
+
+/-- The free functor `Type u ⥤ Module R`, as a monoidal functor. -/
+def monoidal_free : monoidal_functor (Type u) (Module.{u} R) :=
+{ ε_is_iso := by { dsimp, apply_instance, },
+  μ_is_iso := λ X Y, by { dsimp, apply_instance, },
+  ..lax_monoidal_functor.of (free R).obj }
+
+example (X Y : Type u) : (free R).obj (X × Y) ≅ (free R).obj X ⊗ (free R).obj Y :=
+((monoidal_free R).μ_iso X Y).symm
 
 end Module
 
@@ -144,6 +161,9 @@ def Free (R : Type*) (C : Type u) := C
 
 /--
 Consider an object of `C` as an object of the `R`-linear completion.
+
+It may be preferable to use `(Free.embedding R C).obj X` instead;
+this functor can also be used to lift morphisms.
 -/
 def Free.of (R : Type*) {C : Type u} (X : C) : Free R C := X
 
@@ -170,12 +190,7 @@ instance category_Free : category (Free R C) :=
 namespace Free
 
 section
-local attribute [simp] category_theory.category_Free
-
-@[simp]
-lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
-  (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
-by { dsimp, simp, }
+local attribute [reducible] category_theory.category_Free
 
 instance : preadditive (Free R C) :=
 { hom_group := λ X Y, finsupp.add_comm_group,
@@ -207,7 +222,13 @@ instance : linear R (Free R C) :=
     simp [finsupp.smul_sum, mul_left_comm],
   end, }
 
+lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
+  (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
+by { dsimp, simp, }
+
 end
+
+local attribute [simp] single_comp_single
 
 /--
 A category embeds into its `R`-linear completion.
@@ -224,7 +245,7 @@ variables (R) {C} {D : Type u} [category.{v} D] [preadditive D] [linear R D]
 open preadditive linear
 
 /--
-A functor to a preadditive category lifts to a functor from its `R`-linear completion.
+A functor to an `R`-linear category lifts to a functor from its `R`-linear completion.
 -/
 @[simps]
 def lift (F : C ⥤ D) : Free R C ⥤ D :=
@@ -233,29 +254,29 @@ def lift (F : C ⥤ D) : Free R C ⥤ D :=
   map_id' := by { dsimp [category_theory.category_Free], simp },
   map_comp' := λ X Y Z f g, begin
     apply finsupp.induction_linear f,
-    { simp, },
+    { simp only [limits.zero_comp, sum_zero_index] },
     { intros f₁ f₂ w₁ w₂,
       rw add_comp,
       rw [finsupp.sum_add_index, finsupp.sum_add_index],
-      { simp [w₁, w₂, add_comp], },
-      { simp, },
+      { simp only [w₁, w₂, add_comp] },
+      { intros, rw zero_smul },
       { intros, simp only [add_smul], },
-      { simp, },
+      { intros, rw zero_smul },
       { intros, simp only [add_smul], }, },
     { intros f' r,
       apply finsupp.induction_linear g,
-      { simp, },
+      { simp only [limits.comp_zero, sum_zero_index] },
       { intros f₁ f₂ w₁ w₂,
         rw comp_add,
         rw [finsupp.sum_add_index, finsupp.sum_add_index],
-        { simp [w₁, w₂, add_comp], },
-        { simp, },
+        { simp only [w₁, w₂, comp_add], },
+        { intros, rw zero_smul },
         { intros, simp only [add_smul], },
-        { simp, },
+        { intros, rw zero_smul },
         { intros, simp only [add_smul], }, },
       { intros g' s,
         erw single_comp_single,
-        simp [mul_comm r s, mul_smul], } }
+        simp [mul_comm r s, mul_smul] } }
   end, }
 
 @[simp]

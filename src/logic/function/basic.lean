@@ -35,6 +35,12 @@ lemma const_def {y : β} : (λ x : α, y) = const α y := rfl
 
 @[simp] lemma comp_const {f : β → γ} {b : β} : f ∘ const α b = const α (f b) := rfl
 
+lemma const_injective [nonempty α] : injective (const α : β → α → β) :=
+λ y₁ y₂ h, let ⟨x⟩ := ‹nonempty α› in congr_fun h x
+
+@[simp] lemma const_inj [nonempty α] {y₁ y₂ : β} : const α y₁ = const α y₂ ↔ y₁ = y₂ :=
+⟨λ h, const_injective h, λ h, h ▸ rfl⟩
+
 lemma id_def : @id α = λ x, x := rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
@@ -291,6 +297,14 @@ theorem left_inverse.right_inverse_of_surjective {f : α → β} {g : β → α}
   (hg : surjective g) :
   right_inverse f g :=
 λ x, let ⟨y, hy⟩ := hg x in hy ▸ congr_arg g (h y)
+
+lemma right_inverse.left_inverse_of_surjective {f : α → β} {g : β → α} :
+  right_inverse f g → surjective f → left_inverse f g :=
+left_inverse.right_inverse_of_surjective
+
+lemma right_inverse.left_inverse_of_injective {f : α → β} {g : β → α} :
+  right_inverse f g → injective g → left_inverse f g :=
+left_inverse.right_inverse_of_injective
 
 theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
   (h₂ : right_inverse g₂ f) :
@@ -759,6 +773,21 @@ lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Type*} (x y :
 @[simp]
 lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
 (cast_bijective h).injective.eq_iff
+
+lemma function.left_inverse.eq_rec_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
+
+lemma function.left_inverse.eq_rec_on_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec_on (C (g (f a))) = C a :=
+h.eq_rec_eq _ _
+
+lemma function.left_inverse.cast_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  cast (congr_arg (λ a, γ (f a)) (h a)) (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
 
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/

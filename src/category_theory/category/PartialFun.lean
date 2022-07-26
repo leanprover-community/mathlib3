@@ -72,7 +72,7 @@ instance : faithful Type_to_PartialFun := ⟨λ X Y, pfun.coe_injective⟩
 
 /-- The functor which deletes the point of a pointed type. In return, this makes the maps partial.
 This the computable part of the equivalence `PartialFun_equiv_Pointed`. -/
-def Pointed_to_PartialFun : Pointed.{u} ⥤ PartialFun :=
+@[simps map] def Pointed_to_PartialFun : Pointed.{u} ⥤ PartialFun :=
 { obj := λ X, {x : X // x ≠ X.point},
   map := λ X Y f, pfun.to_subtype _ f.to_fun ∘ subtype.val,
   map_id' := λ X, pfun.ext $ λ a b,
@@ -89,10 +89,10 @@ def Pointed_to_PartialFun : Pointed.{u} ⥤ PartialFun :=
 /-- The functor which maps undefined values to a new point. This makes the maps total and creates
 pointed types. This the noncomputable part of the equivalence `PartialFun_equiv_Pointed`. It can't
 be computable because `= option.none` is decidable while the domain of a general `part` isn't. -/
-noncomputable def PartialFun_to_Pointed : PartialFun ⥤ Pointed :=
+@[simps map] noncomputable def PartialFun_to_Pointed : PartialFun ⥤ Pointed :=
 by classical; exact
 { obj := λ X, ⟨option X, none⟩,
-  map := λ X Y f, ⟨λ o, o.elim none (λ a, (f a).to_option), rfl⟩,
+  map := λ X Y f, ⟨option.elim none (λ a, (f a).to_option), rfl⟩,
   map_id' := λ X, Pointed.hom.ext _ _ $ funext $ λ o,
     option.rec_on o rfl $ λ a, part.some_to_option _,
   map_comp' := λ X Y Z f g, Pointed.hom.ext _ _ $ funext $ λ o, option.rec_on o rfl $ λ a,
@@ -118,23 +118,24 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
         dsimp,
         simp_rw [part.mem_some_iff, subtype.mk_eq_mk, exists_prop, some_inj, exists_eq_right'],
         refine part.mem_to_option.symm.trans _,
-        convert eq_comm,
-        convert rfl,
+        exact eq_comm,
       end)
   (nat_iso.of_components (λ X, Pointed.iso.mk
-    { to_fun := λ a, a.elim X.point subtype.val,
+    { to_fun := option.elim X.point subtype.val,
       inv_fun := λ a, if h : a = X.point then none else some ⟨_, h⟩,
       left_inv := λ a, option.rec_on a (dif_pos rfl) $ λ a, (dif_neg a.2).trans $
         by simp only [option.elim, subtype.val_eq_coe, subtype.coe_eta],
       right_inv := λ a, begin
-        change option.elim (dite _ _ _) _ _ = _,
+        change option.elim _ _ (dite _ _ _) = _,
         split_ifs,
         { rw h, refl },
         { refl }
       end } rfl) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a f.map_point.symm $
     λ a, begin
-      change option.elim (option.elim _ _ _) _ _ = _,
-      rw [option.elim, part.elim_to_option],
+      unfold_projs,
+      dsimp,
+      change option.elim _ _ _ = _,
+      rw part.elim_to_option,
       split_ifs,
       { refl },
       { exact eq.symm (of_not_not h) }

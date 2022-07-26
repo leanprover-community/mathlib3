@@ -141,6 +141,10 @@ end set_like
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
+/-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
+instance (I : fractional_ideal S P) : add_comm_group I := submodule.add_comm_group ↑I
+instance (I : fractional_ideal S P) : module R I := submodule.module ↑I
+
 lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
 subtype.coe_injective
@@ -382,7 +386,7 @@ lemma _root_.is_fractional.nsmul {I : submodule R P} :
   exact h.sup (_root_.is_fractional.nsmul n h)
 end
 
-instance : has_scalar ℕ (fractional_ideal S P) :=
+instance : has_smul ℕ (fractional_ideal S P) :=
 { smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
 
 @[norm_cast]
@@ -457,9 +461,14 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
+instance : has_nat_cast (fractional_ideal S P) := ⟨nat.unary_cast⟩
+
+lemma coe_nat_cast (n : ℕ) : ((n : fractional_ideal S P) : submodule R P) = n :=
+show ↑n.unary_cast = ↑n, by induction n; simp [*, nat.unary_cast]
+
 instance : comm_semiring (fractional_ideal S P) :=
-function.injective.comm_semiring _ subtype.coe_injective
-  coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow
+function.injective.comm_semiring coe subtype.coe_injective
+  coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow coe_nat_cast
 
 section order
 
@@ -913,7 +922,7 @@ begin
     exact (algebra.smul_def _ _).symm }
 end
 
-theorem eq_one_div_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
+theorem eq_one_div_of_mul_eq_one_right (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
   J = 1 / I :=
 begin
   have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,
@@ -935,7 +944,7 @@ end
 
 theorem mul_div_self_cancel_iff {I : fractional_ideal R₁⁰ K} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one I J hJ]⟩
+⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one_right I J hJ]⟩
 
 variables {K' : Type*} [field K'] [algebra R₁ K'] [is_fraction_ring R₁ K']
 
@@ -1188,7 +1197,7 @@ variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
-if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one _ _ (by simp [h])).symm
+if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one_right _ _ (by simp [h])).symm
 
 @[simp] lemma div_span_singleton (J : fractional_ideal R₁⁰ K) (d : K) :
   J / span_singleton R₁⁰ d = span_singleton R₁⁰ (d⁻¹) * J :=

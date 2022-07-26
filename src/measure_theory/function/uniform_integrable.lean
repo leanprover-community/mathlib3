@@ -48,7 +48,7 @@ namespace measure_theory
 
 open set filter topological_space
 
-variables {α β ι : Type*} {m : measurable_space α} {μ : measure α} [normed_group β]
+variables {α β ι : Type*} {m : measurable_space α} {μ : measure α} [normed_add_comm_group β]
 
 /-- Uniform integrability in the measure theory sense.
 
@@ -65,21 +65,24 @@ snorm (s.indicator (f i)) p μ ≤ ennreal.of_real ε
 uniformly integrable in the measure theory sense and is uniformly bounded. -/
 def uniform_integrable {m : measurable_space α}
   (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
-(∀ i, strongly_measurable (f i)) ∧ unif_integrable f p μ ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) p μ ≤ C
+(∀ i, ae_strongly_measurable (f i) μ) ∧ unif_integrable f p μ ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) p μ ≤ C
 
-lemma uniform_integrable.strongly_measurable {f : ι → α → β} {p : ℝ≥0∞}
-  (hf : uniform_integrable f p μ) (i : ι) : strongly_measurable (f i) :=
+namespace uniform_integrable
+
+protected lemma ae_strongly_measurable {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable f p μ) (i : ι) : ae_strongly_measurable (f i) μ :=
 hf.1 i
 
-lemma uniform_integrable.unif_integrable {f : ι → α → β} {p : ℝ≥0∞}
+protected lemma unif_integrable {f : ι → α → β} {p : ℝ≥0∞}
   (hf : uniform_integrable f p μ) : unif_integrable f p μ :=
 hf.2.1
 
-lemma uniform_integrable.mem_ℒp {f : ι → α → β} {p : ℝ≥0∞}
+protected lemma mem_ℒp {f : ι → α → β} {p : ℝ≥0∞}
   (hf : uniform_integrable f p μ) (i : ι) :
   mem_ℒp (f i) p μ :=
-⟨(hf.1 i).ae_strongly_measurable,
-let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
+⟨hf.1 i, let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
+
+end uniform_integrable
 
 section unif_integrable
 
@@ -420,7 +423,7 @@ begin
 end
 
 /-- This lemma is less general than `measure_theory.unif_integrable_fintype` which applies to
-all sequences indexed by a fintype. -/
+all sequences indexed by a finite type. -/
 lemma unif_integrable_fin (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {n : ℕ} {f : fin n → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
@@ -447,16 +450,19 @@ begin
 end
 
 /-- A finite sequence of Lp functions is uniformly integrable. -/
-lemma unif_integrable_fintype [fintype ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+lemma unif_integrable_finite [finite ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
 begin
+  obtain ⟨n, hn⟩ := finite.exists_equiv_fin ι,
   intros ε hε,
-  set g : fin (fintype.card ι) → α → β := f ∘ (fintype.equiv_fin ι).symm,
+  set g : fin n → α → β := f ∘ hn.some.symm with hgeq,
   have hg : ∀ i, mem_ℒp (g i) p μ := λ _, hf _,
   obtain ⟨δ, hδpos, hδ⟩ := unif_integrable_fin μ hp_one hp_top hg hε,
-  exact ⟨δ, hδpos, λ i s hs hμs,
-    equiv.symm_apply_apply (fintype.equiv_fin ι) i ▸ hδ (fintype.equiv_fin ι i) s hs hμs⟩,
+  refine ⟨δ, hδpos, λ i s hs hμs, _⟩,
+  specialize hδ (hn.some i) s hs hμs,
+  simp_rw [hgeq, function.comp_app, equiv.symm_apply_apply] at hδ,
+  assumption,
 end
 
 end
@@ -697,7 +703,7 @@ begin
     begin
       refine add_le_add_left _ _,
       rw [← ennreal.of_real_coe_nnreal, ← ennreal.of_real_mul (nnreal.coe_nonneg _),
-        ← div_div_eq_div_mul, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
+        ← div_div, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
       exact le_rfl,
     end
     ... ≤ ennreal.of_real ε :
@@ -708,14 +714,25 @@ begin
 end
 
 lemma unif_integrable_of (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ι → α → β}
-  (hf : ∀ i, strongly_measurable (f i))
+  (hf : ∀ i, ae_strongly_measurable (f i) μ)
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
     ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   unif_integrable f p μ :=
 begin
-  refine unif_integrable_of' μ hp hp' hf (λ ε hε, _),
+  set g : ι → α → β := λ i, (hf i).some,
+  refine (unif_integrable_of' μ hp hp' (λ i, (Exists.some_spec $hf i).1) (λ ε hε, _)).ae_eq
+    (λ i, (Exists.some_spec $ hf i).2.symm),
   obtain ⟨C, hC⟩ := h ε hε,
-  refine ⟨max C 1, lt_max_of_lt_right one_pos, λ i, le_trans (snorm_mono (λ x, _)) (hC i)⟩,
+  have hCg : ∀ i, snorm ({x | C ≤ ∥g i x∥₊}.indicator (g i)) p μ ≤ ennreal.of_real ε,
+  { intro i,
+    refine le_trans (le_of_eq $ snorm_congr_ae _) (hC i),
+    filter_upwards [(Exists.some_spec $ hf i).2] with x hx,
+    by_cases hfx : x ∈ {x | C ≤ ∥f i x∥₊},
+    { rw [indicator_of_mem hfx, indicator_of_mem, hx],
+      rwa [mem_set_of, hx] at hfx },
+    { rw [indicator_of_not_mem hfx, indicator_of_not_mem],
+      rwa [mem_set_of, hx] at hfx } },
+  refine ⟨max C 1, lt_max_of_lt_right one_pos, λ i, le_trans (snorm_mono (λ x, _)) (hCg i)⟩,
   rw [norm_indicator_eq_indicator_norm, norm_indicator_eq_indicator_norm],
   exact indicator_le_indicator_of_subset
     (λ x hx, le_trans (le_max_left _ _) hx) (λ _, norm_nonneg _) _,
@@ -737,34 +754,35 @@ In this section, we will develope some API for `uniform_integrable` and prove th
 
 variables {p : ℝ≥0∞} {f : ι → α → β}
 
-lemma uniform_integrable_zero_meas [measurable_space α] (hf : ∀ i, strongly_measurable (f i)) :
+lemma uniform_integrable_zero_meas [measurable_space α] :
   uniform_integrable f p (0 : measure α) :=
-⟨hf, unif_integrable_zero_meas, 0, λ i, snorm_measure_zero.le⟩
+⟨λ n, ae_strongly_measurable_zero_measure _,
+  unif_integrable_zero_meas, 0, λ i, snorm_measure_zero.le⟩
 
 lemma uniform_integrable.ae_eq {g : ι → α → β}
-  (hf : uniform_integrable f p μ) (hg : ∀ i, strongly_measurable (g i)) (hfg : ∀ n, f n =ᵐ[μ] g n) :
+  (hf : uniform_integrable f p μ) (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable g p μ :=
 begin
-  obtain ⟨-, hunif, C, hC⟩ := hf,
-  refine ⟨hg, (unif_integrable_congr_ae hfg).1 hunif, C, λ i, _⟩,
+  obtain ⟨hfm, hunif, C, hC⟩ := hf,
+  refine ⟨λ i, (hfm i).congr (hfg i), (unif_integrable_congr_ae hfg).1 hunif, C, λ i, _⟩,
   rw ← snorm_congr_ae (hfg i),
   exact hC i
 end
 
 lemma uniform_integrable_congr_ae {g : ι → α → β}
-  (hf : ∀ i, strongly_measurable (f i)) (hg : ∀ i, strongly_measurable (g i))
   (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable f p μ ↔ uniform_integrable g p μ :=
-⟨λ h, h.ae_eq hg hfg, λ h, h.ae_eq hf (λ i, (hfg i).symm)⟩
+⟨λ h, h.ae_eq hfg, λ h, h.ae_eq (λ i, (hfg i).symm)⟩
 
 /-- A finite sequence of Lp functions is uniformly integrable in the probability sense. -/
-lemma uniform_integrable_fintype [fintype ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  (hf : ∀ i, strongly_measurable (f i)) (hf' : ∀ i, mem_ℒp (f i) p μ) :
+lemma uniform_integrable_finite [finite ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+  (hf : ∀ i, mem_ℒp (f i) p μ) :
   uniform_integrable f p μ :=
 begin
-  refine ⟨hf, unif_integrable_fintype μ hp_one hp_top hf', _⟩,
+  casesI nonempty_fintype ι,
+  refine ⟨λ n, (hf n).1, unif_integrable_finite μ hp_one hp_top hf, _⟩,
   by_cases hι : nonempty ι,
-  { choose ae_meas hf using hf',
+  { choose ae_meas hf using hf,
     set C := (finset.univ.image (λ i : ι, snorm (f i) p μ)).max'
       ⟨snorm (f hι.some) p μ, finset.mem_image.2 ⟨hι.some, finset.mem_univ _, rfl⟩⟩,
     refine ⟨C.to_nnreal, λ i, _⟩,
@@ -779,26 +797,27 @@ end
 
 /-- A single function is uniformly integrable in the probability sense. -/
 lemma uniform_integrable_subsingleton [subsingleton ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  (hf : ∀ i, strongly_measurable (f i)) (hf' : ∀ i, mem_ℒp (f i) p μ) :
+  (hf : ∀ i, mem_ℒp (f i) p μ) :
   uniform_integrable f p μ :=
-uniform_integrable_fintype hp_one hp_top hf hf'
+uniform_integrable_finite hp_one hp_top hf
 
 /-- A constant sequence of functions is uniformly integrable in the probability sense. -/
 lemma uniform_integrable_const {g : α → β} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞)
-  (hgm : strongly_measurable g) (hg : mem_ℒp g p μ) :
+  (hg : mem_ℒp g p μ) :
   uniform_integrable (λ n : ι, g) p μ :=
-⟨λ i, hgm, unif_integrable_const μ hp hp_ne_top hg,
+⟨λ i, hg.1, unif_integrable_const μ hp hp_ne_top hg,
   ⟨(snorm g p μ).to_nnreal, λ i, le_of_eq (ennreal.coe_to_nnreal hg.2.ne).symm⟩⟩
 
-/-- A sequene of functions `(fₙ)` is uniformly integrable in the probability sense if for all
-`ε > 0`, there exists some `C` such that `∫ x in {|fₙ| ≥ C}, fₙ x ∂μ ≤ ε` for all `n`. -/
-lemma uniform_integrable_of [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
+/-- This lemma is superceded by `uniform_integrable_of` which only requires
+`ae_strongly_measurable`. -/
+lemma uniform_integrable_of' [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ i, strongly_measurable (f i))
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
     ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   uniform_integrable f p μ :=
 begin
-  refine ⟨hf, unif_integrable_of μ hp hp' hf h, _⟩,
+  refine ⟨λ i, (hf i).ae_strongly_measurable,
+    unif_integrable_of μ hp hp' (λ i, (hf i).ae_strongly_measurable) h, _⟩,
   obtain ⟨C, hC⟩ := h 1 one_pos,
   refine ⟨(C * (μ univ ^ (p.to_real⁻¹)) + 1 : ℝ≥0∞).to_nnreal, λ i, _⟩,
   calc snorm (f i) p μ ≤ snorm ({x : α | ∥f i x∥₊ < C}.indicator (f i)) p μ +
@@ -835,11 +854,35 @@ begin
   end
 end
 
-lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
+/-- A sequene of functions `(fₙ)` is uniformly integrable in the probability sense if for all
+`ε > 0`, there exists some `C` such that `∫ x in {|fₙ| ≥ C}, fₙ x ∂μ ≤ ε` for all `n`. -/
+lemma uniform_integrable_of [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
+    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+  uniform_integrable f p μ :=
+begin
+  set g : ι → α → β := λ i, (hf i).some,
+  have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hf i).1,
+  have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hf i).2.symm,
+  refine (uniform_integrable_of' hp hp' hgmeas $ λ ε hε, _).ae_eq hgeq,
+  obtain ⟨C, hC⟩ := h ε hε,
+  refine ⟨C, λ i, le_trans (le_of_eq $ snorm_congr_ae _) (hC i)⟩,
+  filter_upwards [(Exists.some_spec $ hf i).2] with x hx,
+  by_cases hfx : x ∈ {x | C ≤ ∥f i x∥₊},
+  { rw [indicator_of_mem hfx, indicator_of_mem, hx],
+    rwa [mem_set_of, hx] at hfx },
+  { rw [indicator_of_not_mem hfx, indicator_of_not_mem],
+    rwa [mem_set_of, hx] at hfx }
+end
+
+/-- This lemma is superceded by `uniform_integrable.spec` which does not require measurability. -/
+lemma uniform_integrable.spec' (hp : p ≠ 0) (hp' : p ≠ ∞)
+  (hf : ∀ i, strongly_measurable (f i))
   (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
 begin
-  obtain ⟨hf₀, hfu, M, hM⟩ := hfu,
+  obtain ⟨-, hfu, M, hM⟩ := hfu,
   obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
   obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ∥f i x∥₊} ≤ ennreal.of_real δ,
   { by_contra hcon, push_neg at hcon,
@@ -857,7 +900,7 @@ begin
       ... ≤ snorm ({x | C ≤ ∥f (ℐ C) x∥₊}.indicator (f (ℐ C))) p μ :
       begin
         refine snorm_indicator_ge_of_bdd_below hp hp' _
-          (measurable_set_le measurable_const (hf₀ _).nnnorm.measurable)
+          (measurable_set_le measurable_const (hf _).nnnorm.measurable)
           (eventually_of_forall $ λ x hx, _),
         rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
       end
@@ -871,13 +914,30 @@ begin
       (le_max_left M 1)) (lt_of_lt_of_le _ this)).ne rfl,
     rw [← ennreal.coe_one, ← with_top.coe_max, ← ennreal.coe_mul, ennreal.coe_lt_coe],
     exact lt_two_mul_self (lt_max_of_lt_right one_pos) },
-  exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm.measurable) (hC i)⟩,
+  exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf i).nnnorm.measurable) (hC i)⟩,
+end
+
+lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
+  (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
+begin
+  set g : ι → α → β := λ i, (hfu.1 i).some,
+  have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfu.1 i).1,
+  have hgunif : uniform_integrable g p μ := hfu.ae_eq (λ i, (Exists.some_spec $ hfu.1 i).2),
+  obtain ⟨C, hC⟩ := hgunif.spec' hp hp' hgmeas hε,
+  refine ⟨C, λ i, le_trans (le_of_eq $ snorm_congr_ae _) (hC i)⟩,
+  filter_upwards [(Exists.some_spec $ hfu.1 i).2] with x hx,
+  by_cases hfx : x ∈ {x | C ≤ ∥f i x∥₊},
+  { rw [indicator_of_mem hfx, indicator_of_mem, hx],
+    rwa [mem_set_of, hx] at hfx },
+  { rw [indicator_of_not_mem hfx, indicator_of_not_mem],
+    rwa [mem_set_of, hx] at hfx }
 end
 
 /-- The definition of uniform integrable in mathlib is equivalent to the definition commonly
 found in literature. -/
 lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) :
-  uniform_integrable f p μ ↔ (∀ i, strongly_measurable (f i)) ∧
+  uniform_integrable f p μ ↔ (∀ i, ae_strongly_measurable (f i) μ) ∧
   ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
     ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
 ⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,

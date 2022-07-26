@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.prod
+import data.prod.basic
 import data.subtype
 import logic.function.basic
 import logic.unique
@@ -102,6 +102,9 @@ lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
 
 lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
+
+lemma not_nontrivial (α) [subsingleton α] : ¬nontrivial α :=
+λ ⟨⟨x, y, h⟩⟩, h $ subsingleton.elim x y
 
 lemma not_subsingleton (α) [h : nontrivial α] : ¬subsingleton α :=
 let ⟨⟨x, y, hxy⟩⟩ := h in λ ⟨h'⟩, hxy $ h' x y

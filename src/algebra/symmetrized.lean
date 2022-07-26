@@ -216,7 +216,7 @@ lemma two_commute {α : Type*} [ring α] (a : α) : commute 2 a := (commute.one_
 
 /- If 2 is invertible, ⅟2 commutes with every element of a ring -/
 lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
-  commute.inv_of_left (two_commute a)
+(two_commute a).inv_of_left
 
 instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
 { mul_comm := sym_alg.mul_comm,

@@ -923,7 +923,51 @@ end sum_prod
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+end finsupp
 
+
+@[to_additive]
+lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
+  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_prod h _ _
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_finsupp_prod h f g
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_finsupp_prod h f g
+
+/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
+protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
+  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+map_finsupp_sum h f g
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
+  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_finsupp_prod h f g
+
+@[to_additive]
+lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) :
+  ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
+monoid_hom.coe_finset_prod _ _
+
+@[simp, to_additive]
+lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) (x : N) :
+  f.prod g x = f.prod (λ i fi, g i fi x) :=
+monoid_hom.finset_prod_apply _ _ _
+
+
+namespace finsupp
 
 /-!
 ### Additive monoid structure on `α →₀ M`
@@ -1136,45 +1180,6 @@ end add_monoid
 
 end finsupp
 
-@[to_additive]
-lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
-  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
-  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_prod h _ _
-
-/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
-@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
-protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_finsupp_prod h f g
-
-/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
-@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
-protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
-  (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_finsupp_prod h f g
-
-/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
-protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-map_finsupp_sum h f g
-
-/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
-protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
-  (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-map_finsupp_prod h f g
-
-@[to_additive]
-lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
-  (f : α →₀ β) (g : α → β → N →* P) :
-  ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
-monoid_hom.coe_finset_prod _ _
-
-@[simp, to_additive]
-lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
-  (f : α →₀ β) (g : α → β → N →* P) (x : N) :
-  f.prod g x = f.prod (λ i fi, g i fi x) :=
-monoid_hom.finset_prod_apply _ _ _
 
 namespace finsupp
 

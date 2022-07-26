@@ -253,15 +253,14 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
   pure a
 | (app `(⇑(monomial %%n)) x) :=
   pure x
-| `(@has_one.one (@polynomial %%R %%inst) %%ins) := do
-  oner ← to_expr ``(has_one.one : %%R) tt ff,
-  pure oner
+| `(@has_one.one (@polynomial %%R %%_) %%_) := do
+  to_expr ``(has_one.one : %%R) tt ff >>= pure
+| `(@has_zero.zero (@polynomial %%R %%_) %%_) := do
+  to_expr ``(has_zero.zero : %%R) tt ff >>= pure
 | `(X) := do
-  oner ← to_expr ``(has_one.one : %%R) tt ff,
-  pure oner
+  to_expr ``(has_one.one : %%R) tt ff >>= pure
 | `(X ^ %%n) := do
-  oner ← to_expr ``(has_one.one : %%R) tt ff,
-  pure oner
+  to_expr ``(has_one.one : %%R) tt ff >>= pure
 | `(bit0 %%a) := do
   ta ← get_lead_coeff a,
   op ← to_expr ``(bit0 : %%R → %%R) tt ff,
@@ -374,11 +373,11 @@ meta def resolve_coeff : tactic unit := focus1 $ do
 `(coeff %%f %%n = _) ← target >>= instantiate_mvars,
 --do `(coeff %%f %%n = _) ← whnf t reducible | fail!"{t} has the wrong form",
 match f with
-| `(@has_one.one %%RX %%inst) := try $ refine ``(coeff_one_zero)
-| (app `(⇑C) _) := try $ refine ``(coeff_C_zero)
-| (app `(⇑(@monomial %%R %%inst %%n)) x) := try $ refine ``(coeff_monomial)
-| `(X) := try $ refine ``(coeff_X_one)
-| `(X ^ %%n) := try $ refine ``(coeff_X_pow_self %%n)
+| `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
+| (app `(⇑C) _)                       := refine ``(coeff_C_zero)
+| (app `(⇑(@monomial %%R %%_ %%n)) x) := refine ``(coeff_monomial)
+| `(X)                                := refine ``(coeff_X_one)
+| `(X ^ %%n)                          := refine ``(coeff_X_pow_self %%n)
 | `(bit0 %%a) := do
   refine ``((coeff_bit0 _ _).trans _),
   refine ``((pi.bit0_apply _ _).trans _),
@@ -445,7 +444,7 @@ do t ← target >>= instantiate_mvars,
   guard (d_nat = m_nat) <|> fail!(
   "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
   "the expected degree is `{d_nat}`, but you are asking about the coefficient of degree `{m_nat}`"),
-  `(@polynomial %%R %%inst) ← infer_type f,
+  `(@polynomial %%R %%_) ← infer_type f,
   lc ← get_lead_coeff R f,
   nn ← get_unused_name "c_c",
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
@@ -471,7 +470,7 @@ meta def reduce_coeff (fp : parse texpr) : tactic unit :=
 do
   f ← to_expr ``(%%fp) tt ff,
   exp_deg ← guess_degree f >>= eval_expr' ℕ,
-  `(@polynomial %%R %%inst) ← infer_type f,
+  `(@polynomial %%R %%_) ← infer_type f,
   lc ← get_lead_coeff R f,
   nn ← get_unused_name "c_c",
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),

@@ -89,7 +89,7 @@ def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
   one_mem' := by { simp },
   mul_mem':= by {intros a b ha hb,
     simp only [ set.mem_set_of_eq],
-    have h := ((mat_two_mul_expl a.1 b.1).2.2.1),
+    have h := ((matrix.mat_two_mul_expl a.1 b.1).2.2.1),
     simp only [coe_coe, coe_matrix_coe, coe_mul, int.coe_cast_ring_hom, map_apply,
       set.mem_set_of_eq, subtype.val_eq_coe, mul_eq_mul] at *,
     rw h,

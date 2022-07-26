@@ -90,7 +90,7 @@ example : 0 ≤ max (0:ℤ) (-3) := by positivity
 
 example : 0 ≤ max (-3 : ℤ) 5 := by positivity
 
-example {V : Type*} [normed_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
+example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
 

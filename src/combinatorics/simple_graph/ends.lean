@@ -519,6 +519,7 @@ lemma extend_to_fin_components.connected_of_connected  [locally_finite G]
   ∀ x y ∈ extend_to_fin_components G K, ∃ w : G.walk x y, w.support.to_finset ⊆ extend_to_fin_components G K :=
 begin
   -- Sorry
+  sorry,
 end
 
 
@@ -830,20 +831,15 @@ end
 
 lemma nicely_arranged_bwd_map_not_inj [locally_finite G] (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E : inf_components G H) (inf_comp_H_large : fintype.card (inf_components G H) ≥ 3)
+  (E : inf_components G H) (inf_comp_H_large : 2 < fintype.card (inf_components G H))
   (F : inf_components G K)
   (H_F : (H : set V) ⊆ F.val)
   (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map G (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
 begin
-  let E₁ : inf_components G H := sorry,
-  let E₂ : inf_components G H := sorry,
-  have : E ≠ E₁, by sorry,
-  have : E ≠ E₂, by sorry,
-  have : E₁ ≠ E₂, by sorry,
-  -- This follows from the cardinality, but not sure how to do that in lean
-  apply bwd_map_non_inj G K H F E₁ E₂ ‹E₁ ≠ E₂› _ _,
-  {exact nicely_arranged G H K Hnempty Knempty E E₁ ‹E ≠ E₁› F H_F K_E,},
-  {exact nicely_arranged G H K Hnempty Knempty E E₂ ‹E ≠ E₂› F H_F K_E,},
+  rcases (fintype.two_lt_card_iff.mp (inf_comp_H_large)) with ⟨E, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
+  apply bwd_map_non_inj G K H F E₁ E₂ h₁₂ _ _,
+  {exact nicely_arranged G H K Hnempty Knempty E E₁ h₀₁ F H_F K_E,},
+  {exact nicely_arranged G H K Hnempty Knempty E E₂ h₀₂ F H_F K_E,},
 end
 
 

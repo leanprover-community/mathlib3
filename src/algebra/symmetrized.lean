@@ -231,7 +231,7 @@ instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
     nth_rewrite_rhs 0 [mul_def],
     nth_rewrite_rhs 2 [mul_def],
 
-    rw [unsym_sym, sym_inj, ← mul_assoc, ← commute.eq (half_commute (unsym a)),
+    rw [unsym_sym, sym_inj, ← mul_assoc, ← (half_commute (unsym a)).eq,
       mul_assoc (⅟2) (unsym a), mul_assoc (⅟2) _ (unsym a), ← mul_add, ← mul_assoc],
 
     nth_rewrite_rhs 0 mul_add (unsym a),

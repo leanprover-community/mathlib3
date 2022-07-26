@@ -698,12 +698,18 @@ begin
   exact ⟨λ h i hi, h (s i) i hi subset.rfl, λ h t i hi ht, ht (h i hi)⟩
 end
 
-lemma has_basis.sInter_sets (h : has_basis l p s) :
-  ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
-begin
-  ext x,
-  simp only [mem_Inter, mem_sInter, filter.mem_sets, h.forall_mem_mem],
-end
+protected lemma has_basis.binfi_mem [complete_lattice β] {f : set α → β} (h : has_basis l p s)
+  (hf : monotone f) :
+  (⨅ t ∈ l, f t) = ⨅ i (hi : p i), f (s i) :=
+le_antisymm (le_infi₂ $ λ i hi, infi₂_le (s i) (h.mem_of_mem hi)) $
+  le_infi₂ $ λ t ht, let ⟨i, hpi, hi⟩ := h.mem_iff.1 ht in infi₂_le_of_le i hpi (hf hi)
+
+protected lemma has_basis.bInter_mem {f : set α → set β} (h : has_basis l p s) (hf : monotone f) :
+  (⋂ t ∈ l, f t) = ⋂ i (hi : p i), f (s i) :=
+h.binfi_mem hf
+
+lemma has_basis.sInter_sets (h : has_basis l p s) : ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
+by { rw [sInter_eq_bInter], exact h.bInter_mem monotone_id }
 
 variables {ι'' : Type*} [preorder ι''] (l) (s'' : ι'' → set α)
 

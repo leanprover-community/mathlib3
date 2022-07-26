@@ -324,8 +324,8 @@ lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
 
 lemma absorbs_zero_iff : absorbs 𝕜 s 0 ↔ (0 : E) ∈ s :=
 begin
@@ -340,4 +340,4 @@ end
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
 
-end nondiscrete_normed_field
+end nontrivially_normed_field

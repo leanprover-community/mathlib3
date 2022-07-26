@@ -144,7 +144,7 @@ hf.exists_forall_eventually_eq_prod.imp $ λ F hF x, (hF x).curry
 that the family of sets `s n = {x | f (n + 1) x ≠ f n x}` is locally finite. Then there exists a
 function `F :  α → β` such that for any `x`, for sufficiently large values of `n`, we have
 `f n =ᶠ[𝓝 x] F`. -/
-lemma locally_finite.exists_forall_eventually_at_top_eventually_eq {f : ℕ → X → α}
+lemma exists_forall_eventually_at_top_eventually_eq {f : ℕ → X → α}
   (hf : locally_finite (λ n, {x | f (n + 1) x ≠ f n x})) :
   ∃ F : X → α, ∀ x, ∀ᶠ n : ℕ in at_top, f n =ᶠ[𝓝 x] F :=
 hf.exists_forall_eventually_at_top_eventually_eq'

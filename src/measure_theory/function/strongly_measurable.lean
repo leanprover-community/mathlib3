@@ -182,8 +182,8 @@ protected lemma tendsto_approx {m : measurable_space α} (hf : strongly_measurab
 hf.some_spec
 
 /-- Similar to `strongly_measurable.approx`, but enforces that the norm of every function in the
-sequence is less than `c` everywhere. If `f` has norm a.e. bounded by `c`, this sequence of simple
-functions verifies `∀ᵐ x ∂μ, tendsto (λ n, hf.approx_bounded n x) at_top (𝓝 (f x))`. -/
+sequence is less than `c` everywhere. If `∥f x∥ ≤ c` this sequence of simple functions verifies
+`tendsto (λ n, hf.approx_bounded n x) at_top (𝓝 (f x))`. -/
 noncomputable
 def approx_bounded {m : measurable_space α}
   [has_norm β] [has_smul ℝ β] (hf : strongly_measurable f) (c : ℝ) :

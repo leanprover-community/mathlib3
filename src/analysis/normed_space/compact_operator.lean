@@ -252,6 +252,20 @@ end
 
 end comp
 
+section cod_restrict
+
+variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
+  {M₁ M₂ : Type*} [topological_space M₁] [topological_space M₂]
+  [add_comm_monoid M₁] [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
+
+lemma is_compact_operator.cod_restrict {f: M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f)
+  {V : submodule R₂ M₂} (hV : ∀ x, f x ∈ V) (h_closed : is_closed (V : set M₂)):
+  is_compact_operator (f.cod_restrict V hV) :=
+let ⟨K, hK, hKf⟩ := hf in
+⟨coe ⁻¹' K, (closed_embedding_subtype_coe h_closed).is_compact_preimage hK, hKf⟩
+
+end cod_restrict
+
 section restrict_invariant
 
 variables {R₁ R₂ R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R₃] {σ₁₂ : R₁ →+* R₂}
@@ -264,14 +278,7 @@ compact. -/
 lemma is_compact_operator.restrict_invariant {f: M₁ →ₗ[R₁] M₁} (hf : is_compact_operator f)
   {V : submodule R₁ M₁} (hV : ∀ v ∈ V, f v ∈ V) (h_closed : is_closed (V : set M₁)):
   is_compact_operator (f.restrict hV) :=
-begin
-  rcases hf with ⟨K, hK, hKf⟩,
-  refine ⟨coe ⁻¹' K, (closed_embedding_subtype_coe h_closed).is_compact_preimage hK, _⟩,
-  change coe ⁻¹' (f ⁻¹' K) ∈ (𝓝 0 : filter V),
-  have := continuous_subtype_coe.tendsto (0 : V),
-  rw submodule.coe_zero at this,
-  exact this hKf
-end
+(hf.comp_clm V.subtypeL).cod_restrict sorry sorry
 
 /-- If a compact operator preserves a complete submodule, its restriction to that submodule is
 compact. -/

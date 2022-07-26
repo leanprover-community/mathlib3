@@ -190,7 +190,7 @@ def approx_bounded {m : measurable_space α}
   ℕ → simple_func α β :=
 λ n, (hf.approx n).map (λ x, (min 1 (c / ∥x∥)) • x)
 
-lemma tendsto_approx_bounded_of_norm_le {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+lemma tendsto_approx_bounded_of_norm_le {β} {f : α → β} [normed_add_comm_group β] [normed_space ℝ β]
   {m : measurable_space α} (hf : strongly_measurable[m] f) {c : ℝ} {x : α} (hfx : ∥f x∥ ≤ c) :
   tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
 begin
@@ -224,14 +224,14 @@ begin
   refine tendsto.div tendsto_const_nhds h_tendsto.norm hfx0,
 end
 
-lemma tendsto_approx_bounded_ae {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+lemma tendsto_approx_bounded_ae {β} {f : α → β} [normed_add_comm_group β] [normed_space ℝ β]
   {m m0 : measurable_space α} {μ : measure α}
   (hf : strongly_measurable[m] f) {c : ℝ}
   (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
   ∀ᵐ x ∂μ, tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
 by filter_upwards [hf_bound] with x hfx using tendsto_approx_bounded_of_norm_le hf hfx
 
-lemma norm_approx_bounded_le {β} {f : α → β} [semi_normed_group β] [normed_space ℝ β]
+lemma norm_approx_bounded_le {β} {f : α → β} [seminormed_add_comm_group β] [normed_space ℝ β]
   {m : measurable_space α} {c : ℝ} (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
   ∥hf.approx_bounded c n x∥ ≤ c :=
 begin

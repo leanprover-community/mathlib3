@@ -24,48 +24,39 @@ lemma continuous_to_C_iff_uncurry (X Y Z : Type*) [topological_space X]
 (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
 
 
--- lemma exists_compact_superset' (α : Type*) [topological_space α] [locally_compact_space α]
---   {U K : set α} (hK : is_compact K) (hU : is_open U) (h_UK : K ⊆ U) :
---   ∃ K', is_compact K' ∧ K' ⊆ U :=
--- begin
---   obtain ⟨K', ⟨hK', h₀⟩⟩ := exists_compact_superset hK,
---   use K',
---   split,
---   exact hK',
---   -- rw subset_interior_iff at h₀,
---   -- obtain ⟨W, hW₁, hW₂, hW₃⟩ := h₀,
--- end
-
-example (A B C : set ℝ) : A ⊆ B → B ⊆ C → A ⊆ C := set.subset.trans
-
---This is Prop. 9 of Chap. X, n. 4 of Bourbaki's *Topologie Générale*
+/--This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*-/
 lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
   [locally_compact_space β] [topological_space γ] :
   continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
 begin
   apply continuous_generated_from,
   rintros M ⟨K, hK, U, hU, hM⟩,
-  apply is_open_iff_forall_mem_open.mpr,--put at the end?
+  apply is_open_iff_forall_mem_open.mpr,
   rintros ⟨φ₀, ψ₀⟩ H,
   simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
     set.mem_set_of_eq] at H,
   obtain ⟨L, ⟨hL, hL_left⟩⟩ := exists_compact_superset (hK.image φ₀.2),
-  have hL_right : L ⊆ ψ₀ ⁻¹' U, sorry,
+  have hL_right : L ⊆ ψ₀ ⁻¹' U,
+  --This `hL_right` follows from Prop. 10, Chap. I, §9, №. 7 of Bouraki's *Topologie Générale*
+  { rw [set.preimage_comp] at H,
+    rw [← set.image_subset_iff] at H,
+    sorry,
+  },
   set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
-  have hV : is_open V, sorry,
-  have hV₀ : φ₀ ∈ V, sorry,
+  have hV : is_open V := continuous_map.is_open_gen hK is_open_interior,
   set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
-  have hW : is_open W, sorry,
-  have hW₀ : ψ₀ ∈ W, sorry,
+  have hW : is_open W := continuous_map.is_open_gen hL hU,
   use V ×ˢ W,
   split,
   { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
     simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
     set.mem_set_of_eq],
-    rw ← set.image_subset_iff,
-    rw set.image_comp,
+    rw [← set.image_subset_iff, set.image_comp],
     exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ,
   },
+  exact ⟨is_open.prod hV hW, set.mem_prod.mpr
+    ⟨by {simp only [set.mem_set_of_eq], exact hL_left},
+    by {simp only [set.mem_set_of_eq, set.image_subset_iff, hL_right]}⟩⟩,
 end
 
 end continuous_map

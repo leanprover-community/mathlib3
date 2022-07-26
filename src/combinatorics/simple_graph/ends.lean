@@ -335,6 +335,10 @@ begin
 end
 
 
+lemma bij_components_of_autom [locally_finite G] [G.preconnected] (K : finset V) (φ : G ≃g G) :
+  set.bij_on (λ C, φ '' C) (G.components K) (G.components (finset.image φ K)) := sorry
+
+
 lemma autom [locally_finite G] [G.preconnected] (K : finset V) (φ : G ≃g G) :
   components G (finset.image φ K) = set.image (λ C, φ '' C) (components G K) :=
 begin
@@ -365,6 +369,11 @@ variables {K L L' M : finset V}
 
 lemma inf_components_subset (K : finset V) : inf_components G K ⊆ components G K := λ C h, h.1
 lemma fin_components_subset (K : finset V) : fin_components G K ⊆ components G K := λ C h, h.1
+
+
+lemma bij_inf_components_of_autom [locally_finite G] [G.preconnected] (K : finset V) (φ : G ≃g G) :
+  set.bij_on (λ C, φ '' C) (G.inf_components K) (G.inf_components (finset.image φ K)) := sorry
+
 
 
 lemma infinite_graph_to_inf_components_nonempty (Vinfinite : (@set.univ V).infinite) : (inf_components G K).nonempty :=
@@ -1162,14 +1171,20 @@ begin
 
   have Einf : E.infinite := finn ⟨E,Ecomp⟩,
   have Finf : F.infinite, by {
-    have : F ∈ set.image (λ C, φ '' C) (components G K'), by {
-      rw (@component.autom V G _ _ (sorry) K'  φ) at Fcomp,
-      simpa only,},
-    rcases this with ⟨FF,FFcomp,rfl⟩,
-    have φ_inj_FF : set.inj_on φ FF, by {sorry},
-    exact (set.infinite_image_iff φ_inj_FF).mpr (finn ⟨FF,FFcomp⟩),},
+    rcases  @component.bij_components_of_autom V G _ _ (sorry) K' φ with ⟨mapsto,inj,sur⟩,
+    rcases sur Fcomp with ⟨F₀,F₀comp,rfl⟩,
+    let F₀inf := finn ⟨F₀,F₀comp⟩,
+    rcases @bij_inf_components_of_autom V G _ _ (sorry) K' φ with ⟨infmapsto,_,_⟩,
+    let lol := infmapsto ⟨F₀comp,F₀inf⟩,
+    simp at lol,
+    simp,
+    sorry, -- almost done but had to go
+  },
 
   apply nicely_arranged_bwd_map_not_inj G φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
+
+  have := @bij_inf_components_of_autom V G _ _ (sorry) K' φ,
+
 
   sorry,
 end

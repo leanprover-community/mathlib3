@@ -56,7 +56,7 @@ noncomputable def infesep [has_edist α] (s : set α) := ⨅ (x ∈ s) (y ∈ s)
 section has_edist
 variables [has_edist α] {x y : α} {s : set α}
 
-lemma le_infesep_iff {d} : d ≤ infesep s ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
+lemma le_infesep_iff {d} : d ≤ s.infesep ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
 by simp_rw [infesep, le_infi_iff]
 
 lemma le_infesep_image_iff {d} {f : β → α} {s : set β} :
@@ -67,18 +67,18 @@ lemma le_infesep_image_injective_iff {d} {f : β → α} (hf : injective f) {s :
   d ≤ infesep (f '' s) ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist (f x) (f y) :=
 by simp_rw [le_infesep_image_iff, hf.ne_iff]
 
-lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ infesep s) :
+lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ s.infesep) :
   d ≤ edist x y := le_infesep_iff.1 hd x hx y hy hxy
 
-lemma infesep_le_edist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : infesep s ≤ edist x y :=
+lemma infesep_le_edist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infesep ≤ edist x y :=
 le_edist_of_le_infesep hx hy hxy le_rfl
 
-lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ infesep s := le_infesep_iff.2 h
+lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
 
-lemma infesep_lt_iff {d} : infesep s < d ↔ ∃ x y ∈ s, x ≠ y ∧ edist x y < d :=
+lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ x y ∈ s, x ≠ y ∧ edist x y < d :=
 by simp_rw [infesep, infi_lt_iff, exists_prop]
 
-lemma infesep_subsingleton (hs : s.subsingleton) : infesep s = ∞ :=
+lemma infesep_subsingleton (hs : s.subsingleton) : s.infesep = ∞ :=
 eq_top_iff.2 (le_infesep (λ x hx y hy hxy, false.elim (hxy (hs hx hy))))
 
 @[simp] lemma infesep_empty : infesep (∅ : set α) = ∞ :=
@@ -127,7 +127,7 @@ begin
 end
 
 lemma infesep_insert :
-  infesep (insert x s) = (⨅ (y ∈ s) (hxy : x ≠ y), edist x y) ⊓ (infesep s) :=
+  infesep (insert x s) = (⨅ (y ∈ s) (hxy : x ≠ y), edist x y) ⊓ (s.infesep) :=
 begin
   refine le_antisymm (le_min infesep_insert_le (infesep_anti (subset_insert _ _))) _,
   simp_rw [le_infesep_iff, inf_le_iff, mem_insert_iff],
@@ -160,7 +160,7 @@ end pseudo_emetric_space
 section pseudo_metric_space
 variables [pseudo_metric_space α] {s : set α}
 
-theorem infesep_eq_infty_iff : infesep s = ∞ ↔ s.subsingleton :=
+theorem infesep_eq_infty_iff : s.infesep = ∞ ↔ s.subsingleton :=
 begin
   split,
   rw infesep, simp_rw infi_eq_top,
@@ -169,7 +169,7 @@ begin
   exact infesep_subsingleton,
 end
 
-theorem infesep_bounded_iff_not_subsingleton : infesep s < ∞ ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
+theorem infesep_bounded_iff_not_subsingleton : s.infesep < ∞ ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
 begin
   rw lt_top_iff_ne_top,
   refine iff.not_left _,
@@ -207,7 +207,7 @@ variables [decidable_eq α]
 section has_edist
 variables [has_edist α] {x y : α} {s : finset α}
 
-lemma le_infesep_iff {d} : d ≤ infesep s ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
+lemma le_infesep_iff {d} : d ≤ s.infesep ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist x y :=
 begin
   simp_rw [infesep, le_inf_iff, mem_off_diag], split,
   { exact λ H _ hx _ hy hxy, H ⟨_, _⟩ ⟨hx, hy, hxy⟩ },
@@ -226,22 +226,22 @@ lemma le_infesep_image_injective_iff {d} {f : β → α} (hf : injective f) {s :
   d ≤ infesep (image f s) ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist (f x) (f y) :=
 by simp_rw [le_infesep_image_iff, hf.ne_iff]
 
-lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ infesep s) :
+lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ s.infesep) :
   d ≤ edist x y := le_infesep_iff.1 hd x hx y hy hxy
 
-lemma infesep_le_edist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : infesep s ≤ edist x y :=
+lemma infesep_le_edist_of_mem (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.infesep ≤ edist x y :=
 le_edist_of_le_infesep hx hy hxy le_rfl
 
-lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ infesep s := le_infesep_iff.2 h
+lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
 
-lemma infesep_lt_iff {d} : infesep s < d ↔ ∃ x y ∈ s, x ≠ y ∧ edist x y < d :=
+lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ x y ∈ s, x ≠ y ∧ edist x y < d :=
 begin
   simp_rw [infesep, finset.inf_lt_iff, exists_prop, mem_off_diag], split,
   { rintros ⟨_, ⟨hx, hy, hxy⟩, hxyd⟩, exact ⟨_, hx, _, hy, hxy, hxyd⟩ },
   { rintros ⟨x, hx, y, hy, hxy, hxyd⟩, exact ⟨(x, y), ⟨hx, hy, hxy⟩, hxyd⟩ }
 end
 
-lemma infesep_subsingleton (hs : ∀ {a b : α}, a ∈ s → b ∈ s → a = b) : infesep s = ∞ :=
+lemma infesep_subsingleton (hs : ∀ {a b : α}, a ∈ s → b ∈ s → a = b) : s.infesep = ∞ :=
 eq_top_iff.2 (le_infesep (λ x hx y hy hxy, false.elim (hxy (hs hx hy))))
 
 @[simp] lemma infesep_empty : infesep (∅ : finset α) = ∞ :=
@@ -287,7 +287,7 @@ begin
 end
 
 lemma infesep_insert :
-  infesep (insert x s) = (⨅ (y ∈ s) (hxy : x ≠ y), edist x y) ⊓ (infesep s) :=
+  infesep (insert x s) = (⨅ (y ∈ s) (hxy : x ≠ y), edist x y) ⊓ (s.infesep) :=
 begin
   refine le_antisymm (_root_.le_min infesep_insert_le (infesep_anti (subset_insert _ _))) _,
   simp_rw [le_infesep_iff, inf_le_iff, mem_insert],

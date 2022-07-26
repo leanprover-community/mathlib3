@@ -533,12 +533,12 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
           (by simpa using (hε' i).ne'),
       simpa [μ, infi_lt_iff] },
     refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hf i).2),
-    rw [← ennreal.tsum_prod, ← equiv.nat_prod_nat_equiv_nat.symm.tsum_eq],
+    rw [← ennreal.tsum_prod, ← nat.mkpair_equiv.symm.tsum_eq],
     swap, {apply_instance},
     refine infi_le_of_le _ (infi_le _ _),
     exact Union_subset (λ i, subset.trans (hf i).1 $
       Union_subset $ λ j, subset.trans (by simp) $
-      subset_Union _ $ equiv.nat_prod_nat_equiv_nat (i, j)),
+      subset_Union _ $ nat.mkpair_equiv (i, j)),
   end }
 
 lemma of_function_apply (s : set α) :

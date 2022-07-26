@@ -34,7 +34,7 @@ variables [topological_space M]
 continuous_induced_dom
 
 @[continuity, to_additive] lemma continuous_op : continuous (op : M → Mᵐᵒᵖ) :=
-continuous_induced_rng continuous_id
+continuous_induced_rng.2 continuous_id
 
 @[to_additive] instance [t2_space M] : t2_space Mᵐᵒᵖ :=
 ⟨λ x y h, separated_by_continuous mul_opposite.continuous_unop $ unop_injective.ne h⟩
@@ -69,6 +69,11 @@ variables [topological_space M] [monoid M]
 /-- The units of a monoid are equipped with a topology, via the embedding into `M × M`. -/
 @[to_additive] instance : topological_space Mˣ :=
 topological_space.induced (embed_product M) prod.topological_space
+
+@[to_additive] lemma inducing_embed_product : inducing (embed_product M) := ⟨rfl⟩
+
+@[to_additive] lemma embedding_embed_product : embedding (embed_product M) :=
+⟨inducing_embed_product, embed_product_injective M⟩
 
 @[to_additive] lemma continuous_embed_product : continuous (embed_product M) :=
 continuous_induced_dom

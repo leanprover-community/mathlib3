@@ -1856,7 +1856,9 @@ begin
     ((pullback_restrict_iso_restrict f U).inv ≫ (pullback_symmetry _ _).hom) (𝟙 _)
     ((category.comp_id _).trans (category.id_comp _).symm) (by simpa) ≫
     (pullback_right_pullback_fst_iso _ _ _).hom ≫ (pullback_symmetry _ _).hom).hom ≫ pullback.snd,
-  { simpa },
+  { simpa only [category.comp_id, pullback_right_pullback_fst_iso_hom_fst, iso.refl_hom,
+      category.assoc, pullback_symmetry_hom_comp_snd, as_iso_hom, pullback.lift_fst,
+      pullback_symmetry_hom_comp_fst] },
   refine arrow.iso_mk' _ _ _ _ this.symm ≪≫ (morphism_restrict_opens_range _ _).symm ≪≫
     morphism_restrict_eq _ _,
   ext1,

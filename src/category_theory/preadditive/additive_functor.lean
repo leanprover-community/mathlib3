@@ -118,6 +118,7 @@ instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite
         simp_rw [← F.map_id],
         refine congr_arg _ (hb.is_limit.hom_ext (λ j, hb.is_colimit.hom_ext (λ j', _))),
         cases j, cases j',
+        dsimp only [limits.bicone.to_cone_π_app],
         simp [sum_comp, comp_sum, bicone.ι_π, comp_dite, dite_comp],
       end } } }
 

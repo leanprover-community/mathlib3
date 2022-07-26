@@ -5,11 +5,12 @@ Authors: Filippo A. E. Nuccio
 -/
 
 -- import analysis.complex.circle
+import tactic.monotonicity
 import topology.compact_open
 import topology.homotopy.basic
 import topology.homotopy.path
 
-universe u
+universes u v w
 
 noncomputable theory
 
@@ -17,35 +18,55 @@ open_locale unit_interval
 
 namespace continuous_map
 
-lemma continuous_to_C_iff_uncurry {X Y Z : Type u} [topological_space X] [topological_space Y]
-[locally_compact_space Y] [topological_space Z] {g : X → C(Y, Z)} :
+lemma continuous_to_C_iff_uncurry (X Y Z : Type*) [topological_space X]
+  [topological_space Y] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
   continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
 (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
 
--- lemma continuous_to_C_iff_curry (X Y Z : Type u) [topological_space X] [topological_space Y]
--- [locally_compact_space X] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
---   continuous g ↔ continuous (λ x y, g x y) :=  --iff.intro
--- -- (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
+
+-- lemma exists_compact_superset' (α : Type*) [topological_space α] [locally_compact_space α]
+--   {U K : set α} (hK : is_compact K) (hU : is_open U) (h_UK : K ⊆ U) :
+--   ∃ K', is_compact K' ∧ K' ⊆ U :=
 -- begin
---   sorry;
---   {
+--   obtain ⟨K', ⟨hK', h₀⟩⟩ := exists_compact_superset hK,
+--   use K',
 --   split,
---   { intro h,
---     -- have := function.curry_uncurry (λ x y, g x y),
---     -- rw ← this,
---     apply continuous_pi _,
---     have φ  := (@homeomorph.curry X Y Z _ _ _ _ _).symm,
---     let G : C(X, C(Y,Z)) := ⟨g, h⟩,
---     let F := φ.1.1 G,
-
---     intro y,
---     -- exact h,
---     -- have := continuous_uncurry,
---     -- apply continuous_pi (λ (i : Y), _),
-
---   },
---   },
+--   exact hK',
+--   -- rw subset_interior_iff at h₀,
+--   -- obtain ⟨W, hW₁, hW₂, hW₃⟩ := h₀,
 -- end
+
+example (A B C : set ℝ) : A ⊆ B → B ⊆ C → A ⊆ C := set.subset.trans
+
+--This is Prop. 9 of Chap. X, n. 4 of Bourbaki's *Topologie Générale*
+lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
+  [locally_compact_space β] [topological_space γ] :
+  continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
+begin
+  apply continuous_generated_from,
+  rintros M ⟨K, hK, U, hU, hM⟩,
+  apply is_open_iff_forall_mem_open.mpr,--put at the end?
+  rintros ⟨φ₀, ψ₀⟩ H,
+  simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+    set.mem_set_of_eq] at H,
+  obtain ⟨L, ⟨hL, hL_left⟩⟩ := exists_compact_superset (hK.image φ₀.2),
+  have hL_right : L ⊆ ψ₀ ⁻¹' U, sorry,
+  set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
+  have hV : is_open V, sorry,
+  have hV₀ : φ₀ ∈ V, sorry,
+  set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
+  have hW : is_open W, sorry,
+  have hW₀ : ψ₀ ∈ W, sorry,
+  use V ×ˢ W,
+  split,
+  { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
+    simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+    set.mem_set_of_eq],
+    rw ← set.image_subset_iff,
+    rw set.image_comp,
+    exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ,
+  },
+end
 
 end continuous_map
 
@@ -57,8 +78,8 @@ variables (X : Type u) [topological_space X]
 
 instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
-instance (x y : X) : topological_space (path x y) := topological_space.induced
-  (coe : _ → C(I, X)) (by {apply_instance})
+instance (x y : X) : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
+  continuous_map.compact_open
 
 end path
 
@@ -85,6 +106,8 @@ class H_space (X : Type u) [topological_space X]  :=
 
 notation ` ∨ `:65 := H_space.Hmul
 
+section topological_group_H_space
+
 instance topological_group_H_space (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
 { Hmul := function.uncurry has_mul.mul,
@@ -108,194 +131,103 @@ lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] 
 -- instance S3_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := sorry
 -- instance S7_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := sorry
 
+end topological_group_H_space
+
+section path_space_H_space
+
 variables {X : Type u} [topological_space X]
 
--- def loop_space (x : X) : Type u := {f : C(I, X) // f 0 = x ∧ f 1 = x}
+notation ` Ω(` x `)` := path x x
 
--- instance (x : X) : topological_space (loop_space x) := by {exact subtype.topological_space}
+@[simp]
+lemma continuous_coe (x : X) : continuous (coe : Ω(x) → C(↥I, X)) := continuous_induced_dom
 
--- instance (x : X) : has_coe (loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
+variable {x : X}
 
--- example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compact_space Y]
--- [locally_compact_space Z] (g : Y → C(Z, X)) (hg : continuous g) : continuous (λ p : Y × Z, g p.fst p.snd) :=
--- begin
---   let f:= continuous_map.uncurry ⟨g, hg⟩,
---   exact f.2,
--- end
+@[simp]
+lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)} :
+ continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng h
 
-abbreviation loop_space (x : X) := path x x
+lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x) } :
+ continuous g ↔ continuous (↑g : Y → C(I,X)) :=
+ ⟨λ h, continuous.comp (continuous_coe x) h, λ h, continuous_to_Ω_if_to_C h⟩
 
-notation ` Ω ` := loop_space
+lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y] [locally_compact_space Y]
+  {g : Y → Ω(x)} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
+  iff.intro ((λ h, (continuous_to_C_iff_uncurry Y I X ↑g).mp (continuous_to_Ω_iff_to_C.mp h)))
+  (λ h, continuous_to_Ω_iff_to_C.mpr ((continuous_to_C_iff_uncurry Y I X ↑g).mpr h))
 
-instance (x : X) : topological_space (Ω x) := infer_instance
 
-instance (x : X) : has_coe (Ω x) C(I, X) := {coe := λ g, ⟨g.1⟩}
-
-@[ext]
-lemma ext_loop (x : X) (γ γ' : Ω x) : γ = γ' ↔ (∀ t, γ t = γ' t) :=
+lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
+  x.1.1.extend (2 * x.2)) :=
 begin
-  split;
-  intro h,
-  { simp only [h, eq_self_iff_true, forall_const] },
-  { rw [← function.funext_iff] at h, exact path.ext h }
+  let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2)),
+  have H : continuous η,
+  { let Cproj : C(ℝ, I) := ⟨set.proj_Icc _ _ zero_le_one, continuous_proj_Icc⟩,
+    have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp continuous_induced_dom,
+    have h_right := (continuous_const.mul continuous_id').comp
+    (@continuous_induced_dom _ _ (coe : I → ℝ) _),
+    exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },
+  replace H := (homeomorph.comp_continuous_iff' $ homeomorph.prod_assoc Ω(x) _ _).mpr (H.comp $ continuous_snd),
+  exact (H.comp $ continuous.prod_map continuous_swap continuous_id),
 end
 
-example (x : X) : has_coe_to_fun (Ω x) (λ _, I → X) := infer_instance
-
-variable (f : ℕ → ℕ)
-#check (coe ∘ f : ℕ → ℝ)
-
--- example (Y : Type u) [topological_space Y] (x  :X) (f : Y → Ω x) : true =
--- begin
---  let := (↑f : Y → C(I,X)),
--- end
-
-variable (x : X)
-
-lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y]
-[locally_compact_space Y] {g : Y → Ω x} :
-  continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
+lemma continuous_prod_second_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend (2 * x.2 - 1)) :=
 begin
-  convert continuous_to_C_iff_uncurry using 0,
+  let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
+  have H : continuous η,
+  { let Cproj : C(ℝ, I) := ⟨set.proj_Icc 0 1 zero_le_one, continuous_proj_Icc⟩,
+    have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp continuous_induced_dom,
+    have aux : continuous (λ x : ℝ, 2 * x -1 ),
+      from (continuous_const.mul continuous_id').sub continuous_const,
+    have h_right := aux.comp continuous_induced_dom,
+    exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },
+  exact (homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm).mp (H.comp continuous_snd),
 end
 
--- lemma continuous_to_loop_space_iff_uncurry (Y : Type u) [topological_space Y] (g : Y → Ω x) :
---   continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
--- begin
-  -- have := @continuous_map.continuous_uncurry_of_continuous Y I X _ _ _ _,
-  -- split,
-  -- sorry,
-  -- intro h,
-  -- apply this,
-  -- have := this h,
--- sorry;{
---   let g₁ : Y → C(I,X) := λ y, g y,
---   split,
---   { intro h,
---     have hg₁ : continuous g₁, sorry,
---     -- { convert h.subtype_coe,
---     --   ext t,
---     --   refl },
---     have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
---     exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
---   { intro h,
+lemma closure_I_mem (t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ 1 / 2} ↔ (t : ℝ) ≤ 1 /2 := by {rw [(is_closed_le
+  continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq], apply_instance}
 
---     suffices hg₁ : continuous g₁,
---     sorry,
---     apply continuous_of_continuous_uncurry,
---     dsimp [function.uncurry],
---     -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
---     -- suggest,
---     -- library_search,
---     -- continuity,
---     -- simp,
---     -- convert h using 0,
---   },
--- }
--- end
-
-
-lemma continuous_to_loop_space_iff_curry {Y : Type u} [topological_space Y]
-  {g : Y → Ω x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
-  begin
-    sorry
-  end
-
--- example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X) (hf : continuous f)
--- : continuous (λ p : Y × Z, f p.1) := continuous.fst' hf
-
--- example (Y Z : Type u) [topological_space Y] [topological_space Z] :
---   (X × Y) × Z ≃ₜ X × (Y × Z) := homeomorph.prod_assoc X Y Z
-
-def I₀ := {t : I | t.1 ≤ 1/2}
-
-lemma univ_eq_union_halves' (α : Type u) : (set.univ : set (α × I)) =
-  ((set.univ : set α) ×ˢ I₀) ∪ ((set.univ : set α) ×ˢ I₀ᶜ) :=  by {ext, simp only [set.mem_union_eq,
-   set.mem_prod, set.mem_univ, true_and, set.mem_compl_eq], tauto}
-
-lemma univ_eq_union_halves (α : Type u) : ((set.univ : set α) ×ˢ I₀) ∪ ((set.univ : set α) ×ˢ I₀ᶜ)
-  = (set.univ : set (α × I)) :=  by {ext, simp only [set.mem_union_eq, set.mem_prod, set.mem_univ,
-    true_and, set.mem_compl_eq], tauto}
-
-lemma continuous_of_restricts_union {α β : Type u} [topological_space α] [topological_space β]
-  {s t : set α} {f : α → β} (H : s ∪ t = set.univ) (hs : continuous (s.restrict f))
-  (ht : continuous (t.restrict f)) : continuous f := sorry --it should be a iff if it lands in `mathlib`
-
-lemma continuous_triple_prod_assoc {α β γ δ : Type u} [topological_space α] [topological_space β]
-  [topological_space γ] [topological_space δ] (f : (α × β) × γ → δ) : continuous f ↔
-    continuous (f ∘ (homeomorph.prod_assoc α β γ).symm.1) :=
+lemma interior_I_not_mem (t : I) : t ∉ interior {s : ↥I | (s : ℝ) ≤ 1 / 2} ↔ (1 / 2 : ℝ) ≤ t :=
 begin
-  split,
-  {refine λ (h : continuous f), h.comp _,
-    simp only [homeomorph.coe_to_equiv, homeomorph.comp_continuous_iff],
-    exact continuous_id},
-  { refine λ (h : continuous (f ∘ ⇑((homeomorph.prod_assoc α β γ).symm.to_equiv))), _,
-    simp only [*, homeomorph.coe_to_equiv, homeomorph.comp_continuous_iff'] at * },
+  let halfI : I := ⟨1 / 2, by {simp only [one_div, inv_nonneg, zero_le_bit0, zero_le_one]}
+    , le_of_lt (one_half_lt_one) ⟩,
+  have : {s : ↥I | (s : ℝ) ≤ 1 / 2} = set.Iic (halfI) := rfl,
+  have H_ne : (set.Ioi halfI).nonempty := ⟨1, by {simpa only [set.mem_Ioi, ← subtype.coe_lt_coe]
+    using one_half_lt_one}⟩,
+  simp only [this, interior_Iic' H_ne, not_lt, subtype.coe_mk, set.mem_set_of_eq,
+    ← subtype.coe_lt_coe, ← set.Iio_def],
 end
 
-lemma continuous_triple_prod_swap {α β γ δ : Type u} [topological_space α] [topological_space β]
-  [topological_space γ] [topological_space δ] (f : (α × β) × γ → δ) : continuous f ↔
-    continuous (f ∘ (homeomorph.prod_comm _ _).symm.1) :=
+lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
-  sorry,
+  apply continuous.piecewise,
+  { rintros ⟨_, t⟩ ⟨h_left, h_right⟩,
+    have h_eq : (λ (i : (path x x × path x x) × I), (i.snd : ℝ) ≤ (1 / 2)) =
+      (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
+    { ext p,
+      change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ (@set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2}),
+      simp only [set.mem_prod, set.mem_univ, set.mem_set_of_eq, true_and] },
+    erw h_eq at h_left h_right,
+    simp only [closure_prod_eq, closure_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ,
+      true_and] at h_left,
+    simp only [interior_prod_eq, interior_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and]
+       at h_right,
+    have H := eq_of_ge_of_not_gt ((interior_I_not_mem t).mp h_right)
+      (not_lt_of_le $ (closure_I_mem t).mp h_left),
+    simp only [H, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, unit_interval.mk_one,
+      path.target, sub_self, set.Icc_extend_left, unit_interval.mk_zero, path.source, one_div] },
+  exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
-example (α β : Type u) [inhabited α] (f : α → β) : (∃ b, f = (function.const α b)) ↔ (∀ x y : α, f x = f y) :=
-begin
-  split,
-  { rintro ⟨b, hb⟩,
-    intros x y,
-    rw hb },
-  { intro h,
-    use f (default : α),
-    ext,
-    rw h }
-end
-
-instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
+instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
-  cont' :=
-  begin
-    apply (continuous_to_loop_space_iff_curry x).mpr,
-    apply continuous_of_restricts_union (univ_eq_union_halves _),
-    { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
-      have hφ: continuous φ, sorry,
-      sorry,
-      -- convert hφ,
-      -- refl,
-
-    },
-    sorry,
-
-    -- rw continuous_iff_continuous_at,
-    -- intro w,
-    -- rw ← continuous_within_at_univ,
-    -- rw univ_eq_union_halves' ((Ω x) × (Ω x)),
-    -- -- rw h,
-    -- apply continuous_within_at_union.mpr,
-    -- split,
-    -- {
-
-
-      -- have H := @continuous_within_at_snd ((new_loop_space x) × (new_loop_space x)) I _ _
-      --   (set.univ ×ˢ I₀) w,
-      -- have := @continuous_within_at.comp ((new_loop_space x × new_loop_space x) × I) _ X _ _ _,
-      -- let ψ := (λ p : ((new_loop_space x × new_loop_space x) × I), ((path.trans p.fst.fst p.fst.snd).1).1),
-    -- { have := continuous_within_at.comp' continuous_within_at_snd _,
-    --simp [path.trans],
-      -- by_cases hw : w.2.1 ≤ 2⁻¹,
-      -- simp_rw if_pos,
-
-      -- apply
-
-    -- },
-  -- sorry,
-    -- },
-  end,
-  Hmul_e_e := sorry,
+  cont' := continuous_to_Ω_if_to_C $ continuous_of_continuous_uncurry _ $ Hmul_cont x,
+  Hmul_e_e := refl_trans_refl,
   left_Hmul_e := sorry,
   right_Hmul_e := sorry}
 
+end path_space_H_space
 
 end H_space

@@ -1161,7 +1161,7 @@ theorem nth_eq_nth_of_nth_le_eq_nth_le {l₁ l₂ : list α}
   {n₁ n₂ : ℕ} {lt_len₁ : n₁ < l₁.length} {lt_len₂ : n₂ < l₂.length}
   (h : l₁.nth_le n₁ lt_len₁ = l₂.nth_le n₂ lt_len₂) :
   l₁.nth n₁ = l₂.nth n₂ :=
-by rw [list.nth_le_nth lt_len₁, list.nth_le_nth lt_len₂, h]
+by rw [nth_le_nth lt_len₁, nth_le_nth lt_len₂, h]
 
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
@@ -1511,7 +1511,7 @@ by rw [← option.some_inj, ← nth_le_nth, nth_update_nth_eq, nth_le_nth]; simp
 @[simp] lemma nth_le_update_nth_of_ne {l : list α} {i j : ℕ} (h : i ≠ j) (a : α)
   (hj : j < (l.update_nth i a).length) :
   (l.update_nth i a).nth_le j hj = l.nth_le j (by simpa using hj) :=
-by rw [← option.some_inj, ← list.nth_le_nth, list.nth_update_nth_ne _ _ h, list.nth_le_nth]
+by rw [← option.some_inj, ← nth_le_nth, list.nth_update_nth_ne _ _ h, nth_le_nth]
 
 lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
   (h : a ∈ l.update_nth n b), a ∈ l ∨ a = b

@@ -51,7 +51,8 @@ section infesep
 open_locale ennreal
 open function
 /-- The "extended infimum separation" of a set with an edist function. -/
-noncomputable def infesep [has_edist α] (s : set α) := ⨅ (x ∈ s) (y ∈ s) (hxy : x ≠ y), edist x y
+noncomputable def infesep [has_edist α] (s : set α) : ℝ≥0∞ :=
+⨅ (x ∈ s) (y ∈ s) (hxy : x ≠ y), edist x y
 
 section has_edist
 variables [has_edist α] {x y : α} {s : set α}
@@ -63,10 +64,6 @@ lemma le_infesep_image_iff {d} {f : β → α} {s : set β} :
   d ≤ infesep (f '' s) ↔ ∀ x y ∈ s, f x ≠ f y → d ≤ edist (f x) (f y) :=
 by simp_rw [le_infesep_iff, ball_image_iff]
 
-lemma le_infesep_image_injective_iff {d} {f : β → α} (hf : injective f) {s : set β} :
-  d ≤ infesep (f '' s) ↔ ∀ x y ∈ s, x ≠ y → d ≤ edist (f x) (f y) :=
-by simp_rw [le_infesep_image_iff, hf.ne_iff]
-
 lemma le_edist_of_le_infesep {d} (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) (hd : d ≤ s.infesep) :
   d ≤ edist x y := le_infesep_iff.1 hd x hx y hy hxy
 
@@ -75,8 +72,8 @@ le_edist_of_le_infesep hx hy hxy le_rfl
 
 lemma le_infesep {d} (h : ∀ x y ∈ s, x ≠ y → d ≤ edist x y) : d ≤ s.infesep := le_infesep_iff.2 h
 
-lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ x y ∈ s, x ≠ y ∧ edist x y < d :=
-by simp_rw [infesep, infi_lt_iff, exists_prop]
+lemma infesep_lt_iff {d} : s.infesep < d ↔ ∃ (x y ∈ s) (h : x ≠ y), edist x y < d :=
+by simp_rw [infesep, infi_lt_iff]
 
 lemma infesep_subsingleton (hs : s.subsingleton) : s.infesep = ∞ :=
 eq_top_iff.2 (le_infesep (λ x hx y hy hxy, false.elim (hxy (hs hx hy))))
@@ -140,8 +137,8 @@ end
 
 lemma infesep_triple (hxy : x ≠ y) (hyz : y ≠ z) (hxz : x ≠ z) :
   infesep ({x, y, z} : set α) = (edist x y) ⊓ (edist x z) ⊓ (edist y z) :=
-by simp_rw [  infesep_insert, infi_insert, infi_singleton, infesep_singleton,
-              inf_top_eq, cinfi_pos hxy, cinfi_pos hyz, cinfi_pos hxz]
+by simp_rw [infesep_insert, infi_insert, infi_singleton, infesep_singleton,
+            inf_top_eq, cinfi_pos hxy, cinfi_pos hyz, cinfi_pos hxz]
 
 lemma infesep_pi_le_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetric_space (π b)]
   {s : Π (b : β), set (π b)} {c : ℝ≥0∞} (h : ∀ b, c ≤ infesep (s b) ) :
@@ -191,15 +188,13 @@ end infsep
 
 end set
 
-
-
 namespace finset
 section infesep
 open_locale ennreal
 open function
 
 /-- The "extended infimum separation" of a finset with an edist function. -/
-noncomputable def infesep [decidable_eq α] [has_edist α] (s : finset α) :=
+noncomputable def infesep [decidable_eq α] [has_edist α] (s : finset α) : ℝ≥0∞ :=
 s.off_diag.inf (uncurry edist)
 
 variables [decidable_eq α]
@@ -274,7 +269,7 @@ end
 lemma infesep_pair_eq' (hxy : x ≠ y) : infesep ({x, y} : finset α) = (edist x y) ⊓ (edist y x) :=
 le_antisymm (_root_.le_inf (infesep_pair_le_left hxy) (infesep_pair_le_right hxy)) le_infesep_pair
 
-lemma infesep_exists (h : ∃ x y ∈ s, x ≠ y) : ∃ x y ∈ s, x ≠ y ∧ edist x y = s.infesep :=
+lemma infesep_exists (h : ∃ x y ∈ s, x ≠ y) : ∃ (x y ∈ s) (h : x ≠ y), edist x y = s.infesep :=
 begin
   rw ← off_diag_nonempty_iff at h,
   rcases exists_mem_eq_inf _ h (uncurry edist) with ⟨⟨x, y⟩, hxy, spec⟩,
@@ -283,7 +278,7 @@ begin
 end
 
 lemma infesep_exists' (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y)
-  : ∃ x y ∈ s, x ≠ y ∧ edist x y = s.infesep := infesep_exists ⟨x, hx, y, hy, hxy⟩
+  : ∃ (x y ∈ s) (h : x ≠ y), edist x y = s.infesep := infesep_exists ⟨x, hx, y, hy, hxy⟩
 
 /-- Classically choose a pair of distinct elements in the set which minimise the distance. -/
 noncomputable def minesep.some (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : α × α :=
@@ -295,7 +290,8 @@ lemma minesep.some_spec (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
 ∧ edist (minesep.some hx hy hxy).fst (minesep.some hx hy hxy).snd = s.infesep :=
 ⟨ (infesep_exists' hx hy hxy).some_spec.some,
   (infesep_exists' hx hy hxy).some_spec.some_spec.some_spec.some,
-  (infesep_exists' hx hy hxy).some_spec.some_spec.some_spec.some_spec⟩
+  (infesep_exists' hx hy hxy).some_spec.some_spec.some_spec.some_spec.some,
+  (infesep_exists' hx hy hxy).some_spec.some_spec.some_spec.some_spec.some_spec⟩
 
 end has_edist
 
@@ -323,8 +319,8 @@ end
 
 lemma infesep_triple (hxy : x ≠ y) (hyz : y ≠ z) (hxz : x ≠ z) :
   infesep ({x, y, z} : finset α) = (edist x y) ⊓ (edist x z) ⊓ (edist y z) :=
-by simp_rw [  infesep_insert, infi_insert, infi_singleton, infesep_singleton,
-              inf_top_eq, cinfi_pos hxy, cinfi_pos hyz, cinfi_pos hxz]
+by simp_rw [infesep_insert, infi_insert, infi_singleton, infesep_singleton,
+            inf_top_eq, cinfi_pos hxy, cinfi_pos hyz, cinfi_pos hxz]
 
 end pseudo_emetric_space
 
@@ -334,7 +330,7 @@ section infsep
 open set function
 
 /-- The "infimum separation" of a finset with an edist function. -/
-noncomputable def infsep [decidable_eq α] [has_edist α] (s : finset α) :=
+noncomputable def infsep [decidable_eq α] [has_edist α] (s : finset α) : ℝ :=
 (s.off_diag.inf (uncurry edist)).to_real
 
 end infsep

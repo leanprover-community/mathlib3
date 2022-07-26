@@ -2411,19 +2411,6 @@ begin
     ... =ᵐ[μ] ⇑(g₁ + g₂) * μ[g|m] : by rw [h_add, add_mul], },
 end
 
-lemma exists_spanning_measurable_set_norm_le₀ {f : α → F} (hm : m ≤ m0)
-  (hf : ae_strongly_measurable' m f μ) [sigma_finite (μ.trim hm)] :
-  ∃ s : ℕ → set α, (∀ n, measurable_set[m] (s n) ∧ μ (s n) < ∞ ∧ ∀ᵐ x ∂μ, x ∈ s n → ∥f x∥ ≤ n)
-    ∧ (⋃ i, s i) = set.univ :=
-begin
-  obtain ⟨s, hs_prop, hs_span⟩ := strongly_measurable.exists_spanning_measurable_set_norm_le hm
-    hf.strongly_measurable_mk μ,
-  refine ⟨s, λ n, ⟨(hs_prop n).1, (hs_prop n).2.1, _⟩, hs_span⟩,
-  filter_upwards [hf.ae_eq_mk] with x hx,
-  rw hx,
-  exact (hs_prop n).2.2 x,
-end
-
 lemma condexp_strongly_measurable_mul_of_bound (hm : m ≤ m0) [is_finite_measure μ]
   {f g : α → ℝ} (hf : strongly_measurable[m] f) (hg : integrable g μ) (c : ℝ)
   (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :

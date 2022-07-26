@@ -325,14 +325,14 @@ pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
 namespace is_uniform
 
 lemma has_pdf {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
-  {support : set E} (hns : μ support ≠ 0) (hnt : μ support ≠ ⊤) (hu : is_uniform X support ℙ μ) :
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ⊤) (hu : is_uniform X s ℙ μ) :
   has_pdf X ℙ μ :=
 has_pdf_of_pdf_ne_zero
 begin
   intro hpdf,
   rw [is_uniform, hpdf] at hu,
-  suffices : μ (support ∩ function.support ((μ support)⁻¹ • 1)) = 0,
-  { have heq : function.support ((μ support)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
+  suffices : μ (s ∩ function.support ((μ s)⁻¹ • 1)) = 0,
+  { have heq : function.support ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
     { ext x,
       rw [function.mem_support],
       simp [hnt] },
@@ -347,30 +347,33 @@ lemma pdf_to_real_ae_eq {m : measurable_space α}
   (λ x, (s.indicator ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) x).to_real) :=
 filter.eventually_eq.fun_comp hX ennreal.to_real
 
-variables {X : α → ℝ} {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
-
-include hms hns
-
-lemma measure_preimage {A : set ℝ} (huX : is_uniform X s ℙ) (hA : measurable_set A)
-  (hnt : volume s ≠ ⊤) :
-  ℙ (X ⁻¹' A) = volume (s ∩ A) / volume s :=
+lemma measure_preimage {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ⊤) (hms : measurable_set s)
+  (hu : is_uniform X s ℙ μ)
+  {A : set E} (hA : measurable_set A) :
+  ℙ (X ⁻¹' A) = μ (s ∩ A) / μ s :=
 begin
-  haveI := huX.has_pdf hns hnt,
-  rw [←measure.map_apply (has_pdf.measurable X ℙ) hA, map_eq_set_lintegral_pdf X ℙ volume hA,
-    lintegral_congr_ae huX.restrict],
+  haveI := hu.has_pdf hns hnt,
+  rw [←measure.map_apply (has_pdf.measurable X ℙ μ) hA, map_eq_set_lintegral_pdf X ℙ μ hA,
+    lintegral_congr_ae hu.restrict],
   simp only [hms, hA, lintegral_indicator, pi.smul_apply, pi.one_apply, algebra.id.smul_eq_mul,
     mul_one, lintegral_const, restrict_apply', set.univ_inter],
   rw ennreal.div_eq_inv_mul,
 end
 
-lemma is_probability_measure (huX : is_uniform X s ℙ) (hnt : volume s ≠ ⊤) :
+lemma is_probability_measure {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ⊤) (hms : measurable_set s)
+  (hu : is_uniform X s ℙ μ) :
   is_probability_measure ℙ :=
 ⟨begin
-  have : X ⁻¹' set.univ = set.univ,
-  { simp only [set.preimage_univ] },
-  rw [←this, huX.measure_preimage hms hns _ hnt, set.inter_univ, ennreal.div_self hns hnt],
-  exact measurable_set.univ,
+  have : X ⁻¹' set.univ = set.univ, { simp only [set.preimage_univ] },
+  rw [←this, hu.measure_preimage hns hnt hms measurable_set.univ, set.inter_univ,
+    ennreal.div_self hns hnt],
 end⟩
+
+variables {X : α → ℝ} {s : set ℝ} (hms : measurable_set s) (hns : volume s ≠ 0)
+
+include hms hns
 
 lemma mul_pdf_integrable [is_finite_measure ℙ] (hcs : is_compact s) (huX : is_uniform X s ℙ) :
   integrable (λ x : ℝ, x * (pdf X ℙ volume x).to_real) :=
@@ -403,7 +406,7 @@ lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X s ℙ) :
   ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
   haveI := has_pdf hns hnt huX,
-  haveI := is_probability_measure hms hns huX hnt,
+  haveI := huX.is_probability_measure hns hnt hms,
   rw ← integral_mul_eq_integral,
   rw integral_congr_ae (filter.eventually_eq.mul (ae_eq_refl _) (pdf_to_real_ae_eq huX)),
   have : ∀ x, x * (s.indicator ((volume s)⁻¹ • (1 : ℝ → ℝ≥0∞)) x).to_real =

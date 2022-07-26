@@ -249,12 +249,15 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
-/-! ### Generalisation of the "even part" and "odd part" of a natural number -/
+/-! ### Generalisation of the "even part" and "odd part" of a natural number
 
--- The largest power of `p` that divides into `n`.  For `p = 2` this is the even part of `n`.
+We introduce the notations `ord_proj[p] n` for the largest power of the prime `p` that
+divides `n` and `ord_compl[p] n` for the complementary part. The `ord` naming comes from
+the $p$-adic order/valuation of a number, and `proj` and `compl` are for the projection and
+complementary projection. The term `n.factorization p` is the $p$-adic order itself.
+For example, `ord_proj[2] n` is the even part of `n` and `ord_compl[2] n` is the odd part. -/
+
 notation `ord_proj[` p `]` n:max := p ^ (nat.factorization n p)
-
--- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n`.
 notation `ord_compl[` p `]` n:max := n / ord_proj[p] n
 
 @[simp] lemma ord_proj_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_proj[p] n = 1 :=

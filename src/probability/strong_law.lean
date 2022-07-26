@@ -730,62 +730,7 @@ end strong_law_ae
 
 section strong_law_L1
 
-variables {Ω : Type*} [measure_space Ω]
-
-/-- The averaging of a uniformly integrable sequence is also uniformly integrable. -/
-lemma uniform_integrable_average (μ : measure Ω)
-  (X : ℕ → Ω → ℝ) (hX : uniform_integrable X 1 μ) :
-  uniform_integrable (λ n, (∑ i in range n, X i) / n) 1 μ :=
-begin
-  obtain ⟨hX₁, hX₂, hX₃⟩ := hX,
-  refine ⟨λ n, _, λ ε hε, _, _⟩,
-  { simp_rw div_eq_mul_inv,
-    exact (ae_strongly_measurable_sum' _ (λ i _, hX₁ i)).mul
-      (ae_strongly_measurable_const : ae_strongly_measurable (λ x, (↑n : ℝ)⁻¹) μ) },
-  { obtain ⟨δ, hδ₁, hδ₂⟩ := hX₂ hε,
-    refine ⟨δ, hδ₁, λ n s hs hle, _⟩,
-    simp_rw [div_eq_mul_inv, sum_mul, set.indicator_finset_sum],
-    refine le_trans (snorm_sum_le (λ i hi, ((hX₁ i).mul_const (↑n)⁻¹).indicator hs) le_rfl) _,
-    have : ∀ i, s.indicator (X i * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • s.indicator (X i),
-    { intro i,
-      rw [mul_comm, (_ : (↑n)⁻¹ * X i = λ ω, (↑n : ℝ)⁻¹ • X i ω)],
-      { rw set.indicator_const_smul s (↑n)⁻¹ (X i),
-        refl },
-      { refl } },
-    simp_rw [this, snorm_const_smul, ← mul_sum, nnnorm_inv, real.nnnorm_coe_nat],
-    by_cases hn : (↑(↑n : ℝ≥0)⁻¹ : ℝ≥0∞) = 0,
-    { simp only [hn, zero_mul, zero_le] },
-    refine le_trans _ (_ : ↑(↑n : ℝ≥0)⁻¹ * (n • ennreal.of_real ε) ≤ ennreal.of_real ε),
-    { refine (ennreal.mul_le_mul_left hn ennreal.coe_ne_top).2 _,
-      conv_rhs { rw ← card_range n },
-      exact sum_le_card_nsmul _ _ _ (λ i hi, hδ₂ _ _ hs hle) },
-    { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
-      rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
-        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
-      { exact le_rfl },
-      all_goals { simpa only [ne.def, nat.cast_eq_zero] } } },
-  { obtain ⟨C, hC⟩ := hX₃,
-    simp_rw [div_eq_mul_inv, sum_mul],
-    refine ⟨C, λ n, (snorm_sum_le (λ i hi, (hX₁ i).mul_const (↑n)⁻¹) le_rfl).trans _⟩,
-    have : ∀ i, (λ ω, X i ω * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • λ ω, X i ω,
-    { intro i,
-      ext ω,
-      simp only [mul_comm, pi.smul_apply, algebra.id.smul_eq_mul] },
-    simp_rw [this, snorm_const_smul, ← mul_sum, nnnorm_inv, real.nnnorm_coe_nat],
-    by_cases hn : (↑(↑n : ℝ≥0)⁻¹ : ℝ≥0∞) = 0,
-    { simp only [hn, zero_mul, zero_le] },
-    refine le_trans _ (_ : ↑(↑n : ℝ≥0)⁻¹ * (n • C : ℝ≥0∞) ≤ C),
-    { refine (ennreal.mul_le_mul_left hn ennreal.coe_ne_top).2 _,
-      conv_rhs { rw ← card_range n },
-      exact sum_le_card_nsmul _ _ _ (λ i hi, hC i) },
-    { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
-      rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
-        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
-      { exact le_rfl },
-      all_goals { simpa only [ne.def, nat.cast_eq_zero] } } }
-end
-
-variables [is_probability_measure (ℙ : measure Ω)]
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
 /-- *Strong law of large numbers*, L¹ version: if `X n` is a sequence of independent
 identically distributed integrable real-valued random variables, then `∑ i in range n, X i / n`
@@ -803,7 +748,7 @@ begin
   refine tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top havg (mem_ℒp_const _) _
     (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
   rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
-  { exact (uniform_integrable_average ℙ X $
+  { exact (uniform_integrable_average X $
       integrable.uniform_integrable_of_ident_distrib hint hmeas hident).2.1 },
   { ext n ω,
     simp only [pi.coe_nat, pi.div_apply, sum_apply] }

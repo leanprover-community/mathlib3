@@ -1157,6 +1157,12 @@ theorem nth_len_le : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
 | (a :: l) (n+1) h := nth_len_le (le_of_succ_le_succ h)
 
+theorem nth_eq_nth_of_nth_le_eq_nth_le {l₁ l₂ : list α}
+  {n₁ n₂ : ℕ} {lt_len₁ : n₁ < l₁.length} {lt_len₂ : n₂ < l₂.length}
+  (h : l₁.nth_le n₁ lt_len₁ = l₂.nth_le n₂ lt_len₂) :
+  l₁.nth n₁ = l₂.nth n₂ :=
+by rw [list.nth_le_nth lt_len₁, list.nth_le_nth lt_len₂, h]
+
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
   have h : n < length l, from lt_of_not_ge $ λ hn,

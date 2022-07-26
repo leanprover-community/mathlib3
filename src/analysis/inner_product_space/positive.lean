@@ -112,7 +112,7 @@ end
 
 section complex
 
-variables {E' : Type*} [inner_product_space ℂ E']
+variables {E' : Type*} [inner_product_space ℂ E'] [complete_space E']
 
 lemma is_positive_iff_complex (T : E' →L[ℂ] E') :
   is_positive T ↔ ∀ x, (re ⟪T x, x⟫_ℂ : ℂ) = ⟪T x, x⟫_ℂ ∧ 0 ≤ re ⟪T x, x⟫_ℂ :=

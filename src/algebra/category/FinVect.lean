@@ -114,7 +114,7 @@ instance right_dual : has_right_dual V := ⟨FinVect_dual K V⟩
 
 instance right_rigid_category : right_rigid_category (FinVect K) := { }
 
-variables {K V} (W : FinVect K)
+variables {K V}
 
 /-- Converts and isomorphism in the category `FinVect` to a `linear_equiv` between the underlying
 vector spaces. -/

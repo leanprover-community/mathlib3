@@ -223,7 +223,7 @@ cocones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 This is a more convenient formulation to show that a `binary_fan` constructed using
 `binary_fan.mk` is a limit cone.
 -/
-def binary_fan.is_limit.mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y}
+def binary_fan.is_limit_mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y}
   (lift : Π (s : binary_fan X Y), s.X ⟶ W)
   (fac_left : ∀ (s : binary_fan X Y), lift s ≫ fst = s.fst)
   (fac_right : ∀ (s : binary_fan X Y), lift s ≫ snd = s.snd)
@@ -235,10 +235,10 @@ def binary_fan.is_limit.mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y}
   uniq' := λ s m w, uniq s m (w ⟨walking_pair.left⟩) (w ⟨walking_pair.right⟩) }
 
 /--
-This is a more convenient formulation to show that a `binaryco_fan` constructed using
+This is a more convenient formulation to show that a `binary_cofan` constructed using
 `binary_cofan.mk` is a colimit cocone.
 -/
-def binary_cofan.is_colimit.mk {W : C} {inl : X ⟶ W} {inr : Y ⟶ W}
+def binary_cofan.is_colimit_mk {W : C} {inl : X ⟶ W} {inr : Y ⟶ W}
   (desc : Π (s : binary_cofan X Y), W ⟶ s.X)
   (fac_left : ∀ (s : binary_cofan X Y), inl ≫ desc s = s.inl)
   (fac_right : ∀ (s : binary_cofan X Y), inr ≫ desc s = s.inr)

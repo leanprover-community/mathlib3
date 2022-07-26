@@ -10,7 +10,7 @@ import category_theory.limits.constructions.binary_products
 import category_theory.limits.constructions.zero_objects
 
 /-!
-# Pullback and pushout squares
+# Pullback and pushout squares, and bicartesian squares
 
 We provide another API for pullbacks and pushouts.
 
@@ -35,8 +35,7 @@ for the usual `pullback f g` provided by the `has_limit` API.
 We don't attempt to restate everything we know about pullbacks in this language,
 but do restate the pasting lemmas.
 
-## Future work
-Bicartesian squares, and
+We define bicartesian squares, and
 show that the pullback and pushout squares for a biproduct are bicartesian.
 -/
 

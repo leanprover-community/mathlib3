@@ -40,15 +40,16 @@ open_locale inner_product complex_conjugate
 namespace continuous_linear_map
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
+  [complete_space E] [complete_space F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-- A continuous linear endomorphism `T` of a Hilbert space is **positive** if it is self adjoint
   and `∀ x, 0 ≤ re ⟪T x, x⟫`. -/
 def is_positive (T : E →L[𝕜] E) : Prop :=
-  is_self_adjoint (T : E →ₗ[𝕜] E) ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
+  T.is_self_adjoint ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
 
 lemma is_positive.is_self_adjoint {T : E →L[𝕜] E} (hT : is_positive T) :
-  is_self_adjoint (T : E →ₗ[𝕜] E) :=
+  T.is_self_adjoint :=
 hT.1
 
 lemma is_positive.inner_nonneg_left {T : E →L[𝕜] E} (hT : is_positive T) (x : E) :
@@ -77,7 +78,7 @@ begin
   exact add_nonneg (hT.inner_nonneg_left x) (hS.inner_nonneg_left x)
 end
 
-lemma is_positive.conj_adjoint [complete_space E] [complete_space F] {T : E →L[𝕜] E}
+lemma is_positive.conj_adjoint {T : E →L[𝕜] E}
   (hT : T.is_positive) (S : E →L[𝕜] F) : (S ∘L T ∘L S†).is_positive :=
 begin
   refine ⟨hT.is_self_adjoint.conj_adjoint S, λ x, _⟩,
@@ -85,14 +86,14 @@ begin
   exact hT.inner_nonneg_left _
 end
 
-lemma is_positive.adjoint_conj [complete_space E] [complete_space F] {T : E →L[𝕜] E}
+lemma is_positive.adjoint_conj {T : E →L[𝕜] E}
   (hT : T.is_positive) (S : F →L[𝕜] E) : (S† ∘L T ∘L S).is_positive :=
 begin
   convert hT.conj_adjoint (S†),
   rw adjoint_adjoint
 end
 
-lemma is_positive.conj_orthogonal_projection [complete_space E] (U : submodule 𝕜 E) {T : E →L[𝕜] E}
+lemma is_positive.conj_orthogonal_projection (U : submodule 𝕜 E) {T : E →L[𝕜] E}
   (hT : T.is_positive) [complete_space U] :
   (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
     orthogonal_projection U).is_positive :=
@@ -101,7 +102,7 @@ begin
   rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this
 end
 
-lemma is_positive.orthogonal_projection_comp [complete_space E] {T : E →L[𝕜] E}
+lemma is_positive.orthogonal_projection_comp {T : E →L[𝕜] E}
   (hT : T.is_positive) (U : submodule 𝕜 E) [complete_space U] :
   (orthogonal_projection U ∘L T ∘L U.subtypeL).is_positive :=
 begin

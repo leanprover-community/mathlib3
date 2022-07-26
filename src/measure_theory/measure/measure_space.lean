@@ -2863,6 +2863,7 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
   is_finite_measure_on_compacts (c • μ) :=
 ⟨λ K hK, ennreal.mul_lt_top hc (hK.measure_lt_top).ne⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance compact_space.is_finite_measure
   [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
   is_finite_measure μ :=

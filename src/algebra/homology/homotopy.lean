@@ -88,7 +88,8 @@ lemma d_next_nat (C D : chain_complex V ℕ) (i : ℕ) (f : Π i j, C.X i ⟶ D.
 begin
   dsimp [d_next],
   cases i,
-  { simp only [shape, chain_complex.next_nat_zero, complex_shape.down_rel, nat.one_ne_zero, not_false_iff, zero_comp], },
+  { simp only [shape, chain_complex.next_nat_zero, complex_shape.down_rel,
+      nat.one_ne_zero, not_false_iff, zero_comp], },
   { dsimp only [nat.succ_eq_add_one],
     have : (complex_shape.down ℕ).next (i + 1) = i + 1 - 1,
     { rw chain_complex.next_nat_succ, refl },
@@ -100,7 +101,8 @@ lemma prev_d_nat (C D : cochain_complex V ℕ) (i : ℕ) (f : Π i j, C.X i ⟶ 
 begin
   dsimp [prev_d],
   cases i,
-  { simp only [shape, cochain_complex.prev_nat_zero, complex_shape.up_rel, nat.one_ne_zero, not_false_iff, comp_zero]},
+  { simp only [shape, cochain_complex.prev_nat_zero, complex_shape.up_rel,
+      nat.one_ne_zero, not_false_iff, comp_zero]},
   { dsimp only [nat.succ_eq_add_one],
     have : (complex_shape.up ℕ).prev (i + 1) = i + 1 - 1,
     { rw cochain_complex.prev_nat_succ, refl },

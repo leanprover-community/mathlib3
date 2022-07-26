@@ -554,11 +554,7 @@ fork.is_limit.mk' _ $ λ s,
      biproduct.to_subtype_from_subtype_assoc, biproduct.map_π],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), comp_zero, comp_zero, kernel_fork.condition] },
-<<<<<<< HEAD
-   { rw [if_pos (ne.symm h), category.comp_id] }
-=======
    { rw [if_pos, category.comp_id], exact h, }
->>>>>>> origin/master
  end,
  begin
    intros m hm,
@@ -587,11 +583,7 @@ cofork.is_colimit.mk' _ $ λ s,
      biproduct.ι_map_assoc],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), zero_comp, cokernel_cofork.condition] },
-<<<<<<< HEAD
-   { rw [if_pos (ne.symm h), category.id_comp] }
-=======
    { rw [if_pos, category.id_comp], exact h, }
->>>>>>> origin/master
  end,
  begin
    intros m hm,

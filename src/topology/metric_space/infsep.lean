@@ -320,53 +320,28 @@ end finset
 
 section esep_set_finset
 open_locale classical
-open function set
+open function
 variables [has_edist α]
 
 lemma set.infesep_to_finset {s : set α} [fintype s] : s.infesep = s.to_finset.infesep :=
 begin
-  rw finset.infesep,
   refine le_antisymm _ _,
-  { rw finset.le_inf_iff, rintros ⟨x, y⟩ hxy,
-    simp_rw [finset.mem_off_diag, mem_to_finset] at hxy,
-    exact infesep_le_edist_of_mem hxy.1 hxy.2.1 hxy.2.2 },
-  { rw le_infesep_iff,
-    rintros x hx y hy hxy,
-    rw ← uncurry_apply_pair edist,
-    refine finset.inf_le  _,
-    simp_rw [finset.mem_off_diag, mem_to_finset],
-    exact ⟨hx, hy, hxy⟩ }
+  { simp_rw [finset.le_infesep_iff, set.mem_to_finset],
+    exact λ _ hx _, set.infesep_le_edist_of_mem hx },
+  { simp_rw [set.le_infesep_iff, ←set.mem_to_finset],
+    exact λ _ hx _, finset.infesep_le_edist_of_mem hx }
 end
 
 lemma set.finite.infesep_to_finset {s : set α} (hs : s.finite) :
-  s.infesep = hs.to_finset.infesep :=
-begin
-  rw finset.infesep,
-  refine le_antisymm _ _,
-  { rw finset.le_inf_iff, rintros ⟨x, y⟩ hxy,
-    simp_rw [finset.mem_off_diag, finite.mem_to_finset] at hxy,
-    exact infesep_le_edist_of_mem hxy.1 hxy.2.1 hxy.2.2 },
-  { rw le_infesep_iff,
-    rintros x hx y hy hxy,
-    rw ← uncurry_apply_pair edist,
-    refine finset.inf_le  _,
-    simp_rw [finset.mem_off_diag, finite.mem_to_finset],
-    exact ⟨hx, hy, hxy⟩ }
-end
+  s.infesep = hs.to_finset.infesep := @set.infesep_to_finset _ _ _ hs.fintype
 
 lemma finset.infesep_coe {s : finset α} : s.infesep = (s : set α).infesep :=
 begin
-  rw finset.infesep,
   refine le_antisymm _ _,
-  { rw le_infesep_iff,
-    rintros x hx y hy hxy,
-    rw ← uncurry_apply_pair edist,
-    refine finset.inf_le  _,
-    simp_rw finset.mem_off_diag,
-    exact ⟨hx, hy, hxy⟩ },
-  { rw finset.le_inf_iff, rintros ⟨x, y⟩ hxy,
-    rw finset.mem_off_diag at hxy,
-    exact infesep_le_edist_of_mem hxy.1 hxy.2.1 hxy.2.2 },
+  { simp_rw set.le_infesep_iff,
+    exact λ _ hx _, finset.infesep_le_edist_of_mem hx },
+  { simp_rw [finset.le_infesep_iff, ←finset.mem_coe],
+    exact λ _ hx _, set.infesep_le_edist_of_mem hx }
 end
 
 end esep_set_finset

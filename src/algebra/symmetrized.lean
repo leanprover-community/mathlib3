@@ -218,9 +218,9 @@ lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commu
   commute.inv_of_left (two_commute a)
 
 -- unsym_mul_self
-lemma mul_jordan [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
-  (a * b) * (a * a) = a * (b * (a *a)) :=
-begin
+instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
+{ mul_comm := sym_alg.mul_comm,
+  lmul_comm_rmul_rmul := λ a b, begin
   -- Rearrange LHS
   rw [],
     -- Rearrange LHS

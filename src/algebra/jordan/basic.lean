@@ -23,6 +23,10 @@ A more general concept of a (non-commutative) Jordan ring can also be defined, a
 (non-commutative, non-associative) ring `A` where, for each `a` in `A`, the operators of left and
 right multiplication by `a` and `a^2` commute.
 
+Every associative algebra can be equipped with a symmetrized multiplication (characterized by
+`sym_alg.sym_mul_sym`) making it into a commutative Jordan algebra (`sym_alg.is_comm_jordan`).
+Jordan algebras arising this way are said to be special.
+
 A real Jordan algebra `A` can be introduced by
 ```lean
 variables {A : Type*} [non_unital_non_assoc_ring A] [module ℝ A] [smul_comm_class ℝ A A]
@@ -54,10 +58,6 @@ their considerable algebraic interest ([mccrimmon2004]) these structures have be
 deep connections to mathematical physics, functional analysis and differential geometry. For more
 information about these connections the interested reader is referred to [alfsenshultz2003],
 [chu2012], [friedmanscarr2005], [iordanescu2003] and [upmeier1987].
-
-Every associative algebra can be equipped with a symmetrized multiplication (characterized by
-`sym_alg.sym_mul_sym`) making it into a commutative Jordan algebra. Jordan algebras arising this way
-are said to be special.
 
 There are also exceptional Jordan algebras which can be shown not to be the symmetrization of any
 associative algebra. The 3x3 matrices of octonions is the canonical example.

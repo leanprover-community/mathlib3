@@ -146,11 +146,11 @@ begin
   refine finset.sum_eq_single (m, n) _ (by simp),
   rintros ⟨d1, e1⟩ h de,
   rcases (trichotomous d1 m : d1 < m ∨ _) with k|rfl|k,
-  { convert mul_zero _,
+  { refine mul_eq_zero_of_right _ _,
     refine coeff_eq_zero_of_nat_degree_lt (qn.trans_lt _),
     linarith [finset.nat.mem_antidiagonal.mp h] },
   { exact (de (by simpa using h)).elim },
-  { convert zero_mul _,
+  { refine mul_eq_zero_of_left _ _,
     exact coeff_eq_zero_of_nat_degree_lt (pm.trans_lt k) }
 end
 

@@ -348,6 +348,13 @@ instance : has_norm (lp E p) :=
 { norm := λ f, if hp : p = 0 then by subst hp; exact (lp.mem_ℓp f).finite_dsupport.to_finset.card
    else (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real) ^ (1/p.to_real)) }
 
+instance foo : uniform_space (lp E p) := uniform_space.of_core
+{ uniformity := ⨅ (ε : ℝ) (H : ε > 0),
+  filter.principal {x : (lp E p) × (lp E p) | ∥x.fst - x.snd∥ < ε},
+  refl := sorry,
+  symm := sorry,
+  comp := sorry, }
+
 lemma norm_eq_card_dsupport (f : lp E 0) : ∥f∥ = (lp.mem_ℓp f).finite_dsupport.to_finset.card :=
 dif_pos rfl
 
@@ -457,33 +464,61 @@ begin
     simpa using lp.has_sum_norm hp f }
 end
 
+
+instance [hp : fact (1 ≤ p)] : metric_space (lp E p) :=
+{ dist := λ x y, ∥x - y∥,
+  dist_self := assume x, sorry,--by simp [C.norm_zero],
+  dist_comm := sorry,
+  dist_triangle := sorry,
+  uniformity_dist := sorry,
+  eq_of_dist_eq_zero := sorry,
+   }
+
+
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
-normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := norm_eq_zero_iff,
-  triangle := λ f g, begin
-    unfreezingI { rcases p.dichotomy with rfl | hp' },
-    { cases is_empty_or_nonempty α; resetI,
-      { simp [lp.eq_zero' f] },
-      refine (lp.is_lub_norm (f + g)).2 _,
-      rintros x ⟨i, rfl⟩,
-      refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
-        ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
-      exact norm_add_le (f i) (g i) },
-    { have hp'' : 0 < p.to_real := zero_lt_one.trans_le hp',
-      have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
-      have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
-      have hf₂ := lp.has_sum_norm hp'' f,
-      have hg₂ := lp.has_sum_norm hp'' g,
-      -- apply Minkowski's inequality
-      obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
-        real.Lp_add_le_has_sum_of_nonneg hp' hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
-      refine le_trans _ hC₂,
-      rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ hp'',
-      refine has_sum_le _ (lp.has_sum_norm hp'' (f + g)) hCfg,
-      intros i,
-      exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
+{ eq_of_dist_eq_zero := λ x y h,
+  begin
+    sorry,
+    -- rw [dist_eq_norm] at h,
+    -- exact sub_eq_zero.mp ((C.norm_eq_zero_iff _).1 h)
   end,
-  norm_neg := norm_neg }
+  dist := λ x y, ∥x - y∥,
+  dist_eq := assume x y, by refl,
+  dist_self := assume x, sorry,--by simp [C.norm_zero],
+  dist_triangle := assume x y z,
+    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
+            ... ≤ ∥x - y∥ + ∥y - z∥  : sorry,--C.triangle _ _,
+  dist_comm := assume x y,
+    calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
+             ... = ∥y - x∥ : by sorry,--{ rw [C.norm_neg] },
+  -- norm_eq_zero_iff := norm_eq_zero_iff,
+  -- triangle := λ f g, begin
+  --   unfreezingI { rcases p.dichotomy with rfl | hp' },
+  --   { cases is_empty_or_nonempty α; resetI,
+  --     { simp [lp.eq_zero' f] },
+  --     refine (lp.is_lub_norm (f + g)).2 _,
+  --     rintros x ⟨i, rfl⟩,
+  --     refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
+  --       ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
+  --     exact norm_add_le (f i) (g i) },
+  --   { have hp'' : 0 < p.to_real := zero_lt_one.trans_le hp',
+  --     have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
+  --     have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
+  --     have hf₂ := lp.has_sum_norm hp'' f,
+  --     have hg₂ := lp.has_sum_norm hp'' g,
+  --     -- apply Minkowski's inequality
+  --     obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
+  --       real.Lp_add_le_has_sum_of_nonneg hp' hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
+  --     refine le_trans _ hC₂,
+  --     rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ hp'',
+  --     refine has_sum_le _ (lp.has_sum_norm hp'' (f + g)) hCfg,
+  --     intros i,
+  --     exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
+  -- end,
+  -- norm_neg := norm_neg
+   }
+
+
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.

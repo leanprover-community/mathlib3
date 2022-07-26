@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import data.matrix.block
+import data.matrix.notation
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
@@ -597,12 +598,12 @@ lemma matrix.to_lin_alg_equiv_mul (A B : matrix n n R) :
 by convert matrix.to_lin_mul v₁ v₁ v₁ A B
 
 @[simp] lemma matrix.to_lin_fin_two_prod_apply (a b c d : R) (x : R × R) :
-  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) ![![a, b], ![c, d]] x =
+  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) !![a, b; c, d] x =
     (a * x.fst + b * x.snd, c * x.fst + d * x.snd) :=
 by simp [matrix.to_lin_apply, matrix.mul_vec, matrix.dot_product]
 
 lemma matrix.to_lin_fin_two_prod (a b c d : R) :
-  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) ![![a, b], ![c, d]] =
+  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) !![a, b; c, d] =
     (a • linear_map.fst R R R + b • linear_map.snd R R R).prod
     (c • linear_map.fst R R R + d • linear_map.snd R R R) :=
 linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _

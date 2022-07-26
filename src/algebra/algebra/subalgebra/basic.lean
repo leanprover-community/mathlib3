@@ -639,6 +639,10 @@ theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
+lemma range_top_iff_surjective (f : A →ₐ[R] B) :
+  f.range = (⊤ : subalgebra R B) ↔ function.surjective f :=
+algebra.eq_top_iff
+
 @[simp] theorem range_id : (alg_hom.id R A).range = ⊤ :=
 set_like.coe_injective set.range_id
 

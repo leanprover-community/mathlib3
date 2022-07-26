@@ -6,11 +6,14 @@ Authors: Michael Stoll
 import tactic.basic
 import data.int.range
 import data.zmod.basic
+import number_theory.legendre_symbol.mul_character
 
 /-!
 # Quadratic characters on ℤ/nℤ
 
 This file defines some quadratic characters on the rings ℤ/4ℤ and ℤ/8ℤ.
+
+We set them up to be of type `mul_char (zmod n) ℤ`, where `n` is `4` or `8`.
 
 ## Tags
 
@@ -30,12 +33,12 @@ section quad_char_mod_p
 
 /-- Define the nontrivial quadratic character on `zmod 4`, `χ₄`.
 It corresponds to the extension `ℚ(√-1)/ℚ`. -/
-@[simps] def χ₄ : (zmod 4) →*₀ ℤ :=
+@[simps] def χ₄ : mul_char (zmod 4) ℤ :=
 { to_fun := (![0,1,0,-1] : (zmod 4 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := dec_trivial }
+  map_one' := rfl, map_mul' := dec_trivial, map_nonunit' := dec_trivial }
 
 /-- `χ₄` takes values in `{0, 1, -1}` -/
-lemma χ₄_trichotomy (a : zmod 4) : χ₄ a = 0 ∨ χ₄ a = 1 ∨ χ₄ a = -1 := by dec_trivial!
+lemma is_quadratic_χ₄ : χ₄.is_quadratic := by { intro a, dec_trivial!, }
 
 /-- An explicit description of `χ₄` on integers / naturals -/
 lemma χ₄_int_eq_if_mod_four (n : ℤ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
@@ -66,12 +69,12 @@ end
 
 /-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
 It corresponds to the extension `ℚ(√2)/ℚ`. -/
-@[simps] def χ₈ : (zmod 8) →*₀ ℤ :=
+@[simps] def χ₈ : mul_char (zmod 8) ℤ :=
 { to_fun := (![0,1,0,-1,0,-1,0,1] : (zmod 8 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := dec_trivial }
+  map_one' := rfl, map_mul' := dec_trivial, map_nonunit' := dec_trivial }
 
 /-- `χ₈` takes values in `{0, 1, -1}` -/
-lemma χ₈_trichotomy (a : zmod 8) : χ₈ a = 0 ∨ χ₈ a = 1 ∨ χ₈ a = -1 := by dec_trivial!
+lemma is_quadratic_χ₈ : χ₈.is_quadratic := by { intro a, dec_trivial!, }
 
 /-- An explicit description of `χ₈` on integers / naturals -/
 lemma χ₈_int_eq_if_mod_eight (n : ℤ) :
@@ -90,12 +93,12 @@ by exact_mod_cast χ₈_int_eq_if_mod_eight n
 
 /-- Define the second primitive quadratic character on `zmod 8`, `χ₈'`.
 It corresponds to the extension `ℚ(√-2)/ℚ`. -/
-@[simps] def χ₈' : (zmod 8) →*₀ ℤ :=
+@[simps] def χ₈' : mul_char (zmod 8) ℤ :=
 { to_fun := (![0,1,0,1,0,-1,0,-1] : (zmod 8 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := dec_trivial }
+  map_one' := rfl, map_mul' := dec_trivial, map_nonunit' := dec_trivial }
 
 /-- `χ₈'` takes values in `{0, 1, -1}` -/
-lemma χ₈'_trichotomy (a : zmod 8) : χ₈' a = 0 ∨ χ₈' a = 1 ∨ χ₈' a = -1 := by dec_trivial!
+lemma is_quadratic_χ₈' : χ₈'.is_quadratic := by { intro a, dec_trivial!, }
 
 /-- An explicit description of `χ₈'` on integers / naturals -/
 lemma χ₈'_int_eq_if_mod_eight (n : ℤ) :

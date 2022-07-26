@@ -227,15 +227,15 @@ variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   [inner_product_space 𝕜 E']
   [complete_space E'] [normed_space ℝ E']
   -- F for a Lp submodule
-  [normed_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
   -- F' for integrals on a Lp submodule
-  [normed_group F'] [normed_space 𝕜 F'] [normed_space ℝ F'] [complete_space F']
+  [normed_add_comm_group F'] [normed_space 𝕜 F'] [normed_space ℝ F'] [complete_space F']
   -- G for a Lp add_subgroup
-  [normed_group G]
+  [normed_add_comm_group G]
   -- G' for integrals on a Lp add_subgroup
-  [normed_group G'] [normed_space ℝ G'] [complete_space G']
+  [normed_add_comm_group G'] [normed_space ℝ G'] [complete_space G']
   -- H for a normed group (hypotheses of mem_ℒp)
-  [normed_group H]
+  [normed_add_comm_group H]
 
 section Lp_meas
 
@@ -475,12 +475,8 @@ end
 
 lemma isometry_Lp_meas_subgroup_to_Lp_trim [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
   isometry (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
-begin
-  rw isometry_emetric_iff_metric,
-  intros f g,
-  rw [dist_eq_norm, ← Lp_meas_subgroup_to_Lp_trim_sub, Lp_meas_subgroup_to_Lp_trim_norm_map,
-    dist_eq_norm],
-end
+isometry.of_dist_eq $ λ f g, by rw [dist_eq_norm, ← Lp_meas_subgroup_to_Lp_trim_sub,
+  Lp_meas_subgroup_to_Lp_trim_norm_map, dist_eq_norm]
 
 variables (F p μ)
 /-- `Lp_meas_subgroup` and `Lp F p (μ.trim hm)` are isometric. -/
@@ -2389,7 +2385,7 @@ begin
       (strongly_measurable_condexp.mono (hℱ n)).measurable.nnnorm,
   have hg : mem_ℒp g 1 μ := mem_ℒp_one_iff_integrable.2 hint,
   refine uniform_integrable_of le_rfl ennreal.one_ne_top
-    (λ n, strongly_measurable_condexp.mono (hℱ n)) (λ ε hε, _),
+    (λ n, (strongly_measurable_condexp.mono (hℱ n)).ae_strongly_measurable) (λ ε hε, _),
   by_cases hne : snorm g 1 μ = 0,
   { rw snorm_eq_zero_iff hg.1 one_ne_zero at hne,
     refine ⟨0, λ n, (le_of_eq $ (snorm_eq_zero_iff

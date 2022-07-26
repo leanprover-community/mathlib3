@@ -156,6 +156,14 @@ smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
 lemma smul_inf_le (M₁ M₂ : submodule R M) : I • (M₁ ⊓ M₂) ≤ I • M₁ ⊓ I • M₂ :=
 le_inf (submodule.smul_mono_right inf_le_left) (submodule.smul_mono_right inf_le_right)
 
+lemma smul_supr {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • supr t = ⨆ i, I • t i :=
+map₂_supr_right _ _ _
+
+lemma smul_infi_le {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • infi t ≤ ⨅ i, I • t i :=
+le_infi (λ i, smul_mono_right (infi_le _ _))
+
 variables (S : set R) (T : set M)
 
 theorem span_smul_span : (ideal.span S) • (span R T) =
@@ -311,10 +319,7 @@ theorem mul_mem_mul_rev {r s} (hr : r ∈ I) (hs : s ∈ J) : s * r ∈ I * J :=
 mul_comm r s ▸ mul_mem_mul hr hs
 
 lemma pow_mem_pow {x : R} (hx : x ∈ I) (n : ℕ) : x ^ n ∈ I ^ n :=
-begin
-  induction n with n ih, { simp only [pow_zero, ideal.one_eq_top], },
-  simpa only [pow_succ] using mul_mem_mul hx ih,
-end
+submodule.pow_mem_pow _ hx _
 
 lemma prod_mem_prod {ι : Type*} {s : finset ι} {I : ι → ideal R} {x : ι → R} :
   (∀ i ∈ s, x i ∈ I i) → ∏ i in s, x i ∈ ∏ i in s, I i :=

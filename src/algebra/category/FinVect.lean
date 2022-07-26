@@ -41,7 +41,7 @@ instance monoidal_predicate_finite_dimensional :
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
 @[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, preadditive, linear K,
-  monoidal_category, symmetric_category]]
+  monoidal_category, symmetric_category, monoidal_preadditive, monoidal_linear K]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
@@ -68,32 +68,18 @@ by { dsimp [FinVect], apply_instance, }
 instance : full (forget₂ (FinVect K) (Module.{u} K)) :=
 { preimage := λ X Y f, f, }
 
-instance monoidal_category : monoidal_category (FinVect K) :=
-monoidal_category.full_monoidal_subcategory
-  (λ V, finite_dimensional K V)
-  (finite_dimensional.finite_dimensional_self K)
-  (λ X Y hX hY, by exactI module.finite.tensor_product K X Y)
-
 /-- The forgetful functor `FinVect K ⥤ Module K` as a monoidal functor. -/
 def forget₂_monoidal : monoidal_functor (FinVect K) (Module.{u} K) :=
-{ to_functor := forget₂ (FinVect K) (Module.{u} K),
-  ε := 𝟙 _,
-  μ := λ X Y, 𝟙 _, }
+monoidal_category.full_monoidal_subcategory_inclusion _
 
 instance forget₂_monoidal_faithful : faithful (forget₂_monoidal K).to_functor :=
 by { dsimp [forget₂_monoidal], apply_instance, }
 
 instance forget₂_monoidal_additive : (forget₂_monoidal K).to_functor.additive :=
-functor.full_subcategory_inclusion_additive _
-
-instance : monoidal_preadditive (FinVect K) :=
-monoidal_preadditive_of_faithful (forget₂_monoidal K)
+by { dsimp [forget₂_monoidal], apply_instance, }
 
 instance forget₂_monoidal_linear : (forget₂_monoidal K).to_functor.linear K :=
-functor.full_subcategory_inclusion_linear K _
-
-instance : monoidal_linear K (FinVect K) :=
-monoidal_linear_of_faithful K (forget₂_monoidal K)
+by { dsimp [forget₂_monoidal], apply_instance, }
 
 variables (V : FinVect K)
 

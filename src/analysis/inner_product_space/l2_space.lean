@@ -459,12 +459,9 @@ omit hv
 /-- An orthonormal basis is an Hilbert basis. -/
 protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthonormal_basis ι 𝕜 E) :
   hilbert_basis ι 𝕜 E :=
-hilbert_basis.mk b.orthonormal
-begin
-  have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
-  simpa only [orthonormal_basis.coe_to_basis, finset.coe_image, finset.coe_univ, set.image_univ,
-    ←b.to_basis.span_eq] using this.submodule_topological_closure_eq,
-end
+hilbert_basis.mk b.orthonormal $
+by simpa only [← orthonormal_basis.coe_to_basis, b.to_basis.span_eq, eq_top_iff]
+  using @subset_closure E _ _
 
 @[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]
   (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=

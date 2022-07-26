@@ -383,78 +383,7 @@ def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
 λ x xD y yD, connected_outside.monotone G K_sub_L x y (component.is_c_o G L D D_comp x xD y yD)
 
 
-
-lemma conn_adj_conn_to_conn {X Y : set V}
-  (Xconn : ∀ x y ∈ X, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X )
-  (Yconn : ∀ x y ∈ Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ Y )
-  (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) :
-   ∀ x y ∈ X∪Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X∪Y :=
-begin
-  rintros x xU y yU,
-  rcases xU with xX|xY,
-  rcases yU with yX|yY,
-  { rcases Xconn x xX y yX with ⟨w,wX⟩, exact ⟨w,wX.trans (set.subset_union_left X Y)⟩},
-  {
-    rcases XYadj with ⟨a,aX,b,bY,w⟩,
-    sorry,
-  },
-  { sorry,},
-  { rcases Yconn x xY y yY with ⟨w,wY⟩, exact ⟨w,wY.trans (set.subset_union_right X Y)⟩},
-
-end
-
-
-def extend_conn_to_finite_comps [locally_finite G] [Knempty : K.nonempty]
-  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
-  {K' : finset V | K ⊆ K'
-                 ∧ (∀ x y ∈ K', ∃ w : G.walk x y, w.support.to_finset ⊆ K')
-                 ∧ (∀ C : components G K', C.val.infinite)
-  --               ∧ components G K' = inf_components G K
-  } :=
-begin
-  let finite_pieces : set V := ⋃₀ fin_components G K,
-  have : set.finite finite_pieces, by {
-    apply set.finite.sUnion,
-    {exact set.finite.subset (component.finite G K) (fin_components_subset G K)},
-    {rintros C Cgood, exact Cgood.2,}},
-
-  let K' := K ∪ this.to_finset,
-  use K',
-  simp,
-  split,
-  { exact finset.subset_union_left _ _,},
-  { split,
-    { rintros x xK' y yK',
-      rcases xK' with xK | ⟨C,⟨Ccomp,Cfin⟩,xC⟩,
-      { rcases yK' with yK | ⟨D,⟨Dcomp,Dfin⟩,yD⟩,
-        { rcases (Kconn x xK y yK) with ⟨w,wK⟩,
-          use w,
-          exact wK.trans (finset.subset_union_left _ _),
-        },
-        {
-          let Dconn := component.is_connected G K D Dcomp,
-          let d := component.to_bdry_point G K (sorry) ⟨D,Dcomp⟩,
-          rcases component.to_bdry_point_spec G K (sorry) ⟨D,Dcomp⟩ with ⟨k,kK,dD,adj⟩,
-          --rcases conn_adj_conn_to_conn G K D Kconn Dconn adj x xK y yD,
-          sorry,
-        },
-      },
-      { rcases yK' with yK | ⟨D,Dfin,yD⟩,
-        {sorry},
-        {sorry},
-      },
-    },
-    { rintros C CcompK',
-      by_contradiction Cfin,
-      rw set.not_infinite at Cfin,
-      sorry, -- and then what?!
-    },
-  }
-
-end
-
-
--- I would need this from the simple_graph api
+-- The three lemmas are in a PR
 lemma walk.mem_support_iff_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} :
   w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r := sorry
 
@@ -493,6 +422,98 @@ begin
     },
     {apply l₁_ih, assumption, } }
 end
+
+
+lemma conn_adj_conn_to_conn {X Y : set V}
+  (Xconn : ∀ x y ∈ X, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X )
+  (Yconn : ∀ x y ∈ Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ Y )
+  (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) :
+   ∀ x y ∈ X∪Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X∪Y :=
+begin
+  rintros x xU y yU,
+  rcases xU with xX|xY,
+  { rcases yU with yX|yY,
+    { rcases Xconn x xX y yX with ⟨w,wX⟩, exact ⟨w,wX.trans (set.subset_union_left X Y)⟩},
+    { rcases XYadj with ⟨a,aX,b,bY,adj⟩,
+      rcases Xconn a aX x xX with ⟨u,uX⟩,
+      rcases Yconn b bY y yY with ⟨w,wY⟩,
+      use (w.reverse.append (cons adj.symm u)).reverse,
+      rw [walk.support_reverse,list.to_finset_reverse,walk.support_append, walk.support_cons,list.tail_cons, list.to_finset_append],
+      simp only [support_reverse, list.to_finset_reverse, coe_union, set.union_subset_iff],
+      split,
+      {exact wY.trans (set.subset_union_right X Y),},
+      {exact uX.trans (set.subset_union_left X Y),},},
+  },
+  { rcases yU with yX|yY,
+    { rcases XYadj with ⟨a,aX,b,bY,adj⟩,
+      rcases Xconn a aX y yX with ⟨u,uX⟩,
+      rcases Yconn b bY x xY with ⟨w,wY⟩,
+      use (w.reverse.append (cons adj.symm u)),
+      rw [walk.support_append, walk.support_cons,list.tail_cons, list.to_finset_append],
+      simp only [support_reverse, list.to_finset_reverse, coe_union, set.union_subset_iff],
+      split,
+      {exact wY.trans (set.subset_union_right X Y),},
+      {exact uX.trans (set.subset_union_left X Y),},},
+    { rcases Yconn x xY y yY with ⟨w,wY⟩, exact ⟨w,wY.trans (set.subset_union_right X Y)⟩},
+  }
+,
+end
+
+
+def extend_conn_to_finite_comps [locally_finite G] [Knempty : K.nonempty]
+  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
+  {K' : finset V | K ⊆ K'
+                 ∧ (∀ x y ∈ K', ∃ w : G.walk x y, w.support.to_finset ⊆ K')
+                 ∧ (∀ C : components G K', C.val.infinite)
+  --               ∧ components G K' = inf_components G K
+  } :=
+begin
+  let finite_pieces : set V := ⋃₀ fin_components G K,
+  have : set.finite finite_pieces, by {
+    apply set.finite.sUnion,
+    {exact set.finite.subset (component.finite G K) (fin_components_subset G K)},
+    {rintros C Cgood, exact Cgood.2,}},
+
+  let K' := K ∪ this.to_finset,
+  use K',
+  simp,
+  split,
+  { exact finset.subset_union_left _ _,},
+  { split,
+    { rintros x xK' y yK',
+      rcases xK' with xK | ⟨C,⟨Ccomp,Cfin⟩,xC⟩,
+      { rcases yK' with yK | ⟨D,⟨Dcomp,Dfin⟩,yD⟩,
+        { rcases (Kconn x xK y yK) with ⟨w,wK⟩,
+          use w,
+          exact wK.trans (finset.subset_union_left _ _),
+        },
+        {
+          let Dconn := component.is_connected G K D Dcomp,
+          let d := component.to_bdry_point G K (sorry) ⟨D,Dcomp⟩,
+          rcases component.to_bdry_point_spec G K (sorry) ⟨D,Dcomp⟩ with ⟨k,kK,dD,adj⟩,
+          rcases conn_adj_conn_to_conn G Kconn Dconn (⟨k,kK,d,dD,adj⟩) x (set.subset_union_left K D xK) y (set.subset_union_right K D yD) with ⟨w,wgood⟩,
+          use w,
+          -- w is supported on K ∪ D, which is clearly contained in K ⋃ {all the Ds}
+          sorry,
+        },
+      },
+      { rcases yK' with yK | ⟨D,Dfin,yD⟩,
+        {sorry},
+        {sorry},
+      },
+    },
+    { rintros C CcompK',
+      by_contradiction Cfin,
+      rw set.not_infinite at Cfin,
+      sorry, -- and then what?!
+    },
+  }
+
+end
+
+
+
+
 
 def extend_to_conn [Gconn : preconnected G] [locally_finite G] [Vnempty : nonempty V] :
   {K' : finset V | K ⊆ K'

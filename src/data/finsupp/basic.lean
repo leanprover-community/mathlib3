@@ -1037,6 +1037,32 @@ begin
   exact pi.single_add_single_eq_single_add_single hu hv,
 end
 
+@[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
+finset.subset.antisymm
+  support_map_range
+  (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
+     ... ⊆ support (- f) : support_map_range)
+
+lemma support_sub [decidable_eq α] [add_group G] {f g : α →₀ G} :
+  support (f - g) ⊆ support f ∪ support g :=
+begin
+  rw [sub_eq_add_neg, ←support_neg g],
+  exact support_add,
+end
+
+lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
+  f.erase a = f - single a (f a) :=
+begin
+  ext a',
+  rcases eq_or_ne a a' with rfl|h,
+  { simp },
+  { simp [erase_ne h.symm, single_eq_of_ne h] }
+end
+
+lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
+  f.update a b = f - single a (f a) + single a b :=
+by rw [update_eq_erase_add_single, erase_eq_sub_single]
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1256,31 +1282,7 @@ end finsupp
 
 namespace finsupp
 
-@[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
-finset.subset.antisymm
-  support_map_range
-  (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
-     ... ⊆ support (- f) : support_map_range)
 
-lemma support_sub [decidable_eq α] [add_group G] {f g : α →₀ G} :
-  support (f - g) ⊆ support f ∪ support g :=
-begin
-  rw [sub_eq_add_neg, ←support_neg g],
-  exact support_add,
-end
-
-lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
-  f.erase a = f - single a (f a) :=
-begin
-  ext a',
-  rcases eq_or_ne a a' with rfl|h,
-  { simp },
-  { simp [erase_ne h.symm, single_eq_of_ne h] }
-end
-
-lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
-  f.update a b = f - single a (f a) + single a b :=
-by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
 lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) (a : α) :
   (∑ i in S, f i) a = ∑ i in S, f i a :=

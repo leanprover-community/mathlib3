@@ -22,20 +22,17 @@ class H_space (G : Type*) [topological_space G] :=
   ⟨id, continuous_id'⟩
   {e})
 
-lemma top_group_is_H_space (G : Type*) [topological_space G] [group G][topological_group G] : H_space G :=
-begin
-fconstructor,
-{ exact function.uncurry has_mul.mul, },
-{ exact has_one.one, },
-{ simp, },
-{ exact has_continuous_mul.continuous_mul, },
+instance top_group_is_H_space (G : Type*) [topological_space G][group G][topological_group G] : H_space G :=
 {
-  intro g,
-  simp,
-  exact continuous_map.homotopy_rel.refl ⟨id, continuous_id'⟩  {has_one.one},
-},
-{
-  sorry,
+  m := function.uncurry (*) ,
+  e := 1,
+  m_e_e := by {simp only [function.uncurry_apply_pair, mul_one], },
+  cont_m := has_continuous_mul.continuous_mul,
+  m_e_dot_homotopic_to_id := by {
+    intro g,
+    simp only [function.uncurry_apply_pair, one_mul],
+    exact continuous_map.homotopy_rel.refl ⟨id, continuous_id'⟩  {1},
+  },
+  m_dot_e_homotopic_to_id := λ g, by {simp only [function.uncurry_apply_pair, mul_one],
+    exact continuous_map.homotopy_rel.refl _ _}
 }
---hola
-end

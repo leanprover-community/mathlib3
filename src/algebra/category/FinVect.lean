@@ -31,9 +31,13 @@ instance monoidal_predicate_finite_dimensional :
 { prop_id' := finite_dimensional.finite_dimensional_self K,
   prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
 
+instance closed_predicate_finite_dimensional :
+  monoidal_category.closed_predicate (λ V : Module.{u} K, finite_dimensional K V) :=
+{ prop_ihom' := λ X Y hX hY, by exactI @linear_map.finite_dimensional K _ X _ _ hX Y _ _ hY }
+
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
 @[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, monoidal_category,
-  symmetric_category]]
+  symmetric_category, monoidal_closed]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
@@ -57,7 +61,9 @@ by { dsimp [FinVect], apply_instance, }
 instance : full (forget₂ (FinVect K) (Module.{u} K)) :=
 { preimage := λ X Y f, f, }
 
-variables (V : FinVect K)
+variables (V W : FinVect K)
+
+@[simp] lemma ihom_obj : (ihom V).obj W = FinVect.of K (V →ₗ[K] W) := rfl
 
 /-- The dual module is the dual in the rigid monoidal category `FinVect K`. -/
 def FinVect_dual : FinVect K :=

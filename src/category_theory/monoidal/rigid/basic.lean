@@ -373,7 +373,7 @@ adjunction.mk_of_hom_equiv
     λ X Z Z' f g, tensor_right_hom_equiv_naturality f g, }
 
 @[priority 100]
-instance closed_of_has_left_dual (Y : C) [has_left_dual Y] : closed Y :=
+def closed_of_has_left_dual (Y : C) [has_left_dual Y] : closed Y :=
 { is_adj := ⟨_, tensor_left_adjunction (ᘁY) Y⟩, }
 
 /-- `tensor_left_hom_equiv` commutes with tensoring on the right -/
@@ -619,10 +619,10 @@ attribute [instance, priority 100] right_rigid_category.right_dual
 attribute [instance, priority 100] left_rigid_category.left_dual
 
 @[priority 100]
-instance monoidal_closed_of_left_rigid_category
+def monoidal_closed_of_left_rigid_category
   (C : Type u) [category.{v} C] [monoidal_category.{v} C] [left_rigid_category C] :
   monoidal_closed C :=
-{ closed' := λ X, by apply_instance, }
+{ closed' := λ X, closed_of_has_left_dual X, }
 
 /-- A rigid monoidal category is a monoidal category which is left rigid and right rigid. -/
 class rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]

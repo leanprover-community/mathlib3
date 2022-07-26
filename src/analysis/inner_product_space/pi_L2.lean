@@ -338,7 +338,7 @@ begin
   refl,
 end
 
-protected lemma _root_.orthonormal_basis.orthogonal_projection_eq_sum [fintype ι]
+protected lemma orthogonal_projection_eq_sum
   {U : submodule 𝕜 E} [complete_space E] [complete_space U] (b : orthonormal_basis ι 𝕜 U) (x : E) :
   (orthogonal_projection U x) = ∑ i, ⟪(b i : E), x⟫ • b i :=
 by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]

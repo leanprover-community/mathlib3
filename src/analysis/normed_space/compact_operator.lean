@@ -93,7 +93,7 @@ end
 
 section bounded
 
-variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
   {M₁ M₂ : Type*} [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂]
   [add_comm_monoid M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂] [has_continuous_const_smul 𝕜₂ M₂]
 
@@ -117,8 +117,8 @@ end bounded
 
 section normed_space
 
-variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
-  {M₁ M₂ M₃ : Type*} [semi_normed_group M₁] [topological_space M₂]
+variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {M₁ M₂ M₃ : Type*} [seminormed_add_comm_group M₁] [topological_space M₂]
   [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
 
 lemma compact_operator.image_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂]
@@ -284,7 +284,7 @@ end restrict_invariant
 
 section continuous
 
-variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
+variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*} [topological_space M₁]
   [add_comm_group M₁] [topological_space M₂] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
   [topological_add_group M₁] [has_continuous_const_smul 𝕜₁ M₁]
@@ -319,10 +319,10 @@ def continuous_linear_map.mk_of_compact_operator {f : M₁ →ₛₗ[σ₁₂] M
 
 end continuous
 
-lemma is_closed_set_of_compact_operator {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁]
-  [nondiscrete_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
-  [semi_normed_group M₁] [normed_group M₂] [normed_space 𝕜₁ M₁] [normed_space 𝕜₂ M₂]
-  [complete_space M₂] : is_closed {f : M₁ →SL[σ₁₂] M₂ | compact_operator f} :=
+lemma is_closed_set_of_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
+  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
+  [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
+  [normed_space 𝕜₂ M₂] [complete_space M₂] : is_closed {f : M₁ →SL[σ₁₂] M₂ | compact_operator f} :=
 begin
   refine is_closed_of_closure_subset _,
   rintros u hu,
@@ -356,9 +356,10 @@ begin
   ... < ε/2 : huv
 end
 
-lemma compact_operator_of_tendsto {ι 𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁]
-  [nondiscrete_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
-  [semi_normed_group M₁] [normed_group M₂] [normed_space 𝕜₁ M₁] [normed_space 𝕜₂ M₂]
-  [complete_space M₂] {l : filter ι} [l.ne_bot] {F : ι → M₁ →SL[σ₁₂] M₂} {f : M₁ →SL[σ₁₂] M₂}
-  (hf : tendsto F l (𝓝 f)) (hF : ∀ᶠ i in l, compact_operator (F i)) : compact_operator f :=
+lemma compact_operator_of_tendsto {ι 𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
+  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
+  [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
+  [normed_space 𝕜₂ M₂] [complete_space M₂] {l : filter ι} [l.ne_bot] {F : ι → M₁ →SL[σ₁₂] M₂}
+  {f : M₁ →SL[σ₁₂] M₂} (hf : tendsto F l (𝓝 f)) (hF : ∀ᶠ i in l, compact_operator (F i)) :
+  compact_operator f :=
 is_closed_set_of_compact_operator.mem_of_tendsto hf hF

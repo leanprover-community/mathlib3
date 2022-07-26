@@ -1084,6 +1084,16 @@ def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
       { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
 
+#check lp.single
+
+@[simp] lemma curry_apply (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (a : α) (b : β a) :
+  curry f a b = f ⟨a, b⟩ := rfl
+
+@[simp] lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α] (a : α) (b : β a)
+  (x : F a b) (y : F (sigma.mk a b).1 (sigma.mk a b).2) :
+  curry (lp.single p (sigma.mk a b) y) = lp.single p a (lp.single p b x) :=
+sorry
+
 def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
 ⟨λ ab, g ab.1 ab.2,
@@ -1115,6 +1125,9 @@ def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
           refl } },
       { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
+
+@[simp] lemma uncurry_apply (g : lp (λ a, lp (λ b : β a, F a b) p) p) (a : α) (b : β a) :
+  uncurry g ⟨a, b⟩ = g a b := rfl
 
 variables (p F)
 

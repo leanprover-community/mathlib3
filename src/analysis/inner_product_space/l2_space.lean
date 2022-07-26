@@ -490,7 +490,7 @@ def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
   collected_hilbert_basis hVortho hVtotal v ia = V (ia.1) (v ia.1 ia.2) :=
 begin
-  sorry
+  simp [collected_hilbert_basis, ← hilbert_basis.repr_symm_single],
 end
 
 def subordinate_hilbert_basis_span {α : ι → Type*} [∀ i, complete_space (F i)]

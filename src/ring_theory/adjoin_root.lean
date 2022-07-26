@@ -494,7 +494,7 @@ by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_symm_mk,
   polynomial_quotient_equiv_quotient_polynomial_symm_mk]
 
 @[simp]
-lemma polynomial.quot_quot_equiv_comm_symm_mk (p : R[X]) :
+lemma polynomial.quot_quot_equiv_comm_mk (p : R[X]) :
   (polynomial.quot_quot_equiv_comm I f) (ideal.quotient.mk  _ (p.map I^.quotient.mk)) =
   (ideal.quotient.mk _ (ideal.quotient.mk _ p)) :=
 by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_mk,
@@ -528,7 +528,12 @@ lemma quot_adjoin_root_equiv_quot_polynomial_quot_symm_mk_mk (p : R[X]) :
   (ideal.quotient.mk (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I))))
     (p.map I^.quotient.mk)) = (ideal.quotient.mk (I.map (of f)) (mk f p)) :=
 begin
-  sorry
+  rw [quot_adjoin_root_equiv_quot_polynomial_quot, ring_equiv.symm_trans_apply,
+    ring_equiv.symm_trans_apply, ring_equiv.symm_trans_apply, ring_equiv.symm_symm,
+    polynomial.quot_quot_equiv_comm_mk],
+
+
+
 end
 
 end

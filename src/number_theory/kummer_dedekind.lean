@@ -76,10 +76,6 @@ rfl
   double_quot.quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x :=
 rfl
 
-@[simp] lemma ideal.quot_equiv_of_eq_symm {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
-  (ideal.quot_equiv_of_eq h).symm = ideal.quot_equiv_of_eq h.symm :=
-by ext; refl
-
 lemma temporary (f : polynomial R) (r : R) :
   adjoin_root.of f r = adjoin_root.mk f (polynomial.C r) := rfl
 

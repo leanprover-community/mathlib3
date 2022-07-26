@@ -117,8 +117,8 @@ variables {E' : Type*} [inner_product_space ℂ E'] [complete_space E']
 lemma is_positive_iff_complex (T : E' →L[ℂ] E') :
   is_positive T ↔ ∀ x, (re ⟪T x, x⟫_ℂ : ℂ) = ⟪T x, x⟫_ℂ ∧ 0 ≤ re ⟪T x, x⟫_ℂ :=
 begin
-  simp_rw [is_positive, forall_and_distrib, is_self_adjoint_iff_inner_map_self_real,
-    eq_conj_iff_re],
+  simp_rw [is_positive, forall_and_distrib, is_self_adjoint_iff_is_symmetric,
+    linear_map.is_symmetric_iff_inner_map_self_real, eq_conj_iff_re],
   refl
 end
 

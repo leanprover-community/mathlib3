@@ -374,6 +374,7 @@ lemma is_symmetric {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
   (A : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, by rw_mod_cast [←adjoint_inner_right, is_self_adjoint_iff.mp hA]
 
+/-- Conjugating preserves self-adjointness -/
 lemma conj_adjoint {T : E →L[𝕜] E} (hT : T.is_self_adjoint) (S : E →L[𝕜] F) :
   (S ∘L T ∘L S†).is_self_adjoint :=
 begin
@@ -382,6 +383,7 @@ begin
   exact continuous_linear_map.comp_assoc _ _ _,
 end
 
+/-- Conjugating preserves self-adjointness -/
 lemma adjoint_conj {T : E →L[𝕜] E} (hT : T.is_self_adjoint) (S : F →L[𝕜] E) :
   (S† ∘L T ∘L S).is_self_adjoint :=
 begin

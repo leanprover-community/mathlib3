@@ -2052,6 +2052,12 @@ def bounded (s : set α) : Prop :=
 section bounded
 variables {x : α} {s t : set α} {r : ℝ}
 
+lemma bounded_iff_is_bounded (s : set α) : bounded s ↔ is_bounded s :=
+begin
+  change bounded s ↔ sᶜ ∈ (cobounded α).sets,
+  simp [pseudo_metric_space.cobounded_sets, metric.bounded],
+end
+
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩
 

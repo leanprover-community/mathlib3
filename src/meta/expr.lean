@@ -1218,3 +1218,9 @@ end declaration
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
 unchecked_cast
 expr.has_decidable_eq
+
+section
+local attribute [semireducible] reflected
+meta instance {α} [has_reflect α] : has_reflect (thunk α) | a :=
+expr.lam `x binder_info.default (reflect unit) (reflect $ a ())
+end

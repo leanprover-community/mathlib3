@@ -319,8 +319,8 @@ meta def positivity_inv : expr → tactic strictness
 | `((%%a)⁻¹) := do
       strictness_a ← core a,
       match strictness_a with
-      | (positive pa) := positive <$> mk_mapp ``inv_pos_of_pos [pa]
-      | (nonnegative pa) := nonnegative <$> mk_mapp ``inv_nonneg_of_nonneg [pa]
+      | (positive pa) := positive <$> mk_app ``inv_pos_of_pos [pa]
+      | (nonnegative pa) := nonnegative <$> mk_app ``inv_nonneg_of_nonneg [pa]
       end
 | _ := failed
 

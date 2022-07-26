@@ -61,6 +61,8 @@ example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 ≤ 3 * a ^ 2 * b + b * 7 + 
 
 example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 < 3 * a ^ 2 * b + b * 7 + 14 := by positivity
 
+example {x : ℚ} (hx : 0 ≤ x) : 0 ≤ x⁻¹ := by positivity
+
 example {a : ℤ} : 0 ≤ |a| := by positivity
 
 example {a : ℤ} : 0 < |a| + 3 := by positivity

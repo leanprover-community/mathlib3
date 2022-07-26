@@ -14,6 +14,7 @@ import data.finite.basic
 import data.finite.card
 import data.real.basic
 import group_theory.subgroup.basic
+import data.zmod.basic
 
 /-!
 # Groups of order p^2
@@ -109,8 +110,7 @@ begin
   apply fact.out,
   interval_cases k,
   -- We look at the case |Z(G)| = 1
-  {
-    simp at hk2,
+  { simp at hk2,
     exfalso,
     have h31 : nontrivial (subgroup.center G), exact center_nontrivial (p_group p G hG),
     rw subgroup.nontrivial_iff_exists_ne_one at h31,
@@ -119,11 +119,9 @@ begin
     have hxx' : x = 1,
     { rw subgroup.eq_bot_iff_forall at h32,
       exact h32 x hx, },
-    contradiction,
-  },
+    contradiction, },
   -- We look at the case |Z(G)| = p
-  {
-    exfalso,
+  { exfalso,
     have h41 : p * (subgroup.center G).index = p^2,
     { simp at hk2,
       simp_rw ← nat.card_eq_fintype_card at hk2,

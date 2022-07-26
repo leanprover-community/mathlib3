@@ -274,6 +274,17 @@ end
 lemma infesep_pair_eq' (hxy : x ≠ y) : infesep ({x, y} : finset α) = (edist x y) ⊓ (edist y x) :=
 le_antisymm (_root_.le_inf (infesep_pair_le_left hxy) (infesep_pair_le_right hxy)) le_infesep_pair
 
+lemma infesep_exists (h : ∃ x y ∈ s, x ≠ y) : ∃ x y ∈ s, x ≠ y ∧ edist x y = s.infesep :=
+begin
+  rw ← off_diag_nonempty_iff at h,
+  rcases exists_mem_eq_inf _ h (uncurry edist) with ⟨⟨x, y⟩, hxy, spec⟩,
+  rw mem_off_diag at hxy, rcases hxy with ⟨hx, hy, hxy⟩,
+  exact ⟨x, hx, y, hy, hxy, spec.symm⟩
+end
+
+lemma infesep_exists' (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y)
+  : ∃ x y ∈ s, x ≠ y ∧ edist x y = s.infesep := infesep_exists ⟨x, hx, y, hy, hxy⟩
+
 end has_edist
 
 section pseudo_emetric_space

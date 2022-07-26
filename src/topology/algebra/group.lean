@@ -1181,37 +1181,16 @@ variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β]
   [has_continuous_mul β]
 
 @[to_additive] instance : topological_group αˣ :=
-{ continuous_inv := continuous_induced_rng.2 ((continuous_unop.comp
-    (@continuous_embed_product α _ _).snd).prod_mk (continuous_op.comp continuous_coe)) }
+{ continuous_inv := units.continuous_iff.2 $ ⟨units.continuous_inv, continuous_coe⟩ }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
     of the units of each monoid. -/
-def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
-{ continuous_to_fun  :=
-  begin
-    show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
-    refine continuous.prod_mk _ _,
-    { refine continuous_induced_rng.2 ((continuous_fst.comp units.continuous_coe).prod_mk _),
-      refine mul_opposite.continuous_op.comp (continuous_fst.comp _),
-      simp_rw units.inv_eq_coe_inv,
-      exact units.continuous_coe.comp continuous_inv, },
-    { refine continuous_induced_rng.2 ((continuous_snd.comp units.continuous_coe).prod_mk _),
-      simp_rw units.coe_map_inv,
-      exact continuous_op.comp (continuous_snd.comp (units.continuous_coe.comp continuous_inv)), }
-  end,
-  continuous_inv_fun :=
-  begin
-    refine continuous_induced_rng.2 (continuous.prod_mk _ _),
-    { exact (units.continuous_coe.comp continuous_fst).prod_mk
-        (units.continuous_coe.comp continuous_snd), },
-    { refine continuous_op.comp
-        (units.continuous_coe.comp $ continuous_induced_rng.2 $ continuous.prod_mk _ _),
-      { exact (units.continuous_coe.comp (continuous_inv.comp continuous_fst)).prod_mk
-          (units.continuous_coe.comp (continuous_inv.comp continuous_snd)) },
-      { exact continuous_op.comp ((units.continuous_coe.comp continuous_fst).prod_mk
-            (units.continuous_coe.comp continuous_snd)) }}
-  end,
-  ..mul_equiv.prod_units }
+def homeomorph.prod_units : (α × β)ˣ ≃ₜ (αˣ × βˣ) :=
+{ continuous_to_fun  := (continuous_fst.map_units (monoid_hom.fst α β)).prod_mk
+    (continuous_snd.map_units (monoid_hom.snd α β)),
+  continuous_inv_fun := units.continuous_iff.2 ⟨continuous_coe.fst'.prod_mk continuous_coe.snd',
+    units.continuous_inv.fst'.prod_mk units.continuous_inv.snd'⟩,
+  to_equiv := mul_equiv.prod_units.to_equiv }
 
 end units
 

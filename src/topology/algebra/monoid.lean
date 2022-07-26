@@ -479,6 +479,10 @@ instance : has_continuous_mul αˣ := inducing_embed_product.has_continuous_mul 
 
 end units
 
+@[to_additive] lemma continuous.map_units [monoid M] [monoid N] [topological_space M]
+  [topological_space N] (f : M →* N) (hf : continuous f) : continuous (units.map f) :=
+units.continuous_iff.2 ⟨hf.comp units.continuous_coe, hf.comp units.continuous_inv⟩
+
 section
 
 variables [topological_space M] [comm_monoid M]

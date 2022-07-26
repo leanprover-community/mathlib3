@@ -240,6 +240,13 @@ begin
     exact lt_irrefl _ (B.trans_lt I) }
 end
 
+/-- A continuous antitone function between complete linear ordered spaces sends a `filter.limsup`
+to the `filter.liminf` of the images. -/
+lemma antitone.map_limsup_of_continuous_at
+  {f : R → S} (f_decr : antitone f) (a : ι → R) (f_cont : continuous_at f (F.limsup a)) :
+  f (F.limsup a) = F.liminf (f ∘ a) :=
+f_decr.map_Limsup_of_continuous_at f_cont
+
 /-- An antitone function between complete linear ordered spaces sends a `filter.Liminf`
 to the `filter.limsup` of the image if it is continuous at the `Liminf`. -/
 lemma antitone.map_Liminf_of_continuous_at {F : filter R} [ne_bot F]
@@ -248,6 +255,13 @@ lemma antitone.map_Liminf_of_continuous_at {F : filter R} [ne_bot F]
 @antitone.map_Limsup_of_continuous_at
   (order_dual R) (order_dual S) _ _ _ _ _ _ _ _ f f_decr.dual f_cont
 
+/-- A continuous antitone function between complete linear ordered spaces sends a `filter.liminf`
+to the `filter.limsup` of the images. -/
+lemma antitone.map_liminf_of_continuous_at
+  {f : R → S} (f_decr : antitone f) (a : ι → R) (f_cont : continuous_at f (F.liminf a)) :
+  f (F.liminf a) = F.limsup (f ∘ a) :=
+f_decr.map_Liminf_of_continuous_at f_cont
+
 /-- A monotone function between complete linear ordered spaces sends a `filter.Limsup`
 to the `filter.limsup` of the image if it is continuous at the `Limsup`. -/
 lemma monotone.map_Limsup_of_continuous_at {F : filter R} [ne_bot F]
@@ -255,11 +269,25 @@ lemma monotone.map_Limsup_of_continuous_at {F : filter R} [ne_bot F]
   f (F.Limsup) = F.limsup f :=
 @antitone.map_Limsup_of_continuous_at R (order_dual S) _ _ _ _ _ _ _ _ f f_incr f_cont
 
+/-- A continuous monotone function between complete linear ordered spaces sends a `filter.limsup`
+to the `filter.limsup` of the images. -/
+lemma monotone.map_limsup_of_continuous_at
+  {f : R → S} (f_incr : monotone f) (a : ι → R) (f_cont : continuous_at f (F.limsup a)) :
+  f (F.limsup a) = F.limsup (f ∘ a) :=
+f_incr.map_Limsup_of_continuous_at f_cont
+
 /-- A monotone function between complete linear ordered spaces sends a `filter.Liminf`
 to the `filter.liminf` of the image if it is continuous at the `Liminf`. -/
 lemma monotone.map_Liminf_of_continuous_at {F : filter R} [ne_bot F]
   {f : R → S} (f_incr : monotone f) (f_cont : continuous_at f (F.Liminf)) :
   f (F.Liminf) = F.liminf f :=
 @antitone.map_Liminf_of_continuous_at R (order_dual S) _ _ _ _ _ _ _ _ f f_incr f_cont
+
+/-- A continuous monotone function between complete linear ordered spaces sends a `filter.liminf`
+to the `filter.liminf` of the images. -/
+lemma monotone.map_liminf_of_continuous_at
+  {f : R → S} (f_incr : monotone f) (a : ι → R) (f_cont : continuous_at f (F.liminf a)) :
+  f (F.liminf a) = F.liminf (f ∘ a) :=
+f_incr.map_Liminf_of_continuous_at f_cont
 
 end monotone

@@ -37,7 +37,6 @@ begin
   refl,
 end
 
-
 /--The full level `N` congruence subgroup of `SL(2,ℤ)` of matrices that reduce to the identity
 modulo `N`.-/
 def Gamma (N : ℕ) : subgroup SL(2, ℤ) := (SL_reduction_mod_hom N).ker
@@ -103,7 +102,7 @@ def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
     exact ha } }
 
 @[simp]
-lemma Gamma0_mem (N : ℕ) (A: SL(2, ℤ)) : A ∈ (Gamma0 N) ↔ (((↑ₘA) 1 0 : ℤ) : zmod N) = 0 :=iff.rfl
+lemma Gamma0_mem (N : ℕ) (A: SL(2, ℤ)) : A ∈ (Gamma0 N) ↔ (((↑ₘA) 1 0 : ℤ) : zmod N) = 0 := iff.rfl
 
 lemma Gamma0_det (N : ℕ) (A : Gamma0 N) : (A.1.1.det : zmod N) = 1 :=
 begin
@@ -232,20 +231,14 @@ begin
   apply subgroup.conj_act_normal (Gamma_normal N),
 end
 
-lemma subgroup_conj_covariant (g : conj_act SL(2, ℤ)) (Γ_1 Γ_2 : subgroup SL(2, ℤ))
-  (h : Γ_1 ≤ Γ_2) : ( g • Γ_1) ≤ (g • Γ_2) :=
-begin
-  simp [h],
-end
-
 lemma conj_cong_is_cong (g : conj_act SL(2, ℤ)) (Γ : subgroup SL(2, ℤ))
   (h : is_congruence_subgroup Γ) : is_congruence_subgroup (g • Γ) :=
 begin
   simp_rw is_congruence_subgroup at *,
-  obtain⟨ N, HN⟩ := h,
-  refine ⟨N , _⟩,
+  obtain ⟨N, HN⟩ := h,
+  refine ⟨N, _⟩,
   rw ←Gamma_cong_eq_self N g,
-  apply subgroup_conj_covariant,
+  rw subgroup.pointwise_smul_le_pointwise_smul_iff,
   exact HN,
 end
 

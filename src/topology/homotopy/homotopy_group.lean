@@ -430,18 +430,35 @@ instance is_group : group (π_(n+1) x) :=
 def aux_group : group (π_(n+2) x) :=
 (homotopy_group_equiv_fundamental_group 1).group
 
+lemma ite_ite {α} (a b c : α) (j : fin (n+2)) :
+  (if j = 0 then a else if j = 1 then b else c) =
+  if j = 1 then b else if j = 0 then a else c :=
+by { split_ifs with h₀ h₁, { subst h₀, cases h₁ }, all_goals { refl } }
+
+open unit_interval
+lemma path_trans_to_path {p q : gen_loop N x} (i : N) {t tn} :
+  (to_path i p).trans (to_path i q) t tn =
+  if h : (t : ℝ) ≤ 1/2
+  then p (λ j, if hj : j = i then
+    ⟨2 * t, (mul_pos_mem_iff zero_lt_two).2 ⟨t.2.1, h⟩⟩ else tn ⟨j, hj⟩)
+  else q (λ j, if hj : j = i then
+    ⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ else tn ⟨j, hj⟩) :=
+by { rw path.trans_apply, split_ifs; refl }
+
+
 @[reducible] def is_comm_group : comm_group (π_(n+2) x) :=
 @eckmann_hilton.comm_group (π_(n+2) x) aux_group.mul 1
   ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _ $
 begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩, apply congr_arg quotient.mk,
-  ext, --erw path.trans_apply,
-  simp only [path.trans_apply, one_div, subtype.val_eq_coe, equiv.coe_fn_mk, equiv.coe_fn_symm_mk,
-    from_path_coe, continuous_map.comp_apply, homeomorph.to_continuous_map_apply,
-    merge_split_symm_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
-    function.uncurry_apply_pair],
-  split_ifs, classical, erw [to_path_apply], rw [from_path_apply],
-  --squeeze_simp [path.trans_apply], -- unfold group.mul,
+  ext, erw [path_trans_to_path, path_trans_to_path],
+  simp only [homeomorph.to_continuous_map_apply,
+    merge_split_symm_apply, equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
+  split_ifs with h₁ h₀ h₀;
+  { simp only [from_path_apply, path_trans_to_path,
+      dif_neg fin.zero_ne_one, dif_neg fin.zero_ne_one.symm],
+  erw dif_neg h₁ <|> erw dif_pos h₁, erw dif_neg h₀ <|> erw dif_pos h₀,
+  congr' 1, ext1 j, simp_rw [merge_split_symm_apply, subtype.coe_mk, dite_eq_ite], apply ite_ite },
 end
 
 instance has_one : has_one (π_ n x) := ⟨const⟩

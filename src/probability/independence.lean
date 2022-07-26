@@ -633,11 +633,7 @@ end
 lemma Indep_fun.indep_fun_prod [is_probability_measure μ]
   {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
   {f : Π i, α → β i} (hf_Indep : Indep_fun m f μ) (hf_meas : ∀ i, measurable (f i))
-<<<<<<< HEAD
-   (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
-=======
   (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
->>>>>>> origin/master
   indep_fun (λ a, (f i a, f j a)) (f k) μ :=
 begin
   classical,

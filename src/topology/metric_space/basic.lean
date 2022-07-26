@@ -54,7 +54,7 @@ open set filter topological_space bornology
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {X : Type*}
 
 /-- Construct a uniform structure core from a distance function and metric space axioms.
 This is a technical construction that can be immediately used to construct a uniform structure
@@ -2881,3 +2881,41 @@ instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
     λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, pseudo_metric_space.dist_triangle _ _ _) }
 
 end eq_rel
+
+/-! ### `additive`, `multiplicative` -/
+
+open additive multiplicative
+
+section
+variables [has_dist X]
+
+instance : has_dist (additive X) := ‹has_dist X›
+instance : has_dist (multiplicative X) := ‹has_dist X›
+
+@[simp] lemma dist_of_mul (a b : X) : dist (of_mul a) (of_mul b) = dist a b := rfl
+@[simp] lemma dist_of_add (a b : X) : dist (of_add a) (of_add b) = dist a b := rfl
+@[simp] lemma dist_to_mul (a b) : dist (to_mul a : X) (to_mul b) = dist a b := rfl
+@[simp] lemma dist_to_add (a b) : dist (to_add a : X) (to_add b) = dist a b := rfl
+
+end
+
+section
+variables [has_nndist X]
+
+instance : has_nndist (additive X) := ‹has_nndist X›
+instance : has_nndist (multiplicative X) := ‹has_nndist X›
+
+@[simp] lemma nndist_of_mul (a b : X) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
+@[simp] lemma nndist_of_add (a b : X) : nndist (of_add a) (of_add b) = nndist a b := rfl
+@[simp] lemma nndist_to_mul (a b) : nndist (to_mul a : X) (to_mul b) = nndist a b := rfl
+@[simp] lemma nndist_to_add (a b) : nndist (to_add a : X) (to_add b) = nndist a b := rfl
+
+end
+
+instance [pseudo_metric_space X] : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
+instance [pseudo_metric_space X] : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
+instance [metric_space X] : metric_space (additive X) := ‹metric_space X›
+instance [metric_space X] : metric_space (multiplicative X) := ‹metric_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space (additive X) := ‹proper_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space (multiplicative X) :=
+‹proper_space X›

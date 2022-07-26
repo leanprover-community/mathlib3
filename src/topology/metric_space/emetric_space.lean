@@ -33,7 +33,7 @@ noncomputable theory
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {X : Type*}
 
 /-- Characterizing uniformities associated to a (generalized) distance function `D`
 in terms of the elements of the uniformity. -/
@@ -1015,3 +1015,26 @@ by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_f
 end diam
 
 end emetric
+
+/-! ### `additive`, `multiplicative` -/
+
+open additive multiplicative
+
+section
+variables [has_edist X]
+
+instance : has_edist (additive X) := ‹has_edist X›
+instance : has_edist (multiplicative X) := ‹has_edist X›
+
+@[simp] lemma edist_of_mul (a b : X) : edist (of_mul a) (of_mul b) = edist a b := rfl
+@[simp] lemma edist_of_add (a b : X) : edist (of_add a) (of_add b) = edist a b := rfl
+@[simp] lemma edist_to_mul (a b) : edist (to_mul a : X) (to_mul b) = edist a b := rfl
+@[simp] lemma edist_to_add (a b) : edist (to_add a : X) (to_add b) = edist a b := rfl
+
+end
+
+instance [pseudo_emetric_space X] : pseudo_emetric_space (additive X) := ‹pseudo_emetric_space X›
+instance [pseudo_emetric_space X] : pseudo_emetric_space (multiplicative X) :=
+‹pseudo_emetric_space X›
+instance [emetric_space X] : emetric_space (additive X) := ‹emetric_space X›
+instance [emetric_space X] : emetric_space (multiplicative X) := ‹emetric_space X›

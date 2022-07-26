@@ -291,42 +291,36 @@ end
 section
 
 /-- Either `C.X i`, if there is some `i` with `c.rel i j`, or `C.X j`. -/
-def X_prev (j : ι) : V := C.X (c.prev j)
+abbreviation X_prev (j : ι) : V := C.X (c.prev j)
 
 /-- If `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X i`. -/
 def X_prev_iso {i j : ι} (r : c.rel i j) :
   C.X_prev j ≅ C.X i :=
-eq_to_iso begin
-  dsimp [X_prev],
-  rw c.prev_eq_some r,
-end
+eq_to_iso $ by rw ← c.prev_eq_some r
 
 /-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X j`. -/
 def X_prev_iso_zero {j : ι} (h : ¬c.rel (c.prev j) j) :
   C.X_prev j ≅ C.X j :=
-eq_to_iso begin
-  dsimp [X_prev, complex_shape.prev],
+eq_to_iso $ congr_arg C.X begin
+  dsimp [complex_shape.prev],
   rw dif_neg, push_neg, intros i hi,
   have : c.prev j = i := c.prev_eq_some hi,
   rw this at h, contradiction,
 end
 
 /-- Either `C.X j`, if there is some `j` with `c.rel i j`, or `C.X j`. -/
-def X_next (i : ι) : V := C.X (c.next i)
+abbreviation X_next (i : ι) : V := C.X (c.next i)
 
 /-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
 def X_next_iso {i j : ι} (r : c.rel i j) :
   C.X_next i ≅ C.X j :=
-eq_to_iso begin
-  dsimp [X_next],
-  rw c.next_eq_some r,
-end
+eq_to_iso $ by rw ← c.next_eq_some r
 
 /-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
 def X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.X_next i ≅ C.X i :=
-eq_to_iso begin
-  dsimp [X_next, complex_shape.next],
+eq_to_iso $ congr_arg C.X begin
+  dsimp [complex_shape.next],
   rw dif_neg, rintro ⟨j, hj⟩,
   have : c.next i = j := c.next_eq_some hj,
   rw this at h, contradiction,
@@ -335,12 +329,12 @@ end
 /--
 The differential mapping into `C.X j`, or zero if there isn't one.
 -/
-def d_to (j : ι) : C.X_prev j ⟶ C.X j := C.d (c.prev j) j
+abbreviation d_to (j : ι) : C.X_prev j ⟶ C.X j := C.d (c.prev j) j
 
 /--
 The differential mapping out of `C.X i`, or zero if there isn't one.
 -/
-def d_from (i : ι) : C.X i ⟶ C.X_next i := C.d i (c.next i)
+abbreviation d_from (i : ι) : C.X i ⟶ C.X_next i := C.d i (c.next i)
 
 lemma d_to_eq {i j : ι} (r : c.rel i j) :
   C.d_to j = (C.X_prev_iso r).hom ≫ C.d i j :=
@@ -440,25 +434,23 @@ open_locale zero_object
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
 /-- `f.prev j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
-def prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j := f.f _
+abbreviation prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j := f.f _
 
 lemma prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.prev j = (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv :=
 begin
   obtain rfl := c.prev_eq_some w,
-  simp only [prev, X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
-  erw [comp_id],
+  simp only [X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
 /-- `f.next i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
-def next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i := f.f _
+abbreviation next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i := f.f _
 
 lemma next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.next i = (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv :=
 begin
   obtain rfl := c.next_eq_some w,
-  simp only [next, X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
-  erw [comp_id],
+  simp only [X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
 @[simp, reassoc, elementwise]

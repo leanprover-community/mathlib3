@@ -309,7 +309,7 @@ begin
 end
 
 @[simp]
-lemma walk.subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V}
+lemma subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V}
   (p : G.walk u v) (q : G.walk v w) :
   p.support ⊆ (p.append q).support :=
 by simp only [walk.support_append, list.subset_append_left]

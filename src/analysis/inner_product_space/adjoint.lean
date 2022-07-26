@@ -272,6 +272,13 @@ begin
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end
 
+@[simp] lemma adjoint_id : (continuous_linear_map.id 𝕜 E).adjoint = continuous_linear_map.id 𝕜 E :=
+begin
+  refine eq.symm _,
+  rw eq_adjoint_iff,
+  simp,
+end
+
 lemma _root_.submodule.adjoint_subtypeL (U : submodule 𝕜 E)
   [complete_space U] :
   (U.subtypeL)† = orthogonal_projection U :=
@@ -340,7 +347,25 @@ def is_self_adjoint (A : E →L[𝕜] E) : Prop := A.adjoint = A
 lemma is_self_adjoint_iff {A : E →L[𝕜] E} : A.is_self_adjoint ↔
   A.adjoint = A := iff.rfl
 
+lemma is_self_adjoint_zero : (0 : E →L[𝕜] E).is_self_adjoint :=
+by { rw is_self_adjoint_iff, simp }
+
+lemma is_self_adjoint_id : (continuous_linear_map.id 𝕜 E).is_self_adjoint :=
+by { rw is_self_adjoint_iff, simp }
+
 namespace is_self_adjoint
+
+@[protected] lemma add {A B : E →L[𝕜] E} (hA : A.is_self_adjoint) (hB : B.is_self_adjoint) :
+  (A + B).is_self_adjoint :=
+by { rw is_self_adjoint_iff at ⊢ hA hB, simp [hA, hB] }
+
+@[protected] lemma sub {A B : E →L[𝕜] E} (hA : A.is_self_adjoint) (hB : B.is_self_adjoint) :
+  (A - B).is_self_adjoint :=
+by { rw is_self_adjoint_iff at ⊢ hA hB, simp [hA, hB] }
+
+@[protected] lemma neg {A B : E →L[𝕜] E} (hA : A.is_self_adjoint) :
+  (-A).is_self_adjoint :=
+by { rw is_self_adjoint_iff at ⊢ hA, simp [hA] }
 
 lemma adjoint_eq {A : E →L[𝕜] E} (hA : A.is_self_adjoint) : A.adjoint = A := hA
 

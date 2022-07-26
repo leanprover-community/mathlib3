@@ -108,6 +108,12 @@ protected lemma comp {u : γ → δ} (h : ident_distrib f g μ ν) (hu : measura
   ident_distrib (u ∘ f) (u ∘ g) μ ν :=
 h.comp_of_ae_measurable hu.ae_measurable
 
+protected lemma ae_eq {g : α → γ} (hf : ae_measurable f μ) (heq : f =ᵐ[μ] g) :
+  ident_distrib f g μ μ :=
+{ ae_measurable_fst := hf,
+  ae_measurable_snd := hf.congr heq,
+  map_eq := measure.map_congr heq }
+
 lemma measure_mem_eq (h : ident_distrib f g μ ν) {s : set γ} (hs : measurable_set s) :
   μ (f ⁻¹' s) = ν (g ⁻¹' s) :=
 by rw [← measure.map_apply_of_ae_measurable h.ae_measurable_fst hs,
@@ -286,19 +292,21 @@ end ident_distrib
 
 section uniform_integrable
 
-variables {E : Type*} [measurable_space E] [normed_group E] [borel_space E]
+variables {E : Type*} [measurable_space E] [normed_add_comm_group E] [borel_space E]
   {μ : measure α} [is_finite_measure μ]
 
-lemma integrable.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
-  {j : ι} (hj : integrable (f j) μ) (hfmeas : ∀ i, strongly_measurable (f i))
+/-- This lemma is superceded by `integrable.uniform_integrable_of_ident_distrib` which only require
+`ae_strongly_measurable`. -/
+lemma integrable.uniform_integrable_of_ident_distrib' {ι : Type*} {f : ι → α → E}
+  {j : ι} (hint : integrable (f j) μ) (hfmeas : ∀ i, strongly_measurable (f i))
   (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
   uniform_integrable f 1 μ :=
 begin
-  refine uniform_integrable_of le_rfl ennreal.one_ne_top hfmeas (λ ε hε, _),
+  refine uniform_integrable_of' le_rfl ennreal.one_ne_top hfmeas (λ ε hε, _),
   by_cases hι : nonempty ι,
   swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
   obtain ⟨C, hC₁, hC₂⟩ :=
-    (mem_ℒp_one_iff_integrable.2 hj).snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
+    (mem_ℒp_one_iff_integrable.2 hint).snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
   have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} :=
     λ i, measurable_set_le measurable_const (hfmeas _).measurable.nnnorm,
   refine ⟨⟨C, hC₁.le⟩, λ i, le_trans (le_of_eq _) hC₂⟩,
@@ -317,6 +325,21 @@ begin
       (hfmeas _).nnnorm.measurable, ← hpre j],
   simp_rw [← @nnreal.coe_le_coe ⟨C, hC₁.le⟩, subtype.coe_mk, coe_nnnorm],
   rw [lintegral_indicator _ (measurable_set_le measurable_const (hfmeas _).norm.measurable)],
+end
+
+/-- A sequence of identically distributed functions is uniformly integrable. -/
+lemma integrable.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
+  {j : ι} (hint : integrable (f j) μ) (hfmeas : ∀ i, ae_strongly_measurable (f i) μ)
+  (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
+  uniform_integrable f 1 μ :=
+begin
+  set g : ι → α → E := λ i, (hfmeas i).some,
+  have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfmeas i).1,
+  have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hfmeas i).2.symm,
+  have hgint : integrable (g j) μ := hint.congr (hgeq j).symm,
+  exact uniform_integrable.ae_eq (integrable.uniform_integrable_of_ident_distrib' hgint hgmeas $
+    λ i, (ident_distrib.ae_eq (hgmeas i).ae_measurable (hgeq i)).trans ((hf i).trans
+      $ ident_distrib.ae_eq (hfmeas j).ae_measurable (hgeq j).symm)) hgeq,
 end
 
 end uniform_integrable

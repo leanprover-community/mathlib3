@@ -740,13 +740,12 @@ begin
   obtain ⟨hX₁, hX₂, hX₃⟩ := hX,
   refine ⟨λ n, _, λ ε hε, _, _⟩,
   { simp_rw div_eq_mul_inv,
-    exact (strongly_measurable_sum' _ (λ i _, hX₁ i)).mul
-      (strongly_measurable_const : strongly_measurable (λ x, (↑n : ℝ)⁻¹)) },
+    exact (ae_strongly_measurable_sum' _ (λ i _, hX₁ i)).mul
+      (ae_strongly_measurable_const : ae_strongly_measurable (λ x, (↑n : ℝ)⁻¹) μ) },
   { obtain ⟨δ, hδ₁, hδ₂⟩ := hX₂ hε,
     refine ⟨δ, hδ₁, λ n s hs hle, _⟩,
     simp_rw [div_eq_mul_inv, sum_mul, set.indicator_finset_sum],
-    refine le_trans (snorm_sum_le (λ i hi,
-      (((hX₁ i).mul_const (↑n)⁻¹).indicator hs).ae_strongly_measurable) le_rfl) _,
+    refine le_trans (snorm_sum_le (λ i hi, ((hX₁ i).mul_const (↑n)⁻¹).indicator hs) le_rfl) _,
     have : ∀ i, s.indicator (X i * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • s.indicator (X i),
     { intro i,
       rw [mul_comm, (_ : (↑n)⁻¹ * X i = λ ω, (↑n : ℝ)⁻¹ • X i ω)],
@@ -767,8 +766,7 @@ begin
       all_goals { simpa only [ne.def, nat.cast_eq_zero] } } },
   { obtain ⟨C, hC⟩ := hX₃,
     simp_rw [div_eq_mul_inv, sum_mul],
-    refine ⟨C, λ n, (snorm_sum_le (λ i hi,
-      ((hX₁ i).mul_const (↑n)⁻¹).ae_strongly_measurable) le_rfl).trans _⟩,
+    refine ⟨C, λ n, (snorm_sum_le (λ i hi, (hX₁ i).mul_const (↑n)⁻¹) le_rfl).trans _⟩,
     have : ∀ i, (λ ω, X i ω * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • λ ω, X i ω,
     { intro i,
       ext ω,
@@ -793,16 +791,15 @@ variables [is_probability_measure (ℙ : measure Ω)]
 identically distributed integrable real-valued random variables, then `∑ i in range n, X i / n`
 converges in L¹ to `𝔼[X 0]`. -/
 theorem strong_law_L1
-  (X : ℕ → Ω → ℝ) (hmeas : ∀ i, strongly_measurable (X i)) (hint : integrable (X 0))
+  (X : ℕ → Ω → ℝ) (hmeas : ∀ i, ae_strongly_measurable (X i) ℙ) (hint : integrable (X 0))
   (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
   (hident : ∀ i, ident_distrib (X i) (X 0)) :
   tendsto (λ n, snorm (λ ω, (∑ i in range n, X i ω) / n - 𝔼[X 0]) 1 ℙ) at_top (𝓝 0) :=
 begin
   have havg : ∀ n, ae_strongly_measurable (λ ω, (∑ i in range n, X i ω) / n) ℙ,
   { intro n,
-    refine strongly_measurable.ae_strongly_measurable _,
     simp_rw div_eq_mul_inv,
-    exact strongly_measurable.mul_const (strongly_measurable_sum _  (λ i _, hmeas i)) _ },
+    exact ae_strongly_measurable.mul_const (ae_strongly_measurable_sum _  (λ i _, hmeas i)) _ },
   refine tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top havg (mem_ℒp_const _) _
     (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
   rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),

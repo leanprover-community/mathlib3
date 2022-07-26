@@ -93,10 +93,6 @@ end connected_outside
 
 
 
-
-
-
-
 open simple_graph.connected_outside
 
 def components (K : finset V) : set (set V) := {C : set V | ∃ x ∈ C, C = {y : V | c_o G K x y}}
@@ -357,13 +353,8 @@ end component
 
 
 
-
-
-
-
 def inf_components (K : finset V) := {C : set V | C ∈ components G K ∧ C.infinite}
 def fin_components (K : finset V) := {C : set V | C ∈ components G K ∧ C.finite}
-
 
 
 section inf_components
@@ -394,10 +385,23 @@ def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
 
 
 lemma conn_adj_conn_to_conn {X Y : set V}
-    (Xconn : ∀ x y ∈ X, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X )
-    (Yconn : ∀ x y ∈ Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ Y )
-    (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) :
-     ∀ x y ∈ X∪Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X∪Y := sorry
+  (Xconn : ∀ x y ∈ X, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X )
+  (Yconn : ∀ x y ∈ Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ Y )
+  (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) :
+   ∀ x y ∈ X∪Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X∪Y :=
+begin
+  rintros x xU y yU,
+  rcases xU with xX|xY,
+  rcases yU with yX|yY,
+  { rcases Xconn x xX y yX with ⟨w,wX⟩, exact ⟨w,wX.trans (set.subset_union_left X Y)⟩},
+  {
+    rcases XYadj with ⟨a,aX,b,bY,w⟩,
+    sorry,
+  },
+  { sorry,},
+  { rcases Yconn x xY y yY with ⟨w,wY⟩, exact ⟨w,wY.trans (set.subset_union_right X Y)⟩},
+
+end
 
 
 def extend_conn_to_finite_comps [locally_finite G] [Knempty : K.nonempty]
@@ -1003,7 +1007,7 @@ end
 
 --lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
 
-/-
+
 section transitivity
 
 lemma transitive_to_good_automs [locally_finite G] [G.preconnected]
@@ -1023,11 +1027,11 @@ end
 lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V) (Knempty : K.nonempty)
-  (inf_comp_K_large : fintype.card (inf_components G K) ≥ 3) :
+  (inf_comp_K_large : @fintype.card (inf_components G K) (sorry) ≥ 3) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
 begin
   rcases @extend_to_conn V G _ K (sorry) _ (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
-  rcases @extend_conn_to_finite_comps V G _ Kp _ Kpconn with ⟨K',KK',K'conn,finn⟩,
+  rcases @extend_conn_to_finite_comps V G _ Kp _ (finset.nonempty.mono KKp Knempty) Kpconn with ⟨K',KK',K'conn,finn⟩,
   rcases auts K' with ⟨φ,φgood⟩,
 
   let φK' := finset.image φ K',
@@ -1081,7 +1085,7 @@ begin
 end
 
 end transitivity
--/
+
 
 end ends
 

@@ -376,12 +376,12 @@ calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_ba
 variable {v : ι → E}
 
 /-- A finite orthonormal set that spans is an orthonormal basis -/
-protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
+protected def mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)):
   orthonormal_basis ι 𝕜 E :=
 (basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
-protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
@@ -393,6 +393,7 @@ protected def mk_of_orthogonal_eq_bot (hon : orthonormal 𝕜 v) (hsp : (span �
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk hon
 begin
+  refine eq.ge _,
   haveI : finite_dimensional 𝕜 (span 𝕜 (range v)) :=
     finite_dimensional.span_of_finite 𝕜 (finite_range v),
   haveI : complete_space (span 𝕜 (range v)) := finite_dimensional.complete 𝕜 _,

@@ -163,7 +163,17 @@ setup_tactic_parser
 /-- Tactic solving goals of the form `0 ≤ x` and `0 < x`.  The tactic works recursively according to
 the syntax of the expression `x`, if the atoms composing the expression all have numeric lower
 bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either closes the goal
-or fails. -/
+or fails.
+
+Examples:
+```
+example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 3 + a := by positivity
+
+example {a : ℤ} (ha : 1 < a) : 0 < |(3:ℤ) + a| := by positivity
+
+example {b : ℤ} : 0 ≤ max (-3) (b ^ 2) := by positivity
+```
+-/
 meta def positivity : tactic unit := focus1 $ do
   t ← target,
   (rel_desired, a) ← match t with

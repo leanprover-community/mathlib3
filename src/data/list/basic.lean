@@ -1157,12 +1157,6 @@ theorem nth_len_le : ∀ {l : list α} {n}, length l ≤ n → nth l n = none
 | []       n     h := rfl
 | (a :: l) (n+1) h := nth_len_le (le_of_succ_le_succ h)
 
-theorem nth_eq_nth_of_nth_le_eq_nth_le {l₁ l₂ : list α}
-  {n₁ n₂ : ℕ} {lt_len₁ : n₁ < l₁.length} {lt_len₂ : n₂ < l₂.length}
-  (h : l₁.nth_le n₁ lt_len₁ = l₂.nth_le n₂ lt_len₂) :
-  l₁.nth n₁ = l₂.nth n₂ :=
-by rw [nth_le_nth lt_len₁, nth_le_nth lt_len₂, h]
-
 theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n h = a :=
 ⟨λ e,
   have h : n < length l, from lt_of_not_ge $ λ hn,
@@ -1180,6 +1174,12 @@ begin
     rw [← nth_eq_some, h] at h₂, cases h₂ },
   { solve_by_elim [nth_len_le] },
 end
+
+theorem nth_eq_nth_of_nth_le_eq_nth_le {l₁ l₂ : list α}
+  {n₁ n₂ : ℕ} {lt_len₁ : n₁ < l₁.length} {lt_len₂ : n₂ < l₂.length}
+  (h : l₁.nth_le n₁ lt_len₁ = l₂.nth_le n₂ lt_len₂) :
+  l₁.nth n₁ = l₂.nth n₂ :=
+by rw [nth_le_nth lt_len₁, nth_le_nth lt_len₂, h]
 
 theorem nth_of_mem {a} {l : list α} (h : a ∈ l) : ∃ n, nth l n = some a :=
 let ⟨n, h, e⟩ := nth_le_of_mem h in ⟨n, by rw [nth_le_nth, e]⟩

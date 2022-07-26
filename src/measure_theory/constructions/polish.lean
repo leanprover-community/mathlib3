@@ -699,12 +699,12 @@ begin
     (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := λ x, hu.map.prod hu.map,
   simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
     metric.uniformity_basis_dist_inv_nat_succ, set.set_of_forall],
-  refine measurable_set.bInter (countable_encodable _) (λ K _, _),
+  refine measurable_set.bInter (encodable.countable _) (λ K _, _),
   simp_rw set.set_of_exists,
-  refine measurable_set.bUnion (countable_encodable _) (λ N hN, _),
+  refine measurable_set.bUnion (encodable.countable _) (λ N hN, _),
   simp_rw [prod_image_image_eq, image_subset_iff, prod_subset_iff, set.set_of_forall],
-  exact measurable_set.bInter (countable_encodable _) (λ i _,
-    measurable_set.bInter (countable_encodable _) (λ j _,
+  exact measurable_set.bInter (encodable.countable _) (λ i _,
+    measurable_set.bInter (encodable.countable _) (λ j _,
     measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const))
 end
 

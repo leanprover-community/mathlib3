@@ -1616,6 +1616,7 @@ begin
   exact (set.preimage_image_eq _ H.base_open.inj).symm
 end
 
+/-- The image of an open immersion as an open set. -/
 @[simps]
 def opens_range (f : X ⟶ Y) [H : is_open_immersion f] : opens Y.carrier :=
   ⟨_, H.base_open.open_range⟩
@@ -1686,6 +1687,23 @@ def Scheme.open_cover.inter {X : Scheme.{u}} (𝒰₁ : Scheme.open_cover.{v₁}
   f := λ x, ⟨𝒰₁.f x, 𝒰₂.f x⟩,
   covers := λ x, by { rw is_open_immersion.range_pullback_to_base_of_left,
     exact ⟨𝒰₁.covers x, 𝒰₂.covers x⟩ } }
+
+/-- If `U` is a family of open sets that covers `X`, then `X.restrict U` forms an `X.open_cover`. -/
+@[simps J obj map]
+def Scheme.open_cover_of_supr_eq_top {s : Type*} (X : Scheme) (U : s → opens X.carrier)
+  (hU : (⨆ i, U i) = ⊤) : X.open_cover :=
+{ J := s,
+  obj := λ i, X.restrict (U i).open_embedding,
+  map := λ i, X.of_restrict (U i).open_embedding,
+  f := λ x, begin
+    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
+    exact (opens.mem_supr.mp this).some,
+  end,
+  covers := λ x, begin
+    erw subtype.range_coe,
+    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
+    exact (opens.mem_supr.mp this).some_spec,
+  end }
 
 section morphism_restrict
 

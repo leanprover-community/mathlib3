@@ -423,7 +423,7 @@ lemma le_pred_iff_of_not_is_min (ha : ¬ is_min a) : b ≤ pred a ↔ b < a :=
 
 lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 
-lemma pred_le_iterate (k : ℕ) (x : α) : (pred^[k] x) ≤ x :=
+lemma pred_iterate_le (k : ℕ) (x : α) : (pred^[k] x) ≤ x :=
 begin
   conv_rhs { rw (by simp only [function.iterate_id, id.def] : x = (id^[k] x)) },
   exact monotone.iterate_le_of_le pred_mono pred_le k x,

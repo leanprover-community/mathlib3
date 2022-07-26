@@ -152,25 +152,12 @@ with a Lie Bracket via `ring.has_bracket`.
 lemma two_nsmul_lie_lmul_lmul_add_eq_lie_lmul_lmul_add (a b : A) :
   2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) = ⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆ :=
 begin
-  rw ← sub_eq_zero,
-  symmetry,
-  calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw (commute_lmul_lmul_sq (a + b)).lie_eq
-    ... = ⁅L a + L b, L (a * a + a * b + (b * a + b * b))⁆ :
-      by rw [add_mul, mul_add, mul_add, map_add]
-    ... = ⁅L a + L b, L (a * a) + L(a * b) + (L(a * b) + L(b * b))⁆ :
-      by rw [map_add, map_add, map_add, is_comm_jordan.mul_comm b a]
-    ... = ⁅L a + L b, L (a * a) + 2•L(a * b) + L(b * b)⁆ :
-      by rw [ two_smul, ← add_assoc, ← add_assoc]
-    ... = ⁅L a, L (a * a)⁆ + ⁅L a, 2•L(a * b)⁆ + ⁅L a, L(b * b)⁆
-      + (⁅L b, L (a * a)⁆ + ⁅L b, 2•L(a * b)⁆ + ⁅L b,L(b * b)⁆) :
-        by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
-    ... = 2•⁅L a, L (a * b)⁆ + ⁅L a, L(b * b)⁆ + (⁅L b, L (a * a)⁆ + 2•⁅L b,L(a * b)⁆) :
-      by rw [(commute_lmul_lmul_sq a).lie_eq, (commute_lmul_lmul_sq  b).lie_eq,
-        lie_nsmul, lie_nsmul, zero_add, add_zero]
-    ... = 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆ + ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ : by abel
-    ... = 2•(⁅L a, L (a * b)⁆ + ⁅L b, L (b * a)⁆) - (⁅L (a * a), L b⁆ + ⁅L (b * b), L a⁆) : by
-      rw [← nsmul_add, sub_add_eq_sub_sub_swap, sub_eq_add_neg, lie_skew, sub_eq_add_neg,
-       lie_skew, is_comm_jordan.mul_comm b a]
+  suffices : 2 • ⁅L a, L (a * b)⁆ + 2 • ⁅L b, L (b * a)⁆ + ⁅L b, L (a * a)⁆ + ⁅L a, L (b * b)⁆ = 0,
+  { rwa [← sub_eq_zero, ← sub_sub, sub_eq_add_neg, sub_eq_add_neg, lie_skew, lie_skew, nsmul_add] },
+  convert (commute_lmul_lmul_sq (a + b)).lie_eq,
+  simp only [add_mul, mul_add, map_add, lie_add, add_lie, is_comm_jordan.mul_comm b a,
+    (commute_lmul_lmul_sq a).lie_eq, (commute_lmul_lmul_sq b).lie_eq],
+  abel,
 end
 
 lemma two_nsmul_lie_lmul_lmul_add_add_eq_zero (a b c : A) :

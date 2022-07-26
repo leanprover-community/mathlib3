@@ -1221,6 +1221,80 @@ end map_range
 --------------------------------------------------------------------------------
 
 
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section equiv_congr_left    vvvvv
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+/-! ### Declarations about `equiv_congr_left` -/
+
+section equiv_congr_left
+
+variable [has_zero M]
+
+/-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
+by mapping the support forwards and the function backwards. -/
+def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
+{ support := l.support.map f.to_embedding,
+  to_fun := λ a, l (f.symm a),
+  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
+
+@[simp] lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
+  equiv_map_domain f l b = l (f.symm b) := rfl
+
+lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
+  equiv_map_domain f.symm l a = l (f a) := rfl
+
+@[simp] lemma equiv_map_domain_refl (l : α →₀ M) : equiv_map_domain (equiv.refl _) l = l :=
+by ext x; refl
+
+lemma equiv_map_domain_refl' : equiv_map_domain (equiv.refl _) = @id (α →₀ M) :=
+by ext x; refl
+
+lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
+  equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
+
+lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
+  @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
+
+@[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :
+  equiv_map_domain f (single a b) = single (f a) b :=
+by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
+
+@[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
+by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
+
+lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l : α →₀ M) :
+  equiv_map_domain f l = map_domain f l := by ext x; simp [map_domain_equiv_apply]
+
+/-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
+`(α →₀ M) ≃ (β →₀ M)`.
+
+This is the finitely-supported version of `equiv.Pi_congr_left`. -/
+def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
+by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
+  ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
+    equiv.symm_apply_apply, equiv.apply_symm_apply]
+
+@[simp] lemma equiv_congr_left_apply (f : α ≃ β) (l : α →₀ M) :
+  equiv_congr_left f l = equiv_map_domain f l := rfl
+
+@[simp] lemma equiv_congr_left_symm (f : α ≃ β) :
+  (@equiv_congr_left _ _ M _ f).symm = equiv_congr_left f.symm := rfl
+
+end equiv_congr_left
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section equiv_congr_left    ^^^^^
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -2096,63 +2170,7 @@ f.sum_option_index _ (λ _, zero_smul _ _) (λ _ _ _, add_smul _ _ _)
 
 end option
 
-/-! ### Declarations about `equiv_congr_left` -/
 
-section equiv_congr_left
-
-variable [has_zero M]
-
-/-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
-by mapping the support forwards and the function backwards. -/
-def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
-{ support := l.support.map f.to_embedding,
-  to_fun := λ a, l (f.symm a),
-  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
-
-@[simp] lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
-  equiv_map_domain f l b = l (f.symm b) := rfl
-
-lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
-  equiv_map_domain f.symm l a = l (f a) := rfl
-
-@[simp] lemma equiv_map_domain_refl (l : α →₀ M) : equiv_map_domain (equiv.refl _) l = l :=
-by ext x; refl
-
-lemma equiv_map_domain_refl' : equiv_map_domain (equiv.refl _) = @id (α →₀ M) :=
-by ext x; refl
-
-lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
-  equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
-
-lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
-  @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
-
-@[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :
-  equiv_map_domain f (single a b) = single (f a) b :=
-by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
-
-@[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
-by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
-
-lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l : α →₀ M) :
-  equiv_map_domain f l = map_domain f l := by ext x; simp [map_domain_equiv_apply]
-
-/-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
-`(α →₀ M) ≃ (β →₀ M)`.
-
-This is the finitely-supported version of `equiv.Pi_congr_left`. -/
-def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
-by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
-  ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
-    equiv.symm_apply_apply, equiv.apply_symm_apply]
-
-@[simp] lemma equiv_congr_left_apply (f : α ≃ β) (l : α →₀ M) :
-  equiv_congr_left f l = equiv_map_domain f l := rfl
-
-@[simp] lemma equiv_congr_left_symm (f : α ≃ β) :
-  (@equiv_congr_left _ _ M _ f).symm = equiv_congr_left f.symm := rfl
-
-end equiv_congr_left
 
 /-! ### Declarations about `filter` -/
 

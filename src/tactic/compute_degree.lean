@@ -42,19 +42,6 @@ lemma coeff_bit1_zero (P : R[X]) :
   (bit1 P).coeff 0 = bit1 P.coeff 0 :=
 by simp only [bit1, coeff_add, coeff_bit0, coeff_one_zero, pi.add_apply, pi.one_apply]
 
-lemma nat_degree_eq_of_le_of_coeff_ne_zero {n : ℕ} {f : polynomial R}
-  (fn : f.nat_degree ≤ n) (f0 : f.coeff n ≠ 0) :
-  f.nat_degree = n :=
-fn.antisymm (le_nat_degree_of_ne_zero f0)
-
-/-
-lemma nat_degree_add_of_nat_degree_eq' {n : ℕ}
-  (df : f.nat_degree ≤ n) (dg : g.nat_degree ≤ n) (fg : f.coeff n + g.coeff n ≠ 0) :
-  (f + g).nat_degree = n :=
-nat_degree_eq_of_le_of_coeff_ne_zero ((nat_degree_add_le _ _).trans (max_le ‹_› ‹_›))
-  (by rwa coeff_add)
--/
-
 lemma coeff_mul_of_nat_degree_le (df : f.nat_degree ≤ d) (eg : g.nat_degree ≤ e) :
   (f * g).coeff (d + e) = f.coeff d * g.coeff e :=
 begin
@@ -62,14 +49,15 @@ begin
   refine finset.sum_eq_single (d, e) _ (by simp),
   rintros ⟨d1, e1⟩ h de,
   rcases (trichotomous d1 d : d1 < d ∨ _) with k|rfl|k,
-  { convert mul_zero _,
+  { refine mul_eq_zero_of_right _ _,
     refine coeff_eq_zero_of_nat_degree_lt (eg.trans_lt _),
     linarith [finset.nat.mem_antidiagonal.mp h] },
   { exact (de (by simpa using h)).elim },
-  { convert zero_mul _,
+  { refine mul_eq_zero_of_left _ _,
     exact coeff_eq_zero_of_nat_degree_lt (df.trans_lt k) }
 end
 
+/-  This lemma is useful to expose the right hypotheses for `tactic.interactive.compute_degree`. -/
 lemma coeff_mul_of_nat_degree_le' (de : d + e = n) (df : f.nat_degree ≤ d) (eg : g.nat_degree ≤ e) :
   (f * g).coeff n = f.coeff d * g.coeff e :=
 by rwa [← de, coeff_mul_of_nat_degree_le df eg]
@@ -85,6 +73,7 @@ begin
     exact mul_le_mul_of_nonneg_left df e.zero_le }
 end
 
+/-  This lemma is useful to expose the right hypotheses for `tactic.interactive.compute_degree`. -/
 lemma coeff_pow_of_nat_degree_le' (de : d * e = n) (df : f.nat_degree ≤ d) :
   (f ^ e).coeff n = (f.coeff d) ^ e :=
 by rwa [← de, coeff_pow_of_nat_degree_le]
@@ -102,13 +91,9 @@ lemma monic_of_nat_degree_le_of_coeff_eq_one (fn : f.nat_degree ≤ n) (fc : f.c
   monic f :=
 begin
   nontriviality,
-  unfold monic,
-  unfold leading_coeff,
-  convert fc,
-  refine le_antisymm fn _,
-  exact le_nat_degree_of_ne_zero (ne_of_eq_of_ne fc one_ne_zero),
+  refine (congr_arg _ $ fn.antisymm $ le_nat_degree_of_ne_zero _).trans fc,
+  exact ne_of_eq_of_ne fc one_ne_zero,
 end
-
 
 end semiring
 
@@ -515,13 +500,13 @@ degvn ← eval_guessing 0 degv,
 guard (deg = degvn) <|>
 ( do ppe ← pp deg, ppg ← pp degvn,
   fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
-refine ``(nat_degree_eq_of_le_of_coeff_ne_zero _ _),
+refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
 focus' [compute_degree_le, simp_coeff]
 
 /--  `prove_monic` tries to close goals of the form `monic f`.  It converts the
 goal to showing that
-* the degree is at most `d`, calling `compute_degree_le` to solve this case;
-* the coefficient of degree `n` equals `1`, calling `simp_coeff` to simplify this goal.
+* the degree is at most `d`, calling `compute_degree_le` to solve this goal;
+* the coefficient of degree `d` equals `1`, calling `simp_coeff` to simplify this goal.
 Unless the polynomial is particularly complicated, `prove_monic` with either succeed of leave
 a simpler goal to prove.
  -/

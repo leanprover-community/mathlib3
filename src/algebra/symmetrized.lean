@@ -210,14 +210,8 @@ lemma mul_comm [has_mul α] [add_comm_semigroup α] [has_one α] [invertible (2 
   a * b = b * a :=
 by rw [mul_def, mul_def, add_comm]
 
---[has_add α] [has_mul α] [has_one α] [invertible (2 : α)]
-
 /- 2 commutes with every element of a ring -/
-lemma two_commute {α : Type*} [ring α] (a : α) : commute 2 a := begin
-  --convert commute.semiconj_by 2 a,
-  unfold _root_.commute,
-  rw [semiconj_by, mul_two, two_mul],
-end
+lemma two_commute {α : Type*} [ring α] (a : α) : commute 2 a := (commute.one_left a).bit0_left
 
 /- If 2 is invertible, ⅟2 commutes with every element of a ring -/
 lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=

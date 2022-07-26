@@ -13,6 +13,7 @@ import category_theory.linear
 For an object in `M : Module A`, where `A` is a `k`-algebra,
 we provide additional typeclasses on the underlying type `M`,
 namely `module k M` and `is_scalar_tower k A M`.
+These are not made into instances by default.
 
 We provide the `linear k (Module A)` instance.
 
@@ -36,11 +37,15 @@ namespace Module
 variables {k : Type u} [field k]
 variables {A : Type w} [ring A] [algebra k A]
 
-instance (M : Module.{v} A) : module k M :=
+def module_of_algebra_Module (M : Module.{v} A) : module k M :=
 restrict_scalars.module k A M
 
-instance (M : Module.{v} A) : is_scalar_tower k A M :=
+local attribute [instance] module_of_algebra_Module
+
+def is_scalar_tower_of_algebra_Module (M : Module.{v} A) : is_scalar_tower k A M :=
 restrict_scalars.is_scalar_tower k A M
+
+local attribute [instance] is_scalar_tower_of_algebra_Module
 
 -- We verify that the morphism spaces become `k`-modules.
 example (M N : Module.{v} A) : module k (M ⟶ N) := by apply_instance

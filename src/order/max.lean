@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov, Yaël Dillies
 -/
-import order.order_dual
+import order.synonym
 
 /-!
 # Minimal/maximal and bottom/top elements
@@ -30,7 +30,7 @@ See also `is_bot_iff_is_min` and `is_top_iff_is_max` for the equivalences in a (
 
 open order_dual
 
-variables {α : Type*}
+variables {α β : Type*}
 
 /-- Order without bottom elements. -/
 class no_bot_order (α : Type*) [has_le α] : Prop :=
@@ -185,13 +185,41 @@ protected lemma is_max.eq_of_ge (ha : is_max a) (h : a ≤ b) : b = a := h.antis
 
 end partial_order
 
-section linear_order
-variables [linear_order α]
+section prod
+variables [preorder α] [preorder β] {a a₁ a₂ : α} {b b₁ b₂ : β} {x y : α × β}
 
---TODO: Delete in favor of the directed version
-lemma is_top_or_exists_gt (a : α) : is_top a ∨ ∃ b, a < b :=
-by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
+lemma is_bot.prod_mk (ha : is_bot a) (hb : is_bot b) : is_bot (a, b) := λ c, ⟨ha _, hb _⟩
+lemma is_top.prod_mk (ha : is_top a) (hb : is_top b) : is_top (a, b) := λ c, ⟨ha _, hb _⟩
+lemma is_min.prod_mk (ha : is_min a) (hb : is_min b) : is_min (a, b) := λ c hc, ⟨ha hc.1, hb hc.2⟩
+lemma is_max.prod_mk (ha : is_max a) (hb : is_max b) : is_max (a, b) := λ c hc, ⟨ha hc.1, hb hc.2⟩
 
-lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ ∃ b, b < a := @is_top_or_exists_gt αᵒᵈ _ a
+lemma is_bot.fst (hx : is_bot x) : is_bot x.1 := λ c, (hx (c, x.2)).1
+lemma is_bot.snd (hx : is_bot x) : is_bot x.2 := λ c, (hx (x.1, c)).2
+lemma is_top.fst (hx : is_top x) : is_top x.1 := λ c, (hx (c, x.2)).1
+lemma is_top.snd (hx : is_top x) : is_top x.2 := λ c, (hx (x.1, c)).2
 
-end linear_order
+lemma is_min.fst (hx : is_min x) : is_min x.1 :=
+λ c hc, (hx $ show (c, x.2) ≤ x, from (and_iff_left le_rfl).2 hc).1
+
+lemma is_min.snd (hx : is_min x) : is_min x.2 :=
+λ c hc, (hx $ show (x.1, c) ≤ x, from (and_iff_right le_rfl).2 hc).2
+
+lemma is_max.fst (hx : is_max x) : is_max x.1 :=
+λ c hc, (hx $ show x ≤ (c, x.2), from (and_iff_left le_rfl).2 hc).1
+
+lemma is_max.snd (hx : is_max x) : is_max x.2 :=
+λ c hc, (hx $ show x ≤ (x.1, c), from (and_iff_right le_rfl).2 hc).2
+
+lemma prod.is_bot_iff : is_bot x ↔ is_bot x.1 ∧ is_bot x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
+
+lemma prod.is_top_iff : is_top x ↔ is_top x.1 ∧ is_top x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
+
+lemma prod.is_min_iff : is_min x ↔ is_min x.1 ∧ is_min x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
+
+lemma prod.is_max_iff : is_max x ↔ is_max x.1 ∧ is_max x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
+
+end prod

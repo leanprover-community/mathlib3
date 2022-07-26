@@ -31,29 +31,29 @@ namespace category_theory.limits
 
 open category_theory
 
-universes v u
+universes w v u
 
 /-- The type underlying the multiequalizer diagram. -/
 @[nolint unused_arguments]
-inductive walking_multicospan {L R : Type v} (fst snd : R → L) : Type v
+inductive walking_multicospan {L R : Type w} (fst snd : R → L) : Type w
 | left : L → walking_multicospan
 | right : R → walking_multicospan
 
 /-- The type underlying the multiecoqualizer diagram. -/
 @[nolint unused_arguments]
-inductive walking_multispan {L R : Type v} (fst snd : L → R) : Type v
+inductive walking_multispan {L R : Type w} (fst snd : L → R) : Type w
 | left : L → walking_multispan
 | right : R → walking_multispan
 
 namespace walking_multicospan
 
-variables {L R : Type v} {fst snd : R → L}
+variables {L R : Type w} {fst snd : R → L}
 
 instance [inhabited L] : inhabited (walking_multicospan fst snd) :=
 ⟨left default⟩
 
 /-- Morphisms for `walking_multicospan`. -/
-inductive hom : Π (a b : walking_multicospan fst snd), Type v
+inductive hom : Π (a b : walking_multicospan fst snd), Type w
 | id (A)  : hom A A
 | fst (b) : hom (left (fst b)) (right b)
 | snd (b) : hom (left (snd b)) (right b)
@@ -114,7 +114,7 @@ end walking_multispan
 /-- This is a structure encapsulating the data necessary to define a `multicospan`. -/
 @[nolint has_inhabited_instance]
 structure multicospan_index (C : Type u) [category.{v} C] :=
-(L R : Type v)
+(L R : Type w)
 (fst_to snd_to : R → L)
 (left : L → C)
 (right : R → C)
@@ -124,7 +124,7 @@ structure multicospan_index (C : Type u) [category.{v} C] :=
 /-- This is a structure encapsulating the data necessary to define a `multispan`. -/
 @[nolint has_inhabited_instance]
 structure multispan_index (C : Type u) [category.{v} C] :=
-(L R : Type v)
+(L R : Type w)
 (fst_from snd_from : L → R)
 (left : L → C)
 (right : R → C)
@@ -331,7 +331,7 @@ variables [has_product I.left] [has_product I.right]
 
 @[simp, reassoc]
 lemma pi_condition : pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map :=
-by { ext, simp }
+by { ext, discrete_cases, simp, }
 
 /-- Given a multifork, we may obtain a fork over `∏ I.left ⇉ ∏ I.right`. -/
 @[simps X] noncomputable
@@ -392,7 +392,17 @@ local attribute [tidy] tactic.case_bash
 /-- `multifork.to_pi_fork` is functorial. -/
 @[simps] noncomputable
 def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
-{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
+{ obj := multifork.to_pi_fork,
+  map := λ K₁ K₂ f,
+  { hom := f.hom,
+    w' := begin
+      rintro (_|_),
+      { ext, dsimp, simp },
+      { ext,
+        simp only [multifork.to_pi_fork_π_app_one, multifork.pi_condition, category.assoc],
+        dsimp [snd_pi_map],
+        simp },
+    end } }
 
 /-- `multifork.of_pi_fork` is functorial. -/
 @[simps] noncomputable
@@ -411,7 +421,7 @@ def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
   unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _)
     (by { rintros (_|_); dsimp; simp[←fork.app_one_eq_ι_comp_left, -fork.app_one_eq_ι_comp_left] }))
     (λ K₁ K₂ f, by { ext, simp }),
-  counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
+  counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext ⟨j⟩, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, simp }) }
 
 end multicospan_index
@@ -484,7 +494,8 @@ variables [has_coproduct I.left] [has_coproduct I.right]
 
 @[simp, reassoc]
 lemma sigma_condition :
-  I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π := by { ext, simp }
+  I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π :=
+by { ext, discrete_cases, simp, }
 
 /-- Given a multicofork, we may obtain a cofork over `∐ I.left ⇉ ∐ I.right`. -/
 @[simps X] noncomputable
@@ -567,7 +578,7 @@ def multicofork_equiv_sigma_cofork : multicofork I ≌ cofork I.fst_sigma_map I.
       (by { rintros (_|_); dsimp; simp }))
     (λ K₁ K₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _)
-      (by { ext, dsimp, simp only [category.comp_id, colimit.ι_desc, cofan.mk_ι_app], refl }))
+      (by { ext ⟨j⟩, dsimp, simp only [category.comp_id, colimit.ι_desc, cofan.mk_ι_app], refl }))
     (λ K₁ K₂ f, by { ext, dsimp, simp, }) }
 
 end multispan_index

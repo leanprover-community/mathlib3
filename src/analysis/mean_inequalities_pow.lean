@@ -276,8 +276,7 @@ theorem rpow_add_rpow_le {p q : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hpq : 
   (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
 begin
   have h_rpow : ∀ a : ℝ≥0∞, a^q = (a^p)^(q/p),
-    from λ a, by rw [←ennreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
-      _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
+    from λ a, by rw [← ennreal.rpow_mul, _root_.mul_div_cancel' _ hp_pos.ne'],
   have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
   { refine rpow_add_rpow_le_add (a^p) (b^p) _,
     rwa one_le_div hp_pos, },

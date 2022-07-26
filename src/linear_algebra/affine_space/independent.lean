@@ -464,6 +464,13 @@ begin
   { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
 end
 
+/-- Viewing a module as an affine space modelled on itself, we can characterise affine independence
+in terms of linear combinations. -/
+lemma affine_independent_iff {ι} {p : ι → V} :
+  affine_independent k p ↔
+  ∀ (s : finset ι) (w : ι → k), s.sum w = 0 → ∑ e in s, w e • p e = 0 → ∀ (e ∈ s), w e = 0 :=
+forall₃_congr (λ s w hw, by simp [s.weighted_vsub_eq_linear_combination hw])
+
 end affine_independent
 
 section division_ring

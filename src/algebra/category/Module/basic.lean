@@ -3,10 +3,13 @@ Copyright (c) 2019 Robert A. Spencer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.preadditive
 import category_theory.limits.shapes.kernels
 import category_theory.linear
+import category_theory.elementwise
 import linear_algebra.basic
+import category_theory.conj
+import category_theory.preadditive.additive_functor
 
 /-!
 # The category of `R`-modules
@@ -88,10 +91,9 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
   { obj := λ M, AddCommGroup.of M,
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
--- TODO: instantiate `linear_map_class` once that gets defined
-instance (M N : Module R) : add_monoid_hom_class (M ⟶ N) M N :=
+instance (M N : Module R) : linear_map_class (M ⟶ N) R M N :=
 { coe := λ f, f,
-  .. linear_map.add_monoid_hom_class }
+  .. linear_map.semilinear_map_class }
 
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
@@ -122,7 +124,7 @@ instance of_unique {X : Type v} [add_comm_group X] [module R X] [i : unique X] :
   unique (of R X) := i
 
 @[simp]
-lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
+lemma coe_of (X : Type v) [add_comm_group X] [module R X] : (of R X : Type v) = X := rfl
 
 variables {R}
 
@@ -255,6 +257,8 @@ instance : preadditive (Module.{v} R) :=
   comp_add' := λ P Q R f g g',
     show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
 
+instance forget₂_AddCommGroup_additive : (forget₂ (Module.{v} R) AddCommGroup).additive := {}
+
 section
 variables {S : Type u} [comm_ring S]
 
@@ -262,6 +266,14 @@ instance : linear S (Module.{v} S) :=
 { hom_module := λ X Y, linear_map.module,
   smul_comp' := by { intros, ext, simp },
   comp_smul' := by { intros, ext, simp }, }
+
+variables {X Y X' Y' : Module.{v} S}
+
+lemma iso.hom_congr_eq_arrow_congr (i : X ≅ X') (j : Y ≅ Y') (f : X ⟶ Y) :
+  iso.hom_congr i j f = linear_equiv.arrow_congr i.to_linear_equiv j.to_linear_equiv f := rfl
+
+lemma iso.conj_eq_conj (i : X ≅ X') (f : End X) :
+  iso.conj i f = linear_equiv.conj i.to_linear_equiv f := rfl
 
 end
 

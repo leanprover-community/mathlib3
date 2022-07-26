@@ -50,8 +50,10 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
 variables [add_comm_group N] [module R N] [module.free R N]
 
-instance [nontrivial R] [module.finite R M] [module.finite R N] : module.free R (M →ₗ[R] N) :=
+instance linear_map [module.finite R M] [module.finite R N] : module.free R (M →ₗ[R] N) :=
 begin
+  casesI subsingleton_or_nontrivial R,
+  { apply module.free.of_subsingleton' },
   classical,
   exact of_equiv
     (linear_map.to_matrix (module.free.choose_basis R M) (module.free.choose_basis R N)).symm,
@@ -72,9 +74,13 @@ instance _root_.module.finite.matrix {ι₁ : Type*} [fintype ι₁] {ι₂ : Ty
   module.finite R (matrix ι₁ ι₂ R) :=
 module.finite.of_basis $ pi.basis $ λ i, pi.basis_fun R _
 
-instance [nontrivial R] [module.finite R M] [module.finite R N] :
+variables (M)
+
+instance _root_.module.finite.linear_map [module.finite R M] [module.finite R N] :
   module.finite R (M →ₗ[R] N) :=
 begin
+  casesI subsingleton_or_nontrivial R,
+  { apply_instance },
   classical,
   have f := (linear_map.to_matrix (choose_basis R M) (choose_basis R N)).symm,
   exact module.finite.of_surjective f.to_linear_map (linear_equiv.surjective f),
@@ -87,11 +93,14 @@ section integer
 variables [add_comm_group M] [module.finite ℤ M] [module.free ℤ M]
 variables [add_comm_group N] [module.finite ℤ N] [module.free ℤ N]
 
-instance : module.finite ℤ (M →+ N) :=
+instance _root_.module.finite.add_monoid_hom : module.finite ℤ (M →+ N) :=
 module.finite.equiv (add_monoid_hom_lequiv_int ℤ).symm
 
-instance : module.free ℤ (M →+ N) :=
-module.free.of_equiv (add_monoid_hom_lequiv_int ℤ).symm
+instance add_monoid_hom : module.free ℤ (M →+ N) :=
+begin
+  letI : module.free ℤ (M →ₗ[ℤ] N) := module.free.linear_map _ _ _,
+  exact module.free.of_equiv (add_monoid_hom_lequiv_int ℤ).symm
+end
 
 end integer
 

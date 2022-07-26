@@ -153,10 +153,7 @@ lemma dvd_prod : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
 lemma prod_dvd_prod_of_le (h : s ≤ t) : s.prod ∣ t.prod :=
-begin
-  obtain ⟨z, rfl⟩ := multiset.le_iff_exists_add.1 h,
-  simp only [prod_add, dvd_mul_right],
-end
+by { obtain ⟨z, rfl⟩ := exists_add_of_le h, simp only [prod_add, dvd_mul_right] }
 
 end comm_monoid
 
@@ -202,44 +199,24 @@ lemma prod_ne_zero (h : (0 : α) ∉ s) : s.prod ≠ 0 := mt prod_eq_zero_iff.1 
 
 end comm_monoid_with_zero
 
-section comm_group
-variables [comm_group α] {m : multiset ι} {f g : ι → α}
+section division_comm_monoid
+variables [division_comm_monoid α] {m : multiset ι} {f g : ι → α}
 
-@[simp, to_additive]
-lemma prod_map_inv' : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
-by { convert (m.map f).prod_hom (comm_group.inv_monoid_hom : α →* α), rw map_map, refl }
+@[to_additive] lemma prod_map_inv' (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
+m.prod_hom (inv_monoid_hom : α →* α)
+
+@[simp, to_additive] lemma prod_map_inv : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
+by { convert (m.map f).prod_map_inv', rw map_map }
 
 @[simp, to_additive]
 lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
-m.prod_hom₂ (/) mul_div_comm' (div_one' _) _ _
+m.prod_hom₂ (/) mul_div_mul_comm (div_one _) _ _
 
 @[to_additive]
 lemma prod_map_zpow {n : ℤ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
 by { convert (m.map f).prod_hom (zpow_group_hom _ : α →* α), rw map_map, refl }
 
-@[simp] lemma coe_inv_monoid_hom : (comm_group.inv_monoid_hom : α → α) = has_inv.inv := rfl
-
-@[simp, to_additive]
-lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom (comm_group.inv_monoid_hom : α →* α)
-
-end comm_group
-
-section comm_group_with_zero
-variables [comm_group_with_zero α] {m : multiset ι} {f g : ι → α}
-
-@[simp]
-lemma prod_map_inv₀ : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
-by { convert (m.map f).prod_hom (inv_monoid_with_zero_hom : α →*₀ α), rw map_map, refl }
-
-@[simp]
-lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
-m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div_comm₀ _ _ _ _).symm) (div_one _) _ _
-
-lemma prod_map_zpow₀ {n : ℤ} : prod (m.map $ λ i, f i ^ n) = (m.map f).prod ^ n :=
-by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, refl }
-
-end comm_group_with_zero
+end division_comm_monoid
 
 section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}

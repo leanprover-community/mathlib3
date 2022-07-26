@@ -197,7 +197,7 @@ begin
     linear_equiv.map_smulₛₗ, standard_one_dim_isocrystal.frobenius_apply, algebra.id.smul_eq_mul],
   simp only [←mul_smul],
   congr' 1,
-  linear_combination (hmb, φ(p,k) c),
+  linear_combination φ(p,k) c * hmb,
 end
 
 end witt_vector

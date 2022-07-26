@@ -220,7 +220,7 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end
@@ -342,18 +342,18 @@ end
 adjugate_subsingleton A
 
 lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
-  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+  adjugate A = !![A 1 1, -A 0 1; -A 1 0, A 0 0] :=
 begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
   fin_cases i with [0, 1]; fin_cases j with [0, 1];
   simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
     fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
 end
 
-@[simp] lemma adjugate_fin_two' (a b c d : α) :
-  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+@[simp] lemma adjugate_fin_two_of (a b c d : α) :
+  adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
 adjugate_fin_two _
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=

@@ -9,24 +9,57 @@ namespace matrix
 
 open_locale matrix
 
+/-! Test that the dimensions are inferred correctly, even for empty matrices -/
+section dimensions
+
+set_option pp.universes true
+set_option pp.all true
+
+meta def get_dims (e : pexpr) : tactic (expr × expr) :=
+do
+  elem_t ← tactic.mk_meta_var (expr.sort level.zero.succ),
+  e ← tactic.to_expr ``(%%e : matrix _ _ %%elem_t) tt ff,
+  t ← tactic.infer_type e,
+  `(matrix.{0 0 0} (fin %%m) (fin %%n) %%elem_t) ← tactic.infer_type e,
+  return (m, n)
+
+-- we test equality of expressions here to ensure that we have `2` and not `1.succ` in the type
+run_cmd do d ← get_dims ``(!![]),        guard $ d = (`(0), `(0))
+run_cmd do d ← get_dims ``(!![;]),       guard $ d = (`(1), `(0))
+run_cmd do d ← get_dims ``(!![;;]),      guard $ d = (`(2), `(0))
+run_cmd do d ← get_dims ``(!![,]),       guard $ d = (`(0), `(1))
+run_cmd do d ← get_dims ``(!![,,]),      guard $ d = (`(0), `(2))
+run_cmd do d ← get_dims ``(!![1]),       guard $ d = (`(1), `(1))
+run_cmd do d ← get_dims ``(!![1,]),      guard $ d = (`(1), `(1))
+run_cmd do d ← get_dims ``(!![1;]),      guard $ d = (`(1), `(1))
+run_cmd do d ← get_dims ``(!![1,2;3,4]), guard $ d = (`(2), `(2))
+
+end dimensions
+
+run_cmd guard $ (!![1;2])       = of ![![1], ![2]]
+run_cmd guard $ (!![1,3])       = of ![![1,3]]
+run_cmd guard $ (!![1,2;3,4])   = of ![![1,2], ![3,4]]
+run_cmd guard $ (!![1,2;3,4;])  = of ![![1,2], ![3,4]]
+run_cmd guard $ (!![1,2,;3,4,]) = of ![![1,2], ![3,4]]
+
 example {a a' b b' c c' d d' : α} :
-  ![![a, b], ![c, d]] + ![![a', b'], ![c', d']] = ![![a + a', b + b'], ![c + c', d + d']] :=
+  !![a, b; c, d] + !![a', b'; c', d'] = !![a + a', b + b'; c + c', d + d'] :=
 by simp
 
 example {a a' b b' c c' d d' : β} :
-  ![![a, b], ![c, d]] - ![![a', b'], ![c', d']] = ![![a - a', b - b'], ![c - c', d - d']] :=
+  !![a, b; c, d] - !![a', b'; c', d'] = !![a - a', b - b'; c - c', d - d'] :=
 by simp
 
 example {a a' b b' c c' d d' : α} :
-  ![![a, b], ![c, d]] ⬝ ![![a', b'], ![c', d']] =
-    ![![a * a' + b * c', a * b' + b * d'], ![c * a' + d * c', c * b' + d * d']] :=
-by simp
+  !![a, b; c, d] ⬝ !![a', b'; c', d'] =
+    !![a * a' + b * c', a * b' + b * d'; c * a' + d * c', c * b' + d * d'] :=
+by simp [-equiv.perm.coe_subsingleton]
 
 example {a b c d x y : α} :
-  mul_vec ![![a, b], ![c, d]] ![x, y] = ![a * x + b * y, c * x + d * y] :=
+  mul_vec !![a, b; c, d] ![x, y] = ![a * x + b * y, c * x + d * y] :=
 by simp
 
-example {a b c d : α} : minor ![![a, b], ![c, d]] ![1, 0] ![0] = ![![c], ![a]] :=
+example {a b c d : α} : minor !![a, b; c, d] ![1, 0] ![0] = !![c; a] :=
 by { ext, simp }
 
 example {a b c : α} : ![a, b, c] 0 = a := by simp
@@ -58,7 +91,7 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 37 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
 
 example {α : Type*} [comm_ring α] {a b c d : α} :
-  matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
+  matrix.det !![a, b; c, d] = a * d - b * c :=
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
@@ -71,8 +104,8 @@ begin
 end
 
 example {α : Type*} [comm_ring α] {a b c d e f g h i : α} :
-        matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
-          a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
+  matrix.det !![a, b, c; d, e, f; g, h, i] =
+    a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-

@@ -155,6 +155,10 @@ instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X)
 @[simp] lemma is_iso_inv_app (α : F ⟶ G) [is_iso α] (X) : (inv α).app X = inv (α.app X) :=
 by { ext, rw ←nat_trans.comp_app, simp, }
 
+@[simp] lemma inv_map_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+  inv ((F.map e.inv).app Z) = (F.map e.hom).app Z :=
+by { ext, simp, }
+
 /--
 Construct a natural isomorphism between functors by giving object level isomorphisms,
 and checking naturality only in the forward direction.

@@ -15,6 +15,9 @@ namespace zmod
 
 variables (R : Type*) [ring R]
 
+instance (p : ℕ) : subsingleton (algebra (zmod p) R) :=
+⟨λ x y, algebra.algebra_ext _ _ $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
+
 section
 variables {n : ℕ} (m : ℕ) [char_p R m]
 
@@ -33,11 +36,6 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 
 end
 
-section
-variables (n : ℕ) [char_p R n]
-
-instance : algebra (zmod n) R := algebra' R n (dvd_refl n)
-
-end
+instance (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
 
 end zmod

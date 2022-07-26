@@ -23,7 +23,7 @@ Related files are:
 * `data.list.lex`: Lexicographic order on lists.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i` per say.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
-* `order.lexicographic`: Lexicographic order on `α × β`. Can be thought of as the special case of
+* `data.prod.lex`: Lexicographic order on `α × β`. Can be thought of as the special case of
   `sigma.lex` where all summands are the same
 -/
 

@@ -310,11 +310,16 @@ abs_sub_le_iff.2
 theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
 pseudo_metric_space.dist_nonneg' dist dist_self dist_comm dist_triangle
 
+section
+open tactic tactic.positivity
+
 /-- Extension for the `positivity` tactic: distances are nonnegative. -/
 @[positivity]
-meta def _root_.tactic.positivity_dist : expr → tactic (bool × expr)
-| `(dist %%a %%b) := do prod.mk ff <$> tactic.mk_app ``dist_nonneg [a, b]
-| _ := tactic.failed
+meta def _root_.tactic.positivity_dist : expr → tactic strictness
+| `(dist %%a %%b) := nonnegative <$> mk_app ``dist_nonneg [a, b]
+| _ := failed
+
+end
 
 @[simp] theorem abs_dist {a b : α} : |dist a b| = dist a b :=
 abs_of_nonneg dist_nonneg
@@ -2046,6 +2051,12 @@ def bounded (s : set α) : Prop :=
 
 section bounded
 variables {x : α} {s t : set α} {r : ℝ}
+
+lemma bounded_iff_is_bounded (s : set α) : bounded s ↔ is_bounded s :=
+begin
+  change bounded s ↔ sᶜ ∈ (cobounded α).sets,
+  simp [pseudo_metric_space.cobounded_sets, metric.bounded],
+end
 
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩

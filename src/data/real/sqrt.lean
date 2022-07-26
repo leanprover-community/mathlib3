@@ -274,16 +274,21 @@ lt_iff_lt_of_le_iff_le (iff.trans
 
 alias sqrt_pos ↔ _ sqrt_pos_of_pos
 
+section
+open tactic tactic.positivity
+
 /-- Extension for the `positivity` tactic: a square root is nonnegative, and is strictly positive if
 its input is. -/
 @[positivity]
-meta def _root_.tactic.positivity_sqrt : expr → tactic (bool × expr)
+meta def _root_.tactic.positivity_sqrt : expr → tactic strictness
 | `(real.sqrt %%a) := do
   (do -- if can prove `0 < a`, report positivity
-    (strict_a, pa) ← tactic.positivity.core a,
-    prod.mk tt <$> tactic.mk_app ``sqrt_pos_of_pos [pa]) <|>
-  prod.mk ff <$> tactic.mk_app ``real.sqrt_nonneg [a] -- else report nonnegativity
-| _ := tactic.failed
+    positive pa ← core a,
+    positive <$> mk_app ``sqrt_pos_of_pos [pa]) <|>
+  nonnegative <$> mk_app ``sqrt_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+end
 
 @[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
 by simp_rw [sqrt, ← nnreal.coe_mul, nnreal.coe_eq, real.to_nnreal_mul hx, nnreal.sqrt_mul]

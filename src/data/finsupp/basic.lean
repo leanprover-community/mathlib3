@@ -990,6 +990,52 @@ end add_zero_class
 
 
 
+section add_monoid
+
+variables [add_monoid M]
+
+/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_nat_scalar : has_smul ℕ (α →₀ M) :=
+⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
+
+instance : add_monoid (α →₀ M) :=
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
+
+end add_monoid
+
+instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
+
+instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
+
+@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
+
+instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+
+@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
+⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
+
+instance [add_group G] : add_group (α →₀ G) :=
+fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_comm_group G] : add_comm_group (α →₀ G) :=
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+lemma single_add_single_eq_single_add_single [add_comm_monoid M]
+  {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
+  single k u + single l v = single m u + single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
+  exact pi.single_add_single_eq_single_add_single hu hv,
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1185,57 +1231,6 @@ namespace finsupp
 
 
 
-section add_monoid
-
-variables [add_monoid M]
-
-/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
-unless `β i`'s addition is commutative. -/
-instance has_nat_scalar : has_smul ℕ (α →₀ M) :=
-⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
-
-instance : add_monoid (α →₀ M) :=
-fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
-
-end add_monoid
-
-end finsupp
-
-
-namespace finsupp
-
-instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
-fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
-
-instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
-
-@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
-lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
-
-instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
-
-@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
-
-/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
-unless `β i`'s addition is commutative. -/
-instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
-⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
-
-instance [add_group G] : add_group (α →₀ G) :=
-fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
-
-instance [add_comm_group G] : add_comm_group (α →₀ G) :=
-fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
-
-lemma single_add_single_eq_single_add_single [add_comm_monoid M]
-  {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
-  single k u + single l v = single m u + single n v ↔
-  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
-begin
-  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
-  exact pi.single_add_single_eq_single_add_single hu hv,
-end
 
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=

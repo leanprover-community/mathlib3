@@ -417,14 +417,83 @@ begin
 
 end
 
-def extend_to_conn [preconnected G] [locally_finite G] (Knempty : K.nonempty) :
-  {K' : finset V | K ⊆ K'
-                 ∧ ∀ (x y ∈ K'), ∃ (w : G.walk x y), w.support.to_finset ⊆ K' } := sorry
 
--- take any point v of G, and for each k in K, extend K with a path from v to k.
--- To prove that it's finite, it's just a union of paths, hence finite
--- To prove that it's connected, it's just a union of paths, hence connected
--- To prove that it contains K, it's obvious, almost?
+-- I would need this from the simple_graph api
+lemma walk.mem_support_iff_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} :
+  w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r := sorry
+
+lemma walk.support_append_subset_left {V : Type u} {G : simple_graph V} {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+  p.support ⊆ (p.append q).support := by simp only [walk.support_append,list.subset_append_left]
+
+lemma walk.support_append_subset_right {V : Type u} {G : simple_graph V} {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+  q.support ⊆ (p.append q).support := by {
+    rw walk.support_append,
+    induction q,
+    {simp only [support_nil, list.tail_cons, list.append_nil, list.cons_subset, end_mem_support, list.nil_subset, and_self],},
+    {simp only [support_cons, list.tail_cons, list.cons_subset, list.mem_append, end_mem_support, true_or, list.subset_append_right,and_self],},
+  }
+
+-- And this for lists:
+lemma list.to_finset_tail {α : Type u} [decidable_eq α] (l : list α) : l.tail.to_finset ⊆ l.to_finset :=
+match l with
+| list.nil := by {simp only [list.tail_nil, list.to_finset_nil, finset.empty_subset],}
+| list.cons h l := by {simp only [list.tail_cons, list.to_finset_cons], exact finset.subset_insert _ _}
+end
+
+lemma list.to_finset_subset_to_finset {α : Type u} [decidable_eq α] (l₁ l₂ : list α) (l₁ ⊆ l₂) : l₁.to_finset ⊆ l₂.to_finset := sorry
+
+
+def extend_to_conn [Gconn : preconnected G] [locally_finite G] [Vnempty : nonempty V] :
+  {K' : finset V | K ⊆ K'
+                 ∧ ∀ (x y ∈ K'), ∃ (w : G.walk x y), w.support.to_finset ⊆ K' } :=
+begin
+  let v₀ : V := Vnempty.some,
+  let path_to_v₀ := λ (k : V), (Gconn k v₀).some.support.to_finset,
+  let K' := finset.bUnion K path_to_v₀,
+  use K',
+  split,
+  { rintros k kK,
+    apply finset.mem_bUnion.mpr,
+    use [k,kK],
+    simp only [list.mem_to_finset, start_mem_support],},
+  { rintros x xK' y yK',
+    rcases finset.mem_bUnion.mp xK' with ⟨kx,kxK,xwalk⟩,
+    rcases finset.mem_bUnion.mp yK' with ⟨ky,kyK,ywalk⟩,
+    rw list.mem_to_finset at xwalk,
+    rw list.mem_to_finset at ywalk,
+    rcases walk.mem_support_iff_exists_append.mp xwalk with ⟨qx,rx,xwalk'⟩,
+    rcases walk.mem_support_iff_exists_append.mp ywalk with ⟨qy,ry,ywalk'⟩,
+    let w := rx.append ry.reverse,
+    use w,
+    rw walk.support_append,
+    rw list.to_finset_append,
+    apply finset.union_subset,
+    { have := finset.subset_bUnion_of_mem (λ k, (Gconn k v₀).some.support.to_finset) kxK,
+      have : rx.support.to_finset ⊆ K', by {
+        apply finset.subset.trans _ this,
+        simp only,
+        rw xwalk',
+        apply list.to_finset_subset_to_finset ry.support (qx.append rx).support ,
+        exact walk.support_append_subset_right qx rx,
+      },
+      exact finset.subset.trans (finset.subset.refl _) this,
+    },
+    { have := finset.subset_bUnion_of_mem (λ k, (Gconn k v₀).some.support.to_finset) kyK,
+      have : ry.reverse.support.to_finset ⊆ K', by {
+        apply finset.subset.trans _ this,
+        simp only [support_reverse, list.to_finset_reverse],
+        rw ywalk',
+        apply list.to_finset_subset_to_finset ry.support (qy.append ry).support ,
+        exact walk.support_append_subset_right qy ry,
+      },
+      apply finset.subset.trans _ this,
+      rw walk.support_reverse,
+      exact list.to_finset_tail (ry.support.reverse),},
+
+
+  },
+end
+
 
 
 
@@ -925,7 +994,7 @@ lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
   (inf_comp_K_large : fintype.card (inf_components G K) ≥ 3) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
 begin
-  rcases @extend_to_conn V G _ K (sorry) _ Knempty with ⟨Kp,KKp,Kpconn⟩ ,
+  rcases @extend_to_conn V G _ K (sorry) _ (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
   rcases @extend_conn_to_finite_comps V G _ Kp _ Kpconn with ⟨K',KK',K'conn,finn⟩,
   rcases auts K' with ⟨φ,φgood⟩,
 

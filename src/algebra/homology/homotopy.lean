@@ -36,11 +36,11 @@ add_monoid_hom.mk' (λ f, C.d i (c.next i) ≫ f (c.next i) i) $
 /-- `f i' i` if `i'` comes after `i`, and 0 if there's no such `i'`.
 Hopefully there won't be much need for this, except in `d_next_eq_d_from_from_next`
 to see that `d_next` factors through `C.d_from i`. -/
-def from_next [has_zero_object V] (i : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X_next i ⟶ D.X i) :=
+def from_next (i : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X_next i ⟶ D.X i) :=
 add_monoid_hom.mk' (λ f, f (c.next i) i) $ λ f g, rfl
 
 @[simp]
-lemma d_next_eq_d_from_from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
+lemma d_next_eq_d_from_from_next (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
   d_next i f = C.d_from i ≫ from_next i f := rfl
 
 lemma d_next_eq (f : Π i j, C.X i ⟶ D.X j) {i i' : ι} (w : c.rel i i') :
@@ -64,11 +64,11 @@ add_monoid_hom.mk' (λ f, f j (c.prev j) ≫ D.d (c.prev j) j) $
 /-- `f j j'` if `j'` comes after `j`, and 0 if there's no such `j'`.
 Hopefully there won't be much need for this, except in `d_next_eq_d_from_from_next`
 to see that `d_next` factors through `C.d_from i`. -/
-def to_prev [has_zero_object V] (j : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X j ⟶ D.X_prev j) :=
+def to_prev (j : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X j ⟶ D.X_prev j) :=
 add_monoid_hom.mk' (λ f, f j (c.prev j)) $ λ f g, rfl
 
 @[simp]
-lemma prev_d_eq_to_prev_d_to [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
+lemma prev_d_eq_to_prev_d_to (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
   prev_d j f = to_prev j f ≫ D.d_to j := rfl
 
 lemma prev_d_eq (f : Π i j, C.X i ⟶ D.X j) {j j' : ι} (w : c.rel j' j) :
@@ -244,8 +244,8 @@ lemma null_homotopic_map_comp (hom : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) :
 null_homotopic_map hom ≫ g = null_homotopic_map (λ i j, hom i j ≫ g.f j) :=
 begin
   ext n,
-  dsimp [null_homotopic_map],
-  simp only [preadditive.add_comp, d_next_comp_right, prev_d_comp_right],
+  dsimp [null_homotopic_map, from_next, to_prev, add_monoid_hom.mk'_apply],
+  simp only [preadditive.add_comp, category.assoc, g.comm],
 end
 
 /-- Compatibility of `null_homotopic_map'` with the postcomposition by a morphism
@@ -268,8 +268,8 @@ lemma comp_null_homotopic_map (f : C ⟶ D) (hom : Π i j, D.X i ⟶ E.X j) :
 f ≫ null_homotopic_map hom = null_homotopic_map (λ i j, f.f i ≫ hom i j) :=
 begin
   ext n,
-  dsimp [null_homotopic_map],
-  simp only [preadditive.comp_add, d_next_comp_left, prev_d_comp_left],
+  dsimp [null_homotopic_map, from_next, to_prev, add_monoid_hom.mk'_apply],
+  simp only [preadditive.comp_add, category.assoc, f.comm_assoc],
 end
 
 /-- Compatibility of `null_homotopic_map'` with the precomposition by a morphism
@@ -342,7 +342,7 @@ with `null_homotopic_map` or `null_homotopic_map'` -/
 lemma null_homotopic_map_f {k₂ k₁ k₀ : ι} (r₂₁ : c.rel k₂ k₁) (r₁₀ : c.rel k₁ k₀)
   (hom : Π i j, C.X i ⟶ D.X j) :
   (null_homotopic_map hom).f k₁ = C.d k₁ k₀ ≫ hom k₀ k₁ + hom k₁ k₂ ≫ D.d k₂ k₁ :=
-by { dsimp [null_homotopic_map], rw [d_next_eq hom r₁₀, prev_d_eq hom r₂₁], }
+by { dsimp only [null_homotopic_map], rw [d_next_eq hom r₁₀, prev_d_eq hom r₂₁], }
 
 @[simp]
 lemma null_homotopic_map'_f {k₂ k₁ k₀  : ι} (r₂₁ : c.rel k₂ k₁) (r₁₀ : c.rel k₁ k₀)
@@ -362,7 +362,7 @@ lemma null_homotopic_map_f_of_not_rel_left {k₁ k₀ : ι} (r₁₀ : c.rel k�
   (hom : Π i j, C.X i ⟶ D.X j) :
   (null_homotopic_map hom).f k₀ = hom k₀ k₁ ≫ D.d k₁ k₀ :=
 begin
-  dsimp [null_homotopic_map],
+  dsimp only [null_homotopic_map],
   rw [prev_d_eq hom r₁₀, d_next, add_monoid_hom.mk'_apply, C.shape, zero_comp, zero_add],
   exact hk₀ _
 end
@@ -386,7 +386,7 @@ lemma null_homotopic_map_f_of_not_rel_right {k₁ k₀ : ι} (r₁₀ : c.rel k�
   (hom : Π i j, C.X i ⟶ D.X j) :
   (null_homotopic_map hom).f k₁ = C.d k₁ k₀ ≫ hom k₀ k₁ :=
 begin
-  dsimp [null_homotopic_map],
+  dsimp only [null_homotopic_map],
   rw [d_next_eq hom r₁₀, prev_d, add_monoid_hom.mk'_apply, D.shape, comp_zero, add_zero],
   exact hk₁ _,
 end

@@ -428,9 +428,6 @@ def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
   iso_app (iso_of_components f hf) i = f i :=
 by { ext, simp, }
 
-variables [has_zero_object V]
-open_locale zero_object
-
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
 /-- `f.prev j` is `f.f i` if there is some `r i j`, and zero otherwise. -/

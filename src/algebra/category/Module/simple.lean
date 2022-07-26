@@ -34,6 +34,8 @@ simple_iff_is_simple_module.mp (simple.of_iso (of_self_iso M))
 
 open finite_dimensional
 
+local attribute [instance] module_of_algebra_Module is_scalar_tower_of_algebra_Module
+
 /-- Any `k`-algebra module which is 1-dimensional over `k` is simple. -/
 lemma simple_of_finrank_eq_one {k : Type*} [field k] [algebra k R]
   {V : Module R} (h : finrank k V = 1) : simple V :=

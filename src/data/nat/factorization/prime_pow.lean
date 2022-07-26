@@ -72,12 +72,8 @@ begin
     rintro q ⟨hq, hq'⟩,
     exact (nat.prime_dvd_prime_iff_eq hq hp).1 (hq.dvd_of_dvd_pow hq') },
   rintro ⟨p, ⟨hp, hn⟩, hq⟩,
-  -- Take care of the n = 0 case
   rcases eq_or_ne n 0 with rfl | hn₀,
-  { obtain ⟨q, hq', hq''⟩ := nat.exists_infinite_primes (p + 1),
-    cases hq q ⟨hq'', by simp⟩,
-    simpa using hq' },
-  -- So assume 0 < n
+  { cases (hq 2 ⟨nat.prime_two, dvd_zero 2⟩).trans (hq 3 ⟨nat.prime_three, dvd_zero 3⟩).symm },
   refine ⟨p, n.factorization p, hp, hp.factorization_pos_of_dvd hn₀ hn, _⟩,
   simp only [and_imp] at hq,
   apply nat.dvd_antisymm (nat.ord_proj_dvd _ _),

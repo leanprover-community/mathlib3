@@ -696,7 +696,7 @@ begin
     have : ∃ F' : inf_components G K, E'.val ⊆ F'.val, by {
       rcases component.conn_sub_of_connected_disjoint G K E'.val
              (set.infinite.nonempty E'.prop.2)
-             (sorry) -- empty intersection means disjoint
+             (by {unfold disjoint, rw [le_bot_iff], rw [set.not_nonempty_iff_eq_empty] at h, assumption,}) -- empty intersection means disjoint
              (component.is_connected G H E' E'.prop.1) with ⟨F',F'comp,sub⟩,
       have F'inf : F'.infinite, from set.infinite.mono sub E'.prop.2,
       use ⟨F',F'comp,F'inf⟩,
@@ -1003,7 +1003,7 @@ end
 
 --lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
 
-
+/-
 section transitivity
 
 lemma transitive_to_good_automs [locally_finite G] [G.preconnected]
@@ -1080,16 +1080,9 @@ begin
   exact bwd_K_not_inj this,
 end
 
-
 end transitivity
-
+-/
 
 end ends
 
-
-
-
 end simple_graph
-
-
--/

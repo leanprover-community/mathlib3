@@ -55,7 +55,7 @@ def cycles_iso_kernel {i j : ι} (r : c.rel i j) :
 subobject.iso_of_eq _ _ (C.cycles_eq_kernel_subobject r) ≪≫
   kernel_subobject_iso (C.d i j)
 
-lemma cycles_eq_top {i} (h : c.next i = none) : C.cycles i = ⊤ :=
+lemma cycles_eq_top {i} (h : ¬c.rel i (c.next i)) : C.cycles i = ⊤ :=
 begin
   rw eq_top_iff,
   apply le_kernel_subobject,
@@ -84,7 +84,7 @@ def boundaries_iso_image [has_equalizers V] {i j : ι} (r : c.rel i j) :
 subobject.iso_of_eq _ _ (C.boundaries_eq_image_subobject r) ≪≫
   image_subobject_iso (C.d i j)
 
-lemma boundaries_eq_bot {j} (h : c.prev j = none) : C.boundaries j = ⊥ :=
+lemma boundaries_eq_bot {j} (h : ¬c.rel (c.prev j) j) : C.boundaries j = ⊥ :=
 begin
   rw eq_bot_iff,
   refine image_subobject_le _ 0 _,

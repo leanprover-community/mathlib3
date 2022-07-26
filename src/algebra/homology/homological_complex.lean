@@ -440,52 +440,36 @@ open_locale zero_object
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
 /-- `f.prev j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
-def prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j :=
-match c.prev j with
-| none := 0
-| some ⟨i,w⟩ := (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv
-end
+def prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j := f.f _
 
 lemma prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.prev j = (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv :=
 begin
-  dsimp [prev],
-  rw c.prev_eq_some w,
-  refl,
+  obtain rfl := c.prev_eq_some w,
+  simp only [prev, X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
+  erw [comp_id],
 end
 
 /-- `f.next i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
-def next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i :=
-match c.next i with
-| none := 0
-| some ⟨j,w⟩ := (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv
-end
+def next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i := f.f _
 
 lemma next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.next i = (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv :=
 begin
-  dsimp [next],
-  rw c.next_eq_some w,
-  refl,
+  obtain rfl := c.next_eq_some w,
+  simp only [next, X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
+  erw [comp_id],
 end
 
 @[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
-begin
-  rcases h : c.next i with _ | ⟨j,w⟩,
-  { simp [h] },
-  { simp [d_from_eq _ w, next_eq _ w] }
-end
+f.comm _ _
 
 @[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
-begin
-  rcases h : c.prev j with _ | ⟨j,w⟩,
-  { simp [h] },
-  { simp [d_to_eq _ w, prev_eq _ w] }
-end
+f.comm _ _
 
 /--
 A morphism of chain complexes
@@ -497,30 +481,10 @@ arrow.hom_mk (f.comm_from i)
 @[simp] lemma sq_from_left (f : hom C₁ C₂) (i : ι) : (f.sq_from i).left = f.f i := rfl
 @[simp] lemma sq_from_right (f : hom C₁ C₂) (i : ι) : (f.sq_from i).right = f.next i := rfl
 
-@[simp] lemma sq_from_id (C₁ : homological_complex V c) (i : ι) : sq_from (𝟙 C₁) i = 𝟙 _ :=
-begin
-  rcases h : c.next i with _ | ⟨j,w⟩,
-  { ext,
-    { refl },
-    { dsimp, simp only [next, h],
-      symmetry,
-      apply zero_of_target_iso_zero,
-      exact X_next_iso_zero _ h } },
-  { ext, refl, dsimp, simp [next, h] }
-end
+@[simp] lemma sq_from_id (C₁ : homological_complex V c) (i : ι) : sq_from (𝟙 C₁) i = 𝟙 _ := rfl
 
 @[simp] lemma sq_from_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
-  sq_from (f ≫ g) i = sq_from f i ≫ sq_from g i :=
-begin
-  rcases h : c.next i with _ | ⟨j,w⟩,
-  { ext,
-    { refl },
-    { dsimp, simp only [next, h],
-      symmetry,
-      apply zero_of_target_iso_zero,
-      exact X_next_iso_zero _ h } },
-  { ext, refl, dsimp, simp [next, h] }
-end
+  sq_from (f ≫ g) i = sq_from f i ≫ sq_from g i := rfl
 
 /--
 A morphism of chain complexes

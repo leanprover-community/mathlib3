@@ -190,13 +190,11 @@ def approx_bounded {m : measurable_space α}
   ℕ → simple_func α β :=
 λ n, (hf.approx n).map (λ x, (min 1 (c / ∥x∥)) • x)
 
-lemma tendsto_approx_bounded {β} {f : α → β} [normed_group β] [normed_space ℝ β]
-  {m m0 : measurable_space α} {μ : measure α}
-  (hf : strongly_measurable[m] f) {c : ℝ}
-  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
-  ∀ᵐ x ∂μ, tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
+lemma tendsto_approx_bounded_of_norm_le {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+  {m : measurable_space α} (hf : strongly_measurable[m] f) {c : ℝ} {x : α} (hfx : ∥f x∥ ≤ c) :
+  tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
 begin
-  filter_upwards [eventually_of_forall hf.tendsto_approx, hf_bound] with x h_tendsto hf_bound,
+  have h_tendsto := hf.tendsto_approx x,
   simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
   by_cases hfx0 : ∥f x∥ = 0,
   { rw norm_eq_zero at hfx0,
@@ -213,21 +211,28 @@ begin
         rw [norm_one, real.norm_of_nonneg],
         { exact min_le_left _ _, },
         { exact le_min zero_le_one
-            (div_nonneg ((norm_nonneg _).trans hf_bound) (norm_nonneg _)), },
+            (div_nonneg ((norm_nonneg _).trans hfx) (norm_nonneg _)), },
       end
     ... = ∥hf.approx n x∥ : by rw [norm_one, one_mul], },
   rw ← one_smul ℝ (f x),
   refine tendsto.smul _ h_tendsto,
   have : min 1 (c / ∥f x∥) = 1,
   { rw [min_eq_left_iff, one_le_div (lt_of_le_of_ne (norm_nonneg _) (ne.symm hfx0))],
-    exact hf_bound, },
+    exact hfx, },
   nth_rewrite 0 this.symm,
   refine tendsto.min tendsto_const_nhds _,
   refine tendsto.div tendsto_const_nhds h_tendsto.norm hfx0,
 end
 
-lemma norm_approx_bounded_le {β} {f : α → β} [normed_group β] [normed_space ℝ β]
-  {m : measurable_space α}{c : ℝ} (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
+lemma tendsto_approx_bounded_ae {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+  {m m0 : measurable_space α} {μ : measure α}
+  (hf : strongly_measurable[m] f) {c : ℝ}
+  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  ∀ᵐ x ∂μ, tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
+by filter_upwards [hf_bound] with x hfx using tendsto_approx_bounded_of_norm_le hf hfx
+
+lemma norm_approx_bounded_le {β} {f : α → β} [semi_normed_group β] [normed_space ℝ β]
+  {m : measurable_space α} {c : ℝ} (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
   ∥hf.approx_bounded c n x∥ ≤ c :=
 begin
   simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
@@ -757,17 +762,17 @@ protected lemma dist {m : measurable_space α} {β : Type*} [pseudo_metric_space
   strongly_measurable (λ x, dist (f x) (g x)) :=
 continuous_dist.comp_strongly_measurable (hf.prod_mk hg)
 
-protected lemma norm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
+protected lemma norm {m : measurable_space α} {β : Type*} [semi_normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, ∥f x∥) :=
 continuous_norm.comp_strongly_measurable hf
 
-protected lemma nnnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
+protected lemma nnnorm {m : measurable_space α} {β : Type*} [semi_normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, ∥f x∥₊) :=
 continuous_nnnorm.comp_strongly_measurable hf
 
-protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
+protected lemma ennnorm {m : measurable_space α} {β : Type*} [semi_normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
 (ennreal.continuous_coe.comp_strongly_measurable hf.nnnorm).measurable
@@ -891,6 +896,38 @@ begin
   refine ⟨g_seq_s₂, λ x, _⟩,
   simp_rw hg_eq,
   exact hg_seq_tendsto x,
+end
+
+/-- If a function `f` is strongly measurable w.r.t. a sub-σ-algebra `m` and the measure is σ-finite
+on `m`, then there exists spanning measurable sets with finite measure on which `f` has bounded
+norm. In particular, `f` is integrable on each of those sets. -/
+lemma exists_spanning_measurable_set_norm_le [semi_normed_group β] {m m0 : measurable_space α}
+  (hm : m ≤ m0) (hf : strongly_measurable[m] f) (μ : measure α) [sigma_finite (μ.trim hm)] :
+  ∃ s : ℕ → set α, (∀ n, measurable_set[m] (s n) ∧ μ (s n) < ∞ ∧ ∀ x ∈ s n, ∥f x∥ ≤ n)
+    ∧ (⋃ i, s i) = set.univ :=
+begin
+  let sigma_finite_sets := spanning_sets (μ.trim hm),
+  let norm_sets := λ (n : ℕ), {x | ∥f x∥ ≤ n},
+  have norm_sets_spanning : (⋃ n, norm_sets n) = set.univ,
+  { ext1 x, simp only [set.mem_Union, set.mem_set_of_eq, set.mem_univ, iff_true],
+    exact ⟨⌈∥f x∥⌉₊, nat.le_ceil (∥f x∥)⟩, },
+  let sets := λ n, sigma_finite_sets n ∩ norm_sets n,
+  have h_meas : ∀ n, measurable_set[m] (sets n),
+  { refine λ n, measurable_set.inter _ _,
+    { exact measurable_spanning_sets (μ.trim hm) n, },
+    { exact hf.norm.measurable_set_le strongly_measurable_const, }, },
+  have h_finite : ∀ n, μ (sets n) < ∞,
+  { refine λ n, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
+    exact (le_trim hm).trans_lt (measure_spanning_sets_lt_top (μ.trim hm) n), },
+  refine ⟨sets, λ n, ⟨h_meas n, h_finite n, _⟩, _⟩,
+  { exact λ x hx, hx.2, },
+  { have : (⋃ i, sigma_finite_sets i ∩ norm_sets i)
+      = (⋃ i, sigma_finite_sets i) ∩ (⋃ i, norm_sets i),
+    { refine set.Union_inter_of_monotone (monotone_spanning_sets (μ.trim hm)) (λ i j hij x, _),
+      simp only [norm_sets, set.mem_set_of_eq],
+      refine λ hif, hif.trans _,
+      exact_mod_cast hij, },
+    rw [this, norm_sets_spanning, Union_spanning_sets (μ.trim hm), set.inter_univ], },
 end
 
 end strongly_measurable
@@ -1329,19 +1366,22 @@ protected lemma dist {β : Type*} [pseudo_metric_space β] {f g : α → β}
   ae_strongly_measurable (λ x, dist (f x) (g x)) μ :=
 continuous_dist.comp_ae_strongly_measurable (hf.prod_mk hg)
 
-protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma norm {β : Type*} [semi_normed_group β] {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, ∥f x∥) μ :=
 continuous_norm.comp_ae_strongly_measurable hf
 
-protected lemma nnnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma nnnorm {β : Type*} [semi_normed_group β] {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, ∥f x∥₊) μ :=
 continuous_nnnorm.comp_ae_strongly_measurable hf
 
-protected lemma ennnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma ennnorm {β : Type*} [semi_normed_group β] {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
   ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 (ennreal.continuous_coe.comp_ae_strongly_measurable hf.nnnorm).ae_measurable
 
-protected lemma edist {β : Type*} [normed_group β] {f g : α → β}
+protected lemma edist {β : Type*} [semi_normed_group β] {f g : α → β}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_measurable (λ a, edist (f a) (g a)) μ :=
 (continuous_edist.comp_ae_strongly_measurable (hf.prod_mk hg)).ae_measurable
@@ -1772,7 +1812,7 @@ end ae_fin_strongly_measurable
 section second_countable_topology
 
 variables {G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
-  [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
+  [semi_normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
   {f : α → G}
 
 /-- In a space with second countable topology and a sigma-finite measure, `fin_strongly_measurable`

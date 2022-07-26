@@ -2411,7 +2411,19 @@ begin
     ... =ᵐ[μ] ⇑(g₁ + g₂) * μ[g|m] : by rw [h_add, add_mul], },
 end
 
-/-- Auxiliary lemma for `condexp_measurable_mul`. Do not use. -/
+lemma exists_spanning_measurable_set_norm_le₀ {f : α → F} (hm : m ≤ m0)
+  (hf : ae_strongly_measurable' m f μ) [sigma_finite (μ.trim hm)] :
+  ∃ s : ℕ → set α, (∀ n, measurable_set[m] (s n) ∧ μ (s n) < ∞ ∧ ∀ᵐ x ∂μ, x ∈ s n → ∥f x∥ ≤ n)
+    ∧ (⋃ i, s i) = set.univ :=
+begin
+  obtain ⟨s, hs_prop, hs_span⟩ := strongly_measurable.exists_spanning_measurable_set_norm_le hm
+    hf.strongly_measurable_mk μ,
+  refine ⟨s, λ n, ⟨(hs_prop n).1, (hs_prop n).2.1, _⟩, hs_span⟩,
+  filter_upwards [hf.ae_eq_mk] with x hx,
+  rw hx,
+  exact (hs_prop n).2.2 x,
+end
+
 lemma condexp_strongly_measurable_mul_of_bound (hm : m ≤ m0) [is_finite_measure μ]
   {f g : α → ℝ} (hf : strongly_measurable[m] f) (hg : integrable g μ) (c : ℝ)
   (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
@@ -2419,7 +2431,7 @@ lemma condexp_strongly_measurable_mul_of_bound (hm : m ≤ m0) [is_finite_measur
 begin
   let fs := hf.approx_bounded c,
   have hfs_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)),
-    from hf.tendsto_approx_bounded hf_bound,
+    from hf.tendsto_approx_bounded_ae hf_bound,
   by_cases hμ : μ = 0,
   { simp only [hμ, ae_zero], },
   haveI : μ.ae.ne_bot, by simp only [hμ, ae_ne_bot, ne.def, not_false_iff],
@@ -2465,6 +2477,22 @@ begin
       (eventually_of_forall (hfs_bound n)), },
 end
 
+lemma condexp_strongly_measurable_mul_of_bound₀ (hm : m ≤ m0) [is_finite_measure μ]
+  {f g : α → ℝ} (hf : ae_strongly_measurable' m f μ) (hg : integrable g μ) (c : ℝ)
+  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
+begin
+  have : μ[f * g | m] =ᵐ[μ] μ[hf.mk f * g | m],
+    from condexp_congr_ae (eventually_eq.mul hf.ae_eq_mk eventually_eq.rfl),
+  refine this.trans _,
+  have : f * μ[g | m] =ᵐ[μ] hf.mk f * μ[g | m] := eventually_eq.mul hf.ae_eq_mk eventually_eq.rfl,
+  refine eventually_eq.trans _ this.symm,
+  refine condexp_strongly_measurable_mul_of_bound hm hf.strongly_measurable_mk hg c _,
+  filter_upwards [hf_bound, hf.ae_eq_mk] with x hxc hx_eq,
+  rw ← hx_eq,
+  exact hxc,
+end
+
 /-- Pull-out property of the conditional expectation. -/
 lemma condexp_strongly_measurable_mul {f g : α → ℝ} (hf : strongly_measurable[m] f)
   (hfg : integrable (f * g) μ) (hg : integrable g μ) :
@@ -2474,40 +2502,9 @@ begin
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, rw mul_zero, },
   haveI : sigma_finite (μ.trim hm) := hμm,
-
-  -- here we basically prove that a strongly_measurable function is sigma-integrable when the
-  -- measure is sigma-finite, but sigma-integrability is not defined in mathlib.
-  -- sigma-integrable = there exists spanning measurable sets on which the function is integrable.
-  -- `condexp` could be extended to those functions.
-  let sigma_finite_sets := spanning_sets (μ.trim hm),
-  let norm_sets := λ (n : ℕ), {x | ∥f x∥ ≤ n},
-  have norm_sets_spanning : (⋃ n, norm_sets n) = set.univ,
-  { ext1 x, simp only [set.mem_Union, set.mem_set_of_eq, set.mem_univ, iff_true],
-    exact ⟨⌈∥f x∥⌉₊, nat.le_ceil (∥f x∥)⟩, },
-  let sets := λ n, sigma_finite_sets n ∩ norm_sets n,
-  have h_meas : ∀ n, measurable_set[m] (sets n),
-  { refine λ n, measurable_set.inter _ _,
-    { exact measurable_spanning_sets (μ.trim hm) n, },
-    { exact hf.norm.measurable_set_le strongly_measurable_const, }, },
-  have h_univ : (⋃ n, sets n) = set.univ,
-  { have : (⋃ i, sigma_finite_sets i ∩ norm_sets i)
-      = (⋃ i, sigma_finite_sets i) ∩ (⋃ i, norm_sets i),
-    { refine set.Union_inter_of_monotone (monotone_spanning_sets (μ.trim hm)) (λ i j hij x, _),
-      simp only [norm_sets, set.mem_set_of_eq],
-      refine λ hif, hif.trans _,
-      exact_mod_cast hij, },
-    rw [this, norm_sets_spanning, Union_spanning_sets (μ.trim hm), set.inter_univ], },
-  have h_finite : ∀ n, μ (sets n) < ∞,
-  { refine λ n, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
-    exact (le_trim hm).trans_lt (measure_spanning_sets_lt_top (μ.trim hm) n), },
-  have h_int : ∀ n, integrable_on f (sets n) μ,
-  { intro n,
-    have h_int_cst : integrable_on (λ x, (n : ℝ)) (sets n) μ,
-    { rw integrable_on_const,
-      exact or.inr (h_finite n), },
-    refine integrable.mono' h_int_cst ((hf.mono hm).ae_strongly_measurable.restrict) _,
-    rw ae_restrict_iff' (hm _ (h_meas n)),
-    exact eventually_of_forall (λ x hx, hx.2), },
+  obtain ⟨sets, sets_prop, h_univ⟩ := hf.exists_spanning_measurable_set_norm_le hm μ,
+  simp_rw forall_and_distrib at sets_prop,
+  obtain ⟨h_meas, h_finite, h_norm⟩ := sets_prop,
 
   suffices : ∀ n, ∀ᵐ x ∂μ, x ∈ sets n → μ[f * g|m] x = f x * μ[g|m] x,
   { rw ← ae_all_iff at this,
@@ -2538,8 +2535,23 @@ begin
   refine eventually_of_forall (λ x, _),
   by_cases hxs : x ∈ sets n,
   { simp only [hxs, set.indicator_of_mem],
-    exact hxs.2, },
+    exact h_norm n x hxs, },
   { simp only [hxs, set.indicator_of_not_mem, not_false_iff, _root_.norm_zero, nat.cast_nonneg], },
+end
+
+/-- Pull-out property of the conditional expectation. -/
+lemma condexp_strongly_measurable_mul₀ {f g : α → ℝ} (hf : ae_strongly_measurable' m f μ)
+  (hfg : integrable (f * g) μ) (hg : integrable g μ) :
+  μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
+begin
+  have : μ[f * g | m] =ᵐ[μ] μ[hf.mk f * g | m],
+    from condexp_congr_ae (eventually_eq.mul hf.ae_eq_mk eventually_eq.rfl),
+  refine this.trans _,
+  have : f * μ[g | m] =ᵐ[μ] hf.mk f * μ[g | m] := eventually_eq.mul hf.ae_eq_mk eventually_eq.rfl,
+  refine eventually_eq.trans _ this.symm,
+  refine condexp_strongly_measurable_mul hf.strongly_measurable_mk _ hg,
+  refine (integrable_congr _).mp hfg,
+  exact eventually_eq.mul hf.ae_eq_mk eventually_eq.rfl,
 end
 
 end pull_out

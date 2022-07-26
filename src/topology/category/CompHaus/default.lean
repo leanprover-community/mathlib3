@@ -190,7 +190,7 @@ def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   π :=
   { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
     naturality' := by { intros _ _ _, ext ⟨x, hx⟩,
-      simp only [comp_apply, functor.const.obj_map, id_apply], exact (hx f).symm, } } }
+      simp only [comp_apply, functor.const_obj_map, id_apply], exact (hx f).symm, } } }
 
 /-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
 def limit_cone_is_limit {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :

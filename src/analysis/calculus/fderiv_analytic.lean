@@ -18,8 +18,8 @@ open filter asymptotics
 open_locale ennreal
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 section fderiv
 

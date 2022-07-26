@@ -244,7 +244,6 @@ instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
     convert mul_zero (⅟(2:α) * ⅟(2:α)),
     rw [add_sub_add_right_eq_sub, add_assoc, add_assoc, add_sub_add_left_eq_sub, add_comm,
       add_sub_add_right_eq_sub, sub_eq_zero],
-  end
-}
+  end }
 
 end sym_alg

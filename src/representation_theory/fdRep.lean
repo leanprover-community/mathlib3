@@ -55,12 +55,11 @@ by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance
 instance (V : fdRep k G) : finite_dimensional k V :=
 by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
 
-<<<<<<< HEAD
 /-- All hom spaces are finite dimensional. -/
 instance (V W : fdRep k G) : finite_dimensional k (V ⟶ W) :=
 finite_dimensional.of_injective
   ((forget₂ (fdRep k G) (FinVect k)).map_linear_map k) (functor.map_injective _)
-=======
+
 /-- The monoid homomorphism corresponding to the action of `G` onto `V : fdRep k G`. -/
 def ρ (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 
@@ -75,10 +74,6 @@ begin
   rw [iso.eq_inv_comp ((Action.forget (FinVect k) (Mon.of G)).map_iso i)],
   exact (i.hom.comm g).symm,
 end
->>>>>>> origin/master
-
--- This works well with the new design for representations:
-example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 
 /-- Lift an unbundled representation to `fdRep`. -/
 @[simps ρ]

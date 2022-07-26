@@ -31,6 +31,18 @@ begin
   { rw not_bot_lt_iff at hd, rw hd, simp only [ennreal.bot_eq_zero, zero_le, exists_const] }
 end
 
+lemma finset.off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
+  s.off_diag.nonempty ↔ ∃ x y ∈ s, x ≠ y :=
+begin
+  refine ⟨λ H, _, λ H, _⟩,
+  { rcases H with ⟨⟨x, y⟩, hxy⟩, rw finset.mem_off_diag at hxy,
+    rcases hxy with ⟨hx, hy, hxy⟩,
+    exact ⟨x, hx, y, hy, hxy⟩ },
+  { rcases H with ⟨x, hx, y, hy, hxy⟩,
+    refine ⟨⟨x, y⟩, _⟩, rw finset.mem_off_diag,
+    exact ⟨hx, hy, hxy⟩ }
+end
+
 end extras
 
 namespace set

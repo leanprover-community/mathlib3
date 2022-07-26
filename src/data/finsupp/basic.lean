@@ -1749,6 +1749,54 @@ by simp_rw [← this hd, ← this hd.symm,
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+end finsupp
+
+
+
+section cast_finsupp
+variables [has_zero M] (f : α →₀ M)
+
+namespace nat
+
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
+nat.cast_prod _ _
+
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
+nat.cast_sum _ _
+
+end nat
+
+namespace int
+
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
+int.cast_prod _ _
+
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
+int.cast_sum _ _
+
+end int
+
+namespace rat
+
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
+cast_sum _ _
+
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
+cast_prod _ _
+
+end rat
+end cast_finsupp
+
+
+
+namespace finsupp
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -2551,6 +2599,12 @@ end curry_uncurry
 --------------------------------------------------------------------------------
 
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section sum    vvvvv  (in the sense of `⊕`!)
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 
 section sum
 
@@ -2641,6 +2695,13 @@ lemma sum_finsupp_add_equiv_prod_finsupp_symm_inr {α β : Type*}
 rfl
 
 end sum
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section sum    ^^^^^   (in the sense of `⊕`!)
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 
 section
 variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
@@ -3038,43 +3099,3 @@ sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 end sigma
 
 end finsupp
-
-section cast_finsupp
-variables [has_zero M] (f : α →₀ M)
-
-namespace nat
-
-@[simp, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
-  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
-nat.cast_prod _ _
-
-@[simp, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
-  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
-nat.cast_sum _ _
-
-end nat
-
-namespace int
-
-@[simp, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
-  (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
-int.cast_prod _ _
-
-@[simp, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
-  (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
-int.cast_sum _ _
-
-end int
-
-namespace rat
-
-@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
-  (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
-cast_sum _ _
-
-@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
-  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
-cast_prod _ _
-
-end rat
-end cast_finsupp

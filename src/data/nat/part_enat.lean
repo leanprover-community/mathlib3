@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import algebra.hom.equiv
 import data.part
+import data.nat.lattice
 import tactic.norm_num
 
 /-!
@@ -536,5 +537,16 @@ noncomputable instance : linear_ordered_add_comm_monoid_with_top part_enat :=
   .. part_enat.linear_order,
   .. part_enat.ordered_add_comm_monoid,
   .. part_enat.order_top }
+
+noncomputable instance : complete_linear_order part_enat :=
+{ inf := (⊓),
+  sup := (⊔),
+  top := ⊤,
+  bot := ⊥,
+  le := (≤),
+  lt := (<),
+  .. part_enat.lattice,
+  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
+  .. part_enat.linear_order, }
 
 end part_enat

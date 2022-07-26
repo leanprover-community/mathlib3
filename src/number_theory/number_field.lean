@@ -130,7 +130,7 @@ open number_field
 
 local attribute [instance] subsingleton_rat_module
 
-instance rat.number_field : number_field ℚ :=
+instance number_field : number_field ℚ :=
 { to_char_zero := infer_instance,
   to_finite_dimensional :=
     -- The vector space structure of `ℚ` over itself can arise in multiple ways:

@@ -113,6 +113,13 @@ end
 
 lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
 
+/-- In a trichotomous irreflexive order, every element is determined by the set of predecessors. -/
+lemma extensional_of_trichotomous_of_irrefl (r : α → α → Prop) [is_trichotomous α r] [is_irrefl α r]
+  {a b : α} (H : ∀ x, r x a ↔ r x b) : a = b :=
+((@trichotomous _ r _ a b)
+  .resolve_left $ mt (H _).2 $ irrefl a)
+  .resolve_right $ mt (H _).1 $ irrefl b
+
 /-- Construct a partial order from a `is_strict_order` relation.
 
 See note [reducible non-instances]. -/
@@ -195,21 +202,6 @@ instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
 
-/-! ### Extensional relation -/
-
-/-- An extensional relation is one in which an element is determined by its set
-  of predecessors. It is named for the `x ∈ y` relation in set theory, whose
-  extensionality is one of the first axioms of ZFC. -/
-@[algebra] class is_extensional (α : Type u) (r : α → α → Prop) : Prop :=
-(ext : ∀ a b, (∀ x, r x a ↔ r x b) → a = b)
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_extensional_of_is_strict_total_order'
-  [is_strict_total_order' α r] : is_extensional α r :=
-⟨λ a b H, ((@trichotomous _ r _ a b)
-  .resolve_left $ mt (H _).2 (irrefl a))
-  .resolve_right $ mt (H _).1 (irrefl b)⟩
-
 /-! ### Well-order -/
 
 /-- A well order is a well-founded linear order. -/
@@ -220,9 +212,6 @@ instance is_extensional_of_is_strict_total_order'
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
-  is_extensional α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
   is_trichotomous α r := by apply_instance

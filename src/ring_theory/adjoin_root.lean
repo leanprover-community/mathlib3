@@ -62,6 +62,14 @@ instance : inhabited (adjoin_root f) := ⟨0⟩
 
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
+protected lemma nontrivial [is_domain R] (h : degree f ≠ 0) : nontrivial (adjoin_root f) :=
+ideal.quotient.nontrivial
+begin
+  simp_rw [ne.def, span_singleton_eq_top, polynomial.is_unit_iff, not_exists, not_and],
+  rintro x hx rfl,
+  exact h (degree_C hx.ne_zero),
+end
+
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
 def mk : R[X] →+* adjoin_root f := ideal.quotient.mk _
 
@@ -76,7 +84,7 @@ def of : R →+* adjoin_root f := (mk f).comp C
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
-instance [comm_semiring S] [comm_semiring K] [has_scalar S K] [algebra S R] [algebra K R]
+instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algebra K R]
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
@@ -105,7 +113,7 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
 @[simp] lemma mk_self : mk f f = 0 :=
-quotient.sound' (mem_span_singleton.2 $ by simp)
+quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
@@ -196,23 +204,25 @@ end comm_ring
 
 section irreducible
 
-variables [field K] {f : K[X]} [irreducible f]
+variables [field K] {f : K[X]}
 
-instance is_maximal_span : is_maximal (span {f} : ideal K[X]) :=
-principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
+instance span_maximal_of_irreducible [fact (irreducible f)] : (span {f}).is_maximal :=
+principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 
-noncomputable instance field : field (adjoin_root f) :=
+noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
 { ..adjoin_root.comm_ring f,
   ..ideal.quotient.field (span {f} : ideal K[X]) }
 
-lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
+lemma coe_injective (h : degree f ≠ 0) : function.injective (coe : K → adjoin_root f) :=
+have _ := adjoin_root.nontrivial f h, by exactI (of f).injective
+
+lemma coe_injective' [fact (irreducible f)] : function.injective (coe : K → adjoin_root f) :=
 (of f).injective
 
 variable (f)
 
-lemma mul_div_root_cancel :
-  ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
-    f.map (of f) :=
+lemma mul_div_root_cancel [fact (irreducible f)] :
+  ((X - C (root f)) * (f.map (of f) / (X - C (root f)))) = f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end irreducible
@@ -359,6 +369,82 @@ by rw [minpoly_power_basis_gen hf', hf.leading_coeff, inv_one, C.map_one, mul_on
 
 end power_basis
 
+section minpoly
+
+variables [comm_ring R] [comm_ring S] [algebra R S] (x : S) (R)
+
+open algebra polynomial
+
+/-- The surjective algebra morphism `R[X]/(minpoly R x) → R[x]`.
+
+If `R` is a GCD domain and `x` is integral, this is an isomorphism,
+see `adjoin_root.minpoly.equiv_adjoin`. -/
+@[simps] def minpoly.to_adjoin : adjoin_root (minpoly R x) →ₐ[R] adjoin R ({x} : set S) :=
+lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
+  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe])
+
+variables {R x}
+
+lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : minpoly.to_adjoin R x a =
+  lift_hom (minpoly R x) (⟨x, self_mem_adjoin_singleton R x⟩ : adjoin R ({x} : set S))
+  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
+
+lemma minpoly.to_adjoin.apply_X : minpoly.to_adjoin R x (mk (minpoly R x) X) =
+  ⟨x, self_mem_adjoin_singleton R x⟩ :=
+by simp
+
+variables (R x)
+
+lemma minpoly.to_adjoin.surjective : function.surjective (minpoly.to_adjoin R x) :=
+begin
+  rw [← range_top_iff_surjective, _root_.eq_top_iff, ← adjoin_adjoin_coe_preimage],
+  refine adjoin_le _,
+  simp only [alg_hom.coe_range, set.mem_range],
+  rintro ⟨y₁, y₂⟩ h,
+  refine ⟨mk (minpoly R x) X, by simpa using h.symm⟩
+end
+
+variables {R} {x} [is_domain R] [normalized_gcd_monoid R] [is_domain S] [no_zero_smul_divisors R S]
+
+lemma minpoly.to_adjoin.injective (hx : is_integral R x) :
+  function.injective (minpoly.to_adjoin R x) :=
+begin
+  refine (injective_iff_map_eq_zero _).2 (λ P₁ hP₁, _),
+  obtain ⟨P, hP⟩ := mk_surjective (minpoly.monic hx) P₁,
+  by_cases hPzero : P = 0,
+  { simpa [hPzero] using hP.symm },
+  have hPcont : P.content ≠ 0 := λ h, hPzero (content_eq_zero_iff.1 h),
+  rw [← hP, minpoly.to_adjoin_apply', lift_hom_mk, ← subalgebra.coe_eq_zero,
+    aeval_subalgebra_coe, set_like.coe_mk, P.eq_C_content_mul_prim_part, aeval_mul, aeval_C] at hP₁,
+  replace hP₁ := eq_zero_of_ne_zero_of_mul_left_eq_zero
+    ((map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective R S)).2 hPcont) hP₁,
+  obtain ⟨Q, hQ⟩ := minpoly.gcd_domain_dvd hx P.is_primitive_prim_part.ne_zero hP₁,
+  rw [P.eq_C_content_mul_prim_part] at hP,
+  simpa [hQ] using hP.symm
+end
+
+/-- The algebra isomorphism `adjoin_root (minpoly R x) ≃ₐ[R] adjoin R x` -/
+@[simps] def minpoly.equiv_adjoin (hx : is_integral R x) :
+  adjoin_root (minpoly R x) ≃ₐ[R] adjoin R ({x} : set S) :=
+alg_equiv.of_bijective (minpoly.to_adjoin R x)
+  ⟨minpoly.to_adjoin.injective hx, minpoly.to_adjoin.surjective R x⟩
+
+/-- The `power_basis` of `adjoin R {x}` given by `x`. See `algebra.adjoin.power_basis` for a version
+over a field. -/
+@[simps] def _root_.algebra.adjoin.power_basis' (hx : _root_.is_integral R x) :
+  _root_.power_basis R (algebra.adjoin R ({x} : set S)) :=
+power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adjoin hx)
+
+/-- The power basis given by `x` if `B.gen ∈ adjoin R {x}`. -/
+@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : _root_.power_basis R S)
+  (hint : is_integral R x) (hx : B.gen ∈ adjoin R ({x} : set S)) :
+  _root_.power_basis R S :=
+(algebra.adjoin.power_basis' hint).map $
+  (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
+  subalgebra.top_equiv
+
+end minpoly
+
 section equiv
 
 section is_domain
@@ -427,7 +513,8 @@ variables [comm_ring R] (I : ideal R) (f : polynomial R)
 
 See `adjoin_root.quot_map_of_equiv` for the isomorphism with `(R/I)[X] / (f mod I)`. -/
 def quot_map_of_equiv_quot_map_C_map_span_mk :
-  adjoin_root f ⧸ I.map (of f) ≃+* adjoin_root f ⧸ (I.map C).map (span {f})^.quotient.mk :=
+  adjoin_root f ⧸ I.map (of f) ≃+*
+    adjoin_root f ⧸ (I.map (C : R →+* R[X])).map (span {f})^.quotient.mk :=
 ideal.quot_equiv_of_eq (by rw [of, adjoin_root.mk, ideal.map_map])
 
 @[simp]
@@ -439,9 +526,10 @@ rfl
 /-- The natural isomorphism `R[α]/((I[x] ⊔ (f)) / (f)) ≅ (R[x]/I[x])/((f) ⊔ I[x] / I[x])`
   for `α` a root of `f : polynomial R` and `I : ideal R`-/
 def quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk :
-  (adjoin_root f) ⧸ ((I.map (C : R →+* R[X]))).map (span {f})^.quotient.mk ≃+*
-    (R[X] ⧸ map C I) ⧸ (span {f}).map (I.map C)^.quotient.mk :=
-quot_quot_equiv_comm (span ({f} : set (polynomial R))) (I.map (C : R →+* polynomial R))
+  (adjoin_root f) ⧸ (I.map (C : R →+* R[X])).map (span ({f} : set R[X]))^.quotient.mk ≃+*
+    (R[X] ⧸ I.map (C : R →+* R[X])) ⧸ (span ({f} : set R[X])).map
+    (I.map (C : R →+* R[X]))^.quotient.mk :=
+quot_quot_equiv_comm (ideal.span ({f} : set (polynomial R))) (I.map (C : R →+* polynomial R))
 
 @[simp]
 lemma quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_mk (p : R[X]) :

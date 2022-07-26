@@ -495,7 +495,7 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
   by_cases e0 : e₂ = 0; simp [e0, mul],
   { cases nat.exists_eq_succ_of_ne_zero n₂.ne_zero with x xe,
     simp [h₂.zero_of_zero e0, xe, -nat.cast_succ],
-    rw [← nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
+    rw [nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
   { haveI := h₁.fst, haveI := h₂.fst,
     simp [IH, repr_add, opow_add, mul_add],
     rw ← mul_assoc, congr' 2,
@@ -740,7 +740,7 @@ begin
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _
-  ... = (α' + m) ^ succ k.succ : by rw [← mul_add, ← nat_cast_succ, opow_succ, IH.2],
+  ... = (α' + m) ^ succ k.succ : by rw [← mul_add, nat_cast_succ, opow_succ, IH.2],
   congr' 1,
   { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd_left
       (by simpa using opow_dvd_opow ω (one_le_iff_ne_zero.2 e0)) _) d,
@@ -755,7 +755,7 @@ begin
       rw opow_mul, simpa [-opow_succ] } },
   { cases m,
     { have : R = 0, {cases k; simp [R, opow_aux]}, simp [this] },
-    { rw [← nat_cast_succ, add_mul_succ],
+    { rw [nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [opow_mul, opow_succ],
       apply mul_le_mul_left',
@@ -792,6 +792,191 @@ begin
       rw [← opow_succ],
       exact (repr_opow_aux₂ _ ad a00 al _ _).2 } }
 end
+
+/-- Given an ordinal, returns `inl none` for `0`, `inl (some a)` for `a+1`, and
+  `inr f` for a limit ordinal `a`, where `f i` is a sequence converging to `a`. -/
+def fundamental_sequence : onote → option onote ⊕ (ℕ → onote)
+| zero := sum.inl none
+| (oadd a m b) :=
+  match fundamental_sequence b with
+  | sum.inr f := sum.inr (λ i, oadd a m (f i))
+  | sum.inl (some b') := sum.inl (some (oadd a m b'))
+  | sum.inl none := match fundamental_sequence a, m.nat_pred with
+    | sum.inl none, 0 := sum.inl (some zero)
+    | sum.inl none, m+1 := sum.inl (some (oadd zero m.succ_pnat zero))
+    | sum.inl (some a'), 0 := sum.inr (λ i, oadd a' i.succ_pnat zero)
+    | sum.inl (some a'), m+1 := sum.inr (λ i, oadd a m.succ_pnat (oadd a' i.succ_pnat zero))
+    | sum.inr f, 0 := sum.inr (λ i, oadd (f i) 1 zero)
+    | sum.inr f, m+1 := sum.inr (λ i, oadd a m.succ_pnat (oadd (f i) 1 zero))
+    end
+  end
+
+private theorem exists_lt_add {α} [hα : nonempty α] {o : ordinal} {f : α → ordinal}
+  (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) {b : ordinal} ⦃a⦄ (h : a < b + o) : ∃ i, a < b + f i :=
+begin
+  cases lt_or_le a b with h h',
+  { obtain ⟨i⟩ := id hα, exact ⟨i, h.trans_le (le_add_right _ _)⟩ },
+  { rw [← ordinal.add_sub_cancel_of_le h', add_lt_add_iff_left] at h,
+    refine (H h).imp (λ i H, _),
+    rwa [← ordinal.add_sub_cancel_of_le h', add_lt_add_iff_left] }
+end
+
+private theorem exists_lt_mul_omega' {o : ordinal} ⦃a⦄ (h : a < o * ω) : ∃ i : ℕ, a < o * ↑i + o :=
+begin
+  obtain ⟨i, hi, h'⟩ := (lt_mul_of_limit omega_is_limit).1 h,
+  obtain ⟨i, rfl⟩ := lt_omega.1 hi,
+  exact ⟨i, h'.trans_le (le_add_right _ _)⟩
+end
+
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+private theorem exists_lt_omega_opow' {α} {o b : ordinal}
+  (hb : 1 < b) (ho : o.is_limit) {f : α → ordinal}
+  (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) ⦃a⦄ (h : a < b ^ o) : ∃ i, a < b ^ f i :=
+begin
+  obtain ⟨d, hd, h'⟩ := (lt_opow_of_limit (ordinal.zero_lt_one.trans hb).ne' ho).1 h,
+  exact (H hd).imp (λ i hi, h'.trans $ (opow_lt_opow_iff_right hb).2 hi)
+end
+
+/-- The property satisfied by `fundamental_sequence o`:
+  * `inl none` means `o = 0`
+  * `inl (some a)` means `o = succ a`
+  * `inr f` means `o` is a limit ordinal and `f` is a
+    strictly increasing sequence which converges to `o` -/
+def fundamental_sequence_prop (o : onote) : option onote ⊕ (ℕ → onote) → Prop
+| (sum.inl none) := o = 0
+| (sum.inl (some a)) := o.repr = succ a.repr ∧ (o.NF → a.NF)
+| (sum.inr f) := o.repr.is_limit ∧
+  (∀ i, f i < f (i + 1) ∧ f i < o ∧ (o.NF → (f i).NF)) ∧
+  (∀ a, a < o.repr → ∃ i, a < (f i).repr)
+
+theorem fundamental_sequence_has_prop (o) : fundamental_sequence_prop o (fundamental_sequence o) :=
+begin
+  induction o with a m b iha ihb, {exact rfl},
+  rw [fundamental_sequence],
+  rcases e : b.fundamental_sequence with ⟨_|b'⟩|f;
+    simp only [fundamental_sequence, fundamental_sequence_prop];
+    rw [e, fundamental_sequence_prop] at ihb,
+  { rcases e : a.fundamental_sequence with ⟨_|a'⟩|f; cases e' : m.nat_pred with m';
+      simp only [fundamental_sequence, fundamental_sequence_prop];
+      rw [e, fundamental_sequence_prop] at iha;
+      try { rw show m = 1,
+        { have := pnat.nat_pred_add_one m, rw [e'] at this, exact pnat.coe_inj.1 this.symm } };
+      try { rw show m = m'.succ.succ_pnat,
+        { rw [← e', ← pnat.coe_inj, nat.succ_pnat_coe, ← nat.add_one, pnat.nat_pred_add_one] } };
+      simp only [repr, iha, ihb, opow_lt_opow_iff_right one_lt_omega,
+        add_lt_add_iff_left, add_zero, coe_coe, eq_self_iff_true, lt_add_iff_pos_right,
+        lt_def, mul_one, nat.cast_zero, nat.cast_succ, nat.succ_pnat_coe, opow_succ,
+        opow_zero, mul_add_one, pnat.one_coe, succ_zero, true_and, _root_.zero_add,
+        zero_def],
+    { apply_instance },
+    { exact ⟨rfl, infer_instance⟩ },
+    { have := opow_pos _ omega_pos,
+      refine ⟨mul_is_limit this omega_is_limit,
+        λ i, ⟨this, _, λ H, @NF.oadd_zero _ _ (iha.2 H.fst)⟩, exists_lt_mul_omega'⟩,
+      rw [← mul_succ, ← nat_cast_succ, ordinal.mul_lt_mul_iff_left this],
+      apply nat_lt_omega },
+    { have := opow_pos _ omega_pos,
+      refine ⟨
+        add_is_limit _ (mul_is_limit this omega_is_limit), λ i, ⟨this, _, _⟩,
+        exists_lt_add exists_lt_mul_omega'⟩,
+      { rw [← mul_succ, ← nat_cast_succ, ordinal.mul_lt_mul_iff_left this],
+        apply nat_lt_omega },
+      { refine λ H, H.fst.oadd _ (NF.below_of_lt' _ (@NF.oadd_zero _ _ (iha.2 H.fst))),
+        rw [repr, repr, add_zero, iha.1, opow_succ, ordinal.mul_lt_mul_iff_left this],
+        apply nat_lt_omega } },
+    { rcases iha with ⟨h1, h2, h3⟩,
+      refine ⟨opow_is_limit one_lt_omega h1, λ i, _, exists_lt_omega_opow' one_lt_omega h1 h3⟩,
+      obtain ⟨h4, h5, h6⟩ := h2 i, exact ⟨h4, h5, λ H, @NF.oadd_zero _ _ (h6 H.fst)⟩ },
+    { rcases iha with ⟨h1, h2, h3⟩,
+      refine ⟨add_is_limit _ (opow_is_limit one_lt_omega h1), λ i, _,
+        exists_lt_add (exists_lt_omega_opow' one_lt_omega h1 h3)⟩,
+      obtain ⟨h4, h5, h6⟩ := h2 i,
+      refine ⟨h4, h5, λ H, H.fst.oadd _ (NF.below_of_lt' _ (@NF.oadd_zero _ _ (h6 H.fst)))⟩,
+      rwa [repr, repr, add_zero, coe_coe, pnat.one_coe, nat.cast_one, mul_one,
+        opow_lt_opow_iff_right one_lt_omega] } },
+  { refine ⟨by rw [repr, ihb.1, add_succ, repr],
+      λ H, H.fst.oadd _ (NF.below_of_lt' _ (ihb.2 H.snd))⟩,
+    have := H.snd'.repr_lt, rw ihb.1 at this,
+    exact (lt_succ _).trans this },
+  { rcases ihb with ⟨h1, h2, h3⟩,
+    simp only [repr],
+    exact ⟨ordinal.add_is_limit _ h1,
+      λ i, ⟨oadd_lt_oadd_3 (h2 i).1, oadd_lt_oadd_3 (h2 i).2.1, λ H, H.fst.oadd _
+        (NF.below_of_lt' (lt_trans (h2 i).2.1 H.snd'.repr_lt) ((h2 i).2.2 H.snd))⟩,
+      exists_lt_add h3⟩ }
+end
+
+/-- The fast growing hierarchy for ordinal notations `< ε₀`. This is a sequence of
+functions `ℕ → ℕ` indexed by ordinals, with the definition:
+* `f_0(n) = n + 1`
+* `f_(α+1)(n) = f_α^[n](n)`
+* `f_α(n) = f_(α[n])(n)` where `α` is a limit ordinal
+   and `α[i]` is the fundamental sequence converging to `α` -/
+def fast_growing : onote → ℕ → ℕ
+| o :=
+  match fundamental_sequence o, fundamental_sequence_has_prop o with
+  | sum.inl none, _ := nat.succ
+  | sum.inl (some a), h :=
+    have a < o, { rw [lt_def, h.1], apply lt_succ },
+    λ i, (fast_growing a)^[i] i
+  | sum.inr f, h := λ i, have f i < o, from (h.2.1 i).2.1, fast_growing (f i) i
+  end
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.lt_wf⟩],
+  dec_tac := `[assumption] }
+
+theorem fast_growing_def
+  {o : onote} {x} (e : fundamental_sequence o = x) :
+    fast_growing o =
+    fast_growing._match_1 o
+      (λ a _ _, a.fast_growing)
+      (λ f _ i _, (f i).fast_growing i)
+      x (e ▸ fundamental_sequence_has_prop _) :=
+by { subst x, rw [fast_growing] }
+
+theorem fast_growing_zero' (o : onote) (h : fundamental_sequence o = sum.inl none) :
+  fast_growing o = nat.succ := by { rw [fast_growing_def h], refl }
+theorem fast_growing_succ (o) {a} (h : fundamental_sequence o = sum.inl (some a)) :
+  fast_growing o = λ i, ((fast_growing a)^[i] i) := by { rw [fast_growing_def h], refl }
+theorem fast_growing_limit (o) {f} (h : fundamental_sequence o = sum.inr f) :
+  fast_growing o = λ i, fast_growing (f i) i := by { rw [fast_growing_def h], refl }
+
+@[simp] theorem fast_growing_zero : fast_growing 0 = nat.succ := fast_growing_zero' _ rfl
+
+@[simp] theorem fast_growing_one : fast_growing 1 = (λ n, 2 * n) :=
+begin
+  rw [@fast_growing_succ 1 0 rfl], funext i, rw [two_mul, fast_growing_zero],
+  suffices : ∀ a b, nat.succ^[a] b = b + a, from this _ _,
+  intros a b, induction a; simp [*, function.iterate_succ', nat.add_succ],
+end
+
+section
+local infixr ^ := pow
+@[simp] theorem fast_growing_two : fast_growing 2 = (λ n, 2 ^ n * n) :=
+begin
+  rw [@fast_growing_succ 2 1 rfl], funext i, rw [fast_growing_one],
+  suffices : ∀ a b, (λ (n : ℕ), 2 * n)^[a] b = 2 ^ a * b, from this _ _,
+  intros a b, induction a; simp [*, function.iterate_succ', pow_succ, mul_assoc],
+end
+end
+
+/-- We can extend the fast growing hierarchy one more step to `ε₀` itself,
+  using `ω^(ω^...^ω^0)` as the fundamental sequence converging to `ε₀` (which is not an `onote`).
+  Extending the fast growing hierarchy beyond this requires a definition of fundamental sequence
+  for larger ordinals. -/
+def fast_growing_ε₀ (i : ℕ) : ℕ := fast_growing ((λ a, a.oadd 1 0)^[i] 0) i
+
+theorem fast_growing_ε₀_zero : fast_growing_ε₀ 0 = 1 := by simp [fast_growing_ε₀]
+
+theorem fast_growing_ε₀_one : fast_growing_ε₀ 1 = 2 :=
+by simp [fast_growing_ε₀, show oadd 0 1 0 = 1, from rfl]
+
+theorem fast_growing_ε₀_two : fast_growing_ε₀ 2 = 2048 :=
+by norm_num [fast_growing_ε₀,
+  show oadd 0 1 0 = 1, from rfl,
+  @fast_growing_limit (oadd 1 1 0) _ rfl,
+  show oadd 0 (2:nat).succ_pnat 0 = 3, from rfl,
+  @fast_growing_succ 3 2 rfl]
 
 end onote
 

@@ -189,8 +189,8 @@ begin
   { ext1 c,
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),
     rw [sub_comp, X_comp, C_comp, mul_sub, ←C_mul, mul_div_cancel' c hb'] },
-  rw [key1, hs, prod_comp, multiset.map_map, key2, multiset.prod_map_mul, multiset.map_const,
-      multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
+  rw [key1, hs, multiset_prod_comp, multiset.map_map, key2, multiset.prod_map_mul,
+    multiset.map_const, multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
   all_goals { exact field.to_nontrivial F },
 end
 
@@ -311,10 +311,10 @@ begin
       (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval]))⟩ },
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
-    { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
+    { obtain ⟨s, hs⟩ := (splits_iff_exists_multiset _).1 (splitting_field.splits p),
       rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
-      rw prod_comp,
+      rw multiset_prod_comp,
       apply gal_prod_is_solvable,
       intros q hq,
       rw multiset.mem_map at hq,

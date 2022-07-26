@@ -71,7 +71,7 @@ begin
 end
 
 /-- Scalar multiplication in the colimit. See also `colimit_smul_aux`. -/
-instance colimit_has_scalar : has_scalar R M :=
+instance colimit_has_smul : has_smul R M :=
 { smul := λ r x, begin
     refine quot.lift (colimit_smul_aux F r) _ x,
     intros x y h,

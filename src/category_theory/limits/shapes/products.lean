@@ -33,7 +33,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes w v u u₂
+universes w v v₂ u u₂
 
 open category_theory
 
@@ -166,7 +166,7 @@ colim.map_iso (discrete.nat_iso (λ X, p X.as))
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 variables (f : β → C)
 
 /-- The comparison morphism for the product of `f`. This is an iso iff `G` preserves the product
@@ -208,16 +208,24 @@ end comparison
 variables (C)
 
 /-- An abbreviation for `Π J, has_limits_of_shape (discrete J) C` -/
-abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
+abbreviation has_products := Π (J : Type w), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
-abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
+abbreviation has_coproducts := Π (J : Type w), has_colimits_of_shape (discrete J) C
 
 variable {C}
 
-lemma has_products_of_limit_fans (lf : ∀ {J : Type v} (f : J → C), fan f)
-  (lf_is_limit : ∀ {J : Type v} (f : J → C), is_limit (lf f)) : has_products C :=
-λ J, { has_limit := λ F, has_limit.mk
-  ⟨(cones.postcompose discrete.nat_iso_functor.inv).obj (lf (λ j, F.obj (discrete.mk j))),
+lemma has_smallest_products_of_has_products [has_products.{w} C] : has_products.{0} C :=
+λ J, has_limits_of_shape_of_equivalence
+  (discrete.equivalence equiv.ulift : discrete (ulift.{w} J) ≌ _)
+
+lemma has_smallest_coproducts_of_has_coproducts [has_coproducts.{w} C] : has_coproducts.{0} C :=
+λ J, has_colimits_of_shape_of_equivalence
+  (discrete.equivalence equiv.ulift : discrete (ulift.{w} J) ≌ _)
+
+lemma has_products_of_limit_fans (lf : ∀ {J : Type w} (f : J → C), fan f)
+  (lf_is_limit : ∀ {J : Type w} (f : J → C), is_limit (lf f)) : has_products.{w} C :=
+λ (J : Type w), { has_limit := λ F, has_limit.mk
+  ⟨(cones.postcompose discrete.nat_iso_functor.inv).obj (lf (λ j, F.obj ⟨j⟩)),
     (is_limit.postcompose_inv_equiv _ _).symm (lf_is_limit _)⟩ }
 
 /-!

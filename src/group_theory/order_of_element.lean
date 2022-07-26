@@ -305,6 +305,15 @@ begin
   rwa is_periodic_pt_mul_iff_pow_eq_one,
 end
 
+@[to_additive exists_add_order_of_eq_prime_pow_iff]
+lemma exists_order_of_eq_prime_pow_iff :
+  (∃ k : ℕ, order_of x = p ^ k) ↔ (∃ m : ℕ, x ^ (p : ℕ) ^ m = 1) :=
+⟨λ ⟨k, hk⟩, ⟨k, by rw [←hk, pow_order_of_eq_one]⟩, λ ⟨_, hm⟩,
+begin
+  obtain ⟨k, _, hk⟩ := (nat.dvd_prime_pow hp.elim).mp (order_of_dvd_of_pow_eq_one hm),
+  exact ⟨k, hk⟩,
+end⟩
+
 omit hp
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : ℤˣ) = 2 :=
@@ -320,7 +329,7 @@ variables [left_cancel_monoid G] (x y)
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-iterate_injective_of_lt_minimal_period hn hm (by simpa only [mul_left_iterate, mul_one])
+eq_of_lt_minimal_period_of_iterate_eq hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :
@@ -755,10 +764,8 @@ have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
   exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
   classical!,
-  refine (set.eq_of_subset_of_card_le
-    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
-  change _ = fintype.card (_ * _ : set G),
-  rw [←pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
+  refine (set.eq_of_subset_of_card_le (set.subset_mul_left _ one_mem) (ge_of_eq _)).symm,
+  simp_rw [← pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
       group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],
 end
 

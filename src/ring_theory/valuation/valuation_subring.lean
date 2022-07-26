@@ -72,9 +72,9 @@ instance : valuation_ring A :=
     by_cases (b : K) = 0, { use 0, left, ext, simp [h] },
     by_cases (a : K) = 0, { use 0, right, ext, simp [h] },
     cases A.mem_or_inv_mem (a/b) with hh hh,
-    { use ⟨a/b,hh⟩, right, ext, field_simp, ring },
+    { use ⟨a/b, hh⟩, right, ext, field_simp, ring },
     { rw (show (a/b : K)⁻¹ = b/a, by field_simp) at hh,
-      use ⟨b/a,hh⟩, left, ext, field_simp, ring },
+      use ⟨b/a, hh⟩, left, ext, field_simp, ring },
   end }
 
 instance : algebra A K :=
@@ -84,16 +84,16 @@ show algebra A.to_subring K, by apply_instance
 lemma algebra_map_apply (a : A) : algebra_map A K a = a := rfl
 
 instance : is_fraction_ring A K :=
-{ map_units := λ ⟨y,hy⟩,
+{ map_units := λ ⟨y, hy⟩,
     (units.mk0 (y : K) (λ c, non_zero_divisors.ne_zero hy $ subtype.ext c)).is_unit,
   surj := λ z, begin
-    by_cases z = 0, { use (0,1), simp [h] },
+    by_cases z = 0, { use (0, 1), simp [h] },
     cases A.mem_or_inv_mem z with hh hh,
-    { use (⟨z,hh⟩,1), simp },
-    { refine ⟨⟨1,⟨⟨_,hh⟩,_⟩⟩, mul_inv_cancel h⟩,
+    { use (⟨z, hh⟩, 1), simp },
+    { refine ⟨⟨1, ⟨⟨_, hh⟩, _⟩⟩, mul_inv_cancel h⟩,
       exact mem_non_zero_divisors_iff_ne_zero.2 (λ c, h (inv_eq_zero.mp (congr_arg coe c))) },
   end,
-  eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c,h⟩,
+  eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
     congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
 /-- The value group of the valuation associated to `A`. -/
@@ -106,13 +106,13 @@ def valuation : valuation K A.value_group := valuation_ring.valuation A K
 instance inhabited_value_group : inhabited A.value_group := ⟨A.valuation 0⟩
 
 lemma valuation_le_one (a : A) : A.valuation a ≤ 1 :=
-(valuation_ring.mem_integer_iff A K _).2 ⟨a,rfl⟩
+(valuation_ring.mem_integer_iff A K _).2 ⟨a, rfl⟩
 
 lemma mem_of_valuation_le_one (x : K) (h : A.valuation x ≤ 1) : x ∈ A :=
-let ⟨a,ha⟩ := (valuation_ring.mem_integer_iff A K x).1 h in ha ▸ a.2
+let ⟨a, ha⟩ := (valuation_ring.mem_integer_iff A K x).1 h in ha ▸ a.2
 
 lemma valuation_le_one_iff (x : K) : A.valuation x ≤ 1 ↔ x ∈ A :=
-⟨mem_of_valuation_le_one _ _, λ ha, A.valuation_le_one ⟨x,ha⟩⟩
+⟨mem_of_valuation_le_one _ _, λ ha, A.valuation_le_one ⟨x, ha⟩⟩
 
 lemma valuation_eq_iff (x y : K) : A.valuation x = A.valuation y ↔
   ∃ a : Aˣ, (a : K) * y = x := quotient.eq'
@@ -179,7 +179,7 @@ subring.subtype R.to_subring
 /-- The canonical map on value groups induced by a coarsening of valuation rings. -/
 def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
   R.value_group →*₀ S.value_group :=
-{ to_fun := quotient.map' id $ λ x y ⟨u,hu⟩, ⟨units.map (R.inclusion S h).to_monoid_hom u, hu⟩,
+{ to_fun := quotient.map' id $ λ x y ⟨u, hu⟩, ⟨units.map (R.inclusion S h).to_monoid_hom u, hu⟩,
   map_zero' := rfl,
   map_one' := rfl,
   map_mul' := by { rintro ⟨⟩ ⟨⟩, refl } }
@@ -187,7 +187,7 @@ def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
 @[mono]
 lemma monotone_map_of_le (R S : valuation_subring K) (h : R ≤ S) :
   monotone (R.map_of_le S h) :=
-by { rintros ⟨⟩ ⟨⟩ ⟨a,ha⟩, exact ⟨R.inclusion S h a, ha⟩ }
+by { rintros ⟨⟩ ⟨⟩ ⟨a, ha⟩, exact ⟨R.inclusion S h a, ha⟩ }
 
 @[simp]
 lemma map_of_le_comp_valuation (R S : valuation_subring K) (h : R ≤ S) :
@@ -209,7 +209,7 @@ def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
 of_le A (localization.subalgebra.of_field K P.prime_compl $
   le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
-  λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
+  λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   algebra A (A.of_prime P) := subalgebra.algebra _
@@ -223,7 +223,7 @@ by apply localization.subalgebra.is_localization_of_field K
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
-λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
+λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 lemma of_prime_valuation_eq_one_iff_mem_prime_compl
   (A : valuation_subring K)
@@ -243,7 +243,7 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   of_prime R (ideal_of_le R S h) = S :=
 begin
   ext x, split,
-  { rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
+  { rintro ⟨a, r, hr, rfl⟩, apply mul_mem, { exact h a.2 },
     { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
       { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
       { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
@@ -255,7 +255,7 @@ begin
     { use [1, x⁻¹, hr], split,
       { change (⟨x⁻¹, h hr⟩ : S) ∉ nonunits S,
         erw [mem_nonunits_iff, not_not],
-        apply is_unit_of_mul_eq_one _ (⟨x,hx⟩ : S),
+        apply is_unit_of_mul_eq_one _ (⟨x, hx⟩ : S),
         ext, field_simp },
       { field_simp } } },
 end
@@ -407,7 +407,7 @@ lemma unit_group_le_unit_group {A B : valuation_subring K} :
   A.unit_group ≤ B.unit_group ↔ A ≤ B :=
 begin
   split,
-  { rintros h x hx,
+  { intros h x hx,
     rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
     by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
     by_cases h_2 : 1 + x = 0,
@@ -435,17 +435,17 @@ unit_group_order_embedding.strict_mono
 
 end unit_group
 
-section maximal_ideal
+section nonunits
 
-/-- The unique maximal ideal of a valuation subring, as a subsemigroup of `K`-/
-def maximal_ideal : subsemigroup K :=
+/-- The nonunits of a valuation subring of `K`, as a subsemigroup of `K`-/
+def nonunits : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
-  mul_mem' := λ a b ha hb, by { simpa using mul_lt_mul₀ ha hb } }
+  mul_mem' := λ a b ha hb, (mul_lt_mul₀ ha hb).trans_eq $ mul_one _ }
 
-lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x < 1 := iff.refl _
+lemma mem_nonunits_iff {x : K} : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.refl _
 
-lemma maximal_ideal_injective :
-  function.injective (maximal_ideal : valuation_subring K → subsemigroup _) :=
+lemma nonunits_injective :
+  function.injective (nonunits : valuation_subring K → subsemigroup _) :=
 λ A B h, begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
     ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
@@ -632,5 +632,62 @@ begin
 end
 
 end principal_unit_group
+lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
+nonunits_injective.eq_iff
+
+lemma nonunits_le_nonunits {A B : valuation_subring K} :
+  B.nonunits ≤ A.nonunits ↔ A ≤ B :=
+begin
+  split,
+  { intros h x hx,
+    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1] at hx ⊢,
+    by_contra h_2, from hx (h h_2) },
+  { intros h x hx,
+    by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
+end
+
+/-- The map on valuation subrings to their nonunits is a dual order embedding. -/
+def nonunits_order_embedding :
+  valuation_subring K ↪o (subsemigroup K)ᵒᵈ :=
+{ to_fun := λ A, A.nonunits,
+  inj' := nonunits_injective,
+  map_rel_iff' := λ A B, nonunits_le_nonunits }
+
+variables {A}
+
+ /-- The elements of `A.nonunits` are those of the maximal ideal of `A` after coercion to `K`.
+
+See also `mem_nonunits_iff_exists_mem_maximal_ideal`, which gets rid of the coercion to `K`,
+at the expense of a more complicated right hand side.
+ -/
+theorem coe_mem_nonunits_iff {a : A} : (a : K) ∈ A.nonunits ↔ a ∈ local_ring.maximal_ideal A :=
+(valuation_lt_one_iff _ _).symm
+
+lemma nonunits_le : A.nonunits ≤ A.to_subring.to_submonoid.to_subsemigroup :=
+λ a ha, (A.valuation_le_one_iff _).mp (A.mem_nonunits_iff.mp ha).le
+
+lemma nonunits_subset : (A.nonunits : set K) ⊆ A := nonunits_le
+
+ /-- The elements of `A.nonunits` are those of the maximal ideal of `A`.
+
+See also `coe_mem_nonunits_iff`, which has a simpler right hand side but requires the element
+to be in `A` already.
+ -/
+theorem mem_nonunits_iff_exists_mem_maximal_ideal {a : K} :
+  a ∈ A.nonunits ↔ ∃ ha, (⟨a, ha⟩ : A) ∈ local_ring.maximal_ideal A :=
+⟨λ h, ⟨nonunits_subset h, coe_mem_nonunits_iff.mp h⟩,
+ λ ⟨ha, h⟩, coe_mem_nonunits_iff.mpr h⟩
+
+ /-- `A.nonunits` agrees with the maximal ideal of `A`, after taking its image in `K`. -/
+theorem image_maximal_ideal : (coe : A → K) '' local_ring.maximal_ideal A = A.nonunits :=
+begin
+  ext a,
+  simp only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
+  erw subtype.exists,
+  simp_rw [subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
+end
+
+end nonunits
 
 end valuation_subring

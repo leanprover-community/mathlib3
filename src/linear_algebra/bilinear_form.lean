@@ -154,7 +154,7 @@ multiplication.
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
 instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
-  has_scalar α (bilin_form R M) :=
+  has_smul α (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z, by { rw [add_left, smul_add] },
@@ -945,8 +945,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
+  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -1137,14 +1137,11 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_rfl, _⟩,
-  { rw top_le_iff,
-    refine eq_top_of_finrank_eq _,
-    refine le_antisymm (submodule.finrank_le _) _,
-    conv_rhs { rw ← add_zero (finrank K _) },
-    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        finrank_add_finrank_orthogonal b₁],
-    exact nat.le.intro rfl }
+  refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
+  conv_rhs { rw ← add_zero (finrank K _) },
+  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+      finrank_add_finrank_orthogonal b₁],
+  exact le_self_add,
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some reflexive bilinear

@@ -169,7 +169,7 @@ open measure_theory set classical filter function
 
 open_locale classical topological_space filter ennreal big_operators interval nnreal
 
-variables {ι 𝕜 E F : Type*} [normed_group E]
+variables {ι 𝕜 E F : Type*} [normed_add_comm_group E]
 
 /-!
 ### Integrability at an interval
@@ -202,7 +202,7 @@ lemma interval_integrable_iff_integrable_Ioc_of_le (hab : a ≤ b) :
 by rw [interval_integrable_iff, interval_oc_of_le hab]
 
 lemma integrable_on_Icc_iff_integrable_on_Ioc'
-  {E : Type*} [normed_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+  {E : Type*} [normed_add_comm_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 begin
   cases le_or_lt a b with hab hab,
@@ -213,12 +213,12 @@ begin
 end
 
 lemma integrable_on_Icc_iff_integrable_on_Ioc
-  {E : Type*}[normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  {E : Type*}[normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
 
 lemma integrable_on_Ioc_iff_integrable_on_Ioo'
-  {E : Type*} [normed_group E]
+  {E : Type*} [normed_add_comm_group E]
   {f : ℝ → E} {a b : ℝ} (hb : μ {b} ≠ ∞) :
   integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
 begin
@@ -230,12 +230,12 @@ begin
 end
 
 lemma integrable_on_Ioc_iff_integrable_on_Ioo
-  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
 integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
 
 lemma integrable_on_Icc_iff_integrable_on_Ioo
-  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
 by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
 
@@ -243,10 +243,24 @@ lemma interval_integrable_iff' [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
 by rw [interval_integrable_iff, interval, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
 
-lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_group E]
+lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_add_comm_group E]
   {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi'
+  {E : Type*} [normed_add_comm_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
+begin
+  have : Ici a = Icc a a ∪ Ioi a := (Icc_union_Ioi_eq_Ici le_rfl).symm,
+  rw [this, integrable_on_union],
+  simp [ha.lt_top]
+end
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi
+  {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} :
+  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
+integrable_on_Ici_iff_integrable_on_Ioi' (by simp)
 
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
@@ -329,7 +343,7 @@ lemma mono_set_ae (hf : interval_integrable f μ a b) (h : Ι c d ≤ᵐ[μ] Ι 
   interval_integrable f μ c d :=
 interval_integrable_iff.mpr $ hf.def.mono_set_ae h
 
-lemma mono_fun [normed_group F] {g : ℝ → F}
+lemma mono_fun [normed_add_comm_group F] {g : ℝ → F}
   (hf : interval_integrable f μ a b) (hgm : ae_strongly_measurable g (μ.restrict (Ι a b)))
   (hle : (λ x, ∥g x∥) ≤ᵐ[μ.restrict (Ι a b)] (λ x, ∥f x∥)) : interval_integrable g μ a b :=
 interval_integrable_iff.2 $ hf.def.integrable.mono hgm hle
@@ -614,7 +628,7 @@ by { simp only [interval_integral, integral_neg], abel }
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
 by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
-@[simp] lemma integral_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+@[simp] lemma integral_smul {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) (f : ℝ → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
@@ -647,7 +661,7 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
-variables [normed_group F] [complete_space F] [normed_space ℝ F]
+variables [normed_add_comm_group F] [complete_space F] [normed_space ℝ F]
 
 lemma _root_.continuous_linear_map.interval_integral_comp_comm
   (L : E →L[ℝ] F) (hf : interval_integrable f μ a b) :
@@ -1786,6 +1800,19 @@ lemma integral_has_strict_deriv_at_left
   (hf : interval_integrable f volume a b) (hmeas : strongly_measurable_at_filter f (𝓝 a))
   (ha : continuous_at f a) : has_strict_deriv_at (λ u, ∫ x in u..b, f x) (-f a) a :=
 by simpa only [← integral_symm] using (integral_has_strict_deriv_at_right hf.symm hmeas ha).neg
+
+/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then `u ↦ ∫ x in a..u, f x`
+has derivative `f b` at `b` in the sense of strict differentiability. -/
+lemma _root_.continuous.integral_has_strict_deriv_at {f : ℝ → E} (hf : continuous f) (a b : ℝ) :
+  has_strict_deriv_at (λ u, ∫ (x : ℝ) in a..u, f x) (f b) b :=
+integral_has_strict_deriv_at_right (hf.interval_integrable _ _)
+ (hf.strongly_measurable_at_filter _ _) hf.continuous_at
+
+/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then the derivative
+of `u ↦ ∫ x in a..u, f x` at `b` is `f b`. -/
+lemma _root_.continuous.deriv_integral (f : ℝ → E) (hf : continuous f) (a b : ℝ) :
+  deriv (λ u, ∫ (x : ℝ) in a..u, f x) b = f b :=
+(hf.integral_has_strict_deriv_at a b).has_deriv_at.deriv
 
 /-!
 #### Fréchet differentiability

@@ -287,10 +287,6 @@ apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer has_inhabited_instance doc_blame
 
--- data/finite/basic.lean
-apply_nolint finite.of_fintype fintype_finite
-apply_nolint fintype.finite fintype_finite
-
 -- data/finset/noncomm_prod.lean
 apply_nolint add_monoid_hom.pi_ext fintype_finite
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -546,9 +542,6 @@ apply_nolint wseq.lift_rel_o doc_blame
 apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
-
--- data/set/countable.lean
-apply_nolint set.countable_pi fintype_finite
 
 -- data/set/finite.lean
 apply_nolint infi_supr_of_antitone fintype_finite
@@ -900,10 +893,6 @@ apply_nolint is_countably_spanning.pi fintype_finite
 apply_nolint measure_theory.measure.prod_sum fintype_finite
 apply_nolint measure_theory.measure.sum_prod fintype_finite
 
--- measure_theory/function/uniform_integrable.lean
-apply_nolint measure_theory.unif_integrable_fintype fintype_finite
-apply_nolint measure_theory.uniform_integrable_fintype fintype_finite
-
 -- measure_theory/group/prod.lean
 apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
 apply_nolint measure_theory.map_prod_inv_mul_eq_swap to_additive_doc
@@ -1080,7 +1069,7 @@ apply_nolint cardinal.mk_compl_eq_mk_compl_finite_same fintype_finite
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
--- set_theory/zfc.lean
+-- set_theory/zfc/basic.lean
 apply_nolint Set.map_definable_aux unused_arguments
 
 -- tactic/abel.lean

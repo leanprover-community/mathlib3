@@ -191,6 +191,14 @@ lemma lt_succ_iff_of_not_is_max (ha : ¬ is_max a) : b < succ a ↔ b ≤ a :=
 lemma succ_le_iff_of_not_is_max (ha : ¬ is_max a) : succ a ≤ b ↔ a < b :=
 ⟨(lt_succ_of_not_is_max ha).trans_le, succ_le_of_lt⟩
 
+lemma succ_lt_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
+  succ a < succ b ↔ a < b :=
+by rw [lt_succ_iff_of_not_is_max hb, succ_le_iff_of_not_is_max ha]
+
+lemma succ_le_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
+  succ a ≤ succ b ↔ a ≤ b :=
+by rw [succ_le_iff_of_not_is_max ha, lt_succ_iff_of_not_is_max hb]
+
 @[simp, mono] lemma succ_le_succ (h : a ≤ b) : succ a ≤ succ b :=
 begin
   by_cases hb : is_max b,
@@ -263,6 +271,11 @@ variables [partial_order α] [succ_order α] {a b : α}
 
 alias succ_eq_iff_is_max ↔ _ _root_.is_max.succ_eq
 
+lemma succ_eq_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
+  succ a = succ b ↔ a = b :=
+by rw [eq_iff_le_not_lt, eq_iff_le_not_lt,
+  succ_le_succ_iff_of_not_is_max ha hb, succ_lt_succ_iff_of_not_is_max ha hb]
+
 lemma le_le_succ_iff : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
 begin
   refine ⟨λ h, or_iff_not_imp_left.2 $ λ hba : b ≠ a,
@@ -308,7 +321,7 @@ section no_max_order
 variables [no_max_order α]
 
 @[simp] lemma succ_eq_succ_iff : succ a = succ b ↔ a = b :=
-by simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff]
+succ_eq_succ_iff_of_not_is_max (not_is_max a) (not_is_max b)
 
 lemma succ_injective : injective (succ : α → α) := λ a b, succ_eq_succ_iff.1
 lemma succ_ne_succ_iff : succ a ≠ succ b ↔ a ≠ b := succ_injective.ne_iff

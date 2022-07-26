@@ -54,9 +54,9 @@ variables {α β E F : Type*} [measurable_space α]
 
 namespace measure_theory
 
-section normed_group
+section normed_add_comm_group
 
-variables [normed_group E]  {f g : α → E} {s t : set α} {μ ν : measure α}
+variables [normed_add_comm_group E]  {f g : α → E} {s t : set α} {μ ν : measure α}
   {l l' : filter α}
 
 variables [complete_space E] [normed_space ℝ E]
@@ -141,6 +141,10 @@ begin
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
   ... = ∫ x in s, f x ∂μ : by simp
 end
+
+lemma set_integral_indicator (ht : measurable_set t) :
+  ∫ x in s, t.indicator f x ∂μ = ∫ x in s ∩ t, f x ∂μ :=
+by rw [integral_indicator ht, measure.restrict_restrict ht, set.inter_comm]
 
 lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
   {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
@@ -413,7 +417,7 @@ lemma integral_Ioc_eq_integral_Ioo [partial_order α] {f : α → E} {a b : α} 
   ∫ t in Ioc a b, f t ∂μ = ∫ t in Ioo a b, f t ∂μ :=
 integral_Ioc_eq_integral_Ioo' $ measure_singleton b
 
-end normed_group
+end normed_add_comm_group
 
 section mono
 
@@ -517,7 +521,7 @@ end nonneg
 
 section tendsto_mono
 
-variables {μ : measure α} [normed_group E] [complete_space E] [normed_space ℝ E]
+variables {μ : measure α} [normed_add_comm_group E] [complete_space E] [normed_space ℝ E]
   {s : ℕ → set α} {f : α → E}
 
 lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
@@ -548,8 +552,8 @@ end tendsto_mono
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
 section continuous_set_integral
-variables [normed_group E] {𝕜 : Type*} [normed_field 𝕜] [normed_group F] [normed_space 𝕜 F]
-  {p : ℝ≥0∞} {μ : measure α}
+variables [normed_add_comm_group E] {𝕜 : Type*} [normed_field 𝕜] [normed_add_comm_group F]
+  [normed_space 𝕜 F] {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
 `(Lp.mem_ℒp f).restrict s).to_Lp f`. This map is additive. -/
@@ -630,7 +634,7 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables {ι : Type*} [normed_group E]
+variables {ι : Type*} [normed_add_comm_group E]
 
 /-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
 filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
@@ -740,7 +744,7 @@ as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 open_locale complex_conjugate
 
 variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
   {p : ennreal}
 
 namespace continuous_linear_map
@@ -782,7 +786,7 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_apply {H : Type*} [normed_group H] [normed_space 𝕜 H]
+lemma integral_apply {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
   {φ : α → H →L[𝕜] E} (φ_int : integrable φ μ) (v : H) :
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
 ((continuous_linear_map.apply 𝕜 E v).integral_comp_comm φ_int).symm

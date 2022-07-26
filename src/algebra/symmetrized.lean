@@ -222,7 +222,7 @@ instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
 { mul_comm := sym_alg.mul_comm,
   lmul_comm_rmul_rmul := λ a b, begin
     -- Rearrange LHS
-    rw [mul_def, mul_def a b, unsym_sym, ← mul_assoc, ← commute.eq (half_commute (unsym (a*a))),
+    rw [mul_def, mul_def a b, unsym_sym, ← mul_assoc, ← (half_commute (unsym (a*a))).eq,
       mul_assoc, mul_assoc, ← mul_add, ← mul_assoc, add_mul, mul_add (unsym (a * a)), ← add_assoc,
       ← mul_assoc, ← mul_assoc],
 

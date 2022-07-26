@@ -325,7 +325,7 @@ pdf X ℙ μ =ᵐ[μ] support.indicator ((μ support)⁻¹ • 1)
 namespace is_uniform
 
 lemma has_pdf {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
-  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ⊤) (hu : is_uniform X s ℙ μ) :
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ∞) (hu : is_uniform X s ℙ μ) :
   has_pdf X ℙ μ :=
 has_pdf_of_pdf_ne_zero
 begin
@@ -348,7 +348,7 @@ lemma pdf_to_real_ae_eq {m : measurable_space α}
 filter.eventually_eq.fun_comp hX ennreal.to_real
 
 lemma measure_preimage {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
-  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ⊤) (hms : measurable_set s)
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ∞) (hms : measurable_set s)
   (hu : is_uniform X s ℙ μ)
   {A : set E} (hA : measurable_set A) :
   ℙ (X ⁻¹' A) = μ (s ∩ A) / μ s :=
@@ -362,7 +362,7 @@ begin
 end
 
 lemma is_probability_measure {m : measurable_space α} {X : α → E} {ℙ : measure α} {μ : measure E}
-  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ⊤) (hms : measurable_set s)
+  {s : set E} (hns : μ s ≠ 0) (hnt : μ s ≠ ∞) (hms : measurable_set s)
   (hu : is_uniform X s ℙ μ) :
   is_probability_measure ℙ :=
 ⟨begin
@@ -402,7 +402,7 @@ end
 
 /-- A real uniform random variable `X` with support `s` has expectation
 `(λ s)⁻¹ * ∫ x in s, x ∂λ` where `λ` is the Lebesgue measure. -/
-lemma integral_eq (hnt : volume s ≠ ⊤) (huX : is_uniform X s ℙ) :
+lemma integral_eq (hnt : volume s ≠ ∞) (huX : is_uniform X s ℙ) :
   ∫ x, X x ∂ℙ = (volume s)⁻¹.to_real * ∫ x in s, x :=
 begin
   haveI := has_pdf hns hnt huX,

@@ -17,12 +17,12 @@ In this file we define compact linear operators between two topological vector s
 
 ## Main statements
 
-* `is_compact_operator_iff_is_compact_closure_image_closed_ball` : the usual characterization of compact
-  operators from a normed space to a T2 TVS.
+* `is_compact_operator_iff_is_compact_closure_image_closed_ball` : the usual characterization of
+  compact operators from a normed space to a T2 TVS.
 * `is_compact_operator.comp_clm` : precomposing a compact operator by a continuous linear map gives
   a compact operator
-* `is_compact_operator.clm_comp` : postcomposing a compact operator by a continuous linear map gives
-  a compact operator
+* `is_compact_operator.clm_comp` : postcomposing a compact operator by a continuous linear map
+  gives a compact operator
 * `is_compact_operator.continuous` : compact operators are automatically continuous
 * `is_closed_set_of_is_compact_operator` : the set of compact operators is closed for the operator
   norm
@@ -81,7 +81,8 @@ lemma is_compact_operator_iff_exists_mem_nhds_image_subset_compact (f : M₁ →
 ⟨λ ⟨K, hK, hKf⟩, ⟨f ⁻¹' K, hKf, K, hK, image_preimage_subset _ _⟩,
  λ ⟨V, hV, K, hK, hVK⟩, ⟨K, hK, mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
 
-lemma is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image [t2_space M₂] (f : M₁ → M₂) :
+lemma is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image [t2_space M₂]
+  (f : M₁ → M₂) :
   is_compact_operator f ↔ ∃ V ∈ (𝓝 0 : filter M₁), is_compact (closure $ f '' V) :=
 begin
   rw is_compact_operator_iff_exists_mem_nhds_image_subset_compact,
@@ -107,8 +108,8 @@ let ⟨K, hK, hKf⟩ := hf,
 ⟨σ₁₂ c • K, hK.image $ continuous_id.const_smul (σ₁₂ c),
   by rw [image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit]; exact hrS c hc.le⟩
 
-lemma is_compact_operator.is_compact_closure_image_of_vonN_bounded [t2_space M₂] {f : M₁ →ₛₗ[σ₁₂] M₂}
-  (hf : is_compact_operator f) {S : set M₁}
+lemma is_compact_operator.is_compact_closure_image_of_vonN_bounded [t2_space M₂]
+  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) {S : set M₁}
   (hS : is_vonN_bounded 𝕜₁ S) : is_compact (closure $ f '' S) :=
 let ⟨K, hK, hKf⟩ := hf.image_subset_compact_of_vonN_bounded hS in
 compact_closure_of_subset_compact hK hKf
@@ -131,8 +132,8 @@ lemma is_compact_operator.image_closed_ball_subset_compact [has_continuous_const
   ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
 hf.image_subset_compact_of_vonN_bounded (normed_space.is_vonN_bounded_closed_ball 𝕜₁ M₁ r)
 
-lemma is_compact_operator.is_compact_closure_image_ball [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
-  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) (r : ℝ) :
+lemma is_compact_operator.is_compact_closure_image_ball [has_continuous_const_smul 𝕜₂ M₂]
+  [t2_space M₂] {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) (r : ℝ) :
   is_compact (closure $ f '' metric.ball 0 r) :=
 hf.is_compact_closure_image_of_vonN_bounded (normed_space.is_vonN_bounded_ball 𝕜₁ M₁ r)
 
@@ -155,15 +156,15 @@ lemma is_compact_operator_iff_image_closed_ball_subset_compact [has_continuous_c
  λ ⟨K, hK, hKr⟩, (is_compact_operator_iff_exists_mem_nhds_image_subset_compact f).mpr
   ⟨metric.closed_ball 0 r, closed_ball_mem_nhds _ hr, K, hK, hKr⟩⟩
 
-lemma is_compact_operator_iff_is_compact_closure_image_ball [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
-  (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
+lemma is_compact_operator_iff_is_compact_closure_image_ball [has_continuous_const_smul 𝕜₂ M₂]
+  [t2_space M₂] (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
   is_compact_operator f ↔ is_compact (closure $ f '' metric.ball 0 r) :=
 ⟨λ hf, hf.is_compact_closure_image_ball r,
  λ hf, (is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image f).mpr
   ⟨metric.ball 0 r, ball_mem_nhds _ hr, hf⟩⟩
 
-lemma is_compact_operator_iff_is_compact_closure_image_closed_ball [has_continuous_const_smul 𝕜₂ M₂]
-  [t2_space M₂] (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
+lemma is_compact_operator_iff_is_compact_closure_image_closed_ball
+  [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂] (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
   is_compact_operator f ↔ is_compact (closure $ f '' metric.closed_ball 0 r) :=
 ⟨λ hf, hf.is_compact_closure_image_closed_ball r,
  λ hf, (is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image f).mpr
@@ -235,8 +236,8 @@ lemma is_compact_operator.clm_comp [add_comm_monoid M₂] [module R₂ M₂] [ad
   is_compact_operator (g ∘ f) :=
 hf.continuous_comp g.continuous
 
-lemma is_compact_operator.continuous_on_comp [t2_space M₂] {f : M₁ → M₂} (hf : is_compact_operator f)
-  {g : M₂ → M₃} (hg : continuous_on g (closure $ range f)) :
+lemma is_compact_operator.continuous_on_comp [t2_space M₂] {f : M₁ → M₂}
+  (hf : is_compact_operator f) {g : M₂ → M₃} (hg : continuous_on g (closure $ range f)) :
   is_compact_operator (g ∘ f) :=
 begin
   rw is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image at hf,
@@ -320,8 +321,8 @@ begin
 end
 
 /-- Upgrade a compact `linear_map` to a `continuous_linear_map`. -/
-def continuous_linear_map.mk_of_is_compact_operator {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) :
-  M₁ →SL[σ₁₂] M₂ :=
+def continuous_linear_map.mk_of_is_compact_operator {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : is_compact_operator f) : M₁ →SL[σ₁₂] M₂ :=
 ⟨f, hf.continuous⟩
 
 end continuous
@@ -329,14 +330,16 @@ end continuous
 lemma is_closed_set_of_is_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
   [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
   [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
-  [normed_space 𝕜₂ M₂] [complete_space M₂] : is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=
+  [normed_space 𝕜₂ M₂] [complete_space M₂] :
+  is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=
 begin
   refine is_closed_of_closure_subset _,
   rintros u hu,
   rw metric.mem_closure_iff at hu,
   suffices : totally_bounded (u '' metric.closed_ball 0 1),
   { change is_compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
-    rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂) zero_lt_one,
+    rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂)
+      zero_lt_one,
     exact compact_of_totally_bounded_is_closed this.closure is_closed_closure },
   rw metric.totally_bounded_iff,
   intros ε hε,

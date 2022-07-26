@@ -72,10 +72,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (n : ℝ≥0) : n.val = n := rfl
 
-instance : can_lift ℝ ℝ≥0 :=
-{ coe := coe,
-  cond := λ r, 0 ≤ r,
-  prf := λ x hx, ⟨⟨x, hx⟩, rfl⟩ }
+instance : can_lift ℝ ℝ≥0 := subtype.can_lift _
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
 
@@ -482,13 +479,17 @@ begin
       contradiction } }
 end
 
-@[simp] lemma to_nnreal_bit0 {r : ℝ} (hr : 0 ≤ r) :
-  real.to_nnreal (bit0 r) = bit0 (real.to_nnreal r) :=
-real.to_nnreal_add hr hr
+@[simp] lemma to_nnreal_bit0 (r : ℝ) : real.to_nnreal (bit0 r) = bit0 (real.to_nnreal r) :=
+begin
+  cases le_total r 0 with hr hr,
+  { rw [to_nnreal_of_nonpos hr, to_nnreal_of_nonpos, bit0_zero],
+    exact add_nonpos hr hr },
+  { exact to_nnreal_add hr hr }
+end
 
 @[simp] lemma to_nnreal_bit1 {r : ℝ} (hr : 0 ≤ r) :
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
-(real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [to_nnreal_one, bit1, hr])
+(real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
 
 end to_nnreal
 

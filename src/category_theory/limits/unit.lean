@@ -20,7 +20,7 @@ universe v
 open category_theory
 namespace category_theory.limits
 
-variables {J : Type v} [small_category J] {F : J ⥤ discrete punit.{v+1}}
+variables {J : Type v} [small_category J] {F : J ⥤ discrete punit}
 
 /-- A trivial cone for a functor into `punit`. `punit_cone_is_limit` shows it is a limit. -/
 def punit_cone : cone F :=

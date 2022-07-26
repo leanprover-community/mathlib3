@@ -68,7 +68,7 @@ variables {C : Type u} [category.{v} C]
 An open immersion of PresheafedSpaces is an open embedding `f : X ⟶ U ⊆ Y` of the underlying
 spaces, such that the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
 -/
-class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
+class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
 (base_open : open_embedding f.base)
 (c_iso : ∀ U : opens X, is_iso (f.c.app (op (base_open.is_open_map.functor.obj U))))
 
@@ -77,7 +77,7 @@ A morphism of SheafedSpaces is an open immersion if it is an open immersion as a
 of PresheafedSpaces
 -/
 abbreviation SheafedSpace.is_open_immersion
-  [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) : Prop :=
+  [has_products.{v} C] {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
 PresheafedSpace.is_open_immersion f
 
 /--
@@ -104,7 +104,7 @@ attribute [instance] is_open_immersion.c_iso
 
 section
 
-variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
+variables {X Y : PresheafedSpace.{v} C} {f : X ⟶ Y} (H : is_open_immersion f)
 
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
 abbreviation open_functor := H.base_open.is_open_map.functor
@@ -228,12 +228,12 @@ by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 
 /-- An isomorphism is an open immersion. -/
-instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : is_open_immersion H.hom :=
+instance of_iso {X Y : PresheafedSpace.{v} C} (H : X ≅ Y) : is_open_immersion H.hom :=
 { base_open := (Top.homeo_of_iso ((forget C).map_iso H)).open_embedding,
   c_iso := λ _, infer_instance }
 
 @[priority 100]
-instance of_is_iso {X Y : PresheafedSpace C} (f : X ⟶ Y) [is_iso f] : is_open_immersion f :=
+instance of_is_iso {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) [is_iso f] : is_open_immersion f :=
 algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso (as_iso f)
 
 instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
@@ -289,7 +289,7 @@ section pullback
 
 noncomputable theory
 
-variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
+variables {X Y Z : PresheafedSpace.{v} C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
 
 include hf
 
@@ -526,7 +526,7 @@ open category_theory.limits.walking_cospan
 
 section to_SheafedSpace
 
-variables [has_products C] {X : PresheafedSpace C} (Y : SheafedSpace C)
+variables [has_products.{v} C] {X : PresheafedSpace.{v} C} (Y : SheafedSpace C)
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
 
 include H
@@ -559,14 +559,14 @@ instance to_SheafedSpace_is_open_immersion :
 
 omit H
 
-@[simp] lemma SheafedSpace_to_SheafedSpace {X Y : SheafedSpace C} (f : X ⟶ Y)
+@[simp] lemma SheafedSpace_to_SheafedSpace {X Y : SheafedSpace.{v} C} (f : X ⟶ Y)
   [is_open_immersion f] : to_SheafedSpace Y f = X := by unfreezingI { cases X, refl }
 
 end to_SheafedSpace
 
 section to_LocallyRingedSpace
 
-variables {X : PresheafedSpace CommRing.{u}} (Y : LocallyRingedSpace.{u})
+variables {X : PresheafedSpace.{u} CommRing.{u}} (Y : LocallyRingedSpace.{u})
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
 
 include H
@@ -608,10 +608,10 @@ end PresheafedSpace.is_open_immersion
 
 namespace SheafedSpace.is_open_immersion
 
-variables [has_products C]
+variables [has_products.{v} C]
 
 @[priority 100]
-instance of_is_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+instance of_is_iso {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) [is_iso f] :
   SheafedSpace.is_open_immersion f :=
 @@PresheafedSpace.is_open_immersion.of_is_iso _ f
 (SheafedSpace.forget_to_PresheafedSpace.map_is_iso _)
@@ -1318,7 +1318,7 @@ namespace PresheafedSpace.is_open_immersion
 
 section to_Scheme
 
-variables {X : PresheafedSpace CommRing.{u}} (Y : Scheme.{u})
+variables {X : PresheafedSpace.{u} CommRing.{u}} (Y : Scheme.{u})
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : PresheafedSpace.is_open_immersion f]
 
 include H

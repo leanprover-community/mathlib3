@@ -47,7 +47,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u u' u₂
+universes v v₂ u u' u₂
 
 open category_theory
 open category_theory.limits.walking_parallel_pair
@@ -822,7 +822,7 @@ end transport
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_morphisms D]
 variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
 
 /--

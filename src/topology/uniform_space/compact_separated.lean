@@ -148,7 +148,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁ ×ˢ V₂ ∈ 𝓝 (x, y)
-    have hV₁₂ : V₁ ×ˢ V₂ ∈ 𝓝 (x, y) := prod_is_open.mem_nhds V₁_in V₂_in,
+    have hV₁₂ : V₁ ×ˢ V₂ ∈ 𝓝 (x, y) := prod_mem_nhds V₁_in V₂_in,
     -- But (x, y) is also a cluster point of F so (V₁ ×ˢ V₂) ∩ (W ○ W) ≠ ∅
     -- However the construction of W implies (V₁ ×ˢ V₂) ∩ (W ○ W) = ∅.
     -- Indeed assume for contradiction there is some (u, v) in the intersection.

@@ -74,6 +74,12 @@ this is π/2. See `orientation.oangle` for the corresponding oriented angle
 definition. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
+lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
+  continuous_at (λ y : V × V, angle y.1 y.2) x :=
+real.continuous_arccos.continuous_at.comp $ continuous_inner.continuous_at.div
+  ((continuous_norm.comp continuous_fst).mul (continuous_norm.comp continuous_snd)).continuous_at
+  (by simp [hx1, hx2])
+
 lemma is_conformal_map.preserves_angle {E F : Type*}
   [inner_product_space ℝ E] [inner_product_space ℝ F]
   {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
@@ -387,6 +393,17 @@ notation. -/
 def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
 
 localized "notation `∠` := euclidean_geometry.angle" in euclidean_geometry
+
+lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
+  continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
+begin
+  let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
+  have hf1 : (f x).1 ≠ 0, by simp [hx12],
+  have hf2 : (f x).2 ≠ 0, by simp [hx32],
+  exact (inner_product_geometry.continuous_at_angle hf1 hf2).comp
+    ((continuous_fst.vsub continuous_snd.fst).prod_mk
+      (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
+end
 
 /-- The angle at a point does not depend on the order of the other two
 points. -/

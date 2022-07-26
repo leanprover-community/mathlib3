@@ -42,7 +42,7 @@ namespace Top.presheaf
 open category_theory topological_space Top category_theory.limits opposite
 open Top.presheaf.sheaf_condition_equalizer_products
 
-variables {C : Type u} [category.{v} C] [has_products C]
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
 variables {X : Top.{v}} (F : presheaf C X)
 
 /--
@@ -524,7 +524,7 @@ namespace Top.sheaf
 
 open category_theory topological_space Top opposite
 
-variables {C : Type u} [category.{v} C] [limits.has_products C]
+variables {C : Type u} [category.{v} C] [limits.has_products.{v} C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 

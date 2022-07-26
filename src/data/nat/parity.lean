@@ -95,6 +95,9 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
+@[parity_simps] theorem even_add_one : even (n + 1) ↔ ¬ even n :=
+by simp [even_add]
+
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
@@ -117,9 +120,6 @@ theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
   (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
-
-@[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
-by rw [succ_eq_add_one, even_add]; simp [not_even_one]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;

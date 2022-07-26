@@ -900,12 +900,10 @@ order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, m
 
 variables {B : Type*} [comm_ring B] [is_domain B] [is_dedekind_domain B] {L : ideal B}
 
-lemma ideal_factors_fun_of_quot_hom_comp
-  {f : R ⧸ I →+* A ⧸ J}  {g : A ⧸ J →+* B ⧸ L} (hf : function.surjective f)
-    (hg : function.surjective g) :
-    (ideal_factors_fun_of_quot_hom hg).comp
-  (ideal_factors_fun_of_quot_hom hf)  = ideal_factors_fun_of_quot_hom
-      (show function.surjective (g.comp f), from hg.comp hf) :=
+lemma ideal_factors_fun_of_quot_hom_comp {f : R ⧸ I →+* A ⧸ J}  {g : A ⧸ J →+* B ⧸ L}
+  (hf : function.surjective f) (hg : function.surjective g) :
+  (ideal_factors_fun_of_quot_hom hg).comp (ideal_factors_fun_of_quot_hom hf)
+    = ideal_factors_fun_of_quot_hom (show function.surjective (g.comp f), from hg.comp hf) :=
 begin
   refine order_hom.ext _ _ (funext $ λ x, _),
   rw [ideal_factors_fun_of_quot_hom, ideal_factors_fun_of_quot_hom, order_hom.comp_coe,

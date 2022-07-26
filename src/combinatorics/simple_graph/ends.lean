@@ -169,7 +169,6 @@ begin
 end
 
 
-
 lemma conn_sub_unique (P : set V)
   (Pnempty : set.nonempty P) (P_c_o : ∀ x y ∈ P, c_o G K x y) : ∃! C : set V, C ∈ components G K ∧ P ⊆ C :=
 begin
@@ -460,13 +459,76 @@ begin
 end
 
 
-def extend_conn_to_finite_comps [locally_finite G] [Knempty : K.nonempty]
+def extend_to_fin_components [locally_finite G] (K : finset V) : finset V :=
+begin
+let finite_pieces : set V := ⋃₀ fin_components G K,
+  have : set.finite finite_pieces, by {
+    apply set.finite.sUnion,
+    {exact set.finite.subset (component.finite G K) (fin_components_subset G K)},
+    {rintros C Cgood, exact Cgood.2,}},
+  exact K ∪ this.to_finset,
+end
+
+lemma extend_to_fin_components.sub [locally_finite G] (K : finset V) :
+K ⊆ extend_to_fin_components G K := finset.subset_union_left _ _
+
+lemma extend_to_fin_components.inf_components [locally_finite G] (K : finset V) :
+  components G (extend_to_fin_components G K) = inf_components G K :=
+begin
+  let L := extend_to_fin_components G K,
+  apply set.ext,
+  rintros C,
+  split,
+  { rintro C_L,
+    /-
+    C_L : C ∈ components L
+    Thus, C is connected (since it's a component) and does not intersect L, hence does not intersect K.
+    Therefore, C is contained in a unique D ∈ components K.
+    Since C does not intersect L, it does not intersect any D' ∈ fin_components K, hence cannot be contained in one.
+    Hence, D ∈ inf_components K.
+    Let us show C = D. We already know C ⊆ D, remains the other inclusion.
+    Fix some c ∈ C and any d ∈ D.
+    There is a path w from c to d entirely contained in D, hence not intersecting any D' ∈ fin_components K, and not intersecting K either.#check
+    w is therefore outside of K', which by definition means that `co_o c d`, and thus d lies in C.
+    -/
+    sorry,
+  },
+  { rintro C_K,
+    /-
+    C_K : C ∈ inf_components K.
+    Thus, C is connected, and disjoint from K and from any other C' ∈ components K.
+    In particular, C is disjoint from L, and, being connected, it is contained in a unique D ∈ components L.
+    Again, to show C = D, it suffices to choose some c ∈ C and show that any d ∈ D lies in C.
+    Take a path w from c to d, entirely contained in D. By hypothesis, w does not intersect K, which implies that `co_o c d` and d lies in C.
+    -/
+    sorry,},
+end
+
+lemma extend_to_fin_components.connected_of_connected  [locally_finite G]
+  (K : finset V)
+  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
+  ∀ x y ∈ extend_to_fin_components G K, ∃ w : G.walk x y, w.support.to_finset ⊆ extend_to_fin_components G K :=
+begin
+  -- Sorry
+end
+
+
+def extend_connected_to_fin_components [locally_finite G] [Knempty : K.nonempty]
   (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
   {K' : finset V | K ⊆ K'
                  ∧ (∀ x y ∈ K', ∃ w : G.walk x y, w.support.to_finset ⊆ K')
                  ∧ (∀ C : components G K', C.val.infinite)
-  --               ∧ components G K' = inf_components G K
   } :=
+begin
+  use extend_to_fin_components G K,
+  use extend_to_fin_components.sub G K,
+  use extend_to_fin_components.connected_of_connected G K Kconn,
+  rintros ⟨C,CK'⟩,
+  rw extend_to_fin_components.inf_components G K at CK',
+  exact CK'.2,
+end
+
+/-
 begin
   let finite_pieces : set V := ⋃₀ fin_components G K,
   have : set.finite finite_pieces, by {
@@ -510,7 +572,7 @@ begin
   }
 
 end
-
+-/
 
 
 
@@ -1065,7 +1127,7 @@ lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
 begin
   rcases @extend_to_conn V G _ K (sorry) _ (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
-  rcases @extend_conn_to_finite_comps V G _ Kp _ (finset.nonempty.mono KKp Knempty) Kpconn with ⟨K',KK',K'conn,finn⟩,
+  rcases @extend_connected_to_fin_components V G _ Kp _ (finset.nonempty.mono KKp Knempty) Kpconn with ⟨K',KK',K'conn,finn⟩,
   rcases auts K' with ⟨φ,φgood⟩,
 
   let φK' := finset.image φ K',

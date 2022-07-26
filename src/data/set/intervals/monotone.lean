@@ -212,12 +212,9 @@ lemma strict_mono_on.Iic_le_id [pred_order α] [is_pred_archimedean α] [order_t
 variables [preorder β] {ψ : α → β}
 
 /-- A function `ψ` on a `succ_order` is strictly monotone before some `n` if for all `m` such that
-`succ m ≤ n`, we have `ψ m < ψ (succ m)`.
-
-We note that in the lemma `succ m ≤ n` and `m < n` are not equivalent since this is in general
-not true if we do not assume `no_max_order`. -/
+`m < n`, we have `ψ m < ψ (succ m)`. -/
 lemma strict_mono_on_Iic_of_lt_succ [succ_order α] [is_succ_archimedean α]
-  {n : α} (hψ : ∀ m, succ m ≤ n → ψ m < ψ (succ m)) :
+  {n : α} (hψ : ∀ m, m < n → ψ m < ψ (succ m)) :
   strict_mono_on ψ (set.Iic n) :=
 begin
   intros x hx y hy hxy,
@@ -225,33 +222,36 @@ begin
   induction i with k ih,
   { simpa using hxy },
   cases k,
-  { exact hψ _ hy },
+  { exact hψ _ (lt_of_lt_of_le hxy hy) },
   rw set.mem_Iic at *,
   simp only [function.iterate_succ', function.comp_apply] at ih hxy hy ⊢,
   by_cases hmax : is_max (succ^[k] x),
   { rw succ_eq_iff_is_max.2 hmax at hxy ⊢,
+    exact ih (le_trans (le_succ _) hy) hxy },
+  by_cases hmax' : is_max (succ (succ^[k] x)),
+  { rw succ_eq_iff_is_max.2 hmax' at hxy ⊢,
     exact ih (le_trans (le_succ _) hy) hxy },
   refine lt_trans (ih (le_trans (le_succ _) hy) _) _,
   { refine lt_of_le_of_lt (le_succ_iterate k _) _,
     rw lt_succ_iff_not_is_max,
     exact hmax },
   rw [← function.comp_apply succ, ← function.iterate_succ'],
-  refine hψ _ (le_trans _ hy),
-  rw [function.iterate_succ', function.comp_apply],
+  refine hψ _ (lt_of_lt_of_le _ hy),
+  rwa [function.iterate_succ', function.comp_apply, lt_succ_iff_not_is_max],
 end
 
 lemma strict_anti_on_Iic_of_succ_lt [succ_order α] [is_succ_archimedean α]
-  {n : α} (hψ : ∀ m, succ m ≤ n → ψ (succ m) < ψ m) :
+  {n : α} (hψ : ∀ m, m < n → ψ (succ m) < ψ m) :
   strict_anti_on ψ (set.Iic n) :=
 λ i hi j hj hij, @strict_mono_on_Iic_of_lt_succ α βᵒᵈ _ _ ψ _ _ n hψ i hi j hj hij
 
 lemma strict_mono_on_Iic_of_pred_lt [pred_order α] [is_pred_archimedean α]
-  {n : α} (hψ : ∀ m, n ≤ pred m → ψ (pred m) < ψ m) :
+  {n : α} (hψ : ∀ m, n < m → ψ (pred m) < ψ m) :
   strict_mono_on ψ (set.Ici n) :=
 λ i hi j hj hij, @strict_mono_on_Iic_of_lt_succ αᵒᵈ βᵒᵈ _ _ ψ _ _ n hψ j hj i hi hij
 
 lemma strict_anti_on_Iic_of_lt_pred [pred_order α] [is_pred_archimedean α]
-  {n : α} (hψ : ∀ m, n ≤ pred m → ψ m < ψ (pred m)) :
+  {n : α} (hψ : ∀ m, n < m → ψ m < ψ (pred m)) :
   strict_anti_on ψ (set.Ici n) :=
 λ i hi j hj hij, @strict_anti_on_Iic_of_succ_lt αᵒᵈ βᵒᵈ _ _ ψ _ _ n hψ j hj i hi hij
 

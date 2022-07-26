@@ -853,8 +853,40 @@ begin
   sorry,
 end
 
-lemma finite_ends_to_inj [preconnected G] [locally_finite G] [fintype (ends G)] :
-  ∃ K : finset V, K.nonempty ∧ ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) := sorry
+@[instance]
+lemma fintype_inf_connected_components  [preconnected G] [locally_finite G] [fintype (ends G)]
+  (K : finset V) : fintype (inf_components G K) :=
+@fintype.of_surjective _ _ (sorry) _ (eval G K) (@eval_surjective V G _ (sorry) _ K)
+
+
+lemma finite_ends_to_inj [preconnected G] [locally_finite G] [fintype (ends G)] (Vnempty : nonempty V) :
+  ∃ K : finset V, K.nonempty ∧ ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) :=
+begin
+  let v : V := Vnempty.some,
+  let M := fintype.card (ends G),
+  have all_fin : ∀ K : finset V, fintype (inf_components G K), from
+    λ K, @fintype.of_surjective _ _ (sorry) _ (eval G K) (@eval_surjective V G _ (sorry) _ K),
+  have all_le_M :=
+    λ K, @fintype.card_le_of_surjective _ _ _ (all_fin K) (eval G K) (@eval_surjective V G _ (sorry) _ K),
+  have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_components G K') ≤ fintype.card (inf_components G K), by sorry,
+  rcases this with ⟨K,Kmax⟩,
+  let Kv := insert v K,
+  let KsubKv := finset.subset_insert v K,
+  use Kv,
+  split,
+  { exact finset.insert_nonempty v K, },
+  { rintros L KvsubL,
+    by_contradiction notinj,
+    have lol := @fintype.card_lt_of_surjective_not_injective _ _ (all_fin L) (all_fin Kv) (bwd_map G KvsubL) (bwd_map_surjective G KvsubL) notinj,
+    have lol2 := @fintype.card_le_of_surjective _ _ (all_fin Kv) (all_fin K) (bwd_map G KsubKv) (bwd_map_surjective G KsubKv),
+    have lol3 := lt_of_le_of_lt lol2 lol,
+    have lol4 := Kmax L,
+    have lol5 := lol4.not_lt,
+    --exact lol5 lol3, -- it's not happy!
+    sorry
+  },
+
+end
 -- Choose K maximizing `inf_components G K`.
 
 
@@ -911,16 +943,15 @@ begin
 
   have Einf : E.infinite := finn ⟨E,Ecomp⟩,
   have Finf : F.infinite, by {
-    have lol := @component.autom V G _ _ (sorry) K  φ,
     have : F ∈ set.image (λ C, φ '' C) (components G K'), by {
-      simp,
-      sorry,
-    },
+      rw (@component.autom V G _ _ (sorry) K'  φ) at Fcomp,
+      simpa only,},
     rcases this with ⟨FF,FFcomp,rfl⟩,
-    sorry, -- FF is infinite since it's a component for K', and F is its image, hence infinite too
-  },
+    have φ_inj_FF : set.inj_on φ FF, by {sorry},
+    exact (set.infinite_image_iff φ_inj_FF).mpr (finn ⟨FF,FFcomp⟩),},
 
   apply nicely_arranged_bwd_map_not_inj G φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
+
   sorry,
 end
 

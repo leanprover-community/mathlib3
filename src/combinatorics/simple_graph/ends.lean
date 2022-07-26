@@ -440,8 +440,23 @@ match l with
 | list.cons h l := by {simp only [list.tail_cons, list.to_finset_cons], exact finset.subset_insert _ _}
 end
 
-lemma list.to_finset_subset_to_finset {α : Type u} [decidable_eq α] (l₁ l₂ : list α) (l₁ ⊆ l₂) : l₁.to_finset ⊆ l₂.to_finset := sorry
-
+lemma list.to_finset_subset_to_finset {α : Type u} [decidable_eq α] (l₁ l₂ : list α) (h : l₁ ⊆ l₂) : l₁.to_finset ⊆ l₂.to_finset :=
+begin
+  revert l₂,
+  induction l₁,
+  { intros l₂ h, simp only [list.to_finset_nil, finset.empty_subset], },
+  { intros l₂ h,
+    simp at h, cases h,
+    simp only [list.to_finset_cons, finset.insert_subset],
+    split,
+    {
+      revert h_left, generalizes [l₁_hd = a, l₂ = l],
+      intro h, cases l,
+      {simp at h, contradiction,},
+      {simp at h ⊢, assumption, }
+    },
+    {apply l₁_ih, assumption, } }
+end
 
 def extend_to_conn [Gconn : preconnected G] [locally_finite G] [Vnempty : nonempty V] :
   {K' : finset V | K ⊆ K'
@@ -473,8 +488,10 @@ begin
         apply finset.subset.trans _ this,
         simp only,
         rw xwalk',
-        apply list.to_finset_subset_to_finset ry.support (qx.append rx).support ,
-        exact walk.support_append_subset_right qx rx,
+        -- throws an error - failed to unify
+        -- apply list.to_finset_subset_to_finset ry.support (qx.append rx).support ,
+        -- exact walk.support_append_subset_right qx rx,
+        admit,
       },
       exact finset.subset.trans (finset.subset.refl _) this,
     },

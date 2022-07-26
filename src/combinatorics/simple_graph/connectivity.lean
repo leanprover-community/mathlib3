@@ -599,7 +599,7 @@ begin
       split_ifs with h'; subst_vars; simp [*], } },
 end
 
-lemma walk.mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V}
+lemma mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V}
   {p : G.walk u v} :
   w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
 begin

@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.cauchy_integral
 import analysis.convex.integral
-import analysis.normed_space.completion
+import analysis.calculus.completion
 import analysis.normed_space.extr
 import topology.algebra.order.extr_closure
 
@@ -144,11 +144,9 @@ lemma norm_max_aux₂ {f : ℂ → F} {z w : ℂ} (hd : diff_cont_on_cl ℂ f (b
   (hz : is_max_on (norm ∘ f) (closed_ball z (dist w z)) z) :
   ∥f w∥ = ∥f z∥ :=
 begin
-  set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
-  have he : ∀ x, ∥e x∥ = ∥x∥, from uniform_space.completion.norm_coe,
-  replace hz : is_max_on (norm ∘ (e ∘ f)) (closed_ball z (dist w z)) z,
-    by simpa only [is_max_on, (∘), he] using hz,
-  simpa only [he] using norm_max_aux₁ (e.differentiable.comp_diff_cont_on_cl hd) hz
+  rw [← uniform_space.completion.norm_coe (f w), ← uniform_space.completion.norm_coe (f z)],
+  refine norm_max_aux₁ hd.coe_completion _,
+  simpa only [(∘), uniform_space.completion.norm_coe] using hz
 end
 
 /-!
@@ -282,6 +280,21 @@ above twice: for `f` and for `λ x, f x + f c`.  Then we have `∥f w∥ = ∥f 
 
 variables [strict_convex_space ℝ F]
 
+lemma _root_.uniform_space.completion.eq_of_is_preconnected_of_is_max_on_norm {f : E → F̂}
+  {U : set E} {c x : E} {y y' : F} (hc : is_preconnected U) (ho : is_open U)
+  (hd : differentiable_on ℂ f U) (hcU : c ∈ U) (hm : is_max_on (norm ∘ f) U c) (hx : x ∈ U)
+  (hy : f c = y) (hy' : f x = y') :
+  y = y' :=
+begin
+  have H₁ : ∥f x∥ = ∥f c∥, from norm_eq_on_of_is_preconnected_of_is_max_on hc ho hd hcU hm hx,
+  have H₂ : ∥f x + f c∥ = ∥f c + f c∥,
+    from norm_eq_on_of_is_preconnected_of_is_max_on hc ho (hd.add_const _) hcU hm.norm_add_self hx,
+  simp only [hy, hy', ← uniform_space.completion.coe_add, uniform_space.completion.norm_coe]
+    at H₁ H₂,
+  refine (eq_of_norm_eq_of_norm_add_eq H₁ _).symm,
+  rw [H₂, (same_ray.refl y).norm_add, H₁]
+end
+
 /-- **Maximum modulus principle** on a connected set. Let `U` be a (pre)connected open set in a
 complex normed space.  Let `f : E → F` be a function that is complex differentiable on `U`. Suppose
 that `∥f x∥` takes its maximum value on `U` at `c ∈ U`. Then `f x = f c` for all `x ∈ U`.
@@ -291,11 +304,8 @@ lemma eq_on_of_is_preconnected_of_is_max_on_norm {f : E → F} {U : set E} {c : 
   (hc : is_preconnected U) (ho : is_open U) (hd : differentiable_on ℂ f U) (hcU : c ∈ U)
   (hm : is_max_on (norm ∘ f) U c) :
   eq_on f (const E (f c)) U :=
-λ x hx,
-have H₁ : ∥f x∥ = ∥f c∥, from norm_eq_on_of_is_preconnected_of_is_max_on hc ho hd hcU hm hx,
-have H₂ : ∥f x + f c∥ = ∥f c + f c∥,
-  from norm_eq_on_of_is_preconnected_of_is_max_on hc ho (hd.add_const _) hcU hm.norm_add_self hx,
-eq_of_norm_eq_of_norm_add_eq H₁ $ by simp only [H₂, same_ray.rfl.norm_add, H₁]
+λ x hx, eq.symm $ uniform_space.completion.eq_of_is_preconnected_of_is_max_on_norm hc ho
+  hd.coe_completion hcU (by simpa [(∘)]) hx rfl rfl
 
 /-- **Maximum modulus principle** on a connected set. Let `U` be a (pre)connected open set in a
 complex normed space.  Let `f : E → F` be a function that is complex differentiable on `U` and is
@@ -402,6 +412,18 @@ begin
   calc ∥f z∥ = ∥f (e 0)∥ : by simp only [e, line_map_apply_zero]
   ... ≤ ∥f (e ζ)∥ : hζ (subset_closure h₀)
   ... ≤ C : hC _ (hde.continuous.frontier_preimage_subset _ hζU)
+end
+
+lemma norm_le_of_forall_mem_sphere_norm_le {f : E → F} {c : E} {r : ℝ}
+  (hd : diff_cont_on_cl ℂ f (ball c r)) {C : ℝ} (hC : ∀ z ∈ sphere c r, ∥f z∥ ≤ C)
+  {z : E} (hz : z ∈ closed_ball c r) :
+  ∥f z∥ ≤ C :=
+begin
+  rcases eq_or_ne r 0 with rfl|hr,
+  { apply hC, simpa only [sphere_zero, closed_ball_zero] using hz },
+  { rw [← frontier_ball c hr] at hC,
+    rw [← closure_ball c hr] at hz,
+    exact norm_le_of_forall_mem_frontier_norm_le bounded_ball hd hC hz }
 end
 
 /-- If two complex differentiable functions `f g : E → F` are equal on the boundary of a bounded set

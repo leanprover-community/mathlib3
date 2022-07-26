@@ -547,17 +547,19 @@ variables [semiring R] [add_comm_group M] [module R M]
 
 section smul_injective
 
+@[simp] lemma smul_right_inj' [no_zero_smul_divisors R M] {c : R} {x y : M} :
+  c • x = c • y ↔ c = 0 ∨ x = y :=
+by rw [← sub_eq_zero, ← smul_sub, smul_eq_zero, sub_eq_zero]
+
+lemma smul_right_inj [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) {x y : M} :
+  c • x = c • y ↔ x = y :=
+by simp [hc]
+
 variables (M)
 
 lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective ((•) c : M → M) :=
-(injective_iff_map_eq_zero (smul_add_hom R M c)).2 $ λ a ha, (smul_eq_zero.mp ha).resolve_left hc
-
-variables {M}
-
-lemma smul_right_inj [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) {x y : M} :
-  c • x = c • y ↔ x = y :=
-(smul_right_injective M hc).eq_iff
+λ _ _, (smul_right_inj hc).1
 
 end smul_injective
 
@@ -588,13 +590,19 @@ variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
 
 section smul_injective
 
+@[simp] lemma smul_left_inj' [no_zero_smul_divisors R M] {c₁ c₂ : R} {x : M} :
+  c₁ • x = c₂ • x ↔ c₁ = c₂ ∨ x = 0 :=
+by rw [← sub_eq_zero, ← sub_smul, smul_eq_zero, sub_eq_zero]
+
+lemma smul_left_inj [no_zero_smul_divisors R M] {c₁ c₂ : R} {x : M} (hx : x ≠ 0) :
+  c₁ • x = c₂ • x ↔ c₁ = c₂ :=
+by simp [hx]
+
 variables (R)
 
 lemma smul_left_injective {x : M} (hx : x ≠ 0) :
   function.injective (λ (c : R), c • x) :=
-λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
-  (calc (c - d) • x = c • x - d • x : sub_smul c d x
-                ... = 0 : sub_eq_zero.mpr h)).resolve_right hx)
+λ x y, (smul_left_inj hx).1
 
 end smul_injective
 

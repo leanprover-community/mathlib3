@@ -407,6 +407,20 @@ by simp [line_map_apply]
 @[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
 by simp [line_map_apply]
 
+@[simp] lemma line_map_inj [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c₁ c₂ : k} :
+  line_map p₀ p₁ c₁ = line_map p₀ p₁ c₂ ↔ c₁ = c₂ ∨ p₀ = p₁ :=
+by simp [line_map_apply, eq_comm]
+
+@[simp] lemma line_map_eq_left [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₀ ↔ c = 0 ∨ p₀ = p₁ :=
+calc line_map p₀ p₁ c = p₀ ↔ line_map p₀ p₁ c = line_map p₀ p₁ (0 : k) : by rw [line_map_apply_zero]
+... ↔ c = 0 ∨ p₀ = p₁ : line_map_inj
+
+@[simp] lemma line_map_eq_right [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₁ ↔ c = 1 ∨ p₀ = p₁ :=
+calc line_map p₀ p₁ c = p₁ ↔ line_map p₀ p₁ c = line_map p₀ p₁ (1 : k) : by rw [line_map_apply_one]
+... ↔ c = 1 ∨ p₀ = p₁ : line_map_inj
+
 include V2
 
 @[simp] lemma apply_line_map (f : P1 →ᵃ[k] P2) (p₀ p₁ : P1) (c : k) :

@@ -46,7 +46,7 @@ over complex numbers.
 Schwarz lemma
 -/
 
-open asymptotics metric set function filter topological_space
+open asymptotics metric set function filter topological_space uniform_space.completion affine_map
 open_locale topological_space
 
 local postfix `̂`:100 := uniform_space.completion
@@ -96,6 +96,13 @@ begin
     exact zpow_ne_zero _ (sub_ne_zero.2 hx) }
 end
 
+lemma exists_differentiable_on_eq_zpow_succ_smul_add_of_is_o₀ [complete_space E] {f : ℂ → E}
+  {n : ℤ} (hd : differentiable_on ℂ f (ball 0 R₁))
+  (ho : (λ x, f x - f 0) =o[𝓝[≠] (0 : ℂ)] (λ x, x ^ n)) :
+  ∃ (g : ℂ → E) y, differentiable_on ℂ g (ball 0 R₁) ∧ f = λ x, x ^ (n + 1) • g x + y :=
+have ho' : (λ x, f x - f 0) =o[𝓝[≠] (0 : ℂ)] (λ x, (x - 0) ^ n), by simpa only [sub_zero],
+by simpa only [sub_zero] using exists_differentiable_on_eq_zpow_succ_smul_add_of_is_o hd ho'
+
 lemma exists_differentiable_on_eq_pow_succ_smul_add_of_is_o [complete_space E] {f : ℂ → E} {c : ℂ}
   {n : ℕ} (hd : differentiable_on ℂ f (ball c R₁))
   (ho : (λ x, f x - f c) =o[𝓝[≠] c] (λ x, (x - c) ^ n)) :
@@ -105,6 +112,65 @@ begin
   exact exists_differentiable_on_eq_zpow_succ_smul_add_of_is_o hd ho
 end
 
+lemma exists_differentiable_on_eq_pow_succ_smul_add_of_is_o₀ [complete_space E] {f : ℂ → E}
+  {n : ℕ} (hd : differentiable_on ℂ f (ball 0 R₁))
+  (ho : (λ x, f x - f 0) =o[𝓝[≠] (0 : ℂ)] (λ x, x ^ n)) :
+  ∃ (g : ℂ → E) y, differentiable_on ℂ g (ball 0 R₁) ∧ f = λ x, x ^ (n + 1) • g x + y :=
+have ho' : (λ x, f x - f 0) =o[𝓝[≠] (0 : ℂ)] (λ x, (x - 0) ^ n), by simpa only [sub_zero],
+by simpa only [sub_zero] using exists_differentiable_on_eq_pow_succ_smul_add_of_is_o hd ho'
+
+lemma schwarz_aux₁ [complete_space E] {f : ℂ → E} {c z : ℂ} (hd : differentiable_on ℂ f (ball c R₁))
+  (hnorm : ∀ z ∈ ball c R₁, ∥(z - c) ^ (n + 1) • f z∥ ≤ R₂) (hz : z ∈ ball c R₁) :
+  ∥f z∥ ≤ R₂ / R₁ ^ (n + 1) :=
+begin
+  have hR₁ : 0 < R₁, from nonempty_ball.1 ⟨z, hz⟩,
+  suffices : ∀ᶠ r in 𝓝[<] R₁, ∥f z∥ ≤ R₂ / r ^ (n + 1),
+  { refine ge_of_tendsto _ this,
+    exact tendsto_const_nhds.div ((tendsto_id.mono_left nhds_within_le_nhds).pow _)
+      (pow_ne_zero _ hR₁.ne') },
+  rw [mem_ball] at hz,
+  filter_upwards [Ioo_mem_nhds_within_Iio ⟨hz, le_rfl⟩] with r hr,
+  have hdr : diff_cont_on_cl ℂ f (ball c r),
+  { refine (hd.mono _).diff_cont_on_cl,
+    exact closure_ball_subset_closed_ball.trans (closed_ball_subset_ball hr.2) },
+  refine norm_le_of_forall_mem_sphere_norm_le hdr (λ w hw, _) hr.1.le,
+  have hr₀ : 0 < r, from dist_nonneg.trans_lt hr.1,
+  rw [le_div_iff' (pow_pos hr₀ _), ← (mem_sphere_iff_norm _ _ _).mp hw, ← norm_pow, ← norm_smul],
+  exact hnorm _ (sphere_subset_ball hr.2 hw)
+end
+
+
+lemma dist_le_of_maps_to_ball_of_is_o {f : E → F} {c z : E} (hd : differentiable_on ℂ f (ball c R₁))
+  (h_maps : maps_to f (ball c R₁) (ball (f c) R₂))
+  (ho : (λ x, f x - f c) =o[𝓝[≠] c] (λ x, ∥x - c∥ ^ n)) (hz : z ∈ ball c R₁) :
+  dist (f z) (f c) ≤ (dist z c / R₁) ^ (n + 1) * R₂ :=
+begin
+  have hR₁ : 0 < R₁, from nonempty_ball.1 ⟨z, hz⟩,
+  rcases eq_or_ne z c with rfl|hne, { simp },
+  set f₁ : ℂ → F̂ := λ ζ, f (line_map c z ζ) with hf₁,
+  suffices H : dist (f₁ 1) (f₁ 0) ≤ R₂ / (R₁ / dist z c) ^ (n + 1),
+  { simp only [hf₁] at H,
+    rwa [line_map_apply_zero, line_map_apply_one, uniform_space.completion.dist_eq,
+      div_eq_inv_mul R₂, ← inv_pow, inv_div] at H },
+  replace ho : (λ ζ : ℂ, f₁ ζ - f₁ 0) =o[𝓝[≠] (0 : ℂ)] (λ ζ, ζ ^ n),
+  { simp_rw [hf₁, ← uniform_space.completion.coe_sub, is_o_completion_left, line_map_apply_zero],
+    refine ((ho.comp_tendsto _).congr_right $ λ x, _).of_norm_right,
+    { refine (line_map_continuous.tendsto' _ _ (line_map_apply_zero _ _)).inf _,
+      simp },
+    { sorry } },
+end
+  
+
+/-- The **Schwarz Lemma**: if `f : ℂ → E` sends an open disk with center `c` and radius `R₁` to an
+open ball with center `f c` and radius `R₂`, then for any `z` in the former disk we have
+`dist (f z) (f c) ≤ (R₂ / R₁) * dist z c`. -/
+lemma dist_le_div_mul_dist_of_maps_to_ball (hd : differentiable_on ℂ f (ball c R₁))
+  (h_maps : maps_to f (ball c R₁) (ball (f c) R₂)) (hz : z ∈ ball c R₁) :
+  dist (f z) (f c) ≤ (R₂ / R₁) * dist z c :=
+begin
+end
+
+
 /-- An auxiliary lemma for `complex.norm_dslope_le_div_of_maps_to_ball`. -/
 lemma schwarz_aux {f : ℂ → E} {c z : ℂ} (hd : differentiable_on ℂ f (ball c R₁))
   (h_maps : maps_to f (ball c R₁) (ball (f c) R₂)) (hz : z ∈ ball c R₁) (hne : z ≠ c)
@@ -112,22 +178,27 @@ lemma schwarz_aux {f : ℂ → E} {c z : ℂ} (hd : differentiable_on ℂ f (bal
   dist (f z) (f c) ≤ (dist z c / R₁) ^ (n + 1) * R₂ ∧
     dist (f z) (f c) = (dist z c / R₁) ^ (n + 1) * R₂ →
       (∀ w ∈ ball c R₁, dist (f w) (f c) = (dist w c / R₁) ^ (n + 1) * R₂) ∧
-      (strict_convex_space ℝ E → ∀ w ∈ ball c R₁, 
-    :=
+      (strict_convex_space ℝ E →
+        ∀ w ∈ ball c R₁, f w = ((w - c) / (z - c)) ^ (n + 1) • (f z - f c) + f c) :=
 begin
-  rcases eq_or_ne z c with rfl|hne, { simp },
   have hR₁ : 0 < R₁, from nonempty_ball.1 ⟨z, hz⟩,
-  suffices : ∀ᶠ r in 𝓝[<] R₁, dist (f z) (f c) ≤ (dist z c / r) ^ (n + 1) * R₂,
-  { refine ge_of_tendsto _ this,
-    exact (((tendsto_const_nhds.div tendsto_id hR₁.ne').pow _).mul_const _).mono_left
-      nhds_within_le_nhds },
-  rcases exists_differentiable_on_eq_pow_succ_smul_add_of_is_o hd ho with ⟨g, y, hgd, rfl⟩,
-  clear hd ho,
-  rw mem_ball at hz,
-  filter_upwards [Ioo_mem_nhds_within_Iio ⟨hz, le_rfl⟩] with r hr,
-  simp only [sub_self, zero_pow n.succ_pos, zero_smul, zero_add, dist_eq_norm, add_sub_cancel,
-    norm_smul, norm_pow, div_pow, div_mul_comm _ _ R₂] at h_maps ⊢, rw mul_comm,
-  refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) _),
+  obtain ⟨g, y, hgd, hgf⟩ :=
+    exists_differentiable_on_eq_pow_succ_smul_add_of_is_o hd.coe_completion (by exact_mod_cast ho),
+  replace hgf : ∀ w, (f w - f c : Ê) = (w - c) ^ (n + 1) • g w,
+  { intro w, have := congr_fun hgf, dsimp only at this, simp [this] },
+  simp only [maps_to, mem_ball, dist_eq_norm, dist_eq, ← @norm_coe E, coe_sub, hgf] at h_maps ⊢,
+
+  -- have : 
+  -- suffices : ∀ᶠ r in 𝓝[<] R₁, dist (f z) (f c) ≤ (dist z c / r) ^ (n + 1) * R₂,
+  -- { refine ge_of_tendsto _ this,
+  --   exact (((tendsto_const_nhds.div tendsto_id hR₁.ne').pow _).mul_const _).mono_left
+  --     nhds_within_le_nhds },
+  -- clear hd ho,
+  -- rw mem_ball at hz,
+  -- filter_upwards [Ioo_mem_nhds_within_Iio ⟨hz, le_rfl⟩] with r hr,
+  -- simp only [sub_self, zero_pow n.succ_pos, zero_smul, zero_add, dist_eq_norm, add_sub_cancel,
+  --   norm_smul, norm_pow, div_pow, div_mul_comm _ _ R₂] at h_maps ⊢, rw mul_comm,
+  -- refine mul_le_mul_of_nonneg_right _ (pow_nonneg (norm_nonneg _) _),
   
   -- have hr₀ : 0 < r, from dist_nonneg.trans_lt hr.1,
   -- have hr₀' : r ≠ 0, from hr₀.ne',

@@ -544,6 +544,10 @@ theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
 
+theorem sphere_subset_ball (h : ε₁ < ε₂) :
+  sphere x ε₁ ⊆ ball x ε₂ :=
+sphere_subset_closed_ball.trans (closed_ball_subset_ball h)
+
 lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
   (h : (closed_ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
   dist x y ≤ ε₁ + ε₂ :=

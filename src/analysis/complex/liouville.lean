@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.cauchy_integral
 import analysis.calculus.fderiv_analytic
-import analysis.normed_space.completion
+import analysis.calculus.completion
 
 /-!
 # Liouville's theorem
@@ -68,14 +68,11 @@ lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ 
   (hd : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
-  set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
-  have : has_deriv_at (e ∘ f) (e (deriv f c)) c,
-    from e.has_fderiv_at.comp_has_deriv_at c
-      (hd.differentiable_at is_open_ball $ mem_ball_self hR).has_deriv_at,
-  calc ∥deriv f c∥ = ∥deriv (e ∘ f) c∥ :
-    by { rw this.deriv, exact (uniform_space.completion.norm_coe _).symm }
+  have hdc : differentiable_at ℂ f c, from hd.differentiable_at is_open_ball (mem_ball_self hR),
+  calc ∥deriv f c∥ = ∥deriv (coe ∘ f : ℂ → F̂) c∥ :
+    by rw [← uniform_space.completion.norm_coe, hdc.coe_completion_deriv]
   ... ≤ C / R :
-    norm_deriv_le_aux hR (e.differentiable.comp_diff_cont_on_cl hd)
+    norm_deriv_le_aux hR hd.coe_completion
       (λ z hz, (uniform_space.completion.norm_coe _).trans_le (hC z hz))
 end
 

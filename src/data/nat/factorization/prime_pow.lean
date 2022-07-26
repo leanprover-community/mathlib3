@@ -75,18 +75,15 @@ begin
   simp,
 end
 
-
-lemma is_prime_pow_of_ord_compl_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime) :
-  ord_compl[p] n = 1 → is_prime_pow n :=
+lemma is_prime_pow_of_ord_compl_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime)
+  (h : ord_compl[p] n = 1) : is_prime_pow n :=
 begin
   rw is_prime_pow_nat_iff,
-  intro H,
-  rw [←nat.eq_of_dvd_of_div_eq_one (nat.ord_proj_dvd n p) H] at |- hn,
+  rw [←nat.eq_of_dvd_of_div_eq_one (nat.ord_proj_dvd n p) h] at |- hn,
   refine ⟨p, n.factorization p, pp, _, (by simp)⟩,
   contrapose! hn,
   simp [le_zero_iff.1 hn],
 end
-
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
 dividing it. -/

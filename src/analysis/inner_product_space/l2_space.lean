@@ -426,6 +426,20 @@ protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E}
 by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
   using b.has_sum_repr (orthogonal_projection U x)
 
+protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
+  (b : hilbert_basis ι 𝕜 E) (x : E) :
+  tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
+    at_top (𝓝 x) :=
+begin
+  convert b.has_sum_repr x,
+  ext J,
+  let b' : orthonormal_basis J 𝕜 (span 𝕜 (J.image b : set E)) :=
+    orthonormal_basis.span b.orthonormal J,
+  simp_rw [b'.orthogonal_projection_eq_sum, coe_sum, coe_smul, b',
+            orthonormal_basis.span_apply b.orthonormal J,
+            J.sum_coe_sort (λ i : ι, ⟪b i, x⟫ • b i), b.repr_apply_apply],
+end
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 
@@ -475,29 +489,6 @@ end
 @[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]
   (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=
 hilbert_basis.coe_mk _ _
-
-protected lemma _root_.orthonormal_basis.orthogonal_projection_eq_sum [fintype ι]
-  {U : submodule 𝕜 E} [complete_space E] [complete_space U] (b : orthonormal_basis ι 𝕜 U) (x : E) :
-  (orthogonal_projection U x) = ∑ i, ⟪(b i : E), x⟫ • b i :=
-begin
-  convert (b.to_hilbert_basis.has_sum_orthogonal_projection x).unique (has_sum_fintype _) using 2,
-  ext i,
-  rw b.coe_to_hilbert_basis
-end
-
-protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
-  (b : hilbert_basis ι 𝕜 E) (x : E) :
-  tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
-    at_top (𝓝 x) :=
-begin
-  convert b.has_sum_repr x,
-  ext J,
-  let b' : orthonormal_basis J 𝕜 (span 𝕜 (J.image b : set E)) :=
-    orthonormal_basis.span b.orthonormal J,
-  simp_rw [b'.orthogonal_projection_eq_sum, coe_sum, coe_smul, b',
-            orthonormal_basis.span_apply b.orthonormal J,
-            J.sum_coe_sort (λ i : ι, ⟪b i, x⟫ • b i), b.repr_apply_apply],
-end
 
 /-- A Hilbert space admits a Hilbert basis extending a given orthonormal subset. -/
 lemma _root_.orthonormal.exists_hilbert_basis_extension

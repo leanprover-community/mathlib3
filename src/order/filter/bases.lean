@@ -415,7 +415,7 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 (hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
   (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
 
-lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
+lemma has_basis_infi' {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
   (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
@@ -423,15 +423,28 @@ lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   intro t,
   split,
   { simp only [mem_infi', (hl _).mem_iff],
-    rintros ⟨I, hI, V, hV, -, hVt, -⟩,
+    rintros ⟨I, hI, V, hV, -, rfl, -⟩,
     choose u hu using hV,
-    refine ⟨⟨I, u⟩, ⟨hI, λ i _, (hu i).1⟩, _⟩,
-    rw hVt,
-    exact Inter_mono (λ i, Inter_mono $ λ hi, (hu i).2) },
+    exact ⟨⟨I, u⟩, ⟨hI, λ i _, (hu i).1⟩, Inter_mono (λ i, Inter_mono $ λ hi, (hu i).2)⟩ },
   { rintros ⟨⟨I, f⟩, ⟨hI₁, hI₂⟩, hsub⟩,
     refine mem_of_superset _ hsub,
     exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
 end⟩
+
+lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
+  {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
+  (⨅ i, l i).has_basis (λ If : Σ I : set ι, Π i : I, ι' i, If.1.finite ∧ ∀ i : If.1, p i (If.2 i))
+    (λ If, ⋂ i : If.1, s i (If.2 i)) :=
+begin
+  refine ⟨λ t, ⟨λ ht, _, _⟩⟩,
+  { rcases (has_basis_infi' hl).mem_iff.mp ht with ⟨⟨I, f⟩, ⟨hI, hf⟩, hsub⟩,
+    exact ⟨⟨I, λ i, f i⟩, ⟨hI, subtype.forall.mpr hf⟩,
+      trans_rel_right _ (Inter_subtype _ _) hsub⟩ },
+  { rintro ⟨⟨I, f⟩, ⟨hI, hf⟩, hsub⟩,
+    refine mem_of_superset _ hsub,
+    casesI hI.nonempty_fintype,
+    exact Inter_mem.2 (λ i, mem_infi_of_mem i $ (hl i).mem_of_mem $ hf _) }
+end
 
 lemma has_basis_infi_of_directed' {ι : Type*} {ι' : ι → Sort*}
   [nonempty ι]
@@ -932,9 +945,17 @@ begin
     ⟨hs.to_has_basis.sup ht.to_has_basis, set.to_countable _⟩
 end
 
+instance prod.is_countably_generated (la : filter α) (lb : filter β) [is_countably_generated la]
+  [is_countably_generated lb] : is_countably_generated (la ×ᶠ lb) :=
+filter.inf.is_countably_generated _ _
+
+instance coprod.is_countably_generated (la : filter α) (lb : filter β) [is_countably_generated la]
+  [is_countably_generated lb] : is_countably_generated (la.coprod lb) :=
+filter.sup.is_countably_generated _ _
+
 end is_countably_generated
 
-@[instance] lemma is_countably_generated_seq [encodable β] (x : β → set α) :
+lemma is_countably_generated_seq [encodable β] (x : β → set α) :
   is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
   use [range x, countable_range x],
@@ -971,14 +992,18 @@ by { rw ← principal_singleton, exact is_countably_generated_principal _, }
 @[instance] lemma is_countably_generated_top : is_countably_generated (⊤ : filter α) :=
 @principal_univ α ▸ is_countably_generated_principal _
 
-instance is_countably_generated.prod {f : filter α} {g : filter β}
-  [hf : f.is_countably_generated] [hg : g.is_countably_generated] :
-  is_countably_generated (f ×ᶠ g) :=
+instance infi.is_countably_generated {ι : Sort*} [countable ι] (f : ι → filter α)
+  [∀ i, is_countably_generated (f i)] : is_countably_generated (⨅ i, f i) :=
 begin
-  simp_rw is_countably_generated_iff_exists_antitone_basis at hf hg ⊢,
-  rcases hf with ⟨s, hs⟩,
-  rcases hg with ⟨t, ht⟩,
-  refine ⟨_, hs.prod ht⟩,
+  choose s hs using λ i, exists_antitone_basis (f i),
+  rw [← plift.down_surjective.infi_comp],
+  refine has_countable_basis.is_countably_generated
+    ⟨has_basis_infi (λ n, (hs _).to_has_basis), _⟩,
+  haveI := encodable.of_countable (plift ι),
+  refine (countable_range $ sigma.map (coe : finset (plift ι) → set (plift ι)) (λ _, id)).mono _,
+  rintro ⟨I, f⟩ ⟨hI, -⟩,
+  lift I to finset (plift ι) using hI,
+  exact ⟨⟨I, f⟩, rfl⟩
 end
 
 end filter

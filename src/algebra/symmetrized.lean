@@ -218,7 +218,6 @@ lemma two_commute {α : Type*} [ring α] (a : α) : commute 2 a := (commute.one_
 lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commute (⅟2) a :=
   commute.inv_of_left (two_commute a)
 
--- unsym_mul_self
 instance [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
 { mul_comm := sym_alg.mul_comm,
   lmul_comm_rmul_rmul := λ a b, begin

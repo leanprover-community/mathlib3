@@ -109,11 +109,11 @@ namespace chain_complex
 
 @[simp] lemma prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
   (complex_shape.down α).prev i = i+1 :=
-(complex_shape.down α).prev_eq_some rfl
+(complex_shape.down α).prev_eq' rfl
 
 @[simp] lemma next (α : Type*) [add_group α] [has_one α] (i : α) :
   (complex_shape.down α).next i = i-1 :=
-(complex_shape.down α).next_eq_some $ sub_add_cancel _ _
+(complex_shape.down α).next_eq' $ sub_add_cancel _ _
 
 @[simp] lemma next_nat_zero :
   (complex_shape.down ℕ).next 0 = 0 :=
@@ -121,7 +121,7 @@ by { classical, refine dif_neg _, push_neg, intro, apply nat.no_confusion }
 
 @[simp] lemma next_nat_succ (i : ℕ) :
   (complex_shape.down ℕ).next (i+1) = i :=
-(complex_shape.down ℕ).next_eq_some rfl
+(complex_shape.down ℕ).next_eq' rfl
 
 end chain_complex
 
@@ -129,11 +129,11 @@ namespace cochain_complex
 
 @[simp] lemma prev (α : Type*) [add_group α] [has_one α] (i : α) :
   (complex_shape.up α).prev i = i-1 :=
-(complex_shape.up α).prev_eq_some $ sub_add_cancel _ _
+(complex_shape.up α).prev_eq' $ sub_add_cancel _ _
 
 @[simp] lemma next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
   (complex_shape.up α).next i = i+1 :=
-(complex_shape.up α).next_eq_some rfl
+(complex_shape.up α).next_eq' rfl
 
 @[simp] lemma prev_nat_zero :
   (complex_shape.up ℕ).prev 0 = 0 :=
@@ -141,7 +141,7 @@ by { classical, refine dif_neg _, push_neg, intro, apply nat.no_confusion }
 
 @[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = i :=
-(complex_shape.up ℕ).prev_eq_some rfl
+(complex_shape.up ℕ).prev_eq' rfl
 
 end cochain_complex
 
@@ -296,7 +296,7 @@ abbreviation X_prev (j : ι) : V := C.X (c.prev j)
 /-- If `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X i`. -/
 def X_prev_iso {i j : ι} (r : c.rel i j) :
   C.X_prev j ≅ C.X i :=
-eq_to_iso $ by rw ← c.prev_eq_some r
+eq_to_iso $ by rw ← c.prev_eq' r
 
 /-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X j`. -/
 def X_prev_iso_zero {j : ι} (h : ¬c.rel (c.prev j) j) :
@@ -304,7 +304,7 @@ def X_prev_iso_zero {j : ι} (h : ¬c.rel (c.prev j) j) :
 eq_to_iso $ congr_arg C.X begin
   dsimp [complex_shape.prev],
   rw dif_neg, push_neg, intros i hi,
-  have : c.prev j = i := c.prev_eq_some hi,
+  have : c.prev j = i := c.prev_eq' hi,
   rw this at h, contradiction,
 end
 
@@ -314,7 +314,7 @@ abbreviation X_next (i : ι) : V := C.X (c.next i)
 /-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
 def X_next_iso {i j : ι} (r : c.rel i j) :
   C.X_next i ≅ C.X j :=
-eq_to_iso $ by rw ← c.next_eq_some r
+eq_to_iso $ by rw ← c.next_eq' r
 
 /-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
 def X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
@@ -322,7 +322,7 @@ def X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
 eq_to_iso $ congr_arg C.X begin
   dsimp [complex_shape.next],
   rw dif_neg, rintro ⟨j, hj⟩,
-  have : c.next i = j := c.next_eq_some hj,
+  have : c.next i = j := c.next_eq' hj,
   rw this at h, contradiction,
 end
 
@@ -339,7 +339,7 @@ abbreviation d_from (i : ι) : C.X i ⟶ C.X_next i := C.d i (c.next i)
 lemma d_to_eq {i j : ι} (r : c.rel i j) :
   C.d_to j = (C.X_prev_iso r).hom ≫ C.d i j :=
 begin
-  obtain rfl := c.prev_eq_some r,
+  obtain rfl := c.prev_eq' r,
   exact (category.id_comp _).symm,
 end
 
@@ -351,7 +351,7 @@ C.shape _ _ h
 lemma d_from_eq {i j : ι} (r : c.rel i j) :
   C.d_from i = C.d i j ≫ (C.X_next_iso r).inv :=
 begin
-  obtain rfl := c.next_eq_some r,
+  obtain rfl := c.next_eq' r,
   exact (category.comp_id _).symm,
 end
 
@@ -436,7 +436,7 @@ abbreviation prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j
 lemma prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.prev j = (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv :=
 begin
-  obtain rfl := c.prev_eq_some w,
+  obtain rfl := c.prev_eq' w,
   simp only [X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
@@ -446,7 +446,7 @@ abbreviation next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i
 lemma next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.next i = (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv :=
 begin
-  obtain rfl := c.next_eq_some w,
+  obtain rfl := c.next_eq' w,
   simp only [X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 

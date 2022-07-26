@@ -45,7 +45,7 @@ lemma d_next_eq_d_from_from_next (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
 
 lemma d_next_eq (f : Π i j, C.X i ⟶ D.X j) {i i' : ι} (w : c.rel i i') :
   d_next i f = C.d i i' ≫ f i' i :=
-by { obtain rfl := c.next_eq_some w, refl }
+by { obtain rfl := c.next_eq' w, refl }
 
 @[simp] lemma d_next_comp_left (f : C ⟶ D) (g : Π i j, D.X i ⟶ E.X j) (i : ι) :
   d_next i (λ i j, f.f i ≫ g i j) = f.f i ≫ d_next i g :=
@@ -73,7 +73,7 @@ lemma prev_d_eq_to_prev_d_to (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
 
 lemma prev_d_eq (f : Π i j, C.X i ⟶ D.X j) {j j' : ι} (w : c.rel j' j) :
   prev_d j f = f j j' ≫ D.d j' j :=
-by { obtain rfl := c.prev_eq_some w, refl }
+by { obtain rfl := c.prev_eq' w, refl }
 
 @[simp] lemma prev_d_comp_left (f : C ⟶ D) (g : Π i j, D.X i ⟶ E.X j) (j : ι) :
   prev_d j (λ i j, f.f i ≫ g i j) = f.f j ≫ prev_d j g :=

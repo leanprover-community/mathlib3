@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebra.group.defs
-import data.option.basic
 import logic.relation
 
 /-!
@@ -23,8 +22,8 @@ we only allow nonzero differentials `d i j` from `i` to `j` if `c.rel i j`.
 Further, we require that `{ j // c.rel i j }` and `{ i // c.rel i j }` are subsingletons.
 This means that the shape consists of some union of lines, rays, intervals, and circles.
 
-Convenience functions `c.next` and `c.prev` provide, as an `option`, these related elements
-when they exist.
+Convenience functions `c.next` and `c.prev` provide these related elements
+when they exist, and return their input otherwise.
 
 This design aims to avoid certain problems arising from dependent type theory.
 In particular we never have to ensure morphisms `d i : X i ⟶ X (succ i)` compose as
@@ -54,7 +53,7 @@ and we will only allow a non-zero differential from `i` to `j` when `rel i j`.
 There are axioms which imply `{ j // c.rel i j }` and `{ i // c.rel i j }` are subsingletons.
 This means that the shape consists of some union of lines, rays, intervals, and circles.
 
-Below we define `c.next` and `c.prev` which provide, as an `option`, these related elements.
+Below we define `c.next` and `c.prev` which provide these related elements.
 -/
 @[ext, nolint has_inhabited_instance]
 structure complex_shape (ι : Type*) :=
@@ -131,21 +130,23 @@ begin
 end
 
 /--
-An option-valued arbitary choice of index `j` such that `rel i j`, if such exists.
+An arbitary choice of index `j` such that `rel i j`, if such exists.
+Returns `i` otherwise.
 -/
 def next (c : complex_shape ι) (i : ι) : ι :=
 if h : ∃ j, c.rel i j then h.some else i
 
 /--
-An option-valued arbitary choice of index `i` such that `rel i j`, if such exists.
+An arbitary choice of index `i` such that `rel i j`, if such exists.
+Returns `j` otherwise.
 -/
 def prev (c : complex_shape ι) (j : ι) : ι :=
 if h : ∃ i, c.rel i j then h.some else j
 
-lemma next_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.next i = j :=
+lemma next_eq' (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.next i = j :=
 by { apply c.next_eq _ h, dsimp only [next], rw dif_pos, exact Exists.some_spec ⟨j, h⟩, }
 
-lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = i :=
+lemma prev_eq' (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = i :=
 by { apply c.prev_eq _ h, dsimp only [prev], rw dif_pos, exact Exists.some_spec ⟨i, h⟩, }
 
 /--

@@ -31,7 +31,7 @@ binary_fan.mk 0 (𝟙 X)
 
 /-- The limit cone for the product with a zero object is limiting. -/
 def binary_fan_zero_left_is_limit (X : C) : is_limit (binary_fan_zero_left X) :=
-binary_fan.is_limit.mk (λ s, binary_fan.snd s) (by tidy) (by tidy) (by tidy)
+binary_fan.is_limit_mk (λ s, binary_fan.snd s) (by tidy) (by tidy) (by tidy)
 
 instance has_binary_product_zero_left (X : C) : has_binary_product (0 : C) X :=
 has_limit.mk ⟨_, binary_fan_zero_left_is_limit X⟩
@@ -51,7 +51,7 @@ binary_fan.mk (𝟙 X) 0
 
 /-- The limit cone for the product with a zero object is limiting. -/
 def binary_fan_zero_right_is_limit (X : C) : is_limit (binary_fan_zero_right X) :=
-binary_fan.is_limit.mk (λ s, binary_fan.fst s) (by tidy) (by tidy) (by tidy)
+binary_fan.is_limit_mk (λ s, binary_fan.fst s) (by tidy) (by tidy) (by tidy)
 
 instance has_binary_product_zero_right (X : C) : has_binary_product X (0 : C) :=
 has_limit.mk ⟨_, binary_fan_zero_right_is_limit X⟩
@@ -71,7 +71,7 @@ binary_cofan.mk 0 (𝟙 X)
 
 /-- The colimit cocone for the coproduct with a zero object is colimiting. -/
 def binary_cofan_zero_left_is_colimit (X : C) : is_colimit (binary_cofan_zero_left X) :=
-binary_cofan.is_colimit.mk (λ s, binary_cofan.inr s) (by tidy) (by tidy) (by tidy)
+binary_cofan.is_colimit_mk (λ s, binary_cofan.inr s) (by tidy) (by tidy) (by tidy)
 
 instance has_binary_coproduct_zero_left (X : C) : has_binary_coproduct (0 : C) X :=
 has_colimit.mk ⟨_, binary_cofan_zero_left_is_colimit X⟩
@@ -91,7 +91,7 @@ binary_cofan.mk (𝟙 X) 0
 
 /-- The colimit cocone for the coproduct with a zero object is colimiting. -/
 def binary_cofan_zero_right_is_colimit (X : C) : is_colimit (binary_cofan_zero_right X) :=
-binary_cofan.is_colimit.mk (λ s, binary_cofan.inl s) (by tidy) (by tidy) (by tidy)
+binary_cofan.is_colimit_mk (λ s, binary_cofan.inl s) (by tidy) (by tidy) (by tidy)
 
 instance has_binary_coproduct_zero_right (X : C) : has_binary_coproduct X (0 : C) :=
 has_colimit.mk ⟨_, binary_cofan_zero_right_is_colimit X⟩

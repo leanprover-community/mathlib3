@@ -356,9 +356,10 @@ begin
 end
 
 /-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
-lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
+lemma nth_eq_order_iso_of_nat (i : infinite (set_of p)) (n : ℕ) :
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
 begin
+  classical,
   have hi := set.infinite_coe_iff.mp i,
   induction n with k hk;
   simp only [subtype.order_iso_of_nat_apply, subtype.of_nat, nat_zero_eq_zero],

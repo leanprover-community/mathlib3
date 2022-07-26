@@ -53,7 +53,7 @@ namespace phragmen_lindelof
 ### Auxiliary lemmas
 -/
 
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 /-- An auxiliary lemma that combines two double exponential estimates into a similar estimate
 on the difference of the functions. -/
@@ -389,8 +389,8 @@ begin
       have hc : continuous_within_at f (Ioi 0 ×ℂ Ioi 0) 0,
       { refine (hd.continuous_on _ _).mono subset_closure,
         simp [closure_re_prod_im, mem_re_prod_im] },
-      refine (is_O_one_of_tendsto ℝ (hc.tendsto.comp $ tendsto_exp_comap_re_at_bot.inf
-        H.tendsto)).trans (is_O_of_le _ (λ w, _)),
+      refine ((hc.tendsto.comp $ tendsto_exp_comap_re_at_bot.inf
+        H.tendsto).is_O_one ℝ).trans (is_O_of_le _ (λ w, _)),
       rw [norm_one, real.norm_of_nonneg (real.exp_pos _).le, real.one_le_exp_iff],
       exact mul_nonneg (le_max_right _ _) (real.exp_pos _).le },
     { -- For the estimate as `ζ.re → ∞`, we reuse the uppoer estimate on `f`

@@ -694,17 +694,17 @@ protected lemma dist {m : measurable_space α} {β : Type*} [pseudo_metric_space
   strongly_measurable (λ x, dist (f x) (g x)) :=
 continuous_dist.comp_strongly_measurable (hf.prod_mk hg)
 
-protected lemma norm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
+protected lemma norm {m : measurable_space α} {β : Type*} [normed_add_comm_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, ∥f x∥) :=
 continuous_norm.comp_strongly_measurable hf
 
-protected lemma nnnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
+protected lemma nnnorm {m : measurable_space α} {β : Type*} [normed_add_comm_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, ∥f x∥₊) :=
 continuous_nnnorm.comp_strongly_measurable hf
 
-protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
+protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_add_comm_group β] {f : α → β}
   (hf : strongly_measurable f) :
   measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
 (ennreal.continuous_coe.comp_strongly_measurable hf.nnnorm).measurable
@@ -1012,7 +1012,7 @@ strongly_measurable_one.ae_strongly_measurable
   ae_strongly_measurable f μ :=
 (subsingleton.strongly_measurable' f).ae_strongly_measurable
 
-@[simp] lemma ae_measurable_zero_measure [measurable_space α] [topological_space β]
+@[simp] lemma ae_strongly_measurable_zero_measure [measurable_space α] [topological_space β]
   (f : α → β) :
   ae_strongly_measurable f (0 : measure α) :=
 begin
@@ -1266,19 +1266,22 @@ protected lemma dist {β : Type*} [pseudo_metric_space β] {f g : α → β}
   ae_strongly_measurable (λ x, dist (f x) (g x)) μ :=
 continuous_dist.comp_ae_strongly_measurable (hf.prod_mk hg)
 
-protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma norm {β : Type*} [normed_add_comm_group β] {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, ∥f x∥) μ :=
 continuous_norm.comp_ae_strongly_measurable hf
 
-protected lemma nnnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma nnnorm {β : Type*} [normed_add_comm_group β] {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, ∥f x∥₊) μ :=
 continuous_nnnorm.comp_ae_strongly_measurable hf
 
-protected lemma ennnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma ennnorm {β : Type*} [normed_add_comm_group β] {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
   ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 (ennreal.continuous_coe.comp_ae_strongly_measurable hf.nnnorm).ae_measurable
 
-protected lemma edist {β : Type*} [normed_group β] {f g : α → β}
+protected lemma edist {β : Type*} [normed_add_comm_group β] {f g : α → β}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_measurable (λ a, edist (f a) (g a)) μ :=
 (continuous_edist.comp_ae_strongly_measurable (hf.prod_mk hg)).ae_measurable
@@ -1368,7 +1371,7 @@ begin
   rcases eq_empty_or_nonempty t with rfl|h₀,
   { simp only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
     rw ht,
-    exact ae_measurable_zero_measure f },
+    exact ae_strongly_measurable_zero_measure f },
   { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
       H.exists_ae_eq_range_subset ht h₀,
     refine ⟨g, _, fg⟩,
@@ -1511,8 +1514,8 @@ lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
 ⟨h.mk f, h.strongly_measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
 section normed_space
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 lemma _root_.ae_strongly_measurable_smul_const_iff {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   ae_strongly_measurable (λ x, f x • c) μ ↔ ae_strongly_measurable f μ :=
@@ -1542,12 +1545,12 @@ end
 
 end mul_action
 
-section continuous_linear_map_nondiscrete_normed_field
+section continuous_linear_map_nontrivially_normed_field
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
 
 lemma _root_.strongly_measurable.apply_continuous_linear_map
   {m : measurable_space α} {φ : α → F →L[𝕜] E} (hφ : strongly_measurable φ) (v : F) :
@@ -1565,10 +1568,10 @@ lemma _root_.continuous_linear_map.ae_strongly_measurable_comp₂ (L : E →L[�
   ae_strongly_measurable (λ x, L (f x) (g x)) μ :=
 L.continuous₂.comp_ae_strongly_measurable $ hf.prod_mk hg
 
-end continuous_linear_map_nondiscrete_normed_field
+end continuous_linear_map_nontrivially_normed_field
 
-lemma _root_.ae_strongly_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]
-  {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
+lemma _root_.ae_strongly_measurable_with_density_iff {E : Type*} [normed_add_comm_group E]
+  [normed_space ℝ E] {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
   ae_strongly_measurable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔
     ae_strongly_measurable (λ x, (f x : ℝ) • g x) μ :=
 begin
@@ -1709,7 +1712,7 @@ end ae_fin_strongly_measurable
 section second_countable_topology
 
 variables {G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
-  [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
+  [normed_add_comm_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
   {f : α → G}
 
 /-- In a space with second countable topology and a sigma-finite measure, `fin_strongly_measurable`

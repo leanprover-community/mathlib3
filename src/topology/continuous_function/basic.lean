@@ -178,7 +178,7 @@ def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
   continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
 /-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
-def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+@[simps] def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
   C(α₁ × β₁, α₂ × β₂) :=
 { to_fun := prod.map f g,
   continuous_to_fun := continuous.prod_map f.continuous g.continuous }

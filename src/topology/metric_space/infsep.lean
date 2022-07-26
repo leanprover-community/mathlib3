@@ -285,6 +285,18 @@ end
 lemma infesep_exists' (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y)
   : ∃ x y ∈ s, x ≠ y ∧ edist x y = s.infesep := infesep_exists ⟨x, hx, y, hy, hxy⟩
 
+/-- Classically choose a pair of distinct elements in the set which minimise the distance. -/
+noncomputable def minesep.some (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : α × α :=
+⟨(infesep_exists' hx hy hxy).some, (infesep_exists' hx hy hxy).some_spec.some_spec.some⟩
+
+lemma minesep.some_spec (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
+(minesep.some hx hy hxy).fst ∈ s ∧ (minesep.some hx hy hxy).snd ∈ s
+∧ (minesep.some hx hy hxy).fst ≠ (minesep.some hx hy hxy).snd
+∧ edist (minesep.some hx hy hxy).fst (minesep.some hx hy hxy).snd = s.infesep :=
+⟨ (infesep_exists' hx hy hxy).some_spec.some,
+  (infesep_exists' hx hy hxy).some_spec.some_spec.some_spec.some,
+  (infesep_exists' hx hy hxy).some_spec.some_spec.some_spec.some_spec⟩
+
 end has_edist
 
 section pseudo_emetric_space

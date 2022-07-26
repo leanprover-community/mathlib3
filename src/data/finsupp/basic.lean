@@ -1267,9 +1267,6 @@ by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_d
 @[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
 by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
 
-lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l : α →₀ M) :
-  equiv_map_domain f l = map_domain f l := by ext x; simp [map_domain_equiv_apply]
-
 /-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
 `(α →₀ M) ≃ (β →₀ M)`.
 
@@ -1983,6 +1980,8 @@ begin
     simp [h], },
 end
 
+lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l : α →₀ M) :
+  equiv_map_domain f l = map_domain f l := by ext x; simp [map_domain_equiv_apply]
 
 end map_domain
 

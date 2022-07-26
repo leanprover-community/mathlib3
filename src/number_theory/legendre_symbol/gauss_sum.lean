@@ -24,28 +24,26 @@ is an additive character `R → R'` (type `add_char R R'`, which abbreviates
 
 Some important results are as follows.
 
-* `char.gauss_sum_mul_gauss_sum_eq_card`: The product of the Gauss
+* `gauss_sum_mul_gauss_sum_eq_card`: The product of the Gauss
   sums of `χ` and `ψ` and that of `χ⁻¹` and `ψ⁻¹` is the cardinality
   of the source ring `R` (if `χ` is nontrivial, `ψ` is primitive and `R` is a field).
-* `char.gauss_sum_sq`: The square of the Gauss sum is `χ(-1)` times
+* `gauss_sum_sq`: The square of the Gauss sum is `χ(-1)` times
   the cardinality of `R` if in addition `χ` is a quadratic character.
-* `char.quad_gauss_sum_frob`: For a quadratic character `χ`, raising
+* `quad_gauss_sum_frob`: For a quadratic character `χ`, raising
   the Gauss sum to the `p`th power (where `p` is the characteristic of
   the target ring `R'`) multiplies it by `χ p`.
 * `char.card_pow_card`: When `F` and `F'` are finite fields and `χ : F → F'`
   is a nontrivial quadratic character, then `(χ (-1) * #F)^(#F'/2) = χ (#F')`.
-* `char.two_pow_card`: For every finite field `F` of odd characteristic,
+* `finite_field.two_pow_card`: For every finite field `F` of odd characteristic,
   we have `2^(#F/2) = χ₈(#F)` in `F`.
 
-This machinery can be used to derive (a generaliation of) the Law of
+This machinery can be used to derive (a generalization of) the Law of
 Quadratic Reciprocity.
 
 ## Tags
 
 additive character, multiplicative character, Gauss sum
 -/
-
-namespace char
 
 universes u v
 
@@ -116,7 +114,7 @@ private
 lemma gauss_sum_mul_aux₂ [decidable_eq R] (ψ : add_char R R') (b : R) (hψ : is_primitive ψ) :
   ∑ (x : R), ψ (of_add (x * (b - 1))) = if b = 1 then fintype.card R else 0 :=
 begin
-  split_ifs,
+  split_ifs with h,
   { -- case `b = 1`
     simp only [h, sub_self, mul_zero, of_add_zero, map_one, finset.sum_const, nat.smul_one_eq_coe],
     refl, },
@@ -224,7 +222,7 @@ variables {R : Type u} [comm_ring R] [fintype R] {R' : Type v} [comm_ring R'] [i
 then we get, for all `n : ℕ`, the relation `(χ(-1) * #R) ^ (p^n/2) = χ(p^n)`,
 where `p` is the (odd) characteristic of the target ring `R'`.
 This version can be used when `R` is not a field, e.g., `ℤ/8ℤ`. -/
-lemma card_pow_char_pow {χ : mul_char R R'} (hχ : is_quadratic χ) (ψ : add_char R R') (p n : ℕ)
+lemma char.card_pow_char_pow {χ : mul_char R R'} (hχ : is_quadratic χ) (ψ : add_char R R') (p n : ℕ)
   [fp : fact p.prime] [hch : char_p R' p] (hp : is_unit (p : R)) (hp' : p ≠ 2)
   (hg : (gauss_sum χ ψ) ^ 2 = χ (-1) * fintype.card R) :
   (χ (-1) * fintype.card R) ^ (p ^ n / 2) = χ (p ^ n) :=
@@ -246,7 +244,7 @@ end
 
 /-- When `F` and `F'` are finite fields and `χ : F → F'` is a nontrivial quadratic character,
 then `(χ (-1) * #F)^(#F'/2) = χ (#F')`. -/
-lemma card_pow_card {F : Type} [field F] [fintype F] {F' : Type} [field F'] [fintype F']
+lemma char.card_pow_card {F : Type} [field F] [fintype F] {F' : Type} [field F'] [fintype F']
   {χ : mul_char F F'} (hχ₁ : is_nontrivial χ) (hχ₂ : is_quadratic χ)
   (hch₁ : ring_char F' ≠ ring_char F) (hch₂ : ring_char F' ≠ 2) :
   (χ (-1) * fintype.card F) ^ (fintype.card F' / 2) = χ (fintype.card F') :=
@@ -271,7 +269,7 @@ begin
   end,
   apply_fun algebra_map F' FF' using (algebra_map F' FF').injective,
   rw [map_pow, map_mul, hχ', hχ', map_nat_cast, hc', ← hchar,
-      card_pow_char_pow hχ₂' ψ.char (ring_char FF') n' hpu (ne_of_eq_of_ne hchar hch₂)
+      char.card_pow_char_pow hχ₂' ψ.char (ring_char FF') n' hpu (ne_of_eq_of_ne hchar hch₂)
         (gauss_sum_sq hχ₁' hχ₂' ψ.prim),
       nat.cast_pow],
 end
@@ -312,7 +310,7 @@ end
 open zmod
 
 /-- For every finite field `F` of odd characteristic, we have `2^(#F/2) = χ₈(#F)` in `F`. -/
-lemma two_pow_card {F : Type} [fintype F] [field F] (hF : ring_char F ≠ 2) :
+lemma finite_field.two_pow_card {F : Type} [fintype F] [field F] (hF : ring_char F ≠ 2) :
   (2 : F) ^ (fintype.card F / 2) = χ₈ (fintype.card F) :=
 begin
   have hp2 : ∀ (n : ℕ), (2 ^ n : F) ≠ 0 := λ n, pow_ne_zero n (ring.two_ne_zero hF),
@@ -400,7 +398,7 @@ begin
 
   -- this allows us to apply `card_pow_char_pow` to our situation
   haveI : fact _ := ⟨FFp⟩,
-  have h := card_pow_char_pow hq ψ₈.char (ring_char FF) n hu hFF hg,
+  have h := char.card_pow_char_pow hq ψ₈.char (ring_char FF) n hu hFF hg,
   rw [card, hchar, hχ, one_mul, ← hc, ← nat.cast_pow (ring_char F), ← hc, χ_spec] at h,
 
   -- finally, we change `2` to `8` on the left hand side
@@ -414,5 +412,3 @@ begin
 end
 
 end gauss_sum_two
-
-end char

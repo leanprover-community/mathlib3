@@ -60,26 +60,18 @@ lemma is_prime_pow_iff_card_support_factorization_eq_one {n : ℕ} :
 by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_one', exists_prop,
   pos_iff_ne_zero]
 
-lemma exists_ord_compl_eq_one_of_is_prime_pow (n : ℕ) :
-  is_prime_pow n → (∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1) :=
+lemma exists_ord_compl_eq_one_of_is_prime_pow (n : ℕ) (h : is_prime_pow n):
+  (∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1) :=
 begin
-  rcases eq_or_ne n 0 with rfl | hn0, { simp [not_is_prime_pow_zero] },
-  rcases eq_or_ne n 1 with rfl | hn1, { simp [not_is_prime_pow_one] },
-  rw is_prime_pow_iff_factorization_eq_single,
-  simp only [forall_exists_index, and_imp],
-  rintro p k hk0 h1,
-  rcases em' p.prime with pp | pp, {
-    exfalso,
-    have := nat.factorization_eq_zero_of_non_prime n pp,
-    rw h1 at this,
-    simp at this,
-    cases hk0.ne' this },
+  rcases eq_or_ne n 0 with rfl | hn0, { cases not_is_prime_pow_zero h },
+  rcases eq_or_ne n 1 with rfl | hn1, { cases not_is_prime_pow_one h },
+  rw is_prime_pow_iff_factorization_eq_single at h,
+  rcases h with ⟨p, k, hk0, h1⟩,
+  rcases em' p.prime with pp | pp,
+  { refine absurd _ hk0.ne', simp [←nat.factorization_eq_zero_of_non_prime n pp, h1] },
   refine ⟨p, pp, _⟩,
-  have  := nat.factorization_ord_compl n p,
-  refine nat.eq_of_factorization_eq (nat.ord_compl_pos p hn0).ne' (by simp) _,
-  rintro q,
-  simp [nat.factorization_ord_compl n p],
-  rw h1,
+  refine nat.eq_of_factorization_eq (nat.ord_compl_pos p hn0).ne' (by simp) (λ q, _),
+  rw [nat.factorization_ord_compl n p, h1],
   simp,
 end
 

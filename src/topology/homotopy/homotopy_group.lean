@@ -99,7 +99,7 @@ instance compact_space : compact_space (cube N) :=
 @pi.compact_space _ _ _ (λ_,compact_space_Icc (0:ℝ) 1)
 
 instance locally_compact_space : locally_compact_space (cube N) := sorry
-/- his should hold even if N is infinite, but a different proof is required. -/
+/- this should hold even if N is infinite, but a different proof is required. -/
 
 /-- The points of the `n`-dimensional cube with at least one projection equal to 0 or 1. -/
 def boundary (N) : set (cube N) := {y | ∃ i, y i = 0 ∨ y i = 1}
@@ -248,7 +248,7 @@ end
 
 section
 
-lemma uncurry_helper (f : C(I, C(I, C(cube N, X)))) (t y) : f.uncurry t y = f t.fst t.snd y := rfl
+/-lemma uncurry_helper (f : C(I, C(I, C(cube N, X)))) (t y) : f.uncurry t y = f t.fst t.snd y := rfl-/
 
 /- ! Generalize to any three spaces and move to topology.compact_open -/
 /-- Currying as a continuous map.-/
@@ -276,9 +276,7 @@ abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i},
 lemma homotopic_to (i : N) {p q : gen_loop N x} :
   homotopic p q → (to_path i p).homotopic (to_path i q) :=
 begin
-  apply nonempty.map, rintros H,
-  refine
-  ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩,_⟩, _, _⟩, _⟩,
+  refine nonempty.map (λ H, ⟨⟨⟨λ t, ⟨homotopy_to i H t, _⟩,_⟩, _, _⟩, _⟩),
   { rintros y ⟨i,iH⟩,
     rw homotopy_to_apply_apply, rw H.eq_fst, rw p.2,
     all_goals { apply cube.insert_boundary, right, exact ⟨i,iH⟩} },
@@ -300,8 +298,7 @@ end
 lemma homotopic_from (i : N) {p q : gen_loop N x} :
   (to_path i p).homotopic (to_path i q) → homotopic p q :=
 begin
-  apply nonempty.map, rintros H,
-  refine ⟨⟨homotopy_from i H, _, _⟩, _⟩,
+  refine nonempty.map (λ H, ⟨⟨homotopy_from i H, _, _⟩, _⟩),
   show ∀ _ _ _, _,
   { rintros t y ⟨j, jH⟩, erw homotopy_from_apply,
     obtain rfl | h := eq_or_ne j i,
@@ -309,7 +306,8 @@ begin
       { rw H.eq_fst, exacts [congr_arg p (equiv.apply_symm_apply _ _), jH] },
       { rw H.eq_snd, exacts [congr_arg q (equiv.apply_symm_apply _ _), jH] } },
     { rw [p.2 _ ⟨j, jH⟩, q.2 _ ⟨j, jH⟩], split; { apply boundary, exact ⟨⟨j, h⟩, jH⟩ } } },
-  all_goals { intro, convert homotopy_from_apply _ _ _,
+  all_goals { intro,
+    convert homotopy_from_apply _ _ _,
     rw H.apply_zero <|> rw H.apply_one,
     apply congr_arg p <|> apply congr_arg q,
     exact (equiv.apply_symm_apply _ _).symm },
@@ -448,7 +446,7 @@ by { rw path.trans_apply, split_ifs; refl }
 
 @[reducible] def is_comm_group : comm_group (π_(n+2) x) :=
 @eckmann_hilton.comm_group (π_(n+2) x) aux_group.mul 1
-  ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _ $
+  ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _
 begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩, apply congr_arg quotient.mk,
   ext, erw [path_trans_to_path, path_trans_to_path],
@@ -457,8 +455,9 @@ begin
   split_ifs with h₁ h₀ h₀;
   { simp only [from_path_apply, path_trans_to_path,
       dif_neg fin.zero_ne_one, dif_neg fin.zero_ne_one.symm],
-  erw dif_neg h₁ <|> erw dif_pos h₁, erw dif_neg h₀ <|> erw dif_pos h₀,
-  congr' 1, ext1 j, simp_rw [merge_split_symm_apply, subtype.coe_mk, dite_eq_ite], apply ite_ite },
+    erw dif_neg h₁ <|> erw dif_pos h₁, erw dif_neg h₀ <|> erw dif_pos h₀,
+    congr' 1, ext1 j,
+    simp_rw [merge_split_symm_apply, subtype.coe_mk, dite_eq_ite], apply ite_ite },
 end
 
 instance has_one : has_one (π_ n x) := ⟨const⟩
@@ -469,6 +468,11 @@ def concat (i : fin (n+1)) : π_(n+1) x → π_(n+1) x → π_(n+1) x :=
 quotient.map₂' (gen_loop.concat_ i) (λ _ _ Hp _ _ Hq, gen_loop.homotopic_from i $
   by { repeat {rw gen_loop.concat_to_trans},
     exact (gen_loop.homotopic_to i Hp).hcomp (gen_loop.homotopic_to i Hq) } )
+
+lemma concat_eq (p q : π_(n+1) x) : concat 0 q p = p * q :=
+by { rcases p, rcases q, refl }
+/- rw concat, erw [quotient.map₂'_mk', quotient.map'_mk, concat_],
+  apply congr_arg quotient.mk, dsimp, -/
 
 instance has_mul : has_mul (π_(n+1) x) := ⟨concat 0⟩
 

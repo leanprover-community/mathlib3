@@ -34,4 +34,4 @@ open sym_alg
 Jordan non-associative ring -/
 instance (α : Type*) [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
 { mul_comm := sym_alg.mul_comm,
-  jordan := sym_alg.mul_jordan }
+  lmul_comm_rmul_rmul := sym_alg.mul_jordan }

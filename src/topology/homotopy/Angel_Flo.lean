@@ -1,8 +1,14 @@
+import analysis.complex.circle
+import topology.metric_space.basic
 import topology.homotopy.path
+
+universe u
 
 noncomputable theory
 
-class H_space (G : Type*) [topological_space G] :=
+namespace H_space
+
+class H_space (G : Type u) [topological_space G] :=
 --(m : G → G → G)
 (m : G × G → G)
 (e : G)
@@ -22,7 +28,8 @@ class H_space (G : Type*) [topological_space G] :=
   ⟨id, continuous_id'⟩
   {e})
 
-instance top_group_is_H_space (G : Type*) [topological_space G][group G][topological_group G] : H_space G :=
+instance top_group_is_H_space (G : Type u) [topological_space G] [group G] [topological_group G]
+  : H_space G :=
 {
   m := function.uncurry (*) ,
   e := 1,
@@ -36,3 +43,9 @@ instance top_group_is_H_space (G : Type*) [topological_space G][group G][topolog
   m_dot_e_homotopic_to_id := λ g, by {simp only [function.uncurry_apply_pair, mul_one],
     exact continuous_map.homotopy_rel.refl _ _}
 }
+
+example : H_space circle := infer_instance
+
+-- exemple : H_space S^3 :=
+
+end H_space

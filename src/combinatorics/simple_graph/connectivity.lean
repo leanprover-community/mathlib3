@@ -604,7 +604,7 @@ begin
   split,
   { exact λ h, ⟨_, _, (p.take_spec h).symm⟩ },
   { rintro ⟨q, r, rfl⟩,
-    simp, },
+    simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self], },
 end
 
 @[simp]

@@ -452,35 +452,63 @@ lemma nonunits_injective :
   exact set_like.ext_iff.1 h,
 end
 
-lemma eq_iff_maximal_ideal {A B : valuation_subring K} :
-  A = B ↔ A.maximal_ideal = B.maximal_ideal :=
-maximal_ideal_injective.eq_iff.symm
+lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
+nonunits_injective.eq_iff
 
-/-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
-def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=
-{ to_fun := λ a, ⟨⟨a,(A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩,(A.valuation_lt_one_iff _).2 a.2⟩,
-  inv_fun := λ a, ⟨a,(A.valuation_lt_one_iff _).1 a.2⟩,
-  left_inv := λ a, by { ext, refl },
-  right_inv := λ a, by { ext, refl } }
+lemma nonunits_le_nonunits {A B : valuation_subring K} :
+  B.nonunits ≤ A.nonunits ↔ A ≤ B :=
+begin
+  split,
+  { intros h x hx,
+    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1] at hx ⊢,
+    by_contra h_2, from hx (h h_2) },
+  { intros h x hx,
+    by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
+end
 
-@[simp]
-lemma coe_maximal_ideal_equiv_apply (a : A.maximal_ideal) :
-  (A.maximal_ideal_equiv a : K) = a := rfl
+/-- The map on valuation subrings to their nonunits is a dual order embedding. -/
+def nonunits_order_embedding :
+  valuation_subring K ↪o (subsemigroup K)ᵒᵈ :=
+{ to_fun := λ A, A.nonunits,
+  inj' := nonunits_injective,
+  map_rel_iff' := λ A B, nonunits_le_nonunits }
 
-@[simp]
-lemma coe_maximal_ideal_equiv_symm_apply (a : local_ring.maximal_ideal A) :
-  (A.maximal_ideal_equiv.symm a : K) = a := rfl
+variables {A}
 
-@[simp]
-lemma maximal_ideal_equiv_map_mul (a b : A.maximal_ideal) :
-  A.maximal_ideal_equiv (a * b) = (A.maximal_ideal_equiv a : A) • A.maximal_ideal_equiv b := rfl
+ /-- The elements of `A.nonunits` are those of the maximal ideal of `A` after coercion to `K`.
 
-@[simp]
-lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
-  A.maximal_ideal_equiv.symm ((a : A) • b) =
-  A.maximal_ideal_equiv.symm a * A.maximal_ideal_equiv.symm b := rfl
+See also `mem_nonunits_iff_exists_mem_maximal_ideal`, which gets rid of the coercion to `K`,
+at the expense of a more complicated right hand side.
+ -/
+theorem coe_mem_nonunits_iff {a : A} : (a : K) ∈ A.nonunits ↔ a ∈ local_ring.maximal_ideal A :=
+(valuation_lt_one_iff _ _).symm
 
-end maximal_ideal
+lemma nonunits_le : A.nonunits ≤ A.to_subring.to_submonoid.to_subsemigroup :=
+λ a ha, (A.valuation_le_one_iff _).mp (A.mem_nonunits_iff.mp ha).le
+
+lemma nonunits_subset : (A.nonunits : set K) ⊆ A := nonunits_le
+
+ /-- The elements of `A.nonunits` are those of the maximal ideal of `A`.
+
+See also `coe_mem_nonunits_iff`, which has a simpler right hand side but requires the element
+to be in `A` already.
+ -/
+theorem mem_nonunits_iff_exists_mem_maximal_ideal {a : K} :
+  a ∈ A.nonunits ↔ ∃ ha, (⟨a, ha⟩ : A) ∈ local_ring.maximal_ideal A :=
+⟨λ h, ⟨nonunits_subset h, coe_mem_nonunits_iff.mp h⟩,
+ λ ⟨ha, h⟩, coe_mem_nonunits_iff.mpr h⟩
+
+ /-- `A.nonunits` agrees with the maximal ideal of `A`, after taking its image in `K`. -/
+theorem image_maximal_ideal : (coe : A → K) '' local_ring.maximal_ideal A = A.nonunits :=
+begin
+  ext a,
+  simp only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
+  erw subtype.exists,
+  simp_rw [subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
+end
+
+end nonunits
 
 section principal_unit_group
 
@@ -632,62 +660,5 @@ begin
 end
 
 end principal_unit_group
-lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
-nonunits_injective.eq_iff
-
-lemma nonunits_le_nonunits {A B : valuation_subring K} :
-  B.nonunits ≤ A.nonunits ↔ A ≤ B :=
-begin
-  split,
-  { intros h x hx,
-    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
-    rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1] at hx ⊢,
-    by_contra h_2, from hx (h h_2) },
-  { intros h x hx,
-    by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
-end
-
-/-- The map on valuation subrings to their nonunits is a dual order embedding. -/
-def nonunits_order_embedding :
-  valuation_subring K ↪o (subsemigroup K)ᵒᵈ :=
-{ to_fun := λ A, A.nonunits,
-  inj' := nonunits_injective,
-  map_rel_iff' := λ A B, nonunits_le_nonunits }
-
-variables {A}
-
- /-- The elements of `A.nonunits` are those of the maximal ideal of `A` after coercion to `K`.
-
-See also `mem_nonunits_iff_exists_mem_maximal_ideal`, which gets rid of the coercion to `K`,
-at the expense of a more complicated right hand side.
- -/
-theorem coe_mem_nonunits_iff {a : A} : (a : K) ∈ A.nonunits ↔ a ∈ local_ring.maximal_ideal A :=
-(valuation_lt_one_iff _ _).symm
-
-lemma nonunits_le : A.nonunits ≤ A.to_subring.to_submonoid.to_subsemigroup :=
-λ a ha, (A.valuation_le_one_iff _).mp (A.mem_nonunits_iff.mp ha).le
-
-lemma nonunits_subset : (A.nonunits : set K) ⊆ A := nonunits_le
-
- /-- The elements of `A.nonunits` are those of the maximal ideal of `A`.
-
-See also `coe_mem_nonunits_iff`, which has a simpler right hand side but requires the element
-to be in `A` already.
- -/
-theorem mem_nonunits_iff_exists_mem_maximal_ideal {a : K} :
-  a ∈ A.nonunits ↔ ∃ ha, (⟨a, ha⟩ : A) ∈ local_ring.maximal_ideal A :=
-⟨λ h, ⟨nonunits_subset h, coe_mem_nonunits_iff.mp h⟩,
- λ ⟨ha, h⟩, coe_mem_nonunits_iff.mpr h⟩
-
- /-- `A.nonunits` agrees with the maximal ideal of `A`, after taking its image in `K`. -/
-theorem image_maximal_ideal : (coe : A → K) '' local_ring.maximal_ideal A = A.nonunits :=
-begin
-  ext a,
-  simp only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
-  erw subtype.exists,
-  simp_rw [subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
-end
-
-end nonunits
 
 end valuation_subring

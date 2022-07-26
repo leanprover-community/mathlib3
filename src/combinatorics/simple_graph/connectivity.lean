@@ -309,12 +309,14 @@ begin
 end
 
 @[simp]
-lemma walk.subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+lemma walk.subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
   p.support ⊆ (p.append q).support :=
 by simp only [walk.support_append, list.subset_append_left]
 
 @[simp]
-lemma walk.subset_support_append_right {V : Type u} {G : simple_graph V} {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+lemma walk.subset_support_append_right {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
   q.support ⊆ (p.append q).support :=
 by { intro h, simp only [mem_support_append_iff, or_true, implies_true_iff] {contextual := tt}}
 
@@ -597,7 +599,8 @@ begin
       split_ifs with h'; subst_vars; simp [*], } },
 end
 
-lemma walk.mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} :
+lemma walk.mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V}
+  {p : G.walk u v} :
   w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
 begin
   classical,

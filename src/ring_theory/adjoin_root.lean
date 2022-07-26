@@ -530,7 +530,9 @@ lemma quot_adjoin_root_equiv_quot_polynomial_quot_symm_mk_mk (p : R[X]) :
 begin
   rw [quot_adjoin_root_equiv_quot_polynomial_quot, ring_equiv.symm_trans_apply,
     ring_equiv.symm_trans_apply, ring_equiv.symm_trans_apply, ring_equiv.symm_symm,
-    polynomial.quot_quot_equiv_comm_mk],
+    polynomial.quot_quot_equiv_comm_mk, ideal.quot_equiv_of_eq_symm,
+    ideal.quot_equiv_of_eq_mk, ← quot_quot_mk_apply,
+    quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_symm_quot_quot_mk],
 
 
 

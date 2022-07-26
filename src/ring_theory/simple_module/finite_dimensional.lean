@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import ring_theory.simple_module.basic
 import linear_algebra.finite_dimensional
-import algebra.module.submodule_lattice
+import algebra.module.submodule.lattice
 
 /-!
 # 1-d modules are simple

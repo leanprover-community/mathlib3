@@ -253,6 +253,9 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
   pure a
 | (app `(⇑(monomial %%n)) x) :=
   pure x
+| `(@has_one.one (@polynomial %%R %%inst) %%ins) := do
+  oner ← to_expr ``(has_one.one : %%R) tt ff,
+  pure oner
 | `(X) := do
   oner ← to_expr ``(has_one.one : %%R) tt ff,
   pure oner
@@ -371,8 +374,9 @@ meta def resolve_coeff : tactic unit := focus1 $ do
 `(coeff %%f %%n = _) ← target >>= instantiate_mvars,
 --do `(coeff %%f %%n = _) ← whnf t reducible | fail!"{t} has the wrong form",
 match f with
+| `(@has_one.one %%RX %%inst) := try $ refine ``(coeff_one_zero)
 | (app `(⇑C) _) := try $ refine ``(coeff_C_zero)
-| (app `(⇑(@monomial %%R %%inst %%n)) x) := (try $ refine ``(coeff_monomial))
+| (app `(⇑(@monomial %%R %%inst %%n)) x) := try $ refine ``(coeff_monomial)
 | `(X) := try $ refine ``(coeff_X_one)
 | `(X ^ %%n) := try $ refine ``(coeff_X_pow_self %%n)
 | `(bit0 %%a) := do
@@ -472,7 +476,7 @@ do
   nn ← get_unused_name "c_c",
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
   co_eq_co ← mk_app `eq [cf.mk_app [f, `(exp_deg)], lc],
-  c_c ← assert nn co_eq_co,
+  assert nn co_eq_co,
   resolve_coeff
   --,
   --try `[ conv_rhs at c_c {norm_num} ]

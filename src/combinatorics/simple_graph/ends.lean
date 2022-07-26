@@ -1114,6 +1114,13 @@ begin
   sorry
 end
 
+
+-- need this ?
+lemma list.map_to_finset {α β : Type*}  [decidable_eq α]  [decidable_eq β] (f : α → β) (l : list α) :
+  (l.map f).to_finset = finset.image f l.to_finset :=
+list.rec_on l (by {simp}) (λ h t hyp, by {simp,rw hyp,})
+
+
 /-
   This is the key part of Hopf-Freudenthal
   Assuming this is proved:
@@ -1136,8 +1143,19 @@ begin
   let L := K' ∪ φK',
   use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
-
-  have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by sorry,
+  -- that's very generic/basic: the image of a connected set is connected
+  have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by {
+    rintros φx xφ φy yφ,
+    simp at xφ,
+    simp at yφ,
+    rcases xφ with ⟨x,⟨xK,rfl⟩⟩,
+    rcases yφ with ⟨y,⟨yK,rfl⟩⟩,
+    rcases K'conn x xK y yK with ⟨w,wgood⟩,
+    let φw := w.map φ.to_hom,
+    use φw,
+    rw [walk.support_map,list.map_to_finset],
+    apply finset.image_subset_image wgood,
+  },
 
   rcases component.conn_sub_of_connected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
   rcases component.conn_sub_of_connected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
@@ -1165,8 +1183,8 @@ begin
   have many_ends : 3 ≤ (fintype.card (ends G)) := (nat.succ_le_iff.mpr (not_le.mp h)),
   rcases @finite_ends_to_inj V G _ (sorry) _ _ (sorry) with ⟨K,Knempty,Kinj⟩,
 
-  have : @fintype.card ↥(G.inf_components K)  ≥ 3, by {
-    have := fintype.card_le_of_injective (eval G K) (eval_injective G K Kinj),
+  have : 3 ≤ @fintype.card ↥(G.inf_components K) (sorry), by {
+    have := @fintype.card_le_of_injective _ _ _ (sorry) (eval G K) (eval_injective G K Kinj),
     exact many_ends.trans this,
   },
 

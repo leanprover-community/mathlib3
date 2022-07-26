@@ -12,6 +12,28 @@ import category_theory.morphism_property
 
 We provide the basic framework for talking about properties of morphisms between Schemes.
 
+A `morphism_property Scheme` is a predicate on morphisms between schemes, and an
+`affine_target_morphism_property` is a predicate on morphisms into affine schemes. Given a
+`P : affine_target_morphism_property`, we may construct a `morphism_property` that holds for
+`f : X ⟶ Y` whenever `P` holds for the restriction of `f` on every affine open subset of `Y`.
+
+We say that `affine_target_morphism_property.is_local P` if `P` satisfies the assumptions of
+the affine communication lemma (`algebraic_geometry.of_affine_open_cover`), that is,
+1. `P` respects isomorphisms.
+2. If `P` holds for `f : X ⟶ Y`, then `P` holds for `f ∣_ Y.basic_open r` for any
+  global section `r`.
+3. If `P` holds for `f ∣_ Y.basic_open r` for all `r` in a spanning set of the global sections,
+  then `P` holds for `f`.
+
+For well-behaved properties, we provide the following equivalent conditions.
+
+1. `algebraic_geometry.affine_target_morphism_property.is_local.affine_open_cover_tfae`:
+  If `P.is_local`, then `target_affine_locally P f` iff there exists an affine cover `{ Uᵢ }` of `Y`
+  such that `P` holds for `f ∣_ Uᵢ`.
+2. `algebraic_geometry.affine_target_morphism_property.is_local_of_open_cover_imply`:
+  If the existtence of an affine cover `{ Uᵢ }` of `Y` such that `P` holds for `f ∣_ Uᵢ` implies
+  `target_affine_locally P f`, then `P.is_local`.
+
 -/
 
 universe u
@@ -100,19 +122,12 @@ begin
     range_is_affine_open_of_open_immersion (𝒰.map i)⟩ : Y.affine_opens),
   intro U,
   apply of_affine_open_cover U (set.range S),
-  { rw set.eq_univ_iff_forall,
-    simp only [set.mem_Union],
-    intro x,
-    exact ⟨⟨_, ⟨𝒰.f x, rfl⟩⟩, 𝒰.covers x⟩ },
-  { rintro ⟨_, i, rfl⟩,
-    simp_rw ← P.to_property_apply at ⊢ h𝒰,
-    exact (property_iff_of_is_open_immersion _ hP.1.to_property _ _).mp (h𝒰 i) },
   { intros U r h,
     haveI : is_affine _ := U.2,
     have := hP.2 (f ∣_ U.1),
     replace this := this (Y.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op r) h,
     rw ← P.to_property_apply at this ⊢,
-    exact (property_restrict_restrict_basic_open_iff _ hP.1.to_property _ _ r).mp this },
+    exact (hP.1.arrow_mk_iso_iff (morphism_restrict_restrict_basic_open f _ r)).mp this },
   { intros U s hs H,
     haveI : is_affine _ := U.2,
     apply hP.3 (f ∣_ U.1) (s.image (Y.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op)),
@@ -127,8 +142,15 @@ begin
     { rintro ⟨r, hr⟩,
       obtain ⟨r, hr', rfl⟩ := finset.mem_image.mp hr,
       simp_rw ← P.to_property_apply at ⊢ H,
-      exact (property_restrict_restrict_basic_open_iff _ hP.1.to_property f _ r).mpr
-        (H ⟨r, hr'⟩) } }
+      exact
+        (hP.1.arrow_mk_iso_iff (morphism_restrict_restrict_basic_open f _ r)).mpr (H ⟨r, hr'⟩) } },
+  { rw set.eq_univ_iff_forall,
+    simp only [set.mem_Union],
+    intro x,
+    exact ⟨⟨_, ⟨𝒰.f x, rfl⟩⟩, 𝒰.covers x⟩ },
+  { rintro ⟨_, i, rfl⟩,
+    simp_rw ← P.to_property_apply at ⊢ h𝒰,
+    exact (hP.1.arrow_mk_iso_iff (morphism_restrict_opens_range f _)).mpr (h𝒰 i) },
 end
 
 @[simps J obj map]
@@ -151,6 +173,10 @@ def Scheme.open_cover_of_supr_eq_top {s : Type*} (X : Scheme) (U : s → opens X
 def open_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
   opens Y.carrier := ⟨set.range f.1.base, H.base_open.open_range⟩
 
+instance Scheme.affine_cover_is_affine (X : Scheme) (i : X.affine_cover.J) :
+  is_affine (X.affine_cover.obj i) :=
+algebraic_geometry.Spec_is_affine _
+
 lemma affine_target_morphism_property.is_local.affine_open_cover_tfae
   {P : affine_target_morphism_property}
   (hP : P.is_local) {X Y : Scheme.{u}} (f : X ⟶ Y) :
@@ -170,7 +196,7 @@ begin
     replace H := H ⟨⟨_, h₂.base_open.open_range⟩,
       range_is_affine_open_of_open_immersion g⟩,
     rw ← P.to_property_apply at H ⊢,
-    rwa property_iff_of_is_open_immersion _ hP.1.to_property },
+    rwa ← hP.1.arrow_mk_iso_iff (morphism_restrict_opens_range f _) },
   tfae_have : 4 → 3,
   { intros H 𝒰 h𝒰 i,
     resetI,
@@ -184,10 +210,10 @@ begin
     refine ⟨Y.open_cover_of_supr_eq_top U hU, hU', _⟩,
     intro i,
     specialize H i,
-    rw [← P.to_property_apply, property_iff_of_is_open_immersion _ hP.respects_iso.to_property],
+    rw [← P.to_property_apply, ← hP.1.arrow_mk_iso_iff (morphism_restrict_opens_range f _)],
     rw ← P.to_property_apply at H,
     convert H,
-    all_goals { ext1, rw subtype.coe_mk, exact subtype.range_coe } },
+    all_goals { ext1, exact subtype.range_coe } },
   tfae_have : 1 → 5,
   { intro H,
     refine ⟨Y.carrier, λ x, open_range (Y.affine_cover.map x), _,
@@ -198,7 +224,7 @@ begin
 end
 
 lemma affine_target_morphism_property.is_local_of_open_cover_imply
-  (P : affine_target_morphism_property) (hP : P.respects_iso)
+  (P : affine_target_morphism_property) (hP : P.to_property.respects_iso)
   (H : ∀ {X Y : Scheme.{u}} (f : X ⟶ Y),
     (∃ (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)], ∀ (i : 𝒰.J),
       by exactI P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i)) →
@@ -210,27 +236,28 @@ begin
     resetI,
     haveI : is_affine _ := (top_is_affine_open Y).basic_open_is_affine r,
     delta morphism_restrict,
-    rw hP.cancel_left_is_iso,
+    rw affine_cancel_left_is_iso hP,
     refine @@H f ⟨Scheme.open_cover_of_is_iso (𝟙 Y), _, _⟩ (Y.of_restrict _) _inst _,
     { intro i, dsimp, apply_instance },
     { intro i, dsimp,
-      rwa [← category.comp_id pullback.snd, ← pullback.condition, hP.cancel_left_is_iso] } },
+      rwa [← category.comp_id pullback.snd, ← pullback.condition, affine_cancel_left_is_iso hP] } },
   { introv hs hs',
     resetI,
     replace hs := ((top_is_affine_open Y).basic_open_union_eq_self_iff _).mpr hs,
     have := H f ⟨Y.open_cover_of_supr_eq_top _ hs, _, _⟩ (𝟙 _),
-    rwa [← category.comp_id pullback.snd, ← pullback.condition, hP.cancel_left_is_iso] at this,
+    rwa [← category.comp_id pullback.snd, ← pullback.condition,
+      affine_cancel_left_is_iso hP] at this,
     { intro i, exact (top_is_affine_open Y).basic_open_is_affine _ },
     { rintro (i : s),
       specialize hs' i,
       haveI : is_affine _ := (top_is_affine_open Y).basic_open_is_affine i.1,
       delta morphism_restrict at hs',
-      rwa hP.cancel_left_is_iso at hs' } }
+      rwa affine_cancel_left_is_iso hP at hs' } }
 end
 
 lemma open_cover_tfae_mk
-  {P : morphism_property}
-  (hP : respects_iso P)
+  {P : morphism_property Scheme}
+  (hP : P.respects_iso)
   (hP' : ∀ {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y),
     (∀ (i : 𝒰.J), P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i)) → P f)
   (hP'' : ∀ {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier), P f → P (f ∣_ U))
@@ -251,15 +278,14 @@ begin
   { intros H U, exact hP'' f U H },
   tfae_have : 4 → 3,
   { intros H 𝒰 i,
-    have := H ⟨_, (𝒰.is_open i).base_open.open_range⟩,
-    rw property_iff_of_is_open_immersion _ hP,
-    exact H ⟨_, (𝒰.is_open i).base_open.open_range⟩ },
+    rw ← hP.arrow_mk_iso_iff (morphism_restrict_opens_range f _),
+    exact H (is_open_immersion.opens_range $ 𝒰.map i) },
   tfae_have : 3 → 2,
   { exact λ H, ⟨Y.affine_cover, H Y.affine_cover⟩ },
   tfae_have : 4 → 5,
   { intros H U g hg,
     resetI,
-    rw property_iff_of_is_open_immersion _ hP,
+    rw ← hP.arrow_mk_iso_iff (morphism_restrict_opens_range f _),
     apply H },
   tfae_have : 5 → 4,
   { intros H U,
@@ -271,9 +297,9 @@ begin
   { rintro ⟨ι, U, hU, H⟩,
     refine ⟨Y.open_cover_of_supr_eq_top U hU, _⟩,
     intro i,
-    rw property_iff_of_is_open_immersion _ hP,
+    rw ← hP.arrow_mk_iso_iff (morphism_restrict_opens_range f _),
     convert H i,
-    all_goals { ext1, rw subtype.coe_mk, exact subtype.range_coe } },
+    all_goals { ext1, exact subtype.range_coe } },
   tfae_finish
 end
 
@@ -310,12 +336,12 @@ begin
         refine (pullback_symmetry _ _).hom ≫ _,
         refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _;
           simp only [category.comp_id, category.id_comp, pullback_symmetry_hom_comp_snd] },
-      rw ← hP.1.cancel_left_is_iso e at h𝒰,
+      rw ← affine_cancel_left_is_iso hP.1 e at h𝒰,
       convert h𝒰,
       simp } },
   { intros X Y f U H V,
-    rw [← P.to_property_apply, property_restrict_restrict_iff _ hP.1.to_property],
-    convert H ⟨_, V.2.image_is_open_immersion (Y.of_restrict _)⟩,
+    rw [← P.to_property_apply, hP.1.arrow_mk_iso_iff (morphism_restrict_restrict f _ _)],
+    convert H ⟨_, is_affine_open.image_is_open_immersion V.2 (Y.of_restrict _)⟩,
     rw ← P.to_property_apply,
     refl },
 end
@@ -335,8 +361,6 @@ lemma affine_target_morphism_property.is_local.open_cover_iff
 ⟨λ H, let h := ((hP.open_cover_tfae f).out 0 2).mp H in h 𝒰,
   λ H, let h := ((hP.open_cover_tfae f).out 1 0).mp in h ⟨𝒰, H⟩⟩
 
-universe v
-
 lemma affine_target_morphism_property.is_local.affine_target_iff
   {P : affine_target_morphism_property} (hP : P.is_local)
   {X Y : Scheme.{u}} (f : X ⟶ Y) [is_affine Y] :
@@ -347,7 +371,7 @@ begin
   swap, { intro _, dsimp, apply_instance },
   transitivity (P (pullback.snd : pullback f (𝟙 _) ⟶ _)),
   { exact ⟨λ H, H punit.star, λ H _, H⟩ },
-  rw [← category.comp_id pullback.snd, ← pullback.condition, hP.1.cancel_left_is_iso],
+  rw [← category.comp_id pullback.snd, ← pullback.condition, affine_cancel_left_is_iso hP.1],
 end
 
 

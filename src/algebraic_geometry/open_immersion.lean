@@ -1803,6 +1803,8 @@ begin
   congr,
 end
 
+/-- Restricting a morphism onto the the image of an open immersion is isomorphic to the base change
+along the immersion. -/
 def morphism_restrict_opens_range
   {X Y U : Scheme} (f : X ⟶ Y) (g : U ⟶ Y) [hg : is_open_immersion g] :
   arrow.mk (f ∣_ is_open_immersion.opens_range g) ≅ arrow.mk (pullback.snd : pullback f g ⟶ _) :=
@@ -1820,17 +1822,13 @@ begin
     is_open_immersion.lift_fac, ← pullback.condition, morphism_restrict_ι,
     pullback_restrict_iso_restrict_hom_restrict_assoc, pullback.lift_fst_assoc, category.comp_id],
 end
-.
 
 /-- The restriction onto two equal open sets are isomorphic. This currently has bad defeqs when
 unfolded, but it should not matter for now. Replace this definition if better defeqs are needed. -/
 def morphism_restrict_eq {X Y : Scheme} (f : X ⟶ Y) {U V : opens Y.carrier} (e : U = V) :
   arrow.mk (f ∣_ U) ≅ arrow.mk (f ∣_ V) := eq_to_iso (by subst e)
 
-abbreviation arrow.iso_mk' {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z)
-  (e₁ : W ≅ Y) (e₂ : X ≅ Z) (h : e₁.hom ≫ g = f ≫ e₂.hom) : arrow.mk f ≅ arrow.mk g :=
-arrow.iso_mk e₁ e₂ h
-
+/-- Restricting a morphism twice is isomorpic to one restriction. -/
 def morphism_restrict_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (V : opens U) :
   arrow.mk (f ∣_ U ∣_ V) ≅ arrow.mk (f ∣_ (U.open_embedding.is_open_map.functor.obj V)) :=
 begin
@@ -1849,7 +1847,8 @@ begin
   congr,
   exact subtype.range_coe,
 end
-.
+
+/-- Restricting a morphism twice onto a basic open set is isomorphic to one restriction.  -/
 def morphism_restrict_restrict_basic_open {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier)
   (r : Y.presheaf.obj (op U)) :
   arrow.mk (f ∣_ U ∣_ (Y.restrict _).basic_open

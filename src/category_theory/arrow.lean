@@ -97,6 +97,12 @@ and a proof that the square commutes. -/
   f ≅ g :=
 comma.iso_mk l r h
 
+/-- A variant of `arrow.iso_mk` that creates an iso between two `arrow.mk`s with a better type
+signature. -/
+abbreviation iso_mk' {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z)
+  (e₁ : W ≅ Y) (e₂ : X ≅ Z) (h : e₁.hom ≫ g = f ≫ e₂.hom) : arrow.mk f ≅ arrow.mk g :=
+arrow.iso_mk e₁ e₂ h
+
 section
 
 variables {f g : arrow T} (sq : f ⟶ g)

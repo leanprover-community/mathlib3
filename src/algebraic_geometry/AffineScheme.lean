@@ -181,6 +181,17 @@ begin
   exact set.image_univ
 end
 
+lemma is_affine_open.image_is_open_immersion {X Y : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U)
+  (f : X ⟶ Y) [H : is_open_immersion f] : is_affine_open (H.open_functor.obj U) :=
+begin
+  haveI : is_affine _ := hU,
+  convert range_is_affine_open_of_open_immersion (X.of_restrict U.open_embedding ≫ f),
+  ext1,
+  change f.1.base '' U.1 = set.range (f.1.base ∘ coe),
+  rw [set.range_comp, subtype.range_coe],
+end
+
 instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
 ⟨(top_is_affine_open X).is_compact⟩
 
@@ -513,7 +524,8 @@ def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
 { U : opens X.carrier | is_affine_open U }
 
 /-- The basic open set of a section `f` on an an affine open as an `X.affine_opens`. -/
-abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
+@[simps]
+def Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
   (f : X.presheaf.obj $ op U) : X.affine_opens :=
 ⟨X.basic_open f, U.prop.basic_open_is_affine f⟩
 

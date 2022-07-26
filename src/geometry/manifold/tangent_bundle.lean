@@ -83,11 +83,11 @@ corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial
 of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
 base. We require the change of coordinates of the fibers to be linear, so that the resulting bundle
 is a vector bundle. -/
-structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(F : Type*) [normed_group F] [normed_space 𝕜 F] :=
+(F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] :=
 (coord_change      : atlas H M → atlas H M → H → (F →L[𝕜] F))
 (coord_change_self : ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
 (coord_change_comp : ∀ i j k : atlas H M,
@@ -98,11 +98,11 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
-def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(F : Type*) [normed_group F] [normed_space 𝕜 F] : basic_smooth_vector_bundle_core I M F :=
+(F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] : basic_smooth_vector_bundle_core I M F :=
 { coord_change := λ i j x, continuous_linear_map.id 𝕜 F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
@@ -110,11 +110,11 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 
 namespace basic_smooth_vector_bundle_core
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_vector_bundle_core I M F)
 
 instance : inhabited (basic_smooth_vector_bundle_core I M F) :=
@@ -149,6 +149,7 @@ begin
 end
 
 /-- Vector bundle core associated to a basic smooth bundle core -/
+@[simps coord_change index_at]
 def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
@@ -191,6 +192,7 @@ by { simp only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
+@[simps chart_at (lemmas_only)]
 instance to_charted_space :
   charted_space (model_prod H F) Z.to_topological_vector_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart he},
@@ -287,15 +289,15 @@ end basic_smooth_vector_bundle_core
 
 section tangent_bundle
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
 model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordinate change in the
 fiber corresponds to the derivative of the coordinate change in `M`. -/
-def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
+@[simps] def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
 { coord_change := λ i j x, (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x)),
   coord_change_smooth_clm := λ i j,
   begin

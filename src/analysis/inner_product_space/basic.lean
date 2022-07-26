@@ -99,13 +99,13 @@ spaces.
 To construct a norm from an inner product, see `inner_product_space.of_core`.
 -/
 class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
-  extends normed_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
+  extends normed_add_comm_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
 (norm_sq_eq_inner : ∀ (x : E), ∥x∥^2 = re (inner x x))
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
 
-attribute [nolint dangerous_instance] inner_product_space.to_normed_group
+attribute [nolint dangerous_instance] inner_product_space.to_normed_add_comm_group
 -- note [is_R_or_C instance]
 
 /-!
@@ -321,8 +321,8 @@ begin
 end
 
 /-- Normed group structure constructed from an `inner_product_space.core` structure -/
-def to_normed_group : normed_group F :=
-normed_group.of_core F
+def to_normed_add_comm_group : normed_add_comm_group F :=
+normed_add_comm_group.of_core F
 { norm_eq_zero_iff := assume x,
   begin
     split,
@@ -349,7 +349,7 @@ normed_group.of_core F
   end,
   norm_neg := λ x, by simp only [norm, inner_neg_left, neg_neg, inner_neg_right] }
 
-local attribute [instance] to_normed_group
+local attribute [instance] to_normed_add_comm_group
 
 /-- Normed space structure constructed from a `inner_product_space.core` structure -/
 def to_normed_space : normed_space 𝕜 F :=
@@ -369,7 +369,8 @@ the space into an inner product space, constructing the norm out of the inner pr
 def inner_product_space.of_core [add_comm_group F] [module 𝕜 F]
   (c : inner_product_space.core 𝕜 F) : inner_product_space 𝕜 F :=
 begin
-  letI : normed_group F := @inner_product_space.of_core.to_normed_group 𝕜 F _ _ _ c,
+  letI : normed_add_comm_group F :=
+    @inner_product_space.of_core.to_normed_add_comm_group 𝕜 F _ _ _ c,
   letI : normed_space 𝕜 F := @inner_product_space.of_core.to_normed_space 𝕜 F _ _ _ c,
   exact { norm_sq_eq_inner := λ x,
     begin
@@ -831,6 +832,12 @@ begin
   convert hv (f i) (f j) using 1,
   simp [hf.eq_iff]
 end
+
+/-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
+family. -/
+lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+  orthonormal 𝕜 (coe : set.range v → E) :=
+by simpa using hv.comp _ (set.range_splitting_injective v)
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/
@@ -1942,7 +1949,8 @@ lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π
   summable (λ i, V i (f i)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
 begin
   classical,
-  simp only [summable_iff_cauchy_seq_finset, normed_group.cauchy_seq_iff, real.norm_eq_abs],
+  simp only [summable_iff_cauchy_seq_finset, normed_add_comm_group.cauchy_seq_iff,
+    real.norm_eq_abs],
   split,
   { intros hf ε hε,
     obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),
@@ -2277,101 +2285,3 @@ begin
 end
 
 end orthogonal
-
-/-! ### Self-adjoint operators -/
-
-namespace inner_product_space
-
-/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
-`x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
-def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
-
-/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
-`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_bilin_form (T : F →ₗ[ℝ] F) :
-  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
-
-lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
-  conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
-by rw [hT x y, inner_conj_sym]
-
-@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
-  (x y : E) :
-  ⟪T x, y⟫ = ⟪x, T y⟫ :=
-hT x y
-
-/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
-  it is automatically continuous. -/
-lemma is_self_adjoint.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) :
-  continuous T :=
-begin
-  -- We prove it by using the closed graph theorem
-  refine T.continuous_of_seq_closed_graph (λ u x y hu hTu, _),
-  rw [←sub_eq_zero, ←inner_self_eq_zero],
-  have hlhs : ∀ k : ℕ, ⟪T (u k) - T x, y - T x⟫ = ⟪u k - x, T (y - T x)⟫ :=
-  by { intro k, rw [←T.map_sub, hT] },
-  refine tendsto_nhds_unique ((hTu.sub_const _).inner tendsto_const_nhds) _,
-  simp_rw hlhs,
-  rw ←@inner_zero_left 𝕜 E _ _ (T (y - T x)),
-  refine filter.tendsto.inner _ tendsto_const_nhds,
-  rw ←sub_self x,
-  exact hu.sub_const _,
-end
-
-/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
-  defined symmetric operator.-/
-def is_self_adjoint.clm [complete_space E] {T : E →ₗ[𝕜] E}
-  (hT : is_self_adjoint T) : E →L[𝕜] E :=
-⟨T, hT.continuous⟩
-
-lemma is_self_adjoint.clm_apply [complete_space E] {T : E →ₗ[𝕜] E}
-  (hT : is_self_adjoint T) {x : E} : hT.clm x = T x := rfl
-
-/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
-@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
-  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
-  (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
-begin
-  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
-  { obtain ⟨r, hr⟩ := this,
-    simp [hr, T.re_apply_inner_self_apply] },
-  rw ← eq_conj_iff_real,
-  exact hT.conj_inner_sym x x
-end
-
-/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
-self-adjoint. -/
-lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
-  {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  is_self_adjoint (T.restrict hV) :=
-λ v w, hT v w
-
-section complex
-
-variables {V : Type*}
-  [inner_product_space ℂ V]
-
-/-- A linear operator on a complex inner product space is self-adjoint precisely when
-`⟪T v, v⟫_ℂ` is real for all v.-/
-lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
-  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
-begin
-  split,
-  { intros hT v,
-    apply is_self_adjoint.conj_inner_sym hT },
-  { intros h x y,
-    nth_rewrite 1 ← inner_conj_sym,
-    nth_rewrite 1 inner_map_polarization,
-    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
-    simp only [← star_ring_end_apply],
-    rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
-    simp only [complex.conj_I],
-    rw inner_map_polarization',
-    norm_num,
-    ring },
-end
-
-end complex
-
-end inner_product_space

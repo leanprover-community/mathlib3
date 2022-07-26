@@ -636,15 +636,11 @@ end finite_biproducts
 
 variables {J : Type w} {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
-instance biproduct.ι_mono (f : J → C) [has_biproduct f]
-  (b : J) : split_mono (biproduct.ι f b) :=
-{ retraction := biproduct.desc $
-    λ b', if h : b' = b then eq_to_hom (congr_arg f h) else biproduct.ι f b' ≫ biproduct.π f b }
+instance biproduct.ι_mono (f : J → C) [has_biproduct f] (b : J) : split_mono (biproduct.ι f b) :=
+{ retraction := biproduct.desc $ pi.single b _ }
 
-instance biproduct.π_epi (f : J → C) [has_biproduct f]
-  (b : J) : split_epi (biproduct.π f b) :=
-{ section_ := biproduct.lift $
-    λ b', if h : b = b' then eq_to_hom (congr_arg f h) else biproduct.ι f b ≫ biproduct.π f b' }
+instance biproduct.π_epi (f : J → C) [has_biproduct f] (b : J) : split_epi (biproduct.π f b) :=
+{ section_ := biproduct.lift $ pi.single b _ }
 
 /-- Auxiliary lemma for `biproduct.unique_up_to_iso`. -/
 lemma biproduct.cone_point_unique_up_to_iso_hom (f : J → C) [has_biproduct f] {b : bicone f}

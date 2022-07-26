@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.big_operators.basic
-import data.nat.enat
+import data.nat.part_enat
 
 /-!
 # Big operators in `part_enat`

@@ -395,13 +395,7 @@ section order
 variables {n : ℕ} {x : α}
 
 lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < ∑ i in range n, x ^ i :=
-begin
-  refine nat.le_induction _ _ _ (show 1 ≤ n, from hn.bot_lt),
-  { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx)] },
-  intros k hk,
-  rw [geom_sum_succ'],
-  apply add_pos (pow_pos hx _)
-end
+sum_pos (λ k hk, pow_pos hx _) $ nonempty_range_iff.2 hn
 
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < ∑ i in range n, x ^ i ∧ ∑ i in range n, x ^ i < 1 :=

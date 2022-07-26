@@ -83,3 +83,23 @@ by compute_degree_le; assumption
 
 example {F} [ring F] : nat_degree (X ^ 4 + bit1 1 : F[X]) ≤ 4 :=
 by compute_degree_le
+
+example {R} [ring R] [nontrivial R] {a b c d e : R} :
+  (X - monomial 11 1 : R[X]).nat_degree = 11 :=
+begin
+  compute_degree,
+  norm_num,
+end
+
+example {R} [ring R] [nontrivial R] {a b c d e : R} :
+  (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 - monomial 11 1 +
+    C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X).nat_degree = 11 :=
+begin
+  compute_degree,
+  exact neg_ne_zero.mpr one_ne_zero,
+end
+
+example {R} [ring R] [nontrivial R] {a b c d e : R} :
+  (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 + monomial 11 1 +
+    C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X).monic :=
+by prove_monic

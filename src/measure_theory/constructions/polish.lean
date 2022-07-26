@@ -685,7 +685,7 @@ omit hγb
 
 /-- The set of points for which a measurable sequence of functions converges is measurable. -/
 @[measurability] lemma measurable_set_exists_tendsto
-  [hγ : opens_measurable_space γ] [encodable ι] {l : filter ι}
+  [hγ : opens_measurable_space γ] [countable ι] {l : filter ι}
   [l.is_countably_generated] {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
   measurable_set {x | ∃ c, tendsto (λ n, f n x) l (𝓝 c)} :=
 begin
@@ -699,13 +699,13 @@ begin
     (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := λ x, hu.map.prod hu.map,
   simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
     metric.uniformity_basis_dist_inv_nat_succ, set.set_of_forall],
-  refine measurable_set.bInter encodable.countable (λ K _, _),
+  refine measurable_set.bInter set.countable_univ (λ K _, _),
   simp_rw set.set_of_exists,
-  refine measurable_set.bUnion encodable.countable (λ N hN, _),
+  refine measurable_set.bUnion set.countable_univ (λ N hN, _),
   simp_rw [prod_image_image_eq, image_subset_iff, prod_subset_iff, set.set_of_forall],
-  exact measurable_set.bInter encodable.countable (λ i _,
-    measurable_set.bInter encodable.countable (λ j _,
-    measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const))
+  exact measurable_set.bInter (to_countable (u N)) (λ i _,
+    measurable_set.bInter (to_countable (u N)) (λ j _,
+    measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const)),
 end
 
 end measure_theory

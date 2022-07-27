@@ -1207,13 +1207,17 @@ def linear_equiv.isometry_of_inner (f : E ≃ₗ[𝕜] E') (h : ∀ x y, ⟪f x,
   (f.isometry_of_inner h).to_linear_equiv = f := rfl
 
 /-- A linear isometry preserves the property of being orthonormal. -/
-lemma orthonormal.comp_linear_isometry {v : ι → E} (hv : orthonormal 𝕜 v) (f : E →ₗᵢ[𝕜] E') :
-  orthonormal 𝕜 (f ∘ v) :=
+lemma linear_isometry.orthonormal_comp_iff {v : ι → E} (f : E →ₗᵢ[𝕜] E') :
+  orthonormal 𝕜 (f ∘ v) ↔ orthonormal 𝕜 v :=
 begin
   classical,
-  simp_rw [orthonormal_iff_ite, linear_isometry.inner_map_map, ←orthonormal_iff_ite],
-  exact hv
+  simp_rw [orthonormal_iff_ite, linear_isometry.inner_map_map]
 end
+
+/-- A linear isometry preserves the property of being orthonormal. -/
+lemma orthonormal.comp_linear_isometry {v : ι → E} (hv : orthonormal 𝕜 v) (f : E →ₗᵢ[𝕜] E') :
+  orthonormal 𝕜 (f ∘ v) :=
+by rwa f.orthonormal_comp_iff
 
 /-- A linear isometric equivalence preserves the property of being orthonormal. -/
 lemma orthonormal.comp_linear_isometry_equiv {v : ι → E} (hv : orthonormal 𝕜 v) (f : E ≃ₗᵢ[𝕜] E') :
@@ -1819,6 +1823,17 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
+
+lemma orthonormal.cod_restrict {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v)
+  (s : submodule 𝕜 E) (hvs : ∀ i, v i ∈ s) :
+  @orthonormal 𝕜 s _ _ ι (set.cod_restrict v s hvs) :=
+s.subtypeₗᵢ.orthonormal_comp_iff.mp hv
+
+lemma orthonormal_span {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) :
+  @orthonormal 𝕜 (submodule.span 𝕜 (set.range v)) _ _ ι
+    (λ i : ι, ⟨v i, submodule.subset_span (set.mem_range_self i)⟩) :=
+hv.cod_restrict (submodule.span 𝕜 (set.range v))
+  (λ i, submodule.subset_span (set.mem_range_self i))
 
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 

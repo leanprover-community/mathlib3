@@ -102,7 +102,9 @@ def to_cone (B : bicone F) : cone (discrete.functor F) :=
 
 @[simp] lemma to_cone_X (B : bicone F) : B.to_cone.X = B.X := rfl
 
-@[simp] lemma to_cone_π_app (B : bicone F) (j : J) : B.to_cone.π.app ⟨j⟩ = B.π j := rfl
+@[simp] lemma to_cone_π_app (B : bicone F) (j : discrete J) : B.to_cone.π.app j = B.π j.as := rfl
+
+lemma to_cone_π_app_mk (B : bicone F) (j : J) : B.to_cone.π.app ⟨j⟩ = B.π j := rfl
 
 /-- Extract the cocone from a bicone. -/
 def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
@@ -111,7 +113,10 @@ def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 
 @[simp] lemma to_cocone_X (B : bicone F) : B.to_cocone.X = B.X := rfl
 
-@[simp] lemma to_cocone_ι_app (B : bicone F) (j : J) : B.to_cocone.ι.app ⟨j⟩ = B.ι j := rfl
+@[simp] lemma to_cocone_ι_app (B : bicone F) (j : discrete J) : B.to_cocone.ι.app j = B.ι j.as :=
+rfl
+
+lemma to_cocone_ι_app_mk (B : bicone F) (j : J) : B.to_cocone.ι.app ⟨j⟩ = B.ι j := rfl
 
 /-- We can turn any limit cone over a discrete collection of objects into a bicone. -/
 @[simps]
@@ -384,12 +389,36 @@ is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone
   (w : ∀ j, biproduct.ι f j ≫ g = biproduct.ι f j ≫ h) : g = h :=
 (biproduct.is_colimit f).hom_ext (λ j, w j.as)
 
+/-- The canonical isomorphism between the chosen biproduct and the chosen product. -/
+def biproduct.iso_product (f : J → C) [has_biproduct f] : ⨁ f ≅ ∏ f :=
+is_limit.cone_point_unique_up_to_iso (biproduct.is_limit f) (limit.is_limit _)
+
+@[simp] lemma biproduct.iso_product_hom {f : J → C} [has_biproduct f] :
+  (biproduct.iso_product f).hom = pi.lift (biproduct.π f) :=
+limit.hom_ext $ λ j, by simp [biproduct.iso_product]
+
+@[simp] lemma biproduct.iso_product_inv {f : J → C} [has_biproduct f] :
+  (biproduct.iso_product f).inv = biproduct.lift (pi.π f) :=
+biproduct.hom_ext _ _ $ λ j, by simp [iso.inv_comp_eq]
+
+/-- The canonical isomorphism between the chosen biproduct and the chosen coproduct. -/
+def biproduct.iso_coproduct (f : J → C) [has_biproduct f] : ⨁ f ≅ ∐ f :=
+is_colimit.cocone_point_unique_up_to_iso (biproduct.is_colimit f) (colimit.is_colimit _)
+
+@[simp] lemma biproduct.iso_coproduct_inv {f : J → C} [has_biproduct f] :
+  (biproduct.iso_coproduct f).inv = sigma.desc (biproduct.ι f) :=
+colimit.hom_ext $ λ j, by simp [biproduct.iso_coproduct]
+
+@[simp] lemma biproduct.iso_coproduct_hom {f : J → C} [has_biproduct f] :
+  (biproduct.iso_coproduct f).hom = biproduct.desc (sigma.ι f) :=
+biproduct.hom_ext' _ _ $ λ j, by simp [← iso.eq_comp_inv]
+
 lemma biproduct.map_eq_map' {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
 begin
   ext j j',
   simp only [discrete.nat_trans_app, limits.is_colimit.ι_map, limits.is_limit.map_π, category.assoc,
-    ←bicone.to_cone_π_app, ←biproduct.bicone_π, ←bicone.to_cocone_ι_app, ←biproduct.bicone_ι],
+    ←bicone.to_cone_π_app_mk, ←biproduct.bicone_π, ←bicone.to_cocone_ι_app_mk, ←biproduct.bicone_ι],
   simp only [biproduct.bicone_ι, biproduct.bicone_π, bicone.to_cocone_ι_app, bicone.to_cone_π_app],
   dsimp,
   rw [biproduct.ι_π_assoc, biproduct.ι_π],
@@ -1068,6 +1097,30 @@ binary_fan.is_limit.hom_ext (binary_biproduct.is_limit X Y) h₀ h₁
   (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
 binary_cofan.is_colimit.hom_ext (binary_biproduct.is_colimit X Y) h₀ h₁
 
+/-- The canonical isomorphism between the chosen biproduct and the chosen product. -/
+def biprod.iso_prod (X Y : C) [has_binary_biproduct X Y] : X ⊞ Y ≅ X ⨯ Y :=
+is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit X Y) (limit.is_limit _)
+
+@[simp] lemma biprod.iso_prod_hom {X Y : C} [has_binary_biproduct X Y] :
+  (biprod.iso_prod X Y).hom = prod.lift biprod.fst biprod.snd :=
+by ext; simp [biprod.iso_prod]
+
+@[simp] lemma biprod.iso_prod_inv {X Y : C} [has_binary_biproduct X Y] :
+  (biprod.iso_prod X Y).inv = biprod.lift prod.fst prod.snd :=
+by apply biprod.hom_ext; simp [iso.inv_comp_eq]
+
+/-- The canonical isomorphism between the chosen biproduct and the chosen coproduct. -/
+def biprod.iso_coprod (X Y : C) [has_binary_biproduct X Y] : X ⊞ Y ≅ X ⨿ Y :=
+is_colimit.cocone_point_unique_up_to_iso (binary_biproduct.is_colimit X Y) (colimit.is_colimit _)
+
+@[simp] lemma biprod.iso_coprod_inv {X Y : C} [has_binary_biproduct X Y] :
+  (biprod.iso_coprod X Y).inv = coprod.desc biprod.inl biprod.inr :=
+by ext; simp [biprod.iso_coprod]; refl
+
+@[simp] lemma biprod_iso_coprod_hom {X Y : C} [has_binary_biproduct X Y] :
+  (biprod.iso_coprod X Y).hom = biprod.desc coprod.inl coprod.inr :=
+by apply biprod.hom_ext'; simp [← iso.eq_comp_inv]
+
 lemma biprod.map_eq_map' {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : biprod.map f g = biprod.map' f g :=
 begin
@@ -1094,19 +1147,19 @@ end
 
 instance biprod.inl_mono {X Y : C} [has_binary_biproduct X Y] :
   split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
-{ retraction := biprod.desc (𝟙 X) (biprod.inr ≫ biprod.fst) }
+{ retraction := biprod.fst }
 
 instance biprod.inr_mono {X Y : C} [has_binary_biproduct X Y] :
   split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
-{ retraction := biprod.desc (biprod.inl ≫ biprod.snd) (𝟙 Y)}
+{ retraction := biprod.snd }
 
 instance biprod.fst_epi {X Y : C} [has_binary_biproduct X Y] :
   split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
-{ section_ := biprod.lift (𝟙 X) (biprod.inl ≫ biprod.snd) }
+{ section_ := biprod.inl }
 
 instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
   split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
-{ section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
+{ section_ := biprod.inr }
 
 @[simp,reassoc]
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]

@@ -66,7 +66,7 @@ instance self : is_galois F F :=
 
 variables (F) {E}
 
-lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
+lemma integral [is_galois F E] (x : E) : is_integral F x := to_normal.is_integral x
 
 lemma separable [is_galois F E] (x : E) : (minpoly F x).separable := is_separable.separable F x
 

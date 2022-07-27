@@ -736,11 +736,13 @@ variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure
 identically distributed integrable real-valued random variables, then `∑ i in range n, X i / n`
 converges in L¹ to `𝔼[X 0]`. -/
 theorem strong_law_L1
-  (X : ℕ → Ω → ℝ) (hmeas : ∀ i, ae_strongly_measurable (X i) ℙ) (hint : integrable (X 0))
+  (X : ℕ → Ω → ℝ) (hint : integrable (X 0))
   (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
   (hident : ∀ i, ident_distrib (X i) (X 0)) :
   tendsto (λ n, snorm (λ ω, (∑ i in range n, X i ω) / n - 𝔼[X 0]) 1 ℙ) at_top (𝓝 0) :=
 begin
+  have hmeas : ∀ i, ae_strongly_measurable (X i) ℙ :=
+    λ i, (hident i).ae_strongly_measurable_iff.2 hint.1,
   have havg : ∀ n, ae_strongly_measurable (λ ω, (∑ i in range n, X i ω) / n) ℙ,
   { intro n,
     simp_rw div_eq_mul_inv,
@@ -749,7 +751,7 @@ begin
     (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
   rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
   { exact (uniform_integrable_average X $
-      integrable.uniform_integrable_of_ident_distrib hint hmeas hident).2.1 },
+      integrable.uniform_integrable_of_ident_distrib hint hident).2.1 },
   { ext n ω,
     simp only [pi.coe_nat, pi.div_apply, sum_apply] }
 end

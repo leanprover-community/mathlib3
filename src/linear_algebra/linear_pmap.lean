@@ -462,6 +462,28 @@ def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
   f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
 rfl
 
+/-- Restrict a partially defined linear map to a submodule of `E` contained in `f.domain`. -/
+def dom_restrict (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) :
+  linear_pmap R E F :=
+⟨S, f.to_fun.comp (submodule.of_le hS)⟩
+
+@[simp] lemma dom_restrict_domain (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) :
+  (f.dom_restrict hS).domain = S := rfl
+
+lemma dom_restrict_apply {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
+  ⦃x : S⦄ ⦃y : f.domain⦄ (h : (x : E) = y) :
+  f.dom_restrict hS x = f y :=
+begin
+  have : submodule.of_le hS x = y :=
+  by { ext, simp[h] },
+  rw ←this,
+  exact linear_pmap.mk_apply _ _ _,
+end
+
+lemma dom_restrict_le {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain) :
+  f.dom_restrict hS ≤ f :=
+⟨hS, λ x y hxy, dom_restrict_apply hS hxy⟩
+
 /-! ### Graph -/
 section graph
 
@@ -618,8 +640,21 @@ begin
   simp [hxy],
 end
 
---lemma le_graph_iff {f g : linear_pmap R E F} : f.graph ≤ g.graph ↔ f ≤ g :=
---⟨le_of_le_graph, le_graph_of_le⟩
+lemma le_graph_of_le {f g : linear_pmap R E F} (h : f ≤ g) : f.graph ≤ g.graph :=
+begin
+  intros x hx,
+  rw mem_graph_iff at hx ⊢,
+  cases hx with y hx,
+  use y,
+  { exact h.1 y.2 },
+  simp only [hx, submodule.coe_mk, eq_self_iff_true, true_and],
+  refine (hx.2.symm.trans (h.2 (hx.1.trans _))).symm,
+  -- I got weird motive not type-correct errors when using rw
+  simp only [submodule.coe_mk],
+end
+
+lemma le_graph_iff {f g : linear_pmap R E F} : f.graph ≤ g.graph ↔ f ≤ g :=
+⟨le_of_le_graph, le_graph_of_le⟩
 
 lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
 by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }

@@ -82,7 +82,7 @@ begin
 
   apply nicely_arranged_bwd_map_not_inj G φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
 
-  have := @bij_inf_components_of_autom V G _ _ (sorry) K' φ,
+  have := @bij_inf_ro_components_of_isom V U G H _ _ (sorry) K' φ,
 
 
   sorry,

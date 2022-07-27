@@ -19,6 +19,10 @@ If `X n` is a sequence of independent identically distributed integrable real-va
 variables, then `∑ i in range n, X i / n` converges almost surely to `𝔼[X 0]`.
 We give here the strong version, due to Etemadi, that only requires pairwise independence.
 
+This file also contains the Lᵖ version of the strong law of large numbers provided by
+`probability_theory.strong_law_Lp` which shows `∑ i in range n, X i / n` converges in Lᵖ to
+`𝔼[X 0]` provided `X n` is independent identically distributed and is Lᵖ.
+
 ## Implementation
 
 We follow the proof by Etemadi
@@ -728,34 +732,36 @@ end
 
 end strong_law_ae
 
-section strong_law_L1
+section strong_law_Lp
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
-/-- *Strong law of large numbers*, L¹ version: if `X n` is a sequence of independent
+/-- *Strong law of large numbers*, Lᵖ version: if `X n` is a sequence of independent
 identically distributed integrable real-valued random variables, then `∑ i in range n, X i / n`
-converges in L¹ to `𝔼[X 0]`. -/
-theorem strong_law_L1
-  (X : ℕ → Ω → ℝ) (hint : integrable (X 0))
+converges in Lᵖ to `𝔼[X 0]`. -/
+theorem strong_law_Lp
+  {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (X : ℕ → Ω → ℝ) (hℒp : mem_ℒp (X 0) p)
   (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
   (hident : ∀ i, ident_distrib (X i) (X 0)) :
-  tendsto (λ n, snorm (λ ω, (∑ i in range n, X i ω) / n - 𝔼[X 0]) 1 ℙ) at_top (𝓝 0) :=
+  tendsto (λ n, snorm (λ ω, (∑ i in range n, X i ω) / n - 𝔼[X 0]) p ℙ) at_top (𝓝 0) :=
 begin
   have hmeas : ∀ i, ae_strongly_measurable (X i) ℙ :=
-    λ i, (hident i).ae_strongly_measurable_iff.2 hint.1,
+    λ i, (hident i).ae_strongly_measurable_iff.2 hℒp.1,
+  have hint : integrable (X 0) ℙ := hℒp.integrable hp,
   have havg : ∀ n, ae_strongly_measurable (λ ω, (∑ i in range n, X i ω) / n) ℙ,
   { intro n,
     simp_rw div_eq_mul_inv,
     exact ae_strongly_measurable.mul_const (ae_strongly_measurable_sum _  (λ i _, hmeas i)) _ },
-  refine tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top havg (mem_ℒp_const _) _
+  refine tendsto_Lp_of_tendsto_in_measure _ hp hp' havg (mem_ℒp_const _) _
     (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
   rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
-  { exact (uniform_integrable_average X $
-      integrable.uniform_integrable_of_ident_distrib hint hident).2.1 },
+  { exact (uniform_integrable_average hp $
+      integrable.uniform_integrable_of_ident_distrib hp hp' hℒp hident).2.1 },
   { ext n ω,
     simp only [pi.coe_nat, pi.div_apply, sum_apply] }
 end
 
-end strong_law_L1
+end strong_law_Lp
 
 end probability_theory

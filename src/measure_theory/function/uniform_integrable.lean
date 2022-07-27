@@ -945,9 +945,9 @@ lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ 
 
 
 /-- The averaging of a uniformly integrable sequence is also uniformly integrable. -/
-lemma uniform_integrable_average
-  (f : ℕ → α → ℝ) (hf : uniform_integrable f 1 μ) :
-  uniform_integrable (λ n, (∑ i in finset.range n, f i) / n) 1 μ :=
+lemma uniform_integrable_average (hp : 1 ≤ p)
+  {f : ℕ → α → ℝ} (hf : uniform_integrable f p μ) :
+  uniform_integrable (λ n, (∑ i in finset.range n, f i) / n) p μ :=
 begin
   obtain ⟨hf₁, hf₂, hf₃⟩ := hf,
   refine ⟨λ n, _, λ ε hε, _, _⟩,
@@ -957,7 +957,7 @@ begin
   { obtain ⟨δ, hδ₁, hδ₂⟩ := hf₂ hε,
     refine ⟨δ, hδ₁, λ n s hs hle, _⟩,
     simp_rw [div_eq_mul_inv, finset.sum_mul, set.indicator_finset_sum],
-    refine le_trans (snorm_sum_le (λ i hi, ((hf₁ i).mul_const (↑n)⁻¹).indicator hs) le_rfl) _,
+    refine le_trans (snorm_sum_le (λ i hi, ((hf₁ i).mul_const (↑n)⁻¹).indicator hs) hp) _,
     have : ∀ i, s.indicator (f i * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • s.indicator (f i),
     { intro i,
       rw [mul_comm, (_ : (↑n)⁻¹ * f i = λ ω, (↑n : ℝ)⁻¹ • f i ω)],
@@ -978,7 +978,7 @@ begin
       all_goals { simpa only [ne.def, nat.cast_eq_zero] } } },
   { obtain ⟨C, hC⟩ := hf₃,
     simp_rw [div_eq_mul_inv, finset.sum_mul],
-    refine ⟨C, λ n, (snorm_sum_le (λ i hi, (hf₁ i).mul_const (↑n)⁻¹) le_rfl).trans _⟩,
+    refine ⟨C, λ n, (snorm_sum_le (λ i hi, (hf₁ i).mul_const (↑n)⁻¹) hp).trans _⟩,
     have : ∀ i, (λ ω, f i ω * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • λ ω, f i ω,
     { intro i,
       ext ω,

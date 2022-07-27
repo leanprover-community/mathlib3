@@ -295,53 +295,49 @@ section uniform_integrable
 open topological_space
 
 variables {E : Type*} [measurable_space E] [normed_add_comm_group E] [borel_space E]
-  -- [second_countable_topology E]
-  {μ : measure α} [is_finite_measure μ]
+  [second_countable_topology E] {μ : measure α} [is_finite_measure μ]
 
 /-- This lemma is superceded by `integrable.uniform_integrable_of_ident_distrib` which only require
 `ae_strongly_measurable`. -/
 lemma integrable.uniform_integrable_of_ident_distrib' {ι : Type*} {f : ι → α → E}
-  {j : ι} (hint : integrable (f j) μ) (hfmeas : ∀ i, strongly_measurable (f i))
+  {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hℒp : mem_ℒp (f j) p μ) (hfmeas : ∀ i, strongly_measurable (f i))
   (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
-  uniform_integrable f 1 μ :=
+  uniform_integrable f p μ :=
 begin
-  refine uniform_integrable_of' le_rfl ennreal.one_ne_top hfmeas (λ ε hε, _),
+  refine uniform_integrable_of' hp hp' hfmeas (λ ε hε, _),
   by_cases hι : nonempty ι,
   swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
-  obtain ⟨C, hC₁, hC₂⟩ :=
-    (mem_ℒp_one_iff_integrable.2 hint).snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
+  obtain ⟨C, hC₁, hC₂⟩ := hℒp.snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
   have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} :=
     λ i, measurable_set_le measurable_const (hfmeas _).measurable.nnnorm,
   refine ⟨⟨C, hC₁.le⟩, λ i, le_trans (le_of_eq _) hC₂⟩,
-  have hid : ident_distrib (λ x, ∥f i x∥₊) (λ x, ∥f j x∥₊) μ μ := (hf i).comp measurable_nnnorm,
-  have hpre : ∀ i, {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} =
-    (λ x, ∥f i x∥₊) ⁻¹' set.Ici (⟨C, hC₁.le⟩ : ℝ≥0),
-  { intro i,
-    ext x,
-    simp },
-  rw [snorm_one_eq_lintegral_nnnorm, snorm_one_eq_lintegral_nnnorm],
-  simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
-  rw [lintegral_indicator _ (hmeas _), hpre i,
-    ← set_lintegral_map measurable_set_Ici measurable_coe_nnreal_ennreal
-      (hfmeas _).nnnorm.measurable, hid.map_eq,
-    set_lintegral_map measurable_set_Ici measurable_coe_nnreal_ennreal
-      (hfmeas _).nnnorm.measurable, ← hpre j],
-  simp_rw [← @nnreal.coe_le_coe ⟨C, hC₁.le⟩, subtype.coe_mk, coe_nnnorm],
-  rw [lintegral_indicator _ (measurable_set_le measurable_const (hfmeas _).norm.measurable)],
+  have : {x : α | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊}.indicator (f i) =
+    (λ x : E, if (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥x∥₊ then x else 0) ∘ (f i),
+  { ext x,
+    simp only [set.indicator, set.mem_set_of_eq] },
+  simp_rw [coe_nnnorm, this],
+  rw [← snorm_map_measure _ (hf i).ae_measurable_fst, (hf i).map_eq,
+    snorm_map_measure _ (hf j).ae_measurable_fst],
+  { refl },
+  all_goals { exact ae_strongly_measurable_id.indicator
+      (measurable_set_le measurable_const measurable_nnnorm) },
 end
 
-/-- A sequence of identically distributed integrable functions is uniformly integrable. -/
+/-- A sequence of identically distributed Lᵖ functions is p-uniformly integrable. -/
 lemma integrable.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
-  {j : ι} (hint : integrable (f j) μ) (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
-  uniform_integrable f 1 μ :=
+  {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hℒp : mem_ℒp (f j) p μ) (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
+  uniform_integrable f p μ :=
 begin
   have hfmeas : ∀ i, ae_strongly_measurable (f i) μ :=
-    λ i, (hf i).ae_strongly_measurable_iff.2 hint.1,
+    λ i, (hf i).ae_strongly_measurable_iff.2 hℒp.1,
   set g : ι → α → E := λ i, (hfmeas i).some,
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfmeas i).1,
   have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hfmeas i).2.symm,
-  have hgint : integrable (g j) μ := hint.congr (hgeq j).symm,
-  exact uniform_integrable.ae_eq (integrable.uniform_integrable_of_ident_distrib' hgint hgmeas $
+  have hgℒp : mem_ℒp (g j) p μ := hℒp.ae_eq (hgeq j).symm,
+  exact uniform_integrable.ae_eq (integrable.uniform_integrable_of_ident_distrib' hp hp'
+    hgℒp hgmeas $
     λ i, (ident_distrib.ae_eq (hgmeas i).ae_measurable (hgeq i)).trans ((hf i).trans
       $ ident_distrib.ae_eq (hfmeas j).ae_measurable (hgeq j).symm)) hgeq,
 end

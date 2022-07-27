@@ -250,7 +250,7 @@ begin
   { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int,
       padic_val_int.of_ne_one_ne_zero hp.1.ne_one _],
     { norm_cast,
-      rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
+      rw [← part_enat.coe_le_coe, part_enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
       simp },
     { exact_mod_cast hz },
     { exact_mod_cast hp.1.one_lt } }

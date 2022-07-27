@@ -57,6 +57,9 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 
+@[simp, to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
+by rw [finset.prod, multiset.map_id]
+
 end finset
 
 /--
@@ -1017,7 +1020,7 @@ open multiset
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
-by { refine quot.induction_on s (λ l, _), simpa [prod_list_map_count l f] }
+by { refine quot.induction_on s (λ l, _), simp [prod_list_map_count l f] }
 
 @[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -1067,12 +1070,15 @@ lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M 
 multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
   (multiset.forall_mem_map_iff.mpr p_s)
 
-/--
-For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
-it's equal to a different function just by checking ratios of adjacent terms.
+/-- For any product along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can verify
+that it's equal to a different function just by checking ratios of adjacent terms.
+
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
-lemma prod_range_induction {M : Type*} [comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
+@[to_additive "For any sum along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can
+verify that it's equal to a different function just by checking differences of adjacent terms.
+
+This is a discrete analogue of the fundamental theorem of calculus."]
+lemma prod_range_induction (f s : ℕ → β) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
   ∏ k in finset.range n, f k = s n :=
 begin
   induction n with k hk,
@@ -1080,46 +1086,25 @@ begin
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
 
-/--
-For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function,
-we can verify that it's equal to a different function
-just by checking differences of adjacent terms.
-This is a discrete analogue
-of the fundamental theorem of calculus.
--/
-lemma sum_range_induction {M : Type*} [add_comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
-  ∑ k in finset.range n, f k = s n :=
-@prod_range_induction (multiplicative M) _ f s h0 h n
-
-/-- A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued function
-reduces to the difference of the last and first terms.-/
-lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-by { apply sum_range_induction; simp }
-
-lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-by { apply sum_range_induction; simp }
-
 /-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
 the ratio of the last and first factors. -/
-@[to_additive]
+@[to_additive "A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued
+function reduces to the difference of the last and first terms."]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
+  ∏ i in range n, (f (i + 1) / f i) = f n / f 0 :=
+by apply prod_range_induction; simp
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f i * (f (i+1))⁻¹) = f 0 * (f n)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
+  ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
+by apply prod_range_induction; simp
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
 reduces to the difference of the last and first terms
 when the function we are summing is monotone.
 -/
-lemma sum_range_sub_of_monotone [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+lemma sum_range_tsub [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
   [contravariant_class α α (+) (≤)] {f : ℕ → α} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
@@ -1186,7 +1171,7 @@ finset.strong_induction_on s
       if hx1 : f x = 1
       then ih' ▸ eq.symm (prod_subset hmem
         (λ y hy hy₁,
-          have y = x ∨ y = g x hx, by simp [hy] at hy₁; tauto,
+          have y = x ∨ y = g x hx, by simpa [hy, not_and_distrib, or_comm] using hy₁,
           this.elim (λ hy, hy.symm ▸ hx1)
             (λ hy, h x hx ▸ hy ▸ hx1.symm ▸ (one_mul _).symm)))
       else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),

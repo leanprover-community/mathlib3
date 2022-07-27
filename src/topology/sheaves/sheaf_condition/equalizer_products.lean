@@ -232,16 +232,16 @@ begin
     exact
     F.map_iso (iso.op
     { hom := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
   { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,
       fork_π_app_walking_parallel_pair_zero, pi_opens.iso_of_open_embedding,
-      nat_iso.of_components.inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
+      nat_iso.of_components_inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
       fan.mk_π_app, nat_trans.comp_app, quiver.hom.unop_op, category.assoc, lim_map_eq_lim_map],
     dsimp,
     rw [category.comp_id, ←F.map_comp],

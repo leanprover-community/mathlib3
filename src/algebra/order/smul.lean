@@ -150,7 +150,7 @@ begin
   intros a b c h hc,
   rcases (hR hc.ne') with ⟨c, rfl⟩,
   rw [← inv_smul_smul c a, ← inv_smul_smul c b],
-  refine hlt' h (pos_of_mul_pos_left _ hc.le),
+  refine hlt' h (pos_of_mul_pos_right _ hc.le),
   simp only [c.mul_inv, zero_lt_one]
 end
 

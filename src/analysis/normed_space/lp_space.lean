@@ -1054,7 +1054,7 @@ end topology
 
 section curry
 
-variables {β : α → Type*} {F : Π (a : α), β a → Type*} [fact (1 ≤ p)]
+variables {β : α → Type*} (F : Π (a : α), β a → Type*) [fact (1 ≤ p)]
   [Π a b, normed_group (F a b)]
 
 def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
@@ -1084,15 +1084,33 @@ def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
       { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
 
-#check lp.single
-
 @[simp] lemma curry_apply (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (a : α) (b : β a) :
-  curry f a b = f ⟨a, b⟩ := rfl
+  curry _ f a b = f ⟨a, b⟩ := rfl
 
-@[simp] lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α] (a : α) (b : β a)
-  (x : F a b) (y : F (sigma.mk a b).1 (sigma.mk a b).2) :
-  curry (lp.single p (sigma.mk a b) y) = lp.single p a (lp.single p b x) :=
-sorry
+@[simp] lemma curry_apply_fst_snd (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (ab : Σ a, β a) :
+  curry _ f ab.1 ab.2 = f ab :=
+by cases ab; refl
+
+lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
+  curry F (lp.single p (sigma.mk a b) x) = lp.single p a (lp.single p b x) :=
+begin
+  ext a' b',
+  by_cases ha : a = a',
+  { induction ha,
+    by_cases hb : b = b',
+    { induction hb,
+      simp only [curry_apply, lp.single_apply_self] },
+    { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
+      rw [curry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
+          lp.single_apply_ne _ _ _ (ne.symm this)] } },
+  { have : sigma.mk a b ≠ sigma.mk a' b' := λ h, ha (congr_arg sigma.fst h),
+    rw [curry_apply, lp.single_apply_ne _ _ _ (ne.symm ha),
+        lp.single_apply_ne _ _ _ (ne.symm this)],
+    refl }
+end
+
+#exit
 
 def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
@@ -1127,14 +1145,30 @@ def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   end⟩
 
 @[simp] lemma uncurry_apply (g : lp (λ a, lp (λ b : β a, F a b) p) p) (a : α) (b : β a) :
-  uncurry g ⟨a, b⟩ = g a b := rfl
+  uncurry F g ⟨a, b⟩ = g a b := rfl
 
-variables (p F)
+lemma uncurry_single {G : Type*} [normed_group G] [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : G) :
+  uncurry (λ _ _, G) (lp.single p a (lp.single p b x)) = (lp.single p (sigma.mk a b) x) :=
+begin
+  ext ab',
+  rcases ab' with ⟨a', b'⟩,
+  rw [uncurry_apply, lp.single_apply],
+  split_ifs,
+  { simp_rw [lp.single_apply],
+    split_ifs,
+    refl,
+    rw curry_apply, },
+  simp [curry_apply, h, lp.single_apply_self],
+
+end
+
+variables (p)
 
 def curry_equiv :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
-{ to_fun := lp.curry,
-  inv_fun := lp.uncurry,
+{ to_fun := lp.curry F,
+  inv_fun := lp.uncurry F,
   left_inv := λ f, by ext ⟨a, b⟩; refl,
   right_inv := λ f, by ext ab; refl }
 
@@ -1147,9 +1181,9 @@ def curry_equivₗᵢ :
   norm_map' :=
   begin
     intros f,
-    change ∥lp.curry f∥ = ∥f∥,
+    change ∥lp.curry F f∥ = ∥f∥,
     unfreezingI { rcases p.dichotomy with rfl | hp},
-    { suffices : ∥lp.curry f∥₊ = ∥f∥₊,
+    { suffices : ∥lp.curry F f∥₊ = ∥f∥₊,
       { rw [← coe_nnnorm, ← coe_nnnorm],
         exact congr_arg _ this },
       simp_rw [lp.nnnorm_eq_csupr],
@@ -1167,6 +1201,8 @@ def curry_equivₗᵢ :
       refl }
   end,
   ..lp.curry_equiv p F }
+
+#exit
 
 end curry
 

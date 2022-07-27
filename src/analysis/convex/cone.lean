@@ -616,4 +616,17 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
+/-- The dual cone of `s` equals the intersection of dual cones of the points in `s`. -/
+lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
+  (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
+begin
+  simp_rw [set.Inter_coe_set, subtype.coe_mk],
+  refine set.ext (λ x, iff.intro (λ hx, _) _),
+  { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
+    rintro ⟨ ⟩,
+    exact hx i hi },
+  { simp only [set.mem_Inter, convex_cone.mem_coe, mem_inner_dual_cone,
+      set.mem_singleton_iff, forall_eq, imp_self] }
+end
+
 end dual

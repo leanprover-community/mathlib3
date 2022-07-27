@@ -21,9 +21,9 @@ open_locale direct_sum
 
 universe u
 
-variables (M : Type u)
-
 namespace module
+
+variables (M : Type u)
 
 lemma finite_of_fg_torsion [add_comm_group M] [module ℤ M] [module.finite ℤ M]
   (hM : module.is_torsion ℤ M) : _root_.finite M :=
@@ -39,6 +39,8 @@ begin
 end
 
 end module
+
+variables (G : Type u)
 
 namespace add_comm_group
 

@@ -25,7 +25,7 @@ open_locale interval real
 
 noncomputable theory
 
-variables {E : Type} [normed_group E] [normed_space ℂ E] (R : ℝ) (z w : ℂ)
+variables {E : Type} [normed_add_comm_group E] [normed_space ℂ E] (R : ℝ) (z w : ℂ)
 
 namespace complex
 

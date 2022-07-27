@@ -495,9 +495,10 @@ begin
   erw [← X.presheaf.map_comp, Spec_Γ_naturality_assoc],
   congr' 1,
   simp only [← category.assoc],
-  transitivity _ ≫ (structure_sheaf (X.presheaf.obj $ op U)).1.germ ⟨_, _⟩,
+  transitivity _ ≫ (structure_sheaf (X.presheaf.obj $ op U)).presheaf.germ ⟨_, _⟩,
   { refl },
-  convert ((structure_sheaf (X.presheaf.obj $ op U)).1.germ_res (hom_of_le le_top) ⟨_, _⟩) using 2,
+  convert ((structure_sheaf (X.presheaf.obj $ op U)).presheaf.germ_res (hom_of_le le_top) ⟨_, _⟩)
+    using 2,
   rw category.assoc,
   erw nat_trans.naturality,
   rw [← LocallyRingedSpace.Γ_map_op, ← LocallyRingedSpace.Γ.map_comp_assoc, ← op_comp],
@@ -510,6 +511,124 @@ begin
   erw category_theory.functor.map_id,
   rw category.id_comp,
   refl
+end
+
+/-- The collection of affine open sets of `X`. -/
+def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
+{ U : opens X.carrier | is_affine_open U }
+
+/-- The basic open set of a section `f` on an an affine open as an `X.affine_opens`. -/
+abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
+  (f : X.presheaf.obj $ op U) : X.affine_opens :=
+⟨X.basic_open f, U.prop.basic_open_is_affine f⟩
+
+@[simp]
+lemma is_affine_open.basic_open_from_Spec_app {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
+  @Scheme.basic_open (Scheme.Spec.obj $ op (X.presheaf.obj $ op U))
+    ((opens.map hU.from_Spec.1.base).obj U)
+    (hU.from_Spec.1.c.app (op U) f) = prime_spectrum.basic_open f :=
+begin
+  rw [← Scheme.basic_open_res_eq _ _ (eq_to_hom hU.from_Spec_base_preimage.symm).op,
+    basic_open_eq_of_affine', is_affine_open.from_Spec_app_eq],
+  congr,
+  rw [← comp_apply, ← comp_apply, category.assoc, ← functor.map_comp_assoc,
+    eq_to_hom_op, eq_to_hom_op, eq_to_hom_trans, eq_to_hom_refl, category_theory.functor.map_id,
+    category.id_comp, ← iso.app_inv, iso.inv_hom_id],
+  refl
+end
+
+lemma is_affine_open.from_Spec_map_basic_open {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
+  (opens.map hU.from_Spec.val.base).obj (X.basic_open f) = prime_spectrum.basic_open f :=
+by simp
+
+lemma is_affine_open.basic_open_union_eq_self_iff {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (s : set (X.presheaf.obj $ op U)) :
+    (⨆ (f : s), X.basic_open (f : X.presheaf.obj $ op U)) = U ↔ ideal.span s = ⊤ :=
+begin
+  transitivity (⋃ (i : s), (prime_spectrum.basic_open i.1).1) = set.univ,
+  transitivity hU.from_Spec.1.base ⁻¹' (⨆ (f : s), X.basic_open (f : X.presheaf.obj $ op U)).1 =
+    hU.from_Spec.1.base ⁻¹' U.1,
+  { refine ⟨λ h, by rw h, _⟩,
+    intro h,
+    apply_fun set.image hU.from_Spec.1.base at h,
+    rw [set.image_preimage_eq_inter_range, set.image_preimage_eq_inter_range,
+      hU.from_Spec_range] at h,
+    simp only [set.inter_self, subtype.val_eq_coe, set.inter_eq_right_iff_subset]
+      at h,
+    ext1,
+    refine le_antisymm _ h,
+    simp only [set.Union_subset_iff, set_coe.forall, opens.supr_def, set.le_eq_subset,
+      subtype.coe_mk],
+    intros x hx,
+    exact X.basic_open_subset x },
+  { simp only [opens.supr_def, subtype.coe_mk, set.preimage_Union, subtype.val_eq_coe],
+    congr' 3,
+    { ext1 x,
+      exact congr_arg subtype.val (hU.from_Spec_map_basic_open _) },
+    { exact congr_arg subtype.val hU.from_Spec_base_preimage } },
+  { simp only [subtype.val_eq_coe, prime_spectrum.basic_open_eq_zero_locus_compl],
+    rw [← set.compl_Inter, set.compl_univ_iff, ← prime_spectrum.zero_locus_Union,
+      ← prime_spectrum.zero_locus_empty_iff_eq_top, prime_spectrum.zero_locus_span],
+    simp only [set.Union_singleton_eq_range, subtype.range_coe_subtype, set.set_of_mem_eq] }
+end
+
+lemma is_affine_open.self_le_basic_open_union_iff {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (s : set (X.presheaf.obj $ op U)) :
+    U ≤ (⨆ (f : s), X.basic_open (f : X.presheaf.obj $ op U)) ↔ ideal.span s = ⊤ :=
+begin
+  rw [← hU.basic_open_union_eq_self_iff, @comm _ eq],
+  refine ⟨λ h, le_antisymm h _, le_of_eq⟩,
+  simp only [supr_le_iff, set_coe.forall],
+  intros x hx,
+  exact X.basic_open_subset x
+end
+
+/--
+Let `P` be a predicate on the affine open sets of `X` satisfying
+1. If `P` holds on `U`, then `P` holds on the basic open set of every section on `U`.
+2. If `P` holds for a family of basic open sets covering `U`, then `P` holds for `U`.
+3. There exists an affine open cover of `X` each satisfying `P`.
+
+Then `P` holds for every affine open of `X`.
+
+This is also known as the **Affine communication lemma** in Vakil's "The rising sea". -/
+@[elab_as_eliminator]
+lemma of_affine_open_cover {X : Scheme} (V : X.affine_opens) (S : set X.affine_opens)
+  {P : X.affine_opens → Prop}
+  (hP₁ : ∀ (U : X.affine_opens) (f : X.presheaf.obj $ op U.1), P U →
+    P (X.affine_basic_open f))
+  (hP₂ : ∀ (U : X.affine_opens) (s : finset (X.presheaf.obj $ op U))
+    (hs : ideal.span (s : set (X.presheaf.obj $ op U)) = ⊤),
+    (∀ (f : s), P (X.affine_basic_open f.1)) → P U)
+  (hS : (⋃ (i : S), i : set X.carrier) = set.univ)
+  (hS' : ∀ (U : S), P U) : P V :=
+begin
+  classical,
+  have : ∀ (x : V), ∃ (f : X.presheaf.obj $ op V.1),
+    ↑x ∈ (X.basic_open f) ∧ P (X.affine_basic_open f),
+  { intro x,
+    have : ↑x ∈ (set.univ : set X.carrier) := trivial,
+    rw ← hS at this,
+    obtain ⟨W, hW⟩ := set.mem_Union.mp this,
+    obtain ⟨f, g, e, hf⟩ := exists_basic_open_subset_affine_inter V.prop W.1.prop x ⟨x.prop, hW⟩,
+    refine ⟨f, hf, _⟩,
+    convert hP₁ _ g (hS' W) using 1,
+    ext1,
+    exact e },
+  choose f hf₁ hf₂ using this,
+  suffices : ideal.span (set.range f) = ⊤,
+  { obtain ⟨t, ht₁, ht₂⟩ := (ideal.span_eq_top_iff_finite _).mp this,
+    apply hP₂ V t ht₂,
+    rintro ⟨i, hi⟩,
+    obtain ⟨x, rfl⟩ := ht₁ hi,
+    exact hf₂ x },
+  rw ← V.prop.self_le_basic_open_union_iff,
+  intros x hx,
+  simp only [exists_prop, set.mem_Union, set.mem_range, set_coe.exists, opens.supr_def,
+    exists_exists_eq_and, opens.mem_coe, subtype.coe_mk],
+  refine ⟨_, hf₁ ⟨x, hx⟩⟩,
 end
 
 end algebraic_geometry

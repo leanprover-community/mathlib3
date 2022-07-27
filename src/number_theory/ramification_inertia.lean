@@ -496,7 +496,7 @@ See `quotient_to_quotient_range_pow_quot_succ` for this as a linear map,
 and `quotient_range_pow_quot_succ_inclusion_equiv` for this as a linear equivalence.
 -/
 noncomputable def quotient_to_quotient_range_pow_quot_succ_aux {i : ℕ} {a : S} (a_mem : a ∈ P^i) :
-  S ⧸ P → (_ ⧸ (pow_quot_succ_inclusion f p P i).range) :=
+  S ⧸ P → ((P ^ i).map (P ^ e)^.quotient.mk ⧸ (pow_quot_succ_inclusion f p P i).range) :=
 quotient.map' (λ (x : S), ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩)
   (λ x y h, begin
     rw submodule.quotient_rel_r_def at ⊢ h,
@@ -516,7 +516,7 @@ include hfp
 
 /-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`. -/
 noncomputable def quotient_to_quotient_range_pow_quot_succ {i : ℕ} {a : S} (a_mem : a ∈ P^i) :
-  S ⧸ P →ₗ[R ⧸ p] (_ ⧸ (pow_quot_succ_inclusion f p P i).range) :=
+  S ⧸ P →ₗ[R ⧸ p] ((P ^ i).map (P ^ e)^.quotient.mk ⧸ (pow_quot_succ_inclusion f p P i).range) :=
 { to_fun := quotient_to_quotient_range_pow_quot_succ_aux f p P a_mem,
   map_add' := begin
     intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
@@ -596,7 +596,7 @@ end
 `R ⧸ p`-linearly isomorphic to `S ⧸ P`. -/
 noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_domain S] [is_dedekind_domain S]
   [P.is_prime] (hP : P ≠ ⊥) {i : ℕ} (hi : i < e) :
-  (_ ⧸ (pow_quot_succ_inclusion f p P i).range) ≃ₗ[R ⧸ p] S ⧸ P :=
+  ((P ^ i).map (P ^ e)^.quotient.mk ⧸ (pow_quot_succ_inclusion f p P i).range) ≃ₗ[R ⧸ p] S ⧸ P :=
 begin
   choose a a_mem a_not_mem using set_like.exists_of_lt
     (ideal.strict_anti_pow P hP (ideal.is_prime.ne_top infer_instance) (le_refl i.succ)),

@@ -1151,10 +1151,40 @@ hs.open_embedding_subtype_coe.locally_compact_space
 lemma exists_compact_superset' [hα : locally_compact_space α] {K U : set α} (hK : is_compact K)
   (hU : is_open U) (h_KU : K ⊆ U) : ∃ L, is_compact L ∧ K ⊆ interior L ∧ L ⊆ U :=
 begin
-  let K' : set U := λ x, K x,
-  have hK' : is_compact K', sorry,
+  let ι : U → α := coe,
+  have hι : embedding ι, exact embedding_subtype_coe,
+  set K' := ι⁻¹' K with K'_def,
+  have hK' : is_compact K',
+  apply hι.is_compact_iff_is_compact_image.mpr,
+  { simp only [subtype.image_preimage_coe],
+    rw (inter_eq_self_of_subset_left h_KU),
+    exact hK,
+  },
   obtain ⟨L', h1_L', h2_L'⟩ := @exists_compact_superset U _ hU.locally_compact_space K' hK',
-  use L',
+  use ι '' L',
+  split,
+  { exact hι.is_compact_iff_is_compact_image.mp h1_L' },
+  split,
+  { have open_ι : is_open_map ι := (is_open.is_open_map_subtype_coe hU),
+    have := is_open_map.image_interior_subset open_ι L',
+    refine trans _ this,
+    have anda_e_rianda : K = ι '' (K'),
+    { rw K'_def,
+      simp only [subtype.image_preimage_coe],
+      exact (inter_eq_self_of_subset_left h_KU).symm },
+    rw anda_e_rianda,
+    simp only [image_subset_iff],
+    convert h2_L' using 1,
+    have inj_ι : function.injective ι, exact hι.inj,
+    apply function.injective.preimage_image hι.inj },
+  { simp only [image_subset_iff, subtype.coe_preimage_self, subset_univ],  }
+
+
+
+
+
+
+
 
   -- let x_incl := (λ _ hx, is_open.mem_nhds hU $ h_KU hx),
   -- let A := λ x hx, (local_compact_nhds (x_incl x hx)),

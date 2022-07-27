@@ -495,6 +495,11 @@ end cosimplicial_object
 def simplicial_cosimplicial_equiv : (simplicial_object C)ᵒᵖ ≌ (cosimplicial_object Cᵒᵖ) :=
 functor.left_op_right_op_equiv _ _
 
+/-- The anti-equivalence between cosimplicial objects and simplicial objects. -/
+@[simps]
+def cosimplicial_simplicial_equiv : (cosimplicial_object C)ᵒᵖ ≌ (simplicial_object Cᵒᵖ) :=
+functor.op_unop_equiv _ _
+
 variable {C}
 
 /-- Construct an augmented cosimplicial object in the opposite

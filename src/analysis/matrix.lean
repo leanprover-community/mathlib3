@@ -14,22 +14,22 @@ In this file we provide the following non-instances for norms on matrices:
 
 * The elementwise norm:
 
-  * `matrix.semi_normed_group`
-  * `matrix.normed_group`
+  * `matrix.seminormed_add_comm_group`
+  * `matrix.normed_add_comm_group`
   * `matrix.normed_space`
 
 * The Frobenius norm:
 
-  * `matrix.frobenius_semi_normed_group`
-  * `matrix.frobenius_normed_group`
+  * `matrix.frobenius_seminormed_add_comm_group`
+  * `matrix.frobenius_normed_add_comm_group`
   * `matrix.frobenius_normed_space`
   * `matrix.frobenius_normed_ring`
   * `matrix.frobenius_normed_algebra`
 
 * The $L^\infty$ operator norm:
 
-  * `matrix.linfty_op_semi_normed_group`
-  * `matrix.linfty_op_normed_group`
+  * `matrix.linfty_op_seminormed_add_comm_group`
+  * `matrix.linfty_op_normed_add_comm_group`
   * `matrix.linfty_op_normed_space`
   * `matrix.linfty_op_non_unital_semi_normed_ring`
   * `matrix.linfty_op_semi_normed_ring`
@@ -53,16 +53,16 @@ variables {R l m n α β : Type*} [fintype l] [fintype m] [fintype n]
 
 section linf_linf
 
-section semi_normed_group
-variables [semi_normed_group α] [semi_normed_group β]
+section seminormed_add_comm_group
+variables [seminormed_add_comm_group α] [seminormed_add_comm_group β]
 
 /-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed group. Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def semi_normed_group : semi_normed_group (matrix m n α) :=
-pi.semi_normed_group
+protected def seminormed_add_comm_group : seminormed_add_comm_group (matrix m n α) :=
+pi.seminormed_add_comm_group
 
-local attribute [instance] matrix.semi_normed_group
+local attribute [instance] matrix.seminormed_add_comm_group
 
 lemma norm_le_iff {r : ℝ} (hr : 0 ≤ r) {A : matrix m n α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
@@ -90,7 +90,7 @@ lemma nnnorm_entry_le_entrywise_sup_nnnorm (A : matrix m n α) {i : m} {j : n} :
 
 @[simp] lemma nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=
-by simp_rw [pi.nnnorm_def, matrix.map, hf]
+by simp_rw [pi.nnnorm_def, matrix.map_apply, hf]
 @[simp] lemma norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
   ∥A.map f∥ = ∥A∥ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
@@ -136,18 +136,19 @@ instance [nonempty n] [decidable_eq n] [has_one α] [norm_one_class α] :
   norm_one_class (matrix n n α) :=
 ⟨(norm_diagonal _).trans $ norm_one⟩
 
-end semi_normed_group
+end seminormed_add_comm_group
 
 /-- Normed group instance (using sup norm of sup norm) for matrices over a normed group.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def normed_group [normed_group α] : normed_group (matrix m n α) :=
-pi.normed_group
+protected def normed_add_comm_group [normed_add_comm_group α] :
+  normed_add_comm_group (matrix m n α) :=
+pi.normed_add_comm_group
 
 section normed_space
-local attribute [instance] matrix.semi_normed_group
+local attribute [instance] matrix.seminormed_add_comm_group
 
-variables [normed_field R] [semi_normed_group α] [normed_space R α]
+variables [normed_field R] [seminormed_add_comm_group α] [normed_space R α]
 
 /-- Normed space instance (using sup norm of sup norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -172,28 +173,29 @@ section linfty_op
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_semi_normed_group [semi_normed_group α] :
-  semi_normed_group (matrix m n α) :=
-(by apply_instance : semi_normed_group (m → pi_Lp 1 (λ j : n, α)))
+protected def linfty_op_seminormed_add_comm_group [seminormed_add_comm_group α] :
+  seminormed_add_comm_group (matrix m n α) :=
+(by apply_instance : seminormed_add_comm_group (m → pi_Lp 1 (λ j : n, α)))
 
 /-- Normed group instance (using sup norm of L1 norm) for matrices over a normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_normed_group [normed_group α] :
-  normed_group (matrix m n α) :=
-(by apply_instance : normed_group (m → pi_Lp 1 (λ j : n, α)))
+protected def linfty_op_normed_add_comm_group [normed_add_comm_group α] :
+  normed_add_comm_group (matrix m n α) :=
+(by apply_instance : normed_add_comm_group (m → pi_Lp 1 (λ j : n, α)))
 
 /-- Normed space instance (using sup norm of L1 norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-protected def linfty_op_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
+protected def linfty_op_normed_space [normed_field R] [seminormed_add_comm_group α]
+  [normed_space R α] :
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
 
-section semi_normed_group
-variables [semi_normed_group α]
+section seminormed_add_comm_group
+variables [seminormed_add_comm_group α]
 
 lemma linfty_op_norm_def (A : matrix m n α) :
   ∥A∥ = ((finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) : ℝ≥0) :=
@@ -238,7 +240,7 @@ lemma linfty_op_norm_diagonal [decidable_eq m] (v : m → α) :
   ∥diagonal v∥ = ∥v∥ :=
 congr_arg coe $ linfty_op_nnnorm_diagonal v
 
-end semi_normed_group
+end seminormed_add_comm_group
 
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
@@ -280,7 +282,7 @@ local attribute [instance]
 protected def linfty_op_non_unital_semi_normed_ring [non_unital_semi_normed_ring α] :
   non_unital_semi_normed_ring (matrix n n α) :=
 { norm_mul := linfty_op_norm_mul,
-  .. matrix.linfty_op_semi_normed_group,
+  .. matrix.linfty_op_seminormed_add_comm_group,
   .. matrix.non_unital_ring }
 
 /-- The `L₁-L∞` norm preserves one on non-empty matrices. Note this is safe as an instance, as it
@@ -339,28 +341,28 @@ open_locale matrix big_operators
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-def frobenius_semi_normed_group [semi_normed_group α] :
-  semi_normed_group (matrix m n α) :=
-(by apply_instance : semi_normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
+def frobenius_seminormed_add_comm_group [seminormed_add_comm_group α] :
+  seminormed_add_comm_group (matrix m n α) :=
+(by apply_instance : seminormed_add_comm_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
 /-- Normed group instance (using frobenius norm) for matrices over a normed group.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-def frobenius_normed_group [normed_group α] :
-  normed_group (matrix m n α) :=
-(by apply_instance : normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
+def frobenius_normed_add_comm_group [normed_add_comm_group α] :
+  normed_add_comm_group (matrix m n α) :=
+(by apply_instance : normed_add_comm_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
 /-- Normed space instance (using frobenius norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 local attribute [instance]
-def frobenius_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
+def frobenius_normed_space [normed_field R] [seminormed_add_comm_group α] [normed_space R α] :
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
-section semi_normed_group
-variables [semi_normed_group α] [semi_normed_group β]
+section seminormed_add_comm_group
+variables [seminormed_add_comm_group α] [seminormed_add_comm_group β]
 
 lemma frobenius_nnnorm_def (A : matrix m n α) :
   ∥A∥₊ = (∑ i j, ∥A i j∥₊ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
@@ -372,7 +374,7 @@ lemma frobenius_norm_def (A : matrix m n α) :
 
 @[simp] lemma frobenius_nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=
-by simp_rw [frobenius_nnnorm_def, matrix.map, hf]
+by simp_rw [frobenius_nnnorm_def, matrix.map_apply, hf]
 @[simp] lemma frobenius_norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
   ∥A.map f∥ = ∥A∥ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ frobenius_nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
@@ -421,9 +423,9 @@ end
   ∥diagonal v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
 (congr_arg coe $ frobenius_nnnorm_diagonal v : _).trans rfl
 
-end semi_normed_group
+end seminormed_add_comm_group
 
-lemma frobenius_nnnorm_one [decidable_eq n] [semi_normed_group α] [has_one α] :
+lemma frobenius_nnnorm_one [decidable_eq n] [seminormed_add_comm_group α] [has_one α] :
   ∥(1 : matrix n n α)∥₊ = nnreal.sqrt (fintype.card n) * ∥(1 : α)∥₊:=
 begin
   refine (frobenius_nnnorm_diagonal _).trans _,
@@ -460,7 +462,7 @@ local attribute [instance]
 def frobenius_normed_ring [decidable_eq m] : normed_ring (matrix m m α) :=
 { norm := has_norm.norm,
   norm_mul := frobenius_norm_mul,
-  ..matrix.frobenius_semi_normed_group }
+  ..matrix.frobenius_seminormed_add_comm_group }
 
 /-- Normed algebra instance (using frobenius norm) for matrices over `ℝ` or `ℂ`.  Not
 declared as an instance because there are several natural choices for defining the norm of a

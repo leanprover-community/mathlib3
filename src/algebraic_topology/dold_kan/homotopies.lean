@@ -169,8 +169,7 @@ def nat_trans_Hσ (q : ℕ) :
     rw [null_homotopic_map'_comp, comp_null_homotopic_map'],
     congr,
     ext n m hnm,
-    simp only [alternating_face_map_complex_map, alternating_face_map_complex.map,
-      chain_complex.of_hom_f, hσ'_naturality],
+    simp only [alternating_face_map_complex_map_f, hσ'_naturality],
   end, }
 
 /-- The maps `hσ' q n m hnm` are compatible with the application of additive functors. -/

@@ -241,6 +241,21 @@ lemma odd.neg_one_pow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_pow, one_
 
 end monoid
 
+section canonically_ordered_comm_semiring
+
+variables [canonically_ordered_comm_semiring α]
+
+-- this holds more generally in a `canonically_ordered_add_monoid` if we refactor `odd` to use
+-- either `2 • t` or `t + t` instead of `2 * t`.
+lemma odd.pos [nontrivial α] {n : α} (hn : odd n) : 0 < n :=
+begin
+  obtain ⟨k, rfl⟩ := hn,
+  rw [pos_iff_ne_zero, ne.def, add_eq_zero_iff, not_and'],
+  exact λ h, (one_ne_zero h).elim
+end
+
+end canonically_ordered_comm_semiring
+
 section ring
 variables [ring α] {a b : α} {n : ℕ}
 

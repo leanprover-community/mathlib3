@@ -36,31 +36,31 @@ variables  {V : Type u}
 
 namespace ends
 
-open component
+open ro_component
 
 variables {K L L' M : finset V}
           (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M)
           (K_sub_L' : K ⊆ L') (L'_sub_M : L' ⊆ M)
 
--- TODO: maybe, define bwd_map for (potentially finite) components and then restrict it
+-- TODO: maybe, define bwd_map for (potentially finite) ro_components and then restrict it
 
-def bwd_map : inf_components G L → inf_components G K :=
+def bwd_map : inf_ro_components G L → inf_ro_components G K :=
 λ D,
 let
-  itexists := component.conn_sub G
+  itexists := ro_component.of_ro_set G
               K D.val
-              (component.nempty G L D.val D.prop.1)
-              (component.component_is_still_conn G K K_sub_L D.val D.prop.1)
+              (ro_component.nempty G L D.val D.prop.1)
+              (ro_component.ro_of_ro_component G K L K_sub_L D.val D.prop.1)
 , C := some itexists
 , C_prop := some_spec itexists
 in
   ⟨C,C_prop.1, λ fin, D.prop.2 (set.finite.subset fin C_prop.2)⟩
 
 
-def bwd_map_def (D : inf_components G L) (C : inf_components G K) :
+def bwd_map_def (D : inf_ro_components G L) (C : inf_ro_components G K) :
   bwd_map G K_sub_L D = C ↔ D.val ⊆ C.val :=
 let
-  itexists := component.conn_sub G K D (component.nempty G L D.val D.prop.1) (component.component_is_still_conn G K K_sub_L D.val D.prop.1),
+  itexists := ro_component.of_ro_set G K D (ro_component.nempty G L D.val D.prop.1) (ro_component.ro_of_ro_component G K L K_sub_L D.val D.prop.1),
   C' := some itexists,
   C_prop' := some_spec itexists
 in
@@ -71,7 +71,7 @@ in
     split,
     { intro eq, cases eq, exact C_prop'.2,},
     { intro sub,
-      have lol := component.conn_sub_unique G K D (component.nempty G L D.val D.prop.1) (component.component_is_still_conn G K K_sub_L D.val D.prop.1), -- the fact that D is still connected wrt K … should be easy
+      have lol := ro_component.unique_of_ro_set G K D (ro_component.nempty G L D.val D.prop.1) (ro_component.ro_of_ro_component G K L K_sub_L D.val D.prop.1), -- the fact that D is still connected wrt K … should be easy
       rcases lol with ⟨uniqueC,uniqueC_is_good,unicity⟩,
       rw eqdef,
       apply subtype.ext_val, simp,
@@ -80,50 +80,27 @@ in
     }
   end
 
-def bwd_map_sub (D : inf_components G L) : D.val ⊆ (bwd_map G K_sub_L D).val :=
+def bwd_map_sub (D : inf_ro_components G L) : D.val ⊆ (bwd_map G K_sub_L D).val :=
 begin
   apply (bwd_map_def G K_sub_L D (bwd_map G K_sub_L D)).mp,
   reflexivity,
 end
 
-lemma bwd_map_refl (C : inf_components G K) : bwd_map G (set.subset.refl K) C = C :=
+lemma bwd_map_refl (C : inf_ro_components G K) : bwd_map G (set.subset.refl K) C = C :=
 by {rw bwd_map_def}
 
-lemma subcomponents_cover (K_sub_L : K ⊆ L) (C : set V) (hC : C ∈ components G K) :
-  C ⊆ L ∪ (⋃₀ { D : set V | D ∈ components G L ∧ D ⊆ C}) :=
-begin
-  rintro x x_in_C,
-  by_cases h: x∈L,
-  { left,exact h},
-  { right,
-    let D := component.of G L x,
-    have : x ∈ D, from component.mem_of G L x h,
-    rw set.mem_sUnion,
-    use D,
-    split,
-    { split,
-      exact component.of_in_components G L x h,
-      let D_comp := component.of_in_components G L x h,
-      exact component.sub_of_conn_intersects G K D
-        (component.nempty G L D D_comp)
-        (component_is_still_conn G K K_sub_L D D_comp)
-        C hC ( set.nonempty_inter_iff_exists_left.mpr ⟨⟨x,‹x∈D›⟩,x_in_C⟩  : (D ∩ C).nonempty),
-    },
-    from component.mem_of G L x h,
-  }
-end
 
 lemma bwd_map_surjective [locally_finite G] : surjective (bwd_map G K_sub_L) :=
 begin
   unfold surjective,
   rintros ⟨C,C_comp,C_inf⟩,
-  let L_comps := components G L,
-  let L_comps_in_C := { D : set V | D ∈ components G L ∧ D ⊆ C},
+  let L_comps := ro_components G L,
+  let L_comps_in_C := { D : set V | D ∈ ro_components G L ∧ D ⊆ C},
   have sub : L_comps_in_C ⊆ L_comps, from (λ D ⟨a,b⟩,  a),
-  have : L_comps_in_C.finite, from set.finite.subset (component.finite G L) sub,
+  have : L_comps_in_C.finite, from set.finite.subset (ro_component.finite G L) sub,
   have : (⋃₀ L_comps_in_C).infinite, by {
     rintro hfin,
-    have lol := set.infinite.mono (subcomponents_cover G K_sub_L C C_comp) C_inf,
+    have lol := set.infinite.mono (ro_component.sub_ro_components_cover G K L K_sub_L C C_comp) C_inf,
     have := set.finite_union.mpr ⟨(sorry : (L : set V).finite),hfin⟩,
     exact lol this,
   },
@@ -155,7 +132,7 @@ begin
   exact (bwd_map_sub G L_sub_M E).trans (bwd_map_sub G K_sub_L D),
 end
 
-def bwd_map_comp' (E : inf_components G M) :
+def bwd_map_comp' (E : inf_ro_components G M) :
   bwd_map G K_sub_L (bwd_map G L_sub_M E) = bwd_map G (K_sub_L.trans L_sub_M) E :=
 begin
   let D := bwd_map G L_sub_M E,
@@ -165,15 +142,15 @@ begin
   exact (bwd_map_sub G L_sub_M E).trans (bwd_map_sub G K_sub_L D),
 end
 
-def bwd_map_diamond (E : inf_components G M) :
+def bwd_map_diamond (E : inf_ro_components G M) :
   bwd_map G K_sub_L (bwd_map G L_sub_M E) = bwd_map G K_sub_L' (bwd_map G L'_sub_M E) :=
 by rw [bwd_map_comp',bwd_map_comp']
 
 
 -- Towards Hopf-Freudenthal
 
-lemma bwd_map_non_inj [locally_finite G] (H K : finset V) (C : inf_components G H)
-  (D D' : inf_components G K)
+lemma bwd_map_non_inj [locally_finite G] (H K : finset V) (C : inf_ro_components G H)
+  (D D' : inf_ro_components G K)
   (Ddist : D ≠ D')
   (h : D.val ⊆ C.val) (h' : D'.val ⊆ C.val) :
   ¬ injective (bwd_map G (finset.subset_union_left H K : H ⊆ H ∪ K)) :=
@@ -193,8 +170,8 @@ end
 
 lemma nicely_arranged [locally_finite G] (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E E' : inf_components G H) (En : E ≠ E')
-  (F : inf_components G K)
+  (E E' : inf_ro_components G H) (En : E ≠ E')
+  (F : inf_ro_components G K)
   (H_F : (H : set V) ⊆ F.val)
   (K_E : (K : set V) ⊆ E.val) : E'.val ⊆ F.val :=
 begin
@@ -202,15 +179,15 @@ begin
   { rcases h with ⟨v,v_in⟩,
     have vE' : v ∈ E'.val, from ((set.mem_inter_iff v E'.val K).mp v_in).left,
     have vE : v ∈ E.val, from  K_E ((set.mem_inter_iff v E'.val K).mp v_in).right,
-    have := component.eq_of_common_mem G H E.val E'.val E.prop.1 E'.prop.1 v vE vE',
+    have := ro_component.eq_of_common_mem G H E.val E'.val E.prop.1 E'.prop.1 v vE vE',
     exfalso,
     exact En (subtype.eq this),},
   {
-    have : ∃ F' : inf_components G K, E'.val ⊆ F'.val, by {
-      rcases component.conn_sub_of_connected_disjoint G K E'.val
+    have : ∃ F' : inf_ro_components G K, E'.val ⊆ F'.val, by {
+      rcases ro_component.of_subconnected_disjoint G K E'.val
              (set.infinite.nonempty E'.prop.2)
              (by {unfold disjoint, rw [le_bot_iff], rw [set.not_nonempty_iff_eq_empty] at h, assumption,}) -- empty intersection means disjoint
-             (component.is_connected G H E' E'.prop.1) with ⟨F',F'comp,sub⟩,
+             (ro_component.to_subconnected G H E' E'.prop.1) with ⟨F',F'comp,sub⟩,
       have F'inf : F'.infinite, from set.infinite.mono sub E'.prop.2,
       use ⟨F',F'comp,F'inf⟩,
       exact sub,
@@ -218,10 +195,10 @@ begin
     rcases this with ⟨F',E'_sub_F'⟩,
     by_cases Fe : F' = F,
     { exact Fe ▸ E'_sub_F',},
-    { rcases component.adjacent_to G H Hnempty E'.val E'.prop.1 with ⟨v,vh,vhH,vF',adj⟩,
+    { rcases ro_component.adjacent_to G H Hnempty E'.val E'.prop.1 with ⟨v,vh,vhH,vF',adj⟩,
       have : vh ∈ F.val, from H_F vhH,
       have : F.val = F'.val,
-        from component.eq_of_adj_mem G K F.val F.prop.1 F'.val F'.prop.1 vh v this (E'_sub_F' vF') adj,
+        from ro_component.eq_of_adj_mem G K F.val F.prop.1 F'.val F'.prop.1 vh v this (E'_sub_F' vF') adj,
       exfalso,
       exact Fe (subtype.eq this).symm,
     },
@@ -230,12 +207,12 @@ end
 
 lemma nicely_arranged_bwd_map_not_inj [locally_finite G] (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E : inf_components G H) (inf_comp_H_large : 2 < fintype.card (inf_components G H))
-  (F : inf_components G K)
+  (E : inf_ro_components G H) (inf_comp_H_large : 2 < fintype.card (inf_ro_components G H))
+  (F : inf_ro_components G K)
   (H_F : (H : set V) ⊆ F.val)
   (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map G (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
 begin
- have : ∃ E₁ E₂ : inf_components G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂ :=
+ have : ∃ E₁ E₂ : inf_ro_components G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂ :=
   begin
     rcases (fintype.two_lt_card_iff.mp (inf_comp_H_large)) with ⟨E₀, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
     by_cases hyp : E ≠ E₁ ∧ E ≠ E₂,
@@ -250,9 +227,6 @@ begin
   {apply nicely_arranged G H K Hnempty Knempty E E₂ h₀₂ F H_F K_E,},
 end
 
-
-
-section ends
 
 
 
@@ -275,7 +249,7 @@ private def mem_fin_fam {ℱ : @fam V _} (K : ℱ.fam) : (@fin_fam V _).fam := �
 
 
 def ends_for (ℱ : fam) :=
-{ f : Π (K : ℱ.fam), inf_components G K.val | ∀ K L : ℱ.fam, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) }
+{ f : Π (K : ℱ.fam), inf_ro_components G K.val | ∀ K L : ℱ.fam, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) }
 
 lemma ends_for_directed  (ℱ : fam)
   (g : ends_for G ℱ) (K L : ℱ.fam) :
@@ -303,7 +277,7 @@ def to_ends_for_def (ℱ : fam) (e : ends G) (K : ℱ.fam) :
   e.val (mem_fin_fam K) = (to_ends_for G ℱ e).val K := refl _
 
 
-def of_ends_for_fun (ℱ : fam) (e : ends_for G ℱ) : Π (K : (fin_fam).fam), inf_components G K.val := λ K,
+def of_ends_for_fun (ℱ : fam) (e : ends_for G ℱ) : Π (K : (fin_fam).fam), inf_ro_components G K.val := λ K,
 let
   F :=  (ℱ.cof K).some
 , F_fam := (ℱ.cof K).some_spec.1
@@ -369,10 +343,10 @@ end
 
 
 def eval_for (ℱ : fam) (K : ℱ.fam):
-  ends_for G ℱ → inf_components G K := λ e, e.val K
+  ends_for G ℱ → inf_ro_components G K := λ e, e.val K
 
 
-def eval (K : finset V) : ends G → inf_components G K := eval_for G fin_fam ⟨K,trivial⟩
+def eval (K : finset V) : ends G → inf_ro_components G K := eval_for G fin_fam ⟨K,trivial⟩
 
 
 def eval_comm  (ℱ : fam) (K : ℱ.fam) (e : ends G) :
@@ -444,13 +418,13 @@ end
 
 /-
   The goal now would be to be able to bound the number of ends from below.
-  The number of ends is at least the number of infinite components outside of K, for any given K,
+  The number of ends is at least the number of infinite ro_components outside of K, for any given K,
   i.e. it cannot decrease.
-  The construction to show this needs to extend each infinite component outside of K into an end.
+  The construction to show this needs to extend each infinite ro_component outside of K into an end.
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
 
-lemma end_from_component [preconnected G] [locally_finite G] (K : finset V) (C : inf_components G K) :
+lemma end_from_component [preconnected G] [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
   ∃ e : (ends G), e.val ⟨K,trivial⟩ = C := sorry
 
 
@@ -465,7 +439,7 @@ end
 
 @[instance]
 lemma fintype_inf_connected_components  [preconnected G] [locally_finite G] [fintype (ends G)]
-  (K : finset V) : fintype (inf_components G K) :=
+  (K : finset V) : fintype (inf_ro_components G K) :=
 @fintype.of_surjective _ _ (sorry) _ (eval G K) (@eval_surjective V G _ (sorry) _ K)
 
 
@@ -474,11 +448,11 @@ lemma finite_ends_to_inj [preconnected G] [locally_finite G] [fintype (ends G)] 
 begin
   let v : V := Vnempty.some,
   let M := fintype.card (ends G),
-  have all_fin : ∀ K : finset V, fintype (inf_components G K), from
+  have all_fin : ∀ K : finset V, fintype (inf_ro_components G K), from
     λ K, @fintype.of_surjective _ _ (sorry) _ (eval G K) (@eval_surjective V G _ (sorry) _ K),
   have all_le_M :=
     λ K, @fintype.card_le_of_surjective _ _ _ (all_fin K) (eval G K) (@eval_surjective V G _ (sorry) _ K),
-  have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_components G K') ≤ fintype.card (inf_components G K), by sorry,
+  have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_ro_components G K') ≤ fintype.card (inf_ro_components G K), by sorry,
   rcases this with ⟨K,Kmax⟩,
   let Kv := insert v K,
   let KsubKv := finset.subset_insert v K,
@@ -498,9 +472,9 @@ end
 
 
 
--- should be pretty much only λ C, end_of component G kfinite C
--- theorem `card_components_mon` saying htat `λ K, card (inf_components G K)` is monotone
--- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components G K)` is finite
+-- should be pretty much only λ C, end_of ro_component G kfinite C
+-- theorem `card_components_mon` saying htat `λ K, card (inf_ro_components G K)` is monotone
+-- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_ro_components G K)` is finite
 -- theorem `finite_ends_card_eq` saying that if `ends` is finite, the cardinality is the sup
 -- theorem `zero_ends_iff` saying that `ends = ∅` iff `V` is finite
 

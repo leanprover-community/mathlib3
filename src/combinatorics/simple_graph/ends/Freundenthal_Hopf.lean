@@ -29,7 +29,7 @@ namespace simple_graph
 
 namespace ends
 
-open component
+open ro_component
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -46,11 +46,11 @@ variables  {V : Type u}
 lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V) (Knempty : K.nonempty)
-  (inf_comp_K_large : @fintype.card (inf_components G K) (sorry) ≥ 3) :
+  (inf_comp_K_large : @fintype.card (inf_ro_components G K) (sorry) ≥ 3) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
 begin
-  rcases @extend_to_conn V G _ K (sorry) _ (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
-  rcases @extend_connected_to_fin_components V G _ Kp _ (finset.nonempty.mono KKp Knempty) Kpconn with ⟨K',KK',K'conn,finn⟩,
+  rcases @extend_to_subconnected V G K (sorry) (sorry) (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
+  rcases @extend_subconnected_to_fin_ro_components V G Kp (sorry) (finset.nonempty.mono KKp Knempty) Kpconn  with ⟨K',KK',K'conn,finn⟩,
   rcases auts K' with ⟨φ,φgood⟩,
 
   let φK' := finset.image φ K',
@@ -106,7 +106,7 @@ begin
   have many_ends : 3 ≤ (fintype.card (ends G)) := (nat.succ_le_iff.mpr (not_le.mp h)),
   rcases @finite_ends_to_inj V G _ (sorry) _ _ (sorry) with ⟨K,Knempty,Kinj⟩,
 
-  have : 3 ≤ @fintype.card ↥(inf_components G K) (sorry), by {
+  have : 3 ≤ @fintype.card ↥(inf_ro_components G K) (sorry), by {
     have := @fintype.card_le_of_injective _ _ _ (sorry) (eval G K) (eval_injective G K Kinj),
     exact many_ends.trans this,
   },

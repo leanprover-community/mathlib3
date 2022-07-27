@@ -36,7 +36,7 @@ begin
   apply multiset.eq_of_le_of_card_le,
   suffices : finset.sup (finset.range (S.card + 1)) (λ k, S.powerset_len k) ≤ S.powerset,
   { apply eq.trans_le _ this,
-    exact finset_sum_eq_sup_of_disjoint (λ _ _ _ _ hxny _ htx hty,
+    exact disjoint_finset_iff_sum_eq_sup.mp (λ _ _ _ _ hxny _ htx hty,
       hxny (eq.trans (multiset.mem_powerset_len.mp htx).right.symm
       (multiset.mem_powerset_len.mp hty).right)), },
   { rw finset.sup_le_iff,
@@ -54,7 +54,7 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X^(s.card - j)) :=
 begin
   classical,
-  rw [prod_map_add, antidiagonal_powerset, map_map, sum_powerset_len, function.comp,
+  rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, sum_powerset_len, function.comp,
     finset.sum_eq_multiset_sum, finset.sum_eq_multiset_sum, ←join, ←bind, map_bind, sum_bind],
   rw map_congr (eq.refl _),
   intros _ _,

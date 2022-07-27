@@ -372,6 +372,10 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_right' :=
     λ X Z Z' f g, tensor_right_hom_equiv_naturality f g, }
 
+/--
+If `Y` has a left dual `ᘁY`, then it is a closed object, with the internal hom functor `Y ⟶[C] -`
+given by left tensoring by `ᘁY`.
+-/
 @[priority 100]
 def closed_of_has_left_dual (Y : C) [has_left_dual Y] : closed Y :=
 { is_adj := ⟨_, tensor_left_adjunction (ᘁY) Y⟩, }
@@ -618,6 +622,7 @@ class left_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C
 attribute [instance, priority 100] right_rigid_category.right_dual
 attribute [instance, priority 100] left_rigid_category.left_dual
 
+/-- Any left rigid category is monoidal closed, with the internal hom `X ⟶[C] Y = ᘁX ⊗ Y`. -/
 @[priority 100]
 def monoidal_closed_of_left_rigid_category
   (C : Type u) [category.{v} C] [monoidal_category.{v} C] [left_rigid_category C] :

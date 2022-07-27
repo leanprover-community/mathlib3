@@ -154,6 +154,9 @@ section closed
 
 variables (P) [monoidal_closed C]
 
+/--
+A property `C → Prop` is a closed predicate if it is closed under taking internal homs
+-/
 class closed_predicate :=
 (prop_ihom' : ∀ {X Y}, P X → P Y → P ((ihom X).obj Y) . obviously)
 
@@ -179,8 +182,8 @@ instance full_monoidal_closed_subcategory : monoidal_closed {X : C // P X} :=
 @[simp] lemma full_monoidal_closed_subcategory_ihom_obj (X Y : {X : C // P X}) :
   ((ihom X).obj Y).val = (ihom (X.val)).obj Y.val := rfl
 
-@[simp] lemma full_monoidal_closed_subcategory_ihom_map (X : {X : C // P X}) (Y Z : {X : C // P X})
-  (f : X ⟶ Y) : (ihom X).map f = (ihom (X.val)).map f := rfl
+@[simp] lemma full_monoidal_closed_subcategory_ihom_map (X : {X : C // P X}) {Y Z : {X : C // P X}}
+  (f : Y ⟶ Z) : (ihom X).map f = (ihom (X.val)).map f := rfl
 
 end closed
 

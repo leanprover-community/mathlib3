@@ -1145,6 +1145,38 @@ protected lemma is_open.locally_compact_space [locally_compact_space α] {s : se
   (hs : is_open s) : locally_compact_space s :=
 hs.open_embedding_subtype_coe.locally_compact_space
 
+/-- In a locally compact space, for every containement `K ⊆ U` of a compact set `K` in an open
+  set `U`, there is a compact neighborhood `L` such that `K ⊆ L ⊆ U`: equivalently, there is a
+  compact `L` such that `K ⊆ interior L` and `L ⊆ U`. -/
+lemma exists_compact_superset' [hα : locally_compact_space α] {K U : set α} (hK : is_compact K)
+  (hU : is_open U) (h_KU : K ⊆ U) : ∃ L, is_compact L ∧ K ⊆ interior L ∧ L ⊆ U :=
+begin
+  let K' : set U := λ x, K x,
+  have hK' : is_compact K', sorry,
+  obtain ⟨L', h1_L', h2_L'⟩ := @exists_compact_superset U _ hU.locally_compact_space K' hK',
+  use L',
+
+  -- let x_incl := (λ _ hx, is_open.mem_nhds hU $ h_KU hx),
+  -- let A := λ x hx, (local_compact_nhds (x_incl x hx)),
+  -- obtain ⟨T, h_TU⟩ := hK.elim_nhds_subcover' (λ x hx, (A x hx).some)
+  --   (λ x hx, (A x hx).some_spec.some),
+  -- simp only [exists_prop, subtype.coe_mk, Union_coe_set] at h_TU,
+  -- let L' := ⋃ (i : α) (hi : i ∈ K) (x : (⟨i, hi⟩ : K) ∈ T), ((A i hi).some),
+  -- use L',
+  -- split,
+  -- { have h_Lcpt := λ (i : K) _, (((local_compact_nhds (x_incl i _)).some_spec).some_spec).2,
+  --   convert @finset.compact_bUnion α _ _ T (λ i, (A i _).some) h_Lcpt using 1,
+  --   all_goals {simp only [subtype.coe_mk, Union_coe_set, subtype.coe_prop, subtype.coe_prop]} },
+  -- { --refine and.intro
+  --   split,
+  --   { --(by {simpa only [L', exists_prop] using h_TU }) _
+  --     sorry,
+  --   },
+  --   have h_LU := λ i : K, (((local_compact_nhds (x_incl i _)).some_spec).some_spec).1,
+  --     simp only [Union_subset_iff],
+  --     exacts [λ i hi _, h_LU (⟨i, hi⟩ : K), subtype.coe_prop _] },
+end
+
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
   ↑F ≤ 𝓝 (@Lim _ _ (F : filter α).nonempty_of_ne_bot F) :=
 begin

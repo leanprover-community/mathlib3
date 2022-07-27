@@ -406,7 +406,7 @@ end
 lemma extend_to_fin_ro_components.sub [locally_finite G] (K : finset V) :
 K ⊆ extend_to_fin_ro_components G K := finset.subset_union_left _ _
 
-lemma extend_to_fin_ro_components.ro_ [locally_finite G] (K : finset V) :
+lemma extend_to_fin_ro_components.ro [locally_finite G] (K : finset V) :
   ro_components G (extend_to_fin_ro_components G K) = inf_ro_components G K :=
 begin
   let L := extend_to_fin_ro_components G K,
@@ -440,10 +440,10 @@ begin
     sorry,},
 end
 
-lemma extend_to_fin_ro_components.connected_of_connected  [locally_finite G]
+lemma extend_to_fin_ro_components.subconnected_of_subconnected  [locally_finite G]
   (K : finset V)
-  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
-  ∀ x y ∈ extend_to_fin_ro_components G K, ∃ w : G.walk x y, w.support.to_finset ⊆ extend_to_fin_ro_components G K :=
+  (Kconn : subconnected G K) :
+  subconnected G (extend_to_fin_ro_components G K) :=
 begin
   -- Sorry
   sorry,
@@ -451,17 +451,17 @@ end
 
 
 def extend_subconnected_to_fin_ro_components [locally_finite G] [Knempty : K.nonempty]
-  (Kconn : ∀ x y ∈ K, ∃ w : G.walk x y, w.support.to_finset ⊆ K ) :
+  (Kconn : subconnected G K ) :
   {K' : finset V | K ⊆ K'
-                 ∧ (∀ x y ∈ K', ∃ w : G.walk x y, w.support.to_finset ⊆ K')
+                 ∧ (subconnected G K')
                  ∧ (∀ C : ro_components G K', C.val.infinite)
   } :=
 begin
   use extend_to_fin_ro_components G K,
   use extend_to_fin_ro_components.sub G K,
-  use extend_to_fin_ro_components.connected_of_connected G K Kconn,
+  use extend_to_fin_ro_components.subconnected_of_subconnected G K Kconn,
   rintros ⟨C,CK'⟩,
-  rw extend_to_fin_ro_components.ro_
+  rw extend_to_fin_ro_components.ro
  G K at CK',
   exact CK'.2,
 end
@@ -516,8 +516,7 @@ end
 
 
 def extend_to_subconnected [Gconn : preconnected G] [locally_finite G] [Vnempty : nonempty V] :
-  {K' : finset V | K ⊆ K'
-                 ∧ ∀ (x y ∈ K'), ∃ (w : G.walk x y), w.support.to_finset ⊆ K' } :=
+  {K' : finset V | K ⊆ K' ∧ subconnected G K' } :=
 begin
   let v₀ : V := Vnempty.some,
   let path_to_v₀ := λ (k : V), (Gconn k v₀).some.support.to_finset,

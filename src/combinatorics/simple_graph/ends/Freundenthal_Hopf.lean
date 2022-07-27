@@ -21,8 +21,7 @@ universes u v w
 
 
 noncomputable theory
-
---local attribute [instance] prop_decidable
+local attribute [instance] prop_decidable
 
 namespace simple_graph
 
@@ -59,23 +58,15 @@ begin
   let L := K' ∪ φK',
   use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
-  -- that's very generic/basic: the image of a connected set is connected
-  -- Should use `simple_graph.subconnected.image` defined in the `mathlib.lean` sibling file
-  have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by {
-    rintros φx xφ φy yφ,
-    simp at xφ,
-    simp at yφ,
-    rcases xφ with ⟨x,⟨xK,rfl⟩⟩,
-    rcases yφ with ⟨y,⟨yK,rfl⟩⟩,
-    rcases K'conn x xK y yK with ⟨w,wgood⟩,
-    let φw := w.map φ.to_hom,
-    use φw,
-    rw [walk.support_map,list.map_to_finset],
-    apply finset.image_subset_image wgood,
-  },
 
-  rcases component.conn_sub_of_connected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
-  rcases component.conn_sub_of_connected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
+
+  -- Why doesn't this work!!!
+  --have φK'conn := simple_graph.subconnected.image G G φ K'conn,
+  have φK'conn : subconnected G φK' := sorry,
+
+
+  rcases ro_of_subconnected_disjoint G K' φK' (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
+  rcases ro_of_subconnected_disjoint G φK' K' (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
 
   have Einf : E.infinite := finn ⟨E,Ecomp⟩,
   have Finf : F.infinite, by {

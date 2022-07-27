@@ -46,6 +46,21 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
 
+-- TODO : move to topology.subset_properties near is_compact_univ_pi
+instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [∀ i, compact_space (π i)]
+  [∀ i, locally_compact_space (π i)] : locally_compact_space (Π i, π i) :=
+⟨λ t n hn, begin
+  rw [nhds_pi, filter.mem_pi] at hn,
+  obtain ⟨s, hs, n', hn', hsub⟩ := hn,
+  choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
+  use s.pi n'', rw set_pi_mem_nhds_iff hs,
+  refine ⟨λ i _, hn'' i, subset_trans (λ _, _) hsub, _⟩,
+  { refine forall₂_imp (λ i _, _), apply hsub' },
+  { classical, rw ← set.univ_pi_ite, apply is_compact_univ_pi,
+    intro i, by_cases i ∈ s, { rw if_pos h, apply hc },
+    { rw if_neg h, exact compact_space.compact_univ } },
+end⟩
+
 section merge_split
 
 variables (Y : Type*) [topological_space Y]
@@ -107,10 +122,10 @@ local notation `I^` n := cube (fin n)
 namespace cube
 
 instance compact_space : compact_space (cube N) :=
-@pi.compact_space _ _ _ (λ _, compact_space_Icc (0:ℝ) 1)
+by { convert pi.compact_space, intro, apply_instance }
 
-instance locally_compact_space : locally_compact_space (cube N) := sorry
-/- this should hold even if N is infinite, but a different proof is required. -/
+instance locally_compact_space : locally_compact_space (cube N) :=
+by { convert pi.locally_compact_space; intro; apply_instance }
 
 /-- The points of the `n`-dimensional cube with at least one projection equal to 0 or 1. -/
 def boundary (N) : set (cube N) := {y | ∃ i, y i = 0 ∨ y i = 1}

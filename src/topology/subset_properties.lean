@@ -1018,7 +1018,7 @@ instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space
 have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
 locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h₁.prod h₂
 
-section
+section pi
 
 variables [Π i, topological_space (π i)] [∀ i, locally_compact_space (π i)]
 
@@ -1032,6 +1032,7 @@ instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π
   { exact λ i hi, hsub' i (h i trivial), },
 end⟩
 
+/-- For spaces that are not Hausdorff. -/
 instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
 ⟨λ t n hn, begin
   rw [nhds_pi, filter.mem_pi] at hn,
@@ -1047,7 +1048,7 @@ instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compac
     { rw if_neg h, exact compact_space.compact_univ, } },
 end⟩
 
-end
+end pi
 
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/

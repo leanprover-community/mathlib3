@@ -32,7 +32,7 @@ variables {𝕜 : Type*} {A : Type*}
 namespace weak_dual
 namespace character_space
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A]
   [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A]
 
 lemma norm_one (φ : character_space 𝕜 A) : ∥to_normed_dual (φ : weak_dual 𝕜 A)∥ = 1 :=

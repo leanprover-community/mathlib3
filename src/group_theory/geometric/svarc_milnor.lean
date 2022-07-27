@@ -78,7 +78,11 @@ end
 
 lemma closure_mul (g' : α) (K : set α) (hg : g' ∈ subgroup.closure K)(g : α) :
  (∃ k ∈ K, g'*k = g) → g ∈ subgroup.closure K :=
-sorry
+begin
+  rintros ⟨k, hk, rfl⟩,
+  apply mul_mem hg,
+  apply set.mem_of_subset_of_mem (@subgroup.subset_closure α _ K) hk
+end
 
 variables (c : ℝ) (b : ℝ) (cpos: 0 < c) (bpos: 0 < b)
 
@@ -177,7 +181,7 @@ open metric
 
 
 lemma free_group.range_lift (f : S → α) : range (free_group.lift f) = subgroup.closure (range f) :=
-sorry
+  by simp only [← @free_group.lift.range_eq_closure S α _ f, monoid_hom.coe_range]
 
 lemma top_closure_to_surj_hom (f: S → α) (hf: ⊤ = subgroup.closure (range f)) :
   surjective (free_group.lift f) :=
@@ -612,8 +616,7 @@ begin
   split,
     rw add_comm at hy2,
     exact ⟨hy1, hy2.le⟩,
-  -- rw to_add_of_add,
-  sorry,
+  sorry
 end
 
 theorem interval_finitediam : bounded {x : ℝ| 0 ≤ x ∧ x ≤ 1} :=

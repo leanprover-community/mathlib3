@@ -503,8 +503,6 @@ def mk_inductive_aux₁ :
 
 section
 
-variable [has_zero_object V]
-
 /--
 An auxiliary construction for `mk_inductive`.
 -/
@@ -625,8 +623,6 @@ def mk_coinductive_aux₁ :
 
 section
 
-variable [has_zero_object V]
-
 /--
 An auxiliary construction for `mk_inductive`.
 -/
@@ -727,7 +723,7 @@ instance : inhabited (homotopy_equiv C C) := ⟨refl C⟩
 
 end homotopy_equiv
 
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V] [has_zero_object V]
+variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 
 /--
 Homotopic maps induce the same map on homology.

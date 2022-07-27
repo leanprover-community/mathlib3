@@ -359,10 +359,14 @@ begin
 end
 
 
+lemma ro_component_to_ro_component_of_retract {U : Type*} (H : simple_graph U) (K : finset V)
+  (φ : G →g H) (ψ : H →g G) (ret: ψ.comp φ = @simple_graph.hom.id V G) :
+  set.maps_to (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) := sorry
+-- Maybe I got the retraction the wrong way around
 
-lemma bij_components_of_autom [locally_finite G] [G.preconnected] (K : finset V) (φ : G ≃g G) :
-  set.bij_on (λ C, φ '' C) (G.ro_components K) (G.ro_components (finset.image φ K)) := sorry
-
+lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
+  set.bij_on (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) := sorry
+-- Should use the lemma above
 
 
 
@@ -375,9 +379,9 @@ lemma inf_ro_components_subset (K : finset V) : inf_ro_components G K ⊆ ro_com
 lemma fin_ro_components_subset (K : finset V) : fin_ro_components G K ⊆ ro_components G K := λ C h, h.1
 
 
-lemma bij_inf_components_of_autom [locally_finite G] [G.preconnected] (K : finset V) (φ : G ≃g G) :
-  set.bij_on (λ C, φ '' C) (inf_ro_components G K) (inf_ro_components G (finset.image φ K)) := sorry
-
+lemma bij_inf_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
+  set.bij_on (λ C, φ '' C) (G.inf_ro_components K) (H.inf_ro_components (finset.image φ K)) := sorry
+-- Should use bij_ro_components_of_isom plus the obvious fact that φ being a bijection, it preserves infinite-ness.
 
 lemma infinite_graph_to_inf_components_nonempty (Vinfinite : (@set.univ V).infinite) :
  (inf_ro_components G K).nonempty :=

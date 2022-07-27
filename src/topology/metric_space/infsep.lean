@@ -179,11 +179,20 @@ end pseudo_metric_space
 end infesep
 
 section infsep
-
+open_locale ennreal
 open set function
 /-- The "infimum separation" of a set with an edist function. -/
 noncomputable def infsep [has_edist α] (s : set α) : ℝ := ennreal.to_real (s.infesep)
 
+section has_edist
+variables [has_edist α] {x y : α} {s : set α}
+
+lemma infsep_nonneg : 0 ≤ s.infsep := sorry
+
+lemma infsep_subsingleton (hs : s.subsingleton) : s.infsep = ∞ := sorry
+
+
+end has_edist
 end infsep
 
 end set

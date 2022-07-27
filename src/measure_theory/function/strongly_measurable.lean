@@ -1800,6 +1800,8 @@ begin
   exact eventually_of_forall hgt_zero,
 end
 
+attribute [protected] measure_theory.ae_fin_strongly_measurable.measurable_set
+
 end ae_fin_strongly_measurable
 
 section second_countable_topology

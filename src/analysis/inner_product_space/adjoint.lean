@@ -340,8 +340,9 @@ end real
 
 /-! ### Self-adjoint operators -/
 
-/-- A (not necessarily bounded) operator `A` on an inner product space is self-adjoint iff
-  `A` is equal to its adjoint. -/
+/-- An operator `A` on an inner product space is self-adjoint iff `A` is equal to its adjoint.
+
+TODO Extend this theory to unbounded operators. -/
 def is_self_adjoint (A : E →L[𝕜] E) : Prop := A.adjoint = A
 
 lemma is_self_adjoint_iff {A : E →L[𝕜] E} : A.is_self_adjoint ↔

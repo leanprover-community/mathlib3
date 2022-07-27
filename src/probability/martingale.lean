@@ -632,7 +632,7 @@ begin
     ((hf.integrable _).sub (hf.integrable _))).symm.le,
 end
 
-/-- Given a discrete submartingale `f` and a predicatable process `ξ` (i.e. `ξ (n + 1)` is adapted)
+/-- Given a discrete submartingale `f` and a predictable process `ξ` (i.e. `ξ (n + 1)` is adapted)
 the process defined by `λ n, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)` is also a
 submartingale. -/
 lemma submartingale.sum_mul_sub' [is_finite_measure μ] {R : ℝ} {ξ f : ℕ → α → ℝ}

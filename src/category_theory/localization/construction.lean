@@ -27,7 +27,7 @@ of the localization. Indeed, if `G : C ⥤ D` sends morphisms in `W` to isomorph
 in `D` (i.e. we have `hG : W.is_inverted_by G`), then there exists a unique functor
 `G' : W.localization ⥤ D` such that `Q W ≫ G' = G`. This `G'` is `lift G hG`.
 The expected property of `lift G hG` if expressed by the lemma `fac` and the
-uniqueness is expressed by `fac`.
+uniqueness is expressed by `uniq`.
 
 TODO:
 1) show that for any category `E`, the composition of functors gives

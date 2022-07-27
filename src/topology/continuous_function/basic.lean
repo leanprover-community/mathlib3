@@ -286,9 +286,28 @@ end gluing
 
 end continuous_map
 
+section
+variables {α β : Type*} [topological_space α] [topological_space β]
+variable (f : α ≃ₜ β)
+
 /--
 The forward direction of a homeomorphism, as a bundled continuous map.
 -/
 @[simps]
-def homeomorph.to_continuous_map {α β : Type*} [topological_space α] [topological_space β]
-  (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
+def homeomorph.to_continuous_map (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
+
+/--
+Left inverse to a continuous map from a homemorphism
+-/
+lemma homeomorph.symm_comp_to_continuous_map :
+  f.symm.to_continuous_map.comp f.to_continuous_map = continuous_map.id α :=
+by { ext, apply f.to_equiv.symm_apply_apply }
+
+/--
+Right inverse to a continuous map from a homemorphism
+-/
+lemma homeomorph.comp_symm_to_continuous_map :
+  f.to_continuous_map.comp f.symm.to_continuous_map = continuous_map.id β :=
+by { ext, apply f.to_equiv.apply_symm_apply }
+
+end

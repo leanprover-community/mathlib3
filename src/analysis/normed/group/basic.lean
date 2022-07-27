@@ -1401,7 +1401,7 @@ noncomputable instance [seminormed_group E] [seminormed_group F] : seminormed_gr
 /-- Product of seminormed groups, using the sup norm. -/
 @[to_additive "Product of seminormed groups, using the sup norm."]
 noncomputable instance seminormed_comm_group [seminormed_comm_group E] [seminormed_comm_group F] :
-  seminormed_group (E × F) :=
+  seminormed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
 /-- Product of normed groups, using the sup norm. -/

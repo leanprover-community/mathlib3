@@ -163,13 +163,28 @@ namespace set.Ioc
 
 instance has_one [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
 
+@[simp, norm_cast] lemma coe_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
+
+@[simp] lemma mk_one (h : (1 : α) ∈ Icc (0 : α) 1) : (⟨1, h⟩ : Icc (0:α) 1) = 1 := rfl
+
+@[simp, norm_cast] lemma coe_eq_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) = 1 ↔ x = 1 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) ≠ 1 ↔ x ≠ 1 :=
+not_iff_not.mpr coe_eq_one
+
+lemma pos (x : Ioc (0:α) 1) : 0 < (x : α) := x.2.1
+lemma le_one (x : Ioc (0:α) 1) : (x : α) ≤ 1 := x.2.2
+
+/-- like `le_one`, but with the inequality in `Ioc (0:α) 1`. -/
+lemma le_one' [nontrivial α] {t : Ioc (0:α) 1} : t ≤ 1 := t.2.2
+
 instance has_mul : has_mul (Ioc (0:α) 1) :=
 { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩ }
 
 instance has_pow : has_pow (Ioc (0:α) 1) ℕ :=
 { pow := λ p n, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩ }
 
-@[simp, norm_cast] lemma coe_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
 @[simp, norm_cast] lemma coe_mul (x y : Ioc (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 @[simp, norm_cast] lemma coe_pow (x : Ioc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 

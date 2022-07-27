@@ -150,8 +150,16 @@ noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center
   map_mul' := λ a b, by simp_rw [←show ∀ g, (_ : center G) = _,
     from transfer_center_eq_pow, map_mul] }
 
+lemma transfer_center_pow_apply [fintype (G ⧸ center G)] (g : G) :
+  ↑(transfer_center_pow g) = g ^ (center G).index :=
+rfl
+
 /-- The transfer homomorphism `G →* center G`. -/
 noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* center G :=
 @transfer_center_pow G _ (fintype_of_index_ne_zero h)
+
+lemma transfer_center_pow'_apply (h : (center G).index ≠ 0) (g : G) :
+  ↑(transfer_center_pow' h g) = g ^ (center G).index :=
+rfl
 
 end monoid_hom

@@ -468,7 +468,7 @@ The second half of `tactic.polyrith` processes the output from Sage into
 a call to `linear_combination`.
 -/
 meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : json) :
-  tactic format := do
+  tactic format := focus1 $ do
   some coeffs_as_poly ← convert_sage_output sage_out | fail!"internal error: No output available",
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
   let eq_names_pexpr := eq_names.map to_pexpr,
@@ -477,6 +477,9 @@ meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_
   let components := (eq_names.zip coeffs_as_expr).filter
     $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
+  let lc_fmt : format := "linear_combination " ++ format.nest 2 (format.group expr_string),
+  done <|>
+    fail!"polyrith found the following certificate, but it failed to close the goal:\n{lc_fmt}",
   return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
 
 /-- Tactic for the special case when no hypotheses are available. -/
@@ -577,6 +580,6 @@ add_tactic_doc
 { name := "polyrith",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.polyrith],
-  tags := ["arithmetic", "automation", "polynomial", "grobner", "groebner"] }
+  tags := ["arithmetic", "finishing", "decision procedure"] }
 
 end polyrith

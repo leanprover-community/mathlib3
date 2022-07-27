@@ -30,24 +30,25 @@ open polynomial is_scalar_tower
 
 variables (F K : Type*) [field F] [field K] [algebra F K]
 
---TODO(Commelin): refactor normal to extend `is_algebraic`??
-
 /-- Typeclass for normal field extension: `K` is a normal extension of `F` iff the minimal
 polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x` is in `K`. -/
 class normal : Prop :=
-(is_integral' (x : K) : is_integral F x)
+(is_algebraic' : algebra.is_algebraic F K)
 (splits' (x : K) : splits (algebra_map F K) (minpoly F x))
 
 variables {F K}
 
-theorem normal.is_integral (h : normal F K) (x : K) : is_integral F x := normal.is_integral' x
+theorem normal.is_algebraic (h : normal F K) (x : K) : is_algebraic F x := normal.is_algebraic' x
+
+theorem normal.is_integral (h : normal F K) (x : K) : is_integral F x :=
+is_algebraic_iff_is_integral.mp (h.is_algebraic x)
 
 theorem normal.splits (h : normal F K) (x : K) :
   splits (algebra_map F K) (minpoly F x) := normal.splits' x
 
 theorem normal_iff : normal F K ↔
   ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) :=
-⟨λ h x, ⟨h.is_integral x, h.splits x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+⟨λ h x, ⟨h.is_integral x, h.splits x⟩, λ h, ⟨λ x, (h x).1.is_algebraic F, λ x, (h x).2⟩⟩
 
 theorem normal.out : normal F K →
   ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) := normal_iff.1
@@ -55,7 +56,7 @@ theorem normal.out : normal F K →
 variables (F K)
 
 instance normal_self : normal F F :=
-⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact splits_X_sub_C _ }⟩
+⟨λ x, is_integral_algebra_map.is_algebraic F, λ x, (minpoly.eq_X_sub_C' x).symm ▸ splits_X_sub_C _⟩
 
 variables {K}
 

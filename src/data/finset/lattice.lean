@@ -164,6 +164,14 @@ by { rw [comp_sup_eq_sup_comp coe]; intros; refl }
   (s.sup f).to_finset = s.sup (λ x, (f x).to_finset) :=
 comp_sup_eq_sup_comp multiset.to_finset to_finset_union rfl
 
+lemma _root_.list.foldr_sup_eq_sup_to_finset [decidable_eq α] (l : list α) :
+  l.foldr (⊔) ⊥ = l.to_finset.sup id :=
+begin
+  rw [←coe_fold_r, ←multiset.fold_dedup_idem, sup_def, ←list.to_finset_coe, to_finset_val,
+      multiset.map_id],
+  refl
+end
+
 theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
 
@@ -361,6 +369,14 @@ lemma inf_coe {P : α → Prop}
   (t : finset β) (f : β → {x : α // P x}) :
   (@inf _ _ (subtype.semilattice_inf Pinf) (subtype.order_top Ptop) t f : α) = t.inf (λ x, f x) :=
 @sup_coe αᵒᵈ _ _ _ _ Ptop Pinf t f
+
+lemma _root_.list.foldr_inf_eq_inf_to_finset [decidable_eq α] (l : list α) :
+  l.foldr (⊓) ⊤ = l.to_finset.inf id :=
+begin
+  rw [←coe_fold_r, ←multiset.fold_dedup_idem, inf_def, ←list.to_finset_coe, to_finset_val,
+      multiset.map_id],
+  refl
+end
 
 lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
@@ -792,6 +808,8 @@ and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element 
 `s.max'`. -/
 protected def max (s : finset α) : with_bot α :=
 sup s coe
+
+lemma max_eq_sup_coe {s : finset α} : s.max = s.sup coe := rfl
 
 theorem max_eq_sup_with_bot (s : finset α) :
   s.max = sup s coe := rfl

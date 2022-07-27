@@ -218,7 +218,7 @@ by rw [←mul_inv_eq_one, inv_inv]
 @[to_additive] lemma mul_eq_one_iff_inv_eq {a : α} : ↑u * a = 1 ↔ ↑u⁻¹ = a :=
 by rw [←inv_mul_eq_one, inv_inv]
 
-lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
+@[to_additive] lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
 units.inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]
 
 end units

@@ -5,6 +5,7 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
+import field_theory.fixed
 import field_theory.is_alg_closed.basic
 import field_theory.separable
 import ring_theory.integral_domain
@@ -112,9 +113,7 @@ begin
       { rw ← add_sub_cancel α (c • β),
         exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-    { rw [adjoin_le_iff, set.le_eq_subset],
-      change {γ} ⊆ _,
-      rw set.singleton_subset_iff,
+    { rw [adjoin_simple_le_iff],
       have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
       have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
       exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
@@ -178,7 +177,7 @@ begin
   rcases is_empty_or_nonempty (fintype F) with F_inf|⟨⟨F_finite⟩⟩,
   { let P : intermediate_field F E → Prop := λ K, ∃ α : E, F⟮α⟯ = K,
     have base : P ⊥ := ⟨0, adjoin_zero⟩,
-    have ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯,
+    have ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F),
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
@@ -200,54 +199,6 @@ have e : F⟮α⟯ = ⊤ := (exists_primitive_element F E).some_spec,
 pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
 end separable_assumption
-
-/-- A technical finiteness result. -/
-noncomputable def fintype.subtype_prod {E : Type*} {X : set E} (hX : X.finite) {L : Type*}
-  (F : E → multiset L) : fintype (Π x : X, {l : L // l ∈ F x}) :=
-by { classical, letI : fintype X := set.finite.fintype hX, exact pi.fintype}
-
-variables (K : Type*) [field K] [algebra F K]
-
-variables (E F)
-
-/-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
--- Marked as `noncomputable!` since this definition takes multiple seconds to compile,
--- and isn't very computable in practice (since neither `finrank` nor `fin_basis` are).
-noncomputable! def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
-  (x : set.range (finite_dimensional.fin_basis F E : _ → E)) :
-  {l : K // l ∈ (((minpoly F x.1).map (algebra_map F K)).roots : multiset K)} :=
-⟨φ x, begin
-  rw [polynomial.mem_roots_map (minpoly.ne_zero_of_finite_field_extension F x.val),
-    ← polynomial.alg_hom_eval₂_algebra_map, ← φ.map_zero],
-  exact congr_arg φ (minpoly.aeval F (x : E)),
-end⟩
-
-lemma aux_inj_roots_of_min_poly : function.injective (roots_of_min_poly_pi_type F E K) :=
-begin
-  intros f g h,
-  suffices : (f : E →ₗ[F] K) = g,
-  { rw linear_map.ext_iff at this,
-    ext x, exact this x },
-  rw function.funext_iff at h,
-  apply linear_map.ext_on (finite_dimensional.fin_basis F E).span_eq,
-  rintro e he,
-  have := (h ⟨e, he⟩),
-  apply_fun subtype.val at this,
-  exact this,
-end
-
-/-- Given field extensions `E/F` and `K/F`, with `E/F` finite, there are finitely many `F`-algebra
-  homomorphisms `E →ₐ[K] K`. -/
-noncomputable instance : fintype (E →ₐ[F] K) :=
-let n := finite_dimensional.finrank F E in
-begin
-  let B : basis (fin n) F E := finite_dimensional.fin_basis F E,
-  let X := set.range (B : fin n → E),
-  have hX : X.finite := set.finite_range ⇑B,
-  refine @fintype.of_injective _ _
-    (fintype.subtype_prod hX (λ e, ((minpoly F e).map (algebra_map F K)).roots)) _
-    (aux_inj_roots_of_min_poly F E K),
-end
 
 end field
 

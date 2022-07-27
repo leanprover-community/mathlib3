@@ -188,62 +188,106 @@ end liminf_limsup
 
 section monotone
 
-open set
+variables {ι R S : Type*} {F : filter ι} [ne_bot F]
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  [complete_linear_order S] [topological_space S] [order_topology S]
 
-lemma _root_.filter.limsup_eq_Inf_Sup
-  {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
-  F.limsup a = Inf ((λ I, Sup (a '' I)) '' F.sets) :=
+/-- An antitone function between complete linear ordered spaces sends a `filter.Limsup`
+to the `filter.liminf` of the image if it is continuous at the `Limsup`. -/
+lemma antitone.map_Limsup_of_continuous_at {F : filter R} [ne_bot F]
+  {f : R → S} (f_decr : antitone f) (f_cont : continuous_at f (F.Limsup)) :
+  f (F.Limsup) = F.liminf f :=
 begin
-  refine le_antisymm _ _,
-  { rw limsup_eq,
-    apply Inf_le_Inf,
-    intros x hx,
-    rcases (mem_image _ F.sets x).mp hx with ⟨I, ⟨I_mem_F, hI⟩⟩,
-    filter_upwards [I_mem_F] with i hi,
-    rw ← hI,
-    exact le_Sup (mem_image_of_mem _ hi), },
-  { rw limsup_eq,
-    apply le_Inf_iff.mpr,
-    intros b hb,
-    simp only [mem_set_of_eq, filter.eventually] at hb,
-    apply Inf_le_of_le (mem_image_of_mem _ (filter.mem_sets.mpr hb)),
-    apply Sup_le,
-    intros x hx,
-    simp only [mem_image, mem_set_of_eq] at hx,
-    rcases hx with ⟨k, ak_le_b, ak_eq_x⟩,
-    rwa [ak_eq_x] at ak_le_b, },
+  apply le_antisymm,
+  { have A : {a : R | ∀ᶠ (n : R) in F, n ≤ a}.nonempty, from ⟨⊤, by simp⟩,
+    rw [Limsup, (f_decr.map_Inf_of_continuous_at' f_cont A)],
+    apply le_of_forall_lt,
+    assume c hc,
+    simp only [liminf, Liminf, lt_Sup_iff, eventually_map, set.mem_set_of_eq, exists_prop,
+      set.mem_image, exists_exists_and_eq_and] at hc ⊢,
+    rcases hc with ⟨d, hd, h'd⟩,
+    refine ⟨f d, _, h'd⟩,
+    filter_upwards [hd] with x hx using f_decr hx },
+  { rcases eq_or_lt_of_le (bot_le : ⊥ ≤ F.Limsup) with h|Limsup_ne_bot,
+    { rw ← h,
+      apply liminf_le_of_frequently_le,
+      apply frequently_of_forall,
+      assume x,
+      exact f_decr bot_le },
+    by_cases h' : ∃ c, c < F.Limsup ∧ set.Ioo c F.Limsup = ∅,
+    { rcases h' with ⟨c, c_lt, hc⟩,
+      have B : ∃ᶠ n in F, F.Limsup ≤ n,
+      { apply (frequently_lt_of_lt_Limsup (by is_bounded_default) c_lt).mono,
+        assume x hx,
+        by_contra',
+        have : (set.Ioo c F.Limsup).nonempty := ⟨x, ⟨hx, this⟩⟩,
+        simpa [hc] },
+      apply liminf_le_of_frequently_le,
+      exact B.mono (λ x hx, f_decr hx) },
+    by_contra' H,
+    obtain ⟨l, l_lt, h'l⟩ : ∃ l < F.Limsup, set.Ioc l F.Limsup ⊆ {x : R | f x < F.liminf f},
+      from exists_Ioc_subset_of_mem_nhds ((tendsto_order.1 f_cont.tendsto).2 _ H)
+        ⟨⊥, Limsup_ne_bot⟩,
+    obtain ⟨m, l_m, m_lt⟩  : (set.Ioo l F.Limsup).nonempty,
+    { contrapose! h',
+      refine ⟨l, l_lt, by rwa set.not_nonempty_iff_eq_empty at h'⟩ },
+    have B : F.liminf f ≤ f m,
+    { apply liminf_le_of_frequently_le,
+      apply (frequently_lt_of_lt_Limsup (by is_bounded_default) m_lt).mono,
+      assume x hx,
+      exact f_decr hx.le },
+    have I : f m < F.liminf f := h'l ⟨l_m, m_lt.le⟩,
+    exact lt_irrefl _ (B.trans_lt I) }
 end
 
-lemma _root_.filter.liminf_eq_Sup_Inf
-  {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
-  F.liminf a = Sup ((λ I, Inf (a '' I)) '' F.sets) :=
-@filter.limsup_eq_Inf_Sup ι (order_dual R) _ _ a
+/-- A continuous antitone function between complete linear ordered spaces sends a `filter.limsup`
+to the `filter.liminf` of the images. -/
+lemma antitone.map_limsup_of_continuous_at
+  {f : R → S} (f_decr : antitone f) (a : ι → R) (f_cont : continuous_at f (F.limsup a)) :
+  f (F.limsup a) = F.liminf (f ∘ a) :=
+f_decr.map_Limsup_of_continuous_at f_cont
 
-lemma antitone.liminf_comp_eq_apply_limsup_of_continuous
-  {ι R : Type*} {F : filter ι} [ne_bot F]
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
-  F.liminf (f ∘ a) = f (F.limsup a) :=
-begin
-  rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf, ←f_decr.Sup_image_eq_apply_Inf f_cont],
-  { apply congr_arg,
-    simp only [image_image, function.comp_app],
-    refine subset_antisymm _ _;
-    { intros i hi,
-      rw mem_image at *,
-      rcases hi with ⟨I, I_mem_F, hI⟩,
-      refine ⟨I, I_mem_F, _⟩,
-      rw [← hI, ← f_decr.Inf_image_eq_apply_Sup f_cont _ _, image_image],
-      exact nonempty_image_iff.mpr (ne_bot.nonempty_of_mem ‹ne_bot F› I_mem_F), }, },
-  { refine nonempty_image_iff.mpr nonempty_of_nonempty_subtype, },
-end
+/-- An antitone function between complete linear ordered spaces sends a `filter.Liminf`
+to the `filter.limsup` of the image if it is continuous at the `Liminf`. -/
+lemma antitone.map_Liminf_of_continuous_at {F : filter R} [ne_bot F]
+  {f : R → S} (f_decr : antitone f) (f_cont : continuous_at f (F.Liminf)) :
+  f (F.Liminf) = F.limsup f :=
+@antitone.map_Limsup_of_continuous_at
+  (order_dual R) (order_dual S) _ _ _ _ _ _ _ _ f f_decr.dual f_cont
 
-lemma antitone.limsup_comp_eq_apply_liminf_of_continuous
-  {ι R : Type*} {F : filter ι} [ne_bot F]
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
-  F.limsup (f ∘ a) = f (F.liminf a) :=
-@antitone.liminf_comp_eq_apply_limsup_of_continuous ι (order_dual R) F _ _ _ _
-  a f f_decr.dual f_cont
+/-- A continuous antitone function between complete linear ordered spaces sends a `filter.liminf`
+to the `filter.limsup` of the images. -/
+lemma antitone.map_liminf_of_continuous_at
+  {f : R → S} (f_decr : antitone f) (a : ι → R) (f_cont : continuous_at f (F.liminf a)) :
+  f (F.liminf a) = F.limsup (f ∘ a) :=
+f_decr.map_Liminf_of_continuous_at f_cont
+
+/-- A monotone function between complete linear ordered spaces sends a `filter.Limsup`
+to the `filter.limsup` of the image if it is continuous at the `Limsup`. -/
+lemma monotone.map_Limsup_of_continuous_at {F : filter R} [ne_bot F]
+  {f : R → S} (f_incr : monotone f) (f_cont : continuous_at f (F.Limsup)) :
+  f (F.Limsup) = F.limsup f :=
+@antitone.map_Limsup_of_continuous_at R (order_dual S) _ _ _ _ _ _ _ _ f f_incr f_cont
+
+/-- A continuous monotone function between complete linear ordered spaces sends a `filter.limsup`
+to the `filter.limsup` of the images. -/
+lemma monotone.map_limsup_of_continuous_at
+  {f : R → S} (f_incr : monotone f) (a : ι → R) (f_cont : continuous_at f (F.limsup a)) :
+  f (F.limsup a) = F.limsup (f ∘ a) :=
+f_incr.map_Limsup_of_continuous_at f_cont
+
+/-- A monotone function between complete linear ordered spaces sends a `filter.Liminf`
+to the `filter.liminf` of the image if it is continuous at the `Liminf`. -/
+lemma monotone.map_Liminf_of_continuous_at {F : filter R} [ne_bot F]
+  {f : R → S} (f_incr : monotone f) (f_cont : continuous_at f (F.Liminf)) :
+  f (F.Liminf) = F.liminf f :=
+@antitone.map_Liminf_of_continuous_at R (order_dual S) _ _ _ _ _ _ _ _ f f_incr f_cont
+
+/-- A continuous monotone function between complete linear ordered spaces sends a `filter.liminf`
+to the `filter.liminf` of the images. -/
+lemma monotone.map_liminf_of_continuous_at
+  {f : R → S} (f_incr : monotone f) (a : ι → R) (f_cont : continuous_at f (F.liminf a)) :
+  f (F.liminf a) = F.liminf (f ∘ a) :=
+f_incr.map_Liminf_of_continuous_at f_cont
 
 end monotone

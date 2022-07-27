@@ -107,9 +107,7 @@ instance : can_lift ℝ≥0∞ ℝ≥0 :=
 @[simp] lemma some_eq_coe (a : ℝ≥0) : (some a : ℝ≥0∞) = (↑a : ℝ≥0∞) := rfl
 
 /-- `to_nnreal x` returns `x` if it is real, otherwise 0. -/
-protected def to_nnreal : ℝ≥0∞ → ℝ≥0
-| (some r) := r
-| none := 0
+protected def to_nnreal : ℝ≥0∞ → ℝ≥0 := with_top.untop' 0
 
 /-- `to_real x` returns `x` if it is real, `0` otherwise. -/
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
@@ -1656,23 +1654,17 @@ lemma of_real_div_of_pos {x y : ℝ} (hy : 0 < y) :
   ennreal.of_real (x / y) = ennreal.of_real x / ennreal.of_real y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, of_real_mul' (inv_nonneg.2 hy.le), of_real_inv_of_pos hy]
 
-lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
-begin
-  by_cases h : a = 0,
-  { rw [h, zero_mul, zero_to_nnreal] },
-  { rw [mul_top, if_neg h, top_to_nnreal] }
-end
-
-lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 :=
-by rw [mul_comm, to_nnreal_mul_top]
-
 @[simp] lemma to_nnreal_mul {a b : ℝ≥0∞} : (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
+with_top.untop'_zero_mul a b
+
+lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 := by simp
+lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 := by simp
+
+@[simp] lemma smul_to_nnreal (a : ℝ≥0) (b : ℝ≥0∞) :
+  (a • b).to_nnreal = a * b.to_nnreal :=
 begin
-  induction a using with_top.rec_top_coe,
-  { rw [to_nnreal_top_mul, top_to_nnreal, zero_mul] },
-  induction b using with_top.rec_top_coe,
-  { rw [to_nnreal_mul_top, top_to_nnreal, mul_zero] },
-  simp only [to_nnreal_coe, ← coe_mul]
+  change ((a : ℝ≥0∞) * b).to_nnreal = a * b.to_nnreal,
+  simp only [ennreal.to_nnreal_mul, ennreal.to_nnreal_coe],
 end
 
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/
@@ -1899,3 +1891,27 @@ lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 end supr
 
 end ennreal
+
+namespace set
+namespace ord_connected
+
+variables {s : set ℝ} {t : set ℝ≥0} {u : set ℝ≥0∞}
+
+lemma preimage_coe_nnreal_ennreal (h : u.ord_connected) : (coe ⁻¹' u : set ℝ≥0).ord_connected :=
+h.preimage_mono ennreal.coe_mono
+
+lemma image_coe_nnreal_ennreal (h : t.ord_connected) : (coe '' t : set ℝ≥0∞).ord_connected :=
+begin
+  refine ⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz, _⟩,
+  rcases ennreal.le_coe_iff.1 hz.2 with ⟨z, rfl, hzy⟩,
+  exact mem_image_of_mem _ (h.out hx hy ⟨ennreal.coe_le_coe.1 hz.1, ennreal.coe_le_coe.1 hz.2⟩)
+end
+
+lemma preimage_ennreal_of_real (h : u.ord_connected) : (ennreal.of_real ⁻¹' u).ord_connected :=
+h.preimage_coe_nnreal_ennreal.preimage_real_to_nnreal
+
+lemma image_ennreal_of_real (h : s.ord_connected) : (ennreal.of_real '' s).ord_connected :=
+by simpa only [image_image] using h.image_real_to_nnreal.image_coe_nnreal_ennreal
+
+end ord_connected
+end set

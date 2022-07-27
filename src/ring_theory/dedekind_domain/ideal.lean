@@ -806,17 +806,17 @@ begin
   by_cases hI : I = ⊥,
   { simp [*] at *, },
   rw [irreducible_pow_sup hI hJ, min_eq_right],
-  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J] at hn
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J] at hn
 end
 
 lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
-  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
+  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (part_enat.dom_of_le_coe hn) :=
 begin
   rw [irreducible_pow_sup hI hJ, min_eq_left],
   congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
+  { rw [← part_enat.coe_inj, part_enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
     normalize_eq J] },
-  { rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+  { rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J]
       at hn }
 end
 

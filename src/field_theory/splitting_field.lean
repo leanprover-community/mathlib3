@@ -403,7 +403,7 @@ begin
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
-      (fg_adjoin_of_finite (set.finite_mem_finset s) H3)).of_subalgebra_to_submodule,
+      (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
   have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
@@ -747,7 +747,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
 
 theorem finite_dimensional (f : K[X]) [is_splitting_field K L f] : finite_dimensional K L :=
 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
-  fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
+  fg_adjoin_of_finite (finset.finite_to_set _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
   else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $

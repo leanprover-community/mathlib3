@@ -184,7 +184,7 @@ begin
     rw ←two_power_part at h,
     rw two_power_part_mul_odd_part at h,
     rw h,
-    apply nat.neg_one_pow_o
+    apply nat.neg_one_pow_of_even,
     rw nat.even_two_pow_iff,
     exact tsub_pos_of_lt hrlt,
   },

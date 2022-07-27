@@ -331,7 +331,6 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
   return $ op.mk_app [la]
 | e := do
   deg ← guess_degree e,
---  deg ← to_expr deg.to_pexpr tt ff,
   op ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
   return $ op.mk_app [e, deg]
 
@@ -395,8 +394,8 @@ In some sense, this views `coeff _ <visible_top_degree>` and a "monad" convertin
 `R[X]` and `R`.  `resolve_coeff` performs the operations building `f` across the monad.
 -/
 meta def resolve_coeff : tactic unit := focus1 $ do
-`(coeff %%f %%n = _) ← target >>= instantiate_mvars,
---do `(coeff %%f %%n = _) ← whnf t reducible | fail!"{t} has the wrong form",
+t ← target >>= instantiate_mvars,
+`(coeff %%f %%n = _) ← whnf t reducible | fail!"{t} has the wrong form",
 match f with
 | `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
 | (app `(⇑C) _)                       := refine ``(coeff_C_zero)
@@ -432,7 +431,6 @@ match f with
   resolve_coeff
 | `(%%a * %%b) := do
   [da, db] ← [a,b].mmap guess_degree,
---  [da, db] ← [a,b].mmap (λ x, do x' ← guess_degree' x, to_expr x'.to_pexpr tt ff),
   refine ``((coeff_mul_of_nat_degree_le' (by norm_num : %%da + %%db = %%n) _ _).trans _),
   iterate_at_most' 2 compute_degree_le,
   try $ congr' (some 1);
@@ -465,7 +463,7 @@ do t ← target >>= instantiate_mvars,
     | `(coeff %%f %%m ≠ _) := return (ff, f, m)
     | _ := fail "Goal is not of the form `f.coeff n = x` or `f.coeff n ≠ x`"
     end,
-  d_nat ← guess_degree' f,-- exp_deg ← to_expr exp_deg.to_pexpr tt ff,
+  d_nat ← guess_degree' f,
   m_nat ← eval_expr' ℕ m,
   guard (d_nat = m_nat) <|> fail!(
   "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
@@ -503,8 +501,8 @@ do
   co_eq_co ← mk_app `eq [cf.mk_app [f, `(exp_deg)], lc],
   assert nn co_eq_co,
   resolve_coeff
-  --,
-  --try `[ conv_rhs at c_c {norm_num} ]
+  -- >> try `[ conv_rhs at c_c {norm_num} ]
+
 end parsing
 
 /--  `compute_degree` tries to close goals of the form `f.(nat_)degree = d`.  It converts the
@@ -539,9 +537,7 @@ goal to showing that
 Unless the polynomial is particularly complicated, `prove_monic` with either succeed of leave
 a simpler goal to prove.
  -/
-meta def prove_monic : tactic unit := --focus $
-do
---`(monic %%pol) ← target,-- | fail"Goal is not of the form `monic f`",
+meta def prove_monic : tactic unit := focus $ do
 `(monic %%pol) ← target >>= (λ f, whnf f reducible) | fail"Goal is not of the form `monic f`",
 deg ← guess_degree' pol,
 deg ← to_expr deg.to_pexpr tt ff,

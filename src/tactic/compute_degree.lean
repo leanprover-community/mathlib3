@@ -113,6 +113,41 @@ end ring
 end polynomial
 
 namespace tactic
+
+namespace instance_cache
+/-- Faster version of `mk_app ``has_add.add [e, f]`. -/
+meta def mk_add (c : instance_cache) (e f : expr) : tactic (instance_cache × expr) :=
+do (c, fi) ← c.get ``has_add,
+   return (c, (expr.const ``has_add.add [c.univ]).mk_app [c.α, fi, e, f])
+
+/-- Faster version of `mk_mul ``has_mul.mul [e, f]`. -/
+meta def mk_mul (c : instance_cache) (e f : expr) : tactic (instance_cache × expr) :=
+do (c, fi) ← c.get ``has_mul,
+   return (c, (expr.const ``has_mul.mul [c.univ]).mk_app [c.α, fi, e, f])
+
+/-- Faster version of `mk_sub ``has_sub.sub [e, f]`. -/
+meta def mk_sub (c : instance_cache) (e f : expr) : tactic (instance_cache × expr) :=
+do (c, fi) ← c.get ``has_sub,
+   return (c, (expr.const ``has_sub.sub [c.univ]).mk_app [c.α, fi, e, f])
+
+/-- Faster version of `mk_neg ``has_neg.neg [e]`. -/
+meta def mk_neg (c : instance_cache) (e : expr) : tactic (instance_cache × expr) :=
+do (c, fi) ← c.get ``has_neg,
+   return (c, (expr.const ``has_neg.neg [c.univ]).mk_app [c.α, fi, e])
+
+/-- Faster version of `mk_one ``has_one.one`. -/
+meta def mk_one (c : instance_cache) : tactic (instance_cache × expr) :=
+do (c, fi) ← c.get ``has_one,
+   return (c, (expr.const ``has_one.one [c.univ]).mk_app [c.α, fi])
+
+/-- Faster version of `mk_zero ``has_zero.zero`. -/
+meta def mk_zero (c : instance_cache) : tactic (instance_cache × expr) :=
+do (c, fi) ← c.get ``has_zero,
+   return (c, (expr.const ``has_zero.zero [c.univ]).mk_app [c.α, fi])
+
+end instance_cache
+
+
 namespace compute_degree
 open expr polynomial
 
@@ -210,9 +245,10 @@ meta def resolve_sum_step : expr → tactic unit
       refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
       n0 ← get_unused_name "n0" >>= intro,
       refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
-      lem1 ← to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff,
-      lem2 ← to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff,
-      focus1 (refine ``((%%n0 rfl).elim) <|> rewrite_target lem1 <|> rewrite_target lem2) <|> skip
+      focus1 (refine ``((%%n0 rfl).elim) <|>
+        to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff >>= rewrite_target <|>
+        to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff >>= rewrite_target) <|>
+      skip
   | e                := fail!"'{e}' is not supported"
   end
 | e := fail!("'resolve_sum_step' was called on\n" ++
@@ -272,27 +308,19 @@ the current strategy, we are able to reach places where `norm_num` would not rea
 The implementation of `get_lead_coeff` is a straightforward match on the elementary operations
 that can be performed on a polynomial.
 -/
-meta def get_lead_coeff (R : expr) : expr → tactic expr
-| (app `(⇑C) a) :=
-  pure a
-| (app `(⇑(monomial %%n)) x) :=
-  pure x
-| `(@has_one.one (@polynomial %%R %%_) %%_) := do
-  to_expr ``(has_one.one : %%R) tt ff >>= pure
-| `(@has_zero.zero (@polynomial %%R %%_) %%_) := do
-  to_expr ``(has_zero.zero : %%R) tt ff >>= pure
-| `(X) := do
-  to_expr ``(has_one.one : %%R) tt ff >>= pure
-| `(X ^ %%n) := do
-  to_expr ``(has_one.one : %%R) tt ff >>= pure
+meta def get_lead_coeff (c : instance_cache) : expr → tactic (instance_cache × expr)
+| (app `(⇑C) a) := pure (c, a)
+| (app `(⇑(monomial %%n)) x) := pure (c, x)
+| `(@has_one.one (@polynomial %%R %%_) %%_) := c.mk_one
+| `(@has_zero.zero (@polynomial %%R %%_) %%_) := c.mk_zero
+| `(X) := c.mk_one
+| `(X ^ %%n) := c.mk_one
 | `(bit0 %%a) := do
-  ta ← get_lead_coeff a,
-  op ← to_expr ``(bit0 : %%R → %%R) tt ff,
-  return $ op.mk_app [ta]
+  (c, ta) ← get_lead_coeff a,
+  c.mk_bit0 ta
 | `(bit1 %%a) := do
-  ta ← get_lead_coeff a,
-  op ← to_expr ``(bit1 : %%R → %%R) tt ff,
-  return $ op.mk_app [ta]
+  (c, ta) ← get_lead_coeff a,
+  c.mk_bit1 ta
 | `(%%a + %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   if da ≠ db then
@@ -301,38 +329,33 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
     else
       get_lead_coeff a
   else do
-    [ta, tb] ← [a, b].mmap get_lead_coeff,
-    op ← to_expr ``(has_add.add : %%R → %%R → %%R),
-    return $ op.mk_app [ta, tb]
+    [(c1, ta), (c2, tb)] ← [a, b].mmap $ get_lead_coeff,
+    c.mk_add ta tb
 | `(%%a - %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   if da ≠ db then
     if da < db then do
-      op ← to_expr ``(has_neg.neg : %%R → %%R) tt ff,
-      tb ← get_lead_coeff b,
-      return $ op.mk_app [tb]
+      (c, tb) ← get_lead_coeff b,
+      c.mk_neg tb
     else
       get_lead_coeff a
   else do
-    [ta, tb] ← [a, b].mmap get_lead_coeff,
-    op ← to_expr ``(has_sub.sub : %%R → %%R → %%R) tt ff,
-    return $ op.mk_app [ta, tb]
+    [(c, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
+    c.mk_sub ta tb
 | `(%%a * %%b) := do
-  [la, lb] ← [a, b].mmap get_lead_coeff,
-  op ← to_expr ``(has_mul.mul : %%R → %%R → %%R),
-  return $ op.mk_app [la, lb]
+  [(c, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
+  c.mk_mul ta tb
 | `(%%a ^ %%n) := do
-  la ← get_lead_coeff a,
-  op ← to_expr ``(has_pow.pow : %%R → ℕ → %%R),
-  return $ op.mk_app [la, n]
+  (c, ta) ← get_lead_coeff a,
+  op ← to_expr ``(has_pow.pow : %%c.α → ℕ → %%c.α),
+  return $ (c, op.mk_app [ta, n])
 | `(- %%a) := do
-  la ← get_lead_coeff a,
-  op ← to_expr ``(has_neg.neg : %%R → %%R),
-  return $ op.mk_app [la]
+  (c, ta) ← get_lead_coeff a,
+  c.mk_neg ta
 | e := do
   deg ← guess_degree e,
-  op ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
-  return $ op.mk_app [e, deg]
+  op ← to_expr ``(coeff : polynomial %%c.α → ℕ → %%c.α),
+  return $ (c, op.mk_app [e, deg])
 
 end compute_degree
 
@@ -469,7 +492,8 @@ do t ← target >>= instantiate_mvars,
   "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
   "the expected degree is `{d_nat}`, but you are asking about the coefficient of degree `{m_nat}`"),
   `(@polynomial %%R %%_) ← infer_type f,
-  lc ← get_lead_coeff R f,
+  c ← mk_instance_cache R,
+  (c, lc) ← get_lead_coeff c f,
   nn ← get_unused_name "c_c",
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
   co_eq_co ← mk_app `eq [cf.mk_app [f, m], lc],
@@ -495,7 +519,8 @@ do
   f ← to_expr ``(%%fp) tt ff,
   exp_deg ← guess_degree' f,
   `(@polynomial %%R %%_) ← infer_type f,
-  lc ← get_lead_coeff R f,
+  c ← mk_instance_cache R,
+  (c, lc) ← get_lead_coeff c f,
   nn ← get_unused_name "c_c",
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
   co_eq_co ← mk_app `eq [cf.mk_app [f, `(exp_deg)], lc],

@@ -14,7 +14,7 @@ This file proves some results about the conditional expectation of an indicator 
 as a corollary, also proves several results about the behaviour of the conditional expectation on
 a restricted measure.
 
-## Main results
+## Main result
 
 * `measure_theory.condexp_indicator`: If `s` is a `m`-measurable set, then the conditional
   expectation of the indicator function of `s` is almost everywhere equal to the indicator

@@ -6,6 +6,23 @@ Authors: Rémy Degenne, Kexing Ying
 
 import measure_theory.function.condexp.indicator
 
+/-!
+
+# Conditional expectation of real-valued functions
+
+This file proves some results regarding the conditional expectation of real-valued functions.
+
+## Main results
+
+* `measure_theory.rn_deriv_ae_eq_condexp`: the conditional expectation `μ[f | m]` is equal to the
+  Radon-Nikodym derivative of `fμ` restricted on `m` with respect to `μ` restricted on `m`.
+* `measure_theory.integrable.uniform_integrable_condexp`: the conditional expectation of a function
+  form a uniformly integrable class.
+* `measure_theory.condexp_strongly_measurable_mul`: the pull-out property of the conditional
+  expectation.
+
+-/
+
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
 open_locale nnreal ennreal topological_space big_operators measure_theory

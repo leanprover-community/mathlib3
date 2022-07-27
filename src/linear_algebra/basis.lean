@@ -970,6 +970,9 @@ begin
   rwa h_x_eq_y
 end
 
+protected lemma span_apply (i : ι) : (basis.span hli i : M) = v i :=
+congr_arg (coe : span R (range v) → M) $ basis.mk_apply (linear_independent_span hli) _ i
+
 end span
 
 lemma group_smul_span_eq_top

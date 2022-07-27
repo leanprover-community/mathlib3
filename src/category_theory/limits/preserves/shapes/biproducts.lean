@@ -5,6 +5,8 @@ Authors: Markus Himmel
 -/
 import category_theory.limits.shapes.biproducts
 import category_theory.limits.preserves.shapes.zero
+import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.preserves.shapes.products
 
 /-!
 # Preservation of biproducts
@@ -13,7 +15,10 @@ We define the image of a (binary) bicone under a functor that preserves zero mor
 classes `preserves_biproduct` and `preserves_binary_biproduct`. We then
 
 * show that a functor that preserves biproducts of a two-element type preserves binary biproducts,
-* give the canonical isomorphism between the image of a biproduct and the biproduct of the images,
+* construct the comparison morphisms between the image of a biproduct and the biproduct of the
+  images and show that the biproduct is preserved if one of them is an isomorphism,
+* give the canonical isomorphism between the image of a biproduct and the biproduct of the images
+  in case that the biproduct is preserved,
 * show that in a preadditive category, a functor preserves a biproduct if and only if it preserves
   the corresponding product if and only if it preserves the corresponding coproduct.
 
@@ -179,8 +184,53 @@ open category_theory.limits
 namespace functor
 
 section bicone
-variables {J : Type w₁} (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
-  [has_biproduct f] [preserves_biproduct f F]
+variables {J : Type w₁} (F : C ⥤ D) (f : J → C)
+  [has_biproduct f]
+
+section
+variables [has_biproduct (F.obj ∘ f)]
+
+/-- As for products, any functor between categories with biproducts gives rise to a morphism
+    `F.obj (⨁ f) ⟶ ⨁ (F.obj ∘ f)`. -/
+def biproduct_comparison : F.obj (⨁ f) ⟶ ⨁ (F.obj ∘ f) :=
+biproduct.lift (λ j, F.map (biproduct.π f j))
+
+@[simp, reassoc] lemma biproduct_comparison_π (j : J) :
+  biproduct_comparison F f ≫ biproduct.π _ j = F.map (biproduct.π f j) :=
+biproduct.lift_π _ _
+
+/-- As for coproducts, any functor between categories with biproducts gives rise to a morphism
+    `⨁ (F.obj ∘ f) ⟶ F.obj (⨁ f)` -/
+def biproduct_comparison' : ⨁ (F.obj ∘ f) ⟶ F.obj (⨁ f) :=
+biproduct.desc (λ j, F.map (biproduct.ι f j))
+
+@[simp, reassoc] lemma ι_biproduct_comparison' (j : J) :
+  biproduct.ι _ j ≫ biproduct_comparison' F f = F.map (biproduct.ι f j) :=
+biproduct.ι_desc _ _
+
+variables [preserves_zero_morphisms F]
+
+/-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
+    the biproduct, see `preserves_biproduct_of_mono_biproduct_comparison`.  -/
+@[simp, reassoc] lemma biproduct_comparison'_comp_biproduct_comparison :
+  biproduct_comparison' F f ≫ biproduct_comparison F f = 𝟙 (⨁ (F.obj ∘ f)) :=
+by { classical, ext, simp [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
+
+instance : split_epi (biproduct_comparison F f) :=
+⟨biproduct_comparison' F f⟩
+
+@[simp] lemma section_biproduct_comparison :
+  section_ (biproduct_comparison F f) = biproduct_comparison' F f := rfl
+
+instance : split_mono (biproduct_comparison' F f) :=
+⟨biproduct_comparison F f⟩
+
+@[simp] lemma retraction_biproduct_comparison' :
+  retraction (biproduct_comparison' F f) = biproduct_comparison F f := rfl
+
+end
+
+variables [preserves_zero_morphisms F] [preserves_biproduct f F]
 
 instance has_biproduct_of_preserves : has_biproduct (F.obj ∘ f) :=
 has_biproduct.mk
@@ -201,8 +251,60 @@ rfl
 
 end bicone
 
-variables (F : C ⥤ D) [preserves_zero_morphisms F] (X Y : C) [has_binary_biproduct X Y]
-  [preserves_binary_biproduct X Y F]
+variables (F : C ⥤ D) (X Y : C) [has_binary_biproduct X Y]
+
+section
+variables [has_binary_biproduct (F.obj X) (F.obj Y)]
+
+/-- As for products, any functor between categories with binary biproducts gives rise to a
+    morphism `F.obj (X ⊞ Y) ⟶ F.obj X ⊞ F.obj Y`. -/
+def biprod_comparison : F.obj (X ⊞ Y) ⟶ F.obj X ⊞ F.obj Y :=
+biprod.lift (F.map biprod.fst) (F.map biprod.snd)
+
+@[simp, reassoc] lemma biprod_comparison_fst :
+  biprod_comparison F X Y ≫ biprod.fst = F.map biprod.fst :=
+biprod.lift_fst _ _
+
+@[simp, reassoc] lemma biprod_comparison_snd :
+  biprod_comparison F X Y ≫ biprod.snd = F.map biprod.snd :=
+biprod.lift_snd _ _
+
+/-- As for coproducts, any functor between categories with binary biproducts gives rise to a
+    morphism `F.obj X ⊞ F.obj Y ⟶ F.obj (X ⊞ Y)`. -/
+def biprod_comparison' : F.obj X ⊞ F.obj Y ⟶ F.obj (X ⊞ Y) :=
+biprod.desc (F.map biprod.inl) (F.map biprod.inr)
+
+@[simp, reassoc] lemma inl_biprod_comparison' :
+  biprod.inl ≫ biprod_comparison' F X Y = F.map biprod.inl :=
+biprod.inl_desc _ _
+
+@[simp, reassoc] lemma inr_biprod_comparison' :
+  biprod.inr ≫ biprod_comparison' F X Y = F.map biprod.inr :=
+biprod.inr_desc _ _
+
+variables [preserves_zero_morphisms F]
+
+/-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
+    the biproduct, see `preserves_binary_biproduct_of_mono_biprod_comparison`. -/
+@[simp, reassoc] lemma biprod_comparison'_comp_biprod_comparison :
+  biprod_comparison' F X Y ≫ biprod_comparison F X Y = 𝟙 (F.obj X ⊞ F.obj Y) :=
+by { ext; simp [← functor.map_comp] }
+
+instance : split_epi (biprod_comparison F X Y) :=
+⟨biprod_comparison' F X Y⟩
+
+@[simp] lemma section_biprod_comparison :
+  section_ (biprod_comparison F X Y) = biprod_comparison' F X Y := rfl
+
+instance : split_mono (biprod_comparison' F X Y) :=
+⟨biprod_comparison F X Y⟩
+
+@[simp] lemma retraction_biprod_comparison' :
+  retraction (biprod_comparison' F X Y) = biprod_comparison F X Y := rfl
+
+end
+
+variables [preserves_zero_morphisms F] [preserves_binary_biproduct X Y F]
 
 instance has_binary_biproduct_of_preserves : has_binary_biproduct (F.obj X) (F.obj Y) :=
 has_binary_biproduct.mk
@@ -311,6 +413,30 @@ def preserves_biproduct_of_preserves_product {f : J → C} [preserves_limit (dis
       (F.map_cone b.to_cone)).symm (is_limit_of_preserves F hb.is_limit)) $
       cones.ext (iso.refl _) (by tidy) }
 
+/-- If the (product-like) biproduct comparison for `F` and `f` is a monomorphism, then `F`
+    preserves the biproduct of `f`. For the converse, see `map_biproduct`. -/
+def preserves_biproduct_of_mono_biproduct_comparison {f : J → C} [has_biproduct f]
+  [has_biproduct (F.obj ∘ f)] [mono (biproduct_comparison F f)] : preserves_biproduct f F :=
+begin
+  have : pi_comparison F f = (F.map_iso (biproduct.iso_product f)).inv ≫
+    biproduct_comparison F f ≫ (biproduct.iso_product _).hom,
+  { ext, convert pi_comparison_comp_π F f j.as; simp [← functor.map_comp] },
+  haveI : is_iso (biproduct_comparison F f) := is_iso_of_mono_of_split_epi _,
+  haveI : is_iso (pi_comparison F f) := by { rw this, apply_instance },
+  haveI := preserves_product.of_iso_comparison F f,
+  apply preserves_biproduct_of_preserves_product
+end
+
+/-- If the (coproduct-like) biproduct comparison for `F` and `f` is an epimorphism, then `F`
+    preserves the biproduct of `F` and `f`. For the converse, see `map_biproduct`. -/
+def preserves_biproduct_of_epi_biproduct_comparison' {f : J → C} [has_biproduct f]
+  [has_biproduct (F.obj ∘ f)] [epi (biproduct_comparison' F f)] : preserves_biproduct f F :=
+begin
+  haveI : epi (section_ (biproduct_comparison F f)) := by simpa,
+  haveI : is_iso (biproduct_comparison F f) := is_iso.of_epi_section,
+  apply preserves_biproduct_of_mono_biproduct_comparison
+end
+
 /-- A functor between preadditive categories that preserves (zero morphisms and) finite products
     preserves finite biproducts. -/
 def preserves_biproducts_of_shape_of_preserves_products_of_shape
@@ -384,6 +510,31 @@ def preserves_binary_biproduct_of_preserves_binary_product {X Y : C}
     is_limit.of_iso_limit ((is_limit.postcompose_hom_equiv (by exact diagram_iso_pair _)
       (F.map_cone b.to_cone)).symm (is_limit_of_preserves F hb.is_limit)) $
         cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
+
+/-- If the (product-like) biproduct comparison for `F`, `X` and `Y` is a monomorphism, then
+    `F` preserves the biproduct of `X` and `Y`. For the converse, see `map_biprod`. -/
+def preserves_binary_biproduct_of_mono_biprod_comparison {X Y : C} [has_binary_biproduct X Y]
+  [has_binary_biproduct (F.obj X) (F.obj Y)] [mono (biprod_comparison F X Y)] :
+  preserves_binary_biproduct X Y F :=
+begin
+  have : prod_comparison F X Y = (F.map_iso (biprod.iso_prod X Y)).inv ≫
+    biprod_comparison F X Y ≫ (biprod.iso_prod _ _).hom := by { ext; simp [← functor.map_comp] },
+  haveI : is_iso (biprod_comparison F X Y) := is_iso_of_mono_of_split_epi _,
+  haveI : is_iso (prod_comparison F X Y) := by { rw this, apply_instance },
+  haveI := preserves_limit_pair.of_iso_prod_comparison F X Y,
+  apply preserves_binary_biproduct_of_preserves_binary_product
+end
+
+/-- If the (coproduct-like) biproduct comparison for `F`, `X` and `Y` is an epimorphism, then
+    `F` preserves the biproduct of `X` and `Y`. For the converse, see `map_biprod`. -/
+def preserves_binary_biproduct_of_epi_biprod_comparison' {X Y : C} [has_binary_biproduct X Y]
+  [has_binary_biproduct (F.obj X) (F.obj Y)] [epi (biprod_comparison' F X Y)] :
+  preserves_binary_biproduct X Y F :=
+begin
+  haveI : epi (section_ (biprod_comparison F X Y)) := by simpa,
+  haveI : is_iso (biprod_comparison F X Y) := is_iso.of_epi_section,
+  apply preserves_binary_biproduct_of_mono_biprod_comparison
+end
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary products
     preserves binary biproducts. -/

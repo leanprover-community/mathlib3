@@ -70,7 +70,7 @@ local notation `⟪`x`, `y`⟫` := y x
 
 variables (𝕜)
 
-lemma ae_eq_zero_of_forall_dual_of_is_separable [normed_group E] [normed_space 𝕜 E]
+lemma ae_eq_zero_of_forall_dual_of_is_separable [normed_add_comm_group E] [normed_space 𝕜 E]
   {t : set E} (ht : topological_space.is_separable t)
   {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) (h't : ∀ᵐ x ∂μ, f x ∈ t) :
   f =ᵐ[μ] 0 :=
@@ -105,8 +105,8 @@ begin
   exact A (f x) h'x hx,
 end
 
-lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E] [second_countable_topology E]
-  {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
+lemma ae_eq_zero_of_forall_dual [normed_add_comm_group E] [normed_space 𝕜 E]
+  [second_countable_topology E] {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 ae_eq_zero_of_forall_dual_of_is_separable 𝕜 (is_separable_of_separable_space (set.univ : set E)) hf
 (eventually_of_forall (λ x, set.mem_univ _))
@@ -118,7 +118,7 @@ end ae_eq_of_forall
 
 variables {α E : Type*}
   {m m0 : measurable_space α} {μ : measure α} {s t : set α}
-  [normed_group E] [normed_space ℝ E]
+  [normed_add_comm_group E] [normed_space ℝ E]
 
   [complete_space E]
   {p : ℝ≥0∞}

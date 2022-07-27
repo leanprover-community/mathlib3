@@ -2006,45 +2006,40 @@ tendsto_inv_zero_at_top.comp h
 
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
-lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (zpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : n ≠ 0) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
+by simpa only [zpow_neg, zpow_coe_nat] using (@tendsto_pow_at_top α _ _ hn).inv_tendsto_at_top
 
 lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=
 begin
-  have : 1 ≤ -n := le_neg.mp (int.le_of_lt_add_one (hn.trans_le (neg_add_self 1).symm.le)),
-  apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
   lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
-  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+  rw [← neg_pos, ← h, nat.cast_pos] at hn,
+  simpa only [h, neg_neg] using tendsto_pow_neg_at_top hn.ne'
 end
 
 lemma tendsto_const_mul_zpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
   tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
 (mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_zpow_at_top_zero hn))
 
-lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+lemma tendsto_const_mul_pow_nhds_iff' {n : ℕ} {c d : α} :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ (c = 0 ∨ n = 0) ∧ c = d :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have hn : n = 0,
-    { by_contradiction hn,
-      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
-      by_cases hc' : 0 < c,
-      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
-        exact not_tendsto_nhds_of_tendsto_at_top this d h },
-      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
-        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
-    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
-    rw [this, tendsto_const_nhds_iff] at h,
-    exact ⟨hn, h⟩ },
-  { obtain ⟨hn, hcd⟩ := h,
-    simpa [hn, hcd] using tendsto_const_nhds }
+  rcases eq_or_ne n 0 with (rfl|hn),
+  { simp [tendsto_const_nhds_iff] },
+  rcases lt_trichotomy c 0 with hc|rfl|hc,
+  { have := tendsto_const_mul_pow_at_bot_iff.2 ⟨hn, hc⟩,
+    simp [not_tendsto_nhds_of_tendsto_at_bot this, hc.ne, hn] },
+  { simp [tendsto_const_nhds_iff] },
+  { have := tendsto_const_mul_pow_at_top_iff.2 ⟨hn, hc⟩,
+    simp [not_tendsto_nhds_of_tendsto_at_top this, hc.ne', hn] }
 end
 
-lemma tendsto_const_mul_zpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
-    (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
+lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+by simp [tendsto_const_mul_pow_nhds_iff', hc]
+
+lemma tendsto_const_mul_zpow_at_top_nhds_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { by_cases hn : 0 ≤ n,
@@ -2737,7 +2732,7 @@ end densely_ordered
 section complete_linear_order
 
 variables [complete_linear_order α] [topological_space α] [order_topology α]
-  [complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
+  [complete_linear_order β] [topological_space β] [order_closed_topology β] [nonempty γ]
 
 lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α]
   [order_topology α] {s : set α} (hs : s.nonempty) :
@@ -2761,72 +2756,137 @@ lemma is_closed.Inf_mem {α : Type u} [topological_space α] [complete_linear_or
 
 /-- A monotone function continuous at the supremum of a nonempty set sends this supremum to
 the supremum of the image of this set. -/
-lemma map_Sup_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+lemma monotone.map_Sup_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (hs : s.nonempty) :
   f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub.is_lub_of_tendsto
 ((is_lub_Sup _).is_lub_of_tendsto (λ x hx y hy xy, Mf xy) hs $
   Cf.mono_left inf_le_left).Sup_eq.symm
 
-/-- A monotone function `s` sending `bot` to `bot` and continuous at the supremum of a set sends
+/-- A monotone function `f` sending `bot` to `bot` and continuous at the supremum of a set sends
 this supremum to the supremum of the image of this set. -/
-lemma map_Sup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+lemma monotone.map_Sup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (fbot : f ⊥ = ⊥) :
   f (Sup s) = Sup (f '' s) :=
 begin
   cases s.eq_empty_or_nonempty with h h,
   { simp [h, fbot] },
-  { exact map_Sup_of_continuous_at_of_monotone' Cf Mf h }
+  { exact Mf.map_Sup_of_continuous_at' Cf h }
 end
 
 /-- A monotone function continuous at the indexed supremum over a nonempty `Sort` sends this indexed
 supremum to the indexed supremum of the composition. -/
-lemma map_supr_of_continuous_at_of_monotone' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+lemma monotone.map_supr_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Cf : continuous_at f (supr g)) (Mf : monotone f) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, map_Sup_of_continuous_at_of_monotone' Cf Mf (range_nonempty g), ← range_comp, supr]
+by rw [supr, Mf.map_Sup_of_continuous_at' Cf (range_nonempty g), ← range_comp, supr]
 
 /-- If a monotone function sending `bot` to `bot` is continuous at the indexed supremum over
 a `Sort`, then it sends this indexed supremum to the indexed supremum of the composition. -/
-lemma map_supr_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι → α}
+lemma monotone.map_supr_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
   (Cf : continuous_at f (supr g)) (Mf : monotone f) (fbot : f ⊥ = ⊥) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, map_Sup_of_continuous_at_of_monotone Cf Mf fbot, ← range_comp, supr]
+by rw [supr, Mf.map_Sup_of_continuous_at Cf fbot, ← range_comp, supr]
 
 /-- A monotone function continuous at the infimum of a nonempty set sends this infimum to
 the infimum of the image of this set. -/
-lemma map_Inf_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+lemma monotone.map_Inf_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (hs : s.nonempty) :
   f (Inf s) = Inf (f '' s) :=
-@map_Sup_of_continuous_at_of_monotone' αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual hs
+@monotone.map_Sup_of_continuous_at' αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual hs
 
-/-- A monotone function `s` sending `top` to `top` and continuous at the infimum of a set sends
+/-- A monotone function `f` sending `top` to `top` and continuous at the infimum of a set sends
 this infimum to the infimum of the image of this set. -/
-lemma map_Inf_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+lemma monotone.map_Inf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (ftop : f ⊤ = ⊤) :
   f (Inf s) = Inf (f '' s) :=
-@map_Sup_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ftop
+@monotone.map_Sup_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ftop
 
 /-- A monotone function continuous at the indexed infimum over a nonempty `Sort` sends this indexed
 infimum to the indexed infimum of the composition. -/
-lemma map_infi_of_continuous_at_of_monotone' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+lemma monotone.map_infi_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Cf : continuous_at f (infi g)) (Mf : monotone f) :
   f (⨅ i, g i) = ⨅ i, f (g i) :=
-@map_supr_of_continuous_at_of_monotone' αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι _ f g Cf Mf.dual
+@monotone.map_supr_of_continuous_at' αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι _ f g Cf Mf.dual
 
 /-- If a monotone function sending `top` to `top` is continuous at the indexed infimum over
 a `Sort`, then it sends this indexed infimum to the indexed infimum of the composition. -/
-lemma map_infi_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι → α}
+lemma monotone.map_infi_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
   (Cf : continuous_at f (infi g)) (Mf : monotone f) (ftop : f ⊤ = ⊤) :
   f (infi g) = infi (f ∘ g) :=
-@map_supr_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι f g Cf Mf.dual ftop
+@monotone.map_supr_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι f g Cf Mf.dual ftop
+
+/-- An antitone function continuous at the supremum of a nonempty set sends this supremum to
+the infimum of the image of this set. -/
+lemma antitone.map_Sup_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (hs : s.nonempty) :
+  f (Sup s) = Inf (f '' s) :=
+monotone.map_Sup_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af hs
+
+/-- An antitone function `f` sending `bot` to `top` and continuous at the supremum of a set sends
+this supremum to the infimum of the image of this set. -/
+lemma antitone.map_Sup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (fbot : f ⊥ = ⊤) :
+  f (Sup s) = Inf (f '' s) :=
+monotone.map_Sup_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af fbot
+
+/-- An antitone function continuous at the indexed supremum over a nonempty `Sort` sends this
+indexed supremum to the indexed infimum of the composition. -/
+lemma antitone.map_supr_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Af : antitone f) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+monotone.map_supr_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (supr g), from Cf) Af
+
+/-- An antitone function sending `bot` to `top` is continuous at the indexed supremum over
+a `Sort`, then it sends this indexed supremum to the indexed supremum of the composition. -/
+lemma antitone.map_supr_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Af : antitone f) (fbot : f ⊥ = ⊤) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+monotone.map_supr_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (supr g), from Cf) Af fbot
+
+/-- An antitone function continuous at the infimum of a nonempty set sends this infimum to
+the supremum of the image of this set. -/
+lemma antitone.map_Inf_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (hs : s.nonempty) :
+  f (Inf s) = Sup (f '' s) :=
+monotone.map_Inf_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af hs
+
+/-- An antitone function `f` sending `top` to `bot` and continuous at the infimum of a set sends
+this infimum to the supremum of the image of this set. -/
+lemma antitone.map_Inf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (ftop : f ⊤ = ⊥) :
+  f (Inf s) = Sup (f '' s) :=
+monotone.map_Inf_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af ftop
+
+/-- An antitone function continuous at the indexed infimum over a nonempty `Sort` sends this indexed
+infimum to the indexed supremum of the composition. -/
+lemma antitone.map_infi_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Af : antitone f) :
+  f (⨅ i, g i) = ⨆ i, f (g i) :=
+monotone.map_infi_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (infi g), from Cf) Af
+
+/-- If an antitone function sending `top` to `bot` is continuous at the indexed infimum over
+a `Sort`, then it sends this indexed infimum to the indexed supremum of the composition. -/
+lemma antitone.map_infi_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Af : antitone f) (ftop : f ⊤ = ⊥) :
+  f (infi g) = supr (f ∘ g) :=
+monotone.map_infi_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (infi g), from Cf) Af ftop
 
 end complete_linear_order
 
 section conditionally_complete_linear_order
 
 variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
+  [conditionally_complete_linear_order β] [topological_space β] [order_closed_topology β]
+  [nonempty γ]
 
 lemma cSup_mem_closure {s : set α} (hs : s.nonempty) (B : bdd_above s) : Sup s ∈ closure s :=
 (is_lub_cSup hs B).mem_closure hs
@@ -2844,7 +2904,7 @@ lemma is_closed.cInf_mem {s : set α} (hc : is_closed s) (hs : s.nonempty) (B : 
 
 /-- If a monotone function is continuous at the supremum of a nonempty bounded above set `s`,
 then it sends this supremum to the supremum of the image of `s`. -/
-lemma map_cSup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+lemma monotone.map_cSup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (ne : s.nonempty) (H : bdd_above s) :
   f (Sup s) = Sup (f '' s) :=
 begin
@@ -2855,28 +2915,61 @@ end
 
 /-- If a monotone function is continuous at the indexed supremum of a bounded function on
 a nonempty `Sort`, then it sends this supremum to the supremum of the composition. -/
-lemma map_csupr_of_continuous_at_of_monotone {f : α → β} {g : γ → α}
+lemma monotone.map_csupr_of_continuous_at {f : α → β} {g : γ → α}
   (Cf : continuous_at f (⨆ i, g i)) (Mf : monotone f) (H : bdd_above (range g)) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, map_cSup_of_continuous_at_of_monotone Cf Mf (range_nonempty _) H, ← range_comp, supr]
+by rw [supr, Mf.map_cSup_of_continuous_at Cf (range_nonempty _) H, ← range_comp, supr]
 
 /-- If a monotone function is continuous at the infimum of a nonempty bounded below set `s`,
 then it sends this infimum to the infimum of the image of `s`. -/
-lemma map_cInf_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+lemma monotone.map_cInf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (ne : s.nonempty) (H : bdd_below s) :
   f (Inf s) = Inf (f '' s) :=
-@map_cSup_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ne H
+@monotone.map_cSup_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ne H
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally
 complete linear order, under a boundedness assumption. -/
-lemma map_cinfi_of_continuous_at_of_monotone {f : α → β} {g : γ → α}
+lemma monotone.map_cinfi_of_continuous_at {f : α → β} {g : γ → α}
   (Cf : continuous_at f (⨅ i, g i)) (Mf : monotone f) (H : bdd_below (range g)) :
   f (⨅ i, g i) = ⨅ i, f (g i) :=
-@map_csupr_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ _ Cf Mf.dual H
+@monotone.map_csupr_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ _ Cf Mf.dual H
+
+/-- If an antitone function is continuous at the supremum of a nonempty bounded above set `s`,
+then it sends this supremum to the infimum of the image of `s`. -/
+lemma antitone.map_cSup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (ne : s.nonempty) (H : bdd_above s) :
+  f (Sup s) = Inf (f '' s) :=
+monotone.map_cSup_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af ne H
+
+/-- If an antitone function is continuous at the indexed supremum of a bounded function on
+a nonempty `Sort`, then it sends this supremum to the infimum of the composition. -/
+lemma antitone.map_csupr_of_continuous_at {f : α → β} {g : γ → α}
+  (Cf : continuous_at f (⨆ i, g i)) (Af : antitone f) (H : bdd_above (range g)) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+monotone.map_csupr_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (⨆ i, g i), from Cf) Af H
+
+/-- If an antitone function is continuous at the infimum of a nonempty bounded below set `s`,
+then it sends this infimum to the supremum of the image of `s`. -/
+lemma antitone.map_cInf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (ne : s.nonempty) (H : bdd_below s) :
+  f (Inf s) = Sup (f '' s) :=
+monotone.map_cInf_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af ne H
+
+/-- A continuous antitone function sends indexed infimum to indexed supremum in conditionally
+complete linear order, under a boundedness assumption. -/
+lemma antitone.map_cinfi_of_continuous_at {f : α → β} {g : γ → α}
+  (Cf : continuous_at f (⨅ i, g i)) (Af : antitone f) (H : bdd_below (range g)) :
+  f (⨅ i, g i) = ⨆ i, f (g i) :=
+monotone.map_cinfi_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (⨅ i, g i), from Cf) Af H
 
 /-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
-lemma monotone.tendsto_nhds_within_Iio
-  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
+lemma monotone.tendsto_nhds_within_Iio {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[<] x) (𝓝 (Sup (f '' (Iio x)))) :=
 begin
@@ -2893,11 +2986,12 @@ begin
 end
 
 /-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/
-lemma monotone.tendsto_nhds_within_Ioi
-  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
+lemma monotone.tendsto_nhds_within_Ioi {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[>] x) (𝓝 (Inf (f '' (Ioi x)))) :=
-@monotone.tendsto_nhds_within_Iio βᵒᵈ _ _ _ αᵒᵈ _ _ _ f Mf.dual x
+@monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
 
 end conditionally_complete_linear_order
 

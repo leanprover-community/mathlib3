@@ -13,9 +13,8 @@ import meta.univs
 
 This file defines notation for vectors and matrices. Given `a b c d : α`,
 the notation allows us to write `![a, b, c, d] : fin 4 → α`.
-Nesting vectors gives a matrix, so `![![a, b], ![c, d]] : fin 2 → fin 2 → α`.
-Later we will define `matrix m n α` to be `m → n → α`, so the type of `![![a, b], ![c, d]]`
-can be written as `matrix (fin 2) (fin 2) α`.
+Nesting vectors gives coefficients of a matrix, so `![![a, b], ![c, d]] : fin 2 → fin 2 → α`.
+In later files we introduce `!![a, b; c, d]` as notation for `matrix.of ![![a, b], ![c, d]]`.
 
 ## Main definitions
 

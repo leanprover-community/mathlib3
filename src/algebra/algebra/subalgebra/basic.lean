@@ -5,6 +5,8 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
 import data.set.Union_lift
+import linear_algebra.finsupp
+import ring_theory.ideal.operations
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -639,6 +641,10 @@ theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
+lemma range_top_iff_surjective (f : A →ₐ[R] B) :
+  f.range = (⊤ : subalgebra R B) ↔ function.surjective f :=
+algebra.eq_top_iff
+
 @[simp] theorem range_id : (alg_hom.id R A).range = ⊤ :=
 set_like.coe_injective set.range_id
 
@@ -1059,6 +1065,39 @@ lemma centralizer_univ : centralizer R set.univ = center R A :=
 set_like.ext' (set.centralizer_univ A)
 
 end centralizer
+
+/-- Suppose we are given `∑ i, lᵢ * sᵢ = 1` in `S`, and `S'` a subalgebra of `S` that contains
+`lᵢ` and `sᵢ`. To check that an `x : S` falls in `S'`, we only need to show that
+`r ^ n • x ∈ M'` for some `n` for each `r : s`. -/
+lemma mem_of_span_eq_top_of_smul_pow_mem {S : Type*} [comm_ring S] [algebra R S]
+  (S' : subalgebra R S) (s : set S) (l : s →₀ S) (hs : finsupp.total s S S coe l = 1)
+  (hs' : s ⊆ S') (hl : ∀ i, l i ∈ S') (x : S)
+  (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : S) • x ∈ S') : x ∈ S' :=
+begin
+  let s' : set S' := coe ⁻¹' s,
+  let e : s' ≃ s := ⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨⟨_, hs' x.2⟩, x.2⟩, λ ⟨⟨_, _⟩, _⟩, rfl, λ ⟨_, _⟩, rfl⟩,
+  let l' : s →₀ S' := ⟨l.support, λ x, ⟨_, hl x⟩,
+    λ _, finsupp.mem_support_iff.trans $ iff.not $ by { rw ← subtype.coe_inj, refl }⟩,
+  have : ideal.span s' = ⊤,
+  { rw [ideal.eq_top_iff_one, ideal.span, finsupp.mem_span_iff_total],
+    refine ⟨finsupp.equiv_map_domain e.symm l', subtype.ext $ eq.trans _ hs⟩,
+    rw finsupp.total_equiv_map_domain,
+    exact finsupp.apply_total _ (algebra.of_id S' S).to_linear_map _ _ },
+  obtain ⟨s'', hs₁, hs₂⟩ := (ideal.span_eq_top_iff_finite _).mp this,
+  replace H : ∀ r : s'', ∃ (n : ℕ), (r ^ n : S) • x ∈ S' := λ r, H ⟨r, hs₁ r.2⟩,
+  choose n₁ n₂ using H,
+  let N := s''.attach.sup n₁,
+  have hs' := ideal.span_pow_eq_top _ hs₂ N,
+  have : ∀ {x : S}, x ∈ (algebra.of_id S' S).range.to_submodule ↔ x ∈ S' :=
+    λ x, ⟨by { rintro ⟨x, rfl⟩, exact x.2 }, λ h, ⟨⟨x, h⟩, rfl⟩⟩,
+  rw ← this,
+  apply (algebra.of_id S' S).range.to_submodule.mem_of_span_top_of_smul_mem _ hs',
+  rintro ⟨_, r, hr, rfl⟩,
+  convert submodule.smul_mem _ (r ^ (N - n₁ ⟨r, hr⟩)) (this.mpr $ n₂ ⟨r, hr⟩) using 1,
+  simp only [_root_.coe_coe, subtype.coe_mk,
+    subalgebra.smul_def, smul_smul, ← pow_add, subalgebra.coe_pow],
+  rw tsub_add_cancel_of_le (finset.le_sup (s''.mem_attach _) : n₁ ⟨r, hr⟩ ≤ N),
+end
 
 end subalgebra
 

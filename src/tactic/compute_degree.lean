@@ -255,7 +255,7 @@ success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›)) 
 skip
 
 /--
-`get_lead_coeff R e` assumes that `R` is an expression representing a `(semi)_ring` and that `e`
+`get_lead_coeff R e` assumes that `R` is an expression representing a `(semi_)ring` and that `e`
 is an expression representing a polynomial with coefficients in the type `R`.  It returns an
 expression representing the "visible leading coefficient" of `e`.  This means that it guesses the
 degree of each term and simply discards the terms whose guessed degree is smaller than the top
@@ -385,10 +385,10 @@ end interactive
 open interactive polynomial expr compute_degree
 /--
 `resolve_coeff` assumes that the goal has the form `f.coeff n = x`.  It is important that `x`
-is the result of applying `lead_coeff` to `f`!  Indeed, `resolve_coeff` reads through the expression
-making up `f` and matches each step with what `lead_coeff` would do in the current situation.
-This means that all the side-goals that `resolve_coeff` leaves are always of the same shape
-`f'.coeff n' = lead_coeff R f'`.
+is the result of applying `get_lead_coeff` to `f`!  Indeed, `resolve_coeff` reads through the
+expression making up `f` and matches each step with what `get_lead_coeff` would do in the current
+situation.  This means that all the side-goals that `resolve_coeff` leaves are always of the same
+shape `f'.coeff n' = get_lead_coeff R f'`.
 
 In some sense, this views `coeff _ <visible_top_degree>` and a "monad" converting between
 `R[X]` and `R`.  `resolve_coeff` performs the operations building `f` across the monad.
@@ -453,7 +453,7 @@ open compute_degree
 /--
 `simp_coeff` assumes that the target is either of the form `f.coeff n = x` or of the form
 `f.coeff n ≠ x`.  It then proceeds to simplify `f.coeff n` recurring to the pair
-`lead_coeff/resolve_coeff` to scan the expression of `f` and producing a hopefully simpler
+`get_lead_coeff/resolve_coeff` to scan the expression of `f` and producing a hopefully simpler
 expression.  After this, it calls on `simp only [a few lemmas]` and `norm_num` to simplify further.
 -/
 meta def simp_coeff : tactic unit :=
@@ -486,9 +486,9 @@ section parsing
 setup_tactic_parser
 
 /--
-Reduce coeff takes a polynomial `f` as an input and produces a hypothesis of the form
+`reduce_coeff` takes a polynomial `f` as an input and produces a hypothesis of the form
 `c_c : f.coeff n = <simplified expression>`, where the simplified expression is obtained via the
-`lead_coeff/resolve_coeff` pair.
+`get_lead_coeff/resolve_coeff` pair.
 -/
 meta def reduce_coeff (fp : parse texpr) : tactic unit :=
 do

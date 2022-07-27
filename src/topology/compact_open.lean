@@ -103,6 +103,35 @@ lemma continuous_comp_left : continuous (λ g, g.comp f : C(β, γ) → C(α, γ
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
 
+/--This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*-/
+lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
+  [locally_compact_space β] [topological_space γ] :
+  continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
+begin
+  apply continuous_generated_from,
+  rintros M ⟨K, hK, U, hU, hM⟩,
+  apply is_open_iff_forall_mem_open.mpr,
+  rintros ⟨φ₀, ψ₀⟩ H,
+  simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+    set.mem_set_of_eq, @set.preimage_comp _ _ _ φ₀ ψ₀ _, to_fun_eq_coe] at H,
+  obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_superset' (hK.image φ₀.2)
+    (hU.preimage ψ₀.2) (set.image_subset_iff.mpr H),
+  set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
+  have hV := continuous_map.is_open_gen hK is_open_interior,
+  set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
+  have hW := continuous_map.is_open_gen hL hU,
+  use V ×ˢ W,
+  split,
+  { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
+    simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+    set.mem_set_of_eq],
+    rw [← set.image_subset_iff, set.image_comp],
+    exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ },
+  exact ⟨is_open.prod hV hW, set.mem_prod.mpr
+    ⟨by {simp only [set.mem_set_of_eq], exact hL_left},
+    by {simp only [set.mem_set_of_eq, set.image_subset_iff], exact hL_right}⟩⟩,
+end
+
 end functorial
 
 section ev

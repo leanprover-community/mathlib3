@@ -1078,6 +1078,28 @@ protected lemma is_open.locally_compact_space [locally_compact_space α] {s : se
   (hs : is_open s) : locally_compact_space s :=
 hs.open_embedding_subtype_coe.locally_compact_space
 
+/-- In a locally compact space, for every containement `K ⊆ U` of a compact set `K` in an open
+  set `U`, there is a compact neighborhood `L` such that `K ⊆ L ⊆ U`: equivalently, there is a
+  compact `L` such that `K ⊆ interior L` and `L ⊆ U`. -/
+lemma exists_compact_superset' [hα : locally_compact_space α] {K U : set α} (hK : is_compact K)
+  (hU : is_open U) (h_KU : K ⊆ U) : ∃ L, is_compact L ∧ K ⊆ interior L ∧ L ⊆ U :=
+begin
+  let ι : U → α := coe,
+  have hι : embedding ι, exact embedding_subtype_coe,
+  set K' := ι⁻¹' K with K'_def,
+  have h_KK' : K = ι '' (K') := by { simp only [subtype.image_preimage_coe,
+    inter_eq_self_of_subset_left h_KU]},
+  obtain ⟨L', h1_L', h2_L'⟩ := @exists_compact_superset U _ hU.locally_compact_space K'
+    (hι.is_compact_iff_is_compact_image.mpr $ by {simp only [← h_KK', hK]}),
+  use ι '' L',
+  exact
+    ⟨hι.is_compact_iff_is_compact_image.mp h1_L',
+    by {rwa [h_KK', image_subset_iff,
+      (hU.is_open_map_subtype_coe).preimage_interior_eq_interior_preimage hι.continuous,
+      function.injective.preimage_image hι.inj]} ,
+    by {simp only [image_subset_iff, subtype.coe_preimage_self, subset_univ]}⟩,
+end
+
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
   ↑F ≤ 𝓝 (@Lim _ _ (F : filter α).nonempty_of_ne_bot F) :=
 begin

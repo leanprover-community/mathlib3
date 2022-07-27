@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou
 -/
 
-import category_theory.arrow_class
+import category_theory.morphism_property
 import category_theory.category.Quiv
 
 /-!
@@ -12,7 +12,7 @@ import category_theory.category.Quiv
 # Construction of the localized category
 
 This file constructs the localized category, obtained by formally inverting
-a class of maps `W : arrow_class C` in a category `C`.
+a class of maps `W : morphism_property C` in a category `C`.
 
 We first construct a quiver `loc_quiver W` whose objects are the same as those
 of `C` and whose maps are the maps in `C` and placeholders for the formal
@@ -36,7 +36,7 @@ subcategory of `C ⥤ E` consisting of functors inverting `W`. (This only
 requires an extension property for natural transformations of functors.)
 
 2) define a predicate `is_localization L W` for a functor `L : C ⥤ D` and
-a class of arrows `W` in `C` expressing that it is a localization with respect
+a class of morphisms `W` in `C` expressing that it is a localization with respect
 to `W`, i.e. that it inverts `W` and that the obvious functor `W.localization ⥤ D`
 induced by `L` is an equivalence of categories. (It is more straightforward
 to define this predicate this way rather than by using a universal property which
@@ -66,24 +66,23 @@ open category_theory.category
 
 namespace category_theory
 
-variables {C : Type*} [category C] (W : arrow_class C)
-variables {D : Type*} [category D]
+variables {C D : Type*} [category C] [category D] (W : morphism_property C)
 
 namespace localization
 
 namespace construction
 
-/-- If `W : arrow_class C`, `loc_quiver W` is a quiver with the same objects as `C`, and
-whose morphisms are those in `C` and placeholders for formal inverses of the morphisms
-in `W`. -/
+/-- If `W : morphism_property C`, `loc_quiver W` is a quiver with the same objects
+as `C`, and whose morphisms are those in `C` and placeholders for formal
+inverses of the morphisms in `W`. -/
 @[nolint has_inhabited_instance]
-structure loc_quiver (W : arrow_class C) := (obj : C)
+structure loc_quiver (W : morphism_property C) := (obj : C)
 
 instance : quiver (loc_quiver W) :=
-{ hom := λ A B, (A.obj ⟶ B.obj) ⊕ { f : B.obj ⟶ A.obj // arrow.mk f ∈ W} }
+{ hom := λ A B, (A.obj ⟶ B.obj) ⊕ { f : B.obj ⟶ A.obj // W f} }
 
 /-- The object in the path category of `loc_quiver W` attached to an object in
-the category `C` such that `W : arrow_class C` -/
+the category `C` -/
 def ι_paths (X : C) : paths (loc_quiver W) := ⟨X⟩
 
 /-- The morphism in the path category associated to a morphism in the original category. -/
@@ -92,7 +91,7 @@ def ψ₁ {X Y : C} (f : X ⟶ Y) : ι_paths W X ⟶ ι_paths W Y := paths.of.ma
 
 /-- The morphism in the path category corresponding to a formal inverse. -/
 @[simp]
-def ψ₂ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) : ι_paths W Y ⟶ ι_paths W X :=
+def ψ₂ {X Y : C} (w : X ⟶ Y) (hw : W w) : ι_paths W Y ⟶ ι_paths W X :=
 paths.of.map (sum.inr ⟨w, hw⟩)
 
 /-- The relations by which we take the quotient in order to get the localized category. -/
@@ -101,20 +100,21 @@ inductive relations : hom_rel (paths (loc_quiver W))
   relations (ψ₁ W (𝟙 X)) (𝟙 _)
 | comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   relations (ψ₁ W (f ≫ g)) (ψ₁ W f ≫ ψ₁ W g)
-| Winv₁ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) :
+| Winv₁ {X Y : C} (w : X ⟶ Y) (hw : W w) :
   relations (ψ₁ W w ≫ ψ₂ W w hw) (𝟙 _)
-| Winv₂ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) :
+| Winv₂ {X Y : C} (w : X ⟶ Y) (hw : W w) :
   relations (ψ₂ W w hw ≫ ψ₁ W w) (𝟙 _)
 
 end construction
 
 end localization
 
-namespace arrow_class
+namespace morphism_property
 
 open localization.construction
 
-/-- The localized category obtained by formally inverting the morphisms in `W : arrow_class C` -/
+/-- The localized category obtained by formally inverting the morphisms
+in `W : morphism_property C` -/
 @[derive category, nolint has_inhabited_instance]
 def localization := category_theory.quotient (localization.construction.relations W)
 
@@ -125,41 +125,28 @@ def Q : C ⥤ W.localization :=
   map_id' := λ X, quotient.sound _ (relations.id X),
   map_comp' := λ X Z Y f g, quotient.sound _ (relations.comp f g), }
 
-end arrow_class
+end morphism_property
 
 namespace localization
 
 namespace construction
 
 /-- The isomorphism in `W.localization` associated to a morphism `w` in W -/
-def Wiso {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) : iso (W.Q.obj X) (W.Q.obj Y) :=
+def Wiso {X Y : C} (w : X ⟶ Y) (hw : W w) : iso (W.Q.obj X) (W.Q.obj Y) :=
 { hom := W.Q.map w,
   inv := (quotient.functor _).map (paths.of.map (sum.inr ⟨w, hw⟩)),
   hom_inv_id' := quotient.sound _ (relations.Winv₁ w hw),
   inv_hom_id' := quotient.sound _ (relations.Winv₂ w hw), }
 
-/-- The isomorphism in `W.localization` associated to a morphism `w : W` -/
-def Wiso' (w : W) : iso (W.Q.obj w.1.left) (W.Q.obj w.1.right) :=
-Wiso W w.1.hom (by { rw arrow.mk_eq w.1, exact w.2, })
-
 end construction
 
 end localization
-
-namespace arrow_class
-
-lemma is_inverted_by_Q : W.is_inverted_by W.Q :=
-λ w, is_iso.of_iso (localization.construction.Wiso' W w)
-
-end arrow_class
 
 namespace localization
 
 namespace construction
 
-variables {W}
-
-variables (G : C ⥤ D) (hG : W.is_inverted_by G)
+variables {W} (G : C ⥤ D) (hG : W.is_inverted_by G)
 
 include G hG
 
@@ -171,7 +158,7 @@ Quiv.lift
   map := λ X Y, begin
     rintro (f|⟨g, hg⟩),
     { exact G.map f, },
-    { haveI : is_iso (G.map g) := hG ⟨arrow.mk g, hg⟩,
+    { haveI := hG g hg,
       exact inv (G.map g), },
   end, }
 
@@ -187,14 +174,12 @@ end
 
 @[simp]
 lemma fac : W.Q ⋙ lift G hG = G :=
+functor.ext (λ X, rfl)
 begin
-  apply functor.ext,
-  { intros X Y f,
-    simp only [functor.comp_map, eq_to_hom_refl, comp_id, id_comp],
-    dsimp [lift, lift_to_path_category, arrow_class.Q],
-    rw compose_path_to_path, },
-  { intro X,
-    refl, }
+  intros X Y f,
+  simp only [functor.comp_map, eq_to_hom_refl, comp_id, id_comp],
+  dsimp [lift, lift_to_path_category, morphism_property.Q],
+  rw compose_path_to_path,
 end
 
 omit G hG
@@ -203,23 +188,23 @@ lemma uniq (G₁ G₂ : W.localization ⥤ D) (h : W.Q ⋙ G₁ = W.Q ⋙ G₂) 
   G₁ = G₂ :=
 begin
   suffices h' : quotient.functor _ ⋙ G₁ = quotient.functor _ ⋙ G₂,
-  { apply functor.ext,
-    { rintros ⟨⟨X⟩⟩ ⟨⟨Y⟩⟩ ⟨f⟩,
-      simpa only using functor.congr_hom h' f, },
+  { refine functor.ext _ _,
     { rintro ⟨⟨X⟩⟩,
-      simpa only using functor.congr_obj h X, }, },
-  { apply paths.ext_functor,
+      apply functor.congr_obj h, },
+    { rintros ⟨⟨X⟩⟩ ⟨⟨Y⟩⟩ ⟨f⟩,
+      apply functor.congr_hom h', }, },
+  { refine paths.ext_functor _ _,
+    { ext X,
+      cases X,
+      apply functor.congr_obj h, },
     { rintro ⟨X⟩ ⟨Y⟩ (f|⟨w, hw⟩),
       { simpa only using functor.congr_hom h f, },
       { have hw : W.Q.map w = (Wiso W w hw).hom := rfl,
         have hw' := functor.congr_hom h w,
         simp only [functor.comp_map, hw] at hw',
         refine functor.congr_inv_of_congr_hom _ _ _ _ _ hw',
-        { simpa only using functor.congr_obj h Y, },
-        { simpa only using functor.congr_obj h X, }, }, },
-    { ext X,
-      cases X,
-      apply functor.congr_obj h, }, }
+        all_goals
+        { apply functor.congr_obj h, }, }, }, },
 end
 
 end construction

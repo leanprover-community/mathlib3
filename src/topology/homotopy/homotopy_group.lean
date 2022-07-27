@@ -440,7 +440,7 @@ by { dsimp [path.trans, from_path], split_ifs; refl }
 
 /-- Characterization for the multiplication on gen_loop;
   do the same for const/base point (easy) and reverse/path.symm? -/
-lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
+lemma mul_spec (p q : gen_loop (fin (n+1)) x) :
   ∃ r, (⟦p⟧ * ⟦q⟧ : π_(n+1) x) = ⟦r⟧ ∧ ∀ t, r t = if (t 0 : ℝ) ≤ 1/2
     then q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
     else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
@@ -456,6 +456,14 @@ begin
   simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
   split_ifs; { congr, ext1, apply ite_ite },
 end
+
+instance : add_comm_group (π_(n+2) x) := @additive.add_comm_group _ is_comm_group
+
+lemma add_spec (p q : gen_loop (fin (n+2)) x) :
+  ∃ r, (⟦p⟧ + ⟦q⟧ : π_(n+2) x) = ⟦r⟧ ∧ ∀ t, r t = if (t 0 : ℝ) ≤ 1/2
+    then p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
+    else q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
+by { rw @add_comm (π_(n+2) x), apply mul_spec }
 
 -- Below: to be removed?
 /-- Concatenation of `gen_loop`s by transitivity as paths -/

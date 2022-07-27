@@ -327,7 +327,7 @@ begin
   rw [lintegral_indicator _ (measurable_set_le measurable_const (hfmeas _).norm.measurable)],
 end
 
-/-- A sequence of identically distributed functions is uniformly integrable. -/
+/-- A sequence of identically distributed integrable functions is uniformly integrable. -/
 lemma integrable.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
   {j : ι} (hint : integrable (f j) μ) (hfmeas : ∀ i, ae_strongly_measurable (f i) μ)
   (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :

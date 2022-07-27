@@ -16,7 +16,7 @@ This file studies uniform spaces whose underlying topological spaces are separat
 (also known as Hausdorff or T₂).
 This turns out to be equivalent to asking that the intersection of all entourages
 is the diagonal only. This condition actually implies the stronger separation property
-that the space is regular (T₃), hence those conditions are equivalent for topologies coming from
+that the space is T₃, hence those conditions are equivalent for topologies coming from
 a uniform structure.
 
 More generally, the intersection `𝓢 X` of all entourages of `X`, which has type `set (X × X)` is an
@@ -185,7 +185,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance separated_regular [separated_space α] : regular_space α :=
+instance separated_t3 [separated_space α] : t3_space α :=
 { to_t0_space := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space },
   regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,

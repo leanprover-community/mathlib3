@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 import data.fin.vec_notation
 import logic.equiv.basic
-import tactic.norm_num
 
 /-!
 # Equivalences for `fin n`
@@ -29,18 +28,10 @@ equiv.equiv_punit _
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=
-⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
-  λb, cond b 1 0,
-  begin
-    refine fin.cases _ _, by norm_num,
-    refine fin.cases _ _, by norm_num,
-    exact λi, fin_zero_elim i
-  end,
-  begin
-    rintro ⟨_|_⟩,
-    { refl },
-    { rw ← fin.succ_zero_eq_one, refl }
-  end⟩
+{ to_fun := ![ff, tt],
+  inv_fun := λ b, cond b 1 0,
+  left_inv := fin.forall_fin_two.2 $ by simp,
+  right_inv := bool.forall_bool.2 $ by simp }
 
 /-- `Π i : fin 2, α i` is equivalent to `α 0 × α 1`. See also `fin_two_arrow_equiv` for a
 non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α β : Type u`. -/

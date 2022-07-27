@@ -80,7 +80,7 @@ begin
   classical,
   induction t using finset.induction_on with i t ht hi,
   { simp only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
-    forall_false_left, implies_true_iff] },
+      is_empty.forall_iff, implies_true_iff] },
   rw [finset.set_bUnion_insert, absorbs_union, hi],
   split; intro h,
   { refine λ _ hi', (finset.mem_insert.mp hi').elim _ (h.2 _),
@@ -326,8 +326,8 @@ lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
 
 lemma absorbs_zero_iff : absorbs 𝕜 s 0 ↔ (0 : E) ∈ s :=
 begin
@@ -342,7 +342,7 @@ end
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 section real
 variables [add_comm_group E] [module ℝ E] {s : set E}

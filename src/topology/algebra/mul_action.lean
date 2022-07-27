@@ -154,7 +154,7 @@ variables {ι : Sort*} {M X : Type*} [topological_space M] [has_smul M X]
 { continuous_smul :=
   begin
     rw ← @Inf_singleton _ _ ‹topological_space M›,
-    exact continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
+    exact continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
       (@has_continuous_smul.continuous_smul _ _ _ _ t (h t ht)))
   end }
 

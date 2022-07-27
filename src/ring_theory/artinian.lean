@@ -198,10 +198,8 @@ set_has_minimal_iff_artinian.mpr ‹_› a ha
 
 /-- A module is Artinian iff every decreasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_artinian :
-  (∀ (f : ℕ →o (submodule R M)ᵒᵈ), ∃ n, ∀ m, n ≤ m → f n = f m)
-    ↔ is_artinian R M :=
-by rw [is_artinian_iff_well_founded];
-  exact (well_founded.monotone_chain_condition (submodule R M)ᵒᵈ).symm
+  (∀ (f : ℕ →o (submodule R M)ᵒᵈ), ∃ n, ∀ m, n ≤ m → f n = f m) ↔ is_artinian R M :=
+by { rw is_artinian_iff_well_founded, exact well_founded.monotone_chain_condition.symm }
 
 theorem is_artinian.monotone_stabilizes [is_artinian R M] (f : ℕ →o (submodule R M)ᵒᵈ) :
   ∃ n, ∀ m, n ≤ m → f n = f m :=

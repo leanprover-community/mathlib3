@@ -42,7 +42,7 @@ respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say
 said to be a normed lattice ordered group.
 -/
 class normed_lattice_add_comm_group (α : Type*)
-  extends normed_group α, lattice α :=
+  extends normed_add_comm_group α, lattice α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (solid : ∀ a b : α, |a| ≤ |b| → ∥a∥ ≤ ∥b∥)
 
@@ -63,7 +63,7 @@ instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
 Let `α` be a normed group with a partial order. Then the order dual is also a normed group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance {α : Type*} : Π [normed_group α], normed_group αᵒᵈ := id
+instance {α : Type*} : Π [normed_add_comm_group α], normed_add_comm_group αᵒᵈ := id
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group
@@ -85,18 +85,8 @@ normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance : normed_lattice_add_comm_group αᵒᵈ :=
-{ add_le_add_left := begin
-    intros a b h₁ c,
-    rw ← order_dual.dual_le,
-    rw ← order_dual.dual_le at h₁,
-    exact add_le_add_left h₁ _,
-  end,
-  solid := begin
-    intros a b h₂,
-    apply dual_solid,
-    rw ← order_dual.dual_le at h₂,
-    exact h₂,
-  end, }
+{ add_le_add_left := λ a b, add_le_add_left,
+  solid := dual_solid }
 
 lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
 (solid (abs_abs a).le).antisymm (solid (abs_abs a).symm.le)

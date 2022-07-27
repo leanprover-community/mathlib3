@@ -317,7 +317,7 @@ begin
   refine this.inter_Inter_nonempty (cl_prehaar K₀) (λ s, is_closed_closure) (λ t, _),
   let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
   have h1V₀ : is_open V₀,
-  { apply is_open_bInter, apply finite_mem_finset, rintro ⟨V, hV⟩ h2V, exact hV.1 },
+  { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨V, hV⟩ h2V, exact hV.1 },
   have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
   refine ⟨prehaar K₀ V₀, _⟩,
   split,

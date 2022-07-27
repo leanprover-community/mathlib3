@@ -423,7 +423,7 @@ lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
 end add_comm_group
 
 section norm
-variables [semi_normed_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
+variables [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E} {r : ℝ} {x : E}
 
 lemma gauge_unit_ball (x : E) : gauge (metric.ball (0 : E) 1) x = ∥x∥ :=
 begin

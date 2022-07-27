@@ -479,7 +479,12 @@ theorem nat_degree_remove_factor' {f : K[X]} {n : ℕ} (hfn : f.nat_degree = n+1
   f.remove_factor.nat_degree = n :=
 by rw [nat_degree_remove_factor, hfn, n.add_sub_cancel]
 
-/-- Auxiliary construction to a splitting field of a polynomial. Uses induction on the degree. -/
+/-- Auxiliary construction to a splitting field of a polynomial, which removes `n` (arbitrarily-chosen) factors.
+
+Uses recursion on the degree. For better definitional behaviour, structures including `splitting_field_aux`
+(such as instances) should be defined using this recursion in each field, rather than defining the whole
+tuple through recursion.
+-/
 def splitting_field_aux (n : ℕ) : Π {K : Type u} [field K], by exactI Π (f : K[X]), Type u :=
 nat.rec_on n (λ K _ _, K) $ λ n ih K _ f, by exactI
 ih f.remove_factor

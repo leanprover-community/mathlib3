@@ -2875,7 +2875,7 @@ Together with the next lemma, `map_prod_map_const_id_principal_coprod_principal`
 example showing that the inequality in the lemma `map_prod_map_coprod_le` can be strict. -/
 lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
-  = 𝓟 (({b} : set β) ×ˢ (univ : set ι) ∪ (univ : set β) ×ˢ ({i} : set ι)) :=
+  = 𝓟 (({b} : set β) ×ˢ univ ∪ univ ×ˢ ({i} : set ι)) :=
 by simp only [map_principal, filter.coprod, comap_principal, sup_principal, image_singleton,
   image_id, prod_univ, univ_prod]
 

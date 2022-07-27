@@ -521,7 +521,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
+  ((s ×ˢ s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
 begin
   ext z,
   induction z using quotient.induction_on,
@@ -537,7 +537,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+  ((s ×ˢ s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin
   ext z,

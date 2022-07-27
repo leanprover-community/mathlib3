@@ -151,7 +151,7 @@ theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁
 begin
   rw linear_independent_iff' at hb hc, rw linear_independent_iff'', rintros s g hg hsg ⟨i, k⟩,
   by_cases hik : (i, k) ∈ s,
-  { have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
+  { have h1 : ∑ i in s.image prod.fst ×ˢ s.image prod.snd, g i • b i.1 • c i.2 = 0,
     { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
         show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
     rw finset.sum_product_right at h1,
@@ -227,18 +227,12 @@ begin
   cases hAC with x hx,
   cases hBC with y hy, have := hy,
   simp_rw [eq_top_iff', mem_span_finset] at this, choose f hf,
-  let s : finset B := (finset.product (x ∪ (y * y)) y).image (function.uncurry f),
-  have hsx : ∀ (xi ∈ x) (yj ∈ y), f xi yj ∈ s := λ xi hxi yj hyj,
-    show function.uncurry f (xi, yj) ∈ s,
-    from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_left _ hxi, hyj⟩,
-  have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi hyi yj hyj yk hyk,
-    show function.uncurry f (yi * yj, yk) ∈ s,
-    from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
+  let s : finset B := finset.image₂ f (x ∪ (y * y)) y,
   have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
                (↑(insert 1 y : finset C) : set C) :=
     λ xi hxi, hf xi ▸ sum_mem (λ yj hyj, smul_mem
       (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
-      ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩
+      ⟨f xi yj, algebra.subset_adjoin $ mem_image₂_of_mem (mem_union_left _ hxi) hyj⟩
       (subset_span $ mem_insert_of_mem hyj)),
   have hyy : span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) *
       span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) ≤
@@ -249,7 +243,8 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
     { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
-        ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi hyi yj hyj yk hyk⟩
+        ⟨f (yi * yj) yk, algebra.subset_adjoin $ mem_image₂_of_mem (mem_union_right _ $
+          mul_mem_mul hyi hyj) hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,

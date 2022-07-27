@@ -1146,33 +1146,31 @@ begin
   { assume y hy,
     simpa only [unique_mdiff_on, unique_mdiff_within_at, hy.1, inter_comm] with mfld_simps
       using hs (I.symm y) hy.2 },
-  have U : unique_diff_on 𝕜 ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)) :=
-    U'.prod unique_diff_on_univ,
   rw cont_mdiff_on_iff,
   refine ⟨hf.continuous_on_tangent_map_within_aux one_le_n hs, λp q, _⟩,
-  have A : range I ×ˢ (univ : set E) ∩
+  have A : range I ×ˢ univ ∩
       ((equiv.sigma_equiv_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
         (tangent_bundle.proj I H ⁻¹' s)
-      = (range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E),
+      = (range I ∩ I.symm ⁻¹' s) ×ˢ univ,
     by { ext ⟨x, v⟩, simp only with mfld_simps },
   suffices h : cont_diff_on 𝕜 m (((λ (p : H' × E'), (I' p.fst, p.snd)) ∘
       (equiv.sigma_equiv_prod H' E')) ∘ tangent_map_within I I' f s ∘
       ((equiv.sigma_equiv_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
-    ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ (univ : set E)),
+    ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ univ),
     by simpa [A] using h,
   change cont_diff_on 𝕜 m (λ (p : E × E),
     ((I' (f (I.symm p.fst)), ((mfderiv_within I I' f s (I.symm p.fst)) : E → E') p.snd) : E' × E'))
-    ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)),
+    ((range I ∩ I.symm ⁻¹' s) ×ˢ univ),
   -- check that all bits in this formula are `C^n`
   have hf' := cont_mdiff_on_iff.1 hf,
   have A : cont_diff_on 𝕜 m (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) :=
     by simpa only with mfld_simps using (hf'.2 (I.symm 0) (I'.symm 0)).of_le m_le_n,
   have B : cont_diff_on 𝕜 m ((I' ∘ f ∘ I.symm) ∘ prod.fst)
-           ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)) :=
+           ((range I ∩ I.symm ⁻¹' s) ×ˢ univ) :=
     A.comp (cont_diff_fst.cont_diff_on) (prod_subset_preimage_fst _ _),
   suffices C : cont_diff_on 𝕜 m (λ (p : E × E),
     ((fderiv_within 𝕜 (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) p.1 : _) p.2))
-    ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)),
+    ((range I ∩ I.symm ⁻¹' s) ×ˢ univ),
   { apply cont_diff_on.prod B _,
     apply C.congr (λp hp, _),
     simp only with mfld_simps at hp,

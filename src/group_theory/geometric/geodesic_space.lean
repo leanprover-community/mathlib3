@@ -47,7 +47,7 @@ end
 -- if a geodesic has length 0, the endpoints are the same
 
 lemma degenerate_quasigeodesic {X : Type*} [pseudo_metric_space X] (f: ℝ → X)
- (x : X) (y: X) (c : ℝ) (b : ℝ) (hf : quasigeodesic 0 (le_refl 0) f x y c b) : x = y :=
+ (x : X) (y: X) (c : ℝ) (b : ℝ) (hf : quasigeodesic 0 (by linarith) f x y c b) : x = y :=
  eq.trans (hf.1.symm) hf.2.1
 
 

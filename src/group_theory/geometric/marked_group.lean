@@ -64,6 +64,9 @@ variables (α : Type*)
 instance [has_smul G α] : has_smul (marked m) α :=
 ‹has_smul G α›
 
+instance [inhabited G] : inhabited (marked m) :=
+‹inhabited G›
+
 @[simp] lemma to_marked_smul (g : G) (x : α) [has_smul G α] : (to_marked g : marked m) • x = g • x := rfl
 @[simp] lemma of_marked_smul (g : marked m) (x : α) [has_smul G α] : of_marked g • x = g • x := rfl
 
@@ -108,14 +111,39 @@ group_norm.to_normed_mul_group _
     finish
   end }
 
+-- we need a lemma which translates between the general Type setting and the subset setting.
+
+
+lemma zero_norm_iff_one (g : marked m) : ∥g∥ = 0 ↔ g = 1 := sorry
+
+lemma dist_to_norm (g : marked m) : dist 1 g = ∥g∥ := sorry
+
+@[simp] lemma one_norm : ∥(1 : marked m)∥ = 0 := sorry
+
+lemma gen_norm_le_one (s : S) : 1 = ∥((to_marked (m (free_group.of s))) : marked m)∥ := sorry
+
+
 @[simp] lemma dist_inv (a g h : marked m) : dist (a⁻¹*g) h = dist g (a*h):=
 sorry
 
 @[simp] lemma dist_inv' (a g h : marked m) : dist g (a⁻¹*h) = dist (a*g) h:=
 sorry
 
-lemma gen_set_mul (x : marked m) (s : S)
+lemma gen_set_mul_right (x : marked m) (s : S)
 : ∥ (to_marked (of_marked x * m (free_group.of s)) : marked m) ∥ ≤ ∥x∥+1 :=
+sorry
+
+lemma gen_set_mul_right' (x : marked m) {n : ℝ} (hx : ∥x∥ ≤ n) (s : S)
+: ∥ (to_marked (of_marked x * m (free_group.of s)) : marked m) ∥ ≤ n+1 :=
+sorry
+
+
+lemma gen_set_mul_left (x : marked m) (s : S)
+: ∥ (to_marked ( m (free_group.of s) * of_marked x) : marked m) ∥ ≤ ∥x∥+1 :=
+sorry
+
+lemma gen_set_mul_left' (x : marked m) {n : ℝ} (hx : ∥x∥ ≤ n) (s : S)
+: ∥ (to_marked ( m (free_group.of s) * of_marked x) : marked m) ∥ ≤ n+1 :=
 sorry
 
 lemma dist_one_iff (x y : marked m) :
@@ -123,6 +151,39 @@ dist x y = 1 ↔ (∃ s : S, x * m (free_group.of s) = y) ∨ ∃ s : S, y * m (
 sorry
 
 lemma gen_set_div (x : marked m) (hx : x ≠ 1) : ∃ y : marked m, dist x y = 1 ∧ ∥y∥ = ∥x∥ - 1 :=
+sorry
+
+lemma gen_div_left (x : marked m) (hx : x ≠ 1) :
+  ∃ y : marked m, ((∃ s : S, (m (free_group.of s)) * y = x) ∨ (∃ s : S, m (free_group.of s)⁻¹ * y = x)) ∧ ∥y∥ = ∥x∥ - 1 :=
+sorry
+
+-- same lemmas but for subsets
+
+lemma gen_norm_le_one_sub {H : set G}  {m' : marking G H} {s : marked m'} (sh : s ∈ H)
+ : ∥s∥ ≤ 1 := sorry
+
+lemma gen_set_mul_right_sub {H : set G} {s : G} {m' : marking G H} (sh : s ∈ H) (g : marked m')
+: ∥g * s∥ ≤ ∥g∥+1 :=
+  sorry
+
+lemma gen_set_mul_right'_sub {H : set G} {s : G} {m' : marking G H} (sh : s ∈ H) (g : marked m') {n : ℝ}
+  (hg : ∥g∥ ≤ n) : ∥g * s∥ ≤ n+1 :=
+  sorry
+
+lemma gen_set_mul_left_sub {H : set G} {m' : marking G H} (g s: marked m') (sh : s ∈ H)
+: ∥s * g∥ ≤ ∥g∥+1 :=
+  sorry
+
+lemma gen_set_mul_left'_sub {H : set G} {m' : marking G H} (g s : marked m')  (sh : s ∈ H) {n : ℝ}
+  (hg : ∥g∥ ≤ n) : ∥s * g∥ ≤ n+1 :=
+  sorry
+
+lemma dist_one_iff_sub {H : set G} {m' : marking G H} (x y : marked m') :
+dist x y = 1 ↔ ((∃ s ∈ H, x * s = y) ∨ ∃ s ∈ H, y * s = x) :=
+sorry
+
+lemma gen_div_left_sub {H : set G} {m' : marking G H} (x : marked m') (hx : x ≠ 1) :
+  ∃ y : marked m', ((∃ s ∈ H, s * y = x) ∨ (∃ s ∈ H, s⁻¹ * y = x)) ∧ ∥y∥ = ∥x∥ - 1 :=
 sorry
 
 /- comments by Sébastien Gouëzel:

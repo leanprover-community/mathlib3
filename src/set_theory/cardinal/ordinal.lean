@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 import order.bounded
 import set_theory.ordinal.principal
 import tactic.linarith
+import data.finsupp.misc
 
 /-!
 # Cardinals and ordinals

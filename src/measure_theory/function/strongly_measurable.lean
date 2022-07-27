@@ -1801,6 +1801,7 @@ begin
 end
 
 attribute [protected] measure_theory.ae_fin_strongly_measurable.measurable_set
+attribute [instance] measure_theory.ae_fin_strongly_measurable.sigma_finite_restrict
 
 end ae_fin_strongly_measurable
 

@@ -2164,30 +2164,9 @@ end
 @[simp, norm_cast] theorem nat_cast_mod (m n : ℕ) : ((m % n : ℕ) : ordinal) = m % n :=
 by rw [←add_left_cancel, div_add_mod, ←nat_cast_div, ←nat_cast_mul, ←nat.cast_add, nat.div_add_mod]
 
-@[simp] theorem nat_le_card {o} {n : ℕ} : (n : cardinal) ≤ card o ↔ (n : ordinal) ≤ o :=
-⟨λ h, by rwa [←cardinal.ord_le, cardinal.ord_nat] at h, λ h, card_nat n ▸ card_le_card h⟩
-
-@[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by { rw [←succ_le_iff, ←succ_le_iff, ←nat_succ, nat_le_card], refl }
-
-@[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
-lt_iff_lt_of_le_iff_le nat_le_card
-
-@[simp] theorem card_le_nat {o} {n : ℕ} : card o ≤ n ↔ o ≤ n :=
-le_iff_le_iff_lt_iff_lt.2 nat_lt_card
-
-@[simp] theorem card_eq_nat {o} {n : ℕ} : card o = n ↔ o = n :=
-by simp only [le_antisymm_iff, card_le_nat, nat_le_card]
-
-@[simp] theorem type_fin (n : ℕ) : @type (fin n) (<) _ = n :=
-by rw [←card_eq_nat, card_type, mk_fin]
-
 @[simp] theorem lift_nat_cast : ∀ n : ℕ, lift.{u v} n = n
 | 0     := by simp
 | (n+1) := by simp [lift_nat_cast n]
-
-theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
-by rw [←card_eq_nat, card_type, mk_fintype]
 
 end ordinal
 

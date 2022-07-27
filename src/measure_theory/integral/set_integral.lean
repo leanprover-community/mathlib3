@@ -142,6 +142,10 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
+lemma set_integral_indicator (ht : measurable_set t) :
+  ∫ x in s, t.indicator f x ∂μ = ∫ x in s ∩ t, f x ∂μ :=
+by rw [integral_indicator ht, measure.restrict_restrict ht, set.inter_comm]
+
 lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
   {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
   ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=

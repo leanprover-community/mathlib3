@@ -237,15 +237,37 @@ begin
     exact prod_mono H.1 H.2 }
 end
 
+lemma prod_eq_prod_iff_of_nonempty (h : (s ×ˢ t : set _).nonempty) :
+  s ×ˢ t = s₁ ×ˢ t₁ ↔ s = s₁ ∧ t = t₁ :=
+begin
+  split,
+  { intro heq,
+    have h₁ : (s₁ ×ˢ t₁ : set _).nonempty, { rwa [← heq] },
+    rw [prod_nonempty_iff] at h h₁,
+    rw [← fst_image_prod s h.2, ← fst_image_prod s₁ h₁.2, heq, eq_self_iff_true, true_and,
+        ← snd_image_prod h.1 t, ← snd_image_prod h₁.1 t₁, heq] },
+  { rintro ⟨rfl, rfl⟩, refl }
+end
+
+lemma prod_eq_prod_iff : s ×ˢ t = s₁ ×ˢ t₁ ↔ s = s₁ ∧ t = t₁ ∨ (s = ∅ ∨ t = ∅) ∧
+  (s₁ = ∅ ∨ t₁ = ∅) :=
+begin
+  symmetry,
+  cases eq_empty_or_nonempty (s ×ˢ t) with h h,
+  { simp_rw [h, @eq_comm _ ∅, prod_eq_empty_iff, prod_eq_empty_iff.mp h, true_and,
+      or_iff_right_iff_imp],
+    rintro ⟨rfl, rfl⟩, exact prod_eq_empty_iff.mp h },
+  rw [prod_eq_prod_iff_of_nonempty h],
+  rw [← ne_empty_iff_nonempty, ne.def, prod_eq_empty_iff] at h,
+  simp_rw [h, false_and, or_false],
+end
+
 @[simp] lemma prod_eq_iff_eq (ht : t.nonempty) : s ×ˢ t = s₁ ×ˢ t ↔ s = s₁ :=
 begin
-  obtain ⟨b, hb⟩ := ht,
-  split,
-  { simp only [set.ext_iff],
-    intros h a,
-    simpa [hb, set.mem_prod] using h (a, b) },
-  { rintros rfl,
-    refl },
+  simp_rw [prod_eq_prod_iff, ht.ne_empty, eq_self_iff_true, and_true, or_iff_left_iff_imp,
+    or_false],
+  rintro ⟨rfl, rfl⟩,
+  refl,
 end
 
 @[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=

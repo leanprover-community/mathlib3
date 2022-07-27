@@ -10,8 +10,8 @@ import set_theory.game.impartial
 /-!
 # Nim and the Sprague-Grundy theorem
 
-This file contains the definition for nim for any ordinal `O`. In the game of `nim O₁` both players
-may move to `nim O₂` for any `O₂ < O₁`.
+This file contains the definition for nim for any ordinal `o`. In the game of `nim o₁` both players
+may move to `nim o₂` for any `o₂ < o₁`.
 We also define a Grundy value for an impartial game `G` and prove the Sprague-Grundy theorem, that
 `G` is equivalent to `nim (grundy_value G)`.
 Finally, we compute the sum of finite Grundy numbers: if `G` and `H` have Grundy values `n` and `m`,
@@ -19,11 +19,11 @@ where `n` and `m` are natural numbers, then `G + H` has the Grundy value `n xor 
 
 ## Implementation details
 
-The pen-and-paper definition of nim defines the possible moves of `nim O` to be `{O' | O' < O}`.
+The pen-and-paper definition of nim defines the possible moves of `nim o` to be `{o' | o' < o}`.
 However, this definition does not work for us because it would make the type of nim
 `ordinal.{u} → pgame.{u + 1}`, which would make it impossible for us to state the Sprague-Grundy
 theorem, since that requires the type of `nim` to be `ordinal.{u} → pgame.{u}`. For this reason, we
-instead use `O.out.α` for the possible moves, which makes proofs significantly more messy and
+instead use `o.out.α` for the possible moves, which makes proofs significantly more messy and
 tedious, but avoids the universe bump.
 
 The lemma `nim_def` is somewhat prone to produce "motive is not type correct" errors. If you run
@@ -41,8 +41,8 @@ def ordinal.out' (o : ordinal) : Well_order :=
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
 def nim : ordinal → pgame
-| O₁ := let f := λ O₂, have hwf : ordinal.typein O₁.out'.r O₂ < O₁ := ordinal.typein_lt_self O₂,
-          nim (ordinal.typein O₁.out'.r O₂) in ⟨O₁.out'.α, O₁.out'.α, f, f⟩
+| o₁ := let f := λ o₂, have hwf : ordinal.typein o₁.out'.r o₂ < o₁ := ordinal.typein_lt_self o₂,
+          nim (ordinal.typein o₁.out'.r o₂) in ⟨o₁.out'.α, o₁.out'.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -56,9 +56,9 @@ namespace nim
 
 open ordinal
 
-lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
-  (λ O₂, nim (ordinal.typein (<) O₂))
-  (λ O₂, nim (ordinal.typein (<) O₂)) :=
+lemma nim_def (o : ordinal) : nim o = pgame.mk o.out.α o.out.α
+  (λ o₂, nim (ordinal.typein (<) o₂))
+  (λ o₂, nim (ordinal.typein (<) o₂)) :=
 by { rw nim, refl }
 
 instance : is_empty (nim 0).left_moves :=
@@ -89,109 +89,109 @@ end
 
 @[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
 
-@[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
+@[simp] lemma nim_birthday (o : ordinal) : (nim o).birthday = o :=
 begin
-  induction O using ordinal.induction with O IH,
+  induction o using ordinal.induction with o IH,
   rw [nim_def, birthday_def],
   dsimp,
   rw max_eq_right le_rfl,
-  convert lsub_typein O,
+  convert lsub_typein o,
   exact funext (λ i, IH _ (typein_lt_self i))
 end
 
-lemma left_moves_nim (O : ordinal) : (nim O).left_moves = O.out.α :=
+lemma left_moves_nim (o : ordinal) : (nim o).left_moves = o.out.α :=
 by { rw nim_def, refl }
-lemma right_moves_nim (O : ordinal) : (nim O).right_moves = O.out.α :=
-by { rw nim_def, refl }
-
-lemma move_left_nim_heq (O : ordinal) : (nim O).move_left == λ i : O.out.α, nim (typein (<) i) :=
-by { rw nim_def, refl }
-lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, nim (typein (<) i) :=
+lemma right_moves_nim (o : ordinal) : (nim o).right_moves = o.out.α :=
 by { rw nim_def, refl }
 
-/-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
-noncomputable def to_left_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).left_moves :=
-(enum_iso_out O).to_equiv.trans (equiv.cast (left_moves_nim O).symm)
+lemma move_left_nim_heq (o : ordinal) : (nim o).move_left == λ i : o.out.α, nim (typein (<) i) :=
+by { rw nim_def, refl }
+lemma move_right_nim_heq (o : ordinal) : (nim o).move_right == λ i : o.out.α, nim (typein (<) i) :=
+by { rw nim_def, refl }
 
-/-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
-noncomputable def to_right_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).right_moves :=
-(enum_iso_out O).to_equiv.trans (equiv.cast (right_moves_nim O).symm)
+/-- Turns an ordinal less than `o` into a left move for `nim o` and viceversa. -/
+noncomputable def to_left_moves_nim {o : ordinal} : set.Iio o ≃ (nim o).left_moves :=
+(enum_iso_out o).to_equiv.trans (equiv.cast (left_moves_nim o).symm)
 
-@[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :
-  ↑(to_left_moves_nim.symm i) < O :=
+/-- Turns an ordinal less than `o` into a right move for `nim o` and viceversa. -/
+noncomputable def to_right_moves_nim {o : ordinal} : set.Iio o ≃ (nim o).right_moves :=
+(enum_iso_out o).to_equiv.trans (equiv.cast (right_moves_nim o).symm)
+
+@[simp] theorem to_left_moves_nim_symm_lt {o : ordinal} (i : (nim o).left_moves) :
+  ↑(to_left_moves_nim.symm i) < o :=
 (to_left_moves_nim.symm i).prop
 
-@[simp] theorem to_right_moves_nim_symm_lt {O : ordinal} (i : (nim O).right_moves) :
-  ↑(to_right_moves_nim.symm i) < O :=
+@[simp] theorem to_right_moves_nim_symm_lt {o : ordinal} (i : (nim o).right_moves) :
+  ↑(to_right_moves_nim.symm i) < o :=
 (to_right_moves_nim.symm i).prop
 
-@[simp] lemma move_left_nim' {O : ordinal.{u}} (i) :
-  (nim O).move_left i = nim (to_left_moves_nim.symm i).val :=
-(congr_heq (move_left_nim_heq O).symm (cast_heq _ i)).symm
+@[simp] lemma move_left_nim' {o : ordinal.{u}} (i) :
+  (nim o).move_left i = nim (to_left_moves_nim.symm i).val :=
+(congr_heq (move_left_nim_heq o).symm (cast_heq _ i)).symm
 
-lemma move_left_nim {O : ordinal} (i) :
-  (nim O).move_left (to_left_moves_nim i) = nim i :=
+lemma move_left_nim {o : ordinal} (i) :
+  (nim o).move_left (to_left_moves_nim i) = nim i :=
 by simp
 
-@[simp] lemma move_right_nim' {O : ordinal} (i) :
-  (nim O).move_right i = nim (to_right_moves_nim.symm i).val :=
-(congr_heq (move_right_nim_heq O).symm (cast_heq _ i)).symm
+@[simp] lemma move_right_nim' {o : ordinal} (i) :
+  (nim o).move_right i = nim (to_right_moves_nim.symm i).val :=
+(congr_heq (move_right_nim_heq o).symm (cast_heq _ i)).symm
 
-lemma move_right_nim {O : ordinal} (i) :
-  (nim O).move_right (to_right_moves_nim i) = nim i :=
+lemma move_right_nim {o : ordinal} (i) :
+  (nim o).move_right (to_right_moves_nim i) = nim i :=
 by simp
 
-@[simp] lemma neg_nim (O : ordinal) : -nim O = nim O :=
+@[simp] lemma neg_nim (o : ordinal) : -nim o = nim o :=
 begin
-  induction O using ordinal.induction with O IH,
+  induction o using ordinal.induction with o IH,
   rw nim_def, dsimp; congr;
   funext i;
   exact IH _ (ordinal.typein_lt_self i)
 end
 
-instance nim_impartial (O : ordinal) : impartial (nim O) :=
+instance nim_impartial (o : ordinal) : impartial (nim o) :=
 begin
-  induction O using ordinal.induction with O IH,
+  induction o using ordinal.induction with o IH,
   rw [impartial_def, neg_nim],
   refine ⟨equiv_rfl, λ i, _, λ i, _⟩;
   simpa using IH _ (typein_lt_self _)
 end
 
-lemma exists_ordinal_move_left_eq {O : ordinal} (i) : ∃ O' < O, (nim O).move_left i = nim O' :=
+lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_left i = nim o' :=
 ⟨_, typein_lt_self _, move_left_nim' i⟩
 
-lemma exists_move_left_eq {O O' : ordinal} (h : O' < O) : ∃ i, (nim O).move_left i = nim O' :=
-⟨to_left_moves_nim ⟨O', h⟩, by simp⟩
+lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
+⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
 
-lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : nim O ∥ 0 :=
+lemma non_zero_first_wins {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
-  rw ←ordinal.pos_iff_ne_zero at hO,
-  exact ⟨(ordinal.principal_seg_out hO).top, by simp⟩
+  rw ←ordinal.pos_iff_ne_zero at ho,
+  exact ⟨(ordinal.principal_seg_out ho).top, by simp⟩
 end
 
-@[simp] lemma add_equiv_zero_iff_eq (O₁ O₂ : ordinal) : nim O₁ + nim O₂ ≈ 0 ↔ O₁ = O₂ :=
+@[simp] lemma add_equiv_zero_iff_eq (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
 begin
   split,
   { contrapose,
     intro h,
     rw [impartial.not_equiv_zero_iff],
-    wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
-    { exact le_total O₁ O₂ },
-    { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def O₂],
+    wlog h' : o₁ ≤ o₂ using [o₁ o₂, o₂ o₁],
+    { exact le_total o₁ o₂ },
+    { have h : o₁ < o₂ := lt_of_le_of_ne h' h,
+      rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
       refine ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
-      { simpa using (impartial.add_self (nim O₁)).2 } },
+      { simpa using (impartial.add_self (nim o₁)).2 } },
     { exact (fuzzy_congr_left add_comm_equiv).1 (this (ne.symm h)) } },
   { rintro rfl,
-    exact impartial.add_self (nim O₁) }
+    exact impartial.add_self (nim o₁) }
 end
 
-@[simp] lemma add_fuzzy_zero_iff_ne (O₁ O₂ : ordinal) : nim O₁ + nim O₂ ∥ 0 ↔ O₁ ≠ O₂ :=
+@[simp] lemma add_fuzzy_zero_iff_ne (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
 by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, add_equiv_zero_iff_eq]
 
-@[simp] lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
+@[simp] lemma equiv_iff_eq (o₁ o₂ : ordinal) : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=
 by rw [impartial.equiv_iff_add_equiv_zero, add_equiv_zero_iff_eq]
 
 end nim
@@ -246,12 +246,12 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (O : ordinal) :
-  grundy_value G = O ↔ G ≈ nim O :=
+@[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (o : ordinal) :
+  grundy_value G = o ↔ G ≈ nim o :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
   by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
-lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
+lemma nim.grundy_value (o : ordinal.{u}) : grundy_value (nim o) = o :=
 by simp
 
 @[simp] lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :

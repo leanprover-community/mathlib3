@@ -37,8 +37,8 @@ meta def tactic.test_polyrith (only_on : bool) (hyps : list pexpr)
   guard (out = expected_out) <|>
     fail!"expected final output: {expected_out}\nbut produced: {out}"
 
-meta def format_string_list (input : list string) : string :=
-to_string $ input.map (λ s, "\"" ++ s ++ "\"")
+meta def format_string_list (input : list string) : format :=
+format.join $ input.map (λ s, "\"" ++ s ++ "\"" ++ format.line)
 
 setup_tactic_parser
 
@@ -47,13 +47,6 @@ meta def tactic.interactive.test_polyrith (restr : parse (tk "only")?)
   (sage_out : string) (expected_args : list string) (expected_out : string) : tactic unit := do
   some sage_out ← return $ json.parse sage_out,
   tactic.test_polyrith restr.is_some (hyps.get_or_else []) sage_out expected_args expected_out
-
-meta instance : decidable_eq json :=
-begin
-  intros j₁ j₂,
-  letI := json.decidable_eq,
-  cases j₁; cases j₂; simp; apply_instance,
-end
 
 meta def tactic.interactive.test_sage_output (restr : parse (tk "only")?)
   (hyps : parse pexpr_list?) (expected_out : string) : tactic unit := do
@@ -94,11 +87,8 @@ meta def tactic.interactive.create_polyrith_test (restr : parse (tk "only")?)
   let argstring := format_string_list args,
   let onl := if restr.is_some then "only " else "",
   let hyps := if hyps = [] then "" else to_string hyps,
-  trace!"test_polyrith {onl}{hyps} \n\"{sage_out}\"\n{argstring}\n\"{out}\""
-
 
 end tactic
-
 /-!
 ## SageCell communcation tests
 -/
@@ -122,8 +112,9 @@ end
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "(((3 * var0) + (2 * var1)) - 10)"]  "linear_combination h1"
+by create_polyrith_test
 
+#exit
 example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 by test_polyrith "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "rat", "2", "[(((var0 * var1) + (2 * var0)) - 1), (var0 - var1)]", "((var0 * var1) - ((-2 * var1) + 1))"]  "linear_combination h1 - 2 * h2"
@@ -181,7 +172,7 @@ by test_polyrith "{\"data\":[\"(poly.add (poly.var 0) (poly.mul (poly.const 2/1)
 
 example (a b : ℝ) (ha : 2*a = 4) (hab : 2*b = a - b) (hignore : 3 = a + b) :
   b = 2 / 3 :=
-by test_polyrith only [ha, hab] "{\"data\":[\"(poly.const 1/6)\",\"(poly.const 1/3)\"],\"success\":true}" ["ff", "real", "2", "[((2 * var1) - 4), ((2 * var0) - (var1 - var0))]", "(var0 - 2/3)"]  "linear_combination 1 / 6 * ha + 1 / 3 * hab"
+by test_polyrith only [ha, hab] "{\"data\":[\"(poly.const 1/6)\",\"(poly.const 1/3)\"],\"success\":true}" ["ff", "real", "2", "[((2 * var1) - 4), ((2 * var0) - (var1 - var0))]", "(var0 - 2/3)"]  "linear_combination ha / 6 + hab / 3"
 
 constant term : ∀ a b : ℚ, a + b = 0
 
@@ -232,13 +223,13 @@ end
 /-! ## Degenerate cases -/
 
 example {K : Type*} [field K] [char_zero K] {s : K} (hs : 3 * s + 1 = 4) : s = 1 :=
-by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * hs"
+by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination hs / 3"
 
 example {x : ℤ} (h1 : x + 4 = 2) : x = -2 :=
 by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 4) - 2)]", "(var0 - -2)"]  "linear_combination h1"
 
 example {w : ℚ} (h1 : 3 * w + 1 = 4) : w = 1 :=
-by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination h1 / 3"
 
 example {x : ℤ} (h1 : 2 * x + 3 = x) : x = -3 :=
 by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[(((2 * var0) + 3) - var0)]", "(var0 - -3)"]  "linear_combination h1"

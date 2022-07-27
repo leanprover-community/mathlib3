@@ -66,7 +66,7 @@ def hat_inv : hat K → hat K := dense_inducing_coe.extend (λ x : K, (coe x⁻�
 lemma continuous_hat_inv [completable_top_field K] {x : hat K} (h : x ≠ 0) :
   continuous_at hat_inv x :=
 begin
-  haveI : regular_space (hat K) := completion.regular_space K,
+  haveI : t3_space (hat K) := completion.t3_space K,
   refine dense_inducing_coe.continuous_at_extend _,
   apply mem_of_superset (compl_singleton_mem_nhds h),
   intros y y_ne,

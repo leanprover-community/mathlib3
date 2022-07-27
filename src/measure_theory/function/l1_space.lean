@@ -498,7 +498,7 @@ by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.right_of_add_measure, 
 
 @[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
   integrable f (0 : measure α) :=
-⟨ae_measurable_zero_measure f, has_finite_integral_zero_measure f⟩
+⟨ae_strongly_measurable_zero_measure f, has_finite_integral_zero_measure f⟩
 
 theorem integrable_finset_sum_measure {ι} {m : measurable_space α} {f : α → β}
   {μ : ι → measure α} {s : finset ι} :

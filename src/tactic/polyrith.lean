@@ -405,6 +405,15 @@ do
   pure j
 
 /--
+Adds parentheses around additions and subtractions, for printing at
+precedence 65.
+-/
+meta def add_parens : expr → tactic format
+| e@`(_ + _) := pformat!"({e})"
+| e@`(_ - _) := pformat!"({e})"
+| e := pformat!"{e}"
+
+/--
 Given a pair of `expr`s, where one represents the hypothesis/proof term,
 and the other representes the coefficient attached to it, this tactic
 creates a string combining the two in the appropriate format for
@@ -417,12 +426,10 @@ because it may appear as a negation (if this is the first component)
 or a subtraction.
 -/
 meta def component_to_lc_format : expr × expr → tactic (bool × format)
-| (ex, `(-@has_one.one _ _)) := prod.mk tt <$> pformat!"{ex}"
 | (ex, `(@has_one.one _ _))  := prod.mk ff <$> pformat!"{ex}"
+| (ex, `(@has_one.one _ _ / %%cf))  := do f ← add_parens cf, prod.mk ff <$> pformat!"{ex} / {f}"
 | (ex, `(-%%cf)) := do (neg, fmt) ← component_to_lc_format (ex, cf), return (!neg, fmt)
-| (ex, cf@`(_ + _)) := prod.mk ff <$> pformat!"({cf}) * {ex}"
-| (ex, cf@`(_ - _)) := prod.mk ff <$> pformat!"({cf}) * {ex}"
-| (ex, cf) := prod.mk ff <$> pformat!"{cf} * {ex}"
+| (ex, cf) := do f ← add_parens cf, prod.mk ff <$> pformat!"{f} * {ex}"
 
 private meta def intersperse_ops_aux : list (bool × format) → format
 | [] := ""

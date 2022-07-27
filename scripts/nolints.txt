@@ -1071,9 +1071,6 @@ apply_nolint algebra.trace_trace_of_basis fintype_finite
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
 
--- set_theory/cardinal/basic.lean
-apply_nolint cardinal.lt_aleph_0_of_fintype fintype_finite
-
 -- set_theory/cardinal/ordinal.lean
 apply_nolint cardinal.extend_function_finite fintype_finite
 apply_nolint cardinal.mk_compl_eq_mk_compl_finite fintype_finite
@@ -1594,24 +1591,6 @@ apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
 apply_nolint nonarchimedean_group.prod_self_subset to_additive_doc
 apply_nolint nonarchimedean_group.prod_subset to_additive_doc
 
--- topology/algebra/order/basic.lean
-apply_nolint pi_Icc_mem_nhds fintype_finite
-apply_nolint pi_Icc_mem_nhds' fintype_finite
-apply_nolint pi_Ici_mem_nhds fintype_finite
-apply_nolint pi_Ici_mem_nhds' fintype_finite
-apply_nolint pi_Ico_mem_nhds fintype_finite
-apply_nolint pi_Ico_mem_nhds' fintype_finite
-apply_nolint pi_Iic_mem_nhds fintype_finite
-apply_nolint pi_Iic_mem_nhds' fintype_finite
-apply_nolint pi_Iio_mem_nhds fintype_finite
-apply_nolint pi_Iio_mem_nhds' fintype_finite
-apply_nolint pi_Ioc_mem_nhds fintype_finite
-apply_nolint pi_Ioc_mem_nhds' fintype_finite
-apply_nolint pi_Ioi_mem_nhds fintype_finite
-apply_nolint pi_Ioi_mem_nhds' fintype_finite
-apply_nolint pi_Ioo_mem_nhds fintype_finite
-apply_nolint pi_Ioo_mem_nhds' fintype_finite
-
 -- topology/algebra/order/compact.lean
 apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
 apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
@@ -1624,7 +1603,6 @@ apply_nolint closure_Union_of_fintype fintype_finite
 apply_nolint interior_Inter_of_fintype fintype_finite
 apply_nolint is_closed_Union fintype_finite
 apply_nolint is_open_Inter fintype_finite
-apply_nolint locally_finite_of_fintype fintype_finite
 
 -- topology/bornology/basic.lean
 apply_nolint bornology.is_bounded_Union fintype_finite

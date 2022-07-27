@@ -482,7 +482,7 @@ by simp only [atomise, of_erase, bot_eq_empty, mem_erase, mem_image, nonempty_if
 
 lemma atomise_empty (hs : s.nonempty) : (atomise s ∅).parts = {s} :=
 begin
-  simp only [atomise, powerset_empty, image_singleton, not_mem_empty, forall_false_left,
+  simp only [atomise, powerset_empty, image_singleton, not_mem_empty, is_empty.forall_iff,
     implies_true_iff, filter_true],
   exact erase_eq_of_not_mem (not_mem_singleton.2 hs.ne_empty.symm),
 end

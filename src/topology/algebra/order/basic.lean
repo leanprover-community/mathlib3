@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import algebra.group_with_zero.power
 import data.set.intervals.pi
 import order.filter.interval
-import topology.algebra.group
+import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
 
@@ -1083,7 +1083,7 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
-instance order_topology.regular_space : regular_space α :=
+instance order_topology.t3_space : t3_space α :=
 { regular := assume s a hs ha,
     have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
@@ -1879,7 +1879,7 @@ begin
     ... ≤ 1 + ε : by ring_nf }
 end
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
 ⟨begin
   rw continuous_iff_continuous_at,
@@ -2059,6 +2059,45 @@ begin
       exact tendsto_const_nhds },
     { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
+
+-- TODO: With a different proof, this could be possibly generalised to only require a
+-- `linear_ordered_semifield` instance, which would also remove the need for the
+-- `nnreal` instance of `has_continuous_inv₀`.
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
+{ continuous_at_inv₀ :=
+  begin
+    suffices : ∀ {x : α}, 0 < x → continuous_at has_inv.inv x,
+    { intros x hx,
+      cases hx.symm.lt_or_lt,
+      { exact this h },
+      convert (this $ neg_pos.mpr h).neg.comp continuous_neg.continuous_at,
+      ext,
+      simp [neg_inv] },
+    intros t ht,
+    rw [continuous_at,
+        (nhds_basis_Ioo_pos t).tendsto_iff $ nhds_basis_Ioo_pos_of_pos $ inv_pos.2 ht],
+    rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
+    refine ⟨min (t ^ 2 * ε / 2) (t / 2),
+            lt_min (half_pos $ mul_pos (by nlinarith) hε) $ by linarith, λ x h, _⟩,
+    have hx : t / 2 < x,
+    { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
+      nlinarith },
+    have hx' : 0 < x := (half_pos ht).trans hx,
+    have aux : 0 < 2 / t ^ 2 := div_pos zero_lt_two (sq_pos_of_pos ht),
+    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
+    rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
+    suffices : |t * x|⁻¹ < 2 / t ^ 2,
+    { rw [←abs_neg, neg_sub],
+      refine (mul_lt_mul'' h this (abs_nonneg _) $ inv_nonneg.mpr $ abs_nonneg _).trans_le _,
+      rw [mul_comm, mul_min_of_nonneg _ _ aux.le],
+      apply min_le_of_left_le,
+      rw [←mul_div, ←mul_assoc, div_mul_cancel _ (sq_pos_of_pos ht).ne',
+          mul_div_cancel' ε two_ne_zero] },
+    refine inv_lt_of_inv_lt aux _,
+    rw [inv_div, abs_of_pos $ mul_pos ht hx', sq, ←mul_div_assoc'],
+    exact mul_lt_mul_of_pos_left hx ht
+  end }
 
 end linear_ordered_field
 

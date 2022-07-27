@@ -61,7 +61,7 @@ by linear_combination 2*h1 - 3*h2
 
 example (a b : ℝ) (ha : 2*a = 4) (hab : 2*b = a - b) :
   b = 2 / 3 :=
-by linear_combination 1/6 * ha + 1/3 * hab
+by linear_combination ha/6 + hab/3
 
 
 /-! ### Cases with more than 2 equations -/

@@ -893,7 +893,7 @@ begin
   { simpa only [forall_true_left, finset.mem_univ] using this finset.univ, },
   apply' finset.induction,
   { intros f hf, existsi rel_embedding.refl (≤),
-    simp only [forall_false_left, implies_true_iff, forall_const, finset.not_mem_empty], },
+    simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f hf,
     obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
       ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),

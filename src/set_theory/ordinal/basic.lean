@@ -737,7 +737,7 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _
 instance : has_zero ordinal := ⟨type $ @empty_relation pempty⟩
 instance : inhabited ordinal := ⟨0⟩
 
-@[simp] theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
+theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
 (rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
 
 @[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
@@ -748,7 +748,7 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
 type_ne_zero_iff_nonempty.2 h
 
-@[simp] theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
+theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
 theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
@@ -780,14 +780,14 @@ out_nonempty_iff_ne_zero.1 h
 
 instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
 
-@[simp] theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
+theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
 (rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
 
 @[simp] theorem type_eq_one_iff_unique [is_well_order α r] : type r = 1 ↔ nonempty (unique α) :=
 ⟨λ h, let ⟨s⟩ := type_eq.1 h in ⟨s.to_equiv.unique⟩, λ ⟨h⟩, @type_eq_one_of_unique α r _ h⟩
 
-@[simp] theorem type_punit : type (@empty_relation punit) = 1 := rfl
-@[simp] theorem type_unit : type (@empty_relation unit) = 1 := rfl
+theorem type_punit : type (@empty_relation punit) = 1 := rfl
+theorem type_unit : type (@empty_relation unit) = 1 := rfl
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 
@@ -1391,5 +1391,26 @@ end cardinal
 namespace ordinal
 
 @[simp] theorem card_univ : card univ = cardinal.univ := rfl
+
+@[simp] theorem nat_le_card {o} {n : ℕ} : (n : cardinal) ≤ card o ↔ (n : ordinal) ≤ o :=
+by rw [← cardinal.ord_le, cardinal.ord_nat]
+
+@[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
+by { rw [←succ_le_iff, ←succ_le_iff, ←nat_succ, nat_le_card], refl }
+
+@[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
+lt_iff_lt_of_le_iff_le nat_le_card
+
+@[simp] theorem card_le_nat {o} {n : ℕ} : card o ≤ n ↔ o ≤ n :=
+le_iff_le_iff_lt_iff_lt.2 nat_lt_card
+
+@[simp] theorem card_eq_nat {o} {n : ℕ} : card o = n ↔ o = n :=
+by simp only [le_antisymm_iff, card_le_nat, nat_le_card]
+
+@[simp] theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] :
+  type r = fintype.card α :=
+by rw [←card_eq_nat, card_type, mk_fintype]
+
+theorem type_fin (n : ℕ) : @type (fin n) (<) _ = n := by simp
 
 end ordinal

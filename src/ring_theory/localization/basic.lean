@@ -793,6 +793,26 @@ instance : comm_semiring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
   .. localization.comm_monoid_with_zero M }
 
+/--For any given denominator `b : M`, the map `a ↦ a / b` is an `add_monoid_hom` from `R` to
+  `localization M`-/
+@[simps]
+def mk_add_monoid_hom (b : M) : R →+ localization M :=
+{ to_fun := λ a, mk a b,
+  map_zero' := mk_zero _,
+  map_add' := λ x y, (add_mk_self _ _ _).symm }
+
+lemma mk_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
+  mk (∑ i in s, f i) b = ∑ i in s, mk (f i) b :=
+(mk_add_monoid_hom b).map_sum f s
+
+lemma mk_list_sum (l : list R) (b : M) :
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
+(mk_add_monoid_hom b).map_list_sum l
+
+lemma mk_multiset_sum (l : multiset R) (b : M) :
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
+(mk_add_monoid_hom b).map_multiset_sum l
+
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],

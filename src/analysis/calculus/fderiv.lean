@@ -228,7 +228,7 @@ begin
   have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, c n • d n) :=
     (is_O_refl c l).smul_is_o this,
   have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, (1:ℝ)) :=
-    this.trans_is_O (is_O_one_of_tendsto ℝ cdlim),
+    this.trans_is_O (cdlim.is_O_one ℝ),
   have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
     (is_o_one_iff ℝ).1 this,
   have L2 : tendsto (λn, f' (c n • d n)) l (𝓝 (f' v)) :=
@@ -319,9 +319,13 @@ theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : 
   has_fderiv_at_filter f f' x L₁ :=
 h.mono hst
 
+theorem has_fderiv_within_at.mono_of_mem (h : has_fderiv_within_at f f' t x) (hst : t ∈ 𝓝[s] x) :
+  has_fderiv_within_at f f' s x :=
+h.mono $ nhds_within_le_iff.mpr hst
+
 theorem has_fderiv_within_at.mono (h : has_fderiv_within_at f f' t x) (hst : s ⊆ t) :
   has_fderiv_within_at f f' s x :=
-h.mono (nhds_within_mono _ hst)
+h.mono $ nhds_within_mono _ hst
 
 theorem has_fderiv_at.has_fderiv_at_filter (h : has_fderiv_at f f' x) (hL : L ≤ 𝓝 x) :
   has_fderiv_at_filter f f' x L :=
@@ -795,6 +799,11 @@ else
   by rw [fderiv_within_zero_of_not_differentiable_within_at h,
     fderiv_within_zero_of_not_differentiable_within_at h']
 
+lemma filter.eventually_eq.fderiv_within_eq_nhds (hs : unique_diff_within_at 𝕜 s x)
+  (hL : f₁ =ᶠ[𝓝 x] f) :
+  fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
+(show f₁ =ᶠ[𝓝[s] x] f, from nhds_within_le_nhds hL).fderiv_within_eq hs (mem_of_mem_nhds hL : _)
+
 lemma fderiv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
@@ -1103,6 +1112,21 @@ lemma fderiv_within.comp {g : F → G} {t : set F}
   (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t (f x)).comp (fderiv_within 𝕜 f s x) :=
 (hg.has_fderiv_within_at.comp x (hf.has_fderiv_within_at) h).fderiv_within hxs
+
+/-- Ternary version of `fderiv_within.comp`, with equality assumptions of basepoints added, in
+  order to apply more easily as a rewrite from right-to-left. -/
+lemma fderiv_within.comp₃ {g' : G → G'} {g : F → G} {t : set F} {u : set G} {y : F} {y' : G}
+  (hg' : differentiable_within_at 𝕜 g' u y') (hg : differentiable_within_at 𝕜 g t y)
+  (hf : differentiable_within_at 𝕜 f s x)
+  (h2g : maps_to g t u) (h2f : maps_to f s t)
+  (h3g : g y = y') (h3f : f x = y) (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (g' ∘ g ∘ f) s x = (fderiv_within 𝕜 g' u y').comp
+    ((fderiv_within 𝕜 g t y).comp (fderiv_within 𝕜 f s x)) :=
+begin
+  substs h3g h3f,
+  exact (hg'.has_fderiv_within_at.comp x
+    (hg.has_fderiv_within_at.comp x (hf.has_fderiv_within_at) h2f) $ h2g.comp h2f).fderiv_within hxs
+end
 
 lemma fderiv.comp {g : F → G}
   (hg : differentiable_at 𝕜 g (f x)) (hf : differentiable_at 𝕜 f x) :

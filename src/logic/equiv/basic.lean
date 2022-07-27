@@ -69,7 +69,6 @@ universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
-@[nolint has_inhabited_instance]
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
@@ -194,7 +193,9 @@ rfl
 
 @[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
 
-@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
+/-- This cannot be a `simp` lemmas as it incorrectly matches against `e : α ≃ synonym α`, when
+`synonym α` is semireducible. This makes a mess of `multiplicative.of_add` etc. -/
+theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
 by rw [perm.subsingleton_eq_refl e, coe_refl]
 
 theorem refl_apply (x : α) : equiv.refl α x = x := rfl
@@ -567,7 +568,8 @@ arrow_punit_of_is_empty _ _
 
 end
 
-/-- Product of two equivalences. If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then `α₁ × β₁ ≃ α₂ × β₂`. -/
+/-- Product of two equivalences. If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then `α₁ × β₁ ≃ α₂ × β₂`. This is
+`prod.map` as an equivalence. -/
 @[congr, simps apply]
 def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨prod.map e₁ e₂, prod.map e₁.symm e₂.symm, λ ⟨a, b⟩, by simp, λ ⟨a, b⟩, by simp⟩
@@ -576,15 +578,16 @@ def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ 
   (prod_congr e₁ e₂).symm = prod_congr e₁.symm e₂.symm :=
 rfl
 
-/-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. -/
+/-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. This is `prod.swap` as an
+equivalence.-/
 @[simps apply] def prod_comm (α β : Type*) : α × β ≃ β × α :=
-⟨prod.swap, prod.swap, λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+⟨prod.swap, prod.swap, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 @[simp] lemma prod_comm_symm (α β) : (prod_comm α β).symm = prod_comm β α := rfl
 
 /-- Type product is associative up to an equivalence. -/
 @[simps] def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
-⟨λ p, (p.1.1, p.1.2, p.2), λp, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+⟨λ p, (p.1.1, p.1.2, p.2), λ p, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
 
 /-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
 @[simps {fully_applied := ff}] def curry (α β γ : Type*) :
@@ -638,7 +641,7 @@ def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β :=
  λ s, by cases s; refl,
  λ s, by cases s; refl⟩
 
-/-- If `α ≃ α'` and `β ≃ β'`, then `α ⊕ β ≃ α' ⊕ β'`. -/
+/-- If `α ≃ α'` and `β ≃ β'`, then `α ⊕ β ≃ α' ⊕ β'`. This is `sum.map` as an equivalence. -/
 @[simps apply]
 def sum_congr {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ α₂ ⊕ β₂ :=
 ⟨sum.map ea eb, sum.map ea.symm eb.symm, λ x, by simp, λ x, by simp⟩
@@ -693,8 +696,8 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 ⟨λ p, @to_bool p (classical.prop_decidable _),
  λ b, b, λ p, by simp, λ b, by simp⟩
 
-/-- Sum of types is commutative up to an equivalence. -/
-@[simps apply]
+/-- Sum of types is commutative up to an equivalence. This is `sum.swap` as an equivalence. -/
+@[simps apply {fully_applied := ff}]
 def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 

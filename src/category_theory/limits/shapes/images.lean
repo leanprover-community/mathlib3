@@ -289,6 +289,10 @@ lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = imag
 @[simp, reassoc]
 lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
 (image.is_image f).fac_lift F'
+@[simp]
+lemma image.is_image_lift (F : mono_factorisation f) :
+  (image.is_image f).lift F = image.lift F :=
+rfl
 
 @[simp, reassoc]
 lemma is_image.lift_ι {F : mono_factorisation f} (hF : is_image F) :

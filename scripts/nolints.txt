@@ -1584,9 +1584,6 @@ apply_nolint nonarchimedean_group.prod_subset to_additive_doc
 apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
 apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
 
--- topology/bases.lean
-apply_nolint topological_space.second_countable_topology_fintype fintype_finite
-
 -- topology/basic.lean
 apply_nolint closure_Union_of_fintype fintype_finite
 apply_nolint interior_Inter_of_fintype fintype_finite

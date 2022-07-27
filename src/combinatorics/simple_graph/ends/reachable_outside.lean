@@ -502,17 +502,12 @@ begin
     }
   },
   { rw set.not_nonempty_iff_eq_empty at h, rw h, simp, exact Kconn, }
-
-
 end
 
 
 def extend_subconnected_to_fin_ro_components [locally_finite G] [Knempty : K.nonempty]
   (Kconn : subconnected G K ) :
-  {K' : finset V | K ⊆ K'
-                 ∧ (subconnected G K')
-                 ∧ (∀ C : ro_components G K', C.val.infinite)
-  } :=
+  {K' : finset V | K ⊆ K' ∧ (subconnected G K') ∧ (∀ C : ro_components G K', C.val.infinite) } :=
 begin
   use extend_to_fin_ro_components G K,
   use extend_to_fin_ro_components.sub G K,
@@ -522,60 +517,13 @@ begin
   exact CK'.2,
 end
 
-/-
-begin
-  let finite_pieces : set V := ⋃₀ ro_ G K,
-  have : set.finite finite_pieces, by {
-    apply set.finite.sUnion,
-    {exact set.finite.subset (ro_component.finite G K) (ro_ G K)},
-    {rintros C Cgood, exact Cgood.2,}},
-
-  let K' := K ∪ this.to_finset,
-  use K',
-  simp,
-  split,
-  { exact finset.subset_union_left _ _,},
-  { split,
-    { rintros x xK' y yK',
-      rcases xK' with xK | ⟨C,⟨Ccomp,Cfin⟩,xC⟩,
-      { rcases yK' with yK | ⟨D,⟨Dcomp,Dfin⟩,yD⟩,
-        { rcases (Kconn x xK y yK) with ⟨w,wK⟩,
-          use w,
-          exact wK.trans (finset.subset_union_left _ _),
-        },
-        {
-          let Dconn := ro_component.to_subconnected G K D Dcomp,
-          let d := ro_component.to_bdry_point G K (sorry) ⟨D,Dcomp⟩,
-          rcases ro_component.to_bdry_point_spec G K (sorry) ⟨D,Dcomp⟩ with ⟨k,kK,dD,adj⟩,
-          rcases conn_adj_conn_to_conn G Kconn Dconn (⟨k,kK,d,dD,adj⟩) x (set.subset_union_left K D xK) y (set.subset_union_right K D yD) with ⟨w,wgood⟩,
-          use w,
-          -- w is supported on K ∪ D, which is clearly contained in K ⋃ {all the Ds}
-          sorry,
-        },
-      },
-      { rcases yK' with yK | ⟨D,Dfin,yD⟩,
-        {sorry},
-        {sorry},
-      },
-    },
-    { rintros C CcompK',
-      by_contradiction Cfin,
-      rw set.not_infinite at Cfin,
-      sorry, -- and then what?!
-    },
-  }
-
-end
--/
-
-
-
 
 def extend_to_subconnected [Gconn : preconnected G] [locally_finite G] [Vnempty : nonempty V] :
   {K' : finset V | K ⊆ K' ∧ subconnected G K' } :=
 begin
   let v₀ : V := Vnempty.some,
   let path_to_v₀ := λ (k : V), (Gconn k v₀).some.support.to_finset,
+  let path_to_v₀' := λ (k : V), ((Gconn k v₀).some.support.to_finset : set V),
   let K' := finset.bUnion K path_to_v₀,
   use K',
   split,
@@ -583,43 +531,15 @@ begin
     apply finset.mem_bUnion.mpr,
     use [k,kK],
     simp only [list.mem_to_finset, start_mem_support],},
-  { rintros x xK' y yK',
-    rcases finset.mem_bUnion.mp xK' with ⟨kx,kxK,xwalk⟩,
-    rcases finset.mem_bUnion.mp yK' with ⟨ky,kyK,ywalk⟩,
-    rw list.mem_to_finset at xwalk,
-    rw list.mem_to_finset at ywalk,
-    rcases walk.mem_support_iff_exists_append.mp xwalk with ⟨qx,rx,xwalk'⟩,
-    rcases walk.mem_support_iff_exists_append.mp ywalk with ⟨qy,ry,ywalk'⟩,
-    let w := rx.append ry.reverse,
-    use w,
-    rw walk.support_append,
-    rw list.to_finset_append,
-    apply finset.union_subset,
-    { have := finset.subset_bUnion_of_mem (λ k, (Gconn k v₀).some.support.to_finset) kxK,
-      have : rx.support.to_finset ⊆ K', by {
-        apply finset.subset.trans _ this,
-        simp only,
-        rw xwalk',
-        -- throws an error - failed to unify
-        -- apply list.to_finset_subset_to_finset ry.support (qx.append rx).support ,
-        -- exact walk.support_append_subset_right qx rx,
-        admit,
-      },
-      exact finset.subset.trans (finset.subset.refl _) this,
+  { let K'' := ⋃₀ (path_to_v₀' '' K),
+    have : ↑K' = K'', by {
+      simp only [coe_bUnion, mem_coe],
+      simp only [*, sUnion_image, mem_coe],
     },
-    { have := finset.subset_bUnion_of_mem (λ k, (Gconn k v₀).some.support.to_finset) kyK,
-      have : ry.reverse.support.to_finset ⊆ K', by {
-        apply finset.subset.trans _ this,
-        simp only [support_reverse, list.to_finset_reverse],
-        rw ywalk',
-        apply list.to_finset_subset_to_finset ry.support (qy.append ry).support ,
-        exact walk.support_append_subset_right qy ry,
-      },
-      apply finset.subset.trans _ this,
-      rw walk.support_reverse,
-      exact list.to_finset_tail (ry.support.reverse),},
-
-
+    rw this,
+    apply subconnected.of_common_mem_sUnion G v₀ _ _,
+    { rintros S ⟨k,kK,rfl⟩, simp,},
+    { rintros S ⟨k,kK,rfl⟩, simp *, apply subconnected.of_walk,},
   },
 end
 

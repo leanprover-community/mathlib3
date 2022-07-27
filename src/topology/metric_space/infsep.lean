@@ -32,16 +32,12 @@ begin
 end
 
 lemma finset.off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
-  s.off_diag.nonempty ↔ ∃ x y ∈ s, x ≠ y :=
-begin
-  refine ⟨λ H, _, λ H, _⟩,
-  { rcases H with ⟨⟨x, y⟩, hxy⟩, rw finset.mem_off_diag at hxy,
-    rcases hxy with ⟨hx, hy, hxy⟩,
-    exact ⟨x, hx, y, hy, hxy⟩ },
-  { rcases H with ⟨x, hx, y, hy, hxy⟩,
-    refine ⟨⟨x, y⟩, _⟩, rw finset.mem_off_diag,
-    exact ⟨hx, hy, hxy⟩ }
-end
+  s.off_diag.nonempty ↔ ∃ x y, x ∈ s ∧ y ∈ s ∧ x ≠ y :=
+by simp_rw [finset.nonempty, finset.mem_off_diag, prod.exists]
+
+lemma finset.off_diag_nonempty_of_exists_ne [decidable_eq α] {s : finset α} {x y : α}
+  (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) : s.off_diag.nonempty :=
+finset.off_diag_nonempty_iff.mpr ⟨_, _, hx, hy, hxy⟩
 
 end extras
 
@@ -189,7 +185,7 @@ variables [has_edist α] {x y : α} {s : set α}
 
 lemma infsep_nonneg : 0 ≤ s.infsep := sorry
 
-lemma infsep_subsingleton (hs : s.subsingleton) : s.infsep = ∞ := sorry
+lemma infsep_subsingleton (hs : s.subsingleton) : s.infsep = 0 := sorry
 
 
 end has_edist
@@ -278,16 +274,14 @@ end
 lemma infesep_pair_eq' (hxy : x ≠ y) : infesep ({x, y} : finset α) = (edist x y) ⊓ (edist y x) :=
 le_antisymm (_root_.le_inf (infesep_pair_le_left hxy) (infesep_pair_le_right hxy)) le_infesep_pair
 
-lemma infesep_exists (h : ∃ x y ∈ s, x ≠ y) : ∃ (x y ∈ s) (h : x ≠ y), edist x y = s.infesep :=
+lemma infesep_exists (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y) :
+∃ x' y', (x' ∈ s) ∧ (y' ∈ s) ∧ (x' ≠ y') ∧ s.infesep = edist x' y' :=
 begin
-  rw ← off_diag_nonempty_iff at h,
-  rcases exists_mem_eq_inf _ h (uncurry edist) with ⟨⟨x, y⟩, hxy, spec⟩,
-  rw mem_off_diag at hxy, rcases hxy with ⟨hx, hy, hxy⟩,
-  exact ⟨x, hx, y, hy, hxy, spec.symm⟩
+  have H := off_diag_nonempty_of_exists_ne hx hy hxy,
+  rcases exists_mem_eq_inf _ H (uncurry edist) with ⟨⟨x', y'⟩, hxy', hs⟩,
+  rw mem_off_diag at hxy', rcases hxy' with ⟨hx', hy', hxy'⟩,
+  exact ⟨x', y', hx', hy', hxy', hs⟩
 end
-
-lemma infesep_exists' (hx : x ∈ s) (hy : y ∈ s) (hxy : x ≠ y)
-  : ∃ (x y ∈ s) (h : x ≠ y), edist x y = s.infesep := infesep_exists ⟨x, hx, y, hy, hxy⟩
 
 end has_edist
 

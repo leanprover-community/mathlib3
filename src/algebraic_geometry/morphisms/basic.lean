@@ -182,10 +182,6 @@ begin
     exact (hP.1.arrow_mk_iso_iff (morphism_restrict_opens_range f _)).mpr (h𝒰 i) },
 end
 
-instance Scheme.affine_cover_is_affine (X : Scheme) (i : X.affine_cover.J) :
-  is_affine (X.affine_cover.obj i) :=
-algebraic_geometry.Spec_is_affine _
-
 lemma affine_target_morphism_property.is_local.affine_open_cover_tfae
   {P : affine_target_morphism_property}
   (hP : P.is_local) {X Y : Scheme.{u}} (f : X ⟶ Y) :
@@ -290,7 +286,7 @@ We say that `P : morphism_property Scheme` is local at the target if
 2. If `P` holds for `f : X ⟶ Y`, then `P` holds for `f ∣_ U` for any `U`.
 3. If `P` holds for `f ∣_ U` for an open cover `U` of `Y`, then `P` holds for `f`.
 -/
-structure property_is_local_at_target (P : morphism_property Scheme) :=
+structure property_is_local_at_target (P : morphism_property Scheme) : Prop :=
 (respects_iso : P.respects_iso)
 (restrict : ∀ {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier), P f → P (f ∣_ U))
 (of_open_cover : ∀ {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y),

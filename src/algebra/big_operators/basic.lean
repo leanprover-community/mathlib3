@@ -1686,7 +1686,7 @@ by simpa only [disjoint_comm] using disjoint_finset_sum_left
 
 variables [decidable_eq α]
 
-lemma disjoint_finset_iff_sum_eq_sup {β : Type*} {i : finset β} {f : β → multiset α} :
+lemma finset_sum_eq_sup_iff_disjoint {β : Type*} {i : finset β} {f : β → multiset α} :
   i.sum f = i.sup f ↔ ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y) :=
 begin
   induction i using finset.cons_induction_on with z i hz hr,

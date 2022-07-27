@@ -292,7 +292,10 @@ end ident_distrib
 
 section uniform_integrable
 
+open topological_space
+
 variables {E : Type*} [measurable_space E] [normed_add_comm_group E] [borel_space E]
+  -- [second_countable_topology E]
   {μ : measure α} [is_finite_measure μ]
 
 /-- This lemma is superceded by `integrable.uniform_integrable_of_ident_distrib` which only require
@@ -329,10 +332,11 @@ end
 
 /-- A sequence of identically distributed functions is uniformly integrable. -/
 lemma integrable.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
-  {j : ι} (hint : integrable (f j) μ) (hfmeas : ∀ i, ae_strongly_measurable (f i) μ)
-  (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
+  {j : ι} (hint : integrable (f j) μ) (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
   uniform_integrable f 1 μ :=
 begin
+  have hfmeas : ∀ i, ae_strongly_measurable (f i) μ :=
+    λ i, (hf i).ae_strongly_measurable_iff.2 hint.1,
   set g : ι → α → E := λ i, (hfmeas i).some,
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfmeas i).1,
   have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hfmeas i).2.symm,

@@ -251,6 +251,9 @@ def subtypeₗᵢ : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
 
 @[simp] lemma subtypeₗᵢ_to_linear_map : p.subtypeₗᵢ.to_linear_map = p.subtype := rfl
 
+@[simp] lemma subtypeₗᵢ_to_continuous_linear_map :
+  p.subtypeₗᵢ.to_continuous_linear_map = p.subtypeL := rfl
+
 end submodule
 
 /-- A semilinear isometric equivalence between two normed vector spaces. -/

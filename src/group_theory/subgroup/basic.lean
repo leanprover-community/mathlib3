@@ -223,7 +223,7 @@ subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _
 instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G] [set_like S G]
   [subgroup_class S G] : linear_ordered_comm_group H :=
 subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 include hSG
 
@@ -578,7 +578,7 @@ subtype.coe_injective.ordered_comm_group _
 instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G]
   (H : subgroup G) : linear_ordered_comm_group H :=
 subtype.coe_injective.linear_ordered_comm_group _
-  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
@@ -2024,6 +2024,10 @@ lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjec
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
+@[simp, to_additive]
+lemma range_one : (1 : G →* N).range = ⊥ :=
+set_like.ext $ λ x, by simpa using @comm _ (=) _ 1 x
+
 @[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
 by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }
 
@@ -3189,7 +3193,7 @@ begin
     { simp only [int.coe_nat_eq_zero, int.of_nat_eq_coe, zpow_coe_nat] at hgn ⊢,
       exact hH hgn },
     { suffices : g ^ (n+1) ∈ H,
-      { refine (hH this).imp _ id, simp only [forall_false_left, nat.succ_ne_zero], },
+      { refine (hH this).imp _ id, simp only [is_empty.forall_iff, nat.succ_ne_zero], },
       simpa only [inv_mem_iff, zpow_neg_succ_of_nat] using hgn, } },
   { intros h n g hgn,
     specialize h n g,

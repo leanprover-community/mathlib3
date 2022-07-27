@@ -298,7 +298,7 @@ end
 
 lemma linear_independent.set_finite_of_is_noetherian [is_noetherian R M]
   {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-@set.finite_of_finite _ _ hi.finite_of_is_noetherian
+@set.to_finite _ _ hi.finite_of_is_noetherian
 
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
@@ -617,7 +617,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, (cardinal.lt_aleph_0_of_fintype _).le },
+    { exact λ j, (cardinal.lt_aleph_0_of_finite _).le },
     { simpa } },
 end
 

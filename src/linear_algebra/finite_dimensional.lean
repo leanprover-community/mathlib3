@@ -314,6 +314,11 @@ begin
   apply cardinal.nat_lt_aleph_0,
 end
 
+lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]
+  [module K V] [finite_dimensional K V] {b : set V} (h : linear_independent K (λ (x:b), (x:V))) :
+  b.finite :=
+cardinal.lt_aleph_0_iff_set_finite.mp (finite_dimensional.lt_aleph_0_of_linear_independent h)
+
 lemma not_linear_independent_of_infinite {ι : Type w} [inf : infinite ι] [finite_dimensional K V]
   (v : ι → V) : ¬ linear_independent K v :=
 begin
@@ -1298,7 +1303,7 @@ variable {K}
 lemma finrank_span_le_card (s : set V) [fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
-  haveI := span_of_finite K (set.finite_of_fintype s),
+  haveI := span_of_finite K s.to_finite,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,
@@ -1323,7 +1328,7 @@ lemma finrank_span_set_eq_card (s : set V) [fintype s]
   (hs : linear_independent K (coe : s → V)) :
   finrank K (span K s) = s.to_finset.card :=
 begin
-  haveI := span_of_finite K (set.finite_of_fintype s),
+  haveI := span_of_finite K s.to_finite,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,

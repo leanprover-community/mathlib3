@@ -65,7 +65,7 @@ some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 integral, circle, Cauchy integral
 -/
 
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 
@@ -170,6 +170,14 @@ lemma lipschitz_with_circle_map (c : ℂ) (R : ℝ) :
   lipschitz_with R.nnabs (circle_map c R) :=
 lipschitz_with_of_nnnorm_deriv_le (differentiable_circle_map _ _) $ λ θ,
   nnreal.coe_le_coe.1 $ by simp
+
+lemma continuous_circle_map_inv {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R) :
+ continuous (λ θ, (circle_map z R θ - w)⁻¹) :=
+begin
+  have : ∀ θ, circle_map z R θ - w ≠ 0,
+  { simp_rw sub_ne_zero, exact λ θ, circle_map_ne_mem_ball hw θ, },
+  continuity,
+end
 
 /-!
 ### Integrability of a function on a circle

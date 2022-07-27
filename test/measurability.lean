@@ -69,11 +69,16 @@ example [add_comm_monoid β] [has_measurable_add₂ β] {s : finset ℕ} {F : �
 by measurability
 
 -- even with many assumptions, the tactic is not trapped by a bad lemma
-example [topological_space α] [borel_space α] [normed_group β] [borel_space β]
+example [topological_space α] [borel_space α] [normed_add_comm_group β] [borel_space β]
   [has_measurable_add₂ β] [has_measurable_sub₂ β] {s : finset ℕ} {F : ℕ → α → β}
   (hF : ∀ i, measurable (F i)) :
   ae_measurable (∑ i in s, (λ x, F (i+1) x - F i x)) μ :=
 by measurability
 
 example : measurable (λ x : ℝ, real.exp (2 * inner x 3)) :=
+by measurability
+
+/-- An older version of the tactic failed in the presence of a negated hypothesis due to an
+internal call to `apply_assumption`. -/
+example {ι : Type*} (i k : ι) (hik : i ≠ k) : measurable (id : α → α) :=
 by measurability

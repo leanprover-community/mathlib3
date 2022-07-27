@@ -84,13 +84,16 @@ instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y | _ _ h rfl := irrefl _ h
 lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _ _ h rfl := irrefl _ h
 
-lemma not_rel (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
+lemma not_rel_of_subsingleton (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
 subsingleton.elim x y ▸ irrefl x
+
+lemma rel_of_subsingleton (r) [is_refl α r] [subsingleton α] (x y) : r x y :=
+subsingleton.elim x y ▸ refl x
 
 @[simp] lemma empty_relation_apply (a b : α) : empty_relation a b ↔ false := iff.rfl
 
 lemma eq_empty_relation (r) [is_irrefl α r] [subsingleton α] : r = empty_relation :=
-funext₂ $ by simpa using not_rel r
+funext₂ $ by simpa using not_rel_of_subsingleton r
 
 instance : is_irrefl α empty_relation := ⟨λ a, id⟩
 
@@ -109,6 +112,13 @@ begin
 end
 
 lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
+
+/-- In a trichotomous irreflexive order, every element is determined by the set of predecessors. -/
+lemma extensional_of_trichotomous_of_irrefl (r : α → α → Prop) [is_trichotomous α r] [is_irrefl α r]
+  {a b : α} (H : ∀ x, r x a ↔ r x b) : a = b :=
+((@trichotomous _ r _ a b)
+  .resolve_left $ mt (H _).2 $ irrefl a)
+  .resolve_right $ mt (H _).1 $ irrefl b
 
 /-- Construct a partial order from a `is_strict_order` relation.
 
@@ -192,21 +202,6 @@ instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
 
-/-! ### Extensional relation -/
-
-/-- An extensional relation is one in which an element is determined by its set
-  of predecessors. It is named for the `x ∈ y` relation in set theory, whose
-  extensionality is one of the first axioms of ZFC. -/
-@[algebra] class is_extensional (α : Type u) (r : α → α → Prop) : Prop :=
-(ext : ∀ a b, (∀ x, r x a ↔ r x b) → a = b)
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_extensional_of_is_strict_total_order'
-  [is_strict_total_order' α r] : is_extensional α r :=
-⟨λ a b H, ((@trichotomous _ r _ a b)
-  .resolve_left $ mt (H _).2 (irrefl a))
-  .resolve_right $ mt (H _).1 (irrefl b)⟩
-
 /-! ### Well-order -/
 
 /-- A well order is a well-founded linear order. -/
@@ -217,9 +212,6 @@ instance is_extensional_of_is_strict_total_order'
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
-  is_extensional α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
   is_trichotomous α r := by apply_instance
@@ -246,8 +238,8 @@ def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
 theorem subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
   is_well_order α r :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim a b,
-  trans        := λ a b c h, (not_rel r a b h).elim,
-  wf           := ⟨λ a, ⟨_, λ y h, (not_rel r y a h).elim⟩⟩,
+  trans        := λ a b c h, (not_rel_of_subsingleton r a b h).elim,
+  wf           := ⟨λ a, ⟨_, λ y h, (not_rel_of_subsingleton r y a h).elim⟩⟩,
   ..hr }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=

@@ -40,7 +40,7 @@ open sets in `Proj`, more specifically:
     is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
   - backward direction `from_Spec`:
     for any `q : Spec A⁰_f`, we sent it to `{a | forall i, aᵢ^m/f^i ∈ q}`; we need this to be a
-    homogeneous prime ideal that is relavent.
+    homogeneous prime ideal that is relevant.
     * This is in fact an ideal, the proof can be found in
       `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal`;
     * This ideal is also homogeneous, the proof can be found in

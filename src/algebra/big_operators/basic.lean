@@ -1660,10 +1660,7 @@ end
 
 lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)} :
   multiset.disjoint a l.sum ↔ ∀ b ∈ l, multiset.disjoint a b :=
-begin
-  simp_rw @disjoint_comm _ a _,
-  exact disjoint_list_sum_left,
-end
+by simpa only [disjoint_comm] using disjoint_list_sum_left
 
 lemma disjoint_sum_left {a : multiset α} {i : multiset (multiset α)} :
   multiset.disjoint i.sum a ↔ ∀ b ∈ i, multiset.disjoint b a :=
@@ -1674,10 +1671,7 @@ end
 
 lemma disjoint_sum_right {a : multiset α} {i : multiset (multiset α)} :
   multiset.disjoint a i.sum ↔ ∀ b ∈ i, multiset.disjoint a b :=
-begin
-  simp_rw @disjoint_comm _ a _,
-  exact disjoint_sum_left,
-end
+by simpa only [disjoint_comm] using disjoint_sum_left
 
 lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
   multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
@@ -1688,10 +1682,7 @@ end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
   multiset.disjoint a (i.sum f) ↔ ∀ b ∈ i, multiset.disjoint a (f b) :=
-begin
-  simp_rw @disjoint_comm _ a _,
-  exact disjoint_finset_sum_left,
-end
+by simpa only [disjoint_comm] using disjoint_finset_sum_left
 
 variables [decidable_eq α]
 

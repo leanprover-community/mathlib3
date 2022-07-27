@@ -18,7 +18,9 @@ universes u v w
 
 noncomputable theory
 
---local attribute [instance] prop_decidable
+
+local attribute [instance] prop_decidable
+-- to make every proposition decidable
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -91,40 +93,73 @@ begin
 end
 
 
+-- This should be made compatible with the `simple_graph` API but for now we leave it aside
+def subconnected (X : set V) := ∀ x y ∈ X, ∃ w : G.walk x y, ↑w.support.to_finset ⊆ X
 
-lemma conn_adj_conn_to_conn {X Y : set V}
-  (Xconn : ∀ x y ∈ X, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X )
-  (Yconn : ∀ x y ∈ Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ Y )
-  (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) :
-   ∀ x y ∈ X∪Y, ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ X∪Y :=
+lemma subconnected.of_adj_pair (x y : V) (e : G.adj x y) : subconnected G {x,y} :=
 begin
-  rintros x xU y yU,
-  rcases xU with xX|xY,
-  { rcases yU with yX|yY,
-    { rcases Xconn x xX y yX with ⟨w,wX⟩, exact ⟨w,wX.trans (set.subset_union_left X Y)⟩},
-    { rcases XYadj with ⟨a,aX,b,bY,adj⟩,
-      rcases Xconn a aX x xX with ⟨u,uX⟩,
-      rcases Yconn b bY y yY with ⟨w,wY⟩,
-      use (w.reverse.append (cons adj.symm u)).reverse,
-      rw [walk.support_reverse,list.to_finset_reverse,walk.support_append, walk.support_cons,list.tail_cons, list.to_finset_append],
-      simp only [support_reverse, list.to_finset_reverse, coe_union, set.union_subset_iff],
-      split,
-      {exact wY.trans (set.subset_union_right X Y),},
-      {exact uX.trans (set.subset_union_left X Y),},},
+  rintros a ain b bin,
+  rcases ain with ⟨x,rfl⟩|⟨y,rfl⟩,
+  { rcases bin with ⟨x,rfl⟩|⟨y,rfl⟩,
+    { use walk.nil,simp,},
+    { use walk.cons e (walk.nil), simp,},
   },
-  { rcases yU with yX|yY,
-    { rcases XYadj with ⟨a,aX,b,bY,adj⟩,
-      rcases Xconn a aX y yX with ⟨u,uX⟩,
-      rcases Yconn b bY x xY with ⟨w,wY⟩,
-      use (w.reverse.append (cons adj.symm u)),
-      rw [walk.support_append, walk.support_cons,list.tail_cons, list.to_finset_append],
-      simp only [support_reverse, list.to_finset_reverse, coe_union, set.union_subset_iff],
-      split,
-      {exact wY.trans (set.subset_union_right X Y),},
-      {exact uX.trans (set.subset_union_left X Y),},},
-    { rcases Yconn x xY y yY with ⟨w,wY⟩, exact ⟨w,wY.trans (set.subset_union_right X Y)⟩},
+  { rcases bin with ⟨x,rfl⟩|⟨y,rfl⟩,
+    { use walk.cons e.symm (walk.nil), rw [←list.to_finset_reverse,←walk.support_reverse],simp,},
+    { use walk.nil,simp,},
   }
-,
+end
+
+lemma subconnected.of_intersecting_subconnected {X Y : set V}
+  (hX : subconnected G X )
+  (hY : subconnected G Y )
+  (hXY : ¬ disjoint X Y) : subconnected G (X∪Y) :=
+begin
+  rcases set.not_disjoint_iff.mp hXY with ⟨p,pX,pY⟩,
+  rintros a aZ b bZ,
+  rcases aZ with aX|aY,
+  { rcases bZ with bX|bY,
+    { rcases hX a aX b bX with ⟨w,wX⟩,
+      exact ⟨w,wX.trans (set.subset_union_left X Y)⟩,},
+    { rcases hX a aX p pX with ⟨w,wX⟩,
+      rcases hY p pY b bY with ⟨u,uY⟩,
+      use w.append u,
+      rw [walk.support_append, list.to_finset_append,finset.coe_union],
+      apply set.union_subset_union wX (set.subset.trans _ uY),
+      apply list.to_finset_tail,
+    },
+  },
+  { rcases bZ with bX|bY,
+    { rcases hY a aY p pY with ⟨u,uY⟩,
+      rcases hX p pX b bX with ⟨w,wX⟩,
+      use u.append w,
+      rw [walk.support_append, list.to_finset_append,finset.coe_union,set.union_comm],
+      apply set.union_subset_union (set.subset.trans _ wX) uY,
+      apply list.to_finset_tail,
+    },
+    { rcases hY a aY b bY with ⟨w,wY⟩,
+      exact ⟨w,wY.trans (set.subset_union_right X Y)⟩,},
+  },
+end
+
+lemma subconnected.of_adj_subconnected {X Y : set V}
+  (hX : subconnected G X )
+  (hY : subconnected G Y )
+  (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) : subconnected G (X∪Y) :=
+begin
+  rcases XYadj with ⟨x,xX,y,yY,e⟩,
+  let E : set V := {x,y},
+  have : X∪Y = (E ∪ X) ∪ Y, by { simp *,sorry}, -- too lazy now
+  rw this,
+  apply subconnected.of_intersecting_subconnected,
+  { apply subconnected.of_intersecting_subconnected,
+    { exact subconnected.of_adj_pair G x y e, },
+    { exact hX, },
+    { exact set.not_disjoint_iff.mpr ⟨x,by simp,xX⟩},
+  },
+  { exact hY,},
+  { exact set.not_disjoint_iff.mpr ⟨y,by simp,yY⟩}
+
 end
 
 end simple_graph

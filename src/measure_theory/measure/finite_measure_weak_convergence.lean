@@ -1051,6 +1051,7 @@ begin
   by_cases L_bot : L = ⊥,
   { simp only [L_bot, le_top,
       (show liminf ⊥ (λ i, μs i Eᶜ) = ⊤, by simp only [liminf, filter.map_bot, Liminf_bot])], },
+  haveI : L.ne_bot, from {ne' := L_bot},
   have meas_Ec : μ Eᶜ = 1 - μ E,
   { simpa only [measure_univ] using measure_compl E_mble (measure_lt_top μ E).ne, },
   have meas_i_Ec : ∀ i, μs i Eᶜ = 1 - μs i E,
@@ -1060,9 +1061,8 @@ begin
   have obs : L.liminf (λ (i : ι), 1 - μs i E) = L.liminf ((λ x, 1 - x) ∘ (λ (i : ι), μs i E)),
     by refl,
   rw obs,
-  rw antitone.liminf_comp_eq_apply_limsup_of_continuous _
-    ennreal.antitone_const_sub (ennreal.continuous_sub_left ennreal.one_ne_top),
-  swap, { exact {ne' := L_bot}, },
+  simp_rw ← ennreal.antitone_const_sub.map_limsup_of_continuous_at (λ i, μs i E)
+            (ennreal.continuous_sub_left ennreal.one_ne_top).continuous_at,
   exact ennreal.antitone_const_sub h,
 end
 
@@ -1085,6 +1085,7 @@ begin
   by_cases L_bot : L = ⊥,
   { simp only [L_bot, bot_le,
       (show limsup ⊥ (λ i, μs i Eᶜ) = ⊥, by simp only [limsup, filter.map_bot, Limsup_bot])], },
+  haveI : L.ne_bot, from {ne' := L_bot},
   have meas_Ec : μ Eᶜ = 1 - μ E,
   { simpa only [measure_univ] using measure_compl E_mble (measure_lt_top μ E).ne, },
   have meas_i_Ec : ∀ i, μs i Eᶜ = 1 - μs i E,
@@ -1094,9 +1095,8 @@ begin
   have obs : L.limsup (λ (i : ι), 1 - μs i E) = L.limsup ((λ x, 1 - x) ∘ (λ (i : ι), μs i E)),
     by refl,
   rw obs,
-  rw antitone.limsup_comp_eq_apply_liminf_of_continuous _
-    ennreal.antitone_const_sub (ennreal.continuous_sub_left ennreal.one_ne_top),
-  swap, { exact {ne' := L_bot}, },
+  simp_rw ← ennreal.antitone_const_sub.map_liminf_of_continuous_at (λ i, μs i E)
+            (ennreal.continuous_sub_left ennreal.one_ne_top).continuous_at,
   exact ennreal.antitone_const_sub h,
 end
 

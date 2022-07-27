@@ -8,6 +8,7 @@ import measure_theory.integral.mean_inequalities
 import topology.continuous_function.compact
 import topology.metric_space.metrizable
 import measure_theory.function.simple_func_dense
+import tactic.expand_exists
 
 /-!
 # Strongly measurable and finitely strongly measurable functions
@@ -1782,6 +1783,12 @@ end order
 
 variables [has_zero β] [t2_space β]
 
+/-- A measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`. The
+attribute `expand_exists` defines a def for the set and three lemmas giving its properties. -/
+@[expand_exists measure_theory.ae_fin_strongly_measurable.sigma_finite_set
+  measure_theory.ae_fin_strongly_measurable.measurable_set
+  measure_theory.ae_fin_strongly_measurable.ae_eq_zero_compl
+  measure_theory.ae_fin_strongly_measurable.sigma_finite_restrict]
 lemma exists_set_sigma_finite (hf : ae_fin_strongly_measurable f μ) :
   ∃ t, measurable_set t ∧ f =ᵐ[μ.restrict tᶜ] 0 ∧ sigma_finite (μ.restrict t) :=
 begin
@@ -1792,22 +1799,6 @@ begin
   rw [eventually_eq, ae_restrict_iff' ht.compl],
   exact eventually_of_forall hgt_zero,
 end
-
-/-- A measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`. -/
-def sigma_finite_set (hf : ae_fin_strongly_measurable f μ) : set α :=
-hf.exists_set_sigma_finite.some
-
-protected lemma measurable_set (hf : ae_fin_strongly_measurable f μ) :
-  measurable_set hf.sigma_finite_set :=
-hf.exists_set_sigma_finite.some_spec.1
-
-lemma ae_eq_zero_compl (hf : ae_fin_strongly_measurable f μ) :
-  f =ᵐ[μ.restrict hf.sigma_finite_setᶜ] 0 :=
-hf.exists_set_sigma_finite.some_spec.2.1
-
-instance sigma_finite_restrict (hf : ae_fin_strongly_measurable f μ) :
-  sigma_finite (μ.restrict hf.sigma_finite_set) :=
-hf.exists_set_sigma_finite.some_spec.2.2
 
 end ae_fin_strongly_measurable
 

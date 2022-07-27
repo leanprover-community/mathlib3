@@ -106,7 +106,7 @@ begin
       let D_comp := component.of_in_components G L x h,
       exact component.sub_of_conn_intersects G K D
         (component.nempty G L D D_comp)
-        (component_is_still_conn G K_sub_L D D_comp)
+        (component_is_still_conn G K K_sub_L D D_comp)
         C hC ( set.nonempty_inter_iff_exists_left.mpr ⟨⟨x,‹x∈D›⟩,x_in_C⟩  : (D ∩ C).nonempty),
     },
     from component.mem_of G L x h,
@@ -235,10 +235,19 @@ lemma nicely_arranged_bwd_map_not_inj [locally_finite G] (H K : finset V)
   (H_F : (H : set V) ⊆ F.val)
   (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map G (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
 begin
-  rcases (fintype.two_lt_card_iff.mp (inf_comp_H_large)) with ⟨E, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
+ have : ∃ E₁ E₂ : inf_components G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂ :=
+  begin
+    rcases (fintype.two_lt_card_iff.mp (inf_comp_H_large)) with ⟨E₀, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
+    by_cases hyp : E ≠ E₁ ∧ E ≠ E₂,
+    { cases hyp, refine ⟨E₁, E₂, _, _, _⟩, all_goals {assumption}, },
+    { have hyp' : E = E₁ ∨ E = E₂ := by {simp [auto.classical.implies_iff_not_or] at hyp, assumption,}, cases hyp',
+      { subst hyp', refine ⟨E₀, E₂, ne.symm _, _, _⟩, all_goals {assumption}, },
+      { subst hyp', refine ⟨E₀, E₁, ne.symm _, ne.symm _, _⟩, all_goals {assumption}, } }
+  end,
+  rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
   apply bwd_map_non_inj G K H F E₁ E₂ h₁₂ _ _,
-  {exact nicely_arranged G H K Hnempty Knempty E E₁ h₀₁ F H_F K_E,},
-  {exact nicely_arranged G H K Hnempty Knempty E E₂ h₀₂ F H_F K_E,},
+  {apply nicely_arranged G H K Hnempty Knempty E E₁ h₀₁ F H_F K_E,},
+  {apply nicely_arranged G H K Hnempty Knempty E E₂ h₀₂ F H_F K_E,},
 end
 
 
@@ -494,7 +503,6 @@ end
 -- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components G K)` is finite
 -- theorem `finite_ends_card_eq` saying that if `ends` is finite, the cardinality is the sup
 -- theorem `zero_ends_iff` saying that `ends = ∅` iff `V` is finite
-
 
 
 

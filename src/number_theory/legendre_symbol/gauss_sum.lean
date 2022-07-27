@@ -176,10 +176,11 @@ include fp hch
 /-- When `R'` has prime characteristic `p`, then the `p`th power of the Gauss sum
 of `χ` and `ψ` is the Gauss sum of `χ^p` and `mul_shift ψ p`. -/
 lemma gauss_sum_frob (χ : mul_char R R') (ψ : add_char R R') :
-   gauss_sum χ ψ ^ p = gauss_sum (χ ^ p) (mul_shift ψ p) :=
+   gauss_sum χ ψ ^ p = gauss_sum (χ ^ p) (ψ ^ p) :=
 begin
   rw [← frobenius_def, gauss_sum, gauss_sum, map_sum],
-  simp_rw [pow_apply' χ fp.1.pos, map_mul, frobenius_def, mul_shift_spec'],
+  simp_rw [pow_apply' χ fp.1.pos, map_mul, frobenius_def],
+  refl,
 end
 
 /-- For a quadratic character `χ` and when the characteristic `p` of the target ring
@@ -191,9 +192,9 @@ lemma quad_gauss_sum_frob (hp : is_unit (p : R)) {χ : mul_char R R'} (hχ : is_
 begin
   letI := @char_p.nontrivial_of_char_ne_one R' _ _ fp.1.ne_one hch,
   have h : (1 : mul_char R R') p = 1 := by rw [← is_unit.unit_spec hp, one_apply_coe],
-  rw [gauss_sum_frob, hχ.pow_char p, ← gauss_sum_mul_shift χ ψ hp.unit, ← mul_assoc,
-      is_unit.unit_spec, ← pow_two, ← pow_apply' _ (by norm_num : 0 < 2), hχ.sq_eq_one,
-      h, one_mul],
+  rw [gauss_sum_frob, pow_mul_shift, hχ.pow_char p, ← gauss_sum_mul_shift χ ψ hp.unit,
+      ← mul_assoc, is_unit.unit_spec, ← pow_two, ← pow_apply' _ (by norm_num : 0 < 2),
+      hχ.sq_eq_one, h, one_mul],
 end
 
 /-- Similar to the above, but with `p^n` in place of `p` -/

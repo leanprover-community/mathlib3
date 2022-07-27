@@ -175,21 +175,26 @@ begin
     apply finset.image_subset_image wgood,
 end
 
-/-
-
-  have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by {
-    rintros φx xφ φy yφ,
-    simp at xφ,
-    simp at yφ,
-    rcases xφ with ⟨x,⟨xK,rfl⟩⟩,
-    rcases yφ with ⟨y,⟨yK,rfl⟩⟩,
-    rcases K'conn x xK y yK with ⟨w,wgood⟩,
-    let φw := w.map φ.to_hom,
-    use φw,
-    rw [walk.support_map,list.map_to_finset],
-    apply finset.image_subset_image wgood,
-  },
--/
+lemma subconnected.of_walk {x y : V} (w : G.walk x y) : subconnected G w.support.to_finset :=
+begin
+  rintros a ah b bh,
+  simp at ah,
+  simp at bh,
+  rcases walk.mem_support_iff_exists_append.mp ah with ⟨wa,wa',eqa⟩,
+  rcases walk.mem_support_iff_exists_append.mp bh with ⟨wb,wb',eqb⟩,
+  use wa.reverse.append wb,
+  simp,
+  rw walk.support_append,
+  rw list.to_finset_append,
+  rw walk.support_reverse,
+  rw list.to_finset_reverse,
+  apply finset.union_subset,
+  { rw eqa, apply list.to_finset_subset_to_finset, apply walk.support_append_subset_left,},
+  { rw eqb,
+    apply (list.to_finset_tail wb.support).trans _,
+    apply list.to_finset_subset_to_finset,
+    exact walk.support_append_subset_left wb wb',},
+end
 
 
 end simple_graph

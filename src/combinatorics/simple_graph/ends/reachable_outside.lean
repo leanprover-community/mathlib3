@@ -442,11 +442,29 @@ end
 
 lemma extend_to_fin_ro_components.subconnected_of_subconnected  [locally_finite G]
   (K : finset V)
+  (Knempty : K.nonempty)
   (Kconn : subconnected G K) :
   subconnected G (extend_to_fin_ro_components G K) :=
 begin
-  -- Sorry
-  sorry,
+
+  let k := Knempty.some,
+  let KC' := set.image (λ (C : set V), (K : set V) ∪ C) (fin_ro_components G K),
+  have : ↑(extend_to_fin_ro_components G K) = ⋃₀ KC', by sorry,
+  have conn : ∀ C ∈ KC', subconnected G C, by {
+    rintros C hC,
+    simp at hC,
+    rcases hC with ⟨CC,⟨CComp,Cfin⟩,rfl⟩,
+    apply subconnected.of_adj_subconnected G Kconn (to_subconnected G K CC CComp),
+    let d := ro_component.to_bdry_point G K Knempty ⟨CC,CComp⟩,
+    rcases ro_component.to_bdry_point_spec G K Knempty ⟨CC,CComp⟩ with ⟨k,kK,dC,adj⟩,
+    use [k,kK,d,dC,adj],
+  },
+  rw this,
+  apply subconnected.of_common_mem_sUnion G k _ conn,
+  rintros C ⟨CC,⟨CComp,Cfin⟩,rfl⟩,
+  simp,
+  left,
+  exact Knempty.some_spec,
 end
 
 
@@ -461,8 +479,7 @@ begin
   use extend_to_fin_ro_components.sub G K,
   use extend_to_fin_ro_components.subconnected_of_subconnected G K Kconn,
   rintros ⟨C,CK'⟩,
-  rw extend_to_fin_ro_components.ro
- G K at CK',
+  rw extend_to_fin_ro_components.ro G K at CK',
   exact CK'.2,
 end
 

@@ -420,11 +420,11 @@ end
 
 lemma linear_map.associated_det_comp_equiv {N : Type*} [add_comm_group N] [module R N]
   (f : N →ₗ[R] M) (e e' : M ≃ₗ[R] N) :
-  associated (f.comp e.to_linear_map).det (f.comp e'.to_linear_map).det :=
+  associated (f ∘ₗ ↑e).det (f ∘ₗ ↑e').det :=
 begin
   refine linear_map.associated_det_of_eq_comp (e.trans e'.symm) _ _ _,
   intro x,
-  simp only [linear_map.comp_apply, linear_equiv.coe_to_linear_map, linear_equiv.trans_apply,
+  simp only [linear_map.comp_apply, linear_equiv.coe_coe, linear_equiv.trans_apply,
              linear_equiv.apply_symm_apply],
 end
 

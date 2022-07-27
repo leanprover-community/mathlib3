@@ -74,34 +74,23 @@ variables [ordered_semiring 𝕜] [add_comm_monoid E]
 section has_smul
 variables [has_smul 𝕜 E] (S T : convex_cone 𝕜 E)
 
-instance : has_coe (convex_cone 𝕜 E) (set E) := ⟨convex_cone.carrier⟩
-
-instance : has_mem E (convex_cone 𝕜 E) := ⟨λ m S, m ∈ S.carrier⟩
-
-instance : has_le (convex_cone 𝕜 E) := ⟨λ S T, (S : set E) ⊆ T⟩
-
-instance : has_lt (convex_cone 𝕜 E) := ⟨λ S T, (S : set E) ⊂ T⟩
-
-@[simp, norm_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
+instance : set_like (convex_cone 𝕜 E) E :=
+{ coe := carrier,
+  coe_injective' := λ S T h, by cases S; cases T; congr' }
 
 @[simp] lemma coe_mk {s : set E} {h₁ h₂} : ↑(@mk 𝕜 _ _ _ _ s h₁ h₂) = s := rfl
 
 @[simp] lemma mem_mk {s : set E} {h₁ h₂ x} : x ∈ @mk 𝕜 _ _ _ _ s h₁ h₂ ↔ x ∈ s := iff.rfl
 
-/-- Two `convex_cone`s are equal if the underlying sets are equal. -/
-theorem ext' {S T : convex_cone 𝕜 E} (h : (S : set E) = T) : S = T :=
-by cases S; cases T; congr'
-
-/-- Two `convex_cone`s are equal if and only if the underlying sets are equal. -/
-protected theorem ext'_iff {S T : convex_cone 𝕜 E}  : (S : set E) = T ↔ S = T :=
-⟨ext', λ h, h ▸ rfl⟩
-
 /-- Two `convex_cone`s are equal if they have the same elements. -/
-@[ext] theorem ext {S T : convex_cone 𝕜 E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
+@[ext] theorem ext {S T : convex_cone 𝕜 E} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 lemma smul_mem {c : 𝕜} {x : E} (hc : 0 < c) (hx : x ∈ S) : c • x ∈ S := S.smul_mem' hc hx
 
 lemma add_mem ⦃x⦄ (hx : x ∈ S) ⦃y⦄ (hy : y ∈ S) : x + y ∈ S := S.add_mem' hx hy
+
+instance : add_mem_class (convex_cone 𝕜 E) E :=
+{ add_mem := λ c a b ha hb, add_mem c ha hb }
 
 instance : has_inf (convex_cone 𝕜 E) :=
 ⟨λ S T, ⟨S ∩ T, λ c hc x hx, ⟨S.smul_mem hc hx.1, T.smul_mem hc hx.2⟩,
@@ -161,7 +150,7 @@ instance : complete_lattice (convex_cone 𝕜 E) :=
   Sup_le       := λ s p hs x hx, mem_Inf.1 hx p hs,
   le_Inf       := λ s a ha x hx, mem_Inf.2 $ λ t ht, ha t ht hx,
   Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
-  .. partial_order.lift (coe : convex_cone 𝕜 E → set E) (λ a b, ext') }
+  .. set_like.partial_order }
 
 instance : inhabited (convex_cone 𝕜 E) := ⟨⊥⟩
 
@@ -204,9 +193,10 @@ def map (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) : convex_cone 𝕜 F :=
 
 lemma map_map (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 E) :
   (S.map f).map g = S.map (g.comp f) :=
-ext' $ image_image g f S
+set_like.coe_injective $ image_image g f S
 
-@[simp] lemma map_id (S : convex_cone 𝕜 E) : S.map linear_map.id = S := ext' $ image_id _
+@[simp] lemma map_id (S : convex_cone 𝕜 E) : S.map linear_map.id = S :=
+set_like.coe_injective $ image_id _
 
 /-- The preimage of a convex cone under a `𝕜`-linear map is a convex cone. -/
 def comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : convex_cone 𝕜 E :=
@@ -214,11 +204,12 @@ def comap (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 F) : convex_cone 𝕜 E :
   smul_mem' := λ c hc x hx, by { rw [mem_preimage, f.map_smul c], exact S.smul_mem hc hx },
   add_mem' := λ x hx y hy, by { rw [mem_preimage, f.map_add], exact S.add_mem hx hy } }
 
-@[simp] lemma comap_id (S : convex_cone 𝕜 E) : S.comap linear_map.id = S := ext' preimage_id
+@[simp] lemma comap_id (S : convex_cone 𝕜 E) : S.comap linear_map.id = S :=
+set_like.coe_injective preimage_id
 
 lemma comap_comap (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) (S : convex_cone 𝕜 G) :
   (S.comap g).comap f = S.comap (g.comp f) :=
-ext' $ preimage_comp.symm
+set_like.coe_injective $ preimage_comp.symm
 
 @[simp] lemma mem_comap {f : E →ₗ[𝕜] F} {S : convex_cone 𝕜 F} {x : E} : x ∈ S.comap f ↔ f x ∈ S :=
 iff.rfl
@@ -430,7 +421,7 @@ end
 
 lemma convex_hull_to_cone_eq_Inf (s : set E) :
   (convex_convex_hull 𝕜 s).to_cone _ = Inf {t : convex_cone 𝕜 E | s ⊆ t} :=
-(convex_hull_to_cone_is_least s).is_glb.Inf_eq.symm
+eq.symm $ is_glb.Inf_eq $ is_least.is_glb $ convex_hull_to_cone_is_least s
 
 end cone_from_convex
 
@@ -620,8 +611,7 @@ lemma mem_inner_dual_cone (y : H) (s : set H) :
   y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := by refl
 
 @[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
-convex_cone.ext' (eq_univ_of_forall
-  (λ x y hy, false.elim (set.not_mem_empty _ hy)))
+eq_top_iff.mpr $ λ x hy y, false.elim
 
 lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
   s.inner_dual_cone ≤ t.inner_dual_cone :=

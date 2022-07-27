@@ -161,8 +161,8 @@ instance fun_like : fun_like (gen_loop N x) (cube N) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
 
---@[ext] lemma ext (f g : gen_loop N x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
--- just use fun_like.ext ? but it's not labelled @[ext]
+@[ext] lemma ext (f g : gen_loop N x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
+-- using fun_like.ext is cumbersome as it's not labelled @[ext]
 
 @[simp] lemma mk_apply (f : C(cube N, X)) (H y) : (⟨f, H⟩ : gen_loop N x) y = f y := rfl
 
@@ -224,21 +224,17 @@ begin
   { exact gen_loop.boundary _ _ ⟨⟨j, Heq⟩, Hj⟩ },
 end⟩
 
-lemma from_to (i : N) (p : gen_loop N x) : from_path i (to_path i p) = p :=
-by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) }
-
 lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_path i (from_path i p) = p :=
 begin
-  ext1, ext1, ext1,
-  simp only [subtype.val_eq_coe, to_path_apply_coe, from_path_coe, continuous_map.comp_assoc],
-  rw [symm_comp_to_continuous_map, continuous_map.comp_id], ext, refl,
+  simp_rw [to_path, from_path, continuous_map.comp_assoc,
+    symm_comp_to_continuous_map, continuous_map.comp_id], ext, refl,
 end
 
 /-- The (n+1)-dimensional loops are isomorphic to the loop space at `const`.-/
-def path_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
+@[simps] def path_equiv (i : N) : gen_loop N x ≃ Ω (gen_loop {j // j ≠ i} x) const :=
 { to_fun := to_path i,
   inv_fun := from_path i,
-  left_inv := from_to i,
+  left_inv := λ p, by { ext, exact congr_arg p (equiv.apply_symm_apply _ _) },
   right_inv := to_from i }
 
 lemma to_path_apply (i : N) {p : gen_loop N x} {t} {tn} :
@@ -337,7 +333,7 @@ def homotopy_group_equiv_fundamental_group (i : N) :
   homotopy_group N x ≃ fundamental_group (gen_loop {j // j ≠ i} x) gen_loop.const :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
-  apply quotient.congr ⟨to_path i, from_path i, from_to i, to_from i⟩,
+  apply quotient.congr (path_equiv i),
   exact λ p q, ⟨homotopic_to i, homotopic_from i⟩,
 end
 
@@ -347,7 +343,7 @@ namespace homotopy_group
 def gen_loop_zero_equiv : gen_loop (fin 0) x ≃ X :=
 { to_fun := λ f, f 0,
   inv_fun := λ x, ⟨continuous_map.const _ x, λ _ ⟨f0,_⟩, f0.elim0⟩,
-  left_inv := λ f, by { ext1, ext1, exact congr_arg f (subsingleton.elim _ _) },
+  left_inv := λ f, by { ext, exact congr_arg f (subsingleton.elim _ _) },
   right_inv := λ _, rfl }
 
 /-- The 0th homotopy "group" is equivalent to the path components of `X`, aka the `zeroth_homotopy`.
@@ -379,7 +375,7 @@ end
     rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
     apply (congr_arg p iH).trans, exacts [p.source, p.target],
   end,
-  left_inv := λ p, by { ext, exact congr_arg p a.one_char.symm },
+  left_inv := λ p, by { ext, exact congr_arg p y.one_char.symm },
   right_inv := λ p, by { ext, refl } }
 
 /-- The first homotopy group at `x` is equivalent to the fundamental group, i.e. the loops based at
@@ -411,9 +407,6 @@ variables {n : ℕ} (i : fin (n+1))
 
 instance is_group : group (π_(n+1) x) :=
 (homotopy_group_equiv_fundamental_group 0).group
--- TODO: prove a characterization of the multiplication:
--- specifying how ⟦p⟧ * ⟦q⟧ acts on I^(n+1) for p q : gen_loop (fin (n+1)) x
--- do the same for const (base point) and reverse (path.symm)
 
 def aux_group : group (π_(n+2) x) :=
 (homotopy_group_equiv_fundamental_group 1).group
@@ -423,9 +416,8 @@ lemma ite_ite {α} (a b c : α) (j : fin (n+2)) :
   if j = 1 then b else if j = 0 then a else c :=
 by { split_ifs with h₀ h₁, { subst h₀, cases h₁ }, all_goals { refl } }
 
-
 --open unit_interval
-lemma path_trans_to_path {p q : gen_loop N x} (i : N) {t tn} :
+/-lemma path_trans_to_path {p q : gen_loop N x} (i : N) {t tn} :
   (to_path i p).trans (to_path i q) t tn =
   if h : (t : ℝ) ≤ 1/2
   then p (λ j, if hj : j = i then
@@ -437,13 +429,21 @@ lemma path_trans_to_path {p q : gen_loop N x} (i : N) {t tn} :
     --⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩
     else tn ⟨j, hj⟩) :=
 by { dsimp [path.trans], split_ifs; refl }
--- rw path.trans_apply, split_ifs; refl
+-- rw path.trans_apply, split_ifs; refl-/
 
 lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
-  from_path i ((to_path i p).trans $ to_path i q) t = if h : (t i : ℝ) ≤ 1/2
-    then p (λ j, if hj : j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
-    else q (λ j, if hj : j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j) :=
+  (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2
+    then p (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
+    else q (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j) :=
 by { dsimp [path.trans, from_path], split_ifs; refl }
+
+/-- Characterization for the multiplication on gen_loop;
+  do the same for const/base point (easy) and reverse/path.symm? -/
+lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
+  ∃ r, (⟦p⟧ * ⟦q⟧ : π_(n+1) x) = ⟦r⟧ ∧ ∀ t, r t = if (t 0 : ℝ) ≤ 1/2
+    then q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
+    else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
+⟨_, rfl, λ _, from_path_trans_to_path 0⟩
 
 @[reducible] def is_comm_group : comm_group (π_(n+2) x) :=
 @eckmann_hilton.comm_group (π_(n+2) x) aux_group.mul 1
@@ -451,9 +451,9 @@ by { dsimp [path.trans, from_path], split_ifs; refl }
 begin
   rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨d⟩, apply congr_arg quotient.mk,
   simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
-  apply fun_like.ext, intro, iterate 6 { rw from_path_trans_to_path },
-  simp_rw [dif_neg fin.zero_ne_one, dif_neg fin.zero_ne_one.symm],
-  split_ifs; { simp_rw dite_eq_ite, congr, ext1, apply ite_ite },
+  ext, iterate 6 { rw from_path_trans_to_path },
+  simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
+  split_ifs; { congr, ext1, apply ite_ite },
 end
 
 -- Below: to be removed?
@@ -468,7 +468,7 @@ by { unfold concat_, rw to_from }
 /--Concatenation of equivalence clasess along the `i`th component.-/
 def concat (i : fin (n+1)) : π_(n+1) x → π_(n+1) x → π_(n+1) x :=
 quotient.map₂' (concat_ i) (λ _ _ Hp _ _ Hq, homotopic_from i $
-  by { repeat {rw concat_to_trans},
+  by { repeat { rw concat_to_trans },
     exact (gen_loop.homotopic_to i Hp).hcomp (gen_loop.homotopic_to i Hq) } )
 
 lemma concat_eq (p q : π_(n+1) x) : concat 0 q p = p * q :=

@@ -1783,8 +1783,9 @@ end order
 
 variables [has_zero β] [t2_space β]
 
-/-- A measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`. The
-attribute `expand_exists` defines a def for the set and three lemmas giving its properties. -/
+/-- For a `ae_fin_strongly_measurable` function `f`, there exists a measurable set `t` such that
+`f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`. The attribute `expand_exists` creates a
+def for the set and three lemmas for its properties. -/
 @[expand_exists measure_theory.ae_fin_strongly_measurable.sigma_finite_set
   measure_theory.ae_fin_strongly_measurable.measurable_set
   measure_theory.ae_fin_strongly_measurable.ae_eq_zero_compl

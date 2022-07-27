@@ -46,6 +46,17 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
 
+instance {ι : Type*} {π : ι → Type*} [finite ι] [Π i, topological_space (π i)]
+  [∀ i, locally_compact_space (π i)] : locally_compact_space (Π i, π i) :=
+⟨λ t n hn, begin
+  rw [nhds_pi, filter.mem_pi] at hn,
+  obtain ⟨s, hs, n', hn', hsub⟩ := hn,
+  choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
+  use (set.univ : set ι).pi n'', rw set_pi_mem_nhds_iff (@set.finite_univ ι _),
+  refine ⟨λ i _, hn'' i, subset_trans (λ _ h, _) hsub, is_compact_univ_pi hc⟩,
+  intros i _, exact hsub' i (h i trivial),
+end⟩
+
 -- TODO : move to topology.subset_properties near is_compact_univ_pi
 instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [∀ i, compact_space (π i)]
   [∀ i, locally_compact_space (π i)] : locally_compact_space (Π i, π i) :=

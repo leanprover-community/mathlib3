@@ -123,9 +123,10 @@ namespace cube
 
 instance compact_space : compact_space (cube N) :=
 by { convert pi.compact_space, intro, apply_instance }
-
+/- The problem is that Lean can't synthesize `N → compact_space I` even if it knows the instance
+  `compact_space I`. Can Lean 3 be made automatically infer these? What about Lean 4? -/
 instance locally_compact_space : locally_compact_space (cube N) :=
-by { convert pi.locally_compact_space; intro; apply_instance }
+by convert pi.locally_compact_space; intro; apply_instance
 
 /-- The points of the `n`-dimensional cube with at least one projection equal to 0 or 1. -/
 def boundary (N) : set (cube N) := {y | ∃ i, y i = 0 ∨ y i = 1}
@@ -213,7 +214,7 @@ end
 end homotopic
 
 section
---variables (i j : fin (n+1))
+
 variable [decidable_eq N]
 
 /-- Path from a generalized loop by `insert`-ing into `I^(n+1)`. -/
@@ -430,21 +431,6 @@ lemma ite_ite {α} (a b c : α) (j : fin (n+2)) :
   (if j = 0 then a else if j = 1 then b else c) =
   if j = 1 then b else if j = 0 then a else c :=
 by { split_ifs with h₀ h₁, { subst h₀, cases h₁ }, all_goals { refl } }
-
---open unit_interval
-/-lemma path_trans_to_path {p q : gen_loop N x} (i : N) {t tn} :
-  (to_path i p).trans (to_path i q) t tn =
-  if h : (t : ℝ) ≤ 1/2
-  then p (λ j, if hj : j = i then
-    set.proj_Icc 0 1 zero_le_one (2*t)
-    --⟨2 * t, (mul_pos_mem_iff zero_lt_two).2 ⟨t.2.1, h⟩⟩
-    else tn ⟨j, hj⟩)
-  else q (λ j, if hj : j = i then
-    set.proj_Icc 0 1 zero_le_one (2*t-1)
-    --⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩
-    else tn ⟨j, hj⟩) :=
-by { dsimp [path.trans], split_ifs; refl }
--- rw path.trans_apply, split_ifs; refl-/
 
 lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
   (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2

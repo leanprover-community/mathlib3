@@ -15,7 +15,7 @@ import data.fintype.basic
 
 -- TODO add reference to [this](https://kconrad.math.uconn.edu/blurbs/ugradnumthy/millerrabin.pdf)
 
-
+open nat
 -- open_locale classical
 
 def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)

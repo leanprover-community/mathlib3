@@ -5,7 +5,7 @@ Authors: Eric Wieser
 -/
 import algebra.module.equiv
 import data.dfinsupp.basic
-import data.finsupp.basic
+import data.finsupp.misc
 
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`

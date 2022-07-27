@@ -9,7 +9,7 @@ import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule.lattice
 import data.dfinsupp.basic
-import data.finsupp.basic
+import data.finsupp.misc
 import order.compactly_generated
 
 /-!

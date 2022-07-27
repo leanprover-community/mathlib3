@@ -808,7 +808,7 @@ def _root_.submodule.subtypeL (p : submodule R₁ M₁) : p →L[R₁] M₁ :=
   (p.subtypeL : p →ₗ[R₁] M₁) = p.subtype :=
 rfl
 
-@[simp] lemma _root_.submodule.coe_subtypeL' (p : submodule R₁ M₁) (x : p) :
+@[simp] lemma _root_.submodule.coe_subtypeL' (p : submodule R₁ M₁) :
   ⇑p.subtypeL = p.subtype :=
 rfl
 

@@ -1803,8 +1803,8 @@ end
 /-- A measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`. -/
 add_decl_doc sigma_finite_set
 
-attribute [protected] measure_theory.ae_fin_strongly_measurable.measurable_set
-attribute [instance] measure_theory.ae_fin_strongly_measurable.sigma_finite_restrict
+attribute [protected] ae_fin_strongly_measurable.measurable_set
+attribute [instance] sigma_finite_restrict
 
 end ae_fin_strongly_measurable
 

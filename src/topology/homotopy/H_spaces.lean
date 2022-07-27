@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
 
--- import analysis.complex.circle
-import tactic.monotonicity
 import topology.compact_open
 import topology.homotopy.basic
 import topology.homotopy.path
@@ -34,29 +32,23 @@ begin
   apply is_open_iff_forall_mem_open.mpr,
   rintros ⟨φ₀, ψ₀⟩ H,
   simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
-    set.mem_set_of_eq] at H,
-  obtain ⟨L, ⟨hL, hL_left⟩⟩ := exists_compact_superset (hK.image φ₀.2),
-  have hL_right : L ⊆ ψ₀ ⁻¹' U,
-  --This `hL_right` follows from Prop. 10, Chap. I, §9, №. 7 of Bouraki's *Topologie Générale*
-  { rw [set.preimage_comp] at H,
-    rw [← set.image_subset_iff] at H,
-    sorry,
-  },
+    set.mem_set_of_eq, @set.preimage_comp _ _ _ φ₀ ψ₀ _, to_fun_eq_coe] at H,
+  obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_superset' (hK.image φ₀.2)
+    (hU.preimage ψ₀.2) (set.image_subset_iff.mpr H),
   set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
-  have hV : is_open V := continuous_map.is_open_gen hK is_open_interior,
+  have hV := continuous_map.is_open_gen hK is_open_interior,
   set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
-  have hW : is_open W := continuous_map.is_open_gen hL hU,
+  have hW := continuous_map.is_open_gen hL hU,
   use V ×ˢ W,
   split,
   { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
     simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
     set.mem_set_of_eq],
     rw [← set.image_subset_iff, set.image_comp],
-    exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ,
-  },
+    exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ },
   exact ⟨is_open.prod hV hW, set.mem_prod.mpr
     ⟨by {simp only [set.mem_set_of_eq], exact hL_left},
-    by {simp only [set.mem_set_of_eq, set.image_subset_iff, hL_right]}⟩⟩,
+    by {simp only [set.mem_set_of_eq, set.image_subset_iff], exact hL_right}⟩⟩,
 end
 
 end continuous_map

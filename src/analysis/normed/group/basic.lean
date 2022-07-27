@@ -409,7 +409,8 @@ by simpa only [dist_one_right] using tendsto_dist_right_cocompact_at_top (1 : E)
 @[to_additive] lemma norm_div_rev (a b : E) : ∥a / b∥ = ∥b / a∥ :=
 by simpa only [dist_eq_norm_div] using dist_comm a b
 
-@[simp, to_additive] lemma norm_inv (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 1 a
+@[simp, to_additive norm_neg]
+lemma norm_inv' (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 1 a
 
 @[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
 by simp [dist_eq_norm_div]
@@ -423,18 +424,18 @@ by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`."]
 lemma filter.tendsto_inv_cobounded :
   tendsto (has_inv.inv : E → E) (comap norm at_top) (comap norm at_top) :=
-by simpa only [norm_inv, tendsto_comap_iff, (∘)] using tendsto_comap
+by simpa only [norm_inv', tendsto_comap_iff, (∘)] using tendsto_comap
 
 /-- **Triangle inequality** for the norm. -/
-@[to_additive "**Triangle inequality** for the norm."]
-lemma norm_mul_le (a b : E) : ∥a * b∥ ≤ ∥a∥ + ∥b∥ :=
+@[to_additive norm_add_le "**Triangle inequality** for the norm."]
+lemma norm_mul_le' (a b : E) : ∥a * b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa [dist_eq_norm_div] using dist_triangle a 1 b⁻¹
 
 @[to_additive] lemma norm_mul_le_of_le (h₁ : ∥a₁∥ ≤ r₁) (h₂ : ∥a₂∥ ≤ r₂) : ∥a₁ * a₂∥ ≤ r₁ + r₂ :=
-(norm_mul_le a₁ a₂).trans $ add_le_add h₁ h₂
+(norm_mul_le' a₁ a₂).trans $ add_le_add h₁ h₂
 
 @[to_additive norm_add₃_le] lemma norm_mul₃_le (a b c : E) : ∥a * b * c∥ ≤ ∥a∥ + ∥b∥ + ∥c∥ :=
-norm_mul_le_of_le (norm_mul_le _ _) le_rfl
+norm_mul_le_of_le (norm_mul_le' _ _) le_rfl
 
 @[simp, to_additive norm_nonneg] lemma norm_nonneg' (a : E) : 0 ≤ ∥a∥ :=
 by { rw[←dist_one_right], exact dist_nonneg }
@@ -451,14 +452,14 @@ meta def _root_.tactic.positivity_norm : expr → tactic strictness
 
 end
 
-@[simp, to_additive] lemma norm_one : ∥(1 : E)∥ = 0 := by rw [←dist_one_right, dist_self]
+@[simp, to_additive norm_zero] lemma norm_one' : ∥(1 : E)∥ = 0 := by rw [←dist_one_right, dist_self]
 
 @[to_additive] lemma ne_one_of_norm_ne_zero : ∥a∥ ≠ 0 → a ≠ 1 :=
-mt $ by { rintro rfl, exact norm_one }
+mt $ by { rintro rfl, exact norm_one' }
 
 @[nontriviality, to_additive norm_of_subsingleton]
 lemma norm_of_subsingleton' [subsingleton E] (a : E) : ∥a∥ = 0 :=
-by rw [subsingleton.elim a 1, norm_one]
+by rw [subsingleton.elim a 1, norm_one']
 
 @[to_additive] lemma norm_div_le (a b : E) : ∥a / b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa [dist_eq_norm_div] using dist_triangle a 1 b
@@ -480,7 +481,7 @@ by simpa [dist_eq_norm_div] using abs_dist_sub_le a b 1
 abs_norm_sub_norm_le' a b
 
 @[to_additive] lemma norm_le_norm_add_norm_div' (u v : E) : ∥u∥ ≤ ∥v∥ + ∥u / v∥ :=
-by { rw add_comm, refine (norm_mul_le _ _).trans_eq' _, rw div_mul_cancel' }
+by { rw add_comm, refine (norm_mul_le' _ _).trans_eq' _, rw div_mul_cancel' }
 
 @[to_additive] lemma norm_le_norm_add_norm_div (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u / v∥ :=
 by { rw norm_div_rev, exact norm_le_norm_add_norm_div' v u }
@@ -681,15 +682,15 @@ lemma norm_to_nnreal' : ∥a∥.to_nnreal = ∥a∥₊ := @real.to_nnreal_coe �
 @[to_additive nndist_eq_nnnorm]
 lemma nndist_eq_nnnorm' (a b : E) : nndist a b = ∥a / b∥₊ := nnreal.eq $ dist_eq_norm_div _ _
 
-@[simp, to_additive] lemma nnnorm_one : ∥(1 : E)∥₊ = 0 := nnreal.eq norm_one
+@[simp, to_additive nnnorm_zero] lemma nnnorm_one' : ∥(1 : E)∥₊ = 0 := nnreal.eq norm_one'
 
 @[to_additive] lemma ne_one_of_nnnorm_ne_zero {a : E} : ∥a∥₊ ≠ 0 → a ≠ 1 :=
-mt $ by { rintro rfl, exact nnnorm_one }
+mt $ by { rintro rfl, exact nnnorm_one' }
 
-@[to_additive]
-lemma nnnorm_mul_le (a b : E) : ∥a * b∥₊ ≤ ∥a∥₊ + ∥b∥₊ := nnreal.coe_le_coe.1 $ norm_mul_le a b
+@[to_additive nnnorm_add_le]
+lemma nnnorm_mul_le' (a b : E) : ∥a * b∥₊ ≤ ∥a∥₊ + ∥b∥₊ := nnreal.coe_le_coe.1 $ norm_mul_le' a b
 
-@[simp, to_additive] lemma nnnorm_inv (a : E) : ∥a⁻¹∥₊ = ∥a∥₊ := nnreal.eq $ norm_inv a
+@[simp, to_additive nnnorm_neg] lemma nnnorm_inv' (a : E) : ∥a⁻¹∥₊ = ∥a∥₊ := nnreal.eq $ norm_inv' a
 
 @[to_additive nndist_nnnorm_nnnorm_le]
 lemma nndist_nnnorm_nnnorm_le' (a b : E) : nndist ∥a∥₊ ∥b∥₊ ≤ ∥a / b∥₊ :=
@@ -973,7 +974,7 @@ variables [seminormed_comm_group E] [seminormed_comm_group F] {a a₁ a₂ b b�
 by simp [dist_eq_norm_div]
 
 @[to_additive] lemma dist_inv (x y : E) : dist x⁻¹ y = dist x y⁻¹ :=
-by simp_rw [dist_eq_norm_div, ←norm_inv (x⁻¹ / y), inv_div, div_inv_eq_mul, mul_comm]
+by simp_rw [dist_eq_norm_div, ←norm_inv' (x⁻¹ / y), inv_div, div_inv_eq_mul, mul_comm]
 
 @[simp, to_additive] lemma dist_inv_inv (a b : E) : dist a⁻¹ b⁻¹ = dist a b :=
 by rw [dist_inv, inv_inv]
@@ -988,7 +989,7 @@ by rw [←dist_one_left, ←dist_mul_left a 1 b, mul_one]
 by rw [dist_comm, dist_self_mul_right]
 
 @[simp, to_additive] lemma dist_self_div_right (a b : E) : dist a (a / b) = ∥b∥ :=
-by rw [div_eq_mul_inv, dist_self_mul_right, norm_inv]
+by rw [div_eq_mul_inv, dist_self_mul_right, norm_inv']
 
 @[simp, to_additive] lemma dist_self_div_left (a b : E) : dist (a / b) a = ∥b∥ :=
 by rw [dist_comm, dist_self_div_right]
@@ -1022,8 +1023,8 @@ s.le_sum_of_subadditive norm norm_zero norm_add_le f
 begin
   rw [←multiplicative.of_add_le, finset.of_add_sum],
   refine finset.le_prod_of_submultiplicative (multiplicative.of_add ∘ norm) _ (λ x y, _) _ _,
-  { simp only [comp_app, norm_one, of_add_zero] },
-  { exact norm_mul_le _ _ }
+  { simp only [comp_app, norm_one', of_add_zero] },
+  { exact norm_mul_le' _ _ }
 end
 
 @[to_additive]

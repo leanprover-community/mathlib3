@@ -21,7 +21,9 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C]
 
 /-- In an abelian category, the subobjects and quotient objects of an object `X` are
-    order-isomorphic via taking kernels and cokernels. -/
+    order-isomorphic via taking kernels and cokernels.
+    Implemented here using subobjects in the opposite category,
+    since mathlib does not have a notion of quotient objects at the time of writing. -/
 @[simps]
 def subobject_iso_subobject_op [abelian C] (X : C) : subobject X ≃o (subobject (op X))ᵒᵈ :=
 begin

@@ -41,8 +41,7 @@ end
 modulo `N`.-/
 def Gamma (N : ℕ) : subgroup SL(2, ℤ) := (SL_reduction_mod_hom N).ker
 
-lemma Gamma_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (SL_reduction_mod_hom N γ) = 1 :=
-iff.rfl
+lemma Gamma_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (SL_reduction_mod_hom N γ) = 1 := iff.rfl
 
 @[simp]
 lemma Gamma_mem (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (((↑ₘγ 0 0) : ℤ) : zmod N) = 1 ∧
@@ -74,12 +73,12 @@ begin
   simp only [Gamma_mem, coe_coe, coe_matrix_coe, int.coe_cast_ring_hom, map_apply, int.cast_id,
     subgroup.mem_bot],
   split,
-  intro h,
+  { intro h,
   ext,
   fin_cases i; fin_cases j,
-  any_goals {simp [h]},
-  intro h,
-  simp [h],
+  any_goals {simp [h]} },
+  { intro h,
+   simp [h] }
 end
 
 /--The congruence subgroup of `SL(2,ℤ)` of matrices whose lower left-hand entry reduces to zero
@@ -104,10 +103,7 @@ def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
 @[simp]
 lemma Gamma0_mem (N : ℕ) (A: SL(2, ℤ)) : A ∈ (Gamma0 N) ↔ (((↑ₘA) 1 0 : ℤ) : zmod N) = 0 := iff.rfl
 
-lemma Gamma0_det (N : ℕ) (A : Gamma0 N) : (A.1.1.det : zmod N) = 1 :=
-begin
-  simp [A.1.property],
-end
+lemma Gamma0_det (N : ℕ) (A : Gamma0 N) : (A.1.1.det : zmod N) = 1 := by {simp [A.1.property]}
 
 /--The group homomorphism from `Gamma0` to `zmod N` given by mapping a matrix to its lower
 right-hand entry. -/
@@ -130,8 +126,7 @@ row is congruent to `(0,1)` modulo `N`.-/
 def Gamma1' (N : ℕ) : subgroup (Gamma0 N) := (Gamma_0_map N).ker
 
 @[simp]
-lemma Gamma1_mem' (N : ℕ) (γ :(Gamma0 N)) : γ ∈ (Gamma1' N) ↔ ((Gamma_0_map N) γ) = 1 :=
-iff.rfl
+lemma Gamma1_mem' (N : ℕ) (γ :(Gamma0 N)) : γ ∈ (Gamma1' N) ↔ ((Gamma_0_map N) γ) = 1 := iff.rfl
 
 lemma Gamma1_to_Gamma0_mem (N : ℕ) (A : Gamma0 N) : A ∈ (Gamma1' N) ↔
   ((↑ₘA 0 0 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 1 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 0 : ℤ) : zmod N) = 0 :=
@@ -203,9 +198,7 @@ begin
 end
 
 lemma Gamma_is_cong_sub (N : ℕ+) : is_congruence_subgroup (Gamma N) :=
-begin
-  refine ⟨N, by {simp only [le_refl]}⟩,
-end
+⟨N, by {simp only [le_refl]}⟩
 
 lemma Gamma1_is_congruence (N : ℕ+) : is_congruence_subgroup (Gamma1 N) :=
 begin
@@ -216,9 +209,7 @@ begin
 end
 
 lemma Gamma0_is_congruence (N : ℕ+) : is_congruence_subgroup (Gamma0 N) :=
-begin
-  apply is_congruence_subgroup_trans _ _ (Gamma1_in_Gamma0 N) (Gamma1_is_congruence N),
-end
+is_congruence_subgroup_trans _ _ (Gamma1_in_Gamma0 N) (Gamma1_is_congruence N)
 
 end congruence_subgroup
 
@@ -234,11 +225,9 @@ end
 lemma conj_cong_is_cong (g : conj_act SL(2, ℤ)) (Γ : subgroup SL(2, ℤ))
   (h : is_congruence_subgroup Γ) : is_congruence_subgroup (g • Γ) :=
 begin
-  simp_rw is_congruence_subgroup at *,
   obtain ⟨N, HN⟩ := h,
   refine ⟨N, _⟩,
-  rw ←Gamma_cong_eq_self N g,
-  rw subgroup.pointwise_smul_le_pointwise_smul_iff,
+  rw [←Gamma_cong_eq_self N g, subgroup.pointwise_smul_le_pointwise_smul_iff],
   exact HN,
 end
 

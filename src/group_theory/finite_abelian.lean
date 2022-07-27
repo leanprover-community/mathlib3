@@ -21,14 +21,14 @@ open_locale direct_sum
 
 universe u
 
-variables (G : Type u)
+variables (M : Type u)
 
 namespace module
 
-lemma finite_of_fg_torsion [add_comm_group G] [module ℤ G] [module.finite ℤ G]
-  (hG : module.is_torsion ℤ G) : _root_.finite G :=
+lemma finite_of_fg_torsion [add_comm_group M] [module ℤ M] [module.finite ℤ M]
+  (hM : module.is_torsion ℤ M) : _root_.finite M :=
 begin
-  rcases module.equiv_direct_sum_of_is_torsion hG with ⟨ι, _, p, h, e, ⟨l⟩⟩,
+  rcases module.equiv_direct_sum_of_is_torsion hM with ⟨ι, _, p, h, e, ⟨l⟩⟩,
   haveI : ∀ i : ι, fact $ 0 < (p i ^ e i).nat_abs :=
   λ i, fact.mk $ int.nat_abs_pos_of_ne_zero $ pow_ne_zero (e i) (h i).ne_zero,
   haveI : ∀ i : ι, _root_.finite $ ℤ ⧸ submodule.span ℤ {p i ^ e i} :=

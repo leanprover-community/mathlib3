@@ -17,8 +17,6 @@ universes u v w
 
 
 noncomputable theory
-
-
 local attribute [instance] prop_decidable
 -- to make every proposition decidable
 
@@ -74,7 +72,7 @@ begin
     {apply l₁_ih, assumption, } }
 end
 
-lemma list.map_to_finset {α β : Type*}  [decidable_eq α]  [decidable_eq β] (f : α → β) (l : list α) :
+lemma map_to_finset {α β : Type*}  [decidable_eq α]  [decidable_eq β] (f : α → β) (l : list α) :
   (l.map f).to_finset = finset.image f l.to_finset :=
 list.rec_on l (by {simp}) (λ h t hyp, by {simp,rw hyp,})
 
@@ -91,7 +89,6 @@ lemma transitive_to_good_automs [locally_finite G] [G.preconnected]
 begin
   sorry
 end
-
 
 -- This should be made compatible with the `simple_graph` API but for now we leave it aside
 def subconnected (X : set V) := ∀ x y ∈ X, ∃ w : G.walk x y, ↑w.support.to_finset ⊆ X
@@ -161,5 +158,38 @@ begin
   { exact set.not_disjoint_iff.mpr ⟨y,by simp,yY⟩}
 
 end
+
+lemma subconnected.image {U : Type*} (H : simple_graph U) (φ : G →g H)
+  {X : finset V} (hX : subconnected G X) : (subconnected H (finset.image φ X)) :=
+begin
+    rintros φx xφ φy yφ,
+    simp at xφ,
+    simp at yφ,
+    rcases xφ with ⟨x,⟨xK,rfl⟩⟩,
+    rcases yφ with ⟨y,⟨yK,rfl⟩⟩,
+    rcases hX x xK y yK with ⟨w,wgood⟩,
+    rw finset.coe_subset at wgood,
+    let φw := w.map φ,
+    use φw,
+    rw [walk.support_map,list.map_to_finset,finset.coe_subset],
+    apply finset.image_subset_image wgood,
+end
+
+/-
+
+  have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by {
+    rintros φx xφ φy yφ,
+    simp at xφ,
+    simp at yφ,
+    rcases xφ with ⟨x,⟨xK,rfl⟩⟩,
+    rcases yφ with ⟨y,⟨yK,rfl⟩⟩,
+    rcases K'conn x xK y yK with ⟨w,wgood⟩,
+    let φw := w.map φ.to_hom,
+    use φw,
+    rw [walk.support_map,list.map_to_finset],
+    apply finset.image_subset_image wgood,
+  },
+-/
+
 
 end simple_graph

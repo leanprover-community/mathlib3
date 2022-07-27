@@ -574,7 +574,7 @@ localization_finite_type.away r hf
 variable {S'}
 
 /--
-Let `S` be an `R`-algebra, `M` an submonoid of `S`, `S' = M⁻¹S`.
+Let `S` be an `R`-algebra, `M` a submonoid of `S`, `S' = M⁻¹S`.
 Suppose the image of some `x : S` falls in the adjoin of some finite `s ⊆ S'` over `R`,
 and `A` is an `R`-subalgebra of `S` containing both `M` and the numerators of `s`.
 Then, there exists some `m : M` such that `m • x` falls in `A`.

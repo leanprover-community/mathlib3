@@ -332,7 +332,7 @@ begin
     use [a, b, ha, hb],
     rw [hab, div_one, div_one] },
   { rintro ⟨a, b, ha, hb, rfl⟩,
-    have hab : 0 < a + b, positivity,
+    have hab : 0 < a + b := by positivity,
     refine ⟨a / (a + b), b / (a + b), by positivity, by positivity, _, rfl⟩,
     rw [← add_div, div_self hab.ne'] }
 end

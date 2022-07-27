@@ -618,6 +618,9 @@ begin
   simp [hxy],
 end
 
+--lemma le_graph_iff {f g : linear_pmap R E F} : f.graph ≤ g.graph ↔ f ≤ g :=
+--⟨le_of_le_graph, le_graph_of_le⟩
+
 lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
 by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }
 

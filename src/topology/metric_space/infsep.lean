@@ -183,9 +183,9 @@ noncomputable def infsep [has_edist α] (s : set α) : ℝ := ennreal.to_real (s
 section has_edist
 variables [has_edist α] {x y : α} {s : set α}
 
-lemma infsep_nonneg : 0 ≤ s.infsep := sorry
+--lemma infsep_nonneg : 0 ≤ s.infsep := sorry
 
-lemma infsep_subsingleton (hs : s.subsingleton) : s.infsep = 0 := sorry
+--lemma infsep_subsingleton (hs : s.subsingleton) : s.infsep = 0 := sorry
 
 
 end has_edist

@@ -123,14 +123,14 @@ begin
     exact sum_eq_zero_of_is_nontrivial (hψ (b - 1) (sub_ne_zero_of_ne h)), },
 end
 
-/-- We have `gauss_sum χ ψ * gauss_sum χ⁻¹ (mul_shift ψ (-1)) = fintype.card R`
+/-- We have `gauss_sum χ ψ * gauss_sum χ⁻¹ ψ⁻¹ = fintype.card R`
 when `χ` is nontrivial and `ψ` is primitive (and `R` is a field). -/
 lemma gauss_sum_mul_gauss_sum_eq_card  {χ : mul_char R R'} (hχ : is_nontrivial χ)
   {ψ : add_char R R'} (hψ : is_primitive ψ) :
-  gauss_sum χ ψ * gauss_sum χ⁻¹ (mul_shift ψ (-1)) = fintype.card R :=
+  gauss_sum χ ψ * gauss_sum χ⁻¹ ψ⁻¹ = fintype.card R :=
 begin
-  simp only [gauss_sum, mul_shift, monoid_hom.coe_comp, function.comp_app,
-             add_monoid_hom.to_multiplicative_apply_apply, finset.mul_sum,
+  simp only [gauss_sum, inv_mul_shift, mul_shift, monoid_hom.coe_comp,
+             function.comp_app, add_monoid_hom.to_multiplicative_apply_apply, finset.mul_sum,
              add_monoid_hom.coe_mul_left, neg_mul, one_mul, of_add_neg, of_add_to_add],
   simp_rw [finset.sum_mul],
   conv in (_ * _ * (_ * _)) { rw [mul_mul_mul_comm, inv_apply' χ, ← map_mul χ, ← map_mul ψ] },
@@ -157,7 +157,7 @@ begin
   nth_rewrite 1 ← gauss_sum_mul_shift _ _ (-1 : Rˣ),
   rw [(by norm_num : ((-1 : Rˣ) : R) = -1), ← mul_assoc, mul_comm _ (χ (-1)), mul_assoc],
   nth_rewrite 2 ← hχ₂.inv,
-  rw [gauss_sum_mul_gauss_sum_eq_card hχ₁ hψ],
+  rw [← inv_mul_shift, gauss_sum_mul_gauss_sum_eq_card hχ₁ hψ],
 end
 
 end gauss_sum_prod

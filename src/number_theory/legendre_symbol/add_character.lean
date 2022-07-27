@@ -15,6 +15,8 @@ Let `R` be a finite commutative ring. An *additive character* of `R` with values
 in another commutative ring `R'` is simply a morphism from the additive group
 of `R` into the multiplicative monoid of `R'`.
 
+The additive characters on `R` with values in `R'` form a commutative group.
+
 We use the namespace `add_char`.
 
 ## Main definitions and results
@@ -60,6 +62,36 @@ abbreviation add_char : Type (max u v) := (multiplicative R) →* R'
 
 end add_char_def
 
+section group_structure
+
+universes u v
+
+namespace add_char
+
+open multiplicative
+
+variables {R : Type u} [add_comm_group R] {R' : Type v} [comm_monoid R']
+
+/-- An additive character on a commutative additive group has an inverse. -/
+instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp neg_add_monoid_hom.to_multiplicative⟩
+
+lemma inv_apply (ψ : add_char R R') (x : multiplicative R) : ψ⁻¹ x = ψ (of_add (- (to_add x))) :=
+rfl
+
+lemma inv_apply' (ψ : add_char R R') (x : R) : ψ⁻¹ (of_add x) = ψ (of_add (- x)) := rfl
+
+/-- The additive characters on a commutative additive group form a commutative group. -/
+instance comm_group : comm_group (add_char R R') :=
+let comm_mon : comm_monoid (add_char R R') := by apply_instance in
+{ inv := has_inv.inv,
+  mul_left_inv :=
+  λ ψ, by { ext, rw [monoid_hom.mul_apply, monoid_hom.one_apply, inv_apply, ← map_mul, of_add_neg,
+                     of_add_to_add, mul_left_inv, map_one], },
+  ..comm_mon }
+
+end add_char
+
+end group_structure
 
 section additive
 
@@ -93,10 +125,24 @@ def mul_shift (ψ : add_char R R') (a : R) : add_char R R' :=
 @[simp] lemma mul_shift_apply {ψ : add_char R R'} {a : R} {x : multiplicative R} :
   mul_shift ψ a x = ψ (of_add (a * to_add x)) := rfl
 
+/-- `ψ⁻¹ = mul_shift ψ (- 1))`. -/
+lemma inv_mul_shift (ψ : add_char R R') : ψ⁻¹ = mul_shift ψ (- 1) :=
+begin
+  ext,
+  rw [inv_apply, mul_shift_apply, neg_mul, one_mul],
+end
+
 /-- If `n` is a natural number, then `mul_shift ψ n x = (ψ x) ^ n`. -/
 lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : multiplicative R) :
   mul_shift ψ n x = (ψ x) ^ n :=
 by rw [mul_shift_apply, ← nsmul_eq_mul, of_add_nsmul, map_pow, of_add_to_add]
+
+/-- If `n` is a natural number, then `ψ ^ n = mul_shift ψ n`. -/
+lemma pow_mul_shift (ψ : add_char R R') (n : ℕ) : ψ ^ n = mul_shift ψ n :=
+begin
+  ext x,
+  rw [show (ψ ^ n) x = (ψ x) ^ n, from rfl, ← mul_shift_spec'],
+end
 
 /-- The product of `mul_shift ψ a` and `mul_shift ψ b` is `mul_shift ψ (a + b)`. -/
 lemma mul_shift_mul (ψ : add_char R R') (a b : R) :

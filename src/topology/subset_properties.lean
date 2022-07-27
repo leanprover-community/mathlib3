@@ -1027,9 +1027,9 @@ instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π
   rw [nhds_pi, filter.mem_pi] at hn,
   obtain ⟨s, hs, n', hn', hsub⟩ := hn,
   choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
-  use (set.univ : set ι).pi n'', rw set_pi_mem_nhds_iff (@set.finite_univ ι _),
-  refine ⟨λ i _, hn'' i, subset_trans (λ _ h, _) hsub, is_compact_univ_pi hc⟩,
-  intros i _, exact hsub' i (h i trivial),
+  refine ⟨(set.univ : set ι).pi n'', _, subset_trans (λ _ h, _) hsub, is_compact_univ_pi hc⟩,
+  { exact (set_pi_mem_nhds_iff (@set.finite_univ ι _) _).mpr (λ i hi, hn'' i), },
+  { exact λ i hi, hsub' i (h i trivial), },
 end⟩
 
 instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
@@ -1037,12 +1037,14 @@ instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compac
   rw [nhds_pi, filter.mem_pi] at hn,
   obtain ⟨s, hs, n', hn', hsub⟩ := hn,
   choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
-  use s.pi n'', rw set_pi_mem_nhds_iff hs,
-  refine ⟨λ i _, hn'' i, subset_trans (λ _, _) hsub, _⟩,
-  { refine forall₂_imp (λ i _, _), apply hsub' },
-  { classical, rw ← set.univ_pi_ite, apply is_compact_univ_pi,
-    intro i, by_cases i ∈ s, { rw if_pos h, apply hc },
-    { rw if_neg h, exact compact_space.compact_univ } },
+  refine ⟨s.pi n'', _, subset_trans (λ _, _) hsub, _⟩,
+  { exact (set_pi_mem_nhds_iff hs _).mpr (λ i _, hn'' i), },
+  { exact forall₂_imp (λ i hi hi', hsub' i hi'), },
+  { rw ← set.univ_pi_ite,
+    refine is_compact_univ_pi (λ i, _),
+    by_cases i ∈ s,
+    { rw if_pos h, exact hc i, },
+    { rw if_neg h, exact compact_space.compact_univ, } },
 end⟩
 
 end

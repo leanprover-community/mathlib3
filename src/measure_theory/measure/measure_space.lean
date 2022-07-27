@@ -2863,8 +2863,9 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
   is_finite_measure_on_compacts (c • μ) :=
 ⟨λ K hK, ennreal.mul_lt_top hc (hK.measure_lt_top).ne⟩
 
-@[priority 50] -- see Note [lower instance priority]
-instance compact_space.is_finite_measure
+/-- Note this cannot be an instance because it would form a typeclass loop with
+`is_finite_measure_on_compacts_of_is_locally_finite_measure`. -/
+lemma compact_space.is_finite_measure
   [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
   is_finite_measure μ :=
 ⟨is_finite_measure_on_compacts.lt_top_of_is_compact compact_univ⟩
@@ -3328,6 +3329,15 @@ instance is_finite_measure_on_compacts_of_is_locally_finite_measure
   [topological_space α] {m : measurable_space α} {μ : measure α}
   [is_locally_finite_measure μ] : is_finite_measure_on_compacts μ :=
 ⟨λ s hs, hs.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _⟩
+
+lemma is_finite_measure_iff_is_finite_measure_on_compacts_of_compact_space
+  [topological_space α] [measurable_space α] {μ : measure α} [compact_space α] :
+  is_finite_measure μ ↔ is_finite_measure_on_compacts μ :=
+begin
+  split; introsI,
+  { apply_instance, },
+  { exact compact_space.is_finite_measure, },
+end
 
 /-- Compact covering of a `σ`-compact topological space as
 `measure_theory.measure.finite_spanning_sets_in`. -/

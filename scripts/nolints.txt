@@ -893,10 +893,6 @@ apply_nolint is_countably_spanning.pi fintype_finite
 apply_nolint measure_theory.measure.prod_sum fintype_finite
 apply_nolint measure_theory.measure.sum_prod fintype_finite
 
--- measure_theory/function/uniform_integrable.lean
-apply_nolint measure_theory.unif_integrable_fintype fintype_finite
-apply_nolint measure_theory.uniform_integrable_fintype fintype_finite
-
 -- measure_theory/group/prod.lean
 apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
 apply_nolint measure_theory.map_prod_inv_mul_eq_swap to_additive_doc

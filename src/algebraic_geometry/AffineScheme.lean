@@ -513,10 +513,6 @@ begin
   refl
 end
 
-/-- The collection of affine open sets of `X`. -/
-def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
-{ U : opens X.carrier | is_affine_open U }
-
 /-- The basic open set of a section `f` on an an affine open as an `X.affine_opens`. -/
 abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
   (f : X.presheaf.obj $ op U) : X.affine_opens :=

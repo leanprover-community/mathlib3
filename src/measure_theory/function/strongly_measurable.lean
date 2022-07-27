@@ -1781,8 +1781,6 @@ protected lemma inf [semilattice_inf β] [has_continuous_inf β]
 
 end order
 
-variables [has_zero β] [t2_space β]
-
 /-- For a `ae_fin_strongly_measurable` function `f`, there exists a measurable set `t` such that
 `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`. The attribute `expand_exists` creates a
 def for the set and three lemmas for its properties. -/
@@ -1790,7 +1788,7 @@ def for the set and three lemmas for its properties. -/
   measure_theory.ae_fin_strongly_measurable.measurable_set
   measure_theory.ae_fin_strongly_measurable.ae_eq_zero_compl
   measure_theory.ae_fin_strongly_measurable.sigma_finite_restrict]
-lemma exists_set_sigma_finite (hf : ae_fin_strongly_measurable f μ) :
+lemma exists_set_sigma_finite [has_zero β] [t2_space β] (hf : ae_fin_strongly_measurable f μ) :
   ∃ t, measurable_set t ∧ f =ᵐ[μ.restrict tᶜ] 0 ∧ sigma_finite (μ.restrict t) :=
 begin
   rcases hf with ⟨g, hg, hfg⟩,

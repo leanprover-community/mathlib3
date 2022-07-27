@@ -6,6 +6,22 @@ Authors: Rémy Degenne
 
 import measure_theory.function.condexp.basic
 
+/-!
+
+# Conditional expectation of indicator functions
+
+This file proves some results about the conditional expectation of an indicator function and
+as a corollary, also proves several results about the behaviour of the conditional expectation on
+a restricted measure.
+
+## Main results
+
+* `measure_theory.condexp_indicator`: If `s` is a `m`-measurable set, then the conditional
+  expectation of the indicator function of `s` is almost everywhere equal to the indicator
+  of `s` of the conditional expectation. Namely, `𝔼[s.indicator f | m] = s.indicator 𝔼[f | m]` a.e.
+
+-/
+
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
 open_locale nnreal ennreal topological_space big_operators measure_theory

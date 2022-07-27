@@ -18,8 +18,8 @@ TODO: Add Part 2 to complete the proof
 The proof follows: <https://proofwiki.org/wiki/Stirling%27s_Formula>.
 
 ### Part 1
-We consider the fraction sequence $a_n$ of fractions $n!$ over $\sqrt{2n}(\frac{n}{e})^n$ and
-proves that this sequence converges against a real, positve number $a$. For this the two main
+We consider the fraction sequence $a_n$ of fractions $\frac{n!}{\sqrt{2n}(\frac{n}{e})^n}$ and
+prove that this sequence converges against a real, positive number $a$. For this the two main
 ingredients are
  - taking the logarithm of the sequence and
  - use the series expansion of $\log(1 + x)$.

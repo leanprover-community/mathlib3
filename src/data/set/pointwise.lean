@@ -472,25 +472,6 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
-@[to_additive] lemma mem_list_prod {l : list (set α)} {a : α} :
-  a ∈ l.prod ↔ ∃ l' : list {x : α × set α // x.1 ∈ x.2},
-    list.prod (l'.map (λ x, (x : α × set α).1)) = a ∧ l'.map (λ x, (x : α × set α).2) = l :=
-begin
-  induction l with hd tl ih generalizing a,
-  { simp [@eq_comm _ a 1]},
-  { simp_rw [list.prod_cons, mem_mul, @ih],
-    split,
-    { rintro ⟨x, y, hx, ⟨l', rfl, rfl⟩, rfl⟩,
-      refine ⟨⟨(x, hd), hx⟩ :: l', _, rfl⟩,
-      { rw [list.map_cons, list.prod_cons, subtype.coe_mk] } },
-    { rintro ⟨l, rfl, h⟩,
-      cases l, {cases h},
-      injection h with h_hd h_tl,
-      substs h_hd h_tl,
-      refine ⟨_, _, l_hd.prop, ⟨l_tl, rfl, rfl⟩, _⟩,
-      rw [list.map_cons, list.prod_cons] } },
-end
-
 @[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
   a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
 begin
@@ -499,6 +480,18 @@ begin
   { simp_rw [list.of_fn_succ, list.prod_cons, fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ,
       mem_mul, @ih, exists_and_distrib_left, exists_exists_eq_and, set_coe.exists, subtype.coe_mk,
       exists_prop] }
+end
+
+@[to_additive] lemma mem_list_prod {l : list (set α)} {a : α} :
+  a ∈ l.prod ↔ ∃ l' : list (Σ s : set α, ↥s),
+    list.prod (l'.map (λ x, (sigma.snd x : α))) = a ∧ l'.map sigma.fst = l :=
+begin
+  induction l using list.of_fn_rec with n f,
+  simp_rw [list.exists_iff_exists_tuple, list.map_of_fn, list.of_fn_inj', and.left_comm,
+    exists_and_distrib_left, exists_eq_left, heq_iff_eq, function.comp, mem_prod_list_of_fn],
+  split,
+  { rintros ⟨fi, rfl⟩,  exact ⟨λ i, ⟨_, fi i⟩, rfl, rfl⟩, },
+  { rintros ⟨fi, rfl, rfl⟩, exact ⟨λ i, _, rfl⟩, },
 end
 
 @[to_additive] lemma mem_pow {a : α} {n : ℕ} :

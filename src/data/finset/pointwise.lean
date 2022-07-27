@@ -393,9 +393,17 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
+@[simp, norm_cast, to_additive]
+lemma coe_list_prod (s : list (finset α)) : (↑s.prod : set α) = (s.map coe).prod :=
+map_list_prod (coe_monoid_hom : finset α →* set α) _
+
+@[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → finset α} :
+  a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
+by { rw [←mem_coe, coe_list_prod, list.map_of_fn, set.mem_prod_list_of_fn], refl }
+
 @[to_additive] lemma mem_pow {a : α} {n : ℕ} :
-  a ∈ s ^ n ↔ ∃ f : fin n → α, (∀ i, f i ∈ s) ∧ (list.of_fn f).prod = a :=
-by simp_rw [←mem_coe, coe_pow, set.mem_pow]
+  a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, ↑(f i))).prod = a :=
+by { simp_rw [←mem_coe, coe_pow, set.mem_pow], refl }
 
 @[simp, to_additive] lemma empty_pow (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]

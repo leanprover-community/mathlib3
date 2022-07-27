@@ -98,7 +98,7 @@ begin
 end
 
 
-lemma HopfFreudenthal [locally_finite G] [G.preconnected]
+lemma Freudenthal_Hopf [locally_finite G] [G.preconnected]
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   [fintype (ends G)] : (fintype.card (ends G)) ≤ 2 :=
 begin

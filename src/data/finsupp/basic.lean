@@ -1064,232 +1064,6 @@ lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) 
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section map_range    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-section map_range
-
-section equiv
-variables [has_zero M] [has_zero N] [has_zero P]
-
-/-- `finsupp.map_range` as an equiv. -/
-@[simps apply]
-def map_range.equiv (f : M ≃ N) (hf : f 0 = 0) (hf' : f.symm 0 = 0) : (α →₀ M) ≃ (α →₀ N) :=
-{ to_fun := (map_range f hf : (α →₀ M) → (α →₀ N)),
-  inv_fun := (map_range f.symm hf' : (α →₀ N) → (α →₀ M)),
-  left_inv := λ x, begin
-    rw ←map_range_comp _ _ _ _; simp_rw equiv.symm_comp_self,
-    { exact map_range_id _ },
-    { refl },
-  end,
-  right_inv := λ x, begin
-    rw ←map_range_comp _ _ _ _; simp_rw equiv.self_comp_symm,
-    { exact map_range_id _ },
-    { refl },
-  end }
-
-@[simp]
-lemma map_range.equiv_refl :
-  map_range.equiv (equiv.refl M) rfl rfl = equiv.refl (α →₀ M) :=
-equiv.ext map_range_id
-
-lemma map_range.equiv_trans
-  (f : M ≃ N) (hf : f 0 = 0) (hf') (f₂ : N ≃ P) (hf₂ : f₂ 0 = 0) (hf₂') :
-  (map_range.equiv (f.trans f₂) (by rw [equiv.trans_apply, hf, hf₂])
-    (by rw [equiv.symm_trans_apply, hf₂', hf']) : (α →₀ _) ≃ _) =
-    (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
-equiv.ext $ map_range_comp _ _ _ _ _
-
-@[simp] lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
-  ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
-equiv.ext $ λ x, rfl
-
-end equiv
-
-section zero_hom
-variables [has_zero M] [has_zero N] [has_zero P]
-
-/-- Composition with a fixed zero-preserving homomorphism is itself an zero-preserving homomorphism
-on functions. -/
-@[simps]
-def map_range.zero_hom (f : zero_hom M N) : zero_hom (α →₀ M) (α →₀ N) :=
-{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
-  map_zero' := map_range_zero }
-
-@[simp]
-lemma map_range.zero_hom_id :
-  map_range.zero_hom (zero_hom.id M) = zero_hom.id (α →₀ M) := zero_hom.ext map_range_id
-
-lemma map_range.zero_hom_comp (f : zero_hom N P) (f₂ : zero_hom M N) :
-  (map_range.zero_hom (f.comp f₂) : zero_hom (α →₀ _) _) =
-    (map_range.zero_hom f).comp (map_range.zero_hom f₂) :=
-zero_hom.ext $ map_range_comp _ _ _ _ _
-
-end zero_hom
-
-section add_monoid_hom
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
-
-/--
-Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
--/
-@[simps]
-def map_range.add_monoid_hom (f : M →+ N) : (α →₀ M) →+ (α →₀ N) :=
-{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
-  map_zero' := map_range_zero,
-  map_add' := λ a b, map_range_add f.map_add _ _ }
-
-@[simp]
-lemma map_range.add_monoid_hom_id :
-  map_range.add_monoid_hom (add_monoid_hom.id M) = add_monoid_hom.id (α →₀ M) :=
-add_monoid_hom.ext map_range_id
-
-lemma map_range.add_monoid_hom_comp (f : N →+ P) (f₂ : M →+ N) :
-  (map_range.add_monoid_hom (f.comp f₂) : (α →₀ _) →+ _) =
-    (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
-add_monoid_hom.ext $ map_range_comp _ _ _ _ _
-
-@[simp]
-lemma map_range.add_monoid_hom_to_zero_hom (f : M →+ N) :
-  (map_range.add_monoid_hom f).to_zero_hom =
-    (map_range.zero_hom f.to_zero_hom : zero_hom (α →₀ _) _) :=
-zero_hom.ext $ λ _, rfl
-
-lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
-  map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
-(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_multiset_sum _
-
-lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀ M))  :
-  map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
-(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_sum _ _
-
-
-/-- `finsupp.map_range.add_monoid_hom` as an equiv. -/
-@[simps apply]
-def map_range.add_equiv (f : M ≃+ N) : (α →₀ M) ≃+ (α →₀ N) :=
-{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
-  inv_fun := (map_range f.symm f.symm.map_zero : (α →₀ N) → (α →₀ M)),
-  left_inv := λ x, begin
-    rw ←map_range_comp _ _ _ _; simp_rw add_equiv.symm_comp_self,
-    { exact map_range_id _ },
-    { refl },
-  end,
-  right_inv := λ x, begin
-    rw ←map_range_comp _ _ _ _; simp_rw add_equiv.self_comp_symm,
-    { exact map_range_id _ },
-    { refl },
-  end,
-  ..(map_range.add_monoid_hom f.to_add_monoid_hom) }
-
-@[simp]
-lemma map_range.add_equiv_refl :
-  map_range.add_equiv (add_equiv.refl M) = add_equiv.refl (α →₀ M) :=
-add_equiv.ext map_range_id
-
-lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
-  (map_range.add_equiv (f.trans f₂) : (α →₀ _) ≃+ _) =
-    (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
-add_equiv.ext $ map_range_comp _ _ _ _ _
-
-@[simp] lemma map_range.add_equiv_symm (f : M ≃+ N) :
-  ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
-add_equiv.ext $ λ x, rfl
-
-@[simp]
-lemma map_range.add_equiv_to_add_monoid_hom (f : M ≃+ N) :
-  (map_range.add_equiv f : (α →₀ _) ≃+ _).to_add_monoid_hom =
-    (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ _) →+ _) :=
-add_monoid_hom.ext $ λ _, rfl
-
-@[simp]
-lemma map_range.add_equiv_to_equiv (f : M ≃+ N) :
-  (map_range.add_equiv f).to_equiv =
-    (map_range.equiv f.to_equiv f.map_zero f.symm.map_zero : (α →₀ _) ≃ _) :=
-equiv.ext $ λ _, rfl
-
-end add_monoid_hom
-
-end map_range
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section map_range    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section equiv_congr_left    vvvvv
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-/-! ### Declarations about `equiv_congr_left` -/
-
-section equiv_congr_left
-
-variable [has_zero M]
-
-/-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
-by mapping the support forwards and the function backwards. -/
-def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
-{ support := l.support.map f.to_embedding,
-  to_fun := λ a, l (f.symm a),
-  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
-
-@[simp] lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
-  equiv_map_domain f l b = l (f.symm b) := rfl
-
-lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
-  equiv_map_domain f.symm l a = l (f a) := rfl
-
-@[simp] lemma equiv_map_domain_refl (l : α →₀ M) : equiv_map_domain (equiv.refl _) l = l :=
-by ext x; refl
-
-lemma equiv_map_domain_refl' : equiv_map_domain (equiv.refl _) = @id (α →₀ M) :=
-by ext x; refl
-
-lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
-  equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
-
-lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
-  @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
-
-@[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :
-  equiv_map_domain f (single a b) = single (f a) b :=
-by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
-
-@[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
-by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
-
-/-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
-`(α →₀ M) ≃ (β →₀ M)`.
-
-This is the finitely-supported version of `equiv.Pi_congr_left`. -/
-def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
-by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
-  ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
-    equiv.symm_apply_apply, equiv.apply_symm_apply]
-
-@[simp] lemma equiv_congr_left_apply (f : α ≃ β) (l : α →₀ M) :
-  equiv_congr_left f l = equiv_map_domain f l := rfl
-
-@[simp] lemma equiv_congr_left_symm (f : α ≃ β) :
-  (@equiv_congr_left _ _ M _ f).symm = equiv_congr_left f.symm := rfl
-
-end equiv_congr_left
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- section equiv_congr_left    ^^^^^
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 
 
 --------------------------------------------------------------------------------
@@ -1749,8 +1523,236 @@ by simp_rw [← this hd, ← this hd.symm,
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-end finsupp
 
+
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section map_range    vvvvv
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+section map_range
+
+section equiv
+variables [has_zero M] [has_zero N] [has_zero P]
+
+/-- `finsupp.map_range` as an equiv. -/
+@[simps apply]
+def map_range.equiv (f : M ≃ N) (hf : f 0 = 0) (hf' : f.symm 0 = 0) : (α →₀ M) ≃ (α →₀ N) :=
+{ to_fun := (map_range f hf : (α →₀ M) → (α →₀ N)),
+  inv_fun := (map_range f.symm hf' : (α →₀ N) → (α →₀ M)),
+  left_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw equiv.symm_comp_self,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  right_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw equiv.self_comp_symm,
+    { exact map_range_id _ },
+    { refl },
+  end }
+
+@[simp]
+lemma map_range.equiv_refl :
+  map_range.equiv (equiv.refl M) rfl rfl = equiv.refl (α →₀ M) :=
+equiv.ext map_range_id
+
+lemma map_range.equiv_trans
+  (f : M ≃ N) (hf : f 0 = 0) (hf') (f₂ : N ≃ P) (hf₂ : f₂ 0 = 0) (hf₂') :
+  (map_range.equiv (f.trans f₂) (by rw [equiv.trans_apply, hf, hf₂])
+    (by rw [equiv.symm_trans_apply, hf₂', hf']) : (α →₀ _) ≃ _) =
+    (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
+equiv.ext $ map_range_comp _ _ _ _ _
+
+@[simp] lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
+  ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
+equiv.ext $ λ x, rfl
+
+end equiv
+
+section zero_hom
+variables [has_zero M] [has_zero N] [has_zero P]
+
+/-- Composition with a fixed zero-preserving homomorphism is itself an zero-preserving homomorphism
+on functions. -/
+@[simps]
+def map_range.zero_hom (f : zero_hom M N) : zero_hom (α →₀ M) (α →₀ N) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
+  map_zero' := map_range_zero }
+
+@[simp]
+lemma map_range.zero_hom_id :
+  map_range.zero_hom (zero_hom.id M) = zero_hom.id (α →₀ M) := zero_hom.ext map_range_id
+
+lemma map_range.zero_hom_comp (f : zero_hom N P) (f₂ : zero_hom M N) :
+  (map_range.zero_hom (f.comp f₂) : zero_hom (α →₀ _) _) =
+    (map_range.zero_hom f).comp (map_range.zero_hom f₂) :=
+zero_hom.ext $ map_range_comp _ _ _ _ _
+
+end zero_hom
+
+section add_monoid_hom
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+
+/--
+Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
+-/
+@[simps]
+def map_range.add_monoid_hom (f : M →+ N) : (α →₀ M) →+ (α →₀ N) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
+  map_zero' := map_range_zero,
+  map_add' := λ a b, map_range_add f.map_add _ _ }
+
+@[simp]
+lemma map_range.add_monoid_hom_id :
+  map_range.add_monoid_hom (add_monoid_hom.id M) = add_monoid_hom.id (α →₀ M) :=
+add_monoid_hom.ext map_range_id
+
+lemma map_range.add_monoid_hom_comp (f : N →+ P) (f₂ : M →+ N) :
+  (map_range.add_monoid_hom (f.comp f₂) : (α →₀ _) →+ _) =
+    (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
+add_monoid_hom.ext $ map_range_comp _ _ _ _ _
+
+@[simp]
+lemma map_range.add_monoid_hom_to_zero_hom (f : M →+ N) :
+  (map_range.add_monoid_hom f).to_zero_hom =
+    (map_range.zero_hom f.to_zero_hom : zero_hom (α →₀ _) _) :=
+zero_hom.ext $ λ _, rfl
+
+lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
+  map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
+(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_multiset_sum _
+
+lemma map_range_finset_sum (f : M →+ N) (s : finset ι) (g : ι → (α →₀ M))  :
+  map_range f f.map_zero (∑ x in s, g x) = ∑ x in s, map_range f f.map_zero (g x) :=
+(map_range.add_monoid_hom f : (α →₀ _) →+ _).map_sum _ _
+
+
+/-- `finsupp.map_range.add_monoid_hom` as an equiv. -/
+@[simps apply]
+def map_range.add_equiv (f : M ≃+ N) : (α →₀ M) ≃+ (α →₀ N) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
+  inv_fun := (map_range f.symm f.symm.map_zero : (α →₀ N) → (α →₀ M)),
+  left_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw add_equiv.symm_comp_self,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  right_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw add_equiv.self_comp_symm,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  ..(map_range.add_monoid_hom f.to_add_monoid_hom) }
+
+@[simp]
+lemma map_range.add_equiv_refl :
+  map_range.add_equiv (add_equiv.refl M) = add_equiv.refl (α →₀ M) :=
+add_equiv.ext map_range_id
+
+lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
+  (map_range.add_equiv (f.trans f₂) : (α →₀ _) ≃+ _) =
+    (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
+add_equiv.ext $ map_range_comp _ _ _ _ _
+
+@[simp] lemma map_range.add_equiv_symm (f : M ≃+ N) :
+  ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
+add_equiv.ext $ λ x, rfl
+
+@[simp]
+lemma map_range.add_equiv_to_add_monoid_hom (f : M ≃+ N) :
+  (map_range.add_equiv f : (α →₀ _) ≃+ _).to_add_monoid_hom =
+    (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ _) →+ _) :=
+add_monoid_hom.ext $ λ _, rfl
+
+@[simp]
+lemma map_range.add_equiv_to_equiv (f : M ≃+ N) :
+  (map_range.add_equiv f).to_equiv =
+    (map_range.equiv f.to_equiv f.map_zero f.symm.map_zero : (α →₀ _) ≃ _) :=
+equiv.ext $ λ _, rfl
+
+end add_monoid_hom
+
+end map_range
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section map_range    ^^^^^
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section equiv_congr_left    vvvvv
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+/-! ### Declarations about `equiv_congr_left` -/
+
+section equiv_congr_left
+
+variable [has_zero M]
+
+/-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
+by mapping the support forwards and the function backwards. -/
+def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
+{ support := l.support.map f.to_embedding,
+  to_fun := λ a, l (f.symm a),
+  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
+
+@[simp] lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
+  equiv_map_domain f l b = l (f.symm b) := rfl
+
+lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
+  equiv_map_domain f.symm l a = l (f a) := rfl
+
+@[simp] lemma equiv_map_domain_refl (l : α →₀ M) : equiv_map_domain (equiv.refl _) l = l :=
+by ext x; refl
+
+lemma equiv_map_domain_refl' : equiv_map_domain (equiv.refl _) = @id (α →₀ M) :=
+by ext x; refl
+
+lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
+  equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
+
+lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
+  @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
+
+@[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :
+  equiv_map_domain f (single a b) = single (f a) b :=
+by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
+
+@[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
+by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
+
+/-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
+`(α →₀ M) ≃ (β →₀ M)`.
+
+This is the finitely-supported version of `equiv.Pi_congr_left`. -/
+def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
+by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
+  ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
+    equiv.symm_apply_apply, equiv.apply_symm_apply]
+
+@[simp] lemma equiv_congr_left_apply (f : α ≃ β) (l : α →₀ M) :
+  equiv_congr_left f l = equiv_map_domain f l := rfl
+
+@[simp] lemma equiv_congr_left_symm (f : α ≃ β) :
+  (@equiv_congr_left _ _ M _ f).symm = equiv_congr_left f.symm := rfl
+
+end equiv_congr_left
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- section equiv_congr_left    ^^^^^
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+end finsupp
 
 
 section cast_finsupp

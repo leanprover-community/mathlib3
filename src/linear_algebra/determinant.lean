@@ -412,7 +412,7 @@ linear_equiv.of_is_unit_det this
 lemma linear_map.associated_det_of_eq_comp (e : M ≃ₗ[R] M) (f f' : M →ₗ[R] M)
   (h : ∀ x, f x = f' (e x)) : associated f.det f'.det :=
 begin
-  suffices : associated (f'.comp e.to_linear_map).det f'.det,
+  suffices : associated (f' ∘ₗ ↑e).det f'.det,
   { convert this using 2, ext x, exact h x },
   rw [← mul_one f'.det, linear_map.det_comp],
   exact associated.mul_left _ (associated_one_iff_is_unit.mpr e.is_unit_det')

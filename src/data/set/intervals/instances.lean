@@ -124,6 +124,25 @@ end set.Icc
 
 namespace set.Ico
 
+instance has_zero [nontrivial α] : has_zero (Ico (0:α) 1) :=
+  { zero := ⟨0, left_mem_Ico.2 zero_lt_one⟩ }
+
+@[simp, norm_cast] lemma coe_zero [nontrivial α] : ↑(0 : Ico (0:α) 1) = (0 : α) := rfl
+
+@[simp] lemma mk_zero [nontrivial α] (h : (0 : α) ∈ Ico (0 : α) 1) : (⟨0, h⟩ : Ico (0:α) 1) = 0 := rfl
+
+@[simp, norm_cast] lemma coe_eq_zero [nontrivial α] {x : Ico (0:α) 1} : (x : α) = 0 ↔ x = 0 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_zero [nontrivial α] {x : Ico (0:α) 1} : (x : α) ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr coe_eq_zero
+
+lemma nonneg (x : Ico (0:α) 1) : 0 ≤ (x : α) := x.2.1
+lemma lt_one (x : Ico (0:α) 1) : (x : α) < 1 := x.2.2
+
+/-- like `nonneg`, but with the inequality in `Ico (0:α) 1`. -/
+lemma nonneg' [nontrivial α] {t : Ico (0:α) 1} : 0 ≤ t := t.2.1
+
 instance has_mul : has_mul (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
   mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩ }

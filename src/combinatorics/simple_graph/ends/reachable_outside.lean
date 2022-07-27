@@ -448,8 +448,31 @@ lemma extend_to_fin_ro_components.subconnected_of_subconnected  [locally_finite 
 begin
 
   let k := Knempty.some,
-  let KC' := set.image (λ (C : set V), (K : set V) ∪ C) (fin_ro_components G K),
-  have : ↑(extend_to_fin_ro_components G K) = ⋃₀ KC', by sorry,
+  let KC' := (set.image (λ (C : set V), (K : set V) ∪ C) (fin_ro_components G K)),
+  have : ↑(extend_to_fin_ro_components G K) = (K : set V) ∪ (⋃₀ KC'), by {
+    apply set.ext,
+    rintros x,
+    split,
+    { rintros xE,
+      simp,
+      simp at xE,
+      unfold extend_to_fin_ro_components at xE,
+      simp at xE,
+      cases xE,
+      { left, exact xE, },
+      { right, rcases xE with ⟨C,Ccomp,xC⟩,use C,use Ccomp,right,exact xC, },
+    },
+    { rintros xC,
+      simp,
+      simp at xC,
+      unfold extend_to_fin_ro_components,
+      simp,
+      cases xC,
+      { left, exact xC },
+      { rcases xC with ⟨C,Ccomp,hh⟩, cases hh, {left,exact hh}, {right, use C, use Ccomp,exact hh} },
+
+    },
+  },
   have conn : ∀ C ∈ KC', subconnected G C, by {
     rintros C hC,
     simp at hC,
@@ -460,11 +483,27 @@ begin
     use [k,kK,d,dC,adj],
   },
   rw this,
-  apply subconnected.of_common_mem_sUnion G k _ conn,
-  rintros C ⟨CC,⟨CComp,Cfin⟩,rfl⟩,
-  simp,
-  left,
-  exact Knempty.some_spec,
+  by_cases KC'.nonempty,
+  { apply subconnected.of_intersecting_subconnected G Kconn,
+    { apply subconnected.of_common_mem_sUnion G k _ conn,
+      rintros C ⟨CC,⟨CComp,Cfin⟩,rfl⟩,
+      simp,
+      left,
+      exact Knempty.some_spec,
+    },
+    { apply set.not_disjoint_iff.mpr,
+      refine ⟨k,⟨Knempty.some_spec,_⟩⟩,
+      simp,
+      rcases h.some_spec with ⟨C,lol,lal⟩,
+      use C,
+      use lol,
+      left,
+      exact Knempty.some_spec,
+    }
+  },
+  { rw set.not_nonempty_iff_eq_empty at h, rw h, simp, exact Kconn, }
+
+
 end
 
 
@@ -477,7 +516,7 @@ def extend_subconnected_to_fin_ro_components [locally_finite G] [Knempty : K.non
 begin
   use extend_to_fin_ro_components G K,
   use extend_to_fin_ro_components.sub G K,
-  use extend_to_fin_ro_components.subconnected_of_subconnected G K Kconn,
+  use extend_to_fin_ro_components.subconnected_of_subconnected G K Knempty Kconn,
   rintros ⟨C,CK'⟩,
   rw extend_to_fin_ro_components.ro G K at CK',
   exact CK'.2,

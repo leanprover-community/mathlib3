@@ -160,6 +160,52 @@ begin
   rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
 end
 
+variables [char_zero R]
+
+@[simp]
+lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
+begin
+  rw [bit0_eq_two_mul, degree_mul, (_ : (2 : polynomial R).degree = 0), zero_add],
+  rw (by simp : (2 : polynomial R) = (C 2)),
+  exact polynomial.degree_C two_ne_zero',
+end
+
+@[simp]
+lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp], },
+  rw [bit0_eq_two_mul, nat_degree_mul _ hp, (_ : (2 : polynomial R).nat_degree = 0), zero_add],
+  { rw (by simp : (2 : polynomial R) = (C 2)),
+    exact polynomial.nat_degree_C _, },
+  { exact two_ne_zero', },
+end
+
+@[simp]
+lemma nat_degree_bit1_eq (p : R[X]) : nat_degree (bit1 p) = nat_degree p :=
+begin
+  rw bit1,
+  apply le_antisymm,
+  convert nat_degree_add_le _ _,
+  { simp, },
+  by_cases h : p.nat_degree = 0,
+  { simp [h], },
+  apply le_nat_degree_of_ne_zero,
+  intro hh,
+  apply h,
+  simp [*, coeff_one, if_neg (ne.symm h)] at *,
+end
+
+lemma degree_bit1_eq {p : R[X]} (hp : 0 < degree p) : degree (bit1 p) = degree p :=
+begin
+  rw [degree_eq_nat_degree, degree_eq_nat_degree],
+  { simp, },
+  { exact ne_zero_of_degree_gt hp, },
+  { apply ne_zero_of_nat_degree_gt,
+    rw [polynomial.nat_degree_bit1_eq],
+    exact nat_degree_pos_iff_degree_pos.mpr hp, },
+end
+
 end no_zero_divisors
 
 section no_zero_divisors

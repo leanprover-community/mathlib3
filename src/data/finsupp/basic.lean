@@ -722,59 +722,6 @@ by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
 end erase
 
-/-! ### Declarations about `graph` -/
-
-section graph
-
-variable [has_zero M]
-
-/-- The graph of a finitely supported function over its support, i.e. the finset of input and output
-pairs with non-zero outputs. -/
-def graph (f : α →₀ M) : finset (α × M) :=
-f.support.map ⟨λ a, prod.mk a (f a), λ x y h, (prod.mk.inj h).1⟩
-
-lemma mk_mem_graph_iff {a : α} {m : M} {f : α →₀ M} : (a, m) ∈ f.graph ↔ f a = m ∧ m ≠ 0 :=
-begin
-  simp_rw [graph, mem_map, mem_support_iff],
-  split,
-  { rintro ⟨b, ha, rfl, -⟩,
-    exact ⟨rfl, ha⟩ },
-  { rintro ⟨rfl, ha⟩,
-    exact ⟨a, ha, rfl⟩ }
-end
-
-@[simp] lemma mem_graph_iff {c : α × M} {f : α →₀ M} : c ∈ f.graph ↔ f c.1 = c.2 ∧ c.2 ≠ 0 :=
-by { cases c, exact mk_mem_graph_iff }
-
-lemma mk_mem_graph (f : α →₀ M) {a : α} (ha : a ∈ f.support) : (a, f a) ∈ f.graph :=
-mk_mem_graph_iff.2 ⟨rfl, mem_support_iff.1 ha⟩
-
-lemma apply_eq_of_mem_graph {a : α} {m : M} {f : α →₀ M} (h : (a, m) ∈ f.graph) : f a = m :=
-(mem_graph_iff.1 h).1
-
-@[simp] lemma not_mem_graph_snd_zero (a : α) (f : α →₀ M) : (a, (0 : M)) ∉ f.graph :=
-λ h, (mem_graph_iff.1 h).2.irrefl
-
-@[simp] lemma image_fst_graph (f : α →₀ M) : f.graph.image prod.fst = f.support :=
-by simp only [graph, map_eq_image, image_image, embedding.coe_fn_mk, (∘), image_id']
-
-lemma graph_injective (α M) [has_zero M] : injective (@graph α M _) :=
-begin
-  intros f g h,
-  have hsup : f.support = g.support, by rw [← image_fst_graph, h, image_fst_graph],
-  refine ext_iff'.2 ⟨hsup, λ x hx, apply_eq_of_mem_graph $ h.symm ▸ _⟩,
-  exact mk_mem_graph _ (hsup ▸ hx)
-end
-
-@[simp] lemma graph_inj {f g : α →₀ M} : f.graph = g.graph ↔ f = g :=
-(graph_injective α M).eq_iff
-
-@[simp] lemma graph_zero : graph (0 : α →₀ M) = ∅ := by simp [graph]
-
-@[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
-(graph_injective α M).eq_iff' graph_zero
-
-end graph
 
 
 --------------------------------------------------------------------------------
@@ -1525,6 +1472,59 @@ by simp_rw [← this hd, ← this hd.symm,
 
 
 
+/-! ### Declarations about `graph` -/
+
+section graph
+
+variable [has_zero M]
+
+/-- The graph of a finitely supported function over its support, i.e. the finset of input and output
+pairs with non-zero outputs. -/
+def graph (f : α →₀ M) : finset (α × M) :=
+f.support.map ⟨λ a, prod.mk a (f a), λ x y h, (prod.mk.inj h).1⟩
+
+lemma mk_mem_graph_iff {a : α} {m : M} {f : α →₀ M} : (a, m) ∈ f.graph ↔ f a = m ∧ m ≠ 0 :=
+begin
+  simp_rw [graph, mem_map, mem_support_iff],
+  split,
+  { rintro ⟨b, ha, rfl, -⟩,
+    exact ⟨rfl, ha⟩ },
+  { rintro ⟨rfl, ha⟩,
+    exact ⟨a, ha, rfl⟩ }
+end
+
+@[simp] lemma mem_graph_iff {c : α × M} {f : α →₀ M} : c ∈ f.graph ↔ f c.1 = c.2 ∧ c.2 ≠ 0 :=
+by { cases c, exact mk_mem_graph_iff }
+
+lemma mk_mem_graph (f : α →₀ M) {a : α} (ha : a ∈ f.support) : (a, f a) ∈ f.graph :=
+mk_mem_graph_iff.2 ⟨rfl, mem_support_iff.1 ha⟩
+
+lemma apply_eq_of_mem_graph {a : α} {m : M} {f : α →₀ M} (h : (a, m) ∈ f.graph) : f a = m :=
+(mem_graph_iff.1 h).1
+
+@[simp] lemma not_mem_graph_snd_zero (a : α) (f : α →₀ M) : (a, (0 : M)) ∉ f.graph :=
+λ h, (mem_graph_iff.1 h).2.irrefl
+
+@[simp] lemma image_fst_graph (f : α →₀ M) : f.graph.image prod.fst = f.support :=
+by simp only [graph, map_eq_image, image_image, embedding.coe_fn_mk, (∘), image_id']
+
+lemma graph_injective (α M) [has_zero M] : injective (@graph α M _) :=
+begin
+  intros f g h,
+  have hsup : f.support = g.support, by rw [← image_fst_graph, h, image_fst_graph],
+  refine ext_iff'.2 ⟨hsup, λ x hx, apply_eq_of_mem_graph $ h.symm ▸ _⟩,
+  exact mk_mem_graph _ (hsup ▸ hx)
+end
+
+@[simp] lemma graph_inj {f g : α →₀ M} : f.graph = g.graph ↔ f = g :=
+(graph_injective α M).eq_iff
+
+@[simp] lemma graph_zero : graph (0 : α →₀ M) = ∅ := by simp [graph]
+
+@[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
+(graph_injective α M).eq_iff' graph_zero
+
+end graph
 
 
 --------------------------------------------------------------------------------

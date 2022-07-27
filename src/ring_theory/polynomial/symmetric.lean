@@ -144,18 +144,7 @@ end
 /-- We can define `esymm σ R n` by summing over a subtype instead of over `powerset_len`. -/
 lemma esymm_eq_sum_subtype (n : ℕ) : esymm σ R n =
   ∑ t : {s : finset σ // s.card = n}, ∏ i in (t : finset σ), X i :=
-begin
-  rw esymm,
-  let i : Π (a : finset σ), a ∈ powerset_len n univ → {s : finset σ // s.card = n} :=
-    λ a ha, ⟨_, (mem_powerset_len.mp ha).2⟩,
-  refine sum_bij i (λ a ha, mem_univ (i a ha)) _ (λ _ _ _ _ hi, subtype.ext_iff_val.mp hi) _,
-  { intros,
-    apply prod_congr,
-    simp only [subtype.coe_mk],
-    intros, refl,},
-  { refine (λ b H, ⟨b.val, mem_powerset_len.mpr ⟨subset_univ b.val, b.property⟩, _⟩),
-    simp [i] },
-end
+sum_subtype _ (λ _, mem_powerset_len_univ_iff) _
 
 /-- We can define `esymm σ R n` as a sum over explicit monomials -/
 lemma esymm_eq_sum_monomial (n : ℕ) : esymm σ R n =

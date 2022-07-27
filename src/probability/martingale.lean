@@ -42,7 +42,7 @@ namespace measure_theory
 
 variables {α E ι : Type*} [preorder ι]
   {m0 : measurable_space α} {μ : measure α}
-  [normed_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   {f g : ι → α → E} {ℱ : filtration ι m0}
 
 /-- A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if `f`

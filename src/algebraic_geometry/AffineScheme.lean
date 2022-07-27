@@ -125,6 +125,10 @@ begin
   exact set.range_id.symm
 end
 
+instance Scheme.affine_cover_is_affine (X : Scheme) (i : X.affine_cover.J) :
+  is_affine (X.affine_cover.obj i) :=
+algebraic_geometry.Spec_is_affine _
+
 instance Scheme.affine_basis_cover_is_affine (X : Scheme) (i : X.affine_basis_cover.J) :
   is_affine (X.affine_basis_cover.obj i) :=
 algebraic_geometry.Spec_is_affine _

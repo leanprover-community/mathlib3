@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.derivative
+import tactic.linear_combination
+import tactic.ring_exp
 
 /-!
 # Theory of univariate polynomials
@@ -14,6 +16,7 @@ The main def is `binom_expansion`.
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 universes u v w x y z
 variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {A : Type z}
   {a b : R} {m n : ℕ}
@@ -25,7 +28,9 @@ section identities
 
 Maybe use data.nat.choose to prove it.
  -/
-
+/--
+`(x + y)^n` can be expressed as `x^n + n*x^(n-1)*y + k * y^2` for some `k` in the ring.
+-/
 def pow_add_expansion {R : Type*} [comm_semiring R] (x y : R) : ∀ (n : ℕ),
   {k // (x + y)^n = x^n + n*x^(n-1)*y + k * y^2}
 | 0 := ⟨0, by simp⟩
@@ -50,20 +55,25 @@ begin
   apply (pow_add_expansion _ _ _).property
 end
 
-private lemma poly_binom_aux2 (f : polynomial R) (x y : R) :
+private lemma poly_binom_aux2 (f : R[X]) (x y : R) :
   f.eval (x + y) = f.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
 begin
   unfold eval eval₂, congr' with n z,
   apply (poly_binom_aux1 x y _ _).property
 end
 
-private lemma poly_binom_aux3 (f : polynomial R) (x y : R) : f.eval (x + y) =
+private lemma poly_binom_aux3 (f : R[X]) (x y : R) : f.eval (x + y) =
   f.sum (λ e a, a * x^e) +
   f.sum (λ e a, (a * e * x^(e-1)) * y) +
   f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
 by { rw poly_binom_aux2, simp [left_distrib, sum_add, mul_assoc] }
 
-def binom_expansion (f : polynomial R) (x y : R) :
+/--
+A polynomial `f` evaluated at `x + y` can be expressed as
+the evaluation of `f` at `x`, plus `y` times the (polynomial) derivative of `f` at `x`,
+plus some element `k : R` times `y^2`.
+-/
+def binom_expansion (f : R[X]) (x y : R) :
   {k : R // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
 begin
   existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
@@ -74,6 +84,9 @@ begin
   { exact finset.sum_mul.symm }
 end
 
+/--
+`x^n - y^n` can be expressed as `z * (x - y)` for some `z` in the ring.
+-/
 def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - y)}
 | 0 := ⟨0, by simp⟩
 | 1 := ⟨1, by simp⟩
@@ -81,13 +94,14 @@ def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - 
   begin
     cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    calc x ^ (k + 2) - y ^ (k + 2)
-        = x * (x ^ (k + 1) - y ^ (k + 1)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by ring_exp
-    ... = x * (z * (x - y)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by rw hz
-    ... = (z * x + y ^ (k + 1)) * (x - y) : by ring_exp
+    linear_combination x * hz with { normalization_tactic := `[ring_exp] }
   end
 
-def eval_sub_factor (f : polynomial R) (x y : R) :
+/--
+For any polynomial `f`, `f.eval x - f.eval y` can be expressed as `z * (x - y)`
+for some `z` in the ring.
+-/
+def eval_sub_factor (f : R[X]) (x y : R) :
   {z : R // f.eval x - f.eval y = z * (x - y)} :=
 begin
   refine ⟨f.sum (λ i r, r * (pow_sub_pow_factor x y i).val), _⟩,

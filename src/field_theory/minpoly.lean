@@ -19,7 +19,7 @@ are irreducible, and uniquely determined by their defining property.
 
 -/
 
-open_locale classical
+open_locale classical polynomial
 open polynomial set function
 
 variables {A B : Type*}
@@ -37,7 +37,7 @@ if such exists (`is_integral A x`) or zero otherwise.
 For example, if `V` is a `𝕜`-vector space for some field `𝕜` and `f : V →ₗ[𝕜] V` then
 the minimal polynomial of `f` is `minpoly 𝕜 f`.
 -/
-noncomputable def minpoly (x : B) : polynomial A :=
+noncomputable def minpoly (x : B) : A[X] :=
 if hx : is_integral A x then well_founded.min degree_lt_wf _ hx else 0
 
 end min_poly_def
@@ -54,7 +54,7 @@ by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx
 
 /-- A minimal polynomial is nonzero. -/
 lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
-ne_zero_of_monic (monic hx)
+(monic hx).ne_zero
 
 lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
 dif_neg hx
@@ -67,6 +67,31 @@ begin
   delta minpoly, split_ifs with hx,
   { exact (well_founded.min_mem degree_lt_wf _ hx).2 },
   { exact aeval_zero _ }
+end
+
+/-- A minimal polynomial is not `1`. -/
+lemma ne_one [nontrivial B] : minpoly A x ≠ 1 :=
+begin
+  intro h,
+  refine (one_ne_zero : (1 : B) ≠ 0) _,
+  simpa using congr_arg (polynomial.aeval x) h
+end
+
+lemma map_ne_one [nontrivial B] {R : Type*} [semiring R] [nontrivial R] (f : A →+* R) :
+  (minpoly A x).map f ≠ 1 :=
+begin
+  by_cases hx : is_integral A x,
+  { exact mt ((monic hx).eq_one_of_map_eq_one f) (ne_one A x) },
+  { rw [eq_zero hx, polynomial.map_zero], exact zero_ne_one },
+end
+
+/-- A minimal polynomial is not a unit. -/
+lemma not_is_unit [nontrivial B] : ¬ is_unit (minpoly A x) :=
+begin
+  haveI : nontrivial A := (algebra_map A B).domain_nontrivial,
+  by_cases hx : is_integral A x,
+  { exact mt (eq_one_of_is_unit_of_monic (monic hx)) (ne_one A x) },
+  { rw [eq_zero hx], exact not_is_unit_zero }
 end
 
 lemma mem_range_of_degree_eq_one (hx : (minpoly A x).degree = 1) : x ∈ (algebra_map A B).range :=
@@ -83,7 +108,7 @@ end
 
 /-- The defining property of the minimal polynomial of an element `x`:
 it is the monic polynomial with smallest degree that has `x` as its root. -/
-lemma min {p : polynomial A} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
+lemma min {p : A[X]} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 begin
   delta minpoly, split_ifs with hx,
@@ -91,11 +116,21 @@ begin
   { simp only [degree_zero, bot_le] }
 end
 
+@[nontriviality] lemma subsingleton [subsingleton B] : minpoly A x = 1 :=
+begin
+  nontriviality A,
+  have := minpoly.min A x monic_one (subsingleton.elim _ _),
+  rw degree_one at this,
+  cases le_or_lt (minpoly A x).degree 0 with h h,
+  { rwa (monic ⟨1, monic_one, by simp⟩ : (minpoly A x).monic).degree_le_zero_iff_eq_one at h },
+  { exact (this.not_lt h).elim },
+end
+
 end ring
 
-section integral_domain
+section comm_ring
 
-variables [integral_domain A]
+variables [comm_ring A]
 
 section ring
 
@@ -119,10 +154,11 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos hx)
 
 /-- If `B/A` is an injective ring extension, and `a` is an element of `A`,
 then the minimal polynomial of `algebra_map A B a` is `X - C a`. -/
-lemma eq_X_sub_C_of_algebra_map_inj [nontrivial A]
+lemma eq_X_sub_C_of_algebra_map_inj
   (a : A) (hf : function.injective (algebra_map A B)) :
   minpoly A (algebra_map A B a) = X - C a :=
 begin
+  nontriviality A,
   have hdegle : (minpoly A (algebra_map A B a)).nat_degree ≤ 1,
   { apply with_bot.coe_le_coe.1,
     rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map A B _ _ _ a)),
@@ -139,32 +175,22 @@ begin
   { have hroot := aeval A (algebra_map A B a),
     rw [hrw, add_comm] at hroot,
     simp only [aeval_C, aeval_X, aeval_add] at hroot,
-    replace hroot := eq_neg_of_add_eq_zero hroot,
+    replace hroot := eq_neg_of_add_eq_zero_left hroot,
     rw [←ring_hom.map_neg _ a] at hroot,
     exact (hf hroot) },
   rw hrw,
   simp only [h0, ring_hom.map_neg, sub_eq_add_neg],
 end
 
-variables (A x)
-
-/-- A minimal polynomial is not a unit. -/
-lemma not_is_unit : ¬ is_unit (minpoly A x) :=
-begin
-  by_cases hx : is_integral A x,
-  { assume H, exact (ne_of_lt (degree_pos hx)).symm (degree_eq_zero_of_is_unit H) },
-  { delta minpoly, rw dif_neg hx, simp only [not_is_unit_zero, not_false_iff] }
-end
-
 end ring
 
-section domain
+section is_domain
 
-variables [domain B] [algebra A B]
+variables [is_domain A] [ring B] [algebra A B]
 variables {x : B}
 
 /-- If `a` strictly divides the minimal polynomial of `x`, then `x` cannot be a root for `a`. -/
-lemma aeval_ne_zero_of_dvd_not_unit_minpoly {a : polynomial A} (hx : is_integral A x)
+lemma aeval_ne_zero_of_dvd_not_unit_minpoly {a : A[X]} (hx : is_integral A x)
   (hamonic : a.monic) (hdvd : dvd_not_unit a (minpoly A x)) :
   polynomial.aeval x a ≠ 0 :=
 begin
@@ -187,6 +213,8 @@ begin
   rw [prod, degree_mul, degree_eq_nat_degree hzeroa, degree_eq_nat_degree hzerob],
   exact_mod_cast lt_add_of_pos_right _ degbzero,
 end
+
+variables [is_domain B]
 
 /-- A minimal polynomial is irreducible. -/
 lemma irreducible (hx : is_integral A x) : irreducible (minpoly A x) :=
@@ -221,9 +249,9 @@ begin
     exact ⟨hbmonic.ne_zero, _, mt is_unit_of_mul_is_unit_left ha_nunit, prod⟩ },
 end
 
-end domain
+end is_domain
 
-end integral_domain
+end comm_ring
 
 section field
 variables [field A]
@@ -234,21 +262,26 @@ variables {x : B}
 
 variables (A x)
 
-/-- If an element `x` is a root of a nonzero polynomial `p`,
-then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
+/-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the
+degree of the minimal polynomial of `x`. See also `gcd_domain_degree_le_of_ne_zero` which relaxes
+the assumptions on `A` in exchange for stronger assumptions on `B`. -/
 lemma degree_le_of_ne_zero
-  {p : polynomial A} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
+  {p : A[X]} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
+lemma ne_zero_of_finite_field_extension (e : B) [finite_dimensional A B] : minpoly A e ≠ 0 :=
+minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instance) _
+
 /-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
-if there is another monic polynomial of minimal degree that has `x` as a root,
-then this polynomial is equal to the minimal polynomial of `x`. -/
-lemma unique {p : polynomial A}
+if there is another monic polynomial of minimal degree that has `x` as a root, then this polynomial
+is equal to the minimal polynomial of `x`. See also `minpoly.gcd_unique` which relaxes the
+assumptions on `A` in exchange for stronger assumptions on `B`. -/
+lemma unique {p : A[X]}
   (pmonic : p.monic) (hp : polynomial.aeval x p = 0)
-  (pmin : ∀ q : polynomial A, q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
+  (pmin : ∀ q : A[X], q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
   p = minpoly A x :=
 begin
   have hx : is_integral A x := ⟨p, pmonic, hp⟩,
@@ -262,9 +295,10 @@ begin
       (pmin (minpoly A x) (monic hx) (aeval A x)) }
 end
 
-/-- If an element `x` is a root of a polynomial `p`,
-then the minimal polynomial of `x` divides `p`. -/
-lemma dvd {p : polynomial A} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
+/-- If an element `x` is a root of a polynomial `p`, then the minimal polynomial of `x` divides `p`.
+See also `minpoly.gcd_domain_dvd` which relaxes the assumptions on `A` in exchange for stronger
+assumptions on `B`. -/
+lemma dvd {p : A[X]} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
 begin
   by_cases hp0 : p = 0,
   { simp only [hp0, dvd_zero] },
@@ -274,7 +308,7 @@ begin
   by_contra hnz,
   have := degree_le_of_ne_zero A x hnz _,
   { contrapose! this,
-    exact degree_mod_by_monic_lt _ (monic hx) (ne_zero hx) },
+    exact degree_mod_by_monic_lt _ (monic hx) },
   { rw ← mod_by_monic_add_div p (monic hx) at hp,
     simpa using hp }
 end
@@ -284,22 +318,33 @@ lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field 
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
 by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeval] }
 
+/-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
+lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
+  [algebra R K] [algebra K T] [algebra R T] [is_scalar_tower R K T]
+  [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
+  (x : T) (y : U)
+  (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
+by { rw is_scalar_tower.aeval_apply R K,
+     exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U) y
+        (minpoly.dvd_map_of_is_scalar_tower R K x) hy }
+
 variables {A x}
 
-theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
+theorem eq_of_irreducible_of_monic
+  [nontrivial B] {p : A[X]} (hp1 : _root_.irreducible p)
   (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
 eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
-mul_one (minpoly A x) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
+mul_one (minpoly A x) ▸ hq.symm ▸ associated.mul_left _ $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
-lemma unique'' [nontrivial B] {p : polynomial A}
+lemma eq_of_irreducible [nontrivial B] {p : A[X]}
   (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) :
   p * C p.leading_coeff⁻¹ = minpoly A x :=
 begin
   have : p.leading_coeff ≠ 0 := leading_coeff_ne_zero.mpr hp1.ne_zero,
-  apply unique',
-  { exact irreducible_of_associated ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
+  apply eq_of_irreducible_of_monic,
+  { exact associated.irreducible ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
       by rwa [←C_mul, inv_mul_cancel, C_1], by rwa [←C_mul, mul_inv_cancel, C_1]⟩, rfl⟩ hp1 },
   { rw [aeval_mul, hp2, zero_mul] },
   { rwa [polynomial.monic, leading_coeff_mul, leading_coeff_C, mul_inv_cancel] },
@@ -321,38 +366,114 @@ minpoly.unique _ _ (minpoly.monic hx)
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
-section gcd_domain
-
-/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
-over the fraction field. -/
-lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [integral_domain A]
-  [gcd_monoid A] [field K] [integral_domain R] [algebra A K] [is_fraction_ring A K]
-  [algebra K R] [algebra A R] [is_scalar_tower A K R] {x : R} (hx : is_integral A x) :
-  minpoly K x = (minpoly A x).map (algebra_map A K) :=
+lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+  (hx : is_integral A x) (a : A) :
+  minpoly A (x + (algebra_map A B a)) = (minpoly A x).comp (X - C a) :=
 begin
-  symmetry,
-  refine unique' _ _ _,
-  { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
-      (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
-  { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
-    rwa [aeval, eq_comm] at htower },
-  { exact monic_map _ (monic hx) }
+  refine (minpoly.unique _ _ ((minpoly.monic hx).comp_X_sub_C _) _ (λ q qmo hq, _)).symm,
+  { simp [aeval_comp] },
+  { have : (polynomial.aeval x) (q.comp (X + C a)) = 0 := by simpa [aeval_comp] using hq,
+    have H := minpoly.min A x (qmo.comp_X_add_C _) this,
+    rw [degree_eq_nat_degree qmo.ne_zero, degree_eq_nat_degree
+      ((minpoly.monic hx).comp_X_sub_C _).ne_zero, with_bot.coe_le_coe, nat_degree_comp,
+      nat_degree_X_sub_C, mul_one],
+    rwa [degree_eq_nat_degree (minpoly.ne_zero hx), degree_eq_nat_degree
+      (qmo.comp_X_add_C _).ne_zero, with_bot.coe_le_coe, nat_degree_comp,
+      nat_degree_X_add_C, mul_one] at H }
 end
 
-/-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
-element as root. -/
-lemma gcd_domain_dvd {A R : Type*} (K : Type*)
-  [integral_domain A] [gcd_monoid A] [field K] [integral_domain R] [algebra A K]
-  [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
-  {x : R} (hx : is_integral A x)
-  {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
-  minpoly A x ∣ P :=
+lemma sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+  (hx : is_integral A x) (a : A) :
+  minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
+by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
+
+section gcd_domain
+
+variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
+  [field K] [comm_ring S] [is_domain S] [algebra R K] [is_fraction_ring R K] [algebra R S] [field L]
+  [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
+  {s : S} (hs : is_integral R s)
+
+include hs
+
+/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
+over the fraction field. See `minpoly.gcd_domain_eq_field_fractions'` if `S` is already a
+`K`-algebra. -/
+lemma gcd_domain_eq_field_fractions :
+  minpoly K (algebra_map S L s) = (minpoly R s).map (algebra_map R K) :=
 begin
-  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K
-    (monic.is_primitive (monic hx)) hprim).2,
-  rw ← gcd_domain_eq_field_fractions K hx,
+  refine (eq_of_irreducible_of_monic _ _ _).symm,
+  { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
+      (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
+   { rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
+      eval_map, ← aeval_def, aeval, map_zero] },
+  { exact (monic hs).map _ }
+end
+
+/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
+over the fraction field. Compared to `minpoly.gcd_domain_eq_field_fractions`, this version is useful
+if the element is in a ring that is already a `K`-algebra. -/
+lemma gcd_domain_eq_field_fractions' [algebra K S] [is_scalar_tower R K S] :
+  minpoly K s = (minpoly R s).map (algebra_map R K) :=
+begin
+  let L := fraction_ring S,
+  rw [← gcd_domain_eq_field_fractions K L hs],
+  refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
+    (is_integral_of_is_scalar_tower _ hs) rfl
+end
+
+variable [no_zero_smul_divisors R S]
+
+/-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
+element as root. See also `minpoly.dvd` which relaxes the assumptions on `S` in exchange for
+stronger assumptions on `R`. -/
+lemma gcd_domain_dvd {P : R[X]} (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
+begin
+  let K := fraction_ring R,
+  let L := fraction_ring S,
+  let P₁ := P.prim_part,
+  suffices : minpoly R s ∣ P₁,
+  { exact dvd_trans this (prim_part_dvd _) },
+  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K (monic hs).is_primitive
+    P.is_primitive_prim_part).2,
+  let y := algebra_map S L s,
+  have hy : is_integral R y := hs.algebra_map,
+  rw [← gcd_domain_eq_field_fractions K L hs],
   refine dvd _ _ _,
-  rwa ← is_scalar_tower.aeval_apply
+  rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
+    eval_map, ← aeval_def, aeval_prim_part_eq_zero hP hroot, map_zero]
+end
+
+/-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the
+degree of the minimal polynomial of `x`. See also `minpoly.degree_le_of_ne_zero` which relaxes the
+assumptions on `S` in exchange for stronger assumptions on `R`. -/
+lemma gcd_domain_degree_le_of_ne_zero {p : R[X]} (hp0 : p ≠ 0) (hp : polynomial.aeval s p = 0) :
+  degree (minpoly R s) ≤ degree p :=
+begin
+  rw [degree_eq_nat_degree (minpoly.ne_zero hs), degree_eq_nat_degree hp0],
+  norm_cast,
+  exact nat_degree_le_of_dvd (gcd_domain_dvd hs hp0 hp) hp0
+end
+
+omit hs
+
+/-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
+if there is another monic polynomial of minimal degree that has `x` as a root, then this polynomial
+is equal to the minimal polynomial of `x`. See also `minpoly.unique` which relaxes the
+assumptions on `S` in exchange for stronger assumptions on `R`. -/
+lemma gcd_domain_unique {P : R[X]} (hmo : P.monic) (hP : polynomial.aeval s P = 0)
+  (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :
+  P = minpoly R s :=
+begin
+  have hs : is_integral R s := ⟨P, hmo, hP⟩,
+  symmetry, apply eq_of_sub_eq_zero,
+  by_contra hnz,
+  have := gcd_domain_degree_le_of_ne_zero hs hnz (by simp [hP]),
+  contrapose! this,
+  refine degree_sub_lt _ (ne_zero hs) _,
+  { exact le_antisymm (min R s hmo hP)
+      (Pmin (minpoly R s) (monic hs) (aeval R s)) },
+  { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
 end gcd_domain
@@ -379,8 +500,8 @@ by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg] using eq_X_sub_C B (1:A)
 
 end ring
 
-section domain
-variables [domain B] [algebra A B]
+section is_domain
+variables [ring B] [is_domain B] [algebra A B]
 variables {x : B}
 
 /-- A minimal polynomial is prime. -/
@@ -399,7 +520,7 @@ lemma root {x : B} (hx : is_integral A x) {y : A} (h : is_root (minpoly A x) y) 
   algebra_map A B y = x :=
 have key : minpoly A x = X - C y :=
 eq_of_monic_of_associated (monic hx) (monic_X_sub_C y) (associated_of_dvd_dvd
-  (dvd_symm_of_irreducible (irreducible_X_sub_C y) (irreducible hx) (dvd_iff_is_root.2 h))
+  ((irreducible_X_sub_C y).dvd_symm (irreducible hx) (dvd_iff_is_root.2 h))
   (dvd_iff_is_root.2 h)),
 by { have := aeval A x, rwa [key, alg_hom.map_sub, aeval_X, aeval_C, sub_eq_zero, eq_comm] at this }
 
@@ -418,7 +539,7 @@ end
 lemma coeff_zero_ne_zero (hx : is_integral A x) (h : x ≠ 0) : coeff (minpoly A x) 0 ≠ 0 :=
 by { contrapose! h, simpa only [hx, coeff_zero_eq_zero] using h }
 
-end domain
+end is_domain
 
 end field
 

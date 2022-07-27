@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.baire
 import analysis.normed_space.operator_norm
+import analysis.normed_space.affine_isometry
 
 /-!
 # Banach open mapping theorem
@@ -16,9 +17,9 @@ bounded linear map between Banach spaces has a bounded inverse.
 open function metric set filter finset
 open_locale classical topological_space big_operators nnreal
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 (f : E →L[𝕜] F)
 include 𝕜
 
@@ -34,7 +35,7 @@ structure nonlinear_right_inverse :=
 (bound' : ∀ y, ∥to_fun y∥ ≤ nnnorm * ∥y∥)
 (right_inv' : ∀ y, f (to_fun y) = y)
 
-instance : has_coe_to_fun (nonlinear_right_inverse f) := ⟨_, λ fsymm, fsymm.to_fun⟩
+instance : has_coe_to_fun (nonlinear_right_inverse f) (λ _, F → E) := ⟨λ fsymm, fsymm.to_fun⟩
 
 @[simp] lemma nonlinear_right_inverse.right_inv {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f)
   (y : F) : f (fsymm y) = y :=
@@ -51,7 +52,7 @@ end continuous_linear_map
 noncomputable def continuous_linear_equiv.to_nonlinear_right_inverse (f : E ≃L[𝕜] F) :
   continuous_linear_map.nonlinear_right_inverse (f : E →L[𝕜] F) :=
 { to_fun := f.inv_fun,
-  nnnorm := nnnorm (f.symm : F →L[𝕜] E),
+  nnnorm := ∥(f.symm : F →L[𝕜] E)∥₊,
   bound' := λ y, continuous_linear_map.le_op_norm (f.symm : F →L[𝕜] E) _,
   right_inv' := f.apply_symm_apply }
 
@@ -63,6 +64,7 @@ noncomputable instance (f : E ≃L[𝕜] F) :
 
 variable [complete_space F]
 
+namespace continuous_linear_map
 /--
 First step of the proof of the Banach open mapping theorem (using completeness of `F`):
 by Baire's theorem, there exists a ball in `E` whose image closure has nonempty interior.
@@ -121,7 +123,7 @@ begin
         ∥f (d⁻¹ • x) - y∥ = ∥d⁻¹ • f x - (d⁻¹ * d) • y∥ :
           by rwa [f.map_smul _, inv_mul_cancel, one_smul]
         ... = ∥d⁻¹ • (f x - d • y)∥ : by rw [mul_smul, smul_sub]
-        ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, normed_field.norm_inv]
+        ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, norm_inv]
         ... ≤ ∥d∥⁻¹ * (2 * δ) : begin
             apply mul_le_mul_of_nonneg_left I,
             rw inv_nonneg,
@@ -132,7 +134,7 @@ begin
         ... = (1/2) * ∥y∥ : by ring,
       rw ← dist_eq_norm at J,
       have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
-        ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
+        ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, norm_inv]
         ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
             refine mul_le_mul dinv _ (norm_nonneg _) _,
             { exact le_trans (norm_sub_le _ _) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },
@@ -193,14 +195,14 @@ begin
     ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right (norm_nonneg y)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f (∑ i in range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
     { rw [sum_range_succ, f.map_add, IH, iterate_succ', sub_add] } },
-  have : tendsto (λn, ∑ i in range n, u i) at_top (𝓝 x) :=
+  have : tendsto (λn, ∑ i in finset.range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
-  have L₁ : tendsto (λn, f (∑ i in range n, u i)) at_top (𝓝 (f x)) :=
+  have L₁ : tendsto (λn, f (∑ i in finset.range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
@@ -217,7 +219,7 @@ end
 
 /-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is
 open. -/
-theorem open_mapping (surj : surjective f) : is_open_map f :=
+protected theorem is_open_map (surj : surjective f) : is_open_map f :=
 begin
   assume s hs,
   rcases exists_preimage_norm_le f surj with ⟨C, Cpos, hC⟩,
@@ -239,9 +241,30 @@ begin
   exact set.mem_image_of_mem _ (hε this)
 end
 
+protected theorem quotient_map (surj : surjective f) : quotient_map f :=
+(f.is_open_map surj).to_quotient_map f.continuous surj
+
+lemma _root_.affine_map.is_open_map {P Q : Type*}
+  [metric_space P] [normed_add_torsor E P] [metric_space Q] [normed_add_torsor F Q]
+  (f : P →ᵃ[𝕜] Q) (hf : continuous f) (surj : surjective f) :
+  is_open_map f :=
+affine_map.is_open_map_linear_iff.mp $ continuous_linear_map.is_open_map
+  { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
+  (f.surjective_iff_linear_surjective.mpr surj)
+
 /-! ### Applications of the Banach open mapping theorem -/
 
-namespace continuous_linear_map
+lemma interior_preimage (hsurj : surjective f) (s : set F) :
+  interior (f ⁻¹' s) = f ⁻¹' (interior s) :=
+((f.is_open_map hsurj).preimage_interior_eq_interior_preimage f.continuous s).symm
+
+lemma closure_preimage (hsurj : surjective f) (s : set F) :
+  closure (f ⁻¹' s) = f ⁻¹' (closure s) :=
+((f.is_open_map hsurj).preimage_closure_eq_closure_preimage f.continuous s).symm
+
+lemma frontier_preimage (hsurj : surjective f) (s : set F) :
+  frontier (f ⁻¹' s) = f ⁻¹' (frontier s) :=
+((f.is_open_map hsurj).preimage_frontier_eq_frontier_preimage f.continuous s).symm
 
 lemma exists_nonlinear_right_inverse_of_surjective (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
   ∃ (fsymm : nonlinear_right_inverse f), 0 < fsymm.nnnorm :=
@@ -273,6 +296,8 @@ end continuous_linear_map
 
 namespace linear_equiv
 
+variables [complete_space E]
+
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
 @[continuity]
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
@@ -282,7 +307,7 @@ begin
   intros s hs,
   rw [← e.image_eq_preimage],
   rw [← e.coe_coe] at h ⊢,
-  exact open_mapping ⟨↑e, h⟩ e.surjective s hs
+  exact continuous_linear_map.is_open_map ⟨↑e, h⟩ e.surjective s hs
 end
 
 /-- Associating to a linear equivalence between Banach spaces a continuous linear equivalence when
@@ -305,11 +330,14 @@ end linear_equiv
 
 namespace continuous_linear_equiv
 
-/-- Convert a bijective continuous linear map `f : E →L[𝕜] F` between two Banach spaces
+variables [complete_space E]
+
+/-- Convert a bijective continuous linear map `f : E →L[𝕜] F` from a Banach space to a normed space
 to a continuous linear equivalence. -/
 noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
   E ≃L[𝕜] F :=
-(linear_equiv.of_bijective ↑f hinj hsurj).to_continuous_linear_equiv_of_continuous f.continuous
+(linear_equiv.of_bijective ↑f (linear_map.ker_eq_bot.mp hinj) (linear_map.range_eq_top.mp hsurj))
+.to_continuous_linear_equiv_of_continuous f.continuous
 
 @[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
   ⇑(of_bijective f hinj hsurj) = f := rfl
@@ -331,6 +359,8 @@ end continuous_linear_equiv
 
 namespace continuous_linear_map
 
+variables [complete_space E]
+
 /-- Intermediate definition used to show
 `continuous_linear_map.closed_complemented_range_of_is_compl_of_ker_eq_bot`.
 
@@ -351,7 +381,7 @@ lemma range_eq_map_coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}
   (h : is_compl f.range G) [complete_space G] (hker : f.ker = ⊥) :
     f.range = ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)).map
-      (coprod_subtypeL_equiv_of_is_compl f h hker) :=
+      (f.coprod_subtypeL_equiv_of_is_compl h hker : E × G →ₗ[𝕜] F) :=
 by rw [coprod_subtypeL_equiv_of_is_compl, _root_.coe_coe, continuous_linear_equiv.coe_of_bijective,
     coe_coprod, linear_map.coprod_map_prod, submodule.map_bot, sup_bot_eq, submodule.map_top,
     range]
@@ -362,7 +392,7 @@ lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (
   (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
   is_closed (f.range : set F) :=
 begin
-  haveI : complete_space G := complete_space_coe_iff_is_complete.2 hG.is_complete,
+  haveI : complete_space G := hG.complete_space_coe,
   let g := coprod_subtypeL_equiv_of_is_compl f h hker,
   rw congr_arg coe (range_eq_map_coprod_subtypeL_equiv_of_is_compl f h hker ),
   apply g.to_homeomorph.is_closed_image.2,
@@ -370,3 +400,76 @@ begin
 end
 
 end continuous_linear_map
+
+section closed_graph_thm
+
+variables [complete_space E] (g : E →ₗ[𝕜] F)
+
+/-- The **closed graph theorem** : a linear map between two Banach spaces whose graph is closed
+is continuous. -/
+theorem linear_map.continuous_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
+  continuous g :=
+begin
+  letI : complete_space g.graph := complete_space_coe_iff_is_complete.mpr hg.is_complete,
+  let φ₀ : E →ₗ[𝕜] E × F := linear_map.id.prod g,
+  have : function.left_inverse prod.fst φ₀ := λ x, rfl,
+  let φ : E ≃ₗ[𝕜] g.graph :=
+    (linear_equiv.of_left_inverse this).trans
+    (linear_equiv.of_eq _ _ g.graph_eq_range_prod.symm),
+  let ψ : g.graph ≃L[𝕜] E := φ.symm.to_continuous_linear_equiv_of_continuous
+    continuous_subtype_coe.fst,
+  exact (continuous_subtype_coe.comp ψ.symm.continuous).snd
+end
+
+/-- A useful form of the **closed graph theorem** : let `f` be a linear map between two Banach
+spaces. To show that `f` is continuous, it suffices to show that for any convergent sequence
+`uₙ ⟶ x`, if `f(uₙ) ⟶ y` then `y = f(x)`. -/
+theorem linear_map.continuous_of_seq_closed_graph
+  (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
+  continuous g :=
+begin
+  refine g.continuous_of_is_closed_graph (is_seq_closed_iff_is_closed.mp $ is_seq_closed_of_def _),
+  rintros φ ⟨x, y⟩ hφg hφ,
+  refine hg (prod.fst ∘ φ) x y ((continuous_fst.tendsto _).comp hφ) _,
+  have : g ∘ prod.fst ∘ φ = prod.snd ∘ φ,
+  { ext n,
+    exact (hφg n).symm },
+  rw this,
+  exact (continuous_snd.tendsto _).comp hφ
+end
+
+variable {g}
+
+namespace continuous_linear_map
+
+/-- Upgrade a `linear_map` to a `continuous_linear_map` using the **closed graph theorem**. -/
+def of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
+  E →L[𝕜] F :=
+{ to_linear_map := g,
+  cont := g.continuous_of_is_closed_graph hg }
+
+@[simp] lemma coe_fn_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
+  ⇑(continuous_linear_map.of_is_closed_graph hg) = g := rfl
+
+lemma coe_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
+  ↑(continuous_linear_map.of_is_closed_graph hg) = g := by { ext, refl }
+
+/-- Upgrade a `linear_map` to a `continuous_linear_map` using a variation on the
+**closed graph theorem**. -/
+def of_seq_closed_graph
+  (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
+  E →L[𝕜] F :=
+{ to_linear_map := g,
+  cont := g.continuous_of_seq_closed_graph hg }
+
+@[simp] lemma coe_fn_of_seq_closed_graph
+  (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
+  ⇑(continuous_linear_map.of_seq_closed_graph hg) = g := rfl
+
+lemma coe_of_seq_closed_graph
+  (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
+  ↑(continuous_linear_map.of_seq_closed_graph hg) = g := by { ext, refl }
+
+end continuous_linear_map
+
+end closed_graph_thm

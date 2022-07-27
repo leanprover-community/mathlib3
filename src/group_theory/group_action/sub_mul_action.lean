@@ -3,9 +3,9 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.group_action_hom
+import algebra.hom.group_action
 import algebra.module.basic
-import data.set_like
+import data.set_like.basic
 import group_theory.group_action.basic
 /-!
 
@@ -30,19 +30,19 @@ submodule, mul_action
 
 open function
 
-universes u u' v
-variables {S : Type u'} {R : Type u} {M : Type v}
+universes u u' u'' v
+variables {S : Type u'} {T : Type u''} {R : Type u} {M : Type v}
 
 set_option old_structure_cmd true
 
 /-- A sub_mul_action is a set which is closed under scalar multiplication.  -/
-structure sub_mul_action (R : Type u) (M : Type v) [has_scalar R M] : Type v :=
+structure sub_mul_action (R : Type u) (M : Type v) [has_smul R M] : Type v :=
 (carrier : set M)
 (smul_mem' : ∀ (c : R) {x : M}, x ∈ carrier → c • x ∈ carrier)
 
 namespace sub_mul_action
 
-variables [has_scalar R M]
+variables [has_smul R M]
 
 instance : set_like (sub_mul_action R M) M :=
 ⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
@@ -58,6 +58,12 @@ protected def copy (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) : sub_mu
 { carrier := s,
   smul_mem' := hs.symm ▸ p.smul_mem' }
 
+@[simp] lemma coe_copy (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) :
+  (p.copy s hs : set M) = s := rfl
+
+lemma copy_eq (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) : p.copy s hs = p :=
+set_like.coe_injective hs
+
 instance : has_bot (sub_mul_action R M) :=
 ⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩
 
@@ -67,15 +73,15 @@ end sub_mul_action
 
 namespace sub_mul_action
 
-section has_scalar
+section has_smul
 
-variables [has_scalar R M]
+variables [has_smul R M]
 variables (p : sub_mul_action R M)
 variables {r : R} {x : M}
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 
-instance : has_scalar R p :=
+instance : has_smul R p :=
 { smul := λ c x, ⟨c • x.1, smul_mem _ c x.2⟩ }
 
 variables {p}
@@ -92,21 +98,20 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((sub_mul_action.subtype p) : p → M) = subtype.val := rfl
 
-end has_scalar
+end has_smul
 
-section mul_action
+section mul_action_monoid
 
-variables [monoid S] [monoid R]
+variables [monoid R] [mul_action R M]
 
-variables [mul_action R M]
-variables [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+section
+variables [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M)
-variables {r : R} {x : M}
 
-lemma smul_of_tower_mem (s : S) (h : x ∈ p) : s • x ∈ p :=
+lemma smul_of_tower_mem (s : S) {x : M} (h : x ∈ p) : s • x ∈ p :=
 by { rw [←one_smul R x, ←smul_assoc], exact p.smul_mem _ h }
 
-instance has_scalar' : has_scalar S p :=
+instance has_smul' : has_smul S p :=
 { smul := λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩ }
 
 instance : is_scalar_tower S R p :=
@@ -114,9 +119,21 @@ instance : is_scalar_tower S R p :=
 
 @[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
 
-@[simp] lemma smul_mem_iff' (u : units S) : (u : S) • x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_of_tower_mem (↑u⁻¹ : S) h,
-  p.smul_of_tower_mem u⟩
+@[simp] lemma smul_mem_iff' {G} [group G] [has_smul G R] [mul_action G M]
+  [is_scalar_tower G R M] (g : G) {x : M} :
+  g • x ∈ p ↔ x ∈ p :=
+⟨λ h, inv_smul_smul g x ▸ p.smul_of_tower_mem g⁻¹ h, p.smul_of_tower_mem g⟩
+
+instance [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S p :=
+{ op_smul_eq_smul := λ r x, subtype.ext $ op_smul_eq_smul r x }
+
+end
+
+section
+
+variables [monoid S] [has_smul S R] [mul_action S M] [is_scalar_tower S R M]
+variables (p : sub_mul_action R M)
 
 /-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
 instance mul_action' : mul_action S p :=
@@ -126,7 +143,43 @@ instance mul_action' : mul_action S p :=
 
 instance : mul_action R p := p.mul_action'
 
-end mul_action
+end
+
+
+/-- Orbits in a `sub_mul_action` coincide with orbits in the ambient space. -/
+lemma coe_image_orbit {p : sub_mul_action R M} (m : p) :
+  coe '' mul_action.orbit R m = mul_action.orbit R (m : M) := (set.range_comp _ _).symm
+
+/- -- Previously, the relatively useless :
+lemma orbit_of_sub_mul {p : sub_mul_action R M} (m : p) :
+  (mul_action.orbit R m : set M) = mul_action.orbit R (m : M) := rfl
+-/
+
+/-- Stabilizers in monoid sub_mul_action coincide with stabilizers in the ambient space -/
+lemma stabilizer_of_sub_mul.submonoid {p : sub_mul_action R M} (m : p) :
+  mul_action.stabilizer.submonoid R m = mul_action.stabilizer.submonoid R (m : M) :=
+begin
+  ext,
+  simp only [mul_action.mem_stabilizer_submonoid_iff,
+      ← sub_mul_action.coe_smul, set_like.coe_eq_coe]
+end
+
+end mul_action_monoid
+
+section mul_action_group
+
+variables [group R] [mul_action R M]
+
+/-- Stabilizers in group sub_mul_action coincide with stabilizers in the ambient space -/
+lemma stabilizer_of_sub_mul {p : sub_mul_action R M} (m : p) :
+  mul_action.stabilizer R m = mul_action.stabilizer R (m : M) :=
+begin
+  rw ← subgroup.to_submonoid_eq,
+  exact stabilizer_of_sub_mul.submonoid m,
+end
+
+end mul_action_group
+
 
 section module
 
@@ -166,8 +219,8 @@ end sub_mul_action
 
 namespace sub_mul_action
 
-variables [division_ring S] [semiring R] [mul_action R M]
-variables [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+variables [group_with_zero S] [monoid R] [mul_action R M]
+variables [has_smul S R] [mul_action S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M) {s : S} {x y : M}
 
 theorem smul_mem_iff (s0 : s ≠ 0) : s • x ∈ p ↔ x ∈ p :=

@@ -3,10 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import tactic.ring_exp
 import algebra.algebra.basic
-import algebra.opposites
-import data.equiv.ring
+import set_theory.cardinal.ordinal
+import tactic.ring_exp
 
 /-!
 # Quaternions
@@ -57,6 +56,14 @@ localized "notation `ℍ[` R`,` a`,` b `]` := quaternion_algebra R a b" in quate
 
 namespace quaternion_algebra
 
+/-- The equivalence between a quaternion algebra over R and R × R × R × R. -/
+@[simps]
+def equiv_prod {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ R × R × R × R :=
+{ to_fun := λ a, ⟨a.1, a.2, a.3, a.4⟩,
+  inv_fun := λ a, ⟨a.1, a.2.1, a.2.2.1, a.2.2.2⟩,
+  left_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl,
+  right_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl }
+
 @[simp] lemma mk.eta {R : Type*} {c₁ c₂} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
 | ⟨a₁, a₂, a₃, a₄⟩ := rfl
 
@@ -91,10 +98,16 @@ instance : inhabited ℍ[R, c₁, c₂] := ⟨0⟩
   (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) + mk b₁ b₂ b₃ b₄ = mk (a₁ + b₁) (a₂ + b₂) (a₃ + b₃) (a₄ + b₄) :=
 rfl
 
+@[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
+by ext; simp
+
 @[simps] instance : has_neg ℍ[R, c₁, c₂] := ⟨λ a, ⟨-a.1, -a.2, -a.3, -a.4⟩⟩
 
 @[simp] lemma neg_mk (a₁ a₂ a₃ a₄ : R) : -(mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨-a₁, -a₂, -a₃, -a₄⟩ :=
 rfl
+
+@[norm_cast, simp] lemma coe_neg : ((-x : R) : ℍ[R, c₁, c₂]) = -x :=
+by ext; simp
 
 @[simps] instance : has_sub ℍ[R, c₁, c₂] :=
 ⟨λ a b, ⟨a.1 - b.1, a.2 - b.2, a.3 - b.3, a.4 - b.4⟩⟩
@@ -125,17 +138,35 @@ rfl
      a₁ * b₃ + c₁ * a₂ * b₄ + a₃ * b₁ - c₁ *  a₄ * b₂,
      a₁ * b₄ + a₂ * b₃ - a₃ * b₂ + a₄ * b₁⟩ := rfl
 
+instance : add_comm_group ℍ[R, c₁, c₂] :=
+by refine_struct
+  { add := (+),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    zero := (0 : ℍ[R, c₁, c₂]),
+    zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
+  intros; try { refl }; ext; simp; ring_exp
+
+instance : add_group_with_one ℍ[R, c₁, c₂] :=
+{ nat_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
+  nat_cast_zero := by simp,
+  nat_cast_succ := by simp,
+  int_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
+  int_cast_of_nat := λ _, congr_arg coe (int.cast_of_nat _),
+  int_cast_neg_succ_of_nat := λ n,
+    show ↑↑_ = -↑↑_, by rw [int.cast_neg, int.cast_coe_nat, coe_neg],
+  one := 1,
+  .. quaternion_algebra.add_comm_group }
+
 instance : ring ℍ[R, c₁, c₂] :=
 by refine_struct
   { add := (+),
-    zero := (0 : ℍ[R, c₁, c₂]),
-    neg := has_neg.neg,
-    sub := has_sub.sub,
     mul := (*),
     one := 1,
-    nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-    gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+    npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩,
+    .. quaternion_algebra.add_group_with_one,
+    .. quaternion_algebra.add_comm_group };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
@@ -153,14 +184,34 @@ instance : algebra R ℍ[R, c₁, c₂] :=
 @[simp] lemma smul_im_j : (r • a).im_j = r • a.im_j := rfl
 @[simp] lemma smul_im_k : (r • a).im_k = r • a.im_k := rfl
 
-@[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
-(algebra_map R ℍ[R, c₁, c₂]).map_add x y
+@[simp] lemma smul_mk (re im_i im_j im_k : R) :
+  r • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨r • re, r • im_i, r • im_j, r • im_k⟩ := rfl
+
+lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
+
+section
+variables (R c₁ c₂)
+
+/-- `quaternion_algebra.re` as a `linear_map`-/
+@[simps] def re_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := re, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_i` as a `linear_map`-/
+@[simps] def im_i_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_i, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_j` as a `linear_map`-/
+@[simps] def im_j_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_j, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_k` as a `linear_map`-/
+@[simps] def im_k_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_k, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+end
 
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y
-
-@[norm_cast, simp] lemma coe_neg : ((-x : R) : ℍ[R, c₁, c₂]) = -x :=
-(algebra_map R ℍ[R, c₁, c₂]).map_neg x
 
 @[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_mul x y
@@ -190,6 +241,10 @@ linear_equiv.of_involutive
 @[simp] lemma im_i_conj : (conj a).im_i = - a.im_i := rfl
 @[simp] lemma im_j_conj : (conj a).im_j = - a.im_j := rfl
 @[simp] lemma im_k_conj : (conj a).im_k = - a.im_k := rfl
+
+@[simp] lemma conj_mk (a₁ a₂ a₃ a₄ : R) :
+  conj (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨a₁, -a₂, -a₃, -a₄⟩ :=
+rfl
 
 @[simp] lemma conj_conj : a.conj.conj = a := ext _ _ rfl (neg_neg _) (neg_neg _) (neg_neg _)
 
@@ -268,10 +323,10 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 
 @[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
-open opposite
+open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
+def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵐᵒᵖ) :=
 { to_fun := op ∘ conj,
   inv_fun := conj ∘ unop,
   map_mul' := λ x y, by simp,
@@ -287,6 +342,10 @@ end quaternion_algebra
 def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) (-1)
 
 localized "notation `ℍ[` R `]` := quaternion R" in quaternion
+
+/-- The equivalence between the quaternions over R and R × R × R × R. -/
+def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=
+quaternion_algebra.equiv_prod _ _
 
 namespace quaternion
 
@@ -345,22 +404,22 @@ quaternion_algebra.ext_iff a b
 @[simp] lemma mul_re :
   (a * b).re = a.re * b.re - a.im_i * b.im_i - a.im_j * b.im_j - a.im_k * b.im_k :=
 (quaternion_algebra.has_mul_mul_re a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp] lemma mul_im_i :
   (a * b).im_i = a.re * b.im_i + a.im_i * b.re + a.im_j * b.im_k - a.im_k * b.im_j :=
 (quaternion_algebra.has_mul_mul_im_i a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp] lemma mul_im_j :
   (a * b).im_j = a.re * b.im_j - a.im_i * b.im_k + a.im_j * b.re + a.im_k * b.im_i :=
 (quaternion_algebra.has_mul_mul_im_j a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp] lemma mul_im_k :
   (a * b).im_k = a.re * b.im_k + a.im_i * b.im_j - a.im_j * b.im_i + a.im_k * b.re :=
 (quaternion_algebra.has_mul_mul_im_k a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
 
@@ -448,15 +507,15 @@ lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
 
 @[simp] lemma conj_sub : (a - b).conj = a.conj - b.conj := a.conj_sub b
 
-open opposite
+open mul_opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_ae
+def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵐᵒᵖ) := quaternion_algebra.conj_ae
 
-@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
+@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵐᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
-def norm_sq : monoid_with_zero_hom ℍ[R] R :=
+def norm_sq : ℍ[R] →*₀ R :=
 { to_fun := λ a, (a * a.conj).re,
   map_zero' := by rw [conj_zero, zero_mul, zero_re],
   map_one' := by rw [conj_one, one_mul, one_re],
@@ -466,7 +525,7 @@ def norm_sq : monoid_with_zero_hom ℍ[R] R :=
 lemma norm_sq_def : norm_sq a = (a * a.conj).re := rfl
 
 lemma norm_sq_def' : norm_sq a = a.1^2 + a.2^2 + a.3^2 + a.4^2 :=
-by simp only [norm_sq_def, sq, ← neg_mul_eq_mul_neg, sub_neg_eq_add,
+by simp only [norm_sq_def, sq, mul_neg, sub_neg_eq_add,
   mul_re, conj_re, conj_im_i, conj_im_j, conj_im_k]
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
@@ -509,12 +568,14 @@ by { rw norm_sq_def', apply_rules [sq_nonneg, add_nonneg] }
 @[simp] lemma norm_sq_le_zero : norm_sq a ≤ 0 ↔ a = 0 :=
 by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero _ _ a
 
-instance : domain ℍ[R] :=
-{ exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
+instance : nontrivial ℍ[R] :=
+{ exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩, }
+
+instance : is_domain ℍ[R] :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
     have norm_sq a * norm_sq b = 0, by rwa [← norm_sq.map_mul, norm_sq_eq_zero],
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,
-  .. quaternion.ring }
+  ..quaternion.nontrivial, }
 
 end linear_ordered_comm_ring
 
@@ -529,10 +590,11 @@ instance : division_ring ℍ[R] :=
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
-  .. quaternion.domain }
+  .. quaternion.nontrivial,
+  .. quaternion.ring }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-monoid_with_zero_hom.map_inv' norm_sq _
+monoid_with_zero_hom.map_inv norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
 monoid_with_zero_hom.map_div norm_sq a b
@@ -540,3 +602,53 @@ monoid_with_zero_hom.map_div norm_sq a b
 end field
 
 end quaternion
+
+namespace cardinal
+
+open_locale cardinal quaternion
+
+section quaternion_algebra
+
+variables {R : Type*} (c₁ c₂ : R)
+
+private theorem pow_four [infinite R] : #R ^ 4 = #R :=
+power_nat_eq (aleph_0_le_mk R) $ by simp
+
+/-- The cardinality of a quaternion algebra, as a type. -/
+lemma mk_quaternion_algebra : #ℍ[R, c₁, c₂] = #R ^ 4 :=
+by { rw mk_congr (quaternion_algebra.equiv_prod c₁ c₂), simp only [mk_prod, lift_id], ring }
+
+@[simp] lemma mk_quaternion_algebra_of_infinite [infinite R] : #ℍ[R, c₁, c₂] = #R :=
+by rw [mk_quaternion_algebra, pow_four]
+
+/-- The cardinality of a quaternion algebra, as a set. -/
+lemma mk_univ_quaternion_algebra : #(set.univ : set ℍ[R, c₁, c₂]) = #R ^ 4 :=
+by rw [mk_univ, mk_quaternion_algebra]
+
+@[simp] lemma mk_univ_quaternion_algebra_of_infinite [infinite R] :
+  #(set.univ : set ℍ[R, c₁, c₂]) = #R :=
+by rw [mk_univ_quaternion_algebra, pow_four]
+
+end quaternion_algebra
+
+section quaternion
+
+variables (R : Type*) [has_one R] [has_neg R]
+
+/-- The cardinality of the quaternions, as a type. -/
+@[simp] lemma mk_quaternion : #ℍ[R] = #R ^ 4 :=
+mk_quaternion_algebra _ _
+
+@[simp] lemma mk_quaternion_of_infinite [infinite R] : #ℍ[R] = #R :=
+by rw [mk_quaternion, pow_four]
+
+/-- The cardinality of the quaternions, as a set. -/
+@[simp] lemma mk_univ_quaternion : #(set.univ : set ℍ[R]) = #R ^ 4 :=
+mk_univ_quaternion_algebra _ _
+
+@[simp] lemma mk_univ_quaternion_of_infinite [infinite R] : #(set.univ : set ℍ[R]) = #R :=
+by rw [mk_univ_quaternion, pow_four]
+
+end quaternion
+
+end cardinal

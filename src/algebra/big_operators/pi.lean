@@ -3,10 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.ring.pi
 import algebra.big_operators.basic
-import data.fintype.basic
-import algebra.group.prod
+import algebra.ring.pi
+
 /-!
 # Big operators for Pi Types
 
@@ -85,12 +84,12 @@ end single
 section ring_hom
 open pi
 variables {I : Type*} [decidable_eq I] {f : I → Type*}
-variables [Π i, semiring (f i)]
+variables [Π i, non_assoc_semiring (f i)]
 
-@[ext] lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
-  (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+@[ext] lemma ring_hom.functions_ext [fintype I] (G : Type*) [non_assoc_semiring G]
+  (g h : (Π i, f i) →+* G) (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
 ring_hom.coe_add_monoid_hom_injective $
- add_monoid_hom.functions_ext G (g : (Π i, f i) →+ G) h w
+  @add_monoid_hom.functions_ext I _ f _ _ G _ (g : (Π i, f i) →+ G) h w
 
 end ring_hom
 

@@ -43,7 +43,7 @@ For each of the following structures we prove that if `β` has this structure, t
 * one-operation algebraic structures up to `comm_group`;
 * `mul_zero_class`, `distrib`, `semiring`, `comm_semiring`, `ring`, `comm_ring`;
 * `mul_action`, `distrib_mul_action`, `module`;
-* `preorder`, `partial_order`, and `lattice` structures up to `bounded_lattice`;
+* `preorder`, `partial_order`, and `lattice` structures, as well as `bounded_order`;
 * `ordered_cancel_comm_monoid` and `ordered_cancel_add_comm_monoid`.
 
 ## Tags
@@ -73,6 +73,29 @@ def germ_setoid (l : filter α) (β : Type*) : setoid (α → β) :=
 
 /-- The space of germs of functions `α → β` at a filter `l`. -/
 def germ (l : filter α) (β : Type*) : Type* := quotient (germ_setoid l β)
+
+/-- Setoid used to define the filter product. This is a dependent version of
+  `filter.germ_setoid`. -/
+def product_setoid (l : filter α) (ε : α → Type*) : setoid (Π a, ε a) :=
+{ r := λ f g, ∀ᶠ a in l, f a = g a,
+  iseqv := ⟨λ _, eventually_of_forall (λ _, rfl),
+    λ _ _ h, h.mono (λ _, eq.symm),
+    λ x y z h1 h2, h1.congr (h2.mono (λ x hx, hx ▸ iff.rfl))⟩ }
+
+/-- The filter product `Π (a : α), ε a` at a filter `l`. This is a dependent version of
+  `filter.germ`. -/
+@[protected] def product (l : filter α) (ε : α → Type*) : Type* := quotient (product_setoid l ε)
+
+namespace product
+
+variables {ε : α → Type*}
+
+instance : has_coe_t (Π a, ε a) (l.product ε) := ⟨quotient.mk'⟩
+
+instance [Π a, inhabited (ε a)] : inhabited (l.product ε) :=
+⟨(↑(λ a, (default : ε a)) : l.product ε)⟩
+
+end product
 
 namespace germ
 
@@ -118,7 +141,7 @@ rfl
 
 @[simp, norm_cast] lemma coe_eq : (f : germ l β) = g ↔ (f =ᶠ[l] g) := quotient.eq'
 
-alias coe_eq ↔ _ filter.eventually_eq.germ_eq
+alias coe_eq ↔ _ _root_.filter.eventually_eq.germ_eq
 
 /-- Lift a function `β → γ` to a function `germ l β → germ l γ`. -/
 def map (op : β → γ) : germ l β → germ l γ :=
@@ -150,7 +173,7 @@ lift_on f (λ f, tendsto f l lb) $ λ f g H, propext (tendsto_congr' H)
   (f : germ l β).tendsto lb ↔ tendsto f l lb :=
 iff.rfl
 
-alias coe_tendsto ↔ _ filter.tendsto.germ_tendsto
+alias coe_tendsto ↔ _ _root_.filter.tendsto.germ_tendsto
 
 /-- Given two germs `f : germ l β`, and `g : germ lc α`, where `l : filter α`, if `g` tends to `l`,
 then the composition `f ∘ g` is well-defined as a germ at `lc`. -/
@@ -231,7 +254,7 @@ eventually_of_forall $ λ _, h
   lift_rel r (↑x : germ l β) ↑y ↔ r x y :=
 @eventually_const _ _ _ (r x y)
 
-instance [inhabited β] : inhabited (germ l β) := ⟨↑(default β)⟩
+instance [inhabited β] : inhabited (germ l β) := ⟨↑(default : β)⟩
 
 section monoid
 
@@ -240,29 +263,22 @@ variables {M : Type*} {G : Type*}
 @[to_additive]
 instance [has_mul M] : has_mul (germ l M) := ⟨map₂ (*)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul M] (f g : α → M) : ↑(f * g) = (f * g : germ l M) := rfl
-
-attribute [norm_cast] coe_mul coe_add
 
 @[to_additive]
 instance [has_one M] : has_one (germ l M) := ⟨↑(1:M)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_one [has_one M] : ↑(1 : α → M) = (1 : germ l M) := rfl
-
-attribute [norm_cast] coe_one coe_zero
 
 @[to_additive]
 instance [semigroup M] : semigroup (germ l M) :=
-{ mul := (*), mul_assoc := by { rintros ⟨f⟩ ⟨g⟩ ⟨h⟩,
-    simp only [mul_assoc, quot_mk_eq_coe, ← coe_mul] } }
+function.surjective.semigroup coe (surjective_quot_mk _) (λ a b, coe_mul a b)
 
 @[to_additive]
 instance [comm_semigroup M] : comm_semigroup (germ l M) :=
-{ mul := (*),
-  mul_comm := by { rintros ⟨f⟩ ⟨g⟩, simp only [mul_comm, quot_mk_eq_coe, ← coe_mul] },
-  .. germ.semigroup }
+function.surjective.comm_semigroup coe (surjective_quot_mk _) (λ a b, coe_mul a b)
 
 @[to_additive add_left_cancel_semigroup]
 instance [left_cancel_semigroup M] : left_cancel_semigroup (germ l M) :=
@@ -278,13 +294,28 @@ instance [right_cancel_semigroup M] : right_cancel_semigroup (germ l M) :=
     coe_eq.2 $ (coe_eq.1 H).mono $ λ x, mul_right_cancel,
   .. germ.semigroup }
 
+instance has_nat_pow [monoid G] : has_pow (germ l G) ℕ := ⟨λ f n, map (^ n) f⟩
+
+@[simp] lemma coe_pow [monoid G] (f : α → G) (n : ℕ) : ↑(f ^ n) = (f ^ n : germ l G) := rfl
+
+instance has_int_pow [div_inv_monoid G] : has_pow (germ l G) ℤ := ⟨λ f z, map (^ z) f⟩
+
+@[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑(f ^ z) = (f ^ z : germ l G) :=
+rfl
+
+instance [has_smul M β] : has_smul M (germ l β) :=
+⟨λ c, map ((•) c)⟩
+
+@[simp, norm_cast] lemma coe_smul [has_smul M β] (c : M) (f : α → β) :
+  ↑(c • f) = (c • f : germ l β) :=
+rfl
+
+instance [add_monoid M] : add_monoid (germ l M) :=
+function.surjective.add_monoid coe (surjective_quot_mk _) rfl (λ a b, coe_add a b) (λ _ _, rfl)
+
 @[to_additive]
 instance [monoid M] : monoid (germ l M) :=
-{ mul := (*),
-  one := 1,
-  one_mul := λ f, induction_on f $ λ f, by { norm_cast, rw [one_mul] },
-  mul_one := λ f, induction_on f $ λ f, by { norm_cast, rw [mul_one] },
-  .. germ.semigroup }
+function.surjective.monoid coe (surjective_quot_mk _) rfl (λ a b, coe_mul a b) coe_pow
 
 /-- coercion from functions to germs as a monoid homomorphism. -/
 @[to_additive]
@@ -302,13 +333,17 @@ instance [comm_monoid M] : comm_monoid (germ l M) :=
   one := 1,
   .. germ.comm_semigroup, .. germ.monoid }
 
+instance [add_monoid_with_one M] : add_monoid_with_one (germ l M) :=
+{ nat_cast := λ n, ↑(n : M),
+  nat_cast_zero := congr_arg coe nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg coe (nat.cast_succ _),
+  .. germ.has_one, .. germ.add_monoid }
+
 @[to_additive]
 instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rfl
-
-attribute [norm_cast] coe_inv coe_neg
 
 @[to_additive]
 instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
@@ -316,12 +351,14 @@ instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
 @[simp, norm_cast, to_additive]
 lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
 
-@[to_additive]
+instance [sub_neg_monoid G] : sub_neg_monoid (germ l G) :=
+function.surjective.sub_neg_monoid coe (surjective_quot_mk _) rfl (λ _ _, rfl)
+  (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+@[to_additive sub_neg_monoid]
 instance [div_inv_monoid G] : div_inv_monoid (germ l G) :=
-{ inv := has_inv.inv,
-  div := has_div.div,
-  div_eq_mul_inv := by { rintros ⟨f⟩ ⟨g⟩, exact congr_arg (quot.mk _) (div_eq_mul_inv f g) },
-  .. germ.monoid }
+function.surjective.div_inv_monoid coe (surjective_quot_mk _) rfl (λ _ _, rfl)
+  (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance [group G] : group (germ l G) :=
@@ -359,7 +396,8 @@ instance [distrib R] : distrib (germ l R) :=
   right_distrib := λ f g h, induction_on₃ f g h $ λ f g h, by { norm_cast, rw [right_distrib] } }
 
 instance [semiring R] : semiring (germ l R) :=
-{ .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+{ .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class,
+  .. germ.add_monoid_with_one }
 
 /-- Coercion `(α → R) → germ l R` as a `ring_hom`. -/
 def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
@@ -368,7 +406,7 @@ def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
 @[simp] lemma coe_coe_ring_hom [semiring R] : (coe_ring_hom l : (α → R) → germ l R) = coe := rfl
 
 instance [ring R] : ring (germ l R) :=
-{ .. germ.add_comm_group, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+{ .. germ.add_comm_group, .. germ.semiring }
 
 instance [comm_semiring R] : comm_semiring (germ l R) :=
 { .. germ.semiring, .. germ.comm_monoid }
@@ -382,17 +420,10 @@ section module
 
 variables {M N R : Type*}
 
-instance [has_scalar M β]  : has_scalar M (germ l β) :=
-⟨λ c, map ((•) c)⟩
-
-instance has_scalar' [has_scalar M β] : has_scalar (germ l M) (germ l β) :=
+instance has_smul' [has_smul M β] : has_smul (germ l M) (germ l β) :=
 ⟨map₂ (•)⟩
 
-@[simp, norm_cast] lemma coe_smul [has_scalar M β] (c : M) (f : α → β) :
-  ↑(c • f) = (c • f : germ l β) :=
-rfl
-
-@[simp, norm_cast] lemma coe_smul' [has_scalar M β] (c : α → M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul' [has_smul M β] (c : α → M) (f : α → β) :
   ↑(c • f) = (c : germ l M) • (f : germ l β) :=
 rfl
 
@@ -454,21 +485,17 @@ instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩
 
 @[simp, norm_cast] lemma const_bot [has_bot β] : (↑(⊥:β) : germ l β) = ⊥ := rfl
 
-instance [order_bot β] : order_bot (germ l β) :=
+instance [has_le β] [order_bot β] : order_bot (germ l β) :=
 { bot := ⊥,
-  le := (≤),
-  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le,
-  .. germ.partial_order }
+  bot_le := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, bot_le }
 
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
 
 @[simp, norm_cast] lemma const_top [has_top β] : (↑(⊤:β) : germ l β) = ⊤ := rfl
 
-instance [order_top β] : order_top (germ l β) :=
+instance [has_le β] [order_top β] : order_top (germ l β) :=
 { top := ⊤,
-  le := (≤),
-  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top,
-  .. germ.partial_order }
+  le_top := λ f, induction_on f $ λ f, eventually_of_forall $ λ x, le_top }
 
 instance [has_sup β] : has_sup (germ l β) := ⟨map₂ (⊔)⟩
 
@@ -498,23 +525,11 @@ instance [semilattice_inf β] : semilattice_inf (germ l β) :=
     h₂.mp $ h₁.mono $ λ x, le_inf,
   .. germ.partial_order }
 
-instance [semilattice_inf_bot β] : semilattice_inf_bot (germ l β) :=
-{ .. germ.semilattice_inf, .. germ.order_bot }
-
-instance [semilattice_sup_bot β] : semilattice_sup_bot (germ l β) :=
-{ .. germ.semilattice_sup, .. germ.order_bot }
-
-instance [semilattice_inf_top β] : semilattice_inf_top (germ l β) :=
-{ .. germ.semilattice_inf, .. germ.order_top }
-
-instance [semilattice_sup_top β] : semilattice_sup_top (germ l β) :=
-{ .. germ.semilattice_sup, .. germ.order_top }
-
 instance [lattice β] : lattice (germ l β) :=
 { .. germ.semilattice_sup, .. germ.semilattice_inf }
 
-instance [bounded_lattice β] : bounded_lattice (germ l β) :=
-{ .. germ.lattice, .. germ.order_bot, .. germ.order_top }
+instance [has_le β] [bounded_order β] : bounded_order (germ l β) :=
+{ .. germ.order_bot, .. germ.order_top }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β) :=

@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
-import data.list.basic
+import data.list.big_operators
 
 /-!
 # zip & unzip
@@ -56,11 +56,18 @@ zip_with_nil_right _ l
    length (zip_with f l₁ l₂) = min (length l₁) (length l₂)
 | []      l₂      := rfl
 | l₁      []      := by simp only [length, min_zero, zip_with_nil_right]
-| (a::l₁) (b::l₂) := by by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
+| (a::l₁) (b::l₂) := by simp [length, zip_cons_cons, length_zip_with l₁ l₂, min_add_add_right]
 
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
    length (zip l₁ l₂) = min (length l₁) (length l₂) :=
 length_zip_with _
+
+theorem all₂_zip_with {f : α → β → γ} {p : γ → Prop} :
+  ∀ {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂),
+  all₂ p (zip_with f l₁ l₂) ↔ forall₂ (λ x y, p (f x y)) l₁ l₂
+| [] [] _ := by simp
+| (a :: l₁) (b :: l₂) h :=
+  by { simp only [length_cons, add_left_inj] at h, simp [all₂_zip_with h] }
 
 lemma lt_length_left_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
   (h : i < (zip_with f l l').length) :
@@ -181,7 +188,7 @@ theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ length l₂ →
   (unzip (zip l₁ l₂)).1 = l₁
 | []      l₂      h := rfl
-| l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
+| l₁      []      h := by rw eq_nil_of_length_eq_zero (nat.eq_zero_of_le_zero h); refl
 | (a::l₁) (b::l₂) h := by simp only [zip_cons_cons, unzip_cons,
     unzip_zip_left (le_of_succ_le_succ h)]; split; refl
 
@@ -380,5 +387,27 @@ begin
 end
 
 end distrib
+
+section comm_monoid
+
+variables [comm_monoid α]
+
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with_mul_prod_drop : ∀ (L L' : list α), L.prod * L'.prod =
+  (zip_with (*) L L').prod * (L.drop L'.length).prod * (L'.drop L.length).prod
+| [] ys := by simp
+| xs [] := by simp
+| (x :: xs) (y :: ys) := begin
+  simp only [drop, length, zip_with_cons_cons, prod_cons],
+  rw [mul_assoc x, mul_comm xs.prod, mul_assoc y, mul_comm ys.prod,
+    prod_mul_prod_eq_prod_zip_with_mul_prod_drop xs ys, mul_assoc, mul_assoc, mul_assoc, mul_assoc]
+end
+
+@[to_additive]
+lemma prod_mul_prod_eq_prod_zip_with_of_length_eq (L L' : list α) (h : L.length = L'.length) :
+  L.prod * L'.prod = (zip_with (*) L L').prod :=
+(prod_mul_prod_eq_prod_zip_with_mul_prod_drop L L').trans (by simp [h])
+
+end comm_monoid
 
 end list

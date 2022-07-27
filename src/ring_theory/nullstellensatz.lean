@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import ring_theory.jacobson
-import field_theory.algebraic_closure
+import field_theory.is_alg_closed.basic
 import field_theory.mv_polynomial
-import algebraic_geometry.prime_spectrum
+import algebraic_geometry.prime_spectrum.basic
 
 /-!
 # Nullstellensatz
@@ -76,7 +76,7 @@ lemma zero_locus_vanishing_ideal_le (V : set (σ → k)) :
 λ V hV p hp, hp V hV
 
 theorem zero_locus_vanishing_ideal_galois_connection :
-  @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
+  @galois_connection (ideal (mv_polynomial σ k)) (set (σ → k))ᵒᵈ _ _
     zero_locus vanishing_ideal :=
 λ I V, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
   λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le V)⟩
@@ -88,10 +88,10 @@ lemma mem_vanishing_ideal_singleton_iff (x : σ → k) (p : mv_polynomial σ k) 
 instance vanishing_ideal_singleton_is_maximal {x : σ → k} :
   (vanishing_ideal {x} : ideal (mv_polynomial σ k)).is_maximal :=
 begin
-  have : (vanishing_ideal {x} : ideal (mv_polynomial σ k)).quotient ≃+* k := ring_equiv.of_bijective
+  have : mv_polynomial σ k ⧸ vanishing_ideal {x} ≃+* k := ring_equiv.of_bijective
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
-      refine ⟨(ring_hom.injective_iff _).mpr (λ p hp, _), λ z,
+      refine ⟨(injective_iff_map_eq_zero _).mpr (λ p hp, _), λ z,
         ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simp⟩⟩,
       obtain ⟨q, rfl⟩ := quotient.mk_surjective p,
       rwa [ideal.quotient.lift_mk, ← mem_vanishing_ideal_singleton_iff,
@@ -136,8 +136,8 @@ begin
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in
     hx.symm ▸ (mv_polynomial.vanishing_ideal_singleton_is_maximal)⟩,
   letI : I.is_maximal := hI,
-  letI : field I.quotient := quotient.field I,
-  let ϕ : k →+* I.quotient := (ideal.quotient.mk I).comp C,
+  letI : field (mv_polynomial σ k ⧸ I) := quotient.field I,
+  let ϕ : k →+* mv_polynomial σ k ⧸ I := (ideal.quotient.mk I).comp C,
   have hϕ : function.bijective ϕ := ⟨quotient_mk_comp_C_injective _ _ I hI.ne_top,
     is_alg_closed.algebra_map_surjective_of_is_integral' ϕ
       (mv_polynomial.comp_C_integral_of_surjective_of_jacobson _ quotient.mk_surjective)⟩,
@@ -148,8 +148,7 @@ begin
   intros p hp,
   rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
   rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,
-  convert (trans (congr_arg ϕ hp) ϕ.map_zero),
-  simp only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, hx],
+  simpa only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, ϕ.map_zero, hx] using congr_arg ϕ hp,
 end
 
 /-- Main statement of the Nullstellensatz -/

@@ -3,7 +3,6 @@ Copyright (c) 2020 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.fintype.card
 import data.buffer.parser.basic
 
 /-!
@@ -18,21 +17,22 @@ or parser from a given character or character range.
 
 ## Main definitions
 
-* 'numeral` : The parser which uses `nat.cast` to map the result of `parser.nat` to the desired `α`
-* `numeral.of_fintype` :  The parser which `guard`s to make sure the parsed numeral is within the
-  cardinality of the target `fintype` type `α`.
+* `parser.numeral` : The parser which uses `nat.cast`
+  to map the result of `parser.nat` to the desired `α`
+* `parser.numeral.of_fintype` :  The parser which `guard`s to make sure the parsed
+  numeral is within the cardinality of the target `fintype` type `α`.
 
 ## Implementation details
 
-When the `numeral` or related parsers are invoked, the desired type is provided explicitly. In many
-cases, it can be inferred, so one can write, for example
+When the `parser.numeral` or related parsers are invoked, the desired type is provided explicitly.
+In many cases, it can be inferred, so one can write, for example
 ```lean
 def get_fin : string → fin 5 :=
 sum.elim (λ _, 0) id ∘ parser.run_string (parser.numeral.of_fintype _)
 ```
 
-In the definitions of the parsers (except for `numeral`), there is an explicit `nat.bin_cast`
-instead an explicit or implicit `nat.cast`
+In the definitions of the parsers (except for `parser.numeral`), there is an
+explicit `nat.bin_cast` instead an explicit or implicit `nat.cast`.
 -/
 
 open parser parse_result
@@ -111,9 +111,27 @@ that the resulting value is within the cardinality of the type `α`.
 def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
 do
   c ← decorate_error
-    (sformat!"<char from '{fromc.to_string}' to '{
-      (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string}' inclusively>")
+    (sformat!"<char from '{fromc.to_string}' to '
+    { (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string}' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat)),
   pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
+
+/-! ## Specific numeral types -/
+
+/--
+Matches an integer, like `43` or `-2`.
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+def int : parser int :=
+(coe <$> nat) <|> (ch '-' >> has_neg.neg <$> coe <$> nat)
+
+/--
+Matches an rational number, like `43/1` or `-2/3`.
+Requires that the negation is in the numerator,
+and that both a numerator and denominator are provided (e.g. will not match `43`).
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+def rat : parser rat :=
+(λ x y, ↑x / ↑y) <$> int <*> (ch '/' >> nat)
 
 end parser

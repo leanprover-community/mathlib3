@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import group_theory.free_abelian_group
+import algebra.module.equiv
 import data.finsupp.basic
+import group_theory.free_abelian_group
+import group_theory.is_free_group
+import linear_algebra.dimension
 
 /-!
 # Isomorphism between `free_abelian_group X` and `X →₀ ℤ`
@@ -53,16 +56,16 @@ begin
   rw [add_monoid_hom.comp_assoc, finsupp.to_free_abelian_group_comp_single_add_hom],
   simp only [to_finsupp, add_monoid_hom.coe_comp, finsupp.single_add_hom_apply,
     function.comp_app, one_smul, lift.of, add_monoid_hom.flip_apply,
-    smul_add_hom_one, add_monoid_hom.id_apply],
+    smul_add_hom_apply, add_monoid_hom.id_apply],
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_comp_to_finsupp :
   to_free_abelian_group.comp to_finsupp = add_monoid_hom.id (free_abelian_group X) :=
 begin
   ext,
-  simp only [to_free_abelian_group, to_finsupp, finsupp.lift_add_hom_apply_single,
-    add_monoid_hom.coe_comp, function.comp_app, one_smul, add_monoid_hom.id_apply, lift.of,
-    add_monoid_hom.flip_apply, smul_add_hom_one],
+  rw [to_free_abelian_group, to_finsupp, add_monoid_hom.comp_apply, lift.of,
+    lift_add_hom_apply_single, add_monoid_hom.flip_apply, smul_add_hom_apply, one_smul,
+    add_monoid_hom.id_apply],
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_to_finsupp {X} (x : free_abelian_group X) :
@@ -94,6 +97,41 @@ def equiv_finsupp : free_abelian_group X ≃+ (X →₀ ℤ) :=
   right_inv := to_finsupp_to_free_abelian_group,
   map_add' := to_finsupp.map_add }
 
+/-- `A` is a basis of the ℤ-module `free_abelian_group A`. -/
+noncomputable def basis (α : Type*) :
+  basis α ℤ (free_abelian_group α) :=
+⟨(free_abelian_group.equiv_finsupp α).to_int_linear_equiv ⟩
+
+/-- Isomorphic free ablian groups (as modules) have equivalent bases. -/
+def equiv.of_free_abelian_group_linear_equiv {α β : Type*}
+  (e : free_abelian_group α ≃ₗ[ℤ] free_abelian_group β) :
+  α ≃ β :=
+let t : _root_.basis α ℤ (free_abelian_group β) := (free_abelian_group.basis α).map e
+  in t.index_equiv $ free_abelian_group.basis _
+
+/-- Isomorphic free abelian groups (as additive groups) have equivalent bases. -/
+def equiv.of_free_abelian_group_equiv {α β : Type*}
+  (e : free_abelian_group α ≃+ free_abelian_group β) :
+  α ≃ β :=
+equiv.of_free_abelian_group_linear_equiv e.to_int_linear_equiv
+
+/-- Isomorphic free groups have equivalent bases. -/
+def equiv.of_free_group_equiv {α β : Type*}
+  (e : free_group α ≃* free_group β) :
+  α ≃ β :=
+equiv.of_free_abelian_group_equiv e.abelianization_congr.to_additive
+
+open is_free_group
+/-- Isomorphic free groups have equivalent bases (`is_free_group` variant`). -/
+def equiv.of_is_free_group_equiv {G H : Type*}
+  [group G] [group H] [is_free_group G] [is_free_group H]
+  (e : G ≃* H) :
+  generators G ≃ generators H :=
+equiv.of_free_group_equiv $
+  mul_equiv.trans ((to_free_group G).symm) $
+  mul_equiv.trans e $
+  to_free_group H
+
 variable {X}
 
 /-- `coeff x` is the additive group homomorphism `free_abelian_group X →+ ℤ`
@@ -118,22 +156,22 @@ by { rw [support, finsupp.not_mem_support_iff], exact iff.rfl }
 by simp only [support, finsupp.support_zero, add_monoid_hom.map_zero]
 
 @[simp] lemma support_of (x : X) : support (of x) = {x} :=
-by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero (one_ne_zero)]
+by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero _ one_ne_zero]
 
 @[simp] lemma support_neg (a : free_abelian_group X) : support (-a) = support a :=
 by simp only [support, add_monoid_hom.map_neg, finsupp.support_neg]
 
-@[simp] lemma support_gsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
+@[simp] lemma support_zsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
 begin
   ext x,
-  simp only [mem_support_iff, add_monoid_hom.map_gsmul],
-  simp only [h, gsmul_int_int, false_or, ne.def, mul_eq_zero]
+  simp only [mem_support_iff, add_monoid_hom.map_zsmul],
+  simp only [h, zsmul_int_int, false_or, ne.def, mul_eq_zero]
 end
 
 @[simp] lemma support_nsmul (k : ℕ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
-by { apply support_gsmul k _ a, exact_mod_cast h }
+by { apply support_zsmul k _ a, exact_mod_cast h }
 
 open_locale classical
 

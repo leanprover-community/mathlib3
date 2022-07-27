@@ -7,10 +7,8 @@ Without loss of generality tactic.
 -/
 import data.list.perm
 
-open expr tactic lean lean.parser
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+open expr
+setup_tactic_parser
 
 namespace tactic
 
@@ -91,10 +89,11 @@ private meta def parse_permutations : option (list (list name)) → tactic (list
 | none                    := return []
 | (some [])               := return []
 | (some perms@(p₀ :: ps)) := do
-  (guard p₀.nodup <|>
-    fail "No permutation `xs_i` in `using [xs_1, …, xs_n]` should contain the same variable twice."),
+  (guard p₀.nodup <|> fail
+    "No permutation `xs_i` in `using [xs_1, …, xs_n]` should contain the same variable twice."),
   (guard (perms.all $ λp, p.perm p₀) <|>
-    fail "The permutations `xs_i` in `using [xs_1, …, xs_n]` must be permutations of the same variables."),
+    fail ("The permutations `xs_i` in `using [xs_1, …, xs_n]` must be permutations of the same" ++
+      " variables.")),
   perms.mmap (λp, p.mmap get_local)
 
 /-- Without loss of generality: reduces to one goal under variables permutations.
@@ -102,43 +101,43 @@ private meta def parse_permutations : option (list (list name)) → tactic (list
 Given a goal of the form `g xs`, a predicate `p` over a set of variables, as well as variable
 permutations `xs_i`. Then `wlog` produces goals of the form
 
-The case goal, i.e. the permutation `xs_i` covers all possible cases:
+* The case goal, i.e. the permutation `xs_i` covers all possible cases:
   `⊢ p xs_0 ∨ ⋯ ∨ p xs_n`
-The main goal, i.e. the goal reduced to `xs_0`:
+* The main goal, i.e. the goal reduced to `xs_0`:
   `(h : p xs_0) ⊢ g xs_0`
-The invariant goals, i.e. `g` is invariant under `xs_i`:
+* The invariant goals, i.e. `g` is invariant under `xs_i`:
   `(h : p xs_i) (this : g xs_0) ⊢ gs xs_i`
 
 Either the permutation is provided, or a proof of the disjunction is provided to compute the
 permutation. The disjunction need to be in assoc normal form, e.g. `p₀ ∨ (p₁ ∨ p₂)`. In many cases
 the invariant goals can be solved by AC rewriting using `cc` etc.
 
-Example:
-  On a state `(n m : ℕ) ⊢ p n m` the tactic `wlog h : n ≤ m using [n m, m n]` produces the following
-  states:
-    `(n m : ℕ) ⊢ n ≤ m ∨ m ≤ n`
-    `(n m : ℕ) (h : n ≤ m) ⊢ p n m`
-    `(n m : ℕ) (h : m ≤ n) (this : p n m) ⊢ p m n`
+For example, on a state `(n m : ℕ) ⊢ p n m` the tactic `wlog h : n ≤ m using [n m, m n]` produces
+the following states:
+* `(n m : ℕ) ⊢ n ≤ m ∨ m ≤ n`
+* `(n m : ℕ) (h : n ≤ m) ⊢ p n m`
+* `(n m : ℕ) (h : m ≤ n) (this : p n m) ⊢ p m n`
 
 `wlog` supports different calling conventions. The name `h` is used to give a name to the introduced
 case hypothesis. If the name is avoided, the default will be `case`.
 
-(1) `wlog : p xs0 using [xs0, …, xsn]`
-  Results in the case goal `p xs0 ∨ ⋯ ∨ ps xsn`, the main goal `(case : p xs0) ⊢ g xs0` and the
-  invariance goals `(case : p xsi) (this : g xs0) ⊢ g xsi`.
+1. `wlog : p xs0 using [xs0, …, xsn]`  
+   Results in the case goal `p xs0 ∨ ⋯ ∨ ps xsn`, the main goal `(case : p xs0) ⊢ g xs0` and the
+   invariance goals `(case : p xsi) (this : g xs0) ⊢ g xsi`.
 
-(2) `wlog : p xs0 := r using xs0`
-  The expression `r` is a proof of the shape `p xs0 ∨ ⋯ ∨ p xsi`, it is also used to compute the
-  variable permutations.
+2. `wlog : p xs0 := r using xs0`  
+   The expression `r` is a proof of the shape `p xs0 ∨ ⋯ ∨ p xsi`, it is also used to compute the
+   variable permutations.
 
-(3) `wlog := r using xs0`
-  The expression `r` is a proof of the shape `p xs0 ∨ ⋯ ∨ p xsi`, it is also used to compute the
-  variable permutations. This is not as stable as (2), for example `p` cannot be a disjunction.
+3. `wlog := r using xs0`  
+   The expression `r` is a proof of the shape `p xs0 ∨ ⋯ ∨ p xsi`, it is also used to compute the
+   variable permutations. This is not as stable as (2), for example `p` cannot be a disjunction.
 
-(4) `wlog : R x y using x y` and `wlog : R x y`
-  Produces the case `R x y ∨ R y x`. If `R` is ≤, then the disjunction discharged using linearity.
-  If `using x y` is avoided then `x` and `y` are the last two variables appearing in the
-  expression `R x y`. -/
+4. `wlog : R x y using x y` and `wlog : R x y`  
+   Produces the case `R x y ∨ R y x`. If `R` is ≤, then the disjunction discharged using linearity.
+   If `using x y` is avoided then `x` and `y` are the last two variables appearing in the
+   expression `R x y`.
+-/
 meta def wlog
   (h : parse ident?)
   (pat : parse (tk ":" *> texpr)?)
@@ -178,7 +177,8 @@ perms ← parse_permutations perms,
     fail "Cases contains variables not declared in `using x y z`",
   perms ← (if perms.length = 1
     then do
-      return (perms'.map $ λp, p ++ vars.filter (λv, p.all (λv', v'.local_uniq_name ≠ v.local_uniq_name)))
+      return (perms'.map $ λ p,
+        p ++ vars.filter (λ v, p.all (λ v', v'.local_uniq_name ≠ v.local_uniq_name)))
     else do
       guard (perms.length = perms'.length) <|>
         fail "The provided permutation list has a different length then the provided cases.",
@@ -195,7 +195,8 @@ perms ← parse_permutations perms,
     | [l] := return l
     | _   := failed
     end,
-    let cases := mk_or_lst [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
+    let cases := mk_or_lst
+      [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
     (do
       `(%%x' ≤ %%y') ← return pat,
       (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x' %%y')),
@@ -214,8 +215,8 @@ perms ← parse_permutations perms,
     (cases_pr, [g]) ← local_proof name_h cases skip,
     return (pat, cases_pr, some g, vars, perms))
 end),
-let name_fn :=
-  (if perms.length = 2 then λi, `invariant else λi, mk_simple_name ("invariant_" ++ to_string (i + 1))),
+let name_fn := if perms.length = 2 then λ _, `invariant else
+  λ i, mk_simple_name ("invariant_" ++ to_string (i + 1)),
 with_enable_tags $ tactic.focus1 $ do
   t ← get_main_tag,
   tactic.wlog vars cases_pr pat perms,

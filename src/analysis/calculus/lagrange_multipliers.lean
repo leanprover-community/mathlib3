@@ -3,8 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.local_extr
-import analysis.calculus.implicit
+import analysis.calculus.inverse
 import linear_algebra.dual
 
 /-!
@@ -29,8 +28,8 @@ lagrange multiplier, local extremum
 
 open filter set
 open_locale topological_space filter big_operators
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
-  [normed_group F] [normed_space ℝ F] [complete_space F]
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
   {f : E → F} {φ : E → ℝ} {x₀ : E} {f' : E →L[ℝ] F} {φ' : E →L[ℝ] ℝ}
 
 /-- Lagrange multipliers theorem: if `φ : E → ℝ` has a local extremum on the set `{x | f x = f x₀}`
@@ -76,7 +75,30 @@ begin
     linear_map.smul_right_apply, linear_map.one_apply, smul_eq_mul, mul_comm]
 end
 
-/-- Lagrange multipliers theorem. Let `f : ι → E → ℝ` be a finite family of functions.
+/-- Lagrange multipliers theorem: if `φ : E → ℝ` has a local extremum on the set `{x | f x = f x₀}`
+at `x₀`, and both `f : E → ℝ` and `φ` are strictly differentiable at `x₀`, then there exist
+`a b : ℝ` such that `(a, b) ≠ 0` and `a • f' + b • φ' = 0`. -/
+lemma is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at_1d
+  {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+  (hextr : is_local_extr_on φ {x | f x = f x₀} x₀) (hf' : has_strict_fderiv_at f f' x₀)
+  (hφ' : has_strict_fderiv_at φ φ' x₀) :
+  ∃ (a b : ℝ), (a, b) ≠ 0 ∧ a • f' + b • φ' = 0 :=
+begin
+  obtain ⟨Λ, Λ₀, hΛ, hfΛ⟩ := hextr.exists_linear_map_of_has_strict_fderiv_at hf' hφ',
+  refine ⟨Λ 1, Λ₀, _, _⟩,
+  { contrapose! hΛ,
+    simp only [prod.mk_eq_zero] at ⊢ hΛ,
+    refine ⟨linear_map.ext (λ x, _), hΛ.2⟩,
+    simpa [hΛ.1] using Λ.map_smul x 1 },
+  { ext x,
+    have H₁ : Λ (f' x) = f' x * Λ 1,
+    { simpa only [mul_one, algebra.id.smul_eq_mul] using Λ.map_smul (f' x) 1 },
+    have H₂ : f' x * Λ 1  + Λ₀ * φ' x = 0,
+    { simpa only [algebra.id.smul_eq_mul, H₁] using hfΛ x },
+    simpa [mul_comm] using H₂ }
+end
+
+/-- Lagrange multipliers theorem, 1d version. Let `f : ι → E → ℝ` be a finite family of functions.
 Suppose that `φ : E → ℝ` has a local extremum on the set `{x | ∀ i, f i x = f i x₀}` at `x₀`.
 Suppose that all functions `f i` as well as `φ` are strictly differentiable at `x₀`.
 Then the derivatives `f' i : E → L[ℝ] ℝ` and `φ' : E →L[ℝ] ℝ` are linearly dependent:
@@ -116,11 +138,11 @@ lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [fi
   (hextr : is_local_extr_on φ {x | ∀ i, f i x = f i x₀} x₀)
   (hf' : ∀ i, has_strict_fderiv_at (f i) (f' i) x₀)
   (hφ' : has_strict_fderiv_at φ φ' x₀) :
-  ¬linear_independent ℝ (λ i, option.elim i φ' f' : option ι → E →L[ℝ] ℝ) :=
+  ¬linear_independent ℝ (option.elim φ' f' : option ι → E →L[ℝ] ℝ) :=
 begin
   rw [fintype.linear_independent_iff], push_neg,
   rcases hextr.exists_multipliers_of_has_strict_fderiv_at hf' hφ' with ⟨Λ, Λ₀, hΛ, hΛf⟩,
-  refine ⟨λ i, option.elim i Λ₀ Λ, _, _⟩,
+  refine ⟨option.elim Λ₀ Λ, _, _⟩,
   { simpa [add_comm] using hΛf },
   { simpa [function.funext_iff, not_and_distrib, or_comm, option.exists] using hΛ }
 end

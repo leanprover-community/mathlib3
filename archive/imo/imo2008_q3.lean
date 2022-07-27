@@ -7,7 +7,8 @@ import data.real.basic
 import data.real.sqrt
 import data.nat.prime
 import number_theory.primes_congruent_one
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
+import tactic.linear_combination
 
 /-!
 # IMO 2008 Q3
@@ -32,7 +33,7 @@ lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (h
 begin
   haveI := fact.mk hpp,
   have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)] },
-  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).mpr hp_mod_4_ne_3,
+  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff p).mpr hp_mod_4_ne_3,
 
   let m := zmod.val_min_abs y,
   let n := int.nat_abs m,
@@ -42,7 +43,7 @@ begin
     simp only [int.nat_abs_sq, int.coe_nat_pow, int.coe_nat_succ, int.coe_nat_dvd.mp],
     refine (zmod.int_coe_zmod_eq_zero_iff_dvd (m ^ 2 + 1) p).mp _,
     simp only [int.cast_pow, int.cast_add, int.cast_one, zmod.coe_val_min_abs],
-    rw hy, exact add_left_neg 1 },
+    rw [pow_two, ← hy], exact add_left_neg 1 },
 
   have hnat₂ : n ≤ p / 2 := zmod.nat_abs_val_min_abs_le y,
   have hnat₃ : p ≥ 2 * n, { linarith [nat.div_mul_le_self p 2] },
@@ -51,56 +52,40 @@ begin
 
   have hnat₅ : p ∣ k ^ 2 + 4,
   { cases hnat₁ with x hx,
-    let p₁ := (p : ℤ), let n₁ := (n : ℤ), let k₁ := (k : ℤ), let x₁ := (x : ℤ),
-    have : p₁ ∣ k₁ ^ 2 + 4,
-    { use p₁ - 4 * n₁ + 4 * x₁,
-      have hcast₁ : k₁ = p₁ - 2 * n₁, { assumption_mod_cast },
-      have hcast₂ : n₁ ^ 2 + 1 = p₁ * x₁, { assumption_mod_cast },
-      calc  k₁ ^ 2 + 4
-          = (p₁ - 2 * n₁) ^ 2 + 4                   : by rw hcast₁
-      ... = p₁ ^ 2 - 4 * p₁ * n₁ + 4 * (n₁ ^ 2 + 1) : by ring
-      ... = p₁ ^ 2 - 4 * p₁ * n₁ + 4 * (p₁ * x₁)    : by rw hcast₂
-      ... = p₁ * (p₁ - 4 * n₁ + 4 * x₁)             : by ring },
+    have : (p:ℤ) ∣ k ^ 2 + 4,
+    { use (p:ℤ) - 4 * n + 4 * x,
+      have hcast₁ : (k:ℤ) = p - 2 * n, { assumption_mod_cast },
+      have hcast₂ : (n:ℤ) ^ 2 + 1 = p * x, { assumption_mod_cast },
+      linear_combination ((k:ℤ) + p - 2 * n)*hcast₁ + 4*hcast₂ },
     assumption_mod_cast },
 
   have hnat₆ : k ^ 2 + 4 ≥ p := nat.le_of_dvd (k ^ 2 + 3).succ_pos hnat₅,
 
-  let p₀ := (p : ℝ), let n₀ := (n : ℝ), let k₀ := (k : ℝ),
+  have hreal₁ : (k:ℝ) = p - 2 * n, { assumption_mod_cast },
+  have hreal₂ : (p:ℝ) > 20,        { assumption_mod_cast },
+  have hreal₃ : (k:ℝ) ^ 2 + 4 ≥ p, { assumption_mod_cast },
 
-  have hreal₁ : p₀ = 2 * n₀ + k₀, { linarith [(show k₀ = p₀ - 2 * n₀, by assumption_mod_cast)] },
-  have hreal₂ : p₀ > 20,          { assumption_mod_cast },
-  have hreal₃ : k₀ ^ 2 + 4 ≥ p₀,  { assumption_mod_cast },
+  have hreal₅ : (k:ℝ) > 4,
+  { apply lt_of_pow_lt_pow 2 k.cast_nonneg,
+    linarith only [hreal₂, hreal₃] },
 
-  have hreal₄ : k₀ ≥ sqrt(p₀ - 4),
-  { calc k₀ = sqrt(k₀ ^ 2) : eq.symm (sqrt_sq (nat.cast_nonneg k))
-    ...     ≥ sqrt(p₀ - 4) : sqrt_le_sqrt (by linarith [hreal₃]) },
+  have hreal₆ : (k:ℝ) > sqrt (2 * n),
+  { apply lt_of_pow_lt_pow 2 k.cast_nonneg,
+    rw sq_sqrt (mul_nonneg zero_le_two n.cast_nonneg),
+    linarith only [hreal₁, hreal₃, hreal₅] },
 
-  have hreal₅ : k₀ > 4,
-  { calc k₀ ≥ sqrt(p₀ - 4) : hreal₄
-    ...     > sqrt(4 ^ 2)  : (sqrt_lt (by linarith)).mpr (by linarith [hreal₂])
-    ...     = 4            : sqrt_sq (by linarith) },
-
-  have hreal₆ : p₀ > 2 * n₀ + sqrt(2 * n),
-  { calc p₀ = 2 * n₀ + k₀                    : hreal₁
-    ...     ≥ 2 * n₀ + sqrt(p₀ - 4)          : by linarith [hreal₄]
-    ...     = 2 * n₀ + sqrt(2 * n₀ + k₀ - 4) : by rw hreal₁
-    ...     > 2 * n₀ + sqrt(2 * n₀)     : by { refine add_lt_add_left _ (2 * n₀),
-                                               refine (sqrt_lt _).mpr _,
-                                               refine mul_nonneg zero_le_two (nat.cast_nonneg n),
-                                               linarith [hreal₅] } },
-
-  exact ⟨n, hnat₁, hreal₆⟩,
+  exact ⟨n, hnat₁, by linarith only [hreal₆, hreal₁]⟩,
 end
 
 theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
   ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
   intro N,
-  obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one 4 (N ^ 2 + 21) zero_lt_four,
+  obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one (N ^ 2 + 21) zero_lt_four,
   obtain ⟨n, hnat, hreal⟩ := p_lemma p hpp hpmod4 (by linarith [hineq₁, nat.zero_le (N ^ 2)]),
 
   have hineq₂  : n ^ 2 + 1 ≥ p := nat.le_of_dvd (n ^ 2).succ_pos hnat,
-  have hineq₃  : n * n ≥ N * N, { linarith [hineq₁, hineq₂, (sq n), (sq N)] },
+  have hineq₃  : n * n ≥ N * N, { linarith [hineq₁, hineq₂] },
   have hn_ge_N : n ≥ N := nat.mul_self_le_mul_self_iff.mpr hineq₃,
 
   exact ⟨n, hn_ge_N, p, hpp, hnat, hreal⟩,

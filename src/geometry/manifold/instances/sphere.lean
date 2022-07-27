@@ -3,8 +3,12 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import geometry.manifold.instances.real
 import analysis.complex.circle
+import analysis.normed_space.ball_action
+import analysis.inner_product_space.calculus
+import analysis.inner_product_space.pi_L2
+import geometry.manifold.algebra.lie_group
+import geometry.manifold.instances.real
 
 /-!
 # Manifold structure on the sphere
@@ -23,13 +27,13 @@ here are obtained by composing the local homeomorphisms `stereographic` with arb
 from `(ℝ ∙ v)ᗮ` to Euclidean space.
 
 We prove two lemmas about smooth maps:
-* `times_cont_mdiff_coe_sphere` states that the coercion map from the sphere into `E` is smooth;
+* `cont_mdiff_coe_sphere` states that the coercion map from the sphere into `E` is smooth;
   this is a useful tool for constructing smooth maps *from* the sphere.
-* `times_cont_mdiff.cod_restrict_sphere` states that a map from a manifold into the sphere is
+* `cont_mdiff.cod_restrict_sphere` states that a map from a manifold into the sphere is
   smooth if its lift to a map to `E` is smooth; this is a useful tool for constructing smooth maps
   *to* the sphere.
 
-As an application we prove `times_cont_mdiff_neg_sphere`, that the antipodal map is smooth.
+As an application we prove `cont_mdiff_neg_sphere`, that the antipodal map is smooth.
 
 Finally, we equip the `circle` (defined in `analysis.complex.circle` to be the sphere in `ℂ`
 centred at `0` of radius `1`) with the following structure:
@@ -58,7 +62,7 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 section stereographic_projection
 variables (v : E)
@@ -70,28 +74,28 @@ the orthogonal complement of an element `v` of `E`. It is smooth away from the a
 through `v` parallel to the orthogonal complement.  It restricts on the sphere to the stereographic
 projection. -/
 def stereo_to_fun [complete_space E] (x : E) : (ℝ ∙ v)ᗮ :=
-(2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x
+(2 / ((1:ℝ) - innerSL v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x
 
 variables {v}
 
 @[simp] lemma stereo_to_fun_apply [complete_space E] (x : E) :
-  stereo_to_fun v x = (2 / ((1:ℝ) - inner_right v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
+  stereo_to_fun v x = (2 / ((1:ℝ) - innerSL v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
 rfl
 
-lemma times_cont_diff_on_stereo_to_fun [complete_space E] :
-  times_cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
+lemma cont_diff_on_stereo_to_fun [complete_space E] :
+  cont_diff_on ℝ ⊤ (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
 begin
-  refine times_cont_diff_on.smul _
-    (orthogonal_projection ((ℝ ∙ v)ᗮ)).times_cont_diff.times_cont_diff_on,
-  refine times_cont_diff_const.times_cont_diff_on.div _ _,
-  { exact (times_cont_diff_const.sub (inner_right v).times_cont_diff).times_cont_diff_on },
+  refine cont_diff_on.smul _
+    (orthogonal_projection ((ℝ ∙ v)ᗮ)).cont_diff.cont_diff_on,
+  refine cont_diff_const.cont_diff_on.div _ _,
+  { exact (cont_diff_const.sub (innerSL v).cont_diff).cont_diff_on },
   { intros x h h',
     exact h (sub_eq_zero.mp h').symm }
 end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
-  continuous_on (stereo_to_fun v) {x : E | inner_right v x ≠ (1:ℝ)} :=
-times_cont_diff_on_stereo_to_fun.continuous_on
+  continuous_on (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
+(@cont_diff_on_stereo_to_fun E _ v _).continuous_on
 
 variables (v)
 
@@ -125,16 +129,16 @@ begin
   ring
 end
 
-lemma times_cont_diff_stereo_inv_fun_aux : times_cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
+lemma cont_diff_stereo_inv_fun_aux : cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
 begin
-  have h₀ : times_cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := times_cont_diff_norm_sq,
-  have h₁ : times_cont_diff ℝ ⊤ (λ w : E, (∥w∥ ^ 2 + 4)⁻¹),
-  { refine (h₀.add times_cont_diff_const).inv _,
+  have h₀ : cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := cont_diff_norm_sq,
+  have h₁ : cont_diff ℝ ⊤ (λ w : E, (∥w∥ ^ 2 + 4)⁻¹),
+  { refine (h₀.add cont_diff_const).inv _,
     intros x,
     nlinarith },
-  have h₂ : times_cont_diff ℝ ⊤ (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v),
-  { refine (times_cont_diff_const.smul times_cont_diff_id).add _,
-    refine (h₀.sub times_cont_diff_const).smul times_cont_diff_const },
+  have h₂ : cont_diff ℝ ⊤ (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v),
+  { refine (cont_diff_const.smul cont_diff_id).add _,
+    refine (h₀.sub cont_diff_const).smul cont_diff_const },
   exact h₁.smul h₂
 end
 
@@ -157,13 +161,13 @@ begin
     { refine (inv_mul_lt_iff' _).mpr _,
       { nlinarith },
       linarith },
-    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_sq, hw,
+    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_mul_norm, hw,
       hv] using hw' },
   { simpa using stereo_inv_fun_aux_mem hv w.2 }
 end
 
 lemma continuous_stereo_inv_fun (hv : ∥v∥ = 1) : continuous (stereo_inv_fun hv) :=
-continuous_induced_rng (times_cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
+continuous_induced_rng.2 (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
 
 variables [complete_space E]
 
@@ -173,7 +177,7 @@ begin
   ext,
   simp only [stereo_to_fun_apply, stereo_inv_fun_apply, smul_add],
   -- name two frequently-occuring quantities and write down their basic properties
-  set a : ℝ := inner_right v x,
+  set a : ℝ := innerSL v x,
   set y := orthogonal_projection (ℝ ∙ v)ᗮ x,
   have split : ↑x = a • v + ↑y,
   { convert eq_sum_orthogonal_projection_self_orthogonal_complement (ℝ ∙ v) x,
@@ -183,7 +187,7 @@ begin
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
     convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
-    { simp [norm_smul, hv, real.norm_eq_abs, ← sq, sq_abs] },
+    { simp [norm_smul, hv, ← sq, sq_abs] },
     { exact sq _ } },
   -- two facts which will be helpful for clearing denominators in the main calculation
   have ha : 1 - a ≠ 0,
@@ -197,17 +201,19 @@ begin
   -- the core of the problem is these two algebraic identities:
   have h₁ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * 4 * (2 / (1 - a)) = 1,
   { field_simp,
+    simp only [submodule.coe_norm] at *,
     nlinarith },
   have h₂ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 - 4) = a,
   { field_simp,
     transitivity (1 - a) ^ 2 * (a * (2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2)),
     { congr,
+      simp only [submodule.coe_norm] at *,
       nlinarith },
-    ring_nf, ring },
+    ring },
   -- deduce the result
   convert congr_arg2 has_add.add (congr_arg (λ t, t • (y:E)) h₁) (congr_arg (λ t, t • v) h₂)
     using 1,
-  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_sq, hv, mul_smul,
+  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_mul_norm, hv, mul_smul,
       mul_pow, real.norm_eq_abs, sq_abs, norm_smul] },
   { simp [split, add_comm] }
 end
@@ -225,8 +231,8 @@ begin
       orthogonal_projection_orthogonal_complement_singleton_eq_zero v,
     have h₂ : orthogonal_projection (ℝ ∙ v)ᗮ w = w :=
       orthogonal_projection_mem_subspace_eq_self w,
-    have h₃ : inner_right v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
-    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_sq, hv],
+    have h₃ : innerSL v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
+    have h₄ : innerSL v v = (1:ℝ) := by simp [real_inner_self_eq_norm_mul_norm, hv],
     simp [h₁, h₂, h₃, h₄, continuous_linear_map.map_add, continuous_linear_map.map_smul,
       mul_smul] },
   { simp }
@@ -248,6 +254,10 @@ def stereographic (hv : ∥v∥ = 1) : local_homeomorph (sphere (0:E) 1) (ℝ �
   continuous_to_fun := continuous_on_stereo_to_fun.comp continuous_subtype_coe.continuous_on
     (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_norm_mul_iff_of_norm_one hv (by simp)).mp),
   continuous_inv_fun := (continuous_stereo_inv_fun hv).continuous_on }
+
+lemma stereographic_apply (hv : ∥v∥ = 1) (x : sphere (0 : E) 1) :
+  stereographic hv x = (2 / ((1:ℝ) - inner v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
+rfl
 
 @[simp] lemma stereographic_source (hv : ∥v∥ = 1) :
   (stereographic hv).source = {⟨v, by simp [hv]⟩}ᶜ :=
@@ -284,8 +294,8 @@ from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
 def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
-(linear_isometry_equiv.from_orthogonal_span_singleton n
-  (nonzero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
+(orthonormal_basis.from_orthogonal_span_singleton n
+  (ne_zero_of_mem_unit_sphere v)).repr.to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -308,69 +318,82 @@ end charted_space
 
 section smooth_manifold
 
+lemma sphere_ext_iff (u v : sphere (0:E) 1) :
+  u = v ↔ ⟪(u:E), v⟫_ℝ = 1 :=
+by simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one]
+
+lemma stereographic'_symm_apply {n : ℕ} [fact (finrank ℝ E = n + 1)]
+    (v : sphere (0:E) 1) (x : euclidean_space ℝ (fin n)) :
+  ((stereographic' n v).symm x : E) =
+    let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+      (orthonormal_basis.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere v)).repr in
+    ((∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (4 : ℝ) • (U.symm x : E) +
+      (∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (∥(U.symm x : E)∥ ^ 2 - 4) • v) :=
+by simp [real_inner_comm, stereographic, stereographic', ← submodule.coe_norm]
+
 /-! ### Smooth manifold structure on the sphere -/
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
 modelled on the Euclidean space of dimension `n`. -/
 instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
   smooth_manifold_with_corners (𝓡 n) (sphere (0:E) 1) :=
-smooth_manifold_with_corners_of_times_cont_diff_on (𝓡 n) (sphere (0:E) 1)
+smooth_manifold_with_corners_of_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
-  let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (nonzero_of_mem_unit_sphere v),
-  let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (nonzero_of_mem_unit_sphere v'),
+  let U := -- Removed type ascription, and this helped for some reason with timeout issues?
+    (orthonormal_basis.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v)).repr,
+  let U' :=-- Removed type ascription, and this helped for some reason with timeout issues?
+    (orthonormal_basis.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v')).repr,
   have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
     U.to_homeomorph.to_local_homeomorph := rfl,
   have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
     U'.to_homeomorph.to_local_homeomorph := rfl,
-  have H₁ := U'.times_cont_diff.comp_times_cont_diff_on times_cont_diff_on_stereo_to_fun,
-  have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
-      (ℝ ∙ (v:E))ᗮ.subtypeL.times_cont_diff).comp U.symm.times_cont_diff,
-  convert H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ) using 1,
-  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
-  { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
+  have H₁ := U'.cont_diff.comp_cont_diff_on cont_diff_on_stereo_to_fun,
+  have H₂ := (cont_diff_stereo_inv_fun_aux.comp
+      (ℝ ∙ (v:E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff,
+  convert H₁.comp' (H₂.cont_diff_on : cont_diff_on ℝ ⊤ _ set.univ) using 1,
   ext,
-  simp [h_set, hUv, hU'v', stereographic, real_inner_comm]
+  simp [sphere_ext_iff, stereographic'_symm_apply, real_inner_comm]
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
-lemma times_cont_mdiff_coe_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
-  times_cont_mdiff (𝓡 n) 𝓘(ℝ, E) ∞ (coe : (sphere (0:E) 1) → E) :=
+lemma cont_mdiff_coe_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+  cont_mdiff (𝓡 n) 𝓘(ℝ, E) ∞ (coe : (sphere (0:E) 1) → E) :=
 begin
-  rw times_cont_mdiff_iff,
+  rw cont_mdiff_iff,
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v)),
-    exact ((times_cont_diff_stereo_inv_fun_aux.comp
-      (ℝ ∙ ((-v):E))ᗮ.subtypeL.times_cont_diff).comp U.symm.times_cont_diff).times_cont_diff_on }
+    let U := -- Again, removing type ascription...
+      (orthonormal_basis.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere (-v))).repr,
+    exact ((cont_diff_stereo_inv_fun_aux.comp
+      (ℝ ∙ ((-v):E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff).cont_diff_on }
 end
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {H : Type*} [topological_space H] {I : model_with_corners ℝ F H}
 variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
-/-- If a `times_cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
-sphere, then it restricts to a `times_cont_mdiff` function from `M` to the sphere. -/
-lemma times_cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
-  {m : with_top ℕ} {f : M → E} (hf : times_cont_mdiff I 𝓘(ℝ, E) m f)
+/-- If a `cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
+sphere, then it restricts to a `cont_mdiff` function from `M` to the sphere. -/
+lemma cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
+  {m : with_top ℕ} {f : M → E} (hf : cont_mdiff I 𝓘(ℝ, E) m f)
   (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
-  times_cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
+  cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
 begin
-  rw times_cont_mdiff_iff_target,
-  refine ⟨continuous_induced_rng hf.continuous, _⟩,
+  rw cont_mdiff_iff_target,
+  refine ⟨continuous_induced_rng.2 hf.continuous, _⟩,
   intros v,
-  let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v))),
-  have h : times_cont_diff_on ℝ ⊤ U set.univ :=
-    U.times_cont_diff.times_cont_diff_on,
-  have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,
-  have H₂ : times_cont_mdiff_on _ _ _ _ set.univ := hf.times_cont_mdiff_on,
+  let U := -- Again, removing type ascription... Weird that this helps!
+    (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
+  have h : cont_diff_on ℝ ⊤ _ set.univ :=
+    U.cont_diff.cont_diff_on,
+  have H₁ := (h.comp' cont_diff_on_stereo_to_fun).cont_mdiff_on,
+  have H₂ : cont_mdiff_on _ _ _ _ set.univ := hf.cont_mdiff_on,
   convert (H₁.of_le le_top).comp' H₂ using 1,
   ext x,
   have hfxv : f x = -↑v ↔ ⟪f x, -↑v⟫_ℝ = 1,
@@ -382,9 +405,14 @@ begin
 end
 
 /-- The antipodal map is smooth. -/
-lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
-  times_cont_mdiff (𝓡 n) (𝓡 n) ∞ (λ x : sphere (0:E) 1, -x) :=
-(times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
+lemma cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+  cont_mdiff (𝓡 n) (𝓡 n) ∞ (λ x : sphere (0:E) 1, -x) :=
+begin
+  -- this doesn't elaborate well in term mode
+  apply cont_mdiff.cod_restrict_sphere,
+  apply cont_diff_neg.cont_mdiff.comp _,
+  exact cont_mdiff_coe_sphere,
+end
 
 end smooth_manifold
 
@@ -404,21 +432,24 @@ metric.sphere.smooth_manifold_with_corners
 /-- The unit circle in `ℂ` is a Lie group. -/
 instance : lie_group (𝓡 1) circle :=
 { smooth_mul := begin
+    apply cont_mdiff.cod_restrict_sphere,
     let c : circle → ℂ := coe,
-    have h₁ : times_cont_mdiff _ _ _ (prod.map c c) :=
-      times_cont_mdiff_coe_sphere.prod_map times_cont_mdiff_coe_sphere,
-    have h₂ : times_cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
-    { rw times_cont_mdiff_iff,
-      exact ⟨continuous_mul, λ x y, (times_cont_diff_mul.restrict_scalars ℝ).times_cont_diff_on⟩ },
-    exact (h₂.comp h₁).cod_restrict_sphere _,
+    have h₂ : cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
+    { rw cont_mdiff_iff,
+      exact ⟨continuous_mul, λ x y, cont_diff_mul.cont_diff_on⟩ },
+    suffices h₁ : cont_mdiff _ _ _ (prod.map c c),
+    { apply h₂.comp h₁ },
+    -- this elaborates much faster with `apply`
+    apply cont_mdiff.prod_map; exact cont_mdiff_coe_sphere,
   end,
-  smooth_inv := (complex.conj_cle.times_cont_diff.times_cont_mdiff.comp
-    times_cont_mdiff_coe_sphere).cod_restrict_sphere _,
-  .. metric.sphere.smooth_manifold_with_corners }
+  smooth_inv := begin
+    apply cont_mdiff.cod_restrict_sphere,
+    simp only [← coe_inv_circle, coe_inv_circle_eq_conj],
+    exact complex.conj_cle.cont_diff.cont_mdiff.comp cont_mdiff_coe_sphere
+  end }
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ` is smooth. -/
-lemma times_cont_mdiff_exp_map_circle : times_cont_mdiff 𝓘(ℝ, ℝ) (𝓡 1) ∞ exp_map_circle :=
-(((times_cont_diff_exp.restrict_scalars ℝ).comp
-  (times_cont_diff_id.smul times_cont_diff_const)).times_cont_mdiff).cod_restrict_sphere _
+lemma cont_mdiff_exp_map_circle : cont_mdiff 𝓘(ℝ, ℝ) (𝓡 1) ∞ exp_map_circle :=
+((cont_diff_exp.comp (cont_diff_id.smul cont_diff_const)).cont_mdiff).cod_restrict_sphere _
 
 end circle

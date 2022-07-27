@@ -3,13 +3,16 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.preadditive.default
-import category_theory.preadditive.single_obj
-import category_theory.preadditive.additive_functor
-import category_theory.limits.shapes.biproducts
-import category_theory.Fintype
 import algebra.big_operators.basic
-import data.matrix.notation
+import algebra.big_operators.pi
+import category_theory.limits.shapes.biproducts
+import category_theory.preadditive
+import category_theory.preadditive.additive_functor
+import data.matrix.dmatrix
+import data.matrix.basic
+import category_theory.Fintype
+import category_theory.preadditive.single_obj
+import algebra.opposites
 
 /-!
 # Matrices over a category.
@@ -45,7 +48,7 @@ Ideally this would conveniently interact with both `Mat_` and `matrix`.
 -/
 
 open category_theory category_theory.preadditive
-open_locale big_operators
+open_locale big_operators classical
 noncomputable theory
 
 namespace category_theory
@@ -56,13 +59,12 @@ variables (C : Type u₁) [category.{v₁} C] [preadditive C]
 /--
 An object in `Mat_ C` is a finite tuple of objects in `C`.
 -/
-structure Mat_ : Type (max (v₁+1) u₁) :=
-(ι : Type v₁)
+structure Mat_ :=
+(ι : Type)
 [F : fintype ι]
-[D : decidable_eq ι]
 (X : ι → C)
 
-attribute [instance] Mat_.F Mat_.D
+attribute [instance] Mat_.F
 
 namespace Mat_
 
@@ -97,7 +99,6 @@ instance : category.{v₁} (Mat_ C) :=
     simp_rw [hom.comp, sum_comp, comp_sum, category.assoc],
     rw finset.sum_comm,
   end, }.
-
 
 lemma id_def (M : Mat_ C) :
   (𝟙 M : hom M M) = λ i j, if h : i = j then eq_to_hom (congr_arg M.X h) else 0 :=
@@ -143,7 +144,7 @@ even though the construction we give uses a sigma type.
 See however `iso_biproduct_embedding`.
 -/
 instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
-{ has_biproducts_of_shape := λ J 𝒟 ℱ, by exactI
+{ has_biproducts_of_shape := λ J 𝒟, by exactI
   { has_biproduct := λ f,
     has_biproduct_of_total
     { X := ⟨Σ j : J, (f j).ι, λ p, (f p.1).X p.2⟩,
@@ -175,16 +176,19 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
         simp only [if_congr, if_true, dif_ctx_congr, finset.sum_dite_irrel, finset.mem_univ,
           finset.sum_const_zero, finset.sum_congr, finset.sum_dite_eq'],
         split_ifs with h h',
-        { substs h h', simp, },
-        { subst h, simp at h', simp [h'], },
+        { substs h h',
+          simp only [category_theory.eq_to_hom_refl, category_theory.Mat_.id_apply_self], },
+        { subst h,
+          simp only [id_apply_of_ne _ _ _ h', category_theory.eq_to_hom_refl], },
         { refl, },
       end, }
     begin
+      dsimp,
       funext i₁,
       dsimp at i₁ ⊢,
       rcases i₁ with ⟨j₁, i₁⟩,
       -- I'm not sure why we can't just `simp` by `finset.sum_apply`: something doesn't quite match
-      convert finset.sum_apply _ _ _,
+      convert finset.sum_apply _ _ _ using 1,
       { refl, },
       { apply heq_of_eq,
         symmetry,
@@ -205,7 +209,7 @@ end Mat_
 namespace functor
 variables {C} {D : Type*} [category.{v₁} D] [preadditive D]
 
-local attribute [simp] Mat_.id_apply
+local attribute [simp] Mat_.id_apply eq_to_hom_map
 
 /--
 A functor induces a functor of matrix categories.
@@ -269,7 +273,7 @@ instance : functor.additive (embedding C) := {}
 
 end embedding
 
-instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj (default C)⟩
+instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj default⟩
 
 open category_theory.limits
 
@@ -329,6 +333,8 @@ variables [has_finite_biproducts D]
 begin
   -- This is disappointingly tedious.
   ext,
+  simp only [additive_obj_iso_biproduct_hom, category.assoc, biproduct.lift_π, functor.map_bicone_π,
+    biproduct.bicone_π, biproduct.lift_matrix],
   dsimp [embedding],
   simp only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
   simp only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],
@@ -400,9 +406,7 @@ nat_iso.of_components
   congr,
   ext j k ⟨⟩,
   dsimp, simp,
-  convert α.hom.naturality (f j k),
-  erw [biproduct.matrix_π],
-  simp,
+  exact α.hom.naturality (f j k),
 end).
 
 -- TODO is there some uniqueness statement for the natural isomorphism in `lift_unique`?
@@ -450,5 +454,94 @@ rfl
 rfl
 
 end Mat_
+
+universe u
+
+/-- A type synonym for `Fintype`, which we will equip with a category structure
+where the morphisms are matrices with components in `R`. -/
+@[nolint unused_arguments, derive inhabited]
+def Mat (R : Type u) := Fintype.{u}
+
+instance (R : Type u) : has_coe_to_sort (Mat R) (Type u) := bundled.has_coe_to_sort
+
+open_locale classical matrix
+
+instance (R : Type u) [semiring R] : category (Mat R) :=
+{ hom := λ X Y, matrix X Y R,
+  id := λ X, 1,
+  comp := λ X Y Z f g, f ⬝ g,
+  assoc' := by { intros, simp [matrix.mul_assoc], }, }
+
+namespace Mat
+
+section
+variables (R : Type u) [semiring R]
+
+lemma id_def (M : Mat R) :
+  𝟙 M = λ i j, if h : i = j then 1 else 0 :=
+rfl
+
+lemma id_apply (M : Mat R) (i j : M) :
+  (𝟙 M : matrix M M R) i j = if h : i = j then 1 else 0 :=
+rfl
+
+@[simp] lemma id_apply_self (M : Mat R) (i : M) :
+  (𝟙 M : matrix M M R) i i = 1 :=
+by simp [id_apply]
+
+@[simp] lemma id_apply_of_ne (M : Mat R) (i j : M) (h : i ≠ j) :
+  (𝟙 M : matrix M M R) i j = 0 :=
+by simp [id_apply, h]
+
+lemma comp_def {M N K : Mat R} (f : M ⟶ N) (g : N ⟶ K) :
+  (f ≫ g) = λ i k, ∑ j : N, f i j * g j k := rfl
+
+@[simp] lemma comp_apply {M N K : Mat R} (f : M ⟶ N) (g : N ⟶ K) (i k) :
+  (f ≫ g) i k = ∑ j : N, f i j * g j k := rfl
+
+instance (M N : Mat R) : inhabited (M ⟶ N) := ⟨λ (i : M) (j : N), (0 : R)⟩
+
+end
+
+variables (R : Type) [ring R]
+
+open opposite
+
+/-- Auxiliary definition for `category_theory.Mat.equivalence_single_obj`. -/
+@[simps]
+def equivalence_single_obj_inverse : Mat_ (single_obj Rᵐᵒᵖ) ⥤ Mat R :=
+{ obj := λ X, Fintype.of X.ι,
+  map := λ X Y f i j, mul_opposite.unop (f i j),
+  map_id' := λ X, by { ext i j, simp [id_def, Mat_.id_def], split_ifs; refl, }, }
+
+instance : faithful (equivalence_single_obj_inverse R) :=
+{ map_injective' := λ X Y f g w, begin
+    ext i j,
+    apply_fun mul_opposite.unop using mul_opposite.unop_injective,
+    exact (congr_fun (congr_fun w i) j),
+  end }
+
+instance : full (equivalence_single_obj_inverse R) :=
+{ preimage := λ X Y f i j, mul_opposite.op (f i j), }
+
+instance : ess_surj (equivalence_single_obj_inverse R) :=
+{ mem_ess_image := λ X,
+  ⟨{ ι := X, X := λ _, punit.star }, ⟨eq_to_iso (by { dsimp, cases X, congr, })⟩⟩, }
+
+/-- The categorical equivalence between the category of matrices over a ring,
+and the category of matrices over that ring considered as a single-object category. -/
+def equivalence_single_obj : Mat R ≌ Mat_ (single_obj Rᵐᵒᵖ) :=
+begin
+  haveI := equivalence.of_fully_faithfully_ess_surj (equivalence_single_obj_inverse R),
+  exact (equivalence_single_obj_inverse R).as_equivalence.symm,
+end
+
+instance : preadditive (Mat R) :=
+{ add_comp' := by { intros, ext, simp [add_mul, finset.sum_add_distrib], },
+  comp_add' := by { intros, ext, simp [mul_add, finset.sum_add_distrib], }, }
+
+-- TODO show `Mat R` has biproducts, and that `biprod.map` "is" forming a block diagonal matrix.
+
+end Mat
 
 end category_theory

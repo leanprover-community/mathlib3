@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
+import data.fintype.basic
+import data.set.finite
 import data.setoid.basic
-import data.set.lattice
+import order.partition.finpartition
 
 /-!
 # Equivalence relations: partitions
@@ -18,6 +20,15 @@ There are two implementations of partitions here:
   expressed as `indexed_partition s`.
 
 Of course both implementations are related to `quotient` and `setoid`.
+
+`setoid.is_partition.partition` and `finpartition.is_partition_parts` furnish
+a link between `setoid.is_partition` and `finpartition`.
+
+## TODO
+
+Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
+changing it from `set (set α)` to `set α` where `[lattice α] [order_bot α]` would make it more
+usable.
 
 ## Tags
 
@@ -51,6 +62,22 @@ def classes (r : setoid α) : set (set α) :=
 {s | ∃ y, s = {x | r.rel x y}}
 
 lemma mem_classes (r : setoid α) (y) : {x | r.rel x y} ∈ r.classes := ⟨y, rfl⟩
+
+lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
+  (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
+by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
+
+lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
+  nonempty (fintype (setoid.ker f).classes) :=
+by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
+
+lemma card_classes_ker_le {α β : Type*} [fintype β]
+  (f : α → β) [fintype (setoid.ker f).classes] :
+  fintype.card (setoid.ker f).classes ≤ fintype.card β :=
+begin
+  classical,
+  exact le_trans (set.card_le_of_subset (classes_ker_subset_fiber_set f)) (fintype.card_range_le _)
+end
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/
 lemma eq_iff_classes_eq {r₁ r₂ : setoid α} :
@@ -107,20 +134,20 @@ by { convert setoid.eqv_class_mem H, ext, rw setoid.comm' }
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
 lemma eqv_classes_disjoint {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) :
-  set.pairwise_disjoint c :=
+  c.pairwise_disjoint id :=
 λ b₁ h₁ b₂ h₂ h, set.disjoint_left.2 $
   λ x hx1 hx2, (H x).elim2 $ λ b hc hx hb, h $ eq_of_mem_eqv_class H h₁ hx1 h₂ hx2
 
 /-- A set of disjoint sets covering α partition α (classical). -/
 lemma eqv_classes_of_disjoint_union {c : set (set α)}
-  (hu : set.sUnion c = @set.univ α) (H : set.pairwise_disjoint c) (a) :
+  (hu : set.sUnion c = @set.univ α) (H : c.pairwise_disjoint id) (a) :
   ∃! b ∈ c, a ∈ b :=
 let ⟨b, hc, ha⟩ := set.mem_sUnion.1 $ show a ∈ _, by rw hu; exact set.mem_univ a in
-  exists_unique.intro2 b hc ha $ λ b' hc' ha', H.elim hc' hc a ha' ha
+  exists_unique.intro2 b hc ha $ λ b' hc' ha', H.elim_set hc' hc a ha' ha
 
 /-- Makes an equivalence relation from a set of disjoints sets covering α. -/
 def setoid_of_disjoint_union {c : set (set α)} (hu : set.sUnion c = @set.univ α)
-  (H : set.pairwise_disjoint c) : setoid α :=
+  (H : c.pairwise_disjoint id) : setoid α :=
 setoid.mk_classes c $ eqv_classes_of_disjoint_union hu H
 
 /-- The equivalence relation made from the equivalence classes of an equivalence
@@ -149,13 +176,13 @@ lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
 ⟨empty_not_mem_classes, classes_eqv_classes⟩
 
 lemma is_partition.pairwise_disjoint {c : set (set α)} (hc : is_partition c) :
-  c.pairwise_disjoint :=
+  c.pairwise_disjoint id :=
 eqv_classes_disjoint hc.2
 
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
-  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simp only [exists_unique_iff_exists] at ht, tauto }⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
@@ -191,27 +218,43 @@ instance partition.partial_order : partial_order (subtype (@is_partition α)) :=
 
 variables (α)
 
-/-- The order-preserving bijection between equivalence relations and partitions of sets. -/
-def partition.rel_iso :
-  setoid α ≃o subtype (@is_partition α) :=
+/-- The order-preserving bijection between equivalence relations on a type `α`, and
+  partitions of `α` into subsets. -/
+protected def partition.order_iso :
+  setoid α ≃o {C : set (set α) // is_partition C} :=
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
-  inv_fun := λ x, mk_classes x.1 x.2.2,
+  inv_fun := λ C, mk_classes C.1 C.2.2,
   left_inv := mk_classes_classes,
-  right_inv := λ x, by rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
-  map_rel_iff' := λ x y,
-    by { conv_rhs { rw [←mk_classes_classes x, ←mk_classes_classes y] }, refl } }
+  right_inv := λ C, by rw [subtype.ext_iff_val, ←classes_mk_classes C.1 C.2],
+  map_rel_iff' := λ r s,
+    by { conv_rhs { rw [←mk_classes_classes r, ←mk_classes_classes s] }, refl } }
 
 variables {α}
 
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
 instance partition.complete_lattice : complete_lattice (subtype (@is_partition α)) :=
-galois_insertion.lift_complete_lattice $ @rel_iso.to_galois_insertion
-_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.rel_iso α
+galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
+_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
 
 end partition
 
+/-- A finite setoid partition furnishes a finpartition -/
+@[simps]
+def is_partition.finpartition {c : finset (set α)}
+  (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
+{ parts := c,
+  sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
+  sup_parts := c.sup_id_set_eq_sUnion.trans hc.sUnion_eq_univ,
+  not_bot_mem := hc.left }
+
 end setoid
+
+/-- A finpartition gives rise to a setoid partition -/
+theorem finpartition.is_partition_parts {α} (f : finpartition (set.univ : set α)) :
+  setoid.is_partition (f.parts : set (set α)) :=
+⟨f.not_bot_mem, setoid.eqv_classes_of_disjoint_union
+  (f.parts.sup_id_set_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
 `s : ι → set α`.
@@ -248,9 +291,9 @@ variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
 instance [unique ι] [inhabited α] :
   inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
 ⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
-   some := λ i, default α,
+   some := default,
    some_mem := set.mem_univ,
-   index := λ a, default ι,
+   index := default,
    mem_index := set.mem_univ }⟩
 
 attribute [simp] some_mem mem_index
@@ -288,7 +331,7 @@ protected def quotient := quotient hs.setoid
 /-- The projection onto the quotient associated to an indexed partition. -/
 def proj : α → hs.quotient := quotient.mk'
 
-instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj (default α)⟩
+instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj default⟩
 
 lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
 quotient.eq_rel

@@ -61,12 +61,16 @@ def generate_from (g : set (set α)) : topological_space α :=
 { is_open        := generate_open g,
   is_open_univ   := generate_open.univ,
   is_open_inter  := generate_open.inter,
-  is_open_sUnion := generate_open.sUnion  }
+  is_open_sUnion := generate_open.sUnion }
+
+lemma is_open_generate_from_of_mem {g : set (set α)} {s : set α} (hs : s ∈ g) :
+  @is_open _ (generate_from g) s :=
+generate_open.basic s hs
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
-  (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
+  (binfi_mono $ λ s ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
     begin
       revert as, clear_, induction hs,
@@ -91,10 +95,10 @@ by rw [nhds_generate_from]; exact
 /-- Construct a topology on α given the filter of neighborhoods of each point of α. -/
 protected def mk_of_nhds (n : α → filter α) : topological_space α :=
 { is_open        := λs, ∀a∈s, s ∈ n a,
-  is_open_univ   := assume x h, univ_mem_sets,
-  is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
+  is_open_univ   := assume x h, univ_mem,
+  is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem (hs x hxs) (ht x hxt),
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩,
-    mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
+    mem_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
   (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ n a → ∃ t ∈ n a, t ⊆ s ∧ ∀a' ∈ t, s ∈ n a') :
@@ -102,14 +106,28 @@ lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
 begin
   letI := topological_space.mk_of_nhds n,
   refine le_antisymm (assume s hs, _) (assume s hs, _),
-  { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
+  { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure.1 $ h₀ b hb,
     have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
     { refine is_open.mem_nhds (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
-      exact mem_sets_of_superset ht h },
-    exact mem_sets_of_superset h₁ h₀ },
+      exact mem_of_superset ht h },
+    exact mem_of_superset h₁ h₀ },
   { rcases (@mem_nhds_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
     exact (n a).sets_of_superset (ht _ hat) hts },
+end
+
+lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ : ∀ x (n ∈ B x), x ∈ n)
+  (h₁ : ∀ x (n ∈ B x), ∃ n₁ ∈ B x, n₁ ⊆ n ∧ ∀ x' ∈ n₁, ∃ n₂ ∈ B x', n₂ ⊆ n) :
+  @nhds α (topological_space.mk_of_nhds (λ x, (B x).filter)) a = (B a).filter :=
+begin
+  rw topological_space.nhds_mk_of_nhds;
+  intros x n hn;
+  obtain ⟨m, hm₁, hm₂⟩ := (B x).mem_filter_iff.mp hn,
+  { exact hm₂ (h₀ _ _ hm₁), },
+  { obtain ⟨n₁, hn₁, hn₂, hn₃⟩ := h₁ x m hm₁,
+    refine ⟨n₁, (B x).mem_filter_of_mem hn₁, hn₂.trans hm₂, λ x' hx', (B x').mem_filter_iff.mp _⟩,
+    obtain ⟨n₂, hn₄, hn₅⟩ := hn₃ x' hx',
+    exact ⟨n₂, hn₄, hn₅.trans hm₂⟩, },
 end
 
 end topological_space
@@ -159,24 +177,49 @@ def gi_generate_from (α : Type*) :
 { gc        := assume g t, generate_from_le_iff_subset_is_open,
   le_l_u    := assume ts s hs, topological_space.generate_open.basic s hs,
   choice    := λg hg, mk_of_closure g
-    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_refl _),
+    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_rfl),
   choice_eq := assume s hs, mk_of_closure_sets }
 
 lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
   topological_space.generate_from g₁ ≤ topological_space.generate_from g₂ :=
 (gi_generate_from _).gc.monotone_l h
 
-/-- The complete lattice of topological spaces, but built on the inclusion ordering. -/
+lemma generate_from_set_of_is_open (t : topological_space α) :
+  topological_space.generate_from {s | t.is_open s} = t :=
+(gi_generate_from α).l_u_eq t
+
+lemma left_inverse_generate_from :
+  function.left_inverse topological_space.generate_from
+    (λ t : topological_space α, {s | t.is_open s}) :=
+(gi_generate_from α).left_inverse_l_u
+
+lemma generate_from_surjective :
+  function.surjective (topological_space.generate_from : set (set α) → topological_space α) :=
+(gi_generate_from α).l_surjective
+
+lemma set_of_is_open_injective :
+  function.injective (λ t : topological_space α, {s | t.is_open s}) :=
+(gi_generate_from α).u_injective
+
+/-- The "temporary" order `tmp_order` on `topological_space α`, i.e. the inclusion order, is a
+complete lattice.  (Note that later `topological_space α` will equipped with the dual order to
+`tmp_order`). -/
 def tmp_complete_lattice {α : Type u} : complete_lattice (topological_space α) :=
 (gi_generate_from α).lift_complete_lattice
+
+instance : has_le (topological_space α) :=
+{ le          := λ t s, s.is_open ≤ t.is_open }
+
+protected lemma topological_space.le_def {α} {t s : topological_space α} :
+  t ≤ s ↔ s.is_open ≤ t.is_open := iff.rfl
 
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
-{ le          := λ t s, s.is_open ≤ t.is_open,
-  le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
+{ le_antisymm := assume t s h₁ h₂, topological_space_eq $ le_antisymm h₂ h₁,
   le_refl     := assume t, le_refl t.is_open,
-  le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁ }
+  le_trans    := assume a b c h₁ h₂, topological_space.le_def.mpr (le_trans h₂ h₁),
+  ..topological_space.has_le }
 
 lemma le_generate_from_iff_subset_is_open {g : set (set α)} {t : topological_space α} :
   t ≤ topological_space.generate_from g ↔ g ⊆ {s | t.is_open s} :=
@@ -184,10 +227,14 @@ generate_from_le_iff_subset_is_open
 
 /-- Topologies on `α` form a complete lattice, with `⊥` the discrete topology
   and `⊤` the indiscrete topology. The infimum of a collection of topologies
-  is the topology generated by all their open sets, while the supremem is the
+  is the topology generated by all their open sets, while the supremum is the
   topology whose open sets are those sets open in every member of the collection. -/
 instance : complete_lattice (topological_space α) :=
 @order_dual.complete_lattice _ tmp_complete_lattice
+
+lemma is_open_implies_is_open_iff {a b : topological_space α} :
+  (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
+iff.rfl
 
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
@@ -206,6 +253,7 @@ instance discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ :=
   is_closed s :=
 is_open_compl_iff.1 $ (discrete_topology.eq_bot α).symm ▸ trivial
 
+@[nontriviality]
 lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
   [topological_space β] {f : α → β} : continuous f :=
 continuous_def.2 $ λs hs, is_open_discrete _
@@ -219,6 +267,10 @@ end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
 (discrete_topology.eq_bot α).symm ▸ nhds_bot α
+
+lemma mem_nhds_discrete [topological_space α] [discrete_topology α] {x : α} {s : set α} :
+  s ∈ 𝓝 x ↔ x ∈ s :=
+by rw [nhds_discrete, mem_pure]
 
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₁ x ≤ @nhds α t₂ x) :
   t₁ ≤ t₂ :=
@@ -278,8 +330,7 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
   simp only [← is_open_compl_iff, is_open_induced_iff],
-  exact ⟨λ ⟨t, ht, heq⟩, ⟨tᶜ, by rwa compl_compl, by simp [preimage_compl, heq, compl_compl]⟩,
-         λ ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+  exact compl_surjective.exists.trans (by simp only [preimage_compl, compl_inj_iff])
 end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
@@ -374,6 +425,23 @@ lemma coinduced_compose [tα : topological_space α]
   {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
 topological_space_eq rfl
 
+lemma equiv.induced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.induced e.symm = topological_space.coinduced e :=
+begin
+  ext t U,
+  split,
+  { rintros ⟨V, hV, rfl⟩,
+    change t.is_open (e ⁻¹' _),
+    rwa [← preimage_comp, ← equiv.coe_trans, equiv.self_trans_symm] },
+  { intros hU,
+    refine ⟨e ⁻¹' U, hU, _⟩,
+    rw [← preimage_comp, ← equiv.coe_trans, equiv.symm_trans_self, equiv.coe_refl, preimage_id] }
+end
+
+lemma equiv.coinduced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.coinduced e.symm = topological_space.induced e :=
+by rw [← e.symm.induced_symm, e.symm_symm]
+
 end galois_connection
 
 /- constructions using the complete lattice structure -/
@@ -413,6 +481,10 @@ instance : discrete_topology ℤ := ⟨rfl⟩
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
 
+lemma continuous_empty_function [topological_space α] [topological_space β] [is_empty β]
+  (f : α → β) : continuous f :=
+by { letI := function.is_empty f, exact continuous_of_discrete_topology }
+
 lemma le_generate_from {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   t ≤ generate_from g :=
 le_generate_from_iff_subset_is_open.2 h
@@ -435,19 +507,82 @@ end
 
 /-- This construction is left adjoint to the operation sending a topology on `α`
   to its neighborhood filter at a fixed point `a : α`. -/
-protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
+def nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
-  is_open_univ   := assume s, univ_mem_sets,
-  is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
-  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau)
+  is_open_univ   := assume s, univ_mem,
+  is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem (hs has) (ht hat),
+  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_of_superset (hk u hu hau)
     (subset_sUnion_of_mem hu) }
 
 lemma gc_nhds (a : α) :
-  galois_connection  (topological_space.nhds_adjoint a) (λt, @nhds α t a) :=
+  galois_connection (nhds_adjoint a) (λt, @nhds α t a) :=
 assume f t, by { rw le_nhds_iff, exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩ }
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
   @nhds α t₁ a ≤ @nhds α t₂ a := (gc_nhds a).monotone_u h
+
+lemma le_iff_nhds {α : Type*} (t t' : topological_space α) :
+  t ≤ t' ↔ ∀ x, @nhds α t x ≤ @nhds α t' x :=
+⟨λ h x, nhds_mono h, le_of_nhds_le_nhds⟩
+
+lemma nhds_adjoint_nhds {α : Type*} (a : α) (f : filter α) :
+  @nhds α (nhds_adjoint a f) a = pure a ⊔ f :=
+begin
+  ext U,
+  rw mem_nhds_iff,
+  split,
+  { rintros ⟨t, htU, ht, hat⟩,
+    exact ⟨htU hat, mem_of_superset (ht hat) htU⟩},
+  { rintros ⟨haU, hU⟩,
+    exact ⟨U, subset.rfl, λ h, hU, haU⟩ }
+end
+
+lemma nhds_adjoint_nhds_of_ne {α : Type*} (a : α) (f : filter α) {b : α} (h : b ≠ a) :
+  @nhds α (nhds_adjoint a f) b = pure b :=
+begin
+  apply le_antisymm,
+  { intros U hU,
+    rw mem_nhds_iff,
+    use {b},
+    simp only [and_true, singleton_subset_iff, mem_singleton],
+    refine ⟨hU, λ ha, (h.symm ha).elim⟩ },
+  { exact @pure_le_nhds α (nhds_adjoint a f) b },
+end
+
+lemma is_open_singleton_nhds_adjoint {α : Type*} {a b : α} (f : filter α) (hb : b ≠ a) :
+  @is_open α (nhds_adjoint a f) {b} :=
+begin
+  rw is_open_singleton_iff_nhds_eq_pure,
+  exact nhds_adjoint_nhds_of_ne a f hb
+end
+
+lemma le_nhds_adjoint_iff' {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
+  t ≤ nhds_adjoint a f ↔ @nhds α t a ≤ pure a ⊔ f ∧ ∀ b ≠ a, @nhds α t b = pure b :=
+begin
+  rw le_iff_nhds,
+  split,
+  { intros h,
+    split,
+    { specialize h a,
+      rwa nhds_adjoint_nhds at h },
+    { intros b hb,
+      apply le_antisymm _ (pure_le_nhds b),
+      specialize h b,
+      rwa nhds_adjoint_nhds_of_ne a f hb at h } },
+  { rintros ⟨h, h'⟩ b,
+    by_cases hb : b = a,
+    { rwa [hb, nhds_adjoint_nhds] },
+    { simp [nhds_adjoint_nhds_of_ne a f hb, h' b hb] } }
+end
+
+lemma le_nhds_adjoint_iff {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
+  t ≤ nhds_adjoint a f ↔ (@nhds α t a ≤ pure a ⊔ f ∧ ∀ b, b ≠ a → t.is_open {b}) :=
+begin
+  change _ ↔ _ ∧ ∀ (b : α), b ≠ a → is_open {b},
+  rw [le_nhds_adjoint_iff', and.congr_right_iff],
+  apply λ h, forall_congr (λ b,  _),
+  rw @is_open_singleton_iff_nhds_eq_pure α t b
+end
 
 lemma nhds_infi {ι : Sort*} {t : ι → topological_space α} {a : α} :
   @nhds α (infi t) a = (⨅i, @nhds α (t i) a) := (gc_nhds a).u_infi
@@ -459,6 +594,10 @@ lemma nhds_inf {t₁ t₂ : topological_space α} {a : α} :
   @nhds α (t₁ ⊓ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a := (gc_nhds a).u_inf
 
 lemma nhds_top {a : α} : @nhds α ⊤ a = ⊤ := (gc_nhds a).u_top
+
+lemma is_open_sup {t₁ t₂ : topological_space α} {s : set α} :
+  @is_open α (t₁ ⊔ t₂) s ↔ @is_open α t₁ s ∧ @is_open α t₂ s :=
+iff.rfl
 
 local notation `cont` := @continuous _ _
 local notation `tspace` := topological_space
@@ -482,29 +621,16 @@ continuous_iff_coinduced_le.2 $ le_generate_from h
 lemma continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
 by { rw continuous_def, assume s h, exact ⟨_, h, rfl⟩ }
 
-lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ}
-  (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
-begin
-  rw continuous_def,
-  rintros s ⟨t, ht, s_eq⟩,
-  simpa [← s_eq] using continuous_def.1 h t ht,
-end
-
-lemma continuous_induced_rng' [topological_space α] [topological_space β] [topological_space γ]
-  {g : γ → α} (f : α → β) (H : ‹topological_space α› = ‹topological_space β›.induced f)
-  (h : continuous (f ∘ g)) : continuous g :=
-H.symm ▸ continuous_induced_rng h
+lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ} :
+  cont t₁ (induced f t₂) g ↔ cont t₁ t₂ (f ∘ g) :=
+by simp only [continuous_iff_le_induced, induced_compose]
 
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
 by { rw continuous_def, assume s h, exact h }
 
-lemma continuous_coinduced_dom {g : β → γ} {t₁ : tspace α} {t₂ : tspace γ}
-  (h : cont t₁ t₂ (g ∘ f)) : cont (coinduced f t₁) t₂ g :=
-begin
-  rw continuous_def at h ⊢,
-  assume s hs,
-  exact h _ hs
-end
+lemma continuous_coinduced_dom {g : β → γ} {t₁ : tspace α} {t₂ : tspace γ} :
+  cont (coinduced f t₁) t₂ g ↔ cont t₁ t₂ (g ∘ f) :=
+by simp only [continuous_iff_coinduced_le, coinduced_compose]
 
 lemma continuous_le_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
   (h₁ : t₂ ≤ t₁) (h₂ : cont t₁ t₃ f) : cont t₂ t₃ f :=
@@ -522,13 +648,9 @@ begin
   exact h₂ s (h₁ s h)
 end
 
-lemma continuous_sup_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
-  (h₁ : cont t₁ t₃ f) (h₂ : cont t₂ t₃ f) : cont (t₁ ⊔ t₂) t₃ f :=
-begin
-  rw continuous_def at h₁ h₂ ⊢,
-  assume s h,
-  exact ⟨h₁ s h, h₂ s h⟩
-end
+lemma continuous_sup_dom {t₁ t₂ : tspace α} {t₃ : tspace β} :
+  cont (t₁ ⊔ t₂) t₃ f ↔ cont t₁ t₃ f ∧ cont t₂ t₃ f :=
+by simp only [continuous_iff_le_induced, sup_le_iff]
 
 lemma continuous_sup_rng_left {t₁ : tspace α} {t₃ t₂ : tspace β} :
   cont t₁ t₂ f → cont t₁ (t₂ ⊔ t₃) f :=
@@ -538,27 +660,25 @@ lemma continuous_sup_rng_right {t₁ : tspace α} {t₃ t₂ : tspace β} :
   cont t₁ t₃ f → cont t₁ (t₂ ⊔ t₃) f :=
 continuous_le_rng le_sup_right
 
-lemma continuous_Sup_dom {t₁ : set (tspace α)} {t₂ : tspace β}
-  (h : ∀t∈t₁, cont t t₂ f) : cont (Sup t₁) t₂ f :=
-continuous_iff_le_induced.2 $ Sup_le $ assume t ht, continuous_iff_le_induced.1 $ h t ht
+lemma continuous_Sup_dom {T : set (tspace α)} {t₂ : tspace β} :
+  cont (Sup T) t₂ f ↔ ∀ t ∈ T, cont t t₂ f :=
+by simp only [continuous_iff_le_induced, Sup_le_iff]
 
 lemma continuous_Sup_rng {t₁ : tspace α} {t₂ : set (tspace β)} {t : tspace β}
   (h₁ : t ∈ t₂) (hf : cont t₁ t f) : cont t₁ (Sup t₂) f :=
 continuous_iff_coinduced_le.2 $ le_Sup_of_le h₁ $ continuous_iff_coinduced_le.1 hf
 
-lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β}
-  (h : ∀i, cont (t₁ i) t₂ f) : cont (supr t₁) t₂ f :=
-continuous_Sup_dom $ assume t ⟨i, (t_eq : t₁ i = t)⟩, t_eq ▸ h i
+lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β} :
+  cont (supr t₁) t₂ f ↔  ∀ i, cont (t₁ i) t₂ f :=
+by simp only [continuous_iff_le_induced, supr_le_iff]
 
 lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β} {i : ι}
   (h : cont t₁ (t₂ i) f) : cont t₁ (supr t₂) f :=
 continuous_Sup_rng ⟨i, rfl⟩ h
 
-lemma continuous_inf_rng {t₁ : tspace α} {t₂ t₃ : tspace β}
-  (h₁ : cont t₁ t₂ f) (h₂ : cont t₁ t₃ f) : cont t₁ (t₂ ⊓ t₃) f :=
-continuous_iff_coinduced_le.2 $ le_inf
-  (continuous_iff_coinduced_le.1 h₁)
-  (continuous_iff_coinduced_le.1 h₂)
+lemma continuous_inf_rng {t₁ : tspace α} {t₂ t₃ : tspace β} :
+  cont t₁ (t₂ ⊓ t₃) f ↔ cont t₁ t₂ f ∧ cont t₁ t₃ f :=
+by simp only [continuous_iff_coinduced_le, le_inf_iff]
 
 lemma continuous_inf_dom_left {t₁ t₂ : tspace α} {t₃ : tspace β} :
   cont t₁ t₃ f → cont (t₁ ⊓ t₂) t₃ f :=
@@ -572,23 +692,29 @@ lemma continuous_Inf_dom {t₁ : set (tspace α)} {t₂ : tspace β} {t : tspace
   cont t t₂ f → cont (Inf t₁) t₂ f :=
 continuous_le_dom $ Inf_le h₁
 
-lemma continuous_Inf_rng {t₁ : tspace α} {t₂ : set (tspace β)}
-  (h : ∀t∈t₂, cont t₁ t f) : cont t₁ (Inf t₂) f :=
-continuous_iff_coinduced_le.2 $ le_Inf $ assume b hb, continuous_iff_coinduced_le.1 $ h b hb
+lemma continuous_Inf_rng {t₁ : tspace α} {T : set (tspace β)} :
+  cont t₁ (Inf T) f ↔ ∀ t ∈ T, cont t₁ t f :=
+by simp only [continuous_iff_coinduced_le, le_Inf_iff]
 
 lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β} {i : ι} :
   cont (t₁ i) t₂ f → cont (infi t₁) t₂ f :=
 continuous_le_dom $ infi_le _ _
 
-lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β}
-  (h : ∀i, cont t₁ (t₂ i) f) : cont t₁ (infi t₂) f :=
-continuous_iff_coinduced_le.2 $ le_infi $ assume i, continuous_iff_coinduced_le.1 $ h i
+lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β} :
+  cont t₁ (infi t₂) f ↔ ∀ i, cont t₁ (t₂ i) f :=
+by simp only [continuous_iff_coinduced_le, le_infi_iff]
 
 @[continuity] lemma continuous_bot {t : tspace β} : cont ⊥ t f :=
 continuous_iff_le_induced.2 $ bot_le
 
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
+
+lemma continuous_id_iff_le {t t' : tspace α} : cont t t' id ↔ t ≤ t' :=
+@continuous_def _ _ t t' id
+
+lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
+continuous_id_iff_le.2 h
 
 /- 𝓝 in the induced topology -/
 
@@ -605,7 +731,7 @@ end
 
 theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
   @nhds β (topological_space.induced f T) a = comap f (𝓝 (f a)) :=
-by { ext s, rw [mem_nhds_induced, mem_comap_sets] }
+by { ext s, rw [mem_nhds_induced, mem_comap] }
 
 lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
 tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=
@@ -641,22 +767,32 @@ lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : s
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
 by simp only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
 
+lemma is_closed_induced_iff' [t : topological_space β] {f : α → β} {s : set α} :
+  @is_closed α (t.induced f) s ↔ ∀ a, f a ∈ closure (f '' s) → a ∈ s :=
+by simp only [← closure_subset_iff_is_closed, subset_def, closure_induced]
+
 end induced
 
 section sierpinski
 variables {α : Type*} [topological_space α]
 
 @[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
-topological_space.generate_open.basic _ (by simp)
+topological_space.generate_open.basic _ (mem_singleton _)
+
+@[simp] lemma nhds_true : 𝓝 true = pure true :=
+le_antisymm (le_pure_iff.2 $ is_open_singleton_true.mem_nhds $ mem_singleton _) (pure_le_nhds _)
+
+@[simp] lemma nhds_false : 𝓝 false = ⊤ :=
+topological_space.nhds_generate_from.trans $ by simp [@and.comm (_ ∈ _)]
 
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
     from is_open_singleton_true.preimage h,
-  by simp [preimage, eq_true] at this; assumption,
+  by simpa [preimage, eq_true] using this,
   assume h : is_open {x | p x},
-  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
-    by simp at hs; simp [hs, preimage, eq_true, h]⟩
+  continuous_generated_from $ assume s (hs : s = {true}),
+    by simp [hs, preimage, eq_true, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm
@@ -664,17 +800,67 @@ continuous_Prop.symm
 end sierpinski
 
 section infi
-variables {α : Type u} {ι : Type v} {t : ι → topological_space α}
+variables {α : Type u} {ι : Sort v}
+
+lemma generate_from_union (a₁ a₂ : set (set α)) :
+  topological_space.generate_from (a₁ ∪ a₂) =
+    topological_space.generate_from a₁ ⊓ topological_space.generate_from a₂ :=
+@galois_connection.l_sup _ (topological_space α)ᵒᵈ a₁ a₂ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open)
+
+lemma set_of_is_open_sup (t₁ t₂ : topological_space α) :
+  {s | (t₁ ⊔ t₂).is_open s} = {s | t₁.is_open s} ∩ {s | t₂.is_open s} :=
+@galois_connection.u_inf _ (topological_space α)ᵒᵈ t₁ t₂ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open)
+
+lemma generate_from_Union {f : ι → set (set α)} :
+  topological_space.generate_from (⋃ i, f i) = (⨅ i, topological_space.generate_from (f i)) :=
+@galois_connection.l_supr _ (topological_space α)ᵒᵈ _ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) f
+
+lemma set_of_is_open_supr {t : ι → topological_space α} :
+  {s | (⨆ i, t i).is_open s} = ⋂ i, {s | (t i).is_open s} :=
+@galois_connection.u_infi _ (topological_space α)ᵒᵈ _ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) t
+
+lemma generate_from_sUnion {S : set (set (set α))} :
+  topological_space.generate_from (⋃₀ S) = (⨅ s ∈ S, topological_space.generate_from s) :=
+@galois_connection.l_Sup _ (topological_space α)ᵒᵈ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) S
+
+lemma set_of_is_open_Sup {T : set (topological_space α)} :
+  {s | (Sup T).is_open s} = ⋂ t ∈ T, {s | (t : topological_space α).is_open s} :=
+@galois_connection.u_Inf _ (topological_space α)ᵒᵈ _ _ _ _
+  (λ g t, generate_from_le_iff_subset_is_open) T
+
+lemma generate_from_union_is_open (a b : topological_space α) :
+  topological_space.generate_from ({s | a.is_open s} ∪ {s | b.is_open s}) = a ⊓ b :=
+@galois_insertion.l_sup_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) a b
+
+lemma generate_from_Union_is_open (f : ι → topological_space α) :
+  topological_space.generate_from (⋃ i, {s | (f i).is_open s}) = ⨅ i, (f i) :=
+@galois_insertion.l_supr_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) _ f
+
+lemma generate_from_inter (a b : topological_space α) :
+  topological_space.generate_from ({s | a.is_open s} ∩ {s | b.is_open s}) = a ⊔ b :=
+@galois_insertion.l_inf_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) a b
+
+lemma generate_from_Inter (f : ι → topological_space α) :
+  topological_space.generate_from (⋂ i, {s | (f i).is_open s}) = ⨆ i, (f i) :=
+@galois_insertion.l_infi_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) _ f
+
+lemma generate_from_Inter_of_generate_from_eq_self (f : ι → set (set α))
+  (hf : ∀ i, {s | (topological_space.generate_from (f i)).is_open s} = f i) :
+  topological_space.generate_from (⋂ i, (f i)) = ⨆ i, topological_space.generate_from (f i) :=
+@galois_insertion.l_infi_of_ul_eq_self _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) _ f hf
+
+variables {t : ι → topological_space α}
 
 lemma is_open_supr_iff {s : set α} : @is_open _ (⨆ i, t i) s ↔ ∀ i, @is_open _ (t i) s :=
-begin
-  -- s defines a map from α to Prop, which is continuous iff s is open.
-  suffices : @continuous _ _ (⨆ i, t i) _ s ↔ ∀ i, @continuous _ _ (t i) _ s,
-  { simpa only [continuous_Prop] using this },
-  simp only [continuous_iff_le_induced, supr_le_iff]
-end
+show s ∈ set_of (supr t).is_open ↔ s ∈ {x : set α | ∀ (i : ι), (t i).is_open x},
+by simp [set_of_is_open_supr]
 
-lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
+lemma is_closed_supr_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
 by simp [← is_open_compl_iff, is_open_supr_iff]
 
 end infi

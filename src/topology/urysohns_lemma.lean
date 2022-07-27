@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.normed_space.add_torsor
 import linear_algebra.affine_space.ordered
+import topology.continuous_function.basic
 
 /-!
 # Urysohn's lemma
@@ -24,7 +25,7 @@ numbers on `[0, 1]`. There are many technical difficulties with formalizing this
 needs to formalize the "dyadic induction", then prove that the resulting family of open sets is
 monotone). So, we formalize a slightly different proof.
 
-Let `urysohns.CU` the the type of pairs `(C, U)` of a closed set `C`and an open set `U` such that
+Let `urysohns.CU` be the type of pairs `(C, U)` of a closed set `C`and an open set `U` such that
 `C ⊆ U`. Since `X` is a normal topological space, for each `c : CU X` there exists an open set `u`
 such that `c.C ⊆ u ∧ closure u ⊆ c.U`. We define `c.left` and `c.right` to be `(c.C, u)` and
 `(closure u, c.U)`, respectively. Then we define a family of functions
@@ -195,7 +196,7 @@ begin
 end
 
 lemma approx_mono (c : CU X) (x : X) : monotone (λ n, c.approx n x) :=
-monotone_of_monotone_nat $ λ n, c.approx_le_succ n x
+monotone_nat_of_le_succ $ λ n, c.approx_le_succ n x
 
 /-- A continuous function `f : X → ℝ` such that
 
@@ -246,8 +247,7 @@ begin
     rw pow_zero,
     exact real.dist_le_of_mem_Icc_01 (c.lim_mem_Icc _) (c.lim_mem_Icc _) },
   { by_cases hxl : x ∈ c.left.U,
-    { filter_upwards [is_open.mem_nhds c.left.open_U hxl, ihn c.left],
-      intros y hyl hyd,
+    { filter_upwards [is_open.mem_nhds c.left.open_U hxl, ihn c.left] with _ hyl hyd,
       rw [pow_succ, c.lim_eq_midpoint, c.lim_eq_midpoint,
         c.right.lim_of_mem_C _ (c.left_U_subset_right_C hyl),
         c.right.lim_of_mem_C _ (c.left_U_subset_right_C hxl)],
@@ -256,8 +256,7 @@ begin
       exact mul_le_mul h1234.le hyd dist_nonneg (h0.trans h1234).le },
     { replace hxl : x ∈ c.left.right.Cᶜ, from compl_subset_compl.2 c.left.right.subset hxl,
       filter_upwards [is_open.mem_nhds (is_open_compl_iff.2 c.left.right.closed_C) hxl,
-        ihn c.left.right, ihn c.right],
-      intros y hyl hydl hydr,
+        ihn c.left.right, ihn c.right] with y hyl hydl hydr,
       replace hxl : x ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hxl,
       replace hyl : y ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hyl,
       simp only [pow_succ, c.lim_eq_midpoint, c.left.lim_eq_midpoint,
@@ -287,10 +286,10 @@ then there exists a continuous function `f : X → ℝ` such that
 -/
 lemma exists_continuous_zero_one_of_closed {s t : set X} (hs : is_closed s) (ht : is_closed t)
   (hd : disjoint s t) :
-  ∃ f : X → ℝ, continuous f ∧ eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
+  ∃ f : C(X, ℝ), eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
 begin
   -- The actual proof is in the code above. Here we just repack it into the expected format.
-  set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, λ _, disjoint_left.1 hd⟩,
-  exact ⟨c.lim, c.continuous_lim, c.lim_of_mem_C,
+  set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, disjoint_left.1 hd⟩,
+  exact ⟨⟨c.lim, c.continuous_lim⟩, c.lim_of_mem_C,
     λ x hx, c.lim_of_nmem_U _ (λ h, h hx), c.lim_mem_Icc⟩
 end

@@ -3,8 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.algebra.subalgebra
 import analysis.special_functions.bernstein
+import topology.algebra.algebra
 
 /-!
 # The Weierstrass approximation theorem for continuous functions on `[a,b]`
@@ -44,7 +44,7 @@ begin
 end
 
 /--
-The Weierstrass approximation theorem:
+The **Weierstrass Approximation Theorem**:
 polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
 
 (While we could deduce this as an application of the Stone-Weierstrass theorem,
@@ -66,12 +66,12 @@ begin
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
     -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
-    apply_fun (λ s, s.comap' W) at p,
+    apply_fun (λ s, s.comap W) at p,
     simp only [algebra.comap_top] at p,
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
-    rw subalgebra.topological_closure_comap'_homeomorph _ W W' w at p,
+    rw subalgebra.topological_closure_comap_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
-    rw polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I at p,
+    rw polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I at p,
     -- 🎉
     exact p },
   { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,
@@ -120,7 +120,7 @@ can be approximated to within any `ε > 0` on `[a,b]` by some polynomial.
 -/
 theorem exists_polynomial_near_of_continuous_on
   (a b : ℝ) (f : ℝ → ℝ) (c : continuous_on f (set.Icc a b)) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, abs (p.eval x - f x) < ε :=
+  ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, |p.eval x - f x| < ε :=
 begin
   let f' : C(set.Icc a b, ℝ) := ⟨λ x, f x, continuous_on_iff_continuous_restrict.mp c⟩,
   obtain ⟨p, b⟩ := exists_polynomial_near_continuous_map a b f' ε pos,

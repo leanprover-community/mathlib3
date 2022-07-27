@@ -3,9 +3,10 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.pnat.basic
-import data.list.range
 import data.array.lemmas
+import data.list.join
+import data.list.range
+import data.pnat.basic
 
 /-!
 # Hash maps
@@ -133,7 +134,7 @@ theorem find_aux_iff {a : α} {b : β a} :
   { clear find_aux_iff, subst h,
     suffices : b' = b ↔ b' = b ∨ sigma.mk a' b ∈ t, {simpa [find_aux, eq_comm]},
     refine (or_iff_left_of_imp (λ m, _)).symm,
-    have : a' ∉ t.map sigma.fst, from list.not_mem_of_nodup_cons nd,
+    have : a' ∉ t.map sigma.fst, from nd.not_mem,
     exact this.elim (list.mem_map_of_mem sigma.fst m) },
   { have : sigma.mk a b ≠ ⟨a', b'⟩,
     { intro e, injection e with e, exact h e.symm },
@@ -256,7 +257,7 @@ section
     rcases append_of_modify u v1 v2 w hl hfl with ⟨u', w', e₁, e₂⟩,
     rw [← v.len, e₁],
     suffices : valid bkts' (u' ++ v2 ++ w').length,
-    { simpa [ge, add_comm, add_left_comm, nat.le_add_right, nat.add_sub_cancel_left] },
+    { simpa [ge, add_comm, add_left_comm, nat.le_add_right, add_tsub_cancel_left] },
     refine ⟨congr_arg _ e₂, λ i a, _, λ i, _⟩,
     { by_cases bidx = i,
       { subst i, rw [bkts', array.read_write, hfl],
@@ -615,12 +616,12 @@ theorem mem_erase : Π (m : hash_map α β) (a a' b'),
       { simp [eq_comm, not_and_self_iff, and_iff_right_of_imp this] },
       simpa [hl, show bkts'.as_list = _, from hfl, and_or_distrib_left,
              and_comm, and.left_comm, or.left_comm] },
-    intros m e, subst a', revert m, apply not_or_distrib.2,
+    rintro m rfl, revert m, apply not_or_distrib.2,
     have nd' := v.as_list_nodup _,
     simp [hl, list.nodup_append] at nd', simp [nd'] },
   { suffices : ∀_:sigma.mk a' b' ∈ bucket_array.as_list bkts, a ≠ a',
     { simp [erase, @dif_neg (contains_aux a bkt) _ Hc, entries, and_iff_right_of_imp this] },
-    intros m e, subst a',
+    rintro m rfl,
     exact Hc ((v.contains_aux_iff _ _).2 (list.mem_map_of_mem sigma.fst m)) }
 end
 

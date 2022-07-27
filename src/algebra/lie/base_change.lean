@@ -3,8 +3,8 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.algebra.restrict_scalars
 import algebra.lie.tensor_product
-import ring_theory.tensor_product
 
 /-!
 # Extension and restriction of scalars for Lie algebras
@@ -40,8 +40,8 @@ support in the tensor product library, it is far easier to bootstrap like this, 
 definition below. -/
 private def bracket' : (A ⊗[R] L) →ₗ[R] (A ⊗[R] L) →ₗ[R] A ⊗[R] L :=
 tensor_product.curry $
-  (tensor_product.map (algebra.lmul' R) (lie_module.to_module_hom R L L : L ⊗[R] L →ₗ[R] L)).comp $
-  tensor_product.tensor_tensor_tensor_comm R A L A L
+  (tensor_product.map (algebra.lmul' R) (lie_module.to_module_hom R L L : L ⊗[R] L →ₗ[R] L))
+  ∘ₗ ↑(tensor_product.tensor_tensor_tensor_comm R A L A L)
 
 @[simp] private lemma bracket'_tmul (s t : A) (x y : L) :
   bracket' R A L (s ⊗ₜ[R] x) (t ⊗ₜ[R] y) = (s*t) ⊗ₜ ⁅x, y⁆ :=
@@ -141,10 +141,9 @@ instance : lie_ring (restrict_scalars R A L) := h
 
 variables [comm_ring A] [lie_algebra A L]
 
-@[nolint unused_arguments]
 instance lie_algebra [comm_ring R] [algebra R A] : lie_algebra R (restrict_scalars R A L) :=
-{ lie_smul := λ t x y, (lie_smul _ (show L, from x) (show L, from y) : _),
-  .. (by apply_instance : module R (restrict_scalars R A L)), }
+{ lie_smul := λ t x y, (lie_smul (algebra_map R A t)
+    (restrict_scalars.add_equiv R A L x) (restrict_scalars.add_equiv R A L y) : _) }
 
 end restrict_scalars
 

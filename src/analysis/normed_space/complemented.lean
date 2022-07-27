@@ -20,8 +20,9 @@ is always a complemented subspace.
 complemented subspace, normed vector space
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] {G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 E F G : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
+  [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F] [normed_add_comm_group G]
+  [normed_space 𝕜 G]
 
 noncomputable theory
 
@@ -91,7 +92,7 @@ end
 def linear_proj_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
   (hq : is_closed (q : set E)) :
   E →L[𝕜] p :=
-(continuous_linear_map.fst 𝕜 p q).comp $ (prod_equiv_of_closed_compl p q h hp hq).symm
+(continuous_linear_map.fst 𝕜 p q) ∘L ↑(prod_equiv_of_closed_compl p q h hp hq).symm
 
 variables {p q}
 
@@ -121,7 +122,7 @@ lemma closed_complemented_iff_has_closed_compl : p.closed_complemented ↔
   λ ⟨hp, ⟨q, hq, hpq⟩⟩, closed_complemented_of_closed_compl hpq hp hq⟩
 
 lemma closed_complemented_of_quotient_finite_dimensional [complete_space 𝕜]
-  [finite_dimensional 𝕜 p.quotient] (hp : is_closed (p : set E)) :
+  [finite_dimensional 𝕜 (E ⧸ p)] (hp : is_closed (p : set E)) :
   p.closed_complemented :=
 begin
   obtain ⟨q, hq⟩ : ∃ q, is_compl p q := p.exists_is_compl,

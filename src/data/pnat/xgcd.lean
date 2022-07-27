@@ -108,8 +108,7 @@ end
 def is_reduced : Prop := u.ap = u.bp
 def is_reduced' : Prop := u.a = u.b
 
-theorem is_reduced_iff : u.is_reduced ↔ u.is_reduced' :=
-⟨ congr_arg succ_pnat, succ_pnat_inj ⟩
+theorem is_reduced_iff : u.is_reduced ↔ u.is_reduced' := succ_pnat_inj.symm
 
 def flip : xgcd_type :=
 { wp := u.zp, x := u.y, y := u.x, zp := u.wp, ap := u.bp, bp := u.ap }
@@ -211,7 +210,7 @@ theorem step_v (hr : u.r ≠ 0) : u.step.v = (u.v).swap :=
 begin
   let ha : u.r + u.b * u.q = u.a := u.rq_eq,
   let hr : (u.r - 1) + 1 = u.r :=
-    (add_comm _ 1).trans (nat.add_sub_of_le (nat.pos_of_ne_zero hr)),
+    (add_comm _ 1).trans (add_tsub_cancel_of_le (nat.pos_of_ne_zero hr)),
   ext,
   { change ((u.y * u.q + u.z) * u.b + u.y * (u.r - 1 + 1) : ℕ) = u.y * u.a + u.z * u.b,
     rw [← ha, hr], ring },
@@ -335,9 +334,9 @@ begin
     exact dvd.intro (gcd_a' a b) (h₁.trans (mul_comm _ _)).symm,
     exact dvd.intro (gcd_b' a b) (h₂.trans (mul_comm _ _)).symm},
   { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a :=
-      dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
+      (nat.gcd_dvd_left a b).trans (dvd_mul_left _ _),
     have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b :=
-      dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
+      (nat.gcd_dvd_right a b).trans (dvd_mul_left _ _),
     rw[h₅] at h₇, rw dvd_iff,
     exact (nat.dvd_add_iff_right h₈).mpr h₇,}
 end

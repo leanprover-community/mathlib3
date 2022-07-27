@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import algebra.order.field
 import data.rat.basic
 
 /-!
@@ -36,9 +37,9 @@ begin
   have d0 := int.coe_nat_lt.2 h₁,
   have := (mk_eq (ne_of_gt h) (ne_of_gt d0)).1 ha,
   constructor; intro h₂,
-  { apply nonneg_of_mul_nonneg_right _ d0,
+  { apply nonneg_of_mul_nonneg_left _ d0,
     rw this, exact mul_nonneg h₂ (le_of_lt h) },
-  { apply nonneg_of_mul_nonneg_right _ h,
+  { apply nonneg_of_mul_nonneg_left _ h,
     rw ← this, exact mul_nonneg h₂ (int.coe_zero_le _) },
 end
 
@@ -101,8 +102,8 @@ protected theorem le_total : a ≤ b ∨ b ≤ a :=
 by have := rat.nonneg_total (b - a); rwa neg_sub at this
 
 protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by { have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by rwa [← sub_eq_add_neg, neg_sub]),
-   rwa neg_neg at this }
+by { have := eq_neg_of_add_eq_zero_left (rat.nonneg_antisymm hba $
+ by rwa [← sub_eq_add_neg, neg_sub]), rwa neg_neg at this }
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
@@ -138,8 +139,8 @@ end
 protected lemma lt_def {p q : ℚ} : p < q ↔ p.num * q.denom < q.num * p.denom :=
 begin
   rw [lt_iff_le_and_ne, rat.le_def'],
-  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by {
-    split; intro h,
+  suffices : p ≠ q ↔ p.num * q.denom ≠ q.num * p.denom, by
+  { split; intro h,
     { exact lt_iff_le_and_ne.elim_right ⟨h.left, (this.elim_left h.right)⟩ },
     { have tmp := lt_iff_le_and_ne.elim_left h, exact ⟨tmp.left, this.elim_right tmp.right⟩ }},
   exact (not_iff_not.elim_right eq_iff_mul_eq_mul)
@@ -195,18 +196,9 @@ begin
 end
 
 lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
-begin
-  cases decidable.em (0 < q) with q_pos q_nonpos,
-  { simp [rat.lt_def] },
-  { replace q_nonpos : q ≤ 0, from not_lt.elim_left q_nonpos,
-    have : q.num < q.denom, by
-    { have : ¬0 < q.num ↔ ¬0 < q, from not_iff_not.elim_right num_pos_iff_pos,
-      simp only [not_lt] at this,
-      exact lt_of_le_of_lt (this.elim_right q_nonpos) (by exact_mod_cast q.pos) },
-    simp only [this, (lt_of_le_of_lt q_nonpos zero_lt_one)] }
-end
+by simp [rat.lt_def]
 
-theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
+theorem abs_def (q : ℚ) : |q| = q.num.nat_abs /. q.denom :=
 begin
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],

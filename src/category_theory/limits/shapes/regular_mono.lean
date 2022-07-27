@@ -3,10 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.strong_epi
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.strong_epi
+import category_theory.limits.shapes.equalizers
 
 /-!
 # Definitions and basic properties of regular monomorphisms and epimorphisms.
@@ -16,9 +15,12 @@ A regular monomorphism is a morphism that is the equalizer of some parallel pair
 We give the constructions
 * `split_mono → regular_mono` and
 * `regular_mono → mono`
-as well as the dual constructions for regular epimorphisms. Additionally, we give the
-construction
+as well as the dual constructions for regular epimorphisms. Additionally, we give the construction
 * `regular_epi ⟶ strong_epi`.
+
+We also define classes `regular_mono_category` and `regular_epi_category` for categories in which
+every monomorphism or epimorphism is regular, and deduce that these categories are
+`strong_mono_category`s resp. `strong_epi_category`s.
 
 -/
 
@@ -45,7 +47,7 @@ attribute [reassoc] regular_mono.w
 /-- Every regular monomorphism is a monomorphism. -/
 @[priority 100]
 instance regular_mono.mono (f : X ⟶ Y) [regular_mono f] : mono f :=
-mono_of_is_limit_parallel_pair regular_mono.is_limit
+mono_of_is_limit_fork regular_mono.is_limit
 
 instance equalizer_regular (g h : X ⟶ Y) [has_limit (parallel_pair g h)] :
   regular_mono (equalizer.ι g h) :=
@@ -114,9 +116,49 @@ def regular_of_is_pullback_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶
 regular_mono f :=
 regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
+@[priority 100]
+instance strong_mono_of_regular_mono (f : X ⟶ Y) [regular_mono f] : strong_mono f :=
+{ mono := by apply_instance,
+  has_lift :=
+  begin
+    introsI,
+    have : v ≫ (regular_mono.left : Y ⟶ regular_mono.Z f) = v ≫ regular_mono.right,
+    { apply (cancel_epi z).1,
+      simp only [regular_mono.w, ← reassoc_of h] },
+    obtain ⟨t, ht⟩ := regular_mono.lift' _ _ this,
+    refine arrow.has_lift.mk ⟨t, (cancel_mono f).1 _, ht⟩,
+    simp only [arrow.mk_hom, arrow.hom_mk'_left, category.assoc, ht, h]
+  end }
+
 /-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
 lemma is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
-@is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
+is_iso_of_epi_of_strong_mono _
+
+section
+variables (C)
+
+/-- A regular mono category is a category in which every monomorphism is regular. -/
+class regular_mono_category :=
+(regular_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], regular_mono f)
+
+end
+
+/-- In a category in which every monomorphism is regular, we can express every monomorphism as
+    an equalizer. This is not an instance because it would create an instance loop. -/
+def regular_mono_of_mono [regular_mono_category C] (f : X ⟶ Y) [mono f] : regular_mono f :=
+regular_mono_category.regular_mono_of_mono _
+
+@[priority 100]
+instance regular_mono_category_of_split_mono_category [split_mono_category C] :
+  regular_mono_category C :=
+{ regular_mono_of_mono := λ _ _ f _,
+  by { haveI := by exactI split_mono_of_mono f, apply_instance } }
+
+@[priority 100]
+instance strong_mono_category_of_regular_mono_category [regular_mono_category C] :
+  strong_mono_category C :=
+{ strong_mono_of_mono := λ _ _ f _,
+    by { haveI := by exactI regular_mono_of_mono f, apply_instance } }
 
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
@@ -130,7 +172,7 @@ attribute [reassoc] regular_epi.w
 /-- Every regular epimorphism is an epimorphism. -/
 @[priority 100]
 instance regular_epi.epi (f : X ⟶ Y) [regular_epi f] : epi f :=
-epi_of_is_colimit_parallel_pair regular_epi.is_colimit
+epi_of_is_colimit_cofork regular_epi.is_colimit
 
 instance coequalizer_regular (g h : X ⟶ Y) [has_colimit (parallel_pair g h)] :
   regular_epi (coequalizer.π g h) :=
@@ -200,10 +242,6 @@ def regular_of_is_pushout_fst_of_regular
 regular_epi k :=
 regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t)
 
-/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
-lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
-@is_iso_limit_cocone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_epi.is_colimit m
-
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=
 { epi := by apply_instance,
@@ -217,5 +255,33 @@ instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f 
     exact arrow.has_lift.mk ⟨t, ht, (cancel_epi f).1
       (by simp only [←category.assoc, ht, ←h, arrow.mk_hom, arrow.hom_mk'_right])⟩,
   end }
+
+/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
+lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
+is_iso_of_mono_of_strong_epi _
+
+section
+variables (C)
+
+/-- A regular epi category is a category in which every epimorphism is regular. -/
+class regular_epi_category :=
+(regular_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], regular_epi f)
+
+end
+
+/-- In a category in which every epimorphism is regular, we can express every epimorphism as
+    a coequalizer. This is not an instance because it would create an instance loop. -/
+def regular_epi_of_epi [regular_epi_category C] (f : X ⟶ Y) [epi f] : regular_epi f :=
+regular_epi_category.regular_epi_of_epi _
+
+@[priority 100]
+instance regular_epi_category_of_split_epi_category [split_epi_category C] :
+  regular_epi_category C :=
+{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI split_epi_of_epi f, apply_instance } }
+
+@[priority 100]
+instance strong_epi_category_of_regular_epi_category [regular_epi_category C] :
+  strong_epi_category C :=
+{ strong_epi_of_epi := λ _ _ f _, by { haveI := by exactI regular_epi_of_epi f, apply_instance } }
 
 end category_theory

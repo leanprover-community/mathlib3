@@ -60,8 +60,7 @@ begin
   success_if_fail {
     generalize eq_xs' : cons x xs = xs',
     generalize eq_n' : n + 1 = n',
-    exact fancy_unit.intro n' xs'
-  },
+    exact fancy_unit.intro n' xs' },
   -- `generalizes` gives us the expected result with everything generalised.
   generalizes [eq_n' : n + 1 = n', eq_xs' : cons x xs = xs'],
   guard_hyp n' : ℕ,
@@ -98,15 +97,13 @@ begin
   intro h,
   induction h,
   case nil {
-    cases n'_eq,
-  },
+    cases n'_eq, },
   case cons : n'' m'' x y xs'' ys'' eq_xy eq_xsys'' ih {
     cases n'_eq, clear n'_eq,
     cases m'_eq, clear m'_eq,
     cases xs'_eq, clear xs'_eq,
     cases ys'_eq, clear ys'_eq,
-    exact eq_xsys'',
-  }
+    exact eq_xsys'', }
 end
 
 end Vec

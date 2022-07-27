@@ -5,6 +5,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import algebra.char_p.invertible
+import data.fintype.card
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
@@ -72,7 +73,7 @@ It is defined as:
 
 `∑_{i ≤ n} p^i X_i^{p^{n-i}} ∈ R[X_0, X_1, X_2, …]`. -/
 noncomputable def witt_polynomial (n : ℕ) : mv_polynomial ℕ R :=
-∑ i in range (n+1), monomial (single i (p ^ (n - i))) (p ^ i)
+∑ i in range (n+1), monomial (single i (p ^ (n - i))) (p ^ i : R)
 
 lemma witt_polynomial_eq_sum_C_mul_X_pow (n : ℕ) :
   witt_polynomial p R n = ∑ i in range (n+1), C (p ^ i : R) * X i ^ (p ^ (n - i)) :=
@@ -104,7 +105,7 @@ variables {R} {S : Type*} [comm_ring S]
 begin
   rw [witt_polynomial, ring_hom.map_sum, witt_polynomial, sum_congr rfl],
   intros i hi,
-  rw [map_monomial, ring_hom.map_pow, ring_hom.map_nat_cast],
+  rw [map_monomial, ring_hom.map_pow, map_nat_cast],
 end
 
 variables (R)
@@ -133,7 +134,7 @@ by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_i
 
 /--
 Over the ring `zmod (p^(n+1))`, we produce the `n+1`st Witt polynomial
-by expanding the `n`th witt polynomial by `p`.
+by expanding the `n`th Witt polynomial by `p`.
 -/
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
@@ -145,7 +146,7 @@ begin
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
   rw mem_range at hk,
-  rw [add_comm, nat.add_sub_assoc (nat.lt_succ_iff.mp hk), ← add_comm],
+  rw [add_comm, add_tsub_assoc_of_le (nat.lt_succ_iff.mp hk), ← add_comm],
 end
 
 section p_prime
@@ -158,17 +159,14 @@ lemma witt_polynomial_vars [char_zero R] (n : ℕ) :
 begin
   have : ∀ i, (monomial (finsupp.single i (p ^ (n - i))) (p ^ i : R)).vars = {i},
   { intro i,
-    rw vars_monomial_single,
-    { rw ← pos_iff_ne_zero,
-      apply pow_pos hp.1.pos },
-    { rw [← nat.cast_pow, nat.cast_ne_zero],
-      apply ne_of_gt,
-      apply pow_pos hp.1.pos i } },
+    refine vars_monomial_single i (pow_ne_zero _ hp.1.ne_zero) _,
+    rw [← nat.cast_pow, nat.cast_ne_zero],
+    exact pow_ne_zero i hp.1.ne_zero },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
-  { simp only [this, int.nat_cast_eq_coe_nat],
+  { simp only [this, bUnion_singleton_eq_self], },
+  { simp only [this],
     intros a b h,
-    apply singleton_disjoint.mpr,
+    apply disjoint_singleton_left.mpr,
     rwa mem_singleton, },
 end
 
@@ -237,15 +235,15 @@ begin
   rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X, range_succ,
       insert_eq],
   swap 3, { apply nonzero_of_invertible },
-  work_on_goal 0 {
-    simp only [true_and, true_or, eq_self_iff_true,
+  work_on_goal 1
+  { simp only [true_and, true_or, eq_self_iff_true,
       mem_union, mem_singleton],
     intro i,
     rw [mem_union, mem_union],
     apply or.imp id },
-  work_on_goal 1 { rw [vars_X, singleton_disjoint] },
-  all_goals {
-    intro H,
+  work_on_goal 2 { rw [vars_X, disjoint_singleton_left] },
+  all_goals
+  { intro H,
     replace H := vars_sum_subset _ _ H,
     rw mem_bUnion at H,
     rcases H with ⟨j, hj, H⟩,
@@ -276,7 +274,7 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
   simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
-  rw [sum_range_succ_comm, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
+  rw [sum_range_succ_comm, tsub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
   simp only [C_pow, bind₁_X_right, sub_add_cancel],
 end
@@ -289,7 +287,7 @@ begin
   rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
       alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
-  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ_comm,
+  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, tsub_self, sum_range_succ_comm,
     pow_one, add_sub_cancel, pow_zero],
   rw [sum_congr rfl, this],
   { -- this is really slow for some reason

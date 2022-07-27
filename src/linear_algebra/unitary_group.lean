@@ -3,9 +3,9 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
-import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
-import data.complex.basic
+import linear_algebra.matrix.nonsingular_inverse
+import algebra.star.unitary
 
 /-!
 # The Unitary Group
@@ -36,22 +36,6 @@ matrix group, group, unitary group, orthogonal group
 
 universes u v
 
-section
-
-variables (M : Type v) [monoid M] [star_monoid M]
-
-/--
-In a `star_monoid M`, `unitary_submonoid M` is the submonoid consisting of all the elements of
-`M` such that `star A * A = 1`.
--/
-def unitary_submonoid : submonoid M :=
-{ carrier := {A | star A * A = 1},
-  one_mem' := by simp,
-  mul_mem' := λ A B (hA : star A * A = 1) (hB : star B * B = 1), show star (A * B) * (A * B) = 1,
-  by rwa [star_mul, ←mul_assoc, mul_assoc _ _ A, hA, mul_one] }
-
-end
-
 namespace matrix
 open linear_map
 open_locale matrix
@@ -64,34 +48,26 @@ variables (α : Type v) [comm_ring α] [star_ring α]
 /--
 `unitary_group n` is the group of `n` by `n` matrices where the star-transpose is the inverse.
 -/
-@[derive monoid]
-def unitary_group : Type* := unitary_submonoid (matrix n n α)
+abbreviation unitary_group := unitary (matrix n n α)
 
 end
 
 variables {n : Type u} [decidable_eq n] [fintype n]
 variables {α : Type v} [comm_ring α] [star_ring α]
 
-namespace unitary_submonoid
-
-lemma star_mem {A : matrix n n α} (h : A ∈ unitary_submonoid (matrix n n α)) :
-  star A ∈ unitary_submonoid (matrix n n α) :=
-matrix.nonsing_inv_left_right $ (star_star A).symm ▸ h
-
-@[simp]
-lemma star_mem_iff {A : matrix n n α} :
-  star A ∈ unitary_submonoid (matrix n n α) ↔ A ∈ unitary_submonoid (matrix n n α) :=
-⟨λ ha, star_star A ▸ star_mem ha, star_mem⟩
-
-end unitary_submonoid
+lemma mem_unitary_group_iff {A : matrix n n α} :
+  A ∈ matrix.unitary_group n α ↔ A * star A = 1 :=
+begin
+  refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
+  simpa only [matrix.mul_eq_mul, matrix.mul_eq_one_comm] using hA
+end
 
 namespace unitary_group
 
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
 
-instance coe_fun : has_coe_to_fun (unitary_group n α) :=
-{ F   := λ _, n → n → α,
-  coe := λ A, A.val }
+instance coe_fun : has_coe_to_fun (unitary_group n α) (λ _, n → n → α) :=
+{ coe := λ A, A.val }
 
 /--
 `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.
@@ -107,18 +83,8 @@ subtype.ext_iff_val.trans ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext
 @[ext] lemma ext (A B : unitary_group n α) : (∀ i j, A i j = B i j) → A = B :=
 (unitary_group.ext_iff A B).mpr
 
-instance : has_inv (unitary_group n α) :=
-⟨λ A, ⟨star A.1, unitary_submonoid.star_mem_iff.mpr A.2⟩⟩
-
-instance : star_monoid (unitary_group n α) :=
-{ star := λ A, ⟨star A.1, unitary_submonoid.star_mem A.2⟩,
-  star_involutive := λ A, subtype.ext $ star_star A.1,
-  star_mul := λ A B, subtype.ext $ star_mul A.1 B.1 }
-
 @[simp]
-lemma star_mul_self (A : unitary_group n α) : star A ⬝ A = 1 := A.2
-
-instance : inhabited (unitary_group n α) := ⟨1⟩
+lemma star_mul_self (A : unitary_group n α) : star A ⬝ A = 1 := A.2.1
 
 section coe_lemmas
 
@@ -146,21 +112,16 @@ matrix.to_lin'_one
 
 end coe_lemmas
 
-instance : group (unitary_group n α) :=
-{ mul_left_inv := λ A, subtype.eq A.2,
-  ..unitary_group.has_inv,
-  ..unitary_group.monoid n α }
-
 /-- `to_linear_equiv A` is matrix multiplication of vectors by `A`, as a linear equivalence. -/
 def to_linear_equiv (A : unitary_group n α) : (n → α) ≃ₗ[α] (n → α) :=
-{ inv_fun := A⁻¹.to_lin',
+{ inv_fun := to_lin' A⁻¹,
   left_inv := λ x, calc
-    A⁻¹.to_lin'.comp A.to_lin' x
-        = (A⁻¹ * A).to_lin' x : by rw [←to_lin'_mul]
+    (to_lin' A⁻¹).comp (to_lin' A) x
+        = (to_lin' (A⁻¹ * A)) x : by rw [←to_lin'_mul]
     ... = x : by rw [mul_left_inv, to_lin'_one, id_apply],
   right_inv := λ x, calc
-    A.to_lin'.comp A⁻¹.to_lin' x
-        = (A * A⁻¹).to_lin' x : by rw [←to_lin'_mul]
+    (to_lin' A).comp (to_lin' A⁻¹) x
+        = to_lin' (A * A⁻¹) x : by rw [←to_lin'_mul]
     ... = x : by rw [mul_right_inv, to_lin'_one, id_apply],
   ..matrix.to_lin' A }
 
@@ -169,7 +130,7 @@ def to_GL (A : unitary_group n α) : general_linear_group α (n → α) :=
 general_linear_group.of_linear_equiv (to_linear_equiv A)
 
 lemma coe_to_GL (A : unitary_group n α) :
-  ↑(to_GL A) = A.to_lin' :=
+  ↑(to_GL A) = to_lin' A :=
 rfl
 
 @[simp]
@@ -190,13 +151,20 @@ end unitary_group
 
 section orthogonal_group
 
-variables (β : Type v) [comm_ring β]
+variables (n) (β : Type v) [comm_ring β]
 
 local attribute [instance] star_ring_of_comm
 /--
 `orthogonal_group n` is the group of `n` by `n` matrices where the transpose is the inverse.
 -/
 abbreviation orthogonal_group := unitary_group n β
+
+lemma mem_orthogonal_group_iff {A : matrix n n β} :
+  A ∈ matrix.orthogonal_group n β ↔ A * star A = 1 :=
+begin
+  refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
+  simpa only [matrix.mul_eq_mul, matrix.mul_eq_one_comm] using hA
+end
 
 end orthogonal_group
 

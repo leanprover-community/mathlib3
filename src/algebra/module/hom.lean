@@ -38,8 +38,11 @@ lemma smul_apply (r : R) (f : A →+ B) (x : A) : (r • f) x = r • f x := rfl
 instance [smul_comm_class R S B] : smul_comm_class R S (A →+ B) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
-instance [has_scalar R S] [is_scalar_tower R S B] : is_scalar_tower R S (A →+ B) :=
+instance [has_smul R S] [is_scalar_tower R S B] : is_scalar_tower R S (A →+ B) :=
 ⟨λ a b f, ext $ λ x, smul_assoc _ _ _⟩
+
+instance [distrib_mul_action Rᵐᵒᵖ B] [is_central_scalar R B] : is_central_scalar R (A →+ B) :=
+⟨λ a b, ext $ λ x, op_smul_eq_smul _ _⟩
 
 end
 

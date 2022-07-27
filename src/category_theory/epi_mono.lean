@@ -2,15 +2,17 @@
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
-
-Facts about epimorphisms and monomorphisms.
-
-The definitions of `epi` and `mono` are in `category_theory.category`,
-since they are used by some lemmas for `iso`, which is used everywhere.
 -/
 import category_theory.adjunction.basic
 import category_theory.opposites
 import category_theory.groupoid
+
+/-!
+# Facts about epimorphisms and monomorphisms.
+
+The definitions of `epi` and `mono` are in `category_theory.category`,
+since they are used by some lemmas for `iso`, which is used everywhere.
+-/
 
 universes v₁ v₂ u₁ u₂
 
@@ -29,48 +31,6 @@ instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
 
 instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
 ⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_mono f).1 (quiver.hom.op_inj eq))⟩
-
-section
-variables {D : Type u₂} [category.{v₂} D]
-
-lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
-  {X Y : C} {f : X ⟶ Y} (hf : epi f) : epi (F.map f) :=
-begin
-  constructor,
-  intros Z g h H,
-  replace H := congr_arg (adj.hom_equiv X Z) H,
-  rwa [adj.hom_equiv_naturality_left, adj.hom_equiv_naturality_left,
-    cancel_epi, equiv.apply_eq_iff_eq] at H
-end
-
-lemma right_adjoint_preserves_mono {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
-  {X Y : D} {f : X ⟶ Y} (hf : mono f) : mono (G.map f) :=
-begin
-  constructor,
-  intros Z g h H,
-  replace H := congr_arg (adj.hom_equiv Z Y).symm H,
-  rwa [adj.hom_equiv_naturality_right_symm, adj.hom_equiv_naturality_right_symm,
-    cancel_mono, equiv.apply_eq_iff_eq] at H
-end
-
-instance is_equivalence.epi_map {F : C ⥤ D} [is_left_adjoint F] {X Y : C} {f : X ⟶ Y}
-  [h : epi f] : epi (F.map f) :=
-left_adjoint_preserves_epi (adjunction.of_left_adjoint F) h
-
-instance is_equivalence.mono_map {F : C ⥤ D} [is_right_adjoint F] {X Y : C} {f : X ⟶ Y}
-  [h : mono f] : mono (F.map f) :=
-right_adjoint_preserves_mono (adjunction.of_right_adjoint F) h
-
-lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
-  (hf : epi (F.map f)) : epi f :=
-⟨λ Z g h H, F.map_injective $
-  by rw [←cancel_epi (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
-
-lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
-  (hf : mono (F.map f)) : mono f :=
-⟨λ Z g h H, F.map_injective $
-  by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
-end
 
 /--
 A split monomorphism is a morphism `f : X ⟶ Y` admitting a retraction `retraction f : Y ⟶ X`
@@ -167,6 +127,29 @@ begin
   trunc_cases all_split_mono (retraction f),
   apply is_iso.of_mono_retraction,
 end
+
+section
+variables (C)
+
+/-- A split mono category is a category in which every monomorphism is split. -/
+class split_mono_category :=
+(split_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], split_mono f)
+
+/-- A split epi category is a category in which every epimorphism is split. -/
+class split_epi_category :=
+(split_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], split_epi f)
+
+end
+
+/-- In a category in which every monomorphism is split, every monomorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] : split_mono f :=
+split_mono_category.split_mono_of_mono _
+
+/-- In a category in which every epimorphism is split, every epimorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] : split_epi f :=
+split_epi_category.split_epi_of_epi _
 
 section
 variables {D : Type u₂} [category.{v₂} D]

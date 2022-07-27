@@ -10,35 +10,46 @@ import data.finset.lattice
 -/
 
 namespace finset
-open multiset
+open function multiset
 
-variables {α : Type*}
+variables {α : Type*} {s t : finset α}
 
 /-! ### powerset -/
 section powerset
 
 /-- When `s` is a finset, `s.powerset` is the finset of all subsets of `s` (seen as finsets). -/
 def powerset (s : finset α) : finset (finset α) :=
-⟨s.1.powerset.pmap finset.mk
-  (λ t h, nodup_of_le (mem_powerset.1 h) s.2),
- nodup_pmap (λ a ha b hb, congr_arg finset.val)
-   (nodup_powerset.2 s.2)⟩
+⟨s.1.powerset.pmap finset.mk $ λ t h, nodup_of_le (mem_powerset.1 h) s.nodup,
+ s.nodup.powerset.pmap $ λ a ha b hb, congr_arg finset.val⟩
 
 @[simp] theorem mem_powerset {s t : finset α} : s ∈ powerset t ↔ s ⊆ t :=
 by cases s; simp only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];
   rw ← val_le_iff
 
+@[simp, norm_cast] lemma coe_powerset (s : finset α) :
+  (s.powerset : set (finset α)) = coe ⁻¹' (s : set α).powerset :=
+by { ext, simp }
+
 @[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
 mem_powerset.2 (empty_subset _)
 
-@[simp] theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
-mem_powerset.2 (subset.refl _)
+@[simp] lemma mem_powerset_self (s : finset α) : s ∈ powerset s := mem_powerset.2 subset.rfl
 
-@[simp] lemma powerset_empty : finset.powerset (∅ : finset α) = {∅} := rfl
+lemma powerset_nonempty (s : finset α) : s.powerset.nonempty := ⟨∅, empty_mem_powerset _⟩
 
 @[simp] theorem powerset_mono {s t : finset α} : powerset s ⊆ powerset t ↔ s ⊆ t :=
 ⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),
  λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
+
+lemma powerset_injective : injective (powerset : finset α → finset (finset α)) :=
+injective_of_le_imp_le _ $ λ s t, powerset_mono.1
+
+@[simp] lemma powerset_inj : powerset s = powerset t ↔ s = t := powerset_injective.eq_iff
+
+@[simp] lemma powerset_empty : (∅ : finset α).powerset = {∅} := rfl
+
+@[simp] lemma powerset_eq_singleton_empty : s.powerset = {∅} ↔ s = ∅ :=
+by rw [←powerset_empty, powerset_inj]
 
 /-- **Number of Subsets of a Set** -/
 @[simp] theorem card_powerset (s : finset α) :
@@ -138,10 +149,8 @@ section powerset_len
 /-- Given an integer `n` and a finset `s`, then `powerset_len n s` is the finset of subsets of `s`
 of cardinality `n`. -/
 def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
-⟨(s.1.powerset_len n).pmap finset.mk
-  (λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2),
- nodup_pmap (λ a ha b hb, congr_arg finset.val)
-   (nodup_powerset_len s.2)⟩
+⟨(s.1.powerset_len n).pmap finset.mk $ λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2,
+ s.2.powerset_len.pmap $ λ a ha b hb, congr_arg finset.val⟩
 
 /-- **Formula for the Number of Combinations** -/
 theorem mem_powerset_len {n} {s t : finset α} :
@@ -226,7 +235,7 @@ lemma powerset_len_sup [decidable_eq α] (u : finset α) (n : ℕ) (hn : n < u.c
   (powerset_len n.succ u).sup id = u :=
 begin
   apply le_antisymm,
-  { simp_rw [sup_le_iff, mem_powerset_len],
+  { simp_rw [finset.sup_le_iff, mem_powerset_len],
     rintros x ⟨h, -⟩,
     exact h },
   { rw [sup_eq_bUnion, le_iff_subset, subset_iff],
@@ -238,8 +247,24 @@ begin
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
         exact mem_union_right _ (mem_image_of_mem _ ht) },
-      { rwa [card_erase_of_mem hx, nat.lt_pred_iff] } } }
+      { rwa [card_erase_of_mem hx, lt_tsub_iff_right] } } }
 end
+
+@[simp]
+lemma powerset_len_card_add (s : finset α) {i : ℕ} (hi : 0 < i) :
+  s.powerset_len (s.card + i) = ∅ :=
+finset.powerset_len_empty _ (lt_add_of_pos_right (finset.card s) hi)
+
+@[simp] theorem map_val_val_powerset_len (s : finset α) (i : ℕ) :
+  (s.powerset_len i).val.map finset.val = s.1.powerset_len i :=
+by simp [finset.powerset_len, map_pmap, pmap_eq_map, map_id']
+
+theorem powerset_len_map {β : Type*} (f : α ↪ β) (n : ℕ) (s : finset α) :
+  powerset_len n (s.map f) = (powerset_len n s).map (map_embedding f).to_embedding :=
+eq_of_veq $ multiset.map_injective (@eq_of_veq _) $
+  by simp_rw [map_val_val_powerset_len, map_val, multiset.map_map, function.comp,
+      rel_embedding.coe_fn_to_embedding, map_embedding_apply, map_val, ←multiset.map_map _ val,
+      map_val_val_powerset_len, multiset.powerset_len_map]
 
 end powerset_len
 end finset

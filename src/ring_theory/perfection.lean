@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.char_p
+import algebra.char_p.pi
+import algebra.char_p.quotient
+import algebra.char_p.subring
 import algebra.ring.pi
 import analysis.special_functions.pow
 import field_theory.perfect_closure
-import ring_theory.localization
-import ring_theory.subring
+import ring_theory.localization.fraction_ring
+import ring_theory.subring.basic
 import ring_theory.valuation.integers
 
 /-!
@@ -129,7 +131,7 @@ nat.rec_on m rfl $ λ m ih, by erw [function.iterate_succ_apply', coeff_frobeniu
 
 lemma coeff_iterate_frobenius' (f : ring.perfection R p) (n m : ℕ) (hmn : m ≤ n) :
   coeff R p n (frobenius _ p ^[m] f) = coeff R p (n - m) f :=
-eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (nat.sub_add_cancel hmn).symm ▸ rfl
+eq.symm $ (coeff_iterate_frobenius _ _ m).symm.trans $ (tsub_add_cancel_of_le hmn).symm ▸ rfl
 
 lemma pth_root_frobenius : (pth_root R p).comp (frobenius _ p) = ring_hom.id _ :=
 ring_hom.ext $ λ x, ext $ λ n,
@@ -320,7 +322,7 @@ include hv
 
 /-- `O/(p)` for `O`, ring of integers of `K`. -/
 @[nolint unused_arguments has_inhabited_instance] def mod_p :=
-(ideal.span {p} : ideal O).quotient
+O ⧸ (ideal.span {p} : ideal O)
 
 variables [hp : fact p.prime] [hvp : fact (v p ≠ 1)]
 
@@ -331,7 +333,7 @@ ideal.quotient.comm_ring _
 
 include hp hvp
 instance : char_p (mod_p K v O hv p) p :=
-char_p.quotient O p $ mt hv.one_of_is_unit $ ((algebra_map O K).map_nat_cast p).symm ▸ hvp.1
+char_p.quotient O p $ mt hv.one_of_is_unit $ (map_nat_cast (algebra_map O K) p).symm ▸ hvp.1
 
 instance : nontrivial (mod_p K v O hv p) :=
 char_p.nontrivial_of_char_ne_one hp.1.ne_one
@@ -351,7 +353,7 @@ lemma pre_val_mk {x : O} (hx : (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0)
 begin
   obtain ⟨r, hr⟩ := ideal.mem_span_singleton'.1 (ideal.quotient.eq.1 $ quotient.sound' $
     @quotient.mk_out' O (ideal.span {p} : ideal O).quotient_rel x),
-  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_ge' _),
+  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_le _),
   erw [← ring_hom.map_sub, ← hr, hv.le_iff_dvd],
   exact λ hprx, hx (ideal.quotient.eq_zero_iff_mem.2 $ ideal.mem_span_singleton.2 $
     dvd_of_mul_left_dvd hprx),
@@ -386,9 +388,9 @@ end
 lemma v_p_lt_pre_val {x : mod_p K v O hv p} : v p < pre_val K v O hv p x ↔ x ≠ 0 :=
 begin
   refine ⟨λ h hx, by { rw [hx, pre_val_zero] at h, exact not_lt_zero' h },
-    λ h, lt_of_not_ge' $ λ hp, h _⟩,
+    λ h, lt_of_not_le $ λ hp, h _⟩,
   obtain ⟨r, rfl⟩ := ideal.quotient.mk_surjective x,
-  rw [pre_val_mk h, ← (algebra_map O K).map_nat_cast p, hv.le_iff_dvd] at hp,
+  rw [pre_val_mk h, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd] at hp,
   rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton], exact hp
 end
 
@@ -400,7 +402,7 @@ lemma pre_val_eq_zero {x : mod_p K v O hv p} : pre_val K v O hv p x = 0 ↔ x = 
 variables (hv hvp)
 lemma v_p_lt_val {x : O} :
   v p < v (algebra_map O K x) ↔ (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0 :=
-by rw [lt_iff_not_ge', not_iff_not, ← (algebra_map O K).map_nat_cast p, hv.le_iff_dvd,
+by rw [lt_iff_not_le, not_iff_not, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd,
       ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton]
 
 open nnreal
@@ -417,10 +419,10 @@ begin
   rw ← v_p_lt_val hv at hx hy ⊢,
   rw [ring_hom.map_pow, v.map_pow, ← rpow_lt_rpow_iff h1p, ← rpow_nat_cast, ← rpow_mul,
       mul_one_div_cancel (nat.cast_ne_zero.2 hp.1.ne_zero : (p : ℝ) ≠ 0), rpow_one] at hx hy,
-  rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul'''' hx hy),
+  rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul₀ hx hy),
   by_cases hvp : v p = 0, { rw hvp, exact zero_le _ }, replace hvp := zero_lt_iff.2 hvp,
   conv_lhs { rw ← rpow_one (v p) }, rw ← rpow_add (ne_of_gt hvp),
-  refine rpow_le_rpow_of_exponent_ge hvp ((algebra_map O K).map_nat_cast p ▸ hv.2 _) _,
+  refine rpow_le_rpow_of_exponent_ge hvp (map_nat_cast (algebra_map O K) p ▸ hv.2 _) _,
   rw [← add_div, div_le_one (nat.cast_pos.2 hp.1.pos : 0 < (p : ℝ))], exact_mod_cast hp.1.two_le
 end
 
@@ -490,14 +492,15 @@ lemma val_aux_mul (f g : pre_tilt K v O hv p) :
 begin
   by_cases hf : f = 0, { rw [hf, zero_mul, val_aux_zero, zero_mul] },
   by_cases hg : g = 0, { rw [hg, mul_zero, val_aux_zero, mul_zero] },
-  replace hf : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
-  replace hg : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
-  obtain ⟨m, hm⟩ := hf, obtain ⟨n, hn⟩ := hg,
+  obtain ⟨m, hm⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf $ perfection.ext h),
+  obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n g ≠ 0 := not_forall.1 (λ h, hg $ perfection.ext h),
   replace hm := coeff_ne_zero_of_le hm (le_max_left m n),
   replace hn := coeff_ne_zero_of_le hn (le_max_right m n),
   have hfg : coeff _ _ (max m n + 1) (f * g) ≠ 0,
-  { rw ring_hom.map_mul, refine mod_p.mul_ne_zero_of_pow_p_ne_zero _ _;
-    rw [← ring_hom.map_pow, coeff_pow_p]; assumption },
+  { rw ring_hom.map_mul,
+    refine mod_p.mul_ne_zero_of_pow_p_ne_zero _ _,
+    { rw [← ring_hom.map_pow, coeff_pow_p f], assumption },
+    { rw [← ring_hom.map_pow, coeff_pow_p g], assumption } },
   rw [val_aux_eq (coeff_add_ne_zero hm 1), val_aux_eq (coeff_add_ne_zero hn 1), val_aux_eq hfg],
   rw ring_hom.map_mul at hfg ⊢, rw [mod_p.pre_val_mul hfg, mul_pow]
 end
@@ -518,8 +521,8 @@ begin
   rw [val_aux_eq hm, val_aux_eq hn, val_aux_eq hk, ring_hom.map_add],
   cases le_max_iff.1
     (mod_p.pre_val_add (coeff _ _ (max (max m n) k) f) (coeff _ _ (max (max m n) k) g)) with h h,
-  { exact le_max_of_le_left (canonically_ordered_semiring.pow_le_pow_of_le_left h _) },
-  { exact le_max_of_le_right (canonically_ordered_semiring.pow_le_pow_of_le_left h _) }
+  { exact le_max_of_le_left (pow_le_pow_of_le_left' h _) },
+  { exact le_max_of_le_right (pow_le_pow_of_le_left' h _) }
 end
 
 variables (K v O hv p)
@@ -531,7 +534,7 @@ noncomputable def val : valuation (pre_tilt K v O hv p) ℝ≥0 :=
   map_one' := val_aux_one,
   map_mul' := val_aux_mul,
   map_zero' := val_aux_zero,
-  map_add' := val_aux_add }
+  map_add_le_max' := val_aux_add }
 
 variables {K v O hv p}
 lemma map_eq_zero {f : pre_tilt K v O hv p} : val K v O hv p f = 0 ↔ f = 0 :=
@@ -544,7 +547,7 @@ end
 
 end classical
 
-instance : integral_domain (pre_tilt K v O hv p) :=
+instance : is_domain (pre_tilt K v O hv p) :=
 { exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,

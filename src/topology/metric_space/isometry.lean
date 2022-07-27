@@ -23,116 +23,213 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 open function set
+open_locale topological_space ennreal
 
 /-- An isometry (also known as isometric embedding) is a map preserving the edistance
 between pseudoemetric spaces, or equivalently the distance between pseudometric space.  -/
 def isometry [pseudo_emetric_space α] [pseudo_emetric_space β] (f : α → β) : Prop :=
 ∀x1 x2 : α, edist (f x1) (f x2) = edist x1 x2
 
-/-- On pseudometric spaces, a map is an isometry if and only if it preserves distances. -/
-lemma isometry_emetric_iff_metric [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
-  isometry f ↔ (∀x y, dist (f x) (f y) = dist x y) :=
-⟨assume H x y, by simp [dist_edist, H x y],
-assume H x y, by simp [edist_dist, H x y]⟩
+/-- On pseudometric spaces, a map is an isometry if and only if it preserves nonnegative
+distances. -/
+lemma isometry_iff_nndist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
+  isometry f ↔ (∀x y, nndist (f x) (f y) = nndist x y) :=
+by simp only [isometry, edist_nndist, ennreal.coe_eq_coe]
 
-/-- An isometry preserves edistances. -/
-theorem isometry.edist_eq [pseudo_emetric_space α] [pseudo_emetric_space β] {f : α → β}
-  (hf : isometry f) (x y : α) : edist (f x) (f y) = edist x y :=
-hf x y
+/-- On pseudometric spaces, a map is an isometry if and only if it preserves distances. -/
+lemma isometry_iff_dist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
+  isometry f ↔ (∀x y, dist (f x) (f y) = dist x y) :=
+by simp only [isometry_iff_nndist_eq, ← coe_nndist, nnreal.coe_eq]
 
 /-- An isometry preserves distances. -/
-theorem isometry.dist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
-  (hf : isometry f) (x y : α) : dist (f x) (f y) = dist x y :=
-by rw [dist_edist, dist_edist, hf]
+alias isometry_iff_dist_eq ↔ isometry.dist_eq _
 
-section emetric_isometry
+/-- A map that preserves distances is an isometry -/
+alias isometry_iff_dist_eq ↔ _ isometry.of_dist_eq
+
+/-- An isometry preserves non-negative distances. -/
+alias isometry_iff_nndist_eq ↔ isometry.nndist_eq _
+
+/-- A map that preserves non-negative distances is an isometry. -/
+alias isometry_iff_nndist_eq ↔ _ isometry.of_nndist_eq
+
+namespace isometry
+
+section pseudo_emetric_isometry
 
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables {f : α → β} {x y z : α}  {s : set α}
 
-lemma isometry.lipschitz (h : isometry f) : lipschitz_with 1 f :=
-lipschitz_with.of_edist_le $ λ x y, le_of_eq (h x y)
+/-- An isometry preserves edistances. -/
+theorem edist_eq (hf : isometry f) (x y : α) : edist (f x) (f y) = edist x y := hf x y
 
-lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
+lemma lipschitz (h : isometry f) : lipschitz_with 1 f :=
+lipschitz_with.of_edist_le $ λ x y, (h x y).le
+
+lemma antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
 
-/-- An isometry from an emetric space is injective -/
-lemma isometry.injective {α : Type u} [emetric_space α] {f : α → β} (h : isometry f) :
-  injective f := h.antilipschitz.injective
-
 /-- Any map on a subsingleton is an isometry -/
-theorem isometry_subsingleton [subsingleton α] : isometry f :=
+@[nontriviality] theorem _root_.isometry_subsingleton [subsingleton α] : isometry f :=
 λx y, by rw subsingleton.elim x y; simp
 
 /-- The identity is an isometry -/
-lemma isometry_id : isometry (id : α → α) :=
-λx y, rfl
+lemma _root_.isometry_id : isometry (id : α → α) := λ x y, rfl
 
 /-- The composition of isometries is an isometry -/
-theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) :
-  isometry (g ∘ f) :=
-assume x y, calc
-  edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
-                            ... = edist x y : hf _ _
+theorem comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
+λ x y, (hg _ _).trans (hf _ _)
+
+/-- An isometry from a metric space is a uniform continuous map -/
+protected theorem uniform_continuous (hf : isometry f) : uniform_continuous f :=
+hf.lipschitz.uniform_continuous
 
 /-- An isometry from a metric space is a uniform inducing map -/
-theorem isometry.uniform_inducing (hf : isometry f) :
-  uniform_inducing f :=
-hf.antilipschitz.uniform_inducing hf.lipschitz.uniform_continuous
+protected theorem uniform_inducing (hf : isometry f) : uniform_inducing f :=
+hf.antilipschitz.uniform_inducing hf.uniform_continuous
 
-/-- An isometry from a metric space is a uniform embedding -/
-theorem isometry.uniform_embedding {α : Type u} {β : Type v} [emetric_space α]
-  [pseudo_emetric_space β] {f : α → β} (hf : isometry f) :
-  uniform_embedding f :=
-hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
-
-/-- An isometry from a complete emetric space is a closed embedding -/
-theorem isometry.closed_embedding {α : Type u} {β : Type v} [emetric_space α] [complete_space α]
-  [emetric_space β] {f : α → β} (hf : isometry f) : closed_embedding f :=
-hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
+lemma tendsto_nhds_iff {ι : Type*} {f : α → β} {g : ι → α} {a : filter ι} {b : α}
+  (hf : isometry f) :
+  filter.tendsto g a (𝓝 b) ↔ filter.tendsto (f ∘ g) a (𝓝 (f b)) :=
+hf.uniform_inducing.inducing.tendsto_nhds_iff
 
 /-- An isometry is continuous. -/
-lemma isometry.continuous (hf : isometry f) : continuous f :=
-hf.lipschitz.continuous
+protected lemma continuous (hf : isometry f) : continuous f := hf.lipschitz.continuous
 
 /-- The right inverse of an isometry is an isometry. -/
-lemma isometry.right_inv {f : α → β} {g : β → α} (h : isometry f) (hg : right_inverse g f) :
+lemma right_inv {f : α → β} {g : β → α} (h : isometry f) (hg : right_inverse g f) :
   isometry g :=
 λ x y, by rw [← h, hg _, hg _]
 
+lemma preimage_emetric_closed_ball (h : isometry f) (x : α) (r : ℝ≥0∞) :
+  f ⁻¹' (emetric.closed_ball (f x) r) = emetric.closed_ball x r :=
+by { ext y, simp [h.edist_eq] }
+
+lemma preimage_emetric_ball (h : isometry f) (x : α) (r : ℝ≥0∞) :
+  f ⁻¹' (emetric.ball (f x) r) = emetric.ball x r :=
+by { ext y, simp [h.edist_eq] }
+
 /-- Isometries preserve the diameter in pseudoemetric spaces. -/
-lemma isometry.ediam_image (hf : isometry f) (s : set α) :
-  emetric.diam (f '' s) = emetric.diam s :=
+lemma ediam_image (hf : isometry f) (s : set α) : emetric.diam (f '' s) = emetric.diam s :=
 eq_of_forall_ge_iff $ λ d,
 by simp only [emetric.diam_le_iff, ball_image_iff, hf.edist_eq]
 
-lemma isometry.ediam_range (hf : isometry f) :
-  emetric.diam (range f) = emetric.diam (univ : set α) :=
+lemma ediam_range (hf : isometry f) : emetric.diam (range f) = emetric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.ediam_image univ }
 
+lemma maps_to_emetric_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
+  maps_to f (emetric.ball x r) (emetric.ball (f x) r) :=
+(hf.preimage_emetric_ball x r).ge
+
+lemma maps_to_emetric_closed_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
+  maps_to f (emetric.closed_ball x r) (emetric.closed_ball (f x) r) :=
+(hf.preimage_emetric_closed_ball x r).ge
+
 /-- The injection from a subtype is an isometry -/
-lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
+lemma _root_.isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
-lemma isometry.comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α}
-  {s : set γ} :
+lemma comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} {s : set γ} :
   continuous_on (f ∘ g) s ↔ continuous_on g s :=
 hf.uniform_inducing.inducing.continuous_on_iff.symm
 
-lemma isometry.comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
+lemma comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
   continuous (f ∘ g) ↔ continuous g :=
 hf.uniform_inducing.inducing.continuous_iff.symm
 
+end pseudo_emetric_isometry --section
+
+section emetric_isometry
+variables [emetric_space α] [pseudo_emetric_space β] {f : α → β}
+
+/-- An isometry from an emetric space is injective -/
+protected lemma injective (h : isometry f) : injective f := h.antilipschitz.injective
+
+/-- An isometry from an emetric space is a uniform embedding -/
+protected theorem uniform_embedding (hf : isometry f) : uniform_embedding f :=
+hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
+
+/-- An isometry from an emetric space is an embedding -/
+protected theorem embedding (hf : isometry f) : embedding f :=
+hf.uniform_embedding.embedding
+
+/-- An isometry from a complete emetric space is a closed embedding -/
+theorem closed_embedding [complete_space α] [emetric_space γ]
+  {f : α → γ} (hf : isometry f) : closed_embedding f :=
+hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
+
 end emetric_isometry --section
 
+section pseudo_metric_isometry
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
+
 /-- An isometry preserves the diameter in pseudometric spaces. -/
-lemma isometry.diam_image [pseudo_metric_space α] [pseudo_metric_space β]
-  {f : α → β} (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
+lemma diam_image (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
 by rw [metric.diam, metric.diam, hf.ediam_image]
 
-lemma isometry.diam_range [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
-  (hf : isometry f) : metric.diam (range f) = metric.diam (univ : set α) :=
+lemma diam_range (hf : isometry f) : metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
+
+lemma preimage_set_of_dist (hf : isometry f) (x : α) (p : ℝ → Prop) :
+  f ⁻¹' {y | p (dist y (f x))} = {y | p (dist y x)} :=
+by { ext y, simp [hf.dist_eq] }
+
+lemma preimage_closed_ball (hf : isometry f) (x : α) (r : ℝ) :
+  f ⁻¹' (metric.closed_ball (f x) r) = metric.closed_ball x r :=
+hf.preimage_set_of_dist x (≤ r)
+
+lemma preimage_ball (hf : isometry f) (x : α) (r : ℝ) :
+  f ⁻¹' (metric.ball (f x) r) = metric.ball x r :=
+hf.preimage_set_of_dist x (< r)
+
+lemma preimage_sphere (hf : isometry f) (x : α) (r : ℝ) :
+  f ⁻¹' (metric.sphere (f x) r) = metric.sphere x r :=
+hf.preimage_set_of_dist x (= r)
+
+lemma maps_to_ball (hf : isometry f) (x : α) (r : ℝ) :
+  maps_to f (metric.ball x r) (metric.ball (f x) r) :=
+(hf.preimage_ball x r).ge
+
+lemma maps_to_sphere (hf : isometry f) (x : α) (r : ℝ) :
+  maps_to f (metric.sphere x r) (metric.sphere (f x) r) :=
+(hf.preimage_sphere x r).ge
+
+lemma maps_to_closed_ball (hf : isometry f) (x : α) (r : ℝ) :
+  maps_to f (metric.closed_ball x r) (metric.closed_ball (f x) r) :=
+(hf.preimage_closed_ball x r).ge
+
+end pseudo_metric_isometry -- section
+
+end isometry -- namespace
+
+/-- A uniform embedding from a uniform space to a metric space is an isometry with respect to the
+induced metric space structure on the source space. -/
+lemma uniform_embedding.to_isometry {α β} [uniform_space α] [metric_space β] {f : α → β}
+  (h : uniform_embedding f) :
+  @isometry α β
+    (@pseudo_metric_space.to_pseudo_emetric_space α
+      (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
+    (by apply_instance) f :=
+begin
+  apply isometry.of_dist_eq,
+  assume x y,
+  refl
+end
+
+/-- An embedding from a topological space to a metric space is an isometry with respect to the
+induced metric space structure on the source space. -/
+lemma embedding.to_isometry {α β} [topological_space α] [metric_space β] {f : α → β}
+  (h : embedding f) :
+  @isometry α β
+    (@pseudo_metric_space.to_pseudo_emetric_space α
+      (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
+    (by apply_instance) f :=
+begin
+  apply isometry.of_dist_eq,
+  assume x y,
+  refl
+end
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
@@ -147,7 +244,7 @@ namespace isometric
 section pseudo_emetric_space
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 
-instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+instance : has_coe_to_fun (α ≃ᵢ β) (λ _, α → β) := ⟨λe, e.to_equiv⟩
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
@@ -165,6 +262,10 @@ h.isometry.edist_eq x y
 protected lemma dist_eq {α β : Type*} [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
   (x y : α) : dist (h x) (h y) = dist x y :=
 h.isometry.dist_eq x y
+
+protected lemma nndist_eq {α β : Type*} [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
+  (x y : α) : nndist (h x) (h y) = nndist x y :=
+h.isometry.nndist_eq x y
 
 protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
 
@@ -202,6 +303,15 @@ protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry.right_inv h.right_inv,
   to_equiv := h.to_equiv.symm }
+
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α ≃ᵢ β) : α → β := h
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (h : α ≃ᵢ β) : β → α := h.symm
+
+initialize_simps_projections isometric
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply)
 
 @[simp] lemma symm_symm (h : α ≃ᵢ β) : h.symm.symm = h := to_equiv_inj h.to_equiv.symm_symm
 
@@ -243,8 +353,24 @@ by rw [← h.range_eq_univ, h.isometry.ediam_range]
 @[simp] lemma ediam_preimage (h : α ≃ᵢ β) (s : set β) : emetric.diam (h ⁻¹' s) = emetric.diam s :=
 by rw [← image_symm, ediam_image]
 
+@[simp] lemma preimage_emetric_ball (h : α ≃ᵢ β) (x : β) (r : ℝ≥0∞) :
+  h ⁻¹' (emetric.ball x r) = emetric.ball (h.symm x) r :=
+by rw [← h.isometry.preimage_emetric_ball (h.symm x) r, h.apply_symm_apply]
+
+@[simp] lemma preimage_emetric_closed_ball (h : α ≃ᵢ β) (x : β) (r : ℝ≥0∞) :
+  h ⁻¹' (emetric.closed_ball x r) = emetric.closed_ball (h.symm x) r :=
+by rw [← h.isometry.preimage_emetric_closed_ball (h.symm x) r, h.apply_symm_apply]
+
+@[simp] lemma image_emetric_ball (h : α ≃ᵢ β) (x : α) (r : ℝ≥0∞) :
+  h '' (emetric.ball x r) = emetric.ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_emetric_ball, symm_symm]
+
+@[simp] lemma image_emetric_closed_ball (h : α ≃ᵢ β) (x : α) (r : ℝ≥0∞) :
+  h '' (emetric.closed_ball x r) = emetric.closed_ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_emetric_closed_ball, symm_symm]
+
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
-protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
+@[simps to_equiv] protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
   continuous_inv_fun := h.symm.continuous,
   to_equiv := h.to_equiv }
@@ -252,10 +378,6 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
 
 @[simp] lemma coe_to_homeomorph_symm (h : α ≃ᵢ β) : ⇑(h.to_homeomorph.symm) = h.symm := rfl
-
-@[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
-  h.to_homeomorph.to_equiv = h.to_equiv :=
-rfl
 
 @[simp] lemma comp_continuous_on_iff {γ} [topological_space γ] (h : α ≃ᵢ β)
   {f : γ → α} {s : set γ} :
@@ -290,12 +412,12 @@ lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e�
 
 @[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
-protected lemma complete_space (e : α ≃ᵢ β) (hF : complete_space β) : complete_space α :=
+protected lemma complete_space [complete_space β] (e : α ≃ᵢ β) : complete_space α :=
 complete_space_of_is_complete_univ $ is_complete_of_complete_image e.isometry.uniform_inducing $
   by rwa [set.image_univ, isometric.range_eq_univ, ← complete_space_iff_is_complete_univ]
 
 lemma complete_space_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
-⟨λ h, e.symm.complete_space h, λ h, e.complete_space h⟩
+by { split; introI H, exacts [e.symm.complete_space, e.complete_space] }
 
 end pseudo_emetric_space
 
@@ -312,17 +434,38 @@ by rw [← image_symm, diam_image]
 lemma diam_univ : metric.diam (univ : set α) = metric.diam (univ : set β) :=
 congr_arg ennreal.to_real h.ediam_univ
 
+@[simp] lemma preimage_ball (h : α ≃ᵢ β) (x : β) (r : ℝ) :
+  h ⁻¹' (metric.ball x r) = metric.ball (h.symm x) r :=
+by rw [← h.isometry.preimage_ball (h.symm x) r, h.apply_symm_apply]
+
+@[simp] lemma preimage_sphere (h : α ≃ᵢ β) (x : β) (r : ℝ) :
+  h ⁻¹' (metric.sphere x r) = metric.sphere (h.symm x) r :=
+by rw [← h.isometry.preimage_sphere (h.symm x) r, h.apply_symm_apply]
+
+@[simp] lemma preimage_closed_ball (h : α ≃ᵢ β) (x : β) (r : ℝ) :
+  h ⁻¹' (metric.closed_ball x r) = metric.closed_ball (h.symm x) r :=
+by rw [← h.isometry.preimage_closed_ball (h.symm x) r, h.apply_symm_apply]
+
+@[simp] lemma image_ball (h : α ≃ᵢ β) (x : α) (r : ℝ) :
+  h '' (metric.ball x r) = metric.ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_ball, symm_symm]
+
+@[simp] lemma image_sphere (h : α ≃ᵢ β) (x : α) (r : ℝ) :
+  h '' (metric.sphere x r) = metric.sphere (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_sphere, symm_symm]
+
+@[simp] lemma image_closed_ball (h : α ≃ᵢ β) (x : α) (r : ℝ) :
+  h '' (metric.closed_ball x r) = metric.closed_ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_closed_ball, symm_symm]
+
 end pseudo_metric_space
 
 end isometric
 
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
+@[simps to_equiv apply { simp_rhs := tt }]
 def isometry.isometric_on_range [emetric_space α] [pseudo_emetric_space β] {f : α → β}
   (h : isometry f) : α ≃ᵢ range f :=
 { isometry_to_fun := λx y, by simpa [subtype.edist_eq] using h x y,
-  .. equiv.of_injective f h.injective }
-
-@[simp] lemma isometry.isometric_on_range_apply [emetric_space α] [pseudo_emetric_space β]
-  {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=
-rfl
+  to_equiv := equiv.of_injective f h.injective }

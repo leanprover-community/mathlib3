@@ -49,7 +49,7 @@ This provides a convenient way to protect many declarations at once.
   descr := "Attribute to protect a declaration
     If a declaration `foo.bar` is marked protected, then it must be referred to
     by its full name `foo.bar`, even when the `foo` namespace is open.",
-  after_set := some (λ n _ _, mk_protected n)  }
+  after_set := some (λ n _ _, mk_protected n) }
 
 add_tactic_doc
 { name        := "protected",

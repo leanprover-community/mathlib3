@@ -6,7 +6,9 @@ Authors: Reid Barton, Scott Morrison
 import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
-import order.bounded_lattice
+import category_theory.category.preorder
+import category_theory.category.ulift
+import order.bounded_order
 
 /-!
 # Filtered categories
@@ -34,17 +36,23 @@ This formulation is often more useful in practice and is available via `sup_exis
 which takes a finset of objects, and an indexed family (indexed by source and target)
 of finsets of morphisms.
 
-We also provide all of the above API for cofiltered categories.
+Furthermore, we give special support for two diagram categories: The `bowtie` and the `tulip`.
+This is because these shapes show up in the proofs that forgetful functors of algebraic categories
+(e.g. `Mon`, `CommRing`, ...) preserve filtered colimits.
+
+All of the above API, except for the `bowtie` and the `tulip`, is also provided for cofiltered
+categories.
 
 ## See also
 In `category_theory.limits.filtered_colimit_commutes_finite_limit` we show that filtered colimits
 commute with finite limits.
 
-## Future work
-* Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
-universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
+open function
+
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₁ u u₁ u₂
 
 namespace category_theory
 
@@ -67,7 +75,7 @@ A category `is_filtered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
+See <https://stacks.math.columbia.edu/tag/002V>. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -82,22 +90,21 @@ instance is_filtered_or_empty_of_semilattice_sup
 instance is_filtered_of_semilattice_sup_nonempty
   (α : Type u) [semilattice_sup α] [nonempty α] : is_filtered α := {}
 
--- TODO: Define `codirected_order` and provide the dual to this instance.
 @[priority 100]
-instance is_filtered_or_empty_of_directed_order
-  (α : Type u) [directed_order α] : is_filtered_or_empty α :=
-{ cocone_objs := λ X Y, let ⟨Z,h1,h2⟩ := directed_order.directed X Y in
+instance is_filtered_or_empty_of_directed_le (α : Type u) [preorder α] [is_directed α (≤)] :
+  is_filtered_or_empty α :=
+{ cocone_objs := λ X Y, let ⟨Z, h1, h2⟩ := exists_ge_ge X Y in
     ⟨Z, hom_of_le h1, hom_of_le h2, trivial⟩,
   cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, by simp⟩ }
 
--- TODO: Define `codirected_order` and provide the dual to this instance.
 @[priority 100]
-instance is_filtered_of_directed_order_nonempty
-  (α : Type u) [directed_order α] [nonempty α] : is_filtered α := {}
+instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_directed α (≤)]
+  [nonempty α] :
+  is_filtered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_sup_bot α] : is_filtered α := by apply_instance
-example (α : Type u) [semilattice_sup_top α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
 
 namespace is_filtered
 
@@ -163,9 +170,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use max X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨left_to_max _ _⟩, },
-    { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨left_to_max _ _⟩, },
+    { exact ⟨(w' (finset.mem_of_mem_insert_of_ne mY h)).some ≫ right_to_max _ _⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
@@ -195,7 +202,12 @@ begin
       { subst hf,
         apply coeq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--
@@ -275,6 +287,165 @@ of_right_adjoint (adjunction.of_right_adjoint R)
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=
 of_right_adjoint h.symm.to_adjunction
 
+section special_shapes
+
+/--
+`max₃ j₁ j₂ j₃` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
+
+/--
+`first_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def first_to_max₃ (j₁ j₂ j₃ : C) : j₁ ⟶ max₃ j₁ j₂ j₃ :=
+left_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
+
+/--
+`second_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def second_to_max₃ (j₁ j₂ j₃ : C) : j₂ ⟶ max₃ j₁ j₂ j₃ :=
+right_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
+
+/--
+`third_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def third_to_max₃ (j₁ j₂ j₃ : C) : j₃ ⟶ max₃ j₁ j₂ j₃ :=
+right_to_max (max j₁ j₂) j₃
+
+/--
+`coeq₃ f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of object
+which admits a morphism `coeq₃_hom f g h : j₂ ⟶ coeq₃ f g h` such that
+`coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃` are satisfied.
+Its existence is ensured by `is_filtered`.
+-/
+noncomputable def coeq₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : C :=
+coeq (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
+  (coeq_hom g h ≫ right_to_max (coeq f g) (coeq g h))
+
+/--
+`coeq₃_hom f g h`, for morphisms `f g h : j₁ ⟶ j₂`, is an arbitrary choice of morphism
+`j₂ ⟶ coeq₃ f g h` such that `coeq₃_condition₁`, `coeq₃_condition₂` and `coeq₃_condition₃`
+are satisfied. Its existence is ensured by `is_filtered`.
+-/
+noncomputable def coeq₃_hom {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) : j₂ ⟶ coeq₃ f g h :=
+coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h) ≫
+coeq_hom (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
+  (coeq_hom g h ≫ right_to_max (coeq f g) (coeq g h))
+
+lemma coeq₃_condition₁ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
+  f ≫ coeq₃_hom f g h = g ≫ coeq₃_hom f g h :=
+begin
+  dsimp [coeq₃_hom],
+  slice_lhs 1 2 { rw coeq_condition f g },
+  simp only [category.assoc],
+end
+
+lemma coeq₃_condition₂ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
+  g ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
+begin
+  dsimp [coeq₃_hom],
+  slice_lhs 2 4 { rw [← category.assoc, coeq_condition _ _] },
+  slice_rhs 2 4 { rw [← category.assoc, coeq_condition _ _] },
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition _ _] },
+  simp only [category.assoc],
+end
+
+lemma coeq₃_condition₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
+  f ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
+eq.trans (coeq₃_condition₁ f g h) (coeq₃_condition₂ f g h)
+
+/--
+Given a "bowtie" of morphisms
+```
+ j₁   j₂
+ |\  /|
+ | \/ |
+ | /\ |
+ |/  \∣
+ vv  vv
+ k₁  k₂
+```
+in a filtered category, we can construct an object `s` and two morphisms from `k₁` and `k₂` to `s`,
+making the resulting squares commute.
+-/
+lemma bowtie {j₁ j₂ k₁ k₂ : C}
+  (f₁ : j₁ ⟶ k₁) (g₁ : j₁ ⟶ k₂) (f₂ : j₂ ⟶ k₁) (g₂ : j₂ ⟶ k₂) :
+  ∃ (s : C) (α : k₁ ⟶ s) (β : k₂ ⟶ s), f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = g₂ ≫ β :=
+begin
+  let sa := max k₁ k₂,
+  let sb := coeq (f₁ ≫ left_to_max _ _) (g₁ ≫ right_to_max _ _),
+  let sc := coeq (f₂ ≫ left_to_max _ _) (g₂ ≫ right_to_max _ _),
+  let sd := max sb sc,
+  let s := coeq ((coeq_hom _ _ : sa ⟶ sb) ≫ left_to_max _ _)
+    ((coeq_hom _ _ : sa ⟶ sc) ≫ right_to_max _ _),
+  use s,
+  fsplit,
+  exact left_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ left_to_max sb sc ≫ coeq_hom _ _,
+  fsplit,
+  exact right_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ right_to_max sb sc ≫ coeq_hom _ _,
+  fsplit,
+  { slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
+    slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
+    simp only [category.assoc], },
+  { slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
+    slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
+    simp only [category.assoc], }
+end
+
+/--
+Given a "tulip" of morphisms
+```
+ j₁    j₂    j₃
+ |\   / \   / |
+ | \ /   \ /  |
+ |  vv    vv  |
+ \  k₁    k₂ /
+  \         /
+   \       /
+    \     /
+     \   /
+      v v
+       l
+```
+in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
+to `s`, making the resulting sqaures commute.
+-/
+lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
+  (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :
+  ∃ (s : C) (α : k₁ ⟶ s) (β : l ⟶ s) (γ : k₂ ⟶ s),
+    f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = f₃ ≫ γ ∧ f₄ ≫ γ = g₂ ≫ β :=
+begin
+  let sa := max₃ k₁ l k₂,
+  let sb := coeq (f₁ ≫ first_to_max₃ k₁ l k₂) (g₁ ≫ second_to_max₃ k₁ l k₂),
+  let sc := coeq (f₂ ≫ first_to_max₃ k₁ l k₂) (f₃ ≫ third_to_max₃ k₁ l k₂),
+  let sd := coeq (f₄ ≫ third_to_max₃ k₁ l k₂) (g₂ ≫ second_to_max₃ k₁ l k₂),
+  let se := max₃ sb sc sd,
+  let sf := coeq₃ (coeq_hom _ _ ≫ first_to_max₃ sb sc sd)
+    (coeq_hom _ _ ≫ second_to_max₃ sb sc sd) (coeq_hom _ _ ≫ third_to_max₃ sb sc sd),
+  use sf,
+  use first_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ first_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
+  use second_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ second_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
+  use third_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ third_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
+  fsplit,
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
+  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
+  simp only [category.assoc],
+  fsplit,
+  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
+  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
+  slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂] },
+  simp only [category.assoc],
+  slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂] },
+  slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition] },
+  simp only [category.assoc],
+end
+
+end special_shapes
+
 end is_filtered
 
 /--
@@ -294,7 +465,7 @@ A category `is_cofiltered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/04AZ.
+See <https://stacks.math.columbia.edu/tag/04AZ>.
 -/
 class is_cofiltered extends is_cofiltered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -309,9 +480,22 @@ instance is_cofiltered_or_empty_of_semilattice_inf
 instance is_cofiltered_of_semilattice_inf_nonempty
   (α : Type u) [semilattice_inf α] [nonempty α] : is_cofiltered α := {}
 
+@[priority 100]
+instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
+  [is_directed α (≥)] :
+  is_cofiltered_or_empty α :=
+{ cocone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
+    ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
+
+@[priority 100]
+instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (≥)]
+  [nonempty α] :
+  is_cofiltered α := {}
+
 -- Sanity checks
-example (α : Type u) [semilattice_inf_bot α] : is_cofiltered α := by apply_instance
-example (α : Type u) [semilattice_inf_top α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
 
 namespace is_cofiltered
 
@@ -377,9 +561,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use min X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨min_to_left _ _⟩, },
-    { exact ⟨min_to_right _ _ ≫ (w' (by finish)).some⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨min_to_left _ _⟩, },
+    { exact ⟨min_to_right _ _ ≫ (w' (finset.mem_of_mem_insert_of_ne mY h)).some⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
@@ -409,7 +593,12 @@ begin
       { subst hf,
         apply eq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--
@@ -438,7 +627,7 @@ lemma inf_to_commutes
   inf_to O H mX ≫ f = inf_to O H mY :=
 (inf_exists O H).some_spec.some_spec mX mY mf
 
-variables {J : Type v} [small_category J] [fin_category J]
+variables {J : Type w} [small_category J] [fin_category J]
 
 /--
 If we have `is_cofiltered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
@@ -524,5 +713,27 @@ instance is_filtered_op_of_is_cofiltered [is_cofiltered C] : is_filtered Cᵒᵖ
   nonempty := ⟨op is_cofiltered.nonempty.some⟩ }
 
 end opposite
+
+section ulift
+
+instance [is_filtered C] : is_filtered (ulift.{u₂} C) :=
+is_filtered.of_equivalence ulift.equivalence
+
+instance [is_cofiltered C] : is_cofiltered (ulift.{u₂} C) :=
+is_cofiltered.of_equivalence ulift.equivalence
+
+instance [is_filtered C] : is_filtered (ulift_hom C) :=
+is_filtered.of_equivalence ulift_hom.equiv
+
+instance [is_cofiltered C] : is_cofiltered (ulift_hom C) :=
+is_cofiltered.of_equivalence ulift_hom.equiv
+
+instance [is_filtered C] : is_filtered (as_small C) :=
+is_filtered.of_equivalence as_small.equiv
+
+instance [is_cofiltered C] : is_cofiltered (as_small C) :=
+is_cofiltered.of_equivalence as_small.equiv
+
+end ulift
 
 end category_theory

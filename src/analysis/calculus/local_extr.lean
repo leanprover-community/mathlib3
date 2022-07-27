@@ -3,10 +3,11 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.local_extr
-import topology.algebra.ordered.extend_from
 import analysis.calculus.deriv
+import data.polynomial.field_division
+import topology.algebra.order.extend_from
 import topology.algebra.polynomial
+import topology.local_extr
 
 /-!
 # Local extrema of smooth functions
@@ -64,11 +65,11 @@ local extremum, Fermat's Theorem, Rolle's Theorem
 universes u v
 
 open filter set
-open_locale topological_space classical
+open_locale topological_space classical polynomial
 
 section module
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
 
 /-- "Positive" tangent cone to `s` at `x`; the only difference from `tangent_cone_at`
@@ -81,17 +82,17 @@ def pos_tangent_cone_at (s : set E) (x : E) : set E :=
 lemma pos_tangent_cone_at_mono : monotone (λ s, pos_tangent_cone_at s a) :=
 begin
   rintros s t hst y ⟨c, d, hd, hc, hcd⟩,
-  exact ⟨c, d, mem_sets_of_superset hd $ λ h hn, hst hn, hc, hcd⟩
+  exact ⟨c, d, mem_of_superset hd $ λ h hn, hst hn, hc, hcd⟩
 end
 
-lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segment x y ⊆ s) :
+lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segment ℝ x y ⊆ s) :
   y - x ∈ pos_tangent_cone_at s x :=
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _),
+  refine ⟨c, d, filter.univ_mem' (λn, h _),
     tendsto_pow_at_top_at_top_of_one_lt one_lt_two, _⟩,
-  show x + d n ∈ segment x y,
+  show x + d n ∈ segment ℝ x y,
   { rw segment_eq_image',
     refine ⟨(c n)⁻¹, ⟨_, _⟩, rfl⟩,
     exacts [inv_nonneg.2 (pow_nonneg zero_le_two _),
@@ -103,7 +104,8 @@ begin
     exact pow_ne_zero _ two_ne_zero }
 end
 
-lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E} (h : segment x (x + y) ⊆ s) :
+lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E}
+  (h : segment ℝ x (x + y) ⊆ s) :
   y ∈ pos_tangent_cone_at s x :=
 by simpa only [add_sub_cancel'] using mem_pos_tangent_cone_at_of_segment_subset h
 
@@ -192,7 +194,7 @@ if hf : differentiable_within_at ℝ f s a
 then h.has_fderiv_within_at_eq_zero hf.has_fderiv_within_at hy hy'
 else by { rw fderiv_within_zero_of_not_differentiable_within_at hf, refl }
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.has_fderiv_at_eq_zero (h : is_local_min f a) (hf : has_fderiv_at f f' a) :
   f' = 0 :=
 begin
@@ -201,27 +203,27 @@ begin
     rw pos_tangent_cone_at_univ; apply mem_univ
 end
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.fderiv_eq_zero (h : is_local_min f a) : fderiv ℝ f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_fderiv_at_eq_zero hf.has_fderiv_at
 else fderiv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.has_fderiv_at_eq_zero (h : is_local_max f a) (hf : has_fderiv_at f f' a) :
   f' = 0 :=
 neg_eq_zero.1 $ h.neg.has_fderiv_at_eq_zero hf.neg
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.fderiv_eq_zero (h : is_local_max f a) : fderiv ℝ f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_fderiv_at_eq_zero hf.has_fderiv_at
 else fderiv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.has_fderiv_at_eq_zero (h : is_local_extr f a) :
   has_fderiv_at f f' a → f' = 0 :=
 h.elim is_local_min.has_fderiv_at_eq_zero is_local_max.has_fderiv_at_eq_zero
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.fderiv_eq_zero (h : is_local_extr f a) : fderiv ℝ f a = 0 :=
 h.elim is_local_min.fderiv_eq_zero is_local_max.fderiv_eq_zero
 
@@ -231,33 +233,33 @@ section real
 
 variables {f : ℝ → ℝ} {f' : ℝ} {a b : ℝ}
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.has_deriv_at_eq_zero (h : is_local_min f a) (hf : has_deriv_at f f' a) :
   f' = 0 :=
 by simpa using continuous_linear_map.ext_iff.1
   (h.has_fderiv_at_eq_zero (has_deriv_at_iff_has_fderiv_at.1 hf)) 1
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.deriv_eq_zero (h : is_local_min f a) : deriv f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_deriv_at_eq_zero hf.has_deriv_at
 else deriv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.has_deriv_at_eq_zero (h : is_local_max f a) (hf : has_deriv_at f f' a) :
   f' = 0 :=
 neg_eq_zero.1 $ h.neg.has_deriv_at_eq_zero hf.neg
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.deriv_eq_zero (h : is_local_max f a) : deriv f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_deriv_at_eq_zero hf.has_deriv_at
 else deriv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.has_deriv_at_eq_zero (h : is_local_extr f a) :
   has_deriv_at f f' a → f' = 0 :=
 h.elim is_local_min.has_deriv_at_eq_zero is_local_max.has_deriv_at_eq_zero
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.deriv_eq_zero (h : is_local_extr f a) : deriv f a = 0 :=
 h.elim is_local_min.deriv_eq_zero is_local_max.deriv_eq_zero
 
@@ -317,15 +319,15 @@ let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
 variables {f f'} {l : ℝ}
 
 /-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has derivative `f'`
-on `(a, b)` and has the same limit `l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `f' c = 0`
+on `(a, b)` and has the same limit `l` at `𝓝[>] a` and `𝓝[<] b`, then `f' c = 0`
 for some `c ∈ (a, b)`.  -/
 lemma exists_has_deriv_at_eq_zero' (hab : a < b)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l))
+  (hfa : tendsto f (𝓝[>] a) (𝓝 l)) (hfb : tendsto f (𝓝[<] b) (𝓝 l))
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=
 begin
   have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
-  have hcont := continuous_on_Icc_extend_from_Ioo hab this hfa hfb,
+  have hcont := continuous_on_Icc_extend_from_Ioo hab.ne this hfa hfb,
   obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
   { apply exists_local_extr_Ioo _ hab hcont,
     rw eq_lim_at_right_extend_from_Ioo hab hfb,
@@ -337,11 +339,11 @@ begin
 end
 
 /-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has the same limit
-`l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
+`l` at `𝓝[>] a` and `𝓝[<] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
 does not require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
 differentiable at `c`. -/
 lemma exists_deriv_eq_zero' (hab : a < b)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :
+  (hfa : tendsto f (𝓝[>] a) (𝓝 l)) (hfb : tendsto f (𝓝[<] b) (𝓝 l)) :
   ∃ c ∈ Ioo a b, deriv f c = 0 :=
 classical.by_cases
   (assume h : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
@@ -355,7 +357,7 @@ end Rolle
 
 namespace polynomial
 
-lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
+lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : F[X]) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
   haveI : char_zero F :=
@@ -366,7 +368,7 @@ begin
   { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
     simp_rw [root_set_C, set.empty_card', zero_le] },
   simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
-  refine finset.card_le_of_interleaved (λ x y hx hy hxy, _),
+  refine finset.card_le_of_interleaved (λ x hx y hy hxy, _),
   rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
   obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
     p.continuous_aeval.continuous_on (hx.trans hy.symm),

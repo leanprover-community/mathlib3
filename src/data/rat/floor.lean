@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Kappelmann
 -/
-import algebra.floor
+import algebra.order.floor
 import tactic.field_simp
 
 /-!
@@ -19,7 +19,10 @@ We define the `floor` function and the `floor_ring` instance on `ℚ`. Some tech
 rat, rationals, ℚ, floor
 -/
 
+open int
+
 namespace rat
+variables {α : Type*} [linear_ordered_field α] [floor_ring α]
 
 /-- `floor q` is the largest integer `z` such that `z ≤ q` -/
 protected def floor : ℚ → ℤ
@@ -36,31 +39,36 @@ protected theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ rat.floor r ↔ (z :
 end
 
 instance : floor_ring ℚ :=
-{ floor := rat.floor, le_floor := @rat.le_floor }
+floor_ring.of_floor ℚ rat.floor $ λ a z, rat.le_floor.symm
 
 protected lemma floor_def {q : ℚ} : ⌊q⌋ = q.num / q.denom := by { cases q, refl }
 
 lemma floor_int_div_nat_eq_div {n : ℤ} {d : ℕ} : ⌊(↑n : ℚ) / (↑d : ℚ)⌋ = n / (↑d : ℤ) :=
 begin
   rw [rat.floor_def],
-  cases decidable.em (d = 0) with d_eq_zero d_ne_zero,
-  { simp [d_eq_zero] },
-  { cases decidable.em (n = 0) with n_eq_zero n_ne_zero,
-    { simp [n_eq_zero] },
-    { set q := (n : ℚ) / d with q_eq,
-      obtain ⟨c, n_eq_c_mul_num, d_eq_c_mul_denom⟩ : ∃ c, n = c * q.num ∧ (d : ℤ) = c * q.denom, by
-      { rw q_eq,
-        exact_mod_cast (@rat.exists_eq_mul_div_num_and_eq_mul_div_denom n d n_ne_zero
-          (by exact_mod_cast d_ne_zero)) },
-      suffices : q.num / q.denom = c * q.num / (c * q.denom),
-        by rwa [n_eq_c_mul_num, d_eq_c_mul_denom],
-      suffices : c > 0, by solve_by_elim [int.mul_div_mul_of_pos],
-      have q_denom_mul_c_pos : (0 : ℤ) < q.denom * c, by
-      { have : (d : ℤ) > 0, by exact_mod_cast (pos_iff_ne_zero.elim_right d_ne_zero),
-        rwa [d_eq_c_mul_denom, mul_comm] at this },
-      suffices : (0 : ℤ) ≤ q.denom, from pos_of_mul_pos_left q_denom_mul_c_pos this,
-      exact_mod_cast (le_of_lt q.pos) } }
+  obtain rfl | hd := @eq_zero_or_pos _ _ d,
+  { simp },
+  set q := (n : ℚ) / d with q_eq,
+  obtain ⟨c, n_eq_c_mul_num, d_eq_c_mul_denom⟩ : ∃ c, n = c * q.num ∧ (d : ℤ) = c * q.denom, by
+  { rw q_eq,
+    exact_mod_cast @rat.exists_eq_mul_div_num_and_eq_mul_div_denom n d (by exact_mod_cast hd.ne') },
+  rw [n_eq_c_mul_num, d_eq_c_mul_denom],
+  refine (int.mul_div_mul_of_pos _ _ $ pos_of_mul_pos_left _ $ int.coe_nat_nonneg q.denom).symm,
+  rwa [←d_eq_c_mul_denom, int.coe_nat_pos],
 end
+
+@[simp, norm_cast] lemma floor_cast (x : ℚ) : ⌊(x : α)⌋ = ⌊x⌋ :=
+floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
+
+@[simp, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
+by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
+
+@[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
+have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
+by rw [round, round, ← this, floor_cast]
+
+@[simp, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
+by simp only [fract, cast_sub, cast_coe_int, floor_cast]
 
 end rat
 
@@ -106,7 +114,7 @@ begin
   have q_num_pos : 0 < q.num, from rat.num_pos_iff_pos.elim_right q_pos,
   -- we will work with the absolute value of the numerator, which is equal to the numerator
   have q_num_abs_eq_q_num : (q.num.nat_abs : ℤ) = q.num, from
-    (int.nat_abs_of_nonneg $ le_of_lt q_num_pos),
+    (int.nat_abs_of_nonneg q_num_pos.le),
   set q_inv := (q.denom : ℚ) / q.num with q_inv_def,
   have q_inv_eq : q⁻¹ = q_inv, from rat.inv_def',
   suffices : (q_inv - ⌊q_inv⌋).num < q.num, by rwa q_inv_eq,

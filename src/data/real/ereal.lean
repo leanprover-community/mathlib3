@@ -52,7 +52,7 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [order_bot, order_top, comm_monoid_with_zero,
+@[derive [has_top, comm_monoid_with_zero,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -61,6 +61,9 @@ a coercion, use the coercion instead. -/
 def real.to_ereal : ℝ → ereal := some ∘ some
 
 namespace ereal
+
+-- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
+instance : has_bot ereal := ⟨some ⊥⟩
 
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
@@ -83,12 +86,18 @@ instance has_coe_ennreal : has_coe ℝ≥0∞ ereal := ⟨ennreal.to_ereal⟩
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
 
-/-- A way to case on an element of `ereal`, separating the bot, real and top cases.
-A typical invocation looks like `rcases x.cases with rfl|⟨x, rfl⟩|rfl` -/
-protected lemma cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ a = ⊤
-| ⊤ := by simp
-| ⊥ := by simp
-| (a : ℝ) := by simp
+/-- A recursor for `ereal` in terms of the coercion.
+
+A typical invocation looks like `induction x using ereal.rec`. Note that using `induction`
+directly will unfold `ereal` to `option` which is undesirable.
+
+When working in term mode, note that pattern matching can be used directly. -/
+@[elab_as_eliminator]
+protected def rec {C : ereal → Sort*} (h_bot : C ⊥) (h_real : Π a : ℝ, C a) (h_top : C ⊤) :
+  ∀ a : ereal, C a
+| ⊥ := h_bot
+| (a : ℝ) := h_real a
+| ⊤ := h_top
 
 /-! ### Real coercion -/
 
@@ -97,7 +106,7 @@ instance : can_lift ereal ℝ :=
   cond := λ r, r ≠ ⊤ ∧ r ≠ ⊥,
   prf := λ x hx,
   begin
-    rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+    induction x using ereal.rec,
     { simpa using hx },
     { simp },
     { simpa using hx }
@@ -159,10 +168,42 @@ end
 
 lemma coe_to_real {x : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) : (x.to_real : ereal) = x :=
 begin
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+  induction x using ereal.rec,
   { simpa using h'x },
   { refl },
   { simpa using hx },
+end
+
+lemma le_coe_to_real {x : ereal} (h : x ≠ ⊤) : x ≤ x.to_real :=
+begin
+  by_cases h' : x = ⊥,
+  { simp only [h', bot_le] },
+  { simp only [le_refl, coe_to_real h h'] },
+end
+
+lemma coe_to_real_le {x : ereal} (h : x ≠ ⊥) : ↑x.to_real ≤ x :=
+begin
+  by_cases h' : x = ⊤,
+  { simp only [h', le_top] },
+  { simp only [le_refl, coe_to_real h' h] },
+end
+
+lemma eq_top_iff_forall_lt (x : ereal) : x = ⊤ ↔ ∀ (y : ℝ), (y : ereal) < x :=
+begin
+  split,
+  { rintro rfl, exact ereal.coe_lt_top },
+  { contrapose!,
+    intro h,
+    exact ⟨x.to_real, le_coe_to_real h⟩, },
+end
+
+lemma eq_bot_iff_forall_lt (x : ereal) : x = ⊥ ↔ ∀ (y : ℝ), x < (y : ereal) :=
+begin
+  split,
+  { rintro rfl, exact bot_lt_coe },
+  { contrapose!,
+    intro h,
+    exact ⟨x.to_real, coe_to_real_le h⟩, },
 end
 
 /-! ### ennreal coercion -/
@@ -241,7 +282,7 @@ lemma lt_iff_exists_real_btwn {a b : ereal} :
  λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 /-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
-def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
+def ne_top_bot_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ ℝ :=
 { to_fun := λ x, ereal.to_real x,
   inv_fun := λ x, ⟨x, by simp⟩,
   left_inv := λ ⟨x, hx⟩, subtype.eq $ begin
@@ -270,7 +311,7 @@ lemma to_real_add : ∀ {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y
 
 lemma add_lt_add_right_coe {x y : ereal} (h : x < y) (z : ℝ) : x + z < y + z :=
 begin
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  induction x using ereal.rec; induction y using ereal.rec,
   { exact (lt_irrefl _ h).elim },
   { simp only [bot_lt_coe, bot_add_coe, ← coe_add] },
   { simp },
@@ -285,10 +326,10 @@ end
 lemma add_lt_add_of_lt_of_le {x y z t : ereal} (h : x < y) (h' : z ≤ t) (hz : z ≠ ⊥) (ht : t ≠ ⊤) :
   x + z < y + t :=
 begin
-  rcases z.cases with rfl|⟨z, rfl⟩|rfl,
+  induction z using ereal.rec,
   { simpa only using hz },
   { calc x + z < y + z : add_lt_add_right_coe h _
-           ... ≤ y + t : add_le_add (le_refl _) h' },
+           ... ≤ y + t : add_le_add le_rfl h' },
   { exact (ht (top_le_iff.1 h')).elim }
 end
 
@@ -297,16 +338,16 @@ by simpa [add_comm] using add_lt_add_right_coe h z
 
 lemma add_lt_add {x y z t : ereal} (h1 : x < y) (h2 : z < t) : x + z < y + t :=
 begin
-  rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  induction y using ereal.rec,
   { exact (lt_irrefl _ (bot_le.trans_lt h1)).elim },
-  { calc x + z ≤ y + z : add_le_add h1.le (le_refl _)
+  { calc x + z ≤ y + z : add_le_add h1.le le_rfl
     ... < y + t : add_lt_add_left_coe h2 _ },
   { simp [lt_top_iff_ne_top, with_top.add_eq_top, h1.ne, (h2.trans_le le_top).ne] }
 end
 
 @[simp] lemma add_eq_top_iff {x y : ereal} : x + y = ⊤ ↔ x = ⊤ ∨ y = ⊤ :=
 begin
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨x, rfl⟩|rfl;
+  induction x using ereal.rec; induction y using ereal.rec;
   simp [← ereal.coe_add],
 end
 
@@ -329,26 +370,18 @@ instance : has_neg ereal := ⟨ereal.neg⟩
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 @[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }
 
-/-- `- -a = a` on `ereal`. -/
-@[simp] protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
-| ⊥ := rfl
-| ⊤ := rfl
-| (a : ℝ) := by { norm_cast, simp [neg_neg a] }
-
-theorem neg_inj {a b : ereal} (h : -a = -b) : a = b := by rw [←ereal.neg_neg a, h, ereal.neg_neg b]
-
-@[simp] theorem neg_eq_neg_iff (a b : ereal) : - a = - b ↔ a = b :=
-⟨λ h, neg_inj h, λ h, by rw [h]⟩
+instance : has_involutive_neg ereal :=
+{ neg := has_neg.neg,
+  neg_neg := λ a, match a with
+    | ⊥ := rfl
+    | ⊤ := rfl
+    | (a : ℝ) := by { norm_cast, simp [neg_neg a] }
+    end }
 
 @[simp] lemma to_real_neg : ∀ {a : ereal}, to_real (-a) = - to_real a
 | ⊤ := by simp
 | ⊥ := by simp
 | (x : ℝ) := rfl
-
-/-- Even though `ereal` is not an additive group, `-a = b ↔ -b = a` still holds -/
-theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
-⟨by {intro h, rw ←h, exact ereal.neg_neg a},
- by {intro h, rw ←h, exact ereal.neg_neg b}⟩
 
 @[simp] lemma neg_eg_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
 by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
@@ -366,7 +399,7 @@ protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊤ l h := le_top
 | (a : ℝ) ⊥ h := by cases (le_bot_iff.1 h)
 | l ⊤ h := bot_le
-| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
+| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact neg_le.mp h }
 
 /-- `-a ≤ b ↔ -b ≤ a` on `ereal`. -/
 protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
@@ -374,26 +407,25 @@ protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
 
 /-- `a ≤ -b → b ≤ -a` on ereal -/
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=
-by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
+by rwa [←neg_neg b, ereal.neg_le, neg_neg]
 
 @[simp] lemma neg_le_neg_iff {a b : ereal} : - a ≤ - b ↔ b ≤ a :=
-by conv_lhs { rw [ereal.neg_le, ereal.neg_neg] }
+by conv_lhs { rw [ereal.neg_le, neg_neg] }
 
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
-def neg_order_iso : ereal ≃o (order_dual ereal) :=
-{ to_fun := ereal.neg,
-  inv_fun := ereal.neg,
-  left_inv := ereal.neg_neg,
-  right_inv := ereal.neg_neg,
-  map_rel_iff' := λ x y, neg_le_neg_iff }
+def neg_order_iso : ereal ≃o erealᵒᵈ :=
+{ to_fun := λ x, order_dual.to_dual (-x),
+  inv_fun := λ x, -x.of_dual,
+  map_rel_iff' := λ x y, neg_le_neg_iff,
+  ..equiv.neg ereal }
 
 lemma neg_lt_of_neg_lt {a b : ereal} (h : -a < b) : -b < a :=
 begin
   apply lt_of_le_of_ne (ereal.neg_le_of_neg_le h.le),
   assume H,
-  rw [← H, ereal.neg_neg] at h,
+  rw [← H, neg_neg] at h,
   exact lt_irrefl _ h
 end
 
@@ -439,7 +471,7 @@ begin
   { have : (x : ereal) = - (- x : ℝ), by simp,
     conv_lhs { rw this },
     have : real.to_nnreal (-x) = ⟨-x, neg_nonneg.mpr h.le⟩, by { ext, simp [neg_nonneg.mpr h.le], },
-    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_eq_neg_iff, coe_neg,
+    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_inj, coe_neg,
       ennreal.coe_zero, coe_ennreal_zero, coe_coe],
     refl }
 end

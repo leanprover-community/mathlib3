@@ -3,7 +3,6 @@ Copyright (c) 2021 Noam Atar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Noam Atar
 -/
-import order.basic
 import order.ideal
 import order.pfilter
 
@@ -99,7 +98,7 @@ begin
   contrapose!,
   let F := hI.compl_filter.to_pfilter,
   show x ∈ F ∧ y ∈ F → x ⊓ y ∈ F,
-  exact λ h, inf_mem _ _ h.1 h.2,
+  exact λ h, inf_mem h.1 h.2,
 end
 
 lemma is_prime.of_mem_or_mem [is_proper I] (hI : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I) :
@@ -140,13 +139,52 @@ begin
   rw coe_sup_eq at hyJ,
   rcases hyJ with ⟨a, ha, b, hb, hy⟩,
   rw hy,
-  apply sup_mem _ _ ha,
-  refine I.mem_of_le (le_inf hb _) hxy,
+  refine sup_mem ha (I.lower (le_inf hb _) hxy),
   rw hy,
   exact le_sup_right
 end
 
 end distrib_lattice
+
+section boolean_algebra
+
+variables [boolean_algebra P] {x : P} {I : ideal P}
+
+lemma is_prime.mem_or_compl_mem (hI : is_prime I) : x ∈ I ∨ xᶜ ∈ I :=
+begin
+  apply hI.mem_or_mem,
+  rw inf_compl_eq_bot,
+  exact I.bot_mem,
+end
+
+lemma is_prime.mem_compl_of_not_mem (hI : is_prime I) (hxnI : x ∉ I) : xᶜ ∈ I :=
+hI.mem_or_compl_mem.resolve_left hxnI
+
+lemma is_prime_of_mem_or_compl_mem [is_proper I] (h : ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I) : is_prime I :=
+begin
+  simp only [is_prime_iff_mem_or_mem, or_iff_not_imp_left],
+  intros x y hxy hxI,
+  have hxcI : xᶜ ∈ I := h.resolve_left hxI,
+  have ass : (x ⊓ y) ⊔ (y ⊓ xᶜ) ∈ I := sup_mem hxy (I.lower inf_le_right hxcI),
+  rwa [inf_comm, sup_inf_inf_compl] at ass
+end
+
+lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I :=
+⟨λ h _, h.mem_or_compl_mem, is_prime_of_mem_or_compl_mem⟩
+
+@[priority 100]
+instance is_prime.is_maximal [is_prime I] : is_maximal I :=
+begin
+  simp only [is_maximal_iff, set.eq_univ_iff_forall, is_prime.to_is_proper, true_and],
+  intros J hIJ x,
+  rcases set.exists_of_ssubset hIJ with ⟨y, hyJ, hyI⟩,
+  suffices ass : (x ⊓ y) ⊔ (x ⊓ yᶜ) ∈ J,
+  { rwa sup_inf_inf_compl at ass },
+  exact sup_mem (J.lower inf_le_right hyJ)
+    (hIJ.le $ I.lower inf_le_right $ is_prime.mem_compl_of_not_mem ‹_› hyI),
+end
+
+end boolean_algebra
 
 end ideal
 

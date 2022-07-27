@@ -3,7 +3,7 @@ Copyright (c) 2021 Yakov Pechersky All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.equiv.basic
+import logic.equiv.basic
 import tactic.norm_fin
 
 /-!
@@ -31,7 +31,8 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
 ```
 -/
 @[norm_num] meta def eval : expr → tactic (expr × expr) := λ e, do
-  (swapt, coe_fn_inst, fexpr, c) ← e.match_app_coe_fn <|> fail "did not get an app coe_fn expr",
+  (swapt, fun_ty, coe_fn_inst, fexpr, c) ← e.match_app_coe_fn
+    <|> fail "did not get an app coe_fn expr",
   guard (fexpr.get_app_fn.const_name = ``equiv.swap) <|> fail "coe_fn not of equiv.swap",
   [α, deceq_inst, a, b] ← pure fexpr.get_app_args <|>
     fail "swap did not have exactly two args applied",

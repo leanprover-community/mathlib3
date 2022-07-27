@@ -3,9 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.dfinsupp
+import algebra.module.equiv
+import data.dfinsupp.basic
 import data.finsupp.basic
-import algebra.module.linear_map
 
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`
@@ -65,7 +65,9 @@ section defs
 
 /-- Interpret a `finsupp` as a homogenous `dfinsupp`. -/
 def finsupp.to_dfinsupp [has_zero M] (f : ι →₀ M) : Π₀ i : ι, M :=
-⟦⟨f, f.support.1, λ i, (classical.em (f i = 0)).symm.imp_left (finsupp.mem_support_iff.mpr)⟩⟧
+{ to_fun := f,
+  support' := trunc.mk
+    ⟨f.support.1, λ i, (classical.em (f i = 0)).symm.imp_left (finsupp.mem_support_iff.mpr)⟩ }
 
 @[simp] lemma finsupp.to_dfinsupp_coe [has_zero M] (f : ι →₀ M) : ⇑f.to_dfinsupp = f := rfl
 
@@ -123,7 +125,7 @@ namespace finsupp
 
 @[simp] lemma to_dfinsupp_sub [add_group M] (f g : ι →₀ M) :
   (f - g).to_dfinsupp = f.to_dfinsupp - g.to_dfinsupp :=
-dfinsupp.coe_fn_injective (sub_eq_add_neg _ _)
+dfinsupp.coe_fn_injective rfl
 
 @[simp] lemma to_dfinsupp_smul [monoid R] [add_monoid M] [distrib_mul_action R M]
   (r : R) (f : ι →₀ M) : (r • f).to_dfinsupp = r • f.to_dfinsupp :=
@@ -172,7 +174,7 @@ def finsupp_equiv_dfinsupp [decidable_eq ι] [has_zero M] [Π m : M, decidable (
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_add_equiv_dfinsupp
+def finsupp_add_equiv_dfinsupp
   [decidable_eq ι] [add_zero_class M] [Π m : M, decidable (m ≠ 0)] :
   (ι →₀ M) ≃+ (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
@@ -184,7 +186,7 @@ variables (R)
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_lequiv_dfinsupp
+def finsupp_lequiv_dfinsupp
   [decidable_eq ι] [semiring R] [add_comm_monoid M] [Π m : M, decidable (m ≠ 0)] [module R M] :
   (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
@@ -204,11 +206,11 @@ open finsupp
 
 /-- `finsupp.split` is an equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N)) :=
-{ to_fun := λ f, ⟦⟨split f, (split_support f : finset ι).val, λ i,
+{ to_fun := λ f, ⟨split f, trunc.mk ⟨(split_support f : finset ι).val, λ i,
     begin
-    rw [← finset.mem_def, mem_split_support_iff_nonzero],
-    exact (decidable.em _).symm
-    end⟩⟧,
+      rw [← finset.mem_def, mem_split_support_iff_nonzero],
+      exact (decidable.em _).symm
+    end⟩⟩,
   inv_fun := λ f,
   begin
     refine on_finset (finset.sigma f.support (λ j, (f j).support)) (λ ji, f ji.1 ji.2)
@@ -238,6 +240,21 @@ begin
   exact (finsupp.mem_split_support_iff_nonzero _ _).symm,
 end
 
+@[simp] lemma sigma_finsupp_equiv_dfinsupp_single [has_zero N] (a : Σ i, η i) (n : N) :
+  sigma_finsupp_equiv_dfinsupp (finsupp.single a n)
+    = @dfinsupp.single _ (λ i, η i →₀ N) _ _ a.1 (finsupp.single a.2 n) :=
+begin
+  obtain ⟨i, a⟩ := a,
+  ext j b,
+  by_cases h : i = j,
+  { subst h,
+    simp [split_apply, finsupp.single_apply] },
+  suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
+  { simp [split_apply, dif_neg h, this] },
+  have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  rw [finsupp.single_apply, if_neg H]
+end
+
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
 local attribute [-instance] finsupp.has_zero
 
@@ -261,7 +278,7 @@ local attribute [-instance] finsupp.add_zero_class
 @[simp]
 lemma sigma_finsupp_equiv_dfinsupp_smul {R} [monoid R] [add_monoid N] [distrib_mul_action R N]
   (r : R) (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
-  @has_scalar.smul R (Π₀ i, η i →₀ N) mul_action.to_has_scalar r (sigma_finsupp_equiv_dfinsupp f) :=
+  @has_smul.smul R (Π₀ i, η i →₀ N) mul_action.to_has_smul r (sigma_finsupp_equiv_dfinsupp f) :=
 by { ext, refl }
 
 local attribute [-instance] finsupp.add_monoid

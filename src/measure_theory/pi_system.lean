@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Martin Zinkevich
+Authors: Johannes Hölzl, Martin Zinkevich, Rémy Degenne
 -/
+import logic.encodable.lattice
 import measure_theory.measurable_space_def
-import data.equiv.encodable.lattice
 
 /-!
 # Induction principles for measurable sets, related to π-systems and λ-systems.
@@ -42,6 +42,12 @@ import data.equiv.encodable.lattice
   element of the π-system generated from the union of a set of π-systems can be
   represented as the intersection of a finite number of elements from these sets.
 
+* `pi_Union_Inter` defines a new π-system from a family of π-systems `π : ι → set (set α)` and a
+  set of finsets `S : set (finset α)`. `pi_Union_Inter π S` is the set of sets that can be written
+  as `⋂ x ∈ t, f x` for some `t ∈ S` and sets `f x ∈ π x`. If `S` is union-closed, then it is a
+  π-system. The π-systems used to prove Kolmogorov's 0-1 law will be defined using this mechanism
+  (TODO).
+
 ## Implementation details
 
 * `is_pi_system` is a predicate, not a type. Thus, we don't explicitly define the galois
@@ -50,7 +56,7 @@ import data.equiv.encodable.lattice
 -/
 
 open measurable_space set
-open_locale classical
+open_locale classical measure_theory
 
 /-- A π-system is a collection of subsets of `α` that is closed under binary intersection of
   non-disjoint sets. Usually it is also required that the collection is nonempty, but we don't do
@@ -62,16 +68,120 @@ namespace measurable_space
 
 lemma is_pi_system_measurable_set {α:Type*} [measurable_space α] :
   is_pi_system {s : set α | measurable_set s} :=
-λ s t hs ht _, hs.inter ht
+λ s hs t ht _, hs.inter ht
 
 end measurable_space
 
 lemma is_pi_system.singleton {α} (S : set α) : is_pi_system ({S} : set (set α)) :=
 begin
-  intros s t h_s h_t h_ne,
+  intros s h_s t h_t h_ne,
   rw [set.mem_singleton_iff.1 h_s, set.mem_singleton_iff.1 h_t, set.inter_self,
       set.mem_singleton_iff],
 end
+
+lemma is_pi_system.insert_empty {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  is_pi_system (insert ∅ S) :=
+begin
+  intros s hs t ht hst,
+  cases hs,
+  { simp [hs], },
+  { cases ht,
+    { simp [ht], },
+    { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
+end
+
+lemma is_pi_system.insert_univ {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  is_pi_system (insert set.univ S) :=
+begin
+  intros s hs t ht hst,
+  cases hs,
+  { cases ht; simp [hs, ht], },
+  { cases ht,
+    { simp [hs, ht], },
+    { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
+end
+
+lemma is_pi_system.comap {α β} {S : set (set β)} (h_pi : is_pi_system S) (f : α → β) :
+  is_pi_system {s : set α | ∃ t ∈ S, f ⁻¹' t = s} :=
+begin
+  rintros _ ⟨s, hs_mem, rfl⟩ _ ⟨t, ht_mem, rfl⟩ hst,
+  rw ← set.preimage_inter at hst ⊢,
+  refine ⟨s ∩ t, h_pi s hs_mem t ht_mem _, rfl⟩,
+  by_contra,
+  rw set.not_nonempty_iff_eq_empty at h,
+  rw h at hst,
+  simpa using hst,
+end
+
+section order
+
+variables {α : Type*} {ι ι' : Sort*} [linear_order α]
+
+lemma is_pi_system_image_Iio (s : set α) : is_pi_system (Iio '' s) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ -,
+  exact ⟨a ⊓ b, inf_ind a b ha hb, Iio_inter_Iio.symm⟩
+end
+
+lemma is_pi_system_Iio : is_pi_system (range Iio : set (set α)) :=
+@image_univ α _ Iio ▸ is_pi_system_image_Iio univ
+
+lemma is_pi_system_image_Ioi (s : set α) : is_pi_system (Ioi '' s) :=
+@is_pi_system_image_Iio αᵒᵈ _ s
+
+lemma is_pi_system_Ioi : is_pi_system (range Ioi : set (set α)) :=
+@image_univ α _ Ioi ▸ is_pi_system_image_Ioi univ
+
+lemma is_pi_system_Ixx_mem {Ixx : α → α → set α} {p : α → α → Prop}
+  (Hne : ∀ {a b}, (Ixx a b).nonempty → p a b)
+  (Hi : ∀ {a₁ b₁ a₂ b₂}, Ixx a₁ b₁ ∩ Ixx a₂ b₂ = Ixx (max a₁ a₂) (min b₁ b₂)) (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (hlu : p l u), Ixx l u = S} :=
+begin
+  rintro _ ⟨l₁, hls₁, u₁, hut₁, hlu₁, rfl⟩ _ ⟨l₂, hls₂, u₂, hut₂, hlu₂, rfl⟩,
+  simp only [Hi, ← sup_eq_max, ← inf_eq_min],
+  exact λ H, ⟨l₁ ⊔ l₂, sup_ind l₁ l₂ hls₁ hls₂, u₁ ⊓ u₂, inf_ind u₁ u₂ hut₁ hut₂, Hne H, rfl⟩
+end
+
+lemma is_pi_system_Ixx {Ixx : α → α → set α} {p : α → α → Prop}
+  (Hne : ∀ {a b}, (Ixx a b).nonempty → p a b)
+  (Hi : ∀ {a₁ b₁ a₂ b₂}, Ixx a₁ b₁ ∩ Ixx a₂ b₂ = Ixx (max a₁ a₂) (min b₁ b₂))
+  (f : ι → α) (g : ι' → α) :
+  @is_pi_system α ({S | ∃ i j (h : p (f i) (g j)), Ixx (f i) (g j) = S}) :=
+by simpa only [exists_range_iff] using is_pi_system_Ixx_mem @Hne @Hi (range f) (range g)
+
+lemma is_pi_system_Ioo_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ioo l u = S} :=
+is_pi_system_Ixx_mem (λ a b ⟨x, hax, hxb⟩, hax.trans hxb) (λ _ _ _ _, Ioo_inter_Ioo) s t
+
+lemma is_pi_system_Ioo (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ l u (h : f l < g u), Ioo (f l) (g u) = S} :=
+is_pi_system_Ixx (λ a b ⟨x, hax, hxb⟩, hax.trans hxb) (λ _ _ _ _, Ioo_inter_Ioo) f g
+
+lemma is_pi_system_Ioc_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ioc l u = S} :=
+is_pi_system_Ixx_mem (λ a b ⟨x, hax, hxb⟩, hax.trans_le hxb) (λ _ _ _ _, Ioc_inter_Ioc) s t
+
+lemma is_pi_system_Ioc (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ i j (h : f i < g j), Ioc (f i) (g j) = S} :=
+is_pi_system_Ixx (λ a b ⟨x, hax, hxb⟩, hax.trans_le hxb) (λ _ _ _ _, Ioc_inter_Ioc) f g
+
+lemma is_pi_system_Ico_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ico l u = S} :=
+is_pi_system_Ixx_mem (λ a b ⟨x, hax, hxb⟩, hax.trans_lt hxb) (λ _ _ _ _, Ico_inter_Ico) s t
+
+lemma is_pi_system_Ico (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ i j (h : f i < g j), Ico (f i) (g j) = S} :=
+is_pi_system_Ixx (λ a b ⟨x, hax, hxb⟩, hax.trans_lt hxb) (λ _ _ _ _, Ico_inter_Ico) f g
+
+lemma is_pi_system_Icc_mem (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (h : l ≤ u), Icc l u = S} :=
+is_pi_system_Ixx_mem (λ a b, nonempty_Icc.1) (λ _ _ _ _, Icc_inter_Icc) s t
+
+lemma is_pi_system_Icc (f : ι → α) (g : ι' → α) :
+  @is_pi_system α {S | ∃ i j (h : f i ≤ g j), Icc (f i) (g j) = S} :=
+is_pi_system_Ixx (λ a b, nonempty_Icc.1) (λ _ _ _ _, Icc_inter_Icc) f g
+
+end order
 
 /-- Given a collection `S` of subsets of `α`, then `generate_pi_system S` is the smallest
 π-system containing `S`. -/
@@ -82,7 +192,7 @@ inductive generate_pi_system {α} (S : set (set α)) : set (set α)
 
 lemma is_pi_system_generate_pi_system {α} (S : set (set α)) :
   is_pi_system (generate_pi_system S) :=
-λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
+λ s h_s t h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
 
 lemma subset_generate_pi_system_self {α} (S : set (set α)) : S ⊆ generate_pi_system S :=
 λ s, generate_pi_system.base
@@ -93,7 +203,7 @@ begin
   intros x h,
   induction h with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
   { exact h_s, },
-  { exact h_S _ _ h_s h_u h_nonempty, },
+  { exact h_S _ h_s _ h_u h_nonempty, },
 end
 
 lemma generate_pi_system_eq {α} {S : set (set α)} (h_pi : is_pi_system S) :
@@ -106,7 +216,7 @@ begin
   intros t ht,
   induction ht with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
   { exact generate_pi_system.base (set.mem_of_subset_of_mem hST h_s),},
-  { exact is_pi_system_generate_pi_system T _ _ h_s h_u h_nonempty, },
+  { exact is_pi_system_generate_pi_system T _ h_s _ h_u h_nonempty, },
 end
 
 lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {S : set (set α)}
@@ -120,7 +230,7 @@ end
 
 lemma generate_from_measurable_set_of_generate_pi_system {α} {g : set (set α)} (t : set α)
   (ht : t ∈ generate_pi_system g) :
-  (generate_from g).measurable_set' t :=
+  measurable_set[generate_from g] t :=
 @generate_pi_system_measurable_set α (generate_from g) g
   (λ s h_s_in_g, measurable_set_generate_from h_s_in_g) t ht
 
@@ -158,7 +268,7 @@ begin
       all_goals { exact h1, }, },
     intros b h_b,
     split_ifs with hbs hbt hbt,
-    { refine h_pi b (f_s b) (f_t' b) (h_s b hbs) (h_t' b hbt) (set.nonempty.mono _ h_nonempty),
+    { refine h_pi b (f_s b) (h_s b hbs) (f_t' b) (h_t' b hbt) (set.nonempty.mono _ h_nonempty),
       exact set.inter_subset_inter (set.bInter_subset_of_mem hbs) (set.bInter_subset_of_mem hbt), },
     { exact h_s b hbs, },
     { exact h_t' b hbt, },
@@ -169,18 +279,18 @@ end
 /- Every element of the π-system generated by an indexed union of a family of π-systems
 is a finite intersection of elements from the π-systems.
 For a total union version, see `mem_generate_pi_system_Union_elim`. -/
-lemma mem_generate_pi_system_Union_elim' {α β} {g : β → set (set α)} {s: set β}
+lemma mem_generate_pi_system_Union_elim' {α β} {g : β → set (set α)} {s : set β}
   (h_pi : ∀ b ∈ s, is_pi_system (g b)) (t : set α) (h_t : t ∈ generate_pi_system (⋃ b ∈ s, g b)) :
   ∃ (T : finset β) (f : β → set α), (↑T ⊆ s) ∧ (t = ⋂ b ∈ T, f b) ∧ (∀ b ∈ T, f b ∈ g b) :=
 begin
   have : t ∈ generate_pi_system (⋃ (b : subtype s), (g ∘ subtype.val) b),
-  { suffices h1 : (⋃ (b : subtype s), (g ∘ subtype.val) b) = (⋃ b (H : b ∈ s), g b), by rwa h1,
+  { suffices h1 : (⋃ (b : subtype s), (g ∘ subtype.val) b) = (⋃ b ∈ s, g b), by rwa h1,
     ext x,
     simp only [exists_prop, set.mem_Union, function.comp_app, subtype.exists, subtype.coe_mk],
     refl },
   rcases @mem_generate_pi_system_Union_elim α (subtype s) (g ∘ subtype.val)
-    (λ b, h_pi b.val b.property) t this with ⟨T, ⟨f,⟨ rfl, h_t'⟩⟩⟩,
-  refine ⟨T.image subtype.val, function.extend subtype.val f (λ (b:β), (∅ : set α)), by simp, _, _⟩,
+    (λ b, h_pi b.val b.property) t this with ⟨T, ⟨f, ⟨rfl, h_t'⟩⟩⟩,
+  refine ⟨T.image subtype.val, function.extend subtype.val f (λ b : β, (∅ : set α)), by simp, _, _⟩,
   { ext a, split;
     { simp only [set.mem_Inter, subtype.forall, finset.set_bInter_finset_image],
       intros h1 b h_b h_b_in_T,
@@ -198,8 +308,139 @@ begin
     apply h_b_h },
 end
 
+section Union_Inter
+
+/-! ### π-system generated by finite intersections of sets of a π-system family -/
+
+/-- From a set of finsets `S : set (finset ι)` and a family of sets of sets `π : ι → set (set α)`,
+define the set of sets that can be written as `⋂ x ∈ t, f x` for some `t ∈ S` and sets `f x ∈ π x`.
+
+If `S` is union-closed and `π` is a family of π-systems, then it is a π-system.
+The π-systems used to prove Kolmogorov's 0-1 law are of that form. -/
+def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : set (set α) :=
+{s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
+  s = ⋂ x ∈ t, f x}
+
+/-- If `S` is union-closed and `π` is a family of π-systems, then `pi_Union_Inter π S` is a
+π-system. -/
+lemma is_pi_system_pi_Union_Inter {α ι} (π : ι → set (set α))
+  (hpi : ∀ x, is_pi_system (π x)) (S : set (finset ι)) (h_sup : sup_closed S) :
+  is_pi_system (pi_Union_Inter π S) :=
+begin
+  rintros t1 ⟨p1, hp1S, f1, hf1m, ht1_eq⟩ t2 ⟨p2, hp2S, f2, hf2m, ht2_eq⟩ h_nonempty,
+  simp_rw [pi_Union_Inter, set.mem_set_of_eq],
+  let g := λ n, (ite (n ∈ p1) (f1 n) set.univ) ∩ (ite (n ∈ p2) (f2 n) set.univ),
+  use [p1 ∪ p2, h_sup p1 p2 hp1S hp2S, g],
+  have h_inter_eq : t1 ∩ t2 = ⋂ i ∈ p1 ∪ p2, g i,
+  { rw [ht1_eq, ht2_eq],
+    simp_rw [← set.inf_eq_inter, g],
+    ext1 x,
+    simp only [inf_eq_inter, mem_inter_eq, mem_Inter, finset.mem_union],
+    refine ⟨λ h i hi_mem_union, _, λ h, ⟨λ i hi1, _, λ i hi2, _⟩⟩,
+    { split_ifs,
+      exacts [⟨h.1 i h_1, h.2 i h_2⟩, ⟨h.1 i h_1, set.mem_univ _⟩,
+        ⟨set.mem_univ _, h.2 i h_2⟩, ⟨set.mem_univ _, set.mem_univ _⟩], },
+    { specialize h i (or.inl hi1),
+      rw if_pos hi1 at h,
+      exact h.1, },
+    { specialize h i (or.inr hi2),
+      rw if_pos hi2 at h,
+      exact h.2, }, },
+  refine ⟨λ n hn, _, h_inter_eq⟩,
+  simp_rw g,
+  split_ifs with hn1 hn2,
+  { refine hpi n (f1 n) (hf1m n hn1) (f2 n) (hf2m n hn2) (set.ne_empty_iff_nonempty.mp (λ h, _)),
+    rw h_inter_eq at h_nonempty,
+    suffices h_empty : (⋂ i ∈ p1 ∪ p2, g i) = ∅,
+      from (set.not_nonempty_iff_eq_empty.mpr h_empty) h_nonempty,
+    refine le_antisymm (set.Inter_subset_of_subset n _) (set.empty_subset _),
+    refine set.Inter_subset_of_subset hn _,
+    simp_rw [g, if_pos hn1, if_pos hn2],
+    exact h.subset, },
+  { simp [hf1m n hn1], },
+  { simp [hf2m n h], },
+  { exact absurd hn (by simp [hn1, h]), },
+end
+
+lemma pi_Union_Inter_mono_left {α ι} {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i)
+  (S : set (finset ι)) :
+  pi_Union_Inter π S ⊆ pi_Union_Inter π' S :=
+begin
+  rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
+  exact ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), rfl⟩,
+end
+
+lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
+  (π : ι → set (set α)) (h : ∀ n, generate_from (π n) ≤ m) (S : set (finset ι)) :
+  generate_from (pi_Union_Inter π S) ≤ m :=
+begin
+  refine generate_from_le _,
+  rintros t ⟨ht_p, ht_p_mem, ft, hft_mem_pi, rfl⟩,
+  refine finset.measurable_set_bInter _ (λ x hx_mem, (h x) _ _),
+  exact measurable_set_generate_from (hft_mem_pi x hx_mem),
+end
+
+lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set (finset ι)}
+  (h_univ : ∀ i, set.univ ∈ π i) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
+  π i ⊆ pi_Union_Inter π S :=
+begin
+  refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), ⟨λ m h_pm, _, _⟩⟩,
+  { split_ifs,
+    { rwa h, },
+    { exact h_univ m, }, },
+  { ext1 x,
+    simp_rw set.mem_Inter,
+    split; intro hx,
+    { intros j h_p_j,
+      split_ifs,
+      { exact hx, },
+      { exact set.mem_univ _, }, },
+    { simpa using hx i his, }, },
+end
+
+lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)
+  {S : set (finset ι)} {i : ι} {t : finset ι} (htS : t ∈ S) (hit : i ∈ t) (s : set α)
+  (hs : measurable_set[m i] s) :
+  s ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S :=
+subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
+
+lemma le_generate_from_pi_Union_Inter {α ι} {π : ι → set (set α)}
+  (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ π n) {x : ι}
+  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) :
+  generate_from (π x) ≤ generate_from (pi_Union_Inter π S) :=
+generate_from_mono (subset_pi_Union_Inter h_univ htS hxt)
+
+lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
+  (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :
+  measurable_set[⨆ i (hi : ∃ s ∈ S, i ∈ s), m i] t :=
+begin
+  rcases ht with ⟨pt, hpt, ft, ht_m, rfl⟩,
+  refine pt.measurable_set_bInter (λ i hi, _),
+  suffices h_le : m i ≤ (⨆ i (hi : ∃ s ∈ S, i ∈ s), m i), from h_le (ft i) (ht_m i hi),
+  have hi' : ∃ s ∈ S, i ∈ s, from ⟨pt, hpt, hi⟩,
+  exact le_supr₂ i hi',
+end
+
+lemma generate_from_pi_Union_Inter_measurable_space {α ι} (m : ι → measurable_space α)
+  (S : set (finset ι)) :
+  generate_from (pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S)
+    = ⨆ i (hi : ∃ p ∈ S, i ∈ p), m i :=
+begin
+  refine le_antisymm _ _,
+  { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i),
+    exact generate_from_mono (measurable_set_supr_of_mem_pi_Union_Inter m S), },
+  { refine supr₂_le (λ i hi, _),
+    rcases hi with ⟨p, hpS, hpi⟩,
+    rw ← @generate_from_measurable_set α (m i),
+    exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
+end
+
+end Union_Inter
+
 namespace measurable_space
 variable {α : Type*}
+
+/-! ## Dynkin systems and Π-λ theorem -/
 
 /-- A Dynkin system is a collection of subsets of a type `α` that contains the empty set,
   is closed under complementation and under countable union of pairwise disjoint sets.
@@ -248,11 +489,16 @@ begin
   exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
 end
 
+instance : has_le (dynkin_system α) :=
+{ le          := λ m₁ m₂, m₁.has ≤ m₂.has }
+
+lemma le_def {α} {a b : dynkin_system α} : a ≤ b ↔ a.has ≤ b.has := iff.rfl
+
 instance : partial_order (dynkin_system α) :=
-{ le          := λ m₁ m₂, m₁.has ≤ m₂.has,
-  le_refl     := assume a b, le_refl _,
-  le_trans    := assume a b c, le_trans,
-  le_antisymm := assume a b h₁ h₂, ext $ assume s, ⟨h₁ s, h₂ s⟩ }
+{ le_refl     := assume a b, le_rfl,
+  le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
+  le_antisymm := assume a b h₁ h₂, ext $ assume s, ⟨h₁ s, h₂ s⟩,
+  ..dynkin_system.has_le }
 
 /-- Every measurable space (σ-algebra) forms a Dynkin system -/
 def of_measurable_space (m : measurable_space α) : dynkin_system α :=
@@ -294,12 +540,12 @@ def to_measurable_space (h_inter : ∀ s₁ s₂, d.has s₁ → d.has s₂ → 
   measurable_set'      := d.has,
   measurable_set_empty := d.has_empty,
   measurable_set_compl := assume s h, d.has_compl h,
-  measurable_set_Union := assume f hf,
-    have ∀ n, d.has (disjointed f n),
-      from assume n, disjointed_induct (hf n)
-        (assume t i h, h_inter _ _ h $ d.has_compl $ hf i),
-    have d.has (⋃ n, disjointed f n), from d.has_Union disjoint_disjointed this,
-    by rwa [Union_disjointed] at this }
+  measurable_set_Union := λ f hf,
+    begin
+      rw ←Union_disjointed,
+      exact d.has_Union (disjoint_disjointed _)
+        (λ n, disjointed_rec (λ t i h, h_inter _ _ h $ d.has_compl $ hf i) (hf n)),
+    end }
 
 lemma of_measurable_space_to_measurable_space
   (h_inter : ∀ s₁ s₂, d.has s₁ → d.has s₂ → d.has (s₁ ∩ s₂)) :
@@ -329,7 +575,7 @@ lemma generate_le {s : set (set α)} (h : ∀ t ∈ s, d.has t) : generate s ≤
   (assume f hd _ hf, d.has_Union hd hf)
 
 lemma generate_has_subset_generate_measurable {C : set (set α)} {s : set α}
-  (hs : (generate C).has s) : (generate_from C).measurable_set' s :=
+  (hs : (generate C).has s) : measurable_set[generate_from C] s :=
 generate_le (of_measurable_space (generate_from C)) (λ t, measurable_set_generate_from) s hs
 
 lemma generate_inter {s : set (set α)}
@@ -343,7 +589,7 @@ have generate s ≤ (generate s).restrict_on ht₂,
       show (generate s).has (s₂ ∩ s₁), from
         (s₂ ∩ s₁).eq_empty_or_nonempty.elim
         (λ h,  h.symm ▸ generate_has.empty)
-        (λ h, generate_has.basic _ (hs _ _ hs₂ hs₁ h)),
+        (λ h, generate_has.basic _ $ hs _ hs₂ _ hs₁ h),
   have (generate s).has (t₂ ∩ s₁), from this _ ht₂,
   show (generate s).has (s₁ ∩ t₂), by rwa [inter_comm],
 this _ ht₁

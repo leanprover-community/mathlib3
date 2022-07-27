@@ -5,7 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
-import category_theory.reflects_isomorphisms
+import category_theory.functor.epi_mono
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
@@ -117,7 +117,7 @@ variables (T : monad C)
     h' := T.μ.naturality _ } }
 
 instance [inhabited C] : inhabited (algebra T) :=
-⟨(free T).obj (default C)⟩
+⟨(free T).obj default⟩
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for
   a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
@@ -150,6 +150,16 @@ instance forget_reflects_iso : reflects_isomorphisms T.forget :=
 { reflects := λ A B, algebra_iso_of_iso T }
 
 instance forget_faithful : faithful T.forget := {}
+
+/-- Given an algebra morphism whose carrier part is an epimorphism, we get an algebra epimorphism.
+-/
+lemma algebra_epi_of_epi {X Y : algebra T} (f : X ⟶ Y) [h : epi f.f] : epi f :=
+(forget T).epi_of_epi_map h
+
+/-- Given an algebra morphism whose carrier part is a monomorphism, we get an algebra monomorphism.
+-/
+lemma algebra_mono_of_mono {X Y : algebra T} (f : X ⟶ Y) [h : mono f.f] : mono f :=
+(forget T).mono_of_mono_map h
 
 instance : is_right_adjoint T.forget := ⟨T.free, T.adj⟩
 @[simp] lemma left_adjoint_forget : left_adjoint T.forget = T.free := rfl
@@ -350,6 +360,16 @@ instance forget_reflects_iso : reflects_isomorphisms G.forget :=
 { reflects := λ A B, coalgebra_iso_of_iso G }
 
 instance forget_faithful : faithful (forget G) := {}
+
+/-- Given a coalgebra morphism whose carrier part is an epimorphism, we get an algebra epimorphism.
+-/
+lemma algebra_epi_of_epi {X Y : coalgebra G} (f : X ⟶ Y) [h : epi f.f] : epi f :=
+(forget G).epi_of_epi_map h
+
+/-- Given a coalgebra morphism whose carrier part is a monomorphism, we get an algebra monomorphism.
+-/
+lemma algebra_mono_of_mono {X Y : coalgebra G} (f : X ⟶ Y) [h : mono f.f] : mono f :=
+(forget G).mono_of_mono_map h
 
 instance : is_left_adjoint G.forget := ⟨_, G.adj⟩
 @[simp] lemma right_adjoint_forget : right_adjoint G.forget = G.cofree := rfl

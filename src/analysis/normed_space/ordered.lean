@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.normed_space.basic
-import algebra.ring.basic
 
 /-!
 # Ordered normed spaces
@@ -16,14 +15,14 @@ These are mostly useful to avoid diamonds during type class inference.
 open filter set
 open_locale topological_space
 
-/-- A `normed_linear_ordered_group` is an additive group that is both a `normed_group` and
+/-- A `normed_linear_ordered_group` is an additive group that is both a `normed_add_comm_group` and
     a `linear_ordered_add_comm_group`. This class is necessary to avoid diamonds. -/
 class normed_linear_ordered_group (α : Type*)
 extends linear_ordered_add_comm_group α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 
-@[priority 100] instance normed_linear_ordered_group.to_normed_group (α : Type*)
-  [normed_linear_ordered_group α] : normed_group α :=
+@[priority 100] instance normed_linear_ordered_group.to_normed_add_comm_group (α : Type*)
+  [normed_linear_ordered_group α] : normed_add_comm_group α :=
 ⟨normed_linear_ordered_group.dist_eq⟩
 
 /-- A `normed_linear_ordered_field` is a field that is both a `normed_field` and a
@@ -44,8 +43,8 @@ extends linear_ordered_field α, has_norm α, metric_space α :=
 
 noncomputable
 instance : normed_linear_ordered_field ℚ :=
-⟨dist_eq_norm, normed_field.norm_mul⟩
+⟨dist_eq_norm, norm_mul⟩
 
 noncomputable
 instance : normed_linear_ordered_field ℝ :=
-⟨dist_eq_norm, normed_field.norm_mul⟩
+⟨dist_eq_norm, norm_mul⟩

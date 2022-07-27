@@ -3,13 +3,11 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.normed_space.inner_product
-import analysis.special_functions.trigonometric
+import analysis.inner_product_space.projection
+import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
-import analysis.normed_space.add_torsor
-import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
-import tactic.fin_cases
+import analysis.calculus.conformal.normed_space
 
 /-!
 # Euclidean spaces
@@ -72,8 +70,44 @@ corresponding results for Euclidean affine spaces.
 variables {V : Type*} [inner_product_space ℝ V]
 
 /-- The undirected angle between two vectors. If either vector is 0,
-this is π/2. -/
+this is π/2. See `orientation.oangle` for the corresponding oriented angle
+definition. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
+
+lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
+  continuous_at (λ y : V × V, angle y.1 y.2) x :=
+real.continuous_arccos.continuous_at.comp $ continuous_inner.continuous_at.div
+  ((continuous_norm.comp continuous_fst).mul (continuous_norm.comp continuous_snd)).continuous_at
+  (by simp [hx1, hx2])
+
+lemma angle_smul_smul {c : ℝ} (hc : c ≠ 0) (x y : V) :
+  angle (c • x) (c • y) = angle x y :=
+have c * c ≠ 0, from mul_ne_zero hc hc,
+by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smul, real.norm_eq_abs,
+  mul_mul_mul_comm _ (∥x∥), abs_mul_abs_self, ← mul_assoc c c, mul_div_mul_left _ _ this]
+
+@[simp] lemma _root_.linear_isometry.angle_map {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F] (f : E →ₗᵢ[ℝ] F) (u v : E) :
+  angle (f u) (f v) = angle u v :=
+by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
+
+lemma is_conformal_map.preserves_angle {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F]
+  {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
+  angle (f' u) (f' v) = angle u v :=
+begin
+  obtain ⟨c, hc, li, rfl⟩ := h,
+  exact (angle_smul_smul hc _ _).trans (li.angle_map _ _)
+end
+
+/-- If a real differentiable map `f` is conformal at a point `x`,
+    then it preserves the angles at that point. -/
+lemma conformal_at.preserves_angle {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F]
+  {f : E → F} {x : E} {f' : E →L[ℝ] F}
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
+  angle (f' u) (f' v) = angle u v :=
+let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ is_conformal_map.preserves_angle c u v
 
 /-- The cosine of the angle between two vectors. -/
 lemma cos_angle (x y : V) : real.cos (angle x y) = inner x y / (∥x∥ * ∥y∥) :=
@@ -131,7 +165,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_sq, div_self (λ h, hx (inner_self_eq_zero.1 h)),
+  rw [←real_inner_self_eq_norm_mul_norm, div_self (λ h, hx (inner_self_eq_zero.1 h)),
       real.arccos_one]
 end
 
@@ -188,8 +222,8 @@ begin
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      real_inner_self_eq_norm_sq,
-      real_inner_self_eq_norm_sq],
+      real_inner_self_eq_norm_mul_norm,
+      real_inner_self_eq_norm_mul_norm],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
         zero_sub],
@@ -198,9 +232,7 @@ begin
       rw [hx, inner_zero_left, zero_mul, neg_zero] },
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
-  { field_simp [h],
-    ring_nf,
-    ring_nf, }
+  { field_simp [h], ring_nf }
 end
 
 /-- The angle between two vectors is zero if and only if they are
@@ -267,7 +299,7 @@ end
 the sum of their norms. -/
 lemma norm_sub_eq_add_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ∥x - y∥ = ∥x∥ + ∥y∥ :=
 begin
-  rw ← eq_of_sq_eq_sq (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw ← sq_eq_sq (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
   rw [norm_sub_pow_two_real, inner_eq_neg_mul_norm_of_angle_eq_pi h],
   ring,
 end
@@ -276,7 +308,7 @@ end
 the sum of their norms. -/
 lemma norm_add_eq_add_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ∥x + y∥ = ∥x∥ + ∥y∥ :=
 begin
-  rw ← eq_of_sq_eq_sq (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw ← sq_eq_sq (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
   rw [norm_add_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h],
   ring,
 end
@@ -284,9 +316,9 @@ end
 /-- If the angle between two vectors is 0, the norm of their difference equals
 the absolute value of the difference of their norms. -/
 lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
-  ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
+  ∥x - y∥ = |∥x∥ - ∥y∥| :=
 begin
-  rw [← eq_of_sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
+  rw [← sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
       norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sq_abs (∥x∥ - ∥y∥)],
   ring,
 end
@@ -299,7 +331,7 @@ begin
   refine ⟨λ h, _, norm_sub_eq_add_norm_of_angle_eq_pi⟩,
   rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
   obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-  rw [← eq_of_sq_eq_sq hxy₁ hxy₂, norm_sub_pow_two_real] at h,
+  rw [← sq_eq_sq hxy₁ hxy₂, norm_sub_pow_two_real] at h,
   calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
   ...            = -(∥x∥ * ∥y∥) : by ring,
 end
@@ -312,7 +344,7 @@ begin
   refine ⟨λ h, _, norm_add_eq_add_norm_of_angle_eq_zero⟩,
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
   obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-  rw [← eq_of_sq_eq_sq hxy₁ hxy₂, norm_add_pow_two_real] at h,
+  rw [← sq_eq_sq hxy₁ hxy₂, norm_add_pow_two_real] at h,
   calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
   ...            = ∥x∥ * ∥y∥ : by ring,
 end
@@ -320,7 +352,7 @@ end
 /-- The norm of the difference of two non-zero vectors equals the absolute value
 of the difference of their norms if and only the angle between the two vectors is 0. -/
 lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ∥x - y∥ = abs (∥x∥ - ∥y∥) ↔ angle x y = 0 :=
+  ∥x - y∥ = |∥x∥ - ∥y∥| ↔ angle x y = 0 :=
 begin
   refine ⟨λ h, _, norm_sub_eq_abs_sub_norm_of_angle_eq_zero⟩,
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
@@ -335,7 +367,7 @@ the angle between them is π/2. -/
 lemma norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (x y : V) :
   ∥x + y∥ = ∥x - y∥ ↔ angle x y = π / 2 :=
 begin
-  rw [← eq_of_sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
+  rw [← sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
       ← inner_eq_zero_iff_angle_eq_pi_div_two x y, norm_add_pow_two_real, norm_sub_pow_two_real],
   split; intro h; linarith,
 end
@@ -363,6 +395,17 @@ notation. -/
 def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
 
 localized "notation `∠` := euclidean_geometry.angle" in euclidean_geometry
+
+lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
+  continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
+begin
+  let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
+  have hf1 : (f x).1 ≠ 0, by simp [hx12],
+  have hf2 : (f x).2 ≠ 0, by simp [hx32],
+  exact (inner_product_geometry.continuous_at_angle hf1 hf2).comp
+    ((continuous_fst.vsub continuous_snd.fst).prod_mk
+      (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
+end
 
 /-- The angle at a point does not depend on the order of the other two
 points. -/
@@ -449,7 +492,7 @@ by linarith [angle_add_angle_eq_pi_of_angle_eq_pi p1 hbpd, angle_comm p4 p5 p1,
 lemma left_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p1 p2 ≠ 0 :=
 begin
   by_contra heq,
-  rw [not_not, dist_eq_zero] at heq,
+  rw [dist_eq_zero] at heq,
   rw [heq, angle_eq_left] at h,
   exact real.pi_ne_zero (by linarith),
 end
@@ -477,7 +520,7 @@ end
 
 /-- If ∠ABC = 0, then (dist A C) = abs ((dist A B) - (dist B C)). -/
 lemma dist_eq_abs_sub_dist_of_angle_eq_zero {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = 0) :
-  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) :=
+  (dist p1 p3) = |(dist p1 p2) - (dist p3 p2)| :=
 begin
   rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
   exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h,
@@ -485,7 +528,7 @@ end
 
 /-- If A ≠ B and C ≠ B then ∠ABC = 0 if and only if (dist A C) = abs ((dist A B) - (dist B C)). -/
 lemma dist_eq_abs_sub_dist_iff_angle_eq_zero {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
-  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) ↔ ∠ p1 p2 p3 = 0 :=
+  (dist p1 p3) = |(dist p1 p2) - (dist p3 p2)| ↔ ∠ p1 p2 p3 = 0 :=
 begin
   rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
   exact norm_sub_eq_abs_sub_norm_iff_angle_eq_zero
@@ -541,13 +584,12 @@ in terms of the pairwise distances between the points in that
 combination. -/
 lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
     (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
-  dist (s.affine_combination p w₁) (s.affine_combination p w₂) *
-    dist (s.affine_combination p w₁) (s.affine_combination p w₂) =
-    (-∑ i₁ in s, ∑ i₂ in s,
+  by have a₁ := s.affine_combination p w₁; have a₂ := s.affine_combination p w₂; exact
+  dist a₁ a₂ * dist a₁ a₂ = (-∑ i₁ in s, ∑ i₂ in s,
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
-      ←inner_self_eq_norm_sq, finset.affine_combination_vsub],
+      ←inner_self_eq_norm_mul_norm, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub p h p h
@@ -563,7 +605,7 @@ begin
   have h : ⟪(c₂ -ᵥ c₁) + (c₂ -ᵥ c₁), p₂ -ᵥ p₁⟫ = 0,
   { conv_lhs { congr, congr, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₁,
                skip, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₂ },
-    rw [←add_sub_comm, inner_sub_left],
+    rw [sub_add_sub_comm, inner_sub_left],
     conv_lhs { congr, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₂,
                skip, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₁ },
     rw [dist_comm p₁, dist_comm p₂, dist_eq_norm_vsub V _ p₁,
@@ -580,7 +622,7 @@ lemma dist_smul_vadd_sq (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
     ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_sq, vadd_vsub_assoc,
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_mul_norm, vadd_vsub_assoc,
     real_inner_add_add_self, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
@@ -592,7 +634,7 @@ lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
 begin
   conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_sq,
                  ←sub_eq_zero, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←real_inner_self_eq_norm_sq, sub_self] },
+                 ←real_inner_self_eq_norm_mul_norm, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
@@ -690,9 +732,8 @@ classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete
-      (complete_space_coe_iff_is_complete.mp ‹_›),
-    exact direction_mk' p s.directionᗮ
+    rw direction_mk' p s.directionᗮ,
+    exact submodule.is_compl_orthogonal_of_complete_space,
   end
 
 /-- The intersection of the subspace and the orthogonal subspace
@@ -707,9 +748,8 @@ classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete
-      (complete_space_coe_iff_is_complete.mp ‹_›),
-    exact direction_mk' p s.directionᗮ
+    rw direction_mk' p s.directionᗮ,
+    exact submodule.is_compl_orthogonal_of_complete_space
   end
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This
@@ -837,6 +877,15 @@ begin
     exact hp }
 end
 
+@[simp] lemma orthogonal_projection_mem_subspace_eq_self {s : affine_subspace ℝ P} [nonempty s]
+  [complete_space s.direction] (p : s) :
+  orthogonal_projection s p = p :=
+begin
+  ext,
+  rw orthogonal_projection_eq_self_iff,
+  exact p.2
+end
+
 /-- Orthogonal projection is idempotent. -/
 @[simp] lemma orthogonal_projection_orthogonal_projection (s : affine_subspace ℝ P) [nonempty s]
   [complete_space s.direction] (p : P) :
@@ -884,6 +933,18 @@ lemma vsub_orthogonal_projection_mem_direction_orthogonal (s : affine_subspace �
 direction_mk' p s.directionᗮ ▸
   vsub_mem_direction (self_mem_mk' _ _) (orthogonal_projection_mem_orthogonal s p)
 
+/-- Subtracting the `orthogonal_projection` from `p` produces a result in the kernel of the linear
+part of the orthogonal projection. -/
+lemma orthogonal_projection_vsub_orthogonal_projection (s : affine_subspace ℝ P) [nonempty s]
+  [complete_space s.direction] (p : P) :
+  _root_.orthogonal_projection s.direction (p -ᵥ orthogonal_projection s p) = 0 :=
+begin
+  apply orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
+  intros c hc,
+  rw [← neg_vsub_eq_vsub_rev, inner_neg_right,
+    (orthogonal_projection_vsub_mem_direction_orthogonal s p c hc), neg_zero]
+end
+
 /-- Adding a vector to a point in the given subspace, then taking the
 orthogonal projection, produces the original point if the vector was
 in the orthogonal direction. -/
@@ -920,7 +981,7 @@ lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
     dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
     dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
-  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+  rw [dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
@@ -938,13 +999,13 @@ lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ
     dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥) :=
 calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2)
     = ∥(p1 -ᵥ p2) + (r1 - r2) • v∥ * ∥(p1 -ᵥ p2) + (r1 - r2) • v∥
-  : by { rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul],
-         abel }
+  : by rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul,
+      add_comm, add_sub_assoc]
 ... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
   : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
-... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
+... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + |r1 - r2| * |r1 - r2| * ∥v∥ * ∥v∥
   : by { rw [norm_smul, real.norm_eq_abs], ring }
 ... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥)
   : by { rw [dist_eq_norm_vsub V p1, abs_mul_abs_self, mul_assoc] }
@@ -954,42 +1015,27 @@ and complete.  The word "reflection" is sometimes understood to mean
 specifically reflection in a codimension-one subspace, and sometimes
 more generally to cover operations such as reflection in a point.  The
 definition here, of reflection in an affine subspace, is a more
-general sense of the word that includes both those common cases.  If
-the subspace is empty or not complete, `orthogonal_projection` is
-defined as the identity map, which results in `reflection` being the
-identity map in that case as well. -/
+general sense of the word that includes both those common cases. -/
 def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
-  P ≃ᵢ P :=
-{ to_fun := λ p, (↑(orthogonal_projection s p) -ᵥ p) +ᵥ orthogonal_projection s p,
-  inv_fun := λ p, (↑(orthogonal_projection s p) -ᵥ p) +ᵥ orthogonal_projection s p,
-  left_inv := λ p, by simp [vsub_vadd_eq_vsub_sub, -orthogonal_projection_linear],
-  right_inv := λ p, by simp [vsub_vadd_eq_vsub_sub, -orthogonal_projection_linear],
-  isometry_to_fun := begin
-    dsimp only,
-    rw isometry_emetric_iff_metric,
-    intros p₁ p₂,
-    rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_eq_norm_vsub V
-          ((↑(orthogonal_projection s p₁) -ᵥ p₁) +ᵥ ↑(orthogonal_projection s p₁)),
-        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq],
-    calc
-      ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
-      ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
-      ((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
-      ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂))⟫
-        = ⟪(_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
-          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) - (p₁ -ᵥ p₂),
-          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
-          _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) - (p₁ -ᵥ p₂)⟫
-        : by { rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
-          ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, ←coe_vsub,
-          ←affine_map.linear_map_vsub], simp }
-    ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) : V))
-                   (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
-          ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
-        : by { simp [inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
-                 real_inner_comm (p₁ -ᵥ p₂)], ring }
-    ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp,
-  end }
+  P ≃ᵃⁱ[ℝ] P :=
+affine_isometry_equiv.mk'
+  (λ p, (↑(orthogonal_projection s p) -ᵥ p) +ᵥ orthogonal_projection s p)
+  (_root_.reflection s.direction)
+  ↑(classical.arbitrary s)
+  begin
+    intros p,
+    let v := p -ᵥ ↑(classical.arbitrary s),
+    let a : V := _root_.orthogonal_projection s.direction v,
+    let b : P := ↑(classical.arbitrary s),
+    have key : a +ᵥ b -ᵥ (v +ᵥ b) +ᵥ (a +ᵥ b) = a + a - v +ᵥ (b -ᵥ b +ᵥ b),
+    { rw [← add_vadd, vsub_vadd_eq_vsub_sub, vsub_vadd, vadd_vsub],
+      congr' 1,
+      abel },
+    have : p = v +ᵥ ↑(classical.arbitrary s) := (vsub_vadd p ↑(classical.arbitrary s)).symm,
+    simpa only [coe_vadd, reflection_apply, affine_map.map_vadd, orthogonal_projection_linear,
+      orthogonal_projection_mem_subspace_eq_self, vadd_vsub, continuous_linear_map.coe_coe,
+      continuous_linear_equiv.coe_coe, this] using key,
+  end
 
 /-- The result of reflecting. -/
 lemma reflection_apply (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] (p : P) :
@@ -1001,16 +1047,25 @@ lemma eq_reflection_of_eq_subspace {s s' : affine_subspace ℝ P} [nonempty s]
   (reflection s p : P) = (reflection s' p : P) :=
 by unfreezingI { subst h }
 
-/-- Reflection is its own inverse. -/
-@[simp] lemma reflection_symm (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
-  (reflection s).symm = reflection s :=
-rfl
-
 /-- Reflecting twice in the same subspace. -/
 @[simp] lemma reflection_reflection (s : affine_subspace ℝ P) [nonempty s]
   [complete_space s.direction] (p : P) :
   reflection s (reflection s p) = p :=
-(reflection s).left_inv p
+begin
+  have : ∀ a : s, ∀ b : V, (_root_.orthogonal_projection s.direction) b = 0
+    → reflection s (reflection s (b +ᵥ a)) = b +ᵥ a,
+  { intros a b h,
+    have : (a:P) -ᵥ (b +ᵥ a) = - b,
+    { rw [vsub_vadd_eq_vsub_sub, vsub_self, zero_sub] },
+    simp [reflection, h, this] },
+  rw ← vsub_vadd p (orthogonal_projection s p),
+  exact this (orthogonal_projection s p) _ (orthogonal_projection_vsub_orthogonal_projection s p),
+end
+
+/-- Reflection is its own inverse. -/
+@[simp] lemma reflection_symm (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
+  (reflection s).symm = reflection s :=
+by { ext, rw ← (reflection s).injective.eq_iff, simp }
 
 /-- Reflection is involutive. -/
 lemma reflection_involutive (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
@@ -1061,7 +1116,7 @@ lemma dist_reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s
   dist p₁ (reflection s p₂) = dist (reflection s p₁) p₂ :=
 begin
   conv_lhs { rw ←reflection_reflection s p₁ },
-  exact (reflection s).dist_eq _ _
+  exact (reflection s).dist_map _ _
 end
 
 /-- A point in the subspace is equidistant from another point and its
@@ -1071,7 +1126,7 @@ lemma dist_reflection_eq_of_mem (s : affine_subspace ℝ P) [nonempty s] [comple
   dist p₁ (reflection s p₂) = dist p₁ p₂ :=
 begin
   rw ←reflection_eq_self_iff p₁ at hp₁,
-  convert (reflection s).dist_eq p₁ p₂,
+  convert (reflection s).dist_map p₁ p₂,
   rw hp₁
 end
 
@@ -1149,7 +1204,7 @@ end
 include V
 
 /-- Two points are cospherical. -/
-lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+lemma cospherical_pair (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
 begin
   use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
   intro p,

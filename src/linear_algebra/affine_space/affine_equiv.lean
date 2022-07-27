@@ -23,6 +23,9 @@ We define the following equivalences:
   `category_theory` convention (apply `e`, then `e'`), not the convention used in function
   composition and compositions of bundled morphisms.
 
+We equip `affine_equiv k P P` with a `group` structure with multiplication corresponding to
+composition in `affine_equiv.group`.
+
 ## Tags
 
 affine space, affine equivalence
@@ -45,54 +48,21 @@ structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
 
 notation P₁ ` ≃ᵃ[`:25 k:25 `] `:0 P₂:0 := affine_equiv k P₁ P₂
 
-instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
-  [ring k]
-  [add_comm_group V1] [module k V1] [affine_space V1 P1]
-  [add_comm_group V2] [module k V2] [affine_space V2 P2] :
-  has_coe_to_fun (P1 ≃ᵃ[k] P2) :=
-⟨_, λ e, e.to_fun⟩
-
-variables {k V₁ V₂ V₃ V₄ P₁ P₂ P₃ P₄ : Type*} [ring k]
+variables {k P₁ P₂ P₃ P₄ V₁ V₂ V₃ V₄ : Type*} [ring k]
   [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
   [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
   [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
   [add_comm_group V₄] [module k V₄] [add_torsor V₄ P₄]
 
-namespace linear_equiv
-
-/-- Interpret a linear equivalence between modules as an affine equivalence. -/
-def to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : V₁ ≃ᵃ[k] V₂ :=
-{ to_equiv := e.to_equiv,
-  linear := e,
-  map_vadd' := λ p v, e.map_add v p }
-
-@[simp] lemma coe_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : ⇑e.to_affine_equiv = e := rfl
-
-end linear_equiv
-
 namespace affine_equiv
 
-variables (k P₁)
+include V₁ V₂
 
-include V₁
+instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) (λ _, P₁ → P₂) := ⟨λ e, e.to_fun⟩
 
-/-- Identity map as an `affine_equiv`. -/
-@[refl] def refl : P₁ ≃ᵃ[k] P₁ :=
-{ to_equiv := equiv.refl P₁,
-  linear := linear_equiv.refl k V₁,
-  map_vadd' := λ _ _, rfl }
-
-@[simp] lemma coe_refl : ⇑(refl k P₁) = id := rfl
-
-lemma refl_apply (x : P₁) : refl k P₁ x = x := rfl
-
-@[simp] lemma to_equiv_refl : (refl k P₁).to_equiv = equiv.refl P₁ := rfl
-
-@[simp] lemma linear_refl : (refl k P₁).linear = linear_equiv.refl k V₁ := rfl
+instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ ≃ P₂) := ⟨affine_equiv.to_equiv⟩
 
 variables {k P₁}
-
-include V₂
 
 @[simp] lemma map_vadd (e : P₁ ≃ᵃ[k] P₂) (p : P₁) (v : V₁) : e (v +ᵥ p) = e.linear v +ᵥ e p :=
 e.map_vadd' p v
@@ -102,6 +72,8 @@ e.map_vadd' p v
 /-- Reinterpret an `affine_equiv` as an `affine_map`. -/
 def to_affine_map (e : P₁ ≃ᵃ[k] P₂) : P₁ →ᵃ[k] P₂ := { to_fun := e, .. e }
 
+instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ →ᵃ[k] P₂) := ⟨to_affine_map⟩
+
 @[simp] lemma coe_to_affine_map (e : P₁ ≃ᵃ[k] P₂) :
   (e.to_affine_map : P₁ → P₂) = (e : P₁ → P₂) :=
 rfl
@@ -109,6 +81,8 @@ rfl
 @[simp] lemma to_affine_map_mk (f : P₁ ≃ P₂) (f' : V₁ ≃ₗ[k] V₂) (h) :
   to_affine_map (mk f f' h) = ⟨f, f', h⟩ :=
 rfl
+
+@[norm_cast, simp] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
 
 @[simp] lemma linear_to_affine_map (e : P₁ ≃ᵃ[k] P₂) : e.to_affine_map.linear = e.linear := rfl
 
@@ -127,10 +101,10 @@ to_affine_map_injective.eq_iff
 @[ext] lemma ext {e e' : P₁ ≃ᵃ[k] P₂} (h : ∀ x, e x = e' x) : e = e' :=
 to_affine_map_injective $ affine_map.ext h
 
-lemma coe_fn_injective : injective (λ (e : P₁ ≃ᵃ[k] P₂) (x : P₁), e x) :=
+lemma coe_fn_injective : @injective (P₁ ≃ᵃ[k] P₂) (P₁ → P₂) coe_fn :=
 λ e e' H, ext $ congr_fun H
 
-@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : ⇑e = e' ↔ e = e' :=
+@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
 coe_fn_injective.eq_iff
 
 lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=
@@ -139,19 +113,24 @@ lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁
 @[simp] lemma to_equiv_inj {e e' : P₁ ≃ᵃ[k] P₂} : e.to_equiv = e'.to_equiv ↔ e = e' :=
 to_equiv_injective.eq_iff
 
+@[simp] lemma coe_mk (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (h) :
+  ((⟨e, e', h⟩ : P₁ ≃ᵃ[k] P₂) : P₁ → P₂) = e :=
+rfl
+
 /-- Construct an affine equivalence by verifying the relation between the map and its linear part at
-one base point. Namely, this function takes an equivalence `e : P₁ ≃ P₂`, a linear equivalece
+one base point. Namely, this function takes a map `e : P₁ → P₂`, a linear equivalence
 `e' : V₁ ≃ₗ[k] V₂`, and a point `p` such that for any other point `p'` we have
 `e p' = e' (p' -ᵥ p) +ᵥ e p`. -/
-def mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
+def mk' (e : P₁ → P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
   P₁ ≃ᵃ[k] P₂ :=
-{ to_equiv := e,
+{ to_fun := e,
+  inv_fun := λ q' : P₂, e'.symm (q' -ᵥ e p) +ᵥ p,
+  left_inv := λ p', by simp [h p'],
+  right_inv := λ q', by simp [h (e'.symm (q' -ᵥ e p) +ᵥ p)],
   linear := e',
-  .. affine_map.mk' e (e' : V₁ →ₗ[k] V₂) p h }
+  map_vadd' := λ p' v, by { simp [h p', h (v +ᵥ p'), vadd_vsub_assoc, vadd_vadd] } }
 
 @[simp] lemma coe_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) : ⇑(mk' e e' p h) = e := rfl
-@[simp] lemma to_equiv_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
-  (mk' e e' p h).to_equiv = e := rfl
 @[simp] lemma linear_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
   (mk' e e' p h).linear = e' := rfl
 
@@ -165,6 +144,15 @@ def mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : 
 @[simp] lemma symm_to_equiv (e : P₁ ≃ᵃ[k] P₂) : e.to_equiv.symm = e.symm.to_equiv := rfl
 
 @[simp] lemma symm_linear (e : P₁ ≃ᵃ[k] P₂) : e.linear.symm = e.symm.linear := rfl
+
+/-- See Note [custom simps projection] -/
+def simps.apply (e : P₁ ≃ᵃ[k] P₂) : P₁ → P₂ := e
+
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (e : P₁ ≃ᵃ[k] P₂) : P₂ → P₁ := e.symm
+
+initialize_simps_projections affine_equiv
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, linear → linear as_prefix, -to_equiv)
 
 protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.bijective
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
@@ -184,10 +172,29 @@ e.to_equiv.apply_eq_iff_eq_symm_apply
 @[simp] lemma apply_eq_iff_eq (e : P₁ ≃ᵃ[k] P₂) {p₁ p₂ : P₁} : e p₁ = e p₂ ↔ p₁ = p₂ :=
 e.to_equiv.apply_eq_iff_eq
 
+variables (k P₁)
+
 omit V₂
+
+/-- Identity map as an `affine_equiv`. -/
+@[refl] def refl : P₁ ≃ᵃ[k] P₁ :=
+{ to_equiv := equiv.refl P₁,
+  linear := linear_equiv.refl k V₁,
+  map_vadd' := λ _ _, rfl }
+
+@[simp] lemma coe_refl : ⇑(refl k P₁) = id := rfl
+
+@[simp] lemma coe_refl_to_affine_map : ↑(refl k P₁) = affine_map.id k P₁ := rfl
+
+@[simp] lemma refl_apply (x : P₁) : refl k P₁ x = x := rfl
+
+@[simp] lemma to_equiv_refl : (refl k P₁).to_equiv = equiv.refl P₁ := rfl
+
+@[simp] lemma linear_refl : (refl k P₁).linear = linear_equiv.refl k V₁ := rfl
 
 @[simp] lemma symm_refl : (refl k P₁).symm = refl k P₁ := rfl
 
+variables {k P₁}
 include V₂ V₃
 
 /-- Composition of two `affine_equiv`alences, applied left to right. -/
@@ -199,6 +206,7 @@ include V₂ V₃
 
 @[simp] lemma coe_trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : ⇑(e.trans e') = e' ∘ e := rfl
 
+@[simp]
 lemma trans_apply (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) (p : P₁) : e.trans e' p = e' (e p) := rfl
 
 include V₄
@@ -215,10 +223,10 @@ ext $ λ _, rfl
 @[simp] lemma refl_trans (e : P₁ ≃ᵃ[k] P₂) : (refl k P₁).trans e = e :=
 ext $ λ _, rfl
 
-@[simp] lemma trans_symm (e : P₁ ≃ᵃ[k] P₂) : e.trans e.symm = refl k P₁ :=
+@[simp] lemma self_trans_symm (e : P₁ ≃ᵃ[k] P₂) : e.trans e.symm = refl k P₁ :=
 ext e.symm_apply_apply
 
-@[simp] lemma symm_trans (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
+@[simp] lemma symm_trans_self (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
 ext e.apply_symm_apply
 
 @[simp] lemma apply_line_map (e : P₁ ≃ᵃ[k] P₂) (a b : P₁) (c : k) :
@@ -234,7 +242,7 @@ instance : group (P₁ ≃ᵃ[k] P₁) :=
   mul_assoc := λ e₁ e₂ e₃, trans_assoc _ _ _,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 lemma one_def : (1 : P₁ ≃ᵃ[k] P₁) = refl k P₁ := rfl
 
@@ -246,20 +254,38 @@ lemma mul_def (e e' : P₁ ≃ᵃ[k] P₁) : e * e' = e'.trans e := rfl
 
 lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
+/-- `affine_equiv.linear` on automorphisms is a `monoid_hom`. -/
+@[simps] def linear_hom : (P₁ ≃ᵃ[k] P₁) →* (V₁ ≃ₗ[k] V₁) :=
+{ to_fun := linear,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
+/-- The group of `affine_equiv`s are equivalent to the group of units of `affine_map`.
+
+This is the affine version of `linear_map.general_linear_group.general_linear_equiv`. -/
+@[simps]
+def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃* (P₁ →ᵃ[k] P₁)ˣ :=
+{ to_fun := λ e, ⟨e, e.symm, congr_arg coe e.symm_trans_self, congr_arg coe e.self_trans_symm⟩,
+  inv_fun := λ u,
+  { to_fun := (u : P₁ →ᵃ[k] P₁), inv_fun := (↑(u⁻¹) : P₁ →ᵃ[k] P₁),
+    left_inv := affine_map.congr_fun u.inv_mul,
+    right_inv := affine_map.congr_fun u.mul_inv,
+    linear := linear_map.general_linear_group.general_linear_equiv _ _ $
+      units.map (by exact affine_map.linear_hom) u,
+    map_vadd' := λ _ _, (u : P₁ →ᵃ[k] P₁).map_vadd _ _ },
+  left_inv := λ e, affine_equiv.ext $ λ x, rfl,
+  right_inv := λ u, units.ext $ affine_map.ext $ λ x, rfl,
+  map_mul' := λ e₁ e₂, rfl }
+
 variable (k)
 
 /-- The map `v ↦ v +ᵥ b` as an affine equivalence between a module `V` and an affine space `P` with
 tangent space `V`. -/
+@[simps]
 def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.vadd_const b,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p v, add_vadd _ _ _  }
-
-@[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
-
-@[simp] lemma vadd_const_apply (b : P₁) (v : V₁) : vadd_const k b v = v +ᵥ b := rfl
-
-@[simp] lemma vadd_const_symm_apply (b p : P₁) : (vadd_const k b).symm p = p -ᵥ b := rfl
+  map_vadd' := λ p v, add_vadd _ _ _ }
 
 /-- `p' ↦ p -ᵥ p'` as an equivalence. -/
 def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
@@ -273,17 +299,63 @@ def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 
 variable (P₁)
 
-/-- The map `p ↦ v +ᵥ p` as an affine automorphism of an affine space. -/
+/-- The map `p ↦ v +ᵥ p` as an affine automorphism of an affine space.
+
+Note that there is no need for an `affine_map.const_vadd` as it is always an equivalence.
+This is roughly to `distrib_mul_action.to_linear_equiv` as `+ᵥ` is to `•`. -/
+@[simps apply linear]
 def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.const_vadd P₁ v,
   linear := linear_equiv.refl _ _,
   map_vadd' := λ p w, vadd_comm _ _ _ }
 
-@[simp] lemma linear_const_vadd (v : V₁) : (const_vadd k P₁ v).linear = linear_equiv.refl _ _ := rfl
+@[simp] lemma const_vadd_zero : const_vadd k P₁ 0 = affine_equiv.refl _ _ := ext $ zero_vadd _
 
-@[simp] lemma const_vadd_apply (v : V₁) (p : P₁) : const_vadd k P₁ v p = v +ᵥ p := rfl
+@[simp] lemma const_vadd_add (v w : V₁) :
+  const_vadd k P₁ (v + w) = (const_vadd k P₁ w).trans (const_vadd k P₁ v) := ext $ add_vadd _ _
 
-@[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
+@[simp] lemma const_vadd_symm (v : V₁) : (const_vadd k P₁ v).symm = const_vadd k P₁ (-v) :=
+ext $ λ _, rfl
+
+/-- A more bundled version of `affine_equiv.const_vadd`. -/
+@[simps]
+def const_vadd_hom : multiplicative V₁ →* P₁ ≃ᵃ[k] P₁ :=
+{ to_fun := λ v, const_vadd k P₁ v.to_add,
+  map_one' := const_vadd_zero _ _,
+  map_mul' := const_vadd_add _ _ }
+
+lemma const_vadd_nsmul (n : ℕ) (v : V₁) : const_vadd k P₁ (n • v) = (const_vadd k P₁ v)^n :=
+(const_vadd_hom k P₁).map_pow _ _
+
+lemma const_vadd_zsmul (z : ℤ) (v : V₁) : const_vadd k P₁ (z • v) = (const_vadd k P₁ v)^z :=
+(const_vadd_hom k P₁).map_zpow _ _
+
+section homothety
+
+omit V₁
+
+variables {R V P : Type*} [comm_ring R] [add_comm_group V] [module R V] [affine_space V P]
+include V
+
+/-- Fixing a point in affine space, homothety about this point gives a group homomorphism from (the
+centre of) the units of the scalars into the group of affine equivalences. -/
+def homothety_units_mul_hom (p : P) : Rˣ →* P ≃ᵃ[R] P :=
+equiv_units_affine_map.symm.to_monoid_hom.comp $ units.map (affine_map.homothety_hom p)
+
+@[simp] lemma coe_homothety_units_mul_hom_apply (p : P) (t : Rˣ) :
+  (homothety_units_mul_hom p t : P → P) = affine_map.homothety p (t : R) :=
+rfl
+
+@[simp] lemma coe_homothety_units_mul_hom_apply_symm (p : P) (t : Rˣ) :
+  ((homothety_units_mul_hom p t).symm : P → P) = affine_map.homothety p (↑t⁻¹ : R) :=
+rfl
+
+@[simp] lemma coe_homothety_units_mul_hom_eq_homothety_hom_coe (p : P) :
+  (coe : (P ≃ᵃ[R] P) → P →ᵃ[R] P) ∘ homothety_units_mul_hom p =
+  (affine_map.homothety_hom p) ∘ (coe : Rˣ → R) :=
+funext $ λ _, rfl
+
+end homothety
 
 variable {P₁}
 open function
@@ -326,6 +398,18 @@ lemma point_reflection_fixed_iff_of_module [invertible (2:k)] {x y : P₁} :
 ((injective_point_reflection_left_of_module k y).eq_iff' (point_reflection_self k y)).trans eq_comm
 
 end affine_equiv
+
+namespace linear_equiv
+
+/-- Interpret a linear equivalence between modules as an affine equivalence. -/
+def to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : V₁ ≃ᵃ[k] V₂ :=
+{ to_equiv := e.to_equiv,
+  linear := e,
+  map_vadd' := λ p v, e.map_add v p }
+
+@[simp] lemma coe_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : ⇑e.to_affine_equiv = e := rfl
+
+end linear_equiv
 
 namespace affine_map
 

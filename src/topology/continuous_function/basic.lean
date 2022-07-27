@@ -4,66 +4,108 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import topology.subset_properties
-import topology.tactic
-import topology.algebra.ordered.basic
+import data.set.Union_lift
+import topology.homeomorph
 
 /-!
-# Continuous bundled map
+# Continuous bundled maps
 
 In this file we define the type `continuous_map` of continuous bundled maps.
+
+We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
+be satisfied by itself and all stricter types.
 -/
 
-/-- Bundled continuous maps. -/
+open function
+
+/-- The type of continuous maps from `α` to `β`.
+
+When possible, instead of parametrizing results over `(f : C(α, β))`,
+you should parametrize over `{F : Type*} [continuous_map_class F α β] (f : F)`.
+
+When you extend this structure, make sure to extend `continuous_map_class`. -/
 @[protect_proj]
-structure continuous_map (α : Type*) (β : Type*)
-[topological_space α] [topological_space β] :=
+structure continuous_map (α β : Type*) [topological_space α] [topological_space β] :=
 (to_fun             : α → β)
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 
 notation `C(` α `, ` β `)` := continuous_map α β
 
+/-- `continuous_map_class F α β` states that `F` is a type of continuous maps.
+
+You should extend this class when you extend `continuous_map`. -/
+class continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
+  [topological_space β]
+  extends fun_like F α (λ _, β) :=
+(map_continuous (f : F) : continuous f)
+
+export continuous_map_class (map_continuous)
+
+attribute [continuity] map_continuous
+
+section continuous_map_class
+variables {F α β : Type*} [topological_space α] [topological_space β] [continuous_map_class F α β]
+include β
+
+lemma map_continuous_at (f : F) (a : α) : continuous_at f a := (map_continuous f).continuous_at
+
+lemma map_continuous_within_at (f : F) (s : set α) (a : α) : continuous_within_at f s a :=
+(map_continuous f).continuous_within_at
+
+instance : has_coe_t F C(α, β) := ⟨λ f, { to_fun := f, continuous_to_fun := map_continuous f }⟩
+
+end continuous_map_class
+
+/-! ### Continuous maps-/
+
 namespace continuous_map
+variables {α β γ δ : Type*} [topological_space α] [topological_space β] [topological_space γ]
+  [topological_space δ]
 
-attribute [continuity] continuous_map.continuous_to_fun
+instance : continuous_map_class C(α, β) α β :=
+{ coe := continuous_map.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_continuous := continuous_map.continuous_to_fun }
 
-variables {α : Type*} {β : Type*} {γ : Type*}
-variables [topological_space α] [topological_space β] [topological_space γ]
-
-instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
-variables {α β} {f g : continuous_map α β}
+-- this must come after the coe_to_fun definition
+initialize_simps_projections continuous_map (to_fun → apply)
 
-@[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
-@[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f :=
-by { cases f, dsimp, continuity, }
+@[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 
+/-- Copy of a `continuous_map` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
+{ to_fun := f',
+  continuous_to_fun := h.symm ▸ f.continuous_to_fun }
+
+variables {α β} {f g : C(α, β)}
+
+/-- Deprecated. Use `map_continuous` instead. -/
+protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+@[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f := f.1.continuous
+
+/-- Deprecated. Use `map_continuous_at` instead. -/
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at
 
-protected lemma continuous_within_at (f : C(α, β)) (s : set α) (x : α) :
-  continuous_within_at f s x :=
-f.continuous.continuous_within_at
-
+/-- Deprecated. Use `fun_like.congr_fun` instead. -/
 protected lemma congr_fun {f g : C(α, β)} (H : f = g) (x : α) : f x = g x := H ▸ rfl
+/-- Deprecated. Use `fun_like.congr_arg` instead. -/
 protected lemma congr_arg (f : C(α, β)) {x y : α} (h : x = y) : f x = f y := h ▸ rfl
 
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext H
-
-lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨continuous_map.congr_fun, ext⟩
-
-instance [inhabited β] : inhabited C(α, β) :=
-⟨{ to_fun := λ _, default _, }⟩
-
-lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
-by cases f; cases g; cases h; refl
+lemma coe_injective : @function.injective (C(α, β)) (α → β) coe_fn :=
+λ f g h, by cases f; cases g; congr'
 
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
-  ⇑(⟨f, h⟩ : continuous_map α β) = f := rfl
+  ⇑(⟨f, h⟩ : C(α, β)) = f := rfl
+
+lemma map_specializes (f : C(α, β)) {x y : α} (h : x ⤳ y) : f x ⤳ f y := h.map f.2
 
 section
 variables (α β)
@@ -78,134 +120,169 @@ def equiv_fn_of_discrete [discrete_topology α] : C(α, β) ≃ (α → β) :=
 
 end
 
-/-- The identity as a continuous map. -/
-def id : C(α, α) := ⟨id⟩
+variables (α)
 
-@[simp] lemma id_coe : (id : α → α) = _root_.id := rfl
-lemma id_apply (a : α) : id a = a := rfl
+/-- The identity as a continuous map. -/
+protected def id : C(α, α) := ⟨id⟩
+
+@[simp] lemma coe_id : ⇑(continuous_map.id α) = id := rfl
+
+/-- The constant map as a continuous map. -/
+def const (b : β) : C(α, β) := ⟨const α b⟩
+
+@[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
+
+instance [inhabited β] : inhabited C(α, β) :=
+⟨const α default⟩
+
+variables {α}
+
+@[simp] lemma id_apply (a : α) : continuous_map.id α a = a := rfl
+@[simp] lemma const_apply (b : β) (a : α) : const α b a = b := rfl
 
 /-- The composition of continuous maps, as a continuous map. -/
 def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩
 
-@[simp] lemma comp_coe (f : C(β, γ)) (g : C(α, β)) : (comp f g : α → γ) = f ∘ g := rfl
-lemma comp_apply (f : C(β, γ)) (g : C(α, β)) (a : α) : comp f g a = f (g a) := rfl
+@[simp] lemma coe_comp (f : C(β, γ)) (g : C(α, β)) : ⇑(comp f g) = f ∘ g := rfl
+@[simp] lemma comp_apply (f : C(β, γ)) (g : C(α, β)) (a : α) : comp f g a = f (g a) := rfl
+@[simp] lemma comp_assoc (f : C(γ, δ)) (g : C(β, γ)) (h : C(α, β)) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma id_comp (f : C(α, β)) : (continuous_map.id _).comp f = f := ext $ λ _, rfl
+@[simp] lemma comp_id (f : C(α, β)) : f.comp (continuous_map.id _) = f := ext $ λ _, rfl
+@[simp] lemma const_comp (c : γ) (f : C(α, β)) : (const β c).comp f = const α c := ext $ λ _, rfl
+@[simp] lemma comp_const (f : C(β, γ)) (b : β) : f.comp (const α b) = const α (f b) :=
+ext $ λ _, rfl
 
-/-- Constant map as a continuous map -/
-def const (b : β) : C(α, β) := ⟨λ x, b⟩
+lemma cancel_right {f₁ f₂ : C(β, γ)} {g : C(α, β)} (hg : surjective g) :
+  f₁.comp g = f₂.comp g ↔ f₁ = f₂ :=
+⟨λ h, ext $ hg.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
-@[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
-lemma const_apply (b : β) (a : α) : const b a = b := rfl
+lemma cancel_left {f : C(β, γ)} {g₁ g₂ : C(α, β)} (hf : injective f) :
+  f.comp g₁ = f.comp g₂ ↔ g₁ = g₂ :=
+⟨λ h, ext $ λ a, hf $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
 instance [nonempty α] [nontrivial β] : nontrivial C(α, β) :=
-{ exists_pair_ne := begin
-    obtain ⟨b₁, b₂, hb⟩ := exists_pair_ne β,
-    refine ⟨const b₁, const b₂, _⟩,
-    contrapose! hb,
-    inhabit α,
-    change const b₁ (default α) = const b₂ (default α),
-    simp [hb]
-  end }
+⟨let ⟨b₁, b₂, hb⟩ := exists_pair_ne β in
+    ⟨const _ b₁, const _ b₂, λ h, hb $ fun_like.congr_fun h $ classical.arbitrary α⟩⟩
 
-section
-variables [linear_ordered_add_comm_group β] [order_topology β]
+section prod
 
-/-- The pointwise absolute value of a continuous function as a continuous function. -/
-def abs (f : C(α, β)) : C(α, β) :=
-{ to_fun := λ x, abs (f x), }
+variables {α₁ α₂ β₁ β₂ : Type*}
+          [topological_space α₁] [topological_space α₂]
+          [topological_space β₁] [topological_space β₂]
 
-@[simp] lemma abs_apply (f : C(α, β)) (x : α) : f.abs x = _root_.abs (f x) :=
-rfl
+/-- Given two continuous maps `f` and `g`, this is the continuous map `x ↦ (f x, g x)`. -/
+def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
+  C(α, β₁ × β₂) :=
+{ to_fun := (λ x, (f x, g x)),
+  continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
+/-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
+@[simps] def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+  C(α₁ × β₁, α₂ × β₂) :=
+{ to_fun := prod.map f g,
+  continuous_to_fun := continuous.prod_map f.continuous g.continuous }
+
+@[simp] lemma prod_eval (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
+  (prod_mk f g) a = (f a, g a) := rfl
+
+end prod
+
+section pi
+
+variables {I A : Type*} {X : I → Type*}
+          [topological_space A] [∀ i, topological_space (X i)]
+
+/-- Abbreviation for product of continuous maps, which is continuous -/
+def pi (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
+{ to_fun := λ (a : A) (i : I), f i a, }
+
+@[simp] lemma pi_eval (f : Π i, C(A, X i)) (a : A) :
+  (pi f) a = λ i : I, (f i) a := rfl
+
+end pi
+
+section restrict
+
+variables (s : set α)
+
+/-- The restriction of a continuous function `α → β` to a subset `s` of `α`. -/
+def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
+
+@[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
+
+end restrict
+
+section gluing
+
+variables {ι : Type*}
+  (S : ι → set α)
+  (φ : Π i : ι, C(S i, β))
+  (hφ : ∀ i j (x : α) (hxi : x ∈ S i) (hxj : x ∈ S j), φ i ⟨x, hxi⟩ = φ j ⟨x, hxj⟩)
+  (hS : ∀ x : α, ∃ i, S i ∈ nhds x)
+
+include hφ hS
+
+/-- A family `φ i` of continuous maps `C(S i, β)`, where the domains `S i` contain a neighbourhood
+of each point in `α` and the functions `φ i` agree pairwise on intersections, can be glued to
+construct a continuous map in `C(α, β)`. -/
+noncomputable def lift_cover : C(α, β) :=
+begin
+  have H : (⋃ i, S i) = set.univ,
+  { rw set.eq_univ_iff_forall,
+    intros x,
+    rw set.mem_Union,
+    obtain ⟨i, hi⟩ := hS x,
+    exact ⟨i, mem_of_mem_nhds hi⟩ },
+  refine ⟨set.lift_cover S (λ i, φ i) hφ H, continuous_subtype_nhds_cover hS _⟩,
+  intros i,
+  convert (φ i).continuous,
+  ext x,
+  exact set.lift_cover_coe x,
 end
 
-/-!
-We now set up the partial order and lattice structure (given by pointwise min and max)
-on continuous functions.
--/
-section lattice
+variables {S φ hφ hS}
 
-instance partial_order [partial_order β] :
-  partial_order C(α, β) :=
-partial_order.lift (λ f, f.to_fun) (by tidy)
+@[simp] lemma lift_cover_coe {i : ι} (x : S i) : lift_cover S φ hφ hS x = φ i x :=
+set.lift_cover_coe _
 
-lemma le_def [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
-pi.le_def
+@[simp] lemma lift_cover_restrict {i : ι} : (lift_cover S φ hφ hS).restrict (S i) = φ i :=
+ext $ lift_cover_coe
 
-lemma lt_def [partial_order β] {f g : C(α, β)} :
-  f < g ↔ (∀ a, f a ≤ g a) ∧ (∃ a, f a < g a) :=
-pi.lt_def
+omit hφ hS
 
-instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
-{ sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
+variables (A : set (set α))
+  (F : Π (s : set α) (hi : s ∈ A), C(s, β))
+  (hF : ∀ s (hs : s ∈ A) t (ht : t ∈ A) (x : α) (hxi : x ∈ s) (hxj : x ∈ t),
+    F s hs ⟨x, hxi⟩ = F t ht ⟨x, hxj⟩)
+  (hA : ∀ x : α, ∃ i ∈ A, i ∈ nhds x)
 
-@[simp, norm_cast] lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
-  ((f ⊔ g : C(α, β)) : α → β) = (f ⊔ g : α → β) :=
-rfl
+include hF hA
 
-@[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
-  (f ⊔ g) a = max (f a) (g a) :=
-rfl
+/-- A family `F s` of continuous maps `C(s, β)`, where (1) the domains `s` are taken from a set `A`
+of sets in `α` which contain a neighbourhood of each point in `α` and (2) the functions `F s` agree
+pairwise on intersections, can be glued to construct a continuous map in `C(α, β)`. -/
+noncomputable def lift_cover' : C(α, β) :=
+begin
+  let S : A → set α := coe,
+  let F : Π i : A, C(i, β) := λ i, F i i.prop,
+  refine lift_cover S F (λ i j, hF i i.prop j j.prop) _,
+  intros x,
+  obtain ⟨s, hs, hsx⟩ := hA x,
+  exact ⟨⟨s, hs⟩, hsx⟩
+end
 
-instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
-{ le_sup_left := λ f g, le_def.mpr (by simp [le_refl]),
-  le_sup_right := λ f g, le_def.mpr (by simp [le_refl]),
-  sup_le := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
-  ..continuous_map.partial_order,
-  ..continuous_map.has_sup, }
+variables {A F hF hA}
 
-instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
-{ inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
+@[simp] lemma lift_cover_coe' {s : set α} {hs : s ∈ A} (x : s) :
+  lift_cover' A F hF hA x = F s hs x :=
+let x' : (coe : A → set α) ⟨s, hs⟩ := x in lift_cover_coe x'
 
-@[simp, norm_cast] lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
-  ((f ⊓ g : C(α, β)) : α → β) = (f ⊓ g : α → β) :=
-rfl
+@[simp] lemma lift_cover_restrict' {s : set α} {hs : s ∈ A} :
+  (lift_cover' A F hF hA).restrict s = F s hs :=
+ext $ lift_cover_coe'
 
-@[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
-  (f ⊓ g) a = min (f a) (g a) :=
-rfl
-
-instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
-{ inf_le_left := λ f g, le_def.mpr (by simp [le_refl]),
-  inf_le_right := λ f g, le_def.mpr (by simp [le_refl]),
-  le_inf := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
-  ..continuous_map.partial_order,
-  ..continuous_map.has_inf, }
-
-instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
-{ ..continuous_map.semilattice_inf,
-  ..continuous_map.semilattice_sup }
-
--- TODO transfer this lattice structure to `bounded_continuous_function`
-
-section sup'
-variables [linear_order γ] [order_closed_topology γ]
-
-lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
-  s.sup' H f b = s.sup' H (λ a, f a b) :=
-finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
-
-@[simp, norm_cast]
-lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
-  ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
-by { ext, simp [sup'_apply], }
-
-end sup'
-
-section inf'
-variables [linear_order γ] [order_closed_topology γ]
-
-lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
-  s.inf' H f b = s.inf' H (λ a, f a b) :=
-@sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b
-
-@[simp, norm_cast]
-lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
-  ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
-@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
-
-end inf'
-
-end lattice
+end gluing
 
 end continuous_map
 

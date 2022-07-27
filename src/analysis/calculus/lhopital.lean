@@ -29,7 +29,7 @@ L'Hôpital's rule, L'Hopital's rule
 -/
 
 open filter set
-open_locale filter topological_space
+open_locale filter topological_space pointwise
 
 variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 
@@ -37,7 +37,7 @@ variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 ## Interval-based versions
 
 We start by proving statements where all conditions (derivability, `g' ≠ 0`) have
-to be satisfied on an explicitely-provided interval.
+to be satisfied on an explicitly-provided interval.
 -/
 
 namespace has_deriv_at
@@ -47,14 +47,14 @@ include hab
 theorem lhopital_zero_right_on_Ioo
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
   (hg' : ∀ x ∈ Ioo a b, g' x ≠ 0)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 0)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 0))
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[Ioi a] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[Ioi a] a) l :=
+  (hfa : tendsto f (𝓝[>] a) (𝓝 0)) (hga : tendsto g (𝓝[>] a) (𝓝 0))
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[>] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[>] a) l :=
 begin
   have sub : ∀ x ∈ Ioo a b, Ioo a x ⊆ Ioo a b := λ x hx, Ioo_subset_Ioo (le_refl a) (le_of_lt hx.2),
   have hg : ∀ x ∈ (Ioo a b), g x ≠ 0,
   { intros x hx h,
-    have : tendsto g (𝓝[Iio x] x) (𝓝 0),
+    have : tendsto g (𝓝[<] x) (𝓝 0),
     { rw [← h, ← nhds_within_Ioo_eq_nhds_within_Iio hx.1],
       exact ((hgg' x hx).continuous_at.continuous_within_at.mono $ sub x hx).tendsto },
     obtain ⟨y, hyx, hy⟩ : ∃ c ∈ Ioo a x, g' c = 0,
@@ -84,7 +84,7 @@ begin
     (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
       (tendsto_nhds_within_of_tendsto_nhds tendsto_id) _ _) _,
   all_goals
-  { apply eventually_nhds_with_of_forall,
+  { apply eventually_nhds_within_of_forall,
     intros x hx,
     have := cmp x hx,
     try {simp},
@@ -126,7 +126,7 @@ begin
           rwa [mul_comm, ← neg_eq_neg_one_mul, neg_eq_zero] at h })
     (hfb.comp tendsto_neg_nhds_within_Ioi_neg)
     (hgb.comp tendsto_neg_nhds_within_Ioi_neg)
-    (by { simp only [neg_div_neg_eq, mul_one, mul_neg_eq_neg_mul_symm],
+    (by { simp only [neg_div_neg_eq, mul_one, mul_neg],
           exact (tendsto_congr $ λ x, rfl).mp (hdiv.comp tendsto_neg_nhds_within_Ioi_neg) }),
   have := this.comp tendsto_neg_nhds_within_Iio,
   unfold function.comp at this,
@@ -182,7 +182,7 @@ begin
           refine neg_ne_zero.mpr (inv_ne_zero $ pow_ne_zero _ $ ne_of_gt hx) }),
   have := this.comp tendsto_inv_at_top_zero',
   unfold function.comp at this,
-  simpa only [inv_inv'],
+  simpa only [inv_inv],
 end
 
 theorem lhopital_zero_at_bot_on_Iio
@@ -205,7 +205,7 @@ begin
           rwa [mul_comm, ← neg_eq_neg_one_mul, neg_eq_zero] at h })
     (hfbot.comp tendsto_neg_at_top_at_bot)
     (hgbot.comp tendsto_neg_at_top_at_bot)
-    (by { simp only [mul_one, mul_neg_eq_neg_mul_symm, neg_div_neg_eq],
+    (by { simp only [mul_one, mul_neg, neg_div_neg_eq],
           exact (tendsto_congr $ λ x, rfl).mp (hdiv.comp tendsto_neg_at_top_at_bot) }),
   have := this.comp tendsto_neg_at_bot_at_top,
   unfold function.comp at this,
@@ -220,9 +220,9 @@ include hab
 
 theorem lhopital_zero_right_on_Ioo
   (hdf : differentiable_on ℝ f (Ioo a b)) (hg' : ∀ x ∈ Ioo a b, deriv g x ≠ 0)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 0)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 0))
-  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[Ioi a] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[Ioi a] a) l :=
+  (hfa : tendsto f (𝓝[>] a) (𝓝 0)) (hga : tendsto g (𝓝[>] a) (𝓝 0))
+  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[>] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[>] a) l :=
 begin
   have hdf : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
     from λ x hx, (hdf x hx).differentiable_at (Ioo_mem_nhds hx.1 hx.2),
@@ -307,19 +307,19 @@ namespace has_deriv_at
 
 /-- L'Hôpital's rule for approaching a real from the right, `has_deriv_at` version -/
 theorem lhopital_zero_nhds_right
-  (hff' : ∀ᶠ x in 𝓝[Ioi a] a, has_deriv_at f (f' x) x)
-  (hgg' : ∀ᶠ x in 𝓝[Ioi a] a, has_deriv_at g (g' x) x)
-  (hg' : ∀ᶠ x in 𝓝[Ioi a] a, g' x ≠ 0)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 0)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 0))
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[Ioi a] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[Ioi a] a) l :=
+  (hff' : ∀ᶠ x in 𝓝[>] a, has_deriv_at f (f' x) x)
+  (hgg' : ∀ᶠ x in 𝓝[>] a, has_deriv_at g (g' x) x)
+  (hg' : ∀ᶠ x in 𝓝[>] a, g' x ≠ 0)
+  (hfa : tendsto f (𝓝[>] a) (𝓝 0)) (hga : tendsto g (𝓝[>] a) (𝓝 0))
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[>] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[>] a) l :=
 begin
   rw eventually_iff_exists_mem at *,
   rcases hff' with ⟨s₁, hs₁, hff'⟩,
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ 𝓝[Ioi a] a := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ 𝓝[>] a := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_nhds_within_Ioi_iff_exists_Ioo_subset at hs,
   rcases hs with ⟨u, hau, hu⟩,
   refine lhopital_zero_right_on_Ioo hau _ _ _ hfa hga hdiv;
@@ -330,19 +330,19 @@ end
 
 /-- L'Hôpital's rule for approaching a real from the left, `has_deriv_at` version -/
 theorem lhopital_zero_nhds_left
-  (hff' : ∀ᶠ x in 𝓝[Iio a] a, has_deriv_at f (f' x) x)
-  (hgg' : ∀ᶠ x in 𝓝[Iio a] a, has_deriv_at g (g' x) x)
-  (hg' : ∀ᶠ x in 𝓝[Iio a] a, g' x ≠ 0)
-  (hfa : tendsto f (𝓝[Iio a] a) (𝓝 0)) (hga : tendsto g (𝓝[Iio a] a) (𝓝 0))
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[Iio a] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[Iio a] a) l :=
+  (hff' : ∀ᶠ x in 𝓝[<] a, has_deriv_at f (f' x) x)
+  (hgg' : ∀ᶠ x in 𝓝[<] a, has_deriv_at g (g' x) x)
+  (hg' : ∀ᶠ x in 𝓝[<] a, g' x ≠ 0)
+  (hfa : tendsto f (𝓝[<] a) (𝓝 0)) (hga : tendsto g (𝓝[<] a) (𝓝 0))
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[<] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[<] a) l :=
 begin
   rw eventually_iff_exists_mem at *,
   rcases hff' with ⟨s₁, hs₁, hff'⟩,
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ 𝓝[Iio a] a := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ 𝓝[<] a := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_nhds_within_Iio_iff_exists_Ioo_subset at hs,
   rcases hs with ⟨l, hal, hl⟩,
   refine lhopital_zero_left_on_Ioo hal _ _ _ hfa hga hdiv;
@@ -396,7 +396,7 @@ begin
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ at_top := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ at_top := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_at_top_sets at hs,
   rcases hs with ⟨l, hl⟩,
   have hl' : Ioi l ⊆ s := λ x hx, hl x (le_of_lt hx),
@@ -420,7 +420,7 @@ begin
   rcases hgg' with ⟨s₂, hs₂, hgg'⟩,
   rcases hg' with ⟨s₃, hs₃, hg'⟩,
   let s := s₁ ∩ s₂ ∩ s₃,
-  have hs : s ∈ at_bot := inter_mem_sets (inter_mem_sets hs₁ hs₂) hs₃,
+  have hs : s ∈ at_bot := inter_mem (inter_mem hs₁ hs₂) hs₃,
   rw mem_at_bot_sets at hs,
   rcases hs with ⟨l, hl⟩,
   have hl' : Iio l ⊆ s := λ x hx, hl x (le_of_lt hx),
@@ -436,36 +436,36 @@ namespace deriv
 
 /-- **L'Hôpital's rule** for approaching a real from the right, `deriv` version -/
 theorem lhopital_zero_nhds_right
-  (hdf : ∀ᶠ x in 𝓝[Ioi a] a, differentiable_at ℝ f x)
-  (hg' : ∀ᶠ x in 𝓝[Ioi a] a, deriv g x ≠ 0)
-  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 0)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 0))
-  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[Ioi a] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[Ioi a] a) l :=
+  (hdf : ∀ᶠ x in 𝓝[>] a, differentiable_at ℝ f x)
+  (hg' : ∀ᶠ x in 𝓝[>] a, deriv g x ≠ 0)
+  (hfa : tendsto f (𝓝[>] a) (𝓝 0)) (hga : tendsto g (𝓝[>] a) (𝓝 0))
+  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[>] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[>] a) l :=
 begin
-  have hdg : ∀ᶠ x in 𝓝[Ioi a] a, differentiable_at ℝ g x,
+  have hdg : ∀ᶠ x in 𝓝[>] a, differentiable_at ℝ g x,
     from hg'.mp (eventually_of_forall $
       λ _ hg', classical.by_contradiction (λ h, hg' (deriv_zero_of_not_differentiable_at h))),
-  have hdf' : ∀ᶠ x in 𝓝[Ioi a] a, has_deriv_at f (deriv f x) x,
+  have hdf' : ∀ᶠ x in 𝓝[>] a, has_deriv_at f (deriv f x) x,
     from hdf.mp (eventually_of_forall $ λ _, differentiable_at.has_deriv_at),
-  have hdg' : ∀ᶠ x in 𝓝[Ioi a] a, has_deriv_at g (deriv g x) x,
+  have hdg' : ∀ᶠ x in 𝓝[>] a, has_deriv_at g (deriv g x) x,
     from hdg.mp (eventually_of_forall $ λ _, differentiable_at.has_deriv_at),
   exact has_deriv_at.lhopital_zero_nhds_right hdf' hdg' hg' hfa hga hdiv
 end
 
 /-- **L'Hôpital's rule** for approaching a real from the left, `deriv` version -/
 theorem lhopital_zero_nhds_left
-  (hdf : ∀ᶠ x in 𝓝[Iio a] a, differentiable_at ℝ f x)
-  (hg' : ∀ᶠ x in 𝓝[Iio a] a, deriv g x ≠ 0)
-  (hfa : tendsto f (𝓝[Iio a] a) (𝓝 0)) (hga : tendsto g (𝓝[Iio a] a) (𝓝 0))
-  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[Iio a] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[Iio a] a) l :=
+  (hdf : ∀ᶠ x in 𝓝[<] a, differentiable_at ℝ f x)
+  (hg' : ∀ᶠ x in 𝓝[<] a, deriv g x ≠ 0)
+  (hfa : tendsto f (𝓝[<] a) (𝓝 0)) (hga : tendsto g (𝓝[<] a) (𝓝 0))
+  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[<] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[<] a) l :=
 begin
-  have hdg : ∀ᶠ x in 𝓝[Iio a] a, differentiable_at ℝ g x,
+  have hdg : ∀ᶠ x in 𝓝[<] a, differentiable_at ℝ g x,
     from hg'.mp (eventually_of_forall $
       λ _ hg', classical.by_contradiction (λ h, hg' (deriv_zero_of_not_differentiable_at h))),
-  have hdf' : ∀ᶠ x in 𝓝[Iio a] a, has_deriv_at f (deriv f x) x,
+  have hdf' : ∀ᶠ x in 𝓝[<] a, has_deriv_at f (deriv f x) x,
     from hdf.mp (eventually_of_forall $ λ _, differentiable_at.has_deriv_at),
-  have hdg' : ∀ᶠ x in 𝓝[Iio a] a, has_deriv_at g (deriv g x) x,
+  have hdg' : ∀ᶠ x in 𝓝[<] a, has_deriv_at g (deriv g x) x,
     from hdg.mp (eventually_of_forall $ λ _, differentiable_at.has_deriv_at),
   exact has_deriv_at.lhopital_zero_nhds_left hdf' hdg' hg' hfa hga hdiv
 end

@@ -29,11 +29,11 @@ data types like `ℕ` or over `Type.{u-1}` -/
 def pi (v : typevec.{u} n) : Type.{u} :=
 Π α : A, F α v
 
-instance sigma.inhabited {α} [inhabited A] [inhabited (F (default A) α)] : inhabited (sigma F α) :=
-⟨ ⟨default A, default _⟩ ⟩
+instance sigma.inhabited {α} [inhabited A] [inhabited (F default α)] : inhabited (sigma F α) :=
+⟨⟨default, default⟩⟩
 
 instance pi.inhabited {α} [Π a, inhabited (F a α)] : inhabited (pi F α) :=
-⟨ λ a, default _ ⟩
+⟨λ a, default⟩
 
 variables [Π α, mvfunctor $ F α]
 
@@ -64,8 +64,7 @@ instance : mvqpf (sigma F) :=
   repr := sigma.repr F,
   abs_repr := by rintros α ⟨x,f⟩; simp [sigma.repr,sigma.abs,abs_repr],
   abs_map := by rintros α β f ⟨x,g⟩; simp [sigma.abs,mvpfunctor.map_eq];
-                simp [(<$$>),mvfunctor._match_1,← abs_map,← mvpfunctor.map_eq]
- }
+                simp [(<$$>),mvfunctor._match_1,← abs_map,← mvpfunctor.map_eq] }
 
 end sigma
 
@@ -96,8 +95,7 @@ instance : mvqpf (pi F) :=
   abs_repr := by rintros α f; ext; simp [pi.repr,pi.abs,abs_repr],
   abs_map := by rintros α β f ⟨x,g⟩; simp only [pi.abs, mvpfunctor.map_eq]; ext;
                 simp only [(<$$>)];
-                simp only [←abs_map, mvpfunctor.map_eq]; refl
- }
+                simp only [←abs_map, mvpfunctor.map_eq]; refl }
 
 end pi
 

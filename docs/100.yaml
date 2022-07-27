@@ -109,12 +109,14 @@
   title  : Feuerbach’s Theorem
 30:
   title  : The Ballot Problem
+  author : Bhavik Mehta, Kexing Ying
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/30_ballot_problem.lean
 31:
   title  : Ramsey’s Theorem
   author : Bhavik Mehta
   links  :
     result: https://github.com/b-mehta/combinatorics/blob/extras/src/inf_ramsey.lean
-
 32:
   title  : The Four Color Problem
 33:
@@ -129,6 +131,9 @@
   title  : Brouwer Fixed Point Theorem
 37:
   title  : The Solution of a Cubic
+  author : Jeoff Lee
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/37_solution_of_cubic.lean
 38:
   title  : Arithmetic Mean/Geometric Mean
   decl   : real.geom_mean_le_arith_mean_weighted
@@ -155,6 +160,9 @@
   author : Chris Hughes
 45:
   title  : The Partition Theorem
+  author : Bhavik Mehta, Aaron Anderson
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/45_partition.lean
 46:
   title  : The Solution of the General Quartic Equation
 47:
@@ -163,7 +171,7 @@
   title  : Dirichlet’s Theorem
 49:
   title  : The Cayley-Hamilton Theorem
-  decl   : aeval_self_char_poly
+  decl   : matrix.aeval_self_charpoly
   author : Scott Morrison
 50:
   title  : The Number of Platonic Solids
@@ -198,6 +206,8 @@
   author : mathlib <!--Jeremy Avigad in lean 2-->
 59:
   title  : The Laws of Large Numbers
+  decl   : probability_theory.strong_law_ae
+  author : Sébastien Gouëzel
 60:
   title  : Bezout’s Theorem
   decl   : nat.gcd_eq_gcd_ab
@@ -206,6 +216,8 @@
   title  : Theorem of Ceva
 62:
   title  : Fair Games Theorem
+  decl   : measure_theory.submartingale_iff_expected_stopped_value_mono
+  author : Kexing Ying
 63:
   title  : Cantor’s Theorem
   decl   : cardinal.cantor
@@ -221,7 +233,7 @@
 66:
   title  : Sum of a Geometric Series
   decls  :
-    - geom_sum
+    - geom_sum_Ico
     - nnreal.has_sum_geometric
   author : Sander R. Dahmen (finite) and Johannes Hölzl (infinite)
 67:
@@ -275,6 +287,10 @@
   author : Yury G. Kudryashov
 76:
   title  : Fourier Series
+  decls   :
+    - fourier_series_repr
+    - has_sum_fourier_series
+  author : Heather Macbeth
 77:
   title  : Sum of kth powers
   decls  :
@@ -303,6 +319,9 @@
   note   : "it also has a generalized version, by showing that every Euclidean domain is a unique factorization domain, and showing that the integers form a Euclidean domain."
 81:
   title  : Divergence of the Prime Reciprocal Series
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/81_sum_of_prime_reciprocals_diverges.lean
+  author : Manuel Candales
 82:
   title  : Dissection of Cubes (J.E. Littlewood’s ‘elegant’ proof)
   links :
@@ -328,6 +347,10 @@
   title  : Desargues’s Theorem
 88:
   title  : Derangements Formula
+  decls  :
+    - card_derangements_eq_num_derangements
+    - num_derangements_sum
+  author : Henry Swanson
 89:
   title  : The Factor and Remainder Theorems
   decls  :

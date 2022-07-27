@@ -3,7 +3,8 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import measure_theory.interval_integral
+import measure_theory.integral.interval_integral
+import analysis.special_functions.trigonometric.arctan_deriv
 
 /-!
 # Integration of specific interval integrals
@@ -30,18 +31,61 @@ integrate, integration, integrable, integrability
 -/
 
 open real nat set finset
-open_locale real big_operators
+open_locale real big_operators interval
 variables {a b : ℝ} (n : ℕ)
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ] (c d : ℝ)
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [is_locally_finite_measure μ] (c d : ℝ)
 
 /-! ### Interval integrability -/
 
 @[simp]
 lemma interval_integrable_pow : interval_integrable (λ x, x^n) μ a b :=
 (continuous_pow n).interval_integrable a b
+
+lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x, x ^ n) μ a b :=
+(continuous_on_id.zpow₀ n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+
+lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) :
+  interval_integrable (λ x, x ^ r) μ a b :=
+(continuous_on_id.rpow_const $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+
+/-- Alternative version with a weaker hypothesis on `r`, but assuming the measure is volume. -/
+lemma interval_integrable_rpow' {r : ℝ} (h : -1 < r) :
+  interval_integrable (λ x, x ^ r) volume a b :=
+begin
+  suffices : ∀ (c : ℝ), interval_integrable (λ x, x ^ r) volume 0 c,
+  { exact interval_integrable.trans (this a).symm (this b) },
+  have : ∀ (c : ℝ), (0 ≤ c) → interval_integrable (λ x, x ^ r) volume 0 c,
+  { intros c hc,
+    rw [interval_integrable_iff, interval_oc_of_le hc],
+    have hderiv : ∀ x ∈ Ioo 0 c, has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
+    { intros x hx, convert (real.has_deriv_at_rpow_const (or.inl hx.1.ne')).div_const (r + 1),
+      field_simp [(by linarith : r + 1 ≠ 0)], ring, },
+    apply integrable_on_deriv_of_nonneg hc _ hderiv,
+    { intros x hx, apply rpow_nonneg_of_nonneg hx.1.le, },
+    { refine (continuous_on_id.rpow_const _).div_const, intros x hx, right, linarith } },
+  intro c, rcases le_total 0 c with hc|hc,
+  { exact this c hc },
+  { rw [interval_integrable.iff_comp_neg, neg_zero],
+    have m := (this (-c) (by linarith)).smul (cos (r * π)),
+    rw interval_integrable_iff at m ⊢,
+    refine m.congr_fun _ measurable_set_Ioc, intros x hx,
+    rw interval_oc_of_le (by linarith : 0 ≤ -c) at hx,
+    simp only [pi.smul_apply, algebra.id.smul_eq_mul, log_neg_eq_log, mul_comm,
+      rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0)], }
+end
+
+lemma interval_integrable_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) :
+  interval_integrable (λ x : ℝ, (x : ℂ) ^ r) volume a b :=
+begin
+  refine (complex.continuous_of_real.continuous_on.cpow_const _).interval_integrable,
+  intros c hc,
+  left,
+  exact_mod_cast lt_of_lt_of_le (lt_min ha hb) hc.left,
+end
 
 @[simp]
 lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
@@ -66,14 +110,14 @@ lemma interval_integrable.div (h : interval_integrable f ν a b) :
   interval_integrable (λ x, f x / c) ν a b :=
 interval_integrable.mul_const c⁻¹ h
 
-lemma interval_integrable_one_div (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0)
-  (hf : continuous_on f (interval a b)) :
+lemma interval_integrable_one_div (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0)
+  (hf : continuous_on f [a, b]) :
   interval_integrable (λ x, 1 / f x) μ a b :=
 (continuous_on_const.div hf h).interval_integrable
 
 @[simp]
-lemma interval_integrable_inv (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0)
-  (hf : continuous_on f (interval a b)) :
+lemma interval_integrable_inv (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0)
+  (hf : continuous_on f [a, b]) :
   interval_integrable (λ x, (f x)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div h hf
 
@@ -83,12 +127,12 @@ continuous_exp.interval_integrable a b
 
 @[simp]
 lemma interval_integrable.log
-  (hf : continuous_on f (interval a b)) (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
+  (hf : continuous_on f [a, b]) (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0) :
   interval_integrable (λ x, log (f x)) μ a b :=
 (continuous_on.log hf h).interval_integrable
 
 @[simp]
-lemma interval_integrable_log (h : (0:ℝ) ∉ interval a b) :
+lemma interval_integrable_log (h : (0:ℝ) ∉ [a, b]) :
   interval_integrable log μ a b :=
 interval_integrable.log continuous_on_id $ λ x hx, ne_of_mem_of_not_mem hx h
 
@@ -110,20 +154,6 @@ end
 @[simp]
 lemma interval_integrable_inv_one_add_sq : interval_integrable (λ x : ℝ, (1 + x^2)⁻¹) μ a b :=
 by simpa only [one_div] using interval_integrable_one_div_one_add_sq
-
-/-! ### Integral of a function scaled by a constant -/
-
-@[simp]
-lemma integral_const_mul : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
-integral_smul c
-
-@[simp]
-lemma integral_mul_const : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
-by simp only [mul_comm, integral_const_mul]
-
-@[simp]
-lemma integral_div : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
-integral_mul_const c⁻¹
 
 /-! ### Integrals of the form `c * ∫ x in a..b, f (c * x + d)` -/
 
@@ -177,15 +207,94 @@ open interval_integral
 
 /-! ### Integrals of simple functions -/
 
-@[simp]
-lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+lemma integral_rpow {r : ℝ} (h : -1 < r ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
+  ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
-  have hderiv : deriv (λ x : ℝ, x ^ (n + 1) / (n + 1)) = λ x, x ^ n,
-  { ext,
-    have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast succ_ne_zero n,
-    simp [mul_div_assoc, mul_div_cancel' _ hne] },
-  rw integral_deriv_eq_sub' _ hderiv;
-  norm_num [div_sub_div_same, continuous_on_pow],
+  rw sub_div,
+  have hderiv : ∀ (x : ℝ), x ≠ 0 → has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { intros x hx,
+    convert (real.has_deriv_at_rpow_const (or.inl hx)).div_const (r + 1),
+    rw [add_sub_cancel, mul_div_cancel_left],
+    contrapose! h, rw ←eq_neg_iff_add_eq_zero at h, rw h, tauto, },
+  cases h,
+  { suffices : ∀ (c : ℝ), ∫ x in 0..c, x ^ r = c ^ (r + 1) / (r + 1),
+    { rw [←integral_add_adjacent_intervals
+        (interval_integrable_rpow' h) (interval_integrable_rpow' h), this b],
+      have t := this a, rw integral_symm at t, apply_fun (λ x, -x) at t, rw neg_neg at t,
+      rw t, ring },
+    intro c, rcases le_total 0 c with hc|hc,
+    { convert integral_eq_sub_of_has_deriv_at_of_le hc _ (λ x hx, hderiv x hx.1.ne') _,
+      { rw zero_rpow, ring, linarith,},
+      { apply continuous_at.continuous_on, intros x hx,
+        refine (continuous_at_id.rpow_const _).div_const, right, linarith,},
+      apply interval_integrable_rpow' h },
+    { rw integral_symm, symmetry, rw eq_neg_iff_eq_neg,
+      convert integral_eq_sub_of_has_deriv_at_of_le hc _ (λ x hx, hderiv x hx.2.ne) _,
+      { rw zero_rpow, ring, linarith },
+      { apply continuous_at.continuous_on, intros x hx,
+        refine (continuous_at_id.rpow_const _).div_const, right, linarith },
+      apply interval_integrable_rpow' h, } },
+  { have hderiv' : ∀ (x : ℝ), x ∈ [a, b] → has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
+    { intros x hx, apply hderiv x, exact ne_of_mem_of_not_mem hx h.2 },
+    exact integral_eq_sub_of_has_deriv_at hderiv' (interval_integrable_rpow (or.inr h.2)) },
+end
+
+lemma integral_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1) :
+  ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+begin
+  suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { rw sub_div,
+    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_cpow ha hb) },
+  intros x hx,
+  suffices : has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { simpa using has_deriv_at.comp x this complex.of_real_clm.has_deriv_at },
+  have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
+  { left,
+    norm_cast,
+    calc 0 < min a b : lt_min ha hb ... ≤ x : hx.left, },
+  convert ((has_deriv_at_id (x:ℂ)).cpow_const hx').div_const (r + 1),
+  simp only [id.def, add_sub_cancel, mul_one], rw [mul_comm, mul_div_cancel],
+  contrapose! hr, rwa add_eq_zero_iff_eq_neg at hr,
+end
+
+
+lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
+  ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+begin
+  replace h : -1 < (n : ℝ) ∨ (n : ℝ) ≠ -1 ∧ (0 : ℝ) ∉ [a, b], by exact_mod_cast h,
+  exact_mod_cast integral_rpow h,
+end
+
+@[simp] lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
+by simpa using integral_zpow (or.inl (int.coe_nat_nonneg n))
+
+/-- Integral of `|x - a| ^ n` over `Ι a b`. This integral appears in the proof of the
+Picard-Lindelöf/Cauchy-Lipschitz theorem. -/
+lemma integral_pow_abs_sub_interval_oc :
+  ∫ x in Ι a b, |x - a| ^ n = |b - a| ^ (n + 1) / (n + 1) :=
+begin
+  cases le_or_lt a b with hab hab,
+  { calc ∫ x in Ι a b, |x - a| ^ n = ∫ x in a..b, |x - a| ^ n :
+      by rw [interval_oc_of_le hab, ← integral_of_le hab]
+    ... = ∫ x in 0..(b - a), x ^ n :
+      begin
+        simp only [integral_comp_sub_right (λ x, |x| ^ n), sub_self],
+        refine integral_congr (λ x hx, congr_arg2 has_pow.pow (abs_of_nonneg $ _) rfl),
+        rw interval_of_le (sub_nonneg.2 hab) at hx,
+        exact hx.1
+      end
+    ... = |b - a| ^ (n + 1) / (n + 1) : by simp [abs_of_nonneg (sub_nonneg.2 hab)] },
+  { calc ∫ x in Ι a b, |x - a| ^ n = ∫ x in b..a, |x - a| ^ n :
+      by rw [interval_oc_of_lt hab, ← integral_of_le hab.le]
+    ... = ∫ x in b - a..0, (-x) ^ n :
+      begin
+        simp only [integral_comp_sub_right (λ x, |x| ^ n), sub_self],
+        refine integral_congr (λ x hx, congr_arg2 has_pow.pow (abs_of_nonpos $ _) rfl),
+        rw interval_of_le (sub_nonpos.2 hab.le) at hx,
+        exact hx.2
+      end
+    ... = |b - a| ^ (n + 1) / (n + 1) :
+      by simp [integral_comp_neg (λ x, x ^ n), abs_of_neg (sub_neg.2 hab)] }
 end
 
 @[simp]
@@ -196,12 +305,15 @@ by simpa using integral_pow 1
 lemma integral_one : ∫ x in a..b, (1 : ℝ) = b - a :=
 by simp only [mul_one, smul_eq_mul, integral_const]
 
+lemma integral_const_on_unit_interval : ∫ x in a..(a + 1), b = b :=
+by simp
+
 @[simp]
-lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log (b / a) :=
+lemma integral_inv (h : (0:ℝ) ∉ [a, b]) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
-        (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h),
+        (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
       log_div (h' b right_mem_interval) (h' a left_mem_interval)],
 end
 
@@ -213,7 +325,7 @@ integral_inv $ not_mem_interval_of_lt ha hb
 lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 integral_inv $ not_mem_interval_of_gt ha hb
 
-lemma integral_one_div (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+lemma integral_one_div (h : (0:ℝ) ∉ [a, b]) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
 by simp only [one_div, integral_inv h]
 
 lemma integral_one_div_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
@@ -226,14 +338,30 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_exp]
 
+lemma integral_exp_mul_complex {c : ℂ} (hc : c ≠ 0) :
+  ∫ x in a..b, complex.exp (c * x) = (complex.exp (c * b) - complex.exp (c * a)) / c :=
+begin
+  have D : ∀ (x : ℝ), has_deriv_at (λ (y : ℝ), complex.exp (c * y) / c) (complex.exp (c * x)) x,
+  { intro x,
+    conv { congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, },
+    convert ((complex.has_deriv_at_exp _).comp x _).div_const c using 1,
+    simpa only [complex.of_real_clm_apply, complex.of_real_one, one_mul, mul_one, mul_comm] using
+      complex.of_real_clm.has_deriv_at.mul_const c },
+  rw integral_deriv_eq_sub' _ (funext (λ x, (D x).deriv)) (λ x hx, (D x).differentiable_at),
+  { ring_nf },
+  { apply continuous.continuous_on, continuity,}
+end
+
 @[simp]
-lemma integral_log (h : (0:ℝ) ∉ interval a b) :
+lemma integral_log (h : (0:ℝ) ∉ [a, b]) :
   ∫ x in a..b, log x = b * log b - a * log a - b + a :=
 begin
   obtain ⟨h', heq⟩ := ⟨λ x hx, ne_of_mem_of_not_mem hx h, λ x hx, mul_inv_cancel (h' x hx)⟩,
   convert integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_log (h' x hx))
-    (λ x hx, has_deriv_at_id x) (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h)
-      continuous_on_const using 1; simp [integral_congr heq, mul_comm, ← sub_add],
+      (λ x hx, has_deriv_at_id x)
+      (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h).interval_integrable
+      continuous_on_const.interval_integrable using 1;
+    simp [integral_congr heq, mul_comm, ← sub_add],
 end
 
 @[simp]
@@ -257,7 +385,8 @@ by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
 by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
-  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
+  (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos.interval_integrable
+  continuous_on_sin.neg.interval_integrable
 
 @[simp]
 lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
@@ -281,9 +410,9 @@ lemma integral_sin_pow_aux :
 begin
   let C := sin a ^ (n + 1) * cos a - sin b ^ (n + 1) * cos b,
   have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
-  have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x :=
-    λ x hx, by simpa [mul_right_comm] using (has_deriv_at_sin x).pow,
-  have hv : ∀ x ∈ interval a b, has_deriv_at (-cos) (sin x) x :=
+  have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1)) ((n + 1 : ℕ) * cos x * sin x ^ n) x :=
+    λ x hx, by simpa only [mul_right_comm] using (has_deriv_at_sin x).pow (n+1),
+  have hv : ∀ x ∈ [a, b], has_deriv_at (-cos) (sin x) x :=
     λ x hx, by simpa only [neg_neg] using (has_deriv_at_cos x).neg,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, sin x ^ (n + 2)
@@ -293,7 +422,7 @@ begin
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
-  all_goals { apply continuous.continuous_on, continuity },
+  all_goals { apply continuous.interval_integrable, continuity },
 end
 
 /-- The reduction formula for the integral of `sin x ^ n` for any natural `n ≥ 2`. -/
@@ -338,9 +467,12 @@ begin
   linarith,
 end
 
-lemma integral_sin_pow_antimono : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+lemma integral_sin_pow_succ_le : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
 let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
 by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
+
+lemma integral_sin_pow_antitone : antitone (λ n : ℕ, ∫ x in 0..π, sin x ^ n) :=
+antitone_nat_of_succ_le integral_sin_pow_succ_le
 
 /-! ### Integral of `cos x ^ n` -/
 
@@ -350,9 +482,10 @@ lemma integral_cos_pow_aux :
 begin
   let C := cos b ^ (n + 1) * sin b - cos a ^ (n + 1) * sin a,
   have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
-  have hu : ∀ x ∈ _, has_deriv_at (λ y, cos y ^ (n + 1)) (-(n + 1) * sin x * cos x ^ n) x :=
-    λ x hx, by simpa [mul_right_comm, -neg_add_rev] using (has_deriv_at_cos x).pow,
-  have hv : ∀ x ∈ interval a b, has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
+  have hu : ∀ x ∈ _, has_deriv_at (λ y, cos y ^ (n + 1)) (-(n + 1 : ℕ) * sin x * cos x ^ n) x :=
+    λ x hx, by simpa only [mul_right_comm, neg_mul, mul_neg]
+      using (has_deriv_at_cos x).pow (n+1),
+  have hv : ∀ x ∈ [a, b], has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, cos x ^ (n + 2)
       = ∫ x in a..b, cos x ^ (n + 1) * cos x                   : by simp only [pow_succ']
@@ -361,7 +494,7 @@ begin
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
-  all_goals { apply continuous.continuous_on, continuity },
+  all_goals { apply continuous.interval_integrable, continuity },
 end
 
 /-- The reduction formula for the integral of `cos x ^ n` for any natural `n ≥ 2`. -/

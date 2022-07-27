@@ -30,6 +30,8 @@ should be connected.
 bitwise, and, or, xor
 -/
 
+open function
+
 namespace nat
 
 @[simp] lemma bit_ff : bit ff = bit0 := rfl
@@ -114,8 +116,8 @@ begin
   cases hm.lt_or_lt with hm hm,
   { rw [nat.div_eq_zero, bodd_zero],
     exact nat.pow_lt_pow_of_lt_right one_lt_two hm },
-  { rw [pow_div hm.le zero_lt_two, ←nat.sub_add_cancel (nat.sub_pos_of_lt hm), pow_succ],
-    simp }
+  { rw [pow_div hm.le zero_lt_two, ← tsub_add_cancel_of_le (succ_le_of_lt $ tsub_pos_of_lt hm)],
+    simp [pow_succ] }
 end
 
 lemma test_bit_two_pow (n m : ℕ) : test_bit (2 ^ n) m = (n = m) :=
@@ -131,9 +133,9 @@ end
     commutative. -/
 lemma bitwise_comm {f : bool → bool → bool} (hf : ∀ b b', f b b' = f b' b)
   (hf' : f ff ff = ff) (n m : ℕ) : bitwise f n m = bitwise f m n :=
-suffices bitwise f = function.swap (bitwise f), by conv_lhs { rw this },
-calc bitwise f = bitwise (function.swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
-     ...       = function.swap (bitwise f) : bitwise_swap hf'
+suffices bitwise f = swap (bitwise f), by conv_lhs { rw this },
+calc bitwise f = bitwise (swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
+     ...       = swap (bitwise f) : bitwise_swap hf'
 
 lemma lor_comm (n m : ℕ) : lor n m = lor m n := bitwise_comm bool.bor_comm rfl n m
 lemma land_comm (n m : ℕ) : land n m = land m n := bitwise_comm bool.band_comm rfl n m
@@ -165,17 +167,32 @@ lemma lor_assoc (n m k : ℕ) : lor (lor n m) k = lor n (lor m k) := by bitwise_
 @[simp] lemma lxor_self (n : ℕ) : lxor n n = 0 :=
 zero_of_test_bit_eq_ff $ λ i, by simp
 
-lemma lxor_right_inj {n m m' : ℕ} (h : lxor n m = lxor n m') : m = m' :=
-calc m = lxor n (lxor n m') : by simp [←lxor_assoc, ←h]
-   ... = m' : by simp [←lxor_assoc]
+-- These lemmas match `mul_inv_cancel_right` and `mul_inv_cancel_left`.
 
-lemma lxor_left_inj {n n' m : ℕ} (h : lxor n m = lxor n' m) : n = n' :=
-by { rw [lxor_comm n m, lxor_comm n' m] at h, exact lxor_right_inj h }
+lemma lxor_cancel_right (n m : ℕ) : lxor (lxor m n) n = m :=
+by rw [lxor_assoc, lxor_self, lxor_zero]
 
-lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
-⟨by { rw ←lxor_self m, exact lxor_left_inj  }, by { rintro rfl, exact lxor_self _ }⟩
+lemma lxor_cancel_left (n m : ℕ) : lxor n (lxor n m) = m :=
+by rw [←lxor_assoc, lxor_self, zero_lxor]
 
-lemma lxor_trichotomy {a b c : ℕ} (h : lxor a (lxor b c) ≠ 0) :
+lemma lxor_right_injective {n : ℕ} : function.injective (lxor n) :=
+λ m m' h, by rw [←lxor_cancel_left n m, ←lxor_cancel_left n m', h]
+
+lemma lxor_left_injective {n : ℕ} : function.injective (λ m, lxor m n) :=
+λ m m' (h : lxor m n = lxor m' n), by rw [←lxor_cancel_right n m, ←lxor_cancel_right n m', h]
+
+@[simp] lemma lxor_right_inj {n m m' : ℕ} : lxor n m = lxor n m' ↔ m = m' :=
+lxor_right_injective.eq_iff
+
+@[simp] lemma lxor_left_inj {n m m' : ℕ} : lxor m n = lxor m' n ↔ m = m' :=
+lxor_left_injective.eq_iff
+
+@[simp] lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
+by rw [←lxor_self n, lxor_right_inj, eq_comm]
+
+lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := lxor_eq_zero.not
+
+lemma lxor_trichotomy {a b c : ℕ} (h : a ≠ lxor b c) :
   lxor b c < a ∨ lxor a c < b ∨ lxor a b < c :=
 begin
   set v := lxor a (lxor b c) with hv,
@@ -192,7 +209,7 @@ begin
 
   -- If `i` is the position of the most significant bit of `v`, then at least one of `a`, `b`, `c`
   -- has a one bit at position `i`.
-  obtain ⟨i, ⟨hi, hi'⟩⟩ := exists_most_significant_bit h,
+  obtain ⟨i, ⟨hi, hi'⟩⟩ := exists_most_significant_bit (lxor_ne_zero.2 h),
   have : test_bit a i = tt ∨ test_bit b i = tt ∨ test_bit c i = tt,
   { contrapose! hi,
     simp only [eq_ff_eq_not_eq_tt, ne, test_bit_lxor] at ⊢ hi,
@@ -204,5 +221,8 @@ begin
   [{ left, rw hbc }, { right, left, rw hac }, { right, right, rw hab }];
   exact lt_of_test_bit i (by simp [h, hi]) h (λ j hj, by simp [hi' _ hj])
 end
+
+lemma lt_lxor_cases {a b c : ℕ} (h : a < lxor b c) : lxor a c < b ∨ lxor a b < c :=
+(or_iff_right $ λ h', (h.asymm h').elim).1 $ lxor_trichotomy h.ne
 
 end nat

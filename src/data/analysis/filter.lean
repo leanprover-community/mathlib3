@@ -24,7 +24,7 @@ namespace cfilter
 section
 variables [partial_order α] (F : cfilter α σ)
 
-instance : has_coe_to_fun (cfilter α σ) := ⟨_, cfilter.f⟩
+instance : has_coe_to_fun (cfilter α σ) (λ _, σ → α) := ⟨cfilter.f⟩
 
 @[simp] theorem coe_mk (f pt inf h₁ h₂ a) : (@cfilter.mk α σ _ f pt inf h₁ h₂) a = f a := rfl
 
@@ -76,11 +76,11 @@ def of_eq {f g : filter α} (e : f = g) (F : f.realizer) : g.realizer :=
 /-- A filter realizes itself. -/
 def of_filter (f : filter α) : f.realizer := ⟨f.sets,
 { f            := subtype.val,
-  pt           := ⟨univ, univ_mem_sets⟩,
-  inf          := λ ⟨x, h₁⟩ ⟨y, h₂⟩, ⟨_, inter_mem_sets h₁ h₂⟩,
+  pt           := ⟨univ, univ_mem⟩,
+  inf          := λ ⟨x, h₁⟩ ⟨y, h₂⟩, ⟨_, inter_mem h₁ h₂⟩,
   inf_le_left  := λ ⟨x, h₁⟩ ⟨y, h₂⟩, inter_subset_left x y,
   inf_le_right := λ ⟨x, h₁⟩ ⟨y, h₂⟩, inter_subset_right x y },
-filter_eq $ set.ext $ λ x, set_coe.exists.trans exists_sets_subset_iff⟩
+filter_eq $ set.ext $ λ x, set_coe.exists.trans exists_mem_subset_iff⟩
 
 /-- Transfer a filter realizer to another realizer on a different base type. -/
 def of_equiv {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) : f.realizer :=
@@ -97,8 +97,8 @@ protected def principal (s : set α) : (principal s).realizer := ⟨unit,
 { f            := λ _, s,
   pt           := (),
   inf          := λ _ _, (),
-  inf_le_left  := λ _ _, le_refl _,
-  inf_le_right := λ _ _, le_refl _ },
+  inf_le_left  := λ _ _, le_rfl,
+  inf_le_right := λ _ _, le_rfl },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨_, s⟩, s, λ h, ⟨(), h⟩⟩⟩
 
@@ -139,7 +139,7 @@ protected def comap (m : α → β) {f : filter β} (F : f.realizer) : (comap m 
   inf          := F.F.inf,
   inf_le_left  := λ a b, preimage_mono (F.F.inf_le_left _ _),
   inf_le_right := λ a b, preimage_mono (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_comap_sets]; exact
+filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_comap]; exact
 ⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 
@@ -166,9 +166,17 @@ protected def inf {f g : filter α} (F : f.realizer) (G : g.realizer) :
   inf_le_left  := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_left _ _) (G.F.inf_le_left _ _),
   inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, inter_subset_inter (F.F.inf_le_right _ _)
                     (G.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_filter]; exact
-⟨λ ⟨s, t, h⟩, ⟨_, ⟨s, subset.refl _⟩, _, ⟨t, subset.refl _⟩, h⟩,
- λ ⟨y, ⟨s, h₁⟩, z, ⟨t, h₂⟩, h⟩, ⟨s, t, subset.trans (inter_subset_inter h₁ h₂) h⟩⟩⟩
+ begin
+   ext x,
+   cases F; cases G; substs f g; simp [cfilter.to_filter],
+   split,
+   { rintro ⟨s : F_σ, t : G_σ, h⟩,
+     apply mem_inf_of_inter _ _ h,
+     use s,
+     use t, },
+   { rintros ⟨s, ⟨a, ha⟩, t, ⟨b, hb⟩, rfl⟩,
+     exact ⟨a, b, inter_subset_inter ha hb⟩ }
+ end⟩
 
 /-- Construct a realizer for the cofinite filter -/
 protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset α,
@@ -179,8 +187,7 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
- λ ⟨fs⟩, by exactI ⟨xᶜ.to_finset, λ a (h : a ∉ xᶜ.to_finset),
-  classical.by_contradiction $ λ h', h (mem_to_finset.2 h')⟩⟩⟩
+ λ h, ⟨h.to_finset, by simp⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
 protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :
@@ -199,7 +206,7 @@ protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : 
           x ∈ ⋃ i (H : i ∈ F.F b), ((G i).F) (f' i H), by simp; exact
     λ i h₁ h₂, ⟨i, F.F.inf_le_right _ _ h₁, (G i).F.inf_le_right _ _ h₂⟩ },
 filter_eq $ set.ext $ λ x,
-by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind_sets]; exact
+by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind]; exact
 ⟨λ ⟨s, f, h⟩, ⟨F s, ⟨s, subset.refl _⟩, λ i H, (G i).mem_sets.2
    ⟨f i H, λ a h', h ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, h'⟩⟩⟩,
  λ ⟨y, ⟨s, h⟩, f⟩,

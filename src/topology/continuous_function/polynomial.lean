@@ -24,7 +24,9 @@ import topology.unit_interval
 
 variables {R : Type*}
 
+open_locale polynomial
 namespace polynomial
+
 
 section
 variables [semiring R] [topological_space R] [topological_semiring R]
@@ -33,7 +35,7 @@ variables [semiring R] [topological_space R] [topological_semiring R]
 Every polynomial with coefficients in a topological semiring gives a (bundled) continuous function.
 -/
 @[simps]
-def to_continuous_map (p : polynomial R) : C(R, R) :=
+def to_continuous_map (p : R[X]) : C(R, R) :=
 ⟨λ x : R, p.eval x, by continuity⟩
 
 /--
@@ -43,7 +45,7 @@ with domain restricted to some subset of the semiring of coefficients.
 (This is particularly useful when restricting to compact sets, e.g. `[0,1]`.)
 -/
 @[simps]
-def to_continuous_map_on (p : polynomial R) (X : set R) : C(X, R) :=
+def to_continuous_map_on (p : R[X]) (X : set R) : C(X, R) :=
 ⟨λ x : X, p.to_continuous_map x, by continuity⟩
 
 -- TODO some lemmas about when `to_continuous_map_on` is injective?
@@ -54,7 +56,7 @@ section
 variables {α : Type*} [topological_space α]
   [comm_semiring R] [topological_space R] [topological_semiring R]
 
-@[simp] lemma aeval_continuous_map_apply (g : polynomial R) (f : C(α, R)) (x : α) :
+@[simp] lemma aeval_continuous_map_apply (g : R[X]) (f : C(α, R)) (x : α) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
@@ -75,7 +77,7 @@ variables [comm_semiring R] [topological_space R] [topological_semiring R]
 The algebra map from `polynomial R` to continuous functions `C(R, R)`.
 -/
 @[simps]
-def to_continuous_map_alg_hom : polynomial R →ₐ[R] C(R, R) :=
+def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
 { to_fun := λ p, p.to_continuous_map,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, },
@@ -87,7 +89,7 @@ def to_continuous_map_alg_hom : polynomial R →ₐ[R] C(R, R) :=
 The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
 -/
 @[simps]
-def to_continuous_map_on_alg_hom (X : set R) : polynomial R →ₐ[R] C(X, R)  :=
+def to_continuous_map_on_alg_hom (X : set R) : R[X] →ₐ[R] C(X, R)  :=
 { to_fun := λ p, p.to_continuous_map_on X,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, },
@@ -103,10 +105,11 @@ section
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
+The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological semiring
+`R`.
 -/
 def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
-(⊤ : subalgebra R (polynomial R)).map (polynomial.to_continuous_map_on_alg_hom X)
+(⊤ : subalgebra R R[X]).map (polynomial.to_continuous_map_on_alg_hom X)
 
 @[simp]
 lemma polynomial_functions_coe (X : set R) :
@@ -133,26 +136,26 @@ open continuous_map
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
-lemma polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
-  (polynomial_functions I).comap'
+lemma polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
+  (polynomial_functions I).comap
     (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,
   fsplit,
   { rintro ⟨p, ⟨-,w⟩⟩,
-    rw continuous_map.ext_iff at w,
+    rw fun_like.ext_iff at w,
     dsimp at w,
     let q := p.comp ((b - a)⁻¹ • polynomial.X + polynomial.C (-a * (b-a)⁻¹)),
     refine ⟨q, ⟨_, _⟩⟩,
     { simp, },
     { ext x,
-      simp only [neg_mul_eq_neg_mul_symm,
+      simp only [neg_mul,
         ring_hom.map_neg, ring_hom.map_mul, alg_hom.coe_to_ring_hom,
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
-        polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
+        smul_eq_mul, polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
         polynomial.eval_comp, polynomial.to_continuous_map_on_alg_hom_apply,
-        polynomial.to_continuous_map_on_to_fun, polynomial.to_continuous_map_to_fun],
+        polynomial.to_continuous_map_on_apply, polynomial.to_continuous_map_apply],
       convert w ⟨_, _⟩; clear w,
       { -- why does `comm_ring.add` appear here!?
         change x = (Icc_homeo_I a b h).symm ⟨_ + _, _⟩,
@@ -162,7 +165,7 @@ begin
         simp only [mul_add],
         field_simp, ring, },
       { change _ + _ ∈ I,
-        rw [mul_comm (b-a)⁻¹, ←neg_mul_eq_neg_mul_symm, ←add_mul, ←sub_eq_add_neg],
+        rw [mul_comm (b-a)⁻¹, ←neg_mul, ←add_mul, ←sub_eq_add_neg],
         have w₁ : 0 < (b-a)⁻¹ := inv_pos.mpr (sub_pos.mpr h),
         have w₂ : 0 ≤ (x : ℝ) - a := sub_nonneg.mpr x.2.1,
         have w₃ : (x : ℝ) - a ≤ b - a := sub_le_sub_right x.2.2 a,

@@ -26,10 +26,12 @@ quotients as setoids whose equivalence classes are clopen.
   endowed with a `fintype` instance.
 
 ## Order structure
-The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf_top`.
+The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf` with `order_top`.
 The partial ordering `A ≤ B` mathematically means that `B.proj` factors through `A.proj`.
 The top element `⊤` is the trivial quotient, meaning that every element of `X` is collapsed
 to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.of_le h`.
+Whenever `X` is discrete, the type `discrete_quotient X` is also endowed with an instance of a
+`semilattice_inf` with `order_bot`, where the bot element `⊥` is `X` itself.
 
 Given `f : X → Y` and `h : continuous f`, we define a predicate `le_comap h A B` for
 `A : discrete_quotient X` and `B : discrete_quotient Y`, asserting that `f` descends to `A → B`.
@@ -90,8 +92,8 @@ lemma trans : ∀ x y z : X, S.rel x y → S.rel y z → S.rel x z := S.equiv.2.
 /-- The setoid whose quotient yields the discrete quotient. -/
 def setoid : setoid X := ⟨S.rel, S.equiv⟩
 
-instance : has_coe_to_sort (discrete_quotient X) :=
-⟨Type*, λ S, quotient S.setoid⟩
+instance : has_coe_to_sort (discrete_quotient X) Type* :=
+⟨λ S, quotient S.setoid⟩
 
 instance : topological_space S := ⊥
 
@@ -127,21 +129,26 @@ is_open.preimage S.proj_continuous trivial
 
 lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) := ⟨fiber_open _ _, fiber_closed _ _⟩
 
-instance : semilattice_inf_top (discrete_quotient X) :=
+instance : partial_order (discrete_quotient X) :=
+{ le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
+  le_refl := λ a, by tauto,
+  le_trans := λ a b c h1 h2, by tauto,
+  le_antisymm := λ a b h1 h2, by { ext, tauto } }
+
+instance : order_top (discrete_quotient X) :=
 { top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
-  inf := λ A B,
+  le_top := λ a, by tauto }
+
+instance : semilattice_inf (discrete_quotient X) :=
+{ inf := λ A B,
   { rel := λ x y, A.rel x y ∧ B.rel x y,
     equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
       λ a b c h1 h2, ⟨A.trans _ _ _ h1.1 h2.1, B.trans _ _ _ h1.2 h2.2⟩⟩,
     clopen := λ x, is_clopen.inter (A.clopen _) (B.clopen _) },
-  le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
-  le_refl := λ a, by tauto,
-  le_trans := λ a b c h1 h2, by tauto,
-  le_antisymm := λ a b h1 h2, by { ext, tauto },
   inf_le_left := λ a b, by tauto,
   inf_le_right := λ a b, by tauto,
   le_inf := λ a b c h1 h2, by tauto,
-  le_top := λ a, by tauto }
+  ..discrete_quotient.partial_order }
 
 instance : inhabited (discrete_quotient X) := ⟨⊤⟩
 
@@ -197,6 +204,22 @@ lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
   of_le h (A.proj x) = B.proj x := by { change (of_le h ∘ A.proj) x = _, simp }
 
 end of_le
+
+/--
+When X is discrete, there is a `order_bot` instance on `discrete_quotient X`
+-/
+instance [discrete_topology X] : order_bot (discrete_quotient X) :=
+{ bot :=
+  { rel := (=),
+    equiv := eq_equivalence,
+    clopen := λ x, is_clopen_discrete _ },
+  bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ } }
+
+lemma proj_bot_injective [discrete_topology X] :
+  function.injective (⊥ : discrete_quotient X).proj := λ a b h, quotient.exact' h
+
+lemma proj_bot_bijective [discrete_topology X] :
+  function.bijective (⊥ : discrete_quotient X).proj := ⟨proj_bot_injective, proj_surjective _⟩
 
 section map
 
@@ -286,12 +309,7 @@ begin
     (λ (Q : discrete_quotient X), Q.proj ⁻¹' {Qs _}) (λ A B, _) (λ i, _)
     (λ i,  (fiber_closed _ _).is_compact) (λ i, fiber_closed _ _),
   { refine ⟨x, λ Q, _⟩,
-    specialize hx _ ⟨Q,rfl⟩,
-    dsimp at hx,
-    rcases proj_surjective _ (Qs Q) with ⟨y,hy⟩,
-    rw ← hy at *,
-    rw fiber_eq at hx,
-    exact quotient.sound' (Q.symm y x hx) },
+    exact hx _ ⟨Q,rfl⟩ },
   { refine ⟨A ⊓ B, λ a ha, _, λ a ha, _⟩,
     { dsimp only,
       erw ← compat (A ⊓ B) A inf_le_left,

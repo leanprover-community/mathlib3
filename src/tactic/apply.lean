@@ -57,8 +57,8 @@ mwhen (has_opt_auto_param_inst_for_apply ms) $ do
 private meta def retry_apply_aux :
   Π (e : expr) (cfg : apply_cfg), list (bool × name ×  expr) → tactic (list (name × expr))
 | e cfg gs :=
-focus1 (do {
-     tgt : expr ← target, t ← infer_type e,
+focus1 (do
+   { tgt : expr ← target, t ← infer_type e,
      unify t tgt,
      exact e,
      gs' ← get_goals,

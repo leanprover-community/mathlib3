@@ -3,8 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.specific_limits
-import analysis.asymptotics.asymptotics
+import analysis.specific_limits.normed
 
 /-!
 # The group of units of a complete normed ring
@@ -37,7 +36,7 @@ namespace units
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
 @[simps coe]
-def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
+def one_sub (t : R) (h : ∥t∥ < 1) : Rˣ :=
 { val := 1 - t,
   inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
@@ -46,7 +45,7 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
 @[simps coe]
-def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
+def add (x : Rˣ) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
 units.copy  -- to make `coe_add` true definitionally, for convenience
   (x * (units.one_sub (-(↑x⁻¹ * t)) begin
       nontriviality R using [zero_lt_one],
@@ -62,7 +61,7 @@ units.copy  -- to make `coe_add` true definitionally, for convenience
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
 @[simps coe]
-def unit_of_nearby (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
+def unit_of_nearby (x : Rˣ) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
 units.copy (x.add (y - x : R) h) y (by simp) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
@@ -71,13 +70,13 @@ begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
   rintros x' ⟨x, rfl⟩,
-  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
+  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, _root_.inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
   rw [metric.mem_ball, dist_eq_norm] at hy,
   exact (x.unit_of_nearby y hy).is_unit
 end
 
-protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+protected lemma nhds (x : Rˣ) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
 is_open.mem_nhds units.is_open x.is_unit
 
 end units
@@ -90,7 +89,7 @@ lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.on
 by rw [← inverse_unit (units.one_sub t h), units.coe_one_sub]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
-lemma inverse_add (x : units R) :
+lemma inverse_add (x : Rˣ) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
   nontriviality R,
@@ -106,7 +105,7 @@ begin
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
-  simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
+  simp only [neg_mul, sub_neg_eq_add] at hright,
   simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end
@@ -121,21 +120,21 @@ begin
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
   { simp only [units.coe_one_sub],
-    rw [← geom_sum, geom_sum_mul_neg],
+    rw [geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
   { simp only [units.coe_one_sub],
-    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
+    rw [← add_mul, geom_sum_mul_neg],
     simp }
 end
 
 /-- The formula
 `inverse (x + t) = (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹ + (- x⁻¹ * t) ^ n * inverse (x + t)`
 holds for `t` sufficiently small. -/
-lemma inverse_add_nth_order (x : units R) (n : ℕ) :
+lemma inverse_add_nth_order (x : Rˣ) (n : ℕ) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t)
   = (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹ + (- ↑x⁻¹ * t) ^ n * inverse (x + t) :=
 begin
@@ -144,7 +143,7 @@ begin
   { convert ((mul_left_continuous (- (↑x⁻¹ : R))).tendsto 0).comp tendsto_id,
     simp },
   refine (hzero.eventually (inverse_one_sub_nth_order n)).mp (eventually_of_forall _),
-  simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add],
+  simp only [neg_mul, sub_neg_eq_add],
   intros t h1 h2,
   have h := congr_arg (λ (a : R), a * ↑x⁻¹) h1,
   dsimp at h,
@@ -153,7 +152,7 @@ begin
   simp [h2.symm]
 end
 
-lemma inverse_one_sub_norm : is_O (λ t, inverse ((1:R) - t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_one_sub_norm : (λ t : R, inverse (1 - t)) =O[𝓝 0] (λ t, 1 : R → ℝ) :=
 begin
   simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
@@ -166,7 +165,7 @@ begin
   change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
-  { rw ← inv_inv' (2:ℝ),
+  { rw ← inv_inv (2:ℝ),
     refine inv_le_inv_of_le (by norm_num) _,
     have : (2:ℝ)⁻¹ + (2:ℝ)⁻¹ = 1 := by ring,
     linarith },
@@ -174,12 +173,11 @@ begin
 end
 
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
-lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_add_norm (x : Rˣ) : (λ t : R, inverse (↑x + t)) =O[𝓝 0] (λ t, (1:ℝ)) :=
 begin
-  nontriviality R,
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
-  use C * ∥((x⁻¹:units R):R)∥,
+  use C * ∥((x⁻¹:Rˣ):R)∥,
   have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
   { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
     simp },
@@ -194,9 +192,9 @@ end
 /-- The function
 `λ t, inverse (x + t) - (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹`
 is `O(t ^ n)` as `t → 0`. -/
-lemma inverse_add_norm_diff_nth_order (x : units R) (n : ℕ) :
-  is_O (λ (t : R), inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹)
-  (λ t, ∥t∥ ^ n) (𝓝 (0:R)) :=
+lemma inverse_add_norm_diff_nth_order (x : Rˣ) (n : ℕ) :
+  (λ t : R, inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹) =O[𝓝 (0:R)]
+  (λ t, ∥t∥ ^ n) :=
 begin
   by_cases h : n = 0,
   { simpa [h] using inverse_add_norm x },
@@ -213,7 +211,7 @@ begin
     simp },
   refine h.mp (hC.mp (eventually_of_forall _)),
   intros t _ hLHS,
-  simp only [neg_mul_eq_neg_mul_symm] at hLHS,
+  simp only [neg_mul] at hLHS,
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
@@ -229,67 +227,64 @@ begin
 end
 
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
-lemma inverse_add_norm_diff_first_order (x : units R) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹) (λ t, ∥t∥) (𝓝 (0:R)) :=
-by { convert inverse_add_norm_diff_nth_order x 1; simp }
+lemma inverse_add_norm_diff_first_order (x : Rˣ) :
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥) :=
+by simpa using inverse_add_norm_diff_nth_order x 1
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
 is `O(t ^ 2)` as `t → 0`. -/
-lemma inverse_add_norm_diff_second_order (x : units R) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) (λ t, ∥t∥ ^ 2) (𝓝 (0:R)) :=
+lemma inverse_add_norm_diff_second_order (x : Rˣ) :
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥ ^ 2) :=
 begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
   simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
-    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul_eq_neg_mul_symm,
+    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul,
     sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end
 
 /-- The function `inverse` is continuous at each unit of `R`. -/
-lemma inverse_continuous_at (x : units R) : continuous_at inverse (x : R) :=
+lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
-  have h_is_o : is_o (λ (t : R), ∥inverse (↑x + t) - ↑x⁻¹∥) (λ (t : R), (1:ℝ)) (𝓝 0),
-  { refine is_o_norm_left.mpr ((inverse_add_norm_diff_first_order x).trans_is_o _),
-    exact is_o_norm_left.mpr (is_o_id_const one_ne_zero) },
+  have h_is_o : (λ t : R, inverse (↑x + t) - ↑x⁻¹) =o[𝓝 0] (λ _, 1 : R → ℝ) :=
+    (inverse_add_norm_diff_first_order x).trans_is_o (is_o.norm_left $ is_o_id_const one_ne_zero),
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
-  simp only [continuous_at],
-  rw [tendsto_iff_norm_tendsto_zero, inverse_unit],
-  convert h_is_o.tendsto_0.comp h_lim,
-  ext, simp
+  rw [continuous_at, tendsto_iff_norm_tendsto_zero, inverse_unit],
+  simpa [(∘)] using h_is_o.norm_left.tendsto_div_nhds_zero.comp h_lim
 end
 
 end normed_ring
 
 namespace units
-open opposite filter normed_ring
+open mul_opposite filter normed_ring
 
-/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+/-- In a normed ring, the coercion from `Rˣ` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open map. -/
-lemma is_open_map_coe : is_open_map (coe : units R → R) :=
+lemma is_open_map_coe : is_open_map (coe : Rˣ → R) :=
 begin
   rw is_open_map_iff_nhds_le,
   intros x s,
   rw [mem_map, mem_nhds_induced],
   rintros ⟨t, ht, hts⟩,
   obtain ⟨u, hu, v, hv, huvt⟩ :
-    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵐᵒᵖ), v ∈ 𝓝 (op ↑x⁻¹) ∧ u ×ˢ v ⊆ t,
   { simpa [embed_product, mem_nhds_prod_iff] using ht },
-  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
-  { refine inter_mem_sets (inter_mem_sets hu _) (units.nhds x),
+  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : Rˣ → R)) ∈ 𝓝 ↑x,
+  { refine inter_mem (inter_mem hu _) (units.nhds x),
     refine (continuous_op.continuous_at.comp (inverse_continuous_at x)).preimage_mem_nhds _,
     simpa using hv },
-  refine mem_sets_of_superset this _,
+  refine mem_of_superset this _,
   rintros _ ⟨⟨huy, hvy⟩, ⟨y, rfl⟩⟩,
-  have : embed_product R y ∈ u.prod v := ⟨huy, by simpa using hvy⟩,
+  have : embed_product R y ∈ u ×ˢ v := ⟨huy, by simpa using hvy⟩,
   simpa using hts (huvt this)
 end
 
-/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+/-- In a normed ring, the coercion from `Rˣ` (equipped with the induced topology from the
 embedding in `R × R`) to `R` is an open embedding. -/
-lemma open_embedding_coe : open_embedding (coe : units R → R) :=
+lemma open_embedding_coe : open_embedding (coe : Rˣ → R) :=
 open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
 
 end units

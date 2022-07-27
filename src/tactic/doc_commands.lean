@@ -3,7 +3,6 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import tactic.fix_reflect_string
 
 /-!
 # Documentation commands
@@ -68,7 +67,8 @@ do fr ← parser.ident,
 output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
-  descr := "Notes about library features to be included in documentation" }
+  descr := "Notes about library features to be included in documentation",
+  parser := failed }
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -76,8 +76,8 @@ output. -/
 Example: ``mk_reflected_definition `foo 17`` constructs the definition
 declaration corresponding to `def foo : ℕ := 17`
 -/
-meta def mk_reflected_definition (decl_name : name) {type} [reflected type]
-  (body : type) [reflected body] : declaration :=
+meta def mk_reflected_definition (decl_name : name) {type} [reflected _ type]
+  (body : type) [reflected _ body] : declaration :=
 mk_definition decl_name (reflect type).collect_univ_params (reflect type) (reflect body)
 
 /-- If `note_name` and `note` are `pexpr`s representing strings,
@@ -176,7 +176,8 @@ end
 for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
-  descr := "Information about a tactic to be included in documentation" }
+  descr := "Information about a tactic to be included in documentation",
+  parser := failed }
 
 /-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
 meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
@@ -213,8 +214,7 @@ add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, `dcl_2],
-  tags := ["tag_1", "tag_2"]
-}
+  tags := ["tag_1", "tag_2"] }
 ```
 
 The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
@@ -378,7 +378,7 @@ Inside `conv` blocks, mathlib currently additionally provides
 * `conv` (within another `conv`).
 
 `apply_congr` applies congruence lemmas to step further inside expressions,
-and sometimes gives between results than the automatically generated
+and sometimes gives better results than the automatically generated
 congruence lemmas used by `congr`.
 
 Using `conv` inside a `conv` block allows the user to return to the previous
@@ -387,14 +387,12 @@ editing an expression without having to start a new `conv` block and re-scoping
 everything. For example:
 ```lean
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
-by conv {
-  to_lhs,
-  conv {
-    congr, skip,
-    rw h₁,
-  },
-  rw h₂,
-}
+by conv
+{ to_lhs,
+  conv
+  { congr, skip,
+    rw h₁ },
+  rw h₂, }
 ```
 Without `conv`, the above example would need to be proved using two successive
 `conv` blocks, each beginning with `to_lhs`.

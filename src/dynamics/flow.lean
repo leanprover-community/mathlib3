@@ -35,7 +35,7 @@ open set function filter
 
 section invariant
 
-variables {τ  : Type*} {α : Type*}
+variables {τ : Type*} {α : Type*}
 
 /-- A set `s ⊆ α` is invariant under `ϕ : τ → α → α` if
     `ϕ t s ⊆ s` for all `t` in `τ`. -/
@@ -97,7 +97,7 @@ instance : inhabited (flow τ α) :=
    map_add'  := λ _ _ _, rfl,
    map_zero' := λ _, rfl }⟩
 
-instance : has_coe_to_fun (flow τ α) := ⟨_, flow.to_fun⟩
+instance : has_coe_to_fun (flow τ α) (λ _, τ → α → α) := ⟨flow.to_fun⟩
 
 @[ext]
 lemma ext : ∀ {ϕ₁ ϕ₂ : flow τ α}, (∀ t x, ϕ₁ t x = ϕ₂ t x) → ϕ₁ = ϕ₂
@@ -109,7 +109,7 @@ protected lemma continuous {β : Type*} [topological_space β]
   continuous (λ x, ϕ (t x) (f x)) :=
 ϕ.cont'.comp (ht.prod_mk hf)
 
-alias flow.continuous ← continuous.flow
+alias flow.continuous ← _root_.continuous.flow
 
 lemma map_add (t₁ t₂ : τ) (x : α) : ϕ (t₁ + t₂) x = ϕ t₁ (ϕ t₂ x) :=
 ϕ.map_add' _ _ _

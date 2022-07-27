@@ -3,11 +3,11 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.arrow
-import category_theory.over
-import category_theory.limits.punit
-import category_theory.limits.preserves.basic
 import category_theory.limits.creates
+import category_theory.limits.unit
+import category_theory.limits.preserves.basic
+import category_theory.structured_arrow
+import category_theory.arrow
 
 /-!
 # Limits and colimits in comma categories
@@ -141,7 +141,7 @@ instance has_limits_of_shape
   has_limits_of_shape J (comma L R) := {}
 
 instance has_limits [has_limits A] [has_limits B] [preserves_limits R] :
-  has_limits (comma L R) := {}
+  has_limits (comma L R) := ⟨infer_instance⟩
 
 instance has_colimit (F : J ⥤ comma L R)
   [has_colimit (F ⋙ fst L R)] [has_colimit (F ⋙ snd L R)]
@@ -154,7 +154,7 @@ instance has_colimits_of_shape
   has_colimits_of_shape J (comma L R) := {}
 
 instance has_colimits [has_colimits A] [has_colimits B] [preserves_colimits L] :
-  has_colimits (comma L R) := {}
+  has_colimits (comma L R) := ⟨infer_instance⟩
 
 end comma
 
@@ -166,7 +166,7 @@ instance has_limit (F : J ⥤ arrow T)
 @@comma.has_limit _ _ _ _ _ i₁ i₂ _
 
 instance has_limits_of_shape [has_limits_of_shape J T] : has_limits_of_shape J (arrow T) := {}
-instance has_limits [has_limits T] : has_limits (arrow T) := {}
+instance has_limits [has_limits T] : has_limits (arrow T) := ⟨infer_instance⟩
 
 instance has_colimit (F : J ⥤ arrow T)
   [i₁ : has_colimit (F ⋙ left_func)] [i₂ : has_colimit (F ⋙ right_func)] :
@@ -174,7 +174,7 @@ instance has_colimit (F : J ⥤ arrow T)
 @@comma.has_colimit _ _ _ _ _ i₁ i₂ _
 
 instance has_colimits_of_shape [has_colimits_of_shape J T] : has_colimits_of_shape J (arrow T) := {}
-instance has_colimits [has_colimits T] : has_colimits (arrow T) := {}
+instance has_colimits [has_colimits T] : has_colimits (arrow T) := ⟨infer_instance⟩
 
 end arrow
 
@@ -190,7 +190,7 @@ instance has_limits_of_shape [has_limits_of_shape J A] [preserves_limits_of_shap
   has_limits_of_shape J (structured_arrow X G) := {}
 
 instance has_limits [has_limits A] [preserves_limits G] :
-  has_limits (structured_arrow X G) := {}
+  has_limits (structured_arrow X G) := ⟨infer_instance⟩
 
 noncomputable instance creates_limit [i : preserves_limit (F ⋙ proj X G) G] :
   creates_limit F (proj X G) :=
@@ -203,7 +203,7 @@ noncomputable instance creates_limits_of_shape [preserves_limits_of_shape J G] :
   creates_limits_of_shape J (proj X G) := {}
 
 noncomputable instance creates_limits [preserves_limits G] :
-  creates_limits (proj X G : _) := {}
+  creates_limits (proj X G : _) := ⟨⟩
 
 end structured_arrow
 
@@ -219,7 +219,7 @@ instance has_colimits_of_shape [has_colimits_of_shape J A] [preserves_colimits_o
   has_colimits_of_shape J (costructured_arrow G X) := {}
 
 instance has_colimits [has_colimits A] [preserves_colimits G] :
-  has_colimits (costructured_arrow G X) := {}
+  has_colimits (costructured_arrow G X) := ⟨infer_instance⟩
 
 noncomputable instance creates_colimit [i : preserves_colimit (F ⋙ proj G X) G] :
   creates_colimit F (proj G X) :=
@@ -232,7 +232,7 @@ noncomputable instance creates_colimits_of_shape [preserves_colimits_of_shape J 
   creates_colimits_of_shape J (proj G X) := {}
 
 noncomputable instance creates_colimits [preserves_colimits G] :
-  creates_colimits (proj G X : _) := {}
+  creates_colimits (proj G X : _) := ⟨⟩
 
 end costructured_arrow
 

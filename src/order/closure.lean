@@ -3,10 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
-import data.set_like
-import order.basic
-import order.preorder_hom
+import data.set.lattice
+import data.set_like.basic
 import order.galois_connection
+import order.hom.basic
 import tactic.monotonicity
 
 /-!
@@ -50,23 +50,22 @@ universe u
 
 /-! ### Closure operator -/
 
-variable (α : Type*)
+variables (α : Type*) {ι : Sort*} {κ : ι → Sort*}
 
 /-- A closure operator on the preorder `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent. -/
-structure closure_operator [preorder α] extends α →ₘ α :=
+structure closure_operator [preorder α] extends α →o α :=
 (le_closure' : ∀ x, x ≤ to_fun x)
 (idempotent' : ∀ x, to_fun (to_fun x) = to_fun x)
 
 namespace closure_operator
 
-instance [preorder α] : has_coe_to_fun (closure_operator α) :=
-{ F := _, coe := λ c, c.to_fun }
+instance [preorder α] : has_coe_to_fun (closure_operator α) (λ _, α → α) := ⟨λ c, c.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def simps.apply [preorder α] (f : closure_operator α) : α → α := f
 
-initialize_simps_projections closure_operator (to_preorder_hom_to_fun → apply, -to_preorder_hom)
+initialize_simps_projections closure_operator (to_order_hom_to_fun → apply, -to_order_hom)
 
 section partial_order
 variable [partial_order α]
@@ -74,8 +73,7 @@ variable [partial_order α]
 /-- The identity function as a closure operator. -/
 @[simps]
 def id : closure_operator α :=
-{ to_fun := λ x, x,
-  monotone' := λ _ _ h, h,
+{ to_order_hom := order_hom.id,
   le_closure' := λ _, le_rfl,
   idempotent' := λ _, rfl }
 
@@ -173,14 +171,14 @@ by { ext, refl }
 lemma mem_mk₃_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
   {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} (hx : p x) :
   x ∈ (mk₃ f p hf hfp hmin).closed :=
-(hmin (le_refl _) hx).antisymm (hf _)
+(hmin le_rfl hx).antisymm (hf _)
 
 end partial_order
 
 variable {α}
 
 section order_top
-variables [order_top α] (c : closure_operator α)
+variables [partial_order α] [order_top α] (c : closure_operator α)
 
 @[simp] lemma closure_top : c ⊤ = ⊤ :=
 le_top.antisymm (c.le_closure _)
@@ -219,15 +217,13 @@ end semilattice_sup
 section complete_lattice
 variables [complete_lattice α] (c : closure_operator α)
 
-lemma closure_supr_closure {ι : Type u} (x : ι → α) :
-  c (⨆ i, c (x i)) = c (⨆ i, x i) :=
-le_antisymm ((c.le_closure_iff _ _).1 (supr_le (λ i, c.monotone
-  (le_supr x i)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
+@[simp] lemma closure_supr_closure (f : ι → α) : c (⨆ i, c (f i)) = c (⨆ i, f i) :=
+le_antisymm ((c.le_closure_iff _ _).1 $ supr_le $ λ i, c.monotone $ le_supr f i) $
+  c.monotone $ supr_mono $ λ i, c.le_closure _
 
-lemma closure_bsupr_closure (p : α → Prop) :
-  c (⨆ x (H : p x), c x) = c (⨆ x (H : p x), x) :=
-le_antisymm ((c.le_closure_iff _ _).1 (bsupr_le (λ x hx, c.monotone
-  (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, c.le_closure x)))
+@[simp] lemma closure_supr₂_closure (f : Π i, κ i → α) : c (⨆ i j, c (f i j)) = c (⨆ i j, f i j) :=
+le_antisymm ((c.le_closure_iff _ _).1 $ supr₂_le $ λ i j, c.monotone $ le_supr₂ i j) $
+  c.monotone $ supr₂_mono $ λ i j, c.le_closure _
 
 end complete_lattice
 end closure_operator
@@ -260,8 +256,7 @@ instance [preorder α] : inhabited (lower_adjoint (id : α → α)) := ⟨lower_
 section preorder
 variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-instance : has_coe_to_fun (lower_adjoint u) :=
-{ F := λ _, α → β, coe := to_fun }
+instance : has_coe_to_fun (lower_adjoint u) (λ _, α → β) := { coe := to_fun }
 
 /-- See Note [custom simps projection] -/
 def simps.apply : α → β := l
@@ -291,7 +286,7 @@ def closure_operator :
 { to_fun := λ x, u (l x),
   monotone' := l.monotone,
   le_closure' := l.le_closure,
-  idempotent' := λ x, show (u ∘ l ∘ u) (l x) = u (l x), by rw l.gc.u_l_u_eq_u }
+  idempotent' := λ x, l.gc.u_l_u_eq_u (l x) }
 
 lemma idempotent (x : α) : u (l (u (l x))) = u (l x) :=
 l.closure_operator.idempotent _
@@ -333,7 +328,7 @@ l.closure_operator.closure_le_closed_iff_le x hy
 
 end partial_order
 
-lemma closure_top [order_top α] [preorder β] {u : β → α} (l : lower_adjoint u) :
+lemma closure_top [partial_order α] [order_top α] [preorder β] {u : β → α} (l : lower_adjoint u) :
   u (l ⊤) = ⊤ :=
 l.closure_operator.closure_top
 
@@ -365,13 +360,12 @@ end semilattice_sup
 section complete_lattice
 variables [complete_lattice α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-lemma closure_supr_closure {ι : Type u} (x : ι → α) :
-  u (l (⨆ i, u (l (x i)))) = u (l (⨆ i, x i)) :=
-l.closure_operator.closure_supr_closure x
+lemma closure_supr_closure (f : ι → α) : u (l (⨆ i, u (l (f i)))) = u (l (⨆ i, f i)) :=
+l.closure_operator.closure_supr_closure _
 
-lemma closure_bsupr_closure (p : α → Prop) :
-  u (l (⨆ x (H : p x), u (l x))) = u (l (⨆ x (H : p x), x)) :=
-l.closure_operator.closure_bsupr_closure p
+lemma closure_supr₂_closure (f : Π i, κ i → α) :
+  u (l $ ⨆ i j, u (l $ f i j)) = u (l $ ⨆ i j, f i j) :=
+l.closure_operator.closure_supr₂_closure _
 
 end complete_lattice
 
@@ -381,6 +375,9 @@ variables [set_like α β] (l : lower_adjoint (coe : α → set β))
 
 lemma subset_closure (s : set β) : s ⊆ l s :=
 l.le_closure s
+
+lemma not_mem_of_not_mem_closure {s : set β} {P : β} (hP : P ∉ l s) : P ∉ s :=
+λ h, hP (subset_closure _ s h)
 
 lemma le_iff_subset (s : set β) (S : α) : l s ≤ S ↔ s ⊆ S :=
 l.gc s S
@@ -408,13 +405,11 @@ set_like.coe_injective (l.closure_sup_closure_right x y)
   l ((l x) ∪ (l y)) = l (x ∪ y) :=
 set_like.coe_injective (l.closure_operator.closure_sup_closure x y)
 
-@[simp] lemma closure_Union_closure {ι : Type u} (x : ι → α) :
-  l (⋃ i, l (x i)) = l (⋃ i, x i) :=
-set_like.coe_injective (l.closure_supr_closure (coe ∘ x))
+@[simp] lemma closure_Union_closure (f : ι → α) : l (⋃ i, l (f i)) = l (⋃ i, f i) :=
+set_like.coe_injective $ l.closure_supr_closure _
 
-@[simp] lemma closure_bUnion_closure (p : set β → Prop) :
-  l (⋃ x (H : p x), l x) = l (⋃ x (H : p x), x) :=
-set_like.coe_injective (l.closure_bsupr_closure p)
+@[simp] lemma closure_Union₂_closure (f : Π i, κ i → α) : l (⋃ i j, l (f i j)) = l (⋃ i j, f i j) :=
+set_like.coe_injective $ l.closure_supr₂_closure _
 
 end coe_to_set
 

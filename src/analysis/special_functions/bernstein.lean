@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.order.field
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
-import algebra.floor
-import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
@@ -131,7 +130,6 @@ end bernstein
 open bernstein
 
 local postfix `/ₙ`:2000 := z
-local notation `|`x`|` := abs x
 
 /--
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,
@@ -165,6 +163,8 @@ The modulus of (uniform) continuity for `f`, chosen so `|f x - f y| < ε/2` when
 -/
 def δ (f : C(I, ℝ)) (ε : ℝ) (h : 0 < ε) : ℝ := f.modulus (ε/2) (half_pos h)
 
+lemma δ_pos {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} : 0 < δ f ε h := f.modulus_pos
+
 /--
 The set of points `k` so `k/n` is within `δ` of `x`.
 -/
@@ -191,12 +191,8 @@ lemma le_of_mem_S_compl
   (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
-  field_simp,
-  erw [le_div_iff (pow_pos f.modulus_pos 2), one_mul],
-  apply sq_le_sq,
-  rw abs_eq_self.mpr (le_of_lt f.modulus_pos),
-  rw [dist_comm] at m,
-  exact m,
+  erw [zpow_neg, ← div_eq_inv_mul, one_le_div (pow_pos δ_pos 2), sq_le_sq, abs_of_pos δ_pos],
+  rwa [dist_comm] at m
 end
 
 end bernstein_approximation
@@ -224,8 +220,8 @@ begin
   intros ε h,
   let δ := δ f ε h,
   have nhds_zero := tendsto_const_div_at_top_nhds_0_nat (2 * ∥f∥ * δ ^ (-2 : ℤ)),
-  filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0],
-  intros n nh npos',
+  filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0]
+    with n nh npos',
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Two easy inequalities we'll need later:
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
@@ -297,8 +293,8 @@ begin
                                           (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
-                                  : by conv_rhs {
-                                      rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+                                  : by conv_rhs
+                                    { rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
         -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
                                   : by { rw variance npos, ring, }
@@ -306,7 +302,7 @@ begin
                                   : (div_le_div_right npos).mpr
                                     begin
                                       apply mul_nonneg_le_one_le w₂,
-                                      apply mul_nonneg_le_one_le w₂ (le_refl _),
+                                      apply mul_nonneg_le_one_le w₂ le_rfl,
                                       all_goals { unit_interval, },
                                     end
         ... < ε/2 : nh, }

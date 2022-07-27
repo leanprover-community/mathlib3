@@ -42,8 +42,10 @@ Partition
 
 variables {α : Type*}
 
-open multiset nat
+open multiset
 open_locale big_operators
+
+namespace nat
 
 /-- A partition of `n` is a multiset of positive integers summing to `n`. -/
 @[ext, derive decidable_eq] structure partition (n : ℕ) :=
@@ -129,3 +131,4 @@ finset.univ.filter (λ c, c.parts.nodup)
 def odd_distincts (n : ℕ) : finset (partition n) := odds n ∩ distincts n
 
 end partition
+end nat

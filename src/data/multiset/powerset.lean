@@ -80,7 +80,7 @@ congr_arg coe powerset_aux_eq_map_coe
   @powerset α l = ((sublists' l).map coe : list (multiset α)) :=
 quot.sound powerset_aux_perm_powerset_aux'
 
-@[simp] theorem powerset_zero : @powerset α 0 = 0 ::ₘ 0 := rfl
+@[simp] theorem powerset_zero : @powerset α 0 = {0} := rfl
 
 @[simp] theorem powerset_cons (a : α) (s) :
   powerset (a ::ₘ s) = powerset s + map (cons a) (powerset s) :=
@@ -91,9 +91,9 @@ quotient.induction_on s $ λ l, by simp; refl
 quotient.induction_on₂ s t $ by simp [subperm, and.comm]
 
 theorem map_single_le_powerset (s : multiset α) :
-  s.map (λ a, a ::ₘ 0) ≤ powerset s :=
+  s.map singleton ≤ powerset s :=
 quotient.induction_on s $ λ l, begin
-  simp [powerset_coe],
+  simp only [powerset_coe, quot_mk_to_coe, coe_le, coe_map],
   show l.map (coe ∘ list.ret) <+~ (sublists l).map coe,
   rw ← list.map_map,
   exact ((map_ret_sublist_sublists _).map _).subperm
@@ -125,9 +125,9 @@ theorem revzip_powerset_aux_lemma [decidable_eq α] (l : list α)
 begin
   have : forall₂ (λ (p : multiset α × multiset α) (s : multiset α), p = (s, ↑l - s))
     (revzip l') ((revzip l').map prod.fst),
-  { rw forall₂_map_right_iff,
-    apply forall₂_same, rintro ⟨s, t⟩ h,
-    dsimp, rw [← H h, add_sub_cancel_left] },
+  { rw [forall₂_map_right_iff, forall₂_same],
+    rintro ⟨s, t⟩ h,
+    dsimp, rw [← H h, add_tsub_cancel_left] },
   rw [← forall₂_eq_eq_eq, forall₂_map_right_iff], simpa
 end
 
@@ -207,10 +207,10 @@ theorem powerset_len_coe (n) (l : list α) :
 congr_arg coe powerset_len_aux_eq_map_coe
 
 @[simp] theorem powerset_len_zero_left (s : multiset α) :
-  powerset_len 0 s = 0 ::ₘ 0 :=
+  powerset_len 0 s = {0} :=
 quotient.induction_on s $ λ l, by simp [powerset_len_coe']; refl
 
-@[simp] theorem powerset_len_zero_right (n : ℕ) :
+theorem powerset_len_zero_right (n : ℕ) :
   @powerset_len α (n + 1) 0 = 0 := rfl
 
 @[simp] theorem powerset_len_cons (n : ℕ) (a : α) (s) :
@@ -235,5 +235,22 @@ theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
   powerset_len n s ≤ powerset_len n t :=
 le_induction_on h $ λ l₁ l₂ h, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_of_sublist _ h).map _).subperm
+
+@[simp] theorem powerset_len_empty {α : Type*} (n : ℕ) {s : multiset α} (h : s.card < n) :
+  powerset_len n s = 0 :=
+card_eq_zero.mp (nat.choose_eq_zero_of_lt h ▸ card_powerset_len _ _)
+
+@[simp]
+lemma powerset_len_card_add (s : multiset α) {i : ℕ} (hi : 0 < i) :
+  s.powerset_len (s.card + i) = 0 :=
+powerset_len_empty _ (lt_add_of_pos_right (card s) hi)
+
+theorem powerset_len_map {β : Type*} (f : α → β) (n : ℕ) (s : multiset α) :
+  powerset_len n (s.map f) = (powerset_len n s).map (map f) :=
+begin
+  induction s using multiset.induction with t s ih generalizing n,
+  { cases n; simp [powerset_len_zero_left, powerset_len_zero_right], },
+  { cases n; simp [ih, map_comp_cons], },
+end
 
 end multiset

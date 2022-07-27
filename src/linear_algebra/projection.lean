@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import linear_algebra.basic
+import linear_algebra.quotient
 import linear_algebra.prod
 
 /-!
@@ -23,9 +23,13 @@ We also provide some lemmas justifying correctness of our definitions.
 projection, complement subspace
 -/
 
+section ring
+
 variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
   {F : Type*} [add_comm_group F] [module R F]
   {G : Type*} [add_comm_group G] [module R G] (p q : submodule R E)
+variables {S : Type*} [semiring S] {M : Type*} [add_comm_monoid M] [module S M] (m : submodule S M)
+
 
 noncomputable theory
 
@@ -67,10 +71,10 @@ namespace submodule
 open linear_map
 
 /-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
-def quotient_equiv_of_is_compl (h : is_compl p q) : p.quotient ≃ₗ[R] q :=
+def quotient_equiv_of_is_compl (h : is_compl p q) : (E ⧸ p) ≃ₗ[R] q :=
 linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
-  (by simp only [ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
-  (by simp only [range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
+  (by simp only [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
+  (by simp only [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
 
 @[simp] lemma quotient_equiv_of_is_compl_symm_apply (h : is_compl p q) (x : q) :
   (quotient_equiv_of_is_compl p q h).symm x = quotient.mk x := rfl
@@ -79,8 +83,8 @@ linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   quotient_equiv_of_is_compl p q h (quotient.mk x) = x :=
 (quotient_equiv_of_is_compl p q h).apply_symm_apply x
 
-@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : p.quotient) :
-  (quotient.mk (quotient_equiv_of_is_compl p q h x) : p.quotient) = x :=
+@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : E ⧸ p) :
+  (quotient.mk (quotient_equiv_of_is_compl p q h x) : E ⧸ p) = x :=
 (quotient_equiv_of_is_compl p q h).symm_apply_apply x
 
 /-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. It is the unique
@@ -88,14 +92,14 @@ linear map `f : E → p` such that `f x = x` for `x ∈ p` and `f x = 0` for `x 
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin
   apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),
-  { simp only [ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
+  { simp only [←ker_eq_bot, ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
     -- TODO: if I add `submodule.forall`, it unfolds the outer `∀` but not the inner one.
     rintros ⟨x, hx⟩ ⟨y, hy⟩,
     simp only [coe_mk, mk_eq_zero, ← eq_neg_iff_add_eq_zero],
     rintro rfl,
     rw [neg_mem_iff] at hx,
     simp [disjoint_def.1 h.disjoint y hx hy] },
-  { rw [← sup_eq_range, h.sup_eq_top] }
+  { rw [← range_eq_top, ← sup_eq_range, h.sup_eq_top] }
 end
 
 @[simp] lemma coe_prod_equiv_of_is_compl (h : is_compl p q) :
@@ -128,10 +132,16 @@ begin
     mem_left_iff_eq_zero_of_disjoint h.disjoint]
 end
 
+@[simp]
+lemma prod_comm_trans_prod_equiv_of_is_compl (h : is_compl p q) :
+  linear_equiv.prod_comm R q p ≪≫ₗ prod_equiv_of_is_compl p q h =
+    prod_equiv_of_is_compl q p h.symm :=
+linear_equiv.ext $ λ _, add_comm _ _
+
 /-- Projection to a submodule along its complement. -/
 def linear_proj_of_is_compl (h : is_compl p q) :
   E →ₗ[R] p :=
-(linear_map.fst R p q).comp $ (prod_equiv_of_is_compl p q h).symm
+(linear_map.fst R p q) ∘ₗ ↑(prod_equiv_of_is_compl p q h).symm
 
 variables {p q}
 
@@ -178,6 +188,14 @@ lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
 let ⟨u, hu₁, hu₂⟩ := exists_unique_add_of_is_compl_prod hc x in
   ⟨u.1, u.2, hu₁, λ r s hrs, prod.eq_iff_fst_eq_snd_eq.1 (hu₂ ⟨r, s⟩ hrs)⟩
 
+lemma linear_proj_add_linear_proj_of_is_compl_eq_self (hpq : is_compl p q) (x : E) :
+  (p.linear_proj_of_is_compl q hpq x + q.linear_proj_of_is_compl p hpq.symm x : E) = x :=
+begin
+  dunfold linear_proj_of_is_compl,
+  rw ←prod_comm_trans_prod_equiv_of_is_compl _ _ hpq,
+  exact (prod_equiv_of_is_compl _ _ hpq).apply_symm_apply x,
+end
+
 end submodule
 
 namespace linear_map
@@ -188,7 +206,7 @@ open submodule
 the induced linear map over the entire module. -/
 def of_is_compl {p q : submodule R E} (h : is_compl p q)
   (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
-(linear_map.coprod φ ψ).comp (submodule.prod_equiv_of_is_compl _ _ h).symm
+(linear_map.coprod φ ψ) ∘ₗ ↑(submodule.prod_equiv_of_is_compl _ _ h).symm
 
 variables {p q}
 
@@ -241,7 +259,7 @@ def of_is_compl_prod {p q : submodule R₁ E} (h : is_compl p q) :
   ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) →ₗ[R₁] (E →ₗ[R₁] F) :=
 { to_fun := λ φ, of_is_compl h φ.1 φ.2,
   map_add' := by { intros φ ψ, rw [prod.snd_add, prod.fst_add, of_is_compl_add] },
-  map_smul' := by { intros c φ, rw [prod.smul_snd, prod.smul_fst, of_is_compl_smul] } }
+  map_smul' := by { intros c φ, simp [prod.smul_snd, prod.smul_fst, of_is_compl_smul] } }
 
 @[simp] lemma of_is_compl_prod_apply {p q : submodule R₁ E} (h : is_compl p q)
   (φ : (p →ₗ[R₁] F) × (q →ₗ[R₁] F)) : of_is_compl_prod h φ = of_is_compl h φ.1 φ.2 := rfl
@@ -281,8 +299,8 @@ a linear equivalence `E ≃ₗ[R] F × G`. -/
 def equiv_prod_of_surjective_of_is_compl (f : E →ₗ[R] F) (g : E →ₗ[R] G) (hf : f.range = ⊤)
   (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
   E ≃ₗ[R] F × G :=
-linear_equiv.of_bijective (f.prod g) (by simp [hfg.inf_eq_bot])
-  (by simp [range_prod_eq hfg.sup_eq_top, *])
+linear_equiv.of_bijective (f.prod g) (by simp [← ker_eq_bot, hfg.inf_eq_bot])
+  (by simp [← range_eq_top, range_prod_eq hfg.sup_eq_top, *])
 
 @[simp] lemma coe_equiv_prod_of_surjective_of_is_compl {f : E →ₗ[R] F} {g : E →ₗ[R] G}
   (hf : f.range = ⊤) (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
@@ -316,3 +334,89 @@ def is_compl_equiv_proj :
   (p.is_compl_equiv_proj.symm f : submodule R E) = (f : E →ₗ[R] p).ker := rfl
 
 end submodule
+
+namespace linear_map
+
+open submodule
+
+/--
+A linear endomorphism of a module `E` is a projection onto a submodule `p` if it sends every element
+of `E` to `p` and fixes every element of `p`.
+The definition allow more generally any `fun_like` type and not just linear maps, so that it can be
+used for example with `continuous_linear_map` or `matrix`.
+-/
+structure is_proj {F : Type*} [fun_like F M (λ _, M)] (f : F) : Prop :=
+(map_mem : ∀ x, f x ∈ m)
+(map_id : ∀ x ∈ m, f x = x)
+
+lemma is_proj_iff_idempotent (f : M →ₗ[S] M) : (∃ p : submodule S M, is_proj p f) ↔ f ∘ₗ f = f :=
+begin
+  split,
+  { intro h, obtain ⟨p, hp⟩ := h, ext, rw comp_apply, exact hp.map_id (f x) (hp.map_mem x), },
+  { intro h, use f.range, split,
+    { intro x, exact mem_range_self f x, },
+    { intros x hx, obtain ⟨y, hy⟩ := mem_range.1 hx, rw [←hy, ←comp_apply, h], }, },
+end
+
+namespace is_proj
+
+variables {p m}
+
+/--
+Restriction of the codomain of a projection of onto a subspace `p` to `p` instead of the whole
+space.
+-/
+def cod_restrict {f : M →ₗ[S] M} (h : is_proj m f) : M →ₗ[S] m :=
+f.cod_restrict m h.map_mem
+
+@[simp]
+lemma cod_restrict_apply {f : M →ₗ[S] M} (h : is_proj m f) (x : M) :
+  ↑(h.cod_restrict x) = f x := f.cod_restrict_apply m x
+
+@[simp]
+lemma cod_restrict_apply_cod {f : M →ₗ[S] M} (h : is_proj m f) (x : m) :
+  h.cod_restrict x = x :=
+by {ext, rw [cod_restrict_apply], exact h.map_id x x.2}
+
+lemma cod_restrict_ker {f : M →ₗ[S] M} (h : is_proj m f) :
+  h.cod_restrict.ker = f.ker := f.ker_cod_restrict m _
+
+lemma is_compl {f : E →ₗ[R] E} (h : is_proj p f) : is_compl p f.ker :=
+by { rw ←cod_restrict_ker, exact is_compl_of_proj h.cod_restrict_apply_cod, }
+
+lemma eq_conj_prod_map' {f : E →ₗ[R] E} (h : is_proj p f) :
+  f = (p.prod_equiv_of_is_compl f.ker h.is_compl).to_linear_map ∘ₗ prod_map id 0 ∘ₗ
+    (p.prod_equiv_of_is_compl f.ker h.is_compl).symm.to_linear_map :=
+begin
+  refine (linear_map.cancel_right
+    (p.prod_equiv_of_is_compl f.ker h.is_compl).surjective).1 _,
+  ext,
+  { simp only [coe_comp, linear_equiv.coe_to_linear_map, coe_inl, function.comp_app,
+  linear_equiv.of_top_apply, linear_equiv.of_injective_apply, coprod_apply, submodule.coe_subtype,
+  coe_zero, add_zero, prod_equiv_of_is_compl_symm_apply_left, prod_map_apply, id_coe, id.def,
+  zero_apply, coe_prod_equiv_of_is_compl', h.map_id x x.2], },
+  {simp only [coe_comp, linear_equiv.coe_to_linear_map, coe_inr, function.comp_app,
+  linear_equiv.of_top_apply, linear_equiv.of_injective_apply, coprod_apply, submodule.coe_subtype,
+  coe_zero, zero_add, map_coe_ker, prod_equiv_of_is_compl_symm_apply_right, prod_map_apply, id_coe,
+  id.def, zero_apply, coe_prod_equiv_of_is_compl'], }
+end
+
+end is_proj
+
+end linear_map
+
+end ring
+
+section comm_ring
+
+namespace linear_map
+
+variables {R : Type*} [comm_ring R] {E : Type*} [add_comm_group E] [module R E]  {p : submodule R E}
+
+lemma is_proj.eq_conj_prod_map {f : E →ₗ[R] E} (h : is_proj p f) :
+  f = (p.prod_equiv_of_is_compl f.ker h.is_compl).conj (prod_map id 0) :=
+by {rw linear_equiv.conj_apply, exact h.eq_conj_prod_map'}
+
+end linear_map
+
+end comm_ring

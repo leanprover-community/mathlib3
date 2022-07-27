@@ -3,10 +3,11 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.monotonicity.basic
-import algebra.ordered_ring
+import algebra.order.ring
+import data.nat.basic
 import data.set.lattice
-import order.bounds
+import order.directed
+import tactic.monotonicity.basic
 
 variables {α : Type*}
 
@@ -48,7 +49,7 @@ begin
   have : z ≤ y,
   { transitivity, assumption, apply le_of_lt h, },
   apply @nat.lt_of_add_lt_add_left z,
-  rw [nat.add_sub_of_le,nat.add_sub_of_le];
+  rw [add_tsub_cancel_of_le,add_tsub_cancel_of_le];
     solve_by_elim
 end
 
@@ -61,17 +62,17 @@ begin
   have h'' : y ≤ z,
   { transitivity, apply le_of_lt h, assumption },
   apply @nat.lt_of_add_lt_add_right _ x,
-  rw [nat.sub_add_cancel h'],
+  rw [tsub_add_cancel_of_le h'],
   apply @lt_of_le_of_lt _ _ _ (z - y + y),
-  rw [nat.sub_add_cancel h''],
+  rw [tsub_add_cancel_of_le h''],
   apply nat.add_lt_add_left h
 end
 
 open set
 
 attribute [mono] inter_subset_inter union_subset_union
-                 sUnion_mono bUnion_mono sInter_subset_sInter bInter_mono
-                 image_subset preimage_mono prod_mono monotone_prod seq_mono
+                 sUnion_mono Union₂_mono sInter_subset_sInter Inter₂_mono
+                 image_subset preimage_mono prod_mono monotone.set_prod seq_mono
                  image2_subset order_embedding.monotone
 attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
                  upper_bounds_mono_mem  lower_bounds_mono_mem
@@ -81,7 +82,7 @@ attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
 attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
          imp_imp_imp le_implies_le_of_le_of_le
-         sub_le_sub abs_le_abs sup_le_sup
+         sub_le_sub tsub_le_tsub tsub_le_tsub_right abs_le_abs sup_le_sup
          inf_le_inf
 attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
 attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

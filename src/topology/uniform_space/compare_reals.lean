@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import topology.uniform_space.absolute_value
 import topology.instances.real
+import topology.instances.rat
 import topology.uniform_space.completion
 
 /-!
@@ -54,7 +55,7 @@ open set function filter cau_seq uniform_space
 /-- The metric space uniform structure on ℚ (which presupposes the existence
 of real numbers) agrees with the one coming directly from (abs : ℚ → ℚ). -/
 lemma rat.uniform_space_eq :
-  is_absolute_value.uniform_space (abs : ℚ → ℚ) = metric_space.to_uniform_space' :=
+  is_absolute_value.uniform_space (abs : ℚ → ℚ) = pseudo_metric_space.to_uniform_space :=
 begin
   ext s,
   erw [metric.mem_uniformity_dist, is_absolute_value.mem_uniformity],
@@ -82,8 +83,8 @@ def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_
   complete :=  by apply_instance,
   separation :=  by apply_instance,
   uniform_inducing := by { rw rat.uniform_space_eq,
-                           exact uniform_embedding_of_rat.to_uniform_inducing },
-  dense := dense_embedding_of_rat.dense }
+                           exact rat.uniform_embedding_coe_real.to_uniform_inducing },
+  dense := rat.dense_embedding_coe_real.dense }
 
 namespace compare_reals
 /-- Type wrapper around ℚ to make sure the absolute value uniform space instance is picked up

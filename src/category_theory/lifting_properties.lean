@@ -3,8 +3,8 @@ Copyright (c) 2021 Jakob Scholbach. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
+import category_theory.limits.shapes.terminal
 import category_theory.arrow
-import category_theory.limits.preserves.shapes.terminal
 
 /-!
 # Lifting properties
@@ -98,7 +98,7 @@ def right_lifting_subcat (R : Type u) := R
 
 instance right_lifting_subcat.inhabited  (R : Type u) [inhabited R] :
   inhabited (right_lifting_subcat R) :=
-{ default := (default R : R) }
+{ default := (default : R) }
 
 /-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
 underlying category. -/

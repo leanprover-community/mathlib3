@@ -12,7 +12,6 @@ end
 
 -- In the next example, ℤ should be ℝ in maths, but I don't want to import real numbers
 -- for testing only
-local notation `|` x `|` := abs x
 
 example (a : ℕ → ℤ) (l : ℤ) (h : ¬ ∀ ε > 0, ∃ N, ∀ n ≥ N, | a n - l | < ε) : true :=
 begin

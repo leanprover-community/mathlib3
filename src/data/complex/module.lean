@@ -3,17 +3,16 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import algebra.order.smul
 import data.complex.basic
-import algebra.algebra.ordered
-import data.matrix.notation
+import data.fin.vec_notation
 import field_theory.tower
-import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`
 
 This file contains the following instances:
-* Any `•`-structure (`has_scalar`, `mul_action`, `distrib_mul_action`, `module`, `algebra`) on
+* Any `•`-structure (`has_smul`, `mul_action`, `distrib_mul_action`, `module`, `algebra`) on
   `ℝ` imbues a corresponding structure on `ℂ`. This includes the statement that `ℂ` is an `ℝ`
   algebra.
 * any complex vector space is a real vector space;
@@ -36,35 +35,40 @@ It also provides a universal property of the complex numbers `complex.lift`, whi
 
 namespace complex
 
+open_locale complex_conjugate
+
 variables {R : Type*} {S : Type*}
 
 section
 
-variables [has_scalar R ℝ]
+variables [has_smul R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
-`restrict_scalars.module ℝ ℂ ℂ  = complex.module` definitionally. -/
-instance : has_scalar R ℂ :=
+`restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally. -/
+instance : has_smul R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
 lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
 lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
 
-@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z :=
-by ext; simp [smul_re, smul_im]
+@[simp] lemma real_smul {x : ℝ} {z : ℂ} : x • z = x * z := rfl
 
 end
 
-instance [has_scalar R ℝ] [has_scalar S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
+instance [has_smul R ℝ] [has_smul S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
 { smul_comm := λ r s x, by ext; simp [smul_re, smul_im, smul_comm] }
 
-instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower R S ℝ] :
+instance [has_smul R S] [has_smul R ℝ] [has_smul S ℝ] [is_scalar_tower R S ℝ] :
   is_scalar_tower R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
+instance [has_smul R ℝ] [has_smul Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
+  is_central_scalar R ℂ :=
+{ op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
+
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
-  mul_smul := λ r s x, by ext; simp  [smul_re, smul_im, mul_smul] }
+  mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
@@ -80,8 +84,10 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
-/-- Note that when applied the RHS is further simplified by `complex.of_real_eq_coe`. -/
-@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
+instance : star_module ℝ ℂ :=
+⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩
+
+@[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
 section
 variables {A : Type*} [semiring A] [algebra ℝ A]
@@ -105,34 +111,12 @@ end
 section
 open_locale complex_order
 
-lemma complex_ordered_module : ordered_module ℝ ℂ :=
-{ smul_lt_smul_of_pos := λ z w x h₁ h₂,
-  begin
-    obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
-    refine lt_def.mpr ⟨x * y, _, _⟩,
-    exact mul_pos h₂ l,
-    ext; simp [mul_add],
-  end,
-  lt_of_smul_lt_smul_of_pos := λ z w x h₁ h₂,
-  begin
-    obtain ⟨y, l, e⟩ := lt_def.mp h₁,
-    by_cases h : x = 0,
-    { subst h, exfalso, apply lt_irrefl 0 h₂, },
-    { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
-      replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
-      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
-        not_false_iff, inv_mul_cancel] at e,
-      convert e,
-      simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
-      norm_cast,
-      simp [mul_comm _ y, mul_assoc, h],
-    },
-  end }
+protected lemma ordered_smul : ordered_smul ℝ ℂ :=
+ordered_smul.mk' $ λ a b r hab hr, ⟨by simp [hr, hab.1.le], by simp [hab.2]⟩
 
-localized "attribute [instance] complex_ordered_module" in complex_order
+localized "attribute [instance] complex.ordered_smul" in complex_order
 
 end
-
 
 open submodule finite_dimensional
 
@@ -144,7 +128,8 @@ basis.of_equiv_fun
   left_inv := λ z, by simp,
   right_inv := λ c, by { ext i, fin_cases i; simp },
   map_add' := λ z z', by simp,
-  map_smul' := λ c z, by simp }
+  -- why does `simp` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
+  map_smul' := λ c z, by simp [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
 
 @[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 
@@ -164,7 +149,7 @@ by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex]
 
-lemma {u} dim_real_complex' : cardinal.lift.{0 u} (module.rank ℝ ℂ) = 2 :=
+lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
@@ -183,6 +168,11 @@ instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E]
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
 
+@[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
+  (x : ℝ) (y : E) :
+  (x : ℂ) • y = x • y :=
+rfl
+
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]
   [finite_dimensional ℂ E] : finite_dimensional ℝ E :=
@@ -197,7 +187,15 @@ lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
 by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_real_complex]
 
+@[priority 900]
+instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
+  [star_module ℂ E] : star_module ℝ E :=
+⟨λ r a, by rw [star_trivial r, restrict_scalars_smul_def, restrict_scalars_smul_def, star_smul,
+  complex.coe_algebra_map, complex.star_def, complex.conj_of_real]⟩
+
 namespace complex
+
+open_locale complex_conjugate
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def re_lm : ℂ →ₗ[ℝ] ℝ :=
@@ -223,12 +221,21 @@ def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 /-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
 def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 { inv_fun := conj,
-  left_inv := conj_conj,
-  right_inv := conj_conj,
+  left_inv := star_star,
+  right_inv := star_star,
   commutes' := conj_of_real,
   .. conj }
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
+
+/-- The matrix representation of `conj_ae`. -/
+@[simp] lemma to_matrix_conj_ae :
+  linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = !![1, 0; 0, -1] :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simp
+end
 
 section lift
 

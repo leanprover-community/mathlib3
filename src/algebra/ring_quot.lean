@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.algebra.basic
-import ring_theory.ideal.basic
+import ring_theory.ideal.quotient
 
 /-!
 # Quotients of non-commutative rings
@@ -68,6 +68,7 @@ namespace ring_quot
 
 variable (r : R → R → Prop)
 
+@[irreducible] private def nat_cast (n : ℕ) : ring_quot r := ⟨quot.mk _ n⟩
 @[irreducible] private def zero : ring_quot r := ⟨quot.mk _ 0⟩
 @[irreducible] private def one : ring_quot r := ⟨quot.mk _ 1⟩
 @[irreducible] private def add : ring_quot r → ring_quot r → ring_quot r
@@ -79,6 +80,18 @@ variable (r : R → R → Prop)
 @[irreducible] private def sub {R : Type u₁} [ring R] (r : R → R → Prop) :
   ring_quot r → ring_quot r → ring_quot r
 | ⟨a⟩ ⟨b⟩ := ⟨quot.map₂ has_sub.sub rel.sub_right rel.sub_left a b⟩
+@[irreducible] private def npow (n : ℕ) : ring_quot r → ring_quot r
+| ⟨a⟩ := ⟨quot.lift
+          (λ a, quot.mk (ring_quot.rel r) (a ^ n))
+          (λ a b (h : rel r a b), begin
+            -- note we can't define a `rel.pow` as `rel` isn't reflexive so `rel r 1 1` isn't true
+            dsimp only,
+            induction n,
+            { rw [pow_zero, pow_zero] },
+            { rw [pow_succ, pow_succ],
+              simpa only [mul] using congr_arg2 (λ x y, mul r ⟨x⟩ ⟨y⟩) (quot.sound h) n_ih }
+          end)
+          a⟩
 @[irreducible] private def smul [algebra S R] (n : S) : ring_quot r → ring_quot r
 | ⟨a⟩ := ⟨quot.map (λ a, n • a) (rel.smul n) a⟩
 
@@ -86,9 +99,10 @@ instance : has_zero (ring_quot r) := ⟨zero r⟩
 instance : has_one (ring_quot r) := ⟨one r⟩
 instance : has_add (ring_quot r) := ⟨add r⟩
 instance : has_mul (ring_quot r) := ⟨mul r⟩
+instance : has_pow (ring_quot r) ℕ := ⟨λ x n, npow r n x⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_neg (ring_quot r) := ⟨neg r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_sub (ring_quot r) := ⟨sub r⟩
-instance [algebra S R] : has_scalar S (ring_quot r) := ⟨smul r⟩
+instance [algebra S R] : has_smul S (ring_quot r) := ⟨smul r⟩
 
 lemma zero_quot : (⟨quot.mk _ 0⟩ : ring_quot r) = 0 := show _ = zero r, by rw zero
 lemma one_quot : (⟨quot.mk _ 1⟩ : ring_quot r) = 1 := show _ = one r, by rw one
@@ -96,6 +110,8 @@ lemma add_quot {a b} : (⟨quot.mk _ a⟩ + ⟨quot.mk _ b⟩ : ring_quot r) = �
 by { show add r _ _ = _, rw add, refl }
 lemma mul_quot {a b} : (⟨quot.mk _ a⟩ * ⟨quot.mk _ b⟩ : ring_quot r) = ⟨quot.mk _ (a * b)⟩ :=
 by { show mul r _ _ = _, rw mul, refl }
+lemma pow_quot {a} {n : ℕ}: (⟨quot.mk _ a⟩ ^ n : ring_quot r) = ⟨quot.mk _ (a ^ n)⟩ :=
+by { show npow r _ _ = _, rw npow }
 lemma neg_quot {R : Type u₁} [ring R] (r : R → R → Prop) {a} :
   (-⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (-a)⟩ :=
 by { show neg r _ = _, rw neg, refl }
@@ -111,6 +127,9 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   mul           := (*),
   zero          := 0,
   one           := 1,
+  nat_cast      := nat_cast r,
+  nat_cast_zero := by simp [nat.cast, nat_cast, ← zero_quot],
+  nat_cast_succ := by simp [nat.cast, nat_cast, ← one_quot, add_quot],
   add_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [add_quot, add_assoc] },
   zero_add      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot] },
   add_zero      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot], },
@@ -122,6 +141,9 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   mul_one       := by { rintros ⟨⟨⟩⟩, simp [mul_quot, ← one_quot] },
   left_distrib  := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, add_quot, left_distrib] },
   right_distrib := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, add_quot, right_distrib] },
+  npow          := λ n x, x ^ n,
+  npow_zero'    := by { rintros ⟨⟨⟩⟩, simp [pow_quot, ← one_quot] },
+  npow_succ'    := by { rintros n ⟨⟨⟩⟩, simp [pow_quot, mul_quot, pow_succ] },
   nsmul         := (•),
   nsmul_zero'   := by { rintros ⟨⟨⟩⟩, simp [smul_quot, ← zero_quot] },
   nsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, add_quot, add_mul, add_comm] } }
@@ -131,6 +153,10 @@ instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
   add_left_neg  := by { rintros ⟨⟨⟩⟩, simp [neg_quot, add_quot, ← zero_quot], },
   sub            := has_sub.sub,
   sub_eq_add_neg := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [neg_quot, sub_quot, add_quot, sub_eq_add_neg] },
+  zsmul          := (•),
+  zsmul_zero'   := by { rintros ⟨⟨⟩⟩, simp [smul_quot, ← zero_quot] },
+  zsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, add_quot, add_mul, add_comm] },
+  zsmul_neg'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, neg_quot, add_mul] },
   .. (ring_quot.semiring r) }
 
 instance {R : Type u₁} [comm_semiring R] (r : R → R → Prop) : comm_semiring (ring_quot r) :=
@@ -227,19 +253,19 @@ agrees with the quotient by the appropriate ideal.
 
 variables {B : Type u₁} [comm_ring B]
 
-/-- The universal ring homomorphism from `ring_quot r` to `(ideal.of_rel r).quotient`. -/
+/-- The universal ring homomorphism from `ring_quot r` to `B ⧸ ideal.of_rel r`. -/
 def ring_quot_to_ideal_quotient (r : B → B → Prop) :
-  ring_quot r →+* (ideal.of_rel r).quotient :=
+  ring_quot r →+* B ⧸ ideal.of_rel r :=
 lift
   ⟨ideal.quotient.mk (ideal.of_rel r),
-   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩))⟩
+    λ x y h, ideal.quotient.eq.2 $ submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩)⟩
 
 @[simp] lemma ring_quot_to_ideal_quotient_apply (r : B → B → Prop) (x : B) :
   ring_quot_to_ideal_quotient r (mk_ring_hom r x) = ideal.quotient.mk _ x := rfl
 
-/-- The universal ring homomorphism from `(ideal.of_rel r).quotient` to `ring_quot r`. -/
+/-- The universal ring homomorphism from `B ⧸ ideal.of_rel r` to `ring_quot r`. -/
 def ideal_quotient_to_ring_quot (r : B → B → Prop) :
-  (ideal.of_rel r).quotient →+* ring_quot r :=
+  B ⧸ ideal.of_rel r →+* ring_quot r :=
 ideal.quotient.lift (ideal.of_rel r) (mk_ring_hom r)
 begin
   refine λ x h, submodule.span_induction h _ _ _ _,
@@ -259,9 +285,9 @@ end
 The ring equivalence between `ring_quot r` and `(ideal.of_rel r).quotient`
 -/
 def ring_quot_equiv_ideal_quotient (r : B → B → Prop) :
-  ring_quot r ≃+* (ideal.of_rel r).quotient :=
+  ring_quot r ≃+* B ⧸ ideal.of_rel r :=
 ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_quot r)
-  (by { ext, simp, }) (by { ext ⟨x⟩, simp, })
+  (by { ext, refl, }) (by { ext, refl, })
 
 end comm_ring
 
@@ -281,7 +307,7 @@ begin
 end
 
 @[irreducible] private def star' : ring_quot r → ring_quot r
-| ⟨a⟩ := ⟨quot.map (_root_.star : R → R) (rel.star r hr) a⟩
+| ⟨a⟩ := ⟨quot.map (star : R → R) (rel.star r hr) a⟩
 
 lemma star'_quot (hr : ∀ a b, r a b → r (star a) (star b)) {a} :
   (star' r hr ⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (star a)⟩ :=

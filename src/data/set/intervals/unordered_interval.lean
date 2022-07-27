@@ -16,7 +16,7 @@ In any decidable linear order `α`, we define the set of elements lying between 
 interval as defined in this file is always the set of things lying between `a` and `b`, regardless
 of the relative order of `a` and `b`.
 
-For real numbers, `Icc (min a b) (max a b)` is the same as `segment a b`.
+For real numbers, `Icc (min a b) (max a b)` is the same as `segment ℝ a b`.
 
 ## Notation
 
@@ -26,17 +26,18 @@ make the notation available.
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
 section linear_order
 
-variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ x : α}
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
 
-localized "notation `[`a `, ` b `]` := interval a b" in interval
+localized "notation `[`a `, ` b `]` := set.interval a b" in interval
 
 @[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
 by rw [interval, min_eq_left h, max_eq_right h]
@@ -45,7 +46,7 @@ by rw [interval, min_eq_left h, max_eq_right h]
 by { rw [interval, min_eq_right h, max_eq_left h] }
 
 lemma interval_swap (a b : α) : [a, b] = [b, a] :=
-or.elim (le_total a b) (by simp {contextual := tt}) (by simp {contextual := tt})
+by rw [interval, interval, min_comm, max_comm]
 
 lemma interval_of_lt (h : a < b) : [a, b] = Icc a b :=
 interval_of_le (le_of_lt h)
@@ -72,7 +73,7 @@ by { rw [interval, mem_Icc], exact ⟨min_le_left _ _, le_max_left _ _⟩ }
 by { rw interval_swap, exact left_mem_interval }
 
 lemma Icc_subset_interval : Icc a b ⊆ [a, b] :=
-by { assume x h, rwa interval_of_le, exact le_trans h.1 h.2 }
+Icc_subset_Icc (min_le_left _ _) (le_max_right _ _)
 
 lemma Icc_subset_interval' : Icc b a ⊆ [a, b] :=
 by { rw interval_swap, apply Icc_subset_interval }
@@ -83,14 +84,17 @@ Icc_subset_interval ⟨ha, hb⟩
 lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
 Icc_subset_interval' ⟨hb, ha⟩
 
-lemma not_mem_interval_of_lt {c : α} (ha : c < a) (hb : c < b) : c ∉ interval a b :=
+lemma not_mem_interval_of_lt (ha : c < a) (hb : c < b) : c ∉ interval a b :=
 not_mem_Icc_of_lt $ lt_min_iff.mpr ⟨ha, hb⟩
 
-lemma not_mem_interval_of_gt {c : α} (ha : a < c) (hb : b < c) : c ∉ interval a b :=
+lemma not_mem_interval_of_gt (ha : a < c) (hb : b < c) : c ∉ interval a b :=
 not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
 
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 Icc_subset_Icc (le_min h₁.1 h₂.1) (max_le h₁.2 h₂.2)
+
+lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+Icc_subset_Icc (le_min ha.1 hb.1) (max_le ha.2 hb.2)
 
 lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 iff.intro (λh, ⟨h left_mem_interval, h right_mem_interval⟩) (λ h, interval_subset_interval h.1 h.2)
@@ -105,6 +109,21 @@ interval_subset_interval h right_mem_interval
 lemma interval_subset_interval_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
 interval_subset_interval left_mem_interval h
 
+/-- A sort of triangle inequality. -/
+lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
+begin
+  rintro x hx,
+  obtain hac | hac := le_total a c,
+  { rw interval_of_le hac at hx,
+    obtain hb | hb := le_total x b,
+    { exact or.inl (mem_interval_of_le hx.1 hb) },
+    { exact or.inr (mem_interval_of_le hb hx.2) } },
+  { rw interval_of_ge hac at hx,
+    obtain hb | hb := le_total x b,
+    { exact or.inr (mem_interval_of_ge hx.1 hb) },
+    { exact or.inl (mem_interval_of_ge hb hx.2) } }
+end
+
 lemma bdd_below_bdd_above_iff_subset_interval (s : set α) :
   bdd_below s ∧ bdd_above s ↔ ∃ a b, s ⊆ [a, b] :=
 begin
@@ -118,7 +137,7 @@ end
 def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
 
 -- Below is a capital iota
-localized "notation `Ι` := interval_oc" in interval
+localized "notation `Ι` := set.interval_oc" in interval
 
 lemma interval_oc_of_le (h : a ≤ b) : Ι a b = Ioc a b :=
 by simp [interval_oc, h]
@@ -126,9 +145,25 @@ by simp [interval_oc, h]
 lemma interval_oc_of_lt (h : b < a) : Ι a b = Ioc b a :=
 by simp [interval_oc, le_of_lt h]
 
+lemma interval_oc_eq_union : Ι a b = Ioc a b ∪ Ioc b a :=
+by cases le_total a b; simp [interval_oc, *]
+
 lemma forall_interval_oc_iff  {P : α → Prop} :
   (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
-by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, forall_and_distrib]
+
+lemma interval_oc_subset_interval_oc_of_interval_subset_interval {a b c d : α}
+  (h : [a, b] ⊆ [c, d]) : Ι a b ⊆ Ι c d :=
+Ioc_subset_Ioc (interval_subset_interval_iff_le.1 h).1 (interval_subset_interval_iff_le.1 h).2
+
+lemma interval_oc_swap (a b : α) : Ι a b = Ι b a :=
+by simp only [interval_oc, min_comm a b, max_comm a b]
+
+lemma Ioc_subset_interval_oc : Ioc a b ⊆ Ι a b :=
+Ioc_subset_Ioc (min_le_left _ _) (le_max_right _ _)
+
+lemma Ioc_subset_interval_oc' : Ioc a b ⊆ Ι b a :=
+Ioc_subset_Ioc (min_le_right _ _) (le_max_left _ _)
 
 end linear_order
 
@@ -144,7 +179,7 @@ by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_r
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
-@[simp] lemma preimage_neg_interval : -([a, b]) = [-a, -b] :=
+@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
 by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
@@ -172,7 +207,7 @@ variables {a b c x y}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/
-lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : abs (y - x) ≤ abs (b - a) :=
+lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : |y - x| ≤ |b - a| :=
 begin
   rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
   rw [interval_subset_interval_iff_le] at h,
@@ -181,12 +216,12 @@ end
 
 /-- If `x ∈ [a, b]`, then the distance between `a` and `x` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : abs (x - a) ≤ abs (b - a) :=
+lemma abs_sub_left_of_mem_interval (h : x ∈ [a, b]) : |x - a| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_left h)
 
 /-- If `x ∈ [a, b]`, then the distance between `x` and `b` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : abs (b - x) ≤ abs (b - a) :=
+lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : |b - x| ≤ |b - a| :=
 abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
@@ -207,7 +242,7 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv']
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else

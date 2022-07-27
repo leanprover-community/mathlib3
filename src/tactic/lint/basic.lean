@@ -47,8 +47,8 @@ meta def nolint_attr : user_attribute (name_map (list name)) (list name) :=
     ls@(_::_) ← parse_name_list <$> nolint_attr.get_param_untyped n
       | fail "you need to specify at least one linter to disable",
     skip),
-  cache_cfg := {
-    dependencies := [],
+  cache_cfg :=
+  { dependencies := [],
     mk_cache := list.mfoldl
       (λ cache d, native.rb_map.insert cache d <$>
         parse_name_list <$> nolint_attr.get_param_untyped d)

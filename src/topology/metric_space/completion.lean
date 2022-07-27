@@ -16,14 +16,14 @@ by extending the distance to the completion and checking that it is indeed a dis
 it defines the same uniformity as the already defined uniform structure on the completion
 -/
 
-open set filter uniform_space uniform_space.completion
-open_locale filter
+open set filter uniform_space metric
+open_locale filter topological_space uniformity
 noncomputable theory
 
-universes u
-variables {α : Type u} [pseudo_metric_space α]
+universes u v
+variables {α : Type u} {β : Type v} [pseudo_metric_space α]
 
-namespace metric
+namespace uniform_space.completion
 
 /-- The distance on the completion is obtained by extending the distance on the original space,
 by uniform continuity. -/
@@ -31,50 +31,45 @@ instance : has_dist (completion α) :=
 ⟨completion.extension₂ dist⟩
 
 /-- The new distance is uniformly continuous. -/
-protected lemma completion.uniform_continuous_dist :
+protected lemma uniform_continuous_dist :
   uniform_continuous (λp:completion α × completion α, dist p.1 p.2) :=
 uniform_continuous_extension₂ dist
 
+/-- The new distance is continuous. -/
+protected lemma continuous_dist [topological_space β] {f g : β → completion α} (hf : continuous f)
+  (hg : continuous g) :
+  continuous (λ x, dist (f x) (g x)) :=
+completion.uniform_continuous_dist.continuous.comp (hf.prod_mk hg : _)
+
 /-- The new distance is an extension of the original distance. -/
-protected lemma completion.dist_eq (x y : α) : dist (x : completion α) y = dist x y :=
+@[simp] protected lemma dist_eq (x y : α) : dist (x : completion α) y = dist x y :=
 completion.extension₂_coe_coe uniform_continuous_dist _ _
 
 /- Let us check that the new distance satisfies the axioms of a distance, by starting from the
 properties on α and extending them to `completion α` by continuity. -/
-protected lemma completion.dist_self (x : completion α) : dist x x = 0 :=
+protected lemma dist_self (x : completion α) : dist x x = 0 :=
 begin
   apply induction_on x,
   { refine is_closed_eq _ continuous_const,
-    exact (completion.uniform_continuous_dist.continuous.comp
-             (continuous.prod_mk continuous_id continuous_id : _) : _) },
+    exact completion.continuous_dist continuous_id continuous_id },
   { assume a,
     rw [completion.dist_eq, dist_self] }
 end
 
-protected lemma completion.dist_comm (x y : completion α) : dist x y = dist y x :=
+protected lemma dist_comm (x y : completion α) : dist x y = dist y x :=
 begin
   apply induction_on₂ x y,
-  { refine is_closed_eq completion.uniform_continuous_dist.continuous _,
-    exact completion.uniform_continuous_dist.continuous.comp
-      (@continuous_swap (completion α) (completion α) _ _) },
+  { exact is_closed_eq (completion.continuous_dist continuous_fst continuous_snd)
+      (completion.continuous_dist continuous_snd continuous_fst) },
   { assume a b,
     rw [completion.dist_eq, completion.dist_eq, dist_comm] }
 end
 
-protected lemma completion.dist_triangle (x y z : completion α) : dist x z ≤ dist x y + dist y z :=
+protected lemma dist_triangle (x y z : completion α) : dist x z ≤ dist x y + dist y z :=
 begin
   apply induction_on₃ x y z,
-  { refine is_closed_le _ (continuous.add _ _),
-    { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.2)) :=
-        continuous.prod_mk continuous_fst (continuous.comp continuous_snd continuous_snd),
-      exact (completion.uniform_continuous_dist.continuous.comp this : _) },
-    { have : continuous (λp : completion α × completion α × completion α, (p.1, p.2.1)) :=
-        continuous.prod_mk continuous_fst (continuous_fst.comp continuous_snd),
-      exact (completion.uniform_continuous_dist.continuous.comp this : _) },
-    { have : continuous (λp : completion α × completion α × completion α, (p.2.1, p.2.2)) :=
-        continuous.prod_mk (continuous_fst.comp continuous_snd)
-                           (continuous.comp continuous_snd continuous_snd),
-      exact (continuous.comp completion.uniform_continuous_dist.continuous this : _) } },
+  { refine is_closed_le _ (continuous.add _ _);
+      apply_rules [completion.continuous_dist, continuous.fst, continuous.snd, continuous_id] },
   { assume a b c,
     rw [completion.dist_eq, completion.dist_eq, completion.dist_eq],
     exact dist_triangle a b c }
@@ -82,13 +77,13 @@ end
 
 /-- Elements of the uniformity (defined generally for completions) can be characterized in terms
 of the distance. -/
-protected lemma completion.mem_uniformity_dist (s : set (completion α × completion α)) :
-  s ∈ uniformity (completion α) ↔ (∃ε>0, ∀{a b}, dist a b < ε → (a, b) ∈ s) :=
+protected lemma mem_uniformity_dist (s : set (completion α × completion α)) :
+  s ∈ 𝓤 (completion α) ↔ (∃ε>0, ∀{a b}, dist a b < ε → (a, b) ∈ s) :=
 begin
   split,
-  { /- Start from an entourage `s`. It contains a closed entourage `t`. Its pullback in α is an
-    entourage, so it contains an ε-neighborhood of the diagonal by definition of the entourages
-    in metric spaces. Then `t` contains an ε-neighborhood of the diagonal in `completion α`, as
+  { /- Start from an entourage `s`. It contains a closed entourage `t`. Its pullback in `α` is an
+    entourage, so it contains an `ε`-neighborhood of the diagonal by definition of the entourages
+    in metric spaces. Then `t` contains an `ε`-neighborhood of the diagonal in `completion α`, as
     closed properties pass to the completion. -/
     assume hs,
     rcases mem_uniformity_is_closed hs with ⟨t, ht, ⟨tclosed, ts⟩⟩,
@@ -126,10 +121,10 @@ begin
     simp only [uniformity_prod_eq_prod, mem_prod_iff, exists_prop,
                filter.mem_map, set.mem_set_of_eq] at T,
     rcases T with ⟨t1, ht1, t2, ht2, ht⟩,
-    refine mem_sets_of_superset ht1 _,
+    refine mem_of_superset ht1 _,
     have A : ∀a b : completion α, (a, b) ∈ t1 → dist a b < ε,
     { assume a b hab,
-      have : ((a, b), (a, a)) ∈ set.prod t1 t2 := ⟨hab, refl_mem_uniformity ht2⟩,
+      have : ((a, b), (a, a)) ∈ t1 ×ˢ t2 := ⟨hab, refl_mem_uniformity ht2⟩,
       have I := ht this,
       simp [completion.dist_self, real.dist_eq, completion.dist_comm] at I,
       exact lt_of_le_of_lt (le_abs_self _) I },
@@ -140,7 +135,7 @@ begin
 end
 
 /-- If two points are at distance 0, then they coincide. -/
-protected lemma completion.eq_of_dist_eq_zero (x y : completion α) (h : dist x y = 0) : x = y :=
+protected lemma eq_of_dist_eq_zero (x y : completion α) (h : dist x y = 0) : x = y :=
 begin
   /- This follows from the separation of `completion α` and from the description of
   entourages in terms of the distance. -/
@@ -153,30 +148,34 @@ end
 
 /-- Reformulate `completion.mem_uniformity_dist` in terms that are suitable for the definition
 of the metric space structure. -/
-protected lemma completion.uniformity_dist' :
-  uniformity (completion α) = (⨅ε:{ε : ℝ // 0 < ε}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
+protected lemma uniformity_dist' :
+  𝓤 (completion α) = (⨅ε:{ε : ℝ // 0 < ε}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
 begin
-  ext s, rw mem_infi,
+  ext s, rw mem_infi_of_directed,
   { simp [completion.mem_uniformity_dist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
     simp [lt_min_iff, (≥)] {contextual := tt} }
 end
 
-protected lemma completion.uniformity_dist :
-  uniformity (completion α) = (⨅ ε>0, 𝓟 {p | dist p.1 p.2 < ε}) :=
+protected lemma uniformity_dist :
+  𝓤 (completion α) = (⨅ ε>0, 𝓟 {p | dist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @completion.uniformity_dist' α _
 
 /-- Metric space structure on the completion of a pseudo_metric space. -/
-instance completion.metric_space : metric_space (completion α) :=
+instance : metric_space (completion α) :=
 { dist_self          := completion.dist_self,
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,
   dist_comm          := completion.dist_comm,
   dist_triangle      := completion.dist_triangle,
+  dist               := dist,
   to_uniform_space   := by apply_instance,
   uniformity_dist    := completion.uniformity_dist }
 
 /-- The embedding of a metric space in its completion is an isometry. -/
-lemma completion.coe_isometry : isometry (coe : α → completion α) :=
-isometry_emetric_iff_metric.2 completion.dist_eq
+lemma coe_isometry : isometry (coe : α → completion α) :=
+isometry.of_dist_eq completion.dist_eq
 
-end metric
+@[simp] protected lemma edist_eq (x y : α) : edist (x : completion α) y = edist x y :=
+coe_isometry x y
+
+end uniform_space.completion

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.fintype.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Free groups
@@ -15,18 +15,19 @@ functor from groups to types, see `algebra/category/Group/adjunctions`.
 
 ## Main definitions
 
-* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool `
+* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool`
   modulo the relation `a * x * x⁻¹ * b = a * b`.
-* `mk`: the canonical quotient map `list (α × bool) → free_group α`.
-* `of`: the canoical injection `α → free_group α`.
-* `lift f`: the canonical group homomorphism `free_group α →* G` given a group `G` and a
-  function `f : α → G`.
+* `free_group.mk`: the canonical quotient map `list (α × bool) → free_group α`.
+* `free_group.of`: the canoical injection `α → free_group α`.
+* `free_group.lift f`: the canonical group homomorphism `free_group α →* G`
+  given a group `G` and a function `f : α → G`.
 
 ## Main statements
 
-* `church_rosser`: The Church-Rosser theorem for word reduction (also known as Newman's diamond
-  lemma).
-* `free_group_unit_equiv_int`: The free group over the one-point type is isomorphic to the integers.
+* `free_group.church_rosser`: The Church-Rosser theorem for word reduction
+  (also known as Newman's diamond lemma).
+* `free_group.free_group_unit_equiv_int`: The free group over the one-point type
+  is isomorphic to the integers.
 * The free group construction is an instance of a monad.
 
 ## Implementation details
@@ -162,7 +163,7 @@ match b, c, red.step.diamond hab hac rfl with
 end)
 
 lemma cons_cons {p} : red L₁ L₂ → red (p :: L₁) (p :: L₂) :=
-refl_trans_gen_lift (list.cons p) (assume a b, step.cons)
+refl_trans_gen.lift (list.cons p) (assume a b, step.cons)
 
 lemma cons_cons_iff (p) : red (p :: L₁) (p :: L₂) ↔ red L₁ L₂ :=
 iff.intro
@@ -188,8 +189,7 @@ lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L�
 | (p :: L) := by simp [append_append_left_iff L, cons_cons_iff]
 
 lemma append_append (h₁ : red L₁ L₃) (h₂ : red L₂ L₄) : red (L₁ ++ L₂) (L₃ ++ L₄) :=
-(refl_trans_gen_lift (λL, L ++ L₂) (assume a b, step.append_right) h₁).trans
-  ((append_append_left_iff _).2 h₂)
+(h₁.lift (λL, L ++ L₂) (assume a b, step.append_right)).trans ((append_append_left_iff _).2 h₂)
 
 lemma to_append_iff : red L (L₁ ++ L₂) ↔ (∃L₃ L₄, L = L₃ ++ L₄ ∧ red L₃ L₁ ∧ red L₄ L₂) :=
 iff.intro
@@ -325,8 +325,8 @@ join_of_single reflexive_refl_trans_gen h.to_red
 theorem eqv_gen_step_iff_join_red : eqv_gen red.step L₁ L₂ ↔ join red L₁ L₂ :=
 iff.intro
   (assume h,
-    have eqv_gen (join red) L₁ L₂ := eqv_gen_mono (assume a b, join_red_of_step) h,
-    (eqv_gen_iff_of_equivalence $ equivalence_join_red).1 this)
+    have eqv_gen (join red) L₁ L₂ := h.mono (assume a b, join_red_of_step),
+    equivalence_join_red.eqv_gen_iff.1 this)
   (join_of_equivalence (eqv_gen.is_equivalence _) $ assume a b,
     refl_trans_gen_of_equivalence (eqv_gen.is_equivalence _) eqv_gen.rel)
 
@@ -353,6 +353,10 @@ quot.lift f H (mk L) = f L := rfl
 @[simp] lemma quot_lift_on_mk (β : Type v) (f : list (α × bool) → β)
   (H : ∀ L₁ L₂, red.step L₁ L₂ → f L₁ = f L₂) :
 quot.lift_on (mk L) f H = f L := rfl
+
+@[simp] lemma quot_map_mk (β : Type v) (f : list (α × bool) → list (β × bool))
+  (H : (red.step ⇒ red.step) f f) :
+quot.map f H (mk L) = mk (f L) := rfl
 
 instance : has_one (free_group α) := ⟨mk []⟩
 lemma one_eq_mk : (1 : free_group α) = mk [] := rfl
@@ -452,31 +456,22 @@ lift.symm.injective $ funext h
 theorem lift.of_eq (x : free_group α) : lift of x = x :=
 monoid_hom.congr_fun (lift.apply_symm_apply (monoid_hom.id _)) x
 
-theorem lift.range_subset {s : subgroup β} (H : set.range f ⊆ s) :
-  set.range (lift f) ⊆ s :=
+theorem lift.range_le {s : subgroup β} (H : set.range f ⊆ s) :
+  (lift f).range ≤ s :=
 by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L s.one_mem
 (λ ⟨x, b⟩ tl ih, bool.rec_on b
     (by simp at ih ⊢; from s.mul_mem
       (s.inv_mem $ H ⟨x, rfl⟩) ih)
     (by simp at ih ⊢; from s.mul_mem (H ⟨x, rfl⟩) ih))
 
-theorem closure_subset {G : Type*} [group G] {s : set G} {t : subgroup G}
-  (h : s ⊆ t) : subgroup.closure s ≤ t :=
-begin
-  simp only [h, subgroup.closure_le],
-end
-
 theorem lift.range_eq_closure :
-  set.range (lift f) = subgroup.closure (set.range f) :=
-set.subset.antisymm
-  (lift.range_subset subgroup.subset_closure)
-  begin
-    suffices : (subgroup.closure (set.range f)) ≤ monoid_hom.range (lift f),
-      simpa,
-    rw subgroup.closure_le,
-    rintros y ⟨x, hx⟩,
-    exact ⟨of x, by simpa⟩
-  end
+  (lift f).range = subgroup.closure (set.range f) :=
+begin
+  apply le_antisymm (lift.range_le subgroup.subset_closure),
+  rw subgroup.closure_le,
+  rintros _ ⟨a, rfl⟩,
+  exact ⟨of a, by simp only [lift.of]⟩,
+end
 
 end lift
 
@@ -484,41 +479,25 @@ section map
 
 variables {β : Type v} (f : α → β) {x y : free_group α}
 
-/-- Given `f : α → β`, the canonical map `list (α × bool) → list (β × bool)`. -/
-def map.aux (L : list (α × bool)) : list (β × bool) :=
-L.map $ λ x, (f x.1, x.2)
-
-/-- Any function from `α` to `β` extends uniquely
-to a group homomorphism from the free group
-over `α` to the free group over `β`. Note that this is the bare function;
-for the group homomorphism use `map`. -/
-def map.to_fun (x : free_group α) : free_group β :=
-x.lift_on (λ L, mk $ map.aux f L) $
-λ L₁ L₂ H, quot.sound $ by cases H; simp [map.aux]
-
 /-- Any function from `α` to `β` extends uniquely
 to a group homomorphism from the free group
 ver `α` to the free group over `β`. -/
-def map : free_group α →* free_group β := monoid_hom.mk' (map.to_fun f)
-begin
-  rintros ⟨L₁⟩ ⟨L₂⟩,
-  simp [map.to_fun, map.aux]
-end
-
---by rintros ⟨L₁⟩ ⟨L₂⟩; simp [map, map.aux]
+def map : free_group α →* free_group β :=
+monoid_hom.mk'
+  (quot.map (list.map $ λ x, (f x.1, x.2)) $ λ L₁ L₂ H, by cases H; simp)
+  (by { rintros ⟨L₁⟩ ⟨L₂⟩, simp })
 
 variable {f}
 
 @[simp] lemma map.mk : map f (mk L) = mk (L.map (λ x, (f x.1, x.2))) :=
 rfl
 
-@[simp] lemma map.id : map id x = x :=
-have H1 : (λ (x : α × bool), x) = id := rfl,
-by rcases x with ⟨L⟩; simp [H1]
+@[simp] lemma map.id (x : free_group α) : map id x = x :=
+by rcases x with ⟨L⟩; simp [list.map_id']
 
-@[simp] lemma map.id' : map (λ z, z) x = x := map.id
+@[simp] lemma map.id' (x : free_group α) : map (λ z, z) x = x := map.id x
 
-theorem map.comp {γ : Type w} {f : α → β} {g : β → γ} {x} :
+theorem map.comp {γ : Type w} (f : α → β) (g : β → γ) (x) :
   map g (map f x) = map (g ∘ f) x :=
 by rcases x with ⟨L⟩; simp
 
@@ -533,14 +512,31 @@ by rintros ⟨L⟩; exact list.rec_on L g.map_one
   (show g (of x * mk t) = map f (of x * mk t),
      by simp [g.map_mul, hg, ih]))
 
-/-- Equivalent types give rise to equivalent free groups. -/
-def free_group_congr {α β} (e : α ≃ β) : free_group α ≃ free_group β :=
-⟨map e, map e.symm,
- λ x, by simp [function.comp, map.comp],
- λ x, by simp [function.comp, map.comp]⟩
-
 theorem map_eq_lift : map f x = lift (of ∘ f) x :=
 eq.symm $ map.unique _ $ λ x, by simp
+
+/-- Equivalent types give rise to multiplicatively equivalent free groups.
+
+The converse can be found in `group_theory.free_abelian_group_finsupp`,
+as `equiv.of_free_group_equiv`
+ -/
+@[simps apply]
+def free_group_congr {α β} (e : α ≃ β) : free_group α ≃* free_group β :=
+{ to_fun := map e, inv_fun := map e.symm,
+  left_inv := λ x, by simp [function.comp, map.comp],
+  right_inv := λ x, by simp [function.comp, map.comp],
+  map_mul' := monoid_hom.map_mul _ }
+
+@[simp] lemma free_group_congr_refl : free_group_congr (equiv.refl α) = mul_equiv.refl _ :=
+mul_equiv.ext map.id
+
+@[simp] lemma free_group_congr_symm {α β} (e : α ≃ β) :
+  (free_group_congr e).symm = free_group_congr e.symm :=
+rfl
+
+lemma free_group_congr_trans {α β γ} (e : α ≃ β) (f : β ≃ γ) :
+  (free_group_congr e).trans (free_group_congr f) = free_group_congr (e.trans f) :=
+mul_equiv.ext $ map.comp _ _
 
 end map
 
@@ -607,7 +603,7 @@ prod.of
 (@prod (multiplicative _) _).map_one
 
 @[simp] lemma sum.map_inv : sum x⁻¹ = -sum x :=
-(@prod (multiplicative _) _).map_inv _
+(prod : free_group (multiplicative α) →* multiplicative α).map_inv _
 
 end sum
 
@@ -629,13 +625,12 @@ def free_group_unit_equiv_int : free_group unit ≃ ℤ :=
   begin
     rintros ⟨L⟩,
     refine list.rec_on L rfl _,
-    exact (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
+    exact (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [zpow_add] at ih ⊢; rw ih; refl),
   end,
   right_inv :=
     λ x, int.induction_on x (by simp)
-    (λ i ih, by simp at ih; simp [gpow_add, ih])
-    (λ i ih, by simp at ih; simp [gpow_add, ih, sub_eq_add_neg, -int.add_neg_one])
-}
+    (λ i ih, by simp at ih; simp [zpow_add, ih])
+    (λ i ih, by simp at ih; simp [zpow_add, ih, sub_eq_add_neg, -int.add_neg_one]) }
 
 section category
 

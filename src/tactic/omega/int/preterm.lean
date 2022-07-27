@@ -83,7 +83,7 @@ open_locale list.func -- get notation for list.func.set
       preterm.val, zero_add, term.val],
     split_ifs with h1 h2,
     { simp only [one_mul, h1] },
-    { simp only [neg_mul_eq_neg_mul_symm, one_mul, h2] },
+    { simp only [neg_mul, one_mul, h2] },
     { rw mul_comm }
   end
 | (t +* s) :=

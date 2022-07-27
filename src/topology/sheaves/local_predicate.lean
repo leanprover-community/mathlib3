@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import topology.sheaves.sheaf_of_functions
 import topology.sheaves.stalks
+import topology.local_homeomorph
 import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
@@ -26,7 +27,7 @@ any collection of dependent functions on a topological space
 satisfying a "local predicate".
 
 As an application, we check that continuity is a local predicate in this sense, and provide
-* `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
+* `Top.sheaf_to_Top`: continuous functions into a topological space form a sheaf
 
 A sheaf constructed in this way has a natural map `stalk_to_fiber` from the stalks
 to the types in the ambient type family.
@@ -166,10 +167,9 @@ open Top.presheaf
 /--
 The functions satisfying a local predicate satisfy the sheaf condition.
 -/
-def sheaf_condition
-  (P : local_predicate T) :
-  sheaf_condition (subpresheaf_to_Types P.to_prelocal_predicate) :=
-sheaf_condition_of_exists_unique_gluing _ $ λ ι U sf sf_comp, begin
+lemma is_sheaf (P : local_predicate T) :
+  (subpresheaf_to_Types P.to_prelocal_predicate).is_sheaf :=
+presheaf.is_sheaf_of_is_sheaf_unique_gluing_types _ $ λ ι U sf sf_comp, begin
   -- We show the sheaf condition in terms of unique gluing.
   -- First we obtain a family of sections for the underlying sheaf of functions,
   -- by forgetting that the prediacte holds
@@ -190,8 +190,7 @@ sheaf_condition_of_exists_unique_gluing _ $ λ ι U sf sf_comp, begin
     use [U i, hi, opens.le_supr U i],
     -- This follows, since our original family `sf` satisfies the predicate
     convert (sf i).property,
-    exact gl_spec i
-  },
+    exact gl_spec i },
   -- It remains to show that the chosen lift is really a gluing for the subsheaf and
   -- that it is unique. Both of which follow immediately from the corresponding facts
   -- in the sheaf of functions without the local predicate.
@@ -210,8 +209,7 @@ The subsheaf of the sheaf of all dependently typed functions satisfying the loca
 -/
 @[simps]
 def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
-{ presheaf := subpresheaf_to_Types P.to_prelocal_predicate,
-  sheaf_condition := subpresheaf_to_Types.sheaf_condition P }.
+⟨subpresheaf_to_Types P.to_prelocal_predicate, subpresheaf_to_Types.is_sheaf P⟩
 
 /--
 There is a canonical map from the stalk to the original fiber, given by evaluating sections.
@@ -268,11 +266,11 @@ begin
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
-  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective' tU,
-  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective' tV,
+  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective'.{v v} tU,
+  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective'.{v v} tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    simp only [stalk_to_fiber, colimit.ι_desc_apply] at h,
+    simp only [stalk_to_fiber, types.colimit.ι_desc_apply'] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.
@@ -301,9 +299,8 @@ nat_iso.of_components
 The sheaf of continuous functions on `X` with values in a space `T`.
 -/
 def sheaf_to_Top (T : Top.{v}) : sheaf (Type v) X :=
-{ presheaf := presheaf_to_Top X T,
-  sheaf_condition :=
-    presheaf.sheaf_condition_equiv_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
-      (subpresheaf_to_Types.sheaf_condition (continuous_local X T)), }
+⟨presheaf_to_Top X T,
+  presheaf.is_sheaf_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
+    (subpresheaf_to_Types.is_sheaf (continuous_local X T))⟩
 
 end Top

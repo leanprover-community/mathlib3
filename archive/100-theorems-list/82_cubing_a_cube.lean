@@ -3,10 +3,12 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import data.fin.tuple
 import data.real.basic
-import data.set.disjointed
 import data.set.intervals
-import set_theory.cardinal
+import data.set.pairwise
+import set_theory.cardinal.basic
+
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
 There does not exist a partition of a cube into finitely many smaller cubes (at least two)
@@ -18,6 +20,7 @@ http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 
 
 open real set function fin
+open_locale cardinal
 
 noncomputable theory
 
@@ -125,7 +128,7 @@ def correct (cs : ι → cube n) : Prop :=
 pairwise (disjoint on (cube.to_set ∘ cs)) ∧
 (⋃(i : ι), (cs i).to_set) = unit_cube.to_set ∧
 injective (cube.w ∘ cs) ∧
-2 ≤ cardinal.mk ι ∧
+2 ≤ #ι ∧
 3 ≤ n
 
 variable (h : correct cs)
@@ -261,7 +264,7 @@ end
 
 open cardinal
 /-- There are at least two cubes in a valley -/
-lemma two_le_mk_bcubes : 2 ≤ cardinal.mk (bcubes cs c) :=
+lemma two_le_mk_bcubes : 2 ≤ #(bcubes cs c) :=
 begin
   rw [two_le_iff],
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
@@ -298,7 +301,7 @@ end
 lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
   (cs i).w ≤ (cs i').w :=
 by simpa
-  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
+  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (set.to_finite _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v
@@ -347,7 +350,7 @@ begin
   have hs : s.nonempty,
   { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
     refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
-  rcases set.exists_min_image s (w ∘ cs) (finite.of_fintype _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
+  rcases set.exists_min_image s (w ∘ cs) (set.to_finite _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,
   have hx : x < (cs i).b j.succ,
@@ -402,9 +405,9 @@ begin
   { rintro ⟨⟩,
     have : (cs i).b ∈ (cs i').to_set,
     { simp only [to_set, forall_fin_succ, hi.1, bottom_mem_side h2i', true_and, mem_set_of_eq],
-    intro j₂, by_cases hj₂ : j₂ = j,
-    { simpa [side_tail, p', hj', hj₂] using hi''.2 j },
-    { simpa [hj₂] using hi'.2 j₂ } },
+      intro j₂, by_cases hj₂ : j₂ = j,
+      { simpa [side_tail, p', hj', hj₂] using hi''.2 j },
+      { simpa [hj₂] using hi'.2 j₂ } },
     apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i i' i_i') },
   have i_i'' : i ≠ i'', { intro h, induction h, simpa [hx'.2] using hi''.2 j' },
   apply not.elim _ (h.1 i' i'' i'_i''),
@@ -474,7 +477,7 @@ begin
     have h2p' : p' ∈ (cs i'').to_set,
     { simp only [to_set, forall_fin_succ, p', cons_succ, cons_zero, mem_set_of_eq],
       refine ⟨_, by simpa [to_set, p] using hi''.2⟩,
-      have : (cs i).b 0 = (cs i'').b 0, { by rw [hi.1, h2i''.1] },
+      have : (cs i).b 0 = (cs i'').b 0, { rw [hi.1, h2i''.1] },
       simp [side, hw', xm, this, h3i''] },
     apply not_disjoint_iff.mpr ⟨p', hp', h2p'⟩,
     apply h.1, rintro rfl, apply (cs i).b_ne_xm, rw [←hi', ←hi''.1, hi.1], refl },
@@ -493,13 +496,12 @@ noncomputable def sequence_of_cubes : ℕ → { i : ι // valley cs ((cs i).shif
 | 0     := let v := valley_unit_cube h      in ⟨mi h v, valley_mi⟩
 | (k+1) := let v := (sequence_of_cubes k).2 in ⟨mi h v, valley_mi⟩
 
-def decreasing_sequence (k : ℕ) : order_dual ℝ :=
-(cs (sequence_of_cubes h k).1).w
+def decreasing_sequence (k : ℕ) : ℝ := (cs (sequence_of_cubes h k).1).w
 
-lemma strict_mono_sequence_of_cubes : strict_mono $ decreasing_sequence h :=
-strict_mono.nat $
+lemma strict_anti_sequence_of_cubes : strict_anti $ decreasing_sequence h :=
+strict_anti_nat_of_succ_lt $ λ k,
 begin
-  intro k, let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
+  let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
   apply w_lt_w h v (mi_mem_bcubes : mi h v ∈ _),
 end
 
@@ -507,9 +509,9 @@ omit h
 /-- The infinite sequence of cubes contradicts the finiteness of the family. -/
 theorem not_correct : ¬correct cs :=
 begin
-  intro h, apply not_le_of_lt (lt_omega_iff_fintype.mpr ⟨_inst_1⟩),
-  rw [omega, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
-  intros n m hnm, apply strict_mono.injective (strict_mono_sequence_of_cubes h),
+  intro h, apply (lt_aleph_0_of_finite ι).not_le,
+  rw [aleph_0, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
+  intros n m hnm, apply (strict_anti_sequence_of_cubes h).injective,
   dsimp only [decreasing_sequence], rw hnm
 end
 
@@ -517,7 +519,7 @@ end
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes
-  2 ≤ cardinal.mk ι →                            -- containing at least two elements
+  2 ≤ #ι →                                       -- containing at least two elements
   pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
   (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
   injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different

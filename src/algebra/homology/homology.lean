@@ -28,7 +28,7 @@ variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 variables {c : complex_shape ι} (C : homological_complex V c)
 
-open_locale classical
+open_locale classical zero_object
 noncomputable theory
 
 namespace homological_complex
@@ -39,12 +39,8 @@ section cycles
 variables [has_kernels V]
 
 /-- The cycles at index `i`, as a subobject. -/
-def cycles (i : ι) : subobject (C.X i) :=
+abbreviation cycles (i : ι) : subobject (C.X i) :=
 kernel_subobject (C.d_from i)
-
-@[simp, reassoc]
-lemma cycles_arrow_d_from (i : ι) : (C.cycles i).arrow ≫ C.d_from i = 0 :=
-by { dsimp [cycles], simp, }
 
 lemma cycles_eq_kernel_subobject {i j : ι} (r : c.rel i j) :
   C.cycles i = kernel_subobject (C.d i j) :=
@@ -116,11 +112,6 @@ image_to_kernel _ _ (C.d_to_comp_d_from i)
   (C.boundaries i).of_le (C.cycles i) h = C.boundaries_to_cycles i :=
 rfl
 
-@[simp, reassoc]
-lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
-  C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
-by { dsimp [cycles], simp, }
-
 variables [has_cokernels V]
 
 /--
@@ -146,7 +137,8 @@ The morphism between cycles induced by a chain map.
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
 
-@[simp] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
+@[simp, reassoc, elementwise]
+lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
 by { simp, }
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.analytic.composition
-
+import tactic.congrm
 /-!
 
 # Inverse of analytic functions
@@ -31,9 +31,9 @@ open finset filter
 
 namespace formal_multilinear_series
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 /-! ### The left inverse of a formal multilinear series -/
 
@@ -165,14 +165,12 @@ lemma right_inv_remove_zero (p : formal_multilinear_series 𝕜 E F) (i : E ≃L
 begin
   ext1 n,
   induction n using nat.strong_rec' with n IH,
-  cases n, { simp },
-  cases n, { simp },
+  rcases n with _|_|n,
+  { simp only [right_inv_coeff_zero] },
+  { simp only [right_inv_coeff_one] },
   simp only [right_inv, neg_inj],
-  unfold_coes,
-  congr' 1,
-  rw remove_zero_comp_of_pos _ _ (show 0 < n+2, by dec_trivial),
-  congr' 1,
-  ext k,
+  rw remove_zero_comp_of_pos _ _ (add_pos_of_nonneg_of_pos (n.zero_le) zero_lt_two),
+  congrm i.symm.to_continuous_linear_map.comp_continuous_multilinear_map (p.comp (λ k, _) _),
   by_cases hk : k < n+2; simp [hk, IH]
 end
 
@@ -370,7 +368,7 @@ begin
   refine sum_le_sum_of_subset_of_nonneg _ (λ x hx1 hx2,
     prod_nonneg (λ j hj, mul_nonneg hr (mul_nonneg (pow_nonneg ha _) (hp _)))),
   rintros ⟨k, c⟩ hd,
-  simp only [set.mem_to_finset, Ico.mem, mem_sigma, set.mem_set_of_eq] at hd,
+  simp only [set.mem_to_finset, mem_Ico, mem_sigma, set.mem_set_of_eq] at hd,
   simp only [mem_comp_partial_sum_target_iff],
   refine ⟨hd.2, c.length_le.trans_lt hd.1.2, λ j, _⟩,
   have : c ≠ composition.single k (zero_lt_two.trans_le hd.1.1),
@@ -417,7 +415,7 @@ let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
 ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
     = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
 by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
-              Ico.succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
+              nat.Ico_succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
 ... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
         ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
           (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
@@ -425,7 +423,7 @@ by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
 begin
   congr' 1,
   apply sum_congr rfl (λ j hj, _),
-  rw [right_inv_coeff _ _ _ (Ico.mem.1 hj).1, norm_neg],
+  rw [right_inv_coeff _ _ _ (mem_Ico.1 hj).1, norm_neg],
 end
 ... ≤ a * ∥(i.symm : F →L[𝕜] E)∥ + ∑ k in Ico 2 (n + 1), a ^ k * (I *
       (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
@@ -477,8 +475,8 @@ begin
       (𝓝 (r * (I + 1) * 0)) := tendsto_const_nhds.mul tendsto_id,
     have B : ∀ᶠ a in 𝓝 0, r * (I + 1) * a < 1/2,
       by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
-    have C : ∀ᶠ a in 𝓝[set.Ioi (0 : ℝ)] (0 : ℝ), (0 : ℝ) < a,
-      by { filter_upwards [self_mem_nhds_within], exact λ a ha, ha },
+    have C : ∀ᶠ a in 𝓝[>] (0 : ℝ), (0 : ℝ) < a,
+      by { filter_upwards [self_mem_nhds_within] with _ ha using ha },
     rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
     exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
   -- check by induction that the partial sums are suitably bounded, using the choice of `a` and the
@@ -487,7 +485,7 @@ begin
   have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
   { apply nat.le_induction,
     { simp only [S],
-      rw [Ico.eq_empty_of_le (le_refl 1), sum_empty],
+      rw [Ico_eq_empty_of_le (le_refl 1), sum_empty],
       exact mul_nonneg (add_nonneg (norm_nonneg _) zero_le_one) apos.le },
     { assume n one_le_n hn,
       have In : 2 ≤ n + 1, by linarith,

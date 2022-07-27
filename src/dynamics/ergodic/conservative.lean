@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import measure_theory.constructions.borel_space
 import dynamics.ergodic.measure_preserving
 import combinatorics.pigeonhole
 
@@ -53,7 +54,8 @@ structure conservative (f : α → α) (μ : measure α . volume_tac)
 (exists_mem_image_mem : ∀ ⦃s⦄, measurable_set s → μ s ≠ 0 → ∃ (x ∈ s) (m ≠ 0), f^[m] x ∈ s)
 
 /-- A self-map preserving a finite measure is conservative. -/
-protected lemma measure_preserving.conservative [finite_measure μ] (h : measure_preserving f μ μ) :
+protected lemma measure_preserving.conservative [is_finite_measure μ]
+  (h : measure_preserving f μ μ) :
   conservative f μ :=
 ⟨h.quasi_measure_preserving, λ s hsm h0, h.exists_mem_image_mem hsm h0⟩
 
@@ -80,15 +82,15 @@ begin
   rcases ihN with ⟨n, hn, hμn⟩,
   set T := s ∩ ⋃ n ≥ N + 1, (f^[n]) ⁻¹' s,
   have hT : measurable_set T,
-    from hs.inter (measurable_set.bUnion (countable_encodable _)
+    from hs.inter (measurable_set.bUnion (to_countable _)
       (λ _ _, hf.measurable.iterate _ hs)),
   have hμT : μ T = 0,
-  { convert (measure_bUnion_null_iff $ countable_encodable _).2 hN,
-    rw ← set.inter_bUnion, refl },
+  { convert (measure_bUnion_null_iff $ to_countable _).2 hN,
+    rw ←inter_Union₂, refl },
   have : μ ((s ∩ (f^[n]) ⁻¹' s) \ T) ≠ 0, by rwa [measure_diff_null hμT],
   rcases hf.exists_mem_image_mem ((hs.inter (hf.measurable.iterate n hs)).diff hT) this
     with ⟨x, ⟨⟨hxs, hxn⟩, hxT⟩, m, hm0, ⟨hxms, hxm⟩, hxx⟩,
-  refine hxT ⟨hxs, mem_bUnion_iff.2 ⟨n + m, _, _⟩⟩,
+  refine hxT ⟨hxs, mem_Union₂.2 ⟨n + m, _, _⟩⟩,
   { exact add_le_add hn (nat.one_le_of_lt $ pos_iff_ne_zero.2 hm0) },
   { rwa [set.mem_preimage, ← iterate_add_apply] at hxm }
 end
@@ -112,7 +114,7 @@ begin
   by_contradiction H,
   have : measurable_set (s ∩ {x | ∀ m ≥ n, f^[m] x ∉ s}),
   { simp only [set_of_forall, ← compl_set_of],
-    exact hs.inter (measurable_set.bInter (countable_encodable _)
+    exact hs.inter (measurable_set.bInter (to_countable _)
       (λ m _, hf.measurable.iterate m hs.compl)) },
   rcases (hf.exists_gt_measure_inter_ne_zero this H) n with ⟨m, hmn, hm⟩,
   rcases nonempty_of_measure_ne_zero hm with ⟨x, ⟨hxs, hxn⟩, hxm, -⟩,
@@ -127,7 +129,7 @@ begin
   simp only [frequently_at_top, @forall_swap (_ ∈ s), ae_all_iff],
   intro n,
   filter_upwards [measure_zero_iff_ae_nmem.1 (hf.measure_mem_forall_ge_image_not_mem_eq_zero hs n)],
-  simp
+  simp,
 end
 
 lemma inter_frequently_image_mem_ae_eq (hf : conservative f μ) (hs : measurable_set s) :
@@ -188,12 +190,12 @@ begin
   set m := (l - k) / (n + 1),
   have : (n + 1) * m = l - k,
   { apply nat.mul_div_cancel',
-    exact (nat.modeq.modeq_iff_dvd' hkl.le).1 hn },
+    exact (nat.modeq_iff_dvd' hkl.le).1 hn },
   refine ⟨f^[k] x, hk, m, _, _⟩,
   { intro hm,
-    rw [hm, mul_zero, eq_comm, nat.sub_eq_zero_iff_le] at this,
+    rw [hm, mul_zero, eq_comm, tsub_eq_zero_iff_le] at this,
     exact this.not_lt hkl },
-  { rwa [← iterate_mul, this, ← iterate_add_apply, nat.sub_add_cancel],
+  { rwa [← iterate_mul, this, ← iterate_add_apply, tsub_add_cancel_of_le],
     exact hkl.le }
 end
 

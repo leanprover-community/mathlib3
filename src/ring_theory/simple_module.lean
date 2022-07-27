@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import linear_algebra.basic
+import linear_algebra.span
 import order.atoms
 
 /-!
@@ -30,7 +30,7 @@ import order.atoms
 variables (R : Type*) [ring R] (M : Type*) [add_comm_group M] [module R M]
 
 /-- A module is simple when it has only two submodules, `⊥` and `⊤`. -/
-abbreviation is_simple_module := (is_simple_lattice (submodule R M))
+abbreviation is_simple_module := (is_simple_order (submodule R M))
 
 /-- A module is semisimple when every submodule has a complement, or equivalently, the module
   is a direct sum of simple modules. -/
@@ -50,8 +50,8 @@ variables {R} {M} {m : submodule R M} {N : Type*} [add_comm_group N] [module R N
 theorem is_simple_module_iff_is_atom :
   is_simple_module R m ↔ is_atom m :=
 begin
-  rw ← set.is_simple_lattice_Iic_iff_is_atom,
-  apply order_iso.is_simple_lattice_iff,
+  rw ← set.is_simple_order_Iic_iff_is_atom,
+  apply order_iso.is_simple_order_iff,
   exact submodule.map_subtype.rel_iso m,
 end
 
@@ -132,7 +132,8 @@ theorem bijective_of_ne_zero [is_simple_module R M] [is_simple_module R N]
 f.bijective_or_eq_zero.resolve_right h
 
 /-- Schur's Lemma makes the endomorphism ring of a simple module a division ring. -/
-noncomputable instance [decidable_eq (module.End R M)] [is_simple_module R M] :
+noncomputable instance _root_.module.End.division_ring
+  [decidable_eq (module.End R M)] [is_simple_module R M] :
   division_ring (module.End R M) :=
 { inv := λ f, if h : f = 0 then 0 else (linear_map.inverse f
     (equiv.of_bijective _ (bijective_of_ne_zero h)).inv_fun
@@ -154,6 +155,6 @@ noncomputable instance [decidable_eq (module.End R M)] [is_simple_module R M] :
     exact (equiv.of_bijective _ (bijective_of_ne_zero a0)).right_inv x,
   end,
   inv_zero := dif_pos rfl,
-.. (linear_map.endomorphism_ring : ring (module.End R M))}
+.. (module.End.ring : ring (module.End R M))}
 
 end linear_map

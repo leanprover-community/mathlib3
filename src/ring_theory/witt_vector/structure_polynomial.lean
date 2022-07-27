@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.matrix.notation
-import field_theory.mv_polynomial
+import data.fin.vec_notation
 import field_theory.finite.polynomial
 import number_theory.basic
 import ring_theory.witt_vector.witt_polynomial
@@ -180,11 +179,11 @@ begin
   exact pow_ne_zero _ (nat.cast_ne_zero.2 hp.1.ne_zero),
 end
 
-/-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
+/-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℤ`
 that are uniquely characterised by the property that
 ```
-bind₁ (witt_structure_int p Φ) (witt_polynomial p ℚ n) =
-bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ
+bind₁ (witt_structure_int p Φ) (witt_polynomial p ℤ n) =
+bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℤ n))) Φ
 ```
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_int Φ`
 is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
@@ -243,17 +242,17 @@ begin
   intros k hk,
   rw [finset.mem_range, nat.lt_succ_iff] at hk,
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
-    ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
+    ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
-  { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←nat.sub_eq_iff_eq_add hk] },
+  { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←tsub_eq_iff_eq_add_of_le hk] },
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
   apply mul_dvd_mul_left,
   rw show p ^ (n + 1 - k) = p * p ^ (n - k),
-  { rw [← pow_succ, nat.sub_add_comm hk] },
+  { rw [← pow_succ, ← tsub_add_eq_add_tsub hk] },
   rw [pow_mul],
   -- the machine!
   apply dvd_sub_pow_of_dvd_sub,
-  rw [← C_eq_coe_nat, int.nat_cast_eq_coe_nat, C_dvd_iff_zmod, ring_hom.map_sub,
+  rw [← C_eq_coe_nat, C_dvd_iff_zmod, ring_hom.map_sub,
       sub_eq_zero, map_expand, ring_hom.map_pow, mv_polynomial.expand_zmod],
 end
 

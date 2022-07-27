@@ -3,9 +3,8 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.isometry
-import topology.continuous_function.bounded
-import topology.compacts
+import analysis.normed_space.lp_space
+import topology.sets.compacts
 
 /-!
 # The Kuratowski embedding
@@ -15,14 +14,12 @@ Any separable metric space can be embedded isometrically in `ℓ^∞(ℝ)`.
 
 noncomputable theory
 
-open set
+open set metric topological_space
+open_locale ennreal
+local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
-
-/-- The space of bounded sequences, with its sup norm -/
-@[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ
-open bounded_continuous_function metric topological_space
 
 namespace Kuratowski_embedding
 
@@ -34,8 +31,13 @@ variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ �
 a fixed countable set, if this set is dense. This map is given in `Kuratowski_embedding`,
 without density assumptions. -/
 def embedding_of_subset : ℓ_infty_ℝ :=
-of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0))
-  (λ_, abs_dist_sub_le _ _ _)
+⟨ λ n, dist a (x n) - dist (x 0) (x n),
+  begin
+    apply mem_ℓp_infty,
+    use dist a (x 0),
+    rintros - ⟨n, rfl⟩,
+    exact abs_dist_sub_le _ _ _
+  end ⟩
 
 lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist (x 0) (x n) := rfl
 
@@ -43,8 +45,8 @@ lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist 
 lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
-  refine (dist_le dist_nonneg).2 (λn, _),
-  simp only [embedding_of_subset_coe, real.dist_eq],
+  refine lp.norm_le_of_forall_le dist_nonneg (λn, _),
+  simp only [lp.coe_fn_sub, pi.sub_apply, embedding_of_subset_coe, real.dist_eq],
   convert abs_dist_sub_le a b (x n) using 2,
   ring
 end
@@ -52,7 +54,7 @@ end
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/
 lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λa b, _),
+  refine isometry.of_dist_eq (λa b, _),
   refine (embedding_of_subset_dist_le x a b).antisymm (le_of_forall_pos_le_add (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
@@ -62,12 +64,18 @@ begin
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
-    ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
+    ...    ≤ 2 * dist a (x n) + |dist b (x n) - dist a (x n)| :
       by apply_rules [add_le_add_left, le_abs_self]
-    ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
+    ...    ≤ 2 * (e/2) + |embedding_of_subset x b n - embedding_of_subset x a n| :
       begin rw C, apply_rules [add_le_add, mul_le_mul_of_nonneg_left, hn.le, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      by simp [← real.dist_eq, dist_coe_le_dist]
+    begin
+      have : |embedding_of_subset x b n - embedding_of_subset x a n|
+        ≤ dist (embedding_of_subset x b) (embedding_of_subset x a),
+      { simpa [dist_eq_norm] using lp.norm_apply_le_norm ennreal.top_ne_zero
+          (embedding_of_subset x b - embedding_of_subset x a) n },
+      nlinarith,
+    end
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end
@@ -81,9 +89,9 @@ begin
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ dense s := exists_countable_dense α,
+    have : ∃s:set α, s.countable ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
-    rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
+    rcases set.countable_iff_exists_subset_range.1 S_countable with ⟨x, x_range⟩,
     /- Use embedding_of_subset to construct the desired isometry -/
     exact ⟨embedding_of_subset x, embedding_of_subset_isometry x (S_dense.mono x_range)⟩ }
 end
@@ -104,5 +112,6 @@ classical.some_spec (exists_isometric_embedding α)
 def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α]
   [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
-⟨range (Kuratowski_embedding α), range_nonempty _,
-  is_compact_range (Kuratowski_embedding.isometry α).continuous⟩
+{ carrier := range (Kuratowski_embedding α),
+  compact' := is_compact_range (Kuratowski_embedding.isometry α).continuous,
+  nonempty' := range_nonempty _ }

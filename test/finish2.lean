@@ -2,10 +2,15 @@
 Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Nathaniel Thomas
-
-More examples to test automation, stolen shamelessly by Jeremy from Nathaniel's "tauto".
 -/
 import tactic.finish
+
+/-!
+# More examples to test `finish`
+
+Shamelessly stolen by Jeremy from Nathaniel's `tauto`.
+-/
+
 open nat
 
 section

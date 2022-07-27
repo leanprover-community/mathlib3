@@ -42,9 +42,9 @@ theorem exists_clopen_of_cofiltered {U : set C.X} (hU : is_clopen U) :
 begin
   -- First, we have the topological basis of the cofiltered limit obtained by pulling back
   -- clopen sets from the factors in the limit. By continuity, all such sets are again clopen.
-  have hB := Top.is_topological_basis_cofiltered_limit
-    (F ⋙ Profinite_to_Top)
-    (Profinite_to_Top.map_cone C)
+  have hB := Top.is_topological_basis_cofiltered_limit.{u}
+    (F ⋙ Profinite.to_Top)
+    (Profinite.to_Top.map_cone C)
     (is_limit_of_preserves _ hC)
     (λ j, {W | is_clopen W})
     _ (λ i, is_clopen_univ) (λ i U1 U2 hU1 hU2, hU1.inter hU2) _,
@@ -90,7 +90,7 @@ begin
     if hs : s ∈ G then F.map (f s hs) ⁻¹' (V s) else set.univ,
   -- Conclude, using the `j0` and the clopen set of `F.obj j0` obtained above.
   refine ⟨j0, ⋃ (s : S) (hs : s ∈ G), W s, _, _⟩,
-  { apply is_clopen_bUnion,
+  { apply is_clopen_bUnion_finset,
     intros s hs,
     dsimp only [W],
     rw dif_pos hs,
@@ -155,8 +155,8 @@ begin
   rw h,
   dsimp [ggg, gg],
   ext1,
-  repeat {
-    rw locally_constant.coe_comap,
+  repeat
+  { rw locally_constant.coe_comap,
     dsimp [locally_constant.flip, locally_constant.unflip] },
   { congr' 1,
     change _ = ((C.π.app j0) ≫ (F.map (fs a))) x,
@@ -200,43 +200,37 @@ theorem exists_locally_constant {α : Type*} (f : locally_constant C.X α) :
 begin
   let S := f.discrete_quotient,
   let ff : S → α := f.lift,
-  by_cases hα : nonempty S,
-  { resetI,
-    let f' : locally_constant C.X S := ⟨S.proj, S.proj_is_locally_constant⟩,
-    obtain ⟨j,g',h⟩ := exists_locally_constant_fintype_nonempty _ hC f',
-    use j,
-    refine ⟨⟨ff ∘ g', g'.is_locally_constant.comp _⟩,_⟩,
-    ext1 t,
-    apply_fun (λ e, e t) at h,
-    rw locally_constant.coe_comap _ _ (C.π.app j).continuous at h ⊢,
-    dsimp at h ⊢,
-    rw ← h,
-    refl },
-  { suffices : ∃ j : J, ¬ nonempty (F.obj j),
-    { obtain ⟨j,hj⟩ := this,
-      use j,
-      refine ⟨⟨λ x, false.elim (hj ⟨x⟩), λ A, _⟩, _⟩,
+  casesI is_empty_or_nonempty S,
+  { suffices : ∃ j, is_empty (F.obj j),
+    { refine this.imp (λ j hj, _),
+      refine ⟨⟨hj.elim, λ A, _⟩, _⟩,
       { convert is_open_empty,
-        rw set.eq_empty_iff_forall_not_mem,
-        intros x,
-        exact false.elim (hj ⟨x⟩) },
+        exact @set.eq_empty_of_is_empty _ hj _ },
       { ext x,
-        exact false.elim (hj ⟨C.π.app j x⟩) } },
-    rw ← not_forall,
+        exact hj.elim' (C.π.app j x) } },
+    simp only [← not_nonempty_iff, ← not_forall],
     intros h,
-    apply hα,
-    haveI : ∀ j : J, nonempty ((F ⋙ Profinite_to_Top).obj j) := h,
-    haveI : ∀ j : J, t2_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
+    haveI : ∀ j : J, nonempty ((F ⋙ Profinite.to_Top).obj j) := h,
+    haveI : ∀ j : J, t2_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
       (infer_instance : t2_space (F.obj j)),
-    haveI : ∀ j : J, compact_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
+    haveI : ∀ j : J, compact_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
       (infer_instance : compact_space (F.obj j)),
     have cond := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system
-      (F ⋙ Profinite_to_Top),
-    suffices : nonempty C.X, by exact nonempty.map S.proj this,
-    let D := Profinite_to_Top.map_cone C,
-    have hD : is_limit D := is_limit_of_preserves Profinite_to_Top hC,
-    have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit _)).inv,
-    exact cond.map CD }
+      (F ⋙ Profinite.to_Top),
+    suffices : nonempty C.X, from is_empty.false (S.proj this.some),
+    let D := Profinite.to_Top.map_cone C,
+    have hD : is_limit D := is_limit_of_preserves Profinite.to_Top hC,
+    have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit.{u} _)).inv,
+    exact cond.map CD },
+  { let f' : locally_constant C.X S := ⟨S.proj, S.proj_is_locally_constant⟩,
+    obtain ⟨j, g', hj⟩ := exists_locally_constant_fintype_nonempty _ hC f',
+    refine ⟨j, ⟨ff ∘ g', g'.is_locally_constant.comp _⟩,_⟩,
+    ext1 t,
+    apply_fun (λ e, e t) at hj,
+    rw locally_constant.coe_comap _ _ (C.π.app j).continuous at hj ⊢,
+    dsimp at hj ⊢,
+    rw ← hj,
+    refl },
 end
 
 end Profinite

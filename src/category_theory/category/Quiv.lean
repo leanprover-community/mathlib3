@@ -3,8 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.path_category
+import category_theory.adjunction.basic
 import category_theory.category.Cat
+import category_theory.path_category
 
 /-!
 # The category of quivers
@@ -18,13 +19,13 @@ universes v u
 namespace category_theory
 
 /-- Category of quivers. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Quiv := bundled quiver.{(v+1) u}
 
 namespace Quiv
 
-instance : has_coe_to_sort Quiv :=
-{ S := Type u,
-  coe := bundled.α }
+instance : has_coe_to_sort Quiv (Type u) :=
+{ coe := bundled.α }
 
 instance str (C : Quiv.{v u}) : quiver.{(v+1) u} C := C.str
 

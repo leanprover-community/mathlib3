@@ -27,7 +27,7 @@ partition of unity, smooth bump function, whitney theorem
 
 universes uι uE uH uM
 variables {ι : Type uι}
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 

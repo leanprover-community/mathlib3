@@ -5,9 +5,9 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import data.rat.cast
 import group_theory.group_action.big_operators
 import group_theory.group_action.group
-import tactic.norm_num
 
 /-!
 # Modules over a ring
@@ -524,7 +524,7 @@ lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
 @[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
-by { haveI := nat.no_zero_smul_divisors R M, norm_num [smul_eq_zero] }
+by { haveI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
 
 end nat
 

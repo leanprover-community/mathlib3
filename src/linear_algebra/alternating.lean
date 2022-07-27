@@ -193,6 +193,10 @@ instance : has_smul S (alternating_map R M N ι) :=
 lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
 rfl
 
+instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
+  is_central_scalar S (alternating_map R M N ι) :=
+⟨λ c f, ext $ λ x, op_smul_eq_smul _ _⟩
+
 end has_smul
 
 instance : has_add (alternating_map R M N ι) :=

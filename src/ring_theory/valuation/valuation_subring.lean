@@ -524,10 +524,10 @@ def principal_unit_group : subgroup Kˣ :=
   end,
   one_mem' := by simpa using zero_lt_one₀,
   inv_mem' := begin
+    dsimp,
     intros a ha,
-    rw set.mem_set_of_eq,
     conv {to_lhs, rw [← mul_one (A.valuation _), ← A.valuation.map_one_add_of_lt ha]},
-    rwa [add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, one_mul, ← neg_sub,
+    rwa [add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, ← neg_sub, one_mul,
       valuation.map_neg],
   end }
 
@@ -542,8 +542,8 @@ lemma principal_unit_group_injective :
   rw set_like.ext_iff at h,
   intros x,
   by_cases hx : x = 0,
-    { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] },
-    { exact h (units.mk0 x hx) }
+  { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] },
+  { exact h (units.mk0 x hx) }
 end
 
 lemma eq_iff_principal_unit_group {A B : valuation_subring K} :

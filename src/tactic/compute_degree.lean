@@ -87,7 +87,7 @@ lemma coeff_add_eq_right_of_succ (n : ℕ) (df : f.nat_degree ≤ n) :
   (f + g).coeff (n + 1) = g.coeff (n + 1) :=
 by { rw add_comm, exact coeff_add_eq_left_of_succ _ df }
 
-lemma monic_of_nat_degree_le_of_coeff_eq_one (fn : f.nat_degree ≤ n) (fc : f.coeff n = 1) :
+lemma monic_of_nat_degree_le_of_coeff_eq_one (n : ℕ) (fn : f.nat_degree ≤ n) (fc : f.coeff n = 1) :
   monic f :=
 begin
   nontriviality,
@@ -498,8 +498,8 @@ match t with
 end,
 `(nat_degree %%pol = %%degv) ← target |
   fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-deg ← guess_degree pol >>= eval_guessing 0,
-degvn ← eval_guessing 0 degv,
+deg ← guess_degree pol >>= eval_expr' ℕ,
+degvn ← eval_expr' ℕ degv,
 guard (deg = degvn) <|>
 ( do ppe ← pp deg, ppg ← pp degvn,
   fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
@@ -513,10 +513,13 @@ goal to showing that
 Unless the polynomial is particularly complicated, `prove_monic` with either succeed of leave
 a simpler goal to prove.
  -/
-meta def prove_monic : tactic unit := focus $ do
+meta def prove_monic : tactic unit := --focus $
+do
+--`(monic %%pol) ← target,-- | fail"Goal is not of the form `monic f`",
 `(monic %%pol) ← target >>= (λ f, whnf f reducible) | fail"Goal is not of the form `monic f`",
-deg ← guess_degree pol,
-refine ``(monic_of_nat_degree_le_of_coeff_eq_one (_ : nat_degree %%pol ≤ %%deg) _),
+deg ← guess_degree pol >>= eval_expr' ℕ,
+deg ← to_expr deg.to_pexpr tt ff,  -- surprisingly (to DT), this speeds up the computation
+refine ``(monic_of_nat_degree_le_of_coeff_eq_one %%deg _ _),
 focus' [compute_degree_le, simp_coeff],
 try reflexivity
 

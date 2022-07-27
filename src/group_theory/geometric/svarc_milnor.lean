@@ -4,13 +4,15 @@ Copyright (c) 2022 Georgi Kocharyan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.txt.
 Author: Georgi Kocharyan.
 -/
+
+-- Source of proof: Geometric group theory: An introduction (Clara Löh)
+
 import .cayley_graph
 import .geodesic_space
 import .isom_action
 import .quasi_iso
 import topology.metric_space.isometry
 import .marked_group
-import group_theory.specific_groups.cyclic
 
 
 
@@ -51,7 +53,9 @@ exact ⟨i1, i2⟩,
 simp,
 end
 
-lemma proper_closed_under_inv (k : ℝ) (knonneg : 0 ≤ k) (c : ℝ) (b : ℝ) (cpos: c > 0) (bnonneg: 0 ≤ b) (s : set β) (t : α)
+lemma proper_closed_under_inv (k : ℝ) (knonneg : 0 ≤ k)
+ (c : ℝ) (b : ℝ) (cpos: c > 0) (bnonneg: 0 ≤ b)
+  (s : set β) (t : α)
  [quasigeodesic_space β c b cpos bnonneg] [isom_action α β]
  (ht : t ∈ (proper_action_set α (set_closed_ball s k))) : (t⁻¹) ∈ (proper_action_set α (set_closed_ball s k)) :=
 begin
@@ -72,7 +76,8 @@ rw inv_smul_eq_iff,
 exact hy2.symm,
 end
 
-lemma closure_mul (g' : α) (K : set α) (hg : g' ∈ subgroup.closure K)(g : α) : (∃ k ∈ K, g'*k = g) → g ∈ subgroup.closure K :=
+lemma closure_mul (g' : α) (K : set α) (hg : g' ∈ subgroup.closure K)(g : α) :
+ (∃ k ∈ K, g'*k = g) → g ∈ subgroup.closure K :=
 sorry
 
 variables (c : ℝ) (b : ℝ) (cpos: 0 < c) (bpos: 0 < b)
@@ -116,7 +121,8 @@ have hL' : L' ≤ L,
   apply le_of_lt,
   apply lt_of_not_ge,
   exact h,
-have hq : quasigeodesic L' L'nonneg f x (f L') c b, from trunc_quasigeodesic L Lnonneg f x y c b hL' L'nonneg qg,
+have hq : quasigeodesic L' L'nonneg f x (f L') c b,
+  from trunc_quasigeodesic L Lnonneg f x y c b hL' L'nonneg qg,
 simp at *,
 -- endpoint of new quasigeodesic is covered
 have L'cov : ∃ g' : α, (f L') ∈ g' • s, from exists_cover_element htrans (f L'),
@@ -233,6 +239,9 @@ begin
   let x' : β, exact default,
   have := exists_cover_element htrans x',
   rcases this with ⟨a, ⟨t, ⟨ts, ht⟩⟩ ⟩,
+
+-- connect t and g • t via a quasigeodesic and then apply sm_aux to get that g is generated
+
   have h : conn_by_quasigeodesic' t (g • t) c b, by apply quasigeodesic_space.quasigeodesics t (g • t),
   rcases h with ⟨ L, Lnonneg, f, qif⟩,
   have harch : ∃ n : ℕ, L ≤ (n : real)*(b/c),
@@ -332,7 +341,8 @@ lemma wm_aux  [quasigeodesic_space β c b cpos (le_of_lt bpos)]
   [isom_action α β] (s : set β)
   (htrans: translates_cover α s) (finitediam : bounded s)
   (f : ℝ → β) (x : β) (xs : x ∈ s) (n : ℕ)
-   : ∀ (g : marked (sm_marking c b cpos bpos htrans finitediam)) (L : ℝ) (Lnonneg : L ≥ 0) (hL' : L ≤ (n : ℝ)*(b/c)),
+   : ∀ (g : marked (sm_marking c b cpos bpos htrans finitediam))
+    (L : ℝ) (Lnonneg : L ≥ 0) (hL' : L ≤ (n : ℝ)*(b/c)),
     ((∃ y ∈ g • s, quasigeodesic L Lnonneg f x y c b) → dist 1 g ≤ n+1) :=
 begin
   let m := marked (sm_marking c b cpos bpos htrans finitediam),
@@ -408,6 +418,7 @@ begin
   apply gen_set_mul_right'_sub, exact hk, exact g'norm,
 end
 
+-- easier to apply version of wm_aux
 
 lemma word_metric_bound_of_quasigeodesic
 
@@ -523,7 +534,8 @@ calc
 intros g h, simp,
 rw add_comm,
 rw ← sub_le_iff_le_add',
-have h : conn_by_quasigeodesic' x ((g⁻¹ * h) • x) c b, by apply quasigeodesic_space.quasigeodesics x (of_marked(g⁻¹ * h) • x),
+have h : conn_by_quasigeodesic' x ((g⁻¹ * h) • x) c b,
+  by apply quasigeodesic_space.quasigeodesics x (of_marked(g⁻¹ * h) • x),
 rcases h with ⟨ L, Lnonneg, f, ⟨f0, fL, hf⟩⟩,
 have hn : ∃ n : ℕ, ((n-1):ℝ)*(b/c) ≤ L ∧ L < (n : ℝ)*(b/c), from arch'' (div_pos bpos cpos) Lnonneg,
 rcases hn with ⟨n, ⟨L1, L2⟩ ⟩,
@@ -543,27 +555,9 @@ calc
 apply svarcmilnor_qdense c b cpos bpos s htrans finitediam x xs,
 end
 
--- Z and R are quasi-isometric
+-- in the following we try and compute a specific example, namely that Z is quasi-isometric to R.
 
--- instance translation : has_smul ℤ ℝ :=
--- {
---   smul := λ x y, x+y,
--- }
-
--- -- instance translation_action : mul_action ℤ ℝ :=
--- -- {
--- --   one_smul := begin
--- --   intro b,
--- --   end
--- -- }
-
--- instance translation__isom_action : isom_action ℤ ℝ :=
--- {
---   isom := begin
---   intros g x y,
---   sorry,
---   end
--- }
+-- R is quasigeodesic (1,1), need both positive for theorem to apply
 
 noncomputable instance : quasigeodesic_space ℝ 1 1 (one_pos) (by linarith) :=
 {
@@ -591,7 +585,8 @@ noncomputable instance : quasigeodesic_space ℝ 1 1 (one_pos) (by linarith) :=
 
 }
 
--- in the following we try and compute a specific example, namely that Z is quasi-isometric to R.
+/- Svarc milnor allows conclusion of quasiisometry given a 'nice' action of the group.#check
+   Here we have the translation action of Z on R. -/
 
 instance translation_action : isom_action (multiplicative ℤ) ℝ := {
   smul := (λ n x, ((multiplicative.to_add n) : ℝ)+x),

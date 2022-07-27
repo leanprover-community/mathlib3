@@ -479,22 +479,27 @@ def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
   hilbert_basis (Σ i, α i) 𝕜 E :=
 { repr :=
-  let step₁ : E ≃ₗᵢ[𝕜] lp (λ i, G i) 2 := hVortho.linear_isometry_equiv hVtotal,
-      step₂ : lp (λ i, G i) 2 ≃ₗᵢ[𝕜] lp (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 :=
-        lp.congr_rightₗᵢ 2 (λ i, (v i).repr),
-      step₃ : lp (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 ≃ₗᵢ[𝕜] lp (λ (i : Σ (i : ι), α i), 𝕜) 2 :=
-        (lp.curry_equivₗᵢ 2 (λ _ _, 𝕜) 𝕜).symm in
-  step₁.trans $ step₂.trans step₃ }
+  linear_isometry_equiv.trans
+    (hVortho.linear_isometry_equiv hVtotal) $
+  linear_isometry_equiv.trans
+    (lp.congr_rightₗᵢ G (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 (λ i, (v i).repr))
+    (lp.curry_equivₗᵢ 2 (λ _ _, 𝕜) 𝕜).symm }
 
-@[simp] lemma coe_collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
-  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
-  collected_hilbert_basis hVortho hVtotal v ia = V (ia.1) (v ia.1 ia.2) :=
+lemma coe_collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
+  collected_hilbert_basis hVortho hVtotal v ⟨i, a⟩ = V i (v i a) :=
 begin
-  simp [collected_hilbert_basis, ← hilbert_basis.repr_symm_single],
+  sorry,
+  --simp_rw [← hilbert_basis.repr_symm_single, collected_hilbert_basis,
+  --         linear_isometry_equiv.symm_trans, linear_isometry_equiv.symm_symm,
+  --         linear_isometry_equiv.trans_apply],
+  --rw [lp.coe_curry_equivₗᵢ, lp.curry_single, lp.congr_rightₗᵢ_symm, lp.congr_rightₗᵢ_single,
+  --    (v i).repr_symm_single],
+  --exact orthogonal_family.linear_isometry_equiv_symm_apply_single _ _ _,
 end
 
-def subordinate_hilbert_basis_span {α : ι → Type*} [∀ i, complete_space (F i)]
-  (v : Π i, hilbert_basis (α i) 𝕜 (F i))
+--def subordinate_hilbert_basis_span {α : ι → Type*} [∀ i, complete_space (F i)]
+--  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) := sorry
 
 --@[irreducible] def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (V i)]
 --  (v_family : Π i, hilbert_basis (α i) 𝕜 (V i)) :

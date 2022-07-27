@@ -1087,11 +1087,7 @@ def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
 @[simp] lemma curry_apply (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (a : α) (b : β a) :
   curry _ f a b = f ⟨a, b⟩ := rfl
 
-@[simp] lemma curry_apply_fst_snd (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (ab : Σ a, β a) :
-  curry _ f ab.1 ab.2 = f ab :=
-by cases ab; refl
-
-lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+@[simp] lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
   [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
   curry F (lp.single p (sigma.mk a b) x) = lp.single p a (lp.single p b x) :=
 begin
@@ -1109,8 +1105,6 @@ begin
         lp.single_apply_ne _ _ _ (ne.symm this)],
     refl }
 end
-
-#exit
 
 def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
@@ -1147,19 +1141,24 @@ def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
 @[simp] lemma uncurry_apply (g : lp (λ a, lp (λ b : β a, F a b) p) p) (a : α) (b : β a) :
   uncurry F g ⟨a, b⟩ = g a b := rfl
 
-lemma uncurry_single {G : Type*} [normed_group G] [decidable_eq (Σ a, β a)] [decidable_eq α]
-  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : G) :
-  uncurry (λ _ _, G) (lp.single p a (lp.single p b x)) = (lp.single p (sigma.mk a b) x) :=
+@[simp] lemma uncurry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
+  uncurry F (lp.single p a (lp.single p b x)) = (lp.single p (sigma.mk a b) x) :=
 begin
   ext ab',
   rcases ab' with ⟨a', b'⟩,
-  rw [uncurry_apply, lp.single_apply],
-  split_ifs,
-  { simp_rw [lp.single_apply],
-    split_ifs,
-    refl,
-    rw curry_apply, },
-  simp [curry_apply, h, lp.single_apply_self],
+  by_cases ha : a = a',
+  { induction ha,
+    by_cases hb : b = b',
+    { induction hb,
+      simp only [uncurry_apply, lp.single_apply_self] },
+    { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
+      rw [uncurry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
+          lp.single_apply_ne _ _ _ (ne.symm this)] } },
+  { have : sigma.mk a b ≠ sigma.mk a' b' := λ h, ha (congr_arg sigma.fst h),
+    rw [uncurry_apply, lp.single_apply_ne _ _ _ (ne.symm ha),
+        lp.single_apply_ne _ _ _ (ne.symm this)],
+    refl }
 
 end
 
@@ -1175,7 +1174,7 @@ def curry_equiv :
 variables (𝕜 : Type*) [normed_field 𝕜] [Π a b, normed_space 𝕜 (F a b)]
 
 def curry_equivₗᵢ :
-  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p  :=
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
 { map_add' := λ f g, by ext; refl,
   map_smul' := λ a f, by ext; refl,
   norm_map' :=
@@ -1202,30 +1201,31 @@ def curry_equivₗᵢ :
   end,
   ..lp.curry_equiv p F }
 
-#exit
+@[simp] lemma coe_curry_equivₗᵢ : ⇑(curry_equivₗᵢ p F 𝕜) = curry F := rfl
+@[simp] lemma coe_curry_equivₗᵢ_symm : ⇑(curry_equivₗᵢ p F 𝕜).symm = uncurry F := rfl
 
 end curry
 
 section congr_right
 
-variables (p) {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] {F : α → Type*}
+variables (E) {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (F : α → Type*)
   [Π i, normed_group (F i)] [Π i, normed_space 𝕜 (F i)]
 
-noncomputable! def congr_right (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+noncomputable! def congr_right (p : ℝ≥0∞) (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
   lp E p ≃ lp F p :=
 { to_fun := λ f, ⟨_, mem_ℓp.comp_linear_isometry (λ i, (Φ i).to_linear_isometry) f.2⟩,
   inv_fun := λ g, ⟨_, mem_ℓp.comp_linear_isometry (λ i, (Φ i).symm.to_linear_isometry) g.2⟩,
   left_inv := λ f, by ext i; exact (Φ i).symm_apply_apply _,
   right_inv := λ g, by ext i; exact (Φ i).apply_symm_apply _ }
 
-noncomputable! def congr_rightₗᵢ [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+noncomputable! def congr_rightₗᵢ (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
   lp E p ≃ₗᵢ[𝕜] lp F p :=
 { map_add' := λ f g, by ext i; exact map_add (Φ i) _ _,
   map_smul' := λ a f, by ext i; exact linear_isometry_equiv.map_smul _ _, -- TODO morphism classes
   norm_map' :=
   begin
     intros f,
-    change ∥lp.congr_right p Φ f∥ = ∥f∥,
+    change ∥lp.congr_right E F p Φ f∥ = ∥f∥,
     unfreezingI { rcases p.dichotomy with rfl | hp},
     { rw [lp.norm_eq_csupr, lp.norm_eq_csupr],
       congr,
@@ -1237,7 +1237,25 @@ noncomputable! def congr_rightₗᵢ [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[
       ext i,
       exact congr_arg (λ x, x ^ p.to_real) ((Φ i).norm_map _) },
   end,
-  ..congr_right p Φ }
+  ..congr_right E F p Φ}
+
+@[simp] lemma congr_rightₗᵢ_apply (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) (f : lp E p)
+  (i : α) : congr_rightₗᵢ E F p Φ f i = (Φ i) (f i) := rfl
+
+@[simp] lemma congr_rightₗᵢ_single [decidable_eq α] (p : ℝ≥0∞) [fact (1 ≤ p)]
+  (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) (i : α) (x : E i) :
+  congr_rightₗᵢ E F p Φ (lp.single p i x) = (lp.single p i (Φ i x)) :=
+begin
+  ext j,
+  rw [congr_rightₗᵢ_apply, lp.single_apply, lp.single_apply],
+  split_ifs,
+  { induction h,
+    refl },
+  { exact map_zero _ }
+end
+
+@[simp] lemma congr_rightₗᵢ_symm (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+  (congr_rightₗᵢ E F p Φ).symm = congr_rightₗᵢ F E p (λ i, (Φ i).symm) := rfl
 
 end congr_right
 

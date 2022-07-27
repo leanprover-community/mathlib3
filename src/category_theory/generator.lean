@@ -270,7 +270,7 @@ begin
   { exactI has_initial_of_unique ((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) },
   refine λ A, ⟨⟨_⟩, λ f, _⟩,
   { let s := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), id (pi.π (coe : 𝒢 → C)) f.1),
-    let t := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), f.2),
+    let t := pi.lift (@sigma.snd 𝒢 (λ G, A ⟶ (G : C))),
     haveI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
     exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
   { generalize : default = g,

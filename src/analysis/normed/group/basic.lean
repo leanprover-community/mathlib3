@@ -669,10 +669,10 @@ attribute [to_additive] monoid_hom_class.isometry_of_norm
 
 section nnnorm
 
-@[priority 100, to_additive] -- see Note [lower instance priority]
+@[priority 100, to_additive] -- See note [lower instance priority]
 instance seminormed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨∥a∥, norm_nonneg' a⟩⟩
 
-@[simp, norm_cast, to_additive coe_nnnorm] lemma coe_nnnorm' (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
+@[simp, norm_cast, to_additive coe_nnnorm] lemma coe_nnnorm' (a : E) : (∥a∥₊ : ℝ) = ∥a∥ := rfl
 
 @[simp, to_additive coe_comp_nnnorm]
 lemma coe_comp_nnnorm' : (coe : ℝ≥0 → ℝ) ∘ (nnnorm : E → ℝ≥0) = norm := rfl
@@ -680,8 +680,10 @@ lemma coe_comp_nnnorm' : (coe : ℝ≥0 → ℝ) ∘ (nnnorm : E → ℝ≥0) = 
 @[to_additive norm_to_nnreal]
 lemma norm_to_nnreal' : ∥a∥.to_nnreal = ∥a∥₊ := @real.to_nnreal_coe ∥a∥₊
 
-@[to_additive nndist_eq_nnnorm]
-lemma nndist_eq_nnnorm' (a b : E) : nndist a b = ∥a / b∥₊ := nnreal.eq $ dist_eq_norm_div _ _
+@[to_additive]
+lemma nndist_eq_nnnorm_div (a b : E) : nndist a b = ∥a / b∥₊ := nnreal.eq $ dist_eq_norm_div _ _
+
+alias nndist_eq_nnnorm_sub ← nndist_eq_nnnorm
 
 @[simp, to_additive nnnorm_zero] lemma nnnorm_one' : ∥(1 : E)∥₊ = 0 := nnreal.eq norm_one'
 
@@ -1219,19 +1221,19 @@ by simp [← dist_eq_norm_div, hf.le_mul_dist x y]
 
 end antilipschitz_with
 
-@[priority 100, to_additive] -- see Note [lower instance priority]
+@[priority 100, to_additive] -- See note [lower instance priority]
 instance seminormed_comm_group.to_has_lipschitz_mul : has_lipschitz_mul E :=
 ⟨⟨1 + 1, lipschitz_with.prod_fst.mul' lipschitz_with.prod_snd⟩⟩
 
 /-- A seminormed group is a uniform group, i.e., multiplication and division are uniformly
 continuous. -/
 @[priority 100, to_additive "A seminormed group is a uniform additive group, i.e., addition and
-subtraction are uniformly continuous."] -- see Note [lower instance priority]
+subtraction are uniformly continuous."] -- See note [lower instance priority]
 instance seminormed_comm_group.to_uniform_group : uniform_group E :=
 ⟨(lipschitz_with.prod_fst.div lipschitz_with.prod_snd).uniform_continuous⟩
 
  -- short-circuit type class inference
-@[priority 100, to_additive] -- see Note [lower instance priority]
+@[priority 100, to_additive] -- See note [lower instance priority]
 instance seminormed_comm_group.to_topological_group : topological_group E := infer_instance
 
 @[to_additive] lemma cauchy_seq_prod_of_eventually_eq {u v : ℕ → E} {N : ℕ}
@@ -1350,15 +1352,43 @@ normed_comm_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩ down_injective
 
 end ulift
 
-/-! ### `multiplicative`, `additive` -/
+/-! ### `additive`, `multiplicative` -/
+
+section additive_multiplicative
+
+open additive multiplicative
+
+section has_norm
+variables [has_norm E]
+
+instance : has_norm (additive E) := ‹has_norm E›
+instance : has_norm (multiplicative E) := ‹has_norm E›
+
+@[simp] lemma norm_to_mul (x) : ∥(to_mul x : E)∥ = ∥x∥ := rfl
+@[simp] lemma norm_of_mul (x : E) : ∥of_mul x∥ = ∥x∥ := rfl
+@[simp] lemma norm_to_add (x) : ∥(to_add x : E)∥ = ∥x∥ := rfl
+@[simp] lemma norm_of_add (x : E) : ∥of_add x∥ = ∥x∥ := rfl
+
+end has_norm
+
+section has_nnnorm
+variables [has_nnnorm E]
+
+instance : has_nnnorm (additive E) := ‹has_nnnorm E›
+instance : has_nnnorm (multiplicative E) := ‹has_nnnorm E›
+
+@[simp] lemma nnnorm_to_mul (x) : ∥(to_mul x : E)∥₊ = ∥x∥₊ := rfl
+@[simp] lemma nnnorm_of_mul (x : E) : ∥of_mul x∥₊ = ∥x∥₊ := rfl
+@[simp] lemma nnnorm_to_add (x) : ∥(to_add x : E)∥₊ = ∥x∥₊ := rfl
+@[simp] lemma nnnorm_of_add (x : E) : ∥of_add x∥₊ = ∥x∥₊ := rfl
+
+end has_nnnorm
 
 instance [seminormed_group E] : seminormed_add_group (additive E) :=
-{ norm := λ x, ∥additive.to_mul x∥,
-  dist_eq := dist_eq_norm_div }
+{ dist_eq := dist_eq_norm_div }
 
 instance [seminormed_add_group E] : seminormed_group (multiplicative E) :=
-{ norm := λ x, ∥multiplicative.to_add x∥,
-  dist_eq := dist_eq_norm_sub }
+{ dist_eq := dist_eq_norm_sub }
 
 instance [seminormed_comm_group E] : seminormed_add_comm_group (additive E) :=
 { ..additive.seminormed_add_group }
@@ -1377,6 +1407,48 @@ instance [normed_comm_group E] : normed_add_comm_group (additive E) :=
 
 instance [normed_add_comm_group E] : normed_comm_group (multiplicative E) :=
 { ..multiplicative.seminormed_group }
+
+end additive_multiplicative
+
+/-! ### Order dual -/
+
+section order_dual
+
+open order_dual
+
+section has_norm
+variables [has_norm E]
+
+instance : has_norm Eᵒᵈ := ‹has_norm E›
+
+@[simp] lemma norm_to_dual (x : E) : ∥to_dual x∥ = ∥x∥ := rfl
+@[simp] lemma norm_of_dual (x : Eᵒᵈ) : ∥of_dual x∥ = ∥x∥ := rfl
+
+end has_norm
+
+section has_nnnorm
+variables [has_nnnorm E]
+
+instance : has_nnnorm Eᵒᵈ := ‹has_nnnorm E›
+
+@[simp] lemma nnnorm_to_dual (x : E) : ∥to_dual x∥₊ = ∥x∥₊ := rfl
+@[simp] lemma nnnorm_of_dual (x : Eᵒᵈ) : ∥of_dual x∥₊ = ∥x∥₊ := rfl
+
+end has_nnnorm
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance [seminormed_group E] : seminormed_group Eᵒᵈ := ‹seminormed_group E›
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance [seminormed_comm_group E] : seminormed_comm_group Eᵒᵈ := ‹seminormed_comm_group E›
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance [normed_group E] : normed_group Eᵒᵈ := ‹normed_group E›
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance [normed_comm_group E] : normed_comm_group Eᵒᵈ := ‹normed_comm_group E›
+
+end order_dual
 
 /-! ### Binary product of normed groups -/
 
@@ -1431,7 +1503,7 @@ noncomputable instance : seminormed_group (Π i, π i) :=
 { norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := λ x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ λ a,
-    show nndist (x a) (y a) = ∥x a / y a∥₊, from nndist_eq_nnnorm' _ _ }
+    show nndist (x a) (y a) = ∥x a / y a∥₊, from nndist_eq_nnnorm_div (x a) (y a) }
 
 @[to_additive pi.norm_def] lemma pi.norm_def' : ∥f∥ = ↑(finset.univ.sup (λ b, ∥f b∥₊)) := rfl
 @[to_additive pi.nnnorm_def] lemma pi.nnnorm_def' : ∥f∥₊ = finset.univ.sup (λ b, ∥f b∥₊) :=

@@ -432,7 +432,9 @@ lemma quotient_equiv_sigma_zmod_apply (q : orbit_rel.quotient (zpowers g) (G ⧸
 by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply,
   zmod.coe_int_cast, zpow_smul_mod_minimal_period]
 
-/-- The transfer transversal as a function. -/
+/-- The transfer transversal as a function. Given a `⟨g⟩`-orbit `q₀, g • q₀, ..., g ^ (m - 1) • q₀`
+  in `G ⧸ H`, an element `g ^ k • q₀` is mapped to `g ^ k • g₀` for a fixed choice of
+  representative `g₀` of `q₀`. -/
 noncomputable def transfer_function : G ⧸ H → G :=
 λ q, g ^ ((quotient_equiv_sigma_zmod H g q).2 : ℤ) * (quotient_equiv_sigma_zmod H g q).1.out'.out'
 
@@ -444,14 +446,16 @@ lemma coe_transfer_function (q : G ⧸ H) : ↑(transfer_function H g q) = q :=
 by rw [transfer_function_apply, ←smul_eq_mul, coe_smul_out',
   ←quotient_equiv_sigma_zmod_symm_apply, sigma.eta, symm_apply_apply]
 
-/-- The transfer transversal as a set. -/
+/-- The transfer transversal as a set. Contains elements of the form `g ^ k • g₀` for fixed choices
+  of representatives `g₀` of fixed choices of representatives `q₀` of `⟨g⟩`-orbits in `G ⧸ H`. -/
 def transfer_set : set G :=
 set.range (transfer_function H g)
 
 lemma mem_transfer_set (q : G ⧸ H) : transfer_function H g q ∈ transfer_set H g :=
 ⟨q, rfl⟩
 
-/-- The transfer transversal. -/
+/-- The transfer transversal. Contains elements of the form `g ^ k • g₀` for fixed choices
+  of representatives `g₀` of fixed choices of representatives `q₀` of `⟨g⟩`-orbits in `G ⧸ H`. -/
 def transfer_transversal : left_transversals (H : set G) :=
 ⟨transfer_set H g, range_mem_left_transversals (coe_transfer_function H g)⟩
 

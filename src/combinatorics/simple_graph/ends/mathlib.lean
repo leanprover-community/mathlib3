@@ -196,5 +196,25 @@ begin
     exact walk.support_append_subset_left wb wb',},
 end
 
+lemma subconnected.of_common_mem_sUnion (v : V) {F : set (set V)}
+  (mem : ∀ S ∈ F, v ∈ S) (subconn : ∀ S ∈ F, subconnected G S) : subconnected G (⋃₀ F) :=
+begin
+  rintros x xh y yh,
+  rcases xh with ⟨S,SF,xS⟩,
+  rcases yh with ⟨T,TF,yT⟩,
+  rcases subconnected.of_intersecting_subconnected G
+         (subconn S SF)
+         (subconn T TF)
+         (set.not_disjoint_iff.mpr ⟨v,⟨mem S SF,mem T TF⟩⟩)
+         x (by {simp *,})
+         y (by {simp *,})
+  with ⟨w,wgood⟩,
+  use w,
+  have : S ∪ T ⊆ ⋃₀ F, by {simp,exact ⟨subset_sUnion_of_mem SF,subset_sUnion_of_mem TF⟩},
+  exact wgood.trans this,
+end
+
+
+
 
 end simple_graph

@@ -7,6 +7,7 @@ Authors: Yury Kudryashov
 import algebra.group_power.basic
 import logic.function.iterate
 import group_theory.perm.basic
+import group_theory.group_action.opposite
 
 /-!
 # Iterates of monoid and ring homomorphisms
@@ -149,16 +150,16 @@ section monoid
 
 variables [monoid G] (a : G) (n : ℕ)
 
+@[simp, to_additive] lemma smul_iterate [mul_action G H] :
+  ((•) a : H → H)^[n] = (•) (a^n) :=
+funext (λ b, nat.rec_on n (by rw [iterate_zero, id.def, pow_zero, one_smul])
+  (λ n ih, by rw [iterate_succ', comp_app, ih, pow_succ, mul_smul]))
+
 @[simp, to_additive] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
-nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
-funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
+smul_iterate a n
 
 @[simp, to_additive] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
-begin
-  induction n with d hd,
-  { simpa },
-  { simp [← pow_succ, hd] }
-end
+smul_iterate (mul_opposite.op a) n
 
 @[to_additive]
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=

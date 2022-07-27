@@ -23,7 +23,7 @@ universes u v w x
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
-open set function
+open function order_dual set
 
 /-!
 ### Definitions
@@ -51,8 +51,8 @@ protected lemma id : left_ord_continuous (id : α → α) := λ s x h, by simpa 
 
 variable {α}
 
-protected lemma order_dual (hf : left_ord_continuous f) :
-  @right_ord_continuous (order_dual α) (order_dual β) _ _ f := hf
+protected lemma order_dual : left_ord_continuous f → right_ord_continuous (to_dual ∘ f ∘ of_dual) :=
+id
 
 lemma map_is_greatest (hf : left_ord_continuous f) {s : set α} {x : α} (h : is_greatest s x):
   is_greatest (f '' s) (f x) :=
@@ -148,8 +148,8 @@ protected lemma id : right_ord_continuous (id : α → α) := λ s x h, by simpa
 
 variable {α}
 
-protected lemma order_dual (hf : right_ord_continuous f) :
-  @left_ord_continuous (order_dual α) (order_dual β) _ _ f := hf
+protected lemma order_dual : right_ord_continuous f → left_ord_continuous (to_dual ∘ f ∘ of_dual) :=
+id
 
 lemma map_is_least (hf : right_ord_continuous f) {s : set α} {x : α} (h : is_least s x):
   is_least (f '' s) (f x) :=

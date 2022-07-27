@@ -48,14 +48,14 @@ variables [fintype ι] (I : box ι)
 lemma measurable_set_coe : measurable_set (I : set (ι → ℝ)) :=
 begin
   rw [coe_eq_pi],
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   exact measurable_set.univ_pi (λ i, measurable_set_Ioc)
 end
 
 lemma measurable_set_Icc : measurable_set I.Icc := measurable_set_Icc
 
 lemma measurable_set_Ioo : measurable_set I.Ioo :=
-(measurable_set_pi (finite.of_fintype _).countable).2 $ or.inl $ λ i hi, measurable_set_Ioo
+(measurable_set_pi (set.to_finite _).countable).2 $ or.inl $ λ i hi, measurable_set_Ioo
 
 lemma coe_ae_eq_Icc : (I : set (ι → ℝ)) =ᵐ[volume] I.Icc :=
 by { rw coe_eq_pi, exact measure.univ_pi_Ioc_ae_eq_Icc }
@@ -115,11 +115,11 @@ namespace box_additive_map
 
 /-- Box-additive map sending each box `I` to the continuous linear endomorphism
 `x ↦ (volume I).to_real • x`. -/
-protected def volume {E : Type*} [normed_group E] [normed_space ℝ E] :
+protected def volume {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] :
   ι →ᵇᵃ (E →L[ℝ] E) :=
 (volume : measure (ι → ℝ)).to_box_additive.to_smul
 
-lemma volume_apply {E : Type*} [normed_group E] [normed_space ℝ E] (I : box ι) (x : E) :
+lemma volume_apply {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] (I : box ι) (x : E) :
   box_additive_map.volume I x = (∏ j, (I.upper j - I.lower j)) • x :=
 congr_arg2 (•) I.volume_apply rfl
 

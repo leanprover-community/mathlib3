@@ -20,8 +20,9 @@ for some `a : α`, while the domain of `o : part α` doesn't have to be decidabl
 translate back and forth between a partial value with a decidable domain and an option, and
 `option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
 
-In current mathlib, `part ℕ`, aka `enat`, is used to move decidability of the order to decidability
-of `enat.find` (which is the smallest natural satisfying a predicate, or `∞` if there's none).
+In current mathlib, `part ℕ`, aka `part_enat`, is used to move decidability of the order to
+decidability of `part_enat.find` (which is the smallest natural satisfying a predicate, or `∞` if
+there's none).
 
 ## Main declarations
 
@@ -110,6 +111,8 @@ instance : inhabited (part α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : part α := ⟨true, λ_, a⟩
 
+@[simp] lemma some_dom (a : α) : (some a).dom := trivial
+
 theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
@@ -138,6 +141,8 @@ theorem eq_none_iff {o : part α} : o = none ↔ ∀ a, a ∉ o :=
 
 theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
+
+@[simp] lemma not_none_dom : ¬ (none : part α).dom := id
 
 @[simp] lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }
@@ -193,12 +198,17 @@ otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
+lemma get_or_else_of_dom (a : part α) (h : a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = a.get h := dif_pos h
+
+lemma get_or_else_of_not_dom (a : part α) (h : ¬ a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = d := dif_neg h
+
 @[simp] lemma get_or_else_none (d : α) [decidable (none : part α).dom] : get_or_else none d = d :=
-dif_neg id
+none.get_or_else_of_not_dom not_none_dom d
 
 @[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
-  get_or_else (some a) d = a :=
-dif_pos trivial
+  get_or_else (some a) d = a := (some a).get_or_else_of_dom (some_dom a) d
 
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=

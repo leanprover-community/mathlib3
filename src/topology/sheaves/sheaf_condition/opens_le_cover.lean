@@ -144,39 +144,39 @@ of all opens contained in some `U i`.
 -- we have to explicitly construct a zigzag.
 instance : functor.final (pairwise_to_opens_le_cover U) :=
 ⟨λ V, is_connected_of_zigzag $ λ A B, begin
-  rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
-  rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
+  rcases A with ⟨⟨⟨⟩⟩, ⟨i⟩|⟨i,j⟩, a⟩;
+  rcases B with ⟨⟨⟨⟩⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
   dsimp at *,
   { refine ⟨[
-    { left := punit.star, right := pair i i',
+    { left := ⟨⟨⟩⟩, right := pair i i',
       hom := (le_inf a.le b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil) },
   { refine ⟨[
-    { left := punit.star, right := pair i' i,
+    { left := ⟨⟨⟩⟩, right := pair i' i,
       hom := (le_inf (b.le.trans inf_le_left) a.le).hom, },
-    { left := punit.star, right := single i',
+    { left := ⟨⟨⟩⟩, right := single i',
       hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := right i' i, }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i' i, }⟩)
           (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil)) },
   { refine ⟨[
-    { left := punit.star, right := single i,
+    { left := ⟨⟨⟩⟩, right := single i,
       hom := (a.le.trans inf_le_left).hom, },
-    { left := punit.star, right := pair i i', hom :=
+    { left := ⟨⟨⟩⟩, right := pair i i', hom :=
       (le_inf (a.le.trans inf_le_left) b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
         (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
           (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil)) },
   { refine ⟨[
-    { left := punit.star, right := single i,
+    { left := ⟨⟨⟩⟩, right := single i,
       hom := (a.le.trans inf_le_left).hom, },
-    { left := punit.star, right := pair i i',
+    { left := ⟨⟨⟩⟩, right := pair i i',
       hom := (le_inf (a.le.trans inf_le_left) (b.le.trans inf_le_left)).hom, },
-    { left := punit.star, right := single i',
+    { left := ⟨⟨⟩⟩, right := single i',
       hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
@@ -271,8 +271,8 @@ variables {Y : opens X} (hY : Y = supr U)
   inv :=
   { hom := F.map (eq_to_hom (congr_arg op hY)),
     w' := λ j, by { erw ← F.map_comp, congr } },
-  hom_inv_id' := by { ext, simp },
-  inv_hom_id' := by { ext, simp } }
+  hom_inv_id' := by { ext, simp [eq_to_hom_map], },
+  inv_hom_id' := by { ext, simp [eq_to_hom_map], } }
 
 /-- Given a presheaf `F` on the topological space `X` and a family of opens `U` of `X`,
     the natural cone associated to `F` and `U` used in the definition of
@@ -305,10 +305,11 @@ end
     it satisfies the `is_sheaf_opens_le_cover` sheaf condition. The latter is not the
     official definition of sheaves on spaces, but has the advantage that it does not
     require `has_products C`. -/
-lemma is_sheaf_sites_iff_is_sheaf_opens_le_cover :
-  category_theory.presheaf.is_sheaf (opens.grothendieck_topology X) F ↔ F.is_sheaf_opens_le_cover :=
+lemma is_sheaf_iff_is_sheaf_opens_le_cover :
+  F.is_sheaf ↔ F.is_sheaf_opens_le_cover :=
 begin
-  rw presheaf.is_sheaf_iff_is_limit, split,
+  refine (presheaf.is_sheaf_iff_is_limit _ _).trans _,
+  split,
   { intros h ι U, rw (is_limit_opens_le_equiv_generate₁ F U rfl).nonempty_congr,
     apply h, apply presieve_of_covering.mem_grothendieck_topology },
   { intros h Y S, rw ← sieve.generate_sieve S, intro hS,
@@ -316,18 +317,6 @@ begin
 end
 
 end
-
-variable [has_products C]
-
-/--
-The sheaf condition in terms of an equalizer diagram is equivalent
-to the reformulation in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`.
--/
-lemma is_sheaf_iff_is_sheaf_opens_le_cover (F : presheaf C X) :
-  F.is_sheaf ↔ F.is_sheaf_opens_le_cover :=
-iff.trans
-  (is_sheaf_iff_is_sheaf_pairwise_intersections F)
-  (is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections F).symm
 
 end presheaf
 

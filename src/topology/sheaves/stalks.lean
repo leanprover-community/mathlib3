@@ -11,17 +11,14 @@ import category_theory.limits.preserves.filtered
 import category_theory.limits.final
 import topology.sober
 import tactic.elementwise
-import algebra.category.CommRing
+import algebra.category.Ring
 
 /-!
 # Stalks
 
 For a presheaf `F` on a topological space `X`, valued in some category `C`, the *stalk* of `F`
-at the point `x : X` is defined as the colimit of the following functor
-
-(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ ⥤ C
-
-where the functor on the left is the inclusion of categories and the functor on the right is `F`.
+at the point `x : X` is defined as the colimit of the composition of the inclusion of categories
+`(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ` and the functor `F : (opens X)ᵒᵖ ⥤ C`.
 For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) ⟶ F.stalk x` as the
 canonical morphism into this colimit.
 
@@ -260,7 +257,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     delta stalk_pullback_hom stalk_pullback_inv stalk_functor presheaf.pullback stalk_pushforward,
     ext U j,
     induction U using opposite.rec,
-    cases U, cases j, cases j_right,
+    cases U, cases j, rcases j_right with ⟨⟨⟩⟩,
     erw [colimit.map_desc, colimit.map_desc, colimit.ι_desc_assoc,
       colimit.ι_desc_assoc, colimit.ι_desc, category.comp_id],
     simp only [cocone.whisker_ι, colimit.cocone_ι, open_nhds.inclusion_map_iso_inv,
@@ -276,7 +273,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     congr,
     simp only [category.assoc, costructured_arrow.map_mk],
     delta costructured_arrow.mk,
-    congr
+    congr,
   end }
 
 end stalk_pullback
@@ -318,7 +315,7 @@ by { ext, delta stalk_functor, simpa [stalk_specializes] }
 
 @[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
-  (f _* F).stalk_specializes (f.map_specialization h) ≫ F.stalk_pushforward _ f x =
+  (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
 by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
 
@@ -348,7 +345,7 @@ every element of the stalk is the germ of a section.
 lemma germ_exist (F : X.presheaf C) (x : X) (t : stalk F x) :
   ∃ (U : opens X) (m : x ∈ U) (s : F.obj (op U)), F.germ ⟨x, m⟩ s = t :=
 begin
-  obtain ⟨U, s, e⟩ := types.jointly_surjective _
+  obtain ⟨U, s, e⟩ := types.jointly_surjective.{v v} _
     (is_colimit_of_preserves (forget C) (colimit.is_colimit _)) t,
   revert s e,
   rw [(show U = op (unop U), from rfl)],
@@ -363,7 +360,7 @@ lemma germ_eq (F : X.presheaf C) {U V : opens X} (x : X) (mU : x ∈ U) (mV : x 
   (h : germ F ⟨x, mU⟩ s = germ F ⟨x, mV⟩ t) :
   ∃ (W : opens X) (m : x ∈ W) (iU : W ⟶ U) (iV : W ⟶ V), F.map iU.op s = F.map iV.op t :=
 begin
-  obtain ⟨W, iU, iV, e⟩ := (types.filtered_colimit.is_colimit_eq_iff _
+  obtain ⟨W, iU, iV, e⟩ := (types.filtered_colimit.is_colimit_eq_iff.{v v} _
     (is_colimit_of_preserves _ (colimit.is_colimit ((open_nhds.inclusion x).op ⋙ F)))).mp h,
   exact ⟨(unop W).1, (unop W).2, iU.unop, iV.unop, e⟩,
 end
@@ -391,12 +388,12 @@ Let `F` be a sheaf valued in a concrete category, whose forgetful functor reflec
 preserves limits and filtered colimits. Then two sections who agree on every stalk must be equal.
 -/
 lemma section_ext (F : sheaf C X) (U : opens X) (s t : F.1.obj (op U))
-  (h : ∀ x : U, F.1.germ x s = F.1.germ x t) :
+  (h : ∀ x : U, F.presheaf.germ x s = F.presheaf.germ x t) :
   s = t :=
 begin
   -- We use `germ_eq` and the axiom of choice, to pick for every point `x` a neighbourhood
   -- `V x`, such that the restrictions of `s` and `t` to `V x` coincide.
-  choose V m i₁ i₂ heq using λ x : U, F.1.germ_eq x.1 x.2 x.2 s t (h x),
+  choose V m i₁ i₂ heq using λ x : U, F.presheaf.germ_eq x.1 x.2 x.2 s t (h x),
   -- Since `F` is a sheaf, we can prove the equality locally, if we can show that these
   -- neighborhoods form a cover of `U`.
   apply F.eq_of_locally_eq' V U i₁,
@@ -430,10 +427,10 @@ We claim that it suffices to find preimages *locally*. That is, for each `x : U`
 a neighborhood `V ≤ U` and a section `s : F.obj (op V))` such that `f.app (op V) s` and `t`
 agree on `V`. -/
 lemma app_surjective_of_injective_of_locally_surjective {F G : sheaf C X} (f : F ⟶ G)
-  (U : opens X) (hinj : ∀ x : U, function.injective ((stalk_functor C x.1).map f))
+  (U : opens X) (hinj : ∀ x : U, function.injective ((stalk_functor C x.1).map f.1))
   (hsurj : ∀ (t) (x : U), ∃ (V : opens X) (m : x.1 ∈ V) (iVU : V ⟶ U) (s : F.1.obj (op V)),
-    f.app (op V) s = G.1.map iVU.op t) :
-  function.surjective (f.app (op U)) :=
+    f.1.app (op V) s = G.1.map iVU.op t) :
+  function.surjective (f.1.app (op U)) :=
 begin
   intro t,
   -- We use the axiom of choice to pick around each point `x` an open neighborhood `V` and a
@@ -449,7 +446,7 @@ begin
   { use s,
     apply G.eq_of_locally_eq' V U iVU V_cover,
     intro x,
-    rw [← comp_apply, ← f.naturality, comp_apply, s_spec, heq] },
+    rw [← comp_apply, ← f.1.naturality, comp_apply, s_spec, heq] },
   { intros x y,
     -- What's left to show here is that the secions `sf` are compatible, i.e. they agree on
     -- the intersections `V x ⊓ V y`. We prove this by showing that all germs are equal.
@@ -459,48 +456,48 @@ begin
     apply (hinj ⟨z, (iVU x).le ((inf_le_left : V x ⊓ V y ≤ V x) z.2)⟩),
     dsimp only,
     erw [stalk_functor_map_germ_apply, stalk_functor_map_germ_apply],
-    simp_rw [← comp_apply, f.naturality, comp_apply, heq, ← comp_apply, ← G.1.map_comp],
+    simp_rw [← comp_apply, f.1.naturality, comp_apply, heq, ← comp_apply, ← G.1.map_comp],
     refl }
 end
 
 lemma app_surjective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ G)
-  (U : opens X) (h : ∀ x : U, function.bijective ((stalk_functor C x.val).map f)) :
-  function.surjective (f.app (op U)) :=
+  (U : opens X) (h : ∀ x : U, function.bijective ((stalk_functor C x.val).map f.1)) :
+  function.surjective (f.1.app (op U)) :=
 begin
   refine app_surjective_of_injective_of_locally_surjective f U (λ x, (h x).1) (λ t x, _),
   -- Now we need to prove our initial claim: That we can find preimages of `t` locally.
   -- Since `f` is surjective on stalks, we can find a preimage `s₀` of the germ of `t` at `x`
-  obtain ⟨s₀,hs₀⟩ := (h x).2 (G.1.germ x t),
+  obtain ⟨s₀,hs₀⟩ := (h x).2 (G.presheaf.germ x t),
   -- ... and this preimage must come from some section `s₁` defined on some open neighborhood `V₁`
-  obtain ⟨V₁,hxV₁,s₁,hs₁⟩ := F.1.germ_exist x.1 s₀,
+  obtain ⟨V₁,hxV₁,s₁,hs₁⟩ := F.presheaf.germ_exist x.1 s₀,
   subst hs₁, rename hs₀ hs₁,
-  erw stalk_functor_map_germ_apply V₁ ⟨x.1,hxV₁⟩ f s₁ at hs₁,
+  erw stalk_functor_map_germ_apply V₁ ⟨x.1,hxV₁⟩ f.1 s₁ at hs₁,
   -- Now, the germ of `f.app (op V₁) s₁` equals the germ of `t`, hence they must coincide on
   -- some open neighborhood `V₂`.
-  obtain ⟨V₂, hxV₂, iV₂V₁, iV₂U, heq⟩ := G.1.germ_eq x.1 hxV₁ x.2 _ _ hs₁,
+  obtain ⟨V₂, hxV₂, iV₂V₁, iV₂U, heq⟩ := G.presheaf.germ_eq x.1 hxV₁ x.2 _ _ hs₁,
   -- The restriction of `s₁` to that neighborhood is our desired local preimage.
   use [V₂, hxV₂, iV₂U, F.1.map iV₂V₁.op s₁],
-  rw [← comp_apply, f.naturality, comp_apply, heq],
+  rw [← comp_apply, f.1.naturality, comp_apply, heq],
 end
 
 lemma app_bijective_of_stalk_functor_map_bijective {F G : sheaf C X} (f : F ⟶ G)
-   (U : opens X) (h : ∀ x : U, function.bijective ((stalk_functor C x.val).map f)) :
-  function.bijective (f.app (op U)) :=
-⟨app_injective_of_stalk_functor_map_injective f U (λ x, (h x).1),
+   (U : opens X) (h : ∀ x : U, function.bijective ((stalk_functor C x.val).map f.1)) :
+  function.bijective (f.1.app (op U)) :=
+⟨app_injective_of_stalk_functor_map_injective f.1 U (λ x, (h x).1),
   app_surjective_of_stalk_functor_map_bijective f U h⟩
 
 lemma app_is_iso_of_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G) (U : opens X)
-  [∀ x : U, is_iso ((stalk_functor C x.val).map f)] : is_iso (f.app (op U)) :=
+  [∀ x : U, is_iso ((stalk_functor C x.val).map f.1)] : is_iso (f.1.app (op U)) :=
 begin
   -- Since the forgetful functor of `C` reflects isomorphisms, it suffices to see that the
   -- underlying map between types is an isomorphism, i.e. bijective.
-  suffices : is_iso ((forget C).map (f.app (op U))),
-  { exactI is_iso_of_reflects_iso (f.app (op U)) (forget C) },
+  suffices : is_iso ((forget C).map (f.1.app (op U))),
+  { exactI is_iso_of_reflects_iso (f.1.app (op U)) (forget C) },
   rw is_iso_iff_bijective,
   apply app_bijective_of_stalk_functor_map_bijective,
   intro x,
   apply (is_iso_iff_bijective _).mp,
-  exact functor.map_is_iso (forget C) ((stalk_functor C x.1).map f)
+  exact functor.map_is_iso (forget C) ((stalk_functor C x.1).map f.1)
 end
 
 /--
@@ -510,15 +507,15 @@ isomorphisms, preserves limits and filtered colimits. Then if the stalk maps of 
 -/
 -- Making this an instance would cause a loop in typeclass resolution with `functor.map_is_iso`
 lemma is_iso_of_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G)
-  [∀ x : X, is_iso ((stalk_functor C x).map f)] : is_iso f :=
+  [∀ x : X, is_iso ((stalk_functor C x).map f.1)] : is_iso f :=
 begin
   -- Since the inclusion functor from sheaves to presheaves is fully faithful, it suffices to
   -- show that `f`, as a morphism between _presheaves_, is an isomorphism.
   suffices : is_iso ((sheaf.forget C X).map f),
   { exactI is_iso_of_fully_faithful (sheaf.forget C X) f },
   -- We show that all components of `f` are isomorphisms.
-  suffices : ∀ U : (opens X)ᵒᵖ, is_iso (f.app U),
-  { exact @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.1 G.1 f this, },
+  suffices : ∀ U : (opens X)ᵒᵖ, is_iso (f.1.app U),
+  { exact @nat_iso.is_iso_of_is_iso_app _ _ _ _ F.1 G.1 f.1 this, },
   intro U, induction U using opposite.rec,
   apply app_is_iso_of_stalk_functor_map_iso
 end
@@ -529,11 +526,11 @@ isomorphisms, preserves limits and filtered colimits. Then a morphism `f : F ⟶
 isomorphism if and only if all of its stalk maps are isomorphisms.
 -/
 lemma is_iso_iff_stalk_functor_map_iso {F G : sheaf C X} (f : F ⟶ G) :
-  is_iso f ↔ ∀ x : X, is_iso ((stalk_functor C x).map f) :=
+  is_iso f ↔ ∀ x : X, is_iso ((stalk_functor C x).map f.1) :=
 begin
   split,
   { intros h x, resetI,
-    exact @functor.map_is_iso _ _ _ _ _ _ (stalk_functor C x) f
+    exact @functor.map_is_iso _ _ _ _ _ _ (stalk_functor C x) f.1
       ((sheaf.forget C X).map_is_iso f) },
   { intro h,
     exactI is_iso_of_stalk_functor_map_iso f }

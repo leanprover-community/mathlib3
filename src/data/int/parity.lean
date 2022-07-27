@@ -75,11 +75,8 @@ end
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 
-instance : decidable_pred (even : ℤ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
-
-instance decidable_pred_odd : decidable_pred (odd : ℤ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) odd_iff_not_even.symm
+instance : decidable_pred (even : ℤ → Prop) := λ n, decidable_of_iff _ even_iff.symm
+instance : decidable_pred (odd : ℤ → Prop) := λ n, decidable_of_iff _ odd_iff_not_even.symm
 
 @[simp] theorem not_even_one : ¬ even (1 : ℤ) :=
 by rw even_iff; norm_num
@@ -162,6 +159,11 @@ by simp [even_iff_two_dvd, dvd_nat_abs, coe_nat_dvd_left.symm]
 
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
+
+alias nat_abs_even ↔ _ _root_.even.nat_abs
+alias nat_abs_odd ↔ _ _root_.odd.nat_abs
+
+attribute [protected] even.nat_abs odd.nat_abs
 
 lemma four_dvd_add_or_sub_of_odd {a b : ℤ} (ha : odd a) (hb : odd b) : 4 ∣ a + b ∨ 4 ∣ a - b :=
 begin

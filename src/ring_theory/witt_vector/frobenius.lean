@@ -123,8 +123,9 @@ begin
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
-  rw [← enat.coe_get aux, enat.coe_le_coe, tsub_le_iff_left,
-      ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+  rw [← part_enat.coe_get aux, part_enat.coe_le_coe, tsub_le_iff_left,
+      ← part_enat.coe_le_coe, nat.cast_add, pnat_multiplicity, part_enat.coe_get,
+      part_enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
@@ -139,7 +140,7 @@ begin
       add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
       tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi.le).mp this.1))] },
   split,
-  { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
+  { rw [← h, ← part_enat.coe_le_coe, pnat_multiplicity, part_enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
     apply le_add_left, refl },
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
@@ -189,7 +190,8 @@ begin
   rw [←C_eq_coe_nat],
   simp only [←ring_hom.map_pow, ←C_mul],
   rw C_inj,
-  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow₀, int.cast_coe_nat, nat.cast_mul],
+  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow, int.cast_coe_nat, nat.cast_mul,
+    int.cast_mul],
   rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =
@@ -318,13 +320,18 @@ lemma frobenius_zmodp (x : 𝕎 (zmod p)) :
 by simp only [ext_iff, coeff_frobenius_char_p, zmod.pow_card, eq_self_iff_true, forall_const]
 
 variables (p R)
+/-- `witt_vector.frobenius` as an equiv. -/
+@[simps {fully_applied := ff}]
+def frobenius_equiv [perfect_ring R p] : witt_vector p R ≃+* witt_vector p R :=
+{ to_fun := witt_vector.frobenius,
+  inv_fun := map (pth_root R p),
+  left_inv := λ f, ext $ λ n, by { rw frobenius_eq_map_frobenius, exact pth_root_frobenius _ },
+  right_inv := λ f, ext $ λ n, by { rw frobenius_eq_map_frobenius, exact frobenius_pth_root _ },
+   ..(witt_vector.frobenius : witt_vector p R →+* witt_vector p R) }
+
 lemma frobenius_bijective [perfect_ring R p] :
   function.bijective (@witt_vector.frobenius p R _ _) :=
-begin
-  rw witt_vector.frobenius_eq_map_frobenius,
-  exact ⟨witt_vector.map_injective _ (frobenius_equiv R p).injective,
-    witt_vector.map_surjective _ (frobenius_equiv R p).surjective⟩,
-end
+(frobenius_equiv p R).bijective
 
 end char_p
 

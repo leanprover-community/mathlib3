@@ -123,7 +123,7 @@ begin
   { rw [ha, C_0, sub_zero],
     exact gal_X_pow_is_solvable n },
   have ha' : algebra_map F (X ^ n - C a).splitting_field a ≠ 0 :=
-    mt ((ring_hom.injective_iff _).mp (ring_hom.injective _) a) ha,
+    mt ((injective_iff_map_eq_zero _).mp (ring_hom.injective _) a) ha,
   by_cases hn : n = 0,
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
@@ -159,7 +159,7 @@ end
 lemma splits_X_pow_sub_one_of_X_pow_sub_C {F : Type*} [field F] {E : Type*} [field E]
   (i : F →+* E) (n : ℕ) {a : F} (ha : a ≠ 0) (h : (X ^ n - C a).splits i) : (X ^ n - 1).splits i :=
 begin
-  have ha' : i a ≠ 0 := mt (i.injective_iff.mp (i.injective) a) ha,
+  have ha' : i a ≠ 0 := mt ((injective_iff_map_eq_zero i).mp (i.injective) a) ha,
   by_cases hn : n = 0,
   { rw [hn, pow_zero, sub_self],
     exact splits_zero i },
@@ -189,8 +189,8 @@ begin
   { ext1 c,
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),
     rw [sub_comp, X_comp, C_comp, mul_sub, ←C_mul, mul_div_cancel' c hb'] },
-  rw [key1, hs, prod_comp, multiset.map_map, key2, multiset.prod_map_mul, multiset.map_const,
-      multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
+  rw [key1, hs, multiset_prod_comp, multiset.map_map, key2, multiset.prod_map_mul,
+    multiset.map_const, multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
   all_goals { exact field.to_nontrivial F },
 end
 
@@ -311,10 +311,10 @@ begin
       (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval]))⟩ },
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
-    { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
+    { obtain ⟨s, hs⟩ := (splits_iff_exists_multiset _).1 (splitting_field.splits p),
       rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
-      rw prod_comp,
+      rw multiset_prod_comp,
       apply gal_prod_is_solvable,
       intros q hq,
       rw multiset.mem_map at hq,
@@ -364,12 +364,12 @@ begin
   revert α,
   apply solvable_by_rad.induction,
   { exact λ α, by { rw minpoly.eq_X_sub_C, exact gal_X_sub_C_is_solvable α } },
-  { exact λ α β, induction2 (add_mem _ (subset_adjoin F _ (set.mem_insert α _))
+  { exact λ α β, induction2 (add_mem (subset_adjoin F _ (set.mem_insert α _))
       (subset_adjoin F _ (set.mem_insert_of_mem α (set.mem_singleton β)))) },
-  { exact λ α, induction1 (neg_mem _ (mem_adjoin_simple_self F α)) },
-  { exact λ α β, induction2 (mul_mem _ (subset_adjoin F _ (set.mem_insert α _))
+  { exact λ α, induction1 (neg_mem (mem_adjoin_simple_self F α)) },
+  { exact λ α β, induction2 (mul_mem (subset_adjoin F _ (set.mem_insert α _))
       (subset_adjoin F _ (set.mem_insert_of_mem α (set.mem_singleton β)))) },
-  { exact λ α, induction1 (inv_mem _ (mem_adjoin_simple_self F α)) },
+  { exact λ α, induction1 (inv_mem (mem_adjoin_simple_self F α)) },
   { exact λ α n, induction3 },
 end
 

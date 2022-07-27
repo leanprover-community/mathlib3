@@ -188,7 +188,7 @@ end
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
   induction L with d L ih,
-  { refl, },
+  { simp [of_digits], },
   { dsimp [of_digits], push_cast, rw ih, }
 end
 
@@ -197,7 +197,7 @@ end
 begin
   induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], push_cast, rw ih, }
+  { dsimp [of_digits], push_cast }
 end
 
 lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
@@ -209,7 +209,7 @@ begin
   { intros l m,
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
-    { convert nat.eq_zero_of_add_eq_zero_right w, simp, },
+    { apply nat.eq_zero_of_add_eq_zero_right w },
     { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
@@ -224,18 +224,17 @@ begin
     replace w₂ := w₂ (by simp),
     rw digits_add b h,
     { rw ih,
-      { simp, },
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
       { intro h,
         { rw [list.last_cons h] at w₂,
             convert w₂, }}},
-    { convert w₁ d (list.mem_cons_self _ _), simp, },
+    { exact w₁ d (list.mem_cons_self _ _) },
     { by_cases h' : L = [],
       { rcases h' with rfl,
         simp at w₂,
         left,
         apply nat.pos_of_ne_zero,
-        convert w₂, simp, },
+        exact w₂ },
       { right,
         apply nat.pos_of_ne_zero,
         contrapose! w₂,
@@ -264,7 +263,7 @@ begin
       { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
-        rw [nat.cast_id, nat.mod_add_div], }, }, },
+        rw [nat.mod_add_div], }, }, },
 end
 
 lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
@@ -432,7 +431,7 @@ begin
     { simp [digits_zero_succ', hn] },
     { simp, },
     { simpa [succ_lt_succ_iff] using hb } },
-  simpa [digits_len, hb, hn] using log_le_log_of_le (le_succ _)
+  simpa [digits_len, hb, hn] using log_mono_right (le_succ _)
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
@@ -551,7 +550,6 @@ lemma of_digits_neg_one : Π (L : list ℕ),
 | (a :: b :: t) :=
   begin
     simp only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
-    push_cast,
     ring,
   end
 
@@ -602,7 +600,7 @@ begin
   replace h : even dig.length := by rwa list.length_map,
   refine eleven_dvd_iff.2 ⟨0, (_ : dig.alternating_sum = 0)⟩,
   have := dig.alternating_sum_reverse,
-  rw [(p.map _).reverse_eq, pow_succ, neg_one_pow_of_even h, mul_one, neg_one_zsmul] at this,
+  rw [(p.map _).reverse_eq, pow_succ, h.neg_one_pow, mul_one, neg_one_zsmul] at this,
   exact eq_zero_of_neg_eq this.symm,
 end
 

@@ -155,13 +155,7 @@ def unit_of_det_invertible [invertible A.det] : (matrix n n α)ˣ :=
 
 /-- When lowered to a prop, `matrix.invertible_equiv_det_invertible` forms an `iff`. -/
 lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
-begin
-  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
-  { haveI : invertible A := hx.rec x.invertible,
-    apply det_invertible_of_invertible, },
-  { haveI : invertible A.det := hx.rec x.invertible,
-    apply invertible_of_det_invertible, },
-end
+by simp only [← nonempty_invertible_iff_is_unit, (invertible_equiv_det_invertible A).nonempty_congr]
 
 /-! #### Variants of the statements above with `is_unit`-/
 
@@ -184,7 +178,7 @@ lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠
 
 end invertible
 
-variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring α]
+variables [fintype n] [decidable_eq n] [comm_ring α]
 variables (A : matrix n n α) (B : matrix n n α)
 
 lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
@@ -252,11 +246,43 @@ begin
   rw [←inv_of_eq_nonsing_inv, matrix.inv_of_mul_self],
 end
 
+@[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
+  B ⬝ A ⬝ A⁻¹ = B :=
+by simp [matrix.mul_assoc, mul_nonsing_inv A h]
+
+@[simp] lemma mul_nonsing_inv_cancel_left (B : matrix n m α) (h : is_unit A.det) :
+  A ⬝ (A⁻¹ ⬝ B) = B :=
+by simp [←matrix.mul_assoc, mul_nonsing_inv A h]
+
+@[simp] lemma nonsing_inv_mul_cancel_right (B : matrix m n α) (h : is_unit A.det) :
+  B ⬝ A⁻¹ ⬝ A = B :=
+by simp [matrix.mul_assoc, nonsing_inv_mul A h]
+
+@[simp] lemma nonsing_inv_mul_cancel_left (B : matrix n m α) (h : is_unit A.det) :
+  A⁻¹ ⬝ (A ⬝ B) = B :=
+by simp [←matrix.mul_assoc, nonsing_inv_mul A h]
+
 @[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
 mul_nonsing_inv A (is_unit_det_of_invertible A)
 
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
+
+@[simp] lemma mul_inv_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
+  B ⬝ A ⬝ A⁻¹ = B :=
+mul_nonsing_inv_cancel_right A B (is_unit_det_of_invertible A)
+
+@[simp] lemma mul_inv_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
+  A ⬝ (A⁻¹ ⬝ B) = B :=
+mul_nonsing_inv_cancel_left A B (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
+  B ⬝ A⁻¹ ⬝ A = B :=
+nonsing_inv_mul_cancel_right A B (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
+  A⁻¹ ⬝ (A ⬝ B) = B :=
+nonsing_inv_mul_cancel_left A B (is_unit_det_of_invertible A)
 
 lemma nonsing_inv_cancel_or_zero :
   (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=
@@ -380,6 +406,59 @@ begin
   rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
 end
 
+/-- `diagonal v` is invertible if `v` is -/
+def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
+  invertible (diagonal v) :=
+invertible.map (diagonal_ring_hom n α) v
+
+lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
+  ⅟(diagonal v) = diagonal (⅟v) :=
+by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
+
+/-- `v` is invertible if `diagonal v` is -/
+def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
+{ inv_of := diag (⅟(diagonal v)),
+  inv_of_mul_self := funext $ λ i, begin
+    letI : invertible (diagonal v).det := det_invertible_of_invertible _,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal, diag_diagonal],
+    dsimp,
+    rw [mul_assoc, prod_erase_mul _ _ (finset.mem_univ _), ←det_diagonal],
+    exact mul_inv_of_self _,
+  end,
+  mul_inv_of_self := funext $ λ i, begin
+    letI : invertible (diagonal v).det := det_invertible_of_invertible _,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal, diag_diagonal],
+    dsimp,
+    rw [mul_left_comm, mul_prod_erase _ _ (finset.mem_univ _), ←det_diagonal],
+    exact mul_inv_of_self _,
+  end }
+
+/-- Together `matrix.diagonal_invertible` and `matrix.invertible_of_diagonal_invertible` form an
+equivalence, although both sides of the equiv are subsingleton anyway. -/
+@[simps]
+def diagonal_invertible_equiv_invertible (v : n → α) : invertible (diagonal v) ≃ invertible v :=
+{ to_fun := @invertible_of_diagonal_invertible _ _ _ _ _ _,
+  inv_fun := @diagonal_invertible _ _ _ _ _ _,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- When lowered to a prop, `matrix.diagonal_invertible_equiv_invertible` forms an `iff`. -/
+@[simp] lemma is_unit_diagonal {v : n → α} : is_unit (diagonal v) ↔ is_unit v :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (diagonal_invertible_equiv_invertible v).nonempty_congr]
+
+lemma inv_diagonal (v : n → α) : (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
+begin
+  rw nonsing_inv_eq_ring_inverse,
+  by_cases h : is_unit v,
+  { have := is_unit_diagonal.mpr h,
+    casesI this.nonempty_invertible,
+    casesI h.nonempty_invertible,
+    rw [ring.inverse_invertible, ring.inverse_invertible, inv_of_diagonal_eq], },
+  { have := is_unit_diagonal.not.mpr h,
+    rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero, ring.inverse_non_unit _ this] }
+end
+
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
 begin
   by_cases h : is_unit A.det,
@@ -416,6 +495,9 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
 /-! ### More results about determinants -/
+
+section det
+variables [fintype m] [decidable_eq m]
 
 /-- A variant of `matrix.det_units_conj`. -/
 lemma det_conj {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
@@ -489,5 +571,7 @@ TODO: show this more generally. -/
 lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
 by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
        matrix.row_mul_col_apply]
+
+end det
 
 end matrix

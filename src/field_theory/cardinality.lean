@@ -9,7 +9,8 @@ import data.rat.denumerable
 import field_theory.finite.galois_field
 import logic.equiv.transfer_instance
 import ring_theory.localization.cardinality
-import set_theory.cardinal_divisibility
+import set_theory.cardinal.divisibility
+import data.nat.factorization.prime_pow
 
 /-!
 # Cardinality of Fields
@@ -77,7 +78,7 @@ begin
   rw cardinal.is_prime_pow_iff,
   casesI fintype_or_infinite α with h h,
   { simpa only [cardinal.mk_fintype, nat.cast_inj, exists_eq_left',
-        (cardinal.nat_lt_omega _).not_le, false_or]
+        (cardinal.nat_lt_aleph_0 _).not_le, false_or]
       using fintype.nonempty_field_iff },
   { simpa only [← cardinal.infinite_iff, h, true_or, iff_true]
       using infinite.nonempty_field },

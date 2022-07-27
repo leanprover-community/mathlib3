@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 import tactic.transform_decl
 import tactic.algebra
 import tactic.lint.basic
+import tactic.alias
 
 /-!
 # Transport multiplicative to additive
@@ -551,7 +552,11 @@ protected meta def attr : user_attribute unit value_type :=
           "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
-      | none := skip
+      | none := do
+        some alias_target ← tactic.alias.get_alias_target src | skip,
+        let alias_name := alias_target.to_name,
+        some add_alias_name ← pure (dict.find alias_name) | skip,
+        add_doc_string tgt alias_target.to_string
       end }
 
 add_tactic_doc

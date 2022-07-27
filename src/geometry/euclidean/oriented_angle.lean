@@ -51,6 +51,15 @@ def oangle (x y : V) : real.angle :=
 complex.arg ((complex.isometry_of_orthonormal hb).symm y /
   (complex.isometry_of_orthonormal hb).symm x)
 
+/-- Oriented angles are continuous when the vectors involved are nonzero. -/
+lemma continuous_at_oangle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
+  continuous_at (λ y : V × V, hb.oangle y.1 y.2) x :=
+(complex.continuous_at_arg_coe_angle (by simp [hx1, hx2])).comp $
+  continuous_at.div
+    ((complex.isometry_of_orthonormal hb).symm.continuous.comp continuous_snd).continuous_at
+    ((complex.isometry_of_orthonormal hb).symm.continuous.comp continuous_fst).continuous_at
+    (by simp [hx1])
+
 /-- If the first vector passed to `oangle` is 0, the result is 0. -/
 @[simp] lemma oangle_zero_left (x : V) : hb.oangle 0 x = 0 :=
 by simp [oangle]
@@ -71,7 +80,7 @@ lemma oangle_rev (x y : V) : hb.oangle y x = -hb.oangle x y :=
 begin
   simp only [oangle],
   convert complex.arg_inv_coe_angle _,
-  exact inv_div.symm
+  exact (inv_div _ _).symm
 end
 
 /-- Adding the angles between two vectors in each order results in 0. -/
@@ -795,6 +804,11 @@ local notation `ob` := o.fin_orthonormal_basis_orthonormal dec_trivial hd2.out
 See `inner_product_geometry.angle` for the corresponding unoriented angle definition. -/
 def oangle (x y : V) : real.angle :=
 (ob).oangle x y
+
+/-- Oriented angles are continuous when the vectors involved are nonzero. -/
+lemma continuous_at_oangle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
+  continuous_at (λ y : V × V, o.oangle y.1 y.2) x :=
+(ob).continuous_at_oangle hx1 hx2
 
 /-- If the first vector passed to `oangle` is 0, the result is 0. -/
 @[simp] lemma oangle_zero_left (x : V) : o.oangle 0 x = 0 :=

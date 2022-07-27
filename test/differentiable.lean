@@ -1,5 +1,5 @@
 import analysis.special_functions.trigonometric.deriv
-import analysis.special_functions.log_deriv
+import analysis.special_functions.log.deriv
 
 namespace real
 

@@ -83,26 +83,27 @@ instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [
 variables [set_like S R] [hSR : subring_class S R] (s : S)
 include hSR
 
-namespace subring_class
-
-open one_mem_class add_subgroup_class
-
 lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
 by simp only [← zsmul_one, zsmul_mem, one_mem]
+
+namespace subring_class
+
+@[priority 75]
+instance to_has_int_cast : has_int_cast s :=
+⟨λ n, ⟨n, coe_int_mem s n⟩⟩
 
 /-- A subring of a ring inherits a ring structure -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance to_ring : ring s :=
-{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
-  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. submonoid_class.to_monoid s, .. add_subgroup_class.to_add_comm_group s }
+subtype.coe_injective.ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 omit hSR
 /-- A subring of a `comm_ring` is a `comm_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance to_comm_ring {R} [comm_ring R] [set_like S R] [subring_class S R] : comm_ring s :=
 subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subring of a domain is a domain. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
@@ -114,28 +115,30 @@ instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_doma
 instance to_ordered_ring {R} [ordered_ring R] [set_like S R] [subring_class S R] :
   ordered_ring s :=
 subtype.coe_injective.ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance to_ordered_comm_ring {R} [ordered_comm_ring R] [set_like S R] [subring_class S R] :
   ordered_comm_ring s :=
-subtype.coe_injective.ordered_comm_ring coe rfl rfl
-  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance to_linear_ordered_ring {R} [linear_ordered_ring R] [set_like S R] [subring_class S R] :
   linear_ordered_ring s :=
-subtype.coe_injective.linear_ordered_ring coe rfl rfl
-  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] [set_like S R]
   [subring_class S R] : linear_ordered_comm_ring s :=
-subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl
-  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 include hSR
 
@@ -295,85 +298,80 @@ namespace subring
 variables (s : subring R)
 
 /-- A subring contains the ring's 1. -/
-theorem one_mem : (1 : R) ∈ s := s.one_mem'
+protected theorem one_mem : (1 : R) ∈ s := one_mem _
 
 /-- A subring contains the ring's 0. -/
-theorem zero_mem : (0 : R) ∈ s := s.zero_mem'
+protected theorem zero_mem : (0 : R) ∈ s := zero_mem _
 
 /-- A subring is closed under multiplication. -/
-theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
+protected theorem mul_mem {x y : R} : x ∈ s → y ∈ s → x * y ∈ s := mul_mem
 
 /-- A subring is closed under addition. -/
-theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
+protected theorem add_mem {x y : R} : x ∈ s → y ∈ s → x + y ∈ s := add_mem
 
 /-- A subring is closed under negation. -/
-theorem neg_mem : ∀ {x : R}, x ∈ s → -x ∈ s := s.neg_mem'
+protected theorem neg_mem {x : R} : x ∈ s → -x ∈ s := neg_mem
 
 /-- A subring is closed under subtraction -/
-theorem sub_mem {x y : R} (hx : x ∈ s) (hy : y ∈ s) : x - y ∈ s :=
-by { rw sub_eq_add_neg, exact s.add_mem hx (s.neg_mem hy) }
+protected theorem sub_mem {x y : R} (hx : x ∈ s) (hy : y ∈ s) : x - y ∈ s := sub_mem hx hy
 
 /-- Product of a list of elements in a subring is in the subring. -/
-lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_submonoid.list_prod_mem
+protected lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s := list_prod_mem
 
 /-- Sum of a list of elements in a subring is in the subring. -/
-lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
-s.to_add_subgroup.list_sum_mem
+protected lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s := list_sum_mem
 
 /-- Product of a multiset of elements in a subring of a `comm_ring` is in the subring. -/
-lemma multiset_prod_mem {R} [comm_ring R] (s : subring R) (m : multiset R) :
+protected lemma multiset_prod_mem {R} [comm_ring R] (s : subring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_submonoid.multiset_prod_mem m
+multiset_prod_mem _
 
 /-- Sum of a multiset of elements in an `subring` of a `ring` is
 in the `subring`. -/
-lemma multiset_sum_mem {R} [ring R] (s : subring R) (m : multiset R) :
+protected lemma multiset_sum_mem {R} [ring R] (s : subring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
-s.to_add_subgroup.multiset_sum_mem m
+multiset_sum_mem _
 
 /-- Product of elements of a subring of a `comm_ring` indexed by a `finset` is in the
     subring. -/
-lemma prod_mem {R : Type*} [comm_ring R] (s : subring R)
+protected lemma prod_mem {R : Type*} [comm_ring R] (s : subring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_submonoid.prod_mem h
+prod_mem h
 
 /-- Sum of elements in a `subring` of a `ring` indexed by a `finset`
 is in the `subring`. -/
-lemma sum_mem {R : Type*} [ring R] (s : subring R)
+protected lemma sum_mem {R : Type*} [ring R] (s : subring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
-s.to_add_subgroup.sum_mem h
-
-lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
-
-lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
-
-lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
-by simp only [← zsmul_one, zsmul_mem, one_mem]
+sum_mem h
 
 /-- A subring of a ring inherits a ring structure -/
 instance to_ring : ring s :=
-{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
-  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
+subtype.coe_injective.ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+
+protected lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
+
+protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n := rfl
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+submonoid_class.coe_pow x n
 
+-- TODO: can be generalized to `add_submonoid_class`
 @[simp] lemma coe_eq_zero_iff {x : s} : (x : R) = 0 ↔ x = 0 :=
 ⟨λ h, subtype.ext (trans h s.coe_zero.symm),
  λ h, h.symm ▸ s.coe_zero⟩
 
 /-- A subring of a `comm_ring` is a `comm_ring`. -/
 instance to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring s}
+subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subring of a non-trivial ring is non-trivial. -/
 instance {R} [ring R] [nontrivial R] (s : subring R) : nontrivial s :=
@@ -389,25 +387,27 @@ instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
-subtype.coe_injective.ordered_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
 instance to_ordered_comm_ring {R} [ordered_comm_ring R] (s : subring R) : ordered_comm_ring s :=
-subtype.coe_injective.ordered_comm_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
 instance to_linear_ordered_ring {R} [linear_ordered_ring R] (s : subring R) :
   linear_ordered_ring s :=
-subtype.coe_injective.linear_ordered_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
 instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subring R) :
   linear_ordered_comm_ring s :=
-subtype.coe_injective.linear_ordered_comm_ring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
@@ -520,16 +520,6 @@ mem_range.mpr ⟨x, rfl⟩
 lemma map_range : f.range.map g = (g.comp f).range :=
 by simpa only [range_eq_map] using (⊤ : subring R).map_map g f
 
--- TODO -- rename to `cod_restrict` when is_ring_hom is deprecated
-/-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
-def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
-  (s : subring S) (h : ∀ x, f x ∈ s) : R →+* s :=
-{ to_fun := λ x, ⟨f x, h x⟩,
-  map_add' := λ x y, subtype.eq $ f.map_add x y,
-  map_zero' := subtype.eq f.map_zero,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
-  map_one' := subtype.eq f.map_one }
-
 /-- The range of a ring homomorphism is a fintype, if the domain is a fintype.
 Note: this instance can form a diamond with `subtype.fintype` in the
   presence of `fintype S`. -/
@@ -583,7 +573,7 @@ lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈
 /-- Subrings of a ring form a complete lattice. -/
 instance : complete_lattice (subring R) :=
 { bot := (⊥),
-  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ s.coe_int_mem n,
+  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ coe_int_mem s n,
   top := (⊤),
   le_top := λ s x hx, trivial,
   inf := (⊓),
@@ -717,30 +707,30 @@ end
 
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
-⟨ λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx )
+⟨λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx)
  (add_subgroup.zero_mem _)
  (add_subgroup.subset_closure ( submonoid.one_mem (submonoid.closure s)) )
  (λ x y hx hy, add_subgroup.add_mem _ hx hy )
  (λ x hx, add_subgroup.neg_mem _ hx )
- ( λ x y hx hy, add_subgroup.closure_induction hy
-  (λ q hq, add_subgroup.closure_induction hx
-    ( λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq) )
-    ( begin rw zero_mul q, apply add_subgroup.zero_mem _, end )
-    ( λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end )
-    ( λ x hx, begin have f : -x * q = -(x*q) :=
-      by simp, rw f, apply add_subgroup.neg_mem _ hx, end ) )
-  ( begin rw mul_zero x, apply add_subgroup.zero_mem _, end )
-  ( λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end )
-  ( λ z hz, begin have f : x * -z = -(x*z) := by simp,
-            rw f, apply add_subgroup.neg_mem _ hz, end ) ),
+   (λ x y hx hy, add_subgroup.closure_induction hy
+     (λ q hq, add_subgroup.closure_induction hx
+       (λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq))
+       (begin rw zero_mul q, apply add_subgroup.zero_mem _, end)
+       (λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end)
+       (λ x hx, begin have f : -x * q = -(x*q) :=
+         by simp, rw f, apply add_subgroup.neg_mem _ hx, end))
+     (begin rw mul_zero x, apply add_subgroup.zero_mem _, end)
+     (λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end)
+     (λ z hz, begin have f : x * -z = -(x*z) := by simp,
+       rw f, apply add_subgroup.neg_mem _ hz, end)),
  λ h, add_subgroup.closure_induction h
- ( λ x hx, submonoid.closure_induction hx
-  ( λ x hx, subset_closure hx )
-  ( one_mem _ )
-  ( λ x y hx hy, mul_mem _ hx hy ) )
- ( zero_mem _ )
- (λ x y hx hy, add_mem _ hx hy)
- ( λ x hx, neg_mem _ hx ) ⟩
+   (λ x hx, submonoid.closure_induction hx
+     (λ x hx, subset_closure hx)
+     (one_mem _)
+     (λ x y hx hy, mul_mem hx hy))
+ (zero_mem _)
+ (λ x y hx hy, add_mem hx hy)
+ (λ x hx, neg_mem hx)⟩
 
 /-- If all elements of `s : set A` commute pairwise, then `closure s` is a commutative ring.  -/
 def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
@@ -915,16 +905,11 @@ variables {s : subring R}
 
 open subring
 
-/-- Restriction of a ring homomorphism to a subring of the domain. -/
-def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
-
-@[simp] lemma restrict_apply (f : R →+* S) (x : s) : f.restrict s x = f x := rfl
-
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 
 This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, rfl⟩
+f.cod_restrict f.range $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
 
@@ -979,7 +964,7 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
 def inclusion {S T : subring R} (h : S ≤ T) : S →+* T :=
-S.subtype.cod_restrict' _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
@@ -996,7 +981,7 @@ lemma range_snd : (snd R S).srange = ⊤ :=
 lemma prod_bot_sup_bot_prod (s : subring R) (t : subring S) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
+assume p hp, prod.fst_mul_snd p ▸ mul_mem
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set_like.mem_coe.2 $ one_mem ⊥⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set_like.mem_coe.2 $ one_mem ⊥, hp.2⟩)
 
@@ -1090,7 +1075,6 @@ lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈
   (k : R) * g ∈ G :=
 by { convert add_subgroup.zsmul_mem G h k, simp }
 
-
 /-! ## Actions by `subring`s
 
 These are just copies of the definitions about `subsemiring` starting from
@@ -1106,29 +1090,29 @@ namespace subring
 variables {α β : Type*}
 
 /-- The action by a subring is the action by the underlying ring. -/
-instance [has_scalar R α] (S : subring R) : has_scalar S α := S.to_subsemiring.has_scalar
+instance [has_smul R α] (S : subring R) : has_smul S α := S.to_subsemiring.has_smul
 
-lemma smul_def [has_scalar R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
+lemma smul_def [has_smul R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
 
 instance smul_comm_class_left
-  [has_scalar R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
+  [has_smul R β] [has_smul α β] [smul_comm_class R α β] (S : subring R) :
   smul_comm_class S α β :=
 S.to_subsemiring.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [has_scalar R β] [smul_comm_class α R β] (S : subring R) :
+  [has_smul α β] [has_smul R β] [smul_comm_class α R β] (S : subring R) :
   smul_comm_class α S β :=
 S.to_subsemiring.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_scalar α β] [has_scalar R α] [has_scalar R β] [is_scalar_tower R α β] (S : subring R) :
+  [has_smul α β] [has_smul R α] [has_smul R β] [is_scalar_tower R α β] (S : subring R) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [has_scalar R α] [has_faithful_scalar R α] (S : subring R) :
-  has_faithful_scalar S α :=
-S.to_subsemiring.has_faithful_scalar
+instance [has_smul R α] [has_faithful_smul R α] (S : subring R) :
+  has_faithful_smul S α :=
+S.to_subsemiring.has_faithful_smul
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [mul_action R α] (S : subring R) : mul_action S α :=
@@ -1153,6 +1137,14 @@ S.to_subsemiring.mul_action_with_zero
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_left : smul_comm_class (center R) R R :=
+subsemiring.center.smul_comm_class_left
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_right : smul_comm_class R (center R) R :=
+subsemiring.center.smul_comm_class_right
 
 end subring
 

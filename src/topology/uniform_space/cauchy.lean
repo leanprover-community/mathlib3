@@ -418,11 +418,11 @@ lemma is_closed.is_complete [complete_space α] {s : set α}
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
 def totally_bounded (s : set α) : Prop :=
-∀d ∈ 𝓤 α, ∃t : set α, finite t ∧ s ⊆ (⋃ y ∈ t, {x | (x, y) ∈ d})
+∀d ∈ 𝓤 α, ∃t : set α, t.finite ∧ s ⊆ (⋃ y ∈ t, {x | (x, y) ∈ d})
 
 theorem totally_bounded.exists_subset {s : set α} (hs : totally_bounded s) {U : set (α × α)}
   (hU : U ∈ 𝓤 α) :
-  ∃ t ⊆ s, finite t ∧ s ⊆ ⋃ y ∈ t, {x | (x, y) ∈ U} :=
+  ∃ t ⊆ s, set.finite t ∧ s ⊆ ⋃ y ∈ t, {x | (x, y) ∈ U} :=
 begin
   rcases comp_symm_of_uniformity hU with ⟨r, hr, rs, rU⟩,
   rcases hs r hr with ⟨k, fk, ks⟩,
@@ -440,16 +440,16 @@ begin
 end
 
 theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
-  ∀d ∈ 𝓤 α, ∃t ⊆ s, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}) :=
+  ∀d ∈ 𝓤 α, ∃t ⊆ s, set.finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}) :=
 ⟨λ H d hd, H.exists_subset hd, λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
 
 lemma filter.has_basis.totally_bounded_iff {ι} {p : ι → Prop} {U : ι → set (α × α)}
   (H : (𝓤 α).has_basis p U) {s : set α} :
-  totally_bounded s ↔ ∀ i, p i → ∃ t : set α, finite t ∧ s ⊆ ⋃ y ∈ t, {x | (x, y) ∈ U i} :=
+  totally_bounded s ↔ ∀ i, p i → ∃ t : set α, set.finite t ∧ s ⊆ ⋃ y ∈ t, {x | (x, y) ∈ U i} :=
 H.forall_iff $ λ U V hUV h, h.imp $ λ t ht, ⟨ht.1, ht.2.trans $ Union₂_mono $ λ x hx y hy, hUV hy⟩
 
 lemma totally_bounded_of_forall_symm {s : set α}
-  (h : ∀ V ∈ 𝓤 α, symmetric_rel V → ∃ t : set α, finite t ∧ s ⊆ ⋃ y ∈ t, ball y V) :
+  (h : ∀ V ∈ 𝓤 α, symmetric_rel V → ∃ t : set α, set.finite t ∧ s ⊆ ⋃ y ∈ t, ball y V) :
   totally_bounded s :=
 uniform_space.has_basis_symmetric.totally_bounded_iff.2 $ λ V hV,
   by simpa only [ball_eq_of_symmetry hV.2] using h V hV.1 hV.2

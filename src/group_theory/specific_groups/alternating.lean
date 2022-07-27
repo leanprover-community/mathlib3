@@ -64,7 +64,7 @@ lemma prod_list_swap_mem_alternating_group_iff_even_length {l : list (perm α)}
   l.prod ∈ alternating_group α ↔ even l.length :=
 begin
   rw [mem_alternating_group, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
-    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
+    units.coe_neg_one, neg_one_pow_eq_one_iff_even],
   dec_trivial
 end
 
@@ -149,7 +149,7 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
   obtain ⟨b, l, rfl⟩ := l.exists_of_length_succ hn,
   rw [list.prod_cons, list.prod_cons, ← mul_assoc],
   rw [list.length_cons, nat.succ_inj'] at hn,
-  exact mul_mem _ (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
+  exact mul_mem (is_swap.mul_mem_closure_three_cycles (hl a (list.mem_cons_self a _))
     (hl b (list.mem_cons_of_mem a (l.mem_cons_self b))))
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
@@ -222,8 +222,8 @@ eq_top_iff.2 begin
   have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :
     alternating_group (fin 5)) ∈ normal_closure _ :=
     set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
-  exact mul_mem _ (subgroup.normal_closure_normal.conj_mem _ h
-    ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem _ h),
+  exact mul_mem (subgroup.normal_closure_normal.conj_mem _ h
+    ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem h),
 end
 
 /-- The normal closure of $(04)(13)$ within $A_5$ is the whole group. This will be
@@ -246,7 +246,7 @@ begin
   rw [set.singleton_subset_iff, set_like.mem_coe, ← h5],
   have h : g2 ∈ normal_closure {g2} :=
     set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
-  exact mul_mem _ (subgroup.normal_closure_normal.conj_mem _ h g1) (inv_mem _ h),
+  exact mul_mem (subgroup.normal_closure_normal.conj_mem _ h g1) (inv_mem h),
 end
 
 /-- Shows that any non-identity element of $A_5$ whose cycle decomposition consists only of swaps
@@ -267,7 +267,7 @@ begin
   norm_num at ha,
   rw [pow_add, pow_mul, int.units_pow_two,one_mul,
       units.ext_iff, units.coe_one, units.coe_pow, units.coe_neg_one,
-      nat.neg_one_pow_eq_one_iff_even _] at ha,
+      neg_one_pow_eq_one_iff_even _] at ha,
   swap, { dec_trivial },
   rw [is_conj_iff_cycle_type_eq, h2],
   interval_cases multiset.card g.cycle_type,
@@ -321,7 +321,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     refine normal_closure_le_normal _,
     rw [set.singleton_subset_iff, set_like.mem_coe],
     have h := set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
-    exact mul_mem _ h h },
+    exact mul_mem h h },
   { -- The case `n = 4` leads to contradiction, as no element of $A_5$ includes a 4-cycle.
     have con := mem_alternating_group.1 gA,
     contrapose! con,

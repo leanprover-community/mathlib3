@@ -3,10 +3,9 @@ Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
-
-import group_theory.perm.cycle_type
 import analysis.complex.polynomial
 import field_theory.galois
+import group_theory.perm.cycle.type
 
 /-!
 # Galois Groups of Polynomials
@@ -199,7 +198,7 @@ restrict_smul ϕ x
 lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
   function.injective (gal_action_hom p E) :=
 begin
-  rw monoid_hom.injective_iff,
+  rw injective_iff_map_eq_one,
   intros ϕ hϕ,
   ext x hx,
   have key := equiv.perm.ext_iff.mp hϕ (roots_equiv_roots p E ⟨x, hx⟩),
@@ -238,7 +237,7 @@ begin
   dsimp only [restrict_prod, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
-  rw [root_set, map_mul, polynomial.roots_mul] at hx,
+  rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
   { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,

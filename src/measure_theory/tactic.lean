@@ -124,28 +124,32 @@ do t ← tactic.target,
   | _ := skip
   end
 
-/-- List of tactics used by `measurability` internally. -/
+/-- List of tactics used by `measurability` internally. The option `use_exfalso := ff` is passed to
+the tactic `apply_assumption` in order to avoid loops in the presence of negated hypotheses in
+the context. -/
 meta def measurability_tactics (md : transparency := semireducible) : list (tactic string) :=
 [
-  propositional_goal >> apply_assumption
-                        >> pure "apply_assumption",
+  propositional_goal >> tactic.interactive.apply_assumption none {use_exfalso := ff}
+                        >> pure "apply_assumption {use_exfalso := ff}",
   goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
-  apply_rules [``(measurability)] 50 { md := md }
-                        >> pure "apply_rules measurability",
+  apply_rules [] [``measurability] 50 { md := md }
+                        >> pure "apply_rules with measurability",
   apply_measurable.comp >> pure "refine measurable.comp _ _",
   apply_measurable.comp_ae_measurable
                         >> pure "refine measurable.comp_ae_measurable _ _",
   `[ refine measurable.ae_measurable _ ]
-                        >> pure "refine measurable.ae_measurable _"
+                        >> pure "refine measurable.ae_measurable _",
+  `[ refine measurable.ae_strongly_measurable _ ]
+                        >> pure "refine measurable.ae_strongly_measurable _"
 ]
 
 namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `measurable f`, `ae_measurable f μ` or `measurable_set s`.
-`measurability?` reports back the proof term it found.
+Solve goals of the form `measurable f`, `ae_measurable f μ`, `ae_strongly_measurable f μ` or
+`measurable_set s`. `measurability?` reports back the proof term it found.
 -/
 meta def measurability
   (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
@@ -159,8 +163,9 @@ trace_fn measurability_core
 meta def measurability' : tactic unit := measurability none none {}
 
 /--
-`measurability` solves goals of the form `measurable f`, `ae_measurable f μ` or `measurable_set s`
-by applying lemmas tagged with the `measurability` user attribute.
+`measurability` solves goals of the form `measurable f`, `ae_measurable f μ`,
+`ae_strongly_measurable f μ` or `measurable_set s` by applying lemmas tagged with the
+`measurability` user attribute.
 
 You can also use `measurability!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions

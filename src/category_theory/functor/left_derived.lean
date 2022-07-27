@@ -84,13 +84,14 @@ F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫
 open_locale zero_object
 
 /-- The higher derived functors vanish on projective objects. -/
-@[simps]
+@[simps inv]
 def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [projective X] :
   (F.left_derived (n+1)).obj X ≅ 0 :=
 F.left_derived_obj_iso (n+1) (ProjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
-  (chain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
+  (chain_complex.homology_functor_succ_single₀ D n).app (F.obj X) ≪≫
+  (functor.zero_obj _).iso_zero
 
 /--
 We can compute a left derived functor on a morphism using a lift of that morphism

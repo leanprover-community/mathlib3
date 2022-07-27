@@ -25,7 +25,8 @@ theorem mul_to_submodule_le (S T : subalgebra R A) :
 begin
   rw submodule.mul_le,
   intros y hy z hz,
-  exact mul_mem _ (algebra.mem_sup_left hy) (algebra.mem_sup_right hz),
+  show y * z ∈ (S ⊔ T),
+  exact mul_mem (algebra.mem_sup_left hy) (algebra.mem_sup_right hz),
 end
 
 /-- As submodules, subalgebras are idempotent. -/
@@ -36,7 +37,7 @@ begin
     rw sup_idem },
   { intros x hx1,
     rw ← mul_one x,
-    exact submodule.mul_mem_mul hx1 (one_mem S) }
+    exact submodule.mul_mem_mul hx1 (show (1 : A) ∈ S, from one_mem S) }
 end
 
 /-- When `A` is commutative, `subalgebra.mul_to_submodule_le` is strict. -/
@@ -50,11 +51,11 @@ begin
     (λ x y hx hy, _),
   { cases hx with hxS hxT,
     { rw ← mul_one x,
-      exact submodule.mul_mem_mul hxS (one_mem T) },
+      exact submodule.mul_mem_mul hxS (show (1 : A) ∈ T, from one_mem T) },
     { rw ← one_mul x,
-      exact submodule.mul_mem_mul (one_mem S) hxT } },
+      exact submodule.mul_mem_mul (show (1 : A) ∈ S, from one_mem S) hxT } },
   { rw ← one_mul (algebra_map _ _ _),
-    exact submodule.mul_mem_mul (one_mem S) (algebra_map_mem _ _) },
+    exact submodule.mul_mem_mul (show (1 : A) ∈ S, from one_mem S) (algebra_map_mem _ _) },
   have := submodule.mul_mem_mul hx hy,
   rwa [mul_assoc, mul_comm _ T.to_submodule, ←mul_assoc _ _ S.to_submodule, mul_self,
     mul_comm T.to_submodule, ←mul_assoc, mul_self] at this,

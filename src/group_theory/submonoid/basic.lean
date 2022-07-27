@@ -61,27 +61,22 @@ variables [add_zero_class A] {t : set A}
 class one_mem_class (S : Type*) (M : out_param $ Type*) [has_one M] [set_like S M] :=
 (one_mem : ∀ (s : S), (1 : M) ∈ s)
 
+export one_mem_class (one_mem)
+
 /-- `zero_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `0 ∈ s` for all `s`. -/
 class zero_mem_class (S : Type*) (M : out_param $ Type*) [has_zero M] [set_like S M] :=
 (zero_mem : ∀ (s : S), (0 : M) ∈ s)
 
-/-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/
-class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] :=
-(mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
+export zero_mem_class (zero_mem)
 
-/-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
-class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] :=
-(add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
-
-export add_mem_class (add_mem)
-
-attribute [to_additive] one_mem_class mul_mem_class
+attribute [to_additive] one_mem_class
 
 section
 
 set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
+@[ancestor subsemigroup]
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
 
@@ -102,6 +97,7 @@ set_option old_structure_cmd true
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
+@[ancestor add_subsemigroup]
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
 
@@ -186,11 +182,11 @@ variable (S)
 
 /-- A submonoid contains the monoid's 1. -/
 @[to_additive "An `add_submonoid` contains the monoid's 0."]
-theorem one_mem : (1 : M) ∈ S := S.one_mem'
+protected theorem one_mem : (1 : M) ∈ S := one_mem S
 
 /-- A submonoid is closed under multiplication. -/
 @[to_additive "An `add_submonoid` is closed under addition."]
-theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
+protected theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := mul_mem
 
 /-- The submonoid `M` of the monoid `M`. -/
 @[to_additive "The additive submonoid `M` of the `add_monoid M`."]
@@ -343,7 +339,7 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
 lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
   (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
   (H1 : p 1 (one_mem _))
-  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem hx hy))
   {x} (hx : x ∈ closure s) :
   p x hx :=
 begin

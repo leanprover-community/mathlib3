@@ -19,7 +19,7 @@ We provide basic instances, as well as a custom tactic for discharging
 
 noncomputable theory
 open_locale classical topological_space filter
-open set
+open set int
 
 /-! ### The unit interval -/
 
@@ -30,13 +30,25 @@ localized "notation `I` := unit_interval" in unit_interval
 
 namespace unit_interval
 
+lemma zero_mem : (0 : ℝ) ∈ I := ⟨le_rfl, zero_le_one⟩
+
+lemma one_mem : (1 : ℝ) ∈ I := ⟨zero_le_one, le_rfl⟩
+
+lemma mul_mem {x y : ℝ} (hx : x ∈ I) (hy : y ∈ I) : x * y ∈ I :=
+⟨mul_nonneg hx.1 hy.1, (mul_le_mul hx.2 hy.2 hy.1 zero_le_one).trans_eq $ one_mul 1⟩
+
+lemma div_mem {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ I :=
+⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
+
+lemma fract_mem (x : ℝ) : fract x ∈ I := ⟨fract_nonneg _, (fract_lt_one _).le⟩
+
 lemma mem_iff_one_sub_mem {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
 begin
   rw [mem_Icc, mem_Icc],
   split ; intro ; split ; linarith
 end
 
-instance has_zero : has_zero I := ⟨⟨0, by split ; norm_num⟩⟩
+instance has_zero : has_zero I := ⟨⟨0, zero_mem⟩⟩
 
 @[simp, norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
 
@@ -62,10 +74,7 @@ not_iff_not.mpr coe_eq_one
 
 instance : nonempty I := ⟨0⟩
 
-lemma mul_mem (x y : I) : (x : ℝ) * y ∈ I :=
-⟨mul_nonneg x.2.1 y.2.1, (mul_le_mul x.2.2 y.2.2 y.2.1 zero_le_one).trans_eq $ one_mul 1⟩
-
-instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x y⟩⟩
+instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x.2 y.2⟩⟩
 
 @[simp, norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
 
@@ -78,7 +87,7 @@ lemma mul_le_right {x y : I} : x * y ≤ y :=
 subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
 
 /-- Unit interval central symmetry. -/
-def symm : I → I := λ t, ⟨1 - t.val, mem_iff_one_sub_mem.mp t.property⟩
+def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
 
 localized "notation `σ` := unit_interval.symm" in unit_interval
 
@@ -116,7 +125,7 @@ lemma le_one' {t : I} : t ≤ 1 := t.2.2
 lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ I ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
 begin
   split; rintros ⟨h₁, h₂⟩; split,
-  { exact nonneg_of_mul_nonneg_left h₁ ha },
+  { exact nonneg_of_mul_nonneg_right h₁ ha },
   { rwa [le_div_iff ha, mul_comm] },
   { exact mul_nonneg ha.le h₁ },
   { rwa [le_div_iff ha, mul_comm] at h₂ }

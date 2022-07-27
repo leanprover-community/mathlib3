@@ -58,7 +58,7 @@ namespace is_scalar_tower
 section module
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [has_scalar R M] [mul_action A M] [is_scalar_tower R A M]
+variables [has_smul R M] [mul_action A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
@@ -142,7 +142,7 @@ of_algebra_map_eq $ λ x, rfl
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
-  @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_scalar) _ :=
+  @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_smul) _ :=
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring
@@ -212,8 +212,8 @@ variables (R) {S A B} [comm_semiring R] [comm_semiring S] [semiring A] [semiring
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
-`R`-subalgebra. -/
+/-- Given a tower `A / ↥U / S / R` of algebras, where `U` is an `S`-subalgebra of `A`, reinterpret
+`U` as an `R`-subalgebra of `A`. -/
 def restrict_scalars (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
   .. U }
@@ -309,7 +309,7 @@ theorem smul_mem_span_smul_of_mem {s : set S} {t : set A} {k : S} (hks : k ∈ s
   {x : A} (hx : x ∈ t) : k • x ∈ span R (s • t) :=
 span_induction hks (λ c hc, subset_span $ set.mem_smul.2 ⟨c, x, hc, hx, rfl⟩)
   (by { rw zero_smul, exact zero_mem _ })
-  (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem _ ih₁ ih₂ })
+  (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem ih₁ ih₂ })
   (λ b c hc, by { rw is_scalar_tower.smul_assoc, exact smul_mem _ _ hc })
 
 variables [smul_comm_class R S A]
@@ -319,7 +319,7 @@ theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
   k • x ∈ span R (s • t) :=
 span_induction hx (λ x hx, smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hx)
   (by { rw smul_zero, exact zero_mem _ })
-  (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
+  (λ x y ihx ihy, by { rw smul_add, exact add_mem ihx ihy })
   (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
 theorem smul_mem_span_smul' {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
@@ -328,7 +328,7 @@ theorem smul_mem_span_smul' {s : set S} (hs : span R s = ⊤) {t : set A} {k : S
 span_induction hx (λ x hx, let ⟨p, q, hp, hq, hpq⟩ := set.mem_smul.1 hx in
     by { rw [← hpq, smul_smul], exact smul_mem_span_smul_of_mem (hs.symm ▸ mem_top) hq })
   (by { rw smul_zero, exact zero_mem _ })
-  (λ x y ihx ihy, by { rw smul_add, exact add_mem _ ihx ihy })
+  (λ x y ihx ihy, by { rw smul_add, exact add_mem ihx ihy })
   (λ c x hx, smul_comm c k x ▸ smul_mem _ _ hx)
 
 theorem span_smul {s : set S} (hs : span R s = ⊤) (t : set A) :
@@ -337,7 +337,7 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
   hpqx ▸ (span S t).smul_mem p (subset_span hqt)) $
 λ p hp, span_induction hp (λ x hx, one_smul S x ▸ smul_mem_span_smul hs (subset_span hx))
   (zero_mem _)
-  (λ _ _, add_mem _)
+  (λ _ _, add_mem)
   (λ k x hx, smul_mem_span_smul' hs hx)
 
 end module

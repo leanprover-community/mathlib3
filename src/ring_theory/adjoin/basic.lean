@@ -83,17 +83,14 @@ lemma adjoin_induction₂ {p : A → A → Prop} {a b : A} (ha : a ∈ adjoin R 
   (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
   (Hadd_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ + y₂))
   (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
-  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂))
-  (Hadd_alg : ∀ x y r, p x (algebra_map R A r) →
-                  p y (algebra_map R A r) → p (x + y) (algebra_map R A r))
-  (Hmul_alg : ∀ x y r, p x (algebra_map R A r) →
-                  p y (algebra_map R A r) → p (x * y) (algebra_map R A r)) : p a b :=
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂)) : p a b :=
 begin
   refine adjoin_induction hb _ (λ r, _) (Hadd_right a) (Hmul_right a),
   { exact adjoin_induction ha Hs Halg_left (λ x y Hx Hy z hz, Hadd_left x y z (Hx z hz) (Hy z hz))
       (λ x y Hx Hy z hz, Hmul_left x y z (Hx z hz) (Hy z hz)) },
-  { exact adjoin_induction ha (Halg_right r) (λ r', Halg r' r) (λ x y, Hadd_alg x y r)
-      (λ x y, Hmul_alg x y r) },
+  { exact adjoin_induction ha (Halg_right r) (λ r', Halg r' r)
+      (λ x y, Hadd_left x y ((algebra_map R A) r))
+      (λ x y, Hmul_left x y ((algebra_map R A) r)) },
 end
 
 /-- The difference with `algebra.adjoin_induction` is that this acts on the subtype. -/
@@ -140,7 +137,7 @@ begin
     rw [list.map_cons, list.sum_cons],
     refine submodule.add_mem _ _ (ih HL.2),
     replace HL := HL.1, clear ih tl,
-    suffices : ∃ z r (hr : r ∈ submonoid.closure s), has_scalar.smul z r = list.prod hd,
+    suffices : ∃ z r (hr : r ∈ submonoid.closure s), has_smul.smul z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
     induction hd with hd tl ih, { exact ⟨1, 1, (submonoid.closure s).one_mem', one_smul _ _⟩ },
@@ -166,6 +163,10 @@ by rw [adjoin_eq_span, span_le]
 lemma adjoin_eq_span_of_subset {s : set A} (hs : ↑(submonoid.closure s) ⊆ (span R s : set A)) :
   (adjoin R s).to_submodule = span R s :=
 le_antisymm ((adjoin_to_submodule_le R).mpr hs) (span_le_adjoin R s)
+
+@[simp] lemma adjoin_span {s : set A} :
+  adjoin R (submodule.span R s : set A) = adjoin R s :=
+le_antisymm (adjoin_le (span_le_adjoin _ _)) (adjoin_mono submodule.subset_span)
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
   adjoin R (f '' s) = (adjoin R s).map f :=
@@ -236,10 +237,14 @@ def adjoin_comm_semiring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a
       (λ _ _ _ h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc y₁, ←h₁, mul_assoc x₁])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc x₂, ←h₂, ←mul_assoc x₂, ←h₁, ←mul_assoc])
-      (λ _ _ _ _ _, by simp only [add_mul, mul_add, commutes])
-      (λ _ _ _ _ _, by rw [commutes])
   end,
   ..(adjoin R s).to_semiring }
+
+lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
+eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
+
+lemma self_mem_adjoin_singleton (x : A) : x ∈ adjoin R ({x} : set A) :=
+algebra.subset_adjoin (set.mem_singleton_iff.mpr rfl)
 
 end semiring
 
@@ -258,9 +263,6 @@ le_antisymm
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
     (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
 
-lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
-
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
 begin
@@ -268,8 +270,13 @@ begin
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
-lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
-  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+variable {R}
+
+lemma pow_smul_mem_of_smul_subset_of_mem_adjoin
+  [comm_semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (r : A) (s : set B) (B' : subalgebra R B) (hs : r • s ⊆ B') {x : B} (hx : x ∈ adjoin R s)
+  (hr : algebra_map A B r ∈ B') :
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ B' :=
 begin
   change x ∈ (adjoin R s).to_submodule at hx,
   rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
@@ -278,15 +285,23 @@ begin
   use l.support.sup n₁,
   intros n hn,
   rw finsupp.smul_sum,
-  refine (adjoin R (r • s)).to_submodule.sum_mem _,
+  refine B'.to_submodule.sum_mem _,
   intros a ha,
   have : n ≥ n₁ a := le_trans (finset.le_sup ha) hn,
   dsimp only,
-  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
-    ← smul_smul, adjoin_eq_span],
-  refine submodule.smul_mem _ _ _,
-  exact submodule.smul_mem _ _ (submodule.subset_span (n₂ a))
+  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul,
+    ← is_scalar_tower.algebra_map_smul A (l a) (a : B), smul_smul (r ^ n₁ a),
+    mul_comm, ← smul_smul, smul_def, map_pow, is_scalar_tower.algebra_map_smul],
+  apply subalgebra.mul_mem _ (subalgebra.pow_mem _ hr _) _,
+  refine subalgebra.smul_mem _ _ _,
+  change _ ∈ B'.to_submonoid,
+  rw ← submonoid.closure_eq B'.to_submonoid,
+  apply submonoid.closure_mono hs (n₂ a),
 end
+
+lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+pow_smul_mem_of_smul_subset_of_mem_adjoin r s _ subset_adjoin hx (subalgebra.algebra_map_mem _ _)
 
 end comm_semiring
 

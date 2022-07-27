@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Martin Zinkevich
+Authors: Martin Zinkevich, Vincent Beffara
 -/
-import measure_theory.integral.bochner
+import measure_theory.integral.set_integral
 import probability.independence
 
 /-!
@@ -28,7 +28,7 @@ example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} 
 
 noncomputable theory
 open set measure_theory
-open_locale ennreal
+open_locale ennreal measure_theory
 
 variables {α : Type*} {mα : measurable_space α} {μ : measure α} {f g : α → ℝ≥0∞} {X Y : α → ℝ}
 
@@ -39,7 +39,7 @@ namespace probability_theory
   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator {Mf mα : measurable_space α}
   {μ : measure α} (hMf : Mf ≤ mα) (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
-  (h_ind : indep_sets Mf.measurable_set' {T} μ) (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) :
+  (h_ind : indep_sets {s | measurable_set[Mf] s} {T} μ) (h_meas_f : measurable[Mf] f) :
   ∫⁻ a, f a * T.indicator (λ _, c) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, T.indicator (λ _, c) a ∂μ :=
 begin
   revert f,
@@ -59,8 +59,8 @@ begin
     have h_measM_f' : measurable f', from h_meas_f'.mono hMf le_rfl,
     have h_measM_g : measurable g, from h_meas_g.mono hMf le_rfl,
     simp_rw [pi.add_apply, right_distrib],
-    rw [lintegral_add (h_mul_indicator _ h_measM_f') (h_mul_indicator _ h_measM_g),
-      lintegral_add h_measM_f' h_measM_g, right_distrib, h_ind_f', h_ind_g] },
+    rw [lintegral_add_left (h_mul_indicator _ h_measM_f'),
+      lintegral_add_left h_measM_f', right_distrib, h_ind_f', h_ind_g] },
   { intros f h_meas_f h_mono_f h_ind_f,
     have h_measM_f : ∀ n, measurable (f n), from λ n, (h_meas_f n).mono hMf le_rfl,
     simp_rw [ennreal.supr_mul],
@@ -79,7 +79,7 @@ end
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   {Mf Mg mα : measurable_space α} {μ : measure α}
   (hMf : Mf ≤ mα) (hMg : Mg ≤ mα) (h_ind : indep Mf Mg μ)
-  (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) (h_meas_g : @measurable α ℝ≥0∞ Mg _ g) :
+  (h_meas_f : measurable[Mf] f) (h_meas_g : measurable[Mg] g) :
   ∫⁻ a, f a * g a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 begin
   revert g,
@@ -93,8 +93,7 @@ begin
     have h_measM_f' : measurable f', from h_measMg_f'.mono hMg le_rfl,
     have h_measM_g : measurable g, from h_measMg_g.mono hMg le_rfl,
     simp_rw [pi.add_apply, left_distrib],
-    rw [lintegral_add h_measM_f' h_measM_g,
-      lintegral_add (h_measM_f.mul h_measM_f') (h_measM_f.mul h_measM_g),
+    rw [lintegral_add_left h_measM_f', lintegral_add_left (h_measM_f.mul h_measM_f'),
       left_distrib, h_ind_f', h_ind_g'] },
   { intros f' h_meas_f' h_mono_f' h_ind_f',
     have h_measM_f' : ∀ n, measurable (f' n), from λ n, (h_meas_f' n).mono hMg le_rfl,
@@ -131,7 +130,7 @@ begin
 end
 
 /-- The product of two independent, integrable, real_valued random variables is integrable. -/
-lemma indep_fun.integrable_mul {β : Type*} {mβ : measurable_space β} {X Y : α → β}
+lemma indep_fun.integrable_mul {β : Type*} [measurable_space β] {X Y : α → β}
   [normed_division_ring β] [borel_space β]
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
@@ -210,10 +209,10 @@ begin
   have hm3 : ae_measurable Ym μ := hY.1.ae_measurable.neg.max ae_measurable_const,
   have hm4 : ae_measurable Yp μ := hY.1.ae_measurable.max ae_measurable_const,
 
-  have hv1 : integrable Xm μ := hX.neg.max_zero,
-  have hv2 : integrable Xp μ := hX.max_zero,
-  have hv3 : integrable Ym μ := hY.neg.max_zero,
-  have hv4 : integrable Yp μ := hY.max_zero,
+  have hv1 : integrable Xm μ := hX.neg_part,
+  have hv2 : integrable Xp μ := hX.pos_part,
+  have hv3 : integrable Ym μ := hY.neg_part,
+  have hv4 : integrable Yp μ := hY.pos_part,
 
   have hi1 : indep_fun Xm Ym μ := hXY.comp negm negm,
   have hi2 : indep_fun Xp Ym μ := hXY.comp posm negm,
@@ -233,6 +232,33 @@ begin
     hi2.integral_mul_of_nonneg hp2 hp3 hm2 hm3, hi3.integral_mul_of_nonneg hp1 hp4 hm1 hm4,
     hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
   ring
+end
+
+theorem indep_fun.integral_mul_of_integrable' (hXY : indep_fun X Y μ)
+  (hX : integrable X μ) (hY : integrable Y μ) :
+  integral μ (λ x, X x * Y x) = integral μ X * integral μ Y :=
+hXY.integral_mul_of_integrable hX hY
+
+/-- Independence of functions `f` and `g` into arbitrary types is characterized by the relation
+  `E[(φ ∘ f) * (ψ ∘ g)] = E[φ ∘ f] * E[ψ ∘ g]` for all measurable `φ` and `ψ` with values in `ℝ`
+  satisfying appropriate integrability conditions. -/
+theorem indep_fun_iff_integral_comp_mul [is_finite_measure μ]
+  {β β' : Type*} {mβ : measurable_space β} {mβ' : measurable_space β'}
+  {f : α → β} {g : α → β'} {hfm : measurable f} {hgm : measurable g} :
+  indep_fun f g μ ↔
+  ∀ {φ : β → ℝ} {ψ : β' → ℝ},
+    measurable φ → measurable ψ → integrable (φ ∘ f) μ → integrable (ψ ∘ g) μ →
+    integral μ ((φ ∘ f) * (ψ ∘ g)) = integral μ (φ ∘ f) * integral μ (ψ ∘ g) :=
+begin
+  refine ⟨λ hfg _ _ hφ hψ, indep_fun.integral_mul_of_integrable (hfg.comp hφ hψ), _⟩,
+  rintro h _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  specialize h (measurable_one.indicator hA) (measurable_one.indicator hB)
+    ((integrable_const 1).indicator (hfm.comp measurable_id hA))
+    ((integrable_const 1).indicator (hgm.comp measurable_id hB)),
+  rwa [← ennreal.to_real_eq_to_real (measure_ne_top μ _), ennreal.to_real_mul,
+    ← integral_indicator_one ((hfm hA).inter (hgm hB)), ← integral_indicator_one (hfm hA),
+    ← integral_indicator_one (hgm hB), set.inter_indicator_one],
+  exact ennreal.mul_ne_top (measure_ne_top μ _) (measure_ne_top μ _)
 end
 
 end probability_theory

@@ -47,7 +47,7 @@ open_locale complex_conjugate
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
 class is_R_or_C (K : Type*)
-  extends nondiscrete_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
+  extends nontrivially_normed_field K, star_ring K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (I : K)                 -- Meant to be set to 0 for K=ℝ
@@ -442,7 +442,7 @@ by rw [← of_real_int_cast, of_real_im]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_rat_cast (n : ℚ) :
   ((n : ℝ) : K) = n :=
-(@is_R_or_C.of_real_hom K _).map_rat_cast n
+map_rat_cast (@is_R_or_C.of_real_hom K _) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma rat_cast_re (q : ℚ) : re (q : K) = q :=
 by rw [← of_real_rat_cast, of_real_re]
@@ -668,6 +668,15 @@ ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
+namespace polynomial
+
+open_locale polynomial
+
+lemma of_real_eval (p : ℝ[X]) (x : ℝ) : (p.eval x : K) = aeval ↑x p :=
+(@aeval_algebra_map_apply ℝ K _ _ _ x p).symm
+
+end polynomial
+
 namespace finite_dimensional
 
 open_locale classical
@@ -690,7 +699,7 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-variables (K) (E : Type*) [normed_group E] [normed_space K E]
+variables (K) (E : Type*) [normed_add_comm_group E] [normed_space K E]
 
 /-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
 
@@ -729,13 +738,14 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   conj_re_ax := λ z, by simp only [star_ring_end_apply, star_id_of_comm],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
+  norm_sq_eq_def_ax := λ z, by simp only [sq, real.norm_eq_abs, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
   inv_def_ax := λ z, by simp only [star_ring_end_apply, star, sq, real.norm_eq_abs,
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
-  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
+  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero],
+  .. real.nontrivially_normed_field, .. real.metric_space }
 
 end instances
 
@@ -837,7 +847,10 @@ noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 @[simp, is_R_or_C_simps] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
 (@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
-@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_lie.continuous
+@[priority 100]
+instance : has_continuous_star K := ⟨conj_lie.continuous⟩
+
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := continuous_star
 
 /-- The `ℝ → K` coercion, as a linear map -/
 noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K
@@ -862,6 +875,18 @@ noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_line
 linear_isometry.norm_to_continuous_linear_map of_real_li
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
+
+@[continuity] lemma continuous_abs : continuous (@is_R_or_C.abs K _) :=
+by simp only [show @is_R_or_C.abs K _ = has_norm.norm, by { ext, exact (norm_eq_abs _).symm },
+              continuous_norm]
+
+@[continuity] lemma continuous_norm_sq : continuous (@is_R_or_C.norm_sq K _) :=
+begin
+  have : (@is_R_or_C.norm_sq K _ : K → ℝ) = λ x, (is_R_or_C.abs x) ^ 2,
+  { ext,
+    exact norm_sq_eq_abs _ },
+  simp only [this, continuous_abs.pow 2],
+end
 
 end linear_maps
 

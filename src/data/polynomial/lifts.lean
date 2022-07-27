@@ -125,7 +125,8 @@ lemma monomial_mem_lifts_and_degree_eq {s : S} {n : ℕ} (hl : monomial n s ∈ 
 begin
   by_cases hzero : s = 0,
   { use 0,
-    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right, map_zero] },
+    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right,
+               polynomial.map_zero] },
   rw lifts_iff_set_range at hl,
   obtain ⟨q, hq⟩ := hl,
   replace hq := (ext_iff.1 hq) n,
@@ -172,7 +173,7 @@ begin
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),
   use erase + lead,
   split,
-  { simp only [hlead, herase, map_add],
+  { simp only [hlead, herase, polynomial.map_add],
     nth_rewrite 0 erase_lead_add_monomial_nat_degree_leading_coeff p },
   rw [←hdeg, erase_lead] at deg_erase,
   replace deg_erase := lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 deg_erase),
@@ -204,7 +205,7 @@ begin
   { rw [@degree_X_pow R, hq.2, degree_eq_nat_degree h0, with_bot.coe_lt_coe],
     exact or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) h0, },
   refine ⟨q + X ^ p.nat_degree, _, _, (monic_X_pow _).add_of_right hdeg⟩,
-  { rw [map_add, hq.1, polynomial.map_pow, map_X, H], },
+  { rw [polynomial.map_add, hq.1, polynomial.map_pow, map_X, H], },
   { rw [degree_add_eq_right_of_degree_lt hdeg, degree_X_pow, degree_eq_nat_degree hp.ne_zero] }
 end
 

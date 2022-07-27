@@ -344,7 +344,7 @@ lemma of_with_bot_le {boxes : finset (with_bot (box ι))}
   (H : ∀ J ∈ boxes, J ≠ ⊥ → ∃ J' ∈ π, J ≤ ↑J') :
   of_with_bot boxes le_of_mem pairwise_disjoint ≤ π :=
 have ∀ (J : box ι), ↑J ∈ boxes → ∃ J' ∈ π, J ≤ J',
-  from λ J hJ, by simpa only [with_bot.coe_le_coe] using H J hJ (with_bot.coe_ne_bot J),
+  from λ J hJ, by simpa only [with_bot.coe_le_coe] using H J hJ with_bot.coe_ne_bot,
 by simpa [of_with_bot, le_def]
 
 lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
@@ -355,7 +355,7 @@ lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
 begin
   intros J hJ,
   rcases H J hJ with ⟨J', J'mem, hle⟩,
-  lift J' to box ι using ne_bot_of_le_ne_bot (with_bot.coe_ne_bot _) hle,
+  lift J' to box ι using ne_bot_of_le_ne_bot with_bot.coe_ne_bot hle,
   exact ⟨J', mem_of_with_bot.2 J'mem, with_bot.coe_le_coe.1 hle⟩
 end
 
@@ -368,7 +368,7 @@ lemma of_with_bot_mono {boxes₁ : finset (with_bot (box ι))}
   (H : ∀ J ∈ boxes₁, J ≠ ⊥ → ∃ J' ∈ boxes₂, J ≤ J') :
   of_with_bot boxes₁ le_of_mem₁ pairwise_disjoint₁ ≤
     of_with_bot boxes₂ le_of_mem₂ pairwise_disjoint₂ :=
-le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) (with_bot.coe_ne_bot _)
+le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) with_bot.coe_ne_bot
 
 lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (boxes : finset (with_bot (box ι)))
@@ -376,7 +376,7 @@ lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint)
   (f : box ι → M) :
   ∑ J in (of_with_bot boxes le_of_mem pairwise_disjoint).boxes, f J =
-    ∑ J in boxes, option.elim J 0 f :=
+    ∑ J in boxes, option.elim 0 f J :=
 finset.sum_erase_none _ _
 
 /-- Restrict a prepartition to a box. -/
@@ -550,7 +550,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 lemma distortion_bUnion (π : prepartition I) (πi : Π J, prepartition J) :
   (π.bUnion πi).distortion = π.boxes.sup (λ J, (πi J).distortion) :=

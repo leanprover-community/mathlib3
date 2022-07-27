@@ -236,7 +236,8 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  (map (localization (M.map (f : R →* S))) f M.le_comap_map : localization M →+* _).is_integral :=
+  (map (localization (M.map (f : R →* S))) f
+    (M.le_comap_map : _ ≤ submonoid.comap (f : R →* S) _) : localization M →+* _).is_integral :=
 @is_integral_localization R _ M S _ f.to_algebra _ _ _ _ _ _ _ _ hf
 
 end is_integral
@@ -258,7 +259,7 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
   is_fraction_ring C L :=
 { map_units := λ ⟨y, hy⟩,
     is_unit.mk0 _ (show algebra_map C L y ≠ 0, from λ h, mem_non_zero_divisors_iff_ne_zero.mp hy
-      ((algebra_map C L).injective_iff.mp (algebra_map_injective C A L) _ h)),
+      ((injective_iff_map_eq_zero (algebra_map C L)).mp (algebra_map_injective C A L) _ h)),
   surj := λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
     ⟨⟨mk' C (x : L) x.2, algebra_map _ _ y,
         mem_non_zero_divisors_iff_ne_zero.mpr (λ h, hy (inj _
@@ -336,7 +337,7 @@ begin
            from is_unit.invertible (is_unit_of_mem_non_zero_divisors
               (mem_non_zero_divisors_iff_ne_zero.2
                 (λ h, non_zero_divisors.ne_zero ha
-                    ((ring_hom.injective_iff (algebra_map S K)).1
+                    ((injective_iff_map_eq_zero (algebra_map S K)).1
                     (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
           polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
@@ -345,7 +346,7 @@ begin
     obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
     use [f, hf₁],
     rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
-    exact (algebra_map S K).injective_iff.1
+    exact (injective_iff_map_eq_zero (algebra_map S K)).1
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end
 

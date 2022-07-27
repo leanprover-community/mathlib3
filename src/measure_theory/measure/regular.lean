@@ -21,7 +21,7 @@ A measure is `regular` if it satisfies the following properties:
 A measure is `weakly_regular` if it satisfies the following properties:
 * it is outer regular;
 * it is inner regular for open sets with respect to closed sets: the measure of any open set `U`
-  is the supremum of `μ F` over all compact sets `F` contained in `U`.
+  is the supremum of `μ F` over all closed sets `F` contained in `U`.
 
 In a Hausdorff topological space, regularity implies weak regularity. These three conditions are
 registered as typeclasses for a measure `μ`, and this implication is recorded as an instance.
@@ -163,20 +163,20 @@ begin
   { refine ⟨∅, empty_subset _, h0, _⟩,
     rwa [measure_empty, h₀, zero_add, pos_iff_ne_zero] },
   { rcases H hU _ (ennreal.sub_lt_self hμU h₀ hε) with ⟨K, hKU, hKc, hrK⟩,
-    exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt (or.inl hμU) hrK⟩ }
+    exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt_right (or.inl hμU) hrK⟩ }
 end
 
 lemma map {α β} [measurable_space α] [measurable_space β] {μ : measure α} {pa qa : set α → Prop}
-  (H : inner_regular μ pa qa) (f : α ≃ β) (hf : measurable f)
+  (H : inner_regular μ pa qa) (f : α ≃ β) (hf : ae_measurable f μ)
   {pb qb : set β → Prop} (hAB : ∀ U, qb U → qa (f ⁻¹' U)) (hAB' : ∀ K, pa K → pb (f '' K))
   (hB₁ : ∀ K, pb K → measurable_set K) (hB₂ : ∀ U, qb U → measurable_set U) :
   inner_regular (map f μ) pb qb :=
 begin
   intros U hU r hr,
-  rw [map_apply hf (hB₂ _ hU)] at hr,
+  rw [map_apply_of_ae_measurable hf (hB₂ _ hU)] at hr,
   rcases H (hAB U hU) r hr with ⟨K, hKU, hKc, hK⟩,
   refine ⟨f '' K, image_subset_iff.2 hKU, hAB' _ hKc, _⟩,
-  rwa [map_apply hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
+  rwa [map_apply_of_ae_measurable hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
 end
 
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
@@ -519,8 +519,9 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
 begin
   haveI := outer_regular.map f μ,
   haveI := is_finite_measure_on_compacts.map μ f,
-  exact ⟨regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
-      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
+  exact ⟨regular.inner_regular.map f.to_equiv f.measurable.ae_measurable
+    (λ U hU, hU.preimage f.continuous) (λ K hK, hK.image f.continuous)
+    (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
 end
 
 protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :

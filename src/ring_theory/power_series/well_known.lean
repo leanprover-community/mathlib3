@@ -77,6 +77,20 @@ variables {A A'} (n : ℕ) (f : A →+* A')
 @[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 :=
 by { rw [← coeff_zero_eq_constant_coeff_apply, coeff_exp], simp }
 
+@[simp] lemma coeff_sin_bit0 : coeff A (bit0 n) (sin A) = 0 :=
+by rw [sin, coeff_mk, if_pos (even_bit0 n)]
+
+@[simp] lemma coeff_sin_bit1 : coeff A (bit1 n) (sin A) = (-1) ^ n * coeff A (bit1 n) (exp A) :=
+by rw [sin, coeff_mk, if_neg n.not_even_bit1, nat.bit1_div_two,
+  ←mul_one_div, map_mul, map_pow, map_neg, map_one, coeff_exp]
+
+@[simp] lemma coeff_cos_bit0 : coeff A (bit0 n) (cos A) = (-1) ^ n * coeff A (bit0 n) (exp A) :=
+by rw [cos, coeff_mk, if_pos (even_bit0 n), nat.bit0_div_two,
+  ←mul_one_div, map_mul, map_pow, map_neg, map_one, coeff_exp]
+
+@[simp] lemma coeff_cos_bit1 : coeff A (bit1 n) (cos A) = 0 :=
+by rw [cos, coeff_mk, if_neg n.not_even_bit1]
+
 @[simp] lemma map_exp : map (f : A →+* A') (exp A) = exp A' := by { ext, simp }
 
 @[simp] lemma map_sin : map f (sin A) = sin A' := by { ext, simp [sin, apply_ite f] }
@@ -110,7 +124,7 @@ begin
   symmetry,
   rw [div_eq_iff, div_mul_eq_mul_div, one_mul, choose_eq_factorial_div_factorial],
   norm_cast,
-  rw cast_dvd_char_zero,
+  rw cast_div_char_zero,
   { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
   { apply mem_range_succ_iff.1 hx, },
   { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },

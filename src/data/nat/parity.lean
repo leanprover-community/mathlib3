@@ -72,17 +72,11 @@ begin
               one_ne_zero, and_self] },
 end
 
-lemma odd_gt_zero (h : odd n) : 0 < n :=
-by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
-
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 
-instance : decidable_pred (even : ℕ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
-
-instance decidable_pred_odd : decidable_pred (odd : ℕ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) odd_iff_not_even.symm
+instance : decidable_pred (even : ℕ → Prop) := λ n, decidable_of_iff _ even_iff.symm
+instance : decidable_pred (odd : ℕ → Prop) := λ n, decidable_of_iff _ odd_iff_not_even.symm
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
@@ -97,6 +91,9 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
 
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
+
+@[parity_simps] theorem even_add_one : even (n + 1) ↔ ¬ even n :=
+by simp [even_add]
 
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
@@ -113,11 +110,6 @@ begin
   by_cases h : even n; simp [h]
 end
 
-theorem even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
-(le_total n m).elim
-  (λ h, by simp only [even_sub h, *])
-  (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
-
 theorem even_sub' (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
@@ -125,9 +117,6 @@ theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
   (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
-
-@[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
-by rw [succ_eq_add_one, even_add]; simp [not_even_one]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
@@ -194,20 +183,6 @@ end
 lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
 odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 
-section distrib_neg_monoid
-
-variables {R : Type*} [monoid R] [has_distrib_neg R]
-
-@[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
-
-alias nat.neg_one_sq ← nat.neg_one_pow_two
-
-theorem neg_one_pow_of_even : even n → (-1 : R) ^ n = 1 :=
-by { rintro ⟨c, rfl⟩, simp [← two_mul, pow_mul] }
-
-theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
-by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
-
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
  λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
@@ -223,14 +198,17 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
-theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
-begin
-  refine ⟨λ h, _, neg_one_pow_of_even⟩,
-  contrapose! h1,
-  exact (neg_one_pow_of_odd $ odd_iff_not_even.mpr h1).symm.trans h
-end
+lemma bit0_div_two : bit0 n / 2 = n :=
+by rw [←nat.bit0_eq_bit0, bit0_eq_two_mul, two_mul_div_two_of_even (even_bit0 n)]
 
-end distrib_neg_monoid
+lemma bit1_div_two : bit1 n / 2 = n :=
+by rw [←nat.bit1_eq_bit1, bit1, bit0_eq_two_mul, nat.two_mul_div_two_add_one_of_odd (odd_bit1 n)]
+
+@[simp] lemma bit0_div_bit0 : bit0 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
+
+@[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
@@ -241,3 +219,11 @@ example : ¬ even 25394535 :=
 by simp
 
 end nat
+
+open nat
+
+variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
+
+lemma neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
+⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
+  even.neg_one_pow⟩

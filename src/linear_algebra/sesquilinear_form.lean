@@ -163,6 +163,26 @@ lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
 
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
+lemma dom_restrict_refl (H : B.is_refl) (p : submodule R₁ M₁) : (B.dom_restrict₁₂ p p).is_refl :=
+λ _ _, by { simp_rw dom_restrict₁₂_apply, exact H _ _}
+
+@[simp] lemma flip_is_refl_iff : B.flip.is_refl ↔ B.is_refl :=
+⟨λ h x y H, h y x ((B.flip_apply _ _).trans H), λ h x y, h y x⟩
+
+lemma ker_flip_eq_bot (H : B.is_refl) (h : B.ker = ⊥) : B.flip.ker = ⊥ :=
+begin
+  refine ker_eq_bot'.mpr (λ _ hx, ker_eq_bot'.mp h _ _),
+  ext,
+  exact H _ _ (linear_map.congr_fun hx _),
+end
+
+lemma ker_eq_bot_iff_ker_flip_eq_bot (H : B.is_refl) : B.ker = ⊥ ↔ B.flip.ker = ⊥ :=
+begin
+  refine ⟨ker_flip_eq_bot H, λ h, _⟩,
+  exact (congr_arg _ B.flip_flip.symm).trans (ker_flip_eq_bot (flip_is_refl_iff.mpr H) h),
+end
+
+
 end is_refl
 end reflexive
 
@@ -186,11 +206,7 @@ lemma is_refl (H : B.is_symm) : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H
 lemma ortho_comm (H : B.is_symm) {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 lemma dom_restrict_symm (H : B.is_symm) (p : submodule R M) : (B.dom_restrict₁₂ p p).is_symm :=
-begin
-  intros x y,
-  simp_rw dom_restrict₁₂_apply,
-  exact H x y,
-end
+λ _ _, by { simp_rw dom_restrict₁₂_apply, exact H _ _}
 
 end is_symm
 
@@ -356,11 +372,167 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (submodule.orthogonal_bilin (K ∙ x) B) :=
-{ inf_le_bot := eq_bot_iff.1 $
-    (span_singleton_inf_orthogonal_eq_bot B x hx),
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot B x hx,
+  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
+
+/-! ### Adjoint pairs -/
+
+section adjoint_pair
+
+section add_comm_monoid
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [module R M]
+variables [add_comm_monoid M₁] [module R M₁]
+variables [add_comm_monoid M₂] [module R M₂]
+variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R} {B'' : M₂ →ₗ[R] M₂ →ₗ[R] R}
+variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
+
+variables (B B' f g)
+
+/-- Given a pair of modules equipped with bilinear forms, this is the condition for a pair of
+maps between them to be mutually adjoint. -/
+def is_adjoint_pair := ∀ x y, B' (f x) y = B x (g y)
+
+variables {B B' f g}
+
+lemma is_adjoint_pair_iff_comp_eq_compl₂ :
+  is_adjoint_pair B B' f g ↔ B'.comp f = B.compl₂ g :=
+begin
+  split; intros h,
+  { ext x y, rw [comp_apply, compl₂_apply], exact h x y },
+  { intros _ _, rw [←compl₂_apply, ←comp_apply, h] },
+end
+
+lemma is_adjoint_pair_zero : is_adjoint_pair B B' 0 0 :=
+λ _ _, by simp only [zero_apply, map_zero]
+
+lemma is_adjoint_pair_id : is_adjoint_pair B B 1 1 := λ x y, rfl
+
+lemma is_adjoint_pair.add (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B B' f' g') :
+  is_adjoint_pair B B' (f + f') (g + g') :=
+λ x _, by rw [f.add_apply, g.add_apply, B'.map_add₂, (B x).map_add, h, h']
+
+lemma is_adjoint_pair.comp {f' : M₁ →ₗ[R] M₂} {g' : M₂ →ₗ[R] M₁}
+  (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B' B'' f' g') :
+  is_adjoint_pair B B'' (f'.comp f) (g.comp g') :=
+λ _ _, by rw [linear_map.comp_apply, linear_map.comp_apply, h', h]
+
+lemma is_adjoint_pair.mul
+  {f g f' g' : module.End R M} (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
+  is_adjoint_pair B B (f * f') (g' * g) :=
+h'.comp h
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [comm_ring R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group M₁] [module R M₁]
+variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R}
+variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
+
+lemma is_adjoint_pair.sub (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B B' f' g') :
+  is_adjoint_pair B B' (f - f') (g - g') :=
+λ x _, by rw [f.sub_apply, g.sub_apply, B'.map_sub₂, (B x).map_sub, h, h']
+
+lemma is_adjoint_pair.smul (c : R) (h : is_adjoint_pair B B' f g) :
+  is_adjoint_pair B B' (c • f) (c • g) :=
+λ _ _, by simp only [smul_apply, map_smul, smul_eq_mul, h _ _]
+
+end add_comm_group
+
+end adjoint_pair
+
+/-! ### Self-adjoint pairs-/
+
+section selfadjoint_pair
+
+section add_comm_monoid
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [module R M]
+variables (B F : M →ₗ[R] M →ₗ[R] R)
+
+/-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
+on the underlying module. In the case that these two forms are identical, this is the usual concept
+of self adjointness. In the case that one of the forms is the negation of the other, this is the
+usual concept of skew adjointness. -/
+def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B F f f
+
+/-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
+adjoint for itself. -/
+protected def is_self_adjoint (f : module.End R M) := is_adjoint_pair B B f f
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [comm_ring R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group M₁] [module R M₁]
+(B F : M →ₗ[R] M →ₗ[R] R)
+
+/-- The set of pair-self-adjoint endomorphisms are a submodule of the type of all endomorphisms. -/
+def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
+{ carrier   := { f | is_pair_self_adjoint B F f },
+  zero_mem' := is_adjoint_pair_zero,
+  add_mem'  := λ f g hf hg, hf.add hg,
+  smul_mem' := λ c f h, h.smul c, }
+
+/-- An endomorphism of a module is skew-adjoint with respect to a bilinear form if its negation
+serves as an adjoint. -/
+def is_skew_adjoint (f : module.End R M) := is_adjoint_pair B B f (-f)
+
+/-- The set of self-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Jordan subalgebra.) -/
+def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
+
+/-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Lie subalgebra.) -/
+def skew_adjoint_submodule := is_pair_self_adjoint_submodule (-B) B
+
+variables {B F}
+
+@[simp] lemma mem_is_pair_self_adjoint_submodule (f : module.End R M) :
+  f ∈ is_pair_self_adjoint_submodule B F ↔ is_pair_self_adjoint B F f :=
+iff.rfl
+
+lemma is_pair_self_adjoint_equiv (e : M₁ ≃ₗ[R] M) (f : module.End R M) :
+  is_pair_self_adjoint B F f ↔
+    is_pair_self_adjoint (B.compl₁₂ ↑e ↑e) (F.compl₁₂ ↑e ↑e) (e.symm.conj f) :=
+begin
+  have hₗ : (F.compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M)).comp (e.symm.conj f) =
+    (F.comp f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
+  by { ext, simp only [linear_equiv.symm_conj_apply, coe_comp, linear_equiv.coe_coe, compl₁₂_apply,
+    linear_equiv.apply_symm_apply], },
+  have hᵣ : (B.compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M)).compl₂ (e.symm.conj f) =
+    (B.compl₂ f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
+  by { ext, simp only [linear_equiv.symm_conj_apply, compl₂_apply, coe_comp, linear_equiv.coe_coe,
+      compl₁₂_apply, linear_equiv.apply_symm_apply] },
+  have he : function.surjective (⇑(↑e : M₁ →ₗ[R] M) : M₁ → M) := e.surjective,
+  simp_rw [is_pair_self_adjoint, is_adjoint_pair_iff_comp_eq_compl₂, hₗ, hᵣ,
+    compl₁₂_inj he he],
+end
+
+lemma is_skew_adjoint_iff_neg_self_adjoint (f : module.End R M) :
+  B.is_skew_adjoint f ↔ is_adjoint_pair (-B) B f f :=
+show (∀ x y, B (f x) y = B x ((-f) y)) ↔ ∀ x y, B (f x) y = (-B) x (f y),
+by simp
+
+@[simp] lemma mem_self_adjoint_submodule (f : module.End R M) :
+  f ∈ B.self_adjoint_submodule ↔ B.is_self_adjoint f := iff.rfl
+
+@[simp] lemma mem_skew_adjoint_submodule (f : module.End R M) :
+  f ∈ B.skew_adjoint_submodule ↔ B.is_skew_adjoint f :=
+by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl }
+
+end add_comm_group
+
+end selfadjoint_pair
 
 /-! ### Nondegenerate bilinear forms -/
 
@@ -428,31 +600,31 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M]
   {I I' : R →+* R}
 
-lemma is_symm.nondegenerate_of_separating_left {B : M →ₗ[R] M →ₗ[R] R}
-  (hB : B.is_symm) (hB' : B.separating_left) : B.nondegenerate :=
+lemma is_refl.nondegenerate_of_separating_left {B : M →ₗ[R] M →ₗ[R] R}
+  (hB : B.is_refl) (hB' : B.separating_left) : B.nondegenerate :=
 begin
   refine ⟨hB', _⟩,
-  rw [is_symm_iff_eq_flip.mp hB, flip_separating_right],
-  exact hB',
+  rw [separating_right_iff_flip_ker_eq_bot, hB.ker_eq_bot_iff_ker_flip_eq_bot.mp],
+  rwa ←separating_left_iff_ker_eq_bot,
 end
 
-lemma is_symm.nondegenerate_of_separating_right {B : M →ₗ[R] M →ₗ[R] R}
-  (hB : B.is_symm) (hB' : B.separating_right) : B.nondegenerate :=
+lemma is_refl.nondegenerate_of_separating_right {B : M →ₗ[R] M →ₗ[R] R}
+  (hB : B.is_refl) (hB' : B.separating_right) : B.nondegenerate :=
 begin
   refine ⟨_, hB'⟩,
-  rw [is_symm_iff_eq_flip.mp hB, flip_separating_left],
-  exact hB',
+  rw [separating_left_iff_ker_eq_bot, hB.ker_eq_bot_iff_ker_flip_eq_bot.mpr],
+  rwa ←separating_right_iff_flip_ker_eq_bot,
 end
 
-/-- The restriction of a symmetric bilinear form `B` onto a submodule `W` is
+/-- The restriction of a reflexive bilinear form `B` onto a submodule `W` is
 nondegenerate if `W` has trivial intersection with its orthogonal complement,
 that is `disjoint W (W.orthogonal_bilin B)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_symm)
+  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_refl)
   {W : submodule R M} (hW : disjoint W (W.orthogonal_bilin B)) :
   (B.dom_restrict₁₂ W W).nondegenerate :=
 begin
-  refine (hB.dom_restrict_symm W).nondegenerate_of_separating_left  _,
+  refine (hB.dom_restrict_refl W).nondegenerate_of_separating_left  _,
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R],
   refine hW ⟨hx, λ y hy, _⟩,

@@ -88,8 +88,7 @@ begin
   { simp, },
   { conv_lhs
   { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
-      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X])], },
-    refl, },
+      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X]), ← nat.cast_succ] } },
 end
 
 lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
@@ -104,11 +103,9 @@ begin
   suffices : (pochhammer ℕ (n + 1)).comp (X + 1) =
               pochhammer ℕ (n + 1) + (n + 1) * (pochhammer ℕ n).comp (X + 1),
   { simpa [map_comp] using congr_arg (polynomial.map (nat.cast_ring_hom S)) this },
-  cases n,
-  { simp },
-  { nth_rewrite 1 pochhammer_succ_left,
-    rw [← add_mul, pochhammer_succ_right ℕ (n + 1), mul_comp, mul_comm, add_comp, X_comp,
-      nat_cast_comp, add_comm ↑(n + 1), ← add_assoc] }
+  nth_rewrite 1 pochhammer_succ_left,
+  rw [← add_mul, pochhammer_succ_right ℕ n, mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑n, ← add_assoc]
 end
 
 lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :

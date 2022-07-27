@@ -35,9 +35,10 @@ fixed size. If the size is 3, colex on ℕ starts
 
 Related files are:
 * `data.list.lex`: Lexicographic order on lists.
+* `data.pi.lex`: Lexicographic order on `Πₗ i, α i`.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
-* `order.lexicographic`: Lexicographic order on `α × β`.
+* `data.prod.lex`: Lexicographic order on `α × β`.
 
 ## Tags
 colex, colexicographic, binary
@@ -93,7 +94,7 @@ lemma nat.sum_two_pow_lt {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A →
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
   have z := geom_sum_mul_add 1 k,
-  rw [geom_sum, mul_one, one_add_one_eq_two] at z,
+  rw [mul_one, one_add_one_eq_two] at z,
   rw ← z,
   apply nat.lt_succ_self,
 end
@@ -131,24 +132,20 @@ instance [has_lt α] : is_irrefl (finset.colex α) (<) :=
 ⟨λ A h, exists.elim h (λ _ ⟨_,a,b⟩, a b)⟩
 
 @[trans]
-lemma lt_trans [linear_order α] {a b c : finset.colex α} :
-  a < b → b < c → a < c :=
+lemma lt_trans [linear_order α] {a b c : finset.colex α} : a < b → b < c → a < c :=
 begin
   rintros ⟨k₁, k₁z, notinA, inB⟩ ⟨k₂, k₂z, notinB, inC⟩,
   cases lt_or_gt_of_ne (ne_of_mem_of_not_mem inB notinB),
-  { refine ⟨k₂, _, by rwa k₁z h, inC⟩,
-    intros x hx,
+  { refine ⟨k₂, λ x hx, _, by rwa k₁z h, inC⟩,
     rw ← k₂z hx,
     apply k₁z (trans h hx) },
-  { refine ⟨k₁, _, notinA, by rwa ← k₂z h⟩,
-    intros x hx,
+  { refine ⟨k₁, λ x hx, _, notinA, by rwa ← k₂z h⟩,
     rw k₁z hx,
     apply k₂z (trans h hx) }
 end
 
 @[trans]
-lemma le_trans [linear_order α] (a b c : finset.colex α) :
-  a ≤ b → b ≤ c → a ≤ c :=
+lemma le_trans [linear_order α] (a b c : finset.colex α) : a ≤ b → b ≤ c → a ≤ c :=
 λ AB BC, AB.elim (λ k, BC.elim (λ t, or.inl (lt_trans k t)) (λ t, t ▸ AB)) (λ k, k.symm ▸ BC)
 
 instance [linear_order α] : is_trans (finset.colex α) (<) := ⟨λ _ _ _, colex.lt_trans⟩

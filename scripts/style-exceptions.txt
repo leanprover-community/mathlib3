@@ -1,8 +1,3 @@
-src/category_theory/limits/cones.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/types.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/monad/adjunction.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/monad/basic.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/control/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/control/monad/cont.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/control/monad/writer.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -16,7 +11,7 @@ src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 10
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
 src/data/rbmap/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/rbmap/default.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/rbtree/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/data/rbtree/basic.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/rbtree/default_lt.lean : line 6 : ERR_MOD : Module docstring missing, or too late
 src/data/rbtree/find.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/rbtree/init.lean : line 7 : ERR_MOD : Module docstring missing, or too late
@@ -27,11 +22,8 @@ src/data/seq/computation.lean : line 12 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/deprecated/subfield.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/deprecated/subring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/algebra.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/apply_fun.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/auto_cases.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/chain.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -45,7 +37,6 @@ src/tactic/ext.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/interactive.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/tactic/lint/default.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late

@@ -13,7 +13,7 @@ import category_theory.limits.shapes.finite_limits
 # Limits in lattice categories are given by infimums and supremums.
 -/
 
-universes u
+universes w u
 
 open category_theory
 open category_theory.limits
@@ -24,7 +24,7 @@ section semilattice
 
 variables {α : Type u}
 
-variables {J : Type u} [small_category J] [fin_category J]
+variables {J : Type w} [small_category J] [fin_category J]
 
 /--
 The limit cone over any functor from a finite diagram into a `semilattice_inf` with `order_top`.
@@ -75,19 +75,39 @@ lemma finite_colimit_eq_finset_univ_sup [semilattice_sup α] [order_bot α] (F :
 /--
 A finite product in the category of a `semilattice_inf` with `order_top` is the same as the infimum.
 -/
-lemma finite_product_eq_finset_inf [semilattice_inf α] [order_top α] {ι : Type u} [decidable_eq ι]
+lemma finite_product_eq_finset_inf [semilattice_inf α] [order_top α] {ι : Type u}
   [fintype ι] (f : ι → α) : (∏ f) = (fintype.elems ι).inf f :=
-(is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
-  (finite_limit_cone (discrete.functor f)).is_limit).to_eq
+begin
+  transitivity,
+  exact (is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
+    (finite_limit_cone (discrete.functor f)).is_limit).to_eq,
+  change finset.univ.inf (f ∘ discrete_equiv.to_embedding) = (fintype.elems ι).inf f,
+  simp only [←finset.inf_map, finset.univ_map_equiv_to_embedding],
+  refl,
+end
 
 /--
 A finite coproduct in the category of a `semilattice_sup` with `order_bot` is the same as the
 supremum.
 -/
-lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : Type u} [decidable_eq ι]
+lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : Type u}
   [fintype ι] (f : ι → α) : (∐ f) = (fintype.elems ι).sup f :=
-(is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
-  (finite_colimit_cocone (discrete.functor f)).is_colimit).to_eq
+begin
+  transitivity,
+  exact (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+    (finite_colimit_cocone (discrete.functor f)).is_colimit).to_eq,
+  change finset.univ.sup (f ∘ discrete_equiv.to_embedding) = (fintype.elems ι).sup f,
+  simp only [←finset.sup_map, finset.univ_map_equiv_to_embedding],
+  refl,
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance [semilattice_inf α] [order_top α] : has_binary_products α :=
+begin
+  haveI : ∀ (x y : α), has_limit (pair x y),
+  { letI := has_finite_limits_of_has_finite_limits_of_size.{u} α, apply_instance },
+  apply has_binary_products_of_has_limit_pair
+end
 
 /--
 The binary product in the category of a `semilattice_inf` with `order_top` is the same as the
@@ -96,9 +116,17 @@ infimum.
 @[simp]
 lemma prod_eq_inf [semilattice_inf α] [order_top α] (x y : α) : limits.prod x y = x ⊓ y :=
 calc limits.prod x y = limit (pair x y) : rfl
-... = finset.univ.inf (pair x y).obj : by rw finite_limit_eq_finset_univ_inf (pair x y)
+... = finset.univ.inf (pair x y).obj : by rw finite_limit_eq_finset_univ_inf (pair.{u} x y)
 ... = x ⊓ (y ⊓ ⊤) : rfl -- Note: finset.inf is realized as a fold, hence the definitional equality
 ... = x ⊓ y : by rw inf_top_eq
+
+@[priority 100] -- see Note [lower instance priority]
+instance [semilattice_sup α] [order_bot α] : has_binary_coproducts α :=
+begin
+  haveI : ∀ (x y : α), has_colimit (pair x y),
+  { letI := has_finite_colimits_of_has_finite_colimits_of_size.{u} α, apply_instance },
+  apply has_binary_coproducts_of_has_colimit_pair
+end
 
 /--
 The binary coproduct in the category of a `semilattice_sup` with `order_bot` is the same as the

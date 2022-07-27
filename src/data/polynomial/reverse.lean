@@ -88,11 +88,11 @@ noncomputable def reflect (N : ℕ) : R[X] → R[X]
 | ⟨f⟩ := ⟨finsupp.emb_domain (rev_at N) f⟩
 
 lemma reflect_support (N : ℕ) (f : R[X]) :
-  (reflect N f).support = image (rev_at N) f.support :=
+  (reflect N f).support = finset.image (rev_at N) f.support :=
 begin
   rcases f,
   ext1,
-  rw [reflect, mem_image, support, support, support_emb_domain, mem_map],
+  simp only [reflect, support_of_finsupp, support_emb_domain, finset.mem_map, finset.mem_image],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : R[X]) (i : ℕ) :
@@ -281,7 +281,7 @@ begin
   rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
-@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [is_domain R] (f g : R[X]) :
+@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [no_zero_divisors R] (f g : R[X]) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
@@ -291,7 +291,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [ring R] [is_domain R] (p q : R[X]) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [no_zero_divisors R] (p q : R[X]) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]

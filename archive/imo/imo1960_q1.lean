@@ -73,7 +73,7 @@ begin
   refine ⟨by ring, λ m l p, _⟩,
   obtain ⟨h₁, ⟨m, rfl⟩, h₂⟩ := id p,
   by_cases h : 11 * m < c * 11, { exact H _ h p },
-  have : m = c, {linarith}, subst m,
+  obtain rfl : m = c := by linarith,
   rw [nat.mul_div_cancel_left _ (by norm_num : 11 > 0), mul_comm] at h₂,
   refine (H' h₂).imp _ _; {rintro rfl, norm_num}
 end

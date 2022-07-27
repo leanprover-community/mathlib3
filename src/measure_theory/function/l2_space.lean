@@ -26,10 +26,40 @@ open topological_space measure_theory measure_theory.Lp
 open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
+
+section
+
+variables {α F : Type*} {m : measurable_space α} {μ : measure α} [normed_add_comm_group F]
+
+lemma mem_ℒp.integrable_sq {f : α → ℝ} (h : mem_ℒp f 2 μ) :
+  integrable (λ x, (f x)^2) μ :=
+by simpa [← mem_ℒp_one_iff_integrable]
+  using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
+
+lemma mem_ℒp_two_iff_integrable_sq_norm {f : α → F} (hf : ae_strongly_measurable f μ) :
+  mem_ℒp f 2 μ ↔ integrable (λ x, ∥f x∥^2) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable,
+  convert (mem_ℒp_norm_rpow_iff hf ennreal.two_ne_zero ennreal.two_ne_top).symm,
+  { simp },
+  { rw [div_eq_mul_inv, ennreal.mul_inv_cancel ennreal.two_ne_zero ennreal.two_ne_top] }
+end
+
+lemma mem_ℒp_two_iff_integrable_sq {f : α → ℝ} (hf : ae_strongly_measurable f μ) :
+  mem_ℒp f 2 μ ↔ integrable (λ x, (f x)^2) μ :=
+begin
+  convert mem_ℒp_two_iff_integrable_sq_norm hf,
+  ext x,
+  simp,
+end
+
+end
+
 namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [inner_product_space 𝕜 E] [normed_group F]
+  [inner_product_space 𝕜 E] [normed_add_comm_group F]
+
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -68,7 +98,7 @@ instance : has_inner 𝕜 (α →₂[μ] E) := ⟨λ f g, ∫ a, ⟪f a, g a⟫ 
 lemma inner_def (f g : α →₂[μ] E) : ⟪f, g⟫ = ∫ a : α, ⟪f a, g a⟫ ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : α →₂[μ] E) :
-  ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
+  ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (∥f a∥₊ : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
 begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,

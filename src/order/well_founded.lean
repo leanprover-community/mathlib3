@@ -20,6 +20,19 @@ and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `
 variables {α : Type*}
 
 namespace well_founded
+
+protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
+⟨h.asymmetric⟩
+
+instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
+has_well_founded.wf.is_asymm
+
+protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
+(@is_asymm.is_irrefl α r h.is_asymm)
+
+instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
+is_asymm.is_irrefl
+
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
@@ -27,20 +40,24 @@ theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
 | ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
-/-- A minimal element of a nonempty set in a well-founded order -/
-noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
+/-- A minimal element of a nonempty set in a well-founded order.
+
+If you're working with a nonempty linear order, consider defining a
+`conditionally_complete_linear_order_bot` instance via
+`well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
+noncomputable def min {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)
 
-theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
+theorem min_mem {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
-theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
+theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
+theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
 begin
   classical,
@@ -75,15 +92,15 @@ by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
 
 theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' (order_dual α) _
+@well_founded_iff_has_max' αᵒᵈ _
 
 open set
 /-- The supremum of a bounded, well-founded order -/
-protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
+protected noncomputable def sup {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
 wf.min { x | ∀a ∈ s, r a x } h
 
-protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
+protected lemma lt_sup {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
 min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
@@ -91,15 +108,15 @@ section
 open_locale classical
 /-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
-protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
+protected noncomputable def succ {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } h else x
 
-protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
+protected lemma lt_succ {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
   r x (wf.succ x) :=
 by { rw [well_founded.succ, dif_pos h], apply min_mem }
 end
 
-protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
+protected lemma lt_succ_iff {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
   (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
 begin
   split,
@@ -117,6 +134,10 @@ section linear_order
 
 variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
   {γ : Type*} [partial_order γ]
+
+theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
+  h.min s hne ≤ x :=
+not_lt.1 $ h.not_lt_min _ _ hx
 
 private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
   (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :

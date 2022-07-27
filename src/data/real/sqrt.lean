@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
-import tactic.norm_cast
+import tactic.positivity
 
 /-!
 # Square root of a real number
@@ -22,7 +22,7 @@ Then we prove some basic properties of these functions.
 We define `nnreal.sqrt` as the noncomputable inverse to the function `x ↦ x * x`. We use general
 theory of inverses of strictly monotone functions to prove that `nnreal.sqrt x` exists. As a side
 effect, `nnreal.sqrt` is a bundled `order_iso`, so for `nnreal` numbers we get continuity as well as
-theorems like `sqrt x ≤ y ↔ x * x ≤ y` for free.
+theorems like `sqrt x ≤ y ↔ x ≤ y * y` for free.
 
 Then we define `real.sqrt x` to be `nnreal.sqrt (real.to_nnreal x)`. We also define a Cauchy
 sequence `real.sqrt_aux (f : cau_seq ℚ abs)` which converges to `sqrt (mk f)` but do not prove (yet)
@@ -223,14 +223,18 @@ begin
   exact sqrt_le_left
 end
 
+lemma sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff hx, sqrt_sq hy]
+
+lemma sqrt_lt' (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
+
 /- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sq_le`.
    if you have `x > 0`, consider using `le_sqrt'` -/
 theorem le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), sq, mul_self_sqrt hy]
+le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt hy hx
 
-theorem le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
-  real.le_to_nnreal_iff_coe_le', sq, nnreal.coe_mul], exact mul_pos hx hx }
+lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y := le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt' hx
 
 theorem abs_le_sqrt (h : x^2 ≤ y) : |x| ≤ sqrt y :=
 by rw ← sqrt_sq_eq_abs; exact sqrt_le_sqrt h
@@ -268,6 +272,24 @@ by rw [← not_le, not_iff_not, sqrt_eq_zero']
 lt_iff_lt_of_le_iff_le (iff.trans
   (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
 
+alias sqrt_pos ↔ _ sqrt_pos_of_pos
+
+section
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: a square root is nonnegative, and is strictly positive if
+its input is. -/
+@[positivity]
+meta def _root_.tactic.positivity_sqrt : expr → tactic strictness
+| `(real.sqrt %%a) := do
+  (do -- if can prove `0 < a`, report positivity
+    positive pa ← core a,
+    positive <$> mk_app ``sqrt_pos_of_pos [pa]) <|>
+  nonnegative <$> mk_app ``sqrt_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+end
+
 @[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
 by simp_rw [sqrt, ← nnreal.coe_mul, nnreal.coe_eq, real.to_nnreal_mul hx, nnreal.sqrt_mul]
 
@@ -293,20 +315,18 @@ by rw [←div_sqrt, one_div_div, div_sqrt]
 theorem sqrt_div_self : sqrt x / x = (sqrt x)⁻¹ :=
 by rw [sqrt_div_self', one_div]
 
-theorem lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), sq, mul_self_sqrt hy]
+lemma lt_sqrt (hx : 0 ≤ x) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [←sqrt_lt_sqrt_iff (sq_nonneg _), sqrt_sq hx]
 
-theorem sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
-begin
-  split,
-  { simpa only [← sqrt_lt_sqrt_iff (sq_nonneg x), sqrt_sq_eq_abs] using abs_lt.mp },
-  { rw [← abs_lt, ← sq_abs],
-    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg x) h)).le).mp h },
-end
+lemma sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y := by rw [←abs_lt, ←sq_abs, lt_sqrt (abs_nonneg _)]
 
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
+
+lemma lt_sq_of_sqrt_lt {x y : ℝ} (h : sqrt x < y) : x < y ^ 2 :=
+by { have hy := x.sqrt_nonneg.trans_lt h,
+  rwa [←sqrt_lt_sqrt_iff_of_pos (sq_pos_of_pos hy), sqrt_sq hy.le] }
 
 /-- The natural square root is at most the real square root -/
 lemma nat_sqrt_le_real_sqrt {a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=

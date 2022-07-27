@@ -16,13 +16,22 @@ This file provides basic results about all the `finset.Ixx`, which are defined i
 This file was originally only about `finset.Ico a b` where `a b : ℕ`. No care has yet been taken to
 generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are missing. In general,
 what's to do is taking the lemmas in `data.x.intervals` and abstract away the concrete structure.
+
+Complete the API. See
+https://github.com/leanprover-community/mathlib/pull/14448#discussion_r906109235
+for some ideas.
 -/
 
-variables {α : Type*}
+open_locale big_operators
+
+variables {ι α : Type*}
 
 namespace finset
 section preorder
-variables [preorder α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+variables [preorder α]
+
+section locally_finite_order
+variables [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
 by rw [←coe_nonempty, coe_Icc, set.nonempty_Icc]
@@ -48,9 +57,9 @@ by rw [←coe_eq_empty, coe_Ioc, set.Ioc_eq_empty_iff]
 @[simp] lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
 by rw [←coe_eq_empty, coe_Ioo, set.Ioo_eq_empty_iff]
 
-alias Icc_eq_empty_iff ↔ _ finset.Icc_eq_empty
-alias Ico_eq_empty_iff ↔ _ finset.Ico_eq_empty
-alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
+alias Icc_eq_empty_iff ↔ _ Icc_eq_empty
+alias Ico_eq_empty_iff ↔ _ Ico_eq_empty
+alias Ioc_eq_empty_iff ↔ _ Ioc_eq_empty
 
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
@@ -197,50 +206,67 @@ lemma filter_le_lt_eq_Ico [decidable_pred (λ j, a ≤ j ∧ j < b)] :
 lemma filter_le_le_eq_Icc [decidable_pred (λ j, a ≤ j ∧ j ≤ b)] :
   univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
 
-lemma filter_lt_eq_Ioi [order_top α] [decidable_pred ((<) a)] : univ.filter ((<) a) = Ioi a :=
-by { ext, simp }
-
-lemma filter_le_eq_Ici [order_top α] [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici a :=
-by { ext, simp }
-
-lemma filter_gt_eq_Iio [order_bot α] [decidable_pred (< a)] : univ.filter (< a) = Iio a :=
-by { ext, simp }
-
-lemma filter_ge_eq_Iic [order_bot α] [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a :=
-by { ext, simp }
-
 end filter
 
-section order_top
-variables [order_top α]
+section locally_finite_order_top
+variables [locally_finite_order_top α]
 
-lemma Icc_subset_Ici_self : Icc a b ⊆ Ici a := Icc_subset_Icc_right le_top
-lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := Ico_subset_Icc_self.trans Icc_subset_Ici_self
+lemma Icc_subset_Ici_self : Icc a b ⊆ Ici a := by simpa [←coe_subset] using set.Icc_subset_Ici_self
+lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := by simpa [←coe_subset] using set.Ico_subset_Ici_self
+lemma Ioc_subset_Ioi_self : Ioc a b ⊆ Ioi a := by simpa [←coe_subset] using set.Ioc_subset_Ioi_self
+lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := by simpa [←coe_subset] using set.Ioo_subset_Ioi_self
 lemma Ioc_subset_Ici_self : Ioc a b ⊆ Ici a := Ioc_subset_Icc_self.trans Icc_subset_Ici_self
-lemma Ioo_subset_Ici_self : Ioo a b ⊆ Ici a := Ioo_subset_Icc_self.trans Icc_subset_Ici_self
-lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := Ioc_subset_Icc_self
-lemma Ioc_subset_Ioi_self : Ioc a b ⊆ Ioi a := Ioc_subset_Ioc_right le_top
-lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := Ioo_subset_Ioc_self.trans Ioc_subset_Ioi_self
+lemma Ioo_subset_Ici_self : Ioo a b ⊆ Ici a := Ioo_subset_Ico_self.trans Ico_subset_Ici_self
+
+end locally_finite_order_top
+
+section locally_finite_order_bot
+variables [locally_finite_order_bot α]
+
+lemma Icc_subset_Iic_self : Icc a b ⊆ Iic b := by simpa [←coe_subset] using set.Icc_subset_Iic_self
+lemma Ioc_subset_Iic_self : Ioc a b ⊆ Iic b := by simpa [←coe_subset] using set.Ioc_subset_Iic_self
+lemma Ico_subset_Iio_self : Ico a b ⊆ Iio b := by simpa [←coe_subset] using set.Ico_subset_Iio_self
+lemma Ioo_subset_Iio_self : Ioo a b ⊆ Iio b := by simpa [←coe_subset] using set.Ioo_subset_Iio_self
+lemma Ico_subset_Iic_self : Ico a b ⊆ Iic b := Ico_subset_Icc_self.trans Icc_subset_Iic_self
+lemma Ioo_subset_Iic_self : Ioo a b ⊆ Iic b := Ioo_subset_Ioc_self.trans Ioc_subset_Iic_self
+
+end locally_finite_order_bot
+end locally_finite_order
+
+section locally_finite_order_top
+variables [locally_finite_order_top α] {a : α}
+
+lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := by simpa [←coe_subset] using set.Ioi_subset_Ici_self
 
 lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
-hs.finite_of_bdd_above $ order_top.bdd_above s
+let ⟨a, ha⟩ := hs in (Ici a).finite_to_set.subset $ λ x hx, mem_Ici.2 $ ha hx
 
-end order_top
+variables [fintype α]
 
-section order_bot
-variables [order_bot α]
+lemma filter_lt_eq_Ioi [decidable_pred ((<) a)] : univ.filter ((<) a) = Ioi a := by { ext, simp }
+lemma filter_le_eq_Ici [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici a := by { ext, simp }
 
-lemma Icc_subset_Iic_self : Icc a b ⊆ Iic b := Icc_subset_Icc_left bot_le
-lemma Ico_subset_Iic_self : Ico a b ⊆ Iic b := Ico_subset_Icc_self.trans Icc_subset_Iic_self
-lemma Ioc_subset_Iic_self : Ioc a b ⊆ Iic b := Ioc_subset_Icc_self.trans Icc_subset_Iic_self
-lemma Ioo_subset_Iic_self : Ioo a b ⊆ Iic b := Ioo_subset_Icc_self.trans Icc_subset_Iic_self
-lemma Iio_subset_Iic_self : Iio b ⊆ Iic b := Ico_subset_Icc_self
-lemma Ico_subset_Iio_self : Ico a b ⊆ Iio b := Ico_subset_Ico_left bot_le
-lemma Ioo_subset_Iio_self : Ioo a b ⊆ Iio b := Ioo_subset_Ico_self.trans Ico_subset_Iio_self
+end locally_finite_order_top
+
+section locally_finite_order_bot
+variables [locally_finite_order_bot α] {a : α}
+
+lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := by simpa [←coe_subset] using set.Iio_subset_Iic_self
 
 lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
 
-end order_bot
+variables [fintype α]
+
+lemma filter_gt_eq_Iio [decidable_pred (< a)] : univ.filter (< a) = Iio a := by { ext, simp }
+lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a := by { ext, simp }
+
+end locally_finite_order_bot
+
+variables [decidable_eq α] [locally_finite_order_top α] [locally_finite_order_bot α]
+
+lemma disjoint_Ioi_Iio (a : α) :  disjoint (Ioi a) (Iio a) :=
+disjoint_left.2 $ λ b hab hba, (mem_Ioi.1 hab).not_lt $ mem_Iio.1 hba
+
 end preorder
 
 section partial_order
@@ -316,7 +342,7 @@ begin
 end
 
 lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card - 1 :=
-@card_Ico_eq_card_Icc_sub_one (order_dual α) _ _ _ _
+@card_Ico_eq_card_Icc_sub_one αᵒᵈ _ _ _ _
 
 lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
 begin
@@ -330,7 +356,7 @@ begin
 end
 
 lemma card_Ioo_eq_card_Ioc_sub_one (a b : α) : (Ioo a b).card = (Ioc a b).card - 1 :=
-@card_Ioo_eq_card_Ico_sub_one (order_dual α) _ _ _ _
+@card_Ioo_eq_card_Ico_sub_one αᵒᵈ _ _ _ _
 
 lemma card_Ioo_eq_card_Icc_sub_two (a b : α) : (Ioo a b).card = (Icc a b).card - 2 :=
 by { rw [card_Ioo_eq_card_Ico_sub_one, card_Ico_eq_card_Icc_sub_one], refl }
@@ -363,7 +389,11 @@ end order_bot
 end partial_order
 
 section linear_order
-variables [linear_order α] [locally_finite_order α] {a b : α}
+variables [linear_order α]
+
+
+section locally_finite_order
+variables [locally_finite_order α] {a b : α}
 
 lemma Ico_subset_Ico_iff {a₁ b₁ a₂ b₂ : α} (h : a₁ < b₁) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -372,6 +402,10 @@ by rw [←coe_subset, coe_Ico, coe_Ico, set.Ico_subset_Ico_iff h]
 lemma Ico_union_Ico_eq_Ico {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) :
   Ico a b ∪ Ico b c = Ico a c :=
 by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico_eq_Ico hab hbc]
+
+@[simp] lemma Ioc_union_Ioc_eq_Ioc {a b c : α} (h₁ : a ≤ b) (h₂ : b ≤ c) :
+  Ioc a b ∪ Ioc b c = Ioc a c :=
+by rw [←coe_inj, coe_union, coe_Ioc, coe_Ioc, coe_Ioc, set.Ioc_union_Ioc_eq_Ioc h₁ h₂]
 
 lemma Ico_subset_Ico_union_Ico {a b c : α} :
   Ico a c ⊆ Ico a b ∪ Ico b c :=
@@ -419,6 +453,14 @@ begin
     rw [mem_sdiff, mem_Ico, mem_Ico, mem_Ico, min_eq_right h, and_assoc, not_and', not_le],
     exact and_congr_right' ⟨λ hx, hx.2 hx.1, λ hx, ⟨hx.trans_le h, λ _, hx⟩⟩ }
 end
+
+end locally_finite_order
+
+variables [fintype α] [locally_finite_order_top α] [locally_finite_order_bot α]
+
+lemma Ioi_disj_union_Iio (a : α) :
+  (Ioi a).disj_union (Iio a) (disjoint_left.1 $ disjoint_Ioi_Iio a) = ({a} : finset α)ᶜ :=
+by { ext, simp [eq_comm] }
 
 end linear_order
 
@@ -497,4 +539,15 @@ lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (+ c) = Ioo (a + c) (b 
 by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
 
 end ordered_cancel_add_comm_monoid
+
+@[to_additive] lemma prod_prod_Ioi_mul_eq_prod_prod_off_diag [fintype ι] [linear_order ι]
+  [locally_finite_order_top ι] [locally_finite_order_bot ι] [comm_monoid α] (f : ι → ι → α) :
+  ∏ i, ∏ j in Ioi i, f j i * f i j = ∏ i, ∏ j in {i}ᶜ, f j i :=
+begin
+  simp_rw [←Ioi_disj_union_Iio, prod_disj_union, prod_mul_distrib],
+  congr' 1,
+  rw [prod_sigma', prod_sigma'],
+  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp,
+end
+
 end finset

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import data.rat.basic
-import tactic.norm_num
+import data.rat.defs
+import tactic.ring
 
 /-!
 # The category of elliptic curves (over a field or a PID)
@@ -48,10 +48,20 @@ at infinity if R is not a field. Define the group law on the R-points. (hard) pr
 /-- The discriminant of the plane cubic `Y^2+a1*X*Y+a3*Y=X^3+a2*X^2+a4*X+a6`. If `R` is a field
 then this polynomial vanishes iff the cubic curve cut out by this equation is singular. -/
 def EllipticCurve.disc_aux {R : Type*} [comm_ring R] (a1 a2 a3 a4 a6 : R) : R :=
--432*a6^2 + ((288*a2 + 72*a1^2)*a4 + (-216*a3^2 + (144*a1*a2 + 36*a1^3)*a3 + (-64*a2^3 -
-48*a1^2*a2^2 - 12*a1^4*a2 - a1^6)))*a6 + (-64*a4^3 + (-96*a1*a3 + (16*a2^2 + 8*a1^2*a2 + a1^4))*a4^2
-+ ((72*a2 - 30*a1^2)*a3^2 + (16*a1*a2^2 + 8*a1^3*a2 + a1^5)*a3)*a4 + (-27*a3^4 + (36*a1*a2 +
-a1^3)*a3^3 + (-16*a2^3 - 8*a1^2*a2^2 - a1^4*a2)*a3^2))
+let b2 := a1^2 + 4*a2,
+    b4 := 2*a4 + a1*a3,
+    b6 := a3^2 + 4*a6,
+    b8 := b2*a6 - a1*a3*a4 + a2*a3^2 - a4^2 in
+-b2^2*b8 - 8*b4^3 - 27*b6^2 + 9*b2*b4*b6
+
+theorem EllipticCurve.disc_aux_def {R : Type*} [comm_ring R] (a1 a2 a3 a4 a6 : R) :
+  EllipticCurve.disc_aux a1 a2 a3 a4 a6 =
+  -27*a3^4 + a1^5*a3*a4 + 16*a2^2*a4^2 - 64*a4^3 - a1^6*a6 - 216*a3^2*a6 - 432*a6^2 -
+  16*a2^3*(a3^2 + 4*a6) + 72*a2*a4*(a3^2 + 4*a6) + a1^3*a3*(a3^2 + 8*a2*a4 + 36*a6) +
+  4*a1*a3*(4*a2^2*a4 - 24*a4^2 + 9*a2*(a3^2 + 4*a6)) +
+  a1^2*(-30*a3^2*a4 + 8*a2*a4^2 + 72*a4*a6 - 8*a2^2*(a3^2 + 6*a6)) +
+  a1^4*(a4^2 - a2*(a3^2 + 12*a6)) :=
+by dsimp only [EllipticCurve.disc_aux]; ring
 
 -- If Pic(R)[12]=0 then this definition is mathematically correct
 /-- The category of elliptic curves over `R` (note that this definition is only mathematically
@@ -63,16 +73,32 @@ structure EllipticCurve (R : Type*) [comm_ring R] :=
 
 namespace EllipticCurve
 
-instance : inhabited (EllipticCurve ℚ) := ⟨⟨0,0,1,-1,0, ⟨37, 37⁻¹, by norm_num, by norm_num⟩,
-  show (37 : ℚ) = _ + _, by norm_num⟩⟩
+instance : inhabited (EllipticCurve ℚ) := ⟨⟨0,0,1,-1,0, units.mk0 37 (by norm_num),
+  by simp only [units.coe_mk, disc_aux_def]; norm_num⟩⟩
 
 variables {R : Type*} [comm_ring R] (E : EllipticCurve R)
+
+/-- The `b_2` coefficient of an elliptic curve. -/
+def b2 : R := E.a1^2 + 4*E.a2
+/-- The `b_4` coefficient of an elliptic curve. -/
+def b4 : R := 2*E.a4 + E.a1*E.a3
+/-- The `b_6` coefficient of an elliptic curve. -/
+def b6 : R := E.a3^2 + 4*E.a6
+/-- The `b_8` coefficient of an elliptic curve. -/
+def b8 : R := E.b2*E.a6 - E.a1*E.a3*E.a4 + E.a2*E.a3^2 - E.a4^2
+/-- The `c_4` coefficient of an elliptic curve. -/
+def c4 : R := E.b2^2 - 24*E.b4
+
+theorem c4_def : E.c4 = E.a1^4 + 8*E.a1^2*E.a2 + 16*E.a2^2 - 24*E.a1*E.a3 - 48*E.a4 :=
+by { unfold c4 b2 b4, ring }
 
 /-- The discriminant of an elliptic curve. Sometimes only defined up to sign in the literature;
   we choose the sign used by the LMFDB. See
   [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant)
   for more discussion. -/
 def disc : R := disc_aux E.a1 E.a2 E.a3 E.a4 E.a6
+
+lemma disc_def : E.disc = -E.b2^2*E.b8 - 8*E.b4^3 - 27*E.b6^2 + 9*E.b2*E.b4*E.b6 := rfl
 
 lemma disc_is_unit : is_unit E.disc :=
 begin
@@ -81,7 +107,6 @@ begin
 end
 
 /-- The j-invariant of an elliptic curve. -/
-def j := (-48*E.a4 + (-24*E.a1*E.a3 + (16*E.a2^2 + 8*E.a1^2*E.a2 + E.a1^4)))^3 *
-  (E.disc_unit⁻¹ : Rˣ)
+def j := E.c4^3 /ₚ E.disc_unit
 
 end EllipticCurve

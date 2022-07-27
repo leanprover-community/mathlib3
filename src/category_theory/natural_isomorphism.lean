@@ -129,12 +129,20 @@ by simp only [←category.assoc, cancel_mono]
 end
 
 variables {X Y : C}
+
 lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
-  (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=
-by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.inv_hom_id, id_app, category.id_comp]
+  α.inv.app X ≫ F.map f ≫ α.hom.app Y = G.map f :=
+by simp
 lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
-  (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
-by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.hom_inv_id, id_app, category.id_comp]
+  α.hom.app X ≫ G.map f ≫ α.inv.app Y = F.map f :=
+by simp
+
+lemma naturality_1' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app X)] :
+  inv (α.app X) ≫ F.map f ≫ α.app Y = G.map f :=
+by simp
+@[simp, reassoc] lemma naturality_2' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app Y)] :
+  α.app X ≫ G.map f ≫ inv (α.app Y) = F.map f :=
+by rw [←category.assoc, ←naturality, category.assoc, is_iso.hom_inv_id, category.comp_id]
 
 /--
 The components of a natural isomorphism are isomorphisms.
@@ -147,11 +155,15 @@ instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X)
 @[simp] lemma is_iso_inv_app (α : F ⟶ G) [is_iso α] (X) : (inv α).app X = inv (α.app X) :=
 by { ext, rw ←nat_trans.comp_app, simp, }
 
+@[simp] lemma inv_map_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+  inv ((F.map e.inv).app Z) = (F.map e.hom).app Z :=
+by { ext, simp, }
+
 /--
 Construct a natural isomorphism between functors by giving object level isomorphisms,
 and checking naturality only in the forward direction.
 -/
-def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
+@[simps] def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
   F ≅ G :=
 { hom := { app := λ X, (app X).hom },
@@ -167,11 +179,6 @@ def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
 by tidy
-@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).hom.app X = (app X).hom := rfl
-@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).inv.app X = (app X).inv :=
-by simp [of_components]
 
 /--
 A natural transformation is an isomorphism if all its components are isomorphisms.

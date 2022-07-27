@@ -3,8 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import category_theory.category.Cat
+import category_theory.category.preorder
 import category_theory.concrete_category.bundled_hom
-import algebra.punit_instances
 import order.hom.basic
 
 /-!
@@ -50,7 +51,7 @@ instance (α : Preorder) : preorder α := α.str
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : Preorder ⥤ Preorder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Preorder ≌ Preorder :=
@@ -59,3 +60,20 @@ equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end Preorder
+
+/--
+The embedding of `Preorder` into `Cat`.
+-/
+@[simps]
+def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
+{ obj := λ X, Cat.of X.1,
+  map := λ X Y f, f.monotone.functor,
+  map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
+  map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
+
+instance : faithful Preorder_to_Cat.{u} :=
+{ map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
+
+instance : full Preorder_to_Cat.{u} :=
+{ preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
+  witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }

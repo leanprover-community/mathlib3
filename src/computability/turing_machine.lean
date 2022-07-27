@@ -71,7 +71,7 @@ def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
-by rintro ⟨i, rfl⟩ ⟨j, rfl⟩; exact ⟨i+j, by simp [list.repeat_add]⟩
+by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
 
 theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
   blank_extends l l₁ → blank_extends l l₂ →
@@ -238,11 +238,11 @@ theorem list_blank.exists_cons {Γ} [inhabited Γ] (l : list_blank Γ) :
 def list_blank.nth {Γ} [inhabited Γ] (l : list_blank Γ) (n : ℕ) : Γ :=
 l.lift_on (λ l, list.inth l n) begin
   rintro l _ ⟨i, rfl⟩,
-  simp only [list.inth],
-  cases lt_or_le _ _ with h h, {rw list.nth_append h},
-  rw list.nth_len_le h,
-  cases le_or_lt _ _ with h₂ h₂, {rw list.nth_len_le h₂},
-  rw [list.nth_le_nth h₂, list.nth_le_append_right h, list.nth_le_repeat]
+  simp only,
+  cases lt_or_le _ _ with h h, {rw list.inth_append _ _ _ h},
+  rw list.inth_eq_default _ h,
+  cases le_or_lt _ _ with h₂ h₂, {rw list.inth_eq_default _ h₂},
+  rw [list.inth_eq_nth_le _ h₂, list.nth_le_append_right h, list.nth_le_repeat]
 end
 
 @[simp] theorem list_blank.nth_mk {Γ} [inhabited Γ] (l : list Γ) (n : ℕ) :
@@ -270,12 +270,12 @@ begin
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
   { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
-  simp at H,
+  simp only [list_blank.nth_mk] at H,
   cases lt_or_le i l₁.length with h' h',
-  { simpa only [list.nth_le_append _ h',
-      list.nth_le_nth h, list.nth_le_nth h', option.iget] using H i },
-  { simpa only [list.nth_le_append_right h', list.nth_le_repeat,
-      list.nth_le_nth h, list.nth_len_le h', option.iget] using H i },
+  { simp only [list.nth_le_append _ h', list.nth_le_nth h, list.nth_le_nth h',
+               ←list.inth_eq_nth_le _ h, ←list.inth_eq_nth_le _ h', H] },
+  { simp only [list.nth_le_append_right h', list.nth_le_repeat, list.nth_le_nth h,
+               list.nth_len_le h', ←list.inth_eq_default _ h', H, list.inth_eq_nth_le _ h] }
 end
 
 /-- Apply a function to a value stored at the nth position of the list. -/
@@ -302,7 +302,7 @@ structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
 (f : Γ → Γ') (map_pt' : f default = default)
 
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
-⟨⟨λ _, default, rfl⟩⟩
+⟨⟨default, rfl⟩⟩
 
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
 ⟨pointed_map.f⟩
@@ -353,7 +353,7 @@ end
 @[simp] theorem list_blank.nth_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : pointed_map Γ Γ') (l : list_blank Γ) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
 l.induction_on begin
-  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth],
+  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth],
   cases l.nth n, {exact f.2.symm}, {refl}
 end
 
@@ -2002,7 +2002,7 @@ theorem stk_nth_val {K : Type*} {Γ : K → Type*} {L : list_blank (∀ k, optio
   (hL : list_blank.map (proj k) L = list_blank.mk (list.map some S).reverse) :
   L.nth n k = S.reverse.nth n :=
 begin
-  rw [← proj_map_nth, hL, ← list.map_reverse, list_blank.nth_mk, list.inth, list.nth_map],
+  rw [←proj_map_nth, hL, ←list.map_reverse, list_blank.nth_mk, list.inth_eq_iget_nth, list.nth_map],
   cases S.reverse.nth n; refl
 end
 
@@ -2207,15 +2207,15 @@ begin
     rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
     by_cases h' : k' = k,
     { subst k', split_ifs; simp only [list.reverse_cons,
-        function.update_same, list_blank.nth_mk, list.inth, list.map],
-      { rw [list.nth_le_nth, list.nth_le_append_right];
+        function.update_same, list_blank.nth_mk, list.map],
+      { rw [list.inth_eq_nth_le, list.nth_le_append_right];
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
-      rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth],
+      rw [← proj_map_nth, hL, list_blank.nth_mk],
       cases lt_or_gt_of_ne h with h h,
-      { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
+      { rw list.inth_append, simpa only [list.length_map, list.length_reverse] using h },
       { rw gt_iff_lt at h,
-        rw [list.nth_len_le, list.nth_len_le];
+        rw [list.inth_eq_default, list.inth_eq_default];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2245,12 +2245,12 @@ begin
     rw [list_blank.nth_map, list_blank.nth_modify_nth, proj, pointed_map.mk_val],
     by_cases h' : k' = k,
     { subst k', split_ifs; simp only [
-        function.update_same, list_blank.nth_mk, list.tail, list.inth],
-      { rw [list.nth_len_le], {refl}, rw [h, list.length_reverse, list.length_map] },
-      rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
+        function.update_same, list_blank.nth_mk, list.tail],
+      { rw [list.inth_eq_default], {refl}, rw [h, list.length_reverse, list.length_map] },
+      rw [← proj_map_nth, hL, list_blank.nth_mk, e, list.map, list.reverse_cons],
       cases lt_or_gt_of_ne h with h h,
-      { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw gt_iff_lt at h, rw [list.nth_len_le, list.nth_len_le];
+      { rw list.inth_append, simpa only [list.length_map, list.length_reverse] using h },
+      { rw gt_iff_lt at h, rw [list.inth_eq_default, list.inth_eq_default];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2353,13 +2353,13 @@ begin
   rw (_ : TM1.init _ = _),
   { refine ⟨list_blank.mk (L.reverse.map $ λ a, update default k (some a)), λ k', _⟩,
     refine list_blank.ext (λ i, _),
-    rw [list_blank.map_mk, list_blank.nth_mk, list.inth, list.map_map, (∘),
+    rw [list_blank.map_mk, list_blank.nth_mk, list.inth_eq_iget_nth, list.map_map, (∘),
        list.nth_map, proj, pointed_map.mk_val],
     by_cases k' = k,
     { subst k', simp only [function.update_same],
-      rw [list_blank.nth_mk, list.inth, ← list.map_reverse, list.nth_map] },
+      rw [list_blank.nth_mk, list.inth_eq_iget_nth, ← list.map_reverse, list.nth_map] },
     { simp only [function.update_noteq h],
-      rw [list_blank.nth_mk, list.inth, list.map, list.reverse_nil, list.nth],
+      rw [list_blank.nth_mk, list.inth_eq_iget_nth, list.map, list.reverse_nil, list.nth],
       cases L.reverse.nth i; refl } },
   { rw [tr_init, TM1.init], dsimp only, congr; cases L.reverse; try {refl},
     simp only [list.map_map, list.tail_cons, list.map], refl }

@@ -500,7 +500,7 @@ by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance
 variable (C)
 
 /--
-`has_limits_of_size.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
+`has_limits_of_size_shrink.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
 from some other `has_limits_of_size C`.
 -/
 lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
@@ -508,7 +508,8 @@ lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u
 ⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-lemma has_smallest_limits_of_has_limits [has_limits C] :
+@[priority 100]
+instance has_smallest_limits_of_has_limits [has_limits C] :
   has_limits_of_size.{0 0} C := has_limits_of_size_shrink.{0 0} C
 
 end limit
@@ -983,7 +984,7 @@ by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instan
 variable (C)
 
 /--
-`has_colimits_of_size.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
+`has_colimits_of_size_shrink.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
 from some other `has_colimits_of_size C`.
 -/
 lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
@@ -991,7 +992,8 @@ lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u�
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-lemma has_smallest_colimits_of_has_colimits [has_colimits C] :
+@[priority 100]
+instance has_smallest_colimits_of_has_colimits [has_colimits C] :
   has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink.{0 0} C
 
 end colimit

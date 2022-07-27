@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
+import analysis.calculus.affine_map
 import analysis.convex.combination
 import linear_algebra.affine_space.basis
 import linear_algebra.affine_space.finite_dimensional
@@ -25,8 +26,8 @@ This file contains results about bases in normed affine spaces.
 
 section barycentric
 
-variables {ι 𝕜 E P : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
-variables [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
+variables {ι 𝕜 E P : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
+variables [normed_add_comm_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
 variables [metric_space P] [normed_add_torsor E P]
 variables (b : affine_basis ι 𝕜 P)
 
@@ -40,6 +41,9 @@ lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
   is_open_map (b.coord i) :=
 (b.coord i).is_open_map (continuous_barycentric_coord b i) (b.surjective_coord i)
 
+lemma smooth_barycentric_coord (b : affine_basis ι 𝕜 E) (i : ι) : cont_diff 𝕜 ⊤ (b.coord i) :=
+(⟨b.coord i, continuous_barycentric_coord b i⟩ : E →A[𝕜] 𝕜).cont_diff
+
 end barycentric
 
 open set
@@ -50,13 +54,12 @@ to this basis.
 
 TODO Restate this result for affine spaces (instead of vector spaces) once the definition of
 convexity is generalised to this setting. -/
-lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E]
-  (b : affine_basis ι ℝ E) :
+lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_add_comm_group E]
+  [normed_space ℝ E] (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
-  cases subsingleton_or_nontrivial ι with h h,
+  casesI subsingleton_or_nontrivial ι,
   { -- The zero-dimensional case.
-    haveI := h,
     suffices : range (b.points) = univ, { simp [this], },
     refine affine_subspace.eq_univ_of_subsingleton_span_eq_top _ b.tot,
     rw ← image_univ,
@@ -74,7 +77,8 @@ begin
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
-variables {V P : Type*} [normed_group V] [normed_space ℝ V] [metric_space P] [normed_add_torsor V P]
+variables {V P : Type*} [normed_add_comm_group V] [normed_space ℝ V] [metric_space P]
+  [normed_add_torsor V P]
 include V
 
 open affine_map

@@ -37,6 +37,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 * `σ a` : `spectrum R a` of `a : A`
 -/
 
+open set
+
 universes u v
 
 section defs
@@ -108,6 +110,15 @@ units.is_unit ⟨↑ₐr - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁
 lemma mem_resolvent_set_iff {r : R} {a : A} :
   r ∈ resolvent_set R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
+
+@[simp] lemma resolvent_set_of_subsingleton [subsingleton A] (a : A) :
+  resolvent_set R a = set.univ :=
+by simp_rw [resolvent_set, subsingleton.elim (algebra_map R A _ - a) 1, is_unit_one,
+  set.set_of_true]
+
+@[simp] lemma of_subsingleton [subsingleton A] (a : A) :
+  spectrum R a = ∅ :=
+by rw [spectrum, resolvent_set_of_subsingleton, set.compl_univ]
 
 lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   resolvent a r = ↑h.unit⁻¹ :=
@@ -341,10 +352,10 @@ begin
     have : k ≠ 0,
     { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
     lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
-    rw ←units.coe_inv' k at hk,
+    rw ←units.coe_inv k at hk,
     exact inv_mem_iff.mp hk },
   { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
-    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
+    simpa only [units.coe_inv] using inv_mem_iff.mp hk, }
 end
 
 open polynomial

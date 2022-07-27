@@ -120,7 +120,7 @@ by rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card
 @[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral_group n) ^ k = r k :=
 begin
   induction k with k IH,
-  { refl },
+  { rw nat.cast_zero, refl },
   { rw [pow_succ, IH, r_mul_r],
     congr' 1,
     norm_cast,
@@ -129,11 +129,9 @@ end
 
 @[simp] lemma r_one_pow_n : (r (1 : zmod n))^n = 1 :=
 begin
-  cases n,
-  { rw pow_zero },
-  { rw [r_one_pow, one_def],
-    congr' 1,
-    exact zmod.nat_cast_self _, }
+  rw [r_one_pow, one_def],
+  congr' 1,
+  exact zmod.nat_cast_self _,
 end
 
 @[simp] lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]

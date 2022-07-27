@@ -6,6 +6,7 @@ Authors: Yaël Dillies
 import data.finset.pointwise
 import data.finsupp.indicator
 import data.fintype.card
+import algebra.big_operators.finsupp
 
 /-!
 # Finitely supported product of finsets

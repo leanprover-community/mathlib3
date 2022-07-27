@@ -189,7 +189,7 @@ begin
 end
 
 lemma padic_val_nat_def' {n : ℕ} (hp : p ≠ 1) (hn : 0 < n) :
-  (padic_val_nat p n : enat) = multiplicity p n :=
+  ↑(padic_val_nat p n) = multiplicity p n :=
 by simp [padic_val_nat, hp, hn]
 
 @[simp] lemma padic_val_nat_self [fact p.prime] : padic_val_nat p p = 1 :=

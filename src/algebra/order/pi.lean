@@ -38,8 +38,8 @@ instance ordered_comm_monoid {ι : Type*} {Z : ι → Type*} [∀ i, ordered_com
   a canonically ordered additive monoid."]
 instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i)] :
   canonically_ordered_monoid (Π i, Z i) :=
-{ le_iff_exists_mul := λ f g, ⟨exists_mul_of_le, by { rintro ⟨h, rfl⟩, exact λ i, le_self_mul }⟩,
-  ..pi.order_bot, ..pi.ordered_comm_monoid }
+{ le_self_mul := λ f g i, le_self_mul,
+  ..pi.order_bot, ..pi.ordered_comm_monoid, ..pi.has_exists_mul_of_le }
 
 @[to_additive]
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :

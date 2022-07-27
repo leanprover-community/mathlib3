@@ -57,6 +57,9 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 
+@[simp, to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
+by rw [finset.prod, multiset.map_id]
+
 end finset
 
 /--
@@ -253,6 +256,10 @@ by rw [finset.prod, finset.map_val, multiset.map_map]; refl
 lemma prod_congr (h : s₁ = s₂) : (∀ x ∈ s₂, f x = g x) → s₁.prod f = s₂.prod g :=
 by rw [h]; exact fold_congr
 attribute [congr] finset.sum_congr
+
+@[to_additive]
+lemma prod_disj_union (h) : ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s₁, f x) * ∏ x in s₂, f x :=
+by { refine eq.trans _ (fold_disj_union h), rw one_mul, refl }
 
 @[to_additive]
 lemma prod_union_inter [decidable_eq α] :
@@ -1013,7 +1020,7 @@ open multiset
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
-by { refine quot.induction_on s (λ l, _), simpa [prod_list_map_count l f] }
+by { refine quot.induction_on s (λ l, _), simp [prod_list_map_count l f] }
 
 @[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -1063,12 +1070,15 @@ lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M 
 multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
   (multiset.forall_mem_map_iff.mpr p_s)
 
-/--
-For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
-it's equal to a different function just by checking ratios of adjacent terms.
+/-- For any product along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can verify
+that it's equal to a different function just by checking ratios of adjacent terms.
+
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
-lemma prod_range_induction {M : Type*} [comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
+@[to_additive "For any sum along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can
+verify that it's equal to a different function just by checking differences of adjacent terms.
+
+This is a discrete analogue of the fundamental theorem of calculus."]
+lemma prod_range_induction (f s : ℕ → β) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
   ∏ k in finset.range n, f k = s n :=
 begin
   induction n with k hk,
@@ -1076,46 +1086,25 @@ begin
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
 
-/--
-For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function,
-we can verify that it's equal to a different function
-just by checking differences of adjacent terms.
-This is a discrete analogue
-of the fundamental theorem of calculus.
--/
-lemma sum_range_induction {M : Type*} [add_comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
-  ∑ k in finset.range n, f k = s n :=
-@prod_range_induction (multiplicative M) _ f s h0 h n
-
-/-- A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued function
-reduces to the difference of the last and first terms.-/
-lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-by { apply sum_range_induction; simp }
-
-lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-by { apply sum_range_induction; simp }
-
 /-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
 the ratio of the last and first factors. -/
-@[to_additive]
+@[to_additive "A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued
+function reduces to the difference of the last and first terms."]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
+  ∏ i in range n, (f (i + 1) / f i) = f n / f 0 :=
+by apply prod_range_induction; simp
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f i * (f (i+1))⁻¹) = f 0 * (f n)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
+  ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
+by apply prod_range_induction; simp
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
 reduces to the difference of the last and first terms
 when the function we are summing is monotone.
 -/
-lemma sum_range_sub_of_monotone [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+lemma sum_range_tsub [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
   [contravariant_class α α (+) (≤)] {f : ℕ → α} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
@@ -1182,7 +1171,7 @@ finset.strong_induction_on s
       if hx1 : f x = 1
       then ih' ▸ eq.symm (prod_subset hmem
         (λ y hy hy₁,
-          have y = x ∨ y = g x hx, by simp [hy] at hy₁; tauto,
+          have y = x ∨ y = g x hx, by simpa [hy, not_and_distrib, or_comm] using hy₁,
           this.elim (λ hy, hy.symm ▸ hx1)
             (λ hy, h x hx ▸ hy ▸ hx1.symm ▸ (one_mul _).symm)))
       else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
@@ -1716,21 +1705,61 @@ end
 
 end multiset
 
-@[simp, norm_cast] lemma nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
+namespace nat
+
+@[simp, norm_cast] lemma cast_list_sum [add_monoid_with_one β] (s : list ℕ) :
+  (↑(s.sum) : β) = (s.map coe).sum :=
+map_list_sum (cast_add_monoid_hom β) _
+
+@[simp, norm_cast] lemma cast_list_prod [semiring β] (s : list ℕ) :
+  (↑(s.prod) : β) = (s.map coe).prod :=
+map_list_prod (cast_ring_hom β) _
+
+@[simp, norm_cast] lemma cast_multiset_sum [add_comm_monoid_with_one β] (s : multiset ℕ) :
+  (↑(s.sum) : β) = (s.map coe).sum :=
+map_multiset_sum (cast_add_monoid_hom β) _
+
+@[simp, norm_cast] lemma cast_multiset_prod [comm_semiring β] (s : multiset ℕ) :
+  (↑(s.prod) : β) = (s.map coe).prod :=
+map_multiset_prod (cast_ring_hom β) _
+
+@[simp, norm_cast] lemma cast_sum [add_comm_monoid_with_one β] (s : finset α) (f : α → ℕ) :
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
-(nat.cast_add_monoid_hom β).map_sum f s
+map_sum (cast_add_monoid_hom β) _ _
 
-@[simp, norm_cast] lemma int.cast_sum [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
+@[simp, norm_cast] lemma cast_prod [comm_semiring β] (f : α → ℕ) (s : finset α) :
+  (↑∏ i in s, f i : β) = ∏ i in s, f i :=
+map_prod (cast_ring_hom β) _ _
+
+end nat
+
+namespace int
+
+@[simp, norm_cast] lemma cast_list_sum [add_group_with_one β] (s : list ℤ) :
+  (↑(s.sum) : β) = (s.map coe).sum :=
+map_list_sum (cast_add_hom β) _
+
+@[simp, norm_cast] lemma cast_list_prod [ring β] (s : list ℤ) :
+  (↑(s.prod) : β) = (s.map coe).prod :=
+map_list_prod (cast_ring_hom β) _
+
+@[simp, norm_cast] lemma cast_multiset_sum [add_comm_group_with_one β] (s : multiset ℤ) :
+  (↑(s.sum) : β) = (s.map coe).sum :=
+map_multiset_sum (cast_add_hom β) _
+
+@[simp, norm_cast] lemma cast_multiset_prod {R : Type*} [comm_ring R] (s : multiset ℤ) :
+  (↑(s.prod) : R) = (s.map coe).prod :=
+map_multiset_prod (cast_ring_hom R) _
+
+@[simp, norm_cast] lemma cast_sum [add_comm_group_with_one β] (s : finset α) (f : α → ℤ) :
   ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
-(int.cast_add_hom β).map_sum f s
+map_sum (cast_add_hom β) _ _
 
-@[simp, norm_cast] lemma nat.cast_prod {R : Type*} [comm_semiring R] (f : α → ℕ) (s : finset α) :
-  (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-(nat.cast_ring_hom R).map_prod _ _
-
-@[simp, norm_cast] lemma int.cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
+@[simp, norm_cast] lemma cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (int.cast_ring_hom R).map_prod _ _
+
+end int
 
 @[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → Mˣ)
   (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=

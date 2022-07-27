@@ -5,9 +5,9 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
 import number_theory.divisors
-import algebra.squarefree
+import data.nat.squarefree
 import algebra.invertible
-import data.nat.factorization
+import data.nat.factorization.basic
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -100,7 +100,7 @@ lemma one_apply {x : ℕ} : (1 : arithmetic_function R) x = ite (x = 1) 1 0 := r
 end has_one
 end has_zero
 
-instance nat_coe [has_zero R] [has_one R] [has_add R] :
+instance nat_coe [add_monoid_with_one R] :
   has_coe (arithmetic_function ℕ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℕ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
@@ -110,10 +110,10 @@ lemma nat_coe_nat (f : arithmetic_function ℕ) :
 ext $ λ _, cast_id _
 
 @[simp]
-lemma nat_coe_apply [has_zero R] [has_one R] [has_add R] {f : arithmetic_function ℕ} {x : ℕ} :
+lemma nat_coe_apply [add_monoid_with_one R] {f : arithmetic_function ℕ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
-instance int_coe [has_zero R] [has_one R] [has_add R] [has_neg R] :
+instance int_coe [add_group_with_one R] :
   has_coe (arithmetic_function ℤ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℤ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
@@ -123,20 +123,20 @@ lemma int_coe_int (f : arithmetic_function ℤ) :
 ext $ λ _, int.cast_id _
 
 @[simp]
-lemma int_coe_apply [has_zero R] [has_one R] [has_add R] [has_neg R]
+lemma int_coe_apply [add_group_with_one R]
   {f : arithmetic_function ℤ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
 @[simp]
-lemma coe_coe [has_zero R] [has_one R] [has_add R] [has_neg R] {f : arithmetic_function ℕ} :
+lemma coe_coe [add_group_with_one R] {f : arithmetic_function ℕ} :
   ((f : arithmetic_function ℤ) : arithmetic_function R) = f :=
 by { ext, simp, }
 
-@[simp] lemma nat_coe_one [add_zero_class R] [has_one R] :
+@[simp] lemma nat_coe_one [add_monoid_with_one R] :
   ((1 : arithmetic_function ℕ) : arithmetic_function R) = 1 :=
 by { ext n, simp [one_apply] }
 
-@[simp] lemma int_coe_one [add_monoid R] [has_one R] [has_neg R] :
+@[simp] lemma int_coe_one [add_group_with_one R] :
   ((1 : arithmetic_function ℤ) : arithmetic_function R) = 1 :=
 by { ext n, simp [one_apply] }
 
@@ -158,6 +158,12 @@ instance : add_monoid (arithmetic_function R) :=
 
 end add_monoid
 
+instance [add_monoid_with_one R] : add_monoid_with_one (arithmetic_function R) :=
+{ nat_cast := λ n, ⟨λ x, if x = 1 then (n : R) else 0, by simp⟩,
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ _, by ext; by_cases x = 1; simp [nat.cast, *],
+  .. arithmetic_function.add_monoid, .. arithmetic_function.has_one }
+
 instance [add_comm_monoid R] : add_comm_monoid (arithmetic_function R) :=
 { add_comm := λ _ _, ext (λ _, add_comm _ _),
   .. arithmetic_function.add_monoid }
@@ -171,19 +177,19 @@ instance [add_comm_group R] : add_comm_group (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_monoid,
   .. arithmetic_function.add_group }
 
-section has_scalar
-variables {M : Type*} [has_zero R] [add_comm_monoid M] [has_scalar R M]
+section has_smul
+variables {M : Type*} [has_zero R] [add_comm_monoid M] [has_smul R M]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-instance : has_scalar (arithmetic_function R) (arithmetic_function M) :=
+instance : has_smul (arithmetic_function R) (arithmetic_function M) :=
 ⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst • g x.snd, by simp⟩⟩
 
 @[simp]
 lemma smul_apply {f : arithmetic_function R} {g : arithmetic_function M} {n : ℕ} :
   (f • g) n = ∑ x in divisors_antidiagonal n, f x.fst • g x.snd := rfl
 
-end has_scalar
+end has_smul
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
@@ -291,6 +297,7 @@ instance : semiring (arithmetic_function R) :=
   .. arithmetic_function.has_mul,
   .. arithmetic_function.has_add,
   .. arithmetic_function.add_comm_monoid,
+  .. arithmetic_function.add_monoid_with_one,
   .. arithmetic_function.monoid }
 
 end semiring
@@ -984,7 +991,7 @@ begin
       prod_congr rfl _],
     intros x hx,
     rw [dif_pos (nat.pos_of_mem_divisors (nat.snd_mem_divisors_of_mem_antidiagonal hx)),
-      units.coe_hom_apply, units.coe_zpow₀, units.coe_mk0] }
+      units.coe_hom_apply, units.coe_zpow, units.coe_mk0] }
 end
 
 end special_functions

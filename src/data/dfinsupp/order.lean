@@ -44,8 +44,8 @@ lemma le_def {f g : Π₀ i, α i} : f ≤ g ↔ ∀ i, f i ≤ g i := iff.rfl
 
 /-- The order on `dfinsupp`s over a partial order embeds into the order on functions -/
 def order_embedding_to_fun : (Π₀ i, α i) ↪o Π i, α i :=
-{ to_fun := λ f, f,
-  inj' := λ f g h, dfinsupp.ext $ λ i, by { dsimp at h, rw h },
+{ to_fun := coe_fn,
+  inj' := coe_fn_injective,
   map_rel_iff' := λ a b, (@le_def _ _ _ _ a b).symm }
 
 @[simp] lemma order_embedding_to_fun_apply {f : Π₀ i, α i} {i : ι} :
@@ -177,15 +177,9 @@ instance : has_ordered_sub (Π₀ i, α i) :=
 ⟨λ n m k, forall_congr $ λ i, by { rw [add_apply, tsub_apply], exact tsub_le_iff_right }⟩
 
 instance : canonically_ordered_add_monoid (Π₀ i, α i) :=
-{ le_iff_exists_add := λ f g, begin
-      refine ⟨λ h, ⟨g - f, _⟩, _⟩,
-      { ext i,
-        rw [add_apply, tsub_apply],
-        exact (add_tsub_cancel_of_le $ h i).symm },
-      { rintro ⟨g, rfl⟩ i,
-        rw add_apply,
-        exact self_le_add_right (f i) (g i) }
-    end,
+{ exists_add_of_le := λ f g h, ⟨g - f,
+    by { ext i, rw [add_apply, tsub_apply], exact (add_tsub_cancel_of_le $ h i).symm }⟩,
+  le_self_add := λ f g i, by { rw add_apply, exact le_self_add },
  .. dfinsupp.order_bot α,
  .. dfinsupp.ordered_add_comm_monoid α }
 

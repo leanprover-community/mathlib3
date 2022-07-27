@@ -77,20 +77,20 @@ Inserts an element into the term of `sym α n`, increasing the length by one.
 @[pattern] def cons (a : α) (s : sym α n) : sym α n.succ :=
 ⟨a ::ₘ s.1, by rw [multiset.card_cons, s.2]⟩
 
-notation a :: b := cons a b
+infixr ` ::ₛ `:67 := cons
 
 @[simp]
-lemma cons_inj_right (a : α) (s s' : sym α n) : a :: s = a :: s' ↔ s = s' :=
+lemma cons_inj_right (a : α) (s s' : sym α n) : a ::ₛ s = a ::ₛ s' ↔ s = s' :=
 subtype.ext_iff.trans $ (multiset.cons_inj_right _).trans subtype.ext_iff.symm
 
 @[simp]
-lemma cons_inj_left (a a' : α) (s : sym α n) : a :: s = a' :: s ↔ a = a' :=
+lemma cons_inj_left (a a' : α) (s : sym α n) : a ::ₛ s = a' ::ₛ s ↔ a = a' :=
 subtype.ext_iff.trans $ multiset.cons_inj_left _
 
-lemma cons_swap (a b : α) (s : sym α n) : a :: b :: s = b :: a :: s :=
+lemma cons_swap (a b : α) (s : sym α n) : a ::ₛ b ::ₛ s = b ::ₛ a ::ₛ s :=
 subtype.ext $ multiset.cons_swap a b s.1
 
-lemma coe_cons (s : sym α n) (a : α) : (a :: s : multiset α) = a ::ₘ s := rfl
+lemma coe_cons (s : sym α n) (a : α) : (a ::ₛ s : multiset α) = a ::ₘ s := rfl
 
 /--
 This is the quotient map that takes a list of n elements as an n-tuple and produces an nth
@@ -102,7 +102,7 @@ instance : has_lift (vector α n) (sym α n) :=
 @[simp] lemma of_vector_nil : ↑(vector.nil : vector α 0) = (sym.nil : sym α 0) := rfl
 
 @[simp] lemma of_vector_cons (a : α) (v : vector α n) :
-  ↑(vector.cons a v) = a :: (↑v : sym α n) := by { cases v, refl }
+  ↑(vector.cons a v) = a ::ₛ (↑v : sym α n) := by { cases v, refl }
 
 /--
 `α ∈ s` means that `a` appears as one of the factors in `s`.
@@ -115,16 +115,16 @@ s.1.decidable_mem _
 @[simp]
 lemma mem_mk (a : α) (s : multiset α) (h : s.card = n) : a ∈ mk s h ↔ a ∈ s := iff.rfl
 
-@[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
+@[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b ::ₛ s ↔ a = b ∨ a ∈ s :=
 multiset.mem_cons
 
-lemma mem_cons_of_mem {a b : α} {s : sym α n} (h : a ∈ s) : a ∈ b :: s :=
+lemma mem_cons_of_mem {a b : α} {s : sym α n} (h : a ∈ s) : a ∈ b ::ₛ s :=
 multiset.mem_cons_of_mem h
 
-@[simp] lemma mem_cons_self (a : α) (s : sym α n) : a ∈ a :: s :=
+@[simp] lemma mem_cons_self (a : α) (s : sym α n) : a ∈ a ::ₛ s :=
 multiset.mem_cons_self a s.1
 
-lemma cons_of_coe_eq (a : α) (v : vector α n) : a :: (↑v : sym α n) = ↑(a ::ᵥ v) :=
+lemma cons_of_coe_eq (a : α) (v : vector α n) : a ::ₛ (↑v : sym α n) = ↑(a ::ᵥ v) :=
 subtype.ext $ by { cases v, refl }
 
 lemma sound {a b : vector α n} (h : a.val ~ b.val) : (↑a : sym α n) = ↑b :=
@@ -142,11 +142,11 @@ def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α
   (s.erase a h : multiset α) = multiset.erase s a := rfl
 
 @[simp] lemma cons_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
-  a :: s.erase a h = s :=
+  a ::ₛ s.erase a h = s :=
 coe_injective $ multiset.cons_erase h
 
 @[simp] lemma erase_cons_head [decidable_eq α] (s : sym α n) (a : α)
-  (h : a ∈ a :: s := mem_cons_self a s) : (a :: s).erase a h = s :=
+  (h : a ∈ a ::ₛ s := mem_cons_self a s) : (a ::ₛ s).erase a h = s :=
 coe_injective $ multiset.erase_cons_head a s.1
 
 /--
@@ -169,7 +169,7 @@ def sym_equiv_sym' {α : Type*} {n : ℕ} : sym α n ≃ sym' α n :=
 equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
 
 lemma cons_equiv_eq_equiv_cons (α : Type*) (n : ℕ) (a : α) (s : sym α n) :
-  a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
+  a :: sym_equiv_sym' s = sym_equiv_sym' (a ::ₛ s) :=
 by { rcases s with ⟨⟨l⟩, _⟩, refl, }
 
 instance : has_zero (sym α 0) := ⟨⟨0, rfl⟩⟩
@@ -184,7 +184,7 @@ instance unique_zero : unique (sym α 0) :=
 /-- `repeat a n` is the sym containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.card_repeat _ _⟩
 
-lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a :: repeat a n := rfl
+lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a ::ₛ repeat a n := rfl
 
 lemma coe_repeat : (repeat a n : multiset α) = multiset.repeat a n := rfl
 
@@ -200,7 +200,7 @@ end
 lemma exists_mem (s : sym α n.succ) : ∃ a, a ∈ s :=
 multiset.card_pos_iff_exists_mem.1 $ s.2.symm ▸ n.succ_pos
 
-lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n), s = a :: s' :=
+lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n), s = a ::ₛ s' :=
 begin
   obtain ⟨a, ha⟩ := exists_mem s,
   classical,
@@ -265,7 +265,7 @@ by simp [sym.map]
   sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
 
 @[simp] lemma map_cons {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
-  (a :: s).map f = (f a) :: s.map f :=
+  (a ::ₛ s).map f = (f a) ::ₛ s.map f :=
 by simp [map, cons]
 
 @[congr] lemma map_congr {f g : α → β} {s : sym α n} (h : ∀ x ∈ s, f x = g x) :
@@ -313,3 +313,68 @@ multiset.mem_attach _ _
 coe_injective $ multiset.attach_cons _ _
 
 end sym
+
+section equiv
+
+/-! ### Combinatorial equivalences -/
+
+variables {α : Type*} {n : ℕ}
+open sym
+
+namespace sym_option_succ_equiv
+
+/-- Function from the symmetric product over `option` splitting on whether or not
+it contains a `none`. -/
+def encode [decidable_eq α] (s : sym (option α) n.succ) : sym (option α) n ⊕ sym α n.succ :=
+if h : none ∈ s
+then sum.inl (s.erase none h)
+else sum.inr (s.attach.map $ λ o,
+  option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h)
+
+@[simp] lemma encode_of_none_mem [decidable_eq α] (s : sym (option α) n.succ) (h : none ∈ s) :
+  encode s = sum.inl (s.erase none h) := dif_pos h
+
+@[simp] lemma encode_of_not_none_mem [decidable_eq α] (s : sym (option α) n.succ) (h : ¬ none ∈ s) :
+  encode s = sum.inr (s.attach.map $ λ o,
+    option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h) := dif_neg h
+
+/-- Inverse of `sym_option_succ_equiv.decode`. -/
+@[simp] def decode : sym (option α) n ⊕ sym α n.succ → sym (option α) n.succ
+| (sum.inl s) := none ::ₛ s
+| (sum.inr s) := s.map embedding.coe_option
+
+@[simp] lemma decode_encode [decidable_eq α] (s : sym (option α) n.succ) :
+  decode (encode s) = s :=
+begin
+  by_cases h : none ∈ s,
+  { simp [h] },
+  { simp only [h, decode, not_false_iff, subtype.val_eq_coe, encode_of_not_none_mem,
+      embedding.coe_option_apply, map_map, comp_app, option.coe_get],
+    convert s.attach_map_coe }
+end
+
+@[simp] lemma encode_decode [decidable_eq α] (s : sym (option α) n ⊕ sym α n.succ) :
+  encode (decode s) = s :=
+begin
+  obtain (s | s) := s,
+  { simp },
+  { unfold sym_option_succ_equiv.encode,
+    split_ifs,
+    { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
+      exact option.some_ne_none _ ha },
+    { refine map_injective (option.some_injective _) _ _,
+      convert eq.trans _ (sym_option_succ_equiv.decode (sum.inr s)).attach_map_coe,
+      simp } }
+end
+
+end sym_option_succ_equiv
+
+/-- The symmetric product over `option` is a disjoint union over simpler symmetric products. -/
+@[simps] def sym_option_succ_equiv [decidable_eq α] :
+  sym (option α) n.succ ≃ sym (option α) n ⊕ sym α n.succ :=
+{ to_fun := sym_option_succ_equiv.encode,
+  inv_fun := sym_option_succ_equiv.decode,
+  left_inv := sym_option_succ_equiv.decode_encode,
+  right_inv := sym_option_succ_equiv.encode_decode }
+
+end equiv

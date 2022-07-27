@@ -58,7 +58,7 @@ M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 
 -/
 
-variables (X : Type*) [normed_group X]
+variables (X : Type*) [normed_add_comm_group X]
 variables {M : Type} [ring M] [module M X]
 /--
 A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,
@@ -90,7 +90,7 @@ lemma Lcomplement {P : M} (h: is_Lprojection X P) : is_Lprojection X (1 - P) :=
 lemma Lcomplement_iff (P : M) : is_Lprojection X P ↔ is_Lprojection X (1 - P) :=
 ⟨Lcomplement, λ h, sub_sub_cancel 1 P ▸ h.Lcomplement⟩
 
-lemma commute [has_faithful_scalar M X] {P Q : M} (h₁ : is_Lprojection X P)
+lemma commute [has_faithful_smul M X] {P Q : M} (h₁ : is_Lprojection X P)
   (h₂ : is_Lprojection X Q) : commute P Q :=
 begin
   have PR_eq_RPR : ∀ R : M, is_Lprojection X R → P * R = R * P * R := λ R h₃,
@@ -130,7 +130,7 @@ begin
   show P * Q = Q * P, by rw [QP_eq_QPQ, PR_eq_RPR Q h₂]
 end
 
-lemma mul [has_faithful_scalar M X] {P Q : M} (h₁ : is_Lprojection X P) (h₂ : is_Lprojection X Q) :
+lemma mul [has_faithful_smul M X] {P Q : M} (h₁ : is_Lprojection X P) (h₂ : is_Lprojection X Q) :
   is_Lprojection X (P * Q) :=
 begin
   refine ⟨is_idempotent_elem.mul_of_commute (h₁.commute h₂) h₁.proj h₂.proj, _⟩,
@@ -151,7 +151,7 @@ begin
       mul_smul] }
 end
 
-lemma join [has_faithful_scalar M X] {P Q : M} (h₁ : is_Lprojection X P) (h₂ : is_Lprojection X Q) :
+lemma join [has_faithful_smul M X] {P Q : M} (h₁ : is_Lprojection X P) (h₂ : is_Lprojection X Q) :
   is_Lprojection X (P + Q - P * Q) :=
 begin
   convert (Lcomplement_iff _).mp (h₁.Lcomplement.mul h₂.Lcomplement) using 1,
@@ -164,31 +164,31 @@ instance : has_compl { f : M // is_Lprojection X f } :=
 @[simp] lemma coe_compl (P : {P : M // is_Lprojection X P}) :
   ↑(Pᶜ) = (1 : M) - ↑P := rfl
 
-instance [has_faithful_scalar M X] : has_inf {P : M // is_Lprojection X P} :=
+instance [has_faithful_smul M X] : has_inf {P : M // is_Lprojection X P} :=
 ⟨λ P Q, ⟨P * Q, P.prop.mul Q.prop⟩ ⟩
 
-@[simp] lemma coe_inf [has_faithful_scalar M X] (P Q : {P : M // is_Lprojection X P}) :
+@[simp] lemma coe_inf [has_faithful_smul M X] (P Q : {P : M // is_Lprojection X P}) :
   ↑(P ⊓ Q) = ((↑P : (M)) * ↑Q) := rfl
 
-instance [has_faithful_scalar M X] : has_sup {P : M // is_Lprojection X P} :=
+instance [has_faithful_smul M X] : has_sup {P : M // is_Lprojection X P} :=
 ⟨λ P Q, ⟨P + Q - P * Q, P.prop.join Q.prop⟩ ⟩
 
-@[simp] lemma coe_sup [has_faithful_scalar M X] (P Q : {P : M // is_Lprojection X P}) :
+@[simp] lemma coe_sup [has_faithful_smul M X] (P Q : {P : M // is_Lprojection X P}) :
   ↑(P ⊔ Q) = ((↑P : M) + ↑Q - ↑P * ↑Q) := rfl
 
-instance [has_faithful_scalar M X] : has_sdiff {P : M // is_Lprojection X P} :=
+instance [has_faithful_smul M X] : has_sdiff {P : M // is_Lprojection X P} :=
 ⟨λ P Q, ⟨P * (1 - Q), by exact P.prop.mul Q.prop.Lcomplement ⟩⟩
 
-@[simp] lemma coe_sdiff [has_faithful_scalar M X] (P Q : {P : M // is_Lprojection X P}) :
+@[simp] lemma coe_sdiff [has_faithful_smul M X] (P Q : {P : M // is_Lprojection X P}) :
   ↑(P \ Q) = (↑P : M) * (1 - ↑Q) := rfl
 
-instance [has_faithful_scalar M X] : partial_order {P : M // is_Lprojection X P} :=
+instance [has_faithful_smul M X] : partial_order {P : M // is_Lprojection X P} :=
 { le := λ P Q, (↑P : M) = ↑(P ⊓ Q),
   le_refl := λ P, by simpa only [coe_inf, ←sq] using (P.prop.proj.eq).symm,
   le_trans := λ P Q R h₁ h₂, by { simp only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
   le_antisymm := λ P Q h₁ h₂, subtype.eq (by convert (P.prop.commute Q.prop).eq) }
 
-lemma le_def [has_faithful_scalar M X] (P Q : {P : M // is_Lprojection X P}) :
+lemma le_def [has_faithful_smul M X] (P Q : {P : M // is_Lprojection X P}) :
   P ≤ Q ↔ (P : M) = ↑(P ⊓ Q) :=
 iff.rfl
 
@@ -206,16 +206,16 @@ instance : has_one {P : M // is_Lprojection X P} :=
 @[simp] lemma coe_one : ↑(1 : {P : M // is_Lprojection X P}) = (1 : M) :=
 rfl
 
-instance [has_faithful_scalar M X] : bounded_order {P : M // is_Lprojection X P} :=
+instance [has_faithful_smul M X] : bounded_order {P : M // is_Lprojection X P} :=
 { top := 1,
   le_top := λ P, (mul_one (P : M)).symm,
   bot := 0,
   bot_le := λ P, (zero_mul (P : M)).symm, }
 
-@[simp] lemma coe_bot [has_faithful_scalar M X] :
+@[simp] lemma coe_bot [has_faithful_smul M X] :
   ↑(bounded_order.bot : {P : M // is_Lprojection X P}) = (0 : M) := rfl
 
-@[simp] lemma coe_top [has_faithful_scalar M X] :
+@[simp] lemma coe_top [has_faithful_smul M X] :
   ↑(bounded_order.top : {P : M // is_Lprojection X P}) = (1 : M) := rfl
 
 lemma compl_mul {P : {P : M // is_Lprojection X P}} {Q : M} :
@@ -225,7 +225,7 @@ lemma mul_compl_self {P : {P : M // is_Lprojection X P}} :
   (↑P : M) * (↑Pᶜ) = 0 :=
 by rw [coe_compl, mul_sub, mul_one, P.prop.proj.eq, sub_self]
 
-lemma distrib_lattice_lemma [has_faithful_scalar M X] {P Q R : {P : M // is_Lprojection X P}} :
+lemma distrib_lattice_lemma [has_faithful_smul M X] {P Q R : {P : M // is_Lprojection X P}} :
   ((↑P : M) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
 by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q * ↑R) ↑Pᶜ,
     ← coe_inf Q, (Pᶜ.prop.commute R.prop).eq, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
@@ -235,7 +235,7 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     P.prop.proj.eq, R.prop.proj.eq, ← coe_inf Q, mul_assoc, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
     ← mul_assoc, Pᶜ.prop.proj.eq]
 
-instance [has_faithful_scalar M X] : distrib_lattice {P : M // is_Lprojection X P} :=
+instance [has_faithful_smul M X] : distrib_lattice {P : M // is_Lprojection X P} :=
 { le_sup_left := λ P Q, by rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc,
     P.prop.proj.eq, sub_self, add_zero],
   le_sup_right := λ P Q,
@@ -277,15 +277,8 @@ instance [has_faithful_scalar M X] : distrib_lattice {P : M // is_Lprojection X 
   .. is_Lprojection.subtype.has_sup,
   .. is_Lprojection.subtype.partial_order }
 
-instance [has_faithful_scalar M X] : boolean_algebra {P : M // is_Lprojection X P} :=
-{ sup_inf_sdiff := λ P Q, subtype.ext $
-    by rw [coe_sup, coe_inf, coe_sdiff, mul_assoc, ← mul_assoc ↑Q,
-    (Q.prop.commute P.prop).eq, mul_assoc ↑P ↑Q, ← coe_compl, mul_compl_self, mul_zero, mul_zero,
-    sub_zero, ← mul_add, coe_compl, add_sub_cancel'_right, mul_one],
-  inf_inf_sdiff := λ P Q, subtype.ext $
-    by rw [coe_inf, coe_inf, coe_sdiff, coe_bot, mul_assoc, ← mul_assoc ↑Q,
-      (Q.prop.commute P.prop).eq, ← coe_compl, mul_assoc, mul_compl_self, mul_zero, mul_zero],
-  inf_compl_le_bot := λ P,
+instance [has_faithful_smul M X] : boolean_algebra {P : M // is_Lprojection X P} :=
+{ inf_compl_le_bot := λ P,
     (subtype.ext (by rw [coe_inf, coe_compl, coe_bot, ← coe_compl, mul_compl_self])).le,
   top_le_sup_compl := λ P, (subtype.ext(by rw [coe_top, coe_sup, coe_compl,
     add_sub_cancel'_right, ← coe_compl, mul_compl_self, sub_zero])).le,

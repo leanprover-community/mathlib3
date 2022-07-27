@@ -174,6 +174,9 @@ instance : non_assoc_semiring (monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
+  nat_cast  := λ n, single 1 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := λ _, by simp [nat.cast]; refl,
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
@@ -259,8 +262,8 @@ instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 variables {S : Type*}
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_scalar R (monoid_algebra k G) :=
-finsupp.has_scalar
+  has_smul R (monoid_algebra k G) :=
+finsupp.has_smul
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (monoid_algebra k G) :=
@@ -270,12 +273,12 @@ instance [semiring R] [semiring k] [module R k] :
   module R (monoid_algebra k G) :=
 finsupp.module G k
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
-  has_faithful_scalar R (monoid_algebra k G) :=
-finsupp.has_faithful_scalar
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k] [nonempty G] :
+  has_faithful_smul R (monoid_algebra k G) :=
+finsupp.has_faithful_smul
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_scalar R S] [is_scalar_tower R S k] :
+  [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
@@ -1017,6 +1020,9 @@ instance : non_assoc_semiring (add_monoid_algebra k G) :=
   mul       := (*),
   zero      := 0,
   add       := (+),
+  nat_cast  := λ n, single 0 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := λ _, by simp [nat.cast]; refl,
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
@@ -1029,8 +1035,8 @@ end mul_one_class
 section semiring
 
 instance {R : Type*} [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_scalar R (add_monoid_algebra k G) :=
-finsupp.has_scalar
+  has_smul R (add_monoid_algebra k G) :=
+finsupp.has_smul
 
 variables [semiring k] [add_monoid G]
 
@@ -1106,15 +1112,15 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
 finsupp.distrib_mul_action G k
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
-  has_faithful_scalar R (add_monoid_algebra k G) :=
-finsupp.has_faithful_scalar
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k] [nonempty G] :
+  has_faithful_smul R (add_monoid_algebra k G) :=
+finsupp.has_faithful_smul
 
 instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
 finsupp.module G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_scalar R S] [is_scalar_tower R S k] :
+  [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (add_monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 

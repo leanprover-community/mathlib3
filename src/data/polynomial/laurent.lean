@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 
 import data.polynomial.algebra_map
+import ring_theory.localization.basic
 
 /-!  # Laurent polynomials
 
@@ -150,7 +151,7 @@ by rw [← T_add, sub_eq_add_neg]
 
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
-by rw [T, T, single_pow n, one_pow, nsmul_eq_mul, int.nat_cast_eq_coe_nat]
+by rw [T, T, single_pow n, one_pow, nsmul_eq_mul]
 
 /-- The `simp` version of `mul_assoc`, in the presence of `T`'s. -/
 @[simp]
@@ -290,7 +291,7 @@ begin
     ext a,
     have := ((not_le.mp n0).trans_le (int.coe_zero_le a)).ne',
     simp only [coeff, comap_domain_apply, int.of_nat_eq_coe, coeff_zero, single_apply_eq_zero, this,
-      forall_false_left] }
+      is_empty.forall_iff] }
 end
 
 @[simp] lemma left_inverse_trunc_to_laurent :
@@ -312,6 +313,10 @@ left_inverse_trunc_to_laurent.injective
 @[simp] lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
+
+lemma _root_.polynomial.to_laurent_ne_zero {f : R[X]} :
+  f ≠ 0 ↔ f.to_laurent ≠ 0 :=
+(map_ne_zero_iff _ (by exact polynomial.to_laurent_injective)).symm
 
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
@@ -335,7 +340,7 @@ end
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
   rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, T_sub,
-    ← mul_assoc, int.nat_cast_eq_coe_nat, ← hf],
+    ← mul_assoc, ← hf],
   exact Qf,
 end
 
@@ -355,20 +360,159 @@ begin
     simpa using hn }
 end
 
+section support
+
+lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
+by simpa only [← single_eq_C_mul_T] using support_single_subset
+
+lemma support_C_mul_T_of_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
+begin
+  rw ← single_eq_C_mul_T,
+  exact support_single_ne_zero _ a0,
+end
+
+/--  The support of a polynomial `f` is a finset in `ℕ`.  The lemma `to_laurent_support f`
+shows that the support of `f.to_laurent` is the same finset, but viewed in `ℤ` under the natural
+inclusion `ℕ ↪ ℤ`. -/
+lemma to_laurent_support (f : R[X]) :
+  f.to_laurent.support = f.support.map nat.cast_embedding :=
+begin
+  generalize' hd : f.support = s,
+  revert f,
+  refine finset.induction_on s _ _; clear s,
+  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, eq_self_iff_true,
+      implies_true_iff, finset.map_empty] {contextual := tt} },
+  { intros a s as hf f fs,
+    have : (erase a f).to_laurent.support = s.map nat.cast_embedding := hf (f.erase a) (by simp only
+      [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
+    rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
+      polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
+    { congr,
+      exact support_C_mul_T_of_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
+    { rw this,
+      exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
+end
+
+end support
+
+section degrees
+
+/--  The degree of a Laurent polynomial takes values in `with_bot ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of its support of `f`,
+or `⊥`, if `f = 0`. -/
+def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
+
+@[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
+
+@[simp] lemma degree_eq_bot_iff {f : R[T;T⁻¹]} : f.degree = ⊥ ↔ f = 0 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h, degree_zero]⟩,
+  rw [degree, finset.max_eq_sup_with_bot] at h,
+  ext n,
+  refine not_not.mp (λ f0, _),
+  simp_rw [finset.sup_eq_bot_iff, finsupp.mem_support_iff, ne.def, with_bot.coe_ne_bot] at h,
+  exact h n f0,
+end
+
+section exact_degrees
+
+open_locale classical
+
+@[simp] lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
+begin
+  rw degree,
+  convert finset.max_singleton,
+  refine support_eq_singleton.mpr _,
+  simp only [← single_eq_C_mul_T, single_eq_same, a0, ne.def, not_false_iff, eq_self_iff_true,
+    and_self],
+end
+
+lemma degree_C_mul_T_ite (n : ℤ) (a : R) : (C a * T n).degree = ite (a = 0) ⊥ n :=
+by split_ifs with h h;
+  simp only [h, map_zero, zero_mul, degree_zero, degree_C_mul_T, ne.def, not_false_iff]
+
+@[simp] lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
+begin
+  rw [← one_mul (T n), ← map_one C],
+  exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),
+end
+
+lemma degree_C {a : R} (a0 : a ≠ 0) : (C a).degree = 0 :=
+begin
+  rw [← mul_one (C a), ← T_zero],
+  exact degree_C_mul_T 0 a a0
+end
+
+lemma degree_C_ite (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+by split_ifs with h h;
+  simp only [h, map_zero, degree_zero, degree_C, ne.def, not_false_iff]
+
+end exact_degrees
+
+section degree_bounds
+
+lemma degree_C_mul_T_le (n : ℤ) (a : R) : (C a * T n).degree ≤ n :=
+begin
+  by_cases a0 : a = 0,
+  { simp only [a0, map_zero, zero_mul, degree_zero, bot_le] },
+  { exact (degree_C_mul_T n a a0).le }
+end
+
+lemma degree_T_le (n : ℤ) : (T n : R[T;T⁻¹]).degree ≤ n :=
+(le_of_eq (by rw [map_one, one_mul])).trans (degree_C_mul_T_le n (1 : R))
+
+lemma degree_C_le (a : R) : (C a).degree ≤ 0 :=
+(le_of_eq (by rw [T_zero, mul_one])).trans (degree_C_mul_T_le 0 a)
+
+end degree_bounds
+
+end degrees
+
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent
 
 instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
-{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+{ smul_assoc := λ x y z, by simp only [has_smul.smul, has_smul.comp.smul, map_mul, mul_assoc] }
 
 end semiring
 
 section comm_semiring
+variable [comm_semiring R]
 
 instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
 { commutes' := λ f l, by simp [mul_comm],
   smul_def' := λ f l, rfl,
   .. polynomial.to_laurent }
+
+lemma algebra_map_X_pow (n : ℕ) : algebra_map R[X] R[T;T⁻¹] (X ^ n) = T n :=
+polynomial.to_laurent_X_pow n
+
+@[simp]
+lemma algebra_map_eq_to_laurent (f : R[X]) : algebra_map R[X] R[T;T⁻¹] f = f.to_laurent :=
+rfl
+
+lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] :=
+{ map_units := λ t, begin
+    cases t with t ht,
+    rcases submonoid.mem_closure_singleton.mp ht with ⟨n, rfl⟩,
+    simp only [is_unit_T n, set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow]
+  end,
+  surj := λ f, begin
+    induction f using laurent_polynomial.induction_on_mul_T with f n,
+    have := (submonoid.closure ({X} : set R[X])).pow_mem submonoid.mem_closure_singleton_self n,
+    refine ⟨(f, ⟨_, this⟩), _⟩,
+    simp only [set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow, mul_T_assoc,
+      add_left_neg, T_zero, mul_one],
+  end,
+  eq_iff_exists := λ f g, begin
+    rw [algebra_map_eq_to_laurent, algebra_map_eq_to_laurent, polynomial.to_laurent_inj],
+    refine ⟨_, _⟩,
+    { rintro rfl,
+      exact ⟨1, rfl⟩ },
+    { rintro ⟨⟨h, hX⟩, h⟩,
+      rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
+      exact mul_X_pow_injective n (by simpa only [X_pow_mul] using h) }
+  end }
 
 end comm_semiring
 

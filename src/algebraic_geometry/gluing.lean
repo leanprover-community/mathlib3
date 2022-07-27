@@ -106,7 +106,7 @@ begin
   refine ⟨_, _ ≫ D.to_LocallyRingedSpace_glue_data.to_glue_data.ι i, _⟩,
   swap, exact (D.U i).affine_cover.map y,
   split,
-  { dsimp,
+  { dsimp [-set.mem_range],
     rw [coe_comp, set.range_comp],
     refine set.mem_image_of_mem _ _,
     exact (D.U i).affine_cover.covers y },

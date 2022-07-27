@@ -53,7 +53,7 @@ namespace phragmen_lindelof
 ### Auxiliary lemmas
 -/
 
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 /-- An auxiliary lemma that combines two double exponential estimates into a similar estimate
 on the difference of the functions. -/
@@ -382,15 +382,15 @@ begin
     refine ⟨c, hc, max B 0, _⟩,
     rw [← comap_comap, comap_abs_at_top, comap_sup, inf_sup_right],
     -- We prove separately the estimates as `ζ.re → ∞` and as `ζ.re → -∞`
-    refine is_O.join _ ((hO.comp_tendsto $ tendsto_exp_comap_re_at_top.inf H.tendsto).trans $
+    refine is_O.sup _ ((hO.comp_tendsto $ tendsto_exp_comap_re_at_top.inf H.tendsto).trans $
       is_O.of_bound 1 _),
     { -- For the estimate as `ζ.re → -∞`, note that `f` is continuous within the first quadrant at
       -- zero, hence `f (exp ζ)` has a limit as `ζ.re → -∞`, `0 < ζ.im < π / 2`.
       have hc : continuous_within_at f (Ioi 0 ×ℂ Ioi 0) 0,
       { refine (hd.continuous_on _ _).mono subset_closure,
         simp [closure_re_prod_im, mem_re_prod_im] },
-      refine (is_O_one_of_tendsto ℝ (hc.tendsto.comp $ tendsto_exp_comap_re_at_bot.inf
-        H.tendsto)).trans (is_O_of_le _ (λ w, _)),
+      refine ((hc.tendsto.comp $ tendsto_exp_comap_re_at_bot.inf
+        H.tendsto).is_O_one ℝ).trans (is_O_of_le _ (λ w, _)),
       rw [norm_one, real.norm_of_nonneg (real.exp_pos _).le, real.one_le_exp_iff],
       exact mul_nonneg (le_max_right _ _) (real.exp_pos _).le },
     { -- For the estimate as `ζ.re → ∞`, we reuse the uppoer estimate on `f`
@@ -800,8 +800,8 @@ begin
       (norm_pos_iff.2 H) tendsto_const_nhds).eventually (eventually_gt_at_top C)).exists },
   intro n,
   -- This estimate follows from the Phragmen-Lindelöf principle in the right half-plane.
-  refine right_half_plane_of_tendsto_zero_on_real (differentiable_exp.pow.diff_cont_on_cl.smul hd)
-    _ _ (λ y, _) hz.le,
+  refine right_half_plane_of_tendsto_zero_on_real
+    ((differentiable_exp.pow n).diff_cont_on_cl.smul hd) _ _ (λ y, _) hz.le,
   { rcases hexp with ⟨c, hc, B, hO⟩,
     refine ⟨max c 1, max_lt hc one_lt_two, n + max B 0, is_O.of_norm_left _⟩,
     simp only [hg],

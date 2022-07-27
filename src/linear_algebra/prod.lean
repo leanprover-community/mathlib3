@@ -562,9 +562,8 @@ variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
 protected def prod :
   (M × M₃) ≃ₗ[R] (M₂ × M₄) :=
-{ map_add'  := λ x y, prod.ext (e₁.map_add _ _) (e₂.map_add _ _),
-  map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
-  .. equiv.prod_congr e₁.to_equiv e₂.to_equiv }
+{ map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
+  .. e₁.to_add_equiv.prod_congr e₂.to_add_equiv }
 
 lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 

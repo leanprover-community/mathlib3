@@ -38,7 +38,7 @@ variables {𝕜 E : Type*}
 /-- Given a set `s` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x₀` and `s`, in the sense that it sends `x₀` to 1 and
 all of `s` to values strictly below `1`. -/
-lemma separate_convex_open_set [semi_normed_group E] [normed_space ℝ E] {s : set E}
+lemma separate_convex_open_set [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E}
   (hs₀ : (0 : E) ∈ s) (hs₁ : convex ℝ s) (hs₂ : is_open s) {x₀ : E} (hx₀ : x₀ ∉ s) :
   ∃ f : E →L[ℝ] ℝ, f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
 begin
@@ -73,7 +73,7 @@ begin
     apply_instance }
 end
 
-variables [normed_group E] [normed_space ℝ E] {s t : set E} {x y : E}
+variables [normed_add_comm_group E] [normed_space ℝ E] {s t : set E} {x y : E}
 
 /-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is open,
 there is a continuous linear functional which separates them. -/
@@ -185,4 +185,16 @@ begin
     geometric_hahn_banach_compact_closed (convex_singleton x) is_compact_singleton
       (convex_singleton y) is_closed_singleton (disjoint_singleton.2 hxy),
   exact ⟨f, by linarith [hs x rfl, ht y rfl]⟩,
+end
+
+/-- A closed convex set is the intersection of the halfspaces containing it. -/
+lemma Inter_halfspaces_eq (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
+  (⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ s, l x ≤ l y}) = s :=
+begin
+  rw set.Inter_set_of,
+  refine set.subset.antisymm (λ x hx, _) (λ x hx l, ⟨x, hx, le_rfl⟩),
+  by_contra,
+  obtain ⟨l, s, hlA, hl⟩ := geometric_hahn_banach_closed_point hs₁ hs₂ h,
+  obtain ⟨y, hy, hxy⟩ := hx l,
+  exact ((hxy.trans_lt (hlA y hy)).trans hl).not_le le_rfl,
 end

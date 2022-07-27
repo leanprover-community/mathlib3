@@ -547,7 +547,8 @@ lemma norm_eq_of_mem_sphere' (x : sphere (1:E) r) : ∥(x : E)∥ = r := mem_sph
 @[to_additive] lemma ne_one_of_mem_sphere (hr : r ≠ 0) (x : sphere (1 : E) r) : (x : E) ≠ 1 :=
 ne_one_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere' x
 
-@[to_additive] lemma ne_one_of_mem_unit_sphere (x : sphere (1:E) 1) : (x:E) ≠ 1 :=
+@[to_additive ne_zero_of_mem_unit_sphere]
+lemma ne_one_of_mem_unit_sphere (x : sphere (1 : E) 1) : (x:E) ≠ 1 :=
 ne_one_of_mem_sphere one_ne_zero _
 
 namespace isometric

@@ -107,7 +107,8 @@ by convert two_nsmul_eq_iff; simp
 lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
 
-theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
+theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} :
+  cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,
   { intro Hcos,
@@ -132,12 +133,12 @@ begin
         zero_mul] }
 end
 
-theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} :
+theorem sin_eq_iff_coe_eq_or_add_eq_pi {θ ψ : ℝ} :
   sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
 begin
   split,
   { intro Hsin, rw [← cos_pi_div_two_sub, ← cos_pi_div_two_sub] at Hsin,
-    cases cos_eq_iff_eq_or_eq_neg.mp Hsin with h h,
+    cases cos_eq_iff_coe_eq_or_eq_neg.mp Hsin with h h,
     { left, rw [coe_sub, coe_sub] at h, exact sub_right_inj.1 h },
       right, rw [coe_sub, coe_sub, eq_neg_iff_add_eq_zero, add_sub,
       sub_add_eq_add_sub, ← coe_add, add_halves, sub_sub, sub_eq_zero] at h,
@@ -156,8 +157,8 @@ end
 
 theorem cos_sin_inj {θ ψ : ℝ} (Hcos : cos θ = cos ψ) (Hsin : sin θ = sin ψ) : (θ : angle) = ψ :=
 begin
-  cases cos_eq_iff_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
-  cases sin_eq_iff_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
+  cases cos_eq_iff_coe_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
+  cases sin_eq_iff_coe_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
   rw [eq_neg_iff_add_eq_zero, hs] at hc,
   obtain ⟨n, hn⟩ : ∃ n, n • _ = _ := quotient_add_group.left_rel_apply.mp (quotient.exact' hc),
   rw [← neg_one_mul, add_zero, ← sub_eq_zero, zsmul_eq_mul, ← mul_assoc, ← sub_mul,
@@ -186,6 +187,31 @@ rfl
 
 @[continuity] lemma continuous_cos : continuous cos :=
 continuous_quotient_lift_on' _ real.continuous_cos
+
+lemma cos_eq_real_cos_iff_eq_or_eq_neg {θ : angle} {ψ : ℝ} : cos θ = real.cos ψ ↔ θ = ψ ∨ θ = -ψ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact cos_eq_iff_coe_eq_or_eq_neg
+end
+
+lemma cos_eq_iff_eq_or_eq_neg {θ ψ : angle} : cos θ = cos ψ ↔ θ = ψ ∨ θ = -ψ :=
+begin
+  induction ψ using real.angle.induction_on,
+  exact cos_eq_real_cos_iff_eq_or_eq_neg
+end
+
+lemma sin_eq_real_sin_iff_eq_or_add_eq_pi {θ : angle} {ψ : ℝ} :
+  sin θ = real.sin ψ ↔ θ = ψ ∨ θ + ψ = π :=
+begin
+  induction θ using real.angle.induction_on,
+  exact sin_eq_iff_coe_eq_or_add_eq_pi
+end
+
+lemma sin_eq_iff_eq_or_add_eq_pi {θ ψ : angle} : sin θ = sin ψ ↔ θ = ψ ∨ θ + ψ = π :=
+begin
+  induction ψ using real.angle.induction_on,
+  exact sin_eq_real_sin_iff_eq_or_add_eq_pi
+end
 
 end angle
 

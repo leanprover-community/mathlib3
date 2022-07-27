@@ -1022,6 +1022,8 @@ section pi
 
 variables [Π i, topological_space (π i)] [∀ i, locally_compact_space (π i)]
 
+/--In general it suffices that all but finitely many of the spaces are compact,
+  but that's not straightforward to state and use. -/
 instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π i, π i) :=
 ⟨λ t n hn, begin
   rw [nhds_pi, filter.mem_pi] at hn,

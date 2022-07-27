@@ -784,7 +784,7 @@ end
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
 by rw [norm_zpow, norm_p]; field_simp
 
-instance : nondiscrete_normed_field ℚ_[p] :=
+instance : nontrivially_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
     rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt

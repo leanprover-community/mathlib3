@@ -462,7 +462,7 @@ end
 
 protected lemma measurable_set_eq_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {a | τ a = i} :=
-hτ.measurable_set_eq_of_countable (set.countable_encodable _) i
+hτ.measurable_set_eq_of_countable (set.to_countable _) i
 
 protected lemma measurable_set_lt_of_countable
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
@@ -476,7 +476,7 @@ end
 
 protected lemma measurable_set_lt_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {a | τ a < i} :=
-hτ.measurable_set_lt_of_countable (set.countable_encodable _) i
+hτ.measurable_set_lt_of_countable (set.to_countable _) i
 
 protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : α → ι} {f : filtration ι m}
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
@@ -491,7 +491,7 @@ end
 protected lemma measurable_set_ge_of_encodable {ι} [linear_order ι] {τ : α → ι} {f : filtration ι m}
   [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {a | i ≤ τ a} :=
-hτ.measurable_set_ge_of_countable (set.countable_encodable _) i
+hτ.measurable_set_ge_of_countable (set.to_countable _) i
 
 end is_stopping_time
 
@@ -595,7 +595,7 @@ lemma is_stopping_time_of_measurable_set_eq [preorder ι] [encodable ι]
 begin
   intro i,
   rw show {x | τ x ≤ i} = ⋃ k ≤ i, {x | τ x = k}, by { ext, simp },
-  refine measurable_set.bUnion (set.countable_encodable _) (λ k hk, _),
+  refine measurable_set.bUnion (set.to_countable _) (λ k hk, _),
   exact f.mono hk _ (hτ k),
 end
 
@@ -897,7 +897,7 @@ end
 
 protected lemma measurable_set_eq_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {a | τ a = i} :=
-hτ.measurable_set_eq_of_countable' (set.countable_encodable _) i
+hτ.measurable_set_eq_of_countable' (set.to_countable _) i
 
 protected lemma measurable_set_ge_of_countable'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
@@ -913,7 +913,7 @@ end
 
 protected lemma measurable_set_ge_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {a | i ≤ τ a} :=
-hτ.measurable_set_ge_of_countable' (set.countable_encodable _) i
+hτ.measurable_set_ge_of_countable' (set.to_countable _) i
 
 protected lemma measurable_set_lt_of_countable'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
@@ -928,7 +928,7 @@ end
 
 protected lemma measurable_set_lt_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {a | τ a < i} :=
-hτ.measurable_set_lt_of_countable' (set.countable_encodable _) i
+hτ.measurable_set_lt_of_countable' (set.to_countable _) i
 
 protected lemma measurable_space_le_of_countable (hτ : is_stopping_time f τ)
   (h_countable : (set.range τ).countable) :
@@ -1361,9 +1361,9 @@ end
 
 end add_comm_monoid
 
-section normed_group
+section normed_add_comm_group
 
-variables [normed_group β] {p : ℝ≥0∞} {μ : measure α}
+variables [normed_add_comm_group β] {p : ℝ≥0∞} {μ : measure α}
 
 lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
   mem_ℒp (stopped_process u τ n) p μ :=
@@ -1399,7 +1399,7 @@ lemma integrable_stopped_value (hτ : is_stopping_time f τ)
   integrable (stopped_value u τ) μ :=
 by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_value hτ hu hbdd, }
 
-end normed_group
+end normed_add_comm_group
 
 end nat
 

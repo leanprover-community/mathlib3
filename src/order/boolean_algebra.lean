@@ -26,7 +26,6 @@ intervals.)
 
 ## Main declarations
 
-* `has_compl`: a type class for the complement operator
 * `generalized_boolean_algebra`: a type class for generalized Boolean algebras
 * `boolean_algebra`: a type class for Boolean algebras.
 * `Prop.boolean_algebra`: the Boolean algebra instance on `Prop`
@@ -41,11 +40,6 @@ The `sup_inf_sdiff` and `inf_inf_sdiff` axioms for the relative complement opera
 complement operator `a \ b` for all `a`, `b`. Instead, the postulates there amount to an assumption
 that for all `a, b : α` where `a ≤ b`, the equations `x ⊔ a = b` and `x ⊓ a = ⊥` have a solution
 `x`. `disjoint.sdiff_unique` proves that this `x` is in fact `b \ a`.
-
-## Notations
-
-* `xᶜ` is notation for `compl x`
-* `x \ y` is notation for `sdiff x y`.
 
 ## References
 
@@ -586,14 +580,6 @@ end generalized_boolean_algebra
 ### Boolean algebras
 -/
 
-
-/-- Set / lattice complement -/
-@[notation_class] class has_compl (α : Type*) := (compl : α → α)
-
-export has_compl (compl)
-
-postfix `ᶜ`:(max+1) := compl
-
 /-- A Boolean algebra is a bounded distributive lattice with a complement operator `ᶜ` such that
 `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`. For convenience, it must also provide a set difference operation `\`
 satisfying `x \ y = x ⊓ yᶜ`.
@@ -617,6 +603,16 @@ class boolean_algebra (α : Type u) extends distrib_lattice α, has_compl α, ha
 @[priority 100]  -- see Note [lower instance priority]
 instance boolean_algebra.to_bounded_order [h : boolean_algebra α] : bounded_order α :=
 { ..h }
+
+/-- A bounded generalized boolean algebra is a boolean algebra. -/
+@[reducible] -- See note [reducible non instances]
+def generalized_boolean_algebra.to_boolean_algebra [generalized_boolean_algebra α] [order_top α] :
+  boolean_algebra α :=
+{ compl := λ a, ⊤ \ a,
+  inf_compl_le_bot := λ _, disjoint_sdiff_self_right,
+  top_le_sup_compl := λ _, le_sup_sdiff,
+  sdiff_eq := λ _ _, by { rw [←inf_sdiff_assoc, inf_top_eq], refl },
+  ..‹generalized_boolean_algebra α›, ..generalized_boolean_algebra.to_order_bot, ..‹order_top α› }
 
 section boolean_algebra
 variables [boolean_algebra α]
@@ -763,36 +759,11 @@ by rw [sdiff_eq, compl_inf, compl_compl]
 end boolean_algebra
 
 instance Prop.boolean_algebra : boolean_algebra Prop :=
-{ compl := not,
-  inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
+{ inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
+  .. Prop.has_compl,
   .. Prop.distrib_lattice,
   .. Prop.bounded_order }
-
-instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
-  has_sdiff (Π i, α i) :=
-⟨λ x y i, x i \ y i⟩
-
-lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
-  (x \ y) = λ i, x i \ y i := rfl
-
-@[simp]
-lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
-  (x \ y) i = x i \ y i := rfl
-
-instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
-  has_compl (Π i, α i) :=
-⟨λ x i, (x i)ᶜ⟩
-
-lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
-  xᶜ = λ i, (x i)ᶜ := rfl
-
-instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
-instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
-
-@[simp]
-lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
-  xᶜ i = (x i)ᶜ := rfl
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=

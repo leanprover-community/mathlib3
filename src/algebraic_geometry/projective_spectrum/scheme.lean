@@ -64,7 +64,6 @@ For a homogeneous element `f` of degree `n`
 * `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero,
   then the preimage of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
 
-
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/
 

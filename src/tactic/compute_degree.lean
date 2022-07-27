@@ -130,26 +130,24 @@ at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
 The guessed degree should coincide with the behaviour of `resolve_sum_step`:
 `resolve_sum_step` cannot solve a goal `f.nat_degree ≤ d` if `guess_degree f < d`.
  -/
-meta def guess_degree : expr → tactic expr
-| `(has_zero.zero)           := pure `(0)
-| `(has_one.one)             := pure `(0)
+meta def guess_degree : expr → tactic ℕ
+| `(has_zero.zero)           := pure 0
+| `(has_one.one)             := pure 0
 | `(- %%f)                   := guess_degree f
-| (app `(⇑C) x)              := pure `(0)
-| `(X)                       := pure `(1)
+| (app `(⇑C) x)              := pure 0
+| `(X)                       := pure 1
 | `(bit0 %%a)                := guess_degree a
 | `(bit1 %%a)                := guess_degree a
 | `(%%a + %%b)               := do [da, db] ← [a, b].mmap guess_degree,
-                                pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
+                                if da ≤ db then return db else return da
 | `(%%a - %%b)               := do [da, db] ← [a, b].mmap guess_degree,
-                                pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
+                                if da ≤ db then return db else return da
 | `(%%a * %%b)               := do [da, db] ← [a, b].mmap guess_degree,
-                                pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
-| `(%%a ^ %%b)               := do da ← guess_degree a,
-                                pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
-| (app `(⇑(monomial %%n)) x) := pure n
-| e                          := do `(@polynomial %%R %%inst) ← infer_type e,
-                                pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
-                                pure $ expr.mk_app pe [e]
+                                pure $ da + db
+| `(%%a ^ %%b)               := do da ← guess_degree a, db ← eval_expr' ℕ b,
+                                pure $ da * db
+| (app `(⇑(monomial %%n)) x) := eval_expr' ℕ n
+| e                          := pure 0
 
 /-- `resolve_sum_step e` takes the type of the current goal `e` as input.
 It tries to make progress on the goal `e` by reducing it to subgoals.
@@ -170,7 +168,8 @@ meta def resolve_sum_step : expr → tactic unit
 | `(nat_degree %%tl ≤ %%tr) := match tl with
   | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
   | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
+  | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap
+      (λ x, do x' ← guess_degree x, to_expr x'.to_pexpr tt ff),
     refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
   | `(- %%f)         := refine ``((nat_degree_neg _).le.trans _)
   | `(X ^ %%n)       := refine ``((nat_degree_X_pow_le %%n).trans _)
@@ -270,7 +269,7 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
   op ← to_expr ``(bit1 : %%R → %%R) tt ff,
   return $ op.mk_app [ta]
 | `(%%a + %%b) := do
-  [da, db] ← [a,b].mmap $ λ f, guess_degree f >>= eval_guessing 0,
+  [da, db] ← [a,b].mmap guess_degree,
   if da ≠ db then
     if da < db then
       get_lead_coeff b
@@ -281,7 +280,7 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
     op ← to_expr ``(has_add.add : %%R → %%R → %%R),
     return $ op.mk_app [ta, tb]
 | `(%%a - %%b) := do
-  [da, db] ← [a,b].mmap $ λ f, guess_degree f >>= eval_guessing 0,
+  [da, db] ← [a,b].mmap guess_degree,
   if da ≠ db then
     if da < db then do
       op ← to_expr ``(has_neg.neg : %%R → %%R) tt ff,
@@ -307,6 +306,7 @@ meta def get_lead_coeff (R : expr) : expr → tactic expr
   return $ op.mk_app [la]
 | e := do
   deg ← guess_degree e,
+  deg ← to_expr deg.to_pexpr tt ff,
   op ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
   return $ op.mk_app [e, deg]
 
@@ -346,7 +346,7 @@ focus1 $ do t ← target,
   try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  expected_deg ← guess_degree tl >>= eval_guessing 0,
+  expected_deg ← guess_degree tl,
   deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
   if deg_bound < expected_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
@@ -389,7 +389,7 @@ match f with
   refine ``(congr_arg bit1 _),
   reflexivity <|> resolve_coeff
 | `(%%a + %%b) := do
-  [da, db] ← [a,b].mmap (λ e, guess_degree e >>= eval_guessing 0),
+  [da, db] ← [a,b].mmap guess_degree,
   (if da ≠ db then do
     if da < db then refine ``((coeff_add_eq_right_of_succ _ _).trans _)
     else refine ``((coeff_add_eq_left_of_succ _ _).trans _),
@@ -398,7 +398,7 @@ match f with
   congr' (some 1));
   resolve_coeff
 | `(%%a - %%b) := do
-  [da, db] ← [a,b].mmap (λ e, guess_degree e >>= eval_guessing 0),
+  [da, db] ← [a,b].mmap guess_degree,
   (if da ≠ db then do
     if da < db then refine ``((coeff_sub_eq_right_of_succ _ _).trans (neg_inj.mpr _))
     else refine ``((coeff_sub_eq_left_of_succ _ _).trans _),
@@ -406,13 +406,13 @@ match f with
   else refine ``((coeff_sub _ _ _).trans _) >> congr' (some 1));
   resolve_coeff
 | `(%%a * %%b) := do
-  [da, db] ← [a,b].mmap guess_degree,
+  [da, db] ← [a,b].mmap (λ x, do x' ← guess_degree x, to_expr x'.to_pexpr tt ff),
   refine ``((coeff_mul_of_nat_degree_le' (by norm_num : %%da + %%db = %%n) _ _).trans _),
   iterate_at_most' 2 compute_degree_le,
   try $ congr' (some 1);
   resolve_coeff
 | `(%%a ^ %%ex) := do
-  da ← guess_degree a,
+  da ← guess_degree a, da ← to_expr da.to_pexpr tt ff,
   refine ``((coeff_pow_of_nat_degree_le' (by norm_num : %%da * %%ex = _) _).trans _),
   compute_degree_le,
   try $ congr' (some 1);
@@ -439,7 +439,7 @@ do t ← target >>= instantiate_mvars,
     | `(coeff %%f %%m ≠ _) := return (ff, f, m)
     | _ := fail "Goal is not of the form `f.coeff n = x` or `f.coeff n ≠ x`"
     end,
-  exp_deg ← guess_degree f,
+  exp_deg ← guess_degree f, exp_deg ← to_expr exp_deg.to_pexpr tt ff,
   [d_nat, m_nat] ← [exp_deg, m].mmap $ eval_expr' ℕ,
   guard (d_nat = m_nat) <|> fail!(
   "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
@@ -469,7 +469,7 @@ Reduce coeff takes a polynomial `f` as an input and produces a hypothesis of the
 meta def reduce_coeff (fp : parse texpr) : tactic unit :=
 do
   f ← to_expr ``(%%fp) tt ff,
-  exp_deg ← guess_degree f >>= eval_expr' ℕ,
+  exp_deg ← guess_degree f,
   `(@polynomial %%R %%_) ← infer_type f,
   lc ← get_lead_coeff R f,
   nn ← get_unused_name "c_c",
@@ -498,7 +498,7 @@ match t with
 end,
 `(nat_degree %%pol = %%degv) ← target |
   fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-deg ← guess_degree pol >>= eval_expr' ℕ,
+deg ← guess_degree pol,
 degvn ← eval_expr' ℕ degv,
 guard (deg = degvn) <|>
 ( do ppe ← pp deg, ppg ← pp degvn,
@@ -517,8 +517,7 @@ meta def prove_monic : tactic unit := --focus $
 do
 --`(monic %%pol) ← target,-- | fail"Goal is not of the form `monic f`",
 `(monic %%pol) ← target >>= (λ f, whnf f reducible) | fail"Goal is not of the form `monic f`",
-deg ← guess_degree pol >>= eval_expr' ℕ,
-deg ← to_expr deg.to_pexpr tt ff,  -- surprisingly (to DT), this speeds up the computation
+deg ← guess_degree pol,trace deg,deg ← to_expr deg.to_pexpr tt ff,
 refine ``(monic_of_nat_degree_le_of_coeff_eq_one %%deg _ _),
 focus' [compute_degree_le, simp_coeff],
 try reflexivity

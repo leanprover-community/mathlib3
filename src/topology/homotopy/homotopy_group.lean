@@ -253,8 +253,13 @@ end⟩
 
 lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_path i (from_path i p) = p :=
 begin
-  simp_rw [to_path, from_path, continuous_map.comp_assoc,
-    symm_comp_to_continuous_map, continuous_map.comp_id], ext, refl,
+  ext, simpa [to_path, -merge_split_apply, -merge_split_symm_apply], -- takes a long time
+  /- squeezed: simpa only [to_path, subtype.val_eq_coe, from_path_coe, path.coe_mk, mk_apply,
+    continuous_map.curry_apply, continuous_map.comp_apply, homeomorph.to_continuous_map_apply,
+    homeomorph.symm_apply_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
+    function.uncurry_apply_pair],-/
+  /- old proof: simp_rw [to_path, from_path, continuous_map.comp_assoc,
+    symm_comp_to_continuous_map, continuous_map.comp_id], ext, refl, -/
 end
 
 /-- The (n+1)-dimensional loops are isomorphic to the loop space at `const`.-/

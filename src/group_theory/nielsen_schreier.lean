@@ -248,7 +248,7 @@ begin
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,
   congr, ext,
-  rw [functor.const.obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
+  rw [functor.const_obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
   apply congr_arg free_group.of,
   apply (weakly_connected_component.eq _ _).mpr,
   exact ⟨hom.to_path (sum.inr e)⟩,

@@ -158,7 +158,28 @@ open compute_degree polynomial
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 
 If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed. -/
+then the tactic suggests the degree that it computed.
+
+Examples:
+
+```lean
+open polynomial
+open_locale polynomial
+
+variables {R : Type*} [semiring R] {a b c d e : R}
+
+example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
+  nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
+by compute_degree_le
+
+example : nat_degree (7 * X : R[X]) ≤ 1 :=
+by compute_degree_le
+
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by compute_degree_le
+```
+-/
 meta def compute_degree_le : tactic unit :=
 focus1 $ do t ← target,
   compute_degree_le_aux,
@@ -169,7 +190,7 @@ add_tactic_doc
 { name := "compute_degree_le",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.compute_degree_le],
-  tags := ["arithmetic, finishing"] }
+  tags := ["arithmetic", "finishing"] }
 
 end interactive
 

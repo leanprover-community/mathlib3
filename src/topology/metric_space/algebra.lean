@@ -182,3 +182,6 @@ instance [monoid α] [has_lipschitz_mul α] : has_lipschitz_add (additive α) :=
 
 instance [add_monoid α] [has_lipschitz_add α] : has_lipschitz_mul (multiplicative α) :=
 ⟨@has_lipschitz_add.lipschitz_add α _ _ _⟩
+
+@[to_additive] instance [monoid α] [has_lipschitz_mul α] : has_lipschitz_mul αᵒᵈ :=
+‹has_lipschitz_mul α›

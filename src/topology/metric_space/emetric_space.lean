@@ -1038,3 +1038,20 @@ instance [pseudo_emetric_space X] : pseudo_emetric_space (multiplicative X) :=
 ‹pseudo_emetric_space X›
 instance [emetric_space X] : emetric_space (additive X) := ‹emetric_space X›
 instance [emetric_space X] : emetric_space (multiplicative X) := ‹emetric_space X›
+
+/-! ### Order dual -/
+
+open order_dual
+
+section
+variables [has_edist X]
+
+instance : has_edist Xᵒᵈ := ‹has_edist X›
+
+@[simp] lemma edist_to_dual (a b : X) : edist (to_dual a) (to_dual b) = edist a b := rfl
+@[simp] lemma edist_of_dual (a b) : edist (of_dual a : X) (of_dual b) = edist a b := rfl
+
+end
+
+instance [pseudo_emetric_space X] : pseudo_emetric_space Xᵒᵈ := ‹pseudo_emetric_space X›
+instance [emetric_space X] : emetric_space Xᵒᵈ := ‹emetric_space X›

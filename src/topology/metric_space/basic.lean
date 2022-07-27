@@ -2900,10 +2900,10 @@ instance : has_dist (multiplicative X) := ‹has_dist X›
 end
 
 section
-variables [has_nndist X]
+variables [pseudo_metric_space X]
 
-instance : has_nndist (additive X) := ‹has_nndist X›
-instance : has_nndist (multiplicative X) := ‹has_nndist X›
+instance [pseudo_metric_space X] : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
+instance [pseudo_metric_space X] : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
 
 @[simp] lemma nndist_of_mul (a b : X) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
 @[simp] lemma nndist_of_add (a b : X) : nndist (of_add a) (of_add b) = nndist a b := rfl
@@ -2912,10 +2912,35 @@ instance : has_nndist (multiplicative X) := ‹has_nndist X›
 
 end
 
-instance [pseudo_metric_space X] : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
-instance [pseudo_metric_space X] : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
 instance [metric_space X] : metric_space (additive X) := ‹metric_space X›
 instance [metric_space X] : metric_space (multiplicative X) := ‹metric_space X›
 instance [pseudo_metric_space X] [proper_space X] : proper_space (additive X) := ‹proper_space X›
 instance [pseudo_metric_space X] [proper_space X] : proper_space (multiplicative X) :=
 ‹proper_space X›
+
+/-! ### Order dual -/
+
+open order_dual
+
+section
+variables [has_dist X]
+
+instance : has_dist Xᵒᵈ := ‹has_dist X›
+
+@[simp] lemma dist_to_dual (a b : X) : dist (to_dual a) (to_dual b) = dist a b := rfl
+@[simp] lemma dist_of_dual (a b) : dist (of_dual a : X) (of_dual b) = dist a b := rfl
+
+end
+
+section
+variables [pseudo_metric_space X]
+
+instance [pseudo_metric_space X] : pseudo_metric_space Xᵒᵈ := ‹pseudo_metric_space X›
+
+@[simp] lemma nndist_to_dual (a b : X) : nndist (to_dual a) (to_dual b) = nndist a b := rfl
+@[simp] lemma nndist_of_dual (a b) : nndist (of_dual a : X) (of_dual b) = nndist a b := rfl
+
+end
+
+instance [metric_space X] : metric_space Xᵒᵈ := ‹metric_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space Xᵒᵈ := ‹proper_space X›

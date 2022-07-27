@@ -60,6 +60,7 @@ begin
   use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
   -- that's very generic/basic: the image of a connected set is connected
+  -- Should use `simple_graph.subconnected.image` defined in the `mathlib.lean` sibling file
   have φK'conn : ∀ x y ∈ φK', ∃ w : G.walk x y, w.support.to_finset ⊆ φK', by {
     rintros φx xφ φy yφ,
     simp at xφ,

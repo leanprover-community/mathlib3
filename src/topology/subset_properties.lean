@@ -1018,6 +1018,21 @@ instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space
 have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
 locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h₁.prod h₂
 
+instance locally_compact_space.pi {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)]
+  [∀ i, compact_space (π i)] [∀ i, locally_compact_space (π i)] :
+  locally_compact_space (Π i, π i) :=
+⟨λ t n hn, begin
+  rw [nhds_pi, filter.mem_pi] at hn,
+  obtain ⟨s, hs, n', hn', hsub⟩ := hn,
+  choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
+  use s.pi n'', rw set_pi_mem_nhds_iff hs,
+  refine ⟨λ i _, hn'' i, subset_trans (λ _, _) hsub, _⟩,
+  { refine forall₂_imp (λ i _, _), apply hsub' },
+  { classical, rw ← set.univ_pi_ite, apply is_compact_univ_pi,
+    intro i, by_cases i ∈ s, { rw if_pos h, apply hc },
+    { rw if_neg h, exact compact_space.compact_univ } },
+end⟩
+
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}

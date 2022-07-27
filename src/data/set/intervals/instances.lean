@@ -165,7 +165,7 @@ instance has_one [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨z
 
 @[simp, norm_cast] lemma coe_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
 
-@[simp] lemma mk_one (h : (1 : α) ∈ Icc (0 : α) 1) : (⟨1, h⟩ : Icc (0:α) 1) = 1 := rfl
+@[simp] lemma mk_one [nontrivial α] (h : (1 : α) ∈ Ioc (0 : α) 1) : (⟨1, h⟩ : Ioc (0:α) 1) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_eq_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) = 1 ↔ x = 1 :=
 by { symmetry, exact subtype.ext_iff }

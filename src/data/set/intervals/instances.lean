@@ -130,7 +130,8 @@ instance has_zero [nontrivial α] : has_zero (Ico (0:α) 1) :=
 
 @[simp, norm_cast] lemma coe_zero [nontrivial α] : ↑(0 : Ico (0:α) 1) = (0 : α) := rfl
 
-@[simp] lemma mk_zero [nontrivial α] (h : (0 : α) ∈ Ico (0 : α) 1) : (⟨0, h⟩ : Ico (0:α) 1) = 0 := rfl
+@[simp] lemma mk_zero [nontrivial α] (h : (0 : α) ∈ Ico (0 : α) 1) : (⟨0, h⟩ : Ico (0:α) 1) = 0 :=
+  rfl
 
 @[simp, norm_cast] lemma coe_eq_zero [nontrivial α] {x : Ico (0:α) 1} : (x : α) = 0 ↔ x = 0 :=
 by { symmetry, exact subtype.ext_iff }
@@ -166,7 +167,8 @@ instance has_one [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨z
 
 @[simp, norm_cast] lemma coe_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
 
-@[simp] lemma mk_one [nontrivial α] (h : (1 : α) ∈ Ioc (0 : α) 1) : (⟨1, h⟩ : Ioc (0:α) 1) = 1 := rfl
+@[simp] lemma mk_one [nontrivial α] (h : (1 : α) ∈ Ioc (0 : α) 1) : (⟨1, h⟩ : Ioc (0:α) 1) = 1 :=
+  rfl
 
 @[simp, norm_cast] lemma coe_eq_one [nontrivial α] {x : Ioc (0:α) 1} : (x : α) = 1 ↔ x = 1 :=
 by { symmetry, exact subtype.ext_iff }

@@ -4053,6 +4053,10 @@ begin
   { rw [nthd_eq_default _ _ h, nth_eq_none_iff.mpr h, option.get_or_else_none] }
 end
 
+lemma nthd_singleton_eq_update_const {α : Type*} (d x : α) :
+  nthd d [x] = function.update (function.const _ d) 0 x :=
+by { ext ⟨_|n⟩; simp }
+
 end nthd
 
 section inth

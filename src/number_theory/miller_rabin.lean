@@ -108,18 +108,21 @@ begin
   apply repeated_halving_of_exponent (zmod.pow_card_sub_one_eq_one ha),
 end
 
-
-
+/-- Fermat's Little Theorem says that this property holds for all primes.
+Note that elsewhere the word "pseudoprime" is often reserved for numbers that are not actual primes.
+-/
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 
+/-- If there is a base `a` relative to which `n` is a strong probable prime
+then `n` is a Fermat pseudoprime. -/
 lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
   (h : strong_probable_prime n a) : fermat_pseudoprime n a :=
 begin
   unfold strong_probable_prime at h,
   unfold fermat_pseudoprime,
   cases h,
-  { rw [← even_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
+  { rw [←even_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
   { rcases h with ⟨r, hrlt, hpow⟩,
     have h := congr_arg (^(2^((n - 1).factorization 2 - r))) hpow,
     simp at h,

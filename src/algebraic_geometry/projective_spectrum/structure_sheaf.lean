@@ -212,7 +212,7 @@ def Proj.structure_sheaf : sheaf CommRing (projective_spectrum.Top 𝒜) :=
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget 𝒜).symm
-      (structure_sheaf_in_Type 𝒜).property)⟩
+      (structure_sheaf_in_Type 𝒜).cond)⟩
 
 end projective_spectrum
 
@@ -247,25 +247,26 @@ def open_to_localization (U : opens (projective_spectrum.Top 𝒜)) (x : project
 to a homogeneous prime ideal `x` to the *homogeneous localization* at `x`,
 formed by gluing the `open_to_localization` maps. -/
 def stalk_to_fiber_ring_hom (x : projective_spectrum.Top 𝒜) :
-  (Proj.structure_sheaf 𝒜).1.stalk x ⟶ CommRing.of (at x) :=
+  (Proj.structure_sheaf 𝒜).presheaf.stalk x ⟶ CommRing.of (at x) :=
 limits.colimit.desc (((open_nhds.inclusion x).op) ⋙ (Proj.structure_sheaf 𝒜).1)
   { X := _,
     ι :=
     { app := λ U, open_to_localization 𝒜 ((open_nhds.inclusion _).obj (unop U)) x (unop U).2, } }
 
 @[simp] lemma germ_comp_stalk_to_fiber_ring_hom (U : opens (projective_spectrum.Top 𝒜)) (x : U) :
-  (Proj.structure_sheaf 𝒜).1.germ x ≫ stalk_to_fiber_ring_hom 𝒜 x =
+  (Proj.structure_sheaf 𝒜).presheaf.germ x ≫ stalk_to_fiber_ring_hom 𝒜 x =
   open_to_localization 𝒜 U x x.2 :=
 limits.colimit.ι_desc _ _
 
 @[simp] lemma stalk_to_fiber_ring_hom_germ' (U : opens (projective_spectrum.Top 𝒜))
   (x : projective_spectrum.Top 𝒜) (hx : x ∈ U) (s : (Proj.structure_sheaf 𝒜).1.obj (op U)) :
-  stalk_to_fiber_ring_hom 𝒜 x ((Proj.structure_sheaf 𝒜).1.germ ⟨x, hx⟩ s) = (s.1 ⟨x, hx⟩ : _) :=
+  stalk_to_fiber_ring_hom 𝒜 x
+    ((Proj.structure_sheaf 𝒜).presheaf.germ ⟨x, hx⟩ s) = (s.1 ⟨x, hx⟩ : _) :=
 ring_hom.ext_iff.1 (germ_comp_stalk_to_fiber_ring_hom 𝒜 U ⟨x, hx⟩ : _) s
 
 @[simp] lemma stalk_to_fiber_ring_hom_germ (U : opens (projective_spectrum.Top 𝒜)) (x : U)
   (s : (Proj.structure_sheaf 𝒜).1.obj (op U)) :
-  stalk_to_fiber_ring_hom 𝒜 x ((Proj.structure_sheaf 𝒜).1.germ x s) = s.1 x :=
+  stalk_to_fiber_ring_hom 𝒜 x ((Proj.structure_sheaf 𝒜).presheaf.germ x s) = s.1 x :=
 by { cases x, exact stalk_to_fiber_ring_hom_germ' 𝒜 U _ _ _ }
 
 lemma homogeneous_localization.mem_basic_open (x : projective_spectrum.Top 𝒜) (f : at x) :
@@ -292,19 +293,19 @@ def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
 stalk at `x` obtained by `section_in_basic_open`. This is the inverse of `stalk_to_fiber_ring_hom`.
 -/
 def homogeneous_localization_to_stalk (x : projective_spectrum.Top 𝒜) :
-  (at x) → (Proj.structure_sheaf 𝒜).1.stalk x :=
-λ f, (Proj.structure_sheaf 𝒜).1.germ
+  (at x) → (Proj.structure_sheaf 𝒜).presheaf.stalk x :=
+λ f, (Proj.structure_sheaf 𝒜).presheaf.germ
   (⟨x, homogeneous_localization.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
   (section_in_basic_open _ x f)
 
 /--Using `homogeneous_localization_to_stalk`, we construct a ring isomorphism between stalk at `x`
 and homogeneous localization at `x` for any point `x` in `Proj`.-/
 def Proj.stalk_iso' (x : projective_spectrum.Top 𝒜) :
-  (Proj.structure_sheaf 𝒜).1.stalk x ≃+* CommRing.of (at x)  :=
+  (Proj.structure_sheaf 𝒜).presheaf.stalk x ≃+* CommRing.of (at x)  :=
 ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
 ⟨λ z1 z2 eq1, begin
-  obtain ⟨u1, memu1, s1, rfl⟩ := (Proj.structure_sheaf 𝒜).1.germ_exist x z1,
-  obtain ⟨u2, memu2, s2, rfl⟩ := (Proj.structure_sheaf 𝒜).1.germ_exist x z2,
+  obtain ⟨u1, memu1, s1, rfl⟩ := (Proj.structure_sheaf 𝒜).presheaf.germ_exist x z1,
+  obtain ⟨u2, memu2, s2, rfl⟩ := (Proj.structure_sheaf 𝒜).presheaf.germ_exist x z2,
   obtain ⟨v1, memv1, i1, ⟨j1, ⟨a1, a1_mem⟩, ⟨b1, b1_mem⟩, hs1⟩⟩ := s1.2 ⟨x, memu1⟩,
   obtain ⟨v2, memv2, i2, ⟨j2, ⟨a2, a2_mem⟩, ⟨b2, b2_mem⟩, hs2⟩⟩ := s2.2 ⟨x, memu2⟩,
   obtain ⟨b1_nin_x, eq2⟩ := hs1 ⟨x, memv1⟩,

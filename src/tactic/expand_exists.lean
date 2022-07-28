@@ -219,6 +219,32 @@ Note that without the last argument `nat_greater_nonzero`, `nat_greater_lt` woul
 ```lean
 #check nat_greater_lt -- nat_greater_lt : ∀ (n : ℕ), n < nat_greater n ∧ nat_greater n ≠ 0
 ```
+
+All definitions will be created in the same namespace as the `exists` lemma. You can prepend the
+name with `@` to create it in the root namespace:
+
+```lean
+namespace foo
+@[expand_exists @a b]
+lemma a_exists : ∃ (a : α), a = a := ...
+end foo
+
+#check a     -- α
+#check foo.b -- a = a
+```
+
+A docstring can be added either using `add_decl_doc` after the lemma, or by appending `="..."` to
+the name:
+
+```lean
+@[expand_exists foo="a foo with property bar" bar]
+lemma foo_exists : ∃ (f : foo), bar f := ...
+
+/--
+the property satisfied by foo
+-/
+add_decl_doc bar
+```
 -/
 @[user_attribute]
 meta def expand_exists_attr : user_attribute unit (list expand_exists.arg) :=

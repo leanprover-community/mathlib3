@@ -55,7 +55,7 @@ class is_artinian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :=
 (well_founded_submodule_lt [] : well_founded ((<) : submodule R M → submodule R M → Prop))
 
 section
-variables {R : Type*} {M : Type*} {P : Type*} {N : Type*}
+variables {R M P N : Type*}
 
 variables [ring R] [add_comm_group M] [add_comm_group P] [add_comm_group N]
 variables [module R M] [module R P] [module R N]
@@ -118,8 +118,9 @@ is_artinian_of_range_eq_ker
   linear_map.snd_surjective
   (linear_map.range_inl R M P)
 
-@[instance, priority 100]
-lemma is_artinian_of_fintype [fintype M] : is_artinian R M :=
+@[priority 100]
+instance is_artinian_of_fintype [finite M] : is_artinian R M :=
+let ⟨_⟩ := nonempty_fintype M in by exactI
 ⟨fintype.well_founded_of_trans_of_irrefl _⟩
 
 local attribute [elab_as_eliminator] fintype.induction_empty_option
@@ -332,7 +333,8 @@ convenience in the commutative case. For a right Artinian ring, use `is_artinian
 class is_artinian_ring (R) [ring R] extends is_artinian R R : Prop
 
 -- TODO: Can we define `is_artinian_ring` in a different way so this isn't needed?
-instance is_artinian_ring_of_fintype (R) [ring R] [fintype R] : is_artinian_ring R := ⟨⟩
+@[priority 100]
+instance is_artinian_ring_of_finite (R) [ring R] [finite R] : is_artinian_ring R := ⟨⟩
 
 theorem is_artinian_ring_iff {R} [ring R] : is_artinian_ring R ↔ is_artinian R R :=
 ⟨λ h, h.1, @is_artinian_ring.mk _ _⟩

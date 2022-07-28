@@ -791,14 +791,13 @@ variables [field K] [field L] [algebra K L] {p : polynomial K}
 lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
   (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=
 begin
-  classical,
   simp_rw [root_set, finset.mem_coe, multiset.mem_to_finset] at hF,
-  refine (splits_iff_exists_multiset (algebra_map K F)).mpr ⟨(p.map (algebra_map K L)).roots.map
-    (λ x, if hx : x ∈ F then (⟨x, hx⟩ : F) else 0), map_injective _ (algebra_map F L).injective _⟩,
-  simp_rw [polynomial.map_mul, polynomial.map_multiset_prod, multiset.map_map, map_C],
-  conv_lhs { rw [polynomial.map_map, ←is_scalar_tower.algebra_map_eq, eq_prod_roots_of_splits h] },
-  refine congr_arg ((*) (C _)) (congr_arg multiset.prod (multiset.map_congr rfl (λ x hx, _))),
-  rw [function.comp_app, function.comp_app, dif_pos (hF x hx), polynomial.map_sub, map_X, map_C],
+  rw splits_iff_exists_multiset,
+  refine ⟨multiset.pmap subtype.mk _ hF, map_injective _ (algebra_map F L).injective _⟩,
+  conv_lhs { rw [polynomial.map_map, ←is_scalar_tower.algebra_map_eq,
+    eq_prod_roots_of_splits h, ←multiset.pmap_eq_map _ _ _ hF] },
+  simp_rw [polynomial.map_mul, polynomial.map_multiset_prod,
+    multiset.map_pmap, polynomial.map_sub, map_C, map_X],
   refl,
 end
 

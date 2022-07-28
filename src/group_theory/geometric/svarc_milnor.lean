@@ -131,9 +131,7 @@ have hL' : L' ≤ L,
 have hq : quasigeodesic L' L'nonneg f x (f L') c b,
   from trunc_quasigeodesic L Lnonneg f x y c b hL' L'nonneg qg,
 simp at hd,
-rw nat.succ_eq_one_add at hL,
-rw nat.cast_add at hL,
-rw nat.cast_one at hL,
+rw [nat.succ_eq_one_add, nat.cast_add, nat.cast_one] at hL,
 rw ← lt_iff_not_le at h,
 --simp at *,
 -- endpoint of new quasigeodesic is covered
@@ -383,20 +381,26 @@ begin
     { apply mul_nonneg, exact nat.cast_nonneg d, apply (le_of_lt (div_pos bpos cpos)), },
   rintros g L Lnonneg hL ⟨y, ⟨hy, qg⟩⟩,
   by_cases L ≤ d*(b/c),
-  { simp at *,
-    linarith [hd g L Lnonneg h y hy qg], },
+    have dg : dist 1 g ≤ d+1,
+      apply hd g L Lnonneg h,
+      use y,
+      exact ⟨hy, qg⟩,
+    rw [nat.succ_eq_one_add, nat.cast_add, nat.cast_one],
+    linarith,
   have hL' : L' ≤ L,
     apply le_of_lt,
     apply lt_of_not_ge,
     exact h,
   have := trunc_quasigeodesic L Lnonneg f x y c b hL' L'nonneg qg,
-  simp at *,
+  simp at hd,
+  rw [nat.succ_eq_one_add, nat.cast_add, nat.cast_one] at hL,
+  rw ← lt_iff_not_le at h,
   have L'cov : ∃ g' : m, (f L') ∈ g' • s, from exists_cover_element htrans (f L'),
   cases L'cov with g' hg',
   have g'norm : dist 1 g' ≤ d+1,
     from hd g' L' L'nonneg le_rfl (f L') hg' this,
   have smalldistdom : abs (L' - L) ≤ b/c,
-  { rw [ abs_sub_comm, abs_of_nonneg, sub_le_iff_le_add', ← one_mul (b/c), ← add_mul],
+  { rw [ abs_sub_comm, abs_of_nonneg, sub_le_iff_le_add', ← one_mul (b/c), ← add_mul, add_comm],
   exact hL,
   linarith, },
   have cnonneg : c ≠ 0, from ne_of_gt cpos,
@@ -414,7 +418,9 @@ begin
   rcases grel with ⟨k, ⟨hk, grel⟩⟩,
   rw ← grel,
   rw dist_to_norm at g'norm,
-  apply gen_set_mul_right'_sub, exact hk, exact g'norm,
+  apply gen_set_mul_right'_sub,
+  exact hk,
+  simp [g'norm],
 end
 
 -- easier to apply version of wm_aux
@@ -458,8 +464,10 @@ begin
     have gd : dist 1 g = 0, from le_antisymm hn dist_nonneg,
     rw [dist_to_norm, zero_norm_iff_one] at gd,
     rw gd, simp, },
-  { intros g hn,
-    by_cases gn : g = 1, rw gn, simp,
+    intros g hn,
+    by_cases gn : g = 1,
+    { rw gn,
+      simp, },
 
   -- construct a shorter word that is related to original word
 
@@ -499,7 +507,7 @@ begin
         apply hd y hy',
       end, },
     linarith,
-    apply dist_triangle, },
+    apply dist_triangle,
 end
 
 theorem metric_svarcmilnor2
@@ -531,9 +539,8 @@ calc
   dist x ((g⁻¹ * h) • x )                      ≤ k * dist 1 (g⁻¹ * h)  : hk (g⁻¹*h)
   ...                                          = k * dist g h : by simp
   ...                                          ≤ k * dist g h + 1 : by linarith,
-intros g h, simp,
-rw add_comm,
-rw ← sub_le_iff_le_add',
+intros g h,
+simp only [one_div_div],
 have h : conn_by_quasigeodesic' x ((g⁻¹ * h) • x) c b,
   by apply quasigeodesic_space.quasigeodesics x (of_marked(g⁻¹ * h) • x),
 rcases h with ⟨ L, Lnonneg, f, ⟨f0, fL, hf⟩⟩,

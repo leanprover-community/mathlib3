@@ -98,7 +98,7 @@ begin
   exact zero_eq_mul.mp (eq.symm diffsquare),
   cases zeros with zero1 zero2,
   right,
-  exact eq_neg_of_add_eq_zero zero1,
+  exact eq_neg_of_add_eq_zero_left zero1,
   left,
   exact sub_eq_zero.mp zero2,
 end
@@ -150,7 +150,7 @@ begin
   split,
   { intro hn,
     by_contra,
-    simp only [not_lt, le_zero_iff] at h,
+    simp only [not_lt, _root_.le_zero_iff] at h,
     rw h at hn,
     simp only [pow_zero, nat.not_even_one] at hn,
     exact hn,
@@ -184,7 +184,15 @@ begin
     rw ←two_power_part at h,
     rw two_power_part_mul_odd_part at h,
     rw h,
-    apply nat.neg_one_pow_of_even,
+    -- apply nat.neg_one_pow_of_even,   -- TODO (SP): What has this been renamed to?
+    suffices : even (2 ^ (padic_val_nat 2 (n - 1) - r)), {
+      cases this with x hx,
+      rw hx,
+      rw ←two_mul x,
+      rw pow_mul,
+      simp,
+     },
+
     rw nat.even_two_pow_iff,
     exact tsub_pos_of_lt hrlt,
   },
@@ -281,7 +289,8 @@ begin
             simp at Hc,
             rw le_iff_exists_add at Hc,
             rcases Hc with ⟨d, hd⟩,
-            rw [hd, pow_add 2, pow_one, pow_mul, nat.neg_one_sq, one_pow], }, }, },
+            rw [hd, pow_add 2, pow_one, pow_mul],
+            simp }, }, },
     -- Thus the order of a mod n divides (φ(n), n-1)
     rw ← order_of_dvd_iff_pow_eq_one at euler h2 ⊢,
     have order_gcd := nat.dvd_gcd euler h2,
@@ -363,7 +372,8 @@ def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
     intros a ha,
     cases ha with ha1 ha2,
     simp_rw [ha1, eq_self_iff_true, true_or],
-    simp_rw [ha2, inv_neg', one_inv, eq_self_iff_true, or_true],
+    simp_rw [ha2, inv_neg'],
+    simp,
   end,
 }
 

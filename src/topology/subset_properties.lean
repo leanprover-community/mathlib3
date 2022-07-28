@@ -1041,11 +1041,10 @@ lemma exists_compact_between [hα : locally_compact_space α] {K U : set α} (hK
 begin
   choose V hVc hxV hKV using λ x : K, exists_compact_subset hU (h_KU x.2),
   have : K ⊆ ⋃ x, interior (V x), from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxV _⟩,
-  rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
-  { refine ⟨_, t.compact_bUnion (λ x _, hVc x), λ x hx, _, set.Union₂_subset (λ i _, hKV i)⟩,
-    rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
-    exact interior_mono (subset_bUnion_of_mem hyt) hy },
-  { exact λ _, is_open_interior },
+  rcases hK.elim_finite_subcover _ (λ x, @is_open_interior α _ (V x)) this with ⟨t, ht⟩,
+  refine ⟨_, t.compact_bUnion (λ x _, hVc x), λ x hx, _, set.Union₂_subset (λ i _, hKV i)⟩,
+  rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
+  exact interior_mono (subset_bUnion_of_mem hyt) hy,
 end
 
 /-- In a locally compact space, every compact set is contained in the interior of a compact set. -/

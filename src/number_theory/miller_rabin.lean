@@ -537,8 +537,8 @@ lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 
 begin
   rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
   let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max'
-  ( by {
-      rw finset.filter_nonempty_iff,
+  ( by
+    { rw finset.filter_nonempty_iff,
       use 0,
       simp only [finset.mem_range, pow_zero, pow_one, exists_apply_eq_apply, and_true],
       by_contra,

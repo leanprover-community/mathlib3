@@ -296,6 +296,10 @@ The forward direction of a homeomorphism, as a bundled continuous map.
 @[simps]
 def homeomorph.to_continuous_map (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
 
+/--`homeomorph.to_continuous_map` as a coercion. -/
+instance homeomorph.coe_to_continuous_map : has_coe (α ≃ₜ β) C(α, β) :=
+⟨homeomorph.to_continuous_map⟩
+
 /--
 Left inverse to a continuous map from a homemorphism, mirroring `equiv.symm_comp_self`.
 -/

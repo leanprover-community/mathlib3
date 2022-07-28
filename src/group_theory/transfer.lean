@@ -17,6 +17,7 @@ In this file we construct the transfer homomorphism.
 
 - `diff ϕ S T` : The difference of two left transversals `S` and `T` under the homomorphism `ϕ`.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
+- `transfer_center_pow`: The transfer homomorphism `G →*  center G`.
 -/
 
 open_locale big_operators

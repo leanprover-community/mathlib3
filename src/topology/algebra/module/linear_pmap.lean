@@ -159,7 +159,7 @@ def has_core (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) :
 
 /-- For every operator `f` the submodule `f.domain` is a core of its closure.
 
-Note that we don't require that `f` is closed, due to the definition of the closure. -/
+Note that we don't require that `f` is closable, due to the definition of the closure. -/
 lemma closure_has_core (f : linear_pmap R E F) : f.closure.has_core f.le_closure.1 :=
 begin
   congr,

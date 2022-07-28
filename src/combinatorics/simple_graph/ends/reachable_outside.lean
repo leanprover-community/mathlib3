@@ -191,24 +191,17 @@ begin
   exact reachable_outside.trans G path_xx' path_x'p,
 end
 
-lemma walk_outside_is_contained (C : set V) (hC : C ∈ ro_components G K) :
-  Π (x y : V), Π (w : G.walk x y), x ∈ C → y ∈ C → disjoint K w.support.to_finset → (w.support.to_finset : set V) ⊆ C
-| x _ nil             hx hy _  := by {simp only [support_nil, list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, coe_singleton, set.singleton_subset_iff],exact hx}
-| x y (@cons V G _ z _ adj tail) hx hy hw := by {
-  rw [walk.support,list.to_finset_cons],
-  simp only [coe_insert],
-  rw set.insert_subset,
-  split,
-  exact hx,
-  have : z ∈ (cons adj tail).support.to_finset, by simp only [support_cons, list.to_finset_cons, finset.mem_insert, list.mem_to_finset, start_mem_support, or_true],
-  have : z ∉ K, from finset.disjoint_right.mp hw this,
-  have : z ∈ C, from mem_of_mem_of_adj G K C hC x z hx ‹z∉K› adj,
-  have : disjoint K tail.support.to_finset, {
-    apply finset.disjoint_of_subset_right _ hw,
-    simp only [support_cons, list.to_finset_cons, coe_insert, finset.subset_insert],
-  },
-  exact walk_outside_is_contained z y tail ‹z∈C› hy this,
-}
+lemma walk_outside_is_contained (C : set V) (hC : C ∈ ro_components G K) (x y : V)  (w : G.walk x y)
+ (hx: x ∈ C) (hy: y ∈ C) (dis : disjoint K w.support.to_finset) : (w.support.to_finset : set V) ⊆ C :=
+begin
+  rintros z zin,
+  rw finset.mem_coe at zin,
+  rw list.mem_to_finset at zin,
+  rcases walk.mem_support_iff_exists_append.mp zin with ⟨q,r,rfl⟩,
+  have : disjoint K q.support.to_finset, from disjoint.mono_right (list.to_finset_subset_to_finset _ _ (walk.support_append_subset_left q r)) dis,
+  rcases hC with ⟨c,cC,rfl⟩,
+  exact reachable_outside.trans G hx ⟨q,this⟩,
+end
 
 
 lemma to_subconnected (C : set V) (hC : C ∈ ro_components G K) : simple_graph.subconnected G C :=

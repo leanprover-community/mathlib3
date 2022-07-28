@@ -86,22 +86,29 @@ begin
   rw [←hy₁, ←hy₂],
 end
 
+open_locale classical
+
 /-- The closure of a closable operator. -/
 noncomputable
 def closure (f : linear_pmap R E F) : linear_pmap R E F :=
 if hf : f.is_closable then hf.some else f
 
 lemma closure_def {f : linear_pmap R E F} (hf : f.is_closable) :
-  f.closure = hf.some := sorry
+  f.closure = hf.some :=
+by simp [closure, hf]
 
 lemma closure_def' {f : linear_pmap R E F} (hf : ¬f.is_closable) :
-  f.closure = f := sorry
+  f.closure = f :=
+by simp [closure, hf]
 
 /-- The closure (as a submodule) of the graph is equal to the graph of the closure
   (as a `linear_pmap`). -/
 lemma is_closable.graph_closure_eq_closure_graph {f : linear_pmap R E F} (hf : f.is_closable) :
   f.graph.topological_closure = f.closure.graph :=
-hf.some_spec
+begin
+  rw closure_def hf,
+  exact hf.some_spec,
+end
 
 /-- A closable `linear_pmap` is contained in its closure. -/
 lemma is_closable.le_closure {f : linear_pmap R E F} (hf : f.is_closable) : f ≤ f.closure :=
@@ -111,54 +118,52 @@ begin
   exact (graph f).submodule_topological_closure,
 end
 
-lemma is_closable.closure_mono {f g : linear_pmap R E F} --(hf : f.is_closable) (hg : g.is_closable)
+lemma is_closable.closure_mono {f g : linear_pmap R E F} (hg : g.is_closable)
   (h : f ≤ g) :
   f.closure ≤ g.closure :=
 begin
   refine le_of_le_graph _,
-  rw ←hf.graph_closure_eq_closure_graph,
+  rw ←(hg.le_is_closable h).graph_closure_eq_closure_graph,
   rw ←hg.graph_closure_eq_closure_graph,
   exact submodule.topological_closure_mono (le_graph_of_le h),
 end
 
 /-- The closure is closed. -/
-lemma is_closable.closure_is_closed {f : linear_pmap R E F} (hf : f.is_closable) : f.closure.closed :=
+lemma is_closable.closure_is_closed {f : linear_pmap R E F} (hf : f.is_closable) :
+  f.closure.is_closed :=
 begin
   rw [is_closed, ←hf.graph_closure_eq_closure_graph],
   exact f.graph.is_closed_topological_closure,
 end
 
+/-- The closure is closable. -/
+lemma is_closable.closure_is_closable {f : linear_pmap R E F} (hf : f.is_closable) :
+  f.closure.is_closable :=
+hf.closure_is_closed.is_closable
+
 lemma is_closable_iff_exists_closed_extension {f : linear_pmap R E F} : f.is_closable ↔
   ∃ (g : linear_pmap R E F) (hg : g.is_closed), f ≤ g :=
-⟨λ h, ⟨h.closure, h.closure_is_closed, h.le_closure⟩, λ ⟨_, hg, h⟩, hg.is_closable.le_is_closable h⟩
-
-lemma congr_closure {f g : linear_pmap R E F} (hf : f.closable) (hg : g.closable) (h : f = g) :
-  f.closure = g.closure :=
-begin
-  refine eq_of_eq_graph _,
-  rw [←hf.graph_closure_eq_closure_graph, ←hg.graph_closure_eq_closure_graph, h],
-end
+⟨λ h, ⟨f.closure, h.closure_is_closed, h.le_closure⟩, λ ⟨_, hg, h⟩, hg.is_closable.le_is_closable h⟩
 
 /-! ### The core of a linear operator -/
 
 /-- A submodule `S` is a core of `f` if the closure of the restriction of `f` to `S` is again `f`.-/
-def is_core (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) : Prop :=
+def has_core (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) : Prop :=
 (f.dom_restrict hS).closure = f
 --(hf.is_closable.le_is_closable (linear_pmap.dom_restrict_le hS)).closure = f
 
-@[simp] lemma is_core_def {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
-  (hf : f.is_closed) (h : f.is_core hS) :
-  (hf.closable.le_closable (dom_restrict_le hS)).closure = f := h
+@[simp] lemma has_core_def {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
+  (hf : f.is_closed) (h : f.has_core hS) : (f.dom_restrict hS).closure = f := h
 
 /-- For every closable operator `f` the submodule `f.domain` is a core of its closure. -/
 lemma core_of_closure {f : linear_pmap R E F} (hf : f.is_closable) :
-  is_core hf.le_closure.1 hf.closure_closed :=
+  f.closure.has_core hf.le_closure.1 :=
 begin
-  refine congr_closure _ _ _,
+  congr,
   ext,
   { simp },
   intros x y hxy,
-  let z : hf.closure.domain := ⟨y.1, hf.le_closure.1 y.2⟩,
+  let z : f.closure.domain := ⟨y.1, hf.le_closure.1 y.2⟩,
   have hyz : (y : E) = z := by simp,
   rw hf.le_closure.2 hyz,
   exact dom_restrict_apply _ (hxy.trans hyz),

@@ -16,10 +16,10 @@ are normed.
 
 ## Main definitions
 
-* `linear_pmap.closed`: an operator is closed iff it's graph is closed
-* `linear_pmap.closable`: an operator is closable iff the closure of it's graph is a graph
+* `linear_pmap.closed`: an operator is closed iff its graph is closed
+* `linear_pmap.closable`: an operator is closable iff the closure of its graph is a graph
 * `linear_pmap.closure`: the closure of a closable operator
-* `linear_pmap.core`: a submodule contained in the domain is a core if restricting to the core
+* `linear_pmap.is_core`: a submodule contained in the domain is a core if restricting to the core
   does not lose information about the operator
 
 ## Main statements
@@ -135,19 +135,18 @@ end
 /-! ### The core of a linear operator -/
 
 /-- A submodule `S` is a core of `f` if the closure of the restriction of `f` to `S` is again `f`.-/
-def core {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
+def is_core {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
   (hf : f.closed) : Prop :=
 (hf.closable.le_closable (linear_pmap.dom_restrict_le hS)).closure = f
 
-@[simp] lemma core_def {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
-  (hf : f.closed) (h : core hS hf) :
+@[simp] lemma is_core_def {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
+  (hf : f.closed) (h : is_core hS hf) :
   (hf.closable.le_closable (dom_restrict_le hS)).closure = f := h
 
 /-- For every closable operator `f` the submodule `f.domain` is a core of its closure. -/
 lemma core_of_closure {f : linear_pmap R E F} (hf : f.closable) :
-  core hf.le_closure.1 hf.closure_closed :=
+  is_core hf.le_closure.1 hf.closure_closed :=
 begin
-  dunfold core,
   refine congr_closure _ _ _,
   ext,
   { simp },

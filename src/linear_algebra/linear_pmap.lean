@@ -652,9 +652,9 @@ begin
   use y,
   { exact h.1 y.2 },
   simp only [hx, submodule.coe_mk, eq_self_iff_true, true_and],
-  refine (hx.2.symm.trans (h.2 (hx.1.trans _))).symm,
-  -- I got weird motive not type-correct errors when using rw
-  simp only [submodule.coe_mk],
+  convert hx.2,
+  refine (h.2 _).symm,
+  simp only [hx.1, submodule.coe_mk],
 end
 
 lemma le_graph_iff {f g : linear_pmap R E F} : f.graph ≤ g.graph ↔ f ≤ g :=

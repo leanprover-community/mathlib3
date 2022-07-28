@@ -463,26 +463,25 @@ def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
 rfl
 
 /-- Restrict a partially defined linear map to a submodule of `E` contained in `f.domain`. -/
-def dom_restrict (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) :
+def dom_restrict (f : linear_pmap R E F) (S : submodule R E) :
   linear_pmap R E F :=
-⟨S, f.to_fun.comp (submodule.of_le hS)⟩
+⟨S ⊓ f.domain, f.to_fun.comp (submodule.of_le (by simp))⟩
 
-@[simp] lemma dom_restrict_domain (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) :
-  (f.dom_restrict hS).domain = S := rfl
+@[simp] lemma dom_restrict_domain (f : linear_pmap R E F) {S : submodule R E} :
+  (f.dom_restrict S).domain = S ⊓ f.domain := rfl
 
-lemma dom_restrict_apply {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
-  ⦃x : S⦄ ⦃y : f.domain⦄ (h : (x : E) = y) :
-  f.dom_restrict hS x = f y :=
+lemma dom_restrict_apply {f : linear_pmap R E F} {S : submodule R E}
+  ⦃x : S ⊓ f.domain⦄ ⦃y : f.domain⦄ (h : (x : E) = y) :
+  f.dom_restrict S x = f y :=
 begin
-  have : submodule.of_le hS x = y :=
+  have : submodule.of_le (by simp) x = y :=
   by { ext, simp[h] },
   rw ←this,
   exact linear_pmap.mk_apply _ _ _,
 end
 
-lemma dom_restrict_le {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain) :
-  f.dom_restrict hS ≤ f :=
-⟨hS, λ x y hxy, dom_restrict_apply hS hxy⟩
+lemma dom_restrict_le {f : linear_pmap R E F} {S : submodule R E} : f.dom_restrict S ≤ f :=
+⟨by simp, λ x y hxy, dom_restrict_apply hxy⟩
 
 /-! ### Graph -/
 section graph

@@ -500,9 +500,9 @@ attribute [irreducible] collected_hilbert_basis
 lemma collected_hilbert_basis_repr_symm_apply {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (f : lp (λ ia : Σ i, α i, 𝕜) 2):
   (collected_hilbert_basis hVortho hVtotal v).repr.symm f =
-  (hVortho.linear_isometry_equiv hVtotal).symm (
-    (lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 𝕜 2 (λ i, (v i).repr.symm))
-    (lp.curry (λ i, λ a : α i, 𝕜) f)) :=
+  (hVortho.linear_isometry_equiv hVtotal).symm
+    ((lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 𝕜 2 (λ i, (v i).repr.symm))
+      (lp.curry (λ i, λ a : α i, 𝕜) f)) :=
 begin
   rw collected_hilbert_basis_repr,
   refl

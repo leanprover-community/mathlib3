@@ -23,6 +23,31 @@ import data.fintype.basic
 open nat
 -- open_locale classical
 
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- Lemmas to PR elsewhere
+---------------------------------------------------------------------------------------------------
+lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
+  x = 1 ∨ x = -1 :=
+begin
+  have root2 : x^2 -1 = 0,
+  rw root,
+  simp,
+  have diffsquare : (x + 1) * (x - 1) = 0,
+  ring_nf,
+  exact root2,
+  have zeros : (x + 1 = 0) ∨ (x - 1 = 0),
+  exact zero_eq_mul.mp (eq.symm diffsquare),
+  cases zeros with zero1 zero2,
+  right,
+  exact eq_neg_of_add_eq_zero_left zero1,
+  left,
+  exact sub_eq_zero.mp zero2,
+end
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+
 def even_part (n : ℕ) := ord_proj[2] n
 
 def odd_part (n : ℕ) := ord_compl[2] n
@@ -57,23 +82,7 @@ instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.de
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 
-lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
-  x = 1 ∨ x = -1 :=
-begin
-  have root2 : x^2 -1 = 0,
-  rw root,
-  simp,
-  have diffsquare : (x + 1) * (x - 1) = 0,
-  ring_nf,
-  exact root2,
-  have zeros : (x + 1 = 0) ∨ (x - 1 = 0),
-  exact zero_eq_mul.mp (eq.symm diffsquare),
-  cases zeros with zero1 zero2,
-  right,
-  exact eq_neg_of_add_eq_zero_left zero1,
-  left,
-  exact sub_eq_zero.mp zero2,
-end
+
 
 lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
   (e : ℕ) (h : a ^ e = 1) :

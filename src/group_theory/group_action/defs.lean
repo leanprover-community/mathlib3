@@ -768,7 +768,7 @@ open additive multiplicative
 
 instance additive.has_vadd [has_smul α β] : has_vadd (additive α) β := ⟨λ a, (•) (to_mul a)⟩
 instance multiplicative.has_smul [has_vadd α β] : has_smul (multiplicative α) β :=
-⟨λ a, (+ᵥ) (to_mul a)⟩
+⟨λ a, (+ᵥ) (to_add a)⟩
 
 @[simp] lemma to_mul_smul [has_smul α β] (a) (b : β) : (to_mul a : α) • b = a +ᵥ b := rfl
 @[simp] lemma of_mul_vadd [has_smul α β] (a : α) (b : β) : of_mul a +ᵥ b = a • b := rfl

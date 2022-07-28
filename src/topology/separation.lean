@@ -1207,7 +1207,7 @@ lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [t2_
   ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
 begin
   rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
-  refine ⟨interior V, is_open_interior, hKV,
+  exact ⟨interior V, is_open_interior, hKV,
     (closure_minimal interior_subset hV.is_closed).trans hVU,
     compact_closure_of_subset_compact hV interior_subset⟩,
 end

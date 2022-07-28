@@ -146,8 +146,7 @@ lemma subconnected.of_adj_subconnected {X Y : set V}
   (XYadj : ∃ (x ∈ X) (y ∈ Y), G.adj x y) : subconnected G (X∪Y) :=
 begin
   rcases XYadj with ⟨x,xX,y,yY,e⟩,
-  let E : set V := {x,y},
-  have : X∪Y = (E ∪ X) ∪ Y, by { simp *,sorry}, -- too lazy now
+  have : X∪Y = ({x, y} ∪ X) ∪ Y, by {ext, simp, tauto {closer := tactic.tidy.core >> tactic.skip},},
   rw this,
   apply subconnected.of_intersecting_subconnected,
   { apply subconnected.of_intersecting_subconnected,

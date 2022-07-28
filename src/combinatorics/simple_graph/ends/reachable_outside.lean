@@ -27,6 +27,7 @@ namespace simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
+           (Gpreconn : preconnected G)
 
 
 
@@ -347,6 +348,21 @@ begin
   -- that ro_components G K is just {G}, i.e. a singleton, hence finite
 end
 
+/-A graph is the union of the part `K` and all the ro_components in its complement-/
+lemma graph_eq_part_union_ro_comp : ↑K ∪ (⋃₀ ro_components G K) = set.univ :=
+begin
+  ext,
+  simp,
+  by_cases x_in_K : x ∈ K,
+  {tauto,},
+  { right,
+    have : ∀ (S : set V), x ∈ S ↔ {x} ⊆ S := by {simp at *},
+    simp_rw this, apply of_subconnected_disjoint,
+    {finish,},
+    { tidy },
+    { rw [subconnected], intros, simp at *, subst H, subst H_1, use walk.nil, finish, }}
+end
+
 def ro_of_ro_component (L : finset V) (K_sub_L : K ⊆ L) (D : set V) (D_comp : D ∈ ro_components G L) :
   ∀ x y ∈ D, reachable_outside G K x y :=
 λ x xD y yD, reachable_outside.monotone G K_sub_L x y (ro_component.is_ro G L D D_comp x xD y yD)
@@ -408,7 +424,7 @@ begin
 end
 
 
-lemma ro_component_to_ro_component_of_retract {U : Type*} (H : simple_graph U) (K : finset V)
+lemma ro_component_to_ro_component_of_isom {U : Type*} (H : simple_graph U) (K : finset V)
   (φ : G ≃g H) :
   set.maps_to (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) :=
 begin
@@ -430,17 +446,25 @@ begin
   }
 end
 
-
-
-
-
-
-
-
 lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
-  set.bij_on (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) := sorry
--- Should use the lemma above
-
+  set.bij_on (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) :=
+  begin
+    apply bij_on.mk,
+    -- the remaining two parts should trivially follow from the fact that `φ` is a bijection
+    {apply ro_component_to_ro_component_of_isom,},
+    { intros C₁ hC₁ C₂ hC₂,
+      simp, rw [set.image_eq_image], exact id,
+      exact rel_iso.injective φ, },
+    { rintros C ⟨x, hxC, hconnC⟩, -- this may be more low-level than it needs to be
+      use φ⁻¹' C,
+      split,
+      {
+        -- use φ.symm x,
+        sorry, -- this should probably be a lemma
+      },
+      {simp, rw [← set.eq_preimage_iff_image_eq], exact rel_iso.bijective φ,}
+    }
+  end
 
 
 
@@ -458,11 +482,27 @@ begin
   sorry,
 end
 -- Should use bij_ro_components_of_isom plus the obvious fact that φ being a bijection, it preserves infinite-ness.
+-- Some additional lemmas may be needed to make the above argument go through as is
 
-lemma infinite_graph_to_inf_components_nonempty (Vinfinite : (@set.univ V).infinite) :
+lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Vinfinite : (@set.univ V).infinite) (Gpreconn : G.preconnected) :
  (inf_ro_components G K).nonempty :=
 begin
-  sorry,
+  by_contradiction,
+  rw [set.not_nonempty_iff_eq_empty, inf_ro_components] at h,
+  apply Vinfinite,
+  rw [← graph_eq_part_union_ro_comp G K],
+  apply set.finite.union,
+  { exact (↑K : set V).to_finite,}, -- from library_search
+  {
+    apply set.finite.sUnion,
+    { apply finite, assumption, },
+    { intros C hC,
+      by_contradiction hCinf,
+      simp_rw [set.ext_iff] at h,
+      apply (h C).mp,
+      split, all_goals {assumption},
+    }
+  }
   -- K is finite, hence its boundary too, and there can only be a finite number of ro_components
   -- if all are finite, then their union is finite, so that V is finite too
 end

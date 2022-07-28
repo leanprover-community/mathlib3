@@ -270,18 +270,6 @@ lemma upper_crossing_stabilize' (hnm : n ≤ m) (hn : N ≤ upper_crossing a b f
   upper_crossing a b f N m x = N :=
 upper_crossing_stabilize hnm (le_antisymm upper_crossing_le hn)
 
-section temp
-
--- from #12509 **DELETE**
-lemma strict_mono.not_bdd_above_range {α β} [preorder α] [no_max_order α] [nonempty α] [preorder β]
-  [succ_order β] [is_succ_archimedean β] {f : α → β} (hf : strict_mono f) :
-  ¬ bdd_above (set.range f) :=
-begin
-  sorry
-end
-
-end temp
-
 -- `upper_crossing_bound_eq` provides an explicit bound
 lemma exists_upper_crossing_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :
   ∃ n, upper_crossing a b f N n x = N :=
@@ -289,7 +277,9 @@ begin
   by_contra h, push_neg at h,
   have : strict_mono (λ n, upper_crossing a b f N n x) :=
     strict_mono_nat_of_lt_succ (λ n, upper_crossing_lt_succ hab (h _)),
-  obtain ⟨_, ⟨k, rfl⟩, hk⟩ := not_bdd_above_iff.1 (strict_mono.not_bdd_above_range this) N,
+  obtain ⟨_, ⟨k, rfl⟩, hk⟩ : ∃ m (hm : m ∈ set.range (λ n, upper_crossing a b f N n x)), N < m :=
+    ⟨upper_crossing a b f N (N + 1) x, ⟨N + 1, rfl⟩,
+      lt_of_lt_of_le (N.lt_succ_self) (strict_mono.id_le this (N + 1))⟩,
   exact not_le.2 hk upper_crossing_le
 end
 

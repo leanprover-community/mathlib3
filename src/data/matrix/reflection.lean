@@ -180,8 +180,8 @@ do
   (t, one) ← t.mk_app `has_one.one [],
   pure (t, { one := one })
 
-/-- Produce a `has_zero` instance for the type cached by `t`, such that `0 : expr` is the zero of that
-type. -/
+/-- Produce a `has_zero` instance for the type cached by `t`, such that `0 : expr` is the zero of
+that type. -/
 meta def has_zero (t : tactic.instance_cache) :
   tactic (tactic.instance_cache × has_zero expr) :=
 do
@@ -259,7 +259,8 @@ do
 meta def fin_eta.derive : tactic unit :=
 do
   target@`(%%A' = %%A_eta) ← tactic.target,
-  (expr.const `matrix ls, [`(fin %%m), `(fin %%n), α]) ← expr.get_app_fn_args <$> tactic.infer_type A',
+  (expr.const `matrix ls, [`(fin %%m), `(fin %%n), α])
+    ← expr.get_app_fn_args <$> tactic.infer_type A',
   some (m, n) ← pure (prod.mk <$> m.to_nat <*> n.to_nat) |
     fail!"Dimensions {m} {n} are not numerals",
   (t,pr) ← matrix.fin_eta.prove m n,
@@ -304,12 +305,12 @@ meta def fin_to_pexpr {m n : ℕ} (A : matrix (fin m) (fin n) pexpr) : pexpr :=
 Returns the type of this statement and its proof. -/
 meta def mul_fin.prove (l m n : ℕ) : tactic (expr × expr) :=
 do
-  -- create all the binders
+  -- create all the binders, one for each coefficient
   u ← tactic.mk_meta_univ,
   α ← tactic.mk_local' `α binder_info.implicit (expr.sort u.succ),
   has_mul_α ← tactic.mk_app `has_mul [α] >>= tactic.mk_local' `_inst_1 binder_info.inst_implicit,
-  add_comm_monoid_α ← tactic.mk_app `add_comm_monoid [α] >>= tactic.mk_local' `_inst_2 binder_info.inst_implicit,
-  tactic.unfreeze_local_instances,
+  add_comm_monoid_α ←
+    tactic.mk_app `add_comm_monoid [α] >>= tactic.mk_local' `_inst_2 binder_info.inst_implicit,
   a ← (fin.mmap $ λ i : fin l, fin.mmap $ λ j : fin m,
       tactic.mk_local' ((`a).append_suffix (name_suffix i j)) binder_info.default α),
   b ← (fin.mmap $ λ i : fin m, fin.mmap $ λ j : fin n,
@@ -324,16 +325,14 @@ do
   -- get an instance cache holding all the instances needed for matrix multiplication. There must
   -- be a better way to do this.
   t ← tactic.mk_instance_cache α,
-  has_add_α ← tactic.mk_app `has_add [α] >>= (λ t, prod.snd <$> @tactic.solve_aux unit t (do {
-    tmp2 ← tactic.pose `_inst_2' none add_comm_monoid_α,
+  has_add_α ← tactic.mk_app `has_add [α] >>= (λ t, prod.snd <$> @tactic.solve_aux unit t (do
+  { tmp2 ← tactic.pose `_inst_2' none add_comm_monoid_α,
     tactic.reset_instance_cache,
-    `[apply_instance]
-  })),
-  has_zero_α ← tactic.mk_app `has_zero [α] >>= (λ t, prod.snd <$> @tactic.solve_aux unit t (do {
-    tmp2 ← tactic.pose `_inst_2' none add_comm_monoid_α,
+    `[apply_instance] })),
+  has_zero_α ← tactic.mk_app `has_zero [α] >>= (λ t, prod.snd <$> @tactic.solve_aux unit t (do
+  { tmp2 ← tactic.pose `_inst_2' none add_comm_monoid_α,
     tactic.reset_instance_cache,
-    `[apply_instance]
-  })),
+    `[apply_instance] })),
   let t := {inst := [
     (`has_mul, has_mul_α),
     (`has_add, has_add_α),
@@ -366,10 +365,10 @@ do
   (t,pr) ← mul_fin.prove l m n,
   tactic.apply (pr α i1 i2) {},
   tactic.done
-  -- TODO: should we be extracting the coefficients manually so we can do a full invocation as something
-  -- like:
-  -- tactic.unify target (t.instantiate_pis [α, A']),
-  -- tactic.exact (pr α A')
+  -- TODO: should we be extracting the coefficients manually so we can do a full invocation as
+  -- something like:
+  --   tactic.unify target (t.instantiate_pis [α, A']),
+  --   tactic.exact (pr α A')
 
 open_locale matrix
 
@@ -386,7 +385,7 @@ example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ 
                     b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
                                    a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
 begin
-  rw mul_fin,
+  library_search,
 end
 
 example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :

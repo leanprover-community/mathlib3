@@ -27,10 +27,32 @@ lemma it_spec (n : ℕ) : n < it n := classical.some_spec (it_exists n)
 -/
 
 namespace tactic
+setup_tactic_parser
 
 open expr
 
 namespace expand_exists
+
+@[derive has_reflect]
+meta structure arg :=
+(is_root : bool)
+(name : name)
+(docstring : option string)
+
+meta def parse_docstring : parser $ (option string) :=
+do
+  pe <- parser.pexpr,
+  e <- to_expr pe,
+  val <- some <$> eval_expr string e,
+  return val
+
+meta def parse_arg : parser arg :=
+do
+  is_root <- option.is_some <$> (tk "@")?,
+  name <- ident,
+  is_docstring <- option.is_some <$> (tk "=")?,
+  doc <- if is_docstring then parse_docstring else pure none,
+  return ⟨is_root, name, doc⟩
 
 /--
 Data known when parsing pi expressions.
@@ -197,11 +219,11 @@ Note that without the last argument `nat_greater_nonzero`, `nat_greater_lt` woul
 ```
 -/
 @[user_attribute]
-meta def expand_exists_attr : user_attribute unit (list name) :=
+meta def expand_exists_attr : user_attribute unit (list expand_exists.arg) :=
 { name := "expand_exists",
   descr := "From a proof that (a) value(s) exist(s) with certain properties, "
   ++ "constructs (an) instance(s) satisfying those properties.",
-  parser := lean.parser.many lean.parser.ident,
+  parser := expand_exists.parse_arg*,
   after_set := some $ λ decl prio persistent, do
     d <- get_decl decl,
     names <- expand_exists_attr.get_param decl,
@@ -210,7 +232,7 @@ meta def expand_exists_attr : user_attribute unit (list name) :=
       decl := λ is_t n ty val, (tactic.to_expr val >>= λ val,
         tactic.add_decl (if is_t then declaration.thm n d.univ_params ty (pure val)
           else declaration.defn n d.univ_params ty val default tt)),
-      names := names } d.type }
+      names := sorry } d.type }
 
 add_tactic_doc
 { name := "expand_exists",

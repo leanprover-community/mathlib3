@@ -1519,11 +1519,12 @@ variables (e'' : M₂ ≃ₛₗ[σ₂₃] M₃)
 variables (p q : submodule R M)
 
 /-- Linear equivalence between two equal submodules. -/
-@[simps apply symm_apply] def of_eq (h : p = q) : p ≃ₗ[R] q :=
+def of_eq (h : p = q) : p ≃ₗ[R] q :=
 { map_smul' := λ _ _, rfl, map_add' := λ _ _, rfl, .. equiv.set.of_eq (congr_arg _ h) }
 
 variables {p q}
 
+@[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
 @[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
 @[simp] lemma of_eq_rfl : of_eq p p rfl = linear_equiv.refl R p := by ext; refl
 

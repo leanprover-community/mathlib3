@@ -419,8 +419,7 @@ e₀.map φ.symm
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
-              linear_isometry_equiv.of_eq_apply, linear_equiv.to_fun_eq_coe,
-              linear_equiv.of_eq_apply, equiv.to_fun_as_coe, equiv.set.of_eq_apply, coe_mk]
+              linear_isometry_equiv.coe_of_eq_apply]
 
 open submodule
 

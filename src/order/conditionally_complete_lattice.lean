@@ -642,6 +642,8 @@ le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
 
+lemma infi_mem [nonempty ι] (f : ι → α) : infi f ∈ range f := Inf_mem (range_nonempty f)
+
 lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
   (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
 (hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
@@ -697,8 +699,15 @@ theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
 le_cInf_iff ⟨⊥, λ a _, bot_le⟩ ne
 
+theorem le_cinfi_iff' [nonempty ι] {f : ι → α} {a : α} :
+  a ≤ infi f ↔ ∀ i, a ≤ f i :=
+le_cinfi_iff ⟨⊥, λ a _, bot_le⟩
+
 theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
 cInf_le ⟨⊥, λ a _, bot_le⟩ h
+
+theorem cinfi_le' (f : ι → α) (i : ι) : infi f ≤ f i :=
+cinfi_le ⟨⊥, λ a _, bot_le⟩ _
 
 lemma exists_lt_of_lt_cSup' {s : set α} {a : α} (h : a < Sup s) : ∃ b ∈ s, a < b :=
 by { contrapose! h, exact cSup_le' h }
@@ -719,6 +728,20 @@ csupr_le' $ λ i, exists.elim (h i) (le_csupr_of_le hg)
 
 lemma cInf_le_cInf' {s t : set α} (h₁ : t.nonempty) (h₂ : t ⊆ s) : Inf s ≤ Inf t :=
 cInf_le_cInf (order_bot.bdd_below s) h₁ h₂
+
+theorem supr_sigma' {p : β → Type*} {f : sigma p → α} (hf : bdd_above (set.range f)) :
+  (⨆ x, f x) = ⨆ i j, f ⟨i, j⟩ :=
+begin
+  have hf' : ∀ i, bdd_above (set.range $ λ j, f ⟨i, j⟩) :=
+    λ i, hf.mono (set.range_subset_iff.mpr $ λ _, set.mem_range_self _),
+  have hf'' : bdd_above (set.range $ λ i, ⨆ j, f ⟨i, j⟩),
+  { rcases hf with ⟨M, hM⟩,
+    refine ⟨M, _⟩,
+    rw [mem_upper_bounds, set.forall_range_iff] at *,
+    exact λ i, csupr_le' (λ j, hM _) },
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [csupr_le_iff' hf, csupr_le_iff' hf'', csupr_le_iff' (hf' _), sigma.forall]
+end
 
 end conditionally_complete_linear_order_bot
 

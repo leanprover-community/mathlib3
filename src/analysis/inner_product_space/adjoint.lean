@@ -274,13 +274,13 @@ begin
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end
 
-lemma is_self_adjoint_iff_eq_adjoint (A : E →L[𝕜] E) :
-  is_self_adjoint (A : E →ₗ[𝕜] E) ↔ A = A.adjoint :=
-by simp_rw [is_self_adjoint, coe_coe, ← eq_adjoint_iff]
+@[simp] lemma is_self_adjoint_iff_adjoint_eq (A : E →L[𝕜] E) :
+  is_self_adjoint (A : E →ₗ[𝕜] E) ↔ A† = A :=
+by simp_rw [is_self_adjoint, coe_coe, ← eq_adjoint_iff, eq_comm]
 
-lemma _root_.inner_product_space.is_self_adjoint.eq_adjoint {A : E →L[𝕜] E}
-  (hA : is_self_adjoint (A : E →ₗ[𝕜] E)) : A = A† :=
-by rwa is_self_adjoint_iff_eq_adjoint at hA
+lemma _root_.inner_product_space.is_self_adjoint.adjoint_eq {A : E →L[𝕜] E}
+  (hA : is_self_adjoint (A : E →ₗ[𝕜] E)) : A† = A :=
+by rwa is_self_adjoint_iff_adjoint_eq at hA
 
 lemma _root_.inner_product_space.is_self_adjoint.conj_adjoint {T : E →L[𝕜] E}
   (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (S : E →L[𝕜] F) :
@@ -292,13 +292,21 @@ begin
   refl
 end
 
+lemma _root_.inner_product_space.is_self_adjoint.adjoint_conj {T : E →L[𝕜] E}
+  (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (S : F →L[𝕜] E) :
+  is_self_adjoint (S† ∘L T ∘L S : F →ₗ[𝕜] F) :=
+begin
+  convert hT.conj_adjoint (S†),
+  rw adjoint_adjoint
+end
+
 lemma _root_.inner_product_space.is_self_adjoint.conj_orthogonal_projection {T : E →L[𝕜] E}
   (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (U : submodule 𝕜 E) [complete_space U] :
   is_self_adjoint (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L
     orthogonal_projection U : E →ₗ[𝕜] E) :=
 begin
   have := hT.conj_adjoint (U.subtypeL ∘L orthogonal_projection U),
-  rwa ← (orthogonal_projection_is_self_adjoint U).eq_adjoint at this
+  rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this
 end
 
 lemma _root_.submodule.adjoint_subtypeL (U : submodule 𝕜 E)

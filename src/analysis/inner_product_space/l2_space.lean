@@ -391,9 +391,9 @@ end
 protected lemma has_sum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   has_sum (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) ⟪x, y⟫ :=
 begin
-  convert (b.has_sum_repr y).map _ (innerSL x).continuous,
+  convert (b.has_sum_repr y).mapL (innerSL x),
   ext i,
-  rw [function.comp_apply, innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
+  rw [innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
 end
 
 protected lemma summable_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
@@ -404,16 +404,16 @@ protected lemma tsum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   ∑' i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
 (b.has_sum_inner_mul_inner x y).tsum_eq
 
--- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
--- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) p` with
+-- `pi_Lp p (λ i : ι, 𝕜)` (in this case with `p = 2`), but we don't have this yet (July 2022).
+/-- A finite Hilbert basis is an orthonormal basis. -/
 protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk b.orthonormal
 begin
-  rw [← set.image_univ, ← finset.coe_univ, ← finset.coe_image],
   have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
-  rw [← this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ],
-  exact b.dense_span
+  simpa only [finset.coe_image, finset.coe_univ, set.image_univ, hilbert_basis.dense_span] using
+    this.submodule_topological_closure_eq.symm
 end
 
 @[simp] lemma coe_to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
@@ -464,18 +464,14 @@ hilbert_basis.coe_mk hv _
 
 omit hv
 
--- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
--- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have that yet (July 2022).
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) p` with
+-- `pi_Lp p (λ i : ι, 𝕜)` (in this case with `p = 2`), but we don't have this yet (July 2022).
+/-- An orthonormal basis is an Hilbert basis. -/
 protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthonormal_basis ι 𝕜 E) :
   hilbert_basis ι 𝕜 E :=
-hilbert_basis.mk b.orthonormal
-begin
-  rw [← set.image_univ, ← finset.coe_univ, ← finset.coe_image],
-  have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
-  rw [this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ,
-      ← orthonormal_basis.coe_to_basis],
-  exact b.to_basis.span_eq
-end
+hilbert_basis.mk b.orthonormal $
+by simpa only [← orthonormal_basis.coe_to_basis, b.to_basis.span_eq, eq_top_iff]
+  using @subset_closure E _ _
 
 @[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]
   (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=
@@ -522,4 +518,106 @@ lemma _root_.exists_hilbert_basis :
   ∃ (w : set E) (b : hilbert_basis w 𝕜 E), ⇑b = (coe : w → E) :=
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_hilbert_basis_extension in ⟨w, hw, hw''⟩
 
+/-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
+def hilbert_basis_index : set E :=
+classical.some (exists_hilbert_basis 𝕜 E)
+
+/-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
+def std_hilbert_basis : hilbert_basis (hilbert_basis_index 𝕜 E) 𝕜 E :=
+classical.some (classical.some_spec (exists_hilbert_basis 𝕜 E))
+
+@[simp] lemma coe_std_hilbert_basis : ⇑(std_hilbert_basis 𝕜 E) = coe :=
+classical.some_spec (classical.some_spec (exists_hilbert_basis 𝕜 E))
+
 end hilbert_basis
+
+namespace orthogonal_family
+
+variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
+  (hVortho : orthogonal_family 𝕜 V)
+  (hVtotal : (⨆ i, (V i).to_linear_map.range).topological_closure = ⊤)
+  {F : ι → submodule 𝕜 E}
+  (hFortho : @orthogonal_family 𝕜 E _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ))
+  (hFtotal : (⨆ i, F i).topological_closure = ⊤)
+
+def subordinate_hilbert_basis [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
+  hilbert_basis (Σ i, α i) 𝕜 E :=
+{ repr :=
+  linear_isometry_equiv.trans
+    (hVortho.linear_isometry_equiv hVtotal) $
+  linear_isometry_equiv.trans
+    (lp.congr_rightₗᵢ _ (λ i : ι, lp (λ a : α i, 𝕜) 2) _ 2 (λ i, (v i).repr))
+    (lp.curry_equivₗᵢ _ _ 𝕜).symm }
+
+lemma subordinate_hilbert_basis_repr [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
+  (subordinate_hilbert_basis hVortho hVtotal v).repr =
+  (linear_isometry_equiv.trans
+    (hVortho.linear_isometry_equiv hVtotal) $
+  linear_isometry_equiv.trans
+    (lp.congr_rightₗᵢ _ (λ i : ι, lp (λ a : α i, 𝕜) 2) _ 2 (λ i, (v i).repr))
+    (lp.curry_equivₗᵢ _ _ 𝕜).symm) :=
+rfl
+
+attribute [irreducible] subordinate_hilbert_basis
+
+lemma subordinate_hilbert_basis_repr_symm_apply [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (f : lp (λ ia : Σ i, α i, 𝕜) 2):
+  (subordinate_hilbert_basis hVortho hVtotal v).repr.symm f =
+  (hVortho.linear_isometry_equiv hVtotal).symm
+    ((lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 𝕜 2 (λ i, (v i).repr.symm))
+      (lp.curry (λ i, λ a : α i, 𝕜) f)) :=
+begin
+  rw subordinate_hilbert_basis_repr,
+  refl
+end
+
+lemma coe_subordinate_hilbert_basis_mk [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
+  subordinate_hilbert_basis hVortho hVtotal v ⟨i, a⟩ = V i (v i a) :=
+by rw [← hilbert_basis.repr_symm_single, subordinate_hilbert_basis_repr_symm_apply, lp.curry_single,
+  lp.congr_right_single, (v i).repr_symm_single, hVortho.linear_isometry_equiv_symm_apply_single]
+
+lemma coe_subordinate_hilbert_basis [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
+  subordinate_hilbert_basis hVortho hVtotal v ia = V ia.1 (v ia.1 ia.2) :=
+let ⟨i, a⟩ := ia in coe_subordinate_hilbert_basis_mk _ _ _ i a
+
+include hFtotal
+
+def subordinate_hilbert_basis_internal [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (F i)] (v : Π i, hilbert_basis (α i) 𝕜 (F i)) :
+  hilbert_basis (Σ i, α i) 𝕜 E :=
+subordinate_hilbert_basis hFortho
+  (by simpa [subtypeₗᵢ_to_linear_map, range_subtype] using hFtotal) v
+
+lemma coe_subordinate_hilbert_basis_internal_mk [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (F i)] (v : Π i, hilbert_basis (α i) 𝕜 (F i)) (i : ι) (a : α i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v ⟨i, a⟩ = v i a :=
+coe_subordinate_hilbert_basis_mk _ _ _ _ _
+
+lemma coe_subordinate_hilbert_basis_internal [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (F i)] (v : Π i, hilbert_basis (α i) 𝕜 (F i)) (ia : Σ i, α i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v ia = v ia.1 ia.2 :=
+coe_subordinate_hilbert_basis _ _ _ _
+
+lemma subordinate_hilbert_basis_mem [complete_space E] {α : ι → Type*} [∀ i, complete_space (F i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) {i : ι} {x : Σ j, α j} (hx : x.1 = i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v x ∈ F i :=
+begin
+  subst hx,
+  rw [coe_subordinate_hilbert_basis_internal],
+  exact coe_mem _
+end
+
+lemma subordinate_hilbert_basis_mem_orthogonal [complete_space E] {α : ι → Type*} [∀ i, complete_space (F i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) {i : ι} {x : Σ j, α j} (hx : x.1 ≠ i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v x ∈ (F i)ᗮ :=
+begin
+  intros u hu,
+  rw coe_subordinate_hilbert_basis_internal,
+  exact hFortho hx.symm ⟨u, hu⟩ (v x.1 x.2)
+end
+
+end orthogonal_family

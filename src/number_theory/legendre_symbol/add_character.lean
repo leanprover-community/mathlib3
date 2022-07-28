@@ -57,6 +57,8 @@ variables (R' : Type v) [comm_monoid R']
 /-- Define `add_char R R'` as `(multiplicative R) →* R'`.
 The definition works for an additive monoid `R` and a monoid `R'`,
 but we will restrict to the case that both are commutative rings below.
+We assume right away that `R'` is commutative, so that `add_char R R'` carries
+a structure of commutative monoid.
 The trivial additive character (sending everything to `1`) is `(1 : add_char R R').` -/
 @[derive [comm_monoid, inhabited]]
 def add_char : Type (max u v) := (multiplicative R) →* R'
@@ -89,7 +91,6 @@ lemma inv_apply' (ψ : add_char R R') (x : R) : ψ⁻¹ (of_add x) = ψ (of_add 
 
 /-- The additive characters on a commutative additive group form a commutative group. -/
 instance comm_group : comm_group (add_char R R') :=
---let comm_mon : comm_monoid (add_char R R') := monoid_hom.comm_monoid in
 { inv := has_inv.inv,
   mul_left_inv :=
   λ ψ, by { ext, rw [monoid_hom.mul_apply, monoid_hom.one_apply, inv_apply, ← map_mul, of_add_neg,

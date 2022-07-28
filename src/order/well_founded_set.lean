@@ -405,7 +405,7 @@ theorem is_wf.is_pwo [linear_order α] {s : set α}
   obtain ⟨m, hm⟩ := hs.min_mem (range f) hrange,
   refine ⟨m, m.succ, m.lt_succ_self, le_of_not_lt (λ con, _)⟩,
   rw hm at con,
-  apply hs.not_lt_min (range f) hrange (mem_range_self m.succ)
+  apply hs.not_lt_min (range f) (mem_range_self m.succ)
     ⟨con, hf (mem_range_self m.succ), hf _⟩,
   rw ← hm,
   apply mem_range_self,
@@ -470,8 +470,8 @@ hs.min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)
 lemma is_wf.min_mem (hs : is_wf s) (hn : s.nonempty) : hs.min hn ∈ s :=
 (well_founded.min hs univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)).2
 
-lemma is_wf.not_lt_min (hs : is_wf s) (hn : s.nonempty) (ha : a ∈ s) : ¬ a < hs.min hn :=
-hs.not_lt_min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype) (mem_univ (⟨a, ha⟩ : s))
+lemma is_wf.not_lt_min (hs : is_wf s) (ha : a ∈ s) : ¬ a < hs.min ⟨s, ha⟩ :=
+hs.not_lt_min univ (mem_univ (⟨a, ha⟩ : s))
 
 @[simp]
 lemma is_wf_min_singleton (a) {hs : is_wf ({a} : set α)} {hn : ({a} : set α).nonempty} :
@@ -491,9 +491,8 @@ finset.sup_induction set.is_pwo_empty (λ a ha b hb, ha.union hb) hf
 namespace set
 variables [linear_order α] {s t : set α} {a : α}
 
-lemma is_wf.min_le
-  (hs : s.is_wf) (hn : s.nonempty) (ha : a ∈ s) : hs.min hn ≤ a :=
-le_of_not_lt (hs.not_lt_min hn ha)
+lemma is_wf.min_le (hs : s.is_wf) (ha : a ∈ s) : hs.min ⟨s, ha⟩ ≤ a :=
+le_of_not_lt (hs.not_lt_min ha)
 
 lemma is_wf.le_min_iff
   (hs : s.is_wf) (hn : s.nonempty) :

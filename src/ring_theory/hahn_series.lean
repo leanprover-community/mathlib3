@@ -202,7 +202,7 @@ begin
   contrapose! hi,
   rw [←ne.def, ←mem_support] at hi,
   rw [order_of_ne hx],
-  exact set.is_wf.not_lt_min _ _ hi
+  exact set.is_wf.not_lt_min _ hi
 end
 
 end order

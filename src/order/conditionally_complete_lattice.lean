@@ -139,7 +139,7 @@ open_locale classical
 { Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
-    simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s s_ne has),
+    simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s has),
   end,
   le_cInf := λ s a hs has, begin
     simp only [hs, dif_pos],
@@ -154,9 +154,9 @@ open_locale classical
   cSup_le := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
     simp only [h's, dif_pos],
-    simpa using h.wf.not_lt_min _ h's has,
+    simpa using h.wf.not_lt_min _ has,
   end,
-  cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min _ _ $ mem_univ ⊥),
+  cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min $ mem_univ ⊥),
   ..i₁, ..i₂, ..linear_order.to_lattice }
 
 end

@@ -811,7 +811,7 @@ have hm2 : ∀ k, I.leading_coeff_nth k ≤ M := λ k, or.cases_on (le_or_lt k N
   (λ h, HN ▸ I.leading_coeff_nth_mono h)
   (λ h x hx, classical.by_contradiction $ λ hxm,
     have ¬M < I.leading_coeff_nth k, by refine well_founded.not_lt_min
-      (well_founded_submodule_gt _ _) _ _ _; exact ⟨k, rfl⟩,
+      (well_founded_submodule_gt _ _) _ _; exact ⟨k, rfl⟩,
     this ⟨HN ▸ I.leading_coeff_nth_mono (le_of_lt h), λ H, hxm (H hx)⟩),
 have hs2 : ∀ {x}, x ∈ I.degree_le N → x ∈ ideal.span (↑s : set R[X]),
 from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx) (ideal.zero_mem _)

@@ -369,7 +369,7 @@ noncomputable def collapse_F [is_well_order β s] (f : r ↪r s) : Π a, {b // �
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.map_rel_iff.2 h) h')
     .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.map_rel_iff.2 h,
   exact ⟨is_well_order.wf.min S ⟨_, this⟩,
-   is_well_order.wf.not_lt_min _ _ this⟩
+   is_well_order.wf.not_lt_min _ this⟩
 end
 
 theorem collapse_F.lt [is_well_order β s] (f : r ↪r s) {a : α}
@@ -383,7 +383,7 @@ theorem collapse_F.not_lt [is_well_order β s] (f : r ↪r s) (a : α)
    {b} (h : ∀ a' (h : r a' a), s (collapse_F f a').1 b) : ¬ s b (collapse_F f a).1 :=
 begin
   unfold collapse_F, rw well_founded.fix_eq,
-  exact well_founded.not_lt_min _ _ _
+  exact well_founded.not_lt_min _ _
     (show b ∈ {b | ∀ a' (h : r a' a), s (collapse_F f a').1 b}, from h)
 end
 
@@ -401,7 +401,7 @@ by haveI := rel_embedding.is_well_order f; exact
   { exact (is_well_order.wf : well_founded r).min_mem S this },
   { refine collapse_F.not_lt f _ (λ a' h', _),
     by_contradiction hn,
-    exact is_well_order.wf.not_lt_min S this hn h' }
+    exact is_well_order.wf.not_lt_min S hn h' }
 end) a⟩
 
 theorem collapse_apply [is_well_order β s] (f : r ↪r s)

@@ -46,32 +46,26 @@ If you're working with a nonempty linear order, consider defining a
 `conditionally_complete_linear_order_bot` instance via
 `well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
 noncomputable def min {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : α :=
-classical.some (H.has_min p h)
+  (s : set α) (h : s.nonempty) : α :=
+classical.some (H.has_min s h)
 
 theorem min_mem {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
-let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
+  (s : set α) (h : s.nonempty) : H.min s h ∈ s :=
+let ⟨h, _⟩ := classical.some_spec (H.has_min s h) in h
 
 theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
-let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
+  (s : set α) {x} (hx : x ∈ s) : ¬ r x (H.min s ⟨x, hx⟩) :=
+let ⟨_, h'⟩ := classical.some_spec (H.has_min s _) in h' _ hx
 
 theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
+  ∀ (s : set α), s.nonempty → ∃ m ∈ s, ∀ x ∈ s, ¬ r x m :=
 begin
-  classical,
-  split,
-  { exact has_min, },
-  { set counterexamples := { x : α | ¬ acc r x},
-    intro exists_max,
-    fconstructor,
-    intro x,
-    by_contra hx,
-    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
-    refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
-    by_contra hy,
-    exact hm y hy y_gt_m, },
+  refine ⟨λ h, h.has_min, λ h, ⟨λ x, _⟩⟩,
+  by_contra hx,
+  obtain ⟨m, hm, hm'⟩ := h _ ⟨x, hx⟩,
+  refine hm (acc.intro _ (λ y hy, _)),
+  by_contra hy',
+  exact hm' y hy' hy
 end
 
 lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
@@ -122,7 +116,7 @@ begin
   split,
   { intro h', have : ¬r x y,
     { intro hy, rw [well_founded.succ, dif_pos] at h',
-      exact wo.wf.not_lt_min _ h hy h' },
+      exact wo.wf.not_lt_min _ hy h' },
     rcases trichotomous_of r x y with hy | hy | hy,
     exfalso, exact this hy,
     right, exact hy.symm,
@@ -135,9 +129,8 @@ section linear_order
 variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
   {γ : Type*} [partial_order γ]
 
-theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
-  h.min s hne ≤ x :=
-not_lt.1 $ h.not_lt_min _ _ hx
+theorem min_le {x : β} {s : set β} (hx : x ∈ s) : h.min s ⟨x, hx⟩ ≤ x :=
+not_lt.1 $ h.not_lt_min s hx
 
 private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
   (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
@@ -163,8 +156,8 @@ theorem eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
     (eq_strict_mono_iff_eq_range_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
 end, congr_arg _⟩
 
-theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
-by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+theorem self_le_of_strict_mono {f : β → β} (hf : strict_mono f) : ∀ n, n ≤ f n :=
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min {n : β | f n < n} (hf h₂) h₂ }
 
 end linear_order
 
@@ -184,7 +177,7 @@ noncomputable def argmin [nonempty α] : α :=
 well_founded.min (inv_image.wf f h) set.univ set.univ_nonempty
 
 lemma not_lt_argmin [nonempty α] (a : α) : ¬ f a < f (argmin f h) :=
-well_founded.not_lt_min (inv_image.wf f h) _ _ (set.mem_univ a)
+well_founded.not_lt_min (inv_image.wf f h) _ (set.mem_univ a)
 
 /-- Given a function `f : α → β` where `β` carries a well-founded `<`, and a non-empty subset `s`
 of `α`, this is an element of `s` whose image under `f` is minimal in the sense of
@@ -196,10 +189,9 @@ well_founded.min (inv_image.wf f h) s hs
   argmin_on f h s hs ∈ s :=
 well_founded.min_mem _ _ _
 
-@[simp] lemma not_lt_argmin_on (s : set α) {a : α} (ha : a ∈ s)
-  (hs : s.nonempty := set.nonempty_of_mem ha) :
-  ¬ f a < f (argmin_on f h s hs) :=
-well_founded.not_lt_min (inv_image.wf f h) s hs ha
+@[simp] lemma not_lt_argmin_on (s : set α) {a : α} (ha : a ∈ s) :
+  ¬ f a < f (argmin_on f h s (set.nonempty_of_mem ha)) :=
+well_founded.not_lt_min (inv_image.wf f h) s ha
 
 end has_lt
 
@@ -210,9 +202,9 @@ variables [linear_order β] (h : well_founded ((<) : β → β → Prop))
 @[simp] lemma argmin_le (a : α) [nonempty α] : f (argmin f h) ≤ f a :=
 not_lt.mp $ not_lt_argmin f h a
 
-@[simp] lemma argmin_on_le (s : set α) {a : α} (ha : a ∈ s)
-  (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
-not_lt.mp $ not_lt_argmin_on f h s ha hs
+@[simp] lemma argmin_on_le (s : set α) {a : α} (ha : a ∈ s) :
+  f (argmin_on f h s (set.nonempty_of_mem ha)) ≤ f a :=
+not_lt.mp $ not_lt_argmin_on f h s ha
 
 end linear_order
 

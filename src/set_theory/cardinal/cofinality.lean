@@ -176,8 +176,7 @@ begin
     have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
     rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
-      (is_order_connected.neg_trans h ba) }
+    exact (is_well_order.wf).not_lt_min _ (is_order_connected.neg_trans h ba) }
 end
 
 /-! ### Cofinality of suprema and least strict upper bounds -/
@@ -525,7 +524,7 @@ begin
       cases wo.wf.min_mem _ h with hji hij,
       refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
       { by_contra' H,
-        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
+        exact wo.wf.not_lt_min _ h hkj },
       { rwa bfamily_of_family'_typein } } }
 end
 

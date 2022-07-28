@@ -96,7 +96,7 @@ well_founded.min (measure_wf path.length) set.univ set.univ_nonempty
 /-- The length of a path is at least the length of the shortest path -/
 lemma shortest_path_spec {a : V} (p : path r a) :
   (shortest_path r a).length ≤ p.length :=
-not_lt.mp (well_founded.not_lt_min (measure_wf _) set.univ _ trivial)
+not_lt.mp (well_founded.not_lt_min (measure_wf _) set.univ trivial)
 
 /-- A subquiver which by construction is an arborescence. -/
 def geodesic_subtree : wide_subquiver V :=

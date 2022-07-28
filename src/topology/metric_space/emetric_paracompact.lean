@@ -52,7 +52,7 @@ begin
   set ind : α → ι := λ x, wf.min {i : ι | x ∈ s i} (hcov x),
   have mem_ind : ∀ x, x ∈ s (ind x), from λ x, wf.min_mem _ (hcov x),
   have nmem_of_lt_ind : ∀ {x i}, i < (ind x) → x ∉ s i,
-    from λ x i hlt hxi, wf.not_lt_min _ (hcov x) hxi hlt,
+    from λ x i hlt hxi, wf.not_lt_min _ hxi hlt,
   /- The refinement `D : ℕ → ι → set α` is defined recursively. For each `n` and `i`, `D n i`
   is the union of balls `ball x (1 / 2 ^ n)` over all points `x` such that
 

@@ -112,7 +112,7 @@ lemma min {p : A[X]} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 begin
   delta minpoly, split_ifs with hx,
-  { exact le_of_not_lt (well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩) },
+  { exact le_of_not_lt (well_founded.not_lt_min degree_lt_wf hx ⟨pmonic, hp⟩) },
   { simp only [degree_zero, bot_le] }
 end
 

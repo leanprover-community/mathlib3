@@ -267,9 +267,11 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
-  extends is_strict_total_order' α r : Prop :=
-(wf : well_founded r)
+  extends is_trichotomous α r, is_trans α r, is_well_founded α r : Prop
 
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_strict_total_order' {α} (r : α → α → Prop) [is_well_order α r] :
+  is_strict_total_order' α r := { }
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order α r := by apply_instance
@@ -359,7 +361,6 @@ subsingleton.is_well_order _
 @[priority 100]
 instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
 { trichotomous := is_empty_elim,
-  irrefl       := is_empty_elim,
   trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
 
@@ -379,8 +380,6 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
-  irrefl := λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
-     [exact irrefl _ h, exact irrefl _ h],
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
@@ -389,7 +388,7 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
     { exact prod.lex.left _ _ bc },
     { exact prod.lex.right _ (trans ab bc) }
   end,
-  wf := prod.lex_wf is_well_order.wf is_well_order.wf }
+  wf := prod.lex_wf is_well_founded.wf is_well_founded.wf }
 
 instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
   is_well_founded _ (inv_image r f) :=
@@ -609,7 +608,7 @@ instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒ
 @is_total.swap α _ _
 
 instance : well_founded_lt ℕ := ⟨nat.lt_wf⟩
-instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+instance nat.lt.is_well_order : is_well_order ℕ (<) := { }
 
 instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
 instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

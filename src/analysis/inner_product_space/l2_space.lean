@@ -482,21 +482,37 @@ def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
   linear_isometry_equiv.trans
     (hVortho.linear_isometry_equiv hVtotal) $
   linear_isometry_equiv.trans
-    (lp.congr_rightₗᵢ G (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 (λ i, (v i).repr))
-    (lp.curry_equivₗᵢ 2 (λ _ _, 𝕜) 𝕜).symm }
+    (lp.congr_rightₗᵢ _ (λ i : ι, lp (λ a : α i, 𝕜) 2) _ 2 (λ i, (v i).repr))
+    (lp.curry_equivₗᵢ _ _ 𝕜).symm }
+
+lemma collected_hilbert_basis_repr {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
+  (collected_hilbert_basis hVortho hVtotal v).repr =
+  (linear_isometry_equiv.trans
+    (hVortho.linear_isometry_equiv hVtotal) $
+  linear_isometry_equiv.trans
+    (lp.congr_rightₗᵢ _ (λ i : ι, lp (λ a : α i, 𝕜) 2) _ 2 (λ i, (v i).repr))
+    (lp.curry_equivₗᵢ _ _ 𝕜).symm) :=
+rfl
+
+attribute [irreducible] collected_hilbert_basis
+
+lemma collected_hilbert_basis_repr_symm_apply {α : ι → Type*} [∀ i, complete_space (G i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (f : lp (λ ia : Σ i, α i, 𝕜) 2):
+  (collected_hilbert_basis hVortho hVtotal v).repr.symm f =
+  (hVortho.linear_isometry_equiv hVtotal).symm (
+    (lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 𝕜 2 (λ i, (v i).repr.symm))
+    (lp.curry (λ i, λ a : α i, 𝕜) f)) :=
+begin
+  rw collected_hilbert_basis_repr,
+  refl
+end
 
 lemma coe_collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
   collected_hilbert_basis hVortho hVtotal v ⟨i, a⟩ = V i (v i a) :=
-begin
-  sorry,
-  --simp_rw [← hilbert_basis.repr_symm_single, collected_hilbert_basis,
-  --         linear_isometry_equiv.symm_trans, linear_isometry_equiv.symm_symm,
-  --         linear_isometry_equiv.trans_apply],
-  --rw [lp.coe_curry_equivₗᵢ, lp.curry_single, lp.congr_rightₗᵢ_symm, lp.congr_rightₗᵢ_single,
-  --    (v i).repr_symm_single],
-  --exact orthogonal_family.linear_isometry_equiv_symm_apply_single _ _ _,
-end
+by rw [← hilbert_basis.repr_symm_single, collected_hilbert_basis_repr_symm_apply, lp.curry_single,
+  lp.congr_right_single, (v i).repr_symm_single, hVortho.linear_isometry_equiv_symm_apply_single]
 
 --def subordinate_hilbert_basis_span {α : ι → Type*} [∀ i, complete_space (F i)]
 --  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) := sorry

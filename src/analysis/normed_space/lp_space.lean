@@ -1093,9 +1093,9 @@ def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
 begin
   ext a' b',
   by_cases ha : a = a',
-  { induction ha,
+  { subst ha,
     by_cases hb : b = b',
-    { induction hb,
+    { subst hb,
       simp only [curry_apply, lp.single_apply_self] },
     { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
       rw [curry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
@@ -1148,9 +1148,9 @@ begin
   ext ab',
   rcases ab' with ⟨a', b'⟩,
   by_cases ha : a = a',
-  { induction ha,
+  { subst ha,
     by_cases hb : b = b',
-    { induction hb,
+    { subst hb,
       simp only [uncurry_apply, lp.single_apply_self] },
     { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
       rw [uncurry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
@@ -1208,8 +1208,8 @@ end curry
 
 section congr_right
 
-variables (E) {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (F : α → Type*)
-  [Π i, normed_group (F i)] [Π i, normed_space 𝕜 (F i)]
+variables (E) (F : α → Type*) [Π i, normed_group (F i)] (𝕜 : Type*) [normed_field 𝕜]
+  [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
 
 noncomputable! def congr_right (p : ℝ≥0∞) (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
   lp E p ≃ lp F p :=
@@ -1218,6 +1218,23 @@ noncomputable! def congr_right (p : ℝ≥0∞) (Φ : Π i, E i ≃ₗᵢ[𝕜] 
   left_inv := λ f, by ext i; exact (Φ i).symm_apply_apply _,
   right_inv := λ g, by ext i; exact (Φ i).apply_symm_apply _ }
 
+@[simp] lemma congr_right_apply (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) (f : lp E p)
+  (i : α) : congr_right E F 𝕜 p Φ f i = (Φ i) (f i) := rfl
+
+@[simp] lemma congr_right_single [decidable_eq α] (p : ℝ≥0∞) [fact (1 ≤ p)]
+  (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) (i : α) (x : E i) :
+  congr_right E F 𝕜 p Φ (lp.single p i x) = (lp.single p i (Φ i x)) :=
+begin
+  ext j,
+  rw [congr_right_apply, lp.single_apply, lp.single_apply],
+  split_ifs,
+  { subst h },
+  { exact map_zero _ }
+end
+
+@[simp] lemma congr_right_symm (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+  (congr_right E F 𝕜 p Φ).symm = congr_right F E 𝕜 p (λ i, (Φ i).symm) := rfl
+
 noncomputable! def congr_rightₗᵢ (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
   lp E p ≃ₗᵢ[𝕜] lp F p :=
 { map_add' := λ f g, by ext i; exact map_add (Φ i) _ _,
@@ -1225,7 +1242,7 @@ noncomputable! def congr_rightₗᵢ (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π 
   norm_map' :=
   begin
     intros f,
-    change ∥lp.congr_right E F p Φ f∥ = ∥f∥,
+    change ∥lp.congr_right E F 𝕜 p Φ f∥ = ∥f∥,
     unfreezingI { rcases p.dichotomy with rfl | hp},
     { rw [lp.norm_eq_csupr, lp.norm_eq_csupr],
       congr,
@@ -1237,25 +1254,21 @@ noncomputable! def congr_rightₗᵢ (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π 
       ext i,
       exact congr_arg (λ x, x ^ p.to_real) ((Φ i).norm_map _) },
   end,
-  ..congr_right E F p Φ}
+  ..congr_right E F 𝕜 p Φ}
+
+@[simp] lemma coe_congr_rightₗᵢ (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
+  (congr_rightₗᵢ E F 𝕜 p Φ : lp E p → lp F p) = congr_right E F 𝕜 p Φ := rfl
 
 @[simp] lemma congr_rightₗᵢ_apply (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) (f : lp E p)
-  (i : α) : congr_rightₗᵢ E F p Φ f i = (Φ i) (f i) := rfl
+  (i : α) : congr_rightₗᵢ E F 𝕜 p Φ f i = (Φ i) (f i) := rfl
 
 @[simp] lemma congr_rightₗᵢ_single [decidable_eq α] (p : ℝ≥0∞) [fact (1 ≤ p)]
   (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) (i : α) (x : E i) :
-  congr_rightₗᵢ E F p Φ (lp.single p i x) = (lp.single p i (Φ i x)) :=
-begin
-  ext j,
-  rw [congr_rightₗᵢ_apply, lp.single_apply, lp.single_apply],
-  split_ifs,
-  { induction h,
-    refl },
-  { exact map_zero _ }
-end
+  congr_rightₗᵢ E F 𝕜 p Φ (lp.single p i x) = (lp.single p i (Φ i x)) :=
+congr_right_single E F 𝕜 p Φ i x
 
 @[simp] lemma congr_rightₗᵢ_symm (p : ℝ≥0∞) [fact (1 ≤ p)] (Φ : Π i, E i ≃ₗᵢ[𝕜] F i) :
-  (congr_rightₗᵢ E F p Φ).symm = congr_rightₗᵢ F E p (λ i, (Φ i).symm) := rfl
+  (congr_rightₗᵢ E F 𝕜 p Φ).symm = congr_rightₗᵢ F E 𝕜 p (λ i, (Φ i).symm) := rfl
 
 end congr_right
 

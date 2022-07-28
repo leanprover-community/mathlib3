@@ -107,6 +107,16 @@ lemma filter.prod_le_of_right_le (p : filter ι) {p'' : filter α} (hp : p' ≤ 
   p ×ᶠ p' ≤ p ×ᶠ p'' :=
 filter.prod_le_of_le_of_le rfl.le hp
 
+lemma filter.eventually.diag_of_prod_left {f : filter α} {g : filter γ}
+  {p : (α × α) × γ → Prop} :
+  (∀ᶠ x in (f ×ᶠ f ×ᶠ g), p x) →
+  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p ((x.1, x.1), x.2)) :=
+begin
+  intros h,
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  refine (ht.diag_of_prod.prod_mk hs).mono (λ x hx, by simp only [hst hx.1 hx.2, prod.mk.eta]),
+end
+
 lemma filter.eventually.diag_of_prod_right {f : filter α} {g : filter γ}
   {p : α × γ × γ → Prop} :
   (∀ᶠ x in (f ×ᶠ (g ×ᶠ g)), p x) →
@@ -305,6 +315,13 @@ begin
 end
 
 /-- Composing on the left by a uniformly continuous function preserves
+  uniform convergence on a filter -/
+lemma uniform_continuous.comp_tendsto_uniformly_on_filter [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (h : tendsto_uniformly_on_filter F f p p') :
+  tendsto_uniformly_on_filter (λ i, g ∘ (F i)) (g ∘ f) p p' :=
+λ u hu, h _ (hg hu)
+
+/-- Composing on the left by a uniformly continuous function preserves
   uniform convergence on a set -/
 lemma uniform_continuous.comp_tendsto_uniformly_on [uniform_space γ] {g : β → γ}
   (hg : uniform_continuous g) (h : tendsto_uniformly_on F f p s) :
@@ -352,6 +369,12 @@ begin
   rw [←tendsto_uniformly_on_univ, ←univ_prod_univ] at *,
   exact h.prod_map h',
 end
+
+lemma tendsto_uniformly_on_filter.prod {ι' β' : Type*} [uniform_space β']
+  {F' : ι' → α → β'} {f' : α → β'} {q : filter ι'}
+  (h : tendsto_uniformly_on_filter F f p p') (h' : tendsto_uniformly_on_filter F' f' q p') :
+  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod q) p' :=
+λ u hu, ((h.prod_map h') u hu).diag_of_prod_right
 
 lemma tendsto_uniformly_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}
   {p' : filter ι'} (h : tendsto_uniformly_on F f p s) (h' : tendsto_uniformly_on F' f' p' s) :

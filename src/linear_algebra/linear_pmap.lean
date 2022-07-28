@@ -590,6 +590,10 @@ begin
   simp,
 end
 
+lemma mem_domain_of_mem_graph {f : linear_pmap R E F} {x : E} {y : F} (h : (x,y) ∈ f.graph) :
+  x ∈ f.domain :=
+by { rw mem_domain_iff, exact ⟨y, h⟩ }
+
 lemma image_iff {f : linear_pmap R E F} {x : E} {y : F} (hx : x ∈ f.domain) :
   y = f ⟨x, hx⟩ ↔ (x, y) ∈ f.graph :=
 begin

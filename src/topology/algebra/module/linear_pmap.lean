@@ -43,8 +43,7 @@ variables {R E F 𝕜: Type*}
 
 variables [comm_ring R] [add_comm_group E] [add_comm_group F]
 variables [module R E] [module R F]
-variables [topological_space R] [topological_space E] [topological_space F]
-variables [has_continuous_add E] [has_continuous_add F]
+variables [topological_space E] [topological_space F]
 
 namespace linear_pmap
 
@@ -54,14 +53,8 @@ namespace linear_pmap
 def closed (f : linear_pmap R E F) : Prop :=
 is_closed (f.graph : set (E × F))
 
-lemma mem_domain_of_mem_graph {f : linear_pmap R E F} {x : E} {y : F} (h : (x,y) ∈ f.graph) :
-  x ∈ f.domain :=
-begin
-  rw mem_domain_iff,
-  exact ⟨y, h⟩,
-end
-
-variables [has_continuous_smul R E] [has_continuous_smul R F]
+variables [has_continuous_add E] [has_continuous_add F]
+variables [topological_space R] [has_continuous_smul R E] [has_continuous_smul R F]
 
 /-- An operator is closable if the closure of the graph is a graph. -/
 def closable (f : linear_pmap R E F) : Prop :=
@@ -85,7 +78,7 @@ begin
 end
 
 /-- The closure is unique. -/
-lemma closable.exists_unique {f g g' : linear_pmap R E F} (hf : f.closable) :
+lemma closable.exists_unique {f : linear_pmap R E F} (hf : f.closable) :
   ∃! (f' : linear_pmap R E F), f.graph.topological_closure = f'.graph :=
 begin
   refine exists_unique_of_exists_of_unique hf (λ _ _ hy₁ hy₂, eq_of_eq_graph _),

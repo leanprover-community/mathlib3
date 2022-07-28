@@ -30,9 +30,8 @@ open nat
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
-  have root2 : x^2 - 1 = 0, { rw root, simp },
-  have diffsquare : (x + 1) * (x - 1) = 0, { ring_nf, exact root2 },
-  have zeros : (x + 1 = 0) ∨ (x - 1 = 0) := zero_eq_mul.mp (eq.symm diffsquare),
+  have diffsquare : (x + 1) * (x - 1) = 0, { ring_nf, simp [root] },
+  have zeros : (x + 1 = 0) ∨ (x - 1 = 0) := mul_eq_zero.1 diffsquare,
   cases zeros with zero1 zero2,
   { right, exact eq_neg_of_add_eq_zero_left zero1 },
   { left, exact sub_eq_zero.mp zero2 },

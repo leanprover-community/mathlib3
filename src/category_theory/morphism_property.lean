@@ -26,7 +26,7 @@ noncomputable theory
 
 namespace category_theory
 
-variables (C : Type u) [category.{v} C]
+variables (C : Type u) [category.{v} C] {D : Type*} [category D]
 
 /-- A `morphism_property C` is a class of morphisms between objects in `C`. -/
 @[derive complete_lattice]
@@ -120,6 +120,12 @@ begin
   exacts [hP.base_change_map hP' _ (over.hom_mk _ e₂.symm : over.mk g ⟶ over.mk g') h₂,
     hP.base_change_map hP' _ (over.hom_mk _ e₁.symm : over.mk f ⟶ over.mk f') h₁],
 end
+
+/-- If `P : morphism_property C` and `F : C ⥤ D`, then
+`P.is_inverted_by F` means that all morphisms in `P` are mapped by `F`
+to isomorphisms in `D`. -/
+def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
+∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
 
 end morphism_property
 

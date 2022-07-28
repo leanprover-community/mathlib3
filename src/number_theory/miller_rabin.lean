@@ -97,6 +97,7 @@ begin
     { exact or.inr ⟨i, lt_add_one i, h2⟩ } },
 end
 
+/-- Every actual prime is a `strong_probable_prime` relative to any non-zero base `a`. -/
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
   strong_probable_prime p a  :=
 begin

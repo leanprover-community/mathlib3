@@ -373,10 +373,41 @@ begin
   }
 end
 
-lemma ro_iff_img_ro {U : Type*} (H : simple_graph U) (K : finset V) (φ : G →g H) {v v' : V} : G.reachable_outside K v v' ↔ H.reachable_outside (image ⇑φ K) (φ v) (φ v') := sorry
+
+
+lemma img_ro_of_ro_of_embedding {U : Type*} (H : simple_graph U) (K : finset V)
+  (φ : G ↪g H) {v v' : V} :
+G.reachable_outside K v v' → H.reachable_outside (image φ K) (φ v) (φ v') :=
+begin
+  rintros ⟨w,wgood⟩,
+  use w.map (φ.to_hom),
+  rw [walk.support_map,list.map_to_finset,←finset.disjoint_coe,finset.coe_image,finset.coe_image],
+  rw ←finset.disjoint_coe at wgood,
+  exact set.disjoint_image_of_injective (rel_embedding.injective φ) wgood,
+end
+
+lemma ro_iff_img_ro_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) {v v' : V} :
+  G.reachable_outside K v v' ↔ H.reachable_outside (image ⇑φ K) (φ v) (φ v') :=
+begin
+  split,
+  { exact img_ro_of_ro_of_embedding G H K φ, },
+  { rintros Hro,
+    have : K = finset.image ⇑(φ.symm) (finset.image ⇑φ K), by {
+      rw [←finset.coe_inj,finset.coe_image,finset.coe_image],
+      apply eq.symm,
+      apply equiv.symm_image_image,},
+    rw this,
+    have : v = (φ.symm) (φ v), by {simp only [rel_iso.symm_apply_apply],},
+    rw this,
+    have : v' = (φ.symm) (φ v'), by {simp only [rel_iso.symm_apply_apply],},
+    rw this,
+    exact img_ro_of_ro_of_embedding H G (image ⇑φ K) φ.symm Hro,
+  }
+end
+
 
 lemma ro_component_to_ro_component_of_retract {U : Type*} (H : simple_graph U) (K : finset V)
-  (φ : G →g H) (ψ : H →g G) (ret: φ.comp ψ = @simple_graph.hom.id U H) :
+  (φ : G ≃g H) :
   set.maps_to (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) :=
 begin
   rw [set.maps_to'],
@@ -386,16 +417,23 @@ begin
   use φ v, refine ⟨set.mem_image_of_mem φ hvT, _⟩,
   ext, subst hTconn, simp,
   split,
-  { rintro ⟨v', hreach, himg⟩, rw [← himg, ← ro_iff_img_ro], assumption, },
+  { rintro ⟨v', hreach, himg⟩, rw [← himg, ← ro_iff_img_ro_of_isom], assumption, },
   {
-    have x_val : x = φ (ψ x) := by { show x = (φ.comp ψ) x, rw [ret], refl, },
+    have x_val : x = φ (φ.symm x) := by { apply eq.symm, apply rel_iso.apply_symm_apply,},
     rw [x_val],
     intro h,
-    use ψ x,
+    use φ.symm x,
     simp,
-    rw [ro_iff_img_ro], assumption,
+    rw [ro_iff_img_ro_of_isom], assumption,
   }
 end
+
+
+
+
+
+
+
 
 lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
   set.bij_on (λ C, φ '' C) (G.ro_components K) (H.ro_components (finset.image φ K)) := sorry
@@ -413,7 +451,10 @@ lemma fin_ro_components_subset (K : finset V) : fin_ro_components G K ⊆ ro_com
 
 
 lemma bij_inf_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
-  set.bij_on (λ C, φ '' C) (G.inf_ro_components K) (H.inf_ro_components (finset.image φ K)) := sorry
+  set.bij_on (λ C, φ '' C) (G.inf_ro_components K) (H.inf_ro_components (finset.image φ K)) :=
+begin
+  sorry,
+end
 -- Should use bij_ro_components_of_isom plus the obvious fact that φ being a bijection, it preserves infinite-ness.
 
 lemma infinite_graph_to_inf_components_nonempty (Vinfinite : (@set.univ V).infinite) :

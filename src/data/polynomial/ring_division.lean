@@ -634,16 +634,16 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
-variables [comm_ring T] (S) [comm_ring S] [is_domain S] [algebra T S]
+variables [comm_ring T] (f : T[X]) (S) [comm_ring S] [is_domain S] [algebra T S]
 
 /-- The set of distinct roots of `p` in `E`.
 
 If you have a non-separable polynomial, use `polynomial.roots` for the multiset
 where multiple roots have the appropriate multiplicity. -/
-def root_set (p : T[X]) : set S :=
-(p.map (algebra_map T S)).roots.to_finset
+def root_set : set S :=
+(f.map (algebra_map T S)).roots.to_finset
 
-lemma root_set_def (p : T[X]) : p.root_set S = (p.map (algebra_map T S)).roots.to_finset :=
+lemma root_set_def : f.root_set S = (f.map (algebra_map T S)).roots.to_finset :=
 rfl
 
 @[simp] lemma root_set_zero : (0 : T[X]).root_set S = ∅ :=
@@ -652,23 +652,20 @@ by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe
 @[simp] lemma root_set_C (a : T) : (C a).root_set S = ∅ :=
 by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
 
-instance root_set_fintype (p : T[X]) : fintype (p.root_set S) :=
+instance root_set_fintype : fintype (f.root_set S) :=
 finset_coe.fintype _
 
-lemma root_set_finite (p : T[X]) : (p.root_set S).finite :=
+lemma root_set_finite : (f.root_set S).finite :=
 set.to_finite _
 
-variables {S}
+variables {f} {S}
 
-lemma ne_zero_of_mem_root_set {p : T[X]} {x : S} (hx : x ∈ p.root_set S) : p ≠ 0 :=
-λ hp, by rwa [hp, root_set_zero] at hx
+theorem mem_root_set_iff' (hf : f.map (algebra_map T S) ≠ 0) (a : S) :
+  a ∈ f.root_set S ↔ (f.map (algebra_map T S)).eval a = 0 :=
+by { change a ∈ multiset.to_finset _ ↔ _, rw [mem_to_finset, mem_roots hf], refl }
 
-theorem mem_root_set_iff' {p : T[X]} (hp : p.map (algebra_map T S) ≠ 0) (a : S) :
-  a ∈ p.root_set S ↔ (p.map (algebra_map T S)).eval a = 0 :=
-by { change a ∈ multiset.to_finset _ ↔ _, rw [mem_to_finset, mem_roots hp], refl }
-
-theorem mem_root_set_iff {p : T[X]} (hp : p ≠ 0) [no_zero_smul_divisors T S] (a : S) :
-  a ∈ p.root_set S ↔ aeval a p = 0 :=
+theorem mem_root_set_iff (hp : f ≠ 0) [no_zero_smul_divisors T S] (a : S) :
+  a ∈ f.root_set S ↔ aeval a f = 0 :=
 begin
   rw [mem_root_set_iff', ←eval₂_eq_eval_map],
   { refl },
@@ -676,6 +673,9 @@ begin
   rw ←polynomial.map_zero (algebra_map T S) at h,
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
+
+lemma ne_zero_of_mem_root_set {x : S} (hx : x ∈ f.root_set S) : f ≠ 0 :=
+λ hf, by rwa [hf, root_set_zero] at hx
 
 end roots
 

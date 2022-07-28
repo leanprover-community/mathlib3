@@ -39,6 +39,25 @@ end
 
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
 ⟨λ h, zero_lt_iff.2 (even_pow.1 h).2, λ h, (even_pow' h.ne').2 even_two⟩
+
+lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
+begin
+  induction α with a ih,
+  { simp, },
+  { rw dvd_iff_exists_eq_mul_left at *,
+    rcases ih with ⟨c, hc⟩,
+    use p^a + c,
+    rw add_mul,
+    rw ← hc,
+    rw mul_tsub,
+    rw mul_one,
+    zify,
+    rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p a),
+    rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
+    rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
+    rw pow_succ',
+    ring, },
+end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -137,24 +156,7 @@ begin
     exact tsub_pos_of_lt hr },
 end
 
-lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
-begin
-  induction α with a ih,
-  { simp, },
-  { rw dvd_iff_exists_eq_mul_left at *,
-    rcases ih with ⟨c, hc⟩,
-    use p^a + c,
-    rw add_mul,
-    rw ← hc,
-    rw mul_tsub,
-    rw mul_one,
-    zify,
-    rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p a),
-    rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
-    rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
-    rw pow_succ',
-    ring, },
-end
+
 
 lemma coprime_add_one (b : ℕ) : (b + 1).coprime b :=
 begin

@@ -81,8 +81,11 @@ open multiplicative
 
 variables {R : Type u} [add_comm_group R] {R' : Type v} [comm_monoid R']
 
-/-- An additive character on a commutative additive group has an inverse. -/
-instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp neg_add_monoid_hom.to_multiplicative⟩
+/-- An additive character on a commutative additive group has an inverse.
+
+Note that this is a different inverse to the one provided by `monoid_hom.has_inv`,
+as it acts on the domain instead of the codomain. -/
+instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp inv_monoid_hom⟩
 
 lemma inv_apply (ψ : add_char R R') (x : multiplicative R) : ψ⁻¹ x = ψ (of_add (- (to_add x))) :=
 rfl

@@ -176,7 +176,7 @@ include fp hch
 /-- When `R'` has prime characteristic `p`, then the `p`th power of the Gauss sum
 of `χ` and `ψ` is the Gauss sum of `χ^p` and `mul_shift ψ p`. -/
 lemma gauss_sum_frob (χ : mul_char R R') (ψ : add_char R R') :
-   gauss_sum χ ψ ^ p = gauss_sum (χ ^ p) (ψ ^ p) :=
+  gauss_sum χ ψ ^ p = gauss_sum (χ ^ p) (ψ ^ p) :=
 begin
   rw [← frobenius_def, gauss_sum, gauss_sum, map_sum],
   simp_rw [pow_apply' χ fp.1.pos, map_mul, frobenius_def],

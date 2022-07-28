@@ -481,6 +481,10 @@ begin
   { assumption, },
 end
 
+noncomputable
+instance fintype.of_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
+fintype.of_finite ↥H
+
 lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} -- [fintype H]
   (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
 begin

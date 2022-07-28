@@ -394,21 +394,16 @@ theorem is_artinian_span_of_finite (R) {M} [ring R] [add_comm_group M] [module R
   [is_artinian_ring R] {A : set M} (hA : A.finite) : is_artinian R (submodule.span R A) :=
 is_artinian_of_fg_of_artinian _ (submodule.fg_def.mpr ⟨A, hA, rfl⟩)
 
-theorem function.surjective.is_artinian_ring {R} [ring R] {S} [ring S]
-  {f : R →+* S} (hf : function.surjective f)
-  [H : is_artinian_ring R] : is_artinian_ring S :=
+theorem function.surjective.is_artinian_ring {R} [ring R] {S} [ring S] {F} [ring_hom_class F R S]
+  {f : F} (hf : function.surjective f) [H : is_artinian_ring R] : is_artinian_ring S :=
 begin
   rw [is_artinian_ring_iff, is_artinian_iff_well_founded] at H ⊢,
-  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf) H,
+  exact (ideal.order_embedding_of_surjective f hf).well_founded H,
 end
 
 instance is_artinian_ring_range {R} [ring R] {S} [ring S] (f : R →+* S) [is_artinian_ring R] :
   is_artinian_ring f.range :=
 f.range_restrict_surjective.is_artinian_ring
-
-theorem ring_equiv.is_artinian_ring (R) [ring R] {S} [ring S]
-  (f : R ≃+* S) [is_artinian_ring R] : is_artinian_ring S :=
-(show function.surjective (f : R →+* S), from f.surjective).is_artinian_ring
 
 namespace is_artinian_ring
 

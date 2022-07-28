@@ -84,7 +84,7 @@ lemma transfer_eq_prod_quotient_orbit_rel_zpowers_quot [fintype (G ⧸ H)]
   (g : G) [fintype (quotient (orbit_rel (zpowers g) (G ⧸ H)))] :
   transfer ϕ g = ∏ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))),
     ϕ ⟨q.out'.out'⁻¹ * g ^ function.minimal_period ((•) g) q.out' * q.out'.out',
-      quotient_group.out'_conj_pow_minimal_period_mem g q.out'⟩ :=
+      quotient_group.out'_conj_pow_minimal_period_mem H g q.out'⟩ :=
 begin
   classical,
   calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (transfer_transversal H g) g
@@ -113,7 +113,7 @@ begin
   λ k g₀ hk, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk,
   replace key : ∀ q : G ⧸ H, g ^ function.minimal_period ((•) g) q ∈ H :=
   λ q, key (function.minimal_period ((•) g) q) q.out'
-    (quotient_group.out'_conj_pow_minimal_period_mem g q),
+    (quotient_group.out'_conj_pow_minimal_period_mem H g q),
   let f : quotient (orbit_rel (zpowers g) (G ⧸ H)) → zpowers g :=
   λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out',
   have hf : ∀ q, f q ∈ H.subgroup_of (zpowers g) := λ q, key q.out',

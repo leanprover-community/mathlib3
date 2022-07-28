@@ -9,7 +9,7 @@ import group_theory.order_of_element
 import tactic.zify
 import data.nat.totient
 import data.zmod.basic
-import number_theory.padics.padic_norm
+-- import number_theory.padics.padic_norm
 import field_theory.finite.basic
 import data.fintype.basic
 
@@ -23,65 +23,30 @@ import data.fintype.basic
 open nat
 -- open_locale classical
 
-def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
+def two_power_part (n : ℕ) := ord_proj[2] n
 
-def odd_part (n : ℕ) := n / two_power_part n
+def odd_part (n : ℕ) := ord_compl[2] n
 
 @[simp] lemma odd_part_zero : odd_part 0 = 0 := rfl
 
 lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
-  have : two_power_part n ∣ n,
-  { rw two_power_part,
-    exact pow_padic_val_nat_dvd, },
-  rw odd_part,
-  exact nat.mul_div_cancel' this,
+  simp only [two_power_part, odd_part, ord_proj_mul_ord_compl_eq_self n 2],
 end
 
 lemma mul_two_power_part (n m : ℕ) (hn0 : n ≠ 0) (hm0 : m ≠ 0) :
   two_power_part (n * m) = two_power_part(n) * two_power_part(m) :=
 begin
-  simp_rw [two_power_part],
-  rw ←pow_add,
-  congr,
-  haveI two_prime : fact (nat.prime 2), exact nat.fact_prime_two,
-  rw padic_val_nat.mul 2,
-  assumption,
-  assumption,
+  simp only [two_power_part, mul_ord_proj 2 hn0 hm0],
 end
 
 lemma mul_odd_part (n m : ℕ) : odd_part (n * m) = odd_part(n) * odd_part(m) :=
 begin
-  by_cases hn0 : n = 0,
-  simp [hn0],
-  by_cases hm0 : m = 0,
-  simp [hm0],
-  have hnm := two_power_part_mul_odd_part (n * m),
-  have hn := two_power_part_mul_odd_part (n),
-  have hm := two_power_part_mul_odd_part (m),
-  have hnm' := mul_two_power_part n m hn0 hm0,
-  have pos_two_power_part : 0 < two_power_part (n * m),
-  unfold two_power_part,
-  apply pow_pos,
-  exact two_pos,
-  -- rw mul_cancel_lef,
-  -- TODO(Sean): See if you can prove this.
-  -- I've given a bunch of have statements for things I think are necessary.
-  -- suff
-  suffices :
-    two_power_part (n * m) * odd_part (n * m) = two_power_part (n * m) * (odd_part n * odd_part m),
-  { simp [ne_zero_of_lt pos_two_power_part] at this,
-    exact this },
-  rw two_power_part_mul_odd_part,
-  rw hnm',
-  -- rw mul_assoc,
-  nth_rewrite 0 ←hn,
-  nth_rewrite 0 ←hm,
-  ring,
+  simp only [odd_part, mul_ord_compl n m 2],
 end
 
 def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
-a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
+a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < (n-1).factorization 2 ∧ a^(2^r * odd_part(n-1)) = -1)
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 
@@ -108,12 +73,12 @@ end
 
 lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
   (e : ℕ) (h : a ^ e = 1) :
-  a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 e ∧ a^(2^r * odd_part e) = -1) :=
+  a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < e.factorization 2 ∧ a^(2^r * odd_part e) = -1) :=
 begin
   rw <-two_power_part_mul_odd_part e at h,
   rw two_power_part at h,
   revert h,
-  induction padic_val_nat 2 e with i hi,
+  induction e.factorization 2 with i hi,
   { simp, },
   { intros h,
     simp [pow_succ, mul_assoc] at h,
@@ -171,18 +136,19 @@ begin
   cases h,
   { rw [← two_power_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
   { rcases h with ⟨r, hrlt, hpow⟩,
-    have h := congr_arg (^(2^(padic_val_nat 2 (n - 1) - r))) hpow,
+    have h := congr_arg (^(2^((n - 1).factorization 2 - r))) hpow,
     simp at h,
     rw ←pow_mul a at h,
     rw mul_comm at h,
     rw ←mul_assoc at h,
     rw ←pow_add at h,
     rw nat.sub_add_cancel (le_of_lt hrlt) at h,
-    rw ←two_power_part at h,
-    rw two_power_part_mul_odd_part at h,
+    -- rw ←two_power_part at h,
+    simp only [odd_part] at h,
+    simp_rw [ord_proj_mul_ord_compl_eq_self (n-1) 2] at h,
     rw h,
     -- apply nat.neg_one_pow_of_even,   -- TODO (SP): What has this been renamed to?
-    suffices : even (2 ^ (padic_val_nat 2 (n - 1) - r)),
+    suffices : even (2 ^ ((n - 1).factorization 2 - r)),
     { cases this with x hx,
       rw hx,
       rw ←two_mul x,
@@ -299,7 +265,7 @@ begin
     intro h,
     have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
     { rw [← pow_mul, mul_comm, two_power_part_mul_odd_part (p - 1), h],},
-    have goo : ∃ (j : ℕ) (H : j ≤ padic_val_nat 2 (p-1)), order_of (a ^ (odd_part (p - 1))) = 2^j,
+    have goo : ∃ (j : ℕ) (H : j ≤ (p-1).factorization 2), order_of (a ^ (odd_part (p - 1))) = 2^j,
     { have := order_of_dvd_of_pow_eq_one foo,
       rw two_power_part at this,
       rw nat.dvd_prime_pow at this,

@@ -32,9 +32,7 @@ open ro_component
 
 variables  {V : Type u}
            (G : simple_graph V)
-           --[preconnected G]
-           --[locally_finite G]
-           [decidable_eq V]
+
 
 /-
   This is the key part of Hopf-Freudenthal
@@ -42,10 +40,10 @@ variables  {V : Type u}
   As long as K has at least three infinite connected components, then so does K', and
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
-lemma good_autom_bwd_map_not_inj [locally_finite G] [G.preconnected]
+lemma good_autom_bwd_map_not_inj [locally_finite G] (Gpreconn : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
   (K : finset V) (Knempty : K.nonempty)
-  (inf_comp_K_large : @fintype.card (inf_ro_components G K) (sorry) ≥ 3) :
+  (inf_comp_K_large : @fintype.card (inf_ro_components G K) (ro_component.inf_components_finite G K Gpreconn) ≥ 3) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G ‹K' ⊆ L›) :=
 begin
   rcases @extend_to_subconnected V G K (sorry) (sorry) (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
@@ -89,20 +87,25 @@ begin
 end
 
 
-lemma Freudenthal_Hopf [locally_finite G] [G.preconnected]
-  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
-  [fintype (ends G)] : (fintype.card (ends G)) ≤ 2 :=
+lemma Freudenthal_Hopf [locally_finite G] [nonempty V] [Gpreconn: G.preconnected]
+  [fintype (ends G)]
+  (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K)) :
+  (fintype.card (ends G)) ≤ 2 :=
 begin
+
+
   by_contradiction h,
   have many_ends : 3 ≤ (fintype.card (ends G)) := (nat.succ_le_iff.mpr (not_le.mp h)),
-  rcases @finite_ends_to_inj V G _ (sorry) _ _ (sorry) with ⟨K,Knempty,Kinj⟩,
+  rcases finite_ends_to_inj G Gpreconn with ⟨K,Knempty,Kinj⟩,
 
-  have : 3 ≤ @fintype.card ↥(inf_ro_components G K) (sorry), by {
-    have := @fintype.card_le_of_injective _ _ _ (sorry) (eval G K) (eval_injective G K Kinj),
+  haveI : fintype ↥(inf_ro_components G K), from ro_component.inf_components_finite G K Gpreconn,
+
+  have : 3 ≤ fintype.card ↥(inf_ro_components G K), by {
+    have := fintype.card_le_of_injective (eval G K) (eval_injective G K Kinj),
     exact many_ends.trans this,
   },
 
-  rcases (@good_autom_bwd_map_not_inj V G _ _ (sorry) auts K Knempty this) with ⟨K',L,hK',hL,bwd_K_not_inj⟩,
+  rcases (good_autom_bwd_map_not_inj G Gpreconn auts K Knempty this.ge) with ⟨K',L,hK',hL,bwd_K_not_inj⟩,
 
   have : injective (bwd_map G hL) := by {
     let llo := Kinj  L (hK'.trans hL),

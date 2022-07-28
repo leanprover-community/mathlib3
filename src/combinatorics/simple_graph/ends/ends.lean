@@ -435,7 +435,7 @@ begin
 end
 
 
-lemma finite_ends_to_inj (Gpreconn : preconnected G) [locally_finite G] [fintype (ends G)] (Vnempty : nonempty V) :
+lemma finite_ends_to_inj (Gpreconn : preconnected G) [locally_finite G] [fintype (ends G)] [Vnempty : nonempty V] :
   ∃ K : finset V, K.nonempty ∧ ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) :=
 begin
   let v : V := Vnempty.some,

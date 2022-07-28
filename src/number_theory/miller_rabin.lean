@@ -58,6 +58,12 @@ end
 
 lemma coprime_add_one (b : ℕ) : (b + 1).coprime b :=
 by simp [nat.coprime_self_add_left]
+
+lemma coprime_self_sub_one (a : ℕ) (ha : 0 < a) : a.coprime (a - 1) :=
+begin
+  nth_rewrite_lhs 0 ←tsub_add_cancel_of_le (succ_le_iff.2 ha),
+  apply coprime_add_one,
+end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -160,15 +166,7 @@ end
 
 
 
-lemma coprime_self_sub_one (a : ℕ) (ha : 0 < a) : a.coprime (a - 1) :=
-begin
-  have h : a = a - 1 + 1,
-  { zify,
-    simp, },
-    rw [h, nat.add_succ_sub_one, add_zero, nat.coprime_self_add_left, nat.coprime_one_left_iff],
-    trivial,
-  -- didn't have to use coprime_add_one
-end
+
 
 /-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)

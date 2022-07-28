@@ -405,7 +405,10 @@ lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
   (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2
     then p (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
     else q (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j) :=
-by { dsimp [path.trans, from_path], split_ifs; refl }
+by { dsimp only [path.trans, path_equiv, from_path, coe_fn, has_coe_to_fun.coe, fun_like.coe,
+      equiv.symm, continuous_map.uncurry, continuous_map.comp_apply, function.uncurry,
+      function.comp],
+     split_ifs; refl }
 
 /-- Characterization for the multiplication on gen_loop;
   do the same for const/base point (easy) and reverse/path.symm? -/

@@ -970,6 +970,9 @@ begin
   rwa h_x_eq_y
 end
 
+protected lemma span_apply (i : ι) : (basis.span hli i : M) = v i :=
+congr_arg (coe : span R (range v) → M) $ basis.mk_apply (linear_independent_span hli) _ i
+
 end span
 
 lemma group_smul_span_eq_top
@@ -1221,6 +1224,54 @@ variables (K V)
 theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
 ⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
+
+section atoms_of_submodule_lattice
+
+variables {K V}
+
+/-- For a module over a division ring, the span of a nonzero element is an atom of the
+lattice of submodules. -/
+lemma nonzero_span_atom (v : V) (hv : v ≠ 0) : is_atom (span K {v} : submodule K V) :=
+begin
+  split,
+  { rw submodule.ne_bot_iff, exact ⟨v, ⟨mem_span_singleton_self v, hv⟩⟩ },
+  { intros T hT, by_contra, apply hT.2,
+    change (span K {v}) ≤ T,
+    simp_rw [span_singleton_le_iff_mem, ← ne.def, submodule.ne_bot_iff] at *,
+    rcases h with ⟨s, ⟨hs, hz⟩⟩,
+    cases (mem_span_singleton.1 (hT.1 hs)) with a ha,
+    have h : a ≠ 0, by { intro h, rw [h, zero_smul] at ha, exact hz ha.symm },
+    apply_fun (λ x, a⁻¹ • x) at ha,
+    simp_rw [← mul_smul, inv_mul_cancel h, one_smul, ha] at *, exact smul_mem T _ hs},
+end
+
+/-- The atoms of the lattice of submodules of a module over a division ring are the
+submodules equal to the span of a nonzero element of the module. -/
+lemma atom_iff_nonzero_span (W : submodule K V) :
+  is_atom W ↔ ∃ (v : V) (hv : v ≠ 0), W = span K {v} :=
+begin
+  refine ⟨λ h, _, λ h, _ ⟩,
+  { cases h with hbot h,
+    rcases ((submodule.ne_bot_iff W).1 hbot) with ⟨v, ⟨hW, hv⟩⟩,
+    refine ⟨v, ⟨hv, _⟩⟩,
+    by_contra heq,
+    specialize h (span K {v}),
+    rw [span_singleton_eq_bot, lt_iff_le_and_ne] at h,
+    exact hv (h ⟨(span_singleton_le_iff_mem v W).2 hW, ne.symm heq⟩) },
+  { rcases h with ⟨v, ⟨hv, rfl⟩⟩, exact nonzero_span_atom v hv },
+end
+
+/-- The lattice of submodules of a module over a division ring is atomistic. -/
+instance : is_atomistic (submodule K V) :=
+{ eq_Sup_atoms :=
+  begin
+    intro W,
+    use {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
+    refine ⟨submodule_eq_Sup_le_nonzero_spans W, _⟩,
+    rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw
+  end }
+
+end atoms_of_submodule_lattice
 
 end division_ring
 

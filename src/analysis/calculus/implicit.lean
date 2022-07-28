@@ -47,7 +47,7 @@ noncomputable theory
 
 open_locale topological_space
 open filter
-open continuous_linear_map (fst snd subtype_val smul_right ker_prod)
+open continuous_linear_map (fst snd smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)
 
 /-!
@@ -88,10 +88,10 @@ such that
 * the derivatives are surjective;
 * the kernels of the derivatives are complementary subspaces of `E`. -/
 @[nolint has_inhabited_instance]
-structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  (F : Type*) [normed_group F] [normed_space 𝕜 F] [complete_space F]
-  (G : Type*) [normed_group G] [normed_space 𝕜 G] [complete_space G] :=
+structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  (G : Type*) [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G] :=
 (left_fun : E → F)
 (left_deriv : E →L[𝕜] F)
 (right_fun : E → G)
@@ -105,10 +105,10 @@ structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 namespace implicit_function_data
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
-  {G : Type*} [normed_group G] [normed_space 𝕜 G] [complete_space G]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G]
   (φ : implicit_function_data 𝕜 E F G)
 
 /-- The function given by `x ↦ (left_fun x, right_fun x)`. -/
@@ -203,9 +203,9 @@ Note that a map with these properties is not unique. E.g., different choices of 
 complementary to `ker f'` lead to different maps `φ`.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
   {f : E → F} {f' : E →L[𝕜] F} {a : E}
 
 section defs
@@ -309,9 +309,9 @@ end
 lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by convert (implicit_function_data_of_complemented f f' hf hf'
-  hker).implicit_function_has_strict_fderiv_at (subtype_val f'.ker) _ _;
+  hker).implicit_function_has_strict_fderiv_at f'.ker.subtypeL _ _;
     [skip, ext, ext]; simp [classical.some_spec hker]
 
 end complemented
@@ -335,9 +335,9 @@ complementary to `ker f'` lead to different maps `φ`.
 
 section finite_dimensional
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
   (f : E → F) (f' : E →L[𝕜] F) {a : E}
 
 /-- Given a map `f : E → F` to a finite dimensional space with a surjective derivative `f'`,
@@ -391,7 +391,7 @@ begin
   exact h₁.prod_mk_nhds h₂
 end
 
-alias tendsto_implicit_function ← filter.tendsto.implicit_function
+alias tendsto_implicit_function ← _root_.filter.tendsto.implicit_function
 
 /-- `implicit_function` sends `(z, y)` to a point in `f ⁻¹' z`. -/
 lemma map_implicit_function_eq (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
@@ -412,7 +412,7 @@ by apply eq_implicit_function_of_complemented
 
 lemma to_implicit_function (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   has_strict_fderiv_at (hf.implicit_function f f' hf' (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by apply to_implicit_function_of_complemented
 
 end finite_dimensional

@@ -40,6 +40,8 @@ lemma aleph_0_lt_continuum : ℵ₀ < 𝔠 := cantor ℵ₀
 
 lemma aleph_0_le_continuum : ℵ₀ ≤ 𝔠 := aleph_0_lt_continuum.le
 
+@[simp] lemma beth_one : beth 1 = 𝔠 := by simpa using beth_succ 0
+
 lemma nat_lt_continuum (n : ℕ) : ↑n < 𝔠 := (nat_lt_aleph_0 n).trans aleph_0_lt_continuum
 
 lemma mk_set_nat : #(set ℕ) = 𝔠 := by simp
@@ -50,6 +52,12 @@ lemma continuum_ne_zero : 𝔠 ≠ 0 := continuum_pos.ne'
 
 lemma aleph_one_le_continuum : aleph 1 ≤ 𝔠 :=
 by { rw ←succ_aleph_0, exact order.succ_le_of_lt aleph_0_lt_continuum }
+
+@[simp] theorem continuum_to_nat : continuum.to_nat = 0 :=
+to_nat_apply_of_aleph_0_le aleph_0_le_continuum
+
+@[simp] theorem continuum_to_part_enat : continuum.to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le aleph_0_le_continuum
 
 /-!
 ### Addition

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.complex.basic
 import data.complex.exponential
+import analysis.asymptotics.theta
 
 /-!
 # Complex and real exponential
@@ -129,7 +130,10 @@ end real_continuous_exp_comp
 
 namespace real
 
-variables {x y z : ℝ}
+variables {α : Type*} {x y z : ℝ} {l : filter α}
+
+lemma exp_half (x : ℝ) : exp (x / 2) = sqrt (exp x) :=
+by rw [eq_comm, sqrt_eq_iff_sq_eq, sq, ← exp_add, add_halves]; exact (exp_pos _).le
 
 /-- The real exponential function tends to `+∞` at `+∞`. -/
 lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
@@ -157,11 +161,11 @@ lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
 lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[>] 0) :=
 tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
 
-@[simp] lemma is_bounded_under_ge_exp_comp {α : Type*} (l : filter α) (f : α → ℝ) :
+@[simp] lemma is_bounded_under_ge_exp_comp (l : filter α) (f : α → ℝ) :
   is_bounded_under (≥) l (λ x, exp (f x)) :=
 is_bounded_under_of ⟨0, λ x, (exp_pos _).le⟩
 
-@[simp] lemma is_bounded_under_le_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
+@[simp] lemma is_bounded_under_le_exp_comp {f : α → ℝ} :
   is_bounded_under (≤) l (λ x, exp (f x)) ↔ is_bounded_under (≤) l f :=
 exp_monotone.is_bounded_under_le_comp tendsto_exp_at_top
 
@@ -195,15 +199,12 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) :
   tendsto (λ x, (b * exp x + c) / x ^ n) at_top at_top :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
+  rcases eq_or_ne n 0 with rfl | hn,
   { simp only [pow_zero, div_one],
     exact (tendsto_exp_at_top.const_mul_at_top hb).at_top_add tendsto_const_nhds },
-  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
-    (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
-      ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
-  intros x hx,
-  simp only [zpow_neg x n],
-  ring,
+  simp only [add_div, mul_div_assoc],
+  exact ((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
+    (tendsto_const_nhds.div_at_top (tendsto_pow_at_top hn))
 end
 
 /-- The function `(x ^ n) / (b * exp x + c)` tends to `0` at `+∞`, for any natural number
@@ -245,11 +246,11 @@ by rw [← coe_comp_exp_order_iso, ← filter.map_map, order_iso.map_at_top, map
 @[simp] lemma comap_exp_at_top : comap exp at_top = at_top :=
 by rw [← map_exp_at_top, comap_map exp_injective, map_exp_at_top]
 
-@[simp] lemma tendsto_exp_comp_at_top {α : Type*} {l : filter α} {f : α → ℝ} :
+@[simp] lemma tendsto_exp_comp_at_top {f : α → ℝ} :
   tendsto (λ x, exp (f x)) l at_top ↔ tendsto f l at_top :=
 by rw [← tendsto_comap_iff, comap_exp_at_top]
 
-lemma tendsto_comp_exp_at_top {α : Type*} {l : filter α} {f : ℝ → α} :
+lemma tendsto_comp_exp_at_top {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_top l ↔ tendsto f at_top l :=
 by rw [← tendsto_map'_iff, map_exp_at_top]
 
@@ -259,29 +260,57 @@ by rw [← coe_comp_exp_order_iso, ← filter.map_map, exp_order_iso.map_at_bot,
 @[simp] lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[>] 0) = at_bot :=
 by rw [← map_exp_at_bot, comap_map exp_injective]
 
-lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
+lemma tendsto_comp_exp_at_bot {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
 @[simp] lemma comap_exp_nhds_zero : comap exp (𝓝 0) = at_bot :=
 (comap_nhds_within_range exp 0).symm.trans $ by simp
 
+@[simp] lemma tendsto_exp_comp_nhds_zero {f : α → ℝ} :
+  tendsto (λ x, exp (f x)) l (𝓝 0) ↔ tendsto f l at_bot :=
+by rw [← tendsto_comap_iff, comap_exp_nhds_zero]
+
 lemma is_o_pow_exp_at_top {n : ℕ} : (λ x, x^n) =o[at_top] real.exp :=
 by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
   using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
 
+@[simp] lemma is_O_exp_comp_exp_comp {f g : α → ℝ} :
+  (λ x, exp (f x)) =O[l] (λ x, exp (g x)) ↔ is_bounded_under (≤) l (f - g) :=
+iff.trans (is_O_iff_is_bounded_under_le_div $ eventually_of_forall $ λ x, exp_ne_zero _) $
+  by simp only [norm_eq_abs, abs_exp, ← exp_sub, is_bounded_under_le_exp_comp, pi.sub_def]
+
+@[simp] lemma is_Theta_exp_comp_exp_comp {f g : α → ℝ} :
+  (λ x, exp (f x)) =Θ[l] (λ x, exp (g x)) ↔ is_bounded_under (≤) l (λ x, |f x - g x|) :=
+by simp only [is_bounded_under_le_abs, ← is_bounded_under_le_neg, neg_sub, is_Theta,
+  is_O_exp_comp_exp_comp, pi.sub_def]
+
+@[simp] lemma is_o_exp_comp_exp_comp {f g : α → ℝ} :
+  (λ x, exp (f x)) =o[l] (λ x, exp (g x)) ↔ tendsto (λ x, g x - f x) l at_top :=
+by simp only [is_o_iff_tendsto, exp_ne_zero, ← exp_sub, ← tendsto_neg_at_top_iff, false_implies_iff,
+  implies_true_iff, tendsto_exp_comp_nhds_zero, neg_sub]
+
+@[simp] lemma is_o_one_exp_comp {f : α → ℝ} :
+  (λ x, 1 : α → ℝ) =o[l] (λ x, exp (f x)) ↔ tendsto f l at_top :=
+by simp only [← exp_zero, is_o_exp_comp_exp_comp, sub_zero]
+
 /-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
 from below under `f`. -/
-@[simp] lemma is_O_one_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
+@[simp] lemma is_O_one_exp_comp {f : α → ℝ} :
   (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x)) ↔ is_bounded_under (≥) l f :=
-calc (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x))
-    ↔ ∃ b : ℝ, 0 < b ∧ ∀ᶠ x in l, b ≤ exp (f x) :
-  iff.trans (is_O_const_left_iff_pos_le_norm one_ne_zero) $ by simp only [norm_eq_abs, abs_exp]
-... ↔ is_bounded_under (≥) l (λ x, exp_order_iso (f x)) :
-  by simp only [is_bounded_under, is_bounded, eventually_map, set_coe.exists, ge_iff_le,
-    ← subtype.coe_le_coe, exists_prop, coe_exp_order_iso_apply, subtype.coe_mk, set.mem_Ioi]
-... ↔ is_bounded_under (≥) l f :
-  exp_order_iso.monotone.is_bounded_under_ge_comp exp_order_iso.tendsto_at_bot
+by simp only [← exp_zero, is_O_exp_comp_exp_comp, pi.sub_def, zero_sub, is_bounded_under_le_neg]
+
+/-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
+from below under `f`. -/
+lemma is_O_exp_comp_one {f : α → ℝ} :
+  (λ x, exp (f x)) =O[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l f :=
+by simp only [is_O_one_iff, norm_eq_abs, abs_exp, is_bounded_under_le_exp_comp]
+
+/-- `real.exp (f x)` is bounded away from zero and infinity along a filter `l` if and only if
+`|f x|` is bounded from above along this filter. -/
+@[simp] lemma is_Theta_exp_comp_one {f : α → ℝ} :
+  (λ x, exp (f x)) =Θ[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l (λ x, |f x|) :=
+by simp only [← exp_zero, is_Theta_exp_comp_exp_comp, sub_zero]
 
 end real
 

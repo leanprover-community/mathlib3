@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.complex.circle
+import analysis.normed_space.ball_action
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group
@@ -94,7 +95,7 @@ end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
   continuous_on (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
-cont_diff_on_stereo_to_fun.continuous_on
+(@cont_diff_on_stereo_to_fun E _ v _).continuous_on
 
 variables (v)
 
@@ -166,7 +167,7 @@ begin
 end
 
 lemma continuous_stereo_inv_fun (hv : ∥v∥ = 1) : continuous (stereo_inv_fun hv) :=
-continuous_induced_rng (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
+continuous_induced_rng.2 (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
 
 variables [complete_space E]
 
@@ -186,7 +187,7 @@ begin
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
     convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
-    { simp [norm_smul, hv, real.norm_eq_abs, ← sq, sq_abs] },
+    { simp [norm_smul, hv, ← sq, sq_abs] },
     { exact sq _ } },
   -- two facts which will be helpful for clearing denominators in the main calculation
   have ha : 1 - a ≠ 0,
@@ -254,6 +255,10 @@ def stereographic (hv : ∥v∥ = 1) : local_homeomorph (sphere (0:E) 1) (ℝ �
     (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_norm_mul_iff_of_norm_one hv (by simp)).mp),
   continuous_inv_fun := (continuous_stereo_inv_fun hv).continuous_on }
 
+lemma stereographic_apply (hv : ∥v∥ = 1) (x : sphere (0 : E) 1) :
+  stereographic hv x = (2 / ((1:ℝ) - inner v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
+rfl
+
 @[simp] lemma stereographic_source (hv : ∥v∥ = 1) :
   (stereographic hv).source = {⟨v, by simp [hv]⟩}ᶜ :=
 rfl
@@ -289,8 +294,8 @@ from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
 def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
-(linear_isometry_equiv.from_orthogonal_span_singleton n
-  (ne_zero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
+(orthonormal_basis.from_orthogonal_span_singleton n
+  (ne_zero_of_mem_unit_sphere v)).repr.to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -313,6 +318,20 @@ end charted_space
 
 section smooth_manifold
 
+lemma sphere_ext_iff (u v : sphere (0:E) 1) :
+  u = v ↔ ⟪(u:E), v⟫_ℝ = 1 :=
+by simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one]
+
+lemma stereographic'_symm_apply {n : ℕ} [fact (finrank ℝ E = n + 1)]
+    (v : sphere (0:E) 1) (x : euclidean_space ℝ (fin n)) :
+  ((stereographic' n v).symm x : E) =
+    let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+      (orthonormal_basis.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere v)).repr in
+    ((∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (4 : ℝ) • (U.symm x : E) +
+      (∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (∥(U.symm x : E)∥ ^ 2 - 4) • v) :=
+by simp [real_inner_comm, stereographic, stereographic', ← submodule.coe_norm]
+
 /-! ### Smooth manifold structure on the sphere -/
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
@@ -322,12 +341,12 @@ instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
 smooth_manifold_with_corners_of_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
-  let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (ne_zero_of_mem_unit_sphere v),
-  let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (ne_zero_of_mem_unit_sphere v'),
+  let U := -- Removed type ascription, and this helped for some reason with timeout issues?
+    (orthonormal_basis.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v)).repr,
+  let U' :=-- Removed type ascription, and this helped for some reason with timeout issues?
+    (orthonormal_basis.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v')).repr,
   have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
     U.to_homeomorph.to_local_homeomorph := rfl,
   have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
@@ -336,10 +355,8 @@ begin
   have H₂ := (cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ (v:E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff,
   convert H₁.comp' (H₂.cont_diff_on : cont_diff_on ℝ ⊤ _ set.univ) using 1,
-  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
-  { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
   ext,
-  simp [h_set, hUv, hU'v', stereographic, real_inner_comm, ← submodule.coe_norm]
+  simp [sphere_ext_iff, stereographic'_symm_apply, real_inner_comm]
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
@@ -350,13 +367,14 @@ begin
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v)),
+    let U := -- Again, removing type ascription...
+      (orthonormal_basis.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere (-v))).repr,
     exact ((cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff).cont_diff_on }
 end
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {H : Type*} [topological_space H] {I : model_with_corners ℝ F H}
 variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -368,11 +386,11 @@ lemma cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
   cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
 begin
   rw cont_mdiff_iff_target,
-  refine ⟨continuous_induced_rng hf.continuous, _⟩,
+  refine ⟨continuous_induced_rng.2 hf.continuous, _⟩,
   intros v,
-  let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))),
-  have h : cont_diff_on ℝ ⊤ U set.univ :=
+  let U := -- Again, removing type ascription... Weird that this helps!
+    (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
+  have h : cont_diff_on ℝ ⊤ _ set.univ :=
     U.cont_diff.cont_diff_on,
   have H₁ := (h.comp' cont_diff_on_stereo_to_fun).cont_mdiff_on,
   have H₂ : cont_mdiff_on _ _ _ _ set.univ := hf.cont_mdiff_on,
@@ -418,7 +436,7 @@ instance : lie_group (𝓡 1) circle :=
     let c : circle → ℂ := coe,
     have h₂ : cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
     { rw cont_mdiff_iff,
-      exact ⟨continuous_mul, λ x y, (cont_diff_mul.restrict_scalars ℝ).cont_diff_on⟩ },
+      exact ⟨continuous_mul, λ x y, cont_diff_mul.cont_diff_on⟩ },
     suffices h₁ : cont_mdiff _ _ _ (prod.map c c),
     { apply h₂.comp h₁ },
     -- this elaborates much faster with `apply`
@@ -426,6 +444,7 @@ instance : lie_group (𝓡 1) circle :=
   end,
   smooth_inv := begin
     apply cont_mdiff.cod_restrict_sphere,
+    simp only [← coe_inv_circle, coe_inv_circle_eq_conj],
     exact complex.conj_cle.cont_diff.cont_mdiff.comp cont_mdiff_coe_sphere
   end }
 

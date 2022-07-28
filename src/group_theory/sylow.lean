@@ -72,7 +72,13 @@ instance : subgroup_class (sylow p G) G :=
   one_mem := λ s, s.one_mem',
   inv_mem := λ s, s.inv_mem' }
 
-variables (P : sylow p G) {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
+variables (P : sylow p G)
+
+/-- The action by a Sylow subgroup is the action by the underlying group. -/
+instance mul_action_left {α : Type*} [mul_action G α] : mul_action P α :=
+subgroup.mul_action ↑P
+
+variables {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
 
 /-- The preimage of a Sylow subgroup under a p-group-kernel homomorphism is a Sylow subgroup. -/
 def comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) : sylow p K :=
@@ -176,6 +182,13 @@ lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
 
 lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
+
+lemma sylow.smul_le {P : sylow p G} {H : subgroup G} (hP : ↑P ≤ H) (h : H) : ↑(h • P) ≤ H :=
+subgroup.conj_smul_le_of_le hP h
+
+lemma sylow.smul_subtype {P : sylow p G} {H : subgroup G} (hP : ↑P ≤ H) (h : H) :
+  h • P.subtype hP = (h • P).subtype (sylow.smul_le hP h) :=
+sylow.ext (subgroup.conj_smul_subgroup_of hP h)
 
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ (P : subgroup G).normalizer :=
@@ -380,7 +393,7 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
-  (by intros; refl)
+  (by { intros, rw setoid_has_equiv, simp only [left_rel_apply], refl })
 
 /-- If `H` is a `p`-subgroup of `G`, then the index of `H` inside its normalizer is congruent
   mod `p` to the index of `H`.  -/
@@ -507,16 +520,10 @@ theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [fact p.p
 let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
 ⟨K, hK.1⟩
 
-lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [fact p.prime] (P : sylow p G)
+lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
-begin
-  obtain ⟨Q, hQ⟩ := exists_subgroup_card_pow_prime p hdvd,
-  obtain ⟨R, hR⟩ := (is_p_group.of_card hQ).exists_le_sylow,
-  obtain ⟨g, rfl⟩ := exists_smul_eq G R P,
-  calc p ^ n = card Q : hQ.symm
-  ... ∣ card R : card_dvd_of_le hR
-  ... = card (g • R) : card_congr (R.equiv_smul g).to_equiv
-end
+(hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P
+  index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
 
 lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=
@@ -525,6 +532,12 @@ begin
   have key := P.pow_dvd_card_of_pow_dvd_card hdvd,
   rwa pow_one at key,
 end
+
+/-- Sylow subgroups are Hall subgroups. -/
+lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  (card P).coprime (index (P : subgroup G)) :=
+let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in
+hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=

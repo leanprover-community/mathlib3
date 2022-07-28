@@ -16,16 +16,18 @@ are normed.
 
 ## Main definitions
 
-* `linear_pmap.closed`: an operator is closed iff its graph is closed
-* `linear_pmap.closable`: an operator is closable iff the closure of its graph is a graph
+* `linear_pmap.is_closed`: an operator is closed iff its graph is closed
+* `linear_pmap.is_closable`: an operator is closable iff the closure of its graph is a graph
 * `linear_pmap.closure`: the closure of a closable operator
-* `linear_pmap.is_core`: a submodule contained in the domain is a core if restricting to the core
+* `linear_pmap.has_core`: a submodule contained in the domain is a core if restricting to the core
   does not lose information about the operator
 
 ## Main statements
 
-* `closable_iff_exists_closed_extension`: an operator is closable iff it has a closed extension
-* `closable.exists_unique`: there exists a unique closure
+* `linear_pmap.closable_iff_exists_closed_extension`: an operator is closable iff it has a closed
+  extension
+* `linear_pmap.closable.exists_unique`: there exists a unique closure
+* `linear_pmap.closure_has_core`: the domain of `f` is a core of its closure
 
 ## References
 
@@ -151,7 +153,6 @@ lemma is_closable_iff_exists_closed_extension {f : linear_pmap R E F} : f.is_clo
 /-- A submodule `S` is a core of `f` if the closure of the restriction of `f` to `S` is again `f`.-/
 def has_core (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) : Prop :=
 (f.dom_restrict hS).closure = f
---(hf.is_closable.le_is_closable (linear_pmap.dom_restrict_le hS)).closure = f
 
 @[simp] lemma has_core_def {f : linear_pmap R E F} {S : submodule R E} (hS : S ≤ f.domain)
   (hf : f.is_closed) (h : f.has_core hS) : (f.dom_restrict hS).closure = f := h
@@ -159,7 +160,7 @@ def has_core (f : linear_pmap R E F) {S : submodule R E} (hS : S ≤ f.domain) :
 /-- For every operator `f` the submodule `f.domain` is a core of its closure.
 
 Note that we don't require that `f` is closed, due to the definition of the closure. -/
-lemma core_of_closure (f : linear_pmap R E F) : f.closure.has_core f.le_closure.1 :=
+lemma closure_has_core (f : linear_pmap R E F) : f.closure.has_core f.le_closure.1 :=
 begin
   congr,
   ext,

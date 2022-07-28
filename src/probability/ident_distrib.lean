@@ -297,9 +297,9 @@ open topological_space
 variables {E : Type*} [measurable_space E] [normed_add_comm_group E] [borel_space E]
   [second_countable_topology E] {μ : measure α} [is_finite_measure μ]
 
-/-- This lemma is superceded by `integrable.uniform_integrable_of_ident_distrib` which only require
+/-- This lemma is superceded by `mem_ℒp.uniform_integrable_of_ident_distrib` which only require
 `ae_strongly_measurable`. -/
-lemma integrable.uniform_integrable_of_ident_distrib' {ι : Type*} {f : ι → α → E}
+lemma mem_ℒp.uniform_integrable_of_ident_distrib' {ι : Type*} {f : ι → α → E}
   {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hℒp : mem_ℒp (f j) p μ) (hfmeas : ∀ i, strongly_measurable (f i))
   (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
@@ -325,7 +325,7 @@ begin
 end
 
 /-- A sequence of identically distributed Lᵖ functions is p-uniformly integrable. -/
-lemma integrable.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
+lemma mem_ℒp.uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
   {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hℒp : mem_ℒp (f j) p μ) (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
   uniform_integrable f p μ :=
@@ -336,7 +336,7 @@ begin
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfmeas i).1,
   have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hfmeas i).2.symm,
   have hgℒp : mem_ℒp (g j) p μ := hℒp.ae_eq (hgeq j).symm,
-  exact uniform_integrable.ae_eq (integrable.uniform_integrable_of_ident_distrib' hp hp'
+  exact uniform_integrable.ae_eq (mem_ℒp.uniform_integrable_of_ident_distrib' hp hp'
     hgℒp hgmeas $
     λ i, (ident_distrib.ae_eq (hgmeas i).ae_measurable (hgeq i)).trans ((hf i).trans
       $ ident_distrib.ae_eq (hfmeas j).ae_measurable (hgeq j).symm)) hgeq,

@@ -757,7 +757,7 @@ begin
     (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
   rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
   { exact (uniform_integrable_average hp $
-      integrable.uniform_integrable_of_ident_distrib hp hp' hℒp hident).2.1 },
+      mem_ℒp.uniform_integrable_of_ident_distrib hp hp' hℒp hident).2.1 },
   { ext n ω,
     simp only [pi.coe_nat, pi.div_apply, sum_apply] }
 end

@@ -71,11 +71,6 @@ def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 
-def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
-a^(n-1) = 1
-
-
-
 lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
   (e : ℕ) (h : a ^ e = 1) :
   a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < e.factorization 2 ∧ a^(2^r * odd_part e) = -1) :=
@@ -132,6 +127,10 @@ begin
     rw pow_succ,
     apply even_two_mul }
 end
+
+
+def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
+a^(n-1) = 1
 
 lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
   (h : strong_probable_prime n a) : fermat_pseudoprime n a :=

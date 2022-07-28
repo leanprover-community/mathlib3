@@ -103,7 +103,8 @@ lemma continuous_comp_left : continuous (λ g, g.comp f : C(β, γ) → C(α, γ
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
 
-/--This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*-/
+/-- Composition is a continuous map from `C(α, β) × C(β, γ)` to `C(α, γ)`, provided that `β` is
+  locally compact. This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*. -/
 lemma continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
   [locally_compact_space β] [topological_space γ] :
   continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=

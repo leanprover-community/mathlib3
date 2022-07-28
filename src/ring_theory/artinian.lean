@@ -449,7 +449,7 @@ end
 
 section localization
 
-variables {L : Type*} [comm_ring L] [algebra R L] (S : submonoid R) [is_localization S L]
+variables (S : submonoid R) (L : Type*) [comm_ring L] [algebra R L] [is_localization S L]
 
 include S
 
@@ -470,7 +470,7 @@ begin
 end
 
 lemma localization_artinian : is_artinian_ring L :=
-(localization_surjective S).is_artinian_ring
+(localization_surjective S L).is_artinian_ring
 
 end localization
 

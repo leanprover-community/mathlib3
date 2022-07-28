@@ -37,7 +37,7 @@ lemma card_le : #L ≤ #R :=
 begin
   classical,
   casesI fintype_or_infinite R,
-  { exact cardinal.mk_le_of_surjective (is_artinian_ring.localization_surjective S) },
+  { exact cardinal.mk_le_of_surjective (is_artinian_ring.localization_surjective S _) },
   erw [←cardinal.mul_eq_self $ cardinal.aleph_0_le_mk R],
   set f : R × R → L := λ aa, is_localization.mk' _ aa.1 (if h : aa.2 ∈ S then ⟨aa.2, h⟩ else 1),
   refine @cardinal.mk_le_of_surjective _ _ f (λ a, _),

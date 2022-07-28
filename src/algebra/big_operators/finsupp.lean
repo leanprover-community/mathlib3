@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import data.finsupp.basic
+import data.finsupp.defs
 import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.big_operators.order

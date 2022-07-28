@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
 import logic.small

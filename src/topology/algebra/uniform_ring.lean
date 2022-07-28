@@ -188,8 +188,8 @@ begin
     apply_instance, },
 end
 
-instance algebra' : algebra S (completion R) := {
-  commutes' := λ s x, by simp only [ring_hom.to_fun_eq_coe, mul_comm],
+instance algebra' : algebra S (completion R) :=
+{ commutes' := λ s x, by simp only [ring_hom.to_fun_eq_coe, mul_comm],
   smul_def' := λ s x, congr_fun (map_smul_eq_mul_coe R S s) x,
   ..((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)) }
 

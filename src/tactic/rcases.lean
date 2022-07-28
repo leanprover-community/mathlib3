@@ -931,5 +931,19 @@ add_tactic_doc
   decl_names := [`tactic.interactive.obtain],
   tags       := ["induction"] }
 
+/--
+The `suffices'` tactic is an alternative version of `suffices`, that allows the usage
+of any syntax that would be valid in an `obtain` block. This tactic just calls `obtain`
+on the expression, and then `swap`.
+-/
+meta def suffices' (h : parse obtain_parse) : tactic unit :=
+obtain h >> tactic.swap
+
+add_tactic_doc
+{ name       := "suffices'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.suffices'],
+  tags       := ["induction"] }
+
 end interactive
 end tactic

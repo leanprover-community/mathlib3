@@ -30,7 +30,7 @@ In this file we define compact linear operators between two topological vector s
 ## Implementation details
 
 We define `is_compact_operator` as a predicate, because the space of compact operators inherits all
-of its structures from the space of continuous linear maps (e.g we want to have the usual operator
+of its structure from the space of continuous linear maps (e.g we want to have the usual operator
 norm on compact operators).
 
 The two natural options then would be to make it a predicate over linear maps or continuous linear
@@ -40,7 +40,7 @@ coercing from continuous linear maps to linear maps often needs type ascriptions
 
 ## TODO
 
-Once we have the strong operator topology on spaces of linear maps between to TVSs,
+Once we have the strong operator topology on spaces of linear maps between two TVSs,
 `is_closed_set_of_is_compact_operator` should be generalized to this setup.
 
 ## References
@@ -56,9 +56,10 @@ open function set filter bornology metric
 
 open_locale pointwise big_operators topological_space
 
-/-- A compact operator between two TVSs. This definition is usually given as "there exists a
-neighborhood of zero whose image is contained in a compact set", but we choose a definition which
-involves fewer existential quantifiers and replaces images with preimages.
+/-- A compact operator between two topological vector spaces. This definition is usually
+given as "there exists a neighborhood of zero whose image is contained in a compact set",
+but we choose a definition which involves fewer existential quantifiers and replaces images
+with preimages.
 
 We prove the equivalence in `is_compact_operator_iff_exists_mem_nhds_image_subset_compact`. -/
 def is_compact_operator {M₁ M₂ : Type*} [has_zero M₁] [topological_space M₁]
@@ -79,7 +80,7 @@ variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ �
 lemma is_compact_operator_iff_exists_mem_nhds_image_subset_compact (f : M₁ → M₂) :
   is_compact_operator f ↔ ∃ V ∈ (𝓝 0 : filter M₁), ∃ (K : set M₂), is_compact K ∧ f '' V ⊆ K :=
 ⟨λ ⟨K, hK, hKf⟩, ⟨f ⁻¹' K, hKf, K, hK, image_preimage_subset _ _⟩,
- λ ⟨V, hV, K, hK, hVK⟩, ⟨K, hK, mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
+  λ ⟨V, hV, K, hK, hVK⟩, ⟨K, hK, mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
 
 lemma is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image [t2_space M₂]
   (f : M₁ → M₂) :
@@ -87,7 +88,7 @@ lemma is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image [t2_space
 begin
   rw is_compact_operator_iff_exists_mem_nhds_image_subset_compact,
   exact ⟨λ ⟨V, hV, K, hK, hKV⟩, ⟨V, hV, compact_closure_of_subset_compact hK hKV⟩,
-         λ ⟨V, hV, hVc⟩, ⟨V, hV, closure (f '' V), hVc, subset_closure⟩⟩,
+    λ ⟨V, hV, hVc⟩, ⟨V, hV, closure (f '' V), hVc, subset_closure⟩⟩,
 end
 
 end
@@ -122,6 +123,18 @@ variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [semi_no
   {M₁ M₂ M₃ : Type*} [seminormed_add_comm_group M₁] [topological_space M₂]
   [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
 
+lemma is_compact_operator.image_subset_compact_of_bounded [has_continuous_const_smul 𝕜₂ M₂]
+  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) {S : set M₁} (hS : metric.bounded S) :
+  ∃ (K : set M₂), is_compact K ∧ f '' S ⊆ K :=
+hf.image_subset_compact_of_vonN_bounded
+(by rwa [normed_space.is_vonN_bounded_iff, ← metric.bounded_iff_is_bounded])
+
+lemma is_compact_operator.is_compact_closure_image_of_bounded [has_continuous_const_smul 𝕜₂ M₂]
+  [t2_space M₂] {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) {S : set M₁}
+  (hS : metric.bounded S) : is_compact (closure $ f '' S) :=
+hf.is_compact_closure_image_of_vonN_bounded
+(by rwa [normed_space.is_vonN_bounded_iff, ← metric.bounded_iff_is_bounded])
+
 lemma is_compact_operator.image_ball_subset_compact [has_continuous_const_smul 𝕜₂ M₂]
   {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) (r : ℝ) :
   ∃ (K : set M₂), is_compact K ∧ f '' metric.ball 0 r ⊆ K :=
@@ -146,28 +159,28 @@ lemma is_compact_operator_iff_image_ball_subset_compact [has_continuous_const_sm
   (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
   is_compact_operator f ↔ ∃ (K : set M₂), is_compact K ∧ f '' metric.ball 0 r ⊆ K :=
 ⟨λ hf, hf.image_ball_subset_compact r,
- λ ⟨K, hK, hKr⟩, (is_compact_operator_iff_exists_mem_nhds_image_subset_compact f).mpr
+  λ ⟨K, hK, hKr⟩, (is_compact_operator_iff_exists_mem_nhds_image_subset_compact f).mpr
   ⟨metric.ball 0 r, ball_mem_nhds _ hr, K, hK, hKr⟩⟩
 
 lemma is_compact_operator_iff_image_closed_ball_subset_compact [has_continuous_const_smul 𝕜₂ M₂]
   (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
   is_compact_operator f ↔ ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
 ⟨λ hf, hf.image_closed_ball_subset_compact r,
- λ ⟨K, hK, hKr⟩, (is_compact_operator_iff_exists_mem_nhds_image_subset_compact f).mpr
+  λ ⟨K, hK, hKr⟩, (is_compact_operator_iff_exists_mem_nhds_image_subset_compact f).mpr
   ⟨metric.closed_ball 0 r, closed_ball_mem_nhds _ hr, K, hK, hKr⟩⟩
 
 lemma is_compact_operator_iff_is_compact_closure_image_ball [has_continuous_const_smul 𝕜₂ M₂]
   [t2_space M₂] (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
   is_compact_operator f ↔ is_compact (closure $ f '' metric.ball 0 r) :=
 ⟨λ hf, hf.is_compact_closure_image_ball r,
- λ hf, (is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image f).mpr
+  λ hf, (is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image f).mpr
   ⟨metric.ball 0 r, ball_mem_nhds _ hr, hf⟩⟩
 
 lemma is_compact_operator_iff_is_compact_closure_image_closed_ball
   [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂] (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
   is_compact_operator f ↔ is_compact (closure $ f '' metric.closed_ball 0 r) :=
 ⟨λ hf, hf.is_compact_closure_image_closed_ball r,
- λ hf, (is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image f).mpr
+  λ hf, (is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image f).mpr
   ⟨metric.closed_ball 0 r, closed_ball_mem_nhds _ hr, hf⟩⟩
 
 end normed_space
@@ -177,9 +190,9 @@ end characterizations
 section operations
 
 variables {R₁ R₂ R₃ R₄ : Type*} [semiring R₁] [semiring R₂] [comm_semiring R₃] [comm_semiring R₄]
-  {σ₁₂ : R₁ →+* R₂} {σ₃₄ : R₃ →+* R₄} {M₁ M₂ M₃ M₄ : Type*} [topological_space M₁]
-  [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂] [topological_space M₃]
-  [add_comm_group M₃] [topological_space M₄] [add_comm_group M₄]
+  {σ₁₂ : R₁ →+* R₂} {σ₁₄ : R₁ →+* R₄} {σ₃₄ : R₃ →+* R₄} {M₁ M₂ M₃ M₄ : Type*}
+  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [topological_space M₃] [add_comm_group M₃] [topological_space M₄] [add_comm_group M₄]
 
 lemma is_compact_operator.smul {S : Type*} [monoid S] [distrib_mul_action S M₂]
   [has_continuous_const_smul S M₂] {f : M₁ → M₂}
@@ -202,6 +215,17 @@ let ⟨K, hK, hKf⟩ := hf in
 lemma is_compact_operator.sub [topological_add_group M₄] {f g : M₁ → M₄}
   (hf : is_compact_operator f) (hg : is_compact_operator g) : is_compact_operator (f - g) :=
 by rw sub_eq_add_neg; exact hf.add hg.neg
+
+variables (σ₁₄ M₁ M₄)
+
+/-- The submodule of compact continuous linear maps. -/
+def compact_operator [module R₁ M₁] [module R₄ M₄] [has_continuous_const_smul R₄ M₄]
+  [topological_add_group M₄] :
+  submodule R₄ (M₁ →SL[σ₁₄] M₄) :=
+{ carrier := {f | is_compact_operator f},
+  add_mem' := λ f g hf hg, hf.add hg,
+  zero_mem' := is_compact_operator_zero,
+  smul_mem' := λ c f hf, hf.smul c }
 
 end operations
 
@@ -236,21 +260,6 @@ lemma is_compact_operator.clm_comp [add_comm_monoid M₂] [module R₂ M₂] [ad
   is_compact_operator (g ∘ f) :=
 hf.continuous_comp g.continuous
 
-lemma is_compact_operator.continuous_on_comp [t2_space M₂] {f : M₁ → M₂}
-  (hf : is_compact_operator f) {g : M₂ → M₃} (hg : continuous_on g (closure $ range f)) :
-  is_compact_operator (g ∘ f) :=
-begin
-  rw is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image at hf,
-  rcases hf with ⟨V, hV, hVf⟩,
-  refine ⟨g '' (closure $ f '' V),
-          hVf.image_of_continuous_on (hg.mono $ closure_mono $ image_subset_range _ _),
-          mem_of_superset hV _⟩,
-  calc
-    V ⊆ f ⁻¹' (f '' V) : subset_preimage_image _ _
-  ... ⊆ f ⁻¹' (closure $ f '' V) : preimage_mono subset_closure
-  ... ⊆ f ⁻¹' (g ⁻¹' (g '' (closure $ f '' V))) : preimage_mono (subset_preimage_image _ _)
-end
-
 end comp
 
 section cod_restrict
@@ -267,7 +276,7 @@ let ⟨K, hK, hKf⟩ := hf in
 
 end cod_restrict
 
-section restrict_invariant
+section restrict
 
 variables {R₁ R₂ R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R₃] {σ₁₂ : R₁ →+* R₂}
   {σ₂₃ : R₂ →+* R₃} {M₁ M₂ M₃ : Type*} [topological_space M₁] [uniform_space M₂]
@@ -276,19 +285,19 @@ variables {R₁ R₂ R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R�
 
 /-- If a compact operator preserves a closed submodule, its restriction to that submodule is
 compact. -/
-lemma is_compact_operator.restrict_invariant {f : M₁ →ₗ[R₁] M₁} (hf : is_compact_operator f)
+lemma is_compact_operator.restrict {f : M₁ →ₗ[R₁] M₁} (hf : is_compact_operator f)
   {V : submodule R₁ M₁} (hV : ∀ v ∈ V, f v ∈ V) (h_closed : is_closed (V : set M₁)):
   is_compact_operator (f.restrict hV) :=
 (hf.comp_clm V.subtypeL).cod_restrict (set_like.forall.2 hV) h_closed
 
 /-- If a compact operator preserves a complete submodule, its restriction to that submodule is
 compact. -/
-lemma is_compact_operator.restrict_invariant' [separated_space M₂] {f : M₂ →ₗ[R₂] M₂}
+lemma is_compact_operator.restrict' [separated_space M₂] {f : M₂ →ₗ[R₂] M₂}
   (hf : is_compact_operator f) {V : submodule R₂ M₂} (hV : ∀ v ∈ V, f v ∈ V)
   [hcomplete : complete_space V] : is_compact_operator (f.restrict hV) :=
-hf.restrict_invariant hV (complete_space_coe_iff_is_complete.mp hcomplete).is_closed
+hf.restrict hV (complete_space_coe_iff_is_complete.mp hcomplete).is_closed
 
-end restrict_invariant
+end restrict
 
 section continuous
 
@@ -303,18 +312,30 @@ variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontriv
 begin
   letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
   haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+  -- Since `f` is linear, we only need to show that it is continuous at zero.
+  -- Let `U` be a neighborhood of `0` in `M₂`.
   refine continuous_of_continuous_at_zero f (λ U hU, _),
   rw map_zero at hU,
+  -- The compactness of `f` gives us a compact set `K : set M₂` such that `f ⁻¹' K` is a
+  -- neighborhood of `0` in `M₁`.
   rcases hf with ⟨K, hK, hKf⟩,
+  -- But any compact set is totally bounded, hence Von-Neumann bounded. Thus, `K` absorbs `U`.
+  -- This gives `r > 0` such that `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
   rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
+  -- Choose `c : 𝕜₂` with `r < ∥c∥`.
   rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
   have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
+  -- We have `f ⁻¹' ((σ₁₂ c⁻¹) • K) = c⁻¹ • f ⁻¹' K ∈ 𝓝 0`. Thus, showing that
+  -- `(σ₁₂ c⁻¹) • K ⊆ U` is enough to deduce that `f ⁻¹' U ∈ 𝓝 0`.
   suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
   { refine mem_of_superset _ this,
     have : is_unit c⁻¹ := hcnz.is_unit.inv,
     rwa [mem_map, preimage_smul_setₛₗ _ _ _ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
     apply_instance },
+  -- Since `σ₁₂ c⁻¹` = `(σ₁₂ c)⁻¹`, we have to prove that `K ⊆ σ₁₂ c • U`.
   rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+  -- But `σ₁₂` is isometric, so `∥σ₁₂ c∥ = ∥c∥ > r`, which concludes since
+  -- `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
   refine hrU (σ₁₂ c) _,
   rw ring_hom_isometric.is_iso,
   exact hc.le
@@ -324,6 +345,21 @@ end
 def continuous_linear_map.mk_of_is_compact_operator {f : M₁ →ₛₗ[σ₁₂] M₂}
   (hf : is_compact_operator f) : M₁ →SL[σ₁₂] M₂ :=
 ⟨f, hf.continuous⟩
+
+@[simp] lemma continuous_linear_map.mk_of_is_compact_operator_to_linear_map {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : is_compact_operator f) :
+  (continuous_linear_map.mk_of_is_compact_operator hf : M₁ →ₛₗ[σ₁₂] M₂) = f :=
+rfl
+
+@[simp] lemma continuous_linear_map.coe_mk_of_is_compact_operator {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : is_compact_operator f) :
+  (continuous_linear_map.mk_of_is_compact_operator hf : M₁ → M₂) = f :=
+rfl
+
+lemma continuous_linear_map.mk_of_is_compact_operator_mem_compact_operator {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : is_compact_operator f) :
+  continuous_linear_map.mk_of_is_compact_operator hf ∈ compact_operator σ₁₂ M₁ M₂ :=
+hf
 
 end continuous
 
@@ -365,6 +401,13 @@ begin
   ... = dist u v : (dist_eq_norm _ _).symm
   ... < ε/2 : huv
 end
+
+lemma compact_operator_topological_closure {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
+  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
+  [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
+  [normed_space 𝕜₂ M₂] [complete_space M₂] :
+  (compact_operator σ₁₂ M₁ M₂).topological_closure = compact_operator σ₁₂ M₁ M₂ :=
+set_like.ext' (is_closed_set_of_is_compact_operator.closure_eq)
 
 lemma is_compact_operator_of_tendsto {ι 𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
   [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}

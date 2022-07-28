@@ -437,8 +437,17 @@ def top_subsystem (Gpreconn : preconnected G) [locally_finite G] (K : finset V) 
 , sorry
 , sorry ⟩
 
-def subsystem_le   (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K)
+def subsystem_le {G : simple_graph V} {Gpreconn : preconnected G} [locally_finite G] {K : finset V} {C : inf_ro_components G K}
   (S T : subsystem G Gpreconn K C) := ∀ L, S.val L ⊆ T.val L
+
+infix ` ss≤ ` : 50 := subsystem_le
+
+lemma subsystem_le_refl  {Gpreconn : preconnected G} [locally_finite G] {K : finset V} {C : inf_ro_components G K}
+  (S: subsystem G Gpreconn K C) : S ss≤ S := by {rintros L,simp,}
+
+lemma subsystem_le_trans  {Gpreconn : preconnected G} [locally_finite G] {K : finset V} {C : inf_ro_components G K}
+  {R S T : subsystem G Gpreconn K C} : R ss≤ S → S ss≤ T → R ss≤ T := by {rintros hRS hST L, exact (hRS L).trans (hST L),}
+
 
 
 lemma end_from_component (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :

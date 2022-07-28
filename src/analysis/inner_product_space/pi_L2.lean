@@ -405,7 +405,7 @@ let
       convert orthonormal_span (h.comp (coe : s → ι') subtype.coe_injective),
       ext,
       simp [e₀', basis.span_apply],
-    end e₀'.span_eq,
+    end e₀'.span_eq.ge,
   φ : span 𝕜 (s.image v' : set E) ≃ₗᵢ[𝕜] span 𝕜 (range (v' ∘ (coe : s → ι'))) :=
     linear_isometry_equiv.of_eq _ _
     begin

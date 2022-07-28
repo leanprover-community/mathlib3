@@ -294,7 +294,7 @@ end
 lemma upper_crossing_lt_nonempty (hN : 0 < N) : {n | upper_crossing a b f N n x < N}.nonempty :=
 ⟨0, hN⟩
 
-lemma upper_crossing_bound_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) (hN : 0 < N) :
+lemma upper_crossing_bound_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :
   upper_crossing a b f N N x = N :=
 begin
   by_cases hN' : N < nat.find (exists_upper_crossing_eq f N x hab),
@@ -309,10 +309,10 @@ begin
     exact upper_crossing_stabilize hN' (nat.find_spec (exists_upper_crossing_eq f N x hab)) }
 end
 
-lemma upper_crossing_eq_of_bound_le (hab : a < b) (hN : 0 < N) (hn : N ≤ n) :
+lemma upper_crossing_eq_of_bound_le (hab : a < b) (hn : N ≤ n) :
   upper_crossing a b f N n x = N :=
 le_antisymm upper_crossing_le
-  ((le_trans (upper_crossing_bound_eq f N x hab hN).symm.le (upper_crossing_mono hn)))
+  ((le_trans (upper_crossing_bound_eq f N x hab).symm.le (upper_crossing_mono hn)))
 
 variables {ℱ : filtration ℕ m0}
 
@@ -467,7 +467,7 @@ lemma upcrossing_le (f : ℕ → α → ℝ) (x : α) (hN : 0 < N) (hab : a < b)
 begin
   refine cSup_le ⟨0, hN⟩ (λ n (hn : _ < _), _),
   by_contra hnN,
-  exact hn.ne (upper_crossing_eq_of_bound_le hab hN (not_le.1 hnN).le),
+  exact hn.ne (upper_crossing_eq_of_bound_le hab (not_le.1 hnN).le),
 end
 
 lemma lower_crossing_lt_of_lt_upcrossing

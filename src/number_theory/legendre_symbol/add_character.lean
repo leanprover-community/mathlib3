@@ -63,7 +63,7 @@ The trivial additive character (sending everything to `1`) is `(1 : add_char R R
 @[derive [comm_monoid, inhabited]]
 def add_char : Type (max u v) := (multiplicative R) →* R'
 
-instance : has_coe_to_fun (add_char R R') (λ x, (multiplicative R → R')) :=
+instance add_char.has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, (multiplicative R → R')) :=
 monoid_hom.has_coe_to_fun
 
 instance add_char.monoid_hom_class : monoid_hom_class (add_char R R') (multiplicative R) R' :=

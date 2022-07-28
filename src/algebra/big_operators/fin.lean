@@ -97,27 +97,27 @@ by simp [prod_univ_succ]
 
 @[to_additive] theorem prod_univ_three [comm_monoid β] (f : fin 3 → β) :
   ∏ i, f i = f 0 * f 1 * f 2 :=
-by { rw [mul_assoc], simp [prod_univ_succ] }
+by { rw [prod_univ_cast_succ, prod_univ_two], refl }
 
 @[to_additive] theorem prod_univ_four [comm_monoid β] (f : fin 4 → β) :
   ∏ i, f i = f 0 * f 1 * f 2 * f 3 :=
-by { repeat {rw [mul_assoc]}, simp [prod_univ_succ], refl }
+by { rw [prod_univ_cast_succ, prod_univ_three], refl }
 
 @[to_additive] theorem prod_univ_five [comm_monoid β] (f : fin 5 → β) :
   ∏ i, f i = f 0 * f 1 * f 2 * f 3 * f 4 :=
-by { repeat {rw [mul_assoc]}, simp [prod_univ_succ], refl }
+by { rw [prod_univ_cast_succ, prod_univ_four], refl }
 
 @[to_additive] theorem prod_univ_six [comm_monoid β] (f : fin 6 → β) :
   ∏ i, f i = f 0 * f 1 * f 2 * f 3 * f 4 * f 5 :=
-by { repeat {rw [mul_assoc]}, simp [prod_univ_succ], refl }
+by { rw [prod_univ_cast_succ, prod_univ_five], refl }
 
 @[to_additive] theorem prod_univ_seven [comm_monoid β] (f : fin 7 → β) :
   ∏ i, f i = f 0 * f 1 * f 2 * f 3 * f 4 * f 5 * f 6 :=
-by { repeat {rw [mul_assoc]}, simp [prod_univ_succ], refl }
+by { rw [prod_univ_cast_succ, prod_univ_six], refl }
 
 @[to_additive] theorem prod_univ_eight [comm_monoid β] (f : fin 8 → β) :
   ∏ i, f i = f 0 * f 1 * f 2 * f 3 * f 4 * f 5 * f 6 * f 7 :=
-by { repeat {rw [mul_assoc]}, simp [prod_univ_succ], refl }
+by { rw [prod_univ_cast_succ, prod_univ_seven], refl }
 
 lemma sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
   ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) = (a + b) ^ n :=

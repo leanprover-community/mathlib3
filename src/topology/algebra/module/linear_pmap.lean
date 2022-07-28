@@ -125,8 +125,8 @@ lemma closable_iff_exists_closed_extension {f : linear_pmap R E F} : f.closable 
   ∃ (g : linear_pmap R E F) (hg : g.closed), f ≤ g :=
 ⟨λ h, ⟨h.closure, h.closure_closed, h.le_closure⟩, λ ⟨_, hg, h⟩, hg.closable.le_closable h⟩
 
-lemma congr_closure {f g : linear_pmap R E F} (hf : f.closable) (hg : g.closable) (h : f = g)
-  : hf.closure = hg.closure :=
+lemma congr_closure {f g : linear_pmap R E F} (hf : f.closable) (hg : g.closable) (h : f = g) :
+  hf.closure = hg.closure :=
 begin
   refine eq_of_eq_graph _,
   rw [←hf.graph_closure_eq_closure_graph, ←hg.graph_closure_eq_closure_graph, h],

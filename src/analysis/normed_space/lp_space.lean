@@ -253,6 +253,36 @@ begin
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
+lemma comp_inj {β : Type*} (φ : β → α) (hφ : function.injective φ) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { exact hf.preimage (hφ.inj_on _) },
+  { exact hf.mono (set.range_subset_iff.mpr $ λ b, set.mem_range_self (φ b)) },
+  { exact hf.comp_injective hφ }
+end
+
+-- TODO : use this to get a continuous linear map between lp spaces.
+lemma comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
+hf.comp_inj φ φ.injective
+
+-- TODO : use this to get a continuous linear map between lp spaces.
+lemma comp_linear_isometry {𝕜 : Type*} [normed_field 𝕜] {F : α → Type*}
+  [Π i, normed_add_comm_group (F i)] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
+  (Φ : Π i, E i →ₗᵢ[𝕜] F i) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, Φ x (f x)) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { refine hf.subset (λ i hi h, hi _),
+    rw ← map_zero (Φ i),
+    exact congr_arg _ h },
+  { simp_rw [linear_isometry.norm_map], assumption },
+  { simp_rw [linear_isometry.norm_map], assumption },
+end
+
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
@@ -484,6 +514,12 @@ normed_add_comm_group.of_core _
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
   norm_neg := norm_neg }
+
+lemma nnnorm_eq_csupr (f : lp E ∞) : ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
+begin
+  ext,
+  simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr]
+end
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.
@@ -1090,5 +1126,41 @@ begin
 end
 
 end topology
+
+section map_embedding
+
+variables (E) (𝕜 : Type*) [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (p)
+
+def map_embeddingₗ [fact (1 ≤ p)] {β : Type*} (φ : β ↪ α) :
+  lp E p →ₗ[𝕜] lp (λ i, E (φ i)) p :=
+{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_embedding φ f.2⟩,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl }
+
+def map_embeddingL [fact (1 ≤ p)] {β : Type*} (φ : β ↪ α) :
+  lp E p →ₗᵢ[𝕜] lp (λ i, E (φ i)) p :=
+{ norm_map' :=
+  begin
+    intros f,
+    --change ∥map_embeddingₗ E p 𝕜 φ f∥ = ∥f∥,
+    unfreezingI { rcases p.dichotomy with rfl | h },
+    { suffices : ∥map_embeddingₗ E ⊤ 𝕜 φ f∥₊ = ∥f∥₊,
+      { rw [← coe_nnnorm, ← coe_nnnorm],
+        exact congr_arg _ this },
+      rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr, ← supr_extend_bot φ.injective], }
+  end
+  .. map_embeddingₗ E p 𝕜 φ }
+--(map_embeddingₗ E p 𝕜 φ).mk_continuous 1
+--begin
+--  intros f,
+--  rw one_mul,
+--  unfreezingI { rcases p.dichotomy with rfl | h },
+--  { suffices : ∥map_embeddingₗ E ⊤ 𝕜 φ f∥₊ ≤ ∥f∥₊,
+--    { rw [← coe_nnnorm, ← coe_nnnorm],
+--      exact nnreal.coe_mono this },
+--    rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr], }
+--end
+
+end map_embedding
 
 end lp

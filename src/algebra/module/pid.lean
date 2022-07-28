@@ -249,9 +249,8 @@ open_locale tensor_product
   [add_comm_group N] [module R M] [module R N](e : M ≃ₗ[R] N) :
 e.symm.to_linear_map.comp e.to_linear_map = linear_map.id :=
 begin
-change (e.trans e.symm).to_linear_map = linear_map.id,
-simp,
-refl,
+  change (e.trans e.symm).to_linear_map = linear_map.id,
+  simp only [linear_equiv.self_trans_symm, linear_equiv.refl_to_linear_map'],
 end
 
 @[simp] lemma linear_equiv.to_linear_map_comp_symm {M N : Type*} [add_comm_group M]
@@ -260,7 +259,7 @@ e.to_linear_map.comp e.symm.to_linear_map = linear_map.id :=
 by ext; simp
 
 def linear_equiv.rtensor {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M]
-  [module R N] (K : Type*) [comm_ring K] [algebra R K] (e : M ≃ₗ[R] N) : M ⊗[R] K ≃ₗ[R] N ⊗[R] K :=
+  [module R N] (K : Type*) [add_comm_group K] [module R K] (e : M ≃ₗ[R] N) : M ⊗[R] K ≃ₗ[R] N ⊗[R] K :=
 { to_fun := linear_map.rtensor K e.to_linear_map,
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _,
@@ -270,6 +269,59 @@ def linear_equiv.rtensor {M N : Type*} [add_comm_group M] [add_comm_group N] [mo
   right_inv := λ x, by rw [← linear_map.rtensor_comp_apply, linear_equiv.to_linear_map_comp_symm,
       linear_map.rtensor_id_apply] }
 
+lemma prod.fst_def {α β : Type*} {a : α} {b : β} : (a, b).fst = a := rfl
+lemma prod.snd_def {α β : Type*} {a : α} {b : β} : (a, b).snd = b := rfl
+
+def tensor_product.prod_tensor {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M]
+  [module R N] (K : Type*) [add_comm_group K] [module R K] :
+  (M × N) ⊗[R] K ≃ₗ[R] (M ⊗[R] K) × (N ⊗[R] K) :=
+{ to_fun := tensor_product.lift $ linear_map.coprod
+      ((tensor_product.lift.equiv R M K _).symm (linear_map.inl _ _ _))
+      ((tensor_product.lift.equiv R N K _).symm (linear_map.inr _ _ _)),
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _,
+  inv_fun := linear_map.coprod (linear_map.rtensor K (linear_map.inl _ _ _))
+    (linear_map.rtensor K (linear_map.inr _ _ _)),
+  left_inv := λ x, begin
+    rw ← linear_map.comp_apply,
+    change _ = linear_map.id x,
+    refine linear_map.ext_iff.1 (tensor_product.ext' _) x,
+    rintros ⟨m, n⟩ k,
+    simp only [linear_map.comp_apply, tensor_product.lift.tmul, linear_map.coprod_apply,
+      linear_map.add_apply, tensor_product.lift.equiv_symm_apply, linear_map.inl_apply,
+      linear_map.inr_apply, prod.mk_add_mk, add_zero, zero_add, linear_map.rtensor_tmul,
+      linear_map.coe_inl, linear_map.coe_inr, linear_map.id_coe, id.def, ← tensor_product.add_tmul],
+  end,
+  right_inv := λ x, begin
+    rw ← linear_map.comp_apply,
+    change _ = linear_map.id x,
+    refine linear_map.ext_iff.1 (linear_map.prod_ext (tensor_product.ext' (λ m k, _))
+      (tensor_product.ext' (λ n k, _))) x,
+    { rw [linear_map.comp_apply, linear_map.id_comp, linear_map.inl_apply, linear_map.comp_apply,
+          linear_map.coprod_apply, prod.fst_def, linear_map.rtensor_tmul, linear_map.map_zero,
+          add_zero, linear_map.inl_apply, tensor_product.lift.tmul, linear_map.coprod_apply,
+          prod.fst_def, prod.snd_def, linear_map.map_zero, add_zero,
+          tensor_product.lift.equiv_symm_apply, linear_map.inl_apply] },
+    { rw [linear_map.comp_apply, linear_map.id_comp, linear_map.inr_apply, linear_map.comp_apply,
+          linear_map.coprod_apply, prod.fst_def, linear_map.rtensor_tmul, linear_map.map_zero,
+          zero_add, linear_map.inr_apply, tensor_product.lift.tmul, linear_map.coprod_apply,
+          prod.fst_def, prod.snd_def, linear_map.map_zero, zero_add,
+          tensor_product.lift.equiv_symm_apply, linear_map.inr_apply] },
+  end }
+
+
+def tensor_product.oplus_tensor {ι : Type*} [decidable_eq ι] -- remove this when sorries filled
+  (M : ι → Type*) [∀ i, add_comm_group (M i)]
+  [∀ i, module R (M i)] (K : Type*) [add_comm_group K] [module R K] :
+  (⨁ (i : ι), M i) ⊗[R] K ≃ₗ[R] ⨁ (i : ι), (M i ⊗[R] K) :=
+{ to_fun := tensor_product.lift $ direct_sum.to_module _ _ _ $
+    λ i, (tensor_product.lift.equiv R (M i) K _).symm $ by exact dfinsupp.lsingle i,--(dfinsupp.lsingle i : M i ⊗ K →ₗ[R] ⨁ (i : ι), (M i ⊗ K)),--(dfinsupp.lsingle i),
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _,
+  inv_fun := direct_sum.to_module R ι _ $ λ i, tensor_product.lift _,--λ i, tensor_product.lift _,--tensor_product.lift.equiv R (M i) K _ $ _,
+  left_inv := _,
+  right_inv := _ }
+
 theorem equiv_free_prod_direct_sum_unique (n₁ n₂ : ℕ) (ι₁ ι₂ : Type*)
   [fintype ι₁] [fintype ι₂] (p₁ : ι₁ → R) (p₂ : ι₂ → R)
   (h₁ : ∀ i, irreducible $ p₁ i) (h₂ : ∀ i, irreducible $ p₂ i) (e₁ : ι₁ → ℕ) (e₂ : ι₂ → ℕ)
@@ -278,7 +330,8 @@ theorem equiv_free_prod_direct_sum_unique (n₁ n₂ : ℕ) (ι₁ ι₂ : Type*
 n₁ = n₂ ∧ ∃ j : ι₁ ≃ ι₂, ∀ i₁, p₁ i₁ = p₂ (j i₁) ∧ e₁ i₁ = e₂ (j i₁) :=
 begin
   split,
-  { let hiso2 := hiso.rtensor (fraction_ring R),
+  { let hiso2 := (hiso.rtensor (fraction_ring R)).trans (tensor_product.prod_tensor _),
+    let hiso3 := (tensor_product.prod_tensor _).symm.trans hiso2,
     sorry },
   { sorry }
 end

@@ -9,6 +9,7 @@ import logic.unique
 import tactic.congr
 import tactic.simpa
 import tactic.split_ifs
+import data.sum.basic
 
 /-!
 # Instances and theorems on pi types
@@ -225,3 +226,38 @@ lemma subsingleton.pi_mul_single_eq {α : Type*} [decidable_eq I] [subsingleton 
   (i : I) (x : α) :
   pi.mul_single i x = λ _, x :=
 funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]
+
+namespace sum
+variables (a a' : α → γ) (b b' : β → γ)
+
+@[simp, to_additive]
+lemma elim_one_one [has_one γ] :
+  sum.elim (1 : α → γ) (1 : β → γ) = 1 :=
+sum.elim_const_const 1
+
+@[simp, to_additive]
+lemma elim_mul_single_one [decidable_eq α] [decidable_eq β] [has_one γ] (i : α) (c : γ) :
+  sum.elim (pi.mul_single i c) (1 : β → γ) = pi.mul_single (sum.inl i) c :=
+by simp only [pi.mul_single, sum.elim_update_left, elim_one_one]
+
+@[simp, to_additive]
+lemma elim_one_mul_single [decidable_eq α] [decidable_eq β] [has_one γ] (i : β) (c : γ) :
+  sum.elim (1 : α → γ) (pi.mul_single i c) = pi.mul_single (sum.inr i) c :=
+by simp only [pi.mul_single, sum.elim_update_right, elim_one_one]
+
+@[to_additive]
+lemma elim_inv_inv [has_inv γ] :
+  sum.elim a⁻¹ b⁻¹ = (sum.elim a b)⁻¹ :=
+(sum.comp_elim has_inv.inv a b).symm
+
+@[to_additive]
+lemma elim_mul_mul [has_mul γ] :
+  sum.elim (a * a') (b * b') = sum.elim a b * sum.elim a' b' :=
+by { ext x, cases x; refl }
+
+@[to_additive]
+lemma elim_div_div [has_div γ] :
+  sum.elim (a / a') (b / b') = sum.elim a b / sum.elim a' b' :=
+by { ext x, cases x; refl }
+
+end sum

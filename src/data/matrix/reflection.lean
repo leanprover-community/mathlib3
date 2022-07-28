@@ -385,7 +385,7 @@ example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ 
                     b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
                                    a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
 begin
-  library_search,
+  rw mul_fin,
 end
 
 example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
@@ -393,7 +393,7 @@ example {α} [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ b₁₁ b₁₂ 
                     b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;] :=
 begin
   -- if we really need it, we can get the proof directly like this
-  do {(_, h) ← mul_fin.prove 1 2 2, tactic.note `h none h, tactic.skip },
+  mul_fin.prove 1 2 2 >>= function.uncurry (tactic.assertv `h),
   specialize @h α _ _,
 
   rw mul_fin

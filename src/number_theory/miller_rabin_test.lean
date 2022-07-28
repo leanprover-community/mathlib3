@@ -41,7 +41,7 @@ fermat_strong_probable_prime n a
 
 
 --TODO(Bolton): Find a way of making modular exponentiation faster
-set_option profiler true
+-- set_option profiler true
 
 #eval full_miller_rabin 100123456789 [3, 4, 5, 6]
 

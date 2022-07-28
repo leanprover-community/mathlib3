@@ -37,20 +37,18 @@ open order
 namespace ordinal
 
 /-- Inducts on the base `b` expansion of an ordinal. -/
-@[elab_as_eliminator, nolint unused_arguments] noncomputable def CNF_rec {b : ordinal} (hb : b ≠ 0)
+@[elab_as_eliminator] noncomputable def CNF_rec (b : ordinal)
   {C : ordinal → Sort*} (H0 : C 0) (H : ∀ o, o ≠ 0 → C (o % b ^ log b o) → C o) : ∀ o, C o
 | o :=
   if ho : o = 0 then by rwa ho else
     let hwf := mod_opow_log_lt_self b ho in H o ho (CNF_rec (o % b ^ log b o))
 using_well_founded {dec_tac := `[assumption]}
 
--- Todo (vihdzp): remove the unused hypothesis `b ≠ 0`.
-
-@[simp] theorem CNF_rec_zero {b} (hb) {C H0 H} : @CNF_rec b hb C H0 H 0 = H0 :=
+@[simp] theorem CNF_rec_zero {b C H0 H} : @CNF_rec b C H0 H 0 = H0 :=
 by rw [CNF_rec, dif_pos rfl]; refl
 
-@[simp] theorem CNF_rec_ne_zero {b} (hb) {C H0 H o} (ho) :
-  @CNF_rec b hb C H0 H o = H o ho (@CNF_rec b hb C H0 H _) :=
+@[simp] theorem CNF_rec_ne_zero {b C H0 H o} (ho) :
+  @CNF_rec b C H0 H o = H o ho (@CNF_rec b C H0 H _) :=
 by rw [CNF_rec, dif_neg ho]
 
 /-- The Cantor normal form of an ordinal `o` is the list of coefficients and exponents in the
@@ -61,18 +59,18 @@ We special-case `CNF 0 o = []`, `CNF b 0 = []`, and `CNF 1 o = [(0, o)]` for `o 
 `CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
 @[pp_nodot] def CNF (b o : ordinal) : list (ordinal × ordinal) :=
 if hb : b = 0 then [] else
-CNF_rec hb [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
+CNF_rec b [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 
 @[simp] theorem zero_CNF (o) : CNF 0 o = [] :=
 dif_pos rfl
 
 @[simp] theorem CNF_zero (b) : CNF b 0 = [] :=
-if hb : b = 0 then dif_pos hb else (dif_neg hb).trans $ CNF_rec_zero _
+if hb : b = 0 then dif_pos hb else (dif_neg hb).trans $ CNF_rec_zero
 
 /-- Recursive definition for the Cantor normal form. -/
 theorem CNF_ne_zero {b o : ordinal} (hb : b ≠ 0) (ho : o ≠ 0) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
-by unfold CNF; rw [dif_neg hb, dif_neg hb, CNF_rec_ne_zero hb ho]
+by unfold CNF; rw [dif_neg hb, dif_neg hb, CNF_rec_ne_zero ho]
 
 @[simp] theorem one_CNF {o : ordinal} (ho : o ≠ 0) : CNF 1 o = [(0, o)] :=
 by rw [CNF_ne_zero ordinal.one_ne_zero ho, log_of_not_one_lt_left (irrefl _), opow_zero, mod_one,
@@ -81,7 +79,7 @@ by rw [CNF_ne_zero ordinal.one_ne_zero ho, log_of_not_one_lt_left (irrefl _), op
 /-- Evaluating the Cantor normal form of an ordinal returns the ordinal. -/
 theorem CNF_foldr {b : ordinal} (hb : b ≠ 0) (o) :
   (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
-CNF_rec hb (by rw CNF_zero; refl)
+CNF_rec b (by rw CNF_zero; refl)
   (λ o ho IH, by rw [CNF_ne_zero hb ho, list.foldr_cons, IH, div_add_mod]) o
 
 /-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_pairwise` and
@@ -92,7 +90,7 @@ begin
   by_cases hb : b = 0,
   { simp only [hb, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
   cases lt_or_eq_of_le (one_le_iff_ne_zero.2 hb) with hb' hb',
-  { refine CNF_rec hb _ _ o,
+  { refine CNF_rec b _ _ o,
     { simp only [CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     intros o ho IH, cases IH with IH₁ IH₂,
     simp only [CNF_ne_zero hb ho, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
@@ -129,7 +127,7 @@ private theorem CNF_snd_lt_aux {b o : ordinal.{u}} (hb' : 1 < b) :
   ∀ {p : ordinal × ordinal}, p ∈ CNF b o → p.2 < b ∧ 0 < p.2 :=
 begin
   have hb := (zero_lt_one.trans hb').ne',
-  refine CNF_rec hb (λ _, by { rw CNF_zero, exact false.elim }) (λ o ho IH, _) o,
+  refine CNF_rec b (λ _, by { rw CNF_zero, exact false.elim }) (λ o ho IH, _) o,
   simp only [CNF_ne_zero hb ho, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
   nth_rewrite 1 ←@succ_le_iff,
   rw [div_lt (opow_ne_zero _ hb), ←opow_succ, le_div (opow_ne_zero _ hb), succ_zero, mul_one],
@@ -151,3 +149,4 @@ theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
 by { rw [list.sorted, list.pairwise_map], exact CNF_pairwise b o }
 
 end ordinal
+

@@ -103,10 +103,10 @@ begin
 
     -- This implies that the sign of P(t) - t is the same as the sign of P^k(t) - t, which is 0.
     -- Hence P(t) = t and P(P(t)) = P(t).
-    rcases ht with ⟨(_ | n), hn, hn'⟩,
-    { exact (irrefl 0 hn).elim },
-    { have H := IH n,
-      rw [hn'.is_fixed_pt.eq, sub_self, int.sign_zero, eq_comm, int.sign_eq_zero_iff_zero,
+    rcases ht with ⟨(_ | k), hk, hk'⟩,
+    { exact (irrefl 0 hk).elim },
+    { have H := IH k,
+      rw [hk'.is_fixed_pt.eq, sub_self, int.sign_zero, eq_comm, int.sign_eq_zero_iff_zero,
         sub_eq_zero] at H,
       simp [is_periodic_pt, is_fixed_pt, H] } },
   { -- We take two nonequal consecutive entries.

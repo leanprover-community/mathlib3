@@ -114,11 +114,11 @@ begin
   rintros ⟨φ₀, ψ₀⟩ H,
   simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
     set.mem_set_of_eq, @set.preimage_comp _ _ _ φ₀ ψ₀ _, to_fun_eq_coe] at H,
-  obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_between (hK.image φ₀.2)
+  obtain ⟨L, hL, hL_left, hL_right⟩ := exists_compact_between (hK.image φ₀.2)
     (hU.preimage ψ₀.2) (set.image_subset_iff.mpr H),
-  set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
+  set V : (set C(α, β)) := {φ | φ '' K ⊆ interior L} with def_V,
   have hV := continuous_map.is_open_gen hK is_open_interior,
-  set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
+  set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U} with def_W,
   have hW := continuous_map.is_open_gen hL hU,
   use V ×ˢ W,
   split,

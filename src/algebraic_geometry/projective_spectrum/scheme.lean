@@ -45,8 +45,8 @@ open sets in `Proj`, more specifically:
       `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal`;
     * This ideal is also homogeneous, the proof can be found in
       `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal.homogeneous`;
-    * This ideal is relavent, the proof can be found in
-      `Proj_iso_Spec_Top_component.from_Spec.carrier.relavent`;
+    * This ideal is relevant, the proof can be found in
+      `Proj_iso_Spec_Top_component.from_Spec.carrier.relevant`;
     * This ideal is prime, the proof can be found in
       `Proj_iso_Spec_Top_component.from_Spec.carrier.prime`.
     Hence we have a well defined function `Spec.T A⁰_f → Proj.T | (pbo f)`, this function is called

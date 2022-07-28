@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Bolton Bailey, Sean Golinski. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bolton Bailey, Sean Golinski
+-/
 
 import data.zmod.basic
 import number_theory.lucas_primality

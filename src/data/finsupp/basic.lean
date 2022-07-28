@@ -103,7 +103,7 @@ namespace finsupp
 /-- A more convenient constructor -/
 def mk [has_zero M] (support : finset α) (to_fun : α → M)
   (support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0) : α →₀ M :=
-⟨to_fun, trunc.mk ⟨support.1, λ i, or_iff_not_imp_right.mpr (support_to_fun i).mpr⟩⟩
+dfinsupp.mk' to_fun $ trunc.mk ⟨support.1, λ i, or_iff_not_imp_right.mpr (support_to_fun i).mpr⟩
 
 /-! ### Basic declarations about `finsupp` -/
 
@@ -142,6 +142,10 @@ instance : inhabited (α →₀ M) := ⟨0⟩
 
 @[simp] lemma mem_support_iff {f : α →₀ M} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
+
+@[simp] lemma support_mk (s : finset α) (f : α → M) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
+  support (mk s f h) = s :=
+by { ext, simp [h] }
 
 @[simp, norm_cast] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
 set.ext $ λ x, mem_support_iff.symm
@@ -542,10 +546,6 @@ begin
     { simp only [h, ne.def, ne_self_iff_false] } }
 end
 
-@[simp] lemma support_emb_domain (f : α ↪ β) (v : α →₀ M) :
-  (emb_domain f v).support = v.support.map f :=
-sorry
-
 @[simp] lemma emb_domain_zero (f : α ↪ β) : (emb_domain f 0 : β →₀ M) = 0 :=
 rfl
 
@@ -566,6 +566,10 @@ begin
   rcases finset.mem_map.1 h with ⟨a, h, rfl⟩,
   exact set.mem_range_self a
 end
+
+@[simp] lemma support_emb_domain (f : α ↪ β) (v : α →₀ M) :
+  (emb_domain f v).support = v.support.map f :=
+support_mk _ _ _
 
 lemma emb_domain_injective (f : α ↪ β) :
   function.injective (emb_domain f : (α →₀ M) → (β →₀ M)) :=
@@ -644,7 +648,12 @@ rfl
 
 lemma support_zip_with [D : decidable_eq α] {f : M → N → P} {hf : f 0 0 = 0}
   {g₁ : α →₀ M} {g₂ : α →₀ N} : (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
-sorry
+begin
+  intro,
+  simp only [mem_support_iff, zip_with_apply, ne.def, mem_union],
+  contrapose!,
+  simp [hf] {contextual := tt},
+end
 
 end zip_with
 
@@ -1476,7 +1485,7 @@ lemma map_range.equiv_trans
   (map_range.equiv (f.trans f₂) (by rw [equiv.trans_apply, hf, hf₂])
     (by rw [equiv.symm_trans_apply, hf₂', hf']) : (α →₀ _) ≃ _) =
     (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
-equiv.ext $ map_range_comp _ _ _ _ _
+by { ext, simp }
 
 @[simp] lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
   ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
@@ -1501,7 +1510,7 @@ lemma map_range.zero_hom_id :
 lemma map_range.zero_hom_comp (f : zero_hom N P) (f₂ : zero_hom M N) :
   (map_range.zero_hom (f.comp f₂) : zero_hom (α →₀ _) _) =
     (map_range.zero_hom f).comp (map_range.zero_hom f₂) :=
-zero_hom.ext $ map_range_comp _ _ _ _ _
+by { ext, simp }
 
 end zero_hom
 
@@ -1525,7 +1534,7 @@ add_monoid_hom.ext map_range_id
 lemma map_range.add_monoid_hom_comp (f : N →+ P) (f₂ : M →+ N) :
   (map_range.add_monoid_hom (f.comp f₂) : (α →₀ _) →+ _) =
     (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
-add_monoid_hom.ext $ map_range_comp _ _ _ _ _
+by { ext, simp }
 
 @[simp]
 lemma map_range.add_monoid_hom_to_zero_hom (f : M →+ N) :
@@ -1567,7 +1576,7 @@ add_equiv.ext map_range_id
 lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
   (map_range.add_equiv (f.trans f₂) : (α →₀ _) ≃+ _) =
     (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
-add_equiv.ext $ map_range_comp _ _ _ _ _
+by { ext, simp }
 
 @[simp] lemma map_range.add_equiv_symm (f : M ≃+ N) :
   ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
@@ -1597,7 +1606,7 @@ variables [add_comm_monoid M] {v v₁ v₂ : α →₀ M}
 /-- Given `f : α → β` and `v : α →₀ M`, `map_domain f v : β →₀ M`
   is the finitely supported function whose value at `a : β` is the sum
   of `v x` over all `x` such that `f x = a`. -/
-def map_domain (f : α → β) (v : α →₀ M) : β →₀ M :=
+noncomputable def map_domain (f : α → β) (v : α →₀ M) : β →₀ M :=
 v.sum $ λa, single (f a)
 
 lemma map_domain_apply {f : α → β} (hf : function.injective f) (x : α →₀ M) (a : α) :
@@ -1653,7 +1662,7 @@ end
 
 /-- `finsupp.map_domain` is an `add_monoid_hom`. -/
 @[simps]
-def map_domain.add_monoid_hom (f : α → β) : (α →₀ M) →+ (β →₀ M) :=
+noncomputable def map_domain.add_monoid_hom (f : α → β) : (α →₀ M) →+ (β →₀ M) :=
 { to_fun := map_domain f,
   map_zero' := map_domain_zero,
   map_add' := λ _ _, map_domain_add}
@@ -1771,7 +1780,7 @@ begin
 end
 
 /-- When `f` is an embedding we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
-@[simps] def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ β →₀ ℕ :=
+@[simps] noncomputable def map_domain_embedding {α β : Type*} (f : α ↪ β) : (α →₀ ℕ) ↪ β →₀ ℕ :=
 ⟨finsupp.map_domain f, finsupp.map_domain_injective f.injective⟩
 
 lemma map_domain.add_monoid_hom_comp_map_range [add_comm_monoid N] (f : α → β) (g : M →+ N) :
@@ -1822,17 +1831,20 @@ section comap_domain
 /-- Given `f : α → β`, `l : β →₀ M` and a proof `hf` that `f` is injective on
 the preimage of `l.support`, `comap_domain f l hf` is the finitely supported function
 from `α` to `M` given by composing `l` with `f`. -/
-@[simps support]
+@[simps] noncomputable
 def comap_domain [has_zero M] (f : α → β) (l : β →₀ M) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
   α →₀ M :=
-{ support := l.support.preimage f hf,
-  to_fun := (λ a, l (f a)),
-  mem_support_to_fun :=
+mk (l.support.preimage f hf) (λ a, l (f a)) $
     begin
       intros a,
       simp only [finset.mem_def.symm, finset.mem_preimage],
       exact l.mem_support_to_fun (f a),
-    end }
+    end
+
+@[simp] lemma support_comap_domain [has_zero M] (f : α → β) (l : β →₀ M)
+  (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
+  support (comap_domain f l hf) = l.support.preimage f hf :=
+support_mk _ _ _
 
 @[simp]
 lemma comap_domain_apply [has_zero M] (f : α → β) (l : β →₀ M)
@@ -1856,8 +1868,9 @@ begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],
   simp only [finset.ext_iff, finset.not_mem_empty, iff_false, mem_preimage],
   assume h a ha,
-  cases hf.2.2 ha with b hb,
-  exact h b (hb.2.symm ▸ ha)
+  rcases hf.2.2 ha with ⟨b, hb, -⟩,
+  refine h b _,
+  simpa using hb
 end
 
 section f_injective
@@ -1877,7 +1890,7 @@ by { ext, refl }
 begin
   rcases eq_or_ne m 0 with rfl | hm,
   { simp only [single_zero, comap_domain_zero] },
-  { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
+  { rw [eq_single_iff, comap_domain_apply, support_comap_domain, ← finset.coe_subset, coe_preimage,
       support_single_ne_zero _ hm, coe_singleton, coe_singleton, single_eq_same],
     rw [support_single_ne_zero _ hm, coe_singleton] at hif,
     exact ⟨λ x hx, hif hx rfl hx, rfl⟩ }
@@ -1901,7 +1914,7 @@ lemma comap_domain_add_of_injective (hf : function.injective f) (v₁ v₂ : β 
 comap_domain_add _ _ _ _ _
 
 /-- `finsupp.comap_domain` is an `add_monoid_hom`. -/
-@[simps]
+@[simps] noncomputable
 def comap_domain.add_monoid_hom (hf : function.injective f) : (β →₀ M) →+ (α →₀ M) :=
 { to_fun := λ x, comap_domain f x (hf.inj_on _),
   map_zero' := comap_domain_zero f,
@@ -1931,7 +1944,7 @@ end comap_domain
 section option
 
 /-- Restrict a finitely supported function on `option α` to a finitely supported function on `α`. -/
-def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
+noncomputable def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
 f.comap_domain option.some (λ _, by simp)
 
 @[simp] lemma some_apply [has_zero M] (f : option α →₀ M) (a : α) :
@@ -1982,10 +1995,9 @@ variable [has_zero M]
 
 /-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
 by mapping the support forwards and the function backwards. -/
-def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
-{ support := l.support.map f.to_embedding,
-  to_fun := λ a, l (f.symm a),
-  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
+noncomputable def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
+mk (l.support.map f.to_embedding) (λ a, l (f.symm a)) $
+  λ a, by simp only [finset.mem_map_equiv, mem_support_iff]; refl
 
 @[simp] lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
   equiv_map_domain f l b = l (f.symm b) := rfl
@@ -2019,7 +2031,7 @@ lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l 
 `(α →₀ M) ≃ (β →₀ M)`.
 
 This is the finitely-supported version of `equiv.Pi_congr_left`. -/
-def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
+noncomputable def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
 by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
   ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
     equiv.symm_apply_apply, equiv.apply_symm_apply]
@@ -2039,10 +2051,9 @@ section has_zero
 variables [has_zero M] (p : α → Prop) (f : α →₀ M)
 
 /-- `filter p f` is the function which is `f a` if `p a` is true and 0 otherwise. -/
-def filter (p : α → Prop) (f : α →₀ M) : α →₀ M :=
-{ to_fun := λ a, if p a then f a else 0,
-  support := f.support.filter (λ a, p a),
-  mem_support_to_fun := λ a, by split_ifs; { simp only [h, mem_filter, mem_support_iff], tauto } }
+noncomputable def filter (p : α → Prop) (f : α →₀ M) : α →₀ M :=
+mk (f.support.filter (λ a, p a)) (λ a, if p a then f a else 0)  $
+  λ a, by split_ifs; { simp only [h, mem_filter, mem_support_iff], tauto }
 
 lemma filter_apply (a : α) [D : decidable (p a)] : f.filter p a = if p a then f a else 0 :=
 by rw subsingleton.elim D; refl
@@ -2064,7 +2075,7 @@ if_pos h
 if_neg h
 
 @[simp] lemma support_filter [D : decidable_pred p] : (f.filter p).support = f.support.filter p :=
-by rw subsingleton.elim D; refl
+by rw subsingleton.elim D; exact support_mk _ _ _
 
 lemma filter_zero : (0 : α →₀ M).filter p = 0 :=
 by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
@@ -2106,7 +2117,7 @@ section frange
 variables [has_zero M]
 
 /-- `frange f` is the image of `f` on the support of `f`. -/
-def frange (f : α →₀ M) : finset M := finset.image f f.support
+noncomputable def frange (f : α →₀ M) : finset M := finset.image f f.support
 
 theorem mem_frange {f : α →₀ M} {y : M} :
   y ∈ f.frange ↔ y ≠ 0 ∧ ∃ x, f x = y :=
@@ -2134,12 +2145,12 @@ variables [has_zero M] {p : α → Prop}
 
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
-def subtype_domain (p : α → Prop) (f : α →₀ M) : (subtype p →₀ M) :=
-⟨f.support.subtype p, f ∘ coe, λ a, by simp only [mem_subtype, mem_support_iff]⟩
+noncomputable def subtype_domain (p : α → Prop) (f : α →₀ M) : (subtype p →₀ M) :=
+mk (f.support.subtype p) (f ∘ coe) (λ a, by simp only [mem_subtype, mem_support_iff])
 
 @[simp] lemma support_subtype_domain [D : decidable_pred p] {f : α →₀ M} :
   (subtype_domain p f).support = f.support.subtype p :=
-by rw subsingleton.elim D; refl
+by rw subsingleton.elim D; exact support_mk _ _ _
 
 @[simp] lemma subtype_domain_apply {a : subtype p} {v : α →₀ M} :
   (subtype_domain p v) a = v (a.val) :=
@@ -2161,11 +2172,11 @@ subtype_domain_eq_zero_iff'.trans ⟨λ H, ext $ λ x,
 lemma prod_subtype_domain_index [comm_monoid N] {v : α →₀ M}
   {h : α → M → N} (hp : ∀x∈v.support, p x) :
   (v.subtype_domain p).prod (λa b, h a b) = v.prod h :=
-prod_bij (λp _, p.val)
-  (λ _, mem_subtype.1)
+prod_bij (λp _, p)
+  (by simp)
   (λ _ _, rfl)
   (λ _ _ _ _, subtype.eq)
-  (λ b hb, ⟨⟨b, hp b hb⟩, mem_subtype.2 hb, rfl⟩)
+  (λ b hb, ⟨⟨b, hp b hb⟩, by simpa using hb, rfl⟩)
 
 end zero
 
@@ -2177,13 +2188,13 @@ variables [add_zero_class M] {p : α → Prop} {v v' : α →₀ M}
 ext $ λ _, rfl
 
 /-- `subtype_domain` but as an `add_monoid_hom`. -/
-def subtype_domain_add_monoid_hom : (α →₀ M) →+ subtype p →₀ M :=
+noncomputable def subtype_domain_add_monoid_hom : (α →₀ M) →+ subtype p →₀ M :=
 { to_fun := subtype_domain p,
   map_zero' := subtype_domain_zero,
   map_add' := λ _ _, subtype_domain_add }
 
 /-- `finsupp.filter` as an `add_monoid_hom`. -/
-def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
+noncomputable def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
 { to_fun := filter p,
   map_zero' := filter_zero p,
   map_add' := λ f g, coe_fn_injective $ set.indicator_add {x | p x} f g }
@@ -2210,7 +2221,8 @@ lemma filter_sum (s : finset ι) (f : ι → α →₀ M) :
 
 lemma filter_eq_sum (p : α → Prop) [D : decidable_pred p] (f : α →₀ M) :
   f.filter p = ∑ i in f.support.filter p, single i (f i) :=
-(f.filter p).sum_single.symm.trans $ finset.sum_congr (by rw subsingleton.elim D; refl) $
+(f.filter p).sum_single.symm.trans $ finset.sum_congr
+  (by rw subsingleton.elim D; exact support_mk _ _ _) $
   λ x hx, by rw [filter_apply_pos _ _ (mem_filter.1 hx).2]
 
 end comm_monoid
@@ -2278,7 +2290,7 @@ variables [add_comm_monoid M] [add_comm_monoid N]
 /-- Given a finitely supported function `f` from a product type `α × β` to `γ`,
 `curry f` is the "curried" finitely supported function from `α` to the type of
 finitely supported functions from `β` to `γ`. -/
-protected def curry (f : (α × β) →₀ M) : α →₀ (β →₀ M) :=
+protected noncomputable def curry (f : (α × β) →₀ M) : α →₀ (β →₀ M) :=
 f.sum $ λp c, single p.1 (single p.2 c)
 
 @[simp] lemma curry_apply (f : (α × β) →₀ M) (x : α) (y : β) :
@@ -2310,12 +2322,12 @@ end
 /-- Given a finitely supported function `f` from `α` to the type of
 finitely supported functions from `β` to `M`,
 `uncurry f` is the "uncurried" finitely supported function from `α × β` to `M`. -/
-protected def uncurry (f : α →₀ (β →₀ M)) : (α × β) →₀ M :=
+protected noncomputable def uncurry (f : α →₀ (β →₀ M)) : (α × β) →₀ M :=
 f.sum $ λa g, g.sum $ λb c, single (a, b) c
 
 /-- `finsupp_prod_equiv` defines the `equiv` between `((α × β) →₀ M)` and `(α →₀ (β →₀ M))` given by
 currying and uncurrying. -/
-def finsupp_prod_equiv : ((α × β) →₀ M) ≃ (α →₀ (β →₀ M)) :=
+noncomputable def finsupp_prod_equiv : ((α × β) →₀ M) ≃ (α →₀ (β →₀ M)) :=
 by refine ⟨finsupp.curry, finsupp.uncurry, λ f, _, λ f, _⟩; simp only [
   finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
   sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff,
@@ -2347,7 +2359,7 @@ end curry_uncurry
 section sum
 
 /-- `finsupp.sum_elim f g` maps `inl x` to `f x` and `inr y` to `g y`. -/
-def sum_elim {α β γ : Type*} [has_zero γ]
+noncomputable def sum_elim {α β γ : Type*} [has_zero γ]
   (f : α →₀ γ) (g : β →₀ γ) : α ⊕ β →₀ γ :=
 on_finset
   ((f.support.map ⟨_, sum.inl_injective⟩) ∪ g.support.map ⟨_, sum.inr_injective⟩)
@@ -2370,7 +2382,7 @@ lemma sum_elim_inr {α β γ : Type*} [has_zero γ]
 
 This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
 @[simps apply symm_apply]
-def sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ] :
+noncomputable def sum_finsupp_equiv_prod_finsupp {α β γ : Type*} [has_zero γ] :
   ((α ⊕ β) →₀ γ) ≃ (α →₀ γ) × (β →₀ γ) :=
 { to_fun := λ f,
     ⟨f.comap_domain sum.inl (sum.inl_injective.inj_on _),
@@ -2404,7 +2416,7 @@ variables [add_monoid M]
 /-- The additive equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
 
 This is the `finsupp` version of `equiv.sum_arrow_equiv_prod_arrow`. -/
-@[simps apply symm_apply] def sum_finsupp_add_equiv_prod_finsupp {α β : Type*} :
+@[simps apply symm_apply] noncomputable def sum_finsupp_add_equiv_prod_finsupp {α β : Type*} :
   ((α ⊕ β) →₀ M) ≃+ (α →₀ M) × (β →₀ M) :=
 { map_add' :=
     by { intros, ext;
@@ -2450,7 +2462,7 @@ variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
 This is not an instance as it would conflict with the action on the range.
 See the `instance_diamonds` test for examples of such conflicts. -/
-def comap_has_smul : has_smul G (α →₀ M) :=
+noncomputable def comap_has_smul : has_smul G (α →₀ M) :=
 { smul := λ g, map_domain ((•) g) }
 
 local attribute [instance] comap_has_smul
@@ -2462,7 +2474,7 @@ lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) 
 map_domain_single
 
 /-- `finsupp.comap_has_smul` is multiplicative -/
-def comap_mul_action : mul_action G (α →₀ M) :=
+noncomputable def comap_mul_action : mul_action G (α →₀ M) :=
 { one_smul := λ f, by  rw [comap_smul_def, one_smul_eq_id, map_domain_id],
   mul_smul := λ g g' f, by rw [comap_smul_def, comap_smul_def, comap_smul_def, ←comp_smul_left,
     map_domain_comp], }
@@ -2470,7 +2482,7 @@ def comap_mul_action : mul_action G (α →₀ M) :=
 local attribute [instance] comap_mul_action
 
 /-- `finsupp.comap_has_smul` is distributive -/
-def comap_distrib_mul_action :
+noncomputable def comap_distrib_mul_action :
   distrib_mul_action G (α →₀ M) :=
 { smul_zero := λ g, by { ext, dsimp [(•)], simp, },
   smul_add := λ g f f', by { ext, dsimp [(•)], simp [map_domain_add], }, }
@@ -2639,7 +2651,7 @@ variables [add_comm_monoid M] [add_comm_monoid N] [distrib_mul_action R M] [dist
 /-- `finsupp.single` as a `distrib_mul_action_hom`.
 
 See also `finsupp.lsingle` for the version as a linear map. -/
-def distrib_mul_action_hom.single (a : α) : M →+[R] (α →₀ M) :=
+noncomputable def distrib_mul_action_hom.single (a : α) : M →+[R] (α →₀ M) :=
 { map_smul' :=
     λ k m, by simp only [add_monoid_hom.to_fun_eq_coe, single_add_hom_apply, smul_single],
   .. single_add_hom a }
@@ -2676,7 +2688,7 @@ end
 /-- Given an `add_comm_monoid M` and `s : set α`, `restrict_support_equiv s M` is the `equiv`
 between the subtype of finitely supported functions with support contained in `s` and
 the type of finitely supported functions from `s`. -/
-def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
+noncomputable def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
   {f : α →₀ M // ↑f.support ⊆ s } ≃ (s →₀ M) :=
 begin
   refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,
@@ -2705,7 +2717,7 @@ end
 
 This is `finsupp.equiv_congr_left` as an `add_equiv`. -/
 @[simps apply]
-protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
+protected noncomputable def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
 { to_fun := equiv_map_domain e,
   inv_fun := equiv_map_domain e.symm,
   left_inv := λ v, begin
@@ -2748,7 +2760,7 @@ a finitely supported function from `as i` to `M`.
 
 This is the `finsupp` version of `sigma.curry`.
 -/
-def split (i : ι) : αs i →₀ M :=
+noncomputable def split (i : ι) : αs i →₀ M :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)
 
 lemma split_apply (i : ι) (x : αs i) : split l i x = l ⟨i, x⟩ :=
@@ -2759,7 +2771,7 @@ end
 
 /-- Given `l`, a finitely supported function from the sigma type `Σ (i : ι), αs i` to `β`,
 `split_support l` is the finset of indices in `ι` that appear in the support of `l`. -/
-def split_support : finset ι := l.support.image sigma.fst
+noncomputable def split_support : finset ι := l.support.image sigma.fst
 
 lemma mem_split_support_iff_nonzero (i : ι) :
   i ∈ split_support l ↔ split l i ≠ 0 :=
@@ -2767,26 +2779,24 @@ begin
   rw [split_support, mem_image, ne.def, ← support_eq_empty, ← ne.def,
     ← finset.nonempty_iff_ne_empty, split, comap_domain, finset.nonempty],
   simp only [exists_prop, finset.mem_preimage, exists_and_distrib_right, exists_eq_right,
-    mem_support_iff, sigma.exists, ne.def]
+    mem_support_iff, sigma.exists, ne.def, coe_mk]
 end
 
 /-- Given `l`, a finitely supported function from the sigma type `Σ i, αs i` to `β` and
 an `ι`-indexed family `g` of functions from `(αs i →₀ β)` to `γ`, `split_comp` defines a
 finitely supported function from the index type `ι` to `γ` given by composing `g i` with
 `split l i`. -/
-def split_comp [has_zero N] (g : Π i, (αs i →₀ M) → N)
+noncomputable def split_comp [has_zero N] (g : Π i, (αs i →₀ M) → N)
   (hg : ∀ i x, x = 0 ↔ g i x = 0) : ι →₀ N :=
-{ support := split_support l,
-  to_fun := λ i, g i (split l i),
-  mem_support_to_fun :=
+mk (split_support l) (λ i, g i (split l i)) $
   begin
     intros i,
     rw [mem_split_support_iff_nonzero, not_iff_not, hg],
-  end }
+  end
 
 lemma sigma_support : l.support = l.split_support.sigma (λ i, (l.split i).support) :=
 by simp only [finset.ext_iff, split_support, split, comap_domain, mem_image,
-  mem_preimage, sigma.forall, mem_sigma]; tauto
+  mem_preimage, sigma.forall, mem_sigma, mem_support_iff]; tauto
 
 lemma sigma_sum [add_comm_monoid N] (f : (Σ (i : ι), αs i) → M → N) :
   l.sum f = ∑ i in split_support l, (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b) :=

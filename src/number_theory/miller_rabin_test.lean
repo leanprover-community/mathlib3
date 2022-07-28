@@ -41,10 +41,12 @@ fermat_strong_probable_prime n a
 ∧ ∀ p ∈ (n-1).factors, binpow a ((n-1)/p) ≠ 1
 
 
+
+
 --TODO(Bolton): Find a way of making modular exponentiation faster
 -- set_option profiler true
 
-#eval full_miller_rabin 100123456789 [3, 4, 5, 6]
+-- #eval full_miller_rabin 100123456789 [3, 4, 5, 6]
 
 -- #eval fermat_strong_probable_prime 100123456789 3
 
@@ -88,8 +90,12 @@ fermat_strong_probable_prime n a
 3869904478222544113850326745011088058779733755041610460552699632317523586702688779209063397341738741
  23)
 
--/
+
 --example : nat.prime 6143411621 :=
 --begin
   --norm_num,
 --end
+-/
+
+-- This is here to stop Lean complaining `expected command`
+example : true := trivial

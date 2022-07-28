@@ -76,13 +76,11 @@ variable [decidable_eq N]
 -- maybe use (n : N) everywhere? use (n : ℕ) only in the final section?
 { to_fun := λ y j, if h : j = i then y.1 else y.2 ⟨j, h⟩,
   inv_fun := λ f, ⟨f i, λ j, f j⟩,
-  left_inv := λ y, by { ext; dsimp only, { rw dif_pos rfl }, { rw [dif_neg x.prop,
-    subtype.coe_eta] } },
+  left_inv := λ y, by { ext; dsimp only, {rw dif_pos rfl}, {rw [dif_neg x.prop, subtype.coe_eta]} },
   right_inv := λ y, by { ext j, dsimp only, split_ifs, { rw h }, { refl } } }
 -- TODO: move to logic.equiv.basic around equiv.pi_option_equiv_prod
 -- should it be generalized to a type family like equiv.pi_option_equiv_prod?
 -- (may cause some unification issue when applied to a const family, but usually tolerable)
--- squeeze dsimp ..
 -- What's a more descriptive name? Maybe equiv.prod_pi_erase_equiv_pi?
 
 @[simps] def merge_split (i : N) : Y × ({j // j ≠ i} → Y) ≃ₜ (N → Y) :=
@@ -418,7 +416,7 @@ lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
     else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
 ⟨_, rfl, λ _, from_path_trans_to_path 0⟩
 
-@[reducible] def is_comm_group : comm_group (π_(n+2) x) :=
+@[reducible] def is_comm_group : comm_group (π_(n+2) X x) :=
 @eckmann_hilton.comm_group (π_(n+2) X x) aux_group.mul 1
   ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _
 begin

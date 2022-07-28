@@ -13,8 +13,8 @@ import number_theory.padics.padic_norm
 import field_theory.finite.basic
 import data.fintype.basic
 
-/--
-Lemmas and definitions that will be used in proving the Miller-Rabin primality test.
+/-!
+# Lemmas and definitions that will be used in proving the Miller-Rabin primality test.
 
 -- TODO add reference to [this](https://kconrad.math.uconn.edu/blurbs/ugradnumthy/millerrabin.pdf)
 

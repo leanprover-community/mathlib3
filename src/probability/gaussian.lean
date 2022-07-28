@@ -78,6 +78,8 @@ begin
   sorry
 end
 
+section gaussian_rv
+
 /- ### Transformation of Gaussian random variables -/
 
 variables {α : Type*} [measure_space α]
@@ -115,5 +117,22 @@ lemma mgf_gaussian_rv  (hf : gaussian_rv f m s) (hfmeas : measurable f) (t : ℝ
 begin
   sorry
 end
+
+end gaussian_rv
+
+section tvs
+
+/- ### Gaussian measure on TVS -/
+
+variables {E : Type*} [measurable_space E]
+  [topological_space E] [add_comm_monoid E] [module ℝ E]
+
+/-- A measure `ν` on a topological vector space `E` is said to be a Gaussian measure if for all
+continuous linear functionals `l` of `E`, the push-forward measure of `l` along `ν` is a Gaussian
+measure on ℝ with mean 0. -/
+def gaussian (ν : measure E) : Prop :=
+∀ l : E →L[ℝ] ℝ, ∃ s, (ν.map l).real_gaussian 0 s
+
+end tvs
 
 end measure_theory

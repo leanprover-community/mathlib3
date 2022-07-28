@@ -60,9 +60,11 @@ begin
   apply pow_pos,
   exact two_pos,
   -- rw mul_cancel_lef,
-  -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
+  -- TODO(Sean): See if you can prove this.
+  -- I've given a bunch of have statements for things I think are necessary.
   -- suff
-  suffices : two_power_part (n * m) * odd_part (n * m) = two_power_part (n * m) * (odd_part n * odd_part m),
+  suffices :
+    two_power_part (n * m) * odd_part (n * m) = two_power_part (n * m) * (odd_part n * odd_part m),
   { simp [ne_zero_of_lt pos_two_power_part] at this,
     exact this },
   rw two_power_part_mul_odd_part,
@@ -267,7 +269,8 @@ begin
           replace hrpow := congr_arg (^(2^c)) hrpow,
           simp only [] at hrpow,
           convert hrpow using 1,
-          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part,
+          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc,
+                ← two_power_part,
               two_power_part_mul_odd_part], },
           { simp at Hc,
             rw nat.lt_iff_add_one_le at Hc,
@@ -315,7 +318,7 @@ begin
     { sorry } },
 end
 
--- https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Abelian.20subgroup.20dividing.20order/near/277098292
+-- https://leanprover.zulipchat.com/#narrow/stream/217875/near/277098292
 def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
 { carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1)),
   one_mem' := by simp,
@@ -410,7 +413,8 @@ begin
   work_on_goal 1 { cases hpk, induction hpk_right, simp at *, assumption }, assumption,
 end
 
--- noncomputable instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H := subgroup.fintype H
+-- noncomputable instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} :
+  -- fintype H := subgroup.fintype H
 -- begin
 --   -- library_search
 --   tidy,
@@ -455,7 +459,8 @@ noncomputable
 instance fintype.of_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
 fintype.of_finite ↥H
 
-lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} -- [fintype H]
+lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G}
+-- [fintype H]
   (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
 begin
   rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
@@ -511,7 +516,8 @@ def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
 
 -- lemma foocard (n e : ℕ) [fact (0 < n)] :
 --   (fintype.card (↥(pow_alt_subgroup n e)) : ℕ)
---   = finset.card ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1))
+--   = finset.card ((finset.univ : finset ((zmod n)ˣ)).filter
+  -- (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1))
 --   :=
 -- begin
 --   rw fintype.card,
@@ -520,7 +526,8 @@ def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
 
 
 lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]
-  (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1)) (not_prime : ¬ n.prime) :
+  (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1))
+  (not_prime : ¬ n.prime) :
   ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
 begin
   rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,

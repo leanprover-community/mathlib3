@@ -106,20 +106,7 @@ begin
 end
 
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
-begin
-  split,
-  { intro hn,
-    by_contra,
-    simp only [not_lt, _root_.le_zero_iff] at h,
-    rw h at hn,
-    simp only [pow_zero, nat.not_even_one] at hn,
-    exact hn },
-  { intro hn,
-    rcases hn,
-    simp only [pow_one, even_two],
-    rw pow_succ,
-    apply even_two_mul }
-end
+⟨λ h, zero_lt_iff.2 (even_pow.1 h).2, λ h, (even_pow' h.ne').2 even_two⟩
 
 
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=

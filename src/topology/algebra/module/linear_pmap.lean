@@ -8,9 +8,9 @@ import linear_algebra.linear_pmap
 import topology.algebra.module.basic
 
 /-!
-# Linear operators over topological vector spaces
+# Partially defined linear operators over topological vector spaces
 
-We define basic notions of linear operators (also known as `linear_pmap`s in mathlib).
+We define basic notions of partially defined linear operators.
 In this file we prove all elementary properties that do not assume that the underlying spaces
 are normed.
 
@@ -167,12 +167,14 @@ begin
   refine ⟨f.le_closure.1, _⟩,
   congr,
   ext,
-  { simp },
+  { simp only [dom_restrict_domain, submodule.mem_inf, and_iff_left_iff_imp],
+    intro hx,
+    exact f.le_closure.1 hx },
   intros x y hxy,
   let z : f.closure.domain := ⟨y.1, f.le_closure.1 y.2⟩,
   have hyz : (y : E) = z := by simp,
   rw f.le_closure.2 hyz,
-  exact dom_restrict_apply _ (hxy.trans hyz),
+  exact dom_restrict_apply (hxy.trans hyz),
 end
 
 end linear_pmap

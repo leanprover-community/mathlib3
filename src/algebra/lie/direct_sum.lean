@@ -11,7 +11,7 @@ import algebra.lie.basic
 /-!
 # Direct sums of Lie algebras and Lie modules
 
-Direct sums of Lie algebras and Lie modules carry natural algbebra and module structures.
+Direct sums of Lie algebras and Lie modules carry natural algebra and module structures.
 
 ## Tags
 
@@ -193,14 +193,6 @@ end algebras
 section ideals
 
 variables {L : Type w} [lie_ring L] [lie_algebra R L] (I : ι → lie_ideal R L)
-
-/-- Given a Lie algebra `L` and a family of ideals `I i ⊆ L`, informally this definition is the
-statement that `L = ⨁ i, I i`.
-
-More formally, the inclusions give a natural map from the (external) direct sum to the enclosing Lie
-algebra: `(⨁ i, I i) → L`, and this definition is the proposition that this map is bijective. -/
-def lie_algebra_is_internal [decidable_eq ι] : Prop :=
-function.bijective $ to_module R ι L $ λ i, ((I i).incl : I i →ₗ[R] L)
 
 /-- The fact that this instance is necessary seems to be a bug in typeclass inference. See
 [this Zulip thread](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/

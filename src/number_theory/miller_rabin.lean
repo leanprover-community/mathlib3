@@ -567,7 +567,7 @@ begin
       have hn' : n - 1 ≠ 0,
       {
         rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
-        exact one_lt_mul' hn0 hn1,
+        exact one_lt_mul hn0.le hn1,
       },
       apply hn',
       clear hn',
@@ -586,7 +586,7 @@ begin
     (finset.filter (λ (a : zmod n), strong_probable_prime n a) (finset_units n)).card * 2
     ≤ fintype.card ↥(pow_alt_subgroup n (i0 * odd_part (n - 1))) * 2,
   { simp [mul_le_mul_right],
-    rw foocard,
+    -- rw foocard,
 
     sorry,  },
   apply trans hsubgroup,

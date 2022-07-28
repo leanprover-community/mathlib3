@@ -71,9 +71,18 @@ def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 
+/-- Let `a^e = 1 (mod p)`. (e.g. for prime `p` we have `a^(p-1) = 1` by Fermat's Little Theorem.)
+Let `s := e.factorization 2` and `d := odd_part e` as in the definition of `strong_probable_prime`.
+Consider the sequence `⟨a^e = a^(2^(s)*d), a^(2^(s-1)*d), a^(2^(s-2)*d), ..., a^(2*d), a^(d)⟩`.
+Each term is a square root of the prevous one. Since `a^e = 1`, the 2nd term is congruent to `±1`.
+If it is `+1` then the next term, being a square root, is again congruent to `±1`.
+By iteration, then, either all terms including `a^d` are congruent to `+1`,
+or there is a member of the sequence congruent to `-1`, i.e. `∃ r < s` such that `a^(2^(r)*d) = -1`.
+-/
 lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
   (e : ℕ) (h : a ^ e = 1) :
-  a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < e.factorization 2 ∧ a^(2^r * odd_part e) = -1) :=
+  a^(odd_part e) = 1 ∨
+  (∃ r : ℕ, r < e.factorization 2 ∧ a^(2^r * odd_part e) = -1) :=
 begin
   rw <-even_part_mul_odd_part e at h,
   rw even_part at h,

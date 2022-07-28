@@ -317,8 +317,8 @@ lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
 ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp ih
 
-lemma map_injective' {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
-  (hf : function.injective f) : function.injective (λ S, map S f) :=
+lemma map_injective' (f : A →ₐ[R] B) (hf : function.injective f) :
+  function.injective (λ S, map S f) :=
 λ S₁ S₂, map_injective f hf
 
 @[simp] lemma map_id (S : subalgebra R A) : S.map (alg_hom.id R A) = S :=

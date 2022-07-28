@@ -532,8 +532,8 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
-
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
+instance : well_founded_lt cardinal.{u} := ⟨cardinal.lt_wf⟩
+instance wo : @is_well_order cardinal.{u} (<) := { }
 
 instance : conditionally_complete_linear_order_bot cardinal :=
 is_well_order.conditionally_complete_linear_order_bot _

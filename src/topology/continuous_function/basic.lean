@@ -297,16 +297,16 @@ The forward direction of a homeomorphism, as a bundled continuous map.
 def homeomorph.to_continuous_map (e : α ≃ₜ β) : C(α, β) := ⟨e⟩
 
 /--
-Left inverse to a continuous map from a homemorphism
+Left inverse to a continuous map from a homemorphism, mirroring `equiv.symm_comp_self`.
 -/
-lemma homeomorph.symm_comp_to_continuous_map :
+lemma homeomorph.symm_comp_self :
   f.symm.to_continuous_map.comp f.to_continuous_map = continuous_map.id α :=
 by { ext, apply f.to_equiv.symm_apply_apply }
 
 /--
-Right inverse to a continuous map from a homemorphism
+Right inverse to a continuous map from a homemorphism, mirroring `equiv.self_comp_symm`.
 -/
-lemma homeomorph.comp_symm_to_continuous_map :
+lemma homeomorph.self_comp_symm :
   f.to_continuous_map.comp f.symm.to_continuous_map = continuous_map.id β :=
 by { ext, apply f.to_equiv.apply_symm_apply }
 

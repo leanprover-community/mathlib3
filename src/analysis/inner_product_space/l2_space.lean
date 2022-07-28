@@ -391,9 +391,9 @@ end
 protected lemma has_sum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   has_sum (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) ⟪x, y⟫ :=
 begin
-  convert (b.has_sum_repr y).map _ (innerSL x).continuous,
+  convert (b.has_sum_repr y).mapL (innerSL x),
   ext i,
-  rw [function.comp_apply, innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
+  rw [innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
 end
 
 protected lemma summable_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
@@ -404,8 +404,8 @@ protected lemma tsum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   ∑' i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
 (b.has_sum_inner_mul_inner x y).tsum_eq
 
--- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
--- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) p` with
+-- `pi_Lp p (λ i : ι, 𝕜)` (in this case with `p = 2`), but we don't have this yet (July 2022).
 /-- A finite Hilbert basis is an orthonormal basis. -/
 protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
@@ -464,17 +464,14 @@ hilbert_basis.coe_mk hv _
 
 omit hv
 
--- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
--- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have that yet (July 2022).
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) p` with
+-- `pi_Lp p (λ i : ι, 𝕜)` (in this case with `p = 2`), but we don't have this yet (July 2022).
 /-- An orthonormal basis is an Hilbert basis. -/
 protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthonormal_basis ι 𝕜 E) :
   hilbert_basis ι 𝕜 E :=
-hilbert_basis.mk b.orthonormal
-begin
-  have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
-  simpa only [orthonormal_basis.coe_to_basis, finset.coe_image, finset.coe_univ, set.image_univ,
-    ←b.to_basis.span_eq] using this.submodule_topological_closure_eq,
-end
+hilbert_basis.mk b.orthonormal $
+by simpa only [← orthonormal_basis.coe_to_basis, b.to_basis.span_eq, eq_top_iff]
+  using @subset_closure E _ _
 
 @[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]
   (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=

@@ -251,18 +251,8 @@ def subtypeₗᵢ : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
 
 @[simp] lemma subtypeₗᵢ_to_linear_map : p.subtypeₗᵢ.to_linear_map = p.subtype := rfl
 
-/-- `submodule.subtype` as a `continuous_linear_map`. -/
-def subtypeL : p →L[R'] E := p.subtypeₗᵢ.to_continuous_linear_map
-
-@[simp] lemma coe_subtypeL : (p.subtypeL : p →ₗ[R'] E) = p.subtype := rfl
-
-@[simp] lemma coe_subtypeL' : ⇑p.subtypeL = p.subtype := rfl
-
-@[simp] lemma range_subtypeL : p.subtypeL.range = p :=
-range_subtype _
-
-@[simp] lemma ker_subtypeL : p.subtypeL.ker = ⊥ :=
-ker_subtype _
+@[simp] lemma subtypeₗᵢ_to_continuous_linear_map :
+  p.subtypeₗᵢ.to_continuous_linear_map = p.subtypeL := rfl
 
 end submodule
 

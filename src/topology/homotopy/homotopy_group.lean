@@ -87,7 +87,8 @@ variable [decidable_eq N]
 
 @[simps] def merge_split (i : N) : Y × ({j // j ≠ i} → Y) ≃ₜ (N → Y) :=
 { to_equiv := merge_split_equiv Y i,
-  continuous_to_fun := continuous_pi $ λ j, by { dsimp, split_ifs,
+  continuous_to_fun := continuous_pi $ λ j, by { dsimp only [merge_split_equiv],
+    split_ifs,
     exacts [continuous_fst, (continuous_apply _).comp continuous_snd] },
   continuous_inv_fun := (continuous_apply i).prod_mk (continuous_pi $ λ j, continuous_apply j) }
 -- TODO: move to topology.homeomorph, maybe below homeomorph.fin_two_arrow

@@ -629,17 +629,13 @@ end
 
 end maximal
 
-lemma submartingale.sum_mul_sub [is_finite_measure μ] {ξ f : ℕ → α → ℝ}
+lemma submartingale.sum_mul_sub [is_finite_measure μ] {R : ℝ} {ξ f : ℕ → α → ℝ}
   (hf : submartingale f 𝒢 μ) (hξ : adapted 𝒢 ξ)
-  (hbdd : ∃ R, ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
+  (hbdd : ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
   submartingale (λ n : ℕ, ∑ k in finset.range n, ξ k * (f (k + 1) - f k)) 𝒢 μ :=
 begin
-  have hξbdd : ∀ i, ∃ (C : ℝ), ∀ (x : α), |ξ i x| ≤ C,
-  { obtain ⟨C, hC⟩ := hbdd,
-    intro i,
-    refine ⟨C, λ x, abs_le.2 ⟨le_trans (neg_le.1 (le_trans _ (hC 0 x))) (hnonneg _ _), hC _ _⟩⟩,
-    rw neg_zero,
-    exact hnonneg 0 x },
+  have hξbdd : ∀ i, ∃ (C : ℝ), ∀ (x : α), |ξ i x| ≤ C :=
+    λ i, ⟨R, λ x, (abs_of_nonneg (hnonneg i x)).trans_le (hbdd i x)⟩,
   have hint : ∀ m, integrable (∑ k in finset.range m, ξ k * (f (k + 1) - f k)) μ :=
     λ m, integrable_finset_sum' _
       (λ i hi, integrable.bdd_mul ((hf.integrable _).sub (hf.integrable _))
@@ -654,11 +650,21 @@ begin
   refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
   simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
     pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
-  refine eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
-    (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_measurable_mul (hξ _)
-    ((hf.integrable _).sub (hf.integrable _)) (((hf.integrable _).sub (hf.integrable _)).bdd_mul
-    hξ.strongly_measurable.ae_strongly_measurable (hξbdd _))).symm.le,
+  exact eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
+    (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_strongly_measurable_mul (hξ _)
+    (((hf.integrable _).sub (hf.integrable _)).bdd_mul
+      hξ.strongly_measurable.ae_strongly_measurable (hξbdd _))
+    ((hf.integrable _).sub (hf.integrable _))).symm.le,
 end
+
+/-- Given a discrete submartingale `f` and a predictable process `ξ` (i.e. `ξ (n + 1)` is adapted)
+the process defined by `λ n, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)` is also a
+submartingale. -/
+lemma submartingale.sum_mul_sub' [is_finite_measure μ] {R : ℝ} {ξ f : ℕ → α → ℝ}
+  (hf : submartingale f 𝒢 μ) (hξ : adapted 𝒢 (λ n, ξ (n + 1)))
+  (hbdd : ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
+  submartingale (λ n : ℕ, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)) 𝒢 μ :=
+hf.sum_mul_sub hξ (λ n, hbdd _) (λ n, hnonneg _)
 
 end nat
 

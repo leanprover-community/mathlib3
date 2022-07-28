@@ -238,20 +238,16 @@ def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
 
 namespace adapted
 
-@[protected] lemma add [has_add β] [has_continuous_add β] (hu : adapted f u) (hv : adapted f v) :
-  adapted f (u + v) :=
-λ i, (hu i).add (hv i)
-
-@[protected] lemma neg [add_group β] [topological_add_group β] (hu : adapted f u) :
-  adapted f (-u) :=
-λ i, (hu i).neg
-
-@[protected] lemma sub [add_group β] [topological_add_group β]
+@[protected, to_additive] lemma mul [has_mul β] [has_continuous_mul β]
   (hu : adapted f u) (hv : adapted f v) :
-  adapted f (u - v) :=
-(sub_eq_add_neg u v).symm ▸ hu.add hv.neg
+  adapted f (u * v) :=
+λ i, (hu i).mul (hv i)
 
-lemma smul [has_smul ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+@[protected, to_additive] lemma inv [group β] [topological_group β] (hu : adapted f u) :
+  adapted f u⁻¹ :=
+λ i, (hu i).inv
+
+@[protected] lemma smul [has_smul ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 

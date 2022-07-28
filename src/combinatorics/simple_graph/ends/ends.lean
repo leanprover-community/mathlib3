@@ -421,18 +421,32 @@ end
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
 
+-- We try to follow: https://stacks.math.columbia.edu/tag/002Z
+-- The system S we start with is actually restricted already so that the minimal element we eventually
+-- come up with really matches our choice `C` of component at `K` (that's the second condition below)
+
+def subsystem  (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :=
+  {f : (Π L : finset V, set (inf_ro_components G L))
+  | (∀ (L L' : finset V) (sub : L ⊆ L'), set.image (bwd_map G sub) (f L') ⊆ f L)
+  ∧ (∀ (L : finset V) (sub : K ⊆ L), f L ⊆ set.preimage (bwd_map G sub) {C}  ) }
+
+
+def top_subsystem (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
+  subsystem G Gpreconn K C :=
+⟨ λ L, if h : K ⊆ L then set.preimage (bwd_map G h) {C} else univ
+, sorry
+, sorry ⟩
+
+def subsystem_le   (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K)
+  (S T : subsystem G Gpreconn K C) := ∀ L, S.val L ⊆ T.val L
+
+
 lemma end_from_component (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
   ∃ e : (ends G), e.val ⟨K,trivial⟩ = C := sorry
 
 
 lemma eval_surjective (Gpreconn : preconnected G) [locally_finite G] (K : finset V):
-  surjective (eval G K) :=
-begin
-  unfold surjective,
-  intro C,
-  -- rcases end_from_component G K C with ⟨e,egood⟩,
-  sorry,
-end
+  surjective (eval G K) := end_from_component G Gpreconn K
 
 
 lemma finite_ends_to_inj (Gpreconn : preconnected G) [locally_finite G] [fintype (ends G)] [Vnempty : nonempty V] :

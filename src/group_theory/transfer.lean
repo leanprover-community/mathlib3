@@ -78,11 +78,6 @@ variables (T : left_transversals (H : set G))
 @[to_additive] lemma transfer_def [fintype (G ⧸ H)] (g : G) : transfer ϕ g = diff ϕ T (g • T) :=
 by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
 
-lemma _root_.quotient_group.out'_conj_pow_minimal_period_mem
-  (g : G) (q : G ⧸ H) : q.out'⁻¹ * g ^ function.minimal_period ((•) g) q * q.out' ∈ H :=
-by rw [mul_assoc, ←quotient_group.eq', quotient_group.out_eq', ←smul_eq_mul, quotient.mk_smul_out',
-  eq_comm, pow_smul_eq_iff_minimal_period_dvd]
-
 /-- Explicit computation of the transfer homomorphism. -/
 lemma transfer_eq_prod_quotient_orbit_rel_zpowers_quot [fintype (G ⧸ H)]
   (g : G) [fintype (quotient (orbit_rel (zpowers g) (G ⧸ H)))] :

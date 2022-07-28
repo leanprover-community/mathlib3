@@ -23,21 +23,21 @@ import data.fintype.basic
 open nat
 -- open_locale classical
 
-def two_power_part (n : ℕ) := ord_proj[2] n
+def even_part (n : ℕ) := ord_proj[2] n
 
 def odd_part (n : ℕ) := ord_compl[2] n
 
 @[simp] lemma odd_part_zero : odd_part 0 = 0 := rfl
 
-lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
+lemma even_part_mul_odd_part (n : ℕ) : (even_part n) * (odd_part n) = n :=
 begin
-  simp only [two_power_part, odd_part, ord_proj_mul_ord_compl_eq_self n 2],
+  simp only [even_part, odd_part, ord_proj_mul_ord_compl_eq_self n 2],
 end
 
-lemma mul_two_power_part (n m : ℕ) (hn0 : n ≠ 0) (hm0 : m ≠ 0) :
-  two_power_part (n * m) = two_power_part(n) * two_power_part(m) :=
+lemma mul_even_part (n m : ℕ) (hn0 : n ≠ 0) (hm0 : m ≠ 0) :
+  even_part (n * m) = even_part(n) * even_part(m) :=
 begin
-  simp only [two_power_part, mul_ord_proj 2 hn0 hm0],
+  simp only [even_part, mul_ord_proj 2 hn0 hm0],
 end
 
 lemma mul_odd_part (n m : ℕ) : odd_part (n * m) = odd_part(n) * odd_part(m) :=
@@ -75,8 +75,8 @@ lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
   (e : ℕ) (h : a ^ e = 1) :
   a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < e.factorization 2 ∧ a^(2^r * odd_part e) = -1) :=
 begin
-  rw <-two_power_part_mul_odd_part e at h,
-  rw two_power_part at h,
+  rw <-even_part_mul_odd_part e at h,
+  rw even_part at h,
   revert h,
   induction e.factorization 2 with i hi,
   { simp, },
@@ -134,7 +134,7 @@ begin
   unfold strong_probable_prime at h,
   unfold fermat_pseudoprime,
   cases h,
-  { rw [← two_power_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
+  { rw [← even_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
   { rcases h with ⟨r, hrlt, hpow⟩,
     have h := congr_arg (^(2^((n - 1).factorization 2 - r))) hpow,
     simp at h,
@@ -143,7 +143,7 @@ begin
     rw ←mul_assoc at h,
     rw ←pow_add at h,
     rw nat.sub_add_cancel (le_of_lt hrlt) at h,
-    -- rw ←two_power_part at h,
+    -- rw ←even_part at h,
     simp only [odd_part] at h,
     simp_rw [ord_proj_mul_ord_compl_eq_self (n-1) 2] at h,
     rw h,
@@ -231,7 +231,7 @@ begin
     { -- since a is a nonwitness, we have either ...
       cases hspp,
       { -- ... a^k = 1
-        rw ← two_power_part_mul_odd_part (p ^ α - 1),
+        rw ← even_part_mul_odd_part (p ^ α - 1),
         rw [mul_comm, pow_mul, hspp, one_pow] },
       { -- ... or a^(2^i k) = -1
           rcases hspp with ⟨r, hrlt, hrpow⟩,
@@ -241,8 +241,8 @@ begin
           simp only [] at hrpow,
           convert hrpow using 1,
           { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc,
-                ← two_power_part,
-              two_power_part_mul_odd_part], },
+                ← even_part,
+              even_part_mul_odd_part], },
           { simp at Hc,
             rw nat.lt_iff_add_one_le at Hc,
             simp at Hc,
@@ -263,11 +263,11 @@ begin
     rwa gcd_eq at order_gcd },
   { -- a ^ (p-1) = 1
     intro h,
-    have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
-    { rw [← pow_mul, mul_comm, two_power_part_mul_odd_part (p - 1), h],},
+    have foo : (a ^ (odd_part (p - 1)))^(even_part (p - 1)) = 1,
+    { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p - 1), h],},
     have goo : ∃ (j : ℕ) (H : j ≤ (p-1).factorization 2), order_of (a ^ (odd_part (p - 1))) = 2^j,
     { have := order_of_dvd_of_pow_eq_one foo,
-      rw two_power_part at this,
+      rw even_part at this,
       rw nat.dvd_prime_pow at this,
       exact this,
       exact nat.prime_two },
@@ -514,7 +514,7 @@ begin
         exact one_lt_mul hn0.le hn1 },
       apply hn',
       clear hn',
-      rw ← two_power_part_mul_odd_part (n - 1),
+      rw ← even_part_mul_odd_part (n - 1),
       rw [h, mul_zero] } ),
   have h_proper : ∃ x, x ∉ (pow_alt_subgroup n (i0 * odd_part(n - 1))),
   { -- nat.chinese_remainder'_lt_lcm

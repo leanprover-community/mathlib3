@@ -55,6 +55,9 @@ begin
   rw tsub_add_cancel_of_le h1,
   rw tsub_add_cancel_of_le h2,
 end
+
+lemma coprime_add_one (b : ℕ) : (b + 1).coprime b :=
+by simp [nat.coprime_self_add_left]
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -155,10 +158,7 @@ end
 
 
 
-lemma coprime_add_one (b : ℕ) : (b + 1).coprime b :=
-begin
-  simp only [nat.coprime_one_left_iff, nat.coprime_self_add_left],
-end
+
 
 lemma coprime_self_sub_one (a : ℕ) (ha : 0 < a) : a.coprime (a - 1) :=
 begin

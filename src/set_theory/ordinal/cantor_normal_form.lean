@@ -65,7 +65,7 @@ CNF_rec b [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 dif_pos rfl
 
 @[simp] theorem CNF_zero (b) : CNF b 0 = [] :=
-if hb : b = 0 then dif_pos hb else (dif_neg hb).trans $ CNF_rec_zero
+if hb : b = 0 then dif_pos hb else (dif_neg hb).trans CNF_rec_zero
 
 /-- Recursive definition for the Cantor normal form. -/
 theorem CNF_ne_zero {b o : ordinal} (hb : b ≠ 0) (ho : o ≠ 0) :
@@ -149,4 +149,3 @@ theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
 by { rw [list.sorted, list.pairwise_map], exact CNF_pairwise b o }
 
 end ordinal
-

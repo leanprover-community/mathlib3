@@ -292,22 +292,6 @@ in this way, the result is reduced to `card_pow_char_pow`.
 
 section gauss_sum_two
 
-/-- Expand a sum over `ℤ/8ℤ` -/
-private
-lemma sum8 {R : Type*} [add_comm_monoid R] (f : (zmod 8) → R) :
-  ∑ a, f a = f 0 + f 1 + f 2 + f 3 + f 4 + f 5 + f 6 + f 7 :=
-begin
-  have h : ∀ (f : (fin 8) → R), ∑ a, f a = f 0 + f 1 + f 2 + f 3 + f 4 + f 5 + f 6 + f 7 :=
-  begin
-    intro f',
-    repeat {rw add_assoc},
-    simp only [fin.sum_univ_succ, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk,
-               fin.mk_zero, finset.sum_singleton],
-    congr,
-  end,
-  exact h f,
-end
-
 open zmod
 
 /-- For every finite field `F` of odd characteristic, we have `2^(#F/2) = χ₈(#F)` in `F`. -/
@@ -381,8 +365,9 @@ begin
   -- we now show that the Gauss sum of `χ` and `ψ₈` has the relevant property
   have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * (fintype.card (zmod 8)) :=
   begin
-    have hs := sum8 (λ (x : zmod 8), (χ₈ x : FF) * τ ^ x.val),
+    have hs := fin.sum_univ_eight (λ (x : zmod 8), (χ₈ x : FF) * τ ^ x.val),
     simp only at hs,
+    change ∑ (i : zmod 8), _ = _ at hs,
     rw [hχ, one_mul, card, gauss_sum],
     simp_rw [χ_spec, ψ₈_spec],
     rw [hs],

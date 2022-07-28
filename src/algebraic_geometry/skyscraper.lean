@@ -1,6 +1,34 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
 import algebraic_geometry.sheafed_space
 import topology.sheaves.sheaf_condition.unique_gluing
 import topology.sheaves.stalks
+
+/-!
+# Skyscraper (pre)sheaves
+
+A skyscraper (pre)sheaf is a (pre)sheaf supported at a single point: if `p₀ ∈ X` is a specified
+point, then the skyscraper (pre)sheaf `𝓕` with value `A` is defined by `U ↦ A` if `p₀ ∈ U` and
+`U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
+
+## Main definitions
+
+* `skyscraper_presheaf`: the skyscraper presheaf, to define a skyscraper presheaf at point `p₀` with
+  value `A`, use `skypscraper_presheaf p₀ A t` where `t` is a proof that `*` is a terminal object.
+* `skyscraper_sheaf`: the skyscraper presheaf satisfies the sheaf condition.
+
+## Main statements
+
+* `skyscraper_stalk_of_mem_closure₀`: if `y ∈ closure {p₀}` then the stalk of
+  `skyscraper_presheaf p₀ S t` at `y` is `S`.
+* `skyscraper_stalk_of_not_mem_closure₀`: if `y ∉ closure {p₀}` then the stalk of
+  `skyscraper_presheaf p₀ S t` at `y` is `*`.
+
+-/
+
 
 section
 
@@ -15,6 +43,11 @@ variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (S : C)
 variables {star : C} (ts : is_terminal star)
 variable [Π (U : opens X), decidable (p₀ ∈ U)]
 
+/-
+A skyscraper presheaf is a presheaf supported at a single point: if `p₀ ∈ X` is a specified
+point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A` if `p₀ ∈ U` and
+`U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
+-/
 @[simps]
 def skyscraper_presheaf : presheaf C X :=
 { obj := λ U, ite (p₀ ∈ unop U) S star,
@@ -54,6 +87,11 @@ if_neg h
 
 end
 
+/-
+A skyscraper sheaf is a sheaf supported at a single point: if `p₀ ∈ X` is a specified
+point, then the skyscraper sheaf `𝓕` with value `A` is defined by `U ↦ A` if `p₀ ∈ U` and
+`U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
+-/
 def skyscraper_sheaf : sheaf C X :=
 ⟨skyscraper_presheaf p₀ S ts, λ c U s hs x hx,
   ⟨dite (p₀ ∈ U)
@@ -154,6 +192,9 @@ begin
   exact ⟨⟨⟨sᶜ, is_closed.is_open_compl⟩, hy⟩, λ r, r hp₀⟩,
 end
 
+/--
+The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S t` when `y ∈ closure {p₀}`
+-/
 @[simps] def skyscraper_presheaf_cocone_of_mem_closure₀ {y : X} (h : y ∈ (closure ({p₀} : set X))) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S ts) :=
 { X := S,
@@ -179,6 +220,9 @@ end
         exact ts.hom_ext _ _, },
     end } }
 
+/--
+The canonical map `S ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∈ closure {p₀}`
+-/
 noncomputable def skyscraper_presheaf_of_mem_closure₀_from
   {y : X} (h : y ∈ (closure ({p₀} : set X))) :
   S ⟶ (skyscraper_presheaf p₀ S ts).stalk y :=
@@ -215,10 +259,16 @@ noncomputable lemma skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit
     exact (category.id_comp _).symm,
   end }
 
+/--
+If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S t` at `y` is `S`
+-/
 noncomputable def skyscraper_stalk_of_mem_closure₀ {y : X} (h : y ∈ (closure ({p₀} : set X))) :
   (skyscraper_presheaf p₀ S ts).stalk y ≅ S :=
 colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit p₀ S ts h)⟩
 
+/--
+The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S t` when `y ∉ closure {p₀}`
+-/
 @[simps] def skyscraper_presheaf_cocone_of_not_mem_closure₀
   {y : X} (h : y ∉ (closure ({p₀} : set X))) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S ts) :=
@@ -227,6 +277,9 @@ colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_mem_closure₀_i
   { app := λ U, ts.from _,
     naturality' := λ U V inc, ts.hom_ext _ _ } }
 
+/--
+The canonical map `* ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∉ closure {p₀}`
+-/
 noncomputable def skyscraper_presheaf_of_not_mem_closure₀_from
   {y : X} (h : y ∉ (closure ({p₀} : set X))) :
   star ⟶ (skyscraper_presheaf p₀ S ts).stalk y :=
@@ -336,6 +389,9 @@ noncomputable lemma skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit
     erw [this, category.comp_id, ←category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.id_comp],
   end }
 
+/--
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S t` at `y` is `*`
+-/
 noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀
   {y : X} (h : y ∉ (closure ({p₀} : set X))) :
   (skyscraper_presheaf p₀ S ts).stalk y ≅ star :=

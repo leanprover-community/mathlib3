@@ -85,7 +85,7 @@ noncomputable def adjoin_root.quot_equiv_quot_map
   (f : polynomial R) (I : ideal R) :
   (_ ⧸ (ideal.map (adjoin_root.of f) I)) ≃ₐ[R]
     _ ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set (polynomial (R ⧸ I)))) :=
-alg_equiv.of_ring_equiv (adjoin_root.quot_map_of_equiv I f)
+alg_equiv.of_ring_equiv (adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot I f)
 begin
   intros x,
   have : algebra_map R (adjoin_root f ⧸ (ideal.map (adjoin_root.of f) I)) x =
@@ -104,31 +104,15 @@ end
   (f : polynomial R) (I : ideal R) (x : polynomial R) :
   adjoin_root.quot_equiv_quot_map f I (ideal.quotient.mk _ (adjoin_root.mk f x)) =
     ideal.quotient.mk _ (x.map I^.quotient.mk) :=
-begin
-  unfold adjoin_root.quot_equiv_quot_map,
-  rw alg_equiv.of_ring_equiv_apply,
-  rw adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of,
-end
+by rw [adjoin_root.quot_equiv_quot_map, alg_equiv.of_ring_equiv_apply,
+    adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of]
 
 lemma adjoin_root.quot_equiv_quot_map_symm_apply
   (f : polynomial R) (I : ideal R) (x : polynomial R) :
   (adjoin_root.quot_equiv_quot_map f I).symm (ideal.quotient.mk _ (map (ideal.quotient.mk I) x)) =
     ideal.quotient.mk _ (adjoin_root.mk f x) :=
-begin
-  unfold adjoin_root.quot_equiv_quot_map,
-  rw alg_equiv.of_ring_equiv_symm_apply,
-  unfold adjoin_root.quot_map_of_equiv,
-  unfold adjoin_root.polynomial.quot_quot_equiv_comm,
-
-  --rw [ideal.quot_equiv_of_eq_symm, ideal.quot_equiv_of_eq_symm],
-
-  --rw [quotient_equiv_symm_mk
-      --quotient_equiv_mk, quot_equiv_of_eq_mk, double_quot.quot_quot_equiv_comm_symm,
-      --ring_equiv.symm_symm, ideal.polynomial_quotient_equiv_quotient_polynomial_map_mk,
-      --double_quot.quot_quot_equiv_comm_mk_mk, ← ideal.quotient.mk_algebra_map,
-    --  quot_equiv_of_eq_mk],
-  --refl
-end
+by rw [adjoin_root.quot_equiv_quot_map, alg_equiv.of_ring_equiv_symm_apply,
+    adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_symm_mk_mk]
 
 /-- Let `α` have minimal polynomial `f` over `R` and `I` be an ideal of `R`,
 then `R[α] / (I) = (R[x] / (f)) / pS = (R/p)[x] / (f mod p)` -/
@@ -154,15 +138,12 @@ alg_equiv.trans
   (pb : power_basis R S) (I : ideal R) (x : polynomial R) :
   pb.quotient_equiv_quotient_minpoly_map I (ideal.quotient.mk _ (aeval pb.gen x)) =
     ideal.quotient.mk _ (x.map I^.quotient.mk) :=
-begin
-  unfold power_basis.quotient_equiv_quotient_minpoly_map,
-  rw [alg_equiv.trans_apply, alg_equiv.of_ring_equiv_apply, quotient_equiv_mk,
-    alg_equiv.coe_ring_equiv', adjoin_root.equiv'_symm_apply, power_basis.lift_aeval,
+by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
+    alg_equiv.of_ring_equiv_apply, quotient_equiv_mk, alg_equiv.coe_ring_equiv',
+    adjoin_root.equiv'_symm_apply, power_basis.lift_aeval,
     adjoin_root.aeval_eq, adjoin_root.quot_equiv_quot_map_apply]
-end
 
-/-
-@[simp] lemma power_basis.quotient_equiv_quotient_minpoly_map_symm_mk [is_domain R] [is_domain S]
+/- @[simp] lemma power_basis.quotient_equiv_quotient_minpoly_map_symm_mk [is_domain R] [is_domain S]
   (pb : power_basis R S) (I : ideal R) (x : polynomial R) :
   (pb.quotient_equiv_quotient_minpoly_map I).symm
       (ideal.quotient.mk _ (polynomial.map (ideal.quotient.mk _) x)) =
@@ -174,8 +155,7 @@ begin
   rw [adjoin_root.quot_equiv_quot_map_symm_apply, ideal.quotient_map_mk,
       ring_equiv.coe_to_ring_hom, alg_equiv.to_ring_equiv_symm, alg_equiv.coe_ring_equiv,
       alg_equiv.symm_symm, adjoin_root.equiv'_apply, adjoin_root.lift_hom_mk]
-end
--/
+end -/
 
 variable [decidable_eq (ideal S)]
 
@@ -211,35 +191,28 @@ lemma mem_normalized_factors_factors_equiv_of_mem_normalized_factors [is_domain 
   {I : ideal R} (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
   (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) (J : ideal S)
   (hJ : J ∈ normalized_factors (I.map (algebra_map R S) )) :
-  ↑(factors_equiv pb hI ⟨J, dvd_of_mem_normalized_factors hJ⟩) ∈
-    normalized_factors (ideal.span
-      ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I) ) ) :=
+  ↑(factors_equiv pb hI ⟨J, dvd_of_mem_normalized_factors hJ⟩) ∈ normalized_factors
+    (ideal.span ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I) ) ) :=
 begin
-  refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors hI' _ hJ
-        (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
-    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }}) _,
-  sorry,
-  rintros ⟨l, hl⟩ ⟨l', hl'⟩,
-  rw [subtype.coe_mk, subtype.coe_mk],
-  apply find_me_a_name pb hI l l' hl hl',
+  refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors hI' _ hJ _,
+  { by_contra ; exact hpb (span_singleton_eq_bot.mp h)},
+  { rintros ⟨l, hl⟩ ⟨l', hl'⟩,
+    rw [subtype.coe_mk, subtype.coe_mk],
+    apply find_me_a_name pb hI l l' hl hl' },
 end
 
 noncomputable! def normalized_factors_equiv [is_domain R] [is_dedekind_domain R]
   [is_domain S] [is_dedekind_domain S] (pb : power_basis R S)
-  (I : ideal R) (hI : is_maximal I) :
+  (I : ideal R) (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
+  (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) :
   {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S)) } ≃
   {J : ideal (polynomial $ R ⧸ I ) | J ∈ normalized_factors
     (ideal.span ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I))) } :=
 { to_fun := λ j, ⟨factors_equiv pb hI ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩,
-     mem_normalized_factors_factors_equiv_of_mem_normalized_factors pb hI sorry sorry ↑j j.prop ⟩,
+     mem_normalized_factors_factors_equiv_of_mem_normalized_factors pb hI hI' hpb ↑j j.prop ⟩,
   inv_fun := λ j, ⟨(factors_equiv pb hI).symm ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩, sorry⟩,
   left_inv := λ ⟨j, hj⟩, by simp,
   right_inv := λ ⟨j, hj⟩, by simp }
-
-
--- placeholder
---other placeholder
-
 
 lemma normalized_factors_equiv_multiplicity_eq_multiplicity [is_domain R] [is_dedekind_domain R]
   [is_domain S] [is_dedekind_domain S] (pb : power_basis R S)
@@ -247,22 +220,21 @@ lemma normalized_factors_equiv_multiplicity_eq_multiplicity [is_domain R] [is_de
   (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) {J : ideal S}
   (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) = multiplicity
-  (normalized_factors_equiv pb I hI ⟨J, hJ⟩ : ideal (polynomial $ R ⧸ I))
+  (normalized_factors_equiv pb I hI hI' hpb ⟨J, hJ⟩ : ideal (polynomial $ R ⧸ I))
     (ideal.span ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I))) :=
 begin
   simp only [normalized_factors_equiv, subtype.coe_mk, equiv.coe_fn_mk],
-  have temp := multiplicity_eq_multiplicity_factor_dvd_iso_of_mem_normalized_factor hI' _  hJ
-  (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
-    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }})
-    _,
+  have temp := multiplicity_factor_dvd_iso_eq_multiplicity_of_mem_normalized_factor hI' _  hJ
+  (by { rintros ⟨l, hl⟩ ⟨l', hl'⟩,
+    rw [subtype.coe_mk, subtype.coe_mk],
+    apply find_me_a_name pb hI l l' hl hl' }),
   have : (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
     {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }})
     ⟨J, dvd_of_mem_normalized_factors hJ⟩ = factors_equiv pb hI
       ⟨J, dvd_of_mem_normalized_factors hJ⟩ := rfl,
-  simp_rw [this] at temp,
-  exact temp,
-  sorry,
-  sorry,  --this one is just playing around with coercions
+  simp only [this] at temp,
+  exact temp.symm,
+  { by_contra ; exact hpb (span_singleton_eq_bot.mp h) }
 end
 
 open submodule.is_principal
@@ -318,9 +290,8 @@ begin
     { use ⟨a, ha⟩,
       simp only [subtype.coe_mk, subtype.mk_eq_mk, ← span_singleton_eq_span_singleton.mpr ha',
         ideal.span_singleton_generator] },
-    { suffices : ideal.span {r} ≤ i,
-      { exact (mem_iff_generator_dvd i).mp (this (mem_span_singleton.mpr (dvd_refl r))) },
-      exact dvd_iff_le.mp (dvd_of_mem_normalized_factors hi) } }
+    {exact (mem_iff_generator_dvd i).mp ((show ideal.span {r} ≤ i, from dvd_iff_le.mp
+      (dvd_of_mem_normalized_factors hi)) (mem_span_singleton.mpr (dvd_refl r))) } }
 end
 
 open multiplicity
@@ -353,11 +324,26 @@ end
 
 lemma multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity [comm_ring R] [is_domain R]
   [is_principal_ideal_ring R] [normalization_monoid R] {r d: R} (hr : r ≠ 0)
-  (hd : d ∈ normalized_factors r): multiplicity d r =
+  (hd : d ∈ normalized_factors r) : multiplicity d r =
     multiplicity (normalized_factors_equiv_span_normalized_factors r hr ⟨d, hd⟩ : ideal R)
       (ideal.span {r}) :=
 by simp only [normalized_factors_equiv_span_normalized_factors, multiplicity_eq_multiplicity_span,
     subtype.coe_mk, equiv.of_bijective_apply]
+
+lemma multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity
+  [comm_ring R] [is_domain R]
+  [is_principal_ideal_ring R] [normalization_monoid R] {r : R} (hr : r ≠ 0)
+  (I : {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))}) :
+  multiplicity ((normalized_factors_equiv_span_normalized_factors r hr).symm I : R) r =
+    multiplicity (I : ideal R) (ideal.span {r}) :=
+begin
+  obtain ⟨x, hx⟩ := (normalized_factors_equiv_span_normalized_factors r hr).surjective I,
+  obtain ⟨a, ha⟩ := x,
+  rw [hx.symm, equiv.symm_apply_apply, subtype.coe_mk,
+    multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity hr ha, hx],
+end
+
+
 
 
 
@@ -365,23 +351,26 @@ by simp only [normalized_factors_equiv_span_normalized_factors, multiplicity_eq_
   stating that the prime factors of `I*S` are in bijection with those of the minimal poly of
   the generator of `S` over `R`, taken `mod I`-/
 noncomputable def factors_equiv' [is_domain R] [is_dedekind_domain R] [is_domain S]
-  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I) :
+  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I)
+  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) :
  {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
-    {d : polynomial $ R ⧸ I  | d ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)) }:=
-(normalized_factors_equiv pb I hI).trans (normalized_factors_equiv_span_normalized_factors
-  (map I^.quotient.mk (minpoly R pb.gen)) sorry).symm
+    {d : polynomial $ R ⧸ I  | d ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)) } :=
+(normalized_factors_equiv pb I hI hI' hpb).trans (normalized_factors_equiv_span_normalized_factors
+  (map I^.quotient.mk (minpoly R pb.gen)) hpb).symm
 
 /-- The second hald of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the
     bijection `factors_equiv'` defined in the first half preserves multiplicities. -/
 theorem multiplicity_factors_equiv'_eq_multiplicity [is_domain R] [is_dedekind_domain R] [is_domain S]
   [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I)
+  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0)
   {J : ideal S}  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
-  multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI ⟨J, hJ⟩)
+  multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI hI' hpb ⟨J, hJ⟩)
     (map I^.quotient.mk (minpoly R pb.gen)) :=
 begin
   simp only [factors_equiv', multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity, equiv.coe_trans,
-  function.comp_app, normalized_factors_equiv_span_normalized_factors_symm_apply],
-
+  function.comp_app],
+  rw multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
+  rw normalized_factors_equiv_multiplicity_eq_multiplicity,
 end
 /-
 

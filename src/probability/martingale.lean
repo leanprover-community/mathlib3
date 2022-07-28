@@ -492,14 +492,6 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 ⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
  submartingale_of_expected_stopped_value_mono hadp hint⟩
 
-/-- Given a discrete submartingale `f` and a predicatable process `ξ` (i.e. `ξ (n + 1)` is adapted)
-the process defined by `λ n, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)` is also a
-submartingale. -/
-lemma submartingale.sum_mul_sub' [is_finite_measure μ] {ξ f : ℕ → α → ℝ}
-  (hf : submartingale f 𝒢 μ) (hξ : adapted 𝒢 (λ n, ξ (n + 1)))
-  (hbdd : ∃ R, ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
-  submartingale (λ n : ℕ, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)) 𝒢 μ :=
-let ⟨R, hR⟩ := hbdd in hf.sum_mul_sub hξ ⟨R, λ n, hR _⟩ (λ n, hnonneg _)
 section maximal
 
 open finset

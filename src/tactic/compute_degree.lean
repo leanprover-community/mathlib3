@@ -257,7 +257,7 @@ success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›)) 
 skip
 
 /--
-`get_lead_coeff R e` assumes that `R` is an expression representing a `(semi_)ring` and that `e`
+`get_lead_coeff c e` assumes that `c` is an `instance_cache` of a `(semi_)ring R` and that `e`
 is an expression representing a polynomial with coefficients in the type `R`.  It returns an
 expression representing the "visible leading coefficient" of `e`.  This means that it guesses the
 degree of each term and simply discards the terms whose guessed degree is smaller than the top
@@ -265,8 +265,8 @@ degree.
 
 It is important that `get_lead_coeff` does not do any other simplifications of the expression.
 Indeed, `resolve_coeff` starts with the equality between `coeff e <top_degree of e>` and
-`get_lead_coeff R e` and peels off one by one the operations that make up the expression of
-`get_lead_coeff R e`.  Thus, `get_lead_coeff` guides the simplifications in the coefficients.
+`get_lead_coeff c e` and peels off one by one the operations that make up the expression of
+`get_lead_coeff c e`.  Thus, `get_lead_coeff` guides the simplifications in the coefficients.
 In particular, there is some duplication of code with which `norm_num` could deal, but, following
 the current strategy, we are able to reach places where `norm_num` would not reach: most notably,
 `resolve_coeff` deals with degrees of products and of powers.
@@ -377,7 +377,7 @@ open interactive polynomial expr compute_degree
 is the result of applying `get_lead_coeff` to `f`!  Indeed, `resolve_coeff` reads through the
 expression making up `f` and matches each step with what `get_lead_coeff` would do in the current
 situation.  This means that all the side-goals that `resolve_coeff` leaves are always of the same
-shape `f'.coeff n' = get_lead_coeff R f'`.
+shape `f'.coeff n' = get_lead_coeff c f'`.
 
 In some sense, this views `coeff _ <visible_top_degree>` and a "monad" converting between
 `R[X]` and `R`.  `resolve_coeff` performs the operations building `f` across the monad.
@@ -525,7 +525,7 @@ focus' [compute_degree_le, simp_coeff]
 goal to showing that
 * the degree is at most `d`, calling `compute_degree_le` to solve this goal;
 * the coefficient of degree `d` equals `1`, calling `simp_coeff` to simplify this goal.
-Unless the polynomial is particularly complicated, `prove_monic` with either succeed of leave
+Unless the polynomial is particularly complicated, `prove_monic` will either succeed or leave
 a simpler goal to prove.
  -/
 meta def prove_monic : tactic unit := focus $ do

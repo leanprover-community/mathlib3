@@ -224,7 +224,7 @@ lemma degree_eq_card_roots {p : K[X]} {i : K →+* L} (p_ne_zero : p ≠ 0)
   (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
 by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
-theorem map_roots {f : K[X]} (hf : f.splits $ ring_hom.id K) :
+theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
   (f.map i).roots = f.roots.map i :=
 (roots_map_of_injective_card_eq_total_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
@@ -233,7 +233,7 @@ lemma map_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra
   (f : K →ₐ[F] L) : f '' p.root_set K = p.root_set L :=
 begin
   classical,
-  rw [root_set, ←finset.coe_image, ←multiset.to_finset_map, ←f.coe_to_ring_hom, ←map_roots ↑f
+  rw [root_set, ←finset.coe_image, ←multiset.to_finset_map, ←f.coe_to_ring_hom, ←roots_map ↑f
       ((splits_id_iff_splits (algebra_map F K)).mpr h), map_map, f.comp_algebra_map, ←root_set],
 end
 

@@ -36,6 +36,9 @@ begin
   { right, exact eq_neg_of_add_eq_zero_left zero1 },
   { left, exact sub_eq_zero.mp zero2 },
 end
+
+lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
+⟨λ h, zero_lt_iff.2 (even_pow.1 h).2, λ h, (even_pow' h.ne').2 even_two⟩
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -105,8 +108,6 @@ begin
   apply repeated_halving_of_exponent (zmod.pow_card_sub_one_eq_one ha),
 end
 
-lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
-⟨λ h, zero_lt_iff.2 (even_pow.1 h).2, λ h, (even_pow' h.ne').2 even_two⟩
 
 
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=

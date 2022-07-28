@@ -466,7 +466,9 @@ classical.some (classical.some_spec (exists_hilbert_basis 𝕜 E))
 @[simp] lemma coe_std_hilbert_basis : ⇑(std_hilbert_basis 𝕜 E) = coe :=
 classical.some_spec (classical.some_spec (exists_hilbert_basis 𝕜 E))
 
-section name_me -- TODO
+end hilbert_basis
+
+namespace orthogonal_family
 
 variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
   (hVortho : orthogonal_family 𝕜 V)
@@ -475,7 +477,7 @@ variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
   (hFortho : @orthogonal_family 𝕜 E _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ))
   (hFtotal : (⨆ i, F i).topological_closure = ⊤)
 
-def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
+def subordinate_hilbert_basis [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
   hilbert_basis (Σ i, α i) 𝕜 E :=
 { repr :=
@@ -485,9 +487,9 @@ def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
     (lp.congr_rightₗᵢ _ (λ i : ι, lp (λ a : α i, 𝕜) 2) _ 2 (λ i, (v i).repr))
     (lp.curry_equivₗᵢ _ _ 𝕜).symm }
 
-lemma collected_hilbert_basis_repr {α : ι → Type*} [∀ i, complete_space (G i)]
+lemma subordinate_hilbert_basis_repr [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
-  (collected_hilbert_basis hVortho hVtotal v).repr =
+  (subordinate_hilbert_basis hVortho hVtotal v).repr =
   (linear_isometry_equiv.trans
     (hVortho.linear_isometry_equiv hVtotal) $
   linear_isometry_equiv.trans
@@ -495,36 +497,64 @@ lemma collected_hilbert_basis_repr {α : ι → Type*} [∀ i, complete_space (G
     (lp.curry_equivₗᵢ _ _ 𝕜).symm) :=
 rfl
 
-attribute [irreducible] collected_hilbert_basis
+attribute [irreducible] subordinate_hilbert_basis
 
-lemma collected_hilbert_basis_repr_symm_apply {α : ι → Type*} [∀ i, complete_space (G i)]
+lemma subordinate_hilbert_basis_repr_symm_apply [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (f : lp (λ ia : Σ i, α i, 𝕜) 2):
-  (collected_hilbert_basis hVortho hVtotal v).repr.symm f =
+  (subordinate_hilbert_basis hVortho hVtotal v).repr.symm f =
   (hVortho.linear_isometry_equiv hVtotal).symm
     ((lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 𝕜 2 (λ i, (v i).repr.symm))
       (lp.curry (λ i, λ a : α i, 𝕜) f)) :=
 begin
-  rw collected_hilbert_basis_repr,
+  rw subordinate_hilbert_basis_repr,
   refl
 end
 
-lemma coe_collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (G i)]
-  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
-  collected_hilbert_basis hVortho hVtotal v ⟨i, a⟩ = V i (v i a) :=
-by rw [← hilbert_basis.repr_symm_single, collected_hilbert_basis_repr_symm_apply, lp.curry_single,
+lemma coe_subordinate_hilbert_basis_mk [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
+  subordinate_hilbert_basis hVortho hVtotal v ⟨i, a⟩ = V i (v i a) :=
+by rw [← hilbert_basis.repr_symm_single, subordinate_hilbert_basis_repr_symm_apply, lp.curry_single,
   lp.congr_right_single, (v i).repr_symm_single, hVortho.linear_isometry_equiv_symm_apply_single]
 
---def subordinate_hilbert_basis_span {α : ι → Type*} [∀ i, complete_space (F i)]
---  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) := sorry
+lemma coe_subordinate_hilbert_basis [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
+  subordinate_hilbert_basis hVortho hVtotal v ia = V ia.1 (v ia.1 ia.2) :=
+let ⟨i, a⟩ := ia in coe_subordinate_hilbert_basis_mk _ _ _ i a
 
---@[irreducible] def collected_hilbert_basis {α : ι → Type*} [∀ i, complete_space (V i)]
---  (v_family : Π i, hilbert_basis (α i) 𝕜 (V i)) :
---  hilbert_basis (Σ i, α i) 𝕜 E :=
---{ repr :=
---  let foo : module 𝕜 (lp (λ i, V i) 2) := @lp.module _ _ _ _ _ _ _ in
---  let step₁ : E ≃ₗᵢ[𝕜] lp (λ i, V i) 2 := hVortho.linear_isometry_equiv in
---  sorry }
+include hFtotal
 
-end name_me
+def subordinate_hilbert_basis_internal [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (F i)] (v : Π i, hilbert_basis (α i) 𝕜 (F i)) :
+  hilbert_basis (Σ i, α i) 𝕜 E :=
+subordinate_hilbert_basis hFortho
+  (by simpa [subtypeₗᵢ_to_linear_map, range_subtype] using hFtotal) v
 
-end hilbert_basis
+lemma coe_subordinate_hilbert_basis_internal_mk [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (F i)] (v : Π i, hilbert_basis (α i) 𝕜 (F i)) (i : ι) (a : α i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v ⟨i, a⟩ = v i a :=
+coe_subordinate_hilbert_basis_mk _ _ _ _ _
+
+lemma coe_subordinate_hilbert_basis_internal [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (F i)] (v : Π i, hilbert_basis (α i) 𝕜 (F i)) (ia : Σ i, α i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v ia = v ia.1 ia.2 :=
+coe_subordinate_hilbert_basis _ _ _ _
+
+lemma subordinate_hilbert_basis_mem [complete_space E] {α : ι → Type*} [∀ i, complete_space (F i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) {i : ι} {x : Σ j, α j} (hx : x.1 = i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v x ∈ F i :=
+begin
+  subst hx,
+  rw [coe_subordinate_hilbert_basis_internal],
+  exact coe_mem _
+end
+
+lemma subordinate_hilbert_basis_mem_orthogonal [complete_space E] {α : ι → Type*} [∀ i, complete_space (F i)]
+  (v : Π i, hilbert_basis (α i) 𝕜 (F i)) {i : ι} {x : Σ j, α j} (hx : x.1 ≠ i) :
+  subordinate_hilbert_basis_internal hFortho hFtotal v x ∈ (F i)ᗮ :=
+begin
+  intros u hu,
+  rw coe_subordinate_hilbert_basis_internal,
+  exact hFortho hx.symm ⟨u, hu⟩ (v x.1 x.2)
+end
+
+end orthogonal_family

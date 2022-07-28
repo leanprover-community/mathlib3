@@ -42,7 +42,7 @@ $P(t)+t-a-b$, and we're again done.
 open function polynomial
 
 /-- If every entry in a cyclic list of integers divides the next, then they all have the same
-absolute value -/
+absolute value. -/
 theorem nat_abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣))
   (hx : x ∈ l) (hy : y ∈ l) : x.nat_abs = y.nat_abs :=
 begin

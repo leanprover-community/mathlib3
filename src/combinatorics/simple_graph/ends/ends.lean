@@ -20,17 +20,14 @@ universes u v w
 
 
 noncomputable theory
-
---local attribute [instance] prop_decidable
+local attribute [instance] prop_decidable
 
 namespace simple_graph
 
 
 variables  {V : Type u}
            (G : simple_graph V)
-           --[preconnected G]
-           --[locally_finite G]
-           [decidable_eq V]
+
 
 
 

@@ -242,6 +242,15 @@ private def w_len  (C : set V) (k : V) :  walks G C k → ℕ := λ w, w.2.lengt
 private def w_min (C : set V) (k : V) := @function.argmin _ _ (w_len G C k) _ nat.lt_wf
 private def w_min_spec (C : set V) (k : V) := @function.argmin_le _ _ (w_len G C k) _ nat.lt_wf
 
+
+/-
+  Should probably be refactored: Let `walks` be the set of walks with start in C and end in K.
+  Take a shortest element `w` of `walks`. Take a longest subwalk `w'` of `w` entirely contained
+  in `C`, and let `y` be the vertext just after `w'` following `w`.
+  The claim is that `y` lies in `K`. Since `y` is adj to `w'.end`, it cannot be in any different
+  `D ∈ ro_components G K` than C, but can't be in `C` either, by assumption. Then `w'.end` and `y`
+  ar ethe desired pair.
+-/
 lemma adjacent_to (Knempty: K.nonempty) (C : set V) (hC : C ∈ ro_components G K) :
 ∃ (v k : V), k ∈ K ∧ v ∈ C ∧ G.adj k v :=
 begin

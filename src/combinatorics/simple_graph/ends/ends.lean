@@ -87,18 +87,18 @@ lemma bwd_map_refl (C : inf_ro_components G K) : bwd_map G (set.subset.refl K) C
 by {rw bwd_map_def}
 
 
-lemma bwd_map_surjective [locally_finite G] : surjective (bwd_map G K_sub_L) :=
+lemma bwd_map_surjective (Gpreconn : preconnected G) [locally_finite G] : surjective (bwd_map G K_sub_L) :=
 begin
   unfold surjective,
   rintros ⟨C,C_comp,C_inf⟩,
   let L_comps := ro_components G L,
   let L_comps_in_C := { D : set V | D ∈ ro_components G L ∧ D ⊆ C},
   have sub : L_comps_in_C ⊆ L_comps, from (λ D ⟨a,b⟩,  a),
-  have : L_comps_in_C.finite, from set.finite.subset (ro_component.finite G L) sub,
+  have : L_comps_in_C.finite, from set.finite.subset (ro_component.finite G L Gpreconn) sub,
   have : (⋃₀ L_comps_in_C).infinite, by {
     rintro hfin,
     have lol := set.infinite.mono (ro_component.sub_ro_components_cover G K L K_sub_L C C_comp) C_inf,
-    have := set.finite_union.mpr ⟨(sorry : (L : set V).finite),hfin⟩,
+    have := set.finite_union.mpr ⟨finset.finite_to_set L,hfin⟩,
     exact lol this,
   },
     --λ fin, C_inf ((sorry : (L : set V).finite).union fin).subset (subcomponents_cover G K_sub_L C C_comp)),
@@ -146,14 +146,14 @@ by rw [bwd_map_comp',bwd_map_comp']
 
 -- Towards Hopf-Freudenthal
 
-lemma bwd_map_non_inj [locally_finite G] (H K : finset V) (C : inf_ro_components G H)
+lemma bwd_map_non_inj [locally_finite G] (Gpreconn : preconnected G) (H K : finset V) (C : inf_ro_components G H)
   (D D' : inf_ro_components G K)
   (Ddist : D ≠ D')
   (h : D.val ⊆ C.val) (h' : D'.val ⊆ C.val) :
   ¬ injective (bwd_map G (finset.subset_union_left H K : H ⊆ H ∪ K)) :=
 begin
-  rcases bwd_map_surjective G (finset.subset_union_right H K) D  with ⟨E,rfl⟩,
-  rcases bwd_map_surjective G (finset.subset_union_right H K) D' with ⟨E',rfl⟩,
+  rcases bwd_map_surjective G (finset.subset_union_right H K) Gpreconn D  with ⟨E,rfl⟩,
+  rcases bwd_map_surjective G (finset.subset_union_right H K) Gpreconn D' with ⟨E',rfl⟩,
   have Edist : E ≠ E', by {rintro Eeq, rw Eeq at Ddist,exact Ddist (refl _)},
   have : bwd_map G (finset.subset_union_left H K) E = bwd_map G (finset.subset_union_left H K) E', by {
     have : E.val ⊆ C.val, by {apply set.subset.trans (bwd_map_sub G _ E) h,},
@@ -202,16 +202,16 @@ begin
   },
 end
 
-lemma nicely_arranged_bwd_map_not_inj [locally_finite G] (H K : finset V)
+lemma nicely_arranged_bwd_map_not_inj (Gpreconn : preconnected G) [locally_finite G] (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
-  (E : inf_ro_components G H) (inf_comp_H_large : 2 < fintype.card (inf_ro_components G H))
+  (E : inf_ro_components G H) (inf_comp_H_large : 2 < @fintype.card _ (ro_component.inf_components_finite G H Gpreconn))
   (F : inf_ro_components G K)
   (H_F : (H : set V) ⊆ F.val)
   (K_E : (K : set V) ⊆ E.val) : ¬ injective (bwd_map G (finset.subset_union_left K H : K ⊆ K ∪ H)) :=
 begin
  have : ∃ E₁ E₂ : inf_ro_components G H, E ≠ E₁ ∧ E ≠ E₂ ∧ E₁ ≠ E₂ :=
   begin
-    rcases (fintype.two_lt_card_iff.mp (inf_comp_H_large)) with ⟨E₀, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
+    rcases ((@fintype.two_lt_card_iff _ (ro_component.inf_components_finite G H Gpreconn)).mp (inf_comp_H_large)) with ⟨E₀, E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
     by_cases hyp : E ≠ E₁ ∧ E ≠ E₂,
     { cases hyp, refine ⟨E₁, E₂, _, _, _⟩, all_goals {assumption}, },
     { have hyp' : E = E₁ ∨ E = E₂ := by {simp [auto.classical.implies_iff_not_or] at hyp, assumption,}, cases hyp',
@@ -219,7 +219,7 @@ begin
       { subst hyp', refine ⟨E₀, E₁, ne.symm _, ne.symm _, _⟩, all_goals {assumption}, } }
   end,
   rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
-  apply bwd_map_non_inj G K H F E₁ E₂ h₁₂ _ _,
+  apply bwd_map_non_inj G Gpreconn K H F E₁ E₂ h₁₂ _ _,
   {apply nicely_arranged G H K Hnempty Knempty E E₁ h₀₁ F H_F K_E,},
   {apply nicely_arranged G H K Hnempty Knempty E E₂ h₀₂ F H_F K_E,},
 end
@@ -242,7 +242,7 @@ private structure fam :=
 private def fin_fam : fam := ⟨@set.univ (finset V),(λ K, ⟨K,trivial,finset.subset.refl K⟩)⟩
 private def fin_fam_up (K : finset V) : fam := ⟨up K, up_cofin K⟩
 
-private def mem_fin_fam {ℱ : @fam V _} (K : ℱ.fam) : (@fin_fam V _).fam := ⟨↑K,trivial⟩
+private def mem_fin_fam {ℱ : @fam V} (K : ℱ.fam) : (@fin_fam V).fam := ⟨↑K,trivial⟩
 
 
 def ends_for (ℱ : fam) :=
@@ -421,11 +421,11 @@ end
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
 
-lemma end_from_component [preconnected G] [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
+lemma end_from_component (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
   ∃ e : (ends G), e.val ⟨K,trivial⟩ = C := sorry
 
 
-lemma eval_surjective [preconnected G] [locally_finite G] (K : finset V):
+lemma eval_surjective (Gpreconn : preconnected G) [locally_finite G] (K : finset V):
   surjective (eval G K) :=
 begin
   unfold surjective,
@@ -434,22 +434,22 @@ begin
   sorry,
 end
 
-@[instance]
-lemma fintype_inf_connected_components  [preconnected G] [locally_finite G] [fintype (ends G)]
-  (K : finset V) : fintype (inf_ro_components G K) :=
-@fintype.of_surjective _ _ (sorry) _ (eval G K) (@eval_surjective V G _ (sorry) _ K)
 
-
-lemma finite_ends_to_inj [preconnected G] [locally_finite G] [fintype (ends G)] (Vnempty : nonempty V) :
+lemma finite_ends_to_inj (Gpreconn : preconnected G) [locally_finite G] [fintype (ends G)] (Vnempty : nonempty V) :
   ∃ K : finset V, K.nonempty ∧ ∀ (L : finset V) (sub : K ⊆ L), injective (bwd_map G sub) :=
 begin
   let v : V := Vnempty.some,
   let M := fintype.card (ends G),
   have all_fin : ∀ K : finset V, fintype (inf_ro_components G K), from
-    λ K, @fintype.of_surjective _ _ (sorry) _ (eval G K) (@eval_surjective V G _ (sorry) _ K),
+    λ K, @fintype.of_surjective _ _ _ _ (eval G K) (eval_surjective G Gpreconn K),
   have all_le_M :=
-    λ K, @fintype.card_le_of_surjective _ _ _ (all_fin K) (eval G K) (@eval_surjective V G _ (sorry) _ K),
-  have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_ro_components G K') ≤ fintype.card (inf_ro_components G K), by sorry,
+    λ K, @fintype.card_le_of_surjective _ _ _ (all_fin K) (eval G K) (eval_surjective G Gpreconn K),
+  have  : ∃ K : finset V, ∀ K' : finset V, @fintype.card _ (ro_component.inf_components_finite G K' Gpreconn)
+                                           ≤ @fintype.card _ (ro_component.inf_components_finite G K Gpreconn), by {
+    sorry,
+    -- by `all_le_M` all values are ≤ M, so just needs to find an argmax, but not sure what's the best
+    -- path using mathlib
+  },
   rcases this with ⟨K,Kmax⟩,
   let Kv := insert v K,
   let KsubKv := finset.subset_insert v K,
@@ -458,10 +458,10 @@ begin
   { exact finset.insert_nonempty v K, },
   { rintros L KvsubL,
     by_contradiction notinj,
-    have Kv_lt_L := @fintype.card_lt_of_surjective_not_injective _ _ (all_fin L) (all_fin Kv) (bwd_map G KvsubL) (bwd_map_surjective G KvsubL) notinj,
-    have K_le_Kv := @fintype.card_le_of_surjective _ _ (all_fin Kv) (all_fin K) (bwd_map G KsubKv) (bwd_map_surjective G KsubKv),
+    have Kv_lt_L := @fintype.card_lt_of_surjective_not_injective _ _ (all_fin L) (all_fin Kv) (bwd_map G KvsubL) (bwd_map_surjective G KvsubL Gpreconn) notinj,
+    have K_le_Kv := @fintype.card_le_of_surjective _ _ (all_fin Kv) (all_fin K) (bwd_map G KsubKv) (bwd_map_surjective G KsubKv Gpreconn),
     have K_lt_L := lt_of_le_of_lt K_le_Kv Kv_lt_L,
-    --exact (Kmax L).not_lt K_lt_L,
+    -- exact (Kmax L).not_lt K_lt_L,
     sorry
   },
 

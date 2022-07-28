@@ -108,7 +108,7 @@ protected lemma comp {u : γ → δ} (h : ident_distrib f g μ ν) (hu : measura
   ident_distrib (u ∘ f) (u ∘ g) μ ν :=
 h.comp_of_ae_measurable hu.ae_measurable
 
-protected lemma ae_eq {g : α → γ} (hf : ae_measurable f μ) (heq : f =ᵐ[μ] g) :
+protected lemma of_ae_eq {g : α → γ} (hf : ae_measurable f μ) (heq : f =ᵐ[μ] g) :
   ident_distrib f g μ μ :=
 { ae_measurable_fst := hf,
   ae_measurable_snd := hf.congr heq,
@@ -299,7 +299,7 @@ variables {E : Type*} [measurable_space E] [normed_add_comm_group E] [borel_spac
 
 /-- This lemma is superceded by `mem_ℒp.uniform_integrable_of_ident_distrib` which only require
 `ae_strongly_measurable`. -/
-lemma mem_ℒp.uniform_integrable_of_ident_distrib' {ι : Type*} {f : ι → α → E}
+lemma mem_ℒp.uniform_integrable_of_ident_distrib_aux {ι : Type*} {f : ι → α → E}
   {j : ι} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hℒp : mem_ℒp (f j) p μ) (hfmeas : ∀ i, strongly_measurable (f i))
   (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :

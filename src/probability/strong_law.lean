@@ -737,7 +737,7 @@ section strong_law_Lp
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
 /-- *Strong law of large numbers*, Lᵖ version: if `X n` is a sequence of independent
-identically distributed integrable real-valued random variables, then `∑ i in range n, X i / n`
+identically distributed real-valued random variables in Lᵖ, then `∑ i in range n, X i / n`
 converges in Lᵖ to `𝔼[X 0]`. -/
 theorem strong_law_Lp
   {p : ℝ≥0∞} (hp : 1 ≤ p) (hp' : p ≠ ∞)

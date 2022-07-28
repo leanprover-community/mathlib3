@@ -310,13 +310,11 @@ begin
   by_cases hN' : N < nat.find (exists_upper_crossing_eq f N x hab),
   { refine le_antisymm upper_crossing_le _,
     have hmono : strict_mono_on (λ n, upper_crossing a b f N n x)
-      (set.Icc 0 (nat.find (exists_upper_crossing_eq f N x hab)).pred),
-    { refine strict_mono_on_Icc_of_lt_succ (λ m (hm : _ ≤ order.pred _), _),
-      refine upper_crossing_lt_succ hab _,
-      rw order.le_pred_iff_of_not_is_min at hm,
-      { convert nat.find_min _ hm },
-      { simp [hN.ne] } },
-    convert strict_mono_on.Icc_id_le hmono N (nat.le_pred_of_lt hN') },
+      (set.Iic (nat.find (exists_upper_crossing_eq f N x hab)).pred),
+    { refine strict_mono_on_Iic_of_lt_succ (λ m hm, upper_crossing_lt_succ hab _),
+      rw nat.lt_pred_iff at hm,
+      convert nat.find_min _ hm },
+    convert strict_mono_on.Iic_id_le hmono N (nat.le_pred_of_lt hN') },
   { rw not_lt at hN',
     exact upper_crossing_stabilize hN' (nat.find_spec (exists_upper_crossing_eq f N x hab)) }
 end
@@ -405,15 +403,16 @@ lemma submartingale.sum_upcrossing_strat_mul [is_finite_measure μ] (hf : submar
   submartingale
     (λ n : ℕ, ∑ k in finset.range n, upcrossing_strat a b f N k * (f (k + 1) - f k)) ℱ μ :=
 hf.sum_mul_sub hf.adapted.upcrossing_strat_adapted
-  ⟨1, λ _ _, upcrossing_strat_le_one⟩ (λ _ _, upcrossing_strat_nonneg)
+  (λ _ _, upcrossing_strat_le_one) (λ _ _, upcrossing_strat_nonneg)
 
 lemma submartingale.sum_sub_upcrossing_strat_mul [is_finite_measure μ] (hf : submartingale f ℱ μ)
   (a b : ℝ) (N : ℕ) :
   submartingale
     (λ n : ℕ, ∑ k in finset.range n, (1 - upcrossing_strat a b f N k) * (f (k + 1) - f k)) ℱ μ :=
 begin
-  refine hf.sum_mul_sub ((adapted_const ℱ 1).sub hf.adapted.upcrossing_strat_adapted) _ _,
-  { refine ⟨1, λ n x, sub_le.1 _⟩,
+  refine hf.sum_mul_sub (λ n, (adapted_const ℱ 1 n).sub (hf.adapted.upcrossing_strat_adapted n))
+    (_ : ∀ n x, (1 - upcrossing_strat a b f N n) x ≤ 1) _,
+  { refine λ n x, sub_le.1 _,
     simp [upcrossing_strat_nonneg] },
   { intros n x,
     simp [upcrossing_strat_le_one] }

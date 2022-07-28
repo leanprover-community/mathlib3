@@ -2902,8 +2902,8 @@ end
 section
 variables [pseudo_metric_space X]
 
-instance [pseudo_metric_space X] : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
-instance [pseudo_metric_space X] : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
+instance : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
+instance : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
 
 @[simp] lemma nndist_of_mul (a b : X) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
 @[simp] lemma nndist_of_add (a b : X) : nndist (of_add a) (of_add b) = nndist a b := rfl
@@ -2935,7 +2935,7 @@ end
 section
 variables [pseudo_metric_space X]
 
-instance [pseudo_metric_space X] : pseudo_metric_space Xᵒᵈ := ‹pseudo_metric_space X›
+instance : pseudo_metric_space Xᵒᵈ := ‹pseudo_metric_space X›
 
 @[simp] lemma nndist_to_dual (a b : X) : nndist (to_dual a) (to_dual b) = nndist a b := rfl
 @[simp] lemma nndist_of_dual (a b) : nndist (of_dual a : X) (of_dual b) = nndist a b := rfl

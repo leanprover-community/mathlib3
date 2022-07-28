@@ -151,7 +151,7 @@ lemma is_closable_iff_exists_closed_extension {f : linear_pmap R E F} : f.is_clo
 /-! ### The core of a linear operator -/
 
 /-- A submodule `S` is a core of `f` if the closure of the restriction of `f` to `S` is again `f`.-/
-structure has_core (f : linear_pmap R E F) (S : submodule R E) :=
+structure has_core (f : linear_pmap R E F) (S : submodule R E) : Prop :=
 (le_domain : S ≤ f.domain)
 (closure_eq : (f.dom_restrict S).closure = f)
 
@@ -161,8 +161,7 @@ lemma has_core_def {f : linear_pmap R E F} {S : submodule R E} (h : f.has_core S
 /-- For every operator `f` the submodule `f.domain` is a core of its closure.
 
 Note that we don't require that `f` is closable, due to the definition of the closure. -/
-noncomputable
-lemma closure_has_core (f : linear_pmap R E F) : f.closure.has_core f.domain :=
+def closure_has_core (f : linear_pmap R E F) : f.closure.has_core f.domain :=
 begin
   refine ⟨f.le_closure.1, _⟩,
   congr,

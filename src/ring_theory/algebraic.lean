@@ -105,7 +105,7 @@ lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [ch
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_of_mem_root_set [is_domain S] {p : polynomial R} {x : S}
-  (hx : x ∈ p.root_set S) : is_algebraic K x :=
+  (hx : x ∈ p.root_set S) : is_algebraic R x :=
 ⟨p, ne_zero_of_mem_root_set hx, (mem_root_set (ne_zero_of_mem_root_set hx)).mp hx⟩
 
 open is_scalar_tower

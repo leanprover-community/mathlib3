@@ -21,10 +21,7 @@ lemma isometry_smul : ∀ g : α, isometry (λ x : β, g • x) := isom_action.i
 @[simp] lemma dist_smul_smul (g : α) (x y : β) : dist (g • x) (g • y) = dist x y :=
 (isometry_smul g).dist_eq _ _
 
-variables [group α]
 
-lemma dist_smul_inv (g : α) (h : α) (x y : β) : dist (g • x) (h • y) = dist x ((g⁻¹*h) • y) :=
-sorry
 
 
 
@@ -36,6 +33,13 @@ end monoid
 section group
 variables {α β : Type*} [group α] [pseudo_metric_space β] [isom_action α β]
 
+lemma dist_smul_inv (g : α) (h : α) (x y : β) : dist (g • x) (h • y) = dist x ((g⁻¹*h) • y) :=
+begin
+  have := dist_smul_smul g⁻¹ (g • x) (h • y),
+  rw [←mul_smul,←mul_smul] at this,
+  simp only [←this,mul_left_inv, one_smul],
+end
+
 lemma dist_of_inv_isom (g h : α) (x y : β) : dist (g • x) (h • y) = dist x ((g⁻¹*h) • y) :=
 begin
   have k : dist (g • x) (h • y) = dist ((g⁻¹*g) • x) ((g⁻¹ * h) • y),
@@ -46,6 +50,8 @@ begin
 end
 
 end group
+
+
 
 theorem isom_img_mul{α β : Type*} [group α] [pseudo_metric_space β] [isom_action α β]
   (g : α) (s : set β) (x : β) (hx : x ∈ g • s ) (h : α) : h • x ∈ (h * g) • s :=

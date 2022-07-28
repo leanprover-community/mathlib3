@@ -269,7 +269,7 @@ begin
       have : (w_len G C k subwalk) < (w_len G C k subwalk) + 1, from lt_add_one (w_len G C k subwalk),
       rw len_subwalk at this,
       exfalso,
-      haveI : nonempty (walks G C k), by sorry,
+      haveI : nonempty (walks G C k), from nemptywalks,
       have ok : argmin (w_len G C k) nat.lt_wf = w_min G C k, by simpa, -- can I do this without simpa?
       rw ok at min_is_min,
       exact (lt_iff_not_ge _ _).mp this min_is_min,},}

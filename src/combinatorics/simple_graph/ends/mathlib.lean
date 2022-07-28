@@ -24,9 +24,9 @@ variables  {V : Type u}
            (G : simple_graph V)
            --[preconnected G]
            --[locally_finite G]
-           [decidable_eq V]
 
 namespace simple_graph
+
 
 lemma walk.mem_support_iff_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} :
   w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r := sorry
@@ -41,6 +41,7 @@ lemma walk.support_append_subset_right {V : Type u} {G : simple_graph V} {u v w 
     {simp only [support_nil, list.tail_cons, list.append_nil, list.cons_subset, end_mem_support, list.nil_subset, and_self],},
     {simp only [support_cons, list.tail_cons, list.cons_subset, list.mem_append, end_mem_support, true_or, list.subset_append_right,and_self],},
   }
+
 
 end simple_graph
 

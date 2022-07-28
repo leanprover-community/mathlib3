@@ -43,6 +43,30 @@ lemma walk.support_append_subset_right {V : Type u} {G : simple_graph V} {u v w 
   }
 
 
+def is_prefix {V : Type*} {G : simple_graph V} {u v w : V} (r : G.walk u w) (p : G.walk u v) :=
+  ∃ q : G.walk w v, p = r.append q
+
+infix ` ≤w ` : 50 := is_prefix
+
+def longest_prefix {V : Type*} {G : simple_graph V}
+  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
+  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) : (Σ (z : V), G.walk u z) := sorry
+
+def longest_prefix.prefix {V : Type*} {G : simple_graph V}
+  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
+  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) :
+  (longest_prefix pre pred pred_r).2 ≤w p
+
+def longest_prefix.spec {V : Type*} {G : simple_graph V}
+  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
+  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) := sorry
+
+def longest_prefix.longest {V : Type*} {G : simple_graph V}
+  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
+  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) :
+  ∀ (z : V) (q : G.walk u z) (preq : q ≤w p), pred z q preq → q ≤w (longest_prefix pre pred pred_r).2 := sorry
+
+
 end simple_graph
 
 

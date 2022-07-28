@@ -119,6 +119,12 @@ end
 lemma not_in_of_in_comp (C : set V) (hC : C ∈ ro_components G K) (x : V) (hx : x ∈ C) : x ∉ K :=
 (not_in G (is_ro G K C hC x hx x hx)).1
 
+lemma not_in_comp_of_in  (C : set V) (hC : C ∈ ro_components G K) (x : V) (hx : x ∈ K) : x ∉ C :=
+begin
+  intro xC,
+  exact not_in_of_in_comp G K C hC x xC hx,
+end
+
 lemma of_ro_set (P : set V) -- nonemptiness probably not needed
   (Pnempty : set.nonempty P) (P_ro : ∀ x y ∈ P, reachable_outside G K x y) :
   ∃ C : set V, C ∈ ro_components G K ∧ P ⊆ C :=
@@ -229,52 +235,21 @@ lemma of_subconnected_disjoint (P : set V)
 of_ro_set G K P Pnempty (ro_component.ro_of_subconnected_disjoint G K P dis conn)
 
 
---only used in next lemma
-private def walks (C : set V) (k : V) := Σ (x : C), G.walk x k
-private def w_len  (C : set V) (k : V) :  walks G C k → ℕ := λ w, w.2.length
-private def w_min (C : set V) (k : V) := @function.argmin _ _ (w_len G C k) _ nat.lt_wf
-private def w_min_spec (C : set V) (k : V) := @function.argmin_le _ _ (w_len G C k) _ nat.lt_wf
 
-
-/-
-  Should probably be refactored: Let `walks` be the set of walks with start in C and end in K.
-  Take a shortest element `w` of `walks`. Take a longest subwalk `w'` of `w` entirely contained
-  in `C`, and let `y` be the vertext just after `w'` following `w`.
-  The claim is that `y` lies in `K`. Since `y` is adj to `w'.end`, it cannot be in any different
-  `D ∈ ro_components G K` than C, but can't be in `C` either, by assumption. Then `w'.end` and `y`
-  ar ethe desired pair.
--/
-lemma adjacent_to (Knempty: K.nonempty) (C : set V) (hC : C ∈ ro_components G K) :
+lemma adjacent_to (Gpreconn : G.preconnected) (Knempty: K.nonempty) (C : set V) (hC : C ∈ ro_components G K) :
 ∃ (v k : V), k ∈ K ∧ v ∈ C ∧ G.adj k v :=
 begin
-  rcases Knempty with ⟨k,k_in_K⟩,
-  have nemptywalks : nonempty (walks G C k), by {
-    rcases nempty G K C hC with ⟨x,x_in_C⟩,
-    have w : G.walk x k := sorry, -- it's in the hypotheses!!
-    exact nonempty.intro ⟨⟨x,x_in_C⟩,w⟩,},
-  rcases hhh : @w_min V G C k nemptywalks with ⟨x, min_walk⟩,
-  have x_notin_K : x.val ∉ K, from (not_in G (is_ro G K C hC x.val x.prop x.val x.prop)).1,
-  rcases min_walk with nil|⟨_,y,_,x_adj_y,y_walk_k⟩,
-  { exfalso,
-    have : reachable_outside G K x x, from is_ro G K C hC x.val x.prop x.val x.prop,
-    exact x_notin_K k_in_K,},
-  { by_cases h : y ∈ K,
-    { use x, use y, use h, use x.prop, exact (x_adj_y).symm,},
-    { have : reachable_outside G K x y, from reachable_outside.of_adj_outside G K x y x_notin_K h x_adj_y,
-      have : y ∈ C, from mem_of_mem_of_ro G K C hC x.val y x.prop this,
-      let subwalk : walks G C k := ⟨⟨y,this⟩,y_walk_k⟩,
-      have min_is_min := @w_min_spec V G C k subwalk (nemptywalks),
-      have len_subwalk : (w_len G C k subwalk) + 1 = w_len G C k (@w_min V G C k nemptywalks), by {
-        unfold w_len at *,
-        rw [hhh,←simple_graph.walk.length_cons],
-      },
-      have : (w_len G C k subwalk) < (w_len G C k subwalk) + 1, from lt_add_one (w_len G C k subwalk),
-      rw len_subwalk at this,
-      exfalso,
-      haveI : nonempty (walks G C k), from nemptywalks,
-      have ok : argmin (w_len G C k) nat.lt_wf = w_min G C k, by simpa, -- can I do this without simpa?
-      rw ok at min_is_min,
-      exact (lt_iff_not_ge _ _).mp this min_is_min,},}
+  rcases Knempty with ⟨k,kK⟩,
+  rcases nempty G K C hC with ⟨x,xC⟩,
+  let w := (Gpreconn x k).some,
+  have : k ∉ C, from not_in_comp_of_in G K C hC k kK,
+  rcases walk.pred_adj_non_pred x k w  (λ x, x ∈ C) xC ‹k∉C› with ⟨u,v,adj,uC,vnC⟩,
+  by_cases h : v ∈ K,
+  { use [u,v,h,uC,adj.symm],},
+  { have : v ∈ C, from mem_of_mem_of_adj G K C hC u v uC h adj,
+    exfalso,
+    exact vnC this,
+  },
 end
 
 def bdry : set V := {x : V | x ∉ K ∧ ∃ k ∈ K, G.adj x k}

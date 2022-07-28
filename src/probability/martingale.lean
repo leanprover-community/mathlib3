@@ -263,19 +263,6 @@ hf.sup (martingale_zero _ _ _).submartingale
 
 end submartingale
 
-section temp
-
-variables {m : measurable_space α}
-
--- Remy will prove this sometime after after this week
-lemma condexp_measurable_mul {ξ ζ : α → ℝ} (hξm : strongly_measurable[m] ξ) (hζ : integrable ζ μ)
-  -- (hξ : integrable ξ μ) hopefully won't need this
-  (hζξ : integrable (ξ * ζ) μ) :
-  μ[ξ * ζ | m] =ᵐ[μ] ξ * μ[ζ | m] :=
-sorry
-
-end temp
-
 section submartingale
 
 lemma submartingale_of_set_integral_le [is_finite_measure μ]

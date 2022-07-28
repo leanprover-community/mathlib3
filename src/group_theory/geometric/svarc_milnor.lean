@@ -193,21 +193,15 @@ begin
 end
 
 lemma arch' {x y : ℝ} (xpos: x > 0) (ypos: y > 0)
-  : ∃ n:ℕ, (n:ℝ)*x ≤ y ∧ y < (n+1 :ℝ)*x
-:= begin
-  have h : ∃ n : ℤ, n • x ≤ y ∧ y < (n+1) • x, from exists_of_exists_unique (exists_unique_zsmul_near_of_pos xpos y),
-  simp at h,
-  rcases h with ⟨n, ⟨hn1, hn2⟩ ⟩,
-  use n.nat_abs,
-  have nnonneg : n ≥ 0,
-    by_contradiction,
-    have g : (n:ℝ) ≤ -1, sorry,
-    sorry,
-  have k : (n.nat_abs:ℝ) = (n: ℝ),
-    -- have k' : ((n.nat_abs):ℤ) = n, by library_search
-    sorry,
-  rw k,
-  exact ⟨hn1, hn2⟩,
+  : ∃ n:ℕ, (n:ℝ)*x ≤ y ∧ y < (n+1 :ℝ)*x :=
+begin
+  use nat.floor (y/x),
+  rw ← le_div_iff xpos,
+  split,
+  apply nat.floor_le,
+  exact (div_pos ypos xpos).le,
+  rw ← div_lt_iff xpos,
+  apply nat.lt_floor_add_one,
 end
 
 lemma arch'' {x y : ℝ} (xpos: x > 0) (ynonneg: 0 ≤ y)

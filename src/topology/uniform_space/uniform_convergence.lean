@@ -373,7 +373,8 @@ end
 lemma tendsto_uniformly_on_filter.prod {ι' β' : Type*} [uniform_space β']
   {F' : ι' → α → β'} {f' : α → β'} {q : filter ι'}
   (h : tendsto_uniformly_on_filter F f p p') (h' : tendsto_uniformly_on_filter F' f' q p') :
-  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod q) p' :=
+  tendsto_uniformly_on_filter (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) 
+    (λ a, (f a, f' a)) (p.prod q) p' :=
 λ u hu, ((h.prod_map h') u hu).diag_of_prod_right
 
 lemma tendsto_uniformly_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}

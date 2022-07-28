@@ -284,14 +284,26 @@ variables {R₁ R₂ R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R�
   [module R₁ M₁] [module R₂ M₂] [module R₃ M₃]
 
 /-- If a compact operator preserves a closed submodule, its restriction to that submodule is
-compact. -/
+compact.
+
+Note that, following mathlib's convention in linear algebra, `restrict` design the restriction of
+an endomorphism `f : E →ₗ E` to an endomorphism `f' : ↥V →ₗ ↥V`. To prove that the restriction
+`f' : ↥U →ₛₗ ↥V` of a compact operator `f : E →ₛₗ F` is compact, apply
+`is_compact_operator.cod_restrict` to `f ∘ U.subtypeL`, which is compact by
+`is_compact_operator.comp_clm`. -/
 lemma is_compact_operator.restrict {f : M₁ →ₗ[R₁] M₁} (hf : is_compact_operator f)
   {V : submodule R₁ M₁} (hV : ∀ v ∈ V, f v ∈ V) (h_closed : is_closed (V : set M₁)):
   is_compact_operator (f.restrict hV) :=
 (hf.comp_clm V.subtypeL).cod_restrict (set_like.forall.2 hV) h_closed
 
 /-- If a compact operator preserves a complete submodule, its restriction to that submodule is
-compact. -/
+compact.
+
+Note that, following mathlib's convention in linear algebra, `restrict` design the restriction of
+an endomorphism `f : E →ₗ E` to an endomorphism `f' : ↥V →ₗ ↥V`. To prove that the restriction
+`f' : ↥U →ₛₗ ↥V` of a compact operator `f : E →ₛₗ F` is compact, apply
+`is_compact_operator.cod_restrict` to `f ∘ U.subtypeL`, which is compact by
+`is_compact_operator.comp_clm`. -/
 lemma is_compact_operator.restrict' [separated_space M₂] {f : M₂ →ₗ[R₂] M₂}
   (hf : is_compact_operator f) {V : submodule R₂ M₂} (hV : ∀ v ∈ V, f v ∈ V)
   [hcomplete : complete_space V] : is_compact_operator (f.restrict hV) :=

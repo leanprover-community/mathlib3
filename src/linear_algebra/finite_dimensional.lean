@@ -1645,6 +1645,16 @@ begin
     exact finrank_le_one v p, }
 end
 
+lemma submodule.finrank_le_one_iff_is_principal (W : submodule K V) [finite_dimensional K W] :
+  finite_dimensional.finrank K W ≤ 1 ↔ W.is_principal :=
+by rw [← W.rank_le_one_iff_is_principal, ← finite_dimensional.finrank_eq_dim,
+  ← cardinal.nat_cast_le, nat.cast_one]
+
+lemma module.finrank_le_one_iff_top_is_principal [finite_dimensional K V] :
+  finite_dimensional.finrank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
+by rw [← module.rank_le_one_iff_top_is_principal, ← finite_dimensional.finrank_eq_dim,
+  ← cardinal.nat_cast_le, nat.cast_one]
+
 -- We use the `linear_map.compatible_smul` typeclass here, to encompass two situations:
 -- * `A = K`
 -- * `[field K] [algebra K A] [is_scalar_tower K A V] [is_scalar_tower K A W]`

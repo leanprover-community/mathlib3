@@ -893,10 +893,6 @@ apply_nolint is_countably_spanning.pi fintype_finite
 apply_nolint measure_theory.measure.prod_sum fintype_finite
 apply_nolint measure_theory.measure.sum_prod fintype_finite
 
--- measure_theory/function/uniform_integrable.lean
-apply_nolint measure_theory.unif_integrable_fintype fintype_finite
-apply_nolint measure_theory.uniform_integrable_fintype fintype_finite
-
 -- measure_theory/group/prod.lean
 apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
 apply_nolint measure_theory.map_prod_inv_mul_eq_swap to_additive_doc
@@ -1587,9 +1583,6 @@ apply_nolint nonarchimedean_group.prod_subset to_additive_doc
 -- topology/algebra/order/compact.lean
 apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
 apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
-
--- topology/bases.lean
-apply_nolint topological_space.second_countable_topology_fintype fintype_finite
 
 -- topology/basic.lean
 apply_nolint closure_Union_of_fintype fintype_finite

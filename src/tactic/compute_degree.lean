@@ -114,40 +114,6 @@ end polynomial
 
 namespace tactic
 
-namespace instance_cache
-/-- Faster version of `mk_app ``has_add.add [e, f]`. -/
-meta def mk_add (c : instance_cache) (e f : expr) : tactic (instance_cache × expr) :=
-do (c, fi) ← c.get ``has_add,
-   return (c, (expr.const ``has_add.add [c.univ]).mk_app [c.α, fi, e, f])
-
-/-- Faster version of `mk_mul ``has_mul.mul [e, f]`. -/
-meta def mk_mul (c : instance_cache) (e f : expr) : tactic (instance_cache × expr) :=
-do (c, fi) ← c.get ``has_mul,
-   return (c, (expr.const ``has_mul.mul [c.univ]).mk_app [c.α, fi, e, f])
-
-/-- Faster version of `mk_sub ``has_sub.sub [e, f]`. -/
-meta def mk_sub (c : instance_cache) (e f : expr) : tactic (instance_cache × expr) :=
-do (c, fi) ← c.get ``has_sub,
-   return (c, (expr.const ``has_sub.sub [c.univ]).mk_app [c.α, fi, e, f])
-
-/-- Faster version of `mk_neg ``has_neg.neg [e]`. -/
-meta def mk_neg (c : instance_cache) (e : expr) : tactic (instance_cache × expr) :=
-do (c, fi) ← c.get ``has_neg,
-   return (c, (expr.const ``has_neg.neg [c.univ]).mk_app [c.α, fi, e])
-
-/-- Faster version of `mk_one ``has_one.one`. -/
-meta def mk_one (c : instance_cache) : tactic (instance_cache × expr) :=
-do (c, fi) ← c.get ``has_one,
-   return (c, (expr.const ``has_one.one [c.univ]).mk_app [c.α, fi])
-
-/-- Faster version of `mk_zero ``has_zero.zero`. -/
-meta def mk_zero (c : instance_cache) : tactic (instance_cache × expr) :=
-do (c, fi) ← c.get ``has_zero,
-   return (c, (expr.const ``has_zero.zero [c.univ]).mk_app [c.α, fi])
-
-end instance_cache
-
-
 namespace compute_degree
 open expr polynomial
 
@@ -311,10 +277,10 @@ that can be performed on a polynomial.
 meta def get_lead_coeff (c : instance_cache) : expr → tactic (instance_cache × expr)
 | (app `(⇑C) a) := pure (c, a)
 | (app `(⇑(monomial %%n)) x) := pure (c, x)
-| `(@has_one.one (@polynomial %%R %%_) %%_) := c.mk_one
-| `(@has_zero.zero (@polynomial %%R %%_) %%_) := c.mk_zero
-| `(X) := c.mk_one
-| `(X ^ %%n) := c.mk_one
+| `(@has_one.one (@polynomial %%R %%_) %%_) := c.mk_app ``has_one.one []
+| `(@has_zero.zero (@polynomial %%R %%_) %%_) := c.mk_app ``has_zero.zero []
+| `(X) := c.mk_app ``has_one.one []
+| `(X ^ %%n) := c.mk_app ``has_one.one []
 | `(bit0 %%a) := do
   (c, ta) ← get_lead_coeff a,
   c.mk_bit0 ta
@@ -329,29 +295,29 @@ meta def get_lead_coeff (c : instance_cache) : expr → tactic (instance_cache �
     else
       get_lead_coeff a
   else do
-    [(c1, ta), (c2, tb)] ← [a, b].mmap $ get_lead_coeff,
-    c.mk_add ta tb
+    [(c, ta), (c2, tb)] ← [a, b].mmap $ get_lead_coeff,
+    c.mk_app ``has_add.add [ta, tb]
 | `(%%a - %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   if da ≠ db then
     if da < db then do
       (c, tb) ← get_lead_coeff b,
-      c.mk_neg tb
+      c.mk_app ``has_neg.neg [tb]
     else
       get_lead_coeff a
   else do
     [(c, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
-    c.mk_sub ta tb
+    c.mk_app ``has_sub.sub [ta, tb]
 | `(%%a * %%b) := do
   [(c, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
-  c.mk_mul ta tb
+  c.mk_app ``has_mul.mul [ta, tb]
 | `(%%a ^ %%n) := do
   (c, ta) ← get_lead_coeff a,
   op ← to_expr ``(has_pow.pow : %%c.α → ℕ → %%c.α),
   return $ (c, op.mk_app [ta, n])
 | `(- %%a) := do
   (c, ta) ← get_lead_coeff a,
-  c.mk_neg ta
+  c.mk_app ``has_neg.neg [ta]
 | e := do
   deg ← guess_degree e,
   op ← to_expr ``(coeff : polynomial %%c.α → ℕ → %%c.α),

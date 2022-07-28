@@ -76,8 +76,9 @@ variable [decidable_eq N]
 -- maybe use (n : N) everywhere? use (n : ℕ) only in the final section?
 { to_fun := λ y j, if h : j = i then y.1 else y.2 ⟨j, h⟩,
   inv_fun := λ f, ⟨f i, λ j, f j⟩,
-  left_inv := λ y, by { ext; dsimp, { rw dif_pos rfl }, { rw [dif_neg x.prop, subtype.coe_eta] } },
-  right_inv := λ y, by { ext j, dsimp, split_ifs, { rw h }, { refl } } }
+  left_inv := λ y, by { ext; dsimp only, { rw dif_pos rfl }, { rw [dif_neg x.prop,
+    subtype.coe_eta] } },
+  right_inv := λ y, by { ext j, dsimp only, split_ifs, { rw h }, { refl } } }
 -- TODO: move to logic.equiv.basic around equiv.pi_option_equiv_prod
 -- should it be generalized to a type family like equiv.pi_option_equiv_prod?
 -- (may cause some unification issue when applied to a const family, but usually tolerable)

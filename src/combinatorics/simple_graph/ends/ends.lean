@@ -422,32 +422,66 @@ end
 -/
 
 -- We try to follow: https://stacks.math.columbia.edu/tag/002Z
--- The system S we start with is actually restricted already so that the minimal element we eventually
--- come up with really matches our choice `C` of component at `K` (that's the second condition below)
+-- We only look at "surjective" systems.
 
-def subsystem  (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :=
+section subsystem
+
+def subsystem  (Gpreconn : preconnected G) [locally_finite G] :=
   {f : (Π L : finset V, set (inf_ro_components G L))
   | (∀ (L L' : finset V) (sub : L ⊆ L'), set.image (bwd_map G sub) (f L') ⊆ f L)
-  ∧ (∀ (L : finset V) (sub : K ⊆ L), f L ⊆ set.preimage (bwd_map G sub) {C}  ) }
+  ∧ (∀ (L L' : finset V) (sub : L ⊆ L'), set.surj_on (bwd_map G sub) (f L') (f L))
+  ∧ (∀ L : finset V, (f L).nonempty)
+  }
 
-
-def top_subsystem (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
-  subsystem G Gpreconn K C :=
-⟨ λ L, if h : K ⊆ L then set.preimage (bwd_map G h) {C} else univ
+def singletonify (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K)
+  (F : subsystem G Gpreconn) (FC : C ∈ F.val K) : subsystem G Gpreconn :=
+⟨ λ L, if h : K ⊆ L then set.preimage (bwd_map G h) {C} else (F.val L)
+, sorry
 , sorry
 , sorry ⟩
 
-def subsystem_le {G : simple_graph V} {Gpreconn : preconnected G} [locally_finite G] {K : finset V} {C : inf_ro_components G K}
-  (S T : subsystem G Gpreconn K C) := ∀ L, S.val L ⊆ T.val L
+def bwd_subsystem (Gpreconn : preconnected G) [locally_finite G] : subsystem G Gpreconn :=
+⟨ λ L, univ
+, sorry
+, sorry
+, sorry ⟩
+
+def subsystem_le {G : simple_graph V} {Gpreconn : preconnected G} [locally_finite G]
+  (S T : subsystem G Gpreconn) := ∀ L, S.val L ⊆ T.val L
 
 infix ` ss≤ ` : 50 := subsystem_le
 
-lemma subsystem_le_refl  {Gpreconn : preconnected G} [locally_finite G] {K : finset V} {C : inf_ro_components G K}
-  (S: subsystem G Gpreconn K C) : S ss≤ S := by {rintros L,simp,}
+lemma subsystem_le_refl  {Gpreconn : preconnected G} [locally_finite G]
+  (S: subsystem G Gpreconn) : S ss≤ S := by {rintros L,simp,}
 
-lemma subsystem_le_trans  {Gpreconn : preconnected G} [locally_finite G] {K : finset V} {C : inf_ro_components G K}
-  {R S T : subsystem G Gpreconn K C} : R ss≤ S → S ss≤ T → R ss≤ T := by {rintros hRS hST L, exact (hRS L).trans (hST L),}
+lemma subsystem_le_trans  {Gpreconn : preconnected G} [locally_finite G]
+  {R S T : subsystem G Gpreconn} : R ss≤ S → S ss≤ T → R ss≤ T := by {rintros hRS hST L, exact (hRS L).trans (hST L),}
 
+lemma subsystem_le_antisymm  {Gpreconn : preconnected G} [locally_finite G]
+  {S T : subsystem G Gpreconn} : S ss≤ T → T ss≤ S → S = T := by {rintros hST hTS,rcases S with ⟨SS,hS⟩, rcases T with ⟨TT,hT⟩, simp, apply funext,rintro L, specialize hST L, specialize hTS L,simp at hST, simp at hTS,exact set.eq_of_subset_of_subset hST hTS,}
+
+
+lemma bwd_subsystem_top {Gpreconn : preconnected G} [locally_finite G]
+  (S: subsystem G Gpreconn) : S ss≤ (bwd_subsystem G Gpreconn) := by {rintros L, unfold bwd_subsystem,simp,}
+
+/-
+  To show that for a given C : inf_ro_components G K, there exists an end mapping K to C:
+  The goal is to use `zorn_partial_order₀` on the set of all subsystems below `singletonify (bwd_subsystem G) k C`.
+  We need to show plenty of things:
+
+  * singletonify preservers being a subsystem
+  * singletonify S ss≤ S for all S
+  * A descending chain has a lower bound (its intersection)
+
+  Then we apply Zorn to get a minimal element which:
+
+  * is below `singletonify (bwd_subsystem G) k C` by construction
+  * has all values singletons, since otherwise its singletonification would be strictly smaller
+
+  and from this we get a unique section of this subsystem, and that's an end.
+-/
+
+end subsystem
 
 
 lemma end_from_component (Gpreconn : preconnected G) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :

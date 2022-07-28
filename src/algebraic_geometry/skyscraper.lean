@@ -147,6 +147,9 @@ end
 
 section
 
+-- In this section, we calculate the stalks for skyscraper presheaves. We need to restrict universe
+-- level.
+
 open topological_space
 open category_theory category_theory.limits
 open Top

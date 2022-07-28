@@ -79,8 +79,7 @@ If it is `+1` then the next term, being a square root, is again congruent to `±
 By iteration, then, either all terms including `a^d` are congruent to `+1`,
 or there is a member of the sequence congruent to `-1`, i.e. `∃ r < s` such that `a^(2^(r)*d) = -1`.
 -/
-lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
-  (e : ℕ) (h : a ^ e = 1) :
+lemma repeated_halving_of_exponent {p : ℕ} [fact (p.prime)] {a : zmod p} {e : ℕ} (h : a ^ e = 1) :
   a^(odd_part e) = 1 ∨
   (∃ r : ℕ, r < e.factorization 2 ∧ a^(2^r * odd_part e) = -1) :=
 begin
@@ -98,13 +97,11 @@ begin
     { exact or.inr ⟨i, lt_add_one i, h2⟩ } },
 end
 
-
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
   strong_probable_prime p a  :=
 begin
   rw strong_probable_prime,
-  apply repeated_halving_of_exponent,
-  exact zmod.pow_card_sub_one_eq_one ha,
+  apply repeated_halving_of_exponent (zmod.pow_card_sub_one_eq_one ha),
 end
 
 lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=

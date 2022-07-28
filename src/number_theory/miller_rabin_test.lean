@@ -7,24 +7,31 @@ Authors: Bolton Bailey, Sean Golinski
 import data.zmod.basic
 import number_theory.lucas_primality
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def binpow {M} [has_one M] [has_mul M] (m : M) : ℕ → M :=
 nat.binary_rec 1 (λ b _ ih, let ih2 := ih * ih in cond b (m * ih2) ih2)
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def fast_two_multiplicity : ℕ → ℕ :=
 nat.binary_rec 0 (λ b _ ih, cond b 0 (ih+1))
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def fast_odd_part (n : ℕ) := n / (2 ^ fast_two_multiplicity n)
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def fast_strong_probable_prime (n : nat) (a : zmod n) : bool :=
 binpow a (fast_odd_part (n-1)) = 1
 ∨ (∃ r : ℕ, r < fast_two_multiplicity (n-1) ∧ binpow a (2^r * fast_odd_part(n-1)) = -1)
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def full_miller_rabin (n : nat) (alist : list (zmod n)) : bool :=
 alist.all (fast_strong_probable_prime n)
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def fermat_strong_probable_prime (n : nat) (a : zmod n) : bool :=
 binpow a (n-1) = 1
 
+/-- Temp docstring placeholder to stop the linter complaining -/
 def fast_lucas_primality_test (n : nat) (a : zmod n) : bool :=
 fermat_strong_probable_prime n a
 ∧ ∀ p ∈ (n-1).factors, binpow a ((n-1)/p) ≠ 1

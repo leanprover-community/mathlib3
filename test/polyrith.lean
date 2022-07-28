@@ -443,6 +443,7 @@ by test_polyrith
 
 
 /-
+
 /-! ### Standard Cases over ℤ, ℚ, and ℝ -/
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
@@ -477,7 +478,6 @@ example («def evil» y : ℤ) (h1 : 3*«def evil» + 2*y = 10):
   3*«def evil» + 2*y = 10 :=
 by polyrith
 
-
 example («¥» y : ℤ) (h1 : 3*«¥» + 2*y = 10):
   «¥» * (3*«¥» + 2*y) = 10 * «¥» :=
 by polyrith
@@ -502,6 +502,7 @@ by polyrith
 
 example (x y z w : ℚ) (hzw : z = w) : x*z + 2*y*z = x*w + 2*y*w :=
 by polyrith
+
 
 /-! ### Cases with non-hypothesis inputs/input restrictions -/
 
@@ -542,8 +543,7 @@ begin
      },
   have H' : 2 * q = s ^ 3 - t ^ 3,
   { rw ← mul_left_inj' (pow_ne_zero 3 hs_nonzero),
-    polyrith,
-    },
+    polyrith,},
   polyrith,
 end
 

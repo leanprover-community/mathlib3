@@ -52,7 +52,7 @@ inductive baz
 | a : baz
 | b : baz → baz
 
-@[expand_exists in_bar @foo.in_foo @in_root]
+@[expand_exists in_bar _root_.foo.in_foo _root_.in_root]
 lemma namespace_test (x : baz) : ∃ (y z : baz), x.b = y ∧ y = z := ⟨x.b, x.b, rfl, rfl⟩
 
 end bar

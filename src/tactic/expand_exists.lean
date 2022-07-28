@@ -34,12 +34,17 @@ open expr
 
 namespace expand_exists
 
+/--
+Argument for `expand_exists`, containing a `name` and may contain a docstring.
+-/
 @[derive has_reflect]
 meta structure arg :=
-(is_root : bool)
 (name : name)
 (docstring : option string)
 
+/--
+Try to parse a string.
+-/
 meta def parse_docstring : parser $ (option string) :=
 do
   pe <- parser.pexpr,
@@ -47,13 +52,15 @@ do
   val <- some <$> eval_expr string e,
   return val
 
+/--
+Parse an argument
+-/
 meta def parse_arg : parser arg :=
 do
-  is_root <- option.is_some <$> (tk "@")?,
   name <- ident,
   is_docstring <- option.is_some <$> (tk "=")?,
   doc <- if is_docstring then parse_docstring else pure none,
-  return ⟨is_root, name, doc⟩
+  return ⟨name, doc⟩
 
 /--
 Data known when parsing pi expressions.
@@ -221,11 +228,11 @@ Note that without the last argument `nat_greater_nonzero`, `nat_greater_lt` woul
 ```
 
 All definitions will be created in the same namespace as the `exists` lemma. You can prepend the
-name with `@` to create it in the root namespace:
+name with `_root_` to create it in the root namespace:
 
 ```lean
 namespace foo
-@[expand_exists @a b]
+@[expand_exists _root_.a b]
 lemma a_exists : ∃ (a : α), a = a := ...
 end foo
 
@@ -258,7 +265,7 @@ meta def expand_exists_attr : user_attribute unit (list expand_exists.arg) :=
     expand_exists.parse_pis
     { original_decl := d,
       decl := (λ is_t a ty val, do
-        let name := if a.is_root then a.name else d.to_name.get_prefix ++ a.name,
+        let name := d.to_name.get_prefix.append_namespace a.name,
         val <- tactic.to_expr val,
         decl <- tactic.add_decl $ if is_t then declaration.thm name d.univ_params ty (pure val)
           else declaration.defn name d.univ_params ty val default tt,

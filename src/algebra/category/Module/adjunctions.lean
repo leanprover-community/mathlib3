@@ -352,7 +352,7 @@ variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 variable (M : Module S)
 
 /--Any `S`-module M is also an `R`-module via a ring homomorphism `f : R ⟶ S` by defining
-`r • m := f r • m`. This is called restriction of scalars. -/
+`r • m := f r • m` (`module.comp_hom`). This is called restriction of scalars. -/
 def obj' : Module R :=
 { carrier := M,
   is_add_comm_group := infer_instance,

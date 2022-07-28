@@ -247,3 +247,107 @@ begin
 end
 
 end obtain_bug
+
+section rsuffices
+
+/-- These next few are duplicated from `rcases/obtain` tests, with the goal order swapped. -/
+
+example : true :=
+begin
+  rsuffices ⟨n : ℕ, h : n = n, -⟩ : ∃ n : ℕ, n = n ∧ true,
+  { guard_hyp n : ℕ,
+    guard_hyp h : n = n,
+    success_if_fail {assumption},
+    trivial },
+  { existsi 0, simp },
+end
+
+example : true :=
+begin
+  rsuffices : ∃ n : ℕ, n = n ∧ true,
+  { trivial },
+  { existsi 0, simp },
+end
+
+example : true :=
+begin
+  rsuffices (h : true) | ⟨⟨⟩⟩ : true ∨ false,
+  { guard_hyp h : true,
+    trivial },
+  { left, trivial },
+end
+
+example : true :=
+begin
+  success_if_fail {rsuffices ⟨h, h2⟩},
+  trivial
+end
+
+example (x y : α × β) : true :=
+begin
+  rsuffices ⟨⟨a, b⟩, c, d⟩ : (α × β) × (α × β),
+  { guard_hyp a : α,
+    guard_hyp b : β,
+    guard_hyp c : α,
+    guard_hyp d : β,
+    trivial },
+  { exact ⟨x, y⟩ }
+end
+
+-- This test demonstrates why `swap` is not used in the implementation of `rsuffices`:
+-- it would make the _second_ goal the one requiring ⟨x, y⟩, not the last one.
+example (x y : α ⊕ β) : true :=
+begin
+  rsuffices ⟨a|b, c|d⟩ : (α ⊕ β) × (α ⊕ β),
+  { guard_hyp a : α, guard_hyp c : α, trivial },
+  { guard_hyp a : α, guard_hyp d : β, trivial },
+  { guard_hyp b : β, guard_hyp c : α, trivial },
+  { guard_hyp b : β, guard_hyp d : β, trivial },
+  exact ⟨x, y⟩,
+end
+
+example {α} (V : set α) (w : true → ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) : true :=
+begin
+  rsuffices ⟨a, h⟩ : ∃ p, p ∈ (V.foo V) ∩ (V.foo V),
+  { trivial },
+  { exact w trivial },
+end
+
+-- Now some tests that ensure that things stay in the correct order.
+
+-- This test demonstrates why `focus1` is required in the definition of `rsuffices`; otherwise
+-- the `∃ ...` goal would get put _after_ the `true` goal.
+example : nonempty ℕ ∧ true :=
+begin
+  split,
+  rsuffices ⟨n : ℕ, hn⟩ : ∃ n, _,
+  { exact ⟨n⟩ },
+  { exact true },
+  { exact ⟨0, trivial⟩ },
+  { trivial },
+end
+
+section instances
+
+example (h : Π {α}, inhabited α) : inhabited (α ⊕ β) :=
+begin
+  rsufficesI (ha | hb) : inhabited α ⊕ inhabited β,
+  { exact ⟨sum.inl default⟩ },
+  { exact ⟨sum.inr default⟩ },
+  { exact sum.inl h }
+end
+
+include β
+-- this demonstrates that the `resetI` also applies onto the goal; this is potentially unwanted
+-- behaviour and so a PR removing this may be welcome.
+example (h : Π {α}, inhabited α) : inhabited α :=
+begin
+  have : inhabited β := h,
+  rsufficesI h : β,
+  { exact h },
+  { exact default }
+end
+
+end instances
+
+end rsuffices

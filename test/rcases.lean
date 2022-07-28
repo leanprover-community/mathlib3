@@ -227,3 +227,23 @@ example {α n} (h : foo α n) : true := by test_rcases_hint "_ | ⟨n, h_ᾰ⟩"
 
 example {α} (V : set α) (h : ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) :=
 by test_rcases_hint "⟨⟨h_w_fst, h_w_snd⟩, ⟨⟩⟩" 0
+
+section obtain_bug
+
+-- BUG in `obtain`: you can't name hypotheses if you're not destructing/casing at all and
+-- the term is constructed by a tactic block and not a `:=`:
+example : true :=
+begin
+  obtain h : true,
+  { trivial },
+  success_if_fail { exact h },
+  assumption,
+end
+
+example : true :=
+begin
+  obtain h : true := trivial,
+  exact h
+end
+
+end obtain_bug

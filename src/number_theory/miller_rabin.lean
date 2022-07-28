@@ -45,8 +45,12 @@ begin
   simp only [odd_part, mul_ord_compl n m 2],
 end
 
+/-- Let `n = 2^s * d + 1`, where `s := (n-1).factorization 2` and `d := odd_part (n-1)`.
+Then `n` is a **strong probable prime** relative to a base `a : zmod n` if either
+`a^d = 1 (mod n)` or `a ^ (2^r * d) = -1 (mod n)` for some `0 ≤ r < s`. -/
 def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
-a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < (n-1).factorization 2 ∧ a^(2^r * odd_part(n-1)) = -1)
+  a^(odd_part (n-1)) = 1 ∨
+  (∃ r : ℕ, r < (n-1).factorization 2 ∧ a^(2^r * odd_part(n-1)) = -1)
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 

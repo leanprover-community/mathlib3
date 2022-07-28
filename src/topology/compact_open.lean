@@ -104,7 +104,7 @@ continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
 
 /--This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*-/
-lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
+lemma continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
   [locally_compact_space β] [topological_space γ] :
   continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
 begin
@@ -114,7 +114,7 @@ begin
   rintros ⟨φ₀, ψ₀⟩ H,
   simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
     set.mem_set_of_eq, @set.preimage_comp _ _ _ φ₀ ψ₀ _, to_fun_eq_coe] at H,
-  obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_superset' (hK.image φ₀.2)
+  obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_between (hK.image φ₀.2)
     (hU.preimage ψ₀.2) (set.image_subset_iff.mpr H),
   set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
   have hV := continuous_map.is_open_gen hK is_open_interior,

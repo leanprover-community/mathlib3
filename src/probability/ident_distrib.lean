@@ -336,10 +336,10 @@ begin
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfmeas i).1,
   have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hfmeas i).2.symm,
   have hgℒp : mem_ℒp (g j) p μ := hℒp.ae_eq (hgeq j).symm,
-  exact uniform_integrable.ae_eq (mem_ℒp.uniform_integrable_of_ident_distrib' hp hp'
+  exact uniform_integrable.ae_eq (mem_ℒp.uniform_integrable_of_ident_distrib_aux hp hp'
     hgℒp hgmeas $
-    λ i, (ident_distrib.ae_eq (hgmeas i).ae_measurable (hgeq i)).trans ((hf i).trans
-      $ ident_distrib.ae_eq (hfmeas j).ae_measurable (hgeq j).symm)) hgeq,
+    λ i, (ident_distrib.of_ae_eq (hgmeas i).ae_measurable (hgeq i)).trans ((hf i).trans
+      $ ident_distrib.of_ae_eq (hfmeas j).ae_measurable (hgeq j).symm)) hgeq,
 end
 
 end uniform_integrable

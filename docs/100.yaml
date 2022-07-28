@@ -187,7 +187,8 @@
   title  : Pi is Transcendental
 54:
   title  : Königsberg Bridges Problem
-  decl   : konigsberg.not_is_eulerian
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/54_konigsberg.lean
   author : Kyle Miller
 55:
   title  : Product of Segments of Chords

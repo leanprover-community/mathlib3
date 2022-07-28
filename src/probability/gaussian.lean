@@ -37,8 +37,11 @@ open real
 noncomputable def gaussian_density (m s : ℝ) : ℝ → ℝ≥0∞ :=
 λ x, ennreal.of_real $ (sqrt (2 * π * s^2))⁻¹ * exp (-(2 * s^2)⁻¹ * (x - m)^2)
 
+/-- We say a real measure is Gaussian if there exists some `m s : ℝ` such that the Radon-Nikodym
+derivative of `μ` with respect to the Lebesgue integral is the Gaussian density with mean `m` and
+standard deviation `s`. -/
 def measure.real_gaussian (μ : measure ℝ) (m s : ℝ) : Prop :=
-if s ≠ 0 then μ = (volume : measure ℝ).with_density (gaussian_density m s) else μ = measure.dirac m
+if s ≠ 0 then μ = volume.with_density (gaussian_density m s) else μ = measure.dirac m
 
 open probability_theory measure
 
@@ -54,7 +57,61 @@ begin
 end
 
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
-  moment id 1 μ = 0 :=
+  μ[id] = m :=
+begin
+  sorry
+end
+
+-- easy direction
+lemma absolutely_continuous_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
+  μ ≪ volume :=
+begin
+  sorry
+end
+
+-- harder
+lemma real_gaussian_absolutely_continuous (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
+  volume ≪ μ :=
+begin
+  -- Hint: first show/find in mathlib that for positive `f`, `∫ x in s, f x ∂μ = 0 ↔ μ s = 0`
+  -- Do it on paper first!
+  sorry
+end
+
+/- ### Transformation of Gaussian random variables -/
+
+variables {α : Type*} [measure_space α]
+
+/-- A real-valued random variable is a Gaussian if its push-forward measure is a Gaussian measure
+on ℝ. -/
+def gaussian_rv (f : α → ℝ) (m s : ℝ) : Prop := (volume.map f).real_gaussian m s
+
+def std_gaussian_rv (f : α → ℝ) : Prop := gaussian_rv f 0 1
+
+variables {f g : α → ℝ} {m₁ s₁ m₂ s₂ : ℝ}
+
+lemma std_gaussian_rv_add_const (hf : std_gaussian_rv f) (hfmeas : measurable f) (m : ℝ) :
+  gaussian_rv (f + λ x, m) m 1 :=
+begin
+  sorry
+end
+
+lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :
+  gaussian_rv (s • f) 0 s :=
+begin
+  sorry
+end
+
+-- Hard!
+lemma gaussian_rv_add (hf : gaussian_rv f m₁ s₁) (hg : gaussian_rv g m₂ s₂)
+  (hfmeas : measurable f) (hgmeas : measurable g) (hfg : indep_fun f g) :
+  gaussian_rv (f + g) (m₁ + m₂) (sqrt (s₁^2 + s₂^2)) :=
+begin
+  sorry
+end
+
+lemma mgf_gaussian_rv  (hf : gaussian_rv f m s) (hfmeas : measurable f) (t : ℝ) :
+  mgf f volume t = exp (m * t + s^2 * t^2 / 2) :=
 begin
   sorry
 end

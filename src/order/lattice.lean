@@ -231,11 +231,17 @@ by rw [sup_sup_sup_comm, sup_idem]
 lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b ⊔ c) :=
 by rw [sup_sup_sup_comm, sup_idem]
 
-lemma sup_eq_sup_of_le_of_le (h1 : a ≤ b ⊔ c) (h2 : b ≤ a ⊔ c) : a ⊔ c = b ⊔ c :=
-(sup_le h1 le_sup_right).antisymm (sup_le h2 le_sup_right)
+lemma sup_congr_left (hb : b ≤ a ⊔ c) (hc : c ≤ a ⊔ b) : a ⊔ b = a ⊔ c :=
+(sup_le le_sup_left hb).antisymm $ sup_le le_sup_left hc
 
-lemma sup_eq_sup_iff_le_le : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
-⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_eq_sup_of_le_of_le h.1 h.2⟩
+lemma sup_congr_right (ha : a ≤ b ⊔ c) (hb : b ≤ a ⊔ c) : a ⊔ c = b ⊔ c :=
+(sup_le ha le_sup_right).antisymm $ sup_le hb le_sup_right
+
+lemma sup_eq_sup_iff_left : a ⊔ b = a ⊔ c ↔ b ≤ a ⊔ c ∧ c ≤ a ⊔ b :=
+⟨λ h, ⟨h ▸ le_sup_right, h.symm ▸ le_sup_right⟩, λ h, sup_congr_left h.1 h.2⟩
+
+lemma sup_eq_sup_iff_right : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
+⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_congr_right h.1 h.2⟩
 
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
@@ -390,11 +396,17 @@ lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓
 lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
 @sup_sup_distrib_right αᵒᵈ _ _ _ _
 
-lemma inf_eq_inf_of_le_of_le (h1 : b ⊓ c ≤ a) (h2 : a ⊓ c ≤ b) : a ⊓ c = b ⊓ c :=
-@sup_eq_sup_of_le_of_le αᵒᵈ _ _ _ _ h1 h2
+lemma inf_congr_left (hb : a ⊓ c ≤ b) (hc : a ⊓ b ≤ c) : a ⊓ b = a ⊓ c :=
+@sup_congr_left αᵒᵈ _ _ _ _ hb hc
 
-lemma inf_eq_inf_iff_le_le : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
-@sup_eq_sup_iff_le_le αᵒᵈ _ _ _ _
+lemma inf_congr_right (h1 : b ⊓ c ≤ a) (h2 : a ⊓ c ≤ b) : a ⊓ c = b ⊓ c :=
+@sup_congr_right αᵒᵈ _ _ _ _ h1 h2
+
+lemma inf_eq_inf_iff_left : a ⊓ b = a ⊓ c ↔ a ⊓ c ≤ b ∧ a ⊓ b ≤ c :=
+@sup_eq_sup_iff_left αᵒᵈ _ _ _ _
+
+lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
+@sup_eq_sup_iff_right αᵒᵈ _ _ _ _
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -553,7 +565,8 @@ end lattice
 equivalent distributive properties (of `sup` over `inf` or `inf` over `sup`,
 on the left or right).
 
-The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`.
+The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`. To prove distributivity
+from the dual law, use `distrib_lattice.of_inf_sup_le`.
 
 A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
@@ -561,9 +574,6 @@ generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
-
-/- TODO: alternative constructors from the other distributive properties,
-and perhaps a `tfae` statement -/
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}
@@ -607,6 +617,13 @@ le_antisymm
   (le_of_inf_le_sup_le (le_of_eq h₁.symm) (le_of_eq h₂.symm))
 
 end distrib_lattice
+
+/-- Prove distributivity of an existing lattice from the dual distributive law. -/
+@[reducible] -- See note [reducible non-instances]
+def distrib_lattice.of_inf_sup_le [lattice α]
+  (inf_sup_le : ∀ a b c : α, a ⊓ (b ⊔ c) ≤ (a ⊓ b) ⊔ (a ⊓ c)) : distrib_lattice α :=
+{ ..‹lattice α›,
+  ..@order_dual.distrib_lattice αᵒᵈ { le_sup_inf := inf_sup_le, ..order_dual.lattice _ } }
 
 /-!
 ### Lattices derived from linear orders

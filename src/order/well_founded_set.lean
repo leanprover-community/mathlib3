@@ -663,7 +663,7 @@ begin
   by_cases hn : n < g 0,
   { apply hf1.2 m n mn,
     rwa [if_pos hn, if_pos (mn.trans hn)] at hmn },
-  { obtain ⟨n', rfl⟩ := le_iff_exists_add.1 (not_lt.1 hn),
+  { obtain ⟨n', rfl⟩ := exists_add_of_le (not_lt.1 hn),
     rw [if_neg hn, add_comm (g 0) n', add_tsub_cancel_right] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
@@ -893,7 +893,7 @@ begin
   { simpa only [forall_true_left, finset.mem_univ] using this finset.univ, },
   apply' finset.induction,
   { intros f hf, existsi rel_embedding.refl (≤),
-    simp only [forall_false_left, implies_true_iff, forall_const, finset.not_mem_empty], },
+    simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f hf,
     obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
       ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),

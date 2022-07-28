@@ -196,8 +196,8 @@ h.symm.embedding.t1_space
 protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
 h.symm.embedding.t2_space
 
-protected lemma regular_space [regular_space α] (h : α ≃ₜ β) : regular_space β :=
-h.symm.embedding.regular_space
+protected lemma t3_space [t3_space α] (h : α ≃ₜ β) : t3_space β :=
+h.symm.embedding.t3_space
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,

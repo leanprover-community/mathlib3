@@ -517,6 +517,8 @@ begin
   exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
 end
 
+variable (M)
+
 lemma charted_space.second_countable_of_sigma_compact [second_countable_topology H]
   [sigma_compact_space M] :
   second_countable_topology M :=
@@ -525,8 +527,6 @@ begin
     countable_cover_nhds_of_sigma_compact (λ x : M, chart_source_mem_nhds H x),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
 end
-
-variable (M)
 
 /-- If a topological space admits an atlas with locally compact charts, then the space itself
 is locally compact. -/

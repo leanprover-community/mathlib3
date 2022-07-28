@@ -18,15 +18,14 @@ i.e. it is a `subfield L` and a `subalgebra K L`.
 
 ## Main definitions
 
- * `intermediate_field K L` : the type of intermediate fields between `K` and `L`.
-
- * `subalgebra.to_intermediate_field`: turns a subalgebra closed under `⁻¹`
-   into an intermediate field
-
- * `subfield.to_intermediate_field`: turns a subfield containing the image of `K`
-   into an intermediate field
-
+* `intermediate_field K L` : the type of intermediate fields between `K` and `L`.
+* `subalgebra.to_intermediate_field`: turns a subalgebra closed under `⁻¹`
+  into an intermediate field
+* `subfield.to_intermediate_field`: turns a subfield containing the image of `K`
+  into an intermediate field
 * `intermediate_field.map`: map an intermediate field along an `alg_hom`
+* `intermediate_field.restrict_scalars`: restrict the scalars of an intermediate field to a smaller
+  field in a tower of fields.
 
 ## Implementation notes
 
@@ -274,6 +273,8 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
+@[simp] lemma coe_map (f : L →ₐ[K] L') : (S.map f : set L') = f '' S := rfl
+
 lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
   (E : intermediate_field K L₁) (f : L₁ →ₐ[K] L₂) (g : L₂ →ₐ[K] L₃) :
@@ -376,44 +377,46 @@ variables {S}
 section tower
 
 /-- Lift an intermediate_field of an intermediate_field -/
-def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
-  map E (val F)
+def lift {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
+map E (val F)
 
-/-- Lift an intermediate_field of an intermediate_field -/
-def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermediate_field K L :=
+instance has_lift {F : intermediate_field K L} :
+  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift⟩
+
+section restrict_scalars
+variables (K) [algebra L' L] [is_scalar_tower K L' L]
+
+/-- Given a tower `L / ↥E / L' / K` of field extensions, where `E` is an `L'`-intermediate field of
+`L`, reinterpret `E` as a `K`-intermediate field of `L`. -/
+def restrict_scalars (E : intermediate_field L' L) :
+  intermediate_field K L :=
 { carrier := E.carrier,
-  zero_mem' := zero_mem E,
-  add_mem' := λ x y (hx : x ∈ E), add_mem hx,
-  neg_mem' := λ x (hx : x ∈ E), neg_mem hx,
-  one_mem' := one_mem E,
-  mul_mem' := λ x y (hx : x ∈ E), mul_mem hx,
-  inv_mem' := λ x (hx : x ∈ E), inv_mem hx,
-  algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K F x) }
+  ..E.to_subfield,
+  ..E.to_subalgebra.restrict_scalars K }
 
-instance has_lift1 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift1⟩
+@[simp] lemma coe_restrict_scalars {E : intermediate_field L' L} :
+  (restrict_scalars K E : set L) = (E : set L) := rfl
 
-instance has_lift2 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field F L) (intermediate_field K L) := ⟨lift2⟩
+@[simp] lemma restrict_scalars_to_subalgebra {E : intermediate_field L' L} :
+  (E.restrict_scalars K).to_subalgebra = E.to_subalgebra.restrict_scalars K :=
+set_like.coe_injective rfl
 
-@[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
-  x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
+@[simp] lemma restrict_scalars_to_subfield {E : intermediate_field L' L} :
+  (E.restrict_scalars K).to_subfield = E.to_subfield :=
+set_like.coe_injective rfl
+
+@[simp] lemma mem_restrict_scalars {E : intermediate_field L' L} {x : L} :
+  x ∈ restrict_scalars K E ↔ x ∈ E := iff.rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars K : intermediate_field L' L → intermediate_field K L) :=
+λ U V H, ext $ λ x, by rw [← mem_restrict_scalars K, H, mem_restrict_scalars]
+
+end restrict_scalars
 
 /-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/
 example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
 by apply_instance
-
-lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
-  algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl
-
-instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
-  is_scalar_tower K F E :=
-E.is_scalar_tower
-
-/-- `lift2` is isomorphic to the original `intermediate_field`. -/
-def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
-  (↑E : intermediate_field K L) ≃ₐ[K] E :=
-alg_equiv.refl
 
 end tower
 
@@ -422,7 +425,7 @@ section finite_dimensional
 variables (F E : intermediate_field K L)
 
 instance finite_dimensional_left [finite_dimensional K L] : finite_dimensional K F :=
-finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
+left K F L
 
 instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional F L :=
 right K F L
@@ -461,6 +464,9 @@ lemma eq_of_le_of_finrank_eq' [finite_dimensional K L] (h_le : F ≤ E)
 eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
+
+lemma algebraic_iff {x : S} : is_algebraic K x ↔ is_algebraic K (x : L) :=
+(is_algebraic_algebra_map_iff (algebra_map S L).injective).symm
 
 end intermediate_field
 

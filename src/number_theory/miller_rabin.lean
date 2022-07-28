@@ -63,12 +63,8 @@ begin
   -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
   -- suff
   suffices : two_power_part (n * m) * odd_part (n * m) = two_power_part (n * m) * (odd_part n * odd_part m),
-  {
-
-    simp [ne_zero_of_lt pos_two_power_part] at this,
-    exact this,
-    -- simp * at *
-  },
+  { simp [ne_zero_of_lt pos_two_power_part] at this,
+    exact this },
   rw two_power_part_mul_odd_part,
   rw hnm',
   -- rw mul_assoc,
@@ -132,8 +128,7 @@ begin
     use i,
     split,
     exact lt_add_one i,
-    exact h2,
-     },
+    exact h2 },
 end
 
 
@@ -153,14 +148,12 @@ begin
     simp only [not_lt, _root_.le_zero_iff] at h,
     rw h at hn,
     simp only [pow_zero, nat.not_even_one] at hn,
-    exact hn,
-  },
+    exact hn },
   { intro hn,
     rcases hn,
     simp only [pow_one, even_two],
     rw pow_succ,
-    apply even_two_mul,
-  }
+    apply even_two_mul }
 end
 
 lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
@@ -169,11 +162,8 @@ begin
   unfold strong_probable_prime at h,
   unfold fermat_pseudoprime,
   cases h,
-  {
-  rw [← two_power_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow],
-  },
-  {
-    rcases h with ⟨r, hrlt, hpow⟩,
+  { rw [← two_power_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
+  { rcases h with ⟨r, hrlt, hpow⟩,
     have h := congr_arg (^(2^(padic_val_nat 2 (n - 1) - r))) hpow,
     simp at h,
     rw ←pow_mul a at h,
@@ -185,17 +175,15 @@ begin
     rw two_power_part_mul_odd_part at h,
     rw h,
     -- apply nat.neg_one_pow_of_even,   -- TODO (SP): What has this been renamed to?
-    suffices : even (2 ^ (padic_val_nat 2 (n - 1) - r)), {
-      cases this with x hx,
+    suffices : even (2 ^ (padic_val_nat 2 (n - 1) - r)),
+    { cases this with x hx,
       rw hx,
       rw ←two_mul x,
       rw pow_mul,
-      simp,
-     },
+      simp },
 
     rw nat.even_two_pow_iff,
-    exact tsub_pos_of_lt hrlt,
-  },
+    exact tsub_pos_of_lt hrlt },
 end
 
 lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
@@ -241,10 +229,8 @@ begin
   have one_le_p : 1 ≤ p,
   exact nat.le_of_succ_le two_le_p,
   have one_lt_n : 1 < p ^ α,
-  {
-  clear a,
-  exact nat.succ_le_iff.mp (le_trans two_le_p (le_self_pow (nat.le_of_succ_le two_le_p) hα)),
-  },
+  { clear a,
+    exact nat.succ_le_iff.mp (le_trans two_le_p (le_self_pow (nat.le_of_succ_le two_le_p) hα)) },
   have zero_lt_n : 0 < p^α,
   exact pos_of_gt one_lt_n,
   haveI : fact (0 < p ^ α),
@@ -273,8 +259,7 @@ begin
       cases hspp,
       { -- ... a^k = 1
         rw ← two_power_part_mul_odd_part (p ^ α - 1),
-        rw [mul_comm, pow_mul, hspp, one_pow],
-      },
+        rw [mul_comm, pow_mul, hspp, one_pow] },
       { -- ... or a^(2^i k) = -1
           rcases hspp with ⟨r, hrlt, hrpow⟩,
           rw lt_iff_exists_add at hrlt,
@@ -299,12 +284,9 @@ begin
       { -- p is relatively prime to p^α - 1
         apply nat.coprime.pow_left,
         rw ←nat.coprime_pow_left_iff (hα),
-        exact coprime_self_sub_one (p ^ α) zero_lt_n,
-      },
-      {exact sub_one_dvd_pow_sub_one p α one_le_p,},
-    },
-    rwa gcd_eq at order_gcd,
-  },
+        exact coprime_self_sub_one (p ^ α) zero_lt_n },
+      {exact sub_one_dvd_pow_sub_one p α one_le_p,} },
+    rwa gcd_eq at order_gcd },
   { -- a ^ (p-1) = 1
     intro h,
     have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
@@ -314,8 +296,7 @@ begin
       rw two_power_part at this,
       rw nat.dvd_prime_pow at this,
       exact this,
-      exact nat.prime_two,
-    },
+      exact nat.prime_two },
     rcases goo with ⟨j, H, hj⟩,
     by_cases j = 0,
     { rw strong_probable_prime,
@@ -325,18 +306,13 @@ begin
         rw h,
         rw pow_zero,
         rw order_of_eq_one_iff at stuff,
-        rw stuff,
-      },
+        rw stuff },
       left,
       have thing := sub_one_dvd_pow_sub_one p α one_le_p,
       rw dvd_iff_exists_eq_mul_left at thing,
       rcases thing with ⟨c, hc⟩,
-      rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow],
-    },
-    {
-      sorry,
-    },
-  },
+      rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
+    { sorry } },
 end
 
 -- https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Abelian.20subgroup.20dividing.20order/near/277098292
@@ -350,8 +326,7 @@ def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
   end,
   inv_mem' := begin
     simp,
-  end,
-}
+  end }
 
 def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
 { carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1)),
@@ -374,8 +349,7 @@ def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
     simp_rw [ha1, eq_self_iff_true, true_or],
     simp_rw [ha2, inv_neg'],
     simp,
-  end,
-}
+  end }
 
 /-- Every positive natural is of the form of one of the rec_on_prime_coprime recursors. -/
 lemma coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
@@ -391,10 +365,8 @@ begin
     use k,
     split,
     exact hp,
-    refl,
-   },
-  {
-    intros n0 n1 hn0 hn1 hn0n1 hn0' hn1' hmul,
+    refl },
+  { intros n0 n1 hn0 hn1 hn0n1 hn0' hn1' hmul,
     clear hn0' hn1',
     left,
     use n0,
@@ -406,8 +378,7 @@ begin
     trivial,
     split,
     exact hn0,
-    exact hn1,
-  }
+    exact hn1 }
 end
 
 lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
@@ -472,8 +443,7 @@ begin
     rw fintype.card_subtype,
     congr,
     ext,
-    simp_rw [finset.mem_filter, finset.mem_univ, true_and],
-   },
+    simp_rw [finset.mem_filter, finset.mem_univ, true_and] },
   rw this,
   convert subgroup.card_subgroup_dvd_card s_subgroup,
   { intros a b ha hb, simp only [finset.mem_coe] at *, solve_by_elim, },
@@ -496,8 +466,7 @@ begin
     have thing2 : 0 < fintype.card G,
     exact fintype.card_pos,
     rw hindex at thing2,
-    exact nat.lt_asymm thing2 thing2,
-  },
+    exact nat.lt_asymm thing2 thing2 },
   by_cases h1 : index = 1,
   { by_contra,
     rw h1 at hindex,
@@ -508,15 +477,13 @@ begin
     rw htop at *,
     clear htop,
     apply proper,
-    simp only [subgroup.mem_top],
-  },
+    simp only [subgroup.mem_top] },
   have two_le_index : 2 ≤ index,
   { by_contra,
     simp at h,
     interval_cases index,
     exact h0 rfl,
-    exact h1 rfl,
-  },
+    exact h1 rfl },
   rw hindex,
   exact mul_le_mul_left' two_le_index (fintype.card ↥H),
 end
@@ -557,37 +524,30 @@ lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 
   ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
 begin
   rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
-  let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
-    by {
+  let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max'
+  ( by {
       rw finset.filter_nonempty_iff,
       use 0,
       simp only [finset.mem_range, pow_zero, pow_one, exists_apply_eq_apply, and_true],
       by_contra,
       simp at h,
       have hn' : n - 1 ≠ 0,
-      {
-        rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
-        exact one_lt_mul hn0.le hn1,
-      },
+      { rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
+        exact one_lt_mul hn0.le hn1 },
       apply hn',
       clear hn',
       rw ← two_power_part_mul_odd_part (n - 1),
-      rw [h, mul_zero],
-    }
-  ),
+      rw [h, mul_zero] } ),
   have h_proper : ∃ x, x ∉ (pow_alt_subgroup n (i0 * odd_part(n - 1))),
-  {
-    -- nat.chinese_remainder'_lt_lcm
+  { -- nat.chinese_remainder'_lt_lcm
     -- nat.chinese_remainder_lt_mul
-    sorry,
-  },
+    sorry },
   rcases h_proper with ⟨x, hx⟩,
   have hsubgroup :
     (finset.filter (λ (a : zmod n), strong_probable_prime n a) (finset_units n)).card * 2
     ≤ fintype.card ↥(pow_alt_subgroup n (i0 * odd_part (n - 1))) * 2,
   { simp [mul_le_mul_right],
     -- rw foocard,
-
     sorry,  },
   apply trans hsubgroup,
   clear hsubgroup,
@@ -604,17 +564,14 @@ begin
   rcases h with ⟨p, k, p_prime, n_pow⟩,
   have n_pos : 0 < n, exact hn_pos.out,
   have one_lt_k : 1 < k,
-  {
-    by_contra,
+  { by_contra,
     simp at h,
     interval_cases k,
     simp at n_pow,
     rw n_pow at h1,
     exact nat.lt_asymm h1 h1,
-    { apply not_prime,
-      sorry, -- TODO(Sean)
-    },
-  },
+    { apply not_prime,-- TODO(Sean)
+      sorry } },
   sorry,
 end
 
@@ -626,16 +583,13 @@ begin
   cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
   { exfalso,
     -- TODO(Sean)
-    sorry,
-  },
+    sorry },
   -- clear hn1,
   cases h,
   { apply unlikely_strong_probable_prime_of_coprime_mul,
     exact h,
-    exact not_prime,
-  },
+    exact not_prime },
   { -- n is a prime power
     -- TODO(Sean): unlikely_strong_probable_prime_of_prime_power should be able to finish this
-    sorry,
-  },
+    sorry },
 end

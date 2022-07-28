@@ -201,7 +201,8 @@ by { simp [change_of_variable], ring1 }
 
 @[simp] lemma j_eq : (E.change_of_variable u r s t).j = E.j :=
 begin
-  simp,
+  simp only [j, c₄, Δ_eq, inv_pow, mul_inv_rev, inv_inv, units.coe_mul, units.coe_pow,
+    c₄_eq, b₂, b₄],
   have hu : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination ↑E.Δ⁻¹ * ((E.a₁ ^ 2 + 4 * E.a₂) ^ 2 - 24 * (2 * E.a₄ + E.a₁ * E.a₃)) ^ 3 * hu
 end

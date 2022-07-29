@@ -82,9 +82,23 @@ example : H_space ℝ :=
   m_e_e := sorry,
   cont_m := our_m_continuous,
 }
+/-
+  Next, show that the sphere S^3 has a canonical H-space structure.
 
---  m := our_m,
+  We will think of S^3 as the quaternions of norm 1.
 
+  The "usual" quaternions are denoted H[ℝ] in Lean. They form an ℝ-algebra, equipped with a conjugation x → quaternion.conj x and a norm |x|^2 = x * quaternion.conj x.
+
+  This norm is multiplicative, so the elements of norm 1 form a group norm_1_quaternions. The quaternion algebra H[ℝ] should have a topology, and the induced topology on norm_1_quaternions makes it a topological group.
+
+  In particular, the norm 1 quaternions form an H-space.
+
+  There is a theorem in Lean saying that |x|^2 = x_1^2 + x_2^2 + x_3^2 + x_4^2 (coordinates in the canonical basis of H[ℝ]), so the norm one quaternions are identified with S^3.
+
+  If SU(2) is already defined in Lean, it would be nice to also identify S^3 with SU(2), via u + v J → matrix (u & - complex.conj v \\ v & complex.conj u).
+
+  Obs: a similar strategy will apply for S^7 (octonions of norm 1), except that the octonions of norm 1 do not form a group (no associativity).
+-/
 
 
 -- example : H_space S^3 :=

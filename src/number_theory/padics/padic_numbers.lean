@@ -701,7 +701,7 @@ instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
   abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-theorem rat_dense {p} [fact p.prime] (q : ℚ_[p]) {ε : ℝ} (hε : 0 < ε) : ∃ r : ℚ, ∥q - r∥ < ε :=
+theorem rat_dense (q : ℚ_[p]) {ε : ℝ} (hε : 0 < ε) : ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
 ⟨r, lt_trans (by simpa [has_norm.norm] using hr) hε'r⟩

@@ -26,7 +26,7 @@ namespace simple_graph
 
 
 variables  {V : Type u}
-           (G Gpc : simple_graph V)
+           (G : simple_graph V)
 
 
 
@@ -430,6 +430,8 @@ end
 
 
 section subsystem
+
+parameters (V : Type*) (G : simple_graph V)
 
 def subsystem  (Gpc : G.preconnected) [locally_finite G] :=
   {f : (Π L : finset V, set (inf_ro_components G L))

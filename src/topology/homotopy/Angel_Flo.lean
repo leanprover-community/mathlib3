@@ -67,16 +67,15 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   e := z,
   m_e_e := by simp only [half_add_self],
   cont_m := begin
-  exact continuous.add (continuous.fst' continuous_id') (continuous.snd' continuous_id'),
+  apply continuous.add (continuous.fst' continuous_id') (continuous.snd' continuous_id'),
   end,
   m_e_dot_homotopic_to_id := _,
   m_dot_e_homotopic_to_id := _ }
 
 variables x y : ℝ
 
---def our_m : ℝ := (x+y)/2
-
-#check our_m
+-- def our_m : ℝ := (x+y)/2
+-- #check our_m
 
 lemma our_m_continuous : continuous our_m :=
 begin

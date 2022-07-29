@@ -378,6 +378,12 @@ end
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 
+lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 :=
+λ hp, by rwa [hp, roots_zero] at h
+
+lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a :=
+(mem_roots (ne_zero_of_mem_roots h)).mp h
+
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
 (multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)
@@ -678,9 +684,13 @@ begin
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
 
-lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {x : S}
-  (hx : x ∈ p.root_set S) : p ≠ 0 :=
-λ hf, by rwa [hf, root_set_zero] at hx
+lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
+  (h : a ∈ p.root_set S) : p ≠ 0 :=
+λ hf, by rwa [hf, root_set_zero] at h
+
+lemma aevl_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
+(mem_root_set_iff (ne_zero_of_mem_root_set hx) a).mp hx
 
 end roots
 

@@ -17,6 +17,24 @@ import algebra.big_operators.intervals
 /-!
 # Lemmas and definitions that will be used in proving the Miller-Rabin primality test.
 
+Since we only need to test odd numbers for primality, let `n-1 = 2^e * k`, where
+`e := (n-1).factorization 2` and `k := odd_part (n-1)`. Then we can factor the polynomial
+`x^(n-1) - 1 = x^(2^e * k) - 1 = (x^k - 1) *  ∏ i in Ico 0 e, (x^(2^i * k) + 1)`.
+For prime `n` and any `0 < x < n`, Fermat's Little Theorem gives `x^(n-1) - 1 = 0 (mod n)`,
+so we have either `(x^k - 1) = 0 (mod n)` or `(x^(2^i * k) + 1) = 0 (mod n)` for some `0 ≤ i < e`.
+Conversely, then, if there is an `0 < a < n` such that `(a^k - 1) ≠ 0 (mod n)` and
+`(a^(2^i * k) + 1) ≠ 0 (mod n)` for all `0 ≤ i < e` then this demonstrates that `n` is not prime.
+Such an `a` is called a **Miller–Rabin witness** for `n`.
+
+Of course, the existence of a witness can only demonstrate that `n` is not prime. But if we check
+several candidates — i.e. several numbers `0 < a < n` — and find that none of them are witnesses
+then this increases our confidence that `n` is a prime. This confidence is supported by the
+theorem that for any odd composite `n`, at least 3/4 of numbers `1 < a < n-1` are witnesses for `n`.
+Thus if `n` is not a prime there is a high probability that randomly sampling these numbers will
+produce a witness. For any given confidence threshold `P < 100%` we can repeatedly sample until
+the probability of finding a witness (if one exists) is at least `P`. This is the essence of the
+Miller-Rabin primality test.
+
 -- TODO add reference to [this](https://kconrad.math.uconn.edu/blurbs/ugradnumthy/millerrabin.pdf)
 
 -/

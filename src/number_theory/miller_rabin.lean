@@ -199,6 +199,12 @@ def nat.miller_rabin_sequence (n : ℕ) (a : zmod n) : list (zmod n) :=
 -- #eval to_bool (-1 ∈ nat.miller_rabin_sequence 57 (2 : zmod 57))
 -- #eval to_bool (-1 ∈ nat.miller_rabin_sequence 1373653 (2 : zmod 1373653))
 
+lemma length_miller_rabin_sequence (n : ℕ) (a : zmod n) :
+  (n.miller_rabin_sequence a).length = (n-1).factorization 2 :=
+by simp [nat.miller_rabin_sequence]
+
+
+
 
 /-- Let `a^e = 1 (mod p)`. (e.g. for prime `p` we have `a^(p-1) = 1` by Fermat's Little Theorem.)
 Let `s := e.factorization 2` and `d := odd_part e` as in the definition of `strong_probable_prime`.

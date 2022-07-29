@@ -7,6 +7,8 @@ universe u
 
 noncomputable theory
 
+open_locale unit_interval
+
 namespace H_space
 
 class H_space (G : Type u) [topological_space G] :=
@@ -17,13 +19,13 @@ class H_space (G : Type u) [topological_space G] :=
 (m_e_e : m(e,e) = e)
 -- m is continuous
 (cont_m : continuous m) -- this is a term of type continuous m
-(m_e_dot_homotopic_to_id : ∀ g : G,
+(m_e_dot_homotopic_to_id :
   continuous_map.homotopy_rel
   ⟨(λ g : G, m (e, g)), (continuous.comp cont_m (continuous.prod_mk continuous_const continuous_id'))⟩
   --⟨(λ g : G, g), continuous_id'⟩
   ⟨id, continuous_id'⟩
   {e})
-(m_dot_e_homotopic_to_id : ∀ g : G,
+(m_dot_e_homotopic_to_id :
   continuous_map.homotopy_rel
   ⟨(λ g : G, m(g, e)), (continuous.comp cont_m (continuous.prod_mk continuous_id' continuous_const))⟩
   ⟨id, continuous_id'⟩
@@ -37,11 +39,10 @@ instance top_group_is_H_space (G : Type u) [topological_space G][group G] [topol
   m_e_e := by {simp only [function.uncurry_apply_pair, mul_one]},
   cont_m := has_continuous_mul.continuous_mul,
   m_e_dot_homotopic_to_id := by {
-    intro g,
     simp only [function.uncurry_apply_pair, one_mul],
     exact continuous_map.homotopy_rel.refl ⟨id, continuous_id'⟩  {1},
   },
-  m_dot_e_homotopic_to_id := λ g, by {simp only [function.uncurry_apply_pair, mul_one],
+  m_dot_e_homotopic_to_id := by {simp only [function.uncurry_apply_pair, mul_one],
     exact continuous_map.homotopy_rel.refl _ _}
 }
 
@@ -67,10 +68,63 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   e := z,
   m_e_e := by simp only [half_add_self],
   cont_m := begin
-  apply continuous.add (continuous.fst' continuous_id') (continuous.snd' continuous_id'),
+  apply continuous.div_const,
+  exact continuous.add (continuous.fst' continuous_id') (continuous.snd' continuous_id'),
   end,
-  m_e_dot_homotopic_to_id := _,
-  m_dot_e_homotopic_to_id := _ }
+  m_e_dot_homotopic_to_id := begin
+  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
+  have cont_H : continuous H, sorry,
+  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
+  use H',
+  {
+    intro x,
+    -- simp,
+    dsimp [H],
+    -- simp [zero_mul],
+    ring_nf,
+  },
+  {
+   intro x,
+    -- simp,
+    dsimp [H],
+    -- simp [zero_mul],
+    ring_nf,
+  },
+  {
+    simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
+    intros x _,
+    dsimp [H],
+    ring,
+  }
+  end,
+  m_dot_e_homotopic_to_id := begin
+  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
+  have cont_H : continuous H, sorry,
+  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
+  use H',
+  {
+    intro x,
+    -- simp,
+    dsimp [H],
+    -- simp [zero_mul],
+    ring_nf,
+  },
+  {
+   intro x,
+    -- simp,
+    dsimp [H],
+    -- simp [zero_mul],
+    ring_nf,
+  },
+  {
+    simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
+    intros x _,
+    dsimp [H],
+    ring,
+  }
+  end,
+
+   }
 
 variables x y : ℝ
 

@@ -1688,19 +1688,18 @@ variables [decidable_eq α]
 
 lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
   z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
+lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
+  z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
 begin
+  rw ←add_eq_union_iff_disjoint,
   split,
   { intro h0,
-    suffices : x = y,
-    { rw ←this at h0,
-      exact ⟨add_eq_union_iff_disjoint.mp h0, this⟩, },
-    refine le_antisymm _ h,
-    apply (add_le_add_iff_left z).mp,
-    rw h0,
-    exact union_le_add z y, },
-  { intro h0,
-    rw ←h0.2,
-    exact add_eq_union_iff_disjoint.mpr h0.left, }
+    rw and_iff_right_of_imp,
+    { exact (le_of_add_le_add_left $ h0.trans_le $ union_le_add z y).antisymm h, },
+    { rintro rfl,
+      exact h0, } },
+  { rintro ⟨h0, rfl⟩,
+    exact h0, }
 end
 
 lemma add_eq_union_right_of_le {x y z : multiset α} (h : z ≤ y) :

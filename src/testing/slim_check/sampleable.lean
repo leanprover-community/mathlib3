@@ -413,7 +413,7 @@ begin
   cases k,
   { cases hk },
   have : sizeof xs < sizeof (x :: xs),
-  { unfold_wf, linarith },
+  { unfold_wf },
   cases k,
   { simp only [this, list.drop] },
   { simp only [list.drop],

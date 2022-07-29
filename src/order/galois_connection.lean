@@ -720,7 +720,6 @@ lemma is_lub_of_l_image [preorder α] [preorder β] (gi : galois_coinsertion l u
   (hs : is_lub (l '' s) a) : is_lub s (u a) :=
 gi.dual.is_glb_of_u_image hs
 
-
 section lift
 
 variables [partial_order α]

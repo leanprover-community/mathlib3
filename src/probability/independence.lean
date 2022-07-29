@@ -630,6 +630,85 @@ begin
     rw [h_sets_s'_univ hi, set.univ_inter], },
 end
 
+lemma Indep_fun.indep_fun_prod [is_probability_measure μ]
+  {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
+  {f : Π i, α → β i} (hf_Indep : Indep_fun m f μ) (hf_meas : ∀ i, measurable (f i))
+  (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
+  indep_fun (λ a, (f i a, f j a)) (f k) μ :=
+begin
+  classical,
+  have h_right : f k = (λ p : (Π j : ({k} : finset ι), β j), p ⟨k, finset.mem_singleton_self k⟩)
+    ∘ (λ a (j : ({k} : finset ι)), f j a) := rfl,
+  have h_meas_right : measurable
+      (λ p : (Π j : ({k} : finset ι), β j), p ⟨k, finset.mem_singleton_self k⟩),
+    from measurable_pi_apply ⟨k, finset.mem_singleton_self k⟩,
+  let s : finset ι := {i, j},
+  have h_left : (λ ω, (f i ω, f j ω))
+    = (λ p : (Π l : s, β l), (p ⟨i, finset.mem_insert_self i _⟩,
+        p ⟨j, finset.mem_insert_of_mem (finset.mem_singleton_self _)⟩))
+      ∘ (λ a (j : s), f j a),
+  { ext1 a,
+    simp only [prod.mk.inj_iff],
+    split; refl, },
+  have h_meas_left : measurable (λ p : (Π l : s, β l), (p ⟨i, finset.mem_insert_self i _⟩,
+      p ⟨j, finset.mem_insert_of_mem (finset.mem_singleton_self _)⟩)),
+    from measurable.prod (measurable_pi_apply ⟨i, finset.mem_insert_self i {j}⟩)
+      (measurable_pi_apply ⟨j, finset.mem_insert_of_mem (finset.mem_singleton_self j)⟩),
+  rw [h_left, h_right],
+  refine (hf_Indep.indep_fun_finset s {k} _ hf_meas).comp h_meas_left h_meas_right,
+  intros x hx,
+  simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_insert, finset.mem_singleton] at hx,
+  simp only [finset.bot_eq_empty, finset.not_mem_empty],
+  cases hx.1 with hx_eq hx_eq; rw hx_eq at hx,
+  { exact hik hx.2, },
+  { exact hjk hx.2, },
+end
+
+@[to_additive]
+lemma Indep_fun.mul [is_probability_measure μ]
+  {ι : Type*} {β : Type*} {m : measurable_space β} [has_mul β] [has_measurable_mul₂ β]
+  {f : ι → α → β} (hf_Indep : Indep_fun (λ _, m) f μ) (hf_meas : ∀ i, measurable (f i))
+  (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
+  indep_fun (f i * f j) (f k) μ :=
+begin
+  have : indep_fun (λ ω, (f i ω, f j ω)) (f k) μ := hf_Indep.indep_fun_prod hf_meas i j k hik hjk,
+  change indep_fun ((λ p : β × β, p.fst * p.snd) ∘ (λ ω, (f i ω, f j ω))) (id ∘ (f k)) μ,
+  exact indep_fun.comp this (measurable_fst.mul measurable_snd) measurable_id,
+end
+
+@[to_additive]
+lemma Indep_fun.indep_fun_finset_prod_of_not_mem [is_probability_measure μ]
+  {ι : Type*} {β : Type*} {m : measurable_space β} [comm_monoid β] [has_measurable_mul₂ β]
+  {f : ι → α → β} (hf_Indep : Indep_fun (λ _, m) f μ) (hf_meas : ∀ i, measurable (f i))
+  {s : finset ι} {i : ι} (hi : i ∉ s) :
+  indep_fun (∏ j in s, f j) (f i) μ :=
+begin
+  classical,
+  have h_right : f i = (λ p : (Π j : ({i} : finset ι), β), p ⟨i, finset.mem_singleton_self i⟩)
+    ∘ (λ a (j : ({i} : finset ι)), f j a) := rfl,
+  have h_meas_right : measurable
+      (λ p : (Π j : ({i} : finset ι), β), p ⟨i, finset.mem_singleton_self i⟩),
+    from measurable_pi_apply ⟨i, finset.mem_singleton_self i⟩,
+  have h_left : (∏ j in s, f j) = (λ p : (Π j : s, β), ∏ j, p j) ∘ (λ a (j : s), f j a),
+  { ext1 a,
+    simp only [function.comp_app],
+    have : (∏ (j : ↥s), f ↑j a) = (∏ (j : ↥s), f ↑j) a, by rw finset.prod_apply,
+    rw [this, finset.prod_coe_sort], },
+  have h_meas_left : measurable (λ p : (Π j : s, β), ∏ j, p j),
+    from finset.univ.measurable_prod (λ (j : ↥s) (H : j ∈ finset.univ), measurable_pi_apply j),
+  rw [h_left, h_right],
+  exact (hf_Indep.indep_fun_finset s {i} (finset.disjoint_singleton_left.mpr hi).symm hf_meas).comp
+    h_meas_left h_meas_right,
+end
+
+@[to_additive]
+lemma Indep_fun.indep_fun_prod_range_succ [is_probability_measure μ]
+  {β : Type*} {m : measurable_space β} [comm_monoid β] [has_measurable_mul₂ β]
+  {f : ℕ → α → β} (hf_Indep : Indep_fun (λ _, m) f μ) (hf_meas : ∀ i, measurable (f i))
+  (n : ℕ) :
+  indep_fun (∏ j in finset.range n, f j) (f n) μ :=
+hf_Indep.indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
+
 end indep_fun
 
 end probability_theory

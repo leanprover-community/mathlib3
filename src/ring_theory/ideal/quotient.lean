@@ -236,6 +236,11 @@ lemma quot_equiv_of_eq_mk {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) 
   quot_equiv_of_eq h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
 rfl
 
+@[simp]
+lemma ideal.quot_equiv_of_eq_symm {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+  (ideal.quot_equiv_of_eq h).symm = ideal.quot_equiv_of_eq h.symm :=
+by ext; refl
+
 section pi
 variables (ι : Type v)
 

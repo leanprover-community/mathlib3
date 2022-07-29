@@ -53,6 +53,7 @@ open_locale classical
 
 /-- The `p`-adic integers `ℤ_p` are the `p`-adic numbers with norm `≤ 1`. -/
 def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
+
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
@@ -67,7 +68,7 @@ lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext
 
 variables (p)
 
-/-- The padic integers as a subring of the padics -/
+/-- The `p`-adic integers as a subring of the `p`-adics. -/
 def subring : subring (ℚ_[p]) :=
 { carrier := {x : ℚ_[p] | ∥x∥ ≤ 1},
   zero_mem' := by norm_num,
@@ -80,19 +81,19 @@ def subring : subring (ℚ_[p]) :=
 
 variables {p}
 
-/-- Addition on ℤ_p is inherited from ℚ_p. -/
+/-- Addition on `ℤ_p` is inherited from `ℚ_p`. -/
 instance : has_add ℤ_[p] := (by apply_instance : has_add (subring p))
 
-/-- Multiplication on ℤ_p is inherited from ℚ_p. -/
+/-- Multiplication on `ℤ_p` is inherited from `ℚ_p`. -/
 instance : has_mul ℤ_[p] := (by apply_instance : has_mul (subring p))
 
-/-- Negation on ℤ_p is inherited from ℚ_p. -/
+/-- Negation on `ℤ_p` is inherited from `ℚ_p`. -/
 instance : has_neg ℤ_[p] := (by apply_instance : has_neg (subring p))
 
-/-- Subtraction on ℤ_p is inherited from ℚ_p. -/
+/-- Subtraction on `ℤ_p` is inherited from `ℚ_p`. -/
 instance : has_sub ℤ_[p] := (by apply_instance : has_sub (subring p))
 
-/-- Zero on ℤ_p is inherited from ℚ_p. -/
+/-- Zero on `ℤ_p` is inherited from `ℚ_p`. -/
 instance : has_zero ℤ_[p] := (by apply_instance : has_zero (subring p))
 
 instance : inhabited ℤ_[p] := ⟨0⟩
@@ -120,7 +121,7 @@ instance : comm_ring ℤ_[p] :=
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : ℤ_[p]) : ℚ_[p]) = n := rfl
 @[simp, norm_cast] lemma coe_int_cast (z : ℤ) : ((z : ℤ_[p]) : ℚ_[p]) = z := rfl
 
-/-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
+/-- The coercion from `ℤ[p]` to `ℚ[p]` as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p] := (subring p).subtype
 
 @[simp, norm_cast] lemma coe_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n := rfl
@@ -128,7 +129,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p] := (subring p).subtype
 @[simp] lemma mk_coe (k : ℤ_[p]) : (⟨k, k.2⟩ : ℤ_[p]) = k := subtype.coe_eta _ _
 
 /-- The inverse of a `p`-adic integer with norm equal to `1` is also a `p`-adic integer.
-  Otherwise, the inverse is defined to be `0`. -/
+Otherwise, the inverse is defined to be `0`. -/
 def inv : ℤ_[p] → ℤ_[p]
 | ⟨k, _⟩ := if h : ∥k∥ = 1 then ⟨1 / k, by simp [h]⟩ else 0
 
@@ -142,7 +143,7 @@ suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
 by norm_cast
 
 /-- A sequence of integers that is Cauchy with respect to the `p`-adic norm converges to a `p`-adic
-  integer. -/
+integer. -/
 def of_int_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)) : ℤ_[p] :=
 ⟨⟦⟨_, h⟩⟧,
  show (padic_seq.norm _ : ℝ) ≤ (1 : ℝ), begin
@@ -195,8 +196,7 @@ instance is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 
 variables {p}
 
-instance : is_domain ℤ_[p] :=
-function.injective.is_domain (subring p).subtype subtype.coe_injective
+instance : is_domain ℤ_[p] := function.injective.is_domain (subring p).subtype subtype.coe_injective
 
 end padic_int
 
@@ -222,8 +222,7 @@ padic_norm_e.add_eq_max_of_ne
 lemma norm_eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]} (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne, not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_right) h
 
-lemma norm_eq_of_norm_add_lt_left {z1 z2 : ℤ_[p]}
-  (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
+lemma norm_eq_of_norm_add_lt_left {z1 z2 : ℤ_[p]} (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne, not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_left) h
 
 @[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(z : ℚ_[p])∥ = ∥z∥ := by simp [norm_def]
@@ -252,6 +251,7 @@ end padic_int
 namespace padic_int
 
 variables (p : ℕ) [hp : fact p.prime]
+
 include hp
 
 lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℝ) ^ -(k : ℤ) < ε :=
@@ -379,7 +379,7 @@ let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
 @[simp] lemma norm_units (u : ℤ_[p]ˣ) : ∥(u : ℤ_[p])∥ = 1 := is_unit_iff.mp $ by simp
 
 /-- `unit_coeff hx` is the unit `u` in the unique representation `x = u * p ^ n`.
-  See `unit_coeff_spec`. -/
+See `unit_coeff_spec`. -/
 def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : ℤ_[p]ˣ :=
 let u : ℚ_[p] := x * p ^ -x.valuation in
 have hu : ∥u∥ = 1,

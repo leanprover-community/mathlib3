@@ -38,7 +38,7 @@ p-adic, p adic, padic, norm, valuation
 -/
 
 /-- If `q ≠ 0`, the `p`-adic norm of a rational `q` is `p ^ -padic_val_rat p q`.
-  If `q = 0`, the `p`-adic norm of `q` is `0`. -/
+If `q = 0`, the `p`-adic norm of `q` is `0`. -/
 def padic_norm (p : ℕ) (q : ℚ) : ℚ := if q = 0 then 0 else (p : ℚ) ^ -padic_val_rat p q
 
 namespace padic_norm
@@ -70,18 +70,18 @@ else
 
 /-- The `p`-adic norm of `p` is `1/p` if `p > 1`.
 
-  See also `padic_norm.padic_norm_p_of_prime` for a version assuming `p` is prime. -/
-lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
+See also `padic_norm.padic_norm_p_of_prime` for a version assuming `p` is prime. -/
+lemma padic_norm_p (hp : 1 < p) : padic_norm p p = 1 / p :=
 by simp [padic_norm, (pos_of_gt hp).ne', padic_val_nat.self hp]
 
 /-- The `p`-adic norm of `p` is `1/p` if `p` is prime.
 
-  See also `padic_norm.padic_norm_p` for a version assuming `1 < p`. -/
-@[simp] lemma padic_norm_p_of_prime {p : ℕ} [fact p.prime] : padic_norm p p = 1 / p :=
+See also `padic_norm.padic_norm_p` for a version assuming `1 < p`. -/
+@[simp] lemma padic_norm_p_of_prime [fact p.prime] : padic_norm p p = 1 / p :=
 padic_norm_p $ nat.prime.one_lt (fact.out _)
 
 /-- The `p`-adic norm of `q` is `1` if `q` is prime and not equal to `p`. -/
-lemma padic_norm_of_prime_of_ne {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
+lemma padic_norm_of_prime_of_ne {q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
   (neq : p ≠ q) : padic_norm p q = 1 :=
 begin
   have p : padic_val_rat p q = 0,
@@ -91,8 +91,8 @@ end
 
 /-- The `p`-adic norm of `p` is less than `1` if `1 < p`.
 
-  See also `padic_norm.padic_norm_p_lt_one_of_prime` for a version assuming `p` is prime. -/
-lemma padic_norm_p_lt_one {p : ℕ} (hp : 1 < p) : padic_norm p p < 1 :=
+See also `padic_norm.padic_norm_p_lt_one_of_prime` for a version assuming `p` is prime. -/
+lemma padic_norm_p_lt_one (hp : 1 < p) : padic_norm p p < 1 :=
 begin
   rw [padic_norm_p hp, div_lt_iff, one_mul],
   { exact_mod_cast hp },
@@ -101,8 +101,8 @@ end
 
 /-- The `p`-adic norm of `p` is less than `1` if `p` is prime.
 
-  See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`. -/
-lemma padic_norm_p_lt_one_of_prime {p : ℕ} [fact p.prime] : padic_norm p p < 1 :=
+See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`. -/
+lemma padic_norm_p_lt_one_of_prime [fact p.prime] : padic_norm p p < 1 :=
 padic_norm_p_lt_one $ nat.prime.one_lt (fact.out _)
 
 /-- `padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`. -/
@@ -190,7 +190,7 @@ else
   end
 
 /-- The `p`-adic norm is nonarchimedean: the norm of `p + q` is at most the max of the norm of `p`
-  and the norm of `q`. -/
+and the norm of `q`. -/
 protected theorem nonarchimedean {q r : ℚ} :
   padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) :=
 begin
@@ -199,19 +199,19 @@ begin
 end
 
 /-- The `p`-adic norm respects the triangle inequality: the norm of `p + q` is at most the norm of
-  `p` plus the norm of `q`. -/
+`p` plus the norm of `q`. -/
 theorem triangle_ineq (q r : ℚ) : padic_norm p (q + r) ≤ padic_norm p q + padic_norm p r :=
 calc padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) : padic_norm.nonarchimedean
                        ... ≤ padic_norm p q + padic_norm p r :
                          max_le_add_of_nonneg (padic_norm.nonneg _) (padic_norm.nonneg _)
 
 /-- The `p`-adic norm of a difference is at most the max of each component. Restates the archimedean
-  property of the `p`-adic norm. -/
+property of the `p`-adic norm. -/
 protected theorem sub {q r : ℚ} : padic_norm p (q - r) ≤ max (padic_norm p q) (padic_norm p r) :=
 by rw [sub_eq_add_neg, ←padic_norm.neg r]; apply padic_norm.nonarchimedean
 
 /-- If the `p`-adic norms of `q` and `r` are different, then the norm of `q + r` is equal to the max
-  of the norms of `q` and `r`. -/
+of the norms of `q` and `r`. -/
 lemma add_eq_max_of_ne {q r : ℚ} (hne : padic_norm p q ≠ padic_norm p r) :
   padic_norm p (q + r) = max (padic_norm p q) (padic_norm p r) :=
 begin
@@ -234,7 +234,7 @@ begin
 end
 
 /-- The `p`-adic norm is an absolute value: positive-definite and multiplicative, satisfying the
-  triangle inequality. -/
+triangle inequality. -/
 instance : is_absolute_value (padic_norm p) :=
 { abv_nonneg := padic_norm.nonneg,
   abv_eq_zero := λ _, ⟨zero_of_padic_norm_eq_zero, λ hx, by simpa only [hx]⟩,

@@ -193,7 +193,7 @@ variables {p : ℕ} [fact p.prime]
 /-! ### Valuation on `padic_seq` -/
 
 /-- The `p`-adic valuation on `ℚ` lifts to `padic_seq p`.
-  `valuation f` is defined to be the valuation of the (`ℚ`-valued) stationary point of `f`. -/
+`valuation f` is defined to be the valuation of the (`ℚ`-valued) stationary point of `f`. -/
 def valuation (f : padic_seq p) : ℤ :=
 if hf : f ≈ 0 then 0 else padic_val_rat p (f (stationary_point hf))
 
@@ -236,7 +236,7 @@ do [v1, v2, v3] ← [hh, hf, hg].mmap
    hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
 
 /-- This is a special-purpose tactic that lifts `padic_norm (f (stationary_point f))` to
-  `padic_norm (f (max _ _ _))`. -/
+`padic_norm (f (max _ _ _))`. -/
 meta def tactic.interactive.padic_index_simp (l : interactive.parse interactive.types.pexpr_list)
   (at_ : interactive.parse interactive.types.location) : tactic unit :=
 do [h, f, g] ← l.mmap tactic.i_to_expr,
@@ -280,8 +280,7 @@ else
   have ¬ (const (padic_norm p) q) ≈ 0, from not_equiv_zero_const_of_nonzero hq,
   by simp [norm, this]
 
-lemma norm_values_discrete (a : padic_seq p) (ha : ¬ a ≈ 0) :
-  ∃ z : ℤ, a.norm = p ^ -z :=
+lemma norm_values_discrete (a : padic_seq p) (ha : ¬ a ≈ 0) : ∃ z : ℤ, a.norm = p ^ -z :=
 let ⟨k, hk, hk'⟩ := norm_eq_norm_app_of_nonzero ha in
 by simpa [hk] using padic_norm.values_discrete hk'
 
@@ -415,8 +414,8 @@ end
 end embedding
 end padic_seq
 
-/-- The `p`-adic numbers `Q_[p]` are the Cauchy completion of `ℚ` with respect to the `p`-adic norm.
-  -/
+/-- The `p`-adic numbers `ℚ_[p]` are the Cauchy completion of `ℚ` with respect to the `p`-adic norm.
+-/
 def padic (p : ℕ) [fact p.prime] := @cau_seq.completion.Cauchy _ _ _ _ (padic_norm p) _
 notation `ℚ_[` p `]` := padic p
 
@@ -469,7 +468,7 @@ end completion
 end padic
 
 /-- The rational-valued `p`-adic norm on `ℚ_p` is lifted from the norm on Cauchy sequences. The
-  canonical form of this function is the normed space instance, with notation `∥ ∥`. -/
+canonical form of this function is the normed space instance, with notation `∥ ∥`. -/
 def padic_norm_e {p : ℕ} [hp : fact p.prime] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _
 
@@ -505,20 +504,20 @@ quotient.induction_on q $ by simpa only [zero_def, quotient.eq] using norm_zero_
 @[simp] protected lemma zero : padic_norm_e (0 : ℚ_[p]) = 0 := (zero_iff _).2 rfl
 
 /-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
-  equivalent theorems about `norm` (`∥ ∥`). -/
+equivalent theorems about `norm` (`∥ ∥`). -/
 @[simp] protected lemma one' : padic_norm_e (1 : ℚ_[p]) = 1 := norm_one
 
 @[simp] protected lemma neg (q : ℚ_[p]) : padic_norm_e (-q) = padic_norm_e q :=
 quotient.induction_on q $ norm_neg
 
 /-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
-  equivalent theorems about `norm` (`∥ ∥`). -/
+equivalent theorems about `norm` (`∥ ∥`). -/
 theorem nonarchimedean' (q r : ℚ_[p]) :
   padic_norm_e (q + r) ≤ max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ norm_nonarchimedean
 
 /-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
-  equivalent theorems about `norm` (`∥ ∥`). -/
+equivalent theorems about `norm` (`∥ ∥`). -/
 theorem add_eq_max_of_ne' {q r : ℚ_[p]} :
   padic_norm_e q ≠ padic_norm_e r → padic_norm_e (q + r) = max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ λ _ _, padic_seq.add_eq_max_of_ne
@@ -564,7 +563,9 @@ namespace padic
 section complete
 open padic_seq padic
 
-theorem rat_dense' {p : ℕ} [fact p.prime] (q : ℚ_[p]) {ε : ℚ} (hε : 0 < ε) :
+variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
+
+theorem rat_dense' (q : ℚ_[p]) {ε : ℚ} (hε : 0 < ε) :
   ∃ r : ℚ, padic_norm_e (q - r) < ε :=
 quotient.induction_on q $ λ q',
   have ∃ N, ∀ m n ≥ N, padic_norm p (q' m - q' n) < ε, from cauchy₂ _ hε,
@@ -584,14 +585,13 @@ quotient.induction_on q $ λ q',
         { exact hN _ (lt_of_not_ge hle).le _ le_rfl } }
     end⟩
 
-variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
 open classical
 
 private lemma div_nat_pos (n : ℕ) : 0 < (1 / ((n + 1): ℚ)) :=
 div_pos zero_lt_one (by exact_mod_cast succ_pos _)
 
-/-- `lim_seq f`, for `f` a Cauchy sequence of `p`-adic numbers,
-  is a sequence of rationals with the same limit point as `f`. -/
+/-- `lim_seq f`, for `f` a Cauchy sequence of `p`-adic numbers, is a sequence of rationals with the
+same limit point as `f`. -/
 def lim_seq : ℕ → ℚ := λ n, classical.some (rat_dense' (f n) (div_nat_pos n))
 
 lemma exi_rat_seq_conv {ε : ℚ} (hε : 0 < ε) :
@@ -701,8 +701,8 @@ instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
   abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-theorem rat_dense {p : ℕ} {hp : fact p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : 0 < ε) :
-        ∃ r : ℚ, ∥q - r∥ < ε :=
+theorem rat_dense {p : ℕ} [fact p.prime] (q : ℚ_[p]) {ε : ℝ} (hε : 0 < ε) :
+  ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
 ⟨r, lt_trans (by simpa [has_norm.norm] using hr) hε'r⟩
@@ -850,13 +850,13 @@ begin
   rw ← padic_norm.dvd_iff_norm_le
 end
 
-lemma eq_of_norm_add_lt_right {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
-  (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
+lemma eq_of_norm_add_lt_right {p : ℕ} [fact p.prime] {z1 z2 : ℚ_[p]} (h : ∥z1 + z2∥ < ∥z2∥) :
+  ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_right) h
 
-lemma eq_of_norm_add_lt_left {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
-  (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
+lemma eq_of_norm_add_lt_left {p : ℕ} [fact p.prime] {z1 z2 : ℚ_[p]} (h : ∥z1 + z2∥ < ∥z1∥) :
+  ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_left) h
 
@@ -913,8 +913,7 @@ end
 /-! ### Valuation on `ℚ_[p]` -/
 
 /-- `padic.valuation` lifts the `p`-adic valuation on rationals to `ℚ_[p]`. -/
-def valuation : ℚ_[p] → ℤ :=
-quotient.lift (@padic_seq.valuation p _) (λ f g h,
+def valuation : ℚ_[p] → ℤ := quotient.lift (@padic_seq.valuation p _) (λ f g h,
 begin
   by_cases hf : f ≈ 0,
   { have hg : g ≈ 0, from setoid.trans (setoid.symm h) hf,

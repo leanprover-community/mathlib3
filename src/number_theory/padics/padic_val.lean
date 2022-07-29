@@ -50,7 +50,7 @@ open_locale rat
 open multiplicity
 
 /-- For `p ≠ 1`, the `p`-adic valuation of a natural `n ≠ 0` is the largest natural number `k` such
-  that `p^k` divides `z`. If `n = 0` or `p = 1`, then `padic_val_nat p q` defaults to `0`. -/
+that `p^k` divides `z`. If `n = 0` or `p = 1`, then `padic_val_nat p q` defaults to `0`. -/
 def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
 if h : p ≠ 1 ∧ 0 < n then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h) else 0
 
@@ -82,7 +82,7 @@ by { rw padic_val_nat, split_ifs; simp [multiplicity_eq_zero_of_not_dvd h] }
 end padic_val_nat
 
 /-- For `p ≠ 1`, the `p`-adic valuation of an integer `z ≠ 0` is the largest natural number `k` such
-  that `p^k` divides `z`. If `x = 0` or `p = 1`, then `padic_val_int p q` defaults to `0`. -/
+that `p^k` divides `z`. If `x = 0` or `p = 1`, then `padic_val_int p q` defaults to `0`. -/
 def padic_val_int (p : ℕ) (z : ℤ) : ℕ := padic_val_nat p z.nat_abs
 
 namespace padic_val_int
@@ -120,7 +120,7 @@ end
 end padic_val_int
 
 /-- `padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
-  valuation of `q.denom`. If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0. -/
+valuation of `q.denom`. If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0. -/
 def padic_val_rat (p : ℕ) (q : ℚ) : ℤ := padic_val_int p q.num - padic_val_nat p q.denom
 
 namespace padic_val_rat
@@ -176,7 +176,7 @@ lemma zero_le_padic_val_rat_of_nat (n : ℕ) : 0 ≤ padic_val_rat p n := by sim
 by simp
 
 /-- A simplification of `padic_val_nat` when one input is prime, by analogy with
-  `padic_val_rat_def`. -/
+`padic_val_rat_def`. -/
 lemma padic_val_nat_def [hp : fact p.prime] {n : ℕ} (hn : 0 < n) :
   padic_val_nat p n
     = (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, hn⟩) :=
@@ -280,7 +280,7 @@ begin
 end
 
 /-- A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂)`, in terms of
-  divisibility by `p^n`. -/
+divisibility by `p^n`. -/
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
   (hn₁ : n₁ ≠ 0) (hn₂ : n₂ ≠ 0) (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) :
   padic_val_rat p (n₁ /. d₁) ≤ padic_val_rat p (n₂ /. d₂) ↔
@@ -300,7 +300,7 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
       part_enat.get_le_get, multiplicity_le_multiplicity_iff] }
 
 /-- Sufficient conditions to show that the `p`-adic valuation of `q` is less than or equal to the
-  `p`-adic valuation of `q + r`. -/
+`p`-adic valuation of `q + r`. -/
 theorem le_padic_val_rat_add_of_le {q r : ℚ} (hqr : q + r ≠ 0)
   (h : padic_val_rat p q ≤ padic_val_rat p r) : padic_val_rat p q ≤ padic_val_rat p (q + r) :=
 if hq : q = 0 then by simpa [hq] using h else
@@ -339,7 +339,7 @@ theorem min_le_padic_val_rat_add {q r : ℚ} (hqr : q + r ≠ 0) :
 open_locale big_operators
 
 /-- A finite sum of rationals with positive `p`-adic valuation has positive `p`-adic valuation
-  (if the sum is non-zero). -/
+(if the sum is non-zero). -/
 theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ} (hF : ∀ i, i < n → 0 < padic_val_rat p (F i))
   (hn0 : ∑ i in finset.range n, F i ≠ 0) : 0 < padic_val_rat p (∑ i in finset.range n, F i) :=
 begin
@@ -412,21 +412,23 @@ end padic_val_nat
 
 section padic_val_nat
 
-lemma dvd_of_one_le_padic_val_nat {p n : ℕ} (hp : 1 ≤ padic_val_nat p n) : p ∣ n :=
+variables {p : ℕ}
+
+lemma dvd_of_one_le_padic_val_nat {n : ℕ} (hp : 1 ≤ padic_val_nat p n) : p ∣ n :=
 begin
   by_contra h,
   rw padic_val_nat.eq_zero_of_not_dvd h at hp,
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp)
 end
 
-lemma pow_padic_val_nat_dvd {p n : ℕ} : p ^ padic_val_nat p n ∣ n :=
+lemma pow_padic_val_nat_dvd {n : ℕ} : p ^ padic_val_nat p n ∣ n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn, { simp },
   rcases eq_or_ne p 1 with rfl | hp, { simp },
   rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption
 end
 
-lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact p.prime] (hn : 0 < n) :
+lemma pow_succ_padic_val_nat_not_dvd {n : ℕ} [hp : fact p.prime] (hn : 0 < n) :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
@@ -438,7 +440,7 @@ begin
   { apply_instance }
 end
 
-lemma padic_val_nat_dvd_iff {p : ℕ} (n : ℕ) [hp : fact p.prime] (a : ℕ) :
+lemma padic_val_nat_dvd_iff (n : ℕ) [hp : fact p.prime] (a : ℕ) :
   p ^ n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
 begin
   split,
@@ -453,12 +455,12 @@ begin
     { exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd } }
 end
 
-lemma padic_val_nat_primes {p q : ℕ} [hp : fact p.prime] [hq : fact q.prime] (neq : p ≠ q) :
+lemma padic_val_nat_primes {q : ℕ} [hp : fact p.prime] [hq : fact q.prime] (neq : p ≠ q) :
   padic_val_nat p q = 0 :=
 @padic_val_nat.eq_zero_of_not_dvd p q $
   (not_congr (iff.symm (prime_dvd_prime_iff_eq hp.1 hq.1))).mp neq
 
-protected lemma padic_val_nat.div' {p : ℕ} [hp : fact p.prime] :
+protected lemma padic_val_nat.div' [hp : fact p.prime] :
   ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
 | 0 := λ cpm b dvd, by { rw zero_dvd_iff at dvd, rw [dvd, nat.zero_div] }
 | (n + 1) :=
@@ -478,7 +480,7 @@ protected lemma padic_val_nat.div' {p : ℕ} [hp : fact p.prime] :
 
 open_locale big_operators
 
-lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
+lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (hn : n ≠ 0) :
   (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=
 begin
   intros t ht,
@@ -488,7 +490,7 @@ begin
   exact ⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩
 end
 
-lemma range_pow_padic_val_nat_subset_divisors' {p n : ℕ} [hp : fact p.prime] :
+lemma range_pow_padic_val_nat_subset_divisors' {n : ℕ} [hp : fact p.prime] :
   (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ n.divisors \ {1} :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,

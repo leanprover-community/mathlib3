@@ -2,6 +2,9 @@ import analysis.complex.circle
 import topology.metric_space.basic
 import topology.homotopy.path
 import data.real.basic
+import topology.algebra.polynomial
+import topology.continuous_function.algebra
+import topology.continuous_function.compact
 
 universe u
 
@@ -73,18 +76,12 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   have cont_H : continuous H, sorry,
   let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
   use H',
-  {
-    intro x,
-    -- simp,
+  { intro x,
     dsimp [H],
-    -- simp [zero_mul],
     ring_nf,
   },
-  {
-   intro x,
-    -- simp,
+  { intro x,
     dsimp [H],
-    -- simp [zero_mul],
     ring_nf,
   },
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
@@ -97,30 +94,22 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   have cont_H : continuous H,
   { dsimp [H],
     apply continuous.add,
-    { apply continuous.div_const,
-      apply continuous.mul,
-
-
-    },
-
-
-
-
+    apply continuous.div,
+    apply continuous.mul,
+    { sorry },
+    { sorry },
+    { sorry },
+    { sorry },
+    { sorry },
   },
   let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
   use H',
-  {
-    intro x,
-    -- simp,
+  { intro x,
     dsimp [H],
-    -- simp [zero_mul],
     ring_nf,
   },
-  {
-   intro x,
-    -- simp,
+  { intro x,
     dsimp [H],
-    -- simp [zero_mul],
     ring_nf,
   },
   {
@@ -128,30 +117,10 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
     intros x _,
     dsimp [H],
     ring,
-  }
+  },
   end,
-
-   }
-
-variables x y : ℝ
-
--- def our_m : ℝ := (x+y)/2
--- #check our_m
-
-lemma our_m_continuous : continuous our_m :=
-begin
-  sorry
-end
-
-def R_with_our_m : H_space ℝ :=
-
-example : H_space ℝ :=
-{
-  m := function.uncurry our_m,
-  e := z,
-  m_e_e := sorry,
-  cont_m := our_m_continuous,
 }
+
 /-
   Next, show that the sphere S^3 has a canonical H-space structure.
 

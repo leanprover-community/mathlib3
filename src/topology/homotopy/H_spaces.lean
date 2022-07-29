@@ -3,7 +3,7 @@ Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
-
+import tactic.field_simp
 import topology.compact_open
 import topology.homotopy.basic
 import topology.homotopy.path
@@ -75,13 +75,11 @@ class H_space (X : Type u) [topological_space X]  :=
 (e : X)
 (cont' : continuous Hmul)
 (Hmul_e_e : Hmul (e, e) = e)
-(left_Hmul_e : ∀ x : X,
-  continuous_map.homotopy_rel
+(left_Hmul_e : continuous_map.homotopy_rel
   ⟨(λ a : X, Hmul (e, a)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
   ⟨id, continuous_id'⟩
   {e})
-(right_Hmul_e : ∀ x : X,
-  continuous_map.homotopy_rel
+(right_Hmul_e : continuous_map.homotopy_rel
   ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont'(continuous_id'.prod_mk continuous_const))⟩
   ⟨id, continuous_id'⟩
   {e})
@@ -97,9 +95,9 @@ instance topological_group_H_space (G : Type u) [topological_space G] [group G]
   e := 1,
   cont' := continuous_mul,
   Hmul_e_e := by {simp only [function.uncurry_apply_pair, mul_one]},
-  left_Hmul_e := λ _, by {simp only [function.uncurry_apply_pair, one_mul],
+  left_Hmul_e := by {simp only [function.uncurry_apply_pair, one_mul],
     exact continuous_map.homotopy_rel.refl _ _ },
-  right_Hmul_e := λ _, by {simp only [function.uncurry_apply_pair, mul_one],
+  right_Hmul_e := by {simp only [function.uncurry_apply_pair, mul_one],
     exact continuous_map.homotopy_rel.refl _ _ },
 }
 
@@ -168,16 +166,17 @@ begin
   exact (homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm).mp (H.comp continuous_snd),
 end
 
-lemma closure_I_mem (t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ 1 / 2} ↔ (t : ℝ) ≤ 1 /2 := by {rw [(is_closed_le
-  continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq], apply_instance}
+lemma closure_I_mem (θ t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
+  by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
+    apply_instance}
 
-lemma interior_I_not_mem (t : I) : t ∉ interior {s : ↥I | (s : ℝ) ≤ 1 / 2} ↔ (1 / 2 : ℝ) ≤ t :=
+lemma interior_I_not_mem (θ t : I) : t ∉ interior {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (θ / 2 : ℝ) ≤ t :=
 begin
-  let halfI : I := ⟨1 / 2, by {simp only [one_div, inv_nonneg, zero_le_bit0, zero_le_one]}
-    , le_of_lt (one_half_lt_one) ⟩,
-  have : {s : ↥I | (s : ℝ) ≤ 1 / 2} = set.Iic (halfI) := rfl,
-  have H_ne : (set.Ioi halfI).nonempty := ⟨1, by {simpa only [set.mem_Ioi, ← subtype.coe_lt_coe]
-    using one_half_lt_one}⟩,
+  let half_θ : I := ⟨θ / 2, ⟨div_nonneg θ.2.1 zero_le_two, (half_le_self θ.2.1).trans θ.2.2⟩ ⟩,
+  have : {s : ↥I | (s : ℝ) ≤ θ / 2} = set.Iic half_θ := rfl,
+  have H_ne : (set.Ioi half_θ).nonempty := ⟨1, by {simpa only [set.mem_Ioi, ← subtype.coe_lt_coe,
+    subtype.coe_mk, unit_interval.coe_one, @div_lt_one ℝ _ θ _ zero_lt_two]
+      using lt_of_le_of_lt θ.2.2 one_lt_two,}⟩,
   simp only [this, interior_Iic' H_ne, not_lt, subtype.coe_mk, set.mem_set_of_eq,
     ← subtype.coe_lt_coe, ← set.Iio_def],
 end
@@ -196,11 +195,46 @@ begin
       true_and] at h_left,
     simp only [interior_prod_eq, interior_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and]
        at h_right,
-    have H := eq_of_ge_of_not_gt ((interior_I_not_mem t).mp h_right)
-      (not_lt_of_le $ (closure_I_mem t).mp h_left),
-    simp only [H, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, unit_interval.mk_one,
+    have H := eq_of_ge_of_not_gt ((interior_I_not_mem 1 t).mp h_right)
+      (not_lt_of_le $ (closure_I_mem 1 t).mp h_left),
+    simp only [H, unit_interval.coe_one, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, unit_interval.mk_one,
       path.target, sub_self, set.Icc_extend_left, unit_interval.mk_zero, path.source, one_div] },
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
+end
+
+def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
+{ to_fun := λ t, if  (t : ℝ) ≤ θ / 2 then x
+                 else γ.extend ((2*t - θ)/(2 - θ)),
+  continuous_to_fun :=
+  begin
+    apply continuous.piecewise,
+    { rintros t ⟨h_left, h_right⟩,
+      simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
+      (not_lt_of_le $ (closure_I_mem θ t).mp h_left)],
+      field_simp },
+    exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul continuous_induced_dom).sub
+      continuous_const).div_const ],
+  end,
+  source' :=
+  begin
+    simp only [unit_interval.coe_zero, path.source, mul_zero, zero_sub, ite_eq_left_iff, not_le],
+    intro h,
+    contrapose! h,
+    exact div_nonneg θ.2.1 zero_le_two,
+  end,
+  target' :=
+  begin
+    simp only [unit_interval.coe_one, path.target, mul_one, ite_eq_left_iff, not_le],
+    intro,
+    rw div_self,
+    { simpa only [div_self, set.right_mem_Icc, zero_le_one, extend_extends, unit_interval.mk_one, to_fun_eq_coe,
+      coe_to_continuous_map] using γ.3 },
+    { linarith },
+  end }
+
+lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
+begin
+  sorry,
 end
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
@@ -208,7 +242,29 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   e := refl _,
   cont' := continuous_to_Ω_if_to_C $ continuous_of_continuous_uncurry _ $ Hmul_cont x,
   Hmul_e_e := refl_trans_refl,
-  left_Hmul_e := sorry,
+  left_Hmul_e :=
+  begin
+    -- existsi
+    let φ : C(I × Ω(x), Ω(x)) := ⟨λ p, delayed_id p.1 p.2, continuous_delayed_id⟩,
+    use φ,
+    intro γ,
+    -- simp only [continuous_map.coe_mk],
+    funext,
+    -- dsimp [path.refl],
+    ext t,
+    dsimp [path.refl, delayed_id],
+    have temp : (ite ((t : ℝ) ≤ 0 / 2) x (γ.extend ((2 * ↑t - 0) / (2 - 0)))) = x, sorry,
+    rw temp,
+    -- simp,
+    -- simp [path.has_coe_to_fun],
+    -- convert,
+    -- simp only,
+    -- have := (delayed_id 0 γ).source',
+    -- erw this,
+
+    -- let φ : I × Ω(x) → (I → X) := λ p t, if  ≤ (p.1)/2 then p.2 t,
+    --                       else p.2 ((2t - p.1)/(2 - p.2)),
+  end,
   right_Hmul_e := sorry}
 
 end path_space_H_space

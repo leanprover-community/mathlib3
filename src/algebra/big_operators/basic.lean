@@ -1690,19 +1690,17 @@ lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
   z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
 begin
   split,
-  { intro h₀,
-    have : x = y,
-    { rw le_antisymm_iff,
-      split,
-      { apply (add_le_add_iff_left z).mp,
-        rw h₀,
-        exact union_le_add z y,  },
-      { exact h, }},
-    { rw ←this at h₀,
-      exact ⟨add_eq_union_iff_disjoint.mp h₀, this⟩, }},
-  { intro h₀,
-    rw ←h₀.2,
-    exact add_eq_union_iff_disjoint.mpr h₀.1, }
+  { intro h0,
+    suffices : x = y,
+    { rw ←this at h0,
+      exact ⟨add_eq_union_iff_disjoint.mp h0, this⟩, },
+    refine le_antisymm _ h,
+    apply (add_le_add_iff_left z).mp,
+    rw h0,
+    exact union_le_add z y, },
+  { intro h0,
+    rw ←h0.2,
+    exact add_eq_union_iff_disjoint.mpr h0.left, }
 end
 
 lemma add_eq_union_right_of_le {x y z : multiset α} (h : z ≤ y) :

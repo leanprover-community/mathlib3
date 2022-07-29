@@ -67,10 +67,7 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
 { m := λ x, (x.1 + x.2)/2 ,
   e := z,
   m_e_e := by simp only [half_add_self],
-  cont_m := begin
-  apply continuous.div_const,
-  exact continuous.add (continuous.fst' continuous_id') (continuous.snd' continuous_id'),
-  end,
+  cont_m := continuous_add.div_const,
   m_e_dot_homotopic_to_id := begin
   let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
   have cont_H : continuous H, sorry,
@@ -90,16 +87,26 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
     -- simp [zero_mul],
     ring_nf,
   },
-  {
-    simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
+  { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
     intros x _,
     dsimp [H],
-    ring,
-  }
+    ring},
   end,
   m_dot_e_homotopic_to_id := begin
   let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
-  have cont_H : continuous H, sorry,
+  have cont_H : continuous H,
+  { dsimp [H],
+    apply continuous.add,
+    { apply continuous.div_const,
+      apply continuous.mul,
+
+
+    },
+
+
+
+
+  },
   let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
   use H',
   {

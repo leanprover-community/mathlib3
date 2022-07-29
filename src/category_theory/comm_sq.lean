@@ -136,8 +136,8 @@ begin
   exact nonempty.congr (lift_struct.op_equiv sq).to_fun (lift_struct.op_equiv sq).inv_fun,
 end
 
-lemma iff_unop {A B X Y : Cᵒᵖ} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B ⟶ Y} (sq : comm_sq f i p g) :
-  has_lift sq ↔ has_lift sq.unop :=
+lemma iff_unop {A B X Y : Cᵒᵖ} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B ⟶ Y}
+  (sq : comm_sq f i p g) : has_lift sq ↔ has_lift sq.unop :=
 begin
   rw [iff, iff],
   exact nonempty.congr (lift_struct.unop_equiv sq).to_fun (lift_struct.unop_equiv sq).inv_fun,

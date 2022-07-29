@@ -71,14 +71,12 @@ end
 theorem nat.sq_sub_sq' (a b : ℕ) : a ^ 2 - b ^ 2 = (a - b) * (a + b) :=
 by { rw [mul_comm, nat.sq_sub_sq] }
 
-example (e k x : ℕ) (he : 0 < e) (hx : 0 < x) :
-  x ^ (2^e * k) - 1 = (x^k - 1) *  ∏ i in Ico 0 e, (x^(2^i * k) + 1) :=
+example (e k x : ℕ) : x ^ (2^e * k) - 1 = (x^k - 1) *  ∏ i in Ico 0 e, (x^(2^i * k) + 1) :=
 begin
   induction e with e IH, { simp },
   rcases eq_or_ne e 0 with rfl | he0,
   { rw [pow_one, Ico_succ_singleton, prod_singleton, pow_zero, one_mul, ←nat.sq_sub_sq',
         one_pow, mul_comm, pow_mul] },
-  specialize IH he0.bot_lt,
   rw [pow_succ, Ico_succ_right_eq_insert_Ico zero_le', prod_insert right_not_mem_Ico],
   nth_rewrite_rhs 0 ←mul_assoc,
   nth_rewrite_rhs 0 ←mul_rotate,

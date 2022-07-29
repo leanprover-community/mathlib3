@@ -134,7 +134,7 @@ protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
-protected theorem equiv.equiv_of_is_empty (x y : pSet) [is_empty x.type] [is_empty y.type] :
+protected theorem equiv_of_is_empty (x y : pSet) [is_empty x.type] [is_empty y.type] :
   equiv x y := equiv_iff.2 $ by simp
 
 instance setoid : setoid pSet :=
@@ -226,8 +226,8 @@ instance : is_empty (type (∅)) := pempty.is_empty
 
 @[simp] theorem empty_subset (x : pSet.{u}) : (∅ : pSet) ⊆ x := λ x, x.elim
 
-protected theorem equiv.equiv_empty (x : pSet) [is_empty x.type] : equiv x ∅ :=
-equiv.equiv_of_is_empty x _
+protected theorem equiv_empty (x : pSet) [is_empty x.type] : equiv x ∅ :=
+pSet.equiv_of_is_empty x _
 
 /-- Insert an element into a pre-set -/
 protected def insert (x y : pSet) : pSet := ⟨option y.type, λ o, option.rec x y.func o⟩

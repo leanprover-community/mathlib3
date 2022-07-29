@@ -40,7 +40,7 @@ The following linters are run by default:
 4. `ge_or_gt` checks whether ≥/> is used in the declaration.
 5. `instance_priority` checks that instances that always apply have priority below default.
 6. `doc_blame` checks for missing doc strings on definitions and constants.
-7.  `has_nonempty_instance` checks whether every type has an associated `inhabited` instance.
+7.  `has_nonempty_instance` checks whether every type has an associated `inhabited`, `unique` or `nonempty` instance.
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.

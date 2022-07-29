@@ -133,7 +133,9 @@ meta def linter.has_nonempty_instance : linter :=
 { test := has_nonempty_instance,
   auto_decls := ff,
   no_errors_found := "No types have missing nonempty instances.",
-  errors_found := "TYPES ARE MISSING NONEMPTY INSTANCES:",
+  errors_found := "TYPES ARE MISSING NONEMPTY INSTANCES.
+The following types should have an associated instance of the class
+`nonempty`, or if computably possible `inhabited` or `unique`:",
   is_fast := ff }
 
 attribute [nolint has_nonempty_instance] pempty

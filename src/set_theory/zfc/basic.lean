@@ -134,8 +134,8 @@ protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
-protected theorem equiv_of_is_empty (x y : pSet) [is_empty x.type] [is_empty y.type] :
-  equiv x y := equiv_iff.2 $ by simp
+protected theorem equiv_of_is_empty (x y : pSet) [is_empty x.type] [is_empty y.type] : equiv x y :=
+equiv_iff.2 $ by simp
 
 instance setoid : setoid pSet :=
 ⟨pSet.equiv, equiv.refl, λ x y, equiv.symm, λ x y z, equiv.trans⟩

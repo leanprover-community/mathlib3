@@ -48,8 +48,8 @@ by its variant `haveI` described below.
 
 * `substI`: like `subst`, but can also substitute in type-class arguments
 
-* `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
-  to the context so that they can be used in typeclass inference.
+* `haveI`/`letI`/`rsufficesI`: `have`/`let`/`rsuffices` followed by `resetI`. Used
+  to add typeclasses to the context so that they can be used in typeclass inference.
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.

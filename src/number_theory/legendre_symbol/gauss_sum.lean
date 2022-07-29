@@ -90,7 +90,7 @@ variables {R : Type u} [field R] [fintype R] {R' : Type v} [comm_ring R'] [is_do
 -- Two helper lemmas for `gauss_sum_mul_gauss_sum_eq_card` below
 private
 lemma gauss_sum_mul_aux₁ {χ : mul_char R R'} (hχ : is_nontrivial χ) (ψ : add_char R R') (b : R) :
-  ∑ a, χ (a * b⁻¹) * ψ (of_add (a - b)) = ∑ c, χ c * ψ (of_add (b * (c - 1))) :=
+  ∑ a, χ (a * b⁻¹) * ψ (of_add (a - b)) = ∑ c, χ c * ψ (of_add $ b * (c - 1)) :=
 begin
   cases eq_or_ne b 0 with hb hb,
   { -- case `b = 0`
@@ -112,15 +112,15 @@ end
 
 private
 lemma gauss_sum_mul_aux₂ [decidable_eq R] (ψ : add_char R R') (b : R) (hψ : is_primitive ψ) :
-  ∑ (x : R), ψ (of_add (x * (b - 1))) = if b = 1 then fintype.card R else 0 :=
+  ∑ (x : R), ψ (of_add (x * b)) = if b = 0 then fintype.card R else 0 :=
 begin
   split_ifs with h,
-  { -- case `b = 1`
+  { -- case `b = 0`
     simp only [h, sub_self, mul_zero, of_add_zero, map_one, finset.sum_const, nat.smul_one_eq_coe],
     refl, },
-  { -- case `b ≠ 1`
+  { -- case `b ≠ 0`
     conv in (_ * _) {rw mul_comm},
-    exact sum_eq_zero_of_is_nontrivial (hψ (b - 1) (sub_ne_zero_of_ne h)), },
+    exact sum_eq_zero_of_is_nontrivial (hψ b h), },
 end
 
 /-- We have `gauss_sum χ ψ * gauss_sum χ⁻¹ ψ⁻¹ = fintype.card R`
@@ -143,12 +143,14 @@ begin
   simp only [rhs],
   rw [finset.sum_comm],
   classical, -- to get `[decidable_eq R]` for `gauss_sum_mul_aux₂`
-  conv {to_lhs, congr, skip, funext, rw [← finset.mul_sum, gauss_sum_mul_aux₂ _ _ hψ]},
-  simp only [mul_ite, mul_zero, finset.sum_ite_eq', finset.mem_univ, map_one, one_mul, if_true],
+  conv {to_lhs, congr, skip, funext, rw [← finset.mul_sum, gauss_sum_mul_aux₂ _ _ hψ],},
+  simp_rw [sub_eq_zero, mul_ite, mul_zero],
+  rw [finset.sum_ite_eq' finset.univ (1 : R)],
+  simp only [finset.mem_univ, map_one, one_mul, if_true],
 end
 
 /-- When `χ` is a nontrivial quadratic character, then the square of `gauss_sum χ ψ`
-is `χ (-1)` times the cardinality of `R`. -/
+is `χ(-1)` times the cardinality of `R`. -/
 lemma gauss_sum_sq  {χ : mul_char R R'} (hχ₁ : is_nontrivial χ) (hχ₂ : is_quadratic χ)
   {ψ : add_char R R'} (hψ : is_primitive ψ) :
   (gauss_sum χ ψ) ^ 2 = χ (-1) * fintype.card R :=
@@ -219,7 +221,7 @@ section gauss_sum_values
 
 variables {R : Type u} [comm_ring R] [fintype R] {R' : Type v} [comm_ring R'] [is_domain R']
 
-/-- If the square of the Gauss sum of a quadratic character is `χ (-1) * #R`,
+/-- If the square of the Gauss sum of a quadratic character is `χ(-1) * #R`,
 then we get, for all `n : ℕ`, the relation `(χ(-1) * #R) ^ (p^n/2) = χ(p^n)`,
 where `p` is the (odd) characteristic of the target ring `R'`.
 This version can be used when `R` is not a field, e.g., `ℤ/8ℤ`. -/
@@ -244,7 +246,7 @@ begin
 end
 
 /-- When `F` and `F'` are finite fields and `χ : F → F'` is a nontrivial quadratic character,
-then `(χ (-1) * #F)^(#F'/2) = χ (#F')`. -/
+then `(χ(-1) * #F)^(#F'/2) = χ(#F')`. -/
 lemma char.card_pow_card {F : Type} [field F] [fintype F] {F' : Type} [field F'] [fintype F']
   {χ : mul_char F F'} (hχ₁ : is_nontrivial χ) (hχ₂ : is_quadratic χ)
   (hch₁ : ring_char F' ≠ ring_char F) (hch₂ : ring_char F' ≠ 2) :
@@ -363,7 +365,7 @@ begin
   have hq : is_quadratic χ := is_quadratic.comp is_quadratic_χ₈ (algebra_map ℤ FF),
 
   -- we now show that the Gauss sum of `χ` and `ψ₈` has the relevant property
-  have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * (fintype.card (zmod 8)) :=
+  have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * fintype.card (zmod 8) :=
   begin
     have hs := fin.sum_univ_eight (λ (x : zmod 8), (χ₈ x : FF) * τ ^ x.val),
     simp only at hs,

@@ -63,7 +63,7 @@ The trivial additive character (sending everything to `1`) is `(1 : add_char R R
 @[derive [comm_monoid, inhabited]]
 def add_char : Type (max u v) := (multiplicative R) →* R'
 
-instance add_char.has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, (multiplicative R → R')) :=
+instance add_char.has_coe_to_fun : has_coe_to_fun (add_char R R') (λ x, multiplicative R → R') :=
 monoid_hom.has_coe_to_fun
 
 instance add_char.monoid_hom_class : monoid_hom_class (add_char R R') (multiplicative R) R' :=
@@ -87,10 +87,10 @@ Note that this is a different inverse to the one provided by `monoid_hom.has_inv
 as it acts on the domain instead of the codomain. -/
 instance has_inv : has_inv (add_char R R') := ⟨λ ψ, ψ.comp inv_monoid_hom⟩
 
-lemma inv_apply (ψ : add_char R R') (x : multiplicative R) : ψ⁻¹ x = ψ (of_add (- (to_add x))) :=
+lemma inv_apply (ψ : add_char R R') (x : multiplicative R) : ψ⁻¹ x = ψ (of_add (-(to_add x))) :=
 rfl
 
-lemma inv_apply' (ψ : add_char R R') (x : R) : ψ⁻¹ (of_add x) = ψ (of_add (- x)) := rfl
+lemma inv_apply' (ψ : add_char R R') (x : R) : ψ⁻¹ (of_add x) = ψ (of_add (-x)) := rfl
 
 /-- The additive characters on a commutative additive group form a commutative group. -/
 instance comm_group : comm_group (add_char R R') :=
@@ -136,8 +136,8 @@ def mul_shift (ψ : add_char R R') (a : R) : add_char R R' :=
 @[simp] lemma mul_shift_apply {ψ : add_char R R'} {a : R} {x : multiplicative R} :
   mul_shift ψ a x = ψ (of_add (a * to_add x)) := rfl
 
-/-- `ψ⁻¹ = mul_shift ψ (- 1))`. -/
-lemma inv_mul_shift (ψ : add_char R R') : ψ⁻¹ = mul_shift ψ (- 1) :=
+/-- `ψ⁻¹ = mul_shift ψ (-1))`. -/
+lemma inv_mul_shift (ψ : add_char R R') : ψ⁻¹ = mul_shift ψ (-1) :=
 begin
   ext,
   rw [inv_apply, mul_shift_apply, neg_mul, one_mul],
@@ -184,7 +184,7 @@ begin
   intros a b h,
   apply_fun (λ x, x * mul_shift ψ (-b)) at h,
   simp only [mul_shift_mul, mul_shift_zero, add_right_neg] at h,
-  have h₂ := hψ (a + (- b)),
+  have h₂ := hψ (a + (-b)),
   rw [h, is_nontrivial_iff_ne_trivial, ← sub_eq_add_neg, sub_ne_zero] at h₂,
   exact not_not.mp (λ h, h₂ h rfl),
 end

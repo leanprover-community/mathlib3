@@ -28,8 +28,28 @@ variables  {V : Type u}
 namespace simple_graph
 
 
+lemma walk.mem_support_to_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} (h : w ∈ p.support) :
+  ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
+match u, v, w, p, h with
+| _, _, _, (nil' x), e            := by { simp at e, induction e, use nil, use nil, simp, }
+| _, _, _, (cons' x y z a p'), e := by {
+  simp at e,
+  induction e,
+  { rcases e with rfl,
+    use nil, simp,
+  },
+  { rcases _match _ _ _ p' e with ⟨r',q',e'⟩,
+    use cons a r', use q',simp only [e', cons_append],},
+}
+end
+
 lemma walk.mem_support_iff_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} :
-  w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r := sorry
+  w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
+begin
+  split,
+  { exact walk.mem_support_to_exists_append },
+  { rintros ⟨q,r,rfl⟩,simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self],},
+end
 
 lemma walk.support_append_subset_left {V : Type u} {G : simple_graph V} {u v w : V} (p : G.walk u v) (q : G.walk v w) :
   p.support ⊆ (p.append q).support := by simp only [walk.support_append,list.subset_append_left]
@@ -49,29 +69,49 @@ lemma walk.pred_adj_non_pred {V : Type u} {G : simple_graph V} :
 | _ _ nil p up vnp := (vnp up).elim
 | _ _ (cons' x y z a q) p up vnp := if h : p y then walk.pred_adj_non_pred y z q p h vnp else ⟨x,y,a,up,h⟩
 
-/-
-def is_prefix {V : Type*} {G : simple_graph V} {u v w : V} (r : G.walk u w) (p : G.walk u v) :=
-  ∃ q : G.walk w v, p = r.append q
+
+/-def is_prefix {V : Type*} {G : simple_graph V} {u v w : V} (r : G.walk u w) (p : G.walk u v) :=
+  ∃ q : (G.walk w v), p = r.append q
+-/
+
+def is_prefix {V : Type*} {G : simple_graph V} : Π {u v w : V} (r : G.walk u w) (p : G.walk u v), Prop
+| _ _ _ nil nil := true
+| _ _ _ nil (cons _ _) := true
+| u v w (cons _ _) nil := false
+| u _ _ (cons' x yr v a r') (cons' xp yp w b p') := ∃ (e : yr = yp), @is_prefix yp w v (eq.rec r' e) p'
 
 infix ` ≤w ` : 50 := is_prefix
 
-def longest_prefix {V : Type*} {G : simple_graph V}
-  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
-  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) : (Σ (z : V), G.walk u z) := sorry
+lemma is_prefix_to_exists_suffix  {V : Type*} {G : simple_graph V} :
+  Π {u v w : V} (r : G.walk u w) (p : G.walk u v),  r ≤w p → ∃ q : G.walk w v, r.append q = p
+| _ _ _ nil nil := by {rintro _, use nil, simp,}
+| _ _ _ nil (cons a p) := by { rintro _, use cons a p, simp,}
+| u v w (cons _ _) nil := by {rintro f,unfold is_prefix at f,exfalso,exact f}
+| u _ _ (cons' x yr v a r') (cons' xp yp w b p') := by { rintro le, unfold is_prefix at le, rcases le with ⟨rfl,le'⟩, simp at le',rcases is_prefix_to_exists_suffix r' p' le' with ⟨q,rfl⟩,use q,simp,}
 
-def longest_prefix.prefix {V : Type*} {G : simple_graph V}
-  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
-  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) :
-  (longest_prefix pre pred pred_r).2 ≤w p
+lemma is_prefix_of_exists_suffix  {V : Type*} {G : simple_graph V} :
+  Π {u v w : V} (r : G.walk u w) (p : G.walk u v),  (∃ q : G.walk w v, r.append q = p) → r ≤w p
+| _ _ _ nil nil := by {simp,}
+| _ _ _ nil (cons a p) := by {simp,}
+| u v w (cons _ _) nil := by {simp,}
+| u _ _ (cons' x yr v a r') (cons' xp yp w b p') := by { rintros ⟨q,qeq⟩,
+  induction qeq,
+  rcases is_prefix_of_exists_suffix r' (r'.append q) ⟨q,rfl⟩ with le,
+  exact ⟨rfl,le⟩,
+  }
 
-def longest_prefix.spec {V : Type*} {G : simple_graph V}
-  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
-  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) := sorry
-
-def longest_prefix.longest {V : Type*} {G : simple_graph V}
-  {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
-  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) :
-  ∀ (z : V) (q : G.walk u z) (preq : q ≤w p), pred z q preq → q ≤w (longest_prefix pre pred pred_r).2 := sorry
+/-
+def longest_prefix_all {V : Type*} {G : simple_graph V} :
+Π {u v w : V} {r : G.walk u w} {p : G.walk u v} (pfx : r ≤w p)
+  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pfx),
+{ R : Σ (z : V), G.walk u z | ∃ (pfxR : R.2 ≤w p) (predR : pred R.1 R.2 pfxR),
+                              ∀ z (q : G.walk u z) (pfxq : q ≤w p), pred z q pfxq → q ≤w R.2 }
+| u _ _ nil nil pfx pred predr := by {simp, use ⟨u,nil⟩,simp,use trivial,{ exact predr,},{rintros z q pfxq predq,simp,exact pfxq,}  }
+| _ _ _ nil (cons' x y v a p) pfx pred predr := by {
+  let pred' : (∀ (z : V) (q : G.walk y z), q ≤w p → Prop) := λ z q pfxq, pred (cons a q)
+}
+| u v w (cons _ _) nil pfx pred predr := false.elim pfx
+| u _ _ (cons' x yr v a r') (cons' xp yp w b p') pfx pred predr := sorry
 -/
 
 end simple_graph

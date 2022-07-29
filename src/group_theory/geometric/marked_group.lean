@@ -114,7 +114,10 @@ group_norm.to_normed_mul_group _
 -- we need a lemma which translates between the general Type setting and the subset setting.
 
 
-lemma zero_norm_iff_one (g : marked m) : ∥g∥ = 0 ↔ g = 1 := sorry
+lemma zero_norm_iff_one (g : marked m) : ∥g∥ = 0 ↔ g = 1 :=
+begin
+  sorry,
+end
 
 lemma dist_to_norm (g : marked m) : dist 1 g = ∥g∥ := sorry
 
@@ -123,11 +126,13 @@ lemma dist_to_norm (g : marked m) : dist 1 g = ∥g∥ := sorry
 lemma gen_norm_le_one (s : S) : 1 = ∥((to_marked (m (free_group.of s))) : marked m)∥ := sorry
 
 
-@[simp] lemma dist_inv (a g h : marked m) : dist (a⁻¹*g) h = dist g (a*h):=
-sorry
+@[simp] lemma dist_inv (a g h : marked m) : dist (a⁻¹*g) h = dist g (a*h):= by
+{ rw [seminormed_mul_group.dist_eq, seminormed_mul_group.dist_eq],
+  apply congr_arg, group,}
 
-@[simp] lemma dist_inv' (a g h : marked m) : dist g (a⁻¹*h) = dist (a*g) h:=
-sorry
+@[simp] lemma dist_inv' (a g h : marked m) : dist g (a⁻¹*h) = dist (a*g) h:= by
+{ rw [seminormed_mul_group.dist_eq, seminormed_mul_group.dist_eq],
+  apply congr_arg, group, }
 
 lemma gen_set_mul_right (x : marked m) (s : S)
 : ∥ (to_marked (of_marked x * m (free_group.of s)) : marked m) ∥ ≤ ∥x∥+1 :=

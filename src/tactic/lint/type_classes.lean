@@ -124,7 +124,7 @@ let nonempty_tys := nonempty_insts.map (λ i, i.app_arg.get_app_fn.const_name),
 if d.to_name ∈ nonempty_tys then
   pure none
 else
-  pure "nonempty, inhabited, or unique instance missing"
+  pure "nonempty/inhabited/unique instance missing"
 
 /-- A linter for missing `nonempty` instances. -/
 @[linter]

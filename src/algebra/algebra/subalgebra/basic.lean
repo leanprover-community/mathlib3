@@ -350,7 +350,7 @@ theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map f S ≤ U ↔ S ≤ comap U f :=
 set.image_subset_iff
 
-lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (λ S, map f S) (λ S, comap S f) :=
+lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (map f) (λ S, comap S f) :=
 λ S U, map_le
 
 @[simp] lemma mem_comap (S : subalgebra R B) (f : A →ₐ[R] B) (x : A) :

@@ -882,15 +882,19 @@ option.rec h₁ h₂
   (x : α) : @rec_top_coe _ C d f ↑x = f x := rfl
 
 /-- `with_top.to_dual` is the equivalence sending `⊤` to `⊥` and any `a : α` to `to_dual a : αᵒᵈ`.
+See `with_top.to_dual_bot_equiv` for the related order-iso.
 -/
 protected def to_dual : with_top α ≃ with_bot αᵒᵈ := to_dual
 /-- `with_top.of_dual` is the equivalence sending `⊤` to `⊥` and any `a : αᵒᵈ` to `of_dual a : α`.
+See `with_top.to_dual_bot_equiv` for the related order-iso.
 -/
 protected def of_dual : with_top αᵒᵈ ≃ with_bot α := of_dual
 /-- `with_bot.to_dual` is the equivalence sending `⊥` to `⊤` and any `a : α` to `to_dual a : αᵒᵈ`.
+See `with_bot.to_dual_top_equiv` for the related order-iso.
 -/
 protected def _root_.with_bot.to_dual : with_bot α ≃ with_top αᵒᵈ := to_dual
 /-- `with_bot.of_dual` is the equivalence sending `⊥` to `⊤` and any `a : αᵒᵈ` to `of_dual a : α`.
+See `with_bot.to_dual_top_equiv` for the related order-iso.
 -/
 protected def _root_.with_bot.of_dual : with_bot αᵒᵈ ≃ with_top α := of_dual
 

@@ -532,23 +532,7 @@ def principal_unit_group : subgroup Kˣ :=
   end }
 
 lemma mem_principal_unit_group_iff (x : Kˣ) :
-  x ∈ A.principal_unit_group ↔ A.valuation ((x : K) - 1) < 1 := iff.refl _
-
-lemma principal_unit_group_injective :
-  function.injective (principal_unit_group : valuation_subring K → subgroup _) :=
-λ A B h, begin
-  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-    ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_sub_one_lt_one],
-  rw set_like.ext_iff at h,
-  intros x,
-  by_cases hx : x = 0,
-  { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] },
-  { exact h (units.mk0 x hx) }
-end
-
-lemma eq_iff_principal_unit_group {A B : valuation_subring K} :
-  A = B ↔ A.principal_unit_group = B.principal_unit_group :=
-principal_unit_group_injective.eq_iff.symm
+  x ∈ A.principal_unit_group ↔ A.valuation ((x : K) - 1) < 1 := iff.rfl
 
 lemma principal_unit_group_le_principal_unit_group {A B : valuation_subring K} :
   B.principal_unit_group ≤ A.principal_unit_group ↔ A ≤ B :=
@@ -565,6 +549,15 @@ begin
   { rintros h x hx,
     by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
 end
+
+lemma principal_unit_group_injective :
+  function.injective (principal_unit_group : valuation_subring K → subgroup _) :=
+λ A B h, by { simpa [le_antisymm_iff, principal_unit_group_le_principal_unit_group] using h.symm }
+
+lemma eq_iff_principal_unit_group {A B : valuation_subring K} :
+  A = B ↔ A.principal_unit_group = B.principal_unit_group :=
+principal_unit_group_injective.eq_iff.symm
+
 
 /-- The map on valuation subrings to their principal unit groups is an order embedding. -/
 def principal_unit_group_order_embedding :

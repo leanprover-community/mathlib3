@@ -43,7 +43,7 @@ and we may be unhappy with the resulting opaqueness of the definition.
 -/
 class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
   [module ℂ M] [normed_algebra ℂ M] [star_module ℂ M] :=
-(exists_predual : ∃ (X : Type u) [normed_group X] [normed_space ℂ X] [complete_space X],
+(exists_predual : ∃ (X : Type u) [normed_add_comm_group X] [normed_space ℂ X] [complete_space X],
   nonempty (normed_space.dual ℂ X ≃ₗᵢ⋆[ℂ] M))
 
 -- TODO: Without this, `von_neumann_algebra` times out. Why?

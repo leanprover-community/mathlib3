@@ -1514,7 +1514,7 @@ instance to_no_zero_divisors : no_zero_divisors α :=
 instance to_covariant_mul_le : covariant_class α α (*) (≤) :=
 begin
   refine ⟨λ a b c h, _⟩,
-  rcases le_iff_exists_add.1 h with ⟨c, rfl⟩,
+  rcases exists_add_of_le h with ⟨c, rfl⟩,
   rw mul_add,
   apply self_le_add_right
 end

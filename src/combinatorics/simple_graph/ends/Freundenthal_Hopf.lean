@@ -77,7 +77,7 @@ begin
     exact (infmapsto ⟨F₀comp,F₀inf⟩).2,
 },
 
-  apply @nicely_arranged_bwd_map_not_inj V G Gpc _ φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
+  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
 
   have := (bij_inf_ro_components_of_isom G G K' φ).bijective,
   --fintype.card_of_bijective

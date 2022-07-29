@@ -10,6 +10,7 @@ import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
 import data.nat.nth
+import tactic.interval_cases
 
 /-!
 # The Prime Counting Function
@@ -62,6 +63,10 @@ count_nth_of_infinite _ infinite_set_of_prime _
 @[simp] lemma prime_nth_prime (n : ℕ) : prime (nth prime n) :=
 nth_mem_of_infinite _ infinite_set_of_prime _
 
+lemma foo (a b c d : ℕ) (h : d ∣ c) : (a + b * c) / d = a / d + b * (c / d) := sorry
+
+lemma totient_six : nat.totient 6 = 2 := sorry
+
 /-- A linear upper bound on the size of the `prime_counting'` function -/
 lemma prime_counting'_add_mul_le {a k : ℕ} (h0 : 0 < a) (h1 : a < k) (m : ℕ) :
   π' (k + m * a) ≤ π' k + nat.totient a * (m) :=
@@ -91,29 +96,61 @@ calc π' (k + m * a)
           exact h0,
         end
 
+set_option profiler true
+
 /-- An explicit instantiation of nat.prime_counting'_add_mul_le  -/
-lemma prime_counting'_add_mul_le (n : ℕ) :
+lemma prime_counting'_le_div_3_add_2 (n : ℕ) :
   π' (n) ≤ n / 3 + 2 :=
 begin
-  nth_rewrite 0 ←div_add_mod n 3,
-  generalize : n / 3 = n',
-  nth_rewrite 0 ←div_add_mod n' 2,
-  generalize : n' / 2 = d,
+  rw ←div_add_mod n 6,
+  generalize : n / 6 = d,
+  have r_lt : n % 6 < 6,
+    apply nat.mod_lt,
+    norm_num,
+  revert r_lt,
+  -- nth_rewrite 0 ←div_add_mod n' 2,
+  generalize : n % 6 = r,
+  intro r_lt,
   cases d,
-  {
-    simp,
-    sorry,
+   {
+    interval_cases r,
+    all_goals { norm_num },
+    all_goals { unfold prime_counting' count, },
+    all_goals { simp [list.range_succ], },
+    all_goals { simp [list.countp], },
+    all_goals { norm_num, },
   },
   cases d,
-  {
-    simp,
-    sorry,
+   {
+    interval_cases r,
+    all_goals { norm_num },
+    all_goals { unfold prime_counting' count, },
+    all_goals { simp [list.range_succ], },
+    all_goals { simp [list.countp], },
+    all_goals { norm_num, },
   },
-  simp_rw mul_succ,
-  simp_rw add_assoc,
-  -- generalize : 3 + n % 3 = k,
-  rw [add_comm, mul_comm],
-  refine le_trans (prime_counting'_add_mul_le _ _ _) _,
+  {
+    simp_rw [nat.mul_succ, nat.add_assoc, add_comm (6 * d) _, mul_comm],
+    apply le_trans (prime_counting'_add_mul_le _ _ _),
+    {
+      rw [foo, totient_six],
+      norm_num,
+      rw mul_comm 2 d,
+      simp_rw add_comm _ (d * 2),
+      rw add_assoc,
+      simp only [add_le_add_iff_left],
+      interval_cases r,
+      all_goals { norm_num },
+      all_goals { unfold prime_counting' count, },
+      all_goals { simp [list.range_succ], },
+      all_goals { simp [list.countp], },
+      all_goals { norm_num, },
+    },
+    {
+      norm_num,
+    },
+    linarith,
+  },
 end
 
 end nat

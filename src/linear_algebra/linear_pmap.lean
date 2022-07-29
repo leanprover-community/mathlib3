@@ -135,7 +135,7 @@ by convert mk_span_singleton'_apply x y H 1 _; rwa one_smul
 This version works for modules over division rings. -/
 @[reducible] noncomputable def mk_span_singleton {K E F : Type*} [division_ring K]
   [add_comm_group E] [module K E] [add_comm_group F] [module K F] (x : E) (y : F) (hx : x ≠ 0) :
-  linear_pmap K E F :=
+  E →ₗ.[K] F :=
 mk_span_singleton' x y $ λ c hc, (smul_eq_zero.1 hc).elim
   (λ hc, by rw [hc, zero_smul]) (λ hx', absurd hx' hx)
 
@@ -146,7 +146,7 @@ lemma mk_span_singleton_apply (K : Type*) {E F : Type*} [division_ring K]
 linear_pmap.mk_span_singleton'_apply_self _ _ _ _
 
 /-- Projection to the first coordinate as a `linear_pmap` -/
-protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) E :=
+protected def fst (p : submodule R E) (p' : submodule R F) : (E × F) →ₗ.[R] E :=
 { domain := p.prod p',
   to_fun := (linear_map.fst R E F).comp (p.prod p').subtype }
 
@@ -154,7 +154,7 @@ protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E ×
   linear_pmap.fst p p' x = (x : E × F).1 := rfl
 
 /-- Projection to the second coordinate as a `linear_pmap` -/
-protected def snd (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) F :=
+protected def snd (p : submodule R E) (p' : submodule R F) : (E × F) →ₗ.[R] F :=
 { domain := p.prod p',
   to_fun := (linear_map.snd R E F).comp (p.prod p').subtype }
 
@@ -340,16 +340,16 @@ section
 variables {K : Type*} [division_ring K] [module K E] [module K F]
 
 /-- Extend a `linear_pmap` to `f.domain ⊔ K ∙ x`. -/
-noncomputable def sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F) (hx : x ∉ f.domain) :
-  linear_pmap K E F :=
+noncomputable def sup_span_singleton (f : E →ₗ.[K] F) (x : E) (y : F) (hx : x ∉ f.domain) :
+  E →ₗ.[K] F :=
 f.sup (mk_span_singleton x y (λ h₀, hx $ h₀.symm ▸ f.domain.zero_mem)) $
   sup_h_of_disjoint _ _ $ by simpa [disjoint_span_singleton]
 
-@[simp] lemma domain_sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F)
+@[simp] lemma domain_sup_span_singleton (f : E →ₗ.[K] F) (x : E) (y : F)
   (hx : x ∉ f.domain) :
   (f.sup_span_singleton x y hx).domain = f.domain ⊔ K ∙ x := rfl
 
-@[simp] lemma sup_span_singleton_apply_mk (f : linear_pmap K E F) (x : E) (y : F)
+@[simp] lemma sup_span_singleton_apply_mk (f : E →ₗ.[K] F) (x : E) (y : F)
   (hx : x ∉ f.domain) (x' : E) (hx' : x' ∈ f.domain) (c : K) :
   f.sup_span_singleton x y hx ⟨x' + c • x,
     mem_sup.2 ⟨x', hx', _, mem_span_singleton.2 ⟨c, rfl⟩, rfl⟩⟩ = f ⟨x', hx'⟩ + c • y :=

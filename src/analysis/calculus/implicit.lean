@@ -47,7 +47,7 @@ noncomputable theory
 
 open_locale topological_space
 open filter
-open continuous_linear_map (fst snd subtype_val smul_right ker_prod)
+open continuous_linear_map (fst snd smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)
 
 /-!
@@ -309,9 +309,9 @@ end
 lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by convert (implicit_function_data_of_complemented f f' hf hf'
-  hker).implicit_function_has_strict_fderiv_at (subtype_val f'.ker) _ _;
+  hker).implicit_function_has_strict_fderiv_at f'.ker.subtypeL _ _;
     [skip, ext, ext]; simp [classical.some_spec hker]
 
 end complemented
@@ -412,7 +412,7 @@ by apply eq_implicit_function_of_complemented
 
 lemma to_implicit_function (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   has_strict_fderiv_at (hf.implicit_function f f' hf' (f a))
-    (subtype_val f'.ker) 0 :=
+    f'.ker.subtypeL 0 :=
 by apply to_implicit_function_of_complemented
 
 end finite_dimensional

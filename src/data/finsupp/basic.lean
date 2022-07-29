@@ -789,8 +789,8 @@ end⟩
 @[simp] lemma to_alist_keys_to_finset (f : α →₀ M) : f.to_alist.keys.to_finset = f.support :=
 by { ext, simp [to_alist, alist.mem_keys, alist.keys, list.keys] }
 
-@[simp] lemma mem_to_alist {f : α →₀ M} {x : α} : x ∈ f.to_alist ↔ x ∈ f.support :=
-by rw [alist.mem_keys, ←list.mem_to_finset, to_alist_keys_to_finset]
+@[simp] lemma mem_to_alist {f : α →₀ M} {x : α} : x ∈ f.to_alist ↔ f x ≠ 0 :=
+by rw [alist.mem_keys, ←list.mem_to_finset, to_alist_keys_to_finset, mem_support_iff]
 
 end graph
 
@@ -818,7 +818,7 @@ absent keys to zero. -/
 
 alias lookup_finsupp_to_fun ← lookup_finsupp_apply
 
-@[simp] lemma lookup_finsupp_to_alist (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
+@[simp] lemma to_alist_lookup_finsupp (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
 begin
   ext,
   by_cases h : f a = 0,
@@ -832,7 +832,7 @@ begin
 end
 
 lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
-λ f, ⟨_, lookup_finsupp_to_alist f⟩
+λ f, ⟨_, to_alist_lookup_finsupp f⟩
 
 end alist
 

@@ -32,6 +32,9 @@ open category
 variables {C : Type*} [category C] {A B B' X Y Y' : C}
   (i : A ⟶ B) (i' : B ⟶ B') (p : X ⟶ Y) (p' : Y ⟶ Y')
 
+/-- `has_lifting_property i p` means that `i` has the left lifting
+property with respect to `p`, or equivalently that `p` has
+the right lifting property with respect to `i`. -/
 class has_lifting_property : Prop :=
 (sq_has_lift : ∀ {f : A ⟶ X} {g : B ⟶ Y} (sq : comm_sq f i p g), sq.has_lift)
 

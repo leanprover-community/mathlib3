@@ -496,7 +496,7 @@ F.is_terminal_of_bot_cover ∅ (by tidy)
 
 /-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
 def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
-  limits.is_terminal (F.obj.obj (op U)) :=
+  limits.is_terminal (F.val.obj (op U)) :=
 by convert F.is_terminal_of_empty
 
 /-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`

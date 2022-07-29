@@ -503,12 +503,10 @@ lemma finite_ends_to_inj [locally_finite G] (Gpc : G.preconnected)  [fintype (en
 begin
   let v : V := Vnempty.some,
   let M := fintype.card (ends G Gpc),
-  have all_fin : ∀ K : finset V, fintype (inf_ro_components G K), from
-    λ K, @fintype.of_surjective _ _ _ _ (eval G Gpc K) (eval_surjective G Gpc K),
-  have all_le_M :=
-    λ K, @fintype.card_le_of_surjective _ _ _ (all_fin K) (eval G Gpc K) (eval_surjective G Gpc K),
-  have  : ∃ K : finset V, ∀ K' : finset V, @fintype.card _ (ro_component.inf_components_finite G Gpc K')
-                                           ≤ @fintype.card _ (ro_component.inf_components_finite G Gpc K), by {
+  haveI all_fin : ∀ K : finset V, fintype (inf_ro_components G K), from
+    λ K, fintype.of_surjective (eval G Gpc K) (eval_surjective G Gpc K),
+  have all_le_M := λ K, fintype.card_le_of_surjective (eval G Gpc K) (eval_surjective G Gpc K),
+  have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_ro_components G  K') ≤ fintype.card (inf_ro_components G K), by {
     sorry,
     -- by `all_le_M` all values are ≤ M, so just needs to find an argmax, but not sure what's the best
     -- path usinG Gpc mathlib
@@ -521,11 +519,10 @@ begin
   { exact finset.insert_nonempty v K, },
   { rintros L KvsubL,
     by_contradiction notinj,
-    have Kv_lt_L := @fintype.card_lt_of_surjective_not_injective _ _ (all_fin L) (all_fin Kv) (bwd_map G Gpc KvsubL) (bwd_map_surjective G Gpc KvsubL) notinj,
-    have K_le_Kv := @fintype.card_le_of_surjective _ _ (all_fin Kv) (all_fin K) (bwd_map G Gpc KsubKv) (bwd_map_surjective G Gpc KsubKv),
+    have Kv_lt_L := fintype.card_lt_of_surjective_not_injective (bwd_map G Gpc KvsubL) (bwd_map_surjective G Gpc KvsubL) notinj,
+    have K_le_Kv := fintype.card_le_of_surjective (bwd_map G Gpc KsubKv) (bwd_map_surjective G Gpc KsubKv),
     have K_lt_L := lt_of_le_of_lt K_le_Kv Kv_lt_L,
-    -- exact (Kmax L).not_lt K_lt_L,
-    sorry
+    exact (Kmax L).not_lt K_lt_L,
   },
 
 end

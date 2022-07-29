@@ -706,8 +706,8 @@ instance strong_epi_mono_factorisation_inhabited {X Y : C} (f : X ⟶ Y) [strong
     property of the image. -/
 def strong_epi_mono_factorisation.to_mono_is_image {X Y : C} {f : X ⟶ Y}
   (F : strong_epi_mono_factorisation f) : is_image F.to_mono_factorisation :=
-{ lift := λ G, arrow.lift $ arrow.hom_mk' $
-    show G.e ≫ G.m = F.e ≫ F.m, by rw [F.to_mono_factorisation.fac, G.fac] }
+{ lift := λ G, (comm_sq.mk (show G.e ≫ G.m = F.e ≫ F.m,
+    by rw [F.to_mono_factorisation.fac, G.fac])).lift, }
 
 variable (C)
 
@@ -776,8 +776,8 @@ variables [has_images C]
 instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
   has_image_maps C :=
 { has_image_map := λ f g st, has_image_map.mk
-  { map := arrow.lift $ arrow.hom_mk' $ show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
-      factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp } }
+  { map := (comm_sq.mk (show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
+      factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp)).lift, }, }
 
 /-- If a category has images, equalizers and pullbacks, then images are automatically strong epi
     images. -/
@@ -786,12 +786,20 @@ instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks
   [has_equalizers C] : has_strong_epi_images C :=
 { strong_factor_thru_image := λ X Y f,
   { epi := by apply_instance,
-    has_lift := λ A B x y h h_mono w, arrow.has_lift.mk
-    { lift := image.lift
-      { I := pullback h y,
-        m := pullback.snd ≫ image.ι f,
-        m_mono := by exactI mono_comp _ _,
-        e := pullback.lift _ _ w } ≫ pullback.fst } } }
+    llp := begin
+      introsI A B h h_mono,
+      constructor,
+      intros x y sq,
+      exact comm_sq.has_lift.mk'
+      { l := image.lift
+          { I := pullback h y,
+            m := pullback.snd ≫ image.ι f,
+            m_mono := by exactI mono_comp _ _,
+            e := pullback.lift _ _ sq.w } ≫ pullback.fst,
+        fac_left' := by simp only [image.fac_lift_assoc, pullback.lift_fst],
+        fac_right' := by { ext, simp only [sq.w, category.assoc,
+          image.fac_lift_assoc, pullback.lift_fst_assoc], }, },
+    end, }, }
 
 end has_strong_epi_images
 

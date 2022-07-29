@@ -320,42 +320,36 @@ protected lemma strict_anti [subsingleton α] (f : α → β) : strict_anti f :=
 
 end subsingleton
 
-/-! ### Monotonicity on singletons -/
-
-@[simp]
-lemma strict_mono_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  strict_mono_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij, false.elim (hij.ne $ hj.symm ▸ hi)
-
-@[simp]
-lemma monotone_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  monotone_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij,  hi.symm ▸ hj.symm ▸ le_rfl
-
-@[simp]
-lemma strict_anti_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  strict_anti_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij, false.elim (hij.ne $ hj.symm ▸ hi)
-
-@[simp]
-lemma antitone_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  antitone_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij,  hi.symm ▸ hj.symm ▸ le_rfl
-
 /-! ### Miscellaneous monotonicity results -/
 
 lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id
 
+lemma monotone_on_id [preorder α] {s : set α} : monotone_on id s := λ a ha b hb, id
+
 lemma strict_mono_id [preorder α] : strict_mono (id : α → α) := λ a b, id
 
+lemma strict_mono_on_id [preorder α] {s : set α} : strict_mono_on id s := λ a ha b hb, id
+
 theorem monotone_const [preorder α] [preorder β] {c : β} : monotone (λ (a : α), c) :=
-λ a b _, le_refl c
+λ a b _, le_rfl
+
+theorem monotone_on_const [preorder α] [preorder β] {c : β} {s : set α} :
+  monotone_on (λ (a : α), c) s :=
+λ a _ b _ _, le_rfl
 
 theorem antitone_const [preorder α] [preorder β] {c : β} : antitone (λ (a : α), c) :=
 λ a b _, le_refl c
 
+theorem antitone_on_const [preorder α] [preorder β] {c : β} {s : set α} :
+  antitone_on (λ (a : α), c) s :=
+λ a _ b _ _, le_rfl
+
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
+λ a b, (lt_iff_lt_of_le_iff_le' (h _ _) (h _ _)).1
+
+lemma strict_anti_of_le_iff_le [preorder α] [preorder β] {f : α → β}
+  (h : ∀ x y, x ≤ y ↔ f y ≤ f x) : strict_anti f :=
 λ a b, (lt_iff_lt_of_le_iff_le' (h _ _) (h _ _)).1
 
 lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :

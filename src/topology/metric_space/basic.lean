@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.int.interval
+import tactic.positivity
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.constructions
@@ -141,7 +142,7 @@ private theorem pseudo_metric_space.dist_nonneg' {α} {x y : α} (dist : α → 
 have 2 * dist x y ≥ 0,
   from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
     ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
-nonneg_of_mul_nonneg_left this zero_lt_two
+nonneg_of_mul_nonneg_right this zero_lt_two
 
 /-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
 used. -/
@@ -308,6 +309,17 @@ abs_sub_le_iff.2
 
 theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
 pseudo_metric_space.dist_nonneg' dist dist_self dist_comm dist_triangle
+
+section
+open tactic tactic.positivity
+
+/-- Extension for the `positivity` tactic: distances are nonnegative. -/
+@[positivity]
+meta def _root_.tactic.positivity_dist : expr → tactic strictness
+| `(dist %%a %%b) := nonnegative <$> mk_app ``dist_nonneg [a, b]
+| _ := failed
+
+end
 
 @[simp] theorem abs_dist {a b : α} : |dist a b| = dist a b :=
 abs_of_nonneg dist_nonneg
@@ -1275,7 +1287,7 @@ lemma filter.tendsto.congr_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter
   tendsto f₂ p (𝓝 a) :=
 h₁.congr_uniformity $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
-alias filter.tendsto.congr_dist ←  tendsto_of_tendsto_of_dist
+alias filter.tendsto.congr_dist ← tendsto_of_tendsto_of_dist
 
 lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
   (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
@@ -2040,6 +2052,12 @@ def bounded (s : set α) : Prop :=
 section bounded
 variables {x : α} {s t : set α} {r : ℝ}
 
+lemma bounded_iff_is_bounded (s : set α) : bounded s ↔ is_bounded s :=
+begin
+  change bounded s ↔ sᶜ ∈ (cobounded α).sets,
+  simp [pseudo_metric_space.cobounded_sets, metric.bounded],
+end
+
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩
 
@@ -2097,7 +2115,7 @@ let ⟨C, h⟩ := h in
 ⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
 $ ball_mem_comm.mp h⟩
 
-alias bounded_closure_of_bounded ← metric.bounded.closure
+alias bounded_closure_of_bounded ← bounded.closure
 
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
@@ -2152,7 +2170,7 @@ h.totally_bounded.bounded
 lemma bounded_of_finite {s : set α} (h : s.finite) : bounded s :=
 h.is_compact.bounded
 
-alias bounded_of_finite ← set.finite.bounded
+alias bounded_of_finite ← _root_.set.finite.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=

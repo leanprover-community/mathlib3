@@ -274,18 +274,6 @@ lemma upper_crossing_stabilize' (hnm : n ≤ m) (hn : N ≤ upper_crossing a b f
   upper_crossing a b f N m x = N :=
 upper_crossing_stabilize hnm (le_antisymm upper_crossing_le hn)
 
-section temp
-
--- from #12509 **DELETE**
-lemma strict_mono.not_bdd_above_range {α β} [preorder α] [no_max_order α] [nonempty α] [preorder β]
-  [succ_order β] [is_succ_archimedean β] {f : α → β} (hf : strict_mono f) :
-  ¬ bdd_above (set.range f) :=
-begin
-  sorry
-end
-
-end temp
-
 -- `upper_crossing_bound_eq` provides an explicit bound
 lemma exists_upper_crossing_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :
   ∃ n, upper_crossing a b f N n x = N :=
@@ -293,7 +281,9 @@ begin
   by_contra h, push_neg at h,
   have : strict_mono (λ n, upper_crossing a b f N n x) :=
     strict_mono_nat_of_lt_succ (λ n, upper_crossing_lt_succ hab (h _)),
-  obtain ⟨_, ⟨k, rfl⟩, hk⟩ := not_bdd_above_iff.1 (strict_mono.not_bdd_above_range this) N,
+  obtain ⟨_, ⟨k, rfl⟩, hk⟩ : ∃ m (hm : m ∈ set.range (λ n, upper_crossing a b f N n x)), N < m :=
+    ⟨upper_crossing a b f N (N + 1) x, ⟨N + 1, rfl⟩,
+      lt_of_lt_of_le (N.lt_succ_self) (strict_mono.id_le this (N + 1))⟩,
   exact not_le.2 hk upper_crossing_le
 end
 
@@ -308,27 +298,25 @@ end
 lemma upper_crossing_lt_nonempty (hN : 0 < N) : {n | upper_crossing a b f N n x < N}.nonempty :=
 ⟨0, hN⟩
 
-lemma upper_crossing_bound_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) (hN : 0 < N) :
+lemma upper_crossing_bound_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :
   upper_crossing a b f N N x = N :=
 begin
   by_cases hN' : N < nat.find (exists_upper_crossing_eq f N x hab),
   { refine le_antisymm upper_crossing_le _,
     have hmono : strict_mono_on (λ n, upper_crossing a b f N n x)
-      (set.Icc 0 (nat.find (exists_upper_crossing_eq f N x hab)).pred),
-    { refine strict_mono_on_Icc_of_lt_succ (λ m (hm : _ ≤ order.pred _), _),
-      refine upper_crossing_lt_succ hab _,
-      rw order.le_pred_iff_of_not_is_min at hm,
-      { convert nat.find_min _ hm },
-      { simp [hN.ne] } },
-    convert strict_mono_on.Icc_id_le hmono N (nat.le_pred_of_lt hN') },
+      (set.Iic (nat.find (exists_upper_crossing_eq f N x hab)).pred),
+    { refine strict_mono_on_Iic_of_lt_succ (λ m hm, upper_crossing_lt_succ hab _),
+      rw nat.lt_pred_iff at hm,
+      convert nat.find_min _ hm },
+    convert strict_mono_on.Iic_id_le hmono N (nat.le_pred_of_lt hN') },
   { rw not_lt at hN',
     exact upper_crossing_stabilize hN' (nat.find_spec (exists_upper_crossing_eq f N x hab)) }
 end
 
-lemma upper_crossing_eq_of_bound_le (hab : a < b) (hN : 0 < N) (hn : N ≤ n) :
+lemma upper_crossing_eq_of_bound_le (hab : a < b) (hn : N ≤ n) :
   upper_crossing a b f N n x = N :=
 le_antisymm upper_crossing_le
-  ((le_trans (upper_crossing_bound_eq f N x hab hN).symm.le (upper_crossing_mono hn)))
+  ((le_trans (upper_crossing_bound_eq f N x hab).symm.le (upper_crossing_mono hn)))
 
 variables {ℱ : filtration ℕ m0}
 
@@ -409,15 +397,16 @@ lemma submartingale.sum_upcrossing_strat_mul [is_finite_measure μ] (hf : submar
   submartingale
     (λ n : ℕ, ∑ k in finset.range n, upcrossing_strat a b f N k * (f (k + 1) - f k)) ℱ μ :=
 hf.sum_mul_sub hf.adapted.upcrossing_strat_adapted
-  ⟨1, λ _ _, upcrossing_strat_le_one⟩ (λ _ _, upcrossing_strat_nonneg)
+  (λ _ _, upcrossing_strat_le_one) (λ _ _, upcrossing_strat_nonneg)
 
 lemma submartingale.sum_sub_upcrossing_strat_mul [is_finite_measure μ] (hf : submartingale f ℱ μ)
   (a b : ℝ) (N : ℕ) :
   submartingale
     (λ n : ℕ, ∑ k in finset.range n, (1 - upcrossing_strat a b f N k) * (f (k + 1) - f k)) ℱ μ :=
 begin
-  refine hf.sum_mul_sub ((adapted_const ℱ 1).sub hf.adapted.upcrossing_strat_adapted) _ _,
-  { refine ⟨1, λ n x, sub_le.1 _⟩,
+  refine hf.sum_mul_sub (λ n, (adapted_const ℱ 1 n).sub (hf.adapted.upcrossing_strat_adapted n))
+    (_ : ∀ n x, (1 - upcrossing_strat a b f N n) x ≤ 1) _,
+  { refine λ n x, sub_le.1 _,
     simp [upcrossing_strat_nonneg] },
   { intros n x,
     simp [upcrossing_strat_le_one] }
@@ -490,7 +479,7 @@ lemma upcrossing_before_le (f : ℕ → α → ℝ) (x : α) (hN : 0 < N) (hab :
 begin
   refine cSup_le ⟨0, hN⟩ (λ n (hn : _ < _), _),
   by_contra hnN,
-  exact hn.ne (upper_crossing_eq_of_bound_le hab hN (not_le.1 hnN).le),
+  exact hn.ne (upper_crossing_eq_of_bound_le hab (not_le.1 hnN).le),
 end
 
 lemma crossing_eq_crossing_of_lower_crossing_lt {M : ℕ} (hNM : N ≤ M)

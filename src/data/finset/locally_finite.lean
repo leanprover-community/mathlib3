@@ -57,9 +57,9 @@ by rw [←coe_eq_empty, coe_Ioc, set.Ioc_eq_empty_iff]
 @[simp] lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
 by rw [←coe_eq_empty, coe_Ioo, set.Ioo_eq_empty_iff]
 
-alias Icc_eq_empty_iff ↔ _ finset.Icc_eq_empty
-alias Ico_eq_empty_iff ↔ _ finset.Ico_eq_empty
-alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
+alias Icc_eq_empty_iff ↔ _ Icc_eq_empty
+alias Ico_eq_empty_iff ↔ _ Ico_eq_empty
+alias Ioc_eq_empty_iff ↔ _ Ioc_eq_empty
 
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)

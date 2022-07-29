@@ -354,11 +354,16 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
 mul_equiv_class.map_ne_one_iff h
 
 /-- A bijective `semigroup` homomorphism is an isomorphism -/
-@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism"]
+@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism", simps apply]
 noncomputable def of_bijective {M N F} [has_mul M] [has_mul N] [mul_hom_class F M N] (f : F)
   (hf : function.bijective f) : M ≃* N :=
 { map_mul' := map_mul f,
   ..equiv.of_bijective f hf }
+
+@[simp]
+lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
+  (hf : function.bijective f) : f ((equiv.of_bijective f hf).symm n) = n :=
+(mul_equiv.of_bijective f hf).apply_symm_apply n
 
 /--
 Extract the forward direction of a multiplicative equivalence

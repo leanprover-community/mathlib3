@@ -7,12 +7,12 @@ import topology.urysohns_lemma
 import topology.continuous_function.bounded
 
 /-!
-# Metrizability of a regular topological space with second countable topology
+# Metrizability of a T₃ topological space with second countable topology
 
 In this file we define metrizable topological spaces, i.e., topological spaces for which there
 exists a metric space structure that generates the same topology.
 
-We also show that a regular topological space with second countable topology `X` is metrizable.
+We also show that a T₃ topological space with second countable topology `X` is metrizable.
 
 First we prove that `X` can be embedded into `l^∞`, then use this embedding to pull back the metric
 space structure.
@@ -119,13 +119,13 @@ embedding_subtype_coe.metrizable_space
 instance metrizable_space_pi [Π i, metrizable_space (π i)] : metrizable_space (Π i, π i) :=
 by { letI := λ i, metrizable_space_metric (π i), apply_instance }
 
-variables (X) [regular_space X] [second_countable_topology X]
+variables (X) [t3_space X] [second_countable_topology X]
 
-/-- A regular topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
+/-- A T₃ topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
 -/
 lemma exists_embedding_l_infty : ∃ f : X → (ℕ →ᵇ ℝ), embedding f :=
 begin
-  haveI : normal_space X := normal_space_of_regular_second_countable X,
+  haveI : normal_space X := normal_space_of_t3_second_countable X,
   -- Choose a countable basis, and consider the set `s` of pairs of set `(U, V)` such that `U ∈ B`,
   -- `V ∈ B`, and `closure U ⊆ V`.
   rcases exists_countable_basis X with ⟨B, hBc, -, hB⟩,
@@ -203,12 +203,12 @@ begin
     exacts [hy _ hle, (real.dist_le_of_mem_Icc (hf0ε _ _) (hf0ε _ _)).trans (by rwa sub_zero)] }
 end
 
-/-- *Urysohn's metrization theorem* (Tychonoff's version): a regular topological space with second
+/-- *Urysohn's metrization theorem* (Tychonoff's version): a T₃ topological space with second
 countable topology `X` is metrizable, i.e., there exists a metric space structure that generates the
 same topology. -/
-lemma metrizable_space_of_regular_second_countable : metrizable_space X :=
+lemma metrizable_space_of_t3_second_countable : metrizable_space X :=
 let ⟨f, hf⟩ := exists_embedding_l_infty X in hf.metrizable_space
 
-instance : metrizable_space ennreal := metrizable_space_of_regular_second_countable ennreal
+instance : metrizable_space ennreal := metrizable_space_of_t3_second_countable ennreal
 
 end topological_space

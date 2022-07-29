@@ -131,7 +131,7 @@ class semiring (α : Type u) extends non_unital_semiring α, non_assoc_semiring 
 
 section injective_surjective_maps
 
-variables [has_zero β] [has_add β] [has_mul β] [has_scalar ℕ β]
+variables [has_zero β] [has_add β] [has_mul β] [has_smul ℕ β]
 
 /-- Pullback a `non_unital_non_assoc_semiring` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -161,7 +161,7 @@ See note [reducible non-instances]. -/
 protected def function.injective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_mul β] [has_add β]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -177,7 +177,7 @@ See note [reducible non-instances]. -/
 protected def function.injective.semiring
   {α : Type u} [semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -215,7 +215,7 @@ See note [reducible non-instances]. -/
 protected def function.surjective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -230,7 +230,7 @@ See note [reducible non-instances]. -/
 protected def function.surjective.semiring
   {α : Type u} [semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -388,7 +388,7 @@ variables [non_unital_comm_semiring α] [non_unital_comm_semiring β] {a b c : �
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_comm_semiring [has_zero γ] [has_add γ] [has_mul γ]
-  [has_scalar ℕ γ] (f : γ → α) (hf : injective f) (zero : f 0 = 0)
+  [has_smul ℕ γ] (f : γ → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_comm_semiring γ :=
@@ -398,7 +398,7 @@ protected def function.injective.non_unital_comm_semiring [has_zero γ] [has_add
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_comm_semiring [has_zero γ] [has_add γ] [has_mul γ]
-  [has_scalar ℕ γ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0)
+  [has_smul ℕ γ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_comm_semiring γ :=
@@ -432,7 +432,7 @@ variables [comm_semiring α] [comm_semiring β] {a b c : α}
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.comm_semiring
-  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_scalar ℕ γ] [has_nat_cast γ]
+  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_smul ℕ γ] [has_nat_cast γ]
   [has_pow γ ℕ] (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -444,7 +444,7 @@ protected def function.injective.comm_semiring
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_semiring
-  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_scalar ℕ γ] [has_nat_cast γ]
+  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_smul ℕ γ] [has_nat_cast γ]
   [has_pow γ ℕ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -603,7 +603,7 @@ variables [non_unital_non_assoc_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_non_assoc_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -616,7 +616,7 @@ protected def function.injective.non_unital_non_assoc_ring
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_non_assoc_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -675,7 +675,7 @@ variables [non_unital_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -688,7 +688,7 @@ protected def function.injective.non_unital_ring
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -712,7 +712,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -729,7 +729,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -793,7 +793,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -810,7 +810,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -933,7 +933,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_comm_ring
   [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_smul ℕ β] [has_smul ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -946,7 +946,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_comm_ring
   [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_smul ℕ β] [has_smul ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -986,7 +986,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.comm_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -1002,7 +1002,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)

@@ -190,7 +190,7 @@ begin
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
-  dsimp, simp only [if_congr, subtype.mk_lt_mk, dif_ctx_congr],
+  dsimp,
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with two of them by hand.
@@ -212,7 +212,7 @@ begin
   { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa [fin.pred_above] with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
-  dsimp, simp only [if_congr, subtype.mk_lt_mk],
+  dsimp,
   split_ifs; { simp at *; linarith, },
 end
 

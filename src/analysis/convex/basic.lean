@@ -45,8 +45,8 @@ open_locale big_operators classical pointwise
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E]
+section has_smul
+variables (𝕜) [has_smul 𝕜 E]
 
 /-- Segments in a vector space. -/
 def segment (x y : E) : set E :=
@@ -93,7 +93,7 @@ lemma open_segment_subset_iff {x y : E} {s : set E} :
 ⟨λ H a b ha hb hab, H ⟨a, b, ha, hb, hab, rfl⟩,
   λ H z ⟨a, b, ha, hb, hab, hz⟩, hz ▸ H a b ha hb hab⟩
 
-end has_scalar
+end has_smul
 
 open_locale convex
 
@@ -519,8 +519,8 @@ variables [ordered_semiring 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (s : set E)
 
 /-- Convexity of sets. -/
 def convex : Prop :=
@@ -585,7 +585,7 @@ begin
 end
 
 lemma convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
-  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
+  [Π i, has_smul 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
   convex 𝕜 (s.pi t) :=
 λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
 
@@ -609,7 +609,7 @@ begin
   exact (directed_on_iff_directed.1 hdir).convex_Union (λ A, hc A.2),
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}

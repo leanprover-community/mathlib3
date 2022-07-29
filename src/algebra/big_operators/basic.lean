@@ -1688,8 +1688,6 @@ variables [decidable_eq α]
 
 lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
   z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
-lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
-  z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
 begin
   rw ←add_eq_union_iff_disjoint,
   split,

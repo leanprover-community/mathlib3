@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Blyth
 -/
 
-import linear_algebra.projective_space.basic
+import linear_algebra.projective_space.independence
 
 /-!
 # Subspaces of Projective Space
@@ -121,19 +121,15 @@ instance : complete_lattice (subspace K V) :=
 instance subspace_inhabited : inhabited (subspace K V) :=
 { default := ⊤ }
 
-/-- The span of a set of points is contained in a subspace iff the set of points is contained in the
-subspace. -/
+/-- The span of a set of points is contained in a subspace if and only if the set of points is
+contained in the subspace. -/
 lemma span_le_subspace_iff {S : set (ℙ K V)} {W : subspace K V} : span S ≤ W ↔ S ⊆ W :=
-by { exact gi.gc S W }
+gi.gc S W
 
 /-- If a set of points is a subset of another set of points, then its span will be contained in the
 span of that set. -/
 lemma span_mono {S T : set (ℙ K V)} (h : S ⊆ T) : span S ≤ span T :=
-begin
-  rintros s hs, induction hs with u hu v w _ _ _ _ _ hvt hwt,
-  { exact subset_span T (h hu) },
-  { exact mem_add (span T) v w _ _ _ hvt hwt },
-end
+galois_connection.monotone_l gi.gc h
 
 /-- The supremum of two subspaces is equal to the span of their union. -/
 lemma sup_eq_span_union (W S : subspace K V) : W ⊔ S = span (W ∪ S) :=

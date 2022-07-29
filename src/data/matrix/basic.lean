@@ -214,12 +214,14 @@ lemma _root_.is_left_regular.matrix [has_mul α] {k : α} (hk : is_left_regular 
 hk.is_smul_regular.matrix
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, exact is_empty_elim i }⟩
+def unique_of_empty_left [is_empty m] : unique (matrix m n α) :=
+{ default := @of m n α (λ i j, is_empty_elim i),
+  uniq := λ a, matrix.ext is_empty_elim }
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, exact is_empty_elim j }⟩
+def unique_of_empty_right [is_empty n] : unique (matrix m n α) :=
+{ default := @of m n α (λ i j, is_empty_elim j),
+  uniq := λ a, matrix.ext (λ i, is_empty_elim) }
 
 end matrix
 

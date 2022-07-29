@@ -105,12 +105,14 @@ lemma map_sub [∀ i j, add_group (α i j)] {β : m → n → Type w} [∀ i j, 
 by { ext, simp }
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_empty_left [is_empty m] : subsingleton (dmatrix m n α) :=
-⟨λ M N, by { ext, exact is_empty_elim i }⟩
+def unique_of_empty_left [is_empty m] : unique (dmatrix m n α) :=
+{ default := λ i j, is_empty_elim i,
+  uniq := λ a, dmatrix.ext is_empty_elim }
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_empty_right [is_empty n] : subsingleton (dmatrix m n α) :=
-⟨λ M N, by { ext, exact is_empty_elim j }⟩
+def unique_of_empty_right [is_empty n] : unique (dmatrix m n α) :=
+{ default := λ i j, is_empty_elim j,
+  uniq := λ a, dmatrix.ext (λ i, is_empty_elim) }
 
 end dmatrix
 

@@ -336,7 +336,10 @@ begin
 end
 
 @[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
-@subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
+begin
+  haveI : unique (matrix n n α) := unique_of_empty_right,
+  exact subsingleton.elim _ _
+end
 
 @[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
 adjugate_subsingleton A
@@ -442,7 +445,9 @@ begin
   -- get rid of the `- 2`
   cases h_card : (fintype.card n) with n',
   { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
-    exact @subsingleton.elim _ (matrix.subsingleton_of_empty_left) _ _, },
+    -- TODO[gh-6025]: remove this `haveI` once `unique_of_empty_right` is a global instance
+    haveI : unique (matrix n n α) := unique_of_empty_right,
+    exact subsingleton.elim _ _, },
   cases n',
   { exact (h h_card).elim },
   rw ←h_card,

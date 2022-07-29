@@ -116,6 +116,14 @@ def unop_equiv {A B X Y : Cᵒᵖ} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g 
 
 end lift_struct
 
+instance subsingleton_lift_struct_of_epi (sq : comm_sq f i p g) [epi i] :
+  subsingleton (lift_struct sq) :=
+⟨λ l₁ l₂, by { ext, simp only [← cancel_epi i, lift_struct.fac_left], }⟩
+
+instance subsingleton_lift_struct_of_mono (sq : comm_sq f i p g) [mono p] :
+  subsingleton (lift_struct sq) :=
+⟨λ l₁ l₂, by { ext, simp only [← cancel_mono p, lift_struct.fac_right], }⟩
+
 variable (sq : comm_sq f i p g)
 
 class has_lift : Prop := (exists_lift : nonempty sq.lift_struct)

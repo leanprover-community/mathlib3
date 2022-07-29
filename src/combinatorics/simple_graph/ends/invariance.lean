@@ -45,11 +45,21 @@ lemma cofinite.comp {f : V → V'} {f' : V' → V''} (cof : cofinite f) (cof' : 
 def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V := sorry
 lemma cofinite.preimage.coe {f : V → V'} (cof : cofinite f) (K : finset V') : ↑(cof.preimage K) = set.preimage f K := sorry
 
-def coarse (f : V → V') :=
-  ∃ (cof : cofinite f),
-    ∀ (K : finset V'),
-      ∃  (L : finset V), cofinite.preimage cof K ⊆ L
-        ∧ ∀ D : inf_ro_components G L, ∃! C : inf_ro_components G' K, f '' D ⊆ C
+
+def good_finset (f : V → V') (cof : cofinite f) (K : finset V') :=
+  {L : finset V | cofinite.preimage cof K ⊆ L
+                ∧ ∀ D : inf_ro_components G L, ∃! C : inf_ro_components G' K, f '' D ⊆ C}
+
+structure coarse :=
+  (to_fun : V → V')
+  (cof : cofinite to_fun)
+  (coarse : ∀ (K : finset V'), good_finset G G' to_fun cof K)
+
+def close (f g : coarse G G') :=
+  ∀ (K : finset V') (L : good_finset G G' f.to_fun f.cof K) (M : good_finset G G' f.to_fun f.cof K),
+    ∃ N : finset V, ↑L ⊆ N ∧ ↑M ⊆ N
+                  ∧ ∀ D : inf_ro_components G N,
+                    ∃! C : inf_ro_components G' K, f.to_fun '' D ⊆ C ∧ g.to_fun '' D ⊆ C
 
 def qi_embedding (f : V → V') : Prop := sorry -- ∃ (K : ℕ), ∀ (u v : V), dist (f u) (f v) ≤ K * (dist u v) + K ∧ dist u v ≤ K * (dist (f u) (f v)) + K
 

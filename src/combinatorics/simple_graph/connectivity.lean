@@ -62,10 +62,11 @@ walks, trails, paths, circuits, cycles
 
 open function
 
-universes u v
+universes u v w
 
 namespace simple_graph
-variables {V : Type u} {V' : Type v} (G : simple_graph V) (G' : simple_graph V')
+variables {V : Type u} {V' : Type v} {V'' : Type w}
+variables (G : simple_graph V) (G' : simple_graph V') (G'' : simple_graph V'')
 
 /-- A walk is a sequence of adjacent vertices.  For vertices `u v : V`,
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
@@ -93,6 +94,35 @@ variables {G}
 /-- Pattern to get `walk.cons` with the vertices as explicit arguments. -/
 @[pattern] abbreviation cons' (u v w : V) (h : G.adj u v) (p : G.walk v w) : G.walk u w :=
 walk.cons h p
+
+/-- Change the endpoints of a walk using equalities. This is helpful for relaxing
+definitional equality constraints and to be able to state otherwise difficult-to-state
+lemmas. While this is a simple wrapper around `eq.rec`, it gives a canonical way to write it.
+
+The simp-normal form is for the `copy` to be pushed outward. That way calculations can
+occur within the "copy context." -/
+protected def copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') : G.walk u' v' :=
+eq.rec (eq.rec p hv) hu
+
+@[simp] lemma copy_rfl_rfl {u v} (p : G.walk u v) (hu : u = u) (hv : v = v) :
+  p.copy hu hv = p := rfl
+
+@[simp] lemma copy_copy {u v u' v' u'' v''} (p : G.walk u v)
+  (hu : u = u') (hv : v = v') (hu' : u' = u'') (hv' : v' = v'') :
+  (p.copy hu hv).copy hu' hv' = p.copy (hu.trans hu') (hv.trans hv') :=
+by { subst_vars, refl }
+
+@[simp] lemma walk.copy_nil {u u'} (hu : u = u') : (walk.nil : G.walk u u).copy hu hu = walk.nil :=
+by { subst_vars, refl }
+
+lemma walk.copy_cons {u v w u' w'} (h : G.adj u v) (p : G.walk v w) (hu : u = u') (hw : w = w') :
+  (walk.cons h p).copy hu hw = walk.cons (by rwa ← hu) (p.copy rfl hw) :=
+by { subst_vars, refl }
+
+@[simp]
+lemma walk.cons_copy {u v w v' w'} (h : G.adj u v) (p : G.walk v' w') (hv : v' = v) (hw : w' = w) :
+  walk.cons h (p.copy hv hw) = (walk.cons (by rwa hv) p).copy rfl hw :=
+by { subst_vars, refl }
 
 lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
   ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'
@@ -170,6 +200,10 @@ lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.w
 | _ _ _ _ nil _ _ := rfl
 | _ _ _ _ (cons h p') q r := by { dunfold append, rw append_assoc, }
 
+@[simp] lemma append_copy_copy {u v w u' v' w'} (p : G.walk u v) (q : G.walk v w)
+  (hu : u = u') (hv : v = v') (hw : w = w') :
+  (p.copy hu hv).append (q.copy hv hw) = (p.append q).copy hu hw := by { subst_vars, refl }
+
 @[simp] lemma reverse_nil {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
 lemma reverse_singleton {u v : V} (h : G.adj u v) :
@@ -198,6 +232,9 @@ by simp [reverse]
   (cons h p).reverse = p.reverse.append (cons (G.symm h) nil) :=
 by simp [reverse]
 
+@[simp] lemma reverse_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).reverse = p.reverse.copy hv hu := by { subst_vars, refl }
+
 @[simp] lemma reverse_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
   (p.append q).reverse = q.reverse.append p.reverse :=
 by simp [reverse]
@@ -210,6 +247,10 @@ by simp [reverse]
 
 @[simp] lemma length_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).length = p.length + 1 := rfl
+
+@[simp] lemma length_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).length = p.length :=
+by { subst_vars, refl }
 
 @[simp] lemma length_append : Π {u v w : V} (p : G.walk u v) (q : G.walk v w),
   (p.append q).length = p.length + q.length
@@ -257,6 +298,9 @@ def edges {u v : V} (p : G.walk u v) : list (sym2 V) := p.darts.map dart.edge
 
 @[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
+
+@[simp] lemma support_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).support = p.support := by { subst_vars, refl }
 
 lemma support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').support = p.support ++ p'.support.tail :=
@@ -354,6 +398,9 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
 @[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).darts = ⟨(u, v), h⟩ :: p.darts := rfl
 
+@[simp] lemma darts_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).darts = p.darts := by { subst_vars, refl }
+
 @[simp] lemma darts_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').darts = p.darts ++ p'.darts :=
 by induction p; simp [*]
@@ -386,6 +433,9 @@ by simpa! using congr_arg list.init (map_fst_darts_append p)
 
 @[simp] lemma edges_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).edges = ⟦(u, v)⟧ :: p.edges := rfl
+
+@[simp] lemma edges_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).edges = p.edges := by { subst_vars, refl }
 
 @[simp] lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').edges = p.edges ++ p'.edges :=
@@ -472,15 +522,31 @@ structure is_cycle {u : V} (p : G.walk u u)
 lemma is_trail_def {u v : V} (p : G.walk u v) : p.is_trail ↔ p.edges.nodup :=
 ⟨is_trail.edges_nodup, λ h, ⟨h⟩⟩
 
+@[simp] lemma is_trail_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).is_trail ↔ p.is_trail := by { subst_vars, refl }
+
 lemma is_path.mk' {u v : V} {p : G.walk u v} (h : p.support.nodup) : is_path p :=
 ⟨⟨edges_nodup_of_support_nodup h⟩, h⟩
 
 lemma is_path_def {u v : V} (p : G.walk u v) : p.is_path ↔ p.support.nodup :=
 ⟨is_path.support_nodup, is_path.mk'⟩
 
+@[simp] lemma is_path_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).is_path ↔ p.is_path := by { subst_vars, refl }
+
+lemma is_circuit_def {u : V} (p : G.walk u u) :
+  p.is_circuit ↔ is_trail p ∧ p ≠ nil :=
+iff.intro (λ h, ⟨h.1, h.2⟩) (λ h, ⟨h.1, h.2⟩)
+
+@[simp] lemma is_circuit_copy {u u'} (p : G.walk u u) (hu : u = u') :
+  (p.copy hu hu).is_circuit ↔ p.is_circuit := by { subst_vars, refl }
+
 lemma is_cycle_def {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
+
+@[simp] lemma is_cycle_copy {u u'} (p : G.walk u u) (hu : u = u') :
+  (p.copy hu hu).is_cycle ↔ p.is_cycle := by { subst_vars, refl }
 
 @[simp] lemma is_trail.nil {u : V} : (nil : G.walk u u).is_trail :=
 ⟨by simp [edges]⟩
@@ -622,6 +688,16 @@ begin
           { cases p'; simp! } },
         { apply ih, } } } },
 end
+
+@[simp] lemma take_until_copy {u v w v' w'} (p : G.walk v w)
+  (hv : v = v') (hw : w = w') (h : u ∈ (p.copy hv hw).support) :
+  (p.copy hv hw).take_until u h = (p.take_until u (by { subst_vars, exact h })).copy hv rfl :=
+by { subst_vars, refl }
+
+@[simp] lemma drop_until_copy {u v w v' w'} (p : G.walk v w)
+  (hv : v = v') (hw : w = w') (h : u ∈ (p.copy hv hw).support) :
+  (p.copy hv hw).drop_until u h = (p.drop_until u (by { subst_vars, exact h })).copy rfl hw :=
+by { subst_vars, refl }
 
 lemma support_take_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).support ⊆ p.support :=
@@ -815,6 +891,9 @@ def bypass : Π {u v : V}, G.walk u v → G.walk u v
      then p'.drop_until u hs
      else cons ha p'
 
+@[simp] lemma bypass_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).bypass = p.bypass.copy hu hv := by { subst_vars, refl }
+
 lemma bypass_is_path {u v : V} (p : G.walk u v) : p.bypass.is_path :=
 begin
   induction p,
@@ -889,19 +968,31 @@ end walk
 /-! ### Mapping paths -/
 
 namespace walk
-variables {G G'}
+variables {G G' G''}
 
 /-- Given a graph homomorphism, map walks to walks. -/
 protected def map (f : G →g G') : Π {u v : V}, G.walk u v → G'.walk (f u) (f v)
 | _ _ nil := nil
 | _ _ (cons h p) := cons (f.map_adj h) (map p)
 
-variables (f : G →g G') {u v : V} (p : G.walk u v)
+variables (f : G →g G') (f' : G' →g G'') {u v u' v' : V} (p : G.walk u v)
 
 @[simp] lemma map_nil : (nil : G.walk u u).map f = nil := rfl
 
 @[simp] lemma map_cons {w : V} (h : G.adj w u) :
   (cons h p).map f = cons (f.map_adj h) (p.map f) := rfl
+
+@[simp] lemma map_copy (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).map f = (p.map f).copy (by rw hu) (by rw hv) := by { subst_vars, refl }
+
+@[simp] lemma map_id (p : G.walk u v) : p.map hom.id = p := by { induction p; simp [*] }
+
+@[simp] lemma map_map : (p.map f).map f' = p.map (f'.comp f) := by { induction p; simp [*] }
+
+/-- Unlike categories, for graphs vertex equality is an important notion, so needing to be able to
+to work with equality of graph homomorphisms is a necessary evil. -/
+lemma map_eq_of_eq {f : G →g G'} (f' : G →g G') (h : f = f') :
+  p.map f = (p.map f').copy (by rw h) (by rw h) := by { subst_vars, refl }
 
 @[simp] lemma length_map : (p.map f).length = p.length :=
 by induction p; simp [*]
@@ -1029,6 +1120,12 @@ lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
   (p.to_delete_edges s hp).is_path :=
 by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+
+@[simp] lemma to_delete_edges_copy (s : set (sym2 V))
+  {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') (h) :
+  (p.copy hu hv).to_delete_edges s h
+    = (p.to_delete_edges s (by { subst_vars, exact h })).copy hu hv :=
+by { subst_vars, refl }
 
 end walk
 

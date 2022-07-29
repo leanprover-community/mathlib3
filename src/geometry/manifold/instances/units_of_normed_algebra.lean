@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri, Heather Macbeth
 -/
 
 import geometry.manifold.smooth_manifold_with_corners
+import geometry.manifold.algebra.lie_group
 import analysis.normed_space.units
 
 /-!
@@ -61,5 +62,77 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R
 
 instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
+
+lemma smooth_mul :
+  smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
+begin
+  apply cont_mdiff.smooth,
+  rw cont_mdiff_iff,
+  split,
+  { continuity },
+  { intros x' y',
+    simp,
+    have : ∀ x : R × R, x ∈ set.range (coe : Rˣ → R) ×ˢ set.range (coe : Rˣ → R) → (coe ∘
+      (λ (p : Rˣ × Rˣ), p.1 * p.2) ∘ λ (p : R × R),
+        ((open_embedding.to_local_homeomorph coe open_embedding_coe).symm p.1,
+          (open_embedding.to_local_homeomorph coe open_embedding_coe).symm p.2)) x =
+      (λ (p : R × R), p.1 * p.2) x,
+    { rintro x hx,
+      rw [function.comp_app, function.comp_app, coe_mul],
+      dsimp,
+      rw set.mem_prod at hx,
+      cases hx with hx1 hx2,
+      cases hx1 with y1 hy1,
+      cases hx2 with y2 hy2,
+      rw [←hy1, ←hy2],
+      unfold open_embedding.to_local_homeomorph
+        local_homeomorph.of_continuous_open
+        local_homeomorph.of_continuous_open_restrict,
+      rw local_homeomorph.mk_coe_symm,
+      simp,
+      have : ∀ y : Rˣ, ∃ (a : Rˣ) (H : a ∈ (set.univ : set Rˣ)), (a : R) = (y : R) :=
+        λ y : Rˣ, ⟨y, ⟨set.mem_univ y, rfl⟩⟩,
+      rw @function.inv_fun_on_eq Rˣ R _ set.univ coe y1 (this y1),
+      rw @function.inv_fun_on_eq Rˣ R _ set.univ coe y2 (this y2) },
+    apply cont_diff_on.congr _ this,
+    exact cont_diff.cont_diff_on (@cont_diff_mul 𝕜 _ ⊤ R _ _) }
+end
+
+lemma smooth_inv :
+  smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
+begin
+  apply cont_mdiff.smooth,
+  rw cont_mdiff_iff,
+  split,
+  { continuity },
+  { intros x' y',
+    simp,
+    have : ∀ x : R, x ∈ set.range (coe : Rˣ → R) →
+      (coe ∘ has_inv.inv ∘
+        (open_embedding.to_local_homeomorph coe open_embedding_coe).symm) x =
+        ring.inverse x,
+    { intros x hx,
+      cases hx with y hy,
+      rw ←hy,
+      simp,
+      unfold open_embedding.to_local_homeomorph
+        local_homeomorph.of_continuous_open
+        local_homeomorph.of_continuous_open_restrict,
+      rw local_homeomorph.mk_coe_symm,
+      simp,
+      have : ∃ (a : Rˣ) (H : a ∈ (set.univ : set Rˣ)), (a : R) = (y : R) :=
+        ⟨y, ⟨set.mem_univ y, rfl⟩⟩,
+      rw inv_unique,
+      rw @function.inv_fun_on_eq Rˣ R _ set.univ coe y this },
+    apply cont_diff_on.congr _ this,
+    intros x hx,
+    cases hx with y hy,
+    rw ←hy,
+    exact cont_diff_at.cont_diff_within_at (@cont_diff_at_ring_inverse 𝕜 _ ⊤ R _ _ _ y) }
+end
+
+instance : lie_group 𝓘(𝕜, R) Rˣ :=
+{ smooth_mul := smooth_mul,
+  smooth_inv := smooth_inv }
 
 end units

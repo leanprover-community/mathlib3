@@ -153,7 +153,7 @@ if hq : q = 0 then
 else if hr : r = 0 then
   by simp [hr]
 else
-  have q * r ≠ 0, from mul_ne_zero hq hr,
+  have q*r ≠ 0, from mul_ne_zero hq hr,
   have (p : ℚ) ≠ 0, by simp [hp.1.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, zpow_add₀ this, mul_comm]
 
@@ -163,7 +163,7 @@ if hr : r = 0 then by simp [hr] else
 eq_div_of_mul_eq (padic_norm.nonzero hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
 /-- The p-adic norm of an integer is at most 1. -/
-protected theorem of_int (z : ℤ) : padic_norm p z ≤ 1 :=
+protected theorem of_int (z : ℤ) : padic_norm p ↑z ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one] else
 begin
   unfold padic_norm,
@@ -266,7 +266,7 @@ lemma dvd_iff_norm_le {n : ℕ} {z : ℤ} : ↑(p ^ n) ∣ z ↔ padic_norm p z 
 begin
   unfold padic_norm, split_ifs with hz,
   { norm_cast at hz,
-    have : 0 ≤ (p ^ n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
+    have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
     simp [hz, this] },
   { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int,
       padic_val_int.of_ne_one_ne_zero hp.1.ne_one _],

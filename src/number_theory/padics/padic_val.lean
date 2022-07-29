@@ -115,7 +115,7 @@ by simp [padic_val_int]
 by simp [padic_val_int]
 
 /-- The p-adic value of an natural is its p-adic_value as an integer -/
-@[simp] lemma of_nat {n : ℕ} : padic_val_int p n = padic_val_nat p n :=
+@[simp] lemma of_nat {n : ℕ} : padic_val_int p (n : ℤ) = padic_val_nat p n :=
 by simp [padic_val_int]
 
 /-- For `p ≠ 0, p ≠ 1, `padic_val_int p p` is 1. -/
@@ -189,7 +189,8 @@ variables {p : ℕ}
 lemma zero_le_padic_val_rat_of_nat (n : ℕ) : 0 ≤ padic_val_rat p n := by simp
 
 /-- `padic_val_rat` coincides with `padic_val_nat`. -/
-@[norm_cast] lemma padic_val_rat_of_nat (n : ℕ) : (padic_val_nat p n : ℤ) = padic_val_rat p n :=
+@[norm_cast] lemma padic_val_rat_of_nat (n : ℕ) :
+  ↑(padic_val_nat p n) = padic_val_rat p n :=
 by simp
 
 /--
@@ -270,8 +271,8 @@ have hr' : r.num /. r.denom ≠ 0, by rw rat.num_denom; exact hr,
 have hp' : _root_.prime (p : ℤ), from nat.prime_iff_prime_int.1 hp.1,
 begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
-  conv_rhs { rw [← @rat.num_denom q, padic_val_rat.defn p hq', ← @rat.num_denom r,
-    padic_val_rat.defn p hr'] },
+  conv_rhs { rw [←(@rat.num_denom q), padic_val_rat.defn p hq',
+    ←(@rat.num_denom r), padic_val_rat.defn p hr'] },
   rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp [add_comm, add_left_comm, sub_eq_add_neg]
 end
 
@@ -284,12 +285,12 @@ by induction k; simp [*, padic_val_rat.mul hq (pow_ne_zero _ hq), pow_succ, add_
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
 -/
 protected lemma inv (q : ℚ) :
-  padic_val_rat p q⁻¹ = -padic_val_rat p q :=
+  padic_val_rat p (q⁻¹) = -padic_val_rat p q :=
 begin
   by_cases hq : q = 0,
   { simp [hq] },
-  { rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul (inv_ne_zero hq) hq, inv_mul_cancel hq,
-      padic_val_rat.one],
+  { rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul (inv_ne_zero hq) hq,
+      inv_mul_cancel hq, padic_val_rat.one],
     exact hp },
 end
 
@@ -308,7 +309,7 @@ in terms of divisibility by `p^n`.
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
   (hn₁ : n₁ ≠ 0) (hn₂ : n₂ ≠ 0) (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) :
   padic_val_rat p (n₁ /. d₁) ≤ padic_val_rat p (n₂ /. d₂) ↔
-  ∀ n : ℕ, (p : ℤ) ^ n ∣ n₁ * d₂ → (p : ℤ) ^ n ∣ n₂ * d₁ :=
+  ∀ (n : ℕ), ↑p ^ n ∣ n₁ * d₂ → ↑p ^ n ∣ n₂ * d₁ :=
 have hf1 : finite (p : ℤ) (n₁ * d₂),
   from finite_int_prime_iff.2 (mul_ne_zero hn₁ hd₂),
 have hf2 : finite (p : ℤ) (n₂ * d₁),
@@ -339,19 +340,19 @@ have hqn : q.num ≠ 0, from rat.num_ne_zero_of_ne_zero hq,
 have hqd : (q.denom : ℤ) ≠ 0, by exact_mod_cast rat.denom_ne_zero _,
 have hrn : r.num ≠ 0, from rat.num_ne_zero_of_ne_zero hr,
 have hrd : (r.denom : ℤ) ≠ 0, by exact_mod_cast rat.denom_ne_zero _,
-have hqreq : q + r = (q.num * r.denom + q.denom * r.num) /. (q.denom * r.denom),
+have hqreq : q + r = (((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ)),
   from rat.add_num_denom _ _,
-have hqrd : q.num * r.denom + q.denom * r.num ≠ 0,
+have hqrd : q.num * ↑(r.denom) + ↑(q.denom) * r.num ≠ 0,
   from rat.mk_num_ne_zero_of_ne_zero hqr hqreq,
 begin
-  conv_lhs { rw ← @rat.num_denom q },
+  conv_lhs { rw ←(@rat.num_denom q) },
   rw [hqreq, padic_val_rat_le_padic_val_rat_iff hqn hqrd hqd (mul_ne_zero hqd hrd),
     ← multiplicity_le_multiplicity_iff, mul_left_comm,
     multiplicity.mul (nat.prime_iff_prime_int.1 hp.1), add_mul],
-  rw [← @rat.num_denom q, ← @rat.num_denom r, padic_val_rat_le_padic_val_rat_iff hqn hrn hqd hrd,
-    ← multiplicity_le_multiplicity_iff] at h,
-  calc _ ≤ min (multiplicity (p : ℤ) (q.num * r.denom * q.denom))
-    (multiplicity (p : ℤ) (q.denom * r.num * q.denom)) : (le_min
+  rw [←(@rat.num_denom q), ←(@rat.num_denom r),
+    padic_val_rat_le_padic_val_rat_iff hqn hrn hqd hrd, ← multiplicity_le_multiplicity_iff] at h,
+  calc _ ≤ min (multiplicity ↑p (q.num * ↑(r.denom) * ↑(q.denom)))
+    (multiplicity ↑p (↑(q.denom) * r.num * ↑(q.denom))) : (le_min
     (by rw [@multiplicity.mul _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 hp.1), add_comm])
     (by rw [mul_assoc, @multiplicity.mul _ _ _ _ (q.denom : ℤ)
         (_ * _) (nat.prime_iff_prime_int.1 hp.1)]; exact add_le_add_left h _))
@@ -366,14 +367,16 @@ theorem min_le_padic_val_rat_add {q r : ℚ} (hqr : q + r ≠ 0) :
   min (padic_val_rat p q) (padic_val_rat p r) ≤ padic_val_rat p (q + r) :=
 (le_total (padic_val_rat p q) (padic_val_rat p r)).elim
   (λ h, by rw [min_eq_left h]; exact le_padic_val_rat_add_of_le hqr h)
-  (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le (by rwa add_comm) h)
+  (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le
+    (by rwa add_comm) h)
 
 open_locale big_operators
 
 /-- A finite sum of rationals with positive p-adic valuation has positive p-adic valuation
   (if the sum is non-zero). -/
-theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ} (hF : ∀ i, i < n → 0 < padic_val_rat p (F i))
-  (hn0 : ∑ i in finset.range n, F i ≠ 0) : 0 < padic_val_rat p (∑ i in finset.range n, F i) :=
+theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → 0 < padic_val_rat p (F i)) (hn0 : ∑ i in finset.range n, F i ≠ 0) :
+  0 < padic_val_rat p (∑ i in finset.range n, F i) :=
 begin
   induction n with d hd,
   { exact false.elim (hn0 rfl) },
@@ -444,7 +447,8 @@ end padic_val_nat
 
 section padic_val_nat
 
-lemma dvd_of_one_le_padic_val_nat {p n : ℕ} (hp : 1 ≤ padic_val_nat p n) : p ∣ n :=
+lemma dvd_of_one_le_padic_val_nat {p n : ℕ} (hp : 1 ≤ padic_val_nat p n) :
+  p ∣ n :=
 begin
   by_contra h,
   rw padic_val_nat.eq_zero_of_not_dvd h at hp,
@@ -485,8 +489,8 @@ begin
     { exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd } }
 end
 
-lemma padic_val_nat_primes {p q : ℕ} [hp : fact p.prime] [hq : fact q.prime] (neq : p ≠ q) :
-  padic_val_nat p q = 0 :=
+lemma padic_val_nat_primes {p q : ℕ} [hp : fact p.prime] [hq : fact q.prime]
+  (neq : p ≠ q) : padic_val_nat p q = 0 :=
 @padic_val_nat.eq_zero_of_not_dvd p q $
   (not_congr (iff.symm (prime_dvd_prime_iff_eq hp.1 hq.1))).mp neq
 

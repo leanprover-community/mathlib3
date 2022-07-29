@@ -270,7 +270,6 @@ begin
   { exact hf.comp_injective hφ }
 end
 
--- TODO : use this to get a continuous linear map between lp spaces.
 lemma comp_linear_isometry {𝕜 : Type*} [normed_field 𝕜] {F : α → Type*}
   [Π i, normed_add_comm_group (F i)] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
   (Φ : Π i, E i →ₗᵢ[𝕜] F i) {f : Π i, E i} {p : ℝ≥0∞}
@@ -1196,18 +1195,6 @@ begin
 end
 
 end map_inj
-
---section congr_left
---
---variables (E) (𝕜 : Type*) [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (p)
---
---def congr_left [fact (1 ≤ p)] {β : Type*} (φ : β ≃ α) :
---  lp (λ i, E (φ i)) p ≃ₗᵢ[𝕜] lp E p :=
---linear_isometry_equiv.of_bounds
---{ to_fun := map_inj (λ i, E (φ i)) p 𝕜 φ.symm.injective,
---  inv_fun := map_inj E p 𝕜 φ.injective } sorry sorry
---
---end congr_left
 
 section map_linear_isometry
 

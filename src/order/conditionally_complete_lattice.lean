@@ -729,26 +729,9 @@ csupr_le' $ λ i, exists.elim (h i) (le_csupr_of_le hg)
 lemma cInf_le_cInf' {s t : set α} (h₁ : t.nonempty) (h₂ : t ⊆ s) : Inf s ≤ Inf t :=
 cInf_le_cInf (order_bot.bdd_below s) h₁ h₂
 
-theorem supr_extend_bot' {e : ι → β} (he : injective e) {f : ι → α} (hf : bdd_above $ range f) :
-  (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
-begin
-  classical,
-  have : bdd_above (range $ extend e f ⊥),
-  { rcases hf with ⟨M, hM⟩,
-    refine ⟨M, _⟩,
-    rw [mem_upper_bounds, forall_range_iff] at ⊢ hM,
-    intro i,
-    rw extend_def,
-    split_ifs,
-    { exact hM _ },
-    { exact bot_le } },
-  refine le_antisymm (csupr_le' $ λ i, _)
-    (csupr_le' $ λ i, le_csupr_of_le this (e i) (extend_apply he _ _ _).ge),
-  rw extend_def,
-  split_ifs,
-  { exact le_csupr hf _ },
-  { exact bot_le }
-end
+theorem csupr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') (hf : bdd_above $ range f) :
+  (⨆ x, f (g x)) ≤ ⨆ y, f y :=
+csupr_mono' hf $ λ x, ⟨_, le_rfl⟩
 
 end conditionally_complete_linear_order_bot
 

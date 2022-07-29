@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
+import analysis.normed_space.operator_norm
 import analysis.normed.group.pointwise
 import topology.algebra.order.liminf_limsup
 
@@ -60,6 +61,8 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 -/
 
 noncomputable theory
+
+open function
 open_locale nnreal ennreal big_operators
 
 variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_comm_group (E i)]
@@ -143,8 +146,12 @@ namespace mem_ℓp
 lemma finite_dsupport {f : Π i, E i} (hf : mem_ℓp f 0) : set.finite {i | f i ≠ 0} :=
 mem_ℓp_zero_iff.1 hf
 
-lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
+protected lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
 mem_ℓp_infty_iff.1 hf
+
+protected lemma bdd_above_nnnorm {f : Π i, E i} (hf : mem_ℓp f ∞) :
+  bdd_above (set.range (λ i, ∥f i∥₊)) :=
+by simpa only [← nnreal.bdd_above_coe, ← set.range_comp]
 
 lemma summable (hp : 0 < p.to_real) {f : Π i, E i} (hf : mem_ℓp f p) :
   summable (λ i, ∥f i∥ ^ p.to_real) :=
@@ -262,11 +269,6 @@ begin
   { exact hf.mono (set.range_subset_iff.mpr $ λ b, set.mem_range_self (φ b)) },
   { exact hf.comp_injective hφ }
 end
-
--- TODO : use this to get a continuous linear map between lp spaces.
-lemma comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
-  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
-hf.comp_inj φ φ.injective
 
 -- TODO : use this to get a continuous linear map between lp spaces.
 lemma comp_linear_isometry {𝕜 : Type*} [normed_field 𝕜] {F : α → Type*}
@@ -1127,40 +1129,134 @@ end
 
 end topology
 
-section map_embedding
+section map_inj
 
 variables (E) (𝕜 : Type*) [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (p)
 
-def map_embeddingₗ [fact (1 ≤ p)] {β : Type*} (φ : β ↪ α) :
+private def map_injₗ [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
   lp E p →ₗ[𝕜] lp (λ i, E (φ i)) p :=
-{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_embedding φ f.2⟩,
+{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
-def map_embeddingₗᵢ [fact (1 ≤ p)] {β : Type*} (φ : β ↪ α) :
-  lp E p →ₗᵢ[𝕜] lp (λ i, E (φ i)) p :=
-{ norm_map' :=
+private lemma norm_map_injₗ_apply_le [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+  (f : lp E p) : ∥map_injₗ E p 𝕜 hφ f∥ ≤ ∥f∥ :=
+begin
+  unfreezingI { rcases p.dichotomy with rfl | h },
+  { suffices : ∥_∥₊ ≤ ∥f∥₊,
+    { rw [← coe_nnnorm, ← coe_nnnorm],
+      exact nnreal.coe_mono this },
+    rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr],
+    exact csupr_comp_le (λ x : α, ∥f x∥₊) φ f.2.bdd_above_nnnorm },
+  { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le h),
+        lp.norm_eq_tsum_rpow (zero_lt_one.trans_le h)],
+    refine real.rpow_le_rpow (tsum_nonneg _)
+      (tsum_comp_le_tsum_of_inj (f.2.summable $ zero_lt_one.trans_le h) _ hφ)
+      (one_div_nonneg.mpr $ zero_le_one.trans h);
+    exact λ b, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ }
+end
+
+def map_inj [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
+  lp E p →L[𝕜] lp (λ i, E (φ i)) p :=
+linear_map.mk_continuous
+{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl } 1
+begin
+  intros f,
+  rw one_mul,
+  exact norm_map_injₗ_apply_le E p 𝕜 hφ f
+end
+
+@[simp] lemma map_inj_apply [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+  {f : lp E p} {x : β} : map_inj E p 𝕜 hφ f x = f (φ x) := rfl
+
+lemma map_inj_id [fact (1 ≤ p)] {β : Type*} :
+  map_inj E p 𝕜 injective_id = continuous_linear_map.id 𝕜 (lp E p) :=
+by ext; refl
+
+lemma map_inj_comp [fact (1 ≤ p)] {β γ : Type*} {φ : β → α} (hφ : injective φ)
+  {ψ : γ → β} (hψ : injective ψ) :
+  map_inj E p 𝕜 (hφ.comp hψ) = map_inj (λ i, E (φ i)) p 𝕜 hψ ∘L map_inj E p 𝕜 hφ :=
+by ext; refl
+
+lemma norm_map_inj_apply_le [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+  (f : lp E p) : ∥map_inj E p 𝕜 hφ f∥ ≤ ∥f∥ :=
+norm_map_injₗ_apply_le E p 𝕜 hφ f
+
+@[simp] lemma map_inj_single [decidable_eq α] [fact (1 ≤ p)] {β : Type*} [decidable_eq β]
+  {φ : β → α} (hφ : injective φ) (i : β) (x : E (φ i)) :
+  map_inj E p 𝕜 hφ (lp.single p (φ i) x) = lp.single p i x :=
+begin
+  ext j,
+  rw [map_inj_apply],
+  by_cases hj : j = i,
+  { rw [hj, lp.single_apply_self, lp.single_apply_self] },
+  { rw [lp.single_apply_ne _ _ _ hj, lp.single_apply_ne _ _ _ (hφ.ne hj)] }
+end
+
+end map_inj
+
+--section congr_left
+--
+--variables (E) (𝕜 : Type*) [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (p)
+--
+--def congr_left [fact (1 ≤ p)] {β : Type*} (φ : β ≃ α) :
+--  lp (λ i, E (φ i)) p ≃ₗᵢ[𝕜] lp E p :=
+--linear_isometry_equiv.of_bounds
+--{ to_fun := map_inj (λ i, E (φ i)) p 𝕜 φ.symm.injective,
+--  inv_fun := map_inj E p 𝕜 φ.injective } sorry sorry
+--
+--end congr_left
+
+section map_linear_isometry
+
+variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] (𝕜 : Type*)
+  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
+  (Φ : Π i, E i →ₗᵢ[𝕜] F i)
+
+def map_linear_isometry [fact $ 1 ≤ p'] : lp E p' →ₗᵢ[𝕜] lp F p' :=
+{ to_fun := λ f, ⟨λ x, Φ x (f x), mem_ℓp.comp_linear_isometry Φ f.2⟩,
+  map_add' := λ f g, by ext i; exact map_add (Φ i) _ _,
+  map_smul' := λ a f, by ext i; exact map_smul (Φ i) _ _,
+  norm_map' :=
   begin
     intros f,
-    --change ∥map_embeddingₗ E p 𝕜 φ f∥ = ∥f∥,
-    unfreezingI { rcases p.dichotomy with rfl | h },
-    { suffices : ∥map_embeddingₗ E ⊤ 𝕜 φ f∥₊ = ∥f∥₊,
-      { rw [← coe_nnnorm, ← coe_nnnorm],
-        exact congr_arg _ this },
-      rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr, ← supr_extend_bot' φ.injective], }
-  end
-  .. map_embeddingₗ E p 𝕜 φ }
---(map_embeddingₗ E p 𝕜 φ).mk_continuous 1
---begin
---  intros f,
---  rw one_mul,
---  unfreezingI { rcases p.dichotomy with rfl | h },
---  { suffices : ∥map_embeddingₗ E ⊤ 𝕜 φ f∥₊ ≤ ∥f∥₊,
---    { rw [← coe_nnnorm, ← coe_nnnorm],
---      exact nnreal.coe_mono this },
---    rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr], }
---end
+    unfreezingI { rcases p'.dichotomy with rfl | hp},
+    { rw [lp.norm_eq_csupr, lp.norm_eq_csupr],
+      congr,
+      ext i,
+      exact (Φ i).norm_map _ },
+    { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp),
+          lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp)],
+      congr,
+      ext i,
+      exact congr_arg (λ x, x ^ p'.to_real) ((Φ i).norm_map _) },
+  end}
 
-end map_embedding
+@[simp] lemma map_linear_isometry_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
+  map_linear_isometry E F p' 𝕜 Φ f x = Φ x (f x) := rfl
+
+lemma map_linear_isometry_id [fact $ 1 ≤ p'] :
+  map_linear_isometry E E p' 𝕜 (λ i, linear_isometry.id) = linear_isometry.id :=
+by ext; refl
+
+lemma map_linear_isometry_comp [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
+  [Π i, normed_space 𝕜 (G i)] (Ψ : Π i, F i →ₗᵢ[𝕜] G i) :
+  map_linear_isometry E G p' 𝕜 (λ i, (Ψ i).comp (Φ i)) =
+  (map_linear_isometry F G p' 𝕜 Ψ).comp (map_linear_isometry E F p' 𝕜 Φ) :=
+rfl
+
+@[simp] lemma map_linear_isometry_single [decidable_eq α] [fact $ 1 ≤ p'] (i : α) (x : E i) :
+  map_linear_isometry E F p' 𝕜 Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
+begin
+  ext j,
+  rw [map_linear_isometry_apply],
+  by_cases hj : j = i,
+  { rw [hj, lp.single_apply_self, lp.single_apply_self] },
+  { rw [lp.single_apply_ne _ _ _ hj, lp.single_apply_ne _ _ _ hj, map_zero] }
+end
+
+end map_linear_isometry
 
 end lp

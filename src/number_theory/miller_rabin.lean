@@ -117,10 +117,17 @@ def odd_part (n : ℕ) := ord_compl[2] n
 
 @[simp] lemma odd_part_zero : odd_part 0 = 0 := rfl
 
-lemma odd_of_odd_part (n : ℕ) : odd (odd_part n) :=
+lemma odd_of_odd_part (n : ℕ) (hn0: n ≠ 0) : odd (odd_part n) :=
 begin
-
-  sorry,
+  rw odd_iff_not_even,
+  unfold odd_part,
+  intro H,
+  obtain ⟨k, hk⟩ := H,
+  rw ←two_mul at hk,
+  apply pow_succ_factorization_not_dvd hn0 prime_two,
+  rw [pow_add, pow_one, dvd_iff_exists_eq_mul_left],
+  use k,
+  rw [mul_rotate', mul_comm, ←hk, mul_comm, nat.mul_div_cancel' (ord_proj_dvd n 2)],
 end
 
 lemma even_part_mul_odd_part (n : ℕ) : (even_part n) * (odd_part n) = n :=

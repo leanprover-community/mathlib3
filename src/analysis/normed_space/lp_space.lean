@@ -1232,7 +1232,7 @@ def map_linear_isometry [fact $ 1 ≤ p'] : lp E p' →ₗᵢ[𝕜] lp F p' :=
       congr,
       ext i,
       exact congr_arg (λ x, x ^ p'.to_real) ((Φ i).norm_map _) },
-  end}
+  end }
 
 @[simp] lemma map_linear_isometry_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
   map_linear_isometry E F p' 𝕜 Φ f x = Φ x (f x) := rfl
@@ -1258,5 +1258,46 @@ begin
 end
 
 end map_linear_isometry
+
+section congr_right
+
+variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] (𝕜 : Type*)
+  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
+  (Φ : Π i, E i ≃ₗᵢ[𝕜] F i)
+
+def congr_right [fact $ 1 ≤ p'] : lp E p' ≃ₗᵢ[𝕜] lp F p' :=
+linear_isometry_equiv.of_surjective (map_linear_isometry E F p' 𝕜 (λ i, (Φ i).to_linear_isometry))
+begin
+  have : left_inverse (map_linear_isometry E F p' 𝕜 (λ i, (Φ i).to_linear_isometry))
+    (map_linear_isometry F E p' 𝕜 (λ i, (Φ i).symm.to_linear_isometry)),
+  { intro f,
+    ext i,
+    exact (Φ i).apply_symm_apply _ },
+  exact this.surjective
+end
+
+@[simp] lemma congr_right_to_linear_isometry [fact $ 1 ≤ p'] :
+  (congr_right E F p' 𝕜 Φ).to_linear_isometry =
+  map_linear_isometry E F p' 𝕜 (λ i, (Φ i).to_linear_isometry) :=
+rfl
+
+lemma congr_right_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
+  congr_right E F p' 𝕜 Φ f x = Φ x (f x) := rfl
+
+lemma congr_right_refl [fact $ 1 ≤ p'] :
+  congr_right E E p' 𝕜 (λ i, linear_isometry_equiv.refl 𝕜 _) = linear_isometry_equiv.refl 𝕜 _ :=
+by ext; refl
+
+lemma congr_right_trans [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
+  [Π i, normed_space 𝕜 (G i)] (Ψ : Π i, F i ≃ₗᵢ[𝕜] G i) :
+  congr_right E G p' 𝕜 (λ i, (Φ i).trans (Ψ i)) =
+  (congr_right E F p' 𝕜 Φ).trans (congr_right F G p' 𝕜 Ψ) :=
+by ext; refl
+
+@[simp] lemma congr_right_single [decidable_eq α] [fact $ 1 ≤ p'] (i : α) (x : E i) :
+  congr_right E F p' 𝕜 Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
+map_linear_isometry_single _ _ _ _ _ _ _
+
+end congr_right
 
 end lp

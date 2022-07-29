@@ -112,15 +112,15 @@ eq.rec (eq.rec p hv) hu
   (p.copy hu hv).copy hu' hv' = p.copy (hu.trans hu') (hv.trans hv') :=
 by { subst_vars, refl }
 
-@[simp] lemma walk.copy_nil {u u'} (hu : u = u') : (walk.nil : G.walk u u).copy hu hu = walk.nil :=
+@[simp] lemma copy_nil {u u'} (hu : u = u') : (walk.nil : G.walk u u).copy hu hu = walk.nil :=
 by { subst_vars, refl }
 
-lemma walk.copy_cons {u v w u' w'} (h : G.adj u v) (p : G.walk v w) (hu : u = u') (hw : w = w') :
+lemma copy_cons {u v w u' w'} (h : G.adj u v) (p : G.walk v w) (hu : u = u') (hw : w = w') :
   (walk.cons h p).copy hu hw = walk.cons (by rwa ← hu) (p.copy rfl hw) :=
 by { subst_vars, refl }
 
 @[simp]
-lemma walk.cons_copy {u v w v' w'} (h : G.adj u v) (p : G.walk v' w') (hv : v' = v) (hw : w' = w) :
+lemma cons_copy {u v w v' w'} (h : G.adj u v) (p : G.walk v' w') (hv : v' = v) (hw : w' = w) :
   walk.cons h (p.copy hv hw) = (walk.cons (by rwa hv) p).copy rfl hw :=
 by { subst_vars, refl }
 

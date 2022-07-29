@@ -295,8 +295,8 @@ meta def get_lead_coeff (c : instance_cache) : expr → tactic (instance_cache �
     else
       get_lead_coeff a
   else do
-    [(c, ta), (c2, tb)] ← [a, b].mmap $ get_lead_coeff,
-    c.mk_app ``has_add.add [ta, tb]
+    [(c1, ta), (c2, tb)] ← [a, b].mmap $ get_lead_coeff,
+    c1.mk_app ``has_add.add [ta, tb]
 | `(%%a - %%b) := do
   [da, db] ← [a,b].mmap guess_degree',
   if da ≠ db then
@@ -306,11 +306,11 @@ meta def get_lead_coeff (c : instance_cache) : expr → tactic (instance_cache �
     else
       get_lead_coeff a
   else do
-    [(c, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
-    c.mk_app ``has_sub.sub [ta, tb]
+    [(c1, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
+    c1.mk_app ``has_sub.sub [ta, tb]
 | `(%%a * %%b) := do
-  [(c, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
-  c.mk_app ``has_mul.mul [ta, tb]
+  [(c1, ta), (c2, tb)] ← [a, b].mmap get_lead_coeff,
+  c1.mk_app ``has_mul.mul [ta, tb]
 | `(%%a ^ %%n) := do
   (c, ta) ← get_lead_coeff a,
   op ← to_expr ``(has_pow.pow : %%c.α → ℕ → %%c.α),
@@ -468,9 +468,7 @@ do t ← target >>= instantiate_mvars,
   if t_is_eq then refine ``(eq.trans %%c_c _) else refine ``(ne_of_eq_of_ne %%c_c _),
   try $ tactic.clear c_c,
   interactive.swap,
-  resolve_coeff,
-  try $ any_goals' $
-    `[{ simp only [pi.bit0_apply, coeff_bit0, coeff_bit1, coeff_one_zero, map_one]; norm_num }]
+  resolve_coeff
 
 section parsing
 setup_tactic_parser

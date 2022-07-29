@@ -688,7 +688,7 @@ lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T 
   (h : a ∈ p.root_set S) : p ≠ 0 :=
 λ hf, by rwa [hf, root_set_zero] at h
 
-lemma aevl_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
+lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
   [no_zero_smul_divisors T S] {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
 (mem_root_set_iff (ne_zero_of_mem_root_set hx) a).mp hx
 

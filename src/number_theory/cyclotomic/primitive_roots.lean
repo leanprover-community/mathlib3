@@ -312,7 +312,7 @@ begin
   haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
   { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
     { have H : K⟮η + 1⟯.to_subalgebra = K⟮η⟯.to_subalgebra,
-      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral
           (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
         refine subalgebra.ext (λ x, ⟨λ hx, adjoin_le _ hx, λ hx, adjoin_le _ hx⟩),
         { simp only [set.singleton_subset_iff, set_like.mem_coe],
@@ -322,7 +322,7 @@ begin
           refine subalgebra.sub_mem _ (subset_adjoin (mem_singleton _)) (subalgebra.one_mem _) } },
       rw [H] at this,
       exact this },
-    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral
       (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
     have hη' : is_primitive_root (η + 1) ↑(p ^ (k + 1 - s)) := by simpa using hη,
     convert hη'.adjoin_is_cyclotomic_extension K,

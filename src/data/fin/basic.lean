@@ -193,14 +193,9 @@ iff.rfl
 @[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
-instance {n : ℕ} : linear_order (fin n) :=
-{ le := (≤), lt := (<),
-  decidable_le := fin.decidable_le,
-  decidable_lt := fin.decidable_lt,
-  decidable_eq := fin.decidable_eq _,
- ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
+instance {n : ℕ} : linear_order (fin n) := subtype.linear_order _
 
-instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+instance {n : ℕ}  : partial_order (fin n) := subtype.partial_order _
 
 lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
 
@@ -944,7 +939,7 @@ def div_nat (i : fin (m * n)) : fin m :=
 
 /-- Compute `i % n`, where `n` is a `nat` and inferred the type of `i`. -/
 def mod_nat (i : fin (m * n)) : fin n :=
-⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_left ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
+⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_right ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
 
 @[simp] lemma coe_mod_nat (i : fin (m * n)) : (i.mod_nat : ℕ) = i % n := rfl
 
@@ -1005,6 +1000,14 @@ begin
   { refine hs ⟨i, lt_of_succ_lt_succ hi⟩ _,
     exact IH (lt_of_succ_lt hi) }
 end
+
+@[simp] lemma induction_zero {C : fin (n + 1) → Sort*} (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) :
+  (induction h0 hs : _) 0 = h0 := rfl
+
+@[simp] lemma induction_succ {C : fin (n + 1) → Sort*} (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) (i : fin n) :
+  (induction h0 hs : _) i.succ = hs i (induction h0 hs i.cast_succ) := by cases i; refl
 
 /--
 Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
@@ -1676,5 +1679,18 @@ by simp [eq_iff_veq, mul_def]
 by simp [eq_iff_veq, mul_def]
 
 end mul
+
+section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `nat.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
+local attribute [semireducible] reflected
+meta instance reflect : Π n, has_reflect (fin n)
+| 0 := fin_zero_elim
+| (n + 1) := nat.mk_numeral `(fin n.succ)
+              `(by apply_instance : has_zero (fin n.succ))
+              `(by apply_instance : has_one (fin n.succ))
+              `(by apply_instance : has_add (fin n.succ)) ∘ subtype.val
+end
 
 end fin

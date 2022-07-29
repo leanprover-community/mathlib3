@@ -112,7 +112,7 @@ add_monoid_algebra.has_faithful_smul
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
 instance [monoid R] [monoid S₁] [comm_semiring S₂]
-  [has_scalar R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
+  [has_smul R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
 instance [monoid R] [monoid S₁][comm_semiring S₂]

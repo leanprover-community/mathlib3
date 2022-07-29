@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.ring_division
-import tactic.zify
-import field_theory.separable
-import data.zmod.basic
-import ring_theory.integral_domain
-import number_theory.divisors
-import field_theory.finite.basic
-import group_theory.specific_groups.cyclic
 import algebra.char_p.two
+import algebra.ne_zero
+import data.polynomial.ring_division
+import field_theory.finite.basic
+import field_theory.separable
+import group_theory.specific_groups.cyclic
+import number_theory.divisors
+import ring_theory.integral_domain
+import tactic.zify
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -957,8 +957,8 @@ omit hpos
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   by_cases hpos : n = 0, { simp [hpos], },
-  apply minpoly.gcd_domain_dvd ℚ (is_integral h (nat.pos_of_ne_zero hpos))
-    (polynomial.monic.is_primitive (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm)),
+  apply minpoly.gcd_domain_dvd (is_integral h (nat.pos_of_ne_zero hpos))
+    (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm).ne_zero,
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -990,8 +990,8 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
 begin
   by_cases hn : n = 0, { simp * at *, },
   have hpos := nat.pos_of_ne_zero hn,
-  apply minpoly.gcd_domain_dvd ℚ (h.is_integral hpos),
-  { apply monic.is_primitive,
+  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
+  { apply monic.ne_zero,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
     exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
@@ -1061,7 +1061,7 @@ begin
   rw [hR, ← mul_assoc, ← polynomial.map_mul, ← sq, polynomial.map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
-  replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
+  replace habs := lt_of_lt_of_le (part_enat.coe_lt_coe.2 one_lt_two)
     (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
   have hfree : squarefree (X ^ n - 1 : (zmod p)[X]),
   { exact (separable_X_pow_sub_C 1

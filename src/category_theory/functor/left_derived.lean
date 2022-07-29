@@ -84,7 +84,7 @@ F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫
 open_locale zero_object
 
 /-- The higher derived functors vanish on projective objects. -/
-@[simps]
+@[simps inv]
 def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [projective X] :
   (F.left_derived (n+1)).obj X ≅ 0 :=

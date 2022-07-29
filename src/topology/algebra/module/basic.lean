@@ -83,7 +83,7 @@ variables {R : Type*} {M : Type*}
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
-This is the case, e.g., if `R` is a nondiscrete normed field. -/
+This is the case, e.g., if `R` is a nontrivially normed field. -/
 lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
@@ -104,7 +104,7 @@ end
 
 variables (R M)
 
-/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nontrivially
 normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
 using `ne_bot (𝓝[≠] x)`.
@@ -139,7 +139,7 @@ lemma has_continuous_smul_induced :
 { continuous_smul :=
     begin
       letI : topological_space M₁ := t.induced f,
-      refine continuous_induced_rng _,
+      refine continuous_induced_rng.2 _,
       simp_rw [function.comp, f.map_smul],
       refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
     end }
@@ -208,16 +208,6 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-instance submodule.topological_closure_has_continuous_smul (s : submodule R M) :
-  has_continuous_smul R (s.topological_closure) :=
-{ continuous_smul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : R × s.topological_closure, p.1 • (p.2 : M)),
-    continuity,
-  end,
-  ..s.to_add_submonoid.topological_closure_has_continuous_add }
-
 lemma submodule.submodule_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
@@ -235,6 +225,16 @@ lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M}
   s.topological_closure ≤ t.topological_closure :=
 s.topological_closure_minimal (h.trans t.submodule_topological_closure)
   t.is_closed_topological_closure
+
+/-- The topological closure of a closed submodule `s` is equal to `s`. -/
+lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
+  s.topological_closure = s :=
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+
+/-- A subspace is dense iff its topological closure is the entire space. -/
+lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
+  dense (s : set M) ↔ s.topological_closure = ⊤ :=
+by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
 
 end closure
 
@@ -436,8 +436,8 @@ protected lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁)
 by simp only [ring_hom.id_apply, continuous_linear_map.map_smulₛₗ]
 
 @[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M₁]
-  [module S M₁] [has_scalar R M₂] [module S M₂]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M₁]
+  [module S M₁] [has_smul R M₂] [module S M₂]
   [linear_map.compatible_smul M₁ M₂ R S] (f : M₁ →L[S] M₂) (c : R) (x : M₁) :
   f (c • x) = c • f x :=
 linear_map.compatible_smul.map_smul f c x
@@ -505,7 +505,7 @@ lemma smul_apply (c : S₂) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (c • 
 lemma coe_smul (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
 @[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
 
-instance [has_scalar S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+instance [has_smul S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
 
 instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
@@ -799,18 +799,28 @@ rfl
   ker (f.cod_restrict p h) = ker f :=
 (f : M₁ →ₛₗ[σ₁₂] M₂).ker_cod_restrict p h
 
-/-- Embedding of a submodule into the ambient space as a continuous linear map. -/
-def subtype_val (p : submodule R₁ M₁) : p →L[R₁] M₁ :=
+/-- `submodule.subtype` as a `continuous_linear_map`. -/
+def _root_.submodule.subtypeL (p : submodule R₁ M₁) : p →L[R₁] M₁ :=
 { cont := continuous_subtype_val,
   to_linear_map := p.subtype }
 
-@[simp, norm_cast] lemma coe_subtype_val (p : submodule R₁ M₁) :
-  (subtype_val p : p →ₗ[R₁] M₁) = p.subtype :=
+@[simp, norm_cast] lemma _root_.submodule.coe_subtypeL (p : submodule R₁ M₁) :
+  (p.subtypeL : p →ₗ[R₁] M₁) = p.subtype :=
 rfl
 
-@[simp, norm_cast] lemma subtype_val_apply (p : submodule R₁ M₁) (x : p) :
-  (subtype_val p : p → M₁) x = x :=
+@[simp] lemma _root_.submodule.coe_subtypeL' (p : submodule R₁ M₁) :
+  ⇑p.subtypeL = p.subtype :=
 rfl
+
+@[simp, norm_cast] lemma _root_.submodule.subtypeL_apply (p : submodule R₁ M₁) (x : p) :
+  p.subtypeL x = x :=
+rfl
+
+@[simp] lemma _root_.submodule.range_subtypeL (p : submodule R₁ M₁) : p.subtypeL.range = p :=
+submodule.range_subtype _
+
+@[simp] lemma _root_.submodule.ker_subtypeL (p : submodule R₁ M₁) : p.subtypeL.ker = ⊥ :=
+submodule.ker_subtype _
 
 variables (R₁ M₁ M₂)
 
@@ -896,27 +906,6 @@ lemma smul_right_apply {c : M₁ →L[R] S} {f : M₂} {x : M₁} :
 rfl
 
 end
-
-section pointwise
-open_locale pointwise
-
-@[simp] lemma image_smul_setₛₗ (f : M₁ →SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
-  f '' (c • s) = (σ₁₂ c) • f '' s :=
-f.to_linear_map.image_smul_setₛₗ c s
-
-lemma image_smul_set (fₗ : M₁ →L[R₁] M'₁) (c : R₁) (s : set M₁) :
-  fₗ '' (c • s) = c • fₗ '' s :=
-fₗ.to_linear_map.image_smul_set c s
-
-lemma preimage_smul_setₛₗ (f : M₁ →SL[σ₁₂] M₂) {c : R₁} (hc : is_unit c) (s : set M₂) :
-  f ⁻¹' (σ₁₂ c • s) = c • f ⁻¹' s :=
-f.to_linear_map.preimage_smul_setₛₗ hc s
-
-lemma preimage_smul_set (fₗ : M₁ →L[R₁] M'₁) {c : R₁} (hc : is_unit c) (s : set M'₁) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.to_linear_map.preimage_smul_set hc s
-
-end pointwise
 
 variables [module R₁ M₂] [topological_space R₁] [has_continuous_smul R₁ M₂]
 
@@ -1643,29 +1632,6 @@ rfl
 rfl
 omit σ₂₁
 
-section pointwise
-open_locale pointwise
-include σ₂₁
-
-@[simp] lemma image_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
-  e '' (c • s) = (σ₁₂ c) • e '' s :=
-e.to_linear_equiv.image_smul_setₛₗ c s
-
-@[simp] lemma preimage_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₂) (s : set M₂) :
-  e ⁻¹' (c • s) = σ₂₁ c • e ⁻¹' s :=
-e.to_linear_equiv.preimage_smul_setₛₗ c s
-omit σ₂₁
-
-@[simp] lemma image_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M₁) :
-  e '' (c • s) = c • e '' s :=
-e.to_linear_equiv.image_smul_set c s
-
-@[simp] lemma preimage_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M'₁) :
-  e ⁻¹' (c • s) = c • e ⁻¹' s :=
-e.to_linear_equiv.preimage_smul_set c s
-
-end pointwise
-
 variable (M₁)
 
 /-- The continuous linear equivalences from `M` to itself form a group under composition. -/
@@ -1813,14 +1779,14 @@ end
 
 variables [module R M₂] [topological_add_group M]
 
-open _root_.continuous_linear_map (id fst snd subtype_val mem_ker)
+open _root_.continuous_linear_map (id fst snd mem_ker)
 
 /-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
 linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x` for `x ∈ f₁.ker`,
 `(e x).1 = f₁ x`, and `(e (f₂ y)).2 = 0`. The map is given by `e x = (f₁ x, x - f₂ (f₁ x))`. -/
 def equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
   M ≃L[R] M₂ × f₁.ker :=
-equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (subtype_val f₁.ker))
+equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod f₁.ker.subtypeL)
   (λ x, by simp)
   (λ ⟨x, y⟩, by simp [h x])
 
@@ -1978,7 +1944,7 @@ protected lemma closed_complemented.is_closed [topological_add_group M] [t1_spac
   is_closed (p : set M) :=
 begin
   rcases h with ⟨f, hf⟩,
-  have : ker (id R M - (subtype_val p).comp f) = p := linear_map.ker_id_sub_eq_of_proj hf,
+  have : ker (id R M - p.subtypeL.comp f) = p := linear_map.ker_id_sub_eq_of_proj hf,
   exact this ▸ (is_closed_ker _)
 end
 
@@ -2026,11 +1992,11 @@ begin
   exact continuous_quot_mk.comp continuous_smul
 end
 
-instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
-  regular_space (M ⧸ S) :=
+instance t3_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
+  t3_space (M ⧸ S) :=
 begin
   letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
-  exact S.to_add_subgroup.regular_quotient_of_is_closed
+  exact S.to_add_subgroup.t3_quotient_of_is_closed
 end
 
 end submodule

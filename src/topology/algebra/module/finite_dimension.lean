@@ -8,7 +8,7 @@ import analysis.locally_convex.balanced_core_hull
 /-!
 # Finite dimensional topological vector spaces over complete fields
 
-Let `𝕜` be a nondiscrete and complete normed field, and `E` a topological vector space (TVS) over
+Let `𝕜` be a complete nontrivially normed field, and `E` a topological vector space (TVS) over
 `𝕜` (i.e we have `[add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]`
 and `[has_continuous_smul 𝕜 E]`).
 
@@ -85,7 +85,7 @@ end field
 
 section normed_field
 
-variables {𝕜 : Type u} [hnorm : nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type u} [hnorm : nontrivially_normed_field 𝕜]
   {E : Type v} [add_comm_group E] [module 𝕜 E] [topological_space E]
   [topological_add_group E] [has_continuous_smul 𝕜 E]
   {F : Type w} [add_comm_group F] [module 𝕜 F] [topological_space F]
@@ -95,8 +95,8 @@ variables {𝕜 : Type u} [hnorm : nondiscrete_normed_field 𝕜]
 
 include hnorm
 
-/-- If `𝕜` is a nondiscrete normed field, any T2 topology on `𝕜` which makes it a topological vector
-    space over itself (with the norm topology) is *equal* to the norm topology. -/
+/-- If `𝕜` is a nontrivially normed field, any T2 topology on `𝕜` which makes it a topological
+vector space over itself (with the norm topology) is *equal* to the norm topology. -/
 lemma unique_topology_of_t2 {t : topological_space 𝕜}
   (h₁ : @topological_add_group 𝕜 t _)
   (h₂ : @has_continuous_smul 𝕜 𝕜 _ hnorm.to_uniform_space.to_topological_space t)
@@ -109,7 +109,7 @@ begin
   refine topological_add_group.ext h₁ infer_instance (le_antisymm _ _),
   { -- To show `𝓣 ≤ 𝓣₀`, we have to show that closed balls are `𝓣`-neighborhoods of 0.
     rw metric.nhds_basis_closed_ball.ge_iff,
-    -- Let `ε > 0`. Since `𝕜` is nondiscrete, we have `0 < ∥ξ₀∥ < ε` for some `ξ₀ : 𝕜`.
+    -- Let `ε > 0`. Since `𝕜` is nontrivially normed, we have `0 < ∥ξ₀∥ < ε` for some `ξ₀ : 𝕜`.
     intros ε hε,
     rcases normed_field.exists_norm_lt 𝕜 hε with ⟨ξ₀, hξ₀, hξ₀ε⟩,
     -- Since `ξ₀ ≠ 0` and `𝓣` is T2, we know that `{ξ₀}ᶜ` is a `𝓣`-neighborhood of 0.
@@ -132,7 +132,7 @@ begin
         exact not_mem_compl_iff.mpr (mem_singleton ξ₀) ((balanced_core_subset _) this) },
       -- For that, we use that `𝓑` is balanced : since `∥ξ₀∥ < ε < ∥ξ∥`, we have `∥ξ₀ / ξ∥ ≤ 1`,
       -- hence `ξ₀ = (ξ₀ / ξ) • ξ ∈ 𝓑` because `ξ ∈ 𝓑`.
-      refine balanced_mem (balanced_core_balanced _) hξ _,
+      refine (balanced_core_balanced _).smul_mem _ hξ,
       rw [norm_mul, norm_inv, mul_inv_le_iff (norm_pos_iff.mpr hξ0), mul_one],
       exact (hξ₀ε.trans h).le } },
   { -- Finally, to show `𝓣₀ ≤ 𝓣`, we simply argue that `id = (λ x, x • 1)` is continuous from
@@ -147,7 +147,7 @@ begin
     ... = (@nhds 𝕜 t 0) : by rw zero_smul }
 end
 
-/-- Any linear form on a topological vector space over a nondiscrete normed field is continuous if
+/-- Any linear form on a topological vector space over a nontrivially normed field is continuous if
     its kernel is closed. -/
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
   continuous l :=
@@ -191,7 +191,7 @@ begin
     exact continuous_coinduced_rng }
 end
 
-/-- Any linear form on a topological vector space over a nondiscrete normed field is continuous if
+/-- Any linear form on a topological vector space over a nontrivially normed field is continuous if
     and only if its kernel is closed. -/
 lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
   continuous l ↔ is_closed (l.ker : set E) :=
@@ -309,6 +309,18 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 @[simp] lemma coe_to_continuous_linear_map_symm :
   ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
 
+@[simp] lemma det_to_continuous_linear_map (f : E →ₗ[𝕜] E) :
+  f.to_continuous_linear_map.det = f.det :=
+rfl
+
+@[simp] lemma ker_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
+  f.to_continuous_linear_map.ker = f.ker :=
+rfl
+
+@[simp] lemma range_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
+  f.to_continuous_linear_map.range = f.range :=
+rfl
+
 end linear_map
 
 namespace linear_equiv
@@ -365,6 +377,13 @@ by { ext x, refl }
   (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
   f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
 rfl
+
+lemma _root_.matrix.to_lin_fin_two_prod_to_continuous_linear_map (a b c d : 𝕜) :
+  (matrix.to_lin (basis.fin_two_prod 𝕜) (basis.fin_two_prod 𝕜)
+      !![a, b; c, d]).to_continuous_linear_map =
+  (a • continuous_linear_map.fst 𝕜 𝕜 𝕜 + b • continuous_linear_map.snd 𝕜 𝕜 𝕜).prod
+  (c • continuous_linear_map.fst 𝕜 𝕜 𝕜 + d • continuous_linear_map.snd 𝕜 𝕜 𝕜) :=
+continuous_linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 
 end continuous_linear_map
 

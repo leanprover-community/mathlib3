@@ -337,6 +337,10 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
+/-- A relation embedding from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
+⟨embedding.of_is_empty, is_empty_elim⟩
+
 end rel_embedding
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
@@ -410,6 +414,23 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
 @[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
+/-- A relation isomorphism between equal relations on equal types. -/
+@[simps to_equiv apply] protected def cast {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+  (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
+⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
+
+@[simp] protected theorem cast_symm {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+  (h₁ : α = β) (h₂ : r == s) : (rel_iso.cast h₁ h₂).symm = rel_iso.cast h₁.symm h₂.symm := rfl
+
+@[simp] protected theorem cast_refl {α : Type u} {r : α → α → Prop}
+  (h₁ : α = α := rfl) (h₂ : r == r := heq.rfl) : rel_iso.cast h₁ h₂ = rel_iso.refl r := rfl
+
+@[simp] protected theorem cast_trans {α β γ : Type u}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} (h₁ : α = β) (h₁' : β = γ)
+  (h₂ : r == s) (h₂' : s == t): (rel_iso.cast h₁ h₂).trans (rel_iso.cast h₁' h₂') =
+  rel_iso.cast (h₁.trans h₁') (h₂.trans h₂') :=
+ext $ λ x, by { subst h₁, refl }
+
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
@@ -440,6 +461,14 @@ f.injective.eq_iff
 
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
+
+instance is_well_order.preimage {α : Type u} (r : α → α → Prop) [is_well_order α r] (f : β ≃ α) :
+  is_well_order β (f ⁻¹'o r) :=
+@rel_embedding.is_well_order _ _ (f ⁻¹'o r) r (rel_iso.preimage f r) _
+
+instance is_well_order.ulift {α : Type u} (r : α → α → Prop) [is_well_order α r] :
+  is_well_order (ulift α) (ulift.down ⁻¹'o r) :=
+is_well_order.preimage r equiv.ulift
 
 /-- A surjective relation embedding is a relation isomorphism. -/
 @[simps apply]
@@ -489,6 +518,18 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 /-- Two relations on empty types are isomorphic. -/
 def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
 ⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
+
+/-- Two irreflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_irrefl (r : α → α → Prop) (s : β → β → Prop)
+  [is_irrefl α r] [is_irrefl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ x y, by simp [not_rel_of_subsingleton r, not_rel_of_subsingleton s]⟩
+
+/-- Two reflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
+  [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
 
 end rel_iso
 

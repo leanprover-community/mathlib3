@@ -585,6 +585,63 @@ begin
     exact is_localization.comap_map_of_is_prime_disjoint M S _ x.2 h }
 end
 
+section spec_of_surjective
+/-! The comap of a surjective ring homomorphism is a closed embedding between the prime spectra. -/
+
+open function ring_hom
+
+lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
+{ induced := begin
+    simp_rw [topological_space_eq_iff, ←is_closed_compl_iff, is_closed_induced_iff,
+      is_closed_iff_zero_locus],
+    refine λ s, ⟨λ ⟨F, hF⟩, ⟨zero_locus (f ⁻¹' F), ⟨f ⁻¹' F, rfl⟩,
+      by rw [preimage_comap_zero_locus, surjective.image_preimage hf, hF]⟩, _⟩,
+    rintros ⟨-, ⟨F, rfl⟩, hF⟩,
+    exact ⟨f '' F, hF.symm.trans (preimage_comap_zero_locus f F)⟩,
+  end }
+
+lemma image_comap_zero_locus_eq_zero_locus_comap (hf : surjective f) (I : ideal S) :
+  comap f '' zero_locus I = zero_locus (I.comap f) :=
+begin
+  simp only [set.ext_iff, set.mem_image, mem_zero_locus, set_like.coe_subset_coe],
+  refine λ p, ⟨_, λ h_I_p, _⟩,
+  { rintro ⟨p, hp, rfl⟩ a ha,
+    exact hp ha },
+  { have hp : ker f ≤ p.as_ideal := (ideal.comap_mono bot_le).trans h_I_p,
+    refine ⟨⟨p.as_ideal.map f, ideal.map_is_prime_of_surjective hf hp⟩, λ x hx, _, _⟩,
+    { obtain ⟨x', rfl⟩ := hf x,
+      exact ideal.mem_map_of_mem f (h_I_p hx) },
+    { ext x,
+      change f x ∈ p.as_ideal.map f ↔ _,
+      rw ideal.mem_map_iff_of_surjective f hf,
+      refine ⟨_, λ hx, ⟨x, hx, rfl⟩⟩,
+      rintros ⟨x', hx', heq⟩,
+      rw ← sub_sub_cancel x' x,
+      refine p.as_ideal.sub_mem hx' (hp _),
+      rwa [mem_ker, map_sub, sub_eq_zero] } },
+end
+
+lemma range_comap_of_surjective (hf : surjective f) :
+  set.range (comap f) = zero_locus (ker f) :=
+begin
+  rw ← set.image_univ,
+  convert image_comap_zero_locus_eq_zero_locus_comap _ _ hf _,
+  rw zero_locus_bot,
+end
+
+lemma is_closed_range_comap_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
+begin
+  rw range_comap_of_surjective _ f hf,
+  exact is_closed_zero_locus ↑(ker f),
+end
+
+lemma closed_embedding_comap_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
+{ induced := (comap_inducing_of_surjective S f hf).induced,
+  inj := comap_injective_of_surjective f hf,
+  closed_range := is_closed_range_comap_of_surjective S f hf }
+
+end spec_of_surjective
+
 end comap
 
 section basic_open
@@ -665,7 +722,7 @@ begin
   rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
   use s,
   -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
-  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.diff_eq,
            set.diff_eq_empty, hI, ← zero_locus_supr],
   rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
   apply zero_locus_anti_mono,
@@ -738,9 +795,12 @@ lemma le_iff_specializes (x y : prime_spectrum R) :
   x ≤ y ↔ x ⤳ y :=
 (le_iff_mem_closure x y).trans specializes_iff_mem_closure.symm
 
-instance : t0_space (prime_spectrum R) :=
-by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
-  ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
+/-- `nhds` as an order embedding. -/
+@[simps { fully_applied := tt }]
+def nhds_order_embedding : prime_spectrum R ↪o filter (prime_spectrum R) :=
+order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
+
+instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
 end order
 

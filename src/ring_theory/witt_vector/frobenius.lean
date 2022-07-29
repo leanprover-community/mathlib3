@@ -123,8 +123,9 @@ begin
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
-  rw [← enat.coe_get aux, enat.coe_le_coe, tsub_le_iff_left,
-      ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+  rw [← part_enat.coe_get aux, part_enat.coe_le_coe, tsub_le_iff_left,
+      ← part_enat.coe_le_coe, nat.cast_add, pnat_multiplicity, part_enat.coe_get,
+      part_enat.coe_get, add_comm],
   exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
@@ -139,7 +140,7 @@ begin
       add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
       tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi.le).mp this.1))] },
   split,
-  { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
+  { rw [← h, ← part_enat.coe_le_coe, pnat_multiplicity, part_enat.coe_get,
         ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
     apply le_add_left, refl },
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,

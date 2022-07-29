@@ -116,10 +116,10 @@ alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
 alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg
 alias smul_neg_iff_of_neg ↔ _ smul_neg_of_neg_of_pos
 
-lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_scalar.smul c : M → M) :=
+lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_smul.smul c : M → M) :=
 λ a b h, smul_le_smul_of_nonpos h hc
 
-lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_scalar.smul c : M → M) :=
+lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_smul.smul c : M → M) :=
 λ a b h, smul_lt_smul_of_neg h hc
 
 /-- Binary **rearrangement inequality**. -/

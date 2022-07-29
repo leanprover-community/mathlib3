@@ -35,9 +35,9 @@ The above types have corresponding classes:
 -/
 
 variables (M' : Type*)
-variables (X : Type*) [has_scalar M' X]
-variables (Y : Type*) [has_scalar M' Y]
-variables (Z : Type*) [has_scalar M' Z]
+variables (X : Type*) [has_smul M' X]
+variables (Y : Type*) [has_smul M' Y]
+variables (Z : Type*) [has_smul M' Z]
 variables (M : Type*) [monoid M]
 variables (A : Type*) [add_monoid A] [distrib_mul_action M A]
 variables (A' : Type*) [add_group A'] [distrib_mul_action M A']
@@ -65,7 +65,7 @@ notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 scalar multiplication by `M`.
 
 You should extend this class when you extend `mul_action_hom`. -/
-class smul_hom_class (F : Type*) (M X Y : out_param $ Type*) [has_scalar M X] [has_scalar M Y]
+class smul_hom_class (F : Type*) (M X Y : out_param $ Type*) [has_smul M X] [has_smul M Y]
   extends fun_like F X (λ _, Y) :=
 (map_smul : ∀ (f : F) (c : M) (x : X), f (c • x) = c • f x)
 

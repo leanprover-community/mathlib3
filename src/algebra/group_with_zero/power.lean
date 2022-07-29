@@ -12,30 +12,6 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-section zero
-variables {M : Type*} [monoid_with_zero M]
-
-@[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
-| 0     h := absurd rfl h
-| (k+1) h := by { rw [pow_succ], exact zero_mul _ }
-
-lemma ne_zero_pow {a : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≠ 0 → a ≠ 0 :=
-by { contrapose!, rintro rfl, exact zero_pow' n hn }
-
-@[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
-begin
-  split; intro h,
-  { rw [pos_iff_ne_zero], rintro rfl, simpa using h },
-  { exact zero_pow' n h.ne.symm }
-end
-
-lemma ring.inverse_pow (r : M) : ∀ (n : ℕ), ring.inverse r ^ n = ring.inverse (r ^ n)
-| 0 := by rw [pow_zero, pow_zero, ring.inverse_one]
-| (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev' ((commute.refl r).pow_left n),
-                    ring.inverse_pow]
-
-end zero
-
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀] {a : G₀} {m n : ℕ}
 

@@ -1,11 +1,13 @@
 /-
 Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Joël Riou
 -/
+import category_theory.comm_sq
 import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
+import category_theory.limits.opposites
 
 /-!
 # Pullback and pushout squares
@@ -49,30 +51,9 @@ namespace category_theory
 
 variables {C : Type u₁} [category.{v₁} C]
 
-/-- The proposition that a square
-```
-  W ---f---> X
-  |          |
-  g          h
-  |          |
-  v          v
-  Y ---i---> Z
-
-```
-is a commuting square.
--/
-structure comm_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z) : Prop :=
-(w : f ≫ h = g ≫ i)
-
-attribute [reassoc] comm_sq.w
-
 namespace comm_sq
 
 variables {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
-
-lemma flip (p : comm_sq f g h i) : comm_sq g f i h := ⟨p.w.symm⟩
-
-lemma of_arrow {f g : arrow C} (h : f ⟶ g) : comm_sq f.hom h.left h.right g.hom := ⟨h.w.symm⟩
 
 /--
 The (not necessarily limiting) `pullback_cone h i` implicit in the statement
@@ -85,6 +66,32 @@ The (not necessarily limiting) `pushout_cocone f g` implicit in the statement
 that we have `comm_sq f g h i`.
 -/
 def cocone (s : comm_sq f g h i) : pushout_cocone f g := pushout_cocone.mk _ _ s.w
+
+/-- The pushout cocone in the opposite category associated to the cone of
+a commutative square identifies to the cocone of the flipped commutative square in
+the opposite category -/
+def cone_op (p : comm_sq f g h i) : p.cone.op ≅ p.flip.op.cocone :=
+pushout_cocone.ext (iso.refl _) (by tidy) (by tidy)
+
+/-- The pullback cone in the opposite category associated to the cocone of
+a commutative square identifies to the cone of the flipped commutative square in
+the opposite category -/
+def cocone_op (p : comm_sq f g h i) : p.cocone.op ≅ p.flip.op.cone :=
+pullback_cone.ext (iso.refl _) (by tidy) (by tidy)
+
+/-- The pushout cocone obtained from the pullback cone associated to a
+commutative square in the opposite category identifies to the cocone associated
+to the flipped square. -/
+def cone_unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+  (p : comm_sq f g h i) : p.cone.unop ≅ p.flip.unop.cocone :=
+pushout_cocone.ext (iso.refl _) (by tidy) (by tidy)
+
+/-- The pullback cone obtained from the pushout cone associated to a
+commutative square in the opposite category identifies to the cone associated
+to the flipped square. -/
+def cocone_unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+  (p : comm_sq f g h i) : p.cocone.unop ≅ p.flip.unop.cone :=
+pullback_cone.ext (iso.refl _) (by tidy) (by tidy)
 
 end comm_sq
 
@@ -357,6 +364,17 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
   is_pullback h₁₁ v₁₁ v₁₂ h₂₁ :=
 (of_bot s.flip p.symm t.flip).flip
 
+lemma op (h : is_pullback fst snd f g) : is_pushout g.op f.op snd.op fst.op :=
+is_pushout.of_is_colimit (is_colimit.of_iso_colimit
+  (limits.pullback_cone.is_limit_equiv_is_colimit_op h.flip.cone h.flip.is_limit)
+  h.to_comm_sq.flip.cone_op)
+
+lemma unop {P X Y Z : Cᵒᵖ} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
+  (h : is_pullback fst snd f g) : is_pushout g.unop f.unop snd.unop fst.unop :=
+is_pushout.of_is_colimit (is_colimit.of_iso_colimit
+  (limits.pullback_cone.is_limit_equiv_is_colimit_unop h.flip.cone h.flip.is_limit)
+  h.to_comm_sq.flip.cone_unop)
+
 end is_pullback
 
 namespace is_pushout
@@ -429,6 +447,17 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
   is_pushout h₁₂ v₁₂ v₁₃ h₂₂ :=
 (of_bot s.flip p.symm t.flip).flip
 
+lemma op (h : is_pushout f g inl inr) : is_pullback inr.op inl.op g.op f.op :=
+is_pullback.of_is_limit (is_limit.of_iso_limit
+  (limits.pushout_cocone.is_colimit_equiv_is_limit_op h.flip.cocone h.flip.is_colimit)
+  h.to_comm_sq.flip.cocone_op)
+
+lemma unop {Z X Y P : Cᵒᵖ} {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P}
+  (h : is_pushout f g inl inr) : is_pullback inr.unop inl.unop g.unop f.unop :=
+is_pullback.of_is_limit (is_limit.of_iso_limit
+  (limits.pushout_cocone.is_colimit_equiv_is_limit_unop h.flip.cocone h.flip.is_colimit)
+  h.to_comm_sq.flip.cocone_unop)
+
 end is_pushout
 
 namespace functor
@@ -436,18 +465,14 @@ namespace functor
 variables {D : Type u₂} [category.{v₂} D]
 variables (F : C ⥤ D) {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
 
-lemma map_comm_sq (s : comm_sq f g h i) : comm_sq (F.map f) (F.map g) (F.map h) (F.map i) :=
-⟨by simpa using congr_arg (λ k : W ⟶ Z, F.map k) s.w⟩
-
 lemma map_is_pullback [preserves_limit (cospan h i) F] (s : is_pullback f g h i) :
   is_pullback (F.map f) (F.map g) (F.map h) (F.map i) :=
 -- This is made slightly awkward because `C` and `D` have different universes,
 -- and so the relevant `walking_cospan` diagrams live in different universes too!
 begin
   refine is_pullback.of_is_limit' (F.map_comm_sq s.to_comm_sq)
-    (is_limit.of_whisker_equivalence walking_cospan_equiv
-      (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
-        (is_limit_of_preserves F s.is_limit))),
+    (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
+      (is_limit_of_preserves F s.is_limit)),
   { refl, },
   { dsimp, simp, refl, },
   { dsimp, simp, refl, },
@@ -457,9 +482,8 @@ lemma map_is_pushout [preserves_colimit (span f g) F] (s : is_pushout f g h i) :
   is_pushout (F.map f) (F.map g) (F.map h) (F.map i) :=
 begin
   refine is_pushout.of_is_colimit' (F.map_comm_sq s.to_comm_sq)
-    (is_colimit.of_whisker_equivalence walking_span_equiv
-      (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
-        (is_colimit_of_preserves F s.is_colimit))),
+    (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
+      (is_colimit_of_preserves F s.is_colimit)),
   { refl, },
   { dsimp, simp, refl, },
   { dsimp, simp, refl, },
@@ -467,7 +491,6 @@ end
 
 end functor
 
-alias functor.map_comm_sq ← comm_sq.map
 alias functor.map_is_pullback ← is_pullback.map
 alias functor.map_is_pushout ← is_pushout.map
 

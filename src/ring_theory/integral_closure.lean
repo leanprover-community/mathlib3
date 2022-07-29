@@ -3,11 +3,12 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import data.polynomial.expand
 import linear_algebra.finite_dimensional
+import linear_algebra.matrix.determinant
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
-import linear_algebra.matrix.determinant
 
 /-!
 # Integral closure of a subring.
@@ -154,7 +155,7 @@ theorem is_integral_iff_is_integral_closure_finite {r : A} :
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    refine ⟨_, set.finite_mem_finset _, p.restriction, monic_restriction.2 hmp, _⟩,
+    refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
     erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
@@ -358,6 +359,14 @@ begin
   exact is_integral_mul is_integral_algebra_map hx,
 end
 
+lemma is_integral_of_pow {x : A} {n : ℕ} (hn : 0 < n) (hx : is_integral R $ x ^ n) :
+  is_integral R x :=
+begin
+  rcases hx with ⟨p, ⟨hmonic, heval⟩⟩,
+  exact ⟨expand R n p, monic.expand hn hmonic,
+         by rwa [eval₂_eq_eval_map, map_expand, expand_eval, ← eval₂_eq_eval_map]⟩
+end
+
 variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
@@ -466,6 +475,10 @@ begin
   rw [matrix.det_apply],
   exact is_integral.sum _ (λ σ hσ, is_integral.zsmul (is_integral.prod _ (λ i hi, h _ _)) _)
 end
+
+@[simp] lemma is_integral.pow_iff {x : A} {n : ℕ} (hn : 0 < n) :
+  is_integral R (x ^ n) ↔ is_integral R x :=
+⟨is_integral_of_pow hn, λ hx, is_integral.pow hx n⟩
 
 section
 

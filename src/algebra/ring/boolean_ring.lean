@@ -164,7 +164,6 @@ The data is defined so that:
 * `a \ b` unfolds to `a * (1 + b)`
 -/
 def to_boolean_algebra : boolean_algebra α :=
-boolean_algebra.of_core
 { le_sup_inf := le_sup_inf,
   top := 1,
   le_top := λ a, show a + 1 + a * 1 = 1, by assoc_rw [mul_one, add_comm, add_self, add_zero],

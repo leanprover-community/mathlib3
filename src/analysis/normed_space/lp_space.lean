@@ -1300,4 +1300,151 @@ map_linear_isometry_single _ _ _ _ _ _ _
 
 end congr_right
 
+section curry
+
+variables {β : α → Type*} (F : Π (a : α), β a → Type*) [fact (1 ≤ p)]
+  [Π a b, normed_add_comm_group (F a b)]
+
+def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
+  lp (λ a, lp (λ b : β a, F a b) p) p :=
+⟨λ a, ⟨λ b, f ⟨a, b⟩, (lp.mem_ℓp f).comp_inj (sigma.mk a) sigma_mk_injective⟩,
+  begin
+    rcases f with ⟨f, hf : mem_ℓp _ _⟩,
+    change mem_ℓp _ _,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { rw mem_ℓp_infty_iff at hf ⊢,
+      rcases hf with ⟨M, hM⟩,
+      refine ⟨max (Sup ∅) M, _⟩,
+      rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
+      intro a,
+      rw lp.norm_eq_csupr,
+      rcases is_empty_or_nonempty (β a) with hβa | hβa;
+      haveI := hβa,
+      { rw [← Sup_range, set.range_eq_empty],
+        exact le_max_left _ _ },
+      { exact csupr_le (λ b, le_max_of_le_right $ hM ⟨a, b⟩) } },
+    { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at hf ⊢,
+      rw summable_sigma_of_nonneg at hf,
+      { convert hf.2,
+        ext a,
+        rw lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp),
+        refl },
+      { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
+  end⟩
+
+@[simp] lemma curry_apply (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (a : α) (b : β a) :
+  curry _ f a b = f ⟨a, b⟩ := rfl
+
+@[simp] lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
+  curry F (lp.single p (sigma.mk a b) x) = lp.single p a (lp.single p b x) :=
+begin
+  ext a' b',
+  by_cases ha : a = a',
+  { subst ha,
+    by_cases hb : b = b',
+    { subst hb,
+      simp only [curry_apply, lp.single_apply_self] },
+    { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
+      rw [curry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
+          lp.single_apply_ne _ _ _ (ne.symm this)] } },
+  { have : sigma.mk a b ≠ sigma.mk a' b' := λ h, ha (congr_arg sigma.fst h),
+    rw [curry_apply, lp.single_apply_ne _ _ _ (ne.symm ha),
+        lp.single_apply_ne _ _ _ (ne.symm this)],
+    refl }
+end
+
+def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
+⟨λ ab, g ab.1 ab.2,
+  begin
+    change mem_ℓp _ _,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { have : mem_ℓp _ ⊤ := g.2,
+      rw mem_ℓp_infty_iff at this ⊢,
+      rcases this with ⟨M, hM⟩,
+      refine ⟨M, _⟩,
+      rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
+      rintros ⟨a, b⟩,
+      specialize hM a,
+      rw lp.norm_eq_csupr at hM,
+      have : mem_ℓp _ ⊤ := (g a).2,
+      rw mem_ℓp_infty_iff at this,
+      exact (le_csupr this b).trans hM },
+    { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp),
+      rw summable_sigma_of_nonneg,
+      { split,
+        { intro a,
+          have : mem_ℓp _ _ := (g a).2,
+          rwa mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this },
+        { have : mem_ℓp _ _ := g.2,
+          rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this,
+          convert this,
+          ext a,
+          rw lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp),
+          refl } },
+      { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
+  end⟩
+
+@[simp] lemma uncurry_apply (g : lp (λ a, lp (λ b : β a, F a b) p) p) (a : α) (b : β a) :
+  uncurry F g ⟨a, b⟩ = g a b := rfl
+
+@[simp] lemma uncurry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
+  uncurry F (lp.single p a (lp.single p b x)) = (lp.single p (sigma.mk a b) x) :=
+begin
+  ext ab',
+  rcases ab' with ⟨a', b'⟩,
+  by_cases ha : a = a',
+  { subst ha,
+    by_cases hb : b = b',
+    { subst hb,
+      simp only [uncurry_apply, lp.single_apply_self] },
+    { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
+      rw [uncurry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
+          lp.single_apply_ne _ _ _ (ne.symm this)] } },
+  { have : sigma.mk a b ≠ sigma.mk a' b' := λ h, ha (congr_arg sigma.fst h),
+    rw [uncurry_apply, lp.single_apply_ne _ _ _ (ne.symm ha),
+        lp.single_apply_ne _ _ _ (ne.symm this)],
+    refl }
+end
+
+variables (p) (𝕜 : Type*) [normed_field 𝕜] [Π a b, normed_space 𝕜 (F a b)]
+
+def curry_equiv :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
+{ to_fun := lp.curry F,
+  inv_fun := lp.uncurry F,
+  left_inv := λ f, by ext ⟨a, b⟩; refl,
+  right_inv := λ f, by ext ab; refl,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ a f, by ext; refl,
+  norm_map' :=
+  begin
+    intros f,
+    change ∥lp.curry F f∥ = ∥f∥,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { suffices : ∥lp.curry F f∥₊ = ∥f∥₊,
+      { rw [← coe_nnnorm, ← coe_nnnorm],
+        exact congr_arg _ this },
+      simp_rw [lp.nnnorm_eq_csupr],
+      rw csupr_sigma,
+      { refl },
+      { have : mem_ℓp f ⊤ := f.2,
+        simp_rw [mem_ℓp_infty_iff, ← coe_nnnorm] at this,
+        rwa [← nnreal.bdd_above_coe, ← set.range_comp] } },
+    { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp),
+          lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp)],
+      simp_rw [lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp)],
+      have : mem_ℓp f _ := f.2,
+      rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this,
+      rw tsum_sigma this,
+      refl }
+  end }
+
+@[simp] lemma coe_curry_equivₗᵢ : ⇑(curry_equiv p F 𝕜) = curry F := rfl
+@[simp] lemma coe_curry_equivₗᵢ_symm : ⇑(curry_equiv p F 𝕜).symm = uncurry F := rfl
+
+end curry
+
 end lp

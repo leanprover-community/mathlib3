@@ -729,6 +729,20 @@ csupr_le' $ λ i, exists.elim (h i) (le_csupr_of_le hg)
 lemma cInf_le_cInf' {s t : set α} (h₁ : t.nonempty) (h₂ : t ⊆ s) : Inf s ≤ Inf t :=
 cInf_le_cInf (order_bot.bdd_below s) h₁ h₂
 
+theorem csupr_sigma {p : β → Type*} {f : sigma p → α} (hf : bdd_above (set.range f)) :
+  (⨆ x, f x) = ⨆ i j, f ⟨i, j⟩ :=
+begin
+  have hf' : ∀ i, bdd_above (set.range $ λ j, f ⟨i, j⟩) :=
+    λ i, hf.mono (set.range_subset_iff.mpr $ λ _, set.mem_range_self _),
+  have hf'' : bdd_above (set.range $ λ i, ⨆ j, f ⟨i, j⟩),
+  { rcases hf with ⟨M, hM⟩,
+    refine ⟨M, _⟩,
+    rw [mem_upper_bounds, set.forall_range_iff] at *,
+    exact λ i, csupr_le' (λ j, hM _) },
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [csupr_le_iff' hf, csupr_le_iff' hf'', csupr_le_iff' (hf' _), sigma.forall]
+end
+
 theorem csupr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') (hf : bdd_above $ range f) :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
 csupr_mono' hf $ λ x, ⟨_, le_rfl⟩

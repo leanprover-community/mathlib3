@@ -51,7 +51,7 @@ Linear algebra:
     Gaussian elimination: 'https://en.wikipedia.org/wiki/Gaussian_elimination'
     row-reduced matrices: 'https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form'
   Endomorphism polynomials:
-    annihilating polynomials: 'https://en.wikipedia.org/wiki/Minimal_polynomial_(linear_algebra)#Formal_definition'
+    annihilating polynomials: 'polynomial.ann_ideal'
     minimal polynomial: 'minpoly'
     characteristic polynomial: 'matrix.charpoly'
     Cayley-Hamilton theorem: 'matrix.aeval_self_charpoly'
@@ -337,9 +337,8 @@ Single Variable Real Analysis:
     inverse hyperbolic trigonometric functions: 'real.arsinh'
   Integration:
     integral over a segment of piecewise continuous functions: ''
-    antiderivatives: 'https://en.wikipedia.org/wiki/Antiderivative'
     Riemann sums: 'box_integral.integral_sum'
-    antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
+    antiderivative of a continuous function: 'continuous.deriv_integral'
     change of variable: 'interval_integral.integral_comp_smul_deriv'
     integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
     improper integrals: 'https://en.wikipedia.org/wiki/Improper_integral'

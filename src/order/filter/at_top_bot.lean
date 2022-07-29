@@ -191,12 +191,12 @@ at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
 
 lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_top_basis }
 
 lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
   has_countable_basis (at_bot : filter α) (λ _, true) Iic :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_bot_basis }
 
 @[priority 200]

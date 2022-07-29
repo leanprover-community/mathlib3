@@ -27,7 +27,7 @@ variables {R S : Type*} [comm_ring R] [comm_semiring S] [algebra S R] (I : ideal
 
 /-- `I ⧸ I ^ 2` as a quotient of `I`. -/
 @[derive [add_comm_group, module (R ⧸ I)]]
-def cotangent := I ⧸ (I • ⊤ : submodule R I)
+def cotangent : Type* := I ⧸ (I • ⊤ : submodule R I)
 
 instance : inhabited I.cotangent := ⟨0⟩
 
@@ -153,7 +153,7 @@ namespace local_ring
 variables (R : Type*) [comm_ring R] [local_ring R]
 
 /-- The `A ⧸ I`-vector space `I ⧸ I ^ 2`. -/
-abbreviation cotangent_space : Type* := (maximal_ideal R).cotangent
+@[reducible] def cotangent_space : Type* := (maximal_ideal R).cotangent
 
 instance : module (residue_field R) (cotangent_space R) :=
 ideal.cotangent.module _

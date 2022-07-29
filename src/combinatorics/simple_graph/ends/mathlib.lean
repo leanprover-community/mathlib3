@@ -104,11 +104,15 @@ def longest_prefix_all {V : Type*} {G : simple_graph V} :
 { R : Σ (z : V), G.walk u z | ∃ (pfxR : R.2 ≤w p) (predR : pred R.1 R.2 pfxR),
                               ∀ z (q : G.walk u z) (pfxq : q ≤w p), pred z q pfxq → q ≤w R.2 }
 | u _ _ nil nil pfx pred predr := by {simp, use ⟨u,nil⟩,simp,use trivial,{ exact predr,},{rintros z q pfxq predq,simp,exact pfxq,}  }
-| _ _ _ nil (cons' x y v a p) pfx pred predr := by {
-  let pred' : (∀ (z : V) (q : G.walk y z), q ≤w p → Prop) := λ z q pfxq, pred (cons a q)
-}
 | u v w (cons _ _) nil pfx pred predr := false.elim pfx
-| u _ _ (cons' x yr v a r') (cons' xp yp w b p') pfx pred predr := sorry
+| _ _ _ nil (cons' x y v a p) pfx pred predr := by {
+    let r := @nil' V G x,
+    let pred' : (∀ (z : V) (q : G.walk y z), q ≤w p → Prop) := λ z q pfxq, pred z (cons a q) (by {unfold is_prefix,exact ⟨rfl,pfxq⟩}),
+    by_cases h : pred x (cons a r) (sorry),
+    { sorry },
+    {sorry },
+  }
+| u _ _ (cons' xr yr vr a r') (cons' xp yp w b p') pfx pred predr := by {sorry}
 -/
 
 end simple_graph

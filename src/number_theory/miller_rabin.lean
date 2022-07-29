@@ -12,6 +12,7 @@ import data.zmod.basic
 -- import number_theory.padics.padic_norm
 import field_theory.finite.basic
 import data.fintype.basic
+import algebra.big_operators.intervals
 
 /-!
 # Lemmas and definitions that will be used in proving the Miller-Rabin primality test.
@@ -20,7 +21,9 @@ import data.fintype.basic
 
 -/
 
-open nat
+open nat finset
+
+open_locale big_operators
 -- open_locale classical
 
 ---------------------------------------------------------------------------------------------------
@@ -63,6 +66,24 @@ lemma coprime_self_sub_one (a : ℕ) (ha : 0 < a) : a.coprime (a - 1) :=
 begin
   nth_rewrite_lhs 0 ←tsub_add_cancel_of_le (succ_le_iff.2 ha),
   apply coprime_add_one,
+end
+
+theorem nat.sq_sub_sq' (a b : ℕ) : a ^ 2 - b ^ 2 = (a - b) * (a + b) :=
+by { rw [mul_comm, nat.sq_sub_sq] }
+
+example (e k x : ℕ) (he : 0 < e) (hx : 0 < x) :
+  x ^ (2^e * k) - 1 = (x^k - 1) *  ∏ i in Ico 0 e, (x^(2^i * k) + 1) :=
+begin
+  induction e with e IH, { simp },
+  rcases eq_or_ne e 0 with rfl | he0,
+  { rw [pow_one, Ico_succ_singleton, prod_singleton, pow_zero, one_mul, ←nat.sq_sub_sq',
+        one_pow, mul_comm, pow_mul] },
+  specialize IH he0.bot_lt,
+  rw [pow_succ, Ico_succ_right_eq_insert_Ico zero_le', prod_insert right_not_mem_Ico],
+  nth_rewrite_rhs 0 ←mul_assoc,
+  nth_rewrite_rhs 0 ←mul_rotate,
+  nth_rewrite_rhs 1 mul_comm,
+  rw [←IH, ←nat.sq_sub_sq', one_pow, ←pow_mul, mul_rotate],
 end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------

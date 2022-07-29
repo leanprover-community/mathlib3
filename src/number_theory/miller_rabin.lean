@@ -117,6 +117,12 @@ def odd_part (n : ℕ) := ord_compl[2] n
 
 @[simp] lemma odd_part_zero : odd_part 0 = 0 := rfl
 
+lemma odd_of_odd_part (n : ℕ) : odd (odd_part n) :=
+begin
+
+  sorry,
+end
+
 lemma even_part_mul_odd_part (n : ℕ) : (even_part n) * (odd_part n) = n :=
 begin
   simp only [even_part, odd_part, ord_proj_mul_ord_compl_eq_self n 2],
@@ -146,6 +152,20 @@ def nat.miller_rabin_witness (n : ℕ) (a : zmod n) : Prop :=
 lemma one_not_miller_rabin_witness (n : ℕ) : ¬ n.miller_rabin_witness (1 : zmod n) :=
 by simp [nat.miller_rabin_witness]
 
+lemma minus_one_not_miller_rabin_witness (n : ℕ) (hn : odd n) (hn_one : n ≠ 1) :
+  ¬ n.miller_rabin_witness (-1 : zmod n) :=
+begin
+  simp only [nat.miller_rabin_witness, ne.def, mem_range, not_and, not_forall, not_not,
+    exists_prop],
+  rintro -,
+  refine ⟨0, _, _⟩,
+  { obtain ⟨k, rfl⟩ := hn,
+    have hk : k ≠ 0, { simpa using hn_one },
+    rw [add_succ_sub_one, add_zero, nat.factorization_mul _ hk],
+    { simp [prime_two.factorization] },
+    { simp } },
+  { simp [odd.neg_one_pow (odd_of_odd_part (n-1))] },
+end
 
 /-- Let `n = 2^s * d + 1`, where `s := (n-1).factorization 2` and `d := odd_part (n-1)`.
 Then `n` is a **strong probable prime** relative to a base `a : zmod n` if either

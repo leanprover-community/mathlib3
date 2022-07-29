@@ -180,7 +180,8 @@ def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
   a^(odd_part (n-1)) = 1 ∨
   (∃ r : ℕ, r < (n-1).factorization 2 ∧ a^(2^r * odd_part(n-1)) = -1)
 
-example (n : nat) (a : (zmod n)) : strong_probable_prime n a ↔ ¬ n.miller_rabin_witness a :=
+lemma strong_probable_prime_iff_nonwitness (n : nat) (a : (zmod n)) :
+  strong_probable_prime n a ↔ ¬ n.miller_rabin_witness a :=
 by simp [nat.miller_rabin_witness, strong_probable_prime, not_and_distrib]
 
 
@@ -202,6 +203,8 @@ def nat.miller_rabin_sequence (n : ℕ) (a : zmod n) : list (zmod n) :=
 lemma length_miller_rabin_sequence (n : ℕ) (a : zmod n) :
   (n.miller_rabin_sequence a).length = (n-1).factorization 2 :=
 by simp [nat.miller_rabin_sequence]
+
+
 
 
 

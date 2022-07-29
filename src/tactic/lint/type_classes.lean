@@ -14,7 +14,8 @@ This file defines several linters checking the correct usage of type classes
 and the appropriate definition of instances:
 
  * `instance_priority` ensures that blanket instances have low priority.
- * `has_nonempty_instances` checks that every type has a `nonempty` instance.
+ * `has_nonempty_instances` checks that every type has a `nonempty` instance, an `inhabited`
+   instance, or a `unique` instance.
  * `impossible_instance` checks that there are no instances which can never apply.
  * `incorrect_type_class_argument` checks that only type classes are used in
    instance-implicit arguments.
@@ -105,8 +106,8 @@ If you don't know what priority to choose, use priority 100.
 See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
-/-- Reports declarations of types that do not have an associated `nonempty` instance.
-It suffices to have an `inhabited` or `unique` instance rather than a `nonempty` instance. -/
+/-- Reports declarations of types that do not have an nonemptiness instance.
+A `nonempty`, `inhabited` or `unique` instance suffices. -/
 private meta def has_nonempty_instance (d : declaration) : tactic (option string) := do
 tt ← pure d.is_trusted | pure none,
 ff ← has_attribute' `reducible d.to_name | pure none,
@@ -117,15 +118,13 @@ if ty = `(Prop) then pure none else do
 `(Sort _) ← whnf ty | pure none,
 insts ← attribute.get_instances `instance,
 insts_tys ← insts.mmap $ λ i, expr.pi_codomain <$> declaration.type <$> get_decl i,
-let nonempty_insts := insts_tys.filter (λ i,
-  i.app_fn.const_name = ``nonempty
-  ∨ i.app_fn.const_name = ``inhabited
-  ∨ i.app_fn.const_name = `unique),
+let nonempty_insts := insts_tys.filter
+  (λ i, i.app_fn.const_name ∈ [``nonempty, ``inhabited, `unique]),
 let nonempty_tys := nonempty_insts.map (λ i, i.app_arg.get_app_fn.const_name),
 if d.to_name ∈ nonempty_tys then
   pure none
 else
-  pure "nonempty instance missing"
+  pure "nonempty, inhabited, or unique instance missing"
 
 /-- A linter for missing `nonempty` instances. -/
 @[linter]

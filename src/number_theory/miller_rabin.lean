@@ -133,6 +133,18 @@ begin
   simp only [odd_part, mul_ord_compl n m 2],
 end
 
+
+/--
+Letting `k := odd_part (n-1)`, if there is an `0 < a < n` such that `(a^k - 1) ≠ 0 (mod n)` and
+`(a^(2^i * k) + 1) ≠ 0 (mod n)` for all `0 ≤ i < (n-1).factorization 2` then this demonstrates
+that `n` is not prime. Such an `a` is called a **Miller–Rabin witness** for `n`. We formulate this
+in terms of `a : zmod n` to take care of the bounds on `a` and the congruences `mod n`.
+-/
+def nat.miller_rabin_witness (n : ℕ) (a : zmod n) : Prop :=
+  (a^odd_part (n-1) - 1) ≠ 0 ∧
+  ∀ i ∈ range ((n-1).factorization 2), (a^(2^i * odd_part (n-1)) + 1) ≠ 0
+
+
 /-- Let `n = 2^s * d + 1`, where `s := (n-1).factorization 2` and `d := odd_part (n-1)`.
 Then `n` is a **strong probable prime** relative to a base `a : zmod n` if either
 `a^d = 1 (mod n)` or `a ^ (2^r * d) = -1 (mod n)` for some `0 ≤ r < s`. -/

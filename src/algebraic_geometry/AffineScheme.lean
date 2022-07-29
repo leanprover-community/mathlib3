@@ -116,6 +116,10 @@ end AffineScheme
 def is_affine_open {X : Scheme} (U : opens X.carrier) : Prop :=
 is_affine (X.restrict U.open_embedding)
 
+/-- The set of affine opens as a subset of `opens X.carrier`. -/
+def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
+{ U : opens X.carrier | is_affine_open U }
+
 lemma range_is_affine_open_of_open_immersion {X Y : Scheme} [is_affine X] (f : X ⟶ Y)
   [H : is_open_immersion f] : is_affine_open ⟨set.range f.1.base, H.base_open.open_range⟩ :=
 begin
@@ -136,7 +140,7 @@ instance Scheme.affine_basis_cover_is_affine (X : Scheme) (i : X.affine_basis_co
 algebraic_geometry.Spec_is_affine _
 
 lemma is_basis_affine_open (X : Scheme) :
-  opens.is_basis { U : opens X.carrier | is_affine_open U } :=
+  opens.is_basis X.affine_opens :=
 begin
   rw opens.is_basis_iff_nbhd,
   rintros U x (hU : x ∈ (U : set X.carrier)),
@@ -514,10 +518,6 @@ begin
   rw category.id_comp,
   refl
 end
-
-/-- The collection of affine open sets of `X`. -/
-def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
-{ U : opens X.carrier | is_affine_open U }
 
 /-- The basic open set of a section `f` on an an affine open as an `X.affine_opens`. -/
 abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}

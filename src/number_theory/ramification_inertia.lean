@@ -396,7 +396,7 @@ begin
   have b''_li : linear_independent _ b'' := _,
   have b''_sp : submodule.span _ (set.range b'') = ⊤ := _,
   -- Since the two bases have the same index set, the spaces have the same dimension.
-  let c : basis ι K L := basis.mk b''_li b''_sp,
+  let c : basis ι K L := basis.mk b''_li b''_sp.ge,
   rw [finrank_eq_card_basis b, finrank_eq_card_basis c],
   -- It remains to show that the basis is indeed linear independent and spans the whole space.
   { rw set.range_comp,

@@ -27,7 +27,8 @@ namespace simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
-           (Gpreconn : preconnected G)
+           [Glf : locally_finite G]
+           --(Gpc : G.preconnected)
 
 
 
@@ -98,35 +99,35 @@ def fin_ro_components (K : finset V) := {C : set V | C ∈ ro_components G K ∧
 
 namespace ro_component
 
-variable (K : finset V)
+--variable (K : finset V)
 
-def of (x : V) : (set V) := {y : V | reachable_outside G K x y}
+def of (K : finset V) (x : V) : (set V) := {y : V | reachable_outside G K x y}
 
-lemma of_in_components (x : V) (hx : x ∉ K) : of G K x ∈ ro_components G K :=
+lemma of_in_components (K : finset V) (x : V) (hx : x ∉ K) : of G K x ∈ ro_components G K :=
 ⟨x,reachable_outside.refl G x hx,rfl⟩
 
-lemma mem_of (x : V) (hx : x ∉ K) : x ∈ (of G K x) := reachable_outside.refl G x hx
+lemma mem_of (K : finset V) (x : V) (hx : x ∉ K) : x ∈ (of G K x) := reachable_outside.refl G x hx
 
-lemma nempty (C : set V) : C ∈ ro_components G K → set.nonempty C
+lemma nempty (K : finset V) (C : set V) : C ∈ ro_components G K → set.nonempty C
 | ⟨x,x_in_C,sat⟩ := ⟨x,x_in_C⟩
 
-lemma is_ro (C : set V) : C ∈ ro_components G K →  ∀ x y ∈ C, reachable_outside G K x y
+lemma is_ro (K : finset V) (C : set V) : C ∈ ro_components G K →  ∀ x y ∈ C, reachable_outside G K x y
 | ⟨z,z_in,eq⟩ x x_in y y_in :=
 begin
   rw eq at x_in y_in,
   exact reachable_outside.trans G (reachable_outside.symm G x_in) y_in,
 end
 
-lemma not_in_of_in_comp (C : set V) (hC : C ∈ ro_components G K) (x : V) (hx : x ∈ C) : x ∉ K :=
+lemma not_in_of_in_comp (K : finset V) (C : set V) (hC : C ∈ ro_components G K) (x : V) (hx : x ∈ C) : x ∉ K :=
 (not_in G (is_ro G K C hC x hx x hx)).1
 
-lemma not_in_comp_of_in  (C : set V) (hC : C ∈ ro_components G K) (x : V) (hx : x ∈ K) : x ∉ C :=
+lemma not_in_comp_of_in (K : finset V) (C : set V) (hC : C ∈ ro_components G K) (x : V) (hx : x ∈ K) : x ∉ C :=
 begin
   intro xC,
   exact not_in_of_in_comp G K C hC x xC hx,
 end
 
-lemma of_ro_set (P : set V) -- nonemptiness probably not needed
+lemma of_ro_set (K : finset V) (P : set V) -- nonemptiness probably not needed
   (Pnempty : set.nonempty P) (P_ro : ∀ x y ∈ P, reachable_outside G K x y) :
   ∃ C : set V, C ∈ ro_components G K ∧ P ⊆ C :=
 begin
@@ -140,7 +141,7 @@ end
 
 
 -- This one could probably use `of_ro_set` but I'm too lazy/stupid to figure the neatest way to do things
-lemma eq_of_common_mem (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
+lemma eq_of_common_mem (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
   (x : V) (x_in_C : x ∈ C) (x_in_D : x ∈ D) : C = D :=
 begin
   rcases hC with ⟨y,y_in_C,rfl⟩,
@@ -153,18 +154,18 @@ begin
   from λ w_in_D, reachable_outside.trans G y_c_o_z w_in_D,
 end
 
-lemma mem_of_mem_of_ro (C : set V) (hC : C ∈ ro_components G K)
+lemma mem_of_mem_of_ro (K : finset V) (C : set V) (hC : C ∈ ro_components G K)
   (x y : V) (x_in_C : x ∈ C) (x_ro_y : reachable_outside G K x y) : y ∈ C :=
 begin
   rcases hC with ⟨c,c_in_C,rfl⟩,
   exact reachable_outside.trans G x_in_C x_ro_y,
 end
 
-lemma mem_of_mem_of_adj (C : set V) (hC : C ∈ ro_components G K)
+lemma mem_of_mem_of_adj (K : finset V) (C : set V) (hC : C ∈ ro_components G K)
   (x y : V) (x_in_C : x ∈ C) (y_notin_K : y ∉ K) (adj : G.adj x y) : y ∈ C :=
 mem_of_mem_of_ro G K C hC x y x_in_C $ of_adj_outside G K x y (not_in_of_in_comp G K C hC x x_in_C) y_notin_K adj
 
-lemma eq_of_adj_mem
+lemma eq_of_adj_mem (K : finset V)
   (C : set V) (hC : C ∈ ro_components G K)
   (D : set V) (hD : D ∈ ro_components G K)
   (x y : V) (x_in_C : x ∈ C) (y_in_D : y ∈ D) (adj : G.adj x y) : C = D :=
@@ -174,7 +175,7 @@ begin
 end
 
 
-lemma unique_of_ro_set (P : set V)
+lemma unique_of_ro_set  (K : finset V) (P : set V)
   (Pnempty : set.nonempty P) (P_ro : ∀ x y ∈ P, reachable_outside G K x y) : ∃! C : set V, C ∈ ro_components G K ∧ P ⊆ C :=
 begin
   rcases of_ro_set G K P Pnempty P_ro with ⟨C,⟨C_comp,P_sub_C⟩⟩,
@@ -187,7 +188,7 @@ begin
 end
 
 -- the `Pnempty` assumption is not strictly required
-lemma sub_ro_component_of_ro_of_intersects
+lemma sub_ro_component_of_ro_of_intersects (K : finset V)
   (P : set V) (Pnempty : set.nonempty P) (P_ro : ∀ x y ∈ P, reachable_outside G K x y)
   (C ∈ ro_components G K) (inter : (P ∩ C).nonempty) : P ⊆ C :=
 begin
@@ -198,7 +199,7 @@ begin
   exact reachable_outside.trans G path_xx' path_x'p,
 end
 
-lemma walk_outside_is_contained (C : set V) (hC : C ∈ ro_components G K) (x y : V)  (w : G.walk x y)
+lemma walk_outside_is_contained (K : finset V) (C : set V) (hC : C ∈ ro_components G K) (x y : V)  (w : G.walk x y)
  (hx: x ∈ C) (hy: y ∈ C) (dis : disjoint K w.support.to_finset) : (w.support.to_finset : set V) ⊆ C :=
 begin
   rintros z zin,
@@ -211,14 +212,14 @@ begin
 end
 
 
-lemma to_subconnected (C : set V) (hC : C ∈ ro_components G K) : simple_graph.subconnected G C :=
+lemma to_subconnected (K : finset V) (C : set V) (hC : C ∈ ro_components G K) : simple_graph.subconnected G C :=
 begin
   rintros x hx y hy,
   rcases is_ro G K C hC x hx y hy with ⟨w,dis_K⟩,
   exact ⟨w,walk_outside_is_contained G K C hC x y w hx hy dis_K⟩,
 end
 
-lemma ro_of_subconnected_disjoint  (P : set V) (dis : disjoint P K)
+lemma ro_of_subconnected_disjoint (K : finset V) (P : set V) (dis : disjoint P K)
   (conn : subconnected G P) : ∀ x y ∈ P, reachable_outside G K x y :=
 begin
   rintros x hx y hy,
@@ -228,7 +229,7 @@ begin
   exact disjoint_coe.mp (set.disjoint_of_subset_left wgood dis).symm,
 end
 
-lemma of_subconnected_disjoint (P : set V)
+lemma of_subconnected_disjoint (K : finset V) (P : set V)
   (Pnempty : set.nonempty P)
   (dis : disjoint P K)
   (conn : simple_graph.subconnected G P) :
@@ -237,12 +238,12 @@ of_ro_set G K P Pnempty (ro_component.ro_of_subconnected_disjoint G K P dis conn
 
 
 
-lemma adjacent_to (Gpreconn : G.preconnected) (Knempty: K.nonempty) (C : set V) (hC : C ∈ ro_components G K) :
+lemma adjacent_to (Gpc : G.preconnected) (K : finset V) (Knempty: K.nonempty) (C : set V) (hC : C ∈ ro_components G K) :
 ∃ (v k : V), k ∈ K ∧ v ∈ C ∧ G.adj k v :=
 begin
   rcases Knempty with ⟨k,kK⟩,
   rcases nempty G K C hC with ⟨x,xC⟩,
-  let w := (Gpreconn x k).some,
+  let w := (Gpc x k).some,
   have : k ∉ C, from not_in_comp_of_in G K C hC k kK,
   rcases walk.pred_adj_non_pred x k w  (λ x, x ∈ C) xC ‹k∉C› with ⟨u,v,adj,uC,vnC⟩,
   by_cases h : v ∈ K,
@@ -253,8 +254,8 @@ begin
   },
 end
 
-def bdry : set V := {x : V | x ∉ K ∧ ∃ k ∈ K, G.adj x k}
-lemma bdry_subset_union_neighbors : (bdry G K: set V) ⊆ set.Union (λ x : K, G.neighbor_set x) :=
+def bdry (K : finset V) : set V := {x : V | x ∉ K ∧ ∃ k ∈ K, G.adj x k}
+lemma bdry_subset_union_neighbors (K : finset V) : (bdry G K: set V) ⊆ set.Union (λ x : K, G.neighbor_set x) :=
 begin
   unfold bdry,
   rw set.subset_def,
@@ -263,7 +264,7 @@ begin
   exact ⟨⟨k,k_in_K⟩,adj.symm⟩,
 end
 
-lemma bdry_finite [locally_finite G] : (bdry G K).finite :=
+lemma bdry_finite [locally_finite G] (K : finset V) : (bdry G K).finite :=
 begin
   apply set.finite.subset _ (bdry_subset_union_neighbors G K),
   apply set.finite.sUnion,
@@ -274,39 +275,39 @@ begin
   exact (neighbor_set G ↑k).to_finite, -- lol thanks library_search
 end
 
-def to_bdry_point (Knempty: K.nonempty) : ro_components G K → V :=
-λ C, some $ adjacent_to G K Knempty C.val C.prop
+def to_bdry_point (Gpc : G.preconnected) (K : finset V) (Knempty: K.nonempty) : ro_components G K → V :=
+λ C, some $ adjacent_to G Gpc K Knempty C.val C.prop
 
-def to_bdry_point_spec (Knempty: K.nonempty) (C : ro_components G K) :
-  let v := (to_bdry_point G K Knempty C) in ∃ k : V, k ∈ K ∧ v ∈ C.val ∧ G.adj k v :=
-some_spec (adjacent_to G K Knempty C.val C.prop)
+def to_bdry_point_spec  (Gpc : G.preconnected) (K : finset V) (Knempty: K.nonempty) (C : ro_components G K) :
+  let v := (to_bdry_point G Gpc K Knempty C) in ∃ k : V, k ∈ K ∧ v ∈ C.val ∧ G.adj k v :=
+some_spec (adjacent_to G Gpc K Knempty C.val C.prop)
 
-lemma to_bdry_point_inj (Knempty: K.nonempty) :
-  function.injective $ to_bdry_point G K Knempty :=
+lemma to_bdry_point_inj (Gpc : G.preconnected) (K : finset V)  (Knempty: K.nonempty) :
+  function.injective $ to_bdry_point G Gpc K Knempty :=
 begin
   rintros C D c_eq_d,
-  rcases to_bdry_point_spec G K Knempty C with ⟨k,kK,cC,k_adj_c⟩,
-  rcases to_bdry_point_spec G K Knempty D with ⟨l,lK,dD,l_adj_d⟩,
+  rcases to_bdry_point_spec G Gpc K Knempty C with ⟨k,kK,cC,k_adj_c⟩,
+  rcases to_bdry_point_spec G Gpc K Knempty D with ⟨l,lK,dD,l_adj_d⟩,
   exact subtype.eq ( eq_of_common_mem G K C.val D.val C.prop D.prop _ cC (c_eq_d.symm ▸ dD)),
 end
 
-lemma to_bdry_point_in_bdry  (Knempty: K.nonempty) :
-  range (to_bdry_point G K Knempty) ⊆ bdry G K :=
+lemma to_bdry_point_in_bdry (Gpc : G.preconnected) (K : finset V) (Knempty: K.nonempty) :
+  range (to_bdry_point G Gpc K Knempty) ⊆ bdry G K :=
 begin
   rw set.subset_def,
   rintros _ ⟨C,rfl⟩,
-  rcases to_bdry_point_spec G K Knempty C with ⟨k,kK,cC,k_adj_c⟩,
+  rcases to_bdry_point_spec G Gpc K Knempty C with ⟨k,kK,cC,k_adj_c⟩,
   have := not_in_of_in_comp G K C.val C.prop _ cC,
   exact ⟨this,⟨k,⟨kK,k_adj_c.symm⟩⟩⟩,
 end
 
-lemma finite [locally_finite G] (Gpreconn : preconnected G) : (ro_components G K).finite :=
+lemma finite [locally_finite G] (Gpc : G.preconnected) (K : finset V) : (ro_components G K).finite :=
 begin
   by_cases Knempty : K.nonempty,
   { by_contra comps_inf,
     haveI : infinite (subtype (ro_components G K)), from infinite_coe_iff.mpr comps_inf,
-    have := @set.infinite_range_of_injective (subtype (ro_components G K)) V (_inst) (to_bdry_point G K Knempty) (to_bdry_point_inj G K Knempty),
-    have : (bdry G K).infinite, from set.infinite.mono (to_bdry_point_in_bdry G K Knempty) this,
+    have := @set.infinite_range_of_injective (subtype (ro_components G K)) V (_inst) (to_bdry_point G Gpc K Knempty) (to_bdry_point_inj G Gpc K Knempty),
+    have : (bdry G K).infinite, from set.infinite.mono (to_bdry_point_in_bdry G Gpc K Knempty) this,
     exact this (bdry_finite G K),},
   { rw [finset.not_nonempty_iff_eq_empty] at Knempty,
     apply set.subsingleton.finite,
@@ -314,7 +315,7 @@ begin
         rintros C ⟨v, hvC, hconn⟩,
         subst hconn,
         ext, simp,
-        rcases (set.nonempty_def.mp (simple_graph.reachable_iff_nonempty_univ.mp (Gpreconn v x))) with ⟨w, hw⟩,
+        rcases (set.nonempty_def.mp (simple_graph.reachable_iff_nonempty_univ.mp (Gpc v x))) with ⟨w, hw⟩,
         use w, subst K, simp,},
     intros C₁ hC₁ C₂ hC₂,
     exact eq.trans (components_eq_univ C₁ hC₁) (eq.symm (components_eq_univ C₂ hC₂)),
@@ -324,7 +325,7 @@ begin
 end
 
 /-A graph is the union of the part `K` and all the ro_components in its complement-/
-lemma graph_eq_part_union_ro_comp : ↑K ∪ (⋃₀ ro_components G K) = set.univ :=
+lemma graph_eq_part_union_ro_comp (K : finset V) : ↑K ∪ (⋃₀ ro_components G K) = set.univ :=
 begin
   ext,
   simp,
@@ -338,11 +339,11 @@ begin
     { rw [subconnected], intros, simp at *, subst H, subst H_1, use walk.nil, finish, }}
 end
 
-def ro_of_ro_component (L : finset V) (K_sub_L : K ⊆ L) (D : set V) (D_comp : D ∈ ro_components G L) :
+def ro_of_ro_component (Gpc : G.preconnected) (K : finset V) (L : finset V) (K_sub_L : K ⊆ L) (D : set V) (D_comp : D ∈ ro_components G L) :
   ∀ x y ∈ D, reachable_outside G K x y :=
 λ x xD y yD, reachable_outside.monotone G K_sub_L x y (ro_component.is_ro G L D D_comp x xD y yD)
 
-lemma sub_ro_components_cover (L : finset V) (K_sub_L : K ⊆ L) (C : set V) (hC : C ∈ ro_components G K) :
+lemma sub_ro_components_cover  (Gpc : G.preconnected) (K : finset V) (L : finset V) (K_sub_L : K ⊆ L) (C : set V) (hC : C ∈ ro_components G K) :
   C ⊆ L ∪ (⋃₀ { D : set V | D ∈ ro_components G L ∧ D ⊆ C}) :=
 begin
   rintro x x_in_C,
@@ -359,7 +360,7 @@ begin
       let D_comp := ro_component.of_in_components G L x h,
       exact ro_component.sub_ro_component_of_ro_of_intersects G K D
         (ro_component.nempty G L D D_comp)
-        (ro_of_ro_component G K L K_sub_L D D_comp)
+        (ro_of_ro_component G Gpc K L K_sub_L D D_comp)
         C hC ( set.nonempty_inter_iff_exists_left.mpr ⟨⟨x,‹x∈D›⟩,x_in_C⟩  : (D ∩ C).nonempty),
     },
     from ro_component.mem_of G L x h,
@@ -447,8 +448,8 @@ lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) 
 
 section inf_ro_components
 
-lemma inf_ro_components_subset (K : finset V) : inf_ro_components G K ⊆ ro_components G K := λ C h, h.1
-lemma fin_ro_components_subset (K : finset V) : fin_ro_components G K ⊆ ro_components G K := λ C h, h.1
+lemma inf_ro_components_subset (Gpc : G.preconnected) (K : finset V) : inf_ro_components G K ⊆ ro_components G K := λ C h, h.1
+lemma fin_ro_components_subset (Gpc : G.preconnected) (K : finset V) : fin_ro_components G K ⊆ ro_components G K := λ C h, h.1
 
 
 lemma bij_inf_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) (φ : G ≃g H) :
@@ -459,7 +460,7 @@ end
 -- Should use bij_ro_components_of_isom plus the obvious fact that φ being a bijection, it preserves infinite-ness.
 -- Some additional lemmas may be needed to make the above argument go through as is
 
-lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Vinfinite : (@set.univ V).infinite) (Gpreconn : G.preconnected) :
+lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Gpc : G.preconnected) (K : finset V)  (Vinfinite : (@set.univ V).infinite):
  (inf_ro_components G K).nonempty :=
 begin
   by_contradiction,
@@ -470,7 +471,7 @@ begin
   { exact (↑K : set V).to_finite,}, -- from library_search
   {
     apply set.finite.sUnion,
-    { apply finite, assumption, },
+    { apply finite G Gpc,},
     { intros C hC,
       by_contradiction hCinf,
       simp_rw [set.ext_iff] at h,
@@ -482,29 +483,29 @@ begin
   -- if all are finite, then their union is finite, so that V is finite too
 end
 
-instance inf_components_finite [locally_finite G] (Gpreconn : preconnected G) : fintype (inf_ro_components G K) :=
-(set.finite.subset (ro_component.finite G K Gpreconn) (inf_ro_components_subset G K)).fintype
+instance inf_components_finite [locally_finite G]  (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=
+(set.finite.subset (ro_component.finite G Gpc K) (inf_ro_components_subset G Gpc K)).fintype
 
 
 
 
-def extend_to_fin_ro_components [locally_finite G] (K : finset V) (Gpreconn : preconnected G) : finset V :=
+def extend_to_fin_ro_components [locally_finite G] (Gpc : G.preconnected) (K : finset V) : finset V :=
 begin
 let finite_pieces : set V := ⋃₀ fin_ro_components G K,
   have : set.finite finite_pieces, by {
     apply set.finite.sUnion,
-    {exact set.finite.subset (ro_component.finite G K Gpreconn) (fin_ro_components_subset G K)},
+    {exact set.finite.subset (ro_component.finite G Gpc K) (fin_ro_components_subset G Gpc K)},
     {rintros C Cgood, exact Cgood.2,}},
   exact K ∪ this.to_finset,
 end
 
-lemma extend_to_fin_ro_components.sub [locally_finite G] (K : finset V) (Gpreconn : preconnected G) :
-K ⊆ extend_to_fin_ro_components G K Gpreconn := finset.subset_union_left _ _
+lemma extend_to_fin_ro_components.sub [locally_finite G]  (Gpc : G.preconnected) (K : finset V) :
+K ⊆ extend_to_fin_ro_components G Gpc K := finset.subset_union_left _ _
 
-lemma extend_to_fin_ro_components.ro [locally_finite G] (K : finset V) (Gpreconn : preconnected G) :
-  ro_components G (extend_to_fin_ro_components G K Gpreconn) = inf_ro_components G K :=
+lemma extend_to_fin_ro_components.ro  [locally_finite G] (Gpc : G.preconnected) (K : finset V):
+  ro_components G (extend_to_fin_ro_components G Gpc K ) = inf_ro_components G K :=
 begin
-  let L := extend_to_fin_ro_components G K,
+  let L := extend_to_fin_ro_components G Gpc K,
   apply set.ext,
   rintros C,
   split,
@@ -535,16 +536,16 @@ begin
     sorry,},
 end
 
-lemma extend_to_fin_ro_components.subconnected_of_subconnected  [locally_finite G]
+lemma extend_to_fin_ro_components.subconnected_of_subconnected [locally_finite G] (Gpc : G.preconnected)
   (K : finset V)
   (Knempty : K.nonempty)
-  (Kconn : subconnected G K) (Gpreconn : preconnected G) :
-  subconnected G (extend_to_fin_ro_components G K Gpreconn) :=
+  (Kconn : subconnected G K) :
+  subconnected G (extend_to_fin_ro_components G Gpc K) :=
 begin
 
   let k := Knempty.some,
   let KC' := (set.image (λ (C : set V), (K : set V) ∪ C) (fin_ro_components G K)),
-  have : ↑(extend_to_fin_ro_components G K Gpreconn) = (K : set V) ∪ (⋃₀ KC'), by {
+  have : ↑(extend_to_fin_ro_components G Gpc K) = (K : set V) ∪ (⋃₀ KC'), by {
     apply set.ext,
     rintros x,
     split,
@@ -573,8 +574,8 @@ begin
     simp at hC,
     rcases hC with ⟨CC,⟨CComp,Cfin⟩,rfl⟩,
     apply subconnected.of_adj_subconnected G Kconn (to_subconnected G K CC CComp),
-    let d := ro_component.to_bdry_point G K Knempty ⟨CC,CComp⟩,
-    rcases ro_component.to_bdry_point_spec G K Knempty ⟨CC,CComp⟩ with ⟨k,kK,dC,adj⟩,
+    let d := ro_component.to_bdry_point G Gpc K Knempty ⟨CC,CComp⟩,
+    rcases ro_component.to_bdry_point_spec G Gpc K Knempty ⟨CC,CComp⟩ with ⟨k,kK,dC,adj⟩,
     use [k,kK,d,dC,adj],
   },
   rw this,
@@ -600,25 +601,25 @@ begin
 end
 
 
-def extend_subconnected_to_fin_ro_components [locally_finite G] [Knempty : K.nonempty]
-  (Kconn : subconnected G K ) (Gpreconn : preconnected G) :
+def extend_subconnected_to_fin_ro_components [locally_finite G] (Gpc : G.preconnected) (K : finset V) (Knempty : K.nonempty)
+  (Kconn : subconnected G K ) :
   {K' : finset V | K ⊆ K' ∧ (subconnected G K') ∧ (∀ C : ro_components G K', C.val.infinite) } :=
 begin
-  use extend_to_fin_ro_components G K Gpreconn,
-  use extend_to_fin_ro_components.sub G K Gpreconn,
-  use extend_to_fin_ro_components.subconnected_of_subconnected G K Knempty Kconn Gpreconn,
+  use extend_to_fin_ro_components G Gpc K,
+  use extend_to_fin_ro_components.sub G Gpc K,
+  use extend_to_fin_ro_components.subconnected_of_subconnected G Gpc K Knempty Kconn,
   rintros ⟨C,CK'⟩,
-  rw extend_to_fin_ro_components.ro G K Gpreconn at CK',
+  rw extend_to_fin_ro_components.ro G Gpc K at CK',
   exact CK'.2,
 end
 
 
-def extend_to_subconnected [Gconn : preconnected G] [locally_finite G] [Vnempty : nonempty V] :
+def extend_to_subconnected [locally_finite G]  (Gpc : G.preconnected) (K : finset V) (Vnempty : nonempty V) :
   {K' : finset V | K ⊆ K' ∧ subconnected G K' } :=
 begin
   let v₀ : V := Vnempty.some,
-  let path_to_v₀ := λ (k : V), (Gconn k v₀).some.support.to_finset,
-  let path_to_v₀' := λ (k : V), ((Gconn k v₀).some.support.to_finset : set V),
+  let path_to_v₀ := λ (k : V), (Gpc k v₀).some.support.to_finset,
+  let path_to_v₀' := λ (k : V), ((Gpc k v₀).some.support.to_finset : set V),
   let K' := finset.bUnion K path_to_v₀,
   use K',
   split,

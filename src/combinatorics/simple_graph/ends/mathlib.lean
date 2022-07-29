@@ -70,9 +70,6 @@ lemma walk.pred_adj_non_pred {V : Type u} {G : simple_graph V} :
 | _ _ (cons' x y z a q) p up vnp := if h : p y then walk.pred_adj_non_pred y z q p h vnp else ⟨x,y,a,up,h⟩
 
 
-/-def is_prefix {V : Type*} {G : simple_graph V} {u v w : V} (r : G.walk u w) (p : G.walk u v) :=
-  ∃ q : (G.walk w v), p = r.append q
--/
 
 def is_prefix {V : Type*} {G : simple_graph V} : Π {u v w : V} (r : G.walk u w) (p : G.walk u v), Prop
 | _ _ _ nil nil := true

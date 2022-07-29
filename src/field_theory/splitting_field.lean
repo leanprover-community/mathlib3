@@ -229,7 +229,7 @@ theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
 (roots_map_of_injective_card_eq_total_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
-lemma map_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
+lemma image_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
   (f : K →ₐ[F] L) : f '' p.root_set K = p.root_set L :=
 begin
   classical,

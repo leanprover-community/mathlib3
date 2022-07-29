@@ -97,23 +97,51 @@ lemma is_prefix_of_exists_suffix  {V : Type*} {G : simple_graph V} :
   exact ⟨rfl,le⟩,
   }
 
-/-
+
+lemma is_prefix.refl  {V : Type*} {G : simple_graph V} :
+  Π {u w : V} (r : G.walk u w), r ≤w r
+| _ _ nil := trivial
+| _ _ (cons' x y z a p) := ⟨rfl,is_prefix.refl p⟩
+
+lemma is_prefix.rfl  {V : Type*} {G : simple_graph V} :
+  Π {u w : V} {r : G.walk u w}, r ≤w r := λ u w r, is_prefix.refl r
+
+lemma is_prefix.trans  {V : Type*} {G : simple_graph V} :
+  Π {u v w z : V} {r : G.walk u v} {p : G.walk u w} {q : G.walk u z}, r ≤w p → p ≤w q → r ≤w q
+| _ _ _ _ nil nil nil e f := trivial
+| _ _ _ _ nil nil (cons _ _) e f := trivial
+| _ _ _ _ nil (cons _ _) nil e f := f.elim
+| _ _ _ _ nil (cons _ _) (cons _ _) e f := trivial
+| _ _ _ _ (cons _ _) nil nil e f := e.elim
+| _ _ _ _ (cons _ _) nil (cons _ _) e f := e.elim
+| _ _ _ _ (cons _ _) (cons _ _) nil e f := f.elim
+| _ _ _ _ (cons' xr yr zr ar r) (cons' xp yp zp ap p) (cons' xq yq zq aq q) e f := by {
+   rcases e with ⟨rfl,e'⟩,
+   rcases f with ⟨rfl,f'⟩,
+   refine ⟨rfl,_⟩,
+   --squeeze_simp,
+   --simp at e',
+   --simp at f',
+   exact is_prefix.trans e' f',}
+
+def is_prefix.eq_nil_of_nil  {V : Type*} {G : simple_graph V} :
+  Π {u v : V} {r : G.walk u v} (pfx : r ≤w nil), ∃ (e : v = u), @eq.rec V v (λ x, G.walk u x) r u e = nil' u
+| _ _ (nil' u) pfx := ⟨rfl,rfl⟩
+| _ _ (cons' u v w a r) pfx := pfx.elim
+
 def longest_prefix_all {V : Type*} {G : simple_graph V} :
-Π {u v w : V} {r : G.walk u w} {p : G.walk u v} (pfx : r ≤w p)
-  (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pfx),
-{ R : Σ (z : V), G.walk u z | ∃ (pfxR : R.2 ≤w p) (predR : pred R.1 R.2 pfxR),
-                              ∀ z (q : G.walk u z) (pfxq : q ≤w p), pred z q pfxq → q ≤w R.2 }
-| u _ _ nil nil pfx pred predr := by {simp, use ⟨u,nil⟩,simp,use trivial,{ exact predr,},{rintros z q pfxq predq,simp,exact pfxq,}  }
-| u v w (cons _ _) nil pfx pred predr := false.elim pfx
-| _ _ _ nil (cons' x y v a p) pfx pred predr := by {
-    let r := @nil' V G x,
-    let pred' : (∀ (z : V) (q : G.walk y z), q ≤w p → Prop) := λ z q pfxq, pred z (cons a q) (by {unfold is_prefix,exact ⟨rfl,pfxq⟩}),
-    by_cases h : pred x (cons a r) (sorry),
-    { sorry },
-    {sorry },
+Π {u v w : V} (p : G.walk u v) (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) ,
+psum
+  { R : Σ (z : V), G.walk u z | ∃ (pfxR : R.2 ≤w p) (predR : pred R.1 R.2 pfxR),
+                                ∀ z (q : G.walk u z) (pfxq : q ≤w p), pred z q pfxq → q ≤w R.2 }
+  (∀ (z : V) (q : G.walk u z) (pfx : q ≤w p), ¬ pred z q pfx)
+| _ _ _ (nil' x) pred := by {
+  simp at *,
+  by_cases h : pred x (nil' x) (is_prefix.rfl),
+  {left, use x, simp, use is_prefix.rfl, exact h, rintros z q pfx hh, exact pfx,},
+  {right, rintros z q pfx,  rcases is_prefix.eq_nil_of_nil pfx with ⟨rfl,eq'⟩, induction eq', simp at h,exact h,}
   }
-| u _ _ (cons' xr yr vr a r') (cons' xp yp w b p') pfx pred predr := by {sorry}
--/
+| _ _ _ (cons' x y z a p) pred := sorry
 
 end simple_graph
 

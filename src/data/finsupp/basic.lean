@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.hom.group_action
 import algebra.indicator_function
 import data.finset.preimage
+import data.list.alist
 
 /-!
 # Type of functions with finite support
@@ -773,6 +774,17 @@ end
 
 @[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
 (graph_injective α M).eq_iff' graph_zero
+
+/-- Produce an association list for the finsupp over its support using choice. -/
+@[simps] def to_alist (f : α →₀ M) : alist (λ x : α, M) :=
+⟨f.graph.to_list.map prod.to_sigma, begin
+  rw [list.nodupkeys, list.keys, list.map_map, prod.fst_comp_to_sigma, list.nodup_map_iff_inj_on],
+  { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
+    rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
+    dsimp at hb hc,
+    rw [←hc.1, hb.1] },
+  { apply nodup_to_list }
+end⟩
 
 end graph
 

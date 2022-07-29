@@ -203,7 +203,7 @@ begin
   },
 end
 
-lemma nicely_arranged_bwd_map_not_inj (Gpc : G.preconnected) [locally_finite G] (H K : finset V)
+lemma nicely_arranged_bwd_map_not_inj[locally_finite G] (Gpc : G.preconnected) (H K : finset V)
   (Hnempty : H.nonempty) (Knempty : K.nonempty)
   (E : inf_ro_components G H) (inf_comp_H_large : 2 < @fintype.card _ (ro_component.inf_components_finite G Gpc H))
   (F : inf_ro_components G K)
@@ -431,29 +431,28 @@ end
 
 section subsystem
 
-parameters (V : Type*) (G : simple_graph V)
 
-def subsystem  (Gpc : G.preconnected) [locally_finite G] :=
+def subsystem [locally_finite G] (Gpc : G.preconnected) :=
   {f : (Π L : finset V, set (inf_ro_components G L))
   | (∀ (L L' : finset V) (sub : L ⊆ L'), set.image (bwd_map G Gpc sub) (f L') ⊆ f L)
   ∧ (∀ (L L' : finset V) (sub : L ⊆ L'), set.surj_on (bwd_map G Gpc sub) (f L') (f L))
   ∧ (∀ L : finset V, (f L).nonempty)
   }
 
-def singletonify (Gpc : G.preconnected) [locally_finite G] (K : finset V) (C : inf_ro_components G K)
+def singletonify[locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
   (F : subsystem G Gpc) (FC : C ∈ F.val K) : subsystem G Gpc :=
 ⟨ λ L, if h : K ⊆ L then set.preimage (bwd_map G Gpc h) {C} else (F.val L)
 , sorry
 , sorry
 , sorry ⟩
 
-def bwd_subsystem (Gpc : G.preconnected) [locally_finite G] : subsystem G Gpc :=
+def bwd_subsystem[locally_finite G] (Gpc : G.preconnected) : subsystem G Gpc :=
 ⟨ λ L, univ
 , sorry
 , sorry
 , sorry ⟩
 
-def subsystem_le {G Gpc : simple_graph V} {Gpc : G.preconnected} [locally_finite G]
+def subsystem_le {G : simple_graph V} {Gpc : G.preconnected} [locally_finite G]
   (S T : subsystem G Gpc) := ∀ L, S.val L ⊆ T.val L
 
 infix ` ss≤ ` : 50 := subsystem_le
@@ -491,11 +490,11 @@ lemma bwd_subsystem_top {Gpc : G.preconnected} [locally_finite G]
 end subsystem
 
 
-lemma end_from_component (Gpc : G.preconnected) [locally_finite G] (K : finset V) (C : inf_ro_components G K) :
+lemma end_from_component[locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) :
   ∃ e : (ends G Gpc), e.val ⟨K,trivial⟩ = C := sorry
 
 
-lemma eval_surjective (Gpc : G.preconnected) [locally_finite G] (K : finset V):
+lemma eval_surjective[locally_finite G] (Gpc : G.preconnected) (K : finset V):
   surjective (eval G Gpc K) := end_from_component G Gpc K
 
 

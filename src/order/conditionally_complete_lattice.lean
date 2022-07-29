@@ -729,37 +729,26 @@ csupr_le' $ λ i, exists.elim (h i) (le_csupr_of_le hg)
 lemma cInf_le_cInf' {s t : set α} (h₁ : t.nonempty) (h₂ : t ⊆ s) : Inf s ≤ Inf t :=
 cInf_le_cInf (order_bot.bdd_below s) h₁ h₂
 
-theorem csupr_or {p q : Prop} {s : p ∨ q → α} :
-  (⨆ x, s x) = (⨆ i, s (or.inl i)) ⊔ (⨆ j, s (or.inr j)) :=
-have key : bdd_above (range s),
-  from sorry, --classical.by_cases (λ h, ⟨s h, λ h' ⟨h'', , (le_rfl : s h ≤ s h)⟩) (λ h, ⟨⊥, _⟩)
-have keyl : bdd_above (range $ s ∘ or.inl),
-  from key.mono $ range_subset_iff.mpr $ λ x : p, mem_range_self $ or.inl x,
-have keyr : bdd_above (range $ s ∘ or.inr),
-  from key.mono $ range_subset_iff.mpr $ λ x : q, mem_range_self $ or.inr x,
-le_antisymm
-  (csupr_le' $ λ i, match i with
-  | or.inl i := le_sup_of_le_left $ le_csupr keyl i
-  | or.inr j := le_sup_of_le_right $ le_csupr keyr j
-  end)
-  (sup_le (csupr_le' $ λ i, le_csupr key $ or.inl i) (csupr_le' $ λ j, le_csupr key $ or.inr j))
-
-theorem csupr_union {f : β → α} {s t : set β} :
-  (⨆ x ∈ s ∪ t, f x) = (⨆ x ∈ s, f x) ⊔ (⨆ x ∈ t, f x) :=
-by simp_rw [mem_union, csupr_or, csupr_sup_eq]
-
-lemma csupr_split (f : β → α) (p : β → Prop) :
-  (⨆ i, f i) = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
-by simpa [classical.em] using @csupr_union _ _ _ f {i | p i} {i | ¬ p i}
-
-theorem supr_extend_bot' {e : ι → β} (he : injective e) (f : ι → α) :
+theorem supr_extend_bot' {e : ι → β} (he : injective e) {f : ι → α} (hf : bdd_above $ range f) :
   (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
-  rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+  classical,
+  have : bdd_above (range $ extend e f ⊥),
+  { rcases hf with ⟨M, hM⟩,
+    refine ⟨M, _⟩,
+    rw [mem_upper_bounds, forall_range_iff] at ⊢ hM,
+    intro i,
+    rw extend_def,
+    split_ifs,
+    { exact hM _ },
+    { exact bot_le } },
+  refine le_antisymm (csupr_le' $ λ i, _)
+    (csupr_le' $ λ i, le_csupr_of_le this (e i) (extend_apply he _ _ _).ge),
+  rw extend_def,
+  split_ifs,
+  { exact le_csupr hf _ },
+  { exact bot_le }
 end
-
-#exit
 
 end conditionally_complete_linear_order_bot
 

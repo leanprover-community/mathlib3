@@ -472,6 +472,10 @@ end
 lemma localization_artinian : is_artinian_ring L :=
 (localization_surjective S L).is_artinian_ring
 
+/-- `is_artinian_ring.localization_artinian` can't be made an instance, as it would make `S` + `R`
+into metavariables. However, this is safe. -/
+instance : is_artinian_ring (localization S) := localization_artinian S _
+
 end localization
 
 end is_artinian_ring

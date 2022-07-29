@@ -50,7 +50,7 @@ example : H_space circle := infer_instance
 /-
 Next, give an example of an H-space (ℝ,z,m) where m(x,y)=(x+y)/2 and z is arbitrary in ℝ. The point is to show that, in the definition of an H-space, the neutral element up to homotopy e is not unique in general.
 
-lemma [Given m as above] ∀ z : ℝ, (R,m,z) is an H-space.
+lemma [Given m as above] ∀ z : (ℝ,z,m) is an H-space.
 
 Proof:
 
@@ -58,13 +58,23 @@ m(z,z) = (z+z)/2 = (2*z)/2 = z
 
 (ℝ,+) is a topological group, from which we should obtain that m(x,y)=(x+y)/2 is continuous.
 
-m(x,e) = (x+e)/2 = (e+x)/2 = m(e,x) and this map is homotopic to id_X via
-H(t,x) = (1-t) * (x+e)/2 + t * x
+m(x,z) = (x+z)/2 = (z+x)/2 = m(z,x) and this map is homotopic to id_X via
+H(t,x) = (1-t) * (x+z)/2 + t * x
 -/
 
-variables x y z : ℝ
+def H_space_R_with_z (z : ℝ) : H_space ℝ :=
+{ m := λ x, (x.1 + x.2)/2 ,
+  e := z,
+  m_e_e := by simp only [half_add_self],
+  cont_m := begin
+  exact continuous.add (continuous.fst' continuous_id') (continuous.snd' continuous_id'),
+  end,
+  m_e_dot_homotopic_to_id := _,
+  m_dot_e_homotopic_to_id := _ }
 
-def our_m : ℝ := (x+y)/2
+variables x y : ℝ
+
+--def our_m : ℝ := (x+y)/2
 
 #check our_m
 

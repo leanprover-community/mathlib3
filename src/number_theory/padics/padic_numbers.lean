@@ -701,8 +701,7 @@ instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
   abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-theorem rat_dense {p : ℕ} [fact p.prime] (q : ℚ_[p]) {ε : ℝ} (hε : 0 < ε) :
-  ∃ r : ℚ, ∥q - r∥ < ε :=
+theorem rat_dense {p} (q : ℚ_[p]) {ε : ℝ} (hε : 0 < ε) : ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
 ⟨r, lt_trans (by simpa [has_norm.norm] using hr) hε'r⟩
@@ -850,13 +849,11 @@ begin
   rw ← padic_norm.dvd_iff_norm_le
 end
 
-lemma eq_of_norm_add_lt_right {p : ℕ} [fact p.prime] {z1 z2 : ℚ_[p]} (h : ∥z1 + z2∥ < ∥z2∥) :
-  ∥z1∥ = ∥z2∥ :=
+lemma eq_of_norm_add_lt_right {z1 z2 : ℚ_[p]} (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_right) h
 
-lemma eq_of_norm_add_lt_left {p : ℕ} [fact p.prime] {z1 z2 : ℚ_[p]} (h : ∥z1 + z2∥ < ∥z1∥) :
-  ∥z1∥ = ∥z2∥ :=
+lemma eq_of_norm_add_lt_left {z1 z2 : ℚ_[p]} (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_e.add_eq_max_of_ne hne; apply le_max_left) h
 

@@ -1137,6 +1137,8 @@ def map_embeddingₗ [fact (1 ≤ p)] {β : Type*} (φ : β ↪ α) :
   map_add' := λ f g, by ext; refl,
   map_smul' := λ c f, by ext; refl }
 
+#check conditionally_complete_linear_order_bot
+
 def map_embeddingL [fact (1 ≤ p)] {β : Type*} (φ : β ↪ α) :
   lp E p →ₗᵢ[𝕜] lp (λ i, E (φ i)) p :=
 { norm_map' :=

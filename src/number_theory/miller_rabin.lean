@@ -162,16 +162,16 @@ by simp [nat.miller_rabin_witness]
 lemma minus_one_not_miller_rabin_witness (n : ℕ) (hn : odd n) (hn_one : n ≠ 1) :
   ¬ n.miller_rabin_witness (-1 : zmod n) :=
 begin
+  obtain ⟨k, rfl⟩ := hn,
   simp only [nat.miller_rabin_witness, ne.def, mem_range, not_and, not_forall, not_not,
     exists_prop],
   rintro -,
   refine ⟨0, _, _⟩,
-  { obtain ⟨k, rfl⟩ := hn,
-    have hk : k ≠ 0, { simpa using hn_one },
+  { have hk : k ≠ 0, { simpa using hn_one },
     rw [add_succ_sub_one, add_zero, nat.factorization_mul _ hk],
     { simp [prime_two.factorization] },
     { simp } },
-  { simp [odd.neg_one_pow (odd_of_odd_part (n-1))] },
+  { simp [odd.neg_one_pow (odd_of_odd_part _ (succ_ne_succ.mp hn_one))] },
 end
 
 /-- Let `n = 2^s * d + 1`, where `s := (n-1).factorization 2` and `d := odd_part (n-1)`.

@@ -31,8 +31,6 @@ def cotangent : Type* := I ⧸ (I • ⊤ : submodule R I)
 
 instance : inhabited I.cotangent := ⟨0⟩
 
-instance : inhabited I.cotangent := ⟨0⟩
-
 instance cotangent.module_of_tower : module S I.cotangent :=
 submodule.quotient.module' _
 

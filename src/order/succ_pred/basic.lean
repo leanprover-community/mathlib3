@@ -345,7 +345,8 @@ end order_top
 section order_bot
 variable [order_bot α]
 
-lemma lt_succ_bot_iff [no_max_order α] : a < succ ⊥ ↔ a = ⊥ := by rw [lt_succ_iff, le_bot_iff]
+@[simp] lemma lt_succ_bot_iff [no_max_order α] : a < succ ⊥ ↔ a = ⊥ :=
+by rw [lt_succ_iff, le_bot_iff]
 
 lemma le_succ_bot_iff : a ≤ succ ⊥ ↔ a = ⊥ ∨ a = succ ⊥ :=
 by rw [le_succ_iff_eq_or_le, le_bot_iff, or_comm]
@@ -560,7 +561,8 @@ section order_top
 
 variable [order_top α]
 
-lemma pred_top_lt_iff [no_min_order α] : pred ⊤ < a ↔ a = ⊤ := @lt_succ_bot_iff αᵒᵈ _ _ _ _ _
+@[simp] lemma pred_top_lt_iff [no_min_order α] : pred ⊤ < a ↔ a = ⊤ :=
+@lt_succ_bot_iff αᵒᵈ _ _ _ _ _
 
 lemma pred_top_le_iff : pred ⊤ ≤ a ↔ a = ⊤ ∨ a = pred ⊤ := @le_succ_bot_iff αᵒᵈ _ _ _ _
 

@@ -107,7 +107,8 @@ See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
 /-- Reports declarations of types that do not have an nonemptiness instance.
-A `nonempty`, `inhabited` or `unique` instance suffices. -/
+A `nonempty`, `inhabited` or `unique` instance suffices, and we prefer a computable `inhabited`
+or `unique` instance if possible. -/
 private meta def has_nonempty_instance (d : declaration) : tactic (option string) := do
 tt ← pure d.is_trusted | pure none,
 ff ← has_attribute' `reducible d.to_name | pure none,

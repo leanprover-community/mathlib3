@@ -409,6 +409,7 @@ protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk b.orthonormal
 begin
+  refine eq.ge _,
   have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
   simpa only [finset.coe_image, finset.coe_univ, set.image_univ, hilbert_basis.dense_span] using
     this.submodule_topological_closure_eq.symm

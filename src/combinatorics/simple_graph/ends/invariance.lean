@@ -61,6 +61,31 @@ def close (f g : coarse G G') :=
                   ∧ ∀ D : inf_ro_components G N,
                     ∃! C : inf_ro_components G' K, f.to_fun '' D ⊆ C ∧ g.to_fun '' D ⊆ C
 
+
+/-
+  Any map which is cofinite and coarsely Lipschitz
+  (in the case for graphs, this means simply ∃m, ∀ (u v), G.adj u v → dist (f u) (f v) ≤ m)
+  is coarse in the present sense.
+  So, assume f is coarsely Lipschitz with constant m as above, and cofinite.
+  Given K, we must find a good_finset L for K.
+  We choose `K' = {x : V | exists k : K, d k x ≤ m}`, i.e. the m-neighborhood of K, and `L := f⁻¹ K'`
+  Now, clearly f '' L contains K.
+  Fix D an infinite ro component for L, since D does not intersect L, f '' D does not intersect K'.
+  Thus, f '' D is contained in the union of all ro components for K', and a fortiori for K.
+  If f '' D is entirely contained in one such C, then C must be infinite, since f '' D is infinite (f being cofinite and D infinite).
+  It remains to check that f '' D really is contained in one such C.
+  Assume that f '' D intersects C and C' (assumed unequal). Since D is connected, f '' D is "m-connected" in the sense that
+  any two elements of f '' D can be joined by a sequence of elements of f '' D each at a distance at most k from its successor/predecessor.
+  Fix c ∈ C ∩ (f '' D) and c' ∈ C' ∩ (f '' D) and take such an "m-path" c = c₀ , c₁ , …, cₙ = c'.
+  There is a last cᵢ contained in C, and necessarily cᵢ₊₁ is not contained in C, and not in K either, thus
+  wlog is contained in C'.
+  In summary, we have some c ∈ C ∩ (f'' D) and c' ∈ C' ∩ (f'' D) joined by a path w of length at most m.
+  Then w must pass through K, since otherwise we'd have a path outside of K joining C and C', hence they would be equal ro components.
+  But now note that c c' ∉ K', obviously, meaning that c and c' are "far" from K, and the existence of this path w intersecting K is a contradiction.
+
+
+-/
+
 def qi_embedding (f : V → V') : Prop := sorry -- ∃ (K : ℕ), ∀ (u v : V), dist (f u) (f v) ≤ K * (dist u v) + K ∧ dist u v ≤ K * (dist (f u) (f v)) + K
 
 def coarse.of_qi_embedding (f : V → V') (qie : qi_embedding f) : coarse G G' f := sorry

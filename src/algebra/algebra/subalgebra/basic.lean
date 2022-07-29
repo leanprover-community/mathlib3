@@ -341,16 +341,16 @@ set_like.coe_injective rfl
 rfl
 
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
-def comap (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
+def comap (f : A →ₐ[R] B) (S : subalgebra R B) : subalgebra R A :=
 { algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
     from (f.commutes r).symm ▸ S.algebra_map_mem r,
   .. S.to_subsemiring.comap (f : A →+* B) }
 
 theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
-  map f S ≤ U ↔ S ≤ comap U f :=
+  map f S ≤ U ↔ S ≤ comap f U :=
 set.image_subset_iff
 
-lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (map f) (λ S, comap S f) :=
+lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (map f) (comap f) :=
 λ S U, map_le
 
 @[simp] lemma mem_comap (S : subalgebra R B) (f : A →ₐ[R] B) (x : A) :
@@ -655,7 +655,7 @@ set_like.coe_injective set.image_univ
 set_like.coe_injective $
   by simp only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
 
-@[simp] theorem comap_top (f : A →ₐ[R] B) : subalgebra.comap (⊤ : subalgebra R B) f = ⊤ :=
+@[simp] theorem comap_top (f : A →ₐ[R] B) : (⊤ : subalgebra R B).comap f = ⊤ :=
 eq_top_iff.2 $ λ x, mem_top
 
 /-- `alg_hom` to `⊤ : subalgebra R A`. -/

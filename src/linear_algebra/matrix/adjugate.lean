@@ -337,7 +337,7 @@ end
 
 @[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
 begin
-  haveI : unique (matrix n n α) := unique_of_empty_right,
+  haveI : unique (matrix (fin 0) (fin 0) α) := unique_of_empty_right,
   exact subsingleton.elim _ _
 end
 

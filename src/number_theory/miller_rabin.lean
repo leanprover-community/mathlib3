@@ -134,8 +134,7 @@ begin
 end
 
 
-/--
-Letting `k := odd_part (n-1)`, if there is an `0 < a < n` such that `(a^k - 1) ≠ 0 (mod n)` and
+/-- Letting `k := odd_part (n-1)`, if there is an `0 < a < n` such that `(a^k - 1) ≠ 0 (mod n)` and
 `(a^(2^i * k) + 1) ≠ 0 (mod n)` for all `0 ≤ i < (n-1).factorization 2` then this demonstrates
 that `n` is not prime. Such an `a` is called a **Miller–Rabin witness** for `n`. We formulate this
 in terms of `a : zmod n` to take care of the bounds on `a` and the congruences `mod n`.
@@ -143,6 +142,9 @@ in terms of `a : zmod n` to take care of the bounds on `a` and the congruences `
 def nat.miller_rabin_witness (n : ℕ) (a : zmod n) : Prop :=
   (a^odd_part (n-1) - 1) ≠ 0 ∧
   ∀ i ∈ range ((n-1).factorization 2), (a^(2^i * odd_part (n-1)) + 1) ≠ 0
+
+lemma one_not_miller_rabin_witness (n : ℕ) : ¬ n.miller_rabin_witness (1 : zmod n) :=
+by simp [nat.miller_rabin_witness]
 
 
 /-- Let `n = 2^s * d + 1`, where `s := (n-1).factorization 2` and `d := odd_part (n-1)`.

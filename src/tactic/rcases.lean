@@ -934,7 +934,7 @@ add_tactic_doc
 /--
 The `rsuffices` tactic is an alternative version of `suffices`, that allows the usage
 of any syntax that would be valid in an `obtain` block. This tactic just calls `obtain`
-on the expression, and then `swap`.
+on the expression, and then `rotate 1`.
 -/
 meta def rsuffices (h : parse obtain_parse) : tactic unit :=
 focus1 $ obtain h >> tactic.rotate 1

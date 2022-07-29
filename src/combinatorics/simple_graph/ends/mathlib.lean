@@ -43,6 +43,13 @@ lemma walk.support_append_subset_right {V : Type u} {G : simple_graph V} {u v w 
   }
 
 
+lemma walk.pred_adj_non_pred {V : Type u} {G : simple_graph V} :
+∀ (u v : V) (p : G.walk u v) (pred : V → Prop) (upred : pred u) (vnpred : ¬ pred v),
+  ∃ (x y : V), G.adj x y ∧ pred x ∧ ¬ pred y
+| _ _ nil p up vnp := (vnp up).elim
+| _ _ (cons' x y z a q) p up vnp := if h : p y then walk.pred_adj_non_pred y z q p h vnp else ⟨x,y,a,up,h⟩
+
+/-
 def is_prefix {V : Type*} {G : simple_graph V} {u v w : V} (r : G.walk u w) (p : G.walk u v) :=
   ∃ q : G.walk w v, p = r.append q
 
@@ -65,7 +72,7 @@ def longest_prefix.longest {V : Type*} {G : simple_graph V}
   {u v w : V} {p : G.walk u v} {r : G.walk u w} (pre : r ≤w p)
   (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) (pred_r : pred w r pre) :
   ∀ (z : V) (q : G.walk u z) (preq : q ≤w p), pred z q preq → q ≤w (longest_prefix pre pred pred_r).2 := sorry
-
+-/
 
 end simple_graph
 

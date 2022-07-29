@@ -63,75 +63,96 @@ m(x,z) = (x+z)/2 = (z+x)/2 = m(z,x) and this map is homotopic to id_X via
 H(t,x) = (1-t) * (x+z)/2 + t * x
 -/
 
+
+def H (z : ℝ) : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2
+lemma cont_H (z : ℝ) : continuous (H z) :=
+begin
+  dsimp [H],
+
+  -- Handy trick continuity?,
+  exact ((continuous_const.sub (continuous_induced_dom.comp continuous_fst)).mul
+   (continuous_snd.add continuous_const)).div_const.add
+  ((continuous_induced_dom.comp continuous_fst).mul continuous_snd),
+end
+
+def H' (z: ℝ) : C(I × ℝ, ℝ) := ⟨H(z), cont_H(z)⟩
+
 def H_space_R_with_z (z : ℝ) : H_space ℝ :=
 { m := λ x, (x.1 + x.2)/2 ,
   e := z,
   m_e_e := by simp only [half_add_self],
   cont_m := continuous_add.div_const,
   m_e_dot_homotopic_to_id := begin
-  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
-  have cont_H : continuous H, sorry,
-  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
-  use H',
+  use H' z,
   {
     intro x,
-    -- simp,
-    dsimp [H],
-    -- simp [zero_mul],
+    dsimp [H', H],
     ring_nf,
   },
   {
    intro x,
-    -- simp,
-    dsimp [H],
-    -- simp [zero_mul],
+    dsimp [H', H],
     ring_nf,
   },
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
     intros x _,
-    dsimp [H],
-    ring},
+    dsimp [H', H],
+    ring,
+  },
   end,
   m_dot_e_homotopic_to_id := begin
-  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
-  have cont_H : continuous H,
-  { dsimp [H],
-    apply continuous.add,
-    { apply continuous.div_const,
-      apply continuous.mul,
-
-
-    },
-
-
-
-
-  },
-  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
-  use H',
+  use H' z,
   {
     intro x,
-    -- simp,
-    dsimp [H],
-    -- simp [zero_mul],
+    dsimp [H', H],
     ring_nf,
   },
   {
    intro x,
-    -- simp,
-    dsimp [H],
-    -- simp [zero_mul],
+    dsimp [H', H],
     ring_nf,
   },
-  {
-    simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
+  { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
     intros x _,
-    dsimp [H],
+    dsimp [H', H],
     ring,
-  }
-  end,
+  },
+  end
+}
 
-   }
+
+
+class Ω (X : Type u) [topological_space X] :=
+    (loop : ℝ → X)
+    (boundary : loop 0 = loop 1)
+
+
+example : Ω ℝ :=
+{
+  loop := λ t, t*(1-t),
+  boundary := by ring
+}
+
+def juxt_loop (X : Type u) [topological_space X] (α β : Ω X) : Ω X :=
+{
+  loop :=  λ t, if t < 1/2 then (@Ω.loop X _ α (2*t)) else (@Ω.loop X _ β (1-2*t)),
+  boundary :=
+  begin
+    simp,
+  end,
+}
+
+
+instance loop_space_is_H_space (X : Type u) [topological_space X]
+  : H_space C(circle, X) :=
+{
+  m := sorry,
+  e := sorry,
+  m_e_e := sorry,
+  cont_m := sorry,
+  m_e_dot_homotopic_to_id  := sorry,
+  m_dot_e_homotopic_to_id := sorry,
+}
 
 variables x y : ℝ
 

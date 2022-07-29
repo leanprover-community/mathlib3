@@ -174,14 +174,15 @@ begin
   { simp [odd.neg_one_pow (odd_of_odd_part _ (succ_ne_succ.mp hn_one))] },
 end
 
-
-
-/-- Let `n = 2^s * d + 1`, where `s := (n-1).factorization 2` and `d := odd_part (n-1)`.
-Then `n` is a **strong probable prime** relative to a base `a : zmod n` if either
-`a^d = 1 (mod n)` or `a ^ (2^r * d) = -1 (mod n)` for some `0 ≤ r < s`. -/
+/-- `n` is a **strong probable prime** relative to base `a : zmod n` iff
+`a` is not a Miller-Rabin witness for `n`. -/
 def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
   a^(odd_part (n-1)) = 1 ∨
   (∃ r : ℕ, r < (n-1).factorization 2 ∧ a^(2^r * odd_part(n-1)) = -1)
+
+example (n : nat) (a : (zmod n)) : strong_probable_prime n a ↔ ¬ n.miller_rabin_witness a :=
+by simp [nat.miller_rabin_witness, strong_probable_prime, not_and_distrib]
+
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 

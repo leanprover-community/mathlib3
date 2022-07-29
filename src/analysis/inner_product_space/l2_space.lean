@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.lp_space
+import tactic.expand_exists
 
 /-!
 # Hilbert sum of a family of inner product spaces
@@ -451,20 +452,10 @@ let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
 variables (𝕜 E)
 
 /-- A Hilbert space admits a Hilbert basis. -/
+@[expand_exists hilbert_basis_index std_hilbert_basis coe_std_hilbert_basis]
 lemma _root_.exists_hilbert_basis :
   ∃ (w : set E) (b : hilbert_basis w 𝕜 E), ⇑b = (coe : w → E) :=
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_hilbert_basis_extension in ⟨w, hw, hw''⟩
-
-/-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
-def hilbert_basis_index : set E :=
-classical.some (exists_hilbert_basis 𝕜 E)
-
-/-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def std_hilbert_basis : hilbert_basis (hilbert_basis_index 𝕜 E) 𝕜 E :=
-classical.some (classical.some_spec (exists_hilbert_basis 𝕜 E))
-
-@[simp] lemma coe_std_hilbert_basis : ⇑(std_hilbert_basis 𝕜 E) = coe :=
-classical.some_spec (classical.some_spec (exists_hilbert_basis 𝕜 E))
 
 end hilbert_basis
 

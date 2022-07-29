@@ -9,8 +9,8 @@ import linear_algebra.prod
 /-!
 # Partially defined linear maps
 
-A `linear_pmap R E F` is a linear map from a submodule of `E` to `F`. We define
-a `semilattice_inf` with `order_bot` instance on this this, and define three operations:
+A `linear_pmap R E F` or `E →ₗ.[R] F` is a linear map from a submodule of `E` to `F`.
+We define a `semilattice_inf` with `order_bot` instance on this this, and define three operations:
 
 * `mk_span_singleton` defines a partial linear map defined on the span of a singleton.
 * `sup` takes two partial linear maps `f`, `g` that agree on the intersection of their
@@ -33,11 +33,13 @@ open set
 
 universes u v w
 
-/-- A `linear_pmap R E F` is a linear map from a submodule of `E` to `F`. -/
+/-- A `linear_pmap R E F` or `E →ₗ.[R] F` is a linear map from a submodule of `E` to `F`. -/
 structure linear_pmap (R : Type u) [ring R] (E : Type v) [add_comm_group E] [module R E]
   (F : Type w) [add_comm_group F] [module R F] :=
 (domain : submodule R E)
 (to_fun : domain →ₗ[R] F)
+
+notation E ` →ₗ.[`:25 R:25 `] `:0 F:0 := linear_pmap R E F
 
 variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
   {F : Type*} [add_comm_group F] [module R F]
@@ -47,13 +49,13 @@ namespace linear_pmap
 
 open submodule
 
-instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domain → F) :=
+instance : has_coe_to_fun (E →ₗ.[R] F) (λ f : E →ₗ.[R] F, f.domain → F) :=
 ⟨λ f, f.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
+@[simp] lemma to_fun_eq_coe (f : E →ₗ.[R] F) (x : f.domain) :
   f.to_fun x = f x := rfl
 
-@[ext] lemma ext {f g : linear_pmap R E F} (h : f.domain = g.domain)
+@[ext] lemma ext {f g : E →ₗ.[R] F} (h : f.domain = g.domain)
   (h' : ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y) : f = g :=
 begin
   rcases f with ⟨f_dom, f⟩,
@@ -63,24 +65,24 @@ begin
   refl,
 end
 
-@[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
+@[simp] lemma map_zero (f : E →ₗ.[R] F) : f 0 = 0 := f.to_fun.map_zero
 
-lemma ext_iff {f g : linear_pmap R E F} :
+lemma ext_iff {f g : E →ₗ.[R] F} :
   f = g ↔
   ∃ (domain_eq : f.domain = g.domain),
     ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y :=
 ⟨λ EQ, EQ ▸ ⟨rfl, λ x y h, by { congr, exact_mod_cast h }⟩, λ ⟨deq, feq⟩, ext deq feq⟩
 
-lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
+lemma map_add (f : E →ₗ.[R] F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
 
-lemma map_neg (f : linear_pmap R E F) (x : f.domain) : f (-x) = -f x :=
+lemma map_neg (f : E →ₗ.[R] F) (x : f.domain) : f (-x) = -f x :=
 f.to_fun.map_neg x
 
-lemma map_sub (f : linear_pmap R E F) (x y : f.domain) : f (x - y) = f x - f y :=
+lemma map_sub (f : E →ₗ.[R] F) (x y : f.domain) : f (x - y) = f x - f y :=
 f.to_fun.map_sub x y
 
-lemma map_smul (f : linear_pmap R E F) (c : R) (x : f.domain) : f (c • x) = c • f x :=
+lemma map_smul (f : E →ₗ.[R] F) (c : R) (x : f.domain) : f (c • x) = c • f x :=
 f.to_fun.map_smul c x
 
 @[simp] lemma mk_apply (p : submodule R E) (f : p →ₗ[R] F) (x : p) :
@@ -89,7 +91,7 @@ f.to_fun.map_smul c x
 /-- The unique `linear_pmap` on `R ∙ x` that sends `x` to `y`. This version works for modules
 over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
-  linear_pmap R E F :=
+  E →ₗ.[R] F :=
 { domain := R ∙ x,
   to_fun :=
   have H : ∀ c₁ c₂ : R, c₁ • x = c₂ • x → c₁ • y = c₂ • y,
@@ -159,21 +161,21 @@ protected def snd (p : submodule R E) (p' : submodule R F) : linear_pmap R (E ×
 @[simp] lemma snd_apply (p : submodule R E) (p' : submodule R F) (x : p.prod p') :
   linear_pmap.snd p p' x = (x : E × F).2 := rfl
 
-instance : has_neg (linear_pmap R E F) :=
+instance : has_neg (E →ₗ.[R] F) :=
 ⟨λ f, ⟨f.domain, -f.to_fun⟩⟩
 
-@[simp] lemma neg_apply (f : linear_pmap R E F) (x) : (-f) x = -(f x) := rfl
+@[simp] lemma neg_apply (f : E →ₗ.[R] F) (x) : (-f) x = -(f x) := rfl
 
-instance : has_le (linear_pmap R E F) :=
+instance : has_le (E →ₗ.[R] F) :=
 ⟨λ f g, f.domain ≤ g.domain ∧ ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y⟩
 
-lemma eq_of_le_of_domain_eq {f g : linear_pmap R E F} (hle : f ≤ g) (heq : f.domain = g.domain) :
+lemma eq_of_le_of_domain_eq {f g : E →ₗ.[R] F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
 ext heq hle.2
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
-def eq_locus (f g : linear_pmap R E F) : submodule R E :=
+def eq_locus (f g : E →ₗ.[R] F) : submodule R E :=
 { carrier   := {x | ∃ (hf : x ∈ f.domain) (hg : x ∈ g.domain), f ⟨x, hf⟩ = g ⟨x, hg⟩},
   zero_mem' := ⟨zero_mem _, zero_mem _, f.map_zero.trans g.map_zero.symm⟩,
   add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem hfx hfy, add_mem hgx hgy,
@@ -181,14 +183,14 @@ def eq_locus (f g : linear_pmap R E F) : submodule R E :=
   smul_mem' := λ c x ⟨hfx, hgx, hx⟩, ⟨smul_mem _ c hfx, smul_mem _ c hgx,
     by erw [f.map_smul c ⟨x, hfx⟩, g.map_smul c ⟨x, hgx⟩, hx]⟩ }
 
-instance : has_inf (linear_pmap R E F) :=
+instance : has_inf (E →ₗ.[R] F) :=
 ⟨λ f g, ⟨f.eq_locus g, f.to_fun.comp $ of_le $ λ x hx, hx.fst⟩⟩
 
-instance : has_bot (linear_pmap R E F) := ⟨⟨⊥, 0⟩⟩
+instance : has_bot (E →ₗ.[R] F) := ⟨⟨⊥, 0⟩⟩
 
-instance : inhabited (linear_pmap R E F) := ⟨⊥⟩
+instance : inhabited (E →ₗ.[R] F) := ⟨⊥⟩
 
-instance : semilattice_inf (linear_pmap R E F) :=
+instance : semilattice_inf (E →ₗ.[R] F) :=
 { le := (≤),
   le_refl := λ f, ⟨le_refl f.domain, λ x y h, subtype.eq h ▸ rfl⟩,
   le_trans := λ f g h ⟨fg_le, fg_eq⟩ ⟨gh_le, gh_eq⟩,
@@ -206,14 +208,14 @@ instance : semilattice_inf (linear_pmap R E F) :=
   inf_le_right := λ f g, ⟨λ x hx, hx.snd.fst,
     λ ⟨x, xf, xg, hx⟩ y h, hx.trans $ congr_arg g $ subtype.eq $ by exact h⟩ }
 
-instance : order_bot (linear_pmap R E F) :=
+instance : order_bot (E →ₗ.[R] F) :=
 { bot := ⊥,
   bot_le := λ f, ⟨bot_le, λ x y h,
     have hx : x = 0, from subtype.eq ((mem_bot R).1 x.2),
     have hy : y = 0, from subtype.eq (h.symm.trans (congr_arg _ hx)),
     by rw [hx, hy, map_zero, map_zero]⟩ }
 
-lemma le_of_eq_locus_ge {f g : linear_pmap R E F} (H : f.domain ≤ f.eq_locus g) :
+lemma le_of_eq_locus_ge {f g : E →ₗ.[R] F} (H : f.domain ≤ f.eq_locus g) :
   f ≤ g :=
 suffices f ≤ f ⊓ g, from le_trans this inf_le_right,
 ⟨H, λ x y hxy, ((inf_le_left : f ⊓ g ≤ f).2 hxy.symm).symm⟩
@@ -222,7 +224,7 @@ lemma domain_mono : strict_mono (@domain R _ E _ _ F _ _) :=
 λ f g hlt, lt_of_le_of_ne hlt.1.1 $ λ heq, ne_of_lt hlt $
 eq_of_le_of_domain_eq (le_of_lt hlt) heq
 
-private lemma sup_aux (f g : linear_pmap R E F)
+private lemma sup_aux (f g : E →ₗ.[R] F)
   (h : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y) :
   ∃ fg : ↥(f.domain ⊔ g.domain) →ₗ[R] F,
     ∀ (x : f.domain) (y : g.domain) (z),
@@ -255,23 +257,23 @@ end
 /-- Given two partial linear maps that agree on the intersection of their domains,
 `f.sup g h` is the unique partial linear map on `f.domain ⊔ g.domain` that agrees
 with `f` and `g`. -/
-protected noncomputable def sup (f g : linear_pmap R E F)
+protected noncomputable def sup (f g : E →ₗ.[R] F)
   (h : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y) :
-  linear_pmap R E F :=
+  E →ₗ.[R] F :=
 ⟨_, classical.some (sup_aux f g h)⟩
 
-@[simp] lemma domain_sup (f g : linear_pmap R E F)
+@[simp] lemma domain_sup (f g : E →ₗ.[R] F)
   (h : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y) :
   (f.sup g h).domain = f.domain ⊔ g.domain :=
 rfl
 
-lemma sup_apply {f g : linear_pmap R E F}
+lemma sup_apply {f g : E →ₗ.[R] F}
   (H : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y)
   (x y z) (hz : (↑x:E) + ↑y = ↑z) :
   f.sup g H z = f x + g y :=
 classical.some_spec (sup_aux f g H) x y z hz
 
-protected lemma left_le_sup (f g : linear_pmap R E F)
+protected lemma left_le_sup (f g : E →ₗ.[R] F)
   (h : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y) :
   f ≤ f.sup g h :=
 begin
@@ -281,7 +283,7 @@ begin
   simpa
 end
 
-protected lemma right_le_sup (f g : linear_pmap R E F)
+protected lemma right_le_sup (f g : E →ₗ.[R] F)
   (h : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y) :
   g ≤ f.sup g h :=
 begin
@@ -291,7 +293,7 @@ begin
   simpa
 end
 
-protected lemma sup_le {f g h : linear_pmap R E F}
+protected lemma sup_le {f g h : E →ₗ.[R] F}
   (H : ∀ (x : f.domain) (y : g.domain), (x:E) = y → f x = g y)
   (fh : f ≤ h) (gh : g ≤ h) :
   f.sup g H ≤ h :=
@@ -300,7 +302,7 @@ have Hg : g ≤ (f.sup g H) ⊓ h, from le_inf (f.right_le_sup g H) gh,
 le_of_eq_locus_ge $ sup_le Hf.1 Hg.1
 
 /-- Hypothesis for `linear_pmap.sup` holds, if `f.domain` is disjoint with `g.domain`. -/
-lemma sup_h_of_disjoint (f g : linear_pmap R E F) (h : disjoint f.domain g.domain)
+lemma sup_h_of_disjoint (f g : E →ₗ.[R] F) (h : disjoint f.domain g.domain)
   (x : f.domain) (y : g.domain) (hxy : (x:E) = y) :
   f x = g y :=
 begin
@@ -315,20 +317,20 @@ section smul
 variables {M N : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F]
 variables [monoid N] [distrib_mul_action N F] [smul_comm_class R N F]
 
-instance : has_smul M (linear_pmap R E F) :=
+instance : has_smul M (E →ₗ.[R] F) :=
 ⟨λ a f,
   { domain := f.domain,
     to_fun := a • f.to_fun }⟩
 
-lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
+lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
   (a • f) x = a • f x := rfl
 
-@[simp] lemma coe_smul (a : M) (f : linear_pmap R E F) : ⇑(a • f) = a • f := rfl
+@[simp] lemma coe_smul (a : M) (f : E →ₗ.[R] F) : ⇑(a • f) = a • f := rfl
 
-instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
+instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
 
-instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (E →ₗ.[R] F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
 
 end smul
@@ -359,8 +361,8 @@ end
 
 end
 
-private lemma Sup_aux (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :
-  ∃ f : ↥(Sup (domain '' c)) →ₗ[R] F, (⟨_, f⟩ : linear_pmap R E F) ∈ upper_bounds c :=
+private lemma Sup_aux (c : set (E →ₗ.[R] F)) (hc : directed_on (≤) c) :
+  ∃ f : ↥(Sup (domain '' c)) →ₗ[R] F, (⟨_, f⟩ : E →ₗ.[R] F) ∈ upper_bounds c :=
 begin
   cases c.eq_empty_or_nonempty with ceq cne, { subst c, simp },
   have hdir : directed_on (≤) (domain '' c),
@@ -392,22 +394,22 @@ end
 
 /-- Glue a collection of partially defined linear maps to a linear map defined on `Sup`
 of these submodules. -/
-protected noncomputable def Sup (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :
-  linear_pmap R E F :=
+protected noncomputable def Sup (c : set (E →ₗ.[R] F)) (hc : directed_on (≤) c) :
+  E →ₗ.[R] F :=
 ⟨_, classical.some $ Sup_aux c hc⟩
 
-protected lemma le_Sup {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
-  {f : linear_pmap R E F} (hf : f ∈ c) : f ≤ linear_pmap.Sup c hc :=
+protected lemma le_Sup {c : set (E →ₗ.[R] F)} (hc : directed_on (≤) c)
+  {f : E →ₗ.[R] F} (hf : f ∈ c) : f ≤ linear_pmap.Sup c hc :=
 classical.some_spec (Sup_aux c hc) hf
 
-protected lemma Sup_le {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
-  {g : linear_pmap R E F} (hg : ∀ f ∈ c, f ≤ g) : linear_pmap.Sup c hc ≤ g :=
+protected lemma Sup_le {c : set (E →ₗ.[R] F)} (hc : directed_on (≤) c)
+  {g : E →ₗ.[R] F} (hg : ∀ f ∈ c, f ≤ g) : linear_pmap.Sup c hc ≤ g :=
 le_of_eq_locus_ge $ Sup_le $ λ _ ⟨f, hf, eq⟩, eq ▸
 have f ≤ (linear_pmap.Sup c hc) ⊓ g, from le_inf (linear_pmap.le_Sup _ hf) (hg f hf),
 this.1
 
-protected lemma Sup_apply {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
-  {l : linear_pmap R E F} (hl : l ∈ c) (x : l.domain) :
+protected lemma Sup_apply {c : set (E →ₗ.[R] F)} (hc : directed_on (≤) c)
+  {l : E →ₗ.[R] F} (hl : l ∈ c) (x : l.domain) :
   (linear_pmap.Sup c hc) ⟨x, (linear_pmap.le_Sup hc hl).1 x.2⟩ = l x :=
 begin
   symmetry,
@@ -420,18 +422,18 @@ end linear_pmap
 namespace linear_map
 
 /-- Restrict a linear map to a submodule, reinterpreting the result as a `linear_pmap`. -/
-def to_pmap (f : E →ₗ[R] F) (p : submodule R E) : linear_pmap R E F :=
+def to_pmap (f : E →ₗ[R] F) (p : submodule R E) : E →ₗ.[R] F :=
 ⟨p, f.comp p.subtype⟩
 
 @[simp] lemma to_pmap_apply (f : E →ₗ[R] F) (p : submodule R E) (x : p) :
   f.to_pmap p x = f x := rfl
 
 /-- Compose a linear map with a `linear_pmap` -/
-def comp_pmap (g : F →ₗ[R] G) (f : linear_pmap R E F) : linear_pmap R E G :=
+def comp_pmap (g : F →ₗ[R] G) (f : E →ₗ.[R] F) : E →ₗ.[R] G :=
 { domain := f.domain,
   to_fun := g.comp f.to_fun }
 
-@[simp] lemma comp_pmap_apply (g : F →ₗ[R] G) (f : linear_pmap R E F) (x) :
+@[simp] lemma comp_pmap_apply (g : F →ₗ[R] G) (f : E →ₗ.[R] F) (x) :
   g.comp_pmap f x = g (f x) := rfl
 
 end linear_map
@@ -439,26 +441,23 @@ end linear_map
 namespace linear_pmap
 
 /-- Restrict codomain of a `linear_pmap` -/
-def cod_restrict (f : linear_pmap R E F) (p : submodule R F) (H : ∀ x, f x ∈ p) :
-  linear_pmap R E p :=
+def cod_restrict (f : E →ₗ.[R] F) (p : submodule R F) (H : ∀ x, f x ∈ p) : E →ₗ.[R] p :=
 { domain := f.domain,
   to_fun := f.to_fun.cod_restrict p H }
 
 /-- Compose two `linear_pmap`s -/
-def comp (g : linear_pmap R F G) (f : linear_pmap R E F)
-  (H : ∀ x : f.domain, f x ∈ g.domain) :
-  linear_pmap R E G :=
+def comp (g : F →ₗ.[R] G) (f : E →ₗ.[R] F)
+  (H : ∀ x : f.domain, f x ∈ g.domain) : E →ₗ.[R] G :=
 g.to_fun.comp_pmap $ f.cod_restrict _ H
 
 /-- `f.coprod g` is the partially defined linear map defined on `f.domain × g.domain`,
 and sending `p` to `f p.1 + g p.2`. -/
-def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
-  linear_pmap R (E × F) G :=
+def coprod (f : E →ₗ.[R] G) (g : F →ₗ.[R] G) : (E × F) →ₗ.[R] G :=
 { domain := f.domain.prod g.domain,
   to_fun := (f.comp (linear_pmap.fst f.domain g.domain) (λ x, x.2.1)).to_fun +
     (g.comp (linear_pmap.snd f.domain g.domain) (λ x, x.2.2)).to_fun }
 
-@[simp] lemma coprod_apply (f : linear_pmap R E G) (g : linear_pmap R F G) (x) :
+@[simp] lemma coprod_apply (f : E →ₗ.[R] G) (g : F →ₗ.[R] G) (x) :
   f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
 rfl
 
@@ -466,25 +465,25 @@ rfl
 section graph
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
-def graph (f : linear_pmap R E F) : submodule R (E × F) :=
+def graph (f : E →ₗ.[R] F) : submodule R (E × F) :=
 f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
 
-lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
+lemma mem_graph_iff' (f : E →ₗ.[R] F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
 by simp [graph]
 
-@[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
+@[simp] lemma mem_graph_iff (f : E →ₗ.[R] F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
 by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 
 /-- The tuple `(x, f x)` is contained in the graph of `f`. -/
-lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
+lemma mem_graph (f : E →ₗ.[R] F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
 by simp
 
 variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F] (y : M)
 
 /-- The graph of `z • f` as a pushforward. -/
-lemma smul_graph (f : linear_pmap R E F) (z : M) :
+lemma smul_graph (f : E →ₗ.[R] F) (z : M) :
   (z • f).graph = f.graph.map (linear_map.id.prod_map (z • linear_map.id)) :=
 begin
   ext x, cases x,
@@ -510,7 +509,7 @@ begin
 end
 
 /-- The graph of `-f` as a pushforward. -/
-lemma neg_graph (f : linear_pmap R E F) :
+lemma neg_graph (f : E →ₗ.[R] F) :
   (-f).graph = f.graph.map (linear_map.id.prod_map (-linear_map.id)) :=
 begin
   ext, cases x,
@@ -535,7 +534,7 @@ begin
   simp [hy, hx'],
 end
 
-lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
+lemma mem_graph_snd_inj (f : E →ₗ.[R] F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
   (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=
 begin
   rw [mem_graph_iff] at hx hy,
@@ -546,16 +545,16 @@ begin
   rw [←hx2, ←hy2, hxy],
 end
 
-lemma mem_graph_snd_inj' (f : linear_pmap R E F) {x y : E × F} (hx : x ∈ f.graph) (hy : y ∈ f.graph)
+lemma mem_graph_snd_inj' (f : E →ₗ.[R] F) {x y : E × F} (hx : x ∈ f.graph) (hy : y ∈ f.graph)
   (hxy : x.1 = y.1) : x.2 = y.2 :=
 by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
 
 /-- The property that `f 0 = 0` in terms of the graph. -/
-lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
+lemma graph_fst_eq_zero_snd (f : E →ₗ.[R] F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
   (hx : x = 0) : x' = 0 :=
 f.mem_graph_snd_inj h f.graph.zero_mem hx
 
-lemma mem_domain_iff {f : linear_pmap R E F} {x : E} : x ∈ f.domain ↔ ∃ y : F, (x,y) ∈ f.graph :=
+lemma mem_domain_iff {f : E →ₗ.[R] F} {x : E} : x ∈ f.domain ↔ ∃ y : F, (x,y) ∈ f.graph :=
 begin
   split; intro h,
   { use f ⟨x, h⟩,
@@ -568,7 +567,7 @@ begin
   simp,
 end
 
-lemma image_iff {f : linear_pmap R E F} {x : E} {y : F} (hx : x ∈ f.domain) :
+lemma image_iff {f : E →ₗ.[R] F} {x : E} {y : F} (hx : x ∈ f.domain) :
   y = f ⟨x, hx⟩ ↔ (x, y) ∈ f.graph :=
 begin
   rw mem_graph_iff,
@@ -580,7 +579,7 @@ begin
   simp only [←h2, h1],
 end
 
-lemma mem_range_iff {f : linear_pmap R E F} {y : F} : y ∈ set.range f ↔ ∃ x : E, (x,y) ∈ f.graph :=
+lemma mem_range_iff {f : E →ₗ.[R] F} {y : F} : y ∈ set.range f ↔ ∃ x : E, (x,y) ∈ f.graph :=
 begin
   split; intro h,
   { rw set.mem_range at h,
@@ -597,11 +596,11 @@ begin
   rw h.2,
 end
 
-lemma mem_domain_iff_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) {x : E} :
+lemma mem_domain_iff_of_eq_graph {f g : E →ₗ.[R] F} (h : f.graph = g.graph) {x : E} :
   x ∈ f.domain ↔ x ∈ g.domain :=
 by simp_rw [mem_domain_iff, h]
 
-lemma le_of_le_graph {f g : linear_pmap R E F} (h : f.graph ≤ g.graph) : f ≤ g :=
+lemma le_of_le_graph {f g : E →ₗ.[R] F} (h : f.graph ≤ g.graph) : f ≤ g :=
 begin
   split,
   { intros x hx,
@@ -618,7 +617,7 @@ begin
   simp [hxy],
 end
 
-lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
+lemma eq_of_eq_graph {f g : E →ₗ.[R] F} (h : f.graph = g.graph) : f = g :=
 by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }
 
 end graph
@@ -660,7 +659,7 @@ lemma val_from_graph_mem {g : submodule R (E × F)}
 /-- Define a `linear_pmap` from its graph. -/
 noncomputable
 def to_linear_pmap (g : submodule R (E × F))
-  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) : linear_pmap R E F :=
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) : E →ₗ.[R] F :=
 { domain := g.map (linear_map.fst R E F),
   to_fun :=
   { to_fun := λ x, val_from_graph hg x.2,

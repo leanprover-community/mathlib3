@@ -58,7 +58,8 @@ def map (f : α → β) {m} : (fin m → α) → fin m → β := seq (λ i, f)
 lemma map_eq (f : α → β) {m} (v : fin m → α) : map f v = (f ∘ v) :=
 seq_eq _ _
 
-example {f : α → β} (a₁ a₂ : α) : map f ![a₁, a₂] = ![f a₁, f a₂] := rfl
+example {f : α → β} (a₁ a₂ : α) : f ∘ ![a₁, a₂] = ![f a₁, f a₂] :=
+(map_eq _ _).symm
 
 /-- `map₂ f v w = ![f (v 0) (w 0), f (v 1) (w 1), ...]` -/
 def map₂ (f : α → β → γ) (a : fin m → α) (b : fin m → β) : fin m → γ :=
@@ -71,7 +72,29 @@ def eta_expand {m} (v : fin m → α) : fin m → α := map id v
 lemma eta_expand_eq {m} (v : fin m → α) : eta_expand v = v := map_eq id v
 
 example {f : α → β} (a₁ a₂ : α) : eta_expand ![a₁, a₂] = ![a₁, a₂] := rfl
-example {f : α → β} (a : fin 2 → α) : eta_expand a = ![a 0, a 1] := rfl
+example {f : α → β} (a : fin 2 → α) : a = ![a 0, a 1] := (eta_expand_eq _).symm
+
+/-- `∀` with better defeq for `∀ x : fin m → α, P x`. -/
+def «forall» : Π {m} (P : (fin m → α) → Prop), Prop
+| 0 P := P ![]
+| (n + 1) P := ∀ x : α, «forall» (λ v, P (matrix.vec_cons x v))
+
+lemma forall_iff : Π {m} (P : (fin m → α) → Prop), «forall» P ↔ ∀ x, P x
+| 0 P := by simp only [«forall», fin.forall_fin_zero_pi, matrix.vec_empty]
+| (n + 1) P := by simp only [«forall», forall_iff, fin.forall_fin_succ_pi, matrix.vec_cons]
+
+example (P : (fin 2 → α) → Prop) : (∀ f, P f) ↔ (∀ a₀ a₁, P ![a₀, a₁]) := (forall_iff _).symm
+
+/-- `∃` with better defeq for `∃ x : fin m → α, P x`. -/
+def «exists» : Π {m} (P : (fin m → α) → Prop), Prop
+| 0 P := P ![]
+| (n + 1) P := ∃ x : α, «exists» (λ v, P (matrix.vec_cons x v))
+
+lemma exists_iff : Π {m} (P : (fin m → α) → Prop), «exists» P ↔ ∃ x, P x
+| 0 P := by simp only [«exists», fin.exists_fin_zero_pi, matrix.vec_empty]
+| (n + 1) P := by simp only [«exists», exists_iff, fin.exists_fin_succ_pi, matrix.vec_cons]
+
+example (P : (fin 2 → α) → Prop) : (∀ f, P f) ↔ (∀ a₀ a₁, P ![a₀, a₁]) := (forall_iff _).symm
 
 /-- `finset.univ.sum` with better defeq for `fin` -/
 def sum [has_add α] [has_zero α] : Π{m} (v : fin m → α), α
@@ -95,13 +118,55 @@ end fin_vec
 namespace matrix
 variables {l m n : ℕ} {α β : Type*}
 
+-- TODO[gh-6025]: make this an instance once safe to do so
+def unique_of_empty_left {m n} [is_empty m] : unique (matrix m n α) :=
+{ default := of is_empty_elim,
+  uniq := λ a, matrix.ext is_empty_elim }
+
+local attribute [instance] matrix.unique_of_empty_left
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+def unique_of_empty_right {m n} [is_empty n] : unique (matrix m n α) :=
+{ default := @of m n α (λ i, is_empty_elim),
+  uniq := λ a, matrix.ext (λ i, is_empty_elim) }
+
+/-- `∀` with better defeq for `∀ x : matrix (fin m) (fin n) α, P x`. -/
+def «forall» : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), Prop
+| 0 n P := P (of ![])
+| (m + 1) n P := fin_vec.forall $ λ r, «forall» (λ A, P (of (matrix.vec_cons r A)))
+
+lemma forall_iff : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), «forall» P ↔ ∀ x, P x
+| 0 n P := by {simp only [«forall», unique.forall_iff], rw iff_iff_eq, congr}
+| (m + 1) n P := begin
+  simp only [«forall», fin_vec.forall_iff, forall_iff],
+  exact iff.symm fin.forall_fin_succ_pi,
+end
+
+example (P : (matrix (fin 2) (fin 3) α) → Prop) :
+  (∀ x, P x) ↔ ∀ a b c d e f, P !![a, b, c; d, e, f] :=
+(forall_iff _).symm
+
+/--`∃` with better defeq for `∃ x : matrix (fin m) (fin n) α, P x`. -/
+def «exists» : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), Prop
+| 0 n P := P (of ![])
+| (m + 1) n P := fin_vec.exists $ λ r, «exists» (λ A, P (of (matrix.vec_cons r A)))
+
+lemma exists_iff : Π {m n} (P : (matrix (fin m) (fin n) α) → Prop), «exists» P ↔ ∃ x, P x
+| 0 n P := by {simp only [«exists», unique.exists_iff], rw iff_iff_eq, congr}
+| (m + 1) n P := begin
+  simp only [«exists», fin_vec.exists_iff, exists_iff],
+  exact iff.symm fin.exists_fin_succ_pi,
+end
+
+example (P : (matrix (fin 2) (fin 3) α) → Prop) :
+  (∃ x, P x) ↔ ∃ a b c d e f, P !![a, b, c; d, e, f] :=
+(exists_iff _).symm
+
 /-- `matrix.tranpose` with better defeq for `fin` -/
 def transposeᵣ : Π {m n}, matrix (fin m) (fin n) α → matrix (fin n) (fin m) α
 | _ 0 A := of ![]
 | m (n + 1) A := of $ vec_cons (fin_vec.map (λ v : fin _ → α, v 0) A)
                                (transposeᵣ (A.minor id fin.succ))
-
-local attribute [instance] matrix.subsingleton_of_empty_left
 
 @[simp]
 lemma transposeᵣ_eq : Π {m n} (A : matrix (fin m) (fin n) α),
@@ -297,6 +362,13 @@ meta def fin_to_pexpr {m n : ℕ} (A : matrix (fin m) (fin n) pexpr) : pexpr :=
 ``(@matrix.of (fin %%`(m)) (fin %%`(n)) _).app $
   pi_fin.to_pexpr (λ i : fin m, pi_fin.to_pexpr (λ j : fin n, A i j))
 
+/-- This statement is defeq to `mul_fin`, but syntactically worse-/
+theorem mul_fin_aux (l m n : ℕ) ⦃α⦄ [has_mul α] [add_comm_monoid α] :
+  «forall» $ λ A : matrix (fin l) (fin m) α,
+    «forall» $ λ B : matrix (fin m) (fin n) α,
+      A.mul B = A.mulᵣ B :=
+by simp_rw [forall_iff, mulᵣ_eq, eq_self_iff_true, forall_const]
+
 /-- Prove a statement of the form
 ```
 ∀ α [has_mul α] [add_comm_monoid α] (a₁₁ ... aₗₘ b₁₁ ... bₘₙ : α),
@@ -315,8 +387,8 @@ do
       tactic.mk_local' ((`a).append_suffix (name_suffix i j)) binder_info.default α),
   b ← (fin.mmap $ λ i : fin m, fin.mmap $ λ j : fin n,
       tactic.mk_local' ((`b).append_suffix (name_suffix i j)) binder_info.default α),
-  let b_flat := (list.fin_range l).bind (λ i, (list.fin_range m).map $ λ j, a i j),
-  let a_flat := (list.fin_range m).bind (λ i, (list.fin_range n).map $ λ j, b i j),
+  let a_flat := (list.fin_range l).bind (λ i, (list.fin_range m).map $ λ j, a i j),
+  let b_flat := (list.fin_range m).bind (λ i, (list.fin_range n).map $ λ j, b i j),
   let args := [α, has_mul_α, add_comm_monoid_α] ++ a_flat ++ b_flat,
 
   -- build the matrices out of the coefficients
@@ -352,8 +424,14 @@ do
   -- State and prove the equality, noting the RHS is defeq to `mulᵣ A B`.
   A_eq ← tactic.to_expr ``(@matrix.mul _ _ _ _ _ %%has_mul_α %%add_comm_monoid_α %%A %%B = %%AB),
   t ← tactic.pis args A_eq,
-  ((), pr) ← tactic.solve_aux t `[introsI α _ _, intros, refine (mulᵣ_eq _ _).symm],
+  let pr := (expr.const `matrix.mul_fin_aux [u]).mk_app [`(l), `(m), `(n)],
+  -- This seems to create a metavariable then assign it, which ensures `pr` carries the right type.
+  ((), pr) ← tactic.solve_aux t $ tactic.exact pr,
+
   pure (t, pr)
+
+open_locale matrix
+
 
 /-- Helper tactic used as an `auto_param` for `matrix.mul_fin` -/
 meta def mul_fin.derive : tactic unit :=
@@ -370,7 +448,6 @@ do
   --   tactic.unify target (t.instantiate_pis [α, A']),
   --   tactic.exact (pr α A')
 
-open_locale matrix
 
 theorem mul_fin {α} [has_mul α] [add_comm_monoid α] {l m n : ℕ}
   {«![a₁₁ ⋱ aₗₘ]» : fin l → fin m → α}

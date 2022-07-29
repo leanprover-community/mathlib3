@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import probability.martingale.upcrossing
 import measure_theory.function.uniform_integrable
+import measure_theory.constructions.polish
 
 /-!
 
@@ -264,44 +265,6 @@ begin
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end
 
-section PRed
-
-lemma metric.cauchy_seq_iff'' {α β : Type*}
-  [pseudo_metric_space α] [nonempty β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ ∀ K : ℕ, ∃ N, ∀ n ≥ N, dist (u n) (u N) < (K + 1)⁻¹ :=
-begin
-  rw metric.cauchy_seq_iff',
-  refine ⟨λ h K, h (K + 1)⁻¹ (inv_pos.2 K.cast_add_one_pos), λ h ε hε, _⟩,
-  obtain ⟨K, hK⟩ := exists_nat_gt ε⁻¹,
-  obtain ⟨N, hN⟩ := h K,
-  refine ⟨N, λ n hn, lt_of_lt_of_le (hN n hn) _⟩,
-  rw [inv_le (K.cast_add_one_pos : (0 : ℝ) < K + 1) hε, ← nat.cast_one, ← nat.cast_add],
-  exact hK.le.trans (nat.cast_le.2 K.le_succ),
-end
-
-lemma measurable_set_exists_tendsto_at_top {α β ι : Type*} {m0 : measurable_space α}
-  [measurable_space β] [pseudo_metric_space β] [opens_measurable_space β]
-  [second_countable_topology β] [complete_space β] [nonempty ι] [semilattice_sup ι] [encodable ι]
-  {f : ι → α → β} (hf : ∀ i, measurable (f i)) :
-  measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
-begin
-  simp_rw ← cauchy_map_iff_exists_tendsto,
-  change measurable_set {x | cauchy_seq (λ n, f n x)},
-  simp_rw metric.cauchy_seq_iff'',
-  rw set.set_of_forall,
-  refine measurable_set.Inter (λ K, _),
-  rw set.set_of_exists,
-  refine measurable_set.Union (λ N, _),
-  rw set.set_of_forall,
-  refine measurable_set.Inter (λ n, _),
-  by_cases hNn : N ≤ n,
-  { simp only [hNn, ge_iff_le, forall_true_left],
-    exact measurable_set_lt (measurable.dist (hf n) (hf N)) measurable_const },
-  { simp only [hNn, ge_iff_le, forall_false_left, set.set_of_true, measurable_set.univ] }
-end
-
-end PRed
-
 lemma submartingale.exists_ae_trim_tendsto_of_bdd
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ x ∂(μ.trim (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _) : (⨆ n, ℱ n) ≤ m0)),
@@ -309,8 +272,8 @@ lemma submartingale.exists_ae_trim_tendsto_of_bdd
 begin
   rw [ae_iff, trim_measurable_set_eq],
   { exact hf.exists_ae_tendsto_of_bdd hbdd },
-  { exact measurable_set.compl (measurable_set_exists_tendsto_at_top (λ n,
-      ((hf.strongly_measurable n).measurable.mono (le_Sup ⟨n, rfl⟩) le_rfl))) }
+  { exact measurable_set.compl (@measurable_set_exists_tendsto _ _ _ _ _ _ (⨆ n, ℱ n) _ _ _ _ _
+    (λ n, ((hf.strongly_measurable n).measurable.mono (le_Sup ⟨n, rfl⟩) le_rfl))) }
 end
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
@@ -437,10 +400,10 @@ lemma integrable.snorm_one_condexp_le_snorm {m : measurable_space α}
 calc snorm (μ[f | m]) 1 μ ≤ snorm (μ[|f| | m]) 1 μ :
 begin
   refine snorm_mono_ae _,
-  filter_upwards [@condexp_mono _ m0 _ m _ _ _ hf hf.abs
+  filter_upwards [@condexp_mono _ m m0 _ _ _ _ _ _ _ _ hf hf.abs
       (@ae_of_all _ m0 _ μ (λ x, le_abs_self (f x) : ∀ x, f x ≤ |f x|)),
     eventually_le.trans (condexp_neg f).symm.le
-      (@condexp_mono _ m0 _ m _ _ _ hf.neg hf.abs
+      (@condexp_mono _ m m0 _ _ _ _ _ _ _ _ hf.neg hf.abs
       (@ae_of_all _ m0 _ μ (λ x, neg_le_abs_self (f x) : ∀ x, -f x ≤ |f x|)))] with x hx₁ hx₂,
   exact abs_le_abs hx₁ hx₂,
 end
@@ -472,7 +435,7 @@ begin
       (strongly_measurable_condexp.mono (ℱ.le _)).measurable.nnnorm,
   have hint : integrable g μ := mem_ℒp_one_iff_integrable.1 hg,
   refine uniform_integrable_of le_rfl ennreal.one_ne_top
-    (λ n, strongly_measurable_condexp.mono (ℱ.le n)) (λ ε hε, _),
+    (λ n, (strongly_measurable_condexp.mono (ℱ.le n)).ae_strongly_measurable) (λ ε hε, _),
   by_cases hne : snorm g 1 μ = 0,
   { rw snorm_eq_zero_iff hg.1 one_ne_zero at hne,
     refine ⟨0, λ n, (le_of_eq $ (snorm_eq_zero_iff

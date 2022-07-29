@@ -165,24 +165,23 @@ end
 
 
 
-
-
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 
 /-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
-  have two_le_p : 2 ≤ p,
-  exact nat.prime.two_le hp,
-  have one_le_p : 1 ≤ p,
-  exact nat.le_of_succ_le two_le_p,
+  have two_le_p : 2 ≤ p := nat.prime.two_le hp,
+  have one_le_p : 1 ≤ p := nat.le_of_succ_le two_le_p,
   have one_lt_n : 1 < p ^ α,
-  { clear a,
-    exact nat.succ_le_iff.mp (le_trans two_le_p (le_self_pow (nat.le_of_succ_le two_le_p) hα)) },
-  have zero_lt_n : 0 < p^α,
-  exact pos_of_gt one_lt_n,
-  haveI : fact (0 < p ^ α),
-  { exact {out := zero_lt_n}, },
+  { exact nat.succ_le_iff.mp (le_trans two_le_p (le_self_pow (nat.le_of_succ_le two_le_p) hα)) },
+  have zero_lt_n : 0 < p^α := pos_of_gt one_lt_n,
+  haveI : fact (0 < p ^ α), { exact {out := zero_lt_n}, },
+
   split,
   { -- a is a Miller-Rabin nonwitness for n = p^α
     intro hspp,
@@ -263,6 +262,14 @@ begin
       rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
     { sorry } },
 end
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
 
 -- https://leanprover.zulipchat.com/#narrow/stream/217875/near/277098292
 def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=

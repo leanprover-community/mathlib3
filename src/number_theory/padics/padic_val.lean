@@ -13,13 +13,13 @@ import number_theory.divisors
 /-!
 # p-adic Valuation
 
-This file defines the `p`-adic valuation on `ℕ`, `ℤ`, and `ℚ`.
+This file defines the p-adic valuation on ℕ, ℤ, and ℚ.
 
-The `p`-adic valuation on `ℚ` is the difference of the multiplicities of `p` in the numerator and
+The p-adic valuation on ℚ is the difference of the multiplicities of `p` in the numerator and
 denominator of `q`. This function obeys the standard properties of a valuation, with the appropriate
-assumptions on `p`. The `p`-adic valuations on `ℕ` and `ℤ` agree with that on `ℚ`.
+assumptions on p. The p-adic valuations on ℕ and ℤ agree with that on ℚ.
 
-The valuation induces a norm on `ℚ`. This norm is defined in padic_norm.lean.
+The valuation induces a norm on ℚ. This norm is defined in padic_norm.lean.
 
 ## Notations
 
@@ -28,7 +28,7 @@ This file uses the local notation `/.` for `rat.mk`.
 ## Implementation notes
 
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
-by taking `[fact p.prime]` as a type class argument.
+by taking `[fact (prime p)]` as a type class argument.
 
 ## References
 
@@ -49,29 +49,34 @@ open_locale rat
 
 open multiplicity
 
-/-- For `p ≠ 1`, the `p`-adic valuation of a natural `n ≠ 0` is the largest natural number `k` such
-  that `p^k` divides `z`. If `n = 0` or `p = 1`, then `padic_val_nat p q` defaults to `0`. -/
+/--
+For `p ≠ 1`, the p-adic valuation of a natural `n ≠ 0` is the largest natural number `k` such that
+p^k divides z.
+If `n = 0` or `p = 1`, then `padic_val_nat p q` defaults to 0.
+-/
 def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
-if h : p ≠ 1 ∧ 0 < n then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h) else 0
+if h : p ≠ 1 ∧ 0 < n
+then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h)
+else 0
 
 namespace padic_val_nat
-
 open multiplicity
-
 variables {p : ℕ}
 
-/-- `padic_val_nat p 0` is `0` for any `p`. -/
-@[simp] protected lemma zero : padic_val_nat p 0 = 0 := by simp [padic_val_nat]
+/-- `padic_val_nat p 0` is 0 for any `p`. -/
+@[simp] protected lemma zero : padic_val_nat p 0 = 0 :=
+by simp [padic_val_nat]
 
-/-- `padic_val_nat p 1` is `0` for any `p`. -/
-@[simp] protected lemma one : padic_val_nat p 1 = 0 := by { unfold padic_val_nat, split_ifs, simp }
+/-- `padic_val_nat p 1` is 0 for any `p`. -/
+@[simp] protected lemma one : padic_val_nat p 1 = 0 :=
+by { unfold padic_val_nat, split_ifs, simp }
 
-/-- For `p ≠ 0`, `p ≠ 1`, `padic_val_rat p p` is `1`. -/
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
 @[simp] lemma self (hp : 1 < p) : padic_val_nat p p = 1 :=
 begin
   have neq_one : (¬ p = 1) ↔ true,
   { exact iff_of_true ((ne_of_lt hp).symm) trivial },
-  have eq_zero_false : p = 0 ↔ false,
+  have eq_zero_false : (p = 0) ↔ false,
   { exact iff_false_intro ((ne_of_lt (trans zero_lt_one hp)).symm) },
   simp [padic_val_nat, neq_one, eq_zero_false]
 end
@@ -81,14 +86,16 @@ by { rw padic_val_nat, split_ifs; simp [multiplicity_eq_zero_of_not_dvd h] }
 
 end padic_val_nat
 
-/-- For `p ≠ 1`, the `p`-adic valuation of an integer `z ≠ 0` is the largest natural number `k` such
-  that `p^k` divides `z`. If `x = 0` or `p = 1`, then `padic_val_int p q` defaults to `0`. -/
-def padic_val_int (p : ℕ) (z : ℤ) : ℕ := padic_val_nat p z.nat_abs
+/--
+For `p ≠ 1`, the p-adic valuation of an integer `z ≠ 0` is the largest natural number `k` such that
+p^k divides z.
+If `x = 0` or `p = 1`, then `padic_val_int p q` defaults to 0.
+-/
+def padic_val_int (p : ℕ) (z : ℤ) : ℕ :=
+padic_val_nat p (z.nat_abs)
 
 namespace padic_val_int
-
 open multiplicity
-
 variables {p : ℕ}
 
 lemma of_ne_one_ne_zero {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) : padic_val_int p z =
@@ -99,17 +106,21 @@ begin
   refl
 end
 
-/-- `padic_val_int p 0` is `0` for any `p`. -/
-@[simp] protected lemma zero : padic_val_int p 0 = 0 := by simp [padic_val_int]
+/-- `padic_val_int p 0` is 0 for any `p`. -/
+@[simp] protected lemma zero : padic_val_int p 0 = 0 :=
+by simp [padic_val_int]
 
-/-- `padic_val_int p 1` is `0` for any `p`. -/
-@[simp] protected lemma one : padic_val_int p 1 = 0 := by simp [padic_val_int]
+/-- `padic_val_int p 1` is 0 for any `p`. -/
+@[simp] protected lemma one : padic_val_int p 1 = 0 :=
+by simp [padic_val_int]
 
-/-- The `p`-adic value of a natural is its `p`-adic value as an integer. -/
-@[simp] lemma of_nat {n : ℕ} : padic_val_int p n = padic_val_nat p n := by simp [padic_val_int]
+/-- The p-adic value of an natural is its p-adic_value as an integer -/
+@[simp] lemma of_nat {n : ℕ} : padic_val_int p n = padic_val_nat p n :=
+by simp [padic_val_int]
 
-/-- For `p ≠ 0`, `p ≠ 1`, `padic_val_int p p` is `1`. -/
-lemma self (hp : 1 < p) : padic_val_int p p = 1 := by simp [padic_val_nat.self hp]
+/-- For `p ≠ 0, p ≠ 1, `padic_val_int p p` is 1. -/
+lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
+by simp [padic_val_nat.self hp]
 
 lemma eq_zero_of_not_dvd {z : ℤ} (h : ¬ (p : ℤ) ∣ z) : padic_val_int p z = 0 :=
 begin
@@ -119,9 +130,13 @@ end
 
 end padic_val_int
 
-/-- `padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
-  valuation of `q.denom`. If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0. -/
-def padic_val_rat (p : ℕ) (q : ℚ) : ℤ := padic_val_int p q.num - padic_val_nat p q.denom
+/--
+`padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
+valuation of `q.denom`.
+If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0.
+-/
+def padic_val_rat (p : ℕ) (q : ℚ) : ℤ :=
+padic_val_int p q.num - padic_val_nat p q.denom
 
 namespace padic_val_rat
 
@@ -133,23 +148,25 @@ variables {p : ℕ}
 @[simp] protected lemma neg (q : ℚ) : padic_val_rat p (-q) = padic_val_rat p q :=
 by simp [padic_val_rat, padic_val_int]
 
-/-- `padic_val_rat p 0` is `0` for any `p`. -/
+/-- `padic_val_rat p 0` is 0 for any `p`. -/
 @[simp] protected lemma zero : padic_val_rat p 0 = 0 := by simp [padic_val_rat]
 
-/-- `padic_val_rat p 1` is `0` for any `p`. -/
+/-- `padic_val_rat p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 := by simp [padic_val_rat]
 
-/-- The `p`-adic value of an integer `z ≠ 0` is its `p`-adic_value as a rational. -/
+/-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
 @[simp] lemma of_int {z : ℤ} : padic_val_rat p z = padic_val_int p z := by simp [padic_val_rat]
 
-/-- The `p`-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`. -/
+/-- The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`. -/
 lemma of_int_multiplicity {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) :
-  padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get (finite_int_iff.2 ⟨hp, hz⟩) :=
+  padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
+    (finite_int_iff.2 ⟨hp, hz⟩) :=
 by rw [of_int, padic_val_int.of_ne_one_ne_zero hp hz]
 
 lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp, rat.num_ne_zero_of_ne_zero hq⟩) -
-  (multiplicity p q.denom).get (by { rw [← finite_iff_dom, finite_nat_iff], exact ⟨hp, q.pos⟩ }) :=
+  (multiplicity p q.denom).get
+    (by { rw [← finite_iff_dom, finite_nat_iff], exact ⟨hp, q.pos⟩ }) :=
 begin
   rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
   { refl },
@@ -157,11 +174,11 @@ begin
   { exact rat.num_ne_zero_of_ne_zero hq }
 end
 
-/-- The `p`-adic value of an integer `z ≠ 0` is its `p`-adic value as a rational. -/
+/-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
 @[simp] lemma of_nat {n : ℕ} : padic_val_rat p n = padic_val_nat p n := by simp [padic_val_rat]
 
-/-- For `p ≠ 0`, `p ≠ 1`, `padic_val_rat p p` is `1`. -/
-lemma self (hp : 1 < p) : padic_val_rat p p = 1 := by simp [hp]
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
+lemma self (hp : 1 < p) : padic_val_rat p p = 1 := by simp [of_nat, hp]
 
 end padic_val_rat
 
@@ -175,11 +192,13 @@ lemma zero_le_padic_val_rat_of_nat (n : ℕ) : 0 ≤ padic_val_rat p n := by sim
 @[norm_cast] lemma padic_val_rat_of_nat (n : ℕ) : (padic_val_nat p n : ℤ) = padic_val_rat p n :=
 by simp
 
-/-- A simplification of `padic_val_nat` when one input is prime, by analogy with
-  `padic_val_rat_def`. -/
+/--
+A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
+-/
 lemma padic_val_nat_def [hp : fact p.prime] {n : ℕ} (hn : 0 < n) :
-  padic_val_nat p n
-    = (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, hn⟩) :=
+  padic_val_nat p n =
+  (multiplicity p n).get
+    (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, hn⟩) :=
 begin
   simp [padic_val_nat],
   split_ifs,
@@ -245,7 +264,7 @@ end
 /-- A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`. -/
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
-have q * r = (q.num * r.num) /. (q.denom * r.denom), by rw_mod_cast rat.mul_num_denom,
+have q*r = (q.num * r.num) /. (q.denom * r.denom), by rw_mod_cast rat.mul_num_denom,
 have hq' : q.num /. q.denom ≠ 0, by rw rat.num_denom; exact hq,
 have hr' : r.num /. r.denom ≠ 0, by rw rat.num_denom; exact hr,
 have hp' : _root_.prime (p : ℤ), from nat.prime_iff_prime_int.1 hp.1,
@@ -258,11 +277,14 @@ end
 
 /-- A rewrite lemma for `padic_val_rat p (q^k)` with condition `q ≠ 0`. -/
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
-  padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
+    padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul hq (pow_ne_zero _ hq), pow_succ, add_mul, add_comm]
 
-/-- A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`. -/
-protected lemma inv (q : ℚ) : padic_val_rat p q⁻¹ = -padic_val_rat p q :=
+/--
+A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
+-/
+protected lemma inv (q : ℚ) :
+  padic_val_rat p q⁻¹ = -padic_val_rat p q :=
 begin
   by_cases hq : q = 0,
   { simp [hq] },
@@ -279,8 +301,10 @@ begin
   all_goals { exact hp }
 end
 
-/-- A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂)`, in terms of
-  divisibility by `p^n`. -/
+/--
+A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),
+in terms of divisibility by `p^n`.
+-/
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
   (hn₁ : n₁ ≠ 0) (hn₂ : n₂ ≠ 0) (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) :
   padic_val_rat p (n₁ /. d₁) ≤ padic_val_rat p (n₂ /. d₂) ↔
@@ -293,16 +317,22 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
   { to_lhs,
     rw [padic_val_rat.defn p (rat.mk_ne_zero_of_ne_zero hn₁ hd₁) rfl,
       padic_val_rat.defn p (rat.mk_ne_zero_of_ne_zero hn₂ hd₂) rfl,
-      sub_le_iff_le_add', ← add_sub_assoc, le_sub_iff_add_le],
+      sub_le_iff_le_add',
+      ← add_sub_assoc,
+      le_sub_iff_add_le],
     norm_cast,
     rw [← multiplicity.mul' (nat.prime_iff_prime_int.1 hp.1) hf1, add_comm,
       ← multiplicity.mul' (nat.prime_iff_prime_int.1 hp.1) hf2,
       part_enat.get_le_get, multiplicity_le_multiplicity_iff] }
 
-/-- Sufficient conditions to show that the `p`-adic valuation of `q` is less than or equal to the
-  `p`-adic valuation of `q + r`. -/
-theorem le_padic_val_rat_add_of_le {q r : ℚ} (hqr : q + r ≠ 0)
-  (h : padic_val_rat p q ≤ padic_val_rat p r) : padic_val_rat p q ≤ padic_val_rat p (q + r) :=
+/--
+Sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the
+p-adic vlauation of `q + r`.
+-/
+theorem le_padic_val_rat_add_of_le {q r : ℚ}
+  (hqr : q + r ≠ 0)
+  (h : padic_val_rat p q ≤ padic_val_rat p r) :
+  padic_val_rat p q ≤ padic_val_rat p (q + r) :=
 if hq : q = 0 then by simpa [hq] using h else
 if hr : r = 0 then by simp [hr] else
 have hqn : q.num ≠ 0, from rat.num_ne_zero_of_ne_zero hq,
@@ -329,7 +359,9 @@ begin
   all_goals { exact hp }
 end
 
-/-- The minimum of the valuations of `q` and `r` is at most the valuation of `q + r`. -/
+/--
+The minimum of the valuations of `q` and `r` is less than or equal to the valuation of `q + r`.
+-/
 theorem min_le_padic_val_rat_add {q r : ℚ} (hqr : q + r ≠ 0) :
   min (padic_val_rat p q) (padic_val_rat p r) ≤ padic_val_rat p (q + r) :=
 (le_total (padic_val_rat p q) (padic_val_rat p r)).elim
@@ -338,7 +370,7 @@ theorem min_le_padic_val_rat_add {q r : ℚ} (hqr : q + r ≠ 0) :
 
 open_locale big_operators
 
-/-- A finite sum of rationals with positive `p`-adic valuation has positive `p`-adic valuation
+/-- A finite sum of rationals with positive p-adic valuation has positive p-adic valuation
   (if the sum is non-zero). -/
 theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ} (hF : ∀ i, i < n → 0 < padic_val_rat p (F i))
   (hn0 : ∑ i in finset.range n, F i ≠ 0) : 0 < padic_val_rat p (∑ i in finset.range n, F i) :=
@@ -385,7 +417,7 @@ begin
   exact hp
 end
 
-/-- Dividing out by a prime factor reduces the `padic_val_nat` by `1`. -/
+/-- Dividing out by a prime factor reduces the padic_val_nat by 1. -/
 protected lemma div (dvd : p ∣ b) : padic_val_nat p (b / p) = (padic_val_nat p b) - 1 :=
 begin
   convert padic_val_nat.div_of_dvd dvd,
@@ -393,7 +425,7 @@ begin
   exact hp
 end
 
-/-- A version of `padic_val_rat.pow` for `padic_val_nat`. -/
+/-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
 protected lemma pow (n : ℕ) (ha : a ≠ 0) :
   padic_val_nat p (a ^ n) = n * padic_val_nat p a :=
 by simpa only [← @nat.cast_inj ℤ] with push_cast using padic_val_rat.pow (cast_ne_zero.mpr ha)
@@ -419,14 +451,14 @@ begin
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp)
 end
 
-lemma pow_padic_val_nat_dvd {p n : ℕ} : p ^ padic_val_nat p n ∣ n :=
+lemma pow_padic_val_nat_dvd {p n : ℕ} : p ^ (padic_val_nat p n) ∣ n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn, { simp },
   rcases eq_or_ne p 1 with rfl | hp, { simp },
   rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption
 end
 
-lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact p.prime] (hn : 0 < n) :
+lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
@@ -439,7 +471,7 @@ begin
 end
 
 lemma padic_val_nat_dvd_iff {p : ℕ} (n : ℕ) [hp : fact p.prime] (a : ℕ) :
-  p ^ n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
+  p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
 begin
   split,
   { rw [pow_dvd_iff_le_multiplicity, padic_val_nat],
@@ -468,7 +500,7 @@ protected lemma padic_val_nat.div' {p : ℕ} [hp : fact p.prime] :
     rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
     { rw [hc, mul_zero] },
     { rw padic_val_nat.mul,
-      { suffices : ¬ p ∣ (n + 1),
+      { suffices : ¬ p ∣ (n+1),
         { rw [padic_val_nat.eq_zero_of_not_dvd this, zero_add] },
         contrapose! cpm,
         exact hp.1.dvd_iff_not_coprime.mp cpm },
@@ -489,7 +521,7 @@ begin
 end
 
 lemma range_pow_padic_val_nat_subset_divisors' {p n : ℕ} [hp : fact p.prime] :
-  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ n.divisors \ {1} :=
+  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ (n.divisors \ {1}) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simp },
@@ -524,7 +556,7 @@ end
 lemma padic_val_int_self : padic_val_int p p = 1 := padic_val_int.self hp.out.one_lt
 
 lemma padic_val_int.mul {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
-  padic_val_int p (a * b) = padic_val_int p a + padic_val_int p b :=
+  padic_val_int p (a*b) = padic_val_int p a + padic_val_int p b :=
 begin
   simp_rw padic_val_int,
   rw [int.nat_abs_mul, padic_val_nat.mul];

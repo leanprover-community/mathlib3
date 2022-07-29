@@ -78,6 +78,8 @@ namespace comm_sq
 
 variables {A B X Y : C} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B ⟶ Y}
 
+/-- The datum of a lift in a commutative square, i.e. a up-right-diagonal
+morphism which makes both triangles commute. -/
 @[ext, nolint has_inhabited_instance]
 structure lift_struct (sq : comm_sq f i p g) :=
 (l : B ⟶ X) (fac_left' : i ≫ l = f) (fac_right' : l ≫ p = g)
@@ -87,12 +89,16 @@ namespace lift_struct
 restate_axiom fac_left'
 restate_axiom fac_right'
 
+/-- A `lift_struct` for a commutative square gives a `lift_struct` for the
+corresponding square in the opposite category. -/
 @[simps]
 def op {sq : comm_sq f i p g} (l : lift_struct sq) : lift_struct sq.op :=
 { l := l.l.op,
   fac_left' := by rw [← op_comp, l.fac_right],
   fac_right' := by rw [← op_comp, l.fac_left], }
 
+/-- A `lift_struct` for a commutative square in the opposite category
+gives a `lift_struct` for the corresponding square in the original category. -/
 @[simps]
 def unop {A B X Y : Cᵒᵖ} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B ⟶ Y} {sq : comm_sq f i p g}
   (l : lift_struct sq) : lift_struct sq.unop :=
@@ -100,6 +106,8 @@ def unop {A B X Y : Cᵒᵖ} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B �
   fac_left' := by rw [← unop_comp, l.fac_right],
   fac_right' := by rw [← unop_comp, l.fac_left], }
 
+/-- Equivalences of `lift_struct` for a square and the corresponding square
+in the opposite category. -/
 @[simps]
 def op_equiv (sq : comm_sq f i p g) : lift_struct sq ≃ lift_struct sq.op :=
 { to_fun := op,
@@ -107,6 +115,8 @@ def op_equiv (sq : comm_sq f i p g) : lift_struct sq ≃ lift_struct sq.op :=
   left_inv := by tidy,
   right_inv := by tidy, }
 
+/-- Equivalences of `lift_struct` for a square in the oppositive category and
+the corresponding square in the original category. -/
 def unop_equiv {A B X Y : Cᵒᵖ} {f : A ⟶ X} {i : A ⟶ B} {p : X ⟶ Y} {g : B ⟶ Y}
   (sq : comm_sq f i p g) : lift_struct sq ≃ lift_struct sq.unop :=
 { to_fun := unop,
@@ -126,6 +136,7 @@ instance subsingleton_lift_struct_of_mono (sq : comm_sq f i p g) [mono p] :
 
 variable (sq : comm_sq f i p g)
 
+/-- The assertion that a square has a `lift_struct`. -/
 class has_lift : Prop := (exists_lift : nonempty sq.lift_struct)
 
 namespace has_lift
@@ -135,6 +146,7 @@ variable {sq}
 lemma mk' (l : sq.lift_struct) : has_lift sq := ⟨nonempty.intro l⟩
 
 variable (sq)
+
 lemma iff : has_lift sq ↔ nonempty sq.lift_struct :=
 by { split, exacts [λ h, h.exists_lift, λ h, mk h], }
 
@@ -153,6 +165,8 @@ end
 
 end has_lift
 
+/-- A choice of a diagonal morphism that is part of a `lift_struct` when
+the square has a lift. -/
 noncomputable
 def lift [hsq : has_lift sq] : B ⟶ X :=
 hsq.exists_lift.some.l
@@ -168,3 +182,4 @@ hsq.exists_lift.some.fac_right
 end comm_sq
 
 end category_theory
+#lint

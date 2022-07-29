@@ -199,29 +199,51 @@ lemma _root_.function.surjective.image_univ {β} [fintype α] [fintype β] [deci
   (hf : function.surjective f) : univ.image f = univ :=
 eq_univ_iff_forall.mpr $ λ x, mem_image.mpr $ (exists_congr $ by simp).mp $ hf x
 
-protected lemma block_triangular.det [decidable_eq α] [preorder α] (hM : block_triangular M b) :
+protected lemma block_triangular.det [decidable_eq α] [linear_order α] (hM : block_triangular M b) :
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
-  unfreezingI { induction ‹fintype m› using fintype.induction_empty_option'
-    with α₁ α₂ h₂ e ih t h ih },
-  { haveI : fintype α₁ := fintype.of_equiv _ e.symm,
-    haveI : decidable_eq α₁ := classical.dec_eq _,
-    rw ←det_reindex_self e.symm,
-    convert (ih hM.minor).trans _,
-    simp_rw e.symm_symm,
-    refine prod_congr _ (λ a ha, _),
-    { rw ←image_image,
-      congr,
-      convert e.surjective.image_univ },
-    unfold to_square_block to_square_block_prop to_block,
-    rw [minor_minor],
-    let e' : {a₁ // (b ∘ e.symm.symm) a₁ = a} ≃ {a₂ // b a₂ = a} :=
-      @equiv.subtype_equiv_of_subtype _ _ (λ x, b x = a) _,
-    rw [←det_minor_equiv_self e' $ M.minor coe coe, minor_minor],
-    congr' 1 },
-  { simp only [coe_det_is_empty, prod_const_one] },
-  rw block_triangular at hM,
-  let k := (univ.image b).max,
+  unfreezingI { induction hs : univ.image b using finset.strong_induction
+    with s ih generalizing m },
+  subst hs,
+  by_cases h : univ.image b = ∅,
+  { haveI := univ_eq_empty_iff.1 (image_eq_empty.1 h),
+    simp [h] },
+  { let k := (univ.image b).max' (nonempty_of_ne_empty h),
+    rw two_block_triangular_det' M (λ i, b i = k),
+    { have : univ.image b = insert k ((univ.image b).erase k),
+      { rw insert_erase, apply max'_mem },
+      rw [this, prod_insert (not_mem_erase _ _)],
+      refine congr_arg _ _,
+      let b' := λ i : {a // b a ≠ k}, b ↑i,
+      have h' :  block_triangular (M.to_square_block_prop (λ (i : m), b i ≠ k)) b',
+      { intros i j, apply hM },
+      have hb' : image b' univ = (image b univ).erase k,
+      { apply subset_antisymm,
+        { rw image_subset_iff,
+          intros i _,
+          apply mem_erase_of_ne_of_mem i.2 (mem_image_of_mem _ (mem_univ _)) },
+        { intros i hi,
+          rw mem_image,
+          rcases mem_image.1 (erase_subset _ _ hi) with ⟨a, _, ha⟩,
+          subst ha,
+          exact ⟨⟨a, ne_of_mem_erase hi⟩, mem_univ _, rfl⟩ } },
+      rw ih ((univ.image b).erase k) (erase_ssubset (max'_mem _ _)) h' hb',
+      apply finset.prod_congr rfl,
+      intros l hl,
+      let he : {a // b' a = l} ≃ {a // b a = l},
+      { have hc : ∀ (i : m), (λ a, b a = l) i → (λ a, b a ≠ k) i,
+        { intros i hbi, rw hbi, exact ne_of_mem_erase hl },
+        exact equiv.subtype_subtype_equiv_subtype hc },
+      simp only [to_square_block_def],
+      rw ← matrix.det_reindex_self he.symm (λ (i j : {a // b a = l}), M ↑i ↑j),
+      refine congr_arg _ _,
+      ext,
+      simp },
+  { intros i hi j hj,
+    apply hM,
+    rw hi,
+    apply lt_of_le_of_ne _ hj,
+    exact finset.le_max' (univ.image b) _ (mem_image_of_mem _ (mem_univ _)) } }
 end
 
 lemma block_triangular.det_fintype [decidable_eq α] [fintype α] [preorder α]

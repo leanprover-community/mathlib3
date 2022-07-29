@@ -2,6 +2,9 @@ import analysis.complex.circle
 import topology.metric_space.basic
 import topology.homotopy.path
 import data.real.basic
+import topology.algebra.polynomial
+import topology.continuous_function.algebra
+import topology.continuous_function.compact
 
 universe u
 
@@ -83,15 +86,16 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   m_e_e := by simp only [half_add_self],
   cont_m := continuous_add.div_const,
   m_e_dot_homotopic_to_id := begin
-  use H' z,
-  {
-    intro x,
-    dsimp [H', H],
+  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
+  have cont_H : continuous H, sorry,
+  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
+  use H',
+  { intro x,
+    dsimp [H],
     ring_nf,
   },
-  {
-   intro x,
-    dsimp [H', H],
+  { intro x,
+    dsimp [H],
     ring_nf,
   },
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
@@ -110,69 +114,15 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   {
    intro x,
     dsimp [H', H],
-    ring_nf,
-  },
+  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
     intros x _,
     dsimp [H', H],
     ring,
   },
-  end
-}
-
-
-
-class Ω (X : Type u) [topological_space X] :=
-    (loop : ℝ → X)
-    (boundary : loop 0 = loop 1)
-
-
-example : Ω ℝ :=
-{
-  loop := λ t, t*(1-t),
-  boundary := by ring
-}
-
-def juxt_loop (X : Type u) [topological_space X] (α β : Ω X) : Ω X :=
-{
-  loop :=  λ t, if t < 1/2 then (@Ω.loop X _ α (2*t)) else (@Ω.loop X _ β (1-2*t)),
-  boundary :=
-  begin
-    simp,
   end,
 }
 
-
-instance loop_space_is_H_space (X : Type u) [topological_space X]
-  : H_space C(circle, X) :=
-{
-  m := sorry,
-  e := sorry,
-  m_e_e := sorry,
-  cont_m := sorry,
-  m_e_dot_homotopic_to_id  := sorry,
-  m_dot_e_homotopic_to_id := sorry,
-}
-
-variables x y : ℝ
-
--- def our_m : ℝ := (x+y)/2
--- #check our_m
-
-lemma our_m_continuous : continuous our_m :=
-begin
-  sorry
-end
-
-def R_with_our_m : H_space ℝ :=
-
-example : H_space ℝ :=
-{
-  m := function.uncurry our_m,
-  e := z,
-  m_e_e := sorry,
-  cont_m := our_m_continuous,
-}
 /-
   Next, show that the sphere S^3 has a canonical H-space structure.
 

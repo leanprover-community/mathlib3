@@ -49,6 +49,10 @@ lemma lie_def (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end ring
 
+lemma commute_iff_lie_eq {x y : A} : commute x y ↔ ⁅x, y⁆ = 0 := sub_eq_zero.symm
+
+lemma commute.lie_eq {x y : A} (h : commute x y) : ⁅x, y⁆ = 0 := sub_eq_zero_of_eq h
+
 namespace lie_ring
 
 /-- An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator. -/

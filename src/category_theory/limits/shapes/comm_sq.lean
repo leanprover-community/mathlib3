@@ -1,8 +1,9 @@
 /-
 Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Joël Riou
 -/
+import category_theory.comm_sq
 import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
@@ -50,30 +51,9 @@ namespace category_theory
 
 variables {C : Type u₁} [category.{v₁} C]
 
-/-- The proposition that a square
-```
-  W ---f---> X
-  |          |
-  g          h
-  |          |
-  v          v
-  Y ---i---> Z
-
-```
-is a commuting square.
--/
-structure comm_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z) : Prop :=
-(w : f ≫ h = g ≫ i)
-
-attribute [reassoc] comm_sq.w
-
 namespace comm_sq
 
 variables {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
-
-lemma flip (p : comm_sq f g h i) : comm_sq g f i h := ⟨p.w.symm⟩
-
-lemma of_arrow {f g : arrow C} (h : f ⟶ g) : comm_sq f.hom h.left h.right g.hom := ⟨h.w.symm⟩
 
 /--
 The (not necessarily limiting) `pullback_cone h i` implicit in the statement
@@ -86,15 +66,6 @@ The (not necessarily limiting) `pushout_cocone f g` implicit in the statement
 that we have `comm_sq f g h i`.
 -/
 def cocone (s : comm_sq f g h i) : pushout_cocone f g := pushout_cocone.mk _ _ s.w
-
-/-- The commutative square in the opposite category associated to a commutative square. -/
-lemma op (p : comm_sq f g h i) : comm_sq i.op h.op g.op f.op :=
-⟨by simp only [← op_comp, p.w]⟩
-
-/-- The commutative square associated to a commutative square in the opposite category. -/
-lemma unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
-  (p : comm_sq f g h i) : comm_sq i.unop h.unop g.unop f.unop :=
-⟨by simp only [← unop_comp, p.w]⟩
 
 /-- The pushout cocone in the opposite category associated to the cone of
 a commutative square identifies to the cocone of the flipped commutative square in
@@ -494,9 +465,6 @@ namespace functor
 variables {D : Type u₂} [category.{v₂} D]
 variables (F : C ⥤ D) {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
 
-lemma map_comm_sq (s : comm_sq f g h i) : comm_sq (F.map f) (F.map g) (F.map h) (F.map i) :=
-⟨by simpa using congr_arg (λ k : W ⟶ Z, F.map k) s.w⟩
-
 lemma map_is_pullback [preserves_limit (cospan h i) F] (s : is_pullback f g h i) :
   is_pullback (F.map f) (F.map g) (F.map h) (F.map i) :=
 -- This is made slightly awkward because `C` and `D` have different universes,
@@ -523,7 +491,6 @@ end
 
 end functor
 
-alias functor.map_comm_sq ← comm_sq.map
 alias functor.map_is_pullback ← is_pullback.map
 alias functor.map_is_pushout ← is_pushout.map
 

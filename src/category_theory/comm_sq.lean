@@ -182,4 +182,4 @@ hsq.exists_lift.some.fac_right
 end comm_sq
 
 end category_theory
-#lint
+

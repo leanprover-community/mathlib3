@@ -241,18 +241,16 @@ by simp [nat.miller_rabin_witness]
 lemma minus_one_not_miller_rabin_witness {n : ℕ} (hn : odd n) (hn1 : n ≠ 1) :
   ¬ n.miller_rabin_witness (-1 : zmod n) :=
 begin
+  rw [←strong_probable_prime_iff_nonwitness,
+      strong_probable_prime_iff_miller_rabin_sequence (-1 : zmod n) hn hn1,
+      nat.mem_miller_rabin_sequence],
+  refine or.inr ⟨0, mem_range.2 (aux_fz hn hn1), _⟩,
   obtain ⟨k, rfl⟩ := hn,
-  simp only [nat.miller_rabin_witness, ne.def, mem_range, not_and, not_forall, not_not,
-    exists_prop],
-  rintro -,
-  refine ⟨0, _, _⟩,
-  { have hk : k ≠ 0, { simpa using hn1 },
-    rw [add_succ_sub_one, add_zero, nat.factorization_mul _ hk],
-    { simp [prime_two.factorization] },
-    { simp } },
-  { simp [odd.neg_one_pow (odd_of_odd_part _ (succ_ne_succ.mp hn1))] },
+  apply odd.neg_one_pow,
+  simp only [pow_zero, add_succ_sub_one, add_zero, one_mul],
+  apply odd_of_odd_part,
+  simpa using hn1,
 end
-
 
 /-- Let `a^e = 1 (mod p)`. (e.g. for prime `p` we have `a^(p-1) = 1` by Fermat's Little Theorem.)
 Let `s := e.factorization 2` and `d := odd_part e` as in the definition of `strong_probable_prime`.

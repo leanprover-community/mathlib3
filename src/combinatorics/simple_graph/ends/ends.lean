@@ -355,6 +355,11 @@ begin
   simpa only,
 end
 
+def eval_comm'  (Gpc: G.preconnected) (ℱ : fam) (K : ℱ.fam) :
+  (eval_for G Gpc ℱ K) ∘ (equiv_ends_for G Gpc ℱ) = eval G Gpc K.val := by {
+  apply funext,
+  rintros e, exact eval_comm G Gpc ℱ K e,}
+
 
 
 lemma eval_injective_for_up  (Gpc: G.preconnected)
@@ -373,6 +378,25 @@ begin
   assumption,
 end
 
+lemma eval_bijective_for_up [locally_finite G] (Gpc: G.preconnected)
+  (K : finset V)
+  (inj_from_K : ∀ L : finset V, K ⊆ L → injective (bwd_map G Gpc ‹K⊆L›)) :
+  bijective (eval_for G Gpc (fin_fam_up K) ⟨K,in_up K⟩) :=
+begin
+  split,
+  { exact eval_injective_for_up G Gpc K inj_from_K,},
+  { rintros C,
+    let f : Π (L : (fin_fam_up K).fam), inf_ro_components G L.val, by {
+      rintro ⟨L,KL⟩,
+      have : bijective (bwd_map G Gpc KL), from ⟨inj_from_K L KL,bwd_map_surjective G Gpc KL⟩,
+      exact (equiv.of_bijective _ this).inv_fun C,
+    },
+    use f,
+    { sorry },
+    { sorry }
+  }
+end
+
 
 /-
   This shows that if K is such that the "backward maps" to K are all injective, then so is
@@ -385,45 +409,20 @@ lemma eval_injective  (Gpc: G.preconnected)
   (inj_from_K : ∀ L : finset V, K ⊆ L → injective (bwd_map G Gpc ‹K⊆L›)) :
   injective (eval G Gpc K) :=
 begin
-  rintros e₁ e₂ same,
-  let f₁ := (equiv_ends_for G Gpc (fin_fam_up K)) e₁,
-  let f₂ := (equiv_ends_for G Gpc (fin_fam_up K)) e₂,
-  have : f₁ = f₂, by {
-    apply eval_injective_for_up G Gpc K inj_from_K,
-    rw [ eval_comm G Gpc (fin_fam_up K) ⟨K,in_up K⟩ e₁,
-         eval_comm G Gpc (fin_fam_up K) ⟨K,in_up K⟩ e₂],
-    exact same,
-  },
-  simpa only [embedding_like.apply_eq_iff_eq],
+  have eval_for_inj := eval_injective_for_up G Gpc K inj_from_K,
+  rw (eval_comm' G Gpc (fin_fam_up K)  ⟨K,le_refl K⟩).symm,
+  exact injective.comp eval_for_inj (equiv_ends_for G Gpc (fin_fam_up K)).bijective.injective,
 end
 
-lemma eval_injective'  (Gpc: G.preconnected)
-  (K : finset V)
-  (inj_from_K : ∀ L : finset V, K ⊆ L →
-                ∃ L' : finset V, ∃ hL : (L ⊆ L'),
-                injective (bwd_map G Gpc (‹K⊆L›.trans hL))) :
-  injective (eval G Gpc K) :=
-begin
-  /-
-    Idea:
-    By the above, need only to show that given L with K ⊆ L, we have injective (bwd_map G Gpc ‹K⊆L›).
-    But (bwd_map G Gpc ‹K⊆L›) ∘ (bwd_map G Gpc ‹L⊆L'›) = (bwd_map G Gpc ‹K⊆L'›)
-    Since the RHS is injective by our assumption, then so is (bwd_map G Gpc ‹K⊆L›) and we're happy.
-  -/
-  sorry
-end
 
-lemma eval_bijective  (Gpc: G.preconnected)
+lemma eval_bijective [locally_finite G] (Gpc: G.preconnected)
   (K : finset V)
   (inj_from_K : ∀ L : finset V, K ⊆ L → injective (bwd_map G Gpc ‹K⊆L›)) :
   bijective (eval G Gpc K) :=
 begin
-  split,
-  { exact eval_injective G Gpc K inj_from_K,},
-  { rintros ⟨C,Ccomp⟩,
-    -- TODO: one can construct an end by hand using preimages: there is no choice since injective
-    -- and things should behave well
-  }
+  have eval_for_bij := eval_bijective_for_up G Gpc K inj_from_K,
+  rw (eval_comm' G Gpc (fin_fam_up K)  ⟨K,le_refl K⟩).symm,
+  exact bijective.comp eval_for_bij (equiv_ends_for G Gpc (fin_fam_up K)).bijective,
 end
 
 

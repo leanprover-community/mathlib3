@@ -552,7 +552,7 @@ Auxiliary structure for setting up the recursion in `mk`.
 This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
 results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mk_struct :=
 (X₀ X₁ X₂ : V)
 (d₀ : X₁ ⟶ X₀)
@@ -745,7 +745,7 @@ Auxiliary structure for setting up the recursion in `mk`.
 This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
 results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mk_struct :=
 (X₀ X₁ X₂ : V)
 (d₀ : X₀ ⟶ X₁)

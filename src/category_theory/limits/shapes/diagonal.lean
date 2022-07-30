@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.kernel_pair
 
 /-!
 # The diagonal object of a morphism.
@@ -27,10 +28,10 @@ section diagonal
 
 variables (f : X ⟶ Y) [has_pullback f f]
 
-/-- The diagonal object of a morphism `f : X ⟶ Y` is `Δ_{Y/X} := pullback f f`. -/
+/-- The diagonal object of a morphism `f : X ⟶ Y` is `Δ_{X/Y} := pullback f f`. -/
 abbreviation diagonal_obj : C := pullback f f
 
-/-- The diagonal morphism `X ⟶ Δ_{Y/X}` for a morphism `f : X ⟶ Y`. -/
+/-- The diagonal morphism `X ⟶ Δ_{X/Y}` for a morphism `f : X ⟶ Y`. -/
 def diagonal : X ⟶ diagonal_obj f :=
 pullback.lift (𝟙 _) (𝟙 _) rfl
 
@@ -54,6 +55,11 @@ begin
   rw (is_iso.inv_eq_of_inv_hom_id (diagonal_fst f)).symm,
   apply_instance
 end
+
+/-- The two projections `Δ_{X/Y} ⟶ X` forms a kernel pair for `f : X ⟶ Y`. -/
+def diagonal_is_kernel_pair :
+  is_kernel_pair f (pullback.fst : diagonal_obj f ⟶ _) pullback.snd :=
+⟨pullback.condition, pullback_is_pullback _ _⟩
 
 end diagonal
 

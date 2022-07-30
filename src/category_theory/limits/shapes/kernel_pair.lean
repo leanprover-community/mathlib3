@@ -160,5 +160,44 @@ begin
     apply w }
 end
 
+/- If `a₁ a₂ : A ⟶ Y` is a kernel pair for `g : Y ⟶ Z`, then `a₁ ×[Z] X` and `a₂ ×[Z] X`
+(`A ×[Z] X ⟶ Y ×[Z] X`) is a kernel pair for `Y ×[Z] X ⟶ X`. -/
+protected noncomputable
+def pullback {X Y Z A : C} {g : Y ⟶ Z} {a₁ a₂ : A ⟶ Y}
+  (h : is_kernel_pair g a₁ a₂) (f : X ⟶ Z) [has_pullback f g] [has_pullback f (a₁ ≫ g)] :
+    is_kernel_pair (pullback.fst : pullback f g ⟶ X)
+      (pullback.map f _ f _ (𝟙 X) a₁ (𝟙 Z) (by simp) $ category.comp_id _)
+      (pullback.map _ _ _ _ (𝟙 X) a₂ (𝟙 Z) (by simp) $ (category.comp_id _).trans h.1) :=
+begin
+  fconstructor,
+  { rw [pullback.lift_fst, pullback.lift_fst] },
+  { fapply pullback_cone.is_limit_aux',
+    intro s,
+    refine ⟨pullback.lift (s.fst ≫ pullback.fst)
+      (h.lift' (s.fst ≫ pullback.snd) (s.snd ≫ pullback.snd) _).1 _, _, _, _⟩,
+    { simp_rw [category.assoc, ← pullback.condition, ← category.assoc, s.condition] },
+    { rw [← category.assoc, (h.lift' _ _ _).2.1, category.assoc,
+        category.assoc, pullback.condition] },
+    { rw limits.pullback_cone.mk_fst,
+      ext; simp only [category.assoc, pullback.lift_fst, pullback.lift_snd, pullback.lift_snd_assoc,
+        category.comp_id, (h.lift' _ _ _).2.1] },
+    { rw limits.pullback_cone.mk_snd,
+      ext; simp only [category.assoc, pullback.lift_fst, pullback.lift_snd, pullback.lift_snd_assoc,
+        category.comp_id, (h.lift' _ _ _).2.2, s.condition] },
+    { intros m h₁ h₂,
+      ext,
+      { rw pullback.lift_fst,
+        conv_rhs { rw [← h₁, category.assoc, pullback_cone.mk_fst] },
+        congr' 1,
+        refine ((pullback.lift_fst _ _ _).trans $ category.comp_id _).symm },
+      { rw pullback.lift_snd,
+        apply pullback_cone.is_limit.hom_ext h.2;
+          simp only [pullback_cone.mk_fst, pullback_cone.mk_snd, category.assoc,
+            (h.lift' _ _ _).2.1, (h.lift' _ _ _).2.2],
+        { conv_rhs { rw [← h₁, category.assoc, pullback_cone.mk_fst, pullback.lift_snd] } },
+        { conv_rhs { rw [← h₂, category.assoc, pullback_cone.mk_snd, pullback.lift_snd] } } } } }
+end
+
+
 end is_kernel_pair
 end category_theory

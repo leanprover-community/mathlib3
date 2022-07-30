@@ -116,8 +116,8 @@ begin
   simp [nat.factorization_mul _ hn0, prime_two.factorization],
 end
 
--- TODO: Find a better name for this!!
-lemma aux_fz {n : ℕ} (hn : odd n) (hn1 : n ≠ 1) : 0 < (n - 1).factorization 2 :=
+lemma factorization_two_pos_sub_one {n : ℕ} (hn : odd n) (hn1 : n ≠ 1) :
+  0 < (n - 1).factorization 2 :=
 begin
   rcases hn with ⟨k, rfl⟩,
   simp only [ne.def, add_left_eq_self, nat.mul_eq_zero, bit0_eq_zero, nat.one_ne_zero, false_or]
@@ -177,7 +177,7 @@ def nat.miller_rabin_witness (n : ℕ) (a : zmod n) : Prop :=
 
 /-- `n` is a **strong probable prime** relative to base `a : zmod n` iff
 `a` is not a Miller-Rabin witness for `n`. -/
-def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
+def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
   a^(odd_part (n-1)) = 1 ∨
   (∃ r : ℕ, r < (n-1).factorization 2 ∧ a^(2^r * odd_part(n-1)) = -1)
 
@@ -230,7 +230,7 @@ begin
     simp [mul_comm, pow_mul, h] },
   { intros h,
     cases h with h3 h4,
-    { left, simpa using h3 0 (aux_fz hn hn1) },
+    { left, simpa using h3 0 (factorization_two_pos_sub_one hn hn1) },
     { simp [h4] } },
 end
 
@@ -244,7 +244,7 @@ begin
   rw [←strong_probable_prime_iff_nonwitness,
       strong_probable_prime_iff_miller_rabin_sequence (-1 : zmod n) hn hn1,
       nat.mem_miller_rabin_sequence],
-  refine or.inr ⟨0, mem_range.2 (aux_fz hn hn1), _⟩,
+  refine or.inr ⟨0, mem_range.2 (factorization_two_pos_sub_one hn hn1), _⟩,
   obtain ⟨k, rfl⟩ := hn,
   apply odd.neg_one_pow,
   simp only [pow_zero, add_succ_sub_one, add_zero, one_mul],

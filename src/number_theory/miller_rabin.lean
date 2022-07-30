@@ -9,7 +9,6 @@ import group_theory.order_of_element
 import tactic.zify
 import data.nat.totient
 import data.zmod.basic
--- import number_theory.padics.padic_norm
 import field_theory.finite.basic
 import data.fintype.basic
 import algebra.big_operators.intervals

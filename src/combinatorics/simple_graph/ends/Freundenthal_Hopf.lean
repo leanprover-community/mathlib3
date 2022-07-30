@@ -79,7 +79,8 @@ begin
 
   have := (bij_inf_ro_components_of_isom G G K' φ).bijective,
   haveI : fintype ↥(inf_ro_components G K'), from ro_component.inf_components_finite G Gpc K',
-  haveI := fintype.of_bijective _ this,
+  --haveI := fintype.of_bijective _ this,
+  haveI : fintype ↥(inf_ro_components G φK'), from ro_component.inf_components_finite G Gpc φK',
   have lol2 := fintype.card_of_bijective this,
   have lol3 := fintype.card_le_of_surjective _ (bwd_map_surjective G Gpc (KKp.trans KK')),
   refine lt_of_lt_of_le inf_comp_K_large (lol3.trans (le_of_eq _)),

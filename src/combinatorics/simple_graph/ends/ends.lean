@@ -413,6 +413,18 @@ begin
   sorry
 end
 
+lemma eval_bijective  (Gpc: G.preconnected)
+  (K : finset V)
+  (inj_from_K : ∀ L : finset V, K ⊆ L → injective (bwd_map G Gpc ‹K⊆L›)) :
+  bijective (eval G Gpc K) :=
+begin
+  split,
+  { exact eval_injective G Gpc K inj_from_K,},
+  { rintros ⟨C,Ccomp⟩,
+    -- TODO: one can construct an end by hand using preimages: there is no choice since injective
+    -- and things should behave well
+  }
+end
 
 
 
@@ -503,8 +515,7 @@ lemma finite_ends_to_inj [locally_finite G] (Gpc : G.preconnected)  [fintype (en
 begin
   let v : V := Vnempty.some,
   let M := fintype.card (ends G Gpc),
-  haveI all_fin : ∀ K : finset V, fintype (inf_ro_components G K), from
-    λ K, fintype.of_surjective (eval G Gpc K) (eval_surjective G Gpc K),
+  haveI all_fin : ∀ K : finset V, fintype (inf_ro_components G K), from λ K, inf_components_finite' G Gpc K,
   have all_le_M := λ K, fintype.card_le_of_surjective (eval G Gpc K) (eval_surjective G Gpc K),
   have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_ro_components G  K') ≤ fintype.card (inf_ro_components G K), by {
     let cards := set.range (λ K, fintype.card (inf_ro_components G K)),

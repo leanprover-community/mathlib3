@@ -84,7 +84,7 @@ begin
   have lol2 := fintype.card_of_bijective this,
   have lol3 := fintype.card_le_of_surjective _ (bwd_map_surjective G Gpc (KKp.trans KK')),
   refine lt_of_lt_of_le inf_comp_K_large (lol3.trans (le_of_eq _)),
-  -- exact lol2, -- CONFUSION!!!!
+  -- exact lol2, -- confusion still
   sorry,
 end
 

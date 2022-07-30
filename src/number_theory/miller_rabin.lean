@@ -278,6 +278,33 @@ begin
     { exact or.inr ⟨i, lt_add_one i, h2⟩ } },
 end
 
+
+-- An alternative proof of `strong_probable_prime_of_prime` not using `repeated_halving_of_exponent`
+/-- Every actual prime is a `strong_probable_prime` relative to any non-zero base `a`. -/
+lemma strong_probable_prime_of_prime' (p : ℕ) (pp : p.prime) (a : zmod p) (ha0 : a ≠ 0) :
+  strong_probable_prime p a :=
+begin
+  rcases prime.eq_two_or_odd' pp with rfl | hp,
+  { fin_cases a,
+    { simpa using ha0 },
+    { simpa [strong_probable_prime, odd_part] } },
+  haveI : fact (p.prime) := fact_iff.2 pp,
+  have fermat := zmod.pow_card_sub_one_eq_one ha0,
+  unfold strong_probable_prime,
+  rw [←even_part_mul_odd_part (p-1), mul_comm, pow_mul, even_part] at fermat,
+  revert fermat,
+  induction (p-1).factorization 2 with i IH, { simp },
+  intro fermat,
+  rw [pow_succ, pow_mul'] at fermat,
+  cases (square_roots_of_one fermat) with h1 h2,
+  { rcases (IH h1) with h3 | ⟨r', hr', har'⟩, { simp [h3] },
+    exact or.inr ⟨r', nat.lt.step hr', har'⟩ },
+  { rw [←pow_mul, mul_comm] at h2,
+    refine or.inr ⟨i, lt_add_one i, h2⟩ } ,
+end
+
+
+
 /-- Every actual prime is a `strong_probable_prime` relative to any non-zero base `a`. -/
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
   strong_probable_prime p a  :=
@@ -285,6 +312,14 @@ begin
   rw strong_probable_prime,
   apply repeated_halving_of_exponent (zmod.pow_card_sub_one_eq_one ha),
 end
+
+
+
+
+
+#exit
+
+
 
 /-- Fermat's Little Theorem says that this property holds for all primes.
 Note that elsewhere the word "pseudoprime" is often reserved for numbers that are not actual primes.

@@ -119,8 +119,10 @@ end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
+/-- The greatest multiple of 2 that divides `n`. -/
 def even_part (n : ℕ) := ord_proj[2] n
 
+/-- The greatest odd divisor of `n`. -/
 def odd_part (n : ℕ) := ord_compl[2] n
 
 @[simp] lemma odd_part_zero : odd_part 0 = 0 := rfl

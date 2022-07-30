@@ -233,7 +233,7 @@ instance : boolean_algebra (simple_graph V) :=
 
 @[simp] lemma empty_graph_eq_bot (V : Type u) : empty_graph V = ⊥ := rfl
 
-instance (V : Type u) : inhabited (simple_graph V) := ⟨⊤⟩
+@[simps] instance (V : Type u) : inhabited (simple_graph V) := ⟨⊥⟩
 
 section decidable
 
@@ -320,7 +320,7 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 /-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
 This terminology comes from combinatorial maps, and they are also known as "half-edges"
 or "bonds." -/
-@[ext, derive decidable_eq]
+@[ext, derive decidable_eq, nolint has_nonempty_instance]
 structure dart extends V × V :=
 (is_adj : G.adj fst snd)
 
@@ -399,9 +399,6 @@ to the darts `d` with `d.fst = v`. --/
 
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, subtype.ext $ by { injection h with h', convert congr_arg prod.snd h' }
-
-instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
-  inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩
 
 end darts
 

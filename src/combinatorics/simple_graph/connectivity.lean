@@ -82,7 +82,7 @@ inductive walk : V → V → Type u
 
 attribute [refl] walk.nil
 
-instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
+@[simps] instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨walk.nil⟩
 
 namespace walk
 variables {G}
@@ -1131,7 +1131,7 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
+@[simps] instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_mk default⟩
 
 section connected_component

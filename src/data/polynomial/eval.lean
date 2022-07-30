@@ -86,7 +86,7 @@ begin
   simp [mul_sum, mul_assoc],
 end
 
-@[simp] lemma eval₂_C_X : eval₂ C X p = p :=
+@[simp] lemma eval₂_C_X : p.eval₂ C X = p :=
 polynomial.induction_on' p (λ p q hp hq, by simp [hp, hq])
   (λ n x, by rw [eval₂_monomial, monomial_eq_smul_X, C_mul'])
 
@@ -127,16 +127,13 @@ lemma eval₂_finset_sum (s : finset ι) (g : ι → R[X]) (x : S) :
   (∑ i in s, g i).eval₂ f x = ∑ i in s, (g i).eval₂ f x :=
 map_sum (eval₂_add_monoid_hom f x) _ _
 
-lemma eval₂_of_finsupp {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
-  eval₂ f x (⟨p⟩ : R[X]) = lift_nc ↑f (powers_hom S x) p :=
-by { simp only [eval₂_eq_sum, sum, to_finsupp_sum, support, coeff], refl }
+lemma eval₂_eq_lift_nc {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
+  eval₂ f x (p : R[X]) = lift_nc ↑f (powers_hom S x) p := rfl
 
 lemma eval₂_mul_noncomm (hf : ∀ k, commute (f $ q.coeff k) x) :
   eval₂ f x (p * q) = eval₂ f x p * eval₂ f x q :=
 begin
-  rcases p, rcases q,
-  simp only [coeff] at hf,
-  simp only [←of_finsupp_mul, eval₂_of_finsupp],
+  simp only [eval₂_eq_lift_nc],
   exact lift_nc_mul _ _ p q (λ k n hn, (hf k).pow_right n)
 end
 
@@ -232,7 +229,7 @@ def eval₂_ring_hom (f : R →+* S) (x : S) : R[X] →+* S :=
 
 @[simp] lemma coe_eval₂_ring_hom (f : R →+* S) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 
-lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom _ _).map_pow _ _
+lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom f x).map_pow _ _
 
 lemma eval₂_dvd : p ∣ q → eval₂ f x p ∣ eval₂ f x q :=
 (eval₂_ring_hom f x).map_dvd

@@ -27,31 +27,9 @@ variables [comm_semiring R] {p q r : R[X]}
 
 variables [semiring A] [algebra R A]
 
-/-- Note that this instance also provides `algebra R R[X]`. -/
-instance algebra_of_algebra : algebra R (polynomial A) :=
-{ smul_def' := λ r p, to_finsupp_injective $ begin
-    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
-    rw [to_finsupp_smul, to_finsupp_mul, to_finsupp_C],
-    exact algebra.smul_def' _ _,
-  end,
-  commutes' := λ r p, to_finsupp_injective $ begin
-    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
-    simp_rw [to_finsupp_mul, to_finsupp_C],
-    convert algebra.commutes' r p.to_finsupp,
-  end,
-  to_ring_hom := C.comp (algebra_map R A) }
-
 lemma algebra_map_apply (r : R) :
   algebra_map R (polynomial A) r = C (algebra_map R A r) :=
 rfl
-
-@[simp] lemma to_finsupp_algebra_map (r : R) :
-  (algebra_map R (polynomial A) r).to_finsupp = algebra_map R _ r :=
-show to_finsupp (C (algebra_map _ _ r)) = _, by { rw to_finsupp_C, refl }
-
-lemma of_finsupp_algebra_map (r : R) :
-  (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R (polynomial A) r :=
-to_finsupp_injective (to_finsupp_algebra_map _).symm
 
 /--
 When we have `[comm_semiring R]`, the function `C` is the same as `algebra_map R R[X]`.
@@ -75,21 +53,6 @@ variables {R}
   (h₂ : f X = g X) : f = g :=
 alg_hom.coe_ring_hom_injective (polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
-
-variable (R)
-
-/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
-implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
-@[simps]
-def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
-{ commutes' := λ r,
-  begin
-    dsimp,
-    exact to_finsupp_algebra_map _,
-  end,
-  ..to_finsupp_iso R }
-
-variable {R}
 
 instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
 ⟨⟨⊥, ⊤, begin
@@ -122,7 +85,7 @@ begin
   conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
   dsimp [eval₂, sum],
   simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
-  simp [polynomial.C_eq_algebra_map],
+  simp [polynomial.C_eq_algebra_map, - add_monoid_algebra.coe_algebra_map],
 end
 
 -- these used to be about `algebra_map ℤ R`, but now the simp-normal form is `int.cast_ring_hom R`.

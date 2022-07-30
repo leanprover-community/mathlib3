@@ -22,10 +22,7 @@ variables [semiring R] {p q r : R[X]}
 
 lemma monomial_one_eq_iff [nontrivial R] {i j : ℕ} :
   (monomial i 1 : R[X]) = monomial j 1 ↔ i = j :=
-begin
-  simp_rw [←of_finsupp_single],
-  exact add_monoid_algebra.of_injective.eq_iff
-end
+add_monoid_algebra.of_injective.eq_iff
 
 instance [nontrivial R] : infinite R[X] :=
 infinite.of_injective (λ i, monomial i 1) $
@@ -55,21 +52,9 @@ end
 lemma ring_hom_ext {S} [semiring S] {f g : R[X] →+* S}
   (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=
 begin
-  set f' := f.comp (to_finsupp_iso R).symm.to_ring_hom with hf',
-  set g' := g.comp (to_finsupp_iso R).symm.to_ring_hom with hg',
-  have A : f' = g',
-  { ext,
-    { simp [h₁, ring_equiv.to_ring_hom_eq_coe] },
-    { simpa [ring_equiv.to_ring_hom_eq_coe] using h₂, } },
-  have B : f = f'.comp (to_finsupp_iso R),
-    by { rw [hf', ring_hom.comp_assoc], ext x, simp only [ring_equiv.to_ring_hom_eq_coe,
-      ring_equiv.symm_apply_apply, function.comp_app, ring_hom.coe_comp,
-      ring_equiv.coe_to_ring_hom] },
-  have C : g = g'.comp (to_finsupp_iso R),
-    by { rw [hg', ring_hom.comp_assoc], ext x, simp only [ring_equiv.to_ring_hom_eq_coe,
-      ring_equiv.symm_apply_apply, function.comp_app, ring_hom.coe_comp,
-      ring_equiv.coe_to_ring_hom] },
-  rw [B, C, A]
+  ext,
+  { simp [h₁, ← monomial_def], },
+  { simpa using h₂, }
 end
 
 @[ext] lemma ring_hom_ext' {S} [semiring S] {f g : R[X] →+* S}

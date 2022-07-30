@@ -272,7 +272,6 @@ lemma sum_over_range' [add_comm_monoid S] (p : R[X]) {f : ℕ → R → S} (h : 
   (n : ℕ) (w : p.nat_degree < n) :
   p.sum f = ∑ (a : ℕ) in range n, f a (coeff p a) :=
 begin
-  rcases p,
   have := supp_subset_range w,
   simp only [polynomial.sum, support, coeff, nat_degree, degree] at ⊢ this,
   exact finsupp.sum_of_support_subset _ this _ (λ n hn, h n)
@@ -550,7 +549,7 @@ le_antisymm (degree_add_le _ _) $
   end
 
 lemma degree_erase_le (p : R[X]) (n : ℕ) : degree (p.erase n) ≤ degree p :=
-by { rcases p, simp only [erase, degree, coeff, support], convert sup_mono (erase_subset _ _) }
+by convert sup_mono (erase_subset _ _)
 
 lemma degree_erase_lt (hp : p ≠ 0) : degree (p.erase (nat_degree p)) < degree p :=
 begin
@@ -582,7 +581,6 @@ calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i
     begin
       simp only [monomial_eq_C_mul_X.symm],
       convert degree_sum_le _ _,
-      exact mul_eq_sum_sum
     end
   ... ≤ p.support.sup (λi, q.support.sup (λj, degree (C (coeff p i * coeff q j) * X ^ (i + j)))) :
     finset.sup_mono_fun (assume i hi,  degree_sum_le _ _)

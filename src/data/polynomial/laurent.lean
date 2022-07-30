@@ -85,21 +85,18 @@ local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
 def polynomial.to_laurent [semiring R] : R[X] →+* R[T;T⁻¹] :=
-(map_domain_ring_hom R int.of_nat_hom).comp (to_finsupp_iso R)
+map_domain_ring_hom R int.of_nat_hom
 
 /-- This is not a simp lemma, as it is usually preferable to use the lemmas about `C` and `X`
 instead. -/
 lemma polynomial.to_laurent_apply [semiring R] (p : R[X]) :
-  p.to_laurent = p.to_finsupp.map_domain coe := rfl
+  p.to_laurent = p.map_domain coe := rfl
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
 def polynomial.to_laurent_alg [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
-begin
-  refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (map_domain_alg_hom R R int.of_nat_hom),
-end
+map_domain_alg_hom R R int.of_nat_hom
 
 @[simp]
 lemma polynomial.to_laurent_alg_apply [comm_semiring R] (f : R[X]) :
@@ -168,8 +165,8 @@ by convert single_mul_single.symm; simp
 @[simp]
 lemma _root_.polynomial.to_laurent_C_mul_T (n : ℕ) (r : R) :
   ((polynomial.monomial n r).to_laurent : R[T;T⁻¹]) = C r * T n :=
-show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
-by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
+show map_domain coe (monomial n r) = (C r * T n : R[T;T⁻¹]),
+by rw [monomial_def, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
 lemma _root_.polynomial.to_laurent_C (r : R) :
@@ -271,23 +268,18 @@ lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 nonnegative degree coincide with the ones of `f`.  The terms of negative degree of `f` "vanish".
 `trunc` is a left-inverse to `polynomial.to_laurent`. -/
 def trunc : R[T;T⁻¹] →+ R[X] :=
-((to_finsupp_iso R).symm.to_add_monoid_hom).comp $
-  comap_domain.add_monoid_hom $ λ a b, int.of_nat.inj
+comap_domain.add_monoid_hom $ λ a b, int.of_nat.inj
 
 @[simp]
 lemma trunc_C_mul_T (n : ℤ) (r : R) : trunc (C r * T n) = ite (0 ≤ n) (monomial n.to_nat r) 0 :=
 begin
-  apply (to_finsupp_iso R).injective,
-  rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
-    comap_domain.add_monoid_hom_apply, to_finsupp_iso_apply],
+  rw [← single_eq_C_mul_T, trunc, comap_domain.add_monoid_hom_apply],
   by_cases n0 : 0 ≤ n,
   { lift n to ℕ using n0,
-    erw [comap_domain_single, to_finsupp_iso_symm_apply],
-    simp only [int.coe_nat_nonneg, int.to_nat_coe_nat, if_true, to_finsupp_iso_apply,
-      to_finsupp_monomial] },
+    erw [comap_domain_single],
+    simpa only [int.coe_nat_nonneg, int.to_nat_coe_nat, if_true] },
   { lift (- n) to ℕ using (neg_pos.mpr (not_le.mp n0)).le with m,
-    rw [to_finsupp_iso_apply, to_finsupp_inj, if_neg n0],
-    erw to_finsupp_iso_symm_apply,
+    rw [if_neg n0],
     ext a,
     have := ((not_le.mp n0).trans_le (int.coe_zero_le a)).ne',
     simp only [coeff, comap_domain_apply, int.of_nat_eq_coe, coeff_zero, single_apply_eq_zero, this,
@@ -380,10 +372,10 @@ begin
   generalize' hd : f.support = s,
   revert f,
   refine finset.induction_on s _ _; clear s,
-  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, eq_self_iff_true,
+  { simp only [support_eq_empty, map_zero, finsupp.support_zero, eq_self_iff_true,
       implies_true_iff, finset.map_empty] {contextual := tt} },
   { intros a s as hf f fs,
-    have : (erase a f).to_laurent.support = s.map nat.cast_embedding := hf (f.erase a) (by simp only
+    have : (f.erase a).to_laurent.support = s.map nat.cast_embedding := hf (f.erase a) (by simp only
       [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
     rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
       polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],

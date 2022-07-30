@@ -630,7 +630,7 @@ end
 
 lemma adjoin.finite_dimensional_of_finite_set {K L : Type*} [field K] [field L] [algebra K L]
   {S : set L} (hS : S.finite) (h_int : ∀ x ∈ S, is_integral K x) :
-finite_dimensional K (intermediate_field.adjoin K S) :=
+  finite_dimensional K (intermediate_field.adjoin K S) :=
 begin
   rw ←hS.coe_to_finset,
   refine intermediate_field.induction_on_adjoin_finset hS.to_finset

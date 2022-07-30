@@ -357,11 +357,15 @@ end simple_graph
 
 namespace finset
 
-lemma bInter_of_chain_of_nonempty
-  {α : Type*}
-  (S : set (finset α))
-  (Snempty : S.nonempty)
-  (Sallnempty : ∀ s ∈ S, finset.nonempty s)
-  (Schain : is_chain finset.has_subset.subset S) : finset.nonempty (⋂₀ S) := sorry
+def bInter {α : Type*} (S : set (finset α)) (Snempty : S.nonempty) : finset α :=
+{x ∈ Snempty.some | ∀ s ∈ S, x ∈ s}
+
+lemma mem_bInter_iff {α : Type*} (S : set (finset α)) (Snempty : S.nonempty) (x : α) :
+x ∈ (bInter S Snempty) ↔ (∀ s ∈ S, x ∈ s) :=
+begin
+  split,
+  {rintro xI s sS, unfold bInter at xI, simp at xI, exact xI.2 s sS,},
+  {rintro good, unfold bInter, simp, use good Snempty.some Snempty.some_spec, exact good,}
+end
 
 end finset

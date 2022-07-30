@@ -79,7 +79,7 @@ section
 Let `x` be a prime ideal, then `num_denom_same_deg 𝒜 x` is a structure with a numerator and a
 denominator with same grading such that the denominator is not contained in `x`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure num_denom_same_deg :=
 (deg : ι)
 (num denom : 𝒜 deg)
@@ -214,7 +214,7 @@ For `x : prime ideal of A`, `homogeneous_localization 𝒜 x` is `num_denom_same
 kernel of `embedding 𝒜 x`. This is essentially the subring of `Aₓ` where the numerator and
 denominator share the same grading.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def homogeneous_localization : Type* :=
 quotient (setoid.ker $ homogeneous_localization.num_denom_same_deg.embedding 𝒜 x)
 

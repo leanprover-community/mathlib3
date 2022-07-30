@@ -831,7 +831,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)

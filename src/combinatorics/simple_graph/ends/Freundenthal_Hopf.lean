@@ -40,10 +40,10 @@ variables  {V : Type u}
   As long as K has at least three infinite connected components, then so does K', and
   bwd_map ‹K'⊆L› is not injective, hence the graph has more than three ends.
 -/
-lemma good_autom_bwd_map_not_inj [locally_finite G] (Gpc : G.preconnected)
+lemma good_autom_bwd_map_not_inj [locally_finite G]  (Gpc : G.preconnected)
   (auts : ∀ K :finset V, ∃ φ : G ≃g G, disjoint K (finset.image φ K))
-  (K : finset V) (Knempty : K.nonempty)
-  (inf_comp_K_large : @fintype.card (inf_ro_components G K) (ro_component.inf_components_finite G Gpc K) ≥ 3) :
+  (K : finset V) (Knempty : K.nonempty) [fintype (inf_ro_components G K)]
+  (inf_comp_K_large : 2 < fintype.card (inf_ro_components G K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),  ¬ injective (bwd_map G Gpc ‹K' ⊆ L›) :=
 begin
   rcases extend_to_subconnected G Gpc K (nonempty.intro Knempty.some) with ⟨Kp,KKp,Kpconn⟩ ,
@@ -56,14 +56,12 @@ begin
   let L := K' ∪ φK',
   use [K',L,KKp.trans KK',finset.subset_union_left  K' (φK')],
 
-
   have φK'conn : subconnected G φK' := begin
     have := simple_graph.subconnected.image G G φ K'conn,
     simp only [coe_coe, rel_embedding.coe_coe_fn, rel_iso.coe_coe_fn, coe_image] at this,
     simp only [coe_image],
     exact this,
   end,
-
 
   rcases of_subconnected_disjoint G K' φK' φK'nempty (finset.disjoint_coe.mpr φgood.symm) φK'conn with ⟨E,Ecomp,Esub⟩,
   rcases of_subconnected_disjoint G φK' K' K'nempty (finset.disjoint_coe.mpr φgood) K'conn with ⟨F,Fcomp,Fsub⟩,
@@ -77,13 +75,15 @@ begin
     exact (infmapsto ⟨F₀comp,F₀inf⟩).2,
 },
 
-  apply @nicely_arranged_bwd_map_not_inj V G _ Gpc φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
+  apply nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'nempty) (K'nempty) ⟨F,Fcomp,Finf⟩ _ ⟨E,Ecomp,Einf⟩ Esub Fsub,
 
   have := (bij_inf_ro_components_of_isom G G K' φ).bijective,
-  --fintype.card_of_bijective
-  have lol := @fintype.of_bijective _ _ (ro_component.inf_components_finite G Gpc K')  _ this,
-  have lol2 := @fintype.card_of_bijective _ _ (ro_component.inf_components_finite G Gpc K') lol _ this,
-  -- confusion :
+  haveI : fintype ↥(inf_ro_components G K'), from ro_component.inf_components_finite G Gpc K',
+  haveI := fintype.of_bijective _ this,
+  have lol2 := fintype.card_of_bijective this,
+  have lol3 := fintype.card_le_of_surjective _ (bwd_map_surjective G Gpc (KKp.trans KK')),
+  refine lt_of_lt_of_le inf_comp_K_large (lol3.trans (le_of_eq _)),
+  -- exact lol2, -- CONFUSION!!!!
   sorry,
 end
 
@@ -94,23 +94,23 @@ lemma Freudenthal_Hopf [locally_finite G] (Gpc: G.preconnected) [nonempty V]
   (fintype.card (ends G Gpc)) ≤ 2 :=
 begin
 
-
   by_contradiction h,
-  have many_ends : 3 ≤ (fintype.card (ends G Gpc)) := (nat.succ_le_iff.mpr (not_le.mp h)),
+
+  have many_ends : 2 < (fintype.card (ends G Gpc)) := (not_le.mp h),
   rcases finite_ends_to_inj G Gpc with ⟨K,Knempty,Kinj⟩,
 
   haveI : fintype ↥(inf_ro_components G K), from ro_component.inf_components_finite G Gpc K,
 
-  have : 3 ≤ fintype.card ↥(inf_ro_components G K), by {
+  have : 2 < fintype.card ↥(inf_ro_components G K), by {
     have := fintype.card_le_of_injective (eval G Gpc K) (eval_injective G Gpc K Kinj),
-    exact many_ends.trans this,
+    exact lt_of_lt_of_le many_ends this,
   },
 
-  rcases (good_autom_bwd_map_not_inj G Gpc auts K Knempty this.ge) with ⟨K',L,hK',hL,bwd_K_not_inj⟩,
+  rcases (good_autom_bwd_map_not_inj G Gpc auts K Knempty this) with ⟨K',L,hK',hL,bwd_K_not_inj⟩,
 
-  have : injective (bwd_map G hL) := by {
+  have : injective (bwd_map G Gpc hL) := by {
     let llo := Kinj  L (hK'.trans hL),
-    rw ((bwd_map_comp G hK' hL).symm) at llo,
+    rw ((bwd_map_comp G Gpc hK' hL).symm) at llo,
     exact injective.of_comp llo,
   },
   exact bwd_K_not_inj this,

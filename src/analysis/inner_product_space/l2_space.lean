@@ -293,7 +293,7 @@ hFortho.is_hilbert_sum
 i.e `lp G 2`.
 
 Note that this goes in the opposite direction from `orthogonal_family.linear_isometry`. -/
-noncomputable def is_hilbert_sum.linear_isometry_equiv [Π i, complete_space (G i)]
+noncomputable def is_hilbert_sum.linear_isometry_equiv
   (hV : is_hilbert_sum 𝕜 E V) :
   E ≃ₗᵢ[𝕜] lp G 2 :=
 linear_isometry_equiv.symm $
@@ -302,7 +302,7 @@ hV.orthogonal_family.linear_isometry hV.surjective_isometry
 
 /-- In the canonical isometric isomorphism between a Hilbert sum `E` of `G` and `lp G 2`,
 a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`. -/
-protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply [Π i, complete_space (G i)]
+protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply
   (hV : is_hilbert_sum 𝕜 E V) (w : lp G 2) :
   hV.linear_isometry_equiv.symm w = ∑' i, V i (w i) :=
 by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry_apply]
@@ -310,8 +310,8 @@ by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry
 /-- In the canonical isometric isomorphism between a Hilbert sum `E` of `G` and `lp G 2`,
 a vector `w : lp G 2` is the image of the infinite sum of the associated elements in `E`, and this
 sum indeed converges. -/
-protected lemma is_hilbert_sum.has_sum_linear_isometry_equiv_symm [Π i, complete_space (G i)]
-  (hV : is_hilbert_sum 𝕜 E V) (w : lp G 2) (w : lp G 2) :
+protected lemma is_hilbert_sum.has_sum_linear_isometry_equiv_symm
+  (hV : is_hilbert_sum 𝕜 E V) (w : lp G 2) :
   has_sum (λ i, V i (w i)) (hV.linear_isometry_equiv.symm w) :=
 by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.has_sum_linear_isometry]
 
@@ -319,7 +319,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.has_sum_linear_
 `lp G 2`, an "elementary basis vector" in `lp G 2` supported at `i : ι` is the image of the
 associated element in `E`. -/
 @[simp] protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply_single
-  [Π i, complete_space (G i)] (hV : is_hilbert_sum 𝕜 E V) {i : ι} (x : G i) :
+  (hV : is_hilbert_sum 𝕜 E V) {i : ι} (x : G i) :
   hV.linear_isometry_equiv.symm (lp.single 2 i x) = V i x :=
 by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry_apply_single]
 
@@ -327,7 +327,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv, orthogonal_family.linear_isometry
 `lp G 2`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
 elements of `E`. -/
 @[simp] protected lemma is_hilbert_sum.linear_isometry_equiv_symm_apply_dfinsupp_sum_single
-  [Π i, complete_space (G i)] (hV : is_hilbert_sum 𝕜 E V) (W₀ : Π₀ (i : ι), G i) :
+  (hV : is_hilbert_sum 𝕜 E V) (W₀ : Π₀ (i : ι), G i) :
   hV.linear_isometry_equiv.symm (W₀.sum (lp.single 2)) = (W₀.sum (λ i, V i)) :=
 by simp [is_hilbert_sum.linear_isometry_equiv,
   orthogonal_family.linear_isometry_apply_dfinsupp_sum_single]
@@ -336,7 +336,7 @@ by simp [is_hilbert_sum.linear_isometry_equiv,
 `lp G 2`, a finitely-supported vector in `lp G 2` is the image of the associated finite sum of
 elements of `E`. -/
 @[simp] protected lemma is_hilbert_sum.linear_isometry_equiv_apply_dfinsupp_sum_single
-  [Π i, complete_space (G i)] (hV : is_hilbert_sum 𝕜 E V) (W₀ : Π₀ (i : ι), G i) :
+  (hV : is_hilbert_sum 𝕜 E V) (W₀ : Π₀ (i : ι), G i) :
   (hV.linear_isometry_equiv (W₀.sum (λ i, V i)) : Π i, G i) = W₀ :=
 begin
   rw ← hV.linear_isometry_equiv_symm_apply_dfinsupp_sum_single,

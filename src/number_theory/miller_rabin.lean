@@ -100,7 +100,10 @@ begin
   rw [←IH, ←nat.sq_sub_sq', one_pow, ←pow_mul, mul_comm],
 end
 
-example (x k e : ℕ) : x ^ (2^e * k) - 1 = (x^k - 1) *  ∏ i in Ico 0 e, (x^(2^i * k) + 1) :=
+-- TODO: Find a better name for this!
+protected
+lemma factorize_poly (x k e : ℕ) :
+  x ^ (2^e * k) - 1 = (x^k - 1) *  ∏ i in Ico 0 e, (x^(2^i * k) + 1) :=
 begin
   rw [mul_comm, pow_mul, factorise_pow_two_pow_sub_one (x^k) e],
   apply congr_arg,

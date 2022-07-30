@@ -376,7 +376,7 @@ lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint)
   (f : box ι → M) :
   ∑ J in (of_with_bot boxes le_of_mem pairwise_disjoint).boxes, f J =
-    ∑ J in boxes, option.elim J 0 f :=
+    ∑ J in boxes, option.elim 0 f J :=
 finset.sum_erase_none _ _
 
 /-- Restrict a prepartition to a box. -/

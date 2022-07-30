@@ -46,19 +46,21 @@ diffeomorphism, manifold
 open_locale manifold topological_space
 open function set
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G]
+{G' : Type*} [topological_space G']
 {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
-{J : model_with_corners 𝕜 F G}
+{J : model_with_corners 𝕜 F G} {J' : model_with_corners 𝕜 F G'}
 
 variables {M : Type*} [topological_space M] [charted_space H M]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {N : Type*} [topological_space N] [charted_space G N]
+{N' : Type*} [topological_space N'] [charted_space G' N']
 {n : with_top ℕ}
 
 section defs
@@ -68,7 +70,7 @@ variables (I I' M M' n)
 /--
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure diffeomorph extends M ≃ M' :=
 (cont_mdiff_to_fun  : cont_mdiff I I' n to_equiv)
 (cont_mdiff_inv_fun : cont_mdiff I' I n to_equiv.symm)
@@ -257,6 +259,46 @@ lemma to_local_homeomorph_mdifferentiable (h : M ≃ₘ^n⟮I, J⟯ N) (hn : 1 �
   h.to_homeomorph.to_local_homeomorph.mdifferentiable I J :=
 ⟨h.mdifferentiable_on _ hn, h.symm.mdifferentiable_on _ hn⟩
 
+section constructions
+
+/-- Product of two diffeomorphisms. -/
+def prod_congr (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : N ≃ₘ^n⟮J, J'⟯ N') :
+  M × N ≃ₘ^n⟮I.prod J, I'.prod J'⟯ M' × N' :=
+{ cont_mdiff_to_fun  := (h₁.cont_mdiff.comp cont_mdiff_fst).prod_mk
+    (h₂.cont_mdiff.comp cont_mdiff_snd),
+  cont_mdiff_inv_fun := (h₁.symm.cont_mdiff.comp cont_mdiff_fst).prod_mk
+    (h₂.symm.cont_mdiff.comp cont_mdiff_snd),
+  to_equiv := h₁.to_equiv.prod_congr h₂.to_equiv }
+
+@[simp] lemma prod_congr_symm (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : N ≃ₘ^n⟮J, J'⟯ N') :
+  (h₁.prod_congr h₂).symm = h₁.symm.prod_congr h₂.symm := rfl
+
+@[simp] lemma coe_prod_congr (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : N ≃ₘ^n⟮J, J'⟯ N') :
+  ⇑(h₁.prod_congr h₂) = prod.map h₁ h₂ := rfl
+
+section
+variables (I J J' M N N' n)
+
+/-- `M × N` is diffeomorphic to `N × M`. -/
+def prod_comm : M × N ≃ₘ^n⟮I.prod J, J.prod I⟯ N × M :=
+{ cont_mdiff_to_fun  := cont_mdiff_snd.prod_mk cont_mdiff_fst,
+  cont_mdiff_inv_fun := cont_mdiff_snd.prod_mk cont_mdiff_fst,
+  to_equiv := equiv.prod_comm M N }
+
+@[simp] lemma prod_comm_symm : (prod_comm I J M N n).symm = prod_comm J I N M n := rfl
+@[simp] lemma coe_prod_comm : ⇑(prod_comm I J M N n) = prod.swap := rfl
+
+/-- `(M × N) × N'` is diffeomorphic to `M × (N × N')`. -/
+def prod_assoc : (M × N) × N' ≃ₘ^n⟮(I.prod J).prod J', I.prod (J.prod J')⟯ M × (N × N') :=
+{ cont_mdiff_to_fun  := (cont_mdiff_fst.comp cont_mdiff_fst).prod_mk
+    ((cont_mdiff_snd.comp cont_mdiff_fst).prod_mk cont_mdiff_snd),
+  cont_mdiff_inv_fun := (cont_mdiff_fst.prod_mk (cont_mdiff_fst.comp cont_mdiff_snd)).prod_mk
+    (cont_mdiff_snd.comp cont_mdiff_snd),
+  to_equiv := equiv.prod_assoc M N N' }
+
+end
+end constructions
+
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners J N]
 
 lemma unique_mdiff_on_image_aux (h : M ≃ₘ^n⟮I, J⟯ N) (hn : 1 ≤ n)
@@ -356,7 +398,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
 { to_equiv := equiv.refl M,
   cont_mdiff_to_fun := λ x,
     begin
-      refine cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+      refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
       { simp only [equiv.coe_refl, id, (∘), I.coe_ext_chart_at_trans_diffeomorph,
           (ext_chart_at I x).right_inv hy.1] },
@@ -365,7 +407,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
     end,
   cont_mdiff_inv_fun := λ x,
     begin
-      refine cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+      refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.symm.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
       { simp only [mem_inter_eq, I.ext_chart_at_trans_diffeomorph_target] at hy,
         simp only [equiv.coe_refl, equiv.refl_symm, id, (∘),

@@ -423,6 +423,9 @@ p.mod_two_eq_zero_or_one.imp_left
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
 
+lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
+
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
 begin
@@ -510,7 +513,7 @@ lemma factors_chain' (n) : list.chain' (≤) (factors n) :=
 @list.chain'.tail _ _ (_::_) (factors_chain_2 _)
 
 lemma factors_sorted (n : ℕ) : list.sorted (≤) (factors n) :=
-(list.chain'_iff_pairwise (@le_trans _ _)).1 (factors_chain' _)
+list.chain'_iff_pairwise.1 (factors_chain' _)
 
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
@@ -1027,7 +1030,7 @@ factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)
 
 lemma factors_helper_end (n : ℕ) (l : list ℕ) (H : factors_helper n 2 l) : nat.factors n = l :=
 let ⟨h₁, h₂, h₃⟩ := H nat.prime_two in
-have _, from (list.chain'_iff_pairwise (@le_trans _ _)).1 (@list.chain'.tail _ _ (_::_) h₁),
+have _, from list.chain'_iff_pairwise.1 (@list.chain'.tail _ _ (_::_) h₁),
 (list.eq_of_perm_of_sorted (nat.factors_unique h₃ h₂) this (nat.factors_sorted _)).symm
 
 /-- Given `n` and `a` natural numerals, returns `(l, ⊢ factors_helper n a l)`. -/
@@ -1192,15 +1195,3 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
-
-section
-open finset
-/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
-lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
-begin
-  induction n with n hn,
-  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
-  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
-      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
-end
-end

@@ -180,7 +180,7 @@ lemma _root_.is_closed.polish_space {α : Type*} [topological_space α] [polish_
 
 /-- A sequence of type synonyms of a given type `α`, useful in the proof of
 `exists_polish_space_forall_le` to endow each copy with a different topology. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def aux_copy (α : Type*) {ι : Type*} (i : ι) : Type* := α
 
 /-- Given a Polish space, and countably many finer Polish topologies, there exists another Polish
@@ -259,7 +259,7 @@ variables [metric_space α] {s : set α}
 
 /-- A type synonym for a subset `s` of a metric space, on which we will construct another metric
 for which it will be complete. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def complete_copy {α : Type*} (s : set α) : Type* := s
 
 /-- A distance on a subset `s` of a metric space, designed to make it complete if `s` is open.

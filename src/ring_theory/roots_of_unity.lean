@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.ring_division
-import tactic.zify
-import field_theory.separable
-import data.zmod.basic
-import ring_theory.integral_domain
-import number_theory.divisors
-import field_theory.finite.basic
-import group_theory.specific_groups.cyclic
 import algebra.char_p.two
+import algebra.ne_zero
+import data.polynomial.ring_division
+import field_theory.finite.basic
+import field_theory.separable
+import group_theory.specific_groups.cyclic
+import number_theory.divisors
+import ring_theory.integral_domain
+import tactic.zify
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -83,6 +83,10 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
+
+lemma mem_roots_of_unity' (k : ℕ+) (ζ : Mˣ) :
+  ζ ∈ roots_of_unity k M ↔ (ζ : M) ^ (k : ℕ) = 1 :=
+by { rw [mem_roots_of_unity], norm_cast }
 
 lemma roots_of_unity.coe_injective {n : ℕ+} : function.injective (coe : (roots_of_unity n M) → M) :=
 units.ext.comp (λ x y, subtype.ext)
@@ -231,6 +235,17 @@ begin
 end
 
 end is_domain
+
+section reduced
+
+variables (R) [comm_ring R] [is_reduced R]
+
+@[simp] lemma mem_roots_of_unity_prime_pow_mul_iff (p k : ℕ) (m : ℕ+) [hp : fact p.prime]
+  [char_p R p] {ζ : Rˣ} :
+  ζ ∈ roots_of_unity (⟨p, hp.1.pos⟩ ^ k * m) R ↔ ζ ∈ roots_of_unity m R :=
+by simp [mem_roots_of_unity']
+
+end reduced
 
 end roots_of_unity
 
@@ -590,6 +605,29 @@ begin
     exact hx }
 end
 
+lemma ne_zero' {n : ℕ+} (hζ : is_primitive_root ζ n) : ne_zero ((n : ℕ) : R) :=
+begin
+  let p := ring_char R,
+  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one R p, n.pos⟩),
+  obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
+  by_cases hp : p ∣ n,
+  { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero (multiplicity.pos_of_dvd hfin hp).ne',
+    haveI hpri : fact p.prime :=
+      @char_p.char_is_prime_of_pos R _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
+    have := hζ.pow_eq_one,
+    rw [hm.1, hk, pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at this,
+    exfalso,
+    have hpos : 0 < p ^ k * m,
+    { refine (mul_pos (pow_pos hpri.1.pos _) (nat.pos_of_ne_zero (λ h, _))),
+      have H := hm.1,
+      rw [h] at H,
+      simpa using H },
+    refine hζ.pow_ne_one_of_pos_of_lt hpos _ (frobenius_inj R p this),
+    { rw [hm.1, hk, pow_succ, mul_assoc, mul_comm p],
+      exact lt_mul_of_one_lt_right hpos hpri.1.one_lt } },
+  { exact ne_zero.of_not_dvd R hp }
+end
+
 end is_domain
 
 section is_domain
@@ -919,8 +957,8 @@ omit hpos
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   by_cases hpos : n = 0, { simp [hpos], },
-  apply minpoly.gcd_domain_dvd ℚ (is_integral h (nat.pos_of_ne_zero hpos))
-    (polynomial.monic.is_primitive (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm)),
+  apply minpoly.gcd_domain_dvd (is_integral h (nat.pos_of_ne_zero hpos))
+    (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm).ne_zero,
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -952,8 +990,8 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
 begin
   by_cases hn : n = 0, { simp * at *, },
   have hpos := nat.pos_of_ne_zero hn,
-  apply minpoly.gcd_domain_dvd ℚ (h.is_integral hpos),
-  { apply monic.is_primitive,
+  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
+  { apply monic.ne_zero,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
     exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
@@ -1023,7 +1061,7 @@ begin
   rw [hR, ← mul_assoc, ← polynomial.map_mul, ← sq, polynomial.map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
-  replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
+  replace habs := lt_of_lt_of_le (part_enat.coe_lt_coe.2 one_lt_two)
     (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
   have hfree : squarefree (X ^ n - 1 : (zmod p)[X]),
   { exact (separable_X_pow_sub_C 1

@@ -3,7 +3,8 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import set_theory.game.winner
+
+import set_theory.game.basic
 import tactic.nth_rewrite.default
 
 /-!
@@ -17,12 +18,11 @@ impartial.
 
 universe u
 
+open_locale pgame
+
 namespace pgame
 
-local infix ` ≈ ` := equiv
-local infix ` ⧏ `:50 := lf
-
-/-- The definition for a impartial game, defined using Conway induction -/
+/-- The definition for a impartial game, defined using Conway induction. -/
 def impartial_aux : pgame → Prop
 | G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -51,6 +51,9 @@ by { rw impartial_def, simpa using impartial.impartial_zero }
 
 lemma neg_equiv_self (G : pgame) [h : G.impartial] : G ≈ -G := (impartial_def.1 h).1
 
+@[simp] lemma mk_neg_equiv_self (G : pgame) [h : G.impartial] : -⟦G⟧ = ⟦G⟧ :=
+quot.sound (neg_equiv_self G).symm
+
 instance move_left_impartial {G : pgame} [h : G.impartial] (i : G.left_moves) :
   (G.move_left i).impartial :=
 (impartial_def.1 h).2.1 i
@@ -59,16 +62,12 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
   (G.move_right j).impartial :=
 (impartial_def.1 h).2.2 j
 
-theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial], H.impartial
-| G H e := begin
+theorem impartial_congr : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
+| G H := λ e, begin
   introI h,
-  rw impartial_def,
-  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
-    λ i, _, λ j, _⟩;
-  cases e with _ _ L R hL hR,
-  { convert impartial_congr (hL (L.symm i)),
-    rw equiv.apply_symm_apply },
-  { exact impartial_congr (hR j) }
+  exact impartial_def.2
+    ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
+      λ i, impartial_congr (e.move_left_symm i), λ j, impartial_congr (e.move_right_symm j)⟩
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -105,56 +104,50 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma nonpos (G : pgame) [G.impartial] : ¬ 0 < G :=
+variables (G : pgame) [impartial G]
+
+lemma nonpos : ¬ 0 < G :=
 λ h, begin
   have h' := neg_lt_neg_iff.2 h,
   rw [pgame.neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
-lemma nonneg (G : pgame) [G.impartial] : ¬ G < 0 :=
+lemma nonneg : ¬ G < 0 :=
 λ h, begin
   have h' := neg_lt_neg_iff.2 h,
   rw [pgame.neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
-lemma winner_cases (G : pgame) [G.impartial] : G.first_loses ∨ G.first_wins :=
+/-- In an impartial game, either the first player always wins, or the second player always wins. -/
+lemma equiv_or_fuzzy_zero : G ≈ 0 ∨ G ∥ 0 :=
 begin
-  rcases G.winner_cases with h | h | h | h,
+  rcases lt_or_equiv_or_gt_or_fuzzy G 0 with h | h | h | h,
   { exact ((nonneg G) h).elim },
   { exact or.inl h },
   { exact ((nonpos G) h).elim },
   { exact or.inr h }
 end
 
-lemma not_first_wins (G : pgame) [G.impartial] : ¬G.first_wins ↔ G.first_loses :=
-begin
-  cases winner_cases G; -- `finish using [not_first_loses_of_first_wins]` can close these goals
-  simp [not_first_loses_of_first_wins, not_first_wins_of_first_loses, h]
-end
+@[simp] lemma not_equiv_zero_iff : ¬ G ≈ 0 ↔ G ∥ 0 :=
+⟨(equiv_or_fuzzy_zero G).resolve_left, fuzzy.not_equiv⟩
 
-lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wins :=
-iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
+@[simp] lemma not_fuzzy_zero_iff : ¬ G ∥ 0 ↔ G ≈ 0 :=
+⟨(equiv_or_fuzzy_zero G).resolve_right, equiv.not_fuzzy⟩
 
-lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
-first_loses_is_zero.2 $ (add_congr_left (neg_equiv_self G)).trans (add_left_neg_equiv G)
+lemma add_self : G + G ≈ 0 :=
+(add_congr_left (neg_equiv_self G)).trans (add_left_neg_equiv G)
 
-lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
-  G ≈ H ↔ (G + H).first_loses :=
-begin
-  split,
-  { intro heq,
-    exact first_loses_of_equiv (add_congr_right heq) (add_self G) },
-  { intro hGHp,
-    split,
-    { rw le_iff_sub_nonneg,
-      exact hGHp.2.trans
-        (add_comm_le.trans $ le_of_le_of_equiv le_rfl $ add_congr_right (neg_equiv_self G)) },
-    { rw le_iff_sub_nonneg,
-      exact hGHp.2.trans
-        (le_of_le_of_equiv le_rfl $ add_congr_right (neg_equiv_self H)) } }
-end
+@[simp] lemma mk_add_self : ⟦G⟧ + ⟦G⟧ = 0 := quot.sound (add_self G)
+
+/-- This lemma doesn't require `H` to be impartial. -/
+lemma equiv_iff_add_equiv_zero (H : pgame) : H ≈ G ↔ H + G ≈ 0 :=
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_right_cancel_iff _ _ (-⟦G⟧)], simpa }
+
+/-- This lemma doesn't require `H` to be impartial. -/
+lemma equiv_iff_add_equiv_zero' (H : pgame) : G ≈ H ↔ G + H ≈ 0 :=
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_left_cancel_iff _ _ (-⟦G⟧), eq_comm], simpa }
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
 by rw [←zero_le_neg_iff, le_congr_right (neg_equiv_self G)]
@@ -162,59 +155,43 @@ by rw [←zero_le_neg_iff, le_congr_right (neg_equiv_self G)]
 lemma lf_zero_iff {G : pgame} [G.impartial] : G ⧏ 0 ↔ 0 ⧏ G :=
 by rw [←zero_lf_neg_iff, lf_congr_right (neg_equiv_self G)]
 
-lemma first_loses_symm (G : pgame) [G.impartial] : G.first_loses ↔ G ≤ 0 :=
-⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩
+lemma equiv_zero_iff_le: G ≈ 0 ↔ G ≤ 0 := ⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩
+lemma fuzzy_zero_iff_lf : G ∥ 0 ↔ G ⧏ 0 := ⟨and.left, λ h, ⟨h, lf_zero_iff.1 h⟩⟩
+lemma equiv_zero_iff_ge : G ≈ 0 ↔ 0 ≤ G := ⟨and.right, λ h, ⟨le_zero_iff.2 h, h⟩⟩
+lemma fuzzy_zero_iff_gf : G ∥ 0 ↔ 0 ⧏ G := ⟨and.right, λ h, ⟨lf_zero_iff.2 h, h⟩⟩
 
-lemma first_wins_symm (G : pgame) [G.impartial] : G.first_wins ↔ G ⧏ 0 :=
-⟨and.left, λ h, ⟨h, lf_zero_iff.1 h⟩⟩
-
-lemma first_loses_symm' (G : pgame) [G.impartial] : G.first_loses ↔ 0 ≤ G :=
-⟨and.right, λ h, ⟨le_zero_iff.2 h, h⟩⟩
-
-lemma first_wins_symm' (G : pgame) [G.impartial] : G.first_wins ↔ 0 ⧏ G :=
-⟨and.right, λ h, ⟨lf_zero_iff.2 h, h⟩⟩
-
-lemma no_good_left_moves_iff_first_loses (G : pgame) [G.impartial] :
-  (∀ (i : G.left_moves), (G.move_left i).first_wins) ↔ G.first_loses :=
+lemma forall_left_moves_fuzzy_iff_equiv_zero : (∀ i, G.move_left i ∥ 0) ↔ G ≈ 0 :=
 begin
   refine ⟨λ hb, _, λ hp i, _⟩,
-  { rw [first_loses_symm G, le_iff_forall_lf],
-    exact ⟨λ i, (hb i).1, is_empty_elim⟩ },
-  { rw first_wins_symm,
-    exact (le_iff_forall_lf.1 $ (first_loses_symm G).1 hp).1 i }
+  { rw [equiv_zero_iff_le G, le_zero_lf],
+    exact λ i, (hb i).1 },
+  { rw fuzzy_zero_iff_lf,
+    exact hp.1.move_left_lf i }
 end
 
-lemma no_good_right_moves_iff_first_loses (G : pgame) [G.impartial] :
-  (∀ (j : G.right_moves), (G.move_right j).first_wins) ↔ G.first_loses :=
+lemma forall_right_moves_fuzzy_iff_equiv_zero : (∀ j, G.move_right j ∥ 0) ↔ G ≈ 0 :=
 begin
-  rw [first_loses_of_equiv_iff (neg_equiv_self G), ←no_good_left_moves_iff_first_loses],
-  refine ⟨λ h i, _, λ h i, _⟩,
-  { rw [move_left_neg',
-      ←first_wins_of_equiv_iff (neg_equiv_self (G.move_right (to_left_moves_neg.symm i)))],
-    apply h },
-  { rw [move_right_neg_symm',
-      ←first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left (to_left_moves_neg i)))],
-    apply h }
+  refine ⟨λ hb, _, λ hp i, _⟩,
+  { rw [equiv_zero_iff_ge G, zero_le_lf],
+    exact λ i, (hb i).2 },
+  { rw fuzzy_zero_iff_gf,
+    exact hp.2.lf_move_right i }
 end
 
-lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :
-  (∃ (i : G.left_moves), (G.move_left i).first_loses) ↔ G.first_wins :=
+lemma exists_left_move_equiv_iff_fuzzy_zero : (∃ i, G.move_left i ≈ 0) ↔ G ∥ 0 :=
 begin
-  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_of_forall_le $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
-  rw [first_wins_symm' G, lf_iff_forall_le] at hn,
-  rcases hn with ⟨i, hi⟩ | ⟨j, _⟩,
-  { exact ⟨i, (first_loses_symm' _).2 hi⟩ },
-  { exact pempty.elim j }
+  refine ⟨λ ⟨i, hi⟩, (fuzzy_zero_iff_gf G).2 (lf_of_le_move_left hi.2), λ hn, _⟩,
+  rw [fuzzy_zero_iff_gf G, zero_lf_le] at hn,
+  cases hn with i hi,
+  exact ⟨i, (equiv_zero_iff_ge _).2 hi⟩
 end
 
-lemma good_right_move_iff_first_wins (G : pgame) [G.impartial] :
-  (∃ j : G.right_moves, (G.move_right j).first_loses) ↔ G.first_wins :=
+lemma exists_right_move_equiv_iff_fuzzy_zero : (∃ j, G.move_right j ≈ 0) ↔ G ∥ 0 :=
 begin
-  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_of_forall_le $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
-  rw [first_wins_symm G, lf_iff_forall_le] at hn,
-  rcases hn with ⟨i, _⟩ | ⟨j, hj⟩,
-  { exact pempty.elim i },
-  { exact ⟨j, (first_loses_symm _).2 hj⟩ }
+  refine ⟨λ ⟨i, hi⟩, (fuzzy_zero_iff_lf G).2 (lf_of_move_right_le hi.1), λ hn, _⟩,
+  rw [fuzzy_zero_iff_lf G, lf_zero_le] at hn,
+  cases hn with i hi,
+  exact ⟨i, (equiv_zero_iff_le _).2 hi⟩
 end
 
 end impartial

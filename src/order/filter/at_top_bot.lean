@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
-import order.filter.bases
+import algebra.order.field
 import data.finset.preimage
 import data.set.intervals.disjoint
+import order.filter.bases
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -65,6 +66,20 @@ disjoint_of_disjoint_of_mem (Iic_disjoint_Ioi le_rfl).symm (Ioi_mem_at_top x) (m
 lemma disjoint_at_bot_principal_Ici [preorder α] [no_min_order α] (x : α) :
   disjoint at_bot (𝓟 (Ici x)) :=
 @disjoint_at_top_principal_Iic αᵒᵈ _ _ _
+
+lemma disjoint_pure_at_top [preorder α] [no_max_order α] (x : α) : disjoint (pure x) at_top :=
+disjoint.symm ((disjoint_at_top_principal_Iic x).mono_right $ le_principal_iff.2 le_rfl)
+
+lemma disjoint_pure_at_bot [preorder α] [no_min_order α] (x : α) : disjoint (pure x) at_bot :=
+@disjoint_pure_at_top αᵒᵈ _ _ _
+
+lemma not_tendsto_const_at_top [preorder α] [no_max_order α] (x : α) (l : filter β) [l.ne_bot] :
+  ¬tendsto (λ _, x) l at_top :=
+tendsto_const_pure.not_tendsto (disjoint_pure_at_top x)
+
+lemma not_tendsto_const_at_bot [preorder α] [no_min_order α] (x : α) (l : filter β) [l.ne_bot] :
+  ¬tendsto (λ _, x) l at_bot :=
+tendsto_const_pure.not_tendsto (disjoint_pure_at_bot x)
 
 lemma disjoint_at_bot_at_top [partial_order α] [nontrivial α] :
   disjoint (at_bot : filter α) at_top :=
@@ -176,12 +191,12 @@ at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
 
 lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_top_basis }
 
 lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
   has_countable_basis (at_bot : filter α) (λ _, true) Iic :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   .. at_bot_basis }
 
 @[priority 200]
@@ -286,6 +301,43 @@ tendsto_at_top_mono' l $ eventually_of_forall h
 lemma tendsto_at_bot_mono [preorder β] {l : filter α} {f g : α → β} (h : ∀ n, f n ≤ g n) :
   tendsto g l at_bot → tendsto f l at_bot :=
 @tendsto_at_top_mono _ βᵒᵈ _ _ _ _ h
+
+end filter
+
+namespace order_iso
+
+open filter
+variables [preorder α] [preorder β]
+
+@[simp] lemma comap_at_top (e : α ≃o β) : comap e at_top = at_top :=
+by simp [at_top, ← e.surjective.infi_comp]
+
+@[simp] lemma comap_at_bot (e : α ≃o β) : comap e at_bot = at_bot :=
+e.dual.comap_at_top
+
+@[simp] lemma map_at_top (e : α ≃o β) : map (e : α → β) at_top = at_top :=
+by rw [← e.comap_at_top, map_comap_of_surjective e.surjective]
+
+@[simp] lemma map_at_bot (e : α ≃o β) : map (e : α → β) at_bot = at_bot :=
+e.dual.map_at_top
+
+lemma tendsto_at_top (e : α ≃o β) : tendsto e at_top at_top :=
+e.map_at_top.le
+
+lemma tendsto_at_bot (e : α ≃o β) : tendsto e at_bot at_bot :=
+e.map_at_bot.le
+
+@[simp] lemma tendsto_at_top_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
+  tendsto (λ x, e (f x)) l at_top ↔ tendsto f l at_top :=
+by rw [← e.comap_at_top, tendsto_comap_iff]
+
+@[simp] lemma tendsto_at_bot_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
+  tendsto (λ x, e (f x)) l at_bot ↔ tendsto f l at_bot :=
+e.dual.tendsto_at_top_iff
+
+end order_iso
+
+namespace filter
 
 /-!
 ### Sequences
@@ -612,21 +664,29 @@ lemma tendsto_at_bot_add_const_right (C : β) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x + C) l at_bot :=
 @tendsto_at_top_add_const_right _ βᵒᵈ _ _ _ C hf
 
+lemma map_neg_at_bot : map (has_neg.neg : β → β) at_bot = at_top :=
+(order_iso.neg β).map_at_bot
+
+lemma map_neg_at_top : map (has_neg.neg : β → β) at_top = at_bot :=
+(order_iso.neg β).map_at_top
+
+@[simp] lemma comap_neg_at_bot : comap (has_neg.neg : β → β) at_bot = at_top :=
+(order_iso.neg β).comap_at_top
+
+@[simp] lemma comap_neg_at_top : comap (has_neg.neg : β → β) at_top = at_bot :=
+(order_iso.neg β).comap_at_bot
+
 lemma tendsto_neg_at_top_at_bot : tendsto (has_neg.neg : β → β) at_top at_bot :=
-begin
-  simp only [tendsto_at_bot, neg_le],
-  exact λ b, eventually_ge_at_top _
-end
+(order_iso.neg β).tendsto_at_top
 
 lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_top :=
 @tendsto_neg_at_top_at_bot βᵒᵈ _
 
-lemma tendsto_at_top_iff_tends_to_neg_at_bot : tendsto f l at_top ↔ tendsto (-f) l at_bot :=
-have hf : f = has_neg.neg ∘ -f, { ext, simp, },
-⟨tendsto_neg_at_top_at_bot.comp, λ h, hf.symm ▸ tendsto_neg_at_bot_at_top.comp h⟩
+@[simp] lemma tendsto_neg_at_top_iff : tendsto (λ x, -f x) l at_top ↔ tendsto f l at_bot :=
+(order_iso.neg β).tendsto_at_bot_iff
 
-lemma tendsto_at_bot_iff_tends_to_neg_at_top : tendsto f l at_bot ↔ tendsto (-f) l at_top :=
-@tendsto_at_top_iff_tends_to_neg_at_bot α βᵒᵈ _ l f
+@[simp] lemma tendsto_neg_at_bot_iff : tendsto (λ x, -f x) l at_bot ↔ tendsto f l at_top :=
+(order_iso.neg β).tendsto_at_top_iff
 
 end ordered_group
 
@@ -650,8 +710,9 @@ tendsto_id.at_top_mul_at_top tendsto_id
 
 /-- The monomial function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
-lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
+lemma tendsto_pow_at_top {n : ℕ} (hn : n ≠ 0) : tendsto (λ x : α, x ^ n) at_top at_top :=
 begin
+  rw [← pos_iff_ne_zero, ← nat.succ_le_iff] at hn,
   refine tendsto_at_top_mono' _ ((eventually_ge_at_top 1).mono $ λ x hx, _) tendsto_id,
   simpa only [pow_one] using pow_le_pow hx hn
 end
@@ -797,42 +858,26 @@ lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
 
 lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
-  (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
+  (hn : n ≠ 0) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
 tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
 
-lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
-  tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
+lemma tendsto_const_mul_pow_at_top_iff {c : α} {n : ℕ} :
+  tendsto (λ x, c * x^n) at_top at_top ↔ n ≠ 0 ∧ 0 < c :=
 begin
-  refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
-  simp only [tendsto_at_top, eventually_at_top] at h,
-  have : 0 < c := let ⟨x, hx⟩ := h 1 in
-    pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
-    (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
-  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
-  obtain ⟨x, hx⟩ := h (c + 1),
-  specialize hx x le_rfl,
-  rw [hn, pow_zero, mul_one, add_le_iff_nonpos_right] at hx,
-  exact absurd hx (not_le.mpr zero_lt_one),
+  refine ⟨λ h, ⟨_, _⟩, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
+  { rintro rfl,
+    simpa only [pow_zero, not_tendsto_const_at_top] using h },
+  { rcases ((h.eventually_gt_at_top 0).and (eventually_ge_at_top 0)).exists with ⟨k, hck, hk⟩,
+    exact pos_of_mul_pos_left hck (pow_nonneg hk _) },
 end
 
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
-  (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
+  (hn : n ≠ 0) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
 tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
-lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
-  tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
-begin
-  refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
-  simp only [tendsto_at_bot, eventually_at_top] at h,
-  have : c < 0 := let ⟨x, hx⟩ := h (-1) in
-    neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
-    (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
-  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
-  obtain ⟨x, hx⟩ := h (c - 1),
-  specialize hx x le_rfl,
-  rw [hn, pow_zero, mul_one, le_sub, sub_self] at hx,
-  exact absurd hx (not_le.mpr zero_lt_one),
-end
+lemma tendsto_const_mul_pow_at_bot_iff {c : α} {n : ℕ} :
+  tendsto (λ x, c * x^n) at_top at_bot ↔ n ≠ 0 ∧ c < 0 :=
+by simp only [← tendsto_neg_at_top_iff, ← neg_mul, tendsto_const_mul_pow_at_top_iff, neg_pos]
 
 end linear_ordered_field
 
@@ -895,10 +940,10 @@ lemma tendsto_at_bot_at_bot_iff_of_monotone [nonempty α] [semilattice_inf α] [
 tendsto_at_bot_at_bot.trans $ forall_congr $ λ b, exists_congr $ λ a,
   ⟨λ h, h a (le_refl a), λ h a' ha', le_trans (hf ha') h⟩
 
-alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
-alias tendsto_at_bot_at_bot_of_monotone ← monotone.tendsto_at_bot_at_bot
-alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
-alias tendsto_at_bot_at_bot_iff_of_monotone ← monotone.tendsto_at_bot_at_bot_iff
+alias tendsto_at_top_at_top_of_monotone ← _root_.monotone.tendsto_at_top_at_top
+alias tendsto_at_bot_at_bot_of_monotone ← _root_.monotone.tendsto_at_bot_at_bot
+alias tendsto_at_top_at_top_iff_of_monotone ← _root_.monotone.tendsto_at_top_at_top_iff
+alias tendsto_at_bot_at_bot_iff_of_monotone ← _root_.monotone.tendsto_at_bot_at_bot_iff
 
 lemma comap_embedding_at_top [preorder β] [preorder γ] {e : β → γ}
   (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
@@ -951,7 +996,7 @@ begin
     (λ b' hb', le_trans (finset.singleton_subset_iff.2 hb) (h hb')),
 end
 
-alias tendsto_at_top_finset_of_monotone ← monotone.tendsto_at_top_finset
+alias tendsto_at_top_finset_of_monotone ← _root_.monotone.tendsto_at_top_finset
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
   tendsto (finset.image j) at_top at_top :=
@@ -1211,7 +1256,7 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
   (assume a b h, nat.div_le_div_right h)
   (assume a b _,
     calc a / k ≤ b ↔ a / k < b + 1 : by rw [← nat.succ_eq_add_one, nat.lt_succ_iff]
-      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul _ _ hk
+      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul hk
       ... ↔ _ :
       begin
         cases k,
@@ -1496,7 +1541,7 @@ section
 variables {R : Type*} [linear_ordered_semiring R]
 
 lemma exists_lt_mul_self (a : R) : ∃ x ≥ 0, a < x * x :=
-let ⟨x, hxa, hx0⟩ :=((tendsto_mul_self_at_top.eventually (eventually_gt_at_top a)).and
+let ⟨x, hxa, hx0⟩ := ((tendsto_mul_self_at_top.eventually (eventually_gt_at_top a)).and
   (eventually_ge_at_top 0)).exists
 in ⟨x, hx0, hxa⟩
 
@@ -1504,38 +1549,6 @@ lemma exists_le_mul_self (a : R) : ∃ x ≥ 0, a ≤ x * x :=
 let ⟨x, hx0, hxa⟩ := exists_lt_mul_self a in ⟨x, hx0, hxa.le⟩
 
 end
-
-namespace order_iso
-
-variables [preorder α] [preorder β]
-
-@[simp] lemma comap_at_top (e : α ≃o β) : comap e at_top = at_top :=
-by simp [at_top, ← e.surjective.infi_comp]
-
-@[simp] lemma comap_at_bot (e : α ≃o β) : comap e at_bot = at_bot :=
-e.dual.comap_at_top
-
-@[simp] lemma map_at_top (e : α ≃o β) : map (e : α → β) at_top = at_top :=
-by rw [← e.comap_at_top, map_comap_of_surjective e.surjective]
-
-@[simp] lemma map_at_bot (e : α ≃o β) : map (e : α → β) at_bot = at_bot :=
-e.dual.map_at_top
-
-lemma tendsto_at_top (e : α ≃o β) : tendsto e at_top at_top :=
-e.map_at_top.le
-
-lemma tendsto_at_bot (e : α ≃o β) : tendsto e at_bot at_bot :=
-e.map_at_bot.le
-
-@[simp] lemma tendsto_at_top_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
-  tendsto (λ x, e (f x)) l at_top ↔ tendsto f l at_top :=
-by rw [← e.comap_at_top, tendsto_comap_iff]
-
-@[simp] lemma tendsto_at_bot_iff {l : filter γ} {f : γ → α} (e : α ≃o β) :
-  tendsto (λ x, e (f x)) l at_bot ↔ tendsto f l at_bot :=
-e.dual.tendsto_at_top_iff
-
-end order_iso
 
 /-- Let `g : γ → β` be an injective function and `f : β → α` be a function from the codomain of `g`
 to a commutative monoid. Suppose that `f x = 1` outside of the range of `g`. Then the filters

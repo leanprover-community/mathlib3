@@ -360,6 +360,33 @@ meta def lambdas : list expr → expr → tactic expr
   pure $ expr.lam pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
 
+/--  Given an expression `f` (likely a binary operation) and a further expression `x`, calling
+`list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
+no longer be done and returns a list of the leaves of the process.
+
+This matches `f` up to semireducible unification. In particular, it will match applications of the
+same polymorphic function with different type-class arguments.
+
+E.g., if `i1` and `i2` are both instances of `has_add T` and
+`e := has_add.add T i1 x (has_add.add T i2 y z)`, then ``list_binary_operands `((+) : T → T → T) e``
+returns `[x, y, z]`.
+
+For example:
+```lean
+#eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace
+-- [3, 4 * 5, 6, 7 / 3]
+#eval list_binary_operands `(@list.append ℕ) `([1, 2] ++ [3, 4] ++ (1 :: [])) >>= tactic.trace
+-- [[1, 2], [3, 4], [1]]
+```
+-/
+meta def list_binary_operands (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← list_binary_operands a,
+  bs ← list_binary_operands b,
+  pure (as ++ bs)
+| a                      := pure [a]
+
 -- TODO: move to `declaration` namespace in `meta/expr.lean`
 /-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
 `ls`, type `t`, and body `e`. -/
@@ -378,7 +405,7 @@ do ((), body) ← solve_aux type tac,
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare
 situations the latter will fail but the former will succeed. -/
-meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
+meta def eval_expr' (α : Type*) [_inst_1 : reflected _ α] (e : expr) : tactic α :=
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
@@ -1340,6 +1367,23 @@ end tactic
 namespace lean.parser
 open tactic interaction_monad
 
+/-- A version of `lean.parser.many` that requires at least `n` items -/
+meta def repeat_at_least {α : Type} (p : lean.parser α) : ℕ → lean.parser (list α)
+| 0 := many p
+| (n + 1) := list.cons <$> p <*> repeat_at_least n
+
+/-- A version of `lean.parser.sep_by` that allows trailing delimiters, but requires at least one
+item. Like `lean.parser.sep_by`, as a result of the `lean.parser` monad not being pure, this is only
+well-behaved if `p` and `s` are backtrackable; which in practice means they must not consume the
+input when they do not have a match. -/
+meta def sep_by_trailing {α : Type} (s : lean.parser unit) (p : lean.parser α) :
+  lean.parser (list α) :=
+do
+  fst ← p,
+  some () ← optional s | pure [fst],
+  some rest ← optional sep_by_trailing | pure [fst],
+  pure (fst :: rest)
+
 /-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
 current line. -/
 meta def emit_command_here (str : string) : lean.parser string :=
@@ -1376,9 +1420,11 @@ add_tactic_doc
 This function deserves a C++ implementation in core lean, and will fail if it is not called from
 the body of a command (i.e. anywhere else that the `lean.parser` monad can be invoked). -/
 meta def get_current_namespace : lean.parser name :=
-do n ← tactic.mk_user_fresh_name,
+do env ← get_env,
+   n ← tactic.mk_user_fresh_name,
    emit_code_here $ sformat!"def {n} := ()",
    nfull ← tactic.resolve_constant n,
+   set_env env,
    return $ nfull.get_nth_prefix n.components.length
 
 /-- `get_variables` returns a list of existing variable names, along with their types and binder
@@ -1730,10 +1776,7 @@ if aggressive then do
   reset_instance_cache
 else do
   -- Turn on the `prop_decidable` instance. `9` is what we use in the `classical` locale
-  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9),
-  -- Lower the priority of `decidable_eq_of_decidable_le`. `8` is what we use in the `classical`
-  -- locale. We should remove this when we update lean, as it will cease to be a global instance.
-  tactic.set_basic_attribute `instance `decidable_eq_of_decidable_le ff (some 8)
+  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9)
 
 open expr
 
@@ -2414,7 +2457,7 @@ then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.set %%user_attr_const %%c_name default %%persistent) <|>
+    ``(user_attribute.set %%user_attr_const %%`(c_name) default %%`(persistent)) <|>
     fail! ("Cannot set attribute @[{attr_name}].\n" ++
       "The corresponding user attribute {user_attr_nm} " ++
       "has a parameter without a default value.\n" ++

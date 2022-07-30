@@ -164,7 +164,7 @@ below as `trivialization F proj`) if the total space has not been given a topolo
 have a topology on both the fiber and the base space. Through the construction
 `topological_fiber_prebundle F proj` it will be possible to promote a
 `pretrivialization F proj` to a `trivialization F proj`. -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_fiber_bundle.pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
 (open_target   : is_open target)
 (base_set      : set B)
@@ -217,6 +217,9 @@ lemma apply_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
   e (e.to_local_equiv.symm (b, x)) = (b, x) :=
 e.apply_symm_apply (e.mem_target.2 hx)
 
+lemma symm_apply_apply {x : Z} (hx : x ∈ e.source) : e.to_local_equiv.symm (e x) = x :=
+e.to_local_equiv.left_inv hx
+
 @[simp, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
   e.to_local_equiv.symm (proj x, (e x).2) = x :=
 by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv ex]
@@ -239,6 +242,16 @@ begin
   intro h,
   rw [e.proj_symm_apply' h]
 end
+
+lemma target_inter_preimage_symm_source_eq (e f : pretrivialization F proj) :
+  f.target ∩ (f.to_local_equiv.symm) ⁻¹' e.source
+  = (e.base_set ∩ f.base_set) ×ˢ (univ : set F) :=
+by rw [inter_comm, f.target_eq, e.source_eq, f.preimage_symm_proj_inter]
+
+lemma trans_source (e f : pretrivialization F proj) :
+  (f.to_local_equiv.symm.trans e.to_local_equiv).source
+  = (e.base_set ∩ f.base_set) ×ˢ (univ : set F) :=
+by rw [local_equiv.trans_source, local_equiv.symm_source, e.target_inter_preimage_symm_source_eq]
 
 lemma symm_trans_symm (e e' : pretrivialization F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).symm =
@@ -265,7 +278,7 @@ A structure extending local homeomorphisms, defining a local trivialization of a
 `proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F` defined between two
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_fiber_bundle.trivialization (proj : Z → B)
   extends local_homeomorph Z (B × F) :=
 (base_set      : set B)
@@ -286,6 +299,11 @@ def to_pretrivialization : topological_fiber_bundle.pretrivialization F proj := 
 instance : has_coe_to_fun (trivialization F proj) (λ _, Z → B × F) := ⟨λ e, e.to_fun⟩
 instance : has_coe (trivialization F proj) (pretrivialization F proj) :=
 ⟨to_pretrivialization⟩
+
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization F proj, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← local_homeomorph.to_local_equiv_injective.eq_iff], exact id }
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
@@ -365,6 +383,33 @@ def comp_homeomorph {Z' : Type*} [topological_space Z'] (h : Z' ≃ₜ Z) :
   proj_to_fun := λ p hp,
     have hp : h p ∈ e.source, by simpa using hp,
     by simp [hp] }
+
+/-- Read off the continuity of a function `f : Z → X` at `z : Z` by transferring via a
+trivialization of `Z` containing `z`. -/
+lemma continuous_at_of_comp_right {X : Type*} [topological_space X] {f : Z → X} {z : Z}
+  (e : trivialization F proj) (he : proj z ∈ e.base_set)
+  (hf : continuous_at (f ∘ e.to_local_equiv.symm) (e z)) :
+  continuous_at f z :=
+begin
+  have hez : z ∈ e.to_local_equiv.symm.target,
+  { rw [local_equiv.symm_target, e.mem_source],
+    exact he },
+  rwa [e.to_local_homeomorph.symm.continuous_at_iff_continuous_at_comp_right hez,
+   local_homeomorph.symm_symm]
+end
+
+/-- Read off the continuity of a function `f : X → Z` at `x : X` by transferring via a
+trivialization of `Z` containing `f x`. -/
+lemma continuous_at_of_comp_left {X : Type*} [topological_space X] {f : X → Z} {x : X}
+  (e : trivialization F proj) (hf_proj : continuous_at (proj ∘ f) x) (he : proj (f x) ∈ e.base_set)
+  (hf : continuous_at (e ∘ f) x) :
+  continuous_at f x :=
+begin
+  rw e.to_local_homeomorph.continuous_at_iff_continuous_at_comp_left,
+  { exact hf },
+  rw [e.source_eq, ← preimage_comp],
+  exact hf_proj.preimage_mem_nhds (e.open_base_set.mem_nhds he),
+end
 
 end topological_fiber_bundle.trivialization
 
@@ -788,7 +833,7 @@ Trivialization changes from `i` to `j` are given by continuous maps `coord_chang
 `base_set i ∩ base_set j` to the set of homeomorphisms of `F`, but we express them as maps
 `B → F → F` and require continuity on `(base_set i ∩ base_set j) × F` to avoid the topology on the
 space of continuous maps on `F`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_fiber_bundle_core (ι : Type*) (B : Type*) [topological_space B]
   (F : Type*) [topological_space F] :=
 (base_set          : ι → set B)
@@ -809,7 +854,7 @@ variables [topological_space B] [topological_space F] (Z : topological_fiber_bun
 include Z
 
 /-- The index set of a topological fiber bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def index := ι
 
 /-- The base space of a topological fiber bundle core, as a convenience function for dot notation -/
@@ -818,7 +863,7 @@ def base := B
 
 /-- The fiber of a topological fiber bundle core, as a convenience function for dot notation and
 typeclass inference -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def fiber (x : B) := F
 
 section fiber_instances
@@ -1052,20 +1097,31 @@ end
 @[simp, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
   (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
 
+@[simp, mfld_simps] lemma local_triv_at_apply (p : Z.total_space) :
+  ((Z.local_triv_at p.1) p) = ⟨p.1, p.2⟩ :=
+by { rw [local_triv_at, local_triv_apply, coord_change_self], exact Z.mem_base_set_at p.1 }
+
+@[simp, mfld_simps] lemma local_triv_at_apply_mk (b : B) (a : F) :
+  ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
+Z.local_triv_at_apply _
+
 @[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ (Z.local_triv i).base_set := iff.rfl
+
+@[simp, mfld_simps] lemma mem_local_triv_at_source (p : Z.total_space) (b : B) :
+  p ∈ (Z.local_triv_at b).source ↔ p.1 ∈ (Z.local_triv_at b).base_set := iff.rfl
 
 @[simp, mfld_simps] lemma mem_local_triv_target (p : B × F) :
   p ∈ (Z.local_triv i).target ↔ p.1 ∈ (Z.local_triv i).base_set :=
 trivialization.mem_target _
 
-@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+@[simp, mfld_simps] lemma mem_local_triv_at_target (p : B × F) (b : B) :
+  p ∈ (Z.local_triv_at b).target ↔ p.1 ∈ (Z.local_triv_at b).base_set :=
+trivialization.mem_target _
+
+@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
   (Z.local_triv i).to_local_homeomorph.symm p =
     ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
-
-@[simp, mfld_simps] lemma local_triv_at_apply (b : B) (a : F) :
-  ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
-by { rw [local_triv_at, local_triv_apply, coord_change_self], exact Z.mem_base_set_at b }
 
 @[simp, mfld_simps] lemma mem_local_triv_at_base_set (b : B) :
   b ∈ (Z.local_triv_at b).base_set :=
@@ -1110,7 +1166,7 @@ open topological_fiber_bundle
 equivalences but there is not yet a topology on the total space. The total space is hence given a
 topology in such a way that there is a fiber bundle structure for which the local equivalences
 are also local homeomorphism and hence local trivializations. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_fiber_prebundle (proj : Z → B) :=
 (pretrivialization_atlas : set (pretrivialization F proj))
 (pretrivialization_at : B → pretrivialization F proj)
@@ -1189,5 +1245,29 @@ lemma is_topological_fiber_bundle :
 
 lemma continuous_proj : @continuous _ _ a.total_space_topology _ proj :=
 by { letI := a.total_space_topology, exact a.is_topological_fiber_bundle.continuous_proj, }
+
+/-- For a fiber bundle `Z` over `B` constructed using the `topological_fiber_prebundle` mechanism,
+continuity of a function `Z → X` on an open set `s` can be checked by precomposing at each point
+with the pretrivialization used for the construction at that point. -/
+lemma continuous_on_of_comp_right {X : Type*} [topological_space X] {f : Z → X} {s : set B}
+  (hs : is_open s)
+  (hf : ∀ b ∈ s, continuous_on (f ∘ (a.pretrivialization_at b).to_local_equiv.symm)
+    ((s ∩ (a.pretrivialization_at b).base_set) ×ˢ (set.univ : set F))) :
+  @continuous_on _ _ a.total_space_topology _ f (proj ⁻¹' s) :=
+begin
+  letI := a.total_space_topology,
+  intros z hz,
+  let e : trivialization F proj :=
+  a.trivialization_of_mem_pretrivialization_atlas (a.pretrivialization_mem_atlas (proj z)),
+  refine (e.continuous_at_of_comp_right _
+    ((hf (proj z) hz).continuous_at (is_open.mem_nhds _ _))).continuous_within_at,
+  { exact a.mem_base_pretrivialization_at (proj z) },
+  { exact ((hs.inter (a.pretrivialization_at (proj z)).open_base_set).prod is_open_univ) },
+  refine ⟨_, mem_univ _⟩,
+  rw e.coe_fst,
+  { exact ⟨hz, a.mem_base_pretrivialization_at (proj z)⟩ },
+  { rw e.mem_source,
+    exact a.mem_base_pretrivialization_at (proj z) },
+end
 
 end topological_fiber_prebundle

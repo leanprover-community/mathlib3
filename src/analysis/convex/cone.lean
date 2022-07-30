@@ -636,11 +636,6 @@ lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
 begin
   simp_rw [set.Inter_coe_set, subtype.coe_mk],
   refine set.ext (λ x, iff.intro (λ hx, _) _),
-  begin
-    refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
-    rintro ⟨ ⟩,
-    exact hx i hi,
-  end,
   { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
     rintro ⟨ ⟩,
     exact hx i hi },

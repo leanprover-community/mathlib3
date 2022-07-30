@@ -107,6 +107,15 @@ begin
   simp_rw [←pow_mul, mul_comm],
 end
 
+lemma factorization_two_pos_of_even_of_pos {n : ℕ} (hn : even n) (hn0 : n ≠ 0) :
+  0 < n.factorization 2 :=
+begin
+  rcases hn with ⟨k, rfl⟩,
+  simp only [ne.def, add_self_eq_zero] at hn0,
+  rw ←two_mul,
+  simp [nat.factorization_mul _ hn0, prime_two.factorization],
+end
+
 -- TODO: Find a better name for this!!
 lemma aux_fz {n : ℕ} (hn : odd n) (hn1 : n ≠ 1) : 0 < (n - 1).factorization 2 :=
 begin

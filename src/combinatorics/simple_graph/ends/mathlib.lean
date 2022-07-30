@@ -97,6 +97,11 @@ lemma is_prefix_of_exists_suffix  {V : Type*} {G : simple_graph V} :
   exact ⟨rfl,le⟩,
   }
 
+lemma is_prefix.nil  {V : Type*} {G : simple_graph V} :
+  Π {u w : V} (r : G.walk u w), nil ≤w r
+| _ _ nil := trivial
+| _ _ (cons _ _) := trivial
+
 
 lemma is_prefix.refl  {V : Type*} {G : simple_graph V} :
   Π {u w : V} (r : G.walk u w), r ≤w r
@@ -129,19 +134,52 @@ def is_prefix.eq_nil_of_nil  {V : Type*} {G : simple_graph V} :
 | _ _ (nil' u) pfx := ⟨rfl,rfl⟩
 | _ _ (cons' u v w a r) pfx := pfx.elim
 
-def longest_prefix_all {V : Type*} {G : simple_graph V} :
-Π {u v w : V} (p : G.walk u v) (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) ,
+noncomputable def longest_prefix_all {V : Type*} {G : simple_graph V} :
+Π {u v: V} (p : G.walk u v) (pred : ∀ (z : V) (q : G.walk u z), q ≤w p → Prop) ,
 psum
   { R : Σ (z : V), G.walk u z | ∃ (pfxR : R.2 ≤w p) (predR : pred R.1 R.2 pfxR),
                                 ∀ z (q : G.walk u z) (pfxq : q ≤w p), pred z q pfxq → q ≤w R.2 }
   (∀ (z : V) (q : G.walk u z) (pfx : q ≤w p), ¬ pred z q pfx)
-| _ _ _ (nil' x) pred := by {
-  simp at *,
+| _ _ (nil' x) pred := by {
+  simp only [exists_prop, exists_and_distrib_right, coe_set_of] at *,
   by_cases h : pred x (nil' x) (is_prefix.rfl),
-  {left, use x, simp, use is_prefix.rfl, exact h, rintros z q pfx hh, exact pfx,},
-  {right, rintros z q pfx,  rcases is_prefix.eq_nil_of_nil pfx with ⟨rfl,eq'⟩, induction eq', simp at h,exact h,}
+  { left,
+    use [x,is_prefix.rfl,h],
+    rintros z q pfx hh,
+    exact pfx,},
+  { right,
+    rintros z q pfx,
+    rcases is_prefix.eq_nil_of_nil pfx with ⟨rfl,eq'⟩,
+    induction eq',
+    exact h,}
   }
-| _ _ _ (cons' x y z a p) pred := sorry
+| _ _ (cons' x y z a p) pred := by {
+  let pred' :  ∀ (w : V) (q : G.walk y w), q ≤w p → Prop
+            := λ w q pfx, pred w (cons' x y w a q) (by { refine ⟨rfl,_⟩, exact pfx,}), -- why need to refine
+  rcases longest_prefix_all p pred' with ⟨⟨t,r⟩,good⟩|bad,
+  { left,
+    use ⟨t,cons a r⟩,
+    rcases good with ⟨pfxr,predr,maxr⟩, -- Can only split here since otherwise we're not in a Prop yet
+    use [⟨rfl,pfxr⟩,predr],
+    rintros z q pfxq predq ,
+    cases q,
+    { simp only, },
+    { rcases pfxq with ⟨rfl,pfxq'⟩,
+      exact ⟨rfl,maxr _ _ pfxq' predq⟩,},
+  },
+  { by_cases h : pred x nil (is_prefix.nil (cons a p)),
+    { left,
+      use [⟨x,nil⟩,is_prefix.nil (cons a p),h],
+      rintros z q pfxq predq,
+      cases q,
+      { simp only, },
+      { rcases pfxq with ⟨rfl,pfxq'⟩, exact (bad z q_p pfxq' predq).elim,},},
+    { right, rintro z q pfxq,
+      cases q,
+      { exact h, },
+      { rcases pfxq with ⟨rfl,pfxq'⟩, exact bad _ q_p pfxq',},},
+  },
+}
 
 end simple_graph
 
@@ -314,7 +352,16 @@ begin
   exact wgood.trans this,
 end
 
-
-
-
 end simple_graph
+
+
+namespace finset
+
+lemma bInter_of_chain_of_nonempty
+  {α : Type*}
+  (S : set (finset α))
+  (Snempty : S.nonempty)
+  (Sallnempty : ∀ s ∈ S, finset.nonempty s)
+  (Schain : is_chain finset.has_subset.subset S) : finset.nonempty (⋂₀ S) := sorry
+
+end finset

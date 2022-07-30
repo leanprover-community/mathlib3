@@ -511,6 +511,7 @@ begin
     have : ∀ c ∈ cards, c ≤ M, by {rintros c ⟨K,rfl⟩, exact all_le_M K,},
     haveI : nonempty (finset V) := sorry,
     have : cards.nonempty := set.range_nonempty _,
+    --let lol := finset.max,
     -- Want to have a max card!!
     sorry,
   },
@@ -530,7 +531,8 @@ begin
 
 end
 
--- should be pretty much only λ C, end_of ro_component G Gpc kfinite C
+
+
 -- theorem `card_components_mon` sayinG Gpc htat `λ K, card (inf_ro_components G K)` is monotone
 -- theorem `finite_ends_iff` sayinG Gpc that `ends` is finite iff the supremum `λ K, card (inf_ro_components G K)` is finite
 -- theorem `finite_ends_card_eq` sayinG Gpc that if `ends` is finite, the cardinality is the sup

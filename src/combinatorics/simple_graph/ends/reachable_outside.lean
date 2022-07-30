@@ -435,7 +435,7 @@ lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) 
       use φ⁻¹' C,
       split,
       {
-        -- use φ.symm x,
+        --use φ.symm x,
         sorry, -- this should probably be a lemma
       },
       {simp, rw [← set.eq_preimage_iff_image_eq], exact rel_iso.bijective φ,}

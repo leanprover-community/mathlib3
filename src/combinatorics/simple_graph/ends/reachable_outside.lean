@@ -483,7 +483,7 @@ begin
   -- if all are finite, then their union is finite, so that V is finite too
 end
 
-instance inf_components_finite [locally_finite G]  (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=
+instance inf_components_finite [locally_finite G] (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=
 (set.finite.subset (ro_component.finite G Gpc K) (inf_ro_components_subset G Gpc K)).fintype
 
 

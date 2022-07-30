@@ -186,12 +186,8 @@ end
 
 lemma degree_bit1_eq {p : R[X]} (hp : 0 < degree p) : degree (bit1 p) = degree p :=
 begin
-  rw [degree_eq_nat_degree, degree_eq_nat_degree],
-  { simp, },
-  { exact ne_zero_of_degree_gt hp, },
-  { apply ne_zero_of_nat_degree_gt,
-    rw [polynomial.nat_degree_bit1_eq],
-    exact nat_degree_pos_iff_degree_pos.mpr hp, },
+  rw [bit1, degree_add_eq_left_of_degree_lt, degree_bit0_eq],
+  rwa [degree_one, degree_bit0_eq]
 end
 
 end no_zero_divisors

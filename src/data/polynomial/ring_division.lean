@@ -162,13 +162,9 @@ end
 
 variables [char_zero R]
 
-@[simp]
-lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
-begin
-  rw [bit0_eq_two_mul, degree_mul, (_ : (2 : polynomial R).degree = 0), zero_add],
-  rw (by simp : (2 : polynomial R) = (C 2)),
-  exact polynomial.degree_C two_ne_zero',
-end
+@[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+  @polynomial.degree_C R _ _ two_ne_zero', zero_add]
 
 @[simp]
 lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=

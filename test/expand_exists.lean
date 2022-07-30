@@ -39,7 +39,7 @@ nat_greater_nosplit_spec
 example : ∀ (n : ℕ), n < nat_greater_nosplit n := nat_greater_split_lt
 example : ∀ (n : ℕ), nat_greater_nosplit n ≠ 0 := nat_greater_split_neq
 
-@[expand_exists a_doc_string="test" no_doc_string again_a_doc_string="test"]
+@[expand_exists [a_doc_string "test", no_doc_string, again_a_doc_string "test"]]
 lemma doc_string_test (n : ℕ) : ∃ (a b : ℕ), a = b := ⟨n, n, rfl⟩
 
 noncomputable example : ℕ → ℕ := a_doc_string

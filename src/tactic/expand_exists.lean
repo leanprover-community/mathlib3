@@ -43,24 +43,29 @@ meta structure arg :=
 (docstring : option string)
 
 /--
-Try to parse a string.
+Maybe parse a string.
 -/
-meta def parse_docstring : parser $ (option string) :=
-do
-  pe <- parser.pexpr,
+meta def parse_docstring : parser $ option string :=
+parser.pexpr?
+>>= option.mmap (λ pe, do
   e <- to_expr pe,
-  val <- some <$> eval_expr string e,
-  return val
+  eval_expr string e)
 
 /--
-Parse an argument
+Parse an argument in list form.
 -/
 meta def parse_arg : parser arg :=
 do
   name <- ident,
-  is_docstring <- option.is_some <$> (tk "=")?,
-  doc <- if is_docstring then parse_docstring else pure none,
+  doc <- parse_docstring,
   return ⟨name, doc⟩
+
+/--
+Parse arguments, either a space-separated list of lemma names, or a comma-separated list of lemma
+names, potentially with docstrings.
+-/
+meta def parse_args : parser $ list arg :=
+(list_of parse_arg) <|> list.map (λ x, ⟨x, none⟩) <$> ident*
 
 /--
 Data known when parsing pi expressions.
@@ -240,11 +245,12 @@ end foo
 #check foo.b -- a = a
 ```
 
-A docstring can be added either using `add_decl_doc` after the lemma, or by appending `="..."` to
+You can also write the definition names in list form. This also allows you to specify docstrings in
+the attribute. Alternantively, you can use `add_decl_doc` to do this.
 the name:
 
 ```lean
-@[expand_exists foo="a foo with property bar" bar]
+@[expand_exists [foo "a foo with property bar", bar]]
 lemma foo_exists : ∃ (f : foo), bar f := ...
 
 /--
@@ -258,7 +264,7 @@ meta def expand_exists_attr : user_attribute unit (list expand_exists.arg) :=
 { name := "expand_exists",
   descr := "From a proof that (a) value(s) exist(s) with certain properties, "
   ++ "constructs (an) instance(s) satisfying those properties.",
-  parser := expand_exists.parse_arg*,
+  parser := expand_exists.parse_args,
   after_set := some $ λ decl prio persistent, do
     d <- get_decl decl,
     args <- expand_exists_attr.get_param decl,

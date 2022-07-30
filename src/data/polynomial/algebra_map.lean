@@ -169,6 +169,9 @@ alg_hom.ext_of_adjoin_eq_top adjoin_X $ λ p hp, (set.mem_singleton_iff.1 hp).sy
 
 theorem aeval_def (p : R[X]) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
+lemma aeval_eq_eval_map (p : R[X]) : aeval x p = (p.map (algebra_map R A)).eval x :=
+eval₂_eq_eval_map _
+
 @[simp] lemma aeval_zero : aeval x (0 : R[X]) = 0 :=
 alg_hom.map_zero (aeval x)
 

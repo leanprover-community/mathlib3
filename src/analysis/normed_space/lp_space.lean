@@ -270,9 +270,9 @@ begin
   { exact hf.comp_injective hφ }
 end
 
-lemma comp_linear_isometry {𝕜 : Type*} [normed_field 𝕜] {F : α → Type*}
-  [Π i, normed_add_comm_group (F i)] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
-  (Φ : Π i, E i →ₗᵢ[𝕜] F i) {f : Π i, E i} {p : ℝ≥0∞}
+lemma comp_linear_isometry {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {F : α → Type*} [Π i, normed_add_comm_group (F i)] [Π i, normed_space 𝕜₁ (E i)]
+  [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i →ₛₗᵢ[σ₁₂] F i) {f : Π i, E i} {p : ℝ≥0∞}
   (hf : mem_ℓp f p) : mem_ℓp (λ x, Φ x (f x)) p :=
 begin
   rw mem_ℓp at *,
@@ -1154,6 +1154,7 @@ begin
     exact λ b, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ }
 end
 
+/-- Precomposition by an injective funcion as a continuous linear map between `lp` spaces. -/
 def comap_lp [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
   lp E p →L[𝕜] lp (λ i, E (φ i)) p :=
 linear_map.mk_continuous
@@ -1169,7 +1170,7 @@ end
 @[simp] lemma comap_lp_apply [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
   {f : lp E p} {x : β} : hφ.comap_lp E p 𝕜 f x = f (φ x) := rfl
 
-lemma comap_lp_id [fact (1 ≤ p)] {β : Type*} :
+lemma comap_lp_id [fact (1 ≤ p)] :
   injective_id.comap_lp E p 𝕜 = continuous_linear_map.id 𝕜 (lp E p) :=
 by ext; refl
 
@@ -1197,14 +1198,15 @@ end function.injective
 
 namespace linear_isometry
 
-variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] (𝕜 : Type*)
-  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
-  (Φ : Π i, E i →ₗᵢ[𝕜] F i)
+variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] {𝕜₁ 𝕜₂ : Type*}
+  [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  [Π i, normed_space 𝕜₁ (E i)] [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i →ₛₗᵢ[σ₁₂] F i)
 
-def map_lp [fact $ 1 ≤ p'] : lp E p' →ₗᵢ[𝕜] lp F p' :=
+/-- Postcomposition by a linear isometry as a linear isometry between `lp` spaces. -/
+def map_lp [fact $ 1 ≤ p'] : lp E p' →ₛₗᵢ[σ₁₂] lp F p' :=
 { to_fun := λ f, ⟨λ x, Φ x (f x), mem_ℓp.comp_linear_isometry Φ f.2⟩,
   map_add' := λ f g, by ext i; exact map_add (Φ i) _ _,
-  map_smul' := λ a f, by ext i; exact map_smul (Φ i) _ _,
+  map_smul' := λ a f, by ext i; exact (Φ i).map_smulₛₗ _ _,
   norm_map' :=
   begin
     intros f,
@@ -1221,20 +1223,21 @@ def map_lp [fact $ 1 ≤ p'] : lp E p' →ₗᵢ[𝕜] lp F p' :=
   end }
 
 @[simp] lemma map_lp_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
-  map_lp E F p' 𝕜 Φ f x = Φ x (f x) := rfl
+  map_lp E F p' Φ f x = Φ x (f x) := rfl
 
 lemma map_lp_id [fact $ 1 ≤ p'] :
-  map_lp E E p' 𝕜 (λ i, linear_isometry.id) = linear_isometry.id :=
+  map_lp E E p' (λ i, (linear_isometry.id : E i →ₗᵢ[𝕜₁] E i)) = linear_isometry.id :=
 by ext; refl
 
 lemma map_lp_comp [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
-  [Π i, normed_space 𝕜 (G i)] (Ψ : Π i, F i →ₗᵢ[𝕜] G i) :
-  map_lp E G p' 𝕜 (λ i, (Ψ i).comp (Φ i)) =
-  (map_lp F G p' 𝕜 Ψ).comp (map_lp E F p' 𝕜 Φ) :=
+  {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
+  [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [Π i, normed_space 𝕜₃ (G i)] (Ψ : Π i, F i →ₛₗᵢ[σ₂₃] G i) :
+  map_lp E G p' (λ i, (Ψ i).comp (Φ i)) =
+  (map_lp F G p' Ψ).comp (map_lp E F p' Φ) :=
 rfl
 
 @[simp] lemma map_lp_single [decidable_eq α] [fact $ 1 ≤ p'] (i : α) (x : E i) :
-  map_lp E F p' 𝕜 Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
+  map_lp E F p' Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
 begin
   ext j,
   rw [map_lp_apply],
@@ -1250,15 +1253,18 @@ open linear_isometry
 
 namespace lp
 
-variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] (𝕜 : Type*)
-  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
-  (Φ : Π i, E i ≃ₗᵢ[𝕜] F i)
+variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] {𝕜₁ 𝕜₂ : Type*}
+  [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜₁}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [Π i, normed_space 𝕜₁ (E i)]
+  [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i ≃ₛₗᵢ[σ₁₂] F i)
 
-def congr_right [fact $ 1 ≤ p'] : lp E p' ≃ₗᵢ[𝕜] lp F p' :=
-linear_isometry_equiv.of_surjective (map_lp E F p' 𝕜 (λ i, (Φ i).to_linear_isometry))
+/-- A family of linear isometric equivalences `Π i, E i ≃ₛₗᵢ[σ] F i` induces a linear isometric
+equivalence of `lp` spaces. -/
+def congr_right [fact $ 1 ≤ p'] : lp E p' ≃ₛₗᵢ[σ₁₂] lp F p' :=
+linear_isometry_equiv.of_surjective (map_lp E F p' (λ i, (Φ i).to_linear_isometry))
 begin
-  have : left_inverse (map_lp E F p' 𝕜 (λ i, (Φ i).to_linear_isometry))
-    (map_lp F E p' 𝕜 (λ i, (Φ i).symm.to_linear_isometry)),
+  have : left_inverse (map_lp E F p' (λ i, (Φ i).to_linear_isometry))
+    (map_lp F E p' (λ i, (Φ i).symm.to_linear_isometry)),
   { intro f,
     ext i,
     exact (Φ i).apply_symm_apply _ },
@@ -1266,26 +1272,29 @@ begin
 end
 
 @[simp] lemma congr_right_to_linear_isometry [fact $ 1 ≤ p'] :
-  (congr_right E F p' 𝕜 Φ).to_linear_isometry =
-  map_lp E F p' 𝕜 (λ i, (Φ i).to_linear_isometry) :=
+  (congr_right E F p' Φ).to_linear_isometry =
+  map_lp E F p' (λ i, (Φ i).to_linear_isometry) :=
 rfl
 
 lemma congr_right_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
-  congr_right E F p' 𝕜 Φ f x = Φ x (f x) := rfl
+  congr_right E F p' Φ f x = Φ x (f x) := rfl
 
 lemma congr_right_refl [fact $ 1 ≤ p'] :
-  congr_right E E p' 𝕜 (λ i, linear_isometry_equiv.refl 𝕜 _) = linear_isometry_equiv.refl 𝕜 _ :=
+  congr_right E E p' (λ i, linear_isometry_equiv.refl 𝕜₁ _) = linear_isometry_equiv.refl 𝕜₁ _ :=
 by ext; refl
 
 lemma congr_right_trans [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
-  [Π i, normed_space 𝕜 (G i)] (Ψ : Π i, F i ≃ₗᵢ[𝕜] G i) :
-  congr_right E G p' 𝕜 (λ i, (Φ i).trans (Ψ i)) =
-  (congr_right E F p' 𝕜 Φ).trans (congr_right F G p' 𝕜 Ψ) :=
+  {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₃₂ : 𝕜₃ →+* 𝕜₂} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
+  {σ₃₁ : 𝕜₃ →+* 𝕜₁} [ring_hom_inv_pair σ₂₃ σ₃₂] [ring_hom_inv_pair σ₃₂ σ₂₃]
+  [ring_hom_inv_pair σ₁₃ σ₃₁] [ring_hom_inv_pair σ₃₁ σ₁₃] [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+  [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁] [Π i, normed_space 𝕜₃ (G i)] (Ψ : Π i, F i ≃ₛₗᵢ[σ₂₃] G i) :
+  congr_right E G p' (λ i, (Φ i).trans (Ψ i)) =
+  (congr_right E F p' Φ).trans (congr_right F G p' Ψ) :=
 by ext; refl
 
 @[simp] lemma congr_right_single [decidable_eq α] [fact $ 1 ≤ p'] (i : α) (x : E i) :
-  congr_right E F p' 𝕜 Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
-map_lp_single _ _ _ _ _ _ _
+  congr_right E F p' Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
+map_lp_single _ _ _ _ _ _
 
 end lp
 

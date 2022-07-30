@@ -365,7 +365,35 @@ x ∈ (bInter S Snempty) ↔ (∀ s ∈ S, x ∈ s) :=
 begin
   split,
   {rintro xI s sS, unfold bInter at xI, simp at xI, exact xI.2 s sS,},
-  {rintro good, unfold bInter, simp, use good Snempty.some Snempty.some_spec, exact good,}
+  {rintro good, unfold bInter, simp only [sep_def, mem_filter], use good Snempty.some Snempty.some_spec, exact good,}
+end
+
+
+
+
+
+lemma bInter_of_directed_nonempty {α : Type*} (S : set (finset α)) (Snempty : S.nonempty)
+  (allsnempty : ∀ s ∈ S, finset.nonempty s) (dir : directed_on (⊇) S) : finset.nonempty (bInter S Snempty) :=
+begin
+  let s₀ := function.argmin_on (finset.card) (nat.lt_wf) S Snempty,
+  let hs₀ := argmin_on_mem (finset.card) (nat.lt_wf) S Snempty,
+  suffices : s₀ = (bInter S Snempty), {
+    rw ←this,
+    exact allsnempty s₀ hs₀,},
+  apply finset.ext,
+  rintro x,
+  split,
+  { rintro xs₀,
+    apply (mem_bInter_iff S Snempty x).mpr,
+    rintro s hs,
+    rcases dir s₀ hs₀ s hs with ⟨t,ht,ts₀,ts⟩,
+    suffices : t = s₀,{
+      rw this at ts,
+      exact ts xs₀,},
+    have : finset.card s₀ ≤ finset.card t, from function.argmin_on_le (finset.card) (nat.lt_wf) S ht,
+    exact finset.eq_of_subset_of_card_le ts₀ this,
+  },
+  { rintro xI, exact (mem_bInter_iff S Snempty x).mp xI s₀ hs₀, },
 end
 
 end finset

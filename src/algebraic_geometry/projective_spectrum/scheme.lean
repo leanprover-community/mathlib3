@@ -32,12 +32,12 @@ open sets in `Proj`, more specifically:
 
 1. We prove that `Proj` can be covered by basic open sets at homogeneous element of positive degree.
 2. We prove that for any `f : A`, `Proj.T | (pbo f)` is homeomorphic to `Spec.T A⁰_f`:
-  - forward direction :
+  - forward direction `to_Spec`:
     for any `x : pbo f`, i.e. a relevant homogeneous prime ideal `x`, send it to
-    `x ∩ span {g / 1 | g ∈ A}` (see `Top_component.forward.carrier`). This ideal is prime, the proof
-    is in `Top_component.forward.to_fun`. The fact that this function is continuous is found in
-    `Top_component.forward`
-  - backward direction : TBC
+    `x ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
+    prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
+    is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
+  - backward direction `from_Spec`: TBC
 
 ## Main Definitions and Statements
 
@@ -45,11 +45,10 @@ open sets in `Proj`, more specifically:
   element of degree `n` is the subring of elements of the form `a/f^m` where `a` has degree `mn`.
 
 For a homogeneous element `f` of degree `n`
-* `Top_component.forward`: `forward f` is the
+* `Proj_iso_Spec_Top_component.to_Spec`: `forward f` is the
   continuous map between `Proj.T| pbo f` and `Spec.T A⁰_f`
-* `Top_component.forward.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero, then the preimage
-  of `sbo a/f^m` under `forward f` is `pbo f ∩ pbo a`.
-
+* `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero,
+  then the preimage of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/

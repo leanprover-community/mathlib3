@@ -435,7 +435,7 @@ lemma bij_ro_components_of_isom {U : Type*} (H : simple_graph U) (K : finset V) 
       use φ⁻¹' C,
       split,
       {
-        -- use φ.symm x,
+        --use φ.symm x,
         sorry, -- this should probably be a lemma
       },
       {simp, rw [← set.eq_preimage_iff_image_eq], exact rel_iso.bijective φ,}
@@ -484,6 +484,9 @@ begin
 end
 
 instance inf_components_finite [locally_finite G] (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=
+(set.finite.subset (ro_component.finite G Gpc K) (inf_ro_components_subset G Gpc K)).fintype
+
+lemma inf_components_finite' [locally_finite G] (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=
 (set.finite.subset (ro_component.finite G Gpc K) (inf_ro_components_subset G Gpc K)).fintype
 
 

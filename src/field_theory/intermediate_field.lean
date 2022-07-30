@@ -190,11 +190,30 @@ def subalgebra.to_intermediate_field (S : subalgebra K L) (inv_mem : ∀ x ∈ S
   (S.to_intermediate_field inv_mem).to_subalgebra = S :=
 by { ext, refl }
 
-@[simp] lemma to_intermediate_field_to_subalgebra
-  (S : intermediate_field K L) (inv_mem : ∀ x ∈ S.to_subalgebra, x⁻¹ ∈ S) :
-  S.to_subalgebra.to_intermediate_field inv_mem = S :=
+@[simp] lemma to_intermediate_field_to_subalgebra (S : intermediate_field K L) :
+  S.to_subalgebra.to_intermediate_field (λ x, S.inv_mem) = S :=
 by { ext, refl }
 
+/-- Turn a subalgebra satisfying `is_field` into an intermediate_field -/
+def subalgebra.to_intermediate_field' (S : subalgebra K L) (hS : is_field S) :
+  intermediate_field K L :=
+S.to_intermediate_field $ λ x hx, begin
+  by_cases hx0 : x = 0,
+  { rw [hx0, inv_zero],
+    exact S.zero_mem },
+  letI hS' := hS.to_field,
+  obtain ⟨y, hy⟩ := hS.mul_inv_cancel (show (⟨x, hx⟩ : S) ≠ 0, from subtype.ne_of_val_ne hx0),
+  rw [subtype.ext_iff, S.coe_mul, S.coe_one, subtype.coe_mk, mul_eq_one_iff_inv_eq₀ hx0] at hy,
+  exact hy.symm ▸ y.2,
+end
+
+@[simp] lemma to_subalgebra_to_intermediate_field' (S : subalgebra K L) (hS : is_field S) :
+  (S.to_intermediate_field' hS).to_subalgebra = S :=
+by { ext, refl }
+
+@[simp] lemma to_intermediate_field'_to_subalgebra (S : intermediate_field K L) :
+  S.to_subalgebra.to_intermediate_field' (field.to_is_field S) = S :=
+by { ext, refl }
 
 /-- Turn a subfield of `L` containing the image of `K` into an intermediate field -/
 def subfield.to_intermediate_field (S : subfield L)
@@ -465,6 +484,9 @@ eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 
+lemma algebraic_iff {x : S} : is_algebraic K x ↔ is_algebraic K (x : L) :=
+(is_algebraic_algebra_map_iff (algebra_map S L).injective).symm
+
 end intermediate_field
 
 /-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/
@@ -473,7 +495,7 @@ def subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L) :
 { to_fun := λ S, S.to_intermediate_field (λ x hx, S.inv_mem_of_algebraic (alg (⟨x, hx⟩ : S))),
   inv_fun := λ S, S.to_subalgebra,
   left_inv := λ S, to_subalgebra_to_intermediate_field _ _,
-  right_inv := λ S, to_intermediate_field_to_subalgebra _ _,
+  right_inv := to_intermediate_field_to_subalgebra,
   map_rel_iff' := λ S S', iff.rfl }
 
 @[simp] lemma mem_subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L)

@@ -651,13 +651,13 @@ begin
   simp_rw [set_coe.forall, subtype.coe_mk],
   intros x hx,
 
-  -- the dual cone of a singleton set is the kernel of `inner x`
+  -- the dual cone of a singleton set is the preimage of `[0, ∞)` under `inner x`
   have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0),
   { apply set.ext,
     simp only [convex_cone.mem_coe, mem_inner_dual_cone, mem_singleton_iff, forall_eq, mem_preimage,
     mem_Ici, iff_self, forall_const] },
 
-  -- the kernel of `inner x` is closed as it is continuous
+  -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,
   exact is_closed.preimage (continuous.inner continuous_const continuous_id) is_closed_Ici,
 end

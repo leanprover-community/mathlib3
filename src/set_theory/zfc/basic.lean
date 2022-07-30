@@ -594,8 +594,10 @@ mem_sUnion.2 ⟨z, hz, hy⟩
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
-theorem singleton_inj {x y : Set.{u}} (H : ({x} : Set) = {y}) : x = y :=
-let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
+theorem singleton_injective : function.injective (@singleton Set Set _) :=
+λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
+
+@[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
@@ -627,6 +629,7 @@ iff.trans mem_sUnion
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
 /-- Induction on the `∈` relation. -/
+@[elab_as_eliminator]
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
 quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
 show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
@@ -683,13 +686,13 @@ begin
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
-theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' :=
-begin
+theorem pair_injective : function.injective2 pair :=
+λ x x' y y' H, begin
   have ae := ext_iff.2 H,
   simp only [pair, mem_pair] at ae,
   obtain rfl : x = x',
   { cases (ae {x}).1 (by simp) with h h,
-    { exact singleton_inj h },
+    { exact singleton_injective h },
     { have m : x' ∈ ({x} : Set),
       { simp [h] },
       rw mem_singleton.mp m } },
@@ -707,6 +710,9 @@ begin
     { simp [yy'] } }
 end
 
+@[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
+pair_injective.eq_iff
+
 /-- The cartesian product, `{(a, b) | a ∈ x, b ∈ y}` -/
 def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λ a b, true)
 
@@ -715,7 +721,7 @@ by simp [prod]
 
 @[simp] theorem pair_mem_prod {x y a b : Set.{u}} : pair a b ∈ prod x y ↔ a ∈ x ∧ b ∈ y :=
 ⟨λ h, let ⟨a', a'x, b', b'y, e⟩ := mem_prod.1 h in
-  match a', b', pair_inj e, a'x, b'y with ._, ._, ⟨rfl, rfl⟩, ax, bY := ⟨ax, bY⟩ end,
+  match a', b', pair_injective e, a'x, b'y with ._, ._, ⟨rfl, rfl⟩, ax, bY := ⟨ax, bY⟩ end,
 λ ⟨ax, bY⟩, mem_prod.2 ⟨a, ax, b, bY, rfl⟩⟩
 
 /-- `is_func x y f` is the assertion that `f` is a subset of `x × y` which relates to each element
@@ -745,7 +751,7 @@ mem_image
 
 theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}} (zx : z ∈ x) :
   ∃! w, pair z w ∈ map f x :=
-⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_inj we in
+⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_injective we in
   by rw[←fy, wz]⟩
 
 @[simp] theorem map_is_func {f : Set → Set} [H : definable 1 f] {x y : Set} :
@@ -784,6 +790,26 @@ instance : has_mem Class Class := ⟨Class.mem⟩
 
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+theorem mem_wf : @well_founded Class.{u} (∈) :=
+⟨begin
+  have H : ∀ x : Set.{u}, @acc Class.{u} (∈) ↑x,
+  { refine λ a, Set.induction_on a (λ x IH, ⟨x, _⟩),
+    rintros A ⟨z, rfl, hz⟩,
+    exact IH z hz },
+  { refine λ A, ⟨A, _⟩,
+    rintros B ⟨x, rfl, hx⟩,
+    exact H x }
+end⟩
+
+instance : has_well_founded Class := ⟨_, mem_wf⟩
+instance : is_asymm Class (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : Class) : x ∉ x := irrefl x
+
+/-- There is no universal set. -/
+theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
@@ -867,7 +893,7 @@ namespace Set
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
 Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.mem_hom_right, mem_map], exact
-  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw[←fw, wy],
+  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_injective pr in by rw[←fw, wy],
   λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
 
 variables (x : Set.{u}) (h : ∅ ∉ x)

@@ -507,9 +507,12 @@ begin
     λ K, fintype.of_surjective (eval G Gpc K) (eval_surjective G Gpc K),
   have all_le_M := λ K, fintype.card_le_of_surjective (eval G Gpc K) (eval_surjective G Gpc K),
   have  : ∃ K : finset V, ∀ K' : finset V, fintype.card (inf_ro_components G  K') ≤ fintype.card (inf_ro_components G K), by {
+    let cards := set.range (λ K, fintype.card (inf_ro_components G K)),
+    have : ∀ c ∈ cards, c ≤ M, by {rintros c ⟨K,rfl⟩, exact all_le_M K,},
+    haveI : nonempty (finset V) := sorry,
+    have : cards.nonempty := set.range_nonempty _,
+    -- Want to have a max card!!
     sorry,
-    -- by `all_le_M` all values are ≤ M, so just needs to find an argmax, but not sure what's the best
-    -- path usinG Gpc mathlib
   },
   rcases this with ⟨K,Kmax⟩,
   let Kv := insert v K,
@@ -526,8 +529,6 @@ begin
   },
 
 end
-
-
 
 -- should be pretty much only λ C, end_of ro_component G Gpc kfinite C
 -- theorem `card_components_mon` sayinG Gpc htat `λ K, card (inf_ro_components G K)` is monotone

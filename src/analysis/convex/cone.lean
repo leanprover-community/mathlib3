@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis
 -/
 import analysis.convex.hull
-import analysis.inner_product_space.projection
+import analysis.inner_product_space.basic
 
 /-!
 # Convex cones

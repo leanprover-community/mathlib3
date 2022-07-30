@@ -462,7 +462,8 @@ lemma get_prod (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
   f.prod g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
 
 lemma mem_prod {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
-  y ∈ f.prod g x ↔ ∃ h : (f.prod g x).dom, ((f x.1).get h.1, (g x.2).get h.2) = y := iff.rfl
+  y ∈ f.prod g x ↔ y.1 ∈ f x.1 ∧ y.2 ∈ g x.2 :=
+by { simp [pfun.prod], tidy }
 
 @[simp] lemma prod_id_id : (pfun.id α).prod (pfun.id β) = pfun.id _ :=
 ext $ λ _ _, by simp [eq_comm]

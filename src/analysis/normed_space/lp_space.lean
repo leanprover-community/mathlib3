@@ -517,10 +517,7 @@ normed_add_comm_group.of_core _
   norm_neg := norm_neg }
 
 lemma nnnorm_eq_csupr (f : lp E ∞) : ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
-begin
-  ext,
-  simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr]
-end
+by { ext, simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr] }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.

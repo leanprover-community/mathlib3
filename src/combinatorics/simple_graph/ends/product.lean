@@ -4,7 +4,7 @@ import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
-
+import combinatorics.simple_graph.prod
 import .mathlib
 import .reachable_outside
 import .ends
@@ -38,8 +38,13 @@ namespace ends
 open ro_component
 open simple_graph
 
-lemma ends_product (Vinf : set.infinite (@set.univ V)) (V'inf : set.infinite (@set.univ V')) := sorry
---  ends box_prod G G' ≃ true
+lemma ends_product [locally_finite G] [locally_finite G']
+  (Gpc :G.preconnected) (Gpc' : G'.preconnected)
+  (Vinf : set.infinite (@set.univ V)) (V'inf : set.infinite (@set.univ V'))
+: ends  (box_prod G  G') (simple_graph.preconnected.box_prod Gpc Gpc') ≃ true :=
+begin
+  sorry
+end
 -- just want to say the cardinality is 1
 
 end ends

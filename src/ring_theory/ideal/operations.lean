@@ -1398,9 +1398,6 @@ variables (ι : Type*)
 variables {M : Type*} [add_comm_group M] {R : Type*} [comm_ring R] [module R M] (I : ideal R)
 variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
 
-variables {M' : Type*} [add_comm_monoid M'] [module R M']
-variables (v' : ι → M') (hv' : submodule.span R (set.range v') = ⊤)
-
 variables (M)
 
 open_locale big_operators

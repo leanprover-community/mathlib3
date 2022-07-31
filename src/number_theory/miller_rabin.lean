@@ -520,7 +520,19 @@ begin
 
         sorry },
       have h4 : (p : zmod (p^α))^l ∣ (x+1) ∨ (p : zmod (p^α))^l ∣ (x-1), { sorry },
-      have h5 : x = 1 ∨ x = -1, { sorry },
+
+
+
+      ---  NO!  We have x = ± 1 mod p^l
+      -- TODO : Re-write the remainder of the proof
+      have h5 : x = 1 ∨ x = -1, {
+        apply or.imp (λ h, _) (λ h, _) h4.symm,
+        {
+
+
+        sorry },
+        { sorry },
+      },
       have h6 : x = -1, { cases h5, { cases hx1 h5 }, { exact h5 } },
 
       rw [hx, ←pow_mul, mul_comm, pow_mul] at h6,

@@ -416,17 +416,19 @@ end
 open_locale nat  -- to use `φ` for `nat.totient`
 
 /-- Theorem 3.4 of Conrad -/
-lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
+lemma strong_probable_prime_of_prime_power_iff (p α : ℕ)
+(hα : 1 ≤ α)  -- TODO: get rid of this
+(hα0 : 0 < α)
+(hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,
-  have one_le_p : 1 ≤ p := nat.le_of_succ_le two_le_p,
   have one_lt_n : 1 < p ^ α := nat.succ_le_iff.mp (two_le_p.trans (le_self_pow hp.one_lt.le hα)),
   have zero_lt_n : 0 < p^α := pos_of_gt one_lt_n,
   haveI : fact (0 < p ^ α), { exact {out := zero_lt_n}, },
 
   split,
-  { -- a is a Miller-Rabin nonwitness for n = p^α
+  { -- Given that `a` is a Miller-Rabin nonwitness for `n = p^α`, prove `a^(p-1) = 1`
     intro hspp,
     -- Euler's theorem tells us that `a^φ(n) = 1`.
     have euler : a ^ φ(p^α) = 1,
@@ -438,7 +440,6 @@ begin
       rw units.coe_one at coe_this,
       rw [←coe_this, units.coe_pow],
       congr },
-    rw nat.totient_prime_pow hp (nat.succ_le_iff.mp hα) at euler,
 
     -- Since p^α is a strong probable prime to base a, we have a^(p^α - 1) = 1
     have h2 := fermat_cprime_of_strong_probable_prime (p^α) a hspp,
@@ -446,15 +447,17 @@ begin
 
     -- Thus the order of a mod n divides gcd(φ(n), n-1)
     rw ← order_of_dvd_iff_pow_eq_one at euler h2 ⊢,
-    have order_gcd := nat.dvd_gcd euler h2,
-    have gcd_eq : (p ^ (α - 1) * (p - 1)).gcd (p ^ α - 1) = p - 1,
-    { apply nat.gcd_mul_of_coprime_of_dvd,
-      { -- p is relatively prime to p^α - 1
-        apply nat.coprime.pow_left,
-        rw ←nat.coprime_pow_left_iff (hα),
-        exact coprime_self_sub_one (p ^ α) zero_lt_n },
-      {exact sub_one_dvd_pow_sub_one p α one_le_p,} },
-    rwa gcd_eq at order_gcd },
+
+    -- So all that remains is to show that this gcd(φ(n), n-1) is p-1
+    suffices : (φ(p^α)).gcd (p^α - 1) = p - 1, { rw ←this, exact nat.dvd_gcd euler h2 },
+
+    rw nat.totient_prime_pow hp hα0,
+    refine nat.gcd_mul_of_coprime_of_dvd _ (sub_one_dvd_pow_sub_one p α hp.pos),
+
+    -- p is relatively prime to p^α - 1
+    apply nat.coprime.pow_left,
+    rw ←nat.coprime_pow_left_iff hα0,
+    exact coprime_self_sub_one (p^α) zero_lt_n },
 
 
   { -- a ^ (p-1) = 1
@@ -478,7 +481,7 @@ begin
         rw order_of_eq_one_iff at stuff,
         rw stuff },
       left,
-      have thing := sub_one_dvd_pow_sub_one p α one_le_p,
+      have thing := sub_one_dvd_pow_sub_one p α hp.one_lt.le,
       rw dvd_iff_exists_eq_mul_left at thing,
       rcases thing with ⟨c, hc⟩,
       rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },

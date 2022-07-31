@@ -377,6 +377,23 @@ lemma fermat_cprime_iff_nonwitness (n : nat) (a : (zmod n)) :
   fermat_cprime n a ↔ ¬ n.fermat_witness a :=
 by simp [fermat_cprime, nat.fermat_witness]
 
+/-- If `a : zmod n` is a Fermat witness for `n` then it is also a Miller-Rabin witness for `n`. -/
+lemma nat.miller_rabin_witness_of_fermat_witness (n : ℕ) (a : zmod n) (h : n.fermat_witness a) :
+  n.miller_rabin_witness a :=
+begin
+  simp only [nat.miller_rabin_witness, nat.fermat_witness] at *,
+  refine ⟨_, _⟩,
+  { contrapose! h, rw [←even_part_mul_odd_part (n-1), mul_comm, pow_mul, h, one_pow] },
+  { rintros i hi,
+    rw mem_range at hi,
+    rcases exists_pos_add_of_lt hi with ⟨j, hj0, hj⟩,
+    contrapose! h,
+    rw [←even_part_mul_odd_part (n-1)],
+    rw [mul_comm, pow_mul] at *,
+    rw [even_part, ←hj, pow_add, pow_mul, h],
+    exact even.neg_one_pow ((nat.even_two_pow_iff j).2 hj0) },
+end
+
 
 /-- If there is a base `a` relative to which `n` is a strong probable prime
 then `n` is a Fermat candidate-prime. -/

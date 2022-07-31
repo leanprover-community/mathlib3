@@ -84,6 +84,8 @@ end
 lemma bwd_map_refl  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) : bwd_map G Gpc (set.subset.refl K) C = C :=
 by {rw bwd_map_def}
 
+lemma bwd_map_refl  (Gpc : G.preconnected) (K : finset V) : bwd_map G Gpc (subset.refl K) = id :=
+funext (bwd_map_refl G Gpc K)
 
 lemma bwd_map_surjective [locally_finite G]  (Gpc : G.preconnected) {K L : finset V} (K_sub_L : K ⊆ L) :
 surjective (bwd_map G Gpc K_sub_L) :=
@@ -289,7 +291,11 @@ def of_ends_for_comm (Gpc: G.preconnected) (ℱ : fam) (e : ends_for G Gpc ℱ) 
       rcases (ℱ.cof K) with ⟨FK,⟨FK_fam,K_FK⟩⟩,
       rcases (ℱ.cof L) with ⟨FL,⟨FL_fam,L_FL⟩⟩,
       rcases ends_for_directed G Gpc ℱ e ⟨FK,FK_fam⟩ ⟨FL,FL_fam⟩ with ⟨M,FK_M,FL_M,backK,backL⟩,
-      have hey : of_ends_for_fun G Gpc ℱ e K = bwd_map G Gpc K_FK (e.1 ⟨FK,FK_fam⟩), by {sorry},
+      have hey : of_ends_for_fun G Gpc ℱ e K = bwd_map G Gpc K_FK (e.1 ⟨FK,FK_fam⟩), by {
+        unfold of_ends_for_fun,
+        simp,
+        sorry,
+      },
       have hoo : of_ends_for_fun G Gpc ℱ e L = bwd_map G Gpc L_FL (e.1 ⟨FL,FL_fam⟩), by {sorry},
       rw [hey,hoo,backK,backL,bwd_map_comp',bwd_map_comp',bwd_map_comp'],
 }
@@ -392,8 +398,16 @@ begin
       exact (equiv.of_bijective _ this).inv_fun C,
     },
     use f,
-    { sorry },
-    { sorry }
+    { unfold ends_for,
+      simp,
+      rintros L KL M KM LM,
+      sorry,
+    },
+    { unfold eval_for,
+      simp only [*, equiv.inv_fun_as_coe],
+      have bijK : bijective (bwd_map G Gpc (subset.refl K)), from ⟨inj_from_K K (subset.refl K),bwd_map_surjective G Gpc (subset.refl K)⟩,
+      nth_rewrite_lhs 0 ←(bwd_map_refl G Gpc K C),
+      exact equiv.of_bijective_symm_apply_apply (bwd_map G Gpc _) bijK C,}
   }
 end
 

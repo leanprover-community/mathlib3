@@ -62,16 +62,98 @@ begin
     have lol := eval_bijective GG GGpc ∅ (λ L hL, all_inj ∅ L hL),
     exact (equiv.of_bijective _ lol).trans (this ∅),
   },
+
   rintros K,
-  -- Thta's not the correct construction: we want to take a box containing K
-  let L := (finset.image prod.fst K) × (finset.image prod.snd K),
-  /-
-  Then we show that VV \ L is subconnected (our terminology), hence contained in some infinite connected component.
-  Since L is finite, there can be no other infinite connected component than this one, and we construct the bijection with true.
-  -/
-  sorry,
+  let L := finset.product (finset.image prod.fst K) (finset.image prod.snd K),
+  have : K ⊆ L, from subset_product,
+  let D := (L : set VV) ᶜ,
+  have memD_iff : ∀ x : VV, x ∈ D ↔ x.1 ∉ (finset.image prod.fst K) ∨ x.2 ∉ (finset.image prod.snd K), by
+  {
+    rintro x,
+    rw ←not_iff_not,
+    push_neg,
+    rw set.mem_compl_iff,
+    simp,},
+  have Ddis : disjoint D K, from disjoint_compl_left_iff.mpr (‹K⊆L›),
+  have Dinf : D.infinite, by sorry, -- VV is infinite, L is finite, V\L is infinite.
+  have Dconn : subconnected GG D, by {
+    rintros ⟨x,x'⟩ xinD ⟨y,y'⟩ yinD,
+
+    have :(∃ (z z': VV)
+             (u : GG.walk ⟨x,x'⟩ z)
+             (v : GG.walk z z')
+             (w : GG.walk z' ⟨y,y'⟩),
+             (u.support.to_finset : set VV) ⊆ D
+           ∧ (v.support.to_finset : set VV) ⊆ D
+           ∧ (w.support.to_finset : set VV) ⊆ D), by {
+
+      have : ∀ x ∉ (finset.image prod.fst K),
+             ∀ {y y' : V'} (w : G'.walk y y'), ((walk.box_prod_right G x w).support.to_finset : set VV) ⊆ D, by {
+        rintros x xnotin y y' w,
+        rw simple_graph.walk.support_box_prod_right,
+        rw list.map_to_finset,
+        rintro p q,
+        simp at q,
+        rcases q with ⟨v,⟨vin,rfl⟩⟩,
+        apply (memD_iff ⟨x,v⟩).mpr,
+        left, exact xnotin,},
+
+      have : ∀ x ∉ (finset.image prod.snd K),
+             ∀ {y y' : V} (w : G.walk y y'), ((walk.box_prod_left G' x w).support.to_finset : set VV) ⊆ D, by {
+        rintros x xnotin y y' w,
+        rw simple_graph.walk.support_box_prod_left,
+        rw list.map_to_finset,
+        rintro p q,
+        simp at q,
+        rcases q with ⟨v,⟨vin,rfl⟩⟩,
+        apply (memD_iff ⟨v,x⟩).mpr,
+        right, exact xnotin,},
+
+      rcases (memD_iff ⟨x,x'⟩).mp xinD with xnot|xnot',
+        { rcases (memD_iff ⟨y,y'⟩).mp yinD with ynot|ynot',
+          {
+            sorry,
+          },
+          { sorry },
+        },
+        { rcases (memD_iff ⟨y,y'⟩).mp yinD with ynot|ynot',
+          { sorry },
+          { sorry },
+        }
+    },
+
+    rcases this with ⟨z,z',u,v,w,uD,vD,wD⟩,
+    use (u.append v).append w,
+    rw [walk.support_append,list.to_finset_append,walk.support_append,list.to_finset_append],
+    rw [finset.coe_union,finset.coe_union],
+
+    have vD' := set.subset.trans (list.to_finset_tail v.support) vD,
+    have wD' := set.subset.trans (list.to_finset_tail w.support) wD,
+    exact set.union_subset (set.union_subset uD vD') wD',
+  },
+  -- If I do a `rcases … with ⟨C,Ccomp⟩` here I get elimination out of prop issues, why does this ↓ work?
+  let C := (ro_component.of_subconnected_disjoint GG K D (set.infinite.nonempty Dinf) Ddis Dconn).some,
+  obtain ⟨Ccomp,DC⟩ := (ro_component.of_subconnected_disjoint GG K D (set.infinite.nonempty Dinf) Ddis Dconn).some_spec,
+  have Cinf := set.infinite.mono DC Dinf,
+  suffices : ∀ C' ∈ inf_ro_components GG K, C' = C, {
+    use [(λ _, trivial)
+        ,(λ _, ⟨C,Ccomp,Cinf⟩)
+        ,(λ lol,  subtype.coe_inj.mp ((this lol.val lol.prop).symm))
+        ,(λ _, rfl)],},
+  rintros C' ⟨Ccomp',Cinf'⟩,
+  suffices : (C ∩ C').nonempty, {
+    rcases this with ⟨x,xC,xC'⟩,
+    apply eq_of_common_mem GG K C' C Ccomp' Ccomp x xC' xC},
+  by_contradiction,
+  have : C' ⊆ L, by {
+    rw set.not_nonempty_iff_eq_empty at h,
+    rw ←set.disjoint_iff_inter_eq_empty at h,
+    have := @disjoint.mono_left _ _ _ D C C' DC h,
+    rw ←set.disjoint_compl_right_iff_subset,
+    exact this.symm,
+  },
+  exact Cinf' (set.finite.subset L.finite_to_set this),
 end
--- just want to say the cardinality is 1
 
 end ends
 

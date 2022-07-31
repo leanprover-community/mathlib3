@@ -2,6 +2,8 @@ import data.set.finite
 import data.sym.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.prod
+
 import topology.metric_space.basic
 import data.setoid.partition
 
@@ -68,6 +70,15 @@ lemma walk.pred_adj_non_pred {V : Type u} {G : simple_graph V} :
   ∃ (x y : V), G.adj x y ∧ pred x ∧ ¬ pred y
 | _ _ nil p up vnp := (vnp up).elim
 | _ _ (cons' x y z a q) p up vnp := if h : p y then walk.pred_adj_non_pred y z q p h vnp else ⟨x,y,a,up,h⟩
+
+
+lemma simple_graph.walk.support_box_prod_left {α : Type*} {β : Type*}
+  {G : simple_graph α} (H : simple_graph β) {a₁ a₂ : α} (b : β) (w : G.walk a₁ a₂) :
+  (walk.box_prod_left H b w).support = w.support.map (λ x, ⟨x,b⟩) := sorry
+
+lemma simple_graph.walk.support_box_prod_right {α : Type*} {β : Type*}
+  (G : simple_graph α) {H : simple_graph β} {b₁ b₂ : β} (a : α)
+  (w : H.walk b₁ b₂) : (walk.box_prod_right G a w).support = w.support.map (λ x, ⟨a,x⟩) := sorry
 
 
 

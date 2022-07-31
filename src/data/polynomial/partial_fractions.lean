@@ -225,12 +225,48 @@ section two_denominators
 
 -- If `g₁` and `g₂` are coprime monics then `f/g₁g₂` can be written as `q+r₁/g₁+r₂/g₂`
 -- with deg(rᵢ) < deg(gᵢ)
-lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]} (hg₁ : g₁.monic) (hg₂ : g₂.monic) :
+lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]}
+  (hg₁ : g₁.monic) (hg₂ : g₂.monic) (hcoprime : is_coprime g₁ g₂ ) :
   ∃ q r₁ r₂ : R[X], r₁.degree < g₁.degree ∧ r₂.degree < g₂.degree ∧
   (f : K) / (g₁ * g₂) = q + r₁ / g₁ + r₂ / g₂ :=
 begin
-  sorry
-  -- definitely worth thinking about the maths proof first
+  rcases hcoprime with ⟨ c, d, hcd ⟩,
+  refine ⟨ (f*d) /ₘ g₁ + (f*c) /ₘ g₂ , (f*d) %ₘ g₁ , (f*c) %ₘ g₂ ,
+    (degree_mod_by_monic_lt _ hg₁) , (degree_mod_by_monic_lt _ hg₂) , _⟩,
+  conv_lhs {rw [← mul_one f , ← hcd]},
+  rw [mul_add, ← mul_assoc, ← mul_assoc],
+  push_cast,
+  conv_lhs
+  { rw [add_div (↑f * ↑c * ↑g₁) (↑f * ↑d * ↑g₂) (↑g₁ * ↑g₂),
+        ← div_div, mul_comm ↑g₁ ↑g₂, ← div_div], },
+  rw mul_div_cancel,
+  swap,
+  norm_cast,
+  exact monic.ne_zero_of_ne zero_ne_one hg₁,
+  rw mul_div_cancel,
+  swap,
+  norm_cast,
+  exact monic.ne_zero_of_ne zero_ne_one hg₂,
+  conv_rhs
+  { rw [add_assoc (↑(f * d /ₘ g₁)) (↑(f * c /ₘ g₂)) ((↑(f * d %ₘ g₁) / ↑g₁)),
+        add_comm (↑(f * c /ₘ g₂)) (↑(f * d %ₘ g₁) / ↑g₁),
+        ← add_assoc (↑(f * d /ₘ g₁)) ((↑(f * d %ₘ g₁) / ↑g₁)) (↑(f * c /ₘ g₂)),
+        add_assoc], },
+  norm_cast,
+  conv_lhs { rw [← mod_by_monic_add_div (f * c) hg₂, ← mod_by_monic_add_div (f * d) hg₁]},
+  push_cast,
+  conv_lhs { rw [add_div, add_div, mul_comm ↑g₂ ↑(f * c /ₘ g₂), mul_comm ↑g₁ ↑(f * d /ₘ g₁)] },
+  rw mul_div_cancel,
+  swap,
+  norm_cast,
+  exact monic.ne_zero_of_ne zero_ne_one hg₂,
+  rw mul_div_cancel,
+  swap,
+  norm_cast,
+  exact monic.ne_zero_of_ne zero_ne_one hg₁,
+  rw [add_comm,
+     add_comm (↑(f * d %ₘ g₁) / ↑g₁) ↑(f * d /ₘ g₁),
+     add_comm (↑(f * c %ₘ g₂) / ↑g₂) ↑(f * c /ₘ g₂)],
 end
 
 end two_denominators
@@ -252,7 +288,7 @@ end
 
 -- uniqueness
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (q : R[X]) (r : ι → R[X]) (hr : ∀ i, (r i).degree < (g i.degree))
+  (hg : ∀ i, (g i).monic) (q : R[X]) (r : ι → R[X]) (hr : ∀ i, (r i).degree < (g i).degree)
   (hf : (f : K) / ∏ i, g i = q + ∑ i, (r i) / (g i)) :
     q = (div_eq_quo_add_sum_rem_div R K f hg).some ∧ r = (div_eq_quo_add_sum_rem_div R K f hg).some_spec.some :=
 begin

@@ -482,22 +482,26 @@ begin
 
     rcases H2 with ⟨j, H, hj⟩,
 
-
-
-    by_cases j = 0,
-    { rw strong_probable_prime,
-      have hfoo : a ^ odd_part (p - 1) = 1,
-      { have stuff : order_of (a ^ odd_part (p - 1)) = 1,
-        rw hj,
-        rw h,
-        rw pow_zero,
-        rw order_of_eq_one_iff at stuff,
-        rw stuff },
+    rcases eq_or_ne j 0 with rfl | hj0,
+    { rw [pow_zero, order_of_eq_one_iff] at hj,
       left,
-      have thing := sub_one_dvd_pow_sub_one p α hp.one_lt.le,
-      rw dvd_iff_exists_eq_mul_left at thing,
-      rcases thing with ⟨c, hc⟩,
-      rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
+      rcases hlk with ⟨q, hq⟩,
+      rw [←hk, hq, pow_mul, hj, one_pow],},
+
+    -- by_cases j = 0,
+    -- { rw strong_probable_prime,
+    --   have hfoo : a ^ odd_part (p - 1) = 1,
+    --   { have stuff : order_of (a ^ odd_part (p - 1)) = 1,
+    --     rw hj,
+    --     rw h,
+    --     rw pow_zero,
+    --     rw order_of_eq_one_iff at stuff,
+    --     rw stuff },
+    --   left,
+    --   have thing := sub_one_dvd_pow_sub_one p α hp.one_lt.le,
+    --   rw dvd_iff_exists_eq_mul_left at thing,
+    --   rcases thing with ⟨c, hc⟩,
+    --   rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
     { sorry } },
 end
 

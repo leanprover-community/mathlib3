@@ -60,20 +60,33 @@ instance has_mul (I : ideal R) : has_mul (R ⧸ I) :=
   change _ ∈ _, convert F,
 end⟩
 
-instance comm_semiring (I : ideal R) : comm_semiring (R ⧸ I) :=
+instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
 { mul := (*),
   one := 1,
   nat_cast := λ n, submodule.quotient.mk n,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := by simpa [nat.cast],
-  one_mul  := λ a, quotient.induction_on' a $ λ a, congr_arg submodule.quotient.mk $ one_mul a,
-  mul_one  := λ a, quotient.induction_on' a $ λ a, congr_arg submodule.quotient.mk $ mul_one a,
-  zero_mul := λ a, quotient.induction_on' a $ λ a, congr_arg submodule.quotient.mk $ zero_mul a,
-  mul_zero := λ a, quotient.induction_on' a $ λ a, congr_arg submodule.quotient.mk $ mul_zero a,
-  mul_comm := λ a b, quotient.induction_on₂' a b $
-    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
+  int_cast := λ n, submodule.quotient.mk n,
+  int_cast_of_nat := λ n, begin
+    rw int.cast_coe_nat,
+    induction n with n hn,
+    { refl },
+    { simp only [nat.succ_eq_add_one, nat.cast_add, submodule.quotient.mk_add],
+      refl }
+  end,
+  int_cast_neg_succ_of_nat := λ n, begin
+    simp only [nat.cast_add, nat.cast_one, submodule.quotient.mk_add, neg_add_rev, int.cast_add,
+               int.cast_neg, int.cast_one, int.cast_coe_nat, submodule.quotient.mk_neg],
+    refl,
+  end,
   mul_assoc := λ a b c, quotient.induction_on₃' a b c $
     λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
+  mul_comm := λ a b, quotient.induction_on₂' a b $
+    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
+  one_mul := λ a, quotient.induction_on' a $
+    λ a, congr_arg submodule.quotient.mk (one_mul a),
+  mul_one := λ a, quotient.induction_on' a $
+    λ a, congr_arg submodule.quotient.mk (mul_one a),
   left_distrib := λ a b c, quotient.induction_on₃' a b c $
     λ a b c, congr_arg submodule.quotient.mk (left_distrib a b c),
   right_distrib := λ a b c, quotient.induction_on₃' a b c $
@@ -83,13 +96,6 @@ instance comm_semiring (I : ideal R) : comm_semiring (R ⧸ I) :=
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
-
-instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
-{ int_cast := λ n, ideal.quotient.mk I n,
-  int_cast_of_nat := λ n, by simp [nat.cast],
-  int_cast_neg_succ_of_nat := by simp [nat.cast],
-  ..ideal.quotient.comm_semiring I,
-  ..submodule.quotient.add_comm_group I }
 
 /- Two `ring_homs`s from the quotient by an ideal are equal if their
 compositions with `ideal.quotient.mk'` are equal.

@@ -194,6 +194,18 @@ psum
 
 end simple_graph
 
+lemma equiv_true_of (α : Type*) : (∃ a : α, ∀ b : α, b = a) →  (α ≃ true) := begin
+  rintros H,
+  let a := H.some,
+  let aa := H.some_spec,
+  use [(λ _, trivial),(λ _, a),(λ x, (aa x).symm),(λ _, rfl)],
+end
+lemma equiv_true_to (α : Type*) : (α ≃ true) →  (∃ a : α, ∀ b : α, a = b) := begin
+  rintro E,
+  use E.inv_fun trivial,
+  exact E.left_inv,
+end
+
 
 namespace list
 

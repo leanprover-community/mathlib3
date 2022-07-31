@@ -501,7 +501,12 @@ begin
       refine ⟨lt_of_lt_of_le (pred_lt hj0) (H.trans hfe), _⟩,
       rw ←hk,
       set x := (a^l)^(2^(j-1)) with hx,
-      have hx1 : x ≠ 1, { sorry },
+      have hx1 : x ≠ 1, {
+        intro H,
+        rw [H, eq_comm] at hx,
+        apply @pow_ne_one_of_lt_order_of' _ (a^l) (2^(j-1)) _ _ _ hx,
+        { apply pow_ne_zero (j-1) (show 2 ≠ 0, by linarith) },
+        { rw hj, exact pow_lt_pow (show 1 < 2, by linarith) (pred_lt hj0) } },
       have hx2 : x^2 = 1, { sorry },
       have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1), { sorry },
       have h4 : (p : zmod (p^α))^l ∣ (x+1) ∨ (p : zmod (p^α))^l ∣ (x-1), { sorry },

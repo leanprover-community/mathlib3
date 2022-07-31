@@ -280,47 +280,49 @@ antilipschitz_with_equiv_aux p β
 
 /-- seminormed group instance on the product of finitely many normed groups, using the `L^p`
 norm. -/
-instance semi_normed_group [Π i, semi_normed_group (β i)] : semi_normed_group (pi_Lp p β) :=
+instance seminormed_add_comm_group [Π i, seminormed_add_comm_group (β i)] :
+  seminormed_add_comm_group (pi_Lp p β) :=
 { norm := λf, (∑ i, ∥f i∥ ^ p) ^ (1/p),
   dist_eq := λ x y, by simp [pi_Lp.dist_eq, dist_eq_norm, sub_eq_add_neg],
   .. pi.add_comm_group }
 
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
-instance normed_group [Π i, normed_group (α i)] : normed_group (pi_Lp p α) :=
-{ ..pi_Lp.semi_normed_group p α }
+instance normed_add_comm_group [Π i, normed_add_comm_group (α i)] :
+  normed_add_comm_group (pi_Lp p α) :=
+{ ..pi_Lp.seminormed_add_comm_group p α }
 
 omit fact_one_le_p
 lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
-  [Π i, semi_normed_group (β i)] (f : pi_Lp p β) :
+  [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ i, ∥f i∥ ^ p) ^ (1/p) := rfl
 
 lemma nnnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
-  [Π i, semi_normed_group (β i)] (f : pi_Lp p β) :
+  [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp p β) :
   ∥f∥₊ = (∑ i, ∥f i∥₊ ^ p) ^ (1/p) :=
 by { ext, simp [nnreal.coe_sum, norm_eq] }
 
 lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
-  [Π i, semi_normed_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
+  [Π i, seminormed_add_comm_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ i, ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
 by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 
-lemma norm_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x : pi_Lp 2 β) :
+lemma norm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
   ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
 by { rw [norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
 
-lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x : pi_Lp 2 β) :
+lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
   ∥x∥₊ = nnreal.sqrt (∑ (i : ι), ∥x i∥₊ ^ 2) :=
 subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
-lemma dist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+lemma dist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x y : pi_Lp 2 β) :
   dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
 by simp_rw [dist_eq_norm, norm_eq_of_L2, pi.sub_apply]
 
-lemma nndist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+lemma nndist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x y : pi_Lp 2 β) :
   nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
 subtype.ext $ by { push_cast, exact dist_eq_of_L2 _ _ }
 
-lemma edist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+lemma edist_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x y : pi_Lp 2 β) :
   edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
 by simp_rw [pi_Lp.edist_eq, ennreal.rpow_two]
 
@@ -329,7 +331,7 @@ include fact_one_le_p
 variables [normed_field 𝕜]
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] :
+instance normed_space [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] :
   normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le :=
   begin
@@ -342,14 +344,14 @@ instance normed_space [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 
   end,
   .. pi.module ι β 𝕜 }
 
-instance finite_dimensional [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)]
+instance finite_dimensional [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)]
   [I : ∀ i, finite_dimensional 𝕜 (β i)] :
   finite_dimensional 𝕜 (pi_Lp p β) :=
 finite_dimensional.finite_dimensional_pi' _ _
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α} [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables {𝕜 p α} [Π i, seminormed_add_comm_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
 variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
 @[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
@@ -361,7 +363,7 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 variables {ι' : Type*}
 variables [fintype ι']
 
-variables (p 𝕜) (E : Type*) [normed_group E] [normed_space 𝕜 E]
+variables (p 𝕜) (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
 functions-/
@@ -418,7 +420,7 @@ end
 @[simp] lemma equiv_symm_smul :
   (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
 
-lemma nnnorm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
+lemma nnnorm_equiv_symm_const {β} [seminormed_add_comm_group β] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊ = fintype.card ι ^ (1 / p) * ∥b∥₊ :=
 begin
   have : p ≠ 0 := (zero_lt_one.trans_le (fact.out $ 1 ≤ p)).ne',
@@ -427,15 +429,15 @@ begin
     nnreal.rpow_one],
 end
 
-lemma norm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
+lemma norm_equiv_symm_const {β} [seminormed_add_comm_group β] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ = fintype.card ι ^ (1 / p) * ∥b∥ :=
 (congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simp
 
-lemma nnnorm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
+lemma nnnorm_equiv_symm_one {β} [seminormed_add_comm_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥₊ :=
 (nnnorm_equiv_symm_const (1 : β)).trans rfl
 
-lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
+lemma norm_equiv_symm_one {β} [seminormed_add_comm_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
 (norm_equiv_symm_const (1 : β)).trans rfl
 

@@ -236,8 +236,9 @@ begin
   convert hF₀.comp hQ₃,
   -- refl,
   ext,
-  dsimp [delayed_id],
+  dsimp [delayed_id, prod.swap, Q],
   split_ifs,
+  -- refl,
   simp_rw [if_pos h],
   -- simp only,
 end

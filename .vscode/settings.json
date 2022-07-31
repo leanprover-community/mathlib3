@@ -9,5 +9,6 @@
   "files.trimTrailingWhitespace": true,
   "search.usePCRE2": true,
   "lean.memoryLimit": 30096,
-  "typescript.tsserver.maxTsServerMemory": 7072
+  "typescript.tsserver.maxTsServerMemory": 7072,
+  "coq.format.indentAfterOpenProof": true
 }

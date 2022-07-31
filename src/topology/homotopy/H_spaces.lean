@@ -3,7 +3,9 @@ Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
+import data.real.basic
 import tactic.field_simp
+import topology.algebra.order.basic
 import topology.compact_open
 import topology.homotopy.basic
 import topology.homotopy.path
@@ -114,11 +116,14 @@ variable {x : X}
 lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)} :
   continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng h
 
-
 @[simp, continuity]
 lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
   {g : Y → Ω(x)} : continuous (λ p : Y × I, g p.1 p.2) → continuous g :=
   λ h, continuous_induced_rng $ continuous_of_continuous_uncurry ↑g h
+
+-- lemma continuous_uncurry_Ω_if_continuous {Y : Type u} [topological_space Y]
+--   {g : Y → Ω(x)} : continuous g → continuous (λ p : Y × I, g p.1 p.2) :=
+-- λ h, continuous_uncurry_of_continuous ⟨coe ∘ g, (continuous_coe).comp h⟩
 
 
 lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
@@ -142,12 +147,14 @@ begin
   let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
   have H : continuous η,
   { let Cproj : C(ℝ, I) := ⟨set.proj_Icc 0 1 zero_le_one, continuous_proj_Icc⟩,
-    have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp continuous_induced_dom,
+    have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp
+      continuous_induced_dom,
     have aux : continuous (λ x : ℝ, 2 * x -1 ),
       from (continuous_const.mul continuous_id').sub continuous_const,
     have h_right := aux.comp continuous_induced_dom,
     exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },
-  exact (homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm).mp (H.comp continuous_snd),
+  exact (homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm).mp
+    (H.comp continuous_snd),
 end
 
 lemma closure_I_mem (θ t : I) : t ∈ closure {s : ↥I | (s : ℝ) ≤ θ / 2} ↔ (t : ℝ) ≤ θ /2 :=
@@ -165,23 +172,23 @@ begin
     ← subtype.coe_lt_coe, ← set.Iio_def],
 end
 
+lemma frontier_I_mem (θ t : I) : t ∈ frontier (λ i : I, (i : ℝ) ≤ (θ / 2)) → (t : ℝ) = θ /2 :=
+λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
+  (not_lt_of_le $ (closure_I_mem θ t).mp h_left)]}
+
 lemma Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
 begin
   apply continuous.piecewise,
-  { rintros ⟨_, t⟩ ⟨h_left, h_right⟩,
+  { rintros ⟨_, t⟩ h,
     have h_eq : (λ (i : (path x x × path x x) × I), (i.snd : ℝ) ≤ (1 / 2)) =
       (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
     { ext p,
       change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ (@set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2}),
       simp only [set.mem_prod, set.mem_univ, set.mem_set_of_eq, true_and] },
-    erw h_eq at h_left h_right,
-    simp only [closure_prod_eq, closure_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ,
-      true_and] at h_left,
-    simp only [interior_prod_eq, interior_univ, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and]
-       at h_right,
-    have H := eq_of_ge_of_not_gt ((interior_I_not_mem 1 t).mp h_right)
-      (not_lt_of_le $ (closure_I_mem 1 t).mp h_left),
-    simp only [H, unit_interval.coe_one, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, unit_interval.mk_one,
+    erw h_eq at h,
+    simp only [frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
+      set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
+    simp only [frontier_I_mem 1 t h, unit_interval.coe_one, extend, mul_inv_cancel_of_invertible, set.Icc_extend_right, unit_interval.mk_one,
       path.target, sub_self, set.Icc_extend_left, unit_interval.mk_zero, path.source, one_div] },
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
@@ -192,9 +199,8 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   continuous_to_fun :=
   begin
     apply continuous.piecewise,
-    { rintros t ⟨h_left, h_right⟩,
-      simp only [eq_of_ge_of_not_gt ((interior_I_not_mem θ t).mp h_right)
-      (not_lt_of_le $ (closure_I_mem θ t).mp h_left)],
+    { intros t ht,
+      rw frontier_I_mem θ t ht,
       field_simp },
     exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul continuous_induced_dom).sub
       continuous_const).div_const ],
@@ -218,57 +224,50 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
 
 lemma aux_mem_I {t θ : I} : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧ ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := sorry
 
+-- lemma
+-- open real
+
 lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
-  let Q : I × I → I := λ ⟨t, θ⟩, if (t : ℝ) ≤ θ / 2 then 0
-                                else ⟨(2 * t - θ)/(2 - θ), aux_mem_I⟩,
-  have hQ : continuous Q, sorry,
-  let F₀ : I × Ω(x) → X := λ p, p.2 p.1,
-  have hF₀ : continuous F₀,
-  apply continuous_eval'.comp,-- $ F₀.continuous.prod_map continuous_id,
+  let Q : I × I → I := λ p, if (p.1 : ℝ) ≤ p.2 / 2 then 0
+                                else ⟨(2 * p.1 - p.2)/(2 - p.2), aux_mem_I⟩,
+  have hQ : continuous Q,
+  { apply continuous_if,
+    intros p hp,
+    -- have h_eq : (λ (i : I × I), (i.snd : ℝ) ≤ (1 / 2)) =
+    --   (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
+    have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
+      (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd).div_const,
+    -- have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _ _ _,
+    replace hp := this hp,
+    simp only [set.mem_set_of_eq] at hp,
+    simp_rw hp,
+    field_simp,
+    exact continuous_on_const,
+    apply continuous.continuous_on,
+    refine continuous_subtype_mk (λ (x : ↥I × ↥I), aux_mem_I) _,
+    -- have : linear_ordered_field ℝ,
+    have : topological_division_ring ℝ,--haveI : has_continuous_inv₀ ℝ,
+    apply_instance,
+    -- apply continuous.div,
+    -- refine @continuous_if (I × I) I _ _ (λ p, (p.1 : ℝ) ≤ p.2 / 2) 0 (λ p, ⟨(2 * p.1 - p.2)/(2 - p.2),
+    -- aux_mem_I⟩) _ _ _ _,
+
+  },
+  have hF₀ : continuous (λ p : I × Ω(x), p.2 p.1),
+  exact (continuous_eval'.comp (continuous.prod_map (continuous_coe x) (@continuous_id I _))).comp
+    continuous_swap,
   replace hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
     ((continuous.comp hQ continuous_fst).prod_mk continuous_snd)).comp continuous_swap,
   convert hF₀.comp hQ,
   ext,
-  dsimp [delayed_id, prod.swap, homeomorph.prod_assoc, Q, F₀],
+  dsimp [delayed_id, prod.swap, homeomorph.prod_assoc, Q],
   split_ifs,
-  {simp only [path.source] },
+  { simp only [path.source] },
   { simp only [aux_mem_I, set.mem_Icc, and_self, extend_extends],
     refl },
 end
-
--- lemma continuous_delayed_id' {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
--- begin
---   apply continuous_to_Ω_if_continuous_uncurry,
---   let Q' : I × I → I := λ ⟨t, θ⟩, if (t : ℝ) ≤ θ / 2 then 0
---                                 else ⟨(2 * t - θ)/(2 - θ), aux_mem_I⟩,
---   have hQ' : continuous Q', sorry,
---   let Q : (I × Ω(x)) × I → I × Ω(x):= λ q, if (q.2 : ℝ) ≤ q.1.1 / 2 then ⟨0, q.1.2⟩
---                                 else ⟨⟨(2 * q.2 - q.1.1)/(2 - q.1.1), aux_mem_I⟩, q.1.2⟩,
---   have hQ : continuous Q,
---   { --have :=(homeomorph.comp_continuous_iff' (homeomorph.prod_comm I (Ω(x) × I))).mpr,
-
---     -- apply (homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I Ω(x) I).symm).mp,
---     apply (homeomorph.comp_continuous_iff' (homeomorph.prod_comm I (I × Ω(x)))).mp,
---     convert (homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x))).mp using 0,
---     convert continuous.prod_map hQ' (@continuous_id Ω(x) _) using 1,
---     have due := (homeomorph.comp_continuous_iff' $ (homeomorph.prod_comm I (I × Ω(x))).symm).mpr _,
---     -- have := (continuous.comp _ continuous_swap),
-
---     -- (continuous.comp _ continuous_fst).prod_mk continuous_snd,
-
---   },
---   let F₀ : I × Ω(x) → X := λ p, p.2 p.1,
---   have hF₀ : continuous F₀, sorry,
---   convert hF₀.comp hQ,
---   dsimp [delayed_id, Q, F₀],
---   ext,
---   split_ifs with h,
---   { simp only [path.source, if_pos h, function.comp_app], },
---   { simp only [aux_mem_I, set.mem_Icc, and_self, extend_extends, if_neg h, function.comp_app],
---     refl },
--- end
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,

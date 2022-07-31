@@ -55,18 +55,12 @@ namespace inner_product_space
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
 def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
-section real
-
-variables {E' : Type*} [inner_product_space ℝ E']
-
--- Todo: Generalize this to `is_R_or_C`.
-/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
-`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_sesq_form (T : E' →ₗ[ℝ] E') :
-  is_self_adjoint T ↔ sesq_form_of_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, linear_map.is_self_adjoint, linear_map.is_adjoint_pair]
-
-end real
+/-- An operator `T` on an inner product space is self-adjoint if and only if it is
+`linear_map.is_self_adjoint` with respect to the sesquilinear form given by the inner product. -/
+lemma is_self_adjoint_iff_sesq_form (T : E →ₗ[𝕜] E) :
+  is_self_adjoint T ↔
+  @linear_map.is_self_adjoint 𝕜 E _ _ _ (star_ring_end 𝕜) sesq_form_of_inner T :=
+⟨λ h x y, (h y x).symm, λ h x y, (h y x).symm⟩
 
 lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=

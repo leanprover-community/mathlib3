@@ -394,28 +394,14 @@ begin
     exact even.neg_one_pow ((nat.even_two_pow_iff j).2 hj0) },
 end
 
-
-/-- If there is a base `a` relative to which `n` is a strong probable prime
-then `n` is a Fermat candidate-prime. -/
+/-- If there is a base `a : zmod n` relative to which `n` is a strong probable prime
+then `n` is a Fermat candidate-prime relative to base `a`. -/
 lemma fermat_cprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
   (h : strong_probable_prime n a) : fermat_cprime n a :=
 begin
-  unfold strong_probable_prime at h,
-  unfold fermat_cprime,
-  cases h,
-  { rw [←even_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
-  { rcases h with ⟨r, hr, hpow⟩,
-    have H : a ^ (n - 1) = (-1) ^ 2 ^ (((n - 1).factorization) 2 - r),
-    { rw [←hpow, ←pow_mul],
-      apply congr_arg,
-      nth_rewrite_lhs 0 ←ord_proj_mul_ord_compl_eq_self (n-1) 2,
-      rw [←odd_part, mul_rotate, mul_comm, mul_assoc, mul_eq_mul_left_iff, ←pow_add,
-        nat.sub_add_cancel hr.le],
-      simp },
-    rw H,
-    apply even.neg_one_pow,
-    rw nat.even_two_pow_iff,
-    exact tsub_pos_of_lt hr },
+  have := mt (nat.miller_rabin_witness_of_fermat_witness n a),
+  rw [←fermat_cprime_iff_nonwitness, ←strong_probable_prime_iff_nonwitness] at this,
+  exact this h,
 end
 
 

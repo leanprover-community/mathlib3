@@ -469,7 +469,7 @@ begin
 
     set e := (p^α - 1).factorization 2 with he,
     set k := odd_part (p^α - 1) with hk,
-    have hk_odd : odd k, { sorry },
+    have hk_odd : odd k, { apply odd_of_odd_part, simp [one_lt_n] },
 
     have hfe : f ≤ e, { sorry },
     have hlk : l ∣ k, {

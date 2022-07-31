@@ -84,7 +84,7 @@ they unfold around `polynomial.of_finsupp` and `polynomial.to_finsupp`.
 section add_monoid_algebra
 
 /-- The function version of `monomial`. Use `monomial` instead of this one. -/
-@[irreducible] def monomial_fun (n : ℕ) (a : R) : R[X] := ⟨finsupp.single n a⟩
+def monomial_fun (n : ℕ) (a : R) : R[X] := ⟨finsupp.single n a⟩
 @[irreducible] private def add : R[X] → R[X] → R[X]
 | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
 @[irreducible] private def neg {R : Type u} [ring R] : R[X] → R[X]
@@ -308,11 +308,7 @@ to_finsupp_injective $ by simp
 
 lemma monomial_injective (n : ℕ) :
   function.injective (monomial n : R → R[X]) :=
-begin
-  convert (to_finsupp_iso R).symm.injective.comp (single_injective n),
-  ext,
-  simp
-end
+(to_finsupp_iso R).symm.injective.comp (single_injective n)
 
 @[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
   monomial n t = 0 ↔ t = 0 :=

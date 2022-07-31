@@ -78,7 +78,7 @@ begin
       false_and]},
   { simpa only [mem_singleton] using hn''.ne' },
   rcases lt_trichotomy 0 (∑ i in range n, x ^ i) with h | h | h,
-  { apply pos_of_mul_pos_right,
+  { apply pos_of_mul_pos_left,
     { rwa this },
     rw eval_prod,
     refine prod_nonneg (λ i hi, _),

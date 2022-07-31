@@ -480,7 +480,7 @@ by simp only [is_unit_iff, group.is_unit, and_true]
 
 include β
 
-@[to_additive] lemma map_inv' : f⁻¹.map m = (f.map m)⁻¹ := map_comm (funext $ map_inv m) _
+@[to_additive] lemma map_inv' : f⁻¹.map m = (f.map m)⁻¹ := semiconj.filter_map (map_inv m) f
 
 @[to_additive] lemma tendsto.inv_inv : tendsto m f₁ f₂ → tendsto m f₁⁻¹ f₂⁻¹ :=
 λ hf, (filter.map_inv' m).trans_le $ filter.inv_le_inv hf

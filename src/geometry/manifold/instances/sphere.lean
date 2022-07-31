@@ -187,7 +187,7 @@ begin
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
     convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
-    { simp [norm_smul, hv, real.norm_eq_abs, ← sq, sq_abs] },
+    { simp [norm_smul, hv, ← sq, sq_abs] },
     { exact sq _ } },
   -- two facts which will be helpful for clearing denominators in the main calculation
   have ha : 1 - a ≠ 0,

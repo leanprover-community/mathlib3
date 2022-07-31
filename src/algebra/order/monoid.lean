@@ -120,6 +120,14 @@ lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_cl
   [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
 add_nonneg zero_le_one zero_le_one
 
+lemma zero_le_three [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 3 :=
+add_nonneg zero_le_two zero_le_one
+
+lemma zero_le_four [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 4 :=
+add_nonneg zero_le_two zero_le_two
+
 lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
   [covariant_class α α (+) (≤)] : (1 : α) ≤ 2 :=
 calc 1 = 1 + 0 : (add_zero 1).symm
@@ -184,12 +192,13 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
-  [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_monoid β :=
 { .. hf.ordered_comm_monoid f one mul npow,
-  .. linear_order.lift f hf }
+  .. linear_order.lift f hf hsup hinf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos' h h
@@ -214,17 +223,21 @@ partial_order.lift coe units.ext
 
 @[to_additive]
 instance [monoid α] [linear_order α] : linear_order αˣ :=
-linear_order.lift coe units.ext
+linear_order.lift' coe units.ext
+
+/-- `coe : αˣ → α` as an order embedding. -/
+@[to_additive "`coe : add_units α → α` as an order embedding.", simps { fully_applied := ff }]
+def order_embedding_coe [monoid α] [linear_order α] : αˣ ↪o α := ⟨⟨coe, ext⟩, λ _ _, iff.rfl⟩
 
 @[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [max_def, h]
+monotone.map_max order_embedding_coe.monotone
 
 @[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [min_def, h]
+monotone.map_min order_embedding_coe.monotone
 
 end units
 
@@ -694,11 +707,12 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_cancel_add_comm_monoid
 "Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
-  [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_cancel_comm_monoid β :=
-{ ..hf.linear_ordered_comm_monoid f one mul npow,
+{ ..hf.linear_ordered_comm_monoid f one mul npow hsup hinf,
   ..hf.ordered_cancel_comm_monoid f one mul npow }
 
 end linear_ordered_cancel_comm_monoid

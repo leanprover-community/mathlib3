@@ -39,7 +39,7 @@ begin
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
   have hkn : k ≤ n, { refine le_of_not_lt (λ hnk, h _), simp [choose_eq_zero_of_lt hnk] },
   rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
-  simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe],
+  simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
 
@@ -74,7 +74,7 @@ begin
   cases lt_or_le n k with hnk hkn,
   { simp [choose_eq_zero_of_lt hnk] },
   rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
-  simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe,
+  simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe,
     finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
   intros i hi,
   rcases eq_or_lt_of_le (finset.mem_Ico.mp hi).1 with rfl | hi,

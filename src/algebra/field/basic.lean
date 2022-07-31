@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.hom.ring
+import data.rat.defs
 
 /-!
 # Division (semi)rings and (semi)fields

@@ -134,6 +134,15 @@ theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : lis
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma _root_.function.involutive.exists_mem_and_apply_eq_iff {f : α → α}
+  (hf : function.involutive f) (x : α) (l : list α) :
+  (∃ (y : α), y ∈ l ∧ f y = x) ↔ f x ∈ l :=
+⟨by { rintro ⟨y, h, rfl⟩, rwa hf y }, λ h, ⟨f x, h, hf _⟩⟩
+
+theorem mem_map_of_involutive {f : α → α} (hf : involutive f) {a : α} {l : list α} :
+  a ∈ map f l ↔ f a ∈ l :=
+by rw [mem_map, hf.exists_mem_and_apply_eq_iff]
+
 lemma forall_mem_map_iff {f : α → β} {l : list α} {P : β → Prop} :
   (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) :=
 begin
@@ -3479,6 +3488,60 @@ begin
     { convert hijlen using 1, ac_refl },
     { simp [hmem] } }
 end
+
+@[simp] lemma enum_nil : enum ([] : list α) = [] := rfl
+@[simp] lemma enum_from_nil (n : ℕ) : enum_from n ([] : list α) = [] := rfl
+
+@[simp] lemma enum_from_cons (x : α) (xs : list α) (n : ℕ) :
+  enum_from n (x :: xs) = (n, x) :: enum_from (n + 1) xs := rfl
+@[simp] lemma enum_cons (x : α) (xs : list α) :
+  enum (x :: xs) = (0, x) :: enum_from 1 xs := rfl
+@[simp] lemma enum_from_singleton (x : α) (n : ℕ) :
+  enum_from n [x] = [(n, x)] := rfl
+@[simp] lemma enum_singleton (x : α) :
+  enum [x] = [(0, x)] := rfl
+
+lemma enum_from_append (xs ys : list α) (n : ℕ) :
+  enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (n + xs.length) ys :=
+begin
+  induction xs with x xs IH generalizing ys n,
+  { simp },
+  { rw [cons_append, enum_from_cons, IH, ←cons_append, ←enum_from_cons,
+        length, add_right_comm, add_assoc] }
+end
+
+lemma enum_append (xs ys : list α) :
+  enum (xs ++ ys) = enum xs ++ enum_from xs.length ys :=
+by simp [enum, enum_from_append]
+
+lemma map_fst_add_enum_from_eq_enum_from (l : list α) (n k : ℕ) :
+  map (prod.map (+ n) id) (enum_from k l) = enum_from (n + k) l :=
+begin
+  induction l with hd tl IH generalizing n k,
+  { simp [enum_from] },
+  { simp only [enum_from, map, zero_add, prod.map_mk, id.def,
+               eq_self_iff_true, true_and],
+    simp [IH, add_comm n k, add_assoc, add_left_comm] }
+end
+
+lemma map_fst_add_enum_eq_enum_from (l : list α) (n : ℕ) :
+  map (prod.map (+ n) id) (enum l) = enum_from n l :=
+map_fst_add_enum_from_eq_enum_from l _ _
+
+lemma nth_le_enum_from (l : list α) (n i : ℕ)
+  (hi' : i < (l.enum_from n).length)
+  (hi : i < l.length := by simpa [length_enum_from] using hi') :
+  (l.enum_from n).nth_le i hi' = (n + i, l.nth_le i hi) :=
+begin
+  rw [←option.some_inj, ←nth_le_nth],
+  simp [enum_from_nth, nth_le_nth hi]
+end
+
+lemma nth_le_enum (l : list α) (i : ℕ)
+  (hi' : i < l.enum.length)
+  (hi : i < l.length := by simpa [length_enum] using hi') :
+  l.enum.nth_le i hi' = (i, l.nth_le i hi) :=
+by { convert nth_le_enum_from _ _ _ hi', exact (zero_add _).symm }
 
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)

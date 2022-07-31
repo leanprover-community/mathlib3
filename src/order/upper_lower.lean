@@ -58,6 +58,12 @@ lemma is_lower_set_univ : is_lower_set (univ : set α) := λ _ _ _, id
 lemma is_upper_set.compl (hs : is_upper_set s) : is_lower_set sᶜ := λ a b h hb ha, hb $ hs h ha
 lemma is_lower_set.compl (hs : is_lower_set s) : is_upper_set sᶜ := λ a b h hb ha, hb $ hs h ha
 
+@[simp] lemma is_upper_set_compl : is_upper_set sᶜ ↔ is_lower_set s :=
+⟨λ h, by { convert h.compl, rw compl_compl }, is_lower_set.compl⟩
+
+@[simp] lemma is_lower_set_compl : is_lower_set sᶜ ↔ is_upper_set s :=
+⟨λ h, by { convert h.compl, rw compl_compl }, is_upper_set.compl⟩
+
 lemma is_upper_set.union (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ∪ t) :=
 λ a b h, or.imp (hs h) (ht h)
 
@@ -134,6 +140,33 @@ lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
 lemma is_upper_set_Ioi : is_upper_set (Ioi a) := λ _ _, flip lt_of_lt_of_le
 lemma is_lower_set_Iio : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
 
+section order_top
+variables [order_top α] {s : set α}
+
+lemma is_lower_set.top_mem (hs : is_lower_set s) : ⊤ ∈ s ↔ s = univ :=
+⟨λ h, eq_univ_of_forall $ λ a, hs le_top h, λ h, h.symm ▸ mem_univ _⟩
+
+lemma is_upper_set.top_mem (hs : is_upper_set s) : ⊤ ∈ s ↔ s.nonempty :=
+⟨λ h, ⟨_, h⟩, λ ⟨a, ha⟩, hs le_top ha⟩
+
+lemma is_upper_set.not_top_mem (hs : is_upper_set s) : ⊤ ∉ s ↔ s = ∅ :=
+hs.top_mem.not.trans not_nonempty_iff_eq_empty
+
+end order_top
+
+section order_bot
+variables [order_bot α] {s : set α}
+
+lemma is_upper_set.bot_mem (hs : is_upper_set s) : ⊥ ∈ s ↔ s = univ :=
+⟨λ h, eq_univ_of_forall $ λ a, hs bot_le h, λ h, h.symm ▸ mem_univ _⟩
+
+lemma is_lower_set.bot_mem (hs : is_lower_set s) : ⊥ ∈ s ↔ s.nonempty :=
+⟨λ h, ⟨_, h⟩, λ ⟨a, ha⟩, hs bot_le ha⟩
+
+lemma is_lower_set.not_bot_mem (hs : is_lower_set s) : ⊥ ∉ s ↔ s = ∅ :=
+hs.bot_mem.not.trans not_nonempty_iff_eq_empty
+
+end order_bot
 end preorder
 
 /-! ### Bundled upper/lower sets -/

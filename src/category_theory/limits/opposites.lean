@@ -5,6 +5,7 @@ Authors: Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.shapes.finite_products
 import category_theory.discrete_category
+import tactic.equiv_rw
 
 /-!
 # Limits in `C` give colimits in `Cᵒᵖ`.
@@ -326,5 +327,197 @@ begin
     has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,
   apply has_colimits_of_shape_op_of_has_limits_of_shape,
 end
+
+/-- The canonical isomorphism relating `span f.op g.op` and `(cospan f g).op` -/
+@[simps]
+def span_op {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  span f.op g.op ≅ walking_cospan_op_equiv.inverse ⋙ (cospan f g).op :=
+nat_iso.of_components (by { rintro (_|_|_); refl, })
+  (by { rintros (_|_|_) (_|_|_) f; cases f; tidy, })
+
+/-- The canonical isomorphism relating `(cospan f g).op` and `span f.op g.op` -/
+@[simps]
+def op_cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  (cospan f g).op ≅ walking_cospan_op_equiv.functor ⋙ span f.op g.op :=
+calc (cospan f g).op ≅ 𝟭 _ ⋙ (cospan f g).op : by refl
+... ≅ (walking_cospan_op_equiv.functor ⋙ walking_cospan_op_equiv.inverse) ⋙ (cospan f g).op :
+  iso_whisker_right walking_cospan_op_equiv.unit_iso _
+... ≅ walking_cospan_op_equiv.functor ⋙ (walking_cospan_op_equiv.inverse ⋙ (cospan f g).op) :
+  functor.associator _ _ _
+... ≅ walking_cospan_op_equiv.functor ⋙ span f.op g.op : iso_whisker_left _ (span_op f g).symm
+
+/-- The canonical isomorphism relating `cospan f.op g.op` and `(span f g).op` -/
+@[simps]
+def cospan_op {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  cospan f.op g.op ≅ walking_span_op_equiv.inverse ⋙ (span f g).op :=
+nat_iso.of_components (by { rintro (_|_|_); refl, })
+  (by { rintros (_|_|_) (_|_|_) f; cases f; tidy, })
+
+/-- The canonical isomorphism relating `(span f g).op` and `cospan f.op g.op` -/
+@[simps]
+def op_span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  (span f g).op ≅ walking_span_op_equiv.functor ⋙ cospan f.op g.op :=
+calc (span f g).op ≅ 𝟭 _ ⋙ (span f g).op : by refl
+... ≅ (walking_span_op_equiv.functor ⋙ walking_span_op_equiv.inverse) ⋙ (span f g).op :
+  iso_whisker_right walking_span_op_equiv.unit_iso _
+... ≅ walking_span_op_equiv.functor ⋙ (walking_span_op_equiv.inverse ⋙ (span f g).op) :
+  functor.associator _ _ _
+... ≅ walking_span_op_equiv.functor ⋙ cospan f.op g.op :
+  iso_whisker_left _ (cospan_op f g).symm
+
+namespace pushout_cocone
+
+/-- The obvious map `pushout_cocone f g → pullback_cone f.unop g.unop` -/
+@[simps]
+def unop {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  pullback_cone f.unop g.unop :=
+cocone.unop ((cocones.precompose (op_cospan f.unop g.unop).hom).obj
+  (cocone.whisker walking_cospan_op_equiv.functor c))
+
+@[simp]
+lemma unop_fst {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  c.unop.fst = c.inl.unop :=
+by { change (_ : limits.cone _).π.app _ = _, tidy, }
+
+@[simp]
+lemma unop_snd {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  c.unop.snd = c.inr.unop :=
+by { change (_ : limits.cone _).π.app _ = _, tidy, }
+
+/-- The obvious map `pushout_cocone f.op g.op → pullback_cone f g` -/
+@[simps]
+def op {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  pullback_cone f.op g.op :=
+(cones.postcompose ((cospan_op f g).symm).hom).obj
+  (cone.whisker walking_span_op_equiv.inverse (cocone.op c))
+
+@[simp]
+lemma op_fst {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  c.op.fst = c.inl.op :=
+by { change (_ : limits.cone _).π.app _ = _, apply category.comp_id, }
+
+@[simp]
+lemma op_snd {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  c.op.snd = c.inr.op :=
+by { change (_ : limits.cone _).π.app _ = _, apply category.comp_id, }
+
+end pushout_cocone
+
+namespace pullback_cone
+
+/-- The obvious map `pullback_cone f g → pushout_cocone f.unop g.unop` -/
+@[simps]
+def unop {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
+  pushout_cocone f.unop g.unop :=
+cone.unop ((cones.postcompose (op_span f.unop g.unop).symm.hom).obj
+  (cone.whisker walking_span_op_equiv.functor c))
+
+@[simp]
+lemma unop_inl {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
+  c.unop.inl = c.fst.unop :=
+begin
+  change ((_ : limits.cocone _).ι.app _) = _,
+  dsimp only [unop, op_span],
+  simp, dsimp, simp, dsimp, simp
+end
+
+@[simp]
+lemma unop_inr {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
+  c.unop.inr = c.snd.unop :=
+begin
+  change ((_ : limits.cocone _).ι.app _) = _,
+  apply quiver.hom.op_inj,
+  dsimp, simp, dsimp, simp,
+  apply category.comp_id,
+end
+
+/-- The obvious map `pullback_cone f g → pushout_cocone f.op g.op` -/
+@[simps]
+def op {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
+  pushout_cocone f.op g.op :=
+(cocones.precompose (span_op f g).hom).obj
+  (cocone.whisker walking_cospan_op_equiv.inverse (cone.op c))
+
+@[simp] lemma op_inl {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
+  c.op.inl = c.fst.op :=
+by { change (_ : limits.cocone _).ι.app _ = _, apply category.id_comp, }
+
+@[simp] lemma op_inr {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
+  c.op.inr = c.snd.op :=
+by { change (_ : limits.cocone _).ι.app _ = _, apply category.id_comp, }
+
+/-- If `c` is a pullback cone, then `c.op.unop` is isomorphic to `c`. -/
+def op_unop {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) : c.op.unop ≅ c :=
+pullback_cone.ext (iso.refl _) (by simp) (by simp)
+
+/-- If `c` is a pullback cone in `Cᵒᵖ`, then `c.unop.op` is isomorphic to `c`. -/
+def unop_op {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) : c.unop.op ≅ c :=
+pullback_cone.ext (iso.refl _) (by simp) (by simp)
+
+end pullback_cone
+
+namespace pushout_cocone
+
+/-- If `c` is a pushout cocone, then `c.op.unop` is isomorphic to `c`. -/
+def op_unop {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) : c.op.unop ≅ c :=
+pushout_cocone.ext (iso.refl _) (by simp) (by simp)
+
+/-- If `c` is a pushout cocone in `Cᵒᵖ`, then `c.unop.op` is isomorphic to `c`. -/
+def unop_op {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) : c.unop.op ≅ c :=
+pushout_cocone.ext (iso.refl _) (by simp) (by simp)
+
+/-- A pushout cone is a colimit cocone if and only if the corresponding pullback cone
+in the opposite category is a limit cone. -/
+def is_colimit_equiv_is_limit_op  {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
+  is_colimit c ≃ is_limit c.op :=
+begin
+  apply equiv_of_subsingleton_of_subsingleton,
+  { intro h,
+    equiv_rw is_limit.postcompose_hom_equiv _ _,
+    equiv_rw (is_limit.whisker_equivalence_equiv walking_span_op_equiv.symm).symm,
+    exact is_limit_cocone_op _ h, },
+  { intro h,
+    equiv_rw is_colimit.equiv_iso_colimit c.op_unop.symm,
+    apply is_colimit_cone_unop,
+    equiv_rw is_limit.postcompose_hom_equiv _ _,
+    equiv_rw (is_limit.whisker_equivalence_equiv _).symm,
+    exact h, }
+end
+
+/-- A pushout cone is a colimit cocone in `Cᵒᵖ` if and only if the corresponding pullback cone
+in `C` is a limit cone. -/
+def is_colimit_equiv_is_limit_unop  {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z}
+  (c : pushout_cocone f g) : is_colimit c ≃ is_limit c.unop :=
+begin
+  apply equiv_of_subsingleton_of_subsingleton,
+  { intro h,
+    apply is_limit_cocone_unop,
+    equiv_rw is_colimit.precompose_hom_equiv _ _,
+    equiv_rw (is_colimit.whisker_equivalence_equiv _).symm,
+    exact h, },
+  { intro h,
+    equiv_rw is_colimit.equiv_iso_colimit c.unop_op.symm,
+    equiv_rw is_colimit.precompose_hom_equiv _ _,
+    equiv_rw (is_colimit.whisker_equivalence_equiv walking_cospan_op_equiv.symm).symm,
+    exact is_colimit_cone_op _ h, },
+end
+
+end pushout_cocone
+
+namespace pullback_cone
+
+/-- A pullback cone is a limit cone if and only if the corresponding pushout cocone
+in the opposite category is a colimit cocone. -/
+def is_limit_equiv_is_colimit_op  {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z}
+  (c : pullback_cone f g) : is_limit c ≃ is_colimit c.op :=
+(is_limit.equiv_iso_limit c.op_unop).symm.trans c.op.is_colimit_equiv_is_limit_unop.symm
+
+/-- A pullback cone is a limit cone in `Cᵒᵖ` if and only if the corresponding pushout cocone
+in `C` is a colimit cocone. -/
+def is_limit_equiv_is_colimit_unop  {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z}
+  (c : pullback_cone f g) : is_limit c ≃ is_colimit c.unop :=
+(is_limit.equiv_iso_limit c.unop_op).symm.trans c.unop.is_colimit_equiv_is_limit_op.symm
+
+end pullback_cone
 
 end category_theory.limits

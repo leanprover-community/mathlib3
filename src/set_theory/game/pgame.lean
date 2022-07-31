@@ -96,6 +96,8 @@ open function relation
 
 universes u
 
+/-! ### Pre-game moves -/
+
 /-- The type of pre-games, before we have quotiented
   by equivalence (`pgame.setoid`). In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
@@ -228,6 +230,8 @@ meta def pgame_wf_tac :=
    subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
+/-! ### Basic pre-games -/
+
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
@@ -248,6 +252,8 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
 instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
+
+/-! ### Pre-game order relations -/
 
 /-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
   pre-games.
@@ -438,35 +444,35 @@ by { rw lf_iff_exists_le, conv { to_lhs, simp only [le_iff_forall_lf] } }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ⧏`. -/
 theorem zero_le_lf {x : pgame} : 0 ≤ x ↔ ∀ j, 0 ⧏ x.move_right j :=
-by { rw le_iff_forall_lf, dsimp, simp }
+by { rw le_iff_forall_lf, simp }
 
 /-- The definition of `x ≤ 0` on pre-games, in terms of `⧏ 0`. -/
 theorem le_zero_lf {x : pgame} : x ≤ 0 ↔ ∀ i, x.move_left i ⧏ 0 :=
-by { rw le_iff_forall_lf, dsimp, simp }
+by { rw le_iff_forall_lf, simp }
 
 /-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ≤`. -/
 theorem zero_lf_le {x : pgame} : 0 ⧏ x ↔ ∃ i, 0 ≤ x.move_left i :=
-by { rw lf_iff_exists_le, dsimp, simp }
+by { rw lf_iff_exists_le, simp }
 
 /-- The definition of `x ⧏ 0` on pre-games, in terms of `≤ 0`. -/
 theorem lf_zero_le {x : pgame} : x ⧏ 0 ↔ ∃ j, x.move_right j ≤ 0 :=
-by { rw lf_iff_exists_le, dsimp, simp }
+by { rw lf_iff_exists_le, simp }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
 theorem zero_le {x : pgame} : 0 ≤ x ↔ ∀ j, ∃ i, 0 ≤ (x.move_right j).move_left i :=
-by { rw le_def, dsimp, simp }
+by { rw le_def, simp }
 
 /-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
 theorem le_zero {x : pgame} : x ≤ 0 ↔ ∀ i, ∃ j, (x.move_left i).move_right j ≤ 0 :=
-by { rw le_def, dsimp, simp }
+by { rw le_def, simp }
 
 /-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ⧏` two moves later. -/
 theorem zero_lf {x : pgame} : 0 ⧏ x ↔ ∃ i, ∀ j, 0 ⧏ (x.move_left i).move_right j :=
-by { rw lf_def, dsimp, simp }
+by { rw lf_def, simp }
 
 /-- The definition of `x ⧏ 0` on pre-games, in terms of `⧏ 0` two moves later. -/
 theorem lf_zero {x : pgame} : x ⧏ 0 ↔ ∃ j, ∀ i, (x.move_right j).move_left i ⧏ 0 :=
-by { rw lf_def, dsimp, simp }
+by { rw lf_def, simp }
 
 @[simp] theorem zero_le_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves] : 0 ≤ x :=
 zero_le.2 is_empty_elim
@@ -516,8 +522,10 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := refl x
 theorem equiv_refl (x) : x ≈ x := refl x
+
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+protected theorem equiv_comm {x y} : x ≈ y ↔ y ≈ x := comm
 
 theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
@@ -564,16 +572,16 @@ lt_congr hx equiv_rfl
 theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
 lt_congr equiv_rfl hy
 
-theorem lf_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x ⧏ y ∨ x ≈ y :=
-or_iff_not_imp_left.2 $ λ h', ⟨h, pgame.not_lf.1 h'⟩
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+and_or_distrib_left.mp ⟨h, (em $ y ≤ x).swap.imp_left pgame.not_le.1⟩
 
 theorem lf_or_equiv_or_gf (x y : pgame) : x ⧏ y ∨ x ≈ y ∨ y ⧏ x :=
 begin
   by_cases h : x ⧏ y,
   { exact or.inl h },
   { right,
-    cases (lf_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
-    { exact or.inr h' },
+    cases (lt_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
+    { exact or.inr h'.lf },
     { exact or.inl h'.symm } }
 end
 
@@ -674,6 +682,8 @@ begin
   rw [lf_iff_lt_or_fuzzy, fuzzy.swap_iff],
   exact lt_or_equiv_or_gt_or_fuzzy x y
 end
+
+/-! ### Relabellings -/
 
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
@@ -785,6 +795,8 @@ def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : 
   x ≡r relabel el er :=
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
 
+/-! ### Negation -/
+
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
 | ⟨l, r, L, R⟩ := ⟨r, l, λ i, neg (R i), λ i, neg (L i)⟩
@@ -822,6 +834,16 @@ begin
       { rintros m n rfl b c rfl, refl },
       exact this (list.length_map _ _).symm ha } }
 end
+
+theorem is_option_neg {x y : pgame} : is_option x (-y) ↔ is_option (-x) y :=
+begin
+  rw [is_option_iff, is_option_iff, or_comm],
+  cases y, apply or_congr;
+  { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
+end
+
+@[simp] theorem is_option_neg_neg {x y : pgame} : is_option (-x) (-y) ↔ is_option x y :=
+by rw [is_option_neg, neg_neg]
 
 theorem left_moves_neg : ∀ x : pgame, (-x).left_moves = x.right_moves
 | ⟨_, _, _, _⟩ := rfl
@@ -959,6 +981,8 @@ by rw [←neg_equiv_iff, pgame.neg_zero]
 
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
 by rw [←neg_fuzzy_iff, pgame.neg_zero]
+
+/-! ### Addition and subtraction -/
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
@@ -1317,6 +1341,8 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
+
+/-! ### Special pre-games -/
 
 /-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩

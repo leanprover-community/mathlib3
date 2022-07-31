@@ -222,8 +222,8 @@ aleph_0_pos.trans_le (aleph_0_le_aleph o)
 @[simp] theorem aleph_to_nat (o : ordinal) : (aleph o).to_nat = 0 :=
 to_nat_apply_of_aleph_0_le $ aleph_0_le_aleph o
 
-@[simp] theorem aleph_to_enat (o : ordinal) : (aleph o).to_enat = ⊤ :=
-to_enat_apply_of_aleph_0_le $ aleph_0_le_aleph o
+@[simp] theorem aleph_to_part_enat (o : ordinal) : (aleph o).to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le $ aleph_0_le_aleph o
 
 instance nonempty_out_aleph (o : ordinal) : nonempty (aleph o).ord.out.α :=
 begin
@@ -761,8 +761,8 @@ begin
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
   replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,
   classical,
-  lift s to finset α using finite.of_fintype s,
-  lift t to finset β using finite.of_fintype t,
+  lift s to finset α using s.to_finite,
+  lift t to finset β using t.to_finite,
   simp only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
   simp only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
     lift_nat_cast, nat.cast_inj, h1, h2]

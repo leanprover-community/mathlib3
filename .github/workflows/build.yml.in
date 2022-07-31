@@ -66,8 +66,8 @@ jobs:
         run: |
           leanpkg configure
           echo "::set-output name=started::true"
-          lean --json -T100000 --make src | python3 scripts/detect_errors.py
-          lean --json -T100000 --make src | python3 scripts/detect_errors.py
+          lean --json -T150000 --make src | python3 scripts/detect_errors.py
+          lean --json -T150000 --make src | python3 scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
@@ -177,12 +177,12 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! IS_SELF_HOSTED }}
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml requests
 
       - name: tests
         run: |
           set -o pipefail
-          lean --json -T100000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
+          lean --json -T150000 --make docs archive roadmap test counterexamples | python3 scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         if: ${{ ! IS_SELF_HOSTED }}

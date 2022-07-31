@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.nat.enat
+import data.nat.part_enat
 import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
@@ -924,18 +924,22 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
 
+theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
+by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
+
+theorem lt_aleph_0_iff_finite {α : Type u} : #α < ℵ₀ ↔ finite α :=
+by simp only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
+
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=
-lt_aleph_0.trans ⟨λ ⟨n, e⟩, begin
-  rw [← lift_mk_fin n] at e,
-  cases quotient.exact e with f,
-  exact ⟨fintype.of_equiv _ f.symm⟩
-end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
+lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 
-theorem lt_aleph_0_of_fintype (α : Type u) [fintype α] : #α < ℵ₀ :=
-lt_aleph_0_iff_fintype.2 ⟨infer_instance⟩
+theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
+lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
-lt_aleph_0_iff_fintype.trans finite_def.symm
+theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+lt_aleph_0_iff_finite.trans finite_coe_iff
+
+alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
@@ -1015,7 +1019,7 @@ calc #α = 1 ↔ #α ≤ 1 ∧ 1 ≤ #α : le_antisymm_iff
   le_one_iff_subsingleton.and (one_le_iff_ne_zero.trans mk_ne_zero_iff)
 
 theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
-by rw [←not_lt, lt_aleph_0_iff_fintype, not_nonempty_iff, is_empty_fintype]
+by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
 
@@ -1161,7 +1165,7 @@ end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/
-def to_enat : cardinal →+ enat :=
+def to_part_enat : cardinal →+ part_enat :=
 { to_fun := λ c, if c < ℵ₀ then c.to_nat else ⊤,
   map_zero' := by simp [if_pos (zero_lt_one.trans one_lt_aleph_0)],
   map_add' := λ x y, begin
@@ -1171,33 +1175,34 @@ def to_enat : cardinal →+ enat :=
       { obtain ⟨y0, rfl⟩ := lt_aleph_0.1 hy,
         simp only [add_lt_aleph_0 hx hy, hx, hy, to_nat_cast, if_true],
         rw [← nat.cast_add, to_nat_cast, nat.cast_add] },
-      { rw [if_neg hy, if_neg, enat.add_top],
+      { rw [if_neg hy, if_neg, part_enat.add_top],
         contrapose! hy,
         apply le_add_self.trans_lt hy } },
-    { rw [if_neg hx, if_neg, enat.top_add],
+    { rw [if_neg hx, if_neg, part_enat.top_add],
       contrapose! hx,
       apply le_self_add.trans_lt hx },
   end }
 
-lemma to_enat_apply_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : c.to_enat = c.to_nat :=
+lemma to_part_enat_apply_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : c.to_part_enat = c.to_nat :=
 if_pos h
 
-lemma to_enat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_enat = ⊤ :=
+lemma to_part_enat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_part_enat = ⊤ :=
 if_neg h.not_lt
 
-@[simp] lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
-by rw [to_enat_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
+@[simp] lemma to_part_enat_cast (n : ℕ) : cardinal.to_part_enat n = n :=
+by rw [to_part_enat_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
 
-@[simp] lemma mk_to_enat_of_infinite [h : infinite α] : (#α).to_enat = ⊤ :=
-to_enat_apply_of_aleph_0_le (infinite_iff.1 h)
+@[simp] lemma mk_to_part_enat_of_infinite [h : infinite α] : (#α).to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le (infinite_iff.1 h)
 
-@[simp] theorem aleph_0_to_enat : to_enat ℵ₀ = ⊤ :=
-to_enat_apply_of_aleph_0_le le_rfl
+@[simp] theorem aleph_0_to_part_enat : to_part_enat ℵ₀ = ⊤ :=
+to_part_enat_apply_of_aleph_0_le le_rfl
 
-lemma to_enat_surjective : surjective to_enat :=
-λ x, enat.cases_on x ⟨ℵ₀, to_enat_apply_of_aleph_0_le le_rfl⟩ $ λ n, ⟨n, to_enat_cast n⟩
+lemma to_part_enat_surjective : surjective to_part_enat :=
+λ x, part_enat.cases_on x ⟨ℵ₀, to_part_enat_apply_of_aleph_0_le le_rfl⟩ $
+  λ n, ⟨n, to_part_enat_cast n⟩
 
-lemma mk_to_enat_eq_coe_card [fintype α] : (#α).to_enat = fintype.card α :=
+lemma mk_to_part_enat_eq_coe_card [fintype α] : (#α).to_part_enat = fintype.card α :=
 by simp
 
 lemma mk_int : #ℤ = ℵ₀ := mk_denumerable ℤ
@@ -1316,14 +1321,14 @@ lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
 by { rw bUnion_eq_Union, apply mk_Union_le }
 
 lemma finset_card_lt_aleph_0 (s : finset α) : #(↑s : set α) < ℵ₀ :=
-by { rw lt_aleph_0_iff_fintype, exact ⟨finset.subtype.fintype s⟩ }
+lt_aleph_0_of_finite _
 
 theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
   #s = n ↔ ∃ t : finset α, (t : set α) = s ∧ t.card = n :=
 begin
   split,
   { intro h,
-    lift s to finset α using lt_aleph_0_iff_finite.1 (h.symm ▸ nat_lt_aleph_0 n),
+    lift s to finset α using lt_aleph_0_iff_set_finite.1 (h.symm ▸ nat_lt_aleph_0 n),
     simpa using h },
   { rintro ⟨t, rfl, rfl⟩,
     exact mk_coe_finset }

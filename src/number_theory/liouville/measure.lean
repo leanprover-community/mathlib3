@@ -82,9 +82,9 @@ begin
   simp only [set_of_exists, ← real.dist_eq, ← mem_ball, set_of_mem_eq],
   set B : ℤ → ℕ → set ℝ := λ a b, ball (a / b) (1 / b ^ r),
   have hB : ∀ a b, volume (B a b) = ↑(2 / b ^ r : ℝ≥0),
-  { intros a b, simp only [B, real.volume_ball],
-    rw [ennreal.of_real, mul_one_div, to_nnreal_div zero_le_two, to_nnreal_bit0 zero_le_one,
-      to_nnreal_one, to_nnreal_rpow_of_nonneg (nat.cast_nonneg _), nnreal.to_nnreal_coe_nat] },
+  { intros a b,
+    rw [real.volume_ball, mul_one_div, ← nnreal.coe_two, ← nnreal.coe_nat_cast, ← nnreal.coe_rpow,
+      ← nnreal.coe_div, ennreal.of_real_coe_nnreal] },
   have : ∀ b : ℕ, volume (⋃ a ∈ finset.Icc (0 : ℤ) b, B a b) ≤ (2 * (b ^ (1 - r) + b ^ (-r)) : ℝ≥0),
   { intro b,
     calc volume (⋃ a ∈ finset.Icc (0 : ℤ) b, B a b)

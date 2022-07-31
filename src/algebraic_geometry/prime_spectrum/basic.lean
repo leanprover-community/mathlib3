@@ -738,9 +738,12 @@ lemma le_iff_specializes (x y : prime_spectrum R) :
   x ≤ y ↔ x ⤳ y :=
 (le_iff_mem_closure x y).trans specializes_iff_mem_closure.symm
 
-instance : t0_space (prime_spectrum R) :=
-by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
-  ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
+/-- `nhds` as an order embedding. -/
+@[simps { fully_applied := tt }]
+def nhds_order_embedding : prime_spectrum R ↪o filter (prime_spectrum R) :=
+order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
+
+instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
 end order
 

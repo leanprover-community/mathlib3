@@ -650,7 +650,8 @@ begin
         simp only [hy, exists_true_left, not_true, and_false, or_false]},
       { rw dif_neg hy,
         have A : y ∈ t, by simpa [hy] using h (mem_univ y),
-        simp only [A, hy, false_or, exists_false_left, not_false_iff, and_true, exists_true_left] }
+        simp only [A, hy, false_or, is_empty.exists_iff, not_false_iff, and_true,
+          exists_true_left] }
     end,
     finite_range' :=
     begin
@@ -1011,7 +1012,7 @@ strongly_measurable_one.ae_strongly_measurable
   ae_strongly_measurable f μ :=
 (subsingleton.strongly_measurable' f).ae_strongly_measurable
 
-@[simp] lemma ae_measurable_zero_measure [measurable_space α] [topological_space β]
+@[simp] lemma ae_strongly_measurable_zero_measure [measurable_space α] [topological_space β]
   (f : α → β) :
   ae_strongly_measurable f (0 : measure α) :=
 begin
@@ -1367,7 +1368,7 @@ begin
   rcases eq_empty_or_nonempty t with rfl|h₀,
   { simp only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
     rw ht,
-    exact ae_measurable_zero_measure f },
+    exact ae_strongly_measurable_zero_measure f },
   { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
       H.exists_ae_eq_range_subset ht h₀,
     refine ⟨g, _, fg⟩,

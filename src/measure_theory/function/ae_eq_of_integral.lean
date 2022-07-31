@@ -282,6 +282,16 @@ begin
     hf'_integrable hf'_zero).trans hf_ae.symm.le,
 end
 
+lemma ae_le_of_forall_set_integral_le {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ)
+  (hf_le : ∀ s, measurable_set s → ∫ x in s, f x ∂μ ≤ ∫ x in s, g x ∂μ) :
+  f ≤ᵐ[μ] g :=
+begin
+  rw ← eventually_sub_nonneg,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure (hg.sub hf) (λ s hs, _),
+  rw [integral_sub' hg.integrable_on hf.integrable_on, sub_nonneg],
+  exact hf_le s hs
+end
+
 end real_finite_measure
 
 lemma ae_nonneg_restrict_of_forall_set_integral_nonneg_inter {f : α → ℝ} {t : set α} (hμt : μ t ≠ ∞)

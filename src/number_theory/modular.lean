@@ -331,10 +331,30 @@ begin
     simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
 end
 
-variables {z}
+@[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
+by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
+
+@[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
+by simpa using T_pow_mul_apply_one 1 g
+
+@[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
+by simpa using T_pow_mul_apply_one (-1) g
 
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
+
+lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
+by rw [←coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re]
+
+lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
+by rw [←coe_im, coe_T_zpow_smul_eq, add_im, int_cast_im, add_zero, coe_im]
+
+lemma re_T_smul : (T • z).re = z.re + 1 := by simpa using re_T_zpow_smul z 1
+lemma im_T_smul : (T • z).im = z.im := by simpa using im_T_zpow_smul z 1
+lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 := by simpa using re_T_zpow_smul z (-1)
+lemma im_T_inv_smul : (T⁻¹ • z).im = z.im := by simpa using im_T_zpow_smul z (-1)
+
+variables {z}
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
 lemma exists_eq_T_zpow_of_c_eq_zero (hc : ↑ₘg 1 0 = 0) :
@@ -420,7 +440,7 @@ begin
   { rwa [← int.cast_abs, ← int.cast_one, int.cast_lt, int.abs_lt_one_iff] at this, },
   have h₁ := hz.2,
   have h₂ := hg.2,
-  rw [← coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re] at h₂,
+  rw [re_T_zpow_smul] at h₂,
   calc |(n : ℝ)| ≤ |z.re| + |z.re + (n : ℝ)| : abs_add' (n : ℝ) z.re
              ... < 1/2 + 1/2 : add_lt_add h₁ h₂
              ... = 1 : add_halves 1,
@@ -444,25 +464,19 @@ begin
   { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
     contrapose! hg₀',
     refine ⟨S * g, _⟩,
-    rw mul_action.mul_smul,
+    rw mul_smul,
     exact im_lt_im_S_smul hg₀' },
   { show |(g • z).re| ≤ 1 / 2, -- if not, then either `T` or `T'` decrease |Re|.
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T * g, by simp [T, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re + 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [T] },
+      refine ⟨T * g, (T_mul_apply_one _).symm, _⟩,
+      rw [mul_smul, re_T_smul],
+      cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith },
     { contrapose! hg',
-      refine ⟨T⁻¹ * g, by simp [coe_T_inv, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re - 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [coe_T_inv, sub_eq_add_neg] } }
+      refine ⟨T⁻¹ * g, (T_inv_mul_apply_one _).symm, _⟩,
+      rw [mul_smul, re_T_inv_smul],
+      cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith } }
 end
 
 section unique_representative

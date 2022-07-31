@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.stopping
+import probability.hitting_time
 
 /-!
 # Martingales
@@ -239,6 +239,24 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
   (hf : submartingale f ℱ μ) (hg : martingale g ℱ μ) : submartingale (f - g) ℱ μ :=
 hf.sub_supermartingale hg.supermartingale
 
+protected lemma sup {f g : ι → α → ℝ} (hf : submartingale f ℱ μ) (hg : submartingale g ℱ μ) :
+  submartingale (f ⊔ g) ℱ μ :=
+begin
+  refine ⟨λ i, @strongly_measurable.sup _ _ _ _ (ℱ i) _ _ _ (hf.adapted i) (hg.adapted i),
+    λ i j hij, _, λ i, integrable.sup (hf.integrable _) (hg.integrable _)⟩,
+  refine eventually_le.sup_le _ _,
+  { exact eventually_le.trans (hf.2.1 i j hij)
+      (condexp_mono (hf.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_left _ _))) },
+  { exact eventually_le.trans (hg.2.1 i j hij)
+      (condexp_mono (hg.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_right _ _))) }
+end
+
+protected lemma pos {f : ι → α → ℝ} (hf : submartingale f ℱ μ) :
+  submartingale (f⁺) ℱ μ :=
+hf.sup (martingale_zero _ _ _).submartingale
+
 end submartingale
 
 section submartingale
@@ -469,6 +487,122 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
     μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
 ⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
  submartingale_of_expected_stopped_value_mono hadp hint⟩
+
+section maximal
+
+open finset
+
+lemma smul_le_stopped_value_hitting [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
+  ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+    stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :=
+begin
+  have hn : set.Icc 0 n = {k | k ≤ n},
+  { ext x, simp },
+  have : ∀ x, ((ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) →
+    (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x,
+  { intros x hx,
+    simp_rw [le_sup'_iff, mem_range, nat.lt_succ_iff] at hx,
+    refine stopped_value_hitting_mem _,
+    simp only [set.mem_set_of_eq, exists_prop, hn],
+    exact let ⟨j, hj₁, hj₂⟩ := hx in ⟨j, hj₁, hj₂⟩ },
+  have h := set_integral_ge_of_const_le (measurable_set_le measurable_const
+    (finset.measurable_range_sup'' (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))))
+    (measure_ne_top _ _) this
+    (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time
+     hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
+  rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
+  { exact h },
+  { exact ennreal.mul_ne_top (by simp) (measure_ne_top _ _) },
+  { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) h }
+end
+
+/-- **Doob's maximal inequality**: Given a non-negative submartingale `f`, for all `ε : ℝ≥0`,
+we have `ε • μ {ε ≤ f* n} ≤ ∫ x in {ε ≤ f* n}, f n` where `f* n x = max_{k ≤ n}, f k x`.
+
+In some literature, the Doob's maximal inequality refers to what we call Doob's Lp inequality
+(which is a corollary of this lemma and will be proved in an upcomming PR). -/
+lemma maximal_ineq [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
+  ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+    f n x ∂μ) :=
+begin
+  suffices : ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} +
+    ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+      f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
+  { have hadd : ennreal.of_real (∫ (x : α), f n x ∂μ) =
+      ennreal.of_real (∫ (x : α) in
+        {x : α | ↑ε ≤ ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x))}, f n x ∂μ) +
+      ennreal.of_real (∫ (x : α) in
+        {x : α | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ↑ε}, f n x ∂μ),
+    { rw [← ennreal.of_real_add, ← integral_union],
+      { conv_lhs { rw ← integral_univ },
+        convert rfl,
+        ext x,
+        change (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ) ↔ _,
+        simp only [le_or_lt, true_iff] },
+      { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact (not_le.2 hx₂) hx₁ },
+      { exact (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
+      exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
+        integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
+    rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
+  calc ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)}
+    + ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+        f n x ∂μ)
+    ≤ ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ)
+    + ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
+    begin
+      refine add_le_add (smul_le_stopped_value_hitting hsub _)
+        (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
+        (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le))
+        (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) _)),
+      intros x hx,
+      rw set.mem_set_of_eq at hx,
+      have : hitting f {y : ℝ | ↑ε ≤ y} 0 n x = n,
+      { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
+          ite_eq_right_iff, forall_exists_index, and_imp],
+        intros m hm hεm,
+        exact false.elim ((not_le.2 hx)
+          ((le_sup'_iff _).2 ⟨m, mem_range.2 (nat.lt_succ_of_le hm.2), hεm⟩)) },
+      simp_rw [stopped_value, this],
+    end
+    ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
+    begin
+      rw [← ennreal.of_real_add, ← integral_union],
+      { conv_rhs { rw ← integral_univ },
+        convert rfl,
+        ext x,
+        change _ ↔ (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ),
+        simp only [le_or_lt, iff_true] },
+      { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact (not_le.2 hx₂) hx₁ },
+      { exact (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
+      { exact (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
+      exacts [integral_nonneg (λ x, hnonneg _ _), integral_nonneg (λ x, hnonneg _ _)],
+    end
+    ... ≤ ennreal.of_real (μ[f n]) :
+    begin
+      refine ennreal.of_real_le_of_real _,
+      rw ← stopped_value_const f n,
+      exact hsub.expected_stopped_value_mono
+        (hitting_is_stopping_time hsub.adapted measurable_set_Ici)
+        (is_stopping_time_const _ _) (λ x, hitting_le x) (λ x, le_rfl : ∀ x, n ≤ n),
+    end
+end
+
+end maximal
 
 end nat
 

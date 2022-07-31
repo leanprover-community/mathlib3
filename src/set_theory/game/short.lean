@@ -103,7 +103,7 @@ begin
   split, all_goals
   { rw ←cardinal.ord_aleph_0,
     refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_aleph_0
-      (cardinal.lt_aleph_0_of_fintype _) (λ i, _),
+      (cardinal.lt_aleph_0_of_finite _) (λ i, _),
     rw cardinal.ord_aleph_0,
     apply short_birthday _ },
   { exact move_left_short' xL xR i },

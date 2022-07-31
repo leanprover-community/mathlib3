@@ -228,7 +228,7 @@ begin
     simp only [subtype.mk_eq_mk, hφ1 (set.mem_singleton y), pi.one_apply] at H,
     exact zero_ne_one H, },
   { rw ← category_theory.epi_iff_surjective,
-    apply faithful_reflects_epi (forget CompHaus) },
+    apply (forget CompHaus).epi_of_epi_map }
 end
 
 lemma mono_iff_injective {X Y : CompHaus.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
@@ -242,7 +242,7 @@ begin
     apply_fun (λ e, e punit.star) at this,
     exact this },
   { rw ← category_theory.mono_iff_injective,
-    apply faithful_reflects_mono (forget CompHaus) }
+    apply (forget CompHaus).mono_of_mono_map }
 end
 
 end CompHaus

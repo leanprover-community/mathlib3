@@ -20,9 +20,6 @@ of `sup` over `inf`, on the left or on the right.
 
 ## Main declarations
 
-* `has_sup`: type class for the `⊔` notation
-* `has_inf`: type class for the `⊓` notation
-
 * `semilattice_sup`: a type class for join semilattices
 * `semilattice_sup.mk'`: an alternative constructor for `semilattice_sup` via proofs that `⊔` is
   commutative, associative and idempotent.
@@ -67,14 +64,6 @@ section
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-
-/-- Typeclass for the `⊔` (`\lub`) notation -/
-@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
-/-- Typeclass for the `⊓` (`\glb`) notation -/
-@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
-
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
 
 /-!
 ### Join-semilattices
@@ -564,7 +553,8 @@ end lattice
 equivalent distributive properties (of `sup` over `inf` or `inf` over `sup`,
 on the left or right).
 
-The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`.
+The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`. To prove distributivity
+from the dual law, use `distrib_lattice.of_inf_sup_le`.
 
 A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
@@ -572,9 +562,6 @@ generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
-
-/- TODO: alternative constructors from the other distributive properties,
-and perhaps a `tfae` statement -/
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}
@@ -618,6 +605,13 @@ le_antisymm
   (le_of_inf_le_sup_le (le_of_eq h₁.symm) (le_of_eq h₂.symm))
 
 end distrib_lattice
+
+/-- Prove distributivity of an existing lattice from the dual distributive law. -/
+@[reducible] -- See note [reducible non-instances]
+def distrib_lattice.of_inf_sup_le [lattice α]
+  (inf_sup_le : ∀ a b c : α, a ⊓ (b ⊔ c) ≤ (a ⊓ b) ⊔ (a ⊓ c)) : distrib_lattice α :=
+{ ..‹lattice α›,
+  ..@order_dual.distrib_lattice αᵒᵈ { le_sup_inf := inf_sup_le, ..order_dual.lattice _ } }
 
 /-!
 ### Lattices derived from linear orders
@@ -817,6 +811,30 @@ hf.dual.map_sup _ _
 
 end monotone
 
+namespace monotone_on
+
+/-- Pointwise supremum of two monotone functions is a monotone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (f ⊔ g) s :=
+λ x hx y hy h, sup_le_sup (hf hx hy h) (hg hx hy h)
+
+/-- Pointwise infimum of two monotone functions is a monotone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (f ⊓ g) s :=
+(hf.dual.sup hg.dual).dual
+
+/-- Pointwise maximum of two monotone functions is a monotone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, max (f x) (g x)) s :=
+hf.sup hg
+
+/-- Pointwise minimum of two monotone functions is a monotone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, min (f x) (g x)) s :=
+hf.inf hg
+
+end monotone_on
+
 namespace antitone
 
 /-- Pointwise supremum of two monotone functions is a monotone function. -/
@@ -858,6 +876,30 @@ lemma map_inf [semilattice_sup β] {f : α → β} (hf : antitone f) (x y : α) 
 hf.dual_right.map_inf x y
 
 end antitone
+
+namespace antitone_on
+
+/-- Pointwise supremum of two antitone functions is a antitone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (f ⊔ g) s :=
+λ x hx y hy h, sup_le_sup (hf hx hy h) (hg hx hy h)
+
+/-- Pointwise infimum of two antitone functions is a antitone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (f ⊓ g) s :=
+(hf.dual.sup hg.dual).dual
+
+/-- Pointwise maximum of two antitone functions is a antitone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, max (f x) (g x)) s :=
+hf.sup hg
+
+/-- Pointwise minimum of two antitone functions is a antitone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, min (f x) (g x)) s :=
+hf.inf hg
+
+end antitone_on
 
 /-!
 ### Products of (semi-)lattices
@@ -925,6 +967,24 @@ protected def lattice [lattice α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :
   lattice {x : α // P x} :=
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
+
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (x y : subtype P) :
+  (by {haveI := subtype.semilattice_sup Psup, exact (x ⊔ y : subtype P)} : α) = x ⊔ y := rfl
+
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
+  (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
+  (by {haveI := subtype.semilattice_inf Pinf, exact (x ⊓ y : subtype P)} : α) = x ⊓ y := rfl
+
+@[simp] lemma mk_sup_mk [semilattice_sup α] {P : α → Prop} (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y))
+  {x y : α} (hx : P x) (hy : P y) :
+  (by {haveI := subtype.semilattice_sup Psup, exact (⟨x, hx⟩ ⊔ ⟨y, hy⟩ : subtype P)}) =
+    ⟨x ⊔ y, Psup hx hy⟩ := rfl
+
+@[simp] lemma mk_inf_mk [semilattice_inf α] {P : α → Prop} (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y))
+  {x y : α} (hx : P x) (hy : P y) :
+  (by {haveI := subtype.semilattice_inf Pinf, exact (⟨x, hx⟩ ⊓ ⟨y, hy⟩ : subtype P)}) =
+    ⟨x ⊓ y, Pinf hx hy⟩ := rfl
 
 end subtype
 

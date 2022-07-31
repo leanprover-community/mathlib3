@@ -11,21 +11,31 @@ import probability.variance
 
 ## Main definitions
 
-* `moment X p μ`: `p`th moment of a real random variable `X` with respect to measure `μ`, `μ[X^p]`
-* `central_moment X p μ`:`p`th central moment of `X` with respect to measure `μ`, `μ[(X - μ[X])^p]`
-* `mgf X μ t`: moment generating function of `X` with respect to measure `μ`, `μ[exp(t*X)]`
-* `cgf X μ t`: cumulant generating function, logarithm of the moment generating function
+* `probability_theory.moment X p μ`: `p`th moment of a real random variable `X` with respect to
+  measure `μ`, `μ[X^p]`
+* `probability_theory.central_moment X p μ`:`p`th central moment of `X` with respect to measure `μ`,
+  `μ[(X - μ[X])^p]`
+* `probability_theory.mgf X μ t`: moment generating function of `X` with respect to measure `μ`,
+  `μ[exp(t*X)]`
+* `probability_theory.cgf X μ t`: cumulant generating function, logarithm of the moment generating
+  function
 
 ## Main results
 
-* `indep_fun.mgf_add`: if two real random variables `X` and `Y` are independent and their mgf are
-  defined at `t`, then `mgf (X + Y) μ t = mgf X μ t * mgf Y μ t`
-* `indep_fun.cgf_add`: if two real random variables `X` and `Y` are independent and their mgf are
-  defined at `t`, then `cgf (X + Y) μ t = cgf X μ t + cgf Y μ t`
+* `probability_theory.indep_fun.mgf_add`: if two real random variables `X` and `Y` are independent
+  and their mgf are defined at `t`, then `mgf (X + Y) μ t = mgf X μ t * mgf Y μ t`
+* `probability_theory.indep_fun.cgf_add`: if two real random variables `X` and `Y` are independent
+  and their mgf are defined at `t`, then `cgf (X + Y) μ t = cgf X μ t + cgf Y μ t`
+* `probability_theory.measure_ge_le_exp_cgf` and `probability_theory.measure_le_le_exp_cgf`:
+  Chernoff bound on the upper (resp. lower) tail of a random variable. For `t` nonnegative such that
+  the cgf exists, `ℙ(ε ≤ X) ≤ exp(- t*ε + cgf X ℙ t)`. See also
+  `probability_theory.measure_ge_le_exp_mul_mgf` and
+  `probability_theory.measure_le_le_exp_mul_mgf` for versions of these results using `mgf` instead
+  of `cgf`.
 
 -/
 
-open measure_theory filter finset
+open measure_theory filter finset real
 
 noncomputable theory
 
@@ -81,113 +91,178 @@ section moment_generating_function
 variables {t : ℝ}
 
 /-- Moment generating function of a real random variable `X`: `λ t, μ[exp(t*X)]`. -/
-def mgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := μ[λ ω, real.exp (t * X ω)]
+def mgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := μ[λ ω, exp (t * X ω)]
 
 /-- Cumulant generating function of a real random variable `X`: `λ t, log μ[exp(t*X)]`. -/
-def cgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := real.log (mgf X μ t)
+def cgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := log (mgf X μ t)
 
 @[simp] lemma mgf_zero_fun : mgf 0 μ t = (μ set.univ).to_real :=
-by simp only [mgf, pi.zero_apply, mul_zero, real.exp_zero, integral_const, algebra.id.smul_eq_mul,
+by simp only [mgf, pi.zero_apply, mul_zero, exp_zero, integral_const, algebra.id.smul_eq_mul,
   mul_one]
 
-@[simp] lemma cgf_zero_fun : cgf 0 μ t = real.log (μ set.univ).to_real :=
+@[simp] lemma cgf_zero_fun : cgf 0 μ t = log (μ set.univ).to_real :=
 by simp only [cgf, mgf_zero_fun]
 
 @[simp] lemma mgf_zero_measure : mgf X (0 : measure Ω) t = 0 :=
 by simp only [mgf, integral_zero_measure]
 
 @[simp] lemma cgf_zero_measure : cgf X (0 : measure Ω) t = 0 :=
-by simp only [cgf, real.log_zero, mgf_zero_measure]
+by simp only [cgf, log_zero, mgf_zero_measure]
 
-@[simp] lemma mgf_const' (c : ℝ) : mgf (λ _, c) μ t = (μ set.univ).to_real * real.exp (t * c) :=
+@[simp] lemma mgf_const' (c : ℝ) : mgf (λ _, c) μ t = (μ set.univ).to_real * exp (t * c) :=
 by simp only [mgf, integral_const, algebra.id.smul_eq_mul]
 
-@[simp] lemma mgf_const (c : ℝ) [is_probability_measure μ] : mgf (λ _, c) μ t = real.exp (t * c) :=
+@[simp] lemma mgf_const (c : ℝ) [is_probability_measure μ] : mgf (λ _, c) μ t = exp (t * c) :=
 by simp only [mgf_const', measure_univ, ennreal.one_to_real, one_mul]
 
 @[simp] lemma cgf_const' [is_finite_measure μ] (hμ : μ ≠ 0) (c : ℝ) :
-  cgf (λ _, c) μ t = real.log (μ set.univ).to_real + t * c :=
+  cgf (λ _, c) μ t = log (μ set.univ).to_real + t * c :=
 begin
   simp only [cgf, mgf_const'],
-  rw real.log_mul _ (real.exp_pos _).ne',
-  { rw real.log_exp _, },
+  rw log_mul _ (exp_pos _).ne',
+  { rw log_exp _, },
   { rw [ne.def, ennreal.to_real_eq_zero_iff, measure.measure_univ_eq_zero],
     simp only [hμ, measure_ne_top μ set.univ, or_self, not_false_iff], },
 end
 
 @[simp] lemma cgf_const [is_probability_measure μ] (c : ℝ) : cgf (λ _, c) μ t = t * c :=
-by simp only [cgf, mgf_const, real.log_exp]
+by simp only [cgf, mgf_const, log_exp]
 
 @[simp] lemma mgf_zero' : mgf X μ 0 = (μ set.univ).to_real :=
-by simp only [mgf, zero_mul, real.exp_zero, integral_const, algebra.id.smul_eq_mul, mul_one]
+by simp only [mgf, zero_mul, exp_zero, integral_const, algebra.id.smul_eq_mul, mul_one]
 
 @[simp] lemma mgf_zero [is_probability_measure μ] : mgf X μ 0 = 1 :=
 by simp only [mgf_zero', measure_univ, ennreal.one_to_real]
 
-@[simp] lemma cgf_zero' : cgf X μ 0 = real.log (μ set.univ).to_real :=
+@[simp] lemma cgf_zero' : cgf X μ 0 = log (μ set.univ).to_real :=
 by simp only [cgf, mgf_zero']
 
 @[simp] lemma cgf_zero [is_probability_measure μ] : cgf X μ 0 = 0 :=
-by simp only [cgf_zero', measure_univ, ennreal.one_to_real, real.log_one]
+by simp only [cgf_zero', measure_univ, ennreal.one_to_real, log_one]
 
-lemma mgf_undef (hX : ¬ integrable (λ ω, real.exp (t * X ω)) μ) : mgf X μ t = 0 :=
+lemma mgf_undef (hX : ¬ integrable (λ ω, exp (t * X ω)) μ) : mgf X μ t = 0 :=
 by simp only [mgf, integral_undef hX]
 
-lemma cgf_undef (hX : ¬ integrable (λ ω, real.exp (t * X ω)) μ) : cgf X μ t = 0 :=
-by simp only [cgf, mgf_undef hX, real.log_zero]
+lemma cgf_undef (hX : ¬ integrable (λ ω, exp (t * X ω)) μ) : cgf X μ t = 0 :=
+by simp only [cgf, mgf_undef hX, log_zero]
 
 lemma mgf_nonneg : 0 ≤ mgf X μ t :=
 begin
   refine integral_nonneg _,
   intro ω,
   simp only [pi.zero_apply],
-  exact (real.exp_pos _).le,
+  exact (exp_pos _).le,
 end
 
-lemma mgf_pos' (hμ : μ ≠ 0) (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ) : 0 < mgf X μ t :=
+lemma mgf_pos' (hμ : μ ≠ 0) (h_int_X : integrable (λ ω, exp (t * X ω)) μ) : 0 < mgf X μ t :=
 begin
   simp_rw mgf,
-  have : ∫ (x : Ω), real.exp (t * X x) ∂μ = ∫ (x : Ω) in set.univ, real.exp (t * X x) ∂μ,
+  have : ∫ (x : Ω), exp (t * X x) ∂μ = ∫ (x : Ω) in set.univ, exp (t * X x) ∂μ,
   { simp only [measure.restrict_univ], },
   rw [this, set_integral_pos_iff_support_of_nonneg_ae _ _],
-  { have h_eq_univ : function.support (λ (x : Ω), real.exp (t * X x)) = set.univ,
+  { have h_eq_univ : function.support (λ (x : Ω), exp (t * X x)) = set.univ,
     { ext1 x,
       simp only [function.mem_support, set.mem_univ, iff_true],
-      exact (real.exp_pos _).ne', },
+      exact (exp_pos _).ne', },
     rw [h_eq_univ, set.inter_univ _],
     refine ne.bot_lt _,
     simp only [hμ, ennreal.bot_eq_zero, ne.def, measure.measure_univ_eq_zero, not_false_iff], },
   { refine eventually_of_forall (λ x, _),
     rw pi.zero_apply,
-    exact (real.exp_pos _).le, },
+    exact (exp_pos _).le, },
   { rwa integrable_on_univ, },
 end
 
-lemma mgf_pos [is_probability_measure μ] (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ) :
+lemma mgf_pos [is_probability_measure μ] (h_int_X : integrable (λ ω, exp (t * X ω)) μ) :
   0 < mgf X μ t :=
 mgf_pos' (is_probability_measure.ne_zero μ) h_int_X
 
+lemma mgf_neg : mgf (-X) μ t = mgf X μ (-t) :=
+by simp_rw [mgf, pi.neg_apply, mul_neg, neg_mul]
+
+lemma cgf_neg : cgf (-X) μ t = cgf X μ (-t) := by simp_rw [cgf, mgf_neg]
+
 lemma indep_fun.mgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
-  (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
-  (h_int_Y : integrable (λ ω, real.exp (t * Y ω)) μ) :
+  (h_int_X : integrable (λ ω, exp (t * X ω)) μ)
+  (h_int_Y : integrable (λ ω, exp (t * Y ω)) μ) :
   mgf (X + Y) μ t = mgf X μ t * mgf Y μ t :=
 begin
-  simp_rw [mgf, pi.add_apply, mul_add, real.exp_add],
+  simp_rw [mgf, pi.add_apply, mul_add, exp_add],
   refine indep_fun.integral_mul_of_integrable' _ h_int_X h_int_Y,
-  have h_meas : measurable (λ x, real.exp (t * x)) := (measurable_id'.const_mul t).exp,
-  change indep_fun ((λ x, real.exp (t * x)) ∘ X) ((λ x, real.exp (t * x)) ∘ Y) μ,
+  have h_meas : measurable (λ x, exp (t * x)) := (measurable_id'.const_mul t).exp,
+  change indep_fun ((λ x, exp (t * x)) ∘ X) ((λ x, exp (t * x)) ∘ Y) μ,
   exact indep_fun.comp h_indep h_meas h_meas,
 end
 
 lemma indep_fun.cgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
-  (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
-  (h_int_Y : integrable (λ ω, real.exp (t * Y ω)) μ) :
+  (h_int_X : integrable (λ ω, exp (t * X ω)) μ)
+  (h_int_Y : integrable (λ ω, exp (t * Y ω)) μ) :
   cgf (X + Y) μ t = cgf X μ t + cgf Y μ t :=
 begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
   simp only [cgf, h_indep.mgf_add h_int_X h_int_Y],
-  exact real.log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
+  exact log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
+end
+
+/-- **Chernoff bound** on the upper tail of a real random variable. -/
+lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε) * mgf X μ t :=
+begin
+  cases ht.eq_or_lt with ht_zero_eq ht_pos,
+  { rw ht_zero_eq.symm,
+    simp only [neg_zero', zero_mul, exp_zero, mgf_zero', one_mul],
+    rw ennreal.to_real_le_to_real (measure_ne_top μ _) (measure_ne_top μ _),
+    exact measure_mono (set.subset_univ _), },
+  calc (μ {ω | ε ≤ X ω}).to_real
+      = (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real :
+    begin
+      congr' with ω,
+      simp only [exp_le_exp, eq_iff_iff],
+      exact ⟨λ h, mul_le_mul_of_nonneg_left h ht_pos.le, λ h, le_of_mul_le_mul_left h ht_pos⟩,
+    end
+  ... ≤ (exp (t * ε))⁻¹ * μ[λ ω, exp (t * X ω)] :
+    begin
+      have : exp (t * ε) * (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real
+          ≤ μ[λ ω, exp (t * X ω)],
+        from mul_meas_ge_le_integral_of_nonneg (λ x, (exp_pos _).le) h_int _,
+      rwa [mul_comm (exp (t * ε))⁻¹, ← div_eq_mul_inv, le_div_iff' (exp_pos _)],
+    end
+  ... = exp (- t * ε) * mgf X μ t : by { rw [neg_mul, exp_neg], refl, },
+end
+
+/-- **Chernoff bound** on the lower tail of a real random variable. -/
+lemma measure_le_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | X ω ≤ ε}).to_real ≤ exp (- t * ε) * mgf X μ t :=
+begin
+  rw [← neg_neg t, ← mgf_neg, neg_neg, ← neg_mul_neg (-t)],
+  refine eq.trans_le _ (measure_ge_le_exp_mul_mgf (-ε) (neg_nonneg.mpr ht) _),
+  { congr' with ω,
+    simp only [pi.neg_apply, neg_le_neg_iff], },
+  { simp_rw [pi.neg_apply, neg_mul_neg],
+    exact h_int, },
+end
+
+/-- **Chernoff bound** on the upper tail of a real random variable. -/
+lemma measure_ge_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε + cgf X μ t) :=
+begin
+  refine (measure_ge_le_exp_mul_mgf ε ht h_int).trans _,
+  rw exp_add,
+  exact mul_le_mul le_rfl (le_exp_log _) mgf_nonneg (exp_pos _).le,
+end
+
+/-- **Chernoff bound** on the lower tail of a real random variable. -/
+lemma measure_le_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | X ω ≤ ε}).to_real ≤ exp (- t * ε + cgf X μ t) :=
+begin
+  refine (measure_le_le_exp_mul_mgf ε ht h_int).trans _,
+  rw exp_add,
+  exact mul_le_mul le_rfl (le_exp_log _) mgf_nonneg (exp_pos _).le,
 end
 
 end moment_generating_function

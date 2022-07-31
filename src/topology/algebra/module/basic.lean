@@ -236,6 +236,16 @@ lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M}
 s.topological_closure_minimal (h.trans t.submodule_topological_closure)
   t.is_closed_topological_closure
 
+/-- The topological closure of a closed submodule `s` is equal to `s`. -/
+lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
+  s.topological_closure = s :=
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+
+/-- A subspace is dense iff its topological closure is the entire space. -/
+lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
+  dense (s : set M) ↔ s.topological_closure = ⊤ :=
+by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
@@ -896,27 +906,6 @@ lemma smul_right_apply {c : M₁ →L[R] S} {f : M₂} {x : M₁} :
 rfl
 
 end
-
-section pointwise
-open_locale pointwise
-
-@[simp] lemma image_smul_setₛₗ (f : M₁ →SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
-  f '' (c • s) = (σ₁₂ c) • f '' s :=
-f.to_linear_map.image_smul_setₛₗ c s
-
-lemma image_smul_set (fₗ : M₁ →L[R₁] M'₁) (c : R₁) (s : set M₁) :
-  fₗ '' (c • s) = c • fₗ '' s :=
-fₗ.to_linear_map.image_smul_set c s
-
-lemma preimage_smul_setₛₗ (f : M₁ →SL[σ₁₂] M₂) {c : R₁} (hc : is_unit c) (s : set M₂) :
-  f ⁻¹' (σ₁₂ c • s) = c • f ⁻¹' s :=
-f.to_linear_map.preimage_smul_setₛₗ hc s
-
-lemma preimage_smul_set (fₗ : M₁ →L[R₁] M'₁) {c : R₁} (hc : is_unit c) (s : set M'₁) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.to_linear_map.preimage_smul_set hc s
-
-end pointwise
 
 variables [module R₁ M₂] [topological_space R₁] [has_continuous_smul R₁ M₂]
 
@@ -1643,29 +1632,6 @@ rfl
 rfl
 omit σ₂₁
 
-section pointwise
-open_locale pointwise
-include σ₂₁
-
-@[simp] lemma image_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
-  e '' (c • s) = (σ₁₂ c) • e '' s :=
-e.to_linear_equiv.image_smul_setₛₗ c s
-
-@[simp] lemma preimage_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₂) (s : set M₂) :
-  e ⁻¹' (c • s) = σ₂₁ c • e ⁻¹' s :=
-e.to_linear_equiv.preimage_smul_setₛₗ c s
-omit σ₂₁
-
-@[simp] lemma image_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M₁) :
-  e '' (c • s) = c • e '' s :=
-e.to_linear_equiv.image_smul_set c s
-
-@[simp] lemma preimage_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M'₁) :
-  e ⁻¹' (c • s) = c • e ⁻¹' s :=
-e.to_linear_equiv.preimage_smul_set c s
-
-end pointwise
-
 variable (M₁)
 
 /-- The continuous linear equivalences from `M` to itself form a group under composition. -/
@@ -2026,11 +1992,11 @@ begin
   exact continuous_quot_mk.comp continuous_smul
 end
 
-instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
-  regular_space (M ⧸ S) :=
+instance t3_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
+  t3_space (M ⧸ S) :=
 begin
   letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
-  exact S.to_add_subgroup.regular_quotient_of_is_closed
+  exact S.to_add_subgroup.t3_quotient_of_is_closed
 end
 
 end submodule

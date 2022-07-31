@@ -142,6 +142,11 @@ instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame 
       ← supr_subtype''],
   ..pi.complete_lattice }
 
+@[priority 100] -- see Note [lower instance priority]
+instance frame.to_distrib_lattice : distrib_lattice α :=
+distrib_lattice.of_inf_sup_le $ λ a b c,
+  by rw [←Sup_pair, ←Sup_pair, inf_Sup_eq, ←Sup_image, image_pair]
+
 end frame
 
 section coframe
@@ -189,6 +194,11 @@ instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : co
     by simp only [←sup_infi_eq, Inf_apply, ←infi_subtype'', infi_apply, pi.sup_apply],
   ..pi.complete_lattice }
 
+@[priority 100] -- see Note [lower instance priority]
+instance coframe.to_distrib_lattice : distrib_lattice α :=
+{ le_sup_inf := λ a b c, by rw [←Inf_pair, ←Inf_pair, sup_Inf_eq, ←Inf_image, image_pair],
+  ..‹coframe α› }
+
 end coframe
 
 section complete_distrib_lattice
@@ -201,12 +211,6 @@ instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
 { ..pi.frame, ..pi.coframe }
 
 end complete_distrib_lattice
-
-@[priority 100] -- see Note [lower instance priority]
-instance complete_distrib_lattice.to_distrib_lattice [d : complete_distrib_lattice α] :
-  distrib_lattice α :=
-{ le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
-  ..d }
 
 /-- A complete Boolean algebra is a completely distributive Boolean algebra. -/
 class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_lattice α

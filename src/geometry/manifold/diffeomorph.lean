@@ -398,7 +398,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
 { to_equiv := equiv.refl M,
   cont_mdiff_to_fun := λ x,
     begin
-      refine cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+      refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
       { simp only [equiv.coe_refl, id, (∘), I.coe_ext_chart_at_trans_diffeomorph,
           (ext_chart_at I x).right_inv hy.1] },
@@ -407,7 +407,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
     end,
   cont_mdiff_inv_fun := λ x,
     begin
-      refine cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+      refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.symm.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
       { simp only [mem_inter_eq, I.ext_chart_at_trans_diffeomorph_target] at hy,
         simp only [equiv.coe_refl, equiv.refl_symm, id, (∘),

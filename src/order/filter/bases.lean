@@ -585,6 +585,10 @@ alias disjoint_principal_principal ↔ _ _root_.disjoint.filter_principal
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
 by simp only [← principal_singleton, disjoint_principal_principal, disjoint_singleton]
 
+@[simp] lemma compl_diagonal_mem_prod {l₁ l₂ : filter α} :
+  (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
+by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
+
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
 forall₂_congr $ λ _ _, mem_iff_inf_principal_compl
@@ -776,6 +780,16 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 (hla.comap prod.fst).sup (hlb.comap prod.snd)
 
 end two_types
+
+lemma map_sigma_mk_comap {π : α → Type*} {π' : β → Type*} {f : α → β}
+  (hf : function.injective f) (g : Π a, π a → π' (f a)) (a : α) (l : filter (π' (f a))) :
+  map (sigma.mk a) (comap (g a) l) = comap (sigma.map f g) (map (sigma.mk (f a)) l) :=
+begin
+  refine (((basis_sets _).comap _).map _).eq_of_same_basis _,
+  convert ((basis_sets _).map _).comap _,
+  ext1 s,
+  apply image_sigma_mk_preimage_sigma_map hf
+end
 
 end filter
 

@@ -599,6 +599,10 @@ variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
 
 end succ_pred_order
 
+end order
+
+open order
+
 /-! ### `with_bot`, `with_top`
 Adding a greatest/least element to a `succ_order` or to a `pred_order`.
 
@@ -612,13 +616,14 @@ where "preserves `(succ/pred)`" means
 `(succ/pred)_order α → (succ/pred)_order ((with_top/with_bot) α)`.
 -/
 
-section with_top
-open with_top
+namespace with_top
 
 /-! #### Adding a `⊤` to an `order_top` -/
 
-instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
-  succ_order (with_top α) :=
+section succ
+variables [decidable_eq α] [partial_order α] [order_top α] [succ_order α]
+
+instance : succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
     | (some a) := ite (a = ⊤) ⊤ (some (succ a))
@@ -626,7 +631,7 @@ instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
   le_succ := λ a, begin
     cases a,
     { exact le_top },
-    change ((≤) : with_top α → with_top α → Prop) _ (ite _ _ _),
+    change _ ≤ ite _ _ _,
     split_ifs,
     { exact le_top },
     { exact some_le_some.2 (le_succ a) }
@@ -634,7 +639,7 @@ instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
   max_of_succ_le := λ a ha, begin
     cases a,
     { exact is_max_top },
-    change ((≤) : with_top α → with_top α → Prop) (ite _ _ _) _ at ha,
+    change ite _ _ _ ≤ _ at ha,
     split_ifs at ha with ha',
     { exact (not_top_le_coe _ ha).elim },
     { rw [some_le_some, succ_le_iff_eq_top] at ha,
@@ -646,7 +651,7 @@ instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
     cases a,
     { exact (not_top_lt h).elim },
     rw some_lt_some at h,
-    change ((≤) : with_top α → with_top α → Prop) (ite _ _ _) _,
+    change ite _ _ _ ≤ _,
     split_ifs with ha,
     { rw ha at h,
       exact (not_top_lt h).elim },
@@ -657,7 +662,7 @@ instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
     { exact (not_top_lt h).elim },
     cases b,
     { exact le_top },
-    change ((<) : with_top α → with_top α → Prop) _ (ite _ _ _) at h,
+    change _ < ite _ _ _ at h,
     rw some_le_some,
     split_ifs at h with hb,
     { rw hb,
@@ -665,7 +670,16 @@ instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
     { exact le_of_lt_succ (some_lt_some.1 h) }
   end }
 
-instance [preorder α] [order_top α] [pred_order α] : pred_order (with_top α) :=
+@[simp] lemma succ_coe_top : succ ↑(⊤ : α) = (⊤ : with_top α) := dif_pos rfl
+lemma succ_coe_of_ne_top {a : α} (h : a ≠ ⊤) : succ (↑a : with_top α) = ↑(succ a) :=
+dif_neg h
+
+end succ
+
+section pred
+variables [preorder α] [order_top α] [pred_order α]
+
+instance : pred_order (with_top α) :=
 { pred := λ a, match a with
     | ⊤        := some ⊤
     | (some a) := some (pred a)
@@ -694,10 +708,17 @@ instance [preorder α] [order_top α] [pred_order α] : pred_order (with_top α)
     { exact some_le_some.2 (le_of_pred_lt $ some_lt_some.1 h) }
   end }
 
+@[simp] lemma pred_top : pred (⊤ : with_top α) = ↑(⊤ : α) := rfl
+@[simp] lemma pred_coe (a : α) : pred (↑a : with_top α) = ↑(pred a) := rfl
+
+end pred
+
 /-! #### Adding a `⊤` to a `no_max_order` -/
 
-instance with_top.succ_order_of_no_max_order [preorder α] [no_max_order α] [succ_order α] :
-  succ_order (with_top α) :=
+section succ
+variables [preorder α] [no_max_order α] [succ_order α]
+
+instance succ_order_of_no_max_order : succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
     | (some a) := some (succ a)
@@ -727,25 +748,35 @@ instance with_top.succ_order_of_no_max_order [preorder α] [no_max_order α] [su
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-instance [preorder α] [no_max_order α] [hα : nonempty α] : is_empty (pred_order (with_top α)) :=
+@[simp] lemma succ_coe (a : α) : succ (↑a : with_top α) = ↑(succ a) := rfl
+
+end succ
+
+section pred
+variables [preorder α] [no_max_order α]
+
+instance [hα : nonempty α] : is_empty (pred_order (with_top α)) :=
 ⟨begin
   introI,
-  set b := pred (⊤ : with_top α) with h,
-  cases pred (⊤ : with_top α) with a ha; change b with pred ⊤ at h,
+  cases h : pred (⊤ : with_top α) with a ha,
   { exact hα.elim (λ a, (min_of_le_pred h.ge).not_lt $ coe_lt_top a) },
   { obtain ⟨c, hc⟩ := exists_gt a,
     rw [←some_lt_some, ←h] at hc,
     exact (le_of_pred_lt hc).not_lt (some_lt_none _) }
 end⟩
 
+end pred
+
 end with_top
 
-section with_bot
-open with_bot
+namespace with_bot
 
 /-! #### Adding a `⊥` to an `order_bot` -/
 
-instance [preorder α] [order_bot α] [succ_order α] : succ_order (with_bot α) :=
+section succ
+variables [preorder α] [order_bot α] [succ_order α]
+
+instance : succ_order (with_bot α) :=
 { succ := λ a, match a with
     | ⊥        := some ⊥
     | (some a) := some (succ a)
@@ -757,7 +788,7 @@ instance [preorder α] [order_bot α] [succ_order α] : succ_order (with_bot α)
   max_of_succ_le := λ a ha, begin
     cases a,
     { exact ((none_lt_some (⊥ : α)).not_le ha).elim },
-    { exact is_max.with_bot (max_of_succ_le $ some_le_some.1 ha) }
+    { exact (max_of_succ_le $ some_le_some.1 ha).with_bot }
   end,
   succ_le_of_lt := λ a b h, begin
     cases b,
@@ -774,8 +805,15 @@ instance [preorder α] [order_bot α] [succ_order α] : succ_order (with_bot α)
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
-  pred_order (with_bot α) :=
+@[simp] lemma succ_bot : succ (⊥ : with_bot α) = ↑(⊥ : α) := rfl
+@[simp] lemma succ_coe (a : α) : succ (↑a : with_bot α) = ↑(succ a) := rfl
+
+end succ
+
+section pred
+variables [decidable_eq α] [partial_order α] [order_bot α] [pred_order α]
+
+instance : pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
     | (some a) := ite (a = ⊥) ⊥ (some (pred a))
@@ -783,7 +821,7 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
   pred_le := λ a, begin
     cases a,
     { exact bot_le },
-    change (ite _ _ _ : with_bot α) ≤ some a,
+    change ite _ _ _ ≤ _,
     split_ifs,
     { exact bot_le },
     { exact some_le_some.2 (pred_le a) }
@@ -791,7 +829,7 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
   min_of_le_pred := λ a ha, begin
     cases a,
     { exact is_min_bot },
-    change ((≤) : with_bot α → with_bot α → Prop) _ (ite _ _ _) at ha,
+    change _ ≤ ite _ _ _ at ha,
     split_ifs at ha with ha',
     { exact (not_coe_le_bot _ ha).elim },
     { rw [some_le_some, le_pred_iff_eq_bot] at ha,
@@ -803,7 +841,7 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
     cases b,
     { exact (not_lt_bot h).elim },
     rw some_lt_some at h,
-    change ((≤) : with_bot α → with_bot α → Prop) _ (ite _ _ _),
+    change _ ≤ ite _ _ _,
     split_ifs with hb,
     { rw hb at h,
       exact (not_lt_bot h).elim },
@@ -814,7 +852,7 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
     { exact (not_lt_bot h).elim },
     cases a,
     { exact bot_le },
-    change ((<) : with_bot α → with_bot α → Prop) (ite _ _ _) _ at h,
+    change ite _ _ _ < _ at h,
     rw some_le_some,
     split_ifs at h with ha,
     { rw ha,
@@ -822,21 +860,33 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
     { exact le_of_pred_lt (some_lt_some.1 h) }
   end }
 
+@[simp] lemma pred_coe_bot : pred ↑(⊥ : α) = (⊥ : with_bot α) := dif_pos rfl
+lemma pred_coe_of_ne_bot {a : α} (h : a ≠ ⊥) : pred (↑a : with_bot α) = ↑(pred a) :=
+dif_neg h
+
+end pred
+
 /-! #### Adding a `⊥` to a `no_min_order` -/
 
-instance [preorder α] [no_min_order α] [hα : nonempty α] : is_empty (succ_order (with_bot α)) :=
+section succ
+variables [preorder α] [no_min_order α]
+
+instance [hα : nonempty α] : is_empty (succ_order (with_bot α)) :=
 ⟨begin
   introI,
-  set b : with_bot α := succ ⊥ with h,
-  cases succ (⊥ : with_bot α) with a ha; change b with succ ⊥ at h,
+  cases h : succ (⊥ : with_bot α) with a ha,
   { exact hα.elim (λ a, (max_of_succ_le h.le).not_lt $ bot_lt_coe a) },
   { obtain ⟨c, hc⟩ := exists_lt a,
     rw [←some_lt_some, ←h] at hc,
     exact (le_of_lt_succ hc).not_lt (none_lt_some _) }
 end⟩
 
-instance with_bot.pred_order_of_no_min_order [preorder α] [no_min_order α] [pred_order α] :
-  pred_order (with_bot α) :=
+end succ
+
+section pred
+variables [preorder α] [no_min_order α] [pred_order α]
+
+instance pred_order_of_no_min_order : pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
     | (some a) := some (pred a)
@@ -866,10 +916,10 @@ instance with_bot.pred_order_of_no_min_order [preorder α] [no_min_order α] [pr
     { exact some_le_some.2 (le_of_pred_lt $ some_lt_some.1 h) }
   end }
 
-end with_bot
-end order
+@[simp] lemma pred_coe (a : α) : pred (↑a : with_bot α) = ↑(pred a) := rfl
 
-open order
+end pred
+end with_bot
 
 /-! ### Archimedeanness -/
 

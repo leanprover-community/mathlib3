@@ -130,7 +130,7 @@ open number_field
 
 local attribute [instance] subsingleton_rat_module
 
-instance rat.number_field : number_field ℚ :=
+instance number_field : number_field ℚ :=
 { to_char_zero := infer_instance,
   to_finite_dimensional :=
     -- The vector space structure of `ℚ` over itself can arise in multiple ways:
@@ -203,14 +203,15 @@ begin
     haveI : fact (irreducible $ minpoly ℚ x) := ⟨minpoly.irreducible hx⟩,
     have hK : (aeval x) (minpoly ℚ x) = 0 := minpoly.aeval _ _,
     have hA : (aeval a) (minpoly ℚ x) = 0,
-    { rwa [aeval_def, ←eval_map, ←mem_root_set_iff'],
-      exact ((minpoly.monic hx).map $ algebra_map ℚ A).ne_zero, },
-    let ψ : Qx →+* A := adjoin_root.lift (algebra_map ℚ A) a hA,
+    { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],
+      exact ha,
+      refine polynomial.monic.ne_zero _,
+      exact polynomial.monic.map (algebra_map ℚ A) (minpoly.monic hx), },
+    let ψ : Qx →+* A := by convert adjoin_root.lift (algebra_map ℚ A) a hA,
     letI : algebra Qx A := ring_hom.to_algebra ψ,
-    letI : algebra Qx K := ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ K) x hK),
-    let φ₀ : K →ₐ[Qx] A := is_alg_closed.lift _,
-    swap,
-    { refine algebra.is_algebraic_of_larger_base ℚ Qx _,
+    letI : algebra Qx K := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map ℚ K) x hK),
+    let φ₀ : K →ₐ[Qx] A,
+    { refine is_alg_closed.lift (algebra.is_algebraic_of_larger_base ℚ Qx _),
       exact number_field.is_algebraic _, },
     let φ := φ₀.to_ring_hom,
     use φ,

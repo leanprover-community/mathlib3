@@ -70,6 +70,14 @@ lemma range_eq_image_mul_tsupport_or (f : X → α) :
   range f = f '' mul_tsupport f ∨ range f = insert 1 (f '' mul_tsupport f) :=
 (wcovby_insert _ _).eq_or_eq (image_subset_range _ _) (range_subset_insert_image_mul_tsupport f)
 
+lemma tsupport_mul_subset_left {α : Type*} [mul_zero_class α] {f g : X → α} :
+  tsupport (λ x, f x * g x) ⊆ tsupport f :=
+closure_mono (support_mul_subset_left _ _)
+
+lemma tsupport_mul_subset_right {α : Type*} [mul_zero_class α] {f g : X → α} :
+  tsupport (λ x, f x * g x) ⊆ tsupport g :=
+closure_mono (support_mul_subset_right _ _)
+
 end one
 
 section

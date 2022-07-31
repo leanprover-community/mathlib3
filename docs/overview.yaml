@@ -320,6 +320,7 @@ Analysis:
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
     Fatou's lemma: 'measure_theory.lintegral_liminf_le'
     vector-valued integrable function (Bochner integral): 'measure_theory.integrable'
+    uniform integrability: 'measure_theory.uniform_integrable'
     $L^p$ space: 'measure_theory.Lp'
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
@@ -327,6 +328,39 @@ Analysis:
     fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
+    convolution: 'convolution'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
+    change of variables formula: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
+
+Probability Theory:
+  Definitions in probability theory:
+    probability measure: 'measure_theory.is_probability_measure'
+    independent events: 'probability_theory.Indep_set'
+    independent sigma-algebras: 'probability_theory.Indep'
+    conditional probability: 'probability_theory.cond'
+    conditional expectation: 'measure_theory.condexp'
+  Random variables and their laws:
+    discrete law: 'pmf'
+    probability density function: 'measure_theory.has_pdf'
+    variance of a real-valued random variable: 'probability_theory.variance'
+    independence of random variables: 'probability_theory.Indep_fun'
+    mean of product of independent random variables: 'probability_theory.indep_fun.integral_mul_of_integrable'
+    moment of a random variable: 'probability_theory.moment'
+    Bernoulli law: 'pmf.bernoulli'
+  Convergence of a sequence of random variables:
+    convergence in probability: 'measure_theory.tendsto_in_measure'
+    $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
+    almost sure convergence: 'measure_theory.measure.ae'
+    convergence in distribution: 'measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto'
+    Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
+    Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
+    strong law of large numbers: 'probability_theory.strong_law_ae'
+  Stochastic Processes:
+    martingale: 'measure_theory.martingale'
+    optional stopping theorem: 'measure_theory.submartingale_iff_expected_stopped_value_mono'
+    stopping time: 'measure_theory.is_stopping_time'
+    hitting time: 'measure_theory.hitting'
 
 Geometry:
   Affine and Euclidean geometry:

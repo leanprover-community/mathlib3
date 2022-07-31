@@ -92,10 +92,34 @@ noncomputable def as_module : module (monoid_algebra k G) V :=
 
 end monoid_algebra
 
+section mul_action
+variables (k : Type*) [comm_semiring k] (G : Type*) [monoid G] (H : Type*) [mul_action G H]
+
+/-- A `G`-action on `H` induces a representation `G →* End(k[H])` in the natural way. -/
+noncomputable def of_mul_action : representation k G (H →₀ k) :=
+{ to_fun := λ g, finsupp.lmap_domain k k ((•) g),
+  map_one' := by { ext x y, dsimp, simp },
+  map_mul' := λ x y, by { ext z w, simp [mul_smul] }}
+
+variables {k G H}
+
+lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
+
+end mul_action
 section group
 
 variables {k G V : Type*} [comm_semiring k] [group G] [add_comm_monoid V] [module k V]
 variables (ρ : representation k G V)
+
+@[simp] lemma of_mul_action_apply {H : Type*} [mul_action G H]
+  (g : G) (f : H →₀ k) (h : H) : of_mul_action k G H g f h = f (g⁻¹ • h) :=
+begin
+  conv_lhs { rw ← smul_inv_smul g h, },
+  let h' := g⁻¹ • h,
+  change of_mul_action k G H g f (g • h') = f h',
+  have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simp, },
+  simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
+end
 
 /--
 When `G` is a group, a `k`-linear representation of `G` on `V` can be thought of as

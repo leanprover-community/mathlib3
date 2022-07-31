@@ -183,8 +183,8 @@ lemma trace_form_to_matrix [decidable_eq ι] (i j) :
 by rw [bilin_form.to_matrix_apply, trace_form_apply]
 
 lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
-  bilin_form.to_matrix h.basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
-by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
+  bilin_form.to_matrix h.basis (trace_form R S) = of (λ i j, trace R S (h.gen ^ (↑i + ↑j : ℕ))) :=
+by { ext, rw [trace_form_to_matrix, of_apply, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
 
@@ -390,7 +390,8 @@ open finset
 def trace_matrix (b : κ → B) : matrix κ κ A
 | i j := trace_form A B (b i) (b j)
 
-lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
+lemma trace_matrix_def (b : κ → B) : trace_matrix A b = of (λ i j, trace_form A B (b i) (b j)) :=
+rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
   trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
@@ -441,7 +442,7 @@ begin
   simp only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
-    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, of_apply, ← linear_map.map_smul] },
     rw [← linear_map.map_sum],
     congr,
     conv_lhs

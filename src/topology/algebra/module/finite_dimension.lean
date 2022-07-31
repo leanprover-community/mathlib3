@@ -309,6 +309,10 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 @[simp] lemma coe_to_continuous_linear_map_symm :
   ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
 
+@[simp] lemma det_to_continuous_linear_map (f : E →ₗ[𝕜] E) :
+  f.to_continuous_linear_map.det = f.det :=
+rfl
+
 end linear_map
 
 namespace linear_equiv
@@ -365,6 +369,13 @@ by { ext x, refl }
   (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
   f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
 rfl
+
+lemma _root_.matrix.to_lin_fin_two_prod_to_continuous_linear_map (a b c d : 𝕜) :
+  (matrix.to_lin (basis.fin_two_prod 𝕜) (basis.fin_two_prod 𝕜)
+      ![![a, b], ![c, d]]).to_continuous_linear_map =
+  (a • continuous_linear_map.fst 𝕜 𝕜 𝕜 + b • continuous_linear_map.snd 𝕜 𝕜 𝕜).prod
+  (c • continuous_linear_map.fst 𝕜 𝕜 𝕜 + d • continuous_linear_map.snd 𝕜 𝕜 𝕜) :=
+continuous_linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
 
 end continuous_linear_map
 

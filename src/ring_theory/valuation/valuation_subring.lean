@@ -367,21 +367,7 @@ section unit_group
 def unit_group : subgroup Kˣ :=
 (A.valuation.to_monoid_with_zero_hom.to_monoid_hom.comp (units.coe_hom K)).ker
 
-lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
-
-lemma unit_group_injective : function.injective (unit_group : valuation_subring K → subgroup _) :=
-λ A B h, begin
-  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-    ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_eq_one],
-  rw set_like.ext_iff at h,
-  intros x,
-  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
-  exact h (units.mk0 x hx)
-end
-
-lemma eq_iff_unit_group {A B : valuation_subring K} :
-  A = B ↔ A.unit_group = B.unit_group :=
-unit_group_injective.eq_iff.symm
+lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
 
 /-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
@@ -402,6 +388,7 @@ lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
 @[simp]
 lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
+
 
 lemma unit_group_le_unit_group {A B : valuation_subring K} :
   A.unit_group ≤ B.unit_group ↔ A ≤ B :=
@@ -424,6 +411,13 @@ begin
     simpa using hx }
 end
 
+lemma unit_group_injective : function.injective (unit_group : valuation_subring K → subgroup _) :=
+λ A B h, by { simpa only [le_antisymm_iff, unit_group_le_unit_group] using h}
+
+lemma eq_iff_unit_group {A B : valuation_subring K} :
+  A = B ↔ A.unit_group = B.unit_group :=
+unit_group_injective.eq_iff.symm
+
 /-- The map on valuation subrings to their unit groups is an order embedding. -/
 def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
 { to_fun := λ A, A.unit_group,
@@ -442,18 +436,7 @@ def nonunits : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
   mul_mem' := λ a b ha hb, (mul_lt_mul₀ ha hb).trans_eq $ mul_one _ }
 
-lemma mem_nonunits_iff {x : K} : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.refl _
-
-lemma nonunits_injective :
-  function.injective (nonunits : valuation_subring K → subsemigroup _) :=
-λ A B h, begin
-  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-    ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
-  exact set_like.ext_iff.1 h,
-end
-
-lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
-nonunits_injective.eq_iff
+lemma mem_nonunits_iff {x : K} : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.rfl
 
 lemma nonunits_le_nonunits {A B : valuation_subring K} :
   B.nonunits ≤ A.nonunits ↔ A ≤ B :=
@@ -466,6 +449,13 @@ begin
   { intros h x hx,
     by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
 end
+
+lemma nonunits_injective :
+  function.injective (nonunits : valuation_subring K → subsemigroup _) :=
+λ A B h, by { simpa only [le_antisymm_iff, nonunits_le_nonunits] using h.symm }
+
+lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
+nonunits_injective.eq_iff
 
 /-- The map on valuation subrings to their nonunits is a dual order embedding. -/
 def nonunits_order_embedding :
@@ -558,7 +548,6 @@ lemma eq_iff_principal_unit_group {A B : valuation_subring K} :
   A = B ↔ A.principal_unit_group = B.principal_unit_group :=
 principal_unit_group_injective.eq_iff.symm
 
-
 /-- The map on valuation subrings to their principal unit groups is an order embedding. -/
 def principal_unit_group_order_embedding :
   valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
@@ -567,7 +556,7 @@ def principal_unit_group_order_embedding :
   map_rel_iff' := λ A B, principal_unit_group_le_principal_unit_group }
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
-λ a h, by simpa using A.valuation.map_one_add_of_lt h
+λ a h, by simpa only [add_sub_cancel'_right] using A.valuation.map_one_add_of_lt h
 
 lemma coe_mem_principal_unit_group_iff {x : A.unit_group} :
   (x : Kˣ) ∈ A.principal_unit_group ↔

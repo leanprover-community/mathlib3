@@ -187,6 +187,10 @@ begin
   refl,
 end
 
+/-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
+@[simp] lemma prime.factorization_self {p : ℕ} (hp : prime p) : p.factorization p = 1 :=
+by simp [hp]
+
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
 lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p ^ k) = single p k :=

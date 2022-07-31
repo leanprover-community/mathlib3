@@ -16,12 +16,6 @@ open_locale unit_interval
 
 namespace continuous_map
 
-lemma continuous_to_C_iff_uncurry (X Y Z : Type*) [topological_space X]
-  [topological_space Y] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
-  continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
-(λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
-
-
 /--This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*-/
 lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [topological_space β]
   [locally_compact_space β] [topological_space γ] :
@@ -101,16 +95,8 @@ instance topological_group_H_space (G : Type u) [topological_space G] [group G]
     exact continuous_map.homotopy_rel.refl _ _ },
 }
 
-@[simp]
 lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
-
--- open circle
-
--- instance S0_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := infer_instance
--- instance S1_H_space : H_space circle := infer_instance
--- instance S3_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := sorry
--- instance S7_H_space : H_space (metric.sphere (0 : ℝ × ℝ) 1) := sorry
 
 end topological_group_H_space
 
@@ -120,23 +106,19 @@ variables {X : Type u} [topological_space X]
 
 notation ` Ω(` x `)` := path x x
 
-@[simp]
 lemma continuous_coe (x : X) : continuous (coe : Ω(x) → C(↥I, X)) := continuous_induced_dom
 
 variable {x : X}
 
-@[simp]
+@[simp, continuity]
 lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)} :
- continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng h
+  continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng h
 
-lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x) } :
- continuous g ↔ continuous (↑g : Y → C(I,X)) :=
- ⟨λ h, continuous.comp (continuous_coe x) h, λ h, continuous_to_Ω_if_to_C h⟩
 
-lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y] [locally_compact_space Y]
-  {g : Y → Ω(x)} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
-  iff.intro ((λ h, (continuous_to_C_iff_uncurry Y I X ↑g).mp (continuous_to_Ω_iff_to_C.mp h)))
-  (λ h, continuous_to_Ω_iff_to_C.mpr ((continuous_to_C_iff_uncurry Y I X ↑g).mpr h))
+@[simp, continuity]
+lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
+  {g : Y → Ω(x)} : continuous (λ p : Y × I, g p.1 p.2) → continuous g :=
+  λ h, continuous_induced_rng $ continuous_of_continuous_uncurry ↑g h
 
 
 lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
@@ -145,11 +127,13 @@ begin
   let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2)),
   have H : continuous η,
   { let Cproj : C(ℝ, I) := ⟨set.proj_Icc _ _ zero_le_one, continuous_proj_Icc⟩,
-    have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp continuous_induced_dom,
+    have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp
+      continuous_induced_dom,
     have h_right := (continuous_const.mul continuous_id').comp
     (@continuous_induced_dom _ _ (coe : I → ℝ) _),
     exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },
-  replace H := (homeomorph.comp_continuous_iff' $ homeomorph.prod_assoc Ω(x) _ _).mpr (H.comp $ continuous_snd),
+  replace H := (homeomorph.comp_continuous_iff' $ homeomorph.prod_assoc Ω(x) _ _).mpr
+    (H.comp $ continuous_snd),
   exact (H.comp $ continuous.prod_map continuous_swap continuous_id),
 end
 
@@ -232,9 +216,30 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     { linarith },
   end }
 
+lemma aux_mem_I {t θ : I} : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧ ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := sorry
+
 lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
 begin
-  sorry,
+  apply continuous_to_Ω_if_continuous_uncurry,
+  let Q : I × I → I := λ ⟨θ, t⟩, if (t : ℝ) ≤ θ / 2 then 0
+                                else ⟨(2 * t - θ)/(2 - θ), aux_mem_I⟩,
+  have hQ : continuous Q, sorry,
+  let Q₀ : C(I × I, I) := ⟨Q, hQ⟩,
+  let Q₁ : C((I × I) × Ω(x), I × Ω(x)) := ⟨λ p, ⟨Q₀ p.1, p.2⟩, (continuous.comp hQ
+    continuous_fst).prod_mk continuous_snd⟩,
+  let F₀ : I × Ω(x) → X := λ p, p.2 p.1,
+  have hF₀ : continuous F₀, sorry,
+  -- let F : C(Ω(x) × I, X) := ⟨F₀, hF₀⟩,
+  -- have := continuous_swap.comp Q₁.2,
+  have hQ₂ := (homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr Q₁.2,
+  have hQ₃ := hQ₂.comp continuous_swap,
+  convert hF₀.comp hQ₃,
+  -- refl,
+  ext,
+  dsimp [delayed_id],
+  split_ifs,
+  simp_rw [if_pos h],
+  -- simp only,
 end
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
@@ -255,6 +260,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
     dsimp [path.refl, delayed_id],
     have temp : (ite ((t : ℝ) ≤ 0 / 2) x (γ.extend ((2 * ↑t - 0) / (2 - 0)))) = x, sorry,
     rw temp,
+    sorry,
     -- simp,
     -- simp [path.has_coe_to_fun],
     -- convert,

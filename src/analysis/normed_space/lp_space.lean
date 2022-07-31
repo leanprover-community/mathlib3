@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
+import analysis.normed_space.operator_norm
 import analysis.normed.group.pointwise
 import topology.algebra.order.liminf_limsup
 
@@ -28,9 +29,10 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
   `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_add_comm_group` structure.
   Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
-  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`, `lp.infty_normed_algebra`.
+  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`,
+  `lp.infty_normed_algebra`, `lp.infty_star_ring` and `lp.infty_cstar_ring`.
 
 ## Main results
 
@@ -59,9 +61,11 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 -/
 
 noncomputable theory
+
+open function
 open_locale nnreal ennreal big_operators
 
-variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group (E i)]
+variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_comm_group (E i)]
 
 /-!
 ### `mem_ℓp` predicate
@@ -84,6 +88,9 @@ mem_ℓp_zero_iff.2 hf
 
 lemma mem_ℓp_infty_iff {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ∥f i∥)) :=
 by dsimp [mem_ℓp]; rw [if_neg ennreal.top_ne_zero, if_pos rfl]
+
+lemma mem_ℓp_infty_iff_nnnorm {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ∥f i∥₊)) :=
+by simpa only [← nnreal.bdd_above_coe, ← set.range_comp]
 
 lemma mem_ℓp_infty {f : Π i, E i} (hf : bdd_above (set.range (λ i, ∥f i∥))) : mem_ℓp f ∞ :=
 mem_ℓp_infty_iff.2 hf
@@ -142,8 +149,12 @@ namespace mem_ℓp
 lemma finite_dsupport {f : Π i, E i} (hf : mem_ℓp f 0) : set.finite {i | f i ≠ 0} :=
 mem_ℓp_zero_iff.1 hf
 
-lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
+protected lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
 mem_ℓp_infty_iff.1 hf
+
+protected lemma bdd_above_nnnorm {f : Π i, E i} (hf : mem_ℓp f ∞) :
+  bdd_above (set.range (λ i, ∥f i∥₊)) :=
+by simpa only [← nnreal.bdd_above_coe, ← set.range_comp]
 
 lemma summable (hp : 0 < p.to_real) {f : Π i, E i} (hf : mem_ℓp f p) :
   summable (λ i, ∥f i∥ ^ p.to_real) :=
@@ -262,15 +273,9 @@ begin
   { exact hf.comp_injective hφ }
 end
 
--- TODO : use this to get a continuous linear map between lp spaces.
-lemma comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
-  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
-hf.comp_inj φ φ.injective
-
--- TODO : use this to get a continuous linear map between lp spaces.
-lemma comp_linear_isometry {𝕜 : Type*} [normed_field 𝕜] {F : α → Type*}
-  [Π i, normed_group (F i)] [Π i, normed_space 𝕜 (E i)] [Π i, normed_space 𝕜 (F i)]
-  (Φ : Π i, E i →ₗᵢ[𝕜] F i) {f : Π i, E i} {p : ℝ≥0∞}
+lemma comp_linear_isometry {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {F : α → Type*} [Π i, normed_add_comm_group (F i)] [Π i, normed_space 𝕜₁ (E i)]
+  [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i →ₛₗᵢ[σ₁₂] F i) {f : Π i, E i} {p : ℝ≥0∞}
   (hf : mem_ℓp f p) : mem_ℓp (λ x, Φ x (f x)) p :=
 begin
   rw mem_ℓp at *,
@@ -323,12 +328,12 @@ We choose to deal with this issue by making a type synonym for `Π i, E i` rathe
 subgroup itself, because this allows all the spaces `lp E p` (for varying `p`) to be subgroups of
 the same ambient group, which permits lemma statements like `lp.monotone` (below). -/
 @[derive add_comm_group, nolint unused_arguments]
-def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
+def pre_lp (E : α → Type*) [Π i, normed_add_comm_group (E i)] : Type* := Π i, E i
 
 instance pre_lp.unique [is_empty α] : unique (pre_lp E) := pi.unique_of_is_empty E
 
 /-- lp space -/
-def lp (E : α → Type*) [Π i, normed_group (E i)]
+def lp (E : α → Type*) [Π i, normed_add_comm_group (E i)]
   (p : ℝ≥0∞) : add_subgroup (pre_lp E) :=
 { carrier := {f | mem_ℓp f p},
   zero_mem' := zero_mem_ℓp,
@@ -486,8 +491,8 @@ begin
     simpa using lp.has_sum_norm hp f }
 end
 
-instance [hp : fact (1 ≤ p)] : normed_group (lp E p) :=
-normed_group.of_core _
+instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
+normed_add_comm_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
@@ -515,10 +520,7 @@ normed_group.of_core _
   norm_neg := norm_neg }
 
 lemma nnnorm_eq_csupr (f : lp E ∞) : ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
-begin
-  ext,
-  simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr]
-end
+by { ext, simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr] }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.
@@ -665,6 +667,53 @@ end
 
 end normed_space
 
+section normed_star_group
+
+variables [Π i, star_add_monoid (E i)] [Π i, normed_star_group (E i)]
+
+lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
+  (hf : mem_ℓp f p) : mem_ℓp (star f) p :=
+begin
+  rcases p.trichotomy with rfl | rfl | hp,
+  { apply mem_ℓp_zero,
+    simp [hf.finite_dsupport] },
+  { apply mem_ℓp_infty,
+    simpa using hf.bdd_above },
+  { apply mem_ℓp_gen,
+    simpa using hf.summable hp },
+end
+
+@[simp] lemma _root_.mem_ℓp.star_iff {f : Π i, E i} : mem_ℓp (star f) p ↔ mem_ℓp f p :=
+⟨λ h, star_star f ▸ mem_ℓp.star_mem h ,mem_ℓp.star_mem⟩
+
+instance : has_star (lp E p) :=
+{ star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
+
+@[simp] lemma coe_fn_star (f : lp E p) : ⇑(star f) = star f := rfl
+@[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
+
+instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
+
+instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
+
+instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
+{ norm_star := λ f,
+  begin
+    unfreezingI { rcases p.trichotomy with rfl | rfl | h },
+    { exfalso,
+      have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
+      norm_num at this,},
+    { simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
+    { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
+  end }
+
+variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
+variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+
+instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
+
+end normed_star_group
+
 section non_unital_normed_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
@@ -697,7 +746,7 @@ instance : non_unital_normed_ring (lp B ∞) :=
     ...                    ≤ ∥f∥ * ∥g∥
     : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
         (lp.norm_apply_le_norm ennreal.top_ne_zero g i) (norm_nonneg _) (norm_nonneg _)),
-  .. lp.normed_group }
+  .. lp.normed_add_comm_group }
 
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
 
@@ -710,6 +759,32 @@ instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space �
   [Π i, smul_comm_class 𝕜 (B i) (B i)] :
   smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
+
+section star_ring
+
+variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
+
+instance infty_star_ring : star_ring (lp B ∞) :=
+{ star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,
+  .. (show star_add_monoid (lp B ∞),
+      by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
+
+instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
+{ norm_star_mul_self := λ f,
+  begin
+    apply le_antisymm,
+    { rw ←sq,
+      refine lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥) (λ i, _),
+      simp only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
+      refine sq_le_sq' _ (lp.norm_apply_le_norm ennreal.top_ne_zero _ _),
+      linarith [norm_nonneg (f i), norm_nonneg f] },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _)],
+      refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) (λ i, _),
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact lp.norm_apply_le_norm ennreal.top_ne_zero (star f * f) i, }
+  end }
+
+end star_ring
 
 end non_unital_normed_ring
 
@@ -941,7 +1016,8 @@ begin
   have hp : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
   rw uniform_continuous_pi,
   intros i,
-  rw normed_group.uniformity_basis_dist.uniform_continuous_iff normed_group.uniformity_basis_dist,
+  rw normed_add_comm_group.uniformity_basis_dist.uniform_continuous_iff
+    normed_add_comm_group.uniformity_basis_dist,
   intros ε hε,
   refine ⟨ε, hε, _⟩,
   rintros f g (hfg : ∥f - g∥ < ε),
@@ -1027,7 +1103,7 @@ begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
   have hε' : {p : (lp E p) × (lp E p) | ∥p.1 - p.2∥ < ε} ∈ 𝓤 (lp E p),
-  { exact normed_group.uniformity_basis_dist.mem_of_mem hε },
+  { exact normed_add_comm_group.uniformity_basis_dist.mem_of_mem hε },
   refine (hF.eventually_eventually hε').mono _,
   rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, F n - f) (F l)∥ < ε),
   refine norm_le_of_tendsto (hn.mono (λ k hk, hk.le)) _,
@@ -1273,3 +1349,327 @@ congr_right_single E F 𝕜 p Φ i x
 end congr_right
 
 end lp
+
+namespace function.injective
+
+variables (E) (𝕜 : Type*) [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (p)
+
+private def comap_lpₗ [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
+  lp E p →ₗ[𝕜] lp (λ i, E (φ i)) p :=
+{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl }
+
+private lemma norm_comap_lpₗ_apply_le [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+  (f : lp E p) : ∥comap_lpₗ E p 𝕜 hφ f∥ ≤ ∥f∥ :=
+begin
+  unfreezingI { rcases p.dichotomy with rfl | h },
+  { suffices : ∥_∥₊ ≤ ∥f∥₊,
+    { rw [← coe_nnnorm, ← coe_nnnorm],
+      exact nnreal.coe_mono this },
+    rw [lp.nnnorm_eq_csupr, lp.nnnorm_eq_csupr],
+    exact csupr_comp_le (λ x : α, ∥f x∥₊) φ f.2.bdd_above_nnnorm },
+  { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le h),
+        lp.norm_eq_tsum_rpow (zero_lt_one.trans_le h)],
+    refine real.rpow_le_rpow (tsum_nonneg _)
+      (tsum_comp_le_tsum_of_inj (f.2.summable $ zero_lt_one.trans_le h) _ hφ)
+      (one_div_nonneg.mpr $ zero_le_one.trans h);
+    exact λ b, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ }
+end
+
+/-- Precomposition by an injective funcion as a continuous linear map between `lp` spaces. -/
+def comap_lp [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ) :
+  lp E p →L[𝕜] lp (λ i, E (φ i)) p :=
+linear_map.mk_continuous
+{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_inj φ hφ f.2⟩,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ c f, by ext; refl } 1
+begin
+  intros f,
+  rw one_mul,
+  exact norm_comap_lpₗ_apply_le E p 𝕜 hφ f
+end
+
+@[simp] lemma comap_lp_apply [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+  {f : lp E p} {x : β} : hφ.comap_lp E p 𝕜 f x = f (φ x) := rfl
+
+lemma comap_lp_id [fact (1 ≤ p)] :
+  injective_id.comap_lp E p 𝕜 = continuous_linear_map.id 𝕜 (lp E p) :=
+by ext; refl
+
+lemma comap_lp_comp [fact (1 ≤ p)] {β γ : Type*} {φ : β → α} (hφ : injective φ)
+  {ψ : γ → β} (hψ : injective ψ) :
+  (hφ.comp hψ).comap_lp E p 𝕜 = hψ.comap_lp (λ i, E (φ i)) p 𝕜 ∘L hφ.comap_lp E p 𝕜 :=
+by ext; refl
+
+lemma norm_comap_lp_apply_le [fact (1 ≤ p)] {β : Type*} {φ : β → α} (hφ : injective φ)
+  (f : lp E p) : ∥hφ.comap_lp E p 𝕜 f∥ ≤ ∥f∥ :=
+norm_comap_lpₗ_apply_le E p 𝕜 hφ f
+
+@[simp] lemma comap_lp_single [decidable_eq α] [fact (1 ≤ p)] {β : Type*} [decidable_eq β]
+  {φ : β → α} (hφ : injective φ) (i : β) (x : E (φ i)) :
+  hφ.comap_lp E p 𝕜 (lp.single p (φ i) x) = lp.single p i x :=
+begin
+  ext j,
+  rw [comap_lp_apply],
+  by_cases hj : j = i,
+  { rw [hj, lp.single_apply_self, lp.single_apply_self] },
+  { rw [lp.single_apply_ne _ _ _ hj, lp.single_apply_ne _ _ _ (hφ.ne hj)] }
+end
+
+end function.injective
+
+namespace linear_isometry
+
+variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] {𝕜₁ 𝕜₂ : Type*}
+  [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  [Π i, normed_space 𝕜₁ (E i)] [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i →ₛₗᵢ[σ₁₂] F i)
+
+/-- Postcomposition by a linear isometry as a linear isometry between `lp` spaces. -/
+def map_lp [fact $ 1 ≤ p'] : lp E p' →ₛₗᵢ[σ₁₂] lp F p' :=
+{ to_fun := λ f, ⟨λ x, Φ x (f x), mem_ℓp.comp_linear_isometry Φ f.2⟩,
+  map_add' := λ f g, by ext i; exact map_add (Φ i) _ _,
+  map_smul' := λ a f, by ext i; exact (Φ i).map_smulₛₗ _ _,
+  norm_map' :=
+  begin
+    intros f,
+    unfreezingI { rcases p'.dichotomy with rfl | hp},
+    { rw [lp.norm_eq_csupr, lp.norm_eq_csupr],
+      congr,
+      ext i,
+      exact (Φ i).norm_map _ },
+    { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp),
+          lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp)],
+      congr,
+      ext i,
+      exact congr_arg (λ x, x ^ p'.to_real) ((Φ i).norm_map _) },
+  end }
+
+@[simp] lemma map_lp_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
+  map_lp E F p' Φ f x = Φ x (f x) := rfl
+
+lemma map_lp_id [fact $ 1 ≤ p'] :
+  map_lp E E p' (λ i, (linear_isometry.id : E i →ₗᵢ[𝕜₁] E i)) = linear_isometry.id :=
+by ext; refl
+
+lemma map_lp_comp [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
+  {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
+  [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [Π i, normed_space 𝕜₃ (G i)] (Ψ : Π i, F i →ₛₗᵢ[σ₂₃] G i) :
+  map_lp E G p' (λ i, (Ψ i).comp (Φ i)) =
+  (map_lp F G p' Ψ).comp (map_lp E F p' Φ) :=
+rfl
+
+@[simp] lemma map_lp_single [decidable_eq α] [fact $ 1 ≤ p'] (i : α) (x : E i) :
+  map_lp E F p' Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
+begin
+  ext j,
+  rw [map_lp_apply],
+  by_cases hj : j = i,
+  { rw [hj, lp.single_apply_self, lp.single_apply_self] },
+  { rw [lp.single_apply_ne _ _ _ hj, lp.single_apply_ne _ _ _ hj, map_zero] }
+end
+
+end linear_isometry
+
+section congr_right
+open linear_isometry
+
+namespace lp
+
+variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group (F i)] {𝕜₁ 𝕜₂ : Type*}
+  [normed_field 𝕜₁] [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜₁}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [Π i, normed_space 𝕜₁ (E i)]
+  [Π i, normed_space 𝕜₂ (F i)] (Φ : Π i, E i ≃ₛₗᵢ[σ₁₂] F i)
+
+/-- A family of linear isometric equivalences `Π i, E i ≃ₛₗᵢ[σ] F i` induces a linear isometric
+equivalence of `lp` spaces. -/
+def congr_right [fact $ 1 ≤ p'] : lp E p' ≃ₛₗᵢ[σ₁₂] lp F p' :=
+linear_isometry_equiv.of_surjective (map_lp E F p' (λ i, (Φ i).to_linear_isometry))
+begin
+  have : left_inverse (map_lp E F p' (λ i, (Φ i).to_linear_isometry))
+    (map_lp F E p' (λ i, (Φ i).symm.to_linear_isometry)),
+  { intro f,
+    ext i,
+    exact (Φ i).apply_symm_apply _ },
+  exact this.surjective
+end
+
+@[simp] lemma congr_right_to_linear_isometry [fact $ 1 ≤ p'] :
+  (congr_right E F p' Φ).to_linear_isometry =
+  map_lp E F p' (λ i, (Φ i).to_linear_isometry) :=
+rfl
+
+lemma congr_right_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
+  congr_right E F p' Φ f x = Φ x (f x) := rfl
+
+lemma congr_right_refl [fact $ 1 ≤ p'] :
+  congr_right E E p' (λ i, linear_isometry_equiv.refl 𝕜₁ _) = linear_isometry_equiv.refl 𝕜₁ _ :=
+by ext; refl
+
+lemma congr_right_trans [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
+  {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₃₂ : 𝕜₃ →+* 𝕜₂} {σ₁₃ : 𝕜₁ →+* 𝕜₃}
+  {σ₃₁ : 𝕜₃ →+* 𝕜₁} [ring_hom_inv_pair σ₂₃ σ₃₂] [ring_hom_inv_pair σ₃₂ σ₂₃]
+  [ring_hom_inv_pair σ₁₃ σ₃₁] [ring_hom_inv_pair σ₃₁ σ₁₃] [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+  [ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁] [Π i, normed_space 𝕜₃ (G i)] (Ψ : Π i, F i ≃ₛₗᵢ[σ₂₃] G i) :
+  congr_right E G p' (λ i, (Φ i).trans (Ψ i)) =
+  (congr_right E F p' Φ).trans (congr_right F G p' Ψ) :=
+by ext; refl
+
+@[simp] lemma congr_right_single [decidable_eq α] [fact $ 1 ≤ p'] (i : α) (x : E i) :
+  congr_right E F p' Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
+map_lp_single _ _ _ _ _ _
+
+end lp
+
+end congr_right
+
+section curry
+
+namespace lp
+
+variables {β : α → Type*} (F : Π (a : α), β a → Type*) [fact (1 ≤ p)]
+  [Π a b, normed_add_comm_group (F a b)]
+
+/-- This is `sigma.curry` for elements of `lp (λ ab : Σ (a : α), β a, F ab.1 ab.2)`. -/
+def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
+  lp (λ a, lp (λ b : β a, F a b) p) p :=
+⟨λ a, ⟨λ b, f ⟨a, b⟩, (lp.mem_ℓp f).comp_inj (sigma.mk a) sigma_mk_injective⟩,
+  begin
+    rcases f with ⟨f, hf : mem_ℓp _ _⟩,
+    change mem_ℓp _ _,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { rw mem_ℓp_infty_iff_nnnorm at hf ⊢,
+      rcases hf with ⟨M, hM⟩,
+      refine ⟨M, _⟩,
+      rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
+      intro a,
+      rw lp.nnnorm_eq_csupr,
+      exact csupr_le' (λ b, hM ⟨a, b⟩) },
+    { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at hf ⊢,
+      rw summable_sigma_of_nonneg at hf,
+      { convert hf.2,
+        ext a,
+        rw lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp),
+        refl },
+      { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
+  end⟩
+
+@[simp] lemma curry_apply (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) (a : α) (b : β a) :
+  curry _ f a b = f ⟨a, b⟩ := rfl
+
+@[simp] lemma curry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
+  curry F (lp.single p (sigma.mk a b) x) = lp.single p a (lp.single p b x) :=
+begin
+  ext a' b',
+  by_cases ha : a = a',
+  { subst ha,
+    by_cases hb : b = b',
+    { subst hb,
+      simp only [curry_apply, lp.single_apply_self] },
+    { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
+      rw [curry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
+          lp.single_apply_ne _ _ _ (ne.symm this)] } },
+  { have : sigma.mk a b ≠ sigma.mk a' b' := λ h, ha (congr_arg sigma.fst h),
+    rw [curry_apply, lp.single_apply_ne _ _ _ (ne.symm ha),
+        lp.single_apply_ne _ _ _ (ne.symm this)],
+    refl }
+end
+
+/-- This is `sigma.uncurry` for elements of `lp (λ a, lp (λ b : β a, F a b) p) p`. -/
+def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
+⟨λ ab, g ab.1 ab.2,
+  begin
+    change mem_ℓp _ _,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { have : mem_ℓp _ ⊤ := g.2,
+      rw mem_ℓp_infty_iff at this ⊢,
+      rcases this with ⟨M, hM⟩,
+      refine ⟨M, _⟩,
+      rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
+      rintros ⟨a, b⟩,
+      specialize hM a,
+      rw lp.norm_eq_csupr at hM,
+      have : mem_ℓp _ ⊤ := (g a).2,
+      rw mem_ℓp_infty_iff at this,
+      exact (le_csupr this b).trans hM },
+    { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp),
+      rw summable_sigma_of_nonneg,
+      { split,
+        { intro a,
+          have : mem_ℓp _ _ := (g a).2,
+          rwa mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this },
+        { have : mem_ℓp _ _ := g.2,
+          rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this,
+          convert this,
+          ext a,
+          rw lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp),
+          refl } },
+      { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
+  end⟩
+
+@[simp] lemma uncurry_apply (g : lp (λ a, lp (λ b : β a, F a b) p) p) (a : α) (b : β a) :
+  uncurry F g ⟨a, b⟩ = g a b := rfl
+
+@[simp] lemma uncurry_single [decidable_eq (Σ a, β a)] [decidable_eq α]
+  [Π a, decidable_eq (β a)] (a : α) (b : β a) (x : F a b) :
+  uncurry F (lp.single p a (lp.single p b x)) = (lp.single p (sigma.mk a b) x) :=
+begin
+  ext ab',
+  rcases ab' with ⟨a', b'⟩,
+  by_cases ha : a = a',
+  { subst ha,
+    by_cases hb : b = b',
+    { subst hb,
+      simp only [uncurry_apply, lp.single_apply_self] },
+    { have : sigma.mk a b ≠ sigma.mk a b' := sigma_mk_injective.ne hb,
+      rw [uncurry_apply, lp.single_apply_self, lp.single_apply_ne _ _ _ (ne.symm hb),
+          lp.single_apply_ne _ _ _ (ne.symm this)] } },
+  { have : sigma.mk a b ≠ sigma.mk a' b' := λ h, ha (congr_arg sigma.fst h),
+    rw [uncurry_apply, lp.single_apply_ne _ _ _ (ne.symm ha),
+        lp.single_apply_ne _ _ _ (ne.symm this)],
+    refl }
+end
+
+variables (p) (𝕜 : Type*) [normed_field 𝕜] [Π a b, normed_space 𝕜 (F a b)]
+
+/-- Currying is a `linear_isometry_equiv` between `lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p`
+and `lp (λ (a : α), lp (λ b : β a, F a b) p) p`. -/
+def curry_equiv :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
+{ to_fun := lp.curry F,
+  inv_fun := lp.uncurry F,
+  left_inv := λ f, by ext ⟨a, b⟩; refl,
+  right_inv := λ f, by ext ab; refl,
+  map_add' := λ f g, by ext; refl,
+  map_smul' := λ a f, by ext; refl,
+  norm_map' :=
+  begin
+    intros f,
+    change ∥lp.curry F f∥ = ∥f∥,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { suffices : ∥lp.curry F f∥₊ = ∥f∥₊,
+      { rw [← coe_nnnorm, ← coe_nnnorm],
+        exact congr_arg _ this },
+      simp_rw [lp.nnnorm_eq_csupr],
+      rw csupr_sigma,
+      { refl },
+      { have : mem_ℓp f ⊤ := f.2,
+        simp_rw [mem_ℓp_infty_iff, ← coe_nnnorm] at this,
+        rwa [← nnreal.bdd_above_coe, ← set.range_comp] } },
+    { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp),
+          lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp)],
+      simp_rw [lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp)],
+      have : mem_ℓp f _ := f.2,
+      rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this,
+      rw tsum_sigma this,
+      refl }
+  end }
+
+@[simp] lemma coe_curry_equivₗᵢ : ⇑(curry_equiv p F 𝕜) = curry F := rfl
+@[simp] lemma coe_curry_equivₗᵢ_symm : ⇑(curry_equiv p F 𝕜).symm = uncurry F := rfl
+
+end lp
+
+end curry

@@ -352,10 +352,7 @@ lemma is_image_source_target : e.is_image e.source e.target := λ x hx, by simp 
 lemma is_image_source_target_of_disjoint (e' : local_equiv α β) (hs : disjoint e.source e'.source)
   (ht : disjoint e.target e'.target) :
   e.is_image e'.source e'.target :=
-assume x hx,
-have x ∉ e'.source, from λ hx', hs ⟨hx, hx'⟩,
-have e x ∉ e'.target, from λ hx', ht ⟨e.maps_to hx, hx'⟩,
-by simp only *
+is_image.of_image_eq $ by rw [hs.inter_eq, ht.inter_eq, image_empty]
 
 lemma image_source_inter_eq' (s : set α) :
   e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' s :=
@@ -392,6 +389,14 @@ ext $ λ x, ⟨λ hx, ⟨hx.1, hx.2.2⟩, λ hx, ⟨hx.1, e.map_source hx.1, hx.
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
 e.symm.source_inter_preimage_inv_preimage _
+
+lemma symm_image_image_of_subset_source {s : set α} (h : s ⊆ e.source) :
+  e.symm '' (e '' s) = s :=
+(e.left_inv_on.mono h).image_image
+
+lemma image_symm_image_of_subset_target {s : set β} (h : s ⊆ e.target) :
+  e '' (e.symm '' s) = s :=
+e.symm.symm_image_image_of_subset_source h
 
 lemma source_subset_preimage_target : e.source ⊆ e ⁻¹' e.target :=
 e.maps_to

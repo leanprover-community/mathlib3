@@ -426,6 +426,7 @@ begin
   have one_lt_n : 1 < p ^ α := nat.succ_le_iff.mp (two_le_p.trans (le_self_pow hp.one_lt.le hα)),
   have zero_lt_n : 0 < p^α := pos_of_gt one_lt_n,
   haveI : fact (0 < p ^ α), { exact {out := zero_lt_n}, },
+  have hp_sub1_dvd := sub_one_dvd_pow_sub_one p α hp.pos,
 
   split,
   { -- Given that `a` is a Miller-Rabin nonwitness for `n = p^α`, prove `a^(p-1) = 1`
@@ -452,7 +453,7 @@ begin
     suffices : (φ(p^α)).gcd (p^α - 1) = p - 1, { rw ←this, exact nat.dvd_gcd euler h2 },
 
     rw nat.totient_prime_pow hp hα0,
-    refine nat.gcd_mul_of_coprime_of_dvd _ (sub_one_dvd_pow_sub_one p α hp.pos),
+    refine nat.gcd_mul_of_coprime_of_dvd _ hp_sub1_dvd,
 
     -- p is relatively prime to p^α - 1
     apply nat.coprime.pow_left,
@@ -460,17 +461,29 @@ begin
     exact coprime_self_sub_one (p^α) zero_lt_n },
 
 
-  { -- a ^ (p-1) = 1
+  { -- Given that `a^(p-1) = 1`, prove `a` is a Miller-Rabin nonwitness for `n = p^α`
     intro h,
-    have foo : (a ^ (odd_part (p - 1)))^(even_part (p - 1)) = 1,
-    { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p - 1), h],},
-    have goo : ∃ (j : ℕ) (H : j ≤ (p-1).factorization 2), order_of (a ^ (odd_part (p - 1))) = 2^j,
-    { have := order_of_dvd_of_pow_eq_one foo,
-      rw even_part at this,
-      rw nat.dvd_prime_pow at this,
-      exact this,
-      exact nat.prime_two },
-    rcases goo with ⟨j, H, hj⟩,
+
+    set f := (p-1).factorization 2 with hf,
+    set l := odd_part (p - 1) with hl,
+
+    set e := (p^α - 1).factorization 2 with he,
+    set k := odd_part (p^α - 1) with hk,
+
+    have hfe : f ≤ e, { sorry },
+    have hlk : l ∣ k, { sorry },
+
+    have H1 : (a^l)^(even_part (p-1)) = 1,
+    { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p-1), h],},
+
+    have H2 : ∃ (j : ℕ) (H : j ≤ f), order_of (a^l) = 2^j,
+    { rw ←nat.dvd_prime_pow nat.prime_two,
+      exact order_of_dvd_of_pow_eq_one H1 },
+
+    rcases H2 with ⟨j, H, hj⟩,
+
+
+
     by_cases j = 0,
     { rw strong_probable_prime,
       have hfoo : a ^ odd_part (p - 1) = 1,

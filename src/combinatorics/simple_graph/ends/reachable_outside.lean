@@ -643,7 +643,41 @@ begin
 end
 
 
+lemma cofinite_union_of_inf_ro_components_is_univ [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (𝓒 : set (inf_ro_components G K))
+  (cof : (set.Union (λ C : 𝓒, C.1.1)) ᶜ.finite ) : @set.univ (inf_ro_components G K) = 𝓒 :=
+begin
+  apply set.ext,
+  rintro ⟨C,Ccomp,Cinf⟩,
+  split,
+  { rintro _, by_contradiction,
+    have : ∀ C' : 𝓒, disjoint C'.1.1 C, by {
+      rintro ⟨⟨C',C'comp,C'inf⟩,C'𝓒⟩,
+      by_contradiction,
+      rw not_disjoint_iff_nonempty_inter at h,
+      rcases h with ⟨x,xC',xC⟩,
+      let lol := eq_of_common_mem G K C C' Ccomp C'comp x xC xC',
+      simp [subtype.coe_inj,lol] at *,
+      exact h C'𝓒,},
+    have : disjoint (set.Union (λ C : 𝓒, C.1.1)) C, by {
+      simp only [subtype.val_eq_coe, Union_coe_set, subtype.coe_mk, disjoint_Union_left],
+      rintro C' ⟨C'comp,C'inf⟩ C'𝓒,
+      exact this ⟨⟨C',C'comp,C'inf⟩,C'𝓒⟩,},
+    have lol := disjoint.le_compl_left this,
+    have := set.infinite.mono lol Cinf,
+    exact this cof,
+  },
+  {  simp, },
+end
 
+lemma cofinite_union_of_inf_ro_components_equiv [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (𝓒 : set (inf_ro_components G K))
+  (cof : (set.Union (λ C : 𝓒, C.1.1)) ᶜ.finite ) : (inf_ro_components G K) ≃ 𝓒 :=
+begin
+  have lol := cofinite_union_of_inf_ro_components_is_univ G Gpc K 𝓒 cof,
+  rw ←lol,
+  exact (equiv.set.univ ↥(inf_ro_components G K)).symm,
+end
 
 
 

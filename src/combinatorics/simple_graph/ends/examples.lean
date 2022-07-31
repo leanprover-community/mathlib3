@@ -39,6 +39,90 @@ open ro_component
 open simple_graph
 
 
+section nat
+
+def gℕ : simple_graph ℕ := simple_graph.from_rel (λ m n, m = n.succ)
+
+instance gℕlf : locally_finite gℕ := sorry
+lemma gℕpc : gℕ.preconnected := sorry
+
+lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
+  let L := {n : ℕ | n > m},
+  rintros x xm y ym,
+  wlog h : x ≤ y using [x y, y x],
+  { exact le_total x y, },
+  { rcases le_iff_exists_add.mp h with ⟨z,rfl⟩,
+    induction z,
+    { use nil,simp, exact ym, },
+    { simp at xm,
+      rcases z_ih (by { simp, }) ( by { simp, exact lt_of_lt_of_le xm (by simp) } ) with ⟨w,wgood⟩,
+      let w' := w.append (cons ((from_rel_adj _ (x+z_n) (x+z_n).succ).mpr ⟨sorry,or.inl sorry⟩) nil),
+      use w',
+      rw walk.support_append,
+      rw list.to_finset_append,
+      simp,
+      rw set.insert_subset,
+      split,
+      {sorry},
+      {exact wgood},
+    }, -- todo
+  },
+  { rcases this ym xm with ⟨w,wgood⟩,
+    use w.reverse,
+    rw walk.support_reverse,
+    rw list.to_finset_reverse,
+    exact wgood,
+  },
+},
+
+
+lemma ends_nat : (ends gℕ gℕpc) ≃ true :=
+begin
+  haveI all_fin : ∀ K : finset ℕ, fintype (inf_ro_components gℕ K),
+    from λ K, inf_components_finite' gℕ gℕpc K,
+
+  /-
+  This is copied from the `prod` lemma below, which is proof that I'm not having the best
+  approach towards single-endedness.
+  Ideally we'd state: if there exists some N such that all inf_ro_components have card N, then
+  so does `ends`, but this requires first saying that `ends` is infinite, and it gets a bit ugly.
+  Please help me
+  -/
+  suffices : ∀ K : finset ℕ, fintype.card (inf_ro_components gℕ K) = 1,
+  { have that := eval_bijective' gℕ gℕpc ∅ (λ L _, (this ∅).trans (this L).symm),
+    refine (equiv.of_bijective _ that).trans (equiv_true_of (inf_ro_components gℕ ∅) _),
+    exact (fintype.card_eq_one_iff.mp (this ∅)),},
+
+  intro K,
+  have : ∃ m : ℕ, ∀ k ∈ K, m ≥ k, by
+  { by_cases h : K.nonempty,
+    { let m := K.max,
+      rcases finset.max_of_nonempty h with ⟨a,e⟩,
+      use a,
+      rintro k kK,
+      simp,
+      exact le_max_of_mem kK e,
+    },
+    {use 0,rintro k kK,exfalso, simp at h, rw h at kK,simp at kK, exact kK,},},
+
+  rcases this with ⟨m,mtop⟩,
+  let L := {n : ℕ | n > m },
+  have Ldis : disjoint L K, by sorry,
+  have Linf : L.infinite, by sorry,
+  have Lconn := gt_subconnected m,
+  let C := (ro_component.of_subconnected_disjoint gℕ K L (set.infinite.nonempty Linf) Ldis Lconn).some,
+  obtain ⟨Ccomp,LC⟩ := (ro_component.of_subconnected_disjoint gℕ K L (set.infinite.nonempty Linf) Ldis Lconn).some_spec,
+  have Cinf := set.infinite.mono LC Linf,
+
+  have lol := cofinite_union_of_inf_ro_components_is_all gℕ gℕpc K {⟨C,Ccomp,Cinf⟩} sorry,
+  { sorry, },
+
+end
+
+end nat
+
+-- Commented because it makes lean lag, but will need to be included and corrected again
+/-
 section product
 
 
@@ -188,6 +272,7 @@ begin
 end
 
 end product
+-/
 
 end ends
 

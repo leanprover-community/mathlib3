@@ -471,7 +471,8 @@ begin
     set k := odd_part (p^α - 1) with hk,
     have hk_odd : odd k, { apply odd_of_odd_part, simp [one_lt_n] },
 
-    have hfe : f ≤ e, { sorry },
+    have hfe : f ≤ e,
+    { refine (factorization_le_iff_dvd (by simp [hp.one_lt]) _).2 hp_sub1_dvd 2, simp [one_lt_n] },
     have hlk : l ∣ k, {
       have := hp_sub1_dvd,
       simp_rw [hl, hk],

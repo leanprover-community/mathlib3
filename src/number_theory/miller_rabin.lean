@@ -419,8 +419,7 @@ lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp
 begin
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,
   have one_le_p : 1 ≤ p := nat.le_of_succ_le two_le_p,
-  have one_lt_n : 1 < p ^ α,
-  { exact nat.succ_le_iff.mp (le_trans two_le_p (le_self_pow (nat.le_of_succ_le two_le_p) hα)) },
+  have one_lt_n : 1 < p ^ α := nat.succ_le_iff.mp (two_le_p.trans (le_self_pow hp.one_lt.le hα)),
   have zero_lt_n : 0 < p^α := pos_of_gt one_lt_n,
   haveI : fact (0 < p ^ α), { exact {out := zero_lt_n}, },
 
@@ -431,10 +430,8 @@ begin
     have euler : a ^ nat.totient (p^α) = 1,
     { have a_unit : is_unit a,
       { apply is_unit_of_pow_eq_one _ (p^α - 1),
-        apply fermat_cprime_of_strong_probable_prime,
-        assumption,
-        simp only [tsub_pos_iff_lt],
-        assumption, },
+        apply fermat_cprime_of_strong_probable_prime _ _ hspp,
+        simp only [tsub_pos_iff_lt, one_lt_n] },
       have := zmod.pow_totient (is_unit.unit a_unit),
       have coe_this := congr_arg coe this,
       rw units.coe_one at coe_this,

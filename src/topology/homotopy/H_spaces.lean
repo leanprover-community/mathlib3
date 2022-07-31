@@ -221,27 +221,54 @@ lemma aux_mem_I {t θ : I} : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧ ((2 : ℝ) 
 lemma continuous_delayed_id {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
 begin
   apply continuous_to_Ω_if_continuous_uncurry,
-  let Q : I × I → I := λ ⟨θ, t⟩, if (t : ℝ) ≤ θ / 2 then 0
+  let Q : I × I → I := λ ⟨t, θ⟩, if (t : ℝ) ≤ θ / 2 then 0
                                 else ⟨(2 * t - θ)/(2 - θ), aux_mem_I⟩,
   have hQ : continuous Q, sorry,
-  let Q₀ : C(I × I, I) := ⟨Q, hQ⟩,
-  let Q₁ : C((I × I) × Ω(x), I × Ω(x)) := ⟨λ p, ⟨Q₀ p.1, p.2⟩, (continuous.comp hQ
-    continuous_fst).prod_mk continuous_snd⟩,
   let F₀ : I × Ω(x) → X := λ p, p.2 p.1,
-  have hF₀ : continuous F₀, sorry,
-  -- let F : C(Ω(x) × I, X) := ⟨F₀, hF₀⟩,
-  -- have := continuous_swap.comp Q₁.2,
-  have hQ₂ := (homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr Q₁.2,
-  have hQ₃ := hQ₂.comp continuous_swap,
-  convert hF₀.comp hQ₃,
-  -- refl,
+  have hF₀ : continuous F₀,
+  apply continuous_eval'.comp,-- $ F₀.continuous.prod_map continuous_id,
+  replace hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
+    ((continuous.comp hQ continuous_fst).prod_mk continuous_snd)).comp continuous_swap,
+  convert hF₀.comp hQ,
   ext,
-  dsimp [delayed_id, prod.swap, Q],
+  dsimp [delayed_id, prod.swap, homeomorph.prod_assoc, Q, F₀],
   split_ifs,
-  -- refl,
-  simp_rw [if_pos h],
-  -- simp only,
+  {simp only [path.source] },
+  { simp only [aux_mem_I, set.mem_Icc, and_self, extend_extends],
+    refl },
 end
+
+-- lemma continuous_delayed_id' {x : X} : continuous (λ p : I × Ω(x), delayed_id p.1 p.2) :=
+-- begin
+--   apply continuous_to_Ω_if_continuous_uncurry,
+--   let Q' : I × I → I := λ ⟨t, θ⟩, if (t : ℝ) ≤ θ / 2 then 0
+--                                 else ⟨(2 * t - θ)/(2 - θ), aux_mem_I⟩,
+--   have hQ' : continuous Q', sorry,
+--   let Q : (I × Ω(x)) × I → I × Ω(x):= λ q, if (q.2 : ℝ) ≤ q.1.1 / 2 then ⟨0, q.1.2⟩
+--                                 else ⟨⟨(2 * q.2 - q.1.1)/(2 - q.1.1), aux_mem_I⟩, q.1.2⟩,
+--   have hQ : continuous Q,
+--   { --have :=(homeomorph.comp_continuous_iff' (homeomorph.prod_comm I (Ω(x) × I))).mpr,
+
+--     -- apply (homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I Ω(x) I).symm).mp,
+--     apply (homeomorph.comp_continuous_iff' (homeomorph.prod_comm I (I × Ω(x)))).mp,
+--     convert (homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x))).mp using 0,
+--     convert continuous.prod_map hQ' (@continuous_id Ω(x) _) using 1,
+--     have due := (homeomorph.comp_continuous_iff' $ (homeomorph.prod_comm I (I × Ω(x))).symm).mpr _,
+--     -- have := (continuous.comp _ continuous_swap),
+
+--     -- (continuous.comp _ continuous_fst).prod_mk continuous_snd,
+
+--   },
+--   let F₀ : I × Ω(x) → X := λ p, p.2 p.1,
+--   have hF₀ : continuous F₀, sorry,
+--   convert hF₀.comp hQ,
+--   dsimp [delayed_id, Q, F₀],
+--   ext,
+--   split_ifs with h,
+--   { simp only [path.source, if_pos h, function.comp_app], },
+--   { simp only [aux_mem_I, set.mem_Icc, and_self, extend_extends, if_neg h, function.comp_app],
+--     refl },
+-- end
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,

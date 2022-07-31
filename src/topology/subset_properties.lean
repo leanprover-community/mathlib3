@@ -1154,57 +1154,13 @@ begin
   let ι : U → α := coe,
   have hι : embedding ι, exact embedding_subtype_coe,
   set K' := ι⁻¹' K with K'_def,
-  have hK' : is_compact K',
-  apply hι.is_compact_iff_is_compact_image.mpr,
-  { simp only [subtype.image_preimage_coe],
-    rw (inter_eq_self_of_subset_left h_KU),
-    exact hK,
-  },
-  obtain ⟨L', h1_L', h2_L'⟩ := @exists_compact_superset U _ hU.locally_compact_space K' hK',
+  have h_KK' : K = ι '' (K') := by { simp only [subtype.image_preimage_coe, inter_eq_self_of_subset_left h_KU]},
+  obtain ⟨L', h1_L', h2_L'⟩ := @exists_compact_superset U _ hU.locally_compact_space K' ( hι.is_compact_iff_is_compact_image.mpr $ by {simp only [← h_KK', hK]}),
   use ι '' L',
-  split,
-  { exact hι.is_compact_iff_is_compact_image.mp h1_L' },
-  split,
-  { have open_ι : is_open_map ι := (is_open.is_open_map_subtype_coe hU),
-    have := is_open_map.image_interior_subset open_ι L',
-    refine trans _ this,
-    have anda_e_rianda : K = ι '' (K'),
-    { rw K'_def,
-      simp only [subtype.image_preimage_coe],
-      exact (inter_eq_self_of_subset_left h_KU).symm },
-    rw anda_e_rianda,
-    simp only [image_subset_iff],
-    convert h2_L' using 1,
-    have inj_ι : function.injective ι, exact hι.inj,
-    apply function.injective.preimage_image hι.inj },
-  { simp only [image_subset_iff, subtype.coe_preimage_self, subset_univ],  }
-
-
-
-
-
-
-
-
-  -- let x_incl := (λ _ hx, is_open.mem_nhds hU $ h_KU hx),
-  -- let A := λ x hx, (local_compact_nhds (x_incl x hx)),
-  -- obtain ⟨T, h_TU⟩ := hK.elim_nhds_subcover' (λ x hx, (A x hx).some)
-  --   (λ x hx, (A x hx).some_spec.some),
-  -- simp only [exists_prop, subtype.coe_mk, Union_coe_set] at h_TU,
-  -- let L' := ⋃ (i : α) (hi : i ∈ K) (x : (⟨i, hi⟩ : K) ∈ T), ((A i hi).some),
-  -- use L',
-  -- split,
-  -- { have h_Lcpt := λ (i : K) _, (((local_compact_nhds (x_incl i _)).some_spec).some_spec).2,
-  --   convert @finset.compact_bUnion α _ _ T (λ i, (A i _).some) h_Lcpt using 1,
-  --   all_goals {simp only [subtype.coe_mk, Union_coe_set, subtype.coe_prop, subtype.coe_prop]} },
-  -- { --refine and.intro
-  --   split,
-  --   { --(by {simpa only [L', exists_prop] using h_TU }) _
-  --     sorry,
-  --   },
-  --   have h_LU := λ i : K, (((local_compact_nhds (x_incl i _)).some_spec).some_spec).1,
-  --     simp only [Union_subset_iff],
-  --     exacts [λ i hi _, h_LU (⟨i, hi⟩ : K), subtype.coe_prop _] },
+  exact
+    ⟨hι.is_compact_iff_is_compact_image.mp h1_L',
+    by {rwa [h_KK', image_subset_iff, (hU.is_open_map_subtype_coe).preimage_interior_eq_interior_preimage hι.continuous, function.injective.preimage_image hι.inj]} ,
+    by {simp only [image_subset_iff, subtype.coe_preimage_self, subset_univ]}⟩,
 end
 
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :

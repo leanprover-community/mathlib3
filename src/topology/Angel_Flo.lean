@@ -2,12 +2,9 @@ import analysis.complex.circle
 import topology.metric_space.basic
 import topology.homotopy.path
 import data.real.basic
-<<<<<<< HEAD
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
 import topology.continuous_function.compact
-=======
->>>>>>> d159c5f68599490dc4972543f7fd5c24cf9a65c8
 
 universe u
 
@@ -90,6 +87,16 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   cont_m := continuous_add.div_const,
   m_e_dot_homotopic_to_id := begin
 <<<<<<< HEAD
+  use H' z,
+  {
+    intro x,
+    dsimp [H', H],
+    ring_nf,
+  },
+  {
+   intro x,
+    dsimp [H', H],
+=======
   let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
   have cont_H : continuous H, sorry,
   let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
@@ -100,17 +107,7 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   },
   { intro x,
     dsimp [H],
-=======
-  use H' z,
-  {
-    intro x,
-    dsimp [H', H],
-    ring_nf,
-  },
-  {
-   intro x,
-    dsimp [H', H],
->>>>>>> d159c5f68599490dc4972543f7fd5c24cf9a65c8
+>>>>>>> 3d34743a85a51c008ae87e42d2ffc210c467ab67
     ring_nf,
   },
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
@@ -120,6 +117,7 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   },
   end,
   m_dot_e_homotopic_to_id := begin
+<<<<<<< HEAD
   use H' z,
   {
     intro x,
@@ -129,22 +127,36 @@ def H_space_R_with_z (z : ℝ) : H_space ℝ :=
   {
    intro x,
     dsimp [H', H],
-<<<<<<< HEAD
-  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
 =======
+  let H : I × ℝ → ℝ := λ p, (1 - p.1) * (p.2 + z)/2 + p.1 * p.2,
+  have cont_H : continuous H,
+  { dsimp [H],
+    apply continuous.add,
+    apply continuous.div,
+    apply continuous.mul,
+    { sorry },
+    { sorry },
+    { sorry },
+    { sorry },
+    { sorry },
+  },
+  let H' : C(I × ℝ, ℝ) := ⟨H, cont_H⟩,
+  use H',
+  { intro x,
+    dsimp [H],
     ring_nf,
   },
->>>>>>> d159c5f68599490dc4972543f7fd5c24cf9a65c8
+  { intro x,
+    dsimp [H],
+>>>>>>> 3d34743a85a51c008ae87e42d2ffc210c467ab67
+    ring_nf,
+  },
   { simp only [set.mem_Icc, set.mem_singleton_iff, continuous_map.coe_mk, id.def, set_coe.forall, forall_eq, half_add_self, and_self],
     intros x _,
     dsimp [H', H],
     ring,
   },
 <<<<<<< HEAD
-  end,
-}
-
-=======
   end
 }
 
@@ -155,17 +167,11 @@ class Ω (X : Type u) [topological_space X] :=
     (boundary : loop 0 = loop 1)
 
 
-def my_loop : Ω ℝ :=
+example : Ω ℝ :=
 {
   loop := λ t, t*(1-t),
   boundary := by ring
 }
-
-#check my_loop.loop
-
-def f := my_loop.loop
-
-#reduce f 0.4
 
 def juxt_loop (X : Type u) [topological_space X] (α β : Ω X) : Ω X :=
 {
@@ -206,8 +212,11 @@ example : H_space ℝ :=
   e := z,
   m_e_e := sorry,
   cont_m := our_m_continuous,
+=======
+  end,
+>>>>>>> 3d34743a85a51c008ae87e42d2ffc210c467ab67
 }
->>>>>>> d159c5f68599490dc4972543f7fd5c24cf9a65c8
+
 /-
   Next, show that the sphere S^3 has a canonical H-space structure.
 

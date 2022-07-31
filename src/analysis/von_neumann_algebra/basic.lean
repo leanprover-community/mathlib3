@@ -64,7 +64,7 @@ Thus we can't say that the bounded operators `H →L[ℂ] H` form a `von_neumann
 (although we will later construct the instance `wstar_algebra (H →L[ℂ] H)`),
 and instead will use `⊤ : von_neumann_algebra H`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   star_subalgebra ℂ (H →L[ℂ] H) :=
 (double_commutant : set.centralizer (set.centralizer carrier) = carrier)

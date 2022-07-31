@@ -167,7 +167,7 @@ end preadditive
 /-- A *splitting* of a sequence `A -f⟶ B -g⟶ C` is an isomorphism
 to the short exact sequence `0 ⟶ A ⟶ A ⊞ C ⟶ C ⟶ 0` such that
 the vertical maps on the left and the right are the identity. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure splitting [has_zero_morphisms 𝒜] [has_binary_biproducts 𝒜] :=
 (iso : B ≅ A ⊞ C)
 (comp_iso_eq_inl : f ≫ iso.hom = biprod.inl)

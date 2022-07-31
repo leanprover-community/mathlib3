@@ -287,7 +287,7 @@ variables {L' : Type*} [field L'] [algebra K L']
 
 /-- If `f : L →+* L'` fixes `K`, `S.map f` is the intermediate field between `L'` and `K`
 such that `x ∈ S ↔ f x ∈ S.map f`. -/
-def map (f : L →ₐ[K] L') : intermediate_field K L' :=
+def map (f : L →ₐ[K] L') (S : intermediate_field K L) : intermediate_field K L' :=
 { inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, S.inv_mem hx, f.map_inv x⟩ },
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
@@ -397,7 +397,7 @@ section tower
 
 /-- Lift an intermediate_field of an intermediate_field -/
 def lift {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
-map E (val F)
+E.map (val F)
 
 instance has_lift {F : intermediate_field K L} :
   has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift⟩

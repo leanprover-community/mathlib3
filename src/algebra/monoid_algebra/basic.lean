@@ -243,8 +243,6 @@ instance [ring k] [semigroup G] : non_unital_ring (monoid_algebra k G) :=
 { .. monoid_algebra.add_comm_group,
   .. monoid_algebra.non_unital_semiring }
 
--- note that whenever possible, we have to extend `non_assoc_ring` to get the `int_cast`.
-
 instance [ring k] [mul_one_class G] : non_assoc_ring (monoid_algebra k G) :=
 { int_cast                    := λ n, single 1 (algebra_map ℤ k n),
   int_cast_of_nat             := λ n, by simpa,
@@ -1101,8 +1099,6 @@ instance [ring k] [add_zero_class G] : non_assoc_ring (add_monoid_algebra k G) :
   int_cast_neg_succ_of_nat    := λ n, by simpa,
   .. add_monoid_algebra.add_comm_group,
   .. add_monoid_algebra.non_assoc_semiring }
-
--- note that whenever possible, we have to extend `non_assoc_ring` to get the `int_cast`.
 
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { .. add_monoid_algebra.non_assoc_ring,

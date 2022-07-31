@@ -755,15 +755,6 @@ protected def zpow (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]
   ℤ → splitting_field_aux n f → splitting_field_aux n f :=
 nat.rec_on n (λ K fK f n x, by exactI @has_pow.pow K _ _ x n) (λ n ih K fK f, ih)
 
-protected def rat_cast (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]},
-  ℚ → splitting_field_aux n f :=
-nat.rec_on n (λ K fK f, by exactI @coe _ K _) (λ n ih K fK f, ih)
-
-protected lemma qsmul_eq_mul (n : ℕ) : Π {K : Type u} [field K], by exactI Π {f : K[X]}
-  (a : ℚ) (x : splitting_field_aux n f),
-  a • x = (splitting_field_aux.rat_cast n a) * x :=
-nat.rec_on n (λ K fK f, by exactI rat.smul_def) (λ n ih K fK f, ih)
-
 instance field (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   field (splitting_field_aux n f) :=
 begin
@@ -774,30 +765,26 @@ begin
     sub := splitting_field_aux.sub n,
     nsmul := (•),
     zsmul := (•),
-    qsmul := (•),
-    qsmul_eq_mul' := splitting_field_aux.qsmul_eq_mul n,
+    qsmul := ((•) : ℚ → splitting_field_aux n f → splitting_field_aux n f),
     mul := splitting_field_aux.mul n,
     one := splitting_field_aux.one n,
     inv := splitting_field_aux.inv n,
     div := splitting_field_aux.div n,
     npow := splitting_field_aux.npow n,
     zpow := splitting_field_aux.zpow n,
-    nat_cast := splitting_field_aux.nat_cast n,
-    int_cast := splitting_field_aux.int_cast n,
-    rat_cast := splitting_field_aux.rat_cast n,
+    rat_cast := splitting_field_aux.lift n (coe : ℚ → K),
     .. splitting_field_aux.comm_ring n },
   all_goals { unfreezingI { induction n with n ih generalizing K } },
   -- The `succ` cases follow by induction, handle them first.
   iterate 5 { rotate, exact ih },
   rotate, { intros a h, exact ih h },
-  iterate 2 { rotate, exact ih },
+  iterate 3 { rotate, exact ih },
   -- The `zero` cases follow from the structure of the field `K`.
   all_goals {
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
       splitting_field_aux.neg, splitting_field_aux.sub, splitting_field_aux.mul,
       splitting_field_aux.one, splitting_field_aux.inv, splitting_field_aux.div,
-      splitting_field_aux.npow, splitting_field_aux.zpow, splitting_field_aux.nat_cast,
-      splitting_field_aux.int_cast, splitting_field_aux.rat_cast] },
+      splitting_field_aux.npow, splitting_field_aux.zpow, splitting_field_aux.lift] },
   any_goals { simp only [rat.smul_def, rat.cast_mk', div_eq_mul_inv, inv_zero, eq_self_iff_true,
                 forall_forall_const, forall_const, forall_true_iff, zpow_zero] },
   { intros n a, exact @field.zpow_succ' K _ n a },
@@ -809,10 +796,22 @@ end
 instance inhabited {n : ℕ} {f : K[X]} :
   inhabited (splitting_field_aux n f) := ⟨37⟩
 
-protected def algebra_map {R : Type*} [comm_semiring R] (n : ℕ) : Π {K : Type u} [field K],
-  by exactI Π [algebra R K] {f : K[X]},
-  R → splitting_field_aux n f :=
-nat.rec_on n (λ K fK alg f, by exactI @algebra_map R K _ _ alg) (λ n ih K fK alg f, by exactI ih)
+#exit
+
+protected lemma lift_hom (n : ℕ) {α : Type*} [non_assoc_semiring α] {K : Type u} [field K]
+  (g : α →+* K) {f : K[X]} : α →+* splitting_field_aux n f :=
+{ to_fun := splitting_field_aux.lift n g,
+  map_one' :=
+  begin
+    unfreezingI { induction n with k hk generalizing K },
+    { simp [splitting_field_aux.lift] },
+    exact hk _
+  end,
+  map_mul' := _,
+  map_zero' := _,
+  map_add' := _ }
+
+#exit
 
 instance algebra (n : ℕ) (R : Type*) {K : Type u} [comm_semiring R] [field K] [algebra R K]
   {f : K[X]} : algebra R (splitting_field_aux n f) :=

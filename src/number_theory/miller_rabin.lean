@@ -413,6 +413,8 @@ end
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
+open_locale nat  -- to use `φ` for `nat.totient`
+
 /-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
@@ -427,7 +429,7 @@ begin
   { -- a is a Miller-Rabin nonwitness for n = p^α
     intro hspp,
     -- Euler's theorem tells us that `a^φ(n) = 1`.
-    have euler : a ^ nat.totient (p^α) = 1,
+    have euler : a ^ φ(p^α) = 1,
     { have a_unit : is_unit a,
       { apply is_unit_of_pow_eq_one _ (p^α - 1),
         apply fermat_cprime_of_strong_probable_prime _ _ hspp,

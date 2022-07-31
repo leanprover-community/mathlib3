@@ -697,13 +697,6 @@ apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
 apply_nolint powers_eq_zpowers fintype_finite
 apply_nolint subgroup.pow_index_mem fintype_finite
 
--- group_theory/p_group.lean
-apply_nolint is_p_group.bot_lt_center fintype_finite
-apply_nolint is_p_group.center_nontrivial fintype_finite
-apply_nolint is_p_group.exists_fixed_point_of_prime_dvd_card_of_fixed_point fintype_finite
-apply_nolint is_p_group.index fintype_finite
-apply_nolint is_p_group.nonempty_fixed_point_of_prime_not_dvd_card fintype_finite
-
 -- group_theory/perm/cycle/basic.lean
 apply_nolint equiv.perm.closure_is_cycle fintype_finite
 apply_nolint equiv.perm.cycle_induction_on fintype_finite

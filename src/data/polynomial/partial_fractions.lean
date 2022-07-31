@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 The Xena Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard, [add your name if you want]
+Authors: Kevin Buzzard, Sidharth Hariharan, [add your name if you want]
 -/
 import ring_theory.localization.fraction_ring -- field of fractions
 import data.polynomial.div -- theory of division and remainder for monic polynomials

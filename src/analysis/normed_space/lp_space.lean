@@ -89,6 +89,9 @@ mem_ℓp_zero_iff.2 hf
 lemma mem_ℓp_infty_iff {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ∥f i∥)) :=
 by dsimp [mem_ℓp]; rw [if_neg ennreal.top_ne_zero, if_pos rfl]
 
+lemma mem_ℓp_infty_iff_nnnorm {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ∥f i∥₊)) :=
+by simpa only [← nnreal.bdd_above_coe, ← set.range_comp]
+
 lemma mem_ℓp_infty {f : Π i, E i} (hf : bdd_above (set.range (λ i, ∥f i∥))) : mem_ℓp f ∞ :=
 mem_ℓp_infty_iff.2 hf
 
@@ -1296,11 +1299,18 @@ by ext; refl
   congr_right E F p' Φ (lp.single p' i x) = lp.single p' i (Φ i x) :=
 map_lp_single _ _ _ _ _ _
 
+end lp
+
+end congr_right
+
 section curry
+
+namespace lp
 
 variables {β : α → Type*} (F : Π (a : α), β a → Type*) [fact (1 ≤ p)]
   [Π a b, normed_add_comm_group (F a b)]
 
+/-- This is `sigma.curry` for elements of `lp (λ ab : Σ (a : α), β a, F ab.1 ab.2)`. -/
 def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
   lp (λ a, lp (λ b : β a, F a b) p) p :=
 ⟨λ a, ⟨λ b, f ⟨a, b⟩, (lp.mem_ℓp f).comp_inj (sigma.mk a) sigma_mk_injective⟩,
@@ -1308,17 +1318,13 @@ def curry (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
     rcases f with ⟨f, hf : mem_ℓp _ _⟩,
     change mem_ℓp _ _,
     unfreezingI { rcases p.dichotomy with rfl | hp},
-    { rw mem_ℓp_infty_iff at hf ⊢,
+    { rw mem_ℓp_infty_iff_nnnorm at hf ⊢,
       rcases hf with ⟨M, hM⟩,
-      refine ⟨max (Sup ∅) M, _⟩,
+      refine ⟨M, _⟩,
       rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
       intro a,
-      rw lp.norm_eq_csupr,
-      rcases is_empty_or_nonempty (β a) with hβa | hβa;
-      haveI := hβa,
-      { rw [← Sup_range, set.range_eq_empty],
-        exact le_max_left _ _ },
-      { exact csupr_le (λ b, le_max_of_le_right $ hM ⟨a, b⟩) } },
+      rw lp.nnnorm_eq_csupr,
+      exact csupr_le' (λ b, hM ⟨a, b⟩) },
     { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at hf ⊢,
       rw summable_sigma_of_nonneg at hf,
       { convert hf.2,
@@ -1350,6 +1356,7 @@ begin
     refl }
 end
 
+/-- This is `sigma.uncurry` for elements of `lp (λ a, lp (λ b : β a, F a b) p) p`. -/
 def uncurry (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
 ⟨λ ab, g ab.1 ab.2,
@@ -1407,6 +1414,8 @@ end
 
 variables (p) (𝕜 : Type*) [normed_field 𝕜] [Π a b, normed_space 𝕜 (F a b)]
 
+/-- Currying is a `linear_isometry_equiv` between `lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p`
+and `lp (λ (a : α), lp (λ b : β a, F a b) p) p`. -/
 def curry_equiv :
   lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
 { to_fun := lp.curry F,
@@ -1441,8 +1450,6 @@ def curry_equiv :
 @[simp] lemma coe_curry_equivₗᵢ : ⇑(curry_equiv p F 𝕜) = curry F := rfl
 @[simp] lemma coe_curry_equivₗᵢ_symm : ⇑(curry_equiv p F 𝕜).symm = uncurry F := rfl
 
-end curry
-
 end lp
 
-end congr_right
+end curry

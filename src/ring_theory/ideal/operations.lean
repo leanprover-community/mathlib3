@@ -220,11 +220,15 @@ variables (I)
 
 /-- If `x` is an `I`-multiple of the submodule spanned by `f '' s`,
 then we can write `x` as an `I`-linear combination of the elements of `f '' s`. -/
-lemma exists_sum_of_mem_ideal_smul_span {ι : Type*} (s : set ι) (f : ι → M) (x : M)
-  (hx : x ∈ I • span R (f '' s)) :
+lemma mem_ideal_smul_span_iff_exists_sum {ι : Type*} (s : set ι) (f : ι → M) (x : M) :
+  x ∈ I • span R (f '' s) ↔
   ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
 begin
-  refine span_induction (mem_smul_span.mp hx) _ _ _ _,
+  split, swap,
+  { rintro ⟨a, ha, rfl⟩,
+    exact submodule.sum_mem _
+      (λ c _, smul_mem_smul (ha c) $ subset_span $ set.mem_image_of_mem _ c.2) },
+  refine λ hx, span_induction (mem_smul_span.mp hx) _ _ _ _,
   { simp only [set.mem_Union, set.mem_range, set.mem_singleton_iff],
     rintros x ⟨y, hy, x, ⟨i, hi, rfl⟩, rfl⟩,
     refine ⟨finsupp.single ⟨i, hi⟩ y, λ j, _, _⟩,
@@ -1422,17 +1426,22 @@ end
 
 lemma finsupp_total_apply_eq_of_fintype [fintype ι] (f : ι →₀ I) :
   finsupp_total ι M I v f = ∑ i, (f i : R) • v i :=
-begin
-  rw finsupp_total_apply,
-  apply finset.sum_subset (finset.subset_univ _),
-  intros x _ hx,
-  rw finsupp.not_mem_support_iff.mp hx,
-  exact zero_smul _ _
-end
+by { rw [finsupp_total_apply, finsupp.sum_fintype], exact λ _, zero_smul _ _ }
 
 lemma range_finsupp_total :
   (finsupp_total ι M I v).range = I • (submodule.span R (set.range v)) :=
 begin
+  ext,
+  rw [← set.image_univ, submodule.mem_ideal_smul_span_iff_exists_sum],
+  -- finsupp_total, linear_map.range_comp,
+  split,
+  { rintro ⟨f, rfl⟩,
+    use (finsupp.map_range.linear_map I.subtype f).map_domain (equiv.set.univ ι).symm,
+    rw finsupp_total_apply,
+    refine ⟨λ i, _, _⟩,
+    { rw finsupp.map_domain_equiv_apply, exact (f i).2 },
+    { rw finsupp.sum_map_domain_index_inj, rw finsupp_total_apply, rw finsupp.map_domain_sum, rw finsupp.map_domain_equiv_apply, }, },
+  sorry,
   apply le_antisymm,
   { rintros x ⟨f, rfl⟩,
     rw finsupp_total_apply,

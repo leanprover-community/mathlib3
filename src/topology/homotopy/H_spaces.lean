@@ -217,8 +217,8 @@ def delayed_id {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     simp only [unit_interval.coe_one, path.target, mul_one, ite_eq_left_iff, not_le],
     intro,
     rw div_self,
-    { simpa only [div_self, set.right_mem_Icc, zero_le_one, extend_extends, unit_interval.mk_one, to_fun_eq_coe,
-      coe_to_continuous_map] using γ.3 },
+    { simpa only [div_self, set.right_mem_Icc, zero_le_one, extend_extends, unit_interval.mk_one,
+      to_fun_eq_coe, coe_to_continuous_map] using γ.3 },
     { linarith },
   end }
 
@@ -237,10 +237,11 @@ begin
     intros p hp,
     -- have h_eq : (λ (i : I × I), (i.snd : ℝ) ≤ (1 / 2)) =
     --   (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
-    have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
-      (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd).div_const,
+    replace hp := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
+      (continuous_induced_dom.comp continuous_fst)
+        (continuous_induced_dom.comp continuous_snd).div_const hp,
     -- have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _ _ _,
-    replace hp := this hp,
+    -- replace hp := this hp,
     simp only [set.mem_set_of_eq] at hp,
     simp_rw hp,
     field_simp,

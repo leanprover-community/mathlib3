@@ -106,6 +106,8 @@ end neg
 instance : has_bot (E →L.[𝕜] F) :=
 ⟨⟨(⊥ : linear_pmap 𝕜 E F), continuous_zero⟩⟩
 
+instance : inhabited (E →L.[𝕜] F) := ⟨⊥⟩
+
 instance : order_bot (E →L.[𝕜] F) :=
 { bot := ⊥,
   bot_le := λ f, ⟨bot_le, λ x y h,

@@ -547,8 +547,9 @@ def single_point_inclusion : single_point_space p₀ ⟶ X :=
       split_ifs,
       { exfalso, exact hV' h, },
       { dsimp,
-        split_ifs,
-        simp only [eq_to_hom_trans, category.id_comp], }, },
+        split_ifs;
+        rw [category.id_comp, eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
+          category.id_comp, eq_to_hom_trans, eq_to_hom_trans, eq_to_hom_trans], }, },
     { split_ifs;
       rw [←category.assoc, eq_comp_eq_to_hom];
       exact ts.hom_ext _ _ },

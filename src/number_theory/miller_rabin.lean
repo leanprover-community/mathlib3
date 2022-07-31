@@ -110,6 +110,25 @@ begin
   simp_rw [←pow_mul, mul_comm],
 end
 
+-- TODO: Find a better name for this!
+protected
+lemma factorize_poly' {R : Type*} [comm_ring R] (n k e : ℕ) (a : R) :
+  a ^ (2^e * k) - 1 = (a^k - 1) *  ∏ i in Ico 0 e, (a^(2^i * k) + 1) :=
+begin
+  simp_rw [mul_comm, pow_mul],
+  set x := a^k with hx,
+  induction e with m IH, { simp },
+  rcases eq_or_ne m 0 with rfl | he0, { simp [mul_comm, ←sq_sub_sq x 1] },
+
+  rw [pow_succ, Ico_succ_right_eq_insert_Ico zero_le', prod_insert right_not_mem_Ico],
+  nth_rewrite_rhs 0 ←mul_assoc,
+  nth_rewrite_rhs 0 ←mul_rotate,
+  nth_rewrite_rhs 1 mul_comm,
+  rw [←IH],
+  rw [mul_comm, pow_mul, mul_comm],
+  simpa using sq_sub_sq (x ^ 2 ^ m) 1,
+end
+
 lemma factorization_two_pos_of_even_of_pos {n : ℕ} (hn : even n) (hn0 : n ≠ 0) :
   0 < n.factorization 2 :=
 begin

@@ -171,7 +171,7 @@ example [comm_semiring R] [nontrivial R] :
 rfl
 
 /-- `polynomial.algebra_of_algebra` is consistent with `algebra_nat`. -/
-example : (polynomial.algebra_of_algebra : algebra ℕ F[X]) = algebra_nat := rfl
+example [comm_semiring R] : (polynomial.algebra_of_algebra : algebra ℕ R[X]) = algebra_nat := rfl
 
 end polynomial
 

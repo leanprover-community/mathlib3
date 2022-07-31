@@ -774,8 +774,6 @@ variables [ring R]
 
 instance : has_int_cast R[X] := ⟨λ n, of_finsupp n⟩
 
-local attribute [ext] non_assoc_ring
-
 instance : ring R[X] :=
 to_finsupp_injective.ring to_finsupp to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
   to_finsupp_neg to_finsupp_sub (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _)

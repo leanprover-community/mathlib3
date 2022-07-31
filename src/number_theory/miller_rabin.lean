@@ -401,7 +401,7 @@ end
 --------------------------------------------------------------------------------------------------
 
 /-- Theorem 3.4 of Conrad -/
-lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
+lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,

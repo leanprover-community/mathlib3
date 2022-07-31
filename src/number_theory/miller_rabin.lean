@@ -150,7 +150,7 @@ end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
-/-! ## Lemmas about `even_part` and `odd_part` which may be factored out in a later revision. -/
+/-! ## Lemmas about `even_part` and `odd_part` which may be factored out in a later revision -/
 
 /-- The greatest multiple of 2 that divides `n`. -/
 def even_part (n : ℕ) := ord_proj[2] n
@@ -299,7 +299,7 @@ begin
 end
 
 
-/-! ## An alternative route to proving that every prime is a strong probable prime. -/
+/-! ## An alternative route to proving that every prime is a strong probable prime -/
 
 /-- Let `a^e = 1 (mod p)`. (e.g. for prime `p` we have `a^(p-1) = 1` by Fermat's Little Theorem.)
 Let `s := e.factorization 2` and `d := odd_part e` as in the definition of `strong_probable_prime`.
@@ -360,21 +360,31 @@ begin
   apply repeated_halving_of_exponent (zmod.pow_card_sub_one_eq_one ha),
 end
 
-/-! ## Lemmas about Fermat pseudoprimes -/
+/-! ## Lemmas about Fermat witnesses and Fermat candidate-primes -/
 
-/-- Fermat's Little Theorem says that this property holds for all primes.
-Note that elsewhere the word "pseudoprime" is often reserved for numbers that are not actual primes.
--/
-def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
-a^(n-1) = 1
+/-- Fermat's Little Theorem (`zmod.pow_card_sub_one_eq_one`) says that for prime `p` and for all
+nonzero `a : zmod p` we have `a^(p-1) = 1`.  Thus for (odd) `n : ℕ` if we have nonzero `a : zmod n`
+such that `a^(n-1) ≠ 1` then this demonstrates that `n` is not prime.  Such an `a` is called a
+**Fermat witness** for `n`. -/
+def nat.fermat_witness (n : ℕ) (a : zmod n) : Prop := a ^ (n - 1) ≠ 1
+
+/-- `n` is a **Fermat candidate-prime** relative to base `a : zmod n` iff `a` is not a
+Fermat witness for `n`. Note that Conrad calls these "Fermat pseudoprimes", but the word
+"pseudoprime" is standarly reserved for *composite* numbers that pass some primality test. -/
+def fermat_cprime (n : nat) (a : zmod n) : Prop := a ^ (n - 1) = 1
+
+lemma fermat_cprime_iff_nonwitness (n : nat) (a : (zmod n)) :
+  fermat_cprime n a ↔ ¬ n.fermat_witness a :=
+by simp [fermat_cprime, nat.fermat_witness]
+
 
 /-- If there is a base `a` relative to which `n` is a strong probable prime
-then `n` is a Fermat pseudoprime. -/
-lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
-  (h : strong_probable_prime n a) : fermat_pseudoprime n a :=
+then `n` is a Fermat candidate-prime. -/
+lemma fermat_cprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
+  (h : strong_probable_prime n a) : fermat_cprime n a :=
 begin
   unfold strong_probable_prime at h,
-  unfold fermat_pseudoprime,
+  unfold fermat_cprime,
   cases h,
   { rw [←even_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow] },
   { rcases h with ⟨r, hr, hpow⟩,
@@ -418,7 +428,7 @@ begin
     have euler : a ^ nat.totient (p^α) = 1,
     { have a_unit : is_unit a,
       { apply is_unit_of_pow_eq_one _ (p^α - 1),
-        apply fermat_pseudoprime_of_strong_probable_prime,
+        apply fermat_cprime_of_strong_probable_prime,
         assumption,
         simp only [tsub_pos_iff_lt],
         assumption, },

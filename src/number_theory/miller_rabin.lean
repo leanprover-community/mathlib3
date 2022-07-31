@@ -112,7 +112,7 @@ end
 
 -- TODO: Find a better name for this!
 protected
-lemma factorize_poly' {R : Type*} [comm_ring R] (n k e : ℕ) (a : R) :
+lemma factorize_poly' {R : Type*} [comm_ring R] (a : R) (k e : ℕ) :
   a ^ (2^e * k) - 1 = (a^k - 1) *  ∏ i in Ico 0 e, (a^(2^i * k) + 1) :=
 begin
   simp_rw [mul_comm, pow_mul],
@@ -336,12 +336,25 @@ begin
 end
 
 
-
-
-
-#exit
-
-
+-- An alternative proof of `strong_probable_prime_of_prime` using the factorisation of the
+-- polymomial discussed in the introduction rather than `repeated_halving_of_exponent`
+/-- Every actual prime is a `strong_probable_prime` relative to any non-zero base `a`. -/
+lemma strong_probable_prime_of_prime'' (p : ℕ) (pp : p.prime) (a : zmod p) (ha0 : a ≠ 0) :
+  strong_probable_prime p a :=
+begin
+  haveI : fact (p.prime) := fact_iff.2 pp,
+  have fermat := zmod.pow_card_sub_one_eq_one ha0,
+  rw [←even_part_mul_odd_part (p-1), even_part] at fermat,
+  set e := (p-1).factorization 2 with he,
+  set k := odd_part (p-1) with hk,
+  have h1 := factorize_poly' a k e,
+  simp only [fermat, sub_self, Ico_zero_eq_range, zero_eq_mul] at h1,
+  apply or.imp (λ h, sub_eq_zero.mp h) (λ h, _) h1,
+  rcases finset.prod_eq_zero_iff.1 h with ⟨i, hi1, hi2⟩,
+  refine ⟨i, mem_range.1 hi1, _⟩,
+  have : a ^ (2 ^ i * k) + 1 - 1 = -1, { simp [hi2] },
+  simpa using this,
+end
 
 /-- Fermat's Little Theorem says that this property holds for all primes.
 Note that elsewhere the word "pseudoprime" is often reserved for numbers that are not actual primes.

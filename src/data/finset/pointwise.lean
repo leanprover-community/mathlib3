@@ -761,7 +761,7 @@ by simp only [finset.smul_finset_def, and.assoc, mem_image, exists_prop, prod.ex
 @[simp, norm_cast, to_additive]
 lemma coe_smul_finset (a : α) (s : finset β) : (↑(a • s) : set β) = a • s := coe_image
 
-@[to_additive] lemma smul_finset_mem_smul_finset : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
+@[to_additive] lemma smul_mem_smul_finset : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
 @[to_additive] lemma smul_finset_card_le : (a • s).card ≤ s.card := card_image_le
 
 @[simp, to_additive] lemma smul_finset_empty (a : α) : a • (∅ : finset β) = ∅ := image_empty _

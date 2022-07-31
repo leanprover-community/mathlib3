@@ -438,33 +438,13 @@ begin
       rw units.coe_one at coe_this,
       rw [←coe_this, units.coe_pow],
       congr },
-
     rw nat.totient_prime_pow hp (nat.succ_le_iff.mp hα) at euler,
-    -- ... both cases imply a^n-1 = 1
-    have h2 : a ^ (p^α - 1) = 1,
-    { -- since a is a nonwitness, we have either ...
-      cases hspp,
-      { -- ... a^k = 1
-        rw ← even_part_mul_odd_part (p ^ α - 1),
-        rw [mul_comm, pow_mul, hspp, one_pow] },
-      { -- ... or a^(2^i k) = -1
-          rcases hspp with ⟨r, hrlt, hrpow⟩,
-          rw lt_iff_exists_add at hrlt,
-          rcases hrlt with ⟨c, Hc, hc⟩,
-          replace hrpow := congr_arg (^(2^c)) hrpow,
-          simp only [] at hrpow,
-          convert hrpow using 1,
-          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc,
-                ← even_part,
-              even_part_mul_odd_part], },
-          { simp at Hc,
-            rw nat.lt_iff_add_one_le at Hc,
-            simp at Hc,
-            rw le_iff_exists_add at Hc,
-            rcases Hc with ⟨d, hd⟩,
-            rw [hd, pow_add 2, pow_one, pow_mul],
-            simp }, }, },
-    -- Thus the order of a mod n divides (φ(n), n-1)
+
+    -- Since p^α is a strong probable prime to base a, we have a^(p^α - 1) = 1
+    have h2 := fermat_cprime_of_strong_probable_prime (p^α) a hspp,
+    rw fermat_cprime at h2,
+
+    -- Thus the order of a mod n divides gcd(φ(n), n-1)
     rw ← order_of_dvd_iff_pow_eq_one at euler h2 ⊢,
     have order_gcd := nat.dvd_gcd euler h2,
     have gcd_eq : (p ^ (α - 1) * (p - 1)).gcd (p ^ α - 1) = p - 1,
@@ -475,6 +455,8 @@ begin
         exact coprime_self_sub_one (p ^ α) zero_lt_n },
       {exact sub_one_dvd_pow_sub_one p α one_le_p,} },
     rwa gcd_eq at order_gcd },
+
+
   { -- a ^ (p-1) = 1
     intro h,
     have foo : (a ^ (odd_part (p - 1)))^(even_part (p - 1)) = 1,

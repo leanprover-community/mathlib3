@@ -160,7 +160,7 @@ begin
     apply w }
 end
 
-/- If `a₁ a₂ : A ⟶ Y` is a kernel pair for `g : Y ⟶ Z`, then `a₁ ×[Z] X` and `a₂ ×[Z] X`
+/-- If `a₁ a₂ : A ⟶ Y` is a kernel pair for `g : Y ⟶ Z`, then `a₁ ×[Z] X` and `a₂ ×[Z] X`
 (`A ×[Z] X ⟶ Y ×[Z] X`) is a kernel pair for `Y ×[Z] X ⟶ X`. -/
 protected noncomputable
 def pullback {X Y Z A : C} {g : Y ⟶ Z} {a₁ a₂ : A ⟶ Y}

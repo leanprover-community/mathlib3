@@ -469,9 +469,15 @@ begin
 
     set e := (p^α - 1).factorization 2 with he,
     set k := odd_part (p^α - 1) with hk,
+    have hk_odd : odd k, { sorry },
 
     have hfe : f ≤ e, { sorry },
-    have hlk : l ∣ k, { sorry },
+    have hlk : l ∣ k, {
+      have := hp_sub1_dvd,
+      simp_rw [hl, hk],
+
+      -- TODO: Prove a lemma odd_part_dvd_odd_part_of_dvd
+      sorry },
 
     have H1 : (a^l)^(even_part (p-1)) = 1,
     { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p-1), h],},
@@ -487,6 +493,28 @@ begin
       left,
       rcases hlk with ⟨q, hq⟩,
       rw [←hk, hq, pow_mul, hj, one_pow],},
+    {
+      right,
+      rw ←he,
+      use j-1,
+      refine ⟨lt_of_lt_of_le (pred_lt hj0) (H.trans hfe), _⟩,
+      rw ←hk,
+      set x := (a^l)^(2^(j-1)) with hx,
+      have hx1 : x ≠ 1, { sorry },
+      have hx2 : x^2 = 1, { sorry },
+      have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1), { sorry },
+      have h4 : (p : zmod (p^α))^l ∣ (x+1) ∨ (p : zmod (p^α))^l ∣ (x-1), { sorry },
+      have h5 : x = 1 ∨ x = -1, { sorry },
+      have h6 : x = -1, { sorry },
+
+      rw [hx, ←pow_mul, mul_comm, pow_mul] at h6,
+      rw pow_mul,
+      cases hlk with q hq,
+      rw [hq, pow_mul, h6],
+      rw [hq, odd_mul] at hk_odd,
+      exact odd.neg_one_pow hk_odd.2,
+    },
+
 
     -- by_cases j = 0,
     -- { rw strong_probable_prime,
@@ -502,7 +530,7 @@ begin
     --   rw dvd_iff_exists_eq_mul_left at thing,
     --   rcases thing with ⟨c, hc⟩,
     --   rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
-    { sorry } },
+     },
 end
 
 

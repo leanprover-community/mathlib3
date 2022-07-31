@@ -516,10 +516,12 @@ begin
         { nth_rewrite_rhs 0 ←(tsub_add_cancel_of_le (succ_le_iff.mpr hj0.bot_lt)),
           simp [pow_add] },
         rw this },
-      have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1), { sorry },
+      have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1), {
+
+        sorry },
       have h4 : (p : zmod (p^α))^l ∣ (x+1) ∨ (p : zmod (p^α))^l ∣ (x-1), { sorry },
       have h5 : x = 1 ∨ x = -1, { sorry },
-      have h6 : x = -1, { sorry },
+      have h6 : x = -1, { cases h5, { cases hx1 h5 }, { exact h5 } },
 
       rw [hx, ←pow_mul, mul_comm, pow_mul] at h6,
       rw pow_mul,

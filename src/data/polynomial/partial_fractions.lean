@@ -290,7 +290,8 @@ end
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (q : R[X]) (r : ι → R[X]) (hr : ∀ i, (r i).degree < (g i).degree)
   (hf : (f : K) / ∏ i, g i = q + ∑ i, (r i) / (g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f hg).some ∧ r = (div_eq_quo_add_sum_rem_div R K f hg).some_spec.some :=
+    q = (div_eq_quo_add_sum_rem_div R K f hg).some ∧
+    r = (div_eq_quo_add_sum_rem_div R K f hg).some_spec.some :=
 begin
   sorry
 end

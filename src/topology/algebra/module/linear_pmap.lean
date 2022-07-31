@@ -10,22 +10,25 @@ import topology.algebra.module.basic
 /-!
 # Partially defined linear operators over topological vector spaces
 
-We define basic notions of partially defined linear operators.
-In this file we prove all elementary properties that do not assume that the underlying spaces
-are normed.
+We define basic notions of partially defined linear operators, which we call unbounded operators
+for short.
+In this file we prove all elementary properties of unbounded operators that do not assume that the
+underlying spaces are normed.
 
 ## Main definitions
 
-* `linear_pmap.is_closed`: an operator is closed iff its graph is closed
-* `linear_pmap.is_closable`: an operator is closable iff the closure of its graph is a graph
-* `linear_pmap.closure`: the closure of a closable operator
+* `linear_pmap.is_closed`: An unbounded operator is closed iff its graph is closed.
+* `linear_pmap.is_closable`: An unbounded operator is closable iff the closure of its graph is a
+  graph.
+* `linear_pmap.closure`: For a closable unbounded operator `f : linear_pmap 𝕜 E F` the closure is
+  the smallest closed extension of `f`. If `f` is not closable, then `f.closure` is defined as `f`.
 * `linear_pmap.has_core`: a submodule contained in the domain is a core if restricting to the core
-  does not lose information about the operator
+  does not lose information about the unbounded operator.
 
 ## Main statements
 
-* `linear_pmap.closable_iff_exists_closed_extension`: an operator is closable iff it has a closed
-  extension
+* `linear_pmap.closable_iff_exists_closed_extension`: an unbounded operator is closable iff it has a
+  closed extension.
 * `linear_pmap.closable.exists_unique`: there exists a unique closure
 * `linear_pmap.closure_has_core`: the domain of `f` is a core of its closure
 
@@ -51,14 +54,14 @@ namespace linear_pmap
 
 /-! ### Closed and closable operators -/
 
-/-- An operator is closed if its graph is closed. -/
+/-- An unbounded operator is closed iff its graph is closed. -/
 def is_closed (f : linear_pmap R E F) : Prop :=
 is_closed (f.graph : set (E × F))
 
 variables [has_continuous_add E] [has_continuous_add F]
 variables [topological_space R] [has_continuous_smul R E] [has_continuous_smul R F]
 
-/-- An operator is closable if the closure of the graph is a graph. -/
+/-- An unbounded operator is closable iff the closure of its graph is a graph. -/
 def is_closable (f : linear_pmap R E F) : Prop :=
 ∃ (f' : linear_pmap R E F), f.graph.topological_closure = f'.graph
 
@@ -90,7 +93,8 @@ end
 
 open_locale classical
 
-/-- The closure of a closable operator. -/
+/-- If `f` is closable, then `f.closure` is the closure. Otherwise it is defined
+as `f.closure = f`. -/
 noncomputable
 def closure (f : linear_pmap R E F) : linear_pmap R E F :=
 if hf : f.is_closable then hf.some else f
@@ -131,7 +135,7 @@ begin
   exact submodule.topological_closure_mono (le_graph_of_le h),
 end
 
-/-- The closure is closed. -/
+/-- If `f` is closable, then the closure is closed. -/
 lemma is_closable.closure_is_closed {f : linear_pmap R E F} (hf : f.is_closable) :
   f.closure.is_closed :=
 begin
@@ -139,7 +143,7 @@ begin
   exact f.graph.is_closed_topological_closure,
 end
 
-/-- The closure is closable. -/
+/-- If `f` is closable, then the closure is closable. -/
 lemma is_closable.closure_is_closable {f : linear_pmap R E F} (hf : f.is_closable) :
   f.closure.is_closable :=
 hf.closure_is_closed.is_closable
@@ -158,7 +162,7 @@ structure has_core (f : linear_pmap R E F) (S : submodule R E) : Prop :=
 lemma has_core_def {f : linear_pmap R E F} {S : submodule R E} (h : f.has_core S) :
 (f.dom_restrict S).closure = f := h.2
 
-/-- For every operator `f` the submodule `f.domain` is a core of its closure.
+/-- For every unbounded operator `f` the submodule `f.domain` is a core of its closure.
 
 Note that we don't require that `f` is closable, due to the definition of the closure. -/
 lemma closure_has_core (f : linear_pmap R E F) : f.closure.has_core f.domain :=

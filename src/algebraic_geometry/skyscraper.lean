@@ -401,3 +401,184 @@ noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀
 colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit _ S _ h)⟩
 
 end
+
+section
+
+open topological_space
+open category_theory category_theory.limits
+open Top
+open opposite
+open_locale classical
+
+universes u v w
+
+variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (S : C)
+variables {star : C} (ts : is_terminal star)
+
+def single_point_space : Top := ⟨({p₀} : set X), infer_instance⟩
+
+instance : inhabited (single_point_space p₀) := ⟨⟨p₀, rfl⟩⟩
+instance : unique (single_point_space p₀) := unique.subtype_eq p₀
+
+@[simps]
+noncomputable def single_point_presheaf : presheaf C (single_point_space p₀) :=
+{ obj := λ U, if U.unop ≠ ⊥ then S else star,
+  map := λ U V inc, if h : V.unop ≠ ⊥
+    then eq_to_hom (if_pos $ λ r, h $ le_bot_iff.mp $ r ▸ le_of_hom inc.unop) ≫
+      𝟙 S ≫ eq_to_hom (if_pos h).symm
+    else ts.from _ ≫ 𝟙 star ≫ eq_to_hom (if_neg h).symm,
+  map_id' := λ U,
+  begin
+    split_ifs,
+    { rw [category.id_comp, eq_to_hom_trans, eq_to_hom_refl] },
+    { rw [category.id_comp, eq_comp_eq_to_hom, category.id_comp],
+      exact ts.hom_ext _ _, },
+  end,
+  map_comp' := λ U V W inc1 inc2,
+  begin
+    rw comp_dite,
+    by_cases hW : W.unop ≠ ⊥,
+    { have hV : V.unop ≠ ⊥,
+      { intros r,
+        refine hW (eq_bot_iff.mpr (r ▸ le_of_hom inc2.unop)), },
+      have hU : U.unop ≠ ⊥,
+      { intros r,
+        refine hW (eq_bot_iff.mpr (r ▸ le_of_hom (inc1 ≫ inc2).unop)) },
+      split_ifs,
+      simp only [category.id_comp, eq_to_hom_trans], },
+    { split_ifs;
+      rw [category.id_comp, eq_comp_eq_to_hom, category.assoc, category.assoc, eq_to_hom_trans,
+        eq_to_hom_refl, category.comp_id];
+      exact ts.hom_ext _ _, },
+  end }
+
+-- def single_point_shef : sheaf C (single_point_space p₀) :=
+-- ⟨single_point_presheaf p₀ S,
+--  λ c U s hs x hx,
+--  ⟨dite ((⟨p₀, rfl⟩ : single_point_space p₀) ∈ U)
+--   (λ h, begin
+--     specialize hs _ h,
+--     sorry
+--   end)
+--   (λ h, begin
+--     dsimp,
+--     have := s.downward_closed,
+--   end), _, _⟩⟩
+
+@[simps]
+def single_point_inclusion : single_point_space p₀ ⟶ X :=
+{ to_fun := λ p, p.1,
+  continuous_to_fun := by continuity }
+
+@[simps] noncomputable def skyscraper_presheaf_to_pushforward :
+  skyscraper_presheaf p₀ S ts ⟶ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) :=
+{ app := λ U, if h : p₀ ∈ U.unop
+    then eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h) ≫ 𝟙 S ≫ eq_to_hom
+    begin
+      dsimp,
+      rw if_pos,
+      erw opens.map_obj _ _ U.unop.2,
+      change _ ≠ ⊥,
+      rw opens.ne_bot_iff_nonempty,
+      refine ⟨⟨p₀, rfl⟩, _⟩,
+      erw set.mem_preimage,
+      exact h,
+    end
+    else ts.from _ ≫ eq_to_hom
+    begin
+      dsimp,
+      rw if_neg,
+      push_neg,
+      rw ←opens.not_nonempty_iff_eq_bot,
+      rintros ⟨⟨x, hx₁⟩, hx₂⟩,
+      rw set.mem_singleton_iff at hx₁,
+      subst hx₁,
+      erw set.mem_preimage at hx₂,
+      exact h hx₂,
+    end,
+  naturality' := λ U V inc,
+  begin
+    by_cases hV : p₀ ∈ V.unop,
+    { have hU : p₀ ∈ U.unop := le_of_hom inc.unop hV,
+      have hV' : ¬(opens.map (single_point_inclusion p₀)).obj (unop V) = ⊥,
+      { change _ ≠ ⊥,
+        rw opens.ne_bot_iff_nonempty,
+        refine ⟨⟨p₀, rfl⟩, _⟩,
+        erw set.mem_preimage,
+        exact hV, },
+      rw [comp_dite, dite_comp],
+      split_ifs,
+      { exfalso, exact hV' h, },
+      { dsimp,
+        split_ifs,
+        simp only [eq_to_hom_trans, category.id_comp], }, },
+    { split_ifs;
+      rw [←category.assoc, eq_comp_eq_to_hom];
+      exact ts.hom_ext _ _ },
+  end }
+
+@[simps] noncomputable def pushforward_to_skyscraper_presheaf :
+  (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) ⟶
+  skyscraper_presheaf p₀ S ts :=
+{ app := λ U, if h : p₀ ∈ unop U
+    then eq_to_hom
+    begin
+      dsimp,
+      rw if_pos,
+      erw opens.map_obj _ _ U.unop.2,
+      change _ ≠ ⊥,
+      rw opens.ne_bot_iff_nonempty,
+      refine ⟨⟨p₀, rfl⟩, _⟩,
+      erw set.mem_preimage,
+      exact h,
+    end ≫ 𝟙 S ≫ eq_to_hom (skyscraper_presheaf_obj_of_mem _ _ h).symm
+    else ts.from _ ≫ eq_to_hom (skyscraper_presheaf_obj_of_not_mem _ _ h).symm,
+  naturality' := λ U V inc,
+  begin
+    rw [comp_dite, dite_comp],
+    by_cases hV : p₀ ∈ V.unop,
+    { have hU : p₀ ∈ U.unop := le_of_hom inc.unop hV,
+      have hV' : ¬(opens.map (single_point_inclusion p₀)).obj (unop V) = ⊥,
+      { change _ ≠ ⊥,
+        rw opens.ne_bot_iff_nonempty,
+        refine ⟨⟨p₀, rfl⟩, _⟩,
+        erw set.mem_preimage,
+        exact hV, },
+      split_ifs,
+      { exfalso, exact hV' h, },
+      { dsimp,
+        split_ifs,
+        simp only [eq_to_hom_trans, category.id_comp], }, },
+    { split_ifs;
+      rw [←category.assoc, eq_comp_eq_to_hom];
+      exact ts.hom_ext _ _ },
+  end }
+
+noncomputable example :
+  skyscraper_presheaf p₀ S ts ≅ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) :=
+{ hom := skyscraper_presheaf_to_pushforward p₀ S ts,
+  inv := pushforward_to_skyscraper_presheaf p₀ S ts,
+  hom_inv_id' :=
+  begin
+    ext U,
+    dsimp,
+    split_ifs,
+    { rw [category.id_comp, eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
+        eq_to_hom_refl], },
+    { rw [←category.assoc, eq_comp_eq_to_hom],
+      exact ts.hom_ext _ _, },
+  end,
+  inv_hom_id' :=
+  begin
+    ext U,
+    dsimp,
+    by_cases hU : p₀ ∈ U.unop,
+    { split_ifs;
+      rw [category.id_comp, eq_to_hom_trans, category.id_comp, eq_to_hom_trans, eq_to_hom_trans,
+          eq_to_hom_refl], },
+    { split_ifs;
+      rw [←category.assoc, eq_comp_eq_to_hom];
+      exact ts.hom_ext _ _, },
+  end }
+
+end

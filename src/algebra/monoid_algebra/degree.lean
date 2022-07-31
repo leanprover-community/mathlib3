@@ -80,7 +80,7 @@ lemma sup_support_list_prod_le (DB0 : DB 0 ≤ 0) (DBm : ∀ a b, DB (a + b) ≤
     exact (sup_support_mul_le DBm _ _).trans (add_le_add_left (sup_support_list_prod_le _) _)
   end
 
-lemma le_inf_support_sum (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
+lemma le_inf_support_list_prod (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
   (l : list (add_monoid_algebra R A)) :
   (l.map (λ f : add_monoid_algebra R A, f.support.inf DT)).sum ≤ l.prod.support.inf DT :=
 order_dual.of_dual_le_of_dual.mpr $ sup_support_list_prod_le (order_dual.of_dual_le_of_dual.mp DT0)
@@ -123,11 +123,11 @@ end
 
 lemma le_inf_support_multiset_prod
   (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
-  (F : multiset (add_monoid_algebra R A)) :
-  (F.map (λ f : add_monoid_algebra R A, f.support.inf DT)).sum ≤ F.prod.support.inf DT :=
+  (m : multiset (add_monoid_algebra R A)) :
+  (m.map (λ f : add_monoid_algebra R A, f.support.inf DT)).sum ≤ m.prod.support.inf DT :=
 order_dual.of_dual_le_of_dual.mpr $
   sup_support_multiset_prod_le (order_dual.of_dual_le_of_dual.mp DT0)
-    (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) F
+    (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) m
 
 lemma sup_support_finset_prod_le
   (DB0 : DB 0 ≤ 0) (DBm : ∀ a b, DB (a + b) ≤ DB a + DB b)
@@ -135,7 +135,7 @@ lemma sup_support_finset_prod_le
   (∏ i in s, f i).support.sup DB ≤ ∑ i in s, (f i).support.sup DB :=
 (sup_support_multiset_prod_le DB0 DBm _).trans_eq $ congr_arg _ $ multiset.map_map _ _ _
 
-lemma finset_sum_inf_support_le
+lemma le_inf_support_finset_prod
   (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
   (s : finset ι) (f : ι → add_monoid_algebra R A):
   ∑ i in s, (f i).support.inf DT ≤ (∏ i in s, f i).support.inf DT :=

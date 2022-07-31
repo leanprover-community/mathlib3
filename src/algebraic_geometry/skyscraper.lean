@@ -162,43 +162,19 @@ variables {star : C} (ts : is_terminal star)
 variable [Π (U : opens X), decidable (p₀ ∈ U)]
 variable [has_colimits C]
 
-lemma mem_nhds_of_closure_singleton {y : X} (U : open_nhds y) (h : y ∈ (closure ({p₀} : set X))) :
-  p₀ ∈ U.1 :=
-begin
-  have := U.2,
-  contrapose this,
-  change p₀ ∈ U.1.1ᶜ at this,
-  change y ∈ U.1.1ᶜ,
-  have h1 : {p₀} ⊆ U.1.1ᶜ := set.singleton_subset_iff.mpr this,
-  rw ←is_closed.closure_subset_iff at h1,
-  { exact h1 h },
-  rw is_closed_compl_iff,
-  exact U.1.2
-end
-
-lemma mem_nhds_of_not_mem_closure_singleton {y : X} (h : y ∉ (closure ({p₀} : set X))) :
+lemma mem_nhds_of_not_mem_closure_singleton {y : X} (h : ¬p₀ ⤳ y) :
   ∃ (U : open_nhds y), p₀ ∉ U.1 :=
 begin
-  have : ∃ (s : set X), is_closed s ∧ p₀ ∈ s ∧ y ∉ s,
-  { contrapose h,
-    push_neg at h ⊢,
-    rw mem_closure_iff,
-    intros t ht hy,
-    specialize h tᶜ (is_closed_compl_iff.mpr ht),
-    refine ⟨p₀, _⟩,
-    contrapose! h,
-    rw [set.mem_inter_iff, not_and_distrib, set.mem_singleton_iff, eq_self_iff_true,
-      not_true, or_false] at h,
-    exact ⟨h, λ r, r hy⟩ },
-  rcases this with ⟨s, hs, hp₀, hy⟩,
-  resetI,
-  exact ⟨⟨⟨sᶜ, is_closed.is_open_compl⟩, hy⟩, λ r, r hp₀⟩,
+  have := (not_iff_not.mpr specializes_iff_forall_open).mp h,
+  push_neg at this,
+  rcases this with ⟨s, o, h₁, h₂⟩,
+  exact ⟨⟨⟨s, o⟩, h₁⟩, h₂⟩,
 end
 
 /--
 The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S t` when `y ∈ closure {p₀}`
 -/
-@[simps] def skyscraper_presheaf_cocone_of_mem_closure₀ {y : X} (h : y ∈ (closure ({p₀} : set X))) :
+@[simps] def skyscraper_presheaf_cocone_of_mem_closure₀ {y : X} (h : p₀ ⤳ y) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S ts) :=
 { X := S,
   ι :=
@@ -206,7 +182,7 @@ The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S t` when `y
       begin
         dsimp,
         rw if_pos,
-        exact mem_nhds_of_closure_singleton _ _ h,
+        exact h.mem_open U.unop.1.2 U.unop.2,
       end ≫ 𝟙 S,
     naturality' := λ U V inc,
     begin
@@ -226,14 +202,12 @@ The cocone at `S` for the salk functor of `skyscraper_presheaf p₀ S t` when `y
 /--
 The canonical map `S ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∈ closure {p₀}`
 -/
-noncomputable def skyscraper_presheaf_of_mem_closure₀_from
-  {y : X} (h : y ∈ (closure ({p₀} : set X))) :
+noncomputable def skyscraper_presheaf_of_mem_closure₀_from {y : X} (h : p₀ ⤳ y) :
   S ⟶ (skyscraper_presheaf p₀ S ts).stalk y :=
 eq_to_hom (skyscraper_presheaf_obj_of_mem S ts (by tauto : p₀ ∈ ⊤)).symm ≫
   (skyscraper_presheaf p₀ S ts).germ (⟨y, trivial⟩ : (⊤ : opens X))
 
-noncomputable lemma skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit
-  {y : X} (h : y ∈ (closure ({p₀} : set X))) :
+noncomputable lemma skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit {y : X} (h : p₀ ⤳ y) :
   is_colimit (skyscraper_presheaf_cocone_of_mem_closure₀ p₀ S ts h) :=
 { desc := λ c, (skyscraper_presheaf_of_mem_closure₀_from p₀ S ts h ≫ colimit.desc _ _ : S ⟶ c.X),
   fac' := λ c U,
@@ -243,7 +217,7 @@ noncomputable lemma skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit
       category.assoc, colimit.ι_desc, eq_to_hom_trans_assoc],
     have := c.ι.naturality (hom_of_le $ (le_top : unop U ≤ _)).op,
     dsimp at this,
-    have h' : p₀ ∈ (open_nhds.inclusion y).obj (unop U) := mem_nhds_of_closure_singleton _ _ h,
+    have h' : p₀ ∈ (open_nhds.inclusion y).obj (unop U) := h.mem_open U.unop.1.2 U.unop.2,
     have h'' : p₀ ∈ (open_nhds.inclusion y).obj ⊤ := trivial,
     split_ifs at this,
     rw [category.comp_id, category.id_comp, eq_to_hom_trans, eq_eq_to_hom_comp] at this,
@@ -265,7 +239,7 @@ noncomputable lemma skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit
 /--
 If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S t` at `y` is `S`
 -/
-noncomputable def skyscraper_stalk_of_mem_closure₀ {y : X} (h : y ∈ (closure ({p₀} : set X))) :
+noncomputable def skyscraper_stalk_of_mem_closure₀ {y : X} (h : p₀ ⤳ y) :
   (skyscraper_presheaf p₀ S ts).stalk y ≅ S :=
 colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_mem_closure₀_is_colimit p₀ S ts h)⟩
 
@@ -273,7 +247,7 @@ colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_mem_closure₀_i
 The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S t` when `y ∉ closure {p₀}`
 -/
 @[simps] def skyscraper_presheaf_cocone_of_not_mem_closure₀
-  {y : X} (h : y ∉ (closure ({p₀} : set X))) :
+  {y : X} (h : ¬p₀ ⤳ y) :
   cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S ts) :=
 { X := star,
   ι :=
@@ -284,7 +258,7 @@ The cocone at `*` for the salk functor of `skyscraper_presheaf p₀ S t` when `y
 The canonical map `* ⟶ (skyscraper_presheaf p₀ S t).stalk y` when `y ∉ closure {p₀}`
 -/
 noncomputable def skyscraper_presheaf_of_not_mem_closure₀_from
-  {y : X} (h : y ∉ (closure ({p₀} : set X))) :
+  {y : X} (h : ¬p₀ ⤳ y) :
   star ⟶ (skyscraper_presheaf p₀ S ts).stalk y :=
 eq_to_hom (skyscraper_presheaf_obj_of_not_mem S ts $
   (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec).symm ≫
@@ -292,7 +266,7 @@ eq_to_hom (skyscraper_presheaf_obj_of_not_mem S ts $
     (mem_nhds_of_not_mem_closure_singleton p₀ h).some.1)
 
 noncomputable lemma skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit
-  {y : X} (h : y ∉ (closure ({p₀} : set X))) :
+  {y : X} (h : ¬p₀ ⤳ y) :
   is_colimit (skyscraper_presheaf_cocone_of_not_mem_closure₀ p₀ S ts h) :=
 { desc := λ c, ((eq_to_hom ((skyscraper_presheaf_obj_of_not_mem _ _
       (mem_nhds_of_not_mem_closure_singleton p₀ h).some_spec).symm)) ≫
@@ -396,7 +370,7 @@ noncomputable lemma skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit
 If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S t` at `y` is `*`
 -/
 noncomputable def skyscraper_presheaf_stalk_of_not_mem_closure₀
-  {y : X} (h : y ∉ (closure ({p₀} : set X))) :
+  {y : X} (h : ¬p₀ ⤳ y) :
   (skyscraper_presheaf p₀ S ts).stalk y ≅ star :=
 colimit.iso_colimit_cocone ⟨_, (skyscraper_presheaf_cocone_of_not_mem_closure₀_is_colimit _ S _ h)⟩
 
@@ -451,19 +425,6 @@ noncomputable def single_point_presheaf : presheaf C (single_point_space p₀) :
         eq_to_hom_refl, category.comp_id];
       exact ts.hom_ext _ _, },
   end }
-
--- def single_point_shef : sheaf C (single_point_space p₀) :=
--- ⟨single_point_presheaf p₀ S,
---  λ c U s hs x hx,
---  ⟨dite ((⟨p₀, rfl⟩ : single_point_space p₀) ∈ U)
---   (λ h, begin
---     specialize hs _ h,
---     sorry
---   end)
---   (λ h, begin
---     dsimp,
---     have := s.downward_closed,
---   end), _, _⟩⟩
 
 @[simps]
 def single_point_inclusion : single_point_space p₀ ⟶ X :=

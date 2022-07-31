@@ -704,6 +704,18 @@ protected def lift (n : ℕ) {α : Type*} : Π {K : Type u} [field K] (g : α �
   by exactI Π {f : K[X]}, α → splitting_field_aux n f :=
 nat.rec_on n (λ K fK g f, g) (λ n ih K fK g f, by exactI ih (coe ∘ g))
 
+
+example {a : ℤ} {f : ℤ[X]} : (a : adjoin_root f) = @@coe (@@coe_to_lift int.cast_coe) a := rfl
+example {a : ℚ} {f : ℚ[X]} [fact (irreducible f)] :
+  (a : adjoin_root f) = @@coe (@@coe_to_lift rat.cast_coe) a := rfl
+
+
+lemma adjoin_root.coe_eq {R : Type u} [comm_ring R] {f : polynomial R} (x : R) :
+  (x : adjoin_root f) = adjoin_root.of f x := rfl
+
+-- dear lord
+local attribute [ext] has_coe_t
+
 instance comm_ring (n : ℕ) {K : Type u} [field K] {f : K[X]} :
   comm_ring (splitting_field_aux n f) :=
 begin
@@ -717,13 +729,39 @@ begin
       mul := splitting_field_aux.mul n,
       one := splitting_field_aux.one n,
       npow := splitting_field_aux.npow n,
-      nat_cast := splitting_field_aux.lift n coe,
-      int_cast := splitting_field_aux.lift n coe,
+      nat_cast := splitting_field_aux.lift n (coe : ℕ → K),
+      int_cast := splitting_field_aux.lift n (coe : ℤ → K),
       .. splitting_field_aux.add_comm_group n },
-  recover,
   all_goals { unfreezingI { induction n with n ih generalizing K } },
-  -- The `succ` cases follow by induction, handle them first.
-  iterate 12 { rotate, exact ih }, -- TODO: why doesn't this work?
+  -- Most of the `succ` cases follow by induction, handle them first.
+  -- There's a couple that don't, maybe this is an issue!
+  rotate,
+  { rw ←ih,
+    convert rfl,
+    funext x,
+    rw [function.comp_app, ←map_nat_cast (nat.cast_ring_hom K), adjoin_root.coe_eq,
+        ←ring_hom.comp_apply, map_nat_cast] },
+  rotate,
+  { sorry },
+  rotate,
+  { intro a,
+    change splitting_field_aux.lift n (coe ∘ coe) (a : ℤ) = _,
+    convert @ih _ _ f.remove_factor a using 3,
+    { funext x,
+      rw [function.comp_app, ←(int.cast_ring_hom K).map_int_cast, adjoin_root.coe_eq,
+          ←ring_hom.comp_apply, ring_hom.map_int_cast] },
+    { ext1,
+      change splitting_field_aux.lift _ _ = splitting_field_aux.lift n coe,
+      convert rfl,
+      -- ℕ → adjoin_root f.factor filters as ℕ → K → adjoin_root f.factors
+      -- I guess the same for ℤ, and this makes the proof easier.
+      -- tomorrow problem: separate these lemmas out, and hopefully simplify the proof using this.
+      -- it'd be nice if this was `rfl` but I don't know the magic well enough.
+      funext x,
+      rw [function.comp_app, ←map_nat_cast (nat.cast_ring_hom K), adjoin_root.coe_eq,
+        ←ring_hom.comp_apply, map_nat_cast] } },
+  rotate, { sorry },
+  iterate 8 { rotate, exact ih },
   -- The `zero` cases follow from the structure of the field `K`.
   all_goals { intros,
     dsimp only [splitting_field_aux, splitting_field_aux.add, splitting_field_aux.zero,
@@ -734,6 +772,8 @@ begin
   -- and `ring` can handle the rest.
   all_goals { ring },
 end
+
+#exit
 
 instance is_scalar_tower_right (α : Type*) (n : ℕ) {K : Type u} [field K]
   [has_smul α K] [distrib_smul α K] [is_scalar_tower α K K] {f : K[X]} :

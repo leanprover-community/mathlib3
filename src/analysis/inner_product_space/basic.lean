@@ -8,7 +8,6 @@ import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.banach
-import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
 /-!
@@ -432,7 +431,9 @@ lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪
 lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r • ⟪x, y⟫ :=
 by { rw [inner_smul_right, algebra.smul_def], refl }
 
-/-- The inner product as a sesquilinear form. -/
+/-- The inner product as a sesquilinear form.
+
+Note that in the case `𝕜 = ℝ` this is a bilinear form. -/
 @[simps]
 def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
 linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
@@ -441,15 +442,6 @@ linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
   (λ r x y, inner_smul_right)
   (λ x y z, inner_add_left)
   (λ r x y, inner_smul_left)
-
-/-- The real inner product as a bilinear form. -/
-@[simps]
-def bilin_form_of_real_inner : bilin_form ℝ F :=
-{ bilin := inner,
-  bilin_add_left := λ x y z, inner_add_left,
-  bilin_smul_left := λ a x y, inner_smul_left,
-  bilin_add_right := λ x y z, inner_add_right,
-  bilin_smul_right := λ a x y, inner_smul_right }
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :

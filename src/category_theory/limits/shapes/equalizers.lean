@@ -524,7 +524,7 @@ def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : i.hom ≫ t.ι = s.ι) : s 
 
 /-- Every fork is isomorphic to one of the form `fork.of_ι _ _`. -/
 def fork.iso_fork_of_ι (c : fork f g) : c ≅ fork.of_ι c.ι c.condition :=
-fork.ext (by simp only [fork.of_ι_X, functor.const.obj_obj]) (by simp)
+fork.ext (by simp only [fork.of_ι_X, functor.const_obj_obj]) (by simp)
 
 /--
 Helper function for constructing morphisms between coequalizer coforks.
@@ -557,7 +557,7 @@ def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) 
 
 /-- Every cofork is isomorphic to one of the form `cofork.of_π _ _`. -/
 def cofork.iso_cofork_of_π (c : cofork f g) : c ≅ cofork.of_π c.π c.condition :=
-cofork.ext (by simp only [cofork.of_π_X, functor.const.obj_obj]) (by dsimp; simp)
+cofork.ext (by simp only [cofork.of_π_X, functor.const_obj_obj]) (by dsimp; simp)
 
 variables (f g)
 

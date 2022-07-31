@@ -214,10 +214,6 @@ instance : boolean_algebra (simple_graph V) :=
   sup_le := λ x y z hxy hyz v w h, h.cases_on (λ h, hxy h) (λ h, hyz h),
   sdiff_eq := λ x y, by { ext v w, refine ⟨λ h, ⟨h.1, ⟨_, h.2⟩⟩, λ h, ⟨h.1, h.2.2⟩⟩,
                           rintro rfl, exact x.irrefl h.1 },
-  sup_inf_sdiff := λ a b, by { ext v w, refine ⟨λ h, _, λ h', _⟩,
-                               obtain ⟨ha, _⟩|⟨ha, _⟩ := h; exact ha,
-                               by_cases b.adj v w; exact or.inl ⟨h', h⟩ <|> exact or.inr ⟨h', h⟩ },
-  inf_inf_sdiff := λ a b, by { ext v w, exact ⟨λ ⟨⟨_, hb⟩,⟨_, hb'⟩⟩, hb' hb, λ h, h.elim⟩ },
   le_sup_left := λ x y v w h, or.inl h,
   le_sup_right := λ x y v w h, or.inr h,
   le_inf := λ x y z hxy hyz v w h, ⟨hxy h, hyz h⟩,
@@ -779,6 +775,14 @@ by { rw ← G.card_incidence_set_eq_degree, apply set.to_finset_card }
 lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
+
+lemma incidence_finset_eq_filter [decidable_eq V] [fintype G.edge_set] :
+  G.incidence_finset v = G.edge_finset.filter (has_mem.mem v) :=
+begin
+  ext e,
+  refine sym2.ind (λ x y, _) e,
+  simp [mk_mem_incidence_set_iff],
+end
 
 end finite_at
 

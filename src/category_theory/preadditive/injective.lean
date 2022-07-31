@@ -37,7 +37,7 @@ section
 An injective presentation of an object `X` consists of a monomorphism `f : X ⟶ J`
 to some injective object `J`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure injective_presentation (X : C) :=
 (J : C)
 (injective : injective J . tactic.apply_instance)
@@ -160,6 +160,19 @@ instance {J : C} [injective J] : projective (op J) :=
 instance {P : C} [projective P] : injective (op P) :=
 { factors := λ X Y g f mono, by exactI ⟨(@projective.factor_thru C _ P _ _ _ g.unop f.unop _).op,
     quiver.hom.unop_inj (by simp)⟩ }
+
+lemma injective_iff_projective_op {J : C} : injective J ↔ projective (op J) :=
+⟨λ h, by exactI infer_instance, λ h, show injective (unop (op J)), by exactI infer_instance⟩
+
+lemma projective_iff_injective_op {P : C} : projective P ↔ injective (op P) :=
+⟨λ h, by exactI infer_instance, λ h, show projective (unop (op P)), by exactI infer_instance⟩
+
+lemma injective_iff_preserves_epimorphisms_yoneda_obj (J : C) :
+  injective J ↔ (yoneda.obj J).preserves_epimorphisms :=
+begin
+  rw [injective_iff_projective_op, projective.projective_iff_preserves_epimorphisms_coyoneda_obj],
+  exact functor.preserves_epimorphisms.iso_iff (coyoneda.obj_op_op _)
+end
 
 section enough_injectives
 variable [enough_injectives C]

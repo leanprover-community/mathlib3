@@ -391,8 +391,74 @@ end
 
 variables {F} {α}
 
+open set complete_lattice
+
 @[simp] lemma adjoin_simple_le_iff {K : intermediate_field F E} : F⟮α⟯ ≤ K ↔ α ∈ K :=
-adjoin_le_iff.trans set.singleton_subset_iff
+adjoin_le_iff.trans singleton_subset_iff
+
+/-- Adjoining a single element is compact in the lattice of intermediate fields. -/
+lemma adjoin_simple_is_compact_element (x : E) : is_compact_element F⟮x⟯ :=
+begin
+  rw is_compact_element_iff_le_of_directed_Sup_le,
+  rintros s ⟨F₀, hF₀⟩ hs hx,
+  simp only [adjoin_simple_le_iff] at hx ⊢,
+  let F : intermediate_field F E :=
+  { carrier := ⋃ E ∈ s, ↑E,
+    add_mem' := by
+    { rintros x₁ x₂ ⟨-, ⟨F₁, rfl⟩, ⟨-, ⟨hF₁, rfl⟩, hx₁⟩⟩ ⟨-, ⟨F₂, rfl⟩, ⟨-, ⟨hF₂, rfl⟩, hx₂⟩⟩,
+      obtain ⟨F₃, hF₃, h₁₃, h₂₃⟩ := hs F₁ hF₁ F₂ hF₂,
+      exact mem_Union_of_mem F₃ (mem_Union_of_mem hF₃ (F₃.add_mem (h₁₃ hx₁) (h₂₃ hx₂))) },
+    neg_mem' := by
+    { rintros x ⟨-, ⟨E, rfl⟩, ⟨-, ⟨hE, rfl⟩, hx⟩⟩,
+      exact mem_Union_of_mem E (mem_Union_of_mem hE (E.neg_mem hx)) },
+    mul_mem' := by
+    { rintros x₁ x₂ ⟨-, ⟨F₁, rfl⟩, ⟨-, ⟨hF₁, rfl⟩, hx₁⟩⟩ ⟨-, ⟨F₂, rfl⟩, ⟨-, ⟨hF₂, rfl⟩, hx₂⟩⟩,
+      obtain ⟨F₃, hF₃, h₁₃, h₂₃⟩ := hs F₁ hF₁ F₂ hF₂,
+      exact mem_Union_of_mem F₃ (mem_Union_of_mem hF₃ (F₃.mul_mem (h₁₃ hx₁) (h₂₃ hx₂))) },
+    inv_mem' := by
+    { rintros x ⟨-, ⟨E, rfl⟩, ⟨-, ⟨hE, rfl⟩, hx⟩⟩,
+      exact mem_Union_of_mem E (mem_Union_of_mem hE (E.inv_mem hx)) },
+    algebra_map_mem' := λ x, mem_Union_of_mem F₀ (mem_Union_of_mem hF₀ (F₀.algebra_map_mem x)) },
+  have key : Sup s ≤ F := Sup_le (λ E hE, subset_Union_of_subset E (subset_Union _ hE)),
+  obtain ⟨-, ⟨E, rfl⟩, -, ⟨hE, rfl⟩, hx⟩ := key hx,
+  exact ⟨E, hE, hx⟩,
+end
+
+/-- Adjoining a finite subset is compact in the lattice of intermediate fields. -/
+lemma adjoin_finset_is_compact_element (S : finset E) :
+  is_compact_element (adjoin F S : intermediate_field F E) :=
+begin
+  have key : adjoin F ↑S = ⨆ x ∈ S, F⟮x⟯ :=
+  le_antisymm (adjoin_le_iff.mpr (λ x hx, set_like.mem_coe.mpr (adjoin_simple_le_iff.mp
+      (le_supr_of_le x (le_supr_of_le hx le_rfl)))))
+      (supr_le (λ x, supr_le (λ hx, adjoin_simple_le_iff.mpr (subset_adjoin F S hx)))),
+  rw [key, ←finset.sup_eq_supr],
+  exact finset_sup_compact_of_compact S (λ x hx, adjoin_simple_is_compact_element x),
+end
+
+/-- Adjoining a finite subset is compact in the lattice of intermediate fields. -/
+lemma adjoin_finite_is_compact_element {S : set E} (h : S.finite) :
+  is_compact_element (adjoin F S) :=
+finite.coe_to_finset h ▸ (adjoin_finset_is_compact_element h.to_finset)
+
+/-- The lattice of intermediate fields is compactly generated. -/
+instance : is_compactly_generated (intermediate_field F E) :=
+⟨λ s, ⟨(λ x, F⟮x⟯) '' s, ⟨by rintros t ⟨x, hx, rfl⟩; exact adjoin_simple_is_compact_element x,
+  Sup_image.trans (le_antisymm (supr_le (λ i, supr_le (λ hi, adjoin_simple_le_iff.mpr hi)))
+    (λ x hx, adjoin_simple_le_iff.mp (le_supr_of_le x (le_supr_of_le hx le_rfl))))⟩⟩⟩
+
+lemma exists_finset_of_mem_supr {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset ι, x ∈ ⨆ i ∈ s, f i :=
+begin
+  have := (adjoin_simple_is_compact_element x).exists_finset_of_le_supr (intermediate_field F E) f,
+  simp only [adjoin_simple_le_iff] at this,
+  exact this hx,
+end
+
+lemma exists_finset_of_mem_supr' {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset (Σ i, f i), x ∈ ⨆ i ∈ s, F⟮(i.2 : E)⟯ :=
+exists_finset_of_mem_supr (set_like.le_def.mp (supr_le
+  (λ i x h, set_like.le_def.mp (le_supr_of_le ⟨i, x, h⟩ le_rfl) (mem_adjoin_simple_self F x))) hx)
 
 end adjoin_simple
 end adjoin_def
@@ -856,7 +922,7 @@ begin
   rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val, sup_to_subalgebra],
 end
 
-instance intermediate_field.finite_dimensional_supr_of_finite
+instance finite_dimensional_supr_of_finite
   {ι : Type*} {t : ι → intermediate_field K L} [h : finite ι] [Π i, finite_dimensional K (t i)] :
   finite_dimensional K (⨆ i, t i : intermediate_field K L) :=
 begin
@@ -867,10 +933,33 @@ begin
   { exact set.finite_univ },
   all_goals { dsimp only [P] },
   { rw supr_emptyset,
-    exact (intermediate_field.bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
+    exact (bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
   { intros _ s _ _ hs,
     rw supr_insert,
     exactI intermediate_field.finite_dimensional_sup _ _ },
+end
+
+instance finite_dimensional_supr_of_finset {ι : Type*}
+  {f : ι → intermediate_field K L} {s : finset ι} [h : Π i ∈ s, finite_dimensional K (f i)] :
+  finite_dimensional K (⨆ i ∈ s, f i : intermediate_field K L) :=
+begin
+  haveI : Π i : {i // i ∈ s}, finite_dimensional K (f i) := λ i, h i i.2,
+  have : (⨆ i ∈ s, f i) = ⨆ i : {i // i ∈ s}, f i :=
+  le_antisymm (supr_le (λ i, supr_le (λ h, le_supr (λ i : {i // i ∈ s}, f i) ⟨i, h⟩)))
+    (supr_le (λ i, le_supr_of_le i (le_supr_of_le i.2 le_rfl))),
+  exact this.symm ▸ intermediate_field.finite_dimensional_supr_of_finite,
+end
+
+lemma is_algebraic_supr {ι : Type*} {f : ι → intermediate_field K L}
+  (h : ∀ i, algebra.is_algebraic K (f i)) :
+  algebra.is_algebraic K (⨆ i, f i : intermediate_field K L) :=
+begin
+  rintros ⟨x, hx⟩,
+  obtain ⟨s, hx⟩ := exists_finset_of_mem_supr' hx,
+  rw [algebraic_iff, subtype.coe_mk, ←subtype.coe_mk x hx, ←algebraic_iff],
+  haveI : ∀ i : (Σ i, f i), finite_dimensional K K⟮(i.2 : L)⟯ :=
+  λ ⟨i, x⟩, adjoin.finite_dimensional (is_algebraic_iff_is_integral.mp (algebraic_iff.mp (h i x))),
+  apply algebra.is_algebraic_of_finite,
 end
 
 end supremum

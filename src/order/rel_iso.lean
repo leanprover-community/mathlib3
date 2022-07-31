@@ -40,7 +40,7 @@ variables {α β γ : Type*} {r : α → α → Prop} {s : β → β → Prop} {
 
 /-- A relation homomorphism with respect to a given pair of relations `r` and `s`
 is a function `f : α → β` such that `r a b → s (f a) (f b)`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
 (to_fun : α → β)
 (map_rel' : ∀ {a b}, r a b → s (to_fun a) (to_fun b))
@@ -415,9 +415,21 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 @[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
 /-- A relation isomorphism between equal relations on equal types. -/
-@[simps] protected def cast {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+@[simps to_equiv apply] protected def cast {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
 ⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
+
+@[simp] protected theorem cast_symm {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+  (h₁ : α = β) (h₂ : r == s) : (rel_iso.cast h₁ h₂).symm = rel_iso.cast h₁.symm h₂.symm := rfl
+
+@[simp] protected theorem cast_refl {α : Type u} {r : α → α → Prop}
+  (h₁ : α = α := rfl) (h₂ : r == r := heq.rfl) : rel_iso.cast h₁ h₂ = rel_iso.refl r := rfl
+
+@[simp] protected theorem cast_trans {α β γ : Type u}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} (h₁ : α = β) (h₁' : β = γ)
+  (h₂ : r == s) (h₂' : s == t): (rel_iso.cast h₁ h₂).trans (rel_iso.cast h₁' h₂') =
+  rel_iso.cast (h₁.trans h₁') (h₂.trans h₂') :=
+ext $ λ x, by { subst h₁, refl }
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=

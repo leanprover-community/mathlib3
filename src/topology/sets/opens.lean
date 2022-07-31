@@ -82,7 +82,7 @@ complete_lattice.copy (galois_coinsertion.lift_complete_lattice gi)
 /- sup -/ (λ U V, ⟨↑U ∪ ↑V, U.2.union V.2⟩) rfl
 /- inf -/ (λ U V, ⟨↑U ∩ ↑V, U.2.inter V.2⟩)
   (funext $ λ U, funext $ λ V, ext (U.2.inter V.2).interior_eq.symm)
-/- Sup -/ _ rfl
+/- Sup -/ (λ S, ⟨⋃ s ∈ S, ↑s, is_open_bUnion $ λ s _, s.2⟩) (funext $ λ S, ext Sup_image.symm)
 /- Inf -/ _ rfl
 
 lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff.rfl
@@ -93,8 +93,7 @@ lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff
 @[simp, norm_cast] lemma coe_sup (s t : opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
 @[simp, norm_cast] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
 @[simp, norm_cast] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
-@[simp, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i :=
-(@gc α _).l_Sup
+@[simp, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := rfl
 
 @[simp, norm_cast] lemma coe_finset_sup (f : ι → opens α) (s : finset ι) :
   (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
@@ -120,7 +119,8 @@ by { ext, simp only [supr, coe_Sup, bUnion_range], refl }
   (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
 by { rw supr_def, simp }
 
-@[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
+@[simp, norm_cast] lemma coe_supr {ι} (s : ι → opens α) :
+  ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
 @[simp] theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
@@ -132,7 +132,7 @@ by simp_rw [Sup_eq_supr, mem_supr]
 instance : frame (opens α) :=
 { Sup := Sup,
   inf_Sup_le_supr_inf := λ a s,
-    (ext $ by simp only [coe_inf, supr_s, coe_Sup, set.inter_Union₂]).le,
+    (ext $ by simp only [coe_inf, coe_supr, coe_Sup, set.inter_Union₂]).le,
   ..opens.complete_lattice }
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
@@ -186,6 +186,19 @@ begin
     rcases h U with ⟨Us, hUs, rfl⟩,
     rcases mem_Sup.1 hx with ⟨U, Us, xU⟩,
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
+end
+
+/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
+  it is a finite union of some elements in the basis -/
+lemma is_compact_open_iff_eq_finite_Union_of_is_basis
+  {ι : Type*} (b : ι → opens α) (hb : opens.is_basis (set.range b))
+  (hb' : ∀ i, is_compact (b i : set α)) (U : set α) :
+  is_compact U ∧ is_open U ↔ ∃ (s : set ι), s.finite ∧ U = ⋃ i ∈ s, b i :=
+begin
+  apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
+    (λ i : ι, (b i).1),
+  { convert hb, ext, simp },
+  { exact hb' }
 end
 
 @[simp] lemma is_compact_element_iff (s : opens α) :

@@ -332,7 +332,11 @@ open limits abelian
 variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
 variables [has_zero_object A] [has_zero_morphisms A] [has_images A] [has_equalizers A]
 variables [has_cokernels A] [abelian B]
-variables (L : A ⥤ B) [preserves_finite_limits L] [preserves_finite_colimits L]
+variables (L : A ⥤ B)
+
+section
+
+variables [preserves_finite_limits L] [preserves_finite_colimits L]
 
 lemma map_exact {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
   exact (L.map f) (L.map g) :=
@@ -341,6 +345,24 @@ begin
   let hker := is_limit_of_has_kernel_of_preserves_limit L g,
   refine (exact_iff' _ _ hker hcoker).2 ⟨by simp [← L.map_comp, e1.1], _⟩,
   rw [fork.ι_of_ι, cofork.π_of_π, ← L.map_comp, kernel_comp_cokernel _ _ e1, L.map_zero]
+end
+
+end
+
+section
+
+variables (h : ∀ {X Y Z : A} {f : X ⟶ Y} {g : Y ⟶ Z}, exact f g → exact (L.map f) (L.map g))
+include h
+
+open_locale zero_object
+
+example : L.preserves_zero_morphisms :=
+begin
+  replace h := (h (exact_of_zero (𝟙 0) (𝟙 0))).w,
+  rw [L.map_id, category.comp_id] at h,
+  exact preserves_zero_morphisms_of_map_zero_object (id_zero_equiv_iso_zero _ h),
+end
+
 end
 
 end functor

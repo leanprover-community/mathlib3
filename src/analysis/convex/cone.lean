@@ -635,7 +635,7 @@ lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 begin
   simp_rw [set.Inter_coe_set, subtype.coe_mk],
-  ext,
+  apply set.ext,
   refine λ x, iff.intro (λ hx, (set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)))) (by simp),
   rintro ⟨ ⟩,
   exact hx i hi,
@@ -655,7 +655,7 @@ begin
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,
-  exact is_closed_Ici.preimage (by continuity),
+  exact is_closed_Ici.preimage (continuous.inner continuous_const continuous_id),
 end
 
 end dual

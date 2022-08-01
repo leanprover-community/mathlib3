@@ -13,7 +13,7 @@ This files contains results that stem from the limit API. For the definition and
 instance of `cone`, please refer to `category_theory/limits/cones.lean`.
 
 ## Main results
-* We The category of cones on `F : J ⥤ C` is equivalent to the category
+* The category of cones on `F : J ⥤ C` is equivalent to the category
   `costructured_arrow (const J) F`.
 * A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
   categories of cones preserves limiting properties.

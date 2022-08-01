@@ -87,7 +87,8 @@ section gauss_sum_prod
 -- In the following, we need `R` to be a finite field and `R'` to be a domain.
 variables {R : Type u} [field R] [fintype R] {R' : Type v} [comm_ring R'] [is_domain R']
 
--- Two helper lemmas for `gauss_sum_mul_gauss_sum_eq_card` below
+-- A helper lemma for `gauss_sum_mul_gauss_sum_eq_card` below
+-- Is this useful enough in other contexts to be public?
 private
 lemma gauss_sum_mul_aux {χ : mul_char R R'} (hχ : is_nontrivial χ) (ψ : add_char R R') (b : R) :
   ∑ a, χ (a * b⁻¹) * ψ (of_add (a - b)) = ∑ c, χ c * ψ (of_add $ b * (c - 1)) :=

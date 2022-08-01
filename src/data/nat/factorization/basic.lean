@@ -490,12 +490,6 @@ begin
   exact (factorization_le_iff_dvd ha0 hb0).2 hab q,
 end
 
-
-
-
-#exit
-
-
 lemma dvd_iff_prime_pow_dvd_dvd (n d : ℕ) :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin

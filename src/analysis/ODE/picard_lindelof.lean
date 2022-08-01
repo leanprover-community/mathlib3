@@ -33,12 +33,12 @@ open_locale filter topological_space nnreal ennreal nat interval
 
 noncomputable theory
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 /-- This structure holds arguments of the Picard-Lipschitz (Cauchy-Lipschitz) theorem. Unless you
 want to use one of the auxiliary lemmas, use
 `exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous` instead of using this structure. -/
-structure picard_lindelof (E : Type*) [normed_group E] [normed_space ℝ E] :=
+structure picard_lindelof (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → E)
 (t_min t_max : ℝ)
 (t₀ : Icc t_min t_max)

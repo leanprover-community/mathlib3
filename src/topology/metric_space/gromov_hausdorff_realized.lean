@@ -369,12 +369,12 @@ begin
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ x, (⨅ y, g (inl x, inr y)) + dist f g = ⨅ y, g (inl x, inr y) + dist f g,
   { assume x,
-    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+    refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λ (y : Y), g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
   have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
-  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+  { refine monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
@@ -398,12 +398,12 @@ begin
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ y, (⨅ x, g (inl x, inr y)) + dist f g = ⨅ x, g (inl x, inr y) + dist f g,
   { assume y,
-    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+    refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λx:X, g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2 (λi, Hcg _)⟩ } },
   have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
-  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+  { refine monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
@@ -461,7 +461,7 @@ def optimal_GH_injl (x : X) : optimal_GH_coupling X Y := ⟦inl x⟧
 /-- The injection of `X` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injl : isometry (optimal_GH_injl X Y) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   change dist ⟦inl x⟧ ⟦inl y⟧ = dist x y,
   exact candidates_dist_inl (optimal_GH_dist_mem_candidates_b X Y) _ _,
 end
@@ -472,7 +472,7 @@ def optimal_GH_injr (y : Y) : optimal_GH_coupling X Y := ⟦inr y⟧
 /-- The injection of `Y` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injr : isometry (optimal_GH_injr X Y) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   change dist ⟦inr x⟧ ⟦inr y⟧ = dist x y,
   exact candidates_dist_inr (optimal_GH_dist_mem_candidates_b X Y) _ _,
 end

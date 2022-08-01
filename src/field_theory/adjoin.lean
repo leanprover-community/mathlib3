@@ -447,6 +447,14 @@ instance : is_compactly_generated (intermediate_field F E) :=
   Sup_image.trans (le_antisymm (supr_le (λ i, supr_le (λ hi, adjoin_simple_le_iff.mpr hi)))
     (λ x hx, adjoin_simple_le_iff.mp (le_supr_of_le x (le_supr_of_le hx le_rfl))))⟩⟩⟩
 
+lemma exists_finset_of_mem_supr {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset ι, x ∈ ⨆ i ∈ s, f i :=
+begin
+  have := (adjoin_simple_is_compact_element x).exists_finset_of_le_supr (intermediate_field F E) f,
+  simp only [adjoin_simple_le_iff] at this,
+  exact this hx,
+end
+
 end adjoin_simple
 end adjoin_def
 
@@ -909,7 +917,7 @@ begin
   rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val, sup_to_subalgebra],
 end
 
-instance intermediate_field.finite_dimensional_supr_of_finite
+instance finite_dimensional_supr_of_finite
   {ι : Type*} {t : ι → intermediate_field K L} [h : finite ι] [Π i, finite_dimensional K (t i)] :
   finite_dimensional K (⨆ i, t i : intermediate_field K L) :=
 begin
@@ -920,10 +928,21 @@ begin
   { exact set.finite_univ },
   all_goals { dsimp only [P] },
   { rw supr_emptyset,
-    exact (intermediate_field.bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
+    exact (bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
   { intros _ s _ _ hs,
     rw supr_insert,
     exactI intermediate_field.finite_dimensional_sup _ _ },
+end
+
+instance finite_dimensional_supr_of_finset {ι : Type*}
+  {f : ι → intermediate_field K L} {s : finset ι} [h : Π i ∈ s, finite_dimensional K (f i)] :
+  finite_dimensional K (⨆ i ∈ s, f i : intermediate_field K L) :=
+begin
+  haveI : Π i : {i // i ∈ s}, finite_dimensional K (f i) := λ i, h i i.2,
+  have : (⨆ i ∈ s, f i) = ⨆ i : {i // i ∈ s}, f i :=
+  le_antisymm (supr_le (λ i, supr_le (λ h, le_supr (λ i : {i // i ∈ s}, f i) ⟨i, h⟩)))
+    (supr_le (λ i, le_supr_of_le i (le_supr_of_le i.2 le_rfl))),
+  exact this.symm ▸ intermediate_field.finite_dimensional_supr_of_finite,
 end
 
 end supremum

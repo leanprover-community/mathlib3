@@ -202,3 +202,29 @@ def sign_hom : α →*₀ sign_type :=
                mul_neg_of_pos_of_neg, mul_pos] }
 
 end linear_ordered_ring
+
+section add_group
+
+variables [add_group α] [preorder α] [decidable_rel ((<) : α → α → Prop)]
+
+lemma left.sign_neg [covariant_class α α (+) (<)] (a : α) : sign (-a) = - sign a :=
+begin
+  simp_rw [sign_apply, left.neg_pos_iff, left.neg_neg_iff],
+  split_ifs with h h',
+  { exact false.elim (lt_asymm h h') },
+  { simp },
+  { simp },
+  { simp }
+end
+
+lemma right.sign_neg [covariant_class α α (function.swap (+)) (<)] (a : α) : sign (-a) = - sign a :=
+begin
+  simp_rw [sign_apply, right.neg_pos_iff, right.neg_neg_iff],
+  split_ifs with h h',
+  { exact false.elim (lt_asymm h h') },
+  { simp },
+  { simp },
+  { simp }
+end
+
+end add_group

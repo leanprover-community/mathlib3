@@ -31,8 +31,8 @@ open measure_theory measure_theory.measure metric set filter topological_space f
 open_locale topological_space big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
-  [normed_group E] [normed_space ℝ E] [complete_space E]
-  [normed_group F] [normed_space ℝ F] [complete_space F]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
   {μ : measure α} {s : set E}
 
 /-!

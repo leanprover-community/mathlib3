@@ -79,10 +79,10 @@ section get
 variables {x y : α ⊕ β}
 
 lemma get_left_eq_none_iff : x.get_left = none ↔ x.is_right :=
-by cases x; simv only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
+by cases x; simp only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
 
 lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
-by cases x; simv only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
+by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
 
 end get
 
@@ -151,12 +151,12 @@ open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_o
 @[simp] lemma update_elim_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
   {i : α} {x : γ} :
   update (sum.elim f g) (inl i) x = sum.elim (update f i x) g :=
-update_eq_iff.2 ⟨by simv, by simv { contextual := tt }⟩
+update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
 
 @[simp] lemma update_elim_inr [decidable_eq β] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
   {i : β} {x : γ} :
   update (sum.elim f g) (inr i) x = sum.elim f (update g i x) :=
-update_eq_iff.2 ⟨by simv, by simv { contextual := tt }⟩
+update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
 
 @[simp] lemma update_inl_comp_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α ⊕ β → γ} {i : α}
   {x : γ} :
@@ -364,9 +364,9 @@ lemma elim_update_left [decidable_eq α] [decidable_eq β]
 begin
   ext x, cases x,
   { by_cases h : x = i,
-    { subst h, simv },
-    { simv [h] } },
-  { simv }
+    { subst h, simp },
+    { simp [h] } },
+  { simp }
 end
 
 lemma elim_update_right [decidable_eq α] [decidable_eq β]
@@ -374,10 +374,10 @@ lemma elim_update_right [decidable_eq α] [decidable_eq β]
   sum.elim f (function.update g i c) = function.update (sum.elim f g) (inr i) c :=
 begin
   ext x, cases x,
-  { simv },
+  { simp },
   { by_cases h : x = i,
-    { subst h, simv },
-    { simv [h] } }
+    { subst h, simp },
+    { simp [h] } }
 end
 
 end sum
@@ -391,10 +391,10 @@ Abbreviations for the maps from the summands to `α ⊕ β ⊕ γ`. This is usef
 namespace sum3
 
 /-- The map from the first summand into a ternary sum. -/
-@[pattern, simv, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
+@[pattern, simp, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
 /-- The map from the second summand into a ternary sum. -/
-@[pattern, simv, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
+@[pattern, simp, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
 /-- The map from the third summand into a ternary sum. -/
-@[pattern, simv, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
+@[pattern, simp, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
 
 end sum3

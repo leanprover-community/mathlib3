@@ -635,7 +635,7 @@ lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 begin
   simp_rw [set.Inter_coe_set, subtype.coe_mk],
-  apply set.ext,
+  ext,
   refine λ x, iff.intro (λ hx, (set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)))) (by simp),
   rintro ⟨ ⟩,
   exact hx i hi,
@@ -651,7 +651,7 @@ begin
 
   -- the dual cone of a singleton set is the preimage of `[0, ∞)` under `inner x`
   have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0),
-  { apply set.ext, simp },
+  { ext, simp },
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,

@@ -1159,7 +1159,7 @@ multiset.induction_on t (by simp [multiset.sub_zero])
 instance : has_ordered_sub (multiset α) :=
 ⟨λ n m k, multiset.sub_le_iff_le_add⟩
 
-lemma cons_sub_of_le (a : α) {s t : multiset α} (h : t ≤ s) [decidable_eq α] :
+lemma cons_sub_of_le (a : α) {s t : multiset α} (h : t ≤ s) :
   a ::ₘ s - t = a ::ₘ (s - t) :=
 by rw [←singleton_add, ←singleton_add, add_tsub_assoc_of_le h]
 

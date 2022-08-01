@@ -795,25 +795,21 @@ angle between the vectors. -/
 lemma inner_eq_norm_mul_norm_mul_cos_oangle (x y : V) :
   ⟪x, y⟫ = ∥x∥ * ∥y∥ * real.angle.cos (hb.oangle x y) :=
 begin
-  by_cases hx : x = 0,
-  { simp [hx] },
-  { by_cases hy : y = 0,
-    { simp [hy] },
-    { rw [oangle, real.angle.cos_coe, complex.cos_arg],
-      { simp_rw [complex.abs_div, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map,
-                 complex.div_re, ←complex.sq_abs, ←complex.norm_eq_abs,
-                 linear_isometry_equiv.norm_map, complex.isometry_of_orthonormal_symm_apply,
-                 complex.add_re, complex.add_im, is_R_or_C.I, complex.mul_I_re, complex.mul_I_im,
-                 complex.of_real_re, complex.of_real_im, basis.coord_apply, neg_zero, zero_add,
-                 add_zero],
-        conv_lhs { rw [←b.sum_repr x, ←b.sum_repr y] },
-        simp_rw [hb.inner_sum, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1}),
-                 star_ring_end_apply, star_trivial],
-        rw [finset.sum_insert (dec_trivial : (0 : fin 2) ∉ ({1} : finset (fin 2))),
-            finset.sum_singleton],
-        field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
-        ring },
-      { simp [hx, hy] } } }
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw [oangle, real.angle.cos_coe, complex.cos_arg], swap, { simp [hx, hy] },
+  simp_rw [complex.abs_div, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
+           ←complex.sq_abs, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map,
+           complex.isometry_of_orthonormal_symm_apply, complex.add_re, complex.add_im,
+           is_R_or_C.I, complex.mul_I_re, complex.mul_I_im, complex.of_real_re,
+           complex.of_real_im, basis.coord_apply, neg_zero, zero_add, add_zero],
+  conv_lhs { rw [←b.sum_repr x, ←b.sum_repr y] },
+  simp_rw [hb.inner_sum, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1}),
+           star_ring_end_apply, star_trivial],
+  rw [finset.sum_insert (dec_trivial : (0 : fin 2) ∉ ({1} : finset (fin 2))),
+      finset.sum_singleton],
+  field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
+  ring
 end
 
 /-- The cosine of the oriented angle between two nonzero vectors is the inner product divided by

@@ -241,7 +241,8 @@ begin
   { rw [degree_one, ← with_bot.coe_zero, with_bot.coe_lt_coe],
     exact nonempty.card_pos hs },
   { intros i hi,
-    rw [eval_finset_sum, eval_one, ← add_sum_erase _ _ hi, eval_basis_self hvs hi, add_right_eq_self],
+    rw [eval_finset_sum, eval_one, ← add_sum_erase _ _ hi,
+        eval_basis_self hvs hi, add_right_eq_self],
     refine sum_eq_zero (λ j hj, _),
     rcases mem_erase.mp hj with ⟨hij, hj⟩,
     rw eval_basis_of_ne hij hi }

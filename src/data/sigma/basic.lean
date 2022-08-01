@@ -49,10 +49,10 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, sigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-@[simv, nolint simp_nf] -- sometimes the built-in injectivity support does not work
+@[simp, nolint simp_nf] -- sometimes the built-in injectivity support does not work
 theorem mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
-by simv
+by simp
 
 @[simp] theorem eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
 | ⟨i, x⟩ := rfl
@@ -114,7 +114,7 @@ lemma function.surjective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ 
   (h₁ : function.surjective f₁) (h₂ : ∀ a, function.surjective (f₂ a)) :
   function.surjective (sigma.map f₁ f₂) :=
 begin
-  simv only [function.surjective, sigma.forall, h₁.forall],
+  simp only [function.surjective, sigma.forall, h₁.forall],
   exact λ i, (h₂ _).forall.2 (λ x, ⟨⟨i, x⟩, rfl⟩)
 end
 

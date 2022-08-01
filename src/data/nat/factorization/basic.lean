@@ -484,7 +484,10 @@ begin
   have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p)).ne',
   have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p)).ne',
   rw [←factorization_le_iff_dvd ha hb, factorization_ord_compl a p, factorization_ord_compl b p],
-  sorry,
+  intro q,
+  rcases eq_or_ne q p with rfl | hqp, { simp },
+  simp_rw erase_ne hqp,
+  exact (factorization_le_iff_dvd ha0 hb0).2 hab q,
 end
 
 

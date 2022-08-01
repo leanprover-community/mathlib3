@@ -157,6 +157,20 @@ begin
   from λ w_in_D, reachable_outside.trans G y_c_o_z w_in_D,
 end
 
+lemma eq_of_not_disjoint (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
+  (notdis : ¬ disjoint C D) : C = D :=
+begin
+  obtain ⟨x,xC,xD⟩ := set.not_disjoint_iff.mp notdis,
+  exact eq_of_common_mem G K C D hC hD x xC xD,
+end
+
+lemma disjoint_of_neq (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
+  (neq : C ≠ D) : disjoint C D :=
+begin
+  by_contradiction,
+  exact neq (eq_of_not_disjoint _ _ _ _ hC hD h),
+end
+
 lemma mem_of_mem_of_ro (K : finset V) (C : set V) (hC : C ∈ ro_components G K)
   (x y : V) (x_in_C : x ∈ C) (x_ro_y : reachable_outside G K x y) : y ∈ C :=
 begin
@@ -221,6 +235,14 @@ begin
   rcases is_ro G K C hC x hx y hy with ⟨w,dis_K⟩,
   exact ⟨w,walk_outside_is_contained G K C hC x y w hx hy dis_K⟩,
 end
+
+lemma to_disjoint (K : finset V) (C : set V) (hC : C ∈ ro_components G K) : disjoint C (K : set V) :=
+begin
+  rw set.disjoint_iff,
+  rintro x ⟨xC,xK⟩,
+  exact not_in_of_in_comp G K C hC x xC xK,
+end
+
 
 lemma ro_of_subconnected_disjoint (K : finset V) (P : set V) (dis : disjoint P K)
   (conn : subconnected G P) : ∀ x y ∈ P, reachable_outside G K x y :=
@@ -513,33 +535,90 @@ end
 lemma extend_to_fin_ro_components.sub [locally_finite G]  (Gpc : G.preconnected) (K : finset V) :
 K ⊆ extend_to_fin_ro_components G Gpc K := finset.subset_union_left _ _
 
+lemma extend_to_fin_ro_components.sub' [locally_finite G]  (Gpc : G.preconnected) (K : finset V) :
+∀ (D : fin_ro_components G K), D.val ⊆ extend_to_fin_ro_components G Gpc K := begin
+  rintro ⟨D,Dcomp,Dfin⟩,
+  simp,
+  unfold extend_to_fin_ro_components,
+  simp,
+  have : D ⊆ ⋃₀ G.fin_ro_components K, by {apply subset_sUnion_of_mem, exact ⟨Dcomp,Dfin⟩},
+  exact this.trans (subset_union_right _ _),
+end
+
+
 lemma extend_to_fin_ro_components.ro  [locally_finite G] (Gpc : G.preconnected) (K : finset V):
   ro_components G (extend_to_fin_ro_components G Gpc K ) = inf_ro_components G K :=
 begin
   let L := extend_to_fin_ro_components G Gpc K,
+  let KsubL := extend_to_fin_ro_components.sub G Gpc K,
   apply set.ext,
   rintros C,
   split,
-  { rintro C_L,
+  { rintro CL,
+    obtain ⟨D,DcompK,CsubD⟩ := of_subconnected_disjoint G K C
+      ( nempty G _ C CL )
+      ( disjoint.mono_right KsubL (to_disjoint G L C CL) )
+      ( to_subconnected G L C CL ),
+    have Dinf : D.infinite, by {
+      have Cnempty := nempty G L C CL,
+      suffices : ∀ D ∈ fin_ro_components G K, disjoint C D, by
+      { by_contradiction,
+        rw not_infinite at h,
+        let dis := set.disjoint_iff.mp (this D ⟨DcompK,h⟩),
+        obtain ⟨c,cC⟩ := Cnempty,
+        exact dis ⟨cC,CsubD cC⟩,
+      },
+      rintro D ⟨Dcomp,Dfin⟩,
+      exact disjoint.mono_right (extend_to_fin_ro_components.sub' G Gpc K ⟨D,Dcomp,Dfin⟩) (to_disjoint G L C CL),},
+
+    suffices DsubC : D ⊆ C,
+    { rw ←set.eq_of_subset_of_subset DsubC CsubD,
+      exact ⟨DcompK,Dinf⟩,},
+
+    obtain ⟨c,cC,rfl⟩ := CL,
+    rintro d dD,
+    obtain ⟨w,wD⟩ := to_subconnected G K D DcompK c (CsubD cC) d dD,
+    have wdisK : disjoint (w.support.to_finset : set V) K := disjoint.mono_left wD (to_disjoint G K D DcompK),
+    have wdisF : ∀ D' ∈ fin_ro_components G K, disjoint (w.support.to_finset : set V) D', by
+    { rintro D' ⟨D'comp,D'fin⟩,
+      have : D' ≠ D, by {rintro eq, induction eq, exact Dinf D'fin,},
+      exact disjoint.mono_left  wD (disjoint_of_neq G K D D' DcompK D'comp this.symm),},
+    have wdisL : disjoint (w.support.to_finset : set V) L, by
+    { rw set.disjoint_iff,
+      simp *,
+      unfold extend_to_fin_ro_components,
+      simp,
+      rw set.inter_distrib_left,
+      simp,
+      split,
+      { exact wdisK,  },
+      { rintro x ⟨xl,⟨xr1,xr2,xr3⟩⟩,
+        have lol := wdisF xr1 xr2,
+        rw set.disjoint_iff at lol,
+        exact lol ⟨xl,xr3⟩,}},
+    unfold reachable_outside,
+    simp only [mem_set_of_eq],
+    use w,
+    simp only [disjoint_coe] at wdisL,
+    exact wdisL.symm,
     /-
-    C_L : C ∈ ro_components L
-    Thus, C is connected (since it's a ro_component) and does not intersect L, hence does not intersect K.
+    Assumption : C_L : C ∈ ro_components L.
+    Goal: show C ∈ inf_ro_components K
+    By assumption, C is connected (since it's a ro_component) and does not intersect L, hence does not intersect K.
     Therefore, C is contained in a unique D ∈ ro_components K.
-    Since C does not intersect L, it does not intersect any D' ∈ ro_ K, hence cannot be contained in one.
-    Hence, D ∈ ro_
-   K.
+    Since C does not intersect L, it does not intersect any D' ∈ fin_ro_components K, hence cannot be contained in one.
+    In particular, since C is contained in D, D must be infinite, and thus `D ∈ inf_ro_components K`.
     Let us show C = D. We already know C ⊆ D, remains the other inclusion.
     Fix some c ∈ C and any d ∈ D.
-    There is a path w from c to d entirely contained in D, hence not intersecting any D' ∈ ro_ K, and not intersecting K either.#check
+    There is a path w from c to d entirely contained in D, hence not intersecting any D' ∈ ro_components K, and not intersecting K either.
     w is therefore outside of K', which by definition means that `co_o c d`, and thus d lies in C.
     -/
-    sorry,
   },
   { rintro C_K,
     /-
-    C_K : C ∈ ro_
-   K.
-    Thus, C is connected, and disjoint from K and from any other C' ∈ ro_components K.
+    Assumption C_K : C ∈ inf_ro_components K.
+    Goal: show C ∈ ro_components L.
+    By assumption, C is connected, and disjoint from K and from any other C' ∈ ro_components K.
     In particular, C is disjoint from L, and, being connected, it is contained in a unique D ∈ ro_components L.
     Again, to show C = D, it suffices to choose some c ∈ C and show that any d ∈ D lies in C.
     Take a path w from c to d, entirely contained in D. By hypothesis, w does not intersect K, which implies that `co_o c d` and d lies in C.
@@ -651,9 +730,71 @@ begin
 end
 
 
+lemma cofinite_union_of_inf_ro_components_is_univ [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (𝓒 : set (inf_ro_components G K))
+  (cof : (set.Union (λ C : 𝓒, C.1.1)) ᶜ.finite ) : @set.univ (inf_ro_components G K) = 𝓒 :=
+begin
+  apply set.ext,
+  rintro ⟨C,Ccomp,Cinf⟩,
+  split,
+  { rintro _, by_contradiction,
+    have : ∀ C' : 𝓒, disjoint C'.1.1 C, by {
+      rintro ⟨⟨C',C'comp,C'inf⟩,C'𝓒⟩,
+      by_contradiction,
+      rw not_disjoint_iff_nonempty_inter at h,
+      rcases h with ⟨x,xC',xC⟩,
+      let lol := eq_of_common_mem G K C C' Ccomp C'comp x xC xC',
+      simp [subtype.coe_inj,lol] at *,
+      exact h C'𝓒,},
+    have : disjoint (set.Union (λ C : 𝓒, C.1.1)) C, by {
+      simp only [subtype.val_eq_coe, Union_coe_set, subtype.coe_mk, disjoint_Union_left],
+      rintro C' ⟨C'comp,C'inf⟩ C'𝓒,
+      exact this ⟨⟨C',C'comp,C'inf⟩,C'𝓒⟩,},
+    have lol := disjoint.le_compl_left this,
+    have := set.infinite.mono lol Cinf,
+    exact this cof,
+  },
+  {  simp, },
+end
+
+lemma cofinite_inf_ro_component_is_univ [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
+  (cof : (C.val ᶜ).finite ) : @set.univ (inf_ro_components G K) = {C} :=
+begin
+  apply cofinite_union_of_inf_ro_components_is_univ G Gpc K {C} _,
+  let 𝓒 : set (inf_ro_components G K) := {C},
+  have : (set.Union (λ C' : 𝓒, C'.1.1)) = C.val, by {
+    apply set.ext,
+    rintro x,
+    split,
+    { simp, rintro C' C'comp C'eq xC', have : C.val = C', by { exact (congr_arg subtype.val (eq.symm C'eq)).trans rfl}, simp at this, rw this, exact xC', },
+    {rintro xC,simp,use [C,C.prop],simp, exact xC,},
+  },
+  rw this,
+  exact cof,
+end
+
+lemma cofinite_union_of_inf_ro_components_equiv [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (𝓒 : set (inf_ro_components G K))
+  (cof : (set.Union (λ C : 𝓒, C.1.1)) ᶜ.finite ) : (inf_ro_components G K) ≃ 𝓒 :=
+begin
+  have lol := cofinite_union_of_inf_ro_components_is_univ G Gpc K 𝓒 cof,
+  rw ←lol,
+  exact (equiv.set.univ ↥(inf_ro_components G K)).symm,
+end
 
 
-
+lemma cofinite_inf_ro_component_equiv [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
+  (cof : (C.val ᶜ).finite ) : subtype (inf_ro_components G K) ≃ true :=
+begin
+  have lol := cofinite_inf_ro_component_is_univ G Gpc K C cof,
+  have lol2 := equiv.set.univ ↥(inf_ro_components G K),
+  rw lol at lol2,
+  have lol3 := equiv_true_of_singleton C,
+  simp at *,
+  sorry,
+end
 
 
 end inf_ro_components

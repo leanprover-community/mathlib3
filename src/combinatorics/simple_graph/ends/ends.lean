@@ -4,6 +4,7 @@ import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
+import set_theory.cardinal.basic
 
 import .mathlib
 import .reachable_outside
@@ -14,6 +15,7 @@ open set
 open classical
 open simple_graph.walk
 open relation
+open cardinal
 
 universes u v w
 
@@ -439,8 +441,14 @@ begin
   exact bijective.comp eval_for_bij (equiv_ends_for G Gpc (fin_fam_up K)).bijective,
 end
 
-
-
+lemma eval_bijective' [locally_finite G] [∀ K : finset V, fintype (inf_ro_components G K)] (Gpc: G.preconnected)
+  (K : finset V)
+  (card_eq_from_K : ∀ L : finset V, K ⊆ L → fintype.card (inf_ro_components G K) = fintype.card (inf_ro_components G L) ) :
+  bijective (eval G Gpc K) :=
+begin
+  let inj_from_K := λ L KL, ((fintype.bijective_iff_surjective_and_card (bwd_map G Gpc KL)).mpr ⟨(bwd_map_surjective G Gpc KL),(card_eq_from_K L KL).symm⟩).1,
+  exact eval_bijective G Gpc K inj_from_K,
+end
 
 /-
   The goal now would be to be able to bound the number of ends from below.

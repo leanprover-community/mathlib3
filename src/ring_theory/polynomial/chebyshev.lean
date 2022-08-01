@@ -87,8 +87,7 @@ noncomputable def U : ℕ → R[X]
 
 @[simp] lemma U_zero : U R 0 = 1 := rfl
 @[simp] lemma U_one : U R 1 = 2 * X := rfl
-lemma U_two : U R 2 = 4 * X ^ 2 - 1 :=
-by { simp only [U], ring, }
+lemma U_two : U R 2 = 4 * X ^ 2 - 1 := by { simp only [U], ring, }
 
 @[simp] lemma U_add_two (n : ℕ) :
   U R (n + 2) = 2 * X * U R (n + 1) - U R n :=

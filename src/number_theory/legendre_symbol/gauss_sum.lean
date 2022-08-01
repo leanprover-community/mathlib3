@@ -72,8 +72,8 @@ begin
   simp only [gauss_sum, mul_shift, monoid_hom.coe_comp, function.comp_app, to_add_of_add,
              add_monoid_hom.to_multiplicative_apply_apply, add_monoid_hom.coe_mul_left],
   rw [finset.mul_sum],
-  conv in (_ * (_ * _)) {rw [← mul_assoc, ← map_mul]},
-  exact fintype.sum_bijective _ (units.mul_left_bijective a) _ _ (λ x, rfl),
+  simp_rw [← mul_assoc, ← map_mul],
+  exact fintype.sum_bijective _ a.mul_left_bijective _ _ (λ x, rfl),
 end
 
 end gauss_sum_def
@@ -98,16 +98,8 @@ begin
                of_add_zero, monoid_hom.map_one, mul_one],
     exact hχ.sum_eq_zero.symm, },
   { -- case `b ≠ 0`
-    symmetry,
-    let lhs := λ c, χ c * ψ (of_add (b * (c - 1))),
-    let rhs := λ a, χ (a * b⁻¹) * ψ (of_add (a - b)),
-    have lr : ∀ x : R, lhs x = rhs (b * x) :=
-    begin
-      intro x,
-      simp only [lhs, rhs],
-      rw [mul_assoc, mul_comm x, ← mul_assoc, mul_inv_cancel hb, one_mul, mul_sub, mul_one],
-    end,
-    exact fintype.sum_bijective _ (mul_left_bijective₀ b hb) lhs rhs lr, },
+    refine (fintype.sum_bijective _ (mul_left_bijective₀ b hb) _ _ $ λ x, _).symm,
+    rw [mul_assoc, mul_comm x, ← mul_assoc, mul_inv_cancel hb, one_mul, mul_sub, mul_one] },
 end
 
 private
@@ -119,7 +111,7 @@ begin
     simp only [h, sub_self, mul_zero, of_add_zero, map_one, finset.sum_const, nat.smul_one_eq_coe],
     refl, },
   { -- case `b ≠ 0`
-    conv in (_ * _) {rw mul_comm},
+    simp_rw mul_comm,
     exact sum_eq_zero_of_is_nontrivial (hψ b h), },
 end
 
@@ -132,19 +124,13 @@ begin
   simp only [gauss_sum, inv_mul_shift, mul_shift, monoid_hom.coe_comp,
              function.comp_app, add_monoid_hom.to_multiplicative_apply_apply, finset.mul_sum,
              add_monoid_hom.coe_mul_left, neg_mul, one_mul, of_add_neg, of_add_to_add],
-  simp_rw [finset.sum_mul],
-  conv in (_ * _ * (_ * _)) { rw [mul_mul_mul_comm, inv_apply' χ, ← map_mul χ, ← map_mul ψ] },
-  let lhs : R → R' := λ b, ∑ (a : R), χ (a * b⁻¹) * ψ (of_add (a - b)),
-  let rhs : R → R' := λ b, ∑ (c : R), χ c * ψ (of_add (b * (c - 1))),
-  have h : ∑ (x y : R), χ (y * x⁻¹) * ψ ((of_add y) * (of_add x)⁻¹) = ∑ x, lhs x :=
-  by {simp_rw [lhs, sub_eq_add_neg], refl},
-  rw [h, @finset.sum_congr R' R finset.univ finset.univ lhs rhs _ rfl
-             (λ (b : R) (h : b ∈ finset.univ), (gauss_sum_mul_aux₁ hχ ψ) b)],
-  simp only [rhs],
+  simp_rw [finset.sum_mul, mul_mul_mul_comm, inv_apply' χ, ← map_mul χ, ← map_mul ψ],
+  convert_to ∑ y x, χ (x * y⁻¹) * ψ (of_add (x - y)) = _,
+  { simp_rw sub_eq_add_neg, refl },
+  simp_rw gauss_sum_mul_aux₁ hχ ψ,
   rw [finset.sum_comm],
   classical, -- to get `[decidable_eq R]` for `gauss_sum_mul_aux₂`
-  conv {to_lhs, congr, skip, funext, rw [← finset.mul_sum, gauss_sum_mul_aux₂ _ _ hψ],},
-  simp_rw [sub_eq_zero, mul_ite, mul_zero],
+  simp_rw [← finset.mul_sum, gauss_sum_mul_aux₂ _ _ hψ, sub_eq_zero, mul_ite, mul_zero],
   rw [finset.sum_ite_eq' finset.univ (1 : R)],
   simp only [finset.mem_univ, map_one, one_mul, if_true],
 end
@@ -155,11 +141,10 @@ lemma gauss_sum_sq  {χ : mul_char R R'} (hχ₁ : is_nontrivial χ) (hχ₂ : i
   {ψ : add_char R R'} (hψ : is_primitive ψ) :
   (gauss_sum χ ψ) ^ 2 = χ (-1) * fintype.card R :=
 begin
-  rw [pow_two],
-  nth_rewrite 1 ← gauss_sum_mul_shift _ _ (-1 : Rˣ),
-  rw [(by norm_num : ((-1 : Rˣ) : R) = -1), ← mul_assoc, mul_comm _ (χ (-1)), mul_assoc],
-  nth_rewrite 2 ← hχ₂.inv,
-  rw [← inv_mul_shift, gauss_sum_mul_gauss_sum_eq_card hχ₁ hψ],
+  rw [pow_two, ← gauss_sum_mul_gauss_sum_eq_card hχ₁ hψ, hχ₂.inv, mul_rotate'],
+  congr,
+  rw [mul_comm, ← gauss_sum_mul_shift _ _ (-1 : Rˣ), inv_mul_shift],
+  refl,
 end
 
 end gauss_sum_prod
@@ -191,13 +176,9 @@ is a unit in the source ring, the `p`th power of the Gauss sum of`χ` and `ψ` i
 lemma quad_gauss_sum_frob (hp : is_unit (p : R)) {χ : mul_char R R'} (hχ : is_quadratic χ)
   (ψ : add_char R R') :
   gauss_sum χ ψ ^ p = χ p * gauss_sum χ ψ :=
-begin
-  letI := @char_p.nontrivial_of_char_ne_one R' _ _ fp.1.ne_one hch,
-  have h : (1 : mul_char R R') p = 1 := by rw [← is_unit.unit_spec hp, one_apply_coe],
-  rw [gauss_sum_frob, pow_mul_shift, hχ.pow_char p, ← gauss_sum_mul_shift χ ψ hp.unit,
-      ← mul_assoc, is_unit.unit_spec, ← pow_two, ← pow_apply' _ (by norm_num : 0 < 2),
-      hχ.sq_eq_one, h, one_mul],
-end
+by rw [gauss_sum_frob, pow_mul_shift, hχ.pow_char p, ← gauss_sum_mul_shift χ ψ hp.unit,
+       ← mul_assoc, hp.unit_spec, ← pow_two, ← pow_apply' _ (by norm_num : 0 < 2),
+       hχ.sq_eq_one, ← hp.unit_spec, one_apply_coe, one_mul]
 
 /-- Similar to the above, but with `p^n` in place of `p` -/
 lemma quad_gauss_sum_frob_iter (n : ℕ) (hp : is_unit (p : R))
@@ -230,19 +211,13 @@ lemma char.card_pow_char_pow {χ : mul_char R R'} (hχ : is_quadratic χ) (ψ : 
   (hg : (gauss_sum χ ψ) ^ 2 = χ (-1) * fintype.card R) :
   (χ (-1) * fintype.card R) ^ (p ^ n / 2) = χ (p ^ n) :=
 begin
-  have h₀ : gauss_sum χ ψ ≠ 0 :=
-  begin
-    intro hf,
-    simp [hf] at hg,
-    have hh := or.resolve_left hg (is_unit.map χ is_unit_one.neg).ne_zero,
-    rw [← show ((fintype.card R : ℤ) : R') = fintype.card R, by norm_cast] at hh,
+  have : gauss_sum χ ψ ≠ 0,
+  { intro hf, rw [hf, zero_pow (by norm_num : 0 < 2), eq_comm, mul_eq_zero] at hg,
     exact not_is_unit_prime_of_dvd_card p
-            (int.coe_nat_dvd.mp ((char_p.int_cast_eq_zero_iff R' p (fintype.card R)).mp hh)) hp,
-  end,
-  have h₁ := quad_gauss_sum_frob_iter p n hp hχ ψ,
-  have h₂ := nat.odd_iff.mp (odd.pow (or.resolve_left (nat.prime.eq_two_or_odd' fp.1) hp')),
-  rw [← nat.div_add_mod (p ^ n) 2, h₂, pow_succ'] at h₁,
-  rw [← mul_right_cancel₀ h₀ h₁, pow_mul, hg],
+      ((char_p.cast_eq_zero_iff R' p _).mp $ hg.resolve_left (is_unit_one.neg.map χ).ne_zero) hp },
+  rw ← hg, apply mul_right_cancel₀ this,
+  rw [← quad_gauss_sum_frob_iter p n hp hχ ψ, ← pow_mul, mul_comm, ← pow_succ,
+      nat.two_mul_div_two_add_one_of_odd ((fp.1.eq_two_or_odd').resolve_left hp').pow],
 end
 
 /-- When `F` and `F'` are finite fields and `χ : F → F'` is a nontrivial quadratic character,
@@ -256,25 +231,16 @@ begin
   obtain ⟨n', hp', hc'⟩ := finite_field.card F' (ring_char F'),
   let ψ := primitive_char_finite_field F F' hch₁,
   let FF' := cyclotomic_field ψ.n F',
-  have hchar := -- `ring_char FF' = ring_char F'`
-    ring_char.eq_iff.mpr ((algebra.char_p_iff F' FF' (ring_char F')).mp (ring_char.char_p F')),
-  haveI : fact (ring_char FF').prime := by { rw ← hchar at hp', exact ⟨hp'⟩ },
-  let χ' := χ.ring_hom_comp (algebra_map F' FF'),
-  have hχ' : ∀ x : F, (algebra_map F' FF') (χ x) = χ' x := λ x, rfl,
-  have hχ₁' := hχ₁.comp (algebra_map F' FF').injective,
-  have hχ₂' := hχ₂.comp (algebra_map F' FF'),
-  have hpu : is_unit (ring_char FF' : F) :=
-  begin
-    rw [hchar],
-    haveI := invertible_of_ring_char_not_dvd
-              (λ hf, hch₁ ((nat.prime_dvd_prime_iff_eq hp hp').mp hf).symm),
-    exact is_unit_of_invertible (ring_char F' : F),
-  end,
-  apply_fun algebra_map F' FF' using (algebra_map F' FF').injective,
-  rw [map_pow, map_mul, hχ', hχ', map_nat_cast, hc', ← hchar,
-      char.card_pow_char_pow hχ₂' ψ.char (ring_char FF') n' hpu (ne_of_eq_of_ne hchar hch₂)
-        (gauss_sum_sq hχ₁' hχ₂' ψ.prim),
-      nat.cast_pow],
+  have hchar := -- `ring_char FF' = ring_char F'` -- use `algebra..ring_char_eq F' FF'`
+    (ring_char.eq_iff.mpr ((algebra.char_p_iff F' FF' (ring_char F')).mp (ring_char.char_p F'))).symm,
+  apply (algebra_map F' FF').injective,
+  rw [map_pow, map_mul, map_nat_cast, hc', hchar, nat.cast_pow],
+  simp only [← mul_char.ring_hom_comp_apply],
+  haveI := fact.mk hp',
+  haveI := fact.mk (hchar.subst hp'),
+  rw [ne, ← nat.prime_dvd_prime_iff_eq hp' hp, ← is_unit_iff_not_dvd_char, hchar] at hch₁,
+  exact char.card_pow_char_pow (hχ₂.comp _) ψ.char (ring_char FF') n' hch₁ (hchar ▸ hch₂)
+    (gauss_sum_sq (hχ₁.comp $ ring_hom.injective _) (hχ₂.comp _) ψ.prim),
 end
 
 end gauss_sum_values
@@ -301,102 +267,63 @@ lemma finite_field.two_pow_card {F : Type} [fintype F] [field F] (hF : ring_char
   (2 : F) ^ (fintype.card F / 2) = χ₈ (fintype.card F) :=
 begin
   have hp2 : ∀ (n : ℕ), (2 ^ n : F) ≠ 0 := λ n, pow_ne_zero n (ring.two_ne_zero hF),
-  have h4nz : (4 : F) ≠ 0 :=
-  by { have h := hp2 2, norm_num at h, },
-  have h8nz : ((8 : ℕ) : F) ≠ 0 :=
-  by { have h := hp2 3, norm_num at h, exact_mod_cast h, },
   obtain ⟨n, hp, hc⟩ := finite_field.card F (ring_char F),
 
   -- we work in `FF`, the eighth cyclotomic field extension of `F`
-  haveI := h8nz,
   let FF := (polynomial.cyclotomic 8 F).splitting_field,
-  letI  : polynomial.is_splitting_field F FF _ :=
-    polynomial.is_splitting_field.splitting_field (polynomial.cyclotomic 8 F),
   haveI : finite_dimensional F FF :=
     polynomial.is_splitting_field.finite_dimensional FF (polynomial.cyclotomic 8 F),
   haveI : fintype FF := finite_dimensional.fintype_of_fintype F FF,
-  have hchar := -- `ring_char FF = ring_char F`
-    ring_char.eq_iff.mpr ((algebra.char_p_iff F FF (ring_char F)).mp (ring_char.char_p F)),
-  have FFp : (ring_char FF).prime := by { rw hchar, exact hp },
-  have hFF := ne_of_eq_of_ne hchar hF, -- `ring_char FF ≠ 2`
-  have hu : is_unit (ring_char FF : zmod 8) :=
-  by exact_mod_cast units.is_unit (unit_of_coprime _
-       ((nat.prime.coprime_iff_not_dvd FFp).mpr $
-          λ hf, hFF $ (nat.prime_dvd_prime_iff_eq FFp nat.prime_two).mp
-                    $ nat.prime.dvd_of_dvd_pow FFp $ hf.trans (by norm_num : (8 ∣ 2 ^ 3)))),
+  have hchar := -- `ring_char FF = ring_char F` -- use `algebra.ring_char_eq F FF`
+    (ring_char.eq_iff.mpr ((algebra.char_p_iff F FF (ring_char F)).mp (ring_char.char_p F))).symm,
+  have FFp := hchar.subst hp,
+  haveI := fact.mk FFp,
+  have hFF := ne_of_eq_of_ne hchar.symm hF, -- `ring_char FF ≠ 2`
+  have hu : is_unit (ring_char FF : zmod 8),
+  { rw [is_unit_iff_not_dvd_char, ring_char_zmod_n],
+    rw [ne, ← nat.prime_dvd_prime_iff_eq FFp nat.prime_two] at hFF,
+    change ¬ _ ∣ 2 ^ 3,
+    exact mt FFp.dvd_of_dvd_pow hFF },
 
   -- there is a primitive additive character `ℤ/8ℤ → FF`, sending `a + 8ℤ ↦ τ^a`
   -- with a primitive eighth root of unity `τ`
-  let ψ₈ := primitive_zmod_char 8 F h8nz,
+  let ψ₈ := primitive_zmod_char 8 F (by convert hp2 3; norm_num),
   let τ : FF := ψ₈.char (of_add 1),
-  have τ_spec : τ ^ 4 = -1 :=
-  begin
-    change (zmod_char 8 _ (of_add 1)) ^ 4 = _,
-    simp only [zmod_char, monoid_hom.coe_mk, to_add_of_add],
-    haveI : ne_zero (((8 : pnat) : ℕ) : F) :=
-    by { change ne_zero ((8 : ℕ) : F), exact ne_zero_iff.mpr h8nz },
-    haveI : ne_zero (((8 : pnat) : ℕ) : FF) := ne_zero.of_no_zero_smul_divisors F _ 8,
-    change (is_cyclotomic_extension.zeta 8 F (cyclotomic_field 8 F) ^ _) ^ 4 = _,
-    haveI : fact (1 < 8) := ⟨by norm_num⟩,
-    rw [zmod.val_one, pow_one],
-    let hζ := is_cyclotomic_extension.zeta_spec 8 F (cyclotomic_field 8 F),
-    set ζ := is_cyclotomic_extension.zeta 8 F (cyclotomic_field 8 F),
-    have h8 : (ζ ^ 4) * (ζ ^ 4) = 1 := by { rw [← pow_add], exact hζ.pow_eq_one },
-    have h4 : ζ ^ 4 ≠ 1 := by { intro hf, have hf' := hζ.dvd_of_pow_eq_one _ hf, norm_num at hf' },
-    exact or.resolve_left (mul_self_eq_one_iff.mp h8) h4,
-  end,
-  have ψ₈_spec : ∀ (a : zmod 8), ψ₈.char (of_add a) = τ ^ a.val :=
-  begin
-    intro a,
-    nth_rewrite 0 [← zmod.nat_cast_zmod_val a],
-    rw [← nat.smul_one_eq_coe],
-    change ψ₈.char ((of_add 1) ^ a.val) = _,
-    rw [map_pow],
-  end,
+  have τ_spec : τ ^ 4 = -1,
+  { refine (sq_eq_one_iff.1 _).resolve_left _;
+    { simp only [τ, ← map_pow],
+      erw add_char.is_primitive.zmod_char_eq_one_iff 8 ψ₈.prim,
+      dec_trivial } },
 
   -- we consider `χ₈` as a multiplicative character `ℤ/8ℤ → FF`
-  let χ := χ₈.ring_hom_comp (algebra_map ℤ FF),
-  have χ_spec : ∀ m : zmod 8, χ m = χ₈ m :=
-    λ m, by rw [ring_hom_comp_apply, ring_hom.eq_int_cast],
-  have hχ : χ (-1) = 1 :=
-  by { rw [(dec_trivial : (-1 : zmod 8) = 7), χ_spec 7, χ₈_apply],
-       simp only [matrix.cons_vec_bit1_eq_alt1, matrix.cons_append, matrix.cons_vec_alt1,
-                  matrix.cons_val_one, matrix.head_cons, int.cast_one], },
-  have hq : is_quadratic χ := is_quadratic.comp is_quadratic_χ₈ (algebra_map ℤ FF),
+  let χ := χ₈.ring_hom_comp (int.cast_ring_hom FF),
+  have hχ : χ (-1) = 1 := norm_num.int_cast_one,
+  have hq : is_quadratic χ := is_quadratic_χ₈.comp _,
 
   -- we now show that the Gauss sum of `χ` and `ψ₈` has the relevant property
-  have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * fintype.card (zmod 8) :=
-  begin
-    have hs := fin.sum_univ_eight (λ (x : zmod 8), (χ₈ x : FF) * τ ^ x.val),
-    simp only at hs,
-    change ∑ (i : zmod 8), _ = _ at hs,
-    rw [hχ, one_mul, card, gauss_sum],
-    simp_rw [χ_spec, ψ₈_spec],
-    rw [hs],
-    simp only [χ₈_apply, matrix.cons_val_zero, int.cast_zero, zero_mul, matrix.cons_val_one,
-               matrix.head_cons, int.cast_one, one_mul, zero_add, matrix.cons_vec_bit0_eq_alt0,
-               matrix.cons_append, matrix.cons_vec_alt0, add_zero, matrix.cons_vec_bit1_eq_alt1,
-               matrix.cons_vec_alt1, int.cast_neg, neg_mul, ring_hom.eq_int_cast],
-    calc (τ ^ 1 + (- τ ^ 3) + (- τ ^ 5) + τ ^ 7) ^ 2
-          = 8 + (τ ^ 4 + 1) * (τ ^ 10 - 2 * τ ^ 8 - 2 * τ ^ 6 + 6 * τ ^ 4 + τ ^ 2 - 8) : by ring
-      ... = 8 + (-1 + 1) * _  : by rw τ_spec
-      ... = 8                 : by ring
-      ... = (8 : ℕ)           : by norm_cast,
-  end,
+  have hg : gauss_sum χ ψ₈.char ^ 2 = χ (-1) * fintype.card (zmod 8),
+  { rw [hχ, one_mul, card, gauss_sum],
+    convert ← congr_arg (^ 2) (fin.sum_univ_eight $ λ x, (χ₈ x : FF) * τ ^ x.val),
+    { ext, congr, apply pow_one },
+    convert_to (0 + 1 * τ ^ 1 + 0 + (-1) * τ ^ 3 + 0 + (-1) * τ ^ 5 + 0 + 1 * τ ^ 7) ^ 2 = _,
+    { simp only [χ₈_apply, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
+        matrix.cons_vec_bit0_eq_alt0, matrix.cons_vec_bit1_eq_alt1, matrix.cons_append,
+        matrix.cons_vec_alt0, matrix.cons_vec_alt1, int.cast_zero, int.cast_one, int.cast_neg,
+        zero_mul], refl },
+    convert_to 8 + (τ ^ 4 + 1) * (τ ^ 10 - 2 * τ ^ 8 - 2 * τ ^ 6 + 6 * τ ^ 4 + τ ^ 2 - 8) = _,
+    { ring }, { rw τ_spec, norm_num } },
 
   -- this allows us to apply `card_pow_char_pow` to our situation
-  haveI : fact _ := ⟨FFp⟩,
   have h := char.card_pow_char_pow hq ψ₈.char (ring_char FF) n hu hFF hg,
-  rw [card, hchar, hχ, one_mul, ← hc, ← nat.cast_pow (ring_char F), ← hc, χ_spec] at h,
+  rw [card, ← hchar, hχ, one_mul, ← hc, ← nat.cast_pow (ring_char F), ← hc] at h,
 
   -- finally, we change `2` to `8` on the left hand side
-  have h28 : (2 : F) ^ (fintype.card F / 2) = 8 ^ (fintype.card F / 2) :=
-  by rw [(by norm_num : (8 : F) = 4 * 2), mul_pow,
-         (finite_field.is_square_iff hF h4nz).mp ⟨2, by norm_num⟩, one_mul],
-  rw [h28],
-  apply_fun algebra_map F FF using (algebra_map F FF).injective,
+  convert_to (8 : F) ^ (fintype.card F / 2) = _,
+  { rw [(by norm_num : (8 : F) = 2 ^ 2 * 2), mul_pow,
+      (finite_field.is_square_iff hF $ hp2 2).mp ⟨2, pow_two 2⟩, one_mul] },
+  apply (algebra_map F FF).injective,
   simp only [map_pow, map_bit0, map_one, ring_hom.map_int_cast],
-  exact_mod_cast h,
+  convert h, norm_num,
 end
 
 end gauss_sum_two

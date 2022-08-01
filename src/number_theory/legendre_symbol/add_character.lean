@@ -27,7 +27,7 @@ if `mul_shift ψ a` is trivial only when `a = 0`.
 
 We show that when `ψ` is primitive, then the map `a ↦ mul_shift ψ a` is injective
 (`add_char.to_mul_shift_inj_of_is_primitive`) and that `ψ` is primitive when `R` is a field
-and `ψ` is nontrivial (`add_char.is_primitive_of_is_nontrivial`).
+and `ψ` is nontrivial (`add_char.is_nontrivial.is_primitive`).
 
 We also show that there are primitive additive characters on `R` (with suitable
 target `R'`) when `R` is a field or `R = zmod n` (`add_char.primitive_char_finite_field`

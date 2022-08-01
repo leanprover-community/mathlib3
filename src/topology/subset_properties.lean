@@ -1018,6 +1018,40 @@ instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space
 have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
 locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h₁.prod h₂
 
+section pi
+
+variables [Π i, topological_space (π i)] [∀ i, locally_compact_space (π i)]
+
+/--In general it suffices that all but finitely many of the spaces are compact,
+  but that's not straightforward to state and use. -/
+instance locally_compact_space.pi_finite [finite ι] : locally_compact_space (Π i, π i) :=
+⟨λ t n hn, begin
+  rw [nhds_pi, filter.mem_pi] at hn,
+  obtain ⟨s, hs, n', hn', hsub⟩ := hn,
+  choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
+  refine ⟨(set.univ : set ι).pi n'', _, subset_trans (λ _ h, _) hsub, is_compact_univ_pi hc⟩,
+  { exact (set_pi_mem_nhds_iff (@set.finite_univ ι _) _).mpr (λ i hi, hn'' i), },
+  { exact λ i hi, hsub' i (h i trivial), },
+end⟩
+
+/-- For spaces that are not Hausdorff. -/
+instance locally_compact_space.pi [∀ i, compact_space (π i)] : locally_compact_space (Π i, π i) :=
+⟨λ t n hn, begin
+  rw [nhds_pi, filter.mem_pi] at hn,
+  obtain ⟨s, hs, n', hn', hsub⟩ := hn,
+  choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
+  refine ⟨s.pi n'', _, subset_trans (λ _, _) hsub, _⟩,
+  { exact (set_pi_mem_nhds_iff hs _).mpr (λ i _, hn'' i), },
+  { exact forall₂_imp (λ i hi hi', hsub' i hi'), },
+  { rw ← set.univ_pi_ite,
+    refine is_compact_univ_pi (λ i, _),
+    by_cases i ∈ s,
+    { rw if_pos h, exact hc i, },
+    { rw if_neg h, exact compact_space.compact_univ, } },
+end⟩
+
+end pi
+
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}

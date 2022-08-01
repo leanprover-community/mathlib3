@@ -156,6 +156,9 @@ def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r 
 ⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl⟩,
   λ a b, by cases b; [exact λ _, ⟨_, rfl⟩, exact false.elim ∘ sum.lex_inr_inl]⟩
 
+@[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
+  (a) : le_add r s a = sum.inl a := rfl
+
 /-- `sum.inl` as an initial segment between `sum.lift_rel` relations. -/
 def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lift_rel r s :=
 ⟨rel_embedding.sum_lift_rel_inl r s,

@@ -2021,10 +2021,6 @@ by exact ideal.quotient.lift (J.map (ideal.quotient.mk I)) (quot_left_to_quot_su
 def quot_quot_mk : R →+* ((R ⧸ I) ⧸ J.map I^.quotient.mk) :=
 by exact ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
-@[simp] lemma quot_quot_mk_apply (x : R) :
-  quot_quot_mk I J x = (ideal.quotient.mk (J.map I^.quotient.mk)) (ideal.quotient.mk I x) :=
-rfl
-
 /-- The kernel of `quot_quot_mk` -/
 lemma ker_quot_quot_mk : (quot_quot_mk I J).ker = I ⊔ J :=
 by rw [ring_hom.ker_eq_comap_bot, quot_quot_mk, ← comap_comap, ← ring_hom.ker, mk_ker,

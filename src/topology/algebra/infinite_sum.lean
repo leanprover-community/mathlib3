@@ -839,7 +839,8 @@ end
 
 /-- If a sequence `ℕ → α` has a sum at `x : α`, then so does an extension of it,
 inserting a zero term at the beginning. -/
-lemma has_sum.shift_pred {f : ℕ → α} {x : α} (h : has_sum f x) :
+lemma has_sum.shift_pred {α : Type*} [add_comm_monoid α] [topological_space α]
+  {f : ℕ → α} {x : α} (h : has_sum f x) :
   has_sum (λ n, if n = 0 then 0 else f (n - 1)) x :=
 begin
   rw has_sum at h ⊢,
@@ -873,7 +874,8 @@ end
 
 /-- If a sequence `ℕ → α` has a sum at `x : α`, then so does an extension of it,
 inserting `k` zero terms at the beginning. -/
-lemma has_sum.shift_tsub {f : ℕ → α} {x : α} (h : has_sum f x) (k : ℕ) :
+lemma has_sum.shift_tsub {α : Type*} [add_comm_monoid α] [topological_space α]
+  {f : ℕ → α} {x : α} (h : has_sum f x) (k : ℕ) :
   has_sum (λ n, if n < k then 0 else f (n - k)) x :=
 begin
   induction k with k IH,

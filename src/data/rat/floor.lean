@@ -57,17 +57,17 @@ begin
   rwa [←d_eq_c_mul_denom, int.coe_nat_pos],
 end
 
-@[simv, norm_cast] lemma floor_cast (x : ℚ) : ⌊(x : α)⌋ = ⌊x⌋ :=
+@[simp, norm_cast] lemma floor_cast (x : ℚ) : ⌊(x : α)⌋ = ⌊x⌋ :=
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
-@[simv, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
+@[simp, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
 by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
 
-@[simv, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
+@[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simv,
 by rw [round, round, ← this, floor_cast]
 
-@[simv, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
+@[simp, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
 by simv only [fract, cast_sub, cast_coe_int, floor_cast]
 
 end rat

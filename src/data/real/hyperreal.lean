@@ -23,35 +23,35 @@ notation `ℝ*` := hyperreal
 
 noncomputable instance : has_coe_t ℝ ℝ* := ⟨λ x, (↑x : germ _ _)⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y :=
 germ.const_inj
 
-@[simv, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
-@[simv, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
+@[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
+@[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
 
-@[simv, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_inv (x : ℝ) : ↑(x⁻¹) = (x⁻¹ : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_neg (x : ℝ) : ↑(-x) = (-x : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_add (x y : ℝ) : ↑(x + y) = (x + y : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_bit0 (x : ℝ) : ↑(bit0 x) = (bit0 x : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_bit1 (x : ℝ) : ↑(bit1 x) = (bit1 x : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_mul (x y : ℝ) : ↑(x * y) = (x * y : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_div (x y : ℝ) : ↑(x / y) = (x / y : ℝ*) := rfl
-@[simv, norm_cast] lemma coe_sub (x y : ℝ) : ↑(x - y) = (x - y : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_inv (x : ℝ) : ↑(x⁻¹) = (x⁻¹ : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_neg (x : ℝ) : ↑(-x) = (-x : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_add (x y : ℝ) : ↑(x + y) = (x + y : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_bit0 (x : ℝ) : ↑(bit0 x) = (bit0 x : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_bit1 (x : ℝ) : ↑(bit1 x) = (bit1 x : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_mul (x y : ℝ) : ↑(x * y) = (x * y : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_div (x y : ℝ) : ↑(x / y) = (x / y : ℝ*) := rfl
+@[simp, norm_cast] lemma coe_sub (x y : ℝ) : ↑(x - y) = (x - y : ℝ*) := rfl
 
-@[simv, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt
-@[simv, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
+@[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt
+@[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
-@[simv, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simv, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
+@[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
 begin
   convert const_abs x,
   apply linear_order.to_lattice_eq_filter_germ_lattice,
 end
-@[simv, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
-@[simv, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
+@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
+@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
 
 /-- Construct a hyperreal number from a sequence of real numbers. -/
 noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (hyperfilter ℕ : filter ℕ) ℝ)

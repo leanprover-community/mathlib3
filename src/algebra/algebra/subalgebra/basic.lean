@@ -271,9 +271,9 @@ protected lemma coe_neg {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebr
   {S : subalgebra R A} (x : S) : (↑(-x) : A) = -↑x := rfl
 protected lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
-@[simv, norm_cast] lemma coe_smul [semiring R'] [has_smul R' R] [module R' A]
+@[simp, norm_cast] lemma coe_smul [semiring R'] [has_smul R' R] [module R' A]
   [is_scalar_tower R' R A] (r : R') (x : S) : (↑(r • x) : A) = r • ↑x := rfl
-@[simv, norm_cast] lemma coe_algebra_map [comm_semiring R'] [has_smul R' R] [algebra R' A]
+@[simp, norm_cast] lemma coe_algebra_map [comm_semiring R'] [has_smul R' R] [algebra R' A]
   [is_scalar_tower R' R A] (r : R') :
   ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
@@ -357,7 +357,7 @@ lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (map f) (comap f) :=
   x ∈ S.comap f ↔ f x ∈ S :=
 iff.rfl
 
-@[simv, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
+@[simp, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
   (S.comap f : set A) = f ⁻¹' (S : set B) :=
 rfl
 
@@ -587,7 +587,7 @@ lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T)
 lemma map_sup (f : A →ₐ[R] B) (S T : subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (subalgebra.gc_map_comap f).l_sup
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
 
 @[simp]
@@ -599,7 +599,7 @@ lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x �
 @[simp] lemma inf_to_subsemiring (S T : subalgebra R A) :
   (S ⊓ T).to_subsemiring = S.to_subsemiring ⊓ T.to_subsemiring := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := Inf_image
 
 lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
@@ -613,7 +613,7 @@ set_like.coe_injective $ by simv
   (Inf S).to_subsemiring = Inf (subalgebra.to_subsemiring '' S) :=
 set_like.coe_injective $ by simv
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → subalgebra R A} : (↑(⨅ i, S i) : set A) = ⋂ i, S i :=
 by simv [infi]
 
@@ -1049,7 +1049,7 @@ def centralizer (s : set A) : subalgebra R A :=
 { algebra_map_mem' := set.algebra_map_mem_centralizer,
   ..subsemiring.centralizer s, }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_centralizer (s : set A) : (centralizer R s : set A) = s.centralizer := rfl
 
 lemma mem_centralizer_iff {s : set A} {z : A} :

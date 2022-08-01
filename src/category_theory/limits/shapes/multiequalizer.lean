@@ -173,11 +173,11 @@ def fst_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.fs
 noncomputable
 def snd_pi_map : ∏ I.left ⟶ ∏ I.right := pi.lift (λ b, pi.π I.left (I.snd_to b) ≫ I.snd b)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma fst_pi_map_π (b) : I.fst_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.fst b :=
 by simv [fst_pi_map]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma snd_pi_map_π (b) : I.snd_pi_map ≫ pi.π I.right b = pi.π I.left _ ≫ I.snd b :=
 by simv [snd_pi_map]
 
@@ -232,11 +232,11 @@ def fst_sigma_map : ∐ I.left ⟶ ∐ I.right := sigma.desc (λ b, I.fst b ≫ 
 noncomputable
 def snd_sigma_map : ∐ I.left ⟶ ∐ I.right := sigma.desc (λ b, I.snd b ≫ sigma.ι _ (I.snd_from b))
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_fst_sigma_map (b) : sigma.ι I.left b ≫ I.fst_sigma_map = I.fst b ≫ sigma.ι I.right _ :=
 by simv [fst_sigma_map]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_snd_sigma_map (b) : sigma.ι I.left b ≫ I.snd_sigma_map = I.snd b ≫ sigma.ι I.right _ :=
 by simv [snd_sigma_map]
 
@@ -276,7 +276,7 @@ by { rw ← K.w (walking_multicospan.hom.fst b), refl }
   K.π.app (walking_multicospan.right b) =  K.ι (I.snd_to b) ≫ I.snd b :=
 by { rw ← K.w (walking_multicospan.hom.snd b), refl }
 
-@[simv, reassoc] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
+@[simp, reassoc] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
   f.hom ≫ K₂.ι j = K₁.ι j := f.w (walking_multicospan.left j)
 
 /-- Construct a multifork using a collection `ι` of morphisms. -/
@@ -298,7 +298,7 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
       { dsimp, rw category.id_comp, apply w }
     end } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma condition (b) :
   K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b :=
 by rw [←app_right_eq_ι_comp_fst, ←app_right_eq_ι_comp_snd]
@@ -329,7 +329,7 @@ def is_limit.mk
 
 variables [has_product I.left] [has_product I.right]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pi_condition : pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map :=
 by { ext, discrete_cases, simv, }
 
@@ -463,7 +463,7 @@ def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
       { dsimp, rw category.comp_id, apply (w _).symm }
     end } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma condition (a) : I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) :=
 by rw [←K.snd_app_right, ←K.fst_app_right]
 
@@ -492,7 +492,7 @@ def is_colimit.mk
 
 variables [has_coproduct I.left] [has_coproduct I.right]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma sigma_condition :
   I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π :=
 by { ext, discrete_cases, simv, }
@@ -636,7 +636,7 @@ abbreviation lift (W : C) (k : Π a, W ⟶ I.left a)
   W ⟶ multiequalizer I :=
 limit.lift _ (multifork.of_ι I _ k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_ι (W : C) (k : Π a, W ⟶ I.left a)
   (h : ∀ b, k (I.fst_to b) ≫ I.fst b = k (I.snd_to b) ≫ I.snd b) (a) :
   multiequalizer.lift I _ k h ≫ multiequalizer.ι I a = k _ :=
@@ -670,7 +670,7 @@ limit.iso_limit_cone ⟨_, is_limit.of_preserves_cone_terminal
 def ι_pi : multiequalizer I ⟶ ∏ I.left :=
   (iso_equalizer I).hom ≫ equalizer.ι I.fst_pi_map I.snd_pi_map
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_pi_π (a) : ι_pi I ≫ pi.π I.left a = ι I a :=
 by { rw [ι_pi, category.assoc, ← iso.eq_inv_comp, iso_equalizer], simpa }
 
@@ -711,7 +711,7 @@ abbreviation desc (W : C) (k : Π b, I.right b ⟶ W)
   multicoequalizer I ⟶ W :=
 colimit.desc _ (multicofork.of_π I _ k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π_desc (W : C) (k : Π b, I.right b ⟶ W)
   (h : ∀ a, I.fst a ≫  k (I.fst_from a) = I.snd a ≫ k (I.snd_from a)) (b) :
   multicoequalizer.π I b ≫ multicoequalizer.desc I _ k h = k _ :=
@@ -744,7 +744,7 @@ colimit.iso_colimit_cocone ⟨_, is_colimit.of_preserves_cocone_initial
 def sigma_π : ∐ I.right ⟶ multicoequalizer I :=
   coequalizer.π I.fst_sigma_map I.snd_sigma_map ≫ (iso_coequalizer I).inv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_sigma_π (b) : sigma.ι I.right b ≫ sigma_π I = π I b :=
 by { rw [sigma_π, ← category.assoc, iso.comp_inv_eq, iso_coequalizer], simpa }
 

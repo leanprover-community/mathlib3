@@ -144,13 +144,13 @@ instance : inhabited (α →₀ M) := ⟨0⟩
 @[simp] lemma mem_support_iff {f : α →₀ M} : ∀{a:α}, a ∈ f.support ↔ f a ≠ 0 :=
 f.mem_support_to_fun
 
-@[simv, norm_cast] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
+@[simp, norm_cast] lemma fun_support_eq (f : α →₀ M) : function.support f = f.support :=
 set.ext $ λ x, mem_support_iff.symm
 
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-@[simv, norm_cast] lemma coe_eq_zero {f : α →₀ M} : (f : α → M) = 0 ↔ f = 0 :=
+@[simp, norm_cast] lemma coe_eq_zero {f : α →₀ M} : (f : α → M) = 0 ↔ f = 0 :=
 by rw [← coe_zero, coe_fn_inj]
 
 lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
@@ -259,7 +259,7 @@ lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
 
 lemma single_apply_mem (x) : single a b x ∈ ({0, b} : set M) :=
-by rcases em (a = x) with (rfl|hx); [simv, simv [single_eq_of_ne hx]]
+by rcases em (a = x) with (rfl|hx); [simp, simv [single_eq_of_ne hx]]
 
 lemma range_single_subset : set.range (single a b) ⊆ {0, b} :=
 set.range_subset_iff.2 single_apply_mem
@@ -802,7 +802,7 @@ lemma prod_fintype [fintype α] (f : α →₀ M) (g : α → M → N) (h : ∀ 
   f.prod g = ∏ i, g i (f i) :=
 f.prod_of_support_subset (subset_univ _) g (λ x _, h x)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_single_index {a : α} {b : M} {h : α → M → N} (h_zero : h a 0 = 1) :
   (single a b).prod h = h a b :=
 calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
@@ -816,7 +816,7 @@ lemma prod_map_range_index {f : M → M'} {hf : f 0 = 0} {g : α →₀ M} {h : 
 finset.prod_subset support_map_range $ λ _ _ H,
   by rw [not_mem_support_iff.1 H, h0]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_zero_index {h : α → M → N} : (0 : α →₀ M).prod h = 1 := rfl
 
 @[to_additive]
@@ -824,7 +824,7 @@ lemma prod_comm (f : α →₀ M) (g : β →₀ M') (h : α → M → β → M'
   f.prod (λ x v, g.prod (λ x' v', h x v x' v')) = g.prod (λ x' v', f.prod (λ x v, h x v x' v')) :=
 finset.prod_comm
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_ite_eq [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
   f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
@@ -835,7 +835,7 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 by { convert f.sum_ite_eq a (λ x, id), simv [ite_eq_right_iff.2 eq.symm] }
 
 /-- A restatement of `prod_ite_eq` with the equality test reversed. -/
-@[simv, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
+@[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
 lemma prod_ite_eq' [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
@@ -1145,7 +1145,7 @@ lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
   ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
 monoid_hom.coe_finset_prod _ _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
   (f : α →₀ β) (g : α → β → N →* P) (x : N) :
   f.prod g x = f.prod (λ i fi, g i fi x) :=
@@ -1276,12 +1276,12 @@ end
   f.sum (λa b, (0 : N)) = 0 :=
 finset.sum_const_zero
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_mul  [has_zero M] [comm_monoid N] {f : α →₀ M} {h₁ h₂ : α → M → N} :
   f.prod (λa b, h₁ a b * h₂ a b) = f.prod h₁ * f.prod h₂ :=
 finset.prod_mul_distrib
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
   {h : α → M → G} : f.prod (λa b, (h a b)⁻¹) = (f.prod h)⁻¹ :=
 (map_prod ((monoid_hom.id G)⁻¹) _ _).symm
@@ -2110,11 +2110,11 @@ begin
   rw [filter_apply_pos _ _ hx.2]
 end
 
-@[simv, to_additive] lemma prod_filter_mul_prod_filter_not [comm_monoid N] (g : α → M → N) :
+@[simp, to_additive] lemma prod_filter_mul_prod_filter_not [comm_monoid N] (g : α → M → N) :
   (f.filter p).prod g * (f.filter (λ a, ¬ p a)).prod g = f.prod g :=
 by simp_rw [prod_filter_index, support_filter, prod_filter_mul_prod_filter_not, finsupp.prod]
 
-@[simv, to_additive] lemma prod_div_prod_filter [comm_group G] (g : α → M → G) :
+@[simp, to_additive] lemma prod_div_prod_filter [comm_group G] (g : α → M → G) :
   f.prod g / (f.filter p).prod g = (f.filter (λ a, ¬p a)).prod g :=
 div_eq_of_eq_mul' (prod_filter_mul_prod_filter_not _ _ _).symm
 
@@ -2862,11 +2862,11 @@ variables [has_zero M] (f : α →₀ M)
 
 namespace nat
 
-@[simv, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_semiring R] (g : α → M → ℕ) :
   (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
 nat.cast_prod _ _
 
-@[simv, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_semiring R] (g : α → M → ℕ) :
   (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
 nat.cast_sum _ _
 
@@ -2874,11 +2874,11 @@ end nat
 
 namespace int
 
-@[simv, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
+@[simp, norm_cast] lemma cast_finsupp_prod [comm_ring R] (g : α → M → ℤ) :
   (↑(f.prod g) : R) = f.prod (λ a b, ↑(g a b)) :=
 int.cast_prod _ _
 
-@[simv, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
+@[simp, norm_cast] lemma cast_finsupp_sum [comm_ring R] (g : α → M → ℤ) :
   (↑(f.sum g) : R) = f.sum (λ a b, ↑(g a b)) :=
 int.cast_sum _ _
 
@@ -2886,11 +2886,11 @@ end int
 
 namespace rat
 
-@[simv, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
   (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
 cast_sum _ _
 
-@[simv, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
   (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
 cast_prod _ _
 

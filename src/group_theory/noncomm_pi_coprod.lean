@@ -82,7 +82,7 @@ variable {hcomm}
 
 include hdec
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma noncomm_pi_coprod_mul_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (pi.mul_single i y) = ϕ i y :=
 begin
@@ -241,7 +241,7 @@ variable {hcomm}
 
 include hdec
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma noncomm_pi_coprod_mul_single (i : ι) (y : H i) :
   noncomm_pi_coprod hcomm (pi.mul_single i y) = y :=
 by apply monoid_hom.noncomm_pi_coprod_mul_single

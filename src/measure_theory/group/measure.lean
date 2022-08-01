@@ -164,7 +164,7 @@ variables [has_measurable_mul G]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
-@[simv, to_additive "We shorten this from `measure_preimage_add_left`, since left invariant is the
+@[simp, to_additive "We shorten this from `measure_preimage_add_left`, since left invariant is the
 preferred option for measures in this formalization."]
 lemma measure_preimage_mul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
   μ ((λ h, g * h) ⁻¹' A) = μ A :=
@@ -172,7 +172,7 @@ calc μ ((λ h, g * h) ⁻¹' A) = map (λ h, g * h) μ A :
   ((measurable_equiv.mul_left g).map_apply A).symm
 ... = μ A : by rw map_mul_left_eq_self μ g
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G) (A : set G) :
   μ ((λ h, h * g) ⁻¹' A) = μ A :=
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
@@ -217,11 +217,11 @@ section inv
 
 variables [has_inv G]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_eq_self (μ : measure G) [is_inv_invariant μ] : μ.inv = μ :=
 is_inv_invariant.inv_eq_self
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_inv_eq_self (μ : measure G) [is_inv_invariant μ] : map has_inv.inv μ = μ :=
 is_inv_invariant.inv_eq_self
 
@@ -231,15 +231,15 @@ section has_involutive_inv
 
 variables [has_involutive_inv G] [has_measurable_inv G]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
 (measurable_equiv.inv G).map_apply s
 
-@[simv, to_additive]
+@[simp, to_additive]
 protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
 (measurable_equiv.inv G).map_symm_map
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma measure_inv (μ : measure G) [is_inv_invariant μ] (A : set G) : μ A⁻¹ = μ A :=
 by rw [← inv_apply, inv_eq_self]
 
@@ -454,7 +454,7 @@ section
 
 variables [group G] [topological_space G] (μ : measure G) [is_haar_measure μ]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma haar_singleton [topological_group G] [borel_space G] (g : G) :
   μ {g} = μ {(1 : G)} :=
 begin

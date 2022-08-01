@@ -35,28 +35,28 @@ variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M
 
 @[to_additive prod.has_vadd] instance : has_smul M (α × β) := ⟨λa p, (a • p.1, a • p.2)⟩
 
-@[simv, to_additive] theorem smul_fst : (a • x).1 = a • x.1 := rfl
-@[simv, to_additive] theorem smul_snd : (a • x).2 = a • x.2 := rfl
-@[simv, to_additive] theorem smul_mk (a : M) (b : α) (c : β) : a • (b, c) = (a • b, a • c) := rfl
+@[simp, to_additive] theorem smul_fst : (a • x).1 = a • x.1 := rfl
+@[simp, to_additive] theorem smul_snd : (a • x).2 = a • x.2 := rfl
+@[simp, to_additive] theorem smul_mk (a : M) (b : α) (c : β) : a • (b, c) = (a • b, a • c) := rfl
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
-@[simv, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
+@[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
 
 variables [has_pow α E] [has_pow β E]
 @[to_additive has_smul] instance has_pow : has_pow (α × β) E :=
 { pow := λ p c, (p.1 ^ c, p.2 ^ c) }
-@[simv, to_additive smul_snd, to_additive_reorder 6]
+@[simp, to_additive smul_snd, to_additive_reorder 6]
 lemma pow_fst (p : α × β) (c : E) : (p ^ c).fst = p.fst ^ c := rfl
-@[simv, to_additive smul_snd, to_additive_reorder 6]
+@[simp, to_additive smul_snd, to_additive_reorder 6]
 lemma pow_snd (p : α × β) (c : E) : (p ^ c).snd = p.snd ^ c := rfl
 /- Note that the `c` arguments to this lemmas cannot be in the more natural right-most positions due
 to limitations in `to_additive` and `to_additive_reorder`, which will silently fail to reorder more
 than two adjacent arguments -/
-@[simv, to_additive smul_mk, to_additive_reorder 6]
+@[simp, to_additive smul_mk, to_additive_reorder 6]
 lemma pow_mk (c : E) (a : α) (b : β) : (prod.mk a b) ^ c = prod.mk (a ^ c) (b ^ c) := rfl
 @[to_additive smul_def, to_additive_reorder 6]
 lemma pow_def (p : α × β) (c : E) : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
-@[simv, to_additive smul_swap, to_additive_reorder 6]
+@[simp, to_additive smul_swap, to_additive_reorder 6]
 lemma pow_swap (p : α × β) (c : E) : (p ^ c).swap = p.swap ^ c := rfl
 
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :

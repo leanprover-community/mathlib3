@@ -172,7 +172,7 @@ section comm_ring
 
 variables [comm_ring K] [algebra R K] [is_fraction_ring R K] [algebra A K] [is_fraction_ring A K]
 
-@[simv, mono]
+@[simp, mono]
 lemma coe_submodule_le_coe_submodule
   {I J : ideal R} : coe_submodule K I ≤ coe_submodule K J ↔ I ≤ J :=
 is_localization.coe_submodule_le_coe_submodule le_rfl

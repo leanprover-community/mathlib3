@@ -180,14 +180,14 @@ namespace splitting
 section has_zero_morphisms
 variables [has_zero_morphisms 𝒜] [has_binary_biproducts 𝒜]
 
-attribute [simv, reassoc] comp_iso_eq_inl iso_comp_snd_eq
+attribute [simp, reassoc] comp_iso_eq_inl iso_comp_snd_eq
 
 variables (h : splitting f g)
 
-@[simv, reassoc] lemma inl_comp_iso_eq : biprod.inl ≫ h.iso.inv = f :=
+@[simp, reassoc] lemma inl_comp_iso_eq : biprod.inl ≫ h.iso.inv = f :=
 by rw [iso.comp_inv_eq, h.comp_iso_eq_inl]
 
-@[simv, reassoc] lemma iso_comp_eq_snd : h.iso.inv ≫ g = biprod.snd :=
+@[simp, reassoc] lemma iso_comp_eq_snd : h.iso.inv ≫ g = biprod.snd :=
 by rw [iso.inv_comp_eq, h.iso_comp_snd_eq]
 
 /-- If `h` is a splitting of `A -f⟶ B -g⟶ C`,
@@ -198,11 +198,11 @@ def _root_.category_theory.splitting.section : C ⟶ B := biprod.inr ≫ h.iso.i
 then `h.retraction : B ⟶ A` is the morphism satisfying `f ≫ h.retraction = 𝟙 A`. -/
 def retraction : B ⟶ A := h.iso.hom ≫ biprod.fst
 
-@[simv, reassoc] lemma section_π : h.section ≫ g = 𝟙 C := by { delta splitting.section, simv }
+@[simp, reassoc] lemma section_π : h.section ≫ g = 𝟙 C := by { delta splitting.section, simv }
 
-@[simv, reassoc] lemma ι_retraction : f ≫ h.retraction = 𝟙 A := by { delta retraction, simv }
+@[simp, reassoc] lemma ι_retraction : f ≫ h.retraction = 𝟙 A := by { delta retraction, simv }
 
-@[simv, reassoc] lemma section_retraction : h.section ≫ h.retraction = 0 :=
+@[simp, reassoc] lemma section_retraction : h.section ≫ h.retraction = 0 :=
 by { delta splitting.section retraction, simv }
 
 /-- The retraction in a splitting is a split mono. -/
@@ -211,9 +211,9 @@ protected def split_mono : split_mono f := ⟨h.retraction, by simv⟩
 /-- The section in a splitting is a split epi. -/
 protected def split_epi : split_epi g := ⟨h.section, by simv⟩
 
-@[simv, reassoc] lemma inr_iso_inv : biprod.inr ≫ h.iso.inv = h.section := rfl
+@[simp, reassoc] lemma inr_iso_inv : biprod.inr ≫ h.iso.inv = h.section := rfl
 
-@[simv, reassoc] lemma iso_hom_fst : h.iso.hom ≫ biprod.fst = h.retraction := rfl
+@[simp, reassoc] lemma iso_hom_fst : h.iso.hom ≫ biprod.fst = h.retraction := rfl
 
 /-- A short exact sequence of the form `X -f⟶ Y -0⟶ Z` where `f` is an iso and `Z` is zero
 has a splitting. -/

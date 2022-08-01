@@ -99,7 +99,7 @@ function.injective.of_comp (by rwa comp_mul_left a b)
 
 /--  An element is left-regular if and only if multiplying it on the left by a left-regular element
 is left-regular. -/
-@[simv, to_additive "An element is add-left-regular if and only if adding to it on the left a
+@[simp, to_additive "An element is add-left-regular if and only if adding to it on the left a
 add-left-regular element is add-left-regular."]
 lemma mul_is_left_regular_iff (b : R) (ha : is_left_regular a) :
   is_left_regular (a * b) ↔ is_left_regular b :=
@@ -119,7 +119,7 @@ end
 
 /--  An element is right-regular if and only if multiplying it on the right with a right-regular
 element is right-regular. -/
-@[simv, to_additive "An element is add-right-regular if and only if adding it on the right to a
+@[simp, to_additive "An element is add-right-regular if and only if adding it on the right to a
 add-right-regular element is add-right-regular."]
 lemma mul_is_right_regular_iff (b : R) (ha : is_right_regular a) :
   is_right_regular (b * a) ↔ is_right_regular b :=

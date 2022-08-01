@@ -199,7 +199,7 @@ instance {β : Type*} [partial_order β] : partial_order (α →o β) :=
 
 lemma le_def {f g : α →o β} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
-@[simv, norm_cast] lemma coe_le_coe {f g : α →o β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe {f g : α →o β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
 
 @[simp] lemma mk_le_mk {f g : α → β} {hf hg} : mk f hf ≤ mk g hg ↔ f ≤ g := iff.rfl
 

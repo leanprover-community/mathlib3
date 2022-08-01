@@ -1415,17 +1415,17 @@ have ∀i₁ : ι, f.sum (λ (i : ι₁) (b : β₁ i), (g i b) i₁) ≠ 0 →
   ⟨i, mem_support_iff.1 hi, ne⟩,
 by simpa [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply] using this
 
-@[simv, to_additive] lemma prod_one [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+@[simp, to_additive] lemma prod_one [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {f : Π₀ i, β i} :
   f.prod (λi b, (1 : γ)) = 1 :=
 finset.prod_const_one
 
-@[simv, to_additive] lemma prod_mul [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+@[simp, to_additive] lemma prod_mul [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {f : Π₀ i, β i} {h₁ h₂ : Π i, β i → γ} :
   f.prod (λi b, h₁ i b * h₂ i b) = f.prod h₁ * f.prod h₂ :=
 finset.prod_mul_distrib
 
-@[simv, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+@[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
 ((inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
@@ -1464,7 +1464,7 @@ lemma _root_.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidab
   (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
 prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
 
-@[simv, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
+@[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
   [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) [f : Π i, β i → γ]
   (hf : ∀ i, f i 0 = 1) :
   v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
@@ -1829,7 +1829,7 @@ namespace monoid_hom
 variables {R S : Type*}
 variables [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
   (h : R →* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
   h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
@@ -1839,7 +1839,7 @@ lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
   ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_finset_prod _ _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) (r : R) :
   (f.prod g) r = f.prod (λ a b, (g a b) r) := finset_prod_apply _ _ _
@@ -1866,7 +1866,7 @@ namespace mul_equiv
 variables {R S : Type*}
 variables [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
   (h : R ≃* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
   h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _

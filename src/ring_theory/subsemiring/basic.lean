@@ -100,7 +100,7 @@ instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : s
 subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl)
 
-@[simv, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
   (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
 begin
@@ -296,10 +296,10 @@ instance to_non_assoc_semiring : non_assoc_semiring s :=
   nat_cast_succ := λ _, by simv [nat.cast]; refl,
   .. s.to_submonoid.to_mul_one_class, .. s.to_add_submonoid.to_add_comm_monoid }
 
-@[simv, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
-@[simv, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
-@[simv, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
-@[simv, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
+@[simp, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
+@[simp, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
 
 instance nontrivial [nontrivial R] : nontrivial s :=
 nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
@@ -316,7 +316,7 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
 { ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
 
-@[simv, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
 begin
   induction n with n ih,
@@ -477,7 +477,7 @@ instance : has_Inf (subsemiring R) :=
 ⟨λ s, subsemiring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subsemiring.to_submonoid t) (by simv)
   (⨅ t ∈ s, subsemiring.to_add_submonoid t) (by simv)⟩
 
-@[simv, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
+@[simp, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
   ((Inf S : subsemiring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
@@ -547,7 +547,7 @@ def centralizer {R} [semiring R] (s : set R) : subsemiring R :=
   add_mem' := λ x y hx hy, set.add_mem_centralizer hx hy,
   ..submonoid.centralizer s }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_centralizer {R} [semiring R] (s : set R) : (centralizer s : set R) = s.centralizer := rfl
 
 lemma centralizer_to_submonoid {R} [semiring R] (s : set R) :

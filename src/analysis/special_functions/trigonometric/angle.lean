@@ -51,11 +51,11 @@ quotient.induction_on' θ h
 lemma coe_nsmul (n : ℕ) (x : ℝ) : ↑(n • x : ℝ) = (n • ↑x : angle) := rfl
 lemma coe_zsmul (z : ℤ) (x : ℝ) : ↑(z • x : ℝ) = (z • ↑x : angle) := rfl
 
-@[simv, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
+@[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n • (↑x : angle) :=
 by simpa only [nsmul_eq_mul] using coe_hom.map_nsmul x n
 
-@[simv, norm_cast] lemma coe_int_mul_eq_zsmul (x : ℝ) (n : ℤ) :
+@[simp, norm_cast] lemma coe_int_mul_eq_zsmul (x : ℝ) (n : ℤ) :
   ↑((n : ℝ) * x : ℝ) = n • (↑x : angle) :=
 by simpa only [zsmul_eq_mul] using coe_hom.map_zsmul x n
 

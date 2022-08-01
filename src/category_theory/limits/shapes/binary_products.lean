@@ -304,12 +304,12 @@ colimit.desc _ (binary_cofan.mk f g)
 abbreviation codiag (X : C) [has_binary_coproduct X X] : X ⨿ X ⟶ X :=
 coprod.desc (𝟙 _) (𝟙 _)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.lift_fst {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   prod.lift f g ≫ prod.fst = f :=
 limit.lift_π _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.lift_snd {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   prod.lift f g ≫ prod.snd = g :=
 limit.lift_π _ _
@@ -379,12 +379,12 @@ lemma prod.comp_diag {X Y : C} [has_binary_product Y Y] (f : X ⟶ Y) :
   f ≫ diag Y = prod.lift f f :=
 by simv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.map_fst {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : prod.map f g ≫ prod.fst = prod.fst ≫ f :=
 lim_map_π _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.map_snd {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : prod.map f g ≫ prod.snd = prod.snd ≫ g :=
 lim_map_π _ _
@@ -397,7 +397,7 @@ by { ext; simv }
   prod.lift prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by { ext; simv }
 
-@[simv, reassoc] lemma prod.lift_map {V W X Y Z : C} [has_binary_product W X]
+@[simp, reassoc] lemma prod.lift_map {V W X Y Z : C} [has_binary_product W X]
   [has_binary_product Y Z] (f : V ⟶ W) (g : V ⟶ X) (h : W ⟶ Y) (k : X ⟶ Z) :
   prod.lift f g ≫ prod.map h k = prod.lift (f ≫ h) (g ≫ k) :=
 by { ext; simv }
@@ -410,7 +410,7 @@ by { rw ← prod.lift_map, simv }
 -- We take the right hand side here to be simv normal form, as this way composition lemmas for
 -- `f ≫ h` and `g ≫ k` can fire (eg `id_comp`) , while `map_fst` and `map_snd` can still work just
 -- as well.
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.map_map {A₁ A₂ A₃ B₁ B₂ B₃ : C}
   [has_binary_product A₁ B₁] [has_binary_product A₂ B₂] [has_binary_product A₃ B₃]
   (f : A₁ ⟶ A₂) (g : B₁ ⟶ B₂) (h : A₂ ⟶ A₃) (k : B₂ ⟶ B₃) :
@@ -454,18 +454,18 @@ instance prod.map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g :
   { rw ← cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }
 end⟩
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :
   diag X ≫ prod.map f f = f ≫ diag Y :=
 by simv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y]
   [has_binary_product (X ⨯ Y) (X ⨯ Y)] :
   diag (X ⨯ Y) ≫ prod.map prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by simv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
@@ -478,7 +478,7 @@ end prod_lemmas
 
 section coprod_lemmas
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coprod.desc_comp {V W X Y : C} [has_binary_coproduct X Y] (f : V ⟶ W) (g : X ⟶ V)
   (h : Y ⟶ V) :
   coprod.desc g h ≫ f = coprod.desc (g ≫ f) (h ≫ f) :=
@@ -488,12 +488,12 @@ lemma coprod.diag_comp {X Y : C} [has_binary_coproduct X X] (f : X ⟶ Y) :
   codiag X ≫ f = coprod.desc f f :=
 by simv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coprod.inl_map {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : coprod.inl ≫ coprod.map f g = f ≫ coprod.inl :=
 ι_colim_map _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coprod.inr_map {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : coprod.inr ≫ coprod.map f g = g ≫ coprod.inr :=
 ι_colim_map _ _
@@ -525,7 +525,7 @@ by { rw ← coprod.map_desc, simv }
 -- We take the right hand side here to be simv normal form, as this way composition lemmas for
 -- `f ≫ h` and `g ≫ k` can fire (eg `id_comp`) , while `inl_map` and `inr_map` can still work just
 -- as well.
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coprod.map_map {A₁ A₂ A₃ B₁ B₂ B₃ : C}
   [has_binary_coproduct A₁ B₁] [has_binary_coproduct A₂ B₂] [has_binary_coproduct A₃ B₃]
   (f : A₁ ⟶ A₂) (g : B₁ ⟶ B₂) (h : A₂ ⟶ A₃) (k : B₂ ⟶ B₃) :
@@ -822,12 +822,12 @@ def prod_comparison (F : C ⥤ D) (A B : C)
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod_comparison_fst :
   prod_comparison F A B ≫ prod.fst = F.map prod.fst :=
 prod.lift_fst _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma prod_comparison_snd :
   prod_comparison F A B ≫ prod.snd = F.map prod.snd :=
 prod.lift_snd _ _
@@ -902,12 +902,12 @@ def coprod_comparison (F : C ⥤ D) (A B : C)
   F.obj A ⨿ F.obj B ⟶ F.obj (A ⨿ B) :=
 coprod.desc (F.map coprod.inl) (F.map coprod.inr)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coprod_comparison_inl :
   coprod.inl ≫ coprod_comparison F A B  = F.map coprod.inl :=
 coprod.inl_desc _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coprod_comparison_inr :
   coprod.inr ≫ coprod_comparison F A B = F.map coprod.inr :=
 coprod.inr_desc _ _

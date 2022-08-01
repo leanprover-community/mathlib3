@@ -1111,7 +1111,7 @@ assume e, if_pos e
 @[simp] theorem index_of_cons_self (a : α) (l : list α) : index_of a (a::l) = 0 :=
 index_of_cons_eq _ rfl
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem index_of_cons_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
 assume n, if_neg n
 
@@ -1124,7 +1124,7 @@ begin
   { simv only [h, false_or], rw ← ih, exact succ_inj' }
 end
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem index_of_of_not_mem {l : list α} {a : α} : a ∉ l → index_of a l = length l :=
 index_of_eq_length.2
 
@@ -3359,7 +3359,7 @@ theorem erase_eq_erasep (a : α) (l : list α) : l.erase a = l.erasep (eq a) :=
 by { induction l with b l, {refl},
   by_cases a = b; [simv [h], simv [h, ne.symm h, *]] }
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem erase_of_not_mem {a : α} {l : list α} (h : a ∉ l) : l.erase a = l :=
 by rw [erase_eq_erasep, erasep_of_forall_not]; rintro b h' rfl; exact h h'
 

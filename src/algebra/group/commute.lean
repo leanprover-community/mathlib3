@@ -61,11 +61,11 @@ section semigroup
 variables {S : Type*} [semigroup S] {a b c : S}
 
 /-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-@[simv, to_additive "If `a` commutes with both `b` and `c`, then it commutes with their sum."]
+@[simp, to_additive "If `a` commutes with both `b` and `c`, then it commutes with their sum."]
 lemma mul_right (hab : commute a b) (hac : commute a c) : commute a (b * c) := hab.mul_right hac
 
 /-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
-@[simv, to_additive "If both `a` and `b` commute with `c`, then their product commutes with `c`."]
+@[simp, to_additive "If both `a` and `b` commute with `c`, then their product commutes with `c`."]
 lemma mul_left (hac : commute a c) (hbc : commute b c) : commute (a * b) c := hac.mul_left hbc
 
 @[to_additive] protected lemma right_comm (h : commute b c) (a : S) :
@@ -85,8 +85,8 @@ section mul_one_class
 
 variables {M : Type*} [mul_one_class M]
 
-@[simv, to_additive] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
-@[simv, to_additive] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
+@[simp, to_additive] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
+@[simp, to_additive] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
 
 end mul_one_class
 
@@ -94,19 +94,19 @@ section monoid
 
 variables {M : Type*} [monoid M] {a b : M} {u u₁ u₂ : Mˣ}
 
-@[simv, to_additive]
+@[simp, to_additive]
 theorem pow_right (h : commute a b) (n : ℕ) : commute a (b ^ n) := h.pow_right n
-@[simv, to_additive]
+@[simp, to_additive]
 theorem pow_left (h : commute a b) (n : ℕ) : commute (a ^ n) b := (h.symm.pow_right n).symm
-@[simv, to_additive]
+@[simp, to_additive]
 theorem pow_pow (h : commute a b) (m n : ℕ) : commute (a ^ m) (b ^ n) :=
 (h.pow_left m).pow_right n
 
-@[simv, to_additive]
+@[simp, to_additive]
 theorem self_pow (a : M) (n : ℕ) : commute a (a ^ n) := (commute.refl a).pow_right n
-@[simv, to_additive]
+@[simp, to_additive]
 theorem pow_self (a : M) (n : ℕ) : commute (a ^ n) a := (commute.refl a).pow_left n
-@[simv, to_additive]
+@[simp, to_additive]
 theorem pow_pow_self (a : M) (m n : ℕ) : commute (a ^ m) (a ^ n) :=
 (commute.refl a).pow_pow m n
 
@@ -116,14 +116,14 @@ theorem pow_pow_self (a : M) (m n : ℕ) : commute (a ^ m) (a ^ n) :=
 @[to_additive] theorem units_inv_right : commute a u → commute a ↑u⁻¹ :=
 semiconj_by.units_inv_right
 
-@[simv, to_additive] theorem units_inv_right_iff :
+@[simp, to_additive] theorem units_inv_right_iff :
   commute a ↑u⁻¹ ↔ commute a u :=
 semiconj_by.units_inv_right_iff
 
 @[to_additive] theorem units_inv_left : commute ↑u a → commute ↑u⁻¹ a :=
 semiconj_by.units_inv_symm_left
 
-@[simv, to_additive]
+@[simp, to_additive]
 theorem units_inv_left_iff: commute ↑u⁻¹ a ↔ commute ↑u a :=
 semiconj_by.units_inv_symm_left_iff
 
@@ -131,7 +131,7 @@ semiconj_by.units_inv_symm_left_iff
 theorem units_coe : commute u₁ u₂ → commute (u₁ : M) u₂ := semiconj_by.units_coe
 @[to_additive]
 theorem units_of_coe : commute (u₁ : M) u₂ → commute u₁ u₂ := semiconj_by.units_of_coe
-@[simv, to_additive]
+@[simp, to_additive]
 theorem units_coe_iff : commute (u₁ : M) u₂ ↔ commute u₁ u₂ := semiconj_by.units_coe_iff
 
 @[to_additive] lemma is_unit_mul_iff (h : commute a b) :
@@ -150,7 +150,7 @@ begin
     rw [mul_assoc, ← hu, u.inv_mul] }
 end
 
-@[simv, to_additive] lemma _root_.is_unit_mul_self_iff :
+@[simp, to_additive] lemma _root_.is_unit_mul_self_iff :
   is_unit (a * a) ↔ is_unit a :=
 (commute.refl a).is_unit_mul_iff.trans (and_self _)
 
@@ -160,7 +160,7 @@ section division_monoid
 variables [division_monoid G] {a b : G}
 
 @[to_additive] lemma inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
 
 end division_monoid
@@ -171,11 +171,11 @@ variables [group G] {a b : G}
 
 @[to_additive]
 theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
-@[simv, to_additive]
+@[simp, to_additive]
 theorem inv_right_iff : commute a b⁻¹ ↔ commute a b := semiconj_by.inv_right_iff
 
 @[to_additive] theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
-@[simv, to_additive]
+@[simp, to_additive]
 theorem inv_left_iff : commute a⁻¹ b ↔ commute a b := semiconj_by.inv_symm_left_iff
 
 @[to_additive]
@@ -202,16 +202,16 @@ section comm_group
 
 variables [comm_group G] (a b : G)
 
-@[simv, to_additive] lemma mul_inv_cancel_comm : a * b * a⁻¹ = b :=
+@[simp, to_additive] lemma mul_inv_cancel_comm : a * b * a⁻¹ = b :=
 (commute.all a b).mul_inv_cancel
 
-@[simv, to_additive] lemma mul_inv_cancel_comm_assoc : a * (b * a⁻¹) = b :=
+@[simp, to_additive] lemma mul_inv_cancel_comm_assoc : a * (b * a⁻¹) = b :=
 (commute.all a b).mul_inv_cancel_assoc
 
-@[simv, to_additive] lemma inv_mul_cancel_comm : a⁻¹ * b * a = b :=
+@[simp, to_additive] lemma inv_mul_cancel_comm : a⁻¹ * b * a = b :=
 (commute.all a b).inv_mul_cancel
 
-@[simv, to_additive] lemma inv_mul_cancel_comm_assoc : a⁻¹ * (b * a) = b :=
+@[simp, to_additive] lemma inv_mul_cancel_comm_assoc : a⁻¹ * (b * a) = b :=
 (commute.all a b).inv_mul_cancel_assoc
 
 end comm_group

@@ -87,17 +87,17 @@ namespace nat
 -- see note [coercion into rings]
 @[priority 900] instance cast_coe {R} [has_nat_cast R] : has_coe_t ℕ R := ⟨nat.cast⟩
 
-@[simv, norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
+@[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
 
 -- Lemmas about nat.succ need to get a low priority, so that they are tried last.
 -- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
 -- Rewriting would then produce really wrong terms.
-@[simv, norm_cast, priority 500]
+@[simp, norm_cast, priority 500]
 theorem cast_succ (n : ℕ) : ((succ n : ℕ) : R) = n + 1 := add_monoid_with_one.nat_cast_succ _
 
 theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : R) = n + 1 := cast_succ _
 
-@[simv, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
+@[simp, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
   (((ite P m n) : ℕ) : R) = ite P (m : R) (n : R) :=
 by { split_ifs; refl, }
 
@@ -108,10 +108,10 @@ end
 namespace nat
 variables {R : Type*}
 
-@[simv, norm_cast] theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
+@[simp, norm_cast] theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
 by rw [cast_succ, cast_zero, zero_add]
 
-@[simv, norm_cast] theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
+@[simp, norm_cast] theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
 by induction n; simv [add_succ, add_assoc, nat.add_zero, *]
 
 /-- Computationally friendlier cast than `nat.unary_cast`, using binary representation. -/
@@ -129,17 +129,17 @@ begin
     { simv } },
 end
 
-@[simv, norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
+@[simp, norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
   ((bit0 n : ℕ) : R) = bit0 n := cast_add _ _
 
-@[simv, norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
+@[simp, norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
   ((bit1 n : ℕ) : R) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two [add_monoid_with_one R] : ((2 : ℕ) : R) = 2 :=
 by rw [cast_add_one, cast_one, bit0]
 
-attribute [simv, norm_cast] int.nat_abs_of_nat
+attribute [simp, norm_cast] int.nat_abs_of_nat
 
 end nat
 

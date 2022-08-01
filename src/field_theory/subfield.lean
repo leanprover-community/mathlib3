@@ -268,14 +268,14 @@ subtype.coe_injective.linear_ordered_field coe
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl)
 
-@[simv, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
-@[simv, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
-@[simv, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
-@[simv, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
-@[simv, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
-@[simv, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
-@[simv, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
-@[simv, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
+@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
+@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
+@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
+@[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
 
 end derived_from_subfield_class
 
@@ -410,7 +410,7 @@ instance : has_Inf (subfield K) :=
     end,
     .. Inf (subfield.to_subring '' S) }⟩
 
-@[simv, norm_cast] lemma coe_Inf (S : set (subfield K)) :
+@[simp, norm_cast] lemma coe_Inf (S : set (subfield K)) :
   ((Inf S : subfield K) : set K) = ⋂ s ∈ S, ↑s :=
 show ((Inf (subfield.to_subring '' S) : subring K) : set K) = ⋂ s ∈ S, ↑s,
 begin

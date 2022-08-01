@@ -138,7 +138,7 @@ end set_like
 
 @[simp] lemma val_eq_coe (I : fractional_ideal S P) : I.val = I := rfl
 
-@[simv, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
+@[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
 /-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
@@ -181,7 +181,7 @@ instance coe_to_fractional_ideal : has_coe_t (ideal R) (fractional_ideal S P) :=
 ⟨λ I, ⟨coe_submodule P I, is_fractional_of_le_one _
   (by simpa using coe_submodule_mono P (le_top : I ≤ ⊤))⟩⟩
 
-@[simv, norm_cast] lemma coe_coe_ideal (I : ideal R) :
+@[simp, norm_cast] lemma coe_coe_ideal (I : ideal R) :
   ((I : fractional_ideal S P) : submodule R P) = coe_submodule P I := rfl
 
 variables (S)
@@ -212,10 +212,10 @@ instance : has_zero (fractional_ideal S P) := ⟨(0 : ideal R)⟩
 
 variables {S}
 
-@[simv, norm_cast] lemma coe_zero : ↑(0 : fractional_ideal S P) = (⊥ : submodule R P) :=
+@[simp, norm_cast] lemma coe_zero : ↑(0 : fractional_ideal S P) = (⊥ : submodule R P) :=
 submodule.ext $ λ _, mem_zero_iff S
 
-@[simv, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 :=
+@[simp, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 :=
 rfl
 
 variables (P)
@@ -263,7 +263,7 @@ instance : has_one (fractional_ideal S P) :=
 
 variables (S)
 
-@[simv, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
+@[simp, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
 rfl
 
 lemma mem_one_iff {x : P} : x ∈ (1 : fractional_ideal S P) ↔ ∃ x' : R, algebra_map R P x' = x :=
@@ -285,7 +285,7 @@ lemma coe_one_eq_coe_submodule_top :
   ↑(1 : fractional_ideal S P) = coe_submodule P (⊤ : ideal R) :=
 rfl
 
-@[simv, norm_cast] lemma coe_one :
+@[simp, norm_cast] lemma coe_one :
   (↑(1 : fractional_ideal S P) : submodule R P) = 1 :=
 by rw [coe_one_eq_coe_submodule_top, coe_submodule_top]
 
@@ -344,7 +344,7 @@ end⟩
 
 instance : has_inf (fractional_ideal S P) := ⟨λ I J, ⟨I ⊓ J, I.is_fractional.inf_right J⟩⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule R P) := rfl
 
 instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, I.is_fractional.sup J.is_fractional⟩⟩
@@ -367,10 +367,10 @@ instance : has_add (fractional_ideal S P) := ⟨(⊔)⟩
 @[simp]
 lemma sup_eq_add (I J : fractional_ideal S P) : I ⊔ J = I + J := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + J := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_ideal_sup (I J : ideal R) : ↑(I ⊔ J) = (I + J : fractional_ideal S P) :=
 coe_to_submodule_injective $ coe_submodule_sup _ _ _
 
@@ -429,10 +429,10 @@ instance : has_mul (fractional_ideal S P) := ⟨λ I J, mul I J⟩
 
 @[simp] lemma mul_eq_mul (I J : fractional_ideal S P) : mul I J = I * J := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_mul (I J : fractional_ideal S P) : (↑(I * J) : submodule R P) = I * J := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_ideal_mul (I J : ideal R) : (↑(I * J) : fractional_ideal S P) = I * J :=
 coe_to_submodule_injective $ coe_submodule_mul _ _ _
 
@@ -451,7 +451,7 @@ submodule.mul_le
 
 instance : has_pow (fractional_ideal S P) ℕ := ⟨λ I n, ⟨I^n, I.is_fractional.pow n⟩⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submodule R P) := rfl
 
 @[elab_as_eliminator] protected theorem mul_induction_on
@@ -563,7 +563,7 @@ def map (g : P →ₐ[R] P') :
   fractional_ideal S P → fractional_ideal S P' :=
 λ I, ⟨submodule.map g.to_linear_map I, I.is_fractional.map g⟩
 
-@[simv, norm_cast] lemma coe_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
+@[simp, norm_cast] lemma coe_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
   ↑(map g I) = submodule.map g.to_linear_map I := rfl
 
 @[simp] lemma mem_map {I : fractional_ideal S P} {g : P →ₐ[R] P'}
@@ -579,7 +579,7 @@ coe_to_submodule_injective (submodule.map_id I)
   I.map (g'.comp g) = (I.map g).map g' :=
 coe_to_submodule_injective (submodule.map_comp g.to_linear_map g'.to_linear_map I)
 
-@[simv, norm_cast] lemma map_coe_ideal (I : ideal R) :
+@[simp, norm_cast] lemma map_coe_ideal (I : ideal R) :
   (I : fractional_ideal S P).map g = I :=
 begin
   ext x,

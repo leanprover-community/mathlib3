@@ -117,7 +117,7 @@ end
 finprod_eq_prod_plift_of_mul_support_to_finset_subset
   (s.finite_to_set.subset hs) $ λ x hx, by { rw finite.mem_to_finset at hx, exact hs hx }
 
-@[simv, to_additive] lemma finprod_one : ∏ᶠ i : α, (1 : M) = 1 :=
+@[simp, to_additive] lemma finprod_one : ∏ᶠ i : α, (1 : M) = 1 :=
 begin
   have : mul_support (λ x : plift α, (λ _, 1 : α → M) x.down) ⊆ (∅ : finset (plift α)),
     from λ x h, h rfl,
@@ -127,7 +127,7 @@ end
 @[to_additive] lemma finprod_of_is_empty [is_empty α] (f : α → M) : ∏ᶠ i, f i = 1 :=
 by { rw ← finprod_one, congr }
 
-@[simv, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
+@[simp, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
 finprod_of_is_empty _
 
 @[to_additive] lemma finprod_eq_single (f : α → M) (a : α) (ha : ∀ x ≠ a, f x = 1) :
@@ -142,7 +142,7 @@ end
 @[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f default :=
 finprod_eq_single f default $ λ x hx, (hx $ unique.eq_default _).elim
 
-@[simv, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
+@[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f
 
 @[to_additive] lemma finprod_eq_dif {p : Prop} [decidable p] (f : p → M) :
@@ -255,7 +255,7 @@ open_locale big_operators
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
 by convert finprod_eq_if
 
-@[simv, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α) :
+@[simp, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α) :
   ∏ᶠ (h : f a ≠ 1), f a = f a :=
 by rw [← mem_mul_support, finprod_eq_mul_indicator_apply, mul_indicator_mul_support]
 
@@ -601,10 +601,10 @@ by rw [← finprod_mem_inter_mul_support f s, ← finprod_mem_inter_mul_support 
 lemma finprod_mem_singleton : ∏ᶠ i ∈ ({a} : set α), f i = f a :=
 by rw [← finset.coe_singleton, finprod_mem_coe_finset, finset.prod_singleton]
 
-@[simv, to_additive] lemma finprod_cond_eq_left : ∏ᶠ i = a, f i = f a :=
+@[simp, to_additive] lemma finprod_cond_eq_left : ∏ᶠ i = a, f i = f a :=
 finprod_mem_singleton
 
-@[simv, to_additive] lemma finprod_cond_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
+@[simp, to_additive] lemma finprod_cond_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
 by simv [@eq_comm _ a]
 
 /-- A more general version of `finprod_mem_insert` that requires `s ∩ mul_support f` rather than `s`

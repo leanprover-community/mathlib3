@@ -222,7 +222,7 @@ by { rw symm_diff_eq_sup_sdiff_inf, exact of_boolalg_symm_diff_aux _ _ }
   to_boolalg (a * b) = to_boolalg a ⊓ to_boolalg b := rfl
 
 -- `to_boolalg_add` simplifies the LHS but this lemma is eligible to `dsimp`
-@[simv, nolint simp_nf] lemma to_boolalg_add_add_mul (a b : α) :
+@[simp, nolint simp_nf] lemma to_boolalg_add_add_mul (a b : α) :
   to_boolalg (a + b + a * b) = to_boolalg a ⊔ to_boolalg b := rfl
 
 @[simp] lemma to_boolalg_add (a b : α) : to_boolalg (a + b) = to_boolalg a ∆ to_boolalg b :=
@@ -329,14 +329,14 @@ instance : boolean_ring (as_boolring α) := @boolean_algebra.to_boolean_ring α 
 @[simp] lemma of_boolring_one : of_boolring (1 : as_boolring α) = ⊤ := rfl
 
 -- `sub_eq_add` proves this lemma but it is eligible for `dsimp`
-@[simv, nolint simp_nf] lemma of_boolring_neg (a : as_boolring α) :
+@[simp, nolint simp_nf] lemma of_boolring_neg (a : as_boolring α) :
   of_boolring (-a) = of_boolring a := rfl
 
 @[simp] lemma of_boolring_add (a b : as_boolring α) :
   of_boolring (a + b) = of_boolring a ∆ of_boolring b := rfl
 
 -- `sub_eq_add` simplifies the LHS but this lemma is eligible for `dsimp`
-@[simv, nolint simp_nf] lemma of_boolring_sub (a b : as_boolring α) :
+@[simp, nolint simp_nf] lemma of_boolring_sub (a b : as_boolring α) :
   of_boolring (a - b) = of_boolring a ∆ of_boolring b := rfl
 
 @[simp] lemma of_boolring_mul (a b : as_boolring α) :

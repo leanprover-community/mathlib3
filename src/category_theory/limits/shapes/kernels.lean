@@ -71,7 +71,7 @@ abbreviation kernel_fork := fork f 0
 
 variables {f}
 
-@[simv, reassoc] lemma kernel_fork.condition (s : kernel_fork f) : fork.ι s ≫ f = 0 :=
+@[simp, reassoc] lemma kernel_fork.condition (s : kernel_fork f) : fork.ι s ≫ f = 0 :=
 by erw [fork.condition, has_zero_morphisms.comp_zero]
 
 @[simp] lemma kernel_fork.app_one (s : kernel_fork f) : s.π.app one = 0 :=
@@ -171,7 +171,7 @@ abbreviation kernel.ι : kernel f ⟶ X := equalizer.ι f 0
 
 @[simp] lemma equalizer_as_kernel : equalizer.ι f 0 = kernel.ι f := rfl
 
-@[simv, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
+@[simp, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
 kernel_fork.condition _
 
 /-- The kernel built from `kernel.ι f` is limiting. -/
@@ -184,7 +184,7 @@ is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by tidy))
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
 limit.lift (parallel_pair f 0) (kernel_fork.of_ι k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma kernel.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : kernel.lift f k h ≫ kernel.ι f = k :=
 limit.lift_π _ _
 
@@ -267,23 +267,23 @@ has_limit.iso_of_nat_iso (by simv[h])
 lemma kernel_iso_of_eq_refl {h : f = f} : kernel_iso_of_eq h = iso.refl (kernel f) :=
 by { ext, simv [kernel_iso_of_eq], }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma kernel_iso_of_eq_hom_comp_ι {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
   (kernel_iso_of_eq h).hom ≫ kernel.ι _ = kernel.ι _ :=
 by { unfreezingI { induction h, simv } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma kernel_iso_of_eq_inv_comp_ι {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
   (kernel_iso_of_eq h).inv ≫ kernel.ι _ = kernel.ι _ :=
 by { unfreezingI { induction h, simv } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_comp_kernel_iso_of_eq_hom {Z} {f g : X ⟶ Y} [has_kernel f] [has_kernel g]
   (h : f = g) (e : Z ⟶ X) (he) :
   kernel.lift _ e he ≫ (kernel_iso_of_eq h).hom = kernel.lift _ e (by simv [← h, he]) :=
 by { unfreezingI { induction h, simv } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_comp_kernel_iso_of_eq_inv {Z} {f g : X ⟶ Y} [has_kernel f] [has_kernel g]
   (h : f = g) (e : Z ⟶ X) (he) :
   kernel.lift _ e he ≫ (kernel_iso_of_eq h).inv = kernel.lift _ e (by simv [h, he]) :=
@@ -421,7 +421,7 @@ abbreviation cokernel_cofork := cofork f 0
 
 variables {f}
 
-@[simv, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ s.π = 0 :=
+@[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ s.π = 0 :=
 by rw [cofork.condition, zero_comp]
 
 @[simp] lemma cokernel_cofork.π_eq_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
@@ -511,7 +511,7 @@ abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 
 @[simp] lemma coequalizer_as_cokernel : coequalizer.π f 0 = cokernel.π f := rfl
 
-@[simv, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
+@[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
 cokernel_cofork.condition _
 
 /-- The cokernel built from `cokernel.π f` is colimiting. -/
@@ -524,7 +524,7 @@ is_colimit.of_iso_colimit (colimit.is_colimit _) (cofork.ext (iso.refl _) (by ti
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
 colimit.desc (parallel_pair f 0) (cokernel_cofork.of_π k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma cokernel.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   cokernel.π f ≫ cokernel.desc f k h = k :=
 colimit.ι_desc _ _
@@ -611,23 +611,23 @@ has_colimit.iso_of_nat_iso (by simv[h])
 lemma cokernel_iso_of_eq_refl {h : f = f} : cokernel_iso_of_eq h = iso.refl (cokernel f) :=
 by { ext, simv [cokernel_iso_of_eq], }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π_comp_cokernel_iso_of_eq_hom {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
   cokernel.π _ ≫ (cokernel_iso_of_eq h).hom = cokernel.π _ :=
 by { unfreezingI { induction h, simv } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π_comp_cokernel_iso_of_eq_inv {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
   cokernel.π _ ≫ (cokernel_iso_of_eq h).inv = cokernel.π _ :=
 by { unfreezingI { induction h, simv } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma cokernel_iso_of_eq_hom_comp_desc {Z} {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g]
   (h : f = g) (e : Y ⟶ Z) (he) :
   (cokernel_iso_of_eq h).hom ≫ cokernel.desc _ e he = cokernel.desc _ e (by simv [h, he]) :=
 by { unfreezingI { induction h, simv } }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma cokernel_iso_of_eq_inv_comp_desc {Z} {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g]
   (h : f = g) (e : Y ⟶ Z) (he) :
   (cokernel_iso_of_eq h).inv ≫ cokernel.desc _ e he = cokernel.desc _ e (by simv [← h, he]) :=
@@ -834,12 +834,12 @@ def kernel_comparison [has_kernel f] [has_kernel (G.map f)] :
   G.obj (kernel f) ⟶ kernel (G.map f) :=
 kernel.lift _ (G.map (kernel.ι f)) (by simv only [←G.map_comp, kernel.condition, functor.map_zero])
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma kernel_comparison_comp_ι [has_kernel f] [has_kernel (G.map f)] :
   kernel_comparison f G ≫ kernel.ι (G.map f) = G.map (kernel.ι f) :=
 kernel.lift_ι _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma map_lift_kernel_comparison [has_kernel f] [has_kernel (G.map f)]
   {Z : C} {h : Z ⟶ X} (w : h ≫ f = 0) :
     G.map (kernel.lift _ h w) ≫ kernel_comparison f G =
@@ -852,12 +852,12 @@ def cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
 cokernel.desc _ (G.map (coequalizer.π _ _))
   (by simv only [←G.map_comp, cokernel.condition, functor.map_zero])
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π_comp_cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
   cokernel.π (G.map f) ≫ cokernel_comparison f G = G.map (cokernel.π _) :=
 cokernel.π_desc _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma cokernel_comparison_map_desc [has_cokernel f] [has_cokernel (G.map f)]
   {Z : C} {h : Y ⟶ Z} (w : f ≫ h = 0) :
   cokernel_comparison f G ≫ G.map (cokernel.desc _ h w) =

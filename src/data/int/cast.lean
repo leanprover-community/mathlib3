@@ -30,11 +30,11 @@ def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_a
 section cast
 variables {α : Type*}
 
-@[simv, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
+@[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
 λ m, int.induction_on' m 0 (by simv) (λ k _ ih n, by simv [add_mul, ih])
   (λ k _ ih n, by simv [sub_mul, ih])
 
-@[simv, norm_cast] theorem cast_ite [add_group_with_one α] (P : Prop) [decidable P] (m n : ℤ) :
+@[simp, norm_cast] theorem cast_ite [add_group_with_one α] (P : Prop) [decidable P] (m n : ℤ) :
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 
@@ -74,14 +74,14 @@ end
 | -[1+ n] := have -(n:α) < 1, from lt_of_le_of_lt (by simv) zero_lt_one,
              by simpa [(neg_succ_lt_zero n).not_le, ← sub_eq_add_neg, le_neg] using this.not_le
 
-@[simv, norm_cast] theorem cast_le [ordered_ring α] [nontrivial α] {m n : ℤ} :
+@[simp, norm_cast] theorem cast_le [ordered_ring α] [nontrivial α] {m n : ℤ} :
   (m : α) ≤ n ↔ m ≤ n :=
 by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
 
 theorem cast_strict_mono [ordered_ring α] [nontrivial α] : strict_mono (coe : ℤ → α) :=
 strict_mono_of_le_iff_le $ λ m n, cast_le.symm
 
-@[simv, norm_cast] theorem cast_lt [ordered_ring α] [nontrivial α] {m n : ℤ} :
+@[simp, norm_cast] theorem cast_lt [ordered_ring α] [nontrivial α] {m n : ℤ} :
   (m : α) < n ↔ m < n :=
 cast_strict_mono.lt_iff_lt
 
@@ -98,13 +98,13 @@ section linear_ordered_ring
 
 variables [linear_ordered_ring α] {a b : ℤ} (n : ℤ)
 
-@[simv, norm_cast] theorem cast_min : (↑(min a b) : α) = min a b :=
+@[simp, norm_cast] theorem cast_min : (↑(min a b) : α) = min a b :=
 monotone.map_min cast_mono
 
-@[simv, norm_cast] theorem cast_max : (↑(max a b) : α) = max a b :=
+@[simp, norm_cast] theorem cast_max : (↑(max a b) : α) = max a b :=
 monotone.map_max cast_mono
 
-@[simv, norm_cast] theorem cast_abs : ((|a| : ℤ) : α) = |a| :=
+@[simp, norm_cast] theorem cast_abs : ((|a| : ℤ) : α) = |a| :=
 by simv [abs_eq_max_neg]
 
 lemma cast_one_le_of_pos (h : 0 < a) : (1 : α) ≤ a :=
@@ -253,7 +253,7 @@ instance int.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingl
 
 end ring_hom
 
-@[simv, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
+@[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
 
 @[simp] lemma int.cast_ring_hom_int : int.cast_ring_hom ℤ = ring_hom.id ℤ :=
@@ -287,8 +287,8 @@ namespace mul_opposite
 
 variables {α : Type*} [add_group_with_one α]
 
-@[simv, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
+@[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
 
-@[simv, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
+@[simp, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 end mul_opposite

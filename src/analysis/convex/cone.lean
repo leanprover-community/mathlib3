@@ -82,7 +82,7 @@ instance : has_le (convex_cone 𝕜 E) := ⟨λ S T, (S : set E) ⊆ T⟩
 
 instance : has_lt (convex_cone 𝕜 E) := ⟨λ S T, (S : set E) ⊂ T⟩
 
-@[simv, norm_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
+@[simp, norm_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma coe_mk {s : set E} {h₁ h₂} : ↑(@mk 𝕜 _ _ _ _ s h₁ h₂) = s := rfl
 

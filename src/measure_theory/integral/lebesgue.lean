@@ -310,15 +310,15 @@ instance [has_sup β] : has_sup (α →ₛ β) := ⟨λf g, (f.map (⊔)).seq g�
 instance [has_inf β] : has_inf (α →ₛ β) := ⟨λf g, (f.map (⊓)).seq g⟩
 instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 
-@[simv, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
+@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
 
-@[simv, norm_cast, to_additive] lemma coe_one [has_one β] : ⇑(1 : α →ₛ β) = 1 := rfl
-@[simv, norm_cast, to_additive] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
-@[simv, norm_cast, to_additive] lemma coe_inv [has_inv β] (f : α →ₛ β) : ⇑(f⁻¹) = f⁻¹ := rfl
-@[simv, norm_cast, to_additive] lemma coe_div [has_div β] (f g : α →ₛ β) : ⇑(f / g) = f / g := rfl
-@[simv, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
-@[simv, norm_cast] lemma coe_sup [has_sup β] (f g : α →ₛ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
-@[simv, norm_cast] lemma coe_inf [has_inf β] (f g : α →ₛ β) : ⇑(f ⊓ g) = f ⊓ g := rfl
+@[simp, norm_cast, to_additive] lemma coe_one [has_one β] : ⇑(1 : α →ₛ β) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
+@[simp, norm_cast, to_additive] lemma coe_inv [has_inv β] (f : α →ₛ β) : ⇑(f⁻¹) = f⁻¹ := rfl
+@[simp, norm_cast, to_additive] lemma coe_div [has_div β] (f g : α →ₛ β) : ⇑(f / g) = f / g := rfl
+@[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, norm_cast] lemma coe_sup [has_sup β] (f g : α →ₛ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
+@[simp, norm_cast] lemma coe_inf [has_inf β] (f g : α →ₛ β) : ⇑(f ⊓ g) = f ⊓ g := rfl
 
 @[to_additive] lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
 @[to_additive] lemma div_apply [has_div β] (f g : α →ₛ β) (x : α) : (f / g) x = f x / g x := rfl
@@ -326,7 +326,7 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 lemma sup_apply [has_sup β] (f g : α →ₛ β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
 lemma inf_apply [has_inf β] (f g : α →ₛ β) (a : α) : (f ⊓ g) a = f a ⊓ g a := rfl
 
-@[simv, to_additive] lemma range_one [nonempty α] [has_one β] : (1 : α →ₛ β).range = {1} :=
+@[simp, to_additive] lemma range_one [nonempty α] [has_one β] : (1 : α →ₛ β).range = {1} :=
 finset.ext $ λ x, by simv [eq_comm]
 
 @[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :

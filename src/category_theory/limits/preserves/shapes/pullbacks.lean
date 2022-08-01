@@ -107,11 +107,11 @@ by simv [preserves_pullback.iso]
   (preserves_pullback.iso G f g).hom ≫ pullback.snd = G.map pullback.snd :=
 by simv [preserves_pullback.iso]
 
-@[simv, reassoc] lemma preserves_pullback.iso_inv_fst :
+@[simp, reassoc] lemma preserves_pullback.iso_inv_fst :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.fst = pullback.fst :=
 by simv [preserves_pullback.iso, iso.inv_comp_eq]
 
-@[simv, reassoc] lemma preserves_pullback.iso_inv_snd :
+@[simp, reassoc] lemma preserves_pullback.iso_inv_snd :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.snd = pullback.snd :=
 by simv [preserves_pullback.iso, iso.inv_comp_eq]
 
@@ -193,11 +193,11 @@ by { delta preserves_pushout.iso, simv }
   pushout.inr ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inr :=
 by { delta preserves_pushout.iso, simv }
 
-@[simv, reassoc] lemma preserves_pushout.inl_iso_inv :
+@[simp, reassoc] lemma preserves_pushout.inl_iso_inv :
   G.map pushout.inl ≫ (preserves_pushout.iso G f g).inv = pushout.inl :=
 by simv [preserves_pushout.iso, iso.comp_inv_eq]
 
-@[simv, reassoc] lemma preserves_pushout.inr_iso_inv :
+@[simp, reassoc] lemma preserves_pushout.inr_iso_inv :
   G.map pushout.inr ≫ (preserves_pushout.iso G f g).inv = pushout.inr :=
 by simv [preserves_pushout.iso, iso.comp_inv_eq]
 

@@ -1901,7 +1901,7 @@ comap_fst_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
 begin
   casesI is_empty_or_nonempty α with hα hα,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not];
-      [simv, apply_instance] },
+      [simp, apply_instance] },
   { simv [comap_ne_bot_iff_frequently, hα] }
 end
 

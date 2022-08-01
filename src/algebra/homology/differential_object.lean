@@ -37,17 +37,17 @@ abbreviation _root_.category_theory.differential_object.X_eq_to_hom
   (X : differential_object (graded_object_with_shift b V)) (i : β) :
   X.X_eq_to_hom (refl i) = 𝟙 _ := rfl
 
-@[simv, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
+@[simp, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
   {x y : β} (h : x = y) :
   X.X_eq_to_hom h ≫ X.d y = X.d x ≫ X.X_eq_to_hom (by { cases h, refl }) :=
 by { cases h, dsimp, simv }
 
-@[simv, reassoc] lemma d_eq_to_hom (X : homological_complex V (complex_shape.up' b))
+@[simp, reassoc] lemma d_eq_to_hom (X : homological_complex V (complex_shape.up' b))
   {x y z : β} (h : y = z) :
   X.d x y ≫ eq_to_hom (congr_arg X.X h) = X.d x z :=
 by { cases h, simv }
 
-@[simv, reassoc] lemma eq_to_hom_f' {X Y : differential_object (graded_object_with_shift b V)}
+@[simp, reassoc] lemma eq_to_hom_f' {X Y : differential_object (graded_object_with_shift b V)}
   (f : X ⟶ Y) {x y : β} (h : x = y) :
   X.X_eq_to_hom h ≫ f.f y = f.f x ≫ Y.X_eq_to_hom h :=
 by { cases h, simv }

@@ -53,7 +53,7 @@ structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 
 restate_axiom iso.hom_inv_id'
 restate_axiom iso.inv_hom_id'
-attribute [simv, reassoc] iso.hom_inv_id iso.inv_hom_id
+attribute [simp, reassoc] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
@@ -176,9 +176,9 @@ noncomputable def inv (f : X ⟶ Y) [I : is_iso f] := classical.some I.1
 
 namespace is_iso
 
-@[simv, reassoc] lemma hom_inv_id (f : X ⟶ Y) [I : is_iso f] : f ≫ inv f = 𝟙 X :=
+@[simp, reassoc] lemma hom_inv_id (f : X ⟶ Y) [I : is_iso f] : f ≫ inv f = 𝟙 X :=
 (classical.some_spec I.1).left
-@[simv, reassoc] lemma inv_hom_id (f : X ⟶ Y) [I : is_iso f] : inv f ≫ f = 𝟙 Y :=
+@[simp, reassoc] lemma inv_hom_id (f : X ⟶ Y) [I : is_iso f] : inv f ≫ f = 𝟙 Y :=
 (classical.some_spec I.1).right
 
 end is_iso

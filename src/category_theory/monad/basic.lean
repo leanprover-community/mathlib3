@@ -94,11 +94,11 @@ lemma monad.assoc (T : monad C) (X : C) :
   (T : C ⥤ C).map (T.μ.app X) ≫ T.μ.app _ = T.μ.app _ ≫ T.μ.app _ :=
 T.assoc' X
 
-@[simv, reassoc] lemma monad.left_unit (T : monad C) (X : C) :
+@[simp, reassoc] lemma monad.left_unit (T : monad C) (X : C) :
   T.η.app ((T : C ⥤ C).obj X) ≫ T.μ.app X = 𝟙 ((T : C ⥤ C).obj X) :=
 T.left_unit' X
 
-@[simv, reassoc] lemma monad.right_unit (T : monad C) (X : C) :
+@[simp, reassoc] lemma monad.right_unit (T : monad C) (X : C) :
   (T : C ⥤ C).map (T.η.app X) ≫ T.μ.app X = 𝟙 ((T : C ⥤ C).obj X) :=
 T.right_unit' X
 
@@ -107,11 +107,11 @@ lemma comonad.coassoc (G : comonad C) (X : C) :
   G.δ.app _ ≫ (G : C ⥤ C).map (G.δ.app X) = G.δ.app _ ≫ G.δ.app _ :=
 G.coassoc' X
 
-@[simv, reassoc] lemma comonad.left_counit (G : comonad C) (X : C) :
+@[simp, reassoc] lemma comonad.left_counit (G : comonad C) (X : C) :
   G.δ.app X ≫ G.ε.app ((G : C ⥤ C).obj X) = 𝟙 ((G : C ⥤ C).obj X) :=
 G.left_counit' X
 
-@[simv, reassoc] lemma comonad.right_counit (G : comonad C) (X : C) :
+@[simp, reassoc] lemma comonad.right_counit (G : comonad C) (X : C) :
   G.δ.app X ≫ (G : C ⥤ C).map (G.ε.app X) = 𝟙 ((G : C ⥤ C).obj X) :=
 G.right_counit' X
 
@@ -129,11 +129,11 @@ structure comonad_hom (M N : comonad C) extends nat_trans (M : C ⥤ C) N :=
 
 restate_axiom monad_hom.app_η'
 restate_axiom monad_hom.app_μ'
-attribute [simv, reassoc] monad_hom.app_η monad_hom.app_μ
+attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
 
 restate_axiom comonad_hom.app_ε'
 restate_axiom comonad_hom.app_δ'
-attribute [simv, reassoc] comonad_hom.app_ε comonad_hom.app_δ
+attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
 
 instance : category (monad C) :=
 { hom := monad_hom,

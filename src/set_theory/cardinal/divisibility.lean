@@ -82,7 +82,7 @@ begin
     using h a ℵ₀
 end
 
-@[simv, norm_cast] lemma nat_coe_dvd_iff : (n : cardinal) ∣ m ↔ n ∣ m :=
+@[simp, norm_cast] lemma nat_coe_dvd_iff : (n : cardinal) ∣ m ↔ n ∣ m :=
 begin
   refine ⟨_, λ ⟨h, ht⟩, ⟨h, by exact_mod_cast ht⟩⟩,
   rintro ⟨k, hk⟩,

@@ -81,7 +81,7 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
 
 @[to_additive] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
-@[simv, to_additive] lemma mul_opposite.smul_eq_mul_unop [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
+@[simp, to_additive] lemma mul_opposite.smul_eq_mul_unop [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
   a • a' = a' * a.unop := rfl
 
 /-- The right regular action of a group on itself is transitive. -/

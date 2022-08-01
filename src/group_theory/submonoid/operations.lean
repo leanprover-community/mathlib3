@@ -163,10 +163,10 @@ def comap (f : F) (S : submonoid N) : submonoid M :=
   mul_mem' := λ a b ha hb,
     show f (a * b) ∈ S, by rw map_mul; exact S.mul_mem ha hb }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_comap (S : submonoid N) (f : F) : (S.comap f : set M) = f ⁻¹' S := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_comap {S : submonoid N} {f : F} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 omit mc
 
@@ -175,7 +175,7 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id P) = S :=
 ext (by simv)
 
@@ -189,11 +189,11 @@ def map (f : F) (S : submonoid M) : submonoid N :=
   mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, S.mul_mem hx hy,
     by rw map_mul; refl⟩ end }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_map (f : F) (S : submonoid M) :
   (S.map f : set N) = f '' S := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_map {f : F} {S : submonoid M} {y : N} :
   y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
 mem_image_iff_bex
@@ -250,11 +250,11 @@ lemma monotone_map {f : F} : monotone (map f) :=
 lemma monotone_comap {f : F} : monotone (comap f) :=
 (gc_map_comap f).monotone_u
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_comap_map {f : F} : ((S.map f).comap f).map f = S.map f :=
 (gc_map_comap f).l_u_l_eq_l _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma comap_map_comap {S : submonoid N} {f : F} : ((S.comap f).map f).comap f = S.comap f :=
 (gc_map_comap f).u_l_u_eq_u _
 
@@ -276,14 +276,14 @@ lemma comap_infi {ι : Sort*} (f : F) (s : ι → submonoid N) :
   (infi s).comap f = ⨅ i, (s i).comap f :=
 (gc_map_comap f : galois_connection (map f) (comap f)).u_infi
 
-@[simv, to_additive] lemma map_bot (f : F) : (⊥ : submonoid M).map f = ⊥ :=
+@[simp, to_additive] lemma map_bot (f : F) : (⊥ : submonoid M).map f = ⊥ :=
 (gc_map_comap f).l_bot
 
-@[simv, to_additive] lemma comap_top (f : F) : (⊤ : submonoid N).comap f = ⊤ :=
+@[simp, to_additive] lemma comap_top (f : F) : (⊤ : submonoid N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 omit mc
 
-@[simv, to_additive] lemma map_id (S : submonoid M) : S.map (monoid_hom.id M) = S :=
+@[simp, to_additive] lemma map_id (S : submonoid M) : S.map (monoid_hom.id M) = S :=
 ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
 section galois_coinsertion
@@ -397,10 +397,10 @@ include hA
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
 
-@[simv, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
 
 variables {S'}
-@[simv, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M) = 1 ↔ x = 1 :=
+@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M) = 1 ↔ x = 1 :=
 (subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
 variables (S')
 
@@ -421,12 +421,12 @@ instance has_pow {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
 
 attribute [to_additive] submonoid_class.has_pow
 
-@[simv, norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
+@[simp, norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
   [submonoid_class A M] {S : A} (x : S) (n : ℕ) :
   (↑(x ^ n) : M) = ↑x ^ n :=
 rfl
 
-@[simv, to_additive] lemma mk_pow {M} [monoid M] {A : Type*} [set_like A M]
+@[simp, to_additive] lemma mk_pow {M} [monoid M] {A : Type*} [set_like A M]
   [submonoid_class A M] {S : A} (x : M) (hx : x ∈ S) (n : ℕ) :
   (⟨x, hx⟩ : S) ^ n = ⟨x ^ n, pow_mem hx n⟩ :=
 rfl
@@ -498,7 +498,7 @@ include hA
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 def subtype : S' →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simv, to_additive] theorem coe_subtype : (submonoid_class.subtype S' : S' → M) = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (submonoid_class.subtype S' : S' → M) = coe := rfl
 
 end submonoid_class
 
@@ -512,10 +512,10 @@ instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
-@[simv, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[simv, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
-@[simv, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
+@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
   (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl
 
 @[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
@@ -531,7 +531,7 @@ subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
   (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 pow_mem hx n
 
-@[simv, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
+@[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
   (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
 rfl
 
@@ -582,7 +582,7 @@ subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (�
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simv, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+@[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
 /-- The top submonoid is isomorphic to the monoid. -/
 @[to_additive "The top additive submonoid is isomorphic to the additive monoid.", simps]
@@ -593,7 +593,7 @@ def top_equiv : (⊤ : submonoid M) ≃* M :=
   right_inv := λ _, rfl,
   map_mul'  := λ _ _, rfl }
 
-@[simv, to_additive] lemma top_equiv_to_monoid_hom :
+@[simp, to_additive] lemma top_equiv_to_monoid_hom :
   (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
 rfl
 
@@ -603,11 +603,11 @@ noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
 
-@[simv, to_additive] lemma coe_equiv_map_of_injective_apply
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply
   (f : M →* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
 eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   refine closure_induction' _ (λ g hg, _) _ (λ g₁ g₂ hg₁ hg₂, _) hx,
@@ -649,7 +649,7 @@ lemma top_prod (s : submonoid N) :
   (⊤ : submonoid M).prod s = s.comap (monoid_hom.snd M N) :=
 ext $ λ x, by simv [mem_prod, monoid_hom.coe_snd]
 
-@[simv, to_additive top_prod_top]
+@[simp, to_additive top_prod_top]
 lemma top_prod_top : (⊤ : submonoid M).prod (⊤ : submonoid N) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
@@ -674,7 +674,7 @@ lemma map_inr (s : submonoid N) : s.map (inr M N) = prod ⊥ s :=
 ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨set.mem_singleton 1, hx⟩,
   λ ⟨hp1, hps⟩, ⟨p.2, hps, prod.ext (set.eq_of_mem_singleton hp1).symm rfl⟩⟩
 
-@[simv, to_additive prod_bot_sup_bot_prod]
+@[simp, to_additive prod_bot_sup_bot_prod]
 lemma prod_bot_sup_bot_prod (s : submonoid M) (t : submonoid N) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono (le_refl s) bot_le) (prod_mono bot_le (le_refl t))) $
@@ -697,7 +697,7 @@ lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : submonoid M) :
   K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
 (map_equiv_eq_comap_symm f.symm K).symm
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_equiv_top (f : M ≃* N) : (⊤ : submonoid M).map f.to_monoid_hom = ⊤ :=
 set_like.coe_injective $ set.image_univ.trans f.surjective.range_eq
 
@@ -772,12 +772,12 @@ include mc
 def mrange (f : F) : submonoid N :=
 ((⊤ : submonoid M).map f).copy (set.range f) set.image_univ.symm
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_mrange (f : F) :
   (mrange f : set N) = set.range f :=
 rfl
 
-@[simv, to_additive] lemma mem_mrange {f : F} {y : N} :
+@[simp, to_additive] lemma mem_mrange {f : F} {y : N} :
   y ∈ mrange f ↔ ∃ x, f x = y :=
 iff.rfl
 
@@ -824,7 +824,7 @@ def restrict {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M
   (f : M →* N) (s : S) : s →* N :=
 f.comp (submonoid_class.subtype _)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
   (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
@@ -843,7 +843,7 @@ def cod_restrict {S} [set_like S N] [submonoid_class S N] (f : M →* N) (s : S)
 def mrange_restrict {N} [mul_one_class N] (f : M →* N) : M →* f.mrange :=
 f.cod_restrict f.mrange $ λ x, ⟨x, rfl⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
   (f.mrange_restrict x : N) = f x :=
 rfl
@@ -875,7 +875,7 @@ omit mc
 lemma comap_mker (g : N →* P) (f : M →* N) : g.mker.comap f = (g.comp f).mker := rfl
 
 include mc
-@[simv, to_additive] lemma comap_bot' (f : F) :
+@[simp, to_additive] lemma comap_bot' (f : F) :
   (⊥ : submonoid N).comap f = mker f := rfl
 omit mc
 
@@ -886,7 +886,7 @@ begin
   simv only [],
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mker_one : (1 : M →* N).mker = ⊤ :=
 by { ext, simv [mem_mker] }
 
@@ -901,10 +901,10 @@ lemma mker_prod_map {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class 
   (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
 by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mker_inl : (inl M N).mker = ⊥ := by { ext x, simv [mem_mker] }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mker_inr : (inr M N).mker = ⊥ := by { ext x, simv [mem_mker] }
 
 /-- The `monoid_hom` from the preimage of a submonoid to itself. -/
@@ -949,11 +949,11 @@ lemma mrange_inl' : (inl M N).mrange = comap (snd M N) ⊥ := mrange_inl.trans (
 @[to_additive]
 lemma mrange_inr' : (inr M N).mrange = comap (fst M N) ⊥ := mrange_inr.trans (prod_top _)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mrange_fst : (fst M N).mrange = ⊤ :=
 mrange_top_of_surjective (fst M N) $ @prod.fst_surjective _ _ ⟨1⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mrange_snd : (snd M N).mrange = ⊤ :=
 mrange_top_of_surjective (snd M N) $ @prod.snd_surjective _ _ ⟨1⟩
 
@@ -968,7 +968,7 @@ lemma prod_eq_top_iff {s : submonoid M} {t : submonoid N} :
 by simv only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← mrange_eq_map,
   mrange_fst, mrange_snd]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mrange_inl_sup_mrange_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
 by simv only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 
@@ -977,7 +977,7 @@ by simv only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
 S.subtype.cod_restrict _ (λ x, h x.2)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
 set_like.coe_injective $ (coe_mrange _).trans $ subtype.range_coe
 

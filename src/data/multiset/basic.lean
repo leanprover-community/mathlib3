@@ -277,7 +277,7 @@ classical.some (quotient.exists_rep s)
 @[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
 (multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
 classical.some_spec (quotient.exists_rep _)
 
@@ -667,18 +667,18 @@ quot.lift_on s (λ l, (l.erase a : multiset α))
 @[simp] theorem erase_cons_head (a : α) (s : multiset α) : (a ::ₘ s).erase a = s :=
 quot.induction_on s $ λ l, congr_arg coe $ erase_cons_head a l
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem erase_cons_tail {a b : α} (s : multiset α) (h : b ≠ a) :
   (b ::ₘ s).erase a = b ::ₘ s.erase a :=
 quot.induction_on s $ λ l, congr_arg coe $ erase_cons_tail l h
 
 @[simp] theorem erase_singleton (a : α) : ({a} : multiset α).erase a = 0 := erase_cons_head a 0
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem erase_of_not_mem {a : α} {s : multiset α} : a ∉ s → s.erase a = s :=
 quot.induction_on s $ λ l h, congr_arg coe $ erase_of_not_mem h
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem cons_erase {s : multiset α} {a : α} : a ∈ s → a ::ₘ s.erase a = s :=
 quot.induction_on s $ λ l h, quot.sound (perm_cons_erase h).symm
 
@@ -1669,7 +1669,7 @@ def count (a : α) : multiset α → ℕ := countp (eq a)
 @[simp] theorem count_cons_self (a : α) (s : multiset α) : count a (a ::ₘ s) = succ (count a s) :=
 countp_cons_of_pos _ rfl
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem count_cons_of_ne {a b : α} (h : a ≠ b) (s : multiset α) : count a (b ::ₘ s) = count a s :=
 countp_cons_of_neg _ h
 
@@ -1710,7 +1710,7 @@ by simv [count, countp_pos]
 theorem one_le_count_iff_mem {a : α} {s : multiset α} : 1 ≤ count a s ↔ a ∈ s :=
 by rw [succ_le_iff, count_pos]
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem count_eq_zero_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) : count a s = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
@@ -1744,7 +1744,7 @@ begin
   { rw [erase_of_not_mem h, count_eq_zero.2 h]; refl }
 end
 
-@[simv, priority 980] theorem count_erase_of_ne {a b : α} (ab : a ≠ b) (s : multiset α) :
+@[simp, priority 980] theorem count_erase_of_ne {a b : α} (ab : a ≠ b) (s : multiset α) :
   count a (erase s b) = count a s :=
 begin
   by_cases b ∈ s,
@@ -2169,11 +2169,11 @@ disjoint_of_subset_right (subset_of_le h)
 @[simp] theorem zero_disjoint (l : multiset α) : disjoint 0 l
 | a := (not_mem_nil a).elim
 
-@[simv, priority 1100]
+@[simp, priority 1100]
 theorem singleton_disjoint {l : multiset α} {a : α} : disjoint {a} l ↔ a ∉ l :=
 by simv [disjoint]; refl
 
-@[simv, priority 1100]
+@[simp, priority 1100]
 theorem disjoint_singleton {l : multiset α} {a : α} : disjoint l {a} ↔ a ∉ l :=
 by rw [disjoint_comm, singleton_disjoint]
 

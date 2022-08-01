@@ -47,7 +47,7 @@ def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟨⟩⟩, Y, f⟩
 @[simp] lemma mk_right (f : S ⟶ T.obj Y) : (mk f).right = Y := rfl
 @[simp] lemma mk_hom_eq_self (f : S ⟶ T.obj Y) : (mk f).hom = f := rfl
 
-@[simv, reassoc] lemma w {A B : structured_arrow S T} (f : A ⟶ B) : A.hom ≫ T.map f.right = B.hom :=
+@[simp, reassoc] lemma w {A B : structured_arrow S T} (f : A ⟶ B) : A.hom ≫ T.map f.right = B.hom :=
 by { have := f.w; tidy }
 
 lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
@@ -163,7 +163,7 @@ def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟨⟩⟩, f⟩
 @[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = ⟨⟨⟩⟩ := rfl
 @[simp] lemma mk_hom_eq_self (f : S.obj Y ⟶ T) : (mk f).hom = f := rfl
 
-@[simv, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) :
+@[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) :
   S.map f.left ≫ B.hom = A.hom :=
 by tidy
 

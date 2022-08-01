@@ -162,10 +162,10 @@ lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
 tendsto_nhds_top $ λ n, mem_at_top_sets.2
   ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
-@[simv, norm_cast] lemma tendsto_coe_nhds_top {f : α → ℝ≥0} {l : filter α} :
+@[simp, norm_cast] lemma tendsto_coe_nhds_top {f : α → ℝ≥0} {l : filter α} :
   tendsto (λ x, (f x : ℝ≥0∞)) l (𝓝 ∞) ↔ tendsto f l at_top :=
 by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
-  [simv, apply_instance, apply_instance]
+  [simp, apply_instance, apply_instance]
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simv [bot_lt_iff_ne_bot, Iio]

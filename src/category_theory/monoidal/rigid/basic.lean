@@ -83,9 +83,9 @@ notation `η_` := exact_pairing.coevaluation
 notation `ε_` := exact_pairing.evaluation
 
 restate_axiom coevaluation_evaluation'
-attribute [simv, reassoc] exact_pairing.coevaluation_evaluation
+attribute [simp, reassoc] exact_pairing.coevaluation_evaluation
 restate_axiom evaluation_coevaluation'
-attribute [simv, reassoc] exact_pairing.evaluation_coevaluation
+attribute [simp, reassoc] exact_pairing.evaluation_coevaluation
 
 instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
 { coevaluation := (ρ_ _).inv,

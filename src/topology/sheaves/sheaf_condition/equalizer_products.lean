@@ -66,7 +66,7 @@ are given by the restriction maps from `U j` to `U i ⊓ U j`.
 def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
-@[simv, elementwise]
+@[simp, elementwise]
 lemma res_π (i : ι) : res F U ≫ limit.π _ ⟨i⟩ = F.map (opens.le_supr U i).op :=
 by rw [res, limit.lift_π, fan.mk_π_app]
 

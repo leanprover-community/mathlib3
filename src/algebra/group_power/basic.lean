@@ -57,7 +57,7 @@ end has_pow
 section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simv, to_additive one_nsmul]
+@[simp, to_additive one_nsmul]
 theorem pow_one (a : M) : a^1 = a :=
 by rw [pow_succ, pow_zero, mul_one]
 
@@ -185,7 +185,7 @@ variable [div_inv_monoid G]
 
 open int
 
-@[simv, to_additive one_zsmul]
+@[simp, to_additive one_zsmul]
 theorem zpow_one (a : G) : a ^ (1:ℤ) = a :=
 by { convert pow_one a using 1, exact zpow_coe_nat a 1 }
 
@@ -206,7 +206,7 @@ end div_inv_monoid
 section division_monoid
 variables [division_monoid α] {a b : α}
 
-@[simv, to_additive] lemma inv_pow (a : α) : ∀ n : ℕ, (a⁻¹) ^ n = (a ^ n)⁻¹
+@[simp, to_additive] lemma inv_pow (a : α) : ∀ n : ℕ, (a⁻¹) ^ n = (a ^ n)⁻¹
 | 0       := by rw [pow_zero, pow_zero, inv_one]
 | (n + 1) := by rw [pow_succ', pow_succ, inv_pow, mul_inv_rev]
 
@@ -215,7 +215,7 @@ variables [division_monoid α] {a b : α}
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
-@[simv, to_additive neg_zsmul] lemma zpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
+@[simp, to_additive neg_zsmul] lemma zpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simv }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
@@ -228,7 +228,7 @@ by simp_rw [zpow_neg_one, mul_inv_rev]
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
 
-@[simv, to_additive zsmul_neg']
+@[simp, to_additive zsmul_neg']
 lemma inv_zpow' (a : α) (n : ℤ) : a⁻¹ ^ n = a ^ (-n) := by rw [inv_zpow, zpow_neg]
 
 @[to_additive nsmul_zero_sub]
@@ -250,10 +250,10 @@ variables [division_comm_monoid α]
 @[to_additive zsmul_add] lemma mul_zpow (a b : α) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n :=
 (commute.all a b).mul_zpow
 
-@[simv, to_additive nsmul_sub] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+@[simp, to_additive nsmul_sub] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
 by simv only [div_eq_mul_inv, mul_pow, inv_pow]
 
-@[simv, to_additive zsmul_sub] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
+@[simp, to_additive zsmul_sub] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by simv only [div_eq_mul_inv, mul_zpow, inv_zpow]
 
 /-- The `n`-th power map (for an integer `n`) on a commutative group, considered as a group
@@ -302,7 +302,7 @@ lemma of_mul_zpow [div_inv_monoid G] (x : G) (n : ℤ) :
   additive.of_mul (x ^ n) = n • additive.of_mul x :=
 rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := by simv [zpow_coe_nat, h.pow_right n]
@@ -312,9 +312,9 @@ namespace commute
 
 variables [group G] {a b : G}
 
-@[simv, to_additive] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) := h.zpow_right m
+@[simp, to_additive] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) := h.zpow_right m
 
-@[simv, to_additive] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
+@[simp, to_additive] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
 (h.symm.zpow_right m).symm
 
 @[to_additive]
@@ -322,9 +322,9 @@ lemma zpow_zpow (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpow_l
 
 variables (a) (m n : ℤ)
 
-@[simv, to_additive] lemma self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
-@[simv, to_additive] lemma zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
-@[simv, to_additive] lemma zpow_zpow_self : commute (a ^ m) (a ^ n) :=
+@[simp, to_additive] lemma self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
+@[simp, to_additive] lemma zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
+@[simp, to_additive] lemma zpow_zpow_self : commute (a ^ m) (a ^ n) :=
 (commute.refl a).zpow_zpow m n
 
 end commute

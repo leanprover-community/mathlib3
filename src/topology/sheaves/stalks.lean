@@ -86,7 +86,7 @@ The germ of a section of a presheaf over an open at a point of that open.
 def germ (F : X.presheaf C) {U : opens X} (x : U) : F.obj (op U) ⟶ stalk F x :=
 colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)
 
-@[simv, elementwise]
+@[simp, elementwise]
 lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :
   F.map i.op ≫ germ F x = germ F (i x : V) :=
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
@@ -100,7 +100,7 @@ lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { induction U using opposite.rec, cases U with U hxU, exact ih U hxU }
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma stalk_functor_map_germ {F G : X.presheaf C} (U : opens X) (x : U)
   (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
 colimit.ι_map (whisker_left ((open_nhds.inclusion x.1).op) f) (op ⟨U, x.2⟩)
@@ -120,7 +120,7 @@ begin
   exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) F),
 end
 
-@[simv, elementwise, reassoc]
+@[simp, elementwise, reassoc]
 lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
   (x : (opens.map f).obj U) :
   (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
@@ -297,23 +297,23 @@ begin
     exact colimit.w ((open_nhds.inclusion x).op ⋙ F) (show V' ⟶ U', from i.unop).op }
 end
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma germ_stalk_specializes (F : X.presheaf C) {U : opens X} {y : U} {x : X} (h : x ⤳ y) :
   F.germ y ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 y.prop⟩ := colimit.ι_desc _ _
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x ⤳ y) (hy : y ∈ U) :
   F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_functor_map {F G : X.presheaf C} (f : F ⟶ G) {x y : X} (h : x ⤳ y) :
   F.stalk_specializes h ≫ (stalk_functor C x).map f =
     (stalk_functor C y).map f ≫ G.stalk_specializes h :=
 by { ext, delta stalk_functor, simpa [stalk_specializes] }
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
   (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=

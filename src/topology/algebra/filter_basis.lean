@@ -134,7 +134,7 @@ lemma prod_subset_self (B : group_filter_basis G) {U : set G} (h : U ∈ B) : U 
 def N (B : group_filter_basis G) : G → filter G :=
 λ x, map (λ y, x*y) B.to_filter_basis.filter
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma N_one (B : group_filter_basis G) : B.N 1 = B.to_filter_basis.filter :=
 by simv only [N, one_mul, map_id']
 

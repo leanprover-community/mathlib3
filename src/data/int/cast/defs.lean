@@ -58,10 +58,10 @@ protected def int.cast {R : Type u} [has_int_cast R] (i : ℤ) : R := has_int_ca
 namespace nat
 variables {R : Type u} [add_group_with_one R]
 
-@[simv, norm_cast] theorem cast_sub {m n} (h : m ≤ n) : ((n - m : ℕ) : R) = n - m :=
+@[simp, norm_cast] theorem cast_sub {m n} (h : m ≤ n) : ((n - m : ℕ) : R) = n - m :=
 eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 
-@[simv, norm_cast] theorem cast_pred : ∀ {n}, 0 < n → ((n - 1 : ℕ) : R) = n - 1
+@[simp, norm_cast] theorem cast_pred : ∀ {n}, 0 < n → ((n - 1 : ℕ) : R) = n - 1
 | 0 h := by cases h
 | (n+1) h := by rw [cast_succ, add_sub_cancel]; refl
 
@@ -79,14 +79,14 @@ theorem cast_of_nat (n : ℕ) : (of_nat n : R) = n := add_group_with_one.int_cas
 @[simp] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : R) = -(n + 1 : ℕ) :=
 add_group_with_one.int_cast_neg_succ_of_nat n
 
-@[simv, norm_cast] theorem cast_zero : ((0 : ℤ) : R) = 0 := (cast_of_nat 0).trans nat.cast_zero
+@[simp, norm_cast] theorem cast_zero : ((0 : ℤ) : R) = 0 := (cast_of_nat 0).trans nat.cast_zero
 
-@[simv, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : R) = n := cast_of_nat _
+@[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : R) = n := cast_of_nat _
 
-@[simv, norm_cast] theorem cast_one : ((1 : ℤ) : R) = 1 :=
+@[simp, norm_cast] theorem cast_one : ((1 : ℤ) : R) = 1 :=
 show (((1 : ℕ) : ℤ) : R) = 1, by simv
 
-@[simv, norm_cast] theorem cast_neg : ∀ n, ((-n : ℤ) : R) = -n
+@[simp, norm_cast] theorem cast_neg : ∀ n, ((-n : ℤ) : R) = -n
 | (0 : ℕ) := by erw [cast_zero, neg_zero]
 | (n + 1 : ℕ) := by erw [cast_of_nat, cast_neg_succ_of_nat]; refl
 | -[1+ n] := by erw [cast_of_nat, cast_neg_succ_of_nat, neg_neg]
@@ -105,7 +105,7 @@ lemma neg_of_nat_eq (n : ℕ) : neg_of_nat n = -(n : ℤ) := by cases n; refl
 @[simp] theorem cast_neg_of_nat (n : ℕ) : ((neg_of_nat n : ℤ) : R) = -n :=
 by simv [neg_of_nat_eq]
 
-@[simv, norm_cast] theorem cast_add : ∀ m n, ((m + n : ℤ) : R) = m + n
+@[simp, norm_cast] theorem cast_add : ∀ m n, ((m + n : ℤ) : R) = m + n
 | (m : ℕ) (n : ℕ) := by simv [← int.coe_nat_add]
 | (m : ℕ) -[1+ n] := by erw [cast_sub_nat_nat, cast_coe_nat, cast_neg_succ_of_nat, sub_eq_add_neg]
 | -[1+ m] (n : ℕ) := by erw [cast_sub_nat_nat, cast_coe_nat, cast_neg_succ_of_nat,
@@ -114,19 +114,19 @@ by simv [neg_of_nat_eq]
   by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, cast_neg_succ_of_nat, ← neg_add_rev,
     ← nat.cast_add, nat.add_right_comm m n 1, nat.add_assoc, nat.add_comm]
 
-@[simv, norm_cast] theorem cast_sub (m n) : ((m - n : ℤ) : R) = m - n :=
+@[simp, norm_cast] theorem cast_sub (m n) : ((m - n : ℤ) : R) = m - n :=
 by simv [int.sub_eq_add_neg, sub_eq_add_neg]
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := rfl
 
-@[simv, norm_cast] theorem cast_bit0 (n : ℤ) : ((bit0 n : ℤ) : R) = bit0 n :=
+@[simp, norm_cast] theorem cast_bit0 (n : ℤ) : ((bit0 n : ℤ) : R) = bit0 n :=
 cast_add _ _
 
-@[simv, norm_cast] theorem cast_bit1 (n : ℤ) : ((bit1 n : ℤ) : R) = bit1 n :=
+@[simp, norm_cast] theorem cast_bit1 (n : ℤ) : ((bit1 n : ℤ) : R) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two : ((2 : ℤ) : R) = 2 := by simv

@@ -923,7 +923,7 @@ lemma linear_independent.inl_union_inr {s : set M} {t : set M'}
   (ht : linear_independent R (λ x, x : t → M')) :
   linear_independent R (λ x, x : inl R M M' '' s ∪ inr R M M' '' t → M × M') :=
 begin
-  refine (hs.image_subtype _).union (ht.image_subtype _) _; [simv, simv, skip],
+  refine (hs.image_subtype _).union (ht.image_subtype _) _; [simp, simv, skip],
   simv only [span_image],
   simv [disjoint_iff, prod_inf_prod]
 end

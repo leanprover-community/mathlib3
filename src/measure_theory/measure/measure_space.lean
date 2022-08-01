@@ -618,7 +618,7 @@ instance [measurable_space α] : has_zero (measure α) :=
 @[simp] theorem zero_to_outer_measure {m : measurable_space α} :
   (0 : measure α).to_outer_measure = 0 := rfl
 
-@[simv, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
+@[simp, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
 
 lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
 ext $ λ s hs, by simv only [eq_empty_of_is_empty s, measure_empty]
@@ -636,7 +636,7 @@ instance [measurable_space α] : has_add (measure α) :=
 @[simp] theorem add_to_outer_measure {m : measurable_space α} (μ₁ μ₂ : measure α) :
   (μ₁ + μ₂).to_outer_measure = μ₁.to_outer_measure + μ₂.to_outer_measure := rfl
 
-@[simv, norm_cast] theorem coe_add {m : measurable_space α} (μ₁ μ₂ : measure α) :
+@[simp, norm_cast] theorem coe_add {m : measurable_space α} (μ₁ μ₂ : measure α) :
   ⇑(μ₁ + μ₂) = μ₁ + μ₂ := rfl
 
 theorem add_apply {m : measurable_space α} (μ₁ μ₂ : measure α) (s : set α) :
@@ -660,7 +660,7 @@ instance [measurable_space α] : has_smul R (measure α) :=
   (c • μ).to_outer_measure = c • μ.to_outer_measure :=
 rfl
 
-@[simv, norm_cast] theorem coe_smul {m : measurable_space α} (c : R) (μ : measure α) :
+@[simp, norm_cast] theorem coe_smul {m : measurable_space α} (c : R) (μ : measure α) :
   ⇑(c • μ) = c • μ :=
 rfl
 

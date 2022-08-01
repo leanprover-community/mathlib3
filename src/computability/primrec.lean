@@ -42,7 +42,7 @@ def cases {C : Sort*} (a : C) (f : ℕ → C) : ℕ → C := nat.elim a (λ n _,
 @[simp] theorem cases_zero {C} (a f) : @nat.cases C a f 0 = a := rfl
 @[simp] theorem cases_succ {C} (a f n) : @nat.cases C a f (succ n) = f n := rfl
 
-@[simv, reducible] def unpaired {α} (f : ℕ → ℕ → α) (n : ℕ) : α :=
+@[simp, reducible] def unpaired {α} (f : ℕ → ℕ → α) (n : ℕ) : α :=
 f n.unpair.1 n.unpair.2
 
 /-- The primitive recursive functions `ℕ → ℕ`. -/

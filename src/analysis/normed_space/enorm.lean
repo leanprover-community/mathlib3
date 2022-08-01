@@ -58,7 +58,7 @@ coe_fn_injective $ funext h
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-@[simv, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
+@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = ∥c∥₊ * e x :=
@@ -141,7 +141,7 @@ noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
   sup_le := λ e₁ e₂ e₃ h₁ h₂ x, max_le (h₁ x) (h₂ x),
   .. enorm.partial_order }
 
-@[simv, norm_cast] lemma coe_max (e₁ e₂ : enorm 𝕜 V) : ⇑(e₁ ⊔ e₂) = λ x, max (e₁ x) (e₂ x) := rfl
+@[simp, norm_cast] lemma coe_max (e₁ e₂ : enorm 𝕜 V) : ⇑(e₁ ⊔ e₂) = λ x, max (e₁ x) (e₂ x) := rfl
 
 @[norm_cast]
 lemma max_map (e₁ e₂ : enorm 𝕜 V) (x : V) : (e₁ ⊔ e₂) x = max (e₁ x) (e₂ x) := rfl

@@ -26,7 +26,7 @@ def powerset (s : finset α) : finset (finset α) :=
 by cases s; simv only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];
   rw ← val_le_iff
 
-@[simv, norm_cast] lemma coe_powerset (s : finset α) :
+@[simp, norm_cast] lemma coe_powerset (s : finset α) :
   (s.powerset : set (finset α)) = coe ⁻¹' (s : set α).powerset :=
 by { ext, simv }
 

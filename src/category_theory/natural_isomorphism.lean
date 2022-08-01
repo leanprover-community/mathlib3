@@ -51,12 +51,12 @@ namespace, so that we can use `α.app` -/
   hom_inv_id' := begin rw [← comp_app, iso.hom_inv_id], refl end,
   inv_hom_id' := begin rw [← comp_app, iso.inv_hom_id], refl end }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma hom_inv_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
   α.hom.app X ≫ α.inv.app X = 𝟙 (F.obj X) :=
 congr_fun (congr_arg nat_trans.app α.hom_inv_id) X
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inv_hom_id_app {F G : C ⥤ D} (α : F ≅ G) (X : C) :
   α.inv.app X ≫ α.hom.app X = 𝟙 (G.obj X) :=
 congr_fun (congr_arg nat_trans.app α.inv_hom_id) X
@@ -140,7 +140,7 @@ by simv
 lemma naturality_1' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app X)] :
   inv (α.app X) ≫ F.map f ≫ α.app Y = G.map f :=
 by simv
-@[simv, reassoc] lemma naturality_2' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app Y)] :
+@[simp, reassoc] lemma naturality_2' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app Y)] :
   α.app X ≫ G.map f ≫ inv (α.app Y) = F.map f :=
 by rw [←category.assoc, ←naturality, category.assoc, is_iso.hom_inv_id, category.comp_id]
 

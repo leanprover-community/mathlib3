@@ -570,7 +570,7 @@ lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 @[simp] lemma prod_apply (p) :
   e₁.prod e₂ p = (e₁ p.1, e₂ p.2) := rfl
 
-@[simv, norm_cast] lemma coe_prod :
+@[simp, norm_cast] lemma coe_prod :
   (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) := rfl
 
 end

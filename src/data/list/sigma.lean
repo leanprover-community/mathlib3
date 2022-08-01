@@ -334,17 +334,17 @@ erasep $ λ s, a = s.1
 @[simp] theorem kerase_nil {a} : @kerase _ β _ a [] = [] :=
 rfl
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem kerase_cons_eq {a} {s : sigma β} {l : list (sigma β)} (h : a = s.1) :
   kerase a (s :: l) = l :=
 by simv [kerase, h]
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem kerase_cons_ne {a} {s : sigma β} {l : list (sigma β)} (h : a ≠ s.1) :
   kerase a (s :: l) = s :: kerase a l :=
 by simv [kerase, h]
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem kerase_of_not_mem_keys {a} {l : list (sigma β)} (h : a ∉ l.keys) :
   kerase a l = l :=
 by induction l with _ _ ih;
@@ -382,7 +382,7 @@ begin
                by rw h₂; refl, by simv [e, h₃]⟩ } } }
 end
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem mem_keys_kerase_of_ne {a₁ a₂} {l : list (sigma β)} (h : a₁ ≠ a₂) :
   a₁ ∈ (kerase a₂ l).keys ↔ a₁ ∈ l.keys :=
 iff.intro mem_keys_of_mem_keys_kerase $ λ p,

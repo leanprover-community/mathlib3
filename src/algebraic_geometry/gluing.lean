@@ -149,7 +149,7 @@ lemma ι_jointly_surjective (x : 𝖣 .glued.carrier) :
   ∃ (i : D.J) (y : (D.U i).carrier), (D.ι i).1.base y = x :=
 𝖣 .ι_jointly_surjective (forget_to_Top ⋙ forget Top) x
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma glue_condition (i j : D.J) :
   D.t i j ≫ D.f j i ≫ D.ι j = D.f i j ≫ D.ι i :=
 𝖣 .glue_condition i j
@@ -256,22 +256,22 @@ begin
   { simv }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma glued_cover_t'_fst_fst (x y z : 𝒰.J) :
    𝒰.glued_cover_t' x y z ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 by { delta glued_cover_t', simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma glued_cover_t'_fst_snd (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 by { delta glued_cover_t', simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma glued_cover_t'_snd_fst (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 by { delta glued_cover_t', simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma glued_cover_t'_snd_snd (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
 by { delta glued_cover_t', simv }
@@ -322,7 +322,7 @@ begin
   simpa using pullback.condition
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_from_glued (x : 𝒰.J) :
   𝒰.glued_cover.ι x ≫ 𝒰.from_glued = 𝒰.map x :=
 multicoequalizer.π_desc _ _ _ _ _
@@ -422,7 +422,7 @@ begin
   exact hf i j
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_glue_morphisms {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
   (hf : ∀ x y, (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _) ≫ f x = pullback.snd ≫ f y)
   (x : 𝒰.J) : (𝒰.map x) ≫ 𝒰.glue_morphisms f hf = f x :=

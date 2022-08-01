@@ -108,7 +108,7 @@ protected lemma mdifferentiable_on (h : M ≃ₘ^n⟮I, I'⟯ M') (s : set M) (h
 (h.mdifferentiable hn).mdifferentiable_on
 
 @[simp] lemma coe_to_equiv (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑h.to_equiv = h := rfl
-@[simv, norm_cast] lemma coe_coe (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑(h : C^n⟮I, M; I', M'⟯) = h := rfl
+@[simp, norm_cast] lemma coe_coe (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑(h : C^n⟮I, M; I', M'⟯) = h := rfl
 
 lemma to_equiv_injective : injective (diffeomorph.to_equiv : (M ≃ₘ^n⟮I, I'⟯ M') → (M ≃ M'))
 | ⟨e, _, _⟩ ⟨e', _, _⟩ rfl := rfl
@@ -172,14 +172,14 @@ ext h.apply_symm_apply
 @[simp] lemma symm_trans' (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
 @[simp] lemma symm_to_equiv (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.to_equiv = h.to_equiv.symm := rfl
-@[simv, mfld_simps] lemma to_equiv_coe_symm (h : M ≃ₘ^n⟮I, J⟯ N) : ⇑h.to_equiv.symm = h.symm := rfl
+@[simp, mfld_simps] lemma to_equiv_coe_symm (h : M ≃ₘ^n⟮I, J⟯ N) : ⇑h.to_equiv.symm = h.symm := rfl
 
 lemma image_eq_preimage (h : M ≃ₘ^n⟮I, J⟯ N) (s : set M) : h '' s = h.symm ⁻¹' s :=
 h.to_equiv.image_eq_preimage s
 lemma symm_image_eq_preimage (h : M ≃ₘ^n⟮I, J⟯ N) (s : set N) : h.symm '' s = h ⁻¹' s :=
 h.symm.image_eq_preimage s
 
-@[simv, mfld_simps] lemma range_comp {α} (h : M ≃ₘ^n⟮I, J⟯ N) (f : α → M) :
+@[simp, mfld_simps] lemma range_comp {α} (h : M ≃ₘ^n⟮I, J⟯ N) (f : α → M) :
   range (h ∘ f) = h.symm ⁻¹' (range f) :=
 by rw [range_comp, image_eq_preimage]
 
@@ -357,8 +357,8 @@ def trans_diffeomorph (I : model_with_corners 𝕜 E H) (e : E ≃ₘ[𝕜] E') 
   continuous_to_fun := e.continuous.comp I.continuous,
   continuous_inv_fun := I.continuous_symm.comp e.symm.continuous }
 
-@[simv, mfld_simps] lemma coe_trans_diffeomorph : ⇑(I.trans_diffeomorph e) = e ∘ I := rfl
-@[simv, mfld_simps] lemma coe_trans_diffeomorph_symm :
+@[simp, mfld_simps] lemma coe_trans_diffeomorph : ⇑(I.trans_diffeomorph e) = e ∘ I := rfl
+@[simp, mfld_simps] lemma coe_trans_diffeomorph_symm :
   ⇑(I.trans_diffeomorph e).symm = I.symm ∘ e.symm := rfl
 
 lemma trans_diffeomorph_range : range (I.trans_diffeomorph e) = e '' (range I) :=

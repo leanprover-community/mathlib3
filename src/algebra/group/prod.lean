@@ -35,14 +35,14 @@ namespace prod
 @[to_additive]
 instance [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma fst_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).1 = p.1 * q.1 := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma snd_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).2 = p.2 * q.2 := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma swap_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).swap = p.swap * q.swap := rfl
 @[to_additive]
 lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 * q.2) := rfl
@@ -50,16 +50,16 @@ lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 *
 @[to_additive]
 instance [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma fst_one [has_one M] [has_one N] : (1 : M × N).1 = 1 := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma snd_one [has_one M] [has_one N] : (1 : M × N).2 = 1 := rfl
 @[to_additive]
 lemma one_eq_mk [has_one M] [has_one N] : (1 : M × N) = (1, 1) := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 ∧ y = 1 :=
 mk.inj_iff
-@[simv, to_additive]
+@[simp, to_additive]
 lemma swap_one [has_one M] [has_one N] : (1 : M × N).swap = 1 := rfl
 
 @[to_additive]
@@ -70,13 +70,13 @@ ext (mul_one p.1) (one_mul p.2)
 @[to_additive]
 instance [has_inv M] [has_inv N] : has_inv (M × N) := ⟨λp, (p.1⁻¹, p.2⁻¹)⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma fst_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).1 = (p.1)⁻¹ := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
-@[simv, to_additive]
+@[simp, to_additive]
 lemma swap_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).swap = p.swap⁻¹ := rfl
 
 @[to_additive]
@@ -87,13 +87,13 @@ instance [has_involutive_inv M] [has_involutive_inv N] : has_involutive_inv (M �
 @[to_additive]
 instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
 
-@[simv, to_additive] lemma fst_div [has_div G] [has_div H] (a b : G × H) : (a / b).1 = a.1 / b.1 :=
+@[simp, to_additive] lemma fst_div [has_div G] [has_div H] (a b : G × H) : (a / b).1 = a.1 / b.1 :=
 rfl
-@[simv, to_additive] lemma snd_div [has_div G] [has_div H] (a b : G × H) : (a / b).2 = a.2 / b.2 :=
+@[simp, to_additive] lemma snd_div [has_div G] [has_div H] (a b : G × H) : (a / b).2 = a.2 / b.2 :=
 rfl
-@[simv, to_additive] lemma mk_div_mk [has_div G] [has_div H] (x₁ x₂ : G) (y₁ y₂ : H) :
+@[simp, to_additive] lemma mk_div_mk [has_div G] [has_div H] (x₁ x₂ : G) (y₁ y₂ : H) :
   (x₁, y₁) / (x₂, y₂) = (x₁ / x₂, y₁ / y₂) := rfl
-@[simv, to_additive] lemma swap_div [has_div G] [has_div H] (a b : G × H) :
+@[simp, to_additive] lemma swap_div [has_div G] [has_div H] (a b : G × H) :
   (a / b).swap = a.swap / b.swap := rfl
 
 instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
@@ -219,8 +219,8 @@ def snd : (M × N) →ₙ* N := ⟨prod.snd, λ _ _, rfl⟩
 
 variables {M N}
 
-@[simv, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
-@[simv, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
+@[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
+@[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
 
 /-- Combine two `monoid_hom`s `f : M →ₙ* N`, `g : M →ₙ* P` into
 `f.prod g : M →ₙ* (N × P)` given by `(f.prod g) x = (f x, g x)`. -/
@@ -233,18 +233,18 @@ protected def prod (f : M →ₙ* N) (g : M →ₙ* P) : M →ₙ* (N × P) :=
 @[to_additive coe_prod]
 lemma coe_prod (f : M →ₙ* N) (g : M →ₙ* P) : ⇑(f.prod g) = pi.prod f g := rfl
 
-@[simv, to_additive prod_apply]
+@[simp, to_additive prod_apply]
 lemma prod_apply (f : M →ₙ* N) (g : M →ₙ* P) (x) : f.prod g x = (f x, g x) := rfl
 
-@[simv, to_additive fst_comp_prod]
+@[simp, to_additive fst_comp_prod]
 lemma fst_comp_prod (f : M →ₙ* N) (g : M →ₙ* P) : (fst N P).comp (f.prod g) = f :=
 ext $ λ x, rfl
 
-@[simv, to_additive snd_comp_prod]
+@[simp, to_additive snd_comp_prod]
 lemma snd_comp_prod (f : M →ₙ* N) (g : M →ₙ* P) : (snd N P).comp (f.prod g) = g :=
 ext $ λ x, rfl
 
-@[simv, to_additive prod_unique]
+@[simp, to_additive prod_unique]
 lemma prod_unique (f : M →ₙ* (N × P)) :
   ((fst N P).comp f).prod ((snd N P).comp f) = f :=
 ext $ λ x, by simv only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
@@ -263,7 +263,7 @@ def prod_map : (M × N) →ₙ* (M' × N') := (f.comp (fst M N)).prod (g.comp (s
 @[to_additive prod_map_def]
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
 
-@[simv, to_additive coe_prod_map]
+@[simp, to_additive coe_prod_map]
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
 @[to_additive prod_comp_prod_map]
@@ -284,7 +284,7 @@ variables [has_mul M] [has_mul N] [comm_semigroup P] (f : M →ₙ* P) (g : N �
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
 def coprod : (M × N) →ₙ* P := f.comp (fst M N) * g.comp (snd M N)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
 @[to_additive]
@@ -325,16 +325,16 @@ def inr : N →* M × N :=
 
 variables {M N}
 
-@[simv, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
-@[simv, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
+@[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
+@[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
 
-@[simv, to_additive] lemma inl_apply (x) : inl M N x = (x, 1) := rfl
-@[simv, to_additive] lemma inr_apply (y) : inr M N y = (1, y) := rfl
+@[simp, to_additive] lemma inl_apply (x) : inl M N x = (x, 1) := rfl
+@[simp, to_additive] lemma inr_apply (y) : inr M N y = (1, y) := rfl
 
-@[simv, to_additive] lemma fst_comp_inl : (fst M N).comp (inl M N) = id M := rfl
-@[simv, to_additive] lemma snd_comp_inl : (snd M N).comp (inl M N) = 1 := rfl
-@[simv, to_additive] lemma fst_comp_inr : (fst M N).comp (inr M N) = 1 := rfl
-@[simv, to_additive] lemma snd_comp_inr : (snd M N).comp (inr M N) = id N := rfl
+@[simp, to_additive] lemma fst_comp_inl : (fst M N).comp (inl M N) = id M := rfl
+@[simp, to_additive] lemma snd_comp_inl : (snd M N).comp (inl M N) = 1 := rfl
+@[simp, to_additive] lemma fst_comp_inr : (fst M N).comp (inr M N) = 1 := rfl
+@[simp, to_additive] lemma snd_comp_inr : (snd M N).comp (inr M N) = id N := rfl
 
 section prod
 
@@ -352,18 +352,18 @@ protected def prod (f : M →* N) (g : M →* P) : M →* N × P :=
 @[to_additive coe_prod]
 lemma coe_prod (f : M →* N) (g : M →* P) : ⇑(f.prod g) = pi.prod f g := rfl
 
-@[simv, to_additive prod_apply]
+@[simp, to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
 
-@[simv, to_additive fst_comp_prod]
+@[simp, to_additive fst_comp_prod]
 lemma fst_comp_prod (f : M →* N) (g : M →* P) : (fst N P).comp (f.prod g) = f :=
 ext $ λ x, rfl
 
-@[simv, to_additive snd_comp_prod]
+@[simp, to_additive snd_comp_prod]
 lemma snd_comp_prod (f : M →* N) (g : M →* P) : (snd N P).comp (f.prod g) = g :=
 ext $ λ x, rfl
 
-@[simv, to_additive prod_unique]
+@[simp, to_additive prod_unique]
 lemma prod_unique (f : M →* N × P) :
   ((fst N P).comp f).prod ((snd N P).comp f) = f :=
 ext $ λ x, by simv only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
@@ -382,7 +382,7 @@ def prod_map : M × N →* M' × N' := (f.comp (fst M N)).prod (g.comp (snd M N)
 @[to_additive prod_map_def]
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
 
-@[simv, to_additive coe_prod_map]
+@[simp, to_additive coe_prod_map]
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
 @[to_additive prod_comp_prod_map]
@@ -402,22 +402,22 @@ variables [comm_monoid P] (f : M →* P) (g : N →* P)
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
 def coprod : M × N →* P := f.comp (fst M N) * g.comp (snd M N)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coprod_comp_inl : (f.coprod g).comp (inl M N) = f :=
 ext $ λ x, by simv [coprod_apply]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coprod_comp_inr : (f.coprod g).comp (inr M N) = g :=
 ext $ λ x, by simv [coprod_apply]
 
-@[simv, to_additive] lemma coprod_unique (f : M × N →* P) :
+@[simp, to_additive] lemma coprod_unique (f : M × N →* P) :
   (f.comp (inl M N)).coprod (f.comp (inr M N)) = f :=
 ext $ λ x, by simv [coprod_apply, inl_apply, inr_apply, ← map_mul]
 
-@[simv, to_additive] lemma coprod_inl_inr {M N : Type*} [comm_monoid M] [comm_monoid N] :
+@[simp, to_additive] lemma coprod_inl_inr {M N : Type*} [comm_monoid M] [comm_monoid N] :
   (inl M N).coprod (inr M N) = id (M × N) :=
 coprod_unique (id $ M × N)
 
@@ -442,10 +442,10 @@ components is additive."]
 def prod_comm : M × N ≃* N × M :=
 { map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
 
-@[simv, to_additive coe_prod_comm] lemma coe_prod_comm :
+@[simp, to_additive coe_prod_comm] lemma coe_prod_comm :
   ⇑(prod_comm : M × N ≃* N × M) = prod.swap := rfl
 
-@[simv, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
+@[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
 variables {M' N' : Type*} [mul_one_class M'] [mul_one_class N']

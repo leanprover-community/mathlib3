@@ -523,7 +523,7 @@ lemma left_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
 lemma right_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
   b.dom := by tidy
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mul_get_eq [has_mul α] (a b : part α) (hab : dom (a * b)) :
   (a * b).get hab = a.get (left_dom_of_mul_dom hab) * b.get (right_dom_of_mul_dom hab) :=
 by tidy
@@ -549,7 +549,7 @@ lemma left_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
 lemma right_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
   b.dom := by tidy
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma div_get_eq [has_div α] (a b : part α) (hab : dom (a / b)) :
   (a / b).get hab = a.get (left_dom_of_div_dom hab) / b.get (right_dom_of_div_dom hab) :=
 by tidy

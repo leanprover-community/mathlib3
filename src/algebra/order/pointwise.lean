@@ -27,8 +27,8 @@ variables [conditionally_complete_lattice α]
 section has_one
 variables [has_one α]
 
-@[simv, to_additive] lemma cSup_one : Sup (1 : set α) = 1 := cSup_singleton _
-@[simv, to_additive] lemma cInf_one : Inf (1 : set α) = 1 := cInf_singleton _
+@[simp, to_additive] lemma cSup_one : Sup (1 : set α) = 1 := cSup_singleton _
+@[simp, to_additive] lemma cInf_one : Inf (1 : set α) = 1 := cInf_singleton _
 
 end has_one
 
@@ -72,8 +72,8 @@ variables [complete_lattice α]
 section has_one
 variables [has_one α]
 
-@[simv, to_additive] lemma Sup_one : Sup (1 : set α) = 1 := Sup_singleton
-@[simv, to_additive] lemma Inf_one : Inf (1 : set α) = 1 := Inf_singleton
+@[simp, to_additive] lemma Sup_one : Sup (1 : set α) = 1 := Sup_singleton
+@[simp, to_additive] lemma Inf_one : Inf (1 : set α) = 1 := Inf_singleton
 
 end has_one
 

@@ -332,7 +332,7 @@ section canonically_ordered_monoid
 
 variables [canonically_ordered_monoid M] {f : ι → M} {s t : finset ι}
 
-@[simv, to_additive sum_eq_zero_iff]
+@[simp, to_additive sum_eq_zero_iff]
 lemma prod_eq_one_iff' : ∏ x in s, f x = 1 ↔ ∀ x ∈ s, f x = 1 :=
 prod_eq_one_iff_of_one_le' $ λ x hx, one_le (f x)
 

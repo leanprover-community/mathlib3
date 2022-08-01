@@ -72,20 +72,20 @@ option.rec h₁ h₂
   "Deconstruct a `x : with_zero α` to the underlying value in `α`, given a proof that `x ≠ 0`."]
 def unone {x : with_one α} (hx : x ≠ 1) : α := with_bot.unbot x hx
 
-@[simv, to_additive unzero_coe]
+@[simp, to_additive unzero_coe]
 lemma unone_coe {x : α} (hx : (x : with_one α) ≠ 1) : unone hx = x := rfl
 
-@[simv, to_additive coe_unzero]
+@[simp, to_additive coe_unzero]
 lemma coe_unone {x : with_one α} (hx : x ≠ 1) : ↑(unone hx) = x := with_bot.coe_unbot x hx
 
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
 option.some_ne_none a
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
 coe_ne_one.symm
 
@@ -99,7 +99,7 @@ instance : can_lift (with_one α) α :=
   cond := λ a, a ≠ 1,
   prf := λ a, ne_one_iff_exists.1 }
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
 
@@ -162,10 +162,10 @@ def lift : (α →ₙ* β) ≃ (with_one α →* β) :=
 
 variables (f : α →ₙ* β)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma lift_coe (x : α) : lift f x = f x := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma lift_one : lift f 1 = 1 := rfl
 
 @[to_additive]
@@ -187,10 +187,10 @@ variables [has_mul α] [has_mul β] [has_mul γ]
 def map (f : α →ₙ* β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
 
-@[simv, to_additive] lemma map_coe (f : α →ₙ* β) (a : α) : map f (a : with_one α) = f a :=
+@[simp, to_additive] lemma map_coe (f : α →ₙ* β) (a : α) : map f (a : with_one α) = f a :=
 lift_coe _ _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
 by { ext, induction x using with_one.cases_on; refl }
 
@@ -199,7 +199,7 @@ lemma map_map (f : α →ₙ* β) (g : β →ₙ* γ) (x) :
   map g (map f x) = map (g.comp f) x :=
 by { induction x using with_one.cases_on; refl }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_comp (f : α →ₙ* β) (g : β →ₙ* γ) :
   map (g.comp f) = (map g).comp (map f) :=
 monoid_hom.ext $ λ x, (map_map f g x).symm
@@ -228,10 +228,10 @@ mul_equiv.to_monoid_hom_injective (map_comp _ _).symm
 
 end map
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_one α) = a⁻¹ := rfl
 
 end with_one
@@ -241,7 +241,7 @@ namespace with_zero
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
-@[simv, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
+@[simp, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
 { mul       := λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a * b) o₂),
@@ -249,7 +249,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   mul_zero  := λ a, by cases a; refl,
   ..with_zero.has_zero }
 
-@[simv, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
+@[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
   {a b : α} : ((a * b : α) : with_zero α) = a * b := rfl
 
 @[simp] lemma zero_mul {α : Type u} [has_mul α]
@@ -297,7 +297,7 @@ instance [has_one α] [has_pow α ℕ] : has_pow (with_zero α) ℕ :=
   | some x, n := ↑(x ^ n)
   end⟩
 
-@[simv, norm_cast] lemma coe_pow [has_one α] [has_pow α ℕ] {a : α} (n : ℕ) :
+@[simp, norm_cast] lemma coe_pow [has_one α] [has_pow α ℕ] {a : α} (n : ℕ) :
   ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
 
 instance [monoid α] : monoid_with_zero (with_zero α) :=
@@ -320,7 +320,7 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
   on `with_zero α` sending `0` to `0`-/
 instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
-@[simv, norm_cast] lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
 @[simp] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
 
@@ -341,7 +341,7 @@ instance [has_one α] [has_pow α ℤ] : has_pow (with_zero α) ℤ :=
   | some x, n                     := ↑(x ^ n)
   end⟩
 
-@[simv, norm_cast] lemma coe_zpow [div_inv_monoid α] {a : α} (n : ℤ) :
+@[simp, norm_cast] lemma coe_zpow [div_inv_monoid α] {a : α} (n : ℤ) :
   ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
 
 instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=

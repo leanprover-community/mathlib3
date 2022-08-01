@@ -344,7 +344,7 @@ If the declaration to be transported has attributes which need to be
 copied to the additive version, then `to_additive` should come last:
 
 ```
-@[simv, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
+@[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
 ```
 
 The following attributes are supported and should be applied correctly by `to_additive` to

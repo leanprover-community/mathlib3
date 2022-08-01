@@ -85,13 +85,13 @@ structure lax_monoidal_functor extends C ⥤ D :=
   . obviously)
 
 restate_axiom lax_monoidal_functor.μ_natural'
-attribute [simv, reassoc] lax_monoidal_functor.μ_natural
+attribute [simp, reassoc] lax_monoidal_functor.μ_natural
 restate_axiom lax_monoidal_functor.left_unitality'
 attribute [simp] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'
 attribute [simp] lax_monoidal_functor.right_unitality
 restate_axiom lax_monoidal_functor.associativity'
-attribute [simv, reassoc] lax_monoidal_functor.associativity
+attribute [simp, reassoc] lax_monoidal_functor.associativity
 
 -- When `rewrite_search` lands, add @[search] attributes to
 -- lax_monoidal_functor.μ_natural lax_monoidal_functor.left_unitality
@@ -100,7 +100,7 @@ attribute [simv, reassoc] lax_monoidal_functor.associativity
 section
 variables {C D}
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lax_monoidal_functor.left_unitality_inv (F : lax_monoidal_functor C D) (X : C) :
   (λ_ (F.obj X)).inv ≫ (F.ε ⊗ 𝟙 (F.obj X)) ≫ F.μ (𝟙_ C) X = F.map (λ_ X).inv :=
 begin
@@ -108,7 +108,7 @@ begin
     ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lax_monoidal_functor.right_unitality_inv (F : lax_monoidal_functor C D) (X : C) :
   (ρ_ (F.obj X)).inv ≫ (𝟙 (F.obj X) ⊗ F.ε) ≫ F.μ X (𝟙_ C) = F.map (ρ_ X).inv :=
 begin
@@ -116,7 +116,7 @@ begin
     ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lax_monoidal_functor.associativity_inv (F : lax_monoidal_functor C D) (X Y Z : C) :
   (𝟙 (F.obj X) ⊗ F.μ Y Z) ≫ F.μ X (Y ⊗ Z) ≫ F.map (α_ X Y Z).inv =
     (α_ (F.obj X) (F.obj Y) (F.obj Z)).inv ≫ (F.μ X Y ⊗ 𝟙 (F.obj Z)) ≫ F.μ (X ⊗ Y) Z :=
@@ -211,13 +211,13 @@ nat_iso.of_components
   (by { intros, apply F.to_lax_monoidal_functor.μ_natural })
 
 @[simp] lemma μ_iso_hom (X Y : C) : (F.μ_iso X Y).hom = F.μ X Y := rfl
-@[simv, reassoc] lemma μ_inv_hom_id (X Y : C) : (F.μ_iso X Y).inv ≫ F.μ X Y = 𝟙 _ :=
+@[simp, reassoc] lemma μ_inv_hom_id (X Y : C) : (F.μ_iso X Y).inv ≫ F.μ X Y = 𝟙 _ :=
 (F.μ_iso X Y).inv_hom_id
 @[simp] lemma μ_hom_inv_id (X Y : C) : F.μ X Y ≫ (F.μ_iso X Y).inv = 𝟙 _ :=
 (F.μ_iso X Y).hom_inv_id
 
 @[simp] lemma ε_iso_hom : F.ε_iso.hom = F.ε := rfl
-@[simv, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
+@[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
 @[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
 
 end

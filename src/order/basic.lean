@@ -190,9 +190,9 @@ protected lemma gt.lt [has_lt α] {x y : α} (h : x > y) : y < x := h
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b := h.ge
 
-@[simv, nolint ge_or_gt] -- see Note [nolint_ge]
+@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
 lemma ge_iff_le [has_le α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
-@[simv, nolint ge_or_gt] -- see Note [nolint_ge]
+@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
 lemma gt_iff_lt [has_lt α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a := (le_not_le_of_lt h).right
@@ -607,10 +607,10 @@ iff.rfl
   (⟨x, hx⟩ : subtype p) < ⟨y, hy⟩ ↔ x < y :=
 iff.rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_le_coe [has_le α] {p : α → Prop} {x y : subtype p} : (x : α) ≤ y ↔ x ≤ y := iff.rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_lt_coe [has_lt α] {p : α → Prop} {x y : subtype p} : (x : α) < y ↔ x < y := iff.rfl
 
 instance [preorder α] (p : α → Prop) : preorder (subtype p) := preorder.lift (coe : subtype p → α)

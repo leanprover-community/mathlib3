@@ -138,11 +138,11 @@ rfl
 @[simp] lemma to_mul_hom_eq_coe (f : A →ₙₐ[R] B) : f.to_mul_hom = ↑f :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_distrib_mul_action_hom (f : A →ₙₐ[R] B) :
+@[simp, norm_cast] lemma coe_to_distrib_mul_action_hom (f : A →ₙₐ[R] B) :
   ((f : A →+[R] B) : A → B) = f :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_mul_hom (f : A →ₙₐ[R] B) :
+@[simp, norm_cast] lemma coe_to_mul_hom (f : A →ₙₐ[R] B) :
   ((f : A →ₙ* B) : A → B) = f :=
 rfl
 
@@ -197,7 +197,7 @@ def comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) : A →ₙₐ[R] C :=
 { .. (f : B →ₙ* C).comp (g : A →ₙ* B),
   .. (f : B →+[R] C).comp (g : A →+[R] B) }
 
-@[simv, norm_cast] lemma coe_comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) :
+@[simp, norm_cast] lemma coe_comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) :
   (f.comp g : A → C) = (f : B → C) ∘ (g : A → B) :=
 rfl
 
@@ -306,7 +306,7 @@ instance non_unital_alg_hom.has_coe : has_coe (A →ₐ[R] B) (A →ₙₐ[R] B)
 @[simp] lemma to_non_unital_alg_hom_eq_coe (f : A →ₐ[R] B) : f.to_non_unital_alg_hom = f :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_non_unital_alg_hom (f : A →ₐ[R] B) :
+@[simp, norm_cast] lemma coe_to_non_unital_alg_hom (f : A →ₐ[R] B) :
   ((f : A →ₙₐ[R] B) : A → B) = f :=
 rfl
 

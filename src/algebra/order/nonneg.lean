@@ -88,7 +88,7 @@ instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
 instance has_zero [has_zero α] [preorder α] : has_zero {x : α // 0 ≤ x} :=
 ⟨⟨0, le_rfl⟩⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_zero [has_zero α] [preorder α] : ((0 : {x : α // 0 ≤ x}) : α) = 0 := rfl
 
 @[simp] lemma mk_eq_zero [has_zero α] [preorder α] {x : α} (hx : 0 ≤ x) :
@@ -103,7 +103,7 @@ instance has_add [add_zero_class α] [preorder α] [covariant_class α α (+) (�
   (hx : 0 ≤ x) (hy : 0 ≤ y) : (⟨x, hx⟩ : {x : α // 0 ≤ x}) + ⟨y, hy⟩ = ⟨x + y, add_nonneg hx hy⟩ :=
 rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_add [add_zero_class α] [preorder α] [covariant_class α α (+) (≤)]
   (a b : {x : α // 0 ≤ x}) : ((a + b : {x : α // 0 ≤ x}) : α) = a + b := rfl
 
@@ -115,7 +115,7 @@ instance has_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤
   {x : α} (hx : 0 ≤ x) : (n • ⟨x, hx⟩ : {x : α // 0 ≤ x}) = ⟨n • x, nsmul_nonneg hx n⟩ :=
 rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
   (n : ℕ) (a : {x : α // 0 ≤ x}) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
 
@@ -154,7 +154,7 @@ instance archimedean [ordered_add_comm_monoid α] [archimedean α] : archimedean
 instance has_one [ordered_semiring α] : has_one {x : α // 0 ≤ x} :=
 { one := ⟨1, zero_le_one⟩ }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_one [ordered_semiring α] : ((1 : {x : α // 0 ≤ x}) : α) = 1 := rfl
 
 @[simp] lemma mk_eq_one [ordered_semiring α] {x : α} (hx : 0 ≤ x) :
@@ -164,7 +164,7 @@ subtype.ext_iff
 instance has_mul [ordered_semiring α] : has_mul {x : α // 0 ≤ x} :=
 { mul := λ x y, ⟨x * y, mul_nonneg x.2 y.2⟩ }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_mul [ordered_semiring α] (a b : {x : α // 0 ≤ x}) :
   ((a * b : {x : α // 0 ≤ x}) : α) = a * b := rfl
 
@@ -181,7 +181,7 @@ instance add_monoid_with_one [ordered_semiring α] : add_monoid_with_one {x : α
 instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
   ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
 
@@ -223,14 +223,14 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
 map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_inv [linear_ordered_field α] (a : {x : α // 0 ≤ x}) :
   ((a⁻¹ : {x : α // 0 ≤ x}) : α) = a⁻¹ := rfl
 
@@ -249,7 +249,7 @@ instance linear_ordered_comm_group_with_zero [linear_ordered_field α] :
 instance has_div [linear_ordered_field α] : has_div {x : α // 0 ≤ x} :=
 { div := λ x y, ⟨x / y, div_nonneg x.2 y.2⟩ }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
   ((a / b : {x : α // 0 ≤ x}) : α) = a / b := rfl
 

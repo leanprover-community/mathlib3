@@ -379,7 +379,7 @@ instance [preorder β] : preorder (α →ₘ[μ] β) := preorder.lift to_germ
   (mk f hf : α →ₘ[μ] β) ≤ mk g hg ↔ f ≤ᵐ[μ] g :=
 iff.rfl
 
-@[simv, norm_cast] lemma coe_fn_le [preorder β] {f g : α →ₘ[μ] β} :
+@[simp, norm_cast] lemma coe_fn_le [preorder β] {f g : α →ₘ[μ] β} :
   (f : α → β) ≤ᵐ[μ] g ↔ f ≤ g :=
 lift_rel_iff_coe_fn.symm
 
@@ -469,7 +469,7 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 @[to_additive] lemma one_def [has_one β] :
   (1 : α →ₘ[μ] β) = mk (λ a:α, 1) ae_strongly_measurable_const := rfl
 @[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₘ[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
-@[simv, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
+@[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
 -- Note we set up the scalar actions before the `monoid` structures in case we want to
 -- try to override the `nsmul` or `zsmul` fields in future.
@@ -508,14 +508,14 @@ variables [has_mul γ] [has_continuous_mul γ]
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) continuous_mul⟩
 
-@[simv, to_additive] lemma mk_mul_mk (f g : α → γ) (hf : ae_strongly_measurable f μ)
+@[simp, to_additive] lemma mk_mul_mk (f g : α → γ) (hf : ae_strongly_measurable f μ)
   (hg : ae_strongly_measurable g μ) :
   (mk f hf : α →ₘ[μ] γ) * (mk g hg) = mk (f * g) (hf.mul hg) :=
 rfl
 
 @[to_additive] lemma coe_fn_mul (f g : α →ₘ[μ] γ) : ⇑(f * g) =ᵐ[μ] f * g := coe_fn_comp₂ _ _ _ _
 
-@[simv, to_additive] lemma mul_to_germ (f g : α →ₘ[μ] γ) :
+@[simp, to_additive] lemma mul_to_germ (f g : α →ₘ[μ] γ) :
   (f * g).to_germ = f.to_germ * g.to_germ :=
 comp₂_to_germ _ _ _ _
 
@@ -568,7 +568,7 @@ section inv
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv continuous_inv⟩
 
-@[simv, to_additive] lemma inv_mk (f : α → γ) (hf) : (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ hf.inv := rfl
+@[simp, to_additive] lemma inv_mk (f : α → γ) (hf) : (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ hf.inv := rfl
 
 @[to_additive] lemma coe_fn_inv (f : α →ₘ[μ] γ) : ⇑(f⁻¹) =ᵐ[μ] f⁻¹ := coe_fn_comp _ _ _
 
@@ -580,7 +580,7 @@ section div
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div continuous_div'⟩
 
-@[simv, to_additive] lemma mk_div (f g : α → γ)
+@[simp, to_additive] lemma mk_div (f g : α → γ)
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   mk (f / g) (hf.div hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
 rfl

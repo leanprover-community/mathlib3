@@ -207,7 +207,7 @@ def simps.apply (h : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂ := h
 
 initialize_simps_projections lie_hom (to_linear_map_to_fun → apply)
 
-@[simv, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
+@[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
 
 @[simp] lemma to_fun_eq_coe (f : L₁ →ₗ⁅R⁆ L₂) : f.to_fun = ⇑f := rfl
@@ -369,10 +369,10 @@ instance has_coe_to_linear_equiv : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ ≃�
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) (λ _, L₁ → L₂) := ⟨λ e, e.to_lie_hom.to_fun⟩
 
-@[simv, norm_cast] lemma coe_to_lie_hom (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
+@[simp, norm_cast] lemma coe_to_lie_hom (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) :
+@[simp, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) :
   ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e := rfl
 
 @[simp] lemma to_linear_equiv_mk (f : L₁ →ₗ⁅R⁆ L₂) (g h₁ h₂) :
@@ -484,7 +484,7 @@ instance : has_coe (M →ₗ⁅R,L⁆ N) (M →ₗ[R] N) := ⟨lie_module_hom.to
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (M →ₗ⁅R,L⁆ N) (λ _, M → N) := ⟨λ f, f.to_linear_map.to_fun⟩
 
-@[simv, norm_cast] lemma coe_to_linear_map (f : M →ₗ⁅R,L⁆ N) : ((f : M →ₗ[R] N) : M → N) = f :=
+@[simp, norm_cast] lemma coe_to_linear_map (f : M →ₗ⁅R,L⁆ N) : ((f : M →ₗ[R] N) : M → N) = f :=
 rfl
 
 @[simp] lemma map_smul (f : M →ₗ⁅R,L⁆ N) (c : R) (x : M) : f (c • x) = c • f x :=
@@ -664,10 +664,10 @@ lemma injective (e : M ≃ₗ⁅R,L⁆ N) : function.injective e := e.to_equiv.i
 @[simp] lemma coe_mk (f : M →ₗ⁅R,L⁆ N) (inv_fun h₁ h₂) :
   ((⟨f, inv_fun, h₁, h₂⟩ : M ≃ₗ⁅R,L⁆ N) : M → N) = f := rfl
 
-@[simv, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :
+@[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :
   ((e : M →ₗ⁅R,L⁆ N) : M → N) = e := rfl
 
-@[simv, norm_cast] lemma coe_to_linear_equiv (e : M ≃ₗ⁅R,L⁆ N) : ((e : M ≃ₗ[R] N) : M → N) = e :=
+@[simp, norm_cast] lemma coe_to_linear_equiv (e : M ≃ₗ⁅R,L⁆ N) : ((e : M ≃ₗ[R] N) : M → N) = e :=
 rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ⁅R,L⁆ N) → M ≃ N) :=

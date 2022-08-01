@@ -81,11 +81,11 @@ structure bicone (F : J → C) :=
 (ι : Π j, F j ⟶ X)
 (ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0 . obviously)
 
-@[simv, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
+@[simp, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
   B.ι j ≫ B.π j = 𝟙 (F j) :=
 by simpa using B.ι_π j j
 
-@[simv, reassoc] lemma bicone_ι_π_ne {F : J → C} (B : bicone F) {j j' : J} (h : j ≠ j') :
+@[simp, reassoc] lemma bicone_ι_π_ne {F : J → C} (B : bicone F) {j j' : J} (h : j ≠ j') :
   B.ι j ≫ B.π j' = 0 :=
 by simpa [h] using B.ι_π j j'
 
@@ -336,12 +336,12 @@ lemma biproduct.ι_π [decidable_eq J] (f : J → C) [has_biproduct f] (j j' : J
   biproduct.ι f j ≫ biproduct.π f j' = if h : j = j' then eq_to_hom (congr_arg f h) else 0 :=
 by convert (biproduct.bicone f).ι_π j j'
 
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biproduct.ι_π_self (f : J → C) [has_biproduct f] (j : J) :
   biproduct.ι f j ≫ biproduct.π f j = 𝟙 _ :=
 by simv [biproduct.ι_π]
 
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biproduct.ι_π_ne (f : J → C) [has_biproduct f] {j j' : J} (h : j ≠ j') :
   biproduct.ι f j ≫ biproduct.π f j' = 0 :=
 by simv [biproduct.ι_π, h]
@@ -355,12 +355,12 @@ abbreviation biproduct.desc
   {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b ⟶ P) : ⨁ f ⟶ P :=
 (biproduct.is_colimit f).desc (cofan.mk P p)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.lift_π {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) (j : J) :
   biproduct.lift p ≫ biproduct.π f j = p j :=
 (biproduct.is_limit f).fac _ ⟨j⟩
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.ι_desc {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b ⟶ P) (j : J) :
   biproduct.ι f j ≫ biproduct.desc p = p j :=
 (biproduct.is_colimit f).fac _ ⟨j⟩
@@ -427,13 +427,13 @@ begin
   { simv, },
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.map_π {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
 limits.is_limit.map_π _ _ _ (discrete.mk j)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.ι_map {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
@@ -442,13 +442,13 @@ begin
   convert limits.is_colimit.ι_map _ _ _ (discrete.mk j); refl
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.map_desc {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) {P : C} (k : Π j, g j ⟶ P) :
   biproduct.map p ≫ biproduct.desc k = biproduct.desc (λ j, p j ≫ k j) :=
 by { ext, simv, }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.lift_map {f g : J → C} [has_biproduct f] [has_biproduct g]
   {P : C} (k : Π j, P ⟶ f j) (p : Π j, f j ⟶ g j)  :
   biproduct.lift k ≫ biproduct.map p = biproduct.lift (λ j, k j ≫ p j) :=
@@ -478,7 +478,7 @@ type. -/
 def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict p f :=
 biproduct.lift $ λ j, biproduct.π _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.from_subtype_π [decidable_pred p] (j : J) :
   biproduct.from_subtype f p ≫ biproduct.π f j =
     if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0 :=
@@ -497,7 +497,7 @@ lemma biproduct.from_subtype_eq_lift [decidable_pred p] : biproduct.from_subtype
     biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext _ _ (by simv)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.from_subtype_π_subtype (j : subtype p) :
   biproduct.from_subtype f p ≫ biproduct.π f j = biproduct.π (subtype.restrict p f) j :=
 begin
@@ -507,12 +507,12 @@ begin
   exacts [rfl, false.elim (h₂ (subtype.ext h₁)), false.elim (h₁ (congr_arg subtype.val h₂)), rfl]
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.to_subtype_π (j : subtype p) :
   biproduct.to_subtype f p ≫ biproduct.π (subtype.restrict p f) j = biproduct.π f j :=
 biproduct.lift_π _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.ι_to_subtype [decidable_pred p] (j : J) :
   biproduct.ι f j ≫ biproduct.to_subtype f p =
     if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0 :=
@@ -531,7 +531,7 @@ lemma biproduct.to_subtype_eq_desc [decidable_pred p] : biproduct.to_subtype f p
   biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext' _ _ (by simv)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.ι_to_subtype_subtype (j : subtype p) :
   biproduct.ι f j ≫ biproduct.to_subtype f p = biproduct.ι (subtype.restrict p f) j :=
 begin
@@ -541,12 +541,12 @@ begin
   exacts [rfl, false.elim (h₂ (subtype.ext h₁)), false.elim (h₁ (congr_arg subtype.val h₂)), rfl]
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.ι_from_subtype (j : subtype p) :
   biproduct.ι (subtype.restrict p f) j ≫ biproduct.from_subtype f p = biproduct.ι f j :=
 biproduct.ι_desc _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.from_subtype_to_subtype :
   biproduct.from_subtype f p ≫ biproduct.to_subtype f p = 𝟙 (⨁ subtype.restrict p f) :=
 begin
@@ -554,7 +554,7 @@ begin
   rw [category.assoc, biproduct.to_subtype_π, biproduct.from_subtype_π_subtype, category.id_comp]
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.to_subtype_from_subtype [decidable_pred p] :
   biproduct.to_subtype f p ≫ biproduct.from_subtype f p =
     biproduct.map (λ j, if p j then 𝟙 (f j) else 0) :=
@@ -629,12 +629,12 @@ Convert a (dependently typed) matrix to a morphism of biproducts.
 def biproduct.matrix (m : Π j k, f j ⟶ g k) : ⨁ f ⟶ ⨁ g :=
 biproduct.desc (λ j, biproduct.lift (λ k, m j k))
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.matrix_π (m : Π j k, f j ⟶ g k) (k : K) :
   biproduct.matrix m ≫ biproduct.π g k = biproduct.desc (λ j, m j k) :=
 by { ext, simv [biproduct.matrix], }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.ι_matrix (m : Π j k, f j ⟶ g k) (j : J) :
   biproduct.ι f j ≫ biproduct.matrix m = biproduct.lift (λ k, m j k) :=
 by { ext, simv [biproduct.matrix], }
@@ -756,7 +756,7 @@ restate_axiom binary_bicone.inl_fst'
 restate_axiom binary_bicone.inl_snd'
 restate_axiom binary_bicone.inr_fst'
 restate_axiom binary_bicone.inr_snd'
-attribute [simv, reassoc] binary_bicone.inl_fst binary_bicone.inl_snd
+attribute [simp, reassoc] binary_bicone.inl_fst binary_bicone.inl_snd
   binary_bicone.inr_fst binary_bicone.inr_snd
 
 namespace binary_bicone
@@ -1011,19 +1011,19 @@ variables {X Y : C} [has_binary_biproduct X Y]
 
 end
 
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.inl_fst {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inl : X ⟶ X ⊞ Y) ≫ (biprod.fst : X ⊞ Y ⟶ X) = 𝟙 X :=
 (binary_biproduct.bicone X Y).inl_fst
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.inl_snd {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inl : X ⟶ X ⊞ Y) ≫ (biprod.snd : X ⊞ Y ⟶ Y) = 0 :=
 (binary_biproduct.bicone X Y).inl_snd
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.inr_fst {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inr : Y ⟶ X ⊞ Y) ≫ (biprod.fst : X ⊞ Y ⟶ X) = 0 :=
 (binary_biproduct.bicone X Y).inr_fst
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.inr_snd {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inr : Y ⟶ X ⊞ Y) ≫ (biprod.snd : X ⊞ Y ⟶ Y) = 𝟙 Y :=
 (binary_biproduct.bicone X Y).inr_snd
@@ -1039,22 +1039,22 @@ abbreviation biprod.desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g
   X ⊞ Y ⟶ W :=
 (binary_biproduct.is_colimit X Y).desc (binary_cofan.mk f g)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biprod.lift_fst {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   biprod.lift f g ≫ biprod.fst = f :=
 (binary_biproduct.is_limit X Y).fac _ ⟨walking_pair.left⟩
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biprod.lift_snd {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   biprod.lift f g ≫ biprod.snd = g :=
 (binary_biproduct.is_limit X Y).fac _ ⟨walking_pair.right⟩
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biprod.inl_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   biprod.inl ≫ biprod.desc f g = f :=
 (binary_biproduct.is_colimit X Y).fac _ ⟨walking_pair.left⟩
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biprod.inr_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   biprod.inr ≫ biprod.desc f g = g :=
 (binary_biproduct.is_colimit X Y).fac _ ⟨walking_pair.right⟩
@@ -1161,13 +1161,13 @@ instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
   split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
 { section_ := biprod.inr }
 
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.fst = biprod.fst ≫ f :=
 is_limit.map_π _ _ _ (⟨walking_pair.left⟩ : discrete walking_pair)
 
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.map_snd {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.snd = biprod.snd ≫ g :=
@@ -1175,7 +1175,7 @@ is_limit.map_π _ _ _ (⟨walking_pair.right⟩ : discrete walking_pair)
 
 -- Because `biprod.map` is defined in terms of `lim` rather than `colim`,
 -- we need to provide additional `simv` lemmas.
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.inl_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
@@ -1184,7 +1184,7 @@ begin
   exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ ⟨walking_pair.left⟩
 end
 
-@[simv,reassoc]
+@[simp,reassoc]
 lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.inr ≫ biprod.map f g = g ≫ biprod.inr :=
@@ -1434,7 +1434,7 @@ by tidy
   (biprod.braiding X W).hom ≫ biprod.map f g ≫ (biprod.braiding Y Z).hom = biprod.map g f :=
 by tidy
 
-@[simv, reassoc] lemma biprod.symmetry' (P Q : C) :
+@[simp, reassoc] lemma biprod.symmetry' (P Q : C) :
   biprod.lift biprod.snd biprod.fst ≫ biprod.lift biprod.snd biprod.fst = 𝟙 (P ⊞ Q) :=
 by tidy
 
@@ -1592,7 +1592,7 @@ begin
   simv [comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
-@[simv, reassoc] lemma biproduct.lift_desc {T U : C} {g : Π j, T ⟶ f j} {h : Π j, f j ⟶ U} :
+@[simp, reassoc] lemma biproduct.lift_desc {T U : C} {g : Π j, T ⟶ f j} {h : Π j, f j ⟶ U} :
   biproduct.lift g ≫ biproduct.desc h = ∑ j : J, g j ≫ h j :=
 by simv [biproduct.lift_eq, biproduct.desc_eq, comp_sum, sum_comp, biproduct.ι_π_assoc,
   comp_dite, dite_comp]
@@ -1604,14 +1604,14 @@ begin
   simv [biproduct.ι_π, biproduct.ι_π_assoc, comp_sum, sum_comp, comp_dite, dite_comp],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.matrix_desc
   {K : Type} [fintype K] [has_finite_biproducts C]
   {f : J → C} {g : K → C} (m : Π j k, f j ⟶ g k) {P} (x : Π k, g k ⟶ P) :
   biproduct.matrix m ≫ biproduct.desc x = biproduct.desc (λ j, ∑ k, m j k ≫ x k) :=
 by { ext, simv, }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma biproduct.lift_matrix
   {K : Type} [fintype K] [has_finite_biproducts C]
   {f : J → C} {g : K → C} {P} (x : Π j, P ⟶ f j) (m : Π j k, f j ⟶ g k)  :
@@ -1805,7 +1805,7 @@ begin
   ext; simv [add_comp],
 end
 
-@[simv, reassoc] lemma biprod.lift_desc {T U : C} {f : T ⟶ X} {g : T ⟶ Y} {h : X ⟶ U} {i : Y ⟶ U} :
+@[simp, reassoc] lemma biprod.lift_desc {T U : C} {f : T ⟶ X} {g : T ⟶ Y} {h : X ⟶ U} {i : Y ⟶ U} :
   biprod.lift f g ≫ biprod.desc h i = f ≫ h + g ≫ i :=
 by simv [biprod.lift_eq, biprod.desc_eq]
 

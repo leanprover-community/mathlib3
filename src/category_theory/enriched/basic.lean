@@ -69,17 +69,17 @@ The composition `V`-morphism for a `V`-enriched category.
 def e_comp (X Y Z : C) : (X ⟶[V] Y) ⊗ (Y ⟶[V] Z) ⟶ (X ⟶[V] Z) := enriched_category.comp X Y Z
 
 -- We don't just use `restate_axiom` here; that would leave `V` as an implicit argument.
-@[simv, reassoc]
+@[simp, reassoc]
 lemma e_id_comp (X Y : C) :
   (λ_ (X ⟶[V] Y)).inv ≫ (e_id V X ⊗ 𝟙 _) ≫ e_comp V X X Y = 𝟙 (X ⟶[V] Y) :=
 enriched_category.id_comp X Y
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma e_comp_id (X Y : C) :
   (ρ_ (X ⟶[V] Y)).inv ≫ (𝟙 _ ⊗ e_id V Y) ≫ e_comp V X Y Y = 𝟙 (X ⟶[V] Y) :=
 enriched_category.comp_id X Y
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma e_assoc (W X Y Z : C) :
   (α_ _ _ _).inv ≫ (e_comp V W X Y ⊗ 𝟙 _) ≫ e_comp V W Y Z =
     (𝟙 _ ⊗ e_comp V X Y Z) ≫ e_comp V W X Z :=
@@ -258,8 +258,8 @@ structure enriched_functor
 
 restate_axiom enriched_functor.map_id'
 restate_axiom enriched_functor.map_comp'
-attribute [simv, reassoc] enriched_functor.map_id
-attribute [simv, reassoc] enriched_functor.map_comp
+attribute [simp, reassoc] enriched_functor.map_id
+attribute [simp, reassoc] enriched_functor.map_comp
 
 /-- The identity enriched functor. -/
 @[simps]

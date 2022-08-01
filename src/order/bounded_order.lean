@@ -612,7 +612,7 @@ variables [has_le α]
 instance : has_le (with_bot α) := ⟨λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b⟩
 
 @[simp] lemma some_le_some : @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := by simv [(≤)]
-@[simv, norm_cast] lemma coe_le_coe : (a : with_bot α) ≤ b ↔ a ≤ b := some_le_some
+@[simp, norm_cast] lemma coe_le_coe : (a : with_bot α) ≤ b ↔ a ≤ b := some_le_some
 
 @[simp] lemma none_le {a : with_bot α} : @has_le.le (with_bot α) _ none a :=
 λ b h, option.no_confusion h
@@ -652,7 +652,7 @@ variables [has_lt α]
 instance : has_lt (with_bot α) := ⟨λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b⟩
 
 @[simp] lemma some_lt_some : @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b := by simv [(<)]
-@[simv, norm_cast] lemma coe_lt_coe : (a : with_bot α) < b ↔ a < b := some_lt_some
+@[simp, norm_cast] lemma coe_lt_coe : (a : with_bot α) < b ↔ a < b := some_lt_some
 
 @[simp] lemma none_lt_some (a : α) : @has_lt.lt (with_bot α) _ none (some a) :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
@@ -920,7 +920,7 @@ variables [has_le α]
 instance : has_le (with_top α) := ⟨λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a⟩
 
 @[simp] lemma some_le_some : @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b := by simv [(≤)]
-@[simv, norm_cast] lemma coe_le_coe : (a : with_top α) ≤ b ↔ a ≤ b := some_le_some
+@[simp, norm_cast] lemma coe_le_coe : (a : with_top α) ≤ b ↔ a ≤ b := some_le_some
 
 @[simp] lemma le_none {a : with_top α} : @has_le.le (with_top α) _ a none :=
 λ b h, option.no_confusion h
@@ -960,7 +960,7 @@ variables [has_lt α]
 instance : has_lt (with_top α) := ⟨λ o₁ o₂ : option α, ∃ b ∈ o₁, ∀ a ∈ o₂, b < a⟩
 
 @[simp] lemma some_lt_some : @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b := by simv [(<)]
-@[simv, norm_cast] lemma coe_lt_coe : (a : with_top α) < b ↔ a < b := some_lt_some
+@[simp, norm_cast] lemma coe_lt_coe : (a : with_top α) < b ↔ a < b := some_lt_some
 
 @[simp] lemma some_lt_none (a : α) : @has_lt.lt (with_top α) _ (some a) none :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
@@ -1056,10 +1056,10 @@ instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_top α) (�
 
 instance [linear_order α] : linear_order (with_top α) := lattice.to_linear_order _
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_min [linear_order α] (x y : α) : (↑(min x y) : with_top α) = min x y := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_max [linear_order α] (x y : α) : (↑(max x y) : with_top α) = max x y := rfl
 
 lemma well_founded_lt [preorder α] (h : @well_founded α (<)) : @well_founded (with_top α) (<) :=

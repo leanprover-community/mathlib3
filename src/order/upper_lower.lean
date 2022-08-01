@@ -250,20 +250,20 @@ instance : complete_distrib_lattice (upper_set α) :=
 
 instance : inhabited (upper_set α) := ⟨⊥⟩
 
-@[simv, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ t ≤ s := iff.rfl
-@[simv, norm_cast] lemma coe_top : ((⊤ : upper_set α) : set α) = ∅ := rfl
-@[simv, norm_cast] lemma coe_bot : ((⊥ : upper_set α) : set α) = univ := rfl
-@[simv, norm_cast] lemma coe_sup (s t : upper_set α) : (↑(s ⊔ t) : set α) = s ∩ t := rfl
-@[simv, norm_cast] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∪ t := rfl
-@[simv, norm_cast] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋂ s ∈ S, ↑s := rfl
-@[simv, norm_cast] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = ⋃ s ∈ S, ↑s := rfl
-@[simv, norm_cast] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⋂ i, f i :=
+@[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ t ≤ s := iff.rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : upper_set α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : upper_set α) : set α) = univ := rfl
+@[simp, norm_cast] lemma coe_sup (s t : upper_set α) : (↑(s ⊔ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋂ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = ⋃ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⋂ i, f i :=
 by simv [supr]
-@[simv, norm_cast] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋃ i, f i :=
+@[simp, norm_cast] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋃ i, f i :=
 by simv [infi]
-@[simv, norm_cast] lemma coe_supr₂ (f : Π i, κ i → upper_set α) :
+@[simp, norm_cast] lemma coe_supr₂ (f : Π i, κ i → upper_set α) :
   (↑(⨆ i j, f i j) : set α) = ⋂ i j, f i j := by simp_rw coe_supr
-@[simv, norm_cast] lemma coe_infi₂ (f : Π i, κ i → upper_set α) :
+@[simp, norm_cast] lemma coe_infi₂ (f : Π i, κ i → upper_set α) :
   (↑(⨅ i j, f i j) : set α) = ⋃ i j, f i j := by simp_rw coe_infi
 
 @[simp] lemma not_mem_top : a ∉ (⊤ : upper_set α) := id
@@ -299,20 +299,20 @@ set_like.coe_injective.complete_distrib_lattice _
 
 instance : inhabited (lower_set α) := ⟨⊥⟩
 
-@[simv, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := iff.rfl
-@[simv, norm_cast] lemma coe_top : ((⊤ : lower_set α) : set α) = univ := rfl
-@[simv, norm_cast] lemma coe_bot : ((⊥ : lower_set α) : set α) = ∅ := rfl
-@[simv, norm_cast] lemma coe_sup (s t : lower_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simv, norm_cast] lemma coe_inf (s t : lower_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simv, norm_cast] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
-@[simv, norm_cast] lemma coe_Inf (S : set (lower_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
-@[simv, norm_cast] lemma coe_supr (f : ι → lower_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i :=
+@[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := iff.rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : lower_set α) : set α) = univ := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : lower_set α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_sup (s t : lower_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_inf (s t : lower_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_Inf (S : set (lower_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
+@[simp, norm_cast] lemma coe_supr (f : ι → lower_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i :=
 by simp_rw [supr, coe_Sup, mem_range, Union_exists, Union_Union_eq']
-@[simv, norm_cast] lemma coe_infi (f : ι → lower_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i :=
+@[simp, norm_cast] lemma coe_infi (f : ι → lower_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i :=
 by simp_rw [infi, coe_Inf, mem_range, Inter_exists, Inter_Inter_eq']
-@[simv, norm_cast] lemma coe_supr₂ (f : Π i, κ i → lower_set α) :
+@[simp, norm_cast] lemma coe_supr₂ (f : Π i, κ i → lower_set α) :
   (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j := by simp_rw coe_supr
-@[simv, norm_cast] lemma coe_infi₂ (f : Π i, κ i → lower_set α) :
+@[simp, norm_cast] lemma coe_infi₂ (f : Π i, κ i → lower_set α) :
   (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j := by simp_rw coe_infi
 
 @[simp] lemma mem_top : a ∈ (⊤ : lower_set α) := trivial
@@ -549,10 +549,10 @@ def upper_closure (s : set α) : upper_set α :=
 def lower_closure (s : set α) : lower_set α :=
 ⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
 
-@[simv, norm_cast] lemma coe_upper_closure (s : set α) :
+@[simp, norm_cast] lemma coe_upper_closure (s : set α) :
   ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
 
-@[simv, norm_cast] lemma coe_lower_closure (s : set α) :
+@[simp, norm_cast] lemma coe_lower_closure (s : set α) :
   ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
 
 @[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl

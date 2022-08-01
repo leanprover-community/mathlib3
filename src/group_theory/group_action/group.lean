@@ -26,10 +26,10 @@ instance right_cancel_monoid.to_has_faithful_smul [right_cancel_monoid α] :
 section group
 variables [group α] [mul_action α β]
 
-@[simv, to_additive] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+@[simp, to_additive] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 by rw [smul_smul, mul_left_inv, one_smul]
 
-@[simv, to_additive] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+@[simp, to_additive] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
 by rw [smul_smul, mul_right_inv, one_smul]
 
 /-- Given an action of a group `α` on `β`, each `g : α` defines a permutation of `β`. -/
@@ -113,7 +113,7 @@ by rw [commute.symm_iff, commute.smul_right_iff, commute.symm_iff]
 @[to_additive] lemma smul_left_cancel (g : α) {x y : β} (h : g • x = g • y) : x = y :=
 mul_action.injective g h
 
-@[simv, to_additive] lemma smul_left_cancel_iff (g : α) {x y : β} : g • x = g • y ↔ x = y :=
+@[simp, to_additive] lemma smul_left_cancel_iff (g : α) {x y : β} : g • x = g • y ↔ x = y :=
 (mul_action.injective g).eq_iff
 
 @[to_additive] lemma smul_eq_iff_eq_inv_smul (g : α) {x y : β} :

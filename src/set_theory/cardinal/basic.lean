@@ -873,17 +873,17 @@ begin
   rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
-@[simv, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by induction n; simv [pow_succ', power_add, *]
 
-@[simv, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 begin
   rw [←lift_mk_fin, ←lift_mk_fin, lift_le],
   exact ⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
     λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
 end
 
-@[simv, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
+@[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simv [lt_iff_le_not_le, ←not_le]
 
 instance : char_zero cardinal := ⟨strict_mono.injective $ λ m n, nat_cast_lt.2⟩
@@ -893,7 +893,7 @@ theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n := nat.cast_inj
 lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
 nat.cast_injective
 
-@[simv, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
+@[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 (add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast

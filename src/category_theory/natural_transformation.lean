@@ -51,7 +51,7 @@ structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
 restate_axiom nat_trans.naturality'
 -- Rather arbitrarily, we say that the 'simpler' form is
 -- components of natural transfomations moving earlier.
-attribute [simv, reassoc] nat_trans.naturality
+attribute [simp, reassoc] nat_trans.naturality
 
 lemma congr_app {F G : C ⥤ D} {α β : nat_trans F G} (h : α = β) (X : C) : α.app X = β.app X :=
 congr_fun (congr_arg nat_trans.app h) X

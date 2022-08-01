@@ -84,11 +84,11 @@ rfl
 @[simp] lemma to_continuous_map_coe (f : P →A[R] Q) : f.to_continuous_map = ↑f :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_affine_map (f : P →A[R] Q) :
+@[simp, norm_cast] lemma coe_to_affine_map (f : P →A[R] Q) :
   ((f : P →ᵃ[R] Q) : P → Q) = f :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_continuous_map (f : P →A[R] Q) :
+@[simp, norm_cast] lemma coe_to_continuous_map (f : P →A[R] Q) :
   ((f : C(P, Q)) : P → Q) = f :=
 rfl
 
@@ -142,7 +142,7 @@ def comp (f : Q →A[R] Q₂) (g : P →A[R] Q) : P →A[R] Q₂ :=
 { cont := f.cont.comp g.cont,
   .. (f : Q →ᵃ[R] Q₂).comp (g : P →ᵃ[R] Q), }
 
-@[simv, norm_cast] lemma coe_comp (f : Q →A[R] Q₂) (g : P →A[R] Q) :
+@[simp, norm_cast] lemma coe_comp (f : Q →A[R] Q₂) (g : P →A[R] Q) :
   (f.comp g : P → Q₂) = (f : Q → Q₂) ∘ (g : P → Q) :=
 rfl
 

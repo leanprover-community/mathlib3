@@ -276,11 +276,11 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
 @[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
   (cofork.of_π π w).π = π := rfl
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma fork.condition (t : fork f g) : t.ι ≫ f = t.ι ≫ g :=
 by rw [←t.app_one_eq_ι_comp_left, ←t.app_one_eq_ι_comp_right]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma cofork.condition (t : cofork f g) : f ≫ t.π = g ≫ t.π :=
 by rw [←t.app_zero_eq_comp_π_left, ←t.app_zero_eq_comp_π_right]
 
@@ -307,11 +307,11 @@ lemma cofork.is_colimit.hom_ext {s : cofork f g} (hs : is_colimit s) {W : C} {k 
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : k = l :=
 hs.hom_ext $ cofork.coequalizer_ext _ h
 
-@[simv, reassoc] lemma fork.is_limit.lift_ι {s t : fork f g} (hs : is_limit s) :
+@[simp, reassoc] lemma fork.is_limit.lift_ι {s t : fork f g} (hs : is_limit s) :
   hs.lift t ≫ s.ι = t.ι :=
 hs.fac _ _
 
-@[simv, reassoc] lemma cofork.is_colimit.π_desc {s t : cofork f g} (hs : is_colimit s) :
+@[simp, reassoc] lemma cofork.is_colimit.π_desc {s t : cofork f g} (hs : is_colimit s) :
   s.π ≫ hs.desc t = t.π :=
 hs.fac _ _
 
@@ -539,10 +539,10 @@ def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) :
     { exact w }
   end }
 
-@[simv, reassoc] lemma fork.hom_comp_ι {s t : fork f g} (f : s ⟶ t) : f.hom ≫ t.ι = s.ι :=
+@[simp, reassoc] lemma fork.hom_comp_ι {s t : fork f g} (f : s ⟶ t) : f.hom ≫ t.ι = s.ι :=
 by tidy
 
-@[simv, reassoc] lemma fork.π_comp_hom {s t : cofork f g} (f : s ⟶ t) : s.π ≫ f.hom = t.π :=
+@[simp, reassoc] lemma fork.π_comp_hom {s t : cofork f g} (f : s ⟶ t) : s.π ≫ f.hom = t.π :=
 by tidy
 
 /--
@@ -604,7 +604,7 @@ variables {f g}
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma equalizer.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
   equalizer.lift k h ≫ equalizer.ι f g = k :=
 limit.lift_π _ _
@@ -746,7 +746,7 @@ variables {f g}
 abbreviation coequalizer.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) : coequalizer f g ⟶ W :=
 colimit.desc (parallel_pair f g) (cofork.of_π k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coequalizer.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
   coequalizer.π f g ≫ coequalizer.desc k h = k :=
 colimit.ι_desc _ _
@@ -859,12 +859,12 @@ def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
 equalizer.lift (G.map (equalizer.ι _ _)) (by simv only [←G.map_comp, equalizer.condition])
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma equalizer_comparison_comp_π [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
   equalizer_comparison f g G ≫ equalizer.ι (G.map f) (G.map g) = G.map (equalizer.ι f g) :=
 equalizer.lift_ι _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma map_lift_equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   {Z : C} {h : Z ⟶ X} (w : h ≫ f = h ≫ g) :
     G.map (equalizer.lift h w) ≫ equalizer_comparison f g G =
@@ -876,12 +876,12 @@ def coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.m
   coequalizer (G.map f) (G.map g) ⟶ G.obj (coequalizer f g) :=
 coequalizer.desc (G.map (coequalizer.π _ _)) (by simv only [←G.map_comp, coequalizer.condition])
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_comp_coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
   coequalizer.π _ _ ≫ coequalizer_comparison f g G = G.map (coequalizer.π _ _) :=
 coequalizer.π_desc _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coequalizer_comparison_map_desc [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)]
   {Z : C} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h) :
   coequalizer_comparison f g G ≫ G.map (coequalizer.desc h w) =

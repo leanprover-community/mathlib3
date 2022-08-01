@@ -83,13 +83,13 @@ lemma coe_injective : function.injective (coe : R → ℍ[R, c₁, c₂]) :=
 
 @[simps] instance : has_zero ℍ[R, c₁, c₂] := ⟨⟨0, 0, 0, 0⟩⟩
 
-@[simv, norm_cast] lemma coe_zero : ((0 : R) : ℍ[R, c₁, c₂]) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : R) : ℍ[R, c₁, c₂]) = 0 := rfl
 
 instance : inhabited ℍ[R, c₁, c₂] := ⟨0⟩
 
 @[simps] instance : has_one ℍ[R, c₁, c₂] := ⟨⟨1, 0, 0, 0⟩⟩
 
-@[simv, norm_cast] lemma coe_one : ((1 : R) : ℍ[R, c₁, c₂]) = 1 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : R) : ℍ[R, c₁, c₂]) = 1 := rfl
 
 @[simps] instance : has_add ℍ[R, c₁, c₂] :=
 ⟨λ a b, ⟨a.1 + b.1, a.2 + b.2, a.3 + b.3, a.4 + b.4⟩⟩
@@ -366,40 +366,40 @@ lemma ext_iff {a b : ℍ[R]} :
   a = b ↔ a.re = b.re ∧ a.im_i = b.im_i ∧ a.im_j = b.im_j ∧ a.im_k = b.im_k :=
 quaternion_algebra.ext_iff a b
 
-@[simv, norm_cast] lemma coe_re : (x : ℍ[R]).re = x := rfl
-@[simv, norm_cast] lemma coe_im_i : (x : ℍ[R]).im_i = 0 := rfl
-@[simv, norm_cast] lemma coe_im_j : (x : ℍ[R]).im_j = 0 := rfl
-@[simv, norm_cast] lemma coe_im_k : (x : ℍ[R]).im_k = 0 := rfl
+@[simp, norm_cast] lemma coe_re : (x : ℍ[R]).re = x := rfl
+@[simp, norm_cast] lemma coe_im_i : (x : ℍ[R]).im_i = 0 := rfl
+@[simp, norm_cast] lemma coe_im_j : (x : ℍ[R]).im_j = 0 := rfl
+@[simp, norm_cast] lemma coe_im_k : (x : ℍ[R]).im_k = 0 := rfl
 
 @[simp] lemma zero_re : (0 : ℍ[R]).re = 0 := rfl
 @[simp] lemma zero_im_i : (0 : ℍ[R]).im_i = 0 := rfl
 @[simp] lemma zero_im_j : (0 : ℍ[R]).im_j = 0 := rfl
 @[simp] lemma zero_im_k : (0 : ℍ[R]).im_k = 0 := rfl
-@[simv, norm_cast] lemma coe_zero : ((0 : R) : ℍ[R]) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : R) : ℍ[R]) = 0 := rfl
 
 @[simp] lemma one_re : (1 : ℍ[R]).re = 1 := rfl
 @[simp] lemma one_im_i : (1 : ℍ[R]).im_i = 0 := rfl
 @[simp] lemma one_im_j : (1 : ℍ[R]).im_j = 0 := rfl
 @[simp] lemma one_im_k : (1 : ℍ[R]).im_k = 0 := rfl
-@[simv, norm_cast] lemma coe_one : ((1 : R) : ℍ[R]) = 1 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : R) : ℍ[R]) = 1 := rfl
 
 @[simp] lemma add_re : (a + b).re = a.re + b.re := rfl
 @[simp] lemma add_im_i : (a + b).im_i = a.im_i + b.im_i := rfl
 @[simp] lemma add_im_j : (a + b).im_j = a.im_j + b.im_j := rfl
 @[simp] lemma add_im_k : (a + b).im_k = a.im_k + b.im_k := rfl
-@[simv, norm_cast] lemma coe_add : ((x + y : R) : ℍ[R]) = x + y := quaternion_algebra.coe_add x y
+@[simp, norm_cast] lemma coe_add : ((x + y : R) : ℍ[R]) = x + y := quaternion_algebra.coe_add x y
 
 @[simp] lemma neg_re : (-a).re = -a.re := rfl
 @[simp] lemma neg_im_i : (-a).im_i = -a.im_i := rfl
 @[simp] lemma neg_im_j : (-a).im_j = -a.im_j := rfl
 @[simp] lemma neg_im_k : (-a).im_k = -a.im_k := rfl
-@[simv, norm_cast] lemma coe_neg : ((-x : R) : ℍ[R]) = -x := quaternion_algebra.coe_neg x
+@[simp, norm_cast] lemma coe_neg : ((-x : R) : ℍ[R]) = -x := quaternion_algebra.coe_neg x
 
 @[simp] lemma sub_re : (a - b).re = a.re - b.re := rfl
 @[simp] lemma sub_im_i : (a - b).im_i = a.im_i - b.im_i := rfl
 @[simp] lemma sub_im_j : (a - b).im_j = a.im_j - b.im_j := rfl
 @[simp] lemma sub_im_k : (a - b).im_k = a.im_k - b.im_k := rfl
-@[simv, norm_cast] lemma coe_sub : ((x - y : R) : ℍ[R]) = x - y := quaternion_algebra.coe_sub x y
+@[simp, norm_cast] lemma coe_sub : ((x - y : R) : ℍ[R]) = x - y := quaternion_algebra.coe_sub x y
 
 @[simp] lemma mul_re :
   (a * b).re = a.re * b.re - a.im_i * b.im_i - a.im_j * b.im_j - a.im_k * b.im_k :=
@@ -421,7 +421,7 @@ quaternion_algebra.ext_iff a b
 (quaternion_algebra.has_mul_mul_im_k a b).trans $
   by simv only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
-@[simv, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
+@[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
 
 lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_algebra.coe_injective
 

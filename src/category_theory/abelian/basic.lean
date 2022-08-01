@@ -415,7 +415,7 @@ variables (f)
 def epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) : Y ⟶ T :=
 (epi_is_cokernel_of_kernel _ (limit.is_limit _)).desc (cokernel_cofork.of_π _ hg)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma comp_epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) :
   f ≫ epi_desc f g hg = g :=
 (epi_is_cokernel_of_kernel _ (limit.is_limit _)).fac (cokernel_cofork.of_π _ hg)
@@ -426,7 +426,7 @@ lemma comp_epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) :
 def mono_lift [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) : T ⟶ X :=
 (mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).lift (kernel_fork.of_ι _ hg)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma mono_lift_comp [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) :
   mono_lift f g hg ≫ f = g :=
 (mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).fac (kernel_fork.of_ι _ hg)

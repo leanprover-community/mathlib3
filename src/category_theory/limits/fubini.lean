@@ -194,7 +194,7 @@ begin
   exact is_limit.cone_point_unique_up_to_iso Q' Q'',
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma limit_uncurry_iso_limit_comp_lim_hom_π_π {j} {k} :
   (limit_uncurry_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 begin
@@ -203,7 +203,7 @@ begin
   simv,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma limit_uncurry_iso_limit_comp_lim_inv_π {j} {k} :
   (limit_uncurry_iso_limit_comp_lim F).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
@@ -227,13 +227,13 @@ def limit_flip_comp_lim_iso_limit_comp_lim : limit (F.flip ⋙ lim) ≅ limit (F
     (nat_iso.of_components (λ _, by refl) (by tidy))) ≪≫
   limit_uncurry_iso_limit_comp_lim _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma limit_flip_comp_lim_iso_limit_comp_lim_hom_π_π (j) (k) :
   (limit_flip_comp_lim_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k =
   limit.π _ k ≫ limit.π _ j :=
 by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simv, dsimp, simv, } -- See note [dsimp, simv]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma limit_flip_comp_lim_iso_limit_comp_lim_inv_π_π (k) (j) :
   (limit_flip_comp_lim_iso_limit_comp_lim F).inv ≫ limit.π _ k ≫ limit.π _ j =
   limit.π _ j ≫ limit.π _ k :=
@@ -264,13 +264,13 @@ begin
   exact limit_uncurry_iso_limit_comp_lim ((@curry J _ K _ C _).obj G),
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma limit_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 by simv [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
   is_limit.unique_up_to_iso]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma limit_iso_limit_curry_comp_lim_inv_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin

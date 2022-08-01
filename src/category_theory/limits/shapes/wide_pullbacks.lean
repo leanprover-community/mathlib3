@@ -256,7 +256,7 @@ noncomputable
 abbreviation base : wide_pullback _ _ arrows ⟶ B :=
 limit.π (wide_pullback_shape.wide_cospan _ _ _) option.none
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π_arrow (j : J) : π arrows j ≫ arrows _ = base arrows :=
 by apply limit.w (wide_pullback_shape.wide_cospan _ _ _) (wide_pullback_shape.hom.term j)
 
@@ -274,11 +274,11 @@ variables (arrows)
 variables {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
   (w : ∀ j, fs j ≫ arrows j = f)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_π (j : J) : lift f fs w ≫ π arrows j = fs _ :=
 by { simv, refl }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_base : lift f fs w ≫ base arrows = f :=
 by { simv, refl }
 
@@ -329,7 +329,7 @@ noncomputable
 abbreviation head : B ⟶ wide_pushout B objs arrows :=
 colimit.ι (wide_pushout_shape.wide_span _ _ _) option.none
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma arrow_ι (j : J) : arrows j ≫ ι arrows j = head arrows :=
 by apply colimit.w (wide_pushout_shape.wide_span _ _ _) (wide_pushout_shape.hom.init j)
 
@@ -347,11 +347,11 @@ variables (arrows)
 variables {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
   (w : ∀ j, arrows j ≫ fs j = f)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_desc (j : J) : ι arrows j ≫ desc f fs w = fs _ :=
 by { simv, refl }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma head_desc : head arrows ≫ desc f fs w = f :=
 by { simv, refl }
 

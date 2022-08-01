@@ -114,7 +114,7 @@ lemma bind_map_comm (m : multiset α) (n : multiset β) {f : α → β → γ} :
   (bind m $ λ a, n.map $ λ b, f a b) = (bind n $ λ b, m.map $ λ a, f a b) :=
 multiset.induction_on m (by simv) (by simv {contextual := tt})
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_bind [comm_monoid β] (s : multiset α) (t : α → multiset β) :
   (s.bind t).prod = (s.map $ λ a, (t a).prod).prod :=
 multiset.induction_on s (by simv) (assume a s ih, by simv [ih, cons_bind])

@@ -56,10 +56,10 @@ begin
   { rintro rfl, exact forall₂_refl _ }
 end
 
-@[simv, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
+@[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
-@[simv, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
+@[simp, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
 lemma forall₂_cons_left_iff {a l u} :

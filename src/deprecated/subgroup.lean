@@ -194,7 +194,7 @@ lemma mem_norm_comm_iff {s : set G} (hs : is_normal_subgroup s) {a b : G} : a * 
 @[to_additive "the trivial additive subgroup"]
 def trivial (G : Type*) [group G] : set G := {1}
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_trivial {g : G} : g ∈ trivial G ↔ g = 1 :=
 mem_singleton_iff
 
@@ -436,7 +436,7 @@ lemma closure_subset_iff {s t : set G} (ht : is_subgroup t) : closure s ⊆ t �
 theorem closure_mono {s t : set G} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset (closure.is_subgroup _) $ set.subset.trans h subset_closure
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma closure_subgroup {s : set G} (hs : is_subgroup s) : closure s = s :=
 set.subset.antisymm (closure_subset hs $ set.subset.refl s) subset_closure
 

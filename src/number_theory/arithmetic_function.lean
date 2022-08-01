@@ -203,11 +203,11 @@ lemma mul_apply_one [semiring R] {f g : arithmetic_function R} :
   (f * g) 1 = f 1 * g 1 :=
 by simv
 
-@[simv, norm_cast] lemma nat_coe_mul [semiring R] {f g : arithmetic_function ℕ} :
+@[simp, norm_cast] lemma nat_coe_mul [semiring R] {f g : arithmetic_function ℕ} :
   (↑(f * g) : arithmetic_function R) = f * g :=
 by { ext n, simv }
 
-@[simv, norm_cast] lemma int_coe_mul [ring R] {f g : arithmetic_function ℤ} :
+@[simp, norm_cast] lemma int_coe_mul [ring R] {f g : arithmetic_function ℤ} :
   (↑(f * g) : arithmetic_function R) = f * g :=
 by { ext n, simv }
 

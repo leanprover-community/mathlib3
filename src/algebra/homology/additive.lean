@@ -130,7 +130,7 @@ by tidy
     nat_trans.map_homological_complex α c ≫ nat_trans.map_homological_complex β c :=
 by tidy
 
-@[simv, reassoc] lemma nat_trans.map_homological_complex_naturality {c : complex_shape ι}
+@[simp, reassoc] lemma nat_trans.map_homological_complex_naturality {c : complex_shape ι}
   {F G : V ⥤ W} [F.additive] [G.additive] (α : F ⟶ G) {C D : homological_complex V c} (f : C ⟶ D) :
   (F.map_homological_complex c).map f ≫ (nat_trans.map_homological_complex α c).app D =
     (nat_trans.map_homological_complex α c).app C ≫ (G.map_homological_complex c).map f :=

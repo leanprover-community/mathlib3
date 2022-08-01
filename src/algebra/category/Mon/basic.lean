@@ -75,7 +75,7 @@ instance : inhabited Mon :=
 @[to_additive]
 instance (M : Mon) : monoid M := M.str
 
-@[simv, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
+@[simp, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
 
 end Mon
 
@@ -112,7 +112,7 @@ instance : inhabited CommMon :=
 @[to_additive]
 instance (M : CommMon) : comm_monoid M := M.str
 
-@[simv, to_additive] lemma coe_of (R : Type u) [comm_monoid R] : (CommMon.of R : Type u) = R := rfl
+@[simp, to_additive] lemma coe_of (R : Type u) [comm_monoid R] : (CommMon.of R : Type u) = R := rfl
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _

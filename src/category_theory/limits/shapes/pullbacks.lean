@@ -886,22 +886,22 @@ lemma pushout_cocone.inr_colimit_cocone {X Y Z : C} (f : Z ⟶ X) (g : Z ⟶ Y)
   [has_colimit (span f g)] : pushout_cocone.inr (colimit.cocone (span f g)) = pushout.inr :=
 rfl
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback.lift_fst {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : pullback.lift h k w ≫ pullback.fst = h :=
 limit.lift_π _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback.lift_snd {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : pullback.lift h k w ≫ pullback.snd = k :=
 limit.lift_π _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pushout.inl_desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g]
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout.inl ≫ pushout.desc h k w = h :=
 colimit.ι_desc _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pushout.inr_desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g]
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout.inr ≫ pushout.desc h k w = k :=
 colimit.ι_desc _ _
@@ -1117,19 +1117,19 @@ def pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
 pullback.lift (G.map pullback.fst) (G.map pullback.snd)
   (by simv only [←G.map_comp, pullback.condition])
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_comparison_comp_fst (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pullback (G.map f) (G.map g)] :
   pullback_comparison G f g ≫ pullback.fst = G.map pullback.fst :=
 pullback.lift_fst _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_comparison_comp_snd (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pullback (G.map f) (G.map g)] :
   pullback_comparison G f g ≫ pullback.snd = G.map pullback.snd :=
 pullback.lift_snd _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma map_lift_pullback_comparison (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pullback (G.map f) (G.map g)]
   {W : C} {h : W ⟶ X} {k : W ⟶ Y} (w : h ≫ f = k ≫ g) :
@@ -1148,19 +1148,19 @@ def pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
 pushout.desc (G.map pushout.inl) (G.map pushout.inr)
   (by simv only [←G.map_comp, pushout.condition])
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inl_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
   [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
   pushout.inl ≫ pushout_comparison G f g = G.map pushout.inl :=
 pushout.inl_desc _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_comp_pushout_comparison (f : X ⟶ Y) (g : X ⟶ Z)
   [has_pushout f g] [has_pushout (G.map f) (G.map g)] :
   pushout.inr ≫ pushout_comparison G f g = G.map pushout.inr :=
 pushout.inr_desc _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pushout_comparison_map_desc (f : X ⟶ Y) (g : X ⟶ Z)
   [has_pushout f g] [has_pushout (G.map f) (G.map g)]
   {W : C} {h : Y ⟶ W} {k : Z ⟶ W} (w : f ≫ h = g ≫ k) :
@@ -1191,16 +1191,16 @@ is_limit.cone_point_unique_up_to_iso
     is_limit (pullback_cone.mk _ _ pullback.condition.symm))
   (limit.is_limit _)
 
-@[simv, reassoc] lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
+@[simp, reassoc] lemma pullback_symmetry_hom_comp_fst [has_pullback f g] :
   (pullback_symmetry f g).hom ≫ pullback.fst = pullback.snd := by simv [pullback_symmetry]
 
-@[simv, reassoc] lemma pullback_symmetry_hom_comp_snd [has_pullback f g] :
+@[simp, reassoc] lemma pullback_symmetry_hom_comp_snd [has_pullback f g] :
   (pullback_symmetry f g).hom ≫ pullback.snd = pullback.fst := by simv [pullback_symmetry]
 
-@[simv, reassoc] lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
+@[simp, reassoc] lemma pullback_symmetry_inv_comp_fst [has_pullback f g] :
   (pullback_symmetry f g).inv ≫ pullback.fst = pullback.snd := by simv [iso.inv_comp_eq]
 
-@[simv, reassoc] lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
+@[simp, reassoc] lemma pullback_symmetry_inv_comp_snd [has_pullback f g] :
   (pullback_symmetry f g).inv ≫ pullback.snd = pullback.fst := by simv [iso.inv_comp_eq]
 
 end pullback_symmetry
@@ -1226,20 +1226,20 @@ is_colimit.cocone_point_unique_up_to_iso
     is_colimit (pushout_cocone.mk _ _ pushout.condition.symm))
   (colimit.is_colimit _)
 
-@[simv, reassoc] lemma inl_comp_pushout_symmetry_hom [has_pushout f g] :
+@[simp, reassoc] lemma inl_comp_pushout_symmetry_hom [has_pushout f g] :
   pushout.inl ≫ (pushout_symmetry f g).hom = pushout.inr :=
 (colimit.is_colimit (span f g)).comp_cocone_point_unique_up_to_iso_hom
   (pushout_cocone.flip_is_colimit (pushout_is_pushout g f)) _
 
-@[simv, reassoc] lemma inr_comp_pushout_symmetry_hom [has_pushout f g] :
+@[simp, reassoc] lemma inr_comp_pushout_symmetry_hom [has_pushout f g] :
   pushout.inr ≫ (pushout_symmetry f g).hom = pushout.inl :=
 (colimit.is_colimit (span f g)).comp_cocone_point_unique_up_to_iso_hom
   (pushout_cocone.flip_is_colimit (pushout_is_pushout g f)) _
 
-@[simv, reassoc] lemma inl_comp_pushout_symmetry_inv [has_pushout f g] :
+@[simp, reassoc] lemma inl_comp_pushout_symmetry_inv [has_pushout f g] :
   pushout.inl ≫ (pushout_symmetry f g).inv = pushout.inr := by simv [iso.comp_inv_eq]
 
-@[simv, reassoc] lemma inr_comp_pushout_symmetry_inv [has_pushout f g] :
+@[simp, reassoc] lemma inr_comp_pushout_symmetry_inv [has_pushout f g] :
   pushout.inr ≫ (pushout_symmetry f g).inv = pushout.inl := by simv [iso.comp_inv_eq]
 
 end pushout_symmetry
@@ -1733,27 +1733,27 @@ begin
   exact (this.cone_point_unique_up_to_iso (pullback_is_pullback _ _) : _)
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_right_pullback_fst_iso_hom_fst :
   (pullback_right_pullback_fst_iso f g f').hom ≫ pullback.fst = pullback.fst :=
 is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.left
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_right_pullback_fst_iso_hom_snd :
   (pullback_right_pullback_fst_iso f g f').hom ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_cospan.right
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_right_pullback_fst_iso_inv_fst :
   (pullback_right_pullback_fst_iso f g f').inv ≫ pullback.fst = pullback.fst :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.left
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_right_pullback_fst_iso_inv_snd_snd :
   (pullback_right_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ walking_cospan.right
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_right_pullback_fst_iso_inv_snd_fst :
   (pullback_right_pullback_fst_iso f g f').inv ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ f' :=
 begin
@@ -1777,31 +1777,31 @@ def pushout_left_pushout_inr_iso :
   (pushout_is_pushout _ _) (pushout_is_pushout _ _))
   .cocone_point_unique_up_to_iso (pushout_is_pushout _ _) : _)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inl_pushout_left_pushout_inr_iso_inv :
   pushout.inl ≫ (pushout_left_pushout_inr_iso f g g').inv = pushout.inl ≫ pushout.inl :=
 ((big_square_is_pushout g g' _ _ f _ _ pushout.condition pushout.condition
   (pushout_is_pushout _ _) (pushout_is_pushout _ _))
   .comp_cocone_point_unique_up_to_iso_inv (pushout_is_pushout _ _) walking_span.left : _)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_pushout_left_pushout_inr_iso_hom :
   pushout.inr ≫ (pushout_left_pushout_inr_iso f g g').hom = pushout.inr :=
 ((big_square_is_pushout g g' _ _ f _ _ pushout.condition pushout.condition
   (pushout_is_pushout _ _) (pushout_is_pushout _ _))
   .comp_cocone_point_unique_up_to_iso_hom (pushout_is_pushout _ _) walking_span.right : _)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_pushout_left_pushout_inr_iso_inv :
   pushout.inr ≫ (pushout_left_pushout_inr_iso f g g').inv = pushout.inr :=
 by rw [iso.comp_inv_eq, inr_pushout_left_pushout_inr_iso_hom]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inl_inl_pushout_left_pushout_inr_iso_hom :
   pushout.inl ≫ pushout.inl ≫ (pushout_left_pushout_inr_iso f g g').hom = pushout.inl :=
 by rw [← category.assoc, ← iso.eq_comp_inv, inl_pushout_left_pushout_inr_iso_inv]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_inl_pushout_left_pushout_inr_iso_hom :
   pushout.inr ≫ pushout.inl ≫ (pushout_left_pushout_inr_iso f g g').hom = g' ≫ pushout.inr :=
 by rw [← category.assoc, ← iso.eq_comp_inv, category.assoc,
@@ -1936,7 +1936,7 @@ def pullback_assoc :
 (pullback_pullback_left_is_pullback f₁ f₂ f₃ f₄).cone_point_unique_up_to_iso
 (pullback_pullback_right_is_pullback f₁ f₂ f₃ f₄)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_assoc_inv_fst_fst :
   (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.fst ≫ pullback.fst = pullback.fst :=
 begin
@@ -1947,12 +1947,12 @@ begin
   exact pullback.lift_fst _ _ _,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_assoc_hom_fst :
   (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.fst = pullback.fst ≫ pullback.fst :=
 by rw [← iso.eq_inv_comp, pullback_assoc_inv_fst_fst]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_assoc_hom_snd_fst :
   (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 begin
@@ -1963,7 +1963,7 @@ begin
   exact pullback.lift_fst _ _ _,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_assoc_hom_snd_snd :
   (pullback_assoc f₁ f₂ f₃ f₄).hom ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
 begin
@@ -1974,12 +1974,12 @@ begin
   exact pullback.lift_snd _ _ _,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_assoc_inv_fst_snd :
   (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.fst :=
 by rw [iso.inv_comp_eq, pullback_assoc_hom_snd_fst]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_assoc_inv_snd :
   (pullback_assoc f₁ f₂ f₃ f₄).inv ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 by rw [iso.inv_comp_eq, pullback_assoc_hom_snd_snd]
@@ -2116,7 +2116,7 @@ def pushout_assoc :
 (pushout_pushout_left_is_pushout g₁ g₂ g₃ g₄).cocone_point_unique_up_to_iso
 (pushout_pushout_right_is_pushout g₁ g₂ g₃ g₄)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inl_inl_pushout_assoc_hom :
   pushout.inl ≫ pushout.inl ≫ (pushout_assoc g₁ g₂ g₃ g₄).hom = pushout.inl :=
 begin
@@ -2127,7 +2127,7 @@ begin
   { exact pushout.inl_desc _ _ _ }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_inl_pushout_assoc_hom :
   pushout.inr ≫ pushout.inl ≫ (pushout_assoc g₁ g₂ g₃ g₄).hom = pushout.inl ≫ pushout.inr :=
 begin
@@ -2138,7 +2138,7 @@ begin
   { exact pushout.inr_desc _ _ _ }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_inr_pushout_assoc_inv :
   pushout.inr ≫ pushout.inr ≫ (pushout_assoc g₁ g₂ g₃ g₄).inv = pushout.inr :=
 begin
@@ -2149,17 +2149,17 @@ begin
   { exact pushout.inr_desc _ _ _ }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inl_pushout_assoc_inv :
   pushout.inl ≫ (pushout_assoc g₁ g₂ g₃ g₄).inv = pushout.inl ≫ pushout.inl :=
 by rw [iso.comp_inv_eq, category.assoc, inl_inl_pushout_assoc_hom]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inl_inr_pushout_assoc_inv :
   pushout.inl ≫ pushout.inr ≫ (pushout_assoc g₁ g₂ g₃ g₄).inv = pushout.inr ≫ pushout.inl :=
 by rw [← category.assoc, iso.comp_inv_eq, category.assoc, inr_inl_pushout_assoc_hom]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inr_pushout_assoc_hom :
   pushout.inr ≫  (pushout_assoc g₁ g₂ g₃ g₄).hom = pushout.inr ≫ pushout.inr :=
 by rw [← iso.eq_comp_inv, category.assoc, inr_inr_pushout_assoc_inv]

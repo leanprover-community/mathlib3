@@ -44,10 +44,10 @@ variable {α}
 @[to_additive] lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
 iff.rfl
 
-@[simv, to_additive] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
+@[simp, to_additive] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
 ⟨x, rfl⟩
 
-@[simv, to_additive] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
+@[simp, to_additive] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simv [mul_action.one_smul]⟩
 
 @[to_additive] lemma orbit_nonempty (b : β) : set.nonempty (orbit α b) := set.range_nonempty _
@@ -67,7 +67,7 @@ set.range_subset_iff.2 $ λ a', mul_smul a' a b ▸ mem_orbit _ _
   one_smul := λ a, subtype.ext (one_smul α a),
   mul_smul := λ a a' b', subtype.ext (mul_smul a a' b') }
 
-@[simv, to_additive] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} :
+@[simp, to_additive] lemma orbit.coe_smul {b : β} {a : α} {b' : orbit α b} :
   ↑(a • b') = a • (b' : β) :=
 rfl
 
@@ -87,10 +87,10 @@ set.ext $ λ x, ⟨λ hx, set.mem_Inter.2 $ λ g, hx g, λ hx g, by exact (set.m
 
 variables {α} (β)
 
-@[simv, to_additive] lemma mem_fixed_points {b : β} :
+@[simp, to_additive] lemma mem_fixed_points {b : β} :
   b ∈ fixed_points α β ↔ ∀ x : α, x • b = b := iff.rfl
 
-@[simv, to_additive] lemma mem_fixed_by {g : α} {b : β} :
+@[simp, to_additive] lemma mem_fixed_by {g : α} {b : β} :
   b ∈ fixed_by α β g ↔ g • b = b := iff.rfl
 
 @[to_additive] lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
@@ -108,7 +108,7 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     show (a * a') • b = b, by rw [←smul_smul, hb, ha] }
 
-@[simv, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
+@[simp, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
   a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
 
 @[to_additive] lemma orbit_eq_univ [is_pretransitive α β] (x : β) :
@@ -145,16 +145,16 @@ def stabilizer (b : β) : subgroup α :=
 
 variables {α} {β}
 
-@[simv, to_additive] lemma mem_stabilizer_iff {b : β} {a : α} :
+@[simp, to_additive] lemma mem_stabilizer_iff {b : β} {a : α} :
   a ∈ stabilizer α b ↔ a • b = b := iff.rfl
 
-@[simv, to_additive] lemma smul_orbit (a : α) (b : β) :
+@[simp, to_additive] lemma smul_orbit (a : α) (b : β) :
   a • orbit α b = orbit α b :=
 (smul_orbit_subset a b).antisymm $
   calc orbit α b = a • a⁻¹ • orbit α b : (smul_inv_smul _ _).symm
              ... ⊆ a • orbit α b       : set.image_subset _ (smul_orbit_subset _ _)
 
-@[simv, to_additive] lemma orbit_smul (a : α) (b : β) : orbit α (a • b) = orbit α b :=
+@[simp, to_additive] lemma orbit_smul (a : α) (b : β) : orbit α (a • b) = orbit α b :=
 (orbit_smul_subset a b).antisymm $
   calc orbit α b = orbit α (a⁻¹ • a • b) : by rw inv_smul_smul
              ... ⊆ orbit α (a • b)       : orbit_smul_subset _ _
@@ -240,7 +240,7 @@ variables {α β}
 def orbit_rel.quotient.orbit (x : orbit_rel.quotient α β) : set β :=
 quotient.lift_on' x (orbit α) $ λ _ _, mul_action.orbit_eq_iff.2
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma orbit_rel.quotient.orbit_mk (b : β) :
   orbit_rel.quotient.orbit (quotient.mk' b : orbit_rel.quotient α β) = orbit α b := rfl
 

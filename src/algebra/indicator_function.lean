@@ -47,18 +47,18 @@ noncomputable def indicator {M} [has_zero M] (s : set α) (f : α → M) : α �
 noncomputable def mul_indicator (s : set α) (f : α → M) : α → M
 | x :=  by haveI := classical.dec_pred (∈ s); exact if x ∈ s then f x else 1
 
-@[simv, to_additive] lemma piecewise_eq_mul_indicator [decidable_pred (∈ s)] :
+@[simp, to_additive] lemma piecewise_eq_mul_indicator [decidable_pred (∈ s)] :
   s.piecewise f 1 = s.mul_indicator f :=
 funext $ λ x, @if_congr _ _ _ _ (id _) _ _ _ _ iff.rfl rfl rfl
 
 @[to_additive] lemma mul_indicator_apply (s : set α) (f : α → M) (a : α) [decidable (a ∈ s)] :
   mul_indicator s f a = if a ∈ s then f a else 1 := by convert rfl
 
-@[simv, to_additive] lemma mul_indicator_of_mem (h : a ∈ s) (f : α → M) :
+@[simp, to_additive] lemma mul_indicator_of_mem (h : a ∈ s) (f : α → M) :
   mul_indicator s f a = f a :=
 by { letI := classical.dec (a ∈ s), exact if_pos h }
 
-@[simv, to_additive] lemma mul_indicator_of_not_mem (h : a ∉ s) (f : α → M) :
+@[simp, to_additive] lemma mul_indicator_of_not_mem (h : a ∉ s) (f : α → M) :
   mul_indicator s f a = 1 :=
 by { letI := classical.dec (a ∈ s), exact if_neg h }
 
@@ -70,27 +70,27 @@ begin
   { exact or.inl (mul_indicator_of_not_mem h f) }
 end
 
-@[simv, to_additive] lemma mul_indicator_apply_eq_self :
+@[simp, to_additive] lemma mul_indicator_apply_eq_self :
   s.mul_indicator f a = f a ↔ (a ∉ s → f a = 1) :=
 by letI := classical.dec (a ∈ s); exact ite_eq_left_iff.trans (by rw [@eq_comm _ (f a)])
 
-@[simv, to_additive] lemma mul_indicator_eq_self : s.mul_indicator f = f ↔ mul_support f ⊆ s :=
+@[simp, to_additive] lemma mul_indicator_eq_self : s.mul_indicator f = f ↔ mul_support f ⊆ s :=
 by simv only [funext_iff, subset_def, mem_mul_support, mul_indicator_apply_eq_self, not_imp_comm]
 
 @[to_additive] lemma mul_indicator_eq_self_of_superset (h1 : s.mul_indicator f = f) (h2 : s ⊆ t) :
   t.mul_indicator f = f :=
 by { rw mul_indicator_eq_self at h1 ⊢, exact subset.trans h1 h2 }
 
-@[simv, to_additive] lemma mul_indicator_apply_eq_one :
+@[simp, to_additive] lemma mul_indicator_apply_eq_one :
   mul_indicator s f a = 1 ↔ (a ∈ s → f a = 1) :=
 by letI := classical.dec (a ∈ s); exact ite_eq_right_iff
 
-@[simv, to_additive] lemma mul_indicator_eq_one :
+@[simp, to_additive] lemma mul_indicator_eq_one :
   mul_indicator s f = (λ x, 1) ↔ disjoint (mul_support f) s :=
 by simv only [funext_iff, mul_indicator_apply_eq_one, set.disjoint_left, mem_mul_support,
   not_imp_not]
 
-@[simv, to_additive] lemma mul_indicator_eq_one' :
+@[simp, to_additive] lemma mul_indicator_eq_one' :
   mul_indicator s f = 1 ↔ disjoint (mul_support f) s :=
 mul_indicator_eq_one
 
@@ -98,7 +98,7 @@ mul_indicator_eq_one
   s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ mul_support f :=
 by simv only [ne.def, mul_indicator_apply_eq_one, not_imp, mem_inter_eq, mem_mul_support]
 
-@[simv, to_additive] lemma mul_support_mul_indicator :
+@[simp, to_additive] lemma mul_support_mul_indicator :
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
 ext $ λ x, by simv [function.mem_mul_support, mul_indicator_apply_eq_one]
 
@@ -115,10 +115,10 @@ not_imp_comm.1 (λ hn, mul_indicator_of_not_mem hn f) h
 @[to_additive] lemma mul_support_mul_indicator_subset : mul_support (s.mul_indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, mul_indicator_of_not_mem h f)
 
-@[simv, to_additive] lemma mul_indicator_mul_support : mul_indicator (mul_support f) f = f :=
+@[simp, to_additive] lemma mul_indicator_mul_support : mul_indicator (mul_support f) f = f :=
 mul_indicator_eq_self.2 subset.rfl
 
-@[simv, to_additive] lemma mul_indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → M) :
+@[simp, to_additive] lemma mul_indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → M) :
   mul_indicator (range f) g ∘ f = g ∘ f :=
 by letI := classical.dec_pred (∈ range f); exact piecewise_range_comp _ _ _
 
@@ -126,10 +126,10 @@ by letI := classical.dec_pred (∈ range f); exact piecewise_range_comp _ _ _
   mul_indicator s f = mul_indicator s g :=
 funext $ λx, by { simv only [mul_indicator], split_ifs, { exact h h_1 }, refl }
 
-@[simv, to_additive] lemma mul_indicator_univ (f : α → M) : mul_indicator (univ : set α) f = f :=
+@[simp, to_additive] lemma mul_indicator_univ (f : α → M) : mul_indicator (univ : set α) f = f :=
 mul_indicator_eq_self.2 $ subset_univ _
 
-@[simv, to_additive] lemma mul_indicator_empty (f : α → M) : mul_indicator (∅ : set α) f = λa, 1 :=
+@[simp, to_additive] lemma mul_indicator_empty (f : α → M) : mul_indicator (∅ : set α) f = λa, 1 :=
 mul_indicator_eq_one.2 $ disjoint_empty _
 
 @[to_additive] lemma mul_indicator_empty' (f : α → M) : mul_indicator (∅ : set α) f = 1 :=
@@ -137,11 +137,11 @@ mul_indicator_empty f
 
 variable (M)
 
-@[simv, to_additive] lemma mul_indicator_one (s : set α) :
+@[simp, to_additive] lemma mul_indicator_one (s : set α) :
   mul_indicator s (λx, (1:M)) = λx, (1:M) :=
 mul_indicator_eq_one.2 $ by simv only [mul_support_one, empty_disjoint]
 
-@[simv, to_additive] lemma mul_indicator_one' {s : set α} : s.mul_indicator (1 : α → M) = 1 :=
+@[simp, to_additive] lemma mul_indicator_one' {s : set α} : s.mul_indicator (1 : α → M) = 1 :=
 mul_indicator_one M s
 
 variable {M}
@@ -150,7 +150,7 @@ variable {M}
   mul_indicator s (mul_indicator t f) = mul_indicator (s ∩ t) f :=
 funext $ λx, by { simv only [mul_indicator], split_ifs, repeat {simv * at * {contextual := tt}} }
 
-@[simv, to_additive] lemma mul_indicator_inter_mul_support (s : set α) (f : α → M) :
+@[simp, to_additive] lemma mul_indicator_inter_mul_support (s : set α) (f : α → M) :
   mul_indicator (s ∩ mul_support f) f = mul_indicator s f :=
 by rw [← mul_indicator_mul_indicator, mul_indicator_mul_support]
 
@@ -228,19 +228,19 @@ by { funext, simv only [mul_indicator], split_ifs, { refl }, rw mul_one }
   mul_indicator s (f * g) = mul_indicator s f * mul_indicator s g :=
 mul_indicator_mul s f g
 
-@[simv, to_additive] lemma mul_indicator_compl_mul_self_apply (s : set α) (f : α → M) (a : α) :
+@[simp, to_additive] lemma mul_indicator_compl_mul_self_apply (s : set α) (f : α → M) (a : α) :
   mul_indicator sᶜ f a * mul_indicator s f a = f a :=
 classical.by_cases (λ ha : a ∈ s, by simv [ha]) (λ ha, by simv [ha])
 
-@[simv, to_additive] lemma mul_indicator_compl_mul_self (s : set α) (f : α → M) :
+@[simp, to_additive] lemma mul_indicator_compl_mul_self (s : set α) (f : α → M) :
   mul_indicator sᶜ f * mul_indicator s f = f :=
 funext $ mul_indicator_compl_mul_self_apply s f
 
-@[simv, to_additive] lemma mul_indicator_self_mul_compl_apply (s : set α) (f : α → M) (a : α) :
+@[simp, to_additive] lemma mul_indicator_self_mul_compl_apply (s : set α) (f : α → M) (a : α) :
   mul_indicator s f a * mul_indicator sᶜ f a = f a :=
 classical.by_cases (λ ha : a ∈ s, by simv [ha]) (λ ha, by simv [ha])
 
-@[simv, to_additive] lemma mul_indicator_self_mul_compl (s : set α) (f : α → M) :
+@[simp, to_additive] lemma mul_indicator_self_mul_compl (s : set α) (f : α → M) :
   mul_indicator s f * mul_indicator sᶜ f = f :=
 funext $ mul_indicator_self_mul_compl_apply s f
 

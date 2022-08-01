@@ -84,7 +84,7 @@ cochain_complex.mk_hom _ _ (desc_f_zero f _ _) (desc_f_one f _ _)
   (λ n ⟨g, g', w⟩, ⟨(desc_f_succ I J n g g' w.symm).1, (desc_f_succ I J n g g' w.symm).2.symm⟩)
 
 /-- The resolution maps intertwine the descent of a morphism and that morphism. -/
-@[simv, reassoc]
+@[simp, reassoc]
 lemma desc_commutes {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.ι ≫ desc f I J = (cochain_complex.single₀ C).map f ≫ I.ι :=
@@ -168,11 +168,11 @@ def homotopy_equiv {X : C} (I J : InjectiveResolution X) :
   homotopy_inv_hom_id := (desc_comp_homotopy (𝟙 X) (𝟙 X) J I J).symm.trans $
     by simpa [category.id_comp] using desc_id_homotopy _ _ }
 
-@[simv, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
+@[simp, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
   I.ι ≫ (homotopy_equiv I J).hom = J.ι :=
 by simv [homotopy_equiv]
 
-@[simv, reassoc] lemma homotopy_equiv_inv_ι {X : C} (I J : InjectiveResolution X) :
+@[simp, reassoc] lemma homotopy_equiv_inv_ι {X : C} (I J : InjectiveResolution X) :
   J.ι ≫ (homotopy_equiv I J).inv = I.ι :=
 by simv [homotopy_equiv]
 

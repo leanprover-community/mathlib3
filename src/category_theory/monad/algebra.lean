@@ -51,7 +51,7 @@ variables {T : monad C}
 (h' : (T : C ⥤ C).map f ≫ B.a = A.a ≫ f . obviously)
 
 restate_axiom hom.h'
-attribute [simv, reassoc] hom.h
+attribute [simp, reassoc] hom.h
 
 namespace hom
 
@@ -261,7 +261,7 @@ variables {G : comonad C}
 (h' : A.a ≫ (G : C ⥤ C).map f = f ≫ B.a . obviously)
 
 restate_axiom hom.h'
-attribute [simv, reassoc] hom.h
+attribute [simp, reassoc] hom.h
 
 namespace hom
 

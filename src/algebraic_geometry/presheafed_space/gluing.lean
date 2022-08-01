@@ -131,7 +131,7 @@ begin
 end
 
 /-- The red and the blue arrows in ![this diagram](https://i.imgur.com/0GiBUh6.png) commute. -/
-@[simv, reassoc]
+@[simp, reassoc]
 lemma f_inv_app_f_app (i j k : D.J)  (U : (opens (D.V (i, j)).carrier)) :
   (D.f_open i j).inv_app U ≫ (D.f i k).c.app _ =
     (π₁ i, j, k).c.app (op U) ≫ (π₂⁻¹ i, j, k) (unop _) ≫ (D.V _).presheaf.map (eq_to_hom
@@ -187,7 +187,7 @@ begin
 end
 
 /-- The red and the blue arrows in ![this diagram](https://i.imgur.com/q6X1GJ9.png) commute. -/
-@[simv, reassoc]
+@[simp, reassoc]
 lemma snd_inv_app_t_app (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
   (π₂⁻¹ i, j, k) U ≫ (D.t k i).c.app _ = (D.t' k i j).c.app _ ≫ (π₁⁻¹ k, j, i) (unop _) ≫
     (D.V (k, i)).presheaf.map (eq_to_hom (D.snd_inv_app_t_app' i j k U).some.symm) :=

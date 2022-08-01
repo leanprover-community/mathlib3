@@ -534,11 +534,11 @@ is_iso.of_iso (stalk_iso R x)
 instance (x : prime_spectrum R) : is_iso (localization_to_stalk R x) :=
 is_iso.of_iso (stalk_iso R x).symm
 
-@[simv, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
+@[simp, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
   stalk_to_fiber_ring_hom R x ≫ localization_to_stalk R x = 𝟙 _ :=
 (stalk_iso R x).hom_inv_id
 
-@[simv, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
+@[simp, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
   localization_to_stalk R x ≫ stalk_to_fiber_ring_hom R x = 𝟙 _ :=
 (stalk_iso R x).inv_hom_id
 
@@ -882,13 +882,13 @@ as_iso (to_open R ⊤)
 @[simp] lemma global_sections_iso_hom (R : CommRing) :
   (global_sections_iso R).hom = to_open R ⊤ := rfl
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma to_stalk_stalk_specializes {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
   to_stalk R y ≫ (structure_sheaf R).presheaf.stalk_specializes h = to_stalk R x :=
 by { dsimp[to_stalk], simpa [-to_open_germ], }
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma localization_to_stalk_stalk_specializes {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
   structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).presheaf.stalk_specializes h =
@@ -904,7 +904,7 @@ begin
   exact to_stalk_stalk_specializes h
 end
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_to_fiber {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
   (structure_sheaf R).presheaf.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =

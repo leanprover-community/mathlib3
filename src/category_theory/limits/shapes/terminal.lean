@@ -321,7 +321,7 @@ def limit_const_terminal {J : Type*} [category J] {C : Type*} [category C] [has_
   inv := limit.lift ((category_theory.functor.const J).obj (⊤_ C))
     { X := ⊤_ C, π := { app := λ j, terminal.from _, }}, }
 
-@[simv, reassoc] lemma limit_const_terminal_inv_π
+@[simp, reassoc] lemma limit_const_terminal_inv_π
   {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] {j : J} :
   limit_const_terminal.inv ≫ limit.π ((category_theory.functor.const J).obj (⊤_ C)) j =
     terminal.from _ :=
@@ -344,7 +344,7 @@ def colimit_const_initial {J : Type*} [category J] {C : Type*} [category C] [has
     { X := ⊥_ C, ι := { app := λ j, initial.to _, }, },
   inv := initial.to _, }
 
-@[simv, reassoc] lemma ι_colimit_const_initial_hom
+@[simp, reassoc] lemma ι_colimit_const_initial_hom
   {J : Type*} [category J] {C : Type*} [category C] [has_initial C] {j : J} :
   colimit.ι ((category_theory.functor.const J).obj (⊥_ C)) j ≫ colimit_const_initial.hom =
     initial.to _ :=

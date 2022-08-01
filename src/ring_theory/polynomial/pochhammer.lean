@@ -58,7 +58,7 @@ end
 
 end
 
-@[simv, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
+@[simp, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
   ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
   rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←eq_nat_cast (algebra_map ℕ S),

@@ -82,7 +82,7 @@ limit.lift ((curry.obj F) ⋙ colim)
 Since `colimit_limit_to_limit_colimit` is a morphism from a colimit to a limit,
 this lemma characterises it.
 -/
-@[simv, reassoc] lemma ι_colimit_limit_to_limit_colimit_π (j) (k) :
+@[simp, reassoc] lemma ι_colimit_limit_to_limit_colimit_π (j) (k) :
   colimit.ι _ k ≫ colimit_limit_to_limit_colimit F ≫ limit.π _ j =
     limit.π ((curry.obj (swap K J ⋙ F)).obj k) j ≫ colimit.ι ((curry.obj F).obj j) k :=
 by { dsimp [colimit_limit_to_limit_colimit], simv, }

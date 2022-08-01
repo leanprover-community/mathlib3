@@ -164,11 +164,11 @@ abbreviation cotrident.π (t : cotrident f) := t.ι.app one
 @[simp] lemma trident.ι_eq_app_zero (t : trident f) : t.ι = t.π.app zero := rfl
 @[simp] lemma cotrident.π_eq_app_one (t : cotrident f) : t.π = t.ι.app one := rfl
 
-@[simv, reassoc] lemma trident.app_zero (s : trident f) (j : J) :
+@[simp, reassoc] lemma trident.app_zero (s : trident f) (j : J) :
   s.π.app zero ≫ f j = s.π.app one :=
 by rw [←s.w (line j), parallel_family_map_left]
 
-@[simv, reassoc] lemma cotrident.app_one (s : cotrident f) (j : J) :
+@[simp, reassoc] lemma cotrident.app_one (s : cotrident f) (j : J) :
   f j ≫ s.ι.app one = s.ι.app zero :=
 by rw [←s.w (line j), parallel_family_map_left]
 
@@ -507,7 +507,7 @@ abbreviation wide_equalizer.lift [nonempty J] {W : C} (k : W ⟶ X)
   W ⟶ wide_equalizer f :=
 limit.lift (parallel_family f) (trident.of_ι k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma wide_equalizer.lift_ι [nonempty J] {W : C} (k : W ⟶ X) (h : ∀ j₁ j₂, k ≫ f j₁ = k ≫ f j₂) :
   wide_equalizer.lift k h ≫ wide_equalizer.ι f = k :=
 limit.lift_π _ _
@@ -587,7 +587,7 @@ abbreviation wide_coequalizer.desc [nonempty J] {W : C} (k : Y ⟶ W)
   wide_coequalizer f ⟶ W :=
 colimit.desc (parallel_family f) (cotrident.of_π k h)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma wide_coequalizer.π_desc [nonempty J] {W : C} (k : Y ⟶ W) (h : ∀ j₁ j₂, f j₁ ≫ k = f j₂ ≫ k) :
   wide_coequalizer.π f ≫ wide_coequalizer.desc k h = k :=
 colimit.ι_desc _ _

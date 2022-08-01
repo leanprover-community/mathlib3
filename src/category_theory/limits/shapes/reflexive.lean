@@ -58,12 +58,12 @@ lemma is_coreflexive_pair.mk' (s : B ⟶ A) (fs : f ≫ s = 𝟙 A) (gs : g ≫ 
 noncomputable def common_section (f g : A ⟶ B) [is_reflexive_pair f g] : B ⟶ A :=
 (is_reflexive_pair.common_section f g).some
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma section_comp_left (f g : A ⟶ B) [is_reflexive_pair f g] :
   common_section f g ≫ f = 𝟙 B :=
 (is_reflexive_pair.common_section f g).some_spec.1
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma section_comp_right (f g : A ⟶ B) [is_reflexive_pair f g] :
   common_section f g ≫ g = 𝟙 B :=
 (is_reflexive_pair.common_section f g).some_spec.2
@@ -73,12 +73,12 @@ noncomputable def common_retraction (f g : A ⟶ B) [is_coreflexive_pair f g] :
   B ⟶ A :=
 (is_coreflexive_pair.common_retraction f g).some
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma left_comp_retraction (f g : A ⟶ B) [is_coreflexive_pair f g] :
   f ≫ common_retraction f g = 𝟙 A :=
 (is_coreflexive_pair.common_retraction f g).some_spec.1
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma right_comp_retraction (f g : A ⟶ B) [is_coreflexive_pair f g] :
   g ≫ common_retraction f g = 𝟙 A :=
 (is_coreflexive_pair.common_retraction f g).some_spec.2

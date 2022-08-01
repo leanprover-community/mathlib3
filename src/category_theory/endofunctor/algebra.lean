@@ -58,7 +58,7 @@ F f |          | f
 (h' : F.map f ≫ A₁.str = A₀.str ≫ f . obviously)
 
 restate_axiom hom.h'
-attribute [simv, reassoc] hom.h
+attribute [simp, reassoc] hom.h
 namespace hom
 
 /-- The identity morphism of an algebra of endofunctor `F` -/
@@ -238,7 +238,7 @@ variables {F : C ⥤ C} (V : coalgebra F) {V₀ V₁ V₂ : coalgebra F}
 (h' : V₀.str ≫ F.map f = f ≫ V₁.str . obviously)
 
 restate_axiom hom.h'
-attribute [simv, reassoc] hom.h
+attribute [simp, reassoc] hom.h
 namespace hom
 
 /-- The identity morphism of an algebra of endofunctor `F` -/

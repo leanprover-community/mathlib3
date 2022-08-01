@@ -447,7 +447,7 @@ end intervals
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
 
-@[simv, norm_cast] theorem coe_nat_div (m n : ℕ) : ((m / n : ℕ) : ℤ) = m / n := rfl
+@[simp, norm_cast] theorem coe_nat_div (m n : ℕ) : ((m / n : ℕ) : ℤ) = m / n := rfl
 
 theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : 0 < b) :
   -[1+m] / b = -(m / b + 1) :=
@@ -578,7 +578,7 @@ by have := int.mul_div_cancel 1 H; rwa one_mul at this
 
 theorem of_nat_mod (m n : nat) : (m % n : ℤ) = of_nat (m % n) := rfl
 
-@[simv, norm_cast] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
+@[simp, norm_cast] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
 
 theorem neg_succ_of_nat_mod (m : ℕ) {b : ℤ} (bpos : 0 < b) :
   -[1+m] % b = b - 1 - m % b :=
@@ -1397,7 +1397,7 @@ end
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
 lemma bodd_two : bodd 2 = ff := rfl
 
-@[simv, norm_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
+@[simp, norm_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
 
 @[simp] lemma bodd_sub_nat_nat (m n : ℕ) : bodd (sub_nat_nat m n) = bxor m.bodd n.bodd :=
 by apply sub_nat_nat_elim m n (λ m n i, bodd i = bxor m.bodd n.bodd); intros;

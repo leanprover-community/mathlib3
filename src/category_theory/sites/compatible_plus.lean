@@ -58,7 +58,7 @@ end) begin
   simv only [← F.map_comp, multiequalizer.lift_ι],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma diagram_comp_iso_hom_ι (X : C) (W : (J.cover X)ᵒᵖ) (i : W.unop.arrow):
   (J.diagram_comp_iso F P X).hom.app W ≫ multiequalizer.ι _ i =
   F.map (multiequalizer.ι _ _) :=
@@ -111,7 +111,7 @@ end) begin
     ← F.map_comp, multiequalizer.lift_ι],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_plus_comp_iso_hom (X) (W) : F.map (colimit.ι _ W) ≫ (J.plus_comp_iso F P).hom.app X =
   (J.diagram_comp_iso F P X.unop).hom.app W ≫ colimit.ι _ W :=
 begin
@@ -123,7 +123,7 @@ begin
   simv,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma plus_comp_iso_whisker_left {F G : D ⥤ E} (η : F ⟶ G) (P : Cᵒᵖ ⥤ D)
   [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ F]
   [∀ (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ D), preserves_limit (W.index P).multicospan F]
@@ -156,7 +156,7 @@ def plus_functor_whisker_left_iso (P : Cᵒᵖ ⥤ D)
 nat_iso.of_components
 (λ X, plus_comp_iso _ _ _) $ λ F G η, plus_comp_iso_whisker_left _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma plus_comp_iso_whisker_right {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
   whisker_right (J.plus_map η) F ≫ (J.plus_comp_iso F Q).hom =
   (J.plus_comp_iso F P).hom ≫ J.plus_map (whisker_right η F) :=
@@ -187,7 +187,7 @@ def plus_functor_whisker_right_iso : J.plus_functor D ⋙ (whiskering_right _ _ 
   (whiskering_right _ _ _).obj F ⋙ J.plus_functor E :=
 nat_iso.of_components (λ P, J.plus_comp_iso _ _) $ λ P Q η, plus_comp_iso_whisker_right _ _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_right_to_plus_comp_plus_comp_iso_hom :
   whisker_right (J.to_plus _) _ ≫ (J.plus_comp_iso F P).hom = J.to_plus _ :=
 begin

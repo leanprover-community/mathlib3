@@ -68,11 +68,11 @@ is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit M N)
   (binary_product_limit_cone M N).is_limit
 
-@[simv, elementwise] lemma biprod_iso_prod_inv_comp_fst (M N : Module.{v} R) :
+@[simp, elementwise] lemma biprod_iso_prod_inv_comp_fst (M N : Module.{v} R) :
   (biprod_iso_prod M N).inv ≫ biprod.fst = linear_map.fst R M N :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.left)
 
-@[simv, elementwise] lemma biprod_iso_prod_inv_comp_snd (M N : Module.{v} R) :
+@[simp, elementwise] lemma biprod_iso_prod_inv_comp_snd (M N : Module.{v} R) :
   (biprod_iso_prod M N).inv ≫ biprod.snd = linear_map.snd R M N :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.right)
 
@@ -126,7 +126,7 @@ is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simv, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
   (f : J → Module.{v} R) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = (linear_map.proj j : (Π j, f j) →ₗ[R] f j) :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)

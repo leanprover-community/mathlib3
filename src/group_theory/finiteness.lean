@@ -129,7 +129,7 @@ begin
   exact submonoid.monotone_map le_top
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma monoid.fg_iff_submonoid_fg (N : submonoid M) : monoid.fg N ↔ N.fg :=
 begin
   conv_rhs { rw [← N.range_subtype, monoid_hom.mrange_eq_map] },

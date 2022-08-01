@@ -43,7 +43,7 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 `simv`:
 
 ```lean
-attribute [simv, reassoc] some_class.bar
+attribute [simp, reassoc] some_class.bar
 ```
 -/
 
@@ -154,7 +154,7 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 `simv`:
 
 ```lean
-attribute [simv, reassoc] some_class.bar
+attribute [simp, reassoc] some_class.bar
 ```
 -/
 @[user_command]

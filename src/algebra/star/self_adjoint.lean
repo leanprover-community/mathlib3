@@ -75,7 +75,7 @@ variables [add_group R] [star_add_monoid R]
 lemma mem_iff {x : R} : x ∈ self_adjoint R ↔ star x = x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
-@[simv, norm_cast] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
+@[simp, norm_cast] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
 
 instance : inhabited (self_adjoint R) := ⟨0⟩
 
@@ -89,7 +89,7 @@ variables [ring R] [star_ring R]
 
 instance : has_one (self_adjoint R) := ⟨⟨1, by rw [mem_iff, star_one]⟩⟩
 
-@[simv, norm_cast] lemma coe_one : ↑(1 : self_adjoint R) = (1 : R) := rfl
+@[simp, norm_cast] lemma coe_one : ↑(1 : self_adjoint R) = (1 : R) := rfl
 
 instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
@@ -120,7 +120,7 @@ is_star_normal_of_mem (set_like.coe_mem _)
 instance : has_pow (self_adjoint R) ℕ :=
 ⟨λ x n, ⟨(x : R) ^ n, by simv only [mem_iff, star_pow, star_coe_eq]⟩⟩
 
-@[simv, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
+@[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
 
 end ring
 
@@ -137,7 +137,7 @@ end
 instance : has_mul (self_adjoint R) :=
 ⟨λ x y, ⟨(x : R) * y, mul_mem x.prop y.prop⟩⟩
 
-@[simv, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
+@[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
 
 instance : comm_ring (self_adjoint R) :=
 function.injective.comm_ring _ subtype.coe_injective
@@ -154,17 +154,17 @@ variables [field R] [star_ring R]
 instance : has_inv (self_adjoint R) :=
 { inv := λ x, ⟨(x.val)⁻¹, by simv only [mem_iff, star_inv', star_coe_eq, subtype.val_eq_coe]⟩ }
 
-@[simv, norm_cast] lemma coe_inv (x : self_adjoint R) : ↑(x⁻¹) = (x : R)⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv (x : self_adjoint R) : ↑(x⁻¹) = (x : R)⁻¹ := rfl
 
 instance : has_div (self_adjoint R) :=
 { div := λ x y, ⟨x / y, by simv only [mem_iff, star_div', star_coe_eq, subtype.val_eq_coe]⟩ }
 
-@[simv, norm_cast] lemma coe_div (x y : self_adjoint R) : ↑(x / y) = (x / y : R) := rfl
+@[simp, norm_cast] lemma coe_div (x y : self_adjoint R) : ↑(x / y) = (x / y : R) := rfl
 
 instance : has_pow (self_adjoint R) ℤ :=
 { pow := λ x z, ⟨x ^ z, by simv only [mem_iff, star_zpow₀, star_coe_eq, subtype.val_eq_coe]⟩ }
 
-@[simv, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
+@[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
 lemma rat_cast_mem : ∀ (x : ℚ), (x : R) ∈ self_adjoint R
 | ⟨a, b, h1, h2⟩ :=
@@ -173,13 +173,13 @@ lemma rat_cast_mem : ∀ (x : ℚ), (x : R) ∈ self_adjoint R
 instance : has_rat_cast (self_adjoint R) :=
 ⟨λ n, ⟨n, rat_cast_mem n⟩⟩
 
-@[simv, norm_cast] lemma coe_rat_cast (x : ℚ) : ↑(x : self_adjoint R) = (x : R) :=
+@[simp, norm_cast] lemma coe_rat_cast (x : ℚ) : ↑(x : self_adjoint R) = (x : R) :=
 rfl
 
 instance has_qsmul : has_smul ℚ (self_adjoint R) :=
 ⟨λ a x, ⟨a • x, by rw rat.smul_def; exact mul_mem (rat_cast_mem a) x.prop⟩⟩
 
-@[simv, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
+@[simp, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
 rfl
 
 instance : field (self_adjoint R) :=
@@ -200,7 +200,7 @@ by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h]
 instance [has_smul R A] [star_module R A] : has_smul R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
-@[simv, norm_cast] lemma coe_smul [has_smul R A] [star_module R A] (r : R) (x : self_adjoint A) :
+@[simp, norm_cast] lemma coe_smul [has_smul R A] [star_module R A] (r : R) (x : self_adjoint A) :
   ↑(r • x) = r • (x : A) := rfl
 
 instance [monoid R] [mul_action R A] [star_module R A] : mul_action R (self_adjoint A) :=
@@ -230,7 +230,7 @@ variables [add_comm_group R] [star_add_monoid R]
 lemma mem_iff {x : R} : x ∈ skew_adjoint R ↔ star x = -x :=
 by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
-@[simv, norm_cast] lemma star_coe_eq {x : skew_adjoint R} : star (x : R) = -x := x.prop
+@[simp, norm_cast] lemma star_coe_eq {x : skew_adjoint R} : star (x : R) = -x := x.prop
 
 instance : inhabited (skew_adjoint R) := ⟨0⟩
 
@@ -266,7 +266,7 @@ by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h, smul_neg r]
 instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_smul R (skew_adjoint A) :=
 ⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
-@[simv, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
+@[simp, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
   (r : R) (x : skew_adjoint A) : ↑(r • x) = r • (x : A) := rfl
 
 instance [monoid R] [distrib_mul_action R A] [star_module R A] :

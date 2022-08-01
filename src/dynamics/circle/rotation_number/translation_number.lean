@@ -177,7 +177,7 @@ lemma mul_apply (x) : (f * g) x = f (g x) := rfl
 instance units_has_coe_to_fun : has_coe_to_fun (circle_deg1_liftˣ) (λ _, ℝ → ℝ) :=
 ⟨λ f, ⇑(f : circle_deg1_lift)⟩
 
-@[simv, norm_cast] lemma units_coe (f : circle_deg1_liftˣ) : ⇑(f : circle_deg1_lift) = f := rfl
+@[simp, norm_cast] lemma units_coe (f : circle_deg1_liftˣ) : ⇑(f : circle_deg1_lift) = f := rfl
 
 @[simp] lemma units_inv_apply_apply (f : circle_deg1_liftˣ) (x : ℝ) :
   (f⁻¹ : circle_deg1_liftˣ) (f x) = x :=

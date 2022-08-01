@@ -58,7 +58,7 @@ structure is_limit (t : cone F) :=
   m = lift s . obviously)
 
 restate_axiom is_limit.fac'
-attribute [simv, reassoc] is_limit.fac
+attribute [simp, reassoc] is_limit.fac
 restate_axiom is_limit.uniq'
 
 namespace is_limit
@@ -72,7 +72,7 @@ def map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
   (α : F ⟶ G) : s.X ⟶ t.X :=
 P.lift ((cones.postcompose α).obj s)
 
-@[simv, reassoc] lemma map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
+@[simp, reassoc] lemma map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
   (α : F ⟶ G) (j : J) : hd.map c α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 fac _ _ _
 
@@ -131,20 +131,20 @@ lemma hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) 
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
 (cones.forget F).map_iso (unique_up_to_iso P Q)
 
-@[simv, reassoc] lemma cone_point_unique_up_to_iso_hom_comp {s t : cone F} (P : is_limit s)
+@[simp, reassoc] lemma cone_point_unique_up_to_iso_hom_comp {s t : cone F} (P : is_limit s)
   (Q : is_limit t) (j : J) : (cone_point_unique_up_to_iso P Q).hom ≫ t.π.app j = s.π.app j :=
 (unique_up_to_iso P Q).hom.w _
 
-@[simv, reassoc] lemma cone_point_unique_up_to_iso_inv_comp {s t : cone F} (P : is_limit s)
+@[simp, reassoc] lemma cone_point_unique_up_to_iso_inv_comp {s t : cone F} (P : is_limit s)
   (Q : is_limit t) (j : J) : (cone_point_unique_up_to_iso P Q).inv ≫ s.π.app j = t.π.app j :=
 (unique_up_to_iso P Q).inv.w _
 
-@[simv, reassoc] lemma lift_comp_cone_point_unique_up_to_iso_hom {r s t : cone F}
+@[simp, reassoc] lemma lift_comp_cone_point_unique_up_to_iso_hom {r s t : cone F}
   (P : is_limit s) (Q : is_limit t) :
   P.lift r ≫ (cone_point_unique_up_to_iso P Q).hom = Q.lift r :=
 Q.uniq _ _ (by simv)
 
-@[simv, reassoc] lemma lift_comp_cone_point_unique_up_to_iso_inv {r s t : cone F}
+@[simp, reassoc] lemma lift_comp_cone_point_unique_up_to_iso_inv {r s t : cone F}
   (P : is_limit s) (Q : is_limit t) :
   Q.lift r ≫ (cone_point_unique_up_to_iso P Q).inv = P.lift r :=
 P.uniq _ _ (by simv)
@@ -512,7 +512,7 @@ structure is_colimit (t : cocone F) :=
   m = desc s . obviously)
 
 restate_axiom is_colimit.fac'
-attribute [simv,reassoc] is_colimit.fac
+attribute [simp,reassoc] is_colimit.fac
 restate_axiom is_colimit.uniq'
 
 namespace is_colimit
@@ -526,7 +526,7 @@ def map {F G : J ⥤ C} {s : cocone F} (P : is_colimit s) (t : cocone G)
   (α : F ⟶ G) : s.X ⟶ t.X :=
 P.desc ((cocones.precompose α).obj t)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
   (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
 fac _ _ _
@@ -588,19 +588,19 @@ def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_co
   s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)
 
-@[simv, reassoc] lemma comp_cocone_point_unique_up_to_iso_hom {s t : cocone F} (P : is_colimit s)
+@[simp, reassoc] lemma comp_cocone_point_unique_up_to_iso_hom {s t : cocone F} (P : is_colimit s)
   (Q : is_colimit t) (j : J) : s.ι.app j ≫ (cocone_point_unique_up_to_iso P Q).hom = t.ι.app j :=
 (unique_up_to_iso P Q).hom.w _
 
-@[simv, reassoc] lemma comp_cocone_point_unique_up_to_iso_inv {s t : cocone F} (P : is_colimit s)
+@[simp, reassoc] lemma comp_cocone_point_unique_up_to_iso_inv {s t : cocone F} (P : is_colimit s)
   (Q : is_colimit t) (j : J) : t.ι.app j ≫ (cocone_point_unique_up_to_iso P Q).inv = s.ι.app j :=
 (unique_up_to_iso P Q).inv.w _
 
-@[simv, reassoc] lemma cocone_point_unique_up_to_iso_hom_desc {r s t : cocone F} (P : is_colimit s)
+@[simp, reassoc] lemma cocone_point_unique_up_to_iso_hom_desc {r s t : cocone F} (P : is_colimit s)
   (Q : is_colimit t) : (cocone_point_unique_up_to_iso P Q).hom ≫ Q.desc r = P.desc r :=
 P.uniq _ _ (by simv)
 
-@[simv, reassoc] lemma cocone_point_unique_up_to_iso_inv_desc {r s t : cocone F} (P : is_colimit s)
+@[simp, reassoc] lemma cocone_point_unique_up_to_iso_inv_desc {r s t : cocone F} (P : is_colimit s)
   (Q : is_colimit t) : (cocone_point_unique_up_to_iso P Q).inv ≫ P.desc r = Q.desc r :=
 Q.uniq _ _ (by simv)
 

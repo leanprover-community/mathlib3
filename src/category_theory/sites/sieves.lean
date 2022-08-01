@@ -211,7 +211,7 @@ initialize_simps_projections sieve (arrows → apply)
 
 variables {S R : sieve X}
 
-@[simv, priority 100] lemma downward_closed (S : sieve X) {f : Y ⟶ X} (hf : S f)
+@[simp, priority 100] lemma downward_closed (S : sieve X) {f : Y ⟶ X} (hf : S f)
   (g : Z ⟶ Y) : S (g ≫ f) :=
 S.downward_closed' hf g
 

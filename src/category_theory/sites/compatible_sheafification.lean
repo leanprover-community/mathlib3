@@ -114,7 +114,7 @@ begin
   erw category.id_comp,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_right_to_sheafify_sheafify_comp_iso_hom :
   whisker_right (J.to_sheafify _) _ ≫ (J.sheafify_comp_iso F P).hom = J.to_sheafify _ :=
 begin
@@ -127,7 +127,7 @@ begin
   refl,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma to_sheafify_comp_sheafify_comp_iso_inv :
   J.to_sheafify _ ≫ (J.sheafify_comp_iso F P).inv = whisker_right (J.to_sheafify _) _ :=
 by { rw iso.comp_inv_eq, simv }

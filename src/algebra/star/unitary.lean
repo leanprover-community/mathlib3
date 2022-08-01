@@ -57,7 +57,7 @@ lemma star_mem {U : R} (hU : U ∈ unitary R) : star U ∈ unitary R :=
 
 instance : has_star (unitary R) := ⟨λ U, ⟨star U, star_mem U.prop⟩⟩
 
-@[simv, norm_cast] lemma coe_star {U : unitary R} : ↑(star U) = (star U : R) := rfl
+@[simp, norm_cast] lemma coe_star {U : unitary R} : ↑(star U) = (star U : R) := rfl
 
 lemma coe_star_mul_self (U : unitary R) : (star U : R) * U = 1 := star_mul_self_of_mem U.prop
 lemma coe_mul_star_self (U : unitary R) :  (U : R) * star U = 1 := mul_star_self_of_mem U.prop

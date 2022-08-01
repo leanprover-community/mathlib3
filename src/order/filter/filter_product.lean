@@ -50,7 +50,7 @@ noncomputable instance [linear_order β] : linear_order β* :=
   decidable_le := by apply_instance,
   .. germ.partial_order }
 
-@[simv, norm_cast] lemma const_div [division_ring β] (x y : β) : (↑(x / y) : β*) = ↑x / ↑y := rfl
+@[simp, norm_cast] lemma const_div [division_ring β] (x y : β) : (↑(x / y) : β*) = ↑x / ↑y := rfl
 
 lemma coe_lt [preorder β] {f g : α → β} : (f : β*) < g ↔ ∀* x, f x < g x :=
 by simv only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventually_le]

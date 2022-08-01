@@ -219,7 +219,7 @@ variables {I : set ι} {p q : Π i, submodule R (φ i)} {x : Π i, φ i}
 
 @[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
 
-@[simv, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+@[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
 
 @[simp] lemma pi_empty (p : Π i, submodule R (φ i)) : pi ∅ p = ⊤ :=
 set_like.coe_injective $ set.empty_pi _

@@ -399,7 +399,7 @@ rfl
   (bilin_form.to_lin.symm : _ ≃ₗ[R₂] bilin_form R₂ M₂) = linear_map.to_bilin :=
 linear_map.to_bilin.symm_symm
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
 
 end equiv_lin

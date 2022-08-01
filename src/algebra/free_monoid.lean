@@ -76,7 +76,7 @@ def lift : (α → M) ≃ (free_monoid α →* M) :=
   left_inv := λ f, funext $ λ x, one_mul (f x),
   right_inv := λ f, hom_eq $ λ x, one_mul (f (of x)) }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma lift_symm_apply (f : free_monoid α →* M) : lift.symm f = f ∘ of := rfl
 
 @[to_additive]
@@ -85,11 +85,11 @@ lemma lift_apply (f : α → M) (l : free_monoid α) : lift f l = (l.map f).prod
 @[to_additive]
 lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := lift.symm_apply_apply f
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma lift_eval_of (f : α → M) (x : α) : lift f (of x) = f x :=
 congr_fun (lift_comp_of f) x
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma lift_restrict (f : free_monoid α →* M) : lift (f ∘ of) = f :=
 lift.apply_symm_apply f
 
@@ -110,7 +110,7 @@ def map (f : α → β) : free_monoid α →* free_monoid β :=
   map_one' := rfl,
   map_mul' := λ l₁ l₂, list.map_append _ _ _ }
 
-@[simv, to_additive] lemma map_of (f : α → β) (x : α) : map f (of x) = of (f x) := rfl
+@[simp, to_additive] lemma map_of (f : α → β) (x : α) : map f (of x) = of (f x) := rfl
 
 @[to_additive]
 lemma lift_of_comp_eq_map (f : α → β) :

@@ -129,7 +129,7 @@ def unique_mdiff_on (s : set M) :=
 
 /-- Conjugating a function to write it in the preferred charts around `x`. The manifold derivative
 of `f` will just be the derivative of this conjugated function. -/
-@[simv, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
+@[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
 (ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm
 
 /-- `mdifferentiable_within_at I I' f s x` indicates that the function `f` between manifolds
@@ -370,7 +370,7 @@ lemma has_mfderiv_at.mdifferentiable_at (h : has_mfderiv_at I I' f x f') :
   mdifferentiable_at I I' f x :=
 ⟨h.1, ⟨f', h.2⟩⟩
 
-@[simv, mfld_simps] lemma has_mfderiv_within_at_univ :
+@[simp, mfld_simps] lemma has_mfderiv_within_at_univ :
   has_mfderiv_within_at I I' f univ x f' ↔ has_mfderiv_at I I' f x f' :=
 by simv only [has_mfderiv_within_at, has_mfderiv_at, continuous_within_at_univ] with mfld_simps
 
@@ -526,7 +526,7 @@ begin
 end
 
 include Is I's
-@[simv, mfld_simps] lemma mfderiv_within_univ : mfderiv_within I I' f univ = mfderiv I I' f :=
+@[simp, mfld_simps] lemma mfderiv_within_univ : mfderiv_within I I' f univ = mfderiv I I' f :=
 begin
   ext x : 1,
   simv only [mfderiv_within, mfderiv] with mfld_simps,
@@ -585,16 +585,16 @@ begin
   exact tangent_map_within_subset (subset_univ _) hs h,
 end
 
-@[simv, mfld_simps] lemma tangent_map_within_tangent_bundle_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_within_tangent_bundle_proj {p : tangent_bundle I M} :
   tangent_bundle.proj I' M' (tangent_map_within I I' f s p) = f (tangent_bundle.proj I M p) := rfl
 
-@[simv, mfld_simps] lemma tangent_map_within_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_within_proj {p : tangent_bundle I M} :
   (tangent_map_within I I' f s p).1 = f p.1 := rfl
 
-@[simv, mfld_simps] lemma tangent_map_tangent_bundle_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_tangent_bundle_proj {p : tangent_bundle I M} :
   tangent_bundle.proj I' M' (tangent_map I I' f p) = f (tangent_bundle.proj I M p) := rfl
 
-@[simv, mfld_simps] lemma tangent_map_proj {p : tangent_bundle I M} :
+@[simp, mfld_simps] lemma tangent_map_proj {p : tangent_bundle I M} :
   (tangent_map I I' f p).1 = f p.1 := rfl
 
 omit Is I's
@@ -872,7 +872,7 @@ by simv [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff
 alias unique_mdiff_on_iff_unique_diff_on ↔
   unique_mdiff_on.unique_diff_on unique_diff_on.unique_mdiff_on
 
-@[simv, mfld_simps] lemma written_in_ext_chart_model_space :
+@[simp, mfld_simps] lemma written_in_ext_chart_model_space :
   written_in_ext_chart_at (𝓘(𝕜, E)) (𝓘(𝕜, E')) x f = f :=
 rfl
 
@@ -1063,7 +1063,7 @@ lemma mdifferentiable_id : mdifferentiable I I (@_root_.id M) :=
 lemma mdifferentiable_on_id : mdifferentiable_on I I (@_root_.id M) s :=
 (mdifferentiable_id I).mdifferentiable_on
 
-@[simv, mfld_simps] lemma mfderiv_id :
+@[simp, mfld_simps] lemma mfderiv_id :
   mfderiv I I (@_root_.id M) x = (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 has_mfderiv_at.mfderiv (has_mfderiv_at_id I x)
 
@@ -1074,7 +1074,7 @@ begin
   exact mfderiv_id I
 end
 
-@[simv, mfld_simps] lemma tangent_map_id : tangent_map I I (id : M → M) = id :=
+@[simp, mfld_simps] lemma tangent_map_id : tangent_map I I (id : M → M) = id :=
 by { ext1 ⟨x, v⟩, simv [tangent_map] }
 
 lemma tangent_map_within_id {p : tangent_bundle I M}
@@ -1119,7 +1119,7 @@ lemma mdifferentiable_const : mdifferentiable I I' (λy : M, c) :=
 lemma mdifferentiable_on_const : mdifferentiable_on I I' (λy : M, c) s :=
 (mdifferentiable_const I I').mdifferentiable_on
 
-@[simv, mfld_simps] lemma mfderiv_const : mfderiv I I' (λy : M, c) x =
+@[simp, mfld_simps] lemma mfderiv_const : mfderiv I I' (λy : M, c) x =
   (0 : tangent_space I x →L[𝕜] tangent_space I' c) :=
 has_mfderiv_at.mfderiv (has_mfderiv_at_const I I' c x)
 

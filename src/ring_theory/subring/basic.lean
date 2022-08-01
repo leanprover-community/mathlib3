@@ -149,9 +149,9 @@ def subtype (s : S) : s →+* R :=
  .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
-@[simv, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
 map_nat_cast (subtype s) n
-@[simv, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 (subtype s : s →+* R).map_int_cast n
 
 end subring_class
@@ -355,12 +355,12 @@ protected lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zs
 
 protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
 
-@[simv, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
-@[simv, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
-@[simv, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
-@[simv, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
-@[simv, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[simv, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
+@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
 submonoid_class.coe_pow x n
 
 -- TODO: can be generalized to `add_submonoid_class`
@@ -415,9 +415,9 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simv, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
+@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
 map_nat_cast s.subtype
-@[simv, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 s.subtype.map_int_cast n
 
 /-! ## Partial order -/
@@ -559,7 +559,7 @@ instance : has_Inf (subring R) :=
 ⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t )
   (⨅ t ∈ s, subring.to_add_subgroup t) (by simv) (by simv)⟩
 
-@[simv, norm_cast] lemma coe_Inf (S : set (subring R)) :
+@[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂

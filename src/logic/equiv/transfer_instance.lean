@@ -91,7 +91,7 @@ begin
     ..e }
 end
 
-@[simv, to_additive] lemma mul_equiv_apply (e : α ≃ β) [has_mul β] (a : α) :
+@[simp, to_additive] lemma mul_equiv_apply (e : α ≃ β) [has_mul β] (a : α) :
   (mul_equiv e) a = e a := rfl
 
 @[to_additive] lemma mul_equiv_symm_apply (e : α ≃ β) [has_mul β] (b : β) :

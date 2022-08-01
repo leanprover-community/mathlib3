@@ -83,7 +83,7 @@ instance : has_mem (ι → ℝ) (box ι) := ⟨λ x I, ∀ i, x i ∈ Ioc (I.low
 instance : has_coe_t (box ι) (set $ ι → ℝ) := ⟨λ I, {x | x ∈ I}⟩
 
 @[simp] lemma mem_mk {l u x : ι → ℝ} {H} : x ∈ mk l u H ↔ ∀ i, x i ∈ Ioc (l i) (u i) := iff.rfl
-@[simv, norm_cast] lemma mem_coe : x ∈ (I : set (ι → ℝ)) ↔ x ∈ I := iff.rfl
+@[simp, norm_cast] lemma mem_coe : x ∈ (I : set (ι → ℝ)) ↔ x ∈ I := iff.rfl
 
 lemma mem_def : x ∈ I ↔ ∀ i, x i ∈ Ioc (I.lower i) (I.upper i) := iff.rfl
 
@@ -121,7 +121,7 @@ end
 
 variables {I J}
 
-@[simv, norm_cast] lemma coe_subset_coe : (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J := iff.rfl
+@[simp, norm_cast] lemma coe_subset_coe : (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J := iff.rfl
 lemma le_iff_bounds : I ≤ J ↔ J.lower ≤ I.lower ∧ I.upper ≤ J.upper := (le_tfae I J).out 0 3
 
 lemma injective_coe : injective (coe : box ι → set (ι → ℝ)) :=
@@ -132,7 +132,7 @@ begin
   exacts [le_antisymm h.2.1 h.1.1, le_antisymm h.1.2 h.2.2]
 end
 
-@[simv, norm_cast] lemma coe_inj : (I : set (ι → ℝ)) = J ↔ I = J :=
+@[simp, norm_cast] lemma coe_inj : (I : set (ι → ℝ)) = J ↔ I = J :=
 injective_coe.eq_iff
 
 @[ext] lemma ext (H : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
@@ -194,9 +194,9 @@ In this section we define coercion from `with_bot (box ι)` to `set (ι → ℝ)
 
 instance with_bot_coe : has_coe_t (with_bot (box ι)) (set (ι → ℝ)) := ⟨λ o, o.elim ∅ coe⟩
 
-@[simv, norm_cast] lemma coe_bot : ((⊥ : with_bot (box ι)) : set (ι → ℝ)) = ∅ := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : with_bot (box ι)) : set (ι → ℝ)) = ∅ := rfl
 
-@[simv, norm_cast] lemma coe_coe : ((I : with_bot (box ι)) : set (ι → ℝ)) = I := rfl
+@[simp, norm_cast] lemma coe_coe : ((I : with_bot (box ι)) : set (ι → ℝ)) = I := rfl
 
 lemma is_some_iff : ∀ {I : with_bot (box ι)}, I.is_some ↔ (I : set (ι → ℝ)).nonempty
 | ⊥ := by { erw option.is_some, simv }
@@ -206,7 +206,7 @@ lemma bUnion_coe_eq_coe (I : with_bot (box ι)) :
   (⋃ (J : box ι) (hJ : ↑J = I), (J : set (ι → ℝ))) = I :=
 by induction I using with_bot.rec_bot_coe; simv [with_bot.coe_eq_coe]
 
-@[simv, norm_cast] lemma with_bot_coe_subset_iff {I J : with_bot (box ι)} :
+@[simp, norm_cast] lemma with_bot_coe_subset_iff {I J : with_bot (box ι)} :
   (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J :=
 begin
   induction I using with_bot.rec_bot_coe, { simv },
@@ -214,7 +214,7 @@ begin
   simv
 end
 
-@[simv, norm_cast] lemma with_bot_coe_inj {I J : with_bot (box ι)} :
+@[simp, norm_cast] lemma with_bot_coe_inj {I J : with_bot (box ι)} :
   (I : set (ι → ℝ)) = J ↔ I = J :=
 by simv only [subset.antisymm_iff, ← le_antisymm_iff,  with_bot_coe_subset_iff]
 
@@ -274,7 +274,7 @@ instance : lattice (with_bot (box ι)) :=
     end,
   .. with_bot.semilattice_sup, .. box.with_bot.has_inf }
 
-@[simv, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
+@[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
   disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=
 by { simv only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
 

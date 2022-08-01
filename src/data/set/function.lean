@@ -901,10 +901,10 @@ begin
   { by_cases h' : i ∈ s; simv [h, h'] }
 end
 
-@[simv, priority 990]
+@[simp, priority 990]
 lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i := if_pos hi
 
-@[simv, priority 990]
+@[simp, priority 990]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i := if_neg hi
 
 lemma piecewise_singleton (x : α) [Π y, decidable (y ∈ ({x} : set α))] [decidable_eq α]
@@ -933,7 +933,7 @@ lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : se
   s.piecewise f₁ f₂ ≤ s.piecewise g₁ g₂ :=
 by apply piecewise_le; intros; simv *
 
-@[simv, priority 990]
+@[simp, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
 by simv [piecewise, h]

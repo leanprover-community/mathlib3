@@ -260,10 +260,10 @@ abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ inv (r A)
 
 end
 
-@[simv, reassoc] lemma diag_σ {X : C} : diag X ≫ σ = 0 :=
+@[simp, reassoc] lemma diag_σ {X : C} : diag X ≫ σ = 0 :=
 by rw [cokernel.condition_assoc, zero_comp]
 
-@[simv, reassoc] lemma lift_σ {X : C} : prod.lift (𝟙 X) 0 ≫ σ = 𝟙 X :=
+@[simp, reassoc] lemma lift_σ {X : C} : prod.lift (𝟙 X) 0 ≫ σ = 𝟙 X :=
 by rw [←category.assoc, is_iso.hom_inv_id]
 
 @[reassoc] lemma lift_map {X Y : C} (f : X ⟶ Y) :

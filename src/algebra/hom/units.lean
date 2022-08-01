@@ -39,17 +39,17 @@ monoid_hom.mk'
                   by rw [← f.map_mul, u.inv_val, f.map_one]⟩)
   (λ x y, ext (f.map_mul x y))
 
-@[simv, to_additive] lemma coe_map (f : M →* N) (x : Mˣ) : ↑(map f x) = f x := rfl
+@[simp, to_additive] lemma coe_map (f : M →* N) (x : Mˣ) : ↑(map f x) = f x := rfl
 
-@[simv, to_additive] lemma coe_map_inv (f : M →* N) (u : Mˣ) :
+@[simp, to_additive] lemma coe_map_inv (f : M →* N) (u : Mˣ) :
   ↑(map f u)⁻¹ = f ↑u⁻¹ :=
 rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
 
 variables (M)
-@[simv, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id Mˣ :=
+@[simp, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id Mˣ :=
 by ext; refl
 
 /-- Coercion `Mˣ → M` as a monoid homomorphism. -/
@@ -58,22 +58,22 @@ def coe_hom : Mˣ →* M := ⟨coe, coe_one, coe_mul⟩
 
 variable {M}
 
-@[simv, to_additive] lemma coe_hom_apply (x : Mˣ) : coe_hom M x = ↑x := rfl
+@[simp, to_additive] lemma coe_hom_apply (x : Mˣ) : coe_hom M x = ↑x := rfl
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
 section division_monoid
 variables [division_monoid α]
 
-@[simv, norm_cast, to_additive] lemma coe_inv : ∀ u : αˣ, ↑u⁻¹ = (u⁻¹ : α) :=
+@[simp, norm_cast, to_additive] lemma coe_inv : ∀ u : αˣ, ↑u⁻¹ = (u⁻¹ : α) :=
 (units.coe_hom α).map_inv
 
-@[simv, norm_cast, to_additive] lemma coe_div : ∀ u₁ u₂ : αˣ, ↑(u₁ / u₂) = (u₁ / u₂ : α) :=
+@[simp, norm_cast, to_additive] lemma coe_div : ∀ u₁ u₂ : αˣ, ↑(u₁ / u₂) = (u₁ / u₂ : α) :=
 (units.coe_hom α).map_div
 
-@[simv, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
+@[simp, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
 (units.coe_hom α).map_zpow
 
 lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
@@ -91,14 +91,14 @@ def lift_right (f : M →* N) (g : M → Nˣ) (h : ∀ x, ↑(g x) = f x) :
   map_one' := units.ext $ (h 1).symm ▸ f.map_one,
   map_mul' := λ x y, units.ext $ by simv only [h, coe_mul, f.map_mul] }
 
-@[simv, to_additive] lemma coe_lift_right {f : M →* N} {g : M → Nˣ}
+@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → Nˣ}
   (h : ∀ x, ↑(g x) = f x) (x) : (lift_right f g h x : N) = f x := h x
 
-@[simv, to_additive] lemma mul_lift_right_inv {f : M →* N} {g : M → Nˣ}
+@[simp, to_additive] lemma mul_lift_right_inv {f : M →* N} {g : M → Nˣ}
   (h : ∀ x, ↑(g x) = f x) (x) : f x * ↑(lift_right f g h x)⁻¹ = 1 :=
 by rw [units.mul_inv_eq_iff_eq_mul, one_mul, coe_lift_right]
 
-@[simv, to_additive] lemma lift_right_inv_mul {f : M →* N} {g : M → Nˣ}
+@[simp, to_additive] lemma lift_right_inv_mul {f : M →* N} {g : M → Nˣ}
   (h : ∀ x, ↑(g x) = f x) (x) : ↑(lift_right f g h x)⁻¹ * f x = 1 :=
 by rw [units.inv_mul_eq_iff_eq_mul, mul_one, coe_lift_right]
 
@@ -144,11 +144,11 @@ units.lift_right f (λ x, (hf x).unit) $ λ x, rfl
 @[to_additive] lemma coe_lift_right (f : M →* N) (hf : ∀ x, is_unit (f x)) (x) :
   (is_unit.lift_right f hf x : N) = f x := rfl
 
-@[simv, to_additive] lemma mul_lift_right_inv (f : M →* N) (h : ∀ x, is_unit (f x)) (x) :
+@[simp, to_additive] lemma mul_lift_right_inv (f : M →* N) (h : ∀ x, is_unit (f x)) (x) :
   f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
 units.mul_lift_right_inv (λ y, rfl) x
 
-@[simv, to_additive] lemma lift_right_inv_mul (f : M →* N) (h : ∀ x, is_unit (f x)) (x) :
+@[simp, to_additive] lemma lift_right_inv_mul (f : M →* N) (h : ∀ x, is_unit (f x)) (x) :
   ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
 units.lift_right_inv_mul (λ y, rfl) x
 
@@ -157,10 +157,10 @@ end monoid
 section division_monoid
 variables [division_monoid α] {a b c : α}
 
-@[simv, to_additive] protected lemma inv_mul_cancel : is_unit a → a⁻¹ * a = 1 :=
+@[simp, to_additive] protected lemma inv_mul_cancel : is_unit a → a⁻¹ * a = 1 :=
 by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.inv_mul] }
 
-@[simv, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
+@[simp, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
 by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.mul_inv] }
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. As
@@ -172,17 +172,17 @@ computable and comes from the negation on `α`. This is useful to transfer prope
 `add_units α` to `α`. See also `to_add_units`.", simps]
 def unit' (h : is_unit a) : αˣ := ⟨a, a⁻¹, h.mul_inv_cancel, h.inv_mul_cancel⟩
 
-@[simv, to_additive] protected lemma mul_inv_cancel_left (h : is_unit a) : ∀ b, a * (a⁻¹ * b) = b :=
+@[simp, to_additive] protected lemma mul_inv_cancel_left (h : is_unit a) : ∀ b, a * (a⁻¹ * b) = b :=
 h.unit'.mul_inv_cancel_left
 
-@[simv, to_additive] protected lemma inv_mul_cancel_left (h : is_unit a) : ∀ b, a⁻¹ * (a * b) = b :=
+@[simp, to_additive] protected lemma inv_mul_cancel_left (h : is_unit a) : ∀ b, a⁻¹ * (a * b) = b :=
 h.unit'.inv_mul_cancel_left
 
-@[simv, to_additive] protected lemma mul_inv_cancel_right (h : is_unit b) (a : α) :
+@[simp, to_additive] protected lemma mul_inv_cancel_right (h : is_unit b) (a : α) :
   a * b * b⁻¹ = a :=
 h.unit'.mul_inv_cancel_right _
 
-@[simv, to_additive] protected lemma inv_mul_cancel_right (h : is_unit b) (a : α) :
+@[simp, to_additive] protected lemma inv_mul_cancel_right (h : is_unit b) (a : α) :
   a * b⁻¹ * b = a :=
 h.unit'.inv_mul_cancel_right _
 
@@ -213,10 +213,10 @@ h.unit'.mul_inv_eq_iff_eq_mul
 @[to_additive] protected lemma mul_eq_one_iff_inv_eq (h : is_unit a) : a * b = 1 ↔ a⁻¹ = b :=
 @units.mul_eq_one_iff_inv_eq _ _ h.unit' _
 
-@[simv, to_additive] protected lemma div_mul_cancel (h : is_unit b) (a : α) : a / b * b = a :=
+@[simp, to_additive] protected lemma div_mul_cancel (h : is_unit b) (a : α) : a / b * b = a :=
 by rw [div_eq_mul_inv, h.inv_mul_cancel_right]
 
-@[simv, to_additive] protected lemma mul_div_cancel (h : is_unit b) (a : α) : a * b / b = a :=
+@[simp, to_additive] protected lemma mul_div_cancel (h : is_unit b) (a : α) : a * b / b = a :=
 by rw [div_eq_mul_inv, h.mul_inv_cancel_right]
 
 @[to_additive] protected lemma mul_one_div_cancel (h : is_unit a) : a * (1 / a) = 1 := by simv [h]

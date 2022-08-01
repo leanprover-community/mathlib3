@@ -779,7 +779,7 @@ protected def sub : Π (a b : with_top α), with_top α
 instance : has_sub (with_top α) :=
 ⟨with_top.sub⟩
 
-@[simv, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
+@[simp, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
 @[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
 @[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
 

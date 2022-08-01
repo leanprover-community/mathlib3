@@ -54,7 +54,7 @@ class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :
   . obviously)
 
 restate_axiom braided_category.braiding_naturality'
-attribute [simv,reassoc] braided_category.braiding_naturality
+attribute [simp,reassoc] braided_category.braiding_naturality
 restate_axiom braided_category.hexagon_forward'
 restate_axiom braided_category.hexagon_reverse'
 attribute [reassoc] braided_category.hexagon_forward braided_category.hexagon_reverse
@@ -219,7 +219,7 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 (symmetry' : ∀ X Y : C, (β_ X Y).hom ≫ (β_ Y X).hom = 𝟙 (X ⊗ Y) . obviously)
 
 restate_axiom symmetric_category.symmetry'
-attribute [simv,reassoc] symmetric_category.symmetry
+attribute [simp,reassoc] symmetric_category.symmetry
 
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]

@@ -82,7 +82,7 @@ by { rw [←category.assoc, ←D.t_fac], simv }
 lemma t'_iji (i j : D.J) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
 by { rw [←category.assoc, ←D.t_fac], simv }
 
-@[simv, reassoc, elementwise] lemma t_inv (i j : D.J) :
+@[simp, reassoc, elementwise] lemma t_inv (i j : D.J) :
   D.t i j ≫ D.t j i = 𝟙 _ :=
 begin
   have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
@@ -149,7 +149,7 @@ def glued : C := multicoequalizer D.diagram
 def ι (i : D.J) : D.U i ⟶ D.glued :=
 multicoequalizer.π D.diagram i
 
-@[simv, elementwise]
+@[simp, elementwise]
 lemma glue_condition (i j : D.J) :
   D.t i j ≫ D.f j i ≫ D.ι j = D.f i j ≫ D.ι i :=
 (category.assoc _ _ _).symm.trans (multicoequalizer.condition D.diagram ⟨i, j⟩).symm
@@ -266,13 +266,13 @@ def glued_iso : F.obj D.glued ≅ (D.map_glue_data F).glued :=
 preserves_colimit_iso F D.diagram.multispan ≪≫
   (limits.has_colimit.iso_of_nat_iso (D.diagram_iso F))
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_glued_iso_hom (i : D.J) :
   F.map (D.ι i) ≫ (D.glued_iso F).hom = (D.map_glue_data F).ι i :=
 by { erw ι_preserves_colimits_iso_hom_assoc, rw has_colimit.iso_of_nat_iso_ι_hom,
   erw category.id_comp, refl }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_glued_iso_inv (i : D.J) :
   (D.map_glue_data F).ι i ≫ (D.glued_iso F).inv = F.map (D.ι i) :=
 by rw [iso.comp_inv_eq, ι_glued_iso_hom]

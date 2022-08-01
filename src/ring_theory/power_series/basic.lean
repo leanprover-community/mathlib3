@@ -715,7 +715,7 @@ lemma inv_eq_zero {φ : mv_power_series σ k} :
 @[simp] lemma zero_inv : (0 : mv_power_series σ k)⁻¹ = 0 :=
 by rw [inv_eq_zero, constant_coeff_zero]
 
-@[simv, priority 1100]
+@[simp, priority 1100]
 lemma inv_of_unit_eq (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl
 
@@ -796,10 +796,10 @@ instance coe_to_mv_power_series : has_coe (mv_polynomial σ R) (mv_power_series 
 
 lemma coe_def : (φ : mv_power_series σ R) = λ n, coeff n φ := rfl
 
-@[simv, norm_cast] lemma coeff_coe (n : σ →₀ ℕ) :
+@[simp, norm_cast] lemma coeff_coe (n : σ →₀ ℕ) :
 mv_power_series.coeff R n ↑φ = coeff n φ := rfl
 
-@[simv, norm_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : R) :
+@[simp, norm_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : R) :
   (monomial n a : mv_power_series σ R) = mv_power_series.monomial R n a :=
 mv_power_series.ext $ λ m,
 begin
@@ -807,32 +807,32 @@ begin
   split_ifs with h₁ h₂; refl <|> subst m; contradiction
 end
 
-@[simv, norm_cast] lemma coe_zero : ((0 : mv_polynomial σ R) : mv_power_series σ R) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : mv_polynomial σ R) : mv_power_series σ R) = 0 := rfl
 
-@[simv, norm_cast] lemma coe_one : ((1 : mv_polynomial σ R) : mv_power_series σ R) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : mv_polynomial σ R) : mv_power_series σ R) = 1 :=
 coe_monomial _ _
 
-@[simv, norm_cast] lemma coe_add :
+@[simp, norm_cast] lemma coe_add :
   ((φ + ψ : mv_polynomial σ R) : mv_power_series σ R) = φ + ψ := rfl
 
-@[simv, norm_cast] lemma coe_mul :
+@[simp, norm_cast] lemma coe_mul :
   ((φ * ψ : mv_polynomial σ R) : mv_power_series σ R) = φ * ψ :=
 mv_power_series.ext $ λ n,
 by simv only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
 
-@[simv, norm_cast] lemma coe_C (a : R) :
+@[simp, norm_cast] lemma coe_C (a : R) :
   ((C a : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.C σ R a :=
 coe_monomial _ _
 
-@[simv, norm_cast] lemma coe_bit0 :
+@[simp, norm_cast] lemma coe_bit0 :
   ((bit0 φ : mv_polynomial σ R) : mv_power_series σ R) = bit0 (φ : mv_power_series σ R) :=
 coe_add _ _
 
-@[simv, norm_cast] lemma coe_bit1 :
+@[simp, norm_cast] lemma coe_bit1 :
   ((bit1 φ : mv_polynomial σ R) : mv_power_series σ R) = bit1 (φ : mv_power_series σ R) :=
 by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
 
-@[simv, norm_cast] lemma coe_X (s : σ) :
+@[simp, norm_cast] lemma coe_X (s : σ) :
   ((X s : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.X s :=
 coe_monomial _ _
 
@@ -843,7 +843,7 @@ lemma coe_injective : function.injective (coe : mv_polynomial σ R → mv_power_
 
 variables {σ R φ ψ}
 
-@[simv, norm_cast] lemma coe_inj : (φ : mv_power_series σ R) = ψ ↔ φ = ψ :=
+@[simp, norm_cast] lemma coe_inj : (φ : mv_power_series σ R) = ψ ↔ φ = ψ :=
 (coe_injective σ R).eq_iff
 
 @[simp] lemma coe_eq_zero_iff : (φ : mv_power_series σ R) = 0 ↔ φ = 0 :=
@@ -863,7 +863,7 @@ def coe_to_mv_power_series.ring_hom : mv_polynomial σ R →+* mv_power_series �
   map_add' := coe_add,
   map_mul' := coe_mul }
 
-@[simv, norm_cast] lemma coe_pow (n : ℕ) :
+@[simp, norm_cast] lemma coe_pow (n : ℕ) :
   ((φ ^ n : mv_polynomial σ R) : mv_power_series σ R) = (φ : mv_power_series σ R) ^ n :=
 coe_to_mv_power_series.ring_hom.map_pow _ _
 
@@ -1571,7 +1571,7 @@ mv_power_series.inv_eq_zero
 
 @[simp] lemma zero_inv : (0 : power_series k)⁻¹ = 0 := mv_power_series.zero_inv
 
-@[simv, priority 1100] lemma inv_of_unit_eq (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
+@[simp, priority 1100] lemma inv_of_unit_eq (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ :=
 mv_power_series.inv_of_unit_eq _ _
 
@@ -1925,47 +1925,47 @@ instance coe_to_power_series : has_coe R[X] (power_series R) :=
 
 lemma coe_def : (φ : power_series R) = power_series.mk (coeff φ) := rfl
 
-@[simv, norm_cast] lemma coeff_coe (n) :
+@[simp, norm_cast] lemma coeff_coe (n) :
   power_series.coeff R n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
 
-@[simv, norm_cast] lemma coe_monomial (n : ℕ) (a : R) :
+@[simp, norm_cast] lemma coe_monomial (n : ℕ) (a : R) :
   (monomial n a : power_series R) = power_series.monomial R n a :=
 by { ext, simv [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
 
-@[simv, norm_cast] lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
 
-@[simv, norm_cast] lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
 begin
   have := coe_monomial 0 (1:R),
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simv, norm_cast] lemma coe_add :
+@[simp, norm_cast] lemma coe_add :
   ((φ + ψ : R[X]) : power_series R) = φ + ψ :=
 by { ext, simv }
 
-@[simv, norm_cast] lemma coe_mul :
+@[simp, norm_cast] lemma coe_mul :
   ((φ * ψ : R[X]) : power_series R) = φ * ψ :=
 power_series.ext $ λ n,
 by simv only [coeff_coe, power_series.coeff_mul, coeff_mul]
 
-@[simv, norm_cast] lemma coe_C (a : R) :
+@[simp, norm_cast] lemma coe_C (a : R) :
   ((C a : R[X]) : power_series R) = power_series.C R a :=
 begin
   have := coe_monomial 0 a,
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simv, norm_cast] lemma coe_bit0 :
+@[simp, norm_cast] lemma coe_bit0 :
   ((bit0 φ : R[X]) : power_series R) = bit0 (φ : power_series R) :=
 coe_add φ φ
 
-@[simv, norm_cast] lemma coe_bit1 :
+@[simp, norm_cast] lemma coe_bit1 :
   ((bit1 φ : R[X]) : power_series R) = bit1 (φ : power_series R) :=
 by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
 
-@[simv, norm_cast] lemma coe_X :
+@[simp, norm_cast] lemma coe_X :
   ((X : R[X]) : power_series R) = power_series.X :=
 coe_monomial _ _
 
@@ -1978,7 +1978,7 @@ lemma coe_injective : function.injective (coe : R[X] → power_series R) :=
 
 variables {R φ ψ}
 
-@[simv, norm_cast] lemma coe_inj : (φ : power_series R) = ψ ↔ φ = ψ :=
+@[simp, norm_cast] lemma coe_inj : (φ : power_series R) = ψ ↔ φ = ψ :=
 (coe_injective R).eq_iff
 
 @[simp] lemma coe_eq_zero_iff : (φ : power_series R) = 0 ↔ φ = 0 :=
@@ -2002,7 +2002,7 @@ def coe_to_power_series.ring_hom : R[X] →+* power_series R :=
 
 @[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
 
-@[simv, norm_cast] lemma coe_pow (n : ℕ):
+@[simp, norm_cast] lemma coe_pow (n : ℕ):
   ((φ ^ n : R[X]) : power_series R) = (φ : power_series R) ^ n :=
 coe_to_power_series.ring_hom.map_pow _ _
 

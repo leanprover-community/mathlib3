@@ -534,21 +534,21 @@ def pullback_iso_unop_pushout {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
   ((pushout_cocone.is_colimit_equiv_is_limit_unop _) (colimit.is_colimit (span f.op g.op)))
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_iso_unop_pushout_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pushout f.op g.op] :
   (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
     (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
 (is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simv)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_iso_unop_pushout_inv_snd {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
     (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
 (is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simv)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_iso_unop_pushout_hom_inl {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   pushout.inl ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.fst.op :=
@@ -558,7 +558,7 @@ begin
   rw [← pullback_iso_unop_pushout_inv_fst, iso.hom_inv_id_assoc],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_iso_unop_pushout_hom_inr {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
@@ -580,14 +580,14 @@ def pushout_iso_unop_pullback {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
 is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
   ((pullback_cone.is_limit_equiv_is_colimit_unop _) (limit.is_limit (cospan f.op g.op)))
 .
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pushout_iso_unop_pullback_inl_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] :
   pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
     (pullback.fst : pullback f.op g.op ⟶ _).unop :=
 (is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simv)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pushout_iso_unop_pullback_inr_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] :
   pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =

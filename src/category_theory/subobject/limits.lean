@@ -41,12 +41,12 @@ the same as the chosen object `equalizer f g`. -/
 def equalizer_subobject_iso : (equalizer_subobject f g : C) ≅ equalizer f g :=
 subobject.underlying_iso (equalizer.ι f g)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma equalizer_subobject_arrow :
   (equalizer_subobject_iso f g).hom ≫ equalizer.ι f g = (equalizer_subobject f g).arrow :=
 by simv [equalizer_subobject_iso]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma equalizer_subobject_arrow' :
   (equalizer_subobject_iso f g).inv ≫ (equalizer_subobject f g).arrow = equalizer.ι f g :=
 by simv [equalizer_subobject_iso]
@@ -81,17 +81,17 @@ def kernel_subobject_iso :
   (kernel_subobject f : C) ≅ kernel f :=
 subobject.underlying_iso (kernel.ι f)
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
 by simv [kernel_subobject_iso]
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 by simv [kernel_subobject_iso]
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by { rw [←kernel_subobject_arrow], simv only [category.assoc, kernel.condition, comp_zero], }
@@ -130,7 +130,7 @@ subobject.factor_thru _
   ((kernel_subobject f).arrow ≫ sq.left)
   (kernel_subobject_factors _ _ (by simv [sq.w]))
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
   kernel_subobject_map sq ≫ (kernel_subobject f').arrow =
     (kernel_subobject f).arrow ≫ sq.left :=
@@ -218,12 +218,12 @@ def image_subobject_iso :
   (image_subobject f : C) ≅ image f :=
 subobject.underlying_iso (image.ι f)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_subobject_arrow :
   (image_subobject_iso f).hom ≫ image.ι f = (image_subobject f).arrow :=
 by simv [image_subobject_iso]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_subobject_arrow' :
   (image_subobject_iso f).inv ≫ (image_subobject f).arrow = image.ι f :=
 by simv [image_subobject_iso]
@@ -235,7 +235,7 @@ factor_thru_image f ≫ (image_subobject_iso f).inv
 instance [has_equalizers C] : epi (factor_thru_image_subobject f) :=
 by { dsimp [factor_thru_image_subobject], apply epi_comp, }
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simv [factor_thru_image_subobject, image_subobject_arrow]
@@ -312,14 +312,14 @@ def image_subobject_comp_iso
   (image_subobject (f ≫ h) : C) ≅ (image_subobject f : C) :=
 (image_subobject_iso _) ≪≫ (image.comp_iso _ _).symm ≪≫ (image_subobject_iso _).symm
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_subobject_comp_iso_hom_arrow
   (f : X ⟶ Y) [has_image f] {Y' : C} (h : Y ⟶ Y') [is_iso h] :
   (image_subobject_comp_iso f h).hom ≫ (image_subobject f).arrow =
     (image_subobject (f ≫ h)).arrow ≫ inv h :=
 by simv [image_subobject_comp_iso]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_subobject_comp_iso_inv_arrow
   (f : X ⟶ Y) [has_image f] {Y' : C} (h : Y ⟶ Y') [is_iso h] :
   (image_subobject_comp_iso f h).inv ≫ (image_subobject (f ≫ h)).arrow =
@@ -358,7 +358,7 @@ def image_subobject_map {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} 
   (image_subobject f : C) ⟶ (image_subobject g : C) :=
 (image_subobject_iso f).hom ≫ image.map sq ≫ (image_subobject_iso g).inv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_subobject_map_arrow {W X Y Z : C} {f : W ⟶ X} [has_image f] {g : Y ⟶ Z} [has_image g]
   (sq : arrow.mk f ⟶ arrow.mk g) [has_image_map sq] :
   image_subobject_map sq ≫ (image_subobject g).arrow = (image_subobject f).arrow ≫ sq.right :=

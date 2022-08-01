@@ -64,7 +64,7 @@ class preadditive :=
 attribute [instance] preadditive.hom_group
 restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
-attribute [simv,reassoc] preadditive.add_comp
+attribute [simp,reassoc] preadditive.add_comp
 attribute [reassoc] preadditive.comp_add -- (the linter doesn't like `simv` on this lemma)
 attribute [simp] preadditive.comp_add
 
@@ -113,7 +113,7 @@ def comp_hom : (P ⟶ Q) →+ (Q ⟶ R) →+ (P ⟶ R) :=
 add_monoid_hom.mk' (λ f, left_comp _ f) $
   λ f₁ f₂, add_monoid_hom.ext $ λ g, (right_comp _ g).map_add f₁ f₂
 
-@[simv, reassoc] lemma sub_comp :
+@[simp, reassoc] lemma sub_comp :
   (f - f') ≫ g = f ≫ g - f' ≫ g :=
 map_sub (right_comp P g) f f'
 
@@ -122,7 +122,7 @@ map_sub (right_comp P g) f f'
   f ≫ (g - g') = f ≫ g - f ≫ g' :=
 map_sub (left_comp R f) g g'
 
-@[simv, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
+@[simp, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
 map_neg (right_comp P g) f
 
 /- The redundant simv lemma linter says that simv can prove the reassoc version of this lemma. -/

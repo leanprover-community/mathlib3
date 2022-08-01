@@ -31,7 +31,7 @@ subsingleton.measurable.ae_measurable
 lemma ae_measurable_of_subsingleton_codomain [subsingleton β] : ae_measurable f μ :=
 (measurable_of_subsingleton_codomain f).ae_measurable
 
-@[simv, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
+@[simp, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
 begin
   nontriviality α, inhabit α,
   exact ⟨λ x, f default, measurable_const, rfl⟩
@@ -241,7 +241,7 @@ lemma ae_measurable_restrict_iff_comap_subtype {s : set α} (hs : measurable_set
   ae_measurable f (μ.restrict s) ↔ ae_measurable (f ∘ coe : s → β) (comap coe μ) :=
 by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_measurable_map_iff]
 
-@[simv, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
+@[simp, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
 measurable_one.ae_measurable
 
 @[simp] lemma ae_measurable_smul_measure_iff {c : ℝ≥0∞} (hc : c ≠ 0) :

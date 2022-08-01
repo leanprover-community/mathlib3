@@ -494,7 +494,7 @@ variable (x : ℝ)
 /-- the series `sqrt_two_add_series x n` is `sqrt(2 + sqrt(2 + ... ))` with `n` square roots,
   starting with `x`. We define it here because `cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2`
 -/
-@[simv, pp_nodot] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
+@[simp, pp_nodot] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
 | 0     := x
 | (n+1) := sqrt (2 + sqrt_two_add_series n)
 

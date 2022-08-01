@@ -29,11 +29,11 @@ quot.lift_on s (λ l, (l.insert a : multiset α))
 
 @[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = {a} := rfl
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem ndinsert_of_mem {a : α} {s : multiset α} : a ∈ s → ndinsert a s = s :=
 quot.induction_on s $ λ l h, congr_arg coe $ insert_of_mem h
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem ndinsert_of_not_mem {a : α} {s : multiset α} : a ∉ s → ndinsert a s = a ::ₘ s :=
 quot.induction_on s $ λ l h, congr_arg coe $ insert_of_not_mem h
 
@@ -49,12 +49,12 @@ mem_ndinsert.2 (or.inl rfl)
 theorem mem_ndinsert_of_mem {a b : α} {s : multiset α} (h : a ∈ s) : a ∈ ndinsert b s :=
 mem_ndinsert.2 (or.inr h)
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem length_ndinsert_of_mem {a : α} {s : multiset α} (h : a ∈ s) :
   card (ndinsert a s) = card s :=
 by simv [h]
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem length_ndinsert_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) :
   card (ndinsert a s) = card s + 1 :=
 by simv [h]
@@ -147,7 +147,7 @@ ndunion_le.2 ⟨subset_of_le (le_union_left _ _), le_union_right _ _⟩
 lemma nodup.ndunion (s : multiset α) {t : multiset α} : nodup t → nodup (ndunion s t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂, list.nodup.union _
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem ndunion_eq_union {s t : multiset α} (d : nodup s) : ndunion s t = s ∪ t :=
 le_antisymm (ndunion_le_union _ _) $ union_le (le_ndunion_left _ d) (le_ndunion_right _ _)
 
@@ -166,11 +166,11 @@ def ndinter (s t : multiset α) : multiset α := filter (∈ t) s
 
 @[simp] theorem zero_ndinter (s : multiset α) : ndinter 0 s = 0 := rfl
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem cons_ndinter_of_mem {a : α} (s : multiset α) {t : multiset α} (h : a ∈ t) :
   ndinter (a ::ₘ s) t = a ::ₘ (ndinter s t) := by simv [ndinter, h]
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem ndinter_cons_of_not_mem {a : α} (s : multiset α) {t : multiset α} (h : a ∉ t) :
   ndinter (a ::ₘ s) t = ndinter s t := by simv [ndinter, h]
 
@@ -199,7 +199,7 @@ theorem ndinter_le_right {s} (t : multiset α) (d : nodup s) : ndinter s t ≤ t
 theorem inter_le_ndinter (s t : multiset α) : s ∩ t ≤ ndinter s t :=
 le_ndinter.2 ⟨inter_le_left _ _, subset_of_le $ inter_le_right _ _⟩
 
-@[simv, priority 980]
+@[simp, priority 980]
 theorem ndinter_eq_inter {s t : multiset α} (d : nodup s) : ndinter s t = s ∩ t :=
 le_antisymm (le_inter (ndinter_le_left _ _) (ndinter_le_right _ d)) (inter_le_ndinter _ _)
 

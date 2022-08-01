@@ -490,7 +490,7 @@ At this stage, we don't check the homotopy condition in degree 0,
 because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
 which we do in `mk_inductive_aux₂`.
 -/
-@[simv, nolint unused_arguments]
+@[simp, nolint unused_arguments]
 def mk_inductive_aux₁ :
   Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
     e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)
@@ -610,7 +610,7 @@ At this stage, we don't check the homotopy condition in degree 0,
 because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
 which we do in `mk_inductive_aux₂`.
 -/
-@[simv, nolint unused_arguments]
+@[simp, nolint unused_arguments]
 def mk_coinductive_aux₁ :
   Π n, Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
     e.f (n+1) = f ≫ Q.d n (n+1) + P.d (n+1) (n+2) ≫ f'

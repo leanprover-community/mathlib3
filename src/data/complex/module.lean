@@ -168,7 +168,7 @@ instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E]
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
 
-@[simv, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
+@[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
   (x : ℝ) (y : E) :
   (x : ℂ) • y = x • y :=
 rfl

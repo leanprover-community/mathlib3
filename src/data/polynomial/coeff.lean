@@ -293,7 +293,7 @@ begin
   { simv [ih], },
 end
 
-@[simv, norm_cast] theorem nat_cast_inj
+@[simp, norm_cast] theorem nat_cast_inj
   {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : R[X]) = ↑n ↔ m = n :=
 begin
   fsplit,
@@ -307,7 +307,7 @@ end
   (i : R[X]).coeff 0 = i :=
 by cases i; simv
 
-@[simv, norm_cast] theorem int_cast_inj
+@[simp, norm_cast] theorem int_cast_inj
   {m n : ℤ} {R : Type*} [ring R] [char_zero R] : (↑m : R[X]) = ↑n ↔ m = n :=
 begin
   fsplit,

@@ -27,7 +27,7 @@ structure Mod (A : Mon_ C) :=
 
 restate_axiom Mod.one_act'
 restate_axiom Mod.assoc'
-attribute [simv, reassoc] Mod.one_act Mod.assoc
+attribute [simp, reassoc] Mod.one_act Mod.assoc
 
 namespace Mod
 
@@ -43,7 +43,7 @@ structure hom (M N : Mod A) :=
 (act_hom' : M.act ≫ hom = (𝟙 A.X ⊗ hom) ≫ N.act . obviously)
 
 restate_axiom hom.act_hom'
-attribute [simv, reassoc] hom.act_hom
+attribute [simp, reassoc] hom.act_hom
 
 /-- The identity morphism on a module object. -/
 @[simps]

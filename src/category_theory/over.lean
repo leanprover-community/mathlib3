@@ -56,7 +56,7 @@ by tidy
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).left = f.left ≫ g.left := rfl
 
-@[simv, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
+@[simp, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
 by have := f.w; tidy
 
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
@@ -254,7 +254,7 @@ by tidy
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).right = f.right ≫ g.right := rfl
 
-@[simv, reassoc] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
+@[simp, reassoc] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/

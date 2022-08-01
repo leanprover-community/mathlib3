@@ -245,7 +245,7 @@ lemma continuous.of_bundled' (f : α →o β) (hf' : continuous f) : continuous'
 lemma continuous'.to_bundled (f : α → β) (hf : continuous' f) :
   continuous ⟨f, hf.to_monotone⟩ := hf.snd
 
-@[simv, norm_cast] lemma continuous'_coe : ∀ {f : α →o β}, continuous' f ↔ continuous f
+@[simp, norm_cast] lemma continuous'_coe : ∀ {f : α →o β}, continuous' f ↔ continuous f
 | ⟨f, hf⟩ := ⟨λ ⟨hf', hc⟩, hc, λ hc, ⟨hf, hc⟩⟩
 
 variables (f : α →o β) (g : β →o γ)

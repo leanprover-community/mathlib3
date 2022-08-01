@@ -139,19 +139,19 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 
 variable {α}
 
-@[simv, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
+@[simp, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
   unop (x / y) = (unop y)⁻¹ * unop x :=
 rfl
 
-@[simv, to_additive] lemma op_div [div_inv_monoid α] (x y : α) :
+@[simp, to_additive] lemma op_div [div_inv_monoid α] (x y : α) :
   op (x / y) = (op y)⁻¹ * op x :=
 by simv [div_eq_mul_inv]
 
-@[simv, to_additive] lemma semiconj_by_op [has_mul α] {a x y : α} :
+@[simp, to_additive] lemma semiconj_by_op [has_mul α] {a x y : α} :
   semiconj_by (op a) (op y) (op x) ↔ semiconj_by a x y :=
 by simv only [semiconj_by, ← op_mul, op_inj, eq_comm]
 
-@[simv, to_additive] lemma semiconj_by_unop [has_mul α] {a x y : αᵐᵒᵖ} :
+@[simp, to_additive] lemma semiconj_by_unop [has_mul α] {a x y : αᵐᵒᵖ} :
   semiconj_by (unop a) (unop y) (unop x) ↔ semiconj_by a x y :=
 by conv_rhs { rw [← op_unop a, ← op_unop x, ← op_unop y, semiconj_by_op] }
 
@@ -169,11 +169,11 @@ semiconj_by_unop.2 h
 @[to_additive] lemma commute.unop [has_mul α] {x y : αᵐᵒᵖ} (h : commute x y) :
   commute (unop x) (unop y) := h.unop
 
-@[simv, to_additive] lemma commute_op [has_mul α] {x y : α} :
+@[simp, to_additive] lemma commute_op [has_mul α] {x y : α} :
   commute (op x) (op y) ↔ commute x y :=
 semiconj_by_op
 
-@[simv, to_additive] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
+@[simp, to_additive] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
   commute (unop x) (unop y) ↔ commute x y :=
 semiconj_by_unop
 
@@ -304,12 +304,12 @@ def units.op_equiv {M} [monoid M] : (Mᵐᵒᵖ)ˣ ≃* (Mˣ)ᵐᵒᵖ :=
   left_inv := λ x, units.ext $ by simv,
   right_inv := λ x, unop_injective $ units.ext $ rfl }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma units.coe_unop_op_equiv {M} [monoid M] (u : (Mᵐᵒᵖ)ˣ) :
   ((units.op_equiv u).unop : M) = unop (u : Mᵐᵒᵖ) :=
 rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma units.coe_op_equiv_symm {M} [monoid M] (u : (Mˣ)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Mᵐᵒᵖ) = op (u.unop : M) :=
 rfl
@@ -329,7 +329,7 @@ def mul_hom.op {M N} [has_mul M] [has_mul N] :
   right_inv := λ f, by { ext x, simv } }
 
 /-- The 'unopposite' of a semigroup homomorphism `Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ`. Inverse to `mul_hom.op`. -/
-@[simv, to_additive "The 'unopposite' of an additive semigroup homomorphism `Mᵃᵒᵖ →ₙ+ Nᵃᵒᵖ`. Inverse
+@[simp, to_additive "The 'unopposite' of an additive semigroup homomorphism `Mᵃᵒᵖ →ₙ+ Nᵃᵒᵖ`. Inverse
 to `add_hom.op`."]
 def mul_hom.unop {M N} [has_mul M] [has_mul N] :
   (Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ) ≃ (M →ₙ* N) := mul_hom.op.symm
@@ -369,7 +369,7 @@ def monoid_hom.op {M N} [mul_one_class M] [mul_one_class N] :
   right_inv := λ f, by { ext x, simv } }
 
 /-- The 'unopposite' of a monoid homomorphism `Mᵐᵒᵖ →* Nᵐᵒᵖ`. Inverse to `monoid_hom.op`. -/
-@[simv, to_additive "The 'unopposite' of an additive monoid homomorphism `Mᵃᵒᵖ →+ Nᵃᵒᵖ`. Inverse to
+@[simp, to_additive "The 'unopposite' of an additive monoid homomorphism `Mᵃᵒᵖ →+ Nᵃᵒᵖ`. Inverse to
 `add_monoid_hom.op`."]
 def monoid_hom.unop {M N} [mul_one_class M] [mul_one_class N] :
   (Mᵐᵒᵖ →* Nᵐᵒᵖ) ≃ (M →* N) := monoid_hom.op.symm
@@ -424,7 +424,7 @@ def mul_equiv.op {α β} [has_mul α] [has_mul β] :
   right_inv := λ f, by { ext, simv } }
 
 /-- The 'unopposite' of an iso `αᵐᵒᵖ ≃* βᵐᵒᵖ`. Inverse to `mul_equiv.op`. -/
-@[simv, to_additive "The 'unopposite' of an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`. Inverse to `add_equiv.op`."]
+@[simp, to_additive "The 'unopposite' of an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`. Inverse to `add_equiv.op`."]
 def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
   (αᵐᵒᵖ ≃* βᵐᵒᵖ) ≃ (α ≃* β) := mul_equiv.op.symm
 

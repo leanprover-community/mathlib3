@@ -182,7 +182,7 @@ def inv_app (U : opens X) : X.presheaf.obj (op U) ⟶ Y.presheaf.obj (op (H.open
 X.presheaf.map (eq_to_hom (by simv [opens.map, set.preimage_image_eq _ H.base_open.inj])) ≫
   inv (f.c.app (op (H.open_functor.obj U)))
 
-@[simv, reassoc] lemma inv_naturality {U V : (opens X)ᵒᵖ} (i : U ⟶ V) :
+@[simp, reassoc] lemma inv_naturality {U V : (opens X)ᵒᵖ} (i : U ⟶ V) :
   X.presheaf.map i ≫ H.inv_app (unop V) = H.inv_app (unop U) ≫
     Y.presheaf.map (H.open_functor.op.map i) :=
 begin
@@ -205,12 +205,12 @@ begin
   simv [← functor.map_comp]
 end
 
-@[simv, reassoc, elementwise] lemma inv_app_app (U : opens X) :
+@[simp, reassoc, elementwise] lemma inv_app_app (U : opens X) :
   H.inv_app U ≫ f.c.app (op (H.open_functor.obj U)) =
     X.presheaf.map (eq_to_hom (by simv [opens.map, set.preimage_image_eq _ H.base_open.inj])) :=
 by rw [inv_app, category.assoc, is_iso.inv_hom_id, category.comp_id]
 
-@[simv, reassoc] lemma app_inv_app (U : opens Y) :
+@[simp, reassoc] lemma app_inv_app (U : opens Y) :
   f.c.app (op U) ≫ H.inv_app ((opens.map f.base).obj U) =
   Y.presheaf.map ((hom_of_le (by exact set.image_preimage_subset f.base U)).op :
     op U ⟶ op (H.open_functor.obj ((opens.map f.base).obj U))) :=
@@ -516,7 +516,7 @@ begin
   exact inv (pullback.snd : pullback f g ⟶ _) ≫ pullback.fst,
 end
 
-@[simv, reassoc] lemma lift_fac (H : set.range g.base ⊆ set.range f.base) :
+@[simp, reassoc] lemma lift_fac (H : set.range g.base ⊆ set.range f.base) :
   lift f g H ≫ f = g :=
 by { erw category.assoc, rw is_iso.inv_comp_eq, exact pullback.condition }
 
@@ -1052,7 +1052,7 @@ begin
   exact inv (pullback.snd : pullback f g ⟶ _) ≫ pullback.fst,
 end
 
-@[simv, reassoc] lemma lift_fac (H' : set.range g.1.base ⊆ set.range f.1.base) :
+@[simp, reassoc] lemma lift_fac (H' : set.range g.1.base ⊆ set.range f.1.base) :
   lift f g H' ≫ f = g :=
 by { erw category.assoc, rw is_iso.inv_comp_eq, exact pullback.condition }
 
@@ -1583,7 +1583,7 @@ commutes with these maps.
 def lift (H' : set.range g.1.base ⊆ set.range f.1.base) : Y ⟶ X :=
 LocallyRingedSpace.is_open_immersion.lift f g H'
 
-@[simv, reassoc] lemma lift_fac (H' : set.range g.1.base ⊆ set.range f.1.base) :
+@[simp, reassoc] lemma lift_fac (H' : set.range g.1.base ⊆ set.range f.1.base) :
   lift f g H' ≫ f = g :=
 LocallyRingedSpace.is_open_immersion.lift_fac f g H'
 
@@ -1720,12 +1720,12 @@ begin
   refl,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_restrict_iso_restrict_inv_fst {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
   (pullback_restrict_iso_restrict f U).inv ≫ pullback.fst = X.of_restrict _ :=
 by { delta pullback_restrict_iso_restrict, simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_restrict_iso_restrict_hom_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
   (pullback_restrict_iso_restrict f U).hom ≫ X.of_restrict _ = pullback.fst :=
 by { delta pullback_restrict_iso_restrict, simv }
@@ -1737,13 +1737,13 @@ def morphism_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
 
 infix ` ∣_ `: 80 := morphism_restrict
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_restrict_iso_restrict_hom_morphism_restrict {X Y : Scheme} (f : X ⟶ Y)
   (U : opens Y.carrier) :
   (pullback_restrict_iso_restrict f U).hom ≫ f ∣_ U = pullback.snd :=
 iso.hom_inv_id_assoc _ _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma morphism_restrict_ι  {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
   f ∣_ U ≫ Y.of_restrict U.open_embedding = X.of_restrict _ ≫ f :=
 by { delta morphism_restrict,

@@ -254,7 +254,7 @@ end
 section has_cokernels
 variables [has_zero_morphisms V] [has_equalizers V] [has_cokernels V] (f g)
 
-@[simv, reassoc] lemma kernel_comp_cokernel (h : exact f g) : kernel.ι g ≫ cokernel.π f = 0 :=
+@[simp, reassoc] lemma kernel_comp_cokernel (h : exact f g) : kernel.ι g ≫ cokernel.π f = 0 :=
 begin
   rw [←kernel_subobject_arrow', category.assoc],
   convert comp_zero,
@@ -269,7 +269,7 @@ lemma comp_eq_zero_of_exact (h : exact f g) {X Y : V} {ι : X ⟶ B} (hι : ι �
 by rw [←kernel.lift_ι _ _ hι, ←cokernel.π_desc _ _ hπ, category.assoc,
   kernel_comp_cokernel_assoc _ _ h, zero_comp, comp_zero]
 
-@[simv, reassoc] lemma fork_ι_comp_cofork_π (h : exact f g) (s : kernel_fork g)
+@[simp, reassoc] lemma fork_ι_comp_cofork_π (h : exact f g) (s : kernel_fork g)
   (t : cokernel_cofork f) : fork.ι s ≫ cofork.π t = 0 :=
 comp_eq_zero_of_exact f g h (kernel_fork.condition s) (cokernel_cofork.condition t)
 

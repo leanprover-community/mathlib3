@@ -57,7 +57,7 @@ structure hom (X Y : differential_object C) :=
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
 
 restate_axiom hom.comm'
-attribute [simv, reassoc] hom.comm
+attribute [simp, reassoc] hom.comm
 
 namespace hom
 

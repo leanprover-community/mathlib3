@@ -1297,7 +1297,7 @@ lemma uniformity_mul_opposite [uniform_space α] :
   𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
 rfl
 
-@[simv, to_additive] lemma comap_uniformity_mul_opposite [uniform_space α] :
+@[simp, to_additive] lemma comap_uniformity_mul_opposite [uniform_space α] :
   comap (λ p : α × α, (mul_opposite.op p.1, mul_opposite.op p.2)) (𝓤 αᵐᵒᵖ) = 𝓤 α :=
 by simpa [uniformity_mul_opposite, comap_comap, (∘)] using comap_id
 

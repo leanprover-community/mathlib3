@@ -90,7 +90,7 @@ section
 
 variables {M : Type*} [fintype α] [comm_monoid M]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
 finset.prod_insert_none f univ
 
@@ -126,7 +126,7 @@ by rw [fintype.card_pi, finset.prod_const]; refl
   fintype.card (vector α n) = fintype.card α ^ n :=
 by rw fintype.of_equiv_card; simv
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
 fintype.prod_equiv (equiv.subtype_univ_equiv (λ x, mem_univ _)) _ _ (λ x, by simv)

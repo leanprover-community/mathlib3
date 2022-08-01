@@ -40,7 +40,7 @@ variables {s s₁ s₂ t t₁ t₂}
 
 @[simp] lemma mem_sigma {a : Σ i, α i} : a ∈ s.sigma t ↔ a.1 ∈ s ∧ a.2 ∈ t a.1 := mem_sigma
 
-@[simv, norm_cast] lemma coe_sigma (s : finset ι) (t : Π i, finset (α i)) :
+@[simp, norm_cast] lemma coe_sigma (s : finset ι) (t : Π i, finset (α i)) :
   (s.sigma t : set (Σ i, α i)) = (s : set ι).sigma (λ i, t i) :=
 set.ext $ λ _, mem_sigma
 

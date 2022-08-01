@@ -139,7 +139,7 @@ lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 lemma eq_mk_iff_coe_eq {k : ℕ} {hk : k < n} : a = ⟨k, hk⟩ ↔ (a : ℕ) = k :=
 fin.eq_iff_veq a ⟨k, hk⟩
 
-@[simv, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+@[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
 lemma mk_coe (i : fin n) : (⟨i, i.property⟩ : fin n) = i :=
 fin.eta _ _
@@ -244,7 +244,7 @@ end
 /-- The greatest value of `fin (n+1)` -/
 def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 
-@[simv, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
+@[simp, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
 
 lemma last_val (n : ℕ) : (last n).val = n := rfl
 

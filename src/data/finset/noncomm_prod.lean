@@ -115,7 +115,7 @@ on all elements `x ∈ s`." ]
 def noncomm_prod (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
 s.noncomm_fold (*) comm 1
 
-@[simv, to_additive] lemma noncomm_prod_coe (l : list α)
+@[simp, to_additive] lemma noncomm_prod_coe (l : list α)
   (comm : ∀ (x ∈ (l : multiset α)) (y ∈ (l : multiset α)), commute x y) :
   noncomm_prod (l : multiset α) comm = l.prod :=
 begin
@@ -128,11 +128,11 @@ begin
     exact comm x (list.mem_cons_of_mem _ hx) y (list.mem_cons_of_mem _ hy) }
 end
 
-@[simv, to_additive] lemma noncomm_prod_empty
+@[simp, to_additive] lemma noncomm_prod_empty
   (h : ∀ (x ∈ (0 : multiset α)) (y ∈ (0 : multiset α)), commute x y) :
   noncomm_prod (0 : multiset α) h = 1 := rfl
 
-@[simv, to_additive] lemma noncomm_prod_cons (s : multiset α) (a : α)
+@[simp, to_additive] lemma noncomm_prod_cons (s : multiset α) (a : α)
   (comm : ∀ (x ∈ a ::ₘ s) (y ∈ a ::ₘ s), commute x y) :
   noncomm_prod (a ::ₘ s) comm = a * noncomm_prod s
     (λ x hx y hy, comm _ (mem_cons_of_mem hx) _ (mem_cons_of_mem hy)) :=
@@ -230,7 +230,7 @@ lemma noncomm_prod_congr
     (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
 by simp_rw [noncomm_prod, multiset.map_congr (congr_arg _ h₁) h₂]
 
-@[simv, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α) (f : α → β)
+@[simp, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α) (f : α → β)
   (comm : ∀ (x ∈ l.to_finset) (y ∈ l.to_finset), commute (f x) (f y))
   (hl : l.nodup) :
   noncomm_prod l.to_finset f comm = (l.map f).prod :=
@@ -239,11 +239,11 @@ begin
   simv [noncomm_prod, hl]
 end
 
-@[simv, to_additive] lemma noncomm_prod_empty (f : α → β)
+@[simp, to_additive] lemma noncomm_prod_empty (f : α → β)
   (h : ∀ (x ∈ (∅ : finset α)) (y ∈ (∅ : finset α)), commute (f x) (f y)) :
   noncomm_prod (∅ : finset α) f h = 1 := rfl
 
-@[simv, to_additive] lemma noncomm_prod_insert_of_not_mem [decidable_eq α] (s : finset α) (a : α)
+@[simp, to_additive] lemma noncomm_prod_insert_of_not_mem [decidable_eq α] (s : finset α) (a : α)
   (f : α → β)
   (comm : ∀ (x ∈ insert a s) (y ∈ insert a s), commute (f x) (f y))
   (ha : a ∉ s) :
@@ -259,7 +259,7 @@ by simv [insert_val_of_not_mem ha, noncomm_prod]
     (λ x hx y hy, comm _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy)) * f a :=
 by simv [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 
-@[simv, to_additive] lemma noncomm_prod_singleton (a : α) (f : α → β) :
+@[simp, to_additive] lemma noncomm_prod_singleton (a : α) (f : α → β) :
   noncomm_prod ({a} : finset α) f
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
 by simv [noncomm_prod, multiset.singleton_eq_cons]

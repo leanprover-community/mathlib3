@@ -128,13 +128,13 @@ by simv [hn]
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
 
-@[simv, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
+@[simp, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
 subtype.ext $ norm_real r
 
-@[simv, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
+@[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
 subtype.ext $ by simv
 
-@[simv, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
+@[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
 subtype.ext $ by simv only [coe_nnnorm, norm_int, int.norm_eq_abs]
 
 lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :

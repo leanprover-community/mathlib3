@@ -78,11 +78,11 @@ begin
   { ext, }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma p_comp {P Q : karoubi C} (f : hom P Q) : P.p ≫ f.f = f.f :=
 by rw [f.comm, ← assoc, P.idem]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma comp_p {P Q : karoubi C} (f : hom P Q) : f.f ≫ Q.p = f.f :=
 by rw [f.comm, assoc, assoc, Q.idem]
 

@@ -42,11 +42,11 @@ not_not
   (mul_support f)ᶜ = {x | f x = 1} :=
 ext $ λ x, nmem_mul_support
 
-@[simv, to_additive] lemma mem_mul_support {f : α → M} {x : α} :
+@[simp, to_additive] lemma mem_mul_support {f : α → M} {x : α} :
   x ∈ mul_support f ↔ f x ≠ 1 :=
 iff.rfl
 
-@[simv, to_additive] lemma mul_support_subset_iff {f : α → M} {s : set α} :
+@[simp, to_additive] lemma mul_support_subset_iff {f : α → M} {s : set α} :
   mul_support f ⊆ s ↔ ∀ x, f x ≠ 1 → x ∈ s :=
 iff.rfl
 
@@ -63,11 +63,11 @@ by simp_rw [←subset_compl_iff_disjoint_right, mul_support_subset_iff', not_mem
   disjoint s (mul_support f) ↔ eq_on f 1 s :=
 by rw [disjoint.comm, mul_support_disjoint_iff]
 
-@[simv, to_additive] lemma mul_support_eq_empty_iff {f : α → M} :
+@[simp, to_additive] lemma mul_support_eq_empty_iff {f : α → M} :
   mul_support f = ∅ ↔ f = 1 :=
 by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simv }
 
-@[simv, to_additive] lemma mul_support_nonempty_iff {f : α → M} :
+@[simp, to_additive] lemma mul_support_nonempty_iff {f : α → M} :
   (mul_support f).nonempty ↔ f ≠ 1 :=
 by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
 
@@ -81,10 +81,10 @@ begin
   { obtain ⟨x, rfl⟩ := hy, refine mem_insert_of_mem _ ⟨x, h2y, rfl⟩ }
 end
 
-@[simv, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
+@[simp, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
 mul_support_eq_empty_iff.2 rfl
 
-@[simv, to_additive] lemma mul_support_one : mul_support (λ x : α, (1 : M)) = ∅ :=
+@[simp, to_additive] lemma mul_support_one : mul_support (λ x : α, (1 : M)) = ∅ :=
 mul_support_one'
 
 @[to_additive] lemma mul_support_const {c : M} (hc : c ≠ 1) :
@@ -160,7 +160,7 @@ by simv only [← mul_support_prod_mk, prod.mk.eta]
   mul_support (λ b, f (a, b)) ⊆ (mul_support f).image prod.snd :=
 by tidy
 
-@[simv, to_additive] lemma mul_support_along_fiber_finite_of_finite
+@[simp, to_additive] lemma mul_support_along_fiber_finite_of_finite
   (f : α × β → M) (a : α) (h : (mul_support f).finite) :
   (mul_support (λ b, f (a, b))).finite :=
 (h.image prod.snd).subset (mul_support_along_fiber_subset f a)
@@ -183,10 +183,10 @@ end
 section division_monoid
 variables [division_monoid G] (f g : α → G)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mul_support_inv : mul_support (λ x, (f x)⁻¹) = mul_support f := ext $ λ _, inv_ne_one
 
-@[simv, to_additive] lemma mul_support_inv' : mul_support f⁻¹ = mul_support f := mul_support_inv f
+@[simp, to_additive] lemma mul_support_inv' : mul_support f⁻¹ = mul_support f := mul_support_inv f
 
 @[to_additive] lemma mul_support_mul_inv :
   mul_support (λ x, f x * (g x)⁻¹) ⊆ mul_support f ∪ mul_support g :=

@@ -166,7 +166,7 @@ instance : has_Inf (L.substructure M) :=
           { simv [h] }
         end }⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Inf (S : set (L.substructure M)) :
   ((Inf S : L.substructure M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
@@ -175,7 +175,7 @@ lemma mem_Inf {S : set (L.substructure M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S
 lemma mem_infi {ι : Sort*} {S : ι → L.substructure M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simv only [infi, mem_Inf, set.forall_range_iff]
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → L.substructure M} : (↑(⨅ i, S i) : set M) = ⋂ i, S i :=
 by simv only [infi, coe_Inf, set.bInter_range]
 

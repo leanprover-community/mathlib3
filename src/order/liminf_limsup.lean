@@ -213,12 +213,12 @@ e.surjective.exists.trans $ exists_congr $ λ a, by simv only [eventually_map, e
   is_bounded_under (≥) l (λ x, e (u x)) ↔ is_bounded_under (≥) l u :=
 e.dual.is_bounded_under_le_comp
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma is_bounded_under_le_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
   is_bounded_under (≤) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≥) l u :=
 (order_iso.inv α).is_bounded_under_ge_comp
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma is_bounded_under_ge_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
   is_bounded_under (≥) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≤) l u :=
 (order_iso.inv α).is_bounded_under_le_comp

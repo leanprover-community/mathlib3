@@ -435,7 +435,7 @@ end ⟩⟩
 
 local attribute [instance] simple_func.has_smul
 
-@[simv, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
+@[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an

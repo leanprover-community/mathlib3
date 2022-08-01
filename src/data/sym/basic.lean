@@ -57,7 +57,7 @@ variables {α β : Type*} {n : ℕ} {s : sym α n} {a b : α}
 
 lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
 
-@[simv, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
+@[simp, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
 coe_injective.eq_iff
 
 /--

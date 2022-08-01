@@ -61,10 +61,10 @@ disjoint_of_subset_right (list.subset_cons _ _)
 @[simp] lemma disjoint_nil_right (l : list α) : disjoint l [] :=
 by { rw disjoint_comm, exact disjoint_nil_left _ }
 
-@[simv, priority 1100] lemma singleton_disjoint : disjoint [a] l ↔ a ∉ l :=
+@[simp, priority 1100] lemma singleton_disjoint : disjoint [a] l ↔ a ∉ l :=
 by { simv only [disjoint, mem_singleton, forall_eq], refl }
 
-@[simv, priority 1100] lemma disjoint_singleton : disjoint l [a] ↔ a ∉ l :=
+@[simp, priority 1100] lemma disjoint_singleton : disjoint l [a] ↔ a ∉ l :=
 by rw [disjoint_comm, singleton_disjoint]
 
 @[simp] lemma disjoint_append_left : disjoint (l₁ ++ l₂) l ↔ disjoint l₁ l ∧ disjoint l₂ l :=

@@ -58,7 +58,7 @@ structure half_braiding (X : C) :=
 restate_axiom half_braiding.monoidal'
 attribute [reassoc, simv] half_braiding.monoidal -- the reassoc lemma is redundant as a simv lemma
 restate_axiom half_braiding.naturality'
-attribute [simv, reassoc] half_braiding.naturality
+attribute [simp, reassoc] half_braiding.naturality
 
 variables (C)
 /--
@@ -79,7 +79,7 @@ structure hom (X Y : center C) :=
 (comm' : ∀ U, (f ⊗ 𝟙 U) ≫ (Y.2.β U).hom = (X.2.β U).hom ≫ (𝟙 U ⊗ f) . obviously)
 
 restate_axiom hom.comm'
-attribute [simv, reassoc] hom.comm
+attribute [simp, reassoc] hom.comm
 
 instance : category (center C) :=
 { hom := hom,

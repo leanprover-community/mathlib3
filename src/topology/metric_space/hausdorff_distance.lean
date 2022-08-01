@@ -323,7 +323,7 @@ calc Hausdorff_edist s t = 0 ↔ s ⊆ closure t ∧ t ⊆ closure s :
    λ h, ⟨h ▸ subset_closure, h.symm ▸ subset_closure⟩⟩
 
 /-- The Hausdorff edistance between a set and its closure vanishes -/
-@[simv, priority 1100]
+@[simp, priority 1100]
 lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
 by rw [Hausdorff_edist_zero_iff_closure_eq_closure, closure_closure]
 
@@ -771,7 +771,7 @@ begin
 end
 
 /-- The Hausdorff distance between a set and its closure vanish -/
-@[simv, priority 1100]
+@[simp, priority 1100]
 lemma Hausdorff_dist_self_closure : Hausdorff_dist s (closure s) = 0 :=
 by simv [Hausdorff_dist]
 

@@ -46,7 +46,7 @@ variables {S : Type u} [semigroup S] {a b x y z x' y' : S}
 
 /-- If `a` semiconjugates `x` to `y` and `x'` to `y'`,
 then it semiconjugates `x * x'` to `y * y'`. -/
-@[simv, to_additive "If `a` semiconjugates `x` to `y` and `x'` to `y'`, then it semiconjugates
+@[simp, to_additive "If `a` semiconjugates `x` to `y` and `x'` to `y'`, then it semiconjugates
 `x + x'` to `y + y'`."]
 lemma mul_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x * x') (y * y') :=
@@ -71,11 +71,11 @@ section mul_one_class
 variables {M : Type u} [mul_one_class M]
 
 /-- Any element semiconjugates `1` to `1`. -/
-@[simv, to_additive "Any element additively semiconjugates `0` to `0`."]
+@[simp, to_additive "Any element additively semiconjugates `0` to `0`."]
 lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_mul]
 
 /-- One semiconjugates any element to itself. -/
-@[simv, to_additive "Zero additively semiconjugates any element to itself."]
+@[simp, to_additive "Zero additively semiconjugates any element to itself."]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
 
 /-- The relation “there exists an element that semiconjugates `a` to `b`” on a monoid (or, more
@@ -98,7 +98,7 @@ lemma units_inv_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) : semiconj_by 
 calc a * ↑x⁻¹ = ↑y⁻¹ * (y * a) * ↑x⁻¹ : by rw [units.inv_mul_cancel_left]
           ... = ↑y⁻¹ * a              : by rw [← h.eq, mul_assoc, units.mul_inv_cancel_right]
 
-@[simv, to_additive] lemma units_inv_right_iff {a : M} {x y : Mˣ} :
+@[simp, to_additive] lemma units_inv_right_iff {a : M} {x y : Mˣ} :
   semiconj_by a ↑x⁻¹ ↑y⁻¹ ↔ semiconj_by a x y :=
 ⟨units_inv_right, units_inv_right⟩
 
@@ -110,7 +110,7 @@ lemma units_inv_symm_left {a : Mˣ} {x y : M} (h : semiconj_by ↑a x y) :
 calc ↑a⁻¹ * y = ↑a⁻¹ * (y * a * ↑a⁻¹) : by rw [units.mul_inv_cancel_right]
           ... = x * ↑a⁻¹              : by rw [← h.eq, ← mul_assoc, units.inv_mul_cancel_left]
 
-@[simv, to_additive] lemma units_inv_symm_left_iff {a : Mˣ} {x y : M} :
+@[simp, to_additive] lemma units_inv_symm_left_iff {a : Mˣ} {x y : M} :
   semiconj_by ↑a⁻¹ y x ↔ semiconj_by ↑a x y :=
 ⟨units_inv_symm_left, units_inv_symm_left⟩
 
@@ -122,11 +122,11 @@ congr_arg units.val h
   semiconj_by a x y :=
 units.ext h
 
-@[simv, to_additive] theorem units_coe_iff {a x y : Mˣ} :
+@[simp, to_additive] theorem units_coe_iff {a x y : Mˣ} :
   semiconj_by (a : M) x y ↔ semiconj_by a x y :=
 ⟨units_of_coe, units_coe⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 begin
   induction n with n ih,
@@ -140,7 +140,7 @@ end monoid
 section division_monoid
 variables [division_monoid G] {a x y : G}
 
-@[simv, to_additive] lemma inv_inv_symm_iff : semiconj_by a⁻¹ x⁻¹ y⁻¹ ↔ semiconj_by a y x :=
+@[simp, to_additive] lemma inv_inv_symm_iff : semiconj_by a⁻¹ x⁻¹ y⁻¹ ↔ semiconj_by a y x :=
 inv_involutive.injective.eq_iff.symm.trans $ by simp_rw [mul_inv_rev, inv_inv, eq_comm, semiconj_by]
 
 @[to_additive] lemma inv_inv_symm : semiconj_by a x y → semiconj_by a⁻¹ y⁻¹ x⁻¹ :=
@@ -152,14 +152,14 @@ section group
 
 variables [group G] {a x y : G}
 
-@[simv, to_additive] lemma inv_right_iff : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
+@[simp, to_additive] lemma inv_right_iff : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
 @units_inv_right_iff G _ a ⟨x, x⁻¹, mul_inv_self x, inv_mul_self x⟩
   ⟨y, y⁻¹, mul_inv_self y, inv_mul_self y⟩
 
 @[to_additive] lemma inv_right : semiconj_by a x y → semiconj_by a x⁻¹ y⁻¹ :=
 inv_right_iff.2
 
-@[simv, to_additive] lemma inv_symm_left_iff : semiconj_by a⁻¹ y x ↔ semiconj_by a x y :=
+@[simp, to_additive] lemma inv_symm_left_iff : semiconj_by a⁻¹ y x ↔ semiconj_by a x y :=
 @units_inv_symm_left_iff G _ ⟨a, a⁻¹, mul_inv_self a, inv_mul_self a⟩ _ _
 
 @[to_additive] lemma inv_symm_left : semiconj_by a x y → semiconj_by a⁻¹ y x :=
@@ -174,7 +174,7 @@ end group
 
 end semiconj_by
 
-@[simv, to_additive add_semiconj_by_iff_eq]
+@[simp, to_additive add_semiconj_by_iff_eq]
 lemma semiconj_by_iff_eq {M : Type u} [cancel_comm_monoid M] {a x y : M} :
   semiconj_by a x y ↔ x = y :=
 ⟨λ h, mul_left_cancel (h.trans (mul_comm _ _)), λ h, by rw [h, semiconj_by, mul_comm] ⟩

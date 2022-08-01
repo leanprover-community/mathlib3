@@ -45,11 +45,11 @@ limit.iso_limit_cone ⟨_, product_cone_is_limit Z⟩
 
 -- We now show this isomorphism commutes with the inclusion of the kernel into the source.
 
-@[simv, elementwise] lemma pi_iso_pi_inv_kernel_ι (i : ι) :
+@[simp, elementwise] lemma pi_iso_pi_inv_kernel_ι (i : ι) :
   (pi_iso_pi Z).inv ≫ pi.π Z i = (linear_map.proj i : (Π i : ι, Z i) →ₗ[R] Z i) :=
 limit.iso_limit_cone_inv_π _ _
 
-@[simv, elementwise] lemma pi_iso_pi_hom_ker_subtype (i : ι) :
+@[simp, elementwise] lemma pi_iso_pi_hom_ker_subtype (i : ι) :
   (pi_iso_pi Z).hom ≫ (linear_map.proj i : (Π i : ι, Z i) →ₗ[R] Z i) = pi.π Z i :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) (discrete.mk i)
 

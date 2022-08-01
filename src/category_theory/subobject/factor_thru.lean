@@ -102,7 +102,7 @@ given the evidence `h : P.factors f` that such a factorisation exists. -/
 def factor_thru {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P :=
 classical.some ((factors_iff _ _).mp h)
 
-@[simv, reassoc] lemma factor_thru_arrow {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) :
+@[simp, reassoc] lemma factor_thru_arrow {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) :
   P.factor_thru f h ≫ P.arrow = f :=
 classical.some_spec ((factors_iff _ _).mp h)
 

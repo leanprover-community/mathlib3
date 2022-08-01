@@ -56,7 +56,7 @@ protected def homeomorph.mul_left (a : G) : G ≃ₜ G :=
   continuous_inv_fun := continuous_const.mul continuous_id,
   .. equiv.mul_left a }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma homeomorph.coe_mul_left (a : G) : ⇑(homeomorph.mul_left a) = (*) a := rfl
 
 @[to_additive]
@@ -87,7 +87,7 @@ protected def homeomorph.mul_right (a : G) :
   continuous_inv_fun := continuous_id.mul continuous_const,
   .. equiv.mul_right a }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma homeomorph.coe_mul_right (a : G) : ⇑(homeomorph.mul_right a) = λ g, g * a := rfl
 
 @[to_additive]
@@ -483,12 +483,12 @@ protected def homeomorph.shear_mul_right : G × G ≃ₜ G × G :=
   continuous_inv_fun := continuous_fst.prod_mk $ continuous_fst.inv.mul continuous_snd,
   .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma homeomorph.shear_mul_right_coe :
   ⇑(homeomorph.shear_mul_right G) = λ z : G × G, (z.1, z.1 * z.2) :=
 rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma homeomorph.shear_mul_right_symm_coe :
   ⇑(homeomorph.shear_mul_right G).symm = λ z : G × G, (z.1, z.1⁻¹ * z.2) :=
 rfl
@@ -522,7 +522,7 @@ def subgroup.topological_closure (s : subgroup G) : subgroup G :=
   inv_mem' := λ g m, by simpa [←set.mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
-@[simv, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
+@[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
   (s.topological_closure : set G) = closure s :=
 rfl
 
@@ -611,7 +611,7 @@ by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff,
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
 ((homeomorph.mul_right x⁻¹).comap_nhds_eq 1).trans $ show 𝓝 (1 * x⁻¹⁻¹) = 𝓝 x, by simv
 
-@[simv, to_additive] lemma map_mul_left_nhds (x y : G) : map ((*) x) (𝓝 y) = 𝓝 (x * y) :=
+@[simp, to_additive] lemma map_mul_left_nhds (x y : G) : map ((*) x) (𝓝 y) = 𝓝 (x * y) :=
 (homeomorph.mul_left x).map_nhds_eq y
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simv
@@ -1308,7 +1308,7 @@ to_topological_space_injective $ topological_space_eq h
 instance : partial_order (group_topology α) :=
 partial_order.lift to_topological_space to_topological_space_injective
 
-@[simv, to_additive] lemma to_topological_space_le {x y : group_topology α} :
+@[simp, to_additive] lemma to_topological_space_le {x y : group_topology α} :
   x.to_topological_space ≤ y.to_topological_space ↔ x ≤ y := iff.rfl
 
 @[to_additive]
@@ -1317,7 +1317,7 @@ instance : has_top (group_topology α) :=
   continuous_mul       := continuous_top,
   continuous_inv       := continuous_top}⟩
 
-@[simv, to_additive] lemma to_topological_space_top :
+@[simp, to_additive] lemma to_topological_space_top :
   (⊤ : group_topology α).to_topological_space = ⊤ := rfl
 
 @[to_additive]
@@ -1326,7 +1326,7 @@ instance : has_bot (group_topology α) :=
   continuous_mul       := by continuity,
   continuous_inv       := continuous_bot}⟩
 
-@[simv, to_additive] lemma to_topological_space_bot :
+@[simp, to_additive] lemma to_topological_space_bot :
   (⊥ : group_topology α).to_topological_space = ⊥ := rfl
 
 @[to_additive]
@@ -1340,7 +1340,7 @@ instance : bounded_order (group_topology α) :=
 instance : has_inf (group_topology α) :=
 { inf := λ x y, ⟨x.1 ⊓ y.1, topological_group_inf x.2 y.2⟩ }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma to_topological_space_inf (x y : group_topology α) :
   (x ⊓ y).to_topological_space = x.to_topological_space ⊓ y.to_topological_space := rfl
 
@@ -1357,11 +1357,11 @@ instance : has_Inf (group_topology α) :=
 { Inf := λ S,
   ⟨Inf (to_topological_space '' S), topological_group_Inf $ ball_image_iff.2 $ λ t ht, t.2⟩ }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma to_topological_space_Inf (s : set (group_topology α)) :
   (Inf s).to_topological_space = Inf (to_topological_space '' s) := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma to_topological_space_infi {ι} (s : ι → group_topology α) :
   (⨅ i, s i).to_topological_space = ⨅ i, (s i).to_topological_space :=
 congr_arg Inf (range_comp _ _).symm

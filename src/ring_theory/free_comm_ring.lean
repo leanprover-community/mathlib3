@@ -251,22 +251,22 @@ instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 /-- The natural map `free_ring α → free_comm_ring α`, as a `ring_hom`. -/
 def coe_ring_hom : free_ring α →+* free_comm_ring α := to_free_comm_ring
 
-@[simv, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
-@[simv, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
+@[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
+@[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
 
 variable {α}
 
 @[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
 free_ring.lift_of _ _
-@[simv, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
+@[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 (free_ring.lift _).map_neg _
-@[simv, norm_cast] protected lemma coe_add (x y : free_ring α) :
+@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) :
   ↑(x + y) = (x : free_comm_ring α) + y :=
 (free_ring.lift _).map_add _ _
-@[simv, norm_cast] protected lemma coe_sub (x y : free_ring α) :
+@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) :
   ↑(x - y) = (x : free_comm_ring α) - y :=
 (free_ring.lift _).map_sub _ _
-@[simv, norm_cast] protected lemma coe_mul (x y : free_ring α) :
+@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) :
   ↑(x * y) = (x : free_comm_ring α) * y :=
 (free_ring.lift _).map_mul _ _
 

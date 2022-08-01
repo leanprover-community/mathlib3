@@ -73,7 +73,7 @@ structure mono_factorisation (f : X ⟶ Y) :=
 (fac' : e ≫ m = f . obviously)
 
 restate_axiom mono_factorisation.fac'
-attribute [simv, reassoc] mono_factorisation.fac
+attribute [simp, reassoc] mono_factorisation.fac
 attribute [instance] mono_factorisation.m_mono
 
 attribute [instance] mono_factorisation.m_mono
@@ -165,11 +165,11 @@ structure is_image (F : mono_factorisation f) :=
 (lift_fac' : Π (F' : mono_factorisation f), lift F' ≫ F'.m = F.m . obviously)
 
 restate_axiom is_image.lift_fac'
-attribute [simv, reassoc] is_image.lift_fac
+attribute [simp, reassoc] is_image.lift_fac
 
 namespace is_image
 
-@[simv, reassoc] lemma fac_lift {F : mono_factorisation f} (hF : is_image F)
+@[simp, reassoc] lemma fac_lift {F : mono_factorisation f} (hF : is_image F)
   (F' : mono_factorisation f) : F.e ≫ hF.lift F' = F'.e :=
 (cancel_mono F'.m).1 $ by simv
 
@@ -275,7 +275,7 @@ def factor_thru_image : X ⟶ image f := (image.mono_factorisation f).e
 /-- Rewrite in terms of the `factor_thru_image` interface. -/
 @[simp]
 lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image f := rfl
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 
 variable {f}
@@ -283,10 +283,10 @@ variable {f}
 /-- Any other factorisation of the morphism `f` through a monomorphism receives a map from the
 image. -/
 def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I := (image.is_image f).lift F'
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
 (image.is_image f).lift_fac' F'
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
 (image.is_image f).fac_lift F'
 @[simp]
@@ -294,7 +294,7 @@ lemma image.is_image_lift (F : mono_factorisation f) :
   (image.is_image f).lift F = image.lift F :=
 rfl
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma is_image.lift_ι {F : mono_factorisation f} (hF : is_image F) :
   hF.lift (image.mono_factorisation f) ≫ image.ι f = F.m :=
 hF.lift_fac _
@@ -340,10 +340,10 @@ variables (f)
 def image_mono_iso_source [mono f] : image f ≅ X :=
 is_image.iso_ext (image.is_image f) (is_image.self f)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_mono_iso_source_inv_ι [mono f] : (image_mono_iso_source f).inv ≫ image.ι f = f :=
 by simv [image_mono_iso_source]
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_mono_iso_source_hom_self [mono f] : (image_mono_iso_source f).hom ≫ f = image.ι f :=
 begin
   conv { to_lhs, congr, skip, rw ←image_mono_iso_source_inv_ι f, },
@@ -437,12 +437,12 @@ image.lift
   m := image.ι g,
   e := f ≫ factor_thru_image g }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image.pre_comp_ι [has_image g] [has_image (f ≫ g)] :
   image.pre_comp f g ≫ image.ι g = image.ι (f ≫ g) :=
 by simv [image.pre_comp]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
   factor_thru_image (f ≫ g) ≫ image.pre_comp f g = f ≫ factor_thru_image g :=
 by simv [image.pre_comp]
@@ -517,11 +517,11 @@ def image.comp_iso [has_image f] [is_iso g] :
 { hom := image.lift (image.mono_factorisation (f ≫ g)).of_comp_iso,
   inv := image.lift ((image.mono_factorisation f).comp_mono g) }
 
-@[simv, reassoc] lemma image.comp_iso_hom_comp_image_ι [has_image f] [is_iso g] :
+@[simp, reassoc] lemma image.comp_iso_hom_comp_image_ι [has_image f] [is_iso g] :
   (image.comp_iso f g).hom ≫ image.ι (f ≫ g) = image.ι f ≫ g :=
 by { ext, simv [image.comp_iso] }
 
-@[simv, reassoc] lemma image.comp_iso_inv_comp_image_ι [has_image f] [is_iso g] :
+@[simp, reassoc] lemma image.comp_iso_inv_comp_image_ι [has_image f] [is_iso g] :
   (image.comp_iso f g).inv ≫ image.ι f = image.ι (f ≫ g) ≫ inv g :=
 by { ext, simv [image.comp_iso] }
 
@@ -552,9 +552,9 @@ instance inhabited_image_map {f : arrow C} [has_image f.hom] : inhabited (image_
 ⟨⟨𝟙 _, by tidy⟩⟩
 
 restate_axiom image_map.map_ι'
-attribute [simv, reassoc] image_map.map_ι
+attribute [simp, reassoc] image_map.map_ι
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma image_map.factor_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
   (m : image_map sq) :
   factor_thru_image f.hom ≫ m.map = sq.left ≫ factor_thru_image g.hom :=

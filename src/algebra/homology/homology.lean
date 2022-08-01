@@ -136,7 +136,7 @@ The morphism between cycles induced by a chain map.
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simv))
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
 by { simv, }
@@ -185,7 +185,7 @@ section
 variables [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma boundaries_to_cycles_naturality (i : ι) :
   boundaries_map f i ≫ C₂.boundaries_to_cycles i = C₁.boundaries_to_cycles i ≫ cycles_map f i :=
 by { ext, simv, }

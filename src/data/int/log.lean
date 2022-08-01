@@ -68,7 +68,7 @@ begin
   { exact if_neg hr.not_le }
 end
 
-@[simv, norm_cast] lemma log_nat_cast (b : ℕ) (n : ℕ) : log b (n : R) = nat.log b n :=
+@[simp, norm_cast] lemma log_nat_cast (b : ℕ) (n : ℕ) : log b (n : R) = nat.log b n :=
 begin
   cases n,
   { simv [log_of_right_le_one _ _, nat.log_zero_right] },
@@ -228,7 +228,7 @@ by rw [log_inv, neg_neg]
 lemma neg_clog_inv_eq_log (b : ℕ) (r : R) : -clog b r⁻¹ = log b r :=
 by rw [clog_inv, neg_neg]
 
-@[simv, norm_cast] lemma clog_nat_cast (b : ℕ) (n : ℕ) : clog b (n : R) = nat.clog b n :=
+@[simp, norm_cast] lemma clog_nat_cast (b : ℕ) (n : ℕ) : clog b (n : R) = nat.clog b n :=
 begin
   cases n,
   { simv [clog_of_right_le_one _ _, nat.clog_zero_right] },

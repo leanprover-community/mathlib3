@@ -43,9 +43,9 @@ structure monoidal_nat_trans (F G : lax_monoidal_functor C D)
 (tensor' : ∀ X Y, F.μ _ _ ≫ app (X ⊗ Y) = (app X ⊗ app Y) ≫ G.μ _ _ . obviously)
 
 restate_axiom monoidal_nat_trans.tensor'
-attribute [simv, reassoc] monoidal_nat_trans.tensor
+attribute [simp, reassoc] monoidal_nat_trans.tensor
 restate_axiom monoidal_nat_trans.unit'
-attribute [simv, reassoc] monoidal_nat_trans.unit
+attribute [simp, reassoc] monoidal_nat_trans.unit
 
 namespace monoidal_nat_trans
 

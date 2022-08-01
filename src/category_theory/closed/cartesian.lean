@@ -97,11 +97,11 @@ ihom.coev A
 notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
-@[simv, reassoc] lemma ev_coev :
+@[simp, reassoc] lemma ev_coev :
   limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
 ihom.ev_coev A B
 
-@[simv, reassoc] lemma coev_ev : (coev A).app (A ⟹ B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A ⟹ B) :=
+@[simp, reassoc] lemma coev_ev : (coev A).app (A ⟹ B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A ⟹ B) :=
 ihom.coev_ev A B
 
 end exp

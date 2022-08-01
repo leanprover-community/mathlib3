@@ -46,7 +46,7 @@ restate_axiom Mon_.one_mul'
 restate_axiom Mon_.mul_one'
 restate_axiom Mon_.mul_assoc'
 attribute [reassoc] Mon_.one_mul Mon_.mul_one -- We prove a more general `@[simp]` lemma below.
-attribute [simv, reassoc] Mon_.mul_assoc
+attribute [simp, reassoc] Mon_.mul_assoc
 
 namespace Mon_
 
@@ -83,7 +83,7 @@ structure hom (M N : Mon_ C) :=
 
 restate_axiom hom.one_hom'
 restate_axiom hom.mul_hom'
-attribute [simv, reassoc] hom.one_hom hom.mul_hom
+attribute [simp, reassoc] hom.one_hom hom.mul_hom
 
 /-- The identity morphism on a monoid object. -/
 @[simps]

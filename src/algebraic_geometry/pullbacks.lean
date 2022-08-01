@@ -56,7 +56,7 @@ begin
   rw [category.comp_id, category.id_comp]
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t_fst_fst (i j : 𝒰.J) : t 𝒰 f g i j ≫ pullback.fst ≫ pullback.fst = pullback.snd :=
 begin
   delta t,
@@ -65,7 +65,7 @@ begin
     pullback_assoc_inv_fst_fst, pullback_symmetry_hom_comp_fst],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t_fst_snd (i j : 𝒰.J) :
   t 𝒰 f g i j ≫ pullback.fst ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
 begin
@@ -75,7 +75,7 @@ begin
     pullback_assoc_inv_snd],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t_snd (i j : 𝒰.J) :
   t 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
 begin
@@ -112,7 +112,7 @@ end
 
 section end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t'_fst_fst_fst (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 begin
@@ -122,7 +122,7 @@ begin
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t'_fst_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.fst ≫ pullback.snd :=
@@ -133,7 +133,7 @@ begin
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t'_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 begin
@@ -143,7 +143,7 @@ begin
     pullback_right_pullback_fst_iso_hom_snd],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t'_snd_fst_fst (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 begin
@@ -153,7 +153,7 @@ begin
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t'_snd_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.fst ≫ pullback.snd :=
@@ -164,7 +164,7 @@ begin
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma t'_snd_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst ≫ pullback.fst :=
 begin
@@ -396,7 +396,7 @@ def pullback_fst_ι_to_V (i j : 𝒰.J) :
   (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map i) _)).hom ≫
     (pullback.congr_hom (multicoequalizer.π_desc _ _ _ _ _) rfl).hom
 
-@[simv, reassoc] lemma pullback_fst_ι_to_V_fst (i j : 𝒰.J) :
+@[simp, reassoc] lemma pullback_fst_ι_to_V_fst (i j : 𝒰.J) :
   pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.fst = pullback.snd :=
 begin
   delta pullback_fst_ι_to_V,
@@ -404,7 +404,7 @@ begin
     category.comp_id, pullback_right_pullback_fst_iso_hom_fst, pullback_symmetry_hom_comp_fst],
 end
 
-@[simv, reassoc] lemma pullback_fst_ι_to_V_snd (i j : 𝒰.J) :
+@[simp, reassoc] lemma pullback_fst_ι_to_V_snd (i j : 𝒰.J) :
   pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
 begin
   delta pullback_fst_ι_to_V,
@@ -458,23 +458,23 @@ begin
       erw multicoequalizer.π_desc } },
 end
 
-@[simv, reassoc] lemma pullback_p1_iso_hom_fst (i : 𝒰.J) :
+@[simp, reassoc] lemma pullback_p1_iso_hom_fst (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ pullback.fst = pullback.snd :=
 by { delta pullback_p1_iso, simv only [pullback.lift_fst] }
 
-@[simv, reassoc] lemma pullback_p1_iso_hom_snd (i : 𝒰.J) :
+@[simp, reassoc] lemma pullback_p1_iso_hom_snd (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ pullback.snd = pullback.fst ≫ p2 𝒰 f g :=
 by { delta pullback_p1_iso, simv only [pullback.lift_snd] }
 
-@[simv, reassoc] lemma pullback_p1_iso_inv_fst (i : 𝒰.J) :
+@[simp, reassoc] lemma pullback_p1_iso_inv_fst (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).inv ≫ pullback.fst = (gluing 𝒰 f g).ι i :=
 by { delta pullback_p1_iso, simv only [pullback.lift_fst] }
 
-@[simv, reassoc] lemma pullback_p1_iso_inv_snd (i : 𝒰.J) :
+@[simp, reassoc] lemma pullback_p1_iso_inv_snd (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).inv ≫ pullback.snd = pullback.fst :=
 by { delta pullback_p1_iso, simv only [pullback.lift_snd] }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pullback_p1_iso_hom_ι (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ (gluing 𝒰 f g).ι i = pullback.fst :=
 by rw [← pullback_p1_iso_inv_fst, iso.hom_inv_id_assoc]

@@ -187,7 +187,7 @@ def is_sheaf.amalgamate {A : Type u₂} [category.{max v₁ u₁} A]
 (hP _ _ S.condition).amalgamate (λ Y f hf, x ⟨Y,f,hf⟩) $
   λ Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ w, hx ⟨Y₁, Y₂, Z, g₁, g₂, f₁, f₂, h₁, h₂, w⟩
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma is_sheaf.amalgamate_map {A : Type u₂} [category.{max v₁ u₁} A]
   {E : A} {X : C} {P : Cᵒᵖ ⥤ A} (hP : presheaf.is_sheaf J P) (S : J.cover X)
   (x : Π (I : S.arrow), E ⟶ P.obj (op I.Y))

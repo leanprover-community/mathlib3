@@ -21,7 +21,7 @@ namespace finset
 
 variables {α M : Type*} [comm_monoid M]
 
-@[simv, to_additive] lemma prod_insert_none (f : option α → M) (s : finset α) :
+@[simp, to_additive] lemma prod_insert_none (f : option α → M) (s : finset α) :
   ∏ x in s.insert_none, f x = f none * ∏ x in s, f (some x) :=
 by simv [insert_none]
 

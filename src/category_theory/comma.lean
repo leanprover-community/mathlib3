@@ -82,7 +82,7 @@ instance comma_morphism.inhabited [inhabited (comma L R)] :
 ⟨⟨𝟙 _, 𝟙 _⟩⟩
 
 restate_axiom comma_morphism.w'
-attribute [simv, reassoc] comma_morphism.w
+attribute [simp, reassoc] comma_morphism.w
 
 instance comma_category : category (comma L R) :=
 { hom := comma_morphism,

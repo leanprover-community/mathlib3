@@ -122,7 +122,7 @@ instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) := fun_like.ha
 
 variables (v : valuation R Γ₀) {x y z : R}
 
-@[simv, norm_cast] lemma coe_coe : ⇑(v : R →*₀ Γ₀) = v := rfl
+@[simp, norm_cast] lemma coe_coe : ⇑(v : R →*₀ Γ₀) = v := rfl
 
 @[simp] lemma map_zero : v 0 = 0 := v.map_zero'
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'

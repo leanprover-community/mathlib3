@@ -214,7 +214,7 @@ congr_arg (λ x : X, f x) h
 theorem coe_injective : @function.injective (locally_constant X Y) (X → Y) coe_fn
 | ⟨f, hf⟩ ⟨g, hg⟩ h := have f = g, from h, by subst f
 
-@[simv, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
+@[simp, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
 coe_injective.eq_iff
 
 @[ext] theorem ext ⦃f g : locally_constant X Y⦄ (h : ∀ x, f x = g x) : f = g :=

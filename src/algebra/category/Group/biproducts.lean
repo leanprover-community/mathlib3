@@ -64,11 +64,11 @@ is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit G H)
   (binary_product_limit_cone G H).is_limit
 
-@[simv, elementwise] lemma biprod_iso_prod_inv_comp_fst (G H : AddCommGroup.{u}) :
+@[simp, elementwise] lemma biprod_iso_prod_inv_comp_fst (G H : AddCommGroup.{u}) :
   (biprod_iso_prod G H).inv ≫ biprod.fst = add_monoid_hom.fst G H :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.left)
 
-@[simv, elementwise] lemma biprod_iso_prod_inv_comp_snd (G H : AddCommGroup.{u}) :
+@[simp, elementwise] lemma biprod_iso_prod_inv_comp_snd (G H : AddCommGroup.{u}) :
   (biprod_iso_prod G H).inv ≫ biprod.snd = add_monoid_hom.snd G H :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.right)
 
@@ -121,7 +121,7 @@ is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simv, elementwise] lemma biproduct_iso_pi_inv_comp_π (f : J → AddCommGroup.{u}) (j : J) :
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π (f : J → AddCommGroup.{u}) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, f j) j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)
 

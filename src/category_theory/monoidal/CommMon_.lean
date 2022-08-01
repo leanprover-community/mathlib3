@@ -24,7 +24,7 @@ structure CommMon_ extends Mon_ C :=
 (mul_comm' : (β_ _ _).hom ≫ mul = mul . obviously)
 
 restate_axiom CommMon_.mul_comm'
-attribute [simv, reassoc] CommMon_.mul_comm
+attribute [simp, reassoc] CommMon_.mul_comm
 
 namespace CommMon_
 

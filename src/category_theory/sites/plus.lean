@@ -205,7 +205,7 @@ def to_plus : P ⟶ J.plus_obj P :=
     simv,
   end }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma to_plus_naturality {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
   η ≫ J.to_plus Q = J.to_plus _ ≫ J.plus_map η :=
 begin
@@ -292,7 +292,7 @@ def plus_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) 
   J.plus_obj P ⟶ Q :=
 J.plus_map η ≫ (J.iso_to_plus Q hQ).inv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma to_plus_plus_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.to_plus P ≫ J.plus_lift η hQ = η :=
 begin

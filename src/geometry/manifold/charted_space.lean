@@ -467,7 +467,7 @@ class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_s
 (chart_mem_atlas []  : ∀x, chart_at x ∈ atlas)
 
 export charted_space
-attribute [simv, mfld_simps] mem_chart_source chart_mem_atlas
+attribute [simp, mfld_simps] mem_chart_source chart_mem_atlas
 
 section charted_space
 
@@ -480,7 +480,7 @@ instance charted_space_self (H : Type*) [topological_space H] : charted_space H 
 
 /-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
-@[simv, mfld_simps] lemma charted_space_self_atlas
+@[simp, mfld_simps] lemma charted_space_self_atlas
   {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
 by simv [atlas, charted_space.atlas]
@@ -582,7 +582,7 @@ instance (H : Type*) [topological_space H] (H' : Type*) [topological_space H'] :
 prod.topological_space
 
 /- Next lemma shows up often when dealing with derivatives, register it as simv. -/
-@[simv, mfld_simps] lemma model_prod_range_prod_id
+@[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
   range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
@@ -620,7 +620,7 @@ section prod_charted_space
 variables [topological_space H] [topological_space M] [charted_space H M]
 [topological_space H'] [topological_space M'] [charted_space H' M'] {x : M×M'}
 
-@[simv, mfld_simps] lemma prod_charted_space_chart_at :
+@[simp, mfld_simps] lemma prod_charted_space_chart_at :
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
 
 end prod_charted_space
@@ -635,7 +635,7 @@ instance pi_charted_space {ι : Type*} [fintype ι] (H : ι → Type*) [Π i, to
   mem_chart_source := λ f i hi, mem_chart_source (H i) (f i),
   chart_mem_atlas := λ f, mem_image_of_mem _ $ λ i hi, chart_mem_atlas (H i) (f i) }
 
-@[simv, mfld_simps] lemma pi_charted_space_chart_at {ι : Type*} [fintype ι] (H : ι → Type*)
+@[simp, mfld_simps] lemma pi_charted_space_chart_at {ι : Type*} [fintype ι] (H : ι → Type*)
   [Π i, topological_space (H i)] (M : ι → Type*) [Π i, topological_space (M i)]
   [Π i, charted_space (H i) (M i)] (f : Π i, M i) :
   chart_at (model_pi H) f = local_homeomorph.pi (λ i, chart_at (H i) (f i)) := rfl
@@ -856,7 +856,7 @@ def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
   mem_chart_source := λ _, by simv only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
-@[simv, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
+@[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
   @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
 
 lemma singleton_charted_space_chart_at_source

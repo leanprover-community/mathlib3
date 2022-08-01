@@ -334,7 +334,7 @@ namespace ray_vector
 instance {R : Type*} : has_neg (ray_vector R M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
 
 /-- Negating a nonzero vector commutes with coercion to the underlying module. -/
-@[simv, norm_cast] lemma coe_neg {R : Type*} (v : ray_vector R M) : ↑(-v) = -(v : M) := rfl
+@[simp, norm_cast] lemma coe_neg {R : Type*} (v : ray_vector R M) : ↑(-v) = -(v : M) := rfl
 
 /-- Negating a nonzero vector twice produces the original vector. -/
 instance {R : Type*} : has_involutive_neg (ray_vector R M) :=

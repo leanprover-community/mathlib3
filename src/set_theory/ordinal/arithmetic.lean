@@ -571,7 +571,7 @@ begin
     [cases H, exact nat.succ_pos _, exact nat.succ_lt_succ H] }
 end
 
-@[simv, priority 990]
+@[simp, priority 990]
 theorem one_add_of_omega_le {o} (h : ω ≤ o) : 1 + o = o :=
 by rw [← ordinal.add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
 
@@ -2164,33 +2164,33 @@ end
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 
-@[simv, norm_cast] theorem nat_cast_mul (m : ℕ) : ∀ n : ℕ, ((m * n : ℕ) : ordinal) = m * n
+@[simp, norm_cast] theorem nat_cast_mul (m : ℕ) : ∀ n : ℕ, ((m * n : ℕ) : ordinal) = m * n
 | 0     := by simv
 | (n+1) := by rw [nat.mul_succ, nat.cast_add, nat_cast_mul, nat.cast_succ, mul_add_one]
 
-@[simv, norm_cast] theorem nat_cast_opow (m : ℕ) : ∀ n : ℕ, ((pow m n : ℕ) : ordinal) = m ^ n
+@[simp, norm_cast] theorem nat_cast_opow (m : ℕ) : ∀ n : ℕ, ((pow m n : ℕ) : ordinal) = m ^ n
 | 0     := by simv
 | (n+1) := by rw [pow_succ', nat_cast_mul, nat_cast_opow, nat.cast_succ, add_one_eq_succ, opow_succ]
 
-@[simv, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : ordinal) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : ordinal) ≤ n ↔ m ≤ n :=
 by rw [←cardinal.ord_nat, ←cardinal.ord_nat, cardinal.ord_le_ord, cardinal.nat_cast_le]
 
-@[simv, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : ordinal) < n ↔ m < n :=
+@[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : ordinal) < n ↔ m < n :=
 by simv only [lt_iff_le_not_le, nat_cast_le]
 
-@[simv, norm_cast] theorem nat_cast_inj {m n : ℕ} : (m : ordinal) = n ↔ m = n :=
+@[simp, norm_cast] theorem nat_cast_inj {m n : ℕ} : (m : ordinal) = n ↔ m = n :=
 by simv only [le_antisymm_iff, nat_cast_le]
 
-@[simv, norm_cast] theorem nat_cast_eq_zero {n : ℕ} : (n : ordinal) = 0 ↔ n = 0 :=
+@[simp, norm_cast] theorem nat_cast_eq_zero {n : ℕ} : (n : ordinal) = 0 ↔ n = 0 :=
 @nat_cast_inj n 0
 
 theorem nat_cast_ne_zero {n : ℕ} : (n : ordinal) ≠ 0 ↔ n ≠ 0 :=
 not_congr nat_cast_eq_zero
 
-@[simv, norm_cast] theorem nat_cast_pos {n : ℕ} : (0 : ordinal) < n ↔ 0 < n :=
+@[simp, norm_cast] theorem nat_cast_pos {n : ℕ} : (0 : ordinal) < n ↔ 0 < n :=
 @nat_cast_lt 0 n
 
-@[simv, norm_cast] theorem nat_cast_sub (m n : ℕ) : ((m - n : ℕ) : ordinal) = m - n :=
+@[simp, norm_cast] theorem nat_cast_sub (m n : ℕ) : ((m - n : ℕ) : ordinal) = m - n :=
 begin
   cases le_total m n with h h,
   { rw [tsub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)],
@@ -2199,7 +2199,7 @@ begin
     rw [←nat.cast_add, add_tsub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)] }
 end
 
-@[simv, norm_cast] theorem nat_cast_div (m n : ℕ) : ((m / n : ℕ) : ordinal) = m / n :=
+@[simp, norm_cast] theorem nat_cast_div (m n : ℕ) : ((m / n : ℕ) : ordinal) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simv },
@@ -2212,7 +2212,7 @@ begin
       apply nat.lt_succ_self } }
 end
 
-@[simv, norm_cast] theorem nat_cast_mod (m n : ℕ) : ((m % n : ℕ) : ordinal) = m % n :=
+@[simp, norm_cast] theorem nat_cast_mod (m n : ℕ) : ((m % n : ℕ) : ordinal) = m % n :=
 by rw [←add_left_cancel, div_add_mod, ←nat_cast_div, ←nat_cast_mul, ←nat.cast_add, nat.div_add_mod]
 
 @[simp] theorem lift_nat_cast : ∀ n : ℕ, lift.{u v} n = n

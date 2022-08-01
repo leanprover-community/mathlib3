@@ -121,7 +121,7 @@ begin
   linarith,
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma exp_eq_one_of_subsingleton [subsingleton G] : exponent G = 1 :=
 begin
   apply le_antisymm,

@@ -980,11 +980,11 @@ protected def lattice [lattice α] {P : α → Prop}
   lattice {x : α // P x} :=
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
 
-@[simv, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (x y : subtype P) :
   (by {haveI := subtype.semilattice_sup Psup, exact (x ⊔ y : subtype P)} : α) = x ⊔ y := rfl
 
-@[simv, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
   (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
   (by {haveI := subtype.semilattice_inf Pinf, exact (x ⊓ y : subtype P)} : α) = x ⊓ y := rfl
 

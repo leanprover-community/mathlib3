@@ -114,7 +114,7 @@ example : inhabited ℝ≥0 := by apply_instance
 example : nontrivial ℝ≥0 := by apply_instance
 
 protected lemma coe_injective : function.injective (coe : ℝ≥0 → ℝ) := subtype.coe_injective
-@[simv, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
+@[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
 nnreal.coe_injective.eq_iff
 protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
@@ -122,19 +122,19 @@ protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) 
 protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
 protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
 protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
-@[simv, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
-@[simv, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
+@[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
+@[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
 protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
-@[simv, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
+@[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
 max_eq_left $ le_sub.2 $ by simv [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
-@[simv, norm_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 :=
+@[simp, norm_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 :=
 by rw [← nnreal.coe_zero, nnreal.coe_eq]
 
-@[simv, norm_cast] protected lemma coe_eq_one (r : ℝ≥0) : ↑r = (1 : ℝ) ↔ r = 1 :=
+@[simp, norm_cast] protected lemma coe_eq_one (r : ℝ≥0) : ↑r = (1 : ℝ) ↔ r = 1 :=
 by rw [← nnreal.coe_one, nnreal.coe_eq]
 
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
@@ -193,14 +193,14 @@ example : monoid_with_zero ℝ≥0 := by apply_instance
 example : comm_monoid_with_zero ℝ≥0 := by apply_instance
 noncomputable example : comm_group_with_zero ℝ≥0 := by apply_instance
 
-@[simv, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
+@[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
 (to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
-@[simv, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+@[simp, norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 to_real_hom.map_pow r n
 
-@[simv, norm_cast] lemma coe_zpow (r : ℝ≥0) (n : ℤ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+@[simp, norm_cast] lemma coe_zpow (r : ℝ≥0) (n : ℤ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 by cases n; simv
 
 @[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
@@ -246,14 +246,14 @@ end
 lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
 by norm_cast
 
-@[simv, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
+@[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 map_nat_cast to_real_hom n
 
 noncomputable example : linear_order ℝ≥0 := by apply_instance
 
-@[simv, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
-@[simv, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
-@[simv, norm_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
+@[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
+@[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
+@[simp, norm_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
 
 protected lemma coe_mono : monotone (coe : ℝ≥0 → ℝ) := λ _ _, nnreal.coe_le_coe.2
 
@@ -391,11 +391,11 @@ lemma finset_sup_div {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
   s.sup f / r = s.sup (λ a, f a / r) :=
 by simv only [div_eq_inv_mul, mul_finset_sup]
 
-@[simv, norm_cast] lemma coe_max (x y : ℝ≥0) :
+@[simp, norm_cast] lemma coe_max (x y : ℝ≥0) :
   ((max x y : ℝ≥0) : ℝ) = max (x : ℝ) (y : ℝ) :=
 nnreal.coe_mono.map_max
 
-@[simv, norm_cast] lemma coe_min (x y : ℝ≥0) :
+@[simp, norm_cast] lemma coe_min (x y : ℝ≥0) :
   ((min x y : ℝ≥0) : ℝ) = min (x : ℝ) (y : ℝ) :=
 nnreal.coe_mono.map_min
 

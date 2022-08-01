@@ -33,12 +33,12 @@ by refine_struct
   .. };
 intros; exact subsingleton.elim _ _
 
-@[simv, to_additive] lemma one_eq : (1 : punit) = star := rfl
-@[simv, to_additive] lemma mul_eq : x * y = star := rfl
+@[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
+@[simp, to_additive] lemma mul_eq : x * y = star := rfl
 -- `sub_eq` simplifies `punit.sub_eq`, but the latter is eligible for `dsimp`
-@[simv, nolint simp_nf, to_additive] lemma div_eq : x / y = star := rfl
+@[simp, nolint simp_nf, to_additive] lemma div_eq : x / y = star := rfl
 -- `neg_eq` simplifies `punit.neg_eq`, but the latter is eligible for `dsimp`
-@[simv, nolint simp_nf, to_additive] lemma inv_eq : x⁻¹ = star := rfl
+@[simp, nolint simp_nf, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 
 instance : comm_ring punit :=
 by refine

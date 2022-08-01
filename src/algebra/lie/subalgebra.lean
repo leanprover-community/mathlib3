@@ -116,7 +116,7 @@ iff.rfl
 
 lemma mem_coe {x : L} : x ∈ (L' : set L) ↔ x ∈ L' := iff.rfl
 
-@[simv, norm_cast] lemma coe_bracket (x y : L') : (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
+@[simp, norm_cast] lemma coe_bracket (x y : L') : (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
 
 lemma ext_iff (x y : L') : x = y ↔ (x : L) = y := subtype.ext_iff
 
@@ -303,7 +303,7 @@ instance : partial_order (lie_subalgebra R L) :=
 
 lemma le_def : K ≤ K' ↔ (K : set L) ⊆ K' := iff.rfl
 
-@[simv, norm_cast] lemma coe_submodule_le_coe_submodule : (K : submodule R L) ≤ K' ↔ K ≤ K' :=
+@[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (K : submodule R L) ≤ K' ↔ K ≤ K' :=
 iff.rfl
 
 instance : has_bot (lie_subalgebra R L) := ⟨0⟩

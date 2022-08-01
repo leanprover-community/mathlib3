@@ -377,7 +377,7 @@ and its range is `⋃ i, (U i : set α)` (`range_from_open_subsets_glue`).
 def from_open_subsets_glue : (of_open_subsets U).to_glue_data.glued ⟶ Top.of α :=
 multicoequalizer.desc _ _ (λ x, opens.inclusion _) (by { rintro ⟨i, j⟩, ext x, refl })
 
-@[simv, elementwise]
+@[simp, elementwise]
 lemma ι_from_open_subsets_glue (i : J) :
   (of_open_subsets U).to_glue_data.ι i ≫ from_open_subsets_glue U = opens.inclusion _ :=
 multicoequalizer.π_desc _ _ _ _ _

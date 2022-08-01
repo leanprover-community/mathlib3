@@ -365,7 +365,7 @@ noncomputable def colimit_limit_iso (F : J ⥤ K ⥤ C) :
 (is_limit_of_preserves colim (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _) ≪≫
   (has_limit.iso_of_nat_iso (colimit_flip_iso_comp_colim _).symm)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_colimit_limit_iso_limit_π (F : J ⥤ K ⥤ C) (a) (b) :
   colimit.ι (limit F) a ≫ (colimit_limit_iso F).hom ≫ limit.π (colimit F.flip) b =
   (limit.π F b).app a ≫ (colimit.ι F.flip a).app b :=

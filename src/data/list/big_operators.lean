@@ -20,18 +20,18 @@ namespace list
 section monoid
 variables [monoid M] [monoid N] [monoid P] {l l₁ l₂ : list M} {a : M}
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_nil : ([] : list M).prod = 1 := rfl
 
 @[to_additive]
 lemma prod_singleton : [a].prod = a := one_mul a
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_cons : (a :: l).prod = a * l.prod :=
 calc (a :: l).prod = foldl (*) (a * 1) l : by simv only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
 calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simv [list.prod]
   ... = l₁.prod * l₂.prod : foldl_assoc
@@ -40,7 +40,7 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simv [list
 lemma prod_concat : (l.concat a).prod = l.prod * a :=
 by rw [concat_eq_append, prod_append, prod_singleton]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_join {l : list (list M)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simv only [*, list.join, map, prod_append, prod_cons]]
 
@@ -48,7 +48,7 @@ by induction l; [refl, simv only [*, list.join, map, prod_append, prod_cons]]
 lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
-@[simv, priority 500, to_additive]
+@[simp, priority 500, to_additive]
 theorem prod_repeat (a : M) (n : ℕ) : (repeat a n).prod = a ^ n :=
 begin
   induction n with n ih,
@@ -84,7 +84,7 @@ begin
   { exact hf _ _ _ _ }
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_map_mul {α : Type*} [comm_monoid α] {l : list ι} {f g : ι → α} :
   (l.map $ λ i, f i * g i).prod = (l.map f).prod * (l.map g).prod :=
 l.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
@@ -103,14 +103,14 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list M) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
 | [] i := by simv
 | L 0 := by simv
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop] }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_take_succ :
   ∀ (L : list M) (i : ℕ) (p), (L.take (i + 1)).prod = (L.take i).prod * L.nth_le i p
 | [] i p := by cases p
@@ -343,7 +343,7 @@ lemma prod_reverse_noncomm : ∀ (L : list G), L.reverse.prod = (L.map (λ x, x�
 by simv [prod_inv_reverse]
 
 /-- Counterpart to `list.prod_take_succ` when we have an inverse operation -/
-@[simv, to_additive /-"Counterpart to `list.sum_take_succ` when we have an negation operation"-/]
+@[simp, to_additive /-"Counterpart to `list.sum_take_succ` when we have an negation operation"-/]
 lemma prod_drop_succ :
   ∀ (L : list G) (i : ℕ) (p), (L.drop (i + 1)).prod = (L.nth_le i p)⁻¹ * (L.drop i).prod
 | [] i p := false.elim (nat.not_lt_zero _ p)
@@ -454,7 +454,7 @@ begin
   exact (hadd _ _).trans (max_le_max le_rfl IH)
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_erase [decidable_eq M] [comm_monoid M] {a} :
   ∀ {l : list M}, a ∈ l → a * (l.erase a).prod = l.prod
 | (b :: l) h :=
@@ -511,8 +511,8 @@ section alternating
 section
 variables [has_one α] [has_mul α] [has_inv α]
 
-@[simv, to_additive] lemma alternating_prod_nil : alternating_prod ([] : list α) = 1 := rfl
-@[simv, to_additive] lemma alternating_prod_singleton (a : α) : alternating_prod [a] = a := rfl
+@[simp, to_additive] lemma alternating_prod_nil : alternating_prod ([] : list α) = 1 := rfl
+@[simp, to_additive] lemma alternating_prod_singleton (a : α) : alternating_prod [a] = a := rfl
 
 @[to_additive] lemma alternating_prod_cons_cons' (a b : α) (l : list α) :
   alternating_prod (a :: b :: l) = a * b⁻¹ * alternating_prod l := rfl
@@ -531,7 +531,7 @@ variables [comm_group α]
 | a (b :: l) :=
 by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv, mul_assoc]
 
-@[simv, to_additive] lemma alternating_prod_cons (a : α) (l : list α) :
+@[simp, to_additive] lemma alternating_prod_cons (a : α) (l : list α) :
   alternating_prod (a :: l) = a / alternating_prod l :=
 by rw [div_eq_mul_inv, alternating_prod_cons']
 

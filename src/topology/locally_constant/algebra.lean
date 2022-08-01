@@ -21,14 +21,14 @@ variables {X Y : Type*} [topological_space X]
 @[to_additive] instance [has_one Y] : has_one (locally_constant X Y) :=
 { one := const X 1 }
 
-@[simv, to_additive] lemma coe_one [has_one Y] : ⇑(1 : locally_constant X Y) = (1 : X → Y) := rfl
+@[simp, to_additive] lemma coe_one [has_one Y] : ⇑(1 : locally_constant X Y) = (1 : X → Y) := rfl
 
 @[to_additive] lemma one_apply [has_one Y] (x : X) : (1 : locally_constant X Y) x = 1 := rfl
 
 @[to_additive] instance [has_inv Y] : has_inv (locally_constant X Y) :=
 { inv := λ f, ⟨f⁻¹ , f.is_locally_constant.inv⟩ }
 
-@[simv, to_additive] lemma coe_inv [has_inv Y] (f : locally_constant X Y) : ⇑(f⁻¹) = f⁻¹ := rfl
+@[simp, to_additive] lemma coe_inv [has_inv Y] (f : locally_constant X Y) : ⇑(f⁻¹) = f⁻¹ := rfl
 
 @[to_additive] lemma inv_apply [has_inv Y] (f : locally_constant X Y) (x : X) :
   f⁻¹ x = (f x)⁻¹ := rfl
@@ -36,7 +36,7 @@ variables {X Y : Type*} [topological_space X]
 @[to_additive] instance [has_mul Y] : has_mul (locally_constant X Y) :=
 { mul := λ f g, ⟨f * g, f.is_locally_constant.mul g.is_locally_constant⟩ }
 
-@[simv, to_additive] lemma coe_mul [has_mul Y] (f g : locally_constant X Y) :
+@[simp, to_additive] lemma coe_mul [has_mul Y] (f g : locally_constant X Y) :
   ⇑(f * g) = f * g :=
 rfl
 

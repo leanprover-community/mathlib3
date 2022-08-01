@@ -122,7 +122,7 @@ begin
   { exact higher_faces_vanish.comp_P_eq_self, },
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma P_f_idem (q n : ℕ) :
   ((P q).f n : X _[n] ⟶ _) ≫ ((P q).f n) = (P q).f n :=
 begin
@@ -131,7 +131,7 @@ begin
   { exact (higher_faces_vanish.of_P q n).comp_P_eq_self, }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma P_idem (q : ℕ) : (P q : K[X] ⟶ K[X]) ≫ P q = P q :=
 by { ext n, exact P_f_idem q n, }
 
@@ -152,7 +152,7 @@ def nat_trans_P (q : ℕ) :
       exact (nat_trans_Hσ q).naturality' f, }
   end }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma P_f_naturality (q n : ℕ) {X Y : simplicial_object C} (f : X ⟶ Y) :
   f.app (op [n]) ≫ (P q).f n = (P q).f n ≫ f.app (op [n]) :=
 homological_complex.congr_hom ((nat_trans_P q).naturality f) n

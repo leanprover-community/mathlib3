@@ -30,7 +30,7 @@ def centralizer : submonoid M :=
   one_mem' := S.one_mem_centralizer,
   mul_mem' := λ a b, set.mul_mem_centralizer }
 
-@[simv, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
+@[simp, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
 
 lemma centralizer_to_subsemigroup : (centralizer S).to_subsemigroup = subsemigroup.centralizer S :=
 rfl
@@ -57,7 +57,7 @@ set.centralizer_subset h
 
 variables (M)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma centralizer_univ : centralizer set.univ = center M :=
 set_like.ext' (set.centralizer_univ M)
 

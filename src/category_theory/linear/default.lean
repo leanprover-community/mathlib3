@@ -50,7 +50,7 @@ class linear (R : Type w) [semiring R] (C : Type u) [category.{v} C] [preadditiv
 attribute [instance] linear.hom_module
 restate_axiom linear.smul_comp'
 restate_axiom linear.comp_smul'
-attribute [simv,reassoc] linear.smul_comp
+attribute [simp,reassoc] linear.smul_comp
 attribute [reassoc, simv] linear.comp_smul -- (the linter doesn't like `simv` on the `_assoc` lemma)
 
 end category_theory

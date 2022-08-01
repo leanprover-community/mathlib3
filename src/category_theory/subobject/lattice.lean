@@ -214,7 +214,7 @@ by { convert underlying_iso_hom_comp_eq_mk (𝟙 B), simv only [comp_id], }
 instance top_arrow_is_iso {B : C} : is_iso ((⊤ : subobject B).arrow) :=
 by { rw ←underlying_iso_top_hom, apply_instance, }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma underlying_iso_inv_top_arrow {B : C} :
   (underlying_iso _).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _

@@ -97,7 +97,7 @@ def of {f : M → N} (h : is_monoid_hom f) : M →* N :=
   map_mul' := h.1.1 }
 
 variables {mM mN}
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_of {f : M → N} (hf : is_monoid_hom f) : ⇑ (monoid_hom.of hf) = f :=
 rfl
 

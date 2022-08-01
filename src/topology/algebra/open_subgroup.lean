@@ -66,9 +66,9 @@ instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_su
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simv, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
-@[simv, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 
 @[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
@@ -148,11 +148,11 @@ instance : order_top (open_subgroup G) :=
 { top := ⊤,
   le_top := λ U, set.subset_univ _ }
 
-@[simv, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 
-@[simv, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
+@[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
 
-@[simv, norm_cast, to_additive] lemma coe_subgroup_le :
+@[simp, norm_cast, to_additive] lemma coe_subgroup_le :
 (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 variables {N : Type*} [group N] [topological_space N]
@@ -166,11 +166,11 @@ def comap (f : G →* N)
 { is_open' := H.is_open.preimage hf,
   .. (H : subgroup N).comap f }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
   (H.comap f hf : set G) = f ⁻¹' H := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_comap {H : open_subgroup N} {f : G →* N} {hf : continuous f} {x : G} :
   x ∈ H.comap f hf ↔ f x ∈ H := iff.rfl
 

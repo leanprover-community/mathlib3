@@ -124,21 +124,21 @@ def lift {W : A} (e : W ⟶ cokernel f) (he : e ≫ cokernel.desc f g w = 0) :
   W ⟶ homology f g w :=
 kernel.lift _ e he ≫ (homology_iso_kernel_desc _ _ _).inv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π'_desc' {W : A} (e : kernel g ⟶ W) (he : kernel.lift g f w ≫ e = 0) :
   π' f g w ≫ desc' f g w e he = e :=
 by { dsimp [π', desc'], simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_ι {W : A} (e : W ⟶ cokernel f) (he : e ≫ cokernel.desc f g w = 0) :
   lift f g w e he ≫ ι _ _ _ = e :=
 by { dsimp [ι, lift], simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma condition_π' : kernel.lift g f w ≫ π' f g w = 0 :=
 by { dsimp [π'], simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma condition_ι : ι f g w ≫ cokernel.desc f g w = 0 :=
 by { dsimp [ι], simv }
 
@@ -170,11 +170,11 @@ begin
   exact equalizer.hom_ext h,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π'_ι : π' f g w ≫ ι f g w = kernel.ι _ ≫ cokernel.π _ :=
 by { dsimp [π', ι, homology_iso_kernel_desc], simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π'_eq_π : (kernel_subobject_iso _).hom ≫ π' f g w = π _ _ _ :=
 begin
   dsimp [π', homology_iso_cokernel_lift],
@@ -188,7 +188,7 @@ section
 
 variables {X' Y' Z' : A} (f' : X' ⟶ Y') (g' : Y' ⟶ Z') (w' : f' ≫ g' = 0)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma π'_map (α β h) :
   π' _ _ _ ≫ map w w' α β h = kernel.map _ _ α.right β.right (by simv [h,β.w.symm]) ≫ π' _ _ _ :=
 begin
@@ -251,7 +251,7 @@ lemma map_eq_lift_desc'_right (α β h) : map w w' α β h =
   (by { ext, simv [h] }) :=
 by { rw map_eq_desc'_lift_right, ext, simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma map_ι (α β h) :
   map w w' α β h ≫ ι f' g' w' = ι f g w ≫ cokernel.map f f' α.left β.left (by simv [h, β.w.symm]) :=
 begin

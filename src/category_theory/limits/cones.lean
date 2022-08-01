@@ -110,7 +110,7 @@ instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
    π :=
    { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
-@[simv, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
 by { rw ← c.π.naturality f, apply id_comp }
 
@@ -130,7 +130,7 @@ instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
    ι :=
   { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
-@[simv, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
 by { rw c.ι.naturality f, apply comp_id }
 
@@ -200,7 +200,7 @@ commutes with the cone legs. -/
 (w'  : ∀ j : J, hom ≫ B.π.app j = A.π.app j . obviously)
 
 restate_axiom cone_morphism.w'
-attribute [simv, reassoc] cone_morphism.w
+attribute [simp, reassoc] cone_morphism.w
 
 instance inhabited_cone_morphism (A : cone F) : inhabited (cone_morphism A A) :=
 ⟨{ hom := 𝟙 _ }⟩
@@ -362,7 +362,7 @@ instance inhabited_cocone_morphism (A : cocone F) : inhabited (cocone_morphism A
 ⟨{ hom := 𝟙 _ }⟩
 
 restate_axiom cocone_morphism.w'
-attribute [simv, reassoc] cocone_morphism.w
+attribute [simp, reassoc] cocone_morphism.w
 
 @[simps] instance cocone.category : category (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,

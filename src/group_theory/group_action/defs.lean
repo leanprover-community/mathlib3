@@ -72,7 +72,7 @@ lemma smul_left_injective' [has_smul M α] [has_faithful_smul M α] :
 @[priority 910, to_additive] -- see Note [lower instance priority]
 instance has_mul.to_has_smul (α : Type*) [has_mul α] : has_smul α α := ⟨(*)⟩
 
-@[simv, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
+@[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
 @[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -244,7 +244,7 @@ variables [has_smul M α]
 
 /-- Auxiliary definition for `has_smul.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
-@[simv, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
+@[simp, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
 def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 
@@ -346,7 +346,7 @@ variables [monoid M] [mul_action M α]
 (mul_smul _ _ _).symm
 
 variable (M)
-@[simv, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
+@[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
 
 /-- `has_smul` version of `one_mul_eq_id` -/
 @[to_additive]
@@ -438,7 +438,7 @@ add_decl_doc add_action.to_fun
 
 variables {M α}
 
-@[simv, to_additive] lemma to_fun_apply (x : M) (y : α) : mul_action.to_fun M α y x = x • y :=
+@[simp, to_additive] lemma to_fun_apply (x : M) (y : α) : mul_action.to_fun M α y x = x • y :=
 rfl
 
 variable (α)
@@ -474,7 +474,7 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 by rw [smul_mul_assoc, one_mul]
 
-@[simv, to_additive] lemma mul_smul_one
+@[simp, to_additive] lemma mul_smul_one
   {M N} [mul_one_class N] [has_smul M N] [smul_comm_class M N N] (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]

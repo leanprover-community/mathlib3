@@ -82,7 +82,7 @@ instance {X : Type*} [topological_space X] : can_lift C(X, ℝ) C(X, ℝ≥0) :=
   cond := λ f, ∀ x, 0 ≤ f x,
   prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, continuous_subtype_mk _ f.2⟩, fun_like.ext' rfl⟩ }
 
-@[simv, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
+@[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
   tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
 tendsto_subtype_rng.symm
 
@@ -96,7 +96,7 @@ map_coe_Ici_at_top 0
 lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
 (at_top_Ici_eq 0).symm
 
-@[simv, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
+@[simp, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 

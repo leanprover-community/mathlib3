@@ -280,7 +280,7 @@ def basis.constrL (v : basis ι 𝕜 E) (f : ι → F) :
 by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
   exact (v.constr 𝕜 f).to_continuous_linear_map
 
-@[simv, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
+@[simp, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
   (v.constrL f : E →ₗ[𝕜] F) = v.constr 𝕜 f := rfl
 
 /-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and

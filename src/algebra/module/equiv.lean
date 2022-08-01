@@ -97,7 +97,7 @@ lemma to_linear_map_injective :
   injective (coe : (M ≃ₛₗ[σ] M₂) → (M →ₛₗ[σ] M₂)) :=
 λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
 
-@[simv, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₛₗ[σ] M₂} :
+@[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₛₗ[σ] M₂} :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
 
@@ -124,7 +124,7 @@ variables (e e' : M ≃ₛₗ[σ] M₂)
 
 lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
 
-@[simv, norm_cast] theorem coe_coe : ⇑(e : M →ₛₗ[σ] M₂) = e := rfl
+@[simp, norm_cast] theorem coe_coe : ⇑(e : M →ₛₗ[σ] M₂) = e := rfl
 
 @[simp] lemma coe_to_equiv : ⇑e.to_equiv = e := rfl
 
@@ -303,11 +303,11 @@ by { ext x, simv }
   f.symm.trans f = linear_equiv.refl R M₂ :=
 by { ext x, simv }
 
-@[simv, norm_cast] lemma refl_to_linear_map [module R M] :
+@[simp, norm_cast] lemma refl_to_linear_map [module R M] :
   (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
 rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma comp_coe [module R M] [module R M₂] [module R M₃] (f :  M ≃ₗ[R] M₂)
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M ≃ₗ[R] M₃) :=
 rfl

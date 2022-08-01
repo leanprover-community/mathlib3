@@ -116,7 +116,7 @@ by rw [add_comm, top_add]
 @[simp] lemma coe_get {x : part_enat} (h : x.dom) : (x.get h : part_enat) = x :=
 by { rw [← some_eq_coe], exact part.ext' (iff_of_true trivial h) (λ _ _, rfl) }
 
-@[simv, norm_cast] lemma get_coe' (x : ℕ) (h : (x : part_enat).dom) : get (x : part_enat) h = x :=
+@[simp, norm_cast] lemma get_coe' (x : ℕ) (h : (x : part_enat).dom) : get (x : part_enat) h = x :=
 by rw [← coe_inj, coe_get]
 
 lemma get_coe {x : ℕ} : get (x : part_enat) (dom_coe x) = x := get_coe' _ _
@@ -184,10 +184,10 @@ begin
   { rintro ⟨hx, H⟩, exact ⟨⟨λ _, hx, λ hy, (H hy).le⟩, λ hxy h, not_lt_of_le (h _) (H _)⟩ }
 end
 
-@[simv, norm_cast] lemma coe_le_coe {x y : ℕ} : (x : part_enat) ≤ y ↔ x ≤ y :=
+@[simp, norm_cast] lemma coe_le_coe {x y : ℕ} : (x : part_enat) ≤ y ↔ x ≤ y :=
 by { rw [← some_eq_coe, ← some_eq_coe], exact ⟨λ ⟨_, h⟩, h trivial, λ h, ⟨λ _, trivial, λ _, h⟩⟩ }
 
-@[simv, norm_cast] lemma coe_lt_coe {x y : ℕ} : (x : part_enat) < y ↔ x < y :=
+@[simp, norm_cast] lemma coe_lt_coe {x y : ℕ} : (x : part_enat) < y ↔ x < y :=
 by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
 
 @[simp] lemma get_le_get {x y : part_enat} {hx : x.dom} {hy : y.dom} :

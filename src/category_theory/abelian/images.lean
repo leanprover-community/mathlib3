@@ -47,7 +47,7 @@ protected abbreviation factor_thru_image : P ⟶ abelian.image f :=
 kernel.lift (cokernel.π f) f $ cokernel.condition f
 
 /-- `f` factors through its image via the canonical morphism `p`. -/
-@[simv, reassoc] protected lemma image.fac :
+@[simp, reassoc] protected lemma image.fac :
   abelian.factor_thru_image f ≫ image.ι f = f :=
 kernel.lift_ι _ _ _
 
@@ -100,7 +100,7 @@ lemma coimage_image_comparison_eq_coimage_image_comparison' :
   coimage_image_comparison f = coimage_image_comparison' f :=
 by { ext, simv [coimage_image_comparison, coimage_image_comparison'], }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coimage_image_factorisation :
   coimage.π f ≫ coimage_image_comparison f ≫ image.ι f = f :=
 by simv [coimage_image_comparison]

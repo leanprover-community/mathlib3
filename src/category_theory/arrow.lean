@@ -79,10 +79,10 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   right := v,
   w' := w }
 
-@[simv, reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
+@[simp, reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
 
 -- `w_mk_left` is not needed, as it is a consequence of `w` and `mk_hom`.
-@[simv, reassoc] lemma w_mk_right {f : arrow T} {X Y : T} {g : X ⟶ Y} (sq : f ⟶ mk g) :
+@[simp, reassoc] lemma w_mk_right {f : arrow T} {X Y : T} {g : X ⟶ Y} (sq : f ⟶ mk g) :
   sq.left ≫ g = f.hom ≫ sq.right :=
 sq.w
 
@@ -182,7 +182,7 @@ mk' :: (exists_lift : nonempty (lift_struct sq))
 lemma has_lift.mk {f g : arrow T} {sq : f ⟶ g} (s : lift_struct sq) : has_lift sq :=
 ⟨nonempty.intro s⟩
 
-attribute [simv, reassoc] lift_struct.fac_left lift_struct.fac_right
+attribute [simp, reassoc] lift_struct.fac_left lift_struct.fac_right
 
 /-- Given `has_lift sq`, obtain a lift. -/
 noncomputable def has_lift.struct {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift_struct sq :=
@@ -198,22 +198,22 @@ by simv
 lemma lift.fac_right {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift sq ≫ g.hom = sq.right :=
 by simv
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift.fac_right_of_to_mk {X Y : T} {f : arrow T} {g : X ⟶ Y} (sq : f ⟶ mk g) [has_lift sq] :
   lift sq ≫ g = sq.right :=
 by simv only [←mk_hom g, lift.fac_right]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift.fac_left_of_from_mk {X Y : T} {f : X ⟶ Y} {g : arrow T} (sq : mk f ⟶ g) [has_lift sq] :
   f ≫ lift sq = sq.left :=
 by simv only [←mk_hom f, lift.fac_left]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_mk'_left {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : f ≫ lift (arrow.hom_mk' h) = u :=
 by simv only [←arrow.mk_hom f, lift.fac_left, arrow.hom_mk'_left]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_mk'_right {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : lift (arrow.hom_mk' h) ≫ g = v :=
 by simv only [←arrow.mk_hom g, lift.fac_right, arrow.hom_mk'_right]

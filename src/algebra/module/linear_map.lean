@@ -209,7 +209,7 @@ def id : M →ₗ[R] M :=
 lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
 
-@[simv, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
+@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
 
 end
 
@@ -314,7 +314,7 @@ instance is_scalar_tower.compatible_smul
   [has_smul R M₂] [module S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
 ⟨λ fₗ c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (fₗ x), map_smul]⟩
 
-@[simv, priority 900]
+@[simp, priority 900]
 lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M]
   [module S M] [has_smul R M₂] [module S M₂]
   [compatible_smul M M₂ R S] (fₗ : M →ₗ[S] M₂) (c : R) (x : M) :
@@ -414,7 +414,7 @@ lemma comp_apply (x : M₁) : f.comp g x = f (g x) := rfl
 omit σ₁₃
 
 include σ₁₃
-@[simv, norm_cast] lemma coe_comp : (f.comp g : M₁ → M₃) = f ∘ g := rfl
+@[simp, norm_cast] lemma coe_comp : (f.comp g : M₁ → M₃) = f ∘ g := rfl
 omit σ₁₃
 
 @[simp] theorem comp_id : f.comp id = f :=
@@ -505,7 +505,7 @@ instance : has_coe (M →+[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
   f.to_linear_map = ↑f :=
 rfl
 
-@[simv, norm_cast] lemma coe_to_linear_map (f : M →+[R] M₂) :
+@[simp, norm_cast] lemma coe_to_linear_map (f : M →+[R] M₂) :
   ((f : M →ₗ[R] M₂) : M → M₂) = f :=
 rfl
 

@@ -96,7 +96,7 @@ def flip {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P} (f :
   map_one' := ext $ λ x, (f x).map_one,
   map_mul' := λ y₁ y₂, ext $ λ x, (f x).map_mul y₁ y₂ }
 
-@[simv, to_additive] lemma flip_apply
+@[simp, to_additive] lemma flip_apply
   {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
   (f : M →* N →* P) (x : M) (y : N) :
   f.flip y x = f x y :=
@@ -172,7 +172,7 @@ def compl₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class 
   (f : M →* N →* P) (g : Q →* N) : M →* Q →* P :=
 (comp_hom' g).comp f
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma compl₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class Q]
   (f : M →* N →* P) (g : Q →* N) (m : M) (q : Q) :
   (compl₂ f g) m q = f m (g q) := rfl
@@ -185,7 +185,7 @@ def compr₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M →* N →* P) (g : P →* Q) : M →* N →* Q :=
 (comp_hom g).comp f
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma compr₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M →* N →* P) (g : P →* Q) (m : M) (n : N) :
   (compr₂ f g) m n = g (f m n) := rfl

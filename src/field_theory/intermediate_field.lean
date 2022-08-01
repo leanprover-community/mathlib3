@@ -228,7 +228,7 @@ namespace intermediate_field
 instance to_field : field S :=
 S.to_subfield.to_field
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_sum {ι : Type*} [fintype ι] (f : ι → S) : (↑∑ i, f i : L) = ∑ i, (f i : L) :=
 begin
   classical,
@@ -237,7 +237,7 @@ begin
   { rw [finset.sum_insert hi, add_mem_class.coe_add, H, finset.sum_insert hi] }
 end
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_prod {ι : Type*} [fintype ι] (f : ι → S) : (↑∏ i, f i : L) = ∏ i, (f i : L) :=
 begin
   classical,

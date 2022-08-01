@@ -157,26 +157,26 @@ def simps.symm_apply (e : local_equiv α β) : β → α := e.symm
 
 initialize_simps_projections local_equiv (to_fun → apply, inv_fun → symm_apply)
 
-@[simv, mfld_simps] theorem coe_mk (f : α → β) (g s t ml mr il ir) :
+@[simp, mfld_simps] theorem coe_mk (f : α → β) (g s t ml mr il ir) :
   (local_equiv.mk f g s t ml mr il ir : α → β) = f := rfl
 
-@[simv, mfld_simps] theorem coe_symm_mk (f : α → β) (g s t ml mr il ir) :
+@[simp, mfld_simps] theorem coe_symm_mk (f : α → β) (g s t ml mr il ir) :
   ((local_equiv.mk f g s t ml mr il ir).symm : β → α) = g := rfl
 
-@[simv, mfld_simps] lemma to_fun_as_coe : e.to_fun = e := rfl
+@[simp, mfld_simps] lemma to_fun_as_coe : e.to_fun = e := rfl
 
-@[simv, mfld_simps] lemma inv_fun_as_coe : e.inv_fun = e.symm := rfl
+@[simp, mfld_simps] lemma inv_fun_as_coe : e.inv_fun = e.symm := rfl
 
-@[simv, mfld_simps] lemma map_source {x : α} (h : x ∈ e.source) : e x ∈ e.target :=
+@[simp, mfld_simps] lemma map_source {x : α} (h : x ∈ e.source) : e x ∈ e.target :=
 e.map_source' h
 
-@[simv, mfld_simps] lemma map_target {x : β} (h : x ∈ e.target) : e.symm x ∈ e.source :=
+@[simp, mfld_simps] lemma map_target {x : β} (h : x ∈ e.target) : e.symm x ∈ e.source :=
 e.map_target' h
 
-@[simv, mfld_simps] lemma left_inv {x : α} (h : x ∈ e.source) : e.symm (e x) = x :=
+@[simp, mfld_simps] lemma left_inv {x : α} (h : x ∈ e.source) : e.symm (e x) = x :=
 e.left_inv' h
 
-@[simv, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
+@[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
 lemma eq_symm_apply {x : α} {y : β} (hx : x ∈ e.source) (hy : y ∈ e.target) :
@@ -232,9 +232,9 @@ protected def to_equiv : equiv (e.source) (e.target) :=
   left_inv  := λ⟨x, hx⟩, subtype.eq $ e.left_inv hx,
   right_inv := λ⟨y, hy⟩, subtype.eq $ e.right_inv hy }
 
-@[simv, mfld_simps] lemma symm_source : e.symm.source = e.target := rfl
-@[simv, mfld_simps] lemma symm_target : e.symm.target = e.source := rfl
-@[simv, mfld_simps] lemma symm_symm : e.symm.symm = e := by { cases e, refl }
+@[simp, mfld_simps] lemma symm_source : e.symm.source = e.target := rfl
+@[simp, mfld_simps] lemma symm_target : e.symm.target = e.source := rfl
+@[simp, mfld_simps] lemma symm_symm : e.symm.symm = e := by { cases e, refl }
 
 lemma image_source_eq_target : e '' e.source = e.target := e.bij_on.image_eq
 
@@ -425,32 +425,32 @@ end
 protected def restr (s : set α) : local_equiv α β :=
 (@is_image.of_symm_preimage_eq α β e s (e.symm ⁻¹' s) rfl).restr
 
-@[simv, mfld_simps] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
-@[simv, mfld_simps] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
-@[simv, mfld_simps] lemma restr_source (s : set α) : (e.restr s).source = e.source ∩ s := rfl
-@[simv, mfld_simps] lemma restr_target (s : set α) :
+@[simp, mfld_simps] lemma restr_coe (s : set α) : (e.restr s : α → β) = e := rfl
+@[simp, mfld_simps] lemma restr_coe_symm (s : set α) : ((e.restr s).symm : β → α) = e.symm := rfl
+@[simp, mfld_simps] lemma restr_source (s : set α) : (e.restr s).source = e.source ∩ s := rfl
+@[simp, mfld_simps] lemma restr_target (s : set α) :
   (e.restr s).target = e.target ∩ e.symm ⁻¹' s := rfl
 
 lemma restr_eq_of_source_subset {e : local_equiv α β} {s : set α} (h : e.source ⊆ s) :
   e.restr s = e :=
 local_equiv.ext (λ_, rfl) (λ_, rfl) (by simv [inter_eq_self_of_subset_left h])
 
-@[simv, mfld_simps] lemma restr_univ {e : local_equiv α β} : e.restr univ = e :=
+@[simp, mfld_simps] lemma restr_univ {e : local_equiv α β} : e.restr univ = e :=
 restr_eq_of_source_subset (subset_univ _)
 
 /-- The identity local equiv -/
 protected def refl (α : Type*) : local_equiv α α := (equiv.refl α).to_local_equiv
 
-@[simv, mfld_simps] lemma refl_source : (local_equiv.refl α).source = univ := rfl
-@[simv, mfld_simps] lemma refl_target : (local_equiv.refl α).target = univ := rfl
-@[simv, mfld_simps] lemma refl_coe : (local_equiv.refl α : α → α) = id := rfl
-@[simv, mfld_simps] lemma refl_symm : (local_equiv.refl α).symm = local_equiv.refl α := rfl
+@[simp, mfld_simps] lemma refl_source : (local_equiv.refl α).source = univ := rfl
+@[simp, mfld_simps] lemma refl_target : (local_equiv.refl α).target = univ := rfl
+@[simp, mfld_simps] lemma refl_coe : (local_equiv.refl α : α → α) = id := rfl
+@[simp, mfld_simps] lemma refl_symm : (local_equiv.refl α).symm = local_equiv.refl α := rfl
 
-@[simv, mfld_simps] lemma refl_restr_source (s : set α) :
+@[simp, mfld_simps] lemma refl_restr_source (s : set α) :
   ((local_equiv.refl α).restr s).source = s :=
 by simv
 
-@[simv, mfld_simps] lemma refl_restr_target (s : set α) :
+@[simp, mfld_simps] lemma refl_restr_target (s : set α) :
   ((local_equiv.refl α).restr s).target = s :=
 by { change univ ∩ id⁻¹' s = s, simv }
 
@@ -465,10 +465,10 @@ def of_set (s : set α) : local_equiv α α :=
   left_inv'   := λx hx, rfl,
   right_inv'  := λx hx, rfl }
 
-@[simv, mfld_simps] lemma of_set_source (s : set α) : (local_equiv.of_set s).source = s := rfl
-@[simv, mfld_simps] lemma of_set_target (s : set α) : (local_equiv.of_set s).target = s := rfl
-@[simv, mfld_simps] lemma of_set_coe (s : set α) : (local_equiv.of_set s : α → α) = id := rfl
-@[simv, mfld_simps] lemma of_set_symm (s : set α) :
+@[simp, mfld_simps] lemma of_set_source (s : set α) : (local_equiv.of_set s).source = s := rfl
+@[simp, mfld_simps] lemma of_set_target (s : set α) : (local_equiv.of_set s).target = s := rfl
+@[simp, mfld_simps] lemma of_set_coe (s : set α) : (local_equiv.of_set s : α → α) = id := rfl
+@[simp, mfld_simps] lemma of_set_symm (s : set α) :
   (local_equiv.of_set s).symm = local_equiv.of_set s := rfl
 
 /-- Composing two local equivs if the target of the first coincides with the source of the
@@ -489,14 +489,14 @@ is well defined. -/
 protected def trans : local_equiv α γ :=
   local_equiv.trans' (e.symm.restr (e'.source)).symm (e'.restr (e.target)) (inter_comm _ _)
 
-@[simv, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
-@[simv, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+@[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
+@[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
 lemma trans_apply {x : α} : (e.trans e') x = e' (e x) := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
 
-@[simv, mfld_simps] lemma trans_source : (e.trans e').source = e.source ∩ e ⁻¹' e'.source := rfl
+@[simp, mfld_simps] lemma trans_source : (e.trans e').source = e.source ∩ e ⁻¹' e'.source := rfl
 
 lemma trans_source' : (e.trans e').source = e.source ∩ e ⁻¹' (e.target ∩ e'.source) :=
 by mfld_set_tac
@@ -507,7 +507,7 @@ by rw [e.trans_source', e.symm_image_target_inter_eq]
 lemma image_trans_source : e '' (e.trans e').source = e.target ∩ e'.source :=
 (e.symm.restr e'.source).symm.image_source_eq_target
 
-@[simv, mfld_simps] lemma trans_target :
+@[simp, mfld_simps] lemma trans_target :
   (e.trans e').target = e'.target ∩ e'.symm ⁻¹' e.target := rfl
 
 lemma trans_target' : (e.trans e').target = e'.target ∩ e'.symm ⁻¹' (e'.source ∩ e.target) :=
@@ -522,10 +522,10 @@ image_trans_source e'.symm e.symm
 lemma trans_assoc (e'' : local_equiv γ δ) : (e.trans e').trans e'' = e.trans (e'.trans e'') :=
 local_equiv.ext (λx, rfl) (λx, rfl) (by simv [trans_source, @preimage_comp α β γ, inter_assoc])
 
-@[simv, mfld_simps] lemma trans_refl : e.trans (local_equiv.refl β) = e :=
+@[simp, mfld_simps] lemma trans_refl : e.trans (local_equiv.refl β) = e :=
 local_equiv.ext (λx, rfl) (λx, rfl) (by simv [trans_source])
 
-@[simv, mfld_simps] lemma refl_trans : (local_equiv.refl α).trans e = e :=
+@[simp, mfld_simps] lemma refl_trans : (local_equiv.refl α).trans e = e :=
 local_equiv.ext (λx, rfl) (λx, rfl) (by simv [trans_source, preimage_id])
 
 lemma trans_refl_restr (s : set β) :
@@ -675,23 +675,23 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
   left_inv'   := λp hp, by { simv at hp, simv [hp] },
   right_inv'  := λp hp, by { simv at hp, simv [hp] } }
 
-@[simv, mfld_simps] lemma prod_source (e : local_equiv α β) (e' : local_equiv γ δ) :
+@[simp, mfld_simps] lemma prod_source (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').source = e.source ×ˢ e'.source := rfl
 
-@[simv, mfld_simps] lemma prod_target (e : local_equiv α β) (e' : local_equiv γ δ) :
+@[simp, mfld_simps] lemma prod_target (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').target = e.target ×ˢ e'.target := rfl
 
-@[simv, mfld_simps] lemma prod_coe (e : local_equiv α β) (e' : local_equiv γ δ) :
+@[simp, mfld_simps] lemma prod_coe (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e') : α × γ → β × δ) = (λp, (e p.1, e' p.2)) := rfl
 
 lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e').symm : β × δ → α × γ) = (λp, (e.symm p.1, e'.symm p.2)) := rfl
 
-@[simv, mfld_simps] lemma prod_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
+@[simp, mfld_simps] lemma prod_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 by ext x; simv [prod_coe_symm]
 
-@[simv, mfld_simps] lemma prod_trans {η : Type*} {ε : Type*}
+@[simp, mfld_simps] lemma prod_trans {η : Type*} {ε : Type*}
   (e : local_equiv α β) (f : local_equiv β γ) (e' : local_equiv δ η) (f' : local_equiv η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
 by ext x; simv [ext_iff]; tauto
@@ -777,7 +777,7 @@ between `α` and `β`. -/
   right_inv'  := hf.inv_on_inv_fun_on.2 }
 
 /-- A map injective on a subset of its domain provides a local equivalence. -/
-@[simv, mfld_simps] noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α)
+@[simp, mfld_simps] noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α)
   (hf : inj_on f s) :
   local_equiv α β :=
 hf.bij_on_image.to_local_equiv f s (f '' s)
@@ -789,10 +789,10 @@ namespace equiv
 equiv to that of the equiv. -/
 variables (e : α ≃ β) (e' : β ≃ γ)
 
-@[simv, mfld_simps] lemma refl_to_local_equiv :
+@[simp, mfld_simps] lemma refl_to_local_equiv :
   (equiv.refl α).to_local_equiv = local_equiv.refl α := rfl
-@[simv, mfld_simps] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
-@[simv, mfld_simps] lemma trans_to_local_equiv :
+@[simp, mfld_simps] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl
+@[simp, mfld_simps] lemma trans_to_local_equiv :
   (e.trans e').to_local_equiv = e.to_local_equiv.trans e'.to_local_equiv :=
 local_equiv.ext (λx, rfl) (λx, rfl) (by simv [local_equiv.trans_source, equiv.to_local_equiv])
 

@@ -40,25 +40,25 @@ rfl
 lemma prod_eq_foldl (s : multiset α) : prod s = foldl (*) (λ x y z, by simv [mul_right_comm]) 1 s :=
 (foldr_swap _ _ _ _).trans (by simv [mul_comm])
 
-@[simv, norm_cast, to_additive] lemma coe_prod (l : list α) : prod ↑l = l.prod := prod_eq_foldl _
+@[simp, norm_cast, to_additive] lemma coe_prod (l : list α) : prod ↑l = l.prod := prod_eq_foldl _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_to_list (s : multiset α) : s.to_list.prod = s.prod :=
 begin
   conv_rhs { rw ←coe_to_list s },
   rw coe_prod,
 end
 
-@[simv, to_additive] lemma prod_zero : @prod α _ 0 = 1 := rfl
+@[simp, to_additive] lemma prod_zero : @prod α _ 0 = 1 := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _ _ _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_erase [decidable_eq α] (h : a ∈ s) : a * (s.erase a).prod = s.prod :=
 by rw [← s.coe_to_list, coe_erase, coe_prod, coe_prod, list.prod_erase ((s.mem_to_list a).2 h)]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=
 by simv only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
 
@@ -66,7 +66,7 @@ by simv only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero
 lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
 by rw [insert_eq_cons, prod_cons, prod_singleton]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_add (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simv
 
@@ -75,7 +75,7 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
-@[simv, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
+@[simp, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
 by simv [repeat, list.prod_repeat]
 
 @[to_additive]
@@ -109,7 +109,7 @@ quotient.induction_on s $ λ l,
 @[to_additive]
 lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod_repeat, one_pow]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
 m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
@@ -205,10 +205,10 @@ variables [division_comm_monoid α] {m : multiset ι} {f g : ι → α}
 @[to_additive] lemma prod_map_inv' (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
 m.prod_hom (inv_monoid_hom : α →* α)
 
-@[simv, to_additive] lemma prod_map_inv : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
+@[simp, to_additive] lemma prod_map_inv : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
 by { convert (m.map f).prod_map_inv', rw map_map }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
 m.prod_hom₂ (/) mul_div_mul_comm (div_one _) _ _
 

@@ -21,10 +21,10 @@ section inv_neg
 variables {G : Type*} [group G] [preorder G] [covariant_class G G (*) (≤)]
   [covariant_class G G (swap (*)) (≤)] {s : set G} {a : G}
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma bdd_above_inv : bdd_above s⁻¹ ↔ bdd_below s := (order_iso.inv G).bdd_above_preimage
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma bdd_below_inv : bdd_below s⁻¹ ↔ bdd_above s := (order_iso.inv G).bdd_below_preimage
 
 @[to_additive]
@@ -33,7 +33,7 @@ lemma bdd_above.inv (h : bdd_above s) : bdd_below s⁻¹ := bdd_below_inv.2 h
 @[to_additive]
 lemma bdd_below.inv (h : bdd_below s) : bdd_above s⁻¹ := bdd_above_inv.2 h
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma is_lub_inv : is_lub s⁻¹ a ↔ is_glb s a⁻¹ := (order_iso.inv G).is_lub_preimage
 
 @[to_additive]
@@ -42,7 +42,7 @@ lemma is_lub_inv' : is_lub s⁻¹ a⁻¹ ↔ is_glb s a := (order_iso.inv G).is_
 @[to_additive]
 lemma is_glb.inv (h : is_glb s a) : is_lub s⁻¹ a⁻¹ := is_lub_inv'.2 h
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma is_glb_inv : is_glb s⁻¹ a ↔ is_lub s a⁻¹ := (order_iso.inv G).is_glb_preimage
 
 @[to_additive]

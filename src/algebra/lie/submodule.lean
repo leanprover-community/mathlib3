@@ -139,17 +139,17 @@ instance : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
 
-@[simv, norm_cast] lemma coe_zero : ((0 : N) : M) = (0 : M) := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : N) : M) = (0 : M) := rfl
 
-@[simv, norm_cast] lemma coe_add (m m' : N) : (↑(m + m') : M) = (m : M) + (m' : M) := rfl
+@[simp, norm_cast] lemma coe_add (m m' : N) : (↑(m + m') : M) = (m : M) + (m' : M) := rfl
 
-@[simv, norm_cast] lemma coe_neg (m : N) : (↑(-m) : M) = -(m : M) := rfl
+@[simp, norm_cast] lemma coe_neg (m : N) : (↑(-m) : M) = -(m : M) := rfl
 
-@[simv, norm_cast] lemma coe_sub (m m' : N) : (↑(m - m') : M) = (m : M) - (m' : M) := rfl
+@[simp, norm_cast] lemma coe_sub (m m' : N) : (↑(m - m') : M) = (m : M) - (m' : M) := rfl
 
-@[simv, norm_cast] lemma coe_smul (t : R) (m : N) : (↑(t • m) : M) = t • (m : M) := rfl
+@[simp, norm_cast] lemma coe_smul (t : R) (m : N) : (↑(t • m) : M) = t • (m : M) := rfl
 
-@[simv, norm_cast] lemma coe_bracket (x : L) (m : N) : (↑⁅x, m⁆ : M) = ⁅x, ↑m⁆ := rfl
+@[simp, norm_cast] lemma coe_bracket (x : L) (m : N) : (↑⁅x, m⁆ : M) = ⁅x, ↑m⁆ := rfl
 
 end lie_submodule
 
@@ -267,7 +267,7 @@ open set
 lemma coe_injective : function.injective (coe : lie_submodule R L M → set M) :=
 set_like.coe_injective
 
-@[simv, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' :=
+@[simp, norm_cast] lemma coe_submodule_le_coe_submodule : (N : submodule R M) ≤ N' ↔ N ≤ N' :=
 iff.rfl
 
 instance : has_bot (lie_submodule R L M) := ⟨0⟩

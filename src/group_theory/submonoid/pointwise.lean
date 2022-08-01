@@ -62,14 +62,14 @@ protected def has_inv : has_inv (submonoid G):=
 localized "attribute [instance] submonoid.has_inv" in pointwise
 open_locale pointwise
 
-@[simv, to_additive] lemma coe_inv (S : submonoid G) : ↑(S⁻¹) = (S : set G)⁻¹ := rfl
+@[simp, to_additive] lemma coe_inv (S : submonoid G) : ↑(S⁻¹) = (S : set G)⁻¹ := rfl
 
-@[simv, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
+@[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
 @[to_additive] instance : has_involutive_inv (submonoid G) :=
 set_like.coe_injective.has_involutive_inv _ $ λ _, rfl
 
-@[simv, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
+@[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
 
 @[to_additive] lemma inv_le (S T : submonoid G) : S⁻¹ ≤ T ↔ S ≤ T⁻¹ :=
@@ -90,27 +90,27 @@ begin
     exact subset_closure }
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_inf (S T : submonoid G) : (S ⊓ T)⁻¹ = S⁻¹ ⊓ T⁻¹ :=
 set_like.coe_injective set.inter_inv
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
 (inv_order_iso : submonoid G ≃o submonoid G).map_sup S T
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
 set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ inv_one
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=
 set_like.coe_injective $ set.inv_univ
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_infi {ι : Sort*} (S : ι → submonoid G) : (⨅ i, S i)⁻¹ = ⨅ i, (S i)⁻¹ :=
 (inv_order_iso : submonoid G ≃o submonoid G).map_infi _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_supr {ι : Sort*} (S : ι → submonoid G) : (⨆ i, S i)⁻¹ = ⨆ i, (S i)⁻¹ :=
 (inv_order_iso : submonoid G ≃o submonoid G).map_supr _
 

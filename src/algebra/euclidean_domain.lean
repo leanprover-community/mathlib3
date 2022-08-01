@@ -154,15 +154,15 @@ mod_eq_zero.2 (one_dvd _)
 @[simp] lemma zero_mod (b : R) : 0 % b = 0 :=
 mod_eq_zero.2 (dvd_zero _)
 
-@[simv, priority 900] lemma div_zero (a : R) : a / 0 = 0 :=
+@[simp, priority 900] lemma div_zero (a : R) : a / 0 = 0 :=
 euclidean_domain.quotient_zero a
 
-@[simv, priority 900] lemma zero_div {a : R} : 0 / a = 0 :=
+@[simp, priority 900] lemma zero_div {a : R} : 0 / a = 0 :=
 classical.by_cases
   (λ a0 : a = 0, a0.symm ▸ div_zero 0)
   (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
 
-@[simv, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
+@[simp, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
 
 lemma eq_div_of_mul_eq_left {a b c : R} (hb : b ≠ 0) (h : a * b = c) : a = c / b :=
@@ -179,7 +179,7 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
-@[simv, priority 900] -- This generalizes `int.div_one`, see note [simv-normal form]
+@[simp, priority 900] -- This generalizes `int.div_one`, see note [simv-normal form]
 lemma div_one (p : R) : p / 1 = p :=
 (euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
 

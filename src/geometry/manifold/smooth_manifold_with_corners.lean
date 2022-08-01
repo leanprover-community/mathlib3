@@ -134,7 +134,7 @@ structure model_with_corners (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
-attribute [simv, mfld_simps] model_with_corners.source_eq
+attribute [simp, mfld_simps] model_with_corners.source_eq
 
 /-- A vector space is a model with corners. -/
 def model_with_corners_self (𝕜 : Type*) [nontrivially_normed_field 𝕜]
@@ -177,15 +177,15 @@ initialize_simps_projections model_with_corners
    to_local_equiv_source → source, to_local_equiv_target → target, -to_local_equiv)
 
 /- Register a few lemmas to make sure that `simv` puts expressions in normal form -/
-@[simv, mfld_simps] lemma to_local_equiv_coe : (I.to_local_equiv : H → E) = I :=
+@[simp, mfld_simps] lemma to_local_equiv_coe : (I.to_local_equiv : H → E) = I :=
 rfl
 
-@[simv, mfld_simps] lemma mk_coe (e : local_equiv H E) (a b c d) :
+@[simp, mfld_simps] lemma mk_coe (e : local_equiv H E) (a b c d) :
   ((model_with_corners.mk e a b c d : model_with_corners 𝕜 E H) : H → E) = (e : H → E) := rfl
 
-@[simv, mfld_simps] lemma to_local_equiv_coe_symm : (I.to_local_equiv.symm : E → H) = I.symm := rfl
+@[simp, mfld_simps] lemma to_local_equiv_coe_symm : (I.to_local_equiv.symm : E → H) = I.symm := rfl
 
-@[simv, mfld_simps] lemma mk_symm (e : local_equiv H E) (a b c d) :
+@[simp, mfld_simps] lemma mk_symm (e : local_equiv H E) (a b c d) :
   (model_with_corners.mk e a b c d : model_with_corners 𝕜 E H).symm = e.symm :=
 rfl
 
@@ -205,23 +205,23 @@ I.continuous_symm.continuous_within_at
 
 lemma continuous_on_symm {s} : continuous_on I.symm s := I.continuous_symm.continuous_on
 
-@[simv, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
+@[simp, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
 
 protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.target_eq ▸ I.unique_diff'
 
-@[simv, mfld_simps] protected lemma left_inv (x : H) : I.symm (I x) = x :=
+@[simp, mfld_simps] protected lemma left_inv (x : H) : I.symm (I x) = x :=
 by { refine I.left_inv' _, simv }
 
 protected lemma left_inverse : function.left_inverse I.symm I := I.left_inv
 
-@[simv, mfld_simps] lemma symm_comp_self : I.symm ∘ I = id :=
+@[simp, mfld_simps] lemma symm_comp_self : I.symm ∘ I = id :=
 I.left_inverse.comp_eq_id
 
 protected lemma right_inv_on : right_inv_on I.symm I (range I) :=
 I.left_inverse.right_inv_on_range
 
-@[simv, mfld_simps] protected lemma right_inv {x : E} (hx : x ∈ range I) : I (I.symm x) = x :=
+@[simp, mfld_simps] protected lemma right_inv {x : E} (hx : x ∈ range I) : I (I.symm x) = x :=
 I.right_inv_on hx
 
 protected lemma image_eq (s : set H) : I '' s = I.symm ⁻¹' s ∩ range I :=
@@ -284,13 +284,13 @@ section
 variables (𝕜 E)
 
 /-- In the trivial model with corners, the associated local equiv is the identity. -/
-@[simv, mfld_simps] lemma model_with_corners_self_local_equiv :
+@[simp, mfld_simps] lemma model_with_corners_self_local_equiv :
   (𝓘(𝕜, E)).to_local_equiv = local_equiv.refl E := rfl
 
-@[simv, mfld_simps] lemma model_with_corners_self_coe :
+@[simp, mfld_simps] lemma model_with_corners_self_coe :
   (𝓘(𝕜, E) : E → E) = id := rfl
 
-@[simv, mfld_simps] lemma model_with_corners_self_coe_symm :
+@[simp, mfld_simps] lemma model_with_corners_self_coe_symm :
   (𝓘(𝕜, E).symm : E → E) = id := rfl
 
 end
@@ -349,15 +349,15 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] {E : Type*} [normed_ad
 {G : Type*} [topological_space G] {G' : Type*} [topological_space G']
 {I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
 
-@[simv, mfld_simps] lemma model_with_corners_prod_to_local_equiv :
+@[simp, mfld_simps] lemma model_with_corners_prod_to_local_equiv :
   (I.prod J).to_local_equiv = I.to_local_equiv.prod (J.to_local_equiv) :=
 rfl
 
-@[simv, mfld_simps] lemma model_with_corners_prod_coe
+@[simp, mfld_simps] lemma model_with_corners_prod_coe
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
   (I.prod I' : _ × _ → _ × _) = prod.map I I' := rfl
 
-@[simv, mfld_simps] lemma model_with_corners_prod_coe_symm
+@[simp, mfld_simps] lemma model_with_corners_prod_coe_symm
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
   ((I.prod I').symm : _ × _ → _ × _) = prod.map I.symm I'.symm := rfl
 
@@ -691,7 +691,7 @@ as `local_equiv`.
 
 /-- The preferred extended chart on a manifold with corners around a point `x`, from a neighborhood
 of `x` to the model vector space. -/
-@[simv, mfld_simps] def ext_chart_at (x : M) : local_equiv M E :=
+@[simp, mfld_simps] def ext_chart_at (x : M) : local_equiv M E :=
 (chart_at H x).to_local_equiv.trans I.to_local_equiv
 
 lemma ext_chart_at_coe : ⇑(ext_chart_at I x) = I ∘ chart_at H x := rfl

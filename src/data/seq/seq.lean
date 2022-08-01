@@ -548,7 +548,7 @@ destruct_eq_cons $ by simv [join]
   join (cons (a, cons b s) S) = cons a (join (cons (b, s) S)) :=
 destruct_eq_cons $ by simv [join]
 
-@[simv, priority 990] theorem join_cons (a : α) (s S) :
+@[simp, priority 990] theorem join_cons (a : α) (s S) :
   join (cons (a, s) S) = cons a (append s (join S)) :=
 begin
   apply eq_of_bisim (λs1 s2, s1 = s2 ∨

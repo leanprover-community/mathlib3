@@ -85,7 +85,7 @@ instance colimit_has_inv : has_inv G :=
   exact h,
 end }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma colimit_inv_mk_eq (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
 
 @[to_additive]

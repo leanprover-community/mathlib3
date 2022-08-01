@@ -171,7 +171,7 @@ multiset.decidable_mem _ _
 /-- Convert a finset to a set in the natural way. -/
 instance : has_coe_t (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
-@[simv, norm_cast] lemma mem_coe {a : α} {s : finset α} : a ∈ (s : set α) ↔ a ∈ s := iff.rfl
+@[simp, norm_cast] lemma mem_coe {a : α} {s : finset α} : a ∈ (s : set α) ↔ a ∈ s := iff.rfl
 
 @[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = s := rfl
 
@@ -192,7 +192,7 @@ val_inj.symm.trans $ s₁.nodup.ext s₂.nodup
 theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
 ext_iff.2
 
-@[simv, norm_cast] theorem coe_inj {s₁ s₂ : finset α} : (s₁ : set α) = s₂ ↔ s₁ = s₂ :=
+@[simp, norm_cast] theorem coe_inj {s₁ s₂ : finset α} : (s₁ : set α) = s₂ ↔ s₁ = s₂ :=
 set.ext_iff.trans ext_iff.symm
 
 lemma coe_injective {α} : injective (coe : finset α → set α) :=
@@ -224,7 +224,7 @@ instance finset_coe.can_lift (s : finset α) : can_lift α s :=
   cond := λ a, a ∈ s,
   prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
 
-@[simv, norm_cast] lemma coe_sort_coe (s : finset α) :
+@[simp, norm_cast] lemma coe_sort_coe (s : finset α) :
   ((s : set α) : Sort*) = s := rfl
 
 /-! ### Subset and strict subset relations -/
@@ -272,7 +272,7 @@ ext $ λ a, ⟨@H₁ a, @H₂ a⟩
 
 theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x ∈ s₁ → x ∈ s₂ := iff.rfl
 
-@[simv, norm_cast] theorem coe_subset {s₁ s₂ : finset α} :
+@[simp, norm_cast] theorem coe_subset {s₁ s₂ : finset α} :
   (s₁ : set α) ⊆ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
@@ -289,7 +289,7 @@ by simv only [←finset.coe_subset, set.not_subset, exists_prop, finset.mem_coe]
 theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
 
-@[simv, norm_cast] lemma coe_ssubset {s₁ s₂ : finset α} : (s₁ : set α) ⊂ s₂ ↔ s₁ ⊂ s₂ :=
+@[simp, norm_cast] lemma coe_ssubset {s₁ s₂ : finset α} : (s₁ : set α) ⊂ s₂ ↔ s₁ ⊂ s₂ :=
 show (s₁ : set α) ⊂ s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
   by simv only [set.ssubset_def, finset.coe_subset]
 
@@ -336,7 +336,7 @@ protected def nonempty (s : finset α) : Prop := ∃ x : α, x ∈ s
 instance decidable_nonempty {s : finset α} : decidable s.nonempty :=
 decidable_of_iff (∃ a ∈ s, true) $ by simp_rw [exists_prop, and_true, finset.nonempty]
 
-@[simv, norm_cast] lemma coe_nonempty {s : finset α} : (s : set α).nonempty ↔ s.nonempty := iff.rfl
+@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s : set α).nonempty ↔ s.nonempty := iff.rfl
 
 @[simp] lemma nonempty_coe_sort {s : finset α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
@@ -401,9 +401,9 @@ nonempty_iff_ne_empty.not.trans not_not
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
-@[simv, norm_cast] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
 
-@[simv, norm_cast] lemma coe_eq_empty {s : finset α} : (s : set α) = ∅ ↔ s = ∅ :=
+@[simp, norm_cast] lemma coe_eq_empty {s : finset α} : (s : set α) = ∅ ↔ s = ∅ :=
 by rw [← coe_empty, coe_inj]
 
 @[simp] lemma is_empty_coe_sort {s : finset α} : is_empty ↥s ↔ s = ∅ :=
@@ -442,10 +442,10 @@ singleton_injective.eq_iff
 
 @[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := (singleton_nonempty a).ne_empty
 
-@[simv, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
+@[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simv }
 
-@[simv, norm_cast] lemma coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
+@[simp, norm_cast] lemma coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
   (s : set α) = {a} ↔ s = {a} :=
 by rw [←finset.coe_singleton, finset.coe_inj]
 
@@ -607,7 +607,7 @@ lemma eq_of_not_mem_of_mem_insert (ha : b ∈ insert a s) (hb : b ∉ s) : b = a
 @[simp] theorem cons_eq_insert {α} [decidable_eq α] (a s h) : @cons α a s h = insert a s :=
 ext $ λ a, by simv
 
-@[simv, norm_cast] lemma coe_insert (a : α) (s : finset α) :
+@[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
   ↑(insert a s) = (insert a s : set α) :=
 set.ext $ λ x, by simv only [mem_coe, mem_insert, set.mem_insert_iff]
 
@@ -786,7 +786,7 @@ lemma forall_mem_union {p : α → Prop} : (∀ a ∈ s ∪ t, p a) ↔ (∀ a �
 
 lemma not_mem_union : a ∉ s ∪ t ↔ a ∉ s ∧ a ∉ t := by rw [mem_union, not_or_distrib]
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (s₁ ∪ s₂ : set α) := set.ext $ λ x, mem_union
 
 lemma union_subset (hs : s ⊆ u) : t ⊆ u → s ∪ t ⊆ u := sup_le $ le_iff_subset.2 hs
@@ -931,7 +931,7 @@ theorem inter_subset_right (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₂ := �
 lemma subset_inter {s₁ s₂ u : finset α} : s₁ ⊆ s₂ → s₁ ⊆ u → s₁ ⊆ s₂ ∩ u :=
 by simv only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (s₁ ∩ s₂ : set α) := set.ext $ λ _, mem_inter
 
 @[simp] theorem union_inter_cancel_left {s t : finset α} : (s ∪ t) ∩ s = s :=
@@ -1118,7 +1118,7 @@ lemma subset_erase {a : α} {s t : finset α} : s ⊆ t.erase a ↔ s ⊆ t ∧ 
 ⟨λ h, ⟨h.trans (erase_subset _ _), λ ha, not_mem_erase _ _ (h ha)⟩,
   λ h b hb, mem_erase.2 ⟨ne_of_mem_of_not_mem hb h.2, h.1 hb⟩⟩
 
-@[simv, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
+@[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
 set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl
 
 lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
@@ -1234,7 +1234,7 @@ lemma sdiff_inter_distrib_right (s t u : finset α) : s \ (t ∩ u) = (s \ t) �
 @[mono] lemma sdiff_subset_sdiff (hst : s ⊆ t) (hvu : v ⊆ u) : s \ u ⊆ t \ v :=
 sdiff_le_sdiff ‹s ≤ t› ‹v ≤ u›
 
-@[simv, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (s₁ \ s₂ : set α) :=
+@[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (s₁ \ s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
 @[simp] theorem union_sdiff_self_eq_union : s ∪ (t \ s) = s ∪ t := sup_sdiff_self_right
@@ -1367,10 +1367,10 @@ variable [Π j, decidable (j ∈ s)]
   (s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
-@[simv, priority 980]
+@[simp, priority 980]
 lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i := by simv [piecewise, hi]
 
-@[simv, priority 980]
+@[simp, priority 980]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simv [piecewise, hi]
 
@@ -1378,7 +1378,7 @@ lemma piecewise_congr {f f' g g' : Π i, δ i} (hf : ∀ i ∈ s, f i = f' i) (h
   s.piecewise f g = s.piecewise f' g' :=
 funext $ λ i, if_ctx_congr iff.rfl (hf i) (hg i)
 
-@[simv, priority 990]
+@[simp, priority 990]
 lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀ i, decidable (i ∈ insert j s)]
   (h : i ≠ j) : (insert j s).piecewise f g i = s.piecewise f g i :=
 by simv [piecewise, h]
@@ -1570,7 +1570,7 @@ lemma monotone_filter_right (s : finset α) ⦃p q : α → Prop⦄
   s.filter p ≤ s.filter q :=
 multiset.subset_of_le (multiset.monotone_filter_right s.val h)
 
-@[simv, norm_cast] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
+@[simp, norm_cast] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
 set.ext $ λ _, mem_filter
 
 lemma subset_coe_filter_of_subset_forall (s : finset α) {t : set α}
@@ -1977,7 +1977,7 @@ lemma forall_mem_map {f : α ↪ β} {s : finset α} {p : Π a, a ∈ s.map f �
 lemma apply_coe_mem_map (f : α ↪ β) (s : finset α) (x : s) : f x ∈ s.map f :=
 mem_map_of_mem f x.prop
 
-@[simv, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (s.map f : set β) = f '' s :=
+@[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (s.map f : set β) = f '' s :=
 set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
 
 theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (s.map f : set β) ⊆ set.range f :=
@@ -2163,7 +2163,7 @@ lemma fiber_nonempty_iff_mem_image (f : α → β) (s : finset α) (y : β) :
   (s.filter (λ x, f x = y)).nonempty ↔ y ∈ s.image f :=
 by simv [finset.nonempty]
 
-@[simv, norm_cast] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
+@[simp, norm_cast] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
 set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 
 protected lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
@@ -2430,7 +2430,7 @@ by { rw [to_list, ←multiset.mem_coe, multiset.coe_to_list], exact iff.rfl }
 
 @[simp] lemma to_list_empty : (∅ : finset α).to_list = [] := by simv [to_list]
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := by { classical, ext, simv }
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
@@ -2473,7 +2473,7 @@ protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 @[simp] lemma mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃ a ∈ s, b ∈ t a :=
 by simv only [mem_def, bUnion_val, mem_dedup, mem_bind, exists_prop]
 
-@[simv, norm_cast] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
+@[simp, norm_cast] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
 by simv only [set.ext_iff, mem_bUnion, set.mem_Union, iff_self, mem_coe, implies_true_iff]
 
 @[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
@@ -2679,10 +2679,10 @@ lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pr
   disjoint (s.filter p) (s.filter $ λ a, ¬ p a) :=
 (disjoint_filter.2 $ λ a _, id).symm
 
-@[simv, norm_cast] lemma disjoint_coe : disjoint (s : set α) t ↔ disjoint s t :=
+@[simp, norm_cast] lemma disjoint_coe : disjoint (s : set α) t ↔ disjoint s t :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
-@[simv, norm_cast] lemma pairwise_disjoint_coe {ι : Type*} {s : set ι} {f : ι → finset α} :
+@[simp, norm_cast] lemma pairwise_disjoint_coe {ι : Type*} {s : set ι} {f : ι → finset α} :
   s.pairwise_disjoint (λ i, f i : ι → set α) ↔ s.pairwise_disjoint f :=
 forall₅_congr $ λ _ _ _ _ _, disjoint_coe
 

@@ -47,17 +47,17 @@ to the limit of the functor `F ⋙ G`.
 def preserves_limit_iso : G.obj (limit F) ≅ limit (F ⋙ G) :=
 (preserves_limit.preserves (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma preserves_limits_iso_hom_π (j) :
   (preserves_limit_iso G F).hom ≫ limit.π _ j = G.map (limit.π F j) :=
 is_limit.cone_point_unique_up_to_iso_hom_comp _ _ j
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma preserves_limits_iso_inv_π (j) :
   (preserves_limit_iso G F).inv ≫ G.map (limit.π F j) = limit.π _ j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ j
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_comp_preserves_limits_iso_hom (t : cone F) :
   G.map (limit.lift _ t) ≫ (preserves_limit_iso G F).hom = limit.lift (F ⋙ G) (G.map_cone _) :=
 by { ext, simv [← G.map_comp] }
@@ -96,17 +96,17 @@ def preserves_colimit_iso : G.obj (colimit F) ≅ colimit (F ⋙ G) :=
 (preserves_colimit.preserves (colimit.is_colimit _)).cocone_point_unique_up_to_iso
   (colimit.is_colimit _)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_preserves_colimits_iso_inv (j : J) :
   colimit.ι _ j ≫ (preserves_colimit_iso G F).inv = G.map (colimit.ι F j) :=
 is_colimit.comp_cocone_point_unique_up_to_iso_inv _ (colimit.is_colimit (F ⋙ G)) j
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ι_preserves_colimits_iso_hom (j : J) :
   G.map (colimit.ι F j) ≫ (preserves_colimit_iso G F).hom = colimit.ι (F ⋙ G) j :=
 (preserves_colimit.preserves (colimit.is_colimit _)).comp_cocone_point_unique_up_to_iso_hom _ j
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma preserves_colimits_iso_inv_comp_desc (t : cocone F) :
   (preserves_colimit_iso G F).inv ≫ G.map (colimit.desc _ t) = colimit.desc _ (G.map_cocone t) :=
 by { ext, simv [← G.map_comp] }

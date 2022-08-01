@@ -63,10 +63,10 @@ instance quotient.group : group (G ⧸ N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* G ⧸ N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_mk' : (mk' N : G → G ⧸ N) = coe := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
 @[to_additive]
@@ -88,14 +88,14 @@ See note [partially-applied ext lemmas]. "-/]
 lemma monoid_hom_ext ⦃f g : G ⧸ N →* H⦄ (h : f.comp (mk' N) = g.comp (mk' N)) : f = g :=
 monoid_hom.ext $ λ x, quotient_group.induction_on x $ (monoid_hom.congr_fun h : _)
 
-@[simv, to_additive quotient_add_group.eq_zero_iff]
+@[simp, to_additive quotient_add_group.eq_zero_iff]
 lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : G ⧸ N) = 1 ↔ x ∈ N :=
 begin
   refine quotient_group.eq.trans _,
   rw [mul_one, subgroup.inv_mem_iff],
 end
 
-@[simv, to_additive quotient_add_group.ker_mk]
+@[simp, to_additive quotient_add_group.ker_mk]
 lemma ker_mk :
   monoid_hom.ker (quotient_group.mk' N : G →* G ⧸ N) = N :=
 subgroup.ext eq_one_iff
@@ -121,22 +121,22 @@ include nN
 
 local notation ` Q ` := G ⧸ N
 
-@[simv, to_additive quotient_add_group.coe_zero]
+@[simp, to_additive quotient_add_group.coe_zero]
 lemma coe_one : ((1 : G) : Q) = 1 := rfl
 
-@[simv, to_additive quotient_add_group.coe_add]
+@[simp, to_additive quotient_add_group.coe_add]
 lemma coe_mul (a b : G) : ((a * b : G) : Q) = a * b := rfl
 
-@[simv, to_additive quotient_add_group.coe_neg]
+@[simp, to_additive quotient_add_group.coe_neg]
 lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 
-@[simv, to_additive quotient_add_group.coe_sub]
+@[simp, to_additive quotient_add_group.coe_sub]
 lemma coe_div (a b : G) : ((a / b : G) : Q) = a / b := rfl
 
-@[simv, to_additive quotient_add_group.coe_nsmul]
+@[simp, to_additive quotient_add_group.coe_nsmul]
 lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n := rfl
 
-@[simv, to_additive quotient_add_group.coe_zsmul]
+@[simp, to_additive quotient_add_group.coe_zsmul]
 lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n := rfl
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
@@ -150,15 +150,15 @@ def lift (φ : G →* H) (HN : ∀x∈N, φ x = 1) : Q →* H :=
        ... = φ y                 : by rw [φ.map_mul, HN _ (N.inv_mem h), mul_one]
   end
 
-@[simv, to_additive quotient_add_group.lift_mk]
+@[simp, to_additive quotient_add_group.lift_mk]
 lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (g : Q) = φ g := rfl
 
-@[simv, to_additive quotient_add_group.lift_mk']
+@[simp, to_additive quotient_add_group.lift_mk']
 lemma lift_mk' {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (mk g : Q) = φ g := rfl
 
-@[simv, to_additive quotient_add_group.lift_quot_mk]
+@[simp, to_additive quotient_add_group.lift_quot_mk]
 lemma lift_quot_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (quot.mk _ g : Q) = φ g := rfl
 
@@ -175,7 +175,7 @@ begin
   exact h hx,
 end
 
-@[simv, to_additive quotient_add_group.map_coe] lemma map_coe
+@[simp, to_additive quotient_add_group.map_coe] lemma map_coe
   (M : subgroup H) [M.normal] (f : G →* H) (h : N ≤ M.comap f) (x : G) :
   map N M f h ↑x = ↑(f x) :=
 lift_mk' _ _ x
@@ -196,11 +196,11 @@ codomain."]
 def ker_lift : G ⧸ ker φ →* H :=
 lift _ φ $ λ g, φ.mem_ker.mp
 
-@[simv, to_additive quotient_add_group.ker_lift_mk]
+@[simp, to_additive quotient_add_group.ker_lift_mk]
 lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
 lift_mk _ _ _
 
-@[simv, to_additive quotient_add_group.ker_lift_mk']
+@[simp, to_additive quotient_add_group.ker_lift_mk']
 lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
 lift_mk' _ _ _
 
@@ -283,7 +283,7 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   right_inv := λ x, x.induction_on' $ by { intro, refl },
   map_mul' := λ x y, by rw monoid_hom.map_mul }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
   quotient_group.equiv_quotient_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
 rfl
@@ -299,7 +299,7 @@ def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
 map _ _ (subgroup.inclusion h) $
   by simv [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma quotient_map_subgroup_of_of_le_coe {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' ≤ B') (h : A ≤ B) (x : A) :
@@ -436,7 +436,7 @@ lift (M.map (mk' N))
   (by { rintro _ ⟨x, hx, rfl⟩, rw map_mk' N M _ _ x,
         exact (quotient_group.eq_one_iff _).mpr hx })
 
-@[simv, to_additive quotient_add_group.quotient_quotient_equiv_quotient_aux_coe]
+@[simp, to_additive quotient_add_group.quotient_quotient_equiv_quotient_aux_coe]
 lemma quotient_quotient_equiv_quotient_aux_coe (x : G ⧸ N) :
   quotient_quotient_equiv_quotient_aux N M h x = quotient_group.map N M (monoid_hom.id G) h x :=
 quotient_group.lift_mk' _ _ x

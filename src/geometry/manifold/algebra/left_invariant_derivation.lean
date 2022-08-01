@@ -107,9 +107,9 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
 @[simp] lemma coe_neg : ⇑(-X) = -X := rfl
 @[simp] lemma coe_sub : ⇑(X - Y) = X - Y := rfl
-@[simv, norm_cast] lemma lift_add :
+@[simp, norm_cast] lemma lift_add :
   (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
-@[simv, norm_cast] lemma lift_zero :
+@[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
 instance has_nat_scalar : has_smul ℕ (left_invariant_derivation I G) :=

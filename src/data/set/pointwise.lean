@@ -82,11 +82,11 @@ protected def has_one : has_one (set α) := ⟨{1}⟩
 localized "attribute [instance] set.has_one set.has_zero" in pointwise
 
 @[to_additive] lemma singleton_one : ({1} : set α) = 1 := rfl
-@[simv, to_additive] lemma mem_one : a ∈ (1 : set α) ↔ a = 1 := iff.rfl
+@[simp, to_additive] lemma mem_one : a ∈ (1 : set α) ↔ a = 1 := iff.rfl
 @[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : set α) := eq.refl _
-@[simv, to_additive] lemma one_subset : 1 ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
+@[simp, to_additive] lemma one_subset : 1 ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
 @[to_additive] lemma one_nonempty : (1 : set α).nonempty := ⟨1, rfl⟩
-@[simv, to_additive] lemma image_one {f : α → β} : f '' 1 = {f 1} := image_singleton
+@[simp, to_additive] lemma image_one {f : α → β} : f '' 1 = {f 1} := image_singleton
 @[to_additive] lemma subset_one_iff_eq : s ⊆ 1 ↔ s = ∅ ∨ s = 1 := subset_singleton_iff_eq
 @[to_additive] lemma nonempty.subset_one_iff (h : s.nonempty) : s ⊆ 1 ↔ s = 1 :=
 h.subset_singleton_iff
@@ -95,7 +95,7 @@ h.subset_singleton_iff
 @[to_additive "The singleton operation as a `zero_hom`."]
 def singleton_one_hom : one_hom α (set α) := ⟨singleton, singleton_one⟩
 
-@[simv, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → set α) = singleton :=
+@[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → set α) = singleton :=
 rfl
 
 end one
@@ -115,15 +115,15 @@ localized "attribute [instance] set.has_inv set.has_neg" in pointwise
 section has_inv
 variables {ι : Sort*} [has_inv α] {s t : set α} {a : α}
 
-@[simv, to_additive] lemma mem_inv : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
-@[simv, to_additive] lemma inv_preimage : has_inv.inv ⁻¹' s = s⁻¹ := rfl
-@[simv, to_additive] lemma inv_empty : (∅ : set α)⁻¹ = ∅ := rfl
-@[simv, to_additive] lemma inv_univ : (univ : set α)⁻¹ = univ := rfl
-@[simv, to_additive] lemma inter_inv : (s ∩ t)⁻¹ = s⁻¹ ∩ t⁻¹ := preimage_inter
-@[simv, to_additive] lemma union_inv : (s ∪ t)⁻¹ = s⁻¹ ∪ t⁻¹ := preimage_union
-@[simv, to_additive] lemma Inter_inv (s : ι → set α) : (⋂ i, s i)⁻¹ = ⋂ i, (s i)⁻¹ := preimage_Inter
-@[simv, to_additive] lemma Union_inv (s : ι → set α) : (⋃ i, s i)⁻¹ = ⋃ i, (s i)⁻¹ := preimage_Union
-@[simv, to_additive] lemma compl_inv : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
+@[simp, to_additive] lemma mem_inv : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
+@[simp, to_additive] lemma inv_preimage : has_inv.inv ⁻¹' s = s⁻¹ := rfl
+@[simp, to_additive] lemma inv_empty : (∅ : set α)⁻¹ = ∅ := rfl
+@[simp, to_additive] lemma inv_univ : (univ : set α)⁻¹ = univ := rfl
+@[simp, to_additive] lemma inter_inv : (s ∩ t)⁻¹ = s⁻¹ ∩ t⁻¹ := preimage_inter
+@[simp, to_additive] lemma union_inv : (s ∪ t)⁻¹ = s⁻¹ ∪ t⁻¹ := preimage_union
+@[simp, to_additive] lemma Inter_inv (s : ι → set α) : (⋂ i, s i)⁻¹ = ⋂ i, (s i)⁻¹ := preimage_Inter
+@[simp, to_additive] lemma Union_inv (s : ι → set α) : (⋃ i, s i)⁻¹ = ⋃ i, (s i)⁻¹ := preimage_Union
+@[simp, to_additive] lemma compl_inv : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
 
 end has_inv
 
@@ -132,7 +132,7 @@ variables [has_involutive_inv α] {s t : set α} {a : α}
 
 @[to_additive] lemma inv_mem_inv : a⁻¹ ∈ s⁻¹ ↔ a ∈ s := by simv only [mem_inv, inv_inv]
 
-@[simv, to_additive] lemma nonempty_inv : s⁻¹.nonempty ↔ s.nonempty :=
+@[simp, to_additive] lemma nonempty_inv : s⁻¹.nonempty ↔ s.nonempty :=
 inv_involutive.surjective.nonempty_preimage
 
 @[to_additive] lemma nonempty.inv (h : s.nonempty) : s⁻¹.nonempty := nonempty_inv.2 h
@@ -140,22 +140,22 @@ inv_involutive.surjective.nonempty_preimage
 @[to_additive] lemma finite.inv (hs : s.finite) : s⁻¹.finite :=
 hs.preimage $ inv_injective.inj_on _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma image_inv : has_inv.inv '' s = s⁻¹ :=
 congr_fun (image_eq_preimage_of_inverse inv_involutive.left_inverse inv_involutive.right_inverse) _
 
-@[simv, to_additive]
+@[simp, to_additive]
 instance : has_involutive_inv (set α) :=
 { inv := has_inv.inv,
   inv_inv := λ s, by { simv only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] } }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma inv_subset_inv : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 (equiv.inv α).surjective.preimage_subset_preimage_iff
 
 @[to_additive] lemma inv_subset : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ := by { rw [← inv_subset_inv, inv_inv] }
 
-@[simv, to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
+@[simp, to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
 by rw [←image_inv, image_singleton]
 
 @[to_additive] lemma inv_range {ι : Sort*} {f : ι → α} : (range f)⁻¹ = range (λ i, (f i)⁻¹) :=
@@ -185,7 +185,7 @@ protected def has_mul : has_mul (set α) := ⟨image2 (*)⟩
 
 localized "attribute [instance] set.has_mul set.has_add" in pointwise
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma image2_mul : image2 has_mul.mul s t = s * t := rfl
 
 @[to_additive]
@@ -196,18 +196,18 @@ lemma mem_mul : a ∈ s * t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x * y = a := if
 @[to_additive add_image_prod]
 lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' s ×ˢ t = s * t := image_prod _
 
-@[simv, to_additive] lemma empty_mul : ∅ * s = ∅ := image2_empty_left
-@[simv, to_additive] lemma mul_empty : s * ∅ = ∅ := image2_empty_right
-@[simv, to_additive] lemma mul_eq_empty : s * t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
-@[simv, to_additive] lemma mul_nonempty : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive] lemma empty_mul : ∅ * s = ∅ := image2_empty_left
+@[simp, to_additive] lemma mul_empty : s * ∅ = ∅ := image2_empty_right
+@[simp, to_additive] lemma mul_eq_empty : s * t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
+@[simp, to_additive] lemma mul_nonempty : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 image2_nonempty_iff
 @[to_additive] lemma nonempty.mul : s.nonempty → t.nonempty → (s * t).nonempty := nonempty.image2
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-@[simv, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
-@[simv, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
-@[simv, to_additive] lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} :=
+@[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
+@[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
+@[simp, to_additive] lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} :=
 image2_singleton
 
 @[to_additive, mono] lemma mul_subset_mul : s₁ ⊆ t₁ → s₂ ⊆ t₂ → s₁ * s₂ ⊆ t₁ * t₂ := image2_subset
@@ -269,13 +269,13 @@ set.fintype_image2 _ _ _
 @[to_additive "The singleton operation as an `add_hom`."]
 def singleton_mul_hom : α →ₙ* set α := ⟨singleton, λ a b, singleton_mul_singleton.symm⟩
 
-@[simv, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → set α) = singleton :=
+@[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → set α) = singleton :=
 rfl
-@[simv, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
+@[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
 
 open mul_opposite
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma image_op_mul : op '' (s * t) = op '' t * op '' s := image_image2_antidistrib op_mul
 
 end has_mul
@@ -293,7 +293,7 @@ protected def has_div : has_div (set α) := ⟨image2 (/)⟩
 
 localized "attribute [instance] set.has_div set.has_sub" in pointwise
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma image2_div : image2 has_div.div s t = s / t := rfl
 
 @[to_additive]
@@ -304,18 +304,18 @@ lemma mem_div : a ∈ s / t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x / y = a := if
 @[to_additive add_image_prod]
 lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' s ×ˢ t = s / t := image_prod _
 
-@[simv, to_additive] lemma empty_div : ∅ / s = ∅ := image2_empty_left
-@[simv, to_additive] lemma div_empty : s / ∅ = ∅ := image2_empty_right
-@[simv, to_additive] lemma div_eq_empty : s / t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
-@[simv, to_additive] lemma div_nonempty : (s / t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive] lemma empty_div : ∅ / s = ∅ := image2_empty_left
+@[simp, to_additive] lemma div_empty : s / ∅ = ∅ := image2_empty_right
+@[simp, to_additive] lemma div_eq_empty : s / t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
+@[simp, to_additive] lemma div_nonempty : (s / t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 image2_nonempty_iff
 @[to_additive] lemma nonempty.div : s.nonempty → t.nonempty → (s / t).nonempty := nonempty.image2
 @[to_additive] lemma nonempty.of_div_left : (s / t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_div_right : (s / t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-@[simv, to_additive] lemma div_singleton : s / {b} = (/ b) '' s := image2_singleton_right
-@[simv, to_additive] lemma singleton_div : {a} / t = ((/) a) '' t := image2_singleton_left
-@[simv, to_additive] lemma singleton_div_singleton : ({a} : set α) / {b} = {a / b} :=
+@[simp, to_additive] lemma div_singleton : s / {b} = (/ b) '' s := image2_singleton_right
+@[simp, to_additive] lemma singleton_div : {a} / t = ((/) a) '' t := image2_singleton_left
+@[simp, to_additive] lemma singleton_div_singleton : ({a} : set α) / {b} = {a / b} :=
 image2_singleton
 
 @[to_additive, mono] lemma div_subset_div : s₁ ⊆ t₁ → s₂ ⊆ t₂ → s₁ / s₂ ⊆ t₁ / t₂ := image2_subset
@@ -425,9 +425,9 @@ localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigro
 @[to_additive "The singleton operation as an `add_monoid_hom`."]
 def singleton_monoid_hom : α →* set α := { ..singleton_mul_hom, ..singleton_one_hom }
 
-@[simv, to_additive] lemma coe_singleton_monoid_hom :
+@[simp, to_additive] lemma coe_singleton_monoid_hom :
   (singleton_monoid_hom : α → set α) = singleton := rfl
-@[simv, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
+@[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
 
 end mul_one_class
 
@@ -471,7 +471,7 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
-@[simv, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+@[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
 @[to_additive] lemma mul_univ_of_one_mem (hs : (1 : α) ∈ s) : s * univ = univ :=
@@ -480,7 +480,7 @@ eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, hs, mem_univ _, one_mul _⟩
 @[to_additive] lemma univ_mul_of_one_mem (ht : (1 : α) ∈ t) : univ * t = univ :=
 eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, mem_univ _, ht, mul_one _⟩
 
-@[simv, to_additive] lemma univ_mul_univ : (univ : set α) * univ = univ :=
+@[simp, to_additive] lemma univ_mul_univ : (univ : set α) * univ = univ :=
 mul_univ_of_one_mem $ mem_univ _
 
 --TODO: `to_additive` trips up on the `1 : ℕ` used in the pattern-matching.
@@ -489,7 +489,7 @@ mul_univ_of_one_mem $ mem_univ _
 | 1 := λ _, one_nsmul _
 | (n + 2) := λ _, by { rw [succ_nsmul, nsmul_univ n.succ_ne_zero, univ_add_univ] }
 
-@[simv, to_additive nsmul_univ] lemma univ_pow : ∀ {n : ℕ}, n ≠ 0 → (univ : set α) ^ n = univ
+@[simp, to_additive nsmul_univ] lemma univ_pow : ∀ {n : ℕ}, n ≠ 0 → (univ : set α) ^ n = univ
 | 0 := λ h, (h rfl).elim
 | 1 := λ _, pow_one _
 | (n + 2) := λ _, by { rw [pow_succ, univ_pow n.succ_ne_zero, univ_mul_univ] }
@@ -539,7 +539,7 @@ protected def division_monoid : division_monoid (set α) :=
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
   ..set.monoid, ..set.has_involutive_inv, ..set.has_div, ..set.has_zpow }
 
-@[simv, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
+@[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
 begin
   split,
   { rintro ⟨u, rfl⟩,
@@ -602,7 +602,7 @@ variables [group α] {s t : set α} {a b : α}
 
 /-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
 
-@[simv, to_additive] lemma one_mem_div_iff : (1 : α) ∈ s / t ↔ ¬ disjoint s t :=
+@[simp, to_additive] lemma one_mem_div_iff : (1 : α) ∈ s / t ↔ ¬ disjoint s t :=
 by simv [not_disjoint_iff_nonempty_inter, mem_div, div_eq_one, set.nonempty]
 
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
@@ -617,37 +617,37 @@ let ⟨a, ha⟩ := h in mem_div.2 ⟨a, a, ha, ha, div_self' _⟩
 
 @[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : set α) := (group.is_unit a).set
 
-@[simv, to_additive] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
+@[simp, to_additive] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
 by simv only [is_unit_iff, group.is_unit, and_true]
 
-@[simv, to_additive] lemma image_mul_left : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
+@[simp, to_additive] lemma image_mul_left : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
 by { rw image_eq_preimage_of_inverse; intro c; simv }
 
-@[simv, to_additive] lemma image_mul_right : (* b) '' t = (* b⁻¹) ⁻¹' t :=
+@[simp, to_additive] lemma image_mul_right : (* b) '' t = (* b⁻¹) ⁻¹' t :=
 by { rw image_eq_preimage_of_inverse; intro c; simv }
 
 @[to_additive] lemma image_mul_left' : (λ b, a⁻¹ * b) '' t = (λ b, a * b) ⁻¹' t := by simv
 @[to_additive] lemma image_mul_right' : (* b⁻¹) '' t = (* b) ⁻¹' t := by simv
 
-@[simv, to_additive] lemma preimage_mul_left_singleton : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
+@[simp, to_additive] lemma preimage_mul_left_singleton : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
 by rw [← image_mul_left', image_singleton]
 
-@[simv, to_additive] lemma preimage_mul_right_singleton : (* a) ⁻¹' {b} = {b * a⁻¹} :=
+@[simp, to_additive] lemma preimage_mul_right_singleton : (* a) ⁻¹' {b} = {b * a⁻¹} :=
 by rw [← image_mul_right', image_singleton]
 
-@[simv, to_additive] lemma preimage_mul_left_one : ((*) a) ⁻¹' 1 = {a⁻¹} :=
+@[simp, to_additive] lemma preimage_mul_left_one : ((*) a) ⁻¹' 1 = {a⁻¹} :=
 by rw [← image_mul_left', image_one, mul_one]
 
-@[simv, to_additive] lemma preimage_mul_right_one : (* b) ⁻¹' 1 = {b⁻¹} :=
+@[simp, to_additive] lemma preimage_mul_right_one : (* b) ⁻¹' 1 = {b⁻¹} :=
 by rw [← image_mul_right', image_one, one_mul]
 
 @[to_additive] lemma preimage_mul_left_one' : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := by simv
 @[to_additive] lemma preimage_mul_right_one' : (* b⁻¹) ⁻¹' 1 = {b} := by simv
 
-@[simv, to_additive] lemma mul_univ (hs : s.nonempty) : s * (univ : set α) = univ :=
+@[simp, to_additive] lemma mul_univ (hs : s.nonempty) : s * (univ : set α) = univ :=
 let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ * b, ha, trivial, mul_inv_cancel_left _ _⟩
 
-@[simv, to_additive] lemma univ_mul (ht : t.nonempty) : (univ : set α) * t = univ :=
+@[simp, to_additive] lemma univ_mul (ht : t.nonempty) : (univ : set α) * t = univ :=
 let ⟨a, ha⟩ := ht in eq_univ_of_forall $ λ b, ⟨b * a⁻¹, a, trivial, ha, inv_mul_cancel_right _ _⟩
 
 end group
@@ -841,7 +841,7 @@ section has_smul
 variables {ι : Sort*} {κ : ι → Sort*} [has_smul α β] {s s₁ s₂ : set α} {t t₁ t₂ u : set β} {a : α}
   {b : β}
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma image2_smul : image2 has_smul.smul s t = s • t := rfl
 
 @[to_additive add_image_prod]
@@ -852,19 +852,19 @@ lemma mem_smul : b ∈ s • t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x • y = b 
 
 @[to_additive] lemma smul_mem_smul : a ∈ s → b ∈ t → a • b ∈ s • t := mem_image2_of_mem
 
-@[simv, to_additive] lemma empty_smul : (∅ : set α) • t = ∅ := image2_empty_left
-@[simv, to_additive] lemma smul_empty : s • (∅ : set β) = ∅ := image2_empty_right
-@[simv, to_additive] lemma smul_eq_empty : s • t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
-@[simv, to_additive] lemma smul_nonempty : (s • t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive] lemma empty_smul : (∅ : set α) • t = ∅ := image2_empty_left
+@[simp, to_additive] lemma smul_empty : s • (∅ : set β) = ∅ := image2_empty_right
+@[simp, to_additive] lemma smul_eq_empty : s • t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
+@[simp, to_additive] lemma smul_nonempty : (s • t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 image2_nonempty_iff
 @[to_additive] lemma nonempty.smul : s.nonempty → t.nonempty → (s • t).nonempty := nonempty.image2
 @[to_additive] lemma nonempty.of_smul_left : (s • t).nonempty → s.nonempty :=
 nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_smul_right : (s • t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-@[simv, to_additive] lemma smul_singleton : s • {b} = (• b) '' s := image2_singleton_right
-@[simv, to_additive] lemma singleton_smul : ({a} : set α) • t = a • t := image2_singleton_left
-@[simv, to_additive] lemma singleton_smul_singleton : ({a} : set α) • ({b} : set β) = {a • b} :=
+@[simp, to_additive] lemma smul_singleton : s • {b} = (• b) '' s := image2_singleton_right
+@[simp, to_additive] lemma singleton_smul : ({a} : set α) • t = a • t := image2_singleton_left
+@[simp, to_additive] lemma singleton_smul_singleton : ({a} : set α) • ({b} : set β) = {a • b} :=
 image2_singleton
 
 @[to_additive, mono] lemma smul_subset_smul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ • t₁ ⊆ s₂ • t₂ := image2_subset
@@ -916,7 +916,7 @@ image2_Inter₂_subset_right _ _ _
 
 @[to_additive] lemma finite.smul : s.finite → t.finite → (s • t).finite := finite.image2 _
 
-@[simv, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
+@[simp, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
   (⋃ a ∈ s, a • t) = s • t :=
 Union_image_left _
 
@@ -925,17 +925,17 @@ end has_smul
 section has_smul_set
 variables {ι : Sort*} {κ : ι → Sort*} [has_smul α β] {s t t₁ t₂ : set β} {a : α} {b : β} {x y : β}
 
-@[simv, to_additive] lemma image_smul : (λ x, a • x) '' t = a • t := rfl
+@[simp, to_additive] lemma image_smul : (λ x, a • x) '' t = a • t := rfl
 
 @[to_additive] lemma mem_smul_set : x ∈ a • t ↔ ∃ y, y ∈ t ∧ a • y = x := iff.rfl
 
 @[to_additive] lemma smul_mem_smul_set : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
 
-@[simv, to_additive] lemma smul_set_empty : a • (∅ : set β) = ∅ := image_empty _
-@[simv, to_additive] lemma smul_set_eq_empty : a • s = ∅ ↔ s = ∅ := image_eq_empty
-@[simv, to_additive] lemma smul_set_nonempty : (a • s).nonempty ↔ s.nonempty := nonempty_image_iff
+@[simp, to_additive] lemma smul_set_empty : a • (∅ : set β) = ∅ := image_empty _
+@[simp, to_additive] lemma smul_set_eq_empty : a • s = ∅ ↔ s = ∅ := image_eq_empty
+@[simp, to_additive] lemma smul_set_nonempty : (a • s).nonempty ↔ s.nonempty := nonempty_image_iff
 
-@[simv, to_additive] lemma smul_set_singleton : a • ({b} : set β) = {a • b} := image_singleton
+@[simp, to_additive] lemma smul_set_singleton : a • ({b} : set β) = {a • b} := image_singleton
 
 @[to_additive] lemma smul_set_mono : s ⊆ t → a • s ⊆ a • t := image_subset _
 @[to_additive] lemma smul_set_subset_iff : a • s ⊆ t ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ t := image_subset_iff
@@ -977,11 +977,11 @@ lemma smul_set_inter₀ [group_with_zero α] [mul_action α β] {s t : set β} (
   a • (s ∩ t) = a • s ∩ a • t :=
 show units.mk0 a ha • _ = _, from smul_set_inter
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma smul_set_univ [group α] [mul_action α β] {a : α} : a • (univ : set β) = univ :=
 eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul _ _⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma smul_univ [group α] [mul_action α β] {s : set α} (hs : s.nonempty) :
   s • (univ : set β) = univ :=
 let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
@@ -1249,7 +1249,7 @@ end left_cancel_semigroup
 section group
 variables [group α] [mul_action α β] {s t A B : set β} {a : α} {x : β}
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma smul_mem_smul_set_iff : a • x ∈ a • s ↔ x ∈ s := (mul_action.injective _).mem_set_image
 
 @[to_additive]
@@ -1268,7 +1268,7 @@ lemma preimage_smul (a : α) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ �
 lemma preimage_smul_inv (a : α) (t : set β) : (λ x, a⁻¹ • x) ⁻¹' t = a • t :=
 preimage_smul (to_units a)⁻¹ t
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma set_smul_subset_set_smul_iff : a • A ⊆ a • B ↔ A ⊆ B :=
 image_subset_image_iff $ mul_action.injective _
 

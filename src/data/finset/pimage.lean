@@ -53,7 +53,7 @@ s.bUnion (λ x, (f x).to_finset)
 
 @[simp] lemma mem_pimage : b ∈ s.pimage f ↔ ∃ (a ∈ s), b ∈ f a := by simv [pimage]
 
-@[simv, norm_cast] lemma coe_pimage : (s.pimage f : set β) = f.image s :=
+@[simp, norm_cast] lemma coe_pimage : (s.pimage f : set β) = f.image s :=
 set.ext $ λ x, mem_pimage
 
 @[simp] lemma pimage_some (s : finset α) (f : α → β) [∀ x, decidable (part.some $ f x).dom] :

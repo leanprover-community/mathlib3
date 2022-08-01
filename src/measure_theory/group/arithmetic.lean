@@ -397,11 +397,11 @@ measurable_inv.comp_ae_measurable hf
 
 attribute [measurability] measurable.neg ae_measurable.neg
 
-@[simv, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
+@[simp, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} : measurable (λ x, (f x)⁻¹) ↔ measurable f :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
-@[simv, to_additive] lemma ae_measurable_inv_iff {G : Type*} [group G] [measurable_space G]
+@[simp, to_additive] lemma ae_measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩

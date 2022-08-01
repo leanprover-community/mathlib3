@@ -199,7 +199,7 @@ lemma succ_le_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
   succ a ≤ succ b ↔ a ≤ b :=
 by rw [succ_le_iff_of_not_is_max ha, lt_succ_iff_of_not_is_max hb]
 
-@[simv, mono] lemma succ_le_succ (h : a ≤ b) : succ a ≤ succ b :=
+@[simp, mono] lemma succ_le_succ (h : a ≤ b) : succ a ≤ succ b :=
 begin
   by_cases hb : is_max b,
   { by_cases hba : b ≤ a,
@@ -437,7 +437,7 @@ lemma pred_lt_iff_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a ≤ b :=
 lemma le_pred_iff_of_not_is_min (ha : ¬ is_min a) : b ≤ pred a ↔ b < a :=
 ⟨λ h, h.trans_lt $ pred_lt_of_not_is_min ha, le_pred_of_lt⟩
 
-@[simv, mono] lemma pred_le_pred {a b : α} (h : a ≤ b) : pred a ≤ pred b := succ_le_succ h.dual
+@[simp, mono] lemma pred_le_pred {a b : α} (h : a ≤ b) : pred a ≤ pred b := succ_le_succ h.dual
 
 lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 

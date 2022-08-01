@@ -168,7 +168,7 @@ chain_complex.mk_hom _ _ (lift_f_zero f _ _) (lift_f_one f _ _) (lift_f_one_zero
   (λ n ⟨g, g', w⟩, lift_f_succ P Q n g g' w)
 
 /-- The resolution maps intertwine the lift of a morphism and that morphism. -/
-@[simv, reassoc]
+@[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f :=
@@ -262,11 +262,11 @@ def homotopy_equiv {X : C} (P Q : ProjectiveResolution X) :
     apply lift_id_homotopy,
   end, }
 
-@[simv, reassoc] lemma homotopy_equiv_hom_π {X : C} (P Q : ProjectiveResolution X) :
+@[simp, reassoc] lemma homotopy_equiv_hom_π {X : C} (P Q : ProjectiveResolution X) :
   (homotopy_equiv P Q).hom ≫ Q.π = P.π :=
 by simv [homotopy_equiv]
 
-@[simv, reassoc] lemma homotopy_equiv_inv_π {X : C} (P Q : ProjectiveResolution X) :
+@[simp, reassoc] lemma homotopy_equiv_inv_π {X : C} (P Q : ProjectiveResolution X) :
   (homotopy_equiv P Q).inv ≫ P.π = Q.π :=
 by simv [homotopy_equiv]
 

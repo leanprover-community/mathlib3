@@ -76,13 +76,13 @@ lemma continuous_of_linear_of_bound {f : E → G} (h_add : ∀ x y, f (x + y) = 
 let φ : E →ₗ[𝕜] G := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
 add_monoid_hom_class.continuous_of_bound φ C h_bound
 
-@[simv, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₛₗ[σ] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simv, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
   (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₛₗ[σ] F) = f := rfl
 
@@ -501,7 +501,7 @@ def prodₗᵢ (R : Type*) [semiring R] [module R Fₗ] [module R Gₗ]
 
 variables [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F)
 
-@[simv, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
+@[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
 begin
   refine le_antisymm _ (norm_nonneg _),
   apply op_norm_le_bound _ rfl.ge,

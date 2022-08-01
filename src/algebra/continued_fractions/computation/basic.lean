@@ -97,7 +97,7 @@ variables {β : Type*} [has_coe K β]
 instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
 ⟨mapFr coe⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl

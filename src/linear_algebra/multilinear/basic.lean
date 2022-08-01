@@ -100,7 +100,7 @@ congr_arg (λ x : Π i, M₁ i, f x) h
 theorem coe_injective : injective  (coe_fn : multilinear_map R M₁ M₂ → ((Π i, M₁ i) → M₂)) :=
 by { intros f g h, cases f, cases g, cases h, refl }
 
-@[simv, norm_cast] theorem coe_inj {f g : multilinear_map R M₁ M₂} :
+@[simp, norm_cast] theorem coe_inj {f g : multilinear_map R M₁ M₂} :
   (f : (Π i, M₁ i) → M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 

@@ -41,15 +41,15 @@ variables [monoid M] [set_like B M] [submonoid_class B M] {S : B}
 
 namespace submonoid_class
 
-@[simv, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
+@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
 (submonoid_class.subtype S : _ →* M).map_list_prod l
 
-@[simv, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] [set_like B M]
+@[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] [set_like B M]
   [submonoid_class B M] (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
 (submonoid_class.subtype S : _ →* M).map_multiset_prod m
 
-@[simv, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] [set_like B M]
+@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] [set_like B M]
   [submonoid_class B M] (f : ι → S) (s : finset ι) :
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
 (submonoid_class.subtype S : _ →* M).map_prod f s
@@ -83,15 +83,15 @@ namespace submonoid
 
 variables (s : submonoid M)
 
-@[simv, norm_cast, to_additive] theorem coe_list_prod (l : list s) :
+@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list s) :
   (l.prod : M) = (l.map coe).prod :=
 s.subtype.map_list_prod l
 
-@[simv, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
+@[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
   (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
 S.subtype.map_multiset_prod m
 
-@[simv, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
+@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
   (f : ι → S) (s : finset ι) :
   ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
 S.subtype.map_prod f s

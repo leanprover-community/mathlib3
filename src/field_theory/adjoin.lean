@@ -86,7 +86,7 @@ rfl
 @[simp] lemma top_to_subfield : (⊤ : intermediate_field F E).to_subfield = ⊤ :=
 rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_inf (S T : intermediate_field F E) : (↑(S ⊓ T) : set E) = S ∩ T := rfl
 
 @[simp]
@@ -100,7 +100,7 @@ rfl
   (S ⊓ T).to_subfield = S.to_subfield ⊓ T.to_subfield :=
 rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Inf (S : set (intermediate_field F E)) : (↑(Inf S) : set E) = Inf (coe '' S) := rfl
 
 @[simp] lemma Inf_to_subalgebra (S : set (intermediate_field F E)) :
@@ -111,7 +111,7 @@ set_like.coe_injective $ by simv [set.sUnion_image]
   (Inf S).to_subfield = Inf (to_subfield '' S) :=
 set_like.coe_injective $ by simv [set.sUnion_image]
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_infi {ι : Sort*} (S : ι → intermediate_field F E) : (↑(infi S) : set E) = ⋂ i, (S i) :=
 by simv [infi]
 

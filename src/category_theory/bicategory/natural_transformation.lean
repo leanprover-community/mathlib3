@@ -55,7 +55,7 @@ structure oplax_nat_trans (F G : oplax_functor B C) :=
 restate_axiom oplax_nat_trans.naturality_naturality'
 restate_axiom oplax_nat_trans.naturality_id'
 restate_axiom oplax_nat_trans.naturality_comp'
-attribute [simv, reassoc] oplax_nat_trans.naturality_naturality
+attribute [simp, reassoc] oplax_nat_trans.naturality_naturality
   oplax_nat_trans.naturality_id oplax_nat_trans.naturality_comp
 
 namespace oplax_nat_trans
@@ -76,19 +76,19 @@ variables {F} {G H : oplax_functor B C} (η : oplax_nat_trans F G) (θ : oplax_n
 section
 variables {a b c : B} {a' : C}
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_left_naturality_naturality (f : a' ⟶ G.obj a) {g h : a ⟶ b} (β : g ⟶ h) :
   f ◁ G.map₂ β ▷ θ.app b ≫ f ◁ θ.naturality h =
     f ◁ θ.naturality g ≫ f ◁ θ.app a ◁ H.map₂ β :=
 by simp_rw [←bicategory.whisker_left_comp, naturality_naturality]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_right_naturality_naturality {f g : a ⟶ b} (β : f ⟶ g) (h : G.obj b ⟶ a') :
   F.map₂ β ▷ η.app b ▷ h ≫ η.naturality g ▷ h =
     η.naturality f ▷ h ≫ (α_ _ _ _).hom ≫ η.app a ◁ G.map₂ β ▷ h ≫ (α_ _ _ _).inv :=
 by rw [←comp_whisker_right, naturality_naturality, comp_whisker_right, whisker_assoc]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶ c) :
   f ◁ θ.naturality (g ≫ h) ≫ f ◁ θ.app a ◁ H.map_comp g h =
     f ◁ G.map_comp g h ▷ θ.app c ≫ f ◁ (α_ _ _ _).hom ≫
@@ -96,7 +96,7 @@ lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶
         f ◁ θ.naturality g ▷ H.map h ≫ f ◁ (α_ _ _ _).hom :=
 by simp_rw [←bicategory.whisker_left_comp, naturality_comp]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶ a') :
   η.naturality (f ≫ g) ▷ h ≫ (α_ _ _ _).hom ≫ η.app a ◁ G.map_comp f g ▷ h =
     F.map_comp f g ▷ η.app c ▷ h ≫ (α_ _ _ _).hom ▷ h ≫ (α_ _ _ _).hom ≫
@@ -104,13 +104,13 @@ lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶
         η.naturality f ▷ G.map g ▷ h ≫ (α_ _ _ _).hom ▷ h ≫ (α_ _ _ _).hom :=
 by { rw [←associator_naturality_middle, ←comp_whisker_right_assoc, naturality_comp], simv }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_left_naturality_id (f : a' ⟶ G.obj a) :
   f ◁ θ.naturality (𝟙 a) ≫ f ◁ θ.app a ◁ H.map_id a =
     f ◁ G.map_id a ▷ θ.app a ≫ f ◁ (λ_ (θ.app a)).hom ≫ f ◁ (ρ_ (θ.app a)).inv :=
 by simp_rw [←bicategory.whisker_left_comp, naturality_id]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_right_naturality_id (f : G.obj a ⟶ a') :
   η.naturality (𝟙 a) ▷ f ≫ (α_ _ _ _).hom ≫ η.app a ◁ G.map_id a ▷ f =
     F.map_id a ▷ η.app a ▷ f ≫ (λ_ (η.app a)).hom ▷ f ≫
@@ -168,7 +168,7 @@ structure modification (η θ : F ⟶ G) :=
   (F.map f ◁ app b) ≫ θ.naturality f = η.naturality f ≫ (app a ▷ G.map f) . obviously)
 
 restate_axiom modification.naturality'
-attribute [simv, reassoc] modification.naturality
+attribute [simp, reassoc] modification.naturality
 
 variables {η θ ι : F ⟶ G}
 
@@ -187,13 +187,13 @@ variables {η}
 section
 variables (Γ : modification η θ) {a b c : B} {a' : C}
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_left_naturality (f : a' ⟶ F.obj b) (g : b ⟶ c) :
   f ◁ F.map g ◁ Γ.app c ≫ f ◁ θ.naturality g =
     f ◁ η.naturality g ≫ f ◁ Γ.app b ▷ G.map g :=
 by simp_rw [←bicategory.whisker_left_comp, naturality]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma whisker_right_naturality (f : a ⟶ b) (g : G.obj b ⟶ a') :
   F.map f ◁ Γ.app b ▷ g ≫ (α_ _ _ _).inv ≫ θ.naturality f ▷ g =
     (α_ _ _ _).inv ≫ η.naturality f ▷ g ≫ Γ.app a ▷ G.map f ▷ g :=

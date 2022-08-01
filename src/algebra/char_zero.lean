@@ -31,7 +31,7 @@ def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
   (q : R) ^ n = 1 ↔ q = 1 :=
 by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin

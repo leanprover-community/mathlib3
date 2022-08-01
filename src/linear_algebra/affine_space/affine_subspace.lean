@@ -385,11 +385,11 @@ instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.dir
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
 
-@[simv, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
+@[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
 rfl
 
-@[simv, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
+@[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
 

@@ -243,7 +243,7 @@ def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
   one_hom.single f i x = mul_single i x := rfl
 
@@ -259,7 +259,7 @@ def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
   monoid_hom.single f i x = mul_single i x := rfl
 
@@ -364,7 +364,7 @@ end single
 
 namespace function
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma update_one [Π i, has_one (f i)] [decidable_eq I] (i : I) :
   update (1 : Π i, f i) i 1 = 1 :=
 update_eq_self i 1

@@ -149,9 +149,9 @@ protected lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x := fun_li
 
 @[simp] lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
 
-@[simv, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
+@[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
 
-@[simv, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
+@[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
 
 /-- The `ring_equiv` between two semirings with a unique element. -/
 def ring_equiv_of_unique {M N}
@@ -372,7 +372,7 @@ instance has_coe_to_non_unital_ring_hom : has_coe (R ≃+* S) (R →ₙ+* S) :=
 
 lemma to_non_unital_ring_hom_eq_coe (f : R ≃+* S) : f.to_non_unital_ring_hom = ↑f := rfl
 
-@[simv, norm_cast] lemma coe_to_non_unital_ring_hom (f : R ≃+* S) : ⇑(f : R →ₙ+* S) = f := rfl
+@[simp, norm_cast] lemma coe_to_non_unital_ring_hom (f : R ≃+* S) : ⇑(f : R →ₙ+* S) = f := rfl
 
 lemma coe_non_unital_ring_hom_inj_iff {R S : Type*}
   [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
@@ -425,7 +425,7 @@ instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.
 
 lemma to_ring_hom_eq_coe (f : R ≃+* S) : f.to_ring_hom = ↑f := rfl
 
-@[simv, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
+@[simp, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
 
 lemma coe_ring_hom_inj_iff {R S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
   (f g : R ≃+* S) :
@@ -433,7 +433,7 @@ lemma coe_ring_hom_inj_iff {R S : Type*} [non_assoc_semiring R] [non_assoc_semir
 ⟨congr_arg _, λ h, ext $ ring_hom.ext_iff.mp h⟩
 
 /-- The two paths coercion can take to a `non_unital_ring_hom` are equivalent -/
-@[simv, norm_cast] lemma to_non_unital_ring_hom_commutes (f : R ≃+* S) :
+@[simp, norm_cast] lemma to_non_unital_ring_hom_commutes (f : R ≃+* S) :
   ((f : R →+* S) : R →ₙ+* S) = (f : R →ₙ+* S) :=
 rfl
 

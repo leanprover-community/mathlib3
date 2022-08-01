@@ -46,16 +46,16 @@ def op_homeomorph : M ≃ₜ Mᵐᵒᵖ :=
   continuous_to_fun := continuous_op,
   continuous_inv_fun := continuous_unop }
 
-@[simv, to_additive] lemma map_op_nhds (x : M) : map (op : M → Mᵐᵒᵖ) (𝓝 x) = 𝓝 (op x) :=
+@[simp, to_additive] lemma map_op_nhds (x : M) : map (op : M → Mᵐᵒᵖ) (𝓝 x) = 𝓝 (op x) :=
 op_homeomorph.map_nhds_eq x
 
-@[simv, to_additive] lemma map_unop_nhds (x : Mᵐᵒᵖ) : map (unop : Mᵐᵒᵖ → M) (𝓝 x) = 𝓝 (unop x) :=
+@[simp, to_additive] lemma map_unop_nhds (x : Mᵐᵒᵖ) : map (unop : Mᵐᵒᵖ → M) (𝓝 x) = 𝓝 (unop x) :=
 op_homeomorph.symm.map_nhds_eq x
 
-@[simv, to_additive] lemma comap_op_nhds (x : Mᵐᵒᵖ) : comap (op : M → Mᵐᵒᵖ) (𝓝 x) = 𝓝 (unop x) :=
+@[simp, to_additive] lemma comap_op_nhds (x : Mᵐᵒᵖ) : comap (op : M → Mᵐᵒᵖ) (𝓝 x) = 𝓝 (unop x) :=
 op_homeomorph.comap_nhds_eq x
 
-@[simv, to_additive] lemma comap_unop_nhds (x : M) : comap (unop : Mᵐᵒᵖ → M) (𝓝 x) = 𝓝 (op x) :=
+@[simp, to_additive] lemma comap_unop_nhds (x : M) : comap (unop : Mᵐᵒᵖ → M) (𝓝 x) = 𝓝 (op x) :=
 op_homeomorph.symm.comap_nhds_eq x
 
 end mul_opposite

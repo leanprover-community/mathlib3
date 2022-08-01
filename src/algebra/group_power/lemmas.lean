@@ -358,14 +358,14 @@ instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
   end⟩
 
-@[simv, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero], exact nat.cast_one },
   { rw [pow_succ', pow_succ', nat.cast_mul, ih] }
 end
 
-@[simv, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -413,7 +413,7 @@ lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simv
 
 lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simv
 
-@[simv, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero, int.cast_one] },
@@ -725,7 +725,7 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simv, to_additive] lemma units_zpow_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
 | (n : ℕ) := by simv only [zpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simv only [zpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
@@ -774,11 +774,11 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simv, to_additive] lemma units_zpow_right {a : M} {u : Mˣ} (h : commute a u) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_right {a : M} {u : Mˣ} (h : commute a u) (m : ℤ) :
   commute a (↑(u^m)) :=
 h.units_zpow_right m
 
-@[simv, to_additive] lemma units_zpow_left {u : Mˣ} {a : M} (h : commute ↑u a) (m : ℤ) :
+@[simp, to_additive] lemma units_zpow_left {u : Mˣ} {a : M} (h : commute ↑u a) (m : ℤ) :
   commute (↑(u^m)) a :=
 (h.symm.units_zpow_right m).symm
 

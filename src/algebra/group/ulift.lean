@@ -25,25 +25,25 @@ variables {α : Type u} {β : Type*} {x y : ulift.{v} α}
 namespace ulift
 
 @[to_additive] instance has_one [has_one α] : has_one (ulift α) := ⟨⟨1⟩⟩
-@[simv, to_additive] lemma one_down [has_one α] : (1 : ulift α).down = 1 := rfl
+@[simp, to_additive] lemma one_down [has_one α] : (1 : ulift α).down = 1 := rfl
 
 @[to_additive] instance has_mul [has_mul α] : has_mul (ulift α) := ⟨λ f g, ⟨f.down * g.down⟩⟩
-@[simv, to_additive] lemma mul_down [has_mul α] : (x * y).down = x.down * y.down := rfl
+@[simp, to_additive] lemma mul_down [has_mul α] : (x * y).down = x.down * y.down := rfl
 
 @[to_additive] instance has_div [has_div α] : has_div (ulift α) := ⟨λ f g, ⟨f.down / g.down⟩⟩
-@[simv, to_additive] lemma div_down [has_div α] : (x / y).down = x.down / y.down := rfl
+@[simp, to_additive] lemma div_down [has_div α] : (x / y).down = x.down / y.down := rfl
 
 @[to_additive] instance has_inv [has_inv α] : has_inv (ulift α) := ⟨λ f, ⟨f.down⁻¹⟩⟩
-@[simv, to_additive] lemma inv_down [has_inv α] : x⁻¹.down = (x.down)⁻¹ := rfl
+@[simp, to_additive] lemma inv_down [has_inv α] : x⁻¹.down = (x.down)⁻¹ := rfl
 
 @[to_additive]
 instance has_smul [has_smul α β] : has_smul α (ulift β) := ⟨λ n x, up (n • x.down)⟩
-@[simv, to_additive]
+@[simp, to_additive]
 lemma smul_down [has_smul α β] (a : α) (b : ulift.{v} β) : (a • b).down = a • b.down := rfl
 
 @[to_additive has_smul, to_additive_reorder 1]
 instance has_pow [has_pow α β] : has_pow (ulift α) β := ⟨λ x n, up (x.down ^ n)⟩
-@[simv, to_additive smul_down, to_additive_reorder 1]
+@[simp, to_additive smul_down, to_additive_reorder 1]
 lemma pow_down [has_pow α β] (a : ulift.{v} α) (b : β) : (a ^ b).down = a.down ^ b := rfl
 
 /--

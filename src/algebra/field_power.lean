@@ -30,7 +30,7 @@ f.to_ring_hom.map_zpow
 @[simp] lemma zpow_bit1_neg (x : α) (n : ℤ) : (-x) ^ bit1 n = - x ^ bit1 n :=
 by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
 
-@[simv, norm_cast] lemma rat.cast_zpow [char_zero α] (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
+@[simp, norm_cast] lemma rat.cast_zpow [char_zero α] (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
 (rat.cast_hom α).map_zpow q n
 
 end division_ring

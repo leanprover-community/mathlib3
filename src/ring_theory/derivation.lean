@@ -72,7 +72,7 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 @[simp] lemma mk_coe (f : A →ₗ[R] M) (h₁ h₂) :
   ((⟨f, h₁, h₂⟩ : derivation R A M) : A → M) = f := rfl
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_fn_coe (f : derivation R A M) : ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
@@ -91,7 +91,7 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 lemma map_sum {ι : Type*} (s : finset ι) (f : ι → A) : D (∑ i in s, f i) = ∑ i in s, D (f i) :=
 D.to_linear_map.map_sum
 
-@[simv, priority 900] lemma map_smul_of_tower {S : Type*} [has_smul S A] [has_smul S M]
+@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_smul S A] [has_smul S M]
   [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
   D (r • a) = r • D a :=
 D.to_linear_map.map_smul_of_tower r a

@@ -39,7 +39,7 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 
 lemma mk_mem_product (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s.product t := mem_product.2 ⟨ha, hb⟩
 
-@[simv, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
+@[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
   (s.product t : set (α × β)) = (s : set α) ×ˢ (t : set β) :=
 set.ext $ λ x, finset.mem_product
 

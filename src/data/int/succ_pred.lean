@@ -55,7 +55,7 @@ protected lemma covby_iff_succ_eq {m n : ℤ} : m ⋖ n ↔ m + 1 = n := succ_eq
 
 end int
 
-@[simv, norm_cast] lemma nat.cast_int_covby_iff {a b : ℕ} : (a : ℤ) ⋖ b ↔ a ⋖ b :=
+@[simp, norm_cast] lemma nat.cast_int_covby_iff {a b : ℕ} : (a : ℤ) ⋖ b ↔ a ⋖ b :=
 by { rw [nat.covby_iff_succ_eq, int.covby_iff_succ_eq], exact int.coe_nat_inj' }
 
 alias nat.cast_int_covby_iff ↔ _ covby.cast_int

@@ -131,7 +131,7 @@ whisker_left (injective_resolutions C)
   nat_trans.right_derived (𝟙 F) n = 𝟙 (F.right_derived n) :=
 by { simv [nat_trans.right_derived], refl, }
 
-@[simv, nolint simp_nf] lemma nat_trans.right_derived_comp
+@[simp, nolint simp_nf] lemma nat_trans.right_derived_comp
   {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
   (α : F ⟶ G) (β : G ⟶ H) (n : ℕ) :
   nat_trans.right_derived (α ≫ β) n = nat_trans.right_derived α n ≫ nat_trans.right_derived β n :=

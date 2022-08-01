@@ -165,10 +165,10 @@ def comap (f : M →ₙ* N) (S : subsemigroup N) : subsemigroup M :=
   mul_mem' := λ a b ha hb,
     show f (a * b) ∈ S, by rw map_mul; exact mul_mem ha hb }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_comap (S : subsemigroup N) (f : M →ₙ* N) : (S.comap f : set M) = f ⁻¹' S := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_comap {S : subsemigroup N} {f : M →ₙ* N} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
 @[to_additive]
@@ -176,7 +176,7 @@ lemma comap_comap (S : subsemigroup P) (g : N →ₙ* P) (f : M →ₙ* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma comap_id (S : subsemigroup P) : S.comap (mul_hom.id _) = S :=
 ext (by simv)
 
@@ -188,11 +188,11 @@ def map (f : M →ₙ* N) (S : subsemigroup M) : subsemigroup N :=
   mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩,
     exact ⟨x * y, @mul_mem (subsemigroup M) M _ _ _ _ _ _ hx hy, by rw map_mul; refl⟩ end }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_map (f : M →ₙ* N) (S : subsemigroup M) :
   (S.map f : set N) = f '' S := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_map {f : M →ₙ* N} {S : subsemigroup M} {y : N} :
   y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
 mem_image_iff_bex
@@ -247,11 +247,11 @@ lemma monotone_map {f : M →ₙ* N} : monotone (map f) :=
 lemma monotone_comap {f : M →ₙ* N} : monotone (comap f) :=
 (gc_map_comap f).monotone_u
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_comap_map {f : M →ₙ* N} : ((S.map f).comap f).map f = S.map f :=
 (gc_map_comap f).l_u_l_eq_l _
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma comap_map_comap {S : subsemigroup N} {f : M →ₙ* N} :
   ((S.comap f).map f).comap f = S.comap f :=
 (gc_map_comap f).u_l_u_eq_u _
@@ -274,13 +274,13 @@ lemma comap_infi {ι : Sort*} (f : M →ₙ* N) (s : ι → subsemigroup N) :
   (infi s).comap f = ⨅ i, (s i).comap f :=
 (gc_map_comap f).u_infi
 
-@[simv, to_additive] lemma map_bot (f : M →ₙ* N) : (⊥ : subsemigroup M).map f = ⊥ :=
+@[simp, to_additive] lemma map_bot (f : M →ₙ* N) : (⊥ : subsemigroup M).map f = ⊥ :=
 (gc_map_comap f).l_bot
 
-@[simv, to_additive] lemma comap_top (f : M →ₙ* N) : (⊤ : subsemigroup N).comap f = ⊤ :=
+@[simp, to_additive] lemma comap_top (f : M →ₙ* N) : (⊤ : subsemigroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-@[simv, to_additive] lemma map_id (S : subsemigroup M) : S.map (mul_hom.id M) = S :=
+@[simp, to_additive] lemma map_id (S : subsemigroup M) : S.map (mul_hom.id M) = S :=
 ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
 section galois_coinsertion
@@ -395,11 +395,11 @@ include hA
 priority 900] -- lower priority so other instances are found first
 instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
 
-@[simv, norm_cast, to_additive, priority 900]
+@[simp, norm_cast, to_additive, priority 900]
 -- lower priority so later simv lemmas are used first; to appease simp_nf
 lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 
-@[simv, to_additive, priority 900]
+@[simp, to_additive, priority 900]
 -- lower priority so later simv lemmas are used first; to appease simp_nf
 lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
   (⟨x, hx⟩ : S') * ⟨y, hy⟩ = ⟨x * y, mul_mem hx hy⟩ := rfl
@@ -426,7 +426,7 @@ include hA
 @[to_additive "The natural semigroup hom from an `add_subsemigroup` of `add_semigroup` `M` to `M`."]
 def subtype : S' →ₙ* M := ⟨coe, λ _ _, rfl⟩
 
-@[simv, to_additive] theorem coe_subtype : (mul_mem_class.subtype S' : S' → M) = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (mul_mem_class.subtype S' : S' → M) = coe := rfl
 
 end mul_mem_class
 
@@ -443,7 +443,7 @@ def top_equiv : (⊤ : subsemigroup M) ≃* M :=
   right_inv := λ _, rfl,
   map_mul'  := λ _ _, rfl }
 
-@[simv, to_additive] lemma top_equiv_to_mul_hom :
+@[simp, to_additive] lemma top_equiv_to_mul_hom :
   (top_equiv : _ ≃* M).to_mul_hom = mul_mem_class.subtype (⊤ : subsemigroup M) :=
 rfl
 
@@ -453,11 +453,11 @@ noncomputable def equiv_map_of_injective
   (f : M →ₙ* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (map_mul f _ _), ..equiv.set.image f S hf }
 
-@[simv, to_additive] lemma coe_equiv_map_of_injective_apply
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply
   (f : M →ₙ* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
 eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   refine closure_induction' _ (λ g hg, _) (λ g₁ g₂ hg₁ hg₂, _) hx,
@@ -497,7 +497,7 @@ lemma top_prod (s : subsemigroup N) :
   (⊤ : subsemigroup M).prod s = s.comap (mul_hom.snd M N) :=
 ext $ λ x, by simv [mem_prod, mul_hom.coe_snd]
 
-@[simv, to_additive top_prod_top]
+@[simp, to_additive top_prod_top]
 lemma top_prod_top : (⊤ : subsemigroup M).prod (⊤ : subsemigroup N) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
@@ -527,7 +527,7 @@ lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : subsemigroup M) :
   K.comap f.to_mul_hom = K.map f.symm.to_mul_hom :=
 (map_equiv_eq_comap_symm f.symm K).symm
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma map_equiv_top (f : M ≃* N) : (⊤ : subsemigroup M).map f.to_mul_hom = ⊤ :=
 set_like.coe_injective $ set.image_univ.trans f.surjective.range_eq
 
@@ -556,12 +556,12 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 def srange (f : M →ₙ* N) : subsemigroup N :=
 ((⊤ : subsemigroup M).map f).copy (set.range f) set.image_univ.symm
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_srange (f : M →ₙ* N) :
   (f.srange : set N) = set.range f :=
 rfl
 
-@[simv, to_additive] lemma mem_srange {f : M →ₙ* N} {y : N} :
+@[simp, to_additive] lemma mem_srange {f : M →ₙ* N} {y : N} :
   y ∈ f.srange ↔ ∃ x, f x = y :=
 iff.rfl
 
@@ -605,7 +605,7 @@ def restrict {N : Type*} [has_mul N] [set_like σ M] [mul_mem_class σ M] (f : M
   S →ₙ* N :=
 f.comp (mul_mem_class.subtype S)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma restrict_apply {N : Type*} [has_mul N] [set_like σ M] [mul_mem_class σ M] (f : M →ₙ* N)
   {S : σ} (x : S) : f.restrict S x = f x :=
 rfl
@@ -623,7 +623,7 @@ def cod_restrict [set_like σ N] [mul_mem_class σ N] (f : M →ₙ* N) (S : σ)
 def srange_restrict {N} [has_mul N] (f : M →ₙ* N) : M →ₙ* f.srange :=
 f.cod_restrict f.srange $ λ x, ⟨x, rfl⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_srange_restrict {N} [has_mul N] (f : M →ₙ* N) (x : M) :
   (f.srange_restrict x : N) = f x :=
 rfl
@@ -666,11 +666,11 @@ open mul_hom
 
 variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma srange_fst [nonempty N] : (fst M N).srange = ⊤ :=
 (fst M N).srange_top_of_surjective $ prod.fst_surjective
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma srange_snd [nonempty M] : (snd M N).srange = ⊤ :=
 (snd M N).srange_top_of_surjective $ prod.snd_surjective
 
@@ -685,7 +685,7 @@ by simv only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← srang
 def inclusion {S T : subsemigroup M} (h : S ≤ T) : S →ₙ* T :=
 (mul_mem_class.subtype S).cod_restrict _ (λ x, h x.2)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma range_subtype (s : subsemigroup M) : (mul_mem_class.subtype s).srange = s :=
 set_like.coe_injective $ (coe_srange _).trans $ subtype.range_coe
 

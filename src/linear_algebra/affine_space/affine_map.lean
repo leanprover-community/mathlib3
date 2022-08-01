@@ -186,7 +186,7 @@ instance : mul_action R (P1 →ᵃ[k] V2) :=
   one_smul := λ f, ext $ λ p, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ p, mul_smul _ _ _ }
 
-@[simv, norm_cast] lemma coe_smul (c : R) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul (c : R) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
 @[simp] lemma smul_linear (t : R) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
 
@@ -203,10 +203,10 @@ instance : has_sub (P1 →ᵃ[k] V2) :=
 { sub := λ f g, ⟨f - g, f.linear - g.linear, λ p v, by simv [sub_add_sub_comm]⟩ }
 instance : has_neg (P1 →ᵃ[k] V2) := { neg := λ f, ⟨-f, -f.linear, λ p v, by simv [add_comm]⟩ }
 
-@[simv, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
-@[simv, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
-@[simv, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
-@[simv, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
+@[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
+@[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
+@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl
 @[simp] lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
 @[simp] lemma sub_linear (f g : P1 →ᵃ[k] V2) : (f - g).linear = f.linear - g.linear := rfl

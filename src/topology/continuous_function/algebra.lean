@@ -46,10 +46,10 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
 
-@[simv, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
+@[simp, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
   (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
 rfl
@@ -57,21 +57,21 @@ rfl
 @[to_additive]
 instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 
-@[simv, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
+@[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
 
 instance [has_nat_cast β] : has_nat_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance [has_int_cast β] : has_int_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_smul ℕ C(α, β) :=
@@ -100,12 +100,12 @@ attribute [simp] pow_comp
 instance [group β] [topological_group β] : has_inv C(α, β) :=
 { inv := λ f, ⟨f⁻¹, f.continuous.inv⟩ }
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
   ⇑(f⁻¹) = f⁻¹ :=
 rfl
 
-@[simv, to_additive] lemma inv_comp [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
+@[simp, to_additive] lemma inv_comp [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
   (f⁻¹).comp g = (f.comp g)⁻¹ :=
 rfl
 
@@ -113,11 +113,11 @@ rfl
 instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
 { div := λ f g, ⟨f / g, f.continuous.div' g.continuous⟩ }
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
 rfl
 
-@[simv, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
+@[simp, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
   (f g : C(β, γ)) (h : C(α, β)) :
   (f / g).comp h = (f.comp h) / (g.comp h) :=
 rfl
@@ -260,7 +260,7 @@ def comp_monoid_hom' {α : Type*} {β : Type*} {γ : Type*}
 { to_fun := λ f, f.comp g, map_one' := one_comp g, map_mul' := λ f₁ f₂, mul_comp f₁ f₂ g }
 
 open_locale big_operators
-@[simv, to_additive] lemma coe_prod {α : Type*} {β : Type*} [comm_monoid β]
+@[simp, to_additive] lemma coe_prod {α : Type*} {β : Type*} [comm_monoid β]
   [topological_space α] [topological_space β] [has_continuous_mul β]
   {ι : Type*} (s : finset ι) (f : ι → C(α, β)) :
   ⇑(∏ i in s, f i) = (∏ i in s, (f i : α → β)) :=
@@ -466,7 +466,7 @@ instance [locally_compact_space α] [topological_space R] [has_smul R M]
   exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 
-@[simv, to_additive, norm_cast]
+@[simp, to_additive, norm_cast]
 lemma coe_smul [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
@@ -475,7 +475,7 @@ lemma smul_apply [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
 
-@[simv, to_additive] lemma smul_comp [has_smul R M] [has_continuous_const_smul R M]
+@[simp, to_additive] lemma smul_comp [has_smul R M] [has_continuous_const_smul R M]
   (r : R) (f : C(β, M)) (g : C(α, β)) :
   (r • f).comp g = r • (f.comp g) :=
 rfl

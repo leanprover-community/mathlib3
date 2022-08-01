@@ -93,7 +93,7 @@ begin rw count_cons, split_ifs; refl end
 
 @[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) := if_pos rfl
 
-@[simv, priority 990]
+@[simp, priority 990]
 lemma count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l := if_neg h
 
 lemma count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
@@ -124,7 +124,7 @@ by simv only [count, countp_pos, exists_prop, exists_eq_right']
 @[simp] lemma one_le_count_iff_mem {a : α} {l : list α} : 1 ≤ count a l ↔ a ∈ l :=
 count_pos
 
-@[simv, priority 980]
+@[simp, priority 980]
 lemma count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
 decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 

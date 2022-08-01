@@ -23,7 +23,7 @@ namespace list
 
 @[simp] theorem sublists'_nil : sublists' (@nil α) = [[]] := rfl
 
-@[simv, priority 1100] theorem sublists'_singleton (a : α) : sublists' [a] = [[], [a]] := rfl
+@[simp, priority 1100] theorem sublists'_singleton (a : α) : sublists' [a] = [[], [a]] := rfl
 
 theorem map_sublists'_aux (g : list β → list γ) (l : list α) (f r) :
   map g (sublists'_aux l f r) = sublists'_aux l (g ∘ f) (map g r) :=

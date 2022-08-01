@@ -178,7 +178,7 @@ lemma explicit_cokernel_π_surjective {X Y : SemiNormedGroup.{u}} {f : X ⟶ Y} 
   function.surjective (explicit_cokernel_π f) :=
 surjective_quot_mk _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma comp_explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   f ≫ explicit_cokernel_π f = 0 :=
 begin
@@ -191,7 +191,7 @@ lemma explicit_cokernel_π_apply_dom_eq_zero {X Y : SemiNormedGroup.{u}} {f : X 
   (explicit_cokernel_π f) (f x) = 0 :=
 show (f ≫ (explicit_cokernel_π f)) x = 0, by { rw [comp_explicit_cokernel_π], refl }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma explicit_cokernel_π_desc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
   (w : f ≫ g = 0) : explicit_cokernel_π f ≫ explicit_cokernel_desc w = g :=
 (is_colimit_cokernel_cocone f).fac _ _

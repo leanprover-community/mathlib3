@@ -215,7 +215,7 @@ begin
     exact ⟨hr, hi⟩ },
 end
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_int_dvd_coe_int (a b : ℤ) : (a : ℤ√d) ∣ b ↔ a ∣ b :=
 begin
   rw coe_int_dvd_iff,

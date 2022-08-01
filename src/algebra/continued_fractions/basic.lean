@@ -69,7 +69,7 @@ variables {β : Type*} [has_coe α β]
 instance has_coe_to_generalized_continued_fraction_pair : has_coe (pair α) (pair β) :=
 ⟨map coe⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction_pair {a b : α} :
   (↑(pair.mk a b) : pair β) = pair.mk (a : β) (b : β) := rfl
 
@@ -138,7 +138,7 @@ instance has_coe_to_generalized_continued_fraction :
   has_coe (generalized_continued_fraction α) (generalized_continued_fraction β) :=
 ⟨λ g, ⟨(g.h : β), (g.s.map coe : seq $ pair β)⟩⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {g : generalized_continued_fraction α} :
   (↑(g : generalized_continued_fraction α) : generalized_continued_fraction β) =
     ⟨(g.h : β), (g.s.map coe : seq $ pair β)⟩ :=

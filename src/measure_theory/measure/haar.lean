@@ -112,7 +112,7 @@ by apply div_nonneg; norm_cast; apply zero_le
 def haar_product (K₀ : set G) : set (compacts G → ℝ) :=
 pi univ (λ K, Icc 0 $ index (K : set G) K₀)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_prehaar_empty {K₀ : set G} {f : compacts G → ℝ} :
   f ∈ haar_product K₀ ↔ ∀ K : compacts G, f K ∈ Icc (0 : ℝ) (index (K : set G) K₀) :=
 by simv only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
@@ -721,7 +721,7 @@ begin
   rw [hc, this, one_smul]
 end
 
-@[simv, to_additive] lemma haar_preimage_inv
+@[simp, to_additive] lemma haar_preimage_inv
   {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
   (μ : measure G) [is_haar_measure μ] (s : set G) :

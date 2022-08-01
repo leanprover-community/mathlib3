@@ -64,7 +64,7 @@ attribute [simp] shape
 
 variables {V} {c : complex_shape ι}
 
-@[simv, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
+@[simp, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
   C.d i j ≫ C.d j k = 0 :=
 begin
   by_cases hij : c.rel i j,
@@ -156,7 +156,7 @@ commuting with the differentials.
 (f : ∀ i, A.X i ⟶ B.X i)
 (comm' : ∀ i j, c.rel i j → f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma hom.comm {A B : homological_complex V c} (f : A.hom B) (i j : ι) :
   f.f i ≫ B.d i j = A.d i j ≫ f.f j :=
 begin
@@ -360,19 +360,19 @@ lemma d_from_eq_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.d_from i = 0 :=
 C.shape _ _ h
 
-@[simv, reassoc] lemma X_prev_iso_comp_d_to {i j : ι} (r : c.rel i j) :
+@[simp, reassoc] lemma X_prev_iso_comp_d_to {i j : ι} (r : c.rel i j) :
   (C.X_prev_iso r).inv ≫ C.d_to j = C.d i j :=
 by simv [C.d_to_eq r]
 
-@[simv, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
+@[simp, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
   (C.X_prev_iso_zero h).inv ≫ C.d_to j = 0 :=
 by simv [h]
 
-@[simv, reassoc] lemma d_from_comp_X_next_iso {i j : ι} (r : c.rel i j) :
+@[simp, reassoc] lemma d_from_comp_X_next_iso {i j : ι} (r : c.rel i j) :
   C.d_from i ≫ (C.X_next_iso r).hom = C.d i j :=
 by simv [C.d_from_eq r]
 
-@[simv, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
+@[simp, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.d_from i ≫ (C.X_next_iso_zero h).hom = 0 :=
 by simv [h]
 
@@ -450,12 +450,12 @@ begin
   simv only [X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
 f.comm _ _
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 f.comm _ _

@@ -195,21 +195,21 @@ variables {R : Type*} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_to
 instance : has_smul R (finite_measure α) :=
 { smul := λ (c : R) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_of_nnreal_tower⟩, }
 
-@[simv, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
 
-@[simv, norm_cast] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
+@[simp, norm_cast] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
 
-@[simv, norm_cast] lemma coe_smul (c : R) (μ : finite_measure α) :
+@[simp, norm_cast] lemma coe_smul (c : R) (μ : finite_measure α) :
   ↑(c • μ) = (c • ↑μ : measure α) := rfl
 
-@[simv, norm_cast] lemma coe_fn_zero :
+@[simp, norm_cast] lemma coe_fn_zero :
   (⇑(0 : finite_measure α) : set α → ℝ≥0) = (0 : set α → ℝ≥0) := by { funext, refl, }
 
-@[simv, norm_cast] lemma coe_fn_add (μ ν : finite_measure α) :
+@[simp, norm_cast] lemma coe_fn_add (μ ν : finite_measure α) :
   (⇑(μ + ν) : set α → ℝ≥0) = (⇑μ + ⇑ν : set α → ℝ≥0) :=
 by { funext, simv [← ennreal.coe_eq_coe], }
 
-@[simv, norm_cast] lemma coe_fn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
+@[simp, norm_cast] lemma coe_fn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
 by { funext, simv [← ennreal.coe_eq_coe, ennreal.coe_smul], }
 

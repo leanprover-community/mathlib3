@@ -73,32 +73,32 @@ def tensoring_right_monoidal [monoidal_category.{v} C] : monoidal_functor C (C �
 variable {C}
 variables {M : Type*} [category M] [monoidal_category M] (F : monoidal_functor M (C ⥤ C))
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_hom_inv_app (i j : M) (X : C) :
   (F.μ i j).app X ≫ (F.μ_iso i j).inv.app X = 𝟙 _ := (F.μ_iso i j).hom_inv_id_app X
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_inv_hom_app (i j : M) (X : C) :
    (F.μ_iso i j).inv.app X ≫ (F.μ i j).app X = 𝟙 _ := (F.μ_iso i j).inv_hom_id_app X
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ε_hom_inv_app (X : C) :
   F.ε.app X ≫ F.ε_iso.inv.app X = 𝟙 _ := F.ε_iso.hom_inv_id_app X
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ε_inv_hom_app (X : C) :
   F.ε_iso.inv.app X ≫ F.ε.app X = 𝟙 _ := F.ε_iso.inv_hom_id_app X
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ε_naturality {X Y : C} (f : X ⟶ Y) :
   F.ε.app X ≫ (F.obj (𝟙_M)).map f = f ≫ F.ε.app Y := (F.ε.naturality f).symm
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ε_inv_naturality {X Y : C} (f : X ⟶ Y) :
   (F.obj (𝟙_M)).map f ≫ F.ε_iso.inv.app Y = F.ε_iso.inv.app X ≫ f :=
 F.ε_iso.inv.naturality f
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_naturality {m n : M} {X Y : C} (f : X ⟶ Y) :
   (F.obj n).map ((F.obj m).map f) ≫ (F.μ m n).app Y = (F.μ m n).app X ≫ (F.obj _).map f :=
 (F.to_lax_monoidal_functor.μ m n).naturality f
@@ -121,7 +121,7 @@ begin
   simpa using this,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
   (F.obj n).map ((F.map f).app X) ≫ (F.μ m' n).app X =
     (F.μ m n).app X ≫ (F.map (f ⊗ 𝟙 n)).app X :=
@@ -130,7 +130,7 @@ begin
   simv,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
   (F.map g).app ((F.obj m).obj X) ≫ (F.μ m n').app X =
     (F.μ m n).app X ≫ (F.map (𝟙 m ⊗ g)).app X :=
@@ -139,7 +139,7 @@ begin
   simv,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_inv_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
   (F.μ_iso m n).inv.app X ≫ (F.obj n).map ((F.map f).app X) =
     (F.map (f ⊗ 𝟙 n)).app X ≫ (F.μ_iso m' n).inv.app X :=
@@ -148,7 +148,7 @@ begin
   simv,
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma μ_inv_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
   (F.μ_iso m n).inv.app X ≫ (F.map g).app ((F.obj m).obj X) =
     (F.map (𝟙 m ⊗ g)).app X ≫ (F.μ_iso m n').inv.app X :=
@@ -258,7 +258,7 @@ begin
     { ext, simpa } }
 end
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma obj_zero_map_μ_app {m : M} {X Y : C} (f : X ⟶ (F.obj m).obj Y) :
   (F.obj (𝟙_M)).map f ≫ (F.μ m (𝟙_M)).app _ =
     F.ε_iso.inv.app _ ≫ f ≫ (F.map (ρ_ m).inv).app _ :=

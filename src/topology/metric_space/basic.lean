@@ -341,14 +341,14 @@ by simv [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
 by { simpa only [edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg] }
 
-@[simv, norm_cast] lemma coe_nnreal_ennreal_nndist (x y : α) : ↑(nndist x y) = edist x y :=
+@[simp, norm_cast] lemma coe_nnreal_ennreal_nndist (x y : α) : ↑(nndist x y) = edist x y :=
 (edist_nndist x y).symm
 
-@[simv, norm_cast] lemma edist_lt_coe {x y : α} {c : ℝ≥0} :
+@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : ℝ≥0} :
   edist x y < c ↔ nndist x y < c :=
 by rw [edist_nndist, ennreal.coe_lt_coe]
 
-@[simv, norm_cast] lemma edist_le_coe {x y : α} {c : ℝ≥0} :
+@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : ℝ≥0} :
   edist x y ≤ c ↔ nndist x y ≤ c :=
 by rw [edist_nndist, ennreal.coe_le_coe]
 
@@ -365,14 +365,14 @@ lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ := (edist_lt_top x y).ne
 /--Express `dist` in terms of `nndist`-/
 lemma dist_nndist (x y : α) : dist x y = ↑(nndist x y) := rfl
 
-@[simv, norm_cast] lemma coe_nndist (x y : α) : ↑(nndist x y) = dist x y :=
+@[simp, norm_cast] lemma coe_nndist (x y : α) : ↑(nndist x y) = dist x y :=
 (dist_nndist x y).symm
 
-@[simv, norm_cast] lemma dist_lt_coe {x y : α} {c : ℝ≥0} :
+@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : ℝ≥0} :
   dist x y < c ↔ nndist x y < c :=
 iff.rfl
 
-@[simv, norm_cast] lemma dist_le_coe {x y : α} {c : ℝ≥0} :
+@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : ℝ≥0} :
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
@@ -1466,10 +1466,10 @@ namespace mul_opposite
 @[to_additive]
 instance : pseudo_metric_space (αᵐᵒᵖ) := pseudo_metric_space.induced mul_opposite.unop ‹_›
 
-@[simv, to_additive] theorem dist_unop (x y : αᵐᵒᵖ) : dist (unop x) (unop y) = dist x y := rfl
-@[simv, to_additive] theorem dist_op (x y : α) : dist (op x) (op y) = dist x y := rfl
-@[simv, to_additive] theorem nndist_unop (x y : αᵐᵒᵖ) : nndist (unop x) (unop y) = nndist x y := rfl
-@[simv, to_additive] theorem nndist_op (x y : α) : nndist (op x) (op y) = nndist x y := rfl
+@[simp, to_additive] theorem dist_unop (x y : αᵐᵒᵖ) : dist (unop x) (unop y) = dist x y := rfl
+@[simp, to_additive] theorem dist_op (x y : α) : dist (op x) (op y) = dist x y := rfl
+@[simp, to_additive] theorem nndist_unop (x y : αᵐᵒᵖ) : nndist (unop x) (unop y) = nndist x y := rfl
+@[simp, to_additive] theorem nndist_op (x y : α) : nndist (op x) (op y) = nndist x y := rfl
 
 end mul_opposite
 

@@ -269,7 +269,7 @@ theorem zpow_mul (A : M) (h : is_unit A.det) : ∀ m n : ℤ, A ^ (m * n) = (A ^
 theorem zpow_mul' (A : M) (h : is_unit A.det) (m n : ℤ) : A ^ (m * n) = (A ^ n) ^ m :=
 by rw [mul_comm, zpow_mul _ h]
 
-@[simv, norm_cast] lemma coe_units_zpow (u : Mˣ) :
+@[simp, norm_cast] lemma coe_units_zpow (u : Mˣ) :
   ∀ (n : ℤ), ((u ^ n : Mˣ) : M) = u ^ n
 | (n : ℕ) := by rw [_root_.zpow_coe_nat, zpow_coe_nat, units.coe_pow]
 | -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, ←inv_pow, u⁻¹.coe_pow, ←inv_pow',

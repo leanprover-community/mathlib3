@@ -128,18 +128,18 @@ instance : has_coe_to_fun (A →*[n] β) (λ _, α → β) := ⟨to_fun⟩
 
 initialize_simps_projections freiman_hom (to_fun → apply)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma to_fun_eq_coe (f : A →*[n] β) : f.to_fun = f := rfl
 
 @[ext, to_additive]
 lemma ext ⦃f g : A →*[n] β⦄ (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_mk (f : α → β) (h : ∀ s t : multiset α, (∀ ⦃x⦄, x ∈ s → x ∈ A) → (∀ ⦃x⦄, x ∈ t → x ∈ A) →
   s.card = n → t.card = n → s.prod = t.prod → (s.map f).prod = (t.map f).prod) :
   ⇑(mk f h) = f := rfl
 
-@[simv, to_additive] lemma mk_coe (f : A →*[n] β) (h) : mk f h = f := ext $ λ _, rfl
+@[simp, to_additive] lemma mk_coe (f : A →*[n] β) (h) : mk f h = f := ext $ λ _, rfl
 
 /-- The identity map from a commutative monoid to itself. -/
 @[to_additive "The identity map from an additive commutative monoid to itself.", simps]
@@ -158,7 +158,7 @@ protected def comp (f : B →*[n] γ) (g : A →*[n] β) (hAB : A.maps_to g B) :
     { simpa using (λ a h, hAB (htA h)) }
   end }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma coe_comp (f : B →*[n] γ) (g : A →*[n] β) {hfg} : ⇑(f.comp g hfg) = f ∘ g := rfl
 
 @[to_additive]
@@ -184,10 +184,10 @@ lemma cancel_left_on {g : B →*[n] γ} {f₁ f₂ : A →*[n] β} (hg : B.inj_o
   A.eq_on (g.comp f₁ hf₁) (g.comp f₂ hf₂) ↔ A.eq_on f₁ f₂ :=
 hg.cancel_left hf₁ hf₂
 
-@[simv, to_additive] lemma comp_id (f : A →*[n] β) {hf} : f.comp (freiman_hom.id A n) hf = f :=
+@[simp, to_additive] lemma comp_id (f : A →*[n] β) {hf} : f.comp (freiman_hom.id A n) hf = f :=
 ext $ λ x, rfl
 
-@[simv, to_additive] lemma id_comp (f : A →*[n] β) {hf} : (freiman_hom.id B n).comp f hf = f :=
+@[simp, to_additive] lemma id_comp (f : A →*[n] β) {hf} : (freiman_hom.id B n).comp f hf = f :=
 ext $ λ x, rfl
 
 /-- `freiman_hom.const A n b` is the Freiman homomorphism sending everything to `b`. -/
@@ -197,18 +197,18 @@ def const (A : set α) (n : ℕ) (b : β) : A →*[n] β :=
   map_prod_eq_map_prod' := λ s t _ _ hs ht _,
     by rw [multiset.map_const, multiset.map_const, prod_repeat, prod_repeat, hs, ht] }
 
-@[simv, to_additive] lemma const_apply (n : ℕ) (b : β) (x : α) : const A n b x = b := rfl
+@[simp, to_additive] lemma const_apply (n : ℕ) (b : β) (x : α) : const A n b x = b := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma const_comp (n : ℕ) (c : γ) (f : A →*[n] β) {hf} : (const B n c).comp f hf = const A n c := rfl
 
 /-- `1` is the Freiman homomorphism sending everything to `1`. -/
 @[to_additive "`0` is the Freiman homomorphism sending everything to `0`."]
 instance : has_one (A →*[n] β) := ⟨const A n 1⟩
 
-@[simv, to_additive] lemma one_apply (x : α) : (1 : A →*[n] β) x = 1 := rfl
+@[simp, to_additive] lemma one_apply (x : α) : (1 : A →*[n] β) x = 1 := rfl
 
-@[simv, to_additive] lemma one_comp (f : A →*[n] β) {hf} : (1 : B →*[n] γ).comp f hf = 1 := rfl
+@[simp, to_additive] lemma one_comp (f : A →*[n] β) {hf} : (1 : B →*[n] γ).comp f hf = 1 := rfl
 
 @[to_additive] instance : inhabited (A →*[n] β) := ⟨1⟩
 
@@ -220,7 +220,7 @@ instance : has_mul (A →*[n] β) :=
     by rw [prod_map_mul, prod_map_mul, map_prod_eq_map_prod f hsA htA hs ht h,
            map_prod_eq_map_prod g hsA htA hs ht h] }⟩
 
-@[simv, to_additive] lemma mul_apply (f g : A →*[n] β) (x : α) : (f * g) x = f x * g x := rfl
+@[simp, to_additive] lemma mul_apply (f g : A →*[n] β) (x : α) : (f * g) x = f x * g x := rfl
 
 @[to_additive] lemma mul_comp (g₁ g₂ : B →*[n] γ) (f : A →*[n] β) {hg hg₁ hg₂} :
   (g₁ * g₂).comp f hg = g₁.comp f hg₁ * g₂.comp f hg₂ := rfl
@@ -234,9 +234,9 @@ instance : has_inv (A →*[n] G) :=
   map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
     by rw [prod_map_inv, prod_map_inv, map_prod_eq_map_prod f hsA htA hs ht h] }⟩
 
-@[simv, to_additive] lemma inv_apply (f : A →*[n] G) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
+@[simp, to_additive] lemma inv_apply (f : A →*[n] G) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
 
-@[simv, to_additive] lemma inv_comp (f : B →*[n] G) (g : A →*[n] β) {hf hf'} :
+@[simp, to_additive] lemma inv_comp (f : B →*[n] G) (g : A →*[n] β) {hf hf'} :
   f⁻¹.comp g hf = (f.comp g hf')⁻¹ :=
 ext $ λ x, rfl
 
@@ -250,9 +250,9 @@ instance : has_div (A →*[n] G) :=
     by rw [prod_map_div, prod_map_div, map_prod_eq_map_prod f hsA htA hs ht h,
            map_prod_eq_map_prod g hsA htA hs ht h] }⟩
 
-@[simv, to_additive] lemma div_apply (f g : A →*[n] G) (x : α) : (f / g) x = f x / g x := rfl
+@[simp, to_additive] lemma div_apply (f g : A →*[n] G) (x : α) : (f / g) x = f x / g x := rfl
 
-@[simv, to_additive] lemma div_comp (f₁ f₂ : B →*[n] G) (g : A →*[n] β) {hf hf₁ hf₂} :
+@[simp, to_additive] lemma div_comp (f₁ f₂ : B →*[n] G) (g : A →*[n] β) {hf hf₁ hf₂} :
   (f₁ / f₂).comp g hf = f₁.comp g hf₁ / f₂.comp g hf₂ :=
 ext $ λ x, rfl
 
@@ -316,7 +316,7 @@ def monoid_hom.to_freiman_hom (A : set α) (n : ℕ) (f : α →* β) : A →*[n
   map_prod_eq_map_prod' := λ s t hsA htA, map_prod_eq_map_prod f
     (λ _ _, set.mem_univ _) (λ _ _, set.mem_univ _) }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma monoid_hom.to_freiman_hom_coe (f : α →* β) : (f.to_freiman_hom A n : α → β) = f := rfl
 
 @[to_additive]
@@ -373,7 +373,7 @@ def freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ 
 { map_prod_eq_map_prod' := λ f s t hsA htA hs ht hst,
     map_prod_eq_map_prod_of_le f hsA htA hs ht hst h }
 
-@[simv, to_additive add_freiman_hom.to_add_freiman_hom_coe]
+@[simp, to_additive add_freiman_hom.to_add_freiman_hom_coe]
 lemma freiman_hom.to_freiman_hom_coe (h : m ≤ n) (f : A →*[n] β) :
   (f.to_freiman_hom h : α → β) = f := rfl
 

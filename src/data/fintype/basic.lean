@@ -99,8 +99,8 @@ fintype.complete x
 lemma eq_univ_iff_forall : s = univ ↔ ∀ x, x ∈ s := by simv [ext_iff]
 lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
-@[simv, norm_cast] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) := by ext; simv
-@[simv, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
+@[simp, norm_cast] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) := by ext; simv
+@[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
 by rw [←coe_univ, coe_inj]
 
 lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
@@ -136,7 +136,7 @@ lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 
 lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
 
-@[simv, norm_cast] lemma coe_compl (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
+@[simp, norm_cast] lemma coe_compl (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
 @[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
@@ -613,7 +613,7 @@ instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
 arbitrary `fintype` instances, use `finset.univ_eq_empty`. -/
 -- no-lint since while `finset.univ_eq_empty` can prove this, it isn't applicable for `dsimp`.
-@[simv, nolint simp_nf] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
+@[simp, nolint simp_nf] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
 arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
@@ -670,11 +670,11 @@ set.ext $ λ _, mem_to_finset
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [←s.coe_to_finset, h, t.coe_to_finset], λ h, by simv [h]; congr⟩
 
-@[simv, mono] theorem to_finset_mono {s t : set α} [fintype s] [fintype t] :
+@[simp, mono] theorem to_finset_mono {s t : set α} [fintype s] [fintype t] :
   s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simv [finset.subset_iff, set.subset_def]
 
-@[simv, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
+@[simp, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
   s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simv only [finset.ssubset_def, to_finset_mono, ssubset_def]
 

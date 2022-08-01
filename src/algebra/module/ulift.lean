@@ -28,7 +28,7 @@ instance has_smul_left [has_smul R M] :
   has_smul (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma smul_def [has_smul R M] (s : ulift R) (x : M) : s • x = s.down • x := rfl
 
 instance is_scalar_tower [has_smul R M] [has_smul M N] [has_smul R N]

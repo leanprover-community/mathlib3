@@ -93,7 +93,7 @@ namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-attribute [simv, priority 10] hom_equiv_unit hom_equiv_counit
+attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 
 section
 
@@ -103,7 +103,7 @@ lemma hom_equiv_id (X : C) : adj.hom_equiv X _ (𝟙 _) = adj.unit.app X := by s
 
 lemma hom_equiv_symm_id (X : D) : (adj.hom_equiv _ X).symm (𝟙 _) = adj.counit.app X := by simv
 
-@[simv, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
+@[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
 
@@ -111,7 +111,7 @@ by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
 by rw [← equiv.eq_symm_apply]; simv [-hom_equiv_unit]
 
-@[simv, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
+@[simp, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y') (f ≫ g) = (adj.hom_equiv X Y) f ≫ G.map g :=
 by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 
@@ -135,19 +135,19 @@ begin
   simv
 end
 
-@[simv, reassoc] lemma left_triangle_components :
+@[simp, reassoc] lemma left_triangle_components :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 (F.obj X) :=
 congr_arg (λ (t : nat_trans _ (𝟭 C ⋙ F)), t.app X) adj.left_triangle
 
-@[simv, reassoc] lemma right_triangle_components {Y : D} :
+@[simp, reassoc] lemma right_triangle_components {Y : D} :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 (G.obj Y) :=
 congr_arg (λ (t : nat_trans _ (G ⋙ 𝟭 C)), t.app Y) adj.right_triangle
 
-@[simv, reassoc] lemma counit_naturality {X Y : D} (f : X ⟶ Y) :
+@[simp, reassoc] lemma counit_naturality {X Y : D} (f : X ⟶ Y) :
   F.map (G.map f) ≫ (adj.counit).app Y = (adj.counit).app X ≫ f :=
 adj.counit.naturality f
 
-@[simv, reassoc] lemma unit_naturality {X Y : C} (f : X ⟶ Y) :
+@[simp, reassoc] lemma unit_naturality {X Y : C} (f : X ⟶ Y) :
   (adj.unit).app X ≫ G.map (F.map f) = f ≫ (adj.unit).app Y :=
 (adj.unit.naturality f).symm
 
@@ -182,7 +182,7 @@ namespace core_hom_equiv
 
 restate_axiom hom_equiv_naturality_left_symm'
 restate_axiom hom_equiv_naturality_right'
-attribute [simv, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
+attribute [simp, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : core_hom_equiv F G) {X' X : C} {Y Y' : D}
 

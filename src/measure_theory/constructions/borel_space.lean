@@ -402,11 +402,11 @@ measure_congr (closure_ae_eq_of_null_frontier h)
 section preorder
 variables [preorder α] [order_closed_topology α] {a b x : α}
 
-@[simv, measurability]
+@[simp, measurability]
 lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
-@[simv, measurability]
+@[simp, measurability]
 lemma measurable_set_Iic : measurable_set (Iic a) := is_closed_Iic.measurable_set
-@[simv, measurability]
+@[simp, measurability]
 lemma measurable_set_Icc : measurable_set (Icc a b) := is_closed_Icc.measurable_set
 
 instance nhds_within_Ici_is_measurably_generated :
@@ -452,17 +452,17 @@ variables [linear_order α] [order_closed_topology α] {a b x : α}
 -- we open this locale only here to avoid issues with list being treated as intervals above
 open_locale interval
 
-@[simv, measurability]
+@[simp, measurability]
 lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set
-@[simv, measurability]
+@[simp, measurability]
 lemma measurable_set_Ioi : measurable_set (Ioi a) := is_open_Ioi.measurable_set
-@[simv, measurability]
+@[simp, measurability]
 lemma measurable_set_Ioo : measurable_set (Ioo a b) := is_open_Ioo.measurable_set
 
-@[simv, measurability] lemma measurable_set_Ioc : measurable_set (Ioc a b) :=
+@[simp, measurability] lemma measurable_set_Ioc : measurable_set (Ioc a b) :=
 measurable_set_Ioi.inter measurable_set_Iic
 
-@[simv, measurability] lemma measurable_set_Ico : measurable_set (Ico a b) :=
+@[simp, measurability] lemma measurable_set_Ico : measurable_set (Ico a b) :=
 measurable_set_Ici.inter measurable_set_Iio
 
 instance nhds_within_Ioi_is_measurably_generated :
@@ -1661,11 +1661,11 @@ lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma measurable_coe_nnreal_real_iff {f : α → ℝ≥0} : measurable (λ x, f x : α → ℝ) ↔ measurable f :=
 ⟨λ h, by simpa only [real.to_nnreal_coe] using h.real_to_nnreal, measurable.coe_nnreal_real⟩
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma ae_measurable_coe_nnreal_real_iff {f : α → ℝ≥0} {μ : measure α} :
   ae_measurable (λ x, f x : α → ℝ) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [real.to_nnreal_coe] using h.real_to_nnreal, ae_measurable.coe_nnreal_real⟩
@@ -1747,11 +1747,11 @@ lemma ae_measurable.ennreal_to_nnreal {f : α → ℝ≥0∞} {μ : measure α} 
   ae_measurable (λ x, (f x).to_nnreal) μ :=
 ennreal.measurable_to_nnreal.comp_ae_measurable hf
 
-@[simv, norm_cast] lemma measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} :
+@[simp, norm_cast] lemma measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} :
   measurable (λ x, (f x : ℝ≥0∞)) ↔ measurable f :=
 ⟨λ h, h.ennreal_to_nnreal, λ h, h.coe_nnreal_ennreal⟩
 
-@[simv, norm_cast] lemma ae_measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} {μ : measure α} :
+@[simp, norm_cast] lemma ae_measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} {μ : measure α} :
   ae_measurable (λ x, (f x : ℝ≥0∞)) μ ↔ ae_measurable f μ :=
 ⟨λ h, h.ennreal_to_nnreal, λ h, h.coe_nnreal_ennreal⟩
 

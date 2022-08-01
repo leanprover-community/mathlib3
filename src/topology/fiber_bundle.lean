@@ -181,8 +181,8 @@ instance : has_coe_to_fun (pretrivialization F proj) (λ _, Z → (B × F)) := �
 
 variables {F} (e : pretrivialization F proj) {x : Z}
 
-@[simv, mfld_simps] lemma coe_coe : ⇑e.to_local_equiv = e := rfl
-@[simv, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
+@[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_equiv = e := rfl
+@[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
 lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
 lemma coe_fst' (ex : proj x ∈ e.base_set) : (e x).1 = proj x := e.coe_fst (e.mem_source.2 ex)
 protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
@@ -220,11 +220,11 @@ e.apply_symm_apply (e.mem_target.2 hx)
 lemma symm_apply_apply {x : Z} (hx : x ∈ e.source) : e.to_local_equiv.symm (e x) = x :=
 e.to_local_equiv.left_inv hx
 
-@[simv, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
+@[simp, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
   e.to_local_equiv.symm (proj x, (e x).2) = x :=
 by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv ex]
 
-@[simv, mfld_simps] lemma preimage_symm_proj_base_set :
+@[simp, mfld_simps] lemma preimage_symm_proj_base_set :
   (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' e.base_set)) ∩ e.target  = e.target :=
 begin
   refine inter_eq_right_iff_subset.mpr (λ x hx, _),
@@ -232,7 +232,7 @@ begin
   exact e.mem_target.mp hx,
 end
 
-@[simv, mfld_simps] lemma preimage_symm_proj_inter (s : set B) :
+@[simp, mfld_simps] lemma preimage_symm_proj_inter (s : set B) :
   (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' s)) ∩ e.base_set ×ˢ (univ : set F) =
     (s ∩ e.base_set) ×ˢ (univ : set F) :=
 begin
@@ -305,8 +305,8 @@ lemma to_pretrivialization_injective :
 by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
   ← local_homeomorph.to_local_equiv_injective.eq_iff], exact id }
 
-@[simv, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
-@[simv, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
+@[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
+@[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
 protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
 lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
 lemma coe_fst' (ex : proj x ∈ e.base_set) : (e x).1 = proj x := e.coe_fst (e.mem_source.2 ex)
@@ -318,7 +318,7 @@ lemma source_inter_preimage_target_inter (s : set (B × F)) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
 e.to_local_homeomorph.source_inter_preimage_target_inter s
 
-@[simv, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
+@[simp, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
   (trivialization.mk e i j k l m : trivialization F proj) x = e x := rfl
 
 lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
@@ -344,7 +344,7 @@ lemma apply_symm_apply'
   {b : B} {x : F} (hx : b ∈ e.base_set) : e (e.to_local_homeomorph.symm (b, x)) = (b, x) :=
 e.to_pretrivialization.apply_symm_apply' hx
 
-@[simv, mfld_simps] lemma symm_apply_mk_proj (ex : x ∈ e.source) :
+@[simp, mfld_simps] lemma symm_apply_mk_proj (ex : x ∈ e.source) :
   e.to_local_homeomorph.symm (proj x, (e x).2) = x :=
 e.to_pretrivialization.symm_apply_mk_proj ex
 
@@ -913,7 +913,7 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
   continuous_inv_fun := by simpa [inter_comm]
     using continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous j i) }
 
-@[simv, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
+@[simp, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
   p ∈ (Z.triv_change i j).source ↔ p.1 ∈ Z.base_set i ∩ Z.base_set j :=
 by { erw [mem_prod], simv }
 
@@ -1056,7 +1056,7 @@ a bundle trivialization -/
 def local_triv_at (b : B) : trivialization F Z.proj :=
 Z.local_triv (Z.index_at b)
 
-@[simv, mfld_simps] lemma local_triv_at_def (b : B) :
+@[simp, mfld_simps] lemma local_triv_at_def (b : B) :
   Z.local_triv (Z.index_at b) = Z.local_triv_at b := rfl
 
 /-- If an element of `F` is invariant under all coordinate changes, then one can define a
@@ -1080,50 +1080,50 @@ begin
   { exact A }
 end
 
-@[simv, mfld_simps] lemma local_triv_as_local_equiv_coe :
+@[simp, mfld_simps] lemma local_triv_as_local_equiv_coe :
   ⇑(Z.local_triv_as_local_equiv i) = Z.local_triv i := rfl
 
-@[simv, mfld_simps] lemma local_triv_as_local_equiv_source :
+@[simp, mfld_simps] lemma local_triv_as_local_equiv_source :
   (Z.local_triv_as_local_equiv i).source = (Z.local_triv i).source := rfl
 
-@[simv, mfld_simps] lemma local_triv_as_local_equiv_target :
+@[simp, mfld_simps] lemma local_triv_as_local_equiv_target :
   (Z.local_triv_as_local_equiv i).target = (Z.local_triv i).target := rfl
 
-@[simv, mfld_simps] lemma local_triv_as_local_equiv_symm :
+@[simp, mfld_simps] lemma local_triv_as_local_equiv_symm :
   (Z.local_triv_as_local_equiv i).symm = (Z.local_triv i).to_local_equiv.symm := rfl
 
-@[simv, mfld_simps] lemma base_set_at : Z.base_set i = (Z.local_triv i).base_set := rfl
+@[simp, mfld_simps] lemma base_set_at : Z.base_set i = (Z.local_triv i).base_set := rfl
 
-@[simv, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
+@[simp, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
   (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
 
-@[simv, mfld_simps] lemma local_triv_at_apply (p : Z.total_space) :
+@[simp, mfld_simps] lemma local_triv_at_apply (p : Z.total_space) :
   ((Z.local_triv_at p.1) p) = ⟨p.1, p.2⟩ :=
 by { rw [local_triv_at, local_triv_apply, coord_change_self], exact Z.mem_base_set_at p.1 }
 
-@[simv, mfld_simps] lemma local_triv_at_apply_mk (b : B) (a : F) :
+@[simp, mfld_simps] lemma local_triv_at_apply_mk (b : B) (a : F) :
   ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
 Z.local_triv_at_apply _
 
-@[simv, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
+@[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ (Z.local_triv i).base_set := iff.rfl
 
-@[simv, mfld_simps] lemma mem_local_triv_at_source (p : Z.total_space) (b : B) :
+@[simp, mfld_simps] lemma mem_local_triv_at_source (p : Z.total_space) (b : B) :
   p ∈ (Z.local_triv_at b).source ↔ p.1 ∈ (Z.local_triv_at b).base_set := iff.rfl
 
-@[simv, mfld_simps] lemma mem_local_triv_target (p : B × F) :
+@[simp, mfld_simps] lemma mem_local_triv_target (p : B × F) :
   p ∈ (Z.local_triv i).target ↔ p.1 ∈ (Z.local_triv i).base_set :=
 trivialization.mem_target _
 
-@[simv, mfld_simps] lemma mem_local_triv_at_target (p : B × F) (b : B) :
+@[simp, mfld_simps] lemma mem_local_triv_at_target (p : B × F) (b : B) :
   p ∈ (Z.local_triv_at b).target ↔ p.1 ∈ (Z.local_triv_at b).base_set :=
 trivialization.mem_target _
 
-@[simv, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
+@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
   (Z.local_triv i).to_local_homeomorph.symm p =
     ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 
-@[simv, mfld_simps] lemma mem_local_triv_at_base_set (b : B) :
+@[simp, mfld_simps] lemma mem_local_triv_at_base_set (b : B) :
   b ∈ (Z.local_triv_at b).base_set :=
 by { rw [local_triv_at, ←base_set_at], exact Z.mem_base_set_at b, }
 

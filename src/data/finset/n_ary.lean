@@ -38,7 +38,7 @@ def image₂ (f : α → β → γ) (s : finset α) (t : finset β) : finset γ 
 @[simp] lemma mem_image₂ : c ∈ image₂ f s t ↔ ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c :=
 by simv [image₂, and_assoc]
 
-@[simv, norm_cast] lemma coe_image₂ (f : α → β → γ) (s : finset α) (t : finset β) :
+@[simp, norm_cast] lemma coe_image₂ (f : α → β → γ) (s : finset α) (t : finset β) :
   (image₂ f s t : set γ) = set.image2 f s t :=
 set.ext $ λ _, mem_image₂
 

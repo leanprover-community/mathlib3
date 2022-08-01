@@ -209,11 +209,11 @@ namespace units
 instance [monoid α] [preorder α] : preorder αˣ :=
 preorder.lift (coe : αˣ → α)
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 theorem coe_le_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) ≤ b ↔ a ≤ b := iff.rfl
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 theorem coe_lt_coe [monoid α] [preorder α] {a b : αˣ} :
   (a : α) < b ↔ a < b := iff.rfl
 
@@ -229,12 +229,12 @@ linear_order.lift' coe units.ext
 @[to_additive "`coe : add_units α → α` as an order embedding.", simps { fully_applied := ff }]
 def order_embedding_coe [monoid α] [linear_order α] : αˣ ↪o α := ⟨⟨coe, ext⟩, λ _ _, iff.rfl⟩
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(max a b) : α) = max a b :=
 monotone.map_max order_embedding_coe.monotone
 
-@[simv, norm_cast, to_additive]
+@[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(min a b) : α) = min a b :=
 monotone.map_min order_embedding_coe.monotone
@@ -257,10 +257,10 @@ lemma zero_lt_coe [preorder α] (a : α) : (0 : with_zero α) < a := with_bot.bo
 
 lemma zero_eq_bot [preorder α] : (0 : with_zero α) = ⊥ := rfl
 
-@[simv, norm_cast] lemma coe_lt_coe [preorder α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
+@[simp, norm_cast] lemma coe_lt_coe [preorder α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
 with_bot.coe_lt_coe
 
-@[simv, norm_cast] lemma coe_le_coe [preorder α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+@[simp, norm_cast] lemma coe_le_coe [preorder α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
 with_bot.coe_le_coe
 
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
@@ -404,16 +404,16 @@ lemma le_iff_exists_mul : a ≤ b ↔ ∃ c, b = a * c :=
 lemma le_iff_exists_mul' : a ≤ b ↔ ∃ c, b = c * a :=
 by simpa only [mul_comm _ a] using le_iff_exists_mul
 
-@[simv, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
+@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
 le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
 @[to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
 
-@[simv, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
+@[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 mul_eq_one_iff' (one_le _) (one_le _)
 
-@[simv, to_additive] lemma le_one_iff_eq_one : a ≤ 1 ↔ a = 1 :=
+@[simp, to_additive] lemma le_one_iff_eq_one : a ≤ 1 ↔ a = 1 :=
 (one_le a).le_iff_eq
 
 @[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
@@ -422,7 +422,7 @@ mul_eq_one_iff' (one_le _) (one_le _)
 @[to_additive] lemma eq_one_or_one_lt : a = 1 ∨ 1 < a :=
 (one_le a).eq_or_lt.imp_left eq.symm
 
-@[simv, to_additive add_pos_iff] lemma one_lt_mul_iff : 1 < a * b ↔ 1 < a ∨ 1 < b :=
+@[simp, to_additive add_pos_iff] lemma one_lt_mul_iff : 1 < a * b ↔ 1 < a ∨ 1 < b :=
 by simv only [one_lt_iff_ne_one, ne.def, mul_eq_one_iff, not_and_distrib]
 
 @[to_additive] lemma exists_one_lt_mul_of_lt (h : a < b) : ∃ c (hc : 1 < c), a * c = b :=
@@ -522,16 +522,16 @@ end
 lemma min_mul_distrib' (a b c : α) : min (a * b) c = min (min a c * min b c) c :=
 by simpa [min_comm _ c] using min_mul_distrib c a b
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma one_min (a : α) : min 1 a = 1 :=
 min_eq_left (one_le a)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma min_one (a : α) : min a 1 = 1 :=
 min_eq_right (one_le a)
 
 /-- In a linearly ordered monoid, we are happy for `bot_eq_one` to be a `@[simp]` lemma. -/
-@[simv, to_additive
+@[simp, to_additive
   "In a linearly ordered monoid, we are happy for `bot_eq_zero` to be a `@[simp]` lemma"]
 lemma bot_eq_one' : (⊥ : α) = 1 :=
 bot_eq_one
@@ -848,19 +848,19 @@ variables [has_one α]
 
 @[to_additive] instance : has_one (with_top α) := ⟨(1 : α)⟩
 
-@[simv, norm_cast, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : α) : with_top α) = 1 := rfl
 
-@[simv, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
+@[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
 
-@[simv, to_additive] protected lemma map_one {β} (f : α → β) :
+@[simp, to_additive] protected lemma map_one {β} (f : α → β) :
   (1 : with_top α).map f = (f 1 : with_top β) := rfl
 
-@[simv, norm_cast, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
+@[simp, norm_cast, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
 trans eq_comm coe_eq_one
 
-@[simv, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
-@[simv, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
+@[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
+@[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
 
 instance [has_zero α] [has_le α] [zero_le_one_class α] : zero_le_one_class (with_top α) :=
 ⟨some_le_some.2 zero_le_one⟩
@@ -1118,7 +1118,7 @@ def coe_add_hom [add_monoid α] : α →+ with_top α :=
 @[simp] lemma zero_lt_top [ordered_add_comm_monoid α] : (0 : with_top α) < ⊤ :=
 coe_lt_top 0
 
-@[simv, norm_cast] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) :
+@[simp, norm_cast] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) :
   (0 : with_top α) < a ↔ 0 < a :=
 coe_lt_coe
 

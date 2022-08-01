@@ -219,7 +219,7 @@ e.left_inv x
 
 -- The `simv` attribute is needed to make this a `dsimp` lemma.
 -- `simv` will always rewrite with `equiv.symm_symm` before this has a chance to fire.
-@[simv, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
+@[simp, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
 
 theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y := equiv_like.apply_eq_iff_eq f
 

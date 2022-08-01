@@ -280,7 +280,7 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
          ... = v z₀ : by rw [this, one_mul]  },
 end
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
   haveI : t2_space Γ₀ := t3_space.t2_space _,

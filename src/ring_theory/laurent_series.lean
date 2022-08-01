@@ -158,22 +158,22 @@ open laurent_series
 
 variables {R' : Type*} [semiring R] [ring R'] (f g : power_series R) (f' g' : power_series R')
 
-@[simv, norm_cast] lemma coe_zero : ((0 : power_series R) : laurent_series R) = 0 :=
+@[simp, norm_cast] lemma coe_zero : ((0 : power_series R) : laurent_series R) = 0 :=
 (of_power_series ℤ R).map_zero
 
-@[simv, norm_cast] lemma coe_one : ((1 : power_series R) : laurent_series R) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : power_series R) : laurent_series R) = 1 :=
 (of_power_series ℤ R).map_one
 
-@[simv, norm_cast] lemma coe_add : ((f + g : power_series R) : laurent_series R) = f + g :=
+@[simp, norm_cast] lemma coe_add : ((f + g : power_series R) : laurent_series R) = f + g :=
 (of_power_series ℤ R).map_add _ _
 
-@[simv, norm_cast] lemma coe_sub : ((f' - g' : power_series R') : laurent_series R') = f' - g' :=
+@[simp, norm_cast] lemma coe_sub : ((f' - g' : power_series R') : laurent_series R') = f' - g' :=
 (of_power_series ℤ R').map_sub _ _
 
-@[simv, norm_cast] lemma coe_neg : ((-f' : power_series R') : laurent_series R') = -f' :=
+@[simp, norm_cast] lemma coe_neg : ((-f' : power_series R') : laurent_series R') = -f' :=
 (of_power_series ℤ R').map_neg _
 
-@[simv, norm_cast] lemma coe_mul : ((f * g : power_series R) : laurent_series R) = f * g :=
+@[simp, norm_cast] lemma coe_mul : ((f * g : power_series R) : laurent_series R) = f * g :=
 (of_power_series ℤ R).map_mul _ _
 
 lemma coeff_coe (i : ℤ) :
@@ -190,26 +190,26 @@ begin
                int.coe_nat_eq, implies_true_iff, not_false_iff] }
 end
 
-@[simv, norm_cast] lemma coe_C (r : R) : ((C R r : power_series R) : laurent_series R) =
+@[simp, norm_cast] lemma coe_C (r : R) : ((C R r : power_series R) : laurent_series R) =
   hahn_series.C r :=
 of_power_series_C _
 
 @[simp] lemma coe_X : ((X : power_series R) : laurent_series R) = single 1 1 :=
 of_power_series_X
 
-@[simv, norm_cast] lemma coe_smul {S : Type*} [semiring S] [module R S]
+@[simp, norm_cast] lemma coe_smul {S : Type*} [semiring S] [module R S]
   (r : R) (x : power_series S) : ((r • x : power_series S) : laurent_series S) = r • x :=
 by { ext, simv [coeff_coe, coeff_smul, smul_ite] }
 
-@[simv, norm_cast] lemma coe_bit0 :
+@[simp, norm_cast] lemma coe_bit0 :
   ((bit0 f : power_series R) : laurent_series R) = bit0 f :=
 (of_power_series ℤ R).map_bit0 _
 
-@[simv, norm_cast] lemma coe_bit1 :
+@[simp, norm_cast] lemma coe_bit1 :
   ((bit1 f : power_series R) : laurent_series R) = bit1 f :=
 (of_power_series ℤ R).map_bit1 _
 
-@[simv, norm_cast] lemma coe_pow (n : ℕ) :
+@[simp, norm_cast] lemma coe_pow (n : ℕ) :
   ((f ^ n : power_series R) : laurent_series R) = f ^ n :=
 (of_power_series ℤ R).map_pow _ _
 

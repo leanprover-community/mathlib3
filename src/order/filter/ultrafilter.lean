@@ -45,7 +45,7 @@ le_antisymm h $ f.le_of_le g hne h
 
 instance ne_bot (f : ultrafilter α) : ne_bot (f : filter α) := f.ne_bot'
 
-@[simv, norm_cast] lemma mem_coe : s ∈ (f : filter α) ↔ s ∈ f := iff.rfl
+@[simp, norm_cast] lemma mem_coe : s ∈ (f : filter α) ↔ s ∈ f := iff.rfl
 
 lemma coe_injective : injective (coe : ultrafilter α → filter α)
 | ⟨f, h₁, h₂⟩ ⟨g, h₃, h₄⟩ rfl := by congr
@@ -53,10 +53,10 @@ lemma coe_injective : injective (coe : ultrafilter α → filter α)
 lemma eq_of_le {f g : ultrafilter α} (h : (f : filter α) ≤ g) : f = g :=
 coe_injective (g.unique h)
 
-@[simv, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
+@[simp, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
 ⟨λ h, eq_of_le h, λ h, h ▸ le_rfl⟩
 
-@[simv, norm_cast] lemma coe_inj : (f : filter α) = g ↔ f = g := coe_injective.eq_iff
+@[simp, norm_cast] lemma coe_inj : (f : filter α) = g ↔ f = g := coe_injective.eq_iff
 
 @[ext] lemma ext ⦃f g : ultrafilter α⦄ (h : ∀ s, s ∈ f ↔ s ∈ g) : f = g :=
 coe_injective $ filter.ext h
@@ -122,7 +122,7 @@ by simv only [← sUnion_image, finite_sUnion_mem_iff (his.image s), bex_image_i
 def map (m : α → β) (f : ultrafilter α) : ultrafilter β :=
 of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 
-@[simv, norm_cast] lemma coe_map (m : α → β) (f : ultrafilter α) :
+@[simp, norm_cast] lemma coe_map (m : α → β) (f : ultrafilter α) :
   (map m f : filter β) = filter.map m ↑f := rfl
 
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
@@ -149,7 +149,7 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   s ∈ u.comap inj large ↔ m '' s ∈ u :=
 mem_comap_iff inj large
 
-@[simv, norm_cast] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+@[simp, norm_cast] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
 
 @[simp] lemma comap_id (f : ultrafilter α) (h₀ : injective (id : α → α) := injective_id)

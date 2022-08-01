@@ -596,7 +596,7 @@ notation `∥`e`∥₊` := nnnorm e
 @[priority 100] -- see Note [lower instance priority]
 instance seminormed_add_comm_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, norm_nonneg a⟩⟩
 
-@[simv, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
+@[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
 @[simp] lemma coe_comp_nnnorm : (coe : ℝ≥0 → ℝ) ∘ (nnnorm : E → ℝ≥0) = norm := rfl
 

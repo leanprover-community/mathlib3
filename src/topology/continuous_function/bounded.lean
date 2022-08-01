@@ -555,15 +555,15 @@ variables [topological_space α] [pseudo_metric_space β] [has_one β]
 
 @[to_additive] instance : has_one (α →ᵇ β) := ⟨const α 1⟩
 
-@[simv, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
+@[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
 
 @[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀ x, f x = 1) ↔ f = 1 :=
 (@fun_like.ext_iff _ _ _ _ f 1).symm
 
-@[simv, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
+@[simp, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
   (1 : α →ᵇ β).comp_continuous f = 1 := rfl
 
 end has_one
@@ -1077,12 +1077,12 @@ instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
 instance : has_nat_cast (α →ᵇ R) :=
 ⟨λ n, bounded_continuous_function.const _ n⟩
 
-@[simv, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : α →ᵇ R) : α → R) = n := rfl
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : α →ᵇ R) : α → R) = n := rfl
 
 instance : has_int_cast (α →ᵇ R) :=
 ⟨λ n, bounded_continuous_function.const _ n⟩
 
-@[simv, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
 
 instance : ring (α →ᵇ R) :=
 fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub

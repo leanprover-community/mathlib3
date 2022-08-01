@@ -832,9 +832,9 @@ instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simv, by simv⟩ ⟩
 
 /-- Representing an element of a ring's unit group as an element of the ring commutes with
     mapping this element to its additive inverse. -/
-@[simv, norm_cast] protected theorem coe_neg (u : αˣ) : (↑-u : α) = -u := rfl
+@[simp, norm_cast] protected theorem coe_neg (u : αˣ) : (↑-u : α) = -u := rfl
 
-@[simv, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
+@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
 instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg units.coe_mul
 

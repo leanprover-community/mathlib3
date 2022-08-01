@@ -160,7 +160,7 @@ equipped with the product topology.
 def pi_iso_pi {ι : Type v} (α : ι → Top.{max v u}) : ∏ α ≅ Top.of (Π i, α i) :=
 (limit.is_limit _).cone_point_unique_up_to_iso (pi_fan_is_limit α)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma pi_iso_pi_inv_π {ι : Type v} (α : ι → Top.{max v u}) (i : ι) :
   (pi_iso_pi α).inv ≫ pi.π α i = pi_π α i :=
 by simv [pi_iso_pi]
@@ -201,7 +201,7 @@ The coproduct is homeomorphic to the disjoint union of the topological spaces.
 def sigma_iso_sigma {ι : Type v} (α : ι → Top.{max v u}) : ∐ α ≅ Top.of (Σ i, α i) :=
 (colimit.is_colimit _).cocone_point_unique_up_to_iso (sigma_cofan_is_colimit α)
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma sigma_iso_sigma_hom_ι {ι : Type v} (α : ι → Top.{max v u}) (i : ι) :
   sigma.ι α i ≫ (sigma_iso_sigma α).hom = sigma_ι α i :=
 by simv [sigma_iso_sigma]
@@ -266,11 +266,11 @@ equipped with the product topology.
 def prod_iso_prod (X Y : Top.{u}) : X ⨯ Y ≅ Top.of (X × Y) :=
 (limit.is_limit _).cone_point_unique_up_to_iso (prod_binary_fan_is_limit X Y)
 
-@[simv, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top.{u}) :
+@[simp, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top.{u}) :
   (prod_iso_prod X Y).hom ≫ prod_fst = limits.prod.fst :=
 by simpa [← iso.eq_inv_comp, prod_iso_prod]
 
-@[simv, reassoc] lemma prod_iso_prod_hom_snd (X Y : Top.{u}) :
+@[simp, reassoc] lemma prod_iso_prod_hom_snd (X Y : Top.{u}) :
   (prod_iso_prod X Y).hom ≫ prod_snd = limits.prod.snd :=
 by simpa [← iso.eq_inv_comp, prod_iso_prod]
 
@@ -283,11 +283,11 @@ begin
   { exact concrete_category.congr_hom (prod_iso_prod_hom_snd X Y) x }
 end
 
-@[simv, reassoc, elementwise] lemma prod_iso_prod_inv_fst (X Y : Top.{u}) :
+@[simp, reassoc, elementwise] lemma prod_iso_prod_inv_fst (X Y : Top.{u}) :
   (prod_iso_prod X Y).inv ≫ limits.prod.fst = prod_fst :=
 by simv [iso.inv_comp_eq]
 
-@[simv, reassoc, elementwise] lemma prod_iso_prod_inv_snd (X Y : Top.{u}) :
+@[simp, reassoc, elementwise] lemma prod_iso_prod_inv_snd (X Y : Top.{u}) :
   (prod_iso_prod X Y).inv ≫ limits.prod.snd = prod_snd :=
 by simv [iso.inv_comp_eq]
 
@@ -380,7 +380,7 @@ def pullback_iso_prod_subtype (f : X ⟶ Z) (g : Y ⟶ Z) :
   pullback f g ≅ Top.of { p : X × Y // f p.1 = g p.2 } :=
 (limit.is_limit _).cone_point_unique_up_to_iso (pullback_cone_is_limit f g)
 
-@[simv, reassoc] lemma pullback_iso_prod_subtype_inv_fst (f : X ⟶ Z) (g : Y ⟶ Z) :
+@[simp, reassoc] lemma pullback_iso_prod_subtype_inv_fst (f : X ⟶ Z) (g : Y ⟶ Z) :
   (pullback_iso_prod_subtype f g).inv ≫ pullback.fst = pullback_fst f g :=
 by simpa [pullback_iso_prod_subtype]
 
@@ -389,7 +389,7 @@ by simpa [pullback_iso_prod_subtype]
   (pullback.fst : pullback f g ⟶ _) ((pullback_iso_prod_subtype f g).inv x) = (x : X × Y).fst :=
 concrete_category.congr_hom (pullback_iso_prod_subtype_inv_fst f g) x
 
-@[simv, reassoc] lemma pullback_iso_prod_subtype_inv_snd (f : X ⟶ Z) (g : Y ⟶ Z) :
+@[simp, reassoc] lemma pullback_iso_prod_subtype_inv_snd (f : X ⟶ Z) (g : Y ⟶ Z) :
   (pullback_iso_prod_subtype f g).inv ≫ pullback.snd = pullback_snd f g :=
 by simpa [pullback_iso_prod_subtype]
 

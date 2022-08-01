@@ -103,12 +103,12 @@ noncomputable def image_iso_range {G H : Module.{v} R} (f : G ⟶ H) :
   limits.image f ≅ Module.of R f.range :=
 is_image.iso_ext (image.is_image f) (is_image f)
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma image_iso_range_inv_image_ι {G H : Module.{v} R} (f : G ⟶ H) :
   (image_iso_range f).inv ≫ limits.image.ι f = Module.of_hom f.range.subtype :=
 is_image.iso_ext_inv_m _ _
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma image_iso_range_hom_subtype {G H : Module.{v} R} (f : G ⟶ H) :
   (image_iso_range f).hom ≫ Module.of_hom f.range.subtype = limits.image.ι f :=
 by erw [←image_iso_range_inv_image_ι f, iso.hom_inv_id_assoc]

@@ -44,13 +44,13 @@ variables {A C}
 
 variables [add_monoid A] (F : monoidal_functor (discrete A) (C ⥤ C))
 
- @[simv, reassoc] lemma eq_to_hom_μ_app {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+ @[simp, reassoc] lemma eq_to_hom_μ_app {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
    eq_to_hom (by rw [h₁, h₂] : (F.obj ⟨i⟩ ⊗ F.obj ⟨j⟩).obj X =
        (F.obj ⟨i'⟩ ⊗ F.obj ⟨j'⟩).obj X) ≫ (F.μ ⟨i'⟩ ⟨j'⟩).app X =
      (F.μ ⟨i⟩ ⟨j⟩).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
  by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
- @[simv, reassoc] lemma μ_inv_app_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+ @[simp, reassoc] lemma μ_inv_app_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
    inv ((F.μ ⟨i⟩ ⟨j⟩).app X) ≫ eq_to_hom (by rw [h₁, h₂]) =
      eq_to_hom (by rw [h₁, h₂]) ≫ inv ((F.μ ⟨i'⟩ ⟨j'⟩).app X) :=
  by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }

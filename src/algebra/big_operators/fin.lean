@@ -91,7 +91,7 @@ by simp_rw [prod_univ_succ, cons_zero, cons_succ]
   ∏ i, f i = f 0 :=
 by simv
 
-@[simv, to_additive] theorem prod_univ_two [comm_monoid β] (f : fin 2 → β) :
+@[simp, to_additive] theorem prod_univ_two [comm_monoid β] (f : fin 2 → β) :
   ∏ i, f i = f 0 * f 1 :=
 by simv [prod_univ_succ]
 
@@ -145,7 +145,7 @@ variables [monoid α] {n : ℕ}
 def partial_prod (f : fin n → α) (i : fin (n + 1)) : α :=
 ((list.of_fn f).take i).prod
 
-@[simv, to_additive] lemma partial_prod_zero (f : fin n → α) :
+@[simp, to_additive] lemma partial_prod_zero (f : fin n → α) :
   partial_prod f 0 = 1 :=
 by simv [partial_prod]
 

@@ -195,7 +195,7 @@ variables [has_biproduct (F.obj ∘ f)]
 def biproduct_comparison : F.obj (⨁ f) ⟶ ⨁ (F.obj ∘ f) :=
 biproduct.lift (λ j, F.map (biproduct.π f j))
 
-@[simv, reassoc] lemma biproduct_comparison_π (j : J) :
+@[simp, reassoc] lemma biproduct_comparison_π (j : J) :
   biproduct_comparison F f ≫ biproduct.π _ j = F.map (biproduct.π f j) :=
 biproduct.lift_π _ _
 
@@ -204,7 +204,7 @@ biproduct.lift_π _ _
 def biproduct_comparison' : ⨁ (F.obj ∘ f) ⟶ F.obj (⨁ f) :=
 biproduct.desc (λ j, F.map (biproduct.ι f j))
 
-@[simv, reassoc] lemma ι_biproduct_comparison' (j : J) :
+@[simp, reassoc] lemma ι_biproduct_comparison' (j : J) :
   biproduct.ι _ j ≫ biproduct_comparison' F f = F.map (biproduct.ι f j) :=
 biproduct.ι_desc _ _
 
@@ -212,7 +212,7 @@ variables [preserves_zero_morphisms F]
 
 /-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
     the biproduct, see `preserves_biproduct_of_mono_biproduct_comparison`.  -/
-@[simv, reassoc] lemma biproduct_comparison'_comp_biproduct_comparison :
+@[simp, reassoc] lemma biproduct_comparison'_comp_biproduct_comparison :
   biproduct_comparison' F f ≫ biproduct_comparison F f = 𝟙 (⨁ (F.obj ∘ f)) :=
 by { classical, ext, simv [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
 
@@ -261,11 +261,11 @@ variables [has_binary_biproduct (F.obj X) (F.obj Y)]
 def biprod_comparison : F.obj (X ⊞ Y) ⟶ F.obj X ⊞ F.obj Y :=
 biprod.lift (F.map biprod.fst) (F.map biprod.snd)
 
-@[simv, reassoc] lemma biprod_comparison_fst :
+@[simp, reassoc] lemma biprod_comparison_fst :
   biprod_comparison F X Y ≫ biprod.fst = F.map biprod.fst :=
 biprod.lift_fst _ _
 
-@[simv, reassoc] lemma biprod_comparison_snd :
+@[simp, reassoc] lemma biprod_comparison_snd :
   biprod_comparison F X Y ≫ biprod.snd = F.map biprod.snd :=
 biprod.lift_snd _ _
 
@@ -274,11 +274,11 @@ biprod.lift_snd _ _
 def biprod_comparison' : F.obj X ⊞ F.obj Y ⟶ F.obj (X ⊞ Y) :=
 biprod.desc (F.map biprod.inl) (F.map biprod.inr)
 
-@[simv, reassoc] lemma inl_biprod_comparison' :
+@[simp, reassoc] lemma inl_biprod_comparison' :
   biprod.inl ≫ biprod_comparison' F X Y = F.map biprod.inl :=
 biprod.inl_desc _ _
 
-@[simv, reassoc] lemma inr_biprod_comparison' :
+@[simp, reassoc] lemma inr_biprod_comparison' :
   biprod.inr ≫ biprod_comparison' F X Y = F.map biprod.inr :=
 biprod.inr_desc _ _
 
@@ -286,7 +286,7 @@ variables [preserves_zero_morphisms F]
 
 /-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
     the biproduct, see `preserves_binary_biproduct_of_mono_biprod_comparison`. -/
-@[simv, reassoc] lemma biprod_comparison'_comp_biprod_comparison :
+@[simp, reassoc] lemma biprod_comparison'_comp_biprod_comparison :
   biprod_comparison' F X Y ≫ biprod_comparison F X Y = 𝟙 (F.obj X ⊞ F.obj Y) :=
 by { ext; simv [← functor.map_comp] }
 

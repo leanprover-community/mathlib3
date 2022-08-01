@@ -99,7 +99,7 @@ congr_arg (λ x : ι → M, f x) h
 theorem coe_injective : injective (coe_fn : alternating_map R M N ι → ((ι → M) → N)) :=
 λ f g h, by { cases f, cases g, cases h, refl }
 
-@[simv, norm_cast] theorem coe_inj {f g : alternating_map R M N ι} :
+@[simp, norm_cast] theorem coe_inj {f g : alternating_map R M N ι} :
   (f : (ι → M) → N) = g ↔ f = g :=
 coe_injective.eq_iff
 
@@ -112,7 +112,7 @@ theorem ext_iff {f g : alternating_map R M N ι} : f = g ↔ ∀ x, f x = g x :=
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
 ⟨λ x, x.to_multilinear_map⟩
 
-@[simv, norm_cast] lemma coe_multilinear_map : ⇑(f : multilinear_map R (λ i : ι, M) N) = f := rfl
+@[simp, norm_cast] lemma coe_multilinear_map : ⇑(f : multilinear_map R (λ i : ι, M) N) = f := rfl
 
 lemma coe_multilinear_map_injective :
   function.injective (coe : alternating_map R M N ι → multilinear_map R (λ i : ι, M) N) :=

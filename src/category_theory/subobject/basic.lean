@@ -169,17 +169,17 @@ lemma representative_arrow (Y : subobject X) :
   (representative.obj Y).arrow = Y.arrow :=
 rfl
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma underlying_iso_hom_comp_eq_mk {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).hom ≫ f = (mk f).arrow :=
 (iso.eq_inv_comp _).1 (underlying_iso_arrow f).symm
@@ -246,7 +246,7 @@ eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simv [w]
 def of_le {B : C} (X Y : subobject B) (h : X ≤ Y) : (X : C) ⟶ (Y : C) :=
 underlying.map $ h.hom
 
-@[simv, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
+@[simp, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
   of_le X Y h ≫ Y.arrow = X.arrow :=
 underlying_arrow _
 
@@ -292,40 +292,40 @@ def of_mk_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mo
   (h : mk f ≤ mk g) : of_mk_le_mk f g h ≫ g = f :=
 by simv [of_mk_le_mk]
 
-@[simv, reassoc] lemma of_le_comp_of_le {B : C} (X Y Z : subobject B) (h₁ : X ≤ Y) (h₂ : Y ≤ Z) :
+@[simp, reassoc] lemma of_le_comp_of_le {B : C} (X Y Z : subobject B) (h₁ : X ≤ Y) (h₂ : Y ≤ Z) :
   of_le X Y h₁ ≫ of_le Y Z h₂ = of_le X Z (h₁.trans h₂) :=
 by simv [of_le, ←functor.map_comp underlying]
 
-@[simv, reassoc] lemma of_le_comp_of_le_mk {B A : C} (X Y : subobject B) (f : A ⟶ B) [mono f]
+@[simp, reassoc] lemma of_le_comp_of_le_mk {B A : C} (X Y : subobject B) (f : A ⟶ B) [mono f]
   (h₁ : X ≤ Y) (h₂ : Y ≤ mk f) : of_le X Y h₁ ≫ of_le_mk Y f h₂ = of_le_mk X f (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, ←functor.map_comp_assoc underlying]
 
-@[simv, reassoc] lemma of_le_mk_comp_of_mk_le {B A : C} (X : subobject B) (f : A ⟶ B) [mono f]
+@[simp, reassoc] lemma of_le_mk_comp_of_mk_le {B A : C} (X : subobject B) (f : A ⟶ B) [mono f]
   (Y : subobject B) (h₁ : X ≤ mk f) (h₂ : mk f ≤ Y) :
   of_le_mk X f h₁ ≫ of_mk_le f Y h₂ = of_le X Y (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, ←functor.map_comp underlying]
 
-@[simv, reassoc] lemma of_le_mk_comp_of_mk_le_mk {B A₁ A₂ : C} (X : subobject B) (f : A₁ ⟶ B)
+@[simp, reassoc] lemma of_le_mk_comp_of_mk_le_mk {B A₁ A₂ : C} (X : subobject B) (f : A₁ ⟶ B)
   [mono f] (g : A₂ ⟶ B) [mono g] (h₁ : X ≤ mk f) (h₂ : mk f ≤ mk g) :
   of_le_mk X f h₁ ≫ of_mk_le_mk f g h₂ = of_le_mk X g (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
-@[simv, reassoc] lemma of_mk_le_comp_of_le {B A₁ : C} (f : A₁ ⟶ B) [mono f] (X Y : subobject B)
+@[simp, reassoc] lemma of_mk_le_comp_of_le {B A₁ : C} (f : A₁ ⟶ B) [mono f] (X Y : subobject B)
   (h₁ : mk f ≤ X) (h₂ : X ≤ Y) :
   of_mk_le f X h₁ ≫ of_le X Y h₂ = of_mk_le f Y (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 
-@[simv, reassoc] lemma of_mk_le_comp_of_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (X : subobject B)
+@[simp, reassoc] lemma of_mk_le_comp_of_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (X : subobject B)
   (g : A₂ ⟶ B) [mono g] (h₁ : mk f ≤ X) (h₂ : X ≤ mk g) :
   of_mk_le f X h₁ ≫ of_le_mk X g h₂ = of_mk_le_mk f g (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
-@[simv, reassoc] lemma of_mk_le_mk_comp_of_mk_le {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (g : A₂ ⟶ B)
+@[simp, reassoc] lemma of_mk_le_mk_comp_of_mk_le {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (g : A₂ ⟶ B)
   [mono g] (X : subobject B) (h₁ : mk f ≤ mk g) (h₂ : mk g ≤ X) :
   of_mk_le_mk f g h₁ ≫ of_mk_le g X h₂ = of_mk_le f X (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 
-@[simv, reassoc] lemma of_mk_le_mk_comp_of_mk_le_mk {B A₁ A₂ A₃ : C} (f : A₁ ⟶ B) [mono f]
+@[simp, reassoc] lemma of_mk_le_mk_comp_of_mk_le_mk {B A₁ A₂ A₃ : C} (f : A₁ ⟶ B) [mono f]
   (g : A₂ ⟶ B) [mono g] (h : A₃ ⟶ B) [mono h] (h₁ : mk f ≤ mk g) (h₂ : mk g ≤ mk h) :
   of_mk_le_mk f g h₁ ≫ of_mk_le_mk g h h₂ = of_mk_le_mk f h (h₁.trans h₂) :=
 by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]

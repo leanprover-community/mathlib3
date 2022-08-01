@@ -311,12 +311,12 @@ begin
   refine ⟨one_dvd _, nat.succ_lt_succ (nat.succ_pos _)⟩,
 end
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prime.prod_proper_divisors {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in p.proper_divisors, f x = f 1 :=
 by simv [h.proper_divisors]
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prime.prod_divisors {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in p.divisors, f x = f p * f 1 :=
 by rw [divisors_eq_proper_divisors_insert_self_of_pos h.pos,
@@ -368,12 +368,12 @@ lemma proper_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   proper_divisors (p ^ k) = (finset.range k).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
 by { ext, simv [mem_proper_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a], }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma prod_proper_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α}
   (h : p.prime) : ∏ x in (p ^ k).proper_divisors, f x = ∏ x in range k, f (p ^ x) :=
 by simv [h, proper_divisors_prime_pow]
 
-@[simv, to_additive sum_divisors_prime_pow]
+@[simp, to_additive sum_divisors_prime_pow]
 lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
 by simv [h, divisors_prime_pow]
@@ -439,7 +439,7 @@ begin
            nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
 end
 
-@[simv, to_additive sum_div_divisors]
+@[simp, to_additive sum_div_divisors]
 lemma prod_div_divisors {α : Type*} [comm_monoid α] (n : ℕ) (f : ℕ → α) :
   ∏ d in n.divisors, f (n/d) = n.divisors.prod f :=
 begin

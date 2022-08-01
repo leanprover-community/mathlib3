@@ -91,11 +91,11 @@ end coset_mul
 section coset_semigroup
 variable [semigroup α]
 
-@[simv, to_additive left_add_coset_assoc] lemma left_coset_assoc (s : set α) (a b : α) :
+@[simp, to_additive left_add_coset_assoc] lemma left_coset_assoc (s : set α) (a b : α) :
   a *l (b *l s) = (a * b) *l s :=
 by simv [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
 
-@[simv, to_additive right_add_coset_assoc] lemma right_coset_assoc (s : set α) (a b : α) :
+@[simp, to_additive right_add_coset_assoc] lemma right_coset_assoc (s : set α) (a b : α) :
   s *r a *r b = s *r (a * b) :=
 by simv [left_coset, right_coset, (image_comp _ _ _).symm, function.comp, mul_assoc]
 
@@ -108,10 +108,10 @@ end coset_semigroup
 section coset_monoid
 variables [monoid α] (s : set α)
 
-@[simv, to_additive zero_left_add_coset] lemma one_left_coset : 1 *l s = s :=
+@[simp, to_additive zero_left_add_coset] lemma one_left_coset : 1 *l s = s :=
 set.ext $ by simv [left_coset]
 
-@[simv, to_additive right_add_coset_zero] lemma right_coset_one : s *r 1 = s :=
+@[simp, to_additive right_add_coset_zero] lemma right_coset_one : s *r 1 = s :=
 set.ext $ by simv [right_coset]
 
 end coset_monoid
@@ -330,7 +330,7 @@ lemma induction_on' {C : α ⧸ s → Prop} (x : α ⧸ s)
   (H : ∀ z : α, C z) : C x :=
 quotient.induction_on' x H
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma quotient_lift_on_coe {β} (f : α → β) (h) (x : α) :
   quotient.lift_on' (x : α ⧸ s) f h = f x := rfl
 

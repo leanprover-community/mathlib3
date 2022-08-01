@@ -394,7 +394,7 @@ mk' ::
 
 restate_axiom is_equivalence.functor_unit_iso_comp'
 
-attribute [simv, reassoc] is_equivalence.functor_unit_iso_comp
+attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
 
 namespace is_equivalence
 

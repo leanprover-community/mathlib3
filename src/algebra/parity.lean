@@ -47,7 +47,7 @@ for some `r : α`. -/
 for some `r : α`."]
 def is_square (a : α) : Prop := ∃ r, a = r * r
 
-@[simv, to_additive] lemma is_square_mul_self (m : α) : is_square (m * m) := ⟨m, rfl⟩
+@[simp, to_additive] lemma is_square_mul_self (m : α) : is_square (m * m) := ⟨m, rfl⟩
 
 @[to_additive] lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 ⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simv [hc]⟩
@@ -58,7 +58,7 @@ instance is_square_decidable [fintype α] [decidable_eq α] : decidable_pred (is
 
 end has_mul
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
 
 @[to_additive]
@@ -81,7 +81,7 @@ attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
 attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
 `even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
-@[simv, to_additive even_two_nsmul]
+@[simp, to_additive even_two_nsmul]
 lemma is_square_sq (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
 
 variables [has_distrib_neg α] {n : ℕ}
@@ -104,7 +104,7 @@ by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨a * b, mul_mul_mul_comm _ _ _ _�
 section division_monoid
 variables [division_monoid α] {a : α}
 
-@[simv, to_additive] lemma is_square_inv : is_square a⁻¹ ↔ is_square a :=
+@[simp, to_additive] lemma is_square_inv : is_square a⁻¹ ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],

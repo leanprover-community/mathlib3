@@ -53,7 +53,7 @@ def smul (c : G) : α ≃ᵐ α :=
 lemma _root_.measurable_embedding_const_smul (c : G) : measurable_embedding ((•) c : α → α) :=
 (smul c).measurable_embedding
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma symm_smul (c : G) : (smul c : α ≃ᵐ α).symm = smul c⁻¹ := ext rfl
 
 /-- If a group with zero `G₀` acts on `α` by measurable maps, then each nonzero element `c : G₀`
@@ -81,11 +81,11 @@ measurable automorphism of `G`. -/
 on the left is a measurable automorphism of `G`."]
 def mul_left (g : G) : G ≃ᵐ G := smul g
 
-@[simv, to_additive] lemma coe_mul_left (g : G) : ⇑(mul_left g) = (*) g := rfl
+@[simp, to_additive] lemma coe_mul_left (g : G) : ⇑(mul_left g) = (*) g := rfl
 
-@[simv, to_additive] lemma symm_mul_left (g : G) : (mul_left g).symm = mul_left g⁻¹ := ext rfl
+@[simp, to_additive] lemma symm_mul_left (g : G) : (mul_left g).symm = mul_left g⁻¹ := ext rfl
 
-@[simv, to_additive] lemma to_equiv_mul_left (g : G) :
+@[simp, to_additive] lemma to_equiv_mul_left (g : G) :
   (mul_left g).to_equiv = equiv.mul_left g := rfl
 
 @[to_additive]
@@ -105,11 +105,11 @@ def mul_right (g : G) : G ≃ᵐ G :=
 lemma _root_.measurable_embedding_mul_right (g : G) : measurable_embedding (λ x, x * g) :=
 (mul_right g).measurable_embedding
 
-@[simv, to_additive] lemma coe_mul_right (g : G) : ⇑(mul_right g) = (λ x, x * g) := rfl
+@[simp, to_additive] lemma coe_mul_right (g : G) : ⇑(mul_right g) = (λ x, x * g) := rfl
 
-@[simv, to_additive] lemma symm_mul_right (g : G) : (mul_right g).symm = mul_right g⁻¹ := ext rfl
+@[simp, to_additive] lemma symm_mul_right (g : G) : (mul_right g).symm = mul_right g⁻¹ := ext rfl
 
-@[simv, to_additive] lemma to_equiv_mul_right (g : G) :
+@[simp, to_additive] lemma to_equiv_mul_right (g : G) :
   (mul_right g).to_equiv = equiv.mul_right g := rfl
 
 /-- If `G₀` is a group with zero with measurable multiplication, then left multiplication by a
@@ -156,7 +156,7 @@ def inv (G) [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] :
   measurable_to_fun := measurable_inv,
   measurable_inv_fun := measurable_inv }
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma symm_inv {G} [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] :
   (inv G).symm = inv G := rfl
 

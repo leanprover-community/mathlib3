@@ -44,7 +44,7 @@ A morphism of presheafed spaces induces a morphism of stalks.
 def stalk_map {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
 (stalk_functor C (α.base x)).map (α.c) ≫ X.presheaf.stalk_pushforward C α.base x
 
-@[simv, elementwise, reassoc]
+@[simp, elementwise, reassoc]
 lemma stalk_map_germ {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) (U : opens Y.carrier)
   (x : (opens.map α.base).obj U) :
   Y.presheaf.germ ⟨α.base x, x.2⟩ ≫ stalk_map α ↑x = α.c.app (op U) ≫ X.presheaf.germ x :=
@@ -68,7 +68,7 @@ begin
     ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
 end
 
-@[simv, elementwise, reassoc]
+@[simp, elementwise, reassoc]
 lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace.{v} C) {f : U ⟶ (X : Top.{v})}
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   (X.restrict h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X h x).hom =
@@ -76,7 +76,7 @@ lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace.{v} C) {f : 
 colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
   (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
 
-@[simv, elementwise, reassoc]
+@[simp, elementwise, reassoc]
 lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace.{v} C) {f : U ⟶ (X : Top.{v})}
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
@@ -188,7 +188,7 @@ def stalk_iso {X Y : PresheafedSpace.{v} C} (α : X ≅ Y) (x : X) :
   Y.stalk (α.hom.base x) ≅ X.stalk x :=
 as_iso (stalk_map α.hom x)
 
-@[simv, reassoc, elementwise]
+@[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_map {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) {x y : X} (h : x ⤳ y) :
   Y.presheaf.stalk_specializes (f.base.map_specializes h) ≫ stalk_map f x =
     stalk_map f y ≫ X.presheaf.stalk_specializes h :=

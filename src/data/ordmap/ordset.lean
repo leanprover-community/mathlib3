@@ -118,7 +118,7 @@ theorem size_eq_real_size : ∀ {t : ordnode α}, sized t → size t = real_size
   by rw [size, h₁, size_eq_real_size h₂, size_eq_real_size h₃]; refl
 
 @[simp] theorem sized.size_eq_zero {t : ordnode α} (ht : sized t) : size t = 0 ↔ t = nil :=
-by cases t; [simv, simv [ht.1]]
+by cases t; [simp, simv [ht.1]]
 
 theorem sized.pos {s l x r} (h : sized (@node α s l x r)) : 0 < s :=
 by rw h.1; apply nat.le_add_left

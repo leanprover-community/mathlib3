@@ -241,8 +241,8 @@ lemma to_fun_eq_coe (f : α ≃+*o β) : f.to_fun = f := rfl
 @[simp] lemma to_ring_equiv_eq_coe (f : α ≃+*o β) : f.to_ring_equiv = f := ring_equiv.ext $ λ _, rfl
 @[simp] lemma to_order_iso_eq_coe (f : α ≃+*o β) : f.to_order_iso = f := order_iso.ext rfl
 
-@[simv, norm_cast] lemma coe_to_ring_equiv (f : α ≃+*o β) : ⇑(f : α ≃+* β) = f := rfl
-@[simv, norm_cast] lemma coe_to_order_iso (f : α ≃+*o β) : ⇑(f : α ≃o β) = f := rfl
+@[simp, norm_cast] lemma coe_to_ring_equiv (f : α ≃+*o β) : ⇑(f : α ≃+* β) = f := rfl
+@[simp, norm_cast] lemma coe_to_order_iso (f : α ≃+*o β) : ⇑(f : α ≃o β) = f := rfl
 
 variable (α)
 
@@ -294,7 +294,7 @@ def to_order_ring_hom (f : α ≃+*o β) : α →+*o β :=
 
 @[simp] lemma to_order_ring_hom_eq_coe (f : α ≃+*o β) : f.to_order_ring_hom = f := rfl
 
-@[simv, norm_cast] lemma coe_to_order_ring_hom (f : α ≃+*o β) : ⇑(f : α →+*o β) = f := rfl
+@[simp, norm_cast] lemma coe_to_order_ring_hom (f : α ≃+*o β) : ⇑(f : α →+*o β) = f := rfl
 
 @[simp]
 lemma coe_to_order_ring_hom_refl : (order_ring_iso.refl α : α →+*o α) = order_ring_hom.id α := rfl

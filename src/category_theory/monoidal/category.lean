@@ -120,7 +120,7 @@ attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
 attribute [reassoc] monoidal_category.pentagon
-attribute [simv, reassoc] monoidal_category.triangle
+attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
 
@@ -178,11 +178,11 @@ by { rw ←tensor_comp, simv }
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simv }
 
-@[simv, reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
+@[simp, reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = g ⊗ f :=
 by { rw [←tensor_comp], simv }
 
-@[simv, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
+@[simp, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simv }
 
@@ -239,11 +239,11 @@ lemma right_unitor_tensor_inv (X Y : C) :
   ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ (α_ X Y (𝟙_ C)).inv :=
 eq_of_inv_eq_inv (by simv)
 
-@[simv, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
 by rw [←triangle, iso.inv_hom_id_assoc]
 
-@[simv, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
@@ -280,42 +280,42 @@ lemma id_tensor_associator_inv_naturality {X Y Z X' : C} (f : X ⟶ X')  :
   (f ⊗ 𝟙 (Y ⊗ Z)) ≫ (α_ X' Y Z).inv = (α_ X Y Z).inv ≫ ((f ⊗ 𝟙 Y) ⊗ 𝟙 Z) :=
 by { rw [←tensor_id, associator_inv_naturality] }
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f.hom ⊗ g) ≫ (f.inv ⊗ h) = (𝟙 V ⊗ g) ≫ (𝟙 V ⊗ h) :=
 by rw [←tensor_comp, f.hom_inv_id, id_tensor_comp]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inv_hom_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f.inv ⊗ g) ≫ (f.hom ⊗ h) = (𝟙 W ⊗ g) ≫ (𝟙 W ⊗ h) :=
 by rw [←tensor_comp, f.inv_hom_id, id_tensor_comp]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma tensor_hom_inv_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f.hom) ≫ (h ⊗ f.inv) = (g ⊗ 𝟙 V) ≫ (h ⊗ 𝟙 V) :=
 by rw [←tensor_comp, f.hom_inv_id, comp_tensor_id]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma tensor_inv_hom_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f.inv) ≫ (h ⊗ f.hom) = (g ⊗ 𝟙 W) ≫ (h ⊗ 𝟙 W) :=
 by rw [←tensor_comp, f.inv_hom_id, comp_tensor_id]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma hom_inv_id_tensor' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f ⊗ g) ≫ (inv f ⊗ h) = (𝟙 V ⊗ g) ≫ (𝟙 V ⊗ h) :=
 by rw [←tensor_comp, is_iso.hom_inv_id, id_tensor_comp]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma inv_hom_id_tensor' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (inv f ⊗ g) ≫ (f ⊗ h) = (𝟙 W ⊗ g) ≫ (𝟙 W ⊗ h) :=
 by rw [←tensor_comp, is_iso.inv_hom_id, id_tensor_comp]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma tensor_hom_inv_id' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f) ≫ (h ⊗ inv f) = (g ⊗ 𝟙 V) ≫ (h ⊗ 𝟙 V) :=
 by rw [←tensor_comp, is_iso.hom_inv_id, comp_tensor_id]
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma tensor_inv_hom_id' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ inv f) ≫ (h ⊗ f) = (g ⊗ 𝟙 W) ≫ (h ⊗ 𝟙 W) :=
 by rw [←tensor_comp, is_iso.inv_hom_id, comp_tensor_id]

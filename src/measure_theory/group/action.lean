@@ -120,13 +120,13 @@ variables {G} [smul_invariant_measure G α μ]
 @[to_additive] lemma measure_preserving_smul : measure_preserving ((•) c) μ μ :=
 ((smul_invariant_measure_tfae G μ).out 0 6).mp ‹_› c
 
-@[simv, to_additive] lemma map_smul : map ((•) c) μ = μ :=
+@[simp, to_additive] lemma map_smul : map ((•) c) μ = μ :=
 (measure_preserving_smul c μ).map_eq
 
-@[simv, to_additive] lemma measure_preimage_smul (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
+@[simp, to_additive] lemma measure_preimage_smul (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 3).mp ‹_› c s
 
-@[simv, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
+@[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
 variable {μ}

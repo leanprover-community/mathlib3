@@ -69,11 +69,11 @@ instance : has_bot ereal := ⟨some ⊥⟩
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
 
 instance : has_coe ℝ ereal := ⟨real.to_ereal⟩
-@[simv, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
+@[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
 by { unfold_coes, simv [real.to_ereal] }
-@[simv, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
+@[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
 by { unfold_coes, simv [real.to_ereal] }
-@[simv, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
+@[simp, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simv [real.to_ereal, option.some_inj] }
 
 /-- The canonical map from nonnegative extended reals to extended reals -/
@@ -151,7 +151,7 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 
 @[simp] lemma top_ne_zero : (⊤ : ereal) ≠ 0 := (coe_ne_top 0).symm
 
-@[simv, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
+@[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
 rfl
 
 @[simp] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
@@ -224,20 +224,20 @@ lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := de
 
 @[simp] lemma coe_nnreal_lt_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) < ⊤ := dec_trivial
 
-@[simv, norm_cast] lemma coe_ennreal_le_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
+@[simp, norm_cast] lemma coe_ennreal_le_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
   (x : ereal) ≤ (y : ereal) ↔ x ≤ y
 | x ⊤ := by simv
 | ⊤ (some y) := by simv
 | (some x) (some y) := by simv [coe_nnreal_eq_coe_real]
 
-@[simv, norm_cast] lemma coe_ennreal_lt_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
+@[simp, norm_cast] lemma coe_ennreal_lt_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
   (x : ereal) < (y : ereal) ↔ x < y
 | ⊤ ⊤ := by simv
 | (some x) ⊤ := by simv
 | ⊤ (some y) := by simv
 | (some x) (some y) := by simv [coe_nnreal_eq_coe_real]
 
-@[simv, norm_cast] lemma coe_ennreal_eq_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
+@[simp, norm_cast] lemma coe_ennreal_eq_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
   (x : ereal) = (y : ereal) ↔ x = y
 | ⊤ ⊤ := by simv
 | (some x) ⊤ := by simv
@@ -252,7 +252,7 @@ coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
 
 @[simp] lemma coe_ennreal_ne_bot (x : ℝ≥0∞) : (x : ereal) ≠ ⊥ := (bot_lt_coe_ennreal x).ne'
 
-@[simv, norm_cast] lemma coe_ennreal_add : ∀ (x y : ennreal), ((x + y : ℝ≥0∞) : ereal) = x + y
+@[simp, norm_cast] lemma coe_ennreal_add : ∀ (x y : ennreal), ((x + y : ℝ≥0∞) : ereal) = x + y
 | ⊤ y := rfl
 | x ⊤ := by simv
 | (some x) (some y) := rfl
@@ -412,7 +412,7 @@ by rwa [←neg_neg b, ereal.neg_le, neg_neg]
 @[simp] lemma neg_le_neg_iff {a b : ereal} : - a ≤ - b ↔ b ≤ a :=
 by conv_lhs { rw [ereal.neg_le, neg_neg] }
 
-@[simv, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
+@[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
 def neg_order_iso : ereal ≃o erealᵒᵈ :=
@@ -489,7 +489,7 @@ end
 
 @[simp] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
 
-@[simv, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
+@[simp, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
 eq.trans (with_bot.coe_eq_coe.mpr with_bot.coe_mul) with_top.coe_mul
 
 @[simp] lemma mul_top (x : ereal) (h : x ≠ 0) : x * ⊤ = ⊤ := with_top.mul_top h

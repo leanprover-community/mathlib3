@@ -327,7 +327,7 @@ Problem found!
 x := 3
 ```
  -/
-@[simv, nolint unused_arguments]
+@[simp, nolint unused_arguments]
 def named_binder (n : string) (p : Prop) : Prop := p
 
 /-- Is the given test result a failure? -/

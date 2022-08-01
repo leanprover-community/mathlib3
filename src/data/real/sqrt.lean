@@ -136,7 +136,7 @@ nnreal.sqrt (real.to_nnreal x)
 
 variables {x y : ℝ}
 
-@[simv, norm_cast] lemma coe_sqrt {x : ℝ≥0} : (nnreal.sqrt x : ℝ) = real.sqrt x :=
+@[simp, norm_cast] lemma coe_sqrt {x : ℝ≥0} : (nnreal.sqrt x : ℝ) = real.sqrt x :=
 by rw [real.sqrt, real.to_nnreal_coe]
 
 @[continuity]

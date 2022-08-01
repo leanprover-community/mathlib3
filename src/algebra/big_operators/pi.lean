@@ -29,7 +29,7 @@ lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (�
 
 end pi
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
 (pi.eval_monoid_hom β a).map_prod _ _
@@ -40,7 +40,7 @@ lemma finset.prod_fn {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (�
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) = (λ a, ∏ c in s, g c a) :=
 funext (λ a, finset.prod_apply _ _ _)
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype γ]
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g

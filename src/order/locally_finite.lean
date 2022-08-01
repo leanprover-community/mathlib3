@@ -282,16 +282,16 @@ locally_finite_order.finset_mem_Ioc a b x
 @[simp] lemma mem_Ioo : x ∈ Ioo a b ↔ a < x ∧ x < b :=
 locally_finite_order.finset_mem_Ioo a b x
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Icc (a b : α) : (Icc a b : set α) = set.Icc a b := set.ext $ λ _, mem_Icc
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Ico (a b : α) : (Ico a b : set α) = set.Ico a b := set.ext $ λ _, mem_Ico
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Ioc (a b : α) : (Ioc a b : set α) = set.Ioc a b := set.ext $ λ _, mem_Ioc
 
-@[simv, norm_cast]
+@[simp, norm_cast]
 lemma coe_Ioo (a b : α) : (Ioo a b : set α) = set.Ioo a b := set.ext $ λ _, mem_Ioo
 
 end locally_finite_order
@@ -308,8 +308,8 @@ def Ioi (a : α) : finset α := locally_finite_order_top.finset_Ioi a
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := locally_finite_order_top.finset_mem_Ici _ _
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := locally_finite_order_top.finset_mem_Ioi _ _
 
-@[simv, norm_cast] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a := set.ext $ λ _, mem_Ici
-@[simv, norm_cast] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a := set.ext $ λ _, mem_Ioi
+@[simp, norm_cast] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a := set.ext $ λ _, mem_Ici
+@[simp, norm_cast] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a := set.ext $ λ _, mem_Ioi
 
 end locally_finite_order_top
 
@@ -325,8 +325,8 @@ def Iio (a : α) : finset α := locally_finite_order_bot.finset_Iio a
 @[simp] lemma mem_Iic : x ∈ Iic a ↔ x ≤ a := locally_finite_order_bot.finset_mem_Iic _ _
 @[simp] lemma mem_Iio : x ∈ Iio a ↔ x < a := locally_finite_order_bot.finset_mem_Iio _ _
 
-@[simv, norm_cast] lemma coe_Iic (a : α) : (Iic a : set α) = set.Iic a := set.ext $ λ _, mem_Iic
-@[simv, norm_cast] lemma coe_Iio (a : α) : (Iio a : set α) = set.Iio a := set.ext $ λ _, mem_Iio
+@[simp, norm_cast] lemma coe_Iic (a : α) : (Iic a : set α) = set.Iic a := set.ext $ λ _, mem_Iic
+@[simp, norm_cast] lemma coe_Iio (a : α) : (Iio a : set α) = set.Iio a := set.ext $ λ _, mem_Iio
 
 end locally_finite_order_bot
 

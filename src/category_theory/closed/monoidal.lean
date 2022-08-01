@@ -96,23 +96,23 @@ def coev : 𝟭 C ⟶ tensor_left A ⋙ ihom A :=
 @[simp] lemma ihom_adjunction_counit : (ihom.adjunction A).counit = ev A := rfl
 @[simp] lemma ihom_adjunction_unit : (ihom.adjunction A).unit = coev A := rfl
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
   ((𝟙 A) ⊗ ((ihom A).map f)) ≫ (ev A).app Y = (ev A).app X ≫ f :=
 (ev A).naturality f
 
-@[simv, reassoc]
+@[simp, reassoc]
 lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (ihom A).map ((𝟙 A) ⊗ f) :=
 (coev A).naturality f
 
 notation A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
 
-@[simv, reassoc] lemma ev_coev :
+@[simp, reassoc] lemma ev_coev :
   ((𝟙 A) ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=
 adjunction.left_triangle_components (ihom.adjunction A)
 
-@[simv, reassoc] lemma coev_ev :
+@[simp, reassoc] lemma coev_ev :
   (coev A).app (A ⟶[C] B) ≫ (ihom A).map ((ev A).app B) = 𝟙 (A ⟶[C] B) :=
 adjunction.right_triangle_components (ihom.adjunction A)
 

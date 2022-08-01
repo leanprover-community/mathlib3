@@ -1387,33 +1387,33 @@ lift_alg_hom_apply _ _ f
 lemma coe_injective : function.injective (coe : ratfunc F → laurent_series F) :=
 lift_alg_hom_injective _ (polynomial.algebra_map_hahn_series_injective _)
 
-@[simv, norm_cast] lemma coe_apply : coe_alg_hom F f = f := rfl
+@[simp, norm_cast] lemma coe_apply : coe_alg_hom F f = f := rfl
 
-@[simv, norm_cast] lemma coe_zero : ((0 : ratfunc F) : laurent_series F) = 0 :=
+@[simp, norm_cast] lemma coe_zero : ((0 : ratfunc F) : laurent_series F) = 0 :=
 (coe_alg_hom F).map_zero
 
-@[simv, norm_cast] lemma coe_one : ((1 : ratfunc F) : laurent_series F) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : ratfunc F) : laurent_series F) = 1 :=
 (coe_alg_hom F).map_one
 
-@[simv, norm_cast] lemma coe_add : ((f + g : ratfunc F) : laurent_series F) = f + g :=
+@[simp, norm_cast] lemma coe_add : ((f + g : ratfunc F) : laurent_series F) = f + g :=
 (coe_alg_hom F).map_add _ _
 
-@[simv, norm_cast] lemma coe_mul : ((f * g : ratfunc F) : laurent_series F) = f * g :=
+@[simp, norm_cast] lemma coe_mul : ((f * g : ratfunc F) : laurent_series F) = f * g :=
 (coe_alg_hom F).map_mul _ _
 
-@[simv, norm_cast] lemma coe_div : ((f / g : ratfunc F) : laurent_series F) =
+@[simp, norm_cast] lemma coe_div : ((f / g : ratfunc F) : laurent_series F) =
   (f : laurent_series F) / (g : laurent_series F) :=
 (coe_alg_hom F).map_div _ _
 
-@[simv, norm_cast] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
+@[simp, norm_cast] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
 by rw [coe_num_denom, num_C, denom_C, coe_coe, polynomial.coe_C, coe_C, coe_coe, polynomial.coe_one,
        power_series.coe_one, div_one]
 
 -- TODO: generalize over other modules
-@[simv, norm_cast] lemma coe_smul (r : F) : ((r • f : ratfunc F) : laurent_series F) = r • f :=
+@[simp, norm_cast] lemma coe_smul (r : F) : ((r • f : ratfunc F) : laurent_series F) = r • f :=
 by rw [smul_eq_C_mul, ←C_mul_eq_smul, coe_mul, coe_C]
 
-@[simv, norm_cast] lemma coe_X : ((X : ratfunc F) : laurent_series F) = single 1 1 :=
+@[simp, norm_cast] lemma coe_X : ((X : ratfunc F) : laurent_series F) = single 1 1 :=
 by rw [coe_num_denom, num_X, denom_X, coe_coe, polynomial.coe_X, coe_X, coe_coe, polynomial.coe_one,
        power_series.coe_one, div_one]
 

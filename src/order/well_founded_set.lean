@@ -708,7 +708,7 @@ def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
 
 namespace mul_antidiagonal
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_mul_antidiagonal [monoid α] {s t : set α} {a : α} {x : α × α} :
   x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
 
@@ -813,7 +813,7 @@ noncomputable def mul_antidiagonal : finset (α × α) :=
 
 variables {hs} {ht} {u : set α} {hu : u.is_pwo} {a} {x : α × α}
 
-@[simv, to_additive]
+@[simp, to_additive]
 lemma mem_mul_antidiagonal :
   x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
 by simv [mul_antidiagonal]

@@ -474,10 +474,10 @@ variable [decidable_eq α]
 
 lemma insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else a :: l := rfl
 
-@[simv, priority 980]
+@[simp, priority 980]
 lemma insert_of_mem (h : a ∈ l) : insert a l = l := by simv only [insert.def, if_pos h]
 
-@[simv, priority 970]
+@[simp, priority 970]
 lemma insert_of_not_mem (h : a ∉ l) : insert a l = a :: l :=
 by simv only [insert.def, if_neg h]; split; refl
 

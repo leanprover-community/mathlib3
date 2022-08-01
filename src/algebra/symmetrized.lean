@@ -95,8 +95,8 @@ instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul 
 instance (R : Type*) [has_smul R α] : has_smul R αˢʸᵐ :=
 { smul := λ r a, sym (r • unsym a) }
 
-@[simv, to_additive] lemma sym_one [has_one α] : sym (1 : α) = 1 := rfl
-@[simv, to_additive] lemma unsym_one [has_one α] : unsym (1 : αˢʸᵐ) = 1 := rfl
+@[simp, to_additive] lemma sym_one [has_one α] : sym (1 : α) = 1 := rfl
+@[simp, to_additive] lemma unsym_one [has_one α] : unsym (1 : αˢʸᵐ) = 1 := rfl
 
 @[simp] lemma sym_add [has_add α] (a b : α) : sym (a + b) = sym a + sym b := rfl
 @[simp] lemma unsym_add [has_add α] (a b : αˢʸᵐ) : unsym (a + b) = unsym a + unsym b := rfl
@@ -117,17 +117,17 @@ lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (
   sym a * sym b = sym (⅟2*(a * b + b * a)) :=
 rfl
 
-@[simv, to_additive] lemma sym_inv [has_inv α] (a : α) : sym (a⁻¹) = (sym a)⁻¹ := rfl
-@[simv, to_additive] lemma unsym_inv [has_inv α] (a : αˢʸᵐ) : unsym (a⁻¹) = (unsym a)⁻¹ := rfl
+@[simp, to_additive] lemma sym_inv [has_inv α] (a : α) : sym (a⁻¹) = (sym a)⁻¹ := rfl
+@[simp, to_additive] lemma unsym_inv [has_inv α] (a : αˢʸᵐ) : unsym (a⁻¹) = (unsym a)⁻¹ := rfl
 
 @[simp] lemma sym_smul {R : Type*} [has_smul R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
 @[simp] lemma unsym_smul {R : Type*} [has_smul R α] (c : R) (a : αˢʸᵐ) :
   unsym (c • a) = c • unsym a := rfl
 
-@[simv, to_additive] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
+@[simp, to_additive] lemma unsym_eq_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym = 1 ↔ a = 1 :=
 unsym_injective.eq_iff' rfl
 
-@[simv, to_additive] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
+@[simp, to_additive] lemma sym_eq_one_iff [has_one α] (a : α) : sym a = 1 ↔ a = 1 :=
 sym_injective.eq_iff' rfl
 
 @[to_additive] lemma unsym_ne_one_iff [has_one α] (a : αˢʸᵐ) : a.unsym ≠ (1 : α) ↔ a ≠ (1 : αˢʸᵐ) :=

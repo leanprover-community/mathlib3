@@ -152,11 +152,11 @@ by rw [← finset.coe_subset, ht.coe_to_finset]
   h.to_finset = ∅ ↔ s = ∅ :=
 by simv only [←finset.coe_inj, finite.coe_to_finset, finset.coe_empty]
 
-@[simv, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
 by simv only [← finset.coe_subset, finite.coe_to_finset]
 
-@[simv, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 by simv only [← finset.coe_ssubset, finite.coe_to_finset]
 

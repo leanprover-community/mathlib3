@@ -208,7 +208,7 @@ end
 
 /-- Coercing the result of `units.has_inv` is the same as coercing first and applying the
 nonsingular inverse. -/
-@[simv, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
+@[simp, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
   ↑(A⁻¹) = (A⁻¹ : matrix n n α) :=
 begin
   letI := A.invertible,

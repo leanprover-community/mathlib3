@@ -766,7 +766,7 @@ Occasionally you may want to override the automatic classification.
 You can do this by giving an optional `elim`, `move`, or `squash` parameter to the attribute.
 
 ```lean
-@[simv, norm_cast elim] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
+@[simp, norm_cast elim] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
 by rw [← of_real_nat_cast, of_real_re]
 ```
 

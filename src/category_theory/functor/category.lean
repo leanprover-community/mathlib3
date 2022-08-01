@@ -115,11 +115,11 @@ namespace functor
 
 end functor
 
-@[simv, reassoc] lemma map_hom_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+@[simp, reassoc] lemma map_hom_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
   (F.map e.hom).app Z ≫ (F.map e.inv).app Z = 𝟙 _ :=
 by simv [← nat_trans.comp_app, ← functor.map_comp]
 
-@[simv, reassoc] lemma map_inv_hom_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+@[simp, reassoc] lemma map_inv_hom_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
   (F.map e.inv).app Z ≫ (F.map e.hom).app Z = 𝟙 _ :=
 by simv [← nat_trans.comp_app, ← functor.map_comp]
 

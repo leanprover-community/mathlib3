@@ -268,7 +268,7 @@ section ring
 
 variables [ring R] {p q : R[X]}
 
-lemma nat_degree_sub : (p - q).nat_degree = (q - p).nat_degree  :=
+lemma nat_degree_sub : (p - q).nat_degree = (q - p).nat_degree :=
 by rw [← nat_degree_neg, neg_sub]
 
 lemma nat_degree_sub_le_iff_left (qn : q.nat_degree ≤ n) :

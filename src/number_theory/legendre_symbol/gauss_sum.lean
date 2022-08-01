@@ -161,21 +161,21 @@ end
 /-- For a quadratic character `χ` and when the characteristic `p` of the target ring
 is a unit in the source ring, the `p`th power of the Gauss sum of`χ` and `ψ` is
 `χ p` times the original Gauss sum. -/
-lemma quad_gauss_sum_frob (hp : is_unit (p : R)) {χ : mul_char R R'} (hχ : is_quadratic χ)
-  (ψ : add_char R R') :
+lemma mul_char.is_quadratic.quad_gauss_sum_frob (hp : is_unit (p : R)) {χ : mul_char R R'}
+  (hχ : is_quadratic χ) (ψ : add_char R R') :
   gauss_sum χ ψ ^ p = χ p * gauss_sum χ ψ :=
 by rw [gauss_sum_frob, pow_mul_shift, hχ.pow_char p, ← gauss_sum_mul_shift χ ψ hp.unit,
        ← mul_assoc, hp.unit_spec, ← pow_two, ← pow_apply' _ (by norm_num : 0 < 2),
        hχ.sq_eq_one, ← hp.unit_spec, one_apply_coe, one_mul]
 
 /-- Similar to the above, but with `p^n` in place of `p` -/
-lemma quad_gauss_sum_frob_iter (n : ℕ) (hp : is_unit (p : R))
+lemma mul_char.is_quadratic.quad_gauss_sum_frob_iter (n : ℕ) (hp : is_unit (p : R))
   {χ : mul_char R R'} (hχ : is_quadratic χ) (ψ : add_char R R') :
   gauss_sum χ ψ ^ (p ^ n) = χ (p ^ n) * gauss_sum χ ψ :=
 begin
   induction n with n ih,
   { rw [pow_zero, pow_one, pow_zero, mul_char.map_one, one_mul], },
-  { rw [pow_succ, mul_comm p, pow_mul, ih, mul_pow, quad_gauss_sum_frob _ hp hχ,
+  { rw [pow_succ, mul_comm p, pow_mul, ih, mul_pow, hχ.quad_gauss_sum_frob _ hp,
         ← mul_assoc, pow_succ, mul_comm (p : R), map_mul,
         ← pow_apply' χ fp.1.pos (p ^ n), hχ.pow_char p], },
 end
@@ -204,7 +204,7 @@ begin
     exact not_is_unit_prime_of_dvd_card p
       ((char_p.cast_eq_zero_iff R' p _).mp $ hg.resolve_left (is_unit_one.neg.map χ).ne_zero) hp },
   rw ← hg, apply mul_right_cancel₀ this,
-  rw [← quad_gauss_sum_frob_iter p n hp hχ ψ, ← pow_mul, mul_comm, ← pow_succ,
+  rw [← hχ.quad_gauss_sum_frob_iter p n hp ψ, ← pow_mul, mul_comm, ← pow_succ,
       nat.two_mul_div_two_add_one_of_odd ((fp.1.eq_two_or_odd').resolve_left hp').pow],
 end
 
@@ -232,6 +232,8 @@ end
 
 end gauss_sum_values
 
+section gauss_sum_two
+
 /-!
 ### The quadratic character of 2
 
@@ -244,8 +246,6 @@ This can be used to show that the quadratic character of `F` takes the value
 The proof uses the Gauss sum of `χ₈` and a primitive additive character on `ℤ/8ℤ`;
 in this way, the result is reduced to `card_pow_char_pow`.
 -/
-
-section gauss_sum_two
 
 open zmod
 

@@ -358,7 +358,7 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
-lemma direct_sum.is_internal.is_hilbert_sum [fintype ι] {F : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.is_hilbert_sum {F : ι → submodule 𝕜 E}
   [Π i, complete_space (F i)] (hF : direct_sum.is_internal F)
   (hF' : @orthogonal_family 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ)) :
   @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
@@ -546,7 +546,7 @@ by simpa only [← orthonormal_basis.coe_to_basis, b.to_basis.span_eq, eq_top_if
 hilbert_basis.coe_mk _ _
 
 protected lemma _root_.orthonormal_basis.orthogonal_projection_eq_sum [fintype ι]
-  {U : submodule 𝕜 E} [complete_space E] [complete_space U] (b : orthonormal_basis ι 𝕜 U) (x : E) :
+  {U : submodule 𝕜 E} [complete_space U] (b : orthonormal_basis ι 𝕜 U) (x : E) :
   (orthogonal_projection U x) = ∑ i, ⟪(b i : E), x⟫ • b i :=
 begin
   convert (b.to_hilbert_basis.has_sum_orthogonal_projection x).unique (has_sum_fintype _) using 2,
@@ -554,8 +554,7 @@ begin
   rw b.coe_to_hilbert_basis
 end
 
-protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
-  (b : hilbert_basis ι 𝕜 E) (x : E) :
+protected lemma tendsto_orthogonal_projection_at_top (b : hilbert_basis ι 𝕜 E) (x : E) :
   tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
     at_top (𝓝 x) :=
 begin
@@ -649,5 +648,3 @@ lemma coe_collected_hilbert_basis {α : ι → Type*}
 let ⟨i, a⟩ := ia in coe_collected_hilbert_basis_mk _ _ i a
 
 end is_hilbert_sum
-
-#lint

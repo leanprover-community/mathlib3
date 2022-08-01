@@ -34,7 +34,7 @@ variables [semiring R] {p q r : R[X]}
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
-def degree (p : R[X]) : with_bot ℕ := p.support.sup some
+def degree (p : R[X]) : with_bot ℕ := p.support.max
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
@@ -70,8 +70,7 @@ lemma monic.coeff_nat_degree {p : R[X]} (hp : p.monic) : p.coeff p.nat_degree = 
 @[simp] lemma coeff_nat_degree : coeff p (nat_degree p) = leading_coeff p := rfl
 
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
-⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
-  exact support_eq_empty.1 (max_eq_none.1 h),
+⟨λ h, support_eq_empty.1 (finset.max_eq_bot.1 h),
 λ h, h.symm ▸ rfl⟩
 
 @[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=
@@ -155,14 +154,15 @@ lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
 with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
 
-alias polynomial.nat_degree_le_iff_degree_le ↔ ..
+alias nat_degree_le_iff_degree_le ↔ ..
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=
 with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
-by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton], refl }
+by rw [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
+    with_bot.coe_zero]
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
 begin
@@ -191,7 +191,7 @@ end
 by simp only [←C_eq_nat_cast, nat_degree_C]
 
 @[simp] lemma degree_monomial (n : ℕ) (ha : a ≠ 0) : degree (monomial n a) = n :=
-by rw [degree, support_monomial _ _ ha]; refl
+by rw [degree, support_monomial n ha]; refl
 
 @[simp] lemma degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
 by rw [← monomial_eq_C_mul_X, degree_monomial n ha]
@@ -214,13 +214,24 @@ nat_degree_eq_of_degree_eq_some (degree_C_mul_X_pow n ha)
 @[simp] lemma nat_degree_C_mul_X (a : R) (ha : a ≠ 0) : nat_degree (C a * X) = 1 :=
 by simpa only [pow_one] using nat_degree_C_mul_X_pow 1 a ha
 
-@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R)  :
+@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R) :
   nat_degree (monomial i r) = if r = 0 then 0 else i :=
 begin
   split_ifs with hr,
   { simp [hr] },
   { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
+
+lemma nat_degree_monomial_le (a : R) {m : ℕ} : (monomial m a).nat_degree ≤ m :=
+begin
+  rw polynomial.nat_degree_monomial,
+  split_ifs,
+  exacts [nat.zero_le _, rfl.le],
+end
+
+lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+eq.trans (nat_degree_monomial _ _) (if_neg r0)
 
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
@@ -332,19 +343,13 @@ degree_monomial_le _ _
 lemma nat_degree_X_le : (X : R[X]).nat_degree ≤ 1 :=
 nat_degree_le_of_degree_le degree_X_le
 
-lemma support_C_mul_X_pow (c : R) (n : ℕ) : (C c * X ^ n).support ⊆ singleton n :=
-begin
-  rw [C_mul_X_pow_eq_monomial],
-  exact support_monomial' _ _
-end
-
 lemma mem_support_C_mul_X_pow {n a : ℕ} {c : R} (h : a ∈ (C c * X ^ n).support) : a = n :=
-mem_singleton.1 $ support_C_mul_X_pow _ _ h
+mem_singleton.1 $ support_C_mul_X_pow' n c h
 
 lemma card_support_C_mul_X_pow_le_one {c : R} {n : ℕ} : (C c * X ^ n).support.card ≤ 1 :=
 begin
   rw ← card_singleton n,
-  apply card_le_of_subset (support_C_mul_X_pow c n),
+  apply card_le_of_subset (support_C_mul_X_pow' n c),
 end
 
 lemma card_supp_le_succ_nat_degree (p : R[X]) : p.support.card ≤ p.nat_degree + 1 :=
@@ -359,13 +364,6 @@ le_degree_of_ne_zero ∘ mem_support_iff.mp
 
 lemma nonempty_support_iff : p.support.nonempty ↔ p ≠ 0 :=
 by rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty]
-
-lemma support_C_mul_X_pow_nonzero {c : R} {n : ℕ} (h : c ≠ 0) :
-  (C c * X ^ n).support = singleton n :=
-begin
-  rw [C_mul_X_pow_eq_monomial],
-  exact support_monomial _ _ h
-end
 
 end semiring
 
@@ -398,6 +396,9 @@ by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : R[X]) = 0 :=
 by simp only [←C_eq_int_cast, nat_degree_C]
+
+@[simp] lemma leading_coeff_neg (p : R[X]) : (-p).leading_coeff = -p.leading_coeff :=
+by rw [leading_coeff, leading_coeff, nat_degree_neg, coeff_neg]
 
 end ring
 
@@ -562,12 +563,11 @@ end
 lemma degree_update_le (p : R[X]) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin
-  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
-  intros b hb,
-  split_ifs at hb with h,
-  { subst b,
-    exact or.inr le_rfl },
-  { exact or.inl (le_degree_of_ne_zero hb) }
+  rw [degree, support_update],
+  split_ifs,
+  { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
+  { rw [max_insert, max_comm],
+    exact le_rfl },
 end
 
 lemma degree_sum_le (s : finset ι) (f : ι → R[X]) :
@@ -830,27 +830,22 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
-  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
+by simp [degree_eq_bot, ← not_lt]
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), decidable.of_not_not $ λ H4,
-  have H1 : m ∉ f.support,
-    from λ H2, not_lt_of_ge ((finset.sup_le_iff.1 H) m H2 : ((m : with_bot ℕ) ≤ n)) Hm,
-  H1 $ mem_support_iff.2 H4,
-λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
-  mem_support_iff.1 Hb $ H b $ lt_of_not_ge Hn⟩
+by simp only [degree, finset.max, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le,
+    not_imp_comm]
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
 begin
   refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
   simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
-    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ, max_eq_sup_coe],
   exact λ h m, mt (h m),
 end
 
@@ -882,7 +877,7 @@ lemma eq_C_of_nat_degree_eq_zero (h : nat_degree p = 0) : p = C (coeff p 0) :=
 eq_C_of_nat_degree_le_zero h.le
 
 lemma ne_zero_of_coe_le_degree (hdeg : ↑n ≤ p.degree) : p ≠ 0 :=
-by rw ← degree_nonneg_iff_ne_zero; exact trans (by exact_mod_cast n.zero_le) hdeg
+degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans hdeg
 
 lemma le_nat_degree_of_coe_le_degree (hdeg : ↑n ≤ p.degree) :
   n ≤ p.nat_degree :=
@@ -989,7 +984,6 @@ by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coef
 
 end semiring
 
-
 section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
@@ -998,6 +992,14 @@ by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
 
 @[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : R[X]) ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_X_pow n)
+
+/-  This lemma explicitly does not require the `nontrivial R` assumption. -/
+lemma nat_degree_X_pow_le {R : Type*} [semiring R] (n : ℕ) :
+  (X ^ n : R[X]).nat_degree ≤ n :=
+begin
+  nontriviality R,
+  rwa polynomial.nat_degree_X_pow,
+end
 
 theorem not_is_unit_X : ¬ is_unit (X : R[X]) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $

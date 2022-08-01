@@ -180,8 +180,8 @@ lemma finrank_hom_simple_simple_le_one
 begin
   cases subsingleton_or_nontrivial (X ⟶ Y) with h,
   { resetI,
-    convert zero_le_one,
-    exact finrank_zero_of_subsingleton, },
+    rw finrank_zero_of_subsingleton,
+    exact zero_le_one },
   { obtain ⟨f, nz⟩ := (nontrivial_iff_exists_ne 0).mp h,
     haveI fi := (is_iso_iff_nonzero f).mpr nz,
     apply finrank_le_one f,

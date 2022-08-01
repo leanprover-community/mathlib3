@@ -34,7 +34,7 @@ cover so that the closure of each new open set is contained in the corresponding
 set. -/
 lemma roadmap.shrinking_lemma {X : Type u} [topological_space X] [normal_space X]
   {s : set X} (hs : is_closed s) {α : Type v} (u : α → set X) (uo : ∀ a, is_open (u a))
-  (uf : ∀ x, finite {a | x ∈ u a}) (su : s ⊆ Union u) :
+  (uf : ∀ x, {a | x ∈ u a}.finite) (su : s ⊆ Union u) :
   ∃ v : α → set X, s ⊆ Union v ∧ ∀ a, is_open (v a) ∧ closure (v a) ⊆ u a :=
 todo
 /-

@@ -207,8 +207,7 @@ a virtual point at the right of the last block, to make for a nice equiv with
 `composition_as_set n`. -/
 def boundary : fin (c.length + 1) ↪o fin (n+1) :=
 order_embedding.of_strict_mono (λ i, ⟨c.size_up_to i, nat.lt_succ_of_le (c.size_up_to_le i)⟩) $
- fin.strict_mono_iff_lt_succ.2 $ λ i hi, c.size_up_to_strict_mono $
-   lt_of_add_lt_add_right hi
+ fin.strict_mono_iff_lt_succ.2 $ λ ⟨i, hi⟩, c.size_up_to_strict_mono hi
 
 @[simp] lemma boundary_zero : c.boundary 0 = 0 :=
 by simp [boundary, fin.ext_iff]

@@ -122,7 +122,7 @@ end
 lemma int.coe_nat_pow_pred (b p : ℕ) (w : 0 < b) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
 begin
   have : 1 ≤ b^p := nat.one_le_pow p b w,
-  push_cast [this],
+  norm_cast
 end
 
 lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=
@@ -146,9 +146,7 @@ begin
     simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
-    convert s_mod_lt _ (nat.lt_of_succ_lt w) (p-2),
-    push_cast [nat.one_le_two_pow p],
-    refl, },
+    exact s_mod_lt _ (nat.lt_of_succ_lt w) (p-2) },
   { intro h, rw h, simp, },
 end
 
@@ -214,6 +212,15 @@ instance : monoid (X q) :=
   mul_one := λ x, by { ext; simp, },
   ..(infer_instance : has_mul (X q)) }
 
+instance : add_group_with_one (X q) :=
+{ nat_cast := λ n, ⟨n, 0⟩,
+  nat_cast_zero := by simp,
+  nat_cast_succ := by simp [nat.cast, monoid.one],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ n, by simp; refl,
+  int_cast_neg_succ_of_nat := λ n, by ext; simp; refl,
+  .. X.monoid, .. X.add_comm_group _ }
+
 lemma left_distrib (x y z : X q) : x * (y + z) = x * y + x * z :=
 by { ext; { dsimp, ring }, }
 
@@ -223,6 +230,7 @@ by { ext; { dsimp, ring }, }
 instance : ring (X q) :=
 { left_distrib := left_distrib,
   right_distrib := right_distrib,
+  .. X.add_group_with_one,
   ..(infer_instance : add_comm_group (X q)),
   ..(infer_instance : monoid (X q)) }
 
@@ -233,27 +241,11 @@ instance : comm_ring (X q) :=
 instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 ⟨⟨0, 1, λ h, by { injection h with h1 _, exact zero_ne_one h1 } ⟩⟩
 
-@[simp]
-lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=
-begin
-  induction n,
-  { refl, },
-  { dsimp, simp only [add_left_inj], exact n_ih, }
-end
-@[simp]
-lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) :=
-begin
-  induction n,
-  { refl, },
-  { dsimp, simp only [add_zero], exact n_ih, }
-end
+@[simp] lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) := rfl
+@[simp] lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) := rfl
 
-@[simp]
-lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) :=
-by { induction n; simp, }
-@[simp]
-lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) :=
-by { induction n; simp, }
+@[simp] lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) := rfl
+@[simp] lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) := rfl
 
 @[norm_cast]
 lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
@@ -357,6 +349,7 @@ begin
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
+  have : 1 ≤ 2 ^ (p' + 2) := nat.one_le_pow _ _ dec_trivial,
   exact_mod_cast h,
 end
 
@@ -445,9 +438,6 @@ example : (mersenne 5).prime := lucas_lehmer_sufficiency 5 (by norm_num) dec_tri
 namespace lucas_lehmer
 open tactic
 
-meta instance nat_pexpr : has_to_pexpr ℕ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
-meta instance int_pexpr : has_to_pexpr ℤ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
-
 lemma s_mod_succ {p a i b c}
   (h1 : (2^p - 1 : ℤ) = a)
   (h2 : s_mod p i = b)
@@ -466,16 +456,12 @@ do `(lucas_lehmer_test %%p) ← target,
    p ← eval_expr ℕ p,
    -- Calculate the candidate Mersenne prime
    let M : ℤ := 2^p - 1,
-   t ← to_expr ``(2^%%p - 1 = %%M),
-   v ← to_expr ``(by norm_num : 2^%%p - 1 = %%M),
+   t ← to_expr ``(2^%%`(p) - 1 = %%`(M)),
+   v ← to_expr ``(by norm_num : 2^%%`(p) - 1 = %%`(M)),
    w ← assertv `w t v,
-   -- Unfortunately this creates something like `w : 2^5 - 1 = int.of_nat 31`.
-   -- We could make a better `has_to_pexpr ℤ` instance, or just:
-   `[simp only [int.coe_nat_zero, int.coe_nat_succ,
-       int.of_nat_eq_coe, zero_add, int.coe_nat_bit1] at w],
    -- base case
-   t ← to_expr ``(s_mod %%p 0 = 4),
-   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%p 0 = 4),
+   t ← to_expr ``(s_mod %%`(p) 0 = 4),
+   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%`(p) 0 = 4),
    h ← assertv `h t v,
    -- step case, repeated p-2 times
    iterate_exactly (p-2) `[replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl })],
@@ -499,7 +485,9 @@ is out of reach with the current implementation.
 
 There's still low hanging fruit available to do faster computations
 based on the formula
-  n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+```
+n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+```
 and the fact that `% 2^p` and `/ 2^p` can be very efficient on the binary representation.
 Someone should do this, too!
 -/

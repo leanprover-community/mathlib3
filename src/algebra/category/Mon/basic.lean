@@ -3,7 +3,6 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.elementwise
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
 import category_theory.functor.reflects_isomorphisms

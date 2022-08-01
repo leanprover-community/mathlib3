@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 import algebra.smul_with_zero
 import algebra.regular.basic
+
 /-!
 # Action of regular elements on a module
 
@@ -28,7 +29,7 @@ variables {R S : Type*} (M : Type*) {a b : R} {s : S}
 
 /-- An `M`-regular element is an element `c` such that multiplication on the left by `c` is an
 injective map `M → M`. -/
-def is_smul_regular [has_scalar R M] (c : R) := function.injective ((•) c : M → M)
+def is_smul_regular [has_smul R M] (c : R) := function.injective ((•) c : M → M)
 
 lemma is_left_regular.is_smul_regular [has_mul R] {c : R} (h : is_left_regular c) :
   is_smul_regular R c := h
@@ -48,9 +49,9 @@ namespace is_smul_regular
 
 variables {M}
 
-section has_scalar
+section has_smul
 
-variables [has_scalar R M] [has_scalar R S] [has_scalar S M] [is_scalar_tower R S M]
+variables [has_smul R M] [has_smul R S] [has_smul S M] [is_scalar_tower R S M]
 
 /-- The product of `M`-regular elements is `M`-regular. -/
 lemma smul (ra : is_smul_regular M a) (rs : is_smul_regular M s) :
@@ -76,7 +77,32 @@ lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
 lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (mul_opposite.op a)) :
   is_right_regular a := h
 
-end has_scalar
+lemma mul [has_mul R] [is_scalar_tower R R M]
+  (ra : is_smul_regular M a) (rb : is_smul_regular M b) : is_smul_regular M (a * b) :=
+ra.smul rb
+
+lemma of_mul [has_mul R] [is_scalar_tower R R M] (ab : is_smul_regular M (a * b)) :
+  is_smul_regular M b :=
+by { rw ← smul_eq_mul at ab, exact ab.of_smul _ }
+
+@[simp] lemma mul_iff_right [has_mul R] [is_scalar_tower R R M] (ha : is_smul_regular M a) :
+  is_smul_regular M (a * b) ↔ is_smul_regular M b :=
+⟨of_mul, ha.mul⟩
+
+/-- Two elements `a` and `b` are `M`-regular if and only if both products `a * b` and `b * a`
+are `M`-regular. -/
+lemma mul_and_mul_iff [has_mul R] [is_scalar_tower R R M] :
+  is_smul_regular M (a * b) ∧ is_smul_regular M (b * a) ↔
+  is_smul_regular M a ∧ is_smul_regular M b :=
+begin
+  refine ⟨_, _⟩,
+  { rintros ⟨ab, ba⟩,
+    refine ⟨ba.of_mul, ab.of_mul⟩ },
+  { rintros ⟨ha, hb⟩,
+    exact ⟨ha.mul hb, hb.mul ha⟩ }
+end
+
+end has_smul
 
 section monoid
 
@@ -90,29 +116,9 @@ variable (M)
 
 variable {M}
 
-lemma mul (ra : is_smul_regular M a) (rb : is_smul_regular M b) :
-  is_smul_regular M (a * b) :=
-ra.smul rb
-
-lemma of_mul (ab : is_smul_regular M (a * b)) :
-  is_smul_regular M b :=
-by { rw ← smul_eq_mul at ab, exact ab.of_smul _ }
-
-@[simp] lemma mul_iff_right  (ha : is_smul_regular M a) :
-  is_smul_regular M (a * b) ↔ is_smul_regular M b :=
-⟨of_mul, ha.mul⟩
-
-/-- Two elements `a` and `b` are `M`-regular if and only if both products `a * b` and `b * a`
-are `M`-regular. -/
-lemma mul_and_mul_iff : is_smul_regular M (a * b) ∧ is_smul_regular M (b * a) ↔
-  is_smul_regular M a ∧ is_smul_regular M b :=
-begin
-  refine ⟨_, _⟩,
-  { rintros ⟨ab, ba⟩,
-    refine ⟨ba.of_mul, ab.of_mul⟩ },
-  { rintros ⟨ha, hb⟩,
-    exact ⟨ha.mul hb, hb.mul ha⟩ }
-end
+/-- An element of `R` admitting a left inverse is `M`-regular. -/
+lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
+of_mul (by { rw h, exact one M })
 
 /-- Any power of an `M`-regular element is `M`-regular. -/
 lemma pow (n : ℕ) (ra : is_smul_regular M a) : is_smul_regular M (a ^ n) :=
@@ -133,10 +139,21 @@ end
 
 end monoid
 
+section monoid_smul
+
+variables [monoid S] [has_smul R M] [has_smul R S] [mul_action S M] [is_scalar_tower R S M]
+
+/-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
+lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
+of_smul a (by { rw h, exact one M })
+
+end monoid_smul
+
 section monoid_with_zero
 
-variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_with_zero R M]
-  [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
+variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M]
+          [mul_action_with_zero R M] [mul_action_with_zero R S] [mul_action_with_zero S M]
+          [is_scalar_tower R S M]
 
 /-- The element `0` is `M`-regular if and only if `M` is trivial. -/
 protected lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
@@ -162,19 +179,11 @@ zero_iff_subsingleton.mpr sM
 lemma not_zero [nM : nontrivial M] : ¬ is_smul_regular M (0 : R) :=
 not_zero_iff.mpr nM
 
-/-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
-lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
-of_smul a (by { rw h, exact one M })
-
-/-- An element of `R` admitting a left inverse is `M`-regular. -/
-lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
-of_mul (by { rw h, exact one M })
-
 end monoid_with_zero
 
-section comm_monoid
+section comm_semigroup
 
-variables [comm_monoid R] [mul_action R M]
+variables [comm_semigroup R] [has_smul R M] [is_scalar_tower R R M]
 
 /-- A product is `M`-regular if and only if the factors are. -/
 lemma mul_iff : is_smul_regular M (a * b) ↔
@@ -184,7 +193,7 @@ begin
   exact ⟨λ ab, ⟨ab, by rwa mul_comm⟩, λ rab, rab.1⟩
 end
 
-end comm_monoid
+end comm_semigroup
 
 end is_smul_regular
 
@@ -203,7 +212,9 @@ end
 
 end group
 
-variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
+section units
+
+variables [monoid R] [mul_action R M]
 
 /-- Any element in `Rˣ` is `M`-regular. -/
 lemma units.is_smul_regular (a : Rˣ) : is_smul_regular M (a : R) :=
@@ -215,3 +226,5 @@ begin
   rcases ua with ⟨a, rfl⟩,
   exact a.is_smul_regular M
 end
+
+end units

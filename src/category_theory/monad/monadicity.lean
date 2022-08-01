@@ -172,7 +172,7 @@ lemma comparison_adjunction_unit_f
     (beck_coequalizer A).desc (unit_cofork A) :=
 begin
   apply limits.cofork.is_colimit.hom_ext (beck_coequalizer A),
-  rw [cofork.is_colimit.π_comp_desc],
+  rw [cofork.is_colimit.π_desc],
   dsimp only [beck_cofork_π, unit_cofork_π],
   rw [comparison_adjunction_unit_f_aux, ← adj .hom_equiv_naturality_left A.a, coequalizer.condition,
       adj .hom_equiv_naturality_right, adj .hom_equiv_unit, category.assoc],

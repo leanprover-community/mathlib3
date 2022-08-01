@@ -70,7 +70,7 @@ local notation `⟪`x`, `y`⟫` := y x
 
 variables (𝕜)
 
-lemma ae_eq_zero_of_forall_dual_of_is_separable [normed_group E] [normed_space 𝕜 E]
+lemma ae_eq_zero_of_forall_dual_of_is_separable [normed_add_comm_group E] [normed_space 𝕜 E]
   {t : set E} (ht : topological_space.is_separable t)
   {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) (h't : ∀ᵐ x ∂μ, f x ∈ t) :
   f =ᵐ[μ] 0 :=
@@ -105,8 +105,8 @@ begin
   exact A (f x) h'x hx,
 end
 
-lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E] [second_countable_topology E]
-  {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
+lemma ae_eq_zero_of_forall_dual [normed_add_comm_group E] [normed_space 𝕜 E]
+  [second_countable_topology E] {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 ae_eq_zero_of_forall_dual_of_is_separable 𝕜 (is_separable_of_separable_space (set.univ : set E)) hf
 (eventually_of_forall (λ x, set.mem_univ _))
@@ -118,7 +118,7 @@ end ae_eq_of_forall
 
 variables {α E : Type*}
   {m m0 : measurable_space α} {μ : measure α} {s t : set α}
-  [normed_group E] [normed_space ℝ E]
+  [normed_add_comm_group E] [normed_space ℝ E]
 
   [complete_space E]
   {p : ℝ≥0∞}
@@ -182,7 +182,7 @@ begin
     have A : ∫⁻ x in s, g x ∂μ + ε * μ s ≤ ∫⁻ x in s, g x ∂μ + 0 := calc
       ∫⁻ x in s, g x ∂μ + ε * μ s = ∫⁻ x in s, g x ∂μ + ∫⁻ x in s, ε ∂μ :
         by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
-      ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add hg measurable_const).symm
+      ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add_right _ measurable_const).symm
       ... ≤ ∫⁻ x in s, f x ∂μ : set_lintegral_mono (hg.add measurable_const) hf (λ x hx, hx.1.1)
       ... ≤ ∫⁻ x in s, g x ∂μ + 0 : by { rw [add_zero], exact h s s_meas s_lt_top },
     have B : ∫⁻ x in s, g x ∂μ ≠ ∞,
@@ -280,6 +280,16 @@ begin
     exact hf_zero s hs, },
   exact (ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_strongly_measurable hf'_meas
     hf'_integrable hf'_zero).trans hf_ae.symm.le,
+end
+
+lemma ae_le_of_forall_set_integral_le {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ)
+  (hf_le : ∀ s, measurable_set s → ∫ x in s, f x ∂μ ≤ ∫ x in s, g x ∂μ) :
+  f ≤ᵐ[μ] g :=
+begin
+  rw ← eventually_sub_nonneg,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure (hg.sub hf) (λ s hs, _),
+  rw [integral_sub' hg.integrable_on hf.integrable_on, sub_nonneg],
+  exact hf_le s hs
 end
 
 end real_finite_measure

@@ -6,7 +6,6 @@ Authors: Antoine Chambert-Loir
 
 import group_theory.subgroup.basic
 import group_theory.group_action.basic
-import order.order_dual
 
 /-!
 

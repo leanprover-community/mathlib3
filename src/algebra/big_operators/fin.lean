@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury Kudryashov, Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Anne Baanen
 -/
-import algebra.big_operators.basic
-import data.fintype.fin
 import data.fintype.card
+import data.fintype.fin
 import logic.equiv.fin
+
 /-!
 # Big operators and `fin`
 
@@ -61,13 +61,9 @@ is the product of `f x`, for some `x : fin (n + 1)` times the remaining product 
 @[to_additive
 /- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/]
-theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
-  (x : fin (n + 1)) :
+theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
-begin
-  rw [fintype.prod_eq_mul_prod_compl x, ← image_succ_above_univ, prod_image],
-  exact λ _ _ _ _ h, x.succ_above.injective h
-end
+by rw [univ_succ_above, prod_cons, finset.prod_map, rel_embedding.coe_fn_to_embedding]
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f 0` plus the remaining product -/
@@ -87,11 +83,15 @@ theorem prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) 
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (last n) :=
 by simpa [mul_comm] using prod_univ_succ_above f (last n)
 
+@[to_additive] lemma prod_cons [comm_monoid β] {n : ℕ} (x : β) (f : fin n → β) :
+  ∏ i : fin n.succ, (cons x f : fin n.succ → β) i = x * ∏ i : fin n, f i :=
+by simp_rw [prod_univ_succ, cons_zero, cons_succ]
+
 @[to_additive sum_univ_one] theorem prod_univ_one [comm_monoid β] (f : fin 1 → β) :
   ∏ i, f i = f 0 :=
 by simp
 
-@[to_additive] theorem prod_univ_two [comm_monoid β] (f : fin 2 → β) :
+@[simp, to_additive] theorem prod_univ_two [comm_monoid β] (f : fin 2 → β) :
   ∏ i, f i = f 0 * f 1 :=
 by simp [prod_univ_succ]
 
@@ -103,16 +103,14 @@ lemma prod_const [comm_monoid α] (n : ℕ) (x : α) : ∏ i : fin n, x = x ^ n 
 
 lemma sum_const [add_comm_monoid α] (n : ℕ) (x : α) : ∑ i : fin n, x = n • x := by simp
 
-@[to_additive]
-lemma prod_filter_zero_lt {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
-  ∏ i in univ.filter (λ (i : fin n.succ), 0 < i), v i = ∏ (j : fin n), v j.succ :=
-by rw [univ_filter_zero_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
+@[to_additive] lemma prod_Ioi_zero {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
+  ∏ i in Ioi 0, v i = ∏ j : fin n, v j.succ :=
+by rw [Ioi_zero_eq_map, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
-lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (j : fin n) (v : fin n.succ → M) :
-  ∏ i in univ.filter (λ i, j.succ < i), v i =
-    ∏ j in univ.filter (λ i, j < i), v j.succ :=
-by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
+lemma prod_Ioi_succ {M : Type*} [comm_monoid M] {n : ℕ} (i : fin n) (v : fin n.succ → M) :
+  ∏ j in Ioi i.succ, v j = ∏ j in Ioi i, v j.succ :=
+by rw [Ioi_succ, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
 lemma prod_congr' {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :
@@ -137,12 +135,40 @@ lemma prod_trunc {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M)
   ∏ (i : fin a), f (cast_le (nat.le.intro rfl) i) :=
 by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
 
+section partial_prod
+
+variables [monoid α] {n : ℕ}
+
+/-- For `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_prod f` is `(1, a₁, a₁a₂, ..., a₁...aₙ)` in `αⁿ⁺¹`. -/
+@[to_additive "For `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_sum f` is
+`(0, a₁, a₁ + a₂, ..., a₁ + ... + aₙ)` in `αⁿ⁺¹`."]
+def partial_prod (f : fin n → α) (i : fin (n + 1)) : α :=
+((list.of_fn f).take i).prod
+
+@[simp, to_additive] lemma partial_prod_zero (f : fin n → α) :
+  partial_prod f 0 = 1 :=
+by simp [partial_prod]
+
+@[to_additive] lemma partial_prod_succ (f : fin n → α) (j : fin n) :
+  partial_prod f j.succ = partial_prod f j.cast_succ * (f j) :=
+by simp [partial_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←option.coe_def]
+
+@[to_additive] lemma partial_prod_succ' (f : fin (n + 1) → α) (j : fin (n + 1)) :
+  partial_prod f j.succ = f 0 * partial_prod (fin.tail f) j :=
+by simpa [partial_prod]
+
+end partial_prod
+
 end fin
 
 namespace list
 
+section comm_monoid
+
+variables [comm_monoid α]
+
 @[to_additive]
-lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
+lemma prod_take_of_fn {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).prod = ∏ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
 begin
   have A : ∀ (j : fin n), ¬ ((j : ℕ) < 0) := λ j, not_lt_bot,
@@ -169,7 +195,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_of_fn [comm_monoid α] {n : ℕ} {f : fin n → α} :
+lemma prod_of_fn {n : ℕ} {f : fin n → α} :
   (of_fn f).prod = ∏ i, f i :=
 begin
   convert prod_take_of_fn f n,
@@ -177,6 +203,8 @@ begin
   { have : ∀ (j : fin n), (j : ℕ) < n := λ j, j.is_lt,
     simp [this] }
 end
+
+end comm_monoid
 
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
   ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt

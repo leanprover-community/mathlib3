@@ -135,7 +135,7 @@ begin
     simp only [pi.pow_apply, pi.sub_apply, real.rpow_two, real.rpow_one, real.norm_eq_abs,
       pow_bit0_abs, ennreal.of_real_inv_of_pos hc, ennreal.rpow_two],
     rw [← ennreal.of_real_pow (inv_nonneg.2 hc.le), ← ennreal.of_real_mul (sq_nonneg _),
-      div_eq_inv_mul, inv_pow₀] }
+      div_eq_inv_mul, inv_pow] }
 end
 
 /-- The variance of the sum of two independent random variables is the sum of the variances. -/

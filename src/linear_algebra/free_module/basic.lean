@@ -67,7 +67,7 @@ variables [add_comm_monoid N] [module R N]
 
 /-- If `module.free R M` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
-@[nolint has_inhabited_instance] def choose_basis_index := (exists_basis R M).some.1
+@[nolint has_nonempty_instance] def choose_basis_index := (exists_basis R M).some.1
 
 /-- If `module.free R M` then `choose_basis : ι → M` is the basis.
 Here `ι = choose_basis_index R M`. -/
@@ -127,6 +127,10 @@ instance self : module.free R R := of_basis $ basis.singleton unit R
 @[priority 100]
 instance of_subsingleton [subsingleton N] : module.free R N :=
 of_basis (basis.empty N : basis pempty R N)
+
+@[priority 100]
+instance of_subsingleton' [subsingleton R] : module.free R N :=
+by letI := module.subsingleton R N; exact module.free.of_subsingleton R N
 
 instance dfinsupp {ι : Type*} (M : ι → Type*) [Π (i : ι), add_comm_monoid (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π₀ i, M i) :=

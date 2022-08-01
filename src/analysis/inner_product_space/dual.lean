@@ -65,25 +65,6 @@ lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] �
 show ∥(to_dual_map 𝕜 E).to_continuous_linear_map∥ = 1,
   from linear_isometry.norm_to_continuous_linear_map _
 
-variable (𝕜)
-include 𝕜
-lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
-begin
-  apply (to_dual_map 𝕜 E).map_eq_iff.mp,
-  ext v,
-  rw [to_dual_map_apply, to_dual_map_apply, ←inner_conj_sym],
-  nth_rewrite_rhs 0 [←inner_conj_sym],
-  exact congr_arg conj (h v)
-end
-
-lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
-begin
-  refine ext_inner_left 𝕜 (λ v, _),
-  rw [←inner_conj_sym],
-  nth_rewrite_rhs 0 [←inner_conj_sym],
-  exact congr_arg conj (h v)
-end
-omit 𝕜
 variable {𝕜}
 
 lemma ext_inner_left_basis {ι : Type*} {x y : E} (b : basis ι 𝕜 E)
@@ -133,8 +114,8 @@ begin
     refine ⟨((ℓ z)† / ⟪z, z⟫) • z, _⟩,
     ext x,
     have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
-    { rw [mem_ker, map_sub, map_smul, map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul,
-          mul_comm],
+    { rw [mem_ker, map_sub, continuous_linear_map.map_smul, continuous_linear_map.map_smul,
+          algebra.id.smul_eq_mul, algebra.id.smul_eq_mul, mul_comm],
       exact sub_self (ℓ x * ℓ z) },
     have h₂ : (ℓ z) * ⟪z, x⟫ = (ℓ x) * ⟪z, z⟫,
     { have h₃ := calc

@@ -140,6 +140,13 @@ lemma congr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
   F.map f = eq_to_hom (congr_obj h X) ≫ G.map f ≫ eq_to_hom (congr_obj h Y).symm :=
 by subst h; simp
 
+lemma congr_inv_of_congr_hom (F G : C ⥤ D) {X Y : C} (e : X ≅ Y)
+  (hX : F.obj X = G.obj X) (hY : F.obj Y = G.obj Y)
+  (h₂ : F.map e.hom = eq_to_hom (by rw hX) ≫ G.map e.hom ≫ eq_to_hom (by rw hY)) :
+F.map e.inv = eq_to_hom (by rw hY) ≫ G.map e.inv ≫ eq_to_hom (by rw hX) :=
+by simp only [← is_iso.iso.inv_hom e, functor.map_inv, h₂, is_iso.inv_comp,
+  inv_eq_to_hom, category.assoc]
+
 section heq
 
 /- Composition of functors and maps w.r.t. heq -/
@@ -175,11 +182,21 @@ end heq
 
 end functor
 
-@[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+/--
+This is not always a good idea as a `@[simp]` lemma,
+as we lose the ability to use results that interact with `F`,
+e.g. the naturality of a natural transformation.
+
+In some files it may be appropriate to use `local attribute [simp] eq_to_hom_map`, however.
+-/
+lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
 by cases p; simp
 
-@[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+/--
+See the note on `eq_to_hom_map` regarding using this as a `simp` lemma.
+-/
+lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
@@ -189,7 +206,7 @@ by subst h; refl
 
 lemma nat_trans.congr {F G : C ⥤ D} (α : F ⟶ G) {X Y : C} (h : X = Y) :
   α.app X = F.map (eq_to_hom h) ≫ α.app Y ≫ G.map (eq_to_hom h.symm) :=
-by { rw [α.naturality_assoc], simp }
+by { rw [α.naturality_assoc], simp [eq_to_hom_map], }
 
 lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
   f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=

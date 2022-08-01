@@ -941,8 +941,17 @@ this.to₂.of_eq $ λ l n, begin
   { apply IH }
 end
 
+theorem list_nthd (d : α) : primrec₂ (list.nthd d) :=
+begin
+  suffices : list.nthd d = λ l n, (list.nth l n).get_or_else d,
+  { rw this,
+    exact option_get_or_else.comp₂ list_nth (const _) },
+  funext,
+  exact list.nthd_eq_get_or_else_nth _ _ _
+end
+
 theorem list_inth [inhabited α] : primrec₂ (@list.inth α _) :=
-option_iget.comp₂ list_nth
+list_nthd _
 
 theorem list_append : primrec₂ ((++) : list α → list α → list α) :=
 (list_foldr fst snd $ to₂ $ comp (@list_cons α _) snd).to₂.of_eq $
@@ -1026,7 +1035,7 @@ def subtype {p : α → Prop} [decidable_pred p]
 instance fin {n} : primcodable (fin n) :=
 @of_equiv _ _
   (subtype $ nat_lt.comp primrec.id (const n))
-  (equiv.fin_equiv_subtype _)
+  (equiv.refl _)
 
 instance vector {n} : primcodable (vector α n) :=
 subtype ((@primrec.eq _ _ nat.decidable_eq).comp list_length (const _))

@@ -27,6 +27,7 @@ import ring_theory.unique_factorization_domain
 
 noncomputable theory
 open_locale classical big_operators polynomial
+open finset
 
 universes u v w
 variables {R : Type u} {S : Type*}
@@ -79,8 +80,8 @@ end
 
 theorem mem_degree_lt {n : ℕ} {f : R[X]} :
   f ∈ degree_lt R n ↔ degree f < n :=
-by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
-    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
+by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree, finset.max_eq_sup_coe,
+    finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
     with_bot.coe_lt_coe, lt_iff_not_le, ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
@@ -158,7 +159,7 @@ begin
 end
 
 lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
-  (geom_sum (X : R[X]) n).comp (X + 1) =
+  (∑ i in range n, (X : R[X]) ^ i).comp (X + 1) =
   (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
 begin
   ext i,
@@ -175,11 +176,11 @@ begin
 end
 
 lemma monic.geom_sum {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (∑ i in range n, P ^ i).monic :=
 begin
   nontriviality R,
   cases n, { exact (hn rfl).elim },
-  rw [geom_sum_succ', geom_sum_def],
+  rw [geom_sum_succ'],
   refine (hP.pow _).add_of_left _,
   refine lt_of_le_of_lt (degree_sum_le _ _) _,
   rw [finset.sup_lt_iff],
@@ -191,11 +192,11 @@ begin
 end
 
 lemma monic.geom_sum' {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (∑ i in range n, P ^ i).monic :=
 hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
 
 lemma monic_geom_sum_X {n : ℕ} (hn : n ≠ 0) :
-  (geom_sum (X : R[X]) n).monic :=
+  (∑ i in range n, (X : R[X]) ^ i).monic :=
 begin
   nontriviality R,
   apply monic_X.geom_sum _ hn,
@@ -422,13 +423,13 @@ variables [comm_semiring R] [semiring S]
 
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself -/
 lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
-  (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap C) : p ∈ I :=
+  (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap (C : R →+* R[X])) : p ∈ I :=
 sum_C_mul_X_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
 
 /-- The push-forward of an ideal `I` of `R` to `polynomial R` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
 theorem mem_map_C_iff {I : ideal R} {f : R[X]} :
-  f ∈ (ideal.map C I : ideal R[X]) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
+  f ∈ (ideal.map (C : R →+* R[X]) I : ideal R[X]) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
 begin
   split,
   { intros hf,
@@ -453,7 +454,7 @@ begin
 end
 
 lemma _root_.polynomial.ker_map_ring_hom (f : R →+* S) :
-  (polynomial.map_ring_hom f).ker = f.ker.map C :=
+  (polynomial.map_ring_hom f).ker = f.ker.map (C : R →+* R[X]) :=
 begin
   ext,
   rw [mem_map_C_iff, ring_hom.mem_ker, polynomial.ext_iff],
@@ -518,6 +519,28 @@ begin
     I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
 end
 
+/--
+If `I` is an ideal, and `pᵢ` is a finite family of polynomials each satisfying
+`∀ k, (pᵢ)ₖ ∈ Iⁿⁱ⁻ᵏ` for some `nᵢ`, then `p = ∏ pᵢ` also satisfies `∀ k, pₖ ∈ Iⁿ⁻ᵏ` with `n = ∑ nᵢ`.
+-/
+lemma _root_.polynomial.coeff_prod_mem_ideal_pow_tsub {ι : Type*} (s : finset ι) (f : ι → R[X])
+  (I : ideal R) (n : ι → ℕ) (h : ∀ (i ∈ s) k, (f i).coeff k ∈ I ^ (n i - k)) (k : ℕ) :
+  (s.prod f).coeff k ∈ I ^ (s.sum n - k) :=
+begin
+  classical,
+  induction s using finset.induction with a s ha hs generalizing k,
+  { rw [sum_empty, prod_empty, coeff_one, zero_tsub, pow_zero, ideal.one_eq_top],
+    exact submodule.mem_top },
+  { rw [sum_insert ha, prod_insert ha, coeff_mul],
+    apply sum_mem,
+    rintro ⟨i, j⟩ e,
+    obtain rfl : i + j = k := nat.mem_antidiagonal.mp e,
+    apply ideal.pow_le_pow add_tsub_add_le_tsub_add_tsub,
+    rw pow_add,
+    exact ideal.mul_mem_mul (h _ (finset.mem_insert.mpr $ or.inl rfl) _)
+      (hs (λ i hi k, h _ (finset.mem_insert.mpr $ or.inr hi) _) j) }
+end
+
 end comm_semiring
 
 section ring
@@ -554,7 +577,7 @@ section comm_ring
 variables [comm_ring R]
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
-  ∀ a ∈ I, ((quotient.mk (map C I : ideal R[X])).comp C) a = 0 :=
+  ∀ a ∈ I, ((quotient.mk (map (C : R →+* R[X]) I : ideal R[X])).comp C) a = 0 :=
 begin
   intros a ha,
   rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
@@ -562,7 +585,7 @@ begin
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} :
-  ∀ f ∈ (map C I : ideal R[X]), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
+  ∀ f ∈ (map (C : R →+* R[X]) I : ideal R[X]), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
 begin
   intros a ha,
   rw ← sum_monomial_eq a,
@@ -631,13 +654,13 @@ end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
 lemma is_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
-  is_domain (R[X] ⧸ (map C P : ideal R[X])) :=
+  is_domain (R[X] ⧸ (map (C : R →+* R[X]) P : ideal R[X])) :=
 ring_equiv.is_domain (polynomial (R ⧸ P))
   (polynomial_quotient_equiv_quotient_polynomial P).symm
 
 /-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
 lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
-  is_prime (map C P : ideal R[X]) :=
+  is_prime (map (C : R →+* R[X]) P : ideal R[X]) :=
 (quotient.is_domain_iff_prime (map C P : ideal R[X])).mp
   (is_domain_map_C_quotient H)
 
@@ -1033,7 +1056,8 @@ begin
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
-  (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
+  (ideal.quotient.mk (ideal.map (C : R →+* mv_polynomial σ R) I :
+  ideal (mv_polynomial σ R))).comp C i = 0 :=
 begin
   simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
   exact ideal.mem_map_of_mem _ hi
@@ -1042,7 +1066,7 @@ end
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
 multivariate version. -/
 lemma mem_ideal_of_coeff_mem_ideal (I : ideal (mv_polynomial σ R)) (p : mv_polynomial σ R)
-  (hcoe : ∀ (m : σ →₀ ℕ), p.coeff m ∈ I.comap C) : p ∈ I :=
+  (hcoe : ∀ (m : σ →₀ ℕ), p.coeff m ∈ I.comap (C : R →+* mv_polynomial σ R)) : p ∈ I :=
 begin
   rw as_sum p,
   suffices : ∀ m ∈ p.support, monomial m (mv_polynomial.coeff m p) ∈ I,
@@ -1057,7 +1081,8 @@ end
 /-- The push-forward of an ideal `I` of `R` to `mv_polynomial σ R` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
 theorem mem_map_C_iff {I : ideal R} {f : mv_polynomial σ R} :
-  f ∈ (ideal.map C I : ideal (mv_polynomial σ R)) ↔ ∀ (m : σ →₀ ℕ), f.coeff m ∈ I :=
+  f ∈ (ideal.map (C : R →+* mv_polynomial σ R) I :
+  ideal (mv_polynomial σ R)) ↔ ∀ (m : σ →₀ ℕ), f.coeff m ∈ I :=
 begin
   split,
   { intros hf,
@@ -1086,7 +1111,8 @@ begin
     exact hf m }
 end
 
-lemma ker_map (f : R →+* S) : (map f : mv_polynomial σ R →+* mv_polynomial σ S).ker = f.ker.map C :=
+lemma ker_map (f : R →+* S) :
+  (map f : mv_polynomial σ R →+* mv_polynomial σ S).ker = f.ker.map (C : R →+* mv_polynomial σ R) :=
 begin
   ext,
   rw [mv_polynomial.mem_map_C_iff, ring_hom.mem_ker, mv_polynomial.ext_iff],
@@ -1094,7 +1120,7 @@ begin
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} {a : mv_polynomial σ R}
-  (ha : a ∈ (ideal.map C I : ideal (mv_polynomial σ R))) :
+  (ha : a ∈ (ideal.map (C : R →+* mv_polynomial σ R) I : ideal (mv_polynomial σ R))) :
   eval₂_hom (C.comp (ideal.quotient.mk I)) X a = 0 :=
 begin
   rw as_sum a,

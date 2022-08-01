@@ -38,7 +38,7 @@ Miller-Rabin primality test.
 
 -/
 
-open nat finset
+open nat finset zmod
 
 open_locale big_operators
 -- open_locale classical
@@ -516,6 +516,7 @@ begin
         apply @pow_ne_one_of_lt_order_of' _ (a^l) (2^(j-1)) _ _ _ hx,
         { apply pow_ne_zero (j-1) (show 2 ≠ 0, by linarith) },
         { rw hj, exact pow_lt_pow (show 1 < 2, by linarith) (pred_lt hj0) } },
+
       have hx2 : x^2 = 1, {
         rw hx,
         rw ←pow_mul,
@@ -526,19 +527,30 @@ begin
           simp [pow_add] },
         rw this },
 
-      have hx1' : ¬ (p : zmod (p^α))^l ∣ x - 1, { sorry },
-      have hx2' : (p : zmod (p^α))^l ∣ x^2 - 1, { sorry },
+      have hx1' : ¬ (p^l : zmod (p^α)) ∣ x - 1, { sorry },
+      have hx2' : (p^l : zmod (p^α)) ∣ x^2 - 1, { sorry },
 
-      have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1),
+      have h3 : (p^l : zmod (p^α)) ∣ (x+1) * (x-1),
       { simpa [←_root_.sq_sub_sq] using hx2' },
 
-      have h4 : (p : zmod (p^α))^l ∣ x + 1 ∨ (p : zmod (p^α))^l ∣ x - 1, { sorry },
-      have h4' : (p : zmod (p^α))^l ∣ x + 1 := (or_iff_left hx1').1 h4,
-      have h5 : (p : zmod (p^α))^α ∣ x + 1, { sorry },
+      have h4 : (p^l : zmod (p^α)) ∣ x + 1 ∨ (p : zmod (p^α))^l ∣ x - 1, { sorry },
+      have h4' : (p^l : zmod (p^α)) ∣ x + 1 := (or_iff_left hx1').1 h4,
+      have h5 : (p^α : zmod (p^α)) ∣ x + 1, { sorry },
       have h6 : x = -1, {
         suffices : x + 1 = 0, { rw [←add_sub_cancel x 1, this], simp },
+        cases h5 with i hi,
+        rw hi,
+        have : ((p^α) : zmod (p^α)) = 0, {
+          have := @zmod.nat_cast_self (p^α),
+          convert this,
+          rw eq_comm,
+          -- have := coe_pow
 
-        sorry },
+
+
+          sorry },
+        rw this,
+        simp, },
 
       rw [hx, ←pow_mul, mul_comm, pow_mul] at h6,
       rw pow_mul,
@@ -547,7 +559,8 @@ begin
       rw [hq, odd_mul] at hk_odd,
       exact odd.neg_one_pow hk_odd.2,
     },
-
+  },
+end
 
     -- by_cases j = 0,
     -- { rw strong_probable_prime,
@@ -563,8 +576,7 @@ begin
     --   rw dvd_iff_exists_eq_mul_left at thing,
     --   rcases thing with ⟨c, hc⟩,
     --   rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
-     },
-end
+
 
 
 

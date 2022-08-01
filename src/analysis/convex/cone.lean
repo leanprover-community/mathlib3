@@ -617,7 +617,7 @@ def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
   end }
 
 @[simp] lemma mem_inner_dual_cone (y : H) (s : set H) :
-  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := by refl
+  y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := iff.rfl
 
 @[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
 convex_cone.ext' (eq_univ_of_forall
@@ -635,9 +635,9 @@ lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 begin
   simp_rw [set.Inter_coe_set, subtype.coe_mk],
-  apply set.ext,
-  refine λ x, iff.intro (λ hx, (set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)))) (by simp),
-  rintro ⟨ ⟩,
+  ext,
+  refine ⟨λ hx, set.mem_Inter₂_of_mem _, by simp⟩,
+  rintros i hi _ ⟨ ⟩,
   exact hx i hi,
 end
 
@@ -650,8 +650,8 @@ begin
   intros x hx,
 
   -- the dual cone of a singleton set is the preimage of `[0, ∞)` under `inner x`
-  have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0),
-  { ext, simp },
+  have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0) :=
+  by { ext, simp },
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,

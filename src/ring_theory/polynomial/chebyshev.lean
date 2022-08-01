@@ -95,7 +95,7 @@ begin
   exact U_add_two R n
 end
 
-lemma U_eq_X_mul_U_add_T : ∀ (n : ℕ), U R (n + 1) = X * U R n + T R (n + 1)
+lemma U_eq_X_mul_U_add_T : ∀ n : ℕ, U R (n + 1) = X * U R n + T R (n + 1)
 | 0        := by { simp only [U_zero, U_one, T_one], ring }
 | 1        := by { simp only [U_one, T_two, U_two], ring }
 | (n + 2)  :=
@@ -107,7 +107,7 @@ lemma U_eq_X_mul_U_add_T : ∀ (n : ℕ), U R (n + 1) = X * U R n + T R (n + 1)
 lemma T_eq_U_sub_X_mul_U (n : ℕ) : T R (n + 1) = U R (n + 1) - X * U R n :=
 by rw [U_eq_X_mul_U_add_T, add_comm (X * U R n), add_sub_cancel]
 
-lemma T_eq_X_mul_T_sub_pol_U : ∀ (n : ℕ), T R (n + 2) = X * T R (n + 1) - (1 - X ^ 2) * U R n
+lemma T_eq_X_mul_T_sub_pol_U : ∀ n : ℕ, T R (n + 2) = X * T R (n + 1) - (1 - X ^ 2) * U R n
 | 0        := by { simp only [T_one, T_two, U_zero], ring }
 | 1        := by { simp only [T_add_two, T_zero, T_add_two,
                               U_one, T_one], ring }
@@ -126,7 +126,7 @@ by rw [T_eq_X_mul_T_sub_pol_U, ←sub_add, sub_self, zero_add]
 
 variables {R S}
 
-@[simp] lemma map_T (f : R →+* S) : ∀ (n : ℕ), map f (T R n) = T S n
+@[simp] lemma map_T (f : R →+* S) : ∀ n : ℕ, map f (T R n) = T S n
 | 0       := by simp only [T_zero, polynomial.map_one]
 | 1       := by simp only [T_one, map_X]
 | (n + 2) :=
@@ -136,7 +136,7 @@ begin
   rw [map_T (n + 1), map_T n],
 end
 
-@[simp] lemma map_U (f : R →+* S) : ∀ (n : ℕ), map f (U R n) = U S n
+@[simp] lemma map_U (f : R →+* S) : ∀ n : ℕ, map f (U R n) = U S n
 | 0       := by simp only [U_zero, polynomial.map_one]
 | 1       :=
 begin
@@ -151,7 +151,7 @@ begin
   rw [map_U (n + 1), map_U n],
 end
 
-lemma T_derivative_eq_U : ∀ (n : ℕ), derivative (T R (n + 1)) = (n + 1) * U R n
+lemma T_derivative_eq_U : ∀ n : ℕ, derivative (T R (n + 1)) = (n + 1) * U R n
 | 0        := by simp only [T_one, U_zero, derivative_X, nat.cast_zero, zero_add, mul_one]
 | 1        := by { simp only [T_two, U_one, derivative_sub, derivative_one, derivative_mul,
                               derivative_X_pow, nat.cast_one, nat.cast_two],

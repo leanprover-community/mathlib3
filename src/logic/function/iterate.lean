@@ -55,8 +55,8 @@ by rw iterate_add
 @[simp] theorem iterate_one : f^[1] = f := funext $ λ a, rfl
 
 lemma iterate_mul (m : ℕ) : ∀ n, f^[m * n] = (f^[m]^[n])
-| 0 := by simv only [nat.mul_zero, iterate_zero]
-| (n + 1) := by simv only [nat.mul_succ, nat.mul_one, iterate_one, iterate_add, iterate_mul n]
+| 0 := by simp only [nat.mul_zero, iterate_zero]
+| (n + 1) := by simp only [nat.mul_succ, nat.mul_one, iterate_one, iterate_add, iterate_mul n]
 
 variable {f}
 
@@ -102,13 +102,13 @@ lemma iterate_iterate (h : commute f g) (m n : ℕ) : commute (f^[m]) (g^[n]) :=
 
 lemma iterate_eq_of_map_eq (h : commute f g) (n : ℕ) {x} (hx : f x = g x) : f^[n] x = (g^[n]) x :=
 nat.rec_on n rfl $ λ n ihn,
-by simv only [iterate_succ_apply, hx, (h.iterate_left n).eq, ihn, ((refl g).iterate_right n).eq]
+by simp only [iterate_succ_apply, hx, (h.iterate_left n).eq, ihn, ((refl g).iterate_right n).eq]
 
 lemma comp_iterate (h : commute f g) (n : ℕ) : (f ∘ g)^[n] = (f^[n]) ∘ (g^[n]) :=
 begin
   induction n with n ihn, { refl },
   funext x,
-  simv only [ihn, (h.iterate_right n).eq, iterate_succ, comp_app]
+  simp only [ihn, (h.iterate_right n).eq, iterate_succ, comp_app]
 end
 
 variable (f)

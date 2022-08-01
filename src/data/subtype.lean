@@ -84,7 +84,7 @@ ext_iff
 
 @[simp] theorem coe_mk (a h) : (@mk α p a h : α) = a := rfl
 
-@[simv, nolint simp_nf] -- built-in reduction doesn't always work
+@[simp, nolint simp_nf] -- built-in reduction doesn't always work
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
 ext_iff
 
@@ -105,7 +105,7 @@ coe_eq_iff.symm
 
 @[simp] lemma _root_.exists_subtype_mk_eq_iff {a : subtype p} {b : α} :
   (∃ h : p b, subtype.mk b h = a) ↔ b = a :=
-by simv only [@eq_comm _ b, exists_eq_subtype_mk_iff, @eq_comm _ _ a]
+by simp only [@eq_comm _ b, exists_eq_subtype_mk_iff, @eq_comm _ _ a]
 
 /-- Restrict a (dependent) function to a subtype -/
 def restrict {α} {β : α → Type*} (p : α → Prop) (f : Π x, β x) (x : subtype p) : β x.1 :=

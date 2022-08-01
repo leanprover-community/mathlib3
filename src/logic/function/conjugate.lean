@@ -40,7 +40,7 @@ lemma comp_right (h : semiconj f ga gb) (h' : semiconj f ga' gb') :
 
 lemma comp_left (hab : semiconj fab ga gb) (hbc : semiconj fbc gb gc) :
   semiconj (fbc ∘ fab) ga gc :=
-λ x, by simv only [comp_app, hab.eq, hbc.eq]
+λ x, by simp only [comp_app, hab.eq, hbc.eq]
 
 lemma id_right : semiconj f id id := λ _, rfl
 
@@ -108,19 +108,19 @@ lemma id_left (op : α → α → α) : semiconj₂ id op op := λ _ _, rfl
 
 lemma comp {f' : β → γ} {gc : γ → γ → γ} (hf' : semiconj₂ f' gb gc) (hf : semiconj₂ f ga gb) :
   semiconj₂ (f' ∘ f) ga gc :=
-λ x y, by simv only [hf'.eq, hf.eq, comp_app]
+λ x y, by simp only [hf'.eq, hf.eq, comp_app]
 
 lemma is_associative_right [is_associative α ga] (h : semiconj₂ f ga gb) (h_surj : surjective f) :
   is_associative β gb :=
-⟨h_surj.forall₃.2 $ λ x₁ x₂ x₃, by simv only [← h.eq, @is_associative.assoc _ ga]⟩
+⟨h_surj.forall₃.2 $ λ x₁ x₂ x₃, by simp only [← h.eq, @is_associative.assoc _ ga]⟩
 
 lemma is_associative_left [is_associative β gb] (h : semiconj₂ f ga gb) (h_inj : injective f) :
   is_associative α ga :=
-⟨λ x₁ x₂ x₃, h_inj $ by simv only [h.eq, @is_associative.assoc _ gb]⟩
+⟨λ x₁ x₂ x₃, h_inj $ by simp only [h.eq, @is_associative.assoc _ gb]⟩
 
 lemma is_idempotent_right [is_idempotent α ga] (h : semiconj₂ f ga gb) (h_surj : surjective f) :
   is_idempotent β gb :=
-⟨h_surj.forall.2 $ λ x, by simv only [← h.eq, @is_idempotent.idempotent _ ga]⟩
+⟨h_surj.forall.2 $ λ x, by simp only [← h.eq, @is_idempotent.idempotent _ ga]⟩
 
 lemma is_idempotent_left [is_idempotent β gb] (h : semiconj₂ f ga gb) (h_inj : injective f) :
   is_idempotent α ga :=

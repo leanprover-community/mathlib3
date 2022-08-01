@@ -19,7 +19,7 @@ This file proves a few extra facts about `nonempty`, which is defined in core Le
 
 variables {α β : Type*} {γ : α → Type*}
 
-attribute [simv] nonempty_of_inhabited
+attribute [simp] nonempty_of_inhabited
 
 @[priority 20]
 instance has_zero.nonempty [has_zero α] : nonempty α := ⟨0⟩

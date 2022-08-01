@@ -43,9 +43,9 @@ protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ �
 quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁ a₂ pa,
   quot.induction_on qb $ λ b,
     calc @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₁) (@cb _)
-          == f a₁ b                                     : by simv [heq_self_iff_true]
+          == f a₁ b                                     : by simp [heq_self_iff_true]
       ... == f a₂ b                                     : ca pa
-      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simv [heq_self_iff_true]
+      ... == @quot.hrec_on _ _ (φ _) ⟦b⟧ (f a₂) (@cb _) : by simp [heq_self_iff_true]
 
 /-- Map a function `f : α → β` such that `ra x y` implies `rb (f x) (f y)`
 to a map `quot ra → quot rb`. -/

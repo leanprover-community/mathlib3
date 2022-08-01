@@ -420,9 +420,9 @@ add_tactic_doc
   tags := ["core"] }
 
 add_tactic_doc
-{ name := "simv",
+{ name := "simp",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.simv],
+  decl_names := [`tactic.interactive.simp],
   tags := ["core", "simplification"] }
 
 /--

@@ -149,12 +149,12 @@ meta def tactic.interactive.push_neg : parse location → tactic unit
                                  [simp_arg_type.expr ``(push_neg.not_eq)] []
                                  (interactive.loc.ns [some h])
           | none   := do push_neg_at_goal,
-                          try `[simv only [push_neg.not_eq] { eta := ff }]
+                          try `[simp only [push_neg.not_eq] { eta := ff }]
           end)
 | loc.wildcard := do
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
-    try `[simv only [push_neg.not_eq] at * { eta := ff }]
+    try `[simp only [push_neg.not_eq] at * { eta := ff }]
 
 add_tactic_doc
 { name       := "push_neg",

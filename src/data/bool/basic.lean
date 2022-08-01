@@ -51,29 +51,29 @@ eq_comm.trans of_to_bool_iff
 eq_comm.trans (to_bool_ff_iff _)
 
 @[simp] theorem to_bool_not (p : Prop) [decidable p] : to_bool (¬ p) = bnot (to_bool p) :=
-by by_cases p; simv *
+by by_cases p; simp *
 
 @[simp] theorem to_bool_and (p q : Prop) [decidable p] [decidable q] :
   to_bool (p ∧ q) = p && q :=
-by by_cases p; by_cases q; simv *
+by by_cases p; by_cases q; simp *
 
 @[simp] theorem to_bool_or (p q : Prop) [decidable p] [decidable q] :
   to_bool (p ∨ q) = p || q :=
-by by_cases p; by_cases q; simv *
+by by_cases p; by_cases q; simp *
 
 @[simp] theorem to_bool_eq {p q : Prop} [decidable p] [decidable q] :
   to_bool p = to_bool q ↔ (p ↔ q) :=
-⟨λ h, (coe_to_bool p).symm.trans $ by simv [h], to_bool_congr⟩
+⟨λ h, (coe_to_bool p).symm.trans $ by simp [h], to_bool_congr⟩
 
 lemma not_ff : ¬ ff := ff_ne_tt
 
 @[simp] theorem default_bool : default = ff := rfl
 
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
-by cases b; simv
+by cases b; simp
 
 @[simp] theorem forall_bool {p : bool → Prop} : (∀ b, p b) ↔ p ff ∧ p tt :=
-⟨λ h, by simv [h], λ ⟨h₁, h₂⟩ b, by cases b; assumption⟩
+⟨λ h, by simp [h], λ ⟨h₁, h₂⟩ b, by cases b; assumption⟩
 
 @[simp] theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
 ⟨λ ⟨b, h⟩, by cases b; [exact or.inl h, exact or.inr h],
@@ -93,7 +93,7 @@ decidable_of_decidable_of_iff or.decidable exists_bool.symm
 
 @[simp] theorem cond_to_bool {α} (p : Prop) [decidable p] (t e : α) :
   cond (to_bool p) t e = if p then t else e :=
-by by_cases p; simv *
+by by_cases p; simp *
 
 @[simp] theorem cond_bnot {α} (b : bool) (t e : α) : cond (!b) t e = cond b e t :=
 by cases b; refl
@@ -111,10 +111,10 @@ theorem bor_comm : ∀ a b, a || b = b || a := dec_trivial
 theorem bor_left_comm : ∀ a b c, a || (b || c) = b || (a || c) := dec_trivial
 
 theorem bor_inl {a b : bool} (H : a) : a || b :=
-by simv [H]
+by simp [H]
 
 theorem bor_inr {a b : bool} (H : b) : a || b :=
-by simv [H]
+by simp [H]
 
 theorem band_comm : ∀ a b, a && b = b && a := dec_trivial
 
@@ -128,10 +128,10 @@ theorem band_intro : ∀ {a b : bool}, a → b → a && b := dec_trivial
 
 theorem band_elim_right : ∀ {a b : bool}, a && b → b := dec_trivial
 
-lemma band_bor_distrib_left (a b c : bool) : a && (b || c) = a && b || a && c := by cases a; simv
-lemma band_bor_distrib_right (a b c : bool) : (a || b) && c = a && c || b && c := by cases c; simv
-lemma bor_band_distrib_left (a b c : bool) : a || b && c = (a || b) && (a || c) := by cases a; simv
-lemma bor_band_distrib_right (a b c : bool) : a && b || c = (a || c) && (b || c) := by cases c; simv
+lemma band_bor_distrib_left (a b c : bool) : a && (b || c) = a && b || a && c := by cases a; simp
+lemma band_bor_distrib_right (a b c : bool) : (a || b) && c = a && c || b && c := by cases c; simp
+lemma bor_band_distrib_left (a b c : bool) : a || b && c = (a || b) && (a || c) := by cases a; simp
+lemma bor_band_distrib_right (a b c : bool) : a && b || c = (a || c) && (b || c) := by cases c; simp
 
 @[simp] theorem bnot_false : bnot ff = tt := rfl
 
@@ -164,9 +164,9 @@ theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec
 @[simp] theorem bxor_ff_right : ∀ a, bxor a ff = a := dec_trivial
 
 lemma band_bxor_distrib_left (a b c : bool) : a && (bxor b c) = bxor (a && b) (a && c) :=
-by cases a; simv
+by cases a; simp
 lemma band_bxor_distrib_right (a b c : bool) : (bxor a b) && c = bxor (a && c) (b && c) :=
-by cases c; simv
+by cases c; simp
 
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
@@ -221,20 +221,20 @@ to_bool (n ≠ 0)
 
 lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
 begin
-  simv [of_nat];
+  simp [of_nat];
     cases nat.decidable_eq n 0;
     cases nat.decidable_eq m 0;
-    simv only [to_bool],
+    simp only [to_bool],
   { subst m, have h := le_antisymm h (nat.zero_le _),
     contradiction },
   { left, refl }
 end
 
 lemma to_nat_le_to_nat {b₀ b₁ : bool} (h : b₀ ≤ b₁) : to_nat b₀ ≤ to_nat b₁ :=
-by cases h; subst h; [cases b₁, cases b₀]; simv [to_nat,nat.zero_le]
+by cases h; subst h; [cases b₁, cases b₀]; simp [to_nat,nat.zero_le]
 
 lemma of_nat_to_nat (b : bool) : of_nat (to_nat b) = b :=
-by cases b; simv only [of_nat,to_nat]; exact dec_trivial
+by cases b; simp only [of_nat,to_nat]; exact dec_trivial
 
 @[simp] lemma injective_iff {α : Sort*} {f : bool → α} : function.injective f ↔ f ff ≠ f tt :=
 ⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
@@ -242,6 +242,6 @@ by cases b; simv only [of_nat,to_nat]; exact dec_trivial
 
 /-- **Kaminski's Equation** -/
 theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
-by cases x; cases h₁ : f tt; cases h₂ : f ff; simv only [h₁, h₂]
+by cases x; cases h₁ : f tt; cases h₂ : f ff; simp only [h₁, h₂]
 
 end bool

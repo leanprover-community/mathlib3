@@ -41,7 +41,7 @@ namespace algebraic_geometry
 open Spec (structure_sheaf)
 
 /-- The category of affine schemes -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def AffineScheme := Scheme.Spec.ess_image_subcategory
 
 /-- A Scheme is affine if the canonical map `X ⟶ Spec Γ(X)` is an isomorphism. -/

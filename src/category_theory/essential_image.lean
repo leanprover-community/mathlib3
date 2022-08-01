@@ -67,7 +67,7 @@ set.ext $ λ A, ⟨ess_image.of_nat_iso h, ess_image.of_nat_iso h.symm⟩
 lemma obj_mem_ess_image (F : D ⥤ C) (Y : D) : F.obj Y ∈ ess_image F := ⟨Y, ⟨iso.refl _⟩⟩
 
 /-- The essential image of a functor, interpreted of a full subcategory of the target category. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def ess_image_subcategory (F : C ⥤ D) := full_subcategory F.ess_image
 
 /-- The essential image as a subcategory has a fully faithful inclusion into the target category. -/

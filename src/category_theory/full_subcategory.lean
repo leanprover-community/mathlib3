@@ -87,7 +87,7 @@ subcategories.
 
 See <https://stacks.math.columbia.edu/tag/001D>. We do not define 'strictly full' subcategories.
 -/
-@[ext, nolint has_inhabited_instance] structure full_subcategory :=
+@[ext, nolint has_nonempty_instance] structure full_subcategory :=
 (obj : C)
 (property : Z obj)
 

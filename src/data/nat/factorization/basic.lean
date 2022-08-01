@@ -471,7 +471,8 @@ lemma ord_proj_dvd_ord_proj_of_dvd {a b p : ℕ} (hab : a ∣ b) (hb0 : b ≠ 0)
 begin
   rcases em' p.prime with pp | pp, { simp [pp] },
   rcases eq_or_ne a 0 with rfl | ha0, { simp },
-  sorry,
+  rw pow_dvd_pow_iff_le_right pp.one_lt,
+  exact (factorization_le_iff_dvd ha0 hb0).2 hab p,
 end
 
 lemma ord_compl_dvd_ord_compl_of_dvd {a b p : ℕ} (hab : a ∣ b) :

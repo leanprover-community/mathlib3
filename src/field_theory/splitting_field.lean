@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import field_theory.adjoin
+import ring_theory.adjoin_root
 
 /-!
 # Splitting fields
@@ -815,23 +815,5 @@ begin
     multiset.map_pmap, polynomial.map_sub, map_C, map_X],
   refl,
 end
-
-
-lemma is_splitting_field_iff {p : polynomial K} {F : intermediate_field K L} :
-  p.is_splitting_field K F ↔ p.splits (algebra_map K F) ∧ F = adjoin K (p.root_set L) :=
-begin
-  suffices : p.splits (algebra_map K F) →
-    ((algebra.adjoin K (p.root_set F) = ⊤ ↔ F = adjoin K (p.root_set L))),
-  { exact ⟨λ h, ⟨h.1, (this h.1).mp h.2⟩, λ h, ⟨h.1, (this h.1).mpr h.2⟩⟩ },
-  simp_rw [set_like.ext_iff, ←mem_to_subalgebra, ←set_like.ext_iff, ←F.range_val],
-  intro hp,
-  rw [adjoin_algebraic_to_subalgebra (λ x, is_algebraic_of_mem_root_set), ←map_root_set hp F.val,
-      algebra.adjoin_image, ←algebra.map_top, (subalgebra.map_injective _).eq_iff, eq_comm],
-  exact (algebra_map F L).injective,
-end
-
-lemma adjoin_root_set_is_splitting_field {p : polynomial K} (hp : p.splits (algebra_map K L)) :
-  p.is_splitting_field K (adjoin K (p.root_set L)) :=
-is_splitting_field_iff.mpr splits_of_splits hp (λ x hx, subset_adjoin K (p.root_set L) hx), rfl⟩
 
 end intermediate_field

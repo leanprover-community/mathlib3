@@ -834,15 +834,15 @@ begin
 end
 
 instance open_algebra (U : (opens (prime_spectrum R))ᵒᵖ) :
-  algebra R ((structure_sheaf R).obj.obj U) :=
+  algebra R ((structure_sheaf R).val.obj U) :=
 (to_open R (unop U)).to_algebra
 
 @[simp] lemma open_algebra_map (U : (opens (prime_spectrum R))ᵒᵖ) (r : R) :
-  algebra_map R ((structure_sheaf R).obj.obj U) r = to_open R (unop U) r := rfl
+  algebra_map R ((structure_sheaf R).val.obj U) r = to_open R (unop U) r := rfl
 
 /-- Sections of the structure sheaf of Spec R on a basic open as localization of R -/
 instance is_localization.to_basic_open (r : R) :
-  is_localization.away r ((structure_sheaf R).obj.obj (op $ basic_open r)) :=
+  is_localization.away r ((structure_sheaf R).val.obj (op $ basic_open r)) :=
 begin
   convert (is_localization.is_localization_iff_of_ring_equiv _ (basic_open_iso R r).symm
     .CommRing_iso_to_ring_equiv).mp localization.is_localization,

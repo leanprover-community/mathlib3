@@ -239,7 +239,7 @@ begin
   cases U.1.eq_empty_or_nonempty,
   { have : U = ∅ := subtype.eq h,
     haveI := CommRing.subsingleton_of_is_terminal (X.sheaf.is_terminal_of_eq_empty this),
-    change _root_.is_reduced (X.sheaf.obj.obj (op U)),
+    change _root_.is_reduced (X.sheaf.val.obj (op U)),
     apply_instance },
   { haveI : nonempty U := by simpa, apply_instance }
 end

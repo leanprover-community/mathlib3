@@ -608,9 +608,9 @@ begin
   },
   { rintro C_K,
     /-
-    C_K : C ∈ ro_
-   K.
-    Thus, C is connected, and disjoint from K and from any other C' ∈ ro_components K.
+    Assumption C_K : C ∈ inf_ro_components K.
+    Goal: show C ∈ ro_components L.
+    By assumption, C is connected, and disjoint from K and from any other C' ∈ ro_components K.
     In particular, C is disjoint from L, and, being connected, it is contained in a unique D ∈ ro_components L.
     Again, to show C = D, it suffices to choose some c ∈ C and show that any d ∈ D lies in C.
     Take a path w from c to d, entirely contained in D. By hypothesis, w does not intersect K, which implies that `co_o c d` and d lies in C.

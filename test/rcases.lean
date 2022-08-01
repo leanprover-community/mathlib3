@@ -241,26 +241,6 @@ example {α n} (h : foo α n) : true := by test_rcases_hint "_ | ⟨n, h_ᾰ⟩"
 example {α} (V : set α) (h : ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) :=
 by test_rcases_hint "⟨⟨h_w_fst, h_w_snd⟩, ⟨⟩⟩" 0
 
-section obtain_bug
-
--- BUG in `obtain`: you can't name hypotheses if you're not destructing/casing at all and
--- the term is constructed by a tactic block and not a `:=`:
-example : true :=
-begin
-  obtain h : true,
-  { trivial },
-  success_if_fail { exact h },
-  assumption,
-end
-
-example : true :=
-begin
-  obtain h : true := trivial,
-  exact h
-end
-
-end obtain_bug
-
 section rsuffices
 
 /-- These next few are duplicated from `rcases/obtain` tests, with the goal order swapped. -/
@@ -356,9 +336,17 @@ include β
 example (h : Π {α}, inhabited α) : inhabited α :=
 begin
   have : inhabited β := h,
-  rsufficesI h : β,
+  rsufficesI t : β,
   { exact h },
   { exact default }
+end
+
+example (h : Π {α}, inhabited α) : β :=
+begin
+  rsufficesI ht : inhabited β,
+  { guard_hyp ht : inhabited β,
+    exact default },
+  { exact h }
 end
 
 end instances

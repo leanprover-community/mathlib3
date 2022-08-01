@@ -634,11 +634,10 @@ lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 begin
-  simp_rw [set.Inter_coe_set, subtype.coe_mk],
   ext,
-  refine ⟨λ hx, set.mem_Inter₂_of_mem _, by simp⟩,
-  rintros i hi _ ⟨ ⟩,
-  exact hx i hi,
+  refine ⟨λ hx, set.mem_Inter_of_mem _, by simp⟩,
+  rintros i _ ⟨ ⟩,
+  exact hx i i.prop,
 end
 
 lemma closed_inner_dual_cone : is_closed (s.inner_dual_cone : set H) :=
@@ -646,8 +645,7 @@ begin
   -- reduce the problem to showing that dual cone of a singleton `{x}` is closed
   rw inner_dual_cone_eq_Inter_inner_dual_cone_singleton,
   apply is_closed_Inter,
-  simp_rw [set_coe.forall, subtype.coe_mk],
-  intros x hx,
+  intros x,
 
   -- the dual cone of a singleton set is the preimage of `[0, ∞)` under `inner x`
   have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0) :=

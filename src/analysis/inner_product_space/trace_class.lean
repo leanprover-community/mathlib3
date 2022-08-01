@@ -169,6 +169,38 @@ lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] 
     re (trace_along U (conj_proj T V)) ≤
     re (trace_along V T) :=
 begin
+  haveI : Π b, complete_space ((cond b U Uᗮ : submodule 𝕜 E) : Type*),
+  { intro b,
+    cases b;
+    exact orthogonal.complete_space U <|>
+    { change complete_space U, apply_instance } },
+  have := U.is_hilbert_sum_orthogonal,
+  let e := is_hilbert_sum.collected_hilbert_basis this
+    (λ b, std_hilbert_basis 𝕜 ((cond b U Uᗮ : submodule 𝕜 E) : Type*)),
+  have key₁ := re_clm.has_sum ((conj_proj T V).has_sum_trace_along_of_hilbert_basis U e),
+  have key₂ := re_clm.has_sum (T.has_sum_trace_along_of_hilbert_basis V e),
+  refine has_sum_le (λ i, _) key₁ key₂,
+  simp only [conj_proj, comp_apply, coe_subtypeL', subtype_apply, subtype.coe_mk],
+  rcases i with ⟨b, i⟩,
+  cases b,
+  { rw [← inner_orthogonal_projection_left_eq_right,
+        is_hilbert_sum.coe_collected_hilbert_basis_mk,
+        orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero,
+        submodule.coe_zero, inner_zero_left, _root_.map_zero],
+    { exact (hT.conj_orthogonal_projection V).inner_nonneg_right _ },
+    { exact submodule.coe_mem _ } },
+  { rw [← inner_orthogonal_projection_left_eq_right,
+        is_hilbert_sum.coe_collected_hilbert_basis_mk,
+        orthogonal_projection_eq_self_iff.mpr],
+    exact submodule.coe_mem _ }
+end
+
+-- This is annoying, can we make it easier ?
+lemma is_positive.trace_along_conj_proj_le' [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+  (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
+    re (trace_along U (conj_proj T V)) ≤
+    re (trace_along V T) :=
+begin
   rcases orthonormal.exists_hilbert_basis_extension
     ((std_orthonormal_basis 𝕜 U).orthonormal.comp_linear_isometry U.subtypeₗᵢ).coe_range
     with ⟨s, e, hs, he⟩,

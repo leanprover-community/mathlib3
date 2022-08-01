@@ -1018,13 +1018,13 @@ mem_closure_iff_cluster_pt.trans cluster_pt_principal_iff
 
 theorem mem_closure_iff_nhds' {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, ∃ y : s, ↑y ∈ t :=
-by simp only [  mem_closure_iff_nhds, set.inter_nonempty_iff_exists_right,
-                set_coe.exists, subtype.coe_mk]
+by simp only [mem_closure_iff_nhds, set.inter_nonempty_iff_exists_right,
+              set_coe.exists, subtype.coe_mk]
 
 theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
   x ∈ closure A ↔ ne_bot (comap (coe : A → α) (𝓝 x)) :=
-by simp_rw [  mem_closure_iff_nhds, comap_ne_bot_iff, set.inter_nonempty_iff_exists_right,
-              set_coe.exists, subtype.coe_mk]
+by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.inter_nonempty_iff_exists_right,
+            set_coe.exists, subtype.coe_mk]
 
 theorem mem_closure_iff_nhds_basis' {a : α} {p : ι → Prop} {s : ι → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :

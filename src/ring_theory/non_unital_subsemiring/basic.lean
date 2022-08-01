@@ -54,9 +54,7 @@ instance to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring s :=
 subtype.coe_injective.non_unital_non_assoc_semiring coe rfl (by simp) (λ _ _, rfl) (λ _ _, rfl)
 
 instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
-  or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
-    (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
+subtype.coe_injective.no_zero_divisors coe rfl (λ x y, rfl)
 
 /-- The natural non-unital ring hom from a non-unital subsemiring of a non-unital semiring `R` to
 `R`. -/

@@ -65,9 +65,9 @@ noncomputable def T : ℕ → R[X]
 
 @[simp] lemma T_zero : T R 0 = 1 := rfl
 @[simp] lemma T_one : T R 1 = X := rfl
-lemma T_two : T R 2 = 2 * X ^ 2 - 1 := by simp only [T, sub_left_inj, sq, mul_assoc]
-
 @[simp] lemma T_add_two (n : ℕ) : T R (n + 2) = 2 * X * T R (n + 1) - T R n := by rw T
+
+lemma T_two : T R 2 = 2 * X ^ 2 - 1 := by simp only [T, sub_left_inj, sq, mul_assoc]
 
 lemma T_of_two_le (n : ℕ) (h : 2 ≤ n) : T R n = 2 * X * T R (n - 1) - T R (n - 2) :=
 begin
@@ -84,9 +84,9 @@ noncomputable def U : ℕ → R[X]
 
 @[simp] lemma U_zero : U R 0 = 1 := rfl
 @[simp] lemma U_one : U R 1 = 2 * X := rfl
-lemma U_two : U R 2 = 4 * X ^ 2 - 1 := by { simp only [U], ring, }
-
 @[simp] lemma U_add_two (n : ℕ) : U R (n + 2) = 2 * X * U R (n + 1) - U R n := by rw U
+
+lemma U_two : U R 2 = 4 * X ^ 2 - 1 := by { simp only [U], ring, }
 
 lemma U_of_two_le (n : ℕ) (h : 2 ≤ n) : U R n = 2 * X * U R (n - 1) - U R (n - 2) :=
 begin

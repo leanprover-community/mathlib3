@@ -34,10 +34,10 @@ by rw [←aeval_algebra_map_apply, T_aeval]
   algebra_map R A ((U R n).eval x) = (U A n).eval (algebra_map R A x) :=
 by rw [←aeval_algebra_map_apply, U_aeval]
 
-@[simp, norm_cast] lemma of_real_T_eval : ∀ x, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
+@[simp, norm_cast] lemma of_real_T_eval : ∀ x : ℝ, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
 @algebra_map_T_eval ℝ ℂ _ _ _ n
 
-@[simp, norm_cast] lemma of_real_U_eval : ∀ x, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
+@[simp, norm_cast] lemma of_real_U_eval : ∀ x : ℝ, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
 @algebra_map_U_eval ℝ ℂ _ _ _ n
 
 /-! ### Complex versions -/

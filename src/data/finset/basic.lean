@@ -795,9 +795,6 @@ by simp only [insert_eq, union_left_comm]
 lemma insert_union_distrib (a : α) (s t : finset α) : insert a (s ∪ t) = insert a s ∪ insert a t :=
 by simp only [insert_union, union_insert, insert_idem]
 
-lemma doubleton_comm (x y : α) : ({x, y} : finset α) = {y, x} :=
-by ext; finish
-
 @[simp] lemma union_eq_left_iff_subset {s t : finset α} : s ∪ t = s ↔ t ⊆ s := sup_eq_left
 @[simp] lemma left_eq_union_iff_subset {s t : finset α} : s = s ∪ t ↔ t ⊆ s :=
 by rw [← union_eq_left_iff_subset, eq_comm]
@@ -1240,8 +1237,8 @@ lemma sdiff_sdiff_left' (s t u : finset α) :
 
 lemma sdiff_insert (s t : finset α) (x : α) :
   s \ insert x t = (s \ t).erase x :=
-by simp_rw [  ← sdiff_singleton_eq_erase, insert_eq,
-              sdiff_sdiff_left', sdiff_union_distrib, inter_comm]
+by simp_rw [← sdiff_singleton_eq_erase, insert_eq,
+            sdiff_sdiff_left', sdiff_union_distrib, inter_comm]
 
 lemma sdiff_insert_insert_of_mem_of_not_mem {s t : finset α} {x : α} (hxs : x ∈ s) (hxt : x ∉ t) :
   insert x (s \ insert x t) = s \ t :=

@@ -141,7 +141,7 @@ eq_zero_of_mul_vec_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
 theorem eq_zero_of_forall_index_sum_mul_pow_eq_zero {R : Type*} [comm_ring R]
   [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
   (hfv : ∀ j, ∑ i, v i * (f j ^ (i : ℕ)) = 0) : v = 0 :=
-by { refine eq_zero_of_forall_index_sum_pow_mul_eq_zero hf _, simp_rw mul_comm, exact hfv }
+by { apply eq_zero_of_forall_index_sum_pow_mul_eq_zero hf, simp_rw mul_comm, exact hfv }
 
 theorem eq_zero_of_forall_pow_sum_mul_pow_eq_zero {R : Type*} [comm_ring R]
   [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)

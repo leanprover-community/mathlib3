@@ -133,7 +133,7 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
 
 @[simp] theorem degree_lt_equiv_eq_zero_iff_eq_zero {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) :
   degree_lt_equiv _ _ ⟨p, hp⟩ = 0 ↔ p = 0 :=
-by {rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]}
+by rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]
 
 theorem eval_eq_sum_degree_lt_equiv {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) (x : R) :
   p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=

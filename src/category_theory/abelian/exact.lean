@@ -330,7 +330,7 @@ namespace functor
 open limits abelian
 
 variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
-variables [has_zero_object A] [has_zero_morphisms A] [has_images A] [has_equalizers A]
+variables [abelian A]
 variables [has_cokernels A] [abelian B]
 variables (L : A ⥤ B)
 
@@ -356,12 +356,21 @@ include h
 
 open_locale zero_object
 
-example : L.preserves_zero_morphisms :=
+lemma preserves_zero_morphisms_of_map_exact : L.preserves_zero_morphisms :=
 begin
   replace h := (h (exact_of_zero (𝟙 0) (𝟙 0))).w,
   rw [L.map_id, category.comp_id] at h,
   exact preserves_zero_morphisms_of_map_zero_object (id_zero_equiv_iso_zero _ h),
 end
+
+lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
+{ preserves := λ X Y f hf,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L @h,
+    apply ((tfae_mono (L.obj 0) (L.map f)).out 2 0).mp,
+    rw ←L.map_zero,
+    exact h (((tfae_mono 0 f).out 2 0).mpr hf)
+  end }
 
 end
 

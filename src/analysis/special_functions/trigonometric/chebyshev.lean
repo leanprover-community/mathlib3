@@ -33,8 +33,7 @@ open complex
 
 /-- The `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
 value `cos (n * θ)`. -/
-@[simp] lemma T_complex_cos (θ : ℂ) :
-  ∀ n, (T ℂ n).eval (cos θ) = cos (n * θ)
+@[simp] lemma T_complex_cos (θ : ℂ) : ∀ n, (T ℂ n).eval (cos θ) = cos (n * θ)
 | 0       := by simp only [T_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
 | 1       := by simp only [eval_X, one_mul, T_one, nat.cast_one]
 | (n + 2) :=
@@ -49,8 +48,7 @@ end
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
 value `sin ((n+1) * θ) / sin θ`. -/
-@[simp] lemma U_complex_cos (θ : ℂ) (n : ℕ) :
-  (U ℂ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
+@[simp] lemma U_complex_cos (θ : ℂ) (n : ℕ) : (U ℂ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
 begin
   induction n with d hd,
   { simp only [U_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },

@@ -583,7 +583,7 @@ variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
 
 /-- Given a Hilbert sum decomposition of `E` and a Hilbert basis of the summand, we obtain a
 Hilbert basis of `E` by concatenating all of these bases. -/
-def collected_hilbert_basis [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
+def collected_hilbert_basis {α : ι → Type*}
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
   hilbert_basis (Σ i, α i) 𝕜 E :=
 { repr :=
@@ -593,7 +593,7 @@ def collected_hilbert_basis [complete_space E] {α : ι → Type*} [∀ i, compl
     (lp.congr_right _ (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 (λ i, (v i).repr) : _ ≃ₗᵢ[𝕜] _)
     (lp.curry_equiv _ _ 𝕜).symm }
 
-lemma collected_hilbert_basis_repr [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
+lemma collected_hilbert_basis_repr {α : ι → Type*}
   (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
   (hV.collected_hilbert_basis v).repr =
   linear_isometry_equiv.trans
@@ -605,8 +605,8 @@ rfl
 
 attribute [irreducible] collected_hilbert_basis
 
-lemma collected_hilbert_basis_repr_symm_apply [complete_space E] {α : ι → Type*}
-  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i))
+lemma collected_hilbert_basis_repr_symm_apply {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i))
   (f : lp (λ ia : Σ i, α i, 𝕜) 2) :
   (hV.collected_hilbert_basis v).repr.symm f =
   hV.linear_isometry_equiv.symm
@@ -617,16 +617,18 @@ begin
   refl
 end
 
-lemma coe_collected_hilbert_basis_mk [complete_space E] {α : ι → Type*}
-  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
+lemma coe_collected_hilbert_basis_mk {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
   hV.collected_hilbert_basis v ⟨i, a⟩ = V i (v i a) :=
 by rw [← hilbert_basis.repr_symm_single, collected_hilbert_basis_repr_symm_apply,
   lp.curry_single, lp.congr_right_single, (v i).repr_symm_single,
   hV.linear_isometry_equiv_symm_apply_single]
 
-lemma coe_scollected_hilbert_basis [complete_space E] {α : ι → Type*}
-  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
+lemma coe_collected_hilbert_basis {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
   hV.collected_hilbert_basis v ia = V ia.1 (v ia.1 ia.2) :=
 let ⟨i, a⟩ := ia in coe_collected_hilbert_basis_mk _ _ i a
 
 end is_hilbert_sum
+
+#lint

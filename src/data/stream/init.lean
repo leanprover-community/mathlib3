@@ -125,6 +125,10 @@ theorem zip_eq (s₁ : stream α) (s₂ : stream β) :
   zip f s₁ s₂ = f (head s₁) (head s₂) :: zip f (tail s₁) (tail s₂) :=
 begin rw [← stream.eta (zip f s₁ s₂)], refl end
 
+@[simp] lemma nth_enum (s : stream α) (n : ℕ) : nth (enum s) n = (n, s.nth n) := rfl
+
+lemma enum_eq_zip (s : stream α) : enum s = zip prod.mk nats s := rfl
+
 end zip
 
 theorem mem_const (a : α) : a ∈ const a :=

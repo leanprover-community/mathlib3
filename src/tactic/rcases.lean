@@ -385,7 +385,14 @@ meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit 
     | none := i_to_expr p
     end,
   if e.is_local_constant then
-    focus1 (rcases_core pat e >>= clear_goals)
+    match pat.name with
+    | some x := do
+      n ← revert e,
+      e ← intro x,
+      intron (n - 1),
+      focus1 (rcases_core pat e >>= clear_goals)
+    | none := focus1 (rcases_core pat e >>= clear_goals)
+    end
   else do
     x ← pat.name.elim mk_fresh_name pure,
     n ← revert_kdependencies e semireducible,
@@ -409,7 +416,14 @@ meta def rcases_many (ps : listΠ pexpr) (pat : rcases_patt) : tactic unit := do
     end,
     e ← i_to_expr p,
     if e.is_local_constant then
-      pure (pat, e)
+      match pat.name with
+      | some x := do
+        n ← revert e,
+        e ← intro x,
+        intron (n - 1),
+        pure (pat, e)
+      | none := pure (pat, e)
+      end
     else do
       x ← pat.name.elim mk_fresh_name pure,
       n ← revert_kdependencies e semireducible,

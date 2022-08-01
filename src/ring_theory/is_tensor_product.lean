@@ -248,7 +248,10 @@ begin
       apply (ulift.module_equiv : ulift.{v₂} (S ⊗ M) ≃ₗ[S] S ⊗ M)
         .to_equiv.apply_eq_iff_eq_symm_apply.mpr,
       any_goals { apply_instance },
-      simpa [algebra.of_id_apply, smul_tmul'] using this },
+      simpa only [algebra.of_id_apply, smul_tmul', algebra.id.smul_eq_mul, lift.tmul',
+        linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply, alg_hom.to_linear_map_apply,
+        module.algebra_map_End_apply, linear_map.smul_apply, linear_map.coe_mk,
+        linear_map.map_smulₛₗ, mk_apply, mul_one] using this },
     { intros x y hx hy, simp only [map_add, hx, hy] } },
   { apply function.has_right_inverse.surjective,
     refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
@@ -263,7 +266,8 @@ begin
     have := linear_map.congr_fun hg y,
     dsimp [ulift.module_equiv] at this ⊢,
     rw this,
-    simp [f'] }
+    simp only [lift.tmul, linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply,
+      alg_hom.to_linear_map_apply, _root_.map_one, linear_map.one_apply] }
 end
 
 variable {f}

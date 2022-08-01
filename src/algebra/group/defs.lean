@@ -246,11 +246,11 @@ end
 section mul_one_class
 variables {M : Type u} [mul_one_class M]
 
-@[ematch, simv, to_additive]
+@[ematch, simp, to_additive]
 lemma one_mul : ∀ a : M, 1 * a = a :=
 mul_one_class.one_mul
 
-@[ematch, simv, to_additive]
+@[ematch, simp, to_additive]
 lemma mul_one : ∀ a : M, a * 1 = a :=
 mul_one_class.mul_one
 
@@ -405,7 +405,7 @@ variables {M : Type*} [monoid M]
 lemma npow_eq_pow (n : ℕ) (x : M) : monoid.npow n x = x^n := rfl
 
 -- the attributes are intentionally out of order. `zero_smul` proves `zero_nsmul`.
-@[to_additive zero_nsmul, simv]
+@[to_additive zero_nsmul, simp]
 theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
 
 @[to_additive succ_nsmul]

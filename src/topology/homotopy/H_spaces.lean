@@ -23,28 +23,29 @@ lemma continuous_map.continuous_prod (α β γ : Type*) [topological_space α] [
   [locally_compact_space β] [topological_space γ] :
   continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
 begin
-  apply continuous_generated_from,
-  rintros M ⟨K, hK, U, hU, hM⟩,
-  apply is_open_iff_forall_mem_open.mpr,
-  rintros ⟨φ₀, ψ₀⟩ H,
-  simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
-    set.mem_set_of_eq, @set.preimage_comp _ _ _ φ₀ ψ₀ _, to_fun_eq_coe] at H,
-  obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_superset' (hK.image φ₀.2)
-    (hU.preimage ψ₀.2) (set.image_subset_iff.mpr H),
-  set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
-  have hV := continuous_map.is_open_gen hK is_open_interior,
-  set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
-  have hW := continuous_map.is_open_gen hL hU,
-  use V ×ˢ W,
-  split,
-  { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
-    simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
-    set.mem_set_of_eq],
-    rw [← set.image_subset_iff, set.image_comp],
-    exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ },
-  exact ⟨is_open.prod hV hW, set.mem_prod.mpr
-    ⟨by {simp only [set.mem_set_of_eq], exact hL_left},
-    by {simp only [set.mem_set_of_eq, set.image_subset_iff], exact hL_right}⟩⟩,
+sorry,
+  -- apply continuous_generated_from,
+  -- rintros M ⟨K, hK, U, hU, hM⟩,
+  -- apply is_open_iff_forall_mem_open.mpr,
+  -- rintros ⟨φ₀, ψ₀⟩ H,
+  -- simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+  --   set.mem_set_of_eq, @set.preimage_comp _ _ _ φ₀ ψ₀ _, to_fun_eq_coe] at H,
+  -- obtain ⟨L, ⟨hL, hL_left, hL_right⟩⟩ := exists_compact_between (hK.image φ₀.2)
+  --   (hU.preimage ψ₀.2) (set.image_subset_iff.mpr H),
+  -- set V : (set C(α, β)) := { φ | φ '' K ⊆ interior L } with def_V,
+  -- have hV := continuous_map.is_open_gen hK is_open_interior,
+  -- set W : (set C(β, γ)) := {ψ | ψ '' L ⊆ U } with def_W,
+  -- have hW := continuous_map.is_open_gen hL hU,
+  -- use V ×ˢ W,
+  -- split,
+  -- { rintros ⟨φ, ψ⟩ ⟨hφ, hψ⟩,
+  --   simp only [set.mem_preimage, hM, compact_open.gen, set.image_subset_iff, coe_comp,
+  --   set.mem_set_of_eq],
+  --   rw [← set.image_subset_iff, set.image_comp],
+  --   exact (set.image_subset ψ $ set.subset.trans hφ interior_subset).trans hψ },
+  -- exact ⟨is_open.prod hV hW, set.mem_prod.mpr
+  --   ⟨by {simp only [set.mem_set_of_eq], exact hL_left},
+  --   by {simp only [set.mem_set_of_eq, set.image_subset_iff], exact hL_right}⟩⟩,
 end
 
 end continuous_map
@@ -114,12 +115,12 @@ variable {x : X}
 
 @[simp, continuity]
 lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)} :
-  continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng h
+  continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng.mpr h
 
 @[simp, continuity]
 lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
   {g : Y → Ω(x)} : continuous (λ p : Y × I, g p.1 p.2) → continuous g :=
-  λ h, continuous_induced_rng $ continuous_of_continuous_uncurry ↑g h
+  λ h, continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
 
 -- lemma continuous_uncurry_Ω_if_continuous {Y : Type u} [topological_space Y]
 --   {g : Y → Ω(x)} : continuous g → continuous (λ p : Y × I, g p.1 p.2) :=
@@ -237,9 +238,14 @@ begin
     intros p hp,
     -- have h_eq : (λ (i : I × I), (i.snd : ℝ) ≤ (1 / 2)) =
     --   (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
-    replace hp := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
+    have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _
       (continuous_induced_dom.comp continuous_fst)
-        (continuous_induced_dom.comp continuous_snd).div_const hp,
+        (continuous_induced_dom.comp continuous_snd).div_const,
+    replace hp := this hp,
+    --   (continuous_induced_dom.comp continuous_fst)
+    --     (continuous_induced_dom.comp continuous_snd).div_const hp,
+
+
     -- have := @frontier_le_subset_eq ℝ (I × I) _ _ _ (λ x, x.1) (λ x, x.2 / 2) _ _ _,
     -- replace hp := this hp,
     simp only [set.mem_set_of_eq] at hp,

@@ -180,14 +180,14 @@ protected def basis (s : finset ι) (v : ι → F) (i : ι) : F[X] :=
 @[simp] theorem basis_singleton (i : ι) : lagrange.basis {i} v i = 1 :=
 by rw [lagrange.basis, erase_singleton, prod_empty]
 
-@[simp] theorem basis_doubleton_left (hij : i ≠ j) :
+@[simp] theorem basis_pair_left (hij : i ≠ j) :
   lagrange.basis {i, j} v i = basis_divisor (v i) (v j) :=
 by { simp only [lagrange.basis, hij, erase_insert_eq_erase, erase_eq_of_not_mem,
                 mem_singleton, not_false_iff, prod_singleton] }
 
-@[simp] theorem basis_doubleton_right (hij : i ≠ j) :
+@[simp] theorem basis_pair_right (hij : i ≠ j) :
   lagrange.basis {i, j} v j = basis_divisor (v j) (v i) :=
-by { rw pair_comm, exact basis_doubleton_left hij.symm }
+by { rw pair_comm, exact basis_pair_left hij.symm }
 
 lemma basis_ne_zero (hvs : set.inj_on v s) (hi : i ∈ s) : lagrange.basis s v i ≠ 0 :=
 begin
@@ -252,8 +252,8 @@ lemma basis_divisor_add_symm {x y : F} (hxy : x ≠ y) : basis_divisor x y + bas
 begin
   classical,
   rw [←sum_basis (set.inj_on_of_injective function.injective_id _) ⟨x, mem_insert_self _ {y}⟩,
-      sum_insert (not_mem_singleton.mpr hxy), sum_singleton, basis_doubleton_left hxy,
-      basis_doubleton_right hxy, id, id]
+      sum_insert (not_mem_singleton.mpr hxy), sum_singleton, basis_pair_left hxy,
+      basis_pair_right hxy, id, id]
 end
 
 end basis
@@ -279,10 +279,10 @@ by rw [interpolate_apply, sum_empty]
 @[simp] theorem interpolate_singleton : interpolate {i} v r = C (r i) :=
 by rw [interpolate_apply, sum_singleton, basis_singleton, mul_one]
 
-@[simp] theorem interpolate_one (hvs : set.inj_on v s) (hs : s.nonempty) : interpolate s v 1 = 1 :=
+theorem interpolate_one (hvs : set.inj_on v s) (hs : s.nonempty) : interpolate s v 1 = 1 :=
 by { simp_rw [interpolate_apply, pi.one_apply, map_one, one_mul], exact sum_basis hvs hs }
 
-@[simp] theorem eval_interpolate_at_node (hvs : set.inj_on v s) (hi : i ∈ s) :
+theorem eval_interpolate_at_node (hvs : set.inj_on v s) (hi : i ∈ s) :
   eval (v i) (interpolate s v r) = r i :=
 begin
   rw [interpolate_apply, eval_finset_sum, ← add_sum_erase _ _ hi],
@@ -327,7 +327,7 @@ theorem interpolate_eq_of_values_eq_on (hrr' : ∀ i ∈ s, r i = r' i) :
   interpolate s v r = interpolate s v r' :=
 sum_congr rfl (λ i hi, (by rw hrr' _ hi))
 
-@[simp] theorem interpolate_eq_iff_values_eq_on (hvs : set.inj_on v s) :
+theorem interpolate_eq_iff_values_eq_on (hvs : set.inj_on v s) :
   interpolate s v r = interpolate s v r' ↔ ∀ i ∈ s, r i = r' i :=
 ⟨values_eq_on_of_interpolate_eq _ _ hvs, interpolate_eq_of_values_eq_on _ _⟩
 
@@ -361,13 +361,13 @@ def fun_equiv_degree_lt (hvs : set.inj_on v s) : degree_lt F s.card ≃ₗ[F] (s
   map_smul' := λ c f, funext $ by simp,
   inv_fun := λ r, ⟨interpolate s v (λ x, if hx : x ∈ s then r ⟨x, hx⟩ else 0),
                    mem_degree_lt.2 $ degree_interpolate_lt _ hvs⟩,
-  left_inv := begin
+  left_inv :=
+  begin
     rintros ⟨f, hf⟩,
     simp only [subtype.mk_eq_mk, subtype.coe_mk, dite_eq_ite],
     rw mem_degree_lt at hf,
     nth_rewrite_rhs 0 eq_interpolate hvs hf,
-    rw interpolate_eq_iff_values_eq_on _ _ hvs,
-    exact λ _ hi, if_pos hi
+    exact interpolate_eq_of_values_eq_on _ _ (λ _ hi, if_pos hi)
   end,
   right_inv :=
   begin
@@ -419,8 +419,8 @@ theorem interpolate_eq_add_interpolate_erase (hvs : set.inj_on v s) (hi : i ∈ 
   interpolate (s.erase i) v r * basis_divisor (v j) (v i) :=
 begin
   rw [interpolate_eq_sum_interpolate_insert_sdiff _ hvs ⟨i, (mem_insert_self i {j})⟩ _,
-      sum_insert (not_mem_singleton.mpr hij), sum_singleton, basis_doubleton_left hij,
-      basis_doubleton_right hij,
+      sum_insert (not_mem_singleton.mpr hij), sum_singleton, basis_pair_left hij,
+      basis_pair_right hij,
       sdiff_insert_insert_of_mem_of_not_mem hi (not_mem_singleton.mpr hij),
       sdiff_singleton_eq_erase, pair_comm,
       sdiff_insert_insert_of_mem_of_not_mem hj (not_mem_singleton.mpr hij.symm),

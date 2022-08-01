@@ -128,7 +128,7 @@ instance defined on it, otherwise this will create a second non-defeq norm insta
 
 /-- A structure requiring that a scalar product is positive definite and symmetric, from which one
 can construct an `inner_product_space` instance in `inner_product_space.of_core`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure inner_product_space.core
   (𝕜 : Type*) (F : Type*)
   [is_R_or_C 𝕜] [add_comm_group F] [module 𝕜 F] :=
@@ -212,7 +212,7 @@ lemma inner_self_re_to_K {x : F} : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
 
 lemma inner_abs_conj_sym {x y : F} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
-  by rw [←inner_conj_sym, abs_conj]
+by rw [←inner_conj_sym, abs_conj]
 
 lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
@@ -595,6 +595,18 @@ begin
   simp [inner_sub_sub_self, this],
   ring,
 end
+
+variable (𝕜)
+include 𝕜
+
+lemma ext_inner_left {x y : E} (h : ∀ v, ⟪v, x⟫ = ⟪v, y⟫) : x = y :=
+by rw [←sub_eq_zero, ←inner_self_eq_zero, inner_sub_right, sub_eq_zero, h (x - y)]
+
+lemma ext_inner_right {x y : E} (h : ∀ v, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
+by rw [←sub_eq_zero, ←inner_self_eq_zero, inner_sub_left, sub_eq_zero, h (x - y)]
+
+omit 𝕜
+variable {𝕜}
 
 /-- Parallelogram law -/
 lemma parallelogram_law {x y : E} :
@@ -1195,13 +1207,17 @@ def linear_equiv.isometry_of_inner (f : E ≃ₗ[𝕜] E') (h : ∀ x y, ⟪f x,
   (f.isometry_of_inner h).to_linear_equiv = f := rfl
 
 /-- A linear isometry preserves the property of being orthonormal. -/
-lemma orthonormal.comp_linear_isometry {v : ι → E} (hv : orthonormal 𝕜 v) (f : E →ₗᵢ[𝕜] E') :
-  orthonormal 𝕜 (f ∘ v) :=
+lemma linear_isometry.orthonormal_comp_iff {v : ι → E} (f : E →ₗᵢ[𝕜] E') :
+  orthonormal 𝕜 (f ∘ v) ↔ orthonormal 𝕜 v :=
 begin
   classical,
-  simp_rw [orthonormal_iff_ite, linear_isometry.inner_map_map, ←orthonormal_iff_ite],
-  exact hv
+  simp_rw [orthonormal_iff_ite, linear_isometry.inner_map_map]
 end
+
+/-- A linear isometry preserves the property of being orthonormal. -/
+lemma orthonormal.comp_linear_isometry {v : ι → E} (hv : orthonormal 𝕜 v) (f : E →ₗᵢ[𝕜] E') :
+  orthonormal 𝕜 (f ∘ v) :=
+by rwa f.orthonormal_comp_iff
 
 /-- A linear isometric equivalence preserves the property of being orthonormal. -/
 lemma orthonormal.comp_linear_isometry_equiv {v : ι → E} (hv : orthonormal 𝕜 v) (f : E ≃ₗᵢ[𝕜] E') :
@@ -1807,6 +1823,17 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 
 /-- The inner product on submodules is the same as on the ambient space. -/
 @[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
+
+lemma orthonormal.cod_restrict {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v)
+  (s : submodule 𝕜 E) (hvs : ∀ i, v i ∈ s) :
+  @orthonormal 𝕜 s _ _ ι (set.cod_restrict v s hvs) :=
+s.subtypeₗᵢ.orthonormal_comp_iff.mp hv
+
+lemma orthonormal_span {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) :
+  @orthonormal 𝕜 (submodule.span 𝕜 (set.range v)) _ _ ι
+    (λ i : ι, ⟨v i, submodule.subset_span (set.mem_range_self i)⟩) :=
+hv.cod_restrict (submodule.span 𝕜 (set.range v))
+  (λ i, submodule.subset_span (set.mem_range_self i))
 
 /-! ### Families of mutually-orthogonal subspaces of an inner product space -/
 

@@ -56,7 +56,7 @@ variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 /-- A pretrivialization for a (yet to be defined) topological vector bundle `total_space E` is a
 local equiv between sets of the form `proj ⁻¹' base_set` and `base_set × F` which respects the
 first coordinate, and is linear in each fiber. -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
   topological_fiber_bundle.pretrivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -234,7 +234,7 @@ A structure extending local homeomorphisms, defining a local trivialization of t
 and `B × F` defined between two sets of the form `proj ⁻¹' base_set` and `base_set × F`,
 acting trivially on the first coordinate and linear in the fibers.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
   topological_fiber_bundle.trivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -765,7 +765,7 @@ lemma coord_change_linear_comp (i j k : ι): ∀ x ∈ (Z.base_set i) ∩ (Z.bas
 λ x hx, by { ext v, exact Z.coord_change_comp i j k x hx v }
 
 /-- The index set of a topological vector bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def index := ι
 
 /-- The base space of a topological vector bundle core, as a convenience function for dot notation-/
@@ -774,7 +774,7 @@ def base := B
 
 /-- The fiber of a topological vector bundle core, as a convenience function for dot notation and
 typeclass inference -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def fiber (x : B) := F
 
 instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
@@ -934,7 +934,7 @@ The field `exists_coord_change` is stated as an existential statement (instead o
 fields), since it depends on propositional information (namely `e e' ∈ pretrivialization_atlas`).
 This makes it inconvenient to explicitly define a `coord_change` function when constructing a
 `topological_vector_prebundle`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization R F E))
 (pretrivialization_at : B → pretrivialization R F E)

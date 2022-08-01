@@ -151,7 +151,7 @@ end
 /-- Structure for a primitive additive character on a finite ring `R` into a cyclotomic extension
 of a field `R'`. It records which cyclotomic extension it is, the character, and the
 fact that the character is primitive. -/
-@[nolint has_inhabited_instance] -- can't prove that they always exist
+@[nolint has_nonempty_instance] -- can't prove that they always exist
 structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v) [field R'] :=
 (n : pnat)
 (char : add_char R (cyclotomic_field n R'))

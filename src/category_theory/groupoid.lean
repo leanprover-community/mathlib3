@@ -40,7 +40,7 @@ class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 restate_axiom groupoid.inv_comp'
 restate_axiom groupoid.comp_inv'
 
-attribute [simv] groupoid.inv_comp groupoid.comp_inv
+attribute [simp] groupoid.inv_comp groupoid.comp_inv
 
 /--
 A `large_groupoid` is a groupoid

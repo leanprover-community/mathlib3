@@ -103,7 +103,7 @@ class order_iso_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le 
 
 export order_iso_class (map_le_map_iff)
 
-attribute [simv] map_le_map_iff
+attribute [simp] map_le_map_iff
 
 instance [has_le α] [has_le β] [order_iso_class F α β] : has_coe_t F (α ≃o β) :=
 ⟨λ f, ⟨f, λ _ _, map_le_map_iff f⟩⟩

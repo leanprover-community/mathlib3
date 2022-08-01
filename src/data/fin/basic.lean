@@ -221,7 +221,7 @@ instance {n : ℕ} : has_well_founded (fin n) :=
 ⟨_, measure_wf coe⟩
 
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
-attribute [simv] val_zero
+attribute [simp] val_zero
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
 @[simp] lemma mk_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = (0 : fin _) := rfl
 

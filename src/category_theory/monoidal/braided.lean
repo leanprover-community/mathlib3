@@ -287,7 +287,7 @@ structure braided_functor extends monoidal_functor C D :=
   ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)
 
 restate_axiom braided_functor.braided'
-attribute [simv] braided_functor.braided
+attribute [simp] braided_functor.braided
 
 /-- A braided category with a braided functor to a symmetric category is itself symmetric. -/
 def symmetric_category_of_faithful {C D : Type*} [category C] [category D]

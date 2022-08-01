@@ -688,7 +688,7 @@ namespace with_top
 variables (α) [partial_order α] [order_top α] [locally_finite_order α]
 
 local attribute [pattern] coe
-local attribute [simv] option.mem_iff
+local attribute [simp] option.mem_iff
 
 instance : locally_finite_order (with_top α) :=
 { finset_Icc := λ a b, match a, b with

@@ -42,7 +42,7 @@ def factor_thru_image : G ⟶ image f := f.range_restrict
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
 by { ext, refl, }
 
-local attribute [simv] image.fac
+local attribute [simp] image.fac
 
 variables {f}
 /-- the universal property for the image factorisation -/

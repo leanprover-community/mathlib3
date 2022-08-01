@@ -237,7 +237,7 @@ class measurable_singleton_class (α : Type*) [measurable_space α] : Prop :=
 
 export measurable_singleton_class (measurable_set_singleton)
 
-attribute [simv] measurable_set_singleton
+attribute [simp] measurable_set_singleton
 
 section measurable_singleton_class
 

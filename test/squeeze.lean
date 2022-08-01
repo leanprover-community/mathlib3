@@ -51,7 +51,7 @@ section namespacing2
 
 open nat
 
-local attribute [simv] nat.mul_succ
+local attribute [simp] nat.mul_succ
 
 -- Test that we strip superflous prefixes from `squeeze_simp` output, if needed.
 example (n m : ℕ) : n * m.succ = n*m + n :=

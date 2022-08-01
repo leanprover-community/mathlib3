@@ -12,7 +12,7 @@ import data.nat.psub
 # Properties of the binary representation of integers
 -/
 
-local attribute [simv] add_assoc
+local attribute [simp] add_assoc
 
 namespace pos_num
 variables {α : Type*}

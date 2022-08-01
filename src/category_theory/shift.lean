@@ -94,7 +94,7 @@ structure shift_mk_core :=
     eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
 section
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
 
 /-- Constructs a `has_shift C A` instance from `shift_mk_core`. -/

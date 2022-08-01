@@ -228,7 +228,7 @@ by { dsimp, simv, }
 
 end
 
-local attribute [simv] single_comp_single
+local attribute [simp] single_comp_single
 
 /--
 A category embeds into its `R`-linear completion.

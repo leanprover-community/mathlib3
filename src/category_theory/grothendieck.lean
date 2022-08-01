@@ -98,7 +98,7 @@ def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
   eq_to_hom (by erw [functor.map_comp, functor.comp_obj]) ≫
     (F.map g.base).map f.fiber ≫ g.fiber, }
 
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 
 instance : category (grothendieck F) :=
 { hom := λ X Y, grothendieck.hom X Y,

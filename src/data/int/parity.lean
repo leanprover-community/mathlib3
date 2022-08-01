@@ -22,7 +22,7 @@ variables {m n : ℤ}
 @[simp] theorem mod_two_ne_one : ¬ n % 2 = 1 ↔ n % 2 = 0 :=
 by cases mod_two_eq_zero_or_one n with h h; simv [h]
 
-local attribute [simv] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal form
+local attribute [simp] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal form
 theorem mod_two_ne_zero : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simv [h]
 

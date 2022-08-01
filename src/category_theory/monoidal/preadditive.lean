@@ -39,11 +39,11 @@ restate_axiom monoidal_preadditive.tensor_zero'
 restate_axiom monoidal_preadditive.zero_tensor'
 restate_axiom monoidal_preadditive.tensor_add'
 restate_axiom monoidal_preadditive.add_tensor'
-attribute [simv] monoidal_preadditive.tensor_zero monoidal_preadditive.zero_tensor
+attribute [simp] monoidal_preadditive.tensor_zero monoidal_preadditive.zero_tensor
 
 variables [monoidal_preadditive C]
 
-local attribute [simv] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
 instance tensor_left_additive (X : C) : (tensor_left X).additive := {}
 instance tensor_right_additive (X : C) : (tensor_right X).additive := {}

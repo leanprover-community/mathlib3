@@ -57,7 +57,7 @@ structure glue_data :=
 (t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
 (cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
 
-attribute [simv] glue_data.t_id
+attribute [simp] glue_data.t_id
 attribute [instance] glue_data.f_id glue_data.f_mono glue_data.f_has_pullback
 attribute [reassoc] glue_data.t_fac glue_data.cocycle
 

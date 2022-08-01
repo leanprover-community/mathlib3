@@ -106,7 +106,7 @@ class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
 
 export norm_one_class (norm_one)
 
-attribute [simv] norm_one
+attribute [simp] norm_one
 
 @[simp] lemma nnnorm_one [seminormed_add_comm_group α] [has_one α] [norm_one_class α] :
   ∥(1 : α)∥₊ = 1 :=
@@ -837,7 +837,7 @@ class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_no
   (σ : R₁ →+* R₂) : Prop :=
 (is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)
 
-attribute [simv] ring_hom_isometric.is_iso
+attribute [simp] ring_hom_isometric.is_iso
 
 variables [semi_normed_ring R₁] [semi_normed_ring R₂] [semi_normed_ring R₃]
 

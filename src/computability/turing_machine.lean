@@ -1288,7 +1288,7 @@ noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
 (TM1.stmts M S).product finset.univ
 
 open_locale classical
-local attribute [simv] TM1.stmts₁_self
+local attribute [simp] TM1.stmts₁_self
 theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
   TM0.supports tr (↑(tr_stmts S)) :=
 ⟨finset.mem_product.2 ⟨finset.some_mem_insert_none.2
@@ -2328,7 +2328,7 @@ begin
   exact rc,
 end
 
-local attribute [simv] respects TM2.step TM2.step_aux tr_normal
+local attribute [simp] respects TM2.step TM2.step_aux tr_normal
 
 theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
 λ c₁ c₂ h, begin

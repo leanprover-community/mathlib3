@@ -50,7 +50,7 @@ end
 infixr ` ⥤ `:26 := functor       -- type as \func --
 
 restate_axiom functor.map_id'
-attribute [simv] functor.map_id
+attribute [simp] functor.map_id
 restate_axiom functor.map_comp'
 attribute [reassoc, simv] functor.map_comp
 

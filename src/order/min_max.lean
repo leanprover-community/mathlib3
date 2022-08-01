@@ -18,7 +18,7 @@ min, max
 universes u v
 variables {α : Type u} {β : Type v}
 
-attribute [simv] max_eq_left max_eq_right min_eq_left min_eq_right
+attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
 section
 variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a b c d : α}

@@ -574,9 +574,9 @@ This makes sense mostly when `n = l.length`, but this is not necessary for the d
 def split_wrt_composition (l : list α) (c : composition n) : list (list α) :=
 split_wrt_composition_aux l c.blocks
 
-local attribute [simv] split_wrt_composition_aux.equations._eqn_1
+local attribute [simp] split_wrt_composition_aux.equations._eqn_1
 
-local attribute [simv]
+local attribute [simp]
 lemma split_wrt_composition_aux_cons (l : list α) (n ns) :
   l.split_wrt_composition_aux (n :: ns) = take n l :: (drop n l).split_wrt_composition_aux ns :=
 by simv [split_wrt_composition_aux]

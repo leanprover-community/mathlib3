@@ -105,7 +105,7 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
 
 section
 
-local attribute [simv] nat_trans.naturality monoidal_nat_trans.unit monoidal_nat_trans.tensor
+local attribute [simp] nat_trans.naturality monoidal_nat_trans.unit monoidal_nat_trans.tensor
 
 /-- The cartesian product of two monoidal natural transformations is monoidal. -/
 @[simps]

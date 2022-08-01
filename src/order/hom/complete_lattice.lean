@@ -89,7 +89,7 @@ class complete_lattice_hom_class (F : Type*) (α β : out_param $ Type*) [comple
 export Sup_hom_class (map_Sup)
 export Inf_hom_class (map_Inf)
 
-attribute [simv] map_Sup map_Inf
+attribute [simp] map_Sup map_Inf
 
 lemma map_supr [has_Sup α] [has_Sup β] [Sup_hom_class F α β] (f : F) (g : ι → α) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=

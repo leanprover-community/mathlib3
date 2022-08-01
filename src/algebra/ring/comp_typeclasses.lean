@@ -49,7 +49,7 @@ class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R
   (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
 (comp_eq : σ₂₃.comp σ₁₂ = σ₁₃)
 
-attribute [simv] ring_hom_comp_triple.comp_eq
+attribute [simp] ring_hom_comp_triple.comp_eq
 
 variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 
@@ -67,8 +67,8 @@ class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁
 (comp_eq : σ'.comp σ = ring_hom.id R₁)
 (comp_eq₂ : σ.comp σ' = ring_hom.id R₂)
 
-attribute [simv] ring_hom_inv_pair.comp_eq
-attribute [simv] ring_hom_inv_pair.comp_eq₂
+attribute [simp] ring_hom_inv_pair.comp_eq
+attribute [simp] ring_hom_inv_pair.comp_eq₂
 
 variables {σ : R₁ →+* R₂} {σ' : R₂ →+* R₁}
 

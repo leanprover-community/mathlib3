@@ -193,7 +193,7 @@ begin
   rw [length_drop, length_drop, h]
 end
 
-local attribute [simv] rotate_cons_succ
+local attribute [simp] rotate_cons_succ
 
 @[simp] lemma zip_with_rotate_one {β : Type*} (f : α → α → β) (x y : α) (l : list α) :
   zip_with f (x :: y :: l) ((x :: y :: l).rotate 1) =

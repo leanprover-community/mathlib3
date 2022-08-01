@@ -39,7 +39,7 @@ class normed_star_group (E : Type*) [seminormed_add_comm_group E] [star_add_mono
 (norm_star : ∀ x : E, ∥x⋆∥ = ∥x∥)
 
 export normed_star_group (norm_star)
-attribute [simv] norm_star
+attribute [simp] norm_star
 
 variables {𝕜 E α : Type*}
 

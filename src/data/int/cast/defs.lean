@@ -24,7 +24,7 @@ Preferentially, the homomorphism is written as a coercion.
 universes u
 set_option old_structure_cmd true
 
-attribute [simv] int.of_nat_eq_coe
+attribute [simp] int.of_nat_eq_coe
 
 /-- Default value for `add_group_with_one.int_cast`. -/
 protected def int.cast_def {R : Type u} [has_nat_cast R] [has_neg R] : ℤ → R

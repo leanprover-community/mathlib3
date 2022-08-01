@@ -95,7 +95,7 @@ class has_trivial_star (R : Type u) [has_star R] : Prop :=
 (star_trivial : ∀ (r : R), star r = r)
 
 export has_trivial_star (star_trivial)
-attribute [simv] star_trivial
+attribute [simp] star_trivial
 
 /--
 A `*`-semigroup is a semigroup `R` with an involutive operations `star`
@@ -105,7 +105,7 @@ class star_semigroup (R : Type u) [semigroup R] extends has_involutive_star R :=
 (star_mul : ∀ r s : R, star (r * s) = star s * star r)
 
 export star_semigroup (star_mul)
-attribute [simv] star_mul
+attribute [simp] star_mul
 
 /-- In a commutative ring, make `simv` prefer leaving the order unchanged. -/
 @[simp] lemma star_mul' [comm_semigroup R] [star_semigroup R] (x y : R) :
@@ -187,7 +187,7 @@ class star_add_monoid (R : Type u) [add_monoid R] extends has_involutive_star R 
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
 export star_add_monoid (star_add)
-attribute [simv] star_add
+attribute [simp] star_add
 
 /-- `star` as an `add_equiv` -/
 @[simps apply]
@@ -375,7 +375,7 @@ class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_smul 
 (star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
 
 export star_module (star_smul)
-attribute [simv] star_smul
+attribute [simp] star_smul
 
 /-- A commutative star monoid is a star module over itself via `monoid.to_mul_action`. -/
 instance star_semigroup.to_star_module [comm_monoid R] [star_semigroup R] : star_module R R :=

@@ -214,7 +214,7 @@ namespace core_unit_counit
 
 restate_axiom left_triangle'
 restate_axiom right_triangle'
-attribute [simv] left_triangle right_triangle
+attribute [simp] left_triangle right_triangle
 
 end core_unit_counit
 

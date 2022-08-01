@@ -28,7 +28,7 @@ open nat_trans category category_theory.functor
 
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
-local attribute [simv] vcomp_app
+local attribute [simp] vcomp_app
 /--
 `functor.category C D` gives the category structure on functors and natural transformations
 between categories `C` and `D`.

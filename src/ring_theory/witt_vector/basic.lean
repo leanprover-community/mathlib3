@@ -161,7 +161,7 @@ include hp
 variables (x y : 𝕎 R)
 
 omit hp
-local attribute [simv]
+local attribute [simp]
 lemma matrix_vec_empty_coeff {R} (i j) :
   @coeff p R (matrix.vec_empty i) j = (matrix.vec_empty i : ℕ → R) j :=
 by rcases i with ⟨_ | _ | _ | _ | i_val, ⟨⟩⟩

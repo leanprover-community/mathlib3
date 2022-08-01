@@ -6,7 +6,7 @@ Authors: Leonardo de Moura
 import data.rbtree.find
 universes u v
 
-local attribute [simv] rbnode.lift
+local attribute [simp] rbnode.lift
 
 namespace rbnode
 variables {α : Type u}
@@ -186,7 +186,7 @@ namespace rbnode
 section membership_lemmas
 parameters {α : Type u} (lt : α → α → Prop)
 
-local attribute [simv] mem balance1_node balance2_node
+local attribute [simp] mem balance1_node balance2_node
 
 local infix `∈` := mem lt
 
@@ -340,7 +340,7 @@ begin
   simv [insert], intros, apply equiv_or_mem_of_mem_ins, exact mem_of_mem_mk_insert_result lt h
 end
 
-local attribute [simv] mem_exact
+local attribute [simp] mem_exact
 
 lemma mem_exact_balance1_node_of_mem_exact {x s} (v) (t : rbnode α) :
   mem_exact x s → mem_exact x (balance1_node s v t) :=
@@ -392,7 +392,7 @@ lemma ite_eq_of_not_lt [decidable_rel lt] [is_strict_order α lt] {a b} {β : Ty
   (if lt a b then t else s) = s :=
 begin have := not_lt_of_lt h, simv [*] end
 
-local attribute [simv] ite_eq_of_not_lt
+local attribute [simp] ite_eq_of_not_lt
 
 private meta def simp_fi : tactic unit :=
 `[simv [find, ins, *, cmp_using]]
@@ -476,7 +476,7 @@ by simv [find, cmp_using, *]
 
 end simp_aux_lemmas
 
-local attribute [simv]
+local attribute [simp]
   find_black_eq_find_red find_red_of_lt find_red_of_lt find_red_of_gt
   find_red_of_incomp
 

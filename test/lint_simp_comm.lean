@@ -3,7 +3,7 @@ import algebra.group.basic
 
 /-! ## Commutativity lemmas should be rejected  -/
 
-attribute [simv] add_comm add_left_comm
+attribute [simp] add_comm add_left_comm
 
 open tactic
 run_cmd do

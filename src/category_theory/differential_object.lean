@@ -42,7 +42,7 @@ structure differential_object :=
 (d_squared' : d ≫ d⟦(1:ℤ)⟧' = 0 . obviously)
 
 restate_axiom differential_object.d_squared'
-attribute [simv] differential_object.d_squared
+attribute [simp] differential_object.d_squared
 
 variables {C}
 
@@ -225,7 +225,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
@@ -259,7 +259,7 @@ end
 
 end
 
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _

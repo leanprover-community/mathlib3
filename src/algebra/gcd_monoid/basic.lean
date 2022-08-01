@@ -77,7 +77,7 @@ elements. -/
 
 export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
-attribute [simv] norm_unit_coe_units norm_unit_zero norm_unit_mul
+attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
 variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
@@ -230,7 +230,7 @@ class normalized_gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
 
 export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 
-attribute [simv] lcm_zero_left lcm_zero_right
+attribute [simp] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
 variables [cancel_comm_monoid_with_zero α]

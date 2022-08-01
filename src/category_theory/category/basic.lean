@@ -102,7 +102,7 @@ extends category_struct.{v} obj : Type (max u (v+1)) :=
 restate_axiom category.id_comp'
 restate_axiom category.comp_id'
 restate_axiom category.assoc'
-attribute [simv] category.id_comp category.comp_id category.assoc
+attribute [simp] category.id_comp category.comp_id category.assoc
 attribute [trans] category_struct.comp
 
 /--

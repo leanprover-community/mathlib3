@@ -325,7 +325,7 @@ lemma image_subgroup {f : G → H} (hf : is_group_hom f) {s : set G} (hs : is_su
 lemma range_subgroup {f : G → H} (hf : is_group_hom f) : is_subgroup (set.range f) :=
 @set.image_univ _ _ f ▸ hf.image_subgroup univ_subgroup.to_is_subgroup
 
-local attribute [simv] one_mem inv_mem mul_mem is_normal_subgroup.normal
+local attribute [simp] one_mem inv_mem mul_mem is_normal_subgroup.normal
 
 @[to_additive]
 lemma preimage {f : G → H} (hf : is_group_hom f) {s : set H} (hs : is_subgroup s) :

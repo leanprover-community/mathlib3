@@ -264,7 +264,7 @@ inductive lex (r : α → α → Prop) (s : β → β → Prop) : α ⊕ β → 
 | sep (a b) : lex (inl a) (inr b)
 
 attribute [protected] sum.lex.inl sum.lex.inr
-attribute [simv] lex.sep
+attribute [simp] lex.sep
 
 variables {r r₁ r₂ : α → α → Prop} {s s₁ s₂ : β → β → Prop} {a a₁ a₂ : α} {b b₁ b₂ : β}
   {x y : α ⊕ β}

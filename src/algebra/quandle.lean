@@ -285,7 +285,7 @@ namespace quandle
 open rack
 variables {Q : Type*} [quandle Q]
 
-attribute [simv] fix
+attribute [simp] fix
 
 @[simp]
 lemma fix_inv {x : Q} : x ◃⁻¹ x = x :=

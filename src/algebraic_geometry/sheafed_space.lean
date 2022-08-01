@@ -76,7 +76,7 @@ SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
 variables {C}
 
 section
-local attribute [simv] id comp
+local attribute [simp] id comp
 
 @[simp] lemma id_base (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl

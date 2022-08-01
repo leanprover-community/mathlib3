@@ -202,7 +202,7 @@ lemma of_line_mem {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h�
   ∀ t, of_line hf h₀ h₁ t ∈ f '' I :=
 λ ⟨t, t_in⟩, ⟨t, t_in, rfl⟩
 
-local attribute [simv] Iic_def
+local attribute [simp] Iic_def
 
 /-- Concatenation of two paths from `x` to `y` and from `y` to `z`, putting the first
 path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/

@@ -187,7 +187,7 @@ This is not always a good idea as a `@[simp]` lemma,
 as we lose the ability to use results that interact with `F`,
 e.g. the naturality of a natural transformation.
 
-In some files it may be appropriate to use `local attribute [simv] eq_to_hom_map`, however.
+In some files it may be appropriate to use `local attribute [simp] eq_to_hom_map`, however.
 -/
 lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=

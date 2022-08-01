@@ -42,7 +42,7 @@ class encodable (α : Type*) :=
 (decode [] : ℕ → option α)
 (encodek : ∀ a, decode (encode a) = some a)
 
-attribute [simv] encodable.encodek
+attribute [simp] encodable.encodek
 
 namespace encodable
 variables {α : Type*} {β : Type*}

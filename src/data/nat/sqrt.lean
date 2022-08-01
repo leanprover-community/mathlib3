@@ -50,7 +50,7 @@ end
 
 theorem sqrt_aux_0 (r n) : sqrt_aux 0 r n = r :=
 by rw sqrt_aux; simv
-local attribute [simv] sqrt_aux_0
+local attribute [simp] sqrt_aux_0
 
 theorem sqrt_aux_1 {r n b} (h : b ≠ 0) {n'} (h₂ : r + b + n' = n) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r + b) n' :=

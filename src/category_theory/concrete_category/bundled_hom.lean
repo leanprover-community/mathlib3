@@ -37,7 +37,7 @@ structure bundled_hom :=
 
 attribute [class] bundled_hom
 
-attribute [simv] bundled_hom.id_to_fun bundled_hom.comp_to_fun
+attribute [simp] bundled_hom.id_to_fun bundled_hom.comp_to_fun
 
 namespace bundled_hom
 

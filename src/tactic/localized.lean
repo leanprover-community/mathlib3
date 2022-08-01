@@ -83,7 +83,7 @@ open_locale locale1 locale2 ...
 
 * You can also declare other localized commands, like local attributes
 ```lean
-localized "attribute [simv] le_refl" in le
+localized "attribute [simp] le_refl" in le
 ```
 
 * To see all localized commands in a given locale, run:

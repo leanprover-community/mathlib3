@@ -128,7 +128,7 @@ structure concept extends set α × set β :=
 namespace concept
 variables {r α β} {c d : concept α β r}
 
-attribute [simv] closure_fst closure_snd
+attribute [simp] closure_fst closure_snd
 
 @[ext] lemma ext (h : c.fst = d.fst) : c = d :=
 begin

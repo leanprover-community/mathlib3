@@ -87,9 +87,9 @@ structure lax_monoidal_functor extends C ⥤ D :=
 restate_axiom lax_monoidal_functor.μ_natural'
 attribute [simv, reassoc] lax_monoidal_functor.μ_natural
 restate_axiom lax_monoidal_functor.left_unitality'
-attribute [simv] lax_monoidal_functor.left_unitality
+attribute [simp] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'
-attribute [simv] lax_monoidal_functor.right_unitality
+attribute [simp] lax_monoidal_functor.right_unitality
 restate_axiom lax_monoidal_functor.associativity'
 attribute [simv, reassoc] lax_monoidal_functor.associativity
 
@@ -294,7 +294,7 @@ universes v₀ u₀
 variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
 variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
 
-local attribute [simv] μ_natural associativity left_unitality right_unitality
+local attribute [simp] μ_natural associativity left_unitality right_unitality
 
 /-- The cartesian product of two lax monoidal functors is lax monoidal. -/
 @[simps]

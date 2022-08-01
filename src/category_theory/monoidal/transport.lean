@@ -138,10 +138,10 @@ instance (e : C ≌ D) : monoidal_category (transported e) := transport e
 instance (e : C ≌ D) : inhabited (transported e) := ⟨𝟙_ _⟩
 
 section
-local attribute [simv] transport_tensor_unit
+local attribute [simp] transport_tensor_unit
 
 section
-local attribute [simv] transport_tensor_hom transport_associator
+local attribute [simp] transport_tensor_hom transport_associator
   transport_left_unitor transport_right_unitor
 
 /--

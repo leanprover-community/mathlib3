@@ -16,7 +16,7 @@ variables {α β : Type*}
 
 namespace list
 
-attribute [simv] join
+attribute [simp] join
 
 @[simp] lemma join_nil : [([] : list α)].join = [] := rfl
 

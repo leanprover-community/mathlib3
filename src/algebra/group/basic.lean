@@ -128,7 +128,7 @@ by rw [add_comm, bit1_add, add_comm]
 
 end add_comm_semigroup
 
-local attribute [simv] mul_assoc sub_eq_add_neg
+local attribute [simp] mul_assoc sub_eq_add_neg
 
 section add_monoid
 variables {M : Type u} [add_monoid M] {a b c : M}
@@ -246,7 +246,7 @@ end div_inv_monoid
 section division_monoid
 variables [division_monoid α] {a b c : α}
 
-local attribute [simv] mul_assoc div_eq_mul_inv
+local attribute [simp] mul_assoc div_eq_mul_inv
 
 @[to_additive] lemma inv_eq_of_mul_eq_one_left (h : a * b = 1) : b⁻¹ = a :=
 by rw [←inv_eq_of_mul_eq_one_right h, inv_inv]
@@ -304,7 +304,7 @@ lemma bit0_neg [subtraction_monoid α] (a : α) : bit0 (-a) = -bit0 a := (neg_ad
 section division_comm_monoid
 variables [division_comm_monoid α] (a b c d : α)
 
-local attribute [simv] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
+local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive neg_add] lemma mul_inv : (a * b)⁻¹ = a⁻¹ * b⁻¹ := by simv
 @[to_additive] lemma inv_div' : (a / b)⁻¹ = a⁻¹ / b⁻¹ := by simv
@@ -536,7 +536,7 @@ end group
 section comm_group
 variables [comm_group G] {a b c d : G}
 
-local attribute [simv] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
+local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive]
 lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=

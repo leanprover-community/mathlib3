@@ -148,7 +148,7 @@ restate_axiom whisker_exchange'
 restate_axiom pentagon'
 restate_axiom triangle'
 
-attribute [simv]  pentagon triangle
+attribute [simp]  pentagon triangle
 attribute [reassoc]
   whisker_left_comp id_whisker_left comp_whisker_left
   comp_whisker_right whisker_right_id whisker_right_comp
@@ -159,7 +159,7 @@ are associators and unitors in the RHS in the several simv lemmas here (e.g. `id
 which at first glance look more complicated than the LHS, but they will be eventually reduced by the
 pentagon or the triangle identities, and more generally, (forthcoming) `coherence` tactic.
 -/
-attribute [simv]
+attribute [simp]
   whisker_left_id whisker_left_comp id_whisker_left comp_whisker_left
   id_whisker_right comp_whisker_right whisker_right_id whisker_right_comp
   whisker_assoc

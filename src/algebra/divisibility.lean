@@ -53,7 +53,7 @@ theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
 theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c → P) : P :=
 exists.elim H₁ H₂
 
-local attribute [simv] mul_assoc mul_comm mul_left_comm
+local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 @[trans] theorem dvd_trans : a ∣ b → b ∣ c → a ∣ c
 | ⟨d, h₁⟩ ⟨e, h₂⟩ := ⟨d * e, h₁ ▸ h₂.trans $ mul_assoc a d e⟩
@@ -124,7 +124,7 @@ begin rw mul_comm, exact h.mul_right _ end
 
 alias dvd_mul_of_dvd_right ← has_dvd.dvd.mul_left
 
-local attribute [simv] mul_assoc mul_comm mul_left_comm
+local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 theorem mul_dvd_mul : ∀ {a b c d : α}, a ∣ b → c ∣ d → a * c ∣ b * d
 | a ._ c ._ ⟨e, rfl⟩ ⟨f, rfl⟩ := ⟨e * f, by simv⟩

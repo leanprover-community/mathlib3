@@ -32,7 +32,7 @@ class has_unit (α : Type) [has_one α] :=
 (unit_eq_one : unit = 1)
 
 def u {α : Type} [has_one α] [has_unit α] : α := has_unit.unit
-attribute [simv] has_unit.unit_eq_one
+attribute [simp] has_unit.unit_eq_one
 
 example {α : Type} [has_one α] (I : trunc (has_unit α)) : α :=
 begin

@@ -300,7 +300,7 @@ by split_ifs; refl
 -- the `f x` terms according to whether `P` holds at `x`.
 -- There doesn't appear to be a corresponding difficulty so far with
 -- `mul_ite` and `ite_mul`.
-attribute [simv] mul_ite ite_mul
+attribute [simp] mul_ite ite_mul
 
 @[simp] lemma mul_boole {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
@@ -954,7 +954,7 @@ protected def function.surjective.non_unital_comm_ring
   non_unital_comm_ring β :=
 { .. hf.non_unital_ring f zero add mul neg sub nsmul zsmul, .. hf.comm_semigroup f mul }
 
-local attribute [simv] add_assoc add_comm add_left_comm mul_comm
+local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic

@@ -171,7 +171,7 @@ def lmap (f : α → β) : α ⊕ γ → β ⊕ γ
 def rmap (f : β → γ) : α ⊕ β → α ⊕ γ
 | (sum.inl a) := sum.inl a
 | (sum.inr b) := sum.inr (f b)
-attribute [simv] lmap rmap
+attribute [simp] lmap rmap
 
 @[simp] lemma corec_eq (f : β → α ⊕ β) (b : β) :
   destruct (corec f b) = rmap (corec f) (f b) :=
@@ -195,7 +195,7 @@ section bisim
   | (sum.inl a) (sum.inl a') := a = a'
   | (sum.inr s) (sum.inr s') := R s s'
   | _           _            := false
-  attribute [simv] bisim_o
+  attribute [simp] bisim_o
 
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → bisim_o R (destruct s₁) (destruct s₂)
 
@@ -914,7 +914,7 @@ def lift_rel_aux (R : α → β → Prop)
 | (sum.inl a)  (sum.inr cb) := ∃ {b}, b ∈ cb ∧ R a b
 | (sum.inr ca) (sum.inl b)  := ∃ {a}, a ∈ ca ∧ R a b
 | (sum.inr ca) (sum.inr cb) := C ca cb
-attribute [simv] lift_rel_aux
+attribute [simp] lift_rel_aux
 
 @[simp] lemma lift_rel_aux.ret_left (R : α → β → Prop)
   (C : computation α → computation β → Prop) (a cb) :

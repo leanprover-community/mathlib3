@@ -120,7 +120,7 @@ class bounded_lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice
 export sup_hom_class (map_sup)
 export inf_hom_class (map_inf)
 
-attribute [simv] map_top map_bot map_sup map_inf
+attribute [simp] map_top map_bot map_sup map_inf
 
 @[priority 100] -- See note [lower instance priority]
 instance sup_hom_class.to_order_hom_class [semilattice_sup α] [semilattice_sup β]

@@ -407,7 +407,7 @@ instance [symmetric_category V] : symmetric_category (Action V G) :=
 symmetric_category_of_faithful (forget_braided V G)
 
 section
-local attribute [simv] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
 variables [preadditive V] [monoidal_preadditive V]
 

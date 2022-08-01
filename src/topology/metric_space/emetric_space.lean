@@ -107,7 +107,7 @@ variables [pseudo_emetric_space α]
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
 
-attribute [simv] edist_self
+attribute [simp] edist_self
 
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=

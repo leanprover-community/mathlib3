@@ -80,7 +80,7 @@ lemma ne.lt_of_le' : b ≠ a → a ≤ b → a < b := flip lt_of_le_of_ne'
 
 end partial_order
 
-attribute [simv] le_refl
+attribute [simp] le_refl
 attribute [ext] has_le
 
 alias le_trans        ← has_le.le.trans

@@ -239,7 +239,7 @@ section bisim
   | none          none            := true
   | (some (a, s)) (some (a', s')) := a = a' ∧ R s s'
   | _             _               := false
-  attribute [simv] bisim_o
+  attribute [simp] bisim_o
 
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → bisim_o R (destruct s₁) (destruct s₂)
 
@@ -358,7 +358,7 @@ corec (λS, match destruct S with
 def drop (s : seq α) : ℕ → seq α
 | 0     := s
 | (n+1) := tail (drop n)
-attribute [simv] drop
+attribute [simp] drop
 
 /-- Take the first `n` elements of the sequence (producing a list) -/
 def take : ℕ → seq α → list α

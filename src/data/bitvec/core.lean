@@ -205,8 +205,8 @@ bits_to_nat (to_list v)
 theorem bits_to_nat_to_list {n : ℕ} (x : bitvec n) :
 bitvec.to_nat x = bits_to_nat (vector.to_list x)  := rfl
 
-local attribute [simv] nat.add_comm nat.add_assoc nat.add_left_comm nat.mul_comm nat.mul_assoc
-local attribute [simv] nat.zero_add nat.add_zero nat.one_mul nat.mul_one nat.zero_mul nat.mul_zero
+local attribute [simp] nat.add_comm nat.add_assoc nat.add_left_comm nat.mul_comm nat.mul_assoc
+local attribute [simp] nat.zero_add nat.add_zero nat.one_mul nat.mul_one nat.zero_mul nat.mul_zero
 -- mul_left_comm
 
 theorem to_nat_append {m : ℕ} (xs : bitvec m) (b : bool) :

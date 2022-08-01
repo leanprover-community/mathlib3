@@ -114,7 +114,7 @@ end
 attribute [nolint dangerous_instance] semilinear_map_class.to_add_hom_class
 
 export semilinear_map_class (map_smulₛₗ)
-attribute [simv] map_smulₛₗ
+attribute [simp] map_smulₛₗ
 
 /-- `linear_map_class F R M M₂` asserts `F` is a type of bundled `R`-linear maps `M → M₂`.
 

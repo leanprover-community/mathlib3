@@ -60,7 +60,7 @@ structure homological_complex (c : complex_shape ι) :=
 namespace homological_complex
 
 restate_axiom shape'
-attribute [simv] shape
+attribute [simp] shape
 
 variables {V} {c : complex_shape ι}
 
@@ -177,7 +177,7 @@ def comp (A B C : homological_complex V c) (φ : hom A B) (ψ : hom B C) : hom A
 { f := λ i, φ.f i ≫ ψ.f i }
 
 section
-local attribute [simv] id comp
+local attribute [simp] id comp
 
 instance : category (homological_complex V c) :=
 { hom := hom,

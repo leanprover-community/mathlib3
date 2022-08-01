@@ -134,7 +134,7 @@ begin
   ... ≅ abelian.image f                       : iso.refl _,
 end
 
-local attribute [simv] cokernel_iso coimage_iso_image coimage_iso_image_aux
+local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
 
 -- The account of this proof in the Stacks project omits this calculation.
 lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :

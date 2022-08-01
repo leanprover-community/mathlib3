@@ -915,7 +915,7 @@ section colim_functor
 variables [has_colimits_of_shape J C]
 
 section
-local attribute [simv] colim_map
+local attribute [simp] colim_map
 
 /-- `colimit F` is functorial in `F`, when `C` has all colimits of shape `J`. -/
 @[simps obj]

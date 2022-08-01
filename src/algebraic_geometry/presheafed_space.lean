@@ -103,7 +103,7 @@ lemma comp_c {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) :
 variables (C)
 
 section
-local attribute [simv] id comp
+local attribute [simp] id comp
 
 /- The proofs below can be done by `tidy`, but it is too slow,
    and we don't have a tactic caching mechanism. -/
@@ -143,7 +143,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v v u} C) :=
 end
 
 variables {C}
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 
 @[simp] lemma id_base (X : PresheafedSpace.{v v u} C) :
   ((𝟙 X) : X ⟶ X).base = 𝟙 (X : Top.{v}) := rfl
@@ -380,7 +380,7 @@ namespace category_theory
 
 variables {D : Type u} [category.{v} D]
 
-local attribute [simv] presheaf.pushforward_obj
+local attribute [simp] presheaf.pushforward_obj
 
 namespace functor
 

@@ -494,7 +494,7 @@ class alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*) (B :
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] alg_hom_class.to_ring_hom_class
 
-attribute [simv] alg_hom_class.commutes
+attribute [simp] alg_hom_class.commutes
 
 namespace alg_hom_class
 

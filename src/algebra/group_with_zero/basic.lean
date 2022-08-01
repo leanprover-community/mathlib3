@@ -785,7 +785,7 @@ classical.by_cases (λ hb : b = 0, by simv [*]) (div_mul_cancel a)
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
 classical.by_cases (λ hb : b = 0, by simv [*]) (mul_div_cancel a)
 
-local attribute [simv] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
+local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 @[simp] lemma div_self_mul_self' (a : G₀) : a / (a * a) = a⁻¹ :=
 calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simv [mul_inv_rev]

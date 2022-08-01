@@ -25,7 +25,7 @@ To illustrate the technique, we also prove a similar result.
 -- open_locale classical
 
 local attribute [instance] classical.prop_decidable
-local attribute [simv] sq
+local attribute [simp] sq
 
 /-- Constant descent Vieta jumping.
 

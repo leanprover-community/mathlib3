@@ -623,7 +623,7 @@ by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
 
 alias tsub_eq_zero_iff_le ↔ _ tsub_eq_zero_of_le
 
-attribute [simv] tsub_eq_zero_of_le
+attribute [simp] tsub_eq_zero_of_le
 
 @[simp] lemma tsub_self (a : α) : a - a = 0 := tsub_eq_zero_of_le le_rfl
 

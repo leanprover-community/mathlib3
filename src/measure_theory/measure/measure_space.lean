@@ -2307,7 +2307,7 @@ include m0
 class is_probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
 export is_probability_measure (measure_univ)
-attribute [simv] is_probability_measure.measure_univ
+attribute [simp] is_probability_measure.measure_univ
 
 @[priority 100]
 instance is_probability_measure.to_is_finite_measure (μ : measure α) [is_probability_measure μ] :
@@ -2360,7 +2360,7 @@ class has_no_atoms {m0 : measurable_space α} (μ : measure α) : Prop :=
 (measure_singleton : ∀ x, μ {x} = 0)
 
 export has_no_atoms (measure_singleton)
-attribute [simv] measure_singleton
+attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 

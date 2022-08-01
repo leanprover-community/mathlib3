@@ -86,7 +86,7 @@ def comp {M N K : Mat_ C} (f : hom M N) (g : hom N K) : hom M K :=
 end hom
 
 section
-local attribute [simv] hom.id hom.comp
+local attribute [simp] hom.id hom.comp
 
 instance : category.{v₁} (Mat_ C) :=
 { hom := hom,
@@ -209,7 +209,7 @@ end Mat_
 namespace functor
 variables {C} {D : Type*} [category.{v₁} D] [preadditive D]
 
-local attribute [simv] Mat_.id_apply eq_to_hom_map
+local attribute [simp] Mat_.id_apply eq_to_hom_map
 
 /--
 A functor induces a functor of matrix categories.

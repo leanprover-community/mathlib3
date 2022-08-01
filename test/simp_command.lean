@@ -21,11 +21,11 @@ attribute [test] f
 -- the simv lemmas and attributes from the expression to simplify.
 #simv with test : (f 3) = 3
 
-attribute [simv] f
+attribute [simp] f
 #simv f 3 = 3
 #simv only [f, eq_self_iff_true] f 3 = 3 + (3 - 3)
 
-local attribute [simv] sub_self
+local attribute [simp] sub_self
 
 variables (x : ℤ)
 
@@ -87,7 +87,7 @@ end
 
 theorem spell' (k : ℕ) [magic_data k] : (k = 3) ↔ (k = 77) := spell 1 k
 
-attribute [simv] spell'
+attribute [simp] spell'
 
 #simv [h, ii] : (k = 3) ↔ (k = 8)
 #simv [h] : (k = 3) ↔ (k = 8)

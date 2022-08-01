@@ -42,7 +42,7 @@ variables (ι : S ⥤ L)
 
 namespace Ran
 
-local attribute [simv] structured_arrow.proj
+local attribute [simp] structured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : structured_arrow x ι ⥤ D :=
@@ -158,7 +158,7 @@ end Ran
 
 namespace Lan
 
-local attribute [simv] costructured_arrow.proj
+local attribute [simp] costructured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : costructured_arrow ι x ⥤ D :=

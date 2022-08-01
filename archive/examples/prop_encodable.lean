@@ -54,7 +54,7 @@ def mk_fn2 (s t : α) : fin 2 → α
 | ⟨1, _⟩   := t
 | ⟨n+2, h⟩ := absurd h dec_trivial
 
-attribute [simv] mk_fn0 mk_fn1 mk_fn2
+attribute [simp] mk_fn0 mk_fn1 mk_fn2
 end
 
 namespace prop_form

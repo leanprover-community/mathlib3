@@ -42,7 +42,7 @@ variables {abv}
 lemma map_lt_map_iff {x y : R} (h : abv.is_euclidean) : abv x < abv y ↔ x ≺ y :=
 map_lt_map_iff' h
 
-attribute [simv] map_lt_map_iff
+attribute [simp] map_lt_map_iff
 
 lemma sub_mod_lt (h : abv.is_euclidean) (a : R) {b : R} (hb : b ≠ 0) :
   abv (a % b) < abv b :=

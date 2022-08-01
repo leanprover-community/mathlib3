@@ -567,7 +567,7 @@ lemma drop_fun_rel_last {α : typevec n} {β}
   (R : β → β → Prop) :
   drop_fun (rel_last' α R) = repeat_eq α := rfl
 
-attribute [simv] drop_append1'
+attribute [simp] drop_append1'
 open_locale mvfunctor
 
 @[simp]

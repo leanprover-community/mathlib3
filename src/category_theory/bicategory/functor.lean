@@ -169,11 +169,11 @@ restate_axiom map₂_comp'
 restate_axiom map₂_associator'
 restate_axiom map₂_left_unitor'
 restate_axiom map₂_right_unitor'
-attribute [simv] map_comp_naturality_left map_comp_naturality_right map₂_id map₂_associator
+attribute [simp] map_comp_naturality_left map_comp_naturality_right map₂_id map₂_associator
 attribute [reassoc]
   map_comp_naturality_left map_comp_naturality_right map₂_comp
   map₂_associator map₂_left_unitor map₂_right_unitor
-attribute [simv] map₂_comp map₂_left_unitor map₂_right_unitor
+attribute [simp] map₂_comp map₂_left_unitor map₂_right_unitor
 
 section
 
@@ -250,7 +250,7 @@ structure pseudo_core (F : oplax_functor B C) :=
 
 restate_axiom pseudo_core.map_id_iso_hom'
 restate_axiom pseudo_core.map_comp_iso_hom'
-attribute [simv] pseudo_core.map_id_iso_hom pseudo_core.map_comp_iso_hom
+attribute [simp] pseudo_core.map_id_iso_hom pseudo_core.map_comp_iso_hom
 
 end
 
@@ -317,7 +317,7 @@ restate_axiom map₂_left_unitor'
 restate_axiom map₂_right_unitor'
 attribute [reassoc]
   map₂_comp map₂_whisker_left map₂_whisker_right map₂_associator map₂_left_unitor map₂_right_unitor
-attribute [simv]
+attribute [simp]
   map₂_id map₂_comp map₂_whisker_left map₂_whisker_right
   map₂_associator map₂_left_unitor map₂_right_unitor
 

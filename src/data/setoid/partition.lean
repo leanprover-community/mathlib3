@@ -296,7 +296,7 @@ instance [unique ι] [inhabited α] :
    index := default,
    mem_index := set.mem_univ }⟩
 
-attribute [simv] some_mem mem_index
+attribute [simp] some_mem mem_index
 
 include hs
 

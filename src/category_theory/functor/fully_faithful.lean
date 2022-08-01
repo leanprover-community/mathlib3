@@ -45,7 +45,7 @@ class full (F : C ⥤ D) :=
 (witness' : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
 
 restate_axiom full.witness'
-attribute [simv] full.witness
+attribute [simp] full.witness
 
 /--
 A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.

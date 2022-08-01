@@ -107,10 +107,10 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   ∀ X Y : C, (α_ X 𝟙_ Y).hom ≫ ((𝟙 X) ⊗' (λ_ Y).hom) = (ρ_ X).hom ⊗' (𝟙 Y) . obviously)
 
 restate_axiom monoidal_category.tensor_id'
-attribute [simv] monoidal_category.tensor_id
+attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
 attribute [reassoc] monoidal_category.tensor_comp -- This would be redundant in the simv set.
-attribute [simv] monoidal_category.tensor_comp
+attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
 attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'
@@ -488,7 +488,7 @@ universes v₁ v₂ u₁ u₂
 variables (C₁ : Type u₁) [category.{v₁} C₁] [monoidal_category.{v₁} C₁]
 variables (C₂ : Type u₂) [category.{v₂} C₂] [monoidal_category.{v₂} C₂]
 
-local attribute [simv]
+local attribute [simp]
 associator_naturality left_unitor_naturality right_unitor_naturality pentagon
 
 @[simps tensor_obj tensor_hom tensor_unit associator]

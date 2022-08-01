@@ -24,7 +24,7 @@ open function (hiding comp)
 open functor
 
 attribute [functor_norm] is_lawful_traversable.naturality
-attribute [simv] is_lawful_traversable.id_traverse
+attribute [simp] is_lawful_traversable.id_traverse
 
 namespace traversable
 

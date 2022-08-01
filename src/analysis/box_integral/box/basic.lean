@@ -68,7 +68,7 @@ structure box (ι : Type*) :=
 (lower upper : ι → ℝ)
 (lower_lt_upper : ∀ i, lower i < upper i)
 
-attribute [simv] box.lower_lt_upper
+attribute [simp] box.lower_lt_upper
 
 namespace box
 

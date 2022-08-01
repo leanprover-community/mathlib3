@@ -57,7 +57,7 @@ class mul_char_class (F : Type*) (R R' : out_param $ Type*) [comm_monoid R]
   extends monoid_hom_class F R R' :=
 (map_nonunit : ∀ (χ : F) {a : R} (ha : ¬ is_unit a), χ a = 0)
 
-attribute [simv] mul_char_class.map_nonunit
+attribute [simp] mul_char_class.map_nonunit
 
 end defi
 

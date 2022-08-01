@@ -51,7 +51,7 @@ restate_axiom bicategory.strict.assoc'
 restate_axiom bicategory.strict.left_unitor_eq_to_iso'
 restate_axiom bicategory.strict.right_unitor_eq_to_iso'
 restate_axiom bicategory.strict.associator_eq_to_iso'
-attribute [simv]
+attribute [simp]
   bicategory.strict.id_comp bicategory.strict.left_unitor_eq_to_iso
   bicategory.strict.comp_id bicategory.strict.right_unitor_eq_to_iso
   bicategory.strict.assoc bicategory.strict.associator_eq_to_iso

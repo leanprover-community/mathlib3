@@ -100,7 +100,7 @@ flatten $ (λo, option.rec_on o nil prod.snd) <$> destruct s
 def drop (s : wseq α) : ℕ → wseq α
 | 0     := s
 | (n+1) := tail (drop n)
-attribute [simv] drop
+attribute [simp] drop
 
 /-- Get the nth element of `s`. -/
 def nth (s : wseq α) (n : ℕ) : computation (option α) := head (drop s n)

@@ -199,9 +199,9 @@ iso_mk ⟨(ρ_ X.1).hom, λ U, begin
 end⟩
 
 section
-local attribute [simv] associator_naturality left_unitor_naturality right_unitor_naturality
+local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality
   pentagon
-local attribute [simv] center.associator center.left_unitor center.right_unitor
+local attribute [simp] center.associator center.left_unitor center.right_unitor
 
 instance : monoidal_category (center C) :=
 { tensor_obj := λ X Y, tensor_obj X Y,

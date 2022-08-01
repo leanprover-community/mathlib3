@@ -283,7 +283,7 @@ begin
   refl,
 end
 
-local attribute [simv] nat.zero_add nat.one_mul nat.mul_one
+local attribute [simp] nat.zero_add nat.one_mul nat.mul_one
 @[simps {simp_rhs := tt}] def my_nat_equiv : ℕ ≃ ℕ :=
 ⟨λ n, 0 + n, λ n, 1 * n * 1, by { intro n, simv }, by { intro n, simv }⟩
 
@@ -825,7 +825,7 @@ example {M N} [has_zero M] [has_zero N] : (0 : M × N) = ⟨0, 0⟩ := by simv
 section
 /-! Test `dsimp, simv` with the option `simp_rhs` -/
 
-local attribute [simv] nat.add
+local attribute [simp] nat.add
 
 structure my_type :=
 (A : Type)

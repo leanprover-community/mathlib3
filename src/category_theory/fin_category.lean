@@ -64,7 +64,7 @@ instance category_as_type : small_category (as_type α) :=
   comp := λ i j k f g, fintype.equiv_fin _
     ((fintype.equiv_fin _).symm f ≫ (fintype.equiv_fin _).symm g) }
 
-local attribute [simv] category_as_type_hom category_as_type_id
+local attribute [simp] category_as_type_hom category_as_type_id
   category_as_type_comp
 
 /-- The "identity" functor from `as_type α` to `obj_as_type α`. -/

@@ -48,7 +48,7 @@ universes u v w
 
 variables {α : Type u}
 
-local attribute [simv] list.append_eq_has_append
+local attribute [simp] list.append_eq_has_append
 
 namespace free_group
 variables {L L₁ L₂ L₃ L₄ : list (α × bool)}
@@ -56,7 +56,7 @@ variables {L L₁ L₂ L₃ L₄ : list (α × bool)}
 /-- Reduction step: `w * x * x⁻¹ * v ~> w * v` -/
 inductive red.step : list (α × bool) → list (α × bool) → Prop
 | bnot {L₁ L₂ x b} : red.step (L₁ ++ (x, b) :: (x, bnot b) :: L₂) (L₁ ++ L₂)
-attribute [simv] red.step.bnot
+attribute [simp] red.step.bnot
 
 /-- Reflexive-transitive closure of red.step -/
 def red : list (α × bool) → list (α × bool) → Prop := refl_trans_gen red.step

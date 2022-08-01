@@ -75,7 +75,7 @@ instance : inhabited (basis ℍ[R,c₁,c₂] c₁ c₂) := ⟨basis.self R⟩
 variables (q : basis A c₁ c₂)
 include q
 
-attribute [simv] i_mul_i j_mul_j i_mul_j j_mul_i
+attribute [simp] i_mul_i j_mul_j i_mul_j j_mul_i
 
 @[simp] lemma i_mul_k : q.i * q.k = c₁ • q.j :=
 by rw [←i_mul_j, ←mul_assoc, i_mul_i, smul_mul_assoc, one_mul]

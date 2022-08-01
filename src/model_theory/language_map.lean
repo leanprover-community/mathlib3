@@ -179,7 +179,7 @@ class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
 (map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-attribute [simv] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩

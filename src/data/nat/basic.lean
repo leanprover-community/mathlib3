@@ -131,7 +131,7 @@ instance nat.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero ℕ :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
-attribute [simv] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
+attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.zero_ne_one nat.one_ne_zero
   nat.zero_ne_bit1 nat.bit1_ne_zero
   nat.bit0_ne_one nat.one_ne_bit0
@@ -866,7 +866,7 @@ lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k �
 
 /-! ### `div` -/
 
-attribute [simv] nat.div_self
+attribute [simp] nat.div_self
 
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (nat.eq_zero_or_pos k).elim

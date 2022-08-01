@@ -171,7 +171,7 @@ lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_
 
 end rat
 
-local attribute [simv]
+local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel
 
@@ -268,7 +268,7 @@ variable [field K]
 instance field.to_semifield : semifield K :=
 { .. ‹field K›, .. (infer_instance : semiring K) }
 
-local attribute [simv] mul_assoc mul_comm mul_left_comm
+local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 @[field_simps] lemma div_sub_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) - (c / d) = ((a * d) - (b * c)) / (b * d) :=

@@ -66,7 +66,7 @@ restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
 attribute [simv,reassoc] preadditive.add_comp
 attribute [reassoc] preadditive.comp_add -- (the linter doesn't like `simv` on this lemma)
-attribute [simv] preadditive.comp_add
+attribute [simp] preadditive.comp_add
 
 end category_theory
 

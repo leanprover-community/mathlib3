@@ -13,7 +13,7 @@ section
 localized "infix ` ⊹ `:59 := nat.add" in nat
 localized "infix ` ↓ `:59 := nat.mul" in nat
 localized "infix ` ⊖ `:59 := nat.mul" in nat.mul
-localized "attribute [simv] le_of_lt" in le
+localized "attribute [simp] le_of_lt" in le
 example : 2 ⊹ 3 = 5 := rfl
 example : 2 ↓ 3 = 6 := rfl
 example : 2 ⊖ 3 = 6 := rfl

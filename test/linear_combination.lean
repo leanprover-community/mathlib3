@@ -157,7 +157,7 @@ by linear_combination 1/6*ha + 1/3*hab with {normalization_tactic := `[ring_nf]}
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by linear_combination h1 with {normalization_tactic := `[simv]}
+by linear_combination h1 with {normalization_tactic := `[simp]}
 
 
 /-! ### Cases that have linear_combination skip normalization -/

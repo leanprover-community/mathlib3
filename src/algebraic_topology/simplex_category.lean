@@ -266,7 +266,7 @@ begin
   all_goals { simv at h_1 h_2 ⊢; linarith, },
 end
 
-local attribute [simv] fin.pred_mk
+local attribute [simp] fin.pred_mk
 
 /-- The fifth simplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :

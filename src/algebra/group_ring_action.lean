@@ -98,7 +98,7 @@ section simp_lemmas
 
 variables {M G A R F}
 
-attribute [simv] smul_one smul_mul' smul_zero smul_add
+attribute [simp] smul_one smul_mul' smul_zero smul_add
 
 /-- Note that `smul_inv'` refers to the group case, and `smul_inv` has an additional inverse
 on `x`. -/

@@ -208,7 +208,7 @@ s'.X.hom ≫ (F.map $ hc.lift $
 lemma fac (x : J) : lift F hc s ≫ (F.map_cone c).π.app x = s.π.app x :=
 by simpa [lift, ←functor.map_comp]
 
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 
 lemma uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
   (s : cone (K ⋙ F)) (f₁ f₂ : s.X ⟶ F.obj c.X)

@@ -33,7 +33,7 @@ class equiv_functor (f : Type u₀ → Type u₁) :=
 
 restate_axiom equiv_functor.map_refl'
 restate_axiom equiv_functor.map_trans'
-attribute [simv] equiv_functor.map_refl
+attribute [simp] equiv_functor.map_refl
 
 namespace equiv_functor
 

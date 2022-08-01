@@ -52,7 +52,7 @@ namespace algebraic_geometry
 
 namespace PresheafedSpace
 
-local attribute [simv] eq_to_hom_map
+local attribute [simp] eq_to_hom_map
 
 @[simp]
 lemma map_id_c_app (F : J ⥤ PresheafedSpace.{v} C) (j) (U) :

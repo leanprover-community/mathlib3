@@ -52,7 +52,7 @@ noncomputable theory
 open_locale classical topological_space filter
 open topological_space set metric filter function
 
-local attribute [simv] pow_le_pow_iff one_lt_two inv_le_inv
+local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
 
 variable {E : ℕ → Type*}
 

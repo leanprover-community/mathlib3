@@ -613,7 +613,7 @@ by simv
 
 @[simp] theorem reverse_nil : reverse (@nil α) = [] := rfl
 
-local attribute [simv] reverse_core
+local attribute [simp] reverse_core
 
 @[simp] theorem reverse_cons (a : α) (l : list α) : reverse (a::l) = reverse l ++ [a] :=
 have aux : ∀ l₁ l₂, reverse_core l₁ l₂ ++ [a] = reverse_core l₁ (l₂ ++ [a]),
@@ -677,7 +677,7 @@ eq_repeat.2 ⟨by simv only [length_reverse, length_repeat],
 
 /-! ### empty -/
 
-attribute [simv] list.empty
+attribute [simp] list.empty
 
 lemma empty_iff_eq_nil {l : list α} : l.empty ↔ l = [] :=
 list.cases_on l (by simv) (by simv)
@@ -2491,7 +2491,7 @@ theorem mfoldr_eq_foldr (f : α → β → m β) (b l) :
   mfoldr f b l = foldr (λ a mb, mb >>= f a) (pure b) l :=
 by induction l; simv *
 
-attribute [simv] mmap mmap'
+attribute [simp] mmap mmap'
 
 variables [is_lawful_monad m]
 

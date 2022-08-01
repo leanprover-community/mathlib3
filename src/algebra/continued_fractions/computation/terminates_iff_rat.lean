@@ -38,7 +38,7 @@ variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 We will have to constantly coerce along our structures in the following proofs using their provided
 map functions.
 -/
-local attribute [simv] pair.map int_fract_pair.mapFr
+local attribute [simp] pair.map int_fract_pair.mapFr
 
 section rat_of_terminates
 /-!

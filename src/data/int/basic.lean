@@ -121,7 +121,7 @@ int.mk_numeral `(ℤ) `(by apply_instance : has_zero ℤ) `(by apply_instance : 
                     `(by apply_instance : has_add ℤ) `(by apply_instance : has_neg ℤ)
 end
 
-attribute [simv] int.bodd
+attribute [simp] int.bodd
 
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
@@ -305,7 +305,7 @@ end
 
 variables {a b : ℤ} {n : ℕ}
 
-attribute [simv] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
+attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
@@ -454,12 +454,12 @@ theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : 0 < b) :
 match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 
 -- Will be generalized to Euclidean domains.
-local attribute [simv]
+local attribute [simp]
 protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
 | (n:ℕ) := show of_nat _ = _, by simv
 | -[1+ n] := show -of_nat _ = _, by simv
 
-local attribute [simv] -- Will be generalized to Euclidean domains.
+local attribute [simp] -- Will be generalized to Euclidean domains.
 protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
 | (n:ℕ) := show of_nat _ = _, by simv
 | -[1+ n] := rfl
@@ -592,15 +592,15 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 @[simp] theorem mod_abs (a b : ℤ) : a % (|b|) = a % b :=
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
-local attribute [simv] -- Will be generalized to Euclidean domains.
+local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem zero_mod (b : ℤ) : 0 % b = 0 := rfl
 
-local attribute [simv] -- Will be generalized to Euclidean domains.
+local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_zero : ∀ (a : ℤ), a % 0 = a
 | (m : ℕ) := congr_arg of_nat $ nat.mod_zero _
 | -[1+ m] := congr_arg neg_succ_of_nat $ nat.mod_zero _
 
-local attribute [simv] -- Will be generalized to Euclidean domains.
+local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_one : ∀ (a : ℤ), a % 1 = 0
 | (m : ℕ) := congr_arg of_nat $ nat.mod_one _
 | -[1+ m] := show (1 - (m % 1).succ : ℤ) = 0, by rw nat.mod_one; refl
@@ -723,7 +723,7 @@ begin
   simv only [two_mul, sub_eq_add_neg]
 end
 
-local attribute [simv] -- Will be generalized to Euclidean domains.
+local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
 

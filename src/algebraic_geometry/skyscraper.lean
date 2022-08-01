@@ -109,10 +109,7 @@ def skyscraper_sheaf : sheaf C X :=
         split_ifs,
         rw [category.id_comp, eq_to_hom_trans, category.assoc, eq_to_hom_trans],
         generalize_proofs h₅,
-        have := hx _ _ h₂.some_spec.1 h rfl,
-        work_on_goal 2 { exact h₁.some ⊓ V },
-        work_on_goal 2 { exact hom_of_le inf_le_left },
-        work_on_goal 2 { exact hom_of_le inf_le_right },
+        have := hx (hom_of_le inf_le_left) (hom_of_le inf_le_right) h₂.some_spec.1 h rfl,
         dsimp at this,
         have hV' : p₀ ∈ h₁.some ⊓ V := ⟨h₂.some_spec.2, hV⟩,
         split_ifs at this,
@@ -140,8 +137,6 @@ def skyscraper_sheaf : sheaf C X :=
       { rw [←eq_comp_eq_to_hom],
         exact (ts.hom_ext _ _), }
     end⟩⟩
-
-example : true := trivial
 
 end
 
@@ -378,6 +373,11 @@ end
 
 section
 
+/-!
+Skyscraper sheaf alternatively can be defined as the pushforward of a sheaf on a single point space
+`{p₀}` defined by `∅ ↦ *` and `{p₀} ↦ S` under the inclusion `{p₀} ↪ X`.
+-/
+
 open topological_space
 open category_theory category_theory.limits
 open Top
@@ -389,11 +389,15 @@ universes u v w
 variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (S : C)
 variables {star : C} (ts : is_terminal star)
 
+/--The topological space with on a point `{p₀}`. Hence the only open sets are ∅ and ⊤.-/
 def single_point_space : Top := ⟨({p₀} : set X), infer_instance⟩
 
 instance : inhabited (single_point_space p₀) := ⟨⟨p₀, rfl⟩⟩
 instance : unique (single_point_space p₀) := unique.subtype_eq p₀
 
+/--
+The presheaf on a single point space `{p₀}` defined by `∅ ↦ *` and `{p₀} ↦ S`
+-/
 @[simps]
 noncomputable def single_point_presheaf : presheaf C (single_point_space p₀) :=
 { obj := λ U, if U.unop ≠ ⊥ then S else star,
@@ -426,11 +430,16 @@ noncomputable def single_point_presheaf : presheaf C (single_point_space p₀) :
       exact ts.hom_ext _ _, },
   end }
 
-@[simps]
-def single_point_inclusion : single_point_space p₀ ⟶ X :=
+/--
+The trivial inclusion `{p₀} ↪ X`.
+-/
+@[simps] def single_point_inclusion : single_point_space p₀ ⟶ X :=
 { to_fun := λ p, p.1,
   continuous_to_fun := by continuity }
 
+/--
+The morphism from skyscraper presheaf to pushforward sheaf
+-/
 @[simps] noncomputable def skyscraper_presheaf_to_pushforward :
   skyscraper_presheaf p₀ S ts ⟶ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) :=
 { app := λ U, if h : p₀ ∈ U.unop
@@ -478,6 +487,9 @@ def single_point_inclusion : single_point_space p₀ ⟶ X :=
       exact ts.hom_ext _ _ },
   end }
 
+/--
+The morphism from pushforward sheaf to skyscraper presheaf
+-/
 @[simps] noncomputable def pushforward_to_skyscraper_presheaf :
   (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) ⟶
   skyscraper_presheaf p₀ S ts :=
@@ -516,7 +528,10 @@ def single_point_inclusion : single_point_space p₀ ⟶ X :=
       exact ts.hom_ext _ _ },
   end }
 
-noncomputable example :
+/--
+Skyscraper presheaf is isomorphic to pushforward of sheaf on single point.
+-/
+noncomputable def skyscraper_presheaf_as_pushforward :
   skyscraper_presheaf p₀ S ts ≅ (single_point_inclusion p₀) _* (single_point_presheaf p₀ S ts) :=
 { hom := skyscraper_presheaf_to_pushforward p₀ S ts,
   inv := pushforward_to_skyscraper_presheaf p₀ S ts,

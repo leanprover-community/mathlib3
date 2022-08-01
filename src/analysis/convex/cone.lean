@@ -616,7 +616,7 @@ def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
     exact add_nonneg (hu x hx) (hv x hx)
   end }
 
-lemma mem_inner_dual_cone (y : H) (s : set H) :
+@[simp] lemma mem_inner_dual_cone (y : H) (s : set H) :
   y ∈ s.inner_dual_cone ↔ ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ := by refl
 
 @[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
@@ -635,12 +635,10 @@ lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 begin
   simp_rw [set.Inter_coe_set, subtype.coe_mk],
-  refine set.ext (λ x, iff.intro (λ hx, _) _),
-  { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
-    rintro ⟨ ⟩,
-    exact hx i hi },
-  { simp only [set.mem_Inter, convex_cone.mem_coe, mem_inner_dual_cone,
-      set.mem_singleton_iff, forall_eq, imp_self] }
+  apply set.ext,
+  refine λ x, iff.intro (λ hx, (set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)))) (by simp),
+  rintro ⟨ ⟩,
+  exact hx i hi,
 end
 
 lemma closed_inner_dual_cone : is_closed (s.inner_dual_cone : set H) :=
@@ -653,13 +651,11 @@ begin
 
   -- the dual cone of a singleton set is the preimage of `[0, ∞)` under `inner x`
   have h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0),
-  { apply set.ext,
-    simp only [convex_cone.mem_coe, mem_inner_dual_cone, mem_singleton_iff, forall_eq, mem_preimage,
-    mem_Ici, iff_self, forall_const] },
+  { apply set.ext, simp },
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,
-  exact is_closed.preimage (continuous.inner continuous_const continuous_id) is_closed_Ici,
+  exact is_closed_Ici.preimage (continuous.inner continuous_const continuous_id),
 end
 
 end dual

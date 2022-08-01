@@ -18,36 +18,38 @@ complex cosine.
 namespace polynomial.chebyshev
 open polynomial
 
-variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A] (n : ℕ)
+variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 
-@[simp] lemma T_aeval (x : A) : aeval x (T R n) = (T A n).eval x :=
+@[simp] lemma T_aeval (x : A) (n : ℕ) : aeval x (T R n) = (T A n).eval x :=
 by rw [aeval_def, eval₂_eq_eval_map, map_T]
 
-@[simp] lemma U_aeval (x : A) : aeval x (U R n) = (U A n).eval x :=
+@[simp] lemma U_aeval (x : A) (n : ℕ) : aeval x (U R n) = (U A n).eval x :=
 by rw [aeval_def, eval₂_eq_eval_map, map_U]
 
-@[simp] lemma algebra_map_T_eval (x : R) :
+@[simp] lemma algebra_map_T_eval (x : R) (n : ℕ) :
   algebra_map R A ((T R n).eval x) = (T A n).eval (algebra_map R A x) :=
 by rw [←aeval_algebra_map_apply, T_aeval]
 
-@[simp] lemma algebra_map_U_eval (x : R) :
+@[simp] lemma algebra_map_U_eval (x : R) (n : ℕ) :
   algebra_map R A ((U R n).eval x) = (U A n).eval (algebra_map R A x) :=
 by rw [←aeval_algebra_map_apply, U_aeval]
 
-@[simp, norm_cast] lemma of_real_T_eval : ∀ x : ℝ, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
-@algebra_map_T_eval ℝ ℂ _ _ _ n
+@[simp, norm_cast] lemma of_real_T_eval : ∀ x n, ((T ℝ n).eval x : ℂ) = (T ℂ n).eval x :=
+@algebra_map_T_eval ℝ ℂ _ _ _
 
-@[simp, norm_cast] lemma of_real_U_eval : ∀ x : ℝ, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
-@algebra_map_U_eval ℝ ℂ _ _ _ n
+@[simp, norm_cast] lemma of_real_U_eval : ∀ x n, ((U ℝ n).eval x : ℂ) = (U ℂ n).eval x :=
+@algebra_map_U_eval ℝ ℂ _ _ _
 
 /-! ### Complex versions -/
 
 section complex
 open complex
 
+variable (θ : ℂ)
+
 /-- The `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
 value `cos (n * θ)`. -/
-@[simp] lemma T_complex_cos (θ : ℂ) : ∀ n, (T ℂ n).eval (cos θ) = cos (n * θ)
+@[simp] lemma T_complex_cos : ∀ n, (T ℂ n).eval (cos θ) = cos (n * θ)
 | 0       := by simp only [T_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
 | 1       := by simp only [eval_X, one_mul, T_one, nat.cast_one]
 | (n + 2) :=
@@ -62,7 +64,7 @@ end
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
 value `sin ((n + 1) * θ) / sin θ`. -/
-@[simp] lemma U_complex_cos (θ : ℂ) (n : ℕ) : (U ℂ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
+@[simp] lemma U_complex_cos (n : ℕ) : (U ℂ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
 begin
   induction n with d hd,
   { simp only [U_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
@@ -80,14 +82,16 @@ end complex
 section real
 open real
 
+variables (θ : ℝ) (n : ℕ)
+
 /-- The `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
 value `cos (n * θ)`. -/
-@[simp] lemma T_real_cos (θ : ℝ) (n : ℕ) : (T ℝ n).eval (cos θ) = cos (n * θ) :=
+@[simp] lemma T_real_cos : (T ℝ n).eval (cos θ) = cos (n * θ) :=
 by exact_mod_cast T_complex_cos θ n
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
 value `sin ((n + 1) * θ) / sin θ`. -/
-@[simp] lemma U_real_cos (θ : ℝ) (n : ℕ) : (U ℝ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
+@[simp] lemma U_real_cos : (U ℝ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
 by exact_mod_cast U_complex_cos θ n
 
 end real

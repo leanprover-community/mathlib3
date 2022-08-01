@@ -414,8 +414,6 @@ begin
 end
 
 
-
-
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
@@ -534,21 +532,13 @@ begin
       have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1),
       { simpa [←_root_.sq_sub_sq] using hx2' },
 
-      have h4 : (p : zmod (p^α))^l ∣ (x+1) ∨ (p : zmod (p^α))^l ∣ (x-1), { sorry },
-
-
-
-      ---  NO!  We have x = ± 1 mod p^l
-      -- TODO : Re-write the remainder of the proof
-      have h5 : x = 1 ∨ x = -1, {
-        apply or.imp (λ h, _) (λ h, _) h4.symm,
-        {
-
+      have h4 : (p : zmod (p^α))^l ∣ x + 1 ∨ (p : zmod (p^α))^l ∣ x - 1, { sorry },
+      have h4' : (p : zmod (p^α))^l ∣ x + 1 := (or_iff_left hx1').1 h4,
+      have h5 : (p : zmod (p^α))^α ∣ x + 1, { sorry },
+      have h6 : x = -1, {
+        suffices : x + 1 = 0, { rw [←add_sub_cancel x 1, this], simp },
 
         sorry },
-        { sorry },
-      },
-      have h6 : x = -1, { cases h5, { cases hx1 h5 }, { exact h5 } },
 
       rw [hx, ←pow_mul, mul_comm, pow_mul] at h6,
       rw pow_mul,
@@ -575,6 +565,10 @@ begin
     --   rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow] },
      },
 end
+
+
+
+#exit
 
 
 --------------------------------------------------------------------------------------------------

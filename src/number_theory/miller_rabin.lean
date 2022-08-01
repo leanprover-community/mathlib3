@@ -485,27 +485,27 @@ begin
     have hlk : l ∣ k,
     { simp_rw [hl, hk], apply ord_compl_dvd_ord_compl_of_dvd hp_sub1_dvd },
 
+    -- Since (a^l)^(2^f) = 1, the order of (a^l) is 2^j for some 0 ≤ j ≤ f
     have H : ∃ (j : ℕ) (H : j ≤ f), order_of (a^l) = 2^j,
-    {
-      have H1 : (a^l)^(even_part (p-1)) = 1,
+    { have H1 : (a^l)^(even_part (p-1)) = 1,
       { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p-1), h],},
       rw ←nat.dvd_prime_pow nat.prime_two,
       exact order_of_dvd_of_pow_eq_one H1 },
-
-    rcases H with ⟨j, H, hj⟩,
-
+    rcases H with ⟨j, hjf, hj⟩,
     rcases eq_or_ne j 0 with rfl | hj0,
+    -- If j=0 then a^l = 1. So since l ∣ k, we have a^k = 1 and so `a` is a Miller-Rabin nonwitness.
     { rw [pow_zero, order_of_eq_one_iff] at hj,
       left,
       rcases hlk with ⟨q, hq⟩,
       rw [←hk, hq, pow_mul, hj, one_pow],},
+    -- In the case where j ≥ 1 we will show that (a^k)^(2^(j-1)) = -1, and so `a` is a nonwitness.
     {
       right,
       rw [←he, ←hk],
 
       -- Since j ≤ f ≤ e we have j-1 < e,
       -- so all that remains is to show that a ^ (2^(j-1) * k) = -1 (mod p^α)
-      refine ⟨j-1, lt_of_lt_of_le (pred_lt hj0) (H.trans hfe), _⟩,
+      refine ⟨j-1, lt_of_lt_of_le (pred_lt hj0) (hjf.trans hfe), _⟩,
 
       have h_order : (a^l)^(2^j) = 1, { rw ←hj, apply pow_order_of_eq_one },
 

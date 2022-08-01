@@ -1094,7 +1094,7 @@ instance [ring k] [add_semigroup G] : non_unital_ring (add_monoid_algebra k G) :
   .. add_monoid_algebra.non_unital_semiring }
 
 instance [ring k] [add_zero_class G] : non_assoc_ring (add_monoid_algebra k G) :=
-{ int_cast                    := λ n, single 0 (algebra_map ℤ k n),
+{ int_cast                    := λ z, single 1 (z : k),
   int_cast_of_nat             := λ n, by simpa,
   int_cast_neg_succ_of_nat    := λ n, by simpa,
   .. add_monoid_algebra.add_comm_group,

@@ -65,8 +65,8 @@ noncomputable def T : ℕ → R[X]
 
 @[simp] lemma T_zero : T R 0 = 1 := rfl
 @[simp] lemma T_one : T R 1 = X := rfl
-lemma T_two : T R 2 = 2 * X ^ 2 - 1 :=
-by simp only [T, sub_left_inj, sq, mul_assoc]
+lemma T_two : T R 2 = 2 * X ^ 2 - 1 := by simp only [T, sub_left_inj, sq, mul_assoc]
+
 @[simp] lemma T_add_two (n : ℕ) :
   T R (n + 2) = 2 * X * T R (n + 1) - T R n :=
 by rw T
@@ -78,21 +78,6 @@ begin
   rw add_comm,
   exact T_add_two R n
 end
-
-variables {R S}
-
-lemma map_T (f : R →+* S) :
-  ∀ (n : ℕ), map f (T R n) = T S n
-| 0       := by simp only [T_zero, polynomial.map_one]
-| 1       := by simp only [T_one, map_X]
-| (n + 2) :=
-begin
-  simp only [T_add_two, polynomial.map_mul, polynomial.map_sub, map_X, bit0,
-             polynomial.map_add, polynomial.map_one],
-  rw [map_T (n + 1), map_T n],
-end
-
-variables (R S)
 
 /-- `U n` is the `n`-th Chebyshev polynomial of the second kind -/
 noncomputable def U : ℕ → R[X]
@@ -118,7 +103,7 @@ begin
 end
 
 lemma U_eq_X_mul_U_add_T :
-  ∀ (n : ℕ), U R (n+1) = X * U R n + T R (n+1)
+  ∀ (n : ℕ), U R (n + 1) = X * U R n + T R (n + 1)
 | 0        := by { simp only [U_zero, U_one, T_one], ring }
 | 1        := by { simp only [U_one, T_two, U_two], ring }
 | (n + 2)  :=
@@ -128,12 +113,11 @@ lemma U_eq_X_mul_U_add_T :
   ... = X * U R (n + 2) + T R (n + 2 + 1) : by simp only [U_add_two, T_add_two]
 
 lemma T_eq_U_sub_X_mul_U (n : ℕ) :
-  T R (n+1) = U R (n+1) - X * U R n :=
+  T R (n + 1) = U R (n + 1) - X * U R n :=
 by rw [U_eq_X_mul_U_add_T, add_comm (X * U R n), add_sub_cancel]
 
-
 lemma T_eq_X_mul_T_sub_pol_U :
-  ∀ (n : ℕ), T R (n+2) = X * T R (n+1) - (1 - X ^ 2) * U R n
+  ∀ (n : ℕ), T R (n + 2) = X * T R (n + 1) - (1 - X ^ 2) * U R n
 | 0        := by { simp only [T_one, T_two, U_zero], ring }
 | 1        := by { simp only [T_add_two, T_zero, T_add_two,
                               U_one, T_one], ring }
@@ -152,13 +136,24 @@ by rw [T_eq_X_mul_T_sub_pol_U, ←sub_add, sub_self, zero_add]
 
 variables {R S}
 
+@[simp] lemma map_T (f : R →+* S) :
+  ∀ (n : ℕ), map f (T R n) = T S n
+| 0       := by simp only [T_zero, polynomial.map_one]
+| 1       := by simp only [T_one, map_X]
+| (n + 2) :=
+begin
+  simp only [T_add_two, polynomial.map_mul, polynomial.map_sub, map_X, bit0,
+             polynomial.map_add, polynomial.map_one],
+  rw [map_T (n + 1), map_T n],
+end
+
 @[simp] lemma map_U (f : R →+* S) :
   ∀ (n : ℕ), map f (U R n) = U S n
 | 0       := by simp only [U_zero, polynomial.map_one]
 | 1       :=
 begin
   simp only [U_one, map_X, polynomial.map_mul, polynomial.map_add, polynomial.map_one],
-  change map f (1+1) * X = 2 * X,
+  change map f (1 + 1) * X = 2 * X,
   simpa only [polynomial.map_add, polynomial.map_one]
 end
 | (n + 2) :=
@@ -188,19 +183,17 @@ lemma T_derivative_eq_U :
   ... = (↑(n + 2) + 1) * U R (n + 2) : by norm_cast
 
 lemma one_sub_X_sq_mul_derivative_T_eq_poly_in_T (n : ℕ) :
-  (1 - X ^ 2)  * (derivative (T R (n+1))) =
-    (n + 1) * (T R n - X * T R (n+1)) :=
+  (1 - X ^ 2) * (derivative (T R (n + 1))) = (n + 1) * (T R n - X * T R (n+1)) :=
   calc
-  (1 - X ^ 2)  * (derivative (T R (n+1))) = (1 - X ^ 2 ) * ((n + 1) * U R n) :
+  (1 - X ^ 2) * (derivative (T R (n + 1))) = (1 - X ^ 2) * ((n + 1) * U R n) :
             by rw T_derivative_eq_U
   ... = (n + 1) * ((1 - X ^ 2) * U R n) : by ring
   ... = (n + 1) * (X * T R (n + 1) - (2 * X * T R (n + 1) - T R n)) :
             by rw [one_sub_X_sq_mul_U_eq_pol_in_T, T_add_two]
-  ... = (n + 1) * (T R n - X * T R (n+1)) : by ring
+  ... = (n + 1) * (T R n - X * T R (n + 1)) : by ring
 
 lemma add_one_mul_T_eq_poly_in_U (n : ℕ) :
-  ((n : R[X]) + 1) * T R (n+1) =
-    X * U R n - (1 - X ^ 2) * derivative ( U R n) :=
+  ((n : R[X]) + 1) * T R (n + 1) = X * U R n - (1 - X ^ 2) * derivative (U R n) :=
 begin
   have h : derivative (T R (n + 2)) = (U R (n + 1) - X * U R n) + X * derivative (T R (n + 1))
                                       + 2 * X * U R n - (1 - X ^ 2) * derivative (U R n),

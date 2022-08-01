@@ -198,7 +198,7 @@ begin
       rw ← matrix.det_reindex_self he.symm (λ (i j : {a // b a = l}), M ↑i ↑j),
       refine congr_arg _ _,
       ext,
-      simp },
+      simp [to_square_block_def, to_square_block_prop_def] },
   { intros i hi j hj,
     apply hM,
     rw hi,

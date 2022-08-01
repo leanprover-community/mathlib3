@@ -885,6 +885,35 @@ begin
   simp [nat.succ_lt_succ_iff]
 end
 
+/-- If a sequence `ℕ → α` has a sum at `x : α`, then so does an extension of it,
+inserting `a : α` at the beginning. -/
+lemma has_sum.shift_pred_add {α : Type*} [add_comm_monoid α] [topological_space α]
+  [has_continuous_add α] {f : ℕ → α} {x : α} (h : has_sum f x) (y : α) :
+  has_sum (λ n, if n = 0 then y else f (n - 1)) (y + x) :=
+begin
+  set g : ℕ → α := pi.single 0 y with hg,
+  have hsplit : (λ (n : ℕ), ite (n = 0) y (f (n - 1))) = g + (λ (n : ℕ), ite (n = 0) 0 (f (n - 1))),
+  { ext (_|_);
+    simp [hg] },
+  rw hsplit,
+  suffices : has_sum g y,
+  { exact this.add h.shift_pred },
+  have : y = g 0 := by simp [hg],
+  rw this,
+  refine has_sum_single _ _,
+  simp [hg, pi.single_apply] { contextual := tt }
+end
+
+/-- If `f₀, f₁, f₂, ...` is convergent then so is the `ℕ`-indexed sequence: `y, f₀, f₁, f₂, ...`. -/
+lemma has_sum.nat_rec {α : Type*} [add_comm_monoid α] [topological_space α]
+  [has_continuous_add α] {f : ℕ → α} {x : α} (h : has_sum f x) (y : α) :
+  @has_sum α _ _ _ (@nat.rec (λ _, α) y (λ i _, f i) : ℕ → α) (y + x) :=
+begin
+  convert h.shift_pred_add y,
+  ext (_|_);
+  simp
+end
+
 /-- If `f₀, f₁, f₂, ...` and `g₀, g₁, g₂, ...` are both convergent then so is the `ℤ`-indexed
 sequence: `..., g₂, g₁, g₀, f₀, f₁, f₂, ...`. -/
 lemma has_sum.int_rec {b : α} {f g : ℕ → α} (hf : has_sum f a) (hg : has_sum g b) :

@@ -99,6 +99,8 @@ def fin_ro_components (K : finset V) := {C : set V | C ∈ ro_components G K ∧
 
 namespace ro_component
 
+def ι (K : finset V) : inf_ro_components G K → ro_components G K :=
+      λ ⟨s, ⟨h_ro, c⟩⟩, ⟨s, h_ro⟩
 --variable (K : finset V)
 
 def of (K : finset V) (x : V) : (set V) := {y : V | reachable_outside G K x y}
@@ -139,6 +141,7 @@ begin
   exact λ x x_in_P, P_ro p p_in_P x x_in_P,
 end
 
+lemma ι_inj (K : finset V) : function.injective (ι G K) := by {rintros ⟨_, _, _⟩ ⟨_, _, _⟩, simp_rw [ι], tidy,}
 
 -- This one could probably use `of_ro_set` but I'm too lazy/stupid to figure the neatest way to do things
 lemma eq_of_common_mem (K : finset V) (C D : set V) (hC : C ∈ ro_components G K) (hD : D ∈ ro_components G K)
@@ -324,6 +327,11 @@ begin
   -- that ro_components G K is just {G}, i.e. a singleton, hence finite
 end
 
+instance ro_components_fintype [locally_finite G] (Gpc : G.preconnected) (K : finset V) : fintype (ro_components G K) := set.finite.fintype (finite G Gpc K)
+
+@[instance] lemma inf_ro_components_fintype [locally_finite G] (Gpc : G.preconnected) (K : finset V) : fintype (inf_ro_components G K) :=
+@fintype.of_injective _ _ (ro_component.ro_components_fintype G Gpc K) (ι G K) (ι_inj G K)
+
 /-A graph is the union of the part `K` and all the ro_components in its complement-/
 lemma graph_eq_part_union_ro_comp (K : finset V) : ↑K ∪ (⋃₀ ro_components G K) = set.univ :=
 begin
@@ -460,11 +468,11 @@ end
 -- Should use bij_ro_components_of_isom plus the obvious fact that φ being a bijection, it preserves infinite-ness.
 -- Some additional lemmas may be needed to make the above argument go through as is
 
-lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Gpc : G.preconnected) (K : finset V)  (Vinfinite : (@set.univ V).infinite):
- (inf_ro_components G K).nonempty :=
+@[instance] lemma infinite_graph_to_inf_components_nonempty [locally_finite G] (Gpc : G.preconnected) (K : finset V)  (Vinfinite : (@set.univ V).infinite) :
+ nonempty (inf_ro_components G K) :=
 begin
   by_contradiction,
-  rw [set.not_nonempty_iff_eq_empty, inf_ro_components] at h,
+  rw [not_nonempty_iff, inf_ro_components] at h,
   apply Vinfinite,
   rw [← graph_eq_part_union_ro_comp G K],
   apply set.finite.union,
@@ -474,9 +482,9 @@ begin
     { apply finite G Gpc,},
     { intros C hC,
       by_contradiction hCinf,
-      simp_rw [set.ext_iff] at h,
-      apply (h C).mp,
-      split, all_goals {assumption},
+      rw [is_empty_iff] at h,
+      apply h,
+      split, split, all_goals {assumption},
     }
   }
   -- K is finite, hence its boundary too, and there can only be a finite number of ro_components

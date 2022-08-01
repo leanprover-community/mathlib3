@@ -837,6 +837,52 @@ begin
     { apply_instance } }
 end
 
+/-- If a sequence `ℕ → α` has a sum at `x : α`, then so does an extension of it,
+inserting a zero term at the beginning. -/
+lemma has_sum.shift_pred {f : ℕ → α} {x : α} (h : has_sum f x) :
+  has_sum (λ n, if n = 0 then 0 else f (n - 1)) x :=
+begin
+  rw has_sum at h ⊢,
+  rw tendsto_nhds at h ⊢,
+  simp only [filter.mem_at_top_sets, ge_iff_le, finset.le_eq_subset, set.mem_preimage] at h ⊢,
+  intros s hs hx,
+  obtain ⟨u, hu⟩ := h s hs hx,
+  refine ⟨u.image nat.succ, λ v hv, _⟩,
+  specialize hu ((v.erase 0).image nat.pred ) _,
+  { intros i hi,
+    rw finset.mem_image,
+    refine ⟨i.succ, _, nat.pred_succ _⟩,
+    simp only [finset.mem_erase, ne.def, nat.succ_ne_zero, not_false_iff, true_and],
+    refine hv _,
+    simpa using hi },
+  convert hu using 1,
+  refine finset.sum_bij_ne_zero (λ i _ _, i.pred) _ _ _ _,
+  { intros i hi hi',
+    simp only [finset.mem_image, finset.mem_erase, ne.def, exists_prop, ite_eq_left_iff,
+               not_forall] at hi' ⊢,
+    exact ⟨i, ⟨hi'.left, hi⟩, rfl⟩ },
+  { simp only [ne.def, ite_eq_left_iff, not_forall, exists_prop, and_imp],
+    intros,
+    exact nat.pred_inj (nat.pos_of_ne_zero ‹_›) (nat.pos_of_ne_zero ‹_›) ‹_› },
+  { simp only [finset.mem_image, finset.mem_erase, ne.def, exists_prop, ite_eq_left_iff, not_forall,
+               forall_exists_index, and_imp],
+    rintro b x hx hv rfl hf,
+    exact ⟨_, hv, ⟨hx, hf⟩, rfl⟩ },
+  { simp [nat.pred_eq_sub_one] { contextual := tt } }
+end
+
+/-- If a sequence `ℕ → α` has a sum at `x : α`, then so does an extension of it,
+inserting `k` zero terms at the beginning. -/
+lemma has_sum.shift_tsub {f : ℕ → α} {x : α} (h : has_sum f x) (k : ℕ) :
+  has_sum (λ n, if n < k then 0 else f (n - k)) x :=
+begin
+  induction k with k IH,
+  { simpa using h },
+  convert IH.shift_pred,
+  ext (_|_);
+  simp [nat.succ_lt_succ_iff]
+end
+
 /-- If `f₀, f₁, f₂, ...` and `g₀, g₁, g₂, ...` are both convergent then so is the `ℤ`-indexed
 sequence: `..., g₂, g₁, g₀, f₀, f₁, f₂, ...`. -/
 lemma has_sum.int_rec {b : α} {f g : ℕ → α} (hf : has_sum f a) (hg : has_sum g b) :

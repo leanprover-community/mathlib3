@@ -33,10 +33,10 @@ lemma mem_iff {a : α} {b : option α} : a ∈ b ↔ b = a := iff.rfl
 theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 ⟨option.eq_none_of_is_none, λ e, e.symm ▸ rfl⟩
 
-theorem some_inj {a b : α} : some a = some b ↔ a = b := by simv
+theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
 lemma mem_some_iff {α : Type*} {a b : α} : a ∈ some b ↔ b = a :=
-by simv
+by simp
 
 /--
 `o = none` is decidable even if the wrapped type does not have decidable equality.
@@ -50,7 +50,7 @@ decidable_of_decidable_of_iff (bool.decidable_eq _ _) is_none_iff_eq_none
 
 instance decidable_forall_mem {p : α → Prop} [decidable_pred p] :
   ∀ o : option α, decidable (∀ a ∈ o, p a)
-| none     := is_true (by simv [false_implies_iff])
+| none     := is_true (by simp [false_implies_iff])
 | (some a) := if h : p a
   then is_true $ λ o e, some_inj.1 e ▸ h
   else is_false $ mt (λ H, H _ rfl) h
@@ -84,7 +84,7 @@ def to_list : option α → list α
 | (some a) := [a]
 
 @[simp] theorem mem_to_list {a : α} {o : option α} : a ∈ to_list o ↔ a ∈ o :=
-by cases o; simv [to_list, eq_comm]
+by cases o; simp [to_list, eq_comm]
 
 /-- Two arguments failsafe function. Returns `f a b` if the inputs are `some a` and `some b`, and
 "does nothing" otherwise. -/
@@ -96,23 +96,23 @@ def lift_or_get (f : α → α → α) : option α → option α → option α
 
 instance lift_or_get_comm (f : α → α → α) [h : is_commutative α f] :
   is_commutative (option α) (lift_or_get f) :=
-⟨λ a b, by cases a; cases b; simv [lift_or_get, h.comm]⟩
+⟨λ a b, by cases a; cases b; simp [lift_or_get, h.comm]⟩
 
 instance lift_or_get_assoc (f : α → α → α) [h : is_associative α f] :
   is_associative (option α) (lift_or_get f) :=
-⟨λ a b c, by cases a; cases b; cases c; simv [lift_or_get, h.assoc]⟩
+⟨λ a b c, by cases a; cases b; cases c; simp [lift_or_get, h.assoc]⟩
 
 instance lift_or_get_idem (f : α → α → α) [h : is_idempotent α f] :
   is_idempotent (option α) (lift_or_get f) :=
-⟨λ a, by cases a; simv [lift_or_get, h.idempotent]⟩
+⟨λ a, by cases a; simp [lift_or_get, h.idempotent]⟩
 
 instance lift_or_get_is_left_id (f : α → α → α) :
   is_left_id (option α) (lift_or_get f) none :=
-⟨λ a, by cases a; simv [lift_or_get]⟩
+⟨λ a, by cases a; simp [lift_or_get]⟩
 
 instance lift_or_get_is_right_id (f : α → α → α) :
   is_right_id (option α) (lift_or_get f) none :=
-⟨λ a, by cases a; simv [lift_or_get]⟩
+⟨λ a, by cases a; simp [lift_or_get]⟩
 
 /-- Lifts a relation `α → β → Prop` to a relation `option α → option β → Prop` by just adding
 `none ~ none`. -/

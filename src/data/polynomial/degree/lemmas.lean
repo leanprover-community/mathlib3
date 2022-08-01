@@ -165,12 +165,11 @@ end
 
 lemma coeff_add_eq_left_of_lt (qn : q.nat_degree < n) :
   (p + q).coeff n = p.coeff n :=
-(coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $
-  nat.lt_succ_iff.mpr qn).trans $ add_zero _
+(coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $ qn).trans $ add_zero _
 
-lemma coeff_add_succ_eq_right_of_le (pn : p.nat_degree ≤ n) :
-  (p + q).coeff (n + 1) = q.coeff (n + 1) :=
-by { rw add_comm, exact coeff_add_succ_eq_left_of_le pn }
+lemma coeff_add_succ_eq_right_of_le (pn : p.nat_degree < n) :
+  (p + q).coeff n = q.coeff n :=
+by { rw add_comm, exact coeff_add_eq_left_of_lt pn }
 
 lemma degree_sum_eq_of_disjoint (f : S → R[X]) (s : finset S)
   (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (degree ∘ f))) :
@@ -276,15 +275,15 @@ begin
   rw [sub_eq_add_neg, nat_degree_add_le_iff_left _ _ qn],
 end
 
-lemma coeff_sub_succ_eq_left_of_le (dg : q.nat_degree ≤ n) :
-  (p - q).coeff (n + 1) = p.coeff (n + 1) :=
+lemma coeff_sub_succ_eq_left_of_le (dg : q.nat_degree < n) :
+  (p - q).coeff n = p.coeff n :=
 begin
   rw ← nat_degree_neg at dg,
-  rw [sub_eq_add_neg, coeff_add_succ_eq_left_of_le dg],
+  rw [sub_eq_add_neg, coeff_add_eq_left_of_lt dg],
 end
 
-lemma coeff_sub_succ_eq_neg_right_of_le (df : p.nat_degree ≤ n) :
-  (p - q).coeff (n + 1) = - q.coeff (n + 1) :=
+lemma coeff_sub_succ_eq_neg_right_of_le (df : p.nat_degree < n) :
+  (p - q).coeff n = - q.coeff n :=
 by rwa [sub_eq_add_neg, coeff_add_succ_eq_right_of_le, coeff_neg]
 
 end ring

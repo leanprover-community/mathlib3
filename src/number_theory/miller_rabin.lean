@@ -511,6 +511,7 @@ begin
 
 
       set x := (a^l)^(2^(j-1)) with hx,
+
       have hx1 : x ≠ 1, {
         intro H,
         rw [H, eq_comm] at hx,
@@ -526,9 +527,13 @@ begin
         { nth_rewrite_rhs 0 ←(tsub_add_cancel_of_le (succ_le_iff.mpr hj0.bot_lt)),
           simp [pow_add] },
         rw this },
-      have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1), {
 
-        sorry },
+      have hx1' : ¬ (p : zmod (p^α))^l ∣ x - 1, { sorry },
+      have hx2' : (p : zmod (p^α))^l ∣ x^2 - 1, { sorry },
+
+      have h3 : (p : zmod (p^α))^l ∣ (x+1) * (x-1),
+      { simpa [←_root_.sq_sub_sq] using hx2' },
+
       have h4 : (p : zmod (p^α))^l ∣ (x+1) ∨ (p : zmod (p^α))^l ∣ (x-1), { sorry },
 
 

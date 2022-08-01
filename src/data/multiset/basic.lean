@@ -1159,6 +1159,10 @@ multiset.induction_on t (by simp [multiset.sub_zero])
 instance : has_ordered_sub (multiset α) :=
 ⟨λ n m k, multiset.sub_le_iff_le_add⟩
 
+lemma cons_sub_of_le (a : α) {s t : multiset α} (h : t ≤ s) :
+  a ::ₘ s - t = a ::ₘ (s - t) :=
+by rw [←singleton_add, ←singleton_add, add_tsub_assoc_of_le h]
+
 theorem sub_eq_fold_erase (s t : multiset α) : s - t = foldl erase erase_comm s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂,
 show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
@@ -2208,15 +2212,6 @@ lemma add_eq_union_iff_disjoint [decidable_eq α] {s t : multiset α} :
   s + t = s ∪ t ↔ disjoint s t :=
 by simp_rw [←inter_eq_zero_iff_disjoint, ext, count_add, count_union, count_inter, count_zero,
             nat.min_eq_zero_iff, nat.add_eq_max_iff]
-
-lemma add_le_of_le_of_disjoint {s t T : multiset α}
-  (hs : s ≤ T) (ht : t ≤ T) (h : multiset.disjoint s t):
-  s + t ≤ T :=
-begin
-  classical,
-  rw add_eq_union_iff_disjoint.mpr h,
-  simp [hs, ht, union_le_iff, and_self]
-end
 
 lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
   disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=

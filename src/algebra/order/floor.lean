@@ -521,6 +521,9 @@ lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
 
 @[simp] lemma fract_zero : fract (0 : α) = 0 := by rw [fract, floor_zero, cast_zero, sub_self]
 
+@[simp] lemma fract_one : fract (1 : α) = 0 :=
+by simp [fract]
+
 @[simp] lemma fract_coe (z : ℤ) : fract (z : α) = 0 :=
 by { unfold fract, rw floor_coe, exact sub_self _ }
 

@@ -183,7 +183,7 @@ instance : non_assoc_semiring (monoid_algebra k G) :=
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   ..monoid_algebra.non_unital_non_assoc_semiring }
 
-lemma nat_cast_def {n : ℕ} : (n : monoid_algebra k G) = single 1 n := rfl
+lemma nat_cast_def (n : ℕ) : (n : monoid_algebra k G) = single 1 n := rfl
 
 end mul_one_class
 
@@ -252,7 +252,7 @@ instance [ring k] [mul_one_class G] : non_assoc_ring (monoid_algebra k G) :=
   .. monoid_algebra.add_comm_group,
   .. monoid_algebra.non_assoc_semiring }
 
-lemma int_cast_def [ring k] [mul_one_class G] {z : ℤ} : (z : monoid_algebra k G) = single 1 z := rfl
+lemma int_cast_def [ring k] [mul_one_class G] (z : ℤ) : (z : monoid_algebra k G) = single 1 z := rfl
 
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 { .. monoid_algebra.non_assoc_ring,
@@ -1036,7 +1036,7 @@ instance : non_assoc_semiring (add_monoid_algebra k G) :=
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   .. add_monoid_algebra.non_unital_non_assoc_semiring }
 
-lemma nat_cast_def {n : ℕ} : (n : add_monoid_algebra k G) = single 0 n := rfl
+lemma nat_cast_def (n : ℕ) : (n : add_monoid_algebra k G) = single 0 n := rfl
 
 end mul_one_class
 
@@ -1106,7 +1106,7 @@ instance [ring k] [add_zero_class G] : non_assoc_ring (add_monoid_algebra k G) :
   .. add_monoid_algebra.add_comm_group,
   .. add_monoid_algebra.non_assoc_semiring }
 
-lemma int_cast_def [ring k] [add_zero_class G] {z : ℤ} :
+lemma int_cast_def [ring k] [add_zero_class G] (z : ℤ) :
   (z : add_monoid_algebra k G) = single 0 z := rfl
 
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=

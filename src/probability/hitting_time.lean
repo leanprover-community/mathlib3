@@ -109,6 +109,16 @@ begin
   exact h_mem.2,
 end
 
+lemma hitting_mem_set_of_hitting_lt [is_well_order ι (<)] {m : ι}
+  (hl : hitting u s n m x < m) :
+  u (hitting u s n m x) x ∈ s :=
+begin
+  by_cases h : ∃ j ∈ set.Icc n m, u j x ∈ s,
+  { exact hitting_mem_set h },
+  { simp_rw [hitting, if_neg h] at hl,
+    exact false.elim (hl.ne rfl) }
+end
+
 lemma hitting_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i x ∈ s) :
   hitting u s n m x ≤ i :=
 begin
@@ -158,8 +168,8 @@ begin
     exact hitting_le_of_mem hk₁.1 (hk₁.2.le.trans hi) hk₂, },
 end
 
-lemma hitting_eq_hitting_of_exists [is_well_order ι (<)] {m₁ m₂ : ι}
-  (hn : n ≤ m₁) (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
+lemma hitting_eq_hitting_of_exists
+  {m₁ m₂ : ι} (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
   hitting u s n m₁ x = hitting u s n m₂ x :=
 begin
   simp only [hitting, if_pos h'],
@@ -173,6 +183,21 @@ begin
     { exact ((cInf_le bdd_below_Icc.inter_of_left ⟨hj₁, hj₂⟩).trans (hj₁.2.trans le_rfl)).trans
         (le_of_lt (not_le.1 hi')) } },
   exact ⟨j, ⟨hj₁.1, hj₁.2.trans h⟩, hj₂⟩,
+end
+
+lemma hitting_mono {m₁ m₂ : ι} (hm : m₁ ≤ m₂) :
+  hitting u s n m₁ x ≤ hitting u s n m₂ x :=
+begin
+  by_cases h : ∃ j ∈ set.Icc n m₁, u j x ∈ s,
+  { exact (hitting_eq_hitting_of_exists hm h).le },
+  { simp_rw [hitting, if_neg h],
+    split_ifs with h',
+    { obtain ⟨j, hj₁, hj₂⟩ := h',
+      refine le_cInf ⟨j, hj₁, hj₂⟩ _,
+      by_contra hneg, push_neg at hneg,
+      obtain ⟨i, hi₁, hi₂⟩ := hneg,
+      exact h ⟨i, ⟨hi₁.1.1, hi₂.le⟩, hi₁.2⟩ },
+    { exact hm } }
 end
 
 end inequalities

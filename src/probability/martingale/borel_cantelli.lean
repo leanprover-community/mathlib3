@@ -147,22 +147,75 @@ begin
   end
 end
 
-lemma aux_1 {n : ℕ} {r : ℝ} {k : ℕ} (hk : k < n) {x : α} :
+lemma least_ge_eq_lt_iff {n : ℕ} {r : ℝ} {k : ℕ} (hk : k < n) {x : α} :
   least_ge f r n x = k ↔ least_ge f r (n + 1) x = k :=
 begin
-  sorry,
+  split; intro h,
+  { rw [← h, eq_comm],
+    rw [← h, least_ge, hitting_lt_iff _ le_rfl] at hk,
+    obtain ⟨j, hj₁, hj₂⟩ := hk,
+    exact hitting_eq_hitting_of_exists n.le_succ ⟨j, ⟨zero_le _, hj₁.2.le⟩, hj₂⟩,
+    apply_instance },
+  { rw ← h,
+    rw [← h, least_ge, hitting_lt_iff _ n.le_succ] at hk,
+    obtain ⟨j, hj₁, hj₂⟩ := hk,
+    exact hitting_eq_hitting_of_exists n.le_succ ⟨j, ⟨zero_le _, hj₁.2.le⟩, hj₂⟩ }
 end
 
-lemma aux_2 (n : ℕ) {r : ℝ} {x : α} :
-  least_ge f r n x = n ∧ (f n x ≤ -r ∨ r ≤ f n x) ↔ least_ge f r (n + 1) x = n :=
+lemma least_ge_succ_eq_iff (n : ℕ) {r : ℝ} {x : α} :
+  least_ge f r (n + 1) x = n ↔ least_ge f r n x = n ∧ (f n x ≤ -r ∨ r ≤ f n x) :=
 begin
-  sorry
+  split,
+  { intro h,
+    refine ⟨_, (_ : f n x ∈ set.Iic (-r) ∪ set.Ici r)⟩,
+    { rw ← h,
+      refine hitting_eq_hitting_of_exists (hitting_le _) _,
+      have : least_ge f r (n + 1) x < n + 1 := h.symm ▸ n.lt_succ_self,
+      rw [least_ge, hitting_lt_iff (n + 1) le_rfl] at this,
+      obtain ⟨j, hj₁, hj₂⟩ := this,
+      exact ⟨j, ⟨zero_le _, h.symm ▸ nat.le_of_lt_succ hj₁.2⟩, hj₂⟩ },
+    { refine h ▸ hitting_mem_set _,
+      have : least_ge f r (n + 1) x < n + 1 := h.symm ▸ n.lt_succ_self,
+      rw [least_ge, hitting_lt_iff (n + 1) le_rfl] at this,
+      obtain ⟨j, hj₁, hj₂⟩ := this,
+      exact ⟨j, ⟨zero_le _, hj₁.2.le⟩, hj₂⟩ } },
+  { rintro ⟨h₁, h₂⟩,
+    rw [← h₁, eq_comm],
+    exact hitting_eq_hitting_of_exists (h₁.symm ▸ n.le_succ)
+      ⟨n, ⟨zero_le _, le_rfl⟩, h₂⟩ }
 end
 
-lemma aux_3 (n : ℕ) {r : ℝ} {x : α} :
-  least_ge f r n x = n ∧ (f n x < r ∧ -r < f n x) ↔ least_ge f r (n + 1) x = n + 1 :=
+lemma least_ge_succ_eq_iff' (n : ℕ) {r : ℝ} {x : α} :
+  least_ge f r (n + 1) x = n + 1 ↔ least_ge f r n x = n ∧ (-r < f n x ∧ f n x < r) :=
 begin
-  sorry
+  split,
+  { intro h,
+    have : least_ge f r n x = n,
+    { refine le_antisymm (hitting_le _) _,
+      by_contra hlt,
+      rw [not_le, least_ge] at hlt,
+      refine ne_of_lt _ h,
+      rw [least_ge, hitting_lt_iff _ le_rfl],
+      exact ⟨least_ge f r n x, ⟨zero_le _, nat.lt_succ_of_le (hitting_le _)⟩,
+        hitting_mem_set_of_hitting_lt hlt⟩,
+      apply_instance },
+    refine ⟨this, _⟩,
+    by_contra h',
+    rw [not_and_distrib, not_lt, not_lt] at h',
+    rw ((least_ge_succ_eq_iff n).2 ⟨this, h'⟩) at h,
+    norm_num at h },
+  { rintro ⟨h₁, h₂⟩,
+    refine le_antisymm (hitting_le _) (nat.succ_le_of_lt _),
+    by_contra h,
+    have : least_ge f r (n + 1) x = least_ge f r n x :=
+      le_antisymm (h₁.symm ▸ not_lt.1 h) (hitting_mono n.le_succ),
+    rw h₁ at this,
+    refine not_and_distrib.2 _ h₂,
+    rw [not_lt, not_lt],
+    change f n x ∈ set.Iic (-r) ∪ set.Ici r,
+    refine this ▸ hitting_mem_set_of_hitting_lt _,
+    rw [← least_ge, this],
+    exact n.lt_succ_self },
 end
 
 lemma submartingale.stopped_value_least_ge [is_finite_measure μ]
@@ -185,7 +238,7 @@ begin
   { have heq₁ : {x | Inf (set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Iic (-r) ∪ set.Ici r}) = i} =
       {x | least_ge f r (i + 1) x = i},
     { ext x,
-      rw [set.mem_set_of, set.mem_set_of, ← aux_2],
+      rw [set.mem_set_of, set.mem_set_of, least_ge_succ_eq_iff],
       refine ⟨λ h, _, _⟩,
       { rw [least_ge, hitting, ite_eq_right_iff],
         refine ⟨λ _, h, _⟩,
@@ -199,9 +252,9 @@ begin
     have heq₂ : {x | ¬∃ j ∈ set.Icc 0 i, f j x ∈ set.Iic (-r) ∪ set.Ici r} =
       {x | least_ge f r (i + 1) x = i + 1},
     { ext x,
-      rw [set.mem_set_of, set.mem_set_of, ← aux_3],
-      refine ⟨λ h, ⟨if_neg h, not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, or.inr hneq⟩,
-        not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, or.inl hneq⟩⟩, _⟩,
+      rw [set.mem_set_of, set.mem_set_of, least_ge_succ_eq_iff'],
+      refine ⟨λ h, ⟨if_neg h, not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, or.inl hneq⟩,
+        not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, or.inr hneq⟩⟩, _⟩,
       rintro ⟨h₁, h₂⟩ h,
       rw [least_ge, hitting_eq_end_iff] at h₁,
       rw ← h₁ h at h₂,
@@ -210,11 +263,11 @@ begin
       exact (set.inter_subset_right _ _ (nat.Inf_mem $
         set.ne_empty_iff_nonempty.1 (λ hemp, hi $ h₁ h ▸ hemp.symm ▸ nat.Inf_empty)) :
         Inf (set.Icc 0 i ∩ {i | f i x ∈ set.Iic (-r) ∪ set.Ici r}) ∈
-          {i | f i x ∈ set.Iic (-r) ∪ set.Ici r}).symm },
+          {i | f i x ∈ set.Iic (-r) ∪ set.Ici r}) },
     have heq₃ : ∑ j in finset.range i, {x | least_ge f r i x = j}.indicator (f j) =
       ∑ j in finset.range i, {x | least_ge f r (i + 1) x = j}.indicator (f j),
     { refine finset.sum_congr rfl (λ j hj, _),
-      simp_rw [aux_1 (finset.mem_range.1 hj)] },
+      simp_rw [least_ge_eq_lt_iff (finset.mem_range.1 hj)] },
     calc ∑ j in finset.range i, {x | hitting f (set.Iic (-r) ∪ set.Ici r) 0 i x = j}.indicator (f j)
       + (λ x, {x | ¬∃ j ∈ set.Icc 0 i, f j x ∈ set.Iic (-r) ∪ set.Ici r}.indicator (f i) x
       + {x | Inf (set.Icc 0 i ∩ {i : ℕ | f i x ∈ set.Iic (-r) ∪ set.Ici r}) = i}.indicator (f i) x)

@@ -57,6 +57,9 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 
+@[simp, to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
+by rw [finset.prod, multiset.map_id]
+
 end finset
 
 /--
@@ -1017,7 +1020,7 @@ open multiset
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
-by { refine quot.induction_on s (λ l, _), simpa [prod_list_map_count l f] }
+by { refine quot.induction_on s (λ l, _), simp [prod_list_map_count l f] }
 
 @[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -1067,12 +1070,15 @@ lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M 
 multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
   (multiset.forall_mem_map_iff.mpr p_s)
 
-/--
-For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
-it's equal to a different function just by checking ratios of adjacent terms.
+/-- For any product along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can verify
+that it's equal to a different function just by checking ratios of adjacent terms.
+
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
-lemma prod_range_induction {M : Type*} [comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
+@[to_additive "For any sum along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can
+verify that it's equal to a different function just by checking differences of adjacent terms.
+
+This is a discrete analogue of the fundamental theorem of calculus."]
+lemma prod_range_induction (f s : ℕ → β) (h0 : s 0 = 1) (h : ∀ n, s (n + 1) = s n * f n) (n : ℕ) :
   ∏ k in finset.range n, f k = s n :=
 begin
   induction n with k hk,
@@ -1080,46 +1086,25 @@ begin
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
 
-/--
-For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function,
-we can verify that it's equal to a different function
-just by checking differences of adjacent terms.
-This is a discrete analogue
-of the fundamental theorem of calculus.
--/
-lemma sum_range_induction {M : Type*} [add_comm_monoid M]
-  (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
-  ∑ k in finset.range n, f k = s n :=
-@prod_range_induction (multiplicative M) _ f s h0 h n
-
-/-- A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued function
-reduces to the difference of the last and first terms.-/
-lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
-by { apply sum_range_induction; simp }
-
-lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
-  ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
-by { apply sum_range_induction; simp }
-
 /-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
 the ratio of the last and first factors. -/
-@[to_additive]
+@[to_additive "A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued
+function reduces to the difference of the last and first terms."]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
+  ∏ i in range n, (f (i + 1) / f i) = f n / f 0 :=
+by apply prod_range_induction; simp
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f i * (f (i+1))⁻¹) = f 0 * (f n)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
+  ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
+by apply prod_range_induction; simp
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
 reduces to the difference of the last and first terms
 when the function we are summing is monotone.
 -/
-lemma sum_range_sub_of_monotone [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+lemma sum_range_tsub [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
   [contravariant_class α α (+) (≤)] {f : ℕ → α} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
@@ -1186,7 +1171,7 @@ finset.strong_induction_on s
       if hx1 : f x = 1
       then ih' ▸ eq.symm (prod_subset hmem
         (λ y hy hy₁,
-          have y = x ∨ y = g x hx, by simp [hy] at hy₁; tauto,
+          have y = x ∨ y = g x hx, by simpa [hy, not_and_distrib, or_comm] using hy₁,
           this.elim (λ hy, hy.symm ▸ hx1)
             (λ hy, h x hx ▸ hy ▸ hx1.symm ▸ (one_mul _).symm)))
       else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
@@ -1646,7 +1631,76 @@ end list
 
 namespace multiset
 
+lemma disjoint_list_sum_left {a : multiset α} {l : list (multiset α)} :
+  multiset.disjoint l.sum a ↔ ∀ b ∈ l, multiset.disjoint b a :=
+begin
+  induction l with b bs ih,
+  { simp only [zero_disjoint, list.not_mem_nil, is_empty.forall_iff, forall_const, list.sum_nil], },
+  { simp_rw [list.sum_cons, disjoint_add_left, list.mem_cons_iff, forall_eq_or_imp],
+    simp [and.congr_left_iff, iff_self, ih], },
+end
+
+lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)} :
+  multiset.disjoint a l.sum ↔ ∀ b ∈ l, multiset.disjoint a b :=
+by simpa only [disjoint_comm] using disjoint_list_sum_left
+
+lemma disjoint_sum_left {a : multiset α} {i : multiset (multiset α)} :
+  multiset.disjoint i.sum a ↔ ∀ b ∈ i, multiset.disjoint b a :=
+quotient.induction_on i $ λ l, begin
+  rw [quot_mk_to_coe, multiset.coe_sum],
+  exact disjoint_list_sum_left,
+end
+
+lemma disjoint_sum_right {a : multiset α} {i : multiset (multiset α)} :
+  multiset.disjoint a i.sum ↔ ∀ b ∈ i, multiset.disjoint a b :=
+by simpa only [disjoint_comm] using disjoint_sum_left
+
+lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
+  multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
+begin
+  convert (@disjoint_sum_left _ a) (map f i.val),
+  simp [finset.mem_def, and.congr_left_iff, iff_self],
+end
+
+lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
+  multiset.disjoint a (i.sum f) ↔ ∀ b ∈ i, multiset.disjoint a (f b) :=
+by simpa only [disjoint_comm] using disjoint_finset_sum_left
+
 variables [decidable_eq α]
+
+lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
+  z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
+begin
+  rw ←add_eq_union_iff_disjoint,
+  split,
+  { intro h0,
+    rw and_iff_right_of_imp,
+    { exact (le_of_add_le_add_left $ h0.trans_le $ union_le_add z y).antisymm h, },
+    { rintro rfl,
+      exact h0, } },
+  { rintro ⟨h0, rfl⟩,
+    exact h0, }
+end
+
+lemma add_eq_union_right_of_le {x y z : multiset α} (h : z ≤ y) :
+  x + y = x ∪ z ↔ y = z ∧ x.disjoint y :=
+by simpa only [and_comm] using add_eq_union_left_of_le h
+
+lemma finset_sum_eq_sup_iff_disjoint {β : Type*} {i : finset β} {f : β → multiset α} :
+  i.sum f = i.sup f ↔ ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y) :=
+begin
+  induction i using finset.cons_induction_on with z i hz hr,
+  { simp only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff,
+      finset.sum_empty, finset.sup_empty, bot_eq_zero, eq_self_iff_true], },
+  { simp_rw [finset.sum_cons hz, finset.sup_cons, finset.mem_cons, multiset.sup_eq_union,
+      forall_eq_or_imp, ne.def, eq_self_iff_true, not_true, is_empty.forall_iff, true_and,
+      imp_and_distrib, forall_and_distrib, ←hr, @eq_comm _ z],
+    have := λ x ∈ i, ne_of_mem_of_not_mem H hz,
+    simp only [this, not_false_iff, true_implies_iff] {contextual := tt},
+    simp_rw [←disjoint_finset_sum_left, ←disjoint_finset_sum_right, disjoint_comm, ←and_assoc,
+      and_self],
+    exact add_eq_union_left_of_le (finset.sup_le (λ x hx, le_sum_of_mem (mem_map_of_mem f hx))), },
+end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a) = s.card :=

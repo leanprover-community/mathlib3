@@ -22,7 +22,7 @@ Provide the dual results.
 Show the analogous results for functors which reflect or create (co)limits.
 -/
 
-universes v u u'
+universes v v' u u'
 
 noncomputable theory
 open category_theory category_theory.category category_theory.limits
@@ -30,7 +30,7 @@ namespace category_theory
 
 variables {J : Type v} [small_category J]
 variables {C : Type u} [category.{v} C]
-variables {D : Type u'} [category.{v} D]
+variables {D : Type u'} [category.{v'} D]
 
 /--
 Given `n+1` objects of `C`, a fan for the last `n` with point `c₁.X` and a binary fan on `c₁.X` and

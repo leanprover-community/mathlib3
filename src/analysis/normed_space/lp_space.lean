@@ -28,9 +28,10 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
   `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_add_comm_group` structure.
   Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
-  `lp.complete_space`, and `lp.normed_ring`.
+  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`,
+  `lp.infty_normed_algebra`, `lp.infty_star_ring` and `lp.infty_cstar_ring`.
 
 ## Main results
 
@@ -61,7 +62,7 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 noncomputable theory
 open_locale nnreal ennreal big_operators
 
-variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_group (E i)]
+variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_comm_group (E i)]
 
 /-!
 ### `mem_ℓp` predicate
@@ -293,12 +294,12 @@ We choose to deal with this issue by making a type synonym for `Π i, E i` rathe
 subgroup itself, because this allows all the spaces `lp E p` (for varying `p`) to be subgroups of
 the same ambient group, which permits lemma statements like `lp.monotone` (below). -/
 @[derive add_comm_group, nolint unused_arguments]
-def pre_lp (E : α → Type*) [Π i, normed_group (E i)] : Type* := Π i, E i
+def pre_lp (E : α → Type*) [Π i, normed_add_comm_group (E i)] : Type* := Π i, E i
 
 instance pre_lp.unique [is_empty α] : unique (pre_lp E) := pi.unique_of_is_empty E
 
 /-- lp space -/
-def lp (E : α → Type*) [Π i, normed_group (E i)]
+def lp (E : α → Type*) [Π i, normed_add_comm_group (E i)]
   (p : ℝ≥0∞) : add_subgroup (pre_lp E) :=
 { carrier := {f | mem_ℓp f p},
   zero_mem' := zero_mem_ℓp,
@@ -456,8 +457,8 @@ begin
     simpa using lp.has_sum_norm hp f }
 end
 
-instance [hp : fact (1 ≤ p)] : normed_group (lp E p) :=
-normed_group.of_core _
+instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
+normed_add_comm_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
@@ -577,7 +578,7 @@ variables (E p 𝕜)
 
 /-- The `𝕜`-submodule of elements of `Π i : α, E i` whose `lp` norm is finite.  This is `lp E p`,
 with extra structure. -/
-def lp_submodule : submodule 𝕜 (pre_lp E) :=
+def _root_.lp_submodule : submodule 𝕜 (pre_lp E) :=
 { smul_mem' := λ c f hf, by simpa using mem_lp_const_smul c ⟨f, hf⟩,
   .. lp E p }
 
@@ -629,6 +630,53 @@ end
 
 end normed_space
 
+section normed_star_group
+
+variables [Π i, star_add_monoid (E i)] [Π i, normed_star_group (E i)]
+
+lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
+  (hf : mem_ℓp f p) : mem_ℓp (star f) p :=
+begin
+  rcases p.trichotomy with rfl | rfl | hp,
+  { apply mem_ℓp_zero,
+    simp [hf.finite_dsupport] },
+  { apply mem_ℓp_infty,
+    simpa using hf.bdd_above },
+  { apply mem_ℓp_gen,
+    simpa using hf.summable hp },
+end
+
+@[simp] lemma _root_.mem_ℓp.star_iff {f : Π i, E i} : mem_ℓp (star f) p ↔ mem_ℓp f p :=
+⟨λ h, star_star f ▸ mem_ℓp.star_mem h ,mem_ℓp.star_mem⟩
+
+instance : has_star (lp E p) :=
+{ star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
+
+@[simp] lemma coe_fn_star (f : lp E p) : ⇑(star f) = star f := rfl
+@[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
+
+instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
+
+instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
+
+instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
+{ norm_star := λ f,
+  begin
+    unfreezingI { rcases p.trichotomy with rfl | rfl | h },
+    { exfalso,
+      have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
+      norm_num at this,},
+    { simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
+    { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
+  end }
+
+variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
+variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+
+instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
+
+end normed_star_group
+
 section non_unital_normed_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
@@ -661,69 +709,95 @@ instance : non_unital_normed_ring (lp B ∞) :=
     ...                    ≤ ∥f∥ * ∥g∥
     : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
         (lp.norm_apply_le_norm ennreal.top_ne_zero g i) (norm_nonneg _) (norm_nonneg _)),
-  .. lp.normed_group }
+  .. lp.normed_add_comm_group }
 
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
+
+instance infty_is_scalar_tower {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+  [Π i, is_scalar_tower 𝕜 (B i) (B i)] :
+  is_scalar_tower 𝕜 (lp B ∞) (lp B ∞) :=
+⟨λ r f g, lp.ext $ smul_assoc r ⇑f ⇑g⟩
+
+instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+  [Π i, smul_comm_class 𝕜 (B i) (B i)] :
+  smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
+⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
+
+section star_ring
+
+variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
+
+instance infty_star_ring : star_ring (lp B ∞) :=
+{ star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,
+  .. (show star_add_monoid (lp B ∞),
+      by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
+
+instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
+{ norm_star_mul_self := λ f,
+  begin
+    apply le_antisymm,
+    { rw ←sq,
+      refine lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥) (λ i, _),
+      simp only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
+      refine sq_le_sq' _ (lp.norm_apply_le_norm ennreal.top_ne_zero _ _),
+      linarith [norm_nonneg (f i), norm_nonneg f] },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _)],
+      refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) (λ i, _),
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact lp.norm_apply_le_norm ennreal.top_ne_zero (star f * f) i, }
+  end }
+
+end star_ring
 
 end non_unital_normed_ring
 
 section normed_ring
 
-variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
+variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)]
+
+instance _root_.pre_lp.ring : ring (pre_lp B) := pi.ring
+
+variables [Π i, norm_one_class (B i)]
 
 lemma _root_.one_mem_ℓp_infty : mem_ℓp (1 : Π i, B i) ∞ :=
 ⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
 
-instance : has_one (lp B ∞) :=
-{ one := ⟨(1 : Π i, B i), one_mem_ℓp_infty⟩ }
+variables (B)
+
+/-- The `𝕜`-subring of elements of `Π i : α, B i` whose `lp` norm is finite. This is `lp E ∞`,
+with extra structure. -/
+def _root_.lp_infty_subring : subring (pre_lp B) :=
+{ carrier := {f | mem_ℓp f ∞},
+  one_mem' := one_mem_ℓp_infty,
+  mul_mem' := λ f g hf hg, hf.infty_mul hg,
+  .. lp B ∞ }
+
+variables {B}
+
+instance infty_ring : ring (lp B ∞) := (lp_infty_subring B).to_ring
+
+lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) : mem_ℓp (f ^ n) ∞ :=
+(lp_infty_subring B).pow_mem hf n
+
+lemma _root_.nat_cast_mem_ℓp_infty (n : ℕ) : mem_ℓp (n : Π i, B i) ∞ :=
+nat_cast_mem (lp_infty_subring B) n
+
+lemma _root_.int_cast_mem_ℓp_infty (z : ℤ) : mem_ℓp (z : Π i, B i) ∞ :=
+coe_int_mem (lp_infty_subring B) z
 
 @[simp] lemma infty_coe_fn_one : ⇑(1 : lp B ∞) = 1 := rfl
 
-lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) : mem_ℓp (f ^ n) ∞ :=
-begin
-  induction n with n hn,
-  { rw pow_zero,
-    exact one_mem_ℓp_infty },
-  { rw pow_succ,
-    exact hf.infty_mul hn }
-end
+@[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+
+@[simp] lemma infty_coe_fn_nat_cast (n : ℕ) : ⇑(n : lp B ∞) = n := rfl
+
+@[simp] lemma infty_coe_fn_int_cast (z : ℤ) : ⇑(z : lp B ∞) = z := rfl
 
 instance [nonempty I] : norm_one_class (lp B ∞) :=
 { norm_one := by simp_rw [lp.norm_eq_csupr, infty_coe_fn_one, pi.one_apply, norm_one, csupr_const]}
 
-instance : has_pow (lp B ∞) ℕ := { pow := λ f n, ⟨_, f.prop.infty_pow n⟩ }
-
-@[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
-
-lemma _root_.nat_cast_mem_ℓp_infty : ∀ (n : ℕ), mem_ℓp (n : Π i, B i) ∞
-| 0 := by { rw nat.cast_zero, exact zero_mem_ℓp }
-| (n + 1) := by { rw nat.cast_succ, exact (_root_.nat_cast_mem_ℓp_infty n).add one_mem_ℓp_infty }
-
-instance : has_nat_cast (lp B ∞) := { nat_cast := λ n, ⟨(↑n : Π i, B i), nat_cast_mem_ℓp_infty _⟩ }
-
-@[simp] lemma infty_coe_fn_nat_cast (n : ℕ) : ⇑(n : lp B ∞) = n := rfl
-
-lemma _root_.int_cast_mem_ℓp_infty (z : ℤ) : mem_ℓp (z : Π i, B i) ∞ :=
-begin
-  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
-  { rw int.cast_coe_nat,
-    exact nat_cast_mem_ℓp_infty n },
-  { rw [int.cast_neg, int.cast_coe_nat],
-    exact (nat_cast_mem_ℓp_infty n).neg }
-end
-
-instance : has_int_cast (lp B ∞) := { int_cast := λ z, ⟨(↑z : Π i, B i), int_cast_mem_ℓp_infty _⟩ }
-
-@[simp] lemma infty_coe_fn_int_cast (z : ℤ) : ⇑(z : lp B ∞) = z := rfl
-
-instance : ring (lp B ∞) :=
-function.injective.ring lp.has_coe_to_fun.coe subtype.coe_injective
-  (lp.coe_fn_zero B ∞) (infty_coe_fn_one) lp.coe_fn_add infty_coe_fn_mul
-  lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _, rfl) infty_coe_fn_pow
-  infty_coe_fn_nat_cast infty_coe_fn_int_cast
-
-instance : normed_ring (lp B ∞) :=
-{ .. lp.ring, .. lp.non_unital_normed_ring }
+instance infty_normed_ring : normed_ring (lp B ∞) :=
+{ .. lp.infty_ring, .. lp.non_unital_normed_ring }
 
 end normed_ring
 
@@ -731,14 +805,49 @@ section normed_comm_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [∀ i, norm_one_class (B i)]
 
-instance : comm_ring (lp B ∞) :=
+instance infty_comm_ring : comm_ring (lp B ∞) :=
 { mul_comm := λ f g, by { ext, simp only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },
-  .. lp.ring }
+  .. lp.infty_ring }
 
-instance : normed_comm_ring (lp B ∞) :=
-{ .. lp.comm_ring, .. lp.normed_ring }
+instance infty_normed_comm_ring : normed_comm_ring (lp B ∞) :=
+{ .. lp.infty_comm_ring, .. lp.infty_normed_ring }
 
 end normed_comm_ring
+
+section algebra
+variables {I : Type*} {𝕜 : Type*} {B : I → Type*}
+variables [normed_field 𝕜] [Π i, normed_ring (B i)] [Π i, normed_algebra 𝕜 (B i)]
+
+/-- A variant of `pi.algebra` that lean can't find otherwise. -/
+instance _root_.pi.algebra_of_normed_algebra : algebra 𝕜 (Π i, B i) :=
+@pi.algebra I 𝕜 B _ _ $ λ i, normed_algebra.to_algebra
+
+instance _root_.pre_lp.algebra : algebra 𝕜 (pre_lp B) := _root_.pi.algebra_of_normed_algebra
+
+variables [∀ i, norm_one_class (B i)]
+
+lemma _root_.algebra_map_mem_ℓp_infty (k : 𝕜) : mem_ℓp (algebra_map 𝕜 (Π i, B i) k) ∞ :=
+begin
+  rw algebra.algebra_map_eq_smul_one,
+  exact (one_mem_ℓp_infty.const_smul k : mem_ℓp (k • 1 : Π i, B i) ∞)
+end
+
+variables (𝕜 B)
+
+/-- The `𝕜`-subalgebra of elements of `Π i : α, B i` whose `lp` norm is finite. This is `lp E ∞`,
+with extra structure. -/
+def _root_.lp_infty_subalgebra : subalgebra 𝕜 (pre_lp B) :=
+{ carrier := {f | mem_ℓp f ∞},
+  algebra_map_mem' := algebra_map_mem_ℓp_infty,
+  .. lp_infty_subring B }
+
+variables {𝕜 B}
+
+instance infty_normed_algebra : normed_algebra 𝕜 (lp B ∞) :=
+{ ..(lp_infty_subalgebra 𝕜 B).algebra,
+  ..(lp.normed_space : normed_space 𝕜 (lp B ∞)) }
+
+end algebra
 
 section single
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
@@ -870,7 +979,8 @@ begin
   have hp : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
   rw uniform_continuous_pi,
   intros i,
-  rw normed_group.uniformity_basis_dist.uniform_continuous_iff normed_group.uniformity_basis_dist,
+  rw normed_add_comm_group.uniformity_basis_dist.uniform_continuous_iff
+    normed_add_comm_group.uniformity_basis_dist,
   intros ε hε,
   refine ⟨ε, hε, _⟩,
   rintros f g (hfg : ∥f - g∥ < ε),
@@ -956,7 +1066,7 @@ begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
   have hε' : {p : (lp E p) × (lp E p) | ∥p.1 - p.2∥ < ε} ∈ 𝓤 (lp E p),
-  { exact normed_group.uniformity_basis_dist.mem_of_mem hε },
+  { exact normed_add_comm_group.uniformity_basis_dist.mem_of_mem hε },
   refine (hF.eventually_eventually hε').mono _,
   rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, F n - f) (F l)∥ < ε),
   refine norm_le_of_tendsto (hn.mono (λ k hk, hk.le)) _,

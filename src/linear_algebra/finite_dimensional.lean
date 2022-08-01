@@ -314,6 +314,11 @@ begin
   apply cardinal.nat_lt_aleph_0,
 end
 
+lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]
+  [module K V] [finite_dimensional K V] {b : set V} (h : linear_independent K (λ (x:b), (x:V))) :
+  b.finite :=
+cardinal.lt_aleph_0_iff_set_finite.mp (finite_dimensional.lt_aleph_0_of_linear_independent h)
+
 lemma not_linear_independent_of_infinite {ι : Type w} [inf : infinite ι] [finite_dimensional K V]
   (v : ι → V) : ¬ linear_independent K v :=
 begin
@@ -1298,7 +1303,7 @@ variable {K}
 lemma finrank_span_le_card (s : set V) [fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
-  haveI := span_of_finite K (set.finite_of_fintype s),
+  haveI := span_of_finite K s.to_finite,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,
@@ -1323,7 +1328,7 @@ lemma finrank_span_set_eq_card (s : set V) [fintype s]
   (hs : linear_independent K (coe : s → V)) :
   finrank K (span K s) = s.to_finset.card :=
 begin
-  haveI := span_of_finite K (set.finite_of_fintype s),
+  haveI := span_of_finite K s.to_finite,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,
@@ -1374,15 +1379,15 @@ section basis
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V]
 
-lemma linear_independent_of_span_eq_top_of_card_eq_finrank {ι : Type*} [fintype ι] {b : ι → V}
-  (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = finrank K V) :
+lemma linear_independent_of_top_le_span_of_card_eq_finrank {ι : Type*} [fintype ι] {b : ι → V}
+  (spans : ⊤ ≤ span K (set.range b)) (card_eq : fintype.card ι = finrank K V) :
   linear_independent K b :=
 linear_independent_iff'.mpr $ λ s g dependent i i_mem_s,
 begin
   by_contra gx_ne_zero,
   -- We'll derive a contradiction by showing `b '' (univ \ {i})` of cardinality `n - 1`
   -- spans a vector space of dimension `n`.
-  refine ne_of_lt (span_lt_top_of_card_lt_finrank
+  refine not_le_of_gt (span_lt_top_of_card_lt_finrank
     (show (b '' (set.univ \ {i})).to_finset.card < finrank K V, from _)) _,
   { calc (b '' (set.univ \ {i})).to_finset.card = ((set.univ \ {i}).to_finset.image b).card
       : by rw [set.to_finset_card, fintype.card_of_finset]
@@ -1393,7 +1398,7 @@ begin
 
   -- We already have that `b '' univ` spans the whole space,
   -- so we only need to show that the span of `b '' (univ \ {i})` contains each `b j`.
-  refine trans (le_antisymm (span_mono (set.image_subset_range _ _)) (span_le.mpr _)) span_eq,
+  refine spans.trans (span_le.mpr _),
   rintros _ ⟨j, rfl, rfl⟩,
   -- The case that `j ≠ i` is easy because `b j ∈ b '' (univ \ {i})`.
   by_cases j_eq : j = i,
@@ -1433,9 +1438,8 @@ begin
     let f := (submodule.subtype (span K (set.range b))),
     let b' : ι → span K (set.range b) :=
       λ i, ⟨b i, mem_span.2 (λ p hp, hp (set.mem_range_self _))⟩,
-    have hs : span K (set.range b') = ⊤,
-    { rw eq_top_iff',
-      intro x,
+    have hs : ⊤ ≤ span K (set.range b'),
+    { intro x,
       have h : span K (f '' (set.range b')) = map f (span K (set.range b')) := span_image f,
       have hf : f '' (set.range b') = set.range b, { ext x, simp [set.mem_image, set.mem_range] },
       rw hf at h,
@@ -1443,36 +1447,36 @@ begin
       conv at hx { congr, skip, rw h },
       simpa [mem_map] using hx },
     have hi : f.ker = ⊥ := ker_subtype _,
-    convert (linear_independent_of_span_eq_top_of_card_eq_finrank hs hc).map' _ hi }
+    convert (linear_independent_of_top_le_span_of_card_eq_finrank hs hc).map' _ hi }
 end
 
 /-- A family of `finrank K V` vectors forms a basis if they span the whole space. -/
-noncomputable def basis_of_span_eq_top_of_card_eq_finrank {ι : Type*} [fintype ι] (b : ι → V)
-  (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = finrank K V) :
+noncomputable def basis_of_top_le_span_of_card_eq_finrank {ι : Type*} [fintype ι] (b : ι → V)
+  (le_span : ⊤ ≤ span K (set.range b)) (card_eq : fintype.card ι = finrank K V) :
   basis ι K V :=
-basis.mk (linear_independent_of_span_eq_top_of_card_eq_finrank span_eq card_eq) span_eq
+basis.mk (linear_independent_of_top_le_span_of_card_eq_finrank le_span card_eq) le_span
 
-@[simp] lemma coe_basis_of_span_eq_top_of_card_eq_finrank {ι : Type*} [fintype ι] (b : ι → V)
-  (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = finrank K V) :
-   ⇑(basis_of_span_eq_top_of_card_eq_finrank b span_eq card_eq) = b :=
+@[simp] lemma coe_basis_of_top_le_span_of_card_eq_finrank {ι : Type*} [fintype ι] (b : ι → V)
+  (le_span : ⊤ ≤ span K (set.range b)) (card_eq : fintype.card ι = finrank K V) :
+   ⇑(basis_of_top_le_span_of_card_eq_finrank b le_span card_eq) = b :=
 basis.coe_mk _ _
 
 /-- A finset of `finrank K V` vectors forms a basis if they span the whole space. -/
 @[simps]
-noncomputable def finset_basis_of_span_eq_top_of_card_eq_finrank {s : finset V}
-  (span_eq : span K (s : set V) = ⊤) (card_eq : s.card = finrank K V) :
+noncomputable def finset_basis_of_top_le_span_of_card_eq_finrank {s : finset V}
+  (le_span : ⊤ ≤ span K (s : set V)) (card_eq : s.card = finrank K V) :
   basis (s : set V) K V :=
-basis_of_span_eq_top_of_card_eq_finrank (coe : (s : set V) → V)
-  ((@subtype.range_coe_subtype _ (λ x, x ∈ s)).symm ▸ span_eq)
+basis_of_top_le_span_of_card_eq_finrank (coe : (s : set V) → V)
+  ((@subtype.range_coe_subtype _ (λ x, x ∈ s)).symm ▸ le_span)
   (trans (fintype.card_coe _) card_eq)
 
 /-- A set of `finrank K V` vectors forms a basis if they span the whole space. -/
 @[simps]
-noncomputable def set_basis_of_span_eq_top_of_card_eq_finrank {s : set V} [fintype s]
-  (span_eq : span K s = ⊤) (card_eq : s.to_finset.card = finrank K V) :
+noncomputable def set_basis_of_top_le_span_of_card_eq_finrank {s : set V} [fintype s]
+  (le_span : ⊤ ≤ span K s) (card_eq : s.to_finset.card = finrank K V) :
   basis s K V :=
-basis_of_span_eq_top_of_card_eq_finrank (coe : s → V)
-  ((@subtype.range_coe_subtype _ s).symm ▸ span_eq)
+basis_of_top_le_span_of_card_eq_finrank (coe : s → V)
+  ((@subtype.range_coe_subtype _ s).symm ▸ le_span)
   (trans s.to_finset_card.symm card_eq)
 
 end division_ring
@@ -1505,7 +1509,7 @@ noncomputable def basis_of_linear_independent_of_card_eq_finrank
   (lin_ind : linear_independent K b) (card_eq : fintype.card ι = finrank K V) :
   basis ι K V :=
 basis.mk lin_ind $
-span_eq_top_of_linear_independent_of_card_eq_finrank lin_ind card_eq
+(span_eq_top_of_linear_independent_of_card_eq_finrank lin_ind card_eq).ge
 
 @[simp] lemma coe_basis_of_linear_independent_of_card_eq_finrank
   {ι : Type*} [nonempty ι] [fintype ι] {b : ι → V}
@@ -1640,6 +1644,16 @@ begin
   { rintro ⟨v, p⟩,
     exact finrank_le_one v p, }
 end
+
+lemma submodule.finrank_le_one_iff_is_principal (W : submodule K V) [finite_dimensional K W] :
+  finite_dimensional.finrank K W ≤ 1 ↔ W.is_principal :=
+by rw [← W.rank_le_one_iff_is_principal, ← finite_dimensional.finrank_eq_dim,
+  ← cardinal.nat_cast_le, nat.cast_one]
+
+lemma module.finrank_le_one_iff_top_is_principal [finite_dimensional K V] :
+  finite_dimensional.finrank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
+by rw [← module.rank_le_one_iff_top_is_principal, ← finite_dimensional.finrank_eq_dim,
+  ← cardinal.nat_cast_le, nat.cast_one]
 
 -- We use the `linear_map.compatible_smul` typeclass here, to encompass two situations:
 -- * `A = K`

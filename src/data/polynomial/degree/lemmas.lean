@@ -198,6 +198,19 @@ begin
     simp [H x hx] }
 end
 
+lemma nat_degree_bit0 (a : R[X]) : (bit0 a).nat_degree ≤ a.nat_degree :=
+(nat_degree_add_le _ _).trans (max_self _).le
+
+lemma nat_degree_bit1 (a : R[X]) : (bit1 a).nat_degree ≤ a.nat_degree :=
+(nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
+
+lemma nat_degree_sub_le_iff_left {R} [ring R] {n : ℕ} (p q : polynomial R) (qn : q.nat_degree ≤ n) :
+  (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
+begin
+  rw [sub_eq_add_neg, nat_degree_add_le_iff_left],
+  rwa nat_degree_neg,
+end
+
 variables [semiring S]
 
 lemma nat_degree_pos_of_eval₂_root {p : R[X]} (hp : p ≠ 0) (f : R →+* S)

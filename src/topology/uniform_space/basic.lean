@@ -195,12 +195,11 @@ lemma symmetric_rel.mk_mem_comm {V : set (α × α)} (hV : symmetric_rel V) {x y
   (x, y) ∈ V ↔ (y, x) ∈ V :=
 set.ext_iff.1 hV (y, x)
 
-lemma symmetric_rel_inter {U V : set (α × α)} (hU : symmetric_rel U) (hV : symmetric_rel V) :
+lemma symmetric_rel.eq {U : set (α × α)} (hU : symmetric_rel U) : prod.swap ⁻¹' U = U := hU
+
+lemma symmetric_rel.inter {U V : set (α × α)} (hU : symmetric_rel U) (hV : symmetric_rel V) :
   symmetric_rel (U ∩ V) :=
-begin
-  unfold symmetric_rel at *,
-  rw [preimage_inter, hU, hV],
-end
+by rw [symmetric_rel, preimage_inter, hU.eq, hV.eq]
 
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
@@ -429,6 +428,12 @@ begin
   exact image_mem_map h,
 end
 
+/-- Symmetric entourages form a basis of `𝓤 α` -/
+lemma uniform_space.has_basis_symmetric :
+  (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
+has_basis_self.2 $ λ t t_in, ⟨symmetrize_rel t, symmetrize_mem_uniformity t_in,
+  symmetric_symmetrize_rel t, symmetrize_rel_subset_self t⟩
+
 theorem uniformity_lift_le_swap {g : set (α×α) → filter β} {f : filter β} (hg : monotone g)
   (h : (𝓤 α).lift (λs, g (preimage prod.swap s)) ≤ f) : (𝓤 α).lift g ≤ f :=
 calc (𝓤 α).lift g ≤ (filter.map (@prod.swap α α) $ 𝓤 α).lift g :
@@ -656,14 +661,17 @@ lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, ball x s ×ˢ ball y s :=
 begin
   rw nhds_prod_eq,
-  apply (has_basis_nhds x).prod' (has_basis_nhds y),
+  apply (has_basis_nhds x).prod_same_index (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
-  exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
+  exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, U_symm.inter V_symm⟩,
          ball_inter_left x U V, ball_inter_right y U V⟩,
 end
 
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=
 (nhds_basis_uniformity' (𝓤 α).basis_sets).eq_binfi
+
+lemma nhds_eq_uniformity' {x : α} : 𝓝 x = (𝓤 α).lift' (λ s, {y | (y, x) ∈ s}) :=
+(nhds_basis_uniformity (𝓤 α).basis_sets).eq_binfi
 
 lemma mem_nhds_left (x : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
   {y : α | (x, y) ∈ s} ∈ 𝓝 x :=
@@ -702,15 +710,10 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
   (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set (α×α),
     {y : α | (y, a) ∈ s} ×ˢ {y : α | (b, y) ∈ t})) :=
 begin
-  rw [prod_def],
-  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (s ×ˢ t))) = _,
-  rw [lift_nhds_right],
-  apply congr_arg, funext s,
-  rw [lift_nhds_left],
-  refl,
-  exact monotone_principal.comp (monotone_prod monotone_const monotone_id),
-  exact (monotone_lift' monotone_const $ monotone_lam $
-    assume x, monotone_prod monotone_id monotone_const)
+  rw [nhds_eq_uniformity', nhds_eq_uniformity, prod_lift'_lift'],
+  { refl },
+  { exact monotone_preimage },
+  { exact monotone_preimage },
 end
 
 lemma nhds_eq_uniformity_prod {a b : α} :
@@ -718,8 +721,8 @@ lemma nhds_eq_uniformity_prod {a b : α} :
   (𝓤 α).lift' (λs:set (α×α), {y : α | (y, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) :=
 begin
   rw [nhds_prod_eq, nhds_nhds_eq_uniformity_uniformity_prod, lift_lift'_same_eq_lift'],
-  { intro s, exact monotone_prod monotone_const monotone_preimage },
-  { intro t, exact monotone_prod monotone_preimage monotone_const }
+  { intro s, exact monotone_const.set_prod monotone_preimage },
+  { intro t, exact monotone_preimage.set_prod monotone_const }
 end
 
 lemma nhdset_of_mem_uniformity {d : set (α×α)} (s : set (α×α)) (hd : d ∈ 𝓤 α) :
@@ -731,7 +734,7 @@ have ∀p ∈ s, ∃t ⊆ cl_d, is_open t ∧ p ∈ t, from
   begin
     rw [nhds_eq_uniformity_prod, mem_lift'_sets],
     exact ⟨d, hd, assume ⟨a, b⟩ ⟨ha, hb⟩, ⟨x, y, ha, hp, hb⟩⟩,
-    exact monotone_prod monotone_preimage monotone_preimage
+    exact monotone_preimage.set_prod monotone_preimage
   end,
 have ∃t:(Π(p:α×α) (h:p ∈ s), set (α×α)),
     ∀p, ∀h:p ∈ s, t p h ⊆ cl_d ∧ is_open (t p h) ∧ p ∈ t p h,
@@ -769,12 +772,9 @@ lemma closure_eq_uniformity (s : set $ α × α) :
   closure s = ⋂ V ∈ {V | V ∈ 𝓤 α ∧ symmetric_rel V}, V ○ s ○ V :=
 begin
   ext ⟨x, y⟩,
-  simp_rw [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y),
-           mem_Inter, mem_set_of_eq],
-  refine forall₂_congr (λ V, _),
-  rintros ⟨V_in, V_symm⟩,
-  simp_rw [mem_comp_comp V_symm, inter_comm, exists_prop],
-  exact iff.rfl,
+  simp only [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y), mem_Inter,
+    mem_set_of_eq, and_imp, mem_comp_comp, exists_prop, ← mem_inter_eq, inter_comm, set.nonempty]
+    { contextual := tt }
 end
 
 lemma uniformity_has_basis_closed : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_closed V) id :=
@@ -789,55 +789,23 @@ begin
   exact ⟨w_in, w_symm⟩
 end
 
+lemma uniformity_eq_uniformity_closure : 𝓤 α = (𝓤 α).lift' closure :=
+eq.symm $ uniformity_has_basis_closed.lift'_closure_eq_self $ λ _, and.right
+
+lemma filter.has_basis.uniformity_closure {p : ι → Prop} {U : ι → set (α × α)}
+  (h : (𝓤 α).has_basis p U) : (𝓤 α).has_basis p (λ i, closure (U i)) :=
+(@uniformity_eq_uniformity_closure α _).symm ▸ h.lift'_closure
+
 /-- Closed entourages form a basis of the uniformity filter. -/
 lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α) closure :=
-⟨begin
-  intro t,
-  rw uniformity_has_basis_closed.mem_iff,
-  split,
-  { rintros ⟨r, ⟨r_in, r_closed⟩, r_sub⟩,
-    use [r, r_in],
-    convert r_sub,
-    rw r_closed.closure_eq,
-    refl },
-  { rintros ⟨r, r_in, r_sub⟩,
-    exact ⟨closure r, ⟨mem_of_superset r_in subset_closure, is_closed_closure⟩, r_sub⟩ }
-end⟩
+(𝓤 α).basis_sets.uniformity_closure
 
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
-set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff_nhds_ne_bot
-  ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
-      (λ (s : set (α × α)), {x : α | (x, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
-    by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
-  ... ↔ ((map (@prod.swap α α) (𝓤 α)).lift'
-      (λ (s : set (α × α)), {x : α | (x, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
-    by refl
-  ... ↔ ((𝓤 α).lift'
-      (λ (s : set (α × α)), {y : α | (a, y) ∈ s} ×ˢ {x : α | (x, b) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
-  begin
-    rw [map_lift'_eq2],
-    simp [image_swap_eq_preimage_swap, function.comp],
-    exact monotone_prod monotone_preimage monotone_preimage
-  end
-  ... ↔ (∀s ∈ 𝓤 α, ({y : α | (a, y) ∈ s} ×ˢ {x : α | (x, b) ∈ s} ∩ t).nonempty) :
-  begin
-    rw [lift'_inf_principal_eq, ← ne_bot_iff, lift'_ne_bot_iff],
-    exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
-  end
-  ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
-    forall₂_congr $ λ s hs,
-    ⟨assume ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩, ⟨x, hx, y, hxyt, hy⟩,
-      assume ⟨x, hx, y, hxyt, hy⟩, ⟨⟨x, y⟩, ⟨⟨hx, hy⟩, hxyt⟩⟩⟩
-  ... ↔ _ : by simp
-
-lemma uniformity_eq_uniformity_closure : 𝓤 α = (𝓤 α).lift' closure :=
-le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] using subset_closure)
-  (calc (𝓤 α).lift' closure ≤ (𝓤 α).lift' (λd, d ○ (d ○ d)) :
-      lift'_mono' (by intros s hs; rw [closure_eq_inter_uniformity]; exact bInter_subset_of_mem hs)
-    ... ≤ (𝓤 α) : comp_le_uniformity3)
+calc closure t = ⋂ V (hV : V ∈ 𝓤 α ∧ symmetric_rel V), V ○ t ○ V : closure_eq_uniformity t
+... = ⋂ V ∈ 𝓤 α, V ○ t ○ V : eq.symm $ uniform_space.has_basis_symmetric.bInter_mem $
+  λ V₁ V₂ hV, comp_rel_mono (comp_rel_mono hV subset.rfl) hV
+... = ⋂ V ∈ 𝓤 α, V ○ (t ○ V) : by simp only [comp_rel_assoc]
 
 lemma uniformity_eq_uniformity_interior : 𝓤 α = (𝓤 α).lift' interior :=
 le_antisymm
@@ -897,12 +865,6 @@ lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α�
   (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
   t ∈ 𝓤 α ↔ ∃ i (hi : p i), ∀ a b, (a, b) ∈ s i → (a, b) ∈ t :=
 h.mem_iff.trans $ by simp only [prod.forall, subset_def]
-
-/-- Symmetric entourages form a basis of `𝓤 α` -/
-lemma uniform_space.has_basis_symmetric :
-  (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
-has_basis_self.2 $ λ t t_in, ⟨symmetrize_rel t, symmetrize_mem_uniformity t_in,
-  symmetric_symmetrize_rel t, symmetrize_rel_subset_self t⟩
 
 /-- Open elements `s : set (α × α)` of `𝓤 α` such that `(x, y) ∈ s ↔ (y, x) ∈ s` form a basis
 of `𝓤 α`. -/
@@ -1160,7 +1122,7 @@ begin
   exact comap_mono hu
 end
 
-lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
+lemma uniform_continuous_iff {α β} {uα : uniform_space α} {uβ : uniform_space β} {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
 filter.map_le_iff_le_comap
 

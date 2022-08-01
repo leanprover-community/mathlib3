@@ -66,7 +66,7 @@ begin
   rcases exists_bounded_mem_Icc_of_closed_of_le hc₁ hc₂ hd hf3.le with ⟨g, hg₁, hg₂, hgf⟩,
   refine ⟨g, _, _⟩,
   { refine (norm_le $ div_nonneg hf.le h3.le).mpr (λ y, _),
-    simpa [real.norm_eq_abs, abs_le, neg_div] using hgf y },
+    simpa [abs_le, neg_div] using hgf y },
   { refine (dist_le $ mul_nonneg h23.le hf.le).mpr (λ x, _),
     have hfx : -∥f∥ ≤ f x ∧ f x ≤ ∥f∥,
       by simpa only [real.norm_eq_abs, abs_le] using f.norm_coe_le_norm x,

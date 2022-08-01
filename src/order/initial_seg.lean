@@ -169,7 +169,7 @@ segments.
 /-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≺i s` is an order
 embedding whose range is an open interval `(-∞, top)` for some element `top` of `β`. Such order
 embeddings are called principal segments -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (top : β)
 (down : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)

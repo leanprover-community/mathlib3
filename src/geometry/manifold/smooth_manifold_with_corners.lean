@@ -63,7 +63,7 @@ In the same way, it would not apply to product manifolds, modelled on
 The right invocation does not focus on one specific construction, but on all constructions sharing
 the right properties, like
 
-  `variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  `variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
   {I : model_with_corners ℝ E E} [I.boundaryless]
   {M : Type*} [topological_space M] [charted_space E M] [smooth_manifold_with_corners I M]`
 
@@ -125,9 +125,9 @@ section model_with_corners
 model vector space `E` over the field `𝕜`. This is all what is needed to
 define a smooth manifold with model space `H`, and model vector space `E`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure model_with_corners (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
 (source_eq          : source = univ)
 (unique_diff'       : unique_diff_on 𝕜 to_local_equiv.target)
@@ -138,7 +138,7 @@ attribute [simp, mfld_simps] model_with_corners.source_eq
 
 /-- A vector space is a model with corners. -/
 def model_with_corners_self (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] : model_with_corners 𝕜 E E :=
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] : model_with_corners 𝕜 E E :=
 { to_local_equiv := local_equiv.refl E,
   source_eq    := rfl,
   unique_diff' := unique_diff_on_univ,
@@ -151,7 +151,7 @@ localized "notation `𝓘(` 𝕜 `)` := model_with_corners_self 𝕜 𝕜" in ma
 
 section
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
   (I : model_with_corners 𝕜 E H)
 
 namespace model_with_corners
@@ -164,12 +164,12 @@ protected def symm : local_equiv E H := I.to_local_equiv.symm
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
 def simps.apply (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   (I : model_with_corners 𝕜 E H) : H → E := I
 
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   (I : model_with_corners 𝕜 E H) : E → H := I.symm
 
 initialize_simps_projections model_with_corners
@@ -306,10 +306,10 @@ structure on the tangent bundle to a manifold modelled on `(E, H)`: it will be m
 vs `H × H'`. -/
 @[simps (lemmas_only)] def model_with_corners.prod
   {𝕜 : Type u} [nontrivially_normed_field 𝕜]
-  {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
-  (I : model_with_corners 𝕜 E H)
-  {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
-  (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (model_prod H H') :=
+  {E : Type v} [normed_add_comm_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
+  (I : model_with_corners 𝕜 E H) {E' : Type v'} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {H' : Type w'} [topological_space H'] (I' : model_with_corners 𝕜 E' H') :
+  model_with_corners 𝕜 (E × E') (model_prod H H') :=
 { to_fun := λ x, (I x.1, I' x.2),
   inv_fun := λ x, (I.symm x.1, I'.symm x.2),
   source := {x | x.1 ∈ I.source ∧ x.2 ∈ I'.source},
@@ -324,7 +324,7 @@ corners `pi I` on `(Π i, E i, model_pi H)`. See note [Manifold type tags] for e
 `model_pi H`. -/
 def model_with_corners.pi
   {𝕜 : Type u} [nontrivially_normed_field 𝕜] {ι : Type v} [fintype ι]
-  {E : ι → Type w} [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {E : ι → Type w} [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   {H : ι → Type u'} [Π i, topological_space (H i)] (I : Π i, model_with_corners 𝕜 (E i) (H i)) :
   model_with_corners 𝕜 (Π i, E i) (model_pi H) :=
 { to_local_equiv := local_equiv.pi (λ i, (I i).to_local_equiv),
@@ -337,13 +337,14 @@ def model_with_corners.pi
 as the model to tangent bundles. -/
 @[reducible] def model_with_corners.tangent
   {𝕜 : Type u} [nontrivially_normed_field 𝕜]
-  {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
+  {E : Type v} [normed_add_comm_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
 I.prod (𝓘(𝕜, E))
 
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F] {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] {E : Type*} [normed_add_comm_group E]
+  [normed_space 𝕜 E] {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] {F : Type*}
+   [normed_add_comm_group F] [normed_space 𝕜 F] {F' : Type*} [normed_add_comm_group F']
+   [normed_space 𝕜 F']
 {H : Type*} [topological_space H] {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G] {G' : Type*} [topological_space G']
 {I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
@@ -366,20 +367,21 @@ section boundaryless
 
 /-- Property ensuring that the model with corners `I` defines manifolds without boundary. -/
 class model_with_corners.boundaryless {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
   (I : model_with_corners 𝕜 E H) : Prop :=
 (range_eq_univ : range I = univ)
 
 /-- The trivial model with corners has no boundary -/
 instance model_with_corners_self_boundaryless (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] : (model_with_corners_self 𝕜 E).boundaryless :=
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] :
+  (model_with_corners_self 𝕜 E).boundaryless :=
 ⟨by simp⟩
 
 /-- If two model with corners are boundaryless, their product also is -/
 instance model_with_corners.range_eq_univ_prod {𝕜 : Type u} [nontrivially_normed_field 𝕜]
-  {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
-  (I : model_with_corners 𝕜 E H) [I.boundaryless]
-  {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
+  {E : Type v} [normed_add_comm_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
+  (I : model_with_corners 𝕜 E H) [I.boundaryless] {E' : Type v'} [normed_add_comm_group E']
+  [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
   (I' : model_with_corners 𝕜 E' H') [I'.boundaryless] :
   (I.prod I').boundaryless :=
 begin
@@ -395,7 +397,7 @@ section cont_diff_groupoid
 /-! ### Smooth functions on models with corners -/
 
 variables {m n : with_top ℕ} {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H]
 (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M]
@@ -504,7 +506,7 @@ begin
     (of_set_mem_cont_diff_groupoid n I e.open_target) this
 end
 
-variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] {H' : Type*} [topological_space H']
+variables {E' H' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H']
 
 /-- The product of two smooth local homeomorphisms is smooth. -/
 lemma cont_diff_groupoid_prod
@@ -550,13 +552,13 @@ section smooth_manifold_with_corners
 field `𝕜` and with infinite smoothness to simplify typeclass search and statements later on. -/
 @[ancestor has_groupoid]
 class smooth_manifold_with_corners {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] extends
   has_groupoid M (cont_diff_groupoid ∞ I) : Prop
 
 lemma smooth_manifold_with_corners.mk' {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M]
   [gr : has_groupoid M (cont_diff_groupoid ∞ I)] :
@@ -564,7 +566,7 @@ lemma smooth_manifold_with_corners.mk' {𝕜 : Type*} [nontrivially_normed_field
 
 lemma smooth_manifold_with_corners_of_cont_diff_on
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M]
   (h : ∀ (e e' : local_homeomorph M H), e ∈ atlas H M → e' ∈ atlas H M →
@@ -579,7 +581,7 @@ lemma smooth_manifold_with_corners_of_cont_diff_on
 
 /-- For any model with corners, the model space is a smooth manifold -/
 instance model_space_smooth {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
   {I : model_with_corners 𝕜 E H} :
   smooth_manifold_with_corners I H := { .. has_groupoid_model_space _ _ }
 
@@ -591,7 +593,7 @@ charted space with a structure groupoid, avoiding the need to specify the groupo
 `cont_diff_groupoid ∞ I` explicitly. -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M]
 
@@ -618,8 +620,8 @@ structure_groupoid.compatible_of_mem_maximal_atlas he he'
 
 /-- The product of two smooth manifolds with corners is naturally a smooth manifold with corners. -/
 instance prod {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
   {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
   (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -638,7 +640,7 @@ end smooth_manifold_with_corners
 
 lemma local_homeomorph.singleton_smooth_manifold_with_corners
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M]
   (e : local_homeomorph M H) (h : e.source = set.univ) :
@@ -648,7 +650,7 @@ e.singleton_has_groupoid h (cont_diff_groupoid ∞ I)
 
 lemma open_embedding.singleton_smooth_manifold_with_corners
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M]
   [nonempty M] {f : M → H} (h : open_embedding f) :
@@ -660,7 +662,7 @@ namespace topological_space.opens
 open topological_space
 
 variables  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   (s : opens M)
@@ -673,7 +675,7 @@ section extended_charts
 open_locale topological_space
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M] [charted_space H M]
   (x : M) {s t : set M}
@@ -892,6 +894,6 @@ end extended_charts
 /-- In the case of the manifold structure on a vector space, the extended charts are just the
 identity.-/
 lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (x : E) :
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] (x : E) :
   ext_chart_at (model_with_corners_self 𝕜 E) x = local_equiv.refl E :=
 by simp only with mfld_simps

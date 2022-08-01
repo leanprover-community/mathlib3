@@ -528,7 +528,14 @@ lemma extend_to_fin_ro_components.sub [locally_finite G]  (Gpc : G.preconnected)
 K ⊆ extend_to_fin_ro_components G Gpc K := finset.subset_union_left _ _
 
 lemma extend_to_fin_ro_components.sub' [locally_finite G]  (Gpc : G.preconnected) (K : finset V) :
-∀ (D : fin_ro_components G K), D.val ⊆ extend_to_fin_ro_components G Gpc K := sorry
+∀ (D : fin_ro_components G K), D.val ⊆ extend_to_fin_ro_components G Gpc K := begin
+  rintro ⟨D,Dcomp,Dfin⟩,
+  simp,
+  unfold extend_to_fin_ro_components,
+  simp,
+  have : D ⊆ ⋃₀ G.fin_ro_components K, by {apply subset_sUnion_of_mem, exact ⟨Dcomp,Dfin⟩},
+  exact this.trans (subset_union_right _ _),
+end
 
 
 lemma extend_to_fin_ro_components.ro  [locally_finite G] (Gpc : G.preconnected) (K : finset V):

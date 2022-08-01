@@ -466,6 +466,26 @@ begin
     lt_self_iff_false] at hp
 end
 
+lemma ord_proj_dvd_ord_proj_of_dvd {a b p : ℕ} (hab : a ∣ b) :
+  ord_proj[p] a ∣ ord_proj[p] b :=
+begin
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  { sorry },
+end
+
+lemma ord_compl_dvd_ord_compl_of_dvd {a b p : ℕ} (hab : a ∣ b) :
+  ord_compl[p] a ∣ ord_compl[p] b :=
+begin
+  rcases em' p.prime with pp | pp, { simp [pp, hab] },
+  { sorry },
+end
+
+
+
+
+#exit
+
+
 lemma dvd_iff_prime_pow_dvd_dvd (n d : ℕ) :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin

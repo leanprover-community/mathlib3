@@ -357,7 +357,7 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
-lemma direct_sum.is_internal.is_hilbert_sum [fintype ι] {F : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.is_hilbert_sum {F : ι → submodule 𝕜 E}
   [Π i, complete_space (F i)] (hF : direct_sum.is_internal F)
   (hF' : @orthogonal_family 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ)) :
   @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=

@@ -142,16 +142,12 @@ coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
 lemma coeff_mul_of_nat_degree_le (pm : p.nat_degree ≤ m) (qn : q.nat_degree ≤ n) :
   (p * q).coeff (m + n) = p.coeff m * q.coeff n :=
 begin
-  refine (coeff_mul _ _ _).trans _,
-  refine finset.sum_eq_single (m, n) _ (by simp),
-  rintros ⟨d1, e1⟩ h de,
-  rcases (trichotomous d1 m : d1 < m ∨ _) with k|rfl|k,
-  { refine mul_eq_zero_of_right _ _,
-    refine coeff_eq_zero_of_nat_degree_lt (qn.trans_lt _),
-    linarith [finset.nat.mem_antidiagonal.mp h] },
-  { exact (de (by simpa using h)).elim },
-  { refine mul_eq_zero_of_left _ _,
-    exact coeff_eq_zero_of_nat_degree_lt (pm.trans_lt k) }
+  rcases eq_or_lt_of_le pm with rfl | hm;
+  rcases eq_or_lt_of_le qn with rfl | hn,
+  { apply nat_degree_add_coeff_mul, },
+  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero], apply nat_degree_lt_coeff_mul, linarith, },
+  { rw [coeff_eq_zero_of_nat_degree_lt hm, zero_mul], apply nat_degree_lt_coeff_mul, linarith, },
+  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero], apply nat_degree_lt_coeff_mul, linarith, },
 end
 
 lemma coeff_pow_of_nat_degree_le (pn : p.nat_degree ≤ n) :
@@ -164,14 +160,14 @@ begin
     exact mul_le_mul_of_nonneg_left pn m.zero_le }
 end
 
-lemma coeff_add_eq_left_of_succ (n : ℕ) (qn : q.nat_degree ≤ n) :
+lemma coeff_add_succ_eq_left_of_le (qn : q.nat_degree ≤ n) :
   (p + q).coeff (n + 1) = p.coeff (n + 1) :=
 (coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $
   nat.lt_succ_iff.mpr qn).trans $ add_zero _
 
-lemma coeff_add_eq_right_of_succ (n : ℕ) (pn : p.nat_degree ≤ n) :
+lemma coeff_add_succ_eq_right_of_le (pn : p.nat_degree ≤ n) :
   (p + q).coeff (n + 1) = q.coeff (n + 1) :=
-by { rw add_comm, exact coeff_add_eq_left_of_succ _ pn }
+by { rw add_comm, exact coeff_add_succ_eq_left_of_le pn }
 
 lemma degree_sum_eq_of_disjoint (f : S → R[X]) (s : finset S)
   (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (degree ∘ f))) :
@@ -270,20 +266,23 @@ section ring
 
 variables [ring R] {p q : R[X]}
 
-lemma nat_degree_sub_le_iff_left {n} (p q : polynomial R) (qn : q.nat_degree ≤ n) :
+lemma nat_degree_sub_le_iff_left (qn : q.nat_degree ≤ n) :
   (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
 begin
-  rw [sub_eq_add_neg, nat_degree_add_le_iff_left],
-  rwa nat_degree_neg,
+  rw ← nat_degree_neg at qn,
+  rw [sub_eq_add_neg, nat_degree_add_le_iff_left _ _ qn],
 end
 
-lemma coeff_sub_eq_left_of_succ {n} (dg : q.nat_degree ≤ n) :
+lemma coeff_sub_succ_eq_left_of_le (dg : q.nat_degree ≤ n) :
   (p - q).coeff (n + 1) = p.coeff (n + 1) :=
-by {rw [sub_eq_add_neg, coeff_add_eq_left_of_succ], rwa nat_degree_neg }
+begin
+  rw ← nat_degree_neg at dg,
+  rw [sub_eq_add_neg, coeff_add_succ_eq_left_of_le dg],
+end
 
-lemma coeff_sub_eq_right_of_succ {n} (df : p.nat_degree ≤ n) :
+lemma coeff_sub_succ_eq_neg_right_of_le (df : p.nat_degree ≤ n) :
   (p - q).coeff (n + 1) = - q.coeff (n + 1) :=
-by rwa [sub_eq_add_neg, coeff_add_eq_right_of_succ, coeff_neg]
+by rwa [sub_eq_add_neg, coeff_add_succ_eq_right_of_le, coeff_neg]
 
 end ring
 

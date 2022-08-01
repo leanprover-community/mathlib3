@@ -144,10 +144,13 @@ lemma coeff_mul_of_nat_degree_le (pm : p.nat_degree ≤ m) (qn : q.nat_degree �
 begin
   rcases eq_or_lt_of_le pm with rfl | hm;
   rcases eq_or_lt_of_le qn with rfl | hn,
-  { apply nat_degree_add_coeff_mul, },
-  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero], apply nat_degree_lt_coeff_mul, linarith, },
-  { rw [coeff_eq_zero_of_nat_degree_lt hm, zero_mul], apply nat_degree_lt_coeff_mul, linarith, },
-  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero], apply nat_degree_lt_coeff_mul, linarith, },
+  { exact nat_degree_add_coeff_mul _ _ },
+  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero],
+    exact nat_degree_lt_coeff_mul (add_lt_add_left hn _) },
+  { rw [coeff_eq_zero_of_nat_degree_lt hm, zero_mul],
+    exact nat_degree_lt_coeff_mul (add_lt_add_right hm _) },
+  { rw [coeff_eq_zero_of_nat_degree_lt hn, mul_zero],
+    exact nat_degree_lt_coeff_mul (add_lt_add hm hn) },
 end
 
 lemma coeff_pow_of_nat_degree_le (pn : p.nat_degree ≤ n) :

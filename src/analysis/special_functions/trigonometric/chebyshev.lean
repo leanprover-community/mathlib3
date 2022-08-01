@@ -47,7 +47,7 @@ begin
 end
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
-value `sin ((n+1) * θ) / sin θ`. -/
+value `sin ((n + 1) * θ) / sin θ`. -/
 @[simp] lemma U_complex_cos (θ : ℂ) (n : ℕ) : (U ℂ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
 begin
   induction n with d hd,
@@ -72,7 +72,7 @@ value `cos (n * θ)`. -/
 by { rw [←complex.of_real_inj, ←complex.coe_algebra_map, ←aeval_algebra_map_apply], simp }
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
-value `sin ((n+1) * θ) / sin θ`. -/
+value `sin ((n + 1) * θ) / sin θ`. -/
 @[simp] lemma U_real_cos (θ : ℝ) (n : ℕ) : (U ℝ n).eval (cos θ) * sin θ = sin ((n + 1) * θ) :=
 by { rw [←complex.of_real_inj, ←complex.coe_algebra_map, map_mul, ←aeval_algebra_map_apply], simp }
 

@@ -151,14 +151,6 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ≼i s :=
 ⟨rel_embedding.of_is_empty r s, is_empty_elim⟩
 
-/-- Initial segment embedding of an order `r` into the disjoint union of `r` and `s`. -/
-def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
-⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl⟩,
-  λ a b, by cases b; [exact λ _, ⟨_, rfl⟩, exact false.elim ∘ sum.lex_inr_inl]⟩
-
-@[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
-  (a) : le_add r s a = sum.inl a := rfl
-
 /-- `sum.inl` as an initial segment between `sum.lift_rel` relations. -/
 def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lift_rel r s :=
 ⟨rel_embedding.sum_lift_rel_inl r s,
@@ -306,11 +298,12 @@ def equiv_lt (f : r ≃r s) (g : s ≺i t) : r ≺i t :=
 /-- Composition of a principal segment with an order isomorphism, as a principal segment -/
 def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
   (f : principal_seg r s) (g : s ≃r t) : principal_seg r t :=
-⟨@rel_embedding.trans _ _ _ r s t f g, g f.top, begin
-  intro x,
-  rw [← g.apply_symm_apply x, g.map_rel_iff, f.down', exists_congr],
-  intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
-end⟩
+⟨@rel_embedding.trans _ _ _ r s t f g, g f.top,
+  begin
+    intro x,
+    rw [← g.apply_symm_apply x, g.map_rel_iff, f.down', exists_congr],
+    intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
+  end⟩
 
 @[simp] theorem equiv_lt_apply (f : r ≃r s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
 rel_embedding.trans_apply _ _ _

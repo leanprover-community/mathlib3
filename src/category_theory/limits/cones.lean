@@ -29,6 +29,8 @@ We define morphisms of cones, and the category of cones.
 We define `cone.postcompose α : cone F ⥤ cone G` for `α` a natural transformation `F ⟶ G`.
 
 And, of course, we dualise all this to cocones as well.
+
+For more results about the category of cones, see `cone_category.lean`.
 -/
 
 -- morphism levels before object levels. See note [category_theory universes].

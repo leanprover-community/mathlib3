@@ -12,6 +12,9 @@ import category_theory.structured_arrow
 This files contains results that stem from the limit API. For the definition and the category
 instance of `cone`, please refer to `category_theory/limits/cones.lean`.
 
+We show that the category of cones on `F : J ⥤ C` is equivalent to the category
+`costructured_arrow (const J) F`
+
 A cone is limiting iff it is terminal in the category of cones. As a corollary, an equivalence of
 categories of cones preserves limiting properties. We also provide the dual.
 

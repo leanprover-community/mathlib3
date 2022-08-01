@@ -416,14 +416,12 @@ end
 open_locale nat  -- to use `φ` for `nat.totient`
 
 /-- Theorem 3.4 of Conrad -/
-lemma strong_probable_prime_of_prime_power_iff (p α : ℕ)
-(hα : 1 ≤ α)  -- TODO: get rid of this
-(hα0 : 0 < α)
-(hp : nat.prime p)
+lemma strong_probable_prime_of_prime_power_iff (p α : ℕ) (hα0 : 0 < α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
   have two_le_p : 2 ≤ p := nat.prime.two_le hp,
-  have one_lt_n : 1 < p ^ α := nat.succ_le_iff.mp (two_le_p.trans (le_self_pow hp.one_lt.le hα)),
+  have one_lt_n : 1 < p ^ α :=
+    nat.succ_le_iff.mp (two_le_p.trans (le_self_pow hp.one_lt.le (succ_le_iff.mpr hα0))),
   have zero_lt_n : 0 < p^α := pos_of_gt one_lt_n,
   haveI : fact (0 < p ^ α), { exact {out := zero_lt_n}, },
   have hp_sub1_dvd := sub_one_dvd_pow_sub_one p α hp.pos,

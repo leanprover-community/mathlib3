@@ -46,21 +46,6 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
 
--- TODO : move to topology.subset_properties near is_compact_univ_pi
-instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [∀ i, compact_space (π i)]
-  [∀ i, locally_compact_space (π i)] : locally_compact_space (Π i, π i) :=
-⟨λ t n hn, begin
-  rw [nhds_pi, filter.mem_pi] at hn,
-  obtain ⟨s, hs, n', hn', hsub⟩ := hn,
-  choose n'' hn'' hsub' hc using λ i, locally_compact_space.local_compact_nhds (t i) (n' i) (hn' i),
-  use s.pi n'', rw set_pi_mem_nhds_iff hs,
-  refine ⟨λ i _, hn'' i, subset_trans (λ _, _) hsub, _⟩,
-  { refine forall₂_imp (λ i _, _), apply hsub' },
-  { classical, rw ← set.univ_pi_ite, apply is_compact_univ_pi,
-    intro i, by_cases i ∈ s, { rw if_pos h, apply hc },
-    { rw if_neg h, exact compact_space.compact_univ } },
-end⟩
-
 section merge_split
 
 variables (Y : Type*) [topological_space Y]
@@ -72,7 +57,9 @@ by { ext, apply f.to_equiv.symm_apply_apply }
 
 variable [decidable_eq N]
 
-@[simps] def merge_split_equiv (i : N) : Y × ({j // j ≠ i} → Y) ≃ (N → Y) :=
+/--Equivalence of an `N` indexed type `Y` with index `i : N` detached. -/
+@[simps] def merge_split_equiv (Y : Type*) (i : N) : Y × ({j // j ≠ i} → Y) ≃ (N → Y) :=
+-- lint complains of unused topological_space instace so we use a fresh Y
 -- maybe use (n : N) everywhere? use (n : ℕ) only in the final section?
 { to_fun := λ y j, if h : j = i then y.1 else y.2 ⟨j, h⟩,
   inv_fun := λ f, ⟨f i, λ j, f j⟩,
@@ -83,6 +70,7 @@ variable [decidable_eq N]
 -- (may cause some unification issue when applied to a const family, but usually tolerable)
 -- What's a more descriptive name? Maybe equiv.prod_pi_erase_equiv_pi?
 
+/--Homeomorphism of an `N` indexed type `Y` with index `i : N` detached. -/
 @[simps] def merge_split (i : N) : Y × ({j // j ≠ i} → Y) ≃ₜ (N → Y) :=
 { to_equiv := merge_split_equiv Y i,
   continuous_to_fun := continuous_pi $ λ j, by { dsimp only [merge_split_equiv],
@@ -92,7 +80,7 @@ variable [decidable_eq N]
 -- TODO: move to topology.homeomorph, maybe below homeomorph.fin_two_arrow
 -- homeomorph.prod_pi_erase_equiv_pi? generalize to family of spaces like homeomorph.pi_fin_two?
 
-@[simp] def merge_split_self (i : N) {t} : merge_split Y i t i = t.1 := by exact dif_pos rfl
+@[simp] lemma merge_split_self (i : N) {t} : merge_split Y i t i = t.1 := by exact dif_pos rfl
 -- remove `by exact` -> get strange class synthesized not defeq error
 
 end merge_split
@@ -106,17 +94,16 @@ namespace cube
 
 instance compact_space : compact_space (cube N) :=
 by { convert pi.compact_space, intro, apply_instance }
-/- The problem is that Lean can't synthesize `N → compact_space I` even if it knows the instance
-  `compact_space I`. Can Lean 3 be made automatically infer these? What about Lean 4? -/
+
 instance locally_compact_space : locally_compact_space (cube N) :=
-by convert pi.locally_compact_space; intro; apply_instance
+by convert locally_compact_space.pi; intro; apply_instance
 
 /-- The points of the `n`-dimensional cube with at least one projection equal to 0 or 1. -/
 def boundary (N) : set (cube N) := {y | ∃ i, y i = 0 ∨ y i = 1}
 
 variable {n : ℕ}
 /-- The first projection of a positive-dimensional cube. -/
-@[simps] def head : C(I^(n+1), I) := ⟨λ t, t 0, continuous_apply 0⟩ --proj 0
+@[simps] def head : C(I^(n+1), I) := ⟨λ t, t 0, continuous_apply 0⟩
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
@@ -248,6 +235,7 @@ abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i},
 ⟨λ f, f.comp (merge_split I i).to_continuous_map,
   (merge_split I i).to_continuous_map.continuous_comp_left⟩
 
+/--Homotopy of generalized loops to `C(I × I, C(cube {j // j ≠ i}, X))`. -/
 @[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
   C(I × I, C(cube {j // j ≠ i}, X)) :=
 ((⟨_, continuous_map.continuous_curry⟩: C(_,_)).comp $
@@ -270,6 +258,7 @@ begin
   exacts [H.apply_zero _, H.apply_one _],
 end
 
+/--Homotopy of paths to `C(I × cube N, X)`. -/
 @[simps] def homotopy_from (i : N) {p q : gen_loop N x}
   (H : (to_path i p).homotopy (to_path i q)) : C(I × cube N, X) :=
 ((⟨_,continuous_map.continuous_uncurry⟩ : C(_,_)).comp
@@ -304,12 +293,15 @@ end gen_loop
 @[derive inhabited]
 def homotopy_group (N) (X : Type*) [topological_space X] (x : X) : Type _ :=
 quotient (gen_loop.homotopic.setoid N x)
+/--Homotopy group of finite index. -/
 abbreviation pi (n) (X : Type*) [topological_space X] (x : X) := homotopy_group (fin n) _ x
 -- TODO: Maybe switch these two names
 local notation `π_` := pi
 
 variable [decidable_eq N]
 open gen_loop
+/--Equivalence between the homotopy group of X and the fundamental group of
+  `gen_loop {j // j ≠ i} x`. -/
 def homotopy_group_equiv_fundamental_group (i : N) :
   homotopy_group N X x ≃ fundamental_group (gen_loop {j // j ≠ i} x) gen_loop.const :=
 begin
@@ -386,9 +378,13 @@ end
 section
 variables {n : ℕ} (i : fin (n+1))
 
-instance is_group : group (π_(n+1) X x) :=
+/--Group structure on `π_(n+1)`. -/
+@[reducible] def is_group : group (π_(n+1) X x) :=
 (homotopy_group_equiv_fundamental_group 0).group
 
+instance : group (π_(n+1) X x) := is_group
+
+/--Additive group on `π_(n+2)`. -/
 def aux_group : group (π_(n+2) X x) :=
 (homotopy_group_equiv_fundamental_group 1).group
 
@@ -416,6 +412,7 @@ lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
     else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
 ⟨_, rfl, λ _, from_path_trans_to_path 0⟩
 
+/--Proof that the additive group is commutative. -/
 @[reducible] def is_comm_group : comm_group (π_(n+2) X x) :=
 @eckmann_hilton.comm_group (π_(n+2) X x) aux_group.mul 1
   ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _
@@ -427,7 +424,6 @@ begin
   split_ifs; { congr, ext1, apply ite_ite },
 end
 
-/- sorry warining -/
 instance comm_group : comm_group (π_(n+2) X x) := is_comm_group
 
 instance add_comm_group : add_comm_group (additive $ π_(n+2) X x) := additive.add_comm_group

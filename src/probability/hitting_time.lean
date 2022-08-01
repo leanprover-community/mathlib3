@@ -158,6 +158,23 @@ begin
     exact hitting_le_of_mem hk₁.1 (hk₁.2.le.trans hi) hk₂, },
 end
 
+lemma hitting_eq_hitting_of_exists [is_well_order ι (<)] {m₁ m₂ : ι}
+  (hn : n ≤ m₁) (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
+  hitting u s n m₁ x = hitting u s n m₂ x :=
+begin
+  simp only [hitting, if_pos h'],
+  obtain ⟨j, hj₁, hj₂⟩ := h',
+  rw if_pos,
+  { refine le_antisymm _ (cInf_le_cInf bdd_below_Icc.inter_of_left ⟨j, hj₁, hj₂⟩
+      (set.inter_subset_inter_left _ (set.Icc_subset_Icc_right h))),
+    refine le_cInf ⟨j, set.Icc_subset_Icc_right h hj₁, hj₂⟩ (λ i hi, _),
+    by_cases hi' : i ≤ m₁,
+    { exact cInf_le bdd_below_Icc.inter_of_left ⟨⟨hi.1.1, hi'⟩, hi.2⟩ },
+    { exact ((cInf_le bdd_below_Icc.inter_of_left ⟨hj₁, hj₂⟩).trans (hj₁.2.trans le_rfl)).trans
+        (le_of_lt (not_le.1 hi')) } },
+  exact ⟨j, ⟨hj₁.1, hj₁.2.trans h⟩, hj₂⟩,
+end
+
 end inequalities
 
 /-- A discrete hitting time is a stopping time. -/

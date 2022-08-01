@@ -28,8 +28,10 @@ convergence theorems.
   one might think of the `upcrossing_strat` as the strategy of buying 1 share whenever the process
   crosses below `a` for the first time after selling and selling 1 share whenever the process
   crosses above `b` for the first time after buying.
-* `measure_theory.upcrossing a b f N`: is the number of times `f` crosses from below `a` to above
-  `b` before time `N`.
+* `measure_theory.upcrossing_before a b f N`: is the number of times `f` crosses from below `a` to
+  above `b` before time `N`.
+* `measure_theory.upcrossing a b f`: is the number of times `f` crosses from below `a` to above
+  `b`. This takes value in `ℝ≥0∞` and so is allowed to be `∞`.
 
 ## Main results
 
@@ -37,8 +39,10 @@ convergence theorems.
   whenever the process it is associated to is adapted.
 * `measure_theory.adapted.is_stopping_time_lower_crossing`: `lower_crossing` is a stopping time
   whenever the process it is associated to is adapted.
-* `measure_theory.submartingale.mul_integral_upcrossing_le_integral_pos_part`: Doob's upcrossing
-  estimate.
+* `measure_theory.submartingale.mul_integral_upcrossing_before_le_integral_pos_part`: Doob's
+  upcrossing estimate.
+* `measure_theory.submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part`: the inequality
+  obtained by taking the supremum on both sides of Doob's upcrossing estimate.
 
 ### References
 
@@ -47,7 +51,7 @@ We mostly follow the proof from [Kallenberg, *Foundations of modern probability*
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators
+open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
 
 namespace measure_theory
 
@@ -434,68 +438,165 @@ end
 
 /-- The number of upcrossings (strictly) before time `N`. -/
 noncomputable
-def upcrossing [preorder ι] [order_bot ι] [has_Inf ι]
+def upcrossing_before [preorder ι] [order_bot ι] [has_Inf ι]
   (a b : ℝ) (f : ι → α → ℝ) (N : ι) (x : α) : ℕ :=
 Sup {n | upper_crossing a b f N n x < N}
 
 @[simp]
-lemma upcrossing_bot [preorder ι] [order_bot ι] [has_Inf ι]
+lemma upcrossing_before_bot [preorder ι] [order_bot ι] [has_Inf ι]
   {a b : ℝ} {f : ι → α → ℝ} {x : α} :
-  upcrossing a b f ⊥ x = ⊥ :=
-by simp [upcrossing]
+  upcrossing_before a b f ⊥ x = ⊥ :=
+by simp [upcrossing_before]
 
-lemma upper_crossing_lt_of_le_upcrossing
-  (hN : 0 < N) (hab : a < b) (hn : n ≤ upcrossing a b f N x) :
+lemma upcrossing_before_zero :
+  upcrossing_before a b f 0 x = 0 :=
+by simp [upcrossing_before]
+
+@[simp] lemma upcrossing_before_zero' :
+  upcrossing_before a b f 0 = 0 :=
+by { ext x, exact upcrossing_before_zero }
+
+lemma upper_crossing_lt_of_le_upcrossing_before
+  (hN : 0 < N) (hab : a < b) (hn : n ≤ upcrossing_before a b f N x) :
   upper_crossing a b f N n x < N :=
 begin
-  have : upper_crossing a b f N (upcrossing a b f N x) x < N :=
+  have : upper_crossing a b f N (upcrossing_before a b f N x) x < N :=
     (upper_crossing_lt_nonempty hN).cSup_mem
     ((order_bot.bdd_below _).finite_of_bdd_above (upper_crossing_lt_bdd_above hab)),
   exact lt_of_le_of_lt (upper_crossing_mono hn) this,
 end
 
-lemma upper_crossing_eq_of_upcrossing_lt
-  (hab : a < b) (hn : upcrossing a b f N x < n) :
+lemma upper_crossing_eq_of_upcrossing_before_lt
+  (hab : a < b) (hn : upcrossing_before a b f N x < n) :
   upper_crossing a b f N n x = N :=
 begin
   refine le_antisymm upper_crossing_le (not_lt.1 _),
   convert not_mem_of_cSup_lt hn (upper_crossing_lt_bdd_above hab),
 end
 
-lemma upcrossing_le (f : ℕ → α → ℝ) (x : α) (hN : 0 < N) (hab : a < b) :
-  upcrossing a b f N x ≤ N :=
+lemma upcrossing_before_le (f : ℕ → α → ℝ) (x : α) (hN : 0 < N) (hab : a < b) :
+  upcrossing_before a b f N x ≤ N :=
 begin
   refine cSup_le ⟨0, hN⟩ (λ n (hn : _ < _), _),
   by_contra hnN,
   exact hn.ne (upper_crossing_eq_of_bound_le hab (not_le.1 hnN).le),
 end
 
-lemma lower_crossing_lt_of_lt_upcrossing
-  (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a b f N x) :
-  lower_crossing a b f N n x < N :=
-lt_of_le_of_lt lower_crossing_le_upper_crossing_succ (upper_crossing_lt_of_le_upcrossing hN hab hn)
+lemma crossing_eq_crossing_of_lower_crossing_lt {M : ℕ} (hNM : N ≤ M)
+  (h : lower_crossing a b f N n x < N) :
+  upper_crossing a b f M n x = upper_crossing a b f N n x ∧
+  lower_crossing a b f M n x = lower_crossing a b f N n x :=
+begin
+  have h' : upper_crossing a b f N n x < N := lt_of_le_of_lt upper_crossing_le_lower_crossing h,
+  induction n with k ih,
+  { simp only [nat.nat_zero_eq_zero, upper_crossing_zero, bot_eq_zero', eq_self_iff_true,
+      lower_crossing_zero, true_and, eq_comm],
+    refine hitting_eq_hitting_of_exists (zero_le _) hNM _,
+    simp only [lower_crossing, hitting_lt_iff] at h,
+    obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ },
+  { specialize ih (lt_of_le_of_lt (lower_crossing_mono (nat.le_succ _)) h)
+      (lt_of_le_of_lt (upper_crossing_mono (nat.le_succ _)) h'),
+    have : upper_crossing a b f M k.succ x = upper_crossing a b f N k.succ x,
+    { simp only [upper_crossing_succ_eq, hitting_lt_iff] at h' ⊢,
+      obtain ⟨j, hj₁, hj₂⟩ := h',
+      rw [eq_comm, ih.2],
+      exact hitting_eq_hitting_of_exists lower_crossing_le hNM ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ },
+    refine ⟨this, _⟩,
+    simp only [lower_crossing, eq_comm, this],
+    refine hitting_eq_hitting_of_exists upper_crossing_le hNM _,
+    rw [lower_crossing, hitting_lt_iff _ le_rfl] at h,
+    swap, { apply_instance },
+    obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ }
+end
 
-lemma le_sub_of_le_upcrossing (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a b f N x) :
+lemma crossing_eq_crossing_of_upper_crossing_lt {M : ℕ} (hNM : N ≤ M)
+  (h : upper_crossing a b f N (n + 1) x < N) :
+  upper_crossing a b f M (n + 1) x = upper_crossing a b f N (n + 1) x ∧
+  lower_crossing a b f M n x = lower_crossing a b f N n x :=
+begin
+  have := (crossing_eq_crossing_of_lower_crossing_lt hNM
+    (lt_of_le_of_lt lower_crossing_le_upper_crossing_succ h)).2,
+  refine ⟨_, this⟩,
+  rw [upper_crossing_succ_eq, upper_crossing_succ_eq, eq_comm, this],
+  refine hitting_eq_hitting_of_exists lower_crossing_le hNM _,
+  simp only [upper_crossing_succ_eq, hitting_lt_iff] at h,
+  obtain ⟨j, hj₁, hj₂⟩ := h,
+  exact ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩
+end
+
+lemma upper_crossing_eq_upper_crossing_of_lt {M : ℕ} (hNM : N ≤ M)
+  (h : upper_crossing a b f N n x < N) :
+  upper_crossing a b f M n x = upper_crossing a b f N n x :=
+begin
+  cases n,
+  { simp },
+  { exact (crossing_eq_crossing_of_upper_crossing_lt hNM h).1 }
+end
+
+lemma upcrossing_before_mono (hab : a < b) :
+  monotone (λ N x, upcrossing_before a b f N x) :=
+begin
+  intros N M hNM x,
+  simp only [upcrossing_before],
+  by_cases hemp : {n : ℕ | upper_crossing a b f N n x < N}.nonempty,
+  { refine cSup_le_cSup (upper_crossing_lt_bdd_above hab) hemp (λ n hn, _),
+    rw [set.mem_set_of_eq, upper_crossing_eq_upper_crossing_of_lt hNM hn],
+    exact lt_of_lt_of_le hn hNM },
+  { rw set.not_nonempty_iff_eq_empty at hemp,
+    simp [hemp, cSup_empty, bot_eq_zero', zero_le'] }
+end
+
+lemma upcrossing_lt_upcrossing_of_exists_upcrossing (hab : a < b) {N₁ N₂ : ℕ}
+  (hN₁: N ≤ N₁) (hN₁': f N₁ x < a) (hN₂: N₁ ≤ N₂) (hN₂': b < f N₂ x) :
+  upcrossing_before a b f N x < upcrossing_before a b f (N₂ + 1) x :=
+begin
+  refine lt_of_lt_of_le (nat.lt_succ_self _) (le_cSup (upper_crossing_lt_bdd_above hab) _),
+  rw [set.mem_set_of_eq, upper_crossing_succ_eq, hitting_lt_iff _ le_rfl],
+  swap,
+  { apply_instance },
+  { refine ⟨N₂, ⟨_, nat.lt_succ_self _⟩, hN₂'.le⟩,
+    rw [lower_crossing, hitting_le_iff_of_lt _ (nat.lt_succ_self _)],
+    refine ⟨N₁, ⟨le_trans _ hN₁, hN₂⟩, hN₁'.le⟩,
+    by_cases hN : 0 < N,
+    { have : upper_crossing a b f N (upcrossing_before a b f N x) x < N :=
+        nat.Sup_mem (upper_crossing_lt_nonempty hN) (upper_crossing_lt_bdd_above hab),
+      rw upper_crossing_eq_upper_crossing_of_lt (hN₁.trans (hN₂.trans $ nat.le_succ _)) this,
+      exact this.le },
+    { rw [not_lt, le_zero_iff] at hN,
+      rw [hN, upcrossing_before_zero, upper_crossing_zero],
+      refl } },
+end
+
+lemma lower_crossing_lt_of_lt_upcrossing
+  (hN : 0 < N) (hab : a < b) (hn : n < upcrossing_before a b f N x) :
+  lower_crossing a b f N n x < N :=
+lt_of_le_of_lt lower_crossing_le_upper_crossing_succ
+  (upper_crossing_lt_of_le_upcrossing_before hN hab hn)
+
+lemma le_sub_of_le_upcrossing_before
+  (hN : 0 < N) (hab : a < b) (hn : n < upcrossing_before a b f N x) :
   b - a ≤
   stopped_value f (upper_crossing a b f N (n + 1)) x -
   stopped_value f (lower_crossing a b f N n) x :=
-sub_le_sub (stopped_value_upper_crossing (upper_crossing_lt_of_le_upcrossing hN hab hn).ne)
+sub_le_sub (stopped_value_upper_crossing (upper_crossing_lt_of_le_upcrossing_before hN hab hn).ne)
   (stopped_value_lower_crossing (lower_crossing_lt_of_lt_upcrossing hN hab hn).ne)
 
-lemma sub_eq_zero_of_upcrossing_lt (hab : a < b) (hn : upcrossing a b f N x < n) :
+lemma sub_eq_zero_of_upcrossing_before_lt (hab : a < b) (hn : upcrossing_before a b f N x < n) :
   stopped_value f (upper_crossing a b f N (n + 1)) x -
   stopped_value f (lower_crossing a b f N n) x = 0 :=
 begin
   have : N ≤ upper_crossing a b f N n x,
-  { rw upcrossing at hn,
+  { rw upcrossing_before at hn,
     rw ← not_lt,
     exact λ h, not_le.2 hn (le_cSup (upper_crossing_lt_bdd_above hab) h) },
   simp [stopped_value, upper_crossing_stabilize' (nat.le_succ n) this,
     lower_crossing_stabilize' le_rfl (le_trans this upper_crossing_le_lower_crossing)]
 end
 
-lemma mul_upcrossing_le (hf : a ≤ f N x) (hN : 0 < N) (hab : a < b) :
-  (b - a) * upcrossing a b f N x ≤
+lemma mul_upcrossing_before_le (hf : a ≤ f N x) (hN : 0 < N) (hab : a < b) :
+  (b - a) * upcrossing_before a b f N x ≤
   ∑ k in finset.range N, upcrossing_strat a b f N k x * (f (k + 1) - f k) x :=
 begin
   classical,
@@ -521,16 +622,16 @@ begin
         and_iff_right_iff_imp, and_imp],
       exact λ _ h, lt_of_lt_of_le h upper_crossing_le } },
   simp_rw [h₁],
-  have h₂ : ∑ k in finset.range (upcrossing a b f N x), (b - a) ≤
+  have h₂ : ∑ k in finset.range (upcrossing_before a b f N x), (b - a) ≤
     ∑ k in finset.range N,
     (stopped_value f (upper_crossing a b f N (k + 1)) x -
     stopped_value f (lower_crossing a b f N k) x),
-  { calc ∑ k in finset.range (upcrossing a b f N x), (b - a)
-       ≤ ∑ k in finset.range (upcrossing a b f N x),
+  { calc ∑ k in finset.range (upcrossing_before a b f N x), (b - a)
+       ≤ ∑ k in finset.range (upcrossing_before a b f N x),
           (stopped_value f (upper_crossing a b f N (k + 1)) x -
            stopped_value f (lower_crossing a b f N k) x) :
     begin
-      refine finset.sum_le_sum (λ i hi, le_sub_of_le_upcrossing hN hab _),
+      refine finset.sum_le_sum (λ i hi, le_sub_of_le_upcrossing_before hN hab _),
       rwa finset.mem_range at hi,
     end
     ...≤ ∑ k in finset.range N,
@@ -538,16 +639,16 @@ begin
            stopped_value f (lower_crossing a b f N k) x) :
     begin
       refine finset.sum_le_sum_of_subset_of_nonneg
-        (finset.range_subset.2 (upcrossing_le f x hN hab)) (λ i _ hi, _),
-      by_cases hi' : i = upcrossing a b f N x,
+        (finset.range_subset.2 (upcrossing_before_le f x hN hab)) (λ i _ hi, _),
+      by_cases hi' : i = upcrossing_before a b f N x,
       { subst hi',
         simp only [stopped_value],
-        rw upper_crossing_eq_of_upcrossing_lt hab (nat.lt_succ_self _),
-        by_cases heq : lower_crossing a b f N (upcrossing a b f N x) x = N,
+        rw upper_crossing_eq_of_upcrossing_before_lt hab (nat.lt_succ_self _),
+        by_cases heq : lower_crossing a b f N (upcrossing_before a b f N x) x = N,
         { rw [heq, sub_self] },
         { rw sub_nonneg,
           exact le_trans (stopped_value_lower_crossing heq) hf } },
-      { rw sub_eq_zero_of_upcrossing_lt hab,
+      { rw sub_eq_zero_of_upcrossing_before_lt hab,
         rw [finset.mem_range, not_lt] at hi,
         exact lt_of_le_of_ne hi (ne.symm hi') },
     end },
@@ -555,17 +656,17 @@ begin
   rw [finset.sum_const, finset.card_range, nsmul_eq_mul, mul_comm],
 end
 
-lemma integral_mul_upcrossing_le_integral [is_finite_measure μ]
+lemma integral_mul_upcrossing_before_le_integral [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hfN : ∀ x, a ≤ f N x) (hfzero : 0 ≤ f 0) (hN : 0 < N) (hab : a < b) :
-  (b - a) * μ[upcrossing a b f N] ≤ μ[f N] :=
-calc (b - a) * μ[upcrossing a b f N]
+  (b - a) * μ[upcrossing_before a b f N] ≤ μ[f N] :=
+calc (b - a) * μ[upcrossing_before a b f N]
      ≤ μ[∑ k in finset.range N, upcrossing_strat a b f N k * (f (k + 1) - f k)] :
 begin
   rw ← integral_mul_left,
   refine integral_mono_of_nonneg _ ((hf.sum_upcrossing_strat_mul a b N).integrable N) _,
   { exact eventually_of_forall (λ x, mul_nonneg (sub_nonneg.2 hab.le) (nat.cast_nonneg _)) },
   { refine eventually_of_forall (λ x, _),
-    simpa using mul_upcrossing_le (hfN x) hN hab },
+    simpa using mul_upcrossing_before_le (hfN x) hN hab },
 end
   ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
   ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)
@@ -620,14 +721,14 @@ begin
 end
 
 lemma upcrossing_pos_eq (hab : a < b) :
-  upcrossing 0 (b - a) (λ n x, (f n x - a)⁺) N x = upcrossing a b f N x :=
-by simp_rw [upcrossing, (crossing_pos_eq hab).1]
+  upcrossing_before 0 (b - a) (λ n x, (f n x - a)⁺) N x = upcrossing_before a b f N x :=
+by simp_rw [upcrossing_before, (crossing_pos_eq hab).1]
 
-private lemma mul_integral_upcrossing_le_integral_pos_part'' [is_finite_measure μ]
+private lemma mul_integral_upcrossing_before_le_integral_pos_part'' [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hN : 0 < N) (hab : a < b) :
-  (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
+  (b - a) * μ[upcrossing_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
-  refine le_trans (le_of_eq _) (integral_mul_upcrossing_le_integral
+  refine le_trans (le_of_eq _) (integral_mul_upcrossing_before_le_integral
     (hf.sub_martingale (martingale_const _ _ _)).pos
     (λ x, lattice_ordered_comm_group.pos_nonneg _)
     (λ x, lattice_ordered_comm_group.pos_nonneg _) hN (sub_pos.2 hab)),
@@ -635,31 +736,162 @@ begin
   refl,
 end
 
-private lemma mul_integral_upcrossing_le_integral_pos_part' [is_finite_measure μ]
+private lemma mul_integral_upcrossing_before_le_integral_pos_part' [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hab : a < b) :
-  (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
+  (b - a) * μ[upcrossing_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
   by_cases hN : N = 0,
   { subst hN,
-    simp_rw [← bot_eq_zero, upcrossing_bot, bot_eq_zero, integral_const,
+    simp_rw [← bot_eq_zero, upcrossing_before_bot, bot_eq_zero, integral_const,
       algebra.id.smul_eq_mul, nat.cast_zero, mul_zero],
     exact integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _) },
-  { exact mul_integral_upcrossing_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
+  { exact mul_integral_upcrossing_before_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
 end
 
 /-- **Doob's upcrossing estimate**: given a real valued discrete submartingale `f` and real
-values `a` and `b`, we have `(b - a) * 𝔼[upcrossing a b f N] ≤ 𝔼[(f N - a)⁺]` where
-`upcrossing a b f N` is the number of times the process `f` crossed from below `a` to above
+values `a` and `b`, we have `(b - a) * 𝔼[upcrossing_before a b f N] ≤ 𝔼[(f N - a)⁺]` where
+`upcrossing_before a b f N` is the number of times the process `f` crossed from below `a` to above
 `b` before the time `N`. -/
-lemma submartingale.mul_integral_upcrossing_le_integral_pos_part [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) :
-  (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
+lemma submartingale.mul_integral_upcrossing_before_le_integral_pos_part [is_finite_measure μ]
+  (a b : ℝ) (hf : submartingale f ℱ μ) (N : ℕ) :
+  (b - a) * μ[upcrossing_before a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
   by_cases hab : a < b,
-  { exact mul_integral_upcrossing_le_integral_pos_part' hf hab },
+  { exact mul_integral_upcrossing_before_le_integral_pos_part' hf hab },
   { rw [not_lt, ← sub_nonpos] at hab,
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (integral_nonneg (λ x, nat.cast_nonneg _)))
       (integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _)) }
+end
+
+lemma upcrossing_before_eq_sum (hN : 0 < N) (hab : a < b) :
+  upcrossing_before a b f N x =
+  ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing a b f N n x < N}.indicator 1 i :=
+begin
+  rw ← finset.sum_Ico_consecutive _ (nat.succ_le_succ zero_le')
+    (nat.succ_le_succ (upcrossing_before_le f x hN hab)),
+  have h₁ : ∀ k ∈ finset.Ico 1 (upcrossing_before a b f N x + 1),
+    {n : ℕ | upper_crossing a b f N n x < N}.indicator 1 k = 1,
+  { rintro k hk,
+    rw finset.mem_Ico at hk,
+    rw set.indicator_of_mem,
+    { refl },
+    { refine upper_crossing_lt_of_le_upcrossing_before hN hab (nat.lt_succ_iff.1 hk.2) } },
+  have h₂ : ∀ k ∈ finset.Ico (upcrossing_before a b f N x + 1) (N + 1),
+    {n : ℕ | upper_crossing a b f N n x < N}.indicator 1 k = 0,
+  { rintro k hk,
+    rw [finset.mem_Ico, nat.succ_le_iff] at hk,
+    rw set.indicator_of_not_mem,
+    simp only [set.mem_set_of_eq, not_lt],
+    exact (upper_crossing_eq_of_upcrossing_before_lt hab hk.1).symm.le },
+  rw [finset.sum_congr rfl h₁, finset.sum_congr rfl h₂, finset.sum_const, finset.sum_const,
+    smul_eq_mul, mul_one, smul_eq_mul, mul_zero, nat.card_Ico, nat.add_succ_sub_one,
+    add_zero, add_zero],
+end
+
+lemma adapted.measurable_upcrossing_before (hf : adapted ℱ f) (hab : a < b) :
+  measurable (upcrossing_before a b f N) :=
+begin
+  by_cases hN : N = 0,
+  { rw [hN, upcrossing_before_zero'],
+    exact measurable_zero },
+  { have : upcrossing_before a b f N =
+      λ x, ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing a b f N n x < N}.indicator 1 i,
+    { ext x,
+      exact upcrossing_before_eq_sum (zero_lt_iff.2 hN) hab },
+    rw this,
+    exact finset.measurable_sum _ (λ i hi, measurable.indicator measurable_const $
+      ℱ.le N _ (hf.is_stopping_time_upper_crossing.measurable_set_lt_of_pred N)) },
+end
+
+lemma adapted.integrable_upcrossing_before [is_finite_measure μ]
+  (hf : adapted ℱ f) (hab : a < b) :
+  integrable (λ x, (upcrossing_before a b f N x : ℝ)) μ :=
+begin
+  by_cases hN : N = 0,
+  { rw [hN, upcrossing_before_zero'],
+    simp only [pi.zero_apply, nat.cast_zero, integrable_zero] },
+  { have h₁ : upcrossing_before a b f N =
+      λ x, ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing a b f N n x < N}.indicator 1 i,
+    { ext x,
+      exact upcrossing_before_eq_sum (zero_lt_iff.2 hN) hab },
+    rw h₁,
+    simp only [nat.cast_sum],
+    refine integrable_finset_sum _ (λ i hi, _),
+    have h₂ : ∀ x, (({n | upper_crossing a b f N n x < N}.indicator 1 i : ℕ) : ℝ) =
+      {x | upper_crossing a b f N i x < N}.indicator 1 x,
+    { intro x,
+      by_cases i ∈ {n : ℕ | upper_crossing a b f N n x < N},
+      { rw [set.indicator_of_mem h, set.indicator_of_mem, pi.one_apply, pi.one_apply, nat.cast_one],
+        exact h },
+      { rw [set.indicator_of_not_mem h, set.indicator_of_not_mem, nat.cast_zero],
+        exact h } },
+    simp_rw [h₂],
+    rw [integrable_indicator_iff (ℱ.le N _
+      (hf.is_stopping_time_upper_crossing.measurable_set_lt_of_pred N)),
+      pi.one_def, integrable_on_const],
+    exact or.inr (measure_lt_top _ _) },
+end
+
+/-- The number of upcrossings of a realization of a stochastic process (`upcrossing` takes value
+in `ℝ≥0∞` and so is allowed to be `∞`). -/
+noncomputable def upcrossing [preorder ι] [order_bot ι] [has_Inf ι]
+  (a b : ℝ) (f : ι → α → ℝ) (x : α) : ℝ≥0∞ :=
+⨆ N, (upcrossing_before a b f N x : ℝ≥0∞)
+
+lemma adapted.measurable_upcrossing (hf : adapted ℱ f) (hab : a < b) :
+  measurable (upcrossing a b f) :=
+measurable_supr (λ N, measurable_from_top.comp (hf.measurable_upcrossing_before hab))
+
+lemma upcrossing_lt_top_iff :
+  upcrossing a b f x < ∞ ↔ ∃ k, ∀ N, upcrossing_before a b f N x ≤ k :=
+begin
+  have : upcrossing a b f x < ⊤ ↔ ∃ k : ℝ≥0, upcrossing a b f x ≤ k,
+  { split,
+    { intro h,
+      lift upcrossing a b f x to ℝ≥0 using h.ne with r hr,
+      exact ⟨r, le_rfl⟩ },
+    { rintro ⟨k, hk⟩,
+      exact lt_of_le_of_lt hk ennreal.coe_lt_top } },
+  simp_rw [this, upcrossing, supr_le_iff],
+  split; rintro ⟨k, hk⟩,
+  { obtain ⟨m, hm⟩ := exists_nat_ge k,
+    refine ⟨m, λ N, ennreal.coe_nat_le_coe_nat.1 ((hk N).trans _)⟩,
+    rwa [← ennreal.coe_nat, ennreal.coe_le_coe] },
+  { refine ⟨k, λ N, _⟩,
+    simp only [ennreal.coe_nat, ennreal.coe_nat_le_coe_nat, hk N] }
+end
+
+/-- A variant of Doob's upcrossing estimate obtained by taking the supremum on both sides. -/
+lemma submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part [is_finite_measure μ]
+  (a b : ℝ) (hf : submartingale f ℱ μ) :
+  ennreal.of_real (b - a) * ∫⁻ x, upcrossing a b f x ∂μ ≤
+  ⨆ N, ∫⁻ x, ennreal.of_real ((f N x - a)⁺) ∂μ :=
+begin
+  by_cases hab : a < b,
+  { simp_rw [upcrossing],
+    have : ∀ N, ∫⁻ x, ennreal.of_real ((f N x - a)⁺) ∂μ = ennreal.of_real (∫ x, (f N x - a)⁺ ∂μ),
+    { intro N,
+      rw of_real_integral_eq_lintegral_of_real,
+      { exact (hf.sub_martingale (martingale_const _ _ _)).pos.integrable _ },
+      { exact eventually_of_forall (λ x, lattice_ordered_comm_group.pos_nonneg _) } },
+    rw lintegral_supr',
+    { simp_rw [this, ennreal.mul_supr, supr_le_iff],
+      intro N,
+      rw [(by simp : ∫⁻ x, upcrossing_before a b f N x ∂μ =
+        ∫⁻ x, ↑(upcrossing_before a b f N x : ℝ≥0) ∂μ), lintegral_coe_eq_integral,
+        ← ennreal.of_real_mul (sub_pos.2 hab).le],
+      { simp_rw [nnreal.coe_nat_cast],
+        exact (ennreal.of_real_le_of_real
+          (hf.mul_integral_upcrossing_before_le_integral_pos_part a b N)).trans (le_supr _ N) },
+      { simp only [nnreal.coe_nat_cast, hf.adapted.integrable_upcrossing_before hab] } },
+    { refine λ n, measurable_from_top.comp_ae_measurable
+        (hf.adapted.measurable_upcrossing_before  hab).ae_measurable },
+    { refine eventually_of_forall (λ x N M hNM, _),
+      rw ennreal.coe_nat_le_coe_nat,
+      exact upcrossing_before_mono hab hNM x } },
+  { rw [not_lt, ← sub_nonpos] at hab,
+    rw [ennreal.of_real_of_nonpos hab, zero_mul],
+    exact zero_le _ }
 end
 
 end measure_theory

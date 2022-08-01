@@ -357,6 +357,25 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
+lemma direct_sum.is_internal.is_hilbert_sum [fintype ι] {F : ι → submodule 𝕜 E}
+  [Π i, complete_space (F i)] (hF : direct_sum.is_internal F)
+  (hF' : @orthogonal_family 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ)) :
+  @is_hilbert_sum _ 𝕜 _ _ _ _ (λ i, F i) _ (λ i, (F i).subtypeₗᵢ) :=
+hF'.is_hilbert_sum_internal _ (by rw hF.submodule_supr_eq_top; exact subset_closure)
+
+lemma submodule.is_hilbert_sum_orthogonal (K : submodule 𝕜 E) [hK : complete_space K] :
+  @is_hilbert_sum _ 𝕜 _ E _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ) :=
+begin
+  haveI : Π b, complete_space ((cond b K Kᗮ : submodule 𝕜 E) : Type*),
+  { intro b,
+    cases b;
+    exact orthogonal.complete_space K <|> assumption },
+  refine direct_sum.is_internal.is_hilbert_sum _ K.orthogonal_family_self,
+  convert (direct_sum.is_internal_submodule_iff_is_compl _ (by contradiction) bool.univ_eq).mpr _,
+  exact submodule.is_compl_orthogonal_of_complete_space.symm
+end
+
 end is_hilbert_sum
 
 /-! ### Hilbert bases -/

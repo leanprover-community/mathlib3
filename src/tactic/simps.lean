@@ -500,7 +500,7 @@ add_tactic_doc
     declaration.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
-(attrs         := [`simv])
+(attrs         := [`simp])
 (simp_rhs      := ff)
 (type_md       := transparency.instances)
 (rhs_md        := transparency.none)

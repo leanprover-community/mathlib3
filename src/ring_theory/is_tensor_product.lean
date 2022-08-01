@@ -5,6 +5,8 @@ Authors: Andrew Yang
 -/
 
 import ring_theory.tensor_product
+import algebra.module.ulift
+import logic.equiv.transfer_instance
 
 /-!
 # The characteristice predicate of tensor product
@@ -117,7 +119,8 @@ end is_tensor_product
 
 section is_base_change
 
-variables {R M N : Type*} (S : Type*) [add_comm_monoid M] [add_comm_monoid N] [comm_ring R]
+variables {R : Type*} {M : Type v₁} {N : Type v₂} (S : Type v₃)
+variables [add_comm_monoid M] [add_comm_monoid N] [comm_ring R]
 variables [comm_ring S] [algebra R S] [module R M] [module R N] [module S N] [is_scalar_tower R S N]
 variables (f : M →ₗ[R] N)
 
@@ -131,7 +134,7 @@ def is_base_change : Prop := is_tensor_product
 
 variables {S f} (h : is_base_change S f)
 variables {P Q : Type*} [add_comm_monoid P] [module R P]
-variables[add_comm_monoid Q] [module R Q] [module S Q] [is_scalar_tower R S Q]
+variables [add_comm_monoid Q] [module R Q] [module S Q] [is_scalar_tower R S Q]
 
 /-- Suppose `f : M →ₗ[R] N` is the base change of `M` along `R → S`. Then any `R`-linear map from
 `M` to an `S`-module factors thorugh `f`. -/
@@ -161,6 +164,32 @@ end
 lemma is_base_change.lift_comp (g : M →ₗ[R] Q) : ((h.lift g).restrict_scalars R).comp f = g :=
 linear_map.ext (h.lift_eq g)
 
+include h
+
+@[elab_as_eliminator]
+lemma is_base_change.induction_on (x : N) (P : N → Prop)
+  (h₁ : P 0)
+  (h₂ : ∀ m : M, P (f m))
+  (h₃ : ∀ (s : S) n, P n → P (s • n))
+  (h₄ : ∀ n₁ n₂, P n₁ → P n₂ → P (n₁ + n₂)) : P x :=
+h.induction_on x h₁ (λ s y, h₃ _ _ (h₂ _)) h₄
+
+lemma is_base_change.alg_hom_ext (g₁ g₂ : N →ₗ[S] Q) (e : ∀ x, g₁ (f x) = g₂ (f x)) :
+  g₁ = g₂ :=
+begin
+  ext x,
+  apply h.induction_on x,
+  { rw [map_zero, map_zero] },
+  { assumption },
+  { intros s n e', rw [g₁.map_smul, g₂.map_smul, e'] },
+  { intros x y e₁ e₂, rw [map_add, map_add, e₁, e₂] }
+end
+
+lemma is_base_change.alg_hom_ext' (g₁ g₂ : N →ₗ[S] Q)
+  (e : (g₁.restrict_scalars R).comp f = (g₂.restrict_scalars R).comp f) :
+  g₁ = g₂ :=
+h.alg_hom_ext g₁ g₂ (linear_map.congr_fun e)
+
 variables (R M N S)
 
 omit f
@@ -187,5 +216,107 @@ tensor_product.lift.tmul s m
 
 lemma is_base_change.equiv_symm_apply (m : M) : h.equiv.symm (f m) = 1 ⊗ₜ m :=
 by rw [h.equiv.symm_apply_eq, h.equiv_tmul, one_smul]
+
+
+variable (f)
+include f S
+
+lemma is_base_change.of_lift_unique
+  (h : ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
+    by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
+      ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g) : is_base_change S f :=
+begin
+  delta is_base_change is_tensor_product,
+  obtain ⟨g, hg, hg'⟩  := h (ulift.{v₂} $ S ⊗[R] M)
+    (ulift.module_equiv.symm.to_linear_map.comp $ tensor_product.mk R S M 1),
+  let f' : S ⊗[R] M →ₗ[R] N := _, change function.bijective f',
+  let f'' : S ⊗[R] M →ₗ[S] N,
+  { refine { map_smul' := λ r x, _, ..f' },
+    apply tensor_product.induction_on x,
+    { simp only [map_zero, smul_zero, linear_map.to_fun_eq_coe] },
+    { intros x y, simp [f', smul_tmul', algebra.of_id_apply] },
+    { intros x y hx hy, dsimp at hx hy ⊢, simp only [hx, hy, smul_add, map_add] } },
+  change function.bijective f'',
+  split,
+  { apply function.has_left_inverse.injective,
+    refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
+    apply tensor_product.induction_on x,
+    { simp only [map_zero] },
+    { intros x y,
+      have := (congr_arg (λ a, x • a) (linear_map.congr_fun hg y)).trans
+        (ulift.module_equiv.symm.map_smul x _).symm,
+      apply (ulift.module_equiv : ulift.{v₂} (S ⊗ M) ≃ₗ[S] S ⊗ M)
+        .to_equiv.apply_eq_iff_eq_symm_apply.mpr,
+      any_goals { apply_instance },
+      simpa [algebra.of_id_apply, smul_tmul'] using this },
+    { intros x y hx hy, simp only [map_add, hx, hy] } },
+  { apply function.has_right_inverse.surjective,
+    refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
+    obtain ⟨g', hg₁, hg₂⟩ := h (ulift.{max v₁ v₃} N) (ulift.module_equiv.symm.to_linear_map.comp f),
+    have : g' = ulift.module_equiv.symm.to_linear_map := by { refine (hg₂ _ _).symm, refl },
+    subst this,
+    apply (ulift.module_equiv : ulift.{max v₁ v₃} N ≃ₗ[S] N).symm.injective,
+    simp_rw [← linear_equiv.coe_to_linear_map, ← linear_map.comp_apply],
+    congr' 1,
+    apply hg₂,
+    ext y,
+    have := linear_map.congr_fun hg y,
+    dsimp [ulift.module_equiv] at this ⊢,
+    rw this,
+    simp [f'] }
+end
+
+variable {f}
+
+lemma is_base_change.iff_lift_unique :
+  is_base_change S f ↔
+    ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
+    by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
+      ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g :=
+⟨λ h, by { introsI,
+  exact ⟨h.lift g, h.lift_comp g, λ g' e, h.alg_hom_ext' _ _ (e.trans (h.lift_comp g).symm)⟩ },
+  is_base_change.of_lift_unique f⟩
+
+omit f
+
+lemma is_base_change.of_equiv (e : M ≃ₗ[R] N) : is_base_change R e.to_linear_map :=
+begin
+  apply is_base_change.of_lift_unique,
+  introsI Q I₁ I₂ I₃ I₄ g,
+  have : I₂ = I₃,
+  { ext r q,
+    rw [← one_smul R q, smul_smul, ← smul_assoc, smul_eq_mul, mul_one] },
+  unfreezingI { cases this },
+  refine ⟨g.comp e.symm.to_linear_map, by { ext, simp }, _⟩,
+  rintros y (rfl : _ = _),
+  ext,
+  simp,
+end
+
+variables {T O : Type*} [comm_ring T] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+variables [add_comm_monoid O] [module R O] [module S O] [module T O] [is_scalar_tower S T O]
+variables [is_scalar_tower R S O] [is_scalar_tower R T O]
+
+omit h S
+
+lemma is_base_change.comp {f : M →ₗ[R] N} (hf : is_base_change S f) {g : N →ₗ[S] O}
+  (hg : is_base_change T g) : is_base_change T ((g.restrict_scalars R).comp f) :=
+begin
+  apply is_base_change.of_lift_unique,
+  introsI Q _ _ _ _ i,
+  letI := module.comp_hom Q (algebra_map S T),
+  haveI : is_scalar_tower S T Q := ⟨λ x y z, by { rw [algebra.smul_def, mul_smul], refl }⟩,
+  haveI : is_scalar_tower R S Q,
+  { refine ⟨λ x y z, _⟩,
+    change (is_scalar_tower.to_alg_hom R S T) (x • y) • z = x • (algebra_map S T y • z),
+    rw [alg_hom.map_smul, smul_assoc],
+    refl },
+  refine ⟨hg.lift (hf.lift i), by { ext, simp [is_base_change.lift_eq] }, _⟩,
+  rintros g' (e : _ = _),
+  refine hg.alg_hom_ext' _ _ (hf.alg_hom_ext' _ _ _),
+  rw [is_base_change.lift_comp, is_base_change.lift_comp, ← e],
+  ext,
+  refl
+end
 
 end is_base_change

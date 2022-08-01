@@ -158,8 +158,8 @@ begin
     exact hitting_le_of_mem hk₁.1 (hk₁.2.le.trans hi) hk₂, },
 end
 
-lemma hitting_eq_hitting_of_exists [is_well_order ι (<)] {m₁ m₂ : ι}
-  (hn : n ≤ m₁) (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
+lemma hitting_eq_hitting_of_exists
+  {m₁ m₂ : ι} (h : m₁ ≤ m₂) (h' : ∃ j ∈ set.Icc n m₁, u j x ∈ s) :
   hitting u s n m₁ x = hitting u s n m₂ x :=
 begin
   simp only [hitting, if_pos h'],

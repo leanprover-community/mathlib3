@@ -1631,7 +1631,76 @@ end list
 
 namespace multiset
 
+lemma disjoint_list_sum_left {a : multiset α} {l : list (multiset α)} :
+  multiset.disjoint l.sum a ↔ ∀ b ∈ l, multiset.disjoint b a :=
+begin
+  induction l with b bs ih,
+  { simp only [zero_disjoint, list.not_mem_nil, is_empty.forall_iff, forall_const, list.sum_nil], },
+  { simp_rw [list.sum_cons, disjoint_add_left, list.mem_cons_iff, forall_eq_or_imp],
+    simp [and.congr_left_iff, iff_self, ih], },
+end
+
+lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)} :
+  multiset.disjoint a l.sum ↔ ∀ b ∈ l, multiset.disjoint a b :=
+by simpa only [disjoint_comm] using disjoint_list_sum_left
+
+lemma disjoint_sum_left {a : multiset α} {i : multiset (multiset α)} :
+  multiset.disjoint i.sum a ↔ ∀ b ∈ i, multiset.disjoint b a :=
+quotient.induction_on i $ λ l, begin
+  rw [quot_mk_to_coe, multiset.coe_sum],
+  exact disjoint_list_sum_left,
+end
+
+lemma disjoint_sum_right {a : multiset α} {i : multiset (multiset α)} :
+  multiset.disjoint a i.sum ↔ ∀ b ∈ i, multiset.disjoint a b :=
+by simpa only [disjoint_comm] using disjoint_sum_left
+
+lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
+  multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
+begin
+  convert (@disjoint_sum_left _ a) (map f i.val),
+  simp [finset.mem_def, and.congr_left_iff, iff_self],
+end
+
+lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
+  multiset.disjoint a (i.sum f) ↔ ∀ b ∈ i, multiset.disjoint a (f b) :=
+by simpa only [disjoint_comm] using disjoint_finset_sum_left
+
 variables [decidable_eq α]
+
+lemma add_eq_union_left_of_le {x y z : multiset α} (h : y ≤ x) :
+  z + x = z ∪ y ↔ z.disjoint x ∧ x = y :=
+begin
+  rw ←add_eq_union_iff_disjoint,
+  split,
+  { intro h0,
+    rw and_iff_right_of_imp,
+    { exact (le_of_add_le_add_left $ h0.trans_le $ union_le_add z y).antisymm h, },
+    { rintro rfl,
+      exact h0, } },
+  { rintro ⟨h0, rfl⟩,
+    exact h0, }
+end
+
+lemma add_eq_union_right_of_le {x y z : multiset α} (h : z ≤ y) :
+  x + y = x ∪ z ↔ y = z ∧ x.disjoint y :=
+by simpa only [and_comm] using add_eq_union_left_of_le h
+
+lemma finset_sum_eq_sup_iff_disjoint {β : Type*} {i : finset β} {f : β → multiset α} :
+  i.sum f = i.sup f ↔ ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y) :=
+begin
+  induction i using finset.cons_induction_on with z i hz hr,
+  { simp only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff,
+      finset.sum_empty, finset.sup_empty, bot_eq_zero, eq_self_iff_true], },
+  { simp_rw [finset.sum_cons hz, finset.sup_cons, finset.mem_cons, multiset.sup_eq_union,
+      forall_eq_or_imp, ne.def, eq_self_iff_true, not_true, is_empty.forall_iff, true_and,
+      imp_and_distrib, forall_and_distrib, ←hr, @eq_comm _ z],
+    have := λ x ∈ i, ne_of_mem_of_not_mem H hz,
+    simp only [this, not_false_iff, true_implies_iff] {contextual := tt},
+    simp_rw [←disjoint_finset_sum_left, ←disjoint_finset_sum_right, disjoint_comm, ←and_assoc,
+      and_self],
+    exact add_eq_union_left_of_le (finset.sup_le (λ x hx, le_sum_of_mem (mem_map_of_mem f hx))), },
+end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a) = s.card :=

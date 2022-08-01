@@ -124,10 +124,10 @@ end has_inv
 open_locale pointwise
 
 section has_involutive_inv
-variables [decidable_eq α] [has_involutive_inv α] {s t : finset α}
+variables [decidable_eq α] [has_involutive_inv α] (s : finset α)
 
 @[simp, norm_cast, to_additive]
-lemma coe_inv (s : finset α) : ↑(s⁻¹) = (s : set α)⁻¹ := coe_image.trans set.image_inv
+lemma coe_inv : ↑(s⁻¹) = (s : set α)⁻¹ := coe_image.trans set.image_inv
 
 @[simp, to_additive] lemma card_inv : s⁻¹.card = s.card := card_image_of_injective _ inv_injective
 
@@ -178,9 +178,8 @@ image₂_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image₂_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image₂_right
-@[simp, to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
-@[simp, to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
-image₂_singleton_left
+@[to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
+@[to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) := image₂_singleton_left
 @[simp, to_additive] lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
 image₂_singleton
 
@@ -643,9 +642,9 @@ image₂_nonempty_iff
 nonempty.of_image₂_left
 @[to_additive] lemma nonempty.of_smul_right : (s • t).nonempty → t.nonempty :=
 nonempty.of_image₂_right
-@[simp, to_additive] lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) :=
+@[to_additive] lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) :=
 image₂_singleton_right
-@[simp, to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = t.image ((•) a) :=
+@[to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = t.image ((•) a) :=
 image₂_singleton_left
 @[simp, to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
   ({a} : finset α) • ({b} : finset β) = {a • b} :=
@@ -709,8 +708,7 @@ lemma nonempty.of_vsub_left : (s -ᵥ t : finset α).nonempty → s.nonempty := 
 lemma nonempty.of_vsub_right : (s -ᵥ t : finset α).nonempty → t.nonempty := nonempty.of_image₂_right
 @[simp] lemma vsub_singleton (b : β) : s -ᵥ ({b} : finset β) = s.image (-ᵥ b) :=
 image₂_singleton_right
-@[simp] lemma singleton_vsub (a : β) : ({a} : finset β) -ᵥ t = t.image ((-ᵥ) a) :=
-image₂_singleton_left
+lemma singleton_vsub (a : β) : ({a} : finset β) -ᵥ t = t.image ((-ᵥ) a) := image₂_singleton_left
 @[simp] lemma singleton_vsub_singleton (a b : β) : ({a} : finset β) -ᵥ {b} = {a -ᵥ b} :=
 image₂_singleton
 
@@ -888,10 +886,39 @@ coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
 
-@[to_additive] lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α]
-  {s : set α} {t : finset α} :
+section left_cancel_semigroup
+variables [left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
+
+@[to_additive] lemma pairwise_disjoint_smul_iff {s : set α} {t : finset α} :
   s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
+
+@[simp, to_additive] lemma card_singleton_mul : ({a} * t).card = t.card :=
+card_image₂_singleton_left _ $ mul_right_injective _
+
+@[to_additive] lemma singleton_mul_inter : {a} * (s ∩ t) = ({a} * s) ∩ ({a} * t) :=
+image₂_singleton_inter _ _ $ mul_right_injective _
+
+@[to_additive] lemma card_le_card_mul_left {s : finset α} (hs : s.nonempty) :
+  t.card ≤ (s * t).card :=
+card_le_card_image₂_left _ hs mul_right_injective
+
+end left_cancel_semigroup
+
+section
+variables [right_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
+
+@[simp, to_additive] lemma card_mul_singleton : (s * {a}).card = s.card :=
+card_image₂_singleton_right _ $ mul_left_injective _
+
+@[to_additive] lemma inter_mul_singleton : (s ∩ t) * {a} = (s * {a}) ∩ (t * {a}) :=
+image₂_inter_singleton _ _ $ mul_left_injective _
+
+@[to_additive] lemma card_le_card_mul_right {t : finset α} (ht : t.nonempty) :
+  s.card ≤ (s * t).card :=
+card_le_card_image₂_right _ ht mul_left_injective
+
+end
 
 open_locale pointwise
 

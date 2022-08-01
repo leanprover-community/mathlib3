@@ -480,12 +480,9 @@ begin
 
     have hfe : f ≤ e,
     { refine (factorization_le_iff_dvd (by simp [hp.one_lt]) _).2 hp_sub1_dvd 2, simp [one_lt_n] },
-    have hlk : l ∣ k, {
-      have := hp_sub1_dvd,
-      simp_rw [hl, hk],
 
-      -- TODO: Prove a lemma odd_part_dvd_odd_part_of_dvd
-      sorry },
+    have hlk : l ∣ k,
+    { simp_rw [hl, hk], apply ord_compl_dvd_ord_compl_of_dvd hp_sub1_dvd },
 
     have H1 : (a^l)^(even_part (p-1)) = 1,
     { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p-1), h],},

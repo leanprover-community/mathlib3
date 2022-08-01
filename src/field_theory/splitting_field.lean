@@ -792,6 +792,28 @@ begin
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 
+variables {L} {L' : Type*} [field L'] [algebra K L']
+
+lemma _root_.polynomial.adjoin_root_set_eq_top_iff_adjoin_root_set_eq_range {p : K[X]}
+  (hp : p.splits (algebra_map K L)) (f : L →ₐ[K] L') :
+  algebra.adjoin K (p.root_set L) = ⊤ ↔ algebra.adjoin K (p.root_set L') = f.range :=
+begin
+  rw [←image_root_set hp f, algebra.adjoin_image, ←algebra.map_top],
+  exact (subalgebra.map_injective f.to_ring_hom.injective).eq_iff.symm,
+end
+
+lemma of_alg_equiv (p : K[X]) (f : L ≃ₐ[K] L') [is_splitting_field K L p] :
+  is_splitting_field K L' p :=
+begin
+  have : p.splits (algebra_map K L'),
+  { rw ← f.to_alg_hom.comp_algebra_map,
+    exact splits_comp_of_splits _ _ (is_splitting_field.splits L p) },
+  refine ⟨this, _⟩,
+  rw ← (algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
+  refine (adjoin_root_set_eq_top_iff_adjoin_root_set_eq_range (is_splitting_field.splits L p)
+    f.to_alg_hom).mp (is_splitting_field.adjoin_roots L p),
+end
+
 end is_splitting_field
 
 end splitting_field

@@ -29,6 +29,7 @@ classes and allows to transfer order instances.
 
 * `has_sup`: type class for the `⊔` notation
 * `has_inf`: type class for the `⊓` notation
+* `has_compl`: type class for the `ᶜ` notation
 * `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
@@ -446,6 +447,31 @@ linear_order.ext $ λ _ _, iff.rfl
 
 end order_dual
 
+/-! ### `has_compl` -/
+
+/-- Set / lattice complement -/
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
+
+instance Prop.has_compl : has_compl Prop := ⟨not⟩
+
+instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
+  has_compl (Π i, α i) :=
+⟨λ x i, (x i)ᶜ⟩
+
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
+@[simp]
+lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
+  xᶜ i = (x i)ᶜ := rfl
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
 /-! ### Order instances on the function space -/
 
 instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
@@ -483,6 +509,17 @@ instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_ord
   partial_order (Π i, α i) :=
 { le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
+
+instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
+  has_sdiff (Π i, α i) :=
+⟨λ x y i, x i \ y i⟩
+
+lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
+  (x \ y) = λ i, x i \ y i := rfl
+
+@[simp]
+lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
+  (x \ y) i = x i \ y i := rfl
 
 /-! ### `min`/`max` recursors -/
 
@@ -708,6 +745,30 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : linear_order punit :=
+by refine_struct
+{ le := λ _ _, true,
+  lt := λ _ _, false,
+  max := λ _ _, star,
+  min := λ _ _, star,
+  decidable_eq := punit.decidable_eq,
+  decidable_le := λ _ _, decidable.true,
+  decidable_lt := λ _ _, decidable.false };
+    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false] <|>
+      exact or.inl trivial
+
+lemma max_eq : max a b = star := rfl
+lemma min_eq : min a b = star := rfl
+@[simp] protected lemma le : a ≤ b := trivial
+@[simp] lemma not_lt : ¬ a < b := not_false
+
+instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
+
+end punit
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

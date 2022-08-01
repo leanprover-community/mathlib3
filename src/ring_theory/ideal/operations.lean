@@ -156,6 +156,14 @@ smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
 lemma smul_inf_le (M₁ M₂ : submodule R M) : I • (M₁ ⊓ M₂) ≤ I • M₁ ⊓ I • M₂ :=
 le_inf (submodule.smul_mono_right inf_le_left) (submodule.smul_mono_right inf_le_right)
 
+lemma smul_supr {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • supr t = ⨆ i, I • t i :=
+map₂_supr_right _ _ _
+
+lemma smul_infi_le {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • infi t ≤ ⨅ i, I • t i :=
+le_infi (λ i, smul_mono_right (infi_le _ _))
+
 variables (S : set R) (T : set M)
 
 theorem span_smul_span : (ideal.span S) • (span R T) =
@@ -1388,6 +1396,70 @@ begin
 end⟩
 
 end is_primary
+
+section total
+
+variables (ι : Type*)
+variables (M : Type*) [add_comm_group M] {R : Type*} [comm_ring R] [module R M] (I : ideal R)
+variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
+
+
+open_locale big_operators
+
+/-- A variant of `finsupp.total` that takes in vectors valued in `I`. -/
+noncomputable
+def finsupp_total : (ι →₀ I) →ₗ[R] M :=
+(finsupp.total ι M R v).comp (finsupp.map_range.linear_map I.subtype)
+
+variables {ι M v}
+
+lemma finsupp_total_apply (f : ι →₀ I) :
+  finsupp_total ι M I v f = f.sum (λ i x, (x : R) • v i) :=
+begin
+  dsimp [finsupp_total],
+  rw [finsupp.total_apply, finsupp.sum_map_range_index],
+  exact λ _, zero_smul _ _
+end
+
+lemma finsupp_total_apply_eq_of_fintype [fintype ι] (f : ι →₀ I) :
+  finsupp_total ι M I v f = ∑ i, (f i : R) • v i :=
+begin
+  rw finsupp_total_apply,
+  apply finset.sum_subset (finset.subset_univ _),
+  intros x _ hx,
+  rw finsupp.not_mem_support_iff.mp hx,
+  exact zero_smul _ _
+end
+
+lemma range_finsupp_total :
+  (finsupp_total ι M I v).range = I • (submodule.span R (set.range v)) :=
+begin
+  apply le_antisymm,
+  { rintros x ⟨f, rfl⟩,
+    rw finsupp_total_apply,
+    apply submodule.sum_mem _ _,
+    intros c _,
+    apply submodule.smul_mem_smul (f c).2,
+    apply submodule.subset_span,
+    exact set.mem_range_self c },
+  { rw submodule.smul_le,
+    rintros r hr m hm,
+    rw ← set.image_univ at hm,
+    obtain ⟨l, hl, rfl⟩ := (finsupp.mem_span_image_iff_total _).mp hm,
+    let l' : ι →₀ I := finsupp.map_range (λ x : R, (⟨x * r, I.mul_mem_left _ hr⟩ : I))
+      (subtype.ext $ zero_mul _) l,
+    use l',
+    rw [finsupp_total_apply, finsupp.total_apply, finsupp.sum, finsupp.sum, finset.smul_sum],
+    dsimp,
+    simp only [← mul_smul, mul_comm r],
+    apply finset.sum_subset,
+    { exact finsupp.support_map_range },
+    { intros x hx hx',
+      have : l x * r = 0 := by injection finsupp.not_mem_support_iff.mp hx',
+      rw [this, zero_smul] } }
+end
+
+end total
 
 end ideal
 

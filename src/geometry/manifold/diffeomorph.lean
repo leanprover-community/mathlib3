@@ -46,10 +46,10 @@ diffeomorphism, manifold
 open_locale manifold topological_space
 open function set
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G]
@@ -70,7 +70,7 @@ variables (I I' M M' n)
 /--
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure diffeomorph extends M ≃ M' :=
 (cont_mdiff_to_fun  : cont_mdiff I I' n to_equiv)
 (cont_mdiff_inv_fun : cont_mdiff I' I n to_equiv.symm)

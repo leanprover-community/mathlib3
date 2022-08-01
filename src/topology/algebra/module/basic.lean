@@ -83,7 +83,7 @@ variables {R : Type*} {M : Type*}
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
-This is the case, e.g., if `R` is a nondiscrete normed field. -/
+This is the case, e.g., if `R` is a nontrivially normed field. -/
 lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
@@ -104,7 +104,7 @@ end
 
 variables (R M)
 
-/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nontrivially
 normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
 using `ne_bot (𝓝[≠] x)`.
@@ -139,7 +139,7 @@ lemma has_continuous_smul_induced :
 { continuous_smul :=
     begin
       letI : topological_space M₁ := t.induced f,
-      refine continuous_induced_rng _,
+      refine continuous_induced_rng.2 _,
       simp_rw [function.comp, f.map_smul],
       refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
     end }
@@ -207,16 +207,6 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
 @[simp] lemma submodule.topological_closure_coe (s : submodule R M) :
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
-
-instance submodule.topological_closure_has_continuous_smul (s : submodule R M) :
-  has_continuous_smul R (s.topological_closure) :=
-{ continuous_smul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : R × s.topological_closure, p.1 • (p.2 : M)),
-    continuity,
-  end,
-  ..s.to_add_submonoid.topological_closure_has_continuous_add }
 
 lemma submodule.submodule_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
@@ -293,7 +283,7 @@ continuous_semilinear_map_class F (ring_hom.id R) M M₂
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological semiring `R`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
@@ -809,18 +799,28 @@ rfl
   ker (f.cod_restrict p h) = ker f :=
 (f : M₁ →ₛₗ[σ₁₂] M₂).ker_cod_restrict p h
 
-/-- Embedding of a submodule into the ambient space as a continuous linear map. -/
-def subtype_val (p : submodule R₁ M₁) : p →L[R₁] M₁ :=
+/-- `submodule.subtype` as a `continuous_linear_map`. -/
+def _root_.submodule.subtypeL (p : submodule R₁ M₁) : p →L[R₁] M₁ :=
 { cont := continuous_subtype_val,
   to_linear_map := p.subtype }
 
-@[simp, norm_cast] lemma coe_subtype_val (p : submodule R₁ M₁) :
-  (subtype_val p : p →ₗ[R₁] M₁) = p.subtype :=
+@[simp, norm_cast] lemma _root_.submodule.coe_subtypeL (p : submodule R₁ M₁) :
+  (p.subtypeL : p →ₗ[R₁] M₁) = p.subtype :=
 rfl
 
-@[simp, norm_cast] lemma subtype_val_apply (p : submodule R₁ M₁) (x : p) :
-  (subtype_val p : p → M₁) x = x :=
+@[simp] lemma _root_.submodule.coe_subtypeL' (p : submodule R₁ M₁) :
+  ⇑p.subtypeL = p.subtype :=
 rfl
+
+@[simp, norm_cast] lemma _root_.submodule.subtypeL_apply (p : submodule R₁ M₁) (x : p) :
+  p.subtypeL x = x :=
+rfl
+
+@[simp] lemma _root_.submodule.range_subtypeL (p : submodule R₁ M₁) : p.subtypeL.range = p :=
+submodule.range_subtype _
+
+@[simp] lemma _root_.submodule.ker_subtypeL (p : submodule R₁ M₁) : p.subtypeL.ker = ⊥ :=
+submodule.ker_subtype _
 
 variables (R₁ M₁ M₂)
 
@@ -1779,14 +1779,14 @@ end
 
 variables [module R M₂] [topological_add_group M]
 
-open _root_.continuous_linear_map (id fst snd subtype_val mem_ker)
+open _root_.continuous_linear_map (id fst snd mem_ker)
 
 /-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
 linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x` for `x ∈ f₁.ker`,
 `(e x).1 = f₁ x`, and `(e (f₂ y)).2 = 0`. The map is given by `e x = (f₁ x, x - f₂ (f₁ x))`. -/
 def equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
   M ≃L[R] M₂ × f₁.ker :=
-equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (subtype_val f₁.ker))
+equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod f₁.ker.subtypeL)
   (λ x, by simp)
   (λ ⟨x, y⟩, by simp [h x])
 
@@ -1944,7 +1944,7 @@ protected lemma closed_complemented.is_closed [topological_add_group M] [t1_spac
   is_closed (p : set M) :=
 begin
   rcases h with ⟨f, hf⟩,
-  have : ker (id R M - (subtype_val p).comp f) = p := linear_map.ker_id_sub_eq_of_proj hf,
+  have : ker (id R M - p.subtypeL.comp f) = p := linear_map.ker_id_sub_eq_of_proj hf,
   exact this ▸ (is_closed_ker _)
 end
 

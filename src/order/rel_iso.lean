@@ -41,7 +41,7 @@ variables {α β γ δ : Type*}
 
 /-- A relation homomorphism with respect to a given pair of relations `r` and `s`
 is a function `f : α → β` such that `r a b → s (f a) (f b)`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
 (to_fun : α → β)
 (map_rel' : ∀ {a b}, r a b → s (to_fun a) (to_fun b))
@@ -213,7 +213,7 @@ initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_e
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
-@[simp] theorem inj {f : r ↪r s} {a b} : f a = f b ↔ a = b := f.injective.eq_iff
+@[simp] theorem inj (f : r ↪r s) {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
 theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
@@ -339,6 +339,10 @@ end
 
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
+
+/-- A relation embedding from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
+⟨embedding.of_is_empty, is_empty_elim⟩
 
 /-- `sum.inl` as a relation embedding into `sum.lift_rel r s`. -/
 @[simps] def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lift_rel r s :=

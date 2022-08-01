@@ -163,8 +163,8 @@ begin
     exact mul_le_mul_of_nonneg_left pn m.zero_le }
 end
 
-lemma coeff_add_succ_eq_left_of_le (qn : q.nat_degree ≤ n) :
-  (p + q).coeff (n + 1) = p.coeff (n + 1) :=
+lemma coeff_add_eq_left_of_lt (qn : q.nat_degree < n) :
+  (p + q).coeff n = p.coeff n :=
 (coeff_add _ _ _).trans $ (congr_arg _ $ coeff_eq_zero_of_nat_degree_lt $
   nat.lt_succ_iff.mpr qn).trans $ add_zero _
 

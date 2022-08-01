@@ -473,6 +473,7 @@ begin
 
     set f := (p-1).factorization 2 with hf,
     set l := odd_part (p - 1) with hl,
+    have hl_odd : odd l, { apply odd_of_odd_part, simp [hp.one_lt] },
 
     set e := (p^α - 1).factorization 2 with he,
     set k := odd_part (p^α - 1) with hk,
@@ -484,14 +485,14 @@ begin
     have hlk : l ∣ k,
     { simp_rw [hl, hk], apply ord_compl_dvd_ord_compl_of_dvd hp_sub1_dvd },
 
-    have H1 : (a^l)^(even_part (p-1)) = 1,
-    { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p-1), h],},
-
-    have H2 : ∃ (j : ℕ) (H : j ≤ f), order_of (a^l) = 2^j,
-    { rw ←nat.dvd_prime_pow nat.prime_two,
+    have H : ∃ (j : ℕ) (H : j ≤ f), order_of (a^l) = 2^j,
+    {
+      have H1 : (a^l)^(even_part (p-1)) = 1,
+      { rw [← pow_mul, mul_comm, even_part_mul_odd_part (p-1), h],},
+      rw ←nat.dvd_prime_pow nat.prime_two,
       exact order_of_dvd_of_pow_eq_one H1 },
 
-    rcases H2 with ⟨j, H, hj⟩,
+    rcases H with ⟨j, H, hj⟩,
 
     rcases eq_or_ne j 0 with rfl | hj0,
     { rw [pow_zero, order_of_eq_one_iff] at hj,
@@ -500,10 +501,15 @@ begin
       rw [←hk, hq, pow_mul, hj, one_pow],},
     {
       right,
-      rw ←he,
-      use j-1,
-      refine ⟨lt_of_lt_of_le (pred_lt hj0) (H.trans hfe), _⟩,
-      rw ←hk,
+      rw [←he, ←hk],
+
+      -- Since j ≤ f ≤ e we have j-1 < e,
+      -- so all that remains is to show that a ^ (2^(j-1) * k) = -1 (mod p^α)
+      refine ⟨j-1, lt_of_lt_of_le (pred_lt hj0) (H.trans hfe), _⟩,
+
+      have h_order : (a^l)^(2^j) = 1, { rw ←hj, apply pow_order_of_eq_one },
+
+
       set x := (a^l)^(2^(j-1)) with hx,
       have hx1 : x ≠ 1, {
         intro H,

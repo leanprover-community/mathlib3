@@ -41,7 +41,7 @@ open simple_graph
 
 section nat
 
-def gℕ : simple_graph ℕ := simple_graph.from_rel (λ m n, m = n.succ)
+def gℕ : simple_graph ℕ := simple_graph.from_rel (λ n m, m = n.succ)
 
 instance gℕlf : locally_finite gℕ := sorry
 lemma gℕpc : gℕ.preconnected := sorry
@@ -54,17 +54,17 @@ lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
   { rcases le_iff_exists_add.mp h with ⟨z,rfl⟩,
     induction z,
     { use nil,simp, exact ym, },
-    { simp at xm,
-      rcases z_ih (by { simp, }) ( by { simp, exact lt_of_lt_of_le xm (by simp) } ) with ⟨w,wgood⟩,
-      let w' := w.append (cons ((from_rel_adj _ (x+z_n) (x+z_n).succ).mpr ⟨sorry,or.inl sorry⟩) nil),
+    { simp only [gt_iff_lt, mem_set_of_eq] at xm,
+      rcases z_ih (le_self_add) ( by { simp, exact lt_of_lt_of_le xm (by simp) } ) with ⟨w,wgood⟩,
+      let w' := w.append (cons ((from_rel_adj _ (x+z_n) (x+z_n).succ).mpr ⟨(x + z_n).succ_ne_self.symm,or.inl rfl⟩) nil),
       use w',
       rw walk.support_append,
       rw list.to_finset_append,
       simp,
       rw set.insert_subset,
       split,
-      {sorry},
-      {exact wgood},
+      { exact lt_of_lt_of_le xm h, },
+      { exact wgood },
     }, -- todo
   },
   { rcases this ym xm with ⟨w,wgood⟩,
@@ -73,7 +73,7 @@ lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
     rw list.to_finset_reverse,
     exact wgood,
   },
-},
+}
 
 
 lemma ends_nat : (ends gℕ gℕpc) ≃ true :=
@@ -101,8 +101,7 @@ begin
       use a,
       rintro k kK,
       simp,
-      exact le_max_of_mem kK e,
-    },
+      exact le_max_of_mem kK e,},
     {use 0,rintro k kK,exfalso, simp at h, rw h at kK,simp at kK, exact kK,},},
 
   rcases this with ⟨m,mtop⟩,
@@ -113,9 +112,14 @@ begin
   let C := (ro_component.of_subconnected_disjoint gℕ K L (set.infinite.nonempty Linf) Ldis Lconn).some,
   obtain ⟨Ccomp,LC⟩ := (ro_component.of_subconnected_disjoint gℕ K L (set.infinite.nonempty Linf) Ldis Lconn).some_spec,
   have Cinf := set.infinite.mono LC Linf,
+  have Ccof : (C ᶜ).finite := by { sorry },
 
-  have lol := cofinite_union_of_inf_ro_components_is_all gℕ gℕpc K {⟨C,Ccomp,Cinf⟩} sorry,
-  { sorry, },
+  have lol := ro_component.cofinite_inf_ro_component_is_univ gℕ gℕpc K ⟨C,Ccomp,Cinf⟩ Ccof,
+  have lol2 := (equiv.set.univ ↥(inf_ro_components gℕ K)),
+  rw lol at lol2,
+  sorry,
+  -- It's too painful!
+
 
 end
 

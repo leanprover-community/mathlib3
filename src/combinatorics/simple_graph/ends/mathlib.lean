@@ -205,7 +205,10 @@ lemma equiv_true_to (α : Type*) : (α ≃ true) →  (∃ a : α, ∀ b : α, a
   use E.inv_fun trivial,
   exact E.left_inv,
 end
-
+lemma equiv_true_of_singleton {α : Type*} (a : α) : subtype ({a} : set α) ≃ true := begin
+  apply equiv_true_of (subtype ({a} : set α)) _,
+  simp, use a, exact rfl,
+end
 
 namespace list
 

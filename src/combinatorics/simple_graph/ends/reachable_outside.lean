@@ -670,6 +670,23 @@ begin
   {  simp, },
 end
 
+lemma cofinite_inf_ro_component_is_univ [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
+  (cof : (C.val ᶜ).finite ) : @set.univ (inf_ro_components G K) = {C} :=
+begin
+  apply cofinite_union_of_inf_ro_components_is_univ G Gpc K {C} _,
+  let 𝓒 : set (inf_ro_components G K) := {C},
+  have : (set.Union (λ C' : 𝓒, C'.1.1)) = C.val, by {
+    apply set.ext,
+    rintro x,
+    split,
+    { simp, rintro C' C'comp C'eq xC', have : C.val = C', by { exact (congr_arg subtype.val (eq.symm C'eq)).trans rfl}, simp at this, rw this, exact xC', },
+    {rintro xC,simp,use [C,C.prop],simp, exact xC,},
+  },
+  rw this,
+  exact cof,
+end
+
 lemma cofinite_union_of_inf_ro_components_equiv [locally_finite G]
   (Gpc : G.preconnected) (K : finset V) (𝓒 : set (inf_ro_components G K))
   (cof : (set.Union (λ C : 𝓒, C.1.1)) ᶜ.finite ) : (inf_ro_components G K) ≃ 𝓒 :=
@@ -680,6 +697,17 @@ begin
 end
 
 
+lemma cofinite_inf_ro_component_equiv [locally_finite G]
+  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
+  (cof : (C.val ᶜ).finite ) : subtype (inf_ro_components G K) ≃ true :=
+begin
+  have lol := cofinite_inf_ro_component_is_univ G Gpc K C cof,
+  have lol2 := equiv.set.univ ↥(inf_ro_components G K),
+  rw lol at lol2,
+  have lol3 := equiv_true_of_singleton C,
+  simp at *,
+  sorry,
+end
 
 
 end inf_ro_components

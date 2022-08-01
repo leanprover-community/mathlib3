@@ -68,25 +68,25 @@ lemma id_snd : Π {α β} (x : F α β), snd id x = x :=
 lemma comp_fst {α₀ α₁ α₂ β}
   (f : α₀ → α₁) (f' : α₁ → α₂) (x : F α₀ β) :
   fst f' (fst f x) = fst (f' ∘ f)  x :=
-by simp [fst,bimap_bimap]
+by simv [fst,bimap_bimap]
 
 @[higher_order fst_comp_snd]
 lemma fst_snd {α₀ α₁ β₀ β₁}
   (f : α₀ → α₁) (f' : β₀ → β₁) (x : F α₀ β₀) :
   fst f (snd f' x) = bimap f f' x :=
-by simp [fst,bimap_bimap]
+by simv [fst,bimap_bimap]
 
 @[higher_order snd_comp_fst]
 lemma snd_fst {α₀ α₁ β₀ β₁}
   (f : α₀ → α₁) (f' : β₀ → β₁) (x : F α₀ β₀) :
   snd f' (fst f x) = bimap f f' x :=
-by simp [snd,bimap_bimap]
+by simv [snd,bimap_bimap]
 
 @[higher_order snd_comp_snd]
 lemma comp_snd {α β₀ β₁ β₂}
   (g : β₀ → β₁) (g' : β₁ → β₂) (x : F α β₀) :
   snd g' (snd g x) = snd (g' ∘ g) x :=
-by simp [snd,bimap_bimap]
+by simv [snd,bimap_bimap]
 
 attribute [functor_norm] bimap_bimap comp_snd comp_fst
   snd_comp_snd snd_comp_fst fst_comp_snd fst_comp_fst bimap_comp_bimap
@@ -110,7 +110,7 @@ instance bifunctor.flip : bifunctor (flip F) :=
 { bimap := (λ α α' β β' f f' x, (bimap f' f x : F β' α')) }
 
 instance is_lawful_bifunctor.flip [is_lawful_bifunctor F] : is_lawful_bifunctor (flip F)  :=
-by refine { .. }; intros; simp [bimap] with functor_norm
+by refine { .. }; intros; simv [bimap] with functor_norm
 
 instance : bifunctor sum :=
 { bimap := @sum.map }
@@ -126,7 +126,7 @@ instance bifunctor.functor {α} : functor (F α) :=
 
 @[priority 10]
 instance bifunctor.is_lawful_functor [is_lawful_bifunctor F] {α} : is_lawful_functor (F α) :=
-by refine {..}; intros; simp [functor.map] with functor_norm
+by refine {..}; intros; simv [functor.map] with functor_norm
 
 section bicompl
 
@@ -137,7 +137,7 @@ instance : bifunctor (bicompl F G H) :=
 
 instance [is_lawful_functor G]  [is_lawful_functor H] [is_lawful_bifunctor F] :
   is_lawful_bifunctor (bicompl F G H) :=
-by constructor; intros; simp [bimap,map_id,map_comp_map] with functor_norm
+by constructor; intros; simv [bimap,map_id,map_comp_map] with functor_norm
 
 end bicompl
 section bicompr
@@ -149,6 +149,6 @@ instance : bifunctor (bicompr G F) :=
 
 instance [is_lawful_functor G] [is_lawful_bifunctor F] :
   is_lawful_bifunctor (bicompr G F) :=
-by constructor; intros; simp [bimap] with functor_norm
+by constructor; intros; simv [bimap] with functor_norm
 
 end bicompr

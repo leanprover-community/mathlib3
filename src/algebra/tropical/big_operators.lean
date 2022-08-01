@@ -40,8 +40,8 @@ open tropical finset
 lemma list.trop_sum [add_monoid R] (l : list R) : trop l.sum = list.prod (l.map trop) :=
 begin
   induction l with hd tl IH,
-  { simp },
-  { simp [←IH] }
+  { simv },
+  { simv [←IH] }
 end
 
 lemma multiset.trop_sum [add_comm_monoid R] (s : multiset R) :
@@ -53,15 +53,15 @@ lemma trop_sum [add_comm_monoid R] (s : finset S) (f : S → R) :
 begin
   cases s,
   convert multiset.trop_sum _,
-  simp
+  simv
 end
 
 lemma list.untrop_prod [add_monoid R] (l : list (tropical R)) :
   untrop l.prod = list.sum (l.map untrop) :=
 begin
   induction l with hd tl IH,
-  { simp },
-  { simp [←IH] }
+  { simv },
+  { simv [←IH] }
 end
 
 lemma multiset.untrop_prod [add_comm_monoid R] (s : multiset (tropical R)) :
@@ -73,23 +73,23 @@ lemma untrop_prod [add_comm_monoid R] (s : finset S) (f : S → tropical R) :
 begin
   cases s,
   convert multiset.untrop_prod _,
-  simp
+  simv
 end
 
 lemma list.trop_minimum [linear_order R] (l : list R) :
   trop l.minimum = list.sum (l.map (trop ∘ coe)) :=
 begin
   induction l with hd tl IH,
-  { simp },
-  { simp [list.minimum_cons, ←IH] }
+  { simv },
+  { simv [list.minimum_cons, ←IH] }
 end
 
 lemma multiset.trop_inf [linear_order R] [order_top R] (s : multiset R) :
   trop s.inf = multiset.sum (s.map trop) :=
 begin
   induction s using multiset.induction with s x IH,
-  { simp },
-  { simp [←IH] }
+  { simv },
+  { simv [←IH] }
 end
 
 lemma finset.trop_inf [linear_order R] [order_top R] (s : finset S) (f : S → R) :
@@ -97,14 +97,14 @@ lemma finset.trop_inf [linear_order R] [order_top R] (s : finset S) (f : S → R
 begin
   cases s,
   convert multiset.trop_inf _,
-  simp
+  simv
 end
 
 lemma trop_Inf_image [conditionally_complete_linear_order R] (s : finset S)
   (f : S → with_top R) : trop (Inf (f '' s)) = ∑ i in s, trop (f i) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|h,
-  { simp only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, trop_top] },
+  { simv only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, trop_top] },
   rw [←inf'_eq_cInf_image _ h, inf'_eq_inf, s.trop_inf],
 end
 
@@ -116,7 +116,7 @@ lemma multiset.untrop_sum [linear_order R] [order_top R] (s : multiset (tropical
   untrop s.sum = multiset.inf (s.map untrop) :=
 begin
   induction s using multiset.induction with s x IH,
-  { simp },
+  { simv },
   { simpa [←IH] }
 end
 
@@ -133,7 +133,7 @@ lemma untrop_sum_eq_Inf_image [conditionally_complete_linear_order R] (s : finse
   untrop (∑ i in s, f i) = Inf (untrop ∘ f '' s) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|h,
-  { simp only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, untrop_zero] },
+  { simv only [set.image_empty, coe_empty, sum_empty, with_top.cInf_empty, untrop_zero] },
   rw [←inf'_eq_cInf_image _ h, inf'_eq_inf, finset.untrop_sum'],
 end
 

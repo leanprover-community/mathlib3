@@ -269,7 +269,7 @@ def induced_add_hom : α →+ β := ⟨induced_map α β, induced_map_zero α β
         { convert this (-x) (neg_pos.2 h) using 1,
           { rw [neg_mul, mul_neg, neg_neg] },
           { simp_rw [add_monoid_hom.map_neg, neg_mul, mul_neg, neg_neg] } },
-        { simp only [mul_zero, add_monoid_hom.map_zero] },
+        { simv only [mul_zero, add_monoid_hom.map_zero] },
         { exact this x h } },
       -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less
       -- than (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound

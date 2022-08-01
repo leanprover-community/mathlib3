@@ -78,7 +78,7 @@ lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
   continuous_at (λ y : V × V, angle y.1 y.2) x :=
 real.continuous_arccos.continuous_at.comp $ continuous_inner.continuous_at.div
   ((continuous_norm.comp continuous_fst).mul (continuous_norm.comp continuous_snd)).continuous_at
-  (by simp [hx1, hx2])
+  (by simv [hx1, hx2])
 
 lemma angle_smul_smul {c : ℝ} (hc : c ≠ 0) (x y : V) :
   angle (c • x) (c • y) = angle x y :=
@@ -208,7 +208,7 @@ product of their norms. -/
 lemma cos_angle_mul_norm_mul_norm (x y : V) : real.cos (angle x y) * (∥x∥ * ∥y∥) = inner x y :=
 begin
   rw [cos_angle, div_mul_cancel_of_imp],
-  simp [or_imp_distrib] { contextual := tt },
+  simv [or_imp_distrib] { contextual := tt },
 end
 
 /-- The sine of the angle between two vectors, multiplied by the
@@ -264,16 +264,16 @@ end
 /-- Two vectors have inner product 0 if and only if the angle between
 them is π/2. -/
 lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
-iff.symm $ by simp [angle, or_imp_distrib] { contextual := tt }
+iff.symm $ by simv [angle, or_imp_distrib] { contextual := tt }
 
 /-- If the angle between two vectors is π, the inner product equals the negative product
 of the norms. -/
 lemma inner_eq_neg_mul_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ⟪x, y⟫ = - (∥x∥ * ∥y∥) :=
-by simp [← cos_angle_mul_norm_mul_norm, h]
+by simv [← cos_angle_mul_norm_mul_norm, h]
 
 /-- If the angle between two vectors is 0, the inner product equals the product of the norms. -/
 lemma inner_eq_mul_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ⟪x, y⟫ = ∥x∥ * ∥y∥ :=
-by simp [← cos_angle_mul_norm_mul_norm, h]
+by simv [← cos_angle_mul_norm_mul_norm, h]
 
 /-- The inner product of two non-zero vectors equals the negative product of their norms
 if and only if the angle between the two vectors is π. -/
@@ -400,8 +400,8 @@ lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2
   continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
 begin
   let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
-  have hf1 : (f x).1 ≠ 0, by simp [hx12],
-  have hf2 : (f x).2 ≠ 0, by simp [hx32],
+  have hf1 : (f x).1 ≠ 0, by simv [hx12],
+  have hf2 : (f x).2 ≠ 0, by simv [hx32],
   exact (inner_product_geometry.continuous_at_angle hf1 hf2).comp
     ((continuous_fst.vsub continuous_snd.fst).prod_mk
       (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
@@ -448,7 +448,7 @@ begin
   rw [←neg_vsub_eq_vsub_rev, neg_ne_zero] at hp1p2,
   use [hp1p2, -r + 1, add_pos (neg_pos_of_neg hr) zero_lt_one],
   rw [add_smul, ←neg_vsub_eq_vsub_rev p1 p2, smul_neg],
-  simp [←hpr]
+  simv [←hpr]
 end
 
 /-- If the angle ∠ABC at a point is π, the angle ∠BCA is 0. -/
@@ -468,7 +468,7 @@ begin
   rw [eq_comm],
   convert angle_smul_right_of_pos (p1 -ᵥ p2) (p3 -ᵥ p2) (add_pos (neg_pos_of_neg hr) zero_lt_one),
   rw [add_smul, ← neg_vsub_eq_vsub_rev p2 p3, smul_neg, neg_smul, ← hpr],
-  simp
+  simv
 end
 
 /-- If ∠BCD = π, then ∠ACB + ∠ACD = π. -/
@@ -542,8 +542,8 @@ by rw [dist_left_midpoint p1 p2, dist_right_midpoint p1 p2]
 
 /-- If M is the midpoint of the segment AB, then ∠AMB = π. -/
 lemma angle_midpoint_eq_pi (p1 p2 : P) (hp1p2 : p1 ≠ p2) : ∠ p1 (midpoint ℝ p1 p2) p2 = π :=
-have p2 -ᵥ midpoint ℝ p1 p2 = -(p1 -ᵥ midpoint ℝ p1 p2), by { rw neg_vsub_eq_vsub_rev, simp },
-by simp [angle, this, hp1p2, -zero_lt_one]
+have p2 -ᵥ midpoint ℝ p1 p2 = -(p1 -ᵥ midpoint ℝ p1 p2), by { rw neg_vsub_eq_vsub_rev, simv },
+by simv [angle, this, hp1p2, -zero_lt_one]
 
 /-- If M is the midpoint of the segment AB and C is the same distance from A as it is from B
 then ∠CMA = π / 2. -/
@@ -665,7 +665,7 @@ begin
   have hb : linear_independent ℝ b,
   { refine linear_independent_of_ne_zero_of_inner_eq_zero _ _,
     { intro i,
-      fin_cases i; simp [b, hc.symm, hp.symm], },
+      fin_cases i; simv [b, hc.symm, hp.symm], },
     { intros i j hij,
       fin_cases i; fin_cases j; try { exact false.elim (hij rfl) },
       { exact ho },
@@ -683,7 +683,7 @@ begin
     have hr : set.range b = {c₂ -ᵥ c₁, p₂ -ᵥ p₁},
     { have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
       rw [←fintype.coe_image_univ, hu],
-      simp,
+      simv,
       refl },
     rw [←hbs, hr, submodule.mem_span_insert] at hv,
     rcases hv with ⟨t₁, v', hv', hv⟩,
@@ -691,16 +691,16 @@ begin
     rcases hv' with ⟨t₂, rfl⟩,
     exact ⟨t₁, t₂, hv⟩ },
   rcases hv (p -ᵥ p₁) (vsub_mem_direction hps hp₁s) with ⟨t₁, t₂, hpt⟩,
-  simp only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
+  simv only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
              inner_self_eq_zero, vsub_eq_zero_iff_eq, hc.symm, or_false] at hop,
   rw [hop, zero_smul, zero_add, ←eq_vadd_iff_vsub_eq] at hpt,
   subst hpt,
-  have hp' : (p₂ -ᵥ p₁ : V) ≠ 0, { simp [hp.symm] },
-  have hp₂ : dist ((1 : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁) c₁ = r₁, { simp [hp₂c₁] },
+  have hp' : (p₂ -ᵥ p₁ : V) ≠ 0, { simv [hp.symm] },
+  have hp₂ : dist ((1 : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁) c₁ = r₁, { simv [hp₂c₁] },
   rw [←hp₁c₁, dist_smul_vadd_eq_dist _ _ hp'] at hpc₁ hp₂,
-  simp only [one_ne_zero, false_or] at hp₂,
+  simv only [one_ne_zero, false_or] at hp₂,
   rw hp₂.symm at hpc₁,
-  cases hpc₁; simp [hpc₁]
+  cases hpc₁; simv [hpc₁]
 end
 
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
@@ -1057,7 +1057,7 @@ begin
   { intros a b h,
     have : (a:P) -ᵥ (b +ᵥ a) = - b,
     { rw [vsub_vadd_eq_vsub_sub, vsub_self, zero_sub] },
-    simp [reflection, h, this] },
+    simv [reflection, h, this] },
   rw ← vsub_vadd p (orthogonal_projection s p),
   exact this (orthogonal_projection s p) _ (orthogonal_projection_vsub_orthogonal_projection s p),
 end
@@ -1065,7 +1065,7 @@ end
 /-- Reflection is its own inverse. -/
 @[simp] lemma reflection_symm (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
   (reflection s).symm = reflection s :=
-by { ext, rw ← (reflection s).injective.eq_iff, simp }
+by { ext, rw ← (reflection s).injective.eq_iff, simv }
 
 /-- Reflection is involutive. -/
 lemma reflection_involutive (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :
@@ -1085,7 +1085,7 @@ begin
     norm_num at h,
     exact h },
   { intro h,
-    simp [h] }
+    simv [h] }
 end
 
 /-- Reflecting a point in two subspaces produces the same result if
@@ -1148,7 +1148,7 @@ lemma reflection_orthogonal_vadd {s : affine_subspace ℝ P} [nonempty s]
   (hv : v ∈ s.directionᗮ) : reflection s (v +ᵥ p) = -v +ᵥ p :=
 begin
   rw [reflection_apply, orthogonal_projection_vadd_eq_self hp hv, vsub_vadd_eq_vsub_sub],
-  simp
+  simv
 end
 
 /-- Reflecting a vector plus a point in the subspace produces the
@@ -1189,7 +1189,7 @@ include V
 lemma cospherical_empty : cospherical (∅ : set P) :=
 begin
   use add_torsor.nonempty.some,
-  simp,
+  simv,
 end
 
 omit V
@@ -1198,7 +1198,7 @@ omit V
 lemma cospherical_singleton (p : P) : cospherical ({p} : set P) :=
 begin
   use p,
-  simp
+  simv
 end
 
 include V
@@ -1212,7 +1212,7 @@ begin
   rintro ⟨_|_⟩,
   { rw [dist_eq_norm_vsub V p₁, vsub_vadd_eq_vsub_sub, vsub_self, zero_sub, norm_neg, norm_smul,
         dist_eq_norm_vsub V p₂],
-    simp },
+    simv },
   { rw [H, dist_eq_norm_vsub V p₂, vsub_vadd_eq_vsub_sub, dist_eq_norm_vsub V p₂],
     conv_lhs { congr, congr, rw ←one_smul ℝ (p₂ -ᵥ p₁ : V) },
     rw [←sub_smul, norm_smul],

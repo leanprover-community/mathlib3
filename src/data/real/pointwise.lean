@@ -122,15 +122,15 @@ lemma real.mul_supr_of_nonpos (ha : r ≤ 0) (f : ι → ℝ) : r * (⨆ i, f i)
 real.smul_supr_of_nonpos ha f
 
 lemma real.infi_mul_of_nonneg (ha : 0 ≤ r) (f : ι → ℝ) : (⨅ i, f i) * r = ⨅ i, f i * r :=
-by simp only [real.mul_infi_of_nonneg ha, mul_comm]
+by simv only [real.mul_infi_of_nonneg ha, mul_comm]
 
 lemma real.supr_mul_of_nonneg (ha : 0 ≤ r) (f : ι → ℝ) : (⨆ i, f i) * r = ⨆ i, f i * r :=
-by simp only [real.mul_supr_of_nonneg ha, mul_comm]
+by simv only [real.mul_supr_of_nonneg ha, mul_comm]
 
 lemma real.infi_mul_of_nonpos (ha : r ≤ 0) (f : ι → ℝ) : (⨅ i, f i) * r = ⨆ i, f i * r :=
-by simp only [real.mul_infi_of_nonpos ha, mul_comm]
+by simv only [real.mul_infi_of_nonpos ha, mul_comm]
 
 lemma real.supr_mul_of_nonpos (ha : r ≤ 0) (f : ι → ℝ) : (⨆ i, f i) * r = ⨅ i, f i * r :=
-by simp only [real.mul_supr_of_nonpos ha, mul_comm]
+by simv only [real.mul_supr_of_nonpos ha, mul_comm]
 
 end mul

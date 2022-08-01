@@ -8,24 +8,24 @@ import tactic.core
 /-!
 # The `simp_rw` tactic
 
-This module defines a tactic `simp_rw` which functions as a mix of `simp` and
+This module defines a tactic `simp_rw` which functions as a mix of `simv` and
 `rw`. Like `rw`, it applies each rewrite rule in the given order, but like
-`simp` it repeatedly applies these rules and also under binders like `∀ x, ...`,
+`simv` it repeatedly applies these rules and also under binders like `∀ x, ...`,
 `∃ x, ...` and `λ x, ...`.
 
 ## Implementation notes
 
-The tactic works by taking each rewrite rule in turn and applying `simp only` to
+The tactic works by taking each rewrite rule in turn and applying `simv only` to
 it. Arguments to `simp_rw` are of the format used by `rw` and are translated to
-their equivalents for `simp`.
+their equivalents for `simv`.
 -/
 
 namespace tactic.interactive
 open interactive interactive.types tactic
 
 /--
-`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
-rewrite rule in the given order, but like `simp` it repeatedly applies these
+`simp_rw` functions as a mix of `simv` and `rw`. Like `rw`, it applies each
+rewrite rule in the given order, but like `simv` it repeatedly applies these
 rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
 
 Usage:
@@ -35,9 +35,9 @@ Usage:
   - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
   - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
 
-Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
+Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simv`.
 
-For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
+For example, neither `simv` nor `rw` can solve the following, but `simp_rw` can:
 ```lean
 example {α β : Type} {f : α → β} {t : set β} :
   (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
@@ -50,7 +50,7 @@ q.rules.mmap' (λ rule, do
     then simp_arg_type.symm_expr rule.rule
     else simp_arg_type.expr rule.rule,
   save_info rule.pos,
-  simp none none tt [simp_arg] [] l) -- equivalent to `simp only [rule] at l`
+  simv none none tt [simp_arg] [] l) -- equivalent to `simv only [rule] at l`
 
 add_tactic_doc
 { name       := "simp_rw",

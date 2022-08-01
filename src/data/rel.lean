@@ -74,17 +74,17 @@ end
 
 @[simp]
 lemma comp_right_id (r : rel α β) : r ∘ @eq β = r :=
-by { unfold comp, ext y, simp }
+by { unfold comp, ext y, simv }
 
 @[simp]
 lemma comp_left_id (r : rel α β) : @eq α ∘ r = r :=
-by { unfold comp, ext x, simp }
+by { unfold comp, ext x, simv }
 
 lemma inv_id : inv (@eq α) = @eq α :=
 by { ext x y, split; apply eq.symm }
 
 lemma inv_comp (r : rel α β) (s : rel β γ) : inv (r ∘ s) = inv s ∘ inv r :=
-by { ext x z, simp [comp, inv, flip, and.comm] }
+by { ext x z, simv [comp, inv, flip, and.comm] }
 
 /-- Image of a set under a relation -/
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}
@@ -107,16 +107,16 @@ le_antisymm
 
 @[simp]
 lemma image_id (s : set α) : image (@eq α) s = s :=
-by { ext x, simp [mem_image] }
+by { ext x, simv [mem_image] }
 
 lemma image_comp (s : rel β γ) (t : set α) : image (r ∘ s) t = image s (image r t) :=
 begin
-  ext z, simp only [mem_image, comp], split,
+  ext z, simv only [mem_image, comp], split,
   { rintros ⟨x, xt, y, rxy, syz⟩, exact ⟨y, ⟨x, xt, rxy⟩, syz⟩ },
   rintros ⟨y, ⟨x, xt, rxy⟩, syz⟩, exact ⟨x, xt, y, rxy, syz⟩
 end
 
-lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
+lemma image_univ : r.image set.univ = r.codom := by { ext y, simv [mem_image, codom] }
 
 /-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
 def preimage (s : set β) : set α := r.inv.image s
@@ -137,11 +137,11 @@ lemma preimage_union (s t : set β) : r.preimage (s ∪ t) = r.preimage s ∪ r.
 image_union _ s t
 
 lemma preimage_id (s : set α) : preimage (@eq α) s = s :=
-by simp only [preimage, inv_id, image_id]
+by simv only [preimage, inv_id, image_id]
 
 lemma preimage_comp (s : rel β γ) (t : set γ) :
   preimage (r ∘ s) t = preimage r (preimage s t) :=
-by simp only [preimage, inv_comp, image_comp]
+by simv only [preimage, inv_comp, image_comp]
 
 lemma preimage_univ : r.preimage set.univ = r.dom :=
 by { rw [preimage, image_univ, codom_inv] }
@@ -159,20 +159,20 @@ lemma core_subset : ((⊆) ⇒ (⊆)) r.core r.core :=
 lemma core_mono : monotone r.core := r.core_subset
 
 lemma core_inter (s t : set β) : r.core (s ∩ t) = r.core s ∩ r.core t :=
-set.ext (by simp [mem_core, imp_and_distrib, forall_and_distrib])
+set.ext (by simv [mem_core, imp_and_distrib, forall_and_distrib])
 
 lemma core_union (s t : set β) : r.core s ∪ r.core t ⊆ r.core (s ∪ t) :=
 r.core_mono.le_map_sup s t
 
-@[simp] lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
+@[simp] lemma core_univ : r.core set.univ = set.univ := set.ext (by simv [mem_core])
 
 lemma core_id (s : set α) : core (@eq α) s = s :=
-by simp [core]
+by simv [core]
 
 lemma core_comp (s : rel β γ) (t : set γ) :
   core (r ∘ s) t = core r (core s t) :=
 begin
-  ext x, simp [core, comp], split,
+  ext x, simv [core, comp], split,
   { exact λ h y rxy z, h z y rxy },
   { exact λ h z y rzy, h y rzy z }
 end
@@ -204,14 +204,14 @@ namespace set
 -- be definitional
 
 lemma image_eq (f : α → β) (s : set α) : f '' s = (function.graph f).image s :=
-by simp [set.image, function.graph, rel.image]
+by simv [set.image, function.graph, rel.image]
 
 lemma preimage_eq (f : α → β) (s : set β) :
   f ⁻¹' s = (function.graph f).preimage s :=
-by simp [set.preimage, function.graph, rel.preimage, rel.inv, flip, rel.image]
+by simv [set.preimage, function.graph, rel.preimage, rel.inv, flip, rel.image]
 
 lemma preimage_eq_core (f : α → β) (s : set β) :
   f ⁻¹' s = (function.graph f).core s :=
- by simp [set.preimage, function.graph, rel.core]
+ by simv [set.preimage, function.graph, rel.core]
 
 end set

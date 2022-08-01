@@ -225,14 +225,14 @@ def flip_hom_aux [algebra R₂ R] : bilin_form R M →ₗ[R₂] bilin_form R M :
     bilin_smul_left := λ a x y, A.bilin_smul_right a y x,
     bilin_add_right := λ x y z, A.bilin_add_left y z x,
     bilin_smul_right := λ a x y, A.bilin_smul_left a y x },
-  map_add' := λ A₁ A₂, by { ext, simp } ,
-  map_smul' := λ c A, by { ext, simp } }
+  map_add' := λ A₁ A₂, by { ext, simv } ,
+  map_smul' := λ c A, by { ext, simv } }
 
 variables {R₂}
 
 lemma flip_flip_aux [algebra R₂ R] (A : bilin_form R M) :
   (flip_hom_aux R₂) (flip_hom_aux R₂ A) = A :=
-by { ext A x y, simp [flip_hom_aux] }
+by { ext A x y, simv [flip_hom_aux] }
 
 variables (R₂)
 
@@ -253,7 +253,7 @@ rfl
 
 lemma flip_flip [algebra R₂ R] :
   (flip_hom R₂).trans (flip_hom R₂) = linear_equiv.refl R₂ (bilin_form R M) :=
-by { ext A x y, simp }
+by { ext A x y, simv }
 
 /-- The flip of a bilinear form over a ring, obtained by exchanging the left and right arguments,
 here considered as an `ℕ`-linear equivalence, i.e. an additive equivalence. -/
@@ -278,13 +278,13 @@ def to_lin_hom_aux₁ (A : bilin_form R M) (x : M) : M →ₗ[R] R :=
 /-- Auxiliary definition to define `to_lin_hom`; see below. -/
 def to_lin_hom_aux₂ (A : bilin_form R M) : M →ₗ[R₂] M →ₗ[R] R :=
 { to_fun := to_lin_hom_aux₁ A,
-    map_add' := λ x₁ x₂, linear_map.ext $ λ x, by simp only [to_lin_hom_aux₁, linear_map.coe_mk,
+    map_add' := λ x₁ x₂, linear_map.ext $ λ x, by simv only [to_lin_hom_aux₁, linear_map.coe_mk,
                                                              linear_map.add_apply, add_left],
     map_smul' := λ c x, linear_map.ext $
     begin
       dsimp [to_lin_hom_aux₁],
       intros,
-      simp only [← algebra_map_smul R c x, algebra.smul_def, linear_map.coe_mk,
+      simv only [← algebra_map_smul R c x, algebra.smul_def, linear_map.coe_mk,
                  linear_map.smul_apply, smul_left]
     end }
 
@@ -303,7 +303,7 @@ def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
     dsimp only [to_lin_hom_aux₁, to_lin_hom_aux₂],
     apply linear_map.ext,
     intros y,
-    simp only [to_lin_hom_aux₂, to_lin_hom_aux₁, linear_map.coe_mk,
+    simv only [to_lin_hom_aux₂, to_lin_hom_aux₁, linear_map.coe_mk,
       linear_map.add_apply, add_apply],
   end ,
   map_smul' := λ c A,
@@ -313,7 +313,7 @@ def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
     intros x,
     apply linear_map.ext,
     intros y,
-    simp only [to_lin_hom_aux₂, to_lin_hom_aux₁,
+    simv only [to_lin_hom_aux₂, to_lin_hom_aux₁,
       linear_map.coe_mk, linear_map.smul_apply, smul_apply],
   end }
 
@@ -380,8 +380,8 @@ def linear_map.to_bilin_aux (f : M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) : bil
 /-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both. -/
 def bilin_form.to_lin : bilin_form R₂ M₂ ≃ₗ[R₂] (M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) :=
 { inv_fun := linear_map.to_bilin_aux,
-  left_inv := λ B, by { ext, simp [linear_map.to_bilin_aux] },
-  right_inv := λ B, by { ext, simp [linear_map.to_bilin_aux] },
+  left_inv := λ B, by { ext, simv [linear_map.to_bilin_aux] },
+  right_inv := λ B, by { ext, simv [linear_map.to_bilin_aux] },
   .. bilin_form.to_lin_hom R₂ }
 
 /-- A map with two arguments that is linear in both is linearly equivalent to bilinear form. -/
@@ -399,7 +399,7 @@ rfl
   (bilin_form.to_lin.symm : _ ≃ₗ[R₂] bilin_form R₂ M₂) = linear_map.to_bilin :=
 linear_map.to_bilin.symm_symm
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
 
 end equiv_lin
@@ -510,18 +510,18 @@ def congr (e : M₂ ≃ₗ[R₂] M₂') : bilin_form R₂ M₂ ≃ₗ[R₂] bili
 { to_fun := λ B, B.comp e.symm e.symm,
   inv_fun := λ B, B.comp e e,
   left_inv :=
-    λ B, ext (λ x y, by simp only [comp_apply, linear_equiv.coe_coe, e.symm_apply_apply]),
+    λ B, ext (λ x y, by simv only [comp_apply, linear_equiv.coe_coe, e.symm_apply_apply]),
   right_inv :=
-    λ B, ext (λ x y, by simp only [comp_apply, linear_equiv.coe_coe, e.apply_symm_apply]),
-  map_add' := λ B B', ext (λ x y, by simp only [comp_apply, add_apply]),
-  map_smul' := λ B B', ext (λ x y, by simp [comp_apply, smul_apply]) }
+    λ B, ext (λ x y, by simv only [comp_apply, linear_equiv.coe_coe, e.apply_symm_apply]),
+  map_add' := λ B B', ext (λ x y, by simv only [comp_apply, add_apply]),
+  map_smul' := λ B B', ext (λ x y, by simv [comp_apply, smul_apply]) }
 
 @[simp] lemma congr_apply (e : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) (x y : M₂') :
   congr e B x y = B (e.symm x) (e.symm y) := rfl
 
 @[simp] lemma congr_symm (e : M₂ ≃ₗ[R₂] M₂') :
   (congr e).symm = congr e.symm :=
-by { ext B x y, simp only [congr_apply, linear_equiv.symm_symm], refl }
+by { ext B x y, simv only [congr_apply, linear_equiv.symm_symm], refl }
 
 @[simp] lemma congr_refl : congr (linear_equiv.refl R₂ M₂) = linear_equiv.refl R₂ _ :=
 linear_equiv.ext $ λ B, ext $ λ x y, rfl
@@ -712,7 +712,7 @@ begin
     exact h y x },
   { intros h x y,
     conv_lhs { rw ← h },
-    simp }
+    simv }
 end
 
 /-- The proposition that a bilinear form is alternating -/
@@ -768,7 +768,7 @@ begin
 end
 
 lemma is_adjoint_pair_zero : is_adjoint_pair B B' 0 0 :=
-λ x y, by simp only [bilin_form.zero_left, bilin_form.zero_right, linear_map.zero_apply]
+λ x y, by simv only [bilin_form.zero_left, bilin_form.zero_right, linear_map.zero_apply]
 
 lemma is_adjoint_pair_id : is_adjoint_pair B B 1 1 := λ x y, rfl
 
@@ -826,9 +826,9 @@ lemma is_pair_self_adjoint_equiv (e : M₂' ≃ₗ[R₂] M₂) (f : module.End R
     is_pair_self_adjoint (B₂.comp ↑e ↑e) (F₂.comp ↑e ↑e) (e.symm.conj f) :=
 begin
   have hₗ : (F₂.comp ↑e ↑e).comp_left (e.symm.conj f) = (F₂.comp_left f).comp ↑e ↑e :=
-    by { ext, simp [linear_equiv.symm_conj_apply], },
+    by { ext, simv [linear_equiv.symm_conj_apply], },
   have hᵣ : (B₂.comp ↑e ↑e).comp_right (e.symm.conj f) = (B₂.comp_right f).comp ↑e ↑e :=
-    by { ext, simp [linear_equiv.conj_apply], },
+    by { ext, simv [linear_equiv.conj_apply], },
   have he : function.surjective (⇑(↑e : M₂' →ₗ[R₂] M₂) : M₂' → M₂) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
@@ -846,7 +846,7 @@ def is_skew_adjoint (f : module.End R₁ M₁) := is_adjoint_pair B₁ B₁ f (-
 lemma is_skew_adjoint_iff_neg_self_adjoint (f : module.End R₁ M₁) :
   B₁.is_skew_adjoint f ↔ is_adjoint_pair (-B₁) B₁ f f :=
 show (∀ x y, B₁ (f x) y = B₁ x ((-f) y)) ↔ ∀ x y, B₁ (f x) y = (-B₁) x (f y),
-by simp only [linear_map.neg_apply, bilin_form.neg_apply, bilin_form.neg_right]
+by simv only [linear_map.neg_apply, bilin_form.neg_apply, bilin_form.neg_right]
 
 /-- The set of self-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
 it is a Jordan subalgebra.) -/
@@ -1079,7 +1079,7 @@ begin
   { rcases hx with ⟨⟨x, hx⟩, hker, rfl⟩,
     erw linear_map.mem_ker at hker,
     split,
-    { simp [hx] },
+    { simv [hx] },
     { intros y _,
       rw [is_ortho, b],
       change (B.to_lin.dom_restrict W) ⟨x, hx⟩ y = 0,

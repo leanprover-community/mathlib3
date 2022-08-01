@@ -111,17 +111,17 @@ lemma functor.left_derived_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C}
     (F.left_derived_obj_iso n Q).inv :=
 begin
   dsimp only [functor.left_derived, functor.left_derived_obj_iso],
-  dsimp, simp only [category.comp_id, category.id_comp],
+  dsimp, simv only [category.comp_id, category.id_comp],
   rw [←homology_functor_map, homotopy_category.homology_functor_map_factors],
-  simp only [←functor.map_comp],
+  simv only [←functor.map_comp],
   congr' 1,
   apply homotopy_category.eq_of_homotopy,
   apply functor.map_homotopy,
   apply homotopy.trans,
   exact homotopy_category.homotopy_out_map _,
   apply ProjectiveResolution.lift_homotopy f,
-  { simp, },
-  { simp [w], },
+  { simv, },
+  { simv [w], },
 end
 
 /-- The natural transformation between left-derived functors induced by a natural transformation. -/
@@ -134,14 +134,14 @@ whisker_left (projective_resolutions C)
 
 @[simp] lemma nat_trans.left_derived_id (F : C ⥤ D) [F.additive] (n : ℕ) :
   nat_trans.left_derived (𝟙 F) n = 𝟙 (F.left_derived n) :=
-by { simp [nat_trans.left_derived], refl, }
+by { simv [nat_trans.left_derived], refl, }
 
 -- The `simp_nf` linter times out here, so we disable it.
-@[simp, nolint simp_nf] lemma nat_trans.left_derived_comp
+@[simv, nolint simp_nf] lemma nat_trans.left_derived_comp
   {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
   (α : F ⟶ G) (β : G ⟶ H) (n : ℕ) :
   nat_trans.left_derived (α ≫ β) n = nat_trans.left_derived α n ≫ nat_trans.left_derived β n :=
-by simp [nat_trans.left_derived]
+by simv [nat_trans.left_derived]
 
 /--
 A component of the natural transformation between left-derived functors can be computed
@@ -156,12 +156,12 @@ lemma nat_trans.left_derived_eq {F G : C ⥤ D} [F.additive] [G.additive] (α : 
 begin
   symmetry,
   dsimp [nat_trans.left_derived, functor.left_derived_obj_iso],
-  simp only [category.comp_id, category.id_comp],
+  simv only [category.comp_id, category.id_comp],
   rw [←homology_functor_map, homotopy_category.homology_functor_map_factors],
-  simp only [←functor.map_comp],
+  simv only [←functor.map_comp],
   congr' 1,
   apply homotopy_category.eq_of_homotopy,
-  simp only [nat_trans.map_homological_complex_naturality_assoc,
+  simv only [nat_trans.map_homological_complex_naturality_assoc,
     ←functor.map_comp],
   apply homotopy.comp_left_id,
   rw [←functor.map_id],

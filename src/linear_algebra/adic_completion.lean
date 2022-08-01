@@ -117,7 +117,7 @@ variables (I M)
 instance : is_Hausdorff I (Hausdorffification I M) :=
 ⟨λ x, quotient.induction_on' x $ λ x hx, (quotient.mk_eq_zero _).2 $ (mem_infi _).2 $ λ n, begin
   have := comap_map_mkq (⨅ n : ℕ, I ^ n • ⊤ : submodule R M) (I ^ n • ⊤),
-  simp only [sup_of_le_right (infi_le (λ n, (I ^ n • ⊤ : submodule R M)) n)] at this,
+  simv only [sup_of_le_right (infi_le (λ n, (I ^ n • ⊤ : submodule R M)) n)] at this,
   rw [← this, map_smul'', mem_comap, map_top, range_mkq, ← smodeq.zero], exact hx n
 end⟩
 
@@ -222,7 +222,7 @@ begin
   let f : ℕ → R := λ n, ∑ i in range n, (x * y) ^ i,
   have hf : ∀ m n, m ≤ n → f m ≡ f n [SMOD I ^ m • (⊤ : submodule R R)],
   { intros m n h,
-    simp only [f, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
+    simv only [f, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
     rw [← add_tsub_cancel_of_le h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub,
       neg_mem_iff],
     apply submodule.sum_mem,
@@ -242,7 +242,7 @@ begin
     { convert (ideal.sub_mem _ this (ideal.mul_mem_left _ (1 + - (x * y)) hL)) using 1,
       ring },
     cases n,
-    { simp only [ideal.one_eq_top, pow_zero] },
+    { simv only [ideal.one_eq_top, pow_zero] },
     { dsimp [f],
       rw [← neg_sub _ (1:R), neg_mul, mul_geom_sum, neg_sub,
         sub_sub, add_comm, ← sub_sub, sub_self, zero_sub, neg_mem_iff, mul_pow],

@@ -154,7 +154,7 @@ def apply_finsupp (tf : total_function α β) : α →₀ β :=
   mem_support_to_fun := begin
     intro a,
     rcases tf with ⟨A, y⟩,
-    simp only [apply, zero_default_supp, list.mem_map, list.mem_filter, exists_and_distrib_right,
+    simv only [apply, zero_default_supp, list.mem_map, list.mem_filter, exists_and_distrib_right,
       list.mem_to_finset, exists_eq_right, sigma.exists, ne.def, zero_default],
     split,
     { rintro ⟨od, hval, hod⟩,
@@ -165,11 +165,11 @@ def apply_finsupp (tf : total_function α β) : α →₀ β :=
     { intro h,
       use (A.lookup a).get_or_else (0 : β),
       rw ← list.lookup_dedupkeys at h ⊢,
-      simp only [h, ←list.mem_lookup_iff A.nodupkeys_dedupkeys,
+      simv only [h, ←list.mem_lookup_iff A.nodupkeys_dedupkeys,
         and_true, not_false_iff, option.mem_def],
       cases list.lookup a A.dedupkeys,
       { simpa using h, },
-      { simp, }, }
+      { simv, }, }
   end }
 
 variables [sampleable α] [sampleable β]
@@ -261,7 +261,7 @@ def list.apply_id [decidable_eq α] (xs : list (α × α)) (x : α) : α :=
 @[simp]
 lemma list.apply_id_cons [decidable_eq α] (xs : list (α × α)) (x y z : α) :
   list.apply_id ((y, z) :: xs) x = if y = x then z else list.apply_id xs x :=
-by simp only [list.apply_id, list.lookup, eq_rec_constant, prod.to_sigma, list.map]; split_ifs; refl
+by simv only [list.apply_id, list.lookup, eq_rec_constant, prod.to_sigma, list.map]; split_ifs; refl
 
 open function _root_.list _root_.prod (to_sigma)
 open _root_.nat
@@ -279,12 +279,12 @@ begin
     { injection h₂ with h₀ h₁, subst h₀,
       cases ys,
       { cases h₁ },
-      { simp only [list.apply_id, to_sigma, option.get_or_else_some, nth, lookup_cons_eq,
+      { simv only [list.apply_id, to_sigma, option.get_or_else_some, nth, lookup_cons_eq,
                    zip_cons_cons, list.map], } },
     { cases ys,
       { cases h₁ },
       { cases h₀ with _ _ h₀ h₁,
-        simp only [nth, zip_cons_cons, list.apply_id_cons] at h₂ ⊢,
+        simv only [nth, zip_cons_cons, list.apply_id_cons] at h₂ ⊢,
         rw if_neg,
         { apply xs_ih; solve_by_elim [succ.inj] },
         { apply h₀, apply nth_mem h₂ } } } }
@@ -295,7 +295,7 @@ lemma apply_id_mem_iff [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs
   (x : α) :
   list.apply_id.{u} (xs.zip ys) x ∈ ys ↔ x ∈ xs :=
 begin
-  simp only [list.apply_id],
+  simv only [list.apply_id],
   cases h₃ : (lookup x (map prod.to_sigma (xs.zip ys))),
   { dsimp [option.get_or_else],
     rw h₁.mem_iff },
@@ -310,19 +310,19 @@ begin
       { cases h₃ },
       dsimp [lookup] at h₃, split_ifs at h₃,
       { subst x', subst val,
-        simp only [mem_cons_iff, true_or, eq_self_iff_true], },
+        simv only [mem_cons_iff, true_or, eq_self_iff_true], },
       { cases h₀ with _ _ h₀ h₅,
         cases h₂ with _ _ h₂ h₄,
         have h₆ := nat.succ.inj h₁,
         specialize @xs_ih h₅ ys h₃ h₄ h₆,
-        simp only [ne.symm h, xs_ih, mem_cons_iff, false_or],
+        simv only [ne.symm h, xs_ih, mem_cons_iff, false_or],
         suffices : val ∈ ys, tauto!,
         erw [← option.mem_def, mem_lookup_iff] at h₃,
-        simp only [to_sigma, mem_map, heq_iff_eq, prod.exists] at h₃,
+        simv only [to_sigma, mem_map, heq_iff_eq, prod.exists] at h₃,
         rcases h₃ with ⟨a, b, h₃, h₄, h₅⟩,
         subst a, subst b,
         apply (mem_zip h₃).2,
-        simp only [nodupkeys, keys, comp, prod.fst_to_sigma, map_map],
+        simv only [nodupkeys, keys, comp, prod.fst_to_sigma, map_map],
         rwa map_fst_zip _ _ (le_of_eq h₆) } } }
 end
 
@@ -332,7 +332,7 @@ begin
   intro h,
   dsimp [list.apply_id],
   rw lookup_eq_none.2, refl,
-  simp only [keys, not_exists, to_sigma, exists_and_distrib_right, exists_eq_right, mem_map,
+  simv only [keys, not_exists, to_sigma, exists_and_distrib_right, exists_eq_right, mem_map,
              comp_app, map_map, prod.exists],
   intros y hy,
   exact h (mem_zip hy).1,
@@ -409,9 +409,9 @@ protected def shrink_perm {α : Type} [decidable_eq α] [has_sizeof α] :
   i ← lazy_list.of_list $ list.fin_range $ k / n,
   have ↑i * ↑n < xs.1.length,
     from nat.lt_of_div_lt_div
-      (lt_of_le_of_lt (by simp only [nat.mul_div_cancel, gt_iff_lt, fin.val_eq_coe, pnat.pos]) i.2),
+      (lt_of_le_of_lt (by simv only [nat.mul_div_cancel, gt_iff_lt, fin.val_eq_coe, pnat.pos]) i.2),
   pure ⟨perm.slice (i*n) n xs,
-    by rcases xs with ⟨a,b,c,d⟩; dsimp [sizeof_lt]; unfold_wf; simp only [perm.slice];
+    by rcases xs with ⟨a,b,c,d⟩; dsimp [sizeof_lt]; unfold_wf; simv only [perm.slice];
        unfold_wf; apply list.sizeof_slice_lt _ _ n.2 _ this⟩
 
 instance [has_sizeof α] : has_sizeof (injective_function α) :=
@@ -428,10 +428,10 @@ protected def shrink {α : Type} [has_sizeof α] [decidable_eq α] : shrink_fn (
   have h₃ : xs'.length ≤ ys'.length, from le_of_eq (perm.length_eq h₀),
   have h₄ : ys'.length ≤ xs'.length, from le_of_eq (perm.length_eq h₀.symm),
   pure ⟨⟨(list.zip xs' ys').map prod.to_sigma,
-    by simp only [comp, map_fst_zip, map_snd_zip, *, prod.fst_to_sigma, prod.snd_to_sigma, map_map],
-    by simp only [comp, map_snd_zip, *, prod.snd_to_sigma, map_map] ⟩,
+    by simv only [comp, map_fst_zip, map_snd_zip, *, prod.fst_to_sigma, prod.snd_to_sigma, map_map],
+    by simv only [comp, map_snd_zip, *, prod.snd_to_sigma, map_map] ⟩,
     by revert h₂; dsimp [sizeof_lt]; unfold_wf;
-       simp only [has_sizeof._match_1, map_map, comp, map_fst_zip, *, prod.fst_to_sigma];
+       simv only [has_sizeof._match_1, map_map, comp, map_fst_zip, *, prod.fst_to_sigma];
        unfold_wf; intro h₂; convert h₂ ⟩
 
 /-- Create an injective function from one list and a permutation of that list. -/
@@ -439,9 +439,9 @@ protected def mk (xs ys : list α) (h : xs ~ ys) (h' : ys.nodup) : injective_fun
 have h₀ : xs.length ≤ ys.length, from le_of_eq h.length_eq,
 have h₁ : ys.length ≤ xs.length, from le_of_eq h.length_eq.symm,
 injective_function.map_to_self (list.to_finmap' (xs.zip ys))
-  (by { simp only [list.to_finmap', comp, map_fst_zip, map_snd_zip, *,
+  (by { simv only [list.to_finmap', comp, map_fst_zip, map_snd_zip, *,
                    prod.fst_to_sigma, prod.snd_to_sigma, map_map] })
-  (by { simp only [list.to_finmap', comp, map_snd_zip, *, prod.snd_to_sigma, map_map] })
+  (by { simv only [list.to_finmap', comp, map_snd_zip, *, prod.snd_to_sigma, map_map] })
 
 protected lemma injective [decidable_eq α] (f : injective_function α) :
   injective (apply f) :=
@@ -454,9 +454,9 @@ begin
   { rw [← h₀, ← h₁, list.to_finmap'], clear h₀ h₁ xs₀ xs₁ hperm hnodup,
     induction xs,
     case list.nil
-    { simp only [zip_nil_right, map_nil] },
+    { simv only [zip_nil_right, map_nil] },
     case list.cons : xs_hd xs_tl xs_ih
-    { simp only [true_and, to_sigma, eq_self_iff_true, sigma.eta, zip_cons_cons, list.map],
+    { simv only [true_and, to_sigma, eq_self_iff_true, sigma.eta, zip_cons_cons, list.map],
       exact xs_ih }, },
   revert hperm hnodup,
   rw hxs, intros,

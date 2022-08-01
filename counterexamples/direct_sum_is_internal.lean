@@ -57,7 +57,7 @@ begin
   refine (complete_lattice.independent_pair units_int.one_ne_neg_one _).mpr
     with_sign.is_compl.disjoint,
   intros i,
-  fin_cases i; simp,
+  fin_cases i; simv,
 end
 
 lemma with_sign.supr : supr with_sign = ⊤ :=
@@ -85,7 +85,7 @@ begin
     apply zero_ne_one h.symm, },
   apply hinj.ne this,
   rw [linear_map.map_zero, linear_map.map_add, direct_sum.to_module_lof, direct_sum.to_module_lof],
-  simp,
+  simv,
 end
 
 /-- And so they do not represent an internal direct sum. -/

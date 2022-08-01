@@ -238,7 +238,7 @@ lemma exists_lt_card_fiber_of_mul_lt_card_of_maps_to (hf : ∀ a ∈ s, f a ∈ 
   (hn : t.card * n < s.card) :
   ∃ y ∈ t, n < (s.filter (λ x, f x = y)).card :=
 begin
-  simp only [card_eq_sum_ones],
+  simv only [card_eq_sum_ones],
   apply exists_lt_sum_fiber_of_maps_to_of_nsmul_lt_sum hf,
   simpa
 end
@@ -263,7 +263,7 @@ its preimage in `s` has less than `n` elements. -/
 lemma exists_card_fiber_lt_of_card_lt_mul (hn : s.card < t.card * n) :
   ∃ y ∈ t, (s.filter (λ x, f x = y)).card < n:=
 begin
-  simp only [card_eq_sum_ones],
+  simv only [card_eq_sum_ones],
   apply exists_sum_fiber_lt_of_sum_fiber_nonneg_of_sum_lt_nsmul (λ _ _, nat.zero_le _),
   simpa
 end
@@ -288,7 +288,7 @@ lemma exists_le_card_fiber_of_mul_le_card_of_maps_to (hf : ∀ a ∈ s, f a ∈ 
   (hn : t.card * n ≤ s.card) :
   ∃ y ∈ t, n ≤ (s.filter (λ x, f x = y)).card :=
 begin
-  simp only [card_eq_sum_ones],
+  simv only [card_eq_sum_ones],
   apply exists_le_sum_fiber_of_maps_to_of_nsmul_le_sum hf ht,
   simpa
 end
@@ -312,7 +312,7 @@ elements. See also `finset.exists_card_fiber_lt_of_card_lt_mul` for a stronger s
 lemma exists_card_fiber_le_of_card_le_mul (ht : t.nonempty) (hn : s.card ≤ t.card * n) :
   ∃ y ∈ t, (s.filter (λ x, f x = y)).card ≤ n:=
 begin
-  simp only [card_eq_sum_ones],
+  simv only [card_eq_sum_ones],
   apply exists_sum_fiber_le_of_sum_fiber_nonneg_of_sum_le_nsmul (λ _ _, nat.zero_le _) ht,
   simpa
 end

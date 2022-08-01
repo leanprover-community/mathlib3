@@ -100,7 +100,7 @@ flatten $ (λo, option.rec_on o nil prod.snd) <$> destruct s
 def drop (s : wseq α) : ℕ → wseq α
 | 0     := s
 | (n+1) := tail (drop n)
-attribute [simp] drop
+attribute [simv] drop
 
 /-- Get the nth element of `s`. -/
 def nth (s : wseq α) (n : ℕ) : computation (option α) := head (drop s n)
@@ -395,7 +395,7 @@ theorem lift_rel.refl (R : α → α → Prop) (H : reflexive R) : reflexive (li
 λ s, begin
   refine ⟨(=), rfl, λ s t (h : s = t), _⟩,
   rw ←h, apply computation.lift_rel.refl,
-  intro a, cases a with a, simp, cases a; simp, apply H
+  intro a, cases a with a, simv, cases a; simv, apply H
 end
 
 theorem lift_rel_o.swap (R : α → β → Prop) (C) :
@@ -463,10 +463,10 @@ local notation `return` := computation.return
 computation.destruct_eq_ret rfl
 
 @[simp] theorem destruct_cons (a : α) (s) : destruct (cons a s) = return (some (a, s)) :=
-computation.destruct_eq_ret $ by simp [destruct, cons, computation.rmap]
+computation.destruct_eq_ret $ by simv [destruct, cons, computation.rmap]
 
 @[simp] theorem destruct_think (s : wseq α) : destruct (think s) = (destruct s).think :=
-computation.destruct_eq_think $ by simp [destruct, think, computation.rmap]
+computation.destruct_eq_think $ by simv [destruct, think, computation.rmap]
 
 @[simp] theorem seq_destruct_nil : seq.destruct (nil : wseq α) = none :=
 seq.destruct_nil
@@ -477,20 +477,20 @@ seq.destruct_cons _ _
 @[simp] theorem seq_destruct_think (s : wseq α) : seq.destruct (think s) = some (none, s) :=
 seq.destruct_cons _ _
 
-@[simp] theorem head_nil : head (nil : wseq α) = return none := by simp [head]; refl
-@[simp] theorem head_cons (a : α) (s) : head (cons a s) = return (some a) := by simp [head]; refl
-@[simp] theorem head_think (s : wseq α) : head (think s) = (head s).think := by simp [head]; refl
+@[simp] theorem head_nil : head (nil : wseq α) = return none := by simv [head]; refl
+@[simp] theorem head_cons (a : α) (s) : head (cons a s) = return (some a) := by simv [head]; refl
+@[simp] theorem head_think (s : wseq α) : head (think s) = (head s).think := by simv [head]; refl
 
 @[simp] theorem flatten_ret (s : wseq α) : flatten (return s) = s :=
 begin
   refine seq.eq_of_bisim (λs1 s2, flatten (return s2) = s1) _ rfl,
-  intros s' s h, rw ←h, simp [flatten],
-  cases seq.destruct s, { simp },
-  { cases val with o s', simp }
+  intros s' s h, rw ←h, simv [flatten],
+  cases seq.destruct s, { simv },
+  { cases val with o s', simv }
 end
 
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
-seq.destruct_eq_cons $ by simp [flatten, think]
+seq.destruct_eq_cons $ by simv [flatten, think]
 
 @[simp]
 theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
@@ -498,10 +498,10 @@ begin
   refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
   intros c1 c2 h, exact match c1, c2, h with
-  | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
+  | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simv
   | _, _, (or.inr ⟨c, rfl, rfl⟩) := begin
-    apply c.cases_on (λa, _) (λc', _); repeat {simp},
-    { cases (destruct a).destruct; simp },
+    apply c.cases_on (λa, _) (λc', _); repeat {simv},
+    { cases (destruct a).destruct; simv },
     { exact or.inr ⟨c', rfl, rfl⟩ }
   end end
 end
@@ -509,16 +509,16 @@ end
 theorem head_terminates_iff (s : wseq α) : terminates (head s) ↔ terminates (destruct s) :=
 terminates_map_iff _ (destruct s)
 
-@[simp] theorem tail_nil : tail (nil : wseq α) = nil := by simp [tail]
-@[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s := by simp [tail]
-@[simp] theorem tail_think (s : wseq α) : tail (think s) = (tail s).think := by simp [tail]
+@[simp] theorem tail_nil : tail (nil : wseq α) = nil := by simv [tail]
+@[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s := by simv [tail]
+@[simp] theorem tail_think (s : wseq α) : tail (think s) = (tail s).think := by simv [tail]
 
 @[simp] theorem dropn_nil (n) :
-  drop (nil : wseq α) n = nil := by induction n; simp [*, drop]
+  drop (nil : wseq α) n = nil := by induction n; simv [*, drop]
 @[simp] theorem dropn_cons (a : α) (s) (n) :
-  drop (cons a s) (n+1) = drop s n := by induction n; simp [*, drop]
+  drop (cons a s) (n+1) = drop s n := by induction n; simv [*, drop]
 @[simp] theorem dropn_think (s : wseq α) (n) :
-  drop (think s) n = (drop s n).think := by induction n; simp [*, drop]
+  drop (think s) n = (drop s n).think := by induction n; simv [*, drop]
 
 theorem dropn_add (s : wseq α) (m) : ∀ n, drop s (m + n) = drop (drop s m) n
 | 0     := rfl
@@ -537,11 +537,11 @@ congr_arg head (dropn_tail _ _)
 
 @[simp] theorem join_think (S : wseq (wseq α)) :
   join (think S) = think (join S) :=
-by { simp [think, join], unfold functor.map, simp [join, seq1.ret] }
+by { simv [think, join], unfold functor.map, simv [join, seq1.ret] }
 
 @[simp] theorem join_cons (s : wseq α) (S) :
   join (cons s S) = think (append s (join S)) :=
-by { simp [think, join], unfold functor.map, simp [join, cons, append] }
+by { simv [think, join], unfold functor.map, simv [join, cons, append] }
 
 @[simp] theorem nil_append (s : wseq α) : append nil s = s := seq.nil_append _
 
@@ -563,9 +563,9 @@ by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
-  simp [tail], rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
+  simv [tail], rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
   apply congr_arg, ext1 (_|⟨a, s⟩);
-  apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
+  apply (@pure_bind computation _ _ _ _ _ _).trans _; simv
 end
 
 @[simp] def drop.aux : ℕ → option (α × wseq α) → computation (option (α × wseq α))
@@ -587,7 +587,7 @@ theorem head_terminates_of_head_tail_terminates (s : wseq α) [T : terminates (h
   terminates (head s) :=
 (head_terminates_iff _).2 $ begin
   rcases (head_terminates_iff _).1 T with ⟨⟨a, h⟩⟩,
-  simp [tail] at h,
+  simv [tail] at h,
   rcases exists_of_mem_bind h with ⟨s', h1, h2⟩,
   unfold functor.map at h1,
   exact let ⟨t, h3, h4⟩ := exists_of_mem_map h1 in terminates_of_mem h3
@@ -596,10 +596,10 @@ end
 theorem destruct_some_of_destruct_tail_some {s : wseq α} {a}
   (h : some a ∈ destruct (tail s)) : ∃ a', some a' ∈ destruct s :=
 begin
-  unfold tail functor.map at h, simp at h,
+  unfold tail functor.map at h, simv at h,
   rcases exists_of_mem_bind h with ⟨t, tm, td⟩, clear h,
   rcases exists_of_mem_map tm with ⟨t', ht', ht2⟩, clear tm,
-  cases t' with t'; rw ←ht2 at td; simp at td,
+  cases t' with t'; rw ←ht2 at td; simv at td,
   { have := mem_unique td (ret_mem _), contradiction },
   { exact ⟨_, ht'⟩ }
 end
@@ -634,7 +634,7 @@ def to_seq (s : wseq α) [productive s] : seq α :=
 begin
   cases e : computation.get (nth s (n + 1)), {assumption},
   have := mem_of_get_eq _ e,
-  simp [nth] at this h, cases head_some_of_head_tail_some this with a' h',
+  simv [nth] at this h, cases head_some_of_head_tail_some this with a' h',
   have := mem_unique h' (@mem_of_get_eq _ _ _ _ h),
   contradiction
 end⟩
@@ -678,22 +678,22 @@ begin
   generalize e : destruct s = c, intro h,
   revert s, apply computation.mem_rec_on h _ (λ c IH, _); intro s;
   apply s.cases_on _ (λ x s, _) (λ s, _); intros m;
-  have := congr_arg computation.destruct m; simp at this;
+  have := congr_arg computation.destruct m; simv at this;
   cases this with i1 i2,
   { rw [i1, i2],
     cases s' with f al,
-    unfold cons has_mem.mem wseq.mem seq.mem seq.cons, simp,
-    have h_a_eq_a' : a = a' ↔ some (some a) = some (some a'), {simp},
+    unfold cons has_mem.mem wseq.mem seq.mem seq.cons, simv,
+    have h_a_eq_a' : a = a' ↔ some (some a) = some (some a'), {simv},
     rw [h_a_eq_a'],
     refine ⟨stream.eq_or_mem_of_mem_cons, λo, _⟩,
     { cases o with e m,
       { rw e, apply stream.mem_cons },
       { exact stream.mem_cons_of_mem _ m } } },
-  { simp, exact IH this }
+  { simv, exact IH this }
 end
 
 @[simp] theorem mem_cons_iff (s : wseq α) (b) {a} : a ∈ cons b s ↔ a = b ∨ a ∈ s :=
-eq_or_mem_iff_mem $ by simp [ret_mem]
+eq_or_mem_iff_mem $ by simv [ret_mem]
 
 theorem mem_cons_of_mem {s : wseq α} (b) {a} (h : a ∈ s) : a ∈ cons b s :=
 (mem_cons_iff _ _).2 (or.inr h)
@@ -703,9 +703,9 @@ theorem mem_cons (s : wseq α) (a) : a ∈ cons a s :=
 
 theorem mem_of_mem_tail {s : wseq α} {a} : a ∈ tail s → a ∈ s :=
 begin
-  intro h, have := h, cases h with n e, revert s, simp [stream.nth],
+  intro h, have := h, cases h with n e, revert s, simv [stream.nth],
   induction n with n IH; intro s; apply s.cases_on _ (λx s, _) (λ s, _);
-    repeat{simp}; intros m e; injections,
+    repeat{simv}; intros m e; injections,
   { exact or.inr m },
   { exact or.inr m },
   { apply IH m, rw e, cases tail s, refl }
@@ -730,11 +730,11 @@ theorem exists_nth_of_mem {s : wseq α} {a} (h : a ∈ s) : ∃ n, some a ∈ nt
 begin
   apply mem_rec_on h,
   { intros a' s' h, cases h with h h,
-    { existsi 0, simp [nth], rw h, apply ret_mem },
+    { existsi 0, simv [nth], rw h, apply ret_mem },
     { cases h with n h, existsi n+1,
-      simp [nth], exact h } },
+      simv [nth], exact h } },
   { intros s' h, cases h with n h,
-    existsi n, simp [nth], apply think_mem h }
+    existsi n, simv [nth], apply think_mem h }
 end
 
 theorem exists_dropn_of_mem {s : wseq α} {a} (h : a ∈ s) :
@@ -752,12 +752,12 @@ theorem lift_rel_dropn_destruct {R : α → β → Prop} {s t} (H : lift_rel R s
     (destruct (drop s n)) (destruct (drop t n))
 | 0     := lift_rel_destruct H
 | (n+1) := begin
-  simp [destruct_tail],
+  simv [destruct_tail],
   apply lift_rel_bind,
   apply lift_rel_dropn_destruct n,
   exact λ a b o, match a, b, o with
-  | none,       none,         _        := by simp
-  | some (a, s), some (b, t), ⟨h1, h2⟩ := by simp [tail.aux]; apply lift_rel_destruct h2
+  | none,       none,         _        := by simv
+  | some (a, s), some (b, t), ⟨h1, h2⟩ := by simv [tail.aux]; apply lift_rel_destruct h2
   end
 end
 
@@ -786,28 +786,28 @@ theorem exists_of_mem_map {f} {b : β} : ∀ {s : wseq α}, b ∈ map f s → �
   by cases o with a; injection oe with h'; exact ⟨a, om, h'⟩
 
 @[simp] theorem lift_rel_nil (R : α → β → Prop) : lift_rel R nil nil :=
-by rw [lift_rel_destruct_iff]; simp
+by rw [lift_rel_destruct_iff]; simv
 
 @[simp] theorem lift_rel_cons (R : α → β → Prop) (a b s t) :
   lift_rel R (cons a s) (cons b t) ↔ R a b ∧ lift_rel R s t :=
-by rw [lift_rel_destruct_iff]; simp
+by rw [lift_rel_destruct_iff]; simv
 
 @[simp] theorem lift_rel_think_left (R : α → β → Prop) (s t) :
   lift_rel R (think s) t ↔ lift_rel R s t :=
-by rw [lift_rel_destruct_iff, lift_rel_destruct_iff]; simp
+by rw [lift_rel_destruct_iff, lift_rel_destruct_iff]; simv
 
 @[simp] theorem lift_rel_think_right (R : α → β → Prop) (s t) :
   lift_rel R s (think t) ↔ lift_rel R s t :=
-by rw [lift_rel_destruct_iff, lift_rel_destruct_iff]; simp
+by rw [lift_rel_destruct_iff, lift_rel_destruct_iff]; simv
 
 theorem cons_congr {s t : wseq α} (a : α) (h : s ~ t) : cons a s ~ cons a t :=
-by unfold equiv; simp; exact h
+by unfold equiv; simv; exact h
 
 theorem think_equiv (s : wseq α) : think s ~ s :=
-by unfold equiv; simp; apply equiv.refl
+by unfold equiv; simv; apply equiv.refl
 
 theorem think_congr {s t : wseq α} (a : α) (h : s ~ t) : think s ~ think t :=
-by unfold equiv; simp; exact h
+by unfold equiv; simv; exact h
 
 theorem head_congr : ∀ {s t : wseq α}, s ~ t → head s ~ head t :=
 suffices ∀ {s t : wseq α}, s ~ t → ∀ {o}, o ∈ head s → o ∈ head t, from
@@ -829,8 +829,8 @@ end
 
 theorem flatten_equiv {c : computation (wseq α)} {s} (h : s ∈ c) : flatten c ~ s :=
 begin
-  apply computation.mem_rec_on h, { simp },
-  { intro s', apply equiv.trans, simp [think_equiv] }
+  apply computation.mem_rec_on h, { simv },
+  { intro s', apply equiv.trans, simv [think_equiv] }
 end
 
 theorem lift_rel_flatten {R : α → β → Prop} {c1 : computation (wseq α)} {c2 : computation (wseq β)}
@@ -839,10 +839,10 @@ let S := λ s t,
   ∃ c1 c2, s = flatten c1 ∧ t = flatten c2 ∧ computation.lift_rel (lift_rel R) c1 c2 in
 ⟨S, ⟨c1, c2, rfl, rfl, h⟩, λ s t h,
   match s, t, h with ._, ._, ⟨c1, c2, rfl, rfl, h⟩ := begin
-    simp, apply lift_rel_bind _ _ h,
+    simv, apply lift_rel_bind _ _ h,
     intros a b ab, apply computation.lift_rel.imp _ _ _ (lift_rel_destruct ab),
     intros a b, apply lift_rel_o.imp_right,
-    intros s t h, refine ⟨return s, return t, _, _, _⟩; simp [h]
+    intros s t h, refine ⟨return s, return t, _, _, _⟩; simv [h]
   end end⟩
 
 theorem flatten_congr {c1 c2 : computation (wseq α)} :
@@ -853,7 +853,7 @@ begin
   apply flatten_congr,
   unfold functor.map, rw [←bind_ret, ←bind_ret],
   apply lift_rel_bind _ _ (destruct_congr h),
-  intros a b h, simp,
+  intros a b h, simv,
   cases a with a; cases b with b,
   { trivial },
   { cases h },
@@ -862,7 +862,7 @@ begin
 end
 
 theorem dropn_congr {s t : wseq α} (h : s ~ t) (n) : drop s n ~ drop t n :=
-by induction n; simp [*, tail_congr]
+by induction n; simv [*, tail_congr]
 
 theorem nth_congr {s t : wseq α} (h : s ~ t) (n) : nth s n ~ nth t n :=
 head_congr (dropn_congr h _)
@@ -873,7 +873,7 @@ suffices ∀ {s t : wseq α}, s ~ t → a ∈ s → a ∈ t, from ⟨this h, thi
 nth_mem ((nth_congr h _ _).1 hn)
 
 theorem productive_congr {s t : wseq α} (h : s ~ t) : productive s ↔ productive t :=
-by simp only [productive_iff]; exact
+by simv only [productive_iff]; exact
   forall_congr (λ n, terminates_congr $ nth_congr h _)
 
 theorem equiv.ext {s t : wseq α} (h : ∀ n, nth s n ~ nth t n) : s ~ t :=
@@ -904,9 +904,9 @@ begin
     _ ⟨[], s, rfl, rfl⟩,
   intros s1 s2 h, rcases h with ⟨l, s, h⟩, rw [h.left, h.right],
   apply s.cases_on _ (λ a s, _) (λ s, _);
-    repeat {simp [to_list, nil, cons, think, length]},
-  { refine ⟨a::l, s, _, _⟩; simp },
-  { refine ⟨l, s, _, _⟩; simp }
+    repeat {simv [to_list, nil, cons, think, length]},
+  { refine ⟨a::l, s, _, _⟩; simv },
+  { refine ⟨l, s, _, _⟩; simv }
 end
 
 @[simp] theorem of_list_nil : of_list [] = (nil : wseq α) := rfl
@@ -914,7 +914,7 @@ end
 @[simp] theorem of_list_cons (a : α) (l) :
   of_list (a :: l) = cons a (of_list l) :=
 show seq.map some (seq.of_list (a :: l)) =
-     seq.cons (some a) (seq.map some (seq.of_list l)), by simp
+     seq.cons (some a) (seq.map some (seq.of_list l)), by simv
 
 @[simp] theorem to_list'_nil (l : list α) :
   corec to_list._match_2 (l, nil) = return l.reverse :=
@@ -923,12 +923,12 @@ destruct_eq_ret rfl
 @[simp] theorem to_list'_cons (l : list α) (s : wseq α) (a : α) :
   corec to_list._match_2 (l, cons a s) =
   (corec to_list._match_2 (a::l, s)).think :=
-destruct_eq_think $ by simp [to_list, cons]
+destruct_eq_think $ by simv [to_list, cons]
 
 @[simp] theorem to_list'_think (l : list α) (s : wseq α) :
   corec to_list._match_2 (l, think s) =
   (corec to_list._match_2 (l, s)).think :=
-destruct_eq_think $ by simp [to_list, think]
+destruct_eq_think $ by simv [to_list, think]
 
 theorem to_list'_map (l : list α) (s : wseq α) :
   corec to_list._match_2 (l, s) =
@@ -941,37 +941,37 @@ begin
     _ ⟨[], s, rfl, rfl⟩,
   intros s1 s2 h, rcases h with ⟨l', s, h⟩, rw [h.left, h.right],
   apply s.cases_on _ (λ a s, _) (λ s, _);
-    repeat {simp [to_list, nil, cons, think, length]},
-  { refine ⟨a::l', s, _, _⟩; simp },
-  { refine ⟨l', s, _, _⟩; simp }
+    repeat {simv [to_list, nil, cons, think, length]},
+  { refine ⟨a::l', s, _, _⟩; simv },
+  { refine ⟨l', s, _, _⟩; simv }
 end
 
 @[simp] theorem to_list_cons (a : α) (s) :
   to_list (cons a s) = (list.cons a <$> to_list s).think :=
-destruct_eq_think $ by unfold to_list; simp; rw to_list'_map; simp; refl
+destruct_eq_think $ by unfold to_list; simv; rw to_list'_map; simv; refl
 
 @[simp] theorem to_list_nil : to_list (nil : wseq α) = return [] :=
 destruct_eq_ret rfl
 
 theorem to_list_of_list (l : list α) : l ∈ to_list (of_list l) :=
-by induction l with a l IH; simp [ret_mem]; exact think_mem (mem_map _ IH)
+by induction l with a l IH; simv [ret_mem]; exact think_mem (mem_map _ IH)
 
 @[simp] theorem destruct_of_seq (s : seq α) :
   destruct (of_seq s) = return (s.head.map $ λ a, (a, of_seq s.tail)) :=
 destruct_eq_ret $ begin
-  simp [of_seq, head, destruct, seq.destruct, seq.head],
+  simv [of_seq, head, destruct, seq.destruct, seq.head],
   rw [show seq.nth (some <$> s) 0 = some <$> seq.nth s 0, by apply seq.map_nth],
   cases seq.nth s 0 with a, { refl },
   unfold functor.map,
-  simp [destruct]
+  simv [destruct]
 end
 
 @[simp] theorem head_of_seq (s : seq α) : head (of_seq s) = return s.head :=
-by simp [head]; cases seq.head s; refl
+by simv [head]; cases seq.head s; refl
 
 @[simp] theorem tail_of_seq (s : seq α) : tail (of_seq s) = of_seq s.tail :=
 begin
-  simp [tail], apply s.cases_on _ (λ x s, _); simp [of_seq], {refl},
+  simv [tail], apply s.cases_on _ (λ x s, _); simv [of_seq], {refl},
   rw [seq.head_cons, seq.tail_cons], refl
 end
 
@@ -1003,9 +1003,9 @@ def ret (a : α) : wseq α := of_list [a]
 @[simp] theorem map_think (f : α → β) (s) :
   map f (think s) = think (map f s) := seq.map_cons _ _ _
 
-@[simp] theorem map_id (s : wseq α) : map id s = s := by simp [map]
+@[simp] theorem map_id (s : wseq α) : map id s = s := by simv [map]
 
-@[simp] theorem map_ret (f : α → β) (a) : map f (ret a) = ret (f a) := by simp [ret]
+@[simp] theorem map_ret (f : α → β) (a) : map f (ret a) = ret (f a) := by simv [ret]
 
 @[simp] theorem map_append (f : α → β) (s t) : map f (append s t) = append (map f s) (map f t) :=
 seq.map_append _ _ _
@@ -1025,31 +1025,31 @@ seq.mem_map (option.map f)
 theorem exists_of_mem_join {a : α} : ∀ {S : wseq (wseq α)}, a ∈ join S → ∃ s, s ∈ S ∧ a ∈ s :=
 suffices ∀ ss : wseq α, a ∈ ss → ∀ s S, append s (join S) = ss →
   a ∈ append s (join S) → a ∈ s ∨ ∃ s, s ∈ S ∧ a ∈ s, from λ S h,
-  (this _ h nil S (by simp) (by simp [h])).resolve_left (not_mem_nil _),
+  (this _ h nil S (by simv) (by simv [h])).resolve_left (not_mem_nil _),
 begin
   intros ss h, apply mem_rec_on h (λ b ss o, _) (λ ss IH, _); intros s S,
   { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
-    intros ej m; simp at ej;
-    have := congr_arg seq.destruct ej; simp at this;
+    intros ej m; simv at ej;
+    have := congr_arg seq.destruct ej; simv at this;
     try {cases this}; try {contradiction},
     substs b' ss,
-    simp at m ⊢,
-    cases o with e IH, { simp [e] },
-    cases m with e m, { simp [e] },
+    simv at m ⊢,
+    cases o with e IH, { simv [e] },
+    cases m with e m, { simv [e] },
     exact or.imp_left or.inr (IH _ _ rfl m) },
   { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
-    intros ej m; simp at ej;
-    have := congr_arg seq.destruct ej; simp at this;
+    intros ej m; simv at ej;
+    have := congr_arg seq.destruct ej; simv at this;
     try { try {have := this.1}, contradiction }; subst ss,
-    { apply or.inr, simp at m ⊢,
+    { apply or.inr, simv at m ⊢,
       cases IH s S rfl m with as ex,
       { exact ⟨s, or.inl rfl, as⟩ },
       { rcases ex with ⟨s', sS, as⟩,
         exact ⟨s', or.inr sS, as⟩ } },
-    { apply or.inr, simp at m,
-      rcases (IH nil S (by simp) (by simp [m])).resolve_left (not_mem_nil _) with ⟨s, sS, as⟩,
-      exact ⟨s, by simp [sS], as⟩ },
-    { simp at m IH ⊢, apply IH _ _ rfl m } }
+    { apply or.inr, simv at m,
+      rcases (IH nil S (by simv) (by simv [m])).resolve_left (not_mem_nil _) with ⟨s, sS, as⟩,
+      exact ⟨s, by simv [sS], as⟩ },
+    { simv at m IH ⊢, apply IH _ _ rfl m } }
 end
 
 theorem exists_of_mem_bind {s : wseq α} {f : α → wseq β} {b}
@@ -1063,7 +1063,7 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s, c1 = destruct (map f s) ∧
     c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
-    apply s.cases_on _ (λ a s, _) (λ s, _); simp,
+    apply s.cases_on _ (λ a s, _) (λ s, _); simv,
     exact ⟨s, rfl, rfl⟩ },
   { exact ⟨s, rfl, rfl⟩ }
 end
@@ -1076,9 +1076,9 @@ theorem lift_rel_map {δ} (R : α → β → Prop) (S : γ → δ → Prop)
 ⟨λ s1 s2, ∃ s t, s1 = map f1 s ∧ s2 = map f2 t ∧ lift_rel R s t,
 ⟨s1, s2, rfl, rfl, h1⟩,
 λ s1 s2 h, match s1, s2, h with ._, ._, ⟨s, t, rfl, rfl, h⟩ := begin
-  simp [destruct_map], apply computation.lift_rel_map _ _ (lift_rel_destruct h),
+  simv [destruct_map], apply computation.lift_rel_map _ _ (lift_rel_destruct h),
   intros o p h,
-  cases o with a; cases p with b; simp,
+  cases o with a; cases p with b; simv,
   { cases b; cases h },
   { cases a; cases h },
   { cases a with a s; cases b with b t, cases h with r h,
@@ -1099,9 +1099,9 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s t, c1 = destruct (append s t) ∧
     c2 = (destruct s).bind (destruct_append.aux t)) _ ⟨s, t, rfl, rfl⟩,
   intros c1 c2 h, rcases h with ⟨s, t, h⟩, rw [h.left, h.right],
-  apply s.cases_on _ (λ a s, _) (λ s, _); simp,
-  { apply t.cases_on _ (λ b t, _) (λ t, _); simp,
-    { refine ⟨nil, t, _, _⟩; simp } },
+  apply s.cases_on _ (λ a s, _) (λ s, _); simv,
+  { apply t.cases_on _ (λ b t, _) (λ t, _); simv,
+    { refine ⟨nil, t, _, _⟩; simv } },
   { exact ⟨s, t, rfl, rfl⟩ }
 end
 
@@ -1115,9 +1115,9 @@ begin
   apply eq_of_bisim (λ c1 c2, c1 = c2 ∨ ∃ S, c1 = destruct (join S) ∧
     c2 = (destruct S).bind destruct_join.aux) _ (or.inr ⟨S, rfl, rfl⟩),
   intros c1 c2 h, exact match c1, c2, h with
-  | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
+  | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simv
   | _, _, or.inr ⟨S, rfl, rfl⟩ := begin
-    apply S.cases_on _ (λ s S, _) (λ S, _); simp,
+    apply S.cases_on _ (λ s S, _) (λ S, _); simv,
     { refine or.inr ⟨S, rfl, rfl⟩ }
   end end
 end
@@ -1134,17 +1134,17 @@ or.inr ⟨s1, t1, rfl, rfl, h1⟩,
     intros s t, apply or.inl
   end
 | ._, ._, or.inr ⟨s1, t1, rfl, rfl, h⟩ := begin
-    simp [destruct_append],
+    simv [destruct_append],
     apply computation.lift_rel_bind _ _ (lift_rel_destruct h),
     intros o p h,
     cases o with a; cases p with b,
-    { simp, apply computation.lift_rel.imp _ _ _ (lift_rel_destruct h2),
+    { simv, apply computation.lift_rel.imp _ _ _ (lift_rel_destruct h2),
       intros a b, apply lift_rel_o.imp_right,
       intros s t, apply or.inl },
     { cases b; cases h },
     { cases a; cases h },
     { cases a with a s; cases b with b t, cases h with r h,
-      simp, exact ⟨r, or.inr ⟨s, rfl, t, rfl, h⟩⟩ }
+      simv, exact ⟨r, or.inr ⟨s, rfl, t, rfl, h⟩⟩ }
   end
 end⟩
 
@@ -1156,14 +1156,14 @@ theorem lift_rel_join.lem (R : α → β → Prop) {S T} {U : wseq α → wseq �
 begin
   cases exists_results_of_mem ma with n h, clear ma, revert a S T,
   apply nat.strong_induction_on n _,
-  intros n IH a S T ST ra, simp [destruct_join] at ra, exact
+  intros n IH a S T ST ra, simv [destruct_join] at ra, exact
   let ⟨o, m, k, rs1, rs2, en⟩ := of_results_bind ra,
       ⟨p, mT, rop⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct ST) rs1.mem in
   by exact match o, p, rop, rs1, rs2, mT with
-  | none, none, _, rs1, rs2, mT := by simp only [destruct_join]; exact
+  | none, none, _, rs1, rs2, mT := by simv only [destruct_join]; exact
     ⟨none, mem_bind mT (ret_mem _), by rw eq_of_ret_mem rs2.mem; trivial⟩
   | some (s, S'), some (t, T'), ⟨st, ST'⟩, rs1, rs2, mT :=
-    by simp [destruct_append] at rs2; exact
+    by simv [destruct_append] at rs2; exact
     let ⟨k1, rs3, ek⟩ := of_results_think rs2,
         ⟨o', m1, n1, rs4, rs5, ek1⟩ := of_results_bind rs3,
         ⟨p', mt, rop'⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct st) rs4.mem in
@@ -1175,12 +1175,12 @@ begin
         apply nat.lt_succ_of_le (nat.le_add_right _ _)
       end,
       let ⟨ob, mb, rob⟩ := IH _ this ST' rs5' in by refine ⟨ob, _, rob⟩;
-      { simp [destruct_join], apply mem_bind mT, simp [destruct_append],
+      { simv [destruct_join], apply mem_bind mT, simv [destruct_append],
         apply think_mem, apply mem_bind mt, exact mb }
     | some (a, s'), some (b, t'), ⟨ab, st'⟩, rs4, rs5, mt := begin
-      simp at rs5,
+      simv at rs5,
       refine ⟨some (b, append t' (join T')), _, _⟩,
-      { simp [destruct_join], apply mem_bind mT, simp [destruct_append],
+      { simv [destruct_join], apply mem_bind mT, simv [destruct_append],
         apply think_mem, apply mem_bind mt, apply ret_mem },
       rw eq_of_ret_mem rs5.mem,
       exact ⟨ab, HU _ _ ⟨s', t', S', T', rfl, rfl, st', ST'⟩⟩
@@ -1193,14 +1193,14 @@ theorem lift_rel_join (R : α → β → Prop) {S : wseq (wseq α)} {T : wseq (w
 ⟨λ s1 s2, ∃ s t S T,
   s1 = append s (join S) ∧ s2 = append t (join T) ∧
   lift_rel R s t ∧ lift_rel (lift_rel R) S T,
-  ⟨nil, nil, S, T, by simp, by simp, by simp, h⟩,
+  ⟨nil, nil, S, T, by simv, by simv, by simv, h⟩,
 λs1 s2 ⟨s, t, S, T, h1, h2, st, ST⟩, begin
   clear _fun_match _x,
   rw [h1, h2], rw [destruct_append, destruct_append],
   apply computation.lift_rel_bind _ _ (lift_rel_destruct st),
   exact λ o p h, match o, p, h with
   | some (a, s), some (b, t), ⟨h1, h2⟩ :=
-    by simp; exact ⟨h1, s, t, S, rfl, T, rfl, h2, ST⟩
+    by simv; exact ⟨h1, s, t, S, rfl, T, rfl, h2, ST⟩
   | none, none, _ := begin
     dsimp [destruct_append.aux, computation.lift_rel], constructor,
     { intro, apply lift_rel_join.lem _ ST (λ _ _, id) },
@@ -1229,7 +1229,7 @@ theorem bind_congr {s1 s2 : wseq α} {f1 f2 : α → wseq β}
 lift_rel_bind _ _ h1 (λ a b h, by rw h; apply h2)
 
 @[simp] theorem join_ret (s : wseq α) : join (ret s) ~ s :=
-by simp [ret]; apply think_equiv
+by simv [ret]; apply think_equiv
 
 @[simp] theorem join_map_ret (s : wseq α) : join (map ret s) ~ s :=
 begin
@@ -1243,7 +1243,7 @@ begin
       clear h _match,
       have : ∀ s, ∃ s' : wseq α, (map ret s).join.destruct = (map ret s').join.destruct ∧
         destruct s = s'.destruct, from λ s, ⟨s, rfl, rfl⟩,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this, option.exists]
+      apply s.cases_on _ (λ a s, _) (λ s, _); simv [ret, ret_mem, this, option.exists]
     end end },
   { exact ⟨s, rfl, rfl⟩ }
 end
@@ -1253,7 +1253,7 @@ end
 begin
   refine ⟨λ s1 s2, ∃ s S T,
     s1 = append s (join (append S T)) ∧
-    s2 = append s (append (join S) (join T)), ⟨nil, S, T, by simp, by simp⟩, _⟩,
+    s2 = append s (append (join S) (join T)), ⟨nil, S, T, by simv, by simv⟩, _⟩,
   intros s1 s2 h,
   apply lift_rel_rec (λ c1 c2, ∃ (s : wseq α) S T,
     c1 = destruct (append s (join (append S T))) ∧
@@ -1263,13 +1263,13 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, T, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
-      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simp,
-        { refine ⟨s, nil, T, _, _⟩; simp },
-        { refine ⟨nil, nil, T, _, _⟩; simp } },
+    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simv,
+    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simv,
+      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simv,
+        { refine ⟨s, nil, T, _, _⟩; simv },
+        { refine ⟨nil, nil, T, _, _⟩; simv } },
       { exact ⟨s, S, T, rfl, rfl⟩ },
-      { refine ⟨nil, S, T, _, _⟩; simp } },
+      { refine ⟨nil, S, T, _, _⟩; simv } },
     { exact ⟨s, S, T, rfl, rfl⟩ },
     { exact ⟨s, S, T, rfl, rfl⟩ }
   end end
@@ -1282,7 +1282,7 @@ begin
 end
 
 @[simp] theorem ret_bind (a : α) (f : α → wseq β) :
-  bind (ret a) f ~ f a := by simp [bind]
+  bind (ret a) f ~ f a := by simv [bind]
 
 @[simp] theorem map_join (f : α → β) (S) :
   map f (join S) = join (map (map f) S) :=
@@ -1292,14 +1292,14 @@ begin
       s2 = append s (join (map (map f) S))),
   { intros s1 s2 h,
     exact match s1, s2, h with ._, ._, ⟨s, S, rfl, rfl⟩ := begin
-      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
-      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
+      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simv,
+      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simv,
         { exact ⟨map f s, S, rfl, rfl⟩ },
-        { refine ⟨nil, S, _, _⟩; simp } },
+        { refine ⟨nil, S, _, _⟩; simv } },
       { exact ⟨_, _, rfl, rfl⟩ },
       { exact ⟨_, _, rfl, rfl⟩ }
     end end },
-  { refine ⟨nil, S, _, _⟩; simp }
+  { refine ⟨nil, S, _, _⟩; simv }
 end
 
 @[simp] theorem join_join (SS : wseq (wseq (wseq α))) :
@@ -1308,23 +1308,23 @@ begin
   refine ⟨λ s1 s2, ∃ s S SS,
     s1 = append s (join (append S (join SS))) ∧
     s2 = append s (append (join S) (join (map join SS))),
-    ⟨nil, nil, SS, by simp, by simp⟩, _⟩,
+    ⟨nil, nil, SS, by simv, by simv⟩, _⟩,
   intros s1 s2 h,
   apply lift_rel_rec (λ c1 c2, ∃ s S SS,
       c1 = destruct (append s (join (append S (join SS)))) ∧
       c2 = destruct (append s (append (join S) (join (map join SS)))))
     _ (destruct s1) (destruct s2)
-    (let ⟨s, S, SS, h1, h2⟩ := h in ⟨s, S, SS, by simp [h1], by simp [h2]⟩),
+    (let ⟨s, S, SS, h1, h2⟩ := h in ⟨s, S, SS, by simv [h1], by simv [h2]⟩),
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, SS, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
-      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simp,
-        { refine ⟨nil, S, SS, _, _⟩; simp },
-        { refine ⟨nil, nil, SS, _, _⟩; simp } },
+    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simv,
+    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simv,
+      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simv,
+        { refine ⟨nil, S, SS, _, _⟩; simv },
+        { refine ⟨nil, nil, SS, _, _⟩; simv } },
       { exact ⟨s, S, SS, rfl, rfl⟩ },
-      { refine ⟨nil, S, SS, _, _⟩; simp } },
+      { refine ⟨nil, S, SS, _, _⟩; simv } },
     { exact ⟨s, S, SS, rfl, rfl⟩ },
     { exact ⟨s, S, SS, rfl, rfl⟩ }
   end end
@@ -1333,7 +1333,7 @@ end
 @[simp] theorem bind_assoc (s : wseq α) (f : α → wseq β) (g : β → wseq γ) :
   bind (bind s f) g ~ bind s (λ (x : α), bind (f x) g) :=
 begin
-  simp [bind], rw [← map_comp f (map g), map_comp (map g ∘ f) join],
+  simv [bind], rw [← map_comp f (map g), map_comp (map g ∘ f) join],
   apply join_join
 end
 

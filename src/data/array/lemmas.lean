@@ -57,10 +57,10 @@ theorem mem_rev_list_aux : ∀ {i} (h : i ≤ n),
 | (i+1) h := let IH := mem_rev_list_aux (le_of_lt h) in
   ⟨λ ⟨j, ji1, e⟩, or.elim (lt_or_eq_of_le $ nat.le_of_succ_le_succ ji1)
     (λ ji, list.mem_cons_of_mem _ $ IH.1 ⟨j, ji, e⟩)
-    (λ je, by simp [d_array.iterate_aux]; apply or.inl; unfold read at e;
+    (λ je, by simv [d_array.iterate_aux]; apply or.inl; unfold read at e;
           have H : j = ⟨i, h⟩ := fin.eq_of_veq je; rwa [←H, e]),
   λ m, begin
-    simp [d_array.iterate_aux, list.mem] at m,
+    simv [d_array.iterate_aux, list.mem] at m,
     cases m with e m',
     exact ⟨⟨i, h⟩, nat.lt_succ_self _, eq.symm e⟩,
     exact let ⟨j, ji, e⟩ := IH.2 m' in
@@ -111,7 +111,7 @@ variables {n : ℕ} {α : Type u}
 
 theorem rev_list_length_aux (a : array n α) (i h) :
   (a.iterate_aux (λ _, (::)) i h []).length = i :=
-by induction i; simp [*, d_array.iterate_aux]
+by induction i; simv [*, d_array.iterate_aux]
 
 @[simp] theorem rev_list_length (a : array n α) : a.rev_list.length = n :=
 rev_list_length_aux a _ _
@@ -134,7 +134,7 @@ theorem to_list_nth_le_aux (i : ℕ) (ih : i < n) : ∀ j {jh t h'},
   show list.nth_le (a.read ⟨j, jh⟩ :: t) k tl = a.read ⟨i, ih⟩, from
   match k, hjk, tl with
   | 0,    e, tl := match i, e, ih with ._, rfl, _ := rfl end
-  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [add_comm, add_assoc, *]; cc)
+  | k'+1, _, tl := by simv[list.nth_le]; exact al _ _ (by simv [add_comm, add_assoc, *]; cc)
   end
 
 theorem to_list_nth_le (i : ℕ) (h h') : list.nth_le a.to_list i h' = a.read ⟨i, h⟩ :=
@@ -154,14 +154,14 @@ begin
 end
 
 theorem write_to_list {i v} : (a.write i v).to_list = a.to_list.update_nth i v :=
-list.ext_le (by simp) $ λ j h₁ h₂, begin
+list.ext_le (by simv) $ λ j h₁ h₂, begin
   have h₃ : j < n, {simpa using h₁},
   rw [to_list_nth_le _ h₃],
   refine let ⟨_, e⟩ := list.nth_eq_some.1 _ in e.symm,
   by_cases ij : (i : ℕ) = j,
   { subst j, rw [show (⟨(i : ℕ), h₃⟩ : fin _) = i, from fin.eq_of_veq rfl,
       array.read_write, list.nth_update_nth_of_lt],
-    simp [h₃] },
+    simv [h₃] },
   { rw [list.nth_update_nth_ne _ _ ij, a.read_write_of_ne,
         to_list_nth.2 ⟨h₃, rfl⟩],
     exact fin.ne_of_vne ij }
@@ -175,7 +175,7 @@ section enum
 variables {n : ℕ} {α : Type u} {a : array n α}
 
 theorem mem_to_list_enum {i v} : (i, v) ∈ a.to_list.enum ↔ ∃ h, a.read ⟨i, h⟩ = v :=
-by simp [list.mem_iff_nth, to_list_nth, and.comm, and.assoc, and.left_comm]
+by simv [list.mem_iff_nth, to_list_nth, and.comm, and.assoc, and.left_comm]
 
 end enum
 
@@ -204,7 +204,7 @@ lemma push_back_rev_list_aux : ∀ i h h',
   d_array.iterate_aux (a.push_back v) (λ _, (::)) i h [] = d_array.iterate_aux a (λ _, (::)) i h' []
 | 0 h h' := rfl
 | (i+1) h h' := begin
-  simp [d_array.iterate_aux],
+  simv [d_array.iterate_aux],
   refine ⟨_, push_back_rev_list_aux _ _ _⟩,
   dsimp [read, d_array.read, push_back],
   rw [dif_neg], refl,
@@ -227,14 +227,14 @@ by rw [←rev_list_reverse, ←rev_list_reverse, push_back_rev_list, list.revers
 begin
   cases i with i hi,
   have : ¬ i = n := ne_of_lt hi,
-  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+  simv [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
 end
 
 @[simp] lemma read_push_back_right : (a.push_back v).read (fin.last _) = v :=
 begin
   cases hn : fin.last n with k hk,
   have : k = n := by simpa [fin.eq_iff_veq ] using hn.symm,
-  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+  simv [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
 end
 
 end push_back

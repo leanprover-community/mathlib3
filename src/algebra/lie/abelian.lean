@@ -77,7 +77,7 @@ lemma commutative_ring_iff_abelian_lie_ring {A : Type v} [ring A] :
   is_commutative A (*) ↔ is_lie_abelian A :=
 have h₁ : is_commutative A (*) ↔ ∀ (a b : A), a * b = b * a := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
 have h₂ : is_lie_abelian A ↔ ∀ (a b : A), ⁅a, b⁆ = 0 := ⟨λ h, h.1, λ h, ⟨h⟩⟩,
-by simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero]
+by simv only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero]
 
 lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : is_lie_abelian (⊥ : lie_ideal R L) :=
@@ -96,7 +96,7 @@ namespace lie_module
 protected def ker : lie_ideal R L := (to_endomorphism R L M).ker
 
 @[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
-by simp only [lie_module.ker, lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
+by simv only [lie_module.ker, lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
     to_endomorphism_apply_apply]
 
 /-- The largest submodule of a Lie module `M` on which the Lie algebra `L` acts trivially. -/
@@ -144,7 +144,7 @@ lemma is_trivial_iff_max_triv_eq_top :
 begin
   split,
   { rintros ⟨h⟩, ext,
-    simp only [mem_max_triv_submodule, h, forall_const, true_iff, eq_self_iff_true], },
+    simv only [mem_max_triv_submodule, h, forall_const, true_iff, eq_self_iff_true], },
   { intros h, constructor, intros x m, revert x,
     rw [← mem_max_triv_submodule R L M, h], exact lie_submodule.mem_top m, },
 end
@@ -158,9 +158,9 @@ def max_triv_hom (f : M →ₗ⁅R,L⁆ N) :
         (congr_arg f (m.property x)).trans (lie_module_hom.map_zero _)⟩,
   map_add'  := λ m n, by simpa,
   map_smul' := λ t m, by simpa,
-  map_lie'  := λ x m, by simp, }
+  map_lie'  := λ x m, by simv, }
 
-@[norm_cast, simp] lemma coe_max_triv_hom_apply
+@[norm_cast, simv] lemma coe_max_triv_hom_apply
   (f : M →ₗ⁅R,L⁆ N) (m : max_triv_submodule R L M) :
   (max_triv_hom f m : N) = f m :=
 rfl
@@ -170,18 +170,18 @@ def max_triv_equiv (e : M ≃ₗ⁅R,L⁆ N) :
   max_triv_submodule R L M ≃ₗ⁅R,L⁆ max_triv_submodule R L N :=
 { to_fun    := max_triv_hom (e : M →ₗ⁅R,L⁆ N),
   inv_fun   := max_triv_hom (e.symm : N →ₗ⁅R,L⁆ M),
-  left_inv  := λ m, by { ext, simp, },
-  right_inv := λ n, by { ext, simp, },
+  left_inv  := λ m, by { ext, simv, },
+  right_inv := λ n, by { ext, simv, },
   .. max_triv_hom (e : M →ₗ⁅R,L⁆ N), }
 
-@[norm_cast, simp] lemma coe_max_triv_equiv_apply
+@[norm_cast, simv] lemma coe_max_triv_equiv_apply
   (e : M ≃ₗ⁅R,L⁆ N) (m : max_triv_submodule R L M) :
   (max_triv_equiv e m : N) = e ↑m :=
 rfl
 
 @[simp] lemma max_triv_equiv_of_refl_eq_refl :
   max_triv_equiv (lie_module_equiv.refl : M ≃ₗ⁅R,L⁆ M) = lie_module_equiv.refl :=
-by { ext, simp only [coe_max_triv_equiv_apply, lie_module_equiv.refl_apply], }
+by { ext, simv only [coe_max_triv_equiv_apply, lie_module_equiv.refl_apply], }
 
 @[simp] lemma max_triv_equiv_of_equiv_symm_eq_symm (e : M ≃ₗ⁅R,L⁆ N) :
   (max_triv_equiv e).symm = max_triv_equiv e.symm :=
@@ -196,11 +196,11 @@ def max_triv_linear_map_equiv_lie_module_hom :
       map_lie' := λ x m, by
       { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
         rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, }, },
-  map_add'  := λ f g, by { ext, simp, },
-  map_smul' := λ F G, by { ext, simp, },
-  inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,
-  left_inv  := λ f, by simp,
-  right_inv := λ F, by simp, }
+  map_add'  := λ f g, by { ext, simv, },
+  map_smul' := λ F G, by { ext, simv, },
+  inv_fun   := λ F, ⟨F, λ x, by { ext, simv, }⟩,
+  left_inv  := λ f, by simv,
+  right_inv := λ F, by simv, }
 
 @[simp] lemma coe_max_triv_linear_map_equiv_lie_module_hom
   (f : max_triv_submodule R L (M →ₗ[R] N)) :
@@ -238,7 +238,7 @@ instance : is_lie_abelian (center R L) := infer_instance
 @[simp] lemma self_module_ker_eq_center : lie_module.ker R L L = center R L :=
 begin
   ext y,
-  simp only [lie_module.mem_max_triv_submodule, lie_module.mem_ker, ← lie_skew _ y, neg_eq_zero],
+  simv only [lie_module.mem_max_triv_submodule, lie_module.mem_ker, ← lie_skew _ y, neg_eq_zero],
 end
 
 lemma abelian_of_le_center (I : lie_ideal R L) (h : I ≤ center R L) : is_lie_abelian I :=
@@ -267,12 +267,12 @@ variables (N N' : lie_submodule R L M) (I J : lie_ideal R L)
 begin
   suffices : ⁅I, N⁆ ≤ ⊥, from le_bot_iff.mp this,
   rw [lie_ideal_oper_eq_span, lie_submodule.lie_span_le],
-  rintros m ⟨x, n, h⟩, rw trivial_lie_zero at h, simp [← h],
+  rintros m ⟨x, n, h⟩, rw trivial_lie_zero at h, simv [← h],
 end
 
 lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I, I⁆ = ⊥ :=
 begin
-  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
+  simv only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
     lie_submodule.bot_coe, set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
   refine ⟨λ h z x y hz, hz.symm.trans (((I : lie_subalgebra R L).coe_bracket x y).symm.trans
     ((coe_zero_iff_zero _ _).mpr (by apply h.trivial))),

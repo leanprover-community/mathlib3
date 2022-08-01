@@ -39,7 +39,7 @@ namespace ideal.filtration
 lemma pow_smul_le (i j : ℕ) : I ^ i • F.N j ≤ F.N (i + j) :=
 begin
   induction i,
-  { simp },
+  { simv },
   { rw [pow_succ, mul_smul, nat.succ_eq_add_one, add_assoc, add_comm 1, ← add_assoc],
     exact (submodule.smul_mono_right i_ih).trans (F.smul_le _) }
 end
@@ -148,7 +148,7 @@ begin
   use n₀,
   intro k,
   induction k,
-  { simp },
+  { simv },
   { rw [nat.succ_eq_add_one, ← add_assoc, ← hn, k_ih, add_comm, pow_add, mul_smul, pow_one],
     linarith }
 end
@@ -180,10 +180,10 @@ begin
   use n₀,
   intro n,
   induction n with n hn,
-  { refine (F.antitone _).trans e, simp },
+  { refine (F.antitone _).trans e, simv },
   { rw [nat.succ_eq_one_add, add_assoc, add_comm, add_comm 1 n, ← hF],
     exact (submodule.smul_mono_right hn).trans (F'.smul_le _),
-    simp },
+    simv },
 end
 
 lemma stable.bounded_difference (h : F.stable) (h' : F'.stable) (e : F.N 0 = F'.N 0) :
@@ -193,7 +193,7 @@ begin
   obtain ⟨n₂, h₂⟩ := h'.exists_forall_le (le_of_eq e.symm),
   use max n₁ n₂,
   intro n,
-  refine ⟨(F.antitone _).trans (h₁ n), (F'.antitone _).trans (h₂ n)⟩; simp
+  refine ⟨(F.antitone _).trans (h₁ n), (F'.antitone _).trans (h₂ n)⟩; simv
 end
 
 end ideal.filtration

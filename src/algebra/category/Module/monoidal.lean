@@ -269,14 +269,14 @@ end monoidal_category
 open opposite
 
 instance : monoidal_preadditive (Module.{u} R) :=
-{ tensor_zero' := by { intros, ext, simp, },
-  zero_tensor' := by { intros, ext, simp, },
-  tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
-  add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
+{ tensor_zero' := by { intros, ext, simv, },
+  zero_tensor' := by { intros, ext, simv, },
+  tensor_add' := by { intros, ext, simv [tensor_product.tmul_add], },
+  add_tensor' := by { intros, ext, simv [tensor_product.add_tmul], }, }
 
 instance : monoidal_linear R (Module.{u} R) :=
-{ tensor_smul' := by { intros, ext, simp, },
-  smul_tensor' := by { intros, ext, simp [tensor_product.smul_tmul], }, }
+{ tensor_smul' := by { intros, ext, simv, },
+  smul_tensor' := by { intros, ext, simv [tensor_product.smul_tmul], }, }
 
 /--
 Auxiliary definition for the `monoidal_closed` instance on `Module R`.
@@ -289,11 +289,11 @@ def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
 { to_fun := λ f, linear_map.compr₂ (tensor_product.mk R N M) ((β_ N M).hom ≫ f),
   inv_fun := λ f, (β_ M N).hom ≫ tensor_product.lift f,
   left_inv := λ f, begin ext m n,
-    simp only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
+    simv only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
       function.comp_app, coe_comp, monoidal_category.braiding_hom_apply],
   end,
   right_inv := λ f, begin ext m n,
-    simp only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
+    simv only [tensor_product.mk_apply, tensor_product.lift.tmul, linear_map.compr₂_apply,
       symmetric_category.symmetry_assoc],
   end, }
 
@@ -315,6 +315,6 @@ rfl
 lemma monoidal_closed_uncurry {M N P : Module.{u} R}
   (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
   monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
-by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
+by { simv only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simv, }
 
 end Module

@@ -267,7 +267,7 @@ def cocones_iso_component_hom {J : Type u} [category.{v} J] {K : J ⥤ C}
   (Y : D) (t : ((cocones J D).obj (op (K ⋙ F))).obj Y) :
   (G ⋙ (cocones J C).obj (op K)).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),
-  naturality' := λ j j' f, by { erw [← adj.hom_equiv_naturality_left, t.naturality], dsimp, simp } }
+  naturality' := λ j j' f, by { erw [← adj.hom_equiv_naturality_left, t.naturality], dsimp, simv } }
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
@@ -278,7 +278,7 @@ def cocones_iso_component_inv {J : Type u} [category.{v} J] {K : J ⥤ C}
   naturality' := λ j j' f,
   begin
     erw [← adj.hom_equiv_naturality_left_symm, ← adj.hom_equiv_naturality_right_symm, t.naturality],
-    dsimp, simp
+    dsimp, simv
   end }
 
 /-- auxiliary construction for `cones_iso` -/

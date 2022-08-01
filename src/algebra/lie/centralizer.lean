@@ -45,7 +45,7 @@ variables (N : lie_submodule R L M) {N₁ N₂ : lie_submodule R L M}
 def centralizer : lie_submodule R L M :=
 { carrier   := { m | ∀ (x : L), ⁅x, m⁆ ∈ N },
   add_mem'  := λ m₁ m₂ hm₁ hm₂ x, by {  rw lie_add, exact N.add_mem' (hm₁ x) (hm₂ x), },
-  zero_mem' := λ x, by simp,
+  zero_mem' := λ x, by simv,
   smul_mem' := λ t m hm x, by { rw lie_smul, exact N.smul_mem' t (hm x), },
   lie_mem   := λ x m hm y, by { rw leibniz_lie, exact N.add_mem' (hm ⁅y, x⁆) (N.lie_mem (hm y)), } }
 
@@ -62,7 +62,7 @@ end
 
 lemma centralizer_inf :
   (N₁ ⊓ N₂).centralizer = N₁.centralizer ⊓ N₂.centralizer :=
-by { ext, simp [← forall_and_distrib], }
+by { ext, simv [← forall_and_distrib], }
 
 @[mono] lemma monotone_centalizer :
   monotone (centralizer : lie_submodule R L M → lie_submodule R L M) :=
@@ -74,7 +74,7 @@ end
 
 @[simp] lemma comap_centralizer (f : M' →ₗ⁅R,L⁆ M) :
   N.centralizer.comap f = (N.comap f).centralizer :=
-by { ext, simp, }
+by { ext, simv, }
 
 lemma top_lie_le_iff_le_centralizer (N' : lie_submodule R L M) :
   ⁅(⊤ : lie_ideal R L), N⁆ ≤ N' ↔ N ≤ N'.centralizer :=
@@ -133,7 +133,7 @@ begin
   obtain ⟨t, rfl⟩ := submodule.mem_span_singleton.mp hu₁,
   obtain ⟨s, rfl⟩ := submodule.mem_span_singleton.mp hu₂,
   apply submodule.mem_sup_right,
-  simp only [lie_subalgebra.mem_coe_submodule, smul_lie, add_lie, zero_add, lie_add, smul_zero,
+  simv only [lie_subalgebra.mem_coe_submodule, smul_lie, add_lie, zero_add, lie_add, smul_zero,
     lie_smul, lie_self],
   refine H.add_mem (H.smul_mem s _) (H.add_mem (H.smul_mem t _) (H.lie_mem hv hw)),
   exacts [(H.mem_normalizer_iff' x).mp hx v hv, (H.mem_normalizer_iff x).mp hx w hw],

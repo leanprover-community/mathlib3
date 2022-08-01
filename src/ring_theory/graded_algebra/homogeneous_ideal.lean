@@ -69,7 +69,7 @@ lemma homogeneous_ideal.is_homogeneous (I : homogeneous_ideal 𝒜) :
 
 lemma homogeneous_ideal.to_ideal_injective :
   function.injective (homogeneous_ideal.to_ideal : homogeneous_ideal 𝒜 → ideal A) :=
-λ ⟨x, hx⟩ ⟨y, hy⟩ (h : x = y), by simp [h]
+λ ⟨x, hx⟩ ⟨y, hy⟩ (h : x = y), by simv [h]
 
 instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
 { coe := λ I, I.to_ideal,
@@ -219,13 +219,13 @@ namespace ideal.is_homogeneous
 
 lemma bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
 begin
-  simp only [ideal.mem_bot] at hr,
+  simv only [ideal.mem_bot] at hr,
   rw [hr, decompose_zero, zero_apply],
   apply ideal.zero_mem
 end
 
 lemma top : ideal.is_homogeneous 𝒜 ⊤ :=
-λ i r hr, by simp only [submodule.mem_top]
+λ i r hr, by simv only [submodule.mem_top]
 
 variables {𝒜}
 
@@ -258,7 +258,7 @@ protected lemma infi {κ : Sort*} {f : κ → ideal A} (h : ∀ i, (f i).is_homo
   (⨅ i, f i).is_homogeneous 𝒜 :=
 begin
   intros i x hx,
-  simp only [ideal.mem_infi] at ⊢ hx,
+  simv only [ideal.mem_infi] at ⊢ hx,
   exact λ j, h _ _ (hx j),
 end
 
@@ -489,7 +489,7 @@ begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
   ext1,
-  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_ring.proj_apply,
+  simv only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_ring.proj_apply,
     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
 end
 

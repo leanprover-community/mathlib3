@@ -158,16 +158,16 @@ by rw [gcd_comm m n, gcd_gcd_self_left_right]
 -- Lemmas where one argument consists of addition of a multiple of the other
 
 @[simp] lemma gcd_add_mul_right_right (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
-by simp [gcd_rec m (n + k * m), gcd_rec m n]
+by simv [gcd_rec m (n + k * m), gcd_rec m n]
 
 @[simp] lemma gcd_add_mul_left_right (m n k : ℕ) : gcd m (n + m * k) = gcd m n :=
-by simp [gcd_rec m (n + m * k), gcd_rec m n]
+by simv [gcd_rec m (n + m * k), gcd_rec m n]
 
 @[simp] lemma gcd_mul_right_add_right (m n k : ℕ) : gcd m (k * m + n) = gcd m n :=
-by simp [add_comm _ n]
+by simv [add_comm _ n]
 
 @[simp] lemma gcd_mul_left_add_right (m n k : ℕ) : gcd m (m * k + n) = gcd m n :=
-by simp [add_comm _ n]
+by simv [add_comm _ n]
 
 @[simp] lemma gcd_add_mul_right_left (m n k : ℕ) : gcd (m + k * n) n = gcd m n :=
 by rw [gcd_comm, gcd_add_mul_right_right, gcd_comm]
@@ -453,21 +453,21 @@ theorem coprime.eq_one_of_dvd {k m : ℕ} (H : coprime k m) (d : k ∣ m) : k = 
 by rw [← H.gcd_eq_one, gcd_eq_left d]
 
 @[simp] theorem coprime_zero_left (n : ℕ) : coprime 0 n ↔ n = 1 :=
-by simp [coprime]
+by simv [coprime]
 
 @[simp] theorem coprime_zero_right (n : ℕ) : coprime n 0 ↔ n = 1 :=
-by simp [coprime]
+by simv [coprime]
 
-theorem not_coprime_zero_zero : ¬ coprime 0 0 := by simp
+theorem not_coprime_zero_zero : ¬ coprime 0 0 := by simv
 
 @[simp] theorem coprime_one_left_iff (n : ℕ) : coprime 1 n ↔ true :=
-by simp [coprime]
+by simv [coprime]
 
 @[simp] theorem coprime_one_right_iff (n : ℕ) : coprime n 1 ↔ true :=
-by simp [coprime]
+by simv [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
-by simp [coprime]
+by simv [coprime]
 
 lemma gcd_mul_of_coprime_of_dvd {a b c : ℕ} (hac : coprime a c) (b_dvd_c : b ∣ c) :
   gcd (a * b) c = b :=
@@ -486,13 +486,13 @@ open_locale big_operators
 lemma coprime_prod_left
   {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
   (∀ (i : ι), i ∈ t → coprime (s i) x) → coprime (∏ (i : ι) in t, s i) x :=
-finset.prod_induction s (λ y, y.coprime x) (λ a b, coprime.mul) (by simp)
+finset.prod_induction s (λ y, y.coprime x) (λ a b, coprime.mul) (by simv)
 
 /-- See `is_coprime.prod_right` for the corresponding lemma about `is_coprime` -/
 lemma coprime_prod_right
   {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
   (∀ (i : ι), i ∈ t → coprime x (s i)) → coprime x (∏ (i : ι) in t, s i) :=
-finset.prod_induction s (λ y, x.coprime y) (λ a b, coprime.mul_right) (by simp)
+finset.prod_induction s (λ y, x.coprime y) (λ a b, coprime.mul_right) (by simv)
 
 end big_operators
 
@@ -544,13 +544,13 @@ theorem pow_dvd_pow_iff {a b n : ℕ} (n0 : 0 < n) : a ^ n ∣ b ^ n ↔ a ∣ b
 begin
   refine ⟨λ h, _, λ h, pow_dvd_pow_of_dvd h _⟩,
   cases nat.eq_zero_or_pos (gcd a b) with g0 g0,
-  { simp [eq_zero_of_gcd_eq_zero_right g0] },
+  { simv [eq_zero_of_gcd_eq_zero_right g0] },
   rcases exists_coprime' g0 with ⟨g, a', b', g0', co, rfl, rfl⟩,
   rw [mul_pow, mul_pow] at h,
   replace h := dvd_of_mul_dvd_mul_right (pow_pos g0' _) h,
   have := pow_dvd_pow a' n0,
   rw [pow_one, (co.pow n n).eq_one_of_dvd h] at this,
-  simp [eq_one_of_dvd_one this]
+  simv [eq_one_of_dvd_one this]
 end
 
 lemma gcd_mul_gcd_of_coprime_of_mul_eq_mul {a b c d : ℕ} (cop : c.coprime d) (h : a * b = c * d) :

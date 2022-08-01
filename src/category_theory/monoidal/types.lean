@@ -60,7 +60,7 @@ def coyoneda_tensor_unit (C : Type u) [category.{v} C] [monoidal_category C] :
   μ_natural' := by tidy,
   associativity' := λ X Y Z, begin
     ext ⟨⟨f, g⟩, h⟩, dsimp at f g h,
-    dsimp, simp only [iso.cancel_iso_inv_left, category.assoc],
+    dsimp, simv only [iso.cancel_iso_inv_left, category.assoc],
     conv_lhs { rw [←category.id_comp h, tensor_comp, category.assoc, associator_naturality,
       ←category.assoc, unitors_inv_equal, triangle_assoc_comp_right_inv], },
     conv_rhs { rw [←category.id_comp f, tensor_comp], },
@@ -68,7 +68,7 @@ def coyoneda_tensor_unit (C : Type u) [category.{v} C] [monoidal_category C] :
   left_unitality' := by tidy,
   right_unitality' := λ X, begin
     ext ⟨f, ⟨⟩⟩, dsimp at f,
-    dsimp, simp only [category.assoc],
+    dsimp, simv only [category.assoc],
     rw [right_unitor_naturality, unitors_inv_equal, iso.inv_hom_id_assoc],
   end,
   ..coyoneda.obj (op (𝟙_ C)) }.

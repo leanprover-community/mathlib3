@@ -34,12 +34,12 @@ def isometry [pseudo_emetric_space α] [pseudo_emetric_space β] (f : α → β)
 distances. -/
 lemma isometry_iff_nndist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
   isometry f ↔ (∀x y, nndist (f x) (f y) = nndist x y) :=
-by simp only [isometry, edist_nndist, ennreal.coe_eq_coe]
+by simv only [isometry, edist_nndist, ennreal.coe_eq_coe]
 
 /-- On pseudometric spaces, a map is an isometry if and only if it preserves distances. -/
 lemma isometry_iff_dist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
   isometry f ↔ (∀x y, dist (f x) (f y) = dist x y) :=
-by simp only [isometry_iff_nndist_eq, ← coe_nndist, nnreal.coe_eq]
+by simv only [isometry_iff_nndist_eq, ← coe_nndist, nnreal.coe_eq]
 
 /-- An isometry preserves distances. -/
 alias isometry_iff_dist_eq ↔ isometry.dist_eq _
@@ -67,11 +67,11 @@ lemma lipschitz (h : isometry f) : lipschitz_with 1 f :=
 lipschitz_with.of_edist_le $ λ x y, (h x y).le
 
 lemma antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
-λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
+λ x y, by simv only [h x y, ennreal.coe_one, one_mul, le_refl]
 
 /-- Any map on a subsingleton is an isometry -/
 @[nontriviality] theorem _root_.isometry_subsingleton [subsingleton α] : isometry f :=
-λx y, by rw subsingleton.elim x y; simp
+λx y, by rw subsingleton.elim x y; simv
 
 /-- The identity is an isometry -/
 lemma _root_.isometry_id : isometry (id : α → α) := λ x y, rfl
@@ -103,16 +103,16 @@ lemma right_inv {f : α → β} {g : β → α} (h : isometry f) (hg : right_inv
 
 lemma preimage_emetric_closed_ball (h : isometry f) (x : α) (r : ℝ≥0∞) :
   f ⁻¹' (emetric.closed_ball (f x) r) = emetric.closed_ball x r :=
-by { ext y, simp [h.edist_eq] }
+by { ext y, simv [h.edist_eq] }
 
 lemma preimage_emetric_ball (h : isometry f) (x : α) (r : ℝ≥0∞) :
   f ⁻¹' (emetric.ball (f x) r) = emetric.ball x r :=
-by { ext y, simp [h.edist_eq] }
+by { ext y, simv [h.edist_eq] }
 
 /-- Isometries preserve the diameter in pseudoemetric spaces. -/
 lemma ediam_image (hf : isometry f) (s : set α) : emetric.diam (f '' s) = emetric.diam s :=
 eq_of_forall_ge_iff $ λ d,
-by simp only [emetric.diam_le_iff, ball_image_iff, hf.edist_eq]
+by simv only [emetric.diam_le_iff, ball_image_iff, hf.edist_eq]
 
 lemma ediam_range (hf : isometry f) : emetric.diam (range f) = emetric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.ediam_image univ }
@@ -173,7 +173,7 @@ by { rw ← image_univ, exact hf.diam_image univ }
 
 lemma preimage_set_of_dist (hf : isometry f) (x : α) (p : ℝ → Prop) :
   f ⁻¹' {y | p (dist y (f x))} = {y | p (dist y x)} :=
-by { ext y, simp [hf.dist_eq] }
+by { ext y, simv [hf.dist_eq] }
 
 lemma preimage_closed_ball (hf : isometry f) (x : α) (r : ℝ) :
   f ⁻¹' (metric.closed_ball (f x) r) = metric.closed_ball x r :=

@@ -32,23 +32,23 @@ option.cases_on a (some b) $ λ c, if r b c then some b else some c
 
 @[simp] lemma foldl_arg_aux_eq_none :
   l.foldl (arg_aux r) o = none ↔ l = [] ∧ o = none :=
-list.reverse_rec_on l (by simp) $
-  (assume tl hd, by simp [arg_aux];
-    cases foldl (arg_aux r) o tl; simp; try {split_ifs}; simp)
+list.reverse_rec_on l (by simv) $
+  (assume tl hd, by simv [arg_aux];
+    cases foldl (arg_aux r) o tl; simv; try {split_ifs}; simv)
 
 private lemma foldl_arg_aux_mem (l) : Π (a m : α),
   m ∈ foldl (arg_aux r) (some a) l → m ∈ a :: l :=
-list.reverse_rec_on l (by simp [eq_comm])
+list.reverse_rec_on l (by simv [eq_comm])
   begin
     assume tl hd ih a m,
-    simp only [foldl_append, foldl_cons, foldl_nil, arg_aux],
+    simv only [foldl_append, foldl_cons, foldl_nil, arg_aux],
     cases hf : foldl (arg_aux r) (some a) tl,
-    { simp {contextual := tt} },
+    { simv {contextual := tt} },
     { dsimp only, split_ifs,
-      { simp {contextual := tt} },
+      { simv {contextual := tt} },
       { -- `finish [ih _ _ hf]` closes this goal
         rcases ih _ _ hf with rfl | H,
-        { simp only [mem_cons_iff, mem_append, mem_singleton, option.mem_def], tauto },
+        { simv only [mem_cons_iff, mem_append, mem_singleton, option.mem_def], tauto },
         { apply λ hm, or.inr (list.mem_append.mpr $ or.inl _),
           exact (option.mem_some_iff.mp hm ▸ H)} } }
   end
@@ -66,14 +66,14 @@ begin
   cases hf : foldl (arg_aux r) o tl with c,
   { rw [hf] at ho,
     rw [foldl_arg_aux_eq_none] at hf,
-    simp [hf.1, hf.2, *, hr₀ _] at * },
+    simv [hf.1, hf.2, *, hr₀ _] at * },
   rw [hf, option.mem_def] at ho,
   dsimp only at ho,
   split_ifs at ho with hac hac; cases mem_append.1 hb with h h; subst ho,
   { exact λ hba, ih h hf (hr₁ hba hac) },
-  { simp [*, hr₀ _] at * },
+  { simv [*, hr₀ _] at * },
   { exact ih h hf },
-  { simp * at * }
+  { simv * at * }
 end
 
 end arg_aux
@@ -105,19 +105,19 @@ not_of_mem_foldl_arg_aux _ (λ _ , lt_irrefl _) $ λ _ _ _, lt_trans
 
 theorem argmax_concat (f : α → β) (a : α) (l : list α) : argmax f (l ++ [a]) =
   option.cases_on (argmax f l) (some a) (λ c, if f c < f a then some a else some c) :=
-by rw [argmax, argmax]; simp [arg_aux]
+by rw [argmax, argmax]; simv [arg_aux]
 
 theorem argmin_concat (f : α → β) (a : α) (l : list α) : argmin f (l ++ [a]) =
   option.cases_on (argmin f l) (some a) (λ c, if f a < f c then some a else some c) :=
 @argmax_concat _ βᵒᵈ _ _ _ _ _
 
 theorem argmax_mem : Π {l : list α} {m : α}, m ∈ argmax f l → m ∈ l
-| [] m       := by simp
+| [] m       := by simv
 | (hd::tl) m := by simpa [argmax, arg_aux] using foldl_arg_aux_mem _ tl hd m
 
 theorem argmin_mem : Π {l : list α} {m : α}, m ∈ argmin f l → m ∈ l := @argmax_mem _ βᵒᵈ _ _ _
 
-@[simp] theorem argmax_eq_none : l.argmax f = none ↔ l = [] := by simp [argmax]
+@[simp] theorem argmax_eq_none : l.argmax f = none ↔ l = [] := by simv [argmax]
 @[simp] theorem argmin_eq_none : l.argmin f = none ↔ l = [] := @argmax_eq_none _ βᵒᵈ _ _ _ _
 
 end preorder
@@ -135,7 +135,7 @@ theorem argmax_cons (f : α → β) (a : α) (l : list α) : argmax f (a :: l) =
 list.reverse_rec_on l rfl $ λ hd tl ih, begin
     rw [← cons_append, argmax_concat, ih, argmax_concat],
     cases h : argmax f hd with m,
-    { simp [h] },
+    { simv [h] },
     dsimp,
     rw [←apply_ite, ←apply_ite],
     dsimp,
@@ -152,12 +152,12 @@ variables [decidable_eq α]
 
 theorem index_of_argmax : Π {l : list α} {m : α}, m ∈ argmax f l →
   ∀ {a}, a ∈ l → f m ≤ f a → l.index_of m ≤ l.index_of a
-| []       m _  _ _  _   := by simp
+| []       m _  _ _  _   := by simv
 | (hd::tl) m hm a ha ham := begin
-  simp only [index_of_cons, argmax_cons, option.mem_def] at ⊢ hm,
+  simv only [index_of_cons, argmax_cons, option.mem_def] at ⊢ hm,
   cases h : argmax f tl,
   { rw h at hm,
-    simp * at * },
+    simv * at * },
   rw h at hm,
   dsimp only at hm,
   obtain rfl | ha := ha; split_ifs at hm; subst hm,
@@ -181,7 +181,7 @@ theorem mem_argmax_iff :
   begin
     rintros ⟨hml, ham, hma⟩,
     cases harg : argmax f l with n,
-    { simp * at * },
+    { simv * at * },
     { have := le_antisymm (hma n (argmax_mem harg) (le_of_mem_argmax hml harg))
         (index_of_argmax harg hml (ham _ (argmax_mem harg))),
       rw [(index_of_inj hml (argmax_mem harg)).1 this, option.mem_def] }
@@ -236,7 +236,7 @@ lemma minimum_not_lt_of_mem : a ∈ l → (minimum l : with_top α) = m → ¬ a
 theorem not_lt_maximum_of_mem' (ha : a ∈ l) : ¬ maximum l < (a : with_bot α) :=
 begin
   cases h : l.maximum,
-  { simp * at * },
+  { simv * at * },
   { simp_rw [with_bot.some_eq_coe, with_bot.coe_lt_coe, not_lt_maximum_of_mem ha h, not_false_iff] }
 end
 
@@ -250,10 +250,10 @@ variables [linear_order α] {l : list α} {a m : α}
 
 theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) = max (maximum l) a :=
 begin
-  simp only [maximum, argmax_concat, id],
+  simv only [maximum, argmax_concat, id],
   cases h : argmax id l,
   { exact (max_eq_right bot_le).symm },
-  { simp [option.coe_def, max_def, ←not_lt] }
+  { simv [option.coe_def, max_def, ←not_lt] }
 end
 
 lemma le_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → a ≤ m := le_of_mem_argmax
@@ -269,7 +269,7 @@ theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimu
 @maximum_concat αᵒᵈ _ _ _
 
 theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) = max a (maximum l) :=
-list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ bot_le])
+list.reverse_rec_on l (by simv [@max_eq_left (with_bot α) _ _ _ bot_le])
   (λ tl hd ih, by rw [← cons_append, maximum_concat, ih, maximum_concat, max_assoc])
 
 theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=
@@ -278,10 +278,10 @@ theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum 
 lemma maximum_eq_coe_iff : maximum l = m ↔ m ∈ l ∧ ∀ a ∈ l, a ≤ m :=
 begin
   unfold_coes,
-  simp only [maximum, argmax_eq_some_iff, id],
+  simv only [maximum, argmax_eq_some_iff, id],
   split,
-  { simp only [true_and, forall_true_iff] {contextual := tt} },
-  { simp only [true_and, forall_true_iff] {contextual := tt},
+  { simv only [true_and, forall_true_iff] {contextual := tt} },
+  { simv only [true_and, forall_true_iff] {contextual := tt},
     intros h a hal hma,
     rw [le_antisymm hma (h.2 a hal)] }
 end
@@ -304,14 +304,14 @@ begin
   { contradiction },
   { rw [maximum_cons, foldr, with_bot.coe_max],
     by_cases h : tl = [],
-    { simp [h, -with_top.coe_zero] },
-    { simp [IH h] } }
+    { simv [h, -with_top.coe_zero] },
+    { simv [IH h] } }
 end
 
 lemma max_le_of_forall_le (l : list α) (a : α) (h : ∀ x ∈ l, x ≤ a) : l.foldr max ⊥ ≤ a :=
 begin
   induction l with y l IH,
-  { simp },
+  { simv },
   { simpa [h y (mem_cons_self _ _)] using IH (λ x hx, h x $ mem_cons_of_mem _ hx) }
 end
 
@@ -321,7 +321,7 @@ begin
   induction l with y l IH,
   { exact absurd hx (not_mem_nil _), },
   { obtain rfl | hl := hx,
-    simp only [foldr, foldr_cons],
+    simv only [foldr, foldr_cons],
     { exact le_max_of_le_left h, },
     { exact le_max_of_le_right (IH hl) }}
 end

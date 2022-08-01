@@ -39,10 +39,10 @@ def unit_iso : 𝟭 (karoubi C) ≅ to_karoubi (karoubi C) ⋙ inverse C := eq_t
   apply functor.ext,
   { intros P Q f,
     ext,
-    simp only [functor.id_map, inverse_map_f, to_karoubi_map_f, eq_to_hom_f,
+    simv only [functor.id_map, inverse_map_f, to_karoubi_map_f, eq_to_hom_f,
       eq_to_hom_refl, comp_id, p_comp_assoc, functor.comp_map, comp],
     dsimp,
-    simp only [id_eq, comp_p], },
+    simv only [id_eq, comp_p], },
   { intro P,
     ext,
     { simpa only [eq_to_hom_refl, comp_id, id_comp], },
@@ -58,12 +58,12 @@ def counit_iso : inverse C ⋙ to_karoubi (karoubi C) ≅ 𝟭 (karoubi (karoubi
       { f := P.p.1,
         comm := begin
           have h := P.idem,
-          simp only [hom_ext, comp] at h,
+          simv only [hom_ext, comp] at h,
           erw [← assoc, h, comp_p],
         end, },
       comm := begin
         have h := P.idem,
-        simp only [hom_ext, comp] at h ⊢,
+        simv only [hom_ext, comp] at h ⊢,
         erw [h, h],
       end, },
     naturality' := λ P Q f, by simpa only [hom_ext] using (p_comm f).symm, },
@@ -73,12 +73,12 @@ def counit_iso : inverse C ⋙ to_karoubi (karoubi C) ≅ 𝟭 (karoubi (karoubi
       { f := P.p.1,
         comm := begin
           have h := P.idem,
-          simp only [hom_ext, comp] at h,
+          simv only [hom_ext, comp] at h,
           erw [h, p_comp],
         end, },
       comm := begin
         have h := P.idem,
-        simp only [hom_ext, comp] at h ⊢,
+        simv only [hom_ext, comp] at h ⊢,
         erw [h, h],
       end, },
     naturality' := λ P Q f, by simpa [hom_ext] using (p_comm f).symm, },
@@ -94,7 +94,7 @@ def equivalence : karoubi C ≌ karoubi (karoubi C) :=
   counit_iso := karoubi_karoubi.counit_iso C,
   functor_unit_iso_comp' := λ P, begin
     ext,
-    simp only [eq_to_hom_f, eq_to_hom_refl, comp_id, counit_iso_hom_app_f_f,
+    simv only [eq_to_hom_f, eq_to_hom_refl, comp_id, counit_iso_hom_app_f_f,
       to_karoubi_obj_p, id_eq, assoc, comp, unit_iso_hom, eq_to_hom_app, eq_to_hom_map],
     erw [P.idem, P.idem],
   end, }

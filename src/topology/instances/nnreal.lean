@@ -82,7 +82,7 @@ instance {X : Type*} [topological_space X] : can_lift C(X, ℝ) C(X, ℝ≥0) :=
   cond := λ f, ∀ x, 0 ≤ f x,
   prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, continuous_subtype_mk _ f.2⟩, fun_like.ext' rfl⟩ }
 
-@[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
+@[simv, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
   tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
 tendsto_subtype_rng.symm
 
@@ -96,7 +96,7 @@ map_coe_Ici_at_top 0
 lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
 (at_top_Ici_eq 0).symm
 
-@[simp, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
+@[simv, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 
@@ -105,7 +105,7 @@ lemma tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : ten
 (continuous_real_to_nnreal.tendsto _).comp h
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
-nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
+nhds_bot_order.trans $ by simv [bot_lt_iff_ne_bot]
 
 lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
 nhds_bot_basis
@@ -125,7 +125,7 @@ instance : has_continuous_smul ℝ≥0 ℝ :=
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
-by simp only [has_sum, coe_sum.symm, tendsto_coe]
+by simv only [has_sum, coe_sum.symm, tendsto_coe]
 
 lemma has_sum_real_to_nnreal_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
   has_sum (λ n, real.to_nnreal (f n)) (real.to_nnreal (∑' n, f n)) :=
@@ -147,7 +147,7 @@ lemma summable_coe_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
   @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) ↔ summable f :=
 begin
   lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
-  simp only [summable_coe, subtype.coe_eta]
+  simv only [summable_coe, subtype.coe_eta]
 end
 
 open_locale classical
@@ -155,7 +155,7 @@ open_locale classical
 @[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑∑'a, f a = ∑'a, (f a : ℝ) :=
 if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
-else by simp [tsum, hf, mt summable_coe.1 hf]
+else by simv [tsum, hf, mt summable_coe.1 hf]
 
 lemma coe_tsum_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
   (⟨∑' n, f n, tsum_nonneg hf₁⟩ : ℝ≥0) = (∑' n, ⟨f n, hf₁ n⟩ : ℝ≥0) :=
@@ -165,10 +165,10 @@ begin
 end
 
 lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : ∑' x, a * f x = a * ∑' x, f x :=
-nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]
+nnreal.eq $ by simv only [coe_tsum, nnreal.coe_mul, tsum_mul_left]
 
 lemma tsum_mul_right (f : α → ℝ≥0) (a : ℝ≥0) : (∑' x, f x * a) = (∑' x, f x) * a :=
-nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_right]
+nnreal.eq $ by simv only [coe_tsum, nnreal.coe_mul, tsum_mul_right]
 
 lemma summable_comp_injective {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) :
@@ -187,7 +187,7 @@ end
 
 lemma has_sum_nat_add_iff {f : ℕ → ℝ≥0} (k : ℕ) {a : ℝ≥0} :
   has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
-by simp [← has_sum_coe, coe_sum, nnreal.coe_add, ← has_sum_nat_add_iff k]
+by simv [← has_sum_coe, coe_sum, nnreal.coe_add, ← has_sum_nat_add_iff k]
 
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   ∑' i, f i = (∑ i in range k, f i) + ∑' i, f (i + k) :=

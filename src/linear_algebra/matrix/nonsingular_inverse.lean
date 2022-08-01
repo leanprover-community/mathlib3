@@ -134,7 +134,7 @@ begin
   letI : invertible B.det := det_invertible_of_left_inverse _ _ h,
   letI : invertible B := invertible_of_det_invertible B,
   calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ ⅟B) : by rw [matrix.mul_inv_of_self, matrix.mul_one]
-        ... = B ⬝ ((A ⬝ B) ⬝ ⅟B) : by simp only [matrix.mul_assoc]
+        ... = B ⬝ ((A ⬝ B) ⬝ ⅟B) : by simv only [matrix.mul_assoc]
         ... = B ⬝ ⅟B : by rw [h, matrix.one_mul]
         ... = 1 : matrix.mul_inv_of_self B,
 end
@@ -155,7 +155,7 @@ def unit_of_det_invertible [invertible A.det] : (matrix n n α)ˣ :=
 
 /-- When lowered to a prop, `matrix.invertible_equiv_det_invertible` forms an `iff`. -/
 lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
-by simp only [← nonempty_invertible_iff_is_unit, (invertible_equiv_det_invertible A).nonempty_congr]
+by simv only [← nonempty_invertible_iff_is_unit, (invertible_equiv_det_invertible A).nonempty_congr]
 
 /-! #### Variants of the statements above with `is_unit`-/
 
@@ -208,7 +208,7 @@ end
 
 /-- Coercing the result of `units.has_inv` is the same as coercing first and applying the
 nonsingular inverse. -/
-@[simp, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
+@[simv, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
   ↑(A⁻¹) = (A⁻¹ : matrix n n α) :=
 begin
   letI := A.invertible,
@@ -248,19 +248,19 @@ end
 
 @[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
   B ⬝ A ⬝ A⁻¹ = B :=
-by simp [matrix.mul_assoc, mul_nonsing_inv A h]
+by simv [matrix.mul_assoc, mul_nonsing_inv A h]
 
 @[simp] lemma mul_nonsing_inv_cancel_left (B : matrix n m α) (h : is_unit A.det) :
   A ⬝ (A⁻¹ ⬝ B) = B :=
-by simp [←matrix.mul_assoc, mul_nonsing_inv A h]
+by simv [←matrix.mul_assoc, mul_nonsing_inv A h]
 
 @[simp] lemma nonsing_inv_mul_cancel_right (B : matrix m n α) (h : is_unit A.det) :
   B ⬝ A⁻¹ ⬝ A = B :=
-by simp [matrix.mul_assoc, nonsing_inv_mul A h]
+by simv [matrix.mul_assoc, nonsing_inv_mul A h]
 
 @[simp] lemma nonsing_inv_mul_cancel_left (B : matrix n m α) (h : is_unit A.det) :
   A⁻¹ ⬝ (A ⬝ B) = B :=
-by simp [←matrix.mul_assoc, nonsing_inv_mul A h]
+by simv [←matrix.mul_assoc, nonsing_inv_mul A h]
 
 @[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
 mul_nonsing_inv A (is_unit_det_of_invertible A)
@@ -379,7 +379,7 @@ variable (A)
 @[simp] lemma inv_zero : (0 : matrix n n α)⁻¹ = 0 :=
 begin
   casesI (subsingleton_or_nontrivial α) with ht ht,
-  { simp },
+  { simv },
   cases (fintype.card n).zero_le.eq_or_lt with hc hc,
   { rw [eq_comm, fintype.card_eq_zero_iff] at hc,
     haveI := hc,
@@ -387,17 +387,17 @@ begin
     exact (is_empty.false i).elim },
   { have hn : nonempty n := fintype.card_pos_iff.mp hc,
     refine nonsing_inv_apply_not_is_unit _ _,
-    simp [hn] },
+    simv [hn] },
 end
 
 @[simp] lemma inv_one : (1 : matrix n n α)⁻¹ = 1 :=
-inv_eq_left_inv (by simp)
+inv_eq_left_inv (by simv)
 
 lemma inv_smul (k : α) [invertible k] (h : is_unit A.det) : (k • A)⁻¹ = ⅟k • A⁻¹ :=
-inv_eq_left_inv (by simp [h, smul_smul])
+inv_eq_left_inv (by simv [h, smul_smul])
 
 lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
-inv_eq_left_inv (by simp [h, smul_smul])
+inv_eq_left_inv (by simv [h, smul_smul])
 
 lemma inv_adjugate (A : matrix n n α) (h : is_unit A.det) :
   (adjugate A)⁻¹ = h.unit⁻¹ • A :=
@@ -444,7 +444,7 @@ def diagonal_invertible_equiv_invertible (v : n → α) : invertible (diagonal v
 
 /-- When lowered to a prop, `matrix.diagonal_invertible_equiv_invertible` forms an `iff`. -/
 @[simp] lemma is_unit_diagonal {v : n → α} : is_unit (diagonal v) ↔ is_unit v :=
-by simp only [← nonempty_invertible_iff_is_unit,
+by simv only [← nonempty_invertible_iff_is_unit,
   (diagonal_invertible_equiv_invertible v).nonempty_congr]
 
 lemma inv_diagonal (v : n → α) : (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
@@ -463,12 +463,12 @@ end
 begin
   by_cases h : is_unit A.det,
   { rw [nonsing_inv_nonsing_inv _ h] },
-  { simp [nonsing_inv_apply_not_is_unit _ h] }
+  { simv [nonsing_inv_apply_not_is_unit _ h] }
 end
 
 lemma mul_inv_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
 begin
-  simp only [inv_def],
+  simv only [inv_def],
   rw [matrix.smul_mul, matrix.mul_smul, smul_smul, det_mul, adjugate_mul_distrib,
     ring.mul_inverse_rev],
 end
@@ -516,7 +516,7 @@ lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix 
 begin
   have : from_blocks A B C D =
     from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
-  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
+  { simv only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
       matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
         matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
   rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,

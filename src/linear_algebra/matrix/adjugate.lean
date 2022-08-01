@@ -101,7 +101,7 @@ begin
   split_ifs with h,
   { -- i = j: this entry should be `A.det`
     subst h,
-    simp only [update_column_transpose, det_transpose, update_row, function.update_eq_self] },
+    simv only [update_column_transpose, det_transpose, update_row, function.update_eq_self] },
   { -- i ≠ j: this entry should be 0
     rw [update_column_transpose, det_transpose],
     apply det_zero_of_row_eq h,
@@ -120,7 +120,7 @@ end
 begin
   ext i j,
   convert congr_fun (cramer_row_self (1 : matrix n n α) (pi.single i 1) i _) j,
-  { simp },
+  { simv },
   { intros j, rw [matrix.one_eq_pi_single, pi.single_comm] }
 end
 
@@ -138,7 +138,7 @@ begin
   obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
   apply det_eq_zero_of_column_eq_zero j',
   intro j'',
-  simp [update_column_ne hj'],
+  simv [update_column_ne hj'],
 end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
@@ -179,7 +179,7 @@ lemma adjugate_def (A : matrix n n α) :
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (pi.single i 1)).det :=
-by { rw adjugate_def, simp only, rw [cramer_apply, update_column_transpose, det_transpose], }
+by { rw adjugate_def, simv only, rw [cramer_apply, update_column_transpose, det_transpose], }
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
@@ -220,9 +220,9 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simv [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
-  simp [mul_vec, dot_product, mul_comm],
+  simv [mul_vec, dot_product, mul_comm],
 end
 
 lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
@@ -235,7 +235,7 @@ lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
   rw [mul_apply, pi.smul_apply, pi.smul_apply, one_apply, smul_eq_mul, mul_boole],
-  simp [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self, pi.single_apply, eq_comm]
+  simv [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self, pi.single_apply, eq_comm]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
@@ -260,7 +260,7 @@ by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_a
 lemma adjugate_subsingleton [subsingleton n] (A : matrix n n α) : adjugate A = 1 :=
 begin
   ext i j,
-  simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_subsingleton _ i]
+  simv [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_subsingleton _ i]
 end
 
 lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
@@ -275,17 +275,17 @@ begin
   obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
   apply det_eq_zero_of_column_eq_zero j',
   intro j'',
-  simp [update_column_ne hj'],
+  simv [update_column_ne hj'],
 end
 
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
-by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
+by { ext, simv [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
 @[simp] lemma adjugate_diagonal (v : n → α) :
   adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
 begin
   ext,
-  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  simv only [adjugate_def, cramer_apply, diagonal_transpose],
   obtain rfl | hij := eq_or_ne i j,
   { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
       prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
@@ -347,7 +347,7 @@ begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
   fin_cases i with [0, 1]; fin_cases j with [0, 1];
-  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
+  simv only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
     fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
     update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
 end
@@ -372,7 +372,7 @@ begin
     rw [←matrix.one_mul B, ←matrix.one_mul C, ←matrix.smul_mul, ←matrix.smul_mul, ←adjugate_mul,
         matrix.mul_assoc, matrix.mul_assoc, ←mul_eq_mul A, h, mul_eq_mul] },
   { intros B C h,
-    simp only [mul_eq_mul] at h,
+    simv only [mul_eq_mul] at h,
     refine hA.matrix _,
     rw [←matrix.mul_one B, ←matrix.mul_one C, ←matrix.mul_smul, ←matrix.mul_smul, ←mul_adjugate,
         ←matrix.mul_assoc, ←matrix.mul_assoc, h] }
@@ -402,7 +402,7 @@ begin
   have f'_inv : ∀ M, f' (g M) = M,
   { intro,
     ext,
-    simp [f', g], },
+    simv [f', g], },
   have f'_adj : ∀ (M : matrix n n α), f' (adjugate (g M)) = adjugate M,
   { intro,
     rw [ring_hom.map_adjugate, f'_inv] },
@@ -412,7 +412,7 @@ begin
   have hu : ∀ (M : matrix n n α), is_regular (g M).det,
   { intros M,
     refine polynomial.monic.is_regular _,
-    simp only [g, polynomial.monic.def, ←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
+    simv only [g, polynomial.monic.def, ←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
   rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
       ←adjugate_mul_distrib_aux _ _ (hu A).left (hu B).left, ring_hom.map_adjugate,
       ring_hom.map_adjugate, f'_inv, f'_g_mul]
@@ -422,7 +422,7 @@ end
   adjugate (A ^ k) = (adjugate A) ^ k :=
 begin
   induction k with k IH,
-  { simp },
+  { simv },
   { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
 end
 
@@ -455,7 +455,7 @@ begin
       ←alg_hom.map_det, ← alg_hom.map_pow, alg_hom.map_matrix_apply, alg_hom.map_matrix_apply,
       matrix.map_smul' _ _ _ (_root_.map_mul _)] },
   have h_card' : fintype.card n - 2 + 1 = fintype.card n - 1,
-  { simp [h_card] },
+  { simv [h_card] },
 
   have is_reg : is_smul_regular (mv_polynomial (n × n) ℤ) (det A') :=
     λ x y, mul_left_cancel₀ (det_mv_polynomial_X_ne_zero n ℤ),

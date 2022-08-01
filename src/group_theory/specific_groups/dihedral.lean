@@ -63,7 +63,7 @@ instance : group (dihedral_group n) :=
   mul_assoc :=
   begin
     rintros (a | a) (b | b) (c | c);
-    simp only [mul];
+    simv only [mul];
     ring,
   end,
   one := one,

@@ -39,10 +39,10 @@ section mul_zero_class
 
 variables [mul_zero_class M₀] {a b : M₀}
 
-@[ematch, simp] lemma zero_mul (a : M₀) : 0 * a = 0 :=
+@[ematch, simv] lemma zero_mul (a : M₀) : 0 * a = 0 :=
 mul_zero_class.zero_mul a
 
-@[ematch, simp] lemma mul_zero (a : M₀) : a * 0 = 0 :=
+@[ematch, simv] lemma mul_zero (a : M₀) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
 end mul_zero_class

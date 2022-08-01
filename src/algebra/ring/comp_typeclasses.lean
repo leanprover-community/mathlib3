@@ -49,7 +49,7 @@ class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R
   (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
 (comp_eq : σ₂₃.comp σ₁₂ = σ₁₃)
 
-attribute [simp] ring_hom_comp_triple.comp_eq
+attribute [simv] ring_hom_comp_triple.comp_eq
 
 variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 
@@ -67,8 +67,8 @@ class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁
 (comp_eq : σ'.comp σ = ring_hom.id R₁)
 (comp_eq₂ : σ.comp σ' = ring_hom.id R₂)
 
-attribute [simp] ring_hom_inv_pair.comp_eq
-attribute [simp] ring_hom_inv_pair.comp_eq₂
+attribute [simv] ring_hom_inv_pair.comp_eq
+attribute [simv] ring_hom_inv_pair.comp_eq₂
 
 variables {σ : R₁ →+* R₂} {σ' : R₂ →+* R₁}
 
@@ -77,19 +77,19 @@ namespace ring_hom_inv_pair
 variables [ring_hom_inv_pair σ σ']
 
 @[simp] lemma comp_apply_eq {x : R₁} : σ' (σ x) = x :=
-by { rw [← ring_hom.comp_apply, comp_eq], simp }
+by { rw [← ring_hom.comp_apply, comp_eq], simv }
 
 @[simp] lemma comp_apply_eq₂ {x : R₂} : σ (σ' x) = x :=
-by { rw [← ring_hom.comp_apply, comp_eq₂], simp }
+by { rw [← ring_hom.comp_apply, comp_eq₂], simv }
 
 instance ids : ring_hom_inv_pair (ring_hom.id R₁) (ring_hom.id R₁) := ⟨rfl, rfl⟩
 instance triples {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
   ring_hom_comp_triple σ₁₂ σ₂₁ (ring_hom.id R₁) :=
-⟨by simp only [comp_eq]⟩
+⟨by simv only [comp_eq]⟩
 
 instance triples₂ {σ₂₁ : R₂ →+* R₁} [ring_hom_inv_pair σ₁₂ σ₂₁] :
   ring_hom_comp_triple σ₂₁ σ₁₂ (ring_hom.id R₂) :=
-⟨by simp only [comp_eq₂]⟩
+⟨by simv only [comp_eq₂]⟩
 
 /--
 Construct a `ring_hom_inv_pair` from both directions of a ring equiv.
@@ -120,8 +120,8 @@ end ring_hom_inv_pair
 
 namespace ring_hom_comp_triple
 
-instance ids : ring_hom_comp_triple (ring_hom.id R₁) σ₁₂ σ₁₂ := ⟨by { ext, simp }⟩
-instance right_ids : ring_hom_comp_triple σ₁₂ (ring_hom.id R₂) σ₁₂ := ⟨by { ext, simp }⟩
+instance ids : ring_hom_comp_triple (ring_hom.id R₁) σ₁₂ σ₁₂ := ⟨by { ext, simv }⟩
+instance right_ids : ring_hom_comp_triple σ₁₂ (ring_hom.id R₂) σ₁₂ := ⟨by { ext, simv }⟩
 
 end ring_hom_comp_triple
 

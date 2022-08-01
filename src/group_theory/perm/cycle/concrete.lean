@@ -81,7 +81,7 @@ begin
       have : w ∈ (x :: y :: l) := mem_of_form_perm_ne_self _ _ hw,
       obtain ⟨k, hk, rfl⟩ := nth_le_of_mem this,
       use k,
-      simp only [zpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
+      simv only [zpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
 end
 
 lemma pairwise_same_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
@@ -103,14 +103,14 @@ begin
   rw ←length_attach at hn,
   rw ←nodup_attach at hl,
   rw cycle_type_eq [l.attach.form_perm],
-  { simp only [map, function.comp_app],
+  { simv only [map, function.comp_app],
     rw [support_form_perm_of_nodup _ hl, card_to_finset, dedup_eq_self.mpr hl],
     { simpa },
     { intros x h,
       simpa [h, nat.succ_le_succ_iff] using hn } },
-  { simp },
+  { simv },
   { simpa using is_cycle_form_perm hl hn },
-  { simp }
+  { simv }
 end
 
 lemma form_perm_apply_mem_eq_next (hl : nodup l) (x : α) (hx : x ∈ l) :
@@ -147,12 +147,12 @@ lemma form_perm_subsingleton (s : cycle α) (h : subsingleton s) :
   form_perm s h.nodup = 1 :=
 begin
   induction s using quot.induction_on,
-  simp only [form_perm_coe, mk_eq_coe],
-  simp only [length_subsingleton_iff, length_coe, mk_eq_coe] at h,
+  simv only [form_perm_coe, mk_eq_coe],
+  simv only [length_subsingleton_iff, length_coe, mk_eq_coe] at h,
   cases s with hd tl,
-  { simp },
-  { simp only [length_eq_zero, add_le_iff_nonpos_left, list.length, nonpos_iff_eq_zero] at h,
-    simp [h] }
+  { simv },
+  { simv only [length_eq_zero, add_le_iff_nonpos_left, list.length, nonpos_iff_eq_zero] at h,
+    simv [h] }
 end
 
 lemma is_cycle_form_perm (s : cycle α) (h : nodup s) (hn : nontrivial s) :
@@ -219,13 +219,13 @@ def to_list : list α :=
 (list.range (cycle_of p x).support.card).map (λ k, (p ^ k) x)
 
 @[simp] lemma to_list_one : to_list (1 : perm α) x = [] :=
-by simp [to_list, cycle_of_one]
+by simv [to_list, cycle_of_one]
 
 @[simp] lemma to_list_eq_nil_iff {p : perm α} {x} : to_list p x = [] ↔ x ∉ p.support :=
-by simp [to_list]
+by simv [to_list]
 
 @[simp] lemma length_to_list : length (to_list p x) = (cycle_of p x).support.card :=
-by simp [to_list]
+by simv [to_list]
 
 lemma to_list_ne_singleton (y : α) : to_list p x ≠ [y] :=
 begin
@@ -235,31 +235,31 @@ end
 
 lemma two_le_length_to_list_iff_mem_support {p : perm α} {x : α} :
   2 ≤ length (to_list p x) ↔ x ∈ p.support :=
-by simp
+by simv
 
 lemma length_to_list_pos_of_mem_support (h : x ∈ p.support) : 0 < length (to_list p x) :=
 zero_lt_two.trans_le (two_le_length_to_list_iff_mem_support.mpr h)
 
 lemma nth_le_to_list (n : ℕ) (hn : n < length (to_list p x)) :
   nth_le (to_list p x) n hn = (p ^ n) x :=
-by simp [to_list]
+by simv [to_list]
 
 lemma to_list_nth_le_zero (h : x ∈ p.support) :
   (to_list p x).nth_le 0 (length_to_list_pos_of_mem_support _ _ h) = x :=
-by simp [to_list]
+by simv [to_list]
 
 variables {p} {x}
 
 lemma mem_to_list_iff {y : α} :
   y ∈ to_list p x ↔ same_cycle p x y ∧ x ∈ p.support :=
 begin
-  simp only [to_list, mem_range, mem_map],
+  simv only [to_list, mem_range, mem_map],
   split,
   { rintro ⟨n, hx, rfl⟩,
     refine ⟨⟨n, rfl⟩, _⟩,
     contrapose! hx,
     rw ←support_cycle_of_eq_nil_iff at hx,
-    simp [hx] },
+    simv [hx] },
   { rintro ⟨h, hx⟩,
     simpa using same_cycle.nat_of_mem_support _ h hx }
 end
@@ -269,7 +269,7 @@ lemma nodup_to_list (p : perm α) (x : α) :
 begin
   by_cases hx : p x = x,
   { rw [←not_mem_support, ←to_list_eq_nil_iff] at hx,
-    simp [hx] },
+    simv [hx] },
   have hc : is_cycle (cycle_of p x) := is_cycle_cycle_of p hx,
   rw nodup_iff_nth_le_inj,
   rintros n m hn hm,
@@ -278,13 +278,13 @@ begin
   rw [nth_le_to_list, nth_le_to_list,
       ←cycle_of_pow_apply_self p x n, ←cycle_of_pow_apply_self p x m],
   cases n; cases m,
-  { simp },
+  { simv },
   { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of m.zero_lt_succ hm,
         mem_support, cycle_of_pow_apply_self] at hx,
-    simp [hx.symm] },
+    simv [hx.symm] },
   { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of n.zero_lt_succ hn,
         mem_support, cycle_of_pow_apply_self] at hx,
-    simp [hx] },
+    simv [hx] },
   intro h,
   have hn' : ¬ order_of (p.cycle_of x) ∣ n.succ := nat.not_dvd_of_pos_of_lt n.zero_lt_succ hn,
   have hm' : ¬ order_of (p.cycle_of x) ∣ m.succ := nat.not_dvd_of_pos_of_lt m.zero_lt_succ hm,
@@ -316,7 +316,7 @@ lemma to_list_pow_apply_eq_rotate (p : perm α) (x : α) (k : ℕ) :
   p.to_list ((p ^ k) x) = (p.to_list x).rotate k :=
 begin
   apply ext_le,
-  { simp },
+  { simv },
   { intros n hn hn',
     rw [nth_le_to_list, nth_le_rotate, nth_le_to_list, length_to_list,
         pow_mod_card_support_cycle_of_self_apply, pow_add, mul_apply] }
@@ -327,8 +327,8 @@ lemma same_cycle.to_list_is_rotated {f : perm α} {x y : α} (h : same_cycle f x
 begin
   by_cases hx : x ∈ f.support,
   { obtain ⟨_ | k, hk, hy⟩ := h.nat_of_mem_support _ hx,
-    { simp only [coe_one, id.def, pow_zero] at hy,
-      simp [hy] },
+    { simv only [coe_one, id.def, pow_zero] at hy,
+      simv [hy] },
     use k.succ,
     rw [←to_list_pow_apply_eq_rotate, hy] },
   { rw [to_list_eq_nil_iff.mpr hx, is_rotated_nil_iff', eq_comm, to_list_eq_nil_iff],
@@ -345,11 +345,11 @@ end
 
 lemma to_list_form_perm_nil (x : α) :
   to_list (form_perm ([] : list α)) x = [] :=
-by simp
+by simv
 
 lemma to_list_form_perm_singleton (x y : α) :
   to_list (form_perm [x]) y = [] :=
-by simp
+by simv
 
 lemma to_list_form_perm_nontrivial (l : list α) (hl : 2 ≤ l.length) (hn : nodup l) :
   to_list (form_perm l) (l.nth_le 0 (zero_lt_two.trans_le hl)) = l :=
@@ -360,8 +360,8 @@ begin
     rintro _ rfl,
     simpa [nat.succ_le_succ_iff] using hl },
   rw [to_list, hc.cycle_of_eq (mem_support.mp _), hs, card_to_finset, dedup_eq_self.mpr hn],
-  { refine list.ext_le (by simp) (λ k hk hk', _),
-    simp [form_perm_pow_apply_nth_le _ hn, nat.mod_eq_of_lt hk'] },
+  { refine list.ext_le (by simv) (λ k hk hk', _),
+    simv [form_perm_pow_apply_nth_le _ hn, nat.mod_eq_of_lt hk'] },
   { simpa [hs] using nth_le_mem _ _ _ }
 end
 
@@ -373,9 +373,9 @@ begin
   have hr : l ~r l.rotate k := ⟨k, rfl⟩,
   rw form_perm_eq_of_is_rotated hn hr,
   rw ←nth_le_rotate' l k k,
-  simp only [nat.mod_eq_of_lt hk, tsub_add_cancel_of_le hk.le, nat.mod_self],
+  simv only [nat.mod_eq_of_lt hk, tsub_add_cancel_of_le hk.le, nat.mod_self],
   rw [to_list_form_perm_nontrivial],
-  { simp },
+  { simv },
   { simpa using hl },
   { simpa using hn }
 end
@@ -394,7 +394,7 @@ begin
     rw mem_to_list_iff,
     exact ⟨⟨k, rfl⟩, mem_support.mpr hx⟩ },
   { rw [cycle_of_apply_of_not_same_cycle hy, form_perm_apply_of_not_mem],
-    simp [mem_to_list_iff, hy] }
+    simv [mem_to_list_iff, hy] }
 end
 
 lemma is_cycle.exists_unique_cycle {f : perm α} (hf : is_cycle f) :
@@ -402,13 +402,13 @@ lemma is_cycle.exists_unique_cycle {f : perm α} (hf : is_cycle f) :
 begin
   obtain ⟨x, hx, hy⟩ := id hf,
   refine ⟨f.to_list x, ⟨nodup_to_list f x, _⟩, _⟩,
-  { simp [form_perm_to_list, hf.cycle_of_eq hx] },
+  { simv [form_perm_to_list, hf.cycle_of_eq hx] },
   { rintro ⟨l⟩ ⟨hn, rfl⟩,
-    simp only [cycle.mk_eq_coe, cycle.coe_eq_coe, subtype.coe_mk, cycle.form_perm_coe],
+    simv only [cycle.mk_eq_coe, cycle.coe_eq_coe, subtype.coe_mk, cycle.form_perm_coe],
     refine (to_list_form_perm_is_rotated_self _ _ hn _ _).symm,
     { contrapose! hx,
       suffices : form_perm l = 1,
-      { simp [this] },
+      { simv [this] },
       rw form_perm_eq_one_iff _ hn,
       exact nat.le_of_lt_succ hx },
     { rw ←mem_to_finset,
@@ -460,9 +460,9 @@ lemma to_cycle_eq_to_list (f : perm α) (hf : is_cycle f) (x : α) (hx : f x ≠
   to_cycle f hf = to_list f x :=
 begin
   have key : (finset.univ : finset α).val = x ::ₘ finset.univ.val.erase x,
-  { simp },
+  { simv },
   rw [to_cycle, key],
-  simp [hx]
+  simv [hx]
 end
 
 lemma nodup_to_cycle (f : perm α) (hf : is_cycle f) : (to_cycle f hf).nodup :=
@@ -474,7 +474,7 @@ end
 lemma nontrivial_to_cycle (f : perm α) (hf : is_cycle f) : (to_cycle f hf).nontrivial :=
 begin
   obtain ⟨x, hx, -⟩ := id hf,
-  simp [to_cycle_eq_to_list f hf x hx, hx, cycle.nontrivial_coe_nodup_iff (nodup_to_list _ _)]
+  simv [to_cycle_eq_to_list f hf x hx, hx, cycle.nontrivial_coe_nodup_iff (nodup_to_list _ _)]
 end
 
 /--
@@ -495,7 +495,7 @@ def iso_cycle : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.n
   { rcases s with ⟨⟨s⟩, hn, ht⟩,
     obtain ⟨x, -, -, hx, -⟩ := id ht,
     have hl : 2 ≤ s.length := by simpa using cycle.length_nontrivial ht,
-    simp only [cycle.mk_eq_coe, cycle.nodup_coe_iff, cycle.mem_coe_iff, subtype.coe_mk,
+    simv only [cycle.mk_eq_coe, cycle.nodup_coe_iff, cycle.mem_coe_iff, subtype.coe_mk,
                cycle.form_perm_coe] at hn hx ⊢,
     rw to_cycle_eq_to_list _ _ x,
     { refine quotient.sound' _,
@@ -517,10 +517,10 @@ def iso_cycle' : {f : perm α // is_cycle f} ≃ {s : cycle α // s.nodup ∧ s.
   left_inv := λ f, by simpa [subtype.ext_iff]
     using fintype.choose_spec _ f.prop.exists_unique_cycle_nontrivial_subtype,
   right_inv := λ ⟨s, hs, ht⟩, by
-  { simp [subtype.coe_mk],
+  { simv [subtype.coe_mk],
     convert fintype.choose_subtype_eq (λ (s' : cycle α), s'.nodup ∧ s'.nontrivial) _,
     ext ⟨s', hs', ht'⟩,
-    simp [cycle.form_perm_eq_form_perm_iff, (iff_not_comm.mp hs.nontrivial_iff),
+    simv [cycle.form_perm_eq_form_perm_iff, (iff_not_comm.mp hs.nontrivial_iff),
           (iff_not_comm.mp hs'.nontrivial_iff), ht] } }
 
 notation `c[` l:(foldr `, ` (h t, list.cons h t) list.nil `]`) :=

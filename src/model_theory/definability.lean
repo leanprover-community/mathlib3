@@ -52,14 +52,14 @@ begin
   obtain ⟨ψ, rfl⟩ := h,
   refine ⟨(φ.add_constants A).on_formula ψ, _⟩,
   ext x,
-  simp only [mem_set_of_eq, Lhom.realize_on_formula],
+  simv only [mem_set_of_eq, Lhom.realize_on_formula],
 end
 
 lemma empty_definable_iff :
   (∅ : set M).definable L s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
 begin
   rw [definable, equiv.exists_congr_left (Lequiv.add_empty_constants L (∅ : set M)).on_formula],
-  simp,
+  simv,
 end
 
 lemma definable_iff_empty_definable_with_params :
@@ -75,11 +75,11 @@ end
 
 @[simp]
 lemma definable_empty : A.definable L (∅ : set (α → M)) :=
-⟨⊥, by {ext, simp} ⟩
+⟨⊥, by {ext, simv} ⟩
 
 @[simp]
 lemma definable_univ : A.definable L (univ : set (α → M)) :=
-⟨⊤, by {ext, simp} ⟩
+⟨⊤, by {ext, simv} ⟩
 
 @[simp]
 lemma definable.inter {f g : set (α → M)} (hf : A.definable L f) (hg : A.definable L g) :
@@ -89,7 +89,7 @@ begin
   rcases hg with ⟨θ, rfl⟩,
   refine ⟨φ ⊓ θ, _⟩,
   ext,
-  simp,
+  simv,
 end
 
 @[simp]
@@ -163,7 +163,7 @@ begin
   obtain ⟨φ, rfl⟩ := h,
   refine ⟨(φ.relabel f), _⟩,
   ext,
-  simp only [set.preimage_set_of_eq, mem_set_of_eq, formula.realize_relabel],
+  simv only [set.preimage_set_of_eq, mem_set_of_eq, formula.realize_relabel],
 end
 
 lemma definable.image_comp_equiv {s : set (β → M)}
@@ -174,10 +174,10 @@ begin
   rw image_eq_preimage_of_inverse,
   { intro i,
     ext b,
-    simp only [function.comp_app, equiv.apply_symm_apply], },
+    simv only [function.comp_app, equiv.apply_symm_apply], },
   { intro i,
     ext a,
-    simp }
+    simv }
 end
 
 lemma fin.coe_cast_add_zero {m : ℕ} : (fin.cast_add 0 : fin m → fin (m + 0)) = id :=
@@ -191,7 +191,7 @@ begin
   obtain ⟨φ, rfl⟩ := h,
   refine ⟨(bounded_formula.relabel id φ).exs, _⟩,
   ext x,
-  simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs,
+  simv only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs,
     bounded_formula.realize_relabel, function.comp.right_id, fin.coe_cast_add_zero],
   split,
   { rintro ⟨y, hy, rfl⟩,
@@ -210,9 +210,9 @@ begin
   refine (congr rfl (ext (λ x, _))).mp (((h.image_comp_equiv
     (equiv.set.sum_compl (range f))).image_comp_equiv (equiv.sum_congr
     (equiv.of_injective f f.injective) (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _),
-  simp only [mem_preimage, mem_image, exists_exists_and_eq_and],
+  simv only [mem_preimage, mem_image, exists_exists_and_eq_and],
   refine exists_congr (λ y, and_congr_right (λ ys, eq.congr_left (funext (λ a, _)))),
-  simp,
+  simv,
 end
 
 /-- Shows that definability is closed under finite projections. -/
@@ -229,22 +229,22 @@ begin
   { have h' : ∀ a, A.definable L {x : α → M | x a =
       x (range_splitting f (range_factorization f a))},
     { refine λ a, ⟨(var a).equal (var (range_splitting f (range_factorization f a))), ext _⟩,
-      simp, },
+      simv, },
     refine (congr rfl (ext _)).mp (definable_finset_bInter h' finset.univ),
-    simp },
+    simv },
   refine (congr rfl (ext (λ x, _))).mp (h.inter h'),
-  simp only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
+  simv only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
     exists_exists_and_eq_and, mem_set_of_eq],
   split,
   { rintro ⟨⟨y, ys, hy⟩, hx⟩,
     refine ⟨y, ys, _⟩,
     ext a,
     rw [hx a, ← function.comp_apply x, ← hy],
-    simp, },
+    simv, },
   { rintro ⟨y, ys, rfl⟩,
     refine ⟨⟨y, ys, _⟩, λ a, _⟩,
     { ext,
-      simp [set.apply_range_splitting f] },
+      simv [set.apply_range_splitting f] },
     { rw [function.comp_apply, function.comp_apply, apply_range_splitting f,
         range_factorization_coe], }}
 end
@@ -322,7 +322,7 @@ instance : bounded_order (L.definable_set A α) :=
 instance : distrib_lattice (L.definable_set A α) :=
 { le_sup_inf := begin
     intros s t u x,
-    simp only [and_imp, mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, mem_union_eq,
+    simv only [and_imp, mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, mem_union_eq,
       subtype.val_eq_coe],
     tauto,
   end,
@@ -343,14 +343,14 @@ end
 lemma coe_compl {s : L.definable_set A α} : ((sᶜ : L.definable_set A α) : set (α → M)) = sᶜ :=
 begin
   ext,
-  simp,
+  simv,
 end
 
 instance : boolean_algebra (L.definable_set A α) :=
 { sdiff := λ s t, s ⊓ tᶜ,
   sdiff_eq := λ s t, rfl,
-  inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
-  top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
+  inf_compl_le_bot := λ ⟨s, hs⟩, by simv [le_iff],
+  top_le_sup_compl := λ ⟨s, hs⟩, by simv [le_iff],
   .. definable_set.has_compl,
   .. definable_set.bounded_order,
   .. definable_set.distrib_lattice }

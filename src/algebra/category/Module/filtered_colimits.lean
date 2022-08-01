@@ -66,7 +66,7 @@ begin
   apply M.mk_eq,
   obtain ⟨k, f, g, hfg⟩ := h,
   use [k, f, g],
-  simp only [category_theory.functor.comp_map, forget_map_eq_coe] at hfg,
+  simv only [category_theory.functor.comp_map, forget_map_eq_coe] at hfg,
   rw [linear_map.map_smul, linear_map.map_smul, hfg],
 end
 

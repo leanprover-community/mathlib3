@@ -88,7 +88,7 @@ lemma list.le_refl {α : Type*} [preorder α] {xs : list α}
 begin
   induction xs with x xs,
   { trivial },
-  { simp [has_le.le,list.le],
+  { simv [has_le.le,list.le],
     split, exact le_rfl, apply xs_ih }
 end
 
@@ -106,7 +106,7 @@ begin
   ; cases zs with z zs
   ; try { cases h ; cases h' ; done },
   { apply list.le_refl },
-  { simp [has_le.le,list.le],
+  { simv [has_le.le,list.le],
     split,
     apply le_trans h.left h'.left,
     apply xs_ih _ h.right h'.right, }
@@ -120,7 +120,7 @@ begin
   revert ys,
   induction xs with x xs ; intros ys h,
   { cases ys, apply list.le_refl, cases h },
-  { cases ys with y ys, cases h, simp [has_le.le,list.le] at *,
+  { cases ys with y ys, cases h, simv [has_le.le,list.le] at *,
     revert h, apply and.imp_right,
     apply xs_ih }
 end
@@ -132,15 +132,15 @@ lemma list_le_mono_right {α : Type*} [preorder α] {xs ys zs : list α}
 begin
   revert ys zs,
   induction xs with x xs ; intros ys zs h,
-  { cases ys, { simp, apply list.le_refl }, cases h },
-  { cases ys with y ys, cases h, simp [has_le.le,list.le] at *,
+  { cases ys, { simv, apply list.le_refl }, cases h },
+  { cases ys with y ys, cases h, simv [has_le.le,list.le] at *,
     suffices : list.le' ((zs ++ [x]) ++ xs) ((zs ++ [y]) ++ ys),
-    { refine cast _ this, simp, },
+    { refine cast _ this, simv, },
     apply list.le_trans (zs ++ [y] ++ xs),
     { apply list_le_mono_left,
       induction zs with z zs,
-      { simp [has_le.le,list.le], apply h.left },
-      { simp [has_le.le,list.le], split, exact le_rfl,
+      { simv [has_le.le,list.le], apply h.left },
+      { simv [has_le.le,list.le], split, exact le_rfl,
         apply zs_ih, } },
     { apply xs_ih h.right, } }
 end
@@ -297,7 +297,7 @@ example (x y z k m n i j : ℕ)
 : z * (x + i + n + m) + k = z * (y + j + n + m) + k :=
 begin
   congr,
-  simp [h₁],
+  simv [h₁],
 end
 
 example (x y z k m n i j : ℕ)

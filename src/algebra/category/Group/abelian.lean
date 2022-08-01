@@ -42,7 +42,7 @@ instance : abelian AddCommGroup.{u} :=
 { has_finite_products := ⟨by apply_instance⟩,
   normal_mono_of_mono := λ X Y, normal_mono,
   normal_epi_of_epi := λ X Y, normal_epi,
-  add_comp' := by { intros, simp only [preadditive.add_comp] },
-  comp_add' := by { intros, simp only [preadditive.comp_add] } }
+  add_comp' := by { intros, simv only [preadditive.add_comp] },
+  comp_add' := by { intros, simv only [preadditive.comp_add] } }
 
 end AddCommGroup

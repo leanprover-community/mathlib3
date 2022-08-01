@@ -78,7 +78,7 @@ begin
   refine univ_subset_iff.1 (λy hy, _),
   rcases exists_one_lt_norm 𝕜 with ⟨w, hw⟩,
   refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem' (λn, mem_univ _),  _, _⟩,
-  { simp only [norm_pow],
+  { simv only [norm_pow],
     exact tendsto_pow_at_top_at_top_of_one_lt hw },
   { convert tendsto_const_nhds,
     ext n,
@@ -154,7 +154,7 @@ begin
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
   show ∀ᶠ n in at_top, (x, y) + (d n, d' n) ∈ s ×ˢ t,
   { filter_upwards [hd] with n hn,
-    simp [hn, (hd' n).1] },
+    simv [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds hy _,
     refine squeeze_zero_norm (λn, (hd' n).2.le) _,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one }
@@ -175,7 +175,7 @@ begin
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,
   show ∀ᶠ n in at_top, (x, y) + (d' n, d n) ∈ s ×ˢ t,
   { filter_upwards [hd] with n hn,
-    simp [hn, (hd' n).1] },
+    simv [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds _ hy,
     refine squeeze_zero_norm (λn, (hd' n).2.le) _,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one }
@@ -197,9 +197,9 @@ begin
   choose! d' hd's hcd',
   refine ⟨c, λ n, function.update (d' n) i (d n), hd.mono (λ n hn j hj', _), hc,
     tendsto_pi_nhds.2 $ λ j, _⟩,
-  { rcases em (j = i) with rfl|hj; simp * },
+  { rcases em (j = i) with rfl|hj; simv * },
   { rcases em (j = i) with rfl|hj,
-    { simp [hy] },
+    { simv [hy] },
     { suffices : tendsto (λ n, c n • d' n j) at_top (𝓝 0), by simpa [hj],
       refine squeeze_zero_norm (λ n, (hcd' n j hj).le) _,
       exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one } }
@@ -218,7 +218,7 @@ begin
     refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_pos, apply pow_pos, norm_num },
     { apply inv_lt_one, apply one_lt_pow _ (nat.succ_ne_zero _), norm_num },
-    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
+    { simv only [d, sub_smul, smul_sub, one_smul], abel } },
   show filter.tendsto (λ (n : ℕ), ∥c n∥) filter.at_top filter.at_top,
   { have : (λ (n : ℕ), ∥c n∥) = c,
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
@@ -227,7 +227,7 @@ begin
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,
-      simp only [d, smul_smul],
+      simv only [d, smul_smul],
       rw [mul_inv_cancel, one_smul],
       exact pow_ne_zero _ (by norm_num) },
     rw this,
@@ -254,7 +254,7 @@ lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 
 hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
-by { rw [unique_diff_within_at_iff, tangent_cone_univ], simp }
+by { rw [unique_diff_within_at_iff, tangent_cone_univ], simv }
 
 lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
 λx hx, unique_diff_within_at_univ
@@ -266,7 +266,7 @@ lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
   (st : 𝓝[s] x ≤ 𝓝[t] x) :
   unique_diff_within_at 𝕜 t x :=
 begin
-  simp only [unique_diff_within_at_iff] at *,
+  simv only [unique_diff_within_at_iff] at *,
   rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
   exact ⟨h.1.mono $ submodule.span_mono $ tangent_cone_mono_nhds st,
     h.2.mono st⟩
@@ -330,10 +330,10 @@ lemma unique_diff_within_at.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
   classical,
-  simp only [unique_diff_within_at_iff, closure_pi_set] at h ⊢,
+  simv only [unique_diff_within_at_iff, closure_pi_set] at h ⊢,
   refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
   norm_cast,
-  simp only [← submodule.supr_map_single, supr_le_iff, linear_map.map_span, submodule.span_le,
+  simv only [← submodule.supr_map_single, supr_le_iff, linear_map.map_span, submodule.span_le,
     ← maps_to'],
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end
@@ -347,7 +347,7 @@ begin
   classical,
   rw [← set.univ_pi_piecewise],
   refine unique_diff_within_at.univ_pi _ _ _ _ (λ i, _),
-  by_cases hi : i ∈ I; simp [*, unique_diff_within_at_univ],
+  by_cases hi : i ∈ I; simv [*, unique_diff_within_at_univ],
 end
 
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/
@@ -379,7 +379,7 @@ begin
   rcases hs with ⟨y, hy⟩,
   suffices : y - x ∈ interior (tangent_cone_at ℝ s x),
   { refine ⟨dense.of_closure _, hx⟩,
-    simp [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
+    simv [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
       ⟨y - x, interior_mono submodule.subset_span this⟩] },
   rw [mem_interior_iff_mem_nhds],
   replace hy : interior s ∈ 𝓝 y := is_open.mem_nhds is_open_interior hy,
@@ -396,10 +396,10 @@ theorem unique_diff_on_convex {s : set G} (conv : convex ℝ s) (hs : (interior 
 λ x xs, unique_diff_within_at_convex conv hs (subset_closure xs)
 
 lemma unique_diff_on_Ici (a : ℝ) : unique_diff_on ℝ (Ici a) :=
-unique_diff_on_convex (convex_Ici a) $ by simp only [interior_Ici, nonempty_Ioi]
+unique_diff_on_convex (convex_Ici a) $ by simv only [interior_Ici, nonempty_Ioi]
 
 lemma unique_diff_on_Iic (a : ℝ) : unique_diff_on ℝ (Iic a) :=
-unique_diff_on_convex (convex_Iic a) $ by simp only [interior_Iic, nonempty_Iio]
+unique_diff_on_convex (convex_Iic a) $ by simv only [interior_Iic, nonempty_Iio]
 
 lemma unique_diff_on_Ioi (a : ℝ) : unique_diff_on ℝ (Ioi a) :=
 is_open_Ioi.unique_diff_on
@@ -408,17 +408,17 @@ lemma unique_diff_on_Iio (a : ℝ) : unique_diff_on ℝ (Iio a) :=
 is_open_Iio.unique_diff_on
 
 lemma unique_diff_on_Icc {a b : ℝ} (hab : a < b) : unique_diff_on ℝ (Icc a b) :=
-unique_diff_on_convex (convex_Icc a b) $ by simp only [interior_Icc, nonempty_Ioo, hab]
+unique_diff_on_convex (convex_Icc a b) $ by simv only [interior_Icc, nonempty_Ioo, hab]
 
 lemma unique_diff_on_Ico (a b : ℝ) : unique_diff_on ℝ (Ico a b) :=
 if hab : a < b
-then unique_diff_on_convex (convex_Ico a b) $ by simp only [interior_Ico, nonempty_Ioo, hab]
-else by simp only [Ico_eq_empty hab, unique_diff_on_empty]
+then unique_diff_on_convex (convex_Ico a b) $ by simv only [interior_Ico, nonempty_Ioo, hab]
+else by simv only [Ico_eq_empty hab, unique_diff_on_empty]
 
 lemma unique_diff_on_Ioc (a b : ℝ) : unique_diff_on ℝ (Ioc a b) :=
 if hab : a < b
-then unique_diff_on_convex (convex_Ioc a b) $ by simp only [interior_Ioc, nonempty_Ioo, hab]
-else by simp only [Ioc_eq_empty hab, unique_diff_on_empty]
+then unique_diff_on_convex (convex_Ioc a b) $ by simv only [interior_Ioc, nonempty_Ioo, hab]
+else by simv only [Ioc_eq_empty hab, unique_diff_on_empty]
 
 lemma unique_diff_on_Ioo (a b : ℝ) : unique_diff_on ℝ (Ioo a b) :=
 is_open_Ioo.unique_diff_on
@@ -428,9 +428,9 @@ lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
 unique_diff_on_Icc zero_lt_one
 
 lemma unique_diff_within_at_Ioi (a : ℝ) : unique_diff_within_at ℝ (Ioi a) a :=
-unique_diff_within_at_convex (convex_Ioi a) (by simp) (by simp)
+unique_diff_within_at_convex (convex_Ioi a) (by simv) (by simv)
 
 lemma unique_diff_within_at_Iio (a : ℝ) : unique_diff_within_at ℝ (Iio a) a :=
-unique_diff_within_at_convex (convex_Iio a) (by simp) (by simp)
+unique_diff_within_at_convex (convex_Iio a) (by simv) (by simv)
 
 end unique_diff

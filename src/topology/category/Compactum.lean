@@ -180,7 +180,7 @@ begin
     exact inter_mem h1 h2 }
 end
 
-private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A := λ a ha, ⟨X.incl a, ha,by simp⟩
+private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A := λ a ha, ⟨X.incl a, ha,by simv⟩
 
 private theorem cl_cl {X : Compactum} (A : set X) : cl (cl A) ⊆ cl A :=
 begin
@@ -197,7 +197,7 @@ begin
   have claim1 : ∀ B C ∈ C0, B ∩ C ∈ C0,
   { rintros B ⟨Q,hQ,rfl⟩ C ⟨R,hR,rfl⟩,
     use Q ∩ R,
-    simp only [and_true, eq_self_iff_true, set.preimage_inter, subtype.val_eq_coe],
+    simv only [and_true, eq_self_iff_true, set.preimage_inter, subtype.val_eq_coe],
     exact inter_sets _ hQ hR },
   -- All sets in C0 are nonempty.
   have claim2 : ∀ B ∈ C0, set.nonempty B,
@@ -280,7 +280,7 @@ begin
   -- T0 is closed under intersections.
   have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
   { rintros S1 ⟨S1, hS1, rfl⟩ S2 ⟨S2, hS2, rfl⟩,
-    exact ⟨S1 ∩ S2, inter_mem hS1 hS2, by simp [basic_inter]⟩ },
+    exact ⟨S1 ∩ S2, inter_mem hS1 hS2, by simv [basic_inter]⟩ },
   -- For every S ∈ T0, the intersection AA ∩ S is nonempty.
   have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
   { rintros S ⟨S, hS, rfl⟩,
@@ -318,7 +318,7 @@ begin
       apply mem_of_superset (h1 (or.inl rfl)),
       rintros x ⟨rfl⟩,
       exact hP },
-    simp [←c1, c2] },
+    simv [←c1, c2] },
   -- Finish...
   intros T hT,
   refine claim6 _ (finite_inter_mem (finite_inter_closure_has_finite_inter _) _ _),

@@ -93,7 +93,7 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
       use min (γ * (γ'*γ')) γ',
       intros y y_in,
       apply hs,
-      simp only [mem_set_of_eq] at y_in,
+      simv only [mem_set_of_eq] at y_in,
       rw [units.min_coe, units.coe_mul, units.coe_mul] at y_in,
       exact valuation.inversion_estimate _ x_ne y_in
     end,
@@ -178,7 +178,7 @@ instance completable : completable_top_field K :=
       apply mem_of_superset (filter.inter_mem M₀_in M₁_in),
       exact subset_preimage_image _ _ },
     { rintros _ ⟨x, ⟨x_in₀, x_in₁⟩, rfl⟩ _ ⟨y, ⟨y_in₀, y_in₁⟩, rfl⟩,
-      simp only [mem_set_of_eq],
+      simv only [mem_set_of_eq],
       specialize H₁ x x_in₁ y y_in₁,
       replace x_in₀ := H₀ x x_in₀,
       replace y_in₀ := H₀ y y_in₀, clear H₀,
@@ -214,7 +214,7 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
     rw linear_ordered_comm_group_with_zero.tendsto_zero,
     intro γ₀,
     rw valued.mem_nhds,
-    exact ⟨γ₀, by simp⟩ },
+    exact ⟨γ₀, by simv⟩ },
   { have preimage_one : v ⁻¹' {(1 : Γ₀)} ∈ 𝓝 (1 : K),
     { have : (v (1 : K) : Γ₀) ≠ 0, { rw valuation.map_one, exact zero_ne_one.symm },
       convert valued.loc_const this,
@@ -246,10 +246,10 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
     have nhds_right : (λ x, x*x₀) '' V' ∈ 𝓝 x₀,
     { have l : function.left_inverse (λ x : hat K, x * x₀⁻¹) (λ x : hat K, x * x₀),
       { intro x,
-        simp only [mul_assoc, mul_inv_cancel h, mul_one] },
+        simv only [mul_assoc, mul_inv_cancel h, mul_one] },
       have r: function.right_inverse (λ x : hat K, x * x₀⁻¹) (λ x : hat K, x * x₀),
       { intro x,
-        simp only [mul_assoc, inv_mul_cancel h, mul_one] },
+        simv only [mul_assoc, inv_mul_cancel h, mul_one] },
       have c : continuous  (λ x : hat K, x * x₀⁻¹),
         from continuous_id.mul continuous_const,
       rw image_eq_preimage_of_inverse l r,
@@ -280,7 +280,7 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
          ... = v z₀ : by rw [this, one_mul]  },
 end
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
   haveI : t2_space Γ₀ := t3_space.t2_space _,
@@ -330,7 +330,7 @@ begin
   let γ₀ := extension_valuation x,
   suffices : γ₀ ≠ 0 → (x ∈ closure (coe '' { x : K | v x < (γ : Γ₀) }) ↔ γ₀ < (γ : Γ₀)),
   { cases eq_or_ne γ₀ 0,
-    { simp only [h, (valuation.zero_iff _).mp h, mem_set_of_eq, valuation.map_zero, units.zero_lt,
+    { simv only [h, (valuation.zero_iff _).mp h, mem_set_of_eq, valuation.map_zero, units.zero_lt,
         iff_true],
       apply subset_closure,
       exact ⟨0, by simpa only [mem_set_of_eq, valuation.map_zero, units.zero_lt, true_and]⟩, },
@@ -355,7 +355,7 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
   begin
     suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ γ : Γ₀ˣ, { x | extension_valuation x < γ }),
     { rw this.mem_iff,
-      exact exists_congr (λ γ, by simp), },
+      exact exists_congr (λ γ, by simv), },
     simp_rw ← closure_coe_completion_v_lt,
     exact (has_basis_nhds_zero K Γ₀).has_basis_of_dense_inducing completion.dense_inducing_coe,
   end }

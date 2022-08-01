@@ -64,19 +64,19 @@ def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
 lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) :
   f = g :=
 monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
-  λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
+  λ x xs hxs, by simv only [h, hxs, monoid_hom.map_mul]
 
 /-- Equivalence between maps `α → M` and monoid homomorphisms `free_monoid α →* M`. -/
 @[to_additive "Equivalence between maps `α → A` and additive monoid homomorphisms
 `free_add_monoid α →+ A`."]
 def lift : (α → M) ≃ (free_monoid α →* M) :=
 { to_fun := λ f, ⟨λ l, (l.map f).prod, rfl,
-    λ l₁ l₂, by simp only [mul_def, list.map_append, list.prod_append]⟩,
+    λ l₁ l₂, by simv only [mul_def, list.map_append, list.prod_append]⟩,
   inv_fun := λ f x, f (of x),
   left_inv := λ f, funext $ λ x, one_mul (f x),
   right_inv := λ f, hom_eq $ λ x, one_mul (f (of x)) }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma lift_symm_apply (f : free_monoid α →* M) : lift.symm f = f ∘ of := rfl
 
 @[to_additive]
@@ -85,17 +85,17 @@ lemma lift_apply (f : α → M) (l : free_monoid α) : lift f l = (l.map f).prod
 @[to_additive]
 lemma lift_comp_of (f : α → M) : (lift f) ∘ of = f := lift.symm_apply_apply f
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma lift_eval_of (f : α → M) (x : α) : lift f (of x) = f x :=
 congr_fun (lift_comp_of f) x
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma lift_restrict (f : free_monoid α →* M) : lift (f ∘ of) = f :=
 lift.apply_symm_apply f
 
 @[to_additive]
 lemma comp_lift (g : M →* N) (f : α → M) : g.comp (lift f) = lift (g ∘ f) :=
-by { ext, simp }
+by { ext, simv }
 
 @[to_additive]
 lemma hom_map_lift (g : M →* N) (f : α → M) (x : free_monoid α) : g (lift f x) = lift (g ∘ f) x :=
@@ -110,7 +110,7 @@ def map (f : α → β) : free_monoid α →* free_monoid β :=
   map_one' := rfl,
   map_mul' := λ l₁ l₂, list.map_append _ _ _ }
 
-@[simp, to_additive] lemma map_of (f : α → β) (x : α) : map f (of x) = of (f x) := rfl
+@[simv, to_additive] lemma map_of (f : α → β) (x : α) : map f (of x) = of (f x) := rfl
 
 @[to_additive]
 lemma lift_of_comp_eq_map (f : α → β) :

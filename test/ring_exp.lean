@@ -194,8 +194,8 @@ section benchmark
 -- After some optimization, it doesn't.
 variables {α : Type} [comm_ring α]
 def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z // x^i - y^i = z*(x - y)}
-| 0 := ⟨0, by simp⟩
-| 1 := ⟨1, by simp⟩
+| 0 := ⟨0, by simv⟩
+| 1 := ⟨1, by simv⟩
 | (k+2) :=
 begin
   cases @pow_sub_pow_factor (k+1) with z hz,

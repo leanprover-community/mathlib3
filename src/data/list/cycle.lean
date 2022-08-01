@@ -56,7 +56,7 @@ begin
   induction xs with y ys IH,
   { cases x_mem },
   cases ys with z zs,
-  { simp at x_mem x_ne, contradiction },
+  { simv at x_mem x_ne, contradiction },
   by_cases h : x = y,
   { rw [h, next_or_self_cons_cons, next_or_self_cons_cons] },
   { rw [next_or, next_or, IH];
@@ -71,7 +71,7 @@ begin
   cases ys with z zs,
   { simpa using h },
   { by_cases hx : x = y,
-    { simp [hx] },
+    { simv [hx] },
     { rw [next_or_cons_of_ne _ _ _ _ hx] at h,
       simpa [hx] using IH h } }
 end
@@ -80,7 +80,7 @@ lemma next_or_concat {xs : list α} {x : α} (d : α) (h : x ∉ xs) :
   next_or (xs ++ [x]) x d = d :=
 begin
   induction xs with z zs IH,
-  { simp },
+  { simv },
   { obtain ⟨hz, hzs⟩ := not_or_distrib.mp (mt (mem_cons_iff _ _ _).mp h),
     rw [cons_append, next_or_cons_of_ne _ _ _ _ hz, IH hzs] }
 end
@@ -165,7 +165,7 @@ lemma next_cons_concat (y : α) (hy : x ≠ y) (hx : x ∉ l)
 begin
   rw [next, next_or_concat],
   { refl },
-  { simp [hy, hx] }
+  { simv [hy, hx] }
 end
 
 lemma next_last_cons (y : α) (h : x ∈ (y :: l)) (hy : x ≠ y)
@@ -191,7 +191,7 @@ lemma prev_last_cons' (y : α) (h : x ∈ (y :: l)) (hx : x = y) :
   prev (y :: l) x h = last (y :: l) (cons_ne_nil _ _) :=
 begin
   cases l;
-  simp [prev, hx]
+  simv [prev, hx]
 end
 
 @[simp] lemma prev_last_cons (h : x ∈ (x :: l)) :
@@ -210,7 +210,7 @@ lemma prev_cons_cons_of_ne' (y z : α) (h : x ∈ (y :: z :: l)) (hy : x ≠ y) 
   prev (y :: z :: l) x h = y :=
 begin
   cases l,
-  { simp [prev, hy, hz] },
+  { simv [prev, hy, hz] },
   { rw [prev, dif_neg hy, if_pos hz] }
 end
 
@@ -236,9 +236,9 @@ begin
   cases l with hd tl,
   { simpa using h },
   induction tl with hd' tl hl generalizing hd,
-  { simp },
+  { simv },
   { by_cases hx : x = hd,
-    { simp only [hx, prev_cons_cons_eq],
+    { simv only [hx, prev_cons_cons_eq],
       exact mem_cons_of_mem _ (last_mem _) },
     { rw [prev, dif_neg hx],
       split_ifs with hm,
@@ -253,9 +253,9 @@ begin
   cases l with x l,
   { simpa using hn },
   induction l with y l hl generalizing x n,
-  { simp },
+  { simv },
   { cases n,
-    { simp },
+    { simv },
     { have hn' : n.succ ≤ l.length.succ,
       { refine nat.succ_le_of_lt _,
         simpa [nat.succ_lt_succ_iff] using hn },
@@ -268,13 +268,13 @@ begin
         simpa using H },
       rcases hn'.eq_or_lt with hn''|hn'',
       { rw [next_last_cons],
-        { simp [hn''] },
+        { simv [hn''] },
         { exact hx' },
-        { simp [last_eq_nth_le, hn''] },
+        { simv [last_eq_nth_le, hn''] },
         { exact h.of_cons } },
       { have : n < l.length := by simpa [nat.succ_lt_succ_iff] using hn'' ,
         rw [next_ne_head_ne_last _ _ _ _ hx'],
-        { simp [nat.mod_eq_of_lt (nat.succ_lt_succ (nat.succ_lt_succ this)),
+        { simv [nat.mod_eq_of_lt (nat.succ_lt_succ (nat.succ_lt_succ this)),
                 hl _ _ h.of_cons, nat.mod_eq_of_lt (nat.succ_lt_succ this)] },
         { rw last_eq_nth_le,
           intro H,
@@ -282,7 +282,7 @@ begin
           { exact absurd hn'' this.ge.not_lt },
           rw nodup_iff_nth_le_inj at h,
           refine h _ _ hn _ _,
-          { simp },
+          { simv },
           { simpa using H } } } } }
 end
 
@@ -293,12 +293,12 @@ begin
   cases l with x l,
   { simpa using hn },
   induction l with y l hl generalizing n x,
-  { simp },
+  { simv },
   { rcases n with _|_|n,
     { simpa [last_eq_nth_le, nat.mod_eq_of_lt (nat.succ_lt_succ l.length.lt_succ_self)] },
-    { simp only [mem_cons_iff, nodup_cons] at h,
+    { simv only [mem_cons_iff, nodup_cons] at h,
       push_neg at h,
-      simp [add_comm, prev_cons_cons_of_ne, h.left.left.symm] },
+      simv [add_comm, prev_cons_cons_of_ne, h.left.left.symm] },
     { rw [prev_ne_cons_cons],
       { convert hl _ _ h.of_cons _ using 1,
         have : ∀ k hk, (y :: l).nth_le k hk = (x :: y :: l).nth_le (k + 1) (nat.succ_lt_succ hk),
@@ -306,8 +306,8 @@ begin
           simpa },
         rw [this],
         congr,
-        simp only [nat.add_succ_sub_one, add_zero, length],
-        simp only [length, nat.succ_lt_succ_iff] at hn,
+        simv only [nat.add_succ_sub_one, add_zero, length],
+        simv only [length, nat.succ_lt_succ_iff] at hn,
         set k := l.length,
         rw [nat.succ_add, ←nat.add_succ, nat.add_mod_right, nat.succ_add, ←nat.add_succ _ k,
             nat.add_mod_right, nat.mod_eq_of_lt, nat.mod_eq_of_lt],
@@ -331,7 +331,7 @@ lemma pmap_next_eq_rotate_one (h : nodup l) :
   l.pmap l.next (λ _ h, h) = l.rotate 1 :=
 begin
   apply list.ext_le,
-  { simp },
+  { simv },
   { intros,
     rw [nth_le_pmap, nth_le_rotate, next_nth_le _ h] }
 end
@@ -340,7 +340,7 @@ lemma pmap_prev_eq_rotate_length_sub_one (h : nodup l) :
   l.pmap l.prev (λ _ h, h) = l.rotate (l.length - 1) :=
 begin
   apply list.ext_le,
-  { simp },
+  { simv },
   { intros n hn hn',
     rw [nth_le_rotate, nth_le_pmap, prev_nth_le _ h] }
 end
@@ -349,22 +349,22 @@ lemma prev_next (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
   prev l (next l x hx) (next_mem _ _ _) = x :=
 begin
   obtain ⟨n, hn, rfl⟩ := nth_le_of_mem hx,
-  simp only [next_nth_le, prev_nth_le, h, nat.mod_add_mod],
+  simv only [next_nth_le, prev_nth_le, h, nat.mod_add_mod],
   cases l with hd tl,
-  { simp },
+  { simv },
   { have : n < 1 + tl.length := by simpa [add_comm] using hn,
-    simp [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
+    simv [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
 end
 
 lemma next_prev (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
   next l (prev l x hx) (prev_mem _ _ _) = x :=
 begin
   obtain ⟨n, hn, rfl⟩ := nth_le_of_mem hx,
-  simp only [next_nth_le, prev_nth_le, h, nat.mod_add_mod],
+  simv only [next_nth_le, prev_nth_le, h, nat.mod_add_mod],
   cases l with hd tl,
-  { simp },
+  { simv },
   { have : n < 1 + tl.length := by simpa [add_comm] using hn,
-    simp [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
+    simv [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
 end
 
 lemma prev_reverse_eq_next (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
@@ -375,13 +375,13 @@ begin
   have key : l.length - 1 - k < l.length :=
     (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos'),
   rw ←nth_le_pmap l.next (λ _ h, h) (by simpa using hk),
-  simp_rw [←nth_le_reverse l k (key.trans_le (by simp)), pmap_next_eq_rotate_one _ h],
+  simp_rw [←nth_le_reverse l k (key.trans_le (by simv)), pmap_next_eq_rotate_one _ h],
   rw ←nth_le_pmap l.reverse.prev (λ _ h, h),
   { simp_rw [pmap_prev_eq_rotate_length_sub_one _ (nodup_reverse.mpr h), rotate_reverse,
              length_reverse, nat.mod_eq_of_lt (tsub_lt_self lpos nat.succ_pos'),
              tsub_tsub_cancel_of_le (nat.succ_le_of_lt lpos)],
     rw ←nth_le_reverse,
-    { simp [tsub_tsub_cancel_of_le (nat.le_pred_of_lt hk)] },
+    { simv [tsub_tsub_cancel_of_le (nat.le_pred_of_lt hk)] },
     { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') } },
   { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') }
 end
@@ -401,7 +401,7 @@ begin
   rw [next_nth_le _ hn],
   simp_rw ←nth_le_rotate' _ n k,
   rw [next_nth_le _ (h.nodup_iff.mp hn), ←nth_le_rotate' _ n],
-  simp [add_assoc]
+  simv [add_assoc]
 end
 
 lemma is_rotated_prev_eq {l l' : list α} (h : l ~r l') (hn : nodup l) {x : α} (hx : x ∈ l) :
@@ -459,7 +459,7 @@ instance : inhabited (cycle α) := ⟨nil⟩
 /-- An induction principle for `cycle`. Use as `induction s using cycle.induction_on`. -/
 @[elab_as_eliminator] lemma induction_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
   (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
-quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
+quotient.induction_on' s $ λ l, by { apply list.rec_on l; simv, assumption' }
 
 /-- For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`. -/
 def mem (a : α) (s : cycle α) : Prop :=
@@ -490,7 +490,7 @@ rfl
 quot.induction_on s (λ _, mem_reverse)
 
 @[simp] lemma reverse_reverse (s : cycle α) : s.reverse.reverse = s :=
-quot.induction_on s (λ _, by simp)
+quot.induction_on s (λ _, by simv)
 
 @[simp] lemma reverse_nil : nil.reverse = @nil α :=
 rfl
@@ -519,16 +519,16 @@ lemma length_subsingleton_iff {s : cycle α} : subsingleton s ↔ length s ≤ 1
 iff.rfl
 
 @[simp] lemma subsingleton_reverse_iff {s : cycle α} : s.reverse.subsingleton ↔ s.subsingleton :=
-by simp [length_subsingleton_iff]
+by simv [length_subsingleton_iff]
 
 lemma subsingleton.congr {s : cycle α} (h : subsingleton s) :
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y :=
 begin
   induction s using quot.induction_on with l,
-  simp only [length_subsingleton_iff, length_coe, mk_eq_coe, le_iff_lt_or_eq, nat.lt_add_one_iff,
+  simv only [length_subsingleton_iff, length_coe, mk_eq_coe, le_iff_lt_or_eq, nat.lt_add_one_iff,
              length_eq_zero, length_eq_one, nat.not_lt_zero, false_or] at h,
   rcases h with rfl|⟨z, rfl⟩;
-  simp
+  simv
 end
 
 /-- A `s : cycle α` that is made up of at least two unique elements. -/
@@ -539,17 +539,17 @@ def nontrivial (s : cycle α) : Prop := ∃ (x y : α) (h : x ≠ y), x ∈ s �
 begin
   rw nontrivial,
   rcases l with (_ | ⟨hd, _ | ⟨hd', tl⟩⟩),
-  { simp },
-  { simp },
-  { simp only [mem_cons_iff, exists_prop, mem_coe_iff, list.length, ne.def, nat.succ_le_succ_iff,
+  { simv },
+  { simv },
+  { simv only [mem_cons_iff, exists_prop, mem_coe_iff, list.length, ne.def, nat.succ_le_succ_iff,
                zero_le, iff_true],
-    refine ⟨hd, hd', _, by simp⟩,
-    simp only [not_or_distrib, mem_cons_iff, nodup_cons] at hl,
+    refine ⟨hd, hd', _, by simv⟩,
+    simv only [not_or_distrib, mem_cons_iff, nodup_cons] at hl,
     exact hl.left.left }
 end
 
 @[simp] lemma nontrivial_reverse_iff {s : cycle α} : s.reverse.nontrivial ↔ s.nontrivial :=
-by simp [nontrivial]
+by simv [nontrivial]
 
 lemma length_nontrivial {s : cycle α} (h : nontrivial s) : 2 ≤ length s :=
 begin
@@ -557,9 +557,9 @@ begin
   induction s using quot.induction_on with l,
   rcases l with (_ | ⟨hd, _ | ⟨hd', tl⟩⟩),
   { simpa using hx },
-  { simp only [mem_coe_iff, mk_eq_coe, mem_singleton] at hx hy,
+  { simv only [mem_coe_iff, mk_eq_coe, mem_singleton] at hx hy,
     simpa [hx, hy] using hxy },
-  { simp [bit0] }
+  { simv [bit0] }
 end
 
 /-- The `s : cycle α` contains no duplicates. -/
@@ -579,17 +579,17 @@ lemma subsingleton.nodup {s : cycle α} (h : subsingleton s) : nodup s :=
 begin
   induction s using quot.induction_on with l,
   cases l with hd tl,
-  { simp },
+  { simv },
   { have : tl = [] := by simpa [subsingleton, length_eq_zero] using h,
-    simp [this] }
+    simv [this] }
 end
 
 lemma nodup.nontrivial_iff {s : cycle α} (h : nodup s) : nontrivial s ↔ ¬ subsingleton s :=
 begin
   rw length_subsingleton_iff,
   induction s using quotient.induction_on',
-  simp only [mk'_eq_coe, nodup_coe_iff] at h,
-  simp [h, nat.succ_le_iff]
+  simv only [mk'_eq_coe, nodup_coe_iff] at h,
+  simv [h, nat.succ_le_iff]
 end
 
 /--
@@ -605,10 +605,10 @@ rfl
 rfl
 
 @[simp] lemma card_to_multiset (s : cycle α) : s.to_multiset.card = s.length :=
-quotient.induction_on' s (by simp)
+quotient.induction_on' s (by simv)
 
 @[simp] lemma to_multiset_eq_nil {s : cycle α} : s.to_multiset = 0 ↔ s = cycle.nil :=
-quotient.induction_on' s (by simp)
+quotient.induction_on' s (by simv)
 
 /-- The lift of `list.map`. -/
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
@@ -621,7 +621,7 @@ rfl
 rfl
 
 @[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
-quotient.induction_on' s (by simp)
+quotient.induction_on' s (by simv)
 
 /-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=
@@ -633,7 +633,7 @@ quotient.lift_on' s
 rfl
 
 @[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} : l ∈ s.lists ↔ (l : cycle α) = s :=
-quotient.induction_on' s $ λ l, by { rw [lists, quotient.lift_on'_mk'], simp }
+quotient.induction_on' s $ λ l, by { rw [lists, quotient.lift_on'_mk'], simv }
 
 @[simp] lemma lists_nil : lists (@nil α) = [([] : list α)] :=
 by rw [nil, lists_coe, cyclic_permutations_nil]
@@ -646,13 +646,13 @@ variable [decidable_eq α]
 Auxiliary decidability algorithm for lists that contain at least two unique elements.
 -/
 def decidable_nontrivial_coe : Π (l : list α), decidable (nontrivial (l : cycle α))
-| []            := is_false (by simp [nontrivial])
-| [x]           := is_false (by simp [nontrivial])
+| []            := is_false (by simv [nontrivial])
+| [x]           := is_false (by simv [nontrivial])
 | (x :: y :: l) := if h : x = y
   then @decidable_of_iff' _ (nontrivial ((x :: l) : cycle α))
-    (by simp [h, nontrivial])
+    (by simv [h, nontrivial])
     (decidable_nontrivial_coe (x :: l))
-  else is_true ⟨x, y, h, by simp, by simp⟩
+  else is_true ⟨x, y, h, by simv, by simv⟩
 
 instance {s : cycle α} : decidable (nontrivial s) :=
 quot.rec_on_subsingleton s decidable_nontrivial_coe
@@ -662,13 +662,13 @@ quot.rec_on_subsingleton s list.nodup_decidable
 
 instance fintype_nodup_cycle [fintype α] : fintype {s : cycle α // s.nodup} :=
 fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩)
-  (λ ⟨s, hs⟩, by { induction s using quotient.induction_on', exact ⟨⟨s, hs⟩, by simp⟩ })
+  (λ ⟨s, hs⟩, by { induction s using quotient.induction_on', exact ⟨⟨s, hs⟩, by simv⟩ })
 
 instance fintype_nodup_nontrivial_cycle [fintype α] :
   fintype {s : cycle α // s.nodup ∧ s.nontrivial} :=
 fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
   (function.embedding.subtype _)).filter cycle.nontrivial)
-  (by simp)
+  (by simv)
 
 /-- The `s : cycle α` as a `finset α`. -/
 def to_finset (s : cycle α) : finset α :=
@@ -684,7 +684,7 @@ rfl
 rfl
 
 @[simp] lemma to_finset_eq_nil {s : cycle α} : s.to_finset = ∅ ↔ s = cycle.nil :=
-quotient.induction_on' s (by simp)
+quotient.induction_on' s (by simv)
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
 def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
@@ -708,7 +708,7 @@ def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 
 @[simp] lemma next_reverse_eq_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.reverse.next (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.prev hs x hx :=
-by simp [←prev_reverse_eq_next]
+by simv [←prev_reverse_eq_next]
 
 @[simp] lemma next_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) : s.next hs x hx ∈ s :=
 by { induction s using quot.induction_on, apply next_mem }
@@ -753,14 +753,14 @@ quotient.lift_on' c (λ l, match l with
   { unfold chain._match_1,
     cases hab with n hn,
     induction n with d hd generalizing a b l m,
-    { simp only [rotate_zero] at hn,
+    { simv only [rotate_zero] at hn,
       rw [hn.1, hn.2] },
     { cases l with c s,
-      { simp only [rotate_singleton] at hn,
+      { simv only [rotate_singleton] at hn,
         rw [hn.1, hn.2] },
       { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
         rw [←hd c _ _ _ hn],
-        simp [and.comm] } } }
+        simv [and.comm] } } }
 end
 
 @[simp] lemma chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
@@ -803,8 +803,8 @@ begin
   induction s using cycle.induction_on with a l _,
   exact λ _, cycle.chain.nil r,
   intro hs,
-  have Ha : a ∈ ((a :: l) : cycle α) := by simp,
-  have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
+  have Ha : a ∈ ((a :: l) : cycle α) := by simv,
+  have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simv [hb],
   rw cycle.chain_coe_cons,
   apply pairwise.chain,
   rw pairwise_cons,
@@ -827,9 +827,9 @@ theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ 
   exact λ _ b hb, hb.elim,
   intros hs b hb c hc,
   rw [cycle.chain_coe_cons, chain_iff_pairwise] at hs,
-  simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
+  simv only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
     is_empty.forall_iff, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
-  simp only [mem_coe_iff, mem_cons_iff] at hb hc,
+  simv only [mem_coe_iff, mem_cons_iff] at hb hc,
   rcases hb with rfl | hb;
   rcases hc with rfl | hc,
   { exact hs.1 c (or.inr rfl) },

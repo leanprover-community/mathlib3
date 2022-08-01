@@ -36,9 +36,9 @@ def image₂ (f : α → β → γ) (s : finset α) (t : finset β) : finset γ 
 (s.product t).image $ uncurry f
 
 @[simp] lemma mem_image₂ : c ∈ image₂ f s t ↔ ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c :=
-by simp [image₂, and_assoc]
+by simv [image₂, and_assoc]
 
-@[simp, norm_cast] lemma coe_image₂ (f : α → β → γ) (s : finset α) (t : finset β) :
+@[simv, norm_cast] lemma coe_image₂ (f : α → β → γ) (s : finset α) (t : finset β) :
   (image₂ f s t : set γ) = set.image2 f s t :=
 set.ext $ λ _, mem_image₂
 
@@ -93,16 +93,16 @@ lemma nonempty.of_image₂_left (h : (image₂ f s t).nonempty) : s.nonempty :=
 lemma nonempty.of_image₂_right (h : (image₂ f s t).nonempty) : t.nonempty :=
 (image₂_nonempty_iff.1 h).2
 
-@[simp] lemma image₂_empty_left : image₂ f ∅ t = ∅ := coe_injective $ by simp
-@[simp] lemma image₂_empty_right : image₂ f s ∅ = ∅ := coe_injective $ by simp
+@[simp] lemma image₂_empty_left : image₂ f ∅ t = ∅ := coe_injective $ by simv
+@[simp] lemma image₂_empty_right : image₂ f s ∅ = ∅ := coe_injective $ by simv
 @[simp] lemma image₂_eq_empty_iff : image₂ f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp_rw [←not_nonempty_iff_eq_empty, image₂_nonempty_iff, not_and_distrib]
 
-@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (λ b, f a b) := ext $ λ x, by simp
-@[simp] lemma image₂_singleton_right : image₂ f s {b} = s.image (λ a, f a b) := ext $ λ x, by simp
+@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (λ b, f a b) := ext $ λ x, by simv
+@[simp] lemma image₂_singleton_right : image₂ f s {b} = s.image (λ a, f a b) := ext $ λ x, by simv
 lemma image₂_singleton_left' : image₂ f {a} t = t.image (f a) := image₂_singleton_left
 
-lemma image₂_singleton : image₂ f {a} {b} = {f a b} := by simp
+lemma image₂_singleton : image₂ f {a} {b} = {f a b} := by simv
 
 lemma image₂_union_left [decidable_eq α] : image₂ f (s ∪ s') t = image₂ f s t ∪ image₂ f s' t :=
 coe_injective $ by { push_cast, exact image2_union_left }

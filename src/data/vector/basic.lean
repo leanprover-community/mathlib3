@@ -21,7 +21,7 @@ variables {α : Type*}
 
 infixr ` ::ᵥ `:67  := vector.cons
 
-attribute [simp] head_cons tail_cons
+attribute [simv] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
 ⟨of_fn default⟩
@@ -102,7 +102,7 @@ by apply list.nth_le_repeat
 
 @[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
   (v.map f).nth i = f (v.nth i) :=
-by simp [nth_eq_nth_le]
+by simv [nth_eq_nth_le]
 
 @[simp] theorem nth_of_fn {n} (f : fin n → α) (i) : nth (of_fn f) i = f i :=
 by rw [nth_eq_nth_le, ← list.nth_le_of_fn f];
@@ -127,7 +127,7 @@ by { rcases x with ⟨_|_, h⟩; refl, }
 @[simp]
 theorem nth_tail_succ : ∀ (v : vector α n.succ) (i : fin n),
   nth (tail v) i = nth v i.succ
-| ⟨a::l, e⟩ ⟨i, h⟩ := by simp [nth_eq_nth_le]; refl
+| ⟨a::l, e⟩ ⟨i, h⟩ := by simv [nth_eq_nth_le]; refl
 
 @[simp] theorem tail_val : ∀ (v : vector α n.succ), v.tail.val = v.val.tail
 | ⟨a::l, e⟩ := rfl
@@ -137,35 +137,35 @@ theorem nth_tail_succ : ∀ (v : vector α n.succ) (i : fin n),
 
 /-- The `tail` of a vector made up of one element is `nil`. -/
 @[simp] lemma singleton_tail (v : vector α 1) : v.tail = vector.nil :=
-by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
+by simv only [←cons_head_tail, eq_iff_true_of_subsingleton]
 
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
-(of_fn_nth _).symm.trans $ by { congr, funext i, cases i, simp, }
+(of_fn_nth _).symm.trans $ by { congr, funext i, cases i, simv, }
 
 /-- The list that makes up a `vector` made up of a single element,
 retrieved via `to_list`, is equal to the list of that single element. -/
 @[simp] lemma to_list_singleton (v : vector α 1) : v.to_list = [v.head] :=
 begin
   rw ←v.cons_head_tail,
-  simp only [to_list_cons, to_list_nil, cons_head, eq_self_iff_true,
+  simv only [to_list_cons, to_list_nil, cons_head, eq_self_iff_true,
              and_self, singleton_tail]
 end
 
 /-- Mapping under `id` does not change a vector. -/
 @[simp] lemma map_id {n : ℕ} (v : vector α n) : vector.map id v = v :=
-  vector.eq _ _ (by simp only [list.map_id, vector.to_list_map])
+  vector.eq _ _ (by simv only [list.map_id, vector.to_list_map])
 
 lemma nodup_iff_nth_inj {v : vector α n} : v.to_list.nodup ↔ function.injective v.nth :=
 begin
   cases v with l hl,
   subst hl,
-  simp only [list.nodup_iff_nth_le_inj],
+  simv only [list.nodup_iff_nth_le_inj],
   split,
   { intros h i j hij,
     cases i, cases j, ext, apply h, simpa },
   { intros h i j hi hj hij,
-    have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
+    have := @h ⟨i, hi⟩ ⟨j, hj⟩, simv [nth_eq_nth_le] at *, tauto }
 end
 
 theorem head'_to_list : ∀ (v : vector α n.succ),
@@ -174,7 +174,7 @@ theorem head'_to_list : ∀ (v : vector α n.succ),
 
 /-- Reverse a vector. -/
 def reverse (v : vector α n) : vector α n :=
-⟨v.to_list.reverse, by simp⟩
+⟨v.to_list.reverse, by simv⟩
 
 /-- The `list` of a vector after a `reverse`, retrieved by `to_list` is equal
 to the `list.reverse` after retrieving a vector's `to_list`. -/
@@ -182,7 +182,7 @@ lemma to_list_reverse {v : vector α n} : v.reverse.to_list = v.to_list.reverse 
 
 @[simp]
 lemma reverse_reverse {v : vector α n} : v.reverse.reverse = v :=
-by { cases v, simp [vector.reverse], }
+by { cases v, simv [vector.reverse], }
 
 @[simp] theorem nth_zero : ∀ (v : vector α n.succ), nth v 0 = head v
 | ⟨a::l, e⟩ := rfl
@@ -193,7 +193,7 @@ by rw [← nth_zero, nth_of_fn]
 
 @[simp] theorem nth_cons_zero
   (a : α) (v : vector α n) : nth (a ::ᵥ v) 0 = a :=
-by simp [nth_zero]
+by simv [nth_zero]
 
 /-- Accessing the `nth` element of a vector made up
 of one element `x : α` is `x` itself. -/
@@ -215,7 +215,7 @@ lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
 begin
   have : 0 = v.to_list.length - 1 - n,
-  { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
+  { simv only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
                list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
@@ -269,7 +269,7 @@ and the mapped `f b x : β` as the last value.
 @[simp] lemma scanl_singleton (v : vector α 1) : scanl f b v = b ::ᵥ f b v.head ::ᵥ nil :=
 begin
   rw [←cons_head_tail v],
-  simp only [scanl_cons, scanl_nil, cons_head, singleton_tail]
+  simv only [scanl_cons, scanl_nil, cons_head, singleton_tail]
 end
 
 /--
@@ -279,10 +279,10 @@ retrieved via `head`, is the starting value `b : β`.
 @[simp] lemma scanl_head : (scanl f b v).head = b :=
 begin
   cases n,
-  { have : v = nil := by simp only [eq_iff_true_of_subsingleton],
-    simp only [this, scanl_nil, cons_head] },
+  { have : v = nil := by simv only [eq_iff_true_of_subsingleton],
+    simv only [this, scanl_nil, cons_head] },
   { rw ←cons_head_tail v,
-    simp only [←nth_zero, nth_eq_nth_le, to_list_scanl,
+    simv only [←nth_zero, nth_eq_nth_le, to_list_scanl,
                 to_list_cons, list.scanl, fin.val_zero', list.nth_le] }
 end
 
@@ -300,13 +300,13 @@ begin
   cases n,
   { exact fin_zero_elim i },
   induction n with n hn generalizing b,
-  { have i0 : i = 0 := by simp only [eq_iff_true_of_subsingleton],
+  { have i0 : i = 0 := by simv only [eq_iff_true_of_subsingleton],
     simpa only [scanl_singleton, i0, nth_zero] },
   { rw [←cons_head_tail v, scanl_cons, nth_cons_succ],
     refine fin.cases _ _ i,
-    { simp only [nth_zero, scanl_head, fin.cast_succ_zero, cons_head] },
+    { simv only [nth_zero, scanl_head, fin.cast_succ_zero, cons_head] },
     { intro i',
-      simp only [hn, fin.cast_succ_fin_succ, nth_cons_succ] } }
+      simv only [hn, fin.cast_succ_fin_succ, nth_cons_succ] } }
 end
 
 end scan
@@ -320,7 +320,7 @@ def m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vecto
 theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
   ∀ {n} (f : fin n → α), @m_of_fn m _ _ _ (λ i, pure (f i)) = pure (of_fn f)
 | 0     f := rfl
-| (n+1) f := by simp [m_of_fn, @m_of_fn_pure n, of_fn]
+| (n+1) f := by simv [m_of_fn, @m_of_fn_pure n, of_fn]
 
 /-- Apply a monadic function to each component of a vector,
 returning a vector inside the monad. -/
@@ -437,7 +437,7 @@ lemma remove_nth_insert_nth' {v : vector α (n+1)} :
 | ⟨i, hi⟩ ⟨j, hj⟩ :=
   begin
     dsimp [insert_nth, remove_nth, fin.succ_above, fin.pred_above],
-    simp only [subtype.mk_eq_mk],
+    simv only [subtype.mk_eq_mk],
     split_ifs,
     { convert (list.insert_nth_remove_nth_of_ge i (j-1) _ _ _).symm,
       { convert (nat.succ_pred_eq_of_pos _).symm, exact lt_of_le_of_lt (zero_le _) h, },
@@ -456,7 +456,7 @@ lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :
 | ⟨l, hl⟩ :=
   begin
     refine subtype.eq _,
-    simp only [insert_nth_val, fin.coe_succ, fin.cast_succ, fin.val_eq_coe, fin.coe_cast_add],
+    simv only [insert_nth_val, fin.coe_succ, fin.cast_succ, fin.val_eq_coe, fin.coe_cast_add],
     apply list.insert_nth_comm,
     { assumption },
     { rw hl, exact nat.le_of_succ_le_succ j.2 }
@@ -476,16 +476,16 @@ rfl
 
 @[simp] lemma nth_update_nth_same (v : vector α n) (i : fin n) (a : α) :
   (v.update_nth i a).nth i = a :=
-by cases v; cases i; simp [vector.update_nth, vector.nth_eq_nth_le]
+by cases v; cases i; simv [vector.update_nth, vector.nth_eq_nth_le]
 
 lemma nth_update_nth_of_ne {v : vector α n} {i j : fin n} (h : i ≠ j) (a : α) :
   (v.update_nth i a).nth j = v.nth j :=
-by cases v; cases i; cases j; simp [vector.update_nth, vector.nth_eq_nth_le,
+by cases v; cases i; cases j; simv [vector.update_nth, vector.nth_eq_nth_le,
   list.nth_le_update_nth_of_ne (fin.vne_of_ne h)]
 
 lemma nth_update_nth_eq_if {v : vector α n} {i j : fin n} (a : α) :
   (v.update_nth i a).nth j = if i = j then a else v.nth j :=
-by split_ifs; try {simp *}; try {rw nth_update_nth_of_ne}; assumption
+by split_ifs; try {simv *}; try {rw nth_update_nth_of_ne}; assumption
 
 @[to_additive]
 lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
@@ -494,7 +494,7 @@ lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
 begin
   refine (list.prod_update_nth v.to_list i a).trans _,
   have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
-  simp * at *
+  simv * at *
 end
 
 @[to_additive]
@@ -504,7 +504,7 @@ lemma prod_update_nth' [comm_group α] (v : vector α n) (i : fin n) (a : α) :
 begin
   refine (list.prod_update_nth' v.to_list i a).trans _,
   have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
-  simp [this, nth_eq_nth_le, mul_assoc],
+  simv [this, nth_eq_nth_le, mul_assoc],
 end
 
 end update_nth
@@ -542,7 +542,7 @@ protected lemma id_traverse : ∀ (x : vector α n), x.traverse id.mk = x :=
 begin
   rintro ⟨x, rfl⟩, dsimp [vector.traverse, cast],
   induction x with x xs IH, {refl},
-  simp! [IH], refl
+  simv! [IH], refl
 end
 
 end
@@ -559,21 +559,21 @@ protected lemma comp_traverse (f : β → F γ) (g : α → G β) : ∀ (x : vec
   vector.traverse (comp.mk ∘ functor.map f ∘ g) x =
   comp.mk (vector.traverse f <$> vector.traverse g x) :=
 by rintro ⟨x, rfl⟩; dsimp [vector.traverse, cast];
-   induction x with x xs; simp! [cast, *] with functor_norm;
-   [refl, simp [(∘)]]
+   induction x with x xs; simv! [cast, *] with functor_norm;
+   [refl, simv [(∘)]]
 
 protected lemma traverse_eq_map_id {α β} (f : α → β) : ∀ (x : vector α n),
   x.traverse (id.mk ∘ f) = id.mk (map f x) :=
-by rintro ⟨x, rfl⟩; simp!;
-   induction x; simp! * with functor_norm; refl
+by rintro ⟨x, rfl⟩; simv!;
+   induction x; simv! * with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 
 protected lemma naturality {α β : Type*}
   (f : α → F β) : ∀ (x : vector α n),
   η (x.traverse f) = x.traverse (@η _ ∘ f) :=
-by rintro ⟨x, rfl⟩; simp! [cast];
-   induction x with x xs IH; simp! * with functor_norm
+by rintro ⟨x, rfl⟩; simv! [cast];
+   induction x with x xs IH; simv! * with functor_norm
 
 end traverse
 
@@ -586,8 +586,8 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   comp_traverse := @vector.comp_traverse n,
   traverse_eq_map_id := @vector.traverse_eq_map_id n,
   naturality := @vector.naturality n,
-  id_map := by intros; cases x; simp! [(<$>)],
-  comp_map := by intros; cases x; simp! [(<$>)] }
+  id_map := by intros; cases x; simv! [(<$>)],
+  comp_map := by intros; cases x; simv! [(<$>)] }
 
 meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
   has_reflect (vector α n) :=

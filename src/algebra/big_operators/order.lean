@@ -37,7 +37,7 @@ lemma le_prod_nonempty_of_submultiplicative_on_pred
   f (∏ i in s, g i) ≤ ∏ i in s, f (g i) :=
 begin
   refine le_trans (multiset.le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul _ _ _) _,
-  { simp [hs_nonempty.ne_empty], },
+  { simv [hs_nonempty.ne_empty], },
   { exact multiset.forall_mem_map_iff.mpr hs, },
   rw multiset.map_map,
   refl,
@@ -73,7 +73,7 @@ lemma le_prod_of_submultiplicative_on_pred (f : M → N) (p : M → Prop) (h_one
   f (∏ i in s, g i) ≤ ∏ i in s, f (g i) :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hs_nonempty,
-  { simp [h_one] },
+  { simv [h_one] },
   { exact le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul g s hs_nonempty hs, },
 end
 
@@ -110,7 +110,7 @@ begin
   classical,
   induction s using finset.induction_on with i s hi ihs h,
   { refl },
-  { simp only [prod_insert hi],
+  { simv only [prod_insert hi],
     exact mul_le_mul' (h _ (mem_insert_self _ _)) (ihs $ λ j hj, h j (mem_insert_of_mem hj)) }
 end
 
@@ -235,7 +235,7 @@ theorem card_le_mul_card_image_of_maps_to {f : α → β} {s : finset α} {t : f
   s.card ≤ n * t.card :=
 calc s.card = (∑ a in t, (s.filter (λ x, f x = a)).card) : card_eq_sum_card_fiberwise Hf
         ... ≤ (∑ _ in t, n)                              : sum_le_sum hn
-        ... = _                                          : by simp [mul_comm]
+        ... = _                                          : by simv [mul_comm]
 
 theorem card_le_mul_card_image {f : α → β} (s : finset α)
   (n : ℕ) (hn : ∀ a ∈ s.image f, (s.filter (λ x, f x = a)).card ≤ n) :
@@ -245,7 +245,7 @@ card_le_mul_card_image_of_maps_to (λ x, mem_image_of_mem _) n hn
 theorem mul_card_image_le_card_of_maps_to {f : α → β} {s : finset α} {t : finset β}
   (Hf : ∀ a ∈ s, f a ∈ t) (n : ℕ) (hn : ∀ a ∈ t, n ≤ (s.filter (λ x, f x = a)).card) :
   n * t.card ≤ s.card :=
-calc n * t.card = (∑ _ in t, n) : by simp [mul_comm]
+calc n * t.card = (∑ _ in t, n) : by simv [mul_comm]
             ... ≤ (∑ a in t, (s.filter (λ x, f x = a)).card) : sum_le_sum hn
             ... = s.card : by rw ← card_eq_sum_card_fiberwise Hf
 
@@ -332,7 +332,7 @@ section canonically_ordered_monoid
 
 variables [canonically_ordered_monoid M] {f : ι → M} {s t : finset ι}
 
-@[simp, to_additive sum_eq_zero_iff]
+@[simv, to_additive sum_eq_zero_iff]
 lemma prod_eq_one_iff' : ∏ x in s, f x = 1 ↔ ∀ x ∈ s, f x = 1 :=
 prod_eq_one_iff_of_one_le' $ λ x hx, one_le (f x)
 
@@ -352,7 +352,7 @@ calc ∏ x in s, f x = (∏ x in s.filter (λ x, f x = 1), f x) * ∏ x in s.fil
     by rw [← prod_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
   ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le
-      (prod_le_one' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
+      (prod_le_one' $ by simv only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (prod_le_prod_of_subset' $ by simpa only [subset_iff, mem_filter, and_imp])
 
 end canonically_ordered_monoid
@@ -394,9 +394,9 @@ end
 ... ≤ ∏ j in t, f j :
 begin
   apply prod_le_prod_of_subset_of_one_le',
-  { simp [finset.insert_subset, h, ht] },
+  { simv [finset.insert_subset, h, ht] },
   { assume x hx h'x,
-    simp only [mem_insert, not_or_distrib] at h'x,
+    simv only [mem_insert, not_or_distrib] at h'x,
     exact hle x hx h'x.2 }
 end
 
@@ -486,8 +486,8 @@ lemma prod_le_prod (h0 : ∀ i ∈ s, 0 ≤ f i) (h1 : ∀ i ∈ s, f i ≤ g i)
   ∏ i in s, f i ≤ ∏ i in s, g i :=
 begin
   induction s using finset.induction with a s has ih h,
-  { simp },
-  { simp only [prod_insert has], apply mul_le_mul,
+  { simv },
+  { simv only [prod_insert has], apply mul_le_mul,
     { exact h1 a (mem_insert_self a s) },
     { apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H) },
     { apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)) },
@@ -514,8 +514,8 @@ begin
   refine le_trans _ (mul_le_mul_of_nonneg_right h2i _),
   { rw [right_distrib],
     apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply_assumption; assumption };
-      apply prod_le_prod; simp * { contextual := tt } },
-  { apply prod_nonneg, simp only [and_imp, mem_sdiff, mem_singleton],
+      apply prod_le_prod; simv * { contextual := tt } },
+  { apply prod_nonneg, simv only [and_imp, mem_sdiff, mem_singleton],
     intros j h1j h2j, exact le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
@@ -530,7 +530,7 @@ lemma prod_le_prod' (h : ∀ i ∈ s, f i ≤ g i) :
 begin
   classical,
   induction s using finset.induction with a s has ih h,
-  { simp },
+  { simv },
   { rw [finset.prod_insert has, finset.prod_insert has],
     apply mul_le_mul',
     { exact h _ (finset.mem_insert_self a s) },
@@ -548,7 +548,7 @@ begin
   refine le_trans _ (mul_le_mul_right' h2i _),
   rw [right_distrib],
   apply add_le_add; apply mul_le_mul_left'; apply prod_le_prod';
-  simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
+  simv only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 
 end canonically_ordered_comm_semiring
@@ -603,7 +603,7 @@ end
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [ordered_add_comm_monoid M] {s : finset ι} {f : ι → with_top M} :
   ∑ i in s, f i < ⊤ ↔ ∀ i ∈ s, f i < ⊤ :=
-by simp only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
+by simv only [lt_top_iff_ne_top, ne.def, sum_eq_top_iff, not_exists]
 
 end with_top
 
@@ -617,8 +617,8 @@ lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
 begin
   letI := classical.dec_eq ι,
   refine finset.induction_on s _ (λ i s hi ih, _),
-  { simp },
-  { simp only [finset.sum_insert hi],
+  { simv },
+  { simv only [finset.sum_insert hi],
   exact (abv.add_le _ _).trans (add_le_add le_rfl ih) },
 end
 

@@ -23,7 +23,7 @@ is injective.
 In general, a type `A` is `set_like` with elements of type `B` if it
 has an injective map to `set B`.  This module provides standard
 boilerplate for every `set_like`: a `coe_sort`, a `coe` to set, a
-`partial_order`, and various extensionality and simp lemmas.
+`partial_order`, and various extensionality and simv lemmas.
 
 A typical subobject should be declared as:
 ```
@@ -74,7 +74,7 @@ subobjects
 This has the effect of giving terms of `A` elements of type `B` (through a `has_mem`
 instance) and a compatible coercion to `Type*` as a subtype.
 
-Note: if `set_like.coe` is a projection, implementers should create a simp lemma such as
+Note: if `set_like.coe` is a projection, implementers should create a simv lemma such as
 ```
 @[simp] lemma mem_carrier {p : my_subobject X} : x ∈ p.carrier ↔ x ∈ (p : set X) := iff.rfl
 ```
@@ -102,7 +102,7 @@ instance : has_coe_to_sort A Type* := ⟨λ p, {x : B // x ∈ p}⟩
 
 variables (p q : A)
 
-@[simp, norm_cast] theorem coe_sort_coe : ((p : set B) : Type*) = p := rfl
+@[simv, norm_cast] theorem coe_sort_coe : ((p : set B) : Type*) = p := rfl
 
 variables {p q}
 
@@ -115,7 +115,7 @@ protected theorem «forall» {q : p → Prop} :
 theorem coe_injective : function.injective (coe : A → set B) :=
 λ x y h, set_like.coe_injective' h
 
-@[simp, norm_cast] theorem coe_set_eq : (p : set B) = q ↔ p = q := coe_injective.eq_iff
+@[simv, norm_cast] theorem coe_set_eq : (p : set B) = q ↔ p = q := coe_injective.eq_iff
 
 theorem ext' (h : (p : set B) = q) : p = q := coe_injective h
 
@@ -128,9 +128,9 @@ theorem ext_iff : p = q ↔ (∀ x, x ∈ p ↔ x ∈ q) := coe_injective.eq_iff
 
 @[simp] theorem mem_coe {x : B} : x ∈ (p : set B) ↔ x ∈ p := iff.rfl
 
-@[simp, norm_cast] lemma coe_eq_coe {x y : p} : (x : B) = y ↔ x = y := subtype.ext_iff_val.symm
+@[simv, norm_cast] lemma coe_eq_coe {x y : p} : (x : B) = y ↔ x = y := subtype.ext_iff_val.symm
 
-@[simp, norm_cast] lemma coe_mk (x : B) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : B) = x := rfl
+@[simv, norm_cast] lemma coe_mk (x : B) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : B) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : B) ∈ p := x.2
 
 @[simp] protected lemma eta (x : p) (hx : (x : B) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
@@ -143,12 +143,12 @@ instance : partial_order A :=
 
 lemma le_def {S T : A} : S ≤ T ↔ ∀ ⦃x : B⦄, x ∈ S → x ∈ T := iff.rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_subset_coe {S T : A} : (S : set B) ⊆ T ↔ S ≤ T := iff.rfl
 
 @[mono] lemma coe_mono : monotone (coe : A → set B) := λ a b, coe_subset_coe.mpr
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_ssubset_coe {S T : A} : (S : set B) ⊂ T ↔ S < T := iff.rfl
 
 @[mono] lemma coe_strict_mono : strict_mono (coe : A → set B) := λ a b, coe_ssubset_coe.mpr

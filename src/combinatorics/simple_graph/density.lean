@@ -42,7 +42,7 @@ def edge_density (s : finset α) (t : finset β) : ℚ := (interedges r s t).car
 variables {r}
 
 lemma mem_interedges_iff {x : α × β} : x ∈ interedges r s t ↔ x.1 ∈ s ∧ x.2 ∈ t ∧ r x.1 x.2 :=
-by simp only [interedges, and_assoc, mem_filter, finset.mem_product]
+by simv only [interedges, and_assoc, mem_filter, finset.mem_product]
 
 lemma mk_mem_interedges_iff : (a, b) ∈ interedges r s t ↔ a ∈ s ∧ b ∈ t ∧ r a b :=
 mem_interedges_iff
@@ -84,11 +84,11 @@ end
 
 lemma interedges_bUnion_left (s : finset ι) (t : finset β) (f : ι → finset α) :
   interedges r (s.bUnion f) t = s.bUnion (λ a, interedges r (f a) t) :=
-ext $ λ a, by simp only [mem_bUnion, mem_interedges_iff, exists_and_distrib_right]
+ext $ λ a, by simv only [mem_bUnion, mem_interedges_iff, exists_and_distrib_right]
 
 lemma interedges_bUnion_right (s : finset α) (t : finset ι) (f : ι → finset β) :
   interedges r s (t.bUnion f) = t.bUnion (λ b, interedges r s (f b)) :=
-ext $ λ a, by simp only [mem_interedges_iff, mem_bUnion, ←exists_and_distrib_left,
+ext $ λ a, by simv only [mem_interedges_iff, mem_bUnion, ←exists_and_distrib_left,
   ←exists_and_distrib_right]
 
 lemma interedges_bUnion (s : finset ι) (t : finset κ) (f : ι → finset α) (g : κ → finset β) :
@@ -151,7 +151,7 @@ lemma mul_edge_density_le_edge_density (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁)
   (ht₂ : t₂.nonempty) :
   (s₂.card : ℚ)/s₁.card * (t₂.card/t₁.card) * edge_density r s₂ t₂ ≤ edge_density r s₁ t₁ :=
 begin
-  have hst : (s₂.card : ℚ) * t₂.card ≠ 0 := by simp [hs₂.ne_empty, ht₂.ne_empty],
+  have hst : (s₂.card : ℚ) * t₂.card ≠ 0 := by simv [hs₂.ne_empty, ht₂.ne_empty],
   rw [edge_density, edge_density, div_mul_div_comm, mul_comm, div_mul_div_cancel _ hst],
   refine div_le_div_of_le (by exact_mod_cast (s₁.card * t₁.card).zero_le) _,
   exact_mod_cast card_le_of_subset (interedges_mono hs ht),
@@ -192,7 +192,7 @@ begin
   { rw [sub_nonneg, sq],
     exact mul_le_mul_of_nonneg_right (hδ₁.le.trans (by norm_num)) hδ₀ },
   rw ←sub_pos at hδ₁,
-  simp only [edge_density],
+  simv only [edge_density],
   obtain rfl | hs₂' := s₂.eq_empty_or_nonempty,
   { rw [finset.card_empty, nat.cast_zero] at hs₂,
     simpa [(nonpos_of_mul_nonpos_right hs₂ hδ₁).antisymm (nat.cast_nonneg _)] using hδ' },

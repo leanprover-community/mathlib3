@@ -108,21 +108,21 @@ lemma from_blocks_map
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : α → β) :
   (from_blocks A B C D).map f = from_blocks (A.map f) (B.map f) (C.map f) (D.map f) :=
 begin
-  ext i j, rcases i; rcases j; simp [from_blocks],
+  ext i j, rcases i; rcases j; simv [from_blocks],
 end
 
 lemma from_blocks_transpose
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   (from_blocks A B C D)ᵀ = from_blocks Aᵀ Cᵀ Bᵀ Dᵀ :=
 begin
-  ext i j, rcases i; rcases j; simp [from_blocks],
+  ext i j, rcases i; rcases j; simv [from_blocks],
 end
 
 lemma from_blocks_conj_transpose [has_star α]
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   (from_blocks A B C D)ᴴ = from_blocks Aᴴ Cᴴ Bᴴ Dᴴ :=
 begin
-  simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
+  simv only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
 @[simp] lemma from_blocks_minor_sum_swap_left
@@ -138,7 +138,7 @@ by { ext i j, cases j; dsimp; cases f i; refl }
 lemma from_blocks_minor_sum_swap_sum_swap {l m n o α : Type*}
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   (from_blocks A B C D).minor sum.swap sum.swap = from_blocks D C B A :=
-by simp
+by simv
 
 /-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
 def is_two_block_diagonal [has_zero α] (A : matrix (n ⊕ o) (l ⊕ m) α) : Prop :=
@@ -180,7 +180,7 @@ lemma from_blocks_smul [has_smul R α]
   (x : R) (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   x • (from_blocks A B C D) = from_blocks (x • A) (x • B) (x • C) (x • D) :=
 begin
-  ext i j, rcases i; rcases j; simp [from_blocks],
+  ext i j, rcases i; rcases j; simv [from_blocks],
 end
 
 lemma from_blocks_add [has_add α]
@@ -201,7 +201,7 @@ lemma from_blocks_multiply [fintype l] [fintype m] [non_unital_non_assoc_semirin
               (C ⬝ A' + D ⬝ C') (C ⬝ B' + D ⬝ D') :=
 begin
   ext i j, rcases i; rcases j;
-  simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
+  simv only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
     pi.add_apply, of_apply],
 end
 
@@ -210,26 +210,26 @@ lemma from_blocks_mul_vec [fintype l] [fintype m] [non_unital_non_assoc_semiring
   mul_vec (from_blocks A B C D) x =
   sum.elim (mul_vec A (x ∘ sum.inl) + mul_vec B (x ∘ sum.inr))
            (mul_vec C (x ∘ sum.inl) + mul_vec D (x ∘ sum.inr)) :=
-by { ext i, cases i; simp [mul_vec, dot_product] }
+by { ext i, cases i; simv [mul_vec, dot_product] }
 
 lemma vec_mul_from_blocks [fintype n] [fintype o] [non_unital_non_assoc_semiring α]
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (x : n ⊕ o → α) :
   vec_mul x (from_blocks A B C D) =
   sum.elim (vec_mul (x ∘ sum.inl) A + vec_mul (x ∘ sum.inr) C)
            (vec_mul (x ∘ sum.inl) B + vec_mul (x ∘ sum.inr) D) :=
-by { ext i, cases i; simp [vec_mul, dot_product] }
+by { ext i, cases i; simv [vec_mul, dot_product] }
 
 variables [decidable_eq l] [decidable_eq m]
 
 @[simp] lemma from_blocks_diagonal [has_zero α] (d₁ : l → α) (d₂ : m → α) :
   from_blocks (diagonal d₁) 0 0 (diagonal d₂) = diagonal (sum.elim d₁ d₂) :=
 begin
-  ext i j, rcases i; rcases j; simp [diagonal],
+  ext i j, rcases i; rcases j; simv [diagonal],
 end
 
 @[simp] lemma from_blocks_one [has_zero α] [has_one α] :
   from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
-by { ext i j, rcases i; rcases j; simp [one_apply] }
+by { ext i j, rcases i; rcases j; simv [one_apply] }
 
 end block_matrices
 
@@ -265,7 +265,7 @@ lemma block_diagonal_map (M : o → matrix m n α) (f : α → β) (hf : f 0 = 0
   (block_diagonal M).map f = block_diagonal (λ k, (M k).map f) :=
 begin
   ext,
-  simp only [map_apply, block_diagonal_apply, eq_comm],
+  simv only [map_apply, block_diagonal_apply, eq_comm],
   rw [apply_ite f, hf],
 end
 
@@ -273,7 +273,7 @@ end
   (block_diagonal M)ᵀ = block_diagonal (λ k, (M k)ᵀ) :=
 begin
   ext,
-  simp only [transpose_apply, block_diagonal_apply, eq_comm],
+  simv only [transpose_apply, block_diagonal_apply, eq_comm],
   split_ifs with h,
   { rw h },
   { refl }
@@ -283,19 +283,19 @@ end
   {α : Type*} [add_monoid α] [star_add_monoid α] (M : o → matrix m n α) :
   (block_diagonal M)ᴴ = block_diagonal (λ k, (M k)ᴴ) :=
 begin
-  simp only [conj_transpose, block_diagonal_transpose],
+  simv only [conj_transpose, block_diagonal_transpose],
   rw block_diagonal_map _ star (star_zero α),
 end
 
 @[simp] lemma block_diagonal_zero :
   block_diagonal (0 : o → matrix m n α) = 0 :=
-by { ext, simp [block_diagonal_apply] }
+by { ext, simv [block_diagonal_apply] }
 
 @[simp] lemma block_diagonal_diagonal [decidable_eq m] (d : o → m → α) :
   block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, diagonal, prod.mk.inj_iff, ← ite_and],
+  simv only [block_diagonal_apply, diagonal, prod.mk.inj_iff, ← ite_and],
   congr' 1,
   rw and_comm,
 end
@@ -311,8 +311,8 @@ end has_zero
   block_diagonal (M + N) = block_diagonal M + block_diagonal N :=
 begin
   ext,
-  simp only [block_diagonal_apply, pi.add_apply],
-  split_ifs; simp
+  simv only [block_diagonal_apply, pi.add_apply],
+  split_ifs; simv
 end
 
 section
@@ -338,8 +338,8 @@ map_sub (block_diagonal_add_monoid_hom m n o α) M N
   block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
-  split_ifs with h; simp [h]
+  simv only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
+  split_ifs with h; simv [h]
 end
 
 section
@@ -361,7 +361,7 @@ map_pow (block_diagonal_ring_hom m o α) M n
 
 @[simp] lemma block_diagonal_smul {R : Type*} [monoid R] [add_monoid α] [distrib_mul_action R α]
   (x : R) (M : o → matrix m n α) : block_diagonal (x • M) = x • block_diagonal M :=
-by { ext, simp only [block_diagonal_apply, pi.smul_apply], split_ifs; simp }
+by { ext, simv only [block_diagonal_apply, pi.smul_apply], split_ifs; simv }
 
 end block_diagonal
 
@@ -483,7 +483,7 @@ lemma block_diagonal'_map (M : Π i, matrix (m' i) (n' i) α) (f : α → β) (h
   (block_diagonal' M).map f = block_diagonal' (λ k, (M k).map f) :=
 begin
   ext,
-  simp only [map_apply, block_diagonal'_apply, eq_comm],
+  simv only [map_apply, block_diagonal'_apply, eq_comm],
   rw [apply_dite f, hf],
 end
 
@@ -491,7 +491,7 @@ end
   (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
 begin
   ext ⟨ii, ix⟩ ⟨ji, jx⟩,
-  simp only [transpose_apply, block_diagonal'_apply],
+  simv only [transpose_apply, block_diagonal'_apply],
   split_ifs; cc
 end
 
@@ -499,22 +499,22 @@ end
   (M : Π i, matrix (m' i) (n' i) α) :
   (block_diagonal' M)ᴴ = block_diagonal' (λ k, (M k)ᴴ) :=
 begin
-  simp only [conj_transpose, block_diagonal'_transpose],
+  simv only [conj_transpose, block_diagonal'_transpose],
   exact block_diagonal'_map _ star (star_zero α),
 end
 
 @[simp] lemma block_diagonal'_zero :
   block_diagonal' (0 : Π i, matrix (m' i) (n' i) α) = 0 :=
-by { ext, simp [block_diagonal'_apply] }
+by { ext, simv [block_diagonal'_apply] }
 
 @[simp] lemma block_diagonal'_diagonal [Π i, decidable_eq (m' i)] (d : Π i, m' i → α) :
   block_diagonal' (λ k, diagonal (d k)) = diagonal (λ ik, d ik.1 ik.2) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal'_apply, diagonal],
+  simv only [block_diagonal'_apply, diagonal],
   obtain rfl | hij := decidable.eq_or_ne i j,
-  { simp, },
-  { simp [hij] },
+  { simv, },
+  { simv [hij] },
 end
 
 @[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :
@@ -528,8 +528,8 @@ end has_zero
   block_diagonal' (M + N) = block_diagonal' M + block_diagonal' N :=
 begin
   ext,
-  simp only [block_diagonal'_apply, pi.add_apply],
-  split_ifs; simp
+  simv only [block_diagonal'_apply, pi.add_apply],
+  split_ifs; simv
 end
 
 
@@ -557,9 +557,9 @@ map_sub (block_diagonal'_add_monoid_hom m' n' α) M N
   block_diagonal' (λ k, M k ⬝ N k) = block_diagonal' M ⬝ block_diagonal' N :=
 begin
   ext ⟨k, i⟩ ⟨k', j⟩,
-  simp only [block_diagonal'_apply, mul_apply, ← finset.univ_sigma_univ, finset.sum_sigma],
+  simv only [block_diagonal'_apply, mul_apply, ← finset.univ_sigma_univ, finset.sum_sigma],
   rw fintype.sum_eq_single k,
-  { split_ifs; simp },
+  { split_ifs; simv },
   { intros j' hj', exact finset.sum_eq_zero (λ _ _, by rw [dif_neg hj'.symm, zero_mul]) },
 end
 
@@ -583,7 +583,7 @@ map_pow (block_diagonal'_ring_hom m' α) M n
 
 @[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α]
   (x : R) (M : Π i, matrix (m' i) (n' i) α) : block_diagonal' (x • M) = x • block_diagonal' M :=
-by { ext, simp only [block_diagonal'_apply, pi.smul_apply], split_ifs; simp }
+by { ext, simv only [block_diagonal'_apply, pi.smul_apply], split_ifs; simv }
 
 end block_diagonal'
 

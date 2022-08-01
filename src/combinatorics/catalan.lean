@@ -53,7 +53,7 @@ def catalan : ℕ → ℕ
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan
 
-@[simp] lemma catalan_one : catalan 1 = 1 := by simp [catalan_succ]
+@[simp] lemma catalan_one : catalan 1 = 1 := by simv [catalan_succ]
 
 /-- A helper sequence that can be used to prove the equality of the recursive and the explicit
 definition using a telescoping sum argument. -/
@@ -73,7 +73,7 @@ begin
   have h₂ : ((n:ℚ) - i + 1) * (n - i + 1).central_binom
     = 2 * (2 * (n - i) + 1) * (n - i).central_binom,
   { exact_mod_cast nat.succ_mul_central_binom_succ (n - i) },
-  simp only [gosper_catalan],
+  simv only [gosper_catalan],
   push_cast,
   field_simp,
   rw (nat.succ_sub h),
@@ -88,7 +88,7 @@ begin
   have : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero,
   have : (n:ℚ) + 1 + 1 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
   have h : (n:ℚ) + 2 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
-  simp only [gosper_catalan, nat.sub_zero, nat.central_binom_zero, nat.sub_self],
+  simv only [gosper_catalan, nat.sub_zero, nat.central_binom_zero, nat.sub_self],
   field_simp,
   ring,
 end
@@ -100,7 +100,7 @@ begin
   { have h := nat.succ_dvd_central_binom n,
     exact_mod_cast this },
   induction n using nat.case_strong_induction_on with d hd,
-  { simp },
+  { simv },
   { simp_rw [catalan_succ, nat.cast_sum, nat.cast_mul],
     transitivity (∑ i : fin d.succ, (nat.central_binom i / (i + 1)) * (nat.central_binom (d - i) /
                   (d - i + 1)) : ℚ),

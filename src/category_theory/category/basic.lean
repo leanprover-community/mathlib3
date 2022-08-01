@@ -102,7 +102,7 @@ extends category_struct.{v} obj : Type (max u (v+1)) :=
 restate_axiom category.id_comp'
 restate_axiom category.comp_id'
 restate_axiom category.assoc'
-attribute [simp] category.id_comp category.comp_id category.assoc
+attribute [simv] category.id_comp category.comp_id category.assoc
 attribute [trans] category_struct.comp
 
 /--
@@ -198,9 +198,9 @@ lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) �
 ⟨λ p, mono.right_cancellation g h p, congr_arg _⟩
 
 lemma cancel_epi_id (f : X ⟶ Y) [epi f] {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
-by { convert cancel_epi f, simp, }
+by { convert cancel_epi f, simv, }
 lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
-by { convert cancel_mono f, simp, }
+by { convert cancel_mono f, simv, }
 
 lemma epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
 begin
@@ -262,18 +262,18 @@ end
 end category_theory
 
 /--
-Many proofs in the category theory library use the `dsimp, simp` pattern,
+Many proofs in the category theory library use the `dsimp, simv` pattern,
 which typically isn't necessary elsewhere.
 
-One would usually hope that the same effect could be achieved simply with `simp`.
+One would usually hope that the same effect could be achieved simply with `simv`.
 
 The essential issue is that composition of morphisms involves dependent types.
 When you have a chain of morphisms being composed, say `f : X ⟶ Y` and `g : Y ⟶ Z`,
-then `simp` can operate succesfully on the morphisms
+then `simv` can operate succesfully on the morphisms
 (e.g. if `f` is the identity it can strip that off).
 
 However if we have an equality of objects, say `Y = Y'`,
-then `simp` can't operate because it would break the typing of the composition operations.
+then `simv` can't operate because it would break the typing of the composition operations.
 We rarely have interesting equalities of objects
 (because that would be "evil" --- anything interesting should be expressed as an isomorphism
 and tracked explicitly),
@@ -281,13 +281,13 @@ except of course that we have plenty of definitional equalities of objects.
 
 `dsimp` can apply these safely, even inside a composition.
 
-After `dsimp` has cleared up the object level, `simp` can resume work on the morphism level ---
-but without the `dsimp` step, because `simp` looks at expressions syntactically,
+After `dsimp` has cleared up the object level, `simv` can resume work on the morphism level ---
+but without the `dsimp` step, because `simv` looks at expressions syntactically,
 the relevant lemmas might not fire.
 
 There's no bound on how many times you potentially could have to switch back and forth,
-if the `simp` introduced new objects we again need to `dsimp`.
-In practice this does occur, but only rarely, because `simp` tends to shorten chains of compositions
+if the `simv` introduced new objects we again need to `dsimp`.
+In practice this does occur, but only rarely, because `simv` tends to shorten chains of compositions
 (i.e. not introduce new objects at all).
 -/
-library_note "dsimp, simp"
+library_note "dsimp, simv"

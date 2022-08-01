@@ -78,8 +78,8 @@ variables {k l : ℕ+}
 def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 { carrier := { ζ | ζ ^ (k : ℕ) = 1 },
   one_mem' := one_pow _,
-  mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
-  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, inv_one] at * }
+  mul_mem' := λ ζ ξ hζ hξ, by simv only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
+  inv_mem' := λ ζ hζ, by simv only [*, set.mem_set_of_eq, inv_pow, inv_one] at * }
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
@@ -106,14 +106,14 @@ lemma roots_of_unity_le_of_dvd (h : k ∣ l) : roots_of_unity k M ≤ roots_of_u
 begin
   obtain ⟨d, rfl⟩ := h,
   intros ζ h,
-  simp only [mem_roots_of_unity, pnat.mul_coe, pow_mul, one_pow, *] at *,
+  simv only [mem_roots_of_unity, pnat.mul_coe, pow_mul, one_pow, *] at *,
 end
 
 lemma map_roots_of_unity (f : Mˣ →* Nˣ) (k : ℕ+) :
   (roots_of_unity k M).map f ≤ roots_of_unity k N :=
 begin
   rintros _ ⟨ζ, h, rfl⟩,
-  simp only [←map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
+  simv only [←map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
 
 @[norm_cast] lemma roots_of_unity.coe_pow [comm_monoid R] (ζ : roots_of_unity k R) (m : ℕ) :
@@ -168,7 +168,7 @@ variables [comm_ring R] [is_domain R]
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : Rˣ} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
-by simp only [mem_roots_of_unity, mem_nth_roots k.pos, units.ext_iff, units.coe_one, units.coe_pow]
+by simv only [mem_roots_of_unity, mem_nth_roots k.pos, units.ext_iff, units.coe_one, units.coe_pow]
 
 variables (k R)
 
@@ -189,10 +189,10 @@ begin
   swap 4, { rintro ⟨x, hx⟩, ext, refl },
   all_goals
   { rcases x with ⟨x, hx⟩, rw [mem_nth_roots k.pos] at hx,
-    simp only [subtype.coe_mk, ← pow_succ, ← pow_succ', hx,
+    simv only [subtype.coe_mk, ← pow_succ, ← pow_succ', hx,
       tsub_add_cancel_of_le (show 1 ≤ (k : ℕ), from k.one_le)] },
   { show (_ : Rˣ) ^ (k : ℕ) = 1,
-    simp only [units.ext_iff, hx, units.coe_mk, units.coe_one, subtype.coe_mk, units.coe_pow] }
+    simv only [units.ext_iff, hx, units.coe_mk, units.coe_one, subtype.coe_mk, units.coe_pow] }
 end
 
 variables {k R}
@@ -243,7 +243,7 @@ variables (R) [comm_ring R] [is_reduced R]
 @[simp] lemma mem_roots_of_unity_prime_pow_mul_iff (p k : ℕ) (m : ℕ+) [hp : fact p.prime]
   [char_p R p] {ζ : Rˣ} :
   ζ ∈ roots_of_unity (⟨p, hp.1.pos⟩ ^ k * m) R ↔ ζ ∈ roots_of_unity m R :=
-by simp [mem_roots_of_unity']
+by simv [mem_roots_of_unity']
 
 end reduced
 
@@ -308,7 +308,7 @@ variables {ζ : M} (h : is_primitive_root ζ k)
 
 lemma pow_eq_one_iff_dvd (l : ℕ) : ζ ^ l = 1 ↔ k ∣ l :=
 ⟨h.dvd_of_pow_eq_one l,
-by { rintro ⟨i, rfl⟩, simp only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_coe] }⟩
+by { rintro ⟨i, rfl⟩, simv only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_coe] }⟩
 
 lemma is_unit (h : is_primitive_root ζ k) (h0 : 0 < k) : is_unit ζ :=
 begin
@@ -344,17 +344,17 @@ end
 
 @[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
   [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp [iff_def, ← submonoid_class.coe_pow]
+by simv [iff_def, ← submonoid_class.coe_pow]
 
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
+by simv only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
 
 lemma pow_of_coprime (h : is_primitive_root ζ k) (i : ℕ) (hi : i.coprime k) :
   is_primitive_root (ζ ^ i) k :=
 begin
   by_cases h0 : k = 0,
-  { subst k, simp only [*, pow_one, nat.coprime_zero_right] at * },
+  { subst k, simv only [*, pow_one, nat.coprime_zero_right] at * },
   rcases h.is_unit (nat.pos_of_ne_zero h0) with ⟨ζ, rfl⟩,
   rw [← units.coe_pow],
   rw coe_units_iff at h ⊢,
@@ -365,7 +365,7 @@ begin
   apply h.dvd_of_pow_eq_one,
   rw [← pow_one ζ, ← zpow_coe_nat ζ, ← hi.gcd_eq_one, nat.gcd_eq_gcd_ab, zpow_add,
       mul_pow, ← zpow_coe_nat, ← zpow_mul, mul_right_comm],
-  simp only [zpow_mul, hl, h.pow_eq_one, one_zpow, one_pow, one_mul, zpow_coe_nat]
+  simv only [zpow_mul, hl, h.pow_eq_one, one_zpow, one_pow, one_mul, zpow_coe_nat]
 end
 
 lemma pow_of_prime (h : is_primitive_root ζ k) {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ k) :
@@ -432,7 +432,7 @@ lemma pow {n : ℕ} {a b : ℕ} (hn : 0 < n) (h : is_primitive_root ζ n) (hprod
   is_primitive_root (ζ ^ a) b :=
 begin
   subst n,
-  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
+  simv only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
   intros l hl,
   have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
   rwa ← mul_dvd_mul_iff_left ha0,
@@ -465,7 +465,7 @@ lemma zpow_eq_one_iff_dvd (h : is_primitive_root ζ k) (l : ℤ) :
 begin
   by_cases h0 : 0 ≤ l,
   { lift l to ℕ using h0, rw [zpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
-  { have : 0 ≤ -l, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
+  { have : 0 ≤ -l, { simv only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
@@ -473,7 +473,7 @@ begin
 end
 
 lemma inv (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
+{ pow_eq_one := by simv only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
@@ -491,7 +491,7 @@ begin
   { lift i to ℕ using h0,
     rw zpow_coe_nat,
     exact h.pow_of_coprime i hi },
-  have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
+  have : 0 ≤ -i, { simv only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
   rw [← inv_iff, ← zpow_neg, ← hi', zpow_coe_nat],
   apply h.pow_of_coprime,
@@ -513,7 +513,7 @@ lemma zpow_eq_one_iff_dvd₀ (h : is_primitive_root ζ k) (l : ℤ) :
 begin
   by_cases h0 : 0 ≤ l,
   { lift l to ℕ using h0, rw [zpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
-  { have : 0 ≤ -l, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
+  { have : 0 ≤ -l, { simv only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
@@ -521,7 +521,7 @@ begin
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
+{ pow_eq_one := by simv only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
@@ -539,7 +539,7 @@ begin
   { lift i to ℕ using h0,
     rw zpow_coe_nat,
     exact h.pow_of_coprime i hi },
-  have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
+  have : 0 ≤ -i, { simv only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
   rw [← inv_iff', ← zpow_neg, ← hi', zpow_coe_nat],
   apply h.pow_of_coprime,
@@ -590,7 +590,7 @@ variables [comm_ring R] [is_domain R]
 @[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
 begin
   rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
-    simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
+    simv only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
     finset.filter_true_of_mem, finset.empty_val, not_false_iff,
     multiset.zero_subset, nth_roots_zero]
 end
@@ -599,7 +599,7 @@ end
 begin
   apply finset.eq_singleton_iff_unique_mem.2,
   split,
-  { simp only [is_primitive_root.one_right_iff, mem_primitive_roots zero_lt_one] },
+  { simv only [is_primitive_root.one_right_iff, mem_primitive_roots zero_lt_one] },
   { intros x hx,
     rw [mem_primitive_roots zero_lt_one, is_primitive_root.one_right_iff] at hx,
     exact hx }
@@ -639,7 +639,7 @@ lemma eq_neg_one_of_two_right [no_zero_divisors R] {ζ : R} (h : is_primitive_ro
 begin
   apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
   { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
-  { simp only [h.pow_eq_one, one_pow] }
+  { simv only [h.pow_eq_one, one_pow] }
 end
 
 lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
@@ -655,14 +655,14 @@ def zmod_equiv_zpowers (h : is_primitive_root ζ k) : zmod k ≃+ additive (subg
 add_equiv.of_bijective
   (add_monoid_hom.lift_of_right_inverse (int.cast_add_hom $ zmod k) _ zmod.int_cast_right_inverse
     ⟨{ to_fun := λ i, additive.of_mul (⟨_, i, rfl⟩ : subgroup.zpowers ζ),
-      map_zero' := by { simp only [zpow_zero], refl },
-      map_add' := by { intros i j, simp only [zpow_add], refl } },
+      map_zero' := by { simv only [zpow_zero], refl },
+      map_add' := by { intros i j, simv only [zpow_add], refl } },
     (λ i hi,
     begin
-      simp only [add_monoid_hom.mem_ker, char_p.int_cast_eq_zero_iff (zmod k) k,
+      simv only [add_monoid_hom.mem_ker, char_p.int_cast_eq_zero_iff (zmod k) k,
         add_monoid_hom.coe_mk, int.coe_cast_add_hom] at hi ⊢,
       obtain ⟨i, rfl⟩ := hi,
-      simp only [zpow_mul, h.pow_eq_one, one_zpow, zpow_coe_nat],
+      simv only [zpow_mul, h.pow_eq_one, one_zpow, zpow_coe_nat],
       refl
     end)⟩)
   begin
@@ -687,7 +687,7 @@ add_monoid_hom.lift_of_right_inverse_comp_apply _ _ zmod.int_cast_right_inverse 
   h.zmod_equiv_zpowers i = additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.zpowers ζ) :=
 begin
   have : (i : zmod k) = (i : ℤ), by norm_cast,
-  simp only [this, zmod_equiv_zpowers_apply_coe_int, zpow_coe_nat],
+  simv only [this, zmod_equiv_zpowers_apply_coe_int, zpow_coe_nat],
   refl
 end
 
@@ -747,7 +747,7 @@ begin
   obtain ⟨ζ, rfl⟩ := h.is_unit h0,
   obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
   obtain ⟨k, rfl⟩ : ∃ k' : ℕ+, k = k' := ⟨⟨k, h0⟩, rfl⟩,
-  simp only [← units.coe_pow, ← units.ext_iff],
+  simv only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,
   apply h.eq_pow_of_mem_roots_of_unity,
   rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, hξ, units.coe_one]
@@ -801,7 +801,7 @@ lemma card_nth_roots {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (nth_roots n (1 : R)).card = n :=
 begin
   cases nat.eq_zero_or_pos n with hzero hpos,
-  { simp only [hzero, multiset.card_zero, nth_roots_zero] },
+  { simv only [hzero, multiset.card_zero, nth_roots_zero] },
   rw eq_iff_le_not_lt,
   use card_nth_roots n 1,
   { rw [not_lt],
@@ -819,7 +819,7 @@ if there is a primitive root of unity in `R`. -/
 lemma nth_roots_nodup {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) : (nth_roots n (1 : R)).nodup :=
 begin
   cases nat.eq_zero_or_pos n with hzero hpos,
-  { simp only [hzero, multiset.nodup_zero, nth_roots_zero] },
+  { simv only [hzero, multiset.nodup_zero, nth_roots_zero] },
   apply (@multiset.dedup_eq_self R _ _).1,
   rw eq_iff_le_not_lt,
   split,
@@ -832,7 +832,7 @@ begin
     { set fs := (⟨(nth_roots n (1 : R)).dedup, multiset.nodup_dedup _⟩ : finset R),
       rw [← finset.card_mk, ← fintype.card_of_subtype fs _],
       intro x,
-      simp only [multiset.mem_dedup, finset.mem_mk] },
+      simv only [multiset.mem_dedup, finset.mem_mk] },
     rw ← pnat.to_pnat'_coe hpos at h hrw ha,
     set m := nat.to_pnat' n,
     rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R m),
@@ -851,17 +851,17 @@ lemma card_primitive_roots {ζ : R} {k : ℕ} (h : is_primitive_root ζ k) :
   (primitive_roots k R).card = φ k :=
 begin
   by_cases h0 : k = 0,
-  { simp [h0], },
+  { simv [h0], },
   symmetry,
   refine finset.card_congr (λ i _, ζ ^ i) _ _ _,
-  { simp only [true_and, and_imp, mem_filter, mem_range, mem_univ],
+  { simv only [true_and, and_imp, mem_filter, mem_range, mem_univ],
     rintro i - hi,
     rw mem_primitive_roots (nat.pos_of_ne_zero h0),
     exact h.pow_of_coprime i hi.symm },
-  { simp only [true_and, and_imp, mem_filter, mem_range, mem_univ],
+  { simv only [true_and, and_imp, mem_filter, mem_range, mem_univ],
     rintro i j hi - hj - H,
     exact h.pow_inj hi hj H },
-  { simp only [exists_prop, true_and, mem_filter, mem_range, mem_univ],
+  { simv only [exists_prop, true_and, mem_filter, mem_range, mem_univ],
     intros ξ hξ,
     rw [mem_primitive_roots (nat.pos_of_ne_zero h0),
       h.is_primitive_root_iff (nat.pos_of_ne_zero h0)] at hξ,
@@ -873,10 +873,10 @@ end
 lemma disjoint {k l : ℕ} (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
 begin
-  by_cases hk : k = 0, { simp [hk], },
-  by_cases hl : l = 0, { simp [hl], },
+  by_cases hk : k = 0, { simv [hk], },
+  by_cases hl : l = 0, { simv [hl], },
   intro z,
-  simp only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots,
+  simv only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots,
     nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
   rintro ⟨⟨hzk, Hzk⟩, ⟨hzl, Hzl⟩⟩,
   apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
@@ -891,13 +891,13 @@ begin
   symmetry,
   apply finset.eq_of_subset_of_card_le,
   { intros x,
-    simp only [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h),
+    simv only [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h),
       exists_prop, finset.mem_bUnion, finset.mem_filter, finset.mem_range, mem_nth_roots,
       finset.mem_mk, nat.mem_divisors, and_true, ne.def, pnat.ne_zero, pnat.pos, not_false_iff],
     rintro ⟨a, ⟨d, hd⟩, ha⟩,
     have hazero : 0 < a,
     { contrapose! hd with ha0,
-      simp only [nonpos_iff_eq_zero, zero_mul, *] at *,
+      simv only [nonpos_iff_eq_zero, zero_mul, *] at *,
       exact n.ne_zero },
     rw mem_primitive_roots hazero at ha,
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
@@ -905,7 +905,7 @@ begin
     rw [h.card_nth_roots_finset, finset.card_bUnion],
     { nth_rewrite_lhs 0 ← nat.sum_totient n,
       refine sum_congr rfl _,
-      simp only [nat.mem_divisors],
+      simv only [nat.mem_divisors],
       rintro k ⟨⟨d, hd⟩, -⟩,
       rw mul_comm at hd,
       rw (h.pow n.pos hd).card_primitive_roots },
@@ -920,7 +920,7 @@ lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ}
   nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
 begin
   by_cases hn : n = 0,
-  { simp [hn], },
+  { simv [hn], },
   exact @nth_roots_one_eq_bUnion_primitive_roots' _ _ _ _ ⟨n, nat.pos_of_ne_zero hn⟩ h
 end
 
@@ -941,7 +941,7 @@ begin
   use (X ^ n - 1),
   split,
   { exact (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm) },
-  { simp only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
+  { simv only [((is_primitive_root.iff_def μ n).mp h).left, eval₂_one, eval₂_X_pow, eval₂_sub,
       sub_self] }
 end
 end comm_ring
@@ -956,10 +956,10 @@ omit hpos
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
-  by_cases hpos : n = 0, { simp [hpos], },
+  by_cases hpos : n = 0, { simv [hpos], },
   apply minpoly.gcd_domain_dvd (is_integral h (nat.pos_of_ne_zero hpos))
     (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm).ne_zero,
-  simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
+  simv only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
 
@@ -988,7 +988,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
   minpoly ℤ μ ∣
   expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  by_cases hn : n = 0, { simp * at *, },
+  by_cases hn : n = 0, { simv * at *, },
   have hpos := nat.pos_of_ne_zero hn,
   refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
   { apply monic.ne_zero,
@@ -1029,7 +1029,7 @@ and of `μ ^ p` are the same. -/
 lemma minpoly_eq_pow {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
   minpoly ℤ μ = minpoly ℤ (μ ^ p) :=
 begin
-  by_cases hn : n = 0, { simp * at *, },
+  by_cases hn : n = 0, { simv * at *, },
   have hpos := nat.pos_of_ne_zero hn,
   by_contra hdiff,
   set P := minpoly ℤ μ,
@@ -1072,7 +1072,7 @@ begin
   { replace hunit := degree_eq_zero_of_is_unit hunit,
     rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom (zmod p)) _ at hunit,
     { exact (minpoly.degree_pos (is_integral h hpos)).ne' hunit },
-    simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
+    simv only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
       not_false_iff, one_ne_zero] }
 end
 
@@ -1089,7 +1089,7 @@ begin
     simpa [(nat.coprime_zero_left n).mp hn] using h },
   { intros u hunit n hcop h,
     congr,
-    simp [nat.is_unit_iff.mp hunit] },
+    simv [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h,
     rw hind (nat.coprime.coprime_mul_left hcop) h, clear hind,
     replace hprime := nat.prime_iff.2 hprime,
@@ -1113,7 +1113,7 @@ by simpa [minpoly_eq_pow_coprime h hcop, eval_map, aeval_def (μ ^ m) _]
 lemma is_roots_of_minpoly : primitive_roots n K ⊆ (map (int.cast_ring_hom K)
   (minpoly ℤ μ)).roots.to_finset :=
 begin
-  by_cases hn : n = 0, { simp * at *, },
+  by_cases hn : n = 0, { simv * at *, },
   have hpos := nat.pos_of_ne_zero hn,
   intros x hx,
   obtain ⟨m, hle, hcop, rfl⟩ := (is_primitive_root_iff h hpos).1 ((mem_primitive_roots hpos).1 hx),

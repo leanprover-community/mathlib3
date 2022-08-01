@@ -40,7 +40,7 @@ begin
   have H : (6:ℤ) * a (p - 2) ≡ 0 [ZMOD p],
   calc (6:ℤ) * a (p - 2)
       = 3 * 2 ^ (p - 1) + 2 * 3 ^ (p - 1) + 6 ^ (p - 1) - 6 :
-  by { simp only [a, mul_add, mul_sub, hp_sub_one, pow_succ], ring, }
+  by { simv only [a, mul_add, mul_sub, hp_sub_one, pow_succ], ring, }
   ... ≡ 3 * 1 + 2 * 1 + 1 - 6 [ZMOD p] : -- At this step we use Fermat's little theorem
   by { apply_rules [int.modeq.sub_right, int.modeq.add, int.modeq.mul_left,
     int.modeq.pow_card_sub_one_eq_one hp] }

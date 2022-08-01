@@ -57,12 +57,12 @@ by rw [sub_smul_slope, vsub_vadd]
   slope (λ x, f x +ᵥ c) = slope f :=
 begin
   ext a b,
-  simp only [slope, vadd_vsub_vadd_cancel_right, vsub_eq_sub]
+  simv only [slope, vadd_vsub_vadd_cancel_right, vsub_eq_sub]
 end
 
 @[simp] lemma slope_sub_smul (f : k → E) {a b : k} (h : a ≠ b):
   slope (λ x, (x - a) • f x) a b = f b :=
-by simp [slope, inv_smul_smul₀ (sub_ne_zero.2 h.symm)]
+by simv [slope, inv_smul_smul₀ (sub_ne_zero.2 h.symm)]
 
 lemma eq_of_slope_eq_zero {f : k → PE} {a b : k} (h : slope f a b = (0:E)) : f a = f b :=
 by rw [← sub_smul_slope_vadd f a b, h, smul_zero, zero_vadd]
@@ -70,7 +70,7 @@ by rw [← sub_smul_slope_vadd f a b, h, smul_zero, zero_vadd]
 lemma affine_map.slope_comp {F PF : Type*} [add_comm_group F] [module k F] [add_torsor F PF]
   (f : PE →ᵃ[k] PF) (g : k → PE) (a b : k) :
   slope (f ∘ g) a b = f.linear (slope g a b) :=
-by simp only [slope, (∘), f.linear.map_smul, f.linear_map_vsub]
+by simv only [slope, (∘), f.linear.map_smul, f.linear_map_vsub]
 
 lemma linear_map.slope_comp {F : Type*} [add_comm_group F] [module k F]
   (f : E →ₗ[k] F) (g : k → E) (a b : k) :
@@ -90,9 +90,9 @@ begin
   { subst hab,
     rw [sub_self, zero_div, zero_smul, zero_add],
     by_cases hac : a = c,
-    { simp [hac] },
+    { simv [hac] },
     { rw [div_self (sub_ne_zero.2 $ ne.symm hac), one_smul] } },
-  by_cases hbc : b = c, { subst hbc, simp [sub_ne_zero.2 (ne.symm hab)] },
+  by_cases hbc : b = c, { subst hbc, simv [sub_ne_zero.2 (ne.symm hab)] },
   rw [add_comm],
   simp_rw [slope, div_eq_inv_mul, mul_smul, ← smul_add,
     smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hab), smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hbc),
@@ -111,7 +111,7 @@ by  field_simp [sub_ne_zero.2 h.symm, ← sub_div_sub_smul_slope_add_sub_div_sub
 lemma line_map_slope_line_map_slope_line_map (f : k → PE) (a b r : k) :
   line_map (slope f (line_map a b r) b) (slope f a (line_map a b r)) r = slope f a b :=
 begin
-  obtain (rfl|hab) : a = b ∨ a ≠ b := classical.em _, { simp },
+  obtain (rfl|hab) : a = b ∨ a ≠ b := classical.em _, { simv },
   rw [slope_comm _ a, slope_comm _ a, slope_comm _ _ b],
   convert line_map_slope_slope_sub_div_sub f b (line_map a b r) a hab.symm using 2,
   rw [line_map_apply_ring, eq_div_iff (sub_ne_zero.2 hab), sub_mul, one_mul, mul_sub, ← sub_sub,

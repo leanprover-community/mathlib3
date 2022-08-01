@@ -71,7 +71,7 @@ def pre_weight_space (χ : L → R) : submodule R M :=
 
 lemma mem_pre_weight_space (χ : L → R) (m : M) :
   m ∈ pre_weight_space M χ ↔ ∀ x, ∃ (k : ℕ), ((to_endomorphism R L M x - (χ x) • 1)^k) m = 0 :=
-by simp [pre_weight_space, -linear_map.pow_apply]
+by simv [pre_weight_space, -linear_map.pow_apply]
 
 variables (R)
 
@@ -79,7 +79,7 @@ lemma exists_pre_weight_space_zero_le_ker_of_is_noetherian [is_noetherian R M] (
   ∃ (k : ℕ), pre_weight_space M (0 : L → R) ≤ ((to_endomorphism R L M x)^k).ker :=
 begin
   use (to_endomorphism R L M x).maximal_generalized_eigenspace_index 0,
-  simp only [← module.End.generalized_eigenspace_zero, pre_weight_space, pi.zero_apply, infi_le,
+  simv only [← module.End.generalized_eigenspace_zero, pre_weight_space, pi.zero_apply, infi_le,
     ← (to_endomorphism R L M x).maximal_generalized_eigenspace_eq],
 end
 
@@ -97,7 +97,7 @@ protected lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w�
 begin
   /- Unpack the statement of the goal. -/
   intros m₃,
-  simp only [lie_module_hom.coe_to_linear_map, pi.add_apply, function.comp_app,
+  simv only [lie_module_hom.coe_to_linear_map, pi.add_apply, function.comp_app,
     mem_pre_weight_space, linear_map.coe_comp, tensor_product.map_incl, exists_imp_distrib,
     linear_map.mem_range],
   rintros t rfl x,
@@ -108,10 +108,10 @@ begin
 
   /- The goal is linear in `t` so use induction to reduce to the case that `t` is a pure tensor. -/
   apply t.induction_on,
-  { use 0, simp only [linear_map.map_zero, lie_module_hom.map_zero], },
+  { use 0, simv only [linear_map.map_zero, lie_module_hom.map_zero], },
   swap,
   { rintros t₁ t₂ ⟨k₁, hk₁⟩ ⟨k₂, hk₂⟩, use max k₁ k₂,
-    simp only [lie_module_hom.map_add, linear_map.map_add,
+    simv only [lie_module_hom.map_add, linear_map.map_add,
       linear_map.pow_map_zero_of_le (le_max_left k₁ k₂) hk₁,
       linear_map.pow_map_zero_of_le (le_max_right k₁ k₂) hk₂, add_zero], },
 
@@ -123,7 +123,7 @@ begin
   let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
   let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
   have h_comm_square : F ∘ₗ ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
-  { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, sub_tmul, tmul_sub, smul_tmul,
+  { ext m₁ m₂, simv only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, sub_tmul, tmul_sub, smul_tmul,
       lie_tmul_right, tmul_smul, to_endomorphism_apply_apply, lie_module_hom.map_smul,
       linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.smul_apply,
       function.comp_app, linear_map.coe_comp, linear_map.rtensor_tmul, lie_module_hom.map_add,
@@ -136,22 +136,22 @@ begin
       linear_map.comp_apply, hk, linear_map.map_zero], },
 
   /- Unpack the information we have about `m₁`, `m₂`. -/
-  simp only [mem_pre_weight_space] at hm₁ hm₂,
+  simv only [mem_pre_weight_space] at hm₁ hm₂,
   obtain ⟨k₁, hk₁⟩ := hm₁ x,
   obtain ⟨k₂, hk₂⟩ := hm₂ x,
   have hf₁ : (f₁^k₁) (m₁ ⊗ₜ m₂) = 0,
-  { simp only [hk₁, zero_tmul, linear_map.rtensor_tmul, linear_map.rtensor_pow], },
+  { simv only [hk₁, zero_tmul, linear_map.rtensor_tmul, linear_map.rtensor_pow], },
   have hf₂ : (f₂^k₂) (m₁ ⊗ₜ m₂) = 0,
-  { simp only [hk₂, tmul_zero, linear_map.ltensor_tmul, linear_map.ltensor_pow], },
+  { simv only [hk₂, tmul_zero, linear_map.ltensor_tmul, linear_map.ltensor_pow], },
 
   /- It's now just an application of the binomial theorem. -/
   use k₁ + k₂ - 1,
   have hf_comm : commute f₁ f₂,
-  { ext m₁ m₂, simp only [linear_map.mul_apply, linear_map.rtensor_tmul, linear_map.ltensor_tmul,
+  { ext m₁ m₂, simv only [linear_map.mul_apply, linear_map.rtensor_tmul, linear_map.ltensor_tmul,
       algebra_tensor_module.curry_apply, linear_map.to_fun_eq_coe, linear_map.ltensor_tmul,
       curry_apply, linear_map.coe_restrict_scalars_eq_coe], },
   rw hf_comm.add_pow',
-  simp only [tensor_product.map_incl, submodule.subtype_apply, finset.sum_apply,
+  simv only [tensor_product.map_incl, submodule.subtype_apply, finset.sum_apply,
     submodule.coe_mk, linear_map.coe_fn_sum, tensor_product.map_tmul, linear_map.smul_apply],
 
   /- The required sum is zero because each individual term is zero. -/
@@ -175,10 +175,10 @@ lemma lie_mem_pre_weight_space_of_mem_pre_weight_space {χ₁ χ₂ : L → R} {
   ⁅x, m⁆ ∈ pre_weight_space M (χ₁ + χ₂) :=
 begin
   apply lie_module.weight_vector_multiplication L L M M (to_module_hom R L M) χ₁ χ₂,
-  simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
+  simv only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
     tensor_product.map_incl, linear_map.mem_range],
   use [⟨x, hx⟩ ⊗ₜ ⟨m, hm⟩],
-  simp only [submodule.subtype_apply, to_module_hom_apply, tensor_product.map_tmul],
+  simv only [submodule.subtype_apply, to_module_hom_apply, tensor_product.map_tmul],
   refl,
 end
 
@@ -190,7 +190,7 @@ def weight_space [lie_algebra.is_nilpotent R L] (χ : L → R) : lie_submodule R
   begin
     rw ← zero_add χ,
     refine lie_mem_pre_weight_space_of_mem_pre_weight_space _ hm,
-    suffices : pre_weight_space L (0 : L → R) = ⊤, { simp only [this, submodule.mem_top], },
+    suffices : pre_weight_space L (0 : L → R) = ⊤, { simv only [this, submodule.mem_top], },
     exact lie_algebra.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L,
   end,
   .. pre_weight_space M χ }
@@ -212,7 +212,7 @@ lemma coe_weight_space_of_top [lie_algebra.is_nilpotent R L] (χ : L → R) :
   (weight_space M (χ ∘ (⊤ : lie_subalgebra R L).incl) : submodule R M) = weight_space M χ :=
 begin
   ext m,
-  simp only [weight_space, lie_submodule.coe_to_submodule_mk, lie_subalgebra.coe_bracket_of_module,
+  simv only [weight_space, lie_submodule.coe_to_submodule_mk, lie_subalgebra.coe_bracket_of_module,
     function.comp_app, mem_pre_weight_space],
   split; intros h x,
   { obtain ⟨k, hk⟩ := h ⟨x, set.mem_univ x⟩, use k, exact hk, },
@@ -291,13 +291,13 @@ begin
   let g : H → module.End R H := λ y, to_endomorphism R H H y - (χ y) • 1,
   suffices : (∀ (y : H), ∃ (k : ℕ), ((f y)^k).comp (H.incl : H →ₗ[R] L) x = 0) ↔
               ∀ (y : H), ∃ (k : ℕ), (H.incl : H →ₗ[R] L).comp ((g y)^k) x = 0,
-  { simp only [lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, function.comp_app,
+  { simv only [lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, function.comp_app,
       linear_map.coe_comp, submodule.coe_eq_zero] at this,
-    simp only [mem_weight_space, mem_pre_weight_space,
+    simv only [mem_weight_space, mem_pre_weight_space,
       lie_subalgebra.coe_incl', lie_submodule.mem_comap, this], },
   have hfg : ∀ (y : H), (f y).comp (H.incl : H →ₗ[R] L) = (H.incl : H →ₗ[R] L).comp (g y),
   { rintros ⟨y, hy⟩, ext ⟨z, hz⟩,
-    simp only [submodule.coe_sub, to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
+    simv only [submodule.coe_sub, to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
       linear_map.one_apply, lie_subalgebra.coe_incl, lie_subalgebra.coe_bracket_of_module,
       lie_subalgebra.coe_bracket, linear_map.smul_apply, function.comp_app,
       submodule.coe_smul_of_tower, linear_map.coe_comp, linear_map.sub_apply], },
@@ -311,10 +311,10 @@ lemma lie_mem_weight_space_of_mem_weight_space {χ₁ χ₂ : H → R} {x : L} {
 begin
   apply lie_module.weight_vector_multiplication
     H L M M ((to_module_hom R L M).restrict_lie H) χ₁ χ₂,
-  simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
+  simv only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
     tensor_product.map_incl, linear_map.mem_range],
   use [⟨x, hx⟩ ⊗ₜ ⟨m, hm⟩],
-  simp only [submodule.subtype_apply, to_module_hom_apply, submodule.coe_mk,
+  simv only [submodule.subtype_apply, to_module_hom_apply, submodule.coe_mk,
     lie_module_hom.coe_restrict_lie, tensor_product.map_tmul],
 end
 
@@ -330,14 +330,14 @@ def root_space_weight_space_product_aux {χ₁ χ₂ χ₃ : H → R} (hχ : χ�
   { to_fun    :=
       λ m, ⟨⁅(x : L), (m : M)⁆,
             hχ ▸ (lie_mem_weight_space_of_mem_weight_space x.property m.property) ⟩,
-    map_add'  := λ m n, by { simp only [lie_submodule.coe_add, lie_add], refl, },
+    map_add'  := λ m n, by { simv only [lie_submodule.coe_add, lie_add], refl, },
     map_smul' := λ t m, by { conv_lhs { congr, rw [lie_submodule.coe_smul, lie_smul], }, refl, }, },
   map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
     linear_map.coe_mk, subtype.coe_mk, lie_submodule.coe_add, lie_submodule.coe_add, add_lie,
     subtype.coe_mk, subtype.coe_mk],
   map_smul' := λ t x,
   begin
-    simp only [ring_hom.id_apply],
+    simv only [ring_hom.id_apply],
     ext m,
     rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
       subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
@@ -359,7 +359,7 @@ lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
 @[simp] lemma coe_root_space_weight_space_product_tmul
   (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) (x : root_space H χ₁) (m : weight_space M χ₂) :
   (root_space_weight_space_product R L H M χ₁ χ₂ χ₃ hχ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
-by simp only [root_space_weight_space_product, root_space_weight_space_product_aux,
+by simv only [root_space_weight_space_product, root_space_weight_space_product_aux,
   lift_apply, lie_module_hom.coe_to_linear_map,
   coe_lift_lie_eq_lift_coe, submodule.coe_mk, linear_map.coe_mk, lie_module_hom.coe_mk]
 
@@ -376,7 +376,7 @@ rfl
 lemma root_space_product_tmul
   (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) (x : root_space H χ₁) (y : root_space H χ₂) :
   (root_space_product R L H χ₁ χ₂ χ₃ hχ (x ⊗ₜ y) : L) = ⁅(x : L), (y : L)⁆ :=
-by simp only [root_space_product_def, coe_root_space_weight_space_product_tmul]
+by simv only [root_space_product_def, coe_root_space_weight_space_product_tmul]
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L`, the root space of the zero map `0 : H → R` is a Lie
 subalgebra of `L`. -/
@@ -394,29 +394,29 @@ rfl
 
 lemma mem_zero_root_subalgebra (x : L) :
   x ∈ zero_root_subalgebra R L H ↔ ∀ (y : H), ∃ (k : ℕ), ((to_endomorphism R H L y)^k) x = 0 :=
-by simp only [zero_root_subalgebra, mem_weight_space, mem_pre_weight_space, pi.zero_apply, sub_zero,
+by simv only [zero_root_subalgebra, mem_weight_space, mem_pre_weight_space, pi.zero_apply, sub_zero,
   set_like.mem_coe, zero_smul, lie_submodule.mem_coe_submodule, submodule.mem_carrier,
   lie_subalgebra.mem_mk_iff]
 
 lemma to_lie_submodule_le_root_space_zero : H.to_lie_submodule ≤ root_space H 0 :=
 begin
   intros x hx,
-  simp only [lie_subalgebra.mem_to_lie_submodule] at hx,
-  simp only [mem_weight_space, mem_pre_weight_space, pi.zero_apply, sub_zero, zero_smul],
+  simv only [lie_subalgebra.mem_to_lie_submodule] at hx,
+  simv only [mem_weight_space, mem_pre_weight_space, pi.zero_apply, sub_zero, zero_smul],
   intros y,
   unfreezingI { obtain ⟨k, hk⟩ := (infer_instance : is_nilpotent R H) },
   use k,
   let f : module.End R H := to_endomorphism R H H y,
   let g : module.End R L := to_endomorphism R H L y,
   have hfg : g.comp (H : submodule R L).subtype = (H : submodule R L).subtype.comp f,
-  { ext z, simp only [to_endomorphism_apply_apply, submodule.subtype_apply,
+  { ext z, simv only [to_endomorphism_apply_apply, submodule.subtype_apply,
       lie_subalgebra.coe_bracket_of_module, lie_subalgebra.coe_bracket, function.comp_app,
       linear_map.coe_comp], },
   change (g^k).comp (H : submodule R L).subtype ⟨x, hx⟩ = 0,
   rw linear_map.commute_pow_left_of_commute hfg k,
   have h := iterate_to_endomorphism_mem_lower_central_series R H H y ⟨x, hx⟩ k,
   rw [hk, lie_submodule.mem_bot] at h,
-  simp only [submodule.subtype_apply, function.comp_app, linear_map.pow_apply, linear_map.coe_comp,
+  simv only [submodule.subtype_apply, function.comp_app, linear_map.pow_apply, linear_map.coe_comp,
     submodule.coe_eq_zero],
   exact h,
 end
@@ -462,12 +462,12 @@ begin
   refine le_antisymm _ (le_zero_root_subalgebra R L H),
   suffices : root_space H 0 ≤ H.to_lie_submodule, { exact λ x hx, this hx, },
   obtain ⟨k, hk⟩ := (root_space H 0).is_nilpotent_iff_exists_self_le_ucs.mp (by apply_instance),
-  exact hk.trans (lie_submodule.ucs_le_of_centralizer_eq_self (by simp) k),
+  exact hk.trans (lie_submodule.ucs_le_of_centralizer_eq_self (by simv) k),
 end
 
 lemma zero_root_subalgebra_eq_iff_is_cartan [is_noetherian R L] :
   zero_root_subalgebra R L H = H ↔ H.is_cartan_subalgebra :=
-⟨is_cartan_of_zero_root_subalgebra_eq R L H, by { introsI, simp, }⟩
+⟨is_cartan_of_zero_root_subalgebra_eq R L H, by { introsI, simv, }⟩
 
 end lie_algebra
 

@@ -116,9 +116,9 @@ instance : category LocallyRingedSpace :=
 { hom := hom,
   id := id,
   comp := λ X Y Z f g, comp f g,
-  comp_id' := by { intros, ext1, simp, },
-  id_comp' := by { intros, ext1, simp, },
-  assoc' := by { intros, ext1, simp, }, }.
+  comp_id' := by { intros, ext1, simv, },
+  id_comp' := by { intros, ext1, simv, },
+  assoc' := by { intros, ext1, simv, }, }.
 
 /-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
 @[simps] def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
@@ -253,7 +253,7 @@ end
   X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
 begin
   ext,
-  simp only [set.mem_empty_eq, topological_space.opens.empty_eq, topological_space.opens.mem_coe,
+  simv only [set.mem_empty_eq, topological_space.opens.empty_eq, topological_space.opens.mem_coe,
     opens.coe_bot, iff_false, RingedSpace.basic_open, is_unit_zero_iff, set.mem_set_of_eq,
     map_zero],
   rintro ⟨⟨y, _⟩, h, e⟩,

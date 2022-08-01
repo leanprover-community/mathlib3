@@ -20,7 +20,7 @@ theorem dist_eq (x y : ℕ) : dist x y = |x - y| := rfl
 
 lemma dist_coe_int (x y : ℕ) : dist (x : ℤ) (y : ℤ) = dist x y := rfl
 
-@[norm_cast, simp] theorem dist_cast_real (x y : ℕ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simv] theorem dist_cast_real (x y : ℕ) : dist (x : ℝ) y = dist x y := rfl
 
 lemma pairwise_one_le_dist : pairwise (λ m n : ℕ, 1 ≤ dist m n) :=
 begin
@@ -64,6 +64,6 @@ instance : proper_space ℕ :=
   end ⟩
 
 instance : noncompact_space ℕ :=
-noncompact_space_of_ne_bot $ by simp [filter.at_top_ne_bot]
+noncompact_space_of_ne_bot $ by simv [filter.at_top_ne_bot]
 
 end nat

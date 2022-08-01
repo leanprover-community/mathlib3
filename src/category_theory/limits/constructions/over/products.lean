@@ -63,7 +63,7 @@ def cones_equiv_inverse (B : C) {J : Type w} (F : discrete J ⥤ over B) :
     w' := λ j,
     begin
       cases j,
-      { simp },
+      { simv },
       { dsimp,
         rw ← f.w ⟨j⟩,
         refl }

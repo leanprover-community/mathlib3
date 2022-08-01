@@ -93,10 +93,10 @@ lemma grading.right_inv :
   function.right_inverse (coe_linear_map (grading R)) grading.decompose := λ zz,
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
-  { simp only [map_zero],},
+  { simv only [map_zero],},
   { rcases i with (_|⟨⟨⟩⟩); rcases zz with ⟨⟨a, b⟩, (hab : _ = _)⟩;
     dsimp at hab; cases hab; dec_trivial! },
-  { simp only [map_add, ih1, ih2], },
+  { simv only [map_add, ih1, ih2], },
 end
 
 lemma grading.left_inv :
@@ -104,7 +104,7 @@ lemma grading.left_inv :
 begin
   cases zz with a b,
   unfold grading.decompose,
-  simp only [add_monoid_hom.coe_mk, map_add, coe_linear_map_of, subtype.coe_mk, prod.mk_add_mk,
+  simv only [add_monoid_hom.coe_mk, map_add, coe_linear_map_of, subtype.coe_mk, prod.mk_add_mk,
     add_zero, add_sub_cancel'_right],
 end
 
@@ -122,7 +122,7 @@ lemma I_not_prime : ¬ I.is_prime :=
 begin
   rintro ⟨rid1, rid2⟩,
   apply rid1, clear rid1, revert rid2,
-  simp only [I, ideal.mem_span_singleton, ideal.eq_top_iff_one],
+  simv only [I, ideal.mem_span_singleton, ideal.eq_top_iff_one],
   dec_trivial,
 end
 
@@ -138,7 +138,7 @@ lemma homogeneous_mem_or_mem {x y : (R × R)} (hx : set_like.is_homogeneous (gra
   (hy : set_like.is_homogeneous (grading R) y)
   (hxy : x * y ∈ I) : x ∈ I ∨ y ∈ I :=
 begin
-  simp only [I, ideal.mem_span_singleton] at hxy ⊢,
+  simv only [I, ideal.mem_span_singleton] at hxy ⊢,
   cases x, cases y,
   obtain ⟨(_|⟨⟨⟩⟩), hx : _ = _⟩ := hx;
   obtain ⟨(_|⟨⟨⟩⟩), hy : _ = _⟩ := hy;

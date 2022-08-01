@@ -86,11 +86,11 @@ begin
   { intros y hy,
     set g := λ y, f y - a - f' (y - x) with hg,
     change ∀ y ∈ I.Icc, ∥g y∥ ≤ ε * ∥y - x∥ at hε,
-    clear_value g, obtain rfl : f = λ y, a + f' (y - x) + g y, by simp [hg],
+    clear_value g, obtain rfl : f = λ y, a + f' (y - x) + g y, by simv [hg],
     convert_to ∥g (i.insert_nth (I.lower i) y) - g (i.insert_nth (I.upper i) y)∥ ≤ _,
     { congr' 1,
       have := fin.insert_nth_sub_same i (I.upper i) (I.lower i) y,
-      simp only [← this, f'.map_sub], abel },
+      simv only [← this, f'.map_sub], abel },
     { have : ∀ z ∈ Icc (I.lower i) (I.upper i), i.insert_nth z y ∈ I.Icc,
         from λ z hz, I.maps_to_insert_nth_face_Icc hz hy,
       replace hε : ∀ y ∈ I.Icc, ∥g y∥ ≤ ε * diam I.Icc,
@@ -111,7 +111,7 @@ begin
       rw [← integral_sub (Hi _ Hu) (Hi _ Hl), ← box.volume_face_mul i, mul_smul, ← box.volume_apply,
         ← box_additive_map.to_smul_apply, ← integral_const, ← box_additive_map.volume,
         ← integral_sub (integrable_const _) ((Hi _ Hu).sub (Hi _ Hl))],
-      simp only [(∘), pi.sub_def, ← f'.map_smul, ← pi.single_smul', smul_eq_mul, mul_one]
+      simv only [(∘), pi.sub_def, ← f'.map_smul, ← pi.single_smul', smul_eq_mul, mul_one]
     end
   ... ≤ (volume (I.face i : set ℝⁿ)).to_real * (2 * ε * c * (I.upper i - I.lower i)) :
     begin
@@ -201,7 +201,7 @@ begin
     have Hmaps : ∀ z ∈ Icc (J.lower i) (J.upper i),
       maps_to (i.insert_nth z) (J.face i).Icc (closed_ball x δ ∩ I.Icc),
       from λ z hz, (J.maps_to_insert_nth_face_Icc hz).mono subset.rfl hJδ',
-    simp only [dist_eq_norm, F, fI], dsimp,
+    simv only [dist_eq_norm, F, fI], dsimp,
     rw [← integral_sub (Hi _ Hu) (Hi _ Hl)],
     refine (norm_sub_le _ _).trans (add_le_add _ _),
     { simp_rw [box_additive_map.volume_apply, norm_smul, real.norm_eq_abs, abs_prod],
@@ -214,7 +214,7 @@ begin
         ... = 2 * δ : (two_mul δ).symm },
       calc (∏ j, |J.upper j - J.lower j|) ≤ ∏ j : fin (n + 1), (2 * δ) :
         prod_le_prod (λ _ _ , abs_nonneg _) (λ j hj, this j)
-      ... = (2 * δ) ^ (n + 1) : by simp },
+      ... = (2 * δ) ^ (n + 1) : by simv },
     { refine (norm_integral_le_of_le_const (λ y hy,
         hdfδ _ (Hmaps _ Hu hy) _ (Hmaps _ Hl hy)) _).trans _,
       refine (mul_le_mul_of_nonneg_right _ (half_pos ε0).le).trans_eq (one_mul _),
@@ -234,7 +234,7 @@ begin
     rcases (nhds_within_has_basis nhds_basis_closed_ball _).mem_iff.1 ((Hd x hx).def ε'0)
       with ⟨δ, δ0, Hδ⟩,
     refine ⟨δ, δ0, λ J hle hJδ hxJ hJc, _⟩,
-    simp only [box_additive_map.volume_apply, box.volume_apply, dist_eq_norm],
+    simv only [box_additive_map.volume_apply, box.volume_apply, dist_eq_norm],
     refine (norm_volume_sub_integral_face_upper_sub_lower_smul_le _
       (Hc.mono $ box.le_iff_Icc.1 hle) hxJ ε'0 (λ y hy, Hδ _) (hJc rfl)).trans _,
     { exact ⟨hJδ hy, box.le_iff_Icc.1 hle hy⟩ },
@@ -262,7 +262,7 @@ lemma has_integral_bot_divergence_of_forall_has_deriv_within_at
         box_additive_map.volume)) :=
 begin
   refine has_integral_sum (λ i hi, _), clear hi,
-  simp only [has_fderiv_within_at_pi', continuous_within_at_pi] at Hd Hs,
+  simv only [has_fderiv_within_at_pi', continuous_within_at_pi] at Hd Hs,
   convert has_integral_bot_pderiv I _ _ s hs (λ x hx, Hs x hx i) (λ x hx, Hd x hx i) i
 end
 

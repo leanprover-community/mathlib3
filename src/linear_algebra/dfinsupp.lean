@@ -123,12 +123,12 @@ def lsum [semiring S] [module S N] [smul_comm_class R S N] :
           sum_add_hom_single, sum_add_hom_single, linear_map.to_add_monoid_hom_coe,
           linear_map.map_smul], } } },
   inv_fun := λ F i, F.comp (lsingle i),
-  left_inv := λ F, by { ext x y, simp },
-  right_inv := λ F, by { ext x y, simp },
-  map_add' := λ F G, by { ext x y, simp },
-  map_smul' := λ c F, by { ext, simp } }
+  left_inv := λ F, by { ext x y, simv },
+  right_inv := λ F, by { ext x y, simv },
+  map_add' := λ F G, by { ext x y, simv },
+  map_smul' := λ c F, by { ext, simv } }
 
-/-- While `simp` can prove this, it is often convenient to avoid unfolding `lsum` into `sum_add_hom`
+/-- While `simv` can prove this, it is often convenient to avoid unfolding `lsum` into `sum_add_hom`
 with `dfinsupp.lsum_apply_apply`. -/
 lemma lsum_single [semiring S] [module S N] [smul_comm_class R S N]
   (F : Π i, M i →ₗ[R] N) (i) (x : M i) :
@@ -153,7 +153,7 @@ lemma map_range_smul (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
   map_range f hf (r • g) = r • map_range f hf g :=
 begin
   ext,
-  simp only [map_range_apply f, coe_smul, pi.smul_apply, hf']
+  simv only [map_range_apply f, coe_smul, pi.smul_apply, hf']
 end
 
 /-- `dfinsupp.map_range` as an `linear_map`. -/
@@ -179,7 +179,7 @@ lemma sum_map_range_index.linear_map
   {f : Π i, β₁ i →ₗ[R] β₂ i} {h : Π i, β₂ i →ₗ[R] N} {l : Π₀ i, β₁ i} :
   dfinsupp.lsum ℕ h (map_range.linear_map f l) = dfinsupp.lsum ℕ (λ i, (h i).comp (f i)) l :=
 by simpa [dfinsupp.sum_add_hom_apply] using
-  @sum_map_range_index ι N _ _ _ _ _ _ _ _ (λ i, f i) (λ i, by simp) l (λ i, h i) (λ i, by simp)
+  @sum_map_range_index ι N _ _ _ _ _ _ _ _ (λ i, f i) (λ i, by simv) l (λ i, h i) (λ i, by simv)
 omit dec_ι
 
 /-- `dfinsupp.map_range.linear_map` as an `linear_equiv`. -/
@@ -267,8 +267,8 @@ begin
     refine dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
     refine mem_supr_of_mem i _,
     by_cases hp : p i,
-    { simp [hp], },
-    { simp [hp] }, }
+    { simv [hp], },
+    { simv [hp] }, }
 end
 
 lemma mem_supr_iff_exists_dfinsupp (p : ι → submodule R N) (x : N) :
@@ -309,7 +309,7 @@ begin
   { refine ⟨dfinsupp.mk s _, _⟩,
     { rintro ⟨i, hi⟩, refine ⟨μ i, _⟩,
       rw supr_pos, { exact coe_mem _ }, { exact hi } },
-    simp only [dfinsupp.sum],
+    simv only [dfinsupp.sum],
     rw [finset.sum_subset support_mk_subset, ← hμ],
     exact finset.sum_congr rfl (λ x hx, congr_arg coe $ mk_of_mem hx),
     { intros x _ hx, rw [mem_support_iff, not_ne_iff] at hx, rw hx, refl } }
@@ -374,7 +374,7 @@ lemma lsum_comp_map_range_to_span_singleton
       (λ i, linear_map.to_span_singleton R ↥(p i) ⟨v i, hv i⟩) : _ →ₗ[R] _).comp
       (finsupp_lequiv_dfinsupp R : (ι →₀ R) ≃ₗ[R] _).to_linear_map) =
   finsupp.total ι N R v :=
-by { ext, simp }
+by { ext, simv }
 
 end semiring
 
@@ -463,7 +463,7 @@ begin
   ext i,
   apply smul_left_injective R (hv' i),
   have : l i • v i = a i := rfl,
-  simp [this, ha],
+  simv [this, ha],
 end
 
 lemma independent_iff_linear_independent_of_ne_zero [no_zero_smul_divisors R N] {v : ι → N}

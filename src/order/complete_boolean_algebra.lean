@@ -81,27 +81,27 @@ lemma inf_supr_eq (a : α) (f : ι → α) : a ⊓ (⨆ i, f i) = ⨆ i, a ⊓ f
 by simpa only [inf_comm] using supr_inf_eq f a
 
 lemma bsupr_inf_eq {f : Π i, κ i → α} (a : α) : (⨆ i j, f i j) ⊓ a = ⨆ i j, f i j ⊓ a :=
-by simp only [supr_inf_eq]
+by simv only [supr_inf_eq]
 
 lemma inf_bsupr_eq {f : Π i, κ i → α} (a : α) : a ⊓ (⨆ i j, f i j) = ⨆ i j, a ⊓ f i j :=
-by simp only [inf_supr_eq]
+by simv only [inf_supr_eq]
 
 lemma supr_inf_supr {ι ι' : Type*} {f : ι → α} {g : ι' → α} :
   (⨆ i, f i) ⊓ (⨆ j, g j) = ⨆ i : ι × ι', f i.1 ⊓ g i.2 :=
-by simp only [inf_supr_eq, supr_inf_eq, supr_prod]
+by simv only [inf_supr_eq, supr_inf_eq, supr_prod]
 
 lemma bsupr_inf_bsupr {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set ι} {t : set ι'} :
   (⨆ i ∈ s, f i) ⊓ (⨆ j ∈ t, g j) = ⨆ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊓ g p.2 :=
 begin
-  simp only [supr_subtype', supr_inf_supr],
+  simv only [supr_subtype', supr_inf_supr],
   exact (equiv.surjective _).supr_congr (equiv.set.prod s t).symm (λ x, rfl)
 end
 
 lemma Sup_inf_Sup : Sup s ⊓ Sup t = ⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2 :=
-by simp only [Sup_eq_supr, bsupr_inf_bsupr]
+by simv only [Sup_eq_supr, bsupr_inf_bsupr]
 
 lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, disjoint (f i) a :=
-by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
+by simv only [disjoint_iff, supr_inf_eq, supr_eq_bot]
 
 lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
 by simpa only [disjoint.comm] using supr_disjoint_iff
@@ -115,7 +115,7 @@ lemma disjoint_supr₂_iff {f : Π i, κ i → α} :
 by simp_rw disjoint_supr_iff
 
 lemma Sup_disjoint_iff {s : set α} : disjoint (Sup s) a ↔ ∀ b ∈ s, disjoint b a :=
-by simp only [disjoint_iff, Sup_inf_eq, supr_eq_bot]
+by simv only [disjoint_iff, Sup_inf_eq, supr_eq_bot]
 
 lemma disjoint_Sup_iff {s : set α} : disjoint a (Sup s) ↔ ∀ b ∈ s, disjoint a b :=
 by simpa only [disjoint.comm] using Sup_disjoint_iff
@@ -138,7 +138,7 @@ lemma supr_inf_of_antitone {ι : Type*} [preorder ι] [is_directed ι (swap (≤
 
 instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame (Π i, π i) :=
 { inf_Sup_le_supr_inf := λ a s i,
-    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
+    by simv only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
       ← supr_subtype''],
   ..pi.complete_lattice }
 
@@ -191,7 +191,7 @@ supr_inf_of_monotone hf.dual_right hg.dual_right
 instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : coframe (Π i, π i) :=
 { Inf := Inf,
   infi_sup_le_sup_Inf := λ a s i,
-    by simp only [←sup_infi_eq, Inf_apply, ←infi_subtype'', infi_apply, pi.sup_apply],
+    by simv only [←sup_infi_eq, Inf_apply, ←infi_subtype'', infi_apply, pi.sup_apply],
   ..pi.complete_lattice }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -221,9 +221,9 @@ instance pi.complete_boolean_algebra {ι : Type*} {π : ι → Type*}
 
 instance Prop.complete_boolean_algebra : complete_boolean_algebra Prop :=
 { infi_sup_le_sup_Inf := λ p s, iff.mp $
-    by simp only [forall_or_distrib_left, complete_lattice.Inf, infi_Prop_eq, sup_Prop_eq],
+    by simv only [forall_or_distrib_left, complete_lattice.Inf, infi_Prop_eq, sup_Prop_eq],
   inf_Sup_le_supr_inf := λ p s, iff.mp $
-    by simp only [complete_lattice.Sup, exists_and_distrib_left, inf_Prop_eq, supr_Prop_eq],
+    by simv only [complete_lattice.Sup, exists_and_distrib_left, inf_Prop_eq, supr_Prop_eq],
   .. Prop.boolean_algebra, .. Prop.complete_lattice }
 
 section complete_boolean_algebra
@@ -235,10 +235,10 @@ le_antisymm
   (supr_le $ λ i, compl_le_compl $ infi_le _ _)
 
 theorem compl_supr : (supr f)ᶜ = (⨅ i, (f i)ᶜ) :=
-compl_injective (by simp [compl_infi])
+compl_injective (by simv [compl_infi])
 
-lemma compl_Inf : (Inf s)ᶜ = (⨆ i ∈ s, iᶜ) := by simp only [Inf_eq_infi, compl_infi]
-lemma compl_Sup : (Sup s)ᶜ = (⨅ i ∈ s, iᶜ) := by simp only [Sup_eq_supr, compl_supr]
+lemma compl_Inf : (Inf s)ᶜ = (⨆ i ∈ s, iᶜ) := by simv only [Inf_eq_infi, compl_infi]
+lemma compl_Sup : (Sup s)ᶜ = (⨅ i ∈ s, iᶜ) := by simv only [Sup_eq_supr, compl_supr]
 lemma compl_Inf' : (Inf s)ᶜ = Sup (compl '' s) := compl_Inf.trans Sup_image.symm
 lemma compl_Sup' : (Sup s)ᶜ = Inf (compl '' s) := compl_Sup.trans Inf_image.symm
 
@@ -309,7 +309,7 @@ by refine_struct
 { Sup := λ _, star,
   Inf := λ _, star,
   ..punit.boolean_algebra };
-    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false]
+    intros; trivial <|> simv only [eq_iff_true_of_subsingleton, not_true, and_false]
 
 @[simp] lemma Sup_eq : Sup s = star := rfl
 @[simp] lemma Inf_eq : Inf s = star := rfl

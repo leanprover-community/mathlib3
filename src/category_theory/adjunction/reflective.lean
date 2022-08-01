@@ -44,7 +44,7 @@ lemma unit_obj_eq_map_unit [reflective i] (X : C) :
 begin
  rw [←cancel_mono (i.map ((of_right_adjoint i).counit.app ((left_adjoint i).obj X))),
      ←i.map_comp],
- simp,
+ simv,
 end
 
 /--
@@ -80,7 +80,7 @@ begin
   { rw this,
     apply_instance },
   rw ← nat_trans.naturality,
-  simp,
+  simv,
 end
 
 /-- If `η_A` is an isomorphism, then `A` is in the essential image of `i`. -/
@@ -116,7 +116,7 @@ def unit_comp_partial_bijective_aux [reflective i] (A : C) (B : D) :
 lemma unit_comp_partial_bijective_aux_symm_apply [reflective i] {A : C} {B : D}
   (f : i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :
   (unit_comp_partial_bijective_aux _ _).symm f = (of_right_adjoint i).unit.app A ≫ f :=
-by simp [unit_comp_partial_bijective_aux]
+by simv [unit_comp_partial_bijective_aux]
 
 /--
 If `i` has a reflector `L`, then the function `(i.obj (L.obj A) ⟶ B) → (A ⟶ B)` given by
@@ -140,13 +140,13 @@ calc (A ⟶ B) ≃ (A ⟶ i.obj hB.witness) : iso.hom_congr (iso.refl _) hB.get_
 lemma unit_comp_partial_bijective_symm_apply [reflective i] (A : C) {B : C}
   (hB : B ∈ i.ess_image) (f) :
   (unit_comp_partial_bijective A hB).symm f = (of_right_adjoint i).unit.app A ≫ f :=
-by simp [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply]
+by simv [unit_comp_partial_bijective, unit_comp_partial_bijective_aux_symm_apply]
 
 lemma unit_comp_partial_bijective_symm_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : i.obj ((left_adjoint i).obj A) ⟶ B) :
   (unit_comp_partial_bijective A hB').symm (f ≫ h) =
     (unit_comp_partial_bijective A hB).symm f ≫ h :=
-by simp
+by simv
 
 lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h : B ⟶ B')
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : A ⟶ B) :
@@ -160,13 +160,13 @@ def equiv_ess_image_of_reflective [reflective i] : D ≌ i.ess_image :=
 { functor := i.to_ess_image,
   inverse := i.ess_image_inclusion ⋙ (left_adjoint i : _),
   unit_iso := nat_iso.of_components (λ X, (as_iso $ (of_right_adjoint i).counit.app X).symm)
-    (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
+    (by { intros X Y f, dsimp, simv only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
       exact ((of_right_adjoint i).counit.naturality _).symm }),
   counit_iso := nat_iso.of_components
     (λ X, by { refine (iso.symm $ as_iso _), exact (of_right_adjoint i).unit.app X,
       apply_with (is_iso_of_reflects_iso _ i.ess_image_inclusion) { instances := ff },
       exact functor.ess_image.unit_is_iso X.prop })
-    (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
+    (by { intros X Y f, dsimp, simv only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
       exact ((of_right_adjoint i).unit.naturality f).symm }) }
 
 end category_theory

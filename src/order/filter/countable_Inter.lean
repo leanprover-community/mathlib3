@@ -77,7 +77,7 @@ lemma eventually_eq.countable_Union [encodable ι] {s t : ι → set α} (h : �
 lemma eventually_le.countable_bUnion {S : set ι} (hS : S.countable) {s t : Π i ∈ S, set α}
   (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋃ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋃ i ∈ S, t i ‹_› :=
 begin
-  simp only [bUnion_eq_Union],
+  simv only [bUnion_eq_Union],
   haveI := hS.to_encodable,
   exact eventually_le.countable_Union (λ i, h i i.2)
 end
@@ -99,7 +99,7 @@ lemma eventually_eq.countable_Inter [encodable ι] {s t : ι → set α} (h : �
 lemma eventually_le.countable_bInter {S : set ι} (hS : S.countable) {s t : Π i ∈ S, set α}
   (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋂ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋂ i ∈ S, t i ‹_› :=
 begin
-  simp only [bInter_eq_Inter],
+  simv only [bInter_eq_Inter],
   haveI := hS.to_encodable,
   exact eventually_le.countable_Inter (λ i, h i i.2)
 end
@@ -155,7 +155,7 @@ instance (l : filter α) [countable_Inter_filter l] (f : α → β) :
   countable_Inter_filter (map f l) :=
 begin
   constructor, intros S hSc hS,
-  simp only [mem_map, sInter_eq_bInter, preimage_Inter₂] at hS ⊢,
+  simv only [mem_map, sInter_eq_bInter, preimage_Inter₂] at hS ⊢,
   exact (countable_bInter_mem hSc).2 hS
 end
 

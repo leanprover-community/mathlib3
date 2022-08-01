@@ -53,7 +53,7 @@ lemma det_sum_le {ι : Type*} (s : finset ι) {A : ι → matrix n n R}
     nat.factorial (fintype.card n) • (finset.card s • x) ^ (fintype.card n) :=
 det_le $ λ i j,
 calc  abv ((∑ k in s, A k) i j)
-    = abv (∑ k in s, A k i j) : by simp only [sum_apply]
+    = abv (∑ k in s, A k i j) : by simv only [sum_apply]
 ... ≤ ∑ k in s, abv (A k i j) : abv.sum_le _ _
 ... ≤ ∑ k in s, x : sum_le_sum (λ k _, hx k i j)
 ... = s.card • x : sum_const _

@@ -104,7 +104,7 @@ instance : has_singleton α (ordnode α) := ⟨ordnode.singleton⟩
 /-- O(1). Get the size of the set.
 
      size {2, 1, 1, 4} = 3  -/
-@[inline, simp] def size : ordnode α → ℕ
+@[inline, simv] def size : ordnode α → ℕ
 | nil := 0
 | (node sz _ _ _) := sz
 

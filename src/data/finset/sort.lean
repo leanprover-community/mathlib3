@@ -50,7 +50,7 @@ multiset.sort_zero r
 multiset.sort_singleton r a
 
 lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
-by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
+by { rw ←multiset.coe_eq_coe, simv only [coe_to_list, sort_eq] }
 
 end sort
 
@@ -143,17 +143,17 @@ rfl
 
 @[simp] lemma range_order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   set.range (s.order_emb_of_fin h) = s :=
-by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
+by simv [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
 
 /-- The bijection `order_emb_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma order_emb_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
   order_emb_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
-by simp only [order_emb_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
+by simv only [order_emb_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
 
 /-- The bijection `order_emb_of_fin s h` sends `k-1` to the maximum of `s`. -/
 lemma order_emb_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
   order_emb_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' (card_pos.mp (h.symm ▸ hz)) :=
-by simp [order_emb_of_fin_apply, max'_eq_sorted_last, h]
+by simv [order_emb_of_fin_apply, max'_eq_sorted_last, h]
 
 /-- `order_emb_of_fin {a} h` sends any argument to `a`. -/
 @[simp] lemma order_emb_of_fin_singleton (a : α) (i : fin 1) :
@@ -197,7 +197,7 @@ def order_emb_of_card_le (s : finset α) {k : ℕ} (h : k ≤ s.card) : fin k �
 
 lemma order_emb_of_card_le_mem (s : finset α) {k : ℕ} (h : k ≤ s.card) (a) :
   order_emb_of_card_le s h a ∈ s :=
-by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
+by simv only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
 
 lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
   s.card ≤ t.card + 1 :=

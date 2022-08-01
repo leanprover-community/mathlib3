@@ -54,7 +54,7 @@ class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :
   . obviously)
 
 restate_axiom braided_category.braiding_naturality'
-attribute [simp,reassoc] braided_category.braiding_naturality
+attribute [simv,reassoc] braided_category.braiding_naturality
 restate_axiom braided_category.hexagon_forward'
 restate_axiom braided_category.hexagon_reverse'
 attribute [reassoc] braided_category.hexagon_forward braided_category.hexagon_reverse
@@ -135,7 +135,7 @@ variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_cat
 lemma braiding_left_unitor_aux₁ (X : C) :
   (α_ (𝟙_ C) (𝟙_ C) X).hom ≫ (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).inv) ≫ (α_ _ X _).inv ≫ ((λ_ X).hom ⊗ 𝟙 _) =
   ((λ_ _).hom ⊗ 𝟙 X) ≫ (β_ X (𝟙_ C)).inv :=
-by { rw [←left_unitor_tensor, left_unitor_naturality], simp, }
+by { rw [←left_unitor_tensor, left_unitor_naturality], simv, }
 
 lemma braiding_left_unitor_aux₂ (X : C) :
   ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C))) = (ρ_ X).hom ⊗ (𝟙 (𝟙_ C)) :=
@@ -148,11 +148,11 @@ calc ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (�
          : by { slice_rhs 3 4 { rw [←id_tensor_comp, iso.hom_inv_id, tensor_id], }, rw [id_comp], }
 ... = (α_ _ _ _).hom ≫ (β_ _ _).hom ≫
         (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (β_ X _).inv) ≫ (α_ _ _ _).inv ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
-         : by { slice_lhs 1 3 { rw ←hexagon_forward }, simp only [assoc], }
+         : by { slice_lhs 1 3 { rw ←hexagon_forward }, simv only [assoc], }
 ... = (α_ _ _ _).hom ≫ (β_ _ _).hom ≫ ((λ_ _).hom ⊗ 𝟙 X) ≫ (β_ X _).inv
          : by rw braiding_left_unitor_aux₁
 ... = (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (λ_ _).hom) ≫ (β_ _ _).hom ≫ (β_ X _).inv
-         : by { slice_lhs 2 3 { rw [←braiding_naturality] }, simp only [assoc], }
+         : by { slice_lhs 2 3 { rw [←braiding_naturality] }, simv only [assoc], }
 ... = (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (λ_ _).hom)
          : by rw [iso.hom_inv_id, comp_id]
 ... = (ρ_ X).hom ⊗ (𝟙 (𝟙_ C))
@@ -165,7 +165,7 @@ by rw [←tensor_right_iff, comp_tensor_id, braiding_left_unitor_aux₂]
 lemma braiding_right_unitor_aux₁ (X : C) :
   (α_ X (𝟙_ C) (𝟙_ C)).inv ≫ ((β_ (𝟙_ C) X).inv ⊗ 𝟙 (𝟙_ C)) ≫ (α_ _ X _).hom ≫ (𝟙 _ ⊗ (ρ_ X).hom) =
   (𝟙 X ⊗ (ρ_ _).hom) ≫ (β_ (𝟙_ C) X).inv :=
-by { rw [←right_unitor_tensor, right_unitor_naturality], simp, }
+by { rw [←right_unitor_tensor, right_unitor_naturality], simv, }
 
 lemma braiding_right_unitor_aux₂ (X : C) :
   ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom) = (𝟙 (𝟙_ C)) ⊗ (λ_ X).hom :=
@@ -178,11 +178,11 @@ calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_
          : by { slice_rhs 3 4 { rw [←comp_tensor_id, iso.hom_inv_id, tensor_id], }, rw [id_comp], }
 ... = (α_ _ _ _).inv ≫ (β_ _ _).hom ≫
         (α_ _ _ _).inv ≫ ((β_ _ X).inv ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
-         : by { slice_lhs 1 3 { rw ←hexagon_reverse }, simp only [assoc], }
+         : by { slice_lhs 1 3 { rw ←hexagon_reverse }, simv only [assoc], }
 ... = (α_ _ _ _).inv ≫ (β_ _ _).hom ≫ (𝟙 X ⊗ (ρ_ _).hom) ≫ (β_ _ X).inv
          : by rw braiding_right_unitor_aux₁
 ... = (α_ _ _ _).inv ≫ ((ρ_ _).hom ⊗ 𝟙 _) ≫ (β_ _ X).hom ≫ (β_ _ _).inv
-         : by { slice_lhs 2 3 { rw [←braiding_naturality] }, simp only [assoc], }
+         : by { slice_lhs 2 3 { rw [←braiding_naturality] }, simv only [assoc], }
 ... = (α_ _ _ _).inv ≫ ((ρ_ _).hom ⊗ 𝟙 _)
          : by rw [iso.hom_inv_id, comp_id]
 ... = (𝟙 (𝟙_ C)) ⊗ (λ_ X).hom
@@ -196,14 +196,14 @@ by rw [←tensor_left_iff, id_tensor_comp, braiding_right_unitor_aux₂]
 lemma left_unitor_inv_braiding (X : C) : (λ_ X).inv ≫ (β_ (𝟙_ C) X).hom = (ρ_ X).inv :=
 begin
   apply (cancel_mono (ρ_ X).hom).1,
-  simp only [assoc, braiding_right_unitor, iso.inv_hom_id],
+  simv only [assoc, braiding_right_unitor, iso.inv_hom_id],
 end
 
 @[simp]
 lemma right_unitor_inv_braiding (X : C) : (ρ_ X).inv ≫ (β_ X (𝟙_ C)).hom = (λ_ X).inv :=
 begin
   apply (cancel_mono (λ_ X).hom).1,
-  simp only [assoc, braiding_left_unitor, iso.inv_hom_id],
+  simv only [assoc, braiding_left_unitor, iso.inv_hom_id],
 end
 
 end
@@ -219,7 +219,7 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 (symmetry' : ∀ X Y : C, (β_ X Y).hom ≫ (β_ Y X).hom = 𝟙 (X ⊗ Y) . obviously)
 
 restate_axiom symmetric_category.symmetry'
-attribute [simp,reassoc] symmetric_category.symmetry
+attribute [simv,reassoc] symmetric_category.symmetry
 
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]
@@ -253,7 +253,7 @@ def comp (F : lax_braided_functor C D) (G : lax_braided_functor D E) : lax_braid
     slice_lhs 2 3 { rw [←category_theory.functor.map_comp, F.braided,
       category_theory.functor.map_comp], },
     slice_lhs 1 2 { rw [G.braided], },
-    simp only [category.assoc],
+    simv only [category.assoc],
   end,
   ..(lax_monoidal_functor.comp F.to_lax_monoidal_functor G.to_lax_monoidal_functor) }
 
@@ -287,20 +287,20 @@ structure braided_functor extends monoidal_functor C D :=
   ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)
 
 restate_axiom braided_functor.braided'
-attribute [simp] braided_functor.braided
+attribute [simv] braided_functor.braided
 
 /-- A braided category with a braided functor to a symmetric category is itself symmetric. -/
 def symmetric_category_of_faithful {C D : Type*} [category C] [category D]
   [monoidal_category C] [monoidal_category D] [braided_category C] [symmetric_category D]
   (F : braided_functor C D) [faithful F.to_functor] : symmetric_category C :=
-{ symmetry' := λ X Y, F.to_functor.map_injective (by simp), }
+{ symmetry' := λ X Y, F.to_functor.map_injective (by simv), }
 
 namespace braided_functor
 
 /-- Turn a braided functor into a lax braided functor. -/
 @[simps]
 def to_lax_braided_functor (F : braided_functor C D) : lax_braided_functor C D :=
-{ braided' := λ X Y, by { rw F.braided, simp, }
+{ braided' := λ X Y, by { rw F.braided, simv, }
   .. F }
 
 /-- The identity braided monoidal functor. -/
@@ -365,12 +365,12 @@ def tensor_μ (X Y : C × C) : (tensor C).obj X ⊗ (tensor C).obj Y ⟶ (tensor
 lemma tensor_μ_def₁ (X₁ X₂ Y₁ Y₂ : C) :
     tensor_μ C (X₁, X₂) (Y₁, Y₂) ≫ (α_ X₁ Y₁ (X₂ ⊗ Y₂)).hom ≫ (𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).inv)
   = (α_ X₁ X₂ (Y₁ ⊗ Y₂)).hom ≫ (𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).inv) ≫ (𝟙 X₁ ⊗ ((β_ X₂ Y₁).hom ⊗ 𝟙 Y₂)) :=
-by { dsimp [tensor_μ], simp }
+by { dsimp [tensor_μ], simv }
 
 lemma tensor_μ_def₂ (X₁ X₂ Y₁ Y₂ : C) :
     (𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).hom) ≫ (α_ X₁ X₂ (Y₁ ⊗ Y₂)).inv ≫ tensor_μ C (X₁, X₂) (Y₁, Y₂)
   = (𝟙 X₁ ⊗ ((β_ X₂ Y₁).hom ⊗ 𝟙 Y₂)) ≫ (𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).hom) ≫ (α_ X₁ Y₁ (X₂ ⊗ Y₂)).inv :=
-by { dsimp [tensor_μ], simp }
+by { dsimp [tensor_μ], simv }
 
 lemma tensor_μ_natural {X₁ X₂ Y₁ Y₂ U₁ U₂ V₁ V₂ : C}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : U₁ ⟶ V₁) (g₂ : U₂ ⟶ V₂) :
@@ -393,7 +393,7 @@ begin
                       associator_naturality,
                       tensor_comp] },
   slice_lhs 5 6 { rw [associator_inv_naturality] },
-  simp only [assoc],
+  simv only [assoc],
 end
 
 lemma tensor_left_unitality (X₁ X₂ : C) :
@@ -412,7 +412,7 @@ begin
   slice_rhs 1 2 { rw [←tensor_comp, ←tensor_comp,
                       comp_id, comp_id,
                       left_unitor_inv_braiding] },
-  simp only [assoc],
+  simv only [assoc],
   coherence,
 end
 
@@ -433,7 +433,7 @@ begin
   slice_rhs 2 3 { rw [←tensor_comp, ←tensor_comp,
                       comp_id, comp_id,
                       right_unitor_inv_braiding] },
-  simp only [assoc],
+  simv only [assoc],
   coherence,
 end
 
@@ -533,12 +533,12 @@ begin
                        tensor_comp, tensor_comp, tensor_comp, tensor_comp, tensor_comp] },
   slice_lhs 11 12 { rw [←tensor_comp, ←tensor_comp,
                         iso.hom_inv_id],
-                    simp },
-  simp only [assoc, id_comp],
+                    simv },
+  simv only [assoc, id_comp],
   slice_lhs 10 11 { rw [←tensor_comp, ←tensor_comp, ←tensor_comp,
                         iso.hom_inv_id],
-                    simp },
-  simp only [assoc, id_comp],
+                    simv },
+  simv only [assoc, id_comp],
   slice_lhs 9 10 { rw [associator_naturality] },
   slice_lhs 10 11 { rw [←tensor_comp,
                         associator_naturality,
@@ -654,7 +654,7 @@ begin
   slice_rhs 2 4 { rw [←tensor_comp, ←tensor_comp,
                       ←hexagon_forward,
                       tensor_comp, tensor_comp] },
-  simp,
+  simv,
 end
 
 lemma associator_monoidal (X₁ X₂ X₃ Y₁ Y₂ Y₃ : C) :

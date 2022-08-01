@@ -379,11 +379,11 @@ variables {L} [add_group G]
 
 lemma smul_convolution [smul_comm_class ℝ 𝕜 F]
   {y : 𝕜} : (y • f) ⋆[L, μ] g = y • (f ⋆[L, μ] g) :=
-by { ext, simp only [pi.smul_apply, convolution_def, ← integral_smul, L.map_smul₂] }
+by { ext, simv only [pi.smul_apply, convolution_def, ← integral_smul, L.map_smul₂] }
 
 lemma convolution_smul [smul_comm_class ℝ 𝕜 F]
   {y : 𝕜} : f ⋆[L, μ] (y • g) = y • (f ⋆[L, μ] g) :=
-by { ext, simp only [pi.smul_apply, convolution_def, ← integral_smul, (L _).map_smul] }
+by { ext, simv only [pi.smul_apply, convolution_def, ← integral_smul, (L _).map_smul] }
 
 lemma zero_convolution : 0 ⋆[L, μ] g = 0 :=
 by { ext, simp_rw [convolution_def, pi.zero_apply, L.map_zero₂, integral_zero] }
@@ -394,7 +394,7 @@ by { ext, simp_rw [convolution_def, pi.zero_apply, (L _).map_zero, integral_zero
 lemma convolution_exists_at.distrib_add {x : G} (hfg : convolution_exists_at f g x L μ)
   (hfg' : convolution_exists_at f g' x L μ) :
   (f ⋆[L, μ] (g + g')) x = (f ⋆[L, μ] g) x + (f ⋆[L, μ] g') x :=
-by simp only [convolution_def, (L _).map_add, pi.add_apply, integral_add hfg hfg']
+by simv only [convolution_def, (L _).map_add, pi.add_apply, integral_add hfg hfg']
 
 lemma convolution_exists.distrib_add (hfg : convolution_exists f g L μ)
   (hfg' : convolution_exists f g' L μ) : f ⋆[L, μ] (g + g') = f ⋆[L, μ] g + f ⋆[L, μ] g' :=
@@ -403,7 +403,7 @@ by { ext, exact (hfg x).distrib_add (hfg' x) }
 lemma convolution_exists_at.add_distrib {x : G} (hfg : convolution_exists_at f g x L μ)
   (hfg' : convolution_exists_at f' g x L μ) :
   ((f + f') ⋆[L, μ] g) x = (f ⋆[L, μ] g) x + (f' ⋆[L, μ] g) x :=
-by simp only [convolution_def, L.map_add₂, pi.add_apply, integral_add hfg hfg']
+by simv only [convolution_def, L.map_add₂, pi.add_apply, integral_add hfg hfg']
 
 lemma convolution_exists.add_distrib (hfg : convolution_exists f g L μ)
   (hfg' : convolution_exists f' g L μ) : (f + f') ⋆[L, μ] g = f ⋆[L, μ] g + f' ⋆[L, μ] g :=
@@ -846,7 +846,7 @@ lemma has_compact_support.has_fderiv_at_convolution_left [is_neg_invariant μ]
   (hcf : has_compact_support f) (hf : cont_diff 𝕜 1 f) (hg : locally_integrable g μ) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((fderiv 𝕜 f ⋆[L.precompL G, μ] g) x₀) x₀ :=
 begin
-  simp only [← convolution_flip] {single_pass := tt},
+  simv only [← convolution_flip] {single_pass := tt},
   exact hcf.has_fderiv_at_convolution_right L.flip hg hf x₀,
 end
 
@@ -909,7 +909,7 @@ lemma has_compact_support.has_deriv_at_convolution_left [is_neg_invariant μ]
   (hg : locally_integrable g₀ μ) (x₀ : 𝕜) :
   has_deriv_at (f₀ ⋆[L, μ] g₀) ((deriv f₀ ⋆[L, μ] g₀) x₀) x₀ :=
 begin
-  simp only [← convolution_flip] {single_pass := tt},
+  simv only [← convolution_flip] {single_pass := tt},
   exact hcf.has_deriv_at_convolution_right L.flip hg hf x₀,
 end
 

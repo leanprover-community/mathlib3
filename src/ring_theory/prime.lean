@@ -30,7 +30,7 @@ lemma mul_eq_mul_prime_prod {α : Type*} [decidable_eq α] {x y a : R} {s : fins
     ∧ y = c * ∏ i in u, p i :=
 begin
   induction s using finset.induction with i s his ih generalizing x y a,
-  { exact ⟨∅, ∅, x, y, by simp [hx]⟩ },
+  { exact ⟨∅, ∅, x, y, by simv [hx]⟩ },
   { rw [prod_insert his, ← mul_assoc] at hx,
     have hpi : prime (p i), { exact hp i (mem_insert_self _ _) },
     rcases ih (λ i hi, hp i (mem_insert_of_mem hi)) hx with
@@ -42,11 +42,11 @@ begin
     { rw [mul_assoc, mul_comm a, mul_right_inj' hpi.ne_zero] at hbc,
       exact ⟨insert i t, u, d, c, by rw [insert_union, htus],
         disjoint_insert_left.2 ⟨hiu, htu⟩,
-          by simp [hbc, prod_insert hit, mul_assoc, mul_comm, mul_left_comm]⟩ },
+          by simv [hbc, prod_insert hit, mul_assoc, mul_comm, mul_left_comm]⟩ },
     { rw [← mul_assoc, mul_right_comm b, mul_left_inj' hpi.ne_zero] at hbc,
       exact ⟨t, insert i u, b, d, by rw [union_insert, htus],
         disjoint_insert_right.2 ⟨hit, htu⟩,
-          by simp [← hbc, prod_insert hiu, mul_assoc, mul_comm, mul_left_comm]⟩ } }
+          by simv [← hbc, prod_insert hiu, mul_assoc, mul_comm, mul_left_comm]⟩ } }
 end
 
 
@@ -62,7 +62,7 @@ begin
   rcases mul_eq_mul_prime_prod (λ _ _, hp)
     (show x * y = a * (range n).prod (λ _, p), by simpa) with
     ⟨t, u, b, c, htus, htu, rfl, rfl, rfl⟩,
-  exact ⟨t.card, u.card, b, c, by rw [← card_disjoint_union htu, htus, card_range], by simp⟩,
+  exact ⟨t.card, u.card, b, c, by rw [← card_disjoint_union htu, htus, card_range], by simv⟩,
 end
 
 end cancel_comm_monoid_with_zero

@@ -44,14 +44,14 @@ variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : �
 
 lemma antilipschitz_with_iff_le_mul_nndist :
   antilipschitz_with K f ↔ ∀ x y, nndist x y ≤ K * nndist (f x) (f y) :=
-by { simp only [antilipschitz_with, edist_nndist], norm_cast }
+by { simv only [antilipschitz_with, edist_nndist], norm_cast }
 
 alias antilipschitz_with_iff_le_mul_nndist ↔ antilipschitz_with.le_mul_nndist
   antilipschitz_with.of_le_mul_nndist
 
 lemma antilipschitz_with_iff_le_mul_dist :
   antilipschitz_with K f ↔ ∀ x y, dist x y ≤ K * dist (f x) (f y) :=
-by { simp only [antilipschitz_with_iff_le_mul_nndist, dist_nndist], norm_cast }
+by { simv only [antilipschitz_with_iff_le_mul_nndist, dist_nndist], norm_cast }
 
 alias antilipschitz_with_iff_le_mul_dist ↔ antilipschitz_with.le_mul_dist
   antilipschitz_with.of_le_mul_dist
@@ -100,7 +100,7 @@ lemma le_mul_ediam_image (hf : antilipschitz_with K f) (s : set α) : diam s ≤
 (diam_mono (subset_preimage_image _ _)).trans (hf.ediam_preimage_le (f '' s))
 
 protected lemma id : antilipschitz_with 1 (id : α → α) :=
-λ x y, by simp only [ennreal.coe_one, one_mul, id, le_refl]
+λ x y, by simv only [ennreal.coe_one, one_mul, id, le_refl]
 
 lemma comp {Kg : ℝ≥0} {g : β → γ} (hg : antilipschitz_with Kg g)
   {Kf : ℝ≥0} {f : α → β} (hf : antilipschitz_with Kf f) :
@@ -176,7 +176,7 @@ lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=
 antilipschitz_with.id.restrict s
 
 lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :=
-λ x y, by simp only [subsingleton.elim x y, edist_self, zero_le]
+λ x y, by simv only [subsingleton.elim x y, edist_self, zero_le]
 
 /-- If `f : α → β` is `0`-antilipschitz, then `α` is a `subsingleton`. -/
 protected lemma subsingleton {α β} [emetric_space α] [pseudo_emetric_space β] {f : α → β}

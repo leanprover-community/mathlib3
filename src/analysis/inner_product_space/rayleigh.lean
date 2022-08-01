@@ -50,9 +50,9 @@ lemma rayleigh_smul (x : E) {c : 𝕜} (hc : c ≠ 0) :
   rayleigh_quotient (c • x) = rayleigh_quotient x :=
 begin
   by_cases hx : x = 0,
-  { simp [hx] },
-  have : ∥c∥ ≠ 0 := by simp [hc],
-  have : ∥x∥ ≠ 0 := by simp [hx],
+  { simv [hx] },
+  have : ∥c∥ ≠ 0 := by simv [hc],
+  have : ∥x∥ ≠ 0 := by simv [hx],
   field_simp [norm_smul, T.re_apply_inner_self_smul],
   ring
 end
@@ -63,9 +63,9 @@ begin
   ext a,
   split,
   { rintros ⟨x, (hx : x ≠ 0), hxT⟩,
-    have : ∥x∥ ≠ 0 := by simp [hx],
+    have : ∥x∥ ≠ 0 := by simv [hx],
     let c : 𝕜 := ↑∥x∥⁻¹ * r,
-    have : c ≠ 0 := by simp [c, hx, hr.ne'],
+    have : c ≠ 0 := by simv [c, hx, hr.ne'],
     refine ⟨c • x, _, _⟩,
     { field_simp [norm_smul, is_R_or_C.norm_eq_abs, abs_of_nonneg hr.le] },
     { rw T.rayleigh_smul x this,
@@ -77,12 +77,12 @@ end
 lemma supr_rayleigh_eq_supr_rayleigh_sphere {r : ℝ} (hr : 0 < r) :
   (⨆ x : {x : E // x ≠ 0}, rayleigh_quotient x) = ⨆ x : sphere (0:E) r, rayleigh_quotient x :=
 show (⨆ x : ({0} : set E)ᶜ, rayleigh_quotient x) = _,
-by simp only [@csupr_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_rayleigh_sphere hr]
+by simv only [@csupr_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_rayleigh_sphere hr]
 
 lemma infi_rayleigh_eq_infi_rayleigh_sphere {r : ℝ} (hr : 0 < r) :
   (⨅ x : {x : E // x ≠ 0}, rayleigh_quotient x) = ⨅ x : sphere (0:E) r, rayleigh_quotient x :=
 show (⨅ x : ({0} : set E)ᶜ, rayleigh_quotient x) = _,
-by simp only [@cinfi_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_rayleigh_sphere hr]
+by simv only [@cinfi_set _ _ _ _ rayleigh_quotient, T.image_rayleigh_eq_image_rayleigh_sphere hr]
 
 end continuous_linear_map
 
@@ -98,7 +98,7 @@ lemma has_strict_fderiv_at_re_apply_inner_self
 begin
   convert T.has_strict_fderiv_at.inner (has_strict_fderiv_at_id x₀),
   ext y,
-  simp [bit0, hT.apply_clm x₀ y, real_inner_comm x₀]
+  simv [bit0, hT.apply_clm x₀ y, real_inner_comm x₀]
 end
 
 variables [complete_space F] {T : F →L[ℝ] F}
@@ -111,14 +111,14 @@ begin
   have H : is_local_extr_on T.re_apply_inner_self {x : F | ∥x∥ ^ 2 = ∥x₀∥ ^ 2} x₀,
   { convert hextr,
     ext x,
-    simp [dist_eq_norm] },
+    simv [dist_eq_norm] },
   -- find Lagrange multipliers for the function `T.re_apply_inner_self` and the
   -- hypersurface-defining function `λ x, ∥x∥ ^ 2`
   obtain ⟨a, b, h₁, h₂⟩ := is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at_1d H
     (has_strict_fderiv_at_norm_sq x₀) (hT.has_strict_fderiv_at_re_apply_inner_self x₀),
   refine ⟨a, b, h₁, _⟩,
   apply (inner_product_space.to_dual_map ℝ F).injective,
-  simp only [linear_isometry.map_add, linear_isometry.map_smul, linear_isometry.map_zero],
+  simv only [linear_isometry.map_add, linear_isometry.map_smul, linear_isometry.map_zero],
   change a • innerSL x₀ + b • innerSL (T x₀) = 0,
   apply smul_right_injective (F →L[ℝ] ℝ) (two_ne_zero : (2:ℝ) ≠ 0),
   simpa only [bit0, add_smul, smul_add, one_smul, add_zero] using h₂
@@ -130,7 +130,7 @@ lemma eq_smul_self_of_is_local_extr_on_real (hT : is_self_adjoint (T : F →ₗ[
 begin
   obtain ⟨a, b, h₁, h₂⟩ := hT.linearly_dependent_of_is_local_extr_on hextr,
   by_cases hx₀ : x₀ = 0,
-  { simp [hx₀] },
+  { simv [hx₀] },
   by_cases hb : b = 0,
   { have : a ≠ 0 := by simpa [hb] using h₁,
     refine absurd _ hx₀,
@@ -140,9 +140,9 @@ begin
   have hc : T x₀ = c • x₀,
   { have : b * (b⁻¹ * a) = a := by field_simp [mul_comm],
     apply smul_right_injective F hb,
-    simp [c, eq_neg_of_add_eq_zero_left h₂, ← mul_smul, this] },
+    simv [c, eq_neg_of_add_eq_zero_left h₂, ← mul_smul, this] },
   convert hc,
-  have : ∥x₀∥ ≠ 0 := by simp [hx₀],
+  have : ∥x₀∥ ≠ 0 := by simv [hx₀],
   field_simp,
   simpa [inner_smul_left, real_inner_self_eq_norm_mul_norm, sq] using congr_arg (λ x, ⟪x, x₀⟫_ℝ) hc,
 end
@@ -162,8 +162,8 @@ begin
     @continuous_linear_map.restrict_scalars 𝕜 E E _ _ _ _ _ _ _ ℝ _ _ _ _ T,
   have hSA : is_self_adjoint (S : E →ₗ[ℝ] E) := λ x y, by
   { have := hT x y,
-    simp only [continuous_linear_map.coe_coe] at this,
-    simp only [real_inner_eq_re_inner, this, continuous_linear_map.coe_restrict_scalars,
+    simv only [continuous_linear_map.coe_coe] at this,
+    simv only [real_inner_eq_re_inner, this, continuous_linear_map.coe_restrict_scalars,
       continuous_linear_map.coe_coe, linear_map.coe_restrict_scalars_eq_coe] },
   exact eq_smul_self_of_is_local_extr_on_real hSA hextr,
 end
@@ -187,8 +187,8 @@ lemma has_eigenvector_of_is_max_on (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
   has_eigenvector (T : E →ₗ[𝕜] E) ↑(⨆ x : {x : E // x ≠ 0}, rayleigh_quotient x) x₀ :=
 begin
   convert hT.has_eigenvector_of_is_local_extr_on hx₀ (or.inr hextr.localize),
-  have hx₀' : 0 < ∥x₀∥ := by simp [hx₀],
-  have hx₀'' : x₀ ∈ sphere (0:E) (∥x₀∥) := by simp,
+  have hx₀' : 0 < ∥x₀∥ := by simv [hx₀],
+  have hx₀'' : x₀ ∈ sphere (0:E) (∥x₀∥) := by simv,
   rw T.supr_rayleigh_eq_supr_rayleigh_sphere hx₀',
   refine is_max_on.supr_eq hx₀'' _,
   intros x hx,
@@ -206,8 +206,8 @@ lemma has_eigenvector_of_is_min_on (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
   has_eigenvector (T : E →ₗ[𝕜] E) ↑(⨅ x : {x : E // x ≠ 0}, rayleigh_quotient x) x₀ :=
 begin
   convert hT.has_eigenvector_of_is_local_extr_on hx₀ (or.inl hextr.localize),
-  have hx₀' : 0 < ∥x₀∥ := by simp [hx₀],
-  have hx₀'' : x₀ ∈ sphere (0:E) (∥x₀∥) := by simp,
+  have hx₀' : 0 < ∥x₀∥ := by simv [hx₀],
+  have hx₀'' : x₀ ∈ sphere (0:E) (∥x₀∥) := by simv,
   rw T.infi_rayleigh_eq_infi_rayleigh_sphere hx₀',
   refine is_min_on.infi_eq hx₀'' _,
   intros x hx,
@@ -234,7 +234,7 @@ begin
   have hT' : is_self_adjoint (T' : E →ₗ[𝕜] E) := hT,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
   have H₁ : is_compact (sphere (0:E) ∥x∥) := is_compact_sphere _ _,
-  have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simp⟩,
+  have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simv⟩,
   -- key point: in finite dimension, a continuous function on the sphere has a max
   obtain ⟨x₀, hx₀', hTx₀⟩ :=
     H₁.exists_forall_ge H₂ T'.re_apply_inner_self_continuous.continuous_on,
@@ -242,7 +242,7 @@ begin
   have : is_max_on T'.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
   { simpa only [← hx₀] using hTx₀ },
   have hx₀_ne : x₀ ≠ 0,
-  { have : ∥x₀∥ ≠ 0 := by simp only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],
+  { have : ∥x₀∥ ≠ 0 := by simv only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],
     simpa [← norm_eq_zero, ne.def] },
   exact has_eigenvalue_of_has_eigenvector (hT'.has_eigenvector_of_is_max_on hx₀_ne this)
 end
@@ -257,7 +257,7 @@ begin
   have hT' : is_self_adjoint (T' : E →ₗ[𝕜] E) := hT,
   obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
   have H₁ : is_compact (sphere (0:E) ∥x∥) := is_compact_sphere _ _,
-  have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simp⟩,
+  have H₂ : (sphere (0:E) ∥x∥).nonempty := ⟨x, by simv⟩,
   -- key point: in finite dimension, a continuous function on the sphere has a min
   obtain ⟨x₀, hx₀', hTx₀⟩ :=
     H₁.exists_forall_le H₂ T'.re_apply_inner_self_continuous.continuous_on,
@@ -265,7 +265,7 @@ begin
   have : is_min_on T'.re_apply_inner_self (sphere 0 ∥x₀∥) x₀,
   { simpa only [← hx₀] using hTx₀ },
   have hx₀_ne : x₀ ≠ 0,
-  { have : ∥x₀∥ ≠ 0 := by simp only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],
+  { have : ∥x₀∥ ≠ 0 := by simv only [hx₀, norm_eq_zero, hx, ne.def, not_false_iff],
     simpa [← norm_eq_zero, ne.def] },
   exact has_eigenvalue_of_has_eigenvector (hT'.has_eigenvector_of_is_min_on hx₀_ne this)
 end

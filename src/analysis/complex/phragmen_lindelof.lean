@@ -155,7 +155,7 @@ begin
   suffices : ∀ᶠ ε : ℝ in 𝓝[<] 0, ∥g ε z • f z∥ ≤ C,
   { refine le_of_tendsto (tendsto.mono_left _ nhds_within_le_nhds) this,
     apply ((continuous_of_real.mul continuous_const).cexp.smul continuous_const).norm.tendsto',
-    simp, apply_instance },
+    simv, apply_instance },
   filter_upwards [self_mem_nhds_within] with ε ε₀, change ε < 0 at ε₀,
   -- An upper estimate on `∥g ε w∥` that will be used in two branches of the proof.
   obtain ⟨δ, δ₀, hδ⟩ : ∃ δ : ℝ, δ < 0 ∧ ∀ ⦃w⦄, im w ∈ Icc (a - b) (a + b) →
@@ -180,7 +180,7 @@ begin
     ∥g ε w • f w∥ ≤ C,
   { refine ((eventually_gt_at_top _).and _).exists,
     rcases hO.exists_pos with ⟨A, hA₀, hA⟩,
-    simp only [is_O_with_iff, eventually_inf_principal, eventually_comap, mem_Ioo, ← abs_lt,
+    simv only [is_O_with_iff, eventually_inf_principal, eventually_comap, mem_Ioo, ← abs_lt,
       mem_preimage, (∘), real.norm_eq_abs, abs_of_pos (real.exp_pos _)] at hA,
     suffices : tendsto (λ R, expR (δ * expR (d * R) + B * expR (c * R) + real.log A)) at_top (𝓝 0),
     { filter_upwards [this.eventually (ge_mem_nhds hC₀), hA] with R hR Hle w hre him,
@@ -388,13 +388,13 @@ begin
       -- zero, hence `f (exp ζ)` has a limit as `ζ.re → -∞`, `0 < ζ.im < π / 2`.
       have hc : continuous_within_at f (Ioi 0 ×ℂ Ioi 0) 0,
       { refine (hd.continuous_on _ _).mono subset_closure,
-        simp [closure_re_prod_im, mem_re_prod_im] },
+        simv [closure_re_prod_im, mem_re_prod_im] },
       refine ((hc.tendsto.comp $ tendsto_exp_comap_re_at_bot.inf
         H.tendsto).is_O_one ℝ).trans (is_O_of_le _ (λ w, _)),
       rw [norm_one, real.norm_of_nonneg (real.exp_pos _).le, real.one_le_exp_iff],
       exact mul_nonneg (le_max_right _ _) (real.exp_pos _).le },
     { -- For the estimate as `ζ.re → ∞`, we reuse the uppoer estimate on `f`
-      simp only [eventually_inf_principal, eventually_comap, comp_app, one_mul,
+      simv only [eventually_inf_principal, eventually_comap, comp_app, one_mul,
         real.norm_of_nonneg (real.exp_pos _).le, abs_exp, ← real.exp_mul, real.exp_le_exp],
       refine (eventually_ge_at_top 0).mono (λ x hx z hz hz', _),
       rw [hz, _root_.abs_of_nonneg hx, mul_comm _ c],
@@ -462,7 +462,7 @@ lemma quadrant_II (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
   ∥f z∥ ≤ C :=
 begin
   obtain ⟨z, rfl⟩ : ∃ z', z' * I = z, from ⟨z / I, div_mul_cancel _ I_ne_zero⟩,
-  simp only [mul_I_re, mul_I_im, neg_nonpos] at hz_re hz_im,
+  simv only [mul_I_re, mul_I_im, neg_nonpos] at hz_re hz_im,
   change ∥(f ∘ (* I)) z∥ ≤ C,
   have H : maps_to (* I) (Ioi 0 ×ℂ Ioi 0) (Iio 0 ×ℂ Ioi 0),
   { intros w hw,
@@ -526,7 +526,7 @@ lemma quadrant_III (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
   ∥f z∥ ≤ C :=
 begin
   obtain ⟨z, rfl⟩ : ∃ z', -z' = z, from ⟨-z, neg_neg z⟩,
-  simp only [neg_re, neg_im, neg_nonpos] at hz_re hz_im,
+  simv only [neg_re, neg_im, neg_nonpos] at hz_re hz_im,
   change ∥(f ∘ has_neg.neg) z∥ ≤ C,
   have H : maps_to has_neg.neg (Ioi 0 ×ℂ Ioi 0) (Iio 0 ×ℂ Iio 0),
   { intros w hw,
@@ -593,7 +593,7 @@ lemma quadrant_IV (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
   ∥f z∥ ≤ C :=
 begin
   obtain ⟨z, rfl⟩ : ∃ z', -z' = z, from ⟨-z, neg_neg z⟩,
-  simp only [neg_re, neg_im, neg_nonpos, neg_nonneg] at hz_re hz_im,
+  simv only [neg_re, neg_im, neg_nonpos, neg_nonneg] at hz_re hz_im,
   change ∥(f ∘ has_neg.neg) z∥ ≤ C,
   have H : maps_to has_neg.neg (Iio 0 ×ℂ Ioi 0) (Ioi 0 ×ℂ Iio 0),
   { intros w hw,
@@ -743,7 +743,7 @@ begin
   suffices : ∀ᶠ ε : ℝ in 𝓝[<] 0, ∥exp (ε * z) • f z∥ ≤ C,
   { refine le_of_tendsto (tendsto.mono_left _ nhds_within_le_nhds) this,
     apply ((continuous_of_real.mul continuous_const).cexp.smul continuous_const).norm.tendsto',
-    simp, apply_instance },
+    simv, apply_instance },
   filter_upwards [self_mem_nhds_within] with ε ε₀, change ε < 0 at ε₀,
   set g : ℂ → E := λ z, exp (ε * z) • f z, change ∥g z∥ ≤ C,
   replace hd : diff_cont_on_cl ℂ g {z : ℂ | 0 < z.re},
@@ -790,12 +790,12 @@ begin
   -- Consider $g_n(z)=e^{nz}f(z)$.
   set g : ℕ → ℂ → E := λ n z, (exp z) ^ n • f z,
   have hg : ∀ n z, ∥g n z∥ = (expR z.re) ^ n * ∥f z∥,
-  { intros n z, simp only [norm_smul, norm_eq_abs, complex.abs_pow, abs_exp] },
+  { intros n z, simv only [norm_smul, norm_eq_abs, complex.abs_pow, abs_exp] },
   intros z hz,
   -- Since `e^{nz} → ∞` as `n → ∞`, it suffices to show that each `g_n` is bounded from above by `C`
   suffices H : ∀ n : ℕ, ∥g n z∥ ≤ C,
   { contrapose! H,
-    simp only [hg],
+    simv only [hg],
     exact (((tendsto_pow_at_top_at_top_of_one_lt (real.one_lt_exp_iff.2 hz)).at_top_mul
       (norm_pos_iff.2 H) tendsto_const_nhds).eventually (eventually_gt_at_top C)).exists },
   intro n,
@@ -804,9 +804,9 @@ begin
     ((differentiable_exp.pow n).diff_cont_on_cl.smul hd) _ _ (λ y, _) hz.le,
   { rcases hexp with ⟨c, hc, B, hO⟩,
     refine ⟨max c 1, max_lt hc one_lt_two, n + max B 0, is_O.of_norm_left _⟩,
-    simp only [hg],
+    simv only [hg],
     refine ((is_O_refl (λ z : ℂ, expR z.re ^ n) _).mul hO.norm_left).trans (is_O.of_bound 1 _),
-    simp only [← real.exp_nat_mul, ← real.exp_add, real.norm_of_nonneg (real.exp_pos _).le,
+    simv only [← real.exp_nat_mul, ← real.exp_add, real.norm_of_nonneg (real.exp_pos _).le,
       real.exp_le_exp, add_mul, eventually_inf_principal, eventually_comap, one_mul],
     filter_upwards [eventually_ge_at_top (1 : ℝ)] with r hr z hzr hre, subst r,
     refine add_le_add (mul_le_mul_of_nonneg_left _ n.cast_nonneg) _,
@@ -815,7 +815,7 @@ begin
       ... ≤ abs z ^ (max c 1) : real.rpow_le_rpow_of_exponent_le hr (le_max_right _ _) },
     { exact mul_le_mul (le_max_left _ _) (real.rpow_le_rpow_of_exponent_le hr (le_max_left _ _))
         (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) (le_max_right _ _) } },
-  { rw tendsto_zero_iff_norm_tendsto_zero, simp only [hg],
+  { rw tendsto_zero_iff_norm_tendsto_zero, simv only [hg],
     exact hre n },
   { rw [hg, of_real_mul_re, I_re, mul_zero, real.exp_zero, one_pow, one_mul],
     exact hC y }
@@ -850,12 +850,12 @@ begin
       (λ z, expR (B₁ * abs z ^ c₁)) =O[l] (λ z, expR (B₂ * abs z ^ c₂)),
     { rcases hfexp with ⟨cf, hcf, Bf, hOf⟩, rcases hgexp with ⟨cg, hcg, Bg, hOg⟩,
       refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
-      refine is_O.sub (hOf.trans $ this _ _ _) (hOg.trans $ this _ _ _); simp },
+      refine is_O.sub (hOf.trans $ this _ _ _) (hOg.trans $ this _ _ _); simv },
     intros c₁ c₂ B₁ B₂ hc hB hB₂,
     have : ∀ᶠ z : ℂ in l, 1 ≤ abs z,
       from ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
     refine is_O.of_bound 1 (this.mono $ λ z hz, _),
-    simp only [real.norm_of_nonneg (real.exp_pos _).le, real.exp_le_exp, one_mul],
+    simv only [real.norm_of_nonneg (real.exp_pos _).le, real.exp_le_exp, one_mul],
     exact mul_le_mul hB (real.rpow_le_rpow_of_exponent_le hz hc)
       (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) hB₂ },
   { rcases hfim with ⟨Cf, hCf⟩, rcases hgim with ⟨Cg, hCg⟩,

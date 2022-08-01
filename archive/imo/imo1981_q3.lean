@@ -57,7 +57,7 @@ end
 lemma eq_imp_1 {n : ℤ} (h1 : problem_predicate N n n) : n = 1 :=
 begin
   have : n * (n * (n * n)) = 1,
-  { calc _ = (n ^ 2 - n * n - n ^ 2) ^ 2 : by simp [sq, mul_assoc]
+  { calc _ = (n ^ 2 - n * n - n ^ 2) ^ 2 : by simv [sq, mul_assoc]
        ... = 1                           : h1.eq_one },
   exact eq_one_of_mul_eq_one_right h1.m_range.left.le this,
 end
@@ -187,7 +187,7 @@ lemma solution_bound : ∀ {k : ℤ}, k ∈ specified_set N → k ≤ M
 
 theorem solution_greatest (H : problem_predicate N (fib K) (fib (K + 1))) :
   is_greatest (specified_set N) M :=
-⟨⟨fib K, fib (K+1), by simp [HM], H⟩, λ k h, solution_bound HK HM h⟩
+⟨⟨fib K, fib (K+1), by simv [HM], H⟩, λ k h, solution_bound HK HM h⟩
 
 end
 
@@ -199,7 +199,7 @@ numbers in this range, and thus provide the maximum of `specified_set`.
 theorem imo1981_q3 : is_greatest (specified_set 1981) 3524578 :=
 begin
   have := λ h, @solution_greatest 1981 16 h 3524578,
-  simp only [show fib (16:ℕ) = 987 ∧ fib (16+1:ℕ) = 1597,
+  simv only [show fib (16:ℕ) = 987 ∧ fib (16+1:ℕ) = 1597,
     by norm_num [fib_add_two]] at this,
   apply_mod_cast this; norm_num [problem_predicate_iff],
 end

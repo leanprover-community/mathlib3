@@ -41,7 +41,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   map_source' :=
   begin
     rintros ⟨x, y⟩ hxy,
-    simp only [prod_mk_mem_set_prod_eq, mem_Ioi, sqrt_pos, mem_Ioo, complex.neg_pi_lt_arg,
+    simv only [prod_mk_mem_set_prod_eq, mem_Ioi, sqrt_pos, mem_Ioo, complex.neg_pi_lt_arg,
       true_and, complex.arg_lt_pi_iff],
     split,
     { cases hxy,
@@ -55,13 +55,13 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   begin
     rintros ⟨r, θ⟩ ⟨hr, hθ⟩,
     dsimp at hr hθ,
-    simp only [prod.mk.inj_iff],
+    simv only [prod.mk.inj_iff],
     split,
     { conv_rhs { rw [← sqrt_sq (le_of_lt hr), ← one_mul (r^2), ← sin_sq_add_cos_sq θ], },
       congr' 1,
       ring_exp },
     { convert complex.arg_mul_cos_add_sin_mul_I hr ⟨hθ.1, hθ.2.le⟩,
-      simp only [complex.equiv_real_prod_symm_apply, complex.of_real_mul, complex.of_real_cos,
+      simv only [complex.equiv_real_prod_symm_apply, complex.of_real_mul, complex.of_real_cos,
         complex.of_real_sin],
       ring }
   end,
@@ -69,12 +69,12 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   begin
     rintros ⟨x, y⟩ hxy,
     have A : sqrt (x ^ 2 + y ^ 2) = complex.abs (x + y * complex.I),
-      by simp only [complex.abs, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
+      by simv only [complex.abs, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
         complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, mul_zero,
         complex.of_real_im, complex.I_im, sub_self, add_zero, complex.add_im,
         complex.mul_im, mul_one, zero_add],
     have Z := complex.abs_mul_cos_add_sin_mul_I (x + y * complex.I),
-    simp only [← complex.of_real_cos, ← complex.of_real_sin, mul_add, ← complex.of_real_mul,
+    simv only [← complex.of_real_cos, ← complex.of_real_sin, mul_add, ← complex.of_real_mul,
       ← mul_assoc] at Z,
     simpa [A, -complex.of_real_cos, -complex.of_real_sin] using complex.ext_iff.1 Z,
   end,
@@ -103,7 +103,7 @@ begin
   convert has_fderiv_at.prod
     (has_fderiv_at_fst.mul ((has_deriv_at_cos p.2).comp_has_fderiv_at p has_fderiv_at_snd))
     (has_fderiv_at_fst.mul ((has_deriv_at_sin p.2).comp_has_fderiv_at p has_fderiv_at_snd)) using 2;
-  simp only [smul_smul, add_comm, neg_mul, neg_smul, smul_neg],
+  simv only [smul_smul, add_comm, neg_mul, neg_smul, smul_neg],
 end
 
 lemma polar_coord_source_ae_eq_univ :
@@ -111,7 +111,7 @@ lemma polar_coord_source_ae_eq_univ :
 begin
   have A : polar_coord.sourceᶜ ⊆ (linear_map.snd ℝ ℝ ℝ).ker,
   { assume x hx,
-    simp only [polar_coord_source, compl_union, mem_inter_eq, mem_compl_eq, mem_set_of_eq, not_lt,
+    simv only [polar_coord_source, compl_union, mem_inter_eq, mem_compl_eq, mem_set_of_eq, not_lt,
       not_not] at hx,
     exact hx.2 },
   have B : volume ((linear_map.snd ℝ ℝ ℝ).ker : set (ℝ × ℝ)) = 0,
@@ -120,7 +120,7 @@ begin
     assume h,
     have : (linear_map.snd ℝ ℝ ℝ) (0, 1) = (0 : (ℝ × ℝ →ₗ[ℝ] ℝ)) (0, 1), by rw h,
     simpa using this },
-  simp only [ae_eq_univ],
+  simv only [ae_eq_univ],
   exact le_antisymm ((measure_mono A).trans (le_of_eq B)) bot_le,
 end
 
@@ -136,7 +136,7 @@ begin
   have B_det : ∀ p, (B p).det = p.1,
   { assume p,
     conv_rhs {rw [← one_mul p.1, ← cos_sq_add_sin_sq p.2] },
-    simp only [neg_mul, linear_map.det_to_continuous_linear_map, linear_map.det_to_lin,
+    simv only [neg_mul, linear_map.det_to_continuous_linear_map, linear_map.det_to_lin,
       matrix.det_fin_two_of, sub_neg_eq_add],
     ring_exp },
   symmetry,

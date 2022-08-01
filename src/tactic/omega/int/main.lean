@@ -30,7 +30,7 @@ attribute [sugar]
   imp_iff_not_or
   iff_iff_not_or_and_or_not
 
-meta def desugar := `[try {simp only with sugar}]
+meta def desugar := `[try {simv only with sugar}]
 
 lemma univ_close_of_unsat_clausify (m : nat) (p : preform) :
   clauses.unsat (dnf (¬* p)) → univ_close p (λ x, 0) m | h1 :=

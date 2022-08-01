@@ -118,7 +118,7 @@ lemma forall_bUnion_tagged (p : (ι → ℝ) → box ι → Prop) (π : preparti
   (∀ J ∈ π.bUnion_tagged πi, p ((π.bUnion_tagged πi).tag J) J) ↔
     ∀ (J ∈ π) (J' ∈ πi J), p ((πi J).tag J') J' :=
 begin
-  simp only [bex_imp_distrib, mem_bUnion_tagged],
+  simv only [bex_imp_distrib, mem_bUnion_tagged],
   refine ⟨λ H J hJ J' hJ', _, λ H J' J hJ hJ', _⟩,
   { rw ← π.tag_bUnion_tagged hJ hJ', exact H J' J hJ hJ' },
   { rw π.tag_bUnion_tagged hJ hJ', exact H J hJ J' hJ' }
@@ -165,7 +165,7 @@ def inf_prepartition (π : tagged_prepartition I) (π' : prepartition I) :
 
 lemma mem_inf_prepartition_comm :
   J ∈ π₁.inf_prepartition π₂.to_prepartition ↔ J ∈ π₂.inf_prepartition π₁.to_prepartition :=
-by simp only [← mem_to_prepartition, inf_prepartition_to_prepartition, inf_comm]
+by simv only [← mem_to_prepartition, inf_prepartition_to_prepartition, inf_comm]
 
 lemma is_partition.inf_prepartition (h₁ : π₁.is_partition) {π₂ : prepartition I}
   (h₂ : π₂.is_partition) :
@@ -253,7 +253,7 @@ prepartition.is_partition_top I
 
 lemma forall_mem_single (p : (ι → ℝ) → (box ι) → Prop) (hJ : J ≤ I) (h : x ∈ I.Icc) :
   (∀ J' ∈ single I J hJ x h, p ((single I J hJ x h).tag J') J') ↔ p x J :=
-by simp
+by simv
 
 @[simp] lemma is_Henstock_single_iff (hJ : J ≤ I) (h : x ∈ I.Icc) :
   is_Henstock (single I J hJ x h) ↔ x ∈ J.Icc :=

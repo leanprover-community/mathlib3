@@ -44,7 +44,7 @@ begin
   refine hfunext (by rw [cons_swap]) (λ ha₁ ha₂ _, _),
   rcases ne_or_eq a'' a with h₁ | rfl,
   rcases eq_or_ne a'' a' with rfl | h₂,
-  all_goals { simp [*, pi.cons_same, pi.cons_ne] },
+  all_goals { simv [*, pi.cons_same, pi.cons_ne] },
 end
 
 /-- `pi m t` constructs the Cartesian product over `t` indexed by `m`. -/
@@ -54,7 +54,7 @@ begin
   intros a a' m n,
   by_cases eq : a = a',
   { subst eq },
-  { simp [map_bind, bind_bind (t a') (t a)],
+  { simv [map_bind, bind_bind (t a') (t a)],
     apply bind_hcongr, { rw [cons_swap a a'] },
     intros b hb,
     apply bind_hcongr, { rw [cons_swap a a'] },
@@ -81,16 +81,16 @@ calc f₁ a' h' = pi.cons s a b f₁ a' this : by rw [pi.cons_ne this ne.symm]
 
 lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   card (pi m t) = prod (m.map $ λa, card (t a)) :=
-multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
+multiset.induction_on m (by simv) (by simv [mul_comm] {contextual := tt})
 
 protected lemma nodup.pi {s : multiset α} {t : Π a, multiset (δ a)} :
   nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
 multiset.induction_on s (assume _ _, nodup_singleton _)
 begin
   assume a s ih hs ht,
-  have has : a ∉ s, by simp at hs; exact hs.1,
-  have hs : nodup s, by simp at hs; exact hs.2,
-  simp,
+  have has : a ∉ s, by simv at hs; exact hs.1,
+  have hs : nodup s, by simv at hs; exact hs.2,
+  simv,
   refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi_cons_injective has), _⟩,
   refine (ht a $ mem_cons_self _ _).pairwise _,
   from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,

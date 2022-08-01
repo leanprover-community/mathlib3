@@ -80,7 +80,7 @@ lemma monad_lift_bind [monad m] [is_lawful_monad m] {α β} (x : m α) (f : α �
   (monad_lift (x >>= f) : cont_t r m β) = monad_lift x >>= monad_lift ∘ f :=
 begin
   ext,
-  simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift]
+  simv only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift]
 end
 
 instance : monad_cont (cont_t r m) :=
@@ -117,12 +117,12 @@ instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=
 { call_cc := λ α β, except_t.call_cc }
 
 instance {ε} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (except_t ε m) :=
-{ call_cc_bind_right := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr' with ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
+{ call_cc_bind_right := by { intros, simv [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp,
+    congr' with ⟨ ⟩; simv [except_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros,
-    simp [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,
+    simv [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,
       bind_assoc,@call_cc_bind_left m _], ext, refl },
-  call_cc_dummy := by { intros, simp [call_cc,except_t.call_cc,@call_cc_dummy m _], ext, refl }, }
+  call_cc_dummy := by { intros, simv [call_cc,except_t.call_cc,@call_cc_dummy m _], ext, refl }, }
 
 def option_t.mk_label {α β} : label (option.{u} α) m β → label α (option_t m) β
 | ⟨ f ⟩ := ⟨ λ a, monad_lift $ f (some a) ⟩
@@ -138,11 +138,11 @@ instance [monad_cont m] : monad_cont (option_t m) :=
 { call_cc := λ α β, option_t.call_cc }
 
 instance [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (option_t m) :=
-{ call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr' with ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
-  call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,
+{ call_cc_bind_right := by { intros, simv [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp,
+    congr' with ⟨ ⟩; simv [option_t.bind_cont,@call_cc_dummy m _], },
+  call_cc_bind_left  := by { intros, simv [call_cc,option_t.call_cc,call_cc_bind_right,
     option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
-  call_cc_dummy := by { intros, simp [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }
+  call_cc_dummy := by { intros, simv [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }
 
 def writer_t.mk_label {α β ω} [has_one ω] : label (α × ω) m β → label α (writer_t ω m) β
 | ⟨ f ⟩ := ⟨ λ a, monad_lift $ f (a,1) ⟩
@@ -172,11 +172,11 @@ instance {σ} [monad_cont m] : monad_cont (state_t σ m) :=
 
 instance {σ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (state_t σ m) :=
 { call_cc_bind_right := by { intros,
-    simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp,
+    simv [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp,
     congr' with ⟨x₀,x₁⟩, refl },
-  call_cc_bind_left  := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),
+  call_cc_bind_left  := by { intros, simv [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),
     state_t.bind,state_t.goto_mk_label], ext, refl },
-  call_cc_dummy := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),
+  call_cc_dummy := by { intros, simv [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),
     state_t.bind,@call_cc_dummy m _], ext, refl }, }
 
 def reader_t.mk_label {α β} (ρ) : label α m β → label α (reader_t ρ m) β
@@ -194,10 +194,10 @@ instance {ρ} [monad_cont m] : monad_cont (reader_t ρ m) :=
 
 instance {ρ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (reader_t ρ m) :=
 { call_cc_bind_right :=
-    by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_right], ext, refl },
-  call_cc_bind_left  := by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_left,
+    by { intros, simv [call_cc,reader_t.call_cc,call_cc_bind_right], ext, refl },
+  call_cc_bind_left  := by { intros, simv [call_cc,reader_t.call_cc,call_cc_bind_left,
     reader_t.goto_mk_label], ext, refl },
-  call_cc_dummy := by { intros, simp [call_cc,reader_t.call_cc,@call_cc_dummy m _], ext, refl } }
+  call_cc_dummy := by { intros, simv [call_cc,reader_t.call_cc,@call_cc_dummy m _], ext, refl } }
 
 /-- reduce the equivalence between two continuation passing monads to the equivalence between
 their underlying monad -/
@@ -206,5 +206,5 @@ def cont_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v�
   cont_t r₁ m₁ α₁ ≃ cont_t r₂ m₂ α₂ :=
 { to_fun := λ f r, F $ f $ λ x, F.symm $ r $ G x,
   inv_fun := λ f r, F.symm $ f $ λ x, F $ r $ G.symm x,
-  left_inv := λ f, by funext r; simp,
-  right_inv := λ f, by funext r; simp }
+  left_inv := λ f, by funext r; simv,
+  right_inv := λ f, by funext r; simv }

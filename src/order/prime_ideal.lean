@@ -162,7 +162,7 @@ hI.mem_or_compl_mem.resolve_left hxnI
 
 lemma is_prime_of_mem_or_compl_mem [is_proper I] (h : ∀ {x : P}, x ∈ I ∨ xᶜ ∈ I) : is_prime I :=
 begin
-  simp only [is_prime_iff_mem_or_mem, or_iff_not_imp_left],
+  simv only [is_prime_iff_mem_or_mem, or_iff_not_imp_left],
   intros x y hxy hxI,
   have hxcI : xᶜ ∈ I := h.resolve_left hxI,
   have ass : (x ⊓ y) ⊔ (y ⊓ xᶜ) ∈ I := sup_mem hxy (I.lower inf_le_right hxcI),
@@ -175,7 +175,7 @@ lemma is_prime_iff_mem_or_compl_mem [is_proper I] : is_prime I ↔ ∀ {x : P}, 
 @[priority 100]
 instance is_prime.is_maximal [is_prime I] : is_maximal I :=
 begin
-  simp only [is_maximal_iff, set.eq_univ_iff_forall, is_prime.to_is_proper, true_and],
+  simv only [is_maximal_iff, set.eq_univ_iff_forall, is_prime.to_is_proper, true_and],
   intros J hIJ x,
   rcases set.exists_of_ssubset hIJ with ⟨y, hyJ, hyI⟩,
   suffices ass : (x ⊓ y) ⊔ (x ⊓ yᶜ) ∈ J,

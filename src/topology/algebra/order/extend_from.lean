@@ -38,7 +38,7 @@ lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [d
 begin
   apply extend_from_eq,
   { rw closure_Ioo hab.ne,
-    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
+    simv only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
   { simpa [hab] }
 end
 
@@ -49,7 +49,7 @@ lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [
 begin
   apply extend_from_eq,
   { rw closure_Ioo hab.ne,
-    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
+    simv only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
   { simpa [hab] }
 end
 

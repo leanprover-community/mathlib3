@@ -63,7 +63,7 @@ algebra.of_id C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜
 lemma smul_def (x : M) (f : C^∞⟮I, M; 𝕜⟯⟨x⟩) (k : 𝕜) : f • k = f x * k := rfl
 
 instance (x : M) : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 :=
-{ smul_assoc := λ k f h, by { simp only [smul_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
+{ smul_assoc := λ k f h, by { simv only [smul_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
   pi.smul_apply, mul_assoc]} }
 
 end pointed_smooth_map
@@ -108,8 +108,8 @@ def hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y) 
     { to_fun := λ g, v (g.comp f),
       map_add' := λ g g', by rw [smooth_map.add_comp, derivation.map_add],
       map_smul' := λ k g,
-        by simp only [smooth_map.smul_comp, derivation.map_smul, ring_hom.id_apply], }
-    (λ g g', by simp only [derivation.leibniz, smooth_map.mul_comp, linear_map.coe_mk,
+        by simv only [smooth_map.smul_comp, derivation.map_smul, ring_hom.id_apply], }
+    (λ g g', by simv only [derivation.leibniz, smooth_map.mul_comp, linear_map.coe_mk,
       pointed_smooth_map.smul_def, cont_mdiff_map.comp_apply, h]),
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }

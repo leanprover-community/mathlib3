@@ -84,7 +84,7 @@ variables [set_like S R] [hSR : subring_class S R] (s : S)
 include hSR
 
 lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
-by simp only [← zsmul_one, zsmul_mem, one_mem]
+by simv only [← zsmul_one, zsmul_mem, one_mem]
 
 namespace subring_class
 
@@ -149,9 +149,9 @@ def subtype (s : S) : s →+* R :=
  .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
+@[simv, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
 map_nat_cast (subtype s) n
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
+@[simv, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 (subtype s : s →+* R).map_int_cast n
 
 end subring_class
@@ -355,12 +355,12 @@ protected lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zs
 
 protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
 
-@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
-@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+@[simv, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
+@[simv, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
+@[simv, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
+@[simv, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
+@[simv, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
 submonoid_class.coe_pow x n
 
 -- TODO: can be generalized to `add_submonoid_class`
@@ -415,9 +415,9 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
+@[simv, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
 map_nat_cast s.subtype
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
+@[simv, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 s.subtype.map_int_cast n
 
 /-! ## Partial order -/
@@ -512,7 +512,7 @@ def range {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S) : subring 
 @[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y := iff.rfl
 
 lemma range_eq_map (f : R →+* S) : f.range = subring.map f ⊤ :=
-by { ext, simp }
+by { ext, simv }
 
 lemma mem_range_self (f : R →+* S) (x : R) : f x ∈ f.range :=
 mem_range.mpr ⟨x, rfl⟩
@@ -557,9 +557,9 @@ instance : has_inf (subring R) :=
 
 instance : has_Inf (subring R) :=
 ⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t )
-  (⨅ t ∈ s, subring.to_add_subgroup t) (by simp) (by simp)⟩
+  (⨅ t ∈ s, subring.to_add_subgroup t) (by simv) (by simv)⟩
 
-@[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
+@[simv, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
@@ -718,10 +718,10 @@ lemma mem_closure_iff {s : set R} {x} :
        (begin rw zero_mul q, apply add_subgroup.zero_mem _, end)
        (λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end)
        (λ x hx, begin have f : -x * q = -(x*q) :=
-         by simp, rw f, apply add_subgroup.neg_mem _ hx, end))
+         by simv, rw f, apply add_subgroup.neg_mem _ hx, end))
      (begin rw mul_zero x, apply add_subgroup.zero_mem _, end)
      (λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end)
-     (λ z hz, begin have f : x * -z = -(x*z) := by simp,
+     (λ z hz, begin have f : x * -z = -(x*z) := by simv,
        rw f, apply add_subgroup.neg_mem _ hz, end)),
  λ h, add_subgroup.closure_induction h
    (λ x hx, submonoid.closure_induction hx
@@ -738,17 +738,17 @@ def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * 
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subring.coe_mul],
+    simv only [subring.coe_mul],
     refine closure_induction₂ x.prop y.prop
     hcomm
-    (λ x, by simp only [mul_zero, zero_mul])
-    (λ x, by simp only [mul_zero, zero_mul])
-    (λ x, by simp only [mul_one, one_mul])
-    (λ x, by simp only [mul_one, one_mul])
-    (λ x y hxy, by simp only [mul_neg, neg_mul, hxy])
-    (λ x y hxy, by simp only [mul_neg, neg_mul, hxy])
-    (λ x₁ x₂ y h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
-    (λ x₁ x₂ y h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x, by simv only [mul_zero, zero_mul])
+    (λ x, by simv only [mul_zero, zero_mul])
+    (λ x, by simv only [mul_one, one_mul])
+    (λ x, by simv only [mul_one, one_mul])
+    (λ x y hxy, by simv only [mul_neg, neg_mul, hxy])
+    (λ x y hxy, by simv only [mul_neg, neg_mul, hxy])
+    (λ x₁ x₂ y h₁ h₂, by simv only [add_mul, mul_add, h₁, h₂])
+    (λ x₁ x₂ y h₁ h₂, by simv only [add_mul, mul_add, h₁, h₂])
     (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, ←h₁, mul_assoc x₁ y x₂, ←h₂, mul_assoc])
     (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
   end,
@@ -758,14 +758,14 @@ def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * 
 theorem exists_list_of_mem_closure {s : set R} {x : R} (h : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
 add_subgroup.closure_induction (mem_closure_iff.1 h)
-  (λ x hx, let ⟨l, hl, h⟩ :=submonoid.exists_list_of_mem_closure hx in ⟨[l], by simp [h];
+  (λ x hx, let ⟨l, hl, h⟩ :=submonoid.exists_list_of_mem_closure hx in ⟨[l], by simv [h];
     clear_aux_decl; tauto!⟩)
-  ⟨[], by simp⟩
+  ⟨[], by simv⟩
   (λ x y ⟨l, hl1, hl2⟩ ⟨m, hm1, hm2⟩, ⟨l ++ m, λ t ht, (list.mem_append.1 ht).elim (hl1 t) (hm1 t),
-    by simp [hl2, hm2]⟩)
+    by simv [hl2, hm2]⟩)
   (λ x ⟨L, hL⟩, ⟨L.map (list.cons (-1)), list.forall_mem_map_iff.2 $ λ j hj, list.forall_mem_cons.2
-    ⟨or.inr rfl, hL.1 j hj⟩, hL.2 ▸ list.rec_on L (by simp)
-      (by simp [list.map_cons, add_comm] {contextual := tt})⟩)
+    ⟨or.inr rfl, hL.1 j hj⟩, hL.2 ▸ list.rec_on L (by simv)
+      (by simv [list.map_cons, add_comm] {contextual := tt})⟩)
 
 variable (R)
 /-- `closure` forms a Galois insertion with the coercion to set. -/
@@ -839,11 +839,11 @@ lemma prod_mono_left (t : subring S) : monotone (λ s : subring R, s.prod t) :=
 
 lemma prod_top (s : subring R) :
   s.prod (⊤ : subring S) = s.comap (ring_hom.fst R S) :=
-ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
+ext $ λ x, by simv [mem_prod, monoid_hom.coe_fst]
 
 lemma top_prod (s : subring S) :
   (⊤ : subring R).prod s = s.comap (ring_hom.snd R S) :=
-ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
+ext $ λ x, by simv [mem_prod, monoid_hom.coe_snd]
 
 @[simp]
 lemma top_prod_top : (⊤ : subring R).prod (⊤ : subring S) = ⊤ :=
@@ -871,19 +871,19 @@ end
 
 lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS : directed (≤) S) :
   ((⨆ i, S i : subring R) : set R) = ⋃ i, ↑(S i) :=
-set.ext $ λ x, by simp [mem_supr_of_directed hS]
+set.ext $ λ x, by simv [mem_supr_of_directed hS]
 
 lemma mem_Sup_of_directed_on {S : set (subring R)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : R} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
   haveI : nonempty S := Sne.to_subtype,
-  simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
+  simv only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 lemma coe_Sup_of_directed_on {S : set (subring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
   (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
-set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
+set.ext $ λ x, by simv [mem_Sup_of_directed_on Sne hS]
 
 lemma mem_map_equiv {f : R ≃+* S} {K : subring R} {x : S} :
   x ∈ K.map (f : R →+* S) ↔ f.symm x ∈ K :=
@@ -1073,7 +1073,7 @@ end subring
 
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
-by { convert add_subgroup.zsmul_mem G h k, simp }
+by { convert add_subgroup.zsmul_mem G h k, simv }
 
 /-! ## Actions by `subring`s
 

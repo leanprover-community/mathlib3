@@ -146,7 +146,7 @@ variables
 lemma is_invariant_iff_image_eq (s : set α) :
   is_invariant ϕ s ↔ ∀ t, ϕ t '' s = s :=
 (is_invariant_iff_image _ _).trans (iff.intro
-  (λ h t, subset.antisymm (h t) (λ _ hx, ⟨_, h (-t) ⟨_, hx, rfl⟩, by simp [← map_add]⟩))
+  (λ h t, subset.antisymm (h t) (λ _ hx, ⟨_, h (-t) ⟨_, hx, rfl⟩, by simv [← map_add]⟩))
   (λ h t, by rw h t))
 
 /-- The time-reversal of a flow `ϕ` by a (commutative, additive) group

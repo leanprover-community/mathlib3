@@ -45,9 +45,9 @@ rfl
     fin.cons (λ j, v0 ^ (j : ℕ)) (λ i, fin.cons 1 (λ j, v i * vandermonde v i j)) :=
 begin
   ext i j,
-  refine fin.cases (by simp) (λ i, _) i,
-  refine fin.cases (by simp) (λ j, _) j,
-  simp [pow_succ]
+  refine fin.cases (by simv) (λ i, _) i,
+  refine fin.cases (by simv) (λ j, _) j,
+  simv [pow_succ]
 end
 
 lemma vandermonde_succ {n : ℕ} (v : fin n.succ → R) :
@@ -56,16 +56,16 @@ lemma vandermonde_succ {n : ℕ} (v : fin n.succ → R) :
       (λ i, fin.cons 1 (λ j, v i.succ * vandermonde (fin.tail v) i j)) :=
 begin
   conv_lhs { rw [← fin.cons_self_tail v, vandermonde_cons] },
-  simp only [fin.tail]
+  simv only [fin.tail]
 end
 
 lemma vandermonde_mul_vandermonde_transpose {n : ℕ} (v w : fin n → R) (i j) :
   (vandermonde v ⬝ (vandermonde w)ᵀ) i j = ∑ (k : fin n), (v i * w j) ^ (k : ℕ) :=
-by simp only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, mul_pow]
+by simv only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, mul_pow]
 
 lemma vandermonde_transpose_mul_vandermonde {n : ℕ} (v : fin n → R) (i j) :
   ((vandermonde v)ᵀ ⬝ vandermonde v) i j = ∑ (k : fin n), v k ^ (i + j : ℕ) :=
-by simp only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, pow_add]
+by simv only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, pow_add]
 
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :
   det (vandermonde v) = ∏ i : fin n, ∏ j in Ioi i, (v j - v i) :=
@@ -104,16 +104,16 @@ begin
     simp_rw [of_apply],
     rw matrix.cons_val_zero,
     refine fin.cases _ (λ i, _) i,
-    { simp },
+    { simv },
     rw [matrix.cons_val_succ, matrix.cons_val_succ, pi.one_apply],
     ring },
   { cases n,
-    { simp only [det_eq_one_of_card_eq_zero (fintype.card_fin 0)] },
+    { simv only [det_eq_one_of_card_eq_zero (fintype.card_fin 0)] },
     apply det_eq_of_forall_col_eq_smul_add_pred (λ i, v 0),
     { intro j,
-      simp },
+      simv },
     { intros i j,
-      simp only [smul_eq_mul, pi.add_apply, fin.coe_succ, fin.coe_cast_succ, pi.smul_apply],
+      simv only [smul_eq_mul, pi.add_apply, fin.coe_succ, fin.coe_cast_succ, pi.smul_apply],
       rw [finset.sum_range_succ, add_comm, tsub_self, pow_zero, mul_one, finset.mul_sum],
       congr' 1,
       refine finset.sum_congr rfl (λ i' hi', _),
@@ -125,9 +125,9 @@ lemma det_vandermonde_eq_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
   det (vandermonde v) = 0 ↔ ∃ (i j : fin n), v i = v j ∧ i ≠ j :=
 begin
   split,
-  { simp only [det_vandermonde v, finset.prod_eq_zero_iff, sub_eq_zero, forall_exists_index],
+  { simv only [det_vandermonde v, finset.prod_eq_zero_iff, sub_eq_zero, forall_exists_index],
     exact λ i _ j h₁ h₂, ⟨j, i, h₂, (mem_Ioi.mp h₁).ne'⟩ },
-  { simp only [ne.def, forall_exists_index, and_imp],
+  { simv only [ne.def, forall_exists_index, and_imp],
     refine λ i j h₁ h₂, matrix.det_zero_of_row_eq h₂ (funext $ λ k, _),
     rw [vandermonde_apply, vandermonde_apply, h₁], }
 end

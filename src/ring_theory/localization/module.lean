@@ -50,7 +50,7 @@ begin
     apply_instance },
   refine ((is_localization.map_units Rₛ a).mul_right_eq_zero).mp _,
   rw [← algebra.smul_def, ← map_zero (algebra_map R Rₛ), ← hli],
-  simp [hi, hg']
+  simv [hi, hg']
 end
 end add_comm_monoid
 

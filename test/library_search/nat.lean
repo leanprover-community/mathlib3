@@ -14,7 +14,7 @@ set_option trace.silence_library_search true
 -- set_option trace.suggest true
 
 def lt_one (n : ℕ) := n < 1
-lemma zero_lt_one (n : ℕ) (h : n = 0) : lt_one n := by subst h; dsimp [lt_one]; simp
+lemma zero_lt_one (n : ℕ) (h : n = 0) : lt_one n := by subst h; dsimp [lt_one]; simv
 
 -- Verify that calls to solve_by_elim to discharge subgoals use `rfl`
 example : lt_one 0 :=

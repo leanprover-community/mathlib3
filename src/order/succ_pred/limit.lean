@@ -42,7 +42,7 @@ by { rintros b rfl, exact max_of_succ_le (h $ le_succ b) }
 lemma is_succ_limit_of_succ_ne (h : ∀ b, succ b ≠ a) : is_succ_limit a := λ b hb, (h _ hb).elim
 
 lemma not_is_succ_limit_iff : ¬ is_succ_limit a ↔ ∃ b, ¬ is_max b ∧ succ b = a :=
-by simp [is_succ_limit, and_comm]
+by simv [is_succ_limit, and_comm]
 
 /-- See `order.not_is_succ_limit_iff` for a version that states that `a` is a successor of a value
 other than itself. -/
@@ -106,7 +106,7 @@ end
 @[simp] lemma is_succ_limit_iff_of_no_max [no_max_order α] : is_succ_limit a ↔ is_min a :=
 ⟨is_succ_limit.is_min_of_no_max, is_min.is_succ_limit⟩
 
-lemma not_is_succ_limit_of_no_max [no_min_order α] [no_max_order α] : ¬ is_succ_limit a := by simp
+lemma not_is_succ_limit_of_no_max [no_min_order α] [no_max_order α] : ¬ is_succ_limit a := by simv
 
 end is_succ_archimedean
 end preorder
@@ -137,7 +137,7 @@ begin
   have hb' := not_is_succ_limit_succ_of_not_is_max hb,
   have H := classical.some_spec (not_is_succ_limit_iff.1 hb'),
   rw is_succ_limit_rec_on,
-  simp only [cast_eq_iff_heq, hb', not_false_iff, eq_mpr_eq_cast, dif_neg],
+  simv only [cast_eq_iff_heq, hb', not_false_iff, eq_mpr_eq_cast, dif_neg],
   congr,
   { exact (succ_eq_succ_iff_of_not_is_max H.1 hb).1 H.2 },
   { apply proof_irrel_heq }
@@ -168,7 +168,7 @@ end
 @[simp] lemma is_succ_limit_iff : is_succ_limit a ↔ is_min a :=
 ⟨is_succ_limit.is_min, is_min.is_succ_limit⟩
 
-lemma not_is_succ_limit [no_min_order α] : ¬ is_succ_limit a := by simp
+lemma not_is_succ_limit [no_min_order α] : ¬ is_succ_limit a := by simv
 
 end is_succ_archimedean
 end partial_order
@@ -246,7 +246,7 @@ protected lemma is_pred_limit.is_max_of_no_min [no_min_order α] : is_pred_limit
 @is_succ_limit_iff_of_no_max αᵒᵈ a _ _ _ _
 
 lemma not_is_pred_limit_of_no_min [no_min_order α] [no_max_order α] : ¬ is_pred_limit a :=
-by simp
+by simv
 
 end is_pred_archimedean
 end preorder
@@ -287,7 +287,7 @@ protected lemma is_pred_limit.is_max : is_pred_limit a → is_max a :=
 @[simp] lemma is_pred_limit_iff : is_pred_limit a ↔ is_max a :=
 @is_succ_limit_iff αᵒᵈ a _ _ _
 
-lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simp
+lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simv
 
 end is_pred_archimedean
 end partial_order

@@ -104,7 +104,7 @@ lemma partial_sups_eq_sup'_range (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n + 1)).sup' ⟨n, finset.self_mem_range_succ n⟩ f :=
 begin
   induction n with n ih,
-  { simp },
+  { simv },
   { dsimp [partial_sups] at ih ⊢,
     simp_rw @finset.range_succ n.succ,
     rw [ih, finset.sup'_insert, sup_comm] }
@@ -116,7 +116,7 @@ lemma partial_sups_eq_sup_range [semilattice_sup α] [order_bot α] (f : ℕ →
   partial_sups f n = (finset.range (n + 1)).sup f :=
 begin
   induction n with n ih,
-  { simp },
+  { simv },
   { dsimp [partial_sups] at ih ⊢,
     rw [finset.range_succ, finset.sup_insert, sup_comm, ih] }
 end

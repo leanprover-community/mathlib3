@@ -17,7 +17,7 @@ by noncomm_ring
 ```
 -/
 meta def noncomm_ring :=
-`[simp only [-- Expand everything out.
+`[simv only [-- Expand everything out.
              add_mul, mul_add, sub_eq_add_neg,
              -- Right associate all products.
              mul_assoc,

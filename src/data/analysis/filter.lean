@@ -67,7 +67,7 @@ protected def cfilter.to_realizer (F : cfilter (set α) σ) : F.to_filter.realiz
 namespace filter.realizer
 
 theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f ↔ ∃ b, F.F b ⊆ a :=
-by cases F; subst f; simp
+by cases F; subst f; simv
 
 -- Used because it has better definitional equalities than the eq.rec proof
 def of_eq {f g : filter α} (e : f = g) (F : f.realizer) : g.realizer :=
@@ -85,12 +85,12 @@ filter_eq $ set.ext $ λ x, set_coe.exists.trans exists_mem_subset_iff⟩
 /-- Transfer a filter realizer to another realizer on a different base type. -/
 def of_equiv {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) : f.realizer :=
 ⟨τ, F.F.of_equiv E, by refine eq.trans _ F.eq; exact filter_eq (set.ext $ λ x,
-⟨λ ⟨s, h⟩, ⟨E.symm s, by simpa using h⟩, λ ⟨t, h⟩, ⟨E t, by simp [h]⟩⟩)⟩
+⟨λ ⟨s, h⟩, ⟨E.symm s, by simpa using h⟩, λ ⟨t, h⟩, ⟨E t, by simv [h]⟩⟩)⟩
 
 @[simp] theorem of_equiv_σ {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) :
   (F.of_equiv E).σ = τ := rfl
 @[simp] theorem of_equiv_F {f : filter α} (F : f.realizer) (E : F.σ ≃ τ) (s : τ) :
-  (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simp
+  (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simv
 
 /-- `unit` is a realizer for the principal filter -/
 protected def principal (s : set α) : (principal s).realizer := ⟨unit,
@@ -126,7 +126,7 @@ protected def map (m : α → β) {f : filter α} (F : f.realizer) : (map m f).r
   inf          := F.F.inf,
   inf_le_left  := λ a b, image_subset _ (F.F.inf_le_left _ _),
   inf_le_right := λ a b, image_subset _ (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; refl ⟩
+filter_eq $ set.ext $ λ x, by simv [cfilter.to_filter]; rw F.mem_sets; refl ⟩
 
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
 @[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) :
@@ -139,7 +139,7 @@ protected def comap (m : α → β) {f : filter β} (F : f.realizer) : (comap m 
   inf          := F.F.inf,
   inf_le_left  := λ a b, preimage_mono (F.F.inf_le_left _ _),
   inf_le_right := λ a b, preimage_mono (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; subst f; simp [cfilter.to_filter, mem_comap]; exact
+filter_eq $ set.ext $ λ x, by cases F; subst f; simv [cfilter.to_filter, mem_comap]; exact
 ⟨λ ⟨s, h⟩, ⟨_, ⟨s, subset.refl _⟩, h⟩,
  λ ⟨y, ⟨s, h⟩, h₂⟩, ⟨s, subset.trans (preimage_mono h) h₂⟩⟩⟩
 
@@ -152,7 +152,7 @@ protected def sup {f g : filter α} (F : f.realizer) (G : g.realizer) :
   inf_le_left  := λ ⟨a, a'⟩ ⟨b, b'⟩, union_subset_union (F.F.inf_le_left _ _) (G.F.inf_le_left _ _),
   inf_le_right := λ ⟨a, a'⟩ ⟨b, b'⟩, union_subset_union (F.F.inf_le_right _ _)
                     (G.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simp [cfilter.to_filter]; exact
+filter_eq $ set.ext $ λ x, by cases F; cases G; substs f g; simv [cfilter.to_filter]; exact
 ⟨λ ⟨s, t, h⟩, ⟨⟨s, subset.trans (subset_union_left _ _) h⟩,
                ⟨t, subset.trans (subset_union_right _ _) h⟩⟩,
  λ ⟨⟨s, h₁⟩, ⟨t, h₂⟩⟩, ⟨s, t, union_subset h₁ h₂⟩⟩⟩
@@ -168,7 +168,7 @@ protected def inf {f g : filter α} (F : f.realizer) (G : g.realizer) :
                     (G.F.inf_le_right _ _) },
  begin
    ext x,
-   cases F; cases G; substs f g; simp [cfilter.to_filter],
+   cases F; cases G; substs f g; simv [cfilter.to_filter],
    split,
    { rintro ⟨s : F_σ, t : G_σ, h⟩,
      apply mem_inf_of_inter _ _ h,
@@ -187,7 +187,7 @@ protected def cofinite [decidable_eq α] : (@cofinite α).realizer := ⟨finset 
   inf_le_right := λ s t a, mt (finset.mem_union_right _) },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨s, h⟩, s.finite_to_set.subset (compl_subset_comm.1 h),
- λ h, ⟨h.to_finset, by simp⟩⟩⟩
+ λ h, ⟨h.to_finset, by simv⟩⟩⟩
 
 /-- Construct a realizer for filter bind -/
 protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : ∀ i, (m i).realizer) :
@@ -199,14 +199,14 @@ protected def bind {f : filter α} {m : α → filter β} (F : f.realizer) (G : 
     (G i).F.inf (f i (F.F.inf_le_left _ _ h)) (f' i (F.F.inf_le_right _ _ h))⟩,
   inf_le_left  := λ ⟨a, f⟩ ⟨b, f'⟩ x,
     show (x ∈ ⋃ (i : α) (H : i ∈ F.F (F.F.inf a b)), _) →
-          x ∈ ⋃ i (H : i ∈ F.F a), ((G i).F) (f i H), by simp; exact
+          x ∈ ⋃ i (H : i ∈ F.F a), ((G i).F) (f i H), by simv; exact
     λ i h₁ h₂, ⟨i, F.F.inf_le_left _ _ h₁, (G i).F.inf_le_left _ _ h₂⟩,
   inf_le_right := λ ⟨a, f⟩ ⟨b, f'⟩ x,
     show (x ∈ ⋃ (i : α) (H : i ∈ F.F (F.F.inf a b)), _) →
-          x ∈ ⋃ i (H : i ∈ F.F b), ((G i).F) (f' i H), by simp; exact
+          x ∈ ⋃ i (H : i ∈ F.F b), ((G i).F) (f' i H), by simv; exact
     λ i h₁ h₂, ⟨i, F.F.inf_le_right _ _ h₁, (G i).F.inf_le_right _ _ h₂⟩ },
 filter_eq $ set.ext $ λ x,
-by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind]; exact
+by cases F with _ F _; subst f; simv [cfilter.to_filter, mem_bind]; exact
 ⟨λ ⟨s, f, h⟩, ⟨F s, ⟨s, subset.refl _⟩, λ i H, (G i).mem_sets.2
    ⟨f i H, λ a h', h ⟨_, ⟨i, rfl⟩, _, ⟨H, rfl⟩, h'⟩⟩⟩,
  λ ⟨y, ⟨s, h⟩, f⟩,
@@ -217,10 +217,10 @@ by cases F with _ F _; subst f; simp [cfilter.to_filter, mem_bind]; exact
 protected def Sup {f : α → filter β} (F : ∀ i, (f i).realizer) : (⨆ i, f i).realizer :=
 let F' : (⨆ i, f i).realizer :=
   ((realizer.bind realizer.top F).of_eq $
-    filter_eq $ set.ext $ by simp [filter.bind, eq_univ_iff_forall, supr_sets_eq]) in
+    filter_eq $ set.ext $ by simv [filter.bind, eq_univ_iff_forall, supr_sets_eq]) in
 F'.of_equiv $ show (Σ u:unit, Π (i : α), true → (F i).σ) ≃ Π i, (F i).σ, from
 ⟨λ⟨_,f⟩ i, f i ⟨⟩, λ f, ⟨(), λ i _, f i⟩,
- λ ⟨⟨⟩, f⟩, by dsimp; congr; simp, λ f, rfl⟩
+ λ ⟨⟨⟩, f⟩, by dsimp; congr; simv, λ f, rfl⟩
 
 /-- Construct a realizer for the product of filters -/
 protected def prod {f g : filter α} (F : f.realizer) (G : g.realizer) : (f.prod g).realizer :=
@@ -242,7 +242,7 @@ theorem ne_bot_iff {f : filter α} (F : f.realizer) :
 begin
   classical,
   rw [not_iff_comm, ← le_bot_iff, F.le_iff realizer.bot, not_forall],
-  simp only [set.not_nonempty_iff_eq_empty],
+  simv only [set.not_nonempty_iff_eq_empty],
   exact ⟨λ ⟨x, e⟩ _, ⟨x, le_of_eq e⟩,
     λ h, let ⟨x, h⟩ := h () in ⟨x, le_bot_iff.1 h⟩⟩
 end

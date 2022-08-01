@@ -54,7 +54,7 @@ def mk_fn2 (s t : α) : fin 2 → α
 | ⟨1, _⟩   := t
 | ⟨n+2, h⟩ := absurd h dec_trivial
 
-attribute [simp] mk_fn0 mk_fn1 mk_fn2
+attribute [simv] mk_fn0 mk_fn1 mk_fn2
 end
 
 namespace prop_form
@@ -92,7 +92,7 @@ begin
   haveI : encodable (constructors α),
   { unfold constructors, apply_instance },
   exact encodable.of_left_inverse f finv
-    (by { intro p, induction p; simp [f, finv, *] })
+    (by { intro p, induction p; simv [f, finv, *] })
 end
 
 end prop_form

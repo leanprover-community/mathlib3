@@ -119,7 +119,7 @@ lemma power_basis_gen_mem_adjoin_zeta_sub_one :
   (hζ.power_basis K).gen ∈ adjoin K ({ζ - 1} : set L) :=
 begin
   rw [power_basis_gen, adjoin_singleton_eq_range_aeval, alg_hom.mem_range],
-  exact ⟨X + 1, by simp⟩
+  exact ⟨X + 1, by simv⟩
 end
 
 /-- The `power_basis` given by `η - 1`. -/
@@ -186,7 +186,7 @@ variables {K} [field K] [algebra K L]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
 lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
+by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simv,
   algebra.norm_algebra_map]
 
 include hζ
@@ -199,7 +199,7 @@ begin
   haveI := is_cyclotomic_extension.ne_zero' n K L,
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,
-    rw [hζ, show 1 = algebra_map K L 1, by simp, algebra.norm_algebra_map, one_pow] },
+    rw [hζ, show 1 = algebra_map K L 1, by simv, algebra.norm_algebra_map, one_pow] },
   { replace h1 : 2 ≤ n,
     { by_contra' h,
       exact h1 (pnat.eq_one_of_lt_two h) },
@@ -249,7 +249,7 @@ begin
   have : finset.univ.prod (λ (σ : L →ₐ[K] E), 1 - σ ζ) = eval 1 (cyclotomic' n E),
   { rw [cyclotomic', eval_prod, ← @finset.prod_attach E E, ← univ_eq_attach],
     refine fintype.prod_equiv (hζ.embeddings_equiv_primitive_roots E hirr) _ _ (λ σ, _),
-    simp },
+    simv },
   haveI : ne_zero ((n : ℕ) : E) := (ne_zero.of_no_zero_smul_divisors K _ (n : ℕ)),
   rw [this, cyclotomic', ← cyclotomic_eq_prod_X_sub_primitive_roots (is_root_cyclotomic_iff.1 hz),
       ← map_cyclotomic_int, (algebra_map K E).map_int_cast, ←int.cast_one, eval_int_cast_map,
@@ -271,7 +271,7 @@ begin
     exists_eq_succ_of_ne_zero (((n : ℕ).factorization.mem_support_to_fun (n : ℕ).min_fac).1 $
       factor_iff_mem_factorization.2 $ (mem_factors (is_prime_pow.ne_zero hn)).2
         ⟨hprime.out, min_fac_dvd _⟩),
-  simp [hk, sub_one_norm_eq_eval_cyclotomic hζ this hirr],
+  simv [hk, sub_one_norm_eq_eval_cyclotomic hζ this hirr],
 end
 
 omit hζ
@@ -284,9 +284,9 @@ lemma minpoly_sub_one_eq_cyclotomic_comp [algebra K A] [is_domain A] {ζ : A}
   minpoly K (ζ - 1) = (cyclotomic n K).comp (X + 1) :=
 begin
   haveI := is_cyclotomic_extension.ne_zero' n K A,
-  rw [show ζ - 1 = ζ + (algebra_map K A (-1)), by simp [sub_eq_add_neg], minpoly.add_algebra_map
+  rw [show ζ - 1 = ζ + (algebra_map K A (-1)), by simv [sub_eq_add_neg], minpoly.add_algebra_map
     (is_cyclotomic_extension.integral {n} K A ζ), hζ.minpoly_eq_cyclotomic_of_irreducible h],
-  simp
+  simv
 end
 
 local attribute [instance] is_cyclotomic_extension.finite_dimensional
@@ -312,12 +312,12 @@ begin
   haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
   { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
     { have H : K⟮η + 1⟯.to_subalgebra = K⟮η⟯.to_subalgebra,
-      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+      { simv only [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
           (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
         refine subalgebra.ext (λ x, ⟨λ hx, adjoin_le _ hx, λ hx, adjoin_le _ hx⟩),
-        { simp only [set.singleton_subset_iff, set_like.mem_coe],
+        { simv only [set.singleton_subset_iff, set_like.mem_coe],
           exact subalgebra.add_mem _ (subset_adjoin (mem_singleton η)) (subalgebra.one_mem _) },
-        { simp only [set.singleton_subset_iff, set_like.mem_coe],
+        { simv only [set.singleton_subset_iff, set_like.mem_coe],
           nth_rewrite 0 [← add_sub_cancel η 1],
           refine subalgebra.sub_mem _ (subset_adjoin (mem_singleton _)) (subalgebra.one_mem _) } },
       rw [H] at this,
@@ -345,7 +345,7 @@ begin
       mul_comm (↑p ^ (k.succ - 1))] at this,
     replace this := nat.eq_of_mul_eq_mul_left (tsub_pos_iff_lt.2 (nat.prime.one_lt hpri.out)) this,
     have Hex : k.succ - 1 = (k - s).succ - 1 + s,
-    { simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
+    { simv only [nat.succ_sub_succ_eq_sub, tsub_zero],
       exact (nat.sub_add_cancel hs).symm },
     rw [Hex, pow_add] at this,
     exact nat.eq_of_mul_eq_mul_left (pow_pos hpri.out.pos _) this },
@@ -381,9 +381,9 @@ lemma sub_one_norm_prime [hpri : fact (p : ℕ).prime] [hcyc : is_cyclotomic_ext
   (hζ: is_primitive_root ζ p) (hirr : irreducible (cyclotomic p K)) (h : p ≠ 2) :
   norm K (ζ - 1) = p :=
 begin
-  replace hirr : irreducible (cyclotomic (↑(p ^ (0 + 1)) : ℕ) K) := by simp [hirr],
-  replace hζ : is_primitive_root ζ (↑(p ^ (0 + 1)) : ℕ) := by simp [hζ],
-  haveI : is_cyclotomic_extension {p ^ (0 + 1)} K L := by simp [hcyc],
+  replace hirr : irreducible (cyclotomic (↑(p ^ (0 + 1)) : ℕ) K) := by simv [hirr],
+  replace hζ : is_primitive_root ζ (↑(p ^ (0 + 1)) : ℕ) := by simv [hζ],
+  haveI : is_cyclotomic_extension {p ^ (0 + 1)} K L := by simv [hcyc],
   simpa using sub_one_norm_prime_ne_two hζ hirr h
 end
 
@@ -397,9 +397,9 @@ begin
   have := hζ.pow_of_dvd (λ h, two_ne_zero (pow_eq_zero h)) (pow_dvd_pow 2 (le_succ k)),
   rw [nat.pow_div (le_succ k) zero_lt_two, nat.succ_sub (le_refl k), nat.sub_self, pow_one] at this,
   have H : (-1 : L) - (1 : L) = algebra_map K L (-2),
-  { simp only [_root_.map_neg, map_bit0, _root_.map_one],
+  { simv only [_root_.map_neg, map_bit0, _root_.map_one],
     ring },
-  replace hirr : irreducible (cyclotomic (2 ^ (k + 1) : ℕ+) K) := by simp [hirr],
+  replace hirr : irreducible (cyclotomic (2 ^ (k + 1) : ℕ+) K) := by simv [hirr],
   rw [this.eq_neg_one_of_two_right, H, algebra.norm_algebra_map,
     is_cyclotomic_extension.finrank L hirr,
     pow_coe, pnat.coe_bit0, one_coe, totient_prime_pow nat.prime_two (zero_lt_succ k),
@@ -413,11 +413,11 @@ lemma sub_one_norm_two {k : ℕ} (hζ : is_primitive_root ζ (2 ^ k)) (hk : 2 �
   norm K (ζ - 1) = 2 :=
 begin
   have : 2 < (2 ^ k : ℕ+),
-  { simp only [← coe_lt_coe, pnat.coe_bit0, one_coe, pow_coe],
+  { simv only [← coe_lt_coe, pnat.coe_bit0, one_coe, pow_coe],
     nth_rewrite 0 [← pow_one 2],
     exact pow_lt_pow one_lt_two (lt_of_lt_of_le one_lt_two hk) },
-  replace hirr : irreducible (cyclotomic (2 ^ k : ℕ+) K) := by simp [hirr],
-  replace hζ : is_primitive_root ζ (2 ^ k : ℕ+) := by simp [hζ],
+  replace hirr : irreducible (cyclotomic (2 ^ k : ℕ+) K) := by simv [hirr],
+  replace hζ : is_primitive_root ζ (2 ^ k : ℕ+) := by simv [hζ],
   obtain ⟨k₁, hk₁⟩ := exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
   simpa [hk₁] using sub_one_norm_eq_eval_cyclotomic hζ this hirr,
 end
@@ -434,14 +434,14 @@ begin
     { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at htwo,
       replace htwo := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
         (succ_pos _) htwo,
-      rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at htwo },
+      rwa [show 2 = ((2 : ℕ+) : ℕ), by simv, pnat.coe_inj] at htwo },
     replace hs : s = k,
     { rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at htwo,
       nth_rewrite 1 [← pow_one 2] at htwo,
       replace htwo := nat.pow_right_injective rfl.le htwo,
       rw [add_left_eq_self, nat.sub_eq_zero_iff_le] at htwo,
       refine le_antisymm hs htwo },
-    simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
+    simv only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
       pow_coe] at ⊢ hζ hirr hcycl,
     haveI := hcycl,
     obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),

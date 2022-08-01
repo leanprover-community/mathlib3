@@ -58,7 +58,7 @@ begin
       (primrec.fst.comp $ primrec.unpair.comp primrec.fst)
       (primrec.nat_add.comp primrec.snd
         (primrec.snd.comp $ primrec.unpair.comp primrec.fst))).to_comp).to₂),
-  simp at this, exact this
+  simv at this, exact this
 end
 
 /--
@@ -89,10 +89,10 @@ protected def const : ℕ → code
 | (n+1) := comp succ (const n)
 
 theorem const_inj : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.code.const n₂ → n₁ = n₂
-| 0 0 h := by simp
+| 0 0 h := by simv
 | (n₁+1) (n₂+1) h := by { dsimp [nat.partrec.code.const] at h,
                           injection h with h₁ h₂,
-                          simp only [const_inj h₂] }
+                          simv only [const_inj h₂] }
 
 /-- A code for the identity function. -/
 protected def id : code := pair left right
@@ -123,7 +123,7 @@ def of_nat_code : ℕ → code
 | 2     := left
 | 3     := right
 | (n+4) := let m := n.div2.div2 in
-  have hm : m < n + 4, by simp [m, nat.div2_val];
+  have hm : m < n + 4, by simv [m, nat.div2_val];
   from lt_of_le_of_lt
     (le_trans (nat.div_le_self _ _) (nat.div_le_self _ _))
     (nat.succ_le_succ (nat.le_add_right _ _)),
@@ -138,12 +138,12 @@ def of_nat_code : ℕ → code
 
 /-- Proof that `nat.partrec.code.of_nat_code` is the inverse of `nat.partrec.code.encode_code`-/
 private theorem encode_of_nat_code : ∀ n, encode_code (of_nat_code n) = n
-| 0     := by simp [of_nat_code, encode_code]
-| 1     := by simp [of_nat_code, encode_code]
-| 2     := by simp [of_nat_code, encode_code]
-| 3     := by simp [of_nat_code, encode_code]
+| 0     := by simv [of_nat_code, encode_code]
+| 1     := by simv [of_nat_code, encode_code]
+| 2     := by simv [of_nat_code, encode_code]
+| 3     := by simv [of_nat_code, encode_code]
 | (n+4) := let m := n.div2.div2 in
-  have hm : m < n + 4, by simp [m, nat.div2_val];
+  have hm : m < n + 4, by simv [m, nat.div2_val];
   from lt_of_le_of_lt
     (le_trans (nat.div_le_self _ _) (nat.div_le_self _ _))
     (nat.succ_le_succ (nat.le_add_right _ _)),
@@ -155,14 +155,14 @@ private theorem encode_of_nat_code : ∀ n, encode_code (of_nat_code n) = n
   begin
     transitivity, swap,
     rw [← nat.bit_decomp n, ← nat.bit_decomp n.div2],
-    simp [encode_code, of_nat_code, -add_comm],
+    simv [encode_code, of_nat_code, -add_comm],
     cases n.bodd; cases n.div2.bodd;
-      simp [encode_code, of_nat_code, -add_comm, IH, IH1, IH2, m, nat.bit]
+      simv [encode_code, of_nat_code, -add_comm, IH, IH1, IH2, m, nat.bit]
   end
 
 instance : denumerable code :=
 mk' ⟨encode_code, of_nat_code,
-  λ c, by induction c; try {refl}; simp [
+  λ c, by induction c; try {refl}; simv [
     encode_code, of_nat_code, -add_comm, *],
   encode_of_nat_code⟩
 
@@ -173,7 +173,7 @@ theorem encode_lt_pair (cf cg) :
   encode cf < encode (pair cf cg) ∧
   encode cg < encode (pair cf cg) :=
 begin
-  simp [encode_code_eq, encode_code, -add_comm],
+  simv [encode_code_eq, encode_code, -add_comm],
   have := nat.mul_le_mul_right _ (dec_trivial : 1 ≤ 2*2),
   rw [one_mul, mul_assoc, ← bit0_eq_two_mul, ← bit0_eq_two_mul] at this,
   have := lt_of_le_of_lt this (lt_add_of_pos_right _ (dec_trivial:0<4)),
@@ -188,7 +188,7 @@ theorem encode_lt_comp (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code]
+  change _, simv [encode_code_eq, encode_code]
 end
 
 theorem encode_lt_prec (cf cg) :
@@ -197,12 +197,12 @@ theorem encode_lt_prec (cf cg) :
 begin
   suffices, exact (encode_lt_pair cf cg).imp
     (λ h, lt_trans h this) (λ h, lt_trans h this),
-  change _, simp [encode_code_eq, encode_code],
+  change _, simv [encode_code_eq, encode_code],
 end
 
 theorem encode_lt_rfind' (cf) : encode cf < encode (rfind' cf) :=
 begin
-  simp [encode_code_eq, encode_code, -add_comm],
+  simv [encode_code_eq, encode_code, -add_comm],
   have := nat.mul_le_mul_right _ (dec_trivial : 1 ≤ 2*2),
   rw [one_mul, mul_assoc, ← bit0_eq_two_mul, ← bit0_eq_two_mul] at this,
   refine lt_of_le_of_lt (le_trans this _)
@@ -315,22 +315,22 @@ begin
       snd.pair $ nat_div2.comp $ nat_div2.comp snd)),
   refine ((nat_strong_rec
     (λ a n, F a (of_nat code n)) this.to₂ $ λ a n, _).comp
-    primrec.id $ encode_iff.2 hc).of_eq (λ a, by simp),
-  simp,
-  iterate 4 {cases n with n, {simp [of_nat_code_eq, of_nat_code]; refl}},
-  simp [G], rw [list.length_map, list.length_range],
+    primrec.id $ encode_iff.2 hc).of_eq (λ a, by simv),
+  simv,
+  iterate 4 {cases n with n, {simv [of_nat_code_eq, of_nat_code]; refl}},
+  simv [G], rw [list.length_map, list.length_range],
   let m := n.div2.div2,
   show G₁ ((a, (list.range (n+4)).map (λ n, F a (of_nat code n))), n, m)
     = some (F a (of_nat code (n+4))),
-  have hm : m < n + 4, by simp [nat.div2_val, m];
+  have hm : m < n + 4, by simv [nat.div2_val, m];
   from lt_of_le_of_lt
     (le_trans (nat.div_le_self _ _) (nat.div_le_self _ _))
     (nat.succ_le_succ (nat.le_add_right _ _)),
   have m1 : m.unpair.1 < n + 4, from lt_of_le_of_lt m.unpair_left_le hm,
   have m2 : m.unpair.2 < n + 4, from lt_of_le_of_lt m.unpair_right_le hm,
-  simp [G₁], simp [list.nth_map, list.nth_range, hm, m1, m2],
+  simv [G₁], simv [list.nth_map, list.nth_range, hm, m1, m2],
   change of_nat code (n+4) with of_nat_code (n+4),
-  simp [of_nat_code],
+  simv [of_nat_code],
   cases n.bodd; cases n.div2.bodd; refl
 end
 
@@ -409,22 +409,22 @@ begin
       snd.pair $ nat_div2.comp $ nat_div2.comp snd)),
   refine ((nat_strong_rec
     (λ a n, F a (of_nat code n)) this.to₂ $ λ a n, _).comp
-    primrec.id $ encode_iff.2 hc).of_eq (λ a, by simp),
-  simp,
-  iterate 4 {cases n with n, {simp [of_nat_code_eq, of_nat_code]; refl}},
-  simp [G], rw [list.length_map, list.length_range],
+    primrec.id $ encode_iff.2 hc).of_eq (λ a, by simv),
+  simv,
+  iterate 4 {cases n with n, {simv [of_nat_code_eq, of_nat_code]; refl}},
+  simv [G], rw [list.length_map, list.length_range],
   let m := n.div2.div2,
   show G₁ ((a, (list.range (n+4)).map (λ n, F a (of_nat code n))), n, m)
     = some (F a (of_nat code (n+4))),
-  have hm : m < n + 4, by simp [nat.div2_val, m];
+  have hm : m < n + 4, by simv [nat.div2_val, m];
   from lt_of_le_of_lt
     (le_trans (nat.div_le_self _ _) (nat.div_le_self _ _))
     (nat.succ_le_succ (nat.le_add_right _ _)),
   have m1 : m.unpair.1 < n + 4, from lt_of_le_of_lt m.unpair_left_le hm,
   have m2 : m.unpair.2 < n + 4, from lt_of_le_of_lt m.unpair_right_le hm,
-  simp [G₁], simp [list.nth_map, list.nth_range, hm, m1, m2],
+  simv [G₁], simv [list.nth_map, list.nth_range, hm, m1, m2],
   change of_nat code (n+4) with of_nat_code (n+4),
-  simp [of_nat_code],
+  simv [of_nat_code],
   cases n.bodd; cases n.div2.bodd; refl
 end
 
@@ -506,22 +506,22 @@ begin
       snd.pair $ nat_div2.comp $ nat_div2.comp snd)),
   refine ((nat_strong_rec
     (λ a n, F a (of_nat code n)) this.to₂ $ λ a n, _).comp
-    computable.id $ encode_iff.2 hc).of_eq (λ a, by simp),
-  simp,
-  iterate 4 {cases n with n, {simp [of_nat_code_eq, of_nat_code]; refl}},
-  simp [G], rw [list.length_map, list.length_range],
+    computable.id $ encode_iff.2 hc).of_eq (λ a, by simv),
+  simv,
+  iterate 4 {cases n with n, {simv [of_nat_code_eq, of_nat_code]; refl}},
+  simv [G], rw [list.length_map, list.length_range],
   let m := n.div2.div2,
   show G₁ ((a, (list.range (n+4)).map (λ n, F a (of_nat code n))), n, m)
     = some (F a (of_nat code (n+4))),
-  have hm : m < n + 4, by simp [nat.div2_val, m];
+  have hm : m < n + 4, by simv [nat.div2_val, m];
   from lt_of_le_of_lt
     (le_trans (nat.div_le_self _ _) (nat.div_le_self _ _))
     (nat.succ_le_succ (nat.le_add_right _ _)),
   have m1 : m.unpair.1 < n + 4, from lt_of_le_of_lt m.unpair_left_le hm,
   have m2 : m.unpair.2 < n + 4, from lt_of_le_of_lt m.unpair_right_le hm,
-  simp [G₁], simp [list.nth_map, list.nth_range, hm, m1, m2],
+  simv [G₁], simv [list.nth_map, list.nth_range, hm, m1, m2],
   change of_nat code (n+4) with of_nat_code (n+4),
-  simp [of_nat_code],
+  simv [of_nat_code],
   cases n.bodd; cases n.div2.bodd; refl
 end
 
@@ -565,24 +565,24 @@ lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
     do ih <- eval (prec cf cg) (mkpair a k), eval cg (mkpair a (mkpair k ih)) :=
 begin
   rw [eval, nat.unpaired, part.bind_eq_bind, nat.unpair_mkpair, nat.elim_succ],
-  simp,
+  simv,
 end
 
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 
 @[simp] theorem eval_const : ∀ n m, eval (code.const n) m = part.some n
 | 0     m := rfl
-| (n+1) m := by simp! *
+| (n+1) m := by simv! *
 
-@[simp] theorem eval_id (n) : eval code.id n = part.some n := by simp! [(<*>)]
+@[simp] theorem eval_id (n) : eval code.id n = part.some n := by simv! [(<*>)]
 
 @[simp] theorem eval_curry (c n x) : eval (curry c n) x = eval c (mkpair n x) :=
-by simp! [(<*>)]
+by simv! [(<*>)]
 
 theorem const_prim : primrec code.const :=
 (primrec.id.nat_iterate (primrec.const zero)
   (comp_prim.comp (primrec.const succ) primrec.snd).to₂).of_eq $
-λ n, by simp; induction n; simp [*, code.const, function.iterate_succ']
+λ n, by simv; induction n; simv [*, code.const, function.iterate_succ']
 
 theorem curry_prim : primrec₂ curry :=
 comp_prim.comp primrec.fst $
@@ -622,7 +622,7 @@ theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c 
   case nat.partrec.rfind : f pf hf
   { rcases hf with ⟨cf, rfl⟩,
     refine ⟨comp (rfind' cf) (pair code.id zero), _⟩,
-    simp [eval, (<*>), pure, pfun.pure, part.map_id'] },
+    simv [eval, (<*>), pure, pfun.pure, part.map_id'] },
 end, λ h, begin
   rcases h with ⟨c, rfl⟩, induction c,
   case nat.partrec.code.zero { exact nat.partrec.zero },
@@ -662,7 +662,7 @@ def evaln : ∀ k : ℕ, code → ℕ → option ℕ
   evaln k (rfind' cf) (mkpair a (m+1)))
 
 theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
-| 0     c n x h := by simp [evaln] at h; cases h
+| 0     c n x h := by simv [evaln] at h; cases h
 | (k+1) c n x h := begin
   suffices : ∀ {o : option ℕ}, x ∈ guard (n ≤ k) >> o → n < k + 1,
   { cases c; rw [evaln] at h; exact this h },
@@ -670,39 +670,39 @@ theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 end
 
 theorem evaln_mono : ∀ {k₁ k₂ c n x}, k₁ ≤ k₂ → x ∈ evaln k₁ c n → x ∈ evaln k₂ c n
-| 0     k₂     c n x hl h := by simp [evaln] at h; cases h
+| 0     k₂     c n x hl h := by simv [evaln] at h; cases h
 | (k+1) (k₂+1) c n x hl h := begin
   have hl' := nat.le_of_succ_le_succ hl,
   have : ∀ {k k₂ n x : ℕ} {o₁ o₂ : option ℕ},
     k ≤ k₂ → (x ∈ o₁ → x ∈ o₂) → x ∈ guard (n ≤ k) >> o₁ → x ∈ guard (n ≤ k₂) >> o₂,
-  { simp [(>>)], introv h h₁ h₂ h₃, exact ⟨le_trans h₂ h, h₁ h₃⟩ },
-  simp at h ⊢,
+  { simv [(>>)], introv h h₁ h₂ h₃, exact ⟨le_trans h₂ h, h₁ h₃⟩ },
+  simv at h ⊢,
   induction c with cf cg hf hg cf cg hf hg cf cg hf hg cf hf generalizing x n;
     rw [evaln] at h ⊢; refine this hl' (λ h, _) h,
   iterate 4 {exact h},
   { -- pair cf cg
-    simp [(<*>)] at h ⊢,
+    simv [(<*>)] at h ⊢,
     exact h.imp (λ a, and.imp (hf _ _) $ Exists.imp $ λ b, and.imp_left (hg _ _)) },
   { -- comp cf cg
-    simp at h ⊢,
+    simv at h ⊢,
     exact h.imp (λ a, and.imp (hg _ _) (hf _ _)) },
   { -- prec cf cg
-    revert h, simp,
-    induction n.unpair.2; simp,
+    revert h, simv,
+    induction n.unpair.2; simv,
     { apply hf },
     { exact λ y h₁ h₂, ⟨y, evaln_mono hl' h₁, hg _ _ h₂⟩ } },
   { -- rfind' cf
-    simp at h ⊢,
+    simv at h ⊢,
     refine h.imp (λ x, and.imp (hf _ _) _),
-    by_cases x0 : x = 0; simp [x0],
+    by_cases x0 : x = 0; simv [x0],
     exact evaln_mono hl' }
 end
 
 theorem evaln_sound : ∀ {k c n x}, x ∈ evaln k c n → x ∈ eval c n
-| 0     _ n x h := by simp [evaln] at h; cases h
+| 0     _ n x h := by simv [evaln] at h; cases h
 | (k+1) c n x h := begin
   induction c with cf cg hf hg cf cg hf hg cf cg hf hg cf hf generalizing x n;
-    simp [eval, evaln, (>>), (<*>)] at h ⊢; cases h with _ h,
+    simv [eval, evaln, (>>), (<*>)] at h ⊢; cases h with _ h,
   iterate 4 {simpa [pure, pfun.pure, eq_comm] using h},
   { -- pair cf cg
     rcases h with ⟨y, ef, z, eg, rfl⟩,
@@ -712,24 +712,24 @@ theorem evaln_sound : ∀ {k c n x}, x ∈ evaln k c n → x ∈ eval c n
     exact ⟨_, hg _ _ eg, hf _ _ ef⟩ },
   { -- prec cf cg
     revert h,
-    induction n.unpair.2 with m IH generalizing x; simp,
+    induction n.unpair.2 with m IH generalizing x; simv,
     { apply hf },
     { refine λ y h₁ h₂, ⟨y, IH _ _, _⟩,
       { have := evaln_mono k.le_succ h₁,
-        simp [evaln, (>>)] at this,
+        simv [evaln, (>>)] at this,
         exact this.2 },
       { exact hg _ _ h₂ } } },
   { -- rfind' cf
     rcases h with ⟨m, h₁, h₂⟩,
-    by_cases m0 : m = 0; simp [m0] at h₂,
+    by_cases m0 : m = 0; simv [m0] at h₂,
     { exact ⟨0,
        ⟨by simpa [m0] using hf _ _ h₁,
         λ m, (nat.not_lt_zero _).elim⟩,
-        by injection h₂ with h₂; simp [h₂]⟩ },
-    { have := evaln_sound h₂, simp [eval] at this,
+        by injection h₂ with h₂; simv [h₂]⟩ },
+    { have := evaln_sound h₂, simv [eval] at this,
       rcases this with ⟨y, ⟨hy₁, hy₂⟩, rfl⟩,
       refine ⟨ y+1, ⟨by simpa [add_comm, add_left_comm] using hy₁, λ i im, _⟩,
-               by simp [add_comm, add_left_comm] ⟩,
+               by simv [add_comm, add_left_comm] ⟩,
       cases i with i,
       { exact ⟨m, by simpa using hf _ _ h₁, m0⟩ },
       { rcases hy₂ (nat.lt_of_succ_lt_succ im) with ⟨z, hz, z0⟩,
@@ -741,7 +741,7 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
   suffices : ∃ k, x ∈ evaln (k+1) c n,
   { exact let ⟨k, h⟩ := this in ⟨k+1, h⟩ },
   induction c generalizing n x;
-    simp [eval, evaln, pure, pfun.pure, (<*>), (>>)] at h ⊢,
+    simv [eval, evaln, pure, pfun.pure, (<*>), (>>)] at h ⊢,
   iterate 4 { exact ⟨⟨_, le_rfl⟩, h.symm⟩ },
   case nat.partrec.code.pair : cf cg hf hg
   { rcases h with ⟨x, hx, y, hy, rfl⟩,
@@ -760,7 +760,7 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
   case nat.partrec.code.prec : cf cg hf hg
   { revert h,
     generalize : n.unpair.1 = n₁, generalize : n.unpair.2 = n₂,
-    induction n₂ with m IH generalizing x n; simp,
+    induction n₂ with m IH generalizing x n; simv,
     { intro, rcases hf h with ⟨k, hk⟩,
       exact ⟨_, le_max_left _ _,
         evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk⟩ },
@@ -770,16 +770,16 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
         le_trans (le_max_left _ (mkpair n₁ m)) nk₁, y,
         evaln_mono (nat.succ_le_succ $ le_max_left _ _) _,
         evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_right _ _) hk₂⟩,
-      simp [evaln, (>>)],
+      simv [evaln, (>>)],
       exact ⟨le_trans (le_max_right _ _) nk₁, hk₁⟩ } },
   case nat.partrec.code.rfind' : cf hf
   { rcases h with ⟨y, ⟨hy₁, hy₂⟩, rfl⟩,
     suffices : ∃ k, y + n.unpair.2 ∈ evaln (k+1) (rfind' cf)
       (mkpair n.unpair.1 n.unpair.2), {simpa [evaln, (>>)]},
     revert hy₁ hy₂, generalize : n.unpair.2 = m, intros,
-    induction y with y IH generalizing m; simp [evaln, (>>)],
-    { simp at hy₁, rcases hf hy₁ with ⟨k, hk⟩,
-      exact ⟨_, nat.le_of_lt_succ $ evaln_bound hk, _, hk, by simp; refl⟩ },
+    induction y with y IH generalizing m; simv [evaln, (>>)],
+    { simv at hy₁, rcases hf hy₁ with ⟨k, hk⟩,
+      exact ⟨_, nat.le_of_lt_succ $ evaln_bound hk, _, hk, by simv; refl⟩ },
     { rcases hy₂ (nat.succ_pos _) with ⟨a, ha, a0⟩,
       rcases hf ha with ⟨k₁, hk₁⟩,
       rcases IH m.succ
@@ -910,7 +910,7 @@ private lemma evaln_map (k c n) :
   (((list.range k).nth n).map (evaln k c)).bind (λ b, b) = evaln k c n :=
 begin
   by_cases kn : n < k,
-  { simp [list.nth_range kn] },
+  { simv [list.nth_range kn] },
   { rw list.nth_len_le,
     { cases e : evaln k c n, {refl},
       exact kn.elim (evaln_bound e) },
@@ -924,18 +924,18 @@ have primrec₂ (λ (_:unit) (n : ℕ),
   (list.range a.1).map (evaln a.1 a.2)), from
 primrec.nat_strong_rec _ (hG.comp snd).to₂ $
   λ _ p, begin
-    simp [G],
+    simv [G],
     rw (_ : (of_nat (ℕ × code) _).snd =
-      of_nat code p.unpair.2), swap, {simp},
+      of_nat code p.unpair.2), swap, {simv},
     apply list.map_congr (λ n, _),
-    rw (by simp : list.range p = list.range
+    rw (by simv : list.range p = list.range
       (mkpair p.unpair.1 (encode (of_nat code p.unpair.2)))),
     generalize : p.unpair.1 = k,
     generalize : of_nat code p.unpair.2 = c,
     intro nk,
-    cases k with k', {simp [evaln]},
+    cases k with k', {simv [evaln]},
     let k := k'+1, change k'.succ with k,
-    simp [nat.lt_succ_iff] at nk,
+    simv [nat.lt_succ_iff] at nk,
     have hg : ∀ {k' c' n},
       mkpair k' (encode c') < mkpair k (encode c) →
       lup ((list.range (mkpair k (encode c))).map (λ n,
@@ -943,9 +943,9 @@ primrec.nat_strong_rec _ (hG.comp snd).to₂ $
           (evaln n.unpair.1 (of_nat code n.unpair.2))))
         (k', c') n = evaln k' c' n,
     { intros k₁ c₁ n₁ hl,
-      simp [lup, list.nth_range hl, evaln_map, (>>=)] },
+      simv [lup, list.nth_range hl, evaln_map, (>>=)] },
     cases c with cf cg cf cg cf cg cf;
-      simp [evaln, nk, (>>), (>>=), (<$>), (<*>), pure],
+      simv [evaln, nk, (>>), (>>=), (<$>), (<*>), pure],
     { cases encode_lt_pair cf cg with lf lg,
       rw [hg (nat.mkpair_lt_mkpair_right _ lf),
           hg (nat.mkpair_lt_mkpair_right _ lg)],
@@ -954,24 +954,24 @@ primrec.nat_strong_rec _ (hG.comp snd).to₂ $
     { cases encode_lt_comp cf cg with lf lg,
       rw hg (nat.mkpair_lt_mkpair_right _ lg),
       cases evaln k cg n, {refl},
-      simp [hg (nat.mkpair_lt_mkpair_right _ lf)] },
+      simv [hg (nat.mkpair_lt_mkpair_right _ lf)] },
     { cases encode_lt_prec cf cg with lf lg,
       rw hg (nat.mkpair_lt_mkpair_right _ lf),
       cases n.unpair.2, {refl},
-      simp,
+      simv,
       rw hg (nat.mkpair_lt_mkpair_left _ k'.lt_succ_self),
       cases evaln k' _ _, {refl},
-      simp [hg (nat.mkpair_lt_mkpair_right _ lg)] },
+      simv [hg (nat.mkpair_lt_mkpair_right _ lg)] },
     { have lf := encode_lt_rfind' cf,
       rw hg (nat.mkpair_lt_mkpair_right _ lf),
       cases evaln k cf n with x, {refl},
-      simp,
-      cases x; simp [nat.succ_ne_zero],
+      simv,
+      cases x; simv [nat.succ_ne_zero],
       rw hg (nat.mkpair_lt_mkpair_left _ k'.lt_succ_self) }
   end,
 (option_bind (list_nth.comp
   (this.comp (const ()) (encode_iff.2 fst)) snd)
-  snd.to₂).of_eq $ λ ⟨⟨k, c⟩, n⟩, by simp [evaln_map]
+  snd.to₂).of_eq $ λ ⟨⟨k, c⟩, n⟩, by simv [evaln_map]
 
 end
 
@@ -988,7 +988,7 @@ end
 theorem eval_part : partrec₂ eval :=
 (rfind_opt (evaln_prim.to_comp.comp
   ((snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂).of_eq $
-λ a, by simp [eval_eq_rfind_opt]
+λ a, by simv [eval_eq_rfind_opt]
 
 /--
 Roger's fixed-point theorem: Any total, computable `f` has a fixed point: That is, under the
@@ -1004,23 +1004,23 @@ have partrec₂ g :=
   (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
 let ⟨cg, eg⟩ := exists_code.1 this in
 have eg' : ∀ a n, eval cg (mkpair a n) = part.map encode (g a n) :=
-  by simp [eg],
+  by simv [eg],
 let F (x : ℕ) : code := f (curry cg x) in
 have computable F :=
   hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
 let ⟨cF, eF⟩ := exists_code.1 this in
 have eF' : eval cF (encode cF) = part.some (encode (F (encode cF))),
-  by simp [eF],
+  by simv [eF],
 ⟨curry cg (encode cF), funext (λ n,
   show eval (f (curry cg (encode cF))) n = eval (curry cg (encode cF)) n,
-  by simp [eg', eF', part.map_id', g])⟩
+  by simv [eg', eF', part.map_id', g])⟩
 
 theorem fixed_point₂
   {f : code → ℕ →. ℕ} (hf : partrec₂ f) : ∃ c : code, eval c = f c :=
 let ⟨cf, ef⟩ := exists_code.1 hf in
 (fixed_point (curry_prim.comp
   (primrec.const cf) primrec.encode).to_comp).imp $
-λ c e, funext $ λ n, by simp [e.symm, ef, part.map_id']
+λ c e, funext $ λ n, by simv [e.symm, ef, part.map_id']
 
 end
 

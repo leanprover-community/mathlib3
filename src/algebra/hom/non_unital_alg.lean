@@ -138,11 +138,11 @@ rfl
 @[simp] lemma to_mul_hom_eq_coe (f : A →ₙₐ[R] B) : f.to_mul_hom = ↑f :=
 rfl
 
-@[simp, norm_cast] lemma coe_to_distrib_mul_action_hom (f : A →ₙₐ[R] B) :
+@[simv, norm_cast] lemma coe_to_distrib_mul_action_hom (f : A →ₙₐ[R] B) :
   ((f : A →+[R] B) : A → B) = f :=
 rfl
 
-@[simp, norm_cast] lemma coe_to_mul_hom (f : A →ₙₐ[R] B) :
+@[simv, norm_cast] lemma coe_to_mul_hom (f : A →ₙₐ[R] B) :
   ((f : A →ₙ* B) : A → B) = f :=
 rfl
 
@@ -175,11 +175,11 @@ by { ext, refl, }
 @[simp] protected lemma map_zero (f : A →ₙₐ[R] B) : f 0 = 0 := map_zero _
 
 instance : has_zero (A →ₙₐ[R] B) :=
-⟨{ map_mul' := by simp,
+⟨{ map_mul' := by simv,
    .. (0 : A →+[R] B) }⟩
 
 instance : has_one (A →ₙₐ[R] A) :=
-⟨{ map_mul' := by simp,
+⟨{ map_mul' := by simv,
    .. (1 : A →+[R] A) }⟩
 
 @[simp] lemma coe_zero : ((0 : A →ₙₐ[R] B) : A → B) = 0 := rfl
@@ -197,7 +197,7 @@ def comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) : A →ₙₐ[R] C :=
 { .. (f : B →ₙ* C).comp (g : A →ₙ* B),
   .. (f : B →+[R] C).comp (g : A →+[R] B) }
 
-@[simp, norm_cast] lemma coe_comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) :
+@[simv, norm_cast] lemma coe_comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) :
   (f.comp g : A → C) = (f : B → C) ∘ (g : A → B) :=
 rfl
 
@@ -241,10 +241,10 @@ variables {R A B}
 /-- The prod of two morphisms is a morphism. -/
 @[simps] def prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) : (A →ₙₐ[R] B × C) :=
 { to_fun    := pi.prod f g,
-  map_zero' := by simp only [pi.prod, prod.zero_eq_mk, map_zero],
-  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
-  map_mul'  := λ x y, by simp only [pi.prod, prod.mk_mul_mk, map_mul],
-  map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
+  map_zero' := by simv only [pi.prod, prod.zero_eq_mk, map_zero],
+  map_add'  := λ x y, by simv only [pi.prod, prod.mk_add_mk, map_add],
+  map_mul'  := λ x y, by simv only [pi.prod, prod.mk_mul_mk, map_mul],
+  map_smul' := λ c x, by simv only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
 
 lemma coe_prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
 
@@ -306,7 +306,7 @@ instance non_unital_alg_hom.has_coe : has_coe (A →ₐ[R] B) (A →ₙₐ[R] B)
 @[simp] lemma to_non_unital_alg_hom_eq_coe (f : A →ₐ[R] B) : f.to_non_unital_alg_hom = f :=
 rfl
 
-@[simp, norm_cast] lemma coe_to_non_unital_alg_hom (f : A →ₐ[R] B) :
+@[simv, norm_cast] lemma coe_to_non_unital_alg_hom (f : A →ₐ[R] B) :
   ((f : A →ₙₐ[R] B) : A → B) = f :=
 rfl
 

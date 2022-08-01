@@ -97,7 +97,7 @@ variables {β : Type*} [has_coe K β]
 instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
 ⟨mapFr coe⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl
@@ -137,7 +137,7 @@ Shows that `int_fract_pair.stream` has the sequence property, that is once we re
 position `n`, we also return `none` at `n + 1`.
 -/
 lemma stream_is_seq (v : K) : (int_fract_pair.stream v).is_seq :=
-by { assume _ hyp, simp [int_fract_pair.stream, hyp] }
+by { assume _ hyp, simv [int_fract_pair.stream, hyp] }
 
 /--
 Uses `int_fract_pair.stream` to create a sequence with head (i.e. `seq1`) of integer and fractional

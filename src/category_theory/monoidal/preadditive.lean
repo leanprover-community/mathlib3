@@ -39,11 +39,11 @@ restate_axiom monoidal_preadditive.tensor_zero'
 restate_axiom monoidal_preadditive.zero_tensor'
 restate_axiom monoidal_preadditive.tensor_add'
 restate_axiom monoidal_preadditive.add_tensor'
-attribute [simp] monoidal_preadditive.tensor_zero monoidal_preadditive.zero_tensor
+attribute [simv] monoidal_preadditive.tensor_zero monoidal_preadditive.zero_tensor
 
 variables [monoidal_preadditive C]
 
-local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+local attribute [simv] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
 instance tensor_left_additive (X : C) : (tensor_left X).additive := {}
 instance tensor_right_additive (X : C) : (tensor_right X).additive := {}
@@ -60,7 +60,7 @@ begin
   change _ ≫ tQ _ = _,
   rw [tQ.map_sum, preadditive.comp_sum],
   dsimp [tQ],
-  simp only [tensor_id_comp_id_tensor],
+  simv only [tensor_id_comp_id_tensor],
 end
 
 lemma sum_tensor {P Q R S : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (R ⟶ S)) :
@@ -71,7 +71,7 @@ begin
   change tQ _ ≫ _ = _,
   rw [tQ.map_sum, preadditive.sum_comp],
   dsimp [tQ],
-  simp only [tensor_id_comp_id_tensor],
+  simv only [tensor_id_comp_id_tensor],
 end
 
 variables {C}
@@ -84,7 +84,7 @@ instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
   { preserves := λ f,
     { preserves := λ b i, is_bilimit_of_total _ begin
       dsimp,
-      simp only [←tensor_comp, category.comp_id, ←tensor_sum, ←tensor_id, is_bilimit.total i],
+      simv only [←tensor_comp, category.comp_id, ←tensor_sum, ←tensor_id, is_bilimit.total i],
     end } } }
 
 instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
@@ -92,7 +92,7 @@ instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
   { preserves := λ f,
     { preserves := λ b i, is_bilimit_of_total _ begin
       dsimp,
-      simp only [←tensor_comp, category.comp_id, ←sum_tensor, ←tensor_id, is_bilimit.total i],
+      simv only [←tensor_comp, category.comp_id, ←sum_tensor, ←tensor_id, is_bilimit.total i],
     end } } }
 
 variables [has_finite_biproducts C]
@@ -107,7 +107,7 @@ lemma left_distributor_hom {J : Type} [fintype J] (X : C) (f : J → C) :
   (left_distributor X f).hom = ∑ j : J, (𝟙 X ⊗ biproduct.π f j) ≫ biproduct.ι _ j :=
 begin
   ext, dsimp [tensor_left, left_distributor],
-  simp [preadditive.sum_comp, biproduct.ι_π, comp_dite],
+  simv [preadditive.sum_comp, biproduct.ι_π, comp_dite],
 end
 
 @[simp]
@@ -115,7 +115,7 @@ lemma left_distributor_inv {J : Type} [fintype J] (X : C) (f : J → C) :
   (left_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (𝟙 X ⊗ biproduct.ι f j) :=
 begin
   ext, dsimp [tensor_left, left_distributor],
-  simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
+  simv [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
 lemma left_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
@@ -123,17 +123,17 @@ lemma left_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
      (α_ X Y (⨁ f)).symm ≪≫ left_distributor (X ⊗ Y) f ≪≫ biproduct.map_iso (λ j, α_ X Y _) :=
 begin
   ext,
-  simp only [category.comp_id,  category.assoc, eq_to_hom_refl,
+  simv only [category.comp_id,  category.assoc, eq_to_hom_refl,
     iso.trans_hom, iso.symm_hom, as_iso_hom, comp_zero, comp_dite,
     preadditive.sum_comp, preadditive.comp_sum,
     tensor_sum, id_tensor_comp, tensor_iso_hom, left_distributor_hom,
     biproduct.map_iso_hom, biproduct.ι_map, biproduct.ι_π,
     finset.sum_dite_irrel, finset.sum_dite_eq', finset.sum_const_zero],
-  simp only [←id_tensor_comp, biproduct.ι_π],
-  simp only [id_tensor_comp, tensor_dite, comp_dite],
-  simp only [category.comp_id, comp_zero, monoidal_preadditive.tensor_zero, eq_to_hom_refl,
+  simv only [←id_tensor_comp, biproduct.ι_π],
+  simv only [id_tensor_comp, tensor_dite, comp_dite],
+  simv only [category.comp_id, comp_zero, monoidal_preadditive.tensor_zero, eq_to_hom_refl,
     tensor_id, if_true, dif_ctx_congr, finset.sum_congr, finset.mem_univ, finset.sum_dite_eq'],
-  simp only [←tensor_id, associator_naturality, iso.inv_hom_id_assoc],
+  simv only [←tensor_id, associator_naturality, iso.inv_hom_id_assoc],
 end
 
 /-- The isomorphism showing how tensor product on the right distributes over direct sums. -/
@@ -146,7 +146,7 @@ lemma right_distributor_hom {J : Type} [fintype J] (X : C) (f : J → C) :
   (right_distributor X f).hom = ∑ j : J, (biproduct.π f j ⊗ 𝟙 X) ≫ biproduct.ι _ j :=
 begin
   ext, dsimp [tensor_right, right_distributor],
-  simp [preadditive.sum_comp, biproduct.ι_π, comp_dite],
+  simv [preadditive.sum_comp, biproduct.ι_π, comp_dite],
 end
 
 @[simp]
@@ -154,7 +154,7 @@ lemma right_distributor_inv {J : Type} [fintype J] (X : C) (f : J → C) :
   (right_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (biproduct.ι f j ⊗ 𝟙 X) :=
 begin
   ext, dsimp [tensor_right, right_distributor],
-  simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
+  simv [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
 lemma right_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
@@ -162,16 +162,16 @@ lemma right_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
      α_ (⨁ f) X Y ≪≫ right_distributor (X ⊗ Y) f ≪≫ biproduct.map_iso (λ j, (α_ _ X Y).symm) :=
 begin
   ext,
-  simp only [category.comp_id, category.assoc, eq_to_hom_refl, iso.symm_hom,
+  simv only [category.comp_id, category.assoc, eq_to_hom_refl, iso.symm_hom,
     iso.trans_hom, as_iso_hom, comp_zero, comp_dite, preadditive.sum_comp, preadditive.comp_sum,
     sum_tensor, comp_tensor_id, tensor_iso_hom, right_distributor_hom,
     biproduct.map_iso_hom, biproduct.ι_map, biproduct.ι_π,
     finset.sum_dite_irrel, finset.sum_dite_eq', finset.sum_const_zero, finset.mem_univ, if_true],
-  simp only [←comp_tensor_id, biproduct.ι_π, dite_tensor, comp_dite],
-  simp only [category.comp_id, comp_tensor_id, eq_to_hom_refl, tensor_id, comp_zero,
+  simv only [←comp_tensor_id, biproduct.ι_π, dite_tensor, comp_dite],
+  simv only [category.comp_id, comp_tensor_id, eq_to_hom_refl, tensor_id, comp_zero,
     monoidal_preadditive.zero_tensor,
     if_true, dif_ctx_congr, finset.mem_univ, finset.sum_congr, finset.sum_dite_eq'],
-  simp only [←tensor_id, associator_inv_naturality, iso.hom_inv_id_assoc]
+  simv only [←tensor_id, associator_inv_naturality, iso.hom_inv_id_assoc]
 end
 
 lemma left_distributor_right_distributor_assoc
@@ -181,19 +181,19 @@ lemma left_distributor_right_distributor_assoc
       biproduct.map_iso (λ j, (α_ _ _ _).symm) :=
 begin
   ext,
-  simp only [category.comp_id, category.assoc, eq_to_hom_refl, iso.symm_hom,
+  simv only [category.comp_id, category.assoc, eq_to_hom_refl, iso.symm_hom,
     iso.trans_hom, as_iso_hom, comp_zero, comp_dite, preadditive.sum_comp, preadditive.comp_sum,
     sum_tensor, tensor_sum, comp_tensor_id, tensor_iso_hom,
     left_distributor_hom, right_distributor_hom,
     biproduct.map_iso_hom, biproduct.ι_map, biproduct.ι_π,
     finset.sum_dite_irrel, finset.sum_dite_eq', finset.sum_const_zero, finset.mem_univ, if_true],
-  simp only [←comp_tensor_id, ←id_tensor_comp_assoc, category.assoc, biproduct.ι_π,
+  simv only [←comp_tensor_id, ←id_tensor_comp_assoc, category.assoc, biproduct.ι_π,
     comp_dite, dite_comp, tensor_dite, dite_tensor],
-  simp only [category.comp_id, category.id_comp, category.assoc, id_tensor_comp,
+  simv only [category.comp_id, category.id_comp, category.assoc, id_tensor_comp,
     comp_zero, zero_comp, monoidal_preadditive.tensor_zero, monoidal_preadditive.zero_tensor,
     comp_tensor_id, eq_to_hom_refl, tensor_id,
     if_true, dif_ctx_congr, finset.sum_congr, finset.mem_univ, finset.sum_dite_eq'],
-  simp only [associator_inv_naturality, iso.hom_inv_id_assoc]
+  simv only [associator_inv_naturality, iso.hom_inv_id_assoc]
 end
 
 end category_theory

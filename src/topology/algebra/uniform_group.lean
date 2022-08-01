@@ -66,7 +66,7 @@ uniform_continuous_div.comp (hf.prod_mk hg)
   (hf : uniform_continuous f) : uniform_continuous (λx, (f x)⁻¹) :=
 have uniform_continuous (λx, 1 / f x),
   from uniform_continuous_const.div hf,
-by simp * at *
+by simv * at *
 
 @[to_additive] lemma uniform_continuous_inv : uniform_continuous (λx:α, x⁻¹) :=
 uniform_continuous_id.inv
@@ -74,7 +74,7 @@ uniform_continuous_id.inv
 @[to_additive] lemma uniform_continuous.mul [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x * g x) :=
 have uniform_continuous (λx, f x / (g x)⁻¹), from hf.div hg.inv,
-by simp * at *
+by simv * at *
 
 @[to_additive] lemma uniform_continuous_mul : uniform_continuous (λp:α×α, p.1 * p.2) :=
 uniform_continuous_fst.mul uniform_continuous_snd
@@ -116,7 +116,7 @@ le_antisymm
   (uniform_continuous_id.mul uniform_continuous_const)
   (calc 𝓤 α =
     ((𝓤 α).map (λx:α×α, (x.1 * a⁻¹, x.2 * a⁻¹))).map (λx:α×α, (x.1 * a, x.2 * a)) :
-      by simp [filter.map_map, (∘)]; exact filter.map_id.symm
+      by simv [filter.map_map, (∘)]; exact filter.map_id.symm
     ... ≤ (𝓤 α).map (λx:α×α, (x.1 * a, x.2 * a)) :
       filter.map_mono (uniform_continuous_id.mul uniform_continuous_const))
 
@@ -124,7 +124,7 @@ le_antisymm
 { comap_uniformity := begin
     rw [← uniformity_translate_mul a, comap_map] {occs := occurrences.pos [1]},
     rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
-    simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
+    simv [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
   end,
   inj := mul_left_injective a }
 
@@ -211,7 +211,7 @@ lemma uniformity_eq_comap_inv_mul_nhds_one : 𝓤 α = comap (λx:α×α, x.1⁻
 begin
   rw [← comap_uniformity_mul_opposite, uniformity_eq_comap_nhds_one, ← op_one, ← comap_unop_nhds,
     comap_comap, comap_comap],
-  simp [(∘)]
+  simv [(∘)]
 end
 
 @[to_additive] lemma uniformity_eq_comap_inv_mul_nhds_one_swapped :
@@ -246,7 +246,7 @@ have embedding (λa, a * (y / x)), from (uniform_embedding_translate_mul (y / x)
 show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x / y ∈ closure ({1} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_one α, sInter_comap_sets],
-  simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg, add_assoc]
+  simv [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg, add_assoc]
 end
 
 @[to_additive] lemma uniform_continuous_of_tendsto_one {hom : Type*} [uniform_space β] [group β]
@@ -254,7 +254,7 @@ end
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 / x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 / x.1)),
-  { simp only [map_div] },
+  { simv only [map_div] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_one α, uniformity_eq_comap_nhds_one β,
     tendsto_comap_iff, this],
   exact tendsto.comp h tendsto_comap
@@ -319,7 +319,7 @@ uniform_continuous_inv.comp_cauchy_seq h
 @[to_additive] lemma totally_bounded_iff_subset_finite_Union_nhds_one {s : set α} :
   totally_bounded s ↔ ∀ U ∈ 𝓝 (1 : α), ∃ (t : set α), t.finite ∧ s ⊆ ⋃ y ∈ t, y • U :=
 (𝓝 (1 : α)).basis_sets.uniformity_of_nhds_one_inv_mul_swapped.totally_bounded_iff.trans $
-  by simp [← preimage_smul_inv, preimage]
+  by simv [← preimage_smul_inv, preimage]
 
 section uniform_convergence
 variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
@@ -353,7 +353,7 @@ def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
     by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 1));
-      simp [set.subset_def] {contextual := tt},
+      simv [set.subset_def] {contextual := tt},
   symm                :=
   begin
     suffices : tendsto (λp:G×G, (p.2 / p.1)⁻¹) (comap (λp:G×G, p.2 / p.1) (𝓝 1)) (𝓝 1⁻¹),
@@ -467,7 +467,7 @@ begin
       rw div_one at this,
       rw [← this, h] at x_in,
       change x = 1 at x_in,
-      simp [x_in] },
+      simv [x_in] },
     { exact subset_closure } },
   { ext p,
     cases p with x y,
@@ -623,7 +623,7 @@ begin
   rintros x ⟨xU₁, xU₂⟩ x' ⟨x'U₁, x'U₂⟩ y ⟨yV₁, yV₂⟩ y' ⟨y'V₁, y'V₂⟩,
   have key_formula : φ x' y' - φ x y =
     φ(x' - x) y₁ + φ (x' - x) (y' - y₁) + φ x₁ (y' - y) + φ (x - x₁) (y' - y),
-  { simp, abel },
+  { simv, abel },
   rw key_formula,
   have h₁ := HU x xU₂ x' x'U₂,
   have h₂ := H x xU₁ x' x'U₁ y₁ y₁_in y' y'V₁,
@@ -670,14 +670,14 @@ begin
     existsi (U' ×ˢ V') ×ˢ (U' ×ˢ V'),
     rw mem_prod_same_iff,
 
-    simp only [exists_prop],
+    simv only [exists_prop],
     split,
     { change U' ∈ 𝓝 x₀ at U'_nhd,
       change V' ∈ 𝓝 y₀ at V'_nhd,
       have := prod_mem_prod U'_nhd V'_nhd,
       tauto },
     { intros p h',
-      simp only [set.mem_preimage, set.prod_mk_mem_set_prod_eq] at h',
+      simv only [set.mem_preimage, set.prod_mk_mem_set_prod_eq] at h',
       rcases p with ⟨⟨x, y⟩, ⟨x', y'⟩⟩,
       apply h ; tauto } }
 end

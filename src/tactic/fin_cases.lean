@@ -114,11 +114,11 @@ As an example, in
 ```
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
-  fin_cases *; simp,
+  fin_cases *; simv,
   all_goals { assumption }
 end
 ```
-after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
+after `fin_cases p; simv`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 `fin_cases h with l` takes a list of descriptions for the cases of `h`.
 These should be definitionally equal to and in the same order as the

@@ -53,7 +53,7 @@ lemma subst_into_mul {α} [has_mul α] (l r tl tr t)
 by rw [prl, prr, prt]
 
 lemma subst_into_neg {α} [has_neg α] (a ta t : α) (pra : a = ta) (prt : -ta = t) : -a = t :=
-by simp [pra, prt]
+by simv [pra, prt]
 
 /-- The result type of `match_numeral`, either `0`, `1`, or a top level
 decomposition of `bit0 e` or `bit1 e`. The `other` case means it is not a numeral. -/
@@ -72,7 +72,7 @@ theorem zero_succ {α} [semiring α] : (0 + 1 : α) = 1 := zero_add _
 theorem one_succ {α} [semiring α] : (1 + 1 : α) = 2 := rfl
 theorem bit0_succ {α} [semiring α] (a : α) : bit0 a + 1 = bit1 a := rfl
 theorem bit1_succ {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 = bit0 b :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -103,33 +103,33 @@ theorem zero_adc {α} [semiring α] (a b : α) (h : a + 1 = b) : 0 + a + 1 = b :
 theorem adc_zero {α} [semiring α] (a b : α) (h : a + 1 = b) : a + 0 + 1 = b := by rwa add_zero
 theorem one_add {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + a = b := by rwa add_comm
 theorem add_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b = bit0 c :=
-h ▸ by simp [bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit0, add_left_comm, add_assoc]
 theorem add_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit1 b = bit1 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_assoc]
+h ▸ by simv [bit0, bit1, add_left_comm, add_assoc]
 theorem add_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit1 a + bit0 b = bit1 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_comm, add_assoc]
+h ▸ by simv [bit0, bit1, add_left_comm, add_comm, add_assoc]
 theorem add_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b = bit0 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_comm, add_assoc]
+h ▸ by simv [bit0, bit1, add_left_comm, add_comm, add_assoc]
 theorem adc_one_one {α} [semiring α] : (1 + 1 + 1 : α) = 3 := rfl
 theorem adc_bit0_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit0 a + 1 + 1 = bit0 b :=
-h ▸ by simp [bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit0, add_left_comm, add_assoc]
 theorem adc_one_bit0 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit0 a + 1 = bit0 b :=
-h ▸ by simp [bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit0, add_left_comm, add_assoc]
 theorem adc_bit1_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit1 a + 1 + 1 = bit1 b :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_one_bit1 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit1 a + 1 = bit1 b :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b + 1 = bit1 c :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) :
   bit1 a + bit0 b + 1 = bit0 c :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) :
   bit0 a + bit1 b + 1 = bit0 c :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) :
   bit1 a + bit1 b + 1 = bit1 c :=
-h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
+h ▸ by simv [bit1, bit0, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -193,15 +193,15 @@ do na ← a.to_nat,
 end
 
 theorem bit0_mul {α} [semiring α] (a b c : α) (h : a * b = c) :
-  bit0 a * b = bit0 c := h ▸ by simp [bit0, add_mul]
+  bit0 a * b = bit0 c := h ▸ by simv [bit0, add_mul]
 theorem mul_bit0' {α} [semiring α] (a b c : α) (h : a * b = c) :
-  a * bit0 b = bit0 c := h ▸ by simp [bit0, mul_add]
+  a * bit0 b = bit0 c := h ▸ by simv [bit0, mul_add]
 theorem mul_bit0_bit0 {α} [semiring α] (a b c : α) (h : a * b = c) :
   bit0 a * bit0 b = bit0 (bit0 c) := bit0_mul _ _ _ (mul_bit0' _ _ _ h)
 theorem mul_bit1_bit1 {α} [semiring α] (a b c d e : α)
   (hc : a * b = c) (hd : a + b = d) (he : bit0 c + d = e) :
   bit1 a * bit1 b = bit1 e :=
-by rw [← he, ← hd, ← hc]; simp [bit1, bit0, mul_add, add_mul, add_left_comm, add_assoc]
+by rw [← he, ← hd, ← hc]; simv [bit1, bit0, mul_add, add_mul, add_left_comm, add_assoc]
 
 section
 open match_numeral_result
@@ -325,7 +325,7 @@ bit0_lt_bit0.2
 theorem lt_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a < bit1 b :=
 lt_of_le_of_lt (bit0_le_bit0.2 h) (lt_add_one _)
 theorem lt_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a < bit0 b :=
-lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one, add_assoc]) (bit0_le_bit0.2 h)
+lt_of_lt_of_le (by simv [bit0, bit1, zero_lt_one, add_assoc]) (bit0_le_bit0.2 h)
 theorem lt_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit1 a < bit1 b :=
 bit1_lt_bit1.2
 
@@ -745,15 +745,15 @@ else do
   ic.mk_app ``clear_denom_add [a, a', b, b', c, c', d, p₀, pa, pb, pc, p]
 
 theorem add_pos_neg_pos {α} [add_group α] (a b c : α) (h : c + b = a) : a + -b = c :=
-h ▸ by simp
+h ▸ by simv
 theorem add_pos_neg_neg {α} [add_group α] (a b c : α) (h : c + a = b) : a + -b = -c :=
-h ▸ by simp
+h ▸ by simv
 theorem add_neg_pos_pos {α} [add_group α] (a b c : α) (h : a + c = b) : -a + b = c :=
-h ▸ by simp
+h ▸ by simv
 theorem add_neg_pos_neg {α} [add_group α] (a b c : α) (h : b + c = a) : -a + b = -c :=
-h ▸ by simp
+h ▸ by simv
 theorem add_neg_neg {α} [add_group α] (a b c : α) (h : b + a = c) : -a + -b = -c :=
-h ▸ by simp
+h ▸ by simv
 
 /-- Given `a`,`b`,`c` rational numerals, returns `⊢ a + b = c`. -/
 meta def prove_add_rat (ic : instance_cache) (ea eb ec : expr) (a b c : ℚ) :
@@ -828,9 +828,9 @@ else do
   (ic, p) ← ic.mk_app ``clear_denom_mul [a, a', b, b', c, c', d₁, d₂, d, pa, pb, pc, pd, p],
   return (ic, c, p)
 
-theorem mul_neg_pos {α} [ring α] (a b c : α) (h : a * b = c) : -a * b = -c := h ▸ by simp
-theorem mul_pos_neg {α} [ring α] (a b c : α) (h : a * b = c) : a * -b = -c := h ▸ by simp
-theorem mul_neg_neg {α} [ring α] (a b c : α) (h : a * b = c) : -a * -b = c := h ▸ by simp
+theorem mul_neg_pos {α} [ring α] (a b c : α) (h : a * b = c) : -a * b = -c := h ▸ by simv
+theorem mul_pos_neg {α} [ring α] (a b c : α) (h : a * b = c) : a * -b = -c := h ▸ by simv
+theorem mul_neg_neg {α} [ring α] (a b c : α) (h : a * b = c) : -a * -b = c := h ▸ by simv
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a * b = c)`. -/
 meta def prove_mul_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
@@ -862,7 +862,7 @@ match match_sign a, match_sign b with
 end
 
 theorem inv_neg {α} [division_ring α] (a b : α) (h : a⁻¹ = b) : (-a)⁻¹ = -b :=
-h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
+h ▸ by simv only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
 theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
@@ -870,7 +870,7 @@ by rw [one_div, inv_inv]
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
 inv_eq_one_div _
 theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
-by simp only [inv_eq_one_div, one_div_div]
+by simv only [inv_eq_one_div, one_div_div]
 
 /-- Given `a` a rational numeral, returns `(b, ⊢ a⁻¹ = b)`. -/
 meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache × expr × expr)
@@ -974,7 +974,7 @@ do na ← a.to_nat, nb ← b.to_nat,
 /-- Evaluates the basic field operations `+`,`neg`,`-`,`*`,`inv`,`/` on numerals.
 Also handles nat subtraction. Does not do recursive simplification; that is,
 `1 + 1 + 1` will not simplify but `2 + 1` will. This is handled by the top level
-`simp` call in `norm_num.derive`. -/
+`simv` call in `norm_num.derive`. -/
 meta def eval_field : expr → tactic (expr × expr)
 | `(%%e₁ + %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
@@ -1006,11 +1006,11 @@ meta def eval_field : expr → tactic (expr × expr)
 
 lemma pow_bit0 [monoid α] (a c' c : α) (b : ℕ)
   (h : a ^ b = c') (h₂ : c' * c' = c) : a ^ bit0 b = c :=
-h₂ ▸ by simp [pow_bit0, h]
+h₂ ▸ by simv [pow_bit0, h]
 
 lemma pow_bit1 [monoid α] (a c₁ c₂ c : α) (b : ℕ)
   (h : a ^ b = c₁) (h₂ : c₁ * c₁ = c₂) (h₃ : c₂ * a = c) : a ^ bit1 b = c :=
-by rw [← h₃, ← h₂]; simp [pow_bit1, h]
+by rw [← h₃, ← h₂]; simv [pow_bit1, h]
 
 section
 open match_numeral_result
@@ -1163,7 +1163,7 @@ meta def eval_ineq : expr → tactic (expr × expr)
 theorem nat_succ_eq (a b c : ℕ) (h₁ : a = b) (h₂ : b + 1 = c) : nat.succ a = c := by rwa h₁
 
 /-- Evaluates the expression `nat.succ ... (nat.succ n)` where `n` is a natural numeral.
-(We could also just handle `nat.succ n` here and rely on `simp` to work bottom up, but we figure
+(We could also just handle `nat.succ n` here and rely on `simv` to work bottom up, but we figure
 that towers of successors coming from e.g. `induction` are a common case.) -/
 meta def prove_nat_succ (ic : instance_cache) : expr → tactic (instance_cache × ℕ × expr × expr)
 | `(nat.succ %%a) := do
@@ -1241,14 +1241,14 @@ theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (
 (propext $ by rw [← h₁, int.dvd_iff_mod_eq_zero]).trans h₂
 
 theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
-  a.to_nat = b := by rw ← h; simp
+  a.to_nat = b := by rw ← h; simv
 theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
-by simp only [int.to_nat_of_nonpos, h.le, neg_nonpos]
+by simv only [int.to_nat_of_nonpos, h.le, neg_nonpos]
 
 theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
-  a.nat_abs = b := by rw ← h; simp
+  a.nat_abs = b := by rw ← h; simv
 theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
-  (-a).nat_abs = b := by rw ← h; simp
+  (-a).nat_abs = b := by rw ← h; simv
 
 theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
   (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
@@ -1312,7 +1312,7 @@ meta def eval_nat_int_ext : expr → tactic (expr × expr)
 
 theorem int_to_nat_cast (a : ℕ) (b : ℤ)
   (h : (by haveI := @nat.cast_coe ℤ; exact a : ℤ) = b) :
-  ↑a = b := eq.trans (by simp) h
+  ↑a = b := eq.trans (by simv) h
 
 /-- Evaluates the `↑n` cast operation from `ℕ`, `ℤ`, `ℚ` to an arbitrary type `α`. -/
 meta def eval_cast : expr → tactic (expr × expr)
@@ -1415,7 +1415,7 @@ meta def derive (e : expr) : tactic (expr × expr) := do f ← get_step, derive'
 
 end norm_num
 
-/-- Basic version of `norm_num` that does not call `simp`. It uses the provided `step` tactic
+/-- Basic version of `norm_num` that does not call `simv`. It uses the provided `step` tactic
 to simplify the expression; use `get_step` to get the default `norm_num` set and `derive.step` for
 the basic builtin set of simplifications. -/
 meta def tactic.norm_num1 (step : expr → tactic (expr × expr))
@@ -1437,13 +1437,13 @@ interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
 
 /-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
 Given an expression `e`, returns `(e', ⊢ e = e')`.
-The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
+The `no_dflt`, `hs`, and `attr_names` are passed on to `simv`.
 Unlike `norm_num`, this tactic does not fail. -/
 meta def _root_.expr.norm_num (step : expr → tactic (expr × expr))
   (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
   expr → tactic (expr × expr) :=
 let simp_step (e : expr) := do
-      (e', p, _) ← e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+      (e', p, _) ← e.simv {} (tactic.norm_num1 step (interactive.loc.ns [none]))
                    no_dflt attr_names (simp_arg_type.except ``one_div :: hs),
       return (e', p)
 in or_refl_conv $ λ e, do
@@ -1455,7 +1455,7 @@ in or_refl_conv $ λ e, do
 namespace tactic.interactive
 open norm_num interactive interactive.types
 
-/-- Basic version of `norm_num` that does not call `simp`. -/
+/-- Basic version of `norm_num` that does not call `simv`. -/
 meta def norm_num1 (loc : parse location) : tactic unit :=
 do f ← get_step, tactic.norm_num1 f loc
 
@@ -1498,7 +1498,7 @@ example : ¬ nat.prime (2^11 - 1) := by norm_num
 example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
 ```
 
-The variant `norm_num1` does not call `simp`.
+The variant `norm_num1` does not call `simv`.
 
 Both `norm_num` and `norm_num1` can be called inside the `conv` tactic.
 
@@ -1527,7 +1527,7 @@ namespace conv.interactive
 open conv interactive tactic.interactive
 open norm_num (derive)
 
-/-- Basic version of `norm_num` that does not call `simp`. -/
+/-- Basic version of `norm_num` that does not call `simv`. -/
 meta def norm_num1 : conv unit := replace_lhs derive
 
 /-- Normalize numerical expressions. Supports the operations
@@ -1538,14 +1538,14 @@ where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) : conv unit :=
 repeat1 $ orelse' norm_num1 $
-conv.interactive.simp ff (simp_arg_type.except ``one_div :: hs) []
+conv.interactive.simv ff (simp_arg_type.except ``one_div :: hs) []
   { discharger := tactic.interactive.norm_num1 (loc.ns [none]) }
 
 end conv.interactive
 
 /-!
 ## `#norm_num` command
-A user command to run `norm_num`. Mostly copied from the `#simp` command.
+A user command to run `norm_num`. Mostly copied from the `#simv` command.
 -/
 
 namespace tactic
@@ -1559,10 +1559,10 @@ declare_trace silence_norm_num_if_true
 The basic usage is `#norm_num e`, where `e` is an expression,
 which will print the `norm_num` form of `e`.
 
-Syntax: `#norm_num` (`only`)? (`[` simp lemma list `]`)? (`with` simp sets)? `:`? expression
+Syntax: `#norm_num` (`only`)? (`[` simv lemma list `]`)? (`with` simv sets)? `:`? expression
 
-This accepts the same options as the `#simp` command.
-You can specify additional simp lemmas as usual, for example using
+This accepts the same options as the `#simv` command.
+You can specify additional simv lemmas as usual, for example using
 `#norm_num [f, g] : e`, or `#norm_num with attr : e`.
 (The colon is optional but helpful for the parser.)
 The `only` restricts `norm_num` to using only the provided lemmas, and so
@@ -1581,10 +1581,10 @@ do
   o ← optional (tk ":"),
   e ← texpr,
 
-  /- Retrieve the `pexpr`s parsed as part of the simp args, and collate them into a big list. -/
+  /- Retrieve the `pexpr`s parsed as part of the simv args, and collate them into a big list. -/
   let hs_es := list.join $ hs.map $ option.to_list ∘ simp_arg_type.to_pexpr,
 
-  /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
+  /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simv`
      may be safely called with expected behaviour given the `variables` in the environment. -/
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
@@ -1599,12 +1599,12 @@ do
 
        We would prefer to just elaborate the `pexpr`s encoded in the `simp_arg_list` against the
        tactic state we have created (as we could with `e` above), but the simplifier expects
-       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simp` do the
+       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simv` do the
        elaboration when the time comes.
 
        You might think that we could just examine each of these `pexpr`s, call `to_expr` on them,
        and then call `to_pexpr` afterward and save the results over the original `pexprs`. Due to
-       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simp`
+       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simv`
        framework is not robust enough to handle this method. When pieces of expressions like
        annotation macros are injected, the direct patten matches in the `simp_lemmas.*` codebase
        fail, and the lemmas we want don't get added.

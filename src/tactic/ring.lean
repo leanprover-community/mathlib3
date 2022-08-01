@@ -171,12 +171,12 @@ do p ← lift $ mk_eq_refl e, return (e, p)
 
 theorem zero_horner {α} [comm_semiring α] (x n b) :
   @horner α _ 0 x n b = b :=
-by simp [horner]
+by simv [horner]
 
 theorem horner_horner {α} [comm_semiring α] (a₁ x n₁ n₂ b n')
   (h : n₁ + n₂ = n') :
   @horner α _ (horner a₁ x n₁ 0) x n₂ b = horner a₁ x n' b :=
-by simp [h.symm, horner, pow_add, mul_assoc]
+by simv [h.symm, horner, pow_add, mul_assoc]
 
 /-- Evaluate `horner a n x b` where `a` and `b` are already in normal form. -/
 meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_expr → ring_m (horner_expr × expr)
@@ -195,26 +195,26 @@ meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_ex
 
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
-by simp [h.symm, horner]; cc
+by simv [h.symm, horner]; cc
 
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
-by simp [h.symm, horner, add_assoc]
+by simv [h.symm, horner, add_assoc]
 
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₁ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
+by simv [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₂ + k = n₁) (h₂ : (horner a₁ x k 0 + a₂ : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
+by simv [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm (x ^ n)]; cc
+by simv [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm (x ^ n)]; cc
 
 /-- Evaluate `a + b` where `a` and `b` are already in normal form. -/
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
@@ -283,7 +283,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 theorem horner_neg {α} [comm_ring α] (a x n b a' b')
   (h₁ : -a = a') (h₂ : -b = b') :
   -@horner α _ a x n b = horner a' x n b' :=
-by simp [h₂.symm, h₁.symm, horner]; cc
+by simv [h₂.symm, h₁.symm, horner]; cc
 
 /-- Evaluate `-a` where `a` is already in normal form. -/
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
@@ -300,12 +300,12 @@ meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 theorem horner_const_mul {α} [comm_semiring α] (c a x n b a' b')
   (h₁ : c * a = a') (h₂ : c * b = b') :
   c * @horner α _ a x n b = horner a' x n b' :=
-by simp [h₂.symm, h₁.symm, horner, mul_add, mul_assoc]
+by simv [h₂.symm, h₁.symm, horner, mul_add, mul_assoc]
 
 theorem horner_mul_const {α} [comm_semiring α] (a x n b c a' b')
   (h₁ : a * c = a') (h₂ : b * c = b') :
   @horner α _ a x n b * c = horner a' x n b' :=
-by simp [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
+by simv [h₂.symm, h₁.symm, horner, add_mul, mul_right_comm]
 
 /-- Evaluate `k * a` where `k` is a rational numeral and `a` is in normal form. -/
 meta def eval_const_mul (k : expr × ℚ) :
@@ -325,7 +325,7 @@ theorem horner_mul_horner_zero {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n�
   (h₂ : horner aa x n₂ 0 = t) :
   horner a₁ x n₁ b₁ * horner a₂ x n₂ 0 = t :=
 by rw [← h₂, ← h₁];
-   simp [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
+   simv [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
 
 theorem horner_mul_horner {α} [comm_semiring α]
   (a₁ x n₁ b₁ a₂ n₂ b₂ aa haa ab bb t)
@@ -335,7 +335,7 @@ theorem horner_mul_horner {α} [comm_semiring α]
   (H : haa + horner ab x n₁ bb = t) :
   horner a₁ x n₁ b₁ * horner a₂ x n₂ b₂ = t :=
 by rw [← H, ← h₂, ← h₁, ← h₃, ← h₄];
-   simp [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
+   simv [horner, mul_add, mul_comm, mul_left_comm, mul_assoc]
 
 /-- Evaluate `a * b` where `a` and `b` are in normal form. -/
 meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
@@ -384,7 +384,7 @@ meta def eval_mul : horner_expr → horner_expr → ring_m (horner_expr × expr)
 
 theorem horner_pow {α} [comm_semiring α] (a x n m n' a') (h₁ : n * m = n') (h₂ : a ^ m = a') :
   @horner α _ a x n 0 ^ m = horner a' x n' 0 :=
-by simp [h₁.symm, h₂.symm, horner, mul_pow, pow_mul]
+by simv [h₁.symm, h₂.symm, horner, mul_pow, pow_mul]
 
 theorem pow_succ {α} [comm_semiring α] (a n b c)
   (h₁ : (a:α) ^ n = b) (h₂ : b * a = c) : a ^ (n + 1) = c :=
@@ -420,7 +420,7 @@ meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
   end
 
 theorem horner_atom {α} [comm_semiring α] (x : α) : x = horner 1 x 1 0 :=
-by simp [horner]
+by simv [horner]
 
 /-- Evaluate `a` where `a` is an atom. -/
 meta def eval_atom (e : expr) : ring_m (horner_expr × expr) :=
@@ -520,17 +520,17 @@ meta def eval' (red : transparency) (atoms : ref (buffer expr))
 ring_m.run' red atoms e $ do (e', p) ← eval norm_atom e, return (e', p)
 
 theorem horner_def' {α} [comm_semiring α] (a x n b) : @horner α _ a x n b = x ^ n * a + b :=
-by simp [horner, mul_comm]
+by simv [horner, mul_comm]
 
 theorem mul_assoc_rev {α} [semigroup α] (a b c : α) : a * (b * c) = a * b * c :=
-by simp [mul_assoc]
+by simv [mul_assoc]
 
 theorem pow_add_rev {α} [monoid α] (a : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
-by simp [pow_add]
+by simv [pow_add]
 
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) :
   b * a ^ m * a ^ n = b * a ^ (m + n) :=
-by simp [pow_add, mul_assoc]
+by simv [pow_add, mul_assoc]
 
 theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := (sub_eq_add_neg a b).symm
 

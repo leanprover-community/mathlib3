@@ -122,7 +122,7 @@ instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) := fun_like.ha
 
 variables (v : valuation R Γ₀) {x y z : R}
 
-@[simp, norm_cast] lemma coe_coe : ⇑(v : R →*₀ Γ₀) = v := rfl
+@[simv, norm_cast] lemma coe_coe : ⇑(v : R →*₀ Γ₀) = v := rfl
 
 @[simp] lemma map_zero : v 0 = 0 := v.map_zero'
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'
@@ -185,7 +185,7 @@ theorem unit_map_eq (u : Rˣ) :
 def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   valuation S Γ₀ :=
 { to_fun := v ∘ f,
-  map_add_le_max' := λ x y, by simp only [comp_app, map_add, f.map_add],
+  map_add_le_max' := λ x y, by simv only [comp_app, map_add, f.map_add],
   .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
 @[simp]
@@ -254,7 +254,7 @@ begin
   { apply lt_or_gt_of_ne h.symm },
   { rw max_eq_left_of_lt vyx at h',
     apply lt_irrefl (v x),
-    calc v x = v ((x+y) - y)         : by simp
+    calc v x = v ((x+y) - y)         : by simv
          ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
          ... < v x                   : max_lt h' vyx },
   { apply this h.symm,
@@ -366,7 +366,7 @@ lemma is_equiv_of_val_le_one [linear_ordered_comm_group_with_zero Γ₀]
   v.is_equiv v' :=
 begin
   intros x y,
-  by_cases hy : y = 0, { simp [hy, zero_iff], },
+  by_cases hy : y = 0, { simv [hy, zero_iff], },
   rw show y = 1 * y, by rw one_mul,
   rw [← (inv_mul_cancel_right₀ hy x)],
   iterate 2 {rw [v.map_mul _ y, v'.map_mul _ y]},
@@ -405,18 +405,18 @@ begin
       { have : v (1 + x) = 1,
         { rw ← v.map_one, apply map_add_eq_of_lt_left, simpa },
         rw h at this,
-        rw (show x = (-1) + (1 + x), by simp),
+        rw (show x = (-1) + (1 + x), by simv),
         refine le_trans (v'.map_add _ _) _,
-        simp [this] },
+        simv [this] },
       { rw h at hx', exact le_of_eq hx' } },
     { intros hx,
       cases lt_or_eq_of_le hx with hx' hx',
       { have : v' (1 + x) = 1,
         { rw ← v'.map_one, apply map_add_eq_of_lt_left, simpa },
         rw ← h at this,
-        rw (show x = (-1) + (1 + x), by simp),
+        rw (show x = (-1) + (1 + x), by simv),
         refine le_trans (v.map_add _ _) _,
-        simp [this] },
+        simv [this] },
       { rw ← h at hx', exact le_of_eq hx' } } }
 end
 
@@ -428,11 +428,11 @@ lemma is_equiv_iff_val_lt_one
 begin
   split,
   { intros h x,
-    simp only [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one _ _).1 h)
+    simv only [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one _ _).1 h)
       ((is_equiv_iff_val_eq_one _ _).1 h).not] },
   { rw is_equiv_iff_val_eq_one,
     intros h x,
-    by_cases hx : x = 0, { simp only [(zero_iff _).2 hx, zero_ne_one] },
+    by_cases hx : x = 0, { simv only [(zero_iff _).2 hx, zero_ne_one] },
     split,
     { intro hh,
       by_contra h_1,
@@ -512,9 +512,9 @@ from calc 1 = v 1 : v.map_one.symm
 lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
 begin
   have aux : ∀ a s, v s = 0 → v (a + s) ≤ v a,
-  { intros a' s' h', refine le_trans (v.map_add a' s') (max_le le_rfl _), simp [h'], },
+  { intros a' s' h', refine le_trans (v.map_add a' s') (max_le le_rfl _), simv [h'], },
   apply le_antisymm (aux a s h),
-  calc v a = v (a + s + -s) : by simp
+  calc v a = v (a + s + -s) : by simv
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
 
@@ -523,7 +523,7 @@ Note: it's just the function; the valuation is `on_quot hJ`. -/
 def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
   R ⧸ J → Γ₀ :=
 λ q, quotient.lift_on' q v $ λ a b h,
-calc v a = v (b + -(-a + b)) : by simp
+calc v a = v (b + -(-a + b)) : by simv
      ... = v b             :
       v.map_add_supp b $ (ideal.neg_mem_iff _).2 $ hJ $ quotient_add_group.left_rel_apply.mp h
 
@@ -550,7 +550,7 @@ end
 
 lemma self_le_supp_comap (J : ideal R) (v : valuation (R ⧸ J) Γ₀) :
   J ≤ (v.comap (ideal.quotient.mk J)).supp :=
-by { rw [comap_supp, ← ideal.map_le_iff_le_comap], simp }
+by { rw [comap_supp, ← ideal.map_le_iff_le_comap], simv }
 
 @[simp] lemma comap_on_quot_eq (J : ideal R) (v : valuation (R ⧸ J) Γ₀) :
   (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=

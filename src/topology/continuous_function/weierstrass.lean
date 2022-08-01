@@ -35,12 +35,12 @@ begin
   refine filter.tendsto.frequently (bernstein_approximation_uniform f) _,
   apply frequently_of_forall,
   intro n,
-  simp only [set_like.mem_coe],
+  simv only [set_like.mem_coe],
   apply subalgebra.sum_mem,
   rintro n -,
   apply subalgebra.smul_mem,
   dsimp [bernstein, polynomial_functions],
-  simp,
+  simv,
 end
 
 /--
@@ -67,7 +67,7 @@ begin
     have p := polynomial_functions_closure_eq_top',
     -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
     apply_fun (λ s, s.comap W) at p,
-    simp only [algebra.comap_top] at p,
+    simv only [algebra.comap_top] at p,
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
     rw subalgebra.topological_closure_comap_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
@@ -91,7 +91,7 @@ theorem continuous_map_mem_polynomial_functions_closure (a b : ℝ) (f : C(set.I
   f ∈ (polynomial_functions (set.Icc a b)).topological_closure :=
 begin
   rw polynomial_functions_closure_eq_top _ _,
-  simp,
+  simv,
 end
 
 /--

@@ -30,12 +30,12 @@ variables {C : Type u} [category.{v} C] {D : Type u'} [category.{v'} D]
 
 variables {J : Type u₁} [category.{v₁} J] {K : Type u₂} [category.{v₂} K]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit.lift_π_app (H : J ⥤ K ⥤ C) [has_limit H] (c : cone H) (j : J) (k : K) :
   (limit.lift H c).app k ≫ (limit.π H j).app k = (c.π.app j).app k :=
 congr_app (limit.lift_π c j) k
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma colimit.ι_desc_app (H : J ⥤ K ⥤ C) [has_colimit H] (c : cocone H) (j : J) (k : K) :
   (colimit.ι H j).app k ≫ (colimit.desc H c).app k = (c.ι.app j).app k :=
 congr_app (colimit.ι_desc c j) k
@@ -71,8 +71,8 @@ them together to give a cone for the diagram `F`.
 { X :=
   { obj := λ k, (c k).cone.X,
     map := λ k₁ k₂ f, (c k₂).is_limit.lift ⟨_, (c k₁).cone.π ≫ F.flip.map f⟩,
-    map_id' := λ k, (c k).is_limit.hom_ext (λ j, by { dsimp, simp }),
-    map_comp' := λ k₁ k₂ k₃ f₁ f₂, (c k₃).is_limit.hom_ext (λ j, by simp) },
+    map_id' := λ k, (c k).is_limit.hom_ext (λ j, by { dsimp, simv }),
+    map_comp' := λ k₁ k₂ k₃ f₁ f₂, (c k₃).is_limit.hom_ext (λ j, by simv) },
   π :=
   { app := λ j, { app := λ k, (c k).cone.π.app j },
     naturality' := λ j₁ j₂ g, nat_trans.ext _ _ $ funext $ λ k, (c k).cone.π.naturality g } }
@@ -103,7 +103,7 @@ def evaluation_jointly_reflects_colimits {F : J ⥤ K ⥤ C} (c : cocone F)
       erw ← (c.ι.app j).naturality_assoc f,
       erw (t Y).fac ⟨s.X.obj _, whisker_right s.ι _⟩ j,
       dsimp,
-      simp,
+      simv,
     end },
   fac' := λ s j, nat_trans.ext _ _ $ funext $ λ k, (t k).fac _ j,
   uniq' := λ s m w, nat_trans.ext _ _ $ funext $ λ x, (t x).hom_ext $ λ j,
@@ -121,8 +121,8 @@ them together to give a cocone for the diagram `F`.
 { X :=
   { obj := λ k, (c k).cocone.X,
     map := λ k₁ k₂ f, (c k₁).is_colimit.desc ⟨_, F.flip.map f ≫ (c k₂).cocone.ι⟩,
-    map_id' := λ k, (c k).is_colimit.hom_ext (λ j, by { dsimp, simp }),
-    map_comp' := λ k₁ k₂ k₃ f₁ f₂, (c k₁).is_colimit.hom_ext (λ j, by simp) },
+    map_id' := λ k, (c k).is_colimit.hom_ext (λ j, by { dsimp, simv }),
+    map_comp' := λ k₁ k₂ k₃ f₁ f₂, (c k₁).is_colimit.hom_ext (λ j, by simv) },
   ι :=
   { app := λ j, { app := λ k, (c k).cocone.ι.app j },
     naturality' := λ j₁ j₂ g, nat_trans.ext _ _ $ funext $ λ k, (c k).cocone.ι.naturality g } }
@@ -174,17 +174,17 @@ def limit_obj_iso_limit_comp_evaluation [has_limits_of_shape J C] (F : J ⥤ K �
   (limit F).obj k ≅ limit (F ⋙ ((evaluation K C).obj k)) :=
 preserves_limit_iso ((evaluation K C).obj k) F
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_obj_iso_limit_comp_evaluation_hom_π
   [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
   (limit_obj_iso_limit_comp_evaluation F k).hom ≫ limit.π (F ⋙ ((evaluation K C).obj k)) j =
     (limit.π F j).app k :=
 begin
   dsimp [limit_obj_iso_limit_comp_evaluation],
-  simp,
+  simv,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_obj_iso_limit_comp_evaluation_inv_π_app
   [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K):
   (limit_obj_iso_limit_comp_evaluation F k).inv ≫ (limit.π F j).app k =
@@ -192,18 +192,18 @@ lemma limit_obj_iso_limit_comp_evaluation_inv_π_app
 begin
   dsimp [limit_obj_iso_limit_comp_evaluation],
   rw iso.inv_comp_eq,
-  simp,
+  simv,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_map_limit_obj_iso_limit_comp_evaluation_hom
   [has_limits_of_shape J C] {i j : K} (F : J ⥤ K ⥤ C) (f : i ⟶ j) :
   (limit F).map f ≫ (limit_obj_iso_limit_comp_evaluation _ _).hom =
   (limit_obj_iso_limit_comp_evaluation _ _).hom ≫
   lim_map (whisker_left _ ((evaluation _ _).map f)) :=
-by { ext, dsimp, simp }
+by { ext, dsimp, simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_obj_iso_limit_comp_evaluation_inv_limit_map
   [has_limits_of_shape J C] {i j : K} (F : J ⥤ K ⥤ C) (f : i ⟶ j) :
   (limit_obj_iso_limit_comp_evaluation _ _).inv ≫ (limit F).map f =
@@ -237,17 +237,17 @@ def colimit_obj_iso_colimit_comp_evaluation [has_colimits_of_shape J C] (F : J �
   (colimit F).obj k ≅ colimit (F ⋙ ((evaluation K C).obj k)) :=
 preserves_colimit_iso ((evaluation K C).obj k) F
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
   [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
   colimit.ι (F ⋙ ((evaluation K C).obj k)) j ≫ (colimit_obj_iso_colimit_comp_evaluation F k).inv =
     (colimit.ι F j).app k :=
 begin
   dsimp [colimit_obj_iso_colimit_comp_evaluation],
-  simp,
+  simv,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma colimit_obj_iso_colimit_comp_evaluation_ι_app_hom
   [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
   (colimit.ι F j).app k ≫ (colimit_obj_iso_colimit_comp_evaluation F k).hom =
@@ -255,18 +255,18 @@ lemma colimit_obj_iso_colimit_comp_evaluation_ι_app_hom
 begin
   dsimp [colimit_obj_iso_colimit_comp_evaluation],
   rw ←iso.eq_comp_inv,
-  simp,
+  simv,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma colimit_obj_iso_colimit_comp_evaluation_inv_colimit_map
   [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) {i j : K} (f : i ⟶ j) :
   (colimit_obj_iso_colimit_comp_evaluation _ _).inv ≫ (colimit F).map f =
   colim_map (whisker_left _ ((evaluation _ _).map f)) ≫
   (colimit_obj_iso_colimit_comp_evaluation _ _).inv :=
-by { ext, dsimp, simp }
+by { ext, dsimp, simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma colimit_map_colimit_obj_iso_colimit_comp_evaluation_hom
   [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) {i j : K} (f : i ⟶ j) :
   (colimit F).map f ≫ (colimit_obj_iso_colimit_comp_evaluation _ _).hom =

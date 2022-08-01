@@ -22,11 +22,11 @@ theorem mem_sections {L : list (list α)} {f} : f ∈ sections L ↔ forall₂ (
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { induction L generalizing f, {cases mem_singleton.1 h, exact forall₂.nil},
-    simp only [sections, bind_eq_bind, mem_bind, mem_map] at h,
+    simv only [sections, bind_eq_bind, mem_bind, mem_map] at h,
     rcases h with ⟨_, _, _, _, rfl⟩,
-    simp only [*, forall₂_cons, true_and] },
+    simv only [*, forall₂_cons, true_and] },
   { induction h with a l f L al fL fs, {exact or.inl rfl},
-    simp only [sections, bind_eq_bind, mem_bind, mem_map],
+    simv only [sections, bind_eq_bind, mem_bind, mem_map],
     exact ⟨_, fs, _, al, rfl, rfl⟩ }
 end
 

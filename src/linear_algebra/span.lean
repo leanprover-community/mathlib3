@@ -86,7 +86,7 @@ alias submodule.map_span_le ← _root_.linear_map.map_span_le
 begin
   refine le_antisymm _ (submodule.span_mono (set.subset_insert 0 s)),
   rw [span_le, set.insert_subset],
-  exact ⟨by simp only [set_like.mem_coe, submodule.zero_mem], submodule.subset_span⟩,
+  exact ⟨by simv only [set_like.mem_coe, submodule.zero_mem], submodule.subset_span⟩,
 end
 
 /- See also `span_preimage_eq` below. -/
@@ -205,7 +205,7 @@ character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
 notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
-by simp only [←span_Union, set.bUnion_of_singleton s]
+by simv only [←span_Union, set.bUnion_of_singleton s]
 
 lemma span_range_eq_supr {ι : Type*} {v : ι → M} : span R (range v) = ⨆ i, R ∙ v i :=
 by rw [span_eq_supr_of_singleton_spans, supr_range]
@@ -244,7 +244,7 @@ begin
   suffices : (span R (⋃ i, (S i : set M)) : set M) ⊆ ⋃ (i : ι), ↑(S i),
     by simpa only [span_Union, span_eq] using this,
   refine (λ x hx, span_induction hx (λ _, id) _ _ _);
-    simp only [mem_Union, exists_imp_distrib],
+    simv only [mem_Union, exists_imp_distrib],
   { exact hι.elim (λ i, ⟨i, (S i).zero_mem⟩) },
   { intros x y i hi j hj,
     rcases H i j with ⟨k, ik, jk⟩,
@@ -262,10 +262,10 @@ theorem mem_Sup_of_directed {s : set (submodule R M)}
   z ∈ Sup s ↔ ∃ y ∈ s, z ∈ y :=
 begin
   haveI : nonempty s := hs.to_subtype,
-  simp only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
+  simv only [Sup_eq_supr', mem_supr_of_directed _ hdir.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
-@[norm_cast, simp] lemma coe_supr_of_chain (a : ℕ →o submodule R M) :
+@[norm_cast, simv] lemma coe_supr_of_chain (a : ℕ →o submodule R M) :
   (↑(⨆ k, a k) : set M) = ⋃ k, (a k : set M) :=
 coe_supr_of_directed a a.monotone.directed_le
 
@@ -288,25 +288,25 @@ lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
   rw [← span_eq p, ← span_eq p', ← span_union] at h,
   apply span_induction h,
   { rintro y (h | h),
-    { exact ⟨y, h, 0, by simp, by simp⟩ },
-    { exact ⟨0, by simp, y, h, by simp⟩ } },
-  { exact ⟨0, by simp, 0, by simp⟩ },
+    { exact ⟨y, h, 0, by simv, by simv⟩ },
+    { exact ⟨0, by simv, y, h, by simv⟩ } },
+  { exact ⟨0, by simv, 0, by simv⟩ },
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
-    exact ⟨_, add_mem hy₁ hy₂, _, add_mem hz₁ hz₂, by simp [add_assoc]; cc⟩ },
+    exact ⟨_, add_mem hy₁ hy₂, _, add_mem hz₁ hz₂, by simv [add_assoc]; cc⟩ },
   { rintro a _ ⟨y, hy, z, hz, rfl⟩,
-    exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simp [smul_add]⟩ }
+    exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simv [smul_add]⟩ }
 end,
 by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem
   ((le_sup_left : p ≤ p ⊔ p') hy)
   ((le_sup_right : p' ≤ p ⊔ p') hz)⟩
 
 lemma mem_sup' : x ∈ p ⊔ p' ↔ ∃ (y : p) (z : p'), (y:M) + z = x :=
-mem_sup.trans $ by simp only [set_like.exists, coe_mk]
+mem_sup.trans $ by simv only [set_like.exists, coe_mk]
 
 variables (p p')
 
 lemma coe_sup : ↑(p ⊔ p') = (p + p' : set M) :=
-by { ext, rw [set_like.mem_coe, mem_sup, set.mem_add], simp, }
+by { ext, rw [set_like.mem_coe, mem_sup, set.mem_add], simv, }
 
 lemma sup_to_add_submonoid :
   (p ⊔ p').to_add_submonoid = p.to_add_submonoid ⊔ p'.to_add_submonoid :=
@@ -340,15 +340,15 @@ end⟩
 lemma mem_span_singleton {y : M} : x ∈ (R ∙ y) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin
   apply span_induction h,
-  { rintro y (rfl|⟨⟨⟩⟩), exact ⟨1, by simp⟩ },
-  { exact ⟨0, by simp⟩ },
+  { rintro y (rfl|⟨⟨⟩⟩), exact ⟨1, by simv⟩ },
+  { exact ⟨0, by simv⟩ },
   { rintro _ _ ⟨a, rfl⟩ ⟨b, rfl⟩,
-    exact ⟨a + b, by simp [add_smul]⟩ },
+    exact ⟨a + b, by simv [add_smul]⟩ },
   { rintro a _ ⟨b, rfl⟩,
-    exact ⟨a * b, by simp [smul_smul]⟩ }
+    exact ⟨a * b, by simv [smul_smul]⟩ }
 end,
 by rintro ⟨a, y, rfl⟩; exact
-  smul_mem _ _ (subset_span $ by simp)⟩
+  smul_mem _ _ (subset_span $ by simv)⟩
 
 lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
@@ -360,7 +360,7 @@ lemma span_singleton_eq_top_iff (x : M) : (R ∙ x) = ⊤ ↔ ∀ v, ∃ r : R, 
 by { rw [eq_top_iff, le_span_singleton_iff], tauto }
 
 @[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
-by { ext, simp [mem_span_singleton, eq_comm] }
+by { ext, simv [mem_span_singleton, eq_comm] }
 
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
@@ -416,10 +416,10 @@ end
 
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
-  simp only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
+  simv only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
     exists_exists_eq_and],
   rw [exists_comm],
-  simp only [eq_comm, add_comm, exists_and_distrib_left]
+  simv only [eq_comm, add_comm, exists_and_distrib_left]
 end
 
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
@@ -456,7 +456,7 @@ eq_bot_iff.trans ⟨
   λ H, span_le.2 (λ x h, (mem_bot R).2 $ H x h)⟩
 
 @[simp] lemma span_singleton_eq_bot : (R ∙ x) = ⊥ ↔ x = 0 :=
-span_eq_bot.trans $ by simp
+span_eq_bot.trans $ by simv
 
 @[simp] lemma span_zero : span R (0 : set M) = ⊥ := by rw [←singleton_zero, span_singleton_eq_bot]
 
@@ -496,7 +496,7 @@ end
 
 @[simp] lemma map_subtype_span_singleton {p : submodule R M} (x : p) :
   map p.subtype (R ∙ x) = R ∙ (x : M) :=
-by simp [← span_image]
+by simv [← span_image]
 
 /-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
 lemma not_mem_span_of_apply_not_mem_span_image
@@ -579,7 +579,7 @@ lemma finset_span_is_compact_element (S : finset M) :
   complete_lattice.is_compact_element (span R S : submodule R M) :=
 begin
   rw span_eq_supr_of_singleton_spans,
-  simp only [finset.mem_coe],
+  simv only [finset.mem_coe],
   rw ←finset.sup_eq_supr,
   exact complete_lattice.finset_sup_compact_of_compact S
     (λ x _, singleton_span_is_compact_element x),
@@ -603,7 +603,7 @@ begin
   let S := {T : submodule R M | ∃ (m : M) (hm : m ∈ p) (hz : m ≠ 0), T = span R {m}},
   apply le_antisymm,
   { intros m hm, by_cases h : m = 0,
-    { rw h, simp },
+    { rw h, simv },
     { exact @le_Sup _ _ S _ ⟨m, ⟨hm, ⟨h, rfl⟩⟩⟩ m (mem_span_singleton_self m) } },
   { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
 end
@@ -614,7 +614,7 @@ begin
   { intro h,
     by_contra akey,
     have h1 : I ⊔ (R ∙ a) ≤ I,
-    { simp only [sup_le_iff],
+    { simv only [sup_le_iff],
       split,
       { exact le_refl I, },
       { exact (span_singleton_le_iff_mem a I).mpr akey, } },
@@ -622,7 +622,7 @@ begin
     exact lt_irrefl I h2, },
   { intro h,
     apply set_like.lt_iff_le_and_exists.mpr, split,
-    simp only [le_sup_left],
+    simv only [le_sup_left],
     use a,
     split, swap, { assumption, },
     { have : (R ∙ a) ≤ I ⊔ (R ∙ a) := le_sup_right,
@@ -633,7 +633,7 @@ lemma mem_supr {ι : Sort*} (p : ι → submodule R M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
 begin
   rw [← span_singleton_le_iff_mem, le_supr_iff],
-  simp only [span_singleton_le_iff_mem],
+  simv only [span_singleton_le_iff_mem],
 end
 
 section
@@ -650,7 +650,7 @@ begin
     { rwa [finset.coe_singleton, set.singleton_subset_iff] },
     { rw finset.coe_singleton,
       exact submodule.mem_span_singleton_self x } },
-  { use ∅, simp },
+  { use ∅, simv },
   { rintros x y ⟨X, hX, hxX⟩ ⟨Y, hY, hyY⟩,
     refine ⟨X ∪ Y, _, _⟩,
     { rw finset.coe_union,
@@ -682,10 +682,10 @@ lemma span_prod_le (s : set M) (t : set M') :
 span_le.2 $ set.prod_mono subset_span subset_span
 
 @[simp] lemma prod_top : (prod ⊤ ⊤ : submodule R (M × M')) = ⊤ :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma prod_bot : (prod ⊥ ⊥ : submodule R (M × M')) = ⊥ :=
-by ext ⟨x, y⟩; simp [prod.zero_eq_mk]
+by ext ⟨x, y⟩; simv [prod.zero_eq_mk]
 
 lemma prod_mono {p p' : submodule R M} {q q' : submodule R M'} :
   p ≤ p' → q ≤ q' → prod p q ≤ prod p' q' := prod_mono
@@ -698,7 +698,7 @@ begin
   refine le_antisymm (sup_le
     (prod_mono le_sup_left le_sup_left)
     (prod_mono le_sup_right le_sup_right)) _,
-  simp [set_like.le_def], intros xx yy hxx hyy,
+  simv [set_like.le_def], intros xx yy hxx hyy,
   rcases mem_sup.1 hxx with ⟨x, hx, x', hx', rfl⟩,
   rcases mem_sup.1 hyy with ⟨y, hy, y', hy', rfl⟩,
   refine mem_sup.2 ⟨(x, y), ⟨hx, hy⟩, (x', y'), ⟨hx', hy'⟩, rfl⟩
@@ -711,15 +711,15 @@ section add_comm_group
 variables [ring R] [add_comm_group M] [module R M]
 
 @[simp] lemma span_neg (s : set M) : span R (-s) = span R s :=
-calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simp
+calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simv
  ... = map (-linear_map.id) (span R s) : ((-linear_map.id).map_span _).symm
-... = span R s : by simp
+... = span R s : by simv
 
 lemma mem_span_insert' {x y} {s : set M} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=
 begin
   rw mem_span_insert, split,
-  { rintro ⟨a, z, hz, rfl⟩, exact ⟨-a, by simp [hz, add_assoc]⟩ },
-  { rintro ⟨a, h⟩, exact ⟨-a, _, h, by simp [add_comm, add_left_comm]⟩ }
+  { rintro ⟨a, z, hz, rfl⟩, exact ⟨-a, by simv [hz, add_assoc]⟩ },
+  { rintro ⟨a, h⟩, exact ⟨-a, _, h, by simv [add_comm, add_left_comm]⟩ }
 end
 
 instance : is_modular_lattice (submodule R M) :=
@@ -745,7 +745,7 @@ lemma comap_map_eq (f : M →ₛₗ[τ₁₂] M₂) (p : submodule R M) :
 begin
   refine le_antisymm _ (sup_le (le_comap_map _ _) (comap_mono bot_le)),
   rintro x ⟨y, hy, e⟩,
-  exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simp⟩
+  exact mem_sup.2 ⟨y, hy, x - y, by simpa using sub_eq_zero.2 e.symm, by simv⟩
 end
 
 lemma comap_map_eq_self {f : M →ₛₗ[τ₁₂] M₂} {p : submodule R M} (h : f.ker ≤ p) :
@@ -797,7 +797,7 @@ submodule.ext $ λ y, by {refine iff.trans _ linear_map.mem_range.symm, exact me
 
 @[simp] lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
 
-@[simp] lemma to_span_singleton_zero : to_span_singleton R M 0 = 0 := by { ext, simp, }
+@[simp] lemma to_span_singleton_zero : to_span_singleton R M 0 = 0 := by { ext, simv, }
 
 end
 
@@ -812,7 +812,7 @@ variables {σ₁₂ : R →+* R₂}
 See also `linear_map.eq_on_span'` for a version using `set.eq_on`. -/
 lemma eq_on_span {s : set M} {f g : M →ₛₗ[σ₁₂] M₂} (H : set.eq_on f g s) ⦃x⦄ (h : x ∈ span R s) :
   f x = g x :=
-by apply span_induction h H; simp {contextual := tt}
+by apply span_induction h H; simv {contextual := tt}
 
 /-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
 
@@ -850,7 +850,7 @@ eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
     ⟨y - (f y * (f x)⁻¹) • x,
       by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
              inv_mul_cancel hx, mul_one, sub_self],
-      by simp only [add_sub_cancel'_right]⟩⟩)
+      by simv only [add_sub_cancel'_right]⟩⟩)
 
 variables (K V)
 
@@ -863,7 +863,7 @@ begin
       ... = c⁻¹ • ((to_span_singleton K V x) c) : rfl
       ... = 0 : by rw [hc, smul_zero],
     tauto },
-  { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
+  { rw [mem_ker, submodule.mem_bot], intros h, rw h, simv }
 end
 
 end field

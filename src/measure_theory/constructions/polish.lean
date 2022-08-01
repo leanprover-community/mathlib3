@@ -173,7 +173,7 @@ begin
       choose x hx using A,
       have xt : x ∈ t,
       { apply mem_Inter.2 (λ n, _),
-        simp [hx] },
+        simv [hx] },
         refine ⟨⟨x, xt⟩, _⟩,
         exact hx i₀ } },
   rw ← F_range,
@@ -235,7 +235,7 @@ begin
       @is_open α t' s := hs.is_clopenable,
   have A := @is_closed.analytic_set α t' t'_polish s s_closed,
   convert @analytic_set.image_of_continuous α t' α t s A id (continuous_id_of_le t't),
-  simp only [id.def, image_id'],
+  simv only [id.def, image_id'],
 end
 
 /-- Given a Borel-measurable function from a Polish space to a second-countable space, there exists
@@ -323,16 +323,16 @@ begin
     rcases I n x y hp with ⟨x', y', hx', hy', h'⟩,
     exact ⟨⟨⟨n+1, x', y'⟩, h'⟩, rfl, hx', hy'⟩ },
   choose F hFn hFx hFy using this,
-  let p0 : A := ⟨⟨0, λ n, 0, λ n, 0⟩, by simp [hfg]⟩,
+  let p0 : A := ⟨⟨0, λ n, 0, λ n, 0⟩, by simv [hfg]⟩,
   -- construct inductively decreasing sequences of cylinders whose images are not separated
   let p : ℕ → A := λ n, F^[n] p0,
-  have prec : ∀ n, p (n+1) = F (p n) := λ n, by simp only [p, iterate_succ'],
+  have prec : ∀ n, p (n+1) = F (p n) := λ n, by simv only [p, iterate_succ'],
   -- check that at the `n`-th step we deal with cylinders of length `n`
   have pn_fst : ∀ n, (p n).1.1 = n,
   { assume n,
     induction n with n IH,
     { refl },
-    { simp only [prec, hFn, IH] } },
+    { simv only [prec, hFn, IH] } },
   -- check that the cylinders we construct are indeed decreasing, by checking that the coordinates
   -- are stationary.
   have Ix : ∀ m n, m + 1 ≤ n → (p n).1.2.1 m = (p (m+1)).1.2.1 m,
@@ -411,9 +411,9 @@ theorem analytic_set.measurably_separable [t2_space α] [measurable_space α] [b
 begin
   rw analytic_set at hs ht,
   rcases hs with rfl|⟨f, f_cont, rfl⟩,
-  { refine ⟨∅, subset.refl _, by simp, measurable_set.empty⟩ },
+  { refine ⟨∅, subset.refl _, by simv, measurable_set.empty⟩ },
   rcases ht with rfl|⟨g, g_cont, rfl⟩,
-  { exact ⟨univ, subset_univ _, by simp, measurable_set.univ⟩ },
+  { exact ⟨univ, subset_univ _, by simv, measurable_set.univ⟩ },
   exact measurably_separable_range_of_disjoint f_cont g_cont h,
 end
 
@@ -678,7 +678,7 @@ begin
       (@borel_space.opens_measurable γ t' (@borel γ t') (by { constructor, refl })) s_closed,
   -- therefore, its image under the measurable embedding `id` is also measurable for `tγ`.
   convert E.measurable_set_image.2 M,
-  simp only [id.def, image_id'],
+  simv only [id.def, image_id'],
 end
 
 omit hγb
@@ -690,7 +690,7 @@ omit hγb
   measurable_set {x | ∃ c, tendsto (λ n, f n x) l (𝓝 c)} :=
 begin
   by_cases hl : l.ne_bot,
-  swap, { rw not_ne_bot at hl, simp [hl] },
+  swap, { rw not_ne_bot at hl, simv [hl] },
   letI := upgrade_polish_space γ,
   rcases l.exists_antitone_basis with ⟨u, hu⟩,
   simp_rw ← cauchy_map_iff_exists_tendsto,

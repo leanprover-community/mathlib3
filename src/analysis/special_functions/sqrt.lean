@@ -45,7 +45,7 @@ begin
     have : sqrt =ᶠ[𝓝 x] (λ _, 0) := (gt_mem_nhds hx).mono (λ x hx, sqrt_eq_zero_of_nonpos hx.le),
     exact ⟨(has_strict_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq this.symm,
       λ n, cont_diff_at_const.congr_of_eventually_eq this⟩ },
-  { have : ↑2 * sqrt x ^ (2 - 1) ≠ 0, by simp [(sqrt_pos.2 hx).ne', @two_ne_zero ℝ],
+  { have : ↑2 * sqrt x ^ (2 - 1) ≠ 0, by simv [(sqrt_pos.2 hx).ne', @two_ne_zero ℝ],
     split,
     { simpa using sq_local_homeomorph.has_strict_deriv_at_symm hx this
         (has_strict_deriv_at_pow 2 _) },

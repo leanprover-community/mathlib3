@@ -52,7 +52,7 @@ begin
   let B : ℕ → ℝ≥0∞ := λn, 1/2^n,
   have Bpos : ∀n, 0 < B n,
   { intro n,
-    simp only [B, one_div, one_mul, ennreal.inv_pos],
+    simv only [B, one_div, one_mul, ennreal.inv_pos],
     exact pow_ne_top two_ne_top },
   /- Translate the density assumption into two functions `center` and `radius` associating
   to any n, x, δ, δpos a center and a positive radius such that
@@ -117,7 +117,7 @@ begin
   -- this point `y` will be the desired point. We will check that it belongs to all
   -- `f n` and to `ball x ε`.
   use y,
-  simp only [exists_prop, set.mem_Inter],
+  simv only [exists_prop, set.mem_Inter],
   have I : ∀n, ∀m ≥ n, closed_ball (c m) (r m) ⊆ closed_ball (c n) (r n),
   { assume n,
     refine nat.le_induction _ (λm hnm h, _),
@@ -164,7 +164,7 @@ begin
   /- Prove that ̀`⋂ n : ℕ, K n` is inside `U ∩ ⋂ n : ℕ, (f n)`. -/
   have hK_subset : (⋂ n, K n : set α) ⊆ U ∩ (⋂ n, f n),
   { intros x hx,
-    simp only [mem_inter_eq, mem_Inter] at hx ⊢,
+    simv only [mem_inter_eq, mem_Inter] at hx ⊢,
     exact ⟨hK₀ $ hx 0, λ n, (hK_decreasing n (hx (n + 1))).1⟩ },
   /- Prove that `⋂ n : ℕ, K n` is not empty, as an intersection of a decreasing sequence
   of nonempty compact subsets.-/
@@ -187,7 +187,7 @@ theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS :
   (hd : ∀s∈S, dense s) : dense (⋂₀S) :=
 begin
   cases S.eq_empty_or_nonempty with h h,
-  { simp [h] },
+  { simv [h] },
   { rcases hS.exists_eq_range h with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
     rw [hf, sInter_range],
@@ -226,10 +226,10 @@ begin
   -- by rewriting each set as a countable intersection of open sets, which are of course dense.
   choose T hTo hTc hsT using ho,
   have : ⋂₀ S = ⋂₀ (⋃ s ∈ S, T s ‹_›), -- := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
-    by simp only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
+    by simv only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
   rw this,
   refine dense_sInter_of_open _ (hS.bUnion hTc) _;
-    simp only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
+    simv only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
   show is_open t, from hTo s hs t tTs,
   show dense t,
   { intro x,
@@ -263,7 +263,7 @@ theorem dense.inter_of_Gδ {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) (hsc :
   dense (s ∩ t) :=
 begin
   rw [inter_eq_Inter],
-  apply dense_Inter_of_Gδ; simp [bool.forall_bool, *]
+  apply dense_Inter_of_Gδ; simv [bool.forall_bool, *]
 end
 
 /-- A property holds on a residual (comeagre) set if and only if it holds on some dense `Gδ` set. -/
@@ -271,11 +271,11 @@ lemma eventually_residual {p : α → Prop} :
   (∀ᶠ x in residual α, p x) ↔ ∃ (t : set α), is_Gδ t ∧ dense t ∧ ∀ x ∈ t, p x :=
 calc (∀ᶠ x in residual α, p x) ↔
   ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ dense t), 𝓟 t, p x :
-    by simp only [residual, infi_and]
+    by simv only [residual, infi_and]
 ... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x : mem_binfi_of_directed
-    (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩, by simp⟩)
+    (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩, by simv⟩)
     ⟨univ, is_Gδ_univ, dense_univ⟩
-... ↔ _ : by simp [and_assoc]
+... ↔ _ : by simv [and_assoc]
 
 /-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
 lemma mem_residual {s : set α} :
@@ -290,7 +290,7 @@ let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
 instance : countable_Inter_filter (residual α) :=
 ⟨begin
   intros S hSc hS,
-  simp only [mem_residual] at *,
+  simv only [mem_residual] at *,
   choose T hTs hT using hS,
   refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
   { rw [sInter_eq_bInter],
@@ -326,7 +326,7 @@ lemma is_Gδ.dense_bUnion_interior_of_closed {t : set ι} {s : set α} (hs : is_
   dense (⋃ i ∈ t, interior (f i)) :=
 begin
   haveI := ht.to_encodable,
-  simp only [bUnion_eq_Union, set_coe.forall'] at *,
+  simv only [bUnion_eq_Union, set_coe.forall'] at *,
   exact hs.dense_Union_interior_of_closed hd hc hU
 end
 

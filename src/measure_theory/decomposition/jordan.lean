@@ -187,8 +187,8 @@ let hi := some_spec s.exists_compl_positive_negative in
   mutually_singular :=
   begin
     refine ⟨iᶜ, hi.1.compl, _, _⟩,
-    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simp },
-    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simp }
+    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simv },
+    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simv }
   end }
 
 lemma to_jordan_decomposition_spec (s : signed_measure α) :
@@ -213,11 +213,11 @@ signed measure corresponding to
   s.to_jordan_decomposition.to_signed_measure = s :=
 begin
   obtain ⟨i, hi₁, hi₂, hi₃, hμ, hν⟩ := s.to_jordan_decomposition_spec,
-  simp only [jordan_decomposition.to_signed_measure, hμ, hν],
+  simv only [jordan_decomposition.to_signed_measure, hμ, hν],
   ext k hk,
   rw [to_signed_measure_sub_apply hk, to_measure_of_zero_le_apply _ hi₂ hi₁ hk,
       to_measure_of_le_zero_apply _ hi₃ hi₁.compl hk],
-  simp only [ennreal.coe_to_real, subtype.coe_mk, ennreal.some_eq_coe, sub_neg_eq_add],
+  simv only [ennreal.coe_to_real, subtype.coe_mk, ennreal.some_eq_coe, sub_neg_eq_add],
   rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
       set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
   { apply_instance },
@@ -251,7 +251,7 @@ lemma subset_negative_null_set
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   have := subset_positive_null_set hu hv hw hsu,
-  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
+  simv only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
   exact this hw₁ hw₂ hwt,
 end
 
@@ -282,7 +282,7 @@ begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
   have := of_diff_eq_zero_of_symm_diff_eq_zero_positive hu hv hsu hsv,
-  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
+  simv only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
   exact this hs,
 end
 
@@ -314,7 +314,7 @@ begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
   have := of_inter_eq_of_symm_diff_eq_zero_positive hu hv hw hsu hsv,
-  simp only [pi.neg_apply, neg_inj, neg_eq_zero, coe_neg] at this,
+  simv only [pi.neg_apply, neg_inj, neg_eq_zero, coe_neg] at this,
   exact this hs,
 end
 
@@ -392,7 +392,7 @@ end
 @[simp]
 lemma to_jordan_decomposition_to_signed_measure (j : jordan_decomposition α) :
   (j.to_signed_measure).to_jordan_decomposition = j :=
-(@to_signed_measure_injective _ _ j (j.to_signed_measure).to_jordan_decomposition (by simp)).symm
+(@to_signed_measure_injective _ _ j (j.to_signed_measure).to_jordan_decomposition (by simv)).symm
 
 end jordan_decomposition
 
@@ -413,21 +413,21 @@ def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
 lemma to_jordan_decomposition_zero : (0 : signed_measure α).to_jordan_decomposition = 0 :=
 begin
   apply to_signed_measure_injective,
-  simp [to_signed_measure_zero],
+  simv [to_signed_measure_zero],
 end
 
 lemma to_jordan_decomposition_neg (s : signed_measure α) :
   (-s).to_jordan_decomposition = -s.to_jordan_decomposition :=
 begin
   apply to_signed_measure_injective,
-  simp [to_signed_measure_neg],
+  simv [to_signed_measure_neg],
 end
 
 lemma to_jordan_decomposition_smul (s : signed_measure α) (r : ℝ≥0) :
   (r • s).to_jordan_decomposition = r • s.to_jordan_decomposition :=
 begin
   apply to_signed_measure_injective,
-  simp [to_signed_measure_smul],
+  simv [to_signed_measure_smul],
 end
 
 private
@@ -466,10 +466,10 @@ def total_variation (s : signed_measure α) : measure α :=
 s.to_jordan_decomposition.pos_part + s.to_jordan_decomposition.neg_part
 
 lemma total_variation_zero : (0 : signed_measure α).total_variation = 0 :=
-by simp [total_variation, to_jordan_decomposition_zero]
+by simv [total_variation, to_jordan_decomposition_zero]
 
 lemma total_variation_neg (s : signed_measure α) : (-s).total_variation = s.total_variation :=
-by simp [total_variation, to_jordan_decomposition_neg, add_comm]
+by simv [total_variation, to_jordan_decomposition_neg, add_comm]
 
 lemma null_of_total_variation_zero (s : signed_measure α) {i : set α}
   (hs : s.total_variation i = 0) : s i = 0 :=
@@ -478,8 +478,8 @@ begin
   rw [← to_signed_measure_to_jordan_decomposition s, to_signed_measure, vector_measure.coe_sub,
       pi.sub_apply, measure.to_signed_measure_apply, measure.to_signed_measure_apply],
   by_cases hi : measurable_set i,
-  { rw [if_pos hi, if_pos hi], simp [hs.1, hs.2] },
-  { simp [if_neg hi] }
+  { rw [if_pos hi, if_pos hi], simv [hs.1, hs.2] },
+  { simv [if_neg hi] }
 end
 
 lemma absolutely_continuous_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
@@ -491,7 +491,7 @@ begin
     rw [total_variation, measure.add_apply, hpos, hneg,
         to_measure_of_zero_le_apply _ _ _ hS₁, to_measure_of_le_zero_apply _ _ _ hS₁],
     rw ← vector_measure.absolutely_continuous.ennreal_to_measure at h,
-    simp [h (measure_mono_null (i.inter_subset_right S) hS₂),
+    simv [h (measure_mono_null (i.inter_subset_right S) hS₂),
           h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)] },
   { refine vector_measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
     rw ← vector_measure.ennreal_to_measure_apply hS₁ at hS₂,
@@ -523,11 +523,11 @@ begin
     refine ⟨u, hmeas, _, _⟩,
     { rw [total_variation, measure.add_apply, hipos, hineg,
       to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
-      simp [hu₁ _ (set.inter_subset_right _ _)] },
+      simv [hu₁ _ (set.inter_subset_right _ _)] },
     { rw [total_variation, measure.add_apply, hjpos, hjneg,
           to_measure_of_zero_le_apply _ _ _ hmeas.compl,
           to_measure_of_le_zero_apply _ _ _ hmeas.compl],
-      simp [hu₂ _ (set.inter_subset_right _ _)] } },
+      simv [hu₂ _ (set.inter_subset_right _ _)] } },
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,
     exact ⟨u, hmeas,
       (λ t htu, null_of_total_variation_zero _ (measure_mono_null htu hu₁)),
@@ -543,7 +543,7 @@ begin
     refine ⟨u, hmeas, _, _⟩,
     { rw [total_variation, measure.add_apply, hpos, hneg,
           to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
-      simp [hu₁ _ (set.inter_subset_right _ _)] },
+      simv [hu₁ _ (set.inter_subset_right _ _)] },
     { rw vector_measure.ennreal_to_measure_apply hmeas.compl,
       exact hu₂ _ (set.subset.refl _) } },
   { rintro ⟨u, hmeas, hu₁, hu₂⟩,

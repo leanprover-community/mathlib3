@@ -93,18 +93,18 @@ def unit_iso : 𝟭 (Mon_ (C ⥤ D)) ≅ functor ⋙ inverse :=
 nat_iso.of_components (λ A,
   { hom :=
     { hom := { app := λ _, 𝟙 _ },
-      one_hom' := by { ext X, dsimp, simp only [category.comp_id], },
+      one_hom' := by { ext X, dsimp, simv only [category.comp_id], },
       mul_hom' :=
-        by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, },
+        by { ext X, dsimp, simv only [tensor_id, category.id_comp, category.comp_id], }, },
     inv :=
     { hom := { app := λ _, 𝟙 _ },
-      one_hom' := by { ext X, dsimp, simp only [category.comp_id], },
+      one_hom' := by { ext X, dsimp, simv only [category.comp_id], },
       mul_hom' :=
-        by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, }, })
+        by { ext X, dsimp, simv only [tensor_id, category.id_comp, category.comp_id], }, }, })
   (λ A B f,
   begin
     ext X,
-    simp only [functor.id_map, functor.comp_map, functor_map_app_hom, Mon_.comp_hom',
+    simv only [functor.id_map, functor.comp_map, functor_map_app_hom, Mon_.comp_hom',
       category.id_comp, category.comp_id, inverse_map_hom_app, nat_trans.comp_app],
   end)
 
@@ -175,19 +175,19 @@ def unit_iso : 𝟭 (CommMon_ (C ⥤ D)) ≅ functor ⋙ inverse :=
 nat_iso.of_components (λ A,
   { hom :=
     { hom := { app := λ _, 𝟙 _ },
-      one_hom' := by { ext X, dsimp, simp only [category.comp_id], },
+      one_hom' := by { ext X, dsimp, simv only [category.comp_id], },
       mul_hom' :=
-      by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, },
+      by { ext X, dsimp, simv only [tensor_id, category.id_comp, category.comp_id], }, },
     inv :=
     { hom := { app := λ _, 𝟙 _ },
-      one_hom' := by { ext X, dsimp, simp only [category.comp_id], },
+      one_hom' := by { ext X, dsimp, simv only [category.comp_id], },
       mul_hom' :=
-      by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, }, })
+      by { ext X, dsimp, simv only [tensor_id, category.id_comp, category.comp_id], }, }, })
   (λ A B f,
   begin
     ext X,
     dsimp,
-    simp only [category.id_comp, category.comp_id],
+    simv only [category.id_comp, category.comp_id],
   end)
 
 /--

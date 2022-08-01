@@ -147,8 +147,8 @@ theorem map_sum₂ {ι : Type*} (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂]
 def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) :
   M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
 { to_fun := λ m, (f m).dom_restrict q,
-  map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
-  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [f.map_smulₛₗ, dom_restrict_apply,
+  map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simv only [map_add, dom_restrict_apply, add_apply],
+  map_smul' := λ c m, linear_map.ext $ λ _, by simv only [f.map_smulₛₗ, dom_restrict_apply,
     smul_apply]}
 
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
@@ -291,7 +291,7 @@ variables (R M)
 /-- Scalar multiplication as a bilinear map `R → M → M`. -/
 def lsmul : R →ₗ[R] M →ₗ[R] M :=
 mk₂ R (•) add_smul (λ _ _ _, mul_smul _ _ _) smul_add
-(λ r s m, by simp only [smul_smul, smul_eq_mul, mul_comm])
+(λ r s m, by simv only [smul_smul, smul_eq_mul, mul_comm])
 variables {R M}
 
 @[simp] theorem lsmul_apply (r : R) (m : M) : lsmul R M r m = r • m := rfl

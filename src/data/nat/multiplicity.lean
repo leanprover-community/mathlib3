@@ -52,7 +52,7 @@ lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : 0 < n) (hb
   multiplicity m n = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card :=
 calc
   multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 ⟨hm, hn⟩) + 1)).card
-    : by simp
+    : by simv
 ... = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card
     : congr_arg coe $ congr_arg card $ finset.ext $ λ i,
       begin
@@ -92,7 +92,7 @@ The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. Thi
 over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
 lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
   ∀ {n b : ℕ}, log p n < b → multiplicity p n! = (∑ i in Ico 1 b, n / p ^ i : ℕ)
-| 0     b hb := by simp [Ico, hp.multiplicity_one]
+| 0     b hb := by simv [Ico, hp.multiplicity_one]
 | (n+1) b hb :=
   calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
     by rw [factorial_succ, hp.multiplicity_mul, add_comm]
@@ -100,7 +100,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
     by rw [multiplicity_factorial ((log_mono_right $ le_succ _).trans_lt hb),
       ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
-    by { rw [sum_add_distrib, sum_boole], simp }
+    by { rw [sum_add_distrib, sum_boole], simv }
   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
     congr_arg coe $ finset.sum_congr rfl $ λ _ _, (succ_div _ _).symm
 
@@ -135,8 +135,8 @@ lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
   multiplicity p (p * n)! = multiplicity p n! + n :=
 begin
   induction n with n ih,
-  { simp },
-  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
+  { simv },
+  { simv only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
       multiplicity_factorial_mul_succ, ←add_assoc, nat.cast_one, nat.cast_add, factorial_succ],
     congr' 1,
     rw [add_comm, add_assoc] }
@@ -161,11 +161,11 @@ lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ((finset.Ico 1 b).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card :=
 calc ∑ i in finset.Ico 1 b, n / p ^ i
     = ∑ i in finset.Ico 1 b, (k + (n - k)) / p ^ i :
-    by simp only [add_tsub_cancel_of_le hkn]
+    by simv only [add_tsub_cancel_of_le hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) :
-    by simp only [nat.add_div (pow_pos hp.pos _)]
-... = _ : by simp [sum_add_distrib, sum_boole]
+    by simv only [nat.add_div (pow_pos hp.pos _)]
+... = _ : by simv [sum_add_distrib, sum_boole]
 
 /-- The multiplicity of `p` in `choose n k` is the number of carries when `k` and `n - k`
   are added in base `p`. The set is expressed by filtering `Ico 1 b` where `b`
@@ -182,7 +182,7 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
         hp.multiplicity_factorial ((log_mono_right hkn).trans_lt hnb),
         hp.multiplicity_factorial (lt_of_le_of_lt (log_mono_right tsub_le_self) hnb),
         multiplicity_choose_aux hp hkn],
-    simp [add_comm],
+    simv [add_comm],
   end,
 (part_enat.add_right_cancel_iff
   (part_enat.ne_top_iff_dom.2 $
@@ -193,8 +193,8 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
 lemma multiplicity_le_multiplicity_choose_add {p : ℕ} (hp : p.prime) : ∀ (n k : ℕ),
   multiplicity p n ≤ multiplicity p (choose n k) + multiplicity p k
-| _     0     := by simp
-| 0     (_+1) := by simp
+| _     0     := by simv
+| 0     (_+1) := by simv
 | (n+1) (k+1) :=
 begin
   rw ← hp.multiplicity_mul,
@@ -210,7 +210,7 @@ le_antisymm
   (have hdisj : disjoint
       ((Ico 1 n.succ).filter (λ i, p ^ i ≤ k % p ^ i + (p ^ n - k) % p ^ i))
       ((Ico 1 n.succ).filter (λ i, p ^ i ∣ k)),
-    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
+    by simv [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
@@ -233,7 +233,7 @@ begin
   { contradiction },
   { intros b n ih h,
     by_cases hn : n = 0,
-    { subst hn, simp at h, simp [h, one_right h2.not_unit, part_enat.zero_lt_one] },
+    { subst hn, simv at h, simv [h, one_right h2.not_unit, part_enat.zero_lt_one] },
     have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
     { rw [prime_two.multiplicity_factorial_mul],
       refine (part_enat.add_lt_add_right (ih hn) (part_enat.coe_ne_top _)).trans_le _,

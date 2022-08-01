@@ -272,7 +272,7 @@ lemma monotone.continuous_of_dense_range [densely_ordered β] {f : α → β}
   continuous f :=
 continuous_iff_continuous_at.mpr $ λ a,
   continuous_at_of_monotone_on_of_closure_image_mem_nhds (λ x hx y hy hxy, h_mono hxy)
-    univ_mem $ by simp only [image_univ, h_dense.closure_eq, univ_mem]
+    univ_mem $ by simv only [image_univ, h_dense.closure_eq, univ_mem]
 
 /-- A monotone surjective function with a densely ordered codomain is continuous. -/
 lemma monotone.continuous_of_surjective [densely_ordered β] {f : α → β} (h_mono : monotone f)

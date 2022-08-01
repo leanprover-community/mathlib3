@@ -49,7 +49,7 @@ begin
     clear hg, rw [update_same, erase_insert hx'] at hr,
     refine step _ _ _ hr (ihs (univ.sigma g) _ _ rfl),
     rw ssubset_iff_of_subset (sigma_mono (subset.refl _) _),
-    exacts [⟨⟨i, x⟩, mem_sigma.2 ⟨mem_univ _, by simp⟩, by simp [hx']⟩,
+    exacts [⟨⟨i, x⟩, mem_sigma.2 ⟨mem_univ _, by simv⟩, by simv [hx']⟩,
       (@le_update_iff _ _ _ _ g g i _).2 ⟨subset_insert _ _, λ _ _, le_rfl⟩] }
 end
 

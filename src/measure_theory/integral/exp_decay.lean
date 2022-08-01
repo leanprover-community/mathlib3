@@ -27,13 +27,13 @@ lemma integral_exp_neg_le {b : ℝ} (a X : ℝ) (h2 : 0 < b) :
 begin
   rw integral_deriv_eq_sub' (λ x, -exp (-b * x) / b),
   -- goal 1/4: F(X) - F(a) is bounded
-  { simp only [tsub_le_iff_right],
+  { simv only [tsub_le_iff_right],
     rw [neg_div b (exp (-b * a)), neg_div b (exp (-b * X)), add_neg_self, neg_le, neg_zero],
     exact (div_pos (exp_pos _) h2).le, },
   -- goal 2/4: the derivative of F is exp(-b x)
-  { ext1, simp [h2.ne'] },
+  { ext1, simv [h2.ne'] },
   -- goal 3/4: F is differentiable
-  { intros x hx, simp [h2.ne'], },
+  { intros x hx, simv [h2.ne'], },
   -- goal 4/4: exp(-b x) is continuous
   { apply continuous.continuous_on, continuity }
 end
@@ -45,7 +45,7 @@ begin
   have : ∀ (X : ℝ), integrable_on (λ x : ℝ, exp (-b * x) ) (Ioc a X),
   { intro X, exact (continuous_const.mul continuous_id).exp.integrable_on_Ioc },
   apply (integrable_on_Ioi_of_interval_integral_norm_bounded (exp (-b * a) / b) a this tendsto_id),
-  simp only [eventually_at_top, norm_of_nonneg (exp_pos _).le],
+  simv only [eventually_at_top, norm_of_nonneg (exp_pos _).le],
   exact ⟨a, λ b2 hb2, integral_exp_neg_le a b2 h⟩,
 end
 

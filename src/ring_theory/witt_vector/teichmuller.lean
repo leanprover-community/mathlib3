@@ -78,7 +78,7 @@ begin
   apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
   rw ring_hom.map_mul,
   ext1 n,
-  simp only [pi.mul_apply, ghost_map_apply, ghost_component_teichmuller_fun, mul_pow],
+  simv only [pi.mul_apply, ghost_map_apply, ghost_component_teichmuller_fun, mul_pow],
 end
 
 private lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
@@ -86,7 +86,7 @@ private lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
 begin
   refine map_injective (mv_polynomial.map (int.cast_ring_hom ℚ))
     (mv_polynomial.map_injective _ int.cast_injective) _,
-  simp only [teichmuller_mul_aux₁, map_teichmuller_fun, ring_hom.map_mul]
+  simv only [teichmuller_mul_aux₁, map_teichmuller_fun, ring_hom.map_mul]
 end
 
 /-- The Teichmüller lift of an element of `R` to `𝕎 R`.
@@ -105,7 +105,7 @@ def teichmuller : R →* 𝕎 R :=
     intros x y,
     rcases counit_surjective R x with ⟨x, rfl⟩,
     rcases counit_surjective R y with ⟨y, rfl⟩,
-    simp only [← map_teichmuller_fun, ← ring_hom.map_mul, teichmuller_mul_aux₂],
+    simv only [← map_teichmuller_fun, ← ring_hom.map_mul, teichmuller_mul_aux₂],
   end }
 
 @[simp] lemma teichmuller_coeff_zero (r : R) :

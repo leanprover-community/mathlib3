@@ -61,10 +61,10 @@ lemma interval_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b :=
 interval_of_lt (lt_of_not_ge h)
 
 @[simp] lemma interval_self : [a, a] = {a} :=
-set.ext $ by simp [le_antisymm_iff, and_comm]
+set.ext $ by simv [le_antisymm_iff, and_comm]
 
 @[simp] lemma nonempty_interval : set.nonempty [a, b] :=
-by { simp only [interval, min_le_iff, le_max_iff, nonempty_Icc], left, left, refl }
+by { simv only [interval, min_le_iff, le_max_iff, nonempty_Icc], left, left, refl }
 
 @[simp] lemma left_mem_interval : a ∈ [a, b] :=
 by { rw [interval, mem_Icc], exact ⟨min_le_left _ _, le_max_left _ _⟩ }
@@ -140,24 +140,24 @@ def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
 localized "notation `Ι` := set.interval_oc" in interval
 
 lemma interval_oc_of_le (h : a ≤ b) : Ι a b = Ioc a b :=
-by simp [interval_oc, h]
+by simv [interval_oc, h]
 
 lemma interval_oc_of_lt (h : b < a) : Ι a b = Ioc b a :=
-by simp [interval_oc, le_of_lt h]
+by simv [interval_oc, le_of_lt h]
 
 lemma interval_oc_eq_union : Ι a b = Ioc a b ∪ Ioc b a :=
-by cases le_total a b; simp [interval_oc, *]
+by cases le_total a b; simv [interval_oc, *]
 
 lemma forall_interval_oc_iff  {P : α → Prop} :
   (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
-by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, forall_and_distrib]
+by simv only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, forall_and_distrib]
 
 lemma interval_oc_subset_interval_oc_of_interval_subset_interval {a b c d : α}
   (h : [a, b] ⊆ [c, d]) : Ι a b ⊆ Ι c d :=
 Ioc_subset_Ioc (interval_subset_interval_iff_le.1 h).1 (interval_subset_interval_iff_le.1 h).2
 
 lemma interval_oc_swap (a b : α) : Ι a b = Ι b a :=
-by simp only [interval_oc, min_comm a b, max_comm a b]
+by simv only [interval_oc, min_comm a b, max_comm a b]
 
 lemma Ioc_subset_interval_oc : Ioc a b ⊆ Ι a b :=
 Ioc_subset_Ioc (min_le_left _ _) (le_max_right _ _)
@@ -174,34 +174,34 @@ section ordered_add_comm_group
 variables {α : Type u} [linear_ordered_add_comm_group α] (a b c x y : α)
 
 @[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
-by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
+by simv only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
 
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
 @[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
-by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
+by simv only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 @[simp] lemma preimage_const_sub_interval : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
 by { rw [interval, interval, preimage_const_sub_Icc],
-  simp only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
+  simv only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
 
 @[simp] lemma image_const_add_interval : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
-by simp [add_comm]
+by simv [add_comm]
 
 @[simp] lemma image_add_const_interval : (λ x, x + a) '' [b, c] = [b + a, c + a] :=
-by simp
+by simv
 
 @[simp] lemma image_const_sub_interval : (λ x, a - x) '' [b, c] = [a - b, a - c] :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simv [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
 
 @[simp] lemma image_sub_const_interval : (λ x, x - a) '' [b, c] = [b - a, c - a] :=
-by simp [sub_eq_add_neg, add_comm]
+by simv [sub_eq_add_neg, add_comm]
 
-lemma image_neg_interval : has_neg.neg '' [a, b] = [-a, -b] := by simp
+lemma image_neg_interval : has_neg.neg '' [a, b] = [-a, -b] := by simv
 
 variables {a b c x y}
 
@@ -233,29 +233,29 @@ variables {k : Type u} [linear_ordered_field k] {a : k}
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
 (lt_or_gt_of_ne ha).elim
-  (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
-  (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
+  (λ ha, by simv [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
+  (λ (ha : 0 < a), by simv [interval, ha, ha.le, min_div_div_right, max_div_div_right])
 
 @[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : k) :
   (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=
-by simp only [← preimage_mul_const_interval ha, mul_comm]
+by simv only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
+by simv only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
-if ha : a = 0 then by simp [ha] else
+if ha : a = 0 then by simv [ha] else
 calc (λ x, x * a) '' [b, c] = (λ x, x * a⁻¹) ⁻¹' [b, c] :
   (units.mk0 a ha).mul_right.image_eq_preimage _
-... = (λ x, x / a) ⁻¹' [b, c] : by simp only [div_eq_mul_inv]
+... = (λ x, x / a) ⁻¹' [b, c] : by simv only [div_eq_mul_inv]
 ... = [b * a, c * a] : preimage_div_const_interval ha _ _
 
 @[simp] lemma image_const_mul_interval (a b c : k) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
 by simpa only [mul_comm] using image_mul_const_interval a b c
 
 @[simp] lemma image_div_const_interval (a b c : k) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
-by simp only [div_eq_mul_inv, image_mul_const_interval]
+by simv only [div_eq_mul_inv, image_mul_const_interval]
 
 end linear_ordered_field
 

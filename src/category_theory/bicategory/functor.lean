@@ -169,11 +169,11 @@ restate_axiom map₂_comp'
 restate_axiom map₂_associator'
 restate_axiom map₂_left_unitor'
 restate_axiom map₂_right_unitor'
-attribute [simp] map_comp_naturality_left map_comp_naturality_right map₂_id map₂_associator
+attribute [simv] map_comp_naturality_left map_comp_naturality_right map₂_id map₂_associator
 attribute [reassoc]
   map_comp_naturality_left map_comp_naturality_right map₂_comp
   map₂_associator map₂_left_unitor map₂_right_unitor
-attribute [simp] map₂_comp map₂_left_unitor map₂_right_unitor
+attribute [simv] map₂_comp map₂_left_unitor map₂_right_unitor
 
 section
 
@@ -222,17 +222,17 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
       assoc] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
-    simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
+    simv only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
       whisker_left_comp, assoc],
-    simp only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
+    simv only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
       comp_whisker_right, assoc] },
   map₂_left_unitor' := λ a b f, by
   { dsimp,
-    simp only [map₂_left_unitor, map₂_comp, map_comp_naturality_left_assoc,
+    simv only [map₂_left_unitor, map₂_comp, map_comp_naturality_left_assoc,
       comp_whisker_right, assoc] },
   map₂_right_unitor' := λ a b f, by
   { dsimp,
-    simp only [map₂_right_unitor, map₂_comp, map_comp_naturality_right_assoc,
+    simv only [map₂_right_unitor, map₂_comp, map_comp_naturality_right_assoc,
       whisker_left_comp, assoc] },
   .. (F : prelax_functor B C).comp ↑G }
 
@@ -250,7 +250,7 @@ structure pseudo_core (F : oplax_functor B C) :=
 
 restate_axiom pseudo_core.map_id_iso_hom'
 restate_axiom pseudo_core.map_comp_iso_hom'
-attribute [simp] pseudo_core.map_id_iso_hom pseudo_core.map_comp_iso_hom
+attribute [simv] pseudo_core.map_id_iso_hom pseudo_core.map_comp_iso_hom
 
 end
 
@@ -317,7 +317,7 @@ restate_axiom map₂_left_unitor'
 restate_axiom map₂_right_unitor'
 attribute [reassoc]
   map₂_comp map₂_whisker_left map₂_whisker_right map₂_associator map₂_left_unitor map₂_right_unitor
-attribute [simp]
+attribute [simv]
   map₂_id map₂_comp map₂_whisker_left map₂_whisker_right
   map₂_associator map₂_left_unitor map₂_right_unitor
 
@@ -415,9 +415,9 @@ def mk_of_oplax' (F : oplax_functor B C)
     rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_left] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
-    simp only [←assoc],
+    simv only [←assoc],
     rw [is_iso.eq_comp_inv, ←inv_whisker_left, is_iso.eq_comp_inv],
-    simp only [assoc, F.map₂_associator] },
+    simv only [assoc, F.map₂_associator] },
   .. (F : prelax_functor B C) }
 
 end

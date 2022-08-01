@@ -143,7 +143,7 @@ def prod {α ι ι'} (l : line α ι) (l' : line α ι') : line α (ι ⊕ ι') 
 lemma apply {α ι} (l : line α ι) (x : α) : l x = λ i, (l.idx_fun i).get_or_else x := rfl
 
 lemma apply_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i = none) : l x i = x :=
-by simp only [option.get_or_else_none, h, l.apply]
+by simv only [option.get_or_else_none, h, l.apply]
 
 lemma apply_of_ne_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i ≠ none) :
   some (l x i) = l.idx_fun i :=
@@ -151,7 +151,7 @@ by rw [l.apply, option.get_or_else_of_ne_none h]
 
 @[simp] lemma map_apply {α α' ι} (f : α → α') (l : line α ι) (x : α) :
   l.map f (f x) = f ∘ l x :=
-by simp only [line.apply, line.map, option.get_or_else_map]
+by simv only [line.apply, line.map, option.get_or_else_map]
 
 @[simp] lemma vertical_apply {α ι ι'} (v : ι → α) (l : line α ι') (x : α) :
   l.vertical v x = sum.elim v (l x) :=

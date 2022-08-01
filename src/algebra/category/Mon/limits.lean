@@ -41,10 +41,10 @@ The flat sections of a functor into `Mon` form a submonoid of all sections.
 def sections_submonoid (F : J ⥤ Mon.{max v u}) :
   submonoid (Π j, F.obj j) :=
 { carrier := (F ⋙ forget Mon).sections,
-  one_mem' := λ j j' f, by simp,
+  one_mem' := λ j j' f, by simv,
   mul_mem' := λ a b ah bh j j' f,
   begin
-    simp only [forget_map_eq_coe, functor.comp_map, monoid_hom.map_mul, pi.mul_apply],
+    simv only [forget_map_eq_coe, functor.comp_map, monoid_hom.map_mul, pi.mul_apply],
     dsimp [functor.sections] at ah bh,
     rw [ah f, bh f],
   end }

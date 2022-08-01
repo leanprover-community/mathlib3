@@ -97,7 +97,7 @@ by rw [average_def', restrict_apply_univ]
 variable {μ}
 
 lemma average_congr {f g : α → E} (h : f =ᵐ[μ] g) : ⨍ x, f x ∂μ = ⨍ x, g x ∂μ :=
-by simp only [average_def', integral_congr_ae h]
+by simv only [average_def', integral_congr_ae h]
 
 lemma average_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_measure ν] {f : α → E}
   (hμ : integrable f μ) (hν : integrable f ν) :
@@ -105,7 +105,7 @@ lemma average_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_me
     ((μ univ).to_real / ((μ univ).to_real + (ν univ).to_real)) • ⨍ x, f x ∂μ +
       ((ν univ).to_real / ((μ univ).to_real + (ν univ).to_real)) • ⨍ x, f x ∂ν :=
 begin
-  simp only [div_eq_inv_mul, mul_smul, measure_smul_average, ← smul_add,
+  simv only [div_eq_inv_mul, mul_smul, measure_smul_average, ← smul_add,
     ← integral_add_measure hμ hν, ← ennreal.to_real_add (measure_ne_top μ _) (measure_ne_top ν _)],
   rw [average_def', measure.add_apply]
 end

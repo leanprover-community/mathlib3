@@ -31,7 +31,7 @@ variables {α β : Type*} [topological_space α] [partial_order α] [topological
 
 lemma continuous_within_at_Ioi_iff_Ici {a : α} {f : α → β} :
   continuous_within_at f (Ioi a) a ↔ continuous_within_at f (Ici a) a :=
-by simp only [← Ici_diff_left, continuous_within_at_diff_self]
+by simv only [← Ici_diff_left, continuous_within_at_diff_self]
 
 lemma continuous_within_at_Iio_iff_Iic {a : α} {f : α → β} :
   continuous_within_at f (Iio a) a ↔ continuous_within_at f (Iic a) a :=
@@ -55,7 +55,7 @@ by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
 
 lemma continuous_at_iff_continuous_left_right {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
-by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_sup_nhds_right]
+by simv only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_sup_nhds_right]
 
 lemma continuous_at_iff_continuous_left'_right' {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iio a) a ∧ continuous_within_at f (Ioi a) a :=

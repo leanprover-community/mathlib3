@@ -82,15 +82,15 @@ variables [group α]
 @[simp] lemma conj_pow {i : ℕ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
 begin
   induction i with i hi,
-  { simp },
-  { simp [pow_succ, hi] }
+  { simv },
+  { simv [pow_succ, hi] }
 end
 
 @[simp] lemma conj_zpow {i : ℤ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
 begin
   induction i,
-  { simp },
-  { simp [zpow_neg_succ_of_nat, conj_pow] }
+  { simv },
+  { simv [zpow_neg_succ_of_nat, conj_pow] }
 end
 
 lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=

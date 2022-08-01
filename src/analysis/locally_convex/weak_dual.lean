@@ -60,11 +60,11 @@ lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :
 
 lemma to_seminorm_ball_zero {f : E →ₗ[𝕜] 𝕜} {r : ℝ} :
   seminorm.ball f.to_seminorm 0 r = { x : E | ∥f x∥ < r} :=
-by simp only [seminorm.ball_zero_eq, to_seminorm_apply]
+by simv only [seminorm.ball_zero_eq, to_seminorm_apply]
 
 lemma to_seminorm_comp (f : F →ₗ[𝕜] 𝕜) (g : E →ₗ[𝕜] F) :
   f.to_seminorm.comp g = (f.comp g).to_seminorm :=
-by { ext, simp only [seminorm.comp_apply, to_seminorm_apply, coe_comp] }
+by { ext, simv only [seminorm.comp_apply, to_seminorm_apply, coe_comp] }
 
 /-- Construct a family of seminorms from a bilinear form. -/
 def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : seminorm_family 𝕜 E F :=
@@ -88,20 +88,20 @@ lemma linear_map.has_basis_weak_bilin (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
 begin
   let p := B.to_seminorm_family,
   rw [nhds_induced, nhds_pi],
-  simp only [map_zero, linear_map.zero_apply],
+  simv only [map_zero, linear_map.zero_apply],
   have h := @metric.nhds_basis_ball 𝕜 _ 0,
   have h' := filter.has_basis_pi (λ (i : F), h),
   have h'' := filter.has_basis.comap (λ x y, B x y) h',
   refine h''.to_has_basis _ _,
   { rintros (U : set F × (F → ℝ)) hU,
     cases hU with hU₁ hU₂,
-    simp only [id.def],
+    simv only [id.def],
     let U' := hU₁.to_finset,
     by_cases hU₃ : U.fst.nonempty,
     { have hU₃' : U'.nonempty := hU₁.nonempty_to_finset.mpr hU₃,
       refine ⟨(U'.sup p).ball 0 $ U'.inf' hU₃' U.snd, p.basis_sets_mem _ $
         (finset.lt_inf'_iff _).2 $ λ y hy, hU₂ y $ (hU₁.mem_to_finset).mp hy, λ x hx y hy, _⟩,
-      simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
+      simv only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
       rw seminorm.mem_ball_zero at hx,
       rw ←linear_map.to_seminorm_family_apply,
       have hyU' : y ∈ U' := (set.finite.mem_to_finset hU₁).mpr hy,
@@ -109,15 +109,15 @@ begin
       refine lt_of_le_of_lt (hp x) (lt_of_lt_of_le hx _),
       exact finset.inf'_le _ hyU' },
     rw set.not_nonempty_iff_eq_empty.mp hU₃,
-    simp only [set.empty_pi, set.preimage_univ, set.subset_univ, and_true],
+    simv only [set.empty_pi, set.preimage_univ, set.subset_univ, and_true],
     exact Exists.intro ((p 0).ball 0 1) (p.basis_sets_singleton_mem 0 one_pos) },
   rintros U (hU : U ∈ p.basis_sets),
   rw seminorm_family.basis_sets_iff at hU,
   rcases hU with ⟨s, r, hr, hU⟩,
   rw hU,
-  refine ⟨(s, λ _, r), ⟨by simp only [s.finite_to_set], λ y hy, hr⟩, λ x hx, _⟩,
-  simp only [set.mem_preimage, set.mem_pi, finset.mem_coe, mem_ball_zero_iff] at hx,
-  simp only [id.def, seminorm.mem_ball, sub_zero],
+  refine ⟨(s, λ _, r), ⟨by simv only [s.finite_to_set], λ y hy, hr⟩, λ x hx, _⟩,
+  simv only [set.mem_preimage, set.mem_pi, finset.mem_coe, mem_ball_zero_iff] at hx,
+  simv only [id.def, seminorm.mem_ball, sub_zero],
   refine seminorm.finset_sup_apply_lt hr (λ y hy, _),
   rw linear_map.to_seminorm_family_apply,
   exact hx y hy,

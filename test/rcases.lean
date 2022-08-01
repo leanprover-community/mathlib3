@@ -72,7 +72,7 @@ end
 example : true :=
 begin
   obtain ⟨n : ℕ, h : n = n, -⟩ : ∃ n : ℕ, n = n ∧ true,
-  { existsi 0, simp },
+  { existsi 0, simv },
   guard_hyp n : ℕ,
   guard_hyp h : n = n,
   success_if_fail {assumption},
@@ -82,7 +82,7 @@ end
 example : true :=
 begin
   obtain : ∃ n : ℕ, n = n ∧ true,
-  { existsi 0, simp },
+  { existsi 0, simv },
   trivial
 end
 

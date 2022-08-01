@@ -157,7 +157,7 @@ begin
   { exact a.inter i H },
   { have I : i = last N := top_le_iff.1 H,
     have := (a.rpos (last N)).le,
-    simp only [I, add_nonneg this this, dist_self] }
+    simv only [I, add_nonneg this this, dist_self] }
 end
 
 lemma hlast' (i : fin N.succ) (h : 1 ≤ τ) : a.r (last N) ≤ τ * a.r i :=
@@ -232,7 +232,7 @@ def Union_up_to (i : ordinal.{u}) : set α :=
 lemma monotone_Union_up_to : monotone p.Union_up_to :=
 begin
   assume i j hij,
-  simp only [Union_up_to],
+  simv only [Union_up_to],
   exact Union_mono' (λ r, ⟨⟨r, r.2.trans_le hij⟩, subset.rfl⟩),
 end
 
@@ -262,7 +262,7 @@ begin
   assume x y hxy,
   wlog x_le_y : x ≤ y := le_total x y using [x y, y x],
   rcases eq_or_lt_of_le x_le_y with rfl|H, { refl },
-  simp only [nonempty_def, not_exists, exists_prop, not_and, not_lt, not_le, mem_set_of_eq,
+  simv only [nonempty_def, not_exists, exists_prop, not_and, not_lt, not_le, mem_set_of_eq,
     not_forall] at h,
   specialize h y,
   have A : p.c (p.index y) ∉ p.Union_up_to y,
@@ -270,10 +270,10 @@ begin
       by { rw [tau_package.index], refl },
     rw this,
     exact (classical.epsilon_spec h).1 },
-  simp only [Union_up_to, not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_le,
+  simv only [Union_up_to, not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_le,
               subtype.exists, subtype.coe_mk] at A,
   specialize A x H,
-  simp [hxy] at A,
+  simv [hxy] at A,
   exact (lt_irrefl _ ((p.rpos (p.index y)).trans_le A)).elim
 end
 
@@ -322,7 +322,7 @@ begin
   have color_i : p.color i = Inf (univ \ A), by rw [color],
   rw color_i,
   have N_mem : N ∈ univ \ A,
-  { simp only [not_exists, true_and, exists_prop, mem_Union, mem_singleton_iff, mem_closed_ball,
+  { simv only [not_exists, true_and, exists_prop, mem_Union, mem_singleton_iff, mem_closed_ball,
       not_and, mem_univ, mem_diff, subtype.exists, subtype.coe_mk],
     assume j ji hj,
     exact (IH j ji (ji.trans hi)).ne' },
@@ -339,7 +339,7 @@ begin
     rw ← Inf_eq_N at hk,
     have : k ∈ A,
       by simpa only [true_and, mem_univ, not_not, mem_diff] using nat.not_mem_of_lt_Inf hk,
-    simp at this,
+    simv at this,
     simpa only [exists_prop, mem_Union, mem_singleton_iff, mem_closed_ball, subtype.exists,
       subtype.coe_mk] },
   choose! g hg using this,
@@ -349,13 +349,13 @@ begin
   have color_G : ∀ n, n ≤ N → p.color (G n) = n,
   { assume n hn,
     unfreezingI { rcases hn.eq_or_lt with rfl|H },
-    { simp only [G], simp only [color_i, Inf_eq_N, if_true, eq_self_iff_true] },
-    { simp only [G], simp only [H.ne, (hg n H).right.right.symm, if_false] } },
+    { simv only [G], simv only [color_i, Inf_eq_N, if_true, eq_self_iff_true] },
+    { simv only [G], simv only [H.ne, (hg n H).right.right.symm, if_false] } },
   have G_lt_last : ∀ n, n ≤ N → G n < p.last_step,
   { assume n hn,
     unfreezingI { rcases hn.eq_or_lt with rfl|H },
-    { simp only [G], simp only [hi, if_true, eq_self_iff_true], },
-    { simp only [G], simp only [H.ne, (hg n H).left.trans hi, if_false] } },
+    { simv only [G], simv only [hi, if_true, eq_self_iff_true], },
+    { simv only [G], simv only [H.ne, (hg n H).left.trans hi, if_false] } },
   have fGn : ∀ n, n ≤ N →
     p.c (p.index (G n)) ∉ p.Union_up_to (G n) ∧ p.R (G n) ≤ p.τ * p.r (p.index (G n)),
   { assume n hn,
@@ -375,7 +375,7 @@ begin
     have hb : (b : ℕ) ≤ N := nat.lt_succ_iff.1 b.2,
     split,
     { have := (fGn b hb).1,
-      simp only [Union_up_to, not_exists, exists_prop, mem_Union, mem_closed_ball, not_and,
+      simv only [Union_up_to, not_exists, exists_prop, mem_Union, mem_closed_ball, not_and,
         not_le, subtype.exists, subtype.coe_mk] at this,
       simpa only [dist_comm, mem_ball, not_lt] using this (G a) G_lt },
     { apply le_trans _ (fGn a ha).2,
@@ -384,7 +384,7 @@ begin
       let b' : {t // p.c t ∉ p.Union_up_to (G a)} := ⟨p.index (G b), B⟩,
       apply @le_csupr _ _ _ (λ t : {t // p.c t ∉ p.Union_up_to (G a)}, p.r t) _ b',
       refine ⟨p.r_bound, λ t ht, _⟩,
-      simp only [exists_prop, mem_range, subtype.exists, subtype.coe_mk] at ht,
+      simv only [exists_prop, mem_range, subtype.exists, subtype.coe_mk] at ht,
       rcases ht with ⟨u, hu⟩,
       rw ← hu.2,
       exact p.r_le _ } },
@@ -409,14 +409,14 @@ begin
     hlast := begin
       assume a ha,
       have I : (a : ℕ) < N := ha,
-      have : G a < G (fin.last N), by { dsimp [G], simp [I.ne, (hg a I).1] },
+      have : G a < G (fin.last N), by { dsimp [G], simv [I.ne, (hg a I).1] },
       exact Gab _ _ this,
     end,
     inter := begin
       assume a ha,
       have I : (a : ℕ) < N := ha,
-      have J : G (fin.last N) = i, by { dsimp [G], simp only [if_true, eq_self_iff_true], },
-      have K : G a = g a, { dsimp [G], simp [I.ne, (hg a I).1] },
+      have J : G (fin.last N) = i, by { dsimp [G], simv only [if_true, eq_self_iff_true], },
+      have K : G a = g a, { dsimp [G], simv [I.ne, (hg a I).1] },
       convert dist_le_add_of_nonempty_closed_ball_inter_closed_ball (hg _ I).2.1,
     end },
   -- this is a contradiction
@@ -441,7 +441,7 @@ begin
   casesI is_empty_or_nonempty β,
   { refine ⟨λ i, ∅, λ i, pairwise_disjoint_empty, _⟩,
     rw [← image_univ, eq_empty_of_is_empty (univ : set β)],
-    simp },
+    simv },
   -- Now, assume `β` is nonempty.
   let p : tau_package β α := { τ := τ, one_lt_tau := hτ, .. q },
   -- we use for `s i` the balls of color `i`.
@@ -471,11 +471,11 @@ begin
     { rw color_j,
       apply Inf_mem,
       refine ⟨N, _⟩,
-      simp only [not_exists, true_and, exists_prop, mem_Union, mem_singleton_iff, not_and, mem_univ,
+      simv only [not_exists, true_and, exists_prop, mem_Union, mem_singleton_iff, not_and, mem_univ,
         mem_diff, subtype.exists, subtype.coe_mk],
       assume k hk H,
       exact (p.color_lt (hk.trans jy_lt) hN).ne' },
-    simp only [not_exists, true_and, exists_prop, mem_Union, mem_singleton_iff, not_and, mem_univ,
+    simv only [not_exists, true_and, exists_prop, mem_Union, mem_singleton_iff, not_and, mem_univ,
       mem_diff, subtype.exists, subtype.coe_mk] at this,
     specialize this jx jxy,
     contrapose! this,
@@ -486,7 +486,7 @@ begin
       ∃ (a : ordinal), a < p.last_step ∧ dist (p.c b) (p.c (p.index a)) < p.r (p.index a),
       by simpa only [Union_up_to, exists_prop, mem_Union, mem_ball, subtype.exists, subtype.coe_mk]
         using p.mem_Union_up_to_last_step b,
-    simp only [exists_prop, mem_Union, mem_ball, mem_singleton_iff, bUnion_and', exists_eq_left,
+    simv only [exists_prop, mem_Union, mem_ball, mem_singleton_iff, bUnion_and', exists_eq_left,
       Union_exists, exists_and_distrib_left],
     exact ⟨⟨p.color a, p.color_lt ha.1 hN⟩, a, rfl, ha⟩ }
 end
@@ -512,11 +512,11 @@ begin
   -- exclude the trivial case where `μ s = 0`.
   rcases le_or_lt (μ s) 0 with hμs|hμs,
   { have : μ s = 0 := le_bot_iff.1 hμs,
-    refine ⟨∅, by simp only [finset.coe_empty, empty_subset], _, _⟩,
-    { simp only [this, diff_empty, Union_false, Union_empty, nonpos_iff_eq_zero, mul_zero] },
-    { simp only [finset.coe_empty, pairwise_disjoint_empty], } },
+    refine ⟨∅, by simv only [finset.coe_empty, empty_subset], _, _⟩,
+    { simv only [this, diff_empty, Union_false, Union_empty, nonpos_iff_eq_zero, mul_zero] },
+    { simv only [finset.coe_empty, pairwise_disjoint_empty], } },
   casesI is_empty_or_nonempty α,
-  { simp only [eq_empty_of_is_empty s, measure_empty] at hμs,
+  { simv only [eq_empty_of_is_empty s, measure_empty] at hμs,
     exact (lt_irrefl _ hμs).elim },
   have Npos : N ≠ 0,
   { unfreezingI { rintros rfl },
@@ -550,13 +550,13 @@ begin
     { have : x ∈ range a.c, by simpa only [subtype.range_coe_subtype, set_of_mem_eq],
       simpa only [mem_Union] using hu' this },
     refine mem_Union.2 ⟨i, ⟨hx, _⟩⟩,
-    simp only [v, exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right, subtype.coe_mk],
+    simv only [v, exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right, subtype.coe_mk],
     exact ⟨y, ⟨y.2, by simpa only [subtype.coe_eta]⟩, ball_subset_closed_ball h'⟩ },
   have S : ∑ (i : fin N), μ s / N ≤ ∑ i, μ (s ∩ v i) := calc
     ∑ (i : fin N), μ s / N = μ s : begin
-      simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
+      simv only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
       rw ennreal.mul_div_cancel',
-      { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
+      { simv only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
       { exact ennreal.coe_nat_ne_top }
     end
     ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
@@ -571,7 +571,7 @@ begin
     conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
     exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
   have B : μ (o ∩ v i) = ∑' (x : u i), μ (o ∩ closed_ball x (r x)),
-  { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simp only [inter_Union],
+  { have : o ∩ v i = ⋃ (x : s) (hx : x ∈ u i), o ∩ closed_ball x (r x), by simv only [inter_Union],
     rw [this, measure_bUnion (u_count i)],
     { refl },
     { exact (hu i).mono (λ k, inter_subset_right _ _) },
@@ -588,9 +588,9 @@ begin
   -- Bring back the finset `w i` of `↑(u i)` to a finset of `α`, and check that it works by design.
   refine ⟨finset.image (λ (x : u i), x) w, _, _, _⟩,
   -- show that the finset is included in `s`.
-  { simp only [image_subset_iff, coe_coe, finset.coe_image],
+  { simv only [image_subset_iff, coe_coe, finset.coe_image],
     assume y hy,
-    simp only [subtype.coe_prop, mem_preimage] },
+    simv only [subtype.coe_prop, mem_preimage] },
   -- show that it covers a large enough proportion of `s`. For measure computations, we do not
   -- use `s` (which might not be measurable), but its measurable superset `o`. Since their measures
   -- are the same, this does not spoil the estimates
@@ -605,7 +605,7 @@ begin
         (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
     calc
     μ o = 1/(N+1) * μ s + N/(N+1) * μ s :
-      by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }
+      by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simv }
     ... ≤ μ ((⋃ (x ∈ w), closed_ball ↑x (r ↑x)) ∩ o) + N/(N+1) * μ s : begin
       refine add_le_add _ le_rfl,
       rw [div_eq_mul_inv, one_mul, mul_comm, ← div_eq_mul_inv],
@@ -674,7 +674,7 @@ begin
       rcases eq_empty_or_nonempty B with hB|hB,
       { have : (0 : ℝ) < 1 := zero_lt_one,
         rcases hf x xs 1 zero_lt_one with ⟨r, hr, h'r⟩,
-        exact ⟨r, ⟨hr, h'r⟩, by simp only [hB, empty_disjoint]⟩ },
+        exact ⟨r, ⟨hr, h'r⟩, by simv only [hB, empty_disjoint]⟩ },
       { let R := inf_dist x B,
         have : 0 < min R 1 :=
           lt_min ((B_closed.not_mem_iff_inf_dist_pos hB).1 ((mem_diff x).1 hx).2) zero_lt_one,
@@ -690,7 +690,7 @@ begin
       exact exist_finset_disjoint_balls_large_measure μ hτ hN s' r (λ x hx, (rI x hx).1)
         (λ x hx, (rI x hx).2.le) },
     refine ⟨t ∪ (finset.image (λ x, (x, r x)) v), finset.subset_union_left _ _, ⟨_, _, _⟩, _⟩,
-    { simp only [finset.coe_union, pairwise_disjoint_union, ht.1, true_and, finset.coe_image],
+    { simv only [finset.coe_union, pairwise_disjoint_union, ht.1, true_and, finset.coe_image],
       split,
       { assume p hp q hq hpq,
         rcases (mem_image _ _ _).1 hp with ⟨p', p'v, rfl⟩,
@@ -721,12 +721,12 @@ begin
   choose! F hF using this,
   let u := λ n, F^[n] ∅,
   have u_succ : ∀ (n : ℕ), u n.succ = F (u n) :=
-    λ n, by simp only [u, function.comp_app, function.iterate_succ'],
+    λ n, by simv only [u, function.comp_app, function.iterate_succ'],
   have Pu : ∀ n, P (u n),
   { assume n,
     induction n with n IH,
-    { simp only [u, P, prod.forall, id.def, function.iterate_zero],
-      simp only [finset.not_mem_empty, is_empty.forall_iff, finset.coe_empty, forall_2_true_iff,
+    { simv only [u, P, prod.forall, id.def, function.iterate_zero],
+      simv only [finset.not_mem_empty, is_empty.forall_iff, finset.coe_empty, forall_2_true_iff,
         and_self, pairwise_disjoint_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },
@@ -748,7 +748,7 @@ begin
       ≤ (N/(N+1))^n * μ s,
     { assume n,
       induction n with n IH,
-      { simp only [le_refl, diff_empty, one_mul, Union_false, Union_empty, pow_zero] },
+      { simv only [le_refl, diff_empty, one_mul, Union_false, Union_empty, pow_zero] },
       calc
         μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n.succ), closed_ball p.fst p.snd)
             ≤ (N/(N+1)) * μ (s \ ⋃ (p : α × ℝ) (hp : p ∈ u n), closed_ball p.fst p.snd) :
@@ -761,8 +761,8 @@ begin
       rw [ennreal.div_lt_iff, one_mul],
       { conv_lhs {rw ← add_zero (N : ℝ≥0∞) },
         exact ennreal.add_lt_add_left (ennreal.nat_ne_top N) ennreal.zero_lt_one },
-      { simp only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
-      { simp only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
+      { simv only [true_or, add_eq_zero_iff, ne.def, not_false_iff, one_ne_zero, and_false] },
+      { simv only [ennreal.nat_ne_top, ne.def, not_false_iff, or_true] } },
     rw zero_mul at C,
     apply le_bot_iff.1,
     exact le_of_tendsto_of_tendsto' tendsto_const_nhds C (λ n, (A n).trans (B n)) },
@@ -830,9 +830,9 @@ begin
   { have I : ∀ (p : α × ℝ), p ∈ v → 0 ≤ p.2 :=
       λ p hp, (vg p hp).2.1.le,
     apply subset.antisymm,
-    { simp only [image_subset_iff],
+    { simv only [image_subset_iff],
       rintros ⟨x, p⟩ hxp,
-      simp only [mem_preimage],
+      simv only [mem_preimage],
       exact hr _ (mem_image_of_mem _ hxp) },
     { rintros ⟨x, p⟩ hxp,
       have hxrx : (x, r x) ∈ v := hr _ (mem_image_of_mem _ hxp),
@@ -843,7 +843,7 @@ begin
         have H := v_disj hxp hxrx A,
         contrapose H,
         rw not_disjoint_iff_nonempty_inter,
-        refine ⟨x, by simp [I _ hxp, I _ hxrx]⟩ },
+        refine ⟨x, by simv [I _ hxp, I _ hxrx]⟩ },
       rw this,
       apply mem_image_of_mem,
       exact mem_image_of_mem _ hxp } },
@@ -860,7 +860,7 @@ begin
     rw [this, im_t],
     exact μv },
   { have A : inj_on (λ x : α, (x, r x)) t,
-      by simp only [inj_on, prod.mk.inj_iff, implies_true_iff, eq_self_iff_true] {contextual := tt},
+      by simv only [inj_on, prod.mk.inj_iff, implies_true_iff, eq_self_iff_true] {contextual := tt},
     rwa [← im_t, A.pairwise_disjoint_image] at v_disj }
 end
 
@@ -900,7 +900,7 @@ begin
     has_besicovitch_covering.no_satellite_config α,
   obtain ⟨v, s'v, v_open, μv⟩ : ∃ v ⊇ s', is_open v ∧ μ v ≤ μ s' + (ε / 2) / N :=
     set.exists_is_open_le_add _ _
-      (by simp only [hε, ennreal.nat_ne_top, with_top.mul_eq_top_iff, ne.def, ennreal.div_zero_iff,
+      (by simv only [hε, ennreal.nat_ne_top, with_top.mul_eq_top_iff, ne.def, ennreal.div_zero_iff,
         ennreal.one_ne_top, not_false_iff, and_false, false_and, or_self, ennreal.bit0_eq_top_iff]),
   have : ∀ x ∈ s', ∃ r1 ∈ (f x ∩ Ioo (0 : ℝ) 1), closed_ball x r1 ⊆ v,
   { assume x hx,
@@ -930,19 +930,19 @@ begin
   have r_t0 : ∀ x ∈ t0, r x = r0 x,
   { assume x hx,
     have : ¬ (x ∈ s'),
-    { simp only [not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_lt,
+    { simv only [not_exists, exists_prop, mem_Union, mem_closed_ball, not_and, not_lt,
                   not_le, mem_diff, not_forall],
       assume h'x,
       refine ⟨x, hx, _⟩,
       rw dist_self,
       exact (hr0 x hx).2.1.le },
-    simp only [r, if_neg this] },
+    simv only [r, if_neg this] },
   -- the desired covering set is given by the union of the families constructed in the first and
   -- second steps.
   refine ⟨t0 ∪ (⋃ (i : fin N), (coe : s' → α) '' (S i)), r, _, _, _, _, _⟩,
   -- it remains to check that they have the desired properties
   { exact t0_count.union (countable_Union (λ i, (S_count i).image _)) },
-  { simp only [t0s, true_and, union_subset_iff, image_subset_iff, Union_subset_iff],
+  { simv only [t0s, true_and, union_subset_iff, image_subset_iff, Union_subset_iff],
     assume i x hx,
     exact s's x.2 },
   { assume x hx,
@@ -950,10 +950,10 @@ begin
     { rw r_t0 x hx,
       exact (hr0 _ hx).1 },
     { have h'x : x ∈ s',
-      { simp only [mem_Union, mem_image] at hx,
+      { simv only [mem_Union, mem_image] at hx,
         rcases hx with ⟨i, y, ySi, rfl⟩,
         exact y.2 },
-      simp only [r, if_pos h'x, (hr1 x h'x).1.1] } },
+      simv only [r, if_pos h'x, (hr1 x h'x).1.1] } },
   { assume x hx,
     by_cases h'x : x ∈ s',
     { obtain ⟨i, y, ySi, xy⟩ : ∃ (i : fin N) (y : ↥s') (ySi : y ∈ S i), x ∈ ball (y : α) (r1 y),
@@ -961,10 +961,10 @@ begin
           not_and, not_le, mem_set_of_eq, subtype.range_coe_subtype, mem_diff] using h'x,
         simpa only [mem_Union, mem_image] using hS A },
       refine mem_Union₂.2 ⟨y, or.inr _, _⟩,
-      { simp only [mem_Union, mem_image],
+      { simv only [mem_Union, mem_image],
         exact ⟨i, y, ySi, rfl⟩ },
       { have : (y : α) ∈ s' := y.2,
-        simp only [r, if_pos this],
+        simv only [r, if_pos this],
         exact ball_subset_closed_ball xy } },
     { obtain ⟨y, yt0, hxy⟩ : ∃ (y : α), y ∈ t0 ∧ x ∈ closed_ball y (r0 y),
         by simpa [hx, -mem_closed_ball] using h'x,
@@ -986,7 +986,7 @@ begin
       ... ≤ μ u :
         begin
           apply measure_mono,
-          simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
+          simv only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
           assume x hx,
           apply subset.trans (closed_ball_subset_ball (hr0 x hx).2.2) (hR x (t0s hx)).2,
         end
@@ -1002,7 +1002,7 @@ begin
           exact (F.tsum_eq (λ x, μ (closed_ball x (r x)))).symm,
         end
       ... = ∑' (x : S i), μ (closed_ball x (r1 x)) :
-        by { congr' 1, ext x, have : (x : α) ∈ s' := x.1.2, simp only [r, if_pos this] }
+        by { congr' 1, ext x, have : (x : α) ∈ s' := x.1.2, simv only [r, if_pos this] }
       ... = μ (⋃ (x : S i), closed_ball x (r1 x)) :
         begin
           haveI : encodable (S i) := (S_count i).to_encodable,
@@ -1013,7 +1013,7 @@ begin
       ... ≤ μ v :
         begin
           apply measure_mono,
-          simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
+          simv only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
           assume x xs' xSi,
           exact (hr1 x xs').2,
         end
@@ -1036,7 +1036,7 @@ begin
     ... ≤ (μ s + ε / 2) + ε / 2 :
       begin
         refine add_le_add le_rfl _,
-        simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul, ennreal.mul_div_le],
+        simv only [finset.card_fin, finset.sum_const, nsmul_eq_mul, ennreal.mul_div_le],
       end
     ... = μ s + ε : by rw [add_assoc, ennreal.add_halves] }
 end
@@ -1058,7 +1058,7 @@ protected def vitali_family (μ : measure α) [sigma_finite μ] :
     assume x y hy,
     obtain ⟨r, rpos, rfl⟩ : ∃ (r : ℝ), 0 < r ∧ closed_ball x r = y,
       by simpa only [mem_image, mem_Ioi] using hy,
-    simp only [nonempty.mono ball_subset_interior_closed_ball, rpos, nonempty_ball],
+    simv only [nonempty.mono ball_subset_interior_closed_ball, rpos, nonempty_ball],
   end,
   nontrivial := λ x ε εpos, ⟨closed_ball x ε, mem_image_of_mem _ εpos, subset.refl _⟩,
   covering := begin
@@ -1092,7 +1092,7 @@ lemma tendsto_filter_at (μ : measure α) [sigma_finite μ] (x : α) :
   tendsto (λ r, closed_ball x r) (𝓝[>] 0) ((besicovitch.vitali_family μ).filter_at x) :=
 begin
   assume s hs,
-  simp only [mem_map],
+  simv only [mem_map],
   obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ (a : set α),
     a ∈ (besicovitch.vitali_family μ).sets_at x → a ⊆ closed_ball x ε → a ∈ s :=
       (vitali_family.mem_filter_at_iff _).1 hs,

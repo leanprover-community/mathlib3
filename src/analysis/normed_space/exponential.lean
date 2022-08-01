@@ -86,7 +86,7 @@ noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 variables {𝕂}
 
 lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (n!⁻¹ : 𝕂) • x^n :=
-by simp [exp_series]
+by simv [exp_series]
 
 lemma exp_series_apply_eq' (x : 𝔸) :
   (λ n, exp_series 𝕂 𝔸 n (λ _, x)) = (λ n, (n!⁻¹ : 𝕂) • x^n) :=
@@ -104,10 +104,10 @@ begin
   { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
       from λ n hn, if_neg (finset.not_mem_singleton.mp hn),
     rw [exp_eq_tsum, this, tsum_eq_sum key, finset.sum_singleton],
-    simp },
+    simv },
   refine tsum_congr (λ n, _),
   split_ifs with h h;
-  simp [h]
+  simv [h]
 end
 
 @[simp] lemma exp_op [t2_space 𝔸] (x : 𝔸) :
@@ -457,7 +457,7 @@ lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → 𝔸)
 begin
   classical,
   induction s using finset.induction_on with a s ha ih,
-  { simp },
+  { simv },
   rw [finset.noncomm_prod_insert_of_not_mem _ _ _ _ ha, finset.sum_insert ha,
       exp_add_of_commute, ih],
   refine commute.sum_right _ _ _ _,

@@ -24,14 +24,14 @@ lemma continuants_aux_recurrence
   (nth_conts_aux_eq : g.continuants_aux n = ppred)
   (succ_nth_conts_aux_eq : g.continuants_aux (n + 1) = pred) :
   g.continuants_aux (n + 2) = ⟨gp.b * pred.a + gp.a * ppred.a, gp.b * pred.b + gp.a * ppred.b⟩ :=
-by simp [*, continuants_aux, next_continuants, next_denominator, next_numerator]
+by simv [*, continuants_aux, next_continuants, next_denominator, next_numerator]
 
 lemma continuants_recurrence_aux
   {gp ppred pred : pair K} (nth_s_eq : g.s.nth n = some gp)
   (nth_conts_aux_eq : g.continuants_aux n = ppred)
   (succ_nth_conts_aux_eq : g.continuants_aux (n + 1) = pred) :
   g.continuants (n + 1) = ⟨gp.b * pred.a + gp.a * ppred.a, gp.b * pred.b + gp.a * ppred.b⟩ :=
-by simp [nth_cont_eq_succ_nth_cont_aux,
+by simv [nth_cont_eq_succ_nth_cont_aux,
   (continuants_aux_recurrence nth_s_eq nth_conts_aux_eq succ_nth_conts_aux_eq)]
 
 /-- Shows that `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂` and `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`. -/

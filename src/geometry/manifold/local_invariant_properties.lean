@@ -173,7 +173,7 @@ lemma lift_prop_within_at_univ : lift_prop_within_at P g univ x ↔ lift_prop_at
 iff.rfl
 
 lemma lift_prop_on_univ : lift_prop_on P g univ ↔ lift_prop P g :=
-by simp [lift_prop_on, lift_prop, lift_prop_at]
+by simv [lift_prop_on, lift_prop, lift_prop_at]
 
 namespace local_invariant_prop
 
@@ -214,9 +214,9 @@ begin
     exact hgs.comp (e.symm.continuous_at $ e.maps_to xe).continuous_within_at subset.rfl },
   have A : P ((f.symm ≫ₕ f') ∘ (f ∘ g ∘ e.symm)) (e.symm ⁻¹' s) (e x),
   { refine hG.left_invariance (compatible_of_mem_maximal_atlas hf hf') hcont
-      (by simp only [xe, xf, xf'] with mfld_simps) h },
+      (by simv only [xe, xf, xf'] with mfld_simps) h },
   have B : P (f' ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x),
-  { refine hG.congr_nhds_within _ (by simp only [xe, xf] with mfld_simps) A,
+  { refine hG.congr_nhds_within _ (by simv only [xe, xf] with mfld_simps) A,
     simp_rw [local_homeomorph.coe_trans, eventually_eq],
     have := (e.eventually_nhds_within' _ xe).mpr (hgs.eventually $ f.eventually_left_inverse xf),
     exact this.mono (λ y, congr_arg f') },
@@ -224,13 +224,13 @@ begin
   let ow := w.symm ⁻¹' (e.symm ⁻¹' s),
   have wG : w ∈ G := compatible_of_mem_maximal_atlas he he',
   have C : P ((f' ∘ g ∘ e.symm) ∘ w.symm) ow (w (e x)) :=
-    hG.right_invariance wG (by simp only [w, xe, xe'] with mfld_simps) B,
-  have : ∀ y ∈ e.source, w (e y) = e' y := λ y hy, by simp only [w, hy] with mfld_simps,
+    hG.right_invariance wG (by simv only [w, xe, xe'] with mfld_simps) B,
+  have : ∀ y ∈ e.source, w (e y) = e' y := λ y hy, by simv only [w, hy] with mfld_simps,
   rw [this x xe] at C,
   have D : P (f' ∘ g ∘ e'.symm) ow (e' x),
   { refine hG.congr _ C,
     refine ((e'.eventually_nhds' _ xe').mpr $ e.eventually_left_inverse xe).mono (λ y hy, _),
-    simp only [w] with mfld_simps,
+    simv only [w] with mfld_simps,
     rw [hy] },
   refine (hG.congr_set _).2 D,
   refine (eventually_of_mem _ $ λ y (hy : y ∈ e'.symm ⁻¹' e.source), _).set_eq,
@@ -305,7 +305,7 @@ lemma lift_prop_of_locally_lift_prop_on (h : ∀ x, ∃ u, is_open u ∧ x ∈ u
 begin
   rw ← lift_prop_on_univ,
   apply hG.lift_prop_on_of_locally_lift_prop_on (λ x hx, _),
-  simp [h x],
+  simv [h x],
 end
 
 lemma lift_prop_within_at_congr_of_eventually_eq
@@ -361,8 +361,8 @@ lemma lift_prop_within_at_mono
 begin
   refine ⟨h.1.mono hst, _⟩,
   apply mono (λ y hy, _) h.2,
-  simp only with mfld_simps at hy,
-  simp only [hy, hst _] with mfld_simps,
+  simv only with mfld_simps at hy,
+  simv only [hy, hst _] with mfld_simps,
 end
 
 lemma lift_prop_within_at_of_lift_prop_at
@@ -413,11 +413,11 @@ begin
   suffices h : Q (e ∘ e.symm) univ x,
   { have A : e.symm ⁻¹' e.source ∩ e.target = e.target,
       by mfld_set_tac,
-    have : e.symm x ∈ e.source, by simp only [hx] with mfld_simps,
+    have : e.symm x ∈ e.source, by simv only [hx] with mfld_simps,
     rw [lift_prop_at,
       hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
     refine ⟨(e.symm.continuous_at hx).continuous_within_at, _⟩,
-    simp only [h] with mfld_simps },
+    simv only [h] with mfld_simps },
   exact hG.congr' (e.eventually_right_inverse hx) (hQ x)
 end
 
@@ -443,7 +443,7 @@ hG.lift_prop_on_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x)
 lemma lift_prop_at_chart_symm [has_groupoid M G]
   (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
   lift_prop_at Q (chart_at H x).symm ((chart_at H x) x) :=
-hG.lift_prop_at_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x) (by simp)
+hG.lift_prop_at_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x) (by simv)
 
 lemma lift_prop_on_chart_symm [has_groupoid M G]
   (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
@@ -487,7 +487,7 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
       { exact closed_under_restriction' heG (is_open_interior) },
       { have : s ∩ u ∩ e.source = s ∩ (e.source ∩ u) := by mfld_set_tac,
         simpa only [this, interior_interior, hu.interior_eq] with mfld_simps using hef },
-      { simp only [*, interior_interior, hu.interior_eq] with mfld_simps } }
+      { simv only [*, interior_interior, hu.interior_eq] with mfld_simps } }
   end,
   right_invariance := begin
     intros s x f e' he'G he'x h hx,
@@ -495,9 +495,9 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
     rcases h hxs with ⟨e, heG, hef, hex⟩,
     refine ⟨e'.symm.trans e, G.trans (G.symm he'G) heG, _, _⟩,
     { intros y hy,
-      simp only with mfld_simps at hy,
-      simp only [hef ⟨hy.1, hy.2.2⟩] with mfld_simps },
-    { simp only [hex, he'x] with mfld_simps }
+      simv only with mfld_simps at hy,
+      simv only [hef ⟨hy.1, hy.2.2⟩] with mfld_simps },
+    { simv only [hex, he'x] with mfld_simps }
   end,
   congr_of_forall := begin
     intros s x f g hfgs hfg' h hx,
@@ -511,8 +511,8 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
     rcases h hx with ⟨e, heG, hef, hex⟩,
     refine ⟨e.trans e', G.trans heG he'G, _, _⟩,
     { intros y hy,
-      simp only with mfld_simps at hy,
-      simp only [hef ⟨hy.1, hy.2.1⟩] with mfld_simps },
+      simv only with mfld_simps at hy,
+      simv only [hef ⟨hy.1, hy.2.1⟩] with mfld_simps },
     { simpa only [hex, hef ⟨hx, hex⟩] with mfld_simps using hfx }
   end }
 

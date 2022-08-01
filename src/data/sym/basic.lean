@@ -57,7 +57,7 @@ variables {α β : Type*} {n : ℕ} {s : sym α n} {a b : α}
 
 lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
 
-@[simp, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
+@[simv, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
 coe_injective.eq_iff
 
 /--
@@ -216,7 +216,7 @@ eq_repeat.2 $ λ b hb, subsingleton.elim _ _
 instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
 ⟨begin
   cases n,
-  { simp, },
+  { simv, },
   { intros s s',
     obtain ⟨b, -⟩ := exists_mem s,
     rw [eq_repeat_of_subsingleton b s', eq_repeat_of_subsingleton b s], },
@@ -250,29 +250,29 @@ def map {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 @[simp] lemma mem_map {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
-/-- Note: `sym.map_id` is not simp-normal, as simp ends up unfolding `id` with `sym.map_congr` -/
+/-- Note: `sym.map_id` is not simv-normal, as simv ends up unfolding `id` with `sym.map_congr` -/
 @[simp] lemma map_id' {α : Type*} {n : ℕ} (s : sym α n) : sym.map (λ (x : α), x) s = s :=
-by simp [sym.map]
+by simv [sym.map]
 
 lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
-by simp [sym.map]
+by simv [sym.map]
 
 @[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
   sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
-by simp [sym.map]
+by simv [sym.map]
 
 @[simp] lemma map_zero (f : α → β) :
   sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
 
 @[simp] lemma map_cons {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
   (a ::ₛ s).map f = (f a) ::ₛ s.map f :=
-by simp [map, cons]
+by simv [map, cons]
 
 @[congr] lemma map_congr {f g : α → β} {s : sym α n} (h : ∀ x ∈ s, f x = g x) :
   map f s = map g s := subtype.ext $ multiset.map_congr rfl h
 
 @[simp] lemma map_mk {f : α → β} {m : multiset α} {hc : m.card = n} :
-  map f (mk m hc) = mk (m.map f) (by simp [hc]) := rfl
+  map f (mk m hc) = mk (m.map f) (by simv [hc]) := rfl
 
 @[simp] lemma coe_map (s : sym α n) (f : α → β) : ↑(s.map f) = multiset.map f s := rfl
 
@@ -347,8 +347,8 @@ else sum.inr (s.attach.map $ λ o,
   decode (encode s) = s :=
 begin
   by_cases h : none ∈ s,
-  { simp [h] },
-  { simp only [h, decode, not_false_iff, subtype.val_eq_coe, encode_of_not_none_mem,
+  { simv [h] },
+  { simv only [h, decode, not_false_iff, subtype.val_eq_coe, encode_of_not_none_mem,
       embedding.coe_option_apply, map_map, comp_app, option.coe_get],
     convert s.attach_map_coe }
 end
@@ -357,14 +357,14 @@ end
   encode (decode s) = s :=
 begin
   obtain (s | s) := s,
-  { simp },
+  { simv },
   { unfold sym_option_succ_equiv.encode,
     split_ifs,
     { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
       exact option.some_ne_none _ ha },
     { refine map_injective (option.some_injective _) _ _,
       convert eq.trans _ (sym_option_succ_equiv.decode (sum.inr s)).attach_map_coe,
-      simp } }
+      simv } }
 end
 
 end sym_option_succ_equiv

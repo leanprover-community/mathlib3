@@ -19,7 +19,7 @@ begin
   apply exp_approx_start,
   iterate 13 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
   norm_num1,
-  refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
+  refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simv) _,
   rw [_root_.abs_one, abs_of_pos]; norm_num1,
 end
 
@@ -28,7 +28,7 @@ begin
   apply exp_approx_start,
   iterate 21 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
   norm_num1,
-  refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
+  refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simv) _,
   rw [_root_.abs_one, abs_of_pos]; norm_num1,
 end
 

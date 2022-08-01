@@ -100,7 +100,7 @@ congr_arg (λ x : Π i, M₁ i, f x) h
 theorem coe_injective : injective  (coe_fn : multilinear_map R M₁ M₂ → ((Π i, M₁ i) → M₂)) :=
 by { intros f g h, cases f, cases g, cases h, refl }
 
-@[simp, norm_cast] theorem coe_inj {f g : multilinear_map R M₁ M₂} :
+@[simv, norm_cast] theorem coe_inj {f g : multilinear_map R M₁ M₂} :
   (f : (Π i, M₁ i) → M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
@@ -124,7 +124,7 @@ f.map_smul' m i c x
 
 lemma map_coord_zero {m : Πi, M₁ i} (i : ι) (h : m i = 0) : f m = 0 :=
 begin
-  have : (0 : R) • (0 : M₁ i) = 0, by simp,
+  have : (0 : R) • (0 : M₁ i) = 0, by simv,
   rw [← update_eq_self i m, h, ← this, f.map_smul, zero_smul]
 end
 
@@ -138,13 +138,13 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm, add_assoc],
-  λm i c x, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simv [add_left_comm, add_assoc],
+  λm i c x, by simv [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
 instance : has_zero (multilinear_map R M₁ M₂) :=
-⟨⟨λ _, 0, λm i x y, by simp, λm i c x, by simp⟩⟩
+⟨⟨λ _, 0, λm i x y, by simv, λm i c x, by simv⟩⟩
 
 instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
@@ -155,7 +155,7 @@ variables {R' A : Type*} [monoid R'] [semiring A]
   [Π i, module A (M₁ i)] [distrib_mul_action R' M₂] [module A M₂] [smul_comm_class A R' M₂]
 
 instance : has_smul R' (multilinear_map A M₁ M₂) := ⟨λ c f,
-  ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
+  ⟨λ m, c • f m, λm i x y, by simv [smul_add], λl i x d, by simv [←smul_comm x c] ⟩⟩
 
 @[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
   (c • f) m = c • f m := rfl
@@ -173,23 +173,23 @@ coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 begin
   classical,
   apply finset.induction,
-  { rw finset.sum_empty, simp },
-  { assume a s has H, rw finset.sum_insert has, simp [H, has] }
+  { rw finset.sum_empty, simv },
+  { assume a s has H, rw finset.sum_insert has, simv [H, has] }
 end
 
 /-- If `f` is a multilinear map, then `f.to_linear_map m i` is the linear map obtained by fixing all
 coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/
 @[simps] def to_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
 { to_fun    := λx, f (update m i x),
-  map_add'  := λx y, by simp,
-  map_smul' := λc x, by simp }
+  map_add'  := λx y, by simv,
+  map_smul' := λc x, by simv }
 
 /-- The cartesian product of two multilinear maps, as a multilinear map. -/
 def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
   multilinear_map R M₁ (M₂ × M₃) :=
 { to_fun    := λ m, (f m, g m),
-  map_add'  := λ m i x y, by simp,
-  map_smul' := λ m i c x, by simp }
+  map_add'  := λ m i x y, by simv,
+  map_smul' := λ m i c x, by simv }
 
 /-- Combine a family of multilinear maps with the same domain and codomains `M' i` into a
 multilinear map taking values in the space of functions `Π i, M' i`. -/
@@ -209,9 +209,9 @@ variables (R M₂)
 def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, M₂) M₂ :=
 { to_fun := function.eval i',
   map_add' := λ m i x y, by
-  { rw subsingleton.elim i i', simp only [function.eval, function.update_same], },
+  { rw subsingleton.elim i i', simv only [function.eval, function.update_same], },
   map_smul' := λ m i r x, by
-  { rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
+  { rw subsingleton.elim i i', simv only [function.eval, function.update_same], } }
 
 variables {M₂}
 
@@ -234,8 +234,8 @@ def restr {k n : ℕ} (f : multilinear_map R (λ i : fin n, M') M₂) (s : finse
   multilinear_map R (λ i : fin k, M') M₂ :=
 { to_fun    := λ v, f (λ j, if h : j ∈ s then v ((s.order_iso_of_fin hk).symm ⟨j, h⟩) else z),
   map_add'  := λ v i x y,
-    by { erw [dite_comp_equiv_update, dite_comp_equiv_update, dite_comp_equiv_update], simp },
-  map_smul' := λ v i c x, by { erw [dite_comp_equiv_update, dite_comp_equiv_update], simp } }
+    by { erw [dite_comp_equiv_update, dite_comp_equiv_update, dite_comp_equiv_update], simv },
+  map_smul' := λ v i c x, by { erw [dite_comp_equiv_update, dite_comp_equiv_update], simv } }
 variable {R}
 
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
@@ -281,11 +281,11 @@ def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[
   map_add' := λ m i x y,
     have ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
       λ j z, function.apply_update (λ k, f k) _ _ _ _,
-    by simp [this],
+    by simv [this],
   map_smul' := λ m i c x,
     have ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
       λ j z, function.apply_update (λ k, f k) _ _ _ _,
-    by simp [this] }
+    by simv [this] }
 
 @[simp] lemma comp_linear_map_apply (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i)
   (m : Π i, M₁ i) :
@@ -339,29 +339,29 @@ lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
   f (t.piecewise (m + m') m') = ∑ s in t.powerset, f (s.piecewise m m') :=
 begin
   revert m',
-  refine finset.induction_on t (by simp) _,
+  refine finset.induction_on t (by simv) _,
   assume i t hit Hrec m',
   have A : (insert i t).piecewise (m + m') m' = update (t.piecewise (m + m') m') i (m i + m' i) :=
     t.piecewise_insert _ _ _,
   have B : update (t.piecewise (m + m') m') i (m' i) = t.piecewise (m + m') m',
   { ext j,
     by_cases h : j = i,
-    { rw h, simp [hit] },
-    { simp [h] } },
+    { rw h, simv [hit] },
+    { simv [h] } },
   let m'' := update m' i (m i),
   have C : update (t.piecewise (m + m') m') i (m i) = t.piecewise (m + m'') m'',
   { ext j,
     by_cases h : j = i,
-    { rw h, simp [m'', hit] },
-    { by_cases h' : j ∈ t; simp [h, hit, m'', h'] } },
+    { rw h, simv [m'', hit] },
+    { by_cases h' : j ∈ t; simv [h, hit, m'', h'] } },
   rw [A, f.map_add, B, C, finset.sum_powerset_insert hit, Hrec, Hrec, add_comm],
   congr' 1,
   apply finset.sum_congr rfl (λs hs, _),
   have : (insert i s).piecewise m m' = s.piecewise m m'',
   { ext j,
     by_cases h : j = i,
-    { rw h, simp [m'', finset.not_mem_of_mem_powerset_of_not_mem hs hit] },
-    { by_cases h' : j ∈ s; simp [h, m'', h'] } },
+    { rw h, simv [m'', finset.not_mem_of_mem_powerset_of_not_mem hs hit] },
+    { by_cases h' : j ∈ s; simv [h, m'', h'] } },
   rw this
 end
 
@@ -403,7 +403,7 @@ begin
   by_cases Ai_singleton : ∀ i, (A i).card ≤ 1,
   { have Ai_card : ∀ i, (A i).card = 1,
     { assume i,
-      have pos : finset.card (A i) ≠ 0, by simp [finset.card_eq_zero, Ai_empty i],
+      have pos : finset.card (A i) ≠ 0, by simv [finset.card_eq_zero, Ai_empty i],
       have : finset.card (A i) ≤ 1 := Ai_singleton i,
       exact le_antisymm this (nat.succ_le_of_lt (_root_.pos_iff_ne_zero.mpr pos)) },
     have : ∀ (r : Π i, α i), r ∈ pi_finset A → f (λ i, g i (r i)) = f (λ i, ∑ j in A i, g i j),
@@ -415,9 +415,9 @@ begin
         congr,
         apply finset.card_le_one_iff.1 (Ai_singleton i) hj,
         exact mem_pi_finset.mp hr i },
-      simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
+      simv only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
                  one_nsmul] },
-    simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, one_nsmul,
+    simv only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, one_nsmul,
                finset.sum_const] },
   -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
   -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`
@@ -432,52 +432,52 @@ begin
   have B_subset_A : ∀ i, B i ⊆ A i,
   { assume i,
     by_cases hi : i = i₀,
-    { rw hi, simp only [B, sdiff_subset, update_same]},
-    { simp only [hi, B, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
+    { rw hi, simv only [B, sdiff_subset, update_same]},
+    { simv only [hi, B, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
   have C_subset_A : ∀ i, C i ⊆ A i,
   { assume i,
     by_cases hi : i = i₀,
-    { rw hi, simp only [C, hj₂, finset.singleton_subset_iff, update_same] },
-    { simp only [hi, C, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
+    { rw hi, simv only [C, hj₂, finset.singleton_subset_iff, update_same] },
+    { simv only [hi, C, update_noteq, ne.def, not_false_iff, finset.subset.refl] } },
   -- split the sum at `i₀` as the sum over `B i₀` plus the sum over `C i₀`, to use additivity.
   have A_eq_BC : (λ i, ∑ j in A i, g i j) =
     function.update (λ i, ∑ j in A i, g i j) i₀ (∑ j in B i₀, g i₀ j + ∑ j in C i₀, g i₀ j),
   { ext i,
     by_cases hi : i = i₀,
     { rw [hi],
-      simp only [function.update_same],
+      simv only [function.update_same],
       have : A i₀ = B i₀ ∪ C i₀,
-      { simp only [B, C, function.update_same, finset.sdiff_union_self_eq_union],
+      { simv only [B, C, function.update_same, finset.sdiff_union_self_eq_union],
         symmetry,
-        simp only [hj₂, finset.singleton_subset_iff, finset.union_eq_left_iff_subset] },
+        simv only [hj₂, finset.singleton_subset_iff, finset.union_eq_left_iff_subset] },
       rw this,
       apply finset.sum_union,
       apply finset.disjoint_right.2 (λ j hj, _),
       have : j = j₂, by { dsimp [C] at hj, simpa using hj },
       rw this,
       dsimp [B],
-      simp only [mem_sdiff, eq_self_iff_true, not_true, not_false_iff, finset.mem_singleton,
+      simv only [mem_sdiff, eq_self_iff_true, not_true, not_false_iff, finset.mem_singleton,
                  update_same, and_false] },
-    { simp [hi] } },
+    { simv [hi] } },
   have Beq : function.update (λ i, ∑ j in A i, g i j) i₀ (∑ j in B i₀, g i₀ j) =
     (λ i, ∑ j in B i, g i j),
   { ext i,
     by_cases hi : i = i₀,
-    { rw hi, simp only [update_same] },
-    { simp only [hi, B, update_noteq, ne.def, not_false_iff] } },
+    { rw hi, simv only [update_same] },
+    { simv only [hi, B, update_noteq, ne.def, not_false_iff] } },
   have Ceq : function.update (λ i, ∑ j in A i, g i j) i₀ (∑ j in C i₀, g i₀ j) =
     (λ i, ∑ j in C i, g i j),
   { ext i,
     by_cases hi : i = i₀,
-    { rw hi, simp only [update_same] },
-    { simp only [hi, C, update_noteq, ne.def, not_false_iff] } },
+    { rw hi, simv only [update_same] },
+    { simv only [hi, C, update_noteq, ne.def, not_false_iff] } },
   -- Express the inductive assumption for `B`
   have Brec : f (λ i, ∑ j in B i, g i j) = ∑ r in pi_finset B, f (λ i, g i (r i)),
   { have : ∑ i, finset.card (B i) < ∑ i, finset.card (A i),
     { refine finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (B_subset_A i))
         ⟨i₀, finset.mem_univ _, _⟩,
-      have : {j₂} ⊆ A i₀, by simp [hj₂],
-      simp only [B, finset.card_sdiff this, function.update_same, finset.card_singleton],
+      have : {j₂} ⊆ A i₀, by simv [hj₂],
+      simv only [B, finset.card_sdiff this, function.update_same, finset.card_singleton],
       exact nat.pred_lt (ne_of_gt (lt_trans nat.zero_lt_one hi₀)) },
     rw h at this,
     exact IH _ this B rfl },
@@ -485,11 +485,11 @@ begin
   have Crec : f (λ i, ∑ j in C i, g i j) = ∑ r in pi_finset C, f (λ i, g i (r i)),
   { have : ∑ i, finset.card (C i) < ∑ i, finset.card (A i) :=
       finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (C_subset_A i))
-        ⟨i₀, finset.mem_univ _, by simp [C, hi₀]⟩,
+        ⟨i₀, finset.mem_univ _, by simv [C, hi₀]⟩,
     rw h at this,
     exact IH _ this C rfl },
   have D : disjoint (pi_finset B) (pi_finset C),
-  { have : disjoint (B i₀) (C i₀), by simp [B, C],
+  { have : disjoint (B i₀) (C i₀), by simv [B, C],
     exact pi_finset_disjoint_of_disjoint B C this },
   have pi_BC : pi_finset A = pi_finset B ∪ pi_finset C,
   { apply finset.subset.antisymm,
@@ -498,20 +498,20 @@ begin
       { apply finset.mem_union_right,
         apply mem_pi_finset.2 (λ i, _),
         by_cases hi : i = i₀,
-        { have : r i₀ ∈ C i₀, by simp [C, hri₀],
+        { have : r i₀ ∈ C i₀, by simv [C, hri₀],
           convert this },
-        { simp [C, hi, mem_pi_finset.1 hr i] } },
+        { simv [C, hi, mem_pi_finset.1 hr i] } },
       { apply finset.mem_union_left,
         apply mem_pi_finset.2 (λ i, _),
         by_cases hi : i = i₀,
         { have : r i₀ ∈ B i₀,
-            by simp [B, hri₀, mem_pi_finset.1 hr i₀],
+            by simv [B, hri₀, mem_pi_finset.1 hr i₀],
           convert this },
-        { simp [B, hi, mem_pi_finset.1 hr i] } } },
+        { simv [B, hi, mem_pi_finset.1 hr i] } } },
     { exact finset.union_subset (pi_finset_subset _ _ (λ i, B_subset_A i))
         (pi_finset_subset _ _ (λ i, C_subset_A i)) } },
   rw A_eq_BC,
-  simp only [multilinear_map.map_add, Beq, Ceq, Brec, Crec, pi_BC],
+  simv only [multilinear_map.map_add, Beq, Ceq, Brec, Crec, pi_BC],
   rw ← finset.sum_union D,
 end
 
@@ -534,8 +534,8 @@ lemma map_update_sum {α : Type*} (t : finset α) (i : ι) (g : α → M₁ i) (
   f (update m i (∑ a in t, g a)) = ∑ a in t, f (update m i (g a)) :=
 begin
   induction t using finset.induction with a t has ih h,
-  { simp },
-  { simp [finset.sum_insert has, ih] }
+  { simv },
+  { simv [finset.sum_insert has, ih] }
 end
 
 end apply_sum
@@ -598,9 +598,9 @@ def dom_dom_congr_equiv (σ : ι₁ ≃ ι₂) :
   multilinear_map R (λ i : ι₁, M₂) M₃ ≃+ multilinear_map R (λ i : ι₂, M₂) M₃ :=
 { to_fun := dom_dom_congr σ,
   inv_fun := dom_dom_congr σ.symm,
-  left_inv := λ m, by {ext, simp},
-  right_inv := λ m, by {ext, simp},
-  map_add' := λ a b, by {ext, simp} }
+  left_inv := λ m, by {ext, simv},
+  right_inv := λ m, by {ext, simv},
+  map_add' := λ a b, by {ext, simv} }
 
 /-- The results of applying `dom_dom_congr` to two maps are equal if
 and only if those maps are. -/
@@ -623,8 +623,8 @@ variables [semiring R]
 def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
   multilinear_map R M₁ M₃ :=
 { to_fun    := g ∘ f,
-  map_add'  := λ m i x y, by simp,
-  map_smul' := λ m i c x, by simp }
+  map_add'  := λ m i x y, by simv,
+  map_smul' := λ m i c x, by simv }
 
 @[simp] lemma coe_comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
   ⇑(g.comp_multilinear_map f) = g ∘ f := rfl
@@ -652,7 +652,7 @@ variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
 @[simp] lemma comp_multilinear_map_dom_dom_congr (σ : ι₁ ≃ ι₂) (g : M₂ →ₗ[R] M₃)
   (f : multilinear_map R (λ i : ι₁, M') M₂) :
   (g.comp_multilinear_map f).dom_dom_congr σ = g.comp_multilinear_map (f.dom_dom_congr σ) :=
-by { ext, simp }
+by { ext, simv }
 
 end linear_map
 
@@ -671,16 +671,16 @@ require the index set `ι` to be finite. -/
 lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
   f (s.piecewise (λi, c i • m i) m) = (∏ i in s, c i) • f m :=
 begin
-  refine s.induction_on (by simp) _,
+  refine s.induction_on (by simv) _,
   assume j s j_not_mem_s Hrec,
   have A : function.update (s.piecewise (λi, c i • m i) m) j (m j) =
            s.piecewise (λi, c i • m i) m,
   { ext i,
     by_cases h : i = j,
-    { rw h, simp [j_not_mem_s] },
-    { simp [h] } },
+    { rw h, simv [j_not_mem_s] },
+    { simv [h] } },
   rw [s.piecewise_insert, f.map_smul, A, Hrec],
-  simp [j_not_mem_s, mul_smul]
+  simv [j_not_mem_s, mul_smul]
 end
 
 /-- Multiplicativity of a multilinear map along all coordinates at the same time,
@@ -731,7 +731,7 @@ variables (M₂ M₃ R' A)
 @[simps apply symm_apply]
 def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq ι₂] (σ : ι₁ ≃ ι₂) :
   multilinear_map A (λ i : ι₁, M₂) M₃ ≃ₗ[R'] multilinear_map A (λ i : ι₂, M₂) M₃ :=
-{ map_smul' := λ c f, by { ext, simp },
+{ map_smul' := λ c f, by { ext, simv },
   .. (dom_dom_congr_equiv σ : multilinear_map A (λ i : ι₁, M₂) M₃ ≃+
         multilinear_map A (λ i : ι₂, M₂) M₃) }
 
@@ -747,13 +747,13 @@ def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι
       begin
         rw ← σ.apply_symm_apply i,
         intros x y,
-        simp only [comp_app, Pi_congr_left'_symm_update, f.map_add],
+        simv only [comp_app, Pi_congr_left'_symm_update, f.map_add],
       end,
     map_smul' := λ m i c,
       begin
         rw ← σ.apply_symm_apply i,
         intros x,
-        simp only [comp_app, Pi_congr_left'_symm_update, f.map_smul],
+        simv only [comp_app, Pi_congr_left'_symm_update, f.map_smul],
       end, },
   inv_fun   := λ f,
   { to_fun    := f ∘ (σ.Pi_congr_left' M₁),
@@ -761,18 +761,18 @@ def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι
     begin
       rw ← σ.symm_apply_apply i,
       intros x y,
-      simp only [comp_app, Pi_congr_left'_update, f.map_add],
+      simv only [comp_app, Pi_congr_left'_update, f.map_add],
     end,
     map_smul' := λ m i c,
     begin
       rw ← σ.symm_apply_apply i,
       intros x,
-      simp only [comp_app, Pi_congr_left'_update, f.map_smul],
+      simv only [comp_app, Pi_congr_left'_update, f.map_smul],
     end, },
-  map_add'  := λ f₁ f₂, by { ext, simp only [comp_app, coe_mk, add_apply], },
-  map_smul' := λ c f, by { ext, simp only [comp_app, coe_mk, smul_apply, ring_hom.id_apply], },
-  left_inv  := λ f, by { ext, simp only [comp_app, coe_mk, equiv.symm_apply_apply], },
-  right_inv := λ f, by { ext, simp only [comp_app, coe_mk, equiv.apply_symm_apply], }, }
+  map_add'  := λ f₁ f₂, by { ext, simv only [comp_app, coe_mk, add_apply], },
+  map_smul' := λ c f, by { ext, simv only [comp_app, coe_mk, smul_apply, ring_hom.id_apply], },
+  left_inv  := λ f, by { ext, simv only [comp_app, coe_mk, equiv.symm_apply_apply], },
+  right_inv := λ f, by { ext, simv only [comp_app, coe_mk, equiv.apply_symm_apply], }, }
 
 /-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
 to an empty family. -/
@@ -797,8 +797,8 @@ See also `multilinear_map.mk_pi_algebra_fin` for a version that works with a non
 algebra `A` but requires `ι = fin n`. -/
 protected def mk_pi_algebra : multilinear_map R (λ i : ι, A) A :=
 { to_fun := λ m, ∏ i, m i,
-  map_add' := λ m i x y, by simp [finset.prod_update_of_mem, add_mul],
-  map_smul' := λ m i c x, by simp [finset.prod_update_of_mem] }
+  map_add' := λ m i x y, by simv [finset.prod_update_of_mem, add_mul],
+  map_smul' := λ m i c x, by simv [finset.prod_update_of_mem] }
 
 variables {R A ι}
 
@@ -824,7 +824,7 @@ protected def mk_pi_algebra_fin : multilinear_map R (λ i : fin n, A) A :=
       intros m i x y,
       have : (list.fin_range n).index_of i < n,
         by simpa using list.index_of_lt_length.2 (list.mem_fin_range i),
-      simp [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, add_mul,
+      simv [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, add_mul,
         this, mul_add, add_mul]
     end,
   map_smul' :=
@@ -832,7 +832,7 @@ protected def mk_pi_algebra_fin : multilinear_map R (λ i : fin n, A) A :=
       intros m i c x,
       have : (list.fin_range n).index_of i < n,
         by simpa using list.index_of_lt_length.2 (list.mem_fin_range i),
-      simp [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, this]
+      simv [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, this]
     end }
 
 variables {R A n}
@@ -843,7 +843,7 @@ rfl
 
 lemma mk_pi_algebra_fin_apply_const (a : A) :
   multilinear_map.mk_pi_algebra_fin R n A (λ _, a) = a ^ n :=
-by simp
+by simv
 
 end
 
@@ -873,7 +873,7 @@ lemma mk_pi_ring_apply_one_eq_self [fintype ι]  (f : multilinear_map R (λ(i : 
   multilinear_map.mk_pi_ring R ι (f (λi, 1)) = f :=
 begin
   ext m,
-  have : m = (λi, m i • 1), by { ext j, simp },
+  have : m = (λi, m i • 1), by { ext j, simv },
   conv_rhs { rw [this, f.map_smul_univ] },
   refl
 end
@@ -887,15 +887,15 @@ variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_group M₂]
 (f g : multilinear_map R M₁ M₂)
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
-⟨λ f, ⟨λ m, - f m, λm i x y, by simp [add_comm], λm i c x, by simp⟩⟩
+⟨λ f, ⟨λ m, - f m, λm i x y, by simv [add_comm], λm i c x, by simv⟩⟩
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
 instance : has_sub (multilinear_map R M₁ M₂) :=
 ⟨λ f g,
   ⟨λ m, f m - g m,
-   λ m i x y, by { simp only [multilinear_map.map_add, sub_eq_add_neg, neg_add], cc },
-   λ m i c x, by { simp only [multilinear_map.map_smul, smul_sub] }⟩⟩
+   λ m i x y, by { simv only [multilinear_map.map_add, sub_eq_add_neg, neg_add], cc },
+   λ m i c x, by { simv only [multilinear_map.map_smul, smul_sub] }⟩⟩
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - g) m = f m - g m := rfl
 
@@ -906,13 +906,13 @@ by refine
   neg := has_neg.neg,
   sub := has_sub.sub,
   sub_eq_add_neg := _,
-  nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  zsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simv [smul_add], λl i x d, by simv [←smul_comm x n] ⟩,
+  zsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simv [smul_add], λl i x d, by simv [←smul_comm x n] ⟩,
   zsmul_zero' := _,
   zsmul_succ' := _,
   zsmul_neg' := _,
   .. multilinear_map.add_comm_monoid, .. };
-intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
+intros; ext; simv [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
 
 end range_add_comm_group
 
@@ -944,9 +944,9 @@ We register this bijection as a linear equivalence in `multilinear_map.pi_ring_e
 protected def pi_ring_equiv [fintype ι]  : M₂ ≃ₗ[R] (multilinear_map R (λ(i : ι), R) M₂) :=
 { to_fun    := λ z, multilinear_map.mk_pi_ring R ι z,
   inv_fun   := λ f, f (λi, 1),
-  map_add'  := λ z z', by { ext m, simp [smul_add] },
-  map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
-  left_inv  := λ z, by simp,
+  map_add'  := λ z z', by { ext m, simv [smul_add] },
+  map_smul' := λ c z, by { ext m, simv [smul_smul, mul_comm] },
+  left_inv  := λ z, by simv,
   right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
 
 end comm_semiring
@@ -1016,8 +1016,8 @@ def multilinear_map.curry_left
   M 0 →ₗ[R] (multilinear_map R (λ(i : fin n), M i.succ) M₂) :=
 { to_fun := λx,
   { to_fun    := λm, f (cons x m),
-    map_add'  := λm i y y', by simp,
-    map_smul' := λm i y c, by simp },
+    map_add'  := λm i y y', by simv,
+    map_smul' := λm i y c, by simv },
   map_add' := λx y, by { ext m, exact cons_add f m x y },
   map_smul' := λc x, by { ext m, exact cons_smul f m c x } }
 
@@ -1030,14 +1030,14 @@ def multilinear_map.curry_left
   f.uncurry_left.curry_left = f :=
 begin
   ext m x,
-  simp only [tail_cons, linear_map.uncurry_left_apply, multilinear_map.curry_left_apply],
+  simv only [tail_cons, linear_map.uncurry_left_apply, multilinear_map.curry_left_apply],
   rw cons_zero
 end
 
 @[simp] lemma multilinear_map.uncurry_curry_left
   (f : multilinear_map R M M₂) :
   f.curry_left.uncurry_left = f :=
-by { ext m, simp, }
+by { ext m, simv, }
 
 variables (R M M₂)
 
@@ -1110,7 +1110,7 @@ def multilinear_map.curry_right (f : multilinear_map R M M₂) :
 { to_fun := λm,
   { to_fun    := λx, f (snoc m x),
     map_add'  := λx y, by rw f.snoc_add,
-    map_smul' := λc x, by simp only [f.snoc_smul, ring_hom.id_apply] },
+    map_smul' := λc x, by simv only [f.snoc_smul, ring_hom.id_apply] },
   map_add' := λm i x y, begin
     ext z,
     change f (snoc (update m i (x + y)) z)
@@ -1132,13 +1132,13 @@ def multilinear_map.curry_right (f : multilinear_map R M M₂) :
   f.uncurry_right.curry_right = f :=
 begin
   ext m x,
-  simp only [snoc_last, multilinear_map.curry_right_apply, multilinear_map.uncurry_right_apply],
+  simv only [snoc_last, multilinear_map.curry_right_apply, multilinear_map.uncurry_right_apply],
   rw init_snoc
 end
 
 @[simp] lemma multilinear_map.uncurry_curry_right
   (f : multilinear_map R M M₂) : f.curry_right.uncurry_right = f :=
-by { ext m, simp }
+by { ext m, simv }
 
 variables (R M M₂)
 
@@ -1169,12 +1169,12 @@ def curry_sum (f : multilinear_map R (λ x : ι ⊕ ι', M') M₂) :
   multilinear_map R (λ x : ι, M') (multilinear_map R (λ x : ι', M') M₂) :=
 { to_fun := λ u,
   { to_fun := λ v, f (sum.elim u v),
-    map_add' := λ v i x y, by simp only [← sum.update_elim_inr, f.map_add],
-    map_smul' := λ v i c x, by simp only [← sum.update_elim_inr, f.map_smul] },
+    map_add' := λ v i x y, by simv only [← sum.update_elim_inr, f.map_add],
+    map_smul' := λ v i c x, by simv only [← sum.update_elim_inr, f.map_smul] },
   map_add' := λ u i x y, ext $ λ v,
-    by simp only [multilinear_map.coe_mk, add_apply, ← sum.update_elim_inl, f.map_add],
+    by simv only [multilinear_map.coe_mk, add_apply, ← sum.update_elim_inl, f.map_add],
   map_smul' := λ u i c x, ext $ λ v,
-    by simp only [multilinear_map.coe_mk, smul_apply, ← sum.update_elim_inl, f.map_smul] }
+    by simv only [multilinear_map.coe_mk, smul_apply, ← sum.update_elim_inl, f.map_smul] }
 
 @[simp] lemma curry_sum_apply (f : multilinear_map R (λ x : ι ⊕ ι', M') M₂)
   (u : ι → M') (v : ι' → M') :
@@ -1187,10 +1187,10 @@ def uncurry_sum (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x 
   multilinear_map R (λ x : ι ⊕ ι', M') M₂ :=
 { to_fun := λ u, f (u ∘ sum.inl) (u ∘ sum.inr),
   map_add' := λ u i x y, by cases i;
-    simp only [multilinear_map.map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
+    simv only [multilinear_map.map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
       sum.update_inr_comp_inl, sum.update_inr_comp_inr],
   map_smul' := λ u i c x, by cases i;
-    simp only [multilinear_map.map_smul, smul_apply, sum.update_inl_comp_inl,
+    simv only [multilinear_map.map_smul, smul_apply, sum.update_inl_comp_inl,
       sum.update_inl_comp_inr, sum.update_inr_comp_inl, sum.update_inr_comp_inr] }
 
 @[simp] lemma uncurry_sum_aux_apply
@@ -1207,8 +1207,8 @@ def curry_sum_equiv : multilinear_map R (λ x : ι ⊕ ι', M') M₂ ≃ₗ[R]
   multilinear_map R (λ x : ι, M') (multilinear_map R (λ x : ι', M') M₂) :=
 { to_fun := curry_sum,
   inv_fun := uncurry_sum,
-  left_inv := λ f, ext $ λ u, by simp,
-  right_inv := λ f, by { ext, simp },
+  left_inv := λ f, ext $ λ u, by simv,
+  right_inv := λ f, by { ext, simv },
   map_add' := λ f g, by { ext, refl },
   map_smul' := λ c f, by { ext, refl } }
 

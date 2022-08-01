@@ -24,12 +24,12 @@ open_locale real topological_space
   `log 0 = 0`-/
 @[pp_nodot] noncomputable def log (x : ℂ) : ℂ := x.abs.log + arg x * I
 
-lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
+lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simv [log]
 
-lemma log_im (x : ℂ) : x.log.im = x.arg := by simp [log]
+lemma log_im (x : ℂ) : x.log.im = x.arg := by simv [log]
 
-lemma neg_pi_lt_log_im (x : ℂ) : -π < (log x).im := by simp only [log_im, neg_pi_lt_arg]
-lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simp only [log_im, arg_le_pi]
+lemma neg_pi_lt_log_im (x : ℂ) : -π < (log x).im := by simv only [log_im, neg_pi_lt_arg]
+lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simv only [log_im, arg_le_pi]
 
 lemma exp_log {x : ℂ} (hx : x ≠ 0) : exp (log x) = x :=
 by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,
@@ -53,17 +53,17 @@ complex.ext
   (by rw [log_re, of_real_re, abs_of_nonneg hx])
   (by rw [of_real_im, log_im, arg_of_real_of_nonneg hx])
 
-lemma log_of_real_re (x : ℝ) : (log (x : ℂ)).re = real.log x := by simp [log_re]
+lemma log_of_real_re (x : ℝ) : (log (x : ℂ)).re = real.log x := by simv [log_re]
 
-@[simp] lemma log_zero : log 0 = 0 := by simp [log]
+@[simp] lemma log_zero : log 0 = 0 := by simv [log]
 
-@[simp] lemma log_one : log 1 = 0 := by simp [log]
+@[simp] lemma log_one : log 1 = 0 := by simv [log]
 
-lemma log_neg_one : log (-1) = π * I := by simp [log]
+lemma log_neg_one : log (-1) = π * I := by simv [log]
 
-lemma log_I : log I = π / 2 * I := by simp [log]
+lemma log_I : log I = π / 2 * I := by simv [log]
 
-lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+lemma log_neg_I : log (-I) = -(π / 2) * I := by simv [log]
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
@@ -84,7 +84,7 @@ lemma exp_eq_exp_iff_exp_sub_eq_one {x y : ℂ} : exp x = exp y ↔ exp (x - y) 
 by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
-by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
+by simv only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
 @[simp] lemma countable_preimage_exp {s : set ℂ} : (exp ⁻¹' s).countable ↔ s.countable :=
 begin
@@ -95,9 +95,9 @@ begin
   { rw ← bUnion_preimage_singleton,
     refine hs.bUnion (λ z hz, _),
     rcases em (∃ w, exp w = z) with ⟨w, rfl⟩|hne,
-    { simp only [preimage, mem_singleton_iff, exp_eq_exp_iff_exists_int, set_of_exists],
+    { simv only [preimage, mem_singleton_iff, exp_eq_exp_iff_exists_int, set_of_exists],
       exact countable_Union (λ m, countable_singleton _) },
-    { push_neg at hne, simp [preimage, hne] } }
+    { push_neg at hne, simv [preimage, hne] } }
 end
 
 alias countable_preimage_exp ↔ _ _root_.set.countable.preimage_cexp
@@ -111,7 +111,7 @@ begin
     (((continuous_of_real.tendsto _).comp $
     tendsto_arg_nhds_within_im_neg_of_re_neg_of_im_zero hre him).mul tendsto_const_nhds),
   convert this,
-  { simp [sub_eq_add_neg] },
+  { simv [sub_eq_add_neg] },
   { lift z to ℝ using him, simpa using hre.ne }
 end
 

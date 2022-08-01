@@ -81,11 +81,11 @@ def torus_map (c : ℂⁿ) (R : ℝⁿ) : ℝⁿ → ℂⁿ :=
 
 lemma torus_map_sub_center (c : ℂⁿ) (R : ℝⁿ) (θ : ℝⁿ) :
   torus_map c R θ - c = torus_map 0 R θ :=
-by { ext1 i, simp [torus_map] }
+by { ext1 i, simv [torus_map] }
 
 lemma torus_map_eq_center_iff {c : ℂⁿ} {R : ℝⁿ} {θ : ℝⁿ} :
   torus_map c R θ = c ↔ R = 0 :=
-by simp [funext_iff, torus_map, exp_ne_zero]
+by simv [funext_iff, torus_map, exp_ne_zero]
 
 @[simp] lemma torus_map_zero_radius (c : ℂⁿ) : torus_map c 0 = const ℝⁿ c :=
 by { ext1, rw torus_map_eq_center_iff.2 rfl }
@@ -106,7 +106,7 @@ variables {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ}
 /-- Constant functions are torus integrable -/
 lemma torus_integrable_const (a : E) (c : ℂⁿ) (R : ℝⁿ) :
   torus_integrable (λ _, a) c R :=
-by simp [torus_integrable, measure_Icc_lt_top]
+by simv [torus_integrable, measure_Icc_lt_top]
 
 /-- If `f` is torus integrable then `-f` is torus integrable. -/
 protected lemma neg (hf : torus_integrable f c R) : torus_integrable (-f) c R := hf.neg
@@ -138,7 +138,7 @@ begin
     exact continuous_finset_prod finset.univ (λ i hi, (continuous_const.mul
       (((continuous_of_real.comp (continuous_apply i)).mul continuous_const).cexp)).mul
       continuous_const) },
-  simp [norm_smul, map_prod],
+  simv [norm_smul, map_prod],
 end
 
 end torus_integrable
@@ -153,12 +153,12 @@ def torus_integral (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) :=
 notation `∯` binders ` in ` `T(` c `, ` R `)` `, ` r:(scoped:60 f, torus_integral f c R) := r
 
 lemma torus_integral_radius_zero (hn : n ≠ 0) (f : ℂⁿ → E) (c : ℂⁿ): ∯ x in T(c, 0), f x = 0 :=
-by simp only [torus_integral, pi.zero_apply, of_real_zero, mul_zero, zero_mul, fin.prod_const,
+by simv only [torus_integral, pi.zero_apply, of_real_zero, mul_zero, zero_mul, fin.prod_const,
   zero_pow' n hn, zero_smul, integral_zero]
 
 lemma torus_integral_neg (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) :
   ∯ x in T(c, R), -f x = -∯ x in T(c, R), f x :=
-by simp [torus_integral, integral_neg]
+by simv [torus_integral, integral_neg]
 
 lemma torus_integral_add (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
   ∯ x in T(c, R), f x + g x = (∯ x in T(c, R), f x) + ∯ x in T(c, R), g x :=
@@ -172,7 +172,7 @@ by simpa only [sub_eq_add_neg, ← torus_integral_neg] using torus_integral_add 
 lemma torus_integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [smul_comm_class 𝕜 ℂ E]
   (a : 𝕜) (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) :
   ∯ x in T(c, R), a • f x = a • ∯ x in T(c, R), f x :=
-by simp only [torus_integral, integral_smul, ← smul_comm a]
+by simv only [torus_integral, integral_smul, ← smul_comm a]
 
 lemma torus_integral_const_mul (a : ℂ) (f : ℂⁿ → ℂ) (c : ℂⁿ) (R : ℝⁿ) :
   ∯ x in T(c, R), a * f x = a * ∯ x in T(c, R), f x :=
@@ -185,15 +185,15 @@ lemma norm_torus_integral_le_of_norm_le_const {C : ℝ} (hf : ∀ θ, ∥f (toru
 calc ∥∯ x in T(c, R), f x∥ ≤ (∏ i, |R i|) * C * (volume (Icc (0 : ℝⁿ) (λ _, 2 * π))).to_real :
   norm_set_integral_le_of_norm_le_const' measure_Icc_lt_top measurable_set_Icc $ λ θ hθ,
     ( calc ∥(∏ i : fin n, R i * exp (θ i * I) * I : ℂ) • f (torus_map c R θ)∥
-          = (∏ i : fin n, |R i|) * ∥f (torus_map c R θ)∥ : by simp [norm_smul]
+          = (∏ i : fin n, |R i|) * ∥f (torus_map c R θ)∥ : by simv [norm_smul]
       ... ≤ (∏ i : fin n, |R i|) * C :
         mul_le_mul_of_nonneg_left (hf _) (finset.prod_nonneg $ λ _ _, abs_nonneg _) )
 ... = (2 * π)^(n: ℕ) * (∏ i, |R i|) * C :
-  by simp only [pi.zero_def, real.volume_Icc_pi_to_real (λ _, real.two_pi_pos.le), sub_zero,
+  by simv only [pi.zero_def, real.volume_Icc_pi_to_real (λ _, real.two_pi_pos.le), sub_zero,
       fin.prod_const, mul_assoc, mul_comm ((2 * π) ^ (n : ℕ))]
 
 @[simp] lemma torus_integral_dim0 (f : ℂ⁰ → E) (c : ℂ⁰) (R : ℝ⁰) : ∯ x in T(c, R), f x = f c :=
-by simp only [torus_integral, fin.prod_univ_zero, one_smul,
+by simv only [torus_integral, fin.prod_univ_zero, one_smul,
   subsingleton.elim (λ i : fin 0, 2 * π) 0, Icc_self, measure.restrict_singleton, volume_pi,
   integral_smul_measure, integral_dirac, measure.pi_of_empty _ 0,
   measure.dirac_apply_of_mem (mem_singleton _), subsingleton.elim (torus_map c R 0) c]
@@ -205,11 +205,11 @@ lemma torus_integral_dim1 (f : ℂ¹ → E) (c : ℂ¹) (R : ℝ¹) :
 begin
   have : (λ (x : ℝ) (b : fin 1), x) ⁻¹' Icc 0 (λ _, 2 * π) = Icc 0 (2 * π),
     from (order_iso.fun_unique (fin 1) ℝ).symm.preimage_Icc _ _,
-  simp only [torus_integral, circle_integral, interval_integral.integral_of_le real.two_pi_pos.le,
+  simv only [torus_integral, circle_integral, interval_integral.integral_of_le real.two_pi_pos.le,
     measure.restrict_congr_set Ioc_ae_eq_Icc, deriv_circle_map, fin.prod_univ_one,
     ← ((volume_preserving_fun_unique (fin 1) ℝ).symm _).set_integral_preimage_emb
       (measurable_equiv.measurable_embedding _), this, measurable_equiv.fun_unique_symm_apply],
-  simp only [torus_map, circle_map, zero_add],
+  simv only [torus_map, circle_map, zero_add],
   rcongr
 end
 
@@ -228,13 +228,13 @@ begin
   rw [torus_integral, ← hem.map_eq, set_integral_map_equiv, heπ, measure.volume_eq_prod,
     set_integral_prod, circle_integral_def_Icc],
   { refine set_integral_congr measurable_set_Icc (λ θ hθ, _),
-    simp only [torus_integral, ← integral_smul, deriv_circle_map, i.prod_univ_succ_above _,
+    simv only [torus_integral, ← integral_smul, deriv_circle_map, i.prod_univ_succ_above _,
       smul_smul, torus_map, circle_map_zero],
     refine set_integral_congr measurable_set_Icc (λ Θ hΘ, _),
-    simp only [measurable_equiv.pi_fin_succ_above_equiv_symm_apply, i.insert_nth_apply_same,
+    simv only [measurable_equiv.pi_fin_succ_above_equiv_symm_apply, i.insert_nth_apply_same,
       i.insert_nth_apply_succ_above, (∘)],
     congr' 2,
-    simp only [funext_iff, i.forall_iff_succ_above, circle_map, fin.insert_nth_apply_same,
+    simv only [funext_iff, i.forall_iff_succ_above, circle_map, fin.insert_nth_apply_same,
       eq_self_iff_true, fin.insert_nth_apply_succ_above, implies_true_iff, and_self] },
   { have := hf.function_integrable,
     rwa [← hem.integrable_on_comp_preimage e.measurable_embedding, heπ] at this }

@@ -45,7 +45,7 @@ variables [abelian C] [abelian D] [additive F]
 `exact f g`. -/
 lemma preserves_exact_of_preserves_finite_colimits_of_epi [preserves_finite_colimits F] [epi g]
   (ex : exact f g) : exact (F.map f) (F.map g) :=
-abelian.exact_of_is_cokernel _ _ (by simp [← functor.map_comp, ex.w])
+abelian.exact_of_is_cokernel _ _ (by simv [← functor.map_comp, ex.w])
   $ limits.is_colimit_cofork_map_of_is_colimit' _ ex.w (abelian.is_colimit_of_exact_of_epi _ _ ex)
 
 lemma exact_of_map_projective_resolution (P: ProjectiveResolution X) [preserves_finite_colimits F] :
@@ -53,7 +53,7 @@ lemma exact_of_map_projective_resolution (P: ProjectiveResolution X) [preserves_
   (F.map (P.π.f 0)) :=
 preadditive.exact_of_iso_of_exact' (F.map (P.complex.d 1 0)) (F.map (P.π.f 0)) _ _
     (homological_complex.X_prev_iso ((F.map_homological_complex _).obj P.complex) rfl).symm
-    (iso.refl _) (iso.refl _) (by simp) (by simp)
+    (iso.refl _) (iso.refl _) (by simv) (by simv)
     (preserves_exact_of_preserves_finite_colimits_of_epi _ (P.exact₀))
 
 /-- Given `P : ProjectiveResolution X`, a morphism `(F.left_derived 0).obj X ⟶ F.obj X`. -/
@@ -62,9 +62,9 @@ def left_derived_zero_to_self_app [enough_projectives C] {X : C}
   (P : ProjectiveResolution X) : (F.left_derived 0).obj X ⟶ F.obj X :=
 (left_derived_obj_iso F 0 P).hom ≫ homology.desc' _ _ _ (kernel.ι _ ≫ (F.map (P.π.f 0)))
 begin
-  rw [kernel.lift_ι_assoc, homological_complex.d_to_eq _ (by simp : (complex_shape.down ℕ).rel 1 0),
+  rw [kernel.lift_ι_assoc, homological_complex.d_to_eq _ (by simv : (complex_shape.down ℕ).rel 1 0),
     map_homological_complex_obj_d, category.assoc, ← functor.map_comp],
-  simp
+  simv
 end
 
 /-- Given `P : ProjectiveResolution X`, a morphism `F.obj X ⟶ (F.left_derived 0).obj X` given
@@ -74,7 +74,7 @@ def left_derived_zero_to_self_app_inv [enough_projectives C] [preserves_finite_c
 begin
   refine ((as_iso (cokernel.desc _ _ (exact_of_map_projective_resolution F P).w)).inv) ≫ _ ≫
     (homology_iso_cokernel_lift _ _ _).inv ≫ (left_derived_obj_iso F 0 P).inv,
-  exact cokernel.map _ _ (𝟙 _) (kernel.lift _ (𝟙 _) (by simp)) (by { ext, simp }),
+  exact cokernel.map _ _ (𝟙 _) (kernel.lift _ (𝟙 _) (by simv)) (by { ext, simv }),
 end
 
 lemma left_derived_zero_to_self_app_comp_inv [enough_projectives C] [preserves_finite_colimits F]
@@ -104,10 +104,10 @@ begin
     ← category.assoc (F.left_derived_obj_iso 0 P).inv, iso.inv_hom_id, category.id_comp,
     is_iso.inv_comp_eq, category.comp_id],
   ext,
-  simp only [cokernel.π_desc_assoc, category.assoc, cokernel.π_desc, homology.desc'],
+  simv only [cokernel.π_desc_assoc, category.assoc, cokernel.π_desc, homology.desc'],
   rw [← category.assoc, ← category.assoc (homology_iso_cokernel_lift _ _ _).inv, iso.inv_hom_id,
     category.id_comp],
-  simp only [category.assoc, cokernel.π_desc, kernel.lift_ι_assoc, category.id_comp],
+  simv only [category.assoc, cokernel.π_desc, kernel.lift_ι_assoc, category.id_comp],
 end
 
 /-- Given `P : ProjectiveResolution X`, the isomorphism `(F.left_derived 0).obj X ≅ F.obj X` if
@@ -127,12 +127,12 @@ lemma left_derived_zero_to_self_natural [enough_projectives C] {X : C} {Y : C} (
   left_derived_zero_to_self_app F P ≫ F.map f :=
 begin
   dsimp only [left_derived_zero_to_self_app],
-  rw [functor.left_derived_map_eq F 0 f (ProjectiveResolution.lift f P Q) (by simp),
+  rw [functor.left_derived_map_eq F 0 f (ProjectiveResolution.lift f P Q) (by simv),
     category.assoc, category.assoc, ← category.assoc _ (F.left_derived_obj_iso 0 Q).hom,
     iso.inv_hom_id, category.id_comp, category.assoc, whisker_eq],
   dsimp only [homology_functor_map],
   ext,
-  simp only [homological_complex.hom.sq_to_right, map_homological_complex_map_f,
+  simv only [homological_complex.hom.sq_to_right, map_homological_complex_map_f,
     homology.π'_map_assoc, homology.π'_desc', kernel.lift_ι_assoc, category.assoc,
     homology.π'_desc'_assoc, ← map_comp, show (ProjectiveResolution.lift f P Q).f 0 ≫ _ = _ ≫ f,
     from homological_complex.congr_hom (ProjectiveResolution.lift_commutes f P Q) 0],

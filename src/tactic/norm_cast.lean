@@ -14,7 +14,7 @@ It can be thought of as a call to the simplifier with a specific set of lemmas t
 move casts upwards in the expression.
 It has special handling of numerals and a simple heuristic to help moving
 casts "past" binary operators.
-Contrary to simp, it should be safe to use as a non-terminating tactic.
+Contrary to simv, it should be safe to use as a non-terminating tactic.
 
 The algorithm implemented here is described in the paper
 <https://lean-forward.github.io/norm_cast/norm_cast.pdf>.
@@ -61,7 +61,7 @@ when_tracing `norm_cast $ do
 a ← pp a,
 trace ("[norm_cast] " ++ msg ++ a : format)
 
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
+mk_simp_attribute push_cast "The `push_cast` simv attribute uses `norm_cast` lemmas
 to move casts toward the leaf nodes of the expression."
 
 /--
@@ -304,10 +304,10 @@ open norm_cast
 /--
 `push_cast` rewrites the expression to move casts toward the leaf nodes.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
-Equivalent to `simp only with push_cast`.
+Equivalent to `simv only with push_cast`.
 Can also be used at hypotheses.
 
-`push_cast` can also be used at hypotheses and with extra simp rules.
+`push_cast` can also be used at hypotheses and with extra simv rules.
 
 ```lean
 example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
@@ -320,7 +320,7 @@ end
 ```
 -/
 meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
-tactic.interactive.simp none none tt hs [`push_cast] l {discharger := tactic.assumption}
+tactic.interactive.simv none none tt hs [`push_cast] l {discharger := tactic.assumption}
 
 
 end tactic.interactive
@@ -328,7 +328,7 @@ end tactic.interactive
 namespace norm_cast
 open tactic expr
 
-/-- Prove `a = b` using the given simp set. -/
+/-- Prove `a = b` using the given simv set. -/
 meta def prove_eq_using (s : simp_lemmas) (a b : expr) : tactic expr := do
 (a', a_a', _) ← simplify s [] a {fail_if_unchanged := ff},
 (b', b_b', _) ← simplify s [] b {fail_if_unchanged := ff},
@@ -589,7 +589,7 @@ open tactic norm_cast
 
 /--
 Normalize casts at the given locations by moving them "upwards".
-As opposed to simp, norm_cast can be used without necessarily closing the goal.
+As opposed to simv, norm_cast can be used without necessarily closing the goal.
 -/
 meta def norm_cast (loc : parse location) : tactic unit :=
 do
@@ -658,18 +658,18 @@ end conv.interactive
 @[norm_cast] lemma ite_cast {α β} [has_lift_t α β]
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
-by by_cases h : c; simp [h]
+by by_cases h : c; simv [h]
 
 @[norm_cast] lemma dite_cast {α β} [has_lift_t α β]
   {c : Prop} [decidable c] {a : c → α} {b : ¬ c → α} :
   ↑(dite c a b) = dite c (λ h, (↑(a h) : β)) (λ h, (↑(b h) : β)) :=
-by by_cases h : c; simp [h]
+by by_cases h : c; simv [h]
 
 add_hint_tactic "norm_cast at *"
 
 /--
 The `norm_cast` family of tactics is used to normalize casts inside expressions.
-It is basically a simp tactic with a specific set of lemmas to move casts
+It is basically a simv tactic with a specific set of lemmas to move casts
 upwards in the expression.
 Therefore it can be used more safely as a non-terminating tactic.
 It also has special handling of numerals.
@@ -697,9 +697,9 @@ expression `h` in the context it will try to normalize `h` and use
 `push_cast` rewrites the expression to move casts toward the leaf nodes.
 This uses `norm_cast` lemmas in the forward direction.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
-It is equivalent to `simp only with push_cast`.
+It is equivalent to `simv only with push_cast`.
 It can also be used at hypotheses with `push_cast at h`
-and with extra simp lemmas with `push_cast [int.add_zero]`.
+and with extra simv lemmas with `push_cast [int.add_zero]`.
 
 ```lean
 example (a b : ℕ) (h1 : ((a + b : ℕ) : ℤ) = 10) (h2 : ((a + b + 0 : ℕ) : ℤ) = 10) :
@@ -766,7 +766,7 @@ Occasionally you may want to override the automatic classification.
 You can do this by giving an optional `elim`, `move`, or `squash` parameter to the attribute.
 
 ```lean
-@[simp, norm_cast elim] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
+@[simv, norm_cast elim] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
 by rw [← of_real_nat_cast, of_real_re]
 ```
 

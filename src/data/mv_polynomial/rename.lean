@@ -62,18 +62,18 @@ eval₂_X _ _ _
 lemma map_rename (f : R →+* S) (g : σ → τ) (p : mv_polynomial σ R) :
   map f (rename g p) = rename g (map f p) :=
 mv_polynomial.induction_on p
-  (λ a, by simp only [map_C, rename_C])
-  (λ p q hp hq, by simp only [hp, hq, alg_hom.map_add, ring_hom.map_add])
-  (λ p n hp, by simp only [hp, rename_X, map_X, ring_hom.map_mul, alg_hom.map_mul])
+  (λ a, by simv only [map_C, rename_C])
+  (λ p q hp hq, by simv only [hp, hq, alg_hom.map_add, ring_hom.map_add])
+  (λ p n hp, by simv only [hp, rename_X, map_X, ring_hom.map_mul, alg_hom.map_mul])
 
 @[simp] lemma rename_rename (f : σ → τ) (g : τ → α) (p : mv_polynomial σ R) :
   rename g (rename f p) = rename (g ∘ f) p :=
 show rename g (eval₂ C (X ∘ f) p) = _,
 begin
-  simp only [rename, aeval_eq_eval₂_hom],
-  simp [eval₂_comp_left _ C (X ∘ f) p, (∘), eval₂_C, eval_X],
+  simv only [rename, aeval_eq_eval₂_hom],
+  simv [eval₂_comp_left _ C (X ∘ f) p, (∘), eval₂_C, eval_X],
   apply eval₂_hom_congr _ rfl rfl,
-  ext1, simp only [comp_app, ring_hom.coe_comp, eval₂_hom_C],
+  ext1, simv only [comp_app, ring_hom.coe_comp, eval₂_hom_C],
 end
 
 @[simp] lemma rename_id (p : mv_polynomial σ R) : rename id p = p :=
@@ -91,7 +91,7 @@ end
 lemma rename_eq (f : σ → τ) (p : mv_polynomial σ R) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
-  simp only [rename, aeval_def, eval₂, finsupp.map_domain, algebra_map_eq, X_pow_eq_monomial,
+  simv only [rename, aeval_def, eval₂, finsupp.map_domain, algebra_map_eq, X_pow_eq_monomial,
      ← monomial_finsupp_sum_index],
   refl
 end
@@ -152,7 +152,7 @@ section
 variables (f : R →+* S) (k : σ → τ) (g : τ → S) (p : mv_polynomial σ R)
 
 lemma eval₂_rename : (rename k p).eval₂ f g = p.eval₂ f (g ∘ k) :=
-by apply mv_polynomial.induction_on p; { intros, simp [*] }
+by apply mv_polynomial.induction_on p; { intros, simv [*] }
 
 lemma eval₂_hom_rename : eval₂_hom f g (rename k p) = eval₂_hom f (g ∘ k) p :=
 eval₂_rename _ _ _ _
@@ -162,15 +162,15 @@ eval₂_hom_rename _ _ _ _
 
 lemma rename_eval₂ (g : τ → mv_polynomial σ R) :
   rename k (p.eval₂ C (g ∘ k)) = (rename k p).eval₂ C (rename k ∘ g) :=
-by apply mv_polynomial.induction_on p; { intros, simp [*] }
+by apply mv_polynomial.induction_on p; { intros, simv [*] }
 
 lemma rename_prodmk_eval₂ (j : τ) (g : σ → mv_polynomial σ R) :
   rename (prod.mk j) (p.eval₂ C g) = p.eval₂ C (λ x, rename (prod.mk j) (g x)) :=
-by apply mv_polynomial.induction_on p; { intros, simp [*] }
+by apply mv_polynomial.induction_on p; { intros, simv [*] }
 
 lemma eval₂_rename_prodmk (g : σ × τ → S) (i : σ) (p : mv_polynomial τ R) :
   (rename (prod.mk i) p).eval₂ f g = eval₂ f (λ j, g (i, j)) p :=
-by apply mv_polynomial.induction_on p; { intros, simp [*] }
+by apply mv_polynomial.induction_on p; { intros, simv [*] }
 
 lemma eval_rename_prodmk (g : σ × τ → R) (i : σ) (p : mv_polynomial τ R) :
   eval g (rename (prod.mk i) p) = eval (λ j, g (i, j)) p :=
@@ -187,13 +187,13 @@ begin
   { rintro p q ⟨s, p, rfl⟩ ⟨t, q, rfl⟩,
     refine ⟨s ∪ t, ⟨_, _⟩⟩,
     { refine rename (subtype.map id _) p + rename (subtype.map id _) q;
-      simp only [id.def, true_or, or_true, finset.mem_union, forall_true_iff] {contextual := tt}, },
-    { simp only [rename_rename, alg_hom.map_add], refl, }, },
+      simv only [id.def, true_or, or_true, finset.mem_union, forall_true_iff] {contextual := tt}, },
+    { simv only [rename_rename, alg_hom.map_add], refl, }, },
   { rintro p n ⟨s, p, rfl⟩,
     refine ⟨insert n s, ⟨_, _⟩⟩,
     { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
-      simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
-    { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
+      simv only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
+    { simv only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
 end
 
 /-- `exists_finset_rename` for two polyonomials at once: for any two polynomials `p₁`, `p₂` in a
@@ -220,7 +220,7 @@ begin
   let e := fintype.equiv_fin {x // x ∈ s},
   refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, rename e q, _⟩,
   rw [← rename_rename, rename_rename e],
-  simp only [function.comp, equiv.symm_apply_apply, rename_rename]
+  simv only [function.comp, equiv.symm_apply_apply, rename_rename]
 end
 
 end rename
@@ -228,9 +228,9 @@ end rename
 lemma eval₂_cast_comp (f : σ → τ) (c : ℤ →+* R) (g : τ → R) (p : mv_polynomial σ ℤ) :
   eval₂ c (g ∘ f) p = eval₂ c g (rename f p) :=
 mv_polynomial.induction_on p
-(λ n, by simp only [eval₂_C, rename_C])
-(λ p q hp hq, by simp only [hp, hq, rename, eval₂_add, alg_hom.map_add])
-(λ p n hp, by simp only [hp, rename, aeval_def, eval₂_X, eval₂_mul])
+(λ n, by simv only [eval₂_C, rename_C])
+(λ p q hp hq, by simv only [hp, hq, rename, eval₂_add, alg_hom.map_add])
+(λ p n hp, by simv only [hp, rename, aeval_def, eval₂_X, eval₂_mul])
 
 section coeff
 
@@ -241,8 +241,8 @@ begin
   apply induction_on' φ,
   { intros u r,
     rw [rename_monomial, coeff_monomial, coeff_monomial],
-    simp only [(finsupp.map_domain_injective hf).eq_iff] },
-  { intros, simp only [*, alg_hom.map_add, coeff_add], }
+    simv only [(finsupp.map_domain_injective hf).eq_iff] },
+  { intros, simv only [*, alg_hom.map_add, coeff_add], }
 end
 
 lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
@@ -255,7 +255,7 @@ begin
   rw [finset.mem_image] at H,
   obtain ⟨u, hu, rfl⟩ := H,
   specialize h u rfl,
-  simp at h hu,
+  simv at h hu,
   contradiction
 end
 
@@ -268,9 +268,9 @@ by { contrapose! h, apply coeff_rename_eq_zero _ _ _ h }
   constant_coeff (rename f φ) = constant_coeff φ :=
 begin
   apply φ.induction_on,
-  { intro a, simp only [constant_coeff_C, rename_C]},
-  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
-  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
+  { intro a, simv only [constant_coeff_C, rename_C]},
+  { intros p q hp hq, simv only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
+  { intros p n hp, simv only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
 end
 
 end coeff

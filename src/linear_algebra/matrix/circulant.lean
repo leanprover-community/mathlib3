@@ -67,11 +67,11 @@ circulant_injective.eq_iff
 
 lemma transpose_circulant [add_group n] (v : n → α) :
   (circulant v)ᵀ = circulant (λ i, v (-i)) :=
-by ext; simp
+by ext; simv
 
 lemma conj_transpose_circulant [has_star α] [add_group n] (v : n → α) :
   (circulant v)ᴴ = circulant (star (λ i, v (-i))) :=
-by ext; simp
+by ext; simv
 
 lemma fin.transpose_circulant : ∀ {n} (v : fin n → α), (circulant v)ᵀ =  circulant (λ i, v (-i))
 | 0     := dec_trivial
@@ -108,10 +108,10 @@ lemma circulant_mul [semiring α] [fintype n] [add_group n] (v w : n → α) :
   circulant v ⬝ circulant w = circulant (mul_vec (circulant v) w) :=
 begin
   ext i j,
-  simp only [mul_apply, mul_vec, circulant, dot_product],
+  simv only [mul_apply, mul_vec, circulant, dot_product],
   refine fintype.sum_equiv (equiv.sub_right j) _ _ _,
   intro x,
-  simp only [equiv.sub_right_apply, sub_sub_sub_cancel_right],
+  simv only [equiv.sub_right_apply, sub_sub_sub_cancel_right],
 end
 
 lemma fin.circulant_mul [semiring α] :
@@ -125,12 +125,12 @@ lemma circulant_mul_comm
   circulant v ⬝ circulant w = circulant w ⬝ circulant v :=
 begin
   ext i j,
-  simp only [mul_apply, circulant, mul_comm],
+  simv only [mul_apply, circulant, mul_comm],
   refine fintype.sum_equiv ((equiv.sub_left i).trans (equiv.add_right j)) _ _ _,
   intro x,
   congr' 2,
-  { simp },
-  { simp only [equiv.coe_add_right, function.comp_app,
+  { simv },
+  { simv only [equiv.coe_add_right, function.comp_app,
                equiv.coe_trans, equiv.sub_left_apply],
     abel }
 end
@@ -143,19 +143,19 @@ lemma fin.circulant_mul_comm [comm_semigroup α] [add_comm_monoid α] :
 /-- `k • circulant v` is another circulant matrix `circulant (k • v)`. -/
 lemma circulant_smul [has_sub n] [has_smul R α] (k : R) (v : n → α) :
   circulant (k • v) = k • circulant v :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma circulant_single_one
   (α n) [has_zero α] [has_one α] [decidable_eq n] [add_group n] :
   circulant (pi.single 0 1 : n → α) = (1 : matrix n n α) :=
-by { ext i j, simp [one_apply, pi.single_apply, sub_eq_zero] }
+by { ext i j, simv [one_apply, pi.single_apply, sub_eq_zero] }
 
 @[simp] lemma circulant_single
   (n) [semiring α] [decidable_eq n] [add_group n] [fintype n] (a : α) :
   circulant (pi.single 0 a : n → α) = scalar n a :=
 begin
   ext i j,
-  simp [pi.single_apply, one_apply, sub_eq_zero],
+  simv [pi.single_apply, one_apply, sub_eq_zero],
 end
 
 /-- Note we use `↑i = 0` instead of `i = 0` as `fin 0` has no `0`.
@@ -167,7 +167,7 @@ lemma fin.circulant_ite (α) [has_zero α] [has_one α] :
 begin
   rw [←circulant_single_one],
   congr' with j,
-  simp only [pi.single_apply, fin.ext_iff],
+  simv only [pi.single_apply, fin.ext_iff],
   congr
 end
 
@@ -178,7 +178,7 @@ by rw [is_symm, transpose_circulant, circulant_inj, funext_iff]
 
 lemma fin.circulant_is_symm_iff :
   ∀ {n} {v : fin n → α}, (circulant v).is_symm ↔ ∀ i, v (- i) = v i
-| 0     := λ v, by simp [is_symm.ext_iff, is_empty.forall_iff]
+| 0     := λ v, by simv [is_symm.ext_iff, is_empty.forall_iff]
 | (n+1) := λ v, circulant_is_symm_iff
 
 /-- If `circulant v` is symmetric, `∀ i j : I, v (- i) = v i`. -/

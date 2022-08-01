@@ -27,5 +27,5 @@ lemma char.of_nat_to_nat {c : char} (h : is_valid_char c.to_nat) :
 begin
   rw [char.of_nat, dif_pos h],
   cases c,
-  simp [char.to_nat]
+  simv [char.to_nat]
 end

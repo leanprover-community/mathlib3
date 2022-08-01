@@ -175,7 +175,7 @@ protected def mul_hom.comp_left {α β : Type*} [has_mul α] [has_mul β] (f : �
   (I : Type*) :
   (I → α) →ₙ* (I → β) :=
 { to_fun := λ h, f ∘ h,
-  map_mul' := λ _ _, by ext; simp }
+  map_mul' := λ _ _, by ext; simv }
 
 end mul_hom
 
@@ -220,8 +220,8 @@ protected def monoid_hom.comp_left {α β : Type*} [mul_one_class α] [mul_one_c
   (I : Type*) :
   (I → α) →* (I → β) :=
 { to_fun := λ h, f ∘ h,
-  map_one' := by ext; simp,
-  map_mul' := λ _ _, by ext; simp }
+  map_one' := by ext; simv,
+  map_mul' := λ _ _, by ext; simv }
 
 end monoid_hom
 
@@ -243,7 +243,7 @@ def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
   one_hom.single f i x = mul_single i x := rfl
 
@@ -259,7 +259,7 @@ def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
   monoid_hom.single f i x = mul_single i x := rfl
 
@@ -302,9 +302,9 @@ lemma pi.mul_single_commute [Π i, mul_one_class $ f i] :
   pairwise (λ i j, ∀ (x : f i) (y : f j), commute (mul_single i x) (mul_single j y)) :=
 begin
   intros i j hij x y, ext k,
-  by_cases h1 : i = k, { subst h1, simp [hij], },
-  by_cases h2 : j = k, { subst h2, simp [hij], },
-  simp [h1,  h2],
+  by_cases h1 : i = k, { subst h1, simv [hij], },
+  by_cases h2 : j = k, { subst h2, simv [hij], },
+  simv [h1,  h2],
 end
 
 /-- The injection into a pi group with the same values commutes. -/
@@ -323,8 +323,8 @@ lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x :
 begin
   ext j,
   rcases eq_or_ne i j with rfl|h,
-  { simp },
-  { simp [function.update_noteq h.symm, h] }
+  { simv },
+  { simv [function.update_noteq h.symm, h] }
 end
 
 @[to_additive pi.single_add_single_eq_single_add_single]
@@ -338,7 +338,7 @@ begin
     have hl := congr_fun h l,
     have hm := (congr_fun h m).symm,
     have hn := (congr_fun h n).symm,
-    simp only [mul_apply, mul_single_apply, if_pos rfl] at hk hl hm hn,
+    simv only [mul_apply, mul_single_apply, if_pos rfl] at hk hl hm hn,
     rcases eq_or_ne k m with rfl | hkm,
     { refine or.inl ⟨rfl, not_ne_iff.mp (λ hln, (hv _).elim)⟩,
       rcases eq_or_ne k l with rfl | hkl,
@@ -364,7 +364,7 @@ end single
 
 namespace function
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma update_one [Π i, has_one (f i)] [decidable_eq I] (i : I) :
   update (1 : Π i, f i) i 1 = 1 :=
 update_eq_self i 1

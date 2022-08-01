@@ -165,7 +165,7 @@ tendsto_const_smul_iff c
 @[to_additive]
 lemma continuous_const_smul_iff (c : G) :
   continuous (λ x, c • f x) ↔ continuous f :=
-by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
+by simv only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
 
 /-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
@@ -247,7 +247,7 @@ lemma closure_smul₀ {E} [has_zero E] [mul_action_with_zero G₀ E] [topologica
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { rcases eq_empty_or_nonempty s with rfl|hs,
-    { simp },
+    { simv },
     { rw [zero_smul_set hs, zero_smul_set hs.closure], exact closure_singleton } },
   { exact ((homeomorph.smul_of_ne_zero c hc).image_closure s).symm }
 end
@@ -272,7 +272,7 @@ lemma is_closed_map_smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_mono
   is_closed_map (λ x : M, c • x) :=
 begin
   rcases eq_or_ne c 0 with (rfl|hne),
-  { simp only [zero_smul], exact is_closed_map_const },
+  { simv only [zero_smul], exact is_closed_map_const },
   { exact (homeomorph.smul_of_ne_zero c hne).is_closed_map },
 end
 
@@ -390,7 +390,7 @@ begin
   by_cases H : γ ∈ bad_Γ_set,
   { exact λ h, u_v_disjoint γ ⟨mem_Inter₂.mp x_in_U₀₀ γ H, mem_Inter₂.mp h.1 γ H⟩ },
   { rintros ⟨-, h'⟩,
-    simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
+    simv only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
 

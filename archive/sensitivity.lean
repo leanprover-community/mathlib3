@@ -71,7 +71,7 @@ instance : unique (Q 0) :=
 
 /-- `Q n` has 2^n elements. -/
 lemma card : card (Q n) = 2^n :=
-by simp [Q]
+by simv [Q]
 
 /-! Until the end of this namespace, `n` will be an implicit argument (still
 a natural number). -/
@@ -127,21 +127,21 @@ begin
          show p (fin.succ (fin.pred i _)) ≠ q (fin.succ (fin.pred i _)),
            by rwa fin.succ_pred],
     intros y hy,
-    simp [eq.symm (h_uni _ hy)] },
+    simv [eq.symm (h_uni _ hy)] },
   { rintros ⟨i, h_eq, h_uni⟩,
     use [i.succ, h_eq],
     intros y hy,
     rw [←fin.pred_inj, fin.pred_succ],
     { apply h_uni,
       change p (fin.pred _ _).succ ≠ q (fin.pred _ _).succ,
-      simp [hy] },
+      simv [hy] },
     { contrapose! hy,
       rw [hy, h₀] },
     { apply fin.succ_ne_zero } }
 end
 
 @[symm] lemma adjacent.symm {p q : Q n} : p.adjacent q ↔ q.adjacent p :=
-by simp only [adjacent, ne_comm]
+by simv only [adjacent, ne_comm]
 
 end Q
 
@@ -187,18 +187,18 @@ begin
   induction n with n IH,
   { rw (show p = q, from subsingleton.elim p q),
     dsimp [ε, e],
-    simp },
+    simv },
   { dsimp [ε, e],
     cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt},
       repeat {rw cond_ff},
-      simp only [linear_map.fst_apply, linear_map.snd_apply, linear_map.comp_apply, IH],
+      simv only [linear_map.fst_apply, linear_map.snd_apply, linear_map.comp_apply, IH],
       try { congr' 1, rw Q.succ_n_eq, finish },
       try
       { erw (ε _).map_zero,
         have : p ≠ q, { intro h, rw p.succ_n_eq q at h, finish },
-        simp [this] } } }
+        simv [this] } } }
 end
 
 /-- Any vector in `V n` annihilated by all `ε p`'s is zero. -/
@@ -207,14 +207,14 @@ begin
   induction n with n ih,
   { dsimp [ε] at h, exact h (λ _, tt) },
   { cases v with v₁ v₂,
-    ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
+    ext ; change _ = (0 : V n) ; simv only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals
     { specialize h q,
       rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
         rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
-      rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
+      rwa show p = π q, by { ext, simv [q, fin.succ_ne_zero, π] } } }
 end
 
 /-- `e` and `ε` are dual families of vectors. It implies that `e` is indeed a basis
@@ -259,7 +259,7 @@ lemma f_succ_apply (v : V (n+1)) :
 begin
   cases v,
   rw f,
-  simp only [linear_map.id_apply, linear_map.prod_apply, pi.prod, prod.mk.inj_iff,
+  simv only [linear_map.id_apply, linear_map.prod_apply, pi.prod, prod.mk.inj_iff,
     linear_map.neg_apply, sub_eq_add_neg, linear_map.coprod_apply],
   exact ⟨rfl, rfl⟩
 end
@@ -272,7 +272,7 @@ lemma f_squared : ∀ v : V n, (f n) (f n v) = (n : ℝ) • v :=
 begin
   induction n with n IH; intro,
   { simpa only [nat.cast_zero, zero_smul] },
-  { cases v, simp [f_succ_apply, IH, add_smul, add_assoc], abel }
+  { cases v, simv [f_succ_apply, IH, add_smul, add_assoc], abel }
 end
 
 /-! We now compute the matrix of `f` in the `e` basis (`p` is the line index,
@@ -284,7 +284,7 @@ begin
   induction n with n IH,
   { intros p q,
     dsimp [f],
-    simp [Q.not_adjacent_zero] },
+    simv [Q.not_adjacent_zero] },
   { intros p q,
     have ite_nonneg : ite (π q = π p) (1 : ℝ) 0 ≥ 0,
     { split_ifs ; norm_num },
@@ -292,7 +292,7 @@ begin
     dsimp [e, ε, f], cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
-      simp [f_map_zero, hp, hq, IH, duality, abs_of_nonneg ite_nonneg, Q.adj_iff_proj_eq,
+      simv [f_map_zero, hp, hq, IH, duality, abs_of_nonneg ite_nonneg, Q.adj_iff_proj_eq,
             Q.adj_iff_proj_adj] } }
 end
 
@@ -305,13 +305,13 @@ variables {m : ℕ}
 
 /-! Again we unpack what are the values of `g`. -/
 lemma g_apply : ∀ v, g m v = (f m v + √(m+1) • v, v) :=
-by delta g; simp
+by delta g; simv
 
 lemma g_injective : injective (g m) :=
 begin
   rw g,
   intros x₁ x₂ h,
-  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff, pi.prod] at h,
+  simv only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff, pi.prod] at h,
   exact h.right
 end
 
@@ -321,7 +321,7 @@ begin
   rcases hv with ⟨v, rfl⟩,
   have : √(m+1) * √(m+1) = m+1 :=
     real.mul_self_sqrt (by exact_mod_cast zero_le _),
-  simp [this, f_succ_apply, g_apply, f_squared, smul_add, add_smul, smul_smul],
+  simv [this, f_succ_apply, g_apply, f_squared, smul_add, add_smul, smul_smul],
   abel
 end
 
@@ -356,7 +356,7 @@ begin
   let W := Span (e '' H),
   let img := (g m).range,
   suffices : 0 < dim (W ⊓ img),
-  { simp only [exists_prop],
+  { simv only [exists_prop],
     exact_mod_cast exists_mem_ne_zero_of_dim_pos this },
   have dim_le : dim (W ⊔ img) ≤ 2^(m + 1),
   { convert ← dim_submodule_le (W ⊔ img),
@@ -415,15 +415,15 @@ begin
     ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| :
       norm_sum_le _ $ λ p, coeffs y p * _
     ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0 :
-      by simp only [abs_mul, f_matrix]
+      by simv only [abs_mul, f_matrix]
     ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p| :
-      by simp [finset.sum_filter]
+      by simv [finset.sum_filter]
     ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q| :
       finset.sum_le_sum (λ p _, H_max p)
     ... = (((coeffs y).support.filter (Q.adjacent q)).card : ℝ) * |coeffs y q| :
       by rw [finset.sum_const, nsmul_eq_mul]
     ... = (((coeffs y).support ∩ (Q.adjacent q).to_finset).card : ℝ) * |coeffs y q| :
-      by { congr' with x, simp, refl }
+      by { congr' with x, simv, refl }
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
       begin
         refine (mul_le_mul_right H_q_pos).2 _,

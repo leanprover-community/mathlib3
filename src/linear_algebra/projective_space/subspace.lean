@@ -48,7 +48,7 @@ variables {K V}
 
 instance : set_like (subspace K V) (ℙ K V) :=
 { coe := carrier,
-  coe_injective' := λ A B, by { cases A, cases B, simp } }
+  coe_injective' := λ A B, by { cases A, cases B, simv } }
 
 @[simp]
 lemma mem_carrier_iff (A : subspace K V) (x : ℙ K V) : x ∈ A.carrier ↔ x ∈ A := iff.refl _

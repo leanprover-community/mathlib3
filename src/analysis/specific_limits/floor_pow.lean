@@ -52,16 +52,16 @@ begin
       have cnpos : 0 < c n := cnpos',
       calc u (c n) - c n * l
       = (u (c n) / c n - l) * c n:
-        by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff] with field_simps
+        by simv only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff] with field_simps
       ... ≤ ε * c n :
         begin
           apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
-          simp only [mul_one, real.norm_eq_abs, abs_one] at hn,
+          simv only [mul_one, real.norm_eq_abs, abs_one] at hn,
           exact le_trans (le_abs_self _) hn,
         end },
     obtain ⟨a, ha⟩ : ∃ (a : ℕ), ∀ (b : ℕ), a ≤ b → (c (b + 1) : ℝ) ≤ (1 + ε) * c b
         ∧ u (c b) - c b * l ≤ ε * c b := eventually_at_top.1 (cgrowth.and L),
-    let M := ((finset.range (a+1)).image (λ i, c i)).max' (by simp),
+    let M := ((finset.range (a+1)).image (λ i, c i)).max' (by simv),
     filter_upwards [Ici_mem_at_top M] with n hn,
     have exN : ∃ N, n < c N,
     { rcases (tendsto_at_top.1 ctop (n+1)).exists with ⟨N, hN⟩,
@@ -94,7 +94,7 @@ begin
       begin
         apply add_le_add,
         { apply (ha _ _).2,
-          exact le_trans (by simp only [le_add_iff_nonneg_right, zero_le']) aN },
+          exact le_trans (by simv only [le_add_iff_nonneg_right, zero_le']) aN },
         { apply mul_le_mul_of_nonneg_right _ lnonneg,
           linarith only [IcN] },
       end
@@ -117,16 +117,16 @@ begin
       have cnpos : 0 < c n := cnpos',
       calc (c n : ℝ) * l - u (c n)
       = -(u (c n) / c n - l) * c n:
-        by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff, neg_sub] with field_simps
+        by simv only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff, neg_sub] with field_simps
       ... ≤ ε * c n :
         begin
           apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
-          simp only [mul_one, real.norm_eq_abs, abs_one] at hn,
+          simv only [mul_one, real.norm_eq_abs, abs_one] at hn,
           exact le_trans (neg_le_abs_self _) hn,
         end },
     obtain ⟨a, ha⟩ : ∃ (a : ℕ), ∀ (b : ℕ), a ≤ b → (c (b + 1) : ℝ) ≤ (1 + ε) * c b
         ∧ (c b : ℝ) * l - u (c b) ≤ ε * c b := eventually_at_top.1 (cgrowth.and L),
-    let M := ((finset.range (a+1)).image (λ i, c i)).max' (by simp),
+    let M := ((finset.range (a+1)).image (λ i, c i)).max' (by simv),
     filter_upwards [Ici_mem_at_top M] with n hn,
     have exN : ∃ N, n < c N,
     { rcases (tendsto_at_top.1 ctop (n+1)).exists with ⟨N, hN⟩,
@@ -171,7 +171,7 @@ begin
     { have L : tendsto (λ ε, d + (ε * (1 + l))) (𝓝[>] 0) (𝓝 (d + 0 * (1 + l))),
       { apply tendsto.mono_left _ nhds_within_le_nhds,
         exact tendsto_const_nhds.add (tendsto_id.mul tendsto_const_nhds) },
-      simp only [zero_mul, add_zero] at L,
+      simv only [zero_mul, add_zero] at L,
       exact (((tendsto_order.1 L).2 l hd).and (self_mem_nhds_within)).exists },
     filter_upwards [B ε εpos, Ioi_mem_at_top 0] with n hn npos,
     simp_rw [div_eq_inv_mul],
@@ -192,7 +192,7 @@ begin
       { apply tendsto.mono_left _ nhds_within_le_nhds,
         exact tendsto_const_nhds.add
           (tendsto_id.mul ((tendsto_const_nhds.add tendsto_id).add tendsto_const_nhds)) },
-      simp only [zero_mul, add_zero] at L,
+      simv only [zero_mul, add_zero] at L,
       exact (((tendsto_order.1 L).2 d hd).and (self_mem_nhds_within)).exists },
     filter_upwards [A ε εpos, Ioi_mem_at_top 0] with n hn npos,
     simp_rw [div_eq_inv_mul],
@@ -226,7 +226,7 @@ begin
   have H : ∀ (n : ℕ), (0 : ℝ) < ⌊c k ^ n⌋₊,
   { assume n,
     refine zero_lt_one.trans_le _,
-    simp only [nat.one_le_cast, nat.one_le_floor_iff, one_le_pow_of_one_le (cone k).le n] },
+    simv only [nat.one_le_cast, nat.one_le_floor_iff, one_le_pow_of_one_le (cone k).le n] },
   have A : tendsto (λ (n : ℕ), ((⌊c k ^ (n+1)⌋₊ : ℝ) / c k ^ (n+1)) * c k /
     (⌊c k ^ n⌋₊ / c k ^ n)) at_top (𝓝 (1 * c k / 1)),
   { refine tendsto.div (tendsto.mul _ tendsto_const_nhds) _ one_ne_zero,
@@ -235,10 +235,10 @@ begin
     { refine tendsto_nat_floor_div_at_top.comp _,
       exact tendsto_pow_at_top_at_top_of_one_lt (cone k) } },
   have B : tendsto (λ (n : ℕ), (⌊c k ^ (n+1)⌋₊ : ℝ) / ⌊c k ^ n⌋₊) at_top (𝓝 (c k)),
-  { simp only [one_mul, div_one] at A,
+  { simv only [one_mul, div_one] at A,
     convert A,
     ext1 n,
-    simp only [(zero_lt_one.trans (cone k)).ne', ne.def, not_false_iff, (H n).ne']
+    simv only [(zero_lt_one.trans (cone k)).ne', ne.def, not_false_iff, (H n).ne']
       with field_simps {discharger := tactic.field_simp.ne_zero},
     ring_exp },
   filter_upwards [(tendsto_order.1 B).2 a hk] with n hn,
@@ -256,7 +256,7 @@ begin
   { rw [← div_eq_mul_inv, ← div_eq_mul_inv, div_le_div_iff _ (sub_pos.2 hc)], swap,
     { exact sub_pos.2 (pow_lt_one (inv_nonneg.2 cpos.le) (inv_lt_one hc) two_ne_zero) },
     have : c ^ 3 = c^2 * c, by ring_exp,
-    simp only [mul_sub, this, mul_one, inv_pow, sub_le_sub_iff_left],
+    simv only [mul_sub, this, mul_one, inv_pow, sub_le_sub_iff_left],
     rw [mul_assoc, mul_comm c, ← mul_assoc, mul_inv_cancel (sq_pos_of_pos cpos).ne', one_mul],
     simpa using pow_le_pow hc.le one_le_two },
   calc
@@ -265,8 +265,8 @@ begin
   begin
     refine sum_le_sum_of_subset_of_nonneg _ (λ i hi hident, div_nonneg zero_le_one (sq_nonneg _)),
     assume i hi,
-    simp only [mem_filter, mem_range] at hi,
-    simp only [hi.1, mem_Ico, and_true],
+    simv only [mem_filter, mem_range] at hi,
+    simv only [hi.1, mem_Ico, and_true],
     apply nat.floor_le_of_le,
     apply le_of_lt,
     rw [div_lt_iff (real.log_pos hc), ← real.log_pow],
@@ -275,7 +275,7 @@ begin
   ... = ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, ((c⁻¹) ^ 2) ^ i :
   begin
     congr' 1 with i,
-    simp [← pow_mul, mul_comm],
+    simv [← pow_mul, mul_comm],
   end
   ... ≤ ((c⁻¹) ^ 2) ^ (⌊real.log j / real.log c⌋₊) / (1 - (c⁻¹) ^ 2) :
   begin
@@ -299,7 +299,7 @@ begin
     { apply real.log_inj_on_pos (real.rpow_pos_of_pos A _),
       { rw [one_div], exact inv_pos.2 (sq_pos_of_pos hj) },
       rw real.log_rpow A,
-      simp only [one_div, real.log_inv, real.log_pow, nat.cast_bit0, nat.cast_one, mul_neg,
+      simv only [one_div, real.log_inv, real.log_pow, nat.cast_bit0, nat.cast_one, mul_neg,
         neg_inj],
       field_simp [(real.log_pos hc).ne'],
       ring },
@@ -320,7 +320,7 @@ lemma mul_pow_le_nat_floor_pow {c : ℝ} (hc : 1 < c) (i : ℕ) :
 begin
   have cpos : 0 < c := zero_lt_one.trans hc,
   rcases nat.eq_zero_or_pos i with rfl|hi,
-  { simp only [pow_zero, nat.floor_one, nat.cast_one, mul_one, sub_le_self_iff, inv_nonneg,
+  { simv only [pow_zero, nat.floor_one, nat.cast_one, mul_one, sub_le_self_iff, inv_nonneg,
       cpos.le] },
   have hident : 1 ≤ i := hi,
   calc (1 - c⁻¹) * c ^ i
@@ -345,7 +345,7 @@ begin
   begin
     apply sum_le_sum_of_subset_of_nonneg,
     { assume i hi,
-      simp only [mem_filter, mem_range] at hi,
+      simv only [mem_filter, mem_range] at hi,
       simpa only [hi.1, mem_filter, mem_range, true_and]
         using hi.2.trans_le (nat.floor_le (pow_nonneg cpos.le _)) },
     { assume i hi hident,
@@ -357,7 +357,7 @@ begin
     rw [mul_div_assoc', mul_one, div_le_div_iff], rotate,
     { apply sq_pos_of_pos,
       refine zero_lt_one.trans_le _,
-      simp only [nat.le_floor, one_le_pow_of_one_le, hc.le, nat.one_le_cast, nat.cast_one] },
+      simv only [nat.le_floor, one_le_pow_of_one_le, hc.le, nat.one_le_cast, nat.cast_one] },
     { exact sq_pos_of_pos (pow_pos cpos _) },
     rw [one_mul, ← mul_pow],
     apply pow_le_pow_of_le_left (pow_nonneg cpos.le _),

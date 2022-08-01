@@ -62,7 +62,7 @@ end
 
 instance nat_le_rec.directed_system : directed_system G' (λ i j h, nat_le_rec f' i j h) :=
 ⟨λ i x h, congr (congr rfl (nat.le_rec_on_self _)) rfl,
-  λ i j k ij jk, by simp [nat.le_rec_on_trans ij jk]⟩
+  λ i j k ij jk, by simv [nat.le_rec_on_trans ij jk]⟩
 
 end directed_system
 
@@ -80,7 +80,7 @@ variable [directed_system G (λ i j h, f i j h)]
   unify f (sigma.mk i ∘ x) i (λ j ⟨a, hj⟩, trans (le_of_eq hj.symm) (refl _)) = x :=
 begin
   ext a,
-  simp only [unify, directed_system.map_self],
+  simv only [unify, directed_system.map_self],
 end
 
 lemma comp_unify {α : Type*} {x : α → (Σ i, G i)} {i j : ι}
@@ -88,7 +88,7 @@ lemma comp_unify {α : Type*} {x : α → (Σ i, G i)} {i j : ι}
   (f i j ij) ∘ (unify f x i h) = unify f x j (λ k hk, trans (mem_upper_bounds.1 h k hk) ij) :=
 begin
   ext a,
-  simp [unify, directed_system.map_map],
+  simv [unify, directed_system.map_map],
 end
 
 end direct_limit
@@ -215,11 +215,11 @@ noncomputable instance Structure : L.Structure (direct_limit G f) := language.qu
 @[simp] lemma fun_map_quotient_mk_sigma_mk {n : ℕ} {F : L.functions n} {i : ι} {x : fin n → G i} :
   fun_map F (λ a, (⟦⟨i, x a⟩⟧ : direct_limit G f)) = ⟦⟨i, fun_map F x⟩⟧ :=
 begin
-  simp only [function.comp_app, fun_map_quotient_mk, quotient.eq],
+  simv only [function.comp_app, fun_map_quotient_mk, quotient.eq],
   obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.bdd_above_range
     (λ (a : fin n), i))),
   refine ⟨k, jk, ik, _⟩,
-  simp only [embedding.map_fun, comp_unify],
+  simv only [embedding.map_fun, comp_unify],
   refl
 end
 
@@ -239,7 +239,7 @@ begin
   refine ⟨i, unify f (quotient.out ∘ x) i hi, _⟩,
   ext a,
   rw [quotient.eq_mk_iff_out, function.comp_app, unify, equiv_iff G f _],
-  { simp only [directed_system.map_self] },
+  { simv only [directed_system.map_self] },
   { refl }
 end
 
@@ -249,7 +249,7 @@ variables (L ι)
 def of (i : ι) : G i ↪[L] direct_limit G f :=
 { to_fun := quotient.mk ∘ sigma.mk i,
   inj' := λ x y h, begin
-    simp only [quotient.eq] at h,
+    simv only [quotient.eq] at h,
     obtain ⟨j, h1, h2, h3⟩ := h,
     exact (f i j h1).injective h3,
   end }
@@ -261,16 +261,16 @@ variables {L ι G f}
 @[simp] lemma of_f {i j : ι} {hij : i ≤ j} {x : G i} :
   (of L ι G f j (f i j hij x)) = of L ι G f i x :=
 begin
-  simp only [of_apply, quotient.eq],
+  simv only [of_apply, quotient.eq],
   refine setoid.symm ⟨j, hij, refl j, _⟩,
-  simp only [directed_system.map_self],
+  simv only [directed_system.map_self],
 end
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/
 theorem exists_of (z : direct_limit G f) :
   ∃ i x, of L ι G f i x = z :=
-⟨z.out.1, z.out.2, by simp⟩
+⟨z.out.1, z.out.2, by simv⟩
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : direct_limit G f → Prop}
@@ -288,7 +288,7 @@ that respect the directed system structure (i.e. make some diagram commute) give
 to a unique map out of the direct limit. -/
 def lift : direct_limit G f ↪[L] P :=
 { to_fun := quotient.lift (λ (x : Σ i, G i), (g x.1) x.2) (λ x y xy, begin
-    simp only,
+    simv only,
     obtain ⟨i, hx, hy⟩ := directed_of (≤) x.1 y.1,
     rw [← Hg x.1 i hx, ← Hg y.1 i hy],
     exact congr_arg _ ((equiv_iff _ _ _ _).1 xy),
@@ -303,7 +303,7 @@ def lift : direct_limit G f ↪[L] P :=
   map_fun' := λ n F x, begin
     obtain ⟨i, y, rfl⟩ := exists_quotient_mk_sigma_mk_eq G f x,
     rw [fun_map_quotient_mk_sigma_mk, ← function.comp.assoc, quotient.lift_comp_mk],
-    simp only [quotient.lift_mk, embedding.map_fun],
+    simv only [quotient.lift_mk, embedding.map_fun],
   end,
   map_rel' := λ n R x, begin
     obtain ⟨i, y, rfl⟩ := exists_quotient_mk_sigma_mk_eq G f x,
@@ -319,11 +319,11 @@ omit Hg
   lift L ι G f g Hg (⟦⟨i, x⟩⟧) = (g i) x :=
 begin
   change (lift L ι G f g Hg).to_fun (⟦⟨i, x⟩⟧) = _,
-  simp only [lift, quotient.lift_mk],
+  simv only [lift, quotient.lift_mk],
 end
 
 lemma lift_of {i} (x : G i) : lift L ι G f g Hg (of L ι G f i x) = g i x :=
-by simp
+by simv
 
 theorem lift_unique (F : direct_limit G f ↪[L] P) (x) :
   F x = lift L ι G f (λ i, F.comp $ of L ι G f i)
@@ -346,8 +346,8 @@ begin
     let out := @quotient.out _ (direct_limit.setoid G f),
     refine hS (out x).1 ⟨(out x).2, _, _⟩,
     { rw [(classical.some_spec (h (out x).1).out).2],
-      simp only [substructure.coe_top] },
-    { simp only [embedding.coe_to_hom, direct_limit.of_apply, sigma.eta, quotient.out_eq] } }
+      simv only [substructure.coe_top] },
+    { simv only [embedding.coe_to_hom, direct_limit.of_apply, sigma.eta, quotient.out_eq] } }
 end
 
 instance cg' {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]

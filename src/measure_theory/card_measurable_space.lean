@@ -107,7 +107,7 @@ begin
   { rw [mk_singleton],
     exact one_lt_aleph_0.le.trans C },
   { apply mk_range_le.trans,
-    simp only [mk_pi, subtype.val_eq_coe, prod_const, lift_uzero, mk_denumerable, lift_aleph_0],
+    simv only [mk_pi, subtype.val_eq_coe, prod_const, lift_uzero, mk_denumerable, lift_aleph_0],
     have := @power_le_power_right _ _ ℵ₀ J,
     rwa [← power_mul, aleph_0_mul_aleph_0] at this }
 end

@@ -30,7 +30,7 @@ For constructions of the invertible element given a characteristic, see
 The `invertible` class lives in `Type`, not `Prop`, to make computation easier.
 If multiplication is associative, `invertible` is a subsingleton anyway.
 
-The `simp` normal form tries to normalize `⅟a` to `a ⁻¹`. Otherwise, it pushes
+The `simv` normal form tries to normalize `⅟a` to `a ⁻¹`. Otherwise, it pushes
 `⅟` inside the expression as much as possible.
 
 Since `invertible a` is not a `Prop` (but it is a `subsingleton`), we have to be careful about
@@ -85,11 +85,11 @@ by rw [←mul_assoc, mul_inv_of_self, one_mul]
 
 @[simp]
 lemma mul_inv_of_mul_self_cancel [monoid α] (a b : α) [invertible b] : a * ⅟b * b = a :=
-by simp [mul_assoc]
+by simv [mul_assoc]
 
 @[simp]
 lemma mul_mul_inv_of_self_cancel [monoid α] (a b : α) [invertible b] : a * b * ⅟b = a :=
-by simp [mul_assoc]
+by simv [mul_assoc]
 
 lemma inv_of_eq_right_inv [monoid α] {a b : α} [invertible a] (hac : a * b = 1) : ⅟a = b :=
 left_inv_eq_right_inv (inv_of_mul_self _) hac
@@ -116,8 +116,8 @@ def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = 
 def unit_of_invertible [monoid α] (a : α) [invertible a] : αˣ :=
 { val     := a,
   inv     := ⅟a,
-  val_inv := by simp,
-  inv_val := by simp, }
+  val_inv := by simv,
+  inv_val := by simv, }
 
 lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩
@@ -158,11 +158,11 @@ inv_of_eq_right_inv (mul_one _)
 
 /-- `-⅟a` is the inverse of `-a` -/
 def invertible_neg [has_mul α] [has_one α] [has_distrib_neg α] (a : α) [invertible a] :
-  invertible (-a) := ⟨-⅟a, by simp, by simp ⟩
+  invertible (-a) := ⟨-⅟a, by simv, by simv ⟩
 
 @[simp] lemma inv_of_neg [monoid α] [has_distrib_neg α] (a : α) [invertible a] [invertible (-a)] :
   ⅟(-a) = -⅟a :=
-inv_of_eq_right_inv (by simp)
+inv_of_eq_right_inv (by simv)
 
 @[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
 (is_unit_of_invertible (2:α)).mul_right_inj.1 $
@@ -185,23 +185,23 @@ inv_of_eq_right_inv (inv_of_mul_self _)
 
 /-- `⅟b * ⅟a` is the inverse of `a * b` -/
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=
-⟨ ⅟b * ⅟a, by simp [←mul_assoc], by simp [←mul_assoc] ⟩
+⟨ ⅟b * ⅟a, by simv [←mul_assoc], by simv [←mul_assoc] ⟩
 
 @[simp] lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
-inv_of_eq_right_inv (by simp [←mul_assoc])
+inv_of_eq_right_inv (by simv [←mul_assoc])
 
 theorem commute.inv_of_right [monoid α] {a b : α} [invertible b] (h : commute a b) :
   commute a (⅟b) :=
-calc a * (⅟b) = (⅟b) * (b * a * (⅟b)) : by simp [mul_assoc]
+calc a * (⅟b) = (⅟b) * (b * a * (⅟b)) : by simv [mul_assoc]
 ... = (⅟b) * (a * b * ((⅟b))) : by rw h.eq
-... = (⅟b) * a : by simp [mul_assoc]
+... = (⅟b) * a : by simv [mul_assoc]
 
 theorem commute.inv_of_left [monoid α] {a b : α} [invertible b] (h : commute b a) :
   commute (⅟b) a :=
-calc (⅟b) * a = (⅟b) * (a * b * (⅟b)) : by simp [mul_assoc]
+calc (⅟b) * a = (⅟b) * (a * b * (⅟b)) : by simv [mul_assoc]
 ... = (⅟b) * (b * a * (⅟b)) : by rw h.eq
-... = a * (⅟b) : by simp [mul_assoc]
+... = a * (⅟b) : by simv [mul_assoc]
 
 lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
   commute m (⅟m) :=
@@ -209,7 +209,7 @@ calc m * ⅟m = 1       : mul_inv_of_self m
         ... = ⅟ m * m : (inv_of_mul_self m).symm
 
 lemma nonzero_of_invertible [mul_zero_one_class α] (a : α) [nontrivial α] [invertible a] : a ≠ 0 :=
-λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
+λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simv [ha]
                          ... = 1 : inv_of_mul_self a
 
 section monoid_with_zero
@@ -249,15 +249,15 @@ div_self (nonzero_of_invertible a)
 
 /-- `b / a` is the inverse of `a / b` -/
 def invertible_div (a b : α) [invertible a] [invertible b] : invertible (a / b) :=
-⟨b / a, by simp [←mul_div_assoc], by simp [←mul_div_assoc]⟩
+⟨b / a, by simv [←mul_div_assoc], by simv [←mul_div_assoc]⟩
 
 @[simp] lemma inv_of_div (a b : α) [invertible a] [invertible b] [invertible (a / b)] :
   ⅟(a / b) = b / a :=
-inv_of_eq_right_inv (by simp [←mul_div_assoc])
+inv_of_eq_right_inv (by simv [←mul_div_assoc])
 
 /-- `a` is the inverse of `a⁻¹` -/
 def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=
-⟨ a, by simp, by simp ⟩
+⟨ a, by simv, by simv ⟩
 
 end group_with_zero
 

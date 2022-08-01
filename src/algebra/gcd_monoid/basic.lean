@@ -77,7 +77,7 @@ elements. -/
 
 export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
-attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
+attribute [simv] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
 variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
@@ -88,12 +88,12 @@ norm_unit_coe_units 1
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
 def normalize : α →*₀ α :=
 { to_fun := λ x, x * norm_unit x,
-  map_zero' := by simp,
+  map_zero' := by simv,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
   map_mul' := λ x y,
   classical.by_cases (λ hx : x = 0, by rw [hx, zero_mul, zero_mul, zero_mul]) $ λ hx,
   classical.by_cases (λ hy : y = 0, by rw [hy, mul_zero, zero_mul, mul_zero]) $ λ hy,
-  by simp only [norm_unit_mul hx hy, units.coe_mul]; simp only [mul_assoc, mul_left_comm y], }
+  by simv only [norm_unit_mul hx hy, units.coe_mul]; simv only [mul_assoc, mul_left_comm y], }
 
 theorem associated_normalize (x : α) : associated x (normalize x) :=
 ⟨_, rfl⟩
@@ -110,7 +110,7 @@ associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
 
 @[simp] lemma normalize_one : normalize (1 : α) = 1 := normalize.map_one
 
-lemma normalize_coe_units (u : αˣ) : normalize (u : α) = 1 := by simp
+lemma normalize_coe_units (u : αˣ) : normalize (u : α) = 1 := by simv
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 ⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize _,
@@ -127,14 +127,14 @@ begin
   { rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one] }
 end
 
-theorem normalize_idem (x : α) : normalize (normalize x) = normalize x := by simp
+theorem normalize_idem (x : α) : normalize (normalize x) = normalize x := by simv
 
 theorem normalize_eq_normalize {a b : α}
   (hab : a ∣ b) (hba : b ∣ a) : normalize a = normalize b :=
 begin
   nontriviality α,
   rcases associated_of_dvd_dvd hab hba with ⟨u, rfl⟩,
-  refine classical.by_cases (by rintro rfl; simp only [zero_mul]) (assume ha : a ≠ 0, _),
+  refine classical.by_cases (by rintro rfl; simv only [zero_mul]) (assume ha : a ≠ 0, _),
   suffices : a * ↑(norm_unit a) = a * ↑u * ↑(norm_unit a) * ↑u⁻¹,
     by simpa only [normalize_apply, mul_assoc, norm_unit_mul ha u.ne_zero, norm_unit_coe_units],
   calc a * ↑(norm_unit a) = a * ↑(norm_unit a) * ↑u * ↑u⁻¹:
@@ -151,11 +151,11 @@ theorem dvd_antisymm_of_normalize_eq {a b : α}
   a = b :=
 ha ▸ hb ▸ normalize_eq_normalize hab hba
 
---can be proven by simp
+--can be proven by simv
 lemma dvd_normalize_iff {a b : α} : a ∣ normalize b ↔ a ∣ b :=
 units.dvd_mul_right
 
---can be proven by simp
+--can be proven by simv
 lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
 units.mul_right_dvd
 
@@ -178,15 +178,15 @@ normalize_one
 
 lemma out_mul (a b : associates α) : (a * b).out = a.out * b.out :=
 quotient.induction_on₂ a b $ assume a b,
-by simp only [associates.quotient_mk_eq_mk, out_mk, mk_mul_mk, normalize.map_mul]
+by simv only [associates.quotient_mk_eq_mk, out_mk, mk_mul_mk, normalize.map_mul]
 
 lemma dvd_out_iff (a : α) (b : associates α) : a ∣ b.out ↔ associates.mk a ≤ b :=
 quotient.induction_on b $
-  by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
+  by simv [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
 
 lemma out_dvd_iff (a : α) (b : associates α) : b.out ∣ a ↔ b ≤ associates.mk a :=
 quotient.induction_on b $
-  by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
+  by simv [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
 
 @[simp] lemma out_top : (⊤ : associates α).out = 0 :=
 normalize_zero
@@ -230,7 +230,7 @@ class normalized_gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
 
 export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 
-attribute [simp] lcm_zero_left lcm_zero_right
+attribute [simv] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
 variables [cancel_comm_monoid_with_zero α]
@@ -326,7 +326,7 @@ gcd_eq_normalize (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) (dvd_refl a))
 
 @[simp] theorem gcd_mul_left [normalized_gcd_monoid α] (a b c : α) :
   gcd (a * b) (a * c) = normalize a * gcd b c :=
-classical.by_cases (by rintro rfl; simp only [zero_mul, gcd_zero_left, normalize_zero]) $
+classical.by_cases (by rintro rfl; simv only [zero_mul, gcd_zero_left, normalize_zero]) $
 assume ha : a ≠ 0,
 suffices gcd (a * b) (a * c) = normalize (a * gcd b c),
   by simpa only [normalize.map_mul, normalize_gcd],
@@ -343,7 +343,7 @@ gcd_eq_normalize
 theorem gcd_mul_left' [gcd_monoid α] (a b c : α) : associated (gcd (a * b) (a * c)) (a * gcd b c) :=
 begin
   obtain rfl|ha := eq_or_ne a 0,
-  { simp only [zero_mul, gcd_zero_left'] },
+  { simv only [zero_mul, gcd_zero_left'] },
   obtain ⟨d, eq⟩ := dvd_gcd (dvd_mul_right a b) (dvd_mul_right a c),
   apply associated_of_dvd_dvd,
   { rw eq,
@@ -358,11 +358,11 @@ end
 
 @[simp] theorem gcd_mul_right [normalized_gcd_monoid α] (a b c : α) :
   gcd (b * a) (c * a) = gcd b c * normalize a :=
-by simp only [mul_comm, gcd_mul_left]
+by simv only [mul_comm, gcd_mul_left]
 
 @[simp] theorem gcd_mul_right' [gcd_monoid α] (a b c : α) :
   associated (gcd (b * a) (c * a)) (gcd b c * a) :=
-by simp only [mul_comm, gcd_mul_left']
+by simv only [mul_comm, gcd_mul_left']
 
 theorem gcd_eq_left_iff [normalized_gcd_monoid α] (a b : α) (h : normalize a = a) :
   gcd a b = a ↔ a ∣ b :=
@@ -414,7 +414,7 @@ begin
   { rw gcd_eq_zero_iff at h0,
     rcases h0 with ⟨rfl, rfl⟩,
     refine ⟨0, dvd_refl 0, n, dvd_refl n, _⟩,
-    simp },
+    simv },
   { obtain ⟨a, ha⟩ := gcd_dvd_left k m,
     refine ⟨gcd k m, gcd_dvd_right _ _, a, _, ha⟩,
     suffices h : gcd k m * a ∣ gcd k m * n,
@@ -448,7 +448,7 @@ begin
     exact (gcd_zero_left' (0 ^ k : α)).dvd.trans
       (pow_dvd_pow_of_dvd (gcd_zero_left' (0 : α)).symm.dvd _) },
   { induction k with k hk,
-    { simp only [pow_zero],
+    { simv only [pow_zero],
       exact (gcd_one_right' a).dvd, },
     rw [pow_succ, pow_succ],
     transitivity gcd a b * gcd a (b ^ k),
@@ -570,7 +570,7 @@ lemma lcm_dvd_iff [gcd_monoid α] {a b c : α} : lcm a b ∣ c ↔ a ∣ c ∧ b
 begin
   by_cases this : a = 0 ∨ b = 0,
   { rcases this with rfl | rfl;
-    simp only [iff_def, lcm_zero_left, lcm_zero_right, zero_dvd_iff, dvd_zero,
+    simv only [iff_def, lcm_zero_left, lcm_zero_right, zero_dvd_iff, dvd_zero,
       eq_self_iff_true, and_true, imp_true_iff] {contextual:=tt} },
   { obtain ⟨h1, h2⟩ := not_or_distrib.1 this,
     have h : gcd a b ≠ 0, from λ H, h1 ((gcd_eq_zero_iff _ _).1 H).1,
@@ -665,7 +665,7 @@ iff.intro
 
 @[simp] theorem lcm_mul_left [normalized_gcd_monoid α] (a b c : α) :
   lcm (a * b) (a * c) = normalize a * lcm b c :=
-classical.by_cases (by rintro rfl; simp only [zero_mul, lcm_zero_left, normalize_zero]) $
+classical.by_cases (by rintro rfl; simv only [zero_mul, lcm_zero_left, normalize_zero]) $
 assume ha : a ≠ 0,
 suffices lcm (a * b) (a * c) = normalize (a * lcm b c),
   by simpa only [normalize.map_mul, normalize_lcm],
@@ -679,7 +679,7 @@ lcm_eq_normalize
 
 @[simp] theorem lcm_mul_right [normalized_gcd_monoid α] (a b c : α) :
   lcm (b * a) (c * a) = lcm b c * normalize a :=
-by simp only [mul_comm, lcm_mul_left]
+by simv only [mul_comm, lcm_mul_left]
 
 theorem lcm_eq_left_iff [normalized_gcd_monoid α] (a b : α) (h : normalize a = a) :
   lcm a b = a ↔ b ∣ a :=
@@ -875,7 +875,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
       set l := classical.some (dvd_normalize_iff.2
           ((gcd_dvd_left a b).trans (dvd.intro b rfl))),
       obtain rfl|hb := eq_or_ne b 0,
-      { simp only [normalize_zero, mul_zero, mul_eq_zero] at this,
+      { simv only [normalize_zero, mul_zero, mul_eq_zero] at this,
         obtain ha|hl := this,
         { apply (a0 _).elim,
           rw [←zero_dvd_iff, ←ha],
@@ -1106,7 +1106,7 @@ variables (G₀ : Type*) [comm_group_with_zero G₀] [decidable_eq G₀]
 instance : normalized_gcd_monoid G₀ :=
 { norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
   norm_unit_zero := dif_pos rfl,
-  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simp [x0, y0, mul_comm]),
+  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simv [x0, y0, mul_comm]),
   norm_unit_coe_units := λ u, by { rw [dif_neg (units.ne_zero _), units.mk0_coe], apply_instance },
   gcd := λ a b, if a = 0 ∧ b = 0 then 0 else 1,
   lcm := λ a b, if a = 0 ∨ b = 0 then 0 else 1,
@@ -1119,22 +1119,22 @@ instance : normalized_gcd_monoid G₀ :=
       assumption
   end,
   gcd_mul_lcm := λ a b, begin
-    by_cases ha : a = 0, { simp [ha] },
-    by_cases hb : b = 0, { simp [hb] },
+    by_cases ha : a = 0, { simv [ha] },
+    by_cases hb : b = 0, { simv [hb] },
     rw [if_neg (not_and_of_not_left _ ha), one_mul, if_neg (not_or ha hb)],
     exact (associated_one_iff_is_unit.mpr ((is_unit.mk0 _ ha).mul (is_unit.mk0 _ hb))).symm
   end,
   lcm_zero_left := λ b, if_pos (or.inl rfl),
   lcm_zero_right := λ a, if_pos (or.inr rfl),
   -- `split_ifs` wants to split `normalize`, so handle the cases manually
-  normalize_gcd := λ a b, if h : a = 0 ∧ b = 0 then by simp [if_pos h] else by simp [if_neg h],
-  normalize_lcm := λ a b, if h : a = 0 ∨ b = 0 then by simp [if_pos h] else by simp [if_neg h] }
+  normalize_gcd := λ a b, if h : a = 0 ∧ b = 0 then by simv [if_pos h] else by simv [if_neg h],
+  normalize_lcm := λ a b, if h : a = 0 ∨ b = 0 then by simv [if_pos h] else by simv [if_neg h] }
 
 @[simp]
 lemma coe_norm_unit {a : G₀} (h0 : a ≠ 0) : (↑(norm_unit a) : G₀) = a⁻¹ :=
-by simp [norm_unit, h0]
+by simv [norm_unit, h0]
 
 lemma normalize_eq_one {a : G₀} (h0 : a ≠ 0) : normalize a = 1 :=
-by simp [normalize_apply, h0]
+by simv [normalize_apply, h0]
 
 end comm_group_with_zero

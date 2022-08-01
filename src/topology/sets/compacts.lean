@@ -98,8 +98,8 @@ protected def map (f : α → β) (hf : continuous f) (K : compacts α) : compac
 @[simp] protected def equiv (f : α ≃ₜ β) : compacts α ≃ compacts β :=
 { to_fun := compacts.map f f.continuous,
   inv_fun := compacts.map _ f.symm.continuous,
-  left_inv := λ s, by { ext1, simp only [coe_map, ← image_comp, f.symm_comp_self, image_id] },
-  right_inv := λ s, by { ext1, simp only [coe_map, ← image_comp, f.self_comp_symm, image_id] } }
+  left_inv := λ s, by { ext1, simv only [coe_map, ← image_comp, f.symm_comp_self, image_id] },
+  right_inv := λ s, by { ext1, simv only [coe_map, ← image_comp, f.self_comp_symm, image_id] } }
 
 /-- The image of a compact set under a homeomorphism can also be expressed as a preimage. -/
 lemma equiv_to_fun_val (f : α ≃ₜ β) (K : compacts α) :
@@ -239,7 +239,7 @@ protected def prod (K : positive_compacts α) (L : positive_compacts β) :
   positive_compacts (α × β) :=
 { interior_nonempty' :=
   begin
-    simp only [compacts.carrier_eq_coe, compacts.coe_prod, interior_prod_eq],
+    simv only [compacts.carrier_eq_coe, compacts.coe_prod, interior_prod_eq],
     exact K.interior_nonempty.prod L.interior_nonempty,
   end,
   .. K.to_compacts.prod L.to_compacts }

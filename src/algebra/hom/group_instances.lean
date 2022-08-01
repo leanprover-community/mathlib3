@@ -34,10 +34,10 @@ instance [mul_one_class M] [comm_monoid N] : comm_monoid (M →* N) :=
   mul_comm := by intros; ext; apply mul_comm,
   npow := λ n f,
   { to_fun := λ x, (f x) ^ n,
-    map_one' := by simp,
-    map_mul' := λ x y, by simp [mul_pow] },
-  npow_zero' := λ f, by { ext x, simp },
-  npow_succ' := λ n f, by { ext x, simp [pow_succ] } }
+    map_one' := by simv,
+    map_mul' := λ x y, by simv [mul_pow] },
+  npow_zero' := λ f, by { ext x, simv },
+  npow_succ' := λ n f, by { ext x, simv [pow_succ] } }
 
 /-- If `G` is a commutative group, then `M →* G` is a commutative group too. -/
 @[to_additive "If `G` is an additive commutative group, then `M →+ G` is an additive commutative
@@ -48,11 +48,11 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
   mul_left_inv := by intros; ext; apply mul_left_inv,
   zpow := λ n f, { to_fun := λ x, (f x) ^ n,
-    map_one' := by simp,
-    map_mul' := λ x y, by simp [mul_zpow] },
-  zpow_zero' := λ f, by { ext x, simp },
-  zpow_succ' := λ n f, by { ext x, simp [zpow_of_nat, pow_succ] },
-  zpow_neg'  := λ n f, by { ext x, simp },
+    map_one' := by simv,
+    map_mul' := λ x y, by simv [mul_zpow] },
+  zpow_zero' := λ f, by { ext x, simv },
+  zpow_succ' := λ n f, by { ext x, simv [zpow_of_nat, pow_succ] },
+  zpow_neg'  := λ n f, by { ext x, simv },
   ..monoid_hom.comm_monoid }
 
 instance [add_comm_monoid M] : add_comm_monoid (add_monoid.End M) :=
@@ -96,7 +96,7 @@ def flip {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P} (f :
   map_one' := ext $ λ x, (f x).map_one,
   map_mul' := λ y₁ y₂, ext $ λ x, (f x).map_mul y₁ y₂ }
 
-@[simp, to_additive] lemma flip_apply
+@[simv, to_additive] lemma flip_apply
   {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
   (f : M →* N →* P) (x : M) (y : N) :
   f.flip y x = f x y :=
@@ -172,7 +172,7 @@ def compl₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class 
   (f : M →* N →* P) (g : Q →* N) : M →* Q →* P :=
 (comp_hom' g).comp f
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma compl₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class Q]
   (f : M →* N →* P) (g : Q →* N) (m : M) (q : Q) :
   (compl₂ f g) m q = f m (g q) := rfl
@@ -185,7 +185,7 @@ def compr₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M →* N →* P) (g : P →* Q) : M →* N →* Q :=
 (comp_hom g).comp f
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma compr₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M →* N →* P) (g : P →* Q) (m : M) (n : N) :
   (compr₂ f g) m n = g (f m n) := rfl

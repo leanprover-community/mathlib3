@@ -59,7 +59,7 @@ def pullback {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ X),
   map := λ g h k,
     over.hom_mk
-      (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simp [pullback.condition]))
+      (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simv [pullback.condition]))
       (by tidy) }
 
 /-- `over.map f` is left adjoint to `over.pullback f`. -/
@@ -75,10 +75,10 @@ adjunction.mk_of_hom_equiv
       dsimp,
       rw [← over.w Y, category.assoc, pullback.condition, category.assoc], refl,
     end,
-    left_inv := λ X, by { ext, dsimp, simp, },
+    left_inv := λ X, by { ext, dsimp, simv, },
     right_inv := λ Y, begin
       ext, dsimp,
-      simp only [pullback.lift_fst],
+      simv only [pullback.lift_fst],
       dsimp,
       rw [pullback.lift_snd, ← over.w Y],
       refl,
@@ -131,7 +131,7 @@ def pushout {X Y : C} (f : X ⟶ Y) : under X ⥤ under Y :=
 { obj := λ g, under.mk (pushout.inr : Y ⟶ pushout g.hom f),
   map := λ g h k,
     under.hom_mk
-      (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simp [←pushout.condition], }))
+      (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simv [←pushout.condition], }))
       (by tidy) }
 
 end

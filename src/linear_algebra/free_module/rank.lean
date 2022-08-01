@@ -41,7 +41,7 @@ by simpa [lift_id', lift_umax] using
   (basis.of_repr (linear_equiv.refl _ (ι →₀ R))).mk_eq_dim.symm
 
 /-- If `R` and `ι` lie in the same universe, the rank of `(ι →₀ R)` is `# ι`. -/
-lemma rank_finsupp' {ι : Type u} : module.rank R (ι →₀ R) = # ι := by simp
+lemma rank_finsupp' {ι : Type u} : module.rank R (ι →₀ R) = # ι := by simv
 
 /-- The rank of `M × N` is `(module.rank R M).lift + (module.rank R N).lift`. -/
 @[simp] lemma rank_prod :
@@ -52,7 +52,7 @@ by simpa [rank_eq_card_choose_basis_index R M, rank_eq_card_choose_basis_index R
 /-- If `M` and `N` lie in the same universe, the rank of `M × N` is
   `(module.rank R M) + (module.rank R N)`. -/
 lemma rank_prod' (N : Type v) [add_comm_group N] [module R N] [module.free R N] :
-  module.rank R (M × N) = (module.rank R M) + (module.rank R N) := by simp
+  module.rank R (M × N) = (module.rank R M) + (module.rank R N) := by simv
 
 /-- The rank of the direct sum is the sum of the ranks. -/
 @[simp] lemma rank_direct_sum  {ι : Type v} (M : ι → Type w) [Π (i : ι), add_comm_group (M i)]
@@ -61,7 +61,7 @@ lemma rank_prod' (N : Type v) [add_comm_group N] [module R N] [module.free R N] 
 begin
   let B := λ i, choose_basis R (M i),
   let b : basis _ R (⨁ i, M i) := dfinsupp.basis (λ i, B i),
-  simp [← b.mk_eq_dim'', λ i, (B i).mk_eq_dim''],
+  simv [← b.mk_eq_dim'', λ i, (B i).mk_eq_dim''],
 end
 
 /-- The rank of a finite product is the sum of the ranks. -/
@@ -88,7 +88,7 @@ by rw [rank_matrix, lift_mul, lift_umax]
 /-- If `m` and `n` are `fintype` that lie in the same universe as `R`, the rank of `m × n` matrices
   is `# m * # n`. -/
 @[simp] lemma rank_matrix'' (m n : Type u) [fintype m] [fintype n] :
-  module.rank R (matrix m n R) =  # m * # n := by simp
+  module.rank R (matrix m n R) =  # m * # n := by simv
 
 end ring
 
@@ -114,7 +114,7 @@ end
 /-- If `M` and `N` lie in the same universe, the rank of `M ⊗[R] N` is
   `(module.rank R M) * (module.rank R N)`. -/
 lemma rank_tensor_product' (N : Type v) [add_comm_group N] [module R N] [module.free R N] :
-  module.rank R (M ⊗[R] N) = (module.rank R M) * (module.rank R N) := by simp
+  module.rank R (M ⊗[R] N) = (module.rank R M) * (module.rank R N) := by simv
 
 end comm_ring
 

@@ -171,7 +171,7 @@ eq.symm (eq_some_iff.2 ⟨ha, rfl⟩)
 
 lemma get_eq_iff_eq_some {a : part α} {ha : a.dom} {b : α} :
   a.get ha = b ↔ a = some b :=
-⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
+⟨λ h, by simv [h.symm], λ h, by simv [h]⟩
 
 lemma get_eq_get_of_eq (a : part α) (ha : a.dom) {b : part α} (h : a = b) :
   a.get ha = b.get (h ▸ ha) :=
@@ -214,7 +214,7 @@ none.get_or_else_of_not_dom not_none_dom d
   a ∈ to_option o ↔ a ∈ o :=
 begin
   unfold to_option,
-  by_cases h : o.dom; simp [h],
+  by_cases h : o.dom; simv [h],
   { exact ⟨λ h, ⟨_, h⟩, λ ⟨_, h⟩, h⟩ },
   { exact mt Exists.fst h }
 end
@@ -246,8 +246,8 @@ def of_option : option α → part α
   λ h, ⟨trivial, option.some.inj h⟩⟩
 
 @[simp] theorem of_option_dom {α} : ∀ (o : option α), (of_option o).dom ↔ o.is_some
-| option.none     := by simp [of_option, none]
-| (option.some a) := by simp [of_option]
+| option.none     := by simv [of_option, none]
+| (option.some a) := by simv [of_option]
 
 theorem of_option_eq_get {α} (o : option α) : of_option o = ⟨_, @option.get _ o⟩ :=
 part.ext' (of_option_dom o) $ λ h₁ h₂, by cases o; [cases h₁, refl]
@@ -329,7 +329,7 @@ theorem mem_map (f : α → β) {o : part α} :
  λ ⟨a, h₁, h₂⟩, h₂ ▸ mem_map f h₁⟩
 
 @[simp] theorem map_none (f : α → β) :
-  map f none = none := eq_none_iff.2 $ λ a, by simp
+  map f none = none := eq_none_iff.2 $ λ a, by simv
 
 @[simp] theorem map_some (f : α → β) (a : α) : map f (some a) = some (f a) :=
 eq_some_iff.2 $ mem_map f $ mem_some _
@@ -348,9 +348,9 @@ lemma assert_pos {p : Prop} {f : p → part α} (h : p) :
 begin
   dsimp [assert],
   cases h' : f h,
-  simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
+  simv only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
-  { simp only [h,h',exists_prop_of_true] },
+  { simv only [h,h',exists_prop_of_true] },
   { cc }
 end
 
@@ -358,9 +358,9 @@ lemma assert_neg {p : Prop} {f : p → part α} (h : ¬ p) :
   assert p f = none :=
 begin
   dsimp [assert,none], congr,
-  { simp only [h, not_false_iff, exists_prop_of_false] },
+  { simv only [h, not_false_iff, exists_prop_of_false] },
   { apply function.hfunext,
-    { simp only [h, not_false_iff, exists_prop_of_false] },
+    { simv only [h, not_false_iff, exists_prop_of_false] },
     cc },
 end
 
@@ -376,7 +376,7 @@ theorem mem_bind {f : part α} {g : α → part β} :
 protected lemma dom.bind {o : part α} (h : o.dom) (f : α → part β) : o.bind f = f (o.get h) :=
 begin
   ext b,
-  simp only [part.mem_bind_iff, exists_prop],
+  simv only [part.mem_bind_iff, exists_prop],
   refine ⟨_, λ hb, ⟨o.get h, part.get_mem _, hb⟩⟩,
   rintro ⟨a, ha, hb⟩,
   rwa part.get_eq_of_mem ha,
@@ -385,10 +385,10 @@ end
 lemma dom.of_bind {f : α → part β} {a : part α} (h : (a.bind f).dom) : a.dom := h.some
 
 @[simp] theorem bind_none (f : α → part β) :
-  none.bind f = none := eq_none_iff.2 $ λ a, by simp
+  none.bind f = none := eq_none_iff.2 $ λ a, by simv
 
 @[simp] theorem bind_some (a : α) (f : α → part β) :
-  (some a).bind f = f a := ext $ by simp
+  (some a).bind f = f a := ext $ by simv
 
 theorem bind_of_mem {o : part α} {a : α} (h : a ∈ o) (f : α → part β) :
   o.bind f = f a :=
@@ -396,7 +396,7 @@ by rw [eq_some_iff.2 h, bind_some]
 
 theorem bind_some_eq_map (f : α → β) (x : part α) :
   x.bind (some ∘ f) = map f x :=
-ext $ by simp [eq_comm]
+ext $ by simv [eq_comm]
 
 lemma bind_to_option (f : α → part β) (o : part α) [decidable o.dom] [Π a, decidable (f a).dom]
   [decidable (o.bind f).dom] :
@@ -411,17 +411,17 @@ end
 
 theorem bind_assoc {γ} (f : part α) (g : α → part β) (k : β → part γ) :
   (f.bind g).bind k = f.bind (λ x, (g x).bind k) :=
-ext $ λ a, by simp; exact
+ext $ λ a, by simv; exact
  ⟨λ ⟨_, ⟨_, h₁, h₂⟩, h₃⟩, ⟨_, h₁, _, h₂, h₃⟩,
   λ ⟨_, h₁, _, h₂, h₃⟩, ⟨_, ⟨_, h₁, h₂⟩, h₃⟩⟩
 
 @[simp] theorem bind_map {γ} (f : α → β) (x) (g : β → part γ) :
   (map f x).bind g = x.bind (λ y, g (f y)) :=
-by rw [← bind_some_eq_map, bind_assoc]; simp
+by rw [← bind_some_eq_map, bind_assoc]; simv
 
 @[simp] theorem map_bind {γ} (f : α → part β) (x : part α) (g : β → γ) :
   map g (x.bind f) = x.bind (λ y, map g (f y)) :=
-by rw [← bind_some_eq_map, bind_assoc]; simp [bind_some_eq_map]
+by rw [← bind_some_eq_map, bind_assoc]; simv [bind_some_eq_map]
 
 theorem map_map (g : β → γ) (f : α → β) (o : part α) :
   map g (map f o) = map (g ∘ f) o :=
@@ -442,7 +442,7 @@ theorem map_id' {f : α → α} (H : ∀ (x : α), f x = x) (o) : map f o = o :=
 by rw [show f = id, from funext H]; exact id_map o
 
 @[simp] theorem bind_some_right (x : part α) : x.bind some = x :=
-by rw [bind_some_eq_map]; simp [map_id']
+by rw [bind_some_eq_map]; simv [map_id']
 
 @[simp] theorem pure_eq_some (a : α) : pure a = some a := rfl
 @[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
@@ -458,10 +458,10 @@ lemma bind_le {α} (x : part α) (f : α → part β) (y : part β) :
 begin
   split; intro h,
   { intros a h' b, replace h := h b,
-    simp only [and_imp, exists_prop, bind_eq_bind, mem_bind_iff, exists_imp_distrib] at h,
+    simv only [and_imp, exists_prop, bind_eq_bind, mem_bind_iff, exists_imp_distrib] at h,
     apply h _ h' },
   { intros b h',
-    simp only [exists_prop, bind_eq_bind, mem_bind_iff] at h',
+    simv only [exists_prop, bind_eq_bind, mem_bind_iff] at h',
     rcases h' with ⟨a,h₀,h₁⟩, apply h _ h₀ _ h₁ },
 end
 
@@ -523,7 +523,7 @@ lemma left_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
 lemma right_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
   b.dom := by tidy
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_get_eq [has_mul α] (a b : part α) (hab : dom (a * b)) :
   (a * b).get hab = a.get (left_dom_of_mul_dom hab) * b.get (right_dom_of_mul_dom hab) :=
 by tidy
@@ -549,7 +549,7 @@ lemma left_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
 lemma right_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
   b.dom := by tidy
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma div_get_eq [has_div α] (a b : part α) (hab : dom (a / b)) :
   (a / b).get hab = a.get (left_dom_of_div_dom hab) / b.get (right_dom_of_div_dom hab) :=
 by tidy

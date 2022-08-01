@@ -142,7 +142,7 @@ lemma image_mono_factorisation_e' {X Y : C} (f : X ⟶ Y) :
   (image_mono_factorisation f).e = cokernel.π _ ≫ abelian.coimage_image_comparison f :=
 begin
   ext,
-  simp only [abelian.coimage_image_comparison, image_mono_factorisation_e,
+  simv only [abelian.coimage_image_comparison, image_mono_factorisation_e,
     category.assoc, cokernel.π_desc_assoc],
 end
 
@@ -154,7 +154,7 @@ def image_factorisation {X Y : C} (f : X ⟶ Y) [is_iso (abelian.coimage_image_c
   is_image :=
   { lift := λ F, inv (abelian.coimage_image_comparison f) ≫ cokernel.desc _ F.e F.kernel_ι_comp,
     lift_fac' := λ F, begin
-      simp only [image_mono_factorisation_m, is_iso.inv_comp_eq, category.assoc,
+      simv only [image_mono_factorisation_m, is_iso.inv_comp_eq, category.assoc,
         abelian.coimage_image_comparison],
       ext,
       rw [limits.coequalizer.π_desc_assoc, limits.coequalizer.π_desc_assoc, F.fac, kernel.lift_ι]
@@ -187,7 +187,7 @@ def normal_mono_category : normal_mono_category C :=
 { normal_mono_of_mono := λ X Y f m,
   { Z := _,
     g := cokernel.π f,
-    w := by simp,
+    w := by simv,
     is_limit := begin
       haveI : limits.has_images C := has_images,
       haveI : has_equalizers C := preadditive.has_equalizers_of_has_kernels,
@@ -198,7 +198,7 @@ def normal_mono_category : normal_mono_category C :=
         rw [kernel_fork.ι_of_ι] at hg,
         rw [← cancel_mono f, hg, ← aux, kernel_fork.ι_of_ι], },
       { intro A,
-        simp only [kernel_fork.ι_of_ι, category.assoc],
+        simv only [kernel_fork.ι_of_ι, category.assoc],
         convert limit.lift_π _ _ using 2,
         rw [is_iso.inv_comp_eq, eq_comm],
         exact (image_mono_factorisation f).fac, },
@@ -226,7 +226,7 @@ def normal_epi_category : normal_epi_category C :=
         rw [cokernel_cofork.π_of_π] at hg,
         rw [← cancel_epi f, hg, ← aux, cokernel_cofork.π_of_π], },
       { intro A,
-        simp only [cokernel_cofork.π_of_π, ← category.assoc],
+        simv only [cokernel_cofork.π_of_π, ← category.assoc],
         convert colimit.ι_desc _ _ using 2,
         rw [is_iso.comp_inv_eq, is_iso.comp_inv_eq, eq_comm, ←image_mono_factorisation_e'],
         exact (image_mono_factorisation f).fac, }
@@ -318,10 +318,10 @@ section
 variables {f}
 
 lemma image_ι_comp_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : abelian.image.ι f ≫ g = 0 :=
-zero_of_epi_comp (abelian.factor_thru_image f) $ by simp [h]
+zero_of_epi_comp (abelian.factor_thru_image f) $ by simv [h]
 
 lemma comp_coimage_π_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : f ≫ abelian.coimage.π g = 0 :=
-zero_of_comp_mono (abelian.factor_thru_coimage g) $ by simp [h]
+zero_of_comp_mono (abelian.factor_thru_coimage g) $ by simv [h]
 
 end
 
@@ -368,7 +368,7 @@ begin
     (image_strong_epi_mono_factorisation f).to_mono_is_image),
   ext,
   change _ = _ ≫ (image_strong_epi_mono_factorisation f).m,
-  simp [-image_strong_epi_mono_factorisation_to_mono_factorisation_m]
+  simv [-image_strong_epi_mono_factorisation_to_mono_factorisation_m]
 end
 
 /-- There is a canonical isomorphism between the abelian coimage and the abelian image of a
@@ -415,7 +415,7 @@ variables (f)
 def epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) : Y ⟶ T :=
 (epi_is_cokernel_of_kernel _ (limit.is_limit _)).desc (cokernel_cofork.of_π _ hg)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma comp_epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) :
   f ≫ epi_desc f g hg = g :=
 (epi_is_cokernel_of_kernel _ (limit.is_limit _)).fac (cokernel_cofork.of_π _ hg)
@@ -426,7 +426,7 @@ lemma comp_epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) :
 def mono_lift [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) : T ⟶ X :=
 (mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).lift (kernel_fork.of_ι _ hg)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma mono_lift_comp [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) :
   mono_lift f g hg ≫ f = g :=
 (mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).fac (kernel_fork.of_ι _ hg)
@@ -499,7 +499,7 @@ fork.is_limit.mk _
     { rw [biprod.lift_fst, pullback.lift_fst] },
     { rw [biprod.lift_snd, pullback.lift_snd] }
   end)
-  (λ s m h, by ext; simp [←h])
+  (λ s m h, by ext; simv [←h])
 
 end pullback_to_biproduct_is_kernel
 
@@ -523,8 +523,8 @@ cofork.is_colimit.mk _
   (λ s, pushout.desc (biprod.inl ≫ cofork.π s) (biprod.inr ≫ cofork.π s) $
     sub_eq_zero.1 $ by rw [←category.assoc, ←category.assoc, ←sub_comp, sub_eq_add_neg, ←neg_comp,
       ←biprod.lift_eq, cofork.condition s, zero_comp])
-  (λ s, by ext; simp)
-  (λ s m h, by ext; simp [←h] )
+  (λ s, by ext; simv)
+  (λ s m h, by ext; simv [←h] )
 
 end biproduct_to_pushout_is_cokernel
 

@@ -19,13 +19,13 @@ namespace nat
 open nat function
 
 lemma periodic_gcd (a : ℕ) : periodic (gcd a) a :=
-by simp only [forall_const, gcd_add_self_right, eq_self_iff_true, periodic]
+by simv only [forall_const, gcd_add_self_right, eq_self_iff_true, periodic]
 
 lemma periodic_coprime (a : ℕ) : periodic (coprime a) a :=
-by simp only [coprime_add_self_right, forall_const, iff_self, eq_iff_iff, periodic]
+by simv only [coprime_add_self_right, forall_const, iff_self, eq_iff_iff, periodic]
 
 lemma periodic_mod (a : ℕ) : periodic (λ n, n % a) a :=
-by simp only [forall_const, eq_self_iff_true, add_mod_right, periodic]
+by simv only [forall_const, eq_self_iff_true, add_mod_right, periodic]
 
 lemma _root_.function.periodic.map_mod_nat {α : Type*} {f : ℕ → α} {a : ℕ} (hf : periodic f a) :
   ∀ n, f (n % a) = f n :=
@@ -43,7 +43,7 @@ begin
   rw [count_eq_card_filter_range, finset.card, finset.filter_val, finset.range_coe,
     ←multiset_Ico_map_mod n, ←map_count_true_eq_filter_card, ←map_count_true_eq_filter_card,
     map_map, function.comp],
-  simp only [pp.map_mod_nat],
+  simv only [pp.map_mod_nat],
 end
 
 end multiset

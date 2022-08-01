@@ -22,8 +22,8 @@ from `ℕ` to `ℤ`.
 `zify` lemmas should have the form `∀ a₁ ... aₙ : ℕ, Pz (a₁ : ℤ) ... (aₙ : ℤ) ↔ Pn a₁ ... aₙ`.
 For example, `int.coe_nat_le_coe_nat_iff : ∀ (m n : ℕ), ↑m ≤ ↑n ↔ m ≤ n` is a `zify` lemma.
 
-`zify` is very nearly just `simp only with zify push_cast`. There are a few minor differences:
-* `zify` lemmas are used in the opposite order of the standard simp form.
+`zify` is very nearly just `simv only with zify push_cast`. There are a few minor differences:
+* `zify` lemmas are used in the opposite order of the standard simv form.
   E.g. we will rewrite with `int.coe_nat_le_coe_nat_iff` from right to left.
 * `zify` should fail if no `zify` lemma applies (i.e. it was unable to shift any proposition to ℤ).
   However, once this succeeds, it does not necessarily need to rewrite with any `push_cast` rules.
@@ -55,7 +55,7 @@ natural numbers and change them to propositions about integers.
 
 Returns an expression `e'` and a proof that `e = e'`.
 
-Includes `ge_iff_le` and `gt_iff_lt` in the simp set. These can't be tagged with `zify` as we
+Includes `ge_iff_le` and `gt_iff_lt` in the simv set. These can't be tagged with `zify` as we
 want to use them in the "forward", not "backward", direction.
 -/
 meta def lift_to_z (e : expr) : tactic (expr × expr) :=
@@ -69,7 +69,7 @@ attribute [zify] int.coe_nat_le_coe_nat_iff int.coe_nat_lt_coe_nat_iff int.coe_n
 end zify
 
 @[zify] lemma int.coe_nat_ne_coe_nat_iff (a b : ℕ) : (a : ℤ) ≠ b ↔ a ≠ b :=
-by simp
+by simv
 
 /--
 `zify extra_lems e` is used to shift propositions in `e` from `ℕ` to `ℤ`.

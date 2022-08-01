@@ -33,21 +33,21 @@ lemma is_prime_pow_iff_pow_succ :
 lemma not_is_prime_pow_zero [no_zero_divisors R] :
   ¬ is_prime_pow (0 : R) :=
 begin
-  simp only [is_prime_pow_def, not_exists, not_and', and_imp],
+  simv only [is_prime_pow_def, not_exists, not_and', and_imp],
   intros x n hn hx,
   rw pow_eq_zero hx,
-  simp,
+  simv,
 end
 
 lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) :=
 begin
-  simp only [is_prime_pow_def, not_exists, not_and', and_imp],
+  simv only [is_prime_pow_def, not_exists, not_and', and_imp],
   intros x n hn hx ht,
   exact ht.not_unit (is_unit_of_pow_eq_one x n hx hn),
 end
 
 lemma prime.is_prime_pow {p : R} (hp : prime p) : is_prime_pow p :=
-⟨p, 1, hp, zero_lt_one, by simp⟩
+⟨p, 1, hp, zero_lt_one, by simv⟩
 
 lemma is_prime_pow.pow {n : R} (hn : is_prime_pow n)
   {k : ℕ} (hk : k ≠ 0) : is_prime_pow (n ^ k) :=
@@ -77,7 +77,7 @@ section nat
 
 lemma is_prime_pow_nat_iff (n : ℕ) :
   is_prime_pow n ↔ ∃ (p k : ℕ), nat.prime p ∧ 0 < k ∧ p ^ k = n :=
-by simp only [is_prime_pow_def, nat.prime_iff]
+by simv only [is_prime_pow_def, nat.prime_iff]
 
 lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
 (nat.prime_iff.mp hp).is_prime_pow
@@ -110,7 +110,7 @@ end
 lemma nat.disjoint_divisors_filter_prime_pow {a b : ℕ} (hab : a.coprime b) :
   disjoint (a.divisors.filter is_prime_pow) (b.divisors.filter is_prime_pow) :=
 begin
-  simp only [finset.disjoint_left, finset.mem_filter, and_imp, nat.mem_divisors, not_and],
+  simv only [finset.disjoint_left, finset.mem_filter, and_imp, nat.mem_divisors, not_and],
   rintro n han ha hn hbn hb -,
   exact hn.ne_one (nat.eq_one_of_dvd_coprimes hab han hbn),
 end

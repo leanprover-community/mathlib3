@@ -74,8 +74,8 @@ h₁.1.trans_is_o h₂
   (hf : f₁ =ᶠ[l] f₂) (h : f₂ =Θ[l] g) : f₁ =Θ[l] g :=
 ⟨hf.trans_is_O h.1, h.2.trans_eventually_eq hf.symm⟩
 
-@[simp] lemma is_Theta_norm_left : (λ x, ∥f' x∥) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
-@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ∥g' x∥) ↔ f =Θ[l] g' := by simp [is_Theta]
+@[simp] lemma is_Theta_norm_left : (λ x, ∥f' x∥) =Θ[l] g ↔ f' =Θ[l] g := by simv [is_Theta]
+@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ∥g' x∥) ↔ f =Θ[l] g' := by simv [is_Theta]
 
 alias is_Theta_norm_left ↔ is_Theta.of_norm_left is_Theta.norm_left
 alias is_Theta_norm_right ↔ is_Theta.of_norm_right is_Theta.norm_right
@@ -85,7 +85,7 @@ lemma is_Theta_of_norm_eventually_eq (h : (λ x, ∥f x∥) =ᶠ[l] (λ x, ∥g 
   is_O.of_bound 1 $ by simpa only [one_mul] using h.symm.le⟩
 
 lemma is_Theta_of_norm_eventually_eq' {g : α → ℝ} (h : (λ x, ∥f' x∥) =ᶠ[l] g) : f' =Θ[l] g :=
-is_Theta_of_norm_eventually_eq $ h.mono $ λ x hx, by simp only [← hx, norm_norm]
+is_Theta_of_norm_eventually_eq $ h.mono $ λ x hx, by simv only [← hx, norm_norm]
 
 lemma is_Theta.is_o_congr_left (h : f' =Θ[l] g') : f' =o[l] k ↔ g' =o[l] k :=
 ⟨h.symm.trans_is_o, h.trans_is_o⟩
@@ -111,15 +111,15 @@ lemma is_Theta.eq_zero_iff (h : f'' =Θ[l] g'') : ∀ᶠ x in l, f'' x = 0 ↔ g
 h.1.eq_zero_imp.mp $ h.2.eq_zero_imp.mono $ λ x, iff.intro
 
 lemma is_Theta.tendsto_zero_iff (h : f'' =Θ[l] g'') : tendsto f'' l (𝓝 0) ↔ tendsto g'' l (𝓝 0) :=
-by simp only [← is_o_one_iff ℝ, h.is_o_congr_left]
+by simv only [← is_o_one_iff ℝ, h.is_o_congr_left]
 
 lemma is_Theta.tendsto_norm_at_top_iff (h : f' =Θ[l] g') :
   tendsto (norm ∘ f') l at_top ↔ tendsto (norm ∘ g') l at_top :=
-by simp only [← is_o_const_left_of_ne (@one_ne_zero ℝ _ _), h.is_o_congr_right]
+by simv only [← is_o_const_left_of_ne (@one_ne_zero ℝ _ _), h.is_o_congr_right]
 
 lemma is_Theta.is_bounded_under_le_iff (h : f' =Θ[l] g') :
   is_bounded_under (≤) l (norm ∘ f') ↔ is_bounded_under (≤) l (norm ∘ g') :=
-by simp only [← is_O_const_of_ne (@one_ne_zero ℝ _ _), h.is_O_congr_left]
+by simv only [← is_O_const_of_ne (@one_ne_zero ℝ _ _), h.is_O_congr_left]
 
 lemma is_Theta.smul [normed_space 𝕜 E'] [normed_space 𝕜' F'] {f₁ : α → 𝕜} {f₂ : α → 𝕜'}
   {g₁ : α → E'} {g₂ : α → F'} (hf : f₁ =Θ[l] f₂) (hg : g₁ =Θ[l] g₂) :
@@ -162,7 +162,7 @@ lemma is_Theta_const_const {c₁ : E''} {c₂ : F''} (h₁ : c₁ ≠ 0) (h₂ :
 by simpa only [is_Theta, is_O_const_const_iff, ← iff_def] using iff.comm
 
 @[simp] lemma is_Theta_zero_left : (λ x, (0 : E')) =Θ[l] g'' ↔ g'' =ᶠ[l] 0 :=
-by simp only [is_Theta, is_O_zero, is_O_zero_right_iff, true_and]
+by simv only [is_Theta, is_O_zero, is_O_zero_right_iff, true_and]
 
 @[simp] lemma is_Theta_zero_right : f'' =Θ[l] (λ x, (0 : F')) ↔ f'' =ᶠ[l] 0 :=
 is_Theta_comm.trans is_Theta_zero_left

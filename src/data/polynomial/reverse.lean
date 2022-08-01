@@ -76,7 +76,7 @@ begin
 end
 
 @[simp] lemma rev_at_zero (N : ℕ) : rev_at N 0 = N :=
-by simp [rev_at]
+by simv [rev_at]
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
@@ -92,14 +92,14 @@ lemma reflect_support (N : ℕ) (f : R[X]) :
 begin
   rcases f,
   ext1,
-  simp only [reflect, support_of_finsupp, support_emb_domain, finset.mem_map, finset.mem_image],
+  simv only [reflect, support_of_finsupp, support_emb_domain, finset.mem_map, finset.mem_image],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : R[X]) (i : ℕ) :
   coeff (reflect N f) i = f.coeff (rev_at N i) :=
 begin
   rcases f,
-  simp only [reflect, coeff],
+  simv only [reflect, coeff],
   calc finsupp.emb_domain (rev_at N) f i
       = finsupp.emb_domain (rev_at N) f (rev_at N (rev_at N i)) : by rw rev_at_invol
   ... = f (rev_at N i) : finsupp.emb_domain_apply _ _ _
@@ -109,15 +109,15 @@ end
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : R[X]} :
   reflect N (f : R[X]) = 0 ↔ f = 0 :=
-by { rcases f, simp [reflect] }
+by { rcases f, simv [reflect] }
 
 @[simp] lemma reflect_add (f g : R[X]) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
-by { ext, simp only [coeff_add, coeff_reflect], }
+by { ext, simv only [coeff_add, coeff_reflect], }
 
 @[simp] lemma reflect_C_mul (f : R[X]) (r : R) (N : ℕ) :
   reflect N (C r * f) = C r * (reflect N f) :=
-by { ext, simp only [coeff_reflect, coeff_C_mul], }
+by { ext, simv only [coeff_reflect, coeff_C_mul], }
 
 @[simp] lemma reflect_C_mul_X_pow (N n : ℕ) {c : R} :
   reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
@@ -191,13 +191,13 @@ lemma eval₂_reflect_mul_pow (i : R →+* S) (x : S) [invertible x] (N : ℕ) (
 begin
   refine induction_with_nat_degree_le (λ f, eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f)
     _ _ _ _ f hf,
-  { simp },
+  { simv },
   { intros n r hr0 hnN,
-    simp only [rev_at_le hnN, reflect_C_mul_X_pow, eval₂_X_pow, eval₂_C, eval₂_mul],
+    simv only [rev_at_le hnN, reflect_C_mul_X_pow, eval₂_X_pow, eval₂_C, eval₂_mul],
     conv in (x ^ N) { rw [← nat.sub_add_cancel hnN] },
     rw [pow_add, ← mul_assoc, mul_assoc (i r), ← mul_pow, inv_of_mul_self, one_pow, mul_one] },
   { intros,
-    simp [*, add_mul] }
+    simv [*, add_mul] }
 end
 
 lemma eval₂_reflect_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : R[X])
@@ -226,7 +226,7 @@ by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), tsub_zero, leading_coeff
 @[simp] lemma reverse_zero : reverse (0 : R[X]) = 0 := rfl
 
 @[simp] lemma reverse_eq_zero : f.reverse = 0 ↔ f = 0 :=
-by simp [reverse]
+by simv [reverse]
 
 lemma reverse_nat_degree_le (f : R[X]) : f.reverse.nat_degree ≤ f.nat_degree :=
 begin
@@ -285,10 +285,10 @@ end
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
-  { simp only [f0, zero_mul, reverse_zero], },
+  { simv only [f0, zero_mul, reverse_zero], },
   by_cases g0 : g=0,
   { rw [g0, mul_zero, reverse_zero, mul_zero], },
-  simp [reverse_mul, *],
+  simv [reverse_mul, *],
 end
 
 lemma trailing_coeff_mul {R : Type*} [ring R] [no_zero_divisors R] (p q : R[X]) :
@@ -300,8 +300,8 @@ by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
 begin
   rw [coeff_reverse, next_coeff],
   split_ifs with hf,
-  { have : coeff f 1 = 0 := coeff_eq_zero_of_nat_degree_lt (by simp only [hf, zero_lt_one]),
-    simp [*, rev_at] },
+  { have : coeff f 1 = 0 := coeff_eq_zero_of_nat_degree_lt (by simv only [hf, zero_lt_one]),
+    simv [*, rev_at] },
   { rw rev_at_le,
     exact nat.succ_le_iff.2 (pos_iff_ne_zero.2 hf) }
 end

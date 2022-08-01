@@ -116,13 +116,13 @@ lemma rel_equiv : equivalence D.rel :=
 ⟨ λ x, or.inl (refl x),
   begin
     rintros a b (⟨⟨⟩⟩|⟨x,e₁,e₂⟩),
-    exacts [or.inl rfl, or.inr ⟨D.t _ _ x, by simp [e₁, e₂]⟩]
+    exacts [or.inl rfl, or.inr ⟨D.t _ _ x, by simv [e₁, e₂]⟩]
   end,
   begin
     rintros ⟨i,a⟩ ⟨j,b⟩ ⟨k,c⟩ (⟨⟨⟩⟩|⟨x,e₁,e₂⟩), exact id,
     rintro (⟨⟨⟩⟩|⟨y,e₃,e₄⟩), exact or.inr ⟨x,e₁,e₂⟩,
     let z := (pullback_iso_prod_subtype (D.f j i) (D.f j k)).inv ⟨⟨_,_⟩, e₂.trans e₃.symm⟩,
-    have eq₁ : (D.t j i) ((pullback.fst : _ ⟶ D.V _) z) = x := by simp,
+    have eq₁ : (D.t j i) ((pullback.fst : _ ⟶ D.V _) z) = x := by simv,
     have eq₂ : (pullback.snd : _ ⟶ D.V _) z = y := pullback_iso_prod_subtype_inv_snd_apply _ _ _,
     clear_value z,
     right,
@@ -151,13 +151,13 @@ begin
   let diagram := parallel_pair 𝖣 .diagram.fst_sigma_map 𝖣 .diagram.snd_sigma_map ⋙ forget _,
   have : colimit.ι diagram one x = colimit.ι diagram one y,
   { rw ←ι_preserves_colimits_iso_hom,
-    simp [h] },
+    simv [h] },
   have :
     (colimit.ι diagram _ ≫ colim.map _ ≫ (colimit.iso_colimit_cocone _).hom) _ =
     (colimit.ι diagram _ ≫ colim.map _ ≫ (colimit.iso_colimit_cocone _).hom) _ :=
     (congr_arg (colim.map (diagram_iso_parallel_pair diagram).hom
     ≫ (colimit.iso_colimit_cocone (types.coequalizer_colimit _ _)).hom) this : _),
-  simp only [eq_to_hom_refl, types_comp_apply, colimit.ι_map_assoc,
+  simv only [eq_to_hom_refl, types_comp_apply, colimit.ι_map_assoc,
     diagram_iso_parallel_pair_hom_app, colimit.iso_colimit_cocone_ι_hom, types_id_apply] at this,
   exact quot.eq.1 this,
   apply_instance
@@ -175,7 +175,7 @@ begin
     rw ← (show _ = sigma.mk j y,
       from concrete_category.congr_hom (sigma_iso_sigma.{u} D.U).inv_hom_id _),
     change inv_image D.rel (sigma_iso_sigma.{u} D.U).hom _ _,
-    simp only [Top.sigma_iso_sigma_inv_apply],
+    simv only [Top.sigma_iso_sigma_inv_apply],
     rw ← (inv_image.equivalence _ _ D.rel_equiv).eqv_gen_iff,
     refine eqv_gen.mono _ (D.eqv_gen_of_π_eq h : _),
     rintros _ _ ⟨x⟩,
@@ -184,13 +184,13 @@ begin
     generalize : (sigma_iso_sigma.{u} D.V).hom x = x',
     obtain ⟨⟨i,j⟩,y⟩ := x',
     unfold inv_image multispan_index.fst_sigma_map multispan_index.snd_sigma_map,
-    simp only [opens.inclusion_apply, Top.comp_app, sigma_iso_sigma_inv_apply,
+    simv only [opens.inclusion_apply, Top.comp_app, sigma_iso_sigma_inv_apply,
       category_theory.limits.colimit.ι_desc_apply, cofan.mk_ι_app,
       sigma_iso_sigma_hom_ι_apply, continuous_map.to_fun_eq_coe],
     erw [sigma_iso_sigma_hom_ι_apply, sigma_iso_sigma_hom_ι_apply],
-    exact or.inr ⟨y, by { dsimp [glue_data.diagram], simp }⟩ },
+    exact or.inr ⟨y, by { dsimp [glue_data.diagram], simv }⟩ },
   { rintro (⟨⟨⟩⟩|⟨z,e₁,e₂⟩),
-    refl, dsimp only at *, subst e₁, subst e₂, simp }
+    refl, dsimp only at *, subst e₁, subst e₂, simv }
 end
 
 lemma ι_injective (i : D.J) : function.injective (𝖣 .ι i) :=
@@ -198,7 +198,7 @@ begin
   intros x y h,
   rcases (D.ι_eq_iff_rel _ _ _ _).mp h with (⟨⟨⟩⟩|⟨_,e₁,e₂⟩),
   { refl },
-  { dsimp only at *, cases e₁, cases e₂, simp }
+  { dsimp only at *, cases e₁, cases e₂, simv }
 end
 
 instance ι_mono (i : D.J) : mono (𝖣 .ι i) :=
@@ -211,10 +211,10 @@ begin
   split,
   { rintro ⟨⟨x₁, eq₁⟩, ⟨x₂, eq₂⟩⟩,
     obtain (⟨⟨⟩⟩|⟨y,e₁,e₂⟩) := (D.ι_eq_iff_rel _ _ _ _).mp (eq₁.trans eq₂.symm),
-    { exact ⟨inv (D.f i i) x₁, by simp [eq₁]⟩ },
-    { dsimp only at *, substs e₁ eq₁, exact ⟨y, by simp⟩ } },
+    { exact ⟨inv (D.f i i) x₁, by simv [eq₁]⟩ },
+    { dsimp only at *, substs e₁ eq₁, exact ⟨y, by simv⟩ } },
   { rintro ⟨x, hx⟩,
-    exact ⟨⟨D.f i j x, hx⟩, ⟨D.f j i (D.t _ _ x), by simp [← hx]⟩⟩ }
+    exact ⟨⟨D.f i j x, hx⟩, ⟨D.f j i (D.t _ _ x), by simv [← hx]⟩⟩ }
 end
 
 lemma preimage_range (i j : D.J) :
@@ -230,7 +230,7 @@ begin
   { ext x,
     conv_rhs { rw ← set.preimage_image_eq U (D.ι_injective _) },
     generalize : 𝖣 .ι i '' U = U',
-    simp },
+    simv },
   rw [← this, set.image_preimage_eq_inter_range],
   symmetry,
   apply set.inter_eq_self_of_subset_left,
@@ -341,10 +341,10 @@ def mk' (h : mk_core.{u}) : Top.glue_data :=
     delta mk_core.t',
     simp_rw ← category.assoc,
     rw iso.comp_inv_eq,
-    simp only [iso.inv_hom_id_assoc, category.assoc, category.id_comp],
+    simv only [iso.inv_hom_id_assoc, category.assoc, category.id_comp],
     rw [← iso.eq_inv_comp, iso.inv_hom_id],
     ext1 ⟨⟨⟨x, hx⟩, ⟨x', hx'⟩⟩, (rfl : x = x')⟩,
-    simp only [Top.comp_app, continuous_map.coe_mk, prod.mk.inj_iff,
+    simv only [Top.comp_app, continuous_map.coe_mk, prod.mk.inj_iff,
       Top.id_app, subtype.mk_eq_mk, subtype.coe_mk],
     rw [← subtype.coe_injective.eq_iff, subtype.val_eq_coe, subtype.coe_mk, and_self],
     convert congr_arg coe (h.t_inv k i ⟨x, hx'⟩) using 3,
@@ -364,7 +364,7 @@ def of_open_subsets : Top.glue_data.{u} := mk'.{u}
   U := λ i, (opens.to_Top $ Top.of α).obj (U i),
   V := λ i j, (opens.map $ opens.inclusion _).obj (U j),
   t := λ i j, ⟨λ x, ⟨⟨x.1.1, x.2⟩, x.1.2⟩, by continuity⟩,
-  V_id := λ i, by { ext, cases U i, simp },
+  V_id := λ i, by { ext, cases U i, simv },
   t_id := λ i, by { ext, refl },
   t_inter := λ i j k x hx, hx,
   cocycle := λ i j k x h, rfl }
@@ -377,7 +377,7 @@ and its range is `⋃ i, (U i : set α)` (`range_from_open_subsets_glue`).
 def from_open_subsets_glue : (of_open_subsets U).to_glue_data.glued ⟶ Top.of α :=
 multicoequalizer.desc _ _ (λ x, opens.inclusion _) (by { rintro ⟨i, j⟩, ext x, refl })
 
-@[simp, elementwise]
+@[simv, elementwise]
 lemma ι_from_open_subsets_glue (i : J) :
   (of_open_subsets U).to_glue_data.ι i ≫ from_open_subsets_glue U = opens.inclusion _ :=
 multicoequalizer.π_desc _ _ _ _ _

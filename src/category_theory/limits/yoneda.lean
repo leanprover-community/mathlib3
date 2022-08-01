@@ -39,8 +39,8 @@ The proposed colimit cocone over `coyoneda.obj X` is a colimit cocone.
 @[simps]
 def colimit_cocone_is_colimit (X : Cᵒᵖ) : is_colimit (colimit_cocone X) :=
 { desc := λ s x, s.ι.app (unop X) (𝟙 _),
-  fac' := λ s Y, by { ext f, convert congr_fun (s.w f).symm (𝟙 (unop X)), simp, },
-  uniq' := λ s m w, by { ext ⟨⟩, rw ← w, simp, } }
+  fac' := λ s Y, by { ext f, convert congr_fun (s.w f).symm (𝟙 (unop X)), simv, },
+  uniq' := λ s m w, by { ext ⟨⟩, rw ← w, simv, } }
 
 instance (X : Cᵒᵖ) : has_colimit (coyoneda.obj X) :=
 has_colimit.mk { cocone := _, is_colimit := colimit_cocone_is_colimit X }
@@ -68,7 +68,7 @@ instance yoneda_preserves_limits (X : C) : preserves_limits (yoneda.obj X) :=
         uniq' := λ s m w, funext $ λ x,
         begin
           refine quiver.hom.op_inj (t.uniq ⟨op X, _, _⟩ _ (λ j, _)),
-          { dsimp, simp [← s.w α] }, -- See library note [dsimp, simp]
+          { dsimp, simv [← s.w α] }, -- See library note [dsimp, simv]
           { exact quiver.hom.unop_inj (congr_fun (w j) x) },
         end } } } }
 
@@ -77,8 +77,8 @@ instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.ob
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ K,
     { preserves := λ c t,
-      { lift := λ s x, t.lift ⟨unop X, λ j, s.π.app j x, λ j₁ j₂ α, by { dsimp, simp [← s.w α]}⟩,
-          -- See library note [dsimp, simp]
+      { lift := λ s x, t.lift ⟨unop X, λ j, s.π.app j x, λ j₁ j₂ α, by { dsimp, simv [← s.w α]}⟩,
+          -- See library note [dsimp, simv]
         fac' := λ s j, funext $ λ x, t.fac _ _,
         uniq' := λ s m w, funext $ λ x,
         begin

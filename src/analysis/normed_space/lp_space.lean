@@ -128,12 +128,12 @@ lemma zero_mem_ℓp : mem_ℓp (0 : Π i, E i) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    simp },
+    simv },
   { apply mem_ℓp_infty,
-    simp only [norm_zero, pi.zero_apply],
+    simv only [norm_zero, pi.zero_apply],
     exact bdd_above_singleton.mono set.range_const_subset, },
   { apply mem_ℓp_gen,
-    simp [real.zero_rpow hp.ne', summable_zero], }
+    simv [real.zero_rpow hp.ne', summable_zero], }
 end
 
 lemma zero_mem_ℓp' : mem_ℓp (λ i : α, (0 : E i)) p := zero_mem_ℓp
@@ -154,7 +154,7 @@ lemma neg {f : Π i, E i} (hf : mem_ℓp f p) : mem_ℓp (-f) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    simp [hf.finite_dsupport] },
+    simv [hf.finite_dsupport] },
   { apply mem_ℓp_infty,
     simpa using hf.bdd_above },
   { apply mem_ℓp_gen,
@@ -176,13 +176,13 @@ begin
     use max 0 C,
     rintros x ⟨i, rfl⟩,
     by_cases hi : f i = 0,
-    { simp [hi] },
+    { simv [hi] },
     { exact (hC ⟨i, hi, rfl⟩).trans (le_max_right _ _) } },
   { apply mem_ℓp_gen,
     have : ∀ i ∉ hfq.finite_dsupport.to_finset, ∥f i∥ ^ p.to_real = 0,
     { intros i hi,
       have : f i = 0 := by simpa using hi,
-      simp [this, real.zero_rpow hp.ne'] },
+      simv [this, real.zero_rpow hp.ne'] },
     exact summable_of_ne_finset_zero this },
   { exact hfq },
   { apply mem_ℓp_infty,
@@ -202,7 +202,7 @@ begin
     { show ∀ i, ¬ (|∥f i∥ ^ p.to_real| ≤ ∥f i∥ ^ q.to_real) → 1 ≤ ∥f i∥,
       intros i hi,
       have : 0 ≤ ∥f i∥ ^ p.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) p.to_real,
-      simp only [abs_of_nonneg, this] at hi,
+      simv only [abs_of_nonneg, this] at hi,
       contrapose! hi,
       exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
 end
@@ -212,10 +212,10 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simv only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
-    simp [hf', hg'] },
+    simv [hf', hg'] },
   { apply mem_ℓp_infty,
     obtain ⟨A, hA⟩ := hf.bdd_above,
     obtain ⟨B, hB⟩ := hg.bdd_above,
@@ -232,7 +232,7 @@ begin
     { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
     { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
-      simp only [not_lt] at h,
+      simv only [not_lt] at h,
       simpa [F, fin.sum_univ_succ] using
         real.rpow_sum_le_const_mul_sum_rpow_of_nonneg (finset.univ : finset (fin 2)) h
         (λ i _, (F i).coe_nonneg) } }
@@ -247,9 +247,9 @@ begin
   haveI : decidable_eq ι := classical.dec_eq _,
   revert hf,
   refine finset.induction_on s _ _,
-  { simp only [zero_mem_ℓp', finset.sum_empty, implies_true_iff], },
+  { simv only [zero_mem_ℓp', finset.sum_empty, implies_true_iff], },
   { intros i s his ih hf,
-    simp only [his, finset.sum_insert, not_false_iff],
+    simv only [his, finset.sum_insert, not_false_iff],
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
@@ -270,7 +270,7 @@ begin
   { apply mem_ℓp_gen,
     convert (hf.summable hp).mul_left (∥c∥ ^ p.to_real),
     ext i,
-    simp [norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg (f i))] },
+    simv [norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg (f i))] },
 end
 
 lemma const_mul {f : α → 𝕜} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (λ x, c * f x) p :=
@@ -337,9 +337,9 @@ variables {E p}
 begin
   classical,
   refine finset.induction _ _ s,
-  { simp },
+  { simv },
   intros i s his,
-  simp [finset.sum_insert his],
+  simv [finset.sum_insert his],
 end
 
 @[simp] lemma coe_fn_sub (f g : lp E p) : ⇑(f - g) = f - g := rfl
@@ -392,10 +392,10 @@ end
 lemma norm_nonneg' (f : lp E p) : 0 ≤ ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { simp [lp.norm_eq_card_dsupport f] },
+  { simv [lp.norm_eq_card_dsupport f] },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { rw lp.norm_eq_csupr,
-      simp [real.csupr_empty] },
+      simv [real.csupr_empty] },
     inhabit α,
     exact (norm_nonneg (f default)).trans ((lp.is_lub_norm f).1 ⟨default, rfl⟩) },
   { rw lp.norm_eq_tsum_rpow hp f,
@@ -406,8 +406,8 @@ end
 @[simp] lemma norm_zero : ∥(0 : lp E p)∥ = 0 :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { simp [lp.norm_eq_card_dsupport] },
-  { simp [lp.norm_eq_csupr] },
+  { simv [lp.norm_eq_card_dsupport] },
+  { simv [lp.norm_eq_csupr] },
   { rw lp.norm_eq_tsum_rpow hp,
     have hp' : 1 / p.to_real ≠ 0 := one_div_ne_zero hp.ne',
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
@@ -423,7 +423,7 @@ begin
     have : (¬ (f i = 0)) = false := congr_fun this i,
     tauto },
   { cases is_empty_or_nonempty α with _i _i; resetI,
-    { simp },
+    { simv },
     have H : is_lub (set.range (λ i, ∥f i∥)) 0,
     { simpa [h] using lp.is_lub_norm f },
     ext i,
@@ -446,9 +446,9 @@ by rw [lp.ext_iff, coe_fn_zero]
 @[simp] lemma norm_neg ⦃f : lp E p⦄ : ∥-f∥ = ∥f∥ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
-  { simp [lp.norm_eq_card_dsupport] },
+  { simv [lp.norm_eq_card_dsupport] },
   { cases is_empty_or_nonempty α; resetI,
-    { simp [lp.eq_zero' f], },
+    { simv [lp.eq_zero' f], },
     apply (lp.is_lub_norm (-f)).unique,
     simpa using lp.is_lub_norm f },
   { suffices : ∥-f∥ ^ p.to_real = ∥f∥ ^ p.to_real,
@@ -463,7 +463,7 @@ normed_add_comm_group.of_core _
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
     { cases is_empty_or_nonempty α; resetI,
-      { simp [lp.eq_zero' f] },
+      { simv [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,
       refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
@@ -596,26 +596,26 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { exact absurd rfl hp },
   { cases is_empty_or_nonempty α; resetI,
-    { simp [lp.eq_zero' f], },
+    { simv [lp.eq_zero' f], },
     apply (lp.is_lub_norm (c • f)).unique,
     convert (lp.is_lub_norm f).mul_left (norm_nonneg c),
     ext a,
-    simp [coe_fn_smul, norm_smul] },
+    simv [coe_fn_smul, norm_smul] },
   { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real,
     { refine real.rpow_left_inj_on hp.ne' _ _ this,
       { exact norm_nonneg' _ },
       { exact mul_nonneg (norm_nonneg _) (norm_nonneg' _) } },
     apply (lp.has_sum_norm hp (c • f)).unique,
     convert (lp.has_sum_norm hp f).mul_left (∥c∥ ^ p.to_real),
-    { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
+    { simv [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
     have hf : 0 ≤ ∥f∥ := lp.norm_nonneg' f,
-    simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
+    simv [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
 end
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 { norm_smul_le := λ c f, begin
     have hp : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
-    simp [norm_const_smul hp.ne']
+    simv [norm_const_smul hp.ne']
   end }
 
 variables {𝕜' : Type*} [normed_field 𝕜']
@@ -639,7 +639,7 @@ lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
-    simp [hf.finite_dsupport] },
+    simv [hf.finite_dsupport] },
   { apply mem_ℓp_infty,
     simpa using hf.bdd_above },
   { apply mem_ℓp_gen,
@@ -655,7 +655,7 @@ instance : has_star (lp E p) :=
 @[simp] lemma coe_fn_star (f : lp E p) : ⇑(star f) = star f := rfl
 @[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
 
-instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
+instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simv} }
 
 instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
 
@@ -666,8 +666,8 @@ instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
     { exfalso,
       have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
       norm_num at this,},
-    { simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
-    { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
+    { simv only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
+    { simv only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
   end }
 
 variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
@@ -738,7 +738,7 @@ instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
     apply le_antisymm,
     { rw ←sq,
       refine lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥) (λ i, _),
-      simp only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
+      simv only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
       refine sq_le_sq' _ (lp.norm_apply_le_norm ennreal.top_ne_zero _ _),
       linarith [norm_nonneg (f i), norm_nonneg f] },
     { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _)],
@@ -806,7 +806,7 @@ section normed_comm_ring
 variables {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [∀ i, norm_one_class (B i)]
 
 instance infty_comm_ring : comm_ring (lp B ∞) :=
-{ mul_comm := λ f g, by { ext, simp only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },
+{ mul_comm := λ f g, by { ext, simv only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },
   .. lp.infty_ring }
 
 instance infty_normed_comm_ring : normed_comm_ring (lp B ∞) :=
@@ -860,10 +860,10 @@ protected def single (p) (i : α) (a : E i) : lp E p :=
     refine (mem_ℓp_zero _).of_exponent_ge (zero_le p),
     refine (set.finite_singleton i).subset _,
     intros j,
-    simp only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
+    simv only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
       set.mem_set_of_eq, not_forall],
     rintros rfl,
-    simp,
+    simv,
   end ⟩
 
 protected lemma single_apply (p) (i : α) (a : E i) (j : α) :
@@ -884,8 +884,8 @@ begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_self] },
-  { simp [lp.single_apply_ne p i _ hi] }
+    simv [lp.single_apply_self] },
+  { simv [lp.single_apply_ne p i _ hi] }
 end
 
 @[simp] protected lemma single_smul (p) (i : α) (a : E i) (c : 𝕜) :
@@ -894,18 +894,18 @@ begin
   ext j,
   by_cases hi : j = i,
   { subst hi,
-    simp [lp.single_apply_self] },
-  { simp [lp.single_apply_ne p i _ hi] }
+    simv [lp.single_apply_self] },
+  { simv [lp.single_apply_ne p i _ hi] }
 end
 
 protected lemma norm_sum_single (hp : 0 < p.to_real) (f : Π i, E i) (s : finset α) :
   ∥∑ i in s, lp.single p i (f i)∥ ^ p.to_real = ∑ i in s, ∥f i∥ ^ p.to_real :=
 begin
   refine (has_sum_norm hp (∑ i in s, lp.single p i (f i))).unique _,
-  simp only [lp.single_apply, coe_fn_sum, finset.sum_apply, finset.sum_dite_eq],
+  simv only [lp.single_apply, coe_fn_sum, finset.sum_apply, finset.sum_dite_eq],
   have h : ∀ i ∉ s, ∥ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
   { intros i hi,
-    simp [if_neg hi, real.zero_rpow hp.ne'], },
+    simv [if_neg hi, real.zero_rpow hp.ne'], },
   have h' : ∀ i ∈ s, ∥f i∥ ^ p.to_real = ∥ite (i ∈ s) (f i) 0∥ ^ p.to_real,
   { intros i hi,
     rw if_pos hi },
@@ -928,10 +928,10 @@ begin
   { intros i hi,
     suffices : ∥f i∥ ^ p.to_real - ∥f i - ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
     { simpa [F, coe_fn_sum, lp.single_apply] using this, },
-    simp [if_neg hi] },
+    simv [if_neg hi] },
   have hF' : ∀ i ∈ s, F i = ∥f i∥ ^ p.to_real,
   { intros i hi,
-    simp [F, coe_fn_sum, lp.single_apply, if_pos hi, real.zero_rpow hp.ne'] },
+    simv [F, coe_fn_sum, lp.single_apply, if_pos hi, real.zero_rpow hp.ne'] },
   have : has_sum F (∑ i in s, F i) := has_sum_sum_of_ne_finset_zero hF,
   rwa [finset.sum_congr rfl hF'] at this,
 end
@@ -955,14 +955,14 @@ begin
   intros s hs,
   rw ← real.rpow_lt_rpow_iff dist_nonneg (le_of_lt hε) hp',
   rw dist_comm at hs,
-  simp only [dist_eq_norm, real.norm_eq_abs] at hs ⊢,
+  simv only [dist_eq_norm, real.norm_eq_abs] at hs ⊢,
   have H : ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real
     = ∥f∥ ^ p.to_real - ∑ i in s, ∥f i∥ ^ p.to_real,
   { simpa using lp.norm_compl_sum_single hp' (-f) s },
   rw ← H at hs,
   have : |∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real|
     = ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real,
-  { simp [real.abs_rpow_of_nonneg (norm_nonneg _)] },
+  { simv [real.abs_rpow_of_nonneg (norm_nonneg _)] },
   linarith
 end
 

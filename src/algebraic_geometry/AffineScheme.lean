@@ -221,7 +221,7 @@ begin
   rw ← is_iso.comp_inv_eq at e₁,
   have e₂ := Γ_Spec.adjunction_unit_app_app_top (X.restrict U.open_embedding),
   erw ← e₂ at e₁,
-  simp only [functor.id_map, quiver.hom.unop_op, functor.comp_map, ← functor.map_inv, ← op_inv,
+  simv only [functor.id_map, quiver.hom.unop_op, functor.comp_map, ← functor.map_inv, ← op_inv,
     LocallyRingedSpace.Γ_map, category.assoc, functor.right_op_map, inv_eq_to_hom] at e₁,
   delta is_affine_open.from_Spec Scheme.iso_Spec,
   rw [Scheme.comp_val_c_app, Scheme.comp_val_c_app, ← e₁],
@@ -236,7 +236,7 @@ begin
     (as_iso (Γ_Spec.adjunction.unit.app (X.restrict U.open_embedding)))
     .inv.1.c.naturality_assoc (eq_to_hom U.inclusion_map_eq_top).op _,
   erw [e₃, e₄, ← Scheme.comp_val_c_app_assoc, iso.inv_hom_id],
-  simp only [eq_to_hom_map, eq_to_hom_op, Scheme.Spec_map_presheaf_map_eq_to_hom],
+  simv only [eq_to_hom_map, eq_to_hom_op, Scheme.Spec_map_presheaf_map_eq_to_hom],
   erw [Scheme.Spec_map_presheaf_map_eq_to_hom, category.id_comp],
   simpa only [eq_to_hom_trans]
 end
@@ -304,7 +304,7 @@ begin
   convert prime_spectrum.is_basis_basic_opens.inducing
     (Top.homeo_of_iso (Scheme.forget_to_Top.map_iso X.iso_Spec)).inducing using 1,
   ext,
-  simp only [set.mem_image, exists_exists_eq_and],
+  simv only [set.mem_image, exists_exists_eq_and],
   split,
   { rintro ⟨_, ⟨x, rfl⟩, rfl⟩,
     refine ⟨_, ⟨_, ⟨x, rfl⟩, rfl⟩, _⟩,
@@ -386,11 +386,11 @@ begin
   change _ ≫ (basic_open_sections_to_affine hU f ≫ _) = _,
   delta basic_open_sections_to_affine,
   erw ring_hom.algebra_map_to_algebra,
-  simp only [Scheme.comp_val_c_app, category.assoc],
+  simv only [Scheme.comp_val_c_app, category.assoc],
   erw hU.from_Spec.val.c.naturality_assoc,
   rw hU.from_Spec_app_eq,
   dsimp,
-  simp only [category.assoc, ← functor.map_comp, ← op_comp],
+  simv only [category.assoc, ← functor.map_comp, ← op_comp],
   apply structure_sheaf.to_open_res,
 end
 
@@ -459,12 +459,12 @@ begin
   by { rw [opens.inclusion_map_eq_top], refl },
   rw [Scheme.inv_val_c_app, is_iso.comp_inv_eq, Scheme.app_eq _ e,
     Γ_Spec.adjunction_unit_app_app_top],
-  simp only [category.assoc, eq_to_hom_op],
+  simv only [category.assoc, eq_to_hom_op],
   erw ← functor.map_comp_assoc,
   rw [eq_to_hom_trans, eq_to_hom_refl, category_theory.functor.map_id,
     category.id_comp],
   erw Spec_Γ_identity.inv_hom_id_app_assoc,
-  simp only [eq_to_hom_map, eq_to_hom_trans],
+  simv only [eq_to_hom_map, eq_to_hom_trans],
 end
 
 lemma is_affine_open.is_localization_stalk {X : Scheme} {U : opens X.carrier}
@@ -487,14 +487,14 @@ begin
   rw ring_hom.algebra_map_to_algebra,
   refine (PresheafedSpace.stalk_map_germ hU.from_Spec.1 _ ⟨_, _⟩).trans _,
   delta is_affine_open.from_Spec Scheme.iso_Spec structure_sheaf.to_stalk,
-  simp only [Scheme.comp_val_c_app, category.assoc],
+  simv only [Scheme.comp_val_c_app, category.assoc],
   dsimp only [functor.op, as_iso_inv, unop_op],
   erw is_affine_open.is_localization_stalk_aux,
-  simp only [category.assoc],
+  simv only [category.assoc],
   conv_lhs { rw ← category.assoc },
   erw [← X.presheaf.map_comp, Spec_Γ_naturality_assoc],
   congr' 1,
-  simp only [← category.assoc],
+  simv only [← category.assoc],
   transitivity _ ≫ (structure_sheaf (X.presheaf.obj $ op U)).presheaf.germ ⟨_, _⟩,
   { refl },
   convert ((structure_sheaf (X.presheaf.obj $ op U)).presheaf.germ_res (hom_of_le le_top) ⟨_, _⟩)
@@ -507,7 +507,7 @@ begin
   transitivity LocallyRingedSpace.Γ.map (quiver.hom.op $ Scheme.Spec.map
     (X.presheaf.map (𝟙 (op U))).op) ≫ _,
   { congr },
-  simp only [category_theory.functor.map_id, op_id],
+  simv only [category_theory.functor.map_id, op_id],
   erw category_theory.functor.map_id,
   rw category.id_comp,
   refl
@@ -537,7 +537,7 @@ end
 lemma is_affine_open.from_Spec_map_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
   (opens.map hU.from_Spec.val.base).obj (X.basic_open f) = prime_spectrum.basic_open f :=
-by simp
+by simv
 
 lemma is_affine_open.basic_open_union_eq_self_iff {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (s : set (X.presheaf.obj $ op U)) :
@@ -551,23 +551,23 @@ begin
     apply_fun set.image hU.from_Spec.1.base at h,
     rw [set.image_preimage_eq_inter_range, set.image_preimage_eq_inter_range,
       hU.from_Spec_range] at h,
-    simp only [set.inter_self, subtype.val_eq_coe, set.inter_eq_right_iff_subset]
+    simv only [set.inter_self, subtype.val_eq_coe, set.inter_eq_right_iff_subset]
       at h,
     ext1,
     refine le_antisymm _ h,
-    simp only [set.Union_subset_iff, set_coe.forall, opens.supr_def, set.le_eq_subset,
+    simv only [set.Union_subset_iff, set_coe.forall, opens.supr_def, set.le_eq_subset,
       subtype.coe_mk],
     intros x hx,
     exact X.basic_open_subset x },
-  { simp only [opens.supr_def, subtype.coe_mk, set.preimage_Union, subtype.val_eq_coe],
+  { simv only [opens.supr_def, subtype.coe_mk, set.preimage_Union, subtype.val_eq_coe],
     congr' 3,
     { ext1 x,
       exact congr_arg subtype.val (hU.from_Spec_map_basic_open _) },
     { exact congr_arg subtype.val hU.from_Spec_base_preimage } },
-  { simp only [subtype.val_eq_coe, prime_spectrum.basic_open_eq_zero_locus_compl],
+  { simv only [subtype.val_eq_coe, prime_spectrum.basic_open_eq_zero_locus_compl],
     rw [← set.compl_Inter, set.compl_univ_iff, ← prime_spectrum.zero_locus_Union,
       ← prime_spectrum.zero_locus_empty_iff_eq_top, prime_spectrum.zero_locus_span],
-    simp only [set.Union_singleton_eq_range, subtype.range_coe_subtype, set.set_of_mem_eq] }
+    simv only [set.Union_singleton_eq_range, subtype.range_coe_subtype, set.set_of_mem_eq] }
 end
 
 lemma is_affine_open.self_le_basic_open_union_iff {X : Scheme} {U : opens X.carrier}
@@ -576,7 +576,7 @@ lemma is_affine_open.self_le_basic_open_union_iff {X : Scheme} {U : opens X.carr
 begin
   rw [← hU.basic_open_union_eq_self_iff, @comm _ eq],
   refine ⟨λ h, le_antisymm h _, le_of_eq⟩,
-  simp only [supr_le_iff, set_coe.forall],
+  simv only [supr_le_iff, set_coe.forall],
   intros x hx,
   exact X.basic_open_subset x
 end
@@ -622,7 +622,7 @@ begin
     exact hf₂ x },
   rw ← V.prop.self_le_basic_open_union_iff,
   intros x hx,
-  simp only [exists_prop, set.mem_Union, set.mem_range, set_coe.exists, opens.supr_def,
+  simv only [exists_prop, set.mem_Union, set.mem_range, set_coe.exists, opens.supr_def,
     exists_exists_eq_and, opens.mem_coe, subtype.coe_mk],
   refine ⟨_, hf₁ ⟨x, hx⟩⟩,
 end

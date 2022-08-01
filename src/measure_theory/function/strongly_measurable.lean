@@ -126,7 +126,7 @@ lemma strongly_measurable.ae_strongly_measurable {α β} {m0 : measurable_space 
 begin
   let f_sf : α →ₛ β := ⟨f, λ x, _, set.subsingleton.finite set.subsingleton_of_subsingleton⟩,
   { exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩, },
-  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp, },
+  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simv, },
     rw h_univ,
     exact measurable_set.univ, },
 end
@@ -195,7 +195,7 @@ lemma tendsto_approx_bounded_of_norm_le {β} {f : α → β} [normed_add_comm_gr
   tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
 begin
   have h_tendsto := hf.tendsto_approx x,
-  simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
+  simv only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
   by_cases hfx0 : ∥f x∥ = 0,
   { rw norm_eq_zero at hfx0,
     rw hfx0 at h_tendsto ⊢,
@@ -235,10 +235,10 @@ lemma norm_approx_bounded_le {β} {f : α → β} [seminormed_add_comm_group β]
   {m : measurable_space α} {c : ℝ} (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
   ∥hf.approx_bounded c n x∥ ≤ c :=
 begin
-  simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
+  simv only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
   refine (norm_smul _ _).le.trans _,
   by_cases h0 : ∥hf.approx n x∥ = 0,
-  { simp only [h0, div_zero, min_eq_right, zero_le_one, norm_zero, mul_zero],
+  { simv only [h0, div_zero, min_eq_right, zero_le_one, norm_zero, mul_zero],
     exact hc, },
   cases le_total (∥hf.approx n x∥) c,
   { rw min_eq_left _,
@@ -266,7 +266,7 @@ begin
   { intros n x hxt,
     rw simple_func.restrict_apply _ ((hS_meas n).inter ht),
     refine set.indicator_of_not_mem _ _,
-    simp [hxt], },
+    simv [hxt], },
   refine ⟨fs, _, λ x, _⟩,
   { simp_rw simple_func.support_eq,
     refine λ n, (measure_bUnion_finset_le _ _).trans_lt _,
@@ -305,7 +305,7 @@ end
 protected lemma fin_strongly_measurable [topological_space β] [has_zero β] {m0 : measurable_space α}
   (hf : strongly_measurable f) (μ : measure α) [sigma_finite μ] :
   fin_strongly_measurable f μ :=
-hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
+hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simv)
   (by rwa measure.restrict_univ)
 
 /-- A strongly measurable function is measurable. -/
@@ -440,7 +440,7 @@ lemma _root_.strongly_measurable_const_smul_iff₀ {m : measurable_space α} {c 
 begin
   refine ⟨λ h, _, λ h, h.const_smul c⟩,
   convert h.const_smul' c⁻¹,
-  simp [smul_smul, inv_mul_cancel hc]
+  simv [smul_smul, inv_mul_cancel hc]
 end
 
 end mul_action
@@ -562,7 +562,7 @@ begin
   { exact subsingleton.strongly_measurable f, },
   { inhabit β,
     exact ⟨simple_func.approx_on f hf set.univ default (set.mem_univ _),
-      λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
+      λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simv)⟩, },
 end
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
@@ -647,7 +647,7 @@ begin
   { have : is_separable (g ⁻¹' (range (g ∘ f))) := hg.is_separable_preimage H.is_separable_range,
     convert this,
     ext x,
-    simp [hg.inj.eq_iff] }
+    simv [hg.inj.eq_iff] }
 end
 
 /-- A sequential limit of strongly measurable functions is strongly measurable. -/
@@ -712,14 +712,14 @@ begin
         ((ht.subtype_image
         ((hd.approx n).measurable_set_fiber x)).diff hs),
       ext1 y,
-      simp only [mem_union_eq, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
+      simv only [mem_union_eq, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
         subtype.coe_mk, exists_and_distrib_right, exists_eq_right, mem_diff],
       by_cases hy : y ∈ s,
       { rw dif_pos hy,
-        simp only [hy, exists_true_left, not_true, and_false, or_false]},
+        simv only [hy, exists_true_left, not_true, and_false, or_false]},
       { rw dif_neg hy,
         have A : y ∈ t, by simpa [hy] using h (mem_univ y),
-        simp only [A, hy, false_or, is_empty.exists_iff, not_false_iff, and_true,
+        simv only [A, hy, false_or, is_empty.exists_iff, not_false_iff, and_true,
           exists_true_left] }
     end,
     finite_range' :=
@@ -739,11 +739,11 @@ begin
   by_cases hy : y ∈ s,
   { convert hc.tendsto_approx ⟨y, hy⟩ using 1,
     ext1 n,
-    simp only [dif_pos hy, simple_func.apply_mk] },
+    simv only [dif_pos hy, simple_func.apply_mk] },
   { have A : y ∈ t, by simpa [hy] using h (mem_univ y),
     convert hd.tendsto_approx ⟨y, A⟩ using 1,
     ext1 n,
-    simp only [dif_neg hy, simple_func.apply_mk] }
+    simv only [dif_neg hy, simple_func.apply_mk] }
 end
 
 lemma _root_.strongly_measurable_of_restrict_of_restrict_compl
@@ -886,7 +886,7 @@ begin
         exact ⟨λ h, h.2, λ h, ⟨hg_seq_zero y h n, h⟩⟩, },
       { suffices : (g_seq_s n) ⁻¹' {x} ∩ sᶜ = ∅, by { rw this, exact measurable_set.empty, },
         ext1 y,
-        simp only [mem_inter_eq, mem_preimage, mem_singleton_iff, mem_compl_eq, mem_empty_eq,
+        simv only [mem_inter_eq, mem_preimage, mem_singleton_iff, mem_compl_eq, mem_empty_eq,
           iff_false, not_and, not_not_mem],
         refine imp_of_not_imp_not _ _ (λ hys, _),
         rw hg_seq_zero y hys n,
@@ -911,7 +911,7 @@ begin
   let sigma_finite_sets := spanning_sets (μ.trim hm),
   let norm_sets := λ (n : ℕ), {x | ∥f x∥ ≤ n},
   have norm_sets_spanning : (⋃ n, norm_sets n) = set.univ,
-  { ext1 x, simp only [set.mem_Union, set.mem_set_of_eq, set.mem_univ, iff_true],
+  { ext1 x, simv only [set.mem_Union, set.mem_set_of_eq, set.mem_univ, iff_true],
     exact ⟨⌈∥f x∥⌉₊, nat.le_ceil (∥f x∥)⟩, },
   let sets := λ n, sigma_finite_sets n ∩ norm_sets n,
   have h_meas : ∀ n, measurable_set[m] (sets n),
@@ -926,7 +926,7 @@ begin
   { have : (⋃ i, sigma_finite_sets i ∩ norm_sets i)
       = (⋃ i, sigma_finite_sets i) ∩ (⋃ i, norm_sets i),
     { refine set.Union_inter_of_monotone (monotone_spanning_sets (μ.trim hm)) (λ i j hij x, _),
-      simp only [norm_sets, set.mem_set_of_eq],
+      simv only [norm_sets, set.mem_set_of_eq],
       refine λ hif, hif.trans _,
       exact_mod_cast hij, },
     rw [this, norm_sets_spanning, Union_spanning_sets (μ.trim hm), set.inter_univ], },
@@ -939,7 +939,7 @@ end strongly_measurable
 lemma fin_strongly_measurable_zero {α β} {m : measurable_space α} {μ : measure α} [has_zero β]
   [topological_space β] :
   fin_strongly_measurable (0 : α → β) μ :=
-⟨0, by simp only [pi.zero_apply, simple_func.coe_zero, support_zero', measure_empty,
+⟨0, by simv only [pi.zero_apply, simple_func.coe_zero, support_zero', measure_empty,
     with_top.zero_lt_top, forall_const],
   λ n, tendsto_const_nhds⟩
 
@@ -1458,7 +1458,7 @@ lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
 begin
   refine ⟨range (hf.mk f), hf.strongly_measurable_mk.is_separable_range, _⟩,
   filter_upwards [hf.ae_eq_mk] with x hx,
-  simp [hx]
+  simv [hx]
 end
 
 /-- A function is almost everywhere strongly measurable if and only if it is almost everywhere
@@ -1471,7 +1471,7 @@ begin
   refine ⟨λ H, ⟨H.ae_measurable, H.is_separable_ae_range⟩, _⟩,
   rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
   rcases eq_empty_or_nonempty t with rfl|h₀,
-  { simp only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
+  { simv only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
     rw ht,
     exact ae_strongly_measurable_zero_measure f },
   { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
@@ -1574,7 +1574,7 @@ begin
     λ i, (ae_strongly_measurable_iff_ae_measurable_separable.1 (h i)).2,
   choose t t_sep ht using A,
   refine ⟨(⋃ i, t i), is_separable_Union t_sep, _⟩,
-  simp only [measure.ae_sum_eq, mem_Union, eventually_supr],
+  simv only [measure.ae_sum_eq, mem_Union, eventually_supr],
   assume i,
   filter_upwards [ht i] with x hx,
   exact ⟨i, hx⟩
@@ -1608,7 +1608,7 @@ protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
 @[simp] lemma _root_.ae_strongly_measurable_union_iff [pseudo_metrizable_space β] {s t : set α} :
   ae_strongly_measurable f (μ.restrict (s ∪ t)) ↔
     ae_strongly_measurable f (μ.restrict s) ∧ ae_strongly_measurable f (μ.restrict t) :=
-by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
+by simv only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
 lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :
@@ -1642,7 +1642,7 @@ lemma _root_.ae_strongly_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) 
 begin
   refine ⟨λ h, _, λ h, h.const_smul c⟩,
   convert h.const_smul' c⁻¹,
-  simp [smul_smul, inv_mul_cancel hc]
+  simv [smul_smul, inv_mul_cancel hc]
 end
 
 end mul_action
@@ -1688,14 +1688,14 @@ begin
       have : (f a : ℝ≥0∞) ≠ 0, by simpa only [ne.def, ennreal.coe_eq_zero] using h'a,
       rw ha this },
     { filter_upwards [ae_restrict_mem A.compl] with x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
-      simp [hx] } },
+      simv only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simv [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.strongly_measurable.smul g'meas, _⟩,
     rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal],
     filter_upwards [hg'] with x hx h'x,
     rw [← hx, smul_smul, _root_.inv_mul_cancel, one_smul],
-    simp only [ne.def, ennreal.coe_eq_zero] at h'x,
+    simv only [ne.def, ennreal.coe_eq_zero] at h'x,
     simpa only [nnreal.coe_eq_zero, ne.def] using h'x }
 end
 
@@ -1893,7 +1893,7 @@ begin
         is_separable_Union (λ i, (h i).is_separable_range),
       apply this.mono,
       rintros _ ⟨⟨i, x⟩, rfl⟩,
-      simp only [mem_Union, mem_range],
+      simv only [mem_Union, mem_range],
       exact ⟨i, x, rfl⟩ } },
   have : (λ p : ι × α, u (t_sf n p.fst) p.snd)
     = (λ p : ↥(t_sf n).range × α, u p.fst p.snd)

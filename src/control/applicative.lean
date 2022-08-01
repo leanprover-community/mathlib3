@@ -28,10 +28,10 @@ variables {α β γ σ : Type u}
 
 lemma applicative.map_seq_map (f : α → β → γ) (g : σ → β) (x : F α) (y : F σ) :
   (f <$> x) <*> (g <$> y) = (flip (∘) g ∘ f) <$> x <*> y :=
-by simp [flip] with functor_norm
+by simv [flip] with functor_norm
 
 lemma applicative.pure_seq_eq_map' (f : α → β) : (<*>) (pure f : F (α → β)) = (<$>) f :=
-by ext; simp with functor_norm
+by ext; simv with functor_norm
 
 theorem applicative.ext {F} : ∀ {A1 : applicative F} {A2 : applicative F}
   [@is_lawful_applicative F A1] [@is_lawful_applicative F A2]
@@ -73,19 +73,19 @@ variables [is_lawful_applicative F] [is_lawful_applicative G]
 variables {α β γ : Type v}
 
 lemma map_pure (f : α → β) (x : α) : (f <$> pure x : comp F G β) = pure (f x) :=
-comp.ext $ by simp
+comp.ext $ by simv
 
 lemma seq_pure (f : comp F G (α → β)) (x : α) :
   f <*> pure x = (λ g : α → β, g x) <$> f :=
-comp.ext $ by simp [(∘)] with functor_norm
+comp.ext $ by simv [(∘)] with functor_norm
 
 lemma seq_assoc (x : comp F G α) (f : comp F G (α → β)) (g : comp F G (β → γ)) :
    g <*> (f <*> x) = (@function.comp α β γ <$> g) <*> f <*> x :=
-comp.ext $ by simp [(∘)] with functor_norm
+comp.ext $ by simv [(∘)] with functor_norm
 
 lemma pure_seq_eq_map (f : α → β) (x : comp F G α) :
   pure f <*> x = f <$> x :=
-comp.ext $ by simp [applicative.pure_seq_eq_map'] with functor_norm
+comp.ext $ by simv [applicative.pure_seq_eq_map'] with functor_norm
 
 instance : is_lawful_applicative (comp F G) :=
 { pure_seq_eq_map := @comp.pure_seq_eq_map F G _ _ _ _,
@@ -110,9 +110,9 @@ instance {f : Type u → Type w} {g : Type v → Type u}
   [is_comm_applicative f] [is_comm_applicative g] :
   is_comm_applicative (comp f g) :=
 by { refine { .. @comp.is_lawful_applicative f g _ _ _ _, .. },
-     intros, casesm* comp _ _ _, simp! [map,has_seq.seq] with functor_norm,
+     intros, casesm* comp _ _ _, simv! [map,has_seq.seq] with functor_norm,
      rw [commutative_map],
-     simp [comp.mk,flip,(∘)] with functor_norm,
+     simv [comp.mk,flip,(∘)] with functor_norm,
      congr, funext, rw [commutative_map], congr }
 
 end comp
@@ -132,11 +132,11 @@ instance {α} [has_one α] [has_mul α] : applicative (const α) :=
   seq := λ β γ f x, (f * x : α) }
 
 instance {α} [monoid α] : is_lawful_applicative (const α) :=
-by refine { .. }; intros; simp [mul_assoc, (<$>), (<*>), pure]
+by refine { .. }; intros; simv [mul_assoc, (<$>), (<*>), pure]
 
 instance {α} [has_zero α] [has_add α] : applicative (add_const α) :=
 { pure := λ β x, (0 : α),
   seq := λ β γ f x, (f + x : α) }
 
 instance {α} [add_monoid α] : is_lawful_applicative (add_const α) :=
-by refine { .. }; intros; simp [add_assoc, (<$>), (<*>), pure]
+by refine { .. }; intros; simv [add_assoc, (<$>), (<*>), pure]

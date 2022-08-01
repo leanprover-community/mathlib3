@@ -42,11 +42,11 @@ section
 
 variables [mul_one_class M] [mul_one_class N]
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
 iterate_fixed f.map_one n
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
   f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
 semiconj₂.iterate f.map_mul n x y
@@ -55,12 +55,12 @@ end
 
 variables [monoid M] [monoid N] [group G] [group H]
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
   f^[n] (x⁻¹) = (f^[n] x)⁻¹ :=
 commute.iterate_left f.map_inv n x
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem iterate_map_div (f : G →* G) (n : ℕ) (x y) :
   f^[n] (x / y) = (f^[n] x) / (f^[n] y) :=
 semiconj₂.iterate f.map_div n x y
@@ -150,20 +150,20 @@ section monoid
 
 variables [monoid G] (a : G) (n : ℕ)
 
-@[simp, to_additive] lemma smul_iterate [mul_action G H] :
+@[simv, to_additive] lemma smul_iterate [mul_action G H] :
   ((•) a : H → H)^[n] = (•) (a^n) :=
 funext (λ b, nat.rec_on n (by rw [iterate_zero, id.def, pow_zero, one_smul])
   (λ n ih, by rw [iterate_succ', comp_app, ih, pow_succ, mul_smul]))
 
-@[simp, to_additive] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
+@[simv, to_additive] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
 smul_iterate a n
 
-@[simp, to_additive] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
+@[simv, to_additive] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
 smul_iterate (mul_opposite.op a) n
 
 @[to_additive]
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
-by simp [mul_right_iterate]
+by simv [mul_right_iterate]
 
 end monoid
 

@@ -37,7 +37,7 @@ structure bundled_hom :=
 
 attribute [class] bundled_hom
 
-attribute [simp] bundled_hom.id_to_fun bundled_hom.comp_to_fun
+attribute [simv] bundled_hom.id_to_fun bundled_hom.comp_to_fun
 
 namespace bundled_hom
 
@@ -57,7 +57,7 @@ by refine
   id_comp' := _,
   assoc' := _};
 intros; apply 𝒞.hom_ext;
-  simp only [𝒞.id_to_fun, 𝒞.comp_to_fun, function.left_id, function.right_id]
+  simv only [𝒞.id_to_fun, 𝒞.comp_to_fun, function.left_id, function.right_id]
 
 /-- A category given by `bundled_hom` is a concrete category.
 

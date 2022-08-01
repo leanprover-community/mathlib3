@@ -98,7 +98,7 @@ def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
   eq_to_hom (by erw [functor.map_comp, functor.comp_obj]) ≫
     (F.map g.base).map f.fiber ≫ g.fiber, }
 
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 instance : category (grothendieck F) :=
 { hom := λ X Y, grothendieck.hom X Y,
@@ -111,17 +111,17 @@ instance : category (grothendieck F) :=
       -- We need to turn `F.map_id` (which is an equation between functors)
       -- into a natural isomorphism.
       rw ← nat_iso.naturality_2 (eq_to_iso (F.map_id Y.base)) f.fiber,
-      simp, },
-    { simp, },
+      simv, },
+    { simv, },
   end,
-  id_comp' := λ X Y f, by ext; simp,
+  id_comp' := λ X Y f, by ext; simv,
   assoc' := λ W X Y Z f g h,
   begin
     ext, swap,
-    { simp, },
+    { simv, },
     { dsimp,
       rw ← nat_iso.naturality_2 (eq_to_iso (F.map_comp _ _)) f.fiber,
-      simp,
+      simv,
       refl, },
   end, }
 
@@ -131,7 +131,7 @@ id_fiber X
 
 lemma congr {X Y : grothendieck F} {f g : X ⟶ Y} (h : f = g) :
   f.fiber = eq_to_hom (by subst h) ≫ g.fiber :=
-by { subst h, dsimp, simp, }
+by { subst h, dsimp, simv, }
 
 section
 variables (F)
@@ -169,10 +169,10 @@ def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :
 { functor := grothendieck_Type_to_Cat_functor G,
   inverse := grothendieck_Type_to_Cat_inverse G,
   unit_iso := nat_iso.of_components (λ X, by { rcases X with ⟨_, ⟨⟩⟩, exact iso.refl _, })
-    (by { rintro ⟨_, ⟨⟩⟩ ⟨_, ⟨⟩⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, ext, simp, }),
+    (by { rintro ⟨_, ⟨⟩⟩ ⟨_, ⟨⟩⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, ext, simv, }),
   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, ext, simp }),
-  functor_unit_iso_comp' := by { rintro ⟨_, ⟨⟩⟩, dsimp, simp, refl, } }
+    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, ext, simv }),
+  functor_unit_iso_comp' := by { rintro ⟨_, ⟨⟩⟩, dsimp, simv, refl, } }
 
 end grothendieck
 

@@ -86,7 +86,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
       measure.restrict_apply₀' 𝓕meas, measure.restrict_apply₀' 𝓕meas],
     set π_preA := π ⁻¹' A,
     have : (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A)) = has_mul.mul g ⁻¹' π_preA,
-    { ext1, simp },
+    { ext1, simv },
     rw this,
     have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
     { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),
@@ -94,7 +94,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
         congr,
         rw [← preimage_comp, comp_mul_left, mul_left_inv],
         ext,
-        simp, },
+        simv, },
       rw measure_preimage_mul, },
     rw this,
     haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure,
@@ -106,7 +106,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
     rintros ⟨γ, γ_in_Γ⟩,
     ext,
     have : π (x * (mul_opposite.unop γ)) = π (x) := by simpa [quotient_group.eq'] using γ_in_Γ,
-    simp [(•), this],
+    simv [(•), this],
   end }
 
 /-- Assuming `Γ` is a normal subgroup of a topological group `G`, the pushforward to the quotient

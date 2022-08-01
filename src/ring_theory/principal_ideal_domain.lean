@@ -43,7 +43,7 @@ class submodule.is_principal (S : submodule R M) : Prop :=
 (principal [] : ∃ a, S = span R {a})
 
 instance bot_is_principal : (⊥ : submodule R M).is_principal :=
-⟨⟨0, by simp⟩⟩
+⟨⟨0, by simv⟩⟩
 
 instance top_is_principal : (⊤ : submodule R R).is_principal :=
 ⟨⟨1, ideal.span_singleton_one.symm⟩⟩
@@ -97,7 +97,7 @@ section comm_ring
 variables [comm_ring R] [module R M]
 
 lemma mem_iff_generator_dvd (S : ideal R) [S.is_principal] {x : R} : x ∈ S ↔ generator S ∣ x :=
-(mem_iff_eq_smul_generator S).trans (exists_congr (λ a, by simp only [mul_comm, smul_eq_mul]))
+(mem_iff_eq_smul_generator S).trans (exists_congr (λ a, by simv only [mul_comm, smul_eq_mul]))
 
 lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_prime : S.is_prime]
   (ne_bot : S ≠ ⊥) :
@@ -169,9 +169,9 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
         have (x % (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ∉ {x : R | x ∈ S ∧ x ≠ 0}),
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0,
-          by { simp only [not_and_distrib, set.mem_set_of_eq, not_ne_iff] at this,
+          by { simv only [not_and_distrib, set.mem_set_of_eq, not_ne_iff] at this,
                cases this, cases this ((mod_mem_iff hmin.1).2 hx), exact this },
-        by simp *),
+        by simv *),
       λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
     else ⟨0, submodule.ext $ λ a,
            by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot];

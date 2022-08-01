@@ -114,7 +114,7 @@ example {k : Type*} [semiring k] [nontrivial k] :
 begin
   obtain ⟨u : k, hu⟩ := exists_ne (1 : k),
   intro h,
-  simp only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
+  simv only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
   replace h := h u (finsupp.single 1 1) u,
   classical,
   rw [comap_smul_single, smul_apply, smul_eq_mul, mul_one, single_eq_same,
@@ -130,7 +130,7 @@ begin
   obtain ⟨u : kˣ, hu⟩ := exists_ne (1 : kˣ),
   haveI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,
   intro h,
-  simp only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
+  simv only [has_smul.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
   replace h := h u (finsupp.single 1 1) u,
   classical,
   rw [comap_smul_single, smul_apply, units.smul_def, smul_eq_mul, mul_one, single_eq_same,

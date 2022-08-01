@@ -102,39 +102,39 @@ end is_empty
 not_iff_comm.mp not_nonempty_iff
 
 @[simp] lemma is_empty_Prop {p : Prop} : is_empty p ↔ ¬p :=
-by simp only [← not_nonempty_iff, nonempty_Prop]
+by simv only [← not_nonempty_iff, nonempty_Prop]
 
 @[simp] lemma is_empty_pi {π : α → Sort*} : is_empty (Π a, π a) ↔ ∃ a, is_empty (π a) :=
-by simp only [← not_nonempty_iff, classical.nonempty_pi, not_forall]
+by simv only [← not_nonempty_iff, classical.nonempty_pi, not_forall]
 
 @[simp] lemma is_empty_sigma {α} {E : α → Type*} :
   is_empty (sigma E) ↔ ∀ a, is_empty (E a) :=
-by simp only [← not_nonempty_iff, nonempty_sigma, not_exists]
+by simv only [← not_nonempty_iff, nonempty_sigma, not_exists]
 
 @[simp] lemma is_empty_psigma {α} {E : α → Sort*} :
   is_empty (psigma E) ↔ ∀ a, is_empty (E a) :=
-by simp only [← not_nonempty_iff, nonempty_psigma, not_exists]
+by simv only [← not_nonempty_iff, nonempty_psigma, not_exists]
 
 @[simp] lemma is_empty_subtype (p : α → Prop) : is_empty (subtype p) ↔ ∀ x, ¬p x :=
-by simp only [← not_nonempty_iff, nonempty_subtype, not_exists]
+by simv only [← not_nonempty_iff, nonempty_subtype, not_exists]
 
 @[simp] lemma is_empty_prod {α β : Type*} : is_empty (α × β) ↔ is_empty α ∨ is_empty β :=
-by simp only [← not_nonempty_iff, nonempty_prod, not_and_distrib]
+by simv only [← not_nonempty_iff, nonempty_prod, not_and_distrib]
 
 @[simp] lemma is_empty_pprod : is_empty (pprod α β) ↔ is_empty α ∨ is_empty β :=
-by simp only [← not_nonempty_iff, nonempty_pprod, not_and_distrib]
+by simv only [← not_nonempty_iff, nonempty_pprod, not_and_distrib]
 
 @[simp] lemma is_empty_sum {α β} : is_empty (α ⊕ β) ↔ is_empty α ∧ is_empty β :=
-by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
+by simv only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
 
 @[simp] lemma is_empty_psum {α β} : is_empty (psum α β) ↔ is_empty α ∧ is_empty β :=
-by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
+by simv only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
 
 @[simp] lemma is_empty_ulift {α} : is_empty (ulift α) ↔ is_empty α :=
-by simp only [← not_nonempty_iff, nonempty_ulift]
+by simv only [← not_nonempty_iff, nonempty_ulift]
 
 @[simp] lemma is_empty_plift {α} : is_empty (plift α) ↔ is_empty α :=
-by simp only [← not_nonempty_iff, nonempty_plift]
+by simv only [← not_nonempty_iff, nonempty_plift]
 
 lemma well_founded_of_empty {α} [is_empty α] (r : α → α → Prop) : well_founded r :=
 ⟨is_empty_elim⟩

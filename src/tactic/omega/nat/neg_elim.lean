@@ -28,9 +28,9 @@ lemma push_neg_equiv :
   ∀ {p : preform}, preform.equiv (push_neg p) (¬* p) :=
 begin
   preform.induce `[intros v; try {refl}],
-  { simp only [not_not, preform.holds, push_neg] },
-  { simp only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
-  { simp only [preform.holds, push_neg, not_and_distrib, ihp v, ihq v] }
+  { simv only [not_not, preform.holds, push_neg] },
+  { simv only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
+  { simv only [preform.holds, push_neg, not_and_distrib, ihp v, ihq v] }
 end
 
 /-- NNF transformation -/
@@ -68,7 +68,7 @@ end
 
 lemma nnf_equiv : ∀ {p : preform}, preform.equiv (nnf p) p :=
 begin
-  preform.induce `[intros v; try {refl}; simp only [nnf]],
+  preform.induce `[intros v; try {refl}; simv only [nnf]],
   { rw push_neg_equiv,
     apply not_iff_not_of_iff, apply ih },
   { apply pred_mono_2' (ihp v) (ihq v) },
@@ -84,7 +84,7 @@ end
 
 lemma neg_free_neg_elim_core : ∀ p, is_nnf p → (neg_elim_core p).neg_free :=
 begin
-  preform.induce `[intro h1, try {simp only [neg_free, neg_elim_core]}, try {trivial}],
+  preform.induce `[intro h1, try {simv only [neg_free, neg_elim_core]}, try {trivial}],
   { cases p; try {cases h1}; try {trivial},
     constructor; trivial },
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption },
@@ -108,7 +108,7 @@ begin
       simpa only [preform.holds, le_and_le_iff_eq.symm,
         not_and_distrib, not_le] using h },
     simpa only [preform.holds, not_le, int.add_one_le_iff] using h },
-  { simp only [neg_elim_core], cases h;
+  { simv only [neg_elim_core], cases h;
     [{left, apply ihp}, {right, apply ihq}];
     assumption },
   apply and.imp (ihp _) (ihq _) h

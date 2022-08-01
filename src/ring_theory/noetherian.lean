@@ -151,7 +151,7 @@ theorem fg_bot : (⊥ : submodule R M).fg :=
 lemma _root_.subalgebra.fg_bot_to_submodule {R A : Type*}
   [comm_semiring R] [semiring A] [algebra R A] :
   (⊥ : subalgebra R A).to_submodule.fg :=
-⟨{1}, by simp [algebra.to_submodule_bot] ⟩
+⟨{1}, by simv [algebra.to_submodule_bot] ⟩
 
 theorem fg_span {s : set M} (hs : s.finite) : fg (span R s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
@@ -240,8 +240,8 @@ begin
   { choose g hg1 hg2,
     existsi λ y, if H : y ∈ t1 then g y H else 0,
     intros y H, split,
-    { simp only [dif_pos H], apply hg1 },
-    { simp only [dif_pos H], apply hg2 } },
+    { simv only [dif_pos H], apply hg1 },
+    { simv only [dif_pos H], apply hg2 } },
   cases this with g hg, clear this,
   existsi t1.image g ∪ t2,
   rw [finset.coe_union, span_union, finset.coe_image],
@@ -320,7 +320,7 @@ begin
   classical,
   -- Introduce shorthand for span of an element
   let sp : M → submodule R M := λ a, span R {a},
-  -- Trivial rewrite lemma; a small hack since simp (only) & rw can't accomplish this smoothly.
+  -- Trivial rewrite lemma; a small hack since simv (only) & rw can't accomplish this smoothly.
   have supr_rw : ∀ t : finset M, (⨆ x ∈ t, sp x) = (⨆ x ∈ (↑t : set M), sp x), from λ t, by refl,
   split,
   { rintro ⟨t, rfl⟩,
@@ -393,7 +393,7 @@ begin
     rw ← hr' x hx,
     exact ideal.mem_span_singleton'.mpr ⟨_, mul_comm _ _⟩ },
   { rintros ⟨e, he, rfl⟩,
-    simp [is_idempotent_elem, ideal.span_singleton_mul_span_singleton, he.eq] }
+    simv [is_idempotent_elem, ideal.span_singleton_mul_span_singleton, he.eq] }
 end
 
 lemma is_idempotent_elem_iff_eq_bot_or_top {R : Type*} [comm_ring R] [is_domain R]
@@ -403,11 +403,11 @@ begin
   split,
   { intro H,
     obtain ⟨e, he, rfl⟩ := (I.is_idempotent_elem_iff_of_fg h).mp H,
-    simp only [ideal.submodule_span_eq, ideal.span_singleton_eq_bot],
+    simv only [ideal.submodule_span_eq, ideal.span_singleton_eq_bot],
     apply or_of_or_of_imp_of_imp (is_idempotent_elem.iff_eq_zero_or_one.mp he) id,
     rintro rfl,
-    simp },
-  { rintro (rfl|rfl); simp [is_idempotent_elem] }
+    simv },
+  { rintro (rfl|rfl); simv [is_idempotent_elem] }
 end
 
 end ideal
@@ -437,7 +437,7 @@ begin
     submodule.map_comap_eq_self this ▸ (hn _).map _, λ h, ⟨λ s, _⟩⟩,
   have f := (submodule.equiv_map_of_injective N.subtype subtype.val_injective s).symm,
   have h₁ := h (s.map N.subtype) (submodule.map_subtype_le N s),
-  have h₂ : (⊤ : submodule R (s.map N.subtype)).map (↑f : _ →ₗ[R] s) = ⊤ := by simp,
+  have h₂ : (⊤ : submodule R (s.map N.subtype)).map (↑f : _ →ₗ[R] s) = ⊤ := by simv,
   have h₃ := ((submodule.fg_top _).2 h₁).map (↑f : _ →ₗ[R] s),
   exact (submodule.fg_top _).1 (h₂ ▸ h₃),
 end
@@ -531,26 +531,26 @@ begin
       (λ h : i.1 ∈ s, show M i.1, from f.2 ⟨i.1, h⟩) },
   { intros f g, ext i, unfold or.by_cases, cases i with i hi,
     rcases finset.mem_insert.1 hi with rfl | h,
-    { change _ = _ + _, simp only [dif_pos], refl },
+    { change _ = _ + _, simv only [dif_pos], refl },
     { change _ = _ + _, have : ¬i = a, { rintro rfl, exact has h },
-      simp only [dif_neg this, dif_pos h], refl } },
+      simv only [dif_neg this, dif_pos h], refl } },
   { intros c f, ext i, unfold or.by_cases, cases i with i hi,
     rcases finset.mem_insert.1 hi with rfl | h,
-    { change _ = c • _, simp only [dif_pos], refl },
+    { change _ = c • _, simv only [dif_pos], refl },
     { change _ = c • _, have : ¬i = a, { rintro rfl, exact has h },
-      simp only [dif_neg this, dif_pos h], refl } },
+      simv only [dif_neg this, dif_pos h], refl } },
   { exact λ f, (f ⟨a, finset.mem_insert_self _ _⟩, λ i, f ⟨i.1, finset.mem_insert_of_mem i.2⟩) },
   { intro f, apply prod.ext,
-    { simp only [or.by_cases, dif_pos] },
+    { simv only [or.by_cases, dif_pos] },
     { ext ⟨i, his⟩,
       have : ¬i = a, { rintro rfl, exact has his },
       dsimp only [or.by_cases], change i ∈ s at his,
       rw [dif_neg this, dif_pos his] } },
   { intro f, ext ⟨i, hi⟩,
     rcases finset.mem_insert.1 hi with rfl | h,
-    { simp only [or.by_cases, dif_pos], },
+    { simv only [or.by_cases, dif_pos], },
     { have : ¬i = a, { rintro rfl, exact has h },
-      simp only [or.by_cases, dif_neg this, dif_pos h], } }
+      simv only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
 /-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
@@ -654,8 +654,8 @@ begin
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },
   exact ⟨⟨λ n, span R ((coe ∘ f) '' {m | m ≤ n}),
-      λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
-    by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
+      λ x y, by simv [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
+    by dsimp [gt]; simv only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
 /-- If the first and final modules in a short exact sequence are noetherian,
@@ -678,8 +678,8 @@ well_founded_gt_exact_sequence
   (submodule.map g)
   (submodule.gci_map_comap hf)
   (submodule.gi_map_comap hg)
-  (by simp [submodule.map_comap_eq, inf_comm])
-  (by simp [submodule.comap_map_eq, h])
+  (by simv [submodule.map_comap_eq, inf_comm])
+  (by simv [submodule.comap_map_eq, h])
 
 /--
 For any endomorphism of a Noetherian module, there is some nontrivial iterate
@@ -833,10 +833,10 @@ begin
     { exact λ f, ⟨∑ i in s.attach, f i • i.1, N.sum_mem (λ c _, N.smul_mem _ $ this _ c.2)⟩ },
     { intros f g, apply subtype.eq,
       change ∑ i in s.attach, (f i + g i) • _ = _,
-      simp only [add_smul, finset.sum_add_distrib], refl },
+      simv only [add_smul, finset.sum_add_distrib], refl },
     { intros c f, apply subtype.eq,
       change ∑ i in s.attach, (c • f i) • _ = _,
-      simp only [smul_eq_mul, mul_smul],
+      simv only [smul_eq_mul, mul_smul],
       exact finset.smul_sum.symm } },
   rw linear_map.range_eq_top,
   rintro ⟨n, hn⟩, change n ∈ N at hn,
@@ -901,7 +901,7 @@ theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn
 
 lemma fg.pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
-  (⟨{1}, by simp [one_eq_span]⟩)
+  (⟨{1}, by simv [one_eq_span]⟩)
   (λ n ih, by simpa [pow_succ] using h.mul ih)
 
 end mul

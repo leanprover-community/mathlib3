@@ -240,8 +240,8 @@ tensor_product.induction_on x
 
 instance : add_comm_monoid (M ⊗[R] N) :=
 { nsmul := λ n v, n • v,
-  nsmul_zero' := by simp [tensor_product.zero_smul],
-  nsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  nsmul_zero' := by simv [tensor_product.zero_smul],
+  nsmul_succ' := by simv [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
   .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
 
 instance left_distrib_mul_action : distrib_mul_action R' (M ⊗[R] N) :=
@@ -267,7 +267,7 @@ rfl
 (smul_tmul _ _ _).symm
 
 lemma smul_tmul_smul (r s : R) (m : M) (n : N) : (r • m) ⊗ₜ[R] (s • n) = (r * s) • (m ⊗ₜ[R] n) :=
-by simp only [tmul_smul, smul_tmul, mul_smul]
+by simv only [tmul_smul, smul_tmul, mul_smul]
 
 instance left_module : module R'' (M ⊗[R] N) :=
 { smul := (•),
@@ -294,7 +294,7 @@ variables [smul_comm_class R R'₂ M] [has_smul R'₂ R']
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
   is_scalar_tower R'₂ R' (M ⊗[R] N) :=
 ⟨λ s r x, tensor_product.induction_on x
-  (by simp)
+  (by simv)
   (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
   (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
 
@@ -305,7 +305,7 @@ variables [compatible_smul R R'₂ M N] [compatible_smul R R' M N]
 instance is_scalar_tower_right [is_scalar_tower R'₂ R' N] :
     is_scalar_tower R'₂ R' (M ⊗[R] N) :=
 ⟨λ s r x, tensor_product.induction_on x
-  (by simp)
+  (by simv)
   (λ m n, by rw [←tmul_smul, ←tmul_smul, ←tmul_smul, smul_assoc])
   (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
 
@@ -327,11 +327,11 @@ variables {R M N}
 
 lemma ite_tmul (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
   (if P then x₁ else 0) ⊗ₜ[R] x₂ = if P then x₁ ⊗ₜ x₂ else 0 :=
-by { split_ifs; simp }
+by { split_ifs; simv }
 
 lemma tmul_ite (x₁ : M) (x₂ : N) (P : Prop) [decidable P] :
   x₁ ⊗ₜ[R] (if P then x₂ else 0) = if P then x₁ ⊗ₜ x₂ else 0 :=
-by { split_ifs; simp }
+by { split_ifs; simv }
 
 section
 open_locale big_operators
@@ -341,8 +341,8 @@ lemma sum_tmul {α : Type*} (s : finset α) (m : α → M) (n : N) :
 begin
   classical,
   induction s using finset.induction with a s has ih h,
-  { simp, },
-  { simp [finset.sum_insert has, add_tmul, ih], },
+  { simv, },
+  { simv [finset.sum_insert has, add_tmul, ih], },
 end
 
 lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
@@ -350,8 +350,8 @@ lemma tmul_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
 begin
   classical,
   induction s using finset.induction with a s has ih h,
-  { simp, },
-  { simp [finset.sum_insert has, tmul_add, ih], },
+  { simv, },
+  { simv [finset.sum_insert has, tmul_add, ih], },
 end
 end
 
@@ -361,7 +361,7 @@ variables (R M N)
 lemma span_tmul_eq_top :
   submodule.span R { t : M ⊗[R] N | ∃ m n, m ⊗ₜ n = t } = ⊤ :=
 begin
-  ext t, simp only [submodule.mem_top, iff_true],
+  ext t, simv only [submodule.mem_top, iff_true],
   apply t.induction_on,
   { exact submodule.zero_mem _, },
   { intros m n, apply submodule.subset_span, use [m, n], },
@@ -439,7 +439,7 @@ theorem lift_mk : lift (mk R M N) = linear_map.id :=
 eq.symm $ lift.unique $ λ x y, rfl
 
 theorem lift_compr₂ (g : P →ₗ[R] Q) : lift (f.compr₂ g) = g.comp (lift f) :=
-eq.symm $ lift.unique $ λ x y, by simp
+eq.symm $ lift.unique $ λ x y, by simv
 
 theorem lift_mk_compr₂ (f : M ⊗ N →ₗ[R] P) : lift ((mk R M N).compr₂ f) = f :=
 by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
@@ -535,15 +535,15 @@ The base ring is a left identity for the tensor product of modules, up to linear
 -/
 protected def lid : R ⊗ M ≃ₗ[R] M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
-  (linear_map.ext $ λ _, by simp)
-  (ext' $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
+  (linear_map.ext $ λ _, by simv)
+  (ext' $ λ r m, by simv; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
 end
 
 @[simp] theorem lid_tmul (m : M) (r : R) :
   ((tensor_product.lid R M) : (R ⊗ M → M)) (r ⊗ₜ m) = r • m :=
 begin
   dsimp [tensor_product.lid],
-  simp,
+  simv,
 end
 
 @[simp] lemma lid_symm_apply (m : M) :
@@ -582,7 +582,7 @@ end
   (tensor_product.rid R M) (m ⊗ₜ r) = r • m :=
 begin
   dsimp [tensor_product.rid, tensor_product.comm, tensor_product.lid],
-  simp,
+  simv,
 end
 
 @[simp] lemma rid_symm_apply (m : M) :
@@ -623,12 +623,12 @@ rfl
 lemma map_range_eq_span_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (map f g).range = submodule.span R { t | ∃ m n, (f m) ⊗ₜ (g n) = t } :=
 begin
-  simp only [← submodule.map_top, ← span_tmul_eq_top, submodule.map_span, set.mem_image,
+  simv only [← submodule.map_top, ← span_tmul_eq_top, submodule.map_span, set.mem_image,
     set.mem_set_of_eq],
   congr, ext t,
   split,
-  { rintros ⟨_, ⟨⟨m, n, rfl⟩, rfl⟩⟩, use [m, n], simp only [map_tmul], },
-  { rintros ⟨m, n, rfl⟩, use [m ⊗ₜ n, m, n], simp only [map_tmul], },
+  { rintros ⟨_, ⟨⟨m, n, rfl⟩, rfl⟩⟩, use [m, n], simv only [map_tmul], },
+  { rintros ⟨m, n, rfl⟩, use [m ⊗ₜ n, m, n], simv only [map_tmul], },
 end
 
 /-- Given submodules `p ⊆ P` and `q ⊆ Q`, this is the natural map: `p ⊗ q → P ⊗ Q`. -/
@@ -642,16 +642,16 @@ variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
   map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
-ext' $ λ _ _, by simp only [linear_map.comp_apply, map_tmul]
+ext' $ λ _ _, by simv only [linear_map.comp_apply, map_tmul]
 
 lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
-ext' $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
+ext' $ λ _ _, by simv only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
 
 local attribute [ext] ext
 
 @[simp] lemma map_id : map (id : M →ₗ[R] M) (id : N →ₗ[R] N) = id :=
-by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], }
+by { ext, simv only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], }
 
 @[simp] lemma map_one : map (1 : M →ₗ[R] M) (1 : N →ₗ[R] N) = 1 := map_id
 
@@ -663,21 +663,21 @@ map_comp f₁ f₂ g₁ g₂
   (map f g)^n = map (f^n) (g^n) :=
 begin
   induction n with n ih,
-  { simp only [pow_zero, map_one], },
-  { simp only [pow_succ', ih, map_mul], },
+  { simv only [pow_zero, map_one], },
+  { simv only [pow_succ', ih, map_mul], },
 end
 
 lemma map_add_left (f₁ f₂ : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (f₁ + f₂) g = map f₁ g + map f₂ g :=
-by {ext, simp only [add_tmul, compr₂_apply, mk_apply, map_tmul, add_apply]}
+by {ext, simv only [add_tmul, compr₂_apply, mk_apply, map_tmul, add_apply]}
 
 lemma map_add_right (f : M →ₗ[R] P) (g₁ g₂ : N →ₗ[R] Q) : map f (g₁ + g₂) = map f g₁ + map f g₂ :=
-by {ext, simp only [tmul_add, compr₂_apply, mk_apply, map_tmul, add_apply]}
+by {ext, simv only [tmul_add, compr₂_apply, mk_apply, map_tmul, add_apply]}
 
 lemma map_smul_left (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (r • f) g = r • map f g :=
-by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+by {ext, simv only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
 
 lemma map_smul_right (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map f (r • g) = r • map f g :=
-by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+by {ext, simv only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
 
 variables (R M N P Q)
 
@@ -715,7 +715,7 @@ lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g :=
-by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
+by simv only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
 
 end
 
@@ -723,8 +723,8 @@ end
 then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
 linear_equiv.of_linear (map f g) (map f.symm g.symm)
-  (ext' $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
-  (ext' $ λ m n, by simp; simp only [linear_equiv.symm_apply_apply])
+  (ext' $ λ m n, by simv; simv only [linear_equiv.apply_symm_apply])
+  (ext' $ λ m n, by simv; simv only [linear_equiv.symm_apply_apply])
 
 @[simp] theorem congr_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (m : M) (n : N) :
   congr f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
@@ -832,17 +832,17 @@ local attribute [ext] tensor_product.ext
 def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=
 { to_fun := ltensor M,
   map_add' := λ f g, by
-  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
+  { ext x y, simv only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
   map_smul' := λ r f, by
-  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
+  { dsimp, ext x y, simv only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
 
 /-- `rtensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 { to_fun := λ f, f.rtensor M,
   map_add' := λ f g, by
-  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
+  { ext x y, simv only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
   map_smul' := λ r f, by
-  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
+  { dsimp, ext x y, simv only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
     rtensor_tmul] } }
 
 @[simp] lemma coe_ltensor_hom :
@@ -870,14 +870,14 @@ def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 (rtensor_hom M).map_smul r f
 
 lemma ltensor_comp : (g.comp f).ltensor M = (g.ltensor M).comp (f.ltensor M) :=
-by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, ltensor_tmul] }
+by { ext m n, simv only [compr₂_apply, mk_apply, comp_apply, ltensor_tmul] }
 
 lemma ltensor_comp_apply (x : M ⊗[R] N) :
   (g.comp f).ltensor M x = (g.ltensor M) ((f.ltensor M) x) :=
 by { rw [ltensor_comp, coe_comp], }
 
 lemma rtensor_comp : (g.comp f).rtensor M = (g.rtensor M).comp (f.rtensor M) :=
-by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, rtensor_tmul] }
+by { ext m n, simv only [compr₂_apply, mk_apply, comp_apply, rtensor_tmul] }
 
 lemma rtensor_comp_apply (x : N ⊗[R] M) :
   (g.comp f).rtensor M x = (g.rtensor M) ((f.rtensor M) x) :=
@@ -893,13 +893,13 @@ variables (N)
 
 @[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
--- `simp` can prove this.
+-- `simv` can prove this.
 lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
 by {rw [ltensor_id, id_coe, id.def], }
 
 @[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id
 
--- `simp` can prove this.
+-- `simv` can prove this.
 lemma rtensor_id_apply (x : N ⊗[R] M) : (linear_map.id : N →ₗ[R] N).rtensor M x = x :=
 by { rw [rtensor_id, id_coe, id.def], }
 
@@ -907,27 +907,27 @@ variables {N}
 
 @[simp] lemma ltensor_comp_rtensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (g.ltensor P).comp (f.rtensor N) = map f g :=
-by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+by simv only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 @[simp] lemma rtensor_comp_ltensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (f.rtensor Q).comp (g.ltensor M) = map f g :=
-by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+by simv only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 @[simp] lemma map_comp_rtensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (f' : S →ₗ[R] M) :
   (map f g).comp (f'.rtensor _) = map (f.comp f') g :=
-by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+by simv only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 @[simp] lemma map_comp_ltensor (f : M →ₗ[R] P) (g : N →ₗ[R] Q) (g' : S →ₗ[R] N) :
   (map f g).comp (g'.ltensor _) = map f (g.comp g') :=
-by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+by simv only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 @[simp] lemma rtensor_comp_map (f' : P →ₗ[R] S) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (f'.rtensor _).comp (map f g) = map (f'.comp f) g :=
-by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+by simv only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 @[simp] lemma ltensor_comp_map (g' : Q →ₗ[R] S) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (g'.ltensor _).comp (map f g) = map f (g'.comp g) :=
-by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
+by simv only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 variables {M}
 
@@ -1000,8 +1000,8 @@ instance : add_comm_group (M ⊗[R] N) :=
   sub_eq_add_neg := λ _ _, rfl,
   add_left_neg := λ x, by exact tensor_product.add_left_neg x,
   zsmul := λ n v, n • v,
-  zsmul_zero' := by simp [tensor_product.zero_smul],
-  zsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  zsmul_zero' := by simv [tensor_product.zero_smul],
+  zsmul_succ' := by simv [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
   zsmul_neg' := λ n x, begin
     change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
     rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
@@ -1031,7 +1031,7 @@ The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
 instance compatible_smul.int : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
-  (by simp)
+  (by simv)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
   (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
 
@@ -1045,16 +1045,16 @@ end tensor_product
 namespace linear_map
 
 @[simp] lemma ltensor_sub (f g : N →ₗ[R] P) : (f - g).ltensor M = f.ltensor M - g.ltensor M :=
-by simp only [← coe_ltensor_hom, map_sub]
+by simv only [← coe_ltensor_hom, map_sub]
 
 @[simp] lemma rtensor_sub (f g : N →ₗ[R] P) : (f - g).rtensor M = f.rtensor M - g.rtensor M :=
-by simp only [← coe_rtensor_hom, map_sub]
+by simv only [← coe_rtensor_hom, map_sub]
 
 @[simp] lemma ltensor_neg (f : N →ₗ[R] P) : (-f).ltensor M = -(f.ltensor M) :=
-by simp only [← coe_ltensor_hom, map_neg]
+by simv only [← coe_ltensor_hom, map_neg]
 
 @[simp] lemma rtensor_neg (f : N →ₗ[R] P) : (-f).rtensor M = -(f.rtensor M) :=
-by simp only [← coe_rtensor_hom, map_neg]
+by simv only [← coe_rtensor_hom, map_neg]
 
 end linear_map
 

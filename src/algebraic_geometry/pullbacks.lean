@@ -56,31 +56,31 @@ begin
   rw [category.comp_id, category.id_comp]
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t_fst_fst (i j : 𝒰.J) : t 𝒰 f g i j ≫ pullback.fst ≫ pullback.fst = pullback.snd :=
 begin
   delta t,
-  simp only [category.assoc, id.def, pullback_symmetry_hom_comp_fst_assoc,
+  simv only [category.assoc, id.def, pullback_symmetry_hom_comp_fst_assoc,
     pullback_assoc_hom_snd_fst, pullback.lift_fst_assoc, pullback_symmetry_hom_comp_snd,
     pullback_assoc_inv_fst_fst, pullback_symmetry_hom_comp_fst],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t_fst_snd (i j : 𝒰.J) :
   t 𝒰 f g i j ≫ pullback.fst ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
 begin
   delta t,
-  simp only [pullback_symmetry_hom_comp_snd_assoc, category.comp_id, category.assoc, id.def,
+  simv only [pullback_symmetry_hom_comp_snd_assoc, category.comp_id, category.assoc, id.def,
     pullback_symmetry_hom_comp_fst_assoc, pullback_assoc_hom_snd_snd, pullback.lift_snd,
     pullback_assoc_inv_snd],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t_snd (i j : 𝒰.J) :
   t 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
 begin
   delta t,
-  simp only [pullback_symmetry_hom_comp_snd_assoc, category.assoc, id.def,
+  simv only [pullback_symmetry_hom_comp_snd_assoc, category.assoc, id.def,
     pullback_symmetry_hom_comp_snd, pullback_assoc_hom_fst, pullback.lift_fst_assoc,
     pullback_symmetry_hom_comp_fst, pullback_assoc_inv_fst_snd],
 end
@@ -89,9 +89,9 @@ lemma t_id (i : 𝒰.J) : t 𝒰 f g i i = 𝟙 _ :=
 begin
   apply pullback.hom_ext; rw category.id_comp,
   apply pullback.hom_ext,
-  { rw ← cancel_mono (𝒰.map i), simp only [pullback.condition, category.assoc, t_fst_fst] },
-  { simp only [category.assoc, t_fst_snd]},
-  { rw ← cancel_mono (𝒰.map i),simp only [pullback.condition, t_snd, category.assoc] }
+  { rw ← cancel_mono (𝒰.map i), simv only [pullback.condition, category.assoc, t_fst_fst] },
+  { simv only [category.assoc, t_fst_snd]},
+  { rw ← cancel_mono (𝒰.map i),simv only [pullback.condition, t_snd, category.assoc] }
 end
 
 /-- The inclusion map of `V i j = (Uᵢ ×[Z] Y) ×[X] Uⱼ ⟶ Uᵢ ×[Z] Y`-/
@@ -106,70 +106,70 @@ begin
   refine _ ≫ (pullback_symmetry _ _).hom,
   refine _ ≫ (pullback_right_pullback_fst_iso _ _ _).inv,
   refine pullback.map _ _ _ _ (t 𝒰 f g i j) (𝟙 _) (𝟙 _) _ _,
-  { simp only [←pullback.condition, category.comp_id, t_fst_fst_assoc] },
-  { simp only [category.comp_id, category.id_comp]}
+  { simv only [←pullback.condition, category.comp_id, t_fst_fst_assoc] },
+  { simv only [category.comp_id, category.id_comp]}
 end
 
 section end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t'_fst_fst_fst (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 begin
   delta t',
-  simp only [category.assoc, pullback_symmetry_hom_comp_fst_assoc,
+  simv only [category.assoc, pullback_symmetry_hom_comp_fst_assoc,
     pullback_right_pullback_fst_iso_inv_snd_fst_assoc, pullback.lift_fst_assoc, t_fst_fst,
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t'_fst_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.fst ≫ pullback.snd :=
 begin
   delta t',
-  simp only [category.assoc, pullback_symmetry_hom_comp_fst_assoc,
+  simv only [category.assoc, pullback_symmetry_hom_comp_fst_assoc,
     pullback_right_pullback_fst_iso_inv_snd_fst_assoc, pullback.lift_fst_assoc, t_fst_snd,
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t'_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 begin
   delta t',
-  simp only [category.comp_id, category.assoc, pullback_symmetry_hom_comp_fst_assoc,
+  simv only [category.comp_id, category.assoc, pullback_symmetry_hom_comp_fst_assoc,
     pullback_right_pullback_fst_iso_inv_snd_snd, pullback.lift_snd,
     pullback_right_pullback_fst_iso_hom_snd],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t'_snd_fst_fst (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
 begin
   delta t',
-  simp only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
+  simv only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
     pullback_right_pullback_fst_iso_inv_fst_assoc, pullback.lift_fst_assoc, t_fst_fst,
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t'_snd_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.fst ≫ pullback.snd :=
 begin
   delta t',
-  simp only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
+  simv only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
     pullback_right_pullback_fst_iso_inv_fst_assoc, pullback.lift_fst_assoc, t_fst_snd,
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma t'_snd_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst ≫ pullback.fst :=
 begin
   delta t',
-  simp only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
+  simv only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
     pullback_right_pullback_fst_iso_inv_fst_assoc, pullback.lift_fst_assoc, t_snd,
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
@@ -177,35 +177,35 @@ end
 lemma cocycle_fst_fst_fst (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.fst ≫ pullback.fst ≫
   pullback.fst = pullback.fst ≫ pullback.fst ≫ pullback.fst :=
-by simp only [t'_fst_fst_fst, t'_fst_snd, t'_snd_snd]
+by simv only [t'_fst_fst_fst, t'_fst_snd, t'_snd_snd]
 
 lemma cocycle_fst_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.fst ≫ pullback.fst ≫
   pullback.snd = pullback.fst ≫ pullback.fst ≫ pullback.snd :=
-by simp only [t'_fst_fst_snd]
+by simv only [t'_fst_fst_snd]
 
 lemma cocycle_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.fst ≫ pullback.snd =
     pullback.fst ≫ pullback.snd :=
-by simp only [t'_fst_snd, t'_snd_snd, t'_fst_fst_fst]
+by simv only [t'_fst_snd, t'_snd_snd, t'_fst_fst_fst]
 
 lemma cocycle_snd_fst_fst (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.snd ≫ pullback.fst ≫
   pullback.fst = pullback.snd ≫ pullback.fst ≫ pullback.fst :=
 begin
   rw ← cancel_mono (𝒰.map i),
-  simp only [pullback.condition_assoc, t'_snd_fst_fst, t'_fst_snd, t'_snd_snd]
+  simv only [pullback.condition_assoc, t'_snd_fst_fst, t'_fst_snd, t'_snd_snd]
 end
 
 lemma cocycle_snd_fst_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.snd ≫ pullback.fst ≫
   pullback.snd = pullback.snd ≫ pullback.fst ≫ pullback.snd :=
-by simp only [pullback.condition_assoc, t'_snd_fst_snd]
+by simv only [pullback.condition_assoc, t'_snd_fst_snd]
 
 lemma cocycle_snd_snd (i j k : 𝒰.J) :
   t' 𝒰 f g i j k ≫ t' 𝒰 f g j k i ≫ t' 𝒰 f g k i j ≫ pullback.snd ≫ pullback.snd =
     pullback.snd ≫ pullback.snd :=
-by simp only [t'_snd_snd, t'_fst_fst_fst, t'_fst_snd]
+by simv only [t'_snd_snd, t'_fst_fst_fst, t'_fst_snd]
 
 -- `by tidy` should solve it, but it times out.
 lemma cocycle (i j k : 𝒰.J) :
@@ -245,7 +245,7 @@ def gluing : Scheme.glue_data.{u} :=
   t_fac := λ i j k, begin
     apply pullback.hom_ext,
     apply pullback.hom_ext,
-    all_goals { simp }
+    all_goals { simv }
   end,
   cocycle := λ i j k, cocycle 𝒰 f g i j k }
 
@@ -298,7 +298,7 @@ begin
   { exact (pullback_symmetry _ _).hom ≫
       pullback.map _ _ _ _ (𝟙 _) s.snd f (category.id_comp _).symm s.condition },
   { simpa using pullback.condition },
-  { simp only [category.comp_id, category.id_comp] }
+  { simv only [category.comp_id, category.id_comp] }
 end
 
 @[reassoc]
@@ -308,7 +308,7 @@ lemma glued_lift_pullback_map_fst (i j : 𝒰.J) :
       pullback.map _ _ _ _ (𝟙 _) s.snd f (category.id_comp _).symm s.condition :=
 begin
   delta glued_lift_pullback_map,
-  simp only [category.assoc, id.def, pullback.lift_fst,
+  simv only [category.assoc, id.def, pullback.lift_fst,
     pullback_right_pullback_fst_iso_hom_fst_assoc],
 end
 @[reassoc]
@@ -316,7 +316,7 @@ lemma glued_lift_pullback_map_snd (i j : 𝒰.J) :
   glued_lift_pullback_map 𝒰 f g s i j ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
 begin
   delta glued_lift_pullback_map,
-  simp only [category.assoc, category.comp_id, id.def, pullback.lift_snd,
+  simv only [category.assoc, category.comp_id, id.def, pullback.lift_snd,
     pullback_right_pullback_fst_iso_hom_snd],
 end
 
@@ -396,19 +396,19 @@ def pullback_fst_ι_to_V (i j : 𝒰.J) :
   (pullback_right_pullback_fst_iso (p1 𝒰 f g) (𝒰.map i) _)).hom ≫
     (pullback.congr_hom (multicoequalizer.π_desc _ _ _ _ _) rfl).hom
 
-@[simp, reassoc] lemma pullback_fst_ι_to_V_fst (i j : 𝒰.J) :
+@[simv, reassoc] lemma pullback_fst_ι_to_V_fst (i j : 𝒰.J) :
   pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.fst = pullback.snd :=
 begin
   delta pullback_fst_ι_to_V,
-  simp only [iso.trans_hom, pullback.congr_hom_hom, category.assoc, pullback.lift_fst,
+  simv only [iso.trans_hom, pullback.congr_hom_hom, category.assoc, pullback.lift_fst,
     category.comp_id, pullback_right_pullback_fst_iso_hom_fst, pullback_symmetry_hom_comp_fst],
 end
 
-@[simp, reassoc] lemma pullback_fst_ι_to_V_snd (i j : 𝒰.J) :
+@[simv, reassoc] lemma pullback_fst_ι_to_V_snd (i j : 𝒰.J) :
   pullback_fst_ι_to_V 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
 begin
   delta pullback_fst_ι_to_V,
-  simp only [iso.trans_hom, pullback.congr_hom_hom, category.assoc, pullback.lift_snd,
+  simv only [iso.trans_hom, pullback.congr_hom_hom, category.assoc, pullback.lift_snd,
     category.comp_id, pullback_right_pullback_fst_iso_hom_snd, pullback_symmetry_hom_comp_snd_assoc]
 end
 /-- We show that the map `W ×[X] Uᵢ ⟶ Uᵢ ×[Z] Y ⟶ W` is the first projection, where the
@@ -435,8 +435,8 @@ begin
   { rw [pullback.condition, ← category.assoc],
     congr' 1,
     apply pullback.hom_ext,
-    { simp only [pullback_fst_ι_to_V_fst] },
-    { simp only [pullback_fst_ι_to_V_fst] } }
+    { simv only [pullback_fst_ι_to_V_fst] },
+    { simv only [pullback_fst_ι_to_V_fst] } }
 end
 
 /-- The canonical isomorphism between `W ×[X] Uᵢ` and `Uᵢ ×[X] Y`. That is, the preimage of `Uᵢ` in
@@ -451,30 +451,30 @@ begin
     (by erw multicoequalizer.π_desc),
   { apply pullback.hom_ext,
     { simpa using lift_comp_ι 𝒰 f g i },
-    { simp only [category.assoc, pullback.lift_snd, pullback.lift_fst, category.id_comp] } },
+    { simv only [category.assoc, pullback.lift_snd, pullback.lift_fst, category.id_comp] } },
   { apply pullback.hom_ext,
-    { simp only [category.assoc, pullback.lift_fst, pullback.lift_snd, category.id_comp] },
-    { simp only [category.assoc, pullback.lift_snd, pullback.lift_fst_assoc, category.id_comp],
+    { simv only [category.assoc, pullback.lift_fst, pullback.lift_snd, category.id_comp] },
+    { simv only [category.assoc, pullback.lift_snd, pullback.lift_fst_assoc, category.id_comp],
       erw multicoequalizer.π_desc } },
 end
 
-@[simp, reassoc] lemma pullback_p1_iso_hom_fst (i : 𝒰.J) :
+@[simv, reassoc] lemma pullback_p1_iso_hom_fst (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ pullback.fst = pullback.snd :=
-by { delta pullback_p1_iso, simp only [pullback.lift_fst] }
+by { delta pullback_p1_iso, simv only [pullback.lift_fst] }
 
-@[simp, reassoc] lemma pullback_p1_iso_hom_snd (i : 𝒰.J) :
+@[simv, reassoc] lemma pullback_p1_iso_hom_snd (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ pullback.snd = pullback.fst ≫ p2 𝒰 f g :=
-by { delta pullback_p1_iso, simp only [pullback.lift_snd] }
+by { delta pullback_p1_iso, simv only [pullback.lift_snd] }
 
-@[simp, reassoc] lemma pullback_p1_iso_inv_fst (i : 𝒰.J) :
+@[simv, reassoc] lemma pullback_p1_iso_inv_fst (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).inv ≫ pullback.fst = (gluing 𝒰 f g).ι i :=
-by { delta pullback_p1_iso, simp only [pullback.lift_fst] }
+by { delta pullback_p1_iso, simv only [pullback.lift_fst] }
 
-@[simp, reassoc] lemma pullback_p1_iso_inv_snd (i : 𝒰.J) :
+@[simv, reassoc] lemma pullback_p1_iso_inv_snd (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).inv ≫ pullback.snd = pullback.fst :=
-by { delta pullback_p1_iso, simp only [pullback.lift_snd] }
+by { delta pullback_p1_iso, simv only [pullback.lift_snd] }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pullback_p1_iso_hom_ι (i : 𝒰.J) :
   (pullback_p1_iso 𝒰 f g i).hom ≫ (gluing 𝒰 f g).ι i = pullback.fst :=
 by rw [← pullback_p1_iso_inv_fst, iso.hom_inv_id_assoc]
@@ -503,10 +503,10 @@ begin
   simp_rw ← category.assoc,
   congr' 1,
   apply pullback.hom_ext,
-  { simp only [category.comp_id, pullback_right_pullback_fst_iso_hom_snd, category.assoc,
+  { simv only [category.comp_id, pullback_right_pullback_fst_iso_hom_snd, category.assoc,
       pullback_p1_iso_hom_fst, pullback.lift_snd, pullback.lift_fst,
       pullback_symmetry_hom_comp_fst] },
-  { simp only [category.comp_id, pullback_right_pullback_fst_iso_hom_fst_assoc,
+  { simv only [category.comp_id, pullback_right_pullback_fst_iso_hom_fst_assoc,
     pullback_p1_iso_hom_snd, category.assoc, pullback.lift_fst_assoc,
     pullback_symmetry_hom_comp_snd_assoc, pullback.lift_snd],
     rw [← pullback.condition_assoc, h₂] }
@@ -567,7 +567,7 @@ begin
   fapply ((gluing 𝒰 f g).open_cover.pushforward_iso
     (limit.iso_limit_cone ⟨_, glued_is_limit 𝒰 f g⟩).inv).copy 𝒰.J
     (λ i, pullback (𝒰.map i ≫ f) g)
-    (λ i, pullback.map _ _ _ _ (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simp))
+    (λ i, pullback.map _ _ _ _ (𝒰.map i) (𝟙 _) (𝟙 _) (category.comp_id _) (by simv))
     (equiv.refl 𝒰.J) (λ _, iso.refl _),
   rintro (i : 𝒰.J),
   change pullback.map _ _ _ _ _ _ _ _ _ = 𝟙 _ ≫ (gluing 𝒰 f g).ι i ≫ _,
@@ -575,7 +575,7 @@ begin
   apply pullback.hom_ext,
   all_goals
   { dsimp,
-    simp only [limit.iso_limit_cone_inv_π, pullback_cone.mk_π_app_left, category.comp_id,
+    simv only [limit.iso_limit_cone_inv_π, pullback_cone.mk_π_app_left, category.comp_id,
       pullback_cone.mk_π_app_right, category.assoc, pullback.lift_fst, pullback.lift_snd],
     symmetry,
     exact multicoequalizer.π_desc _ _ _ _ _ },
@@ -587,11 +587,11 @@ def open_cover_of_right (𝒰 : open_cover Y) (f : X ⟶ Z) (g : Y ⟶ Z) : open
 begin
   fapply ((open_cover_of_left 𝒰 g f).pushforward_iso (pullback_symmetry _ _).hom).copy 𝒰.J
     (λ i, pullback f (𝒰.map i ≫ g))
-    (λ i, pullback.map _ _ _ _ (𝟙 _) (𝒰.map i) (𝟙 _) (by simp) (category.comp_id _))
+    (λ i, pullback.map _ _ _ _ (𝟙 _) (𝒰.map i) (𝟙 _) (by simv) (category.comp_id _))
     (equiv.refl _) (λ i, pullback_symmetry _ _),
   intro i,
   dsimp [open_cover.bind],
-  apply pullback.hom_ext; simp,
+  apply pullback.hom_ext; simv,
 end
 
 /-- (Implementation). Use `open_cover_of_base` instead. -/
@@ -611,7 +611,7 @@ begin
     ((pullback_symmetry _ _).hom ≫ (limit.iso_limit_cone ⟨_, this⟩).inv ≫
       pullback.map _ _ _ _ (𝟙 _) (𝟙 _) (𝟙 _) _ _),
   { simpa only [category.comp_id, category.id_comp, ← pullback.condition] },
-  { simp only [category.comp_id, category.id_comp] },
+  { simv only [category.comp_id, category.id_comp] },
   apply_instance
 end
 
@@ -631,7 +631,7 @@ begin
   intro i,
   change _ = _ ≫ _ ≫ _,
   refine eq.trans _ (category.id_comp _).symm,
-  apply pullback.hom_ext; simp only [category.comp_id, open_cover_of_left_map,
+  apply pullback.hom_ext; simv only [category.comp_id, open_cover_of_left_map,
     open_cover.pullback_cover_map, pullback_cone.mk_π_app_left, open_cover_of_is_iso_map,
     limit.iso_limit_cone_inv_π_assoc, category.assoc, pullback.lift_fst_assoc,
     pullback_symmetry_hom_comp_snd_assoc, pullback.lift_fst, limit.iso_limit_cone_inv_π,

@@ -130,7 +130,7 @@ instance : lax_monoidal.{u} (free R).obj :=
   associativity' := associativity R, }
 
 instance : is_iso (lax_monoidal.ε (free R).obj) :=
-⟨⟨finsupp.lapply punit.star, ⟨by { ext, simp, }, by { ext ⟨⟩ ⟨⟩, simp, }⟩⟩⟩
+⟨⟨finsupp.lapply punit.star, ⟨by { ext, simv, }, by { ext ⟨⟩ ⟨⟩, simv, }⟩⟩⟩
 
 end free
 
@@ -182,7 +182,7 @@ instance category_Free : category (Free R C) :=
   begin
     dsimp,
     -- This imitates the proof of associativity for `monoid_algebra`.
-    simp only [sum_sum_index, sum_single_index,
+    simv only [sum_sum_index, sum_single_index,
       single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
       add_mul, mul_add, category.assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
   end }.
@@ -197,14 +197,14 @@ instance : preadditive (Free R C) :=
   add_comp' := λ X Y Z f f' g, begin
     dsimp,
     rw [finsupp.sum_add_index];
-    { simp [add_mul], }
+    { simv [add_mul], }
   end,
   comp_add' := λ X Y Z f g g', begin
     dsimp,
     rw ← finsupp.sum_add,
     congr, ext r h,
     rw [finsupp.sum_add_index];
-    { simp [mul_add], },
+    { simv [mul_add], },
   end, }
 
 instance : linear R (Free R C) :=
@@ -212,23 +212,23 @@ instance : linear R (Free R C) :=
   smul_comp' := λ X Y Z r f g, begin
     dsimp,
     rw [finsupp.sum_smul_index];
-    simp [finsupp.smul_sum, mul_assoc],
+    simv [finsupp.smul_sum, mul_assoc],
   end,
   comp_smul' := λ X Y Z f r g, begin
     dsimp,
     simp_rw [finsupp.smul_sum],
     congr, ext h s,
     rw [finsupp.sum_smul_index];
-    simp [finsupp.smul_sum, mul_left_comm],
+    simv [finsupp.smul_sum, mul_left_comm],
   end, }
 
 lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
   (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
-by { dsimp, simp, }
+by { dsimp, simv, }
 
 end
 
-local attribute [simp] single_comp_single
+local attribute [simv] single_comp_single
 
 /--
 A category embeds into its `R`-linear completion.
@@ -238,7 +238,7 @@ def embedding : C ⥤ Free R C :=
 { obj := λ X, X,
   map := λ X Y f, finsupp.single f 1,
   map_id' := λ X, rfl,
-  map_comp' := λ X Y Z f g, by simp, }
+  map_comp' := λ X Y Z f g, by simv, }
 
 variables (R) {C} {D : Type u} [category.{v} D] [preadditive D] [linear R D]
 
@@ -251,50 +251,50 @@ A functor to an `R`-linear category lifts to a functor from its `R`-linear compl
 def lift (F : C ⥤ D) : Free R C ⥤ D :=
 { obj := λ X, F.obj X,
   map := λ X Y f, f.sum (λ f' r, r • (F.map f')),
-  map_id' := by { dsimp [category_theory.category_Free], simp },
+  map_id' := by { dsimp [category_theory.category_Free], simv },
   map_comp' := λ X Y Z f g, begin
     apply finsupp.induction_linear f,
-    { simp only [limits.zero_comp, sum_zero_index] },
+    { simv only [limits.zero_comp, sum_zero_index] },
     { intros f₁ f₂ w₁ w₂,
       rw add_comp,
       rw [finsupp.sum_add_index, finsupp.sum_add_index],
-      { simp only [w₁, w₂, add_comp] },
+      { simv only [w₁, w₂, add_comp] },
       { intros, rw zero_smul },
-      { intros, simp only [add_smul], },
+      { intros, simv only [add_smul], },
       { intros, rw zero_smul },
-      { intros, simp only [add_smul], }, },
+      { intros, simv only [add_smul], }, },
     { intros f' r,
       apply finsupp.induction_linear g,
-      { simp only [limits.comp_zero, sum_zero_index] },
+      { simv only [limits.comp_zero, sum_zero_index] },
       { intros f₁ f₂ w₁ w₂,
         rw comp_add,
         rw [finsupp.sum_add_index, finsupp.sum_add_index],
-        { simp only [w₁, w₂, comp_add], },
+        { simv only [w₁, w₂, comp_add], },
         { intros, rw zero_smul },
-        { intros, simp only [add_smul], },
+        { intros, simv only [add_smul], },
         { intros, rw zero_smul },
-        { intros, simp only [add_smul], }, },
+        { intros, simv only [add_smul], }, },
       { intros g' s,
         erw single_comp_single,
-        simp [mul_comm r s, mul_smul] } }
+        simv [mul_comm r s, mul_smul] } }
   end, }
 
 @[simp]
 lemma lift_map_single (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) (r : R) :
   (lift R F).map (single f r) = r • F.map f :=
-by simp
+by simv
 
 instance lift_additive (F : C ⥤ D) : (lift R F).additive :=
 { map_add' := λ X Y f g, begin
     dsimp,
-    rw finsupp.sum_add_index; simp [add_smul]
+    rw finsupp.sum_add_index; simv [add_smul]
   end, }
 
 instance lift_linear (F : C ⥤ D) : (lift R F).linear R :=
 { map_smul' := λ X Y f r, begin
     dsimp,
     rw finsupp.sum_smul_index;
-    simp [finsupp.smul_sum, mul_smul],
+    simv [finsupp.smul_sum, mul_smul],
   end, }
 
 /--
@@ -318,9 +318,9 @@ nat_iso.of_components
   begin
     intros X Y f,
     apply finsupp.induction_linear f,
-    { simp, },
+    { simv, },
     { intros f₁ f₂ w₁ w₂,
-      simp only [F.map_add, G.map_add, add_comp, comp_add, w₁, w₂], },
+      simv only [F.map_add, G.map_add, add_comp, comp_add, w₁, w₂], },
     { intros f' r,
       rw [iso.app_hom, iso.app_hom, ←smul_single_one, F.map_smul, G.map_smul, smul_comp, comp_smul],
       change r • (embedding R C ⋙ F).map f' ≫ _ = r • _ ≫ (embedding R C ⋙ G).map f',

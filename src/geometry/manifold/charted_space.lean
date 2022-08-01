@@ -121,10 +121,10 @@ the arrow. -/
 localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
 localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
 
-/- `simp` looks for subsingleton instances at every call. This turns out to be very
-inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
+/- `simv` looks for subsingleton instances at every call. This turns out to be very
+inefficient, especially in `simv`-heavy parts of the library such as the manifold code.
 Disable two such instances to speed up things.
-NB: this is just a hack. TODO: fix `simp` properly. -/
+NB: this is just a hack. TODO: fix `simv` properly. -/
 localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
 
 open set local_homeomorph
@@ -207,7 +207,7 @@ necessary from the definition) -/
 def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
 { members := {local_homeomorph.refl H} ∪ {e : local_homeomorph H H | e.source = ∅},
   trans' := λe e' he he', begin
-    cases he; simp at he he',
+    cases he; simv at he he',
     { simpa only [he, refl_trans]},
     { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
       rw he at this,
@@ -216,7 +216,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   symm' := λe he, begin
     cases (mem_union _ _ _).1 he with E E,
-    { simp [mem_singleton_iff.mp E] },
+    { simv [mem_singleton_iff.mp E] },
     { right,
       simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
@@ -233,7 +233,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
       cases hs,
       { replace hs : local_homeomorph.restr e s = local_homeomorph.refl H,
           by simpa only using hs,
-        have : (e.restr s).source = univ, by { rw hs, simp },
+        have : (e.restr s).source = univ, by { rw hs, simv },
         change (e.to_local_equiv).source ∩ interior s = univ at this,
         have : univ ⊆ interior s, by { rw ← this, exact inter_subset_right _ _ },
         have : s = univ, by rwa [open_s.interior_eq, univ_subset_iff] at this,
@@ -260,7 +260,7 @@ instance : order_bot (structure_groupoid H) :=
   bot_le := begin
     assume u f hf,
     change f ∈ {local_homeomorph.refl H} ∪ {e : local_homeomorph H H | e.source = ∅} at hf,
-    simp only [singleton_union, mem_set_of_eq, mem_insert_iff] at hf,
+    simv only [singleton_union, mem_set_of_eq, mem_insert_iff] at hf,
     cases hf,
     { rw hf,
       apply u.id_mem },
@@ -316,7 +316,7 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
   eq_on_source' := λe e' he ee', begin
     split,
     { apply PG.congr e'.open_source ee'.2,
-      simp only [ee'.1, he.1] },
+      simv only [ee'.1, he.1] },
     { have A := ee'.symm',
       apply PG.congr e'.symm.open_source A.2,
       convert he.2,
@@ -390,10 +390,10 @@ def id_restr_groupoid : structure_groupoid H :=
     rw [← of_set_symm],
     exact local_homeomorph.eq_on_source.symm' hse,
   end,
-  id_mem' := ⟨univ, is_open_univ, by simp only with mfld_simps⟩,
+  id_mem' := ⟨univ, is_open_univ, by simv only with mfld_simps⟩,
   locality' := begin
     intros e h,
-    refine ⟨e.source, e.open_source, by simp only with mfld_simps, _⟩,
+    refine ⟨e.source, e.open_source, by simv only with mfld_simps, _⟩,
     intros x hx,
     rcases h x hx with ⟨s, hs, hxs, s', hs', hes'⟩,
     have hes : x ∈ (e.restr s).source,
@@ -416,7 +416,7 @@ instance closed_under_restriction_id_restr_groupoid :
     rintros e ⟨s', hs', he⟩ s hs,
     use [s' ∩ s, is_open.inter hs' hs],
     refine setoid.trans (local_homeomorph.eq_on_source.restr he s) _,
-    exact ⟨by simp only [hs.interior_eq] with mfld_simps, by simp only with mfld_simps⟩,
+    exact ⟨by simv only [hs.interior_eq] with mfld_simps, by simv only with mfld_simps⟩,
   end ⟩
 
 /-- A groupoid is closed under restriction if and only if it contains the trivial restriction-closed
@@ -432,7 +432,7 @@ begin
     convert closed_under_restriction' G.id_mem hs,
     change s = _ ∩ _,
     rw hs.interior_eq,
-    simp only with mfld_simps },
+    simv only with mfld_simps },
   { intros h,
     split,
     intros e he s hs,
@@ -467,7 +467,7 @@ class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_s
 (chart_mem_atlas []  : ∀x, chart_at x ∈ atlas)
 
 export charted_space
-attribute [simp, mfld_simps] mem_chart_source chart_mem_atlas
+attribute [simv, mfld_simps] mem_chart_source chart_mem_atlas
 
 section charted_space
 
@@ -480,10 +480,10 @@ instance charted_space_self (H : Type*) [topological_space H] : charted_space H 
 
 /-- In the trivial charted_space structure of a space modelled over itself through the identity, the
 atlas members are just the identity -/
-@[simp, mfld_simps] lemma charted_space_self_atlas
+@[simv, mfld_simps] lemma charted_space_self_atlas
   {H : Type*} [topological_space H] {e : local_homeomorph H H} :
   e ∈ atlas H H ↔ e = local_homeomorph.refl H :=
-by simp [atlas, charted_space.atlas]
+by simv [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
 lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
@@ -581,8 +581,8 @@ instance (H : Type*) [topological_space H] (H' : Type*) [topological_space H'] :
   topological_space (model_prod H H') :=
 prod.topological_space
 
-/- Next lemma shows up often when dealing with derivatives, register it as simp. -/
-@[simp, mfld_simps] lemma model_prod_range_prod_id
+/- Next lemma shows up often when dealing with derivatives, register it as simv. -/
+@[simv, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
   range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
@@ -620,7 +620,7 @@ section prod_charted_space
 variables [topological_space H] [topological_space M] [charted_space H M]
 [topological_space H'] [topological_space M'] [charted_space H' M'] {x : M×M'}
 
-@[simp, mfld_simps] lemma prod_charted_space_chart_at :
+@[simv, mfld_simps] lemma prod_charted_space_chart_at :
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
 
 end prod_charted_space
@@ -635,7 +635,7 @@ instance pi_charted_space {ι : Type*} [fintype ι] (H : ι → Type*) [Π i, to
   mem_chart_source := λ f i hi, mem_chart_source (H i) (f i),
   chart_mem_atlas := λ f, mem_image_of_mem _ $ λ i hi, chart_mem_atlas (H i) (f i) }
 
-@[simp, mfld_simps] lemma pi_charted_space_chart_at {ι : Type*} [fintype ι] (H : ι → Type*)
+@[simv, mfld_simps] lemma pi_charted_space_chart_at {ι : Type*} [fintype ι] (H : ι → Type*)
   [Π i, topological_space (H i)] (M : ι → Type*) [Π i, topological_space (M i)]
   [Π i, charted_space (H i) (M i)] (f : Π i, M i) :
   chart_at (model_pi H) f = local_homeomorph.pi (λ i, chart_at (H i) (f i)) := rfl
@@ -670,9 +670,9 @@ topological_space.generate_from $ ⋃ (e : local_equiv M H) (he : e ∈ c.atlas)
 lemma open_source' (he : e ∈ c.atlas) : @is_open M c.to_topological_space e.source :=
 begin
   apply topological_space.generate_open.basic,
-  simp only [exists_prop, mem_Union, mem_singleton_iff],
+  simv only [exists_prop, mem_Union, mem_singleton_iff],
   refine ⟨e, he, univ, is_open_univ, _⟩,
-  simp only [set.univ_inter, set.preimage_univ]
+  simv only [set.univ_inter, set.preimage_univ]
 end
 
 lemma open_target (he : e ∈ c.atlas) : is_open e.target :=
@@ -696,14 +696,14 @@ protected def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
     assume s s_open,
     rw inter_comm,
     apply topological_space.generate_open.basic,
-    simp only [exists_prop, mem_Union, mem_singleton_iff],
+    simv only [exists_prop, mem_Union, mem_singleton_iff],
     exact ⟨e, he, ⟨s, s_open, rfl⟩⟩
   end,
   continuous_inv_fun := begin
     letI : topological_space M := c.to_topological_space,
     apply continuous_on_open_of_generate_from (c.open_target he),
     assume t ht,
-    simp only [exists_prop, mem_Union, mem_singleton_iff] at ht,
+    simv only [exists_prop, mem_Union, mem_singleton_iff] at ht,
     rcases ht with ⟨e', e'_atlas, s, s_open, ts⟩,
     rw ts,
     let f := e.symm.trans e',
@@ -724,7 +724,7 @@ def to_charted_space : @charted_space H _ M c.to_topological_space :=
   chart_at := λx, c.local_homeomorph (c.chart_at x) (c.chart_mem_atlas x),
   mem_chart_source := λx, c.mem_chart_source x,
   chart_mem_atlas := λx, begin
-    simp only [mem_Union, mem_singleton_iff],
+    simv only [mem_Union, mem_singleton_iff],
     exact ⟨c.chart_at x, c.chart_mem_atlas x, rfl⟩,
   end }
 
@@ -768,7 +768,7 @@ instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structu
     replace he : e ∈ atlas H H := he,
     replace he' : e' ∈ atlas H H := he',
     rw charted_space_self_atlas at he he',
-    simp [he, he', structure_groupoid.id_mem]
+    simv [he, he', structure_groupoid.id_mem]
   end }
 
 /-- Any charted space structure is compatible with the groupoid of all local homeomorphisms -/
@@ -776,7 +776,7 @@ instance has_groupoid_continuous_groupoid : has_groupoid M (continuous_groupoid 
 ⟨begin
   assume e e' he he',
   rw [continuous_groupoid, mem_groupoid_of_pregroupoid],
-  simp only [and_self]
+  simv only [and_self]
 end⟩
 
 section maximal_atlas
@@ -816,18 +816,18 @@ begin
   let s := e.target ∩ (e.symm ⁻¹' f.source),
   have hs : is_open s,
   { apply e.symm.continuous_to_fun.preimage_open_of_open; apply open_source },
-  have xs : x ∈ s, by { dsimp at hx, simp [s, hx] },
+  have xs : x ∈ s, by { dsimp at hx, simv [s, hx] },
   refine ⟨s, hs, xs, _⟩,
   have A : e.symm ≫ₕ f ∈ G := (mem_maximal_atlas_iff.1 he f (chart_mem_atlas _ _)).1,
   have B : f.symm ≫ₕ e' ∈ G := (mem_maximal_atlas_iff.1 he' f (chart_mem_atlas _ _)).2,
   have C : (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') ∈ G := G.trans A B,
   have D : (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') ≈ (e.symm ≫ₕ e').restr s := calc
-    (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') = e.symm ≫ₕ (f ≫ₕ f.symm) ≫ₕ e' : by simp [trans_assoc]
+    (e.symm ≫ₕ f) ≫ₕ (f.symm ≫ₕ e') = e.symm ≫ₕ (f ≫ₕ f.symm) ≫ₕ e' : by simv [trans_assoc]
     ... ≈ e.symm ≫ₕ (of_set f.source f.open_source) ≫ₕ e' :
-      by simp [eq_on_source.trans', trans_self_symm]
-    ... ≈ (e.symm ≫ₕ (of_set f.source f.open_source)) ≫ₕ e' : by simp [trans_assoc]
-    ... ≈ (e.symm.restr s) ≫ₕ e' : by simp [s, trans_of_set']
-    ... ≈ (e.symm ≫ₕ e').restr s : by simp [restr_trans],
+      by simv [eq_on_source.trans', trans_self_symm]
+    ... ≈ (e.symm ≫ₕ (of_set f.source f.open_source)) ≫ₕ e' : by simv [trans_assoc]
+    ... ≈ (e.symm.restr s) ≫ₕ e' : by simv [s, trans_of_set']
+    ... ≈ (e.symm ≫ₕ e').restr s : by simv [restr_trans],
   exact G.eq_on_source C (setoid.symm D),
 end
 
@@ -835,7 +835,7 @@ variable (G)
 
 /-- In the model space, the identity is in any maximal atlas. -/
 lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
-G.mem_maximal_atlas_of_mem_atlas (by simp)
+G.mem_maximal_atlas_of_mem_atlas (by simv)
 
 end maximal_atlas
 
@@ -853,10 +853,10 @@ space `α`, then that local homeomorphism induces an `H`-charted space structure
 def singleton_charted_space (h : e.source = set.univ) : charted_space H α :=
 { atlas := {e},
   chart_at := λ _, e,
-  mem_chart_source := λ _, by simp only [h] with mfld_simps,
+  mem_chart_source := λ _, by simv only [h] with mfld_simps,
   chart_mem_atlas := λ _, by tauto }
 
-@[simp, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
+@[simv, mfld_simps] lemma singleton_charted_space_chart_at_eq (h : e.source = set.univ) {x : α} :
   @chart_at H _ α _ (e.singleton_charted_space h) x = e := rfl
 
 lemma singleton_charted_space_chart_at_source
@@ -889,7 +889,7 @@ variable [nonempty α]
 /-- An open embedding of `α` into `H` induces an `H`-charted space structure on `α`.
 See `local_homeomorph.singleton_charted_space` -/
 def singleton_charted_space {f : α → H} (h : open_embedding f) :
-  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (by simp)
+  charted_space H α := (h.to_local_homeomorph f).singleton_charted_space (by simv)
 
 lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) {x : α} :
   ⇑(@chart_at H _ α _ (h.singleton_charted_space) x) = f := rfl
@@ -897,7 +897,7 @@ lemma singleton_charted_space_chart_at_eq {f : α → H} (h : open_embedding f) 
 lemma singleton_has_groupoid {f : α → H} (h : open_embedding f)
   (G : structure_groupoid H) [closed_under_restriction G] :
   @has_groupoid _ _ _ _ h.singleton_charted_space G :=
-(h.to_local_homeomorph f).singleton_has_groupoid (by simp) G
+(h.to_local_homeomorph f).singleton_has_groupoid (by simv) G
 
 end open_embedding
 
@@ -913,8 +913,8 @@ variables (s : opens M)
 instance : charted_space H s :=
 { atlas := ⋃ (x : s), {@local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩},
   chart_at := λ x, @local_homeomorph.subtype_restr _ _ _ _ (chart_at H x.1) s ⟨x⟩,
-  mem_chart_source := λ x, by { simp only with mfld_simps, exact (mem_chart_source H x.1) },
-  chart_mem_atlas := λ x, by { simp only [mem_Union, mem_singleton_iff], use x } }
+  mem_chart_source := λ x, by { simv only with mfld_simps, exact (mem_chart_source H x.1) },
+  chart_mem_atlas := λ x, by { simv only [mem_Union, mem_singleton_iff], use x } }
 
 /-- If a groupoid `G` is `closed_under_restriction`, then an open subset of a space which is
 `has_groupoid G` is naturally `has_groupoid G`. -/
@@ -922,8 +922,8 @@ instance [closed_under_restriction G] : has_groupoid s G :=
 { compatible := begin
     rintros e e' ⟨_, ⟨x, hc⟩, he⟩ ⟨_, ⟨x', hc'⟩, he'⟩,
     haveI : nonempty s := ⟨x⟩,
-    simp only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
-    simp only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
+    simv only [hc.symm, mem_singleton_iff, subtype.val_eq_coe] at he,
+    simv only [hc'.symm, mem_singleton_iff, subtype.val_eq_coe] at he',
     rw [he, he'],
     convert G.eq_on_source _
       (subtype_restr_symm_trans_subtype_restr s (chart_at H x) (chart_at H x')),
@@ -994,7 +994,7 @@ def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') :
       by apply (c.symm ≫ₕ f₁).continuous_to_fun.preimage_open_of_open; apply open_source,
     have : x ∈ s,
     { split,
-      { simp only [trans_source, preimage_univ, inter_univ, homeomorph.to_local_homeomorph_source],
+      { simv only [trans_source, preimage_univ, inter_univ, homeomorph.to_local_homeomorph_source],
         rw trans_source at hx,
         exact hx.1 },
       { exact hg₂ } },
@@ -1003,15 +1003,15 @@ def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') :
     have A : F₁ ∈ G := G.trans (e.mem_groupoid c g hc hg₁) (e'.mem_groupoid g c' hg₁ hc'),
     let F₂ := (c.symm ≫ₕ f ≫ₕ c').restr s,
     have : F₁ ≈ F₂ := calc
-      F₁ ≈ c.symm ≫ₕ f₁ ≫ₕ (g ≫ₕ g.symm) ≫ₕ f₂ ≫ₕ c' : by simp [F₁, trans_assoc]
+      F₁ ≈ c.symm ≫ₕ f₁ ≫ₕ (g ≫ₕ g.symm) ≫ₕ f₂ ≫ₕ c' : by simv [F₁, trans_assoc]
       ... ≈ c.symm ≫ₕ f₁ ≫ₕ (of_set g.source g.open_source) ≫ₕ f₂ ≫ₕ c' :
-        by simp [eq_on_source.trans', trans_self_symm g]
+        by simv [eq_on_source.trans', trans_self_symm g]
       ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (of_set g.source g.open_source)) ≫ₕ (f₂ ≫ₕ c') :
-        by simp [trans_assoc]
-      ... ≈ ((c.symm ≫ₕ f₁).restr s) ≫ₕ (f₂ ≫ₕ c') : by simp [s, trans_of_set']
-      ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (f₂ ≫ₕ c')).restr s : by simp [restr_trans]
-      ... ≈ (c.symm ≫ₕ (f₁ ≫ₕ f₂) ≫ₕ c').restr s : by simp [eq_on_source.restr, trans_assoc]
-      ... ≈ F₂ : by simp [F₂, feq],
+        by simv [trans_assoc]
+      ... ≈ ((c.symm ≫ₕ f₁).restr s) ≫ₕ (f₂ ≫ₕ c') : by simv [s, trans_of_set']
+      ... ≈ ((c.symm ≫ₕ f₁) ≫ₕ (f₂ ≫ₕ c')).restr s : by simv [restr_trans]
+      ... ≈ (c.symm ≫ₕ (f₁ ≫ₕ f₂) ≫ₕ c').restr s : by simv [eq_on_source.restr, trans_assoc]
+      ... ≈ F₂ : by simv [F₂, feq],
     have : F₂ ∈ G := G.eq_on_source A (setoid.symm this),
     exact this
   end,

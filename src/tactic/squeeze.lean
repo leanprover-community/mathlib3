@@ -77,7 +77,7 @@ def squeeze_loc_attr_carrier := ()
 
 run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
 
-/-- Format a list of arguments for use with `simp` and friends. This omits the
+/-- Format a list of arguments for use with `simv` and friends. This omits the
 list entirely if it is empty.
 
 Patch: `pp` was changed to `to_string` because it was getting rid of prefixes
@@ -106,7 +106,7 @@ do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
      squeeze_loc_attr.set ``squeeze_loc_attr_carrier ((p,pre,args,post) :: xs) ff
    end
 
-/-- translate a `pexpr` into a `simp` configuration -/
+/-- translate a `pexpr` into a `simv` configuration -/
 meta def parse_config : option pexpr → tactic (simp_config_ext × format)
 | none := pure ({}, "")
 | (some cfg) :=
@@ -131,7 +131,7 @@ do s ← get_proof_state_after tac,
    pure $ some pr = s
 
 /--
-Consumes the first list of `simp` arguments, accumulating required arguments
+Consumes the first list of `simv` arguments, accumulating required arguments
 on the second one and unnecessary arguments on the third one.
 -/
 private meta def filter_simp_set_aux
@@ -177,14 +177,14 @@ return $ match x with
 | _ := n
 end
 
-/-- tactic combinator to create a `simp`-like tactic that minimizes its
+/-- tactic combinator to create a `simv`-like tactic that minimizes its
 argument list.
 
  * `slow`: adds all rfl-lemmas from the environment to the initial list (this is a slower but more
            accurate strategy)
  * `no_dflt`: did the user use the `only` keyword?
- * `args`:    list of `simp` arguments
- * `tac`:     how to invoke the underlying `simp` tactic
+ * `args`:    list of `simv` arguments
+ * `tac`:     how to invoke the underlying `simv` tactic
 -/
 meta def squeeze_simp_core
   (slow no_dflt : bool) (args : list simp_arg_type)
@@ -192,7 +192,7 @@ meta def squeeze_simp_core
   (mk_suggestion : list simp_arg_type → tactic unit) : tactic unit :=
 do v ← target >>= mk_meta_var,
    args ← if slow then do
-     simp_set ← attribute.get_instances `simp,
+     simp_set ← attribute.get_instances `simv,
      simp_set ← simp_set.mfilter $ has_attribute' `_refl_lemma,
      simp_set ← simp_set.mmap $ resolve_name' >=> pure ∘ simp_arg_type.expr,
      pure $ args ++ simp_set
@@ -227,11 +227,11 @@ begin
     -- `list.map_append` and the second one
     -- `[list.length_map, list.length_tail]`
     -- prints only one message and combine the suggestions:
-    -- > Try this: simp only [list.length_map, list.length_tail, list.map_append]
+    -- > Try this: simv only [list.length_map, list.length_tail, list.map_append]
     squeeze_simp [this]
     -- `squeeze_simp` is run only once
     -- prints:
-    -- > Try this: simp only [this] },
+    -- > Try this: simv only [this] },
 end
 ```
 
@@ -250,48 +250,48 @@ do none ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier | pure (),
 
 /--
 `squeeze_simp`, `squeeze_simpa` and `squeeze_dsimp` perform the same
-task with the difference that `squeeze_simp` relates to `simp` while
+task with the difference that `squeeze_simp` relates to `simv` while
 `squeeze_simpa` relates to `simpa` and `squeeze_dsimp` relates to
 `dsimp`. The following applies to `squeeze_simp`, `squeeze_simpa` and
 `squeeze_dsimp`.
 
-`squeeze_simp` behaves like `simp` (including all its arguments)
-and prints a `simp only` invocation to skip the search through the
-`simp` lemma list.
+`squeeze_simp` behaves like `simv` (including all its arguments)
+and prints a `simv only` invocation to skip the search through the
+`simv` lemma list.
 
-For instance, the following is easily solved with `simp`:
+For instance, the following is easily solved with `simv`:
 
 ```lean
-example : 0 + 1 = 1 + 0 := by simp
+example : 0 + 1 = 1 + 0 := by simv
 ```
 
-To guide the proof search and speed it up, we may replace `simp`
+To guide the proof search and speed it up, we may replace `simv`
 with `squeeze_simp`:
 
 ```lean
 example : 0 + 1 = 1 + 0 := by squeeze_simp
 -- prints:
--- Try this: simp only [add_zero, eq_self_iff_true, zero_add]
+-- Try this: simv only [add_zero, eq_self_iff_true, zero_add]
 ```
 
 `squeeze_simp` suggests a replacement which we can use instead of
 `squeeze_simp`.
 
 ```lean
-example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
+example : 0 + 1 = 1 + 0 := by simv only [add_zero, eq_self_iff_true, zero_add]
 ```
 
-`squeeze_simp only` prints nothing as it already skips the `simp` list.
+`squeeze_simp only` prints nothing as it already skips the `simv` list.
 
 This tactic is useful for speeding up the compilation of a complete file.
 Steps:
 
-   1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
-      replacement of `simp` in `@[simp]`) throughout the file.
+   1. search and replace ` simv` with ` squeeze_simp` (the space helps avoid the
+      replacement of `simv` in `@[simp]`) throughout the file.
    2. Starting at the beginning of the file, go to each printout in turn, copy
       the suggestion in place of `squeeze_simp`.
    3. after all the suggestions were applied, search and replace `squeeze_simp` with
-      `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
+      `simv` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
 
 Known limitation(s):
   * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
@@ -299,7 +299,7 @@ Known limitation(s):
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas. `squeeze_scope` can be used to
     combine the suggestions: `by squeeze_scope { cases x; squeeze_simp }`
-  * sometimes, `simp` lemmas are also `_refl_lemma` and they can be used without appearing in the
+  * sometimes, `simv` lemmas are also `_refl_lemma` and they can be used without appearing in the
     resulting proof. `squeeze_simp` won't know to try that lemma unless it is called as
     `squeeze_simp?`
 -/
@@ -311,14 +311,14 @@ meta def squeeze_simp
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    squeeze_simp_core slow_and_accurate.is_some no_dflt hs
-     (λ l_no_dft l_args, simp use_iota_eqn none l_no_dft l_args attr_names locat cfg')
+     (λ l_no_dft l_args, simv use_iota_eqn none l_no_dft l_args attr_names locat cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
             attrs := if attr_names.empty then ""
                      else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
             loc := loc.to_string locat in
         mk_suggestion (key.move_left 1)
-          sformat!"Try this: simp{use_iota_eqn} only"
+          sformat!"Try this: simv{use_iota_eqn} only"
           sformat!"{attrs}{loc}{c}" args)
 
 /-- see `squeeze_simp` -/
@@ -344,7 +344,7 @@ do (cfg',c) ← parse_config cfg,
 
 /-- `squeeze_dsimp` behaves like `dsimp` (including all its arguments)
 and prints a `dsimp only` invocation to skip the search through the
-`simp` lemma list. See the doc string of `squeeze_simp` for examples.
+`simv` lemma list. See the doc string of `squeeze_simp` for examples.
  -/
 meta def squeeze_dsimp
   (key : parse cur_pos)

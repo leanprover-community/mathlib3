@@ -50,9 +50,9 @@ end
 infixr ` ⥤ `:26 := functor       -- type as \func --
 
 restate_axiom functor.map_id'
-attribute [simp] functor.map_id
+attribute [simv] functor.map_id
 restate_axiom functor.map_comp'
-attribute [reassoc, simp] functor.map_comp
+attribute [reassoc, simv] functor.map_comp
 
 namespace functor
 
@@ -60,7 +60,7 @@ section
 variables (C : Type u₁) [category.{v₁} C]
 
 /-- `𝟭 C` is the identity functor on a category `C`. -/
--- We don't use `@[simps]` here because we want `C` implicit for the simp lemmas.
+-- We don't use `@[simps]` here because we want `C` implicit for the simv lemmas.
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
@@ -93,7 +93,7 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
 
--- These are not simp lemmas because rewriting along equalities between functors
+-- These are not simv lemmas because rewriting along equalities between functors
 -- is not necessarily a good idea.
 -- Natural isomorphisms are also provided in `whiskering.lean`.
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl

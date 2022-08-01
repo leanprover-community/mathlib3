@@ -118,7 +118,7 @@ lemma iget_map [decidable_eq P.A] {α β : Type u} [inhabited α] [inhabited β]
   (x : P.obj α) (f : α → β) (i : P.Idx)
   (h : i.1 = x.1) :
   (f <$> x).iget i = f (x.iget i) :=
-by { simp only [obj.iget, fst_map, *, dif_pos, eq_self_iff_true],
+by { simv only [obj.iget, fst_map, *, dif_pos, eq_self_iff_true],
      cases x, refl }
 
 end pfunctor
@@ -167,7 +167,7 @@ end
 theorem liftp_iff' {α : Type u} (p : α → Prop) (a : P.A) (f : P.B a → α) :
   @liftp.{u} P.obj _ α p ⟨a,f⟩ ↔ ∀ i, p (f i) :=
 begin
-  simp only [liftp_iff, sigma.mk.inj_iff]; split; intro,
+  simv only [liftp_iff, sigma.mk.inj_iff]; split; intro,
   { casesm* [Exists _, _ ∧ _], subst_vars, assumption },
   repeat { constructor <|> assumption }
 end
@@ -193,11 +193,11 @@ open set
 theorem supp_eq {α : Type u} (a : P.A) (f : P.B a → α) :
   @supp.{u} P.obj _ α  (⟨a,f⟩ : P.obj α) = f '' univ :=
 begin
-  ext, simp only [supp, image_univ, mem_range, mem_set_of_eq],
+  ext, simv only [supp, image_univ, mem_range, mem_set_of_eq],
   split; intro h,
   { apply @h (λ x, ∃ (y : P.B a), f y = x),
     rw liftp_iff', intro, refine ⟨_,rfl⟩ },
-  { simp only [liftp_iff'], cases h, subst x,
+  { simv only [liftp_iff'], cases h, subst x,
     tauto }
 end
 

@@ -58,9 +58,9 @@ lemma mul : m₁ = m₂ :=
 begin
   funext a b,
   calc m₁ a b = m₁ (m₂ a e₁) (m₂ e₁ b) :
-    by simp only [one h₁ h₂ distrib, h₁.left_id, h₁.right_id, h₂.left_id, h₂.right_id]
+    by simv only [one h₁ h₂ distrib, h₁.left_id, h₁.right_id, h₂.left_id, h₂.right_id]
           ... = m₂ a b :
-    by simp only [distrib, h₁.left_id, h₁.right_id, h₂.left_id, h₂.right_id]
+    by simv only [distrib, h₁.left_id, h₁.right_id, h₂.left_id, h₂.right_id]
 end
 
 /-- If a type carries two unital binary operations that distribute over each other,

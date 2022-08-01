@@ -487,7 +487,7 @@ end
 @[simp] theorem is_connected_univ_pi [Π i, topological_space (π i)] {s : Π i, set (π i)} :
   is_connected (pi univ s) ↔ ∀ i, is_connected (s i) :=
 begin
-  simp only [is_connected, ← univ_pi_nonempty_iff, forall_and_distrib, and.congr_right_iff],
+  simv only [is_connected, ← univ_pi_nonempty_iff, forall_and_distrib, and.congr_right_iff],
   refine λ hne, ⟨λ hc i, _, is_preconnected_univ_pi⟩,
   rw [← eval_image_univ_pi hne],
   exact hc.image _ (continuous_apply _).continuous_on
@@ -499,12 +499,12 @@ begin
   refine ⟨λ hs, _, _⟩,
   { obtain ⟨⟨i, x⟩, hx⟩ := hs.nonempty,
     have : s ⊆ range (sigma.mk i),
-    { have h : range (sigma.mk i) = sigma.fst ⁻¹' {i}, by { ext, simp },
+    { have h : range (sigma.mk i) = sigma.fst ⁻¹' {i}, by { ext, simv },
       rw h,
       exact is_preconnected.subset_left_of_subset_union
         (is_open_sigma_fst_preimage _) (is_open_sigma_fst_preimage {x | x ≠ i})
         (set.disjoint_iff.2 $ λ x hx, hx.2 hx.1)
-        (λ y hy, by simp [classical.em]) ⟨⟨i, x⟩, hx, rfl⟩ hs.2 },
+        (λ y hy, by simv [classical.em]) ⟨⟨i, x⟩, hx, rfl⟩ hs.2 },
     exact ⟨i, sigma.mk i ⁻¹' s,
       hs.preimage_of_open_map sigma_mk_injective is_open_map_sigma_mk this,
       (set.image_preimage_eq_of_subset this).symm⟩ },
@@ -536,13 +536,13 @@ begin
     obtain ⟨x | x, hx⟩ := hs.nonempty,
     { have h := is_preconnected.subset_left_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+        (show s ⊆ range sum.inl ∪ range sum.inr, by simv) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
       refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } },
     { have h := is_preconnected.subset_right_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+        (show s ⊆ range sum.inl ∪ range sum.inr, by simv) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
       refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } } },
@@ -731,7 +731,7 @@ is_clopen_iff_frontier_eq_empty.symm.trans is_clopen_iff
 
 lemma nonempty_frontier_iff [preconnected_space α] {s : set α} :
   (frontier s).nonempty ↔ s.nonempty ∧ s ≠ univ :=
-by simp only [← ne_empty_iff_nonempty, ne.def, frontier_eq_empty_iff, not_or_distrib]
+by simv only [← ne_empty_iff_nonempty, ne.def, frontier_eq_empty_iff, not_or_distrib]
 
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=
@@ -768,7 +768,7 @@ begin
     specialize h u v hu hv hs,
     contrapose! huv,
     rw ne_empty_iff_nonempty,
-    simp [not_subset] at huv,
+    simv [not_subset] at huv,
     rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
     have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
     have hyu : y ∈ u := or_iff_not_imp_right.mp (hs hys) hyv,
@@ -820,7 +820,7 @@ begin
   { split,
     { rw ← ne_empty_iff_nonempty,
       by_contradiction hs, subst hs,
-      simpa using h ∅ _ _ _; simp },
+      simpa using h ∅ _ _ _; simv },
     intros u v hu hv hs hsuv,
     rcases h {u, v} _ _ _ with ⟨t, ht, ht'⟩,
     { rw [finset.mem_insert, finset.mem_singleton] at ht,
@@ -867,7 +867,7 @@ begin
     specialize h u v hu hv hs,
     contrapose! huv,
     rw ne_empty_iff_nonempty,
-    simp [not_subset] at huv,
+    simv [not_subset] at huv,
     rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
     have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
     have hyu : y ∈ u := or_iff_not_imp_right.mp (hs hys) hyv,
@@ -901,7 +901,7 @@ begin
   intros u v hu hv hss huv,
   have H1 := H (u ∩ s) (v ∩ s),
   rw [subset_inter_iff, subset_inter_iff] at H1,
-  simp only [subset.refl, and_true] at H1,
+  simv only [subset.refl, and_true] at H1,
   apply H1 (is_closed.inter hu hs) (is_closed.inter hv hs),
   { rw ←inter_distrib_right,
     exact subset_inter hss subset.rfl },
@@ -1301,13 +1301,13 @@ connected_components_lift_unique' $ hg.trans h.connected_components_lift_comp_co
 of an element in the equivalence class. -/
 lemma connected_components_preimage_singleton {x : α} :
   coe ⁻¹' ({x} : set (connected_components α)) = connected_component x :=
-by { ext y, simp [connected_components.coe_eq_coe'] }
+by { ext y, simv [connected_components.coe_eq_coe'] }
 
 /-- The preimage of the image of a set under the quotient map to `connected_components α`
 is the union of the connected components of the elements in it. -/
 lemma connected_components_preimage_image (U : set α) :
   coe ⁻¹' (coe '' U : set (connected_components α)) = ⋃ x ∈ U, connected_component x :=
-by simp only [connected_components_preimage_singleton, preimage_Union₂, image_eq_Union]
+by simv only [connected_components_preimage_singleton, preimage_Union₂, image_eq_Union]
 
 instance connected_components.totally_disconnected_space :
   totally_disconnected_space (connected_components α) :=

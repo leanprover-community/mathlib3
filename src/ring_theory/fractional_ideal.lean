@@ -49,7 +49,7 @@ Most definitions in this file specialize operations from submodules to fractiona
 proving that the result of this operation is fractional if the input is fractional.
 Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
 in order to re-use their respective proof terms.
-We can still use `simp` to show `↑I + ↑J = ↑(I + J)` and `↑⊥ = ↑0`.
+We can still use `simv` to show `↑I + ↑J = ↑(I + J)` and `↑⊥ = ↑0`.
 
 Many results in fact do not need that `P` is a localization, only that `P` is an
 `R`-algebra. We omit the `is_localization` parameter whenever this is practical.
@@ -132,13 +132,13 @@ iff.rfl
 /-- Copy of a `fractional_ideal` with a new underlying set equal to the old one.
 Useful to fix definitional equalities. -/
 protected def copy (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) : fractional_ideal S P :=
-⟨submodule.copy p s hs, by { convert p.is_fractional, ext, simp only [hs], refl }⟩
+⟨submodule.copy p s hs, by { convert p.is_fractional, ext, simv only [hs], refl }⟩
 
 end set_like
 
 @[simp] lemma val_eq_coe (I : fractional_ideal S P) : I.val = I := rfl
 
-@[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
+@[simv, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
 /-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
@@ -181,7 +181,7 @@ instance coe_to_fractional_ideal : has_coe_t (ideal R) (fractional_ideal S P) :=
 ⟨λ I, ⟨coe_submodule P I, is_fractional_of_le_one _
   (by simpa using coe_submodule_mono P (le_top : I ≤ ⊤))⟩⟩
 
-@[simp, norm_cast] lemma coe_coe_ideal (I : ideal R) :
+@[simv, norm_cast] lemma coe_coe_ideal (I : ideal R) :
   ((I : fractional_ideal S P) : submodule R P) = coe_submodule P I := rfl
 
 variables (S)
@@ -207,15 +207,15 @@ instance : has_zero (fractional_ideal S P) := ⟨(0 : ideal R)⟩
 @[simp] lemma mem_zero_iff {x : P} : x ∈ (0 : fractional_ideal S P) ↔ x = 0 :=
 ⟨(λ ⟨x', x'_mem_zero, x'_eq_x⟩,
    have x'_eq_zero : x' = 0 := x'_mem_zero,
-   by simp [x'_eq_x.symm, x'_eq_zero]),
- (λ hx, ⟨0, rfl, by simp [hx]⟩)⟩
+   by simv [x'_eq_x.symm, x'_eq_zero]),
+ (λ hx, ⟨0, rfl, by simv [hx]⟩)⟩
 
 variables {S}
 
-@[simp, norm_cast] lemma coe_zero : ↑(0 : fractional_ideal S P) = (⊥ : submodule R P) :=
+@[simv, norm_cast] lemma coe_zero : ↑(0 : fractional_ideal S P) = (⊥ : submodule R P) :=
 submodule.ext $ λ _, mem_zero_iff S
 
-@[simp, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 :=
+@[simv, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 :=
 rfl
 
 variables (P)
@@ -249,8 +249,8 @@ omit loc
 
 lemma coe_to_submodule_eq_bot {I : fractional_ideal S P} :
   (I : submodule R P) = ⊥ ↔ I = 0 :=
-⟨λ h, coe_to_submodule_injective (by simp [h]),
- λ h, by simp [h]⟩
+⟨λ h, coe_to_submodule_injective (by simv [h]),
+ λ h, by simv [h]⟩
 
 lemma coe_to_submodule_ne_bot {I : fractional_ideal S P} :
   ↑I ≠ (⊥ : submodule R P) ↔ I ≠ 0 :=
@@ -263,7 +263,7 @@ instance : has_one (fractional_ideal S P) :=
 
 variables (S)
 
-@[simp, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
+@[simv, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
 rfl
 
 lemma mem_one_iff {x : P} : x ∈ (1 : fractional_ideal S P) ↔ ∃ x' : R, algebra_map R P x' = x :=
@@ -280,12 +280,12 @@ variables {S}
 /-- `(1 : fractional_ideal S P)` is defined as the R-submodule `f(R) ≤ P`.
 
 However, this is not definitionally equal to `1 : submodule R P`,
-which is proved in the actual `simp` lemma `coe_one`. -/
+which is proved in the actual `simv` lemma `coe_one`. -/
 lemma coe_one_eq_coe_submodule_top :
   ↑(1 : fractional_ideal S P) = coe_submodule P (⊤ : ideal R) :=
 rfl
 
-@[simp, norm_cast] lemma coe_one :
+@[simv, norm_cast] lemma coe_one :
   (↑(1 : fractional_ideal S P) : submodule R P) = 1 :=
 by rw [coe_one_eq_coe_submodule_top, coe_submodule_top]
 
@@ -344,7 +344,7 @@ end⟩
 
 instance : has_inf (fractional_ideal S P) := ⟨λ I J, ⟨I ⊓ J, I.is_fractional.inf_right J⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule R P) := rfl
 
 instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, I.is_fractional.sup J.is_fractional⟩⟩
@@ -367,10 +367,10 @@ instance : has_add (fractional_ideal S P) := ⟨(⊔)⟩
 @[simp]
 lemma sup_eq_add (I J : fractional_ideal S P) : I ⊔ J = I + J := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + J := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_ideal_sup (I J : ideal R) : ↑(I ⊔ J) = (I + J : fractional_ideal S P) :=
 coe_to_submodule_injective $ coe_submodule_sup _ _ _
 
@@ -379,7 +379,7 @@ lemma _root_.is_fractional.nsmul {I : submodule R P} :
 | 0 _ := begin
     rw [zero_smul],
     convert ((0 : ideal R) : fractional_ideal S P).is_fractional,
-    simp,
+    simv,
   end
 | (n + 1) h := begin
   rw succ_nsmul,
@@ -429,10 +429,10 @@ instance : has_mul (fractional_ideal S P) := ⟨λ I J, mul I J⟩
 
 @[simp] lemma mul_eq_mul (I J : fractional_ideal S P) : mul I J = I * J := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_mul (I J : fractional_ideal S P) : (↑(I * J) : submodule R P) = I * J := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_ideal_mul (I J : ideal R) : (↑(I * J) : fractional_ideal S P) = I * J :=
 coe_to_submodule_injective $ coe_submodule_mul _ _ _
 
@@ -451,7 +451,7 @@ submodule.mul_le
 
 instance : has_pow (fractional_ideal S P) ℕ := ⟨λ I n, ⟨I^n, I.is_fractional.pow n⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submodule R P) := rfl
 
 @[elab_as_eliminator] protected theorem mul_induction_on
@@ -464,7 +464,7 @@ submodule.mul_induction_on hr hm ha
 instance : has_nat_cast (fractional_ideal S P) := ⟨nat.unary_cast⟩
 
 lemma coe_nat_cast (n : ℕ) : ((n : fractional_ideal S P) : submodule R P) = n :=
-show ↑n.unary_cast = ↑n, by induction n; simp [*, nat.unary_cast]
+show ↑n.unary_cast = ↑n, by induction n; simv [*, nat.unary_cast]
 
 instance : comm_semiring (fractional_ideal S P) :=
 function.injective.comm_semiring coe subtype.coe_injective
@@ -563,7 +563,7 @@ def map (g : P →ₐ[R] P') :
   fractional_ideal S P → fractional_ideal S P' :=
 λ I, ⟨submodule.map g.to_linear_map I, I.is_fractional.map g⟩
 
-@[simp, norm_cast] lemma coe_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
+@[simv, norm_cast] lemma coe_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
   ↑(map g I) = submodule.map g.to_linear_map I := rfl
 
 @[simp] lemma mem_map {I : fractional_ideal S P} {g : P →ₐ[R] P'}
@@ -579,11 +579,11 @@ coe_to_submodule_injective (submodule.map_id I)
   I.map (g'.comp g) = (I.map g).map g' :=
 coe_to_submodule_injective (submodule.map_comp g.to_linear_map g'.to_linear_map I)
 
-@[simp, norm_cast] lemma map_coe_ideal (I : ideal R) :
+@[simv, norm_cast] lemma map_coe_ideal (I : ideal R) :
   (I : fractional_ideal S P).map g = I :=
 begin
   ext x,
-  simp only [mem_coe_ideal],
+  simv only [mem_coe_ideal],
   split,
   { rintro ⟨_, ⟨y, hy, rfl⟩, rfl⟩,
     exact ⟨y, hy, (g.commutes y).symm⟩ },
@@ -644,7 +644,7 @@ rfl
 
 @[simp] lemma map_equiv_refl :
   map_equiv alg_equiv.refl = ring_equiv.refl (fractional_ideal S P) :=
-ring_equiv.ext (λ x, by simp)
+ring_equiv.ext (λ x, by simv)
 
 lemma is_fractional_span_iff {s : set P} :
   is_fractional S (span R s) ↔ ∃ a ∈ S, ∀ (b : P), b ∈ s → is_integer R (a • b) :=
@@ -821,7 +821,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
   one_ne_zero ((mem_zero_iff _).mp this)⟩⟩
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
+λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simv [hI], })
 
 variables [is_domain R₁]
 
@@ -954,7 +954,7 @@ begin
   by_cases H : J = 0,
   { rw [H, div_zero, map_zero, div_zero] },
   { apply coe_to_submodule_injective,
-    simp [div_nonzero H, div_nonzero (map_ne_zero _ H), submodule.map_div] }
+    simv [div_nonzero H, div_nonzero (map_ne_zero _ H), submodule.map_div] }
 end
 
 @[simp] lemma map_one_div (I : fractional_ideal R₁⁰ K) (h : K ≃ₐ[R₁] K') :
@@ -1019,12 +1019,12 @@ variables {R₁}
 
 @[simp] lemma span_finset_eq_zero {ι : Type*} {s : finset ι} {f : ι → K} :
   span_finset R₁ s f = 0 ↔ ∀ j ∈ s, f j = 0 :=
-by simp only [← coe_to_submodule_injective.eq_iff, span_finset_coe, coe_zero, submodule.span_eq_bot,
+by simv only [← coe_to_submodule_injective.eq_iff, span_finset_coe, coe_zero, submodule.span_eq_bot,
   set.mem_image, finset.mem_coe, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
 
 lemma span_finset_ne_zero {ι : Type*} {s : finset ι} {f : ι → K} :
   span_finset R₁ s f ≠ 0 ↔ ∃ j ∈ s, f j ≠ 0 :=
-by simp
+by simv
 
 open submodule.is_principal
 
@@ -1071,11 +1071,11 @@ lemma is_principal_iff (I : fractional_ideal S P) :
  λ ⟨x, hx⟩, { principal := ⟨x, trans (congr_arg _ hx) (coe_span_singleton _ x)⟩ } ⟩
 
 @[simp] lemma span_singleton_zero : span_singleton S (0 : P) = 0 :=
-by { ext, simp [submodule.mem_span_singleton, eq_comm] }
+by { ext, simv [submodule.mem_span_singleton, eq_comm] }
 
 lemma span_singleton_eq_zero_iff {y : P} : span_singleton S y = 0 ↔ y = 0 :=
 ⟨λ h, span_eq_bot.mp (by simpa using congr_arg subtype.val h : span R {y} = ⊥) y (mem_singleton y),
- λ h, by simp [h] ⟩
+ λ h, by simv [h] ⟩
 
 lemma span_singleton_ne_zero_iff {y : P} : span_singleton S y ≠ 0 ↔ y ≠ 0 :=
 not_congr span_singleton_eq_zero_iff
@@ -1093,7 +1093,7 @@ lemma span_singleton_mul_span_singleton (x y : P) :
   span_singleton S x * span_singleton S y = span_singleton S (x * y) :=
 begin
   apply coe_to_submodule_injective,
-  simp only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
+  simv only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
 end
 
 @[simp]
@@ -1140,7 +1140,7 @@ begin
     obtain ⟨z, rfl⟩ := (mem_span_singleton _).mp h,
     use z • x,
     use (mem_span_singleton _).mpr ⟨z, rfl⟩,
-    simp [is_localization.map_smul] }
+    simv [is_localization.map_smul] }
 end
 
 lemma mem_singleton_mul {x y : P} {I : fractional_ideal S P} :
@@ -1197,14 +1197,14 @@ variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
-if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one_right _ _ (by simp [h])).symm
+if h : x = 0 then by simv [h] else (eq_one_div_of_mul_eq_one_right _ _ (by simv [h])).symm
 
 @[simp] lemma div_span_singleton (J : fractional_ideal R₁⁰ K) (d : K) :
   J / span_singleton R₁⁰ d = span_singleton R₁⁰ (d⁻¹) * J :=
 begin
   rw ← one_div_span_singleton,
   by_cases hd : d = 0,
-  { simp only [hd, span_singleton_zero, div_zero, zero_mul] },
+  { simv only [hd, span_singleton_zero, div_zero, zero_mul] },
   have h_spand : span_singleton R₁⁰ d ≠ 0 := mt span_singleton_eq_zero_iff.mp hd,
   apply le_antisymm,
   { intros x hx,
@@ -1261,12 +1261,12 @@ include loc
 lemma le_span_singleton_mul_iff {x : P} {I J : fractional_ideal S P} :
   I ≤ span_singleton S x * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI :=
 show (∀ {zI} (hzI : zI ∈ I), zI ∈ span_singleton _ x * J) ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI,
-by simp only [fractional_ideal.mem_singleton_mul, eq_comm]
+by simv only [fractional_ideal.mem_singleton_mul, eq_comm]
 
 lemma span_singleton_mul_le_iff {x : P} {I J : fractional_ideal S P} :
   span_singleton _ x * I ≤ J ↔ ∀ z ∈ I, x * z ∈ J :=
 begin
-  simp only [fractional_ideal.mul_le, fractional_ideal.mem_singleton_mul,
+  simv only [fractional_ideal.mul_le, fractional_ideal.mem_singleton_mul,
              fractional_ideal.mem_span_singleton],
   split,
   { intros h zI hzI,
@@ -1278,7 +1278,7 @@ end
 
 lemma eq_span_singleton_mul {x : P} {I J : fractional_ideal S P} :
   I = span_singleton _ x * J ↔ (∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ ∀ z ∈ J, x * z ∈ I :=
-by simp only [le_antisymm_iff, fractional_ideal.le_span_singleton_mul_iff,
+by simv only [le_antisymm_iff, fractional_ideal.le_span_singleton_mul_iff,
               fractional_ideal.span_singleton_mul_le_iff]
 
 end principal_ideal_ring

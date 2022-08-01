@@ -3,7 +3,7 @@ import algebra.group.basic
 
 /-! ## Commutativity lemmas should be rejected  -/
 
-attribute [simp] add_comm add_left_comm
+attribute [simv] add_comm add_left_comm
 
 open tactic
 run_cmd do
@@ -29,9 +29,9 @@ by congr
 example : @list.filter _ (λ x, x > 0) (λ _, classical.prop_decidable _) [1,2,3] = [1,2,3] :=
 begin
   -- can rewrite once
-  simp only [list.filter_congr_decidable],
+  simv only [list.filter_congr_decidable],
   -- but not twice
-  success_if_fail { simp only [list.filter_congr_decidable] },
+  success_if_fail { simv only [list.filter_congr_decidable] },
   refl
 end
 

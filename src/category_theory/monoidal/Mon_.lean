@@ -46,7 +46,7 @@ restate_axiom Mon_.one_mul'
 restate_axiom Mon_.mul_one'
 restate_axiom Mon_.mul_assoc'
 attribute [reassoc] Mon_.one_mul Mon_.mul_one -- We prove a more general `@[simp]` lemma below.
-attribute [simp, reassoc] Mon_.mul_assoc
+attribute [simv, reassoc] Mon_.mul_assoc
 
 namespace Mon_
 
@@ -72,7 +72,7 @@ by rw [←id_tensor_comp_tensor_id, category.assoc, M.one_mul, left_unitor_natur
 by rw [←tensor_id_comp_id_tensor, category.assoc, M.mul_one, right_unitor_naturality]
 
 lemma assoc_flip : (𝟙 M.X ⊗ M.mul) ≫ M.mul = (α_ M.X M.X M.X).inv ≫ (M.mul ⊗ 𝟙 M.X) ≫ M.mul :=
-by simp
+by simv
 
 /-- A morphism of monoid objects. -/
 @[ext]
@@ -83,7 +83,7 @@ structure hom (M N : Mon_ C) :=
 
 restate_axiom hom.one_hom'
 restate_axiom hom.mul_hom'
-attribute [simp, reassoc] hom.one_hom hom.mul_hom
+attribute [simv, reassoc] hom.one_hom hom.mul_hom
 
 /-- The identity morphism on a monoid object. -/
 @[simps]
@@ -127,7 +127,7 @@ instance : reflects_isomorphisms (forget C) :=
 { hom := inv f.hom,
   mul_hom' :=
   begin
-    simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
+    simv only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
       is_iso.inv_hom_id, tensor_id, category.id_comp],
   end }, by tidy⟩⟩ }
 
@@ -143,22 +143,22 @@ def iso_of_iso {M N : Mon_ C}
 { hom := { hom := f.hom, one_hom' := one_f, mul_hom' := mul_f },
   inv :=
   { hom := f.inv,
-    one_hom' := by { rw ←one_f, simp },
+    one_hom' := by { rw ←one_f, simv },
     mul_hom' :=
     begin
       rw ←(cancel_mono f.hom),
       slice_rhs 2 3 { rw mul_f },
-      simp,
+      simv,
     end } }
 
 instance unique_hom_from_trivial (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
   { hom := A.one,
-    one_hom' := by { dsimp, simp, },
-    mul_hom' := by { dsimp, simp [A.one_mul, unitors_equal], } },
+    one_hom' := by { dsimp, simv, },
+    mul_hom' := by { dsimp, simv [A.one_mul, unitors_equal], } },
   uniq := λ f,
   begin
-    ext, simp,
+    ext, simv,
     rw [←category.id_comp f.hom],
     erw f.one_hom,
   end }
@@ -213,7 +213,7 @@ def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
       slice_rhs 3 4 { rw [F.μ_natural], },
       conv_rhs { rw [F.to_functor.map_id] },
       slice_rhs 1 3 { rw [←F.associativity], },
-      simp only [category.assoc],
+      simv only [category.assoc],
     end, },
   map := λ A B f,
   { hom := F.map f.hom,
@@ -224,8 +224,8 @@ def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
       rw [category.assoc, F.μ_natural_assoc, ←F.to_functor.map_comp, ←F.to_functor.map_comp,
         f.mul_hom],
     end },
-  map_id' := λ A, by { ext, simp, },
-  map_comp' := λ A B C f g, by { ext, simp, }, }
+  map_id' := λ A, by { ext, simv, },
+  map_comp' := λ A B C f g, by { ext, simv, }, }
 
 variables (C D)
 
@@ -267,7 +267,7 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit.{u+1})
     tensor' := λ _ _, f.mul_hom, }, }
 
 local attribute [tidy] tactic.discrete_cases
-local attribute [simp] eq_to_iso_map
+local attribute [simv] eq_to_iso_map
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
@@ -290,7 +290,7 @@ end equiv_lax_monoidal_functor_punit
 
 open equiv_lax_monoidal_functor_punit
 
-local attribute [simp] eq_to_iso_map
+local attribute [simv] eq_to_iso_map
 
 /--
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
@@ -345,23 +345,23 @@ lemma one_associator {M N P : Mon_ C} :
     ((λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one) ⊗ P.one)) ≫ (α_ M.X N.X P.X).hom
   = (λ_ (𝟙_ C)).inv ≫ (M.one ⊗ (λ_ (𝟙_ C)).inv ≫ (N.one ⊗ P.one)) :=
 begin
-  simp,
+  simv,
   slice_lhs 1 3 { rw [←category.id_comp P.one, tensor_comp] },
   slice_lhs 2 3 { rw associator_naturality },
   slice_rhs 1 2 { rw [←category.id_comp M.one, tensor_comp] },
   slice_lhs 1 2 { rw [←left_unitor_tensor_inv] },
   rw ←(cancel_epi (λ_ (𝟙_ C)).inv),
   slice_lhs 1 2 { rw [left_unitor_inv_naturality] },
-  simp only [category.assoc],
+  simv only [category.assoc],
 end
 
 lemma one_left_unitor {M : Mon_ C} :
   ((λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ M.one)) ≫ (λ_ M.X).hom = M.one :=
-by { slice_lhs 2 3 { rw left_unitor_naturality }, simp }
+by { slice_lhs 2 3 { rw left_unitor_naturality }, simv }
 
 lemma one_right_unitor {M : Mon_ C} :
   ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ 𝟙 (𝟙_ C))) ≫ (ρ_ M.X).hom = M.one :=
-by { slice_lhs 2 3 { rw [right_unitor_naturality, ←unitors_equal] }, simp }
+by { slice_lhs 2 3 { rw [right_unitor_naturality, ←unitors_equal] }, simv }
 
 variable [braided_category C]
 
@@ -404,7 +404,7 @@ begin
   slice_lhs 1 3 { rw [tensor_associativity] },
   slice_lhs 3 4 { rw [←tensor_μ_natural] },
   slice_lhs 2 3 { rw [←tensor_comp, tensor_id] },
-  simp only [category.assoc],
+  simv only [category.assoc],
 end
 
 lemma mul_associator {M N P : Mon_ C} :
@@ -415,12 +415,12 @@ lemma mul_associator {M N P : Mon_ C} :
     tensor_μ C (M.X, N.X ⊗ P.X) (M.X, N.X ⊗ P.X) ≫
     (M.mul ⊗ tensor_μ C (N.X, P.X) (N.X, P.X) ≫ (N.mul ⊗ P.mul)) :=
 begin
-  simp,
+  simv,
   slice_lhs 2 3 { rw [←category.id_comp P.mul, tensor_comp] },
   slice_lhs 3 4 { rw [associator_naturality] },
   slice_rhs 3 4 { rw [←category.id_comp M.mul, tensor_comp] },
   slice_lhs 1 3 { rw associator_monoidal },
-  simp only [category.assoc],
+  simv only [category.assoc],
 end
 
 lemma mul_left_unitor {M : Mon_ C}:
@@ -430,7 +430,7 @@ begin
   rw [←(category.comp_id (λ_ (𝟙_ C)).hom), ←(category.id_comp M.mul), tensor_comp],
   slice_lhs 3 4 { rw left_unitor_naturality },
   slice_lhs 1 3 { rw ←left_unitor_monoidal },
-  simp only [category.assoc, category.id_comp],
+  simv only [category.assoc, category.id_comp],
 end
 
 lemma mul_right_unitor {M : Mon_ C} :
@@ -440,7 +440,7 @@ begin
   rw [←(category.id_comp M.mul), ←(category.comp_id (λ_ (𝟙_ C)).hom), tensor_comp],
   slice_lhs 3 4 { rw right_unitor_naturality },
   slice_lhs 1 3 { rw ←right_unitor_monoidal },
-  simp only [category.assoc, category.id_comp],
+  simv only [category.assoc, category.id_comp],
 end
 
 instance Mon_monoidal : monoidal_category (Mon_ C) :=
@@ -463,7 +463,7 @@ instance Mon_monoidal : monoidal_category (Mon_ C) :=
       dsimp,
       slice_rhs 1 2 { rw [tensor_μ_natural] },
       slice_lhs 2 3 { rw [←tensor_comp, hom.mul_hom f, hom.mul_hom g, tensor_comp] },
-      simp only [category.assoc],
+      simv only [category.assoc],
     end },
   tensor_id' := by { intros, ext, apply tensor_id },
   tensor_comp' := by { intros, ext, apply tensor_comp },

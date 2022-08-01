@@ -35,7 +35,7 @@ def flip_obj (C : homological_complex (homological_complex V c) c') :
 { X := λ i,
   { X := λ j, (C.X j).X i,
     d := λ j j', (C.d j j').f i,
-    shape' := λ j j' w, by { rw C.shape j j' w, simp, },
+    shape' := λ j j' w, by { rw C.shape j j' w, simv, },
     d_comp_d' := λ j₁ j₂ j₃ _ _, congr_hom (C.d_comp_d j₁ j₂ j₃) i, },
   d := λ i i',
   { f := λ j, (C.X j).d i i',
@@ -62,11 +62,11 @@ nat_iso.of_components
   (λ C,
   { hom :=
     { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
-      comm' := λ i j h, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, },
+      comm' := λ i j h, by { ext, dsimp, simv only [category.id_comp, category.comp_id] }, },
     inv :=
     { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
-      comm' := λ i j h, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, } })
-  (λ X Y f, by { ext, dsimp, simp only [category.id_comp, category.comp_id], })
+      comm' := λ i j h, by { ext, dsimp, simv only [category.id_comp, category.comp_id] }, } })
+  (λ X Y f, by { ext, dsimp, simv only [category.id_comp, category.comp_id], })
 
 /-- Auxiliary definition for `homological_complex.flip_equivalence` .-/
 @[simps]
@@ -76,11 +76,11 @@ nat_iso.of_components
   (λ C,
   { hom :=
     { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
-      comm' := λ i j h, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, },
+      comm' := λ i j h, by { ext, dsimp, simv only [category.id_comp, category.comp_id] }, },
     inv :=
     { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
-      comm' := λ i j h, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, } })
-  (λ X Y f, by { ext, dsimp, simp only [category.id_comp, category.comp_id], })
+      comm' := λ i j h, by { ext, dsimp, simv only [category.id_comp, category.comp_id] }, } })
+  (λ X Y f, by { ext, dsimp, simv only [category.id_comp, category.comp_id], })
 
 /-- Flipping a complex of complexes over the diagonal, as an equivalence of categories. -/
 @[simps]

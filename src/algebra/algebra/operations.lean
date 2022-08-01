@@ -87,7 +87,7 @@ theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin
   apply submodule.ext,
   intro a,
-  simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
+  simv only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
 
 theorem one_eq_span_one_set : (1 : submodule R A) = span R 1 := one_eq_span
@@ -97,15 +97,15 @@ by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
 protected lemma map_one {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (1 : submodule R A) = 1 :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma map_op_one :
   map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R A) = 1 :=
-by { ext, induction x using mul_opposite.rec, simp }
+by { ext, induction x using mul_opposite.rec, simv }
 
 @[simp] lemma comap_op_one :
   comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R Aᵐᵒᵖ) = 1 :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma map_unop_one :
   map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (1 : submodule R Aᵐᵒᵖ) = 1 :=
@@ -198,13 +198,13 @@ calc map f.to_linear_map (M * N)
     { use [f y, mem_map.mpr ⟨y.1, y.2, rfl⟩],
       refine trans _ hy,
       ext,
-      simp },
+      simv },
     { obtain ⟨y', hy', fy_eq⟩ := mem_map.mp y.2,
       use [y', hy'],
       refine trans _ hy,
       rw f.to_linear_map_apply at fy_eq,
       ext,
-      simp [fy_eq] }
+      simv [fy_eq] }
 end
 
 lemma map_op_mul :
@@ -418,7 +418,7 @@ def equiv_opposite : submodule R Aᵐᵒᵖ ≃+* (submodule R A)ᵐᵒᵖ :=
   inv_fun := λ p, p.unop.comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A),
   left_inv := λ p, set_like.coe_injective $ rfl,
   right_inv := λ p, unop_injective $ set_like.coe_injective rfl,
-  map_add' := λ p q, by simp [comap_equiv_eq_map_symm, ←op_add],
+  map_add' := λ p q, by simv [comap_equiv_eq_map_symm, ←op_add],
   map_mul' := λ p q, congr_arg op $ comap_op_mul _ _ }
 
 protected lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') (n : ℕ) :
@@ -479,7 +479,7 @@ lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
 begin
   letI := classical.dec_eq ι,
   refine finset.induction_on s _ _,
-  { simp [one_eq_span, set.singleton_one] },
+  { simv [one_eq_span, set.singleton_one] },
   { intros _ _ H ih,
     rw [finset.prod_insert H, finset.prod_insert H, ih, span_mul_span] }
 end
@@ -584,7 +584,7 @@ end
   (I / J).map h.to_linear_map = I.map h.to_linear_map / J.map h.to_linear_map :=
 begin
   ext x,
-  simp only [mem_map, mem_div_iff_forall_mul_mem],
+  simv only [mem_map, mem_div_iff_forall_mul_mem],
   split,
   { rintro ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
     exact ⟨x * y, hx _ hy, h.map_mul x y⟩ },

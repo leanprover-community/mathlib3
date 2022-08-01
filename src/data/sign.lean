@@ -131,7 +131,7 @@ end cast
 { to_fun    := cast,
   map_zero' := rfl,
   map_one'  := rfl,
-  map_mul'  := λ x y, by cases x; cases y; simp }
+  map_mul'  := λ x y, by cases x; cases y; simv }
 
 end sign_type
 
@@ -156,7 +156,7 @@ def sign : α →o sign_type :=
 
 lemma sign_apply : sign a = ite (0 < a) 1 (ite (a < 0) (-1) 0) := rfl
 
-@[simp] lemma sign_zero : sign (0 : α) = 0 := by simp [sign_apply]
+@[simp] lemma sign_zero : sign (0 : α) = 0 := by simv [sign_apply]
 @[simp] lemma sign_pos (ha : 0 < a) : sign a = 1 := by rwa [sign_apply, if_pos]
 @[simp] lemma sign_neg (ha : a < 0) : sign a = -1 := by rwa [sign_apply, if_neg $ asymm ha, if_pos]
 
@@ -197,7 +197,7 @@ def sign_hom : α →*₀ sign_type :=
   map_one' := sign_pos zero_lt_one,
   map_mul' := λ x y, by
     rcases lt_trichotomy x 0 with hx | hx | hx; rcases lt_trichotomy y 0 with hy | hy | hy;
-    simp only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
+    simv only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
                neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
                mul_neg_of_pos_of_neg, mul_pos] }
 
@@ -212,9 +212,9 @@ begin
   simp_rw [sign_apply, left.neg_pos_iff, left.neg_neg_iff],
   split_ifs with h h',
   { exact false.elim (lt_asymm h h') },
-  { simp },
-  { simp },
-  { simp }
+  { simv },
+  { simv },
+  { simv }
 end
 
 lemma right.sign_neg [covariant_class α α (function.swap (+)) (<)] (a : α) : sign (-a) = - sign a :=
@@ -222,9 +222,9 @@ begin
   simp_rw [sign_apply, right.neg_pos_iff, right.neg_neg_iff],
   split_ifs with h h',
   { exact false.elim (lt_asymm h h') },
-  { simp },
-  { simp },
-  { simp }
+  { simv },
+  { simv },
+  { simv }
 end
 
 end add_group

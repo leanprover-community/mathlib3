@@ -86,7 +86,7 @@ The germ of a section of a presheaf over an open at a point of that open.
 def germ (F : X.presheaf C) {U : opens X} (x : U) : F.obj (op U) ⟶ stalk F x :=
 colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)
 
-@[simp, elementwise]
+@[simv, elementwise]
 lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :
   F.map i.op ≫ germ F x = germ F (i x : V) :=
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
@@ -100,7 +100,7 @@ lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { induction U using opposite.rec, cases U with U hxU, exact ih U hxU }
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma stalk_functor_map_germ {F G : X.presheaf C} (U : opens X) (x : U)
   (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
 colimit.ι_map (whisker_left ((open_nhds.inclusion x.1).op) f) (op ⟨U, x.2⟩)
@@ -120,7 +120,7 @@ begin
   exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) F),
 end
 
-@[simp, elementwise, reassoc]
+@[simv, elementwise, reassoc]
 lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
   (x : (opens.map f).obj U) :
   (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
@@ -159,7 +159,7 @@ begin
   rw [colimit.ι_map_assoc, colimit.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
        pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
   dsimp,
-  -- FIXME A simp lemma which unfortunately doesn't fire:
+  -- FIXME A simv lemma which unfortunately doesn't fire:
   erw [category_theory.functor.map_id],
 end
 
@@ -174,10 +174,10 @@ begin
   induction U using opposite.rec,
   cases U,
   cases U_val,
-  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
+  simv only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
              whisker_right_app, category.assoc],
   dsimp,
-  -- FIXME: Some of these are simp lemmas, but don't fire successfully:
+  -- FIXME: Some of these are simv lemmas, but don't fire successfully:
   erw [category_theory.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
        colimit.ι_pre, colimit.ι_pre],
   refl,
@@ -245,7 +245,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     ext j,
     induction j using opposite.rec,
     cases j,
-    simp only [topological_space.open_nhds.inclusion_map_iso_inv, whisker_right_app,
+    simv only [topological_space.open_nhds.inclusion_map_iso_inv, whisker_right_app,
       whisker_left_app, whiskering_left_obj_map, functor.comp_map, colimit.ι_map_assoc,
       nat_trans.op_id, Lan_obj_map, pushforward_pullback_adjunction_unit_app_app, category.assoc,
       colimit.ι_pre_assoc],
@@ -260,7 +260,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     cases U, cases j, rcases j_right with ⟨⟨⟩⟩,
     erw [colimit.map_desc, colimit.map_desc, colimit.ι_desc_assoc,
       colimit.ι_desc_assoc, colimit.ι_desc, category.comp_id],
-    simp only [cocone.whisker_ι, colimit.cocone_ι, open_nhds.inclusion_map_iso_inv,
+    simv only [cocone.whisker_ι, colimit.cocone_ι, open_nhds.inclusion_map_iso_inv,
       cocones.precompose_obj_ι, whisker_right_app, whisker_left_app, nat_trans.comp_app,
       whiskering_left_obj_map, nat_trans.op_id, Lan_obj_map,
       pushforward_pullback_adjunction_unit_app_app],
@@ -271,7 +271,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     erw colimit.ι_pre_assoc (Lan.diagram _ F _) (costructured_arrow.map _),
     erw colimit.ι_pre_assoc (Lan.diagram _ F _) (costructured_arrow.map _),
     congr,
-    simp only [category.assoc, costructured_arrow.map_mk],
+    simv only [category.assoc, costructured_arrow.map_mk],
     delta costructured_arrow.mk,
     congr,
   end }
@@ -297,23 +297,23 @@ begin
     exact colimit.w ((open_nhds.inclusion x).op ⋙ F) (show V' ⟶ U', from i.unop).op }
 end
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma germ_stalk_specializes (F : X.presheaf C) {U : opens X} {y : U} {x : X} (h : x ⤳ y) :
   F.germ y ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 y.prop⟩ := colimit.ι_desc _ _
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x ⤳ y) (hy : y ∈ U) :
   F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma stalk_specializes_stalk_functor_map {F G : X.presheaf C} (f : F ⟶ G) {x y : X} (h : x ⤳ y) :
   F.stalk_specializes h ≫ (stalk_functor C x).map f =
     (stalk_functor C y).map f ≫ G.stalk_specializes h :=
 by { ext, delta stalk_functor, simpa [stalk_specializes] }
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
   (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
@@ -371,7 +371,7 @@ lemma stalk_functor_map_injective_of_app_injective {F G : presheaf C X} (f : F �
 begin
   rcases germ_exist F x s with ⟨U₁, hxU₁, s, rfl⟩,
   rcases germ_exist F x t with ⟨U₂, hxU₂, t, rfl⟩,
-  simp only [stalk_functor_map_germ_apply _ ⟨x,_⟩] at hst,
+  simv only [stalk_functor_map_germ_apply _ ⟨x,_⟩] at hst,
   obtain ⟨W, hxW, iWU₁, iWU₂, heq⟩ := G.germ_eq x hxU₁ hxU₂ _ _ hst,
   rw [← comp_apply, ← comp_apply, ← f.naturality, ← f.naturality, comp_apply, comp_apply] at heq,
   replace heq := h W heq,

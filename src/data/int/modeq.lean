@@ -43,7 +43,7 @@ protected theorem rfl : a ≡ a [ZMOD n] := modeq.refl _
 end modeq
 
 lemma coe_nat_modeq_iff {a b n : ℕ} : a ≡ b [ZMOD n] ↔ a ≡ b [MOD n] :=
-by unfold modeq nat.modeq; rw ← int.coe_nat_eq_coe_nat_iff; simp [coe_nat_mod]
+by unfold modeq nat.modeq; rw ← int.coe_nat_eq_coe_nat_iff; simv [coe_nat_mod]
 
 theorem modeq_zero_iff_dvd : a ≡ 0 [ZMOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
@@ -53,7 +53,7 @@ lemma _root_.has_dvd.dvd.zero_modeq_int (h : n ∣ a) : 0 ≡ a [ZMOD n] := h.mo
 
 theorem modeq_iff_dvd : a ≡ b [ZMOD n] ↔ n ∣ b - a :=
 by rw [modeq, eq_comm];
-   simp [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero, -euclidean_domain.mod_eq_zero]
+   simv [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero, -euclidean_domain.mod_eq_zero]
 
 theorem modeq.dvd : a ≡ b [ZMOD n] → n ∣ b - a := modeq_iff_dvd.1
 theorem modeq_of_dvd : n ∣ b - a → a ≡ b [ZMOD n] := modeq_iff_dvd.2
@@ -68,8 +68,8 @@ modeq_iff_dvd.2 $ d.trans h.dvd
 protected theorem mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
 or.cases_on hc.lt_or_eq (λ hc,
   by unfold modeq;
-  simp [mul_mod_mul_of_pos hc, (show _ = _, from h)] )
-(λ hc, by simp [hc.symm])
+  simv [mul_mod_mul_of_pos hc, (show _ = _, from h)] )
+(λ hc, by simv [hc.symm])
 
 protected theorem mul_right' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD (n * c)] :=
 by rw [mul_comm a, mul_comm b, mul_comm n]; exact h.mul_left' hc
@@ -175,7 +175,7 @@ lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ 
 ⟨ a % b, mod_nonneg _ (ne_of_gt hb),
   have a % b < |b|, from mod_lt _ (ne_of_gt hb),
   by rwa abs_of_pos hb at this,
-  by simp [modeq] ⟩
+  by simv [modeq] ⟩
 
 lemma exists_unique_equiv_nat (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℕ, ↑z < b ∧ ↑z ≡ a [ZMOD b] :=
 let ⟨z, hz1, hz2, hz3⟩ := exists_unique_equiv a hb in

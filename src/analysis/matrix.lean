@@ -66,19 +66,19 @@ local attribute [instance] matrix.seminormed_add_comm_group
 
 lemma norm_le_iff {r : ℝ} (hr : 0 ≤ r) {A : matrix m n α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_norm_le_iff hr]
+by simv [pi_norm_le_iff hr]
 
 lemma nnnorm_le_iff {r : ℝ≥0} {A : matrix m n α} :
   ∥A∥₊ ≤ r ↔ ∀ i j, ∥A i j∥₊ ≤ r :=
-by simp [pi_nnnorm_le_iff]
+by simv [pi_nnnorm_le_iff]
 
 lemma norm_lt_iff {r : ℝ} (hr : 0 < r) {A : matrix m n α} :
   ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
-by simp [pi_norm_lt_iff hr]
+by simv [pi_norm_lt_iff hr]
 
 lemma nnnorm_lt_iff {r : ℝ≥0} (hr : 0 < r) {A : matrix m n α} :
   ∥A∥₊ < r ↔ ∀ i j, ∥A i j∥₊ < r :=
-by simp [pi_nnnorm_lt_iff hr]
+by simv [pi_nnnorm_lt_iff hr]
 
 lemma norm_entry_le_entrywise_sup_norm (A : matrix m n α) {i : m} {j : n} :
   ∥A i j∥ ≤ ∥A∥ :=
@@ -109,10 +109,10 @@ congr_arg coe $ nnnorm_conj_transpose A
 instance [star_add_monoid α] [normed_star_group α] : normed_star_group (matrix m m α) :=
 ⟨norm_conj_transpose⟩
 
-@[simp] lemma nnnorm_col (v : m → α) : ∥col v∥₊ = ∥v∥₊ := by simp [pi.nnnorm_def]
+@[simp] lemma nnnorm_col (v : m → α) : ∥col v∥₊ = ∥v∥₊ := by simv [pi.nnnorm_def]
 @[simp] lemma norm_col (v : m → α) : ∥col v∥ = ∥v∥ := congr_arg coe $ nnnorm_col v
 
-@[simp] lemma nnnorm_row (v : n → α) : ∥row v∥₊ = ∥v∥₊ := by simp [pi.nnnorm_def]
+@[simp] lemma nnnorm_row (v : n → α) : ∥row v∥₊ = ∥v∥₊ := by simv [pi.nnnorm_def]
 @[simp] lemma norm_row (v : n → α) : ∥row v∥ = ∥v∥ := congr_arg coe $ nnnorm_row v
 
 @[simp] lemma nnnorm_diagonal [decidable_eq n] (v : n → α) : ∥diagonal v∥₊ = ∥v∥₊ :=
@@ -209,7 +209,7 @@ subtype.ext $ linfty_op_norm_def A
   ∥col v∥₊ = ∥v∥₊ :=
 begin
   rw [linfty_op_nnnorm_def, pi.nnnorm_def],
-  simp,
+  simv,
 end
 
 @[simp] lemma linfty_op_norm_col (v : m → α) :
@@ -218,11 +218,11 @@ congr_arg coe $ linfty_op_nnnorm_col v
 
 @[simp] lemma linfty_op_nnnorm_row (v : n → α) :
   ∥row v∥₊ = ∑ i, ∥v i∥₊ :=
-by simp [linfty_op_nnnorm_def]
+by simv [linfty_op_nnnorm_def]
 
 @[simp] lemma linfty_op_norm_row (v : n → α) :
   ∥row v∥ = ∑ i, ∥v i∥ :=
-(congr_arg coe $ linfty_op_nnnorm_row v).trans $ by simp [nnreal.coe_sum]
+(congr_arg coe $ linfty_op_nnnorm_row v).trans $ by simv [nnreal.coe_sum]
 
 @[simp]
 lemma linfty_op_nnnorm_diagonal [decidable_eq m] (v : m → α) :
@@ -370,7 +370,7 @@ by simp_rw [pi_Lp.nnnorm_eq, ←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne
 
 lemma frobenius_norm_def (A : matrix m n α) :
   ∥A∥ = (∑ i j, ∥A i j∥ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
-(congr_arg coe (frobenius_nnnorm_def A)).trans $ by simp [nnreal.coe_sum]
+(congr_arg coe (frobenius_nnnorm_def A)).trans $ by simv [nnreal.coe_sum]
 
 @[simp] lemma frobenius_nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=

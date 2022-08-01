@@ -56,15 +56,15 @@ def single (j : ι) : V ⥤ homological_complex V c :=
     ext,
     dsimp,
     split_ifs with h,
-    { subst h, simp, },
-    { rw if_neg h, simp, },
+    { subst h, simv, },
+    { rw if_neg h, simv, },
   end,
   map_comp' := λ A B C f g, begin
     ext,
     dsimp,
     split_ifs with h,
-    { subst h, simp, },
-    { simp, },
+    { subst h, simv, },
+    { simv, },
   end, }.
 
 /--
@@ -72,19 +72,19 @@ The object in degree `j` of `(single V c h).obj A` is just `A`.
 -/
 @[simps]
 def single_obj_X_self (j : ι) (A : V) : ((single V c j).obj A).X j ≅ A :=
-eq_to_iso (by simp)
+eq_to_iso (by simv)
 
 @[simp]
 lemma single_map_f_self (j : ι) {A B : V} (f : A ⟶ B) :
   ((single V c j).map f).f j =
     (single_obj_X_self V c j A).hom ≫ f ≫ (single_obj_X_self V c j B).inv :=
-by { simp, refl, }
+by { simv, refl, }
 
 instance (j : ι) : faithful (single V c j) :=
 { map_injective' := λ X Y f g w, begin
     have := congr_hom w j,
     dsimp at this,
-    simp only [dif_pos] at this,
+    simv only [dif_pos] at this,
     rw [←is_iso.inv_comp_eq, inv_eq_to_hom, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
       ←is_iso.comp_inv_eq, category.assoc, inv_eq_to_hom, eq_to_hom_trans, eq_to_hom_refl,
       category.comp_id] at this,
@@ -92,12 +92,12 @@ instance (j : ι) : faithful (single V c j) :=
   end, }
 
 instance (j : ι) : full (single V c j) :=
-{ preimage := λ X Y f, eq_to_hom (by simp) ≫ f.f j ≫ eq_to_hom (by simp),
+{ preimage := λ X Y f, eq_to_hom (by simv) ≫ f.f j ≫ eq_to_hom (by simv),
   witness' := λ X Y f, begin
     ext i,
     dsimp,
     split_ifs,
-    { subst h, simp, },
+    { subst h, simv, },
     { symmetry,
       apply zero_of_target_iso_zero,
       dsimp,
@@ -130,19 +130,19 @@ def single₀ : V ⥤ chain_complex V ℕ :=
     | 0 := f
     | (n+1) := 0
     end, },
-  map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simp, },
-  map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simp, } }
+  map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simv, },
+  map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simv, } }
 
 @[simp] lemma single₀_obj_X_0 (X : V) : ((single₀ V).obj X).X 0 = X := rfl
 @[simp] lemma single₀_obj_X_succ (X : V) (n : ℕ) : ((single₀ V).obj X).X (n+1) = 0 := rfl
 @[simp] lemma single₀_obj_X_d (X : V) (i j : ℕ) : ((single₀ V).obj X).d i j = 0 := rfl
 @[simp] lemma single₀_obj_X_d_to (X : V) (j : ℕ) : ((single₀ V).obj X).d_to j = 0 :=
-by { rw [d_to_eq ((single₀ V).obj X) rfl], simp, }
+by { rw [d_to_eq ((single₀ V).obj X) rfl], simv, }
 @[simp] lemma single₀_obj_X_d_from (X : V) (i : ℕ) : ((single₀ V).obj X).d_from i = 0 :=
 begin
   cases i,
-  { rw [d_from_eq_zero], simp, },
-  { rw [d_from_eq ((single₀ V).obj X) rfl], simp, },
+  { rw [d_from_eq_zero], simv, },
+  { rw [d_from_eq ((single₀ V).obj X) rfl], simv, },
 end
 @[simp] lemma single₀_map_f_0 {X Y : V} (f : X ⟶ Y) : ((single₀ V).map f).f 0 = f := rfl
 @[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
@@ -157,8 +157,8 @@ is the same as doing nothing.
 -/
 noncomputable
 def homology_functor_0_single₀ : single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
-  (λ X Y f, by { ext, dsimp [homology_functor], simp, })
+nat_iso.of_components (λ X, homology.congr _ _ (by simv) (by simv) ≪≫ homology_zero_zero)
+  (λ X Y f, by { ext, dsimp [homology_functor], simv, })
 
 /--
 Sending objects to chain complexes supported at `0` then taking `(n+1)`-st homology
@@ -166,7 +166,7 @@ is the same as the zero functor.
 -/
 noncomputable
 def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
+nat_iso.of_components (λ X, homology.congr _ _ (by simv) (by simv) ≪≫
     homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
   (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
 
@@ -181,17 +181,17 @@ are the same as morphisms `f : C.X 0 ⟶ X` such that `C.d 1 0 ≫ f = 0`.
 -/
 def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
   (C ⟶ (single₀ V).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
-{ to_fun := λ f, ⟨f.f 0, by { rw ←f.comm 1 0, simp, }⟩,
+{ to_fun := λ f, ⟨f.f 0, by { rw ←f.comm 1 0, simv, }⟩,
   inv_fun := λ f,
   { f := λ i, match i with
     | 0 := f.1
     | (n+1) := 0
     end,
     comm' := λ i j h, begin
-      rcases i with _|_|i; cases j; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
-      { rw [C.shape, zero_comp], simp, },
+      rcases i with _|_|i; cases j; unfold_aux; simv only [comp_zero, zero_comp, single₀_obj_X_d],
+      { rw [C.shape, zero_comp], simv, },
       { exact f.2.symm, },
-      { rw [C.shape, zero_comp], simp [i.succ_succ_ne_one.symm] },
+      { rw [C.shape, zero_comp], simv [i.succ_succ_ne_one.symm] },
     end, },
   left_inv := λ f, begin
     ext i,
@@ -209,13 +209,13 @@ nat_iso.of_components
   (λ X,
   { hom := { f := λ i, by { cases i; simpa using 𝟙 _, } },
     inv := { f := λ i, by { cases i; simpa using 𝟙 _, } },
-    hom_inv_id' := by { ext (_|i); { dsimp, simp, }, },
+    hom_inv_id' := by { ext (_|i); { dsimp, simv, }, },
     inv_hom_id' := begin
       ext (_|i),
       { apply category.id_comp, },
       { apply has_zero_object.to_zero_ext, },
     end, })
-  (λ X Y f, by { ext (_|i); { dsimp, simp, }, })
+  (λ X Y f, by { ext (_|i); { dsimp, simv, }, })
 
 instance : faithful (single₀ V) := faithful.of_iso (single₀_iso_single V).symm
 instance : full (single₀ V) := full.of_iso (single₀_iso_single V).symm
@@ -244,19 +244,19 @@ def single₀ : V ⥤ cochain_complex V ℕ :=
     | 0 := f
     | (n+1) := 0
     end, },
-  map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simp, },
-  map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simp, } }
+  map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simv, },
+  map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simv, } }
 
 @[simp] lemma single₀_obj_X_0 (X : V) : ((single₀ V).obj X).X 0 = X := rfl
 @[simp] lemma single₀_obj_X_succ (X : V) (n : ℕ) : ((single₀ V).obj X).X (n+1) = 0 := rfl
 @[simp] lemma single₀_obj_X_d (X : V) (i j : ℕ) : ((single₀ V).obj X).d i j = 0 := rfl
 @[simp] lemma single₀_obj_X_d_from (X : V) (j : ℕ) : ((single₀ V).obj X).d_from j = 0 :=
-by { rw [d_from_eq ((single₀ V).obj X) rfl], simp, }
+by { rw [d_from_eq ((single₀ V).obj X) rfl], simv, }
 @[simp] lemma single₀_obj_X_d_to (X : V) (i : ℕ) : ((single₀ V).obj X).d_to i = 0 :=
 begin
   cases i,
-  { rw [d_to_eq_zero], simp, },
-  { rw [d_to_eq ((single₀ V).obj X) rfl], simp, },
+  { rw [d_to_eq_zero], simv, },
+  { rw [d_to_eq ((single₀ V).obj X) rfl], simv, },
 end
 @[simp] lemma single₀_map_f_0 {X Y : V} (f : X ⟶ Y) : ((single₀ V).map f).f 0 = f := rfl
 @[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
@@ -271,8 +271,8 @@ is the same as doing nothing.
 -/
 noncomputable
 def homology_functor_0_single₀ : single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
-  (λ X Y f, by { ext, dsimp [homology_functor], simp, })
+nat_iso.of_components (λ X, homology.congr _ _ (by simv) (by simv) ≪≫ homology_zero_zero)
+  (λ X Y f, by { ext, dsimp [homology_functor], simv, })
 
 /--
 Sending objects to cochain complexes supported at `0` then taking `(n+1)`-st homology
@@ -280,7 +280,7 @@ is the same as the zero functor.
 -/
 noncomputable
 def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
+nat_iso.of_components (λ X, homology.congr _ _ (by simv) (by simv) ≪≫
     homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
   (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
 
@@ -295,17 +295,17 @@ are the same as morphisms `f : X ⟶ C.X 0` such that `f ≫ C.d 0 1 = 0`.
 -/
 def from_single₀_equiv (C : cochain_complex V ℕ) (X : V) :
   ((single₀ V).obj X ⟶ C) ≃ { f : X ⟶ C.X 0 // f ≫ C.d 0 1 = 0 } :=
-{ to_fun := λ f, ⟨f.f 0, by { rw f.comm 0 1, simp, }⟩,
+{ to_fun := λ f, ⟨f.f 0, by { rw f.comm 0 1, simv, }⟩,
   inv_fun := λ f,
   { f := λ i, match i with
     | 0 := f.1
     | (n+1) := 0
     end,
     comm' := λ i j h, begin
-      rcases j with _|_|j; cases i; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
-      { convert comp_zero, rw [C.shape], simp, },
+      rcases j with _|_|j; cases i; unfold_aux; simv only [comp_zero, zero_comp, single₀_obj_X_d],
+      { convert comp_zero, rw [C.shape], simv, },
       { exact f.2, },
-      { convert comp_zero, rw [C.shape], simp only [complex_shape.up_rel, zero_add],
+      { convert comp_zero, rw [C.shape], simv only [complex_shape.up_rel, zero_add],
         exact (nat.one_lt_succ_succ j).ne },
     end, },
   left_inv := λ f, begin
@@ -324,13 +324,13 @@ nat_iso.of_components
   (λ X,
   { hom := { f := λ i, by { cases i; simpa using 𝟙 _, } },
     inv := { f := λ i, by { cases i; simpa using 𝟙 _, } },
-    hom_inv_id' := by { ext (_|i); { dsimp, simp, }, },
+    hom_inv_id' := by { ext (_|i); { dsimp, simv, }, },
     inv_hom_id' := begin
       ext (_|i),
       { apply category.id_comp, },
       { apply has_zero_object.to_zero_ext, },
     end, })
-  (λ X Y f, by { ext (_|i); { dsimp, simp, }, })
+  (λ X Y f, by { ext (_|i); { dsimp, simv, }, })
 
 instance : faithful (single₀ V) := faithful.of_iso (single₀_iso_single V).symm
 instance : full (single₀ V) := full.of_iso (single₀_iso_single V).symm

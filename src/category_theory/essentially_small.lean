@@ -209,6 +209,6 @@ A thin category is essentially small if and only if the underlying type of its s
 theorem essentially_small_iff_of_thin
   {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
-by simp [essentially_small_iff, category_theory.locally_small_of_thin]
+by simv [essentially_small_iff, category_theory.locally_small_of_thin]
 
 end category_theory

@@ -21,7 +21,7 @@ section seminormed_add_comm_group
 variables {E : Type*} [seminormed_add_comm_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 lemma bounded_iff_exists_norm_le : bounded s ↔ ∃ R, ∀ x ∈ s, ∥x∥ ≤ R :=
-by simp [subset_def, bounded_iff_subset_ball (0 : E)]
+by simv [subset_def, bounded_iff_subset_ball (0 : E)]
 
 alias bounded_iff_exists_norm_le ↔ metric.bounded.exists_norm_le _
 
@@ -76,7 +76,7 @@ by { unfold metric.ball, simp_rw ←dist_neg, refl }
 by { unfold metric.closed_ball, simp_rw ←dist_neg, refl }
 
 lemma singleton_add_ball : {x} + ball y δ = ball (x + y) δ :=
-by simp only [preimage_add_ball, image_add_left, singleton_add, sub_neg_eq_add, add_comm y x]
+by simv only [preimage_add_ball, image_add_left, singleton_add, sub_neg_eq_add, add_comm y x]
 
 lemma singleton_sub_ball : {x} - ball y δ = ball (x - y) δ :=
 by simp_rw [sub_eq_add_neg, neg_ball, singleton_add_ball]
@@ -87,29 +87,29 @@ by rw [add_comm, singleton_add_ball, add_comm y]
 lemma ball_sub_singleton : ball x δ - {y} = ball (x - y) δ :=
 by simp_rw [sub_eq_add_neg, neg_singleton, ball_add_singleton]
 
-lemma singleton_add_ball_zero : {x} + ball 0 δ = ball x δ := by simp
-lemma singleton_sub_ball_zero : {x} - ball 0 δ = ball x δ := by simp [singleton_sub_ball]
-lemma ball_zero_add_singleton : ball 0 δ + {x} = ball x δ := by simp [ball_add_singleton]
-lemma ball_zero_sub_singleton : ball 0 δ - {x} = ball (-x) δ := by simp [ball_sub_singleton]
-lemma vadd_ball_zero : x +ᵥ ball 0 δ = ball x δ := by simp
+lemma singleton_add_ball_zero : {x} + ball 0 δ = ball x δ := by simv
+lemma singleton_sub_ball_zero : {x} - ball 0 δ = ball x δ := by simv [singleton_sub_ball]
+lemma ball_zero_add_singleton : ball 0 δ + {x} = ball x δ := by simv [ball_add_singleton]
+lemma ball_zero_sub_singleton : ball 0 δ - {x} = ball (-x) δ := by simv [ball_sub_singleton]
+lemma vadd_ball_zero : x +ᵥ ball 0 δ = ball x δ := by simv
 
 @[simp] lemma singleton_add_closed_ball : {x} + closed_ball y δ = closed_ball (x + y) δ :=
-by simp only [add_comm y x, preimage_add_closed_ball, image_add_left, singleton_add, sub_neg_eq_add]
+by simv only [add_comm y x, preimage_add_closed_ball, image_add_left, singleton_add, sub_neg_eq_add]
 
 @[simp] lemma singleton_sub_closed_ball : {x} - closed_ball y δ = closed_ball (x - y) δ :=
 by simp_rw [sub_eq_add_neg, neg_closed_ball, singleton_add_closed_ball]
 
 @[simp] lemma closed_ball_add_singleton : closed_ball x δ + {y} = closed_ball (x + y) δ :=
-by simp [add_comm _ {y}, add_comm y]
+by simv [add_comm _ {y}, add_comm y]
 
 @[simp] lemma closed_ball_sub_singleton : closed_ball x δ - {y} = closed_ball (x - y) δ :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
-lemma singleton_add_closed_ball_zero : {x} + closed_ball 0 δ = closed_ball x δ := by simp
-lemma singleton_sub_closed_ball_zero : {x} - closed_ball 0 δ = closed_ball x δ := by simp
-lemma closed_ball_zero_add_singleton : closed_ball 0 δ + {x} = closed_ball x δ := by simp
-lemma closed_ball_zero_sub_singleton : closed_ball 0 δ - {x} = closed_ball (-x) δ := by simp
-@[simp] lemma vadd_closed_ball_zero : x +ᵥ closed_ball 0 δ = closed_ball x δ := by simp
+lemma singleton_add_closed_ball_zero : {x} + closed_ball 0 δ = closed_ball x δ := by simv
+lemma singleton_sub_closed_ball_zero : {x} - closed_ball 0 δ = closed_ball x δ := by simv
+lemma closed_ball_zero_add_singleton : closed_ball 0 δ + {x} = closed_ball x δ := by simv
+lemma closed_ball_zero_sub_singleton : closed_ball 0 δ - {x} = closed_ball (-x) δ := by simv
+@[simp] lemma vadd_closed_ball_zero : x +ᵥ closed_ball 0 δ = closed_ball x δ := by simv
 
 lemma add_ball_zero : s + ball 0 δ = thickening δ s :=
 begin
@@ -120,16 +120,16 @@ begin
   simp_rw [singleton_add_ball, add_zero],
 end
 
-lemma sub_ball_zero : s - ball 0 δ = thickening δ s := by simp [sub_eq_add_neg, add_ball_zero]
+lemma sub_ball_zero : s - ball 0 δ = thickening δ s := by simv [sub_eq_add_neg, add_ball_zero]
 lemma ball_add_zero : ball 0 δ + s = thickening δ s := by rw [add_comm, add_ball_zero]
-lemma ball_sub_zero : ball 0 δ - s = thickening δ (-s) := by simp [sub_eq_add_neg, ball_add_zero]
+lemma ball_sub_zero : ball 0 δ - s = thickening δ (-s) := by simv [sub_eq_add_neg, ball_add_zero]
 
 @[simp] lemma add_ball : s + ball x δ = x +ᵥ thickening δ s :=
 by rw [←vadd_ball_zero, add_vadd_comm, add_ball_zero]
 
-@[simp] lemma sub_ball : s - ball x δ = -x +ᵥ thickening δ s := by simp [sub_eq_add_neg]
+@[simp] lemma sub_ball : s - ball x δ = -x +ᵥ thickening δ s := by simv [sub_eq_add_neg]
 @[simp] lemma ball_add : ball x δ + s = x +ᵥ thickening δ s := by rw [add_comm, add_ball]
-@[simp] lemma ball_sub : ball x δ - s = x +ᵥ thickening δ (-s) := by simp [sub_eq_add_neg]
+@[simp] lemma ball_sub : ball x δ - s = x +ᵥ thickening δ (-s) := by simv [sub_eq_add_neg]
 
 variables {ε δ s t x y}
 
@@ -138,13 +138,13 @@ lemma is_compact.add_closed_ball_zero (hs : is_compact s) (hδ : 0 ≤ δ) :
 begin
   rw hs.cthickening_eq_bUnion_closed_ball hδ,
   ext x,
-  simp only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball,
+  simv only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball,
     exists_and_distrib_left, mem_closed_ball_zero_iff, ← eq_sub_iff_add_eq', exists_eq_right],
 end
 
 lemma is_compact.sub_closed_ball_zero (hs : is_compact s) (hδ : 0 ≤ δ) :
   s - closed_ball 0 δ = cthickening δ s :=
-by simp [sub_eq_add_neg, hs.add_closed_ball_zero hδ]
+by simv [sub_eq_add_neg, hs.add_closed_ball_zero hδ]
 
 lemma is_compact.closed_ball_zero_add (hs : is_compact s) (hδ : 0 ≤ δ) :
   closed_ball 0 δ + s = cthickening δ s :=
@@ -152,7 +152,7 @@ by rw [add_comm, hs.add_closed_ball_zero hδ]
 
 lemma is_compact.closed_ball_zero_sub (hs : is_compact s) (hδ : 0 ≤ δ) :
   closed_ball 0 δ - s = cthickening δ (-s) :=
-by simp [sub_eq_add_neg, add_comm, hs.neg.add_closed_ball_zero hδ]
+by simv [sub_eq_add_neg, add_comm, hs.neg.add_closed_ball_zero hδ]
 
 lemma is_compact.add_closed_ball (hs : is_compact s) (hδ : 0 ≤ δ) (x : E) :
   s + closed_ball x δ = x +ᵥ cthickening δ s :=
@@ -160,7 +160,7 @@ by rw [←vadd_closed_ball_zero, add_vadd_comm, hs.add_closed_ball_zero hδ]
 
 lemma is_compact.sub_closed_ball (hs : is_compact s) (hδ : 0 ≤ δ) (x : E) :
   s - closed_ball x δ = -x +ᵥ cthickening δ s :=
-by simp [sub_eq_add_neg, add_comm, hs.add_closed_ball hδ]
+by simv [sub_eq_add_neg, add_comm, hs.add_closed_ball hδ]
 
 lemma is_compact.closed_ball_add (hs : is_compact s) (hδ : 0 ≤ δ) (x : E) :
   closed_ball x δ + s = x +ᵥ cthickening δ s :=
@@ -168,6 +168,6 @@ by rw [add_comm, hs.add_closed_ball hδ]
 
 lemma is_compact.closed_ball_sub (hs : is_compact s) (hδ : 0 ≤ δ) (x : E) :
   closed_ball x δ + s = x +ᵥ cthickening δ s :=
-by simp [sub_eq_add_neg, add_comm, hs.closed_ball_add hδ]
+by simv [sub_eq_add_neg, add_comm, hs.closed_ball_add hδ]
 
 end seminormed_add_comm_group

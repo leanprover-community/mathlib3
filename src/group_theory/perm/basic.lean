@@ -61,9 +61,9 @@ by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
 | (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
-`equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
+`equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simv lemmas for every combination.
 The assumption made here is that if you're using the group structure, you want to preserve it after
-simp. -/
+simv. -/
 
 @[simp] lemma trans_one {α : Sort*} {β : Type*} (e : α ≃ β) : e.trans (1 : perm β) = e :=
 equiv.trans_refl e
@@ -221,8 +221,8 @@ end extend_domain
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
 ⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
-  λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
-  λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
+  λ _, by simv only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
+  λ _, by simv only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
 
 @[simp] lemma subtype_perm_apply (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x))
   (x : {x // p x}) : subtype_perm f h x = ⟨f x, (h _).1 x.2⟩ := rfl
@@ -237,18 +237,18 @@ def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm
 { to_fun := λ f,
   ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
   λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
-    by { simp only [], split_ifs at *;
-         simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * },
+    by { simv only [], split_ifs at *;
+         simv only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * },
   λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
-    by { simp only [], split_ifs at *;
-         simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * }⟩,
+    by { simv only [], split_ifs at *;
+         simv only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * }⟩,
   map_one' := begin ext, dsimp, split_ifs; refl, end,
   map_mul' := λ f g, equiv.ext $ λ x, begin
   by_cases h : p x,
   { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
     have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
-    simp only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
-  { simp only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
+    simv only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
+  { simv only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
 end }
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
@@ -257,9 +257,9 @@ lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
 equiv.ext $ λ x, begin
   rw [of_subtype, subtype_perm],
   by_cases hx : p x,
-  { simp only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
+  { simv only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
   { haveI := classical.prop_decidable,
-    simp only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff,
+    simv only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff,
       monoid_hom.coe_mk] }
 end
 
@@ -283,12 +283,12 @@ lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
   p x ↔ p ((of_subtype f : α → α) x) :=
 if h : p x then by simpa only [of_subtype, h, coe_fn_mk, dif_pos, true_iff, monoid_hom.coe_mk]
   using (f ⟨x, h⟩).2
-else by simp [h, of_subtype_apply_of_not_mem f h]
+else by simv [h, of_subtype_apply_of_not_mem f h]
 
 @[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
 equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
-  simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
+  simv only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
 @[simp] lemma default_perm {n : Type*} : (default : perm n) = 1 := rfl
 
@@ -349,9 +349,9 @@ variables [decidable_eq α]
 
 lemma swap_mul_eq_mul_swap (f : perm α) (x y : α) : swap x y * f = f * swap (f⁻¹ x) (f⁻¹ y) :=
 equiv.ext $ λ z, begin
-  simp only [perm.mul_apply, swap_apply_def],
+  simv only [perm.mul_apply, swap_apply_def],
   split_ifs;
-  simp only [perm.apply_inv_self, *, perm.eq_inv_iff_eq, eq_self_iff_true, not_true] at *
+  simv only [perm.apply_inv_self, *, perm.eq_inv_iff_eq, eq_self_iff_true, not_true] at *
 end
 
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
@@ -401,7 +401,7 @@ lemma mul_swap_eq_iff {i j : α} {σ : perm α} : σ * swap i j = σ ↔ i = j :
 
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
-equiv.ext $ λ n, by { simp only [swap_apply_def, perm.mul_apply], split_ifs; cc }
+equiv.ext $ λ n, by { simv only [swap_apply_def, perm.mul_apply], split_ifs; cc }
 
 end swap
 

@@ -35,18 +35,18 @@ def evaluation_left_adjoint (c : C) : D ⥤ C ⥤ D :=
   { obj := λ t, ∐ (λ i : c ⟶ t, d),
     map := λ u v f, sigma.desc $ λ g, sigma.ι (λ _, d) $ g ≫ f,
     map_id' := begin
-      intros, ext ⟨j⟩, simp only [cofan.mk_ι_app, colimit.ι_desc, category.comp_id],
+      intros, ext ⟨j⟩, simv only [cofan.mk_ι_app, colimit.ι_desc, category.comp_id],
       congr' 1, rw category.comp_id,
     end,
     map_comp' := begin
-      intros, ext, simp only [cofan.mk_ι_app, colimit.ι_desc_assoc, colimit.ι_desc],
+      intros, ext, simv only [cofan.mk_ι_app, colimit.ι_desc_assoc, colimit.ι_desc],
       congr' 1, rw category.assoc,
     end },
   map := λ d₁ d₂ f,
   { app := λ e, sigma.desc $ λ h, f ≫ sigma.ι (λ _, d₂) h,
-    naturality' := by { intros, ext, dsimp, simp } },
-  map_id' := by { intros, ext x ⟨j⟩, dsimp, simp },
-  map_comp' := by { intros, ext, dsimp, simp } }
+    naturality' := by { intros, ext, dsimp, simv } },
+  map_id' := by { intros, ext x ⟨j⟩, dsimp, simv },
+  map_comp' := by { intros, ext, dsimp, simv } }
 
 /-- The adjunction showing that evaluation is a right adjoint. -/
 @[simps unit_app counit_app_app]
@@ -57,19 +57,19 @@ adjunction.mk_of_hom_equiv
   { to_fun := λ f, sigma.ι (λ _, d) (𝟙 _) ≫ f.app c,
     inv_fun := λ f,
     { app := λ e, sigma.desc $ λ h, f ≫ F.map h,
-      naturality' := by { intros, ext, dsimp, simp } },
+      naturality' := by { intros, ext, dsimp, simv } },
     left_inv := begin
       intros f,
       ext x ⟨g⟩,
       dsimp,
-      simp only [colimit.ι_desc, limits.cofan.mk_ι_app, category.assoc, ← f.naturality,
+      simv only [colimit.ι_desc, limits.cofan.mk_ι_app, category.assoc, ← f.naturality,
         evaluation_left_adjoint_obj_map, colimit.ι_desc_assoc, cofan.mk_ι_app],
       congr' 2,
       rw category.id_comp
     end,
-    right_inv := λ f, by { dsimp, simp } },
-  hom_equiv_naturality_left_symm' := by { intros, ext, dsimp, simp },
-  hom_equiv_naturality_right' := by { intros, dsimp, simp } }
+    right_inv := λ f, by { dsimp, simv } },
+  hom_equiv_naturality_left_symm' := by { intros, ext, dsimp, simv },
+  hom_equiv_naturality_right' := by { intros, dsimp, simv } }
 
 instance evaluation_is_right_adjoint (c : C) :
   is_right_adjoint ((evaluation _ D).obj c) :=
@@ -99,19 +99,19 @@ def evaluation_right_adjoint (c : C) : D ⥤ C ⥤ D :=
     map := λ u v f, pi.lift $ λ g, pi.π _ $ f ≫ g,
     map_id' := begin
       intros, ext ⟨j⟩, dsimp,
-      simp only [limit.lift_π, category.id_comp, fan.mk_π_app],
-      congr, simp,
+      simv only [limit.lift_π, category.id_comp, fan.mk_π_app],
+      congr, simv,
     end,
     map_comp' := begin
       intros, ext ⟨j⟩, dsimp,
-      simp only [limit.lift_π, fan.mk_π_app, category.assoc],
-      congr' 1, simp,
+      simv only [limit.lift_π, fan.mk_π_app, category.assoc],
+      congr' 1, simv,
     end },
   map := λ d₁ d₂ f,
   { app := λ t, pi.lift $ λ g, pi.π _ g ≫ f,
-    naturality' := by { intros, ext, dsimp, simp } },
-  map_id' := by { intros, ext x ⟨j⟩, dsimp, simp },
-  map_comp' := by { intros, ext, dsimp, simp } }
+    naturality' := by { intros, ext, dsimp, simv } },
+  map_id' := by { intros, ext x ⟨j⟩, dsimp, simv },
+  map_comp' := by { intros, ext, dsimp, simv } }
 
 /-- The adjunction showing that evaluation is a left adjoint. -/
 @[simps unit_app_app counit_app]
@@ -121,20 +121,20 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ F d,
   { to_fun := λ f,
     { app := λ t, pi.lift $ λ g, F.map g ≫ f,
-      naturality' := by { intros, ext, dsimp, simp } },
+      naturality' := by { intros, ext, dsimp, simv } },
     inv_fun := λ f, f.app _ ≫ pi.π _ (𝟙 _),
-    left_inv := λ f, by { dsimp, simp },
+    left_inv := λ f, by { dsimp, simv },
     right_inv := begin
       intros f,
       ext x ⟨g⟩,
       dsimp,
-      simp only [limit.lift_π, evaluation_right_adjoint_obj_map,
+      simv only [limit.lift_π, evaluation_right_adjoint_obj_map,
         nat_trans.naturality_assoc, fan.mk_π_app],
       congr,
       rw category.comp_id
     end },
-  hom_equiv_naturality_left_symm' := by { intros, dsimp, simp },
-  hom_equiv_naturality_right' := by { intros, ext, dsimp, simp } }
+  hom_equiv_naturality_left_symm' := by { intros, dsimp, simv },
+  hom_equiv_naturality_right' := by { intros, ext, dsimp, simv } }
 
 instance evaluation_is_left_adjoint (c : C) :
   is_left_adjoint ((evaluation _ D).obj c) :=

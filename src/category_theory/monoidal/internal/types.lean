@@ -47,9 +47,9 @@ def inverse : Mon.{u} ⥤ Mon_ (Type u) :=
   { X := A,
     one := λ _, 1,
     mul := λ p, p.1 * p.2,
-    one_mul'   := by { ext ⟨_, _⟩, dsimp, simp, },
-    mul_one'   := by { ext ⟨_, _⟩, dsimp, simp, },
-    mul_assoc' := by { ext ⟨⟨x, y⟩, z⟩, simp [mul_assoc], }, },
+    one_mul'   := by { ext ⟨_, _⟩, dsimp, simv, },
+    mul_one'   := by { ext ⟨_, _⟩, dsimp, simv, },
+    mul_assoc' := by { ext ⟨⟨x, y⟩, z⟩, simv [mul_assoc], }, },
   map := λ A B f,
   { hom := f, }, }
 

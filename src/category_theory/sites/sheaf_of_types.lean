@@ -184,7 +184,7 @@ lemma family_of_elements.compatible.sieve_extend {x : family_of_elements P R} (h
 begin
   intros _ _ _ _ _ _ _ h₁ h₂ comm,
   iterate 2 { erw ← functor_to_types.map_comp_apply, rw ← op_comp }, apply hx,
-  simp [comm, h₁.some_spec.some_spec.some_spec.2, h₂.some_spec.some_spec.some_spec.2],
+  simv [comm, h₁.some_spec.some_spec.some_spec.2, h₂.some_spec.some_spec.some_spec.2],
 end
 
 /-- The extension of a family agrees with the original family. -/
@@ -194,7 +194,7 @@ begin
   have h := (le_generate R Y hf).some_spec,
   unfold family_of_elements.sieve_extend,
   rw t h.some (𝟙 _) _ hf _,
-  { simp }, { rw id_comp, exact h.some_spec.some_spec.2 },
+  { simv }, { rw id_comp, exact h.some_spec.some_spec.2 },
 end
 
 /-- The restriction of an extension is the original. -/
@@ -285,7 +285,7 @@ lemma family_of_elements.compatible.functor_pullback (h : x.compatible) :
   (x.functor_pullback F).compatible :=
 begin
   intros Z₁ Z₂ W g₁ g₂ f₁ f₂ h₁ h₂ eq,
-  exact h (F.map g₁) (F.map g₂) h₁ h₂ (by simp only [← F.map_comp, eq])
+  exact h (F.map g₁) (F.map g₂) h₁ h₂ (by simv only [← F.map_comp, eq])
 end
 
 end functor_pullback
@@ -313,11 +313,11 @@ def family_of_elements.pullback (f : Y ⟶ X)  (x : family_of_elements P S) :
 lemma family_of_elements.compatible.pullback (f : Y ⟶ X) {x : family_of_elements P S}
   (h : x.compatible) : (x.pullback f).compatible :=
 begin
-  simp only [compatible_iff_sieve_compatible] at h ⊢,
+  simv only [compatible_iff_sieve_compatible] at h ⊢,
   intros W Z f₁ f₂ hf,
   unfold family_of_elements.pullback,
   rw ← (h (f₁ ≫ f) f₂ hf),
-  simp only [assoc],
+  simv only [assoc],
 end
 
 end pullback
@@ -365,7 +365,7 @@ begin
   intros Y g hg,
   dsimp [family_of_elements.comp_presheaf_map],
   change (f.app _ ≫ Q.map _) _ = _,
-  simp [← f.naturality, h g hg],
+  simv [← f.naturality, h g hg],
 end
 
 lemma is_compatible_of_exists_amalgamation (x : family_of_elements P R)
@@ -374,7 +374,7 @@ begin
   cases h with t ht,
   intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ comm,
   rw [←ht _ h₁, ←ht _ h₂, ←functor_to_types.map_comp_apply, ←op_comp, comm],
-  simp,
+  simv,
 end
 
 lemma is_amalgamation_restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂)
@@ -418,9 +418,9 @@ end
 lemma is_separated_for_top (P : Cᵒᵖ ⥤ Type w) : is_separated_for P (⊤ : presieve X) :=
 λ x t₁ t₂ h₁ h₂,
 begin
-  have q₁ := h₁ (𝟙 X) (by simp),
-  have q₂ := h₂ (𝟙 X) (by simp),
-  simp only [op_id, functor_to_types.map_id_apply] at q₁ q₂,
+  have q₁ := h₁ (𝟙 X) (by simv),
+  have q₂ := h₂ (𝟙 X) (by simv),
+  simv only [op_id, functor_to_types.map_id_apply] at q₁ q₂,
   rw [q₁, q₂],
 end
 
@@ -499,14 +499,14 @@ begin
   { rintro rfl Y f hf,
     rw yoneda_equiv_naturality,
     dsimp,
-    simp },  -- See note [dsimp, simp].
+    simv },  -- See note [dsimp, simv].
   { intro h,
     ext Y ⟨f, hf⟩,
     have : _ = x.app Y _ := h f hf,
     rw yoneda_equiv_naturality at this,
     rw ← this,
     dsimp,
-    simp }, -- See note [dsimp, simp].
+    simv }, -- See note [dsimp, simv].
 end
 
 /--
@@ -524,7 +524,7 @@ begin
   apply ball_congr,
   intros x hx,
   rw equiv.exists_unique_congr_left _,
-  simp,
+  simv,
 end
 
 /--
@@ -551,7 +551,7 @@ that the triangle below commutes, provided `P` is a sheaf for `S`
    yX
 
 -/
-@[simp, reassoc]
+@[simv, reassoc]
 lemma is_sheaf_for.functor_inclusion_comp_extend {P : Cᵒᵖ ⥤ Type v₁} (h : is_sheaf_for P S)
   (f : S.functor ⟶ P) : S.functor_inclusion ≫ h.extend f = f :=
 (is_sheaf_for_iff_yoneda_sheaf_condition.1 h f).exists.some_spec
@@ -650,7 +650,7 @@ begin
   intros x hx,
   refine ⟨x _ (presieve.singleton_self _), _, _⟩,
   { rintro _ _ ⟨rfl, rfl⟩,
-    simp },
+    simv },
   { intros t ht,
     simpa using ht _ (presieve.singleton_self _) }
 end
@@ -682,10 +682,10 @@ begin
   fsplit,
   { convert family_of_elements.is_amalgamation.comp_presheaf_map i.hom ht1,
     dsimp [x'],
-    simp },
+    simv },
   { intros y hy,
-    rw (show y = (i.inv.app (op X) ≫ i.hom.app (op X)) y, by simp),
-    simp [ ht2 (i.inv.app _ y) (family_of_elements.is_amalgamation.comp_presheaf_map i.inv hy)] }
+    rw (show y = (i.inv.app (op X) ≫ i.hom.app (op X)) y, by simv),
+    simv [ ht2 (i.inv.app _ y) (family_of_elements.is_amalgamation.comp_presheaf_map i.inv hy)] }
 end
 
 /--
@@ -717,7 +717,7 @@ begin
     rw [←functor_to_types.map_comp_apply, ←op_comp,
         hS.valid_glue (hx.restrict h) _ hf, family_of_elements.restrict,
         ←hx (𝟙 _) f _ _ (id_comp _)],
-    simp },
+    simv },
 end
 
 /--
@@ -786,7 +786,7 @@ end
 
 /-- Any presheaf is a sheaf for the bottom (trivial) grothendieck topology. -/
 lemma is_sheaf_bot : is_sheaf (⊥ : grothendieck_topology C) P :=
-λ X, by simp [is_sheaf_for_top_sieve]
+λ X, by simv [is_sheaf_for_top_sieve]
 
 end presieve
 
@@ -857,7 +857,7 @@ lemma w : fork_map P S ≫ first_map P S = fork_map P S ≫ second_map P S :=
 begin
   apply limit.hom_ext,
   rintro ⟨Y, Z, g, f, hf⟩,
-  simp [first_map, second_map, fork_map],
+  simv [first_map, second_map, fork_map],
 end
 
 /--
@@ -884,7 +884,7 @@ begin
   rw [types.type_equalizer_iff_unique,
       ← equiv.forall_congr_left (first_obj_eq_family P S).to_equiv.symm],
   simp_rw ← compatible_iff,
-  simp only [inv_hom_id_apply, iso.to_equiv_symm_fun],
+  simv only [inv_hom_id_apply, iso.to_equiv_symm_fun],
   apply ball_congr,
   intros x tx,
   apply exists_unique_congr,
@@ -897,7 +897,7 @@ begin
     simpa [first_obj_eq_family, fork_map] using q _ _ },
   { intros q Y f hf,
     rw ← q,
-    simp [first_obj_eq_family, fork_map] }
+    simv [first_obj_eq_family, fork_map] }
 end
 
 end sieve
@@ -932,11 +932,11 @@ lemma w : fork_map P R ≫ first_map P R = fork_map P R ≫ second_map P R :=
 begin
   apply limit.hom_ext,
   rintro ⟨⟨Y, f, hf⟩, ⟨Z, g, hg⟩⟩,
-  simp only [first_map, second_map, fork_map],
-  simp only [limit.lift_π, limit.lift_π_assoc, assoc, fan.mk_π_app, subtype.coe_mk,
+  simv only [first_map, second_map, fork_map],
+  simv only [limit.lift_π, limit.lift_π_assoc, assoc, fan.mk_π_app, subtype.coe_mk,
              subtype.val_eq_coe],
   rw [← P.map_comp, ← op_comp, pullback.condition],
-  simp,
+  simv,
 end
 
 /--
@@ -977,7 +977,7 @@ begin
     simpa [fork_map] using q _ _ },
   { intros q Y f hf,
     rw ← q,
-    simp [fork_map] }
+    simv [fork_map] }
 end
 
 end presieve

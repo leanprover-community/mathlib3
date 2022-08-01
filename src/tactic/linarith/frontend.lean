@@ -284,7 +284,7 @@ Config options:
 * `linarith {exfalso := ff}` will fail on a goal that is neither an inequality nor `false`
 * `linarith {restrict_type := T}` will run only on hypotheses that are inequalities over `T`
 * `linarith {discharger := tac}` will use `tac` instead of `ring` for normalization.
-  Options: `ring2`, `ring SOP`, `simp`
+  Options: `ring2`, `ring SOP`, `simv`
 * `linarith {split_hypotheses := ff}` will not destruct conjunctions in the context.
 -/
 meta def tactic.interactive.linarith (red : parse ((tk "!")?))
@@ -328,7 +328,7 @@ This can sometimes be expensive.
 `linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with five
 optional arguments:
 * `discharger` specifies a tactic to be used for reducing an algebraic equation in the
-  proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
+  proof stage. The default is `ring`. Other options currently include `ring SOP` or `simv` for basic
   problems.
 * `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
   if you have e.g. both integer and rational valued inequalities in the local context, which can

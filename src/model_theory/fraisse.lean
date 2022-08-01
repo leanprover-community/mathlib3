@@ -153,7 +153,7 @@ begin
     (λ s, ⟦⟨closure L s, infer_instance⟩⟧)),
   rw forall_quotient_iff,
   intro N,
-  simp only [subset_univ, and_true, mem_image, mem_set_of_eq, quotient.eq],
+  simv only [subset_univ, and_true, mem_image, mem_set_of_eq, quotient.eq],
   split,
   { rintro ⟨s, hs1, hs2⟩,
     use bundled.of ↥(closure L s),
@@ -172,7 +172,7 @@ end
 begin
   classical,
   ext M,
-  simp only [mem_Union],
+  simv only [mem_Union],
   split,
   { rintro ⟨Mfg, ⟨e⟩⟩,
     obtain ⟨s, hs⟩ := Mfg.range e.to_hom,
@@ -201,7 +201,7 @@ theorem exists_cg_is_age_of (hn : K.nonempty)
   ∃ (M : bundled.{w} L.Structure), Structure.cg L M ∧ L.age M = K :=
 begin
   obtain ⟨F, hF⟩ := hc.exists_eq_range (hn.image _),
-  simp only [set.ext_iff, forall_quotient_iff, mem_image, mem_range, quotient.eq] at hF,
+  simv only [set.ext_iff, forall_quotient_iff, mem_image, mem_range, quotient.eq] at hF,
   simp_rw [quotient.eq_mk_iff_out] at hF,
   have hF' : ∀ n : ℕ, (F n).out ∈ K,
   { intro n,
@@ -273,9 +273,9 @@ begin
     ⟨(fg_iff_Structure_fg _).1 (fg.sup (Pfg.range _) (Qfg.range _)), ⟨substructure.subtype _⟩⟩, _⟩,
   ext n,
   have hgn := (embedding.ext_iff.1 hg) ((PM.comp NP).equiv_range n),
-  simp only [embedding.comp_apply, equiv.coe_to_embedding, equiv.symm_apply_apply,
+  simv only [embedding.comp_apply, equiv.coe_to_embedding, equiv.symm_apply_apply,
     substructure.coe_subtype, embedding.equiv_range_apply] at hgn,
-  simp only [embedding.comp_apply, equiv.coe_to_embedding, substructure.coe_inclusion,
+  simv only [embedding.comp_apply, equiv.coe_to_embedding, substructure.coe_inclusion,
     set.coe_inclusion, embedding.equiv_range_apply, hgn],
 end
 

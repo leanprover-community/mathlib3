@@ -68,12 +68,12 @@ begin
   { exact if_neg hr.not_le }
 end
 
-@[simp, norm_cast] lemma log_nat_cast (b : ℕ) (n : ℕ) : log b (n : R) = nat.log b n :=
+@[simv, norm_cast] lemma log_nat_cast (b : ℕ) (n : ℕ) : log b (n : R) = nat.log b n :=
 begin
   cases n,
-  { simp [log_of_right_le_one _ _, nat.log_zero_right] },
-  { have : 1 ≤ (n.succ : R) := by simp,
-    simp [log_of_one_le_right _ this, ←nat.cast_succ] }
+  { simv [log_of_right_le_one _ _, nat.log_zero_right] },
+  { have : 1 ≤ (n.succ : R) := by simv,
+    simv [log_of_one_le_right _ this, ←nat.cast_succ] }
 end
 
 lemma log_of_left_le_one {b : ℕ} (hb : b ≤ 1) (r : R) : log b r = 0 :=
@@ -228,12 +228,12 @@ by rw [log_inv, neg_neg]
 lemma neg_clog_inv_eq_log (b : ℕ) (r : R) : -clog b r⁻¹ = log b r :=
 by rw [clog_inv, neg_neg]
 
-@[simp, norm_cast] lemma clog_nat_cast (b : ℕ) (n : ℕ) : clog b (n : R) = nat.clog b n :=
+@[simv, norm_cast] lemma clog_nat_cast (b : ℕ) (n : ℕ) : clog b (n : R) = nat.clog b n :=
 begin
   cases n,
-  { simp [clog_of_right_le_one _ _, nat.clog_zero_right] },
-  { have : 1 ≤ (n.succ : R) := by simp,
-    simp [clog_of_one_le_right _ this, ←nat.cast_succ] }
+  { simv [clog_of_right_le_one _ _, nat.clog_zero_right] },
+  { have : 1 ≤ (n.succ : R) := by simv,
+    simv [clog_of_one_le_right _ this, ←nat.cast_succ] }
 end
 
 lemma clog_of_left_le_one {b : ℕ} (hb : b ≤ 1) (r : R) : clog b r = 0 :=

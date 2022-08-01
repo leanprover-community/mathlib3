@@ -45,7 +45,7 @@ variables {x y : ℝ≥0}
 order_iso.symm $ strict_mono.order_iso_of_surjective (λ x, x * x)
   (λ x y h, mul_self_lt_mul_self x.2 h) $
   (continuous_id.mul continuous_id).surjective tendsto_mul_self_at_top $
-    by simp [order_bot.at_bot_eq]
+    by simv [order_bot.at_bot_eq]
 
 lemma sqrt_le_sqrt_iff : sqrt x ≤ sqrt y ↔ x ≤ y :=
 sqrt.le_iff_le
@@ -136,7 +136,7 @@ nnreal.sqrt (real.to_nnreal x)
 
 variables {x y : ℝ}
 
-@[simp, norm_cast] lemma coe_sqrt {x : ℝ≥0} : (nnreal.sqrt x : ℝ) = real.sqrt x :=
+@[simv, norm_cast] lemma coe_sqrt {x : ℝ≥0} : (nnreal.sqrt x : ℝ) = real.sqrt x :=
 by rw [real.sqrt, real.to_nnreal_coe]
 
 @[continuity]
@@ -144,7 +144,7 @@ lemma continuous_sqrt : continuous sqrt :=
 nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp continuous_real_to_nnreal
 
 theorem sqrt_eq_zero_of_nonpos (h : x ≤ 0) : sqrt x = 0 :=
-by simp [sqrt, real.to_nnreal_eq_zero.2 h]
+by simv [sqrt, real.to_nnreal_eq_zero.2 h]
 
 theorem sqrt_nonneg (x : ℝ) : 0 ≤ sqrt x := nnreal.coe_nonneg _
 
@@ -171,7 +171,7 @@ theorem sqrt_eq_iff_mul_self_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
 
 theorem sqrt_eq_iff_mul_self_eq_of_pos (h : 0 < y) :
   sqrt x = y ↔ y * y = x :=
-by simp [sqrt_eq_cases, h.ne', h.le]
+by simv [sqrt_eq_cases, h.ne', h.le]
 
 @[simp] lemma sqrt_eq_one : sqrt x = 1 ↔ x = 1 :=
 calc sqrt x = 1 ↔ 1 * 1 = x :
@@ -194,9 +194,9 @@ by rw [← abs_mul_abs_self x, sqrt_mul_self (abs_nonneg _)]
 theorem sqrt_sq_eq_abs (x : ℝ) : sqrt (x ^ 2) = |x| :=
 by rw [sq, sqrt_mul_self_eq_abs]
 
-@[simp] theorem sqrt_zero : sqrt 0 = 0 := by simp [sqrt]
+@[simp] theorem sqrt_zero : sqrt 0 = 0 := by simv [sqrt]
 
-@[simp] theorem sqrt_one : sqrt 1 = 1 := by simp [sqrt]
+@[simp] theorem sqrt_one : sqrt 1 = 1 := by simv [sqrt]
 
 @[simp] theorem sqrt_le_sqrt_iff (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
 by rw [sqrt, sqrt, nnreal.coe_le_coe, nnreal.sqrt_le_sqrt_iff, real.to_nnreal_le_to_nnreal_iff hy]
@@ -254,7 +254,7 @@ theorem le_sqrt_of_sq_le (h : x^2 ≤ y) : x ≤ sqrt y :=
 ((sq_le ((sq_nonneg x).trans h)).mp h).2
 
 @[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
-by simp [le_antisymm_iff, hx, hy]
+by simv [le_antisymm_iff, hx, hy]
 
 @[simp] theorem sqrt_eq_zero (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
 by simpa using sqrt_inj h le_rfl
@@ -270,7 +270,7 @@ by rw [← not_le, not_iff_not, sqrt_eq_zero']
 
 @[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le (iff.trans
-  (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
+  (by simv [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
 
 alias sqrt_pos ↔ _ sqrt_pos_of_pos
 
@@ -341,7 +341,7 @@ lemma real_sqrt_le_nat_sqrt_succ {a : ℕ} : real.sqrt ↑a ≤ nat.sqrt a + 1 :
 begin
   rw real.sqrt_le_iff,
   split,
-  { norm_cast, simp, },
+  { norm_cast, simv, },
   { norm_cast, exact le_of_lt (nat.lt_succ_sqrt' a), },
 end
 

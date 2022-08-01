@@ -99,7 +99,7 @@ begin
   rw h_comm.add_pow',
   apply finset.sum_eq_zero,
   rintros ⟨i, j⟩ hij,
-  suffices : x^i * y^j = 0, { simp only [this, nsmul_eq_mul, mul_zero], },
+  suffices : x^i * y^j = 0, { simv only [this, nsmul_eq_mul, mul_zero], },
   cases nat.le_or_le_of_add_eq_add_pred (finset.nat.mem_antidiagonal.mp hij) with hi hj,
   { rw [pow_eq_zero_of_le hi hn, zero_mul], },
   { rw [pow_eq_zero_of_le hj hm, mul_zero], },
@@ -167,7 +167,7 @@ variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
   is_nilpotent (lmul_left R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
+  simv only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
   exact hn,
 end
 
@@ -175,7 +175,7 @@ end
   is_nilpotent (lmul_right R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
+  simv only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
   exact hn,
 end
 
@@ -190,7 +190,7 @@ lemma is_nilpotent.mapq (hnp : is_nilpotent f) : is_nilpotent (p.mapq p f hp) :=
 begin
   obtain ⟨k, hk⟩ := hnp,
   use k,
-  simp [← p.mapq_pow, hk],
+  simv [← p.mapq_pow, hk],
 end
 
 end module.End

@@ -95,7 +95,7 @@ instance is_filtered_or_empty_of_directed_le (α : Type u) [preorder α] [is_dir
   is_filtered_or_empty α :=
 { cocone_objs := λ X Y, let ⟨Z, h1, h2⟩ := exists_ge_ge X Y in
     ⟨Z, hom_of_le h1, hom_of_le h2, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, by simp⟩ }
+  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, by simv⟩ }
 
 @[priority 100]
 instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_directed α (≤)]
@@ -153,7 +153,7 @@ noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 `coeq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
 `f ≫ coeq_hom f f' = f' ≫ coeq_hom f f'`.
 -/
-@[simp, reassoc]
+@[simv, reassoc]
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
 
@@ -248,16 +248,16 @@ begin
   let O := (finset.univ.image F.obj),
   let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
     finset.univ.bUnion (λ X : J, finset.univ.bUnion (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
-      ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
+      ⟨F.obj X, F.obj Y, by simv, by simv, F.map f⟩))),
   obtain ⟨Z, f, w⟩ := sup_exists O H,
-  refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
+  refine ⟨⟨Z, ⟨λ X, f (by simv), _⟩⟩⟩,
   intros j j' g,
   dsimp,
-  simp only [category.comp_id],
+  simv only [category.comp_id],
   apply w,
-  simp only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
+  simv only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
     exists_prop_of_true, finset.mem_image],
-  exact ⟨j, rfl, j', g, (by simp)⟩,
+  exact ⟨j, rfl, j', g, (by simv)⟩,
 end
 
 /--
@@ -341,7 +341,7 @@ lemma coeq₃_condition₁ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
 begin
   dsimp [coeq₃_hom],
   slice_lhs 1 2 { rw coeq_condition f g },
-  simp only [category.assoc],
+  simv only [category.assoc],
 end
 
 lemma coeq₃_condition₂ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
@@ -351,7 +351,7 @@ begin
   slice_lhs 2 4 { rw [← category.assoc, coeq_condition _ _] },
   slice_rhs 2 4 { rw [← category.assoc, coeq_condition _ _] },
   slice_lhs 1 3 { rw [← category.assoc, coeq_condition _ _] },
-  simp only [category.assoc],
+  simv only [category.assoc],
 end
 
 lemma coeq₃_condition₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
@@ -390,10 +390,10 @@ begin
   fsplit,
   { slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
     slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
-    simp only [category.assoc], },
+    simv only [category.assoc], },
   { slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
     slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
-    simp only [category.assoc], }
+    simv only [category.assoc], }
 end
 
 /--
@@ -433,15 +433,15 @@ begin
   fsplit,
   slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
   slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
-  simp only [category.assoc],
+  simv only [category.assoc],
   fsplit,
   slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
   slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
   slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂] },
-  simp only [category.assoc],
+  simv only [category.assoc],
   slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂] },
   slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition] },
-  simp only [category.assoc],
+  simv only [category.assoc],
 end
 
 end special_shapes
@@ -486,7 +486,7 @@ instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
   is_cofiltered_or_empty α :=
 { cocone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
     ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
+  cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simv⟩ }
 
 @[priority 100]
 instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (≥)]
@@ -544,7 +544,7 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 `eq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
 `eq_hom f f' ≫ f = eq_hom f f' ≫ f'`.
 -/
-@[simp, reassoc]
+@[simv, reassoc]
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (is_cofiltered_or_empty.cocone_maps f f').some_spec.some_spec
 
@@ -639,17 +639,17 @@ begin
   let O := (finset.univ.image F.obj),
   let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
     finset.univ.bUnion (λ X : J, finset.univ.bUnion (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
-      ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
+      ⟨F.obj X, F.obj Y, by simv, by simv, F.map f⟩))),
   obtain ⟨Z, f, w⟩ := inf_exists O H,
-  refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
+  refine ⟨⟨Z, ⟨λ X, f (by simv), _⟩⟩⟩,
   intros j j' g,
   dsimp,
-  simp only [category.id_comp],
+  simv only [category.id_comp],
   symmetry,
   apply w,
-  simp only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
+  simv only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
     exists_prop_of_true, finset.mem_image],
-  exact ⟨j, rfl, j', g, (by simp)⟩,
+  exact ⟨j, rfl, j', g, (by simv)⟩,
 end
 
 /--
@@ -692,7 +692,7 @@ instance is_cofiltered_op_of_is_filtered [is_filtered C] : is_cofiltered Cᵒᵖ
     (is_filtered.left_to_max _ _).op, (is_filtered.right_to_max _ _).op, trivial⟩,
   cocone_maps := λ X Y f g, ⟨op (is_filtered.coeq f.unop g.unop),
     (is_filtered.coeq_hom _ _).op, begin
-      rw [(show f = f.unop.op, by simp), (show g = g.unop.op, by simp),
+      rw [(show f = f.unop.op, by simv), (show g = g.unop.op, by simv),
         ← op_comp, ← op_comp],
       congr' 1,
       exact is_filtered.coeq_condition f.unop g.unop,
@@ -705,7 +705,7 @@ instance is_filtered_op_of_is_cofiltered [is_cofiltered C] : is_filtered Cᵒᵖ
     (is_cofiltered.min_to_right X.unop Y.unop).op, trivial⟩,
   cocone_maps := λ X Y f g, ⟨op (is_cofiltered.eq f.unop g.unop),
     (is_cofiltered.eq_hom f.unop g.unop).op, begin
-      rw [(show f = f.unop.op, by simp), (show g = g.unop.op, by simp),
+      rw [(show f = f.unop.op, by simv), (show g = g.unop.op, by simv),
         ← op_comp, ← op_comp],
       congr' 1,
       exact is_cofiltered.eq_condition f.unop g.unop,

@@ -136,7 +136,7 @@ end unif_integrable
 
 lemma unif_integrable_zero_meas [measurable_space α] {p : ℝ≥0∞} {f : ι → α → β} :
   unif_integrable f p (0 : measure α) :=
-λ ε hε, ⟨1, one_pos, λ i s hs hμs, by simp⟩
+λ ε hε, ⟨1, one_pos, λ i s hs hμs, by simv⟩
 
 lemma unif_integrable_congr_ae {p : ℝ≥0∞} {f g : ι → α → β} (hfg : ∀ n, f n =ᵐ[μ] g n) :
   unif_integrable f p μ ↔ unif_integrable g p μ :=
@@ -147,7 +147,7 @@ lemma tendsto_indicator_ge (f : α → β) (x : α):
 begin
   refine @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ (nat.ceil (∥f x∥₊ : ℝ) + 1) (λ n hn, _),
   rw indicator_of_not_mem,
-  simp only [not_le, mem_set_of_eq],
+  simv only [not_le, mem_set_of_eq],
   refine lt_of_le_of_lt (nat.le_ceil _) _,
   refine lt_of_lt_of_le (lt_add_one _) _,
   norm_cast,
@@ -179,12 +179,12 @@ begin
   have := tendsto_lintegral_norm_of_dominated_convergence hmeas hbound _ htendsto,
   { rw ennreal.tendsto_at_top_zero at this,
     obtain ⟨M, hM⟩ := this (ennreal.of_real ε) (ennreal.of_real_pos.2 hε),
-    simp only [true_and, ge_iff_le, zero_tsub, zero_le,
+    simv only [true_and, ge_iff_le, zero_tsub, zero_le,
               sub_zero, zero_add, coe_nnnorm, mem_Icc] at hM,
     refine ⟨M, _⟩,
     convert hM M le_rfl,
     ext1 x,
-    simp only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
+    simv only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
     refl },
   { refine λ n, univ_mem' (id $ λ x, _),
     by_cases hx : (n : ℝ) ≤ ∥f x∥,
@@ -213,7 +213,7 @@ begin
   refine ⟨M, hM_pos, (le_of_eq _).trans hfM⟩,
   refine lintegral_congr_ae _,
   filter_upwards [hf.1.ae_eq_mk] with x hx,
-  simp only [indicator_apply, coe_nnnorm, mem_set_of_eq, ennreal.coe_eq_coe, hx.symm],
+  simv only [indicator_apply, coe_nnnorm, mem_set_of_eq, ennreal.coe_eq_coe, hx.symm],
 end
 
 lemma mem_ℒp.snorm_ess_sup_indicator_norm_ge_eq_zero
@@ -224,7 +224,7 @@ begin
   refine ⟨(snorm f ∞ μ + 1).to_real, _⟩,
   rw snorm_ess_sup_indicator_eq_snorm_ess_sup_restrict,
   have : μ.restrict {x : α | (snorm f ⊤ μ + 1).to_real ≤ ∥f x∥₊} = 0,
-  { simp only [coe_nnnorm, snorm_exponent_top, measure.restrict_eq_zero],
+  { simv only [coe_nnnorm, snorm_exponent_top, measure.restrict_eq_zero],
     have : {x : α | (snorm_ess_sup f μ + 1).to_real ≤ ∥f x∥} ⊆
       {x : α | snorm_ess_sup f μ < ∥f x∥₊},
     { intros x hx,
@@ -251,12 +251,12 @@ lemma mem_ℒp.snorm_indicator_norm_ge_le
 begin
   by_cases hp_ne_zero : p = 0,
   { refine ⟨1, hp_ne_zero.symm ▸ _⟩,
-    simp [snorm_exponent_zero] },
+    simv [snorm_exponent_zero] },
   by_cases hp_ne_top : p = ∞,
   { subst hp_ne_top,
     obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_norm_ge_eq_zero μ hmeas,
     refine ⟨M, _⟩,
-    simp only [snorm_exponent_top, hM, zero_le] },
+    simv only [snorm_exponent_top, hM, zero_le] },
   obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_norm_ge_nonneg_le _ _ _ μ _
     (λ x, ∥f x∥^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) _
     (real.rpow_pos_of_pos hε p.to_real),
@@ -282,7 +282,7 @@ begin
     change _ ≤ _,
     rwa ← hiff },
   { rw [set.indicator_of_not_mem hx, set.indicator_of_not_mem],
-    { simp [(ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm] },
+    { simv [(ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm] },
     { change ¬ _ ≤ _,
       rwa ← hiff } }
 end
@@ -311,14 +311,14 @@ begin
   by_cases hM : M ≤ 0,
   { refine ⟨1, zero_lt_one, λ s hs hμ, _⟩,
     rw (_ : f = 0),
-    { simp [hε.le] },
+    { simv [hε.le] },
     { ext x,
       rw [pi.zero_apply, ← norm_le_zero_iff],
       exact (lt_of_lt_of_le (hf x) hM).le } },
   rw not_le at hM,
   refine ⟨(ε / M) ^ p.to_real, real.rpow_pos_of_pos (div_pos hε hM) _, λ s hs hμ, _⟩,
   by_cases hp : p = 0,
-  { simp [hp] },
+  { simv [hp] },
   rw snorm_indicator_eq_snorm_restrict hs,
   have haebdd : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ M,
   { filter_upwards,
@@ -440,13 +440,13 @@ begin
   by_cases hi : i.val < n,
   { rw (_ : f i = g ⟨i.val, hi⟩),
     { exact hδ₁ _ s hs (le_trans hμs $ ennreal.of_real_le_of_real $ min_le_left _ _) },
-    { rw hg, simp } },
+    { rw hg, simv } },
   { rw (_ : i = n),
     { exact hδ₂ _ hs (le_trans hμs $ ennreal.of_real_le_of_real $ min_le_right _ _) },
     { have hi' := fin.is_lt i,
       rw nat.lt_succ_iff at hi',
       rw not_lt at hi,
-      simp [← le_antisymm hi' hi] } }
+      simv [← le_antisymm hi' hi] } }
 end
 
 /-- A finite sequence of Lp functions is uniformly integrable. -/
@@ -473,14 +473,14 @@ lemma snorm_sub_le_of_dist_bdd
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
 begin
   by_cases hp : p = 0,
-  { simp [hp], },
+  { simv [hp], },
   have : ∀ x, ∥s.indicator (f - g) x∥ ≤ ∥s.indicator (λ x, c) x∥,
   { intro x,
     by_cases hx : x ∈ s,
     { rw [indicator_of_mem hx, indicator_of_mem hx, pi.sub_apply, ← dist_eq_norm,
           real.norm_eq_abs, abs_of_nonneg hc],
       exact hf x hx },
-    { simp [indicator_of_not_mem hx] } },
+    { simv [indicator_of_not_mem hx] } },
   refine le_trans (snorm_mono this) _,
   rw snorm_indicator_const hs hp hp',
   refine ennreal.mul_le_mul (le_of_eq _) le_rfl,
@@ -499,9 +499,9 @@ begin
   intros ε hε,
   by_cases ε < ∞, swap,
   { rw [not_lt, top_le_iff] at h,
-    exact ⟨0, λ n hn, by simp [h]⟩ },
+    exact ⟨0, λ n hn, by simv [h]⟩ },
   by_cases hμ : μ = 0,
-  { exact ⟨0, λ n hn, by simp [hμ]⟩ },
+  { exact ⟨0, λ n hn, by simv [hμ]⟩ },
   have hε' : 0 < ε.to_real / 3 :=
     div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (by norm_num),
   have hdivp : 0 ≤ 1 / p.to_real,
@@ -554,7 +554,7 @@ begin
       exact mul_nonneg hε'.le (one_div_nonneg.2 hpow.le) } },
   have : ennreal.of_real (ε.to_real / 3) = ε / 3,
   { rw [ennreal.of_real_div_of_pos (show (0 : ℝ) < 3, by norm_num), ennreal.of_real_to_real h.ne],
-    simp },
+    simv },
   rw this at hnf hng hlt,
   rw [snorm_neg, ← ennreal.add_thirds ε, ← sub_eq_add_neg],
   exact add_le_add_three hnf hng hlt
@@ -606,7 +606,7 @@ lemma unif_integrable_of_tendsto_Lp
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
   unif_integrable f p μ :=
 begin
-  have : f = (λ n, g) + λ n, f n - g, by { ext1 n, simp, },
+  have : f = (λ n, g) + λ n, f n - g, by { ext1 n, simv, },
   rw this,
   refine unif_integrable.add _ _ hp
     (λ _, hg.ae_strongly_measurable) (λ n, (hf n).1.sub hg.ae_strongly_measurable),
@@ -672,7 +672,7 @@ begin
         (s ∩ {x : α | ∥f i x∥₊ < C}).indicator (f i) x,
       rw ← set.indicator_union_of_disjoint,
       { congr,
-        rw [← inter_union_distrib_left, (by { ext, simp [le_or_lt] } :
+        rw [← inter_union_distrib_left, (by { ext, simv [le_or_lt] } :
           {x : α | C ≤ ∥f i x∥₊} ∪ {x : α | ∥f i x∥₊ < C} = set.univ), inter_univ] },
       { refine (disjoint.inf_right' _ _).inf_left' _,
         rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
@@ -966,12 +966,12 @@ begin
       { refl } },
     simp_rw [this, snorm_const_smul, ← finset.mul_sum, nnnorm_inv, real.nnnorm_coe_nat],
     by_cases hn : (↑(↑n : ℝ≥0)⁻¹ : ℝ≥0∞) = 0,
-    { simp only [hn, zero_mul, zero_le] },
+    { simv only [hn, zero_mul, zero_le] },
     refine le_trans _ (_ : ↑(↑n : ℝ≥0)⁻¹ * (n • ennreal.of_real ε) ≤ ennreal.of_real ε),
     { refine (ennreal.mul_le_mul_left hn ennreal.coe_ne_top).2 _,
       conv_rhs { rw ← finset.card_range n },
       exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hδ₂ _ _ hs hle) },
-    { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
+    { simv only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
       rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
         ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
       { exact le_rfl },
@@ -982,15 +982,15 @@ begin
     have : ∀ i, (λ ω, f i ω * (↑n)⁻¹) = (↑n : ℝ)⁻¹ • λ ω, f i ω,
     { intro i,
       ext ω,
-      simp only [mul_comm, pi.smul_apply, algebra.id.smul_eq_mul] },
+      simv only [mul_comm, pi.smul_apply, algebra.id.smul_eq_mul] },
     simp_rw [this, snorm_const_smul, ← finset.mul_sum, nnnorm_inv, real.nnnorm_coe_nat],
     by_cases hn : (↑(↑n : ℝ≥0)⁻¹ : ℝ≥0∞) = 0,
-    { simp only [hn, zero_mul, zero_le] },
+    { simv only [hn, zero_mul, zero_le] },
     refine le_trans _ (_ : ↑(↑n : ℝ≥0)⁻¹ * (n • C : ℝ≥0∞) ≤ C),
     { refine (ennreal.mul_le_mul_left hn ennreal.coe_ne_top).2 _,
       conv_rhs { rw ← finset.card_range n },
       exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hC i) },
-    { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
+    { simv only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
       rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
         ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
       { exact le_rfl },

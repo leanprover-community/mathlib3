@@ -175,12 +175,12 @@ lemma implicit_function_has_strict_fderiv_at
   has_strict_fderiv_at (φ.implicit_function (φ.left_fun φ.pt)) g'inv (φ.right_fun φ.pt) :=
 begin
   have := φ.has_strict_fderiv_at.to_local_inverse,
-  simp only [prod_fun] at this,
+  simv only [prod_fun] at this,
   convert this.comp (φ.right_fun φ.pt)
     ((has_strict_fderiv_at_const _ _).prod (has_strict_fderiv_at_id _)),
-  simp only [continuous_linear_map.ext_iff, continuous_linear_map.coe_comp', function.comp_app]
+  simv only [continuous_linear_map.ext_iff, continuous_linear_map.coe_comp', function.comp_app]
     at hg'inv hg'invf ⊢,
-  simp [continuous_linear_equiv.eq_symm_apply, *]
+  simv [continuous_linear_equiv.eq_symm_apply, *]
 end
 
 end implicit_function_data
@@ -260,13 +260,13 @@ rfl
   (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤)
   (hker : f'.ker.closed_complemented) (y : f'.ker) :
   hf.implicit_to_local_homeomorph_of_complemented f f' hf' hker (y + a) = (f (y + a), y) :=
-by simp only [implicit_to_local_homeomorph_of_complemented_apply, add_sub_cancel,
+by simv only [implicit_to_local_homeomorph_of_complemented_apply, add_sub_cancel,
   classical.some_spec hker]
 
 @[simp] lemma implicit_to_local_homeomorph_of_complemented_self
   (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   hf.implicit_to_local_homeomorph_of_complemented f f' hf' hker a = (f a, 0) :=
-by simp [hf.implicit_to_local_homeomorph_of_complemented_apply]
+by simv [hf.implicit_to_local_homeomorph_of_complemented_apply]
 
 lemma mem_implicit_to_local_homeomorph_of_complemented_source (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
@@ -312,7 +312,7 @@ lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
     f'.ker.subtypeL 0 :=
 by convert (implicit_function_data_of_complemented f f' hf hf'
   hker).implicit_function_has_strict_fderiv_at f'.ker.subtypeL _ _;
-    [skip, ext, ext]; simp [classical.some_spec hker]
+    [skip, ext, ext]; simv [classical.some_spec hker]
 
 end complemented
 

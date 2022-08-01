@@ -38,9 +38,9 @@ def to_Mon : monad C → Mon_ (C ⥤ C) := λ M,
 { X := (M : C ⥤ C),
   one := M.η,
   mul := M.μ,
-  one_mul' := by { ext, simp }, -- `obviously` provides this, but slowly
-  mul_one' := by { ext, simp }, -- `obviously` provides this, but slowly
-  mul_assoc' := by { ext, dsimp, simp [M.assoc] } }
+  one_mul' := by { ext, simv }, -- `obviously` provides this, but slowly
+  mul_one' := by { ext, simv }, -- `obviously` provides this, but slowly
+  mul_assoc' := by { ext, dsimp, simv [M.assoc] } }
 
 variable (C)
 /-- Passing from `Monad C` to `Mon_ (C ⥤ C)` is functorial. -/
@@ -60,7 +60,7 @@ def of_Mon : Mon_ (C ⥤ C) → monad C := λ M,
   μ' := M.mul,
   left_unit' := λ X, by { rw [←M.one.id_hcomp_app, ←nat_trans.comp_app, M.mul_one], refl },
   right_unit' := λ X, by { rw [←M.one.hcomp_id_app, ←nat_trans.comp_app, M.one_mul], refl },
-  assoc' := λ X, by { rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app], simp } }
+  assoc' := λ X, by { rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app], simv } }
 
 variable (C)
 /-- Passing from `Mon_ (C ⥤ C)` to `Monad C` is functorial. -/
@@ -88,8 +88,8 @@ variable {C}
 def counit_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom := { app := λ _, { hom := 𝟙 _ } },
   inv := { app := λ _, { hom := 𝟙 _ } },
-  hom_inv_id' := by { ext, simp }, -- `obviously` provides these, but slowly
-  inv_hom_id' := by { ext, simp } }
+  hom_inv_id' := by { ext, simv }, -- `obviously` provides these, but slowly
+  inv_hom_id' := by { ext, simv } }
 
 /-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
@@ -106,8 +106,8 @@ def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
 def unit_iso : 𝟭 _ ≅ Monad_to_Mon C ⋙ Mon_to_Monad C :=
 { hom := unit_iso_hom,
   inv := unit_iso_inv,
-  hom_inv_id' := by { ext, simp }, -- `obviously` provides these, but slowly
-  inv_hom_id' := by { ext, simp } }
+  hom_inv_id' := by { ext, simv }, -- `obviously` provides these, but slowly
+  inv_hom_id' := by { ext, simv } }
 
 end Monad_Mon_equiv
 
@@ -120,7 +120,7 @@ def Monad_Mon_equiv : (monad C) ≌ (Mon_ (C ⥤ C)) :=
   inverse := Mon_to_Monad _,
   unit_iso := unit_iso,
   counit_iso := counit_iso,
-  functor_unit_iso_comp' := by { intros X, ext, dsimp, simp } } -- `obviously`, slowly
+  functor_unit_iso_comp' := by { intros X, ext, dsimp, simv } } -- `obviously`, slowly
 
 -- Sanity check
 example (A : monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl

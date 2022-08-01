@@ -77,7 +77,7 @@ noncomputable def to_kernel_subobject {M N : Module R} {f : M ⟶ N} :
 
 @[simp] lemma to_kernel_subobject_arrow {M N : Module R} {f : M ⟶ N} (x : linear_map.ker f) :
   (kernel_subobject f).arrow (to_kernel_subobject x) = x.1 :=
-by simp [to_kernel_subobject]
+by simv [to_kernel_subobject]
 
 /--
 An extensionality lemma showing that two elements of a cokernel by an image
@@ -91,6 +91,6 @@ lemma cokernel_π_image_subobject_ext {L M N : Module.{v} R}
   (f : L ⟶ M) [has_image f] (g : (image_subobject f : Module.{v} R) ⟶ N) [has_cokernel g]
   {x y : N} (l : L) (w : x = y + g (factor_thru_image_subobject f l)) :
   cokernel.π g x = cokernel.π g y :=
-by { subst w, simp, }
+by { subst w, simv, }
 
 end Module

@@ -89,7 +89,7 @@ end
 lemma prod_self_subset {U} (hU : U ∈ nhds (1 : G × G)) :
   ∃ (V : open_subgroup G), (V : set G) ×ˢ (V : set G) ⊆ U :=
 let ⟨V, W, h⟩ := prod_subset hU in
-  ⟨V ⊓ W, by {refine set.subset.trans (set.prod_mono _ _) ‹_›; simp}⟩
+  ⟨V ⊓ W, by {refine set.subset.trans (set.prod_mono _ _) ‹_›; simv}⟩
 
 /-- The cartesian product of two nonarchimedean groups is nonarchimedean. -/
 @[to_additive]
@@ -130,7 +130,7 @@ begin
   use V,
   rintros v ⟨a, b, ha, hb, hv⟩,
   have hy := H (set.mk_mem_prod ha hb),
-  simp only [set.mem_preimage, open_add_subgroup.mem_coe] at hy,
+  simv only [set.mem_preimage, open_add_subgroup.mem_coe] at hy,
   rwa hv at hy
 end
 

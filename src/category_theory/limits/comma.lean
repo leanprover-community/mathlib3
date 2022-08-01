@@ -61,7 +61,7 @@ def cone_of_preserves [preserves_limit (F ⋙ snd L R) R]
     { left := c₁.π.app j,
       right := c₂.π.app j,
       w' := ((is_limit_of_preserves R t₂).fac (limit_auxiliary_cone F c₁) j).symm },
-    naturality' := λ j₁ j₂ t, by ext; dsimp; simp [←c₁.w t, ←c₂.w t] } }
+    naturality' := λ j₁ j₂ t, by ext; dsimp; simv [←c₁.w t, ←c₂.w t] } }
 
 /-- Provided that `R` preserves the appropriate limit, then the cone in `cone_of_preserves` is a
 limit. -/
@@ -80,8 +80,8 @@ def cone_of_preserves_is_limit [preserves_limit (F ⋙ snd L R) R]
       exact (s.π.app j).w,
     end },
   uniq' := λ s m w, comma_morphism.ext _ _
-      (t₁.uniq ((fst L R).map_cone s) _ (λ j, by simp [←w]))
-      (t₂.uniq ((snd L R).map_cone s) _ (λ j, by simp [←w])) }
+      (t₁.uniq ((fst L R).map_cone s) _ (λ j, by simv [←w]))
+      (t₂.uniq ((snd L R).map_cone s) _ (λ j, by simv [←w])) }
 
 /-- (Implementation). An auxiliary cocone which is useful in order to construct colimits
 in the comma category. -/
@@ -108,7 +108,7 @@ def cocone_of_preserves [preserves_colimit (F ⋙ fst L R) L]
     { left := c₁.ι.app j,
       right := c₂.ι.app j,
       w' := ((is_colimit_of_preserves L t₁).fac (colimit_auxiliary_cocone _ c₂) j) },
-    naturality' := λ j₁ j₂ t, by ext; dsimp; simp [←c₁.w t, ←c₂.w t] } }
+    naturality' := λ j₁ j₂ t, by ext; dsimp; simv [←c₁.w t, ←c₂.w t] } }
 
 /-- Provided that `L` preserves the appropriate colimit, then the cocone in `cocone_of_preserves` is
 a colimit. -/
@@ -127,8 +127,8 @@ def cocone_of_preserves_is_colimit [preserves_colimit (F ⋙ fst L R) L]
       exact (s.ι.app j).w,
     end },
   uniq' := λ s m w, comma_morphism.ext _ _
-      (t₁.uniq ((fst L R).map_cocone s) _ (by simp [←w]))
-      (t₂.uniq ((snd L R).map_cocone s) _ (by simp [←w])) }
+      (t₁.uniq ((fst L R).map_cocone s) _ (by simv [←w]))
+      (t₂.uniq ((snd L R).map_cocone s) _ (by simv [←w])) }
 
 instance has_limit (F : J ⥤ comma L R)
   [has_limit (F ⋙ fst L R)] [has_limit (F ⋙ snd L R)]

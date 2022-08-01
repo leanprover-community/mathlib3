@@ -96,22 +96,22 @@ begin
   simpa [left_adjoint_uniq, left_adjoints_coyoneda_equiv]
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma unit_left_adjoint_uniq_hom {F F' : C ⥤ D} {G : D ⥤ C} (adj1 : F ⊣ G) (adj2 : F' ⊣ G) :
   adj1.unit ≫ whisker_right (left_adjoint_uniq adj1 adj2).hom G = adj2.unit :=
 begin
   ext x,
   rw [nat_trans.comp_app, ← hom_equiv_left_adjoint_uniq_hom_app adj1 adj2],
-  simp [-hom_equiv_left_adjoint_uniq_hom_app, ←G.map_comp]
+  simv [-hom_equiv_left_adjoint_uniq_hom_app, ←G.map_comp]
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma unit_left_adjoint_uniq_hom_app {F F' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (x : C) :
   adj1.unit.app x ≫ G.map ((left_adjoint_uniq adj1 adj2).hom.app x) = adj2.unit.app x :=
 by { rw ← unit_left_adjoint_uniq_hom adj1 adj2, refl }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma left_adjoint_uniq_hom_counit {F F' : C ⥤ D} {G : D ⥤ C} (adj1 : F ⊣ G) (adj2 : F' ⊣ G) :
   whisker_left G (left_adjoint_uniq adj1 adj2).hom ≫ adj2.counit = adj1.counit :=
 begin
@@ -126,7 +126,7 @@ begin
   simpa [left_adjoint_uniq, left_adjoints_coyoneda_equiv] using this
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma left_adjoint_uniq_hom_app_counit {F F' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (x : D) :
   (left_adjoint_uniq adj1 adj2).hom.app (G.obj x) ≫ adj2.counit.app x = adj1.counit.app x :=
@@ -137,7 +137,7 @@ lemma left_adjoint_uniq_inv_app {F F' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (x : C) :
   (left_adjoint_uniq adj1 adj2).inv.app x = (left_adjoint_uniq adj2 adj1).hom.app x := rfl
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma left_adjoint_uniq_trans {F F' F'' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (adj3 : F'' ⊣ G) :
   (left_adjoint_uniq adj1 adj2).hom ≫ (left_adjoint_uniq adj2 adj3).hom =
@@ -148,10 +148,10 @@ begin
   apply coyoneda.map_injective,
   swap, apply_instance,
   ext,
-  simp [left_adjoints_coyoneda_equiv, left_adjoint_uniq]
+  simv [left_adjoints_coyoneda_equiv, left_adjoint_uniq]
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma left_adjoint_uniq_trans_app {F F' F'' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (adj3 : F'' ⊣ G) (x : C) :
   (left_adjoint_uniq adj1 adj2).hom.app x ≫ (left_adjoint_uniq adj2 adj3).hom.app x =
@@ -167,7 +167,7 @@ begin
   apply coyoneda.map_injective,
   swap, apply_instance,
   ext,
-  simp [left_adjoints_coyoneda_equiv, left_adjoint_uniq]
+  simv [left_adjoints_coyoneda_equiv, left_adjoint_uniq]
 end
 
 /-- If `G` and `G'` are both right adjoint to `F`, then they are naturally isomorphic. -/
@@ -187,7 +187,7 @@ begin
   simpa
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma unit_right_adjoint_uniq_hom_app {F : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') (x : C) :
   adj1.unit.app x ≫ (right_adjoint_uniq adj1 adj2).hom.app (F.obj x) = adj2.unit.app x :=
@@ -198,12 +198,12 @@ begin
   all_goals { simpa }
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma unit_right_adjoint_uniq_hom {F : C ⥤ D} {G G' : D ⥤ C} (adj1 : F ⊣ G) (adj2 : F ⊣ G') :
   adj1.unit ≫ whisker_left F (right_adjoint_uniq adj1 adj2).hom = adj2.unit :=
-by { ext x, simp }
+by { ext x, simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma right_adjoint_uniq_hom_app_counit {F : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') (x : D) :
   F.map ((right_adjoint_uniq adj1 adj2).hom.app x) ≫ adj2.counit.app x = adj1.counit.app x :=
@@ -214,17 +214,17 @@ begin
   all_goals { simpa }
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma right_adjoint_uniq_hom_counit {F : C ⥤ D} {G G' : D ⥤ C} (adj1 : F ⊣ G) (adj2 : F ⊣ G') :
   whisker_right (right_adjoint_uniq adj1 adj2).hom F ≫ adj2.counit = adj1.counit :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp]
 lemma right_adjoint_uniq_inv_app {F : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') (x : D) :
   (right_adjoint_uniq adj1 adj2).inv.app x = (right_adjoint_uniq adj2 adj1).hom.app x := rfl
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma right_adjoint_uniq_trans_app {F : C ⥤ D} {G G' G'' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') (adj3 : F ⊣ G'') (x : D) :
   (right_adjoint_uniq adj1 adj2).hom.app x ≫ (right_adjoint_uniq adj2 adj3).hom.app x =
@@ -235,17 +235,17 @@ begin
     (op_adjoint_op_of_adjoint _ _ adj2) (op_adjoint_op_of_adjoint _ _ adj1) (opposite.op x)
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma right_adjoint_uniq_trans {F : C ⥤ D} {G G' G'' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') (adj3 : F ⊣ G'') :
   (right_adjoint_uniq adj1 adj2).hom ≫ (right_adjoint_uniq adj2 adj3).hom =
     (right_adjoint_uniq adj1 adj3).hom :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp]
 lemma right_adjoint_uniq_refl {F : C ⥤ D} {G : D ⥤ C} (adj1 : F ⊣ G) :
   (right_adjoint_uniq adj1 adj1).hom = 𝟙 _ :=
-by { delta right_adjoint_uniq, simp }
+by { delta right_adjoint_uniq, simv }
 
 /--
 Given two adjunctions, if the left adjoints are naturally isomorphic, then so are the right

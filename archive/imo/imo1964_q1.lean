@@ -29,7 +29,7 @@ begin
   rw pow_mul,
   have h : 8 ≡ 1 [MOD 7] := modeq_of_dvd (by {use -1, norm_num }),
   convert h.pow _,
-  simp,
+  simv,
 end
 
 lemma two_pow_three_mul_add_one_mod_seven (m : ℕ) : 2 ^ (3 * m + 1) ≡ 2 [MOD 7] :=

@@ -41,8 +41,8 @@ def monoid_hom_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {
   slash_action β H α γ:=
 { map := (λ k g a, slash_action.map γ k (h(g)) a),
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
-  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
-  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
+  one_mul := by {intros k a, simv only [map_one], apply slash_action.one_mul,},
+  right_action := by {simv only [map_mul], intros k g gg a, apply slash_action.right_action,},
   smul_action := by {intros k g a z, apply slash_action.smul_action, },
   add_action := by {intros k g a b, apply slash_action.add_action, }, }
 
@@ -65,7 +65,7 @@ begin
   simp_rw [slash,(upper_half_plane.denom_cocycle A B x)],
   have e3 : (A * B) • x = A • B • x , by { convert (upper_half_plane.mul_smul' A B x), } ,
   rw e3,
-  simp only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
+  simv only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
     upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
     upper_half_plane.smul_aux, upper_half_plane.smul_aux', subtype.coe_mk] at *,
   field_simp,
@@ -80,10 +80,10 @@ end
 lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
-  simp only [slash, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
+  simv only [slash, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
     coe_coe],
   ext1,
-  simp only [pi.add_apply],
+  simv only [pi.add_apply],
   ring,
 end
 
@@ -91,21 +91,21 @@ lemma slash_mul_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 begin
  simp_rw slash,
  ext1,
- simp,
+ simv,
 end
 
 lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
   ext1,
   simp_rw slash,
-  simp only [slash, algebra.id.smul_eq_mul, matrix.general_linear_group.coe_det_apply,
+  simv only [slash, algebra.id.smul_eq_mul, matrix.general_linear_group.coe_det_apply,
     pi.smul_apply, subtype.val_eq_coe, coe_coe],
   ring,
 end
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
-  mul_zero := by {intros k g, rw slash, simp only [pi.zero_apply, zero_mul], refl, },
+  mul_zero := by {intros k g, rw slash, simv only [pi.zero_apply, zero_mul], refl, },
   one_mul := by {apply slash_mul_one,},
   right_action := by {apply slash_right_action},
   smul_action := by {apply smul_slash},

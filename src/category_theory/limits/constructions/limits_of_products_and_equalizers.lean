@@ -77,7 +77,7 @@ def build_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit 
       apply q.π.app j },
     { apply t₂.hom_ext,
       intro j, discrete_cases,
-      simp [hs, ht] },
+      simv [hs, ht] },
   end,
   uniq' := λ q m w, hi.hom_ext (i.equalizer_ext (t₁.hom_ext
     (λ j, by { cases j, simpa using w j }))) }
@@ -101,8 +101,8 @@ def limit_cone_of_equalizer_and_product (F : J ⥤ C)
     build_is_limit
       (pi.lift (λ f, limit.π (discrete.functor F.obj) ⟨_⟩ ≫ F.map f.2))
       (pi.lift (λ f, limit.π (discrete.functor F.obj) ⟨f.1.2⟩))
-      (by simp)
-      (by simp)
+      (by simv)
+      (by simv)
       (limit.is_limit _)
       (limit.is_limit _)
       (limit.is_limit _) }
@@ -172,7 +172,7 @@ def preserves_limit_of_preserves_equalizers_and_product :
     let I := equalizer s t,
     let i : I ⟶ P := equalizer.ι s t,
     apply preserves_limit_of_preserves_limit_cone
-      (build_is_limit s t (by simp) (by simp)
+      (build_is_limit s t (by simv) (by simv)
         (limit.is_limit _)
         (limit.is_limit _)
         (limit.is_limit _)),
@@ -183,12 +183,12 @@ def preserves_limit_of_preserves_equalizers_and_product :
     { apply G.map t },
     { intro f,
       dsimp,
-      simp only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
+      simv only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
     { intro f,
       dsimp,
-      simp only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
+      simv only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
     { apply fork.of_ι (G.map i) _,
-      simp only [← G.map_comp, equalizer.condition] },
+      simv only [← G.map_comp, equalizer.condition] },
     { apply is_limit_of_has_product_of_preserves_limit },
     { apply is_limit_of_has_product_of_preserves_limit },
     { apply is_limit_fork_map_of_is_limit,
@@ -196,7 +196,7 @@ def preserves_limit_of_preserves_equalizers_and_product :
     refine cones.ext (iso.refl _) _,
     intro j,
     dsimp,
-    simp, -- See note [dsimp, simp].
+    simv, -- See note [dsimp, simv].
   end }
 end
 
@@ -284,7 +284,7 @@ def build_is_colimit (t₁ : is_colimit c₁) (t₂ : is_colimit c₂) (hi : is_
       apply q.ι.app j },
     { apply t₁.hom_ext,
       intro j, discrete_cases,
-      simp [reassoc_of hs, reassoc_of ht] },
+      simv [reassoc_of hs, reassoc_of ht] },
   end,
   uniq' := λ q m w, hi.hom_ext (i.coequalizer_ext (t₂.hom_ext
     (λ j, by { cases j, simpa using w j }))) }
@@ -308,8 +308,8 @@ def colimit_cocone_of_coequalizer_and_coproduct (F : J ⥤ C)
     build_is_colimit
       (sigma.desc (λ f, F.map f.2 ≫ colimit.ι (discrete.functor F.obj) ⟨f.1.2⟩))
       (sigma.desc (λ f, colimit.ι (discrete.functor F.obj) ⟨f.1.1⟩))
-      (by simp)
-      (by simp)
+      (by simv)
+      (by simv)
       (colimit.is_colimit _)
       (colimit.is_colimit _)
       (colimit.is_colimit _) }
@@ -379,7 +379,7 @@ def preserves_colimit_of_preserves_coequalizers_and_coproduct :
     let I := coequalizer s t,
     let i : P ⟶ I := coequalizer.π s t,
     apply preserves_colimit_of_preserves_colimit_cocone
-      (build_is_colimit s t (by simp) (by simp)
+      (build_is_colimit s t (by simv) (by simv)
         (colimit.is_colimit _)
         (colimit.is_colimit _)
         (colimit.is_colimit _)),
@@ -390,12 +390,12 @@ def preserves_colimit_of_preserves_coequalizers_and_coproduct :
     { apply G.map t },
     { intro f,
       dsimp,
-      simp only [←G.map_comp, colimit.ι_desc, cofan.mk_ι_app] },
+      simv only [←G.map_comp, colimit.ι_desc, cofan.mk_ι_app] },
     { intro f,
       dsimp,
-      simp only [←G.map_comp, colimit.ι_desc, cofan.mk_ι_app] },
+      simv only [←G.map_comp, colimit.ι_desc, cofan.mk_ι_app] },
     { apply cofork.of_π (G.map i) _,
-      simp only [← G.map_comp, coequalizer.condition] },
+      simv only [← G.map_comp, coequalizer.condition] },
     { apply is_colimit_of_has_coproduct_of_preserves_colimit },
     { apply is_colimit_of_has_coproduct_of_preserves_colimit },
     { apply is_colimit_cofork_map_of_is_colimit,
@@ -403,7 +403,7 @@ def preserves_colimit_of_preserves_coequalizers_and_coproduct :
     refine cocones.ext (iso.refl _) _,
     intro j,
     dsimp,
-    simp, -- See note [dsimp, simp].
+    simv, -- See note [dsimp, simv].
   end }
 end
 

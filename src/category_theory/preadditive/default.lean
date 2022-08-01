@@ -29,7 +29,7 @@ available, the contents of this file should become obsolete.
 
 ## Implementation notes
 
-The simp normal form for negation and composition is to push negations as far as possible to
+The simv normal form for negation and composition is to push negations as far as possible to
 the outside. For example, `f ≫ (-g)` and `(-f) ≫ g` both become `-(f ≫ g)`, and `(-f) ≫ (-g)`
 is simplified to `f ≫ g`.
 
@@ -64,9 +64,9 @@ class preadditive :=
 attribute [instance] preadditive.hom_group
 restate_axiom preadditive.add_comp'
 restate_axiom preadditive.comp_add'
-attribute [simp,reassoc] preadditive.add_comp
-attribute [reassoc] preadditive.comp_add -- (the linter doesn't like `simp` on this lemma)
-attribute [simp] preadditive.comp_add
+attribute [simv,reassoc] preadditive.add_comp
+attribute [reassoc] preadditive.comp_add -- (the linter doesn't like `simv` on this lemma)
+attribute [simv] preadditive.comp_add
 
 end category_theory
 
@@ -100,11 +100,11 @@ instance (X : C) : ring (End X) :=
 
 /-- Composition by a fixed left argument as a group homomorphism -/
 def left_comp {P Q : C} (R : C) (f : P ⟶ Q) : (Q ⟶ R) →+ (P ⟶ R) :=
-mk' (λ g, f ≫ g) $ λ g g', by simp
+mk' (λ g, f ≫ g) $ λ g g', by simv
 
 /-- Composition by a fixed right argument as a group homomorphism -/
 def right_comp (P : C) {Q R : C} (g : Q ⟶ R) : (P ⟶ Q) →+ (P ⟶ R) :=
-mk' (λ f, f ≫ g) $ λ f f', by simp
+mk' (λ f, f ≫ g) $ λ f f', by simv
 
 variables {P Q R : C} (f f' : P ⟶ Q) (g g' : Q ⟶ R)
 
@@ -113,24 +113,24 @@ def comp_hom : (P ⟶ Q) →+ (Q ⟶ R) →+ (P ⟶ R) :=
 add_monoid_hom.mk' (λ f, left_comp _ f) $
   λ f₁ f₂, add_monoid_hom.ext $ λ g, (right_comp _ g).map_add f₁ f₂
 
-@[simp, reassoc] lemma sub_comp :
+@[simv, reassoc] lemma sub_comp :
   (f - f') ≫ g = f ≫ g - f' ≫ g :=
 map_sub (right_comp P g) f f'
 
--- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma.
-@[reassoc, simp] lemma comp_sub :
+-- The redundant simv lemma linter says that simv can prove the reassoc version of this lemma.
+@[reassoc, simv] lemma comp_sub :
   f ≫ (g - g') = f ≫ g - f ≫ g' :=
 map_sub (left_comp R f) g g'
 
-@[simp, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
+@[simv, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
 map_neg (right_comp P g) f
 
-/- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
-@[reassoc, simp] lemma comp_neg : f ≫ (-g) = -(f ≫ g) :=
+/- The redundant simv lemma linter says that simv can prove the reassoc version of this lemma. -/
+@[reassoc, simv] lemma comp_neg : f ≫ (-g) = -(f ≫ g) :=
 map_neg (left_comp R f) g
 
 @[reassoc] lemma neg_comp_neg : (-f) ≫ (-g) = f ≫ g :=
-by simp
+by simv
 
 lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
 map_nsmul (right_comp P g) n f
@@ -240,7 +240,7 @@ fork.of_ι c.ι $ by rw [comp_sub, comp_zero, sub_eq_zero, c.condition]
 @[simp] lemma kernel_fork_of_fork_ι (c : fork f g) : (kernel_fork_of_fork c).ι = c.ι := rfl
 
 @[simp] lemma kernel_fork_of_fork_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
-  (kernel_fork_of_fork (fork.of_ι ι w)) = kernel_fork.of_ι ι (by simp [w]) := rfl
+  (kernel_fork_of_fork (fork.of_ι ι w)) = kernel_fork.of_ι ι (by simv [w]) := rfl
 
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
 def is_limit_fork_of_kernel_fork {c : kernel_fork (f - g)} (i : is_limit c) :
@@ -290,7 +290,7 @@ cofork.of_π c.π $ by rw [sub_comp, zero_comp, sub_eq_zero, c.condition]
   (cokernel_cofork_of_cofork c).π = c.π := rfl
 
 @[simp] lemma cokernel_cofork_of_cofork_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  (cokernel_cofork_of_cofork (cofork.of_π π w)) = cokernel_cofork.of_π π (by simp [w]) := rfl
+  (cokernel_cofork_of_cofork (cofork.of_π π w)) = cokernel_cofork.of_π π (by simv [w]) := rfl
 
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
 def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_colimit c) :

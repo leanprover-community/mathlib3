@@ -129,8 +129,8 @@ between `⨁ i, M i` and `Π i, M i`. -/
 @[simps apply] def linear_equiv_fun_on_fintype [fintype ι] :
   (⨁ i, M i) ≃ₗ[R] (Π i, M i) :=
 { to_fun := coe_fn,
-  map_add' := λ f g, by { ext, simp only [add_apply, pi.add_apply] },
-  map_smul' := λ c f, by { ext, simp only [dfinsupp.coe_smul, ring_hom.id_apply] },
+  map_add' := λ f g, by { ext, simv only [add_apply, pi.add_apply] },
+  map_smul' := λ c f, by { ext, simv only [dfinsupp.coe_smul, ring_hom.id_apply] },
   .. dfinsupp.equiv_fun_on_fintype }
 
 variables {ι M}
@@ -154,7 +154,7 @@ end
 
 @[simp] lemma linear_equiv_fun_on_fintype_symm_coe [fintype ι] (f : ⨁ i, M i) :
   (linear_equiv_fun_on_fintype R ι M).symm f = f :=
-by { ext, simp [linear_equiv_fun_on_fintype], }
+by { ext, simv [linear_equiv_fun_on_fintype], }
 
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [module R M]
@@ -295,7 +295,7 @@ noncomputable def is_internal.collected_basis
   ⇑(h.collected_basis v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
 begin
   funext a,
-  simp only [is_internal.collected_basis, to_module, coe_linear_map,
+  simv only [is_internal.collected_basis, to_module, coe_linear_map,
     add_equiv.to_fun_eq_coe, basis.coe_of_repr, basis.repr_symm_apply, dfinsupp.lsum_apply_apply,
     dfinsupp.map_range.linear_equiv_apply, dfinsupp.map_range.linear_equiv_symm,
     dfinsupp.map_range_single, finsupp.total_single, linear_equiv.of_bijective_apply,
@@ -308,7 +308,7 @@ end
 lemma is_internal.collected_basis_mem
   (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
   h.collected_basis v a ∈ A a.1 :=
-by simp
+by simv
 
 /-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as

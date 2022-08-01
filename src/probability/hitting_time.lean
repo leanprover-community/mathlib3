@@ -58,14 +58,14 @@ begin
   { push_neg,
     intro j,
     rw set.Icc_eq_empty_of_lt h,
-    simp only [set.mem_empty_eq, is_empty.forall_iff], },
-  simp only [h_not, if_false],
+    simv only [set.mem_empty_eq, is_empty.forall_iff], },
+  simv only [h_not, if_false],
 end
 
 lemma hitting_le {m : ι} (x : α) : hitting u s n m x ≤ m :=
 begin
   cases le_or_lt n m with h_le h_lt,
-  { simp only [hitting],
+  { simv only [hitting],
     split_ifs,
     { obtain ⟨j, hj₁, hj₂⟩ := h,
       exact (cInf_le (bdd_below.inter_of_left bdd_below_Icc) (set.mem_inter hj₁ hj₂)).trans hj₁.2 },
@@ -75,7 +75,7 @@ end
 
 lemma le_hitting {m : ι} (hnm : n ≤ m) (x : α) : n ≤ hitting u s n m x :=
 begin
-  simp only [hitting],
+  simv only [hitting],
   split_ifs,
   { refine le_cInf _ (λ b hb, _),
     { obtain ⟨k, hk_Icc, hk_s⟩ := h,
@@ -140,7 +140,7 @@ begin
   { rw hitting_le_iff_of_exists h_exists, },
   { simp_rw [hitting, if_neg h_exists],
     push_neg at h_exists,
-    simp only [not_le.mpr hi, set.mem_Icc, false_iff, not_exists, and_imp],
+    simv only [not_le.mpr hi, set.mem_Icc, false_iff, not_exists, and_imp],
     exact λ k hkn hki, h_exists k ⟨hkn, hki.trans hi.le⟩, },
 end
 
@@ -171,11 +171,11 @@ begin
   intro i,
   cases le_or_lt n' i with hi hi,
   { have h_le : ∀ x, hitting u s n n' x ≤ i := λ x, (hitting_le x).trans hi,
-    simp [h_le], },
+    simv [h_le], },
   { have h_set_eq_Union : {x | hitting u s n n' x ≤ i} = ⋃ j ∈ set.Icc n i, u j ⁻¹' s,
     { ext x,
       rw [set.mem_set_of_eq, hitting_le_iff_of_lt _ hi],
-      simp only [set.mem_Icc, exists_prop, set.mem_Union, set.mem_preimage], },
+      simv only [set.mem_Icc, exists_prop, set.mem_Union, set.mem_preimage], },
     rw h_set_eq_Union,
     exact measurable_set.Union (λ j, measurable_set.Union_Prop $
       λ hj, f.mono hj.2 _ ((hu j).measurable hs)) }
@@ -185,7 +185,7 @@ lemma stopped_value_hitting_mem [conditionally_complete_linear_order ι] [is_wel
   {u : ι → α → β} {s : set β} {n m : ι} {x : α} (h : ∃ j ∈ set.Icc n m, u j x ∈ s) :
   stopped_value u (hitting u s n m) x ∈ s :=
 begin
-  simp only [stopped_value, hitting, if_pos h],
+  simv only [stopped_value, hitting, if_pos h],
   obtain ⟨j, hj₁, hj₂⟩ := h,
   have : Inf (set.Icc n m ∩ {i | u i x ∈ s}) ∈ set.Icc n m ∩ {i | u i x ∈ s} :=
     Inf_mem (set.nonempty_of_mem ⟨hj₁, hj₂⟩),
@@ -198,7 +198,7 @@ variables [complete_lattice ι] {u : ι → α → β} {s : set β} {f : filtrat
 
 lemma hitting_eq_Inf (x : α) : hitting u s ⊥ ⊤ x = Inf {i : ι | u i x ∈ s} :=
 begin
-  simp only [hitting, set.mem_Icc, bot_le, le_top, and_self, exists_true_left, set.Icc_bot,
+  simv only [hitting, set.mem_Icc, bot_le, le_top, and_self, exists_true_left, set.Icc_bot,
     set.Iic_top, set.univ_inter, ite_eq_left_iff, not_exists],
   intro h_nmem_s,
   symmetry,
@@ -218,8 +218,8 @@ lemma hitting_bot_le_iff {i n : ι} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ 
 begin
   cases lt_or_le i n with hi hi,
   { rw hitting_le_iff_of_lt _ hi,
-    simp, },
-  { simp only [(hitting_le x).trans hi, true_iff],
+    simv, },
+  { simv only [(hitting_le x).trans hi, true_iff],
     obtain ⟨j, hj₁, hj₂⟩ := hx,
     exact ⟨j, hj₁.trans hi, hj₂⟩, },
 end

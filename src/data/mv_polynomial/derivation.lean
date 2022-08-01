@@ -45,7 +45,7 @@ lemma mk_derivationₗ_C (f : σ → A) (r : R) : mk_derivationₗ R f (C r) = 0
 (mk_derivationₗ_monomial f _ _).trans (smul_zero _)
 
 lemma mk_derivationₗ_X (f : σ → A) (i : σ) : mk_derivationₗ R f (X i) = f i :=
-(mk_derivationₗ_monomial f _ _).trans $ by simp
+(mk_derivationₗ_monomial f _ _).trans $ by simv
 
 @[simp] lemma derivation_C (D : derivation R (mv_polynomial σ R) A) (a : R) : D (C a) = 0 :=
 D.map_algebra_map a
@@ -96,8 +96,8 @@ begin
   induction q using mv_polynomial.induction_on,
   case h_C : c { rw [mul_comm, C_mul', hC, smul_zero, zero_add, D.map_smul,
     C_eq_smul_one, smul_one_smul] },
-  case h_add : q₁ q₂ h₁ h₂ { simp only [mul_add, map_add, h₁, h₂, smul_add, add_smul], abel },
-  case h_X : q i hq { simp only [this, ← mul_assoc, hq, mul_smul, smul_add, smul_comm (X i),
+  case h_add : q₁ q₂ h₁ h₂ { simv only [mul_add, map_add, h₁, h₂, smul_add, add_smul], abel },
+  case h_X : q i hq { simv only [this, ← mul_assoc, hq, mul_smul, smul_add, smul_comm (X i),
       add_assoc] }
 end
 
@@ -109,10 +109,10 @@ def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
   map_one_eq_zero' := mk_derivationₗ_C _ 1,
   leibniz' := (leibniz_iff_X (mk_derivationₗ R f) (mk_derivationₗ_C _ 1)).2 $ λ s i,
     begin
-      simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
+      simv only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
       rw [finsupp.sum_add_index];
-        [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
-      rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simp, by simp],
+        [skip, by simv, by { intros, simv only [nat.cast_add, (monomial _).map_add, add_smul] }],
+      rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simv, by simv],
       rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,
         add_comm, finsupp.smul_sum],
       refine congr_arg2 (+) rfl (finset.sum_congr rfl (λ j hj, _)), dsimp only,

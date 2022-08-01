@@ -69,7 +69,7 @@ See also `linear_map.lsum` for a linear version without the commutativity assump
 def noncomm_pi_coprod : (Π (i : ι), N i) →* M :=
 { to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $
     by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm _ _ h _ _ } },
-  map_one' := by {apply (finset.noncomm_prod_eq_pow_card _ _ _ _ _).trans (one_pow _), simp},
+  map_one' := by {apply (finset.noncomm_prod_eq_pow_card _ _ _ _ _).trans (one_pow _), simv},
   map_mul' := λ f g,
   begin
     classical,
@@ -82,17 +82,17 @@ variable {hcomm}
 
 include hdec
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma noncomm_pi_coprod_mul_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (pi.mul_single i y) = ϕ i y :=
 begin
   change finset.univ.noncomm_prod (λ j, ϕ j (pi.mul_single i y j)) _ = ϕ i y,
-  simp only [←finset.insert_erase (finset.mem_univ i)] {single_pass := tt},
+  simv only [←finset.insert_erase (finset.mem_univ i)] {single_pass := tt},
   rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ (finset.not_mem_erase i _),
   rw pi.mul_single_eq_same,
   rw finset.noncomm_prod_eq_pow_card,
   { rw one_pow, exact mul_one _  },
-  { intros j hj, simp only [finset.mem_erase] at hj, simp [hj], },
+  { intros j hj, simv only [finset.mem_erase] at hj, simv [hj], },
 end
 
 omit hcomm
@@ -106,8 +106,8 @@ def noncomm_pi_coprod_equiv :
   inv_fun := λ f,
   ⟨ λ i, f.comp (monoid_hom.single N i),
     λ i j hij x y, commute.map (pi.mul_single_commute i j hij x y) f ⟩,
-  left_inv := λ ϕ, by { ext, simp, },
-  right_inv := λ f, pi_ext (λ i x, by simp) }
+  left_inv := λ ϕ, by { ext, simv, },
+  right_inv := λ f, pi_ext (λ i x, by simv) }
 
 omit hdec
 
@@ -122,7 +122,7 @@ begin
     refine submonoid.noncomm_prod_mem _ _ _ _ _,
     intros i hi,
     apply submonoid.mem_Sup_of_mem, { use i },
-    simp, },
+    simv, },
   { refine supr_le _,
     rintro i x ⟨y, rfl⟩,
     refine ⟨pi.mul_single i y, noncomm_pi_coprod_mul_single _ _ _⟩, },
@@ -158,7 +158,7 @@ begin
     refine subgroup.noncomm_prod_mem _ _ _,
     intros i hi,
     apply subgroup.mem_Sup_of_mem, { use i },
-    simp, },
+    simv, },
   { refine supr_le _,
     rintro i x ⟨y, rfl⟩,
     refine ⟨pi.mul_single i y, noncomm_pi_coprod_mul_single _ _ _⟩, },
@@ -177,10 +177,10 @@ begin
   change finset.univ.noncomm_prod (λ i, ϕ i (f i)) _ = 1 at heq1,
   change f = 1,
   have : ∀ i, i ∈ finset.univ → ϕ i (f i) = 1 :=
-    subgroup.eq_one_of_noncomm_prod_eq_one_of_independent _ _ _ _ hind (by simp) heq1,
+    subgroup.eq_one_of_noncomm_prod_eq_one_of_independent _ _ _ _ hind (by simv) heq1,
   ext i,
   apply hinj,
-  simp [this i (finset.mem_univ i)],
+  simv [this i (finset.mem_univ i)],
 end
 
 variable (hcomm)
@@ -241,7 +241,7 @@ variable {hcomm}
 
 include hdec
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma noncomm_pi_coprod_mul_single (i : ι) (y : H i) :
   noncomm_pi_coprod hcomm (pi.mul_single i y) = y :=
 by apply monoid_hom.noncomm_pi_coprod_mul_single
@@ -250,7 +250,7 @@ omit hdec
 
 @[to_additive]
 lemma noncomm_pi_coprod_range : (noncomm_pi_coprod hcomm).range = ⨆ i : ι, H i :=
-by simp [noncomm_pi_coprod, monoid_hom.noncomm_pi_coprod_range]
+by simv [noncomm_pi_coprod, monoid_hom.noncomm_pi_coprod_range]
 
 @[to_additive]
 lemma injective_noncomm_pi_coprod_of_independent (hind : complete_lattice.independent H) :

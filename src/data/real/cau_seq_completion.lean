@@ -90,7 +90,7 @@ instance : add_group Cauchy :=
 by refine { add := (+), zero := (0 : Cauchy), sub := has_sub.sub, neg := has_neg.neg,
   sub_eq_add_neg := _, nsmul := nsmul_rec, zsmul := zsmul_rec, .. }; try { intros; refl };
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
-  simp [zero_def, add_comm, add_left_comm, sub_eq_neg_add] }
+  simv [zero_def, add_comm, add_left_comm, sub_eq_neg_add] }
 
 instance : add_group_with_one Cauchy :=
 { nat_cast := λ n, mk n,
@@ -109,7 +109,7 @@ instance : comm_ring Cauchy :=
 by refine { add := (+), zero := (0 : Cauchy), mul := (*), one := 1, npow := npow_rec,
     .. Cauchy.add_group_with_one, .. }; try { intros; refl };
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
-  simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
+  simv [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
           sub_eq_add_neg] }
 
 -- shortcut instance to ensure computability
@@ -146,8 +146,8 @@ noncomputable instance : has_inv Cauchy :=
 λ f g fg, begin
   have := lim_zero_congr fg,
   by_cases hf : lim_zero f,
-  { simp [hf, this.1 hf, setoid.refl] },
-  { have hg := mt this.2 hf, simp [hf, hg],
+  { simv [hf, this.1 hf, setoid.refl] },
+  { have hg := mt this.2 hf, simv [hf, hg],
     have If : mk (inv f hf) * mk f = 1 := mk_eq.2 (inv_mul_cancel hf),
     have Ig : mk (inv g hg) * mk g = 1 := mk_eq.2 (inv_mul_cancel hg),
     rw [mk_eq.2 fg, ← Ig] at If,
@@ -172,12 +172,12 @@ lemma zero_ne_one : (0 : Cauchy) ≠ 1 :=
 
 protected theorem inv_mul_cancel {x : Cauchy} : x ≠ 0 → x⁻¹ * x = 1 :=
 quotient.induction_on x $ λ f hf, begin
-  simp at hf, simp [hf],
+  simv at hf, simv [hf],
   exact quotient.sound (cau_seq.inv_mul_cancel hf)
 end
 
 theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
-congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
+congr_arg mk $ by split_ifs with h; [simv [const_lim_zero.1 h], refl]
 
 /-- The Cauchy completion forms a field. -/
 noncomputable instance : field Cauchy :=
@@ -191,7 +191,7 @@ noncomputable instance : field Cauchy :=
   .. Cauchy.comm_ring }
 
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
-by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
+by simv only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 
 /-- Show the first 10 items of a representative of this equivalence class of cauchy sequences.
 
@@ -254,7 +254,7 @@ lemma lim_mul_lim (f g : cau_seq β abv) : lim f * lim g = lim (f * g) :=
 eq_lim_of_const_equiv $ show lim_zero (const abv (lim f * lim g) - f * g),
   from have h : const abv (lim f * lim g) - f * g = (const abv (lim f) - f) * g
       + const abv (lim f) * (const abv (lim g) - g) :=
-    by simp [const_mul (lim f), mul_add, add_mul, sub_eq_add_neg, add_comm, add_left_comm],
+    by simv [const_mul (lim f), mul_add, add_mul, sub_eq_add_neg, add_comm, add_left_comm],
   by rw h; exact add_lim_zero (mul_lim_zero_left _ (setoid.symm (equiv_lim _)))
     (mul_lim_zero_right _ (setoid.symm (equiv_lim _)))
 
@@ -272,7 +272,7 @@ lemma lim_eq_zero_iff (f : cau_seq β abv) : lim f = 0 ↔ lim_zero f :=
   rw h at hf;
   exact (lim_zero_congr hf).mpr (const_lim_zero.mpr rfl),
 assume h,
-  have h₁ : f = (f - const abv 0) := ext (λ n, by simp [sub_apply, const_apply]),
+  have h₁ : f = (f - const abv 0) := ext (λ n, by simv [sub_apply, const_apply]),
   by rw h₁ at h; exact lim_eq_of_equiv_const h ⟩
 
 end

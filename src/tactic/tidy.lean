@@ -44,7 +44,7 @@ meta def default_tactics : list (tactic string) :=
   auto_cases,
   `[apply_auto_param]                         >> pure "apply_auto_param",
   `[dsimp at *]                               >> pure "dsimp at *",
-  `[simp at *]                                >> pure "simp at *",
+  `[simv at *]                                >> pure "simv at *",
   ext1_wrapper,
   fsplit                                      >> pure "fsplit",
   injections_and_clear                        >> pure "injections_and_clear",

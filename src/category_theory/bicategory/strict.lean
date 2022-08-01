@@ -51,7 +51,7 @@ restate_axiom bicategory.strict.assoc'
 restate_axiom bicategory.strict.left_unitor_eq_to_iso'
 restate_axiom bicategory.strict.right_unitor_eq_to_iso'
 restate_axiom bicategory.strict.associator_eq_to_iso'
-attribute [simp]
+attribute [simv]
   bicategory.strict.id_comp bicategory.strict.left_unitor_eq_to_iso
   bicategory.strict.comp_id bicategory.strict.right_unitor_eq_to_iso
   bicategory.strict.assoc bicategory.strict.associator_eq_to_iso
@@ -70,12 +70,12 @@ variables {B}
 @[simp]
 lemma whisker_left_eq_to_hom {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g = h) :
   f ◁ eq_to_hom η = eq_to_hom (congr_arg2 (≫) rfl η) :=
-by { cases η, simp only [whisker_left_id, eq_to_hom_refl] }
+by { cases η, simv only [whisker_left_id, eq_to_hom_refl] }
 
 @[simp]
 lemma eq_to_hom_whisker_right {a b c : B} {f g : a ⟶ b} (η : f = g) (h : b ⟶ c) :
   eq_to_hom η ▷ h = eq_to_hom (congr_arg2 (≫) η rfl) :=
-by { cases η, simp only [id_whisker_right, eq_to_hom_refl] }
+by { cases η, simv only [id_whisker_right, eq_to_hom_refl] }
 
 end bicategory
 

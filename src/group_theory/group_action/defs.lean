@@ -72,7 +72,7 @@ lemma smul_left_injective' [has_smul M α] [has_faithful_smul M α] :
 @[priority 910, to_additive] -- see Note [lower instance priority]
 instance has_mul.to_has_smul (α : Type*) [has_mul α] : has_smul α α := ⟨(*)⟩
 
-@[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
+@[simv, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
 @[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -244,7 +244,7 @@ variables [has_smul M α]
 
 /-- Auxiliary definition for `has_smul.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
-@[simp, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
+@[simv, to_additive  /-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
 def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 
@@ -346,7 +346,7 @@ variables [monoid M] [mul_action M α]
 (mul_smul _ _ _).symm
 
 variable (M)
-@[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
+@[simv, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
 
 /-- `has_smul` version of `one_mul_eq_id` -/
 @[to_additive]
@@ -367,7 +367,7 @@ protected def function.injective.mul_action [has_smul M β] (f : β → α)
   mul_action M β :=
 { smul := (•),
   one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
-  mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
+  mul_smul := λ c₁ c₂ x, hf $ by simv only [smul, mul_smul] }
 
 /-- Pushforward a multiplicative action along a surjective map respecting `•`.
 See note [reducible non-instances]. -/
@@ -377,7 +377,7 @@ protected def function.surjective.mul_action [has_smul M β] (f : α → β) (hf
   mul_action M β :=
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
-  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simv only [← smul, mul_smul] } }
 
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
 
@@ -391,7 +391,7 @@ def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R
   mul_action S M :=
 { smul := (•),
   one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
-  mul_smul := hf.forall₂.mpr $ λ a b x, by simp only [← f.map_mul, hsmul, mul_smul] }
+  mul_smul := hf.forall₂.mpr $ λ a b x, by simv only [← f.map_mul, hsmul, mul_smul] }
 
 section
 
@@ -438,7 +438,7 @@ add_decl_doc add_action.to_fun
 
 variables {M α}
 
-@[simp, to_additive] lemma to_fun_apply (x : M) (y : α) : mul_action.to_fun M α y x = x • y :=
+@[simv, to_additive] lemma to_fun_apply (x : M) (y : α) : mul_action.to_fun M α y x = x • y :=
 rfl
 
 variable (α)
@@ -450,8 +450,8 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive] def comp_hom [monoid N] (g : N →* M) :
   mul_action N α :=
 { smul := has_smul.comp.smul g,
-  one_smul := by simp [g.map_one, mul_action.one_smul],
-  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
+  one_smul := by simv [g.map_one, mul_action.one_smul],
+  mul_smul := by simv [g.map_mul, mul_action.mul_smul] }
 
 /-- An additive action of `M` on `α` and an additive monoid homomorphism `N → M` induce
 an additive action of `N` on `α`.
@@ -474,7 +474,7 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 by rw [smul_mul_assoc, one_mul]
 
-@[simp, to_additive] lemma mul_smul_one
+@[simv, to_additive] lemma mul_smul_one
   {M N} [mul_one_class N] [has_smul M N] [smul_comm_class M N N] (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
@@ -513,8 +513,8 @@ protected def function.injective.distrib_mul_action [add_monoid B] [has_smul M B
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=
 { smul := (•),
-  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
-  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  smul_add := λ c x y, hf $ by simv only [smul, f.map_add, smul_add],
+  smul_zero := λ c, hf $ by simv only [smul, f.map_zero, smul_zero],
   .. hf.mul_action f smul }
 
 /-- Pushforward a distributive multiplicative action along a surjective additive monoid
@@ -526,8 +526,8 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_smul M 
   distrib_mul_action M B :=
 { smul := (•),
   smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
-    simp only [smul_add, ← smul, ← f.map_add] },
-  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+    simv only [smul_add, ← smul, ← f.map_add] },
+  smul_zero := λ c, by simv only [← f.map_zero, ← smul, smul_zero],
   .. hf.mul_action f smul }
 
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
@@ -541,7 +541,7 @@ def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_
   distrib_mul_action S M :=
 { smul := (•),
   smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero],
-  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  smul_add := hf.forall.mpr $ λ c x y, by simv only [hsmul, smul_add],
   .. hf.mul_action_left f hsmul }
 
 variable (A)
@@ -621,8 +621,8 @@ protected def function.injective.mul_distrib_mul_action [monoid B] [has_smul M B
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_distrib_mul_action M B :=
 { smul := (•),
-  smul_mul := λ c x y, hf $ by simp only [smul, f.map_mul, smul_mul'],
-  smul_one := λ c, hf $ by simp only [smul, f.map_one, smul_one],
+  smul_mul := λ c x y, hf $ by simv only [smul, f.map_mul, smul_mul'],
+  smul_one := λ c, hf $ by simv only [smul, f.map_one, smul_one],
   .. hf.mul_action f smul }
 
 /-- Pushforward a multiplicative distributive multiplicative action along a surjective monoid
@@ -634,8 +634,8 @@ protected def function.surjective.mul_distrib_mul_action [monoid B] [has_smul M 
   mul_distrib_mul_action M B :=
 { smul := (•),
   smul_mul := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
-    simp only [smul_mul', ← smul, ← f.map_mul] },
-  smul_one := λ c, by simp only [← f.map_one, ← smul, smul_one],
+    simv only [smul_mul', ← smul, ← f.map_mul] },
+  smul_one := λ c, by simv only [← f.map_one, ← smul, smul_one],
   .. hf.mul_action f smul }
 
 variable (A)

@@ -111,7 +111,7 @@ begin
   specialize f t,
   cases f with c f,
   rw ← f.left,
-  simp only [limits.zero_comp, contractible_triangle_mor₂],
+  simv only [limits.zero_comp, contractible_triangle_mor₂],
 end -- TODO : tidy this proof up
 
 /--
@@ -185,12 +185,12 @@ def map_triangle (F : triangulated_functor_struct C D) : triangle C ⥤ triangle
   { hom₁ := F.map f.hom₁,
     hom₂ := F.map f.hom₂,
     hom₃ := F.map f.hom₃,
-    comm₁' := by { dsimp, simp only [←F.to_functor.map_comp, f.comm₁], },
-    comm₂' := by { dsimp, simp only [←F.to_functor.map_comp, f.comm₂], },
+    comm₁' := by { dsimp, simv only [←F.to_functor.map_comp, f.comm₁], },
+    comm₂' := by { dsimp, simv only [←F.to_functor.map_comp, f.comm₂], },
     comm₃' := begin
       dsimp,
       erw [category.assoc, ←F.comm_shift.hom.naturality],
-      simp only [functor.comp_map, ←F.to_functor.map_comp_assoc, f.comm₃],
+      simv only [functor.comp_map, ←F.to_functor.map_comp_assoc, f.comm₃],
     end, }, }
 
 end triangulated_functor_struct

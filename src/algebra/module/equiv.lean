@@ -97,7 +97,7 @@ lemma to_linear_map_injective :
   injective (coe : (M ≃ₛₗ[σ] M₂) → (M →ₛₗ[σ] M₂)) :=
 λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
 
-@[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₛₗ[σ] M₂} :
+@[simv, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₛₗ[σ] M₂} :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
 
@@ -124,7 +124,7 @@ variables (e e' : M ≃ₛₗ[σ] M₂)
 
 lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
 
-@[simp, norm_cast] theorem coe_coe : ⇑(e : M →ₛₗ[σ] M₂) = e := rfl
+@[simv, norm_cast] theorem coe_coe : ⇑(e : M →ₛₗ[σ] M₂) = e := rfl
 
 @[simp] lemma coe_to_equiv : ⇑e.to_equiv = e := rfl
 
@@ -263,32 +263,32 @@ lemma eq_comp_to_linear_map_symm (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ �
   f = g.comp e₁₂.symm.to_linear_map ↔ f.comp e₁₂.to_linear_map = g :=
 begin
   split; intro H; ext,
-  { simp [H, e₁₂.to_equiv.eq_comp_symm f g] },
-  { simp [←H, ←e₁₂.to_equiv.eq_comp_symm f g] }
+  { simv [H, e₁₂.to_equiv.eq_comp_symm f g] },
+  { simv [←H, ←e₁₂.to_equiv.eq_comp_symm f g] }
 end
 
 lemma comp_to_linear_map_symm_eq (f : M₂ →ₛₗ[σ₂₃] M₃) (g : M₁ →ₛₗ[σ₁₃] M₃) :
   g.comp e₁₂.symm.to_linear_map = f ↔ g = f.comp e₁₂.to_linear_map :=
 begin
   split; intro H; ext,
-  { simp [←H, ←e₁₂.to_equiv.comp_symm_eq f g] },
-  { simp [H, e₁₂.to_equiv.comp_symm_eq f g] }
+  { simv [←H, ←e₁₂.to_equiv.comp_symm_eq f g] },
+  { simv [H, e₁₂.to_equiv.comp_symm_eq f g] }
 end
 
 lemma eq_to_linear_map_symm_comp (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
   f = e₁₂.symm.to_linear_map.comp g ↔ e₁₂.to_linear_map.comp f = g :=
 begin
   split; intro H; ext,
-  { simp [H, e₁₂.to_equiv.eq_symm_comp f g] },
-  { simp [←H, ←e₁₂.to_equiv.eq_symm_comp f g] }
+  { simv [H, e₁₂.to_equiv.eq_symm_comp f g] },
+  { simv [←H, ←e₁₂.to_equiv.eq_symm_comp f g] }
 end
 
 lemma to_linear_map_symm_comp_eq (f : M₃ →ₛₗ[σ₃₁] M₁) (g : M₃ →ₛₗ[σ₃₂] M₂) :
   e₁₂.symm.to_linear_map.comp g = f ↔ g = e₁₂.to_linear_map.comp f :=
 begin
   split; intro H; ext,
-  { simp [←H, ←e₁₂.to_equiv.symm_comp_eq f g] },
-  { simp [H, e₁₂.to_equiv.symm_comp_eq f g] }
+  { simv [←H, ←e₁₂.to_equiv.symm_comp_eq f g] },
+  { simv [H, e₁₂.to_equiv.symm_comp_eq f g] }
 end
 
 omit module_M₃
@@ -297,17 +297,17 @@ omit module_M₃
 
 @[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.trans f.symm = linear_equiv.refl R M :=
-by { ext x, simp }
+by { ext x, simv }
 
 @[simp] lemma symm_trans_self [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.symm.trans f = linear_equiv.refl R M₂ :=
-by { ext x, simp }
+by { ext x, simv }
 
-@[simp, norm_cast] lemma refl_to_linear_map [module R M] :
+@[simv, norm_cast] lemma refl_to_linear_map [module R M] :
   (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
 rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma comp_coe [module R M] [module R M₂] [module R M₃] (f :  M ≃ₗ[R] M₂)
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M ≃ₗ[R] M₃) :=
 rfl
@@ -317,7 +317,7 @@ rfl
 
 protected theorem map_add (a b : M) : e (a + b) = e a + e b := map_add e a b
 protected theorem map_zero : e 0 = 0 := map_zero e
--- TODO: `simp` isn't picking up `map_smulₛₗ` for `linear_equiv`s without specifying `map_smulₛₗ f`
+-- TODO: `simv` isn't picking up `map_smulₛₗ` for `linear_equiv`s without specifying `map_smulₛₗ f`
 @[simp] protected theorem map_smulₛₗ (c : R) (x : M) : e (c • x) = (σ c) • e x := e.map_smul' c x
 
 include module_N₁ module_N₂

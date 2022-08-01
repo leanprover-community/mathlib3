@@ -282,11 +282,11 @@ begin
   obtain ⟨⟨y, m⟩, hx⟩ := is_localization.surj M x,
   dsimp only at hx,
   let hx' := congr_arg (^ n.succ) hx,
-  simp only [mul_pow, e, zero_mul, ← ring_hom.map_pow] at hx',
+  simv only [mul_pow, e, zero_mul, ← ring_hom.map_pow] at hx',
   rw [← (algebra_map R S).map_zero] at hx',
   obtain ⟨m', hm'⟩ := (is_localization.eq_iff_exists M S).mp hx',
   apply_fun (*m'^n) at hm',
-  simp only [mul_assoc, zero_mul] at hm',
+  simv only [mul_assoc, zero_mul] at hm',
   rw [mul_comm, ← pow_succ, ← mul_pow] at hm',
   replace hm' := is_nilpotent.eq_zero ⟨_, hm'.symm⟩,
   rw [← (is_localization.map_units S m).mul_left_inj, hx, zero_mul,
@@ -409,7 +409,7 @@ lemma is_localization.smul_mem_finset_integer_multiple_span [algebra R S]
       (is_localization.finset_integer_multiple (M.map (algebra_map R S : R →* S)) s : set S) :=
 begin
   let g : S →ₐ[R] S' := alg_hom.mk' (algebra_map S S')
-    (λ c x, by simp [algebra.algebra_map_eq_smul_one]),
+    (λ c x, by simv [algebra.algebra_map_eq_smul_one]),
 
   -- We first obtain the `y' ∈ M` such that `s' = y' • s` is falls in the image of `S` in `S'`.
   let y := is_localization.common_denom_of_finset (M.map (algebra_map R S : R →* S)) s,
@@ -455,7 +455,7 @@ begin
   apply s'.induction_on,
   { intros x hx, use 1, simpa using hx },
   rintros a s ha hs x hx,
-  simp only [finset.coe_insert, finset.image_insert, finset.coe_image, subtype.coe_mk,
+  simv only [finset.coe_insert, finset.image_insert, finset.coe_image, subtype.coe_mk,
     submodule.mem_span_insert] at hx ⊢,
   rcases hx with ⟨y, z, hz, rfl⟩,
   rcases is_localization.surj M y with ⟨⟨y', s'⟩, e⟩,
@@ -598,7 +598,7 @@ begin
   use a * y ^ n,
   convert A.mul_mem hx' (hA₂ a.2),
   convert ha₂.symm,
-  simp only [submonoid.smul_def, submonoid.coe_pow, smul_eq_mul, submonoid.coe_mul],
+  simv only [submonoid.smul_def, submonoid.coe_pow, smul_eq_mul, submonoid.coe_mul],
   ring,
 end
 

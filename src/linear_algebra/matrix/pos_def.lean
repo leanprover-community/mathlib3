@@ -36,7 +36,7 @@ lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   M.pos_def :=
 begin
   refine ⟨hM, λ x hx, _⟩,
-  simp only [to_quadratic_form', quadratic_form.pos_def, bilin_form.to_quadratic_form_apply,
+  simv only [to_quadratic_form', quadratic_form.pos_def, bilin_form.to_quadratic_form_apply,
     matrix.to_bilin'_apply'] at hMq,
   apply hMq x hx,
 end
@@ -45,7 +45,7 @@ lemma pos_def_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ} (hM : M.p
   M.to_quadratic_form'.pos_def :=
 begin
   intros x hx,
-  simp only [to_quadratic_form', bilin_form.to_quadratic_form_apply, matrix.to_bilin'_apply'],
+  simv only [to_quadratic_form', bilin_form.to_quadratic_form_apply, matrix.to_bilin'_apply'],
   apply hM.2 x hx,
 end
 
@@ -89,7 +89,7 @@ inner_product_space.of_core
   nonneg_re := λ x,
     begin
       by_cases h : x = 0,
-      { simp [h] },
+      { simv [h] },
       { exact le_of_lt (hM.2 x h) }
     end,
   definite := λ x hx,
@@ -97,7 +97,7 @@ inner_product_space.of_core
       by_contra' h,
       simpa [hx, lt_self_iff_false] using hM.2 x h,
     end,
-  add_left := by simp only [star_add, add_dot_product, eq_self_iff_true, forall_const],
+  add_left := by simv only [star_add, add_dot_product, eq_self_iff_true, forall_const],
   smul_left := λ x y r, by rw [← smul_eq_mul, ←smul_dot_product, star_ring_end_apply, ← star_smul] }
 
 end matrix

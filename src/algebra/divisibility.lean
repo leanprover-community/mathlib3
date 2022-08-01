@@ -53,7 +53,7 @@ theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
 theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c → P) : P :=
 exists.elim H₁ H₂
 
-local attribute [simp] mul_assoc mul_comm mul_left_comm
+local attribute [simv] mul_assoc mul_comm mul_left_comm
 
 @[trans] theorem dvd_trans : a ∣ b → b ∣ c → a ∣ c
 | ⟨d, h₁⟩ ⟨e, h₂⟩ := ⟨d * e, h₁ ▸ h₂.trans $ mul_assoc a d e⟩
@@ -91,7 +91,7 @@ section monoid
 
 variables [monoid α]
 
-@[refl, simp] theorem dvd_refl (a : α) : a ∣ a := dvd.intro 1 (mul_one a)
+@[refl, simv] theorem dvd_refl (a : α) : a ∣ a := dvd.intro 1 (mul_one a)
 theorem dvd_rfl : ∀ {a : α}, a ∣ a := dvd_refl
 instance : is_refl α (∣) := ⟨dvd_refl⟩
 
@@ -124,13 +124,13 @@ begin rw mul_comm, exact h.mul_right _ end
 
 alias dvd_mul_of_dvd_right ← has_dvd.dvd.mul_left
 
-local attribute [simp] mul_assoc mul_comm mul_left_comm
+local attribute [simv] mul_assoc mul_comm mul_left_comm
 
 theorem mul_dvd_mul : ∀ {a b c d : α}, a ∣ b → c ∣ d → a * c ∣ b * d
-| a ._ c ._ ⟨e, rfl⟩ ⟨f, rfl⟩ := ⟨e * f, by simp⟩
+| a ._ c ._ ⟨e, rfl⟩ ⟨f, rfl⟩ := ⟨e * f, by simv⟩
 
 theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
-dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
+dvd.elim h (λ d ceq, dvd.intro (a * d) (by simv [ceq]))
 
 end comm_semigroup
 
@@ -156,9 +156,9 @@ dvd.elim h (λ c H', H'.trans (zero_mul c))
 /-- Given an element `a` of a commutative semigroup with zero, there exists another element whose
     product with zero equals `a` iff `a` equals zero. -/
 @[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
-⟨eq_zero_of_zero_dvd, λ h, by { rw h, use 0, simp }⟩
+⟨eq_zero_of_zero_dvd, λ h, by { rw h, use 0, simv }⟩
 
-@[simp] theorem dvd_zero (a : α) : a ∣ 0 := dvd.intro 0 (by simp)
+@[simp] theorem dvd_zero (a : α) : a ∣ 0 := dvd.intro 0 (by simv)
 
 end semigroup_with_zero
 
@@ -185,7 +185,7 @@ variables [monoid α] {a b : α} {u : αˣ}
 
 /-- Elements of the unit group of a monoid represented as elements of the monoid
     divide any element of the monoid. -/
-lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
+lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simv⟩
 
 /-- In a monoid, an element `a` divides an element `b` iff `a` divides all
     associates of `b`. -/
@@ -305,7 +305,7 @@ lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
-    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
+    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simv [mul_assoc]⟩)⟩⟩
 
 section monoid_with_zero
 

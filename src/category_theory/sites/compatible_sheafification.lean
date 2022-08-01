@@ -101,7 +101,7 @@ lemma sheafification_whisker_right_iso_hom_app :
   (J.sheafification_whisker_right_iso F).hom.app P = (J.sheafify_comp_iso F P).hom :=
 begin
   dsimp [sheafification_whisker_right_iso, sheafify_comp_iso],
-  simp only [category.id_comp, category.comp_id],
+  simv only [category.id_comp, category.comp_id],
   erw category.id_comp,
 end
 
@@ -110,11 +110,11 @@ lemma sheafification_whisker_right_iso_inv_app :
   (J.sheafification_whisker_right_iso F).inv.app P = (J.sheafify_comp_iso F P).inv :=
 begin
   dsimp [sheafification_whisker_right_iso, sheafify_comp_iso],
-  simp only [category.id_comp, category.comp_id],
+  simv only [category.id_comp, category.comp_id],
   erw category.id_comp,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma whisker_right_to_sheafify_sheafify_comp_iso_hom :
   whisker_right (J.to_sheafify _) _ ≫ (J.sheafify_comp_iso F P).hom = J.to_sheafify _ :=
 begin
@@ -127,10 +127,10 @@ begin
   refl,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma to_sheafify_comp_sheafify_comp_iso_inv :
   J.to_sheafify _ ≫ (J.sheafify_comp_iso F P).inv = whisker_right (J.to_sheafify _) _ :=
-by { rw iso.comp_inv_eq, simp }
+by { rw iso.comp_inv_eq, simv }
 
 section
 
@@ -147,7 +147,7 @@ lemma sheafify_comp_iso_inv_eq_sheafify_lift : (J.sheafify_comp_iso F P).inv =
 begin
   apply J.sheafify_lift_unique,
   rw iso.comp_inv_eq,
-  simp,
+  simv,
 end
 
 end

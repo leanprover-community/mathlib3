@@ -91,7 +91,7 @@ lemma test_monotone {α : Type*} [preorder α] : monotone (my_id : α → α) :=
 example : my_id 0 ≤ my_id 1 :=
 begin
   mono,
-  simp,
+  simv,
 end
 
 @[mono]
@@ -101,5 +101,5 @@ lemma test_strict_mono {α : Type*} [preorder α] : strict_mono (my_id : α → 
 example : my_id 0 < my_id 1 :=
 begin
   mono,
-  simp,
+  simv,
 end

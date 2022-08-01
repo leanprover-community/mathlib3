@@ -208,8 +208,8 @@ begin
       (indicator_ae_eq_of_restrict_compl_ae_eq_zero (hm _ hs_m) hf_zero),
     filter_upwards [hf.ae_eq_mk] with x hx,
     by_cases hxs : x ∈ s,
-    { simp [hxs, hx], },
-    { simp [hxs], }, },
+    { simv [hxs, hx], },
+    { simv [hxs], }, },
   suffices : strongly_measurable[m₂] (s.indicator (hf.mk f)),
     from ae_strongly_measurable'.congr this.ae_strongly_measurable' h_ind_eq,
   have hf_ind : strongly_measurable[m] (s.indicator (hf.mk f)),
@@ -596,7 +596,7 @@ begin
   let f' := (⟨f, hf⟩ : Lp_meas F ℝ m p μ),
   let g := Lp_meas_to_Lp_trim_lie F ℝ p μ hm f',
   have hfg : f' = (Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm g,
-    by simp only [linear_isometry_equiv.symm_apply_apply],
+    by simv only [linear_isometry_equiv.symm_apply_apply],
   change P ↑f',
   rw hfg,
   refine @Lp.induction α F m _ p (μ.trim hm) _ hp_ne_top
@@ -767,7 +767,7 @@ lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero'
   f =ᵐ[μ] 0 :=
 begin
   let f_meas : Lp_meas E' 𝕜 m p μ := ⟨f, hf_meas⟩,
-  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base', subtype.coe_mk],
+  have hf_f_meas : f =ᵐ[μ] f_meas, by simv only [coe_fn_coe_base', subtype.coe_mk],
   refine hf_f_meas.trans _,
   refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_ne_zero hp_ne_top _ _,
   { intros s hs hμs,
@@ -987,7 +987,7 @@ lemma inner_condexp_L2_eq_inner_fun (hm : m ≤ m0) (f g : α →₂[μ] E)
 begin
   symmetry,
   rw [← sub_eq_zero, ← inner_sub_left, condexp_L2],
-  simp only [mem_Lp_meas_iff_ae_strongly_measurable'.mpr hg, orthogonal_projection_inner_eq_zero],
+  simv only [mem_Lp_meas_iff_ae_strongly_measurable'.mpr hg, orthogonal_projection_inner_eq_zero],
 end
 
 section real
@@ -1050,7 +1050,7 @@ begin
   { refine hf.mono (λ x hx, _),
     dsimp only,
     rw hx,
-    simp, },
+    simv, },
   { exact (Lp.strongly_measurable _).ennnorm, },
 end
 
@@ -1066,9 +1066,9 @@ begin
     rw hx,
     classical,
     simp_rw set.indicator_apply,
-    split_ifs; simp, },
+    split_ifs; simv, },
   rw [h_eq, lintegral_indicator _ hs, lintegral_const, measure.restrict_restrict hs],
-  simp only [one_mul, set.univ_inter, measurable_set.univ, measure.restrict_apply],
+  simv only [one_mul, set.univ_inter, measurable_set.univ, measure.restrict_apply],
 end
 
 end real
@@ -1319,7 +1319,7 @@ lemma condexp_ind_smul_empty {x : G} :
     ((@measure_empty _ _ μ).le.trans_lt ennreal.coe_lt_top).ne x = 0 :=
 begin
   rw [condexp_ind_smul, indicator_const_empty],
-  simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
+  simv only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
 
 lemma set_integral_condexp_L2_indicator (hs : measurable_set[m] s) (ht : measurable_set t)
@@ -1509,16 +1509,16 @@ variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 lemma condexp_ind_L1_of_measurable_set_of_measure_ne_top (hs : measurable_set s) (hμs : μ s ≠ ∞)
   (x : G) :
   condexp_ind_L1 hm μ s x = condexp_ind_L1_fin hm hs hμs x :=
-by simp only [condexp_ind_L1, and.intro hs hμs, dif_pos, ne.def, not_false_iff, and_self]
+by simv only [condexp_ind_L1, and.intro hs hμs, dif_pos, ne.def, not_false_iff, and_self]
 
 lemma condexp_ind_L1_of_measure_eq_top (hμs : μ s = ∞) (x : G) :
   condexp_ind_L1 hm μ s x = 0 :=
-by simp only [condexp_ind_L1, hμs, eq_self_iff_true, not_true, ne.def, dif_neg, not_false_iff,
+by simv only [condexp_ind_L1, hμs, eq_self_iff_true, not_true, ne.def, dif_neg, not_false_iff,
   and_false]
 
 lemma condexp_ind_L1_of_not_measurable_set (hs : ¬ measurable_set s) (x : G) :
   condexp_ind_L1 hm μ s x = 0 :=
-by simp only [condexp_ind_L1, hs, dif_neg, not_false_iff, false_and]
+by simv only [condexp_ind_L1, hs, dif_neg, not_false_iff, false_and]
 
 lemma condexp_ind_L1_add (x y : G) :
   condexp_ind_L1 hm μ s (x + y) = condexp_ind_L1 hm μ s x + condexp_ind_L1 hm μ s y :=
@@ -1596,7 +1596,7 @@ lemma condexp_ind_ae_eq_condexp_ind_smul (hm : m ≤ m0) [sigma_finite (μ.trim 
   condexp_ind hm μ s x =ᵐ[μ] condexp_ind_smul hm hs hμs x :=
 begin
   refine eventually_eq.trans _ (condexp_ind_L1_fin_ae_eq_condexp_ind_smul hm hs hμs x),
-  simp [condexp_ind, condexp_ind_L1, hs, hμs],
+  simv [condexp_ind, condexp_ind_L1, hs, hμs],
 end
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
@@ -1610,7 +1610,7 @@ ae_strongly_measurable'.congr (ae_strongly_measurable'_condexp_ind_smul hm hs h�
 begin
   ext1,
   ext1,
-  refine (condexp_ind_ae_eq_condexp_ind_smul hm measurable_set.empty (by simp) x).trans _,
+  refine (condexp_ind_ae_eq_condexp_ind_smul hm measurable_set.empty (by simv) x).trans _,
   rw condexp_ind_smul_empty,
   refine (Lp.coe_fn_zero G 2 μ).trans _,
   refine eventually_eq.trans _ (Lp.coe_fn_zero G 1 μ).symm,
@@ -1666,7 +1666,7 @@ begin
   refine (@indicator_const_Lp_coe_fn α _ _ 2 μ _ s (hm s hs) hμs (1 : ℝ)).mono (λ x hx, _),
   dsimp only,
   rw hx,
-  by_cases hx_mem : x ∈ s; simp [hx_mem],
+  by_cases hx_mem : x ∈ s; simv [hx_mem],
 end
 
 lemma condexp_ind_nonneg {E} [normed_lattice_add_comm_group E] [normed_space ℝ E] [ordered_smul ℝ E]
@@ -1792,7 +1792,7 @@ lemma condexp_L1_clm_Lp_meas (f : Lp_meas F' ℝ m 1 μ) :
 begin
   let g := Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm f,
   have hfg : f = (Lp_meas_to_Lp_trim_lie F' ℝ 1 μ hm).symm g,
-    by simp only [linear_isometry_equiv.symm_apply_apply],
+    by simv only [linear_isometry_equiv.symm_apply_apply],
   rw hfg,
   refine @Lp.induction α F' m _ 1 (μ.trim hm) _ ennreal.coe_ne_top
     (λ g : α →₁[μ.trim hm] F',
@@ -1954,9 +1954,9 @@ begin
     { rw if_pos (⟨hfm, hfi⟩ : strongly_measurable[m] f ∧ integrable f μ),
       exact (condexp_L1_of_ae_strongly_measurable'
         (strongly_measurable.ae_strongly_measurable' hfm) hfi).symm, },
-    { simp only [hfi, if_false, and_false],
+    { simv only [hfi, if_false, and_false],
       exact (ae_strongly_measurable'.ae_eq_mk ae_strongly_measurable'_condexp_L1).symm, }, },
-  simp only [hfm, if_false, false_and],
+  simv only [hfm, if_false, false_and],
   exact (ae_strongly_measurable'.ae_eq_mk ae_strongly_measurable'_condexp_L1).symm,
 end
 
@@ -2001,9 +2001,9 @@ begin
   by_cases hfm : strongly_measurable[m] f,
   { by_cases hfi : integrable f μ,
     { rwa if_pos (⟨hfm, hfi⟩ : strongly_measurable[m] f ∧ integrable f μ), },
-    { simp only [hfi, if_false, and_false],
+    { simv only [hfi, if_false, and_false],
       exact ae_strongly_measurable'.strongly_measurable_mk _, }, },
-  simp only [hfm, if_false, false_and],
+  simv only [hfm, if_false, false_and],
   exact ae_strongly_measurable'.strongly_measurable_mk _,
 end
 
@@ -2076,9 +2076,9 @@ lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
   μ[f + g | m] =ᵐ[μ] μ[f|m] + μ[g|m] :=
 begin
   by_cases hm : m ≤ m0,
-  swap, { simp_rw condexp_of_not_le hm, simp, },
+  swap, { simp_rw condexp_of_not_le hm, simv, },
   by_cases hμm : sigma_finite (μ.trim hm),
-  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, simp, },
+  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, simv, },
   haveI : sigma_finite (μ.trim hm) := hμm,
   refine (condexp_ae_eq_condexp_L1 hm _).trans _,
   rw condexp_L1_add hf hg,
@@ -2089,9 +2089,9 @@ end
 lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | m] =ᵐ[μ] c • μ[f|m] :=
 begin
   by_cases hm : m ≤ m0,
-  swap, { simp_rw condexp_of_not_le hm, simp, },
+  swap, { simp_rw condexp_of_not_le hm, simv, },
   by_cases hμm : sigma_finite (μ.trim hm),
-  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, simp, },
+  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, simv, },
   haveI : sigma_finite (μ.trim hm) := hμm,
   refine (condexp_ae_eq_condexp_L1 hm _).trans _,
   rw condexp_L1_smul c f,
@@ -2263,8 +2263,8 @@ begin
         { rw [set.indicator_indicator, set.inter_self], }, },
       filter_upwards [this] with x hx,
       by_cases hxs : x ∈ s,
-      { simp only [hx, hxs, set.indicator_of_mem], },
-      { simp only [hxs, set.indicator_of_not_mem, not_false_iff], },
+      { simv only [hx, hxs, set.indicator_of_mem], },
+      { simv only [hxs, set.indicator_of_not_mem, not_false_iff], },
     end
   ... =ᵐ[μ] s.indicator (μ[s.indicator f|m]) :
     by rw [set.indicator_indicator, set.inter_compl_self, set.indicator_empty', add_zero]
@@ -2321,7 +2321,7 @@ begin
   swap,
   { filter_upwards [@condexp_undef _ _ _ _ _ m _ μ _ hf_int,
       @condexp_undef _ _ _ _ _ m₂ _ μ _ hf_int] with x hxm hxm₂,
-    simp only [set.indicator_apply, hxm, hxm₂], },
+    simv only [set.indicator_apply, hxm, hxm₂], },
   refine ((condexp_indicator hf_int hs_m).symm.trans _).trans (condexp_indicator hf_int hs_m₂),
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm₂
     (λ s hs hμs, integrable_condexp.integrable_on)
@@ -2369,10 +2369,10 @@ begin
   { intros s c f,
     ext1 x,
     by_cases hx : x ∈ s,
-    { simp only [hx, pi.mul_apply, set.indicator_of_mem, pi.smul_apply, algebra.id.smul_eq_mul] },
-    { simp only [hx, pi.mul_apply, set.indicator_of_not_mem, not_false_iff, zero_mul], }, },
+    { simv only [hx, pi.mul_apply, set.indicator_of_mem, pi.smul_apply, algebra.id.smul_eq_mul] },
+    { simv only [hx, pi.mul_apply, set.indicator_of_not_mem, not_false_iff, zero_mul], }, },
   refine @simple_func.induction _ _ m _ _ (λ c s hs, _) (λ g₁ g₂ h_disj h_eq₁ h_eq₂, _) f,
-  { simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
+  { simv only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
       simple_func.coe_zero, set.piecewise_eq_indicator],
     rw [this, this],
     refine (condexp_indicator (hg.smul c) hs).trans _,
@@ -2397,8 +2397,8 @@ begin
   have hfs_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)),
     from hf.tendsto_approx_bounded_ae hf_bound,
   by_cases hμ : μ = 0,
-  { simp only [hμ, ae_zero], },
-  haveI : μ.ae.ne_bot, by simp only [hμ, ae_ne_bot, ne.def, not_false_iff],
+  { simv only [hμ, ae_zero], },
+  haveI : μ.ae.ne_bot, by simv only [hμ, ae_ne_bot, ne.def, not_false_iff],
   have hc : 0 ≤ c,
   { have h_exists : ∃ x, ∥f x∥ ≤ c := eventually.exists hf_bound,
     exact (norm_nonneg _).trans h_exists.some_spec, },
@@ -2498,9 +2498,9 @@ begin
   refine condexp_strongly_measurable_mul_of_bound hm (hf.indicator (h_meas n)) hg.integrable_on n _,
   refine eventually_of_forall (λ x, _),
   by_cases hxs : x ∈ sets n,
-  { simp only [hxs, set.indicator_of_mem],
+  { simv only [hxs, set.indicator_of_mem],
     exact h_norm n x hxs, },
-  { simp only [hxs, set.indicator_of_not_mem, not_false_iff, _root_.norm_zero, nat.cast_nonneg], },
+  { simv only [hxs, set.indicator_of_not_mem, not_false_iff, _root_.norm_zero, nat.cast_nonneg], },
 end
 
 /-- Pull-out property of the conditional expectation. -/
@@ -2599,7 +2599,7 @@ begin
       ((strongly_measurable_condexp.mono (hℱ n)).ae_strongly_measurable.indicator (hmeas n 0))
       one_ne_zero).2 _).trans (zero_le _)⟩,
     filter_upwards [@condexp_congr_ae _ _ _ _ _ (ℱ n) m0 μ _ _ hne] with x hx,
-    simp only [zero_le', set.set_of_true, set.indicator_univ, pi.zero_apply, hx, condexp_zero] },
+    simv only [zero_le', set.set_of_true, set.indicator_univ, pi.zero_apply, hx, condexp_zero] },
   obtain ⟨δ, hδ, h⟩ := hg.snorm_indicator_le μ le_rfl ennreal.one_ne_top hε,
   set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (snorm g 1 μ).to_nnreal with hC,
   have hCpos : 0 < C :=

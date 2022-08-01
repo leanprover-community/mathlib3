@@ -58,7 +58,7 @@ lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
 
 lemma sum_eq_sum_Ico_succ_bot {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a < b) (f : ℕ → δ) : (∑ k in Ico a b, f k) = f a + (∑ k in Ico (a + 1) b, f k) :=
-have ha : a ∉ Ico (a + 1) b, by simp,
+have ha : a ∉ Ico (a + 1) b, by simv,
 by rw [← sum_insert ha, nat.Ico_insert_succ_left hab]
 
 @[to_additive]
@@ -108,7 +108,7 @@ begin
   rw [← prod_Ico_eq_div f hnm],
   congr,
   apply finset.ext,
-  simp only [mem_Ico, mem_filter, mem_range, *],
+  simv only [mem_Ico, mem_filter, mem_range, *],
   tauto,
 end
 
@@ -123,7 +123,7 @@ begin
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
     (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
-  simp only [finset.mem_Ico, sigma.forall, finset.mem_sigma];
+  simv only [finset.mem_Ico, sigma.forall, finset.mem_sigma];
   rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
 end
 
@@ -146,10 +146,10 @@ begin
   cases lt_or_le k m with hkm hkm,
   { rw [← nat.Ico_image_const_sub_eq_Ico (this _ hkm)],
     refine (prod_image _).symm,
-    simp only [mem_Ico],
+    simv only [mem_Ico],
     rintros i ⟨ki, im⟩ j ⟨kj, jm⟩ Hij,
     rw [← tsub_tsub_cancel_of_le (this _ im), Hij, tsub_tsub_cancel_of_le (this _ jm)] },
-  { simp [Ico_eq_empty_of_le, tsub_le_tsub_left, hkm] }
+  { simv [Ico_eq_empty_of_le, tsub_le_tsub_left, hkm] }
 end
 
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
@@ -161,10 +161,10 @@ lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
   ∏ j in range n, f (n - 1 - j) = ∏ j in range n, f j :=
 begin
   cases n,
-  { simp },
-  { simp only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, tsub_zero],
+  { simv },
+  { simv only [←nat.Ico_zero_eq_range, nat.succ_sub_succ_eq_sub, tsub_zero],
     rw prod_Ico_reflect _ _ le_rfl,
-    simp }
+    simv }
 end
 
 lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : ℕ) :
@@ -178,7 +178,7 @@ lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : 
 
 @[simp] lemma prod_range_add_one_eq_factorial : ∀ n : ℕ, ∏ x in range n, (x+1) = n!
 | 0 := rfl
-| (n+1) := by simp [finset.range_succ, prod_range_add_one_eq_factorial n]
+| (n+1) := by simv [finset.range_succ, prod_range_add_one_eq_factorial n]
 
 section gauss_sum
 
@@ -267,7 +267,7 @@ lemma sum_range_by_parts :
   ∑ i in range n, (f i • g i) = f (n-1) • G n - ∑ i in range (n-1), (f (i+1) - f i) • G (i+1) :=
 begin
   by_cases hn : n = 0,
-  { simp [hn], },
+  { simv [hn], },
   { rw [range_eq_Ico, sum_Ico_by_parts f g (nat.pos_of_ne_zero hn), sum_range_zero,
       smul_zero, sub_zero, range_eq_Ico] },
 end

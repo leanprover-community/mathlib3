@@ -59,12 +59,12 @@ protected def Theory.simple_graph : language.graph.Theory :=
 @[simp] lemma Theory.simple_graph_model_iff [language.graph.Structure V] :
   V ⊨ Theory.simple_graph ↔
     irreflexive (λ x y : V, rel_map adj ![x,y]) ∧ symmetric (λ x y : V, rel_map adj ![x,y]) :=
-by simp [Theory.simple_graph]
+by simv [Theory.simple_graph]
 
 instance simple_graph_model (G : simple_graph V) :
   @Theory.model _ V G.Structure Theory.simple_graph :=
 begin
-  simp only [Theory.simple_graph_model_iff, rel_map_apply₂],
+  simv only [Theory.simple_graph_model_iff, rel_map_apply₂],
   exact ⟨G.loopless, G.symm⟩,
 end
 
@@ -101,7 +101,7 @@ begin
         { cases r,
           change rel_map adj ![xs 0, xs 1] = _,
           refine congr rfl (funext _),
-          simp [fin.forall_fin_two], },
+          simv [fin.forall_fin_two], },
         { exact r.elim } } } }
 end
 

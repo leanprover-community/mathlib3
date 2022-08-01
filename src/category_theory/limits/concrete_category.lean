@@ -75,7 +75,7 @@ lemma concrete.wide_pullback_ext' {B : C} {ι : Type w} [nonempty ι]
 begin
   apply concrete.wide_pullback_ext _ _ _ _ h,
   inhabit ι,
-  simp only [← π_arrow f (arbitrary _), comp_apply, h],
+  simv only [← π_arrow f (arbitrary _), comp_apply, h],
 end
 
 end wide_pullback
@@ -111,10 +111,10 @@ def concrete.multiequalizer_equiv_aux (I : multicospan_index C) :
     end,
     property := begin
       rintros (a|b) (a'|b') (f|f|f),
-      { change (I.multicospan.map (𝟙 _)) _ = _, simp },
+      { change (I.multicospan.map (𝟙 _)) _ = _, simv },
       { refl },
       { dsimp, erw ← x.2 b', refl },
-      { change (I.multicospan.map (𝟙 _)) _ = _, simp },
+      { change (I.multicospan.map (𝟙 _)) _ = _, simv },
     end },
   left_inv := begin
     intros x, ext (a|b),
@@ -267,8 +267,8 @@ begin
     let k : J := is_filtered.coeq (g1 ≫ e1) (f2 ≫ e2),
     let e : k0 ⟶ k := is_filtered.coeq_hom _ _,
     use [k, f1 ≫ e1 ≫ e, g2 ≫ e2 ≫ e],
-    simp only [F.map_comp, comp_apply, h1, ← h2],
-    simp only [← comp_apply, ← F.map_comp],
+    simv only [F.map_comp, comp_apply, h1, ← h2],
+    simv only [← comp_apply, ← F.map_comp],
     rw is_filtered.coeq_condition },
 end
 
@@ -312,7 +312,7 @@ begin
   rcases concrete.wide_pushout_exists_rep f x with ⟨y, rfl⟩ | ⟨i, y, rfl⟩,
   { inhabit α,
     use [arbitrary _, f _ y],
-    simp only [← arrow_ι _ (arbitrary α), comp_apply] },
+    simv only [← arrow_ι _ (arbitrary α), comp_apply] },
   { use [i,y] }
 end
 

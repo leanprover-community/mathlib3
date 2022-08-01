@@ -220,11 +220,11 @@ protected def single (i : ι) (s : set X) : bump_covering ι X s :=
       rintro j ⟨x, hx, -⟩,
       contrapose! hx,
       rw [mem_singleton_iff] at hx,
-      simp [hx]
+      simv [hx]
     end,
   nonneg' := le_update_iff.2 ⟨λ x, zero_le_one, λ _ _, le_rfl⟩,
   le_one' := update_le_iff.2 ⟨le_rfl, λ _ _ _, zero_le_one⟩,
-  eventually_eq_one' := λ x _, ⟨i, by simp⟩ }
+  eventually_eq_one' := λ x _, ⟨i, by simv⟩ }
 
 @[simp] lemma coe_single (i : ι) (s : set X) : ⇑(bump_covering.single i s) = pi.single i 1 := rfl
 
@@ -376,7 +376,7 @@ begin
   rcases f.locally_finite x with ⟨U, hU, hf⟩,
   use hf.to_finset,
   filter_upwards [hU] with y hyU,
-  simp only [pi.mul_apply, finset.prod_apply],
+  simv only [pi.mul_apply, finset.prod_apply],
   apply to_pou_fun_eq_mul_prod,
   intros j hji hj,
   exact hf.mem_to_finset.2 ⟨y, ⟨hj, hyU⟩⟩
@@ -386,7 +386,7 @@ lemma continuous_to_pou_fun (i : ι) : continuous (f.to_pou_fun i) :=
 begin
   refine ((f i).continuous.mul $
     continuous_finprod_cond (λ j _, continuous_const.sub (f j).continuous) _),
-  simp only [mul_support_one_sub],
+  simv only [mul_support_one_sub],
   exact f.locally_finite
 end
 
@@ -405,14 +405,14 @@ def to_partition_of_unity : partition_of_unity ι X s :=
     (finprod_cond_nonneg $ λ j hj, sub_nonneg.2 $ f.le_one j x),
   sum_eq_one' := λ x hx,
     begin
-      simp only [continuous_map.coe_mk, sum_to_pou_fun_eq, sub_eq_self],
+      simv only [continuous_map.coe_mk, sum_to_pou_fun_eq, sub_eq_self],
       apply finprod_eq_zero (λ i, 1 - f i x) (f.ind x hx),
-      { simp only [f.ind_apply x hx, sub_self] },
+      { simv only [f.ind_apply x hx, sub_self] },
       { rw mul_support_one_sub, exact f.point_finite x }
     end,
   sum_le_one' := λ x,
     begin
-      simp only [continuous_map.coe_mk, sum_to_pou_fun_eq, sub_le_self_iff],
+      simv only [continuous_map.coe_mk, sum_to_pou_fun_eq, sub_le_self_iff],
       exact finprod_nonneg (λ i, sub_nonneg.2 $ f.le_one i x)
     end }
 

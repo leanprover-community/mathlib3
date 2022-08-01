@@ -30,9 +30,9 @@ variable {v : nat → int}
 
 @[simp] lemma val_between_nil {l : nat} :
   ∀ m, val_between v [] l m = 0
-| 0     := by simp only [val_between]
+| 0     := by simv only [val_between]
 | (m+1) :=
-  by simp only [val_between_nil m, omega.coeffs.val_between,
+  by simv only [val_between_nil m, omega.coeffs.val_between,
      get_nil, zero_add, zero_mul, int.default_eq_zero]
 
 /-- Evaluation of the nonconstant component of a normalized linear arithmetic term. -/
@@ -101,11 +101,11 @@ lemma val_between_set {a : int} {l n : nat} :
             apply ne_of_lt h5 } },
         apply val_between_nil },
       rw h2,
-      simp only [h3, zero_add, list.func.get_set] },
+      simv only [h3, zero_add, list.func.get_set] },
     { have h3 : l + m ≠ n,
       { apply ne_of_gt h2 },
       rw [@val_between_set m h1 h2, get_set_eq_of_ne _ _ h3],
-      simp only [h3, get_nil, add_zero, zero_mul, int.default_eq_zero] }
+      simv only [h3, get_nil, add_zero, zero_mul, int.default_eq_zero] }
   end
 
 @[simp] lemma val_set {m : nat} {a : int} :
@@ -113,7 +113,7 @@ lemma val_between_set {a : int} {l n : nat} :
 begin
   apply val_between_set, apply zero_le,
   apply lt_of_lt_of_le (lt_add_one _),
-  simp only [length_set, zero_add, le_max_right],
+  simv only [length_set, zero_add, le_max_right],
   apply_instance,
 end
 
@@ -139,7 +139,7 @@ lemma val_between_add {is js : list int} {l : nat} :
   (val_between v is l m) + (val_between v js l m)
 | 0     := rfl
 | (m+1) :=
-  by { simp only [val_between, val_between_add m,
+  by { simv only [val_between, val_between_add m,
       list.func.get, get_add], ring }
 
 @[simp] lemma val_add {is js : list int} :
@@ -157,7 +157,7 @@ lemma val_between_sub {is js : list int} {l : nat} :
   (val_between v is l m) - (val_between v js l m)
 | 0 := rfl
 | (m+1) :=
-  by { simp only [val_between, val_between_sub m,
+  by { simv only [val_between, val_between_sub m,
       list.func.get, get_sub], ring }
 
 @[simp] lemma val_sub {is js : list int} :
@@ -214,7 +214,7 @@ by apply val_except_eq_val_except update_eq_of_ne (get_set_eq_of_ne _)
 lemma val_between_add_val_between {as : list int} {l m : nat} :
   ∀ {n}, val_between v as l m + val_between v as (l+m) n =
   val_between v as l (m+n)
-| 0 := by simp only [val_between, add_zero]
+| 0 := by simv only [val_between, add_zero]
 | (n+1) :=
   begin
     rw ← add_assoc,
@@ -233,18 +233,18 @@ begin
     have h5 : n + 1 + (as.length - (n + 1)) = as.length,
     { rw [add_comm, tsub_add_cancel_of_le h1] },
     rw h5 at h4, apply eq.trans _ h4,
-     simp only [val_between, zero_add], ring },
+     simv only [val_between, zero_add], ring },
   have h2 : list.length as - (n + 1) = 0,
   { exact tsub_eq_zero_iff_le.mpr h1 },
   have h3 : val_between v as 0 (list.length as) =
             val_between v as 0 (n + 1),
   { simpa only [val] using @val_eq_of_le v as (n+1) h1 },
-  simp only [add_zero, val_between, zero_add, h2, h3]
+  simv only [add_zero, val_between, zero_add, h2, h3]
 end
 
 @[simp] lemma val_between_map_mul {i : int} {as: list int} {l : nat} :
   ∀ {m}, val_between v (list.map ((*) i) as) l m = i * val_between v as l m
-| 0     := by simp only [val_between, mul_zero, list.map]
+| 0     := by simv only [val_between, mul_zero, list.map]
 | (m+1) :=
   begin
     unfold val_between,
@@ -254,7 +254,7 @@ end
     { rw [get_map h1, mul_assoc] },
     rw not_lt at h1,
     rw [get_eq_default_of_le, get_eq_default_of_le];
-    try {simp}; apply h1
+    try {simv}; apply h1
   end
 
 lemma forall_val_dvd_of_forall_mem_dvd {i : int} {as : list int} :
@@ -282,7 +282,7 @@ lemma dvd_val {as : list int} {i : int} :
 @[simp] lemma val_between_map_div
   {as: list int} {i : int} {l : nat} (h1 : ∀ x ∈ as, i ∣ x) :
   ∀ {m}, val_between v (list.map (λ x, x / i) as) l m = (val_between v as l m) / i
-| 0     := by simp only [int.zero_div, val_between, list.map]
+| 0     := by simv only [int.zero_div, val_between, list.map]
 | (m+1) :=
   begin
     unfold val_between,

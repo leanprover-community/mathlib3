@@ -166,7 +166,7 @@ begin
   rcases eq_or_ne r 0 with rfl|hr,
   { rw [closed_ball_zero, mem_singleton_iff] at hx hy,
     exact (hne (hx.trans hy.symm)).elim },
-  { simp only [← interior_closed_ball _ hr] at hx hy ⊢,
+  { simv only [← interior_closed_ball _ hr] at hx hy ⊢,
     exact strict_convex_closed_ball ℝ z r hx hy hne ha hb hab }
 end
 
@@ -181,7 +181,7 @@ and `y` with positive coefficients has norm strictly less than `r`. -/
 lemma norm_combo_lt_of_ne (hx : ∥x∥ ≤ r) (hy : ∥y∥ ≤ r) (hne : x ≠ y) (ha : 0 < a) (hb : 0 < b)
   (hab : a + b = 1) : ∥a • x + b • y∥ < r :=
 begin
-  simp only [← mem_ball_zero_iff, ← mem_closed_ball_zero_iff] at hx hy ⊢,
+  simv only [← mem_ball_zero_iff, ← mem_closed_ball_zero_iff] at hx hy ⊢,
   exact combo_mem_ball_of_ne hx hy hne ha hb hab
 end
 
@@ -189,7 +189,7 @@ end
 ∥y∥`. -/
 lemma norm_add_lt_of_not_same_ray (h : ¬same_ray ℝ x y) : ∥x + y∥ < ∥x∥ + ∥y∥ :=
 begin
-  simp only [same_ray_iff_inv_norm_smul_eq, not_or_distrib, ← ne.def] at h,
+  simv only [same_ray_iff_inv_norm_smul_eq, not_or_distrib, ← ne.def] at h,
   rcases h with ⟨hx, hy, hne⟩,
   rw ← norm_pos_iff at hx hy,
   have hxy : 0 < ∥x∥ + ∥y∥ := add_pos hx hy,
@@ -238,7 +238,7 @@ same_ray_iff_norm_sub.not.trans $ ne_comm.trans (abs_norm_sub_norm_le _ _).lt_if
 /-- In a strictly convex space, the triangle inequality turns into an equality if and only if the
 middle point belongs to the segment joining two other points. -/
 lemma dist_add_dist_eq_iff : dist x y + dist y z = dist x z ↔ y ∈ [x -[ℝ] z] :=
-by simp only [mem_segment_iff_same_ray, same_ray_iff_norm_add, dist_eq_norm',
+by simv only [mem_segment_iff_same_ray, same_ray_iff_norm_add, dist_eq_norm',
   sub_add_sub_cancel', eq_comm]
 
 lemma norm_midpoint_lt_iff (h : ∥x∥ = ∥y∥) : ∥(1/2 : ℝ) • (x + y)∥ < ∥x∥ ↔ x ≠ y :=
@@ -261,7 +261,7 @@ begin
       ← dist_eq_norm_vsub', hxy, hyz, ← add_mul, add_sub_cancel'_right, one_mul] },
   rcases eq_or_ne x z with rfl|hne,
   { obtain rfl : y = x, by simpa,
-    simp },
+    simv },
   { rw [← dist_ne_zero] at hne,
     rcases this with ⟨a, b, ha, hb, hab, H⟩,
     rw [smul_zero, zero_add] at H,
@@ -288,7 +288,7 @@ the codomain, is an affine isometry.  Unlike Mazur-Ulam, this does not require t
 be surjective.  -/
 noncomputable def affine_isometry_of_strict_convex_space {f : PF → PE} (hi : isometry f) :
   PF →ᵃⁱ[ℝ] PE :=
-{ norm_map := λ x, by simp [affine_map.of_map_midpoint, ←dist_eq_norm_vsub E, hi.dist_eq],
+{ norm_map := λ x, by simv [affine_map.of_map_midpoint, ←dist_eq_norm_vsub E, hi.dist_eq],
   ..affine_map.of_map_midpoint f (λ x y, begin
     apply eq_midpoint_of_dist_eq_half,
     { rw [hi.dist_eq, hi.dist_eq, dist_left_midpoint, real.norm_of_nonneg zero_le_two,

@@ -33,7 +33,7 @@ continuous_subtype_mk _ $ continuous_const.max $ continuous_const.min continuous
 lemma quotient_map_proj_Icc : quotient_map (proj_Icc a b h) :=
 quotient_map_iff.2 ⟨proj_Icc_surjective h, λ s,
   ⟨λ hs, hs.preimage continuous_proj_Icc,
-   λ hs, ⟨_, hs, by { ext, simp }⟩⟩⟩
+   λ hs, ⟨_, hs, by { ext, simv }⟩⟩⟩
 
 @[simp] lemma continuous_Icc_extend_iff {f : Icc a b → β} :
   continuous (Icc_extend h f) ↔ continuous f :=

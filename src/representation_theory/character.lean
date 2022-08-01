@@ -39,10 +39,10 @@ trace of the linear map `V.ρ g`.-/
 def character (V : fdRep k G) (g : G) := linear_map.trace k V (V.ρ g)
 
 lemma char_mul_comm (V : fdRep k G) (g : G) (h : G) : V.character (h * g) = V.character (g * h) :=
-by simp only [trace_mul_comm, character, map_mul]
+by simv only [trace_mul_comm, character, map_mul]
 
 @[simp] lemma char_one  (V : fdRep k G) : V.character 1 = finite_dimensional.finrank k V :=
-by simp only [character, map_one, trace_one]
+by simv only [character, map_one, trace_one]
 
 /-- The character is multiplicative under the tensor product. -/
 @[simp] lemma char_tensor (V W : fdRep k G) : (V ⊗ W).character = V.character * W.character :=
@@ -50,7 +50,7 @@ by { ext g, convert trace_tensor_product' (V.ρ g) (W.ρ g) }
 
 /-- The character of isomorphic representations is the same. -/
 lemma char_iso  {V W : fdRep k G} (i : V ≅ W) : V.character = W.character :=
-by { ext g, simp only [character, fdRep.iso.conj_ρ i], exact (trace_conj' (V.ρ g) _).symm }
+by { ext g, simv only [character, fdRep.iso.conj_ρ i], exact (trace_conj' (V.ρ g) _).symm }
 
 end monoid
 
@@ -74,7 +74,7 @@ variables [fintype G] [invertible (fintype.card G : k)]
 
 theorem average_char_eq_finrank_invariants (V : fdRep k G) :
   ⅟(fintype.card G : k) • ∑ g : G, V.character g = finrank k (invariants V.ρ) :=
-by { rw ←(is_proj_average_map V.ρ).trace, simp [character, group_algebra.average, _root_.map_sum], }
+by { rw ←(is_proj_average_map V.ρ).trace, simv [character, group_algebra.average, _root_.map_sum], }
 
 end group
 

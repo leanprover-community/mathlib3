@@ -72,7 +72,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
   (𝓤 α).lift' (λs:set (α×α), {p | s ∈ p.2.val ×ᶠ p.1.val }) :
   begin
     delta gen,
-    simp [map_lift'_eq, monotone_set_of, monotone_mem,
+    simv [map_lift'_eq, monotone_set_of, monotone_mem,
           function.comp, image_swap_eq_preimage_swap, -subtype.val_eq_coe]
   end
   ... ≤ (𝓤 α).lift' gen :
@@ -81,7 +81,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
         @monotone_mem (α×α) (p.2.val ×ᶠ  p.1.val)))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
-        simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
+        simv [function.comp, h, -subtype.val_eq_coe, mem_map'],
         exact le_rfl,
       end
 
@@ -145,12 +145,12 @@ def pure_cauchy (a : α) : Cauchy α :=
 lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauchy α) :=
 ⟨have (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) = id,
       from funext $ assume s, set.ext $ assume ⟨a₁, a₂⟩,
-        by simp [preimage, gen, pure_cauchy, prod_principal_principal],
+        by simv [preimage, gen, pure_cauchy, prod_principal_principal],
     calc comap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ((𝓤 α).lift' gen)
           = (𝓤 α).lift'
               (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
         comap_lift'_eq
-      ... = 𝓤 α : by simp [this]⟩
+      ... = 𝓤 α : by simv [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
 { inj := assume a₁ a₂ h, pure_injective $ subtype.ext_iff_val.1 h,
@@ -173,7 +173,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
+  simv only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
     set.inter_comm _ (range pure_cauchy), mem_set_of_eq],
   exact (lift'_ne_bot_iff $ monotone_const.inter monotone_preimage).mpr
     (assume s hs,
@@ -213,7 +213,7 @@ complete_space_extension
     have t' ⊆ { y : α | (f', pure_cauchy y) ∈ gen t },
       from assume x hx, (f ×ᶠ pure x).sets_of_superset (prod_mem_prod ht' hx) h,
     f.sets_of_superset ht' $ subset.trans this (preimage_mono ht₂),
-  ⟨f', by simp [nhds_eq_uniformity]; assumption⟩
+  ⟨f', by simv [nhds_eq_uniformity]; assumption⟩
 end
 
 instance [inhabited α] : inhabited (Cauchy α) :=
@@ -320,7 +320,7 @@ instance complete_space_separation [h : complete_space α] :
   have cauchy (f.comap (λx, ⟦x⟧)), from
     hf.comap' comap_quotient_le_uniformity $ hf.left.comap_of_surj (surjective_quotient_mk _),
   let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
-  ⟨⟦x⟧, (comap_le_comap_iff $ by simp).1
+  ⟨⟦x⟧, (comap_le_comap_iff $ by simv).1
     (hx.trans $ map_le_iff_le_comap.1 continuous_quotient_mk.continuous_at)⟩⟩
 
 /-- Hausdorff completion of `α` -/
@@ -350,7 +350,7 @@ lemma comap_coe_eq_uniformity :
 begin
   have : (λx:α×α, ((x.1 : completion α), (x.2 : completion α))) =
     (λx:(Cauchy α)×(Cauchy α), (⟦x.1⟧, ⟦x.2⟧)) ∘ (λx:α×α, (pure_cauchy x.1, pure_cauchy x.2)),
-  { ext ⟨a, b⟩; simp; refl },
+  { ext ⟨a, b⟩; simv; refl },
   rw [this, ← filter.comap_comap],
   change filter.comap _ (filter.comap _ (𝓤 $ quotient $ separation_setoid $ Cauchy α)) = 𝓤 α,
   rw [comap_quotient_eq_uniformity, uniform_embedding_pure_cauchy.comap_uniformity]
@@ -516,7 +516,7 @@ lemma extension_map [complete_space γ] [separated_space γ] {f : β → γ} {g 
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   completion.extension f ∘ completion.map g = completion.extension (f ∘ g) :=
 completion.ext (continuous_extension.comp continuous_map) continuous_extension $
-  by intro a; simp only [hg, hf, hf.comp hg, (∘), map_coe, extension_coe]
+  by intro a; simv only [hg, hf, hf.comp hg, (∘), map_coe, extension_coe]
 
 lemma map_comp {g : β → γ} {f : α → β} (hg : uniform_continuous g) (hf : uniform_continuous f) :
   completion.map g ∘ completion.map f = completion.map (g ∘ f) :=

@@ -93,10 +93,10 @@ variables [decidable_eq n] [mul_zero_one_class α]
 variables (M : matrix n n α)
 
 lemma hadamard_one : M ⊙ (1 : matrix n n α) = diagonal (λ i, M i i) :=
-by { ext, by_cases h : i = j; simp [h] }
+by { ext, by_cases h : i = j; simv [h] }
 
 lemma one_hadamard : (1 : matrix n n α) ⊙ M = diagonal (λ i, M i i) :=
-by { ext, by_cases h : i = j; simp [h] }
+by { ext, by_cases h : i = j; simv [h] }
 
 end one
 
@@ -122,7 +122,7 @@ lemma dot_product_vec_mul_hadamard [decidable_eq m] [decidable_eq n] (v : m → 
   dot_product (vec_mul v (A ⊙ B)) w = trace (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
 begin
   rw [←sum_hadamard_eq, finset.sum_comm],
-  simp [dot_product, vec_mul, finset.sum_mul, mul_assoc],
+  simv [dot_product, vec_mul, finset.sum_mul, mul_assoc],
 end
 
 end trace

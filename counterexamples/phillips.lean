@@ -160,8 +160,8 @@ structure bounded_additive_measure (α : Type u) :=
 
 instance : inhabited (bounded_additive_measure α) :=
 ⟨{ to_fun := λ s, 0,
-  additive' := λ s t hst, by simp,
-  exists_bound := ⟨0, λ s, by simp⟩ }⟩
+  additive' := λ s t hst, by simv,
+  exists_bound := ⟨0, λ s, by simv⟩ }⟩
 
 instance : has_coe_to_fun (bounded_additive_measure α) (λ _, set α → ℝ) := ⟨λ f, f.to_fun⟩
 
@@ -184,7 +184,7 @@ le_trans (le_abs_self _) (f.abs_le_bound s)
 
 @[simp] lemma empty (f : bounded_additive_measure α) : f ∅ = 0 :=
 begin
-  have : (∅ : set α) = ∅ ∪ ∅, by simp only [empty_union],
+  have : (∅ : set α) = ∅ ∪ ∅, by simv only [empty_union],
   apply_fun f at this,
   rwa [f.additive _ _ (empty_disjoint _), self_eq_add_left] at this,
 end
@@ -192,8 +192,8 @@ end
 instance : has_neg (bounded_additive_measure α) :=
 ⟨λ f,
 { to_fun := λ s, - f s,
-  additive' := λ s t hst, by simp only [f.additive s t hst, add_comm, neg_add_rev],
-  exists_bound := ⟨f.C, λ s, by simp [f.abs_le_bound]⟩ }⟩
+  additive' := λ s t hst, by simv only [f.additive s t hst, add_comm, neg_add_rev],
+  exists_bound := ⟨f.C, λ s, by simv [f.abs_le_bound]⟩ }⟩
 
 @[simp] lemma neg_apply (f : bounded_additive_measure α) (s : set α) : (-f) s = - (f s) := rfl
 
@@ -268,20 +268,20 @@ begin
     convert hF (s n) u using 3,
     { dsimp [u],
       ext x,
-      simp only [not_exists, mem_Union, mem_diff],
+      simv only [not_exists, mem_Union, mem_diff],
       tauto },
-    { simp only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
+    { simv only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
   have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (s n),
   { assume n,
     induction n with n IH,
-    { simp only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
+    { simv only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
         function.iterate_zero, subtype.coe_mk], },
     { have : (s (n+1) : set α) = (s (n+1) \ s n) ∪ s n,
-        by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
+        by simv only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
           union_diff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
       swap, { rw disjoint.comm, apply disjoint_diff },
-      calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
+      calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simv only [nat.cast_succ]; ring
       ... ≤ f ((s (n + 1 : ℕ)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
   rcases exists_nat_gt (f.C / (ε / 2)) with ⟨n, hn⟩,
   have : (n : ℝ) ≤ f.C / (ε / 2),
@@ -302,7 +302,7 @@ begin
   { have : t \ (s₁ ∪ s₂) = (t \ (s₁ ∪ s₂)) \ s₂,
       by rw [diff_diff, union_assoc, union_self],
     rw this,
-    simp only [neg_nonpos, neg_apply] at h₂,
+    simv only [neg_nonpos, neg_apply] at h₂,
     exact h₂ _ (ht.mono (diff_subset _ _)) },
 end
 
@@ -332,9 +332,9 @@ f.restrict (univ \ f.discrete_support)
 lemma eq_add_parts (f : bounded_additive_measure α) (s : set α) :
   f s = f.discrete_part s + f.continuous_part s :=
 begin
-  simp only [discrete_part, continuous_part, restrict_apply],
+  simv only [discrete_part, continuous_part, restrict_apply],
   rw [← f.additive, ← inter_distrib_right],
-  { simp only [union_univ, union_diff_self, univ_inter] },
+  { simv only [union_univ, union_diff_self, univ_inter] },
   { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_diff,
     exact this.mono (inter_subset_left _ _) (inter_subset_left _ _) }
 end
@@ -345,10 +345,10 @@ lemma discrete_part_apply (f : bounded_additive_measure α) (s : set α) :
 lemma continuous_part_apply_eq_zero_of_countable (f : bounded_additive_measure α)
   (s : set α) (hs : s.countable) : f.continuous_part s = 0 :=
 begin
-  simp [continuous_part],
+  simv [continuous_part],
   convert f.apply_countable s hs using 2,
   ext x,
-  simp [and_comm]
+  simv [and_comm]
 end
 
 lemma continuous_part_apply_diff (f : bounded_additive_measure α)
@@ -372,7 +372,7 @@ section
 
 lemma norm_indicator_le_one (s : set α) (x : α) :
   ∥(indicator s (1 : α → ℝ)) x∥ ≤ 1 :=
-by { simp only [indicator, pi.one_apply], split_ifs; norm_num }
+by { simv only [indicator, pi.one_apply], split_ifs; norm_num }
 
 /-- A functional in the dual space of bounded functions gives rise to a bounded additive measure,
 by applying the functional to the indicator functions. -/
@@ -385,7 +385,7 @@ def _root_.continuous_linear_map.to_bounded_additive_measure
       have : of_normed_add_comm_group_discrete (indicator (s ∪ t) 1) 1 (norm_indicator_le_one _)
               = of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)
               + of_normed_add_comm_group_discrete (indicator t 1) 1 (norm_indicator_le_one t),
-        by { ext x, simp [indicator_union_of_disjoint hst], },
+        by { ext x, simv [indicator_union_of_disjoint hst], },
       rw [this, f.map_add],
     end,
   exists_bound := ⟨∥f∥, λ s, begin
@@ -403,7 +403,7 @@ let f := (eval_clm ℝ x).to_bounded_additive_measure in calc
     = f.continuous_part (s \ {x}) : (continuous_part_apply_diff _ _ _ (countable_singleton x)).symm
 ... = f ((univ \ f.discrete_support) ∩ (s \ {x})) : rfl
 ... = indicator ((univ \ f.discrete_support) ∩ (s \ {x})) 1 x : rfl
-... = 0 : by simp
+... = 0 : by simv
 
 lemma to_functions_to_measure [measurable_space α] (μ : measure α) [is_finite_measure μ]
   (s : set α) (hs : measurable_set s) :
@@ -413,7 +413,7 @@ begin
     (of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)) = (μ s).to_real,
   rw extension_to_bounded_functions_apply,
   { change ∫ x, s.indicator (λ y, (1 : ℝ)) x ∂μ = _,
-    simp [integral_indicator hs] },
+    simv [integral_indicator hs] },
   { change integrable (indicator s 1) μ,
     have : integrable (λ x, (1 : ℝ)) μ := integrable_const (1 : ℝ),
     apply this.mono'
@@ -456,14 +456,14 @@ begin
   refine ⟨λ x, {y | r x y}, λ x, _, λ y, _⟩,
   { have : univ \ {y | r x y} = {y | r y x} ∪ {x},
     { ext y,
-      simp only [true_and, mem_univ, mem_set_of_eq, mem_insert_iff, union_singleton, mem_diff],
+      simv only [true_and, mem_univ, mem_set_of_eq, mem_insert_iff, union_singleton, mem_diff],
       rcases trichotomous_of r x y with h|rfl|h,
-      { simp only [h, not_or_distrib, false_iff, not_true],
+      { simv only [h, not_or_distrib, false_iff, not_true],
         split,
         { rintros rfl, exact irrefl_of r y h },
         { exact asymm h } },
-      { simp only [true_or, eq_self_iff_true, iff_true], exact irrefl x },
-      { simp only [h, iff_true, or_true], exact asymm h } },
+      { simv only [true_or, eq_self_iff_true, iff_true], exact irrefl x },
+      { simv only [h, iff_true, or_true], exact asymm h } },
     rw this,
     apply countable.union _ (countable_singleton _),
     rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
@@ -509,7 +509,7 @@ lemma apply_f_eq_continuous_part (Hcont : #ℝ = aleph 1)
 begin
   set ψ := φ.to_bounded_additive_measure with hψ,
   have : φ (f Hcont x) = ψ (spf Hcont x) := rfl,
-  have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simp only [union_univ, union_diff_self],
+  have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simv only [union_univ, union_diff_self],
   rw [this, eq_add_parts, discrete_part_apply, hx, ψ.empty, zero_add, U,
     ψ.continuous_part.additive _ _ (disjoint_diff),
     ψ.continuous_part_apply_eq_zero_of_countable _ (countable_compl_spf Hcont x), add_zero],
@@ -522,14 +522,14 @@ begin
     ⊆ {x | φ.to_bounded_additive_measure.discrete_support ∩ spf Hcont x ≠ ∅},
   { assume x hx,
     contrapose! hx,
-    simp only [not_not, mem_set_of_eq] at hx,
-    simp [apply_f_eq_continuous_part Hcont φ x hx], },
+    simv only [not_not, mem_set_of_eq] at hx,
+    simv [apply_f_eq_continuous_part Hcont φ x hx], },
   have B : {x | φ.to_bounded_additive_measure.discrete_support ∩ spf Hcont x ≠ ∅}
     ⊆ ⋃ y ∈ φ.to_bounded_additive_measure.discrete_support, {x | y ∈ spf Hcont x},
   { assume x hx,
     dsimp at hx,
     rw [← ne.def, ne_empty_iff_nonempty] at hx,
-    simp only [exists_prop, mem_Union, mem_set_of_eq],
+    simv only [exists_prop, mem_Union, mem_set_of_eq],
     exact hx },
   apply countable.mono (subset.trans A B),
   exact countable.bUnion (countable_discrete_support _) (λ a ha, countable_spf_mem Hcont a),
@@ -542,14 +542,14 @@ begin
   apply ae_restrict_of_ae,
   refine measure_mono_null _ ((countable_ne Hcont φ).measure_zero _),
   assume x,
-  simp only [imp_self, mem_set_of_eq, mem_compl_eq],
+  simv only [imp_self, mem_set_of_eq, mem_compl_eq],
 end
 
 lemma integrable_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :
   integrable_on (λ x, φ (f Hcont x)) (Icc 0 1) :=
 begin
   have : integrable_on (λ x, φ.to_bounded_additive_measure.continuous_part univ) (Icc (0 : ℝ) 1)
-    volume, by simp [integrable_on_const],
+    volume, by simv [integrable_on_const],
   apply integrable.congr this (comp_ae_eq_const Hcont φ),
 end
 
@@ -557,7 +557,7 @@ lemma integral_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ
   ∫ x in Icc 0 1, φ (f Hcont x) = φ.to_bounded_additive_measure.continuous_part univ :=
 begin
   rw ← integral_congr_ae (comp_ae_eq_const Hcont φ),
-  simp,
+  simv,
 end
 
 /-!
@@ -587,13 +587,13 @@ theorem no_pettis_integral (Hcont : #ℝ = aleph 1) :
       ∀ (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ), ∫ x in Icc 0 1, φ (f Hcont x) = φ g :=
 begin
   rintros ⟨g, h⟩,
-  simp only [integral_comp] at h,
+  simv only [integral_comp] at h,
   have : g = 0,
   { ext x,
     have : g x = eval_clm ℝ x g := rfl,
     rw [this, ← h],
-    simp },
-  simp only [this, continuous_linear_map.map_zero] at h,
+    simv },
+  simv only [this, continuous_linear_map.map_zero] at h,
   specialize h (volume.restrict (Icc (0 : ℝ) 1)).extension_to_bounded_functions,
   simp_rw [to_functions_to_measure_continuous_part _ _ measurable_set.univ] at h,
   simpa using h,

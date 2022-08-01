@@ -115,9 +115,9 @@ instance monoidal_category_op : monoidal_category Cᵒᵖ :=
   associator := λ X Y Z, (α_ (unop X) (unop Y) (unop Z)).symm.op,
   left_unitor := λ X, (λ_ (unop X)).symm.op,
   right_unitor := λ X, (ρ_ (unop X)).symm.op,
-  associator_naturality' := by { intros, apply quiver.hom.unop_inj, simp, },
-  left_unitor_naturality' := by { intros, apply quiver.hom.unop_inj, simp, },
-  right_unitor_naturality' := by { intros, apply quiver.hom.unop_inj, simp, },
+  associator_naturality' := by { intros, apply quiver.hom.unop_inj, simv, },
+  left_unitor_naturality' := by { intros, apply quiver.hom.unop_inj, simv, },
+  right_unitor_naturality' := by { intros, apply quiver.hom.unop_inj, simv, },
   triangle' := by { intros, apply quiver.hom.unop_inj, coherence, },
   pentagon' := by { intros, apply quiver.hom.unop_inj, coherence, }, }
 
@@ -131,9 +131,9 @@ instance monoidal_category_mop : monoidal_category Cᴹᵒᵖ :=
   associator := λ X Y Z, (α_ (unmop Z) (unmop Y) (unmop X)).symm.mop,
   left_unitor := λ X, (ρ_ (unmop X)).mop,
   right_unitor := λ X, (λ_ (unmop X)).mop,
-  associator_naturality' := by { intros, apply unmop_inj, simp, },
-  left_unitor_naturality' := by { intros, apply unmop_inj, simp, },
-  right_unitor_naturality' := by { intros, apply unmop_inj, simp, },
+  associator_naturality' := by { intros, apply unmop_inj, simv, },
+  left_unitor_naturality' := by { intros, apply unmop_inj, simv, },
+  right_unitor_naturality' := by { intros, apply unmop_inj, simv, },
   triangle' := by { intros, apply unmop_inj, coherence, },
   pentagon' := by { intros, apply unmop_inj, coherence, }, }
 

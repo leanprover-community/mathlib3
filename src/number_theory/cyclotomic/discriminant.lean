@@ -37,9 +37,9 @@ lemma discr_zeta_eq_discr_zeta_sub_one (hζ : is_primitive_root ζ n) :
 begin
   haveI : number_field K := number_field.mk,
   have H₁ : (aeval (hζ.power_basis ℚ).gen) (X - 1 : ℤ[X]) = (hζ.sub_one_power_basis ℚ).gen :=
-    by simp,
+    by simv,
   have H₂ : (aeval (hζ.sub_one_power_basis ℚ).gen) (X + 1 : ℤ[X]) = (hζ.power_basis ℚ).gen :=
-    by simp,
+    by simv,
   refine discr_eq_discr_of_to_matrix_coeff_is_integral _
     (λ i j, to_matrix_is_integral H₁ _ _ _ _)
     (λ i j, to_matrix_is_integral H₂ _ _ _ _),
@@ -83,10 +83,10 @@ begin
         mul_one, pow_succ, mul_assoc, nat.mul_div_cancel_left _ zero_lt_two,
         nat.mul_div_cancel_left _ zero_lt_two],
       by_cases hk₁zero : k₁ = 0,
-      { simp [hk₁zero] },
+      { simv [hk₁zero] },
       obtain ⟨k₂, rfl⟩ := nat.exists_eq_succ_of_ne_zero hk₁zero,
       rw [pow_succ, mul_assoc, pow_mul (-1 : K), pow_mul (-1 : K), neg_one_sq, one_pow, one_pow] },
-    { simp only [succ_sub_succ_eq_sub, tsub_zero],
+    { simv only [succ_sub_succ_eq_sub, tsub_zero],
       replace hptwo : ↑p ≠ 2,
       { intro h,
         rw [← pnat.one_coe, ← pnat.coe_bit0, pnat.coe_inj] at h,
@@ -107,7 +107,7 @@ begin
       derivative_X, mul_one, derivative_sub, derivative_one, sub_zero, derivative_pow,
       derivative_X, mul_one, ← pnat.pow_coe, hζ.minpoly_eq_cyclotomic_of_irreducible hirr] at H,
     replace H := congr_arg (λ P, aeval ζ P) H,
-    simp only [aeval_add, aeval_mul, minpoly.aeval, zero_mul, add_zero, aeval_nat_cast,
+    simv only [aeval_add, aeval_mul, minpoly.aeval, zero_mul, add_zero, aeval_nat_cast,
       _root_.map_sub, aeval_one, aeval_X_pow] at H,
     replace H := congr_arg (algebra.norm K) H,
     have hnorm : (norm K) (ζ ^ (p : ℕ) ^ k - 1) = p ^ ((p : ℕ) ^ k),
@@ -151,14 +151,14 @@ lemma discr_prime_pow [hcycl : is_cyclotomic_extension {p ^ k} K L] [hp : fact (
   (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
   unfreezingI { cases k },
-  { simp only [coe_basis, pow_zero, power_basis_gen, totient_one, mul_zero, mul_one, show 1 / 2 = 0,
+  { simv only [coe_basis, pow_zero, power_basis_gen, totient_one, mul_zero, mul_one, show 1 / 2 = 0,
       by refl, discr, trace_matrix],
     have hζone : ζ = 1 := by simpa using hζ,
     rw [hζ.power_basis_dim _, hζone, ← (algebra_map K L).map_one,
       minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective, nat_degree_X_sub_C],
-    simp only [trace_matrix, map_one, one_pow, matrix.det_unique, trace_form_apply, mul_one],
+    simv only [trace_matrix, map_one, one_pow, matrix.det_unique, trace_form_apply, mul_one],
     rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr],
-    { simp },
+    { simv },
     { apply_instance },
     { exact hcycl } },
   { by_cases hk : p ^ (k + 1) = 2,
@@ -166,21 +166,21 @@ begin
       { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at hk,
       replace hk := eq_of_prime_pow_eq (prime_iff.1 hp.out) (prime_iff.1 nat.prime_two)
         (succ_pos _) hk,
-      rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at hk },
+      rwa [show 2 = ((2 : ℕ+) : ℕ), by simv, pnat.coe_inj] at hk },
       rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at hk,
       nth_rewrite 1 [← pow_one 2] at hk,
       replace hk := nat.pow_right_injective rfl.le hk,
       rw [add_left_eq_self] at hk,
-      simp only [hp, hk, pow_one, pnat.coe_bit0, pnat.one_coe] at hζ,
-      simp only [hp, hk, show 1 / 2 = 0, by refl, coe_basis, pow_one, power_basis_gen,
+      simv only [hp, hk, pow_one, pnat.coe_bit0, pnat.one_coe] at hζ,
+      simv only [hp, hk, show 1 / 2 = 0, by refl, coe_basis, pow_one, power_basis_gen,
         pnat.coe_bit0, pnat.one_coe, totient_two, pow_zero, mul_one, mul_zero],
       rw [power_basis_dim, hζ.eq_neg_one_of_two_right, show (-1 : L) = algebra_map K L (-1),
-        by simp, minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective,
+        by simv, minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective,
         nat_degree_X_sub_C],
-      simp only [discr, trace_matrix, matrix.det_unique, fin.default_eq_zero, fin.coe_zero,
+      simv only [discr, trace_matrix, matrix.det_unique, fin.default_eq_zero, fin.coe_zero,
         pow_zero, trace_form_apply, mul_one],
       rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
-      { simp },
+      { simv },
       { apply_instance },
       { exact hcycl } },
     { exact discr_prime_pow_ne_two hζ hirr hk } }
@@ -196,9 +196,9 @@ lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ k} K L]
 begin
   rw [discr_prime_pow hζ hirr],
   by_cases heven : even (((p ^ k : ℕ).totient) / 2),
-  { refine ⟨1, (p : ℕ) ^ (k - 1) * ((p - 1) * k - 1), by simp [heven.neg_one_pow]⟩ },
+  { refine ⟨1, (p : ℕ) ^ (k - 1) * ((p - 1) * k - 1), by simv [heven.neg_one_pow]⟩ },
   { exact ⟨-1, (p : ℕ) ^ (k - 1) * ((p - 1) * k - 1),
-      by simp [(odd_iff_not_even.2 heven).neg_one_pow]⟩ },
+      by simv [(odd_iff_not_even.2 heven).neg_one_pow]⟩ },
 end
 
 /-- If `p` is an odd prime and `is_cyclotomic_extension {p} K L`, then
@@ -212,7 +212,7 @@ begin
   { rw [zero_add, pow_one],
     apply_instance },
   have hζ' : is_primitive_root ζ ↑(p ^ (0 + 1)) := by simpa using hζ,
-  convert discr_prime_pow_ne_two hζ' (by simpa [hirr]) (by simp [hodd]),
+  convert discr_prime_pow_ne_two hζ' (by simpa [hirr]) (by simv [hodd]),
   { rw [zero_add, pow_one, totient_prime hp.out] },
   { rw [pow_zero, one_mul, zero_add, mul_one, nat.sub_sub] }
 end

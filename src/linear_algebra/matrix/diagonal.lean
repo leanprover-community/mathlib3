@@ -55,7 +55,7 @@ lemma ker_diagonal_to_lin' [decidable_eq m] (w : m → K) :
 begin
   rw [← comap_bot, ← infi_ker_proj, comap_infi],
   have := λ i : m, ker_comp (to_lin' (diagonal w)) (proj i),
-  simp only [comap_infi, ← this, proj_diagonal, ker_smul'],
+  simv only [comap_infi, ← this, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
     disjoint_compl_right this (set.to_finite _)).symm
@@ -76,7 +76,7 @@ begin
   have hu : univ ⊆ {i : m | w i = 0}ᶜ ∪ {i : m | w i = 0}, { rw set.compl_union_self },
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := disjoint_compl_left,
   have B₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (set.to_finite _),
-  have B₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
+  have B₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simv; apply_instance) hd hu,
   rw [rank, range_diagonal, B₁, ←@dim_fun' K],
   apply linear_equiv.dim_eq,
   apply B₂,

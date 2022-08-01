@@ -34,11 +34,11 @@ section uniform_of_finset
 def uniform_of_finset (s : finset α) (hs : s.nonempty) : pmf α :=
 of_finset (λ a, if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0) s (Exists.rec_on hs (λ x hx,
   calc ∑ (a : α) in s, ite (a ∈ s) (s.card : ℝ≥0)⁻¹ 0
-    = ∑ (a : α) in s, (s.card : ℝ≥0)⁻¹ : finset.sum_congr rfl (λ x hx, by simp [hx])
+    = ∑ (a : α) in s, (s.card : ℝ≥0)⁻¹ : finset.sum_congr rfl (λ x hx, by simv [hx])
     ... = s.card • (s.card : ℝ≥0)⁻¹ : finset.sum_const _
     ... = (s.card : ℝ≥0) * (s.card : ℝ≥0)⁻¹ : by rw nsmul_eq_mul
     ... = 1 : div_self (nat.cast_ne_zero.2 $ finset.card_ne_zero_of_mem hx)
-  )) (λ x hx, by simp only [hx, if_false])
+  )) (λ x hx, by simv only [hx, if_false])
 
 variables {s : finset α} (hs : s.nonempty) {a : α}
 
@@ -46,16 +46,16 @@ variables {s : finset α} (hs : s.nonempty) {a : α}
   uniform_of_finset s hs a = if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0 := rfl
 
 lemma uniform_of_finset_apply_of_mem (ha : a ∈ s) : uniform_of_finset s hs a = (s.card)⁻¹ :=
-by simp [ha]
+by simv [ha]
 
 lemma uniform_of_finset_apply_of_not_mem (ha : a ∉ s) : uniform_of_finset s hs a = 0 :=
-by simp [ha]
+by simv [ha]
 
 @[simp] lemma support_uniform_of_finset : (uniform_of_finset s hs).support = s :=
-set.ext (let ⟨a, ha⟩ := hs in by simp [mem_support_iff, finset.ne_empty_of_mem ha])
+set.ext (let ⟨a, ha⟩ := hs in by simv [mem_support_iff, finset.ne_empty_of_mem ha])
 
 lemma mem_support_uniform_of_finset_iff (a : α) : a ∈ (uniform_of_finset s hs).support ↔ a ∈ s :=
-by simp
+by simv
 
 section measure
 
@@ -70,22 +70,22 @@ calc (uniform_of_finset s hs).to_outer_measure t
     begin
       refine (ennreal.coe_eq_coe.2 $ tsum_congr (λ x, _)),
       by_cases hxt : x ∈ t,
-      { by_cases hxs : x ∈ s; simp [hxt, hxs] },
-      { simp [hxt] }
+      { by_cases hxs : x ∈ s; simv [hxt, hxs] },
+      { simv [hxt] }
     end
   ... = ↑(∑ x in (s.filter (∈ t)), if x ∈ s ∧ x ∈ t then (s.card : ℝ≥0)⁻¹ else 0) :
     begin
       refine ennreal.coe_eq_coe.2 (tsum_eq_sum (λ x hx, _)),
       have : ¬ (x ∈ s ∧ x ∈ t) := λ h, hx (finset.mem_filter.2 h),
-      simp [this]
+      simv [this]
     end
   ... = ↑(∑ x in (s.filter (∈ t)), (s.card : ℝ≥0)⁻¹) :
     ennreal.coe_eq_coe.2 (finset.sum_congr rfl $
-      λ x hx, let this : x ∈ s ∧ x ∈ t := by simpa using hx in by simp [this])
+      λ x hx, let this : x ∈ s ∧ x ∈ t := by simpa using hx in by simv [this])
   ... = (s.filter (∈ t)).card / s.card :
     let this : (s.card : ℝ≥0) ≠ 0 := nat.cast_ne_zero.2
       (hs.rec_on $ λ _, finset.card_ne_zero_of_mem) in
-    by simp [div_eq_mul_inv, ennreal.coe_inv this]
+    by simv [div_eq_mul_inv, ennreal.coe_inv this]
 
 @[simp] lemma to_measure_uniform_of_finset_apply [measurable_space α] (ht : measurable_set t) :
   (uniform_of_finset s hs).to_measure t = (s.filter (∈ t)).card / s.card :=
@@ -111,7 +111,7 @@ by simpa only [uniform_of_fintype, finset.mem_univ, if_true, uniform_of_finset_a
   (uniform_of_fintype α).support = ⊤ :=
 set.ext (λ x, by simpa [mem_support_iff] using fintype.card_ne_zero)
 
-lemma mem_support_uniform_of_fintype (a : α) : a ∈ (uniform_of_fintype α).support := by simp
+lemma mem_support_uniform_of_fintype (a : α) : a ∈ (uniform_of_fintype α).support := by simv
 
 section measure
 
@@ -137,14 +137,14 @@ section of_multiset
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λ a, s.count a / s.card,
   have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
-  { simp only [div_eq_inv_mul, ← finset.mul_sum, ← nat.cast_sum, multiset.to_finset_sum_count_eq],
-    rw [inv_mul_cancel], simp [hs] },
+  { simv only [div_eq_inv_mul, ← finset.mul_sum, ← nat.cast_sum, multiset.to_finset_sum_count_eq],
+    rw [inv_mul_cancel], simv [hs] },
   have ∑ a in s.to_finset, (s.count a : ℝ≥0) / s.card = 1,
-    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
+    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simv,
   begin
     rw ← this,
     apply has_sum_sum_of_ne_finset_zero,
-    simp {contextual := tt},
+    simv {contextual := tt},
   end⟩
 
 variables {s : multiset α} (hs : s ≠ 0)
@@ -152,10 +152,10 @@ variables {s : multiset α} (hs : s ≠ 0)
 @[simp] lemma of_multiset_apply (a : α) : of_multiset s hs a = s.count a / s.card := rfl
 
 @[simp] lemma support_of_multiset : (of_multiset s hs).support = s.to_finset :=
-set.ext (by simp [mem_support_iff, hs])
+set.ext (by simv [mem_support_iff, hs])
 
 lemma mem_support_of_multiset_iff (a : α) : a ∈ (of_multiset s hs).support ↔ a ∈ s.to_finset :=
-by simp
+by simv
 
 lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
 div_eq_zero_iff.2 (or.inl $ nat.cast_eq_zero.2 $ multiset.count_eq_zero_of_not_mem ha)
@@ -170,9 +170,9 @@ begin
   rw [div_eq_mul_inv, ← ennreal.tsum_mul_right, to_outer_measure_apply],
   refine tsum_congr (λ x, _),
   by_cases hx : x ∈ t,
-  { have : (multiset.card s : ℝ≥0) ≠ 0 := by simp [hs],
-    simp [set.indicator, hx, div_eq_mul_inv, ennreal.coe_inv this] },
-  { simp [hx] }
+  { have : (multiset.card s : ℝ≥0) ≠ 0 := by simv [hs],
+    simv [set.indicator, hx, div_eq_mul_inv, ennreal.coe_inv this] },
+  { simv [hx] }
 end
 
 @[simp] lemma to_measure_of_multiset_apply [measurable_space α] (ht : measurable_set t) :

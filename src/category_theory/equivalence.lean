@@ -197,7 +197,7 @@ calc
 lemma adjointify_η_ε (X : C) :
   F.map ((adjointify_η η ε).hom.app X) ≫ ε.hom.app (F.obj X) = 𝟙 (F.obj X) :=
 begin
-  dsimp [adjointify_η], simp,
+  dsimp [adjointify_η], simv,
   have := ε.hom.naturality (F.map (η.inv.app X)), dsimp at this, rw [this], clear this,
   rw [←assoc _ _ (F.map _)],
   have := ε.hom.naturality (ε.inv.app $ F.obj X), dsimp at this, rw [this], clear this,
@@ -242,7 +242,7 @@ variables {E : Type u₃} [category.{v₃} E]
     exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor)
   end,
   -- We wouldn't have needed to give this proof if we'd used `equivalence.mk`,
-  -- but we choose to avoid using that here, for the sake of good structure projection `simp`
+  -- but we choose to avoid using that here, for the sake of good structure projection `simv`
   -- lemmas.
   functor_unit_iso_comp' := λ X,
   begin
@@ -305,7 +305,7 @@ section cancellation_lemmas
 variables (e : C ≌ D)
 
 /- We need special forms of `cancel_nat_iso_hom_right(_assoc)` and
-`cancel_nat_iso_inv_right(_assoc)` for units and counits, because neither `simp` or `rw` will apply
+`cancel_nat_iso_inv_right(_assoc)` for units and counits, because neither `simv` or `rw` will apply
 those lemmas in this setting without providing `e.unit_iso` (or similar) as an explicit argument.
 We also provide the lemmas for length four compositions, since they're occasionally useful.
 (e.g. in proving that equivalences take monos to monos) -/
@@ -313,42 +313,42 @@ We also provide the lemmas for length four compositions, since they're occasiona
 @[simp] lemma cancel_unit_right {X Y : C}
   (f f' : X ⟶ Y) :
   f ≫ e.unit.app Y = f' ≫ e.unit.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+by simv only [cancel_mono]
 
 @[simp] lemma cancel_unit_inv_right {X Y : C}
   (f f' : X ⟶ e.inverse.obj (e.functor.obj Y))   :
   f ≫ e.unit_inv.app Y = f' ≫ e.unit_inv.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+by simv only [cancel_mono]
 
 @[simp] lemma cancel_counit_right {X Y : D}
   (f f' : X ⟶ e.functor.obj (e.inverse.obj Y))   :
   f ≫ e.counit.app Y = f' ≫ e.counit.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+by simv only [cancel_mono]
 
 @[simp] lemma cancel_counit_inv_right {X Y : D}
   (f f' : X ⟶ Y) :
   f ≫ e.counit_inv.app Y = f' ≫ e.counit_inv.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+by simv only [cancel_mono]
 
 @[simp] lemma cancel_unit_right_assoc {W X X' Y : C}
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
   f ≫ g ≫ e.unit.app Y = f' ≫ g' ≫ e.unit.app Y ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simv only [←category.assoc, cancel_mono]
 
 @[simp] lemma cancel_counit_inv_right_assoc {W X X' Y : D}
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
   f ≫ g ≫ e.counit_inv.app Y = f' ≫ g' ≫ e.counit_inv.app Y ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simv only [←category.assoc, cancel_mono]
 
 @[simp] lemma cancel_unit_right_assoc' {W X X' Y Y' Z : C}
   (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
   f ≫ g ≫ h ≫ e.unit.app Z = f' ≫ g' ≫ h' ≫ e.unit.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
-by simp only [←category.assoc, cancel_mono]
+by simv only [←category.assoc, cancel_mono]
 
 @[simp] lemma cancel_counit_inv_right_assoc' {W X X' Y Y' Z : D}
   (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
   f ≫ g ≫ h ≫ e.counit_inv.app Z = f' ≫ g' ≫ h' ≫ e.counit_inv.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
-by simp only [←category.assoc, cancel_mono]
+by simv only [←category.assoc, cancel_mono]
 
 end cancellation_lemmas
 
@@ -394,7 +394,7 @@ mk' ::
 
 restate_axiom is_equivalence.functor_unit_iso_comp'
 
-attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
+attribute [simv, reassoc] is_equivalence.functor_unit_iso_comp
 
 namespace is_equivalence
 
@@ -500,10 +500,10 @@ def of_iso {F G : C ⥤ D} (e : F ≅ G) (hF : is_equivalence F) : is_equivalenc
     apply (cancel_epi (e.hom.app X)).mp,
     slice_lhs 1 2 { rw ← e.hom.naturality, },
     slice_lhs 2 3 { rw [← nat_trans.vcomp_app', e.hom_inv_id], },
-    simp only [nat_trans.id_app, id_comp, comp_id, F.map_comp, assoc],
+    simv only [nat_trans.id_app, id_comp, comp_id, F.map_comp, assoc],
     erw hF.counit_iso.hom.naturality,
     slice_lhs 1 2 { rw functor_unit_iso_comp, },
-    simp only [functor.id_map, id_comp],
+    simv only [functor.id_map, id_comp],
   end }
 
 /-- Compatibility of `of_iso` with the composition of isomorphisms of functors -/
@@ -512,8 +512,8 @@ lemma of_iso_trans {F G H : C ⥤ D} (e : F ≅ G) (e' : G ≅ H) (hF : is_equiv
 begin
   dsimp [of_iso],
   congr' 1; ext X; dsimp [nat_iso.hcomp],
-  { simp only [id_comp, assoc, functor.map_comp], },
-  { simp only [functor.map_id, comp_id, id_comp, assoc], },
+  { simv only [id_comp, assoc, functor.map_comp], },
+  { simv only [functor.map_id, comp_id, id_comp, assoc], },
 end
 
 /-- Compatibility of `of_iso` with identity isomorphisms of functors -/
@@ -522,8 +522,8 @@ begin
   unfreezingI { rcases hF with ⟨Finv, Funit, Fcounit, Fcomp⟩, },
   dsimp [of_iso],
   congr' 1; ext X; dsimp [nat_iso.hcomp],
-  { simp only [comp_id, map_id], },
-  { simp only [id_comp, map_id], },
+  { simv only [comp_id, map_id], },
+  { simv only [id_comp, map_id], },
 end
 
 /-- When `F` and `G` are two isomorphic functors, then `F` is an equivalence iff `G` is. -/
@@ -592,7 +592,7 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.obj_obj_preimage_iso X).hom ≫ f ≫ (F.obj_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.map_injective, tidy end,
-  map_comp' := λ X Y Z f g, by apply F.map_injective; simp }
+  map_comp' := λ X Y Z f g, by apply F.map_injective; simv }
 
 /--
 A functor which is full, faithful, and essentially surjective is an equivalence.
@@ -616,7 +616,7 @@ is_equivalence.mk (equivalence_inverse F)
 functor_map_inj_iff e.symm f g
 
 instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induced_functor e) :=
-{ mem_ess_image := λ Y, ⟨e.symm Y, by simp⟩, }
+{ mem_ess_image := λ Y, ⟨e.symm Y, by simv⟩, }
 
 noncomputable
 instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=

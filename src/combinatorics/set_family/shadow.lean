@@ -68,7 +68,7 @@ localized "notation `∂ `:90 := finset.shadow" in finset_family
 /-- `s` is in the shadow of `𝒜` iff there is an `t ∈ 𝒜` from which we can remove one element to
 get `s`. -/
 lemma mem_shadow_iff : s ∈ ∂ 𝒜 ↔ ∃ t ∈ 𝒜, ∃ a ∈ t, erase t a = s :=
-by simp only [shadow, mem_sup, mem_image]
+by simv only [shadow, mem_sup, mem_image]
 
 lemma erase_mem_shadow (hs : s ∈ 𝒜) (ha : a ∈ s) : erase s a ∈ ∂ 𝒜 :=
 mem_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩
@@ -129,7 +129,7 @@ begin
   { refine ⟨λ hs, ⟨s, hs, subset.refl _, rfl⟩, _⟩,
     rintro ⟨t, ht, hst, hcard⟩,
     rwa eq_of_subset_of_card_le hst hcard.le },
-  simp only [exists_prop, function.comp_app, function.iterate_succ],
+  simv only [exists_prop, function.comp_app, function.iterate_succ],
   refine ih.trans _,
   clear ih,
   split,
@@ -224,7 +224,7 @@ begin
   { refine ⟨λ hs, ⟨s, hs, subset.refl _, rfl⟩, _⟩,
     rintro ⟨t, ht, hst, hcard⟩,
     rwa ←eq_of_subset_of_card_le hst hcard.ge },
-  simp only [exists_prop, function.comp_app, function.iterate_succ],
+  simv only [exists_prop, function.comp_app, function.iterate_succ],
   refine ih.trans _,
   clear ih,
   split,
@@ -245,7 +245,7 @@ end
 @[simp] lemma shadow_image_compl : (∂ 𝒜).image compl = ∂⁺ (𝒜.image compl) :=
 begin
   ext s,
-  simp only [mem_image, exists_prop, mem_shadow_iff, mem_up_shadow_iff],
+  simv only [mem_image, exists_prop, mem_shadow_iff, mem_up_shadow_iff],
   split,
   { rintro ⟨_, ⟨s, hs, a, ha, rfl⟩, rfl⟩,
     exact ⟨sᶜ, ⟨s, hs, rfl⟩, a, not_mem_compl.2 ha, compl_erase.symm⟩ },
@@ -256,7 +256,7 @@ end
 @[simp] lemma up_shadow_image_compl : (∂⁺ 𝒜).image compl = ∂ (𝒜.image compl) :=
 begin
   ext s,
-  simp only [mem_image, exists_prop, mem_shadow_iff, mem_up_shadow_iff],
+  simv only [mem_image, exists_prop, mem_shadow_iff, mem_up_shadow_iff],
   split,
   { rintro ⟨_, ⟨s, hs, a, ha, rfl⟩, rfl⟩,
     exact ⟨sᶜ, ⟨s, hs, rfl⟩, a, mem_compl.2 ha, compl_insert.symm⟩ },

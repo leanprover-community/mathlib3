@@ -58,7 +58,7 @@ add_hint_tactic "assumption"
 add_hint_tactic "intro"
 add_hint_tactic "apply_auto_param"
 add_hint_tactic "dsimp at *"
-add_hint_tactic "simp at *" -- TODO hook up to squeeze_simp?
+add_hint_tactic "simv at *" -- TODO hook up to squeeze_simp?
 add_hint_tactic "fconstructor"
 add_hint_tactic "injections_and_clear"
 add_hint_tactic "solve_by_elim"

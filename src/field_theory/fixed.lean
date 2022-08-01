@@ -78,7 +78,7 @@ variable (M)
 /-- The subfield of fixed points by a monoid action. -/
 def subfield : subfield F :=
 subfield.copy (⨅ (m : M), fixed_by.subfield F m) (fixed_points M F)
-(by { ext z, simp [fixed_points, fixed_by.subfield, infi, subfield.mem_Inf] })
+(by { ext z, simv [fixed_points, fixed_by.subfield, infi, subfield.mem_Inf] })
 
 instance : is_invariant_subfield M (fixed_points.subfield M F) :=
 { smul_mem := λ g x hx g', by rw [hx, hx] }
@@ -150,13 +150,13 @@ let ⟨n, hc0, hn⟩ := polynomial.mem_frange_iff.1 hc in hn.symm ▸ prod_X_sub
 namespace minpoly
 
 theorem monic : (minpoly G F x).monic :=
-by { simp only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
+by { simv only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
 
 theorem eval₂ : polynomial.eval₂ (subring.subtype $ (fixed_points.subfield G F).to_subring) x
   (minpoly G F x) = 0 :=
 begin
   rw [← prod_X_sub_smul.eval G F x, polynomial.eval₂_eq_eval_map],
-  simp only [minpoly, polynomial.map_to_subring],
+  simv only [minpoly, polynomial.map_to_subring],
 end
 
 theorem eval₂' :

@@ -39,7 +39,7 @@ lemma inversion_vsub_center (c : P) (R : ℝ) (x : P) :
   inversion c R x -ᵥ c = (R / dist x c) ^ 2 • (x -ᵥ c) :=
 vadd_vsub _ _
 
-@[simp] lemma inversion_self (c : P) (R : ℝ) : inversion c R c = c := by simp [inversion]
+@[simp] lemma inversion_self (c : P) (R : ℝ) : inversion c R c = c := by simv [inversion]
 
 @[simp] lemma inversion_dist_center (c x : P) : inversion c (dist x c) x = x :=
 begin
@@ -56,7 +56,7 @@ h.out ▸ inversion_dist_center c x
 works for `x = c`. -/
 lemma dist_inversion_center (c x : P) (R : ℝ) : dist (inversion c R x) c = R ^ 2 / dist x c :=
 begin
-  rcases eq_or_ne x c with (rfl|hx), { simp },
+  rcases eq_or_ne x c with (rfl|hx), { simv },
   have : dist x c ≠ 0, from dist_ne_zero.2 hx,
   field_simp [inversion, norm_smul, abs_div, ← dist_eq_norm_vsub, sq, mul_assoc]
 end

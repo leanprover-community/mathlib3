@@ -73,7 +73,7 @@ lemma succ_nth_defining_poly_degree [is_domain k] (n : ℕ) (a₁ a₂ : 𝕎 k)
 begin
   have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n+1))).degree = p,
   { rw [degree_mul, degree_C],
-    { simp only [nat.cast_with_bot, add_zero, degree_X, degree_pow, nat.smul_one_eq_coe] },
+    { simv only [nat.cast_with_bot, add_zero, degree_X, degree_pow, nat.smul_one_eq_coe] },
     { exact pow_ne_zero _ ha₁ } },
   have : (X ^ p * C (a₁.coeff 0 ^ p ^ (n+1)) - X * C (a₂.coeff 0 ^ p ^ (n+1))).degree = p,
   { rw [degree_sub_eq_left_of_degree_lt, this],
@@ -96,7 +96,7 @@ lemma root_exists (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   ∃ b : k, (succ_nth_defining_poly p n a₁ a₂ bs).is_root b :=
 is_alg_closed.exists_root _ $
-  by simp [(succ_nth_defining_poly_degree p n a₁ a₂ bs ha₁ ha₂), hp.out.ne_zero]
+  by simv [(succ_nth_defining_poly_degree p n a₁ a₂ bs ha₁ ha₂), hp.out.ne_zero]
 
 /-- This is the `n+1`st coefficient of our solution, projected from `root_exists`. -/
 def succ_nth_val (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
@@ -118,7 +118,7 @@ lemma succ_nth_val_spec' (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
 begin
   rw ← sub_eq_zero,
   have := succ_nth_val_spec p n a₁ a₂ bs ha₁ ha₂,
-  simp only [polynomial.map_add, polynomial.eval_X, polynomial.map_pow, polynomial.eval_C,
+  simv only [polynomial.map_add, polynomial.eval_X, polynomial.map_pow, polynomial.eval_C,
     polynomial.eval_pow, succ_nth_defining_poly, polynomial.eval_mul, polynomial.eval_add,
     polynomial.eval_sub, polynomial.map_mul, polynomial.map_sub, polynomial.is_root.def] at this,
   convert this using 1,
@@ -159,7 +159,7 @@ lemma solution_spec' {a₁ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (a₂ : 𝕎 k
 begin
   have := solution_spec p a₁ a₂,
   cases nat.exists_eq_succ_of_ne_zero hp.out.ne_zero with q hq,
-  have hq' : q = p - 1 := by simp only [hq, tsub_zero, nat.succ_sub_succ_eq_sub],
+  have hq' : q = p - 1 := by simv only [hq, tsub_zero, nat.succ_sub_succ_eq_sub],
   conv_lhs {congr, congr, skip, rw hq},
   rw [pow_succ', hq', this],
   field_simp [ha₁, mul_comm],
@@ -204,18 +204,18 @@ lemma frobenius_frobenius_rotation {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 �
 begin
   ext n,
   induction n with n ih,
-  { simp only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p,
+  { simv only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p,
       frobenius_rotation, frobenius_rotation_coeff],
     apply solution_spec' _ ha₁ },
-  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, frobenius_rotation_coeff,
+  { simv only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, frobenius_rotation_coeff,
       frobenius_rotation, fin.val_eq_coe],
     have := succ_nth_val_spec' p n a₁ a₂
       (λ (i : fin (n + 1)), frobenius_rotation_coeff p ha₁ ha₂ i.val) ha₁ ha₂,
-    simp only [frobenius_rotation_coeff, fin.val_eq_coe, fin.val_zero] at this,
+    simv only [frobenius_rotation_coeff, fin.val_eq_coe, fin.val_zero] at this,
     convert this using 4,
     apply truncated_witt_vector.ext,
     intro i,
-    simp only [fin.val_eq_coe, witt_vector.coeff_truncate_fun, witt_vector.coeff_frobenius_char_p],
+    simv only [fin.val_eq_coe, witt_vector.coeff_truncate_fun, witt_vector.coeff_frobenius_char_p],
     refl }
 end
 
@@ -237,17 +237,17 @@ begin
     dsimp at H,
     refine (eq.trans _ H).trans _; ring },
   have hq'' : algebra_map (𝕎 k) (fraction_ring (𝕎 k)) q' ≠ 0,
-  { have hq''' : q' ≠ 0 := λ h, hq' (by simp [h]),
+  { have hq''' : q' ≠ 0 := λ h, hq' (by simv [h]),
     simpa only [ne.def, map_zero] using
       (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hq''' },
   rw zpow_sub₀ (fraction_ring.p_nonzero p k),
   field_simp [fraction_ring.p_nonzero p k],
-  simp only [is_fraction_ring.field_equiv_of_ring_equiv,
+  simv only [is_fraction_ring.field_equiv_of_ring_equiv,
     is_localization.ring_equiv_of_ring_equiv_eq, ring_equiv.coe_of_bijective],
   convert congr_arg (λ x, algebra_map (𝕎 k) (fraction_ring (𝕎 k)) x) key using 1,
-  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast, frobenius_equiv_apply],
+  { simv only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast, frobenius_equiv_apply],
     ring },
-  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
+  { simv only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end
 
 lemma exists_frobenius_solution_fraction_ring {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
@@ -257,7 +257,7 @@ begin
   refine localization.induction_on a _,
   rintros ⟨r, q, hq⟩ hrq,
   have hq0 : q ≠ 0 := mem_non_zero_divisors_iff_ne_zero.1 hq,
-  have hr0 : r ≠ 0 := λ h, hrq (by simp [h]),
+  have hr0 : r ≠ 0 := λ h, hrq (by simv [h]),
   obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul r hr0,
   obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul q hq0,
   let b := frobenius_rotation p hr' hq',

@@ -123,7 +123,7 @@ def map_roots [fact (p.splits (algebra_map F E))] :
 λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
   have key := subtype.mem x,
   by_cases p = 0,
-  { simp only [h, root_set_zero] at key,
+  { simv only [h, root_set_zero] at key,
     exact false.rec _ key },
   { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
 
@@ -139,7 +139,7 @@ begin
       ((splits_id_iff_splits _).mpr (is_splitting_field.splits p.splitting_field p)),
     rw [map_map, alg_hom.comp_algebra_map] at key,
     have hy := subtype.mem y,
-    simp only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
+    simv only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,
     exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
 end
@@ -152,9 +152,9 @@ equiv.of_bijective (map_roots p E) (map_roots_bijective p E)
 instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
 { smul := λ ϕ x, ⟨ϕ x, begin
     have key := subtype.mem x,
-    --simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
+    --simv only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
     by_cases p = 0,
-    { simp only [h, root_set_zero] at key,
+    { simv only [h, root_set_zero] at key,
       exact false.rec _ key },
     { rw mem_root_set h,
       change aeval (ϕ.to_alg_hom x) p = 0,
@@ -165,8 +165,8 @@ instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
 /-- The action of `gal p` on the roots of `p` in `E`. -/
 instance gal_action [fact (p.splits (algebra_map F E))] : mul_action p.gal (root_set p E) :=
 { smul := λ ϕ x, roots_equiv_roots p E (ϕ • ((roots_equiv_roots p E).symm x)),
-  one_smul := λ _, by simp only [equiv.apply_symm_apply, one_smul],
-  mul_smul := λ _ _ _, by simp only [equiv.apply_symm_apply, equiv.symm_apply_apply, mul_smul] }
+  one_smul := λ _, by simv only [equiv.apply_symm_apply, one_smul],
+  mul_smul := λ _ _ _, by simv only [equiv.apply_symm_apply, equiv.symm_apply_apply, mul_smul] }
 
 variables {p E}
 
@@ -219,7 +219,7 @@ if hq : q = 0 then 1 else @restrict F _ p _ _ _
 
 lemma restrict_dvd_surjective (hpq : p ∣ q) (hq : q ≠ 0) :
   function.surjective (restrict_dvd hpq) :=
-by simp only [restrict_dvd, dif_neg hq, restrict_surjective]
+by simv only [restrict_dvd, dif_neg hq, restrict_surjective]
 
 variables (p q)
 
@@ -235,7 +235,7 @@ begin
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
-  simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
+  simv only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
   ext x hx,
   rw [root_set, polynomial.map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
@@ -313,7 +313,7 @@ def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
 
 lemma restrict_comp_surjective (hq : q.nat_degree ≠ 0) :
   function.surjective (restrict_comp p q hq) :=
-by simp only [restrict_comp, restrict_surjective]
+by simv only [restrict_comp, restrict_surjective]
 
 variables {p q}
 

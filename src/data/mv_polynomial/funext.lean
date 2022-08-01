@@ -35,13 +35,13 @@ begin
     suffices : (eval₂_hom (ring_hom.id _) (is_empty.elim' fin.is_empty)) p =
       (eval fin_zero_elim : mv_polynomial (fin 0) R →+* R) p,
     { rw [← this],
-      simp only [coe_eval₂_hom, is_empty_ring_equiv_apply,
+      simv only [coe_eval₂_hom, is_empty_ring_equiv_apply,
         ring_equiv.trans_apply, aeval_eq_eval₂_hom],
       congr },
     exact eval₂_hom_congr rfl (subsingleton.elim _ _) rfl },
   { let e := (fin_succ_equiv R n).to_ring_equiv,
     apply e.injective,
-    simp only [ring_equiv.map_zero],
+    simv only [ring_equiv.map_zero],
     apply polynomial.funext,
     intro q,
     rw [polynomial.eval_zero],
@@ -54,13 +54,13 @@ begin
     { intro i, exact fin.cases (eval x q) x i },
     apply induction_on p,
     { intro r,
-      simp only [eval_C, polynomial.eval_C, ring_hom.coe_comp, eval₂_hom_C], },
-    { intros, simp only [*, ring_hom.map_add, polynomial.eval_add] },
-    { intros φ i hφ, simp only [*, eval_X, polynomial.eval_mul, ring_hom.map_mul, eval₂_hom_X'],
+      simv only [eval_C, polynomial.eval_C, ring_hom.coe_comp, eval₂_hom_C], },
+    { intros, simv only [*, ring_hom.map_add, polynomial.eval_add] },
+    { intros φ i hφ, simv only [*, eval_X, polynomial.eval_mul, ring_hom.map_mul, eval₂_hom_X'],
       congr' 1,
       by_cases hi : i = 0,
-      { subst hi, simp only [polynomial.eval_X, fin.cases_zero] },
-      { rw [← fin.succ_pred i hi], simp only [eval_X, polynomial.eval_C, fin.cases_succ] } },
+      { subst hi, simv only [polynomial.eval_X, fin.cases_zero] },
+      { rw [← fin.succ_pred i hi], simv only [eval_X, polynomial.eval_C, fin.cases_succ] } },
     { apply_instance, }, },
 end
 
@@ -70,7 +70,7 @@ lemma funext {σ : Type*} {p q : mv_polynomial σ R}
   (h : ∀ x : σ → R, eval x p = eval x q) : p = q :=
 begin
   suffices : ∀ p, (∀ (x : σ → R), eval x p = 0) → p = 0,
-  { rw [← sub_eq_zero, this (p - q)], simp only [h, ring_hom.map_sub, forall_const, sub_self] },
+  { rw [← sub_eq_zero, this (p - q)], simv only [h, ring_hom.map_sub, forall_const, sub_self] },
   clear h p q,
   intros p h,
   obtain ⟨n, f, hf, p, rfl⟩ := exists_fin_rename p,
@@ -79,11 +79,11 @@ begin
   intro x,
   classical,
   convert h (function.extend f x 0),
-  simp only [eval, eval₂_hom_rename, function.extend_comp hf]
+  simv only [eval, eval₂_hom_rename, function.extend_comp hf]
 end
 
 lemma funext_iff {σ : Type*} {p q : mv_polynomial σ R} :
   p = q ↔ (∀ x : σ → R, eval x p = eval x q) :=
-⟨by rintro rfl; simp only [forall_const, eq_self_iff_true], funext⟩
+⟨by rintro rfl; simv only [forall_const, eq_self_iff_true], funext⟩
 
 end mv_polynomial

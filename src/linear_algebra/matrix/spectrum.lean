@@ -72,11 +72,11 @@ begin
     finrank_euclidean_space (euclidean_space.single j 1)
     ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i),
   { rw [eigenvector_basis, to_lin'_apply],
-    simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
+    simv only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
     simp_rw [orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
       euclidean_space.single, pi_Lp.equiv_symm_apply', mul_vec_single, mul_one],
     refl },
-  { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
+  { simv only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
     rw [basis.to_matrix_apply,
      orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
      pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,

@@ -89,17 +89,17 @@ lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
-@[simp, norm_cast] lemma coe_inf (s t : opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp, norm_cast] lemma coe_sup (s t : opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp, norm_cast] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
-@[simp, norm_cast] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
-@[simp, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := rfl
+@[simv, norm_cast] lemma coe_inf (s t : opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simv, norm_cast] lemma coe_sup (s t : opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simv, norm_cast] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
+@[simv, norm_cast] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
+@[simv, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := rfl
 
-@[simp, norm_cast] lemma coe_finset_sup (f : ι → opens α) (s : finset ι) :
+@[simv, norm_cast] lemma coe_finset_sup (f : ι → opens α) (s : finset ι) :
   (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
 map_finset_sup (⟨⟨coe, coe_sup⟩, coe_bot⟩ : sup_bot_hom (opens α) (set α)) _ _
 
-@[simp, norm_cast] lemma coe_finset_inf (f : ι → opens α) (s : finset ι) :
+@[simv, norm_cast] lemma coe_finset_inf (f : ι → opens α) (s : finset ι) :
   (↑(s.inf f) : set α) = s.inf (coe ∘ f) :=
 map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (opens α) (set α)) _ _
 
@@ -113,18 +113,18 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
-by { ext, simp only [supr, coe_Sup, bUnion_range], refl }
+by { ext, simv only [supr, coe_Sup, bUnion_range], refl }
 
 @[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
   (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
-by { rw supr_def, simp }
+by { rw supr_def, simv }
 
-@[simp, norm_cast] lemma coe_supr {ι} (s : ι → opens α) :
+@[simv, norm_cast] lemma coe_supr {ι} (s : ι → opens α) :
   ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
-by simp [supr_def]
+by simv [supr_def]
 
 @[simp] theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
-by { rw [←mem_coe], simp, }
+by { rw [←mem_coe], simv, }
 
 @[simp] lemma mem_Sup {Us : set (opens α)} {x : α} : x ∈ Sup Us ↔ ∃ u ∈ Us, x ∈ u :=
 by simp_rw [Sup_eq_supr, mem_supr]
@@ -132,7 +132,7 @@ by simp_rw [Sup_eq_supr, mem_supr]
 instance : frame (opens α) :=
 { Sup := Sup,
   inf_Sup_le_supr_inf := λ a s,
-    (ext $ by simp only [coe_inf, coe_supr, coe_Sup, set.inter_Union₂]).le,
+    (ext $ by simv only [coe_inf, coe_supr, coe_Sup, set.inter_Union₂]).le,
   ..opens.complete_lattice }
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
@@ -197,7 +197,7 @@ lemma is_compact_open_iff_eq_finite_Union_of_is_basis
 begin
   apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
     (λ i : ι, (b i).1),
-  { convert hb, ext, simp },
+  { convert hb, ext, simv },
   { exact hb' }
 end
 
@@ -214,14 +214,14 @@ begin
   { obtain ⟨t, ht⟩ := H (λ i, U i) (λ i, (U i).prop)
       (by simpa using (show (s : set α) ⊆ ↑(supr U), from hU)),
     refine ⟨t, set.subset.trans ht _⟩,
-    simp only [set.Union_subset_iff],
+    simv only [set.Union_subset_iff],
     show ∀ i ∈ t, U i ≤ t.sup U, from λ i, finset.le_sup }
 end
 
 /-- The preimage of an open set, as an open set. -/
 def comap (f : C(α, β)) : frame_hom (opens β) (opens α) :=
 { to_fun := λ s, ⟨f ⁻¹' s, s.2.preimage f.continuous⟩,
-  map_Sup' := λ s, ext $ by simp only [coe_Sup, preimage_Union, coe_mk, mem_image, Union_exists,
+  map_Sup' := λ s, ext $ by simv only [coe_Sup, preimage_Union, coe_mk, mem_image, Union_exists,
     bUnion_and', Union_Union_eq_right],
   map_inf' := λ a b, rfl,
   map_top' := rfl }

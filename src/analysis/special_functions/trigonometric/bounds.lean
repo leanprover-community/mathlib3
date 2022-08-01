@@ -95,7 +95,7 @@ begin
   have tan_cts_U : continuous_on tan U,
   { apply continuous_on.mono continuous_on_tan,
     intros z hz,
-    simp only [mem_set_of_eq],
+    simv only [mem_set_of_eq],
     exact (cos_pos hz).ne' },
 
   have tan_minus_id_cts : continuous_on (λ y : ℝ, tan y - y) U :=
@@ -104,7 +104,7 @@ begin
   have deriv_pos : ∀ y : ℝ, y ∈ interior U → 0 < deriv (λ y' : ℝ, tan y' - y') y,
   { intros y hy,
     have := cos_pos (interior_subset hy),
-    simp only [deriv_tan_sub_id y this.ne', one_div, gt_iff_lt, sub_pos],
+    simv only [deriv_tan_sub_id y this.ne', one_div, gt_iff_lt, sub_pos],
     have bd2 : cos y ^ 2 < 1,
     { apply lt_of_le_of_ne y.cos_sq_le_one,
       rw cos_sq',

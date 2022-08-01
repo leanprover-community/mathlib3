@@ -278,7 +278,7 @@ variables (A)
 
 @[simp] lemma inl_mul [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
   (r₁ r₂ : R) : (inl (r₁ * r₂) : unitization R A) = inl r₁ * inl r₂ :=
-ext rfl $ show (0 : A) = r₁ • (0 : A) + r₂ • 0 + 0 * 0, by simp only [smul_zero, add_zero, mul_zero]
+ext rfl $ show (0 : A) = r₁ • (0 : A) + r₂ • 0 + 0 * 0, by simv only [smul_zero, add_zero, mul_zero]
 
 lemma inl_mul_inl [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
   (r₁ r₂ : R) : (inl r₁ * inl r₂ : unitization R A) = inl (r₁ * r₂) :=
@@ -292,7 +292,7 @@ variables (R)
 @[simp] lemma coe_mul [semiring R] [add_comm_monoid A] [has_mul A] [smul_with_zero R A]
   (a₁ a₂ : A) : (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
 ext (mul_zero _).symm $ show a₁ * a₂ = (0 : R) • a₂ + (0 : R) • a₁ + a₁ * a₂,
-  by simp only [zero_smul, zero_add]
+  by simv only [zero_smul, zero_add]
 
 end
 
@@ -324,11 +324,11 @@ instance [semiring R] [non_unital_non_assoc_semiring A] [module R A] :
   left_distrib := λ x₁ x₂ x₃, ext (mul_add x₁.1 x₂.1 x₃.1) $
     show x₁.1 • (x₂.2 + x₃.2) + (x₂.1 + x₃.1) • x₁.2 + x₁.2 * (x₂.2 + x₃.2) =
       x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 + (x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2),
-    by { simp only [smul_add, add_smul, mul_add], abel },
+    by { simv only [smul_add, add_smul, mul_add], abel },
   right_distrib := λ x₁ x₂ x₃, ext (add_mul x₁.1 x₂.1 x₃.1) $
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) + (x₁.2 + x₂.2) * x₃.2 =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2 + x₂.2 * x₃.2),
-    by { simp only [add_smul, smul_add, add_mul], abel },
+    by { simv only [add_smul, smul_add, add_mul], abel },
   .. unitization.mul_one_class,
   .. unitization.add_comm_monoid }
 
@@ -339,7 +339,7 @@ instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_sc
       (x.1 • y.2 + y.1 • x.2 + x.2 * y.2) * z.2 =
       x.1 • (y.1 • z.2 + z.1 • y.2 + y.2 * z.2) + (y.1 * z.1) • x.2 +
       x.2 * (y.1 • z.2 + z.1 • y.2 + y.2 * z.2),
-    { simp only [smul_add, mul_add, add_mul, smul_smul, smul_mul_assoc, mul_smul_comm, mul_assoc],
+    { simv only [smul_add, mul_add, add_mul, smul_smul, smul_mul_assoc, mul_smul_comm, mul_assoc],
       nth_rewrite 1 mul_comm,
       nth_rewrite 2 mul_comm,
       abel },
@@ -394,11 +394,11 @@ instance [has_star R] [has_star A] : has_star (unitization R A) :=
 
 @[simp] lemma inl_star [has_star R] [add_monoid A] [star_add_monoid A] (r : R) :
   inl (star r) = star (inl r : unitization R A) :=
-ext rfl (by simp only [snd_star, star_zero, snd_inl])
+ext rfl (by simv only [snd_star, star_zero, snd_inl])
 
 @[simp] lemma coe_star [add_monoid R] [star_add_monoid R] [has_star A] (a : A) :
   ↑(star a) = star (a : unitization R A) :=
-ext (by simp only [fst_star, star_zero, fst_coe]) rfl
+ext (by simv only [fst_star, star_zero, fst_coe]) rfl
 
 instance [add_monoid R] [add_monoid A] [star_add_monoid R] [star_add_monoid A] :
   star_add_monoid (unitization R A) :=
@@ -407,13 +407,13 @@ instance [add_monoid R] [add_monoid A] [star_add_monoid R] [star_add_monoid A] :
 
 instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A]
   [module R A] [star_module R A] : star_module R (unitization R A) :=
-{ star_smul := λ r x, ext (by simp) (by simp) }
+{ star_smul := λ r x, ext (by simv) (by simv) }
 
 instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
   [module R A] [is_scalar_tower R A A] [smul_comm_class R A A] [star_module R A] :
   star_ring (unitization R A) :=
-{ star_mul := λ x y, ext (by simp [star_mul])
-    (by simp [star_mul, add_comm (star x.fst • star y.snd)]),
+{ star_mul := λ x y, ext (by simv [star_mul])
+    (by simv [star_mul, add_comm (star x.fst • star y.snd)]),
   ..unitization.star_add_monoid }
 
 end star
@@ -430,14 +430,14 @@ instance algebra : algebra S (unitization R A) :=
 { commutes' := λ r x,
   begin
     induction x using unitization.ind,
-    simp only [mul_add, add_mul, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
+    simv only [mul_add, add_mul, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
       inl_ring_hom_apply, inl_mul_inl],
     rw [inl_mul_coe, coe_mul_inl, mul_comm]
   end,
   smul_def' := λ s x,
   begin
     induction x using unitization.ind,
-    simp only [mul_add, smul_add, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
+    simv only [mul_add, smul_add, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
       inl_ring_hom_apply, algebra.algebra_map_eq_smul_one],
     rw [inl_mul_inl, inl_mul_coe, smul_one_mul, inl_smul, coe_smul, smul_one_smul]
   end,
@@ -491,7 +491,7 @@ lemma alg_hom_ext {φ ψ : unitization R A →ₐ[S] B} (h : ∀ a : A, φ a = �
 begin
   ext,
   induction x using unitization.ind,
-  simp only [map_add, ←algebra_map_eq_inl, h, h'],
+  simv only [map_add, ←algebra_map_eq_inl, h, h'],
 end
 
 /-- See note [partially-applied ext lemmas] -/
@@ -500,7 +500,7 @@ lemma alg_hom_ext' {φ ψ : unitization R A →ₐ[R] C}
   (h : φ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A) =
     ψ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A)) :
   φ = ψ :=
-alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simp [alg_hom.commutes])
+alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simv [alg_hom.commutes])
 
 /-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `C` lift uniquely to
 `unitization R A →ₐ[R] C`. This is the universal property of the unitization. -/
@@ -508,30 +508,30 @@ alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simp [alg_hom.commutes])
 def lift : (A →ₙₐ[R] C) ≃ (unitization R A →ₐ[R] C) :=
 { to_fun := λ φ,
   { to_fun := λ x, algebra_map R C x.fst + φ x.snd,
-    map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],
+    map_one' := by simv only [fst_one, map_one, snd_one, φ.map_zero, add_zero],
     map_mul' := λ x y,
     begin
       induction x using unitization.ind,
       induction y using unitization.ind,
-      simp only [mul_add, add_mul, coe_mul, fst_add, fst_mul, fst_inl, fst_coe, mul_zero,
+      simv only [mul_add, add_mul, coe_mul, fst_add, fst_mul, fst_inl, fst_coe, mul_zero,
         add_zero, zero_mul, map_mul, snd_add, snd_mul, snd_inl, smul_zero, snd_coe, zero_add,
         φ.map_add, φ.map_smul, φ.map_mul, zero_smul, zero_add],
       rw ←algebra.commutes _ (φ x_a),
-      simp only [algebra.algebra_map_eq_smul_one, smul_one_mul, add_assoc],
+      simv only [algebra.algebra_map_eq_smul_one, smul_one_mul, add_assoc],
     end,
-    map_zero' := by simp only [fst_zero, map_zero, snd_zero, φ.map_zero, add_zero],
+    map_zero' := by simv only [fst_zero, map_zero, snd_zero, φ.map_zero, add_zero],
     map_add' := λ x y,
     begin
       induction x using unitization.ind,
       induction y using unitization.ind,
-      simp only [fst_add, fst_inl, fst_coe, add_zero, map_add, snd_add, snd_inl, snd_coe, zero_add,
+      simv only [fst_add, fst_inl, fst_coe, add_zero, map_add, snd_add, snd_inl, snd_coe, zero_add,
         φ.map_add],
       rw add_add_add_comm,
     end,
-    commutes' := λ r, by simp only [algebra_map_eq_inl, fst_inl, snd_inl, φ.map_zero, add_zero] },
+    commutes' := λ r, by simv only [algebra_map_eq_inl, fst_inl, snd_inl, φ.map_zero, add_zero] },
   inv_fun := λ φ, φ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A),
-  left_inv := λ φ, by { ext, simp, },
-  right_inv := λ φ, unitization.alg_hom_ext' (by { ext, simp }), }
+  left_inv := λ φ, by { ext, simv, },
+  right_inv := λ φ, unitization.alg_hom_ext' (by { ext, simv }), }
 
 lemma lift_symm_apply (φ : unitization R A →ₐ[R] C) (a : A) :
   unitization.lift.symm φ a = φ a := rfl

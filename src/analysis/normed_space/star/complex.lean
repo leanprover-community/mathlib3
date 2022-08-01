@@ -33,14 +33,14 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
 /-- Multiplication by -I as a real-linear equivalence between the skew-adjoint and self-adjoint
 elements of a star module. -/
 @[simps] def mul_neg_I_lin : skew_adjoint E ≃ₗ[ℝ] self_adjoint E :=
-{ to_fun := λ x, ⟨-I • x, by simp [self_adjoint.mem_iff]⟩,
-  inv_fun := λ x, ⟨I • x, by simp [skew_adjoint.mem_iff]⟩,
-  map_add' := λ x y, by { ext, simp only [add_subgroup.coe_add, smul_add, add_subgroup.coe_mk] },
-  map_smul' := λ r x, by { ext, simp only [neg_smul, neg_inj, skew_adjoint.coe_smul,
+{ to_fun := λ x, ⟨-I • x, by simv [self_adjoint.mem_iff]⟩,
+  inv_fun := λ x, ⟨I • x, by simv [skew_adjoint.mem_iff]⟩,
+  map_add' := λ x y, by { ext, simv only [add_subgroup.coe_add, smul_add, add_subgroup.coe_mk] },
+  map_smul' := λ r x, by { ext, simv only [neg_smul, neg_inj, skew_adjoint.coe_smul,
     add_subgroup.coe_mk, ring_hom.id_apply, self_adjoint.coe_smul, smul_neg, smul_comm I], },
-  left_inv := λ x, by simp only [neg_smul, add_subgroup.coe_mk, smul_neg, ←mul_smul, I_mul_I,
+  left_inv := λ x, by simv only [neg_smul, add_subgroup.coe_mk, smul_neg, ←mul_smul, I_mul_I,
                                  neg_neg, one_smul, set_like.eta],
-  right_inv := λ x, by simp only [←mul_smul, I_mul_I, add_subgroup.coe_mk, neg_mul, neg_neg,
+  right_inv := λ x, by simv only [←mul_smul, I_mul_I, add_subgroup.coe_mk, neg_mul, neg_neg,
                                   one_smul, set_like.eta] }
 
 /-- The imaginary part of an element of a star module, as a real-linear map.  -/
@@ -54,6 +54,6 @@ abbreviation for `self_adjoint_part ℝ`. -/
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and
 "imaginary" parts -/
 lemma re_add_im (x : E) : (re x : E) + I • im x = x :=
-by simp [←mul_smul, I_mul_I, ←smul_add, ←two_smul ℝ]
+by simv [←mul_smul, I_mul_I, ←smul_add, ←two_smul ℝ]
 
 end star_module

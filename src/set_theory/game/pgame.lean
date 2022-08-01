@@ -313,7 +313,7 @@ private theorem not_le_lf {x y : pgame} : (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
-  simp only [mk_le_mk, mk_lf_mk, IHxl, IHxr, IHyl, IHyr,
+  simv only [mk_le_mk, mk_lf_mk, IHxl, IHxr, IHyl, IHyr,
     not_and_distrib, not_or_distrib, not_forall, not_exists,
     and_comm, or_comm, iff_self, and_self]
 end
@@ -434,45 +434,45 @@ le_of_forall_lf (λ i, (h₁ i).lf) (λ i, (h₂ i).lf)
 theorem le_def {x y : pgame} : x ≤ y ↔
   (∀ i, (∃ i', x.move_left i ≤ y.move_left i')  ∨ ∃ j, (x.move_left i).move_right j ≤ y) ∧
    ∀ j, (∃ i, x ≤ (y.move_right j).move_left i) ∨ ∃ j', x.move_right j' ≤ y.move_right j :=
-by { rw le_iff_forall_lf, conv { to_lhs, simp only [lf_iff_exists_le] } }
+by { rw le_iff_forall_lf, conv { to_lhs, simv only [lf_iff_exists_le] } }
 
 /-- The definition of `x ⧏ y` on pre-games, in terms of `⧏` two moves later. -/
 theorem lf_def {x y : pgame} : x ⧏ y ↔
   (∃ i, (∀ i', x.move_left i' ⧏ y.move_left i)  ∧ ∀ j, x ⧏ (y.move_left i).move_right j) ∨
    ∃ j, (∀ i, (x.move_right j).move_left i ⧏ y) ∧ ∀ j', x.move_right j ⧏ y.move_right j' :=
-by { rw lf_iff_exists_le, conv { to_lhs, simp only [le_iff_forall_lf] } }
+by { rw lf_iff_exists_le, conv { to_lhs, simv only [le_iff_forall_lf] } }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ⧏`. -/
 theorem zero_le_lf {x : pgame} : 0 ≤ x ↔ ∀ j, 0 ⧏ x.move_right j :=
-by { rw le_iff_forall_lf, simp }
+by { rw le_iff_forall_lf, simv }
 
 /-- The definition of `x ≤ 0` on pre-games, in terms of `⧏ 0`. -/
 theorem le_zero_lf {x : pgame} : x ≤ 0 ↔ ∀ i, x.move_left i ⧏ 0 :=
-by { rw le_iff_forall_lf, simp }
+by { rw le_iff_forall_lf, simv }
 
 /-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ≤`. -/
 theorem zero_lf_le {x : pgame} : 0 ⧏ x ↔ ∃ i, 0 ≤ x.move_left i :=
-by { rw lf_iff_exists_le, simp }
+by { rw lf_iff_exists_le, simv }
 
 /-- The definition of `x ⧏ 0` on pre-games, in terms of `≤ 0`. -/
 theorem lf_zero_le {x : pgame} : x ⧏ 0 ↔ ∃ j, x.move_right j ≤ 0 :=
-by { rw lf_iff_exists_le, simp }
+by { rw lf_iff_exists_le, simv }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
 theorem zero_le {x : pgame} : 0 ≤ x ↔ ∀ j, ∃ i, 0 ≤ (x.move_right j).move_left i :=
-by { rw le_def, simp }
+by { rw le_def, simv }
 
 /-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
 theorem le_zero {x : pgame} : x ≤ 0 ↔ ∀ i, ∃ j, (x.move_left i).move_right j ≤ 0 :=
-by { rw le_def, simp }
+by { rw le_def, simv }
 
 /-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ⧏` two moves later. -/
 theorem zero_lf {x : pgame} : 0 ⧏ x ↔ ∃ i, ∀ j, 0 ⧏ (x.move_left i).move_right j :=
-by { rw lf_def, simp }
+by { rw lf_def, simv }
 
 /-- The definition of `x ⧏ 0` on pre-games, in terms of `⧏ 0` two moves later. -/
 theorem lf_zero {x : pgame} : x ⧏ 0 ↔ ∃ j, ∀ i, (x.move_right j).move_left i ⧏ 0 :=
-by { rw lf_def, simp }
+by { rw lf_def, simv }
 
 @[simp] theorem zero_le_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves] : 0 ≤ x :=
 zero_le.2 is_empty_elim
@@ -520,7 +520,7 @@ instance : is_equiv _ (≈) :=
 theorem equiv.le {x y : pgame} (h : x ≈ y) : x ≤ y := h.1
 theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 
-@[refl, simp] theorem equiv_rfl {x} : x ≈ x := refl x
+@[refl, simv] theorem equiv_rfl {x} : x ≈ x := refl x
 theorem equiv_refl (x) : x ≈ x := refl x
 
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
@@ -618,7 +618,7 @@ theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
 instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
 
 theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
-by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
+by { simv only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 
 theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y := lf_iff_lt_or_fuzzy.2 (or.inr h)
 alias lf_of_fuzzy ← fuzzy.lf
@@ -809,7 +809,7 @@ rfl
 @[simp] lemma relabel_move_left {x : pgame} {xl' xr'}
   (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (i : x.left_moves) :
   move_left (relabel el er) (el.symm i) = x.move_left i :=
-by simp
+by simv
 
 @[simp] lemma relabel_move_right' {x : pgame} {xl' xr'}
   (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (j : xr') :
@@ -818,12 +818,12 @@ rfl
 @[simp] lemma relabel_move_right {x : pgame} {xl' xr'}
   (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (j : x.right_moves) :
   move_right (relabel el er) (er.symm j) = x.move_right j :=
-by simp
+by simv
 
 /-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
 def relabel_relabelling {x : pgame} {xl' xr'} (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) :
   x ≡r relabel el er :=
-relabelling.mk' el er (λ i, by simp) (λ j, by simp)
+relabelling.mk' el er (λ i, by simv) (λ j, by simv)
 
 /-! ### Negation -/
 
@@ -853,10 +853,10 @@ end
 @[simp] lemma neg_of_lists (L R : list pgame) :
   -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
 begin
-  simp only [of_lists, neg_def, list.length_map, list.nth_le_map', eq_self_iff_true, true_and],
+  simv only [of_lists, neg_def, list.length_map, list.nth_le_map', eq_self_iff_true, true_and],
   split, all_goals
   { apply hfunext,
-    { simp },
+    { simv },
     { intros a a' ha,
       congr' 2,
       have : ∀ {m n} (h₁ : m = n) {b : ulift (fin m)} {c : ulift (fin n)} (h₂ : b == c),
@@ -913,19 +913,19 @@ by { cases x, refl }
 
 lemma move_left_neg_symm {x : pgame} (i) :
   x.move_left (to_right_moves_neg.symm i) = -(-x).move_right i :=
-by simp
+by simv
 
 lemma move_left_neg_symm' {x : pgame} (i) :
   x.move_left i = -(-x).move_right (to_right_moves_neg i) :=
-by simp
+by simv
 
 lemma move_right_neg_symm {x : pgame} (i) :
   x.move_right (to_left_moves_neg.symm i) = -(-x).move_left i :=
-by simp
+by simv
 
 lemma move_right_neg_symm' {x : pgame} (i) :
   x.move_right i = -(-x).move_left (to_left_moves_neg i) :=
-by simp
+by simv
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x ≡r y → -x ≡r -y
@@ -1384,7 +1384,7 @@ theorem star_fuzzy_zero : star ∥ 0 :=
 ⟨by { rw lf_zero, use default, rintros ⟨⟩ }, by { rw zero_lf, use default, rintros ⟨⟩ }⟩
 
 @[simp] theorem neg_star : -star = star :=
-by simp [star]
+by simv [star]
 
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)

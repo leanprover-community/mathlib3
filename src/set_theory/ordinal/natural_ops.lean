@@ -127,10 +127,10 @@ theorem nadd_def (a b : ordinal) : a ♯ b = max
 by rw nadd
 
 theorem lt_nadd_iff : a < b ♯ c ↔ (∃ b' < b, a ≤ b' ♯ c) ∨ ∃ c' < c, a ≤ b ♯ c' :=
-by { rw nadd_def, simp [lt_blsub_iff] }
+by { rw nadd_def, simv [lt_blsub_iff] }
 
 theorem nadd_le_iff : b ♯ c ≤ a ↔ (∀ b' < b, b' ♯ c < a) ∧ ∀ c' < c, b ♯ c' < a :=
-by { rw nadd_def, simp [blsub_le_iff] }
+by { rw nadd_def, simv [blsub_le_iff] }
 
 theorem nadd_lt_nadd_left (h : b < c) (a) : a ♯ b < a ♯ c :=
 lt_nadd_iff.2 (or.inr ⟨b, h, le_rfl⟩)
@@ -219,7 +219,7 @@ by rw [←one_nadd (a ♯ b), ←nadd_assoc, one_nadd]
 @[simp] theorem nadd_nat (n : ℕ) : a ♯ n = a + n :=
 begin
   induction n with n hn,
-  { simp },
+  { simv },
   { rw [nat.cast_succ, add_one_eq_succ, nadd_succ, add_succ, hn] }
 end
 
@@ -229,7 +229,7 @@ by rw [nadd_comm, nadd_nat]
 theorem add_le_nadd : a + b ≤ a ♯ b :=
 begin
   apply b.limit_rec_on,
-  { simp },
+  { simv },
   { intros c h,
     rwa [add_succ, nadd_succ, succ_le_succ_iff] },
   { intros c hc H,

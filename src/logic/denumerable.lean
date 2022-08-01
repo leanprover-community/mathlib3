@@ -41,7 +41,7 @@ option.is_some_iff_exists.2 $
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
 
-@[simp, priority 900]
+@[simv, priority 900]
 theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
   decode α n = some (of_nat α n) :=
 option.eq_some_of_is_some _
@@ -74,12 +74,12 @@ def mk' {α} (e : α ≃ ℕ) : denumerable α :=
 /-- Denumerability is conserved by equivalences. This is transitivity of equivalence the denumerable
 way. -/
 def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
-{ decode_inv := λ n, by simp,
+{ decode_inv := λ n, by simv,
   ..encodable.of_equiv _ e }
 
 @[simp] theorem of_equiv_of_nat (α) {β} [denumerable α] (e : β ≃ α)
   (n) : @of_nat β (of_equiv _ e) n = e.symm (of_nat α n) :=
-by apply of_nat_of_decode; show option.map _ _ = _; simp
+by apply of_nat_of_decode; show option.map _ _ = _; simv
 
 /-- All denumerable types are equivalent. -/
 def equiv₂ (α β) [denumerable α] [denumerable β] : α ≃ β := (eqv α).trans (eqv β).symm
@@ -103,7 +103,7 @@ instance sum : denumerable (α ⊕ β) :=
 ⟨λ n, begin
   suffices : ∃ a ∈ @decode_sum α β _ _ n,
     encode_sum a = bit (bodd n) (div2 n), {simpa [bit_decomp]},
-  simp [decode_sum]; cases bodd n; simp [decode_sum, bit, encode_sum]
+  simv [decode_sum]; cases bodd n; simv [decode_sum, bit, encode_sum]
 end⟩
 
 section sigma
@@ -111,12 +111,12 @@ variables {γ : α → Type*} [∀ a, denumerable (γ a)]
 
 /-- A denumerable collection of denumerable types is denumerable. -/
 instance sigma : denumerable (sigma γ) :=
-⟨λ n, by simp [decode_sigma]; exact ⟨_, _, ⟨rfl, heq.rfl⟩, by simp⟩⟩
+⟨λ n, by simv [decode_sigma]; exact ⟨_, _, ⟨rfl, heq.rfl⟩, by simv⟩⟩
 
 @[simp] theorem sigma_of_nat_val (n : ℕ) :
   of_nat (sigma γ) n = ⟨of_nat α (unpair n).1, of_nat (γ _) (unpair n).2⟩ :=
 option.some.inj $
-by rw [← decode_eq_of_nat, decode_sigma_val]; simp; refl
+by rw [← decode_eq_of_nat, decode_sigma_val]; simv; refl
 
 end sigma
 
@@ -126,10 +126,10 @@ of_equiv _ (equiv.sigma_equiv_prod α β).symm
 
 @[simp] theorem prod_of_nat_val (n : ℕ) :
   of_nat (α × β) n = (of_nat α (unpair n).1, of_nat β (unpair n).2) :=
-by simp; refl
+by simv; refl
 
 @[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
-by funext; simp
+by funext; simv
 
 instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
 
@@ -165,7 +165,7 @@ have ∀ (a : ℕ) (ha : a ∈ s), a < succ x,
 fintype.false
   ⟨(((multiset.range (succ x)).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
-      (by simp [-multiset.range_succ])).to_finset,
+      (by simv [-multiset.range_succ])).to_finset,
     by simpa [subtype.ext_iff_val, multiset.mem_filter, -multiset.range_succ]⟩
 
 end classical
@@ -207,9 +207,9 @@ def of_nat (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : ℕ → s
 
 lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = ⟨x, hx⟩
 | x := λ hx, let t : list s := ((list.range x).filter (λ y, y ∈ s)).pmap
-  (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
+  (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simv) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
-  by simp [list.mem_filter, subtype.ext_iff_val, t]; intros; refl,
+  by simv [list.mem_filter, subtype.ext_iff_val, t]; intros; refl,
 have wf : ∀ m : s, list.maximum t = m → ↑m < x,
   from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
 begin
@@ -250,18 +250,18 @@ private lemma right_inverse_aux : ∀ n, to_fun_aux (of_nat s n) = n
   exact bot_le.not_lt (show (⟨n, hn.2⟩ : s) < ⊥, from hn.1),
 end
 | (n+1) := have ih : to_fun_aux (of_nat s n) = n, from right_inverse_aux n,
-have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter (∈ s), by simp,
+have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter (∈ s), by simv,
 have h₂ : (range (succ (of_nat s n))).filter (∈ s) =
   insert (of_nat s n) ((range (of_nat s n)).filter (∈ s)),
   begin
-    simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
-    exact λ m, ⟨λ h, by simp only [h.2, and_true]; exact or.symm
+    simv only [finset.ext_iff, mem_insert, mem_range, mem_filter],
+    exact λ m, ⟨λ h, by simv only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),
       λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, (of_nat s n).prop⟩)
         (λ h, ⟨h.1.trans (lt_succ_self _), h.2⟩)⟩,
   end,
 begin
-  simp only [to_fun_aux_eq, of_nat, range_succ] at ⊢ ih,
+  simv only [to_fun_aux_eq, of_nat, range_succ] at ⊢ ih,
   conv {to_rhs, rw [← ih, ← card_insert_of_not_mem h₁, ← h₂] },
 end
 

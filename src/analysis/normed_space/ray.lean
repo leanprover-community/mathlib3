@@ -47,7 +47,7 @@ end
 lemma norm_smul_eq (h : same_ray ℝ x y) : ∥x∥ • y = ∥y∥ • x :=
 begin
   rcases h.exists_eq_smul with ⟨u, a, b, ha, hb, -, rfl, rfl⟩,
-  simp only [norm_smul_of_nonneg, *, mul_smul, smul_comm (∥u∥)],
+  simv only [norm_smul_of_nonneg, *, mul_smul, smul_comm (∥u∥)],
   apply smul_comm
 end
 
@@ -85,9 +85,9 @@ alias same_ray_iff_inv_norm_smul_eq_of_ne ↔ same_ray.inv_norm_smul_eq _
 the unit vectors `∥x∥⁻¹ • x` and `∥y∥⁻¹ • y` are equal. -/
 lemma same_ray_iff_inv_norm_smul_eq : same_ray ℝ x y ↔ x = 0 ∨ y = 0 ∨ ∥x∥⁻¹ • x = ∥y∥⁻¹ • y :=
 begin
-  rcases eq_or_ne x 0 with rfl|hx, { simp [same_ray.zero_left] },
-  rcases eq_or_ne y 0 with rfl|hy, { simp [same_ray.zero_right] },
-  simp only [same_ray_iff_inv_norm_smul_eq_of_ne hx hy, *, false_or]
+  rcases eq_or_ne x 0 with rfl|hx, { simv [same_ray.zero_left] },
+  rcases eq_or_ne y 0 with rfl|hy, { simv [same_ray.zero_right] },
+  simv only [same_ray_iff_inv_norm_smul_eq_of_ne hx hy, *, false_or]
 end
 
 /-- Two vectors of the same norm are on the same ray if and only if they are equal. -/

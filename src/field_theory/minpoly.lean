@@ -113,7 +113,7 @@ lemma min {p : A[X]} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
 begin
   delta minpoly, split_ifs with hx,
   { exact le_of_not_lt (well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩) },
-  { simp only [degree_zero, bot_le] }
+  { simv only [degree_zero, bot_le] }
 end
 
 @[nontriviality] lemma subsingleton [subsingleton B] : minpoly A x = 1 :=
@@ -122,7 +122,7 @@ begin
   have := minpoly.min A x monic_one (subsingleton.elim _ _),
   rw degree_one at this,
   cases le_or_lt (minpoly A x).degree 0 with h h,
-  { rwa (monic ⟨1, monic_one, by simp⟩ : (minpoly A x).monic).degree_le_zero_iff_eq_one at h },
+  { rwa (monic ⟨1, monic_one, by simv⟩ : (minpoly A x).monic).degree_le_zero_iff_eq_one at h },
   { exact (this.not_lt h).elim },
 end
 
@@ -164,22 +164,22 @@ begin
     rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map A B _ _ _ a)),
       with_top.coe_one, ←degree_X_sub_C a],
     refine min A (algebra_map A B a) (monic_X_sub_C a) _,
-    simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
+    simv only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
   have hdeg : (minpoly A (algebra_map A B a)).degree = 1,
   { apply (degree_eq_iff_nat_degree_eq (ne_zero (@is_integral_algebra_map A B _ _ _ a))).2,
     apply le_antisymm hdegle (nat_degree_pos (@is_integral_algebra_map A B _ _ _ a)) },
   have hrw := eq_X_add_C_of_degree_eq_one hdeg,
-  simp only [monic (@is_integral_algebra_map A B _ _ _ a), one_mul,
+  simv only [monic (@is_integral_algebra_map A B _ _ _ a), one_mul,
     monic.leading_coeff, ring_hom.map_one] at hrw,
   have h0 : (minpoly A (algebra_map A B a)).coeff 0 = -a,
   { have hroot := aeval A (algebra_map A B a),
     rw [hrw, add_comm] at hroot,
-    simp only [aeval_C, aeval_X, aeval_add] at hroot,
+    simv only [aeval_C, aeval_X, aeval_add] at hroot,
     replace hroot := eq_neg_of_add_eq_zero_left hroot,
     rw [←ring_hom.map_neg _ a] at hroot,
     exact (hf hroot) },
   rw hrw,
-  simp only [h0, ring_hom.map_neg, sub_eq_add_neg],
+  simv only [h0, ring_hom.map_neg, sub_eq_add_neg],
 end
 
 end ring
@@ -225,18 +225,18 @@ begin
   obtain ⟨a, b, ha_nunit, hb_nunit, hab_eq⟩ := hred,
   have coeff_prod : a.leading_coeff * b.leading_coeff = 1,
   { rw [←monic.def.1 (monic hx), ←hab_eq],
-    simp only [leading_coeff_mul] },
+    simv only [leading_coeff_mul] },
   have hamonic : (a * C b.leading_coeff).monic,
   { rw monic.def,
-    simp only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
+    simv only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
   have hbmonic : (b * C a.leading_coeff).monic,
   { rw [monic.def, mul_comm],
-    simp only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
+    simv only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
   have prod : minpoly A x = (a * C b.leading_coeff) * (b * C a.leading_coeff),
   { symmetry,
     calc a * C b.leading_coeff * (b * C a.leading_coeff)
         = a * b * (C a.leading_coeff * C b.leading_coeff) : by ring
-    ... = a * b * (C (a.leading_coeff * b.leading_coeff)) : by simp only [ring_hom.map_mul]
+    ... = a * b * (C (a.leading_coeff * b.leading_coeff)) : by simv only [ring_hom.map_mul]
     ... = a * b : by rw [coeff_prod, C_1, mul_one]
     ... = minpoly A x : hab_eq },
   have hzero := aeval A x,
@@ -269,7 +269,7 @@ lemma degree_le_of_ne_zero
   {p : A[X]} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
-    min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
+    min A x (monic_mul_leading_coeff_inv pnz) (by simv [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
 lemma ne_zero_of_finite_field_extension (e : B) [finite_dimensional A B] : minpoly A e ≠ 0 :=
@@ -287,7 +287,7 @@ begin
   have hx : is_integral A x := ⟨p, pmonic, hp⟩,
   symmetry, apply eq_of_sub_eq_zero,
   by_contra hnz,
-  have := degree_le_of_ne_zero A x hnz (by simp [hp]),
+  have := degree_le_of_ne_zero A x hnz (by simv [hp]),
   contrapose! this,
   apply degree_sub_lt _ (ne_zero hx),
   { rw [(monic hx).leading_coeff, pmonic.leading_coeff] },
@@ -301,7 +301,7 @@ assumptions on `B`. -/
 lemma dvd {p : A[X]} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
 begin
   by_cases hp0 : p = 0,
-  { simp only [hp0, dvd_zero] },
+  { simv only [hp0, dvd_zero] },
   have hx : is_integral A x,
   { rw ← is_algebraic_iff_is_integral, exact ⟨p, hp0, hp⟩ },
   rw ← dvd_iff_mod_by_monic_eq_zero (monic hx),
@@ -371,7 +371,7 @@ lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   minpoly A (x + (algebra_map A B a)) = (minpoly A x).comp (X - C a) :=
 begin
   refine (minpoly.unique _ _ ((minpoly.monic hx).comp_X_sub_C _) _ (λ q qmo hq, _)).symm,
-  { simp [aeval_comp] },
+  { simv [aeval_comp] },
   { have : (polynomial.aeval x) (q.comp (X + C a)) = 0 := by simpa [aeval_comp] using hq,
     have H := minpoly.min A x (qmo.comp_X_add_C _) this,
     rw [degree_eq_nat_degree qmo.ne_zero, degree_eq_nat_degree
@@ -468,7 +468,7 @@ begin
   have hs : is_integral R s := ⟨P, hmo, hP⟩,
   symmetry, apply eq_of_sub_eq_zero,
   by_contra hnz,
-  have := gcd_domain_degree_le_of_ne_zero hs hnz (by simp [hP]),
+  have := gcd_domain_degree_le_of_ne_zero hs hnz (by simv [hP]),
   contrapose! this,
   refine degree_sub_lt _ (ne_zero hs) _,
   { exact le_antisymm (min R s hmo hP)
@@ -509,7 +509,7 @@ lemma prime (hx : is_integral A x) : prime (minpoly A x) :=
 begin
   refine ⟨ne_zero hx, not_is_unit A x, _⟩,
   rintros p q ⟨d, h⟩,
-  have :    polynomial.aeval x (p*q) = 0 := by simp [h, aeval A x],
+  have :    polynomial.aeval x (p*q) = 0 := by simv [h, aeval A x],
   replace : polynomial.aeval x p = 0 ∨ polynomial.aeval x q = 0 := by simpa,
   exact or.imp (dvd A x) (dvd A x) this
 end
@@ -532,7 +532,7 @@ begin
     have zero_root := zero_is_root_of_coeff_zero_eq_zero h,
     rw ← root hx zero_root,
     exact ring_hom.map_zero _ },
-  { rintro rfl, simp }
+  { rintro rfl, simv }
 end
 
 /-- The minimal polynomial of a nonzero element has nonzero constant coefficient. -/

@@ -150,7 +150,7 @@ fan.mk (Top.of (Π i, α i)) (pi_π α)
 /-- The constructed fan is indeed a limit -/
 def pi_fan_is_limit {ι : Type v} (α : ι → Top.{max v u}) : is_limit (pi_fan α) :=
 { lift := λ S, { to_fun := λ s i, S.π.app ⟨i⟩ s },
-  uniq' := by { intros S m h, ext x i, simp [← h ⟨i⟩] },
+  uniq' := by { intros S m h, ext x i, simv [← h ⟨i⟩] },
   fac' := λ s j, by { cases j, tidy, }, }
 
 /--
@@ -160,10 +160,10 @@ equipped with the product topology.
 def pi_iso_pi {ι : Type v} (α : ι → Top.{max v u}) : ∏ α ≅ Top.of (Π i, α i) :=
 (limit.is_limit _).cone_point_unique_up_to_iso (pi_fan_is_limit α)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pi_iso_pi_inv_π {ι : Type v} (α : ι → Top.{max v u}) (i : ι) :
   (pi_iso_pi α).inv ≫ pi.π α i = pi_π α i :=
-by simp [pi_iso_pi]
+by simv [pi_iso_pi]
 
 @[simp]
 lemma pi_iso_pi_inv_π_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : Π i, α i) :
@@ -192,7 +192,7 @@ cofan.mk (Top.of (Σ i, α i)) (sigma_ι α)
 def sigma_cofan_is_colimit {ι : Type v} (α : ι → Top.{max v u}) : is_colimit (sigma_cofan α) :=
 { desc := λ S, { to_fun := λ s, S.ι.app ⟨s.1⟩ s.2,
     continuous_to_fun := by { continuity, dsimp only, continuity } },
-  uniq' := by { intros S m h,  ext ⟨i, x⟩, simp [← h ⟨i⟩] },
+  uniq' := by { intros S m h,  ext ⟨i, x⟩, simv [← h ⟨i⟩] },
   fac' := λ s j, by { cases j, tidy, }, }
 
 /--
@@ -201,10 +201,10 @@ The coproduct is homeomorphic to the disjoint union of the topological spaces.
 def sigma_iso_sigma {ι : Type v} (α : ι → Top.{max v u}) : ∐ α ≅ Top.of (Σ i, α i) :=
 (colimit.is_colimit _).cocone_point_unique_up_to_iso (sigma_cofan_is_colimit α)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma sigma_iso_sigma_hom_ι {ι : Type v} (α : ι → Top.{max v u}) (i : ι) :
   sigma.ι α i ≫ (sigma_iso_sigma α).hom = sigma_ι α i :=
-by simp [sigma_iso_sigma]
+by simv [sigma_iso_sigma]
 
 @[simp]
 lemma sigma_iso_sigma_hom_ι_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : α i) :
@@ -214,7 +214,7 @@ concrete_category.congr_hom (sigma_iso_sigma_hom_ι α i) x
 @[simp]
 lemma sigma_iso_sigma_inv_apply {ι : Type v} (α : ι → Top.{max v u}) (i : ι) (x : α i) :
   (sigma_iso_sigma α).inv ⟨i, x⟩ = (sigma.ι α i : _) x :=
-by { rw [← sigma_iso_sigma_hom_ι_apply, ← comp_app], simp, }
+by { rw [← sigma_iso_sigma_hom_ι_apply, ← comp_app], simv, }
 
 lemma induced_of_is_limit {F : J ⥤ Top.{max v u}} (C : cone F) (hC : is_limit C) :
   C.X.topological_space = ⨅ j, (F.obj j).topological_space.induced (C.π.app j) :=
@@ -266,11 +266,11 @@ equipped with the product topology.
 def prod_iso_prod (X Y : Top.{u}) : X ⨯ Y ≅ Top.of (X × Y) :=
 (limit.is_limit _).cone_point_unique_up_to_iso (prod_binary_fan_is_limit X Y)
 
-@[simp, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top.{u}) :
+@[simv, reassoc] lemma prod_iso_prod_hom_fst (X Y : Top.{u}) :
   (prod_iso_prod X Y).hom ≫ prod_fst = limits.prod.fst :=
 by simpa [← iso.eq_inv_comp, prod_iso_prod]
 
-@[simp, reassoc] lemma prod_iso_prod_hom_snd (X Y : Top.{u}) :
+@[simv, reassoc] lemma prod_iso_prod_hom_snd (X Y : Top.{u}) :
   (prod_iso_prod X Y).hom ≫ prod_snd = limits.prod.snd :=
 by simpa [← iso.eq_inv_comp, prod_iso_prod]
 
@@ -283,13 +283,13 @@ begin
   { exact concrete_category.congr_hom (prod_iso_prod_hom_snd X Y) x }
 end
 
-@[simp, reassoc, elementwise] lemma prod_iso_prod_inv_fst (X Y : Top.{u}) :
+@[simv, reassoc, elementwise] lemma prod_iso_prod_inv_fst (X Y : Top.{u}) :
   (prod_iso_prod X Y).inv ≫ limits.prod.fst = prod_fst :=
-by simp [iso.inv_comp_eq]
+by simv [iso.inv_comp_eq]
 
-@[simp, reassoc, elementwise] lemma prod_iso_prod_inv_snd (X Y : Top.{u}) :
+@[simv, reassoc, elementwise] lemma prod_iso_prod_inv_snd (X Y : Top.{u}) :
   (prod_iso_prod X Y).inv ≫ limits.prod.snd = prod_snd :=
-by simp [iso.inv_comp_eq]
+by simv [iso.inv_comp_eq]
 
 lemma prod_topology {X Y : Top} :
   (X ⨯ Y).topological_space =
@@ -310,24 +310,24 @@ begin
   ext,
   split,
   { rintros ⟨y, rfl⟩,
-    simp only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
-    simp only [limits.prod.map_fst, limits.prod.map_snd,
+    simv only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
+    simv only [limits.prod.map_fst, limits.prod.map_snd,
       exists_apply_eq_apply, comp_apply, and_self] },
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
     use (prod_iso_prod W X).inv (x₁, x₂),
     apply concrete.limit_ext,
     rintro ⟨⟨⟩⟩,
-    { simp only [← comp_apply, category.assoc], erw limits.prod.map_fst, simp [hx₁] },
-    { simp only [← comp_apply, category.assoc], erw limits.prod.map_snd, simp [hx₂] } }
+    { simv only [← comp_apply, category.assoc], erw limits.prod.map_fst, simv [hx₁] },
+    { simv only [← comp_apply, category.assoc], erw limits.prod.map_snd, simv [hx₂] } }
 end
 
 lemma inducing_prod_map {W X Y Z : Top} {f : W ⟶ X} {g : Y ⟶ Z}
   (hf : inducing f) (hg : inducing g) : inducing (limits.prod.map f g) :=
 begin
   constructor,
-  simp only [prod_topology, induced_compose, ←coe_comp, limits.prod.map_fst, limits.prod.map_snd,
+  simv only [prod_topology, induced_compose, ←coe_comp, limits.prod.map_fst, limits.prod.map_snd,
     induced_inf],
-  simp only [coe_comp],
+  simv only [coe_comp],
   rw [← @induced_compose _ _ _ _ _ f, ← @induced_compose _ _ _ _ _ g, ← hf.induced, ← hg.induced]
 end
 
@@ -356,7 +356,7 @@ abbreviation pullback_snd (f : X ⟶ Z) (g : Y ⟶ Z) : Top.of { p : X × Y // f
 
 /-- The explicit pullback cone of `X, Y` given by `{ p : X × Y // f p.1 = g p.2 }`. -/
 def pullback_cone (f : X ⟶ Z) (g : Y ⟶ Z) : pullback_cone f g :=
-pullback_cone.mk (pullback_fst f g) (pullback_snd f g) (by { ext ⟨x, h⟩, simp [h] })
+pullback_cone.mk (pullback_fst f g) (pullback_snd f g) (by { ext ⟨x, h⟩, simv [h] })
 
 /-- The constructed cone is a limit. -/
 def pullback_cone_is_limit (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -367,8 +367,8 @@ begin
   exact { to_fun := λ x, ⟨⟨s.fst x, s.snd x⟩,
     by simpa using concrete_category.congr_hom s.condition x⟩ },
   refine ⟨_,_,_⟩,
-  { ext, delta pullback_cone, simp },
-  { ext, delta pullback_cone, simp },
+  { ext, delta pullback_cone, simv },
+  { ext, delta pullback_cone, simv },
   { intros m h₁ h₂,
     ext x,
     { simpa using concrete_category.congr_hom h₁ x },
@@ -380,7 +380,7 @@ def pullback_iso_prod_subtype (f : X ⟶ Z) (g : Y ⟶ Z) :
   pullback f g ≅ Top.of { p : X × Y // f p.1 = g p.2 } :=
 (limit.is_limit _).cone_point_unique_up_to_iso (pullback_cone_is_limit f g)
 
-@[simp, reassoc] lemma pullback_iso_prod_subtype_inv_fst (f : X ⟶ Z) (g : Y ⟶ Z) :
+@[simv, reassoc] lemma pullback_iso_prod_subtype_inv_fst (f : X ⟶ Z) (g : Y ⟶ Z) :
   (pullback_iso_prod_subtype f g).inv ≫ pullback.fst = pullback_fst f g :=
 by simpa [pullback_iso_prod_subtype]
 
@@ -389,7 +389,7 @@ by simpa [pullback_iso_prod_subtype]
   (pullback.fst : pullback f g ⟶ _) ((pullback_iso_prod_subtype f g).inv x) = (x : X × Y).fst :=
 concrete_category.congr_hom (pullback_iso_prod_subtype_inv_fst f g) x
 
-@[simp, reassoc] lemma pullback_iso_prod_subtype_inv_snd (f : X ⟶ Z) (g : Y ⟶ Z) :
+@[simv, reassoc] lemma pullback_iso_prod_subtype_inv_snd (f : X ⟶ Z) (g : Y ⟶ Z) :
   (pullback_iso_prod_subtype f g).inv ≫ pullback.snd = pullback_snd f g :=
 by simpa [pullback_iso_prod_subtype]
 
@@ -434,18 +434,18 @@ begin
   ext x,
   split,
   { rintros ⟨y, rfl⟩,
-    simp only [←comp_apply, set.mem_set_of_eq],
+    simv only [←comp_apply, set.mem_set_of_eq],
     congr' 1,
-    simp [pullback.condition] },
+    simv [pullback.condition] },
   { intro h,
     use (pullback_iso_prod_subtype f g).inv ⟨⟨_, _⟩, h⟩,
     apply concrete.limit_ext,
-    rintro ⟨⟨⟩⟩; simp }
+    rintro ⟨⟨⟩⟩; simv }
 end
 
 lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
   inducing ⇑(prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
-⟨by simp [prod_topology, pullback_topology, induced_compose, ←coe_comp]⟩
+⟨by simv [prod_topology, pullback_topology, induced_compose, ←coe_comp]⟩
 
 lemma embedding_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
   embedding ⇑(prod.lift pullback.fst pullback.snd : pullback f g ⟶ X ⨯ Y) :=
@@ -461,23 +461,23 @@ lemma range_pullback_map {W X Y Z S T : Top} (f₁ : W ⟶ S) (f₂ : X ⟶ S)
 begin
   ext,
   split,
-  { rintro ⟨y, rfl⟩, simp, },
+  { rintro ⟨y, rfl⟩, simv, },
   rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,
   have : f₁ x₁ = f₂ x₂,
   { apply (Top.mono_iff_injective _).mp H₃,
-    simp only [←comp_apply, eq₁, eq₂],
-    simp only [comp_apply, hx₁, hx₂],
-    simp only [←comp_apply, pullback.condition] },
+    simv only [←comp_apply, eq₁, eq₂],
+    simv only [comp_apply, hx₁, hx₂],
+    simv only [←comp_apply, pullback.condition] },
   use (pullback_iso_prod_subtype f₁ f₂).inv ⟨⟨x₁, x₂⟩, this⟩,
   apply concrete.limit_ext,
   rintros (_|_|_),
-  { simp only [Top.comp_app, limit.lift_π_apply, category.assoc, pullback_cone.mk_π_app_one,
+  { simv only [Top.comp_app, limit.lift_π_apply, category.assoc, pullback_cone.mk_π_app_one,
       hx₁, pullback_iso_prod_subtype_inv_fst_apply, subtype.coe_mk],
-    simp only [← comp_apply],
+    simv only [← comp_apply],
     congr,
     apply limit.w _ walking_cospan.hom.inl },
-  { simp [hx₁] },
-  { simp [hx₂] },
+  { simv [hx₁] },
+  { simv [hx₂] },
 end
 
 lemma pullback_fst_range {X Y S : Top} (f : X ⟶ S) (g : Y ⟶ S) :
@@ -490,7 +490,7 @@ begin
     exact concrete_category.congr_hom pullback.condition y },
   { rintro ⟨y, eq⟩,
     use (Top.pullback_iso_prod_subtype f g).inv ⟨⟨x, y⟩, eq⟩,
-    simp },
+    simv },
 end
 
 lemma pullback_snd_range {X Y S : Top} (f : X ⟶ S) (g : Y ⟶ S) :
@@ -503,7 +503,7 @@ begin
     exact concrete_category.congr_hom pullback.condition x },
   { rintro ⟨x, eq⟩,
     use (Top.pullback_iso_prod_subtype f g).inv ⟨⟨x, y⟩, eq⟩,
-    simp },
+    simv },
 end
 
 /--
@@ -563,9 +563,9 @@ lemma snd_embedding_of_left_embedding {X Y S : Top}
 begin
   convert (homeo_of_iso (as_iso (pullback.snd : pullback (𝟙 S) g ⟶ _))).embedding.comp
     (pullback_map_embedding_of_embeddings f g (𝟙 _) g H
-      (homeo_of_iso (iso.refl _)).embedding (𝟙 _) rfl (by simp)),
+      (homeo_of_iso (iso.refl _)).embedding (𝟙 _) rfl (by simv)),
   erw ←coe_comp,
-  simp
+  simv
 end
 
 lemma fst_embedding_of_right_embedding {X Y S : Top}
@@ -574,9 +574,9 @@ lemma fst_embedding_of_right_embedding {X Y S : Top}
 begin
   convert (homeo_of_iso (as_iso (pullback.fst : pullback f (𝟙 S) ⟶ _))).embedding.comp
     (pullback_map_embedding_of_embeddings f g f (𝟙 _)
-      (homeo_of_iso (iso.refl _)).embedding H (𝟙 _) rfl (by simp)),
+      (homeo_of_iso (iso.refl _)).embedding H (𝟙 _) rfl (by simv)),
   erw ←coe_comp,
-  simp
+  simv
 end
 
 lemma embedding_of_pullback_embeddings {X Y S : Top}
@@ -595,9 +595,9 @@ lemma snd_open_embedding_of_left_open_embedding {X Y S : Top}
 begin
   convert (homeo_of_iso (as_iso (pullback.snd : pullback (𝟙 S) g ⟶ _))).open_embedding.comp
     (pullback_map_open_embedding_of_open_embeddings f g (𝟙 _) g H
-      (homeo_of_iso (iso.refl _)).open_embedding (𝟙 _) rfl (by simp)),
+      (homeo_of_iso (iso.refl _)).open_embedding (𝟙 _) rfl (by simv)),
   erw ←coe_comp,
-  simp
+  simv
 end
 
 lemma fst_open_embedding_of_right_open_embedding {X Y S : Top}
@@ -606,9 +606,9 @@ lemma fst_open_embedding_of_right_open_embedding {X Y S : Top}
 begin
   convert (homeo_of_iso (as_iso (pullback.fst : pullback f (𝟙 S) ⟶ _))).open_embedding.comp
     (pullback_map_open_embedding_of_open_embeddings f g f (𝟙 _)
-      (homeo_of_iso (iso.refl _)).open_embedding H (𝟙 _) rfl (by simp)),
+      (homeo_of_iso (iso.refl _)).open_embedding H (𝟙 _) rfl (by simv)),
   erw ←coe_comp,
-  simp
+  simv
 end
 
 /-- If `X ⟶ S`, `Y ⟶ S` are open embeddings, then so is `X ×ₛ Y ⟶ S`. -/
@@ -662,7 +662,7 @@ begin
     exact ⟨(pullback.fst : pullback f g ⟶ _) y, hy,
     concrete_category.congr_hom pullback.condition y⟩ },
   { rintros ⟨y, hy, eq⟩,
-    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩, eq⟩, by simpa, by simp⟩ },
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩, eq⟩, by simpa, by simv⟩ },
 end
 
 lemma pullback_fst_image_snd_preimage (f : X ⟶ Z) (g : Y ⟶ Z) (U : set Y) :
@@ -675,7 +675,7 @@ begin
     exact ⟨(pullback.snd : pullback f g ⟶ _) y, hy,
     (concrete_category.congr_hom pullback.condition y).symm⟩ },
   { rintros ⟨y, hy, eq⟩,
-    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq.symm⟩, by simpa, by simp⟩ },
+    exact ⟨(Top.pullback_iso_prod_subtype f g).inv ⟨⟨_,_⟩,eq.symm⟩, by simpa, by simv⟩ },
 end
 
 end pullback
@@ -770,7 +770,7 @@ begin
       subst h,
       exact hV },
     { dsimp [U],
-      simp } },
+      simv } },
   { rintros ⟨U, G, h1, h2⟩,
     obtain ⟨j, hj⟩ := is_cofiltered.inf_objs_exists G,
     let g : ∀ e (he : e ∈ G), j ⟶ e := λ _ he, (hj he).some,
@@ -903,7 +903,7 @@ begin
   have : partial_sections F H =
     ⋂ {f : finite_diagram_arrow G} (hf : f ∈ H), { u | F.map f.2.2.2.2 (u f.1) = u f.2.1 },
   { ext1,
-    simp only [set.mem_Inter, set.mem_set_of_eq],
+    simv only [set.mem_Inter, set.mem_set_of_eq],
     refl, },
   rw this,
   apply is_closed_bInter,
@@ -934,8 +934,8 @@ begin
   let G : finite_diagram J :=
     ⟨{X, Y},
      {⟨X, Y,
-      by simp only [true_or, eq_self_iff_true, finset.mem_insert],
-      by simp only [eq_self_iff_true, or_true, finset.mem_insert, finset.mem_singleton],
+      by simv only [true_or, eq_self_iff_true, finset.mem_insert],
+      by simv only [eq_self_iff_true, or_true, finset.mem_insert, finset.mem_singleton],
       f⟩}⟩,
   exact hu _ ⟨G, rfl⟩ (finset.mem_singleton_self _),
 end
@@ -981,7 +981,7 @@ begin
   use λ j, (u ⟨j⟩).down,
   intros j j' f,
   have h := @hu (⟨j⟩ : J') (⟨j'⟩ : J') (ulift.up f),
-  simp only [as_small.down, functor.comp_map, ulift_functor_map, functor.op_map] at h,
+  simv only [as_small.down, functor.comp_map, ulift_functor_map, functor.op_map] at h,
   simp_rw [←h],
   refl,
 end

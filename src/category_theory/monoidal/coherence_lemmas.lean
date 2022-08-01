@@ -29,7 +29,7 @@ lemma left_unitor_tensor' (X Y : C) :
   ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) = ((λ_ X).hom ⊗ (𝟙 Y)) :=
 by coherence
 
-@[reassoc, simp]
+@[reassoc, simv]
 lemma left_unitor_tensor (X Y : C) :
   ((λ_ (X ⊗ Y)).hom) = ((α_ (𝟙_ C) X Y).inv) ≫ ((λ_ X).hom ⊗ (𝟙 Y)) :=
 by coherence
@@ -53,7 +53,7 @@ lemma pentagon_inv_inv_hom (W X Y Z : C) :
   = ((𝟙 W) ⊗ (α_ X Y Z).hom) ≫ (α_ W X (Y ⊗ Z)).inv :=
 by coherence
 
-@[simp, reassoc] lemma triangle_assoc_comp_right_inv (X Y : C) :
+@[simv, reassoc] lemma triangle_assoc_comp_right_inv (X Y : C) :
   ((ρ_ X).inv ⊗ 𝟙 Y) ≫ (α_ X (𝟙_ C) Y).hom = ((𝟙 X) ⊗ (λ_ Y).inv) :=
 by coherence
 

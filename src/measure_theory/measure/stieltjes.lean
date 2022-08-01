@@ -94,7 +94,7 @@ intervals. -/
 def length (s : set ℝ) : ℝ≥0∞ := ⨅a b (h : s ⊆ Ioc a b), of_real (f b - f a)
 
 @[simp] lemma length_empty : f.length ∅ = 0 :=
-nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
+nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simv
 
 @[simp] lemma length_Ioc (a b : ℝ) :
   f.length (Ioc a b) = of_real (f b - f a) :=
@@ -133,7 +133,7 @@ begin
   { rcases is_compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
       @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
     have e : (⋃ i ∈ (↑hf.to_finset:set ℕ), Ioo (c i) (d i)) = (⋃ i ∈ s, Ioo (c i) (d i)),
-      by simp only [ext_iff, exists_prop, finset.set_bUnion_coe, mem_Union, forall_const, iff_self,
+      by simv only [ext_iff, exists_prop, finset.set_bUnion_coe, mem_Union, forall_const, iff_self,
                     finite.mem_to_finset],
     rw ennreal.tsum_eq_supr_sum,
     refine le_trans _ (le_supr _ hf.to_finset),
@@ -142,7 +142,7 @@ begin
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
   { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 (f.mono ab)), exact zero_le _, },
-  have := cv ⟨ab, le_rfl⟩, simp at this,
+  have := cv ⟨ab, le_rfl⟩, simv at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,
@@ -187,7 +187,7 @@ begin
     have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
         (ennreal.coe_ne_zero.2 (ε'0 i).ne')),
     conv at this { to_lhs, rw length },
-    simp only [infi_lt_iff, exists_prop] at this,
+    simv only [infi_lt_iff, exists_prop] at this,
     rcases this with ⟨p, q', spq, hq'⟩,
     have : continuous_within_at (λ r, of_real (f r - f p)) (Ioi q') q',
     { apply ennreal.continuous_of_real.continuous_at.comp_continuous_within_at,
@@ -207,10 +207,10 @@ begin
     add_le_add (f.length_subadditive_Icc_Ioo I_subset) (ennreal.of_real_le_of_real ha'.le)
   ... ≤ (∑' i, (f.length (s i) + ε' i)) + δ :
     add_le_add (ennreal.tsum_le_tsum (λ i, (hg i).2.le))
-      (by simp only [ennreal.of_real_coe_nnreal, le_rfl])
+      (by simv only [ennreal.of_real_coe_nnreal, le_rfl])
   ... = (∑' i, f.length (s i)) + (∑' i, ε' i) + δ : by rw [ennreal.tsum_add]
   ... ≤ (∑' i, f.length (s i)) + δ + δ : add_le_add (add_le_add le_rfl hε.le) le_rfl
-  ... = ∑' (i : ℕ), f.length (s i) + ε : by simp [add_assoc, ennreal.add_halves]
+  ... = ∑' (i : ℕ), f.length (s i) + ε : by simv [add_assoc, ennreal.add_halves]
 end
 
 lemma measurable_set_Ioi {c : ℝ} :
@@ -222,14 +222,14 @@ begin
     (f.length_mono $ inter_subset_inter_left _ h)
     (f.length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hac; cases le_total b c with hbc hbc,
-  { simp only [Ioc_inter_Ioi, f.length_Ioc, hac, sup_eq_max, hbc, le_refl, Ioc_eq_empty,
+  { simv only [Ioc_inter_Ioi, f.length_Ioc, hac, sup_eq_max, hbc, le_refl, Ioc_eq_empty,
       max_eq_right, min_eq_left, Ioc_diff_Ioi, f.length_empty, zero_add, not_lt] },
-  { simp only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
+  { simv only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
       sup_eq_max, ←ennreal.of_real_add, f.mono hac, f.mono hbc, sub_nonneg, sub_add_sub_cancel,
       le_refl, max_eq_right] },
-  { simp only [hbc, le_refl, Ioc_eq_empty, Ioc_inter_Ioi, min_eq_left, Ioc_diff_Ioi,
+  { simv only [hbc, le_refl, Ioc_eq_empty, Ioc_inter_Ioi, min_eq_left, Ioc_diff_Ioi,
       f.length_empty, zero_add, or_true, le_sup_iff, f.length_Ioc, not_lt] },
-  { simp only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
+  { simv only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
       sup_eq_max, le_refl, Ioc_eq_empty, add_zero, max_eq_left, f.length_empty, not_lt] }
 end
 
@@ -250,11 +250,11 @@ begin
     have := (ennreal.lt_add_right ((ennreal.le_tsum i).trans_lt h).ne
         (ennreal.coe_pos.2 (ε'0 i)).ne'),
     conv at this {to_lhs, rw length},
-    simp only [infi_lt_iff] at this,
+    simv only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,
     rw ← f.outer_Ioc at h₂,
     exact ⟨_, h₁, measurable_set_Ioc, le_of_lt $ by simpa using h₂⟩ },
-  simp at hg,
+  simv at hg,
   apply infi_le_of_le (Union g) _,
   apply infi_le_of_le (ht.trans $ Union_mono (λ i, (hg i).1)) _,
   apply infi_le_of_le (measurable_set.Union (λ i, (hg i).2.1)) _,
@@ -265,7 +265,7 @@ lemma borel_le_measurable : borel ℝ ≤ f.outer.caratheodory :=
 begin
   rw borel_eq_generate_from_Ioi,
   refine measurable_space.generate_from_le _,
-  simp [f.measurable_set_Ioi] { contextual := tt }
+  simv [f.measurable_set_Ioi] { contextual := tt }
 end
 
 /-! ### The measure associated to a Stieltjes function -/
@@ -286,17 +286,17 @@ begin
   obtain ⟨u, u_mono, u_lt_a, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_mono u ∧ (∀ (n : ℕ), u n < a)
     ∧ tendsto u at_top (𝓝 a) := exists_seq_strict_mono_tendsto a,
   have A : {a} = ⋂ n, Ioc (u n) a,
-  { refine subset.antisymm (λ x hx, by simp [mem_singleton_iff.1 hx, u_lt_a]) (λ x hx, _),
-    simp at hx,
+  { refine subset.antisymm (λ x hx, by simv [mem_singleton_iff.1 hx, u_lt_a]) (λ x hx, _),
+    simv at hx,
     have : a ≤ x := le_of_tendsto' u_lim (λ n, (hx n).1.le),
-    simp [le_antisymm this (hx 0).2] },
+    simv [le_antisymm this (hx 0).2] },
   have L1 : tendsto (λ n, f.measure (Ioc (u n) a)) at_top (𝓝 (f.measure {a})),
   { rw A,
     refine tendsto_measure_Inter (λ n, measurable_set_Ioc) (λ m n hmn, _) _,
     { exact Ioc_subset_Ioc (u_mono.monotone hmn) le_rfl },
     { exact ⟨0, by simpa only [measure_Ioc] using ennreal.of_real_ne_top⟩ } },
   have L2 : tendsto (λ n, f.measure (Ioc (u n) a)) at_top (𝓝 (of_real (f a - f.left_lim a))),
-  { simp only [measure_Ioc],
+  { simv only [measure_Ioc],
     have : tendsto (λ n, f (u n)) at_top (𝓝 (f.left_lim a)),
     { apply (f.tendsto_left_lim a).comp,
       exact tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ u_lim
@@ -308,39 +308,39 @@ end
 @[simp] lemma measure_Icc (a b : ℝ) : f.measure (Icc a b) = of_real (f b - f.left_lim a) :=
 begin
   rcases le_or_lt a b with hab|hab,
-  { have A : disjoint {a} (Ioc a b), by simp,
-    simp [← Icc_union_Ioc_eq_Icc le_rfl hab, -singleton_union, ← ennreal.of_real_add, f.left_lim_le,
+  { have A : disjoint {a} (Ioc a b), by simv,
+    simv [← Icc_union_Ioc_eq_Icc le_rfl hab, -singleton_union, ← ennreal.of_real_add, f.left_lim_le,
       measure_union A measurable_set_Ioc, f.mono hab] },
-  { simp only [hab, measure_empty, Icc_eq_empty, not_le],
+  { simv only [hab, measure_empty, Icc_eq_empty, not_le],
     symmetry,
-    simp [ennreal.of_real_eq_zero, f.le_left_lim hab] }
+    simv [ennreal.of_real_eq_zero, f.le_left_lim hab] }
 end
 
 @[simp] lemma measure_Ioo {a b : ℝ} : f.measure (Ioo a b) = of_real (f.left_lim b - f a) :=
 begin
   rcases le_or_lt b a with hab|hab,
-  { simp only [hab, measure_empty, Ioo_eq_empty, not_lt],
+  { simv only [hab, measure_empty, Ioo_eq_empty, not_lt],
     symmetry,
-    simp [ennreal.of_real_eq_zero, f.left_lim_le hab] },
-  { have A : disjoint (Ioo a b) {b}, by simp,
+    simv [ennreal.of_real_eq_zero, f.left_lim_le hab] },
+  { have A : disjoint (Ioo a b) {b}, by simv,
     have D : f b - f a = (f b - f.left_lim b) + (f.left_lim b - f a), by abel,
     have := f.measure_Ioc a b,
-    simp only [←Ioo_union_Icc_eq_Ioc hab le_rfl, measure_singleton,
+    simv only [←Ioo_union_Icc_eq_Ioc hab le_rfl, measure_singleton,
       measure_union A (measurable_set_singleton b), Icc_self] at this,
     rw [D, ennreal.of_real_add, add_comm] at this,
     { simpa only [ennreal.add_right_inj ennreal.of_real_ne_top] },
-    { simp only [f.left_lim_le, sub_nonneg] },
-    { simp only [f.le_left_lim hab, sub_nonneg] } },
+    { simv only [f.left_lim_le, sub_nonneg] },
+    { simv only [f.le_left_lim hab, sub_nonneg] } },
 end
 
 @[simp] lemma measure_Ico (a b : ℝ) : f.measure (Ico a b) = of_real (f.left_lim b - f.left_lim a) :=
 begin
   rcases le_or_lt b a with hab|hab,
-  { simp only [hab, measure_empty, Ico_eq_empty, not_lt],
+  { simv only [hab, measure_empty, Ico_eq_empty, not_lt],
     symmetry,
-    simp [ennreal.of_real_eq_zero, f.left_lim_le_left_lim hab] },
-  { have A : disjoint {a} (Ioo a b) := by simp,
-    simp [← Icc_union_Ioo_eq_Ico le_rfl hab, -singleton_union, hab.ne, f.left_lim_le,
+    simv [ennreal.of_real_eq_zero, f.left_lim_le_left_lim hab] },
+  { have A : disjoint {a} (Ioo a b) := by simv,
+    simv [← Icc_union_Ioo_eq_Ico le_rfl hab, -singleton_union, hab.ne, f.left_lim_le,
       measure_union A measurable_set_Ioo, f.le_left_lim hab,
       ← ennreal.of_real_add] }
 end

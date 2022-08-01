@@ -84,7 +84,7 @@ The converse of `is_subterminal_of_is_iso_diag`.
 -/
 lemma is_subterminal.is_iso_diag (hA : is_subterminal A) [has_binary_product A A] :
   is_iso (diag A) :=
-⟨⟨limits.prod.fst, ⟨by simp, by { rw is_subterminal.def at hA, tidy }⟩⟩⟩
+⟨⟨limits.prod.fst, ⟨by simv, by { rw is_subterminal.def at hA, tidy }⟩⟩⟩
 
 /--
 If the diagonal morphism of `A` is an isomorphism, then it is subterminal.
@@ -95,7 +95,7 @@ lemma is_subterminal_of_is_iso_diag [has_binary_product A A] [is_iso (diag A)] :
 λ Z f g,
 begin
   have : (limits.prod.fst : A ⨯ A ⟶ _) = limits.prod.snd,
-  { simp [←cancel_epi (diag A)] },
+  { simv [←cancel_epi (diag A)] },
   rw [←prod.lift_fst f g, this, prod.lift_snd],
 end
 

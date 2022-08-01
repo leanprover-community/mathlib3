@@ -80,7 +80,7 @@ def map_multifork : F.map_cone (S.multifork P) ≅ (limits.cones.postcompose
 cones.ext (eq_to_iso rfl) begin
   rintros (a|b),
   { dsimp, simpa },
-  { dsimp, simp, dsimp [multifork.of_ι], simpa }
+  { dsimp, simv, dsimp [multifork.of_ι], simpa }
 end
 
 end grothendieck_topology.cover

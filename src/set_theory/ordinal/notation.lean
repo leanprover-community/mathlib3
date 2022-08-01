@@ -91,7 +91,7 @@ theorem le_def {x y : onote} : x ≤ y ↔ repr x ≤ repr y := iff.rfl
 @[simp] theorem of_nat_one : of_nat 1 = 1 := rfl
 
 @[simp] theorem repr_of_nat (n : ℕ) : repr (of_nat n) = n :=
-by cases n; simp
+by cases n; simv
 
 @[simp] theorem repr_one : repr 1 = 1 :=
 by simpa using repr_of_nat 1
@@ -120,14 +120,14 @@ theorem eq_of_cmp_eq : ∀ {o₁ o₂}, cmp o₁ o₂ = ordering.eq → o₁ = o
 | (oadd e n a) 0 h := by injection h
 | 0 (oadd e n a) h := by injection h
 | o₁@(oadd e₁ n₁ a₁) o₂@(oadd e₂ n₂ a₂) h := begin
-  revert h, simp only [cmp],
+  revert h, simv only [cmp],
   cases h₁ : cmp e₁ e₂; intro h; try {cases h},
   obtain rfl := eq_of_cmp_eq h₁,
   revert h, cases h₂ : _root_.cmp (n₁:ℕ) n₂; intro h; try {cases h},
   obtain rfl := eq_of_cmp_eq h,
   rw [_root_.cmp, cmp_using_eq_eq] at h₂,
   obtain rfl := subtype.eq (eq_of_incomp h₂),
-  simp
+  simv
 end
 
 theorem zero_lt_one : (0 : onote) < 1 :=
@@ -234,7 +234,7 @@ theorem oadd_lt_oadd_1 {e₁ n₁ o₁ e₂ n₂ o₂} (h₁ : NF (oadd e₁ n�
 theorem oadd_lt_oadd_2 {e o₁ o₂ : onote} {n₁ n₂ : ℕ+}
   (h₁ : NF (oadd e n₁ o₁)) (h : (n₁:ℕ) < n₂) : oadd e n₁ o₁ < oadd e n₂ o₂ :=
 begin
-  simp [lt_def],
+  simv [lt_def],
   refine lt_of_lt_of_le ((add_lt_add_iff_left _).2 h₁.snd'.repr_lt)
     (le_trans _ (le_add_right _ _)),
   rwa [← mul_succ, mul_le_mul_iff_left (opow_pos _ omega_pos), succ_le_iff, nat_cast_lt]
@@ -284,7 +284,7 @@ theorem NF.of_dvd_omega_opow {b e n a} (h : NF (oadd e n a)) (d : ω ^ b ∣ rep
 begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
-  simp at d,
+  simv at d,
   exact ⟨L, (dvd_add_iff $ (opow_dvd_opow _ L).mul_right _).1 d⟩
 end
 
@@ -356,12 +356,12 @@ theorem add_NF_below {b} : ∀ {o₁ o₂}, NF_below o₁ b → NF_below o₂ b 
 | 0            o h₁ h₂ := h₂
 | (oadd e n a) o h₁ h₂ := begin
   have h' := add_NF_below (h₁.snd.mono $ le_of_lt h₁.lt) h₂,
-  simp [oadd_add], cases a + o with e' n' a',
+  simv [oadd_add], cases a + o with e' n' a',
   { exact NF_below.oadd h₁.fst NF_below.zero h₁.lt },
-  simp [add], have := @cmp_compares _ _ h₁.fst h'.fst,
-  cases cmp e e'; simp [add],
+  simv [add], have := @cmp_compares _ _ h₁.fst h'.fst,
+  cases cmp e e'; simv [add],
   { exact h' },
-  { simp at this, subst e',
+  { simv at this, subst e',
     exact NF_below.oadd h'.fst h'.snd h'.lt },
   { exact NF_below.oadd h₁.fst (NF.below_of_lt this ⟨⟨_, h'⟩⟩) h₁.lt }
 end
@@ -372,16 +372,16 @@ instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
   (λ h, ⟨b₁, add_NF_below h₁ (h₂.mono h)⟩)⟩
 
 @[simp] theorem repr_add : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ + o₂) = repr o₁ + repr o₂
-| 0            o h₁ h₂ := by simp
+| 0            o h₁ h₂ := by simv
 | (oadd e n a) o h₁ h₂ := begin
   haveI := h₁.snd, have h' := repr_add a o,
-  conv at h' in (_+o) {simp [(+)]},
+  conv at h' in (_+o) {simv [(+)]},
   have nf := onote.add_NF a o,
-  conv at nf in (_+o) {simp [(+)]},
-  conv in (_+o) {simp [(+), add]},
-  cases add a o with e' n' a'; simp [add, h'.symm, add_assoc],
+  conv at nf in (_+o) {simv [(+)]},
+  conv in (_+o) {simv [(+), add]},
+  cases add a o with e' n' a'; simv [add, h'.symm, add_assoc],
   have := h₁.fst, haveI := nf.fst, have ee := cmp_compares e e',
-  cases cmp e e'; simp [add],
+  cases cmp e e'; simv [add],
   { rw [← add_assoc, @add_absorp _ (repr e') (ω ^ repr e' * (n':ℕ))],
     { have := (h₁.below_of_lt ee).repr_lt, unfold repr at this,
       exact lt_of_le_of_lt (le_add_right _ _) this },
@@ -396,13 +396,13 @@ theorem sub_NF_below : ∀ {o₁ o₂ b}, NF_below o₁ b → NF o₂ → NF_bel
 | (oadd e n a) 0 b h₁ h₂ := h₁
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) b h₁ h₂ := begin
   have h' := sub_NF_below h₁.snd h₂.snd,
-  simp [has_sub.sub, sub] at h' ⊢,
+  simv [has_sub.sub, sub] at h' ⊢,
   have := @cmp_compares _ _ h₁.fst h₂.fst,
-  cases cmp e₁ e₂; simp [sub],
+  cases cmp e₁ e₂; simv [sub],
   { apply NF_below.zero },
-  { simp at this, subst e₂,
-    cases mn : (n₁:ℕ) - n₂; simp [sub],
-    { by_cases en : n₁ = n₂; simp [en],
+  { simv at this, subst e₂,
+    cases mn : (n₁:ℕ) - n₂; simv [sub],
+    { by_cases en : n₁ = n₂; simv [en],
       { exact h'.mono (le_of_lt h₁.lt) },
       { exact NF_below.zero } },
     { exact NF_below.oadd h₁.fst h₁.snd h₁.lt } },
@@ -417,10 +417,10 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
 | (oadd e n a) 0 h₁ h₂ := (ordinal.sub_zero _).symm
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) h₁ h₂ := begin
   haveI := h₁.snd, haveI := h₂.snd, have h' := repr_sub a₁ a₂,
-  conv at h' in (a₁-a₂) {simp [has_sub.sub]},
+  conv at h' in (a₁-a₂) {simv [has_sub.sub]},
   have nf := onote.sub_NF a₁ a₂,
-  conv at nf in (a₁-a₂) {simp [has_sub.sub]},
-  conv in (_-oadd _ _ _) {simp [has_sub.sub, sub]},
+  conv at nf in (a₁-a₂) {simv [has_sub.sub]},
+  conv in (_-oadd _ _ _) {simv [has_sub.sub, sub]},
   have ee := @cmp_compares _ _ h₁.fst h₂.fst,
   cases cmp e₁ e₂,
   { rw [ordinal.sub_eq_zero_iff_le.2], {refl},
@@ -428,11 +428,11 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
-      { simp [en], rwa [add_sub_add_cancel] },
-      { simp [en, -repr],
+      { simv [en], rwa [add_sub_add_cancel] },
+      { simv [en, -repr],
         exact (ordinal.sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
           lt_of_le_of_ne (tsub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
-    { simp [nat.succ_pnat, -nat.cast_succ],
+    { simv [nat.succ_pnat, -nat.cast_succ],
       rw [(tsub_eq_iff_eq_add_of_le $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,
           add_comm, nat.cast_add, mul_add, add_assoc, add_sub_add_cancel],
       refine (ordinal.sub_eq_of_add_eq $ add_absorp h₂.snd'.repr_lt $
@@ -467,7 +467,7 @@ theorem oadd_mul_NF_below {e₁ n₁ a₁ b₁} (h₁ : NF_below (oadd e₁ n₁
 | 0 b₂ h₂ := NF_below.zero
 | (oadd e₂ n₂ a₂) b₂ h₂ := begin
   have IH := oadd_mul_NF_below h₂.snd,
-  by_cases e0 : e₂ = 0; simp [e0, oadd_mul],
+  by_cases e0 : e₂ = 0; simv [e0, oadd_mul],
   { apply NF_below.oadd h₁.fst h₁.snd,
     simpa using (add_lt_add_iff_left (repr e₁)).2
       (lt_of_le_of_lt (ordinal.zero_le _) h₂.lt) },
@@ -487,17 +487,17 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
 | (oadd e₁ n₁ a₁) 0               h₁ h₂ := (mul_zero _).symm
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) h₁ h₂ := begin
   have IH : repr (mul _ _) = _ := @repr_mul _ _ h₁ h₂.snd,
-  conv {to_lhs, simp [(*)]},
+  conv {to_lhs, simv [(*)]},
   have ao : repr a₁ + ω ^ repr e₁ * (n₁:ℕ) = ω ^ repr e₁ * (n₁:ℕ),
   { apply add_absorp h₁.snd'.repr_lt,
     simpa using (mul_le_mul_iff_left $ opow_pos _ omega_pos).2
       (nat_cast_le.2 n₁.2) },
-  by_cases e0 : e₂ = 0; simp [e0, mul],
+  by_cases e0 : e₂ = 0; simv [e0, mul],
   { cases nat.exists_eq_succ_of_ne_zero n₂.ne_zero with x xe,
-    simp [h₂.zero_of_zero e0, xe, -nat.cast_succ],
+    simv [h₂.zero_of_zero e0, xe, -nat.cast_succ],
     rw [nat_cast_succ x, add_mul_succ _ ao, mul_assoc] },
   { haveI := h₁.fst, haveI := h₂.fst,
-    simp [IH, repr_add, opow_add, mul_add],
+    simv [IH, repr_add, opow_add, mul_add],
     rw ← mul_assoc, congr' 2,
     have := mt repr_inj.1 e0,
     rw [add_mul_limit ao (opow_is_limit_left omega_is_limit this),
@@ -559,55 +559,55 @@ theorem opow_def (o₁ o₂ : onote) : o₁ ^ o₂ = opow._match_1 o₂ (split o
 theorem split_eq_scale_split' : ∀ {o o' m} [NF o], split' o = (o', m) → split o = (scale 1 o', m)
 | 0            o' m h p := by injection p; substs o' m; refl
 | (oadd e n a) o' m h p := begin
-  by_cases e0 : e = 0; simp [e0, split, split'] at p ⊢,
+  by_cases e0 : e = 0; simv [e0, split, split'] at p ⊢,
   { rcases p with ⟨rfl, rfl⟩, exact ⟨rfl, rfl⟩ },
   { revert p, cases h' : split' a with a' m',
     haveI := h.fst, haveI := h.snd,
-    simp [split_eq_scale_split' h', split, split'],
+    simv [split_eq_scale_split' h', split, split'],
     have : 1 + (e - 1) = e,
-    { refine repr_inj.1 _, simp,
+    { refine repr_inj.1 _, simv,
       have := mt repr_inj.1 e0,
       exact ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this) },
-    intros, substs o' m, simp [scale, this] }
+    intros, substs o' m, simv [scale, this] }
 end
 
 theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ repr o = ω * repr o' + m
-| 0            o' m h p := by injection p; substs o' m; simp [NF.zero]
+| 0            o' m h p := by injection p; substs o' m; simv [NF.zero]
 | (oadd e n a) o' m h p := begin
-  by_cases e0 : e = 0; simp [e0, split, split'] at p ⊢,
+  by_cases e0 : e = 0; simv [e0, split, split'] at p ⊢,
   { rcases p with ⟨rfl, rfl⟩,
-    simp [h.zero_of_zero e0, NF.zero] },
+    simv [h.zero_of_zero e0, NF.zero] },
   { revert p, cases h' : split' a with a' m',
     haveI := h.fst, haveI := h.snd,
     cases NF_repr_split' h' with IH₁ IH₂,
-    simp [IH₂, split'],
+    simv [IH₂, split'],
     intros, substs o' m,
     have : (ω : ordinal.{0}) ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
     { have := mt repr_inj.1 e0,
       rw [← opow_add, ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
     refine ⟨NF.oadd (by apply_instance) _ _, _⟩,
-    { simp at this ⊢,
+    { simv at this ⊢,
       refine IH₁.below_of_lt' ((mul_lt_mul_iff_left omega_pos).1 $
         lt_of_le_of_lt (le_add_right _ m') _),
       rw [← this, ← IH₂], exact h.snd'.repr_lt },
-    { rw this, simp [mul_add, mul_assoc, add_assoc] } }
+    { rw this, simv [mul_add, mul_assoc, add_assoc] } }
 end
 
 theorem scale_eq_mul (x) [NF x] : ∀ o [NF o], scale x o = oadd x 1 0 * o
 | 0            h := rfl
 | (oadd e n a) h := begin
-  simp [(*)], simp [mul, scale],
+  simv [(*)], simv [mul, scale],
   haveI := h.snd,
   by_cases e0 : e = 0,
-  { rw scale_eq_mul, simp [e0, h.zero_of_zero, show x + 0 = x, from repr_inj.1 (by simp)] },
-  { simp [e0, scale_eq_mul, (*)] }
+  { rw scale_eq_mul, simv [e0, h.zero_of_zero, show x + 0 = x, from repr_inj.1 (by simv)] },
+  { simv [e0, scale_eq_mul, (*)] }
 end
 
 instance NF_scale (x) [NF x] (o) [NF o] : NF (scale x o) :=
 by rw scale_eq_mul; apply_instance
 
 @[simp] theorem repr_scale (x) [NF x] (o) [NF o] : repr (scale x o) = ω ^ repr x * repr o :=
-by simp [scale_eq_mul]
+by simv [scale_eq_mul]
 
 theorem NF_repr_split {o o' m} [NF o] (h : split o = (o', m)) : NF o' ∧ repr o = repr o' + m :=
 begin
@@ -615,7 +615,7 @@ begin
   cases NF_repr_split' e with s₁ s₂, resetI,
   rw split_eq_scale_split' e at h,
   injection h, substs o' n,
-  simp [repr_scale, s₂.symm],
+  simv [repr_scale, s₂.symm],
   apply_instance
 end
 
@@ -624,7 +624,7 @@ begin
   cases e : split' o with a n,
   rw split_eq_scale_split' e at h,
   injection h, subst o',
-  cases NF_repr_split' e, resetI, simp
+  cases NF_repr_split' e, resetI, simv
 end
 
 theorem split_add_lt {o e n a m} [NF o] (h : split o = (oadd e n a, m)) : repr a + m < ω ^ repr e :=
@@ -640,13 +640,13 @@ end
 by cases o; cases n; refl
 
 instance NF_mul_nat (o) [NF o] (n) : NF (mul_nat o n) :=
-by simp; apply_instance
+by simv; apply_instance
 
 instance NF_opow_aux (e a0 a) [NF e] [NF a0] [NF a] : ∀ k m, NF (opow_aux e a0 a k m)
 | k     0     := by cases k; exact NF.zero
 | 0     (m+1) := NF.oadd_zero _ _
 | (k+1) (m+1) := by haveI := NF_opow_aux k;
-  simp [opow_aux, nat.succ_ne_zero]; apply_instance
+  simv [opow_aux, nat.succ_ne_zero]; apply_instance
 
 instance NF_opow (o₁ o₂) [NF o₁] [NF o₂] : NF (o₁ ^ o₂) :=
 begin
@@ -656,19 +656,19 @@ begin
   haveI := (NF_repr_split' e₂).1,
   casesI a with a0 n a',
   { cases m with m,
-    { by_cases o₂ = 0; simp [pow, opow, *]; apply_instance },
+    { by_cases o₂ = 0; simv [pow, opow, *]; apply_instance },
     { by_cases m = 0,
-      { simp only [pow, opow, *, zero_def], apply_instance },
-      { simp [pow, opow, *, - npow_eq_pow], apply_instance } } },
-  { simp [pow, opow, e₁, e₂, split_eq_scale_split' e₂],
+      { simv only [pow, opow, *, zero_def], apply_instance },
+      { simv [pow, opow, *, - npow_eq_pow], apply_instance } } },
+  { simv [pow, opow, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
-    cases k with k; simp [opow]; resetI; apply_instance }
+    cases k with k; simv [opow]; resetI; apply_instance }
 end
 
 theorem scale_opow_aux (e a0 a : onote) [NF e] [NF a0] [NF a] :
   ∀ k m, repr (opow_aux e a0 a k m) = ω ^ repr e * repr (opow_aux 0 a0 a k m)
-| 0     m := by cases m; simp [opow_aux]
-| (k+1) m := by by_cases m = 0; simp [h, opow_aux, mul_add, opow_add, mul_assoc, scale_opow_aux]
+| 0     m := by cases m; simv [opow_aux]
+| (k+1) m := by by_cases m = 0; simv [h, opow_aux, mul_add, opow_add, mul_assoc, scale_opow_aux]
 
 theorem repr_opow_aux₁ {e a} [Ne : NF e] [Na : NF a] {a' : ordinal} (e0 : repr e ≠ 0)
   (h : a' < (ω : ordinal.{0}) ^ repr e) (aa : repr a = a') (n : ℕ+) :
@@ -708,20 +708,20 @@ begin
   intro,
   haveI No : NF (oadd a0 n a') :=
     N0.oadd n (Na'.below_of_lt' $ lt_of_le_of_lt (le_add_right _ _) h),
-  induction k with k IH, {cases m; simp [opow_aux, R]},
+  induction k with k IH, {cases m; simv [opow_aux, R]},
   rename R R', let R := repr (opow_aux 0 a0 (oadd a0 n a' * of_nat m) k m),
   let ω0 := ω ^ repr a0, let α' := ω0 * n + repr a',
   change (k ≠ 0 → R < ω0 ^ succ k) ∧ ω0 ^ k * α' + R = (α' + m) ^ succ k at IH,
   have RR : R' = ω0 ^ k * (α' * m) + R,
-  { by_cases m = 0; simp [h, R', opow_aux, R, opow_mul],
-    { cases k; simp [opow_aux] }, { refl } },
+  { by_cases m = 0; simv [h, R', opow_aux, R, opow_mul],
+    { cases k; simv [opow_aux] }, { refl } },
   have α0 : 0 < α', {simpa [α', lt_def, repr] using oadd_pos a0 n a'},
   have ω00 : 0 < ω0 ^ k := opow_pos _ (opow_pos _ omega_pos),
   have Rl : R < ω ^ (repr a0 * succ ↑k),
   { by_cases k0 : k = 0,
-    { simp [k0],
+    { simv [k0],
       refine lt_of_lt_of_le _ (opow_le_opow_right omega_pos (one_le_iff_ne_zero.2 e0)),
-      cases m with m; simp [k0, R, opow_aux, omega_pos],
+      cases m with m; simv [k0, R, opow_aux, omega_pos],
       rw [←add_one_eq_succ, ←nat.cast_succ], apply nat_lt_omega },
     { rw opow_mul, exact IH.1 k0 } },
   refine ⟨λ_, _, _⟩,
@@ -729,7 +729,7 @@ begin
     have e0 := ordinal.pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
     apply principal_add_omega_opow,
-    { simp [opow_mul, ω0, opow_add, mul_assoc],
+    { simv [opow_mul, ω0, opow_add, mul_assoc],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.opow_add],
       have := (No.below_of_lt _).repr_lt, unfold repr at this,
       refine mul_lt_omega_opow rr0 this (nat_lt_omega _),
@@ -754,7 +754,7 @@ begin
     { have := mul_le_mul_left' (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos) (ω0 ^ succ k),
       rw opow_mul, simpa [-opow_succ] } },
   { cases m,
-    { have : R = 0, {cases k; simp [R, opow_aux]}, simp [this] },
+    { have : R = 0, {cases k; simv [R, opow_aux]}, simv [this] },
     { rw [nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [opow_mul, opow_succ],
@@ -770,24 +770,24 @@ begin
   cases NF_repr_split e₁ with N₁ r₁,
   cases a with a0 n a',
   { cases m with m,
-    { by_cases o₂ = 0; simp [opow_def, opow, e₁, h, r₁],
+    { by_cases o₂ = 0; simv [opow_def, opow, e₁, h, r₁],
       have := mt repr_inj.1 h, rw zero_opow this },
     { cases e₂ : split' o₂ with b' k,
       cases NF_repr_split' e₂ with _ r₂,
-      by_cases m = 0; simp [opow_def, opow, e₁, h, r₁, e₂, r₂, -nat.cast_succ],
+      by_cases m = 0; simv [opow_def, opow, e₁, h, r₁, e₂, r₂, -nat.cast_succ],
       rw [opow_add, opow_mul, opow_omega _ (nat_lt_omega _)],
       simpa using nat_cast_lt.2 (nat.succ_lt_succ $ pos_iff_ne_zero.2 h) } },
   { haveI := N₁.fst, haveI := N₁.snd,
     cases N₁.of_dvd_omega (split_dvd e₁) with a00 ad,
     have al := split_add_lt e₁,
-    have aa : repr (a' + of_nat m) = repr a' + m, {simp},
+    have aa : repr (a' + of_nat m) = repr a' + m, {simv},
     cases e₂ : split' o₂ with b' k,
     cases NF_repr_split' e₂ with _ r₂,
-    simp [opow_def, opow, e₁, r₁, split_eq_scale_split' e₂],
+    simv [opow_def, opow, e₁, r₁, split_eq_scale_split' e₂],
     cases k with k; resetI,
-    { simp [opow, r₂, opow_mul, repr_opow_aux₁ a00 al aa, add_assoc] },
-    { simp [opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
-      rw [repr_opow_aux₁ a00 al aa, scale_opow_aux], simp [opow_mul],
+    { simv [opow, r₂, opow_mul, repr_opow_aux₁ a00 al aa, add_assoc] },
+    { simv [opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
+      rw [repr_opow_aux₁ a00 al aa, scale_opow_aux], simv [opow_mul],
       rw [← mul_add, ← add_assoc ((ω : ordinal.{0}) ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← opow_succ],
       exact (repr_opow_aux₂ _ ad a00 al _ _).2 } }
@@ -854,16 +854,16 @@ begin
   induction o with a m b iha ihb, {exact rfl},
   rw [fundamental_sequence],
   rcases e : b.fundamental_sequence with ⟨_|b'⟩|f;
-    simp only [fundamental_sequence, fundamental_sequence_prop];
+    simv only [fundamental_sequence, fundamental_sequence_prop];
     rw [e, fundamental_sequence_prop] at ihb,
   { rcases e : a.fundamental_sequence with ⟨_|a'⟩|f; cases e' : m.nat_pred with m';
-      simp only [fundamental_sequence, fundamental_sequence_prop];
+      simv only [fundamental_sequence, fundamental_sequence_prop];
       rw [e, fundamental_sequence_prop] at iha;
       try { rw show m = 1,
         { have := pnat.nat_pred_add_one m, rw [e'] at this, exact pnat.coe_inj.1 this.symm } };
       try { rw show m = m'.succ.succ_pnat,
         { rw [← e', ← pnat.coe_inj, nat.succ_pnat_coe, ← nat.add_one, pnat.nat_pred_add_one] } };
-      simp only [repr, iha, ihb, opow_lt_opow_iff_right one_lt_omega,
+      simv only [repr, iha, ihb, opow_lt_opow_iff_right one_lt_omega,
         add_lt_add_iff_left, add_zero, coe_coe, eq_self_iff_true, lt_add_iff_pos_right,
         lt_def, mul_one, nat.cast_zero, nat.cast_succ, nat.succ_pnat_coe, opow_succ,
         opow_zero, mul_add_one, pnat.one_coe, succ_zero, true_and, _root_.zero_add,
@@ -899,7 +899,7 @@ begin
     have := H.snd'.repr_lt, rw ihb.1 at this,
     exact (lt_succ _).trans this },
   { rcases ihb with ⟨h1, h2, h3⟩,
-    simp only [repr],
+    simv only [repr],
     exact ⟨ordinal.add_is_limit _ h1,
       λ i, ⟨oadd_lt_oadd_3 (h2 i).1, oadd_lt_oadd_3 (h2 i).2.1, λ H, H.fst.oadd _
         (NF.below_of_lt' (lt_trans (h2 i).2.1 H.snd'.repr_lt) ((h2 i).2.2 H.snd))⟩,
@@ -947,7 +947,7 @@ theorem fast_growing_limit (o) {f} (h : fundamental_sequence o = sum.inr f) :
 begin
   rw [@fast_growing_succ 1 0 rfl], funext i, rw [two_mul, fast_growing_zero],
   suffices : ∀ a b, nat.succ^[a] b = b + a, from this _ _,
-  intros a b, induction a; simp [*, function.iterate_succ', nat.add_succ],
+  intros a b, induction a; simv [*, function.iterate_succ', nat.add_succ],
 end
 
 section
@@ -956,7 +956,7 @@ local infixr ^ := pow
 begin
   rw [@fast_growing_succ 2 1 rfl], funext i, rw [fast_growing_one],
   suffices : ∀ a b, (λ (n : ℕ), 2 * n)^[a] b = 2 ^ a * b, from this _ _,
-  intros a b, induction a; simp [*, function.iterate_succ', pow_succ, mul_assoc],
+  intros a b, induction a; simv [*, function.iterate_succ', pow_succ, mul_assoc],
 end
 end
 
@@ -966,10 +966,10 @@ end
   for larger ordinals. -/
 def fast_growing_ε₀ (i : ℕ) : ℕ := fast_growing ((λ a, a.oadd 1 0)^[i] 0) i
 
-theorem fast_growing_ε₀_zero : fast_growing_ε₀ 0 = 1 := by simp [fast_growing_ε₀]
+theorem fast_growing_ε₀_zero : fast_growing_ε₀ 0 = 1 := by simv [fast_growing_ε₀]
 
 theorem fast_growing_ε₀_one : fast_growing_ε₀ 1 = 2 :=
-by simp [fast_growing_ε₀, show oadd 0 1 0 = 1, from rfl]
+by simv [fast_growing_ε₀, show oadd 0 1 0 = 1, from rfl]
 
 theorem fast_growing_ε₀_two : fast_growing_ε₀ 2 = 2048 :=
 by norm_num [fast_growing_ε₀,

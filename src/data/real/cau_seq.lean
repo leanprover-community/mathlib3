@@ -219,7 +219,7 @@ theorem const_mul (x y : β) : const (x * y) = const x * const y :=
 ext $ λ i, rfl
 
 instance : has_neg (cau_seq β abv) :=
-⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simp)⟩
+⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simv)⟩
 
 @[simp] theorem neg_apply (f : cau_seq β abv) (i) : (-f) i = -f i := rfl
 
@@ -227,7 +227,7 @@ theorem const_neg (x : β) : const (-x) = -const x :=
 ext $ λ i, rfl
 
 instance : has_sub (cau_seq β abv) :=
-⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
+⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simv [sub_eq_add_neg])⟩
 
 @[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
@@ -242,7 +242,7 @@ by refine_struct
        sub := has_sub.sub,
        zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
        nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ };
-intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+intros; try { refl }; apply ext; simv [add_comm, add_left_comm, sub_eq_add_neg]
 
 instance : add_group_with_one (cau_seq β abv) :=
 { one := 1,
@@ -263,11 +263,11 @@ by refine_struct
        npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
        .. cau_seq.add_group_with_one };
 intros; try { refl }; apply ext;
-simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
+simv [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
-{ mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
+{ mul_comm := by intros; apply ext; simv [mul_left_comm, mul_comm],
   ..cau_seq.ring }
 
 /-- `lim_zero f` holds when `f` approaches 0. -/
@@ -315,7 +315,7 @@ theorem const_lim_zero {x : β} : lim_zero (const x) ↔ x = 0 :=
 
 instance equiv : setoid (cau_seq β abv) :=
 ⟨λ f g, lim_zero (f - g),
-⟨λ f, by simp [zero_lim_zero],
+⟨λ f, by simv [zero_lim_zero],
  λ f g h, by simpa using neg_lim_zero h,
  λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
 
@@ -324,9 +324,9 @@ lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈
 begin
   change lim_zero ((f1 + g1) - _),
   convert add_lim_zero hf hg using 1,
-  simp only [sub_eq_add_neg, add_assoc],
-  rw add_comm (-f2), simp only [add_assoc],
-  congr' 2, simp
+  simv only [sub_eq_add_neg, add_assoc],
+  rw add_comm (-f2), simv only [add_assoc],
+  congr' 2, simv
 end
 
 lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
@@ -353,7 +353,7 @@ begin
   haveI := classical.prop_decidable,
   by_contra nk,
   refine hf (λ ε ε0, _),
-  simp [not_forall] at nk,
+  simv [not_forall] at nk,
   cases f.cauchy₃ (half_pos ε0) with i hi,
   rcases nk _ (half_pos ε0) i with ⟨j, ij, hj⟩,
   refine ⟨j, λ k jk, _⟩,
@@ -460,7 +460,7 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
 
 theorem const_inv {x : β} (hx : x ≠ 0) :
   const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
-ext (assume n, by simp[inv_apply, const_apply])
+ext (assume n, by simv[inv_apply, const_apply])
 
 end field
 
@@ -504,7 +504,7 @@ protected theorem mul_pos {f g : cau_seq α abs} : pos f → pos g → pos (f * 
 
 theorem trichotomy (f : cau_seq α abs) : pos f ∨ lim_zero f ∨ pos (-f) :=
 begin
-  cases classical.em (lim_zero f); simp *,
+  cases classical.em (lim_zero f); simv *,
   rcases abv_pos_of_not_lim_zero h with ⟨K, K0, hK⟩,
   rcases exists_forall_ge_and hK (f.cauchy₃ K0) with ⟨i, hi⟩,
   refine (le_total 0 (f i)).imp _ _;
@@ -540,7 +540,7 @@ show pos (h - f),
 by simpa [sub_eq_add_neg, add_comm, add_left_comm] using add_pos fg gh
 
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f
-| h := not_lim_zero_of_pos h (by simp [zero_lim_zero])
+| h := not_lim_zero_of_pos h (by simv [zero_lim_zero])
 
 lemma le_of_eq_of_le {f g h : cau_seq α abs}
   (hfg : f ≈ g) (hgh : g ≤ h) : f ≤ h :=

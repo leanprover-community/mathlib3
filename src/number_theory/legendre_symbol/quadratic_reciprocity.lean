@@ -41,7 +41,7 @@ lemma euler_criterion_units (x : (zmod p)ˣ) :
 begin
   by_cases hc : p = 2,
   { substI hc,
-    simp only [eq_iff_true_of_subsingleton, exists_const], },
+    simv only [eq_iff_true_of_subsingleton, exists_const], },
   { have h₀ := finite_field.unit_is_square_iff (by rwa ring_char_zmod_n) x,
     have hs : (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ is_square(x) :=
     by { rw is_square_iff_exists_sq x,
@@ -54,12 +54,12 @@ end
 lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
   is_square (a : zmod p) ↔ a ^ (p / 2) = 1 :=
 begin
-  apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
-  simp only [units.ext_iff, sq, units.coe_mk0, units.coe_mul],
+  apply (iff_congr _ (by simv [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
+  simv only [units.ext_iff, sq, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy.symm⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
-    refine ⟨units.mk0 y hy, _⟩, simp, }
+    refine ⟨units.mk0 y hy, _⟩, simv, }
 end
 
 lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
@@ -117,7 +117,7 @@ lemma legendre_sym_eq_pow (p : ℕ) (a : ℤ) [hp : fact p.prime] :
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), mul_char.map_zero,
+  { simv only [ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), mul_char.map_zero,
                int.cast_zero], },
   by_cases hp₁ : p = 2,
   { substI p,
@@ -184,7 +184,7 @@ end
 /-- The Legendre symbol depends only on `a` mod `p`. -/
 theorem legendre_sym_mod (p : ℕ) [fact p.prime] (a : ℤ) :
   legendre_sym p a = legendre_sym p (a % p) :=
-by simp only [legendre_sym, int_cast_mod]
+by simv only [legendre_sym, int_cast_mod]
 
 
 /-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
@@ -196,11 +196,11 @@ begin
   haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
   have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
-    by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
+    by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simv },
   cases legendre_sym_eq_one_or_neg_one p a ha0;
   cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
-  simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
+  simv [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
 end
 
 /-- When `p ∤ a`, then `legendre_sym p a = 1` iff `a` is a square mod `p`. -/
@@ -256,7 +256,7 @@ begin
   have hp1 := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp2,
   have hp22 : p / 2 / 2 = _ := legendre_symbol.div_eq_filter_card (show 0 < 2, from dec_trivial)
     (nat.div_le_self (p / 2) 2),
-  have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
+  have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simv,
   have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
     from λ x hx, have h2xp : 2 * x < p,
         from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
@@ -266,7 +266,7 @@ begin
   have hdisj : disjoint
       ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))
       ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)),
-    from disjoint_filter.2 (λ x hx, by { rw [nat.cast_two, hx2 x hx, mul_comm], simp }),
+    from disjoint_filter.2 (λ x hx, by { rw [nat.cast_two, hx2 x hx, mul_comm], simv }),
   have hunion :
       ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val)) ∪
       ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)) =
@@ -293,7 +293,7 @@ begin
   have hp2 : ((2 : ℤ) : zmod p) ≠ 0, by exact_mod_cast prime_ne_zero p 2 hp1,
   have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
   have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
-  rw [show (2 : zmod p) = (2 : ℤ), by simp, ← legendre_sym_eq_one_iff p hp2],
+  rw [show (2 : zmod p) = (2 : ℤ), by simv, ← legendre_sym_eq_one_iff p hp2],
   erw [legendre_sym_two p hp1, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
     even_add, even_div, even_div],
   have := nat.mod_lt p (show 0 < 8, from dec_trivial),
@@ -312,7 +312,7 @@ have h1 : ((p / 2) * (q / 2)) % 2 = 0,
     (dvd_mul_of_dvd_left (dvd_iff_mod_eq_zero.2 $
     by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _),
 begin
-  have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp1, norm_num at hp1, },
+  have hp_odd : p ≠ 2 := by { by_contra, simv [h] at hp1, norm_num at hp1, },
   have hpq0 : ((p : ℤ) : zmod q) ≠ 0 := by exact_mod_cast prime_ne_zero q p (ne.symm hpq),
   have hqp0 : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q hpq,
   have := quadratic_reciprocity p q hp_odd hq1 hpq,
@@ -320,9 +320,9 @@ begin
   rw [(by norm_cast : (p : zmod q) = (p : ℤ)), (by norm_cast : (q : zmod p) = (q : ℤ)),
        ← legendre_sym_eq_one_iff _ hpq0, ← legendre_sym_eq_one_iff _ hqp0],
   cases (legendre_sym_eq_one_or_neg_one p q hqp0) with h h,
-  { simp only [h, eq_self_iff_true, true_iff, mul_one] at this ⊢,
+  { simv only [h, eq_self_iff_true, true_iff, mul_one] at this ⊢,
     exact this, },
-  { simp only [h, mul_neg, mul_one] at this ⊢,
+  { simv only [h, mul_neg, mul_one] at this ⊢,
     rw eq_neg_of_eq_neg this.symm, },
 end
 
@@ -333,8 +333,8 @@ have h1 : ((p / 2) * (q / 2)) % 2 = 1,
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hq3]; refl),
 begin
-  have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp3, norm_num at hp3, },
-  have hq_odd : q ≠ 2 := by { by_contra, simp [h] at hq3, norm_num at hq3, },
+  have hp_odd : p ≠ 2 := by { by_contra, simv [h] at hp3, norm_num at hp3, },
+  have hq_odd : q ≠ 2 := by { by_contra, simv [h] at hq3, norm_num at hq3, },
   have hpq0 : ((p : ℤ) : zmod q) ≠ 0 := by exact_mod_cast prime_ne_zero q p (ne.symm hpq),
   have hqp0 : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q hpq,
   have := quadratic_reciprocity p q hp_odd hq_odd hpq,
@@ -342,11 +342,11 @@ begin
   rw [(by norm_cast : (p : zmod q) = (p : ℤ)), (by norm_cast : (q : zmod p) = (q : ℤ)),
        ← legendre_sym_eq_one_iff _ hpq0, ← legendre_sym_eq_one_iff _ hqp0],
   cases (legendre_sym_eq_one_or_neg_one q p hpq0) with h h,
-  { simp only [h, eq_self_iff_true, not_true, iff_false, one_mul] at this ⊢,
-    simp only [this],
+  { simv only [h, eq_self_iff_true, not_true, iff_false, one_mul] at this ⊢,
+    simv only [this],
     norm_num, },
-  { simp only [h, neg_mul, one_mul, neg_inj] at this ⊢,
-    simp only [this, eq_self_iff_true, true_iff],
+  { simv only [h, neg_mul, one_mul, neg_inj] at this ⊢,
+    simv only [this, eq_self_iff_true, true_iff],
     norm_num, },
 end
 

@@ -61,8 +61,8 @@ lemma duplicate.ne_nil (h : x ∈+ l) : l ≠ [] :=
 lemma duplicate.ne_singleton (h : x ∈+ l) (y : α) : l ≠ [y] :=
 begin
   induction h with l' h z l' h hm,
-  { simp [ne_nil_of_mem h] },
-  { simp [ne_nil_of_mem h.mem] }
+  { simv [ne_nil_of_mem h] },
+  { simv [ne_nil_of_mem h.mem] }
 end
 
 @[simp] lemma not_duplicate_singleton (x y : α) : ¬ x ∈+ [y] :=
@@ -89,7 +89,7 @@ lemma duplicate.of_duplicate_cons {y : α} (h : x ∈+ y :: l) (hx : x ≠ y) : 
 by simpa [duplicate_cons_iff, hx.symm] using h
 
 lemma duplicate_cons_iff_of_ne {y : α} (hne : x ≠ y) : x ∈+ y :: l ↔ x ∈+ l :=
-by simp [duplicate_cons_iff, hne.symm]
+by simv [duplicate_cons_iff, hne.symm]
 
 lemma duplicate.mono_sublist {l' : list α} (hx : x ∈+ l) (h : l <+ l') : x ∈+ l' :=
 begin
@@ -98,17 +98,17 @@ begin
   { exact (IH hx).duplicate_cons _ },
   { rw duplicate_cons_iff at hx ⊢,
     rcases hx with ⟨rfl, hx⟩|hx,
-    { simp [h.subset hx] },
-    { simp [IH hx] } }
+    { simv [h.subset hx] },
+    { simv [IH hx] } }
 end
 
 /-- The contrapositive of `list.nodup_iff_sublist`. -/
 lemma duplicate_iff_sublist : x ∈+ l ↔ [x, x] <+ l :=
 begin
   induction l with y l IH,
-  { simp },
+  { simv },
   { by_cases hx : x = y,
-    { simp [hx, cons_sublist_cons_iff, singleton_sublist] },
+    { simv [hx, cons_sublist_cons_iff, singleton_sublist] },
     { rw [duplicate_cons_iff_of_ne hx, IH],
       refine ⟨sublist_cons_of_sublist y, λ h, _⟩,
       cases h,
@@ -120,13 +120,13 @@ lemma nodup_iff_forall_not_duplicate : nodup l ↔ ∀ (x : α), ¬ x ∈+ l :=
 by simp_rw [nodup_iff_sublist, duplicate_iff_sublist]
 
 lemma exists_duplicate_iff_not_nodup : (∃ (x : α), x ∈+ l) ↔ ¬ nodup l :=
-by simp [nodup_iff_forall_not_duplicate]
+by simv [nodup_iff_forall_not_duplicate]
 
 lemma duplicate.not_nodup (h : x ∈+ l) : ¬ nodup l :=
 λ H, nodup_iff_forall_not_duplicate.mp H _ h
 
 lemma duplicate_iff_two_le_count [decidable_eq α] : (x ∈+ l) ↔ 2 ≤ count x l :=
-by simp [duplicate_iff_sublist, le_count_iff_repeat_sublist]
+by simv [duplicate_iff_sublist, le_count_iff_repeat_sublist]
 
 instance decidable_duplicate [decidable_eq α] (x : α) : ∀ (l : list α), decidable (x ∈+ l)
 | []       := is_false (not_duplicate_nil x)

@@ -35,7 +35,7 @@ preserves_cokernel.iso ((evaluation C D).obj X) _ ≪≫
   cokernel.map_iso _ _ (preserves_kernel.iso ((evaluation C D).obj X) _) (iso.refl _)
   begin
     dsimp,
-    simp only [category.comp_id],
+    simv only [category.comp_id],
     exact (kernel_comparison_comp_ι _ ((evaluation C D).obj X)).symm,
   end
 
@@ -46,9 +46,9 @@ preserves_kernel.iso ((evaluation C D).obj X) _ ≪≫
   kernel.map_iso _ _ (iso.refl _) (preserves_cokernel.iso ((evaluation C D).obj X) _)
   begin
     apply (cancel_mono (preserves_cokernel.iso ((evaluation C D).obj X) α).inv).1,
-    simp only [category.assoc, iso.hom_inv_id],
+    simv only [category.assoc, iso.hom_inv_id],
     dsimp,
-    simp only [category.id_comp, category.comp_id],
+    simv only [category.id_comp, category.comp_id],
     exact (π_comp_cokernel_comparison _ ((evaluation C D).obj X)).symm,
   end
 
@@ -58,19 +58,19 @@ lemma coimage_image_comparison_app :
 begin
   ext,
   dsimp,
-  simp only [category.comp_id, category.id_comp, category.assoc,
+  simv only [category.comp_id, category.id_comp, category.assoc,
     coimage_image_factorisation, limits.cokernel.π_desc_assoc, limits.kernel.lift_ι],
-  simp only [←evaluation_obj_map C D X],
+  simv only [←evaluation_obj_map C D X],
   erw kernel_comparison_comp_ι _ ((evaluation C D).obj X),
   erw π_comp_cokernel_comparison_assoc _ ((evaluation C D).obj X),
-  simp only [←functor.map_comp],
-  simp only [coimage_image_factorisation, evaluation_obj_map],
+  simv only [←functor.map_comp],
+  simv only [coimage_image_factorisation, evaluation_obj_map],
 end
 
 lemma coimage_image_comparison_app' :
   (coimage_image_comparison α).app X =
     (coimage_obj_iso α X).hom ≫ coimage_image_comparison (α.app X) ≫ (image_obj_iso α X).inv :=
-by simp only [coimage_image_comparison_app, iso.hom_inv_id_assoc, iso.hom_inv_id, category.assoc,
+by simv only [coimage_image_comparison_app, iso.hom_inv_id_assoc, iso.hom_inv_id, category.assoc,
   category.comp_id]
 
 instance functor_category_is_iso_coimage_image_comparison :

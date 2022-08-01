@@ -58,11 +58,11 @@ begin
     lintegral_mono (λ a, young_inequality (f a) (g a) hpq)
   ... = 1 :
   begin
-    simp only [div_eq_mul_inv],
+    simv only [div_eq_mul_inv],
     rw lintegral_add_left',
     { rw [lintegral_mul_const'' _ (hf.pow_const p), lintegral_mul_const', hf_norm, hg_norm,
         ← div_eq_mul_inv, ← div_eq_mul_inv, hpq.inv_add_inv_conj_ennreal],
-      simp [hpq.symm.pos], },
+      simv [hpq.symm.pos], },
     { exact (hf.pow_const _).mul_const _, },
   end
 end
@@ -74,7 +74,7 @@ def fun_mul_inv_snorm (f : α → ℝ≥0∞) (p : ℝ) (μ : measure α) : α �
 lemma fun_eq_fun_mul_inv_snorm_mul_snorm {p : ℝ} (f : α → ℝ≥0∞)
   (hf_nonzero : ∫⁻ a, (f a) ^ p ∂μ ≠ 0) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) {a : α} :
   f a = (fun_mul_inv_snorm f p μ a) * (∫⁻ c, (f c)^p ∂μ)^(1/p) :=
-by simp [fun_mul_inv_snorm, mul_assoc, inv_mul_cancel, hf_nonzero, hf_top]
+by simv [fun_mul_inv_snorm, mul_assoc, inv_mul_cancel, hf_nonzero, hf_top]
 
 lemma fun_mul_inv_snorm_rpow {p : ℝ} (hp0 : 0 < p) {f : α → ℝ≥0∞} {a : α} :
   (fun_mul_inv_snorm f p μ a) ^ p = (f a)^p * (∫⁻ c, (f c) ^ p ∂μ)⁻¹ :=
@@ -114,7 +114,7 @@ begin
   end
   ... ≤ npf * nqg :
   begin
-    rw lintegral_mul_const' (npf * nqg) _ (by simp [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero]),
+    rw lintegral_mul_const' (npf * nqg) _ (by simv [hf_nontop, hg_nontop, hf_nonzero, hg_nonzero]),
     nth_rewrite 1 ←one_mul (npf * nqg),
     refine mul_le_mul _ (le_refl (npf * nqg)),
     have hf1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.pos hf_nonzero hf_nontop,
@@ -150,9 +150,9 @@ lemma lintegral_mul_le_Lp_mul_Lq_of_ne_zero_of_eq_top {p q : ℝ} (hp0_lt : 0 < 
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^q ∂μ) ^ (1/q) :=
 begin
   refine le_trans le_top (le_of_eq _),
-  have hp0_inv_lt : 0 < 1/p, by simp [hp0_lt],
+  have hp0_inv_lt : 0 < 1/p, by simv [hp0_lt],
   rw [hf_top, ennreal.top_rpow_of_pos hp0_inv_lt],
-  simp [hq0, hg_nonzero],
+  simv [hq0, hg_nonzero],
 end
 
 /-- Hölder's inequality for functions `α → ℝ≥0∞`. The integral of the product of two functions
@@ -192,7 +192,7 @@ begin
     dsimp only,
     have h_zero_lt_half_rpow : (0 : ℝ≥0∞) < (1 / 2) ^ p,
     { rw [←ennreal.zero_rpow_of_pos hp0_lt],
-      exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
+      exact ennreal.rpow_lt_rpow (by simv [zero_lt_one]) hp0_lt, },
     have h_rw : (1 / 2) ^ p * (2:ℝ≥0∞) ^ (p - 1) = 1 / 2,
     { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
         ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, one_div,
@@ -212,7 +212,7 @@ begin
   ... < ⊤ :
   begin
     have h_two : (2 : ℝ≥0∞) ^ (p - 1) ≠ ⊤,
-      from ennreal.rpow_ne_top_of_nonneg (by simp [hp1]) ennreal.coe_ne_top,
+      from ennreal.rpow_ne_top_of_nonneg (by simv [hp1]) ennreal.coe_ne_top,
     rw [lintegral_add_left', lintegral_const_mul'' _ (hf.pow_const p),
       lintegral_const_mul' _ _ h_two, ennreal.add_lt_top],
     { exact ⟨ennreal.mul_lt_top h_two hf_top.ne, ennreal.mul_lt_top h_two hg_top.ne⟩ },
@@ -229,7 +229,7 @@ begin
   have hp0 : 0 ≤ p, from le_of_lt hp0_lt,
   have hq0_lt : 0 < q, from lt_of_le_of_lt hp0 hpq,
   have hq0_ne : q ≠ 0, from (ne_of_lt hq0_lt).symm,
-  have h_one_div_r : 1/r = 1/p - 1/q, by simp [hpqr],
+  have h_one_div_r : 1/r = 1/p - 1/q, by simv [hpqr],
   have hr0_ne : r ≠ 0,
   { have hr_inv_pos : 0 < 1/r,
     by rwa [h_one_div_r, sub_pos, one_div_lt_one_div hq0_lt hp0_lt],
@@ -238,19 +238,19 @@ begin
   let p2 := q/p,
   let q2 := p2.conjugate_exponent,
   have hp2q2 : p2.is_conjugate_exponent q2,
-  from real.is_conjugate_exponent_conjugate_exponent (by simp [lt_div_iff, hpq, hp0_lt]),
+  from real.is_conjugate_exponent_conjugate_exponent (by simv [lt_div_iff, hpq, hp0_lt]),
   calc (∫⁻ (a : α), ((f * g) a) ^ p ∂μ) ^ (1 / p)
       = (∫⁻ (a : α), (f a)^p * (g a)^p ∂μ) ^ (1 / p) :
   by simp_rw [pi.mul_apply, ennreal.mul_rpow_of_nonneg _ _ hp0]
   ... ≤ ((∫⁻ a, (f a)^(p * p2) ∂ μ)^(1/p2) * (∫⁻ a, (g a)^(p * q2) ∂ μ)^(1/q2)) ^ (1/p) :
   begin
-    refine ennreal.rpow_le_rpow _ (by simp [hp0]),
+    refine ennreal.rpow_le_rpow _ (by simv [hp0]),
     simp_rw ennreal.rpow_mul,
     exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hp2q2 (hf.pow_const _) (hg.pow_const _)
   end
   ... = (∫⁻ (a : α), (f a) ^ q ∂μ) ^ (1 / q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1 / r) :
   begin
-    rw [@ennreal.mul_rpow_of_nonneg _ _ (1/p) (by simp [hp0]), ←ennreal.rpow_mul,
+    rw [@ennreal.mul_rpow_of_nonneg _ _ (1/p) (by simv [hp0]), ←ennreal.rpow_mul,
       ←ennreal.rpow_mul],
     have hpp2 : p * p2 = q,
     { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
@@ -273,7 +273,7 @@ begin
   have hf_top_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) ≠ ⊤,
   { by_contra h,
     refine hf_top _,
-    have hp_not_neg : ¬ p < 0, by simp [hpq.nonneg],
+    have hp_not_neg : ¬ p < 0, by simv [hpq.nonneg],
     simpa [hpq.pos, hp_not_neg] using h, },
   refine (ennreal.mul_le_mul_left hf_zero_rpow hf_top_rpow).mpr (le_of_eq _),
   congr,
@@ -328,12 +328,12 @@ private lemma lintegral_Lp_add_le_aux {p q : ℝ}
   (h_add_zero : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ 0) (h_add_top : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤) :
   (∫⁻ a, ((f + g) a)^p ∂ μ) ^ (1/p) ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p) :=
 begin
-  have hp_not_nonpos : ¬ p ≤ 0, by simp [hpq.pos],
+  have hp_not_nonpos : ¬ p ≤ 0, by simv [hpq.pos],
   have htop_rpow : (∫⁻ a, ((f+g) a) ^ p ∂μ)^(1/p) ≠ ⊤,
   { by_contra h,
-    exact h_add_top (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simp [hpq.nonneg]) h), },
+    exact h_add_top (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simv [hpq.nonneg]) h), },
   have h0_rpow : (∫⁻ a, ((f+g) a) ^ p ∂ μ) ^ (1/p) ≠ 0,
-  by simp [h_add_zero, h_add_top, hpq.nonneg, hp_not_nonpos, -pi.add_apply],
+  by simv [h_add_zero, h_add_top, hpq.nonneg, hp_not_nonpos, -pi.add_apply],
   suffices h : 1 ≤ (∫⁻ (a : α), ((f+g) a)^p ∂μ) ^ -(1/p)
     * ((∫⁻ (a : α), (f a)^p ∂μ) ^ (1/p) + (∫⁻ (a : α), (g a)^p ∂μ) ^ (1/p)),
   by rwa [←mul_le_mul_left h0_rpow htop_rpow, ←mul_assoc, ←rpow_add _ _ h_add_zero h_add_top,
@@ -358,9 +358,9 @@ theorem lintegral_Lp_add_le {p : ℝ} {f g : α → ℝ≥0∞}
 begin
   have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp1,
   by_cases hf_top : ∫⁻ a, (f a) ^ p ∂μ = ⊤,
-  { simp [hf_top, hp_pos], },
+  { simv [hf_top, hp_pos], },
   by_cases hg_top : ∫⁻ a, (g a) ^ p ∂μ = ⊤,
-  { simp [hg_top, hp_pos], },
+  { simv [hg_top, hp_pos], },
   by_cases h1 : p = 1,
   { refine le_of_eq _,
     simp_rw [h1, one_div_one, ennreal.rpow_one],
@@ -368,7 +368,7 @@ begin
   have hp1_lt : 1 < p, by { refine lt_of_le_of_ne hp1 _, symmetry, exact h1, },
   have hpq := real.is_conjugate_exponent_conjugate_exponent hp1_lt,
   by_cases h0 : ∫⁻ a, ((f+g) a) ^ p ∂ μ = 0,
-  { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1])],
+  { rw [h0, @ennreal.zero_rpow_of_pos (1/p) (by simv [lt_of_lt_of_le zero_lt_one hp1])],
     exact zero_le _, },
   have htop : ∫⁻ a, ((f+g) a) ^ p ∂ μ ≠ ⊤,
   { rw ← ne.def at hf_top hg_top,

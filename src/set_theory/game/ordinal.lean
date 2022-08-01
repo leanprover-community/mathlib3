@@ -70,7 +70,7 @@ by { rw to_pgame, refl }
 
 theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
-by simp
+by simv
 
 /-- `0.to_pgame` has the same moves as `0`. -/
 noncomputable def zero_to_pgame_relabelling : to_pgame 0 ≡r 0 :=
@@ -85,10 +85,10 @@ rfl
 
 @[simp] theorem to_left_moves_one_to_pgame_symm (i) :
   (@to_left_moves_to_pgame 1).symm i = ⟨0, zero_lt_one⟩ :=
-by simp
+by simv
 
 theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
-by simp
+by simv
 
 /-- `1.to_pgame` has the same moves as `1`. -/
 noncomputable def one_to_pgame_relabelling : to_pgame 1 ≡r 1 :=

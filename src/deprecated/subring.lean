@@ -105,7 +105,7 @@ add_group.in_closure.rec_on h
       λ L2 h2, match L2, list.mem_map.1 h2 with
         | _, ⟨L3, h3, rfl⟩ := list.forall_mem_cons.2 ⟨or.inr rfl, h1 L3 h3⟩
         end,
-      by simp only [list.map_map, (∘), list.prod_cons, neg_one_mul];
+      by simv only [list.map_map, (∘), list.prod_cons, neg_one_mul];
       exact list.rec_on L1 neg_zero.symm (λ hd tl ih,
         by rw [list.map_cons, list.sum_cons, ih, list.map_cons, list.sum_cons, neg_add])⟩
     end)

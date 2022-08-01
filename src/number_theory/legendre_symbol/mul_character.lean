@@ -57,7 +57,7 @@ class mul_char_class (F : Type*) (R R' : out_param $ Type*) [comm_monoid R]
   extends monoid_hom_class F R R' :=
 (map_nonunit : ∀ (χ : F) {a : R} (ha : ¬ is_unit a), χ a = 0)
 
-attribute [simp] mul_char_class.map_nonunit
+attribute [simv] mul_char_class.map_nonunit
 
 end defi
 
@@ -87,10 +87,10 @@ the value `1` on units. -/
 noncomputable
 def trivial : mul_char R R' :=
 { to_fun := by { classical, exact λ x, if is_unit x then 1 else 0 },
-  map_nonunit' := by { intros a ha, simp only [ha, if_false], },
-  map_one' := by simp only [is_unit_one, if_true],
+  map_nonunit' := by { intros a ha, simv only [ha, if_false], },
+  map_one' := by simv only [is_unit_one, if_true],
   map_mul' := by { intros x y,
-                   simp only [is_unit.mul_iff, boole_mul],
+                   simv only [is_unit.mul_iff, boole_mul],
                    split_ifs; tauto, } }
 
 end trivial
@@ -158,25 +158,25 @@ noncomputable
 def of_unit_hom (f : Rˣ →* R'ˣ) : mul_char R R' :=
 { to_fun := by { classical, exact λ x, if hx : is_unit x then f hx.unit else 0 },
   map_one' := by { have h1 : (is_unit_one.unit : Rˣ) = 1 := units.eq_iff.mp rfl,
-                   simp only [h1, dif_pos, units.coe_eq_one, map_one, is_unit_one], },
+                   simv only [h1, dif_pos, units.coe_eq_one, map_one, is_unit_one], },
   map_mul' :=
   begin
     intros x y,
     by_cases hx : is_unit x,
-    { simp only [hx, is_unit.mul_iff, true_and, dif_pos],
+    { simv only [hx, is_unit.mul_iff, true_and, dif_pos],
       by_cases hy : is_unit y,
-      { simp only [hy, dif_pos],
+      { simv only [hy, dif_pos],
         have hm : (is_unit.mul_iff.mpr ⟨hx, hy⟩).unit = hx.unit * hy.unit := units.eq_iff.mp rfl,
         rw [hm, map_mul],
         norm_cast, },
-      { simp only [hy, not_false_iff, dif_neg, mul_zero], }, },
-    { simp only [hx, is_unit.mul_iff, false_and, not_false_iff, dif_neg, zero_mul], },
+      { simv only [hy, not_false_iff, dif_neg, mul_zero], }, },
+    { simv only [hx, is_unit.mul_iff, false_and, not_false_iff, dif_neg, zero_mul], },
   end ,
-  map_nonunit' := by { intros a ha, simp only [ha, not_false_iff, dif_neg], }, }
+  map_nonunit' := by { intros a ha, simv only [ha, not_false_iff, dif_neg], }, }
 
 lemma of_unit_hom_coe (f : Rˣ →* R'ˣ) (a : Rˣ) :
   of_unit_hom f ↑a = f a :=
-by simp [of_unit_hom]
+by simv [of_unit_hom]
 
 /-- The equivalence between multiplicative characters and homomorphisms of unit groups. -/
 noncomputable
@@ -235,7 +235,7 @@ dif_pos a.is_unit
 /-- Multiplication of multiplicative characters. (This needs the target to be commutative.) -/
 def mul (χ χ' : mul_char R R') : mul_char R R' :=
 { to_fun := χ * χ',
-  map_nonunit' := λ a ha, by simp [map_nonunit χ ha],
+  map_nonunit' := λ a ha, by simv [map_nonunit χ ha],
   ..χ.to_monoid_hom * χ'.to_monoid_hom }
 
 instance has_mul : has_mul (mul_char R R') := ⟨mul⟩
@@ -246,16 +246,16 @@ lemma mul_apply (χ χ' : mul_char R R') (a : R) : (χ * χ') a = χ a * χ' a :
 lemma coe_to_fun_mul (χ χ' : mul_char R R') : ⇑(χ * χ') = χ * χ' := rfl
 
 protected
-lemma one_mul (χ : mul_char R R') : (1 : mul_char R R') * χ = χ := by { ext, simp }
+lemma one_mul (χ : mul_char R R') : (1 : mul_char R R') * χ = χ := by { ext, simv }
 
 protected
-lemma mul_one (χ : mul_char R R') : χ * 1 = χ := by { ext, simp }
+lemma mul_one (χ : mul_char R R') : χ * 1 = χ := by { ext, simv }
 
 /-- The inverse of a multiplicative character. We define it as `inverse ∘ χ`. -/
 noncomputable
 def inv (χ : mul_char R R') : mul_char R R' :=
 { to_fun := λ a, monoid_with_zero.inverse (χ a),
-  map_nonunit' := λ a ha, by simp [map_nonunit _ ha],
+  map_nonunit' := λ a ha, by simv [map_nonunit _ ha],
   ..monoid_with_zero.inverse.to_monoid_hom.comp χ.to_monoid_hom }
 
 noncomputable
@@ -304,8 +304,8 @@ instance comm_group : comm_group (mul_char R R') :=
   mul := (*),
   inv := has_inv.inv,
   mul_left_inv := inv_mul,
-  mul_assoc := by { intros χ₁ χ₂ χ₃, ext a, simp [mul_assoc], },
-  mul_comm := by { intros χ₁ χ₂, ext a, simp [mul_comm], },
+  mul_assoc := by { intros χ₁ χ₂ χ₃, ext a, simv [mul_assoc], },
+  mul_comm := by { intros χ₁ χ₂, ext a, simv [mul_comm], },
   one_mul := one_mul,
   mul_one := mul_one, }
 
@@ -355,7 +355,7 @@ def is_nontrivial (χ : mul_char R R') : Prop := ∃ a : Rˣ, χ a ≠ 1
 
 /-- A multiplicative character is nontrivial iff it is not the trivial character. -/
 lemma is_nontrivial_iff (χ : mul_char R R') : χ.is_nontrivial ↔ χ ≠ 1 :=
-by simp only [is_nontrivial, ne.def, ext_iff, not_forall, one_apply_coe]
+by simv only [is_nontrivial, ne.def, ext_iff, not_forall, one_apply_coe]
 
 /-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1`. -/
 def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨ χ a = -1
@@ -364,7 +364,7 @@ def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨
 @[simps]
 def ring_hom_comp (χ : mul_char R R') (f : R' →+* R'') : mul_char R R'' :=
 { to_fun := λ a, f (χ a),
-  map_nonunit' := λ a ha, by simp only [map_nonunit χ ha, map_zero],
+  map_nonunit' := λ a ha, by simv only [map_nonunit χ ha, map_zero],
   ..f.to_monoid_hom.comp χ.to_monoid_hom }
 
 /-- Composition with an injective ring homomorphism preserves nontriviality. -/
@@ -384,7 +384,7 @@ lemma is_quadratic.comp {χ : mul_char R R'} (hχ : χ.is_quadratic) (f : R' →
 begin
   intro a,
   rcases hχ a with (ha | ha | ha);
-    simp [ha],
+    simv [ha],
 end
 
 /-- The inverse of a quadratic character is itself. →  -/
@@ -446,7 +446,7 @@ lemma is_nontrivial.sum_eq_zero [fintype R] [is_domain R'] {χ : mul_char R R'}
 begin
   rcases hχ with ⟨b, hb⟩,
   refine eq_zero_of_mul_eq_self_left hb _,
-  simp only [finset.mul_sum, ← map_mul],
+  simv only [finset.mul_sum, ← map_mul],
   exact fintype.sum_bijective _ (units.mul_left_bijective b) _ _ (λ x, rfl)
 end
 
@@ -465,7 +465,7 @@ begin
     { exact map_nonunit _ h } },
   { congr,
     ext a,
-    simp only [finset.mem_filter, finset.mem_univ, true_and, finset.mem_map,
+    simv only [finset.mem_filter, finset.mem_univ, true_and, finset.mem_map,
                function.embedding.coe_fn_mk, exists_true_left, is_unit], },
 end
 

@@ -62,7 +62,7 @@ lemma homothety_continuous (x : F) (t : R) : continuous $ homothety x t :=
 begin
   suffices : ⇑(homothety x t) = λ y, t • (y - x) + x, { rw this, continuity, },
   ext y,
-  simp [homothety_apply],
+  simv [homothety_apply],
 end
 
 end comm_ring
@@ -75,7 +75,7 @@ lemma homothety_is_open_map (x : F) (t : R) (ht : t ≠ 0) : is_open_map $ homot
 begin
   apply is_open_map.of_inverse (homothety_continuous x t⁻¹);
   intros e;
-  simp [← affine_map.comp_apply, ← homothety_mul, ht],
+  simv [← affine_map.comp_apply, ← homothety_mul, ht],
 end
 
 end field

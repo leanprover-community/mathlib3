@@ -100,9 +100,9 @@ begin
   let Q := (X ^ n) %ₘ (minpoly R B.gen),
   have : B.gen ^ n = aeval B.gen Q,
   { rw [← @aeval_X_pow R _ _ _ _ B.gen, ← mod_by_monic_add_div (X ^ n) (minpoly.monic hB)],
-    simp },
+    simv },
   by_cases hQ : Q = 0,
-  { simp [this, hQ, is_integral_zero] },
+  { simv [this, hQ, is_integral_zero] },
   have hlt : Q.nat_degree < B.dim,
   { rw [← B.nat_degree_minpoly, hmin, (minpoly.monic hB).nat_degree_map,
       nat_degree_lt_nat_degree_iff hQ],
@@ -110,17 +110,17 @@ begin
     exact degree_mod_by_monic_lt _ (minpoly.monic hB),
     apply_instance },
   rw [this, aeval_eq_sum_range' hlt],
-  simp only [linear_equiv.map_sum, linear_equiv.map_smulₛₗ, ring_hom.id_apply, finset.sum_apply'],
+  simv only [linear_equiv.map_sum, linear_equiv.map_smulₛₗ, ring_hom.id_apply, finset.sum_apply'],
   refine is_integral.sum _ (λ j hj, _),
   replace hj := finset.mem_range.1 hj,
   rw [← fin.coe_mk hj, ← B.basis_eq_pow, algebra.smul_def,
     is_scalar_tower.algebra_map_apply R S A, ← algebra.smul_def, linear_equiv.map_smul],
-  simp only [algebra_map_smul, finsupp.coe_smul, pi.smul_apply, B.basis.repr_self_apply],
+  simv only [algebra_map_smul, finsupp.coe_smul, pi.smul_apply, B.basis.repr_self_apply],
   by_cases hij : (⟨j, hj⟩ : fin _) = i,
-  { simp only [hij, eq_self_iff_true, if_true],
+  { simv only [hij, eq_self_iff_true, if_true],
     rw [algebra.smul_def, mul_one],
     exact is_integral_algebra_map },
-  { simp [hij, is_integral_zero] }
+  { simv [hij, is_integral_zero] }
 end
 
 variable {B}
@@ -138,10 +138,10 @@ begin
   rw [← B.basis.sum_repr x, ← B.basis.sum_repr y, finset.sum_mul_sum, linear_equiv.map_sum,
     finset.sum_apply'],
   refine is_integral.sum _ (λ I hI, _),
-  simp only [algebra.smul_mul_assoc, algebra.mul_smul_comm, linear_equiv.map_smulₛₗ,
+  simv only [algebra.smul_mul_assoc, algebra.mul_smul_comm, linear_equiv.map_smulₛₗ,
     ring_hom.id_apply, finsupp.coe_smul, pi.smul_apply, id.smul_eq_mul],
   refine is_integral_mul (hy _) (is_integral_mul (hx _) _),
-  simp only [coe_basis, ← pow_add],
+  simv only [coe_basis, ← pow_add],
   refine repr_gen_pow_is_integral hB hmin _ _,
 end
 

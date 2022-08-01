@@ -53,12 +53,12 @@ def equivalence_reflects_normal_mono {D : Type u₂} [category.{v₁} D] [has_ze
   normal_mono f :=
 { Z := F.obj_preimage hf.Z,
   g := full.preimage (hf.g ≫ (F.obj_obj_preimage_iso hf.Z).inv),
-  w := faithful.map_injective F $ by simp [reassoc_of hf.w],
+  w := faithful.map_injective F $ by simv [reassoc_of hf.w],
   is_limit := reflects_limit.reflects $
     is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F : _)) $
       is_limit.of_iso_limit
         (by exact is_limit.of_iso_limit
-          (is_kernel.of_comp_iso _ _ (F.obj_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
+          (is_kernel.of_comp_iso _ _ (F.obj_obj_preimage_iso hf.Z) (by simv) hf.is_limit)
           (of_ι_congr (category.comp_id _).symm)) (iso_of_ι _).symm }
 
 end
@@ -152,12 +152,12 @@ def equivalence_reflects_normal_epi {D : Type u₂} [category.{v₁} D] [has_zer
   normal_epi f :=
 { W := F.obj_preimage hf.W,
   g := full.preimage ((F.obj_obj_preimage_iso hf.W).hom ≫ hf.g),
-  w := faithful.map_injective F $ by simp [hf.w],
+  w := faithful.map_injective F $ by simv [hf.w],
   is_colimit := reflects_colimit.reflects $
     is_colimit.of_cocone_equiv (cocones.precompose_equivalence (comp_nat_iso F).symm) $
       is_colimit.of_iso_colimit
         (by exact is_colimit.of_iso_colimit
-          (is_cokernel.of_iso_comp _ _ (F.obj_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
+          (is_cokernel.of_iso_comp _ _ (F.obj_obj_preimage_iso hf.W).symm (by simv) hf.is_colimit)
             (of_π_congr (category.id_comp _).symm))
         (iso_of_π _).symm }
 
@@ -230,7 +230,7 @@ def normal_epi_of_normal_mono_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_mon
       rintros Z' g' w' m' rfl,
       apply quiver.hom.unop_inj,
       apply m.is_limit.uniq (kernel_fork.of_ι (m'.unop ≫ f.unop) _) m'.unop,
-      rintro (⟨⟩|⟨⟩); simp,
+      rintro (⟨⟩|⟨⟩); simv,
     end, }
 
 /-- A normal epi becomes a normal mono in the opposite category. -/
@@ -249,7 +249,7 @@ def normal_mono_of_normal_epi_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_epi
       rintros Z' g' w' m' rfl,
       apply quiver.hom.unop_inj,
       apply m.is_colimit.uniq (cokernel_cofork.of_π (f.unop ≫ m'.unop) _) m'.unop,
-      rintro (⟨⟩|⟨⟩); simp,
+      rintro (⟨⟩|⟨⟩); simv,
     end, }
 
 section

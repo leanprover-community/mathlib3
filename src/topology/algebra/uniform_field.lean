@@ -107,7 +107,7 @@ begin
   { rw [h, inv_zero],
     dsimp [has_inv.inv],
     norm_cast,
-    simp },
+    simv },
   { conv_lhs { dsimp [has_inv.inv] },
     rw if_neg,
     { exact hat_inv_extends h },
@@ -152,7 +152,7 @@ end
 instance : field (hat K) :=
 { exists_pair_ne := ⟨0, 1, λ h, zero_ne_one ((uniform_embedding_coe K).inj h)⟩,
   mul_inv_cancel := λ x x_ne, by { dsimp [has_inv.inv],
-                                   simp [if_neg x_ne, mul_hat_inv_cancel x_ne], },
+                                   simv [if_neg x_ne, mul_hat_inv_cancel x_ne], },
   inv_zero := show ((0 : K) : hat K)⁻¹ = ((0 : K) : hat K), by rw [coe_inv, inv_zero],
   ..completion.has_inv,
   ..(by apply_instance : comm_ring (hat K)) }

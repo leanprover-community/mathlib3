@@ -59,12 +59,12 @@ variables {A : matrix V V α}
 @[simp]
 lemma apply_diag_ne [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i : V) :
   ¬ A i i = 1 :=
-by simp [h.apply_diag i]
+by simv [h.apply_diag i]
 
 @[simp]
 lemma apply_ne_one_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
   ¬ A i j = 1 ↔ A i j = 0 :=
-by { obtain (h|h) := h.zero_or_one i j; simp [h] }
+by { obtain (h|h) := h.zero_or_one i j; simv [h] }
 
 @[simp]
 lemma apply_ne_zero_iff [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) (i j : V) :
@@ -78,11 +78,11 @@ def to_graph [mul_zero_one_class α] [nontrivial α] (h : is_adj_matrix A) :
   simple_graph V :=
 { adj := λ i j, A i j = 1,
   symm := λ i j hij, by rwa h.symm.apply i j,
-  loopless := λ i, by simp [h] }
+  loopless := λ i, by simv [h] }
 
 instance [mul_zero_one_class α] [nontrivial α] [decidable_eq α] (h : is_adj_matrix A) :
   decidable_rel h.to_graph.adj :=
-by { simp only [to_graph], apply_instance }
+by { simv only [to_graph], apply_instance }
 
 end is_adj_matrix
 
@@ -99,22 +99,22 @@ variables [decidable_eq α] [decidable_eq V] (A : matrix V V α)
 @[simp]
 lemma compl_apply_diag [has_zero α] [has_one α] (i : V) :
   A.compl i i = 0 :=
-by simp [compl]
+by simv [compl]
 
 @[simp]
 lemma compl_apply [has_zero α] [has_one α] (i j : V) :
   A.compl i j = 0 ∨ A.compl i j = 1 :=
-by { unfold compl, split_ifs; simp, }
+by { unfold compl, split_ifs; simv, }
 
 @[simp]
 lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :
   A.compl.is_symm :=
-by { ext, simp [compl, h.apply, eq_comm], }
+by { ext, simv [compl, h.apply, eq_comm], }
 
 @[simp]
 lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :
   is_adj_matrix A.compl :=
-{ symm := by simp [h] }
+{ symm := by simv [h] }
 
 namespace is_adj_matrix
 
@@ -131,7 +131,7 @@ begin
   ext v w,
   cases h.zero_or_one v w with h h;
   by_cases hvw : v = w;
-  simp [matrix.compl, h, hvw]
+  simv [matrix.compl, h, hvw]
 end
 
 end is_adj_matrix
@@ -161,7 +161,7 @@ lemma adj_matrix_apply (v w : V) [has_zero α] [has_one α] :
 @[simp]
 theorem transpose_adj_matrix [has_zero α] [has_one α] :
   (G.adj_matrix α)ᵀ = G.adj_matrix α :=
-by { ext, simp [adj_comm] }
+by { ext, simv [adj_comm] }
 
 @[simp]
 lemma is_symm_adj_matrix [has_zero α] [has_one α] :
@@ -174,14 +174,14 @@ variable (α)
 @[simp]
 lemma is_adj_matrix_adj_matrix [has_zero α] [has_one α] :
   (G.adj_matrix α).is_adj_matrix :=
-{ zero_or_one := λ i j, by by_cases G.adj i j; simp [h] }
+{ zero_or_one := λ i j, by by_cases G.adj i j; simv [h] }
 
 /-- The graph induced by the adjacency matrix of `G` is `G` itself. -/
 lemma to_graph_adj_matrix_eq [mul_zero_one_class α] [nontrivial α] :
   (G.is_adj_matrix_adj_matrix α).to_graph = G :=
 begin
   ext,
-  simp only [is_adj_matrix.to_graph_adj, adj_matrix_apply, ite_eq_left_iff, zero_ne_one],
+  simv only [is_adj_matrix.to_graph_adj, adj_matrix_apply, ite_eq_left_iff, zero_ne_one],
   apply not_not,
 end
 
@@ -190,12 +190,12 @@ variables {α} [fintype V]
 @[simp]
 lemma adj_matrix_dot_product [non_assoc_semiring α] (v : V) (vec : V → α) :
   dot_product (G.adj_matrix α v) vec = ∑ u in G.neighbor_finset v, vec u :=
-by simp [neighbor_finset_eq_filter, dot_product, sum_filter]
+by simv [neighbor_finset_eq_filter, dot_product, sum_filter]
 
 @[simp]
 lemma dot_product_adj_matrix [non_assoc_semiring α] (v : V) (vec : V → α) :
   dot_product vec (G.adj_matrix α v) = ∑ u in G.neighbor_finset v, vec u :=
-by simp [neighbor_finset_eq_filter, dot_product, sum_filter, finset.sum_apply]
+by simv [neighbor_finset_eq_filter, dot_product, sum_filter, finset.sum_apply]
 
 @[simp]
 lemma adj_matrix_mul_vec_apply [non_assoc_semiring α] (v : V) (vec : V → α) :
@@ -214,55 +214,55 @@ end
 @[simp]
 lemma adj_matrix_mul_apply [non_assoc_semiring α] (M : matrix V V α) (v w : V) :
   (G.adj_matrix α ⬝ M) v w = ∑ u in G.neighbor_finset v, M u w :=
-by simp [mul_apply, neighbor_finset_eq_filter, sum_filter]
+by simv [mul_apply, neighbor_finset_eq_filter, sum_filter]
 
 @[simp]
 lemma mul_adj_matrix_apply [non_assoc_semiring α] (M : matrix V V α) (v w : V) :
   (M ⬝ G.adj_matrix α) v w = ∑ u in G.neighbor_finset w, M v u :=
-by simp [mul_apply, neighbor_finset_eq_filter, sum_filter, adj_comm]
+by simv [mul_apply, neighbor_finset_eq_filter, sum_filter, adj_comm]
 
 variable (α)
 
 @[simp] theorem trace_adj_matrix [add_comm_monoid α] [has_one α] :
   matrix.trace (G.adj_matrix α) = 0 :=
-by simp [matrix.trace]
+by simv [matrix.trace]
 
 variable {α}
 
 theorem adj_matrix_mul_self_apply_self [non_assoc_semiring α] (i : V) :
   ((G.adj_matrix α) ⬝ (G.adj_matrix α)) i i = degree G i :=
-by simp [degree]
+by simv [degree]
 
 variable {G}
 
 @[simp]
 lemma adj_matrix_mul_vec_const_apply [semiring α] {a : α} {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = G.degree v * a :=
-by simp [degree]
+by simv [degree]
 
 lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
   (hd : G.is_regular_of_degree d) {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = (d * a) :=
-by simp [hd v]
+by simv [hd v]
 
 theorem adj_matrix_pow_apply_eq_card_walk [decidable_eq V] [semiring α] (n : ℕ) (u v : V) :
   (G.adj_matrix α ^ n) u v = fintype.card {p : G.walk u v | p.length = n} :=
 begin
   rw card_set_walk_length_eq,
   induction n with n ih generalizing u v,
-  { obtain rfl | h := eq_or_ne u v; simp [finset_walk_length, *] },
+  { obtain rfl | h := eq_or_ne u v; simv [finset_walk_length, *] },
   { nth_rewrite 0 [nat.succ_eq_one_add],
-    simp only [pow_add, pow_one, finset_walk_length, ih, mul_eq_mul, adj_matrix_mul_apply],
+    simv only [pow_add, pow_one, finset_walk_length, ih, mul_eq_mul, adj_matrix_mul_apply],
     rw finset.card_bUnion,
     { norm_cast,
       rw set.sum_indicator_subset _ (subset_univ (G.neighbor_finset u)),
       congr' 2,
       ext x,
-      split_ifs with hux; simp [hux], },
+      split_ifs with hux; simv [hux], },
     /- Disjointness for card_bUnion -/
     { intros x hx y hy hxy p hp,
       split_ifs at hp with hx hy;
-      simp only [inf_eq_inter, empty_inter, inter_empty, not_mem_empty, mem_inter, mem_map,
+      simv only [inf_eq_inter, empty_inter, inter_empty, not_mem_empty, mem_inter, mem_map,
         function.embedding.coe_fn_mk, exists_prop] at hp;
       try { simpa using hp },
       obtain ⟨⟨qx, hql, hqp⟩, ⟨rx, hrl, hrp⟩⟩ := hp,
@@ -282,7 +282,7 @@ lemma adj_matrix_to_graph_eq [decidable_eq α] :
   h.to_graph.adj_matrix α = A :=
 begin
   ext i j,
-  obtain (h'|h') := h.zero_or_one i j; simp [h'],
+  obtain (h'|h') := h.zero_or_one i j; simv [h'],
 end
 
 end matrix.is_adj_matrix

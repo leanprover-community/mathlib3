@@ -50,8 +50,8 @@ class linear (R : Type w) [semiring R] (C : Type u) [category.{v} C] [preadditiv
 attribute [instance] linear.hom_module
 restate_axiom linear.smul_comp'
 restate_axiom linear.comp_smul'
-attribute [simp,reassoc] linear.smul_comp
-attribute [reassoc, simp] linear.comp_smul -- (the linter doesn't like `simp` on the `_assoc` lemma)
+attribute [simv,reassoc] linear.smul_comp
+attribute [reassoc, simv] linear.comp_smul -- (the linter doesn't like `simv` on the `_assoc` lemma)
 
 end category_theory
 
@@ -101,15 +101,15 @@ variables (R)
 @[simps]
 def left_comp {X Y : C} (Z : C) (f : X ⟶ Y) : (Y ⟶ Z) →ₗ[R] (X ⟶ Z) :=
 { to_fun := λ g, f ≫ g,
-  map_add' := by simp,
-  map_smul' := by simp, }
+  map_add' := by simv,
+  map_smul' := by simv, }
 
 /-- Composition by a fixed right argument as an `R`-linear map. -/
 @[simps]
 def right_comp (X : C) {Y Z : C} (g : Y ⟶ Z) : (X ⟶ Y) →ₗ[R] (X ⟶ Z) :=
 { to_fun := λ f, f ≫ g,
-  map_add' := by simp,
-  map_smul' := by simp, }
+  map_add' := by simv,
+  map_smul' := by simv, }
 
 instance {X Y : C} (f : X ⟶ Y) [epi f] (r : R) [invertible r] : epi (r • f) :=
 ⟨λ R g g' H, begin
@@ -132,8 +132,8 @@ variables {S : Type w} [comm_semiring S] [linear S C]
 @[simps]
 def comp (X Y Z : C) : (X ⟶ Y) →ₗ[S] ((Y ⟶ Z) →ₗ[S] (X ⟶ Z)) :=
 { to_fun := λ f, left_comp S Z f,
-  map_add' := by { intros, ext, simp, },
-  map_smul' := by { intros, ext, simp, }, }
+  map_add' := by { intros, ext, simv, },
+  map_smul' := by { intros, ext, simv, }, }
 
 end
 

@@ -173,7 +173,7 @@ linear_map.ext $ λ x, quotient.induction_on' x h
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
 def mkq : M →ₗ[R] M ⧸ p :=
-{ to_fun := quotient.mk, map_add' := by simp, map_smul' := by simp }
+{ to_fun := quotient.mk, map_add' := by simv, map_smul' := by simv }
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
@@ -216,7 +216,7 @@ liftq_span_singleton x f h (quotient.mk y) = f y := rfl
 eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, rfl⟩
 
 @[simp] theorem ker_mkq : p.mkq.ker = p :=
-by ext; simp
+by ext; simv
 
 lemma le_comap_mkq (p' : submodule R (M ⧸ p)) : p ≤ comap p.mkq p' :=
 by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
@@ -225,10 +225,10 @@ by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
 by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_rfl
 
 @[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
-by simp [comap_map_eq, sup_comm]
+by simv [comap_map_eq, sup_comm]
 
 @[simp] theorem map_mkq_eq_top : map p.mkq p' = ⊤ ↔ p ⊔ p' = ⊤ :=
-by simp only [map_eq_top_iff p.range_mkq, sup_comm, ker_mkq]
+by simv only [map_eq_top_iff p.range_mkq, sup_comm, ker_mkq]
 
 variables (q : submodule R₂ M₂)
 
@@ -244,9 +244,9 @@ p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
 theorem mapq_mkq (f : M →ₛₗ[τ₁₂] M₂) {h} : (mapq p q f h).comp p.mkq = q.mkq.comp f :=
 by ext x; refl
 
-@[simp] lemma mapq_zero (h : p ≤ q.comap (0 : M →ₛₗ[τ₁₂] M₂) := by simp) :
+@[simp] lemma mapq_zero (h : p ≤ q.comap (0 : M →ₛₗ[τ₁₂] M₂) := by simv) :
   p.mapq q (0 : M →ₛₗ[τ₁₂] M₂) h = 0 :=
-by { ext, simp, }
+by { ext, simv, }
 
 /-- Given submodules `p ⊆ M`, `p₂ ⊆ M₂`, `p₃ ⊆ M₃` and maps `f : M → M₂`, `g : M₂ → M₃` inducing
 `mapq f : M ⧸ p → M₂ ⧸ p₂` and `mapq g : M₂ ⧸ p₂ → M₃ ⧸ p₃` then
@@ -257,19 +257,19 @@ lemma mapq_comp {R₃ M₃ : Type*} [ring R₃] [add_comm_group M₃] [module R�
   (f : M →ₛₗ[τ₁₂] M₂) (g : M₂ →ₛₗ[τ₂₃] M₃) (hf : p ≤ p₂.comap f) (hg : p₂ ≤ p₃.comap g)
   (h := (hf.trans (comap_mono hg))) :
   p.mapq p₃ (g.comp f) h = (p₂.mapq p₃ g hg).comp (p.mapq p₂ f hf) :=
-by { ext, simp, }
+by { ext, simv, }
 
-@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by simp) :
+@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by simv) :
   p.mapq p linear_map.id h = linear_map.id :=
-by { ext, simp, }
+by { ext, simv, }
 
 lemma mapq_pow {f : M →ₗ[R] M} (h : p ≤ p.comap f) (k : ℕ)
   (h' : p ≤ p.comap (f^k) := p.le_comap_pow_of_le_comap h k) :
   p.mapq p (f^k) h' = (p.mapq p f h)^k :=
 begin
   induction k with k ih,
-  { simp [linear_map.one_eq_id], },
-  { simp only [linear_map.iterate_succ, ← ih],
+  { simv [linear_map.one_eq_id], },
+  { simv only [linear_map.iterate_succ, ← ih],
     apply p.mapq_comp, },
 end
 
@@ -301,7 +301,7 @@ def comap_mkq.rel_iso :
   submodule R (M ⧸ p) ≃o {p' : submodule R M // p ≤ p'} :=
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
-  left_inv  := λ p', map_comap_eq_self $ by simp,
+  left_inv  := λ p', map_comap_eq_self $ by simv,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
   map_rel_iff'      := λ p₁ p₂, comap_le_comap_iff $ range_mkq _ }
 
@@ -345,7 +345,7 @@ variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R �
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃] [ring_hom_surjective τ₁₂]
 
 lemma range_mkq_comp (f : M →ₛₗ[τ₁₂] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by simp
+linear_map.ext $ λ x, by simv
 
 lemma ker_le_range_iff {f : M →ₛₗ[τ₁₂] M₂} {g : M₂ →ₛₗ[τ₂₃] M₃} :
   g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=

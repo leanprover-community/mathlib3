@@ -95,7 +95,7 @@ begin
   { rw [e₁.source_eq, e₂.source_eq],
     exact maps_to_preimage _ _ },
   rintros ⟨b, v₁, v₂⟩ ⟨hb₁, hb₂⟩,
-  simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
+  simv only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
   rw e₁.coe_fst,
   rw [e₁.source_eq, mem_preimage],
   exact hb₁,
@@ -117,7 +117,7 @@ lemma prod.left_inv {x : total_space (E₁ ×ᵇ E₂)}
 begin
   obtain ⟨x, v₁, v₂⟩ := x,
   obtain ⟨h₁ : x ∈ e₁.base_set, h₂ : x ∈ e₂.base_set⟩ := h,
-  simp only [prod.to_fun', prod.inv_fun', symm_apply_apply_mk, h₁, h₂]
+  simv only [prod.to_fun', prod.inv_fun', symm_apply_apply_mk, h₁, h₂]
 end
 
 lemma prod.right_inv {x : B × F₁ × F₂}
@@ -126,7 +126,7 @@ lemma prod.right_inv {x : B × F₁ × F₂}
 begin
   obtain ⟨x, w₁, w₂⟩ := x,
   obtain ⟨⟨h₁ : x ∈ e₁.base_set, h₂ : x ∈ e₂.base_set⟩, -⟩ := h,
-  simp only [prod.to_fun', prod.inv_fun', apply_mk_symm, h₁, h₂]
+  simv only [prod.to_fun', prod.inv_fun', apply_mk_symm, h₁, h₂]
 end
 
 lemma prod.continuous_inv_fun :

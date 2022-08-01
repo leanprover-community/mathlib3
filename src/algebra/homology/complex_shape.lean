@@ -86,7 +86,7 @@ def symm (c : complex_shape ι) : complex_shape ι :=
 
 @[simp]
 lemma symm_symm (c : complex_shape ι) : c.symm.symm = c :=
-by { ext, simp, }
+by { ext, simv, }
 
 /--
 The "composition" of two `complex_shape`s.

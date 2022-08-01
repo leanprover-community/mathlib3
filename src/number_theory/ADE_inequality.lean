@@ -97,7 +97,7 @@ def sum_inv (pqr : multiset ℕ+) : ℚ :=
 multiset.sum $ pqr.map $ λ x, x⁻¹
 
 lemma sum_inv_pqr (p q r : ℕ+) : sum_inv {p,q,r} = p⁻¹ + q⁻¹ + r⁻¹ :=
-by simp only [sum_inv, coe_coe, add_zero, insert_eq_cons, add_assoc,
+by simv only [sum_inv, coe_coe, add_zero, insert_eq_cons, add_assoc,
     map_cons, sum_cons, map_singleton, sum_singleton]
 
 /-- A multiset `pqr` of positive natural numbers is `admissible`
@@ -122,10 +122,10 @@ begin
   rw [admissible],
   rintro (⟨p', q', H⟩|⟨n, H⟩|H|H|H),
   { rw [← H, A', sum_inv_pqr, add_assoc],
-    simp only [lt_add_iff_pos_right, pnat.one_coe, inv_one, nat.cast_one, coe_coe],
-    apply add_pos; simp only [pnat.pos, nat.cast_pos, inv_pos] },
+    simv only [lt_add_iff_pos_right, pnat.one_coe, inv_one, nat.cast_one, coe_coe],
+    apply add_pos; simv only [pnat.pos, nat.cast_pos, inv_pos] },
   { rw [← H, D', sum_inv_pqr],
-    simp only [lt_add_iff_pos_right, pnat.one_coe, inv_one, nat.cast_one,
+    simv only [lt_add_iff_pos_right, pnat.one_coe, inv_one, nat.cast_one,
       coe_coe, pnat.coe_bit0, nat.cast_bit0],
     norm_num },
   all_goals { rw [← H, E', sum_inv_pqr], norm_num }
@@ -149,7 +149,7 @@ begin
   have h4 : (0:ℚ) < 4, by norm_num,
   contrapose! H, rw sum_inv_pqr,
   have h4r := H.trans hqr,
-  simp only [pnat.coe_bit0, nat.cast_bit0, pnat.one_coe, nat.cast_one, coe_coe],
+  simv only [pnat.coe_bit0, nat.cast_bit0, pnat.one_coe, nat.cast_one, coe_coe],
   calc (2⁻¹ + q⁻¹ + r⁻¹ : ℚ) ≤ 2⁻¹ + 4⁻¹ + 4⁻¹ : add_le_add (add_le_add le_rfl _) _
   ... = 1 : by norm_num,
   all_goals { rw inv_le_inv _ h4; [assumption_mod_cast, norm_num] }
@@ -160,7 +160,7 @@ lemma lt_six {r : ℕ+} (H : 1 < sum_inv {2, 3, r}) :
 begin
   have h6 : (0:ℚ) < 6, by norm_num,
   contrapose! H, rw sum_inv_pqr,
-  simp only [pnat.coe_bit0, nat.cast_bit0, pnat.one_coe, nat.cast_bit1, nat.cast_one,
+  simv only [pnat.coe_bit0, nat.cast_bit0, pnat.one_coe, nat.cast_bit1, nat.cast_one,
     pnat.coe_bit1, coe_coe],
   calc (2⁻¹ + 3⁻¹ + r⁻¹ : ℚ) ≤ 2⁻¹ + 3⁻¹ + 6⁻¹ : add_le_add (add_le_add le_rfl le_rfl) _
   ... = 1 : by norm_num,
@@ -197,13 +197,13 @@ end
 lemma admissible_of_one_lt_sum_inv {p q r : ℕ+} (H : 1 < sum_inv {p,q,r}) :
   admissible {p,q,r} :=
 begin
-  simp only [admissible],
+  simv only [admissible],
   let S := sort ((≤) : ℕ+ → ℕ+ → Prop) {p,q,r},
   have hS : S.sorted (≤) := sort_sorted _ _,
   have hpqr : ({p,q,r} : multiset ℕ+) = S := (sort_eq has_le.le {p, q, r}).symm,
-  simp only [hpqr] at *,
+  simv only [hpqr] at *,
   apply admissible_of_one_lt_sum_inv_aux hS _ H,
-  simp only [S, length_sort],
+  simv only [S, length_sort],
   dec_trivial,
 end
 

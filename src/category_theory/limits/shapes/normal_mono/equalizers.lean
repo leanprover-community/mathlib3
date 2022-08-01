@@ -39,24 +39,24 @@ let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
         = kernel.ι (prod.lift f g) ≫ (prod.lift f g) ≫ limits.prod.snd : by rw prod.lift_snd
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.snd : by rw kernel.condition_assoc
     ... = 0 : zero_comp in
-has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
+has_limit.mk { cone := pullback_cone.mk a' b' $ by { simv at ha' hb', rw [ha', hb'] },
   is_limit := pullback_cone.is_limit.mk _
     (λ s, kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) $ prod.hom_ext
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.fst
-            = pullback_cone.snd s ≫ b ≫ f : by simp only [prod.lift_fst, category.assoc]
+            = pullback_cone.snd s ≫ b ≫ f : by simv only [prod.lift_fst, category.assoc]
         ... = pullback_cone.fst s ≫ a ≫ f : by rw pullback_cone.condition_assoc
         ... = pullback_cone.fst s ≫ 0 : by rw haf
         ... = 0 ≫ limits.prod.fst :
           by rw [comp_zero, zero_comp])
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.snd
-            = pullback_cone.snd s ≫ b ≫ g : by simp only [prod.lift_snd, category.assoc]
+            = pullback_cone.snd s ≫ b ≫ g : by simv only [prod.lift_snd, category.assoc]
         ... = pullback_cone.snd s ≫ 0 : by rw hbg
         ... = 0 ≫ limits.prod.snd :
           by rw [comp_zero, zero_comp]))
     (λ s, (cancel_mono a).1 $
-      by { rw kernel_fork.ι_of_ι at ha', simp [ha', pullback_cone.condition s] })
+      by { rw kernel_fork.ι_of_ι at ha', simv [ha', pullback_cone.condition s] })
     (λ s, (cancel_mono b).1 $
-      by { rw kernel_fork.ι_of_ι at hb', simp [hb'] })
+      by { rw kernel_fork.ι_of_ι at hb', simv [hb'] })
     (λ s m h₁ h₂, (cancel_mono (kernel.ι (prod.lift f g))).1 $ calc m ≫ kernel.ι (prod.lift f g)
           = m ≫ a' ≫ a : by { congr, exact ha'.symm }
       ... = pullback_cone.fst s ≫ a : by rw [←category.assoc, h₁]
@@ -90,9 +90,9 @@ have huu : (pullback.fst : P f g ⟶ X) ≫ f = pullback.fst ≫ g, by rw [hvu, 
 has_limit.mk { cone := fork.of_ι pullback.fst huu,
   is_limit := fork.is_limit.mk _
   (λ s, pullback.lift (fork.ι s) (fork.ι s) $ prod.hom_ext
-    (by simp only [prod.lift_fst, category.assoc])
-    (by simp only [prod.comp_lift, fork.condition]))
-  (λ s, by simp only [fork.ι_of_ι, pullback.lift_fst])
+    (by simv only [prod.lift_fst, category.assoc])
+    (by simv only [prod.comp_lift, fork.condition]))
+  (λ s, by simv only [fork.ι_of_ι, pullback.lift_fst])
   (λ s m h, pullback.hom_ext
     (by simpa only [pullback.lift_fst] using h)
     (by simpa only [huv.symm, pullback.lift_fst] using h)) }
@@ -110,7 +110,7 @@ end
 
 /-- If a zero morphism is a cokernel of `f`, then `f` is an epimorphism. -/
 lemma epi_of_zero_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
-  (l : is_colimit (cokernel_cofork.of_π (0 : Y ⟶ Z) (show f ≫ 0 = 0, by simp))) : epi f :=
+  (l : is_colimit (cokernel_cofork.of_π (0 : Y ⟶ Z) (show f ≫ 0 = 0, by simv))) : epi f :=
 ⟨λ P u v huv,
  begin
   obtain ⟨W, w, hw, hl⟩ := normal_mono_of_mono (equalizer.ι u v),
@@ -159,7 +159,7 @@ let ⟨b', hb'⟩ := cokernel_cofork.is_colimit.desc' i' (cokernel.π (coprod.de
   ... = coprod.inr ≫ (0 : P ⨿ Q ⟶ cokernel (coprod.desc f g)) :  by rw cokernel.condition
   ... = 0 : has_zero_morphisms.comp_zero _ _ in
 has_colimit.mk
-{ cocone := pushout_cocone.mk a' b' $ by { simp only [cofork.π_of_π] at ha' hb', rw [ha', hb'] },
+{ cocone := pushout_cocone.mk a' b' $ by { simv only [cofork.π_of_π] at ha' hb', rw [ha', hb'] },
   is_colimit := pushout_cocone.is_colimit.mk _
   (λ s, cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) $ coprod.hom_ext
     (calc coprod.inl ≫ coprod.desc f g ≫ b ≫ pushout_cocone.inr s
@@ -172,8 +172,8 @@ has_colimit.mk
       ... = 0 ≫ pushout_cocone.inr s : by rw reassoc_of hgb
       ... = coprod.inr ≫ 0 : by rw [comp_zero, zero_comp]))
   (λ s, (cancel_epi a).1 $
-    by { rw cokernel_cofork.π_of_π at ha', simp [reassoc_of ha', pushout_cocone.condition s] })
-  (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simp [reassoc_of hb'] })
+    by { rw cokernel_cofork.π_of_π at ha', simv [reassoc_of ha', pushout_cocone.condition s] })
+  (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simv [reassoc_of hb'] })
   (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $
   calc cokernel.π (coprod.desc f g) ≫ m
         = (a ≫ a') ≫ m : by { congr, exact ha'.symm }
@@ -200,21 +200,21 @@ have huv : (pushout.inl : Y ⟶ Q f g) = pushout.inr, from
   calc (pushout.inl : Y ⟶ Q f g) = 𝟙 _ ≫ pushout.inl : eq.symm $ category.id_comp _
     ... = (coprod.inl ≫ coprod.desc (𝟙 Y) f) ≫ pushout.inl : by rw coprod.inl_desc
     ... = (coprod.inl ≫ coprod.desc (𝟙 Y) g) ≫ pushout.inr :
-      by simp only [category.assoc, pushout.condition]
+      by simv only [category.assoc, pushout.condition]
     ... = pushout.inr : by rw [coprod.inl_desc, category.id_comp],
 have hvu : f ≫ (pushout.inl : Y ⟶ Q f g) = g ≫ pushout.inr, from
   calc f ≫ (pushout.inl : Y ⟶ Q f g)
         = (coprod.inr ≫ coprod.desc (𝟙 Y) f) ≫ pushout.inl : by rw coprod.inr_desc
     ... = (coprod.inr ≫ coprod.desc (𝟙 Y) g) ≫ pushout.inr :
-      by simp only [category.assoc, pushout.condition]
+      by simv only [category.assoc, pushout.condition]
     ... = g ≫ pushout.inr : by rw coprod.inr_desc,
 have huu : f ≫ (pushout.inl : Y ⟶ Q f g) = g ≫ pushout.inl, by rw [hvu, huv],
 has_colimit.mk { cocone := cofork.of_π pushout.inl huu,
   is_colimit := cofork.is_colimit.mk _
   (λ s, pushout.desc (cofork.π s) (cofork.π s) $ coprod.hom_ext
-    (by simp only [coprod.inl_desc_assoc])
-    (by simp only [coprod.desc_comp, cofork.condition]))
-  (λ s, by simp only [pushout.inl_desc, cofork.π_of_π])
+    (by simv only [coprod.inl_desc_assoc])
+    (by simv only [coprod.desc_comp, cofork.condition]))
+  (λ s, by simv only [pushout.inl_desc, cofork.π_of_π])
   (λ s m h, pushout.hom_ext
     (by simpa only [pushout.inl_desc] using h)
     (by simpa only [huv.symm, pushout.inl_desc] using h)) }
@@ -232,7 +232,7 @@ end
 
 /-- If a zero morphism is a kernel of `f`, then `f` is a monomorphism. -/
 lemma mono_of_zero_kernel {X Y : C} (f : X ⟶ Y) (Z : C)
-  (l : is_limit (kernel_fork.of_ι (0 : Z ⟶ X) (show 0 ≫ f = 0, by simp))) : mono f :=
+  (l : is_limit (kernel_fork.of_ι (0 : Z ⟶ X) (show 0 ≫ f = 0, by simv))) : mono f :=
 ⟨λ P u v huv,
  begin
   obtain ⟨W, w, hw, hl⟩ := normal_epi_of_epi (coequalizer.π u v),

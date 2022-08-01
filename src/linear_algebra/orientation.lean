@@ -107,7 +107,7 @@ begin
   rw [basis.orientation, basis.orientation, smul_ray_of_ne_zero, ray_eq_iff,
       e.det.eq_smul_basis_det (e.units_smul w), det_units_smul, units.smul_def, smul_smul],
   norm_cast,
-  simp
+  simv
 end
 
 end basis
@@ -170,7 +170,7 @@ orientation. -/
   (e.units_smul (function.update 1 i (-1))).orientation = -e.orientation :=
 begin
   rw [orientation_units_smul, finset.prod_update_of_mem (finset.mem_univ _)],
-  simp
+  simv
 end
 
 /-- Given a basis and an orientation, return a basis giving that orientation: either the original
@@ -199,9 +199,9 @@ lemma adjust_to_orientation_apply_eq_or_eq_neg [nontrivial R] [nonempty ι] (e :
 begin
   rw adjust_to_orientation,
   split_ifs with h,
-  { simp },
+  { simv },
   { by_cases hi : i = classical.arbitrary ι;
-      simp [units_smul_apply, hi] }
+      simv [units_smul_apply, hi] }
 end
 
 end basis
@@ -228,7 +228,7 @@ begin
   have e := (fin_basis R M).reindex (fintype.equiv_fin_of_card_eq h).symm,
   rcases e.orientation_eq_or_eq_neg x₁ with h₁|h₁;
     rcases e.orientation_eq_or_eq_neg x₂ with h₂|h₂;
-    simp [h₁, h₂]
+    simv [h₁, h₂]
 end
 
 /-- If the index type has cardinality equal to the finite dimension, an orientation equals the

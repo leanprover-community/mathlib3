@@ -44,7 +44,7 @@ by simpa only [impartial_iff_aux] using impartial_aux_def
 namespace impartial
 
 instance impartial_zero : impartial 0 :=
-by { rw impartial_def, dsimp, simp }
+by { rw impartial_def, dsimp, simv }
 
 instance impartial_star : impartial star :=
 by { rw impartial_def, simpa using impartial.impartial_zero }
@@ -80,11 +80,11 @@ begin
     (neg_add_relabelling _ _).equiv.symm, λ k, _, λ k, _⟩,
   { apply left_moves_add_cases k,
     all_goals
-    { intro i, simp only [add_move_left_inl, add_move_left_inr],
+    { intro i, simv only [add_move_left_inl, add_move_left_inr],
       apply impartial_add } },
   { apply right_moves_add_cases k,
     all_goals
-    { intro i, simp only [add_move_right_inl, add_move_right_inr],
+    { intro i, simv only [add_move_right_inl, add_move_right_inr],
       apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

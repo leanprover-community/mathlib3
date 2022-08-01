@@ -152,7 +152,7 @@ lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
 begin
   rw [← @dfinsupp.sum_single ι G _ _ _ x],
   unfold dfinsupp.sum,
-  simp only [linear_map.map_sum],
+  simv only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
   rw [direct_sum.single_eq_lof R k (x k), direct_sum.to_module_lof, direct_sum.to_module_lof,
     totalize_of_le (hx k hk), totalize_of_le (le_trans (hx k hk) hij), directed_system.map_map],
@@ -174,7 +174,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
             ← direct_sum.single_eq_lof, dfinsupp.single_apply, dfinsupp.single_apply] at hi0,
         split_ifs at hi0 with hi hj hj, { rwa hi at hik }, { rwa hi at hik }, { rwa hj at hjk },
         exfalso, apply hi0, rw sub_zero },
-      simp [linear_map.map_sub, totalize_of_le, hik, hjk,
+      simv [linear_map.map_sub, totalize_of_le, hik, hjk,
         directed_system.map_map, direct_sum.apply_eq_component,
         direct_sum.component.of],
     end⟩)
@@ -185,12 +185,12 @@ span_induction ((quotient.mk_eq_zero _).1 H)
       (finset.mem_union.1 (dfinsupp.support_add hl)).elim
         (λ hl, le_trans (hi _ hl) hik)
         (λ hl, le_trans (hj _ hl) hjk),
-      by simp [linear_map.map_add, hxi, hyj,
+      by simv [linear_map.map_add, hxi, hyj,
           to_module_totalize_of_le hik hi,
           to_module_totalize_of_le hjk hj]⟩)
   (λ a x ⟨i, hi, hxi⟩,
     ⟨i, λ k hk, hi k (direct_sum.support_smul _ _ hk),
-      by simp [linear_map.map_smul, hxi]⟩)
+      by simv [linear_map.map_smul, hxi]⟩)
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
@@ -198,10 +198,10 @@ theorem of.zero_exact [is_directed ι (≤)] {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
 by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux H in
-if hx0 : x = 0 then ⟨i, le_rfl, by simp [hx0]⟩
+if hx0 : x = 0 then ⟨i, le_rfl, by simv [hx0]⟩
 else
   have hij : i ≤ j, from hj _ $
-    by simp [direct_sum.apply_eq_component, hx0],
+    by simv [direct_sum.apply_eq_component, hx0],
   ⟨j, hij, by simpa [totalize_of_le hij] using hxj⟩
 
 end direct_limit
@@ -276,8 +276,8 @@ module.direct_limit.lift_of _ _ _
 
 lemma lift_unique [nonempty ι] [is_directed ι (≤)] (F : direct_limit G f →+ P) (x) :
   F x = lift G f P (λ i, F.comp (of G f i).to_add_monoid_hom)
-    (λ i j hij x, by simp) x :=
-direct_limit.induction_on x $ λ i x, by simp
+    (λ i j hij x, by simv) x :=
+direct_limit.induction_on x $ λ i x, by simv
 
 end direct_limit
 
@@ -523,7 +523,7 @@ ideal.quotient.lift _ (free_comm_ring.lift $ λ (x : Σ i, G i), g x.1 x.2) begi
   rw ideal.span_le, intros x hx,
   rw [set_like.mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
-  simp only [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
+  simv only [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
       (g i).map_one, (g i).map_add, (g i).map_mul, sub_self]
 end
 
@@ -533,8 +533,8 @@ omit Hg
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
 
 theorem lift_unique [nonempty ι] [is_directed ι (≤)] (F : direct_limit G f →+* P) (x) :
-  F x = lift G f P (λ i, F.comp $ of G f i) (λ i j hij x, by simp) x :=
-direct_limit.induction_on x $ λ i x, by simp
+  F x = lift G f P (λ i, F.comp $ of G f i) (λ i j hij x, by simv) x :=
+direct_limit.induction_on x $ λ i x, by simv
 
 end direct_limit
 

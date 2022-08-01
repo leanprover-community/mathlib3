@@ -60,8 +60,8 @@ variables {α : Type*} [topological_space α]
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply], },
+  { intros p q hp hq, simv [hp, hq], },
+  { intros n a, simv [pi.pow_apply], },
 end
 
 end
@@ -79,11 +79,11 @@ The algebra map from `polynomial R` to continuous functions `C(R, R)`.
 @[simps]
 def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
 { to_fun := λ p, p.to_continuous_map,
-  map_zero' := by { ext, simp, },
-  map_add' := by { intros, ext, simp, },
-  map_one' := by { ext, simp, },
-  map_mul' := by { intros, ext, simp, },
-  commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
+  map_zero' := by { ext, simv, },
+  map_add' := by { intros, ext, simv, },
+  map_one' := by { ext, simv, },
+  map_mul' := by { intros, ext, simv, },
+  commutes' := by { intros, ext, simv [algebra.algebra_map_eq_smul_one], }, }
 
 /--
 The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
@@ -91,11 +91,11 @@ The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any s
 @[simps]
 def to_continuous_map_on_alg_hom (X : set R) : R[X] →ₐ[R] C(X, R)  :=
 { to_fun := λ p, p.to_continuous_map_on X,
-  map_zero' := by { ext, simp, },
-  map_add' := by { intros, ext, simp, },
-  map_one' := by { ext, simp, },
-  map_mul' := by { intros, ext, simp, },
-  commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
+  map_zero' := by { ext, simv, },
+  map_add' := by { intros, ext, simv, },
+  map_one' := by { ext, simv, },
+  map_mul' := by { intros, ext, simv, },
+  commutes' := by { intros, ext, simv [algebra.algebra_map_eq_smul_one], }, }
 
 end
 
@@ -114,7 +114,7 @@ def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
 @[simp]
 lemma polynomial_functions_coe (X : set R) :
   (polynomial_functions X : set C(X, R)) = set.range (polynomial.to_continuous_map_on_alg_hom X) :=
-by { ext, simp [polynomial_functions], }
+by { ext, simv [polynomial_functions], }
 
 -- TODO:
 -- if `f : R → R` is an affine equivalence, then pulling back along `f`
@@ -127,7 +127,7 @@ lemma polynomial_functions_separates_points (X : set R) :
 begin
   -- We use `polynomial.X`, then clean up.
   refine ⟨_, ⟨⟨_, ⟨⟨polynomial.X, ⟨algebra.mem_top, rfl⟩⟩, rfl⟩⟩, _⟩⟩,
-  dsimp, simp only [polynomial.eval_X],
+  dsimp, simv only [polynomial.eval_X],
   exact (λ h', h (subtype.ext h')),
 end
 
@@ -148,9 +148,9 @@ begin
     dsimp at w,
     let q := p.comp ((b - a)⁻¹ • polynomial.X + polynomial.C (-a * (b-a)⁻¹)),
     refine ⟨q, ⟨_, _⟩⟩,
-    { simp, },
+    { simv, },
     { ext x,
-      simp only [neg_mul,
+      simv only [neg_mul,
         ring_hom.map_neg, ring_hom.map_mul, alg_hom.coe_to_ring_hom,
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
         smul_eq_mul, polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
@@ -160,9 +160,9 @@ begin
       { -- why does `comm_ring.add` appear here!?
         change x = (Icc_homeo_I a b h).symm ⟨_ + _, _⟩,
         ext,
-        simp only [Icc_homeo_I_symm_apply_coe, subtype.coe_mk],
+        simv only [Icc_homeo_I_symm_apply_coe, subtype.coe_mk],
         replace h : b - a ≠ 0 := sub_ne_zero_of_ne h.ne.symm,
-        simp only [mul_add],
+        simv only [mul_add],
         field_simp, ring, },
       { change _ + _ ∈ I,
         rw [mul_comm (b-a)⁻¹, ←neg_mul, ←add_mul, ←sub_eq_add_neg],
@@ -176,8 +176,8 @@ begin
   { rintro ⟨p, ⟨-,rfl⟩⟩,
     let q := p.comp ((b - a) • polynomial.X + polynomial.C a),
     refine ⟨q, ⟨_, _⟩⟩,
-    { simp, },
-    { ext x, simp [mul_comm], }, },
+    { simv, },
+    { ext x, simv [mul_comm], }, },
 end
 
 end

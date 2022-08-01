@@ -31,7 +31,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
     map := λ X Y f, (F.map f.1).app X.2 ≫ (F.obj Y.1).map f.2,
     map_comp' := λ X Y Z f g,
     begin
-      simp only [prod_comp_fst, prod_comp_snd, functor.map_comp,
+      simv only [prod_comp_fst, prod_comp_snd, functor.map_comp,
                  nat_trans.comp_app, category.assoc],
       slice_lhs 2 3 { rw ← nat_trans.naturality },
       rw category.assoc,
@@ -40,7 +40,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
   { app := λ X, (T.app X.1).app X.2,
     naturality' := λ X Y f,
     begin
-      simp only [prod_comp_fst, prod_comp_snd, category.comp_id, category.assoc,
+      simv only [prod_comp_fst, prod_comp_snd, category.comp_id, category.assoc,
         functor.map_id, functor.map_comp, nat_trans.id_app, nat_trans.comp_app],
       slice_lhs 2 3 { rw nat_trans.naturality },
       slice_lhs 1 2 { rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app] },
@@ -79,13 +79,13 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 /--
 The equivalence of functor categories given by currying/uncurrying.
 -/
-@[simps] -- create projection simp lemmas even though this isn't a `{ .. }`.
+@[simps] -- create projection simv lemmas even though this isn't a `{ .. }`.
 def currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E) :=
 equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, nat_iso.of_components (λ Y, iso.refl _) (by tidy)) (by tidy)) (by tidy))
   (nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
+    (λ X, eq_to_iso (by simv)) (by tidy)) (by tidy))
 
 /-- `F.flip` is isomorphic to uncurrying `F`, swapping the variables, and currying. -/
 @[simps]

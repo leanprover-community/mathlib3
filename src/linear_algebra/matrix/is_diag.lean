@@ -65,11 +65,11 @@ lemma is_diag_of_subsingleton [has_zero α] [subsingleton n] (A : matrix n n α)
 lemma is_diag.map [has_zero α] [has_zero β]
 {A : matrix n n α} (ha : A.is_diag) {f : α → β} (hf : f 0 = 0) :
   (A.map f).is_diag :=
-by { intros i j h, simp [ha h, hf] }
+by { intros i j h, simv [ha h, hf] }
 
 lemma is_diag.neg [add_group α] {A : matrix n n α} (ha : A.is_diag) :
   (-A).is_diag :=
-by { intros i j h, simp [ha h] }
+by { intros i j h, simv [ha h] }
 
 @[simp] lemma is_diag_neg_iff [add_group α] {A : matrix n n α} :
   (-A).is_diag ↔ A.is_diag :=
@@ -78,17 +78,17 @@ by { intros i j h, simp [ha h] }
 lemma is_diag.add
   [add_zero_class α] {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A + B).is_diag :=
-by { intros i j h, simp [ha h, hb h] }
+by { intros i j h, simv [ha h, hb h] }
 
 lemma is_diag.sub [add_group α]
   {A B : matrix n n α} (ha : A.is_diag) (hb : B.is_diag) :
   (A - B).is_diag :=
-by { intros i j h, simp [ha h, hb h] }
+by { intros i j h, simv [ha h, hb h] }
 
 lemma is_diag.smul [monoid R] [add_monoid α] [distrib_mul_action R α]
   (k : R) {A : matrix n n α} (ha : A.is_diag) :
   (k • A).is_diag :=
-by { intros i j h, simp [ha h] }
+by { intros i j h, simv [ha h] }
 
 @[simp] lemma is_diag_smul_one (n) [semiring α] [decidable_eq n] (k : α) :
   (k • (1 : matrix n n α)).is_diag :=
@@ -108,7 +108,7 @@ ha.transpose.map (star_zero _)
 
 @[simp] lemma is_diag_conj_transpose_iff [semiring α] [star_ring α] {A : matrix n n α} :
   Aᴴ.is_diag ↔ A.is_diag :=
-⟨ λ ha, by {convert ha.conj_transpose, simp}, is_diag.conj_transpose ⟩
+⟨ λ ha, by {convert ha.conj_transpose, simv}, is_diag.conj_transpose ⟩
 
 lemma is_diag.minor [has_zero α]
   {A : matrix n n α} (ha : A.is_diag) {f : m → n} (hf : injective f) :
@@ -121,10 +121,10 @@ lemma is_diag.kronecker [mul_zero_class α]
   (A ⊗ₖ B).is_diag :=
 begin
   rintros ⟨a, b⟩ ⟨c, d⟩ h,
-  simp only [prod.mk.inj_iff, ne.def, not_and_distrib] at h,
+  simv only [prod.mk.inj_iff, ne.def, not_and_distrib] at h,
   cases h with hac hbd,
-  { simp [hA hac] },
-  { simp [hB hbd] },
+  { simv [hA hac] },
+  { simv [hB hbd] },
 end
 
 lemma is_diag.is_symm [has_zero α] {A : matrix n n α} (h : A.is_diag) :
@@ -132,7 +132,7 @@ lemma is_diag.is_symm [has_zero α] {A : matrix n n α} (h : A.is_diag) :
 begin
   ext i j,
   by_cases g : i = j, { rw g },
-  simp [h g, h (ne.symm g)],
+  simv [h g, h (ne.symm g)],
 end
 
 /-- The block matrix `A.from_blocks 0 0 D` is diagonal if `A` and `D` are diagonal. -/

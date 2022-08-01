@@ -57,7 +57,7 @@ def map_bicone {f : J → C} (b : bicone f) : bicone (F.obj ∘ f) :=
     rw ← F.map_comp,
     split_ifs,
     { subst h,
-      simp only [bicone_ι_π_self, category_theory.functor.map_id, eq_to_hom_refl] },
+      simv only [bicone_ι_π_self, category_theory.functor.map_id, eq_to_hom_refl] },
     { rw [bicone_ι_π_ne _ h, F.map_zero] }
   end }
 
@@ -195,7 +195,7 @@ variables [has_biproduct (F.obj ∘ f)]
 def biproduct_comparison : F.obj (⨁ f) ⟶ ⨁ (F.obj ∘ f) :=
 biproduct.lift (λ j, F.map (biproduct.π f j))
 
-@[simp, reassoc] lemma biproduct_comparison_π (j : J) :
+@[simv, reassoc] lemma biproduct_comparison_π (j : J) :
   biproduct_comparison F f ≫ biproduct.π _ j = F.map (biproduct.π f j) :=
 biproduct.lift_π _ _
 
@@ -204,7 +204,7 @@ biproduct.lift_π _ _
 def biproduct_comparison' : ⨁ (F.obj ∘ f) ⟶ F.obj (⨁ f) :=
 biproduct.desc (λ j, F.map (biproduct.ι f j))
 
-@[simp, reassoc] lemma ι_biproduct_comparison' (j : J) :
+@[simv, reassoc] lemma ι_biproduct_comparison' (j : J) :
   biproduct.ι _ j ≫ biproduct_comparison' F f = F.map (biproduct.ι f j) :=
 biproduct.ι_desc _ _
 
@@ -212,9 +212,9 @@ variables [preserves_zero_morphisms F]
 
 /-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
     the biproduct, see `preserves_biproduct_of_mono_biproduct_comparison`.  -/
-@[simp, reassoc] lemma biproduct_comparison'_comp_biproduct_comparison :
+@[simv, reassoc] lemma biproduct_comparison'_comp_biproduct_comparison :
   biproduct_comparison' F f ≫ biproduct_comparison F f = 𝟙 (⨁ (F.obj ∘ f)) :=
-by { classical, ext, simp [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
+by { classical, ext, simv [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
 
 instance : split_epi (biproduct_comparison F f) :=
 ⟨biproduct_comparison' F f⟩
@@ -261,11 +261,11 @@ variables [has_binary_biproduct (F.obj X) (F.obj Y)]
 def biprod_comparison : F.obj (X ⊞ Y) ⟶ F.obj X ⊞ F.obj Y :=
 biprod.lift (F.map biprod.fst) (F.map biprod.snd)
 
-@[simp, reassoc] lemma biprod_comparison_fst :
+@[simv, reassoc] lemma biprod_comparison_fst :
   biprod_comparison F X Y ≫ biprod.fst = F.map biprod.fst :=
 biprod.lift_fst _ _
 
-@[simp, reassoc] lemma biprod_comparison_snd :
+@[simv, reassoc] lemma biprod_comparison_snd :
   biprod_comparison F X Y ≫ biprod.snd = F.map biprod.snd :=
 biprod.lift_snd _ _
 
@@ -274,11 +274,11 @@ biprod.lift_snd _ _
 def biprod_comparison' : F.obj X ⊞ F.obj Y ⟶ F.obj (X ⊞ Y) :=
 biprod.desc (F.map biprod.inl) (F.map biprod.inr)
 
-@[simp, reassoc] lemma inl_biprod_comparison' :
+@[simv, reassoc] lemma inl_biprod_comparison' :
   biprod.inl ≫ biprod_comparison' F X Y = F.map biprod.inl :=
 biprod.inl_desc _ _
 
-@[simp, reassoc] lemma inr_biprod_comparison' :
+@[simv, reassoc] lemma inr_biprod_comparison' :
   biprod.inr ≫ biprod_comparison' F X Y = F.map biprod.inr :=
 biprod.inr_desc _ _
 
@@ -286,9 +286,9 @@ variables [preserves_zero_morphisms F]
 
 /-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
     the biproduct, see `preserves_binary_biproduct_of_mono_biprod_comparison`. -/
-@[simp, reassoc] lemma biprod_comparison'_comp_biprod_comparison :
+@[simv, reassoc] lemma biprod_comparison'_comp_biprod_comparison :
   biprod_comparison' F X Y ≫ biprod_comparison F X Y = 𝟙 (F.obj X ⊞ F.obj Y) :=
-by { ext; simp [← functor.map_comp] }
+by { ext; simv [← functor.map_comp] }
 
 instance : split_epi (biprod_comparison F X Y) :=
 ⟨biprod_comparison' F X Y⟩
@@ -335,11 +335,11 @@ variables {J : Type w₁} (f : J → C) [has_biproduct f] [preserves_biproduct f
 
 lemma biproduct.map_lift_map_biprod (g : Π j, W ⟶ f j) :
   F.map (biproduct.lift g) ≫ (F.map_biproduct f).hom = biproduct.lift (λ j, F.map (g j)) :=
-by { ext, simp [← F.map_comp] }
+by { ext, simv [← F.map_comp] }
 
 lemma biproduct.map_biproduct_inv_map_desc (g : Π j, f j ⟶ W) :
   (F.map_biproduct f).inv ≫ F.map (biproduct.desc g) = biproduct.desc (λ j, F.map (g j)) :=
-by { ext, simp [← F.map_comp] }
+by { ext, simv [← F.map_comp] }
 
 lemma biproduct.map_biproduct_hom_desc (g : Π j, f j ⟶ W) :
   (F.map_biproduct f).hom ≫ biproduct.desc (λ j, F.map (g j)) = F.map (biproduct.desc g) :=
@@ -352,7 +352,7 @@ variables (X Y : C) [has_binary_biproduct X Y] [preserves_binary_biproduct X Y F
 
 lemma biprod.map_lift_map_biprod (f : W ⟶ X) (g : W ⟶ Y) :
   F.map (biprod.lift f g) ≫ (F.map_biprod X Y).hom = biprod.lift (F.map f) (F.map g) :=
-by ext; simp [← F.map_comp]
+by ext; simv [← F.map_comp]
 
 lemma biprod.lift_map_biprod (f : W ⟶ X) (g : W ⟶ Y) :
   biprod.lift (F.map f) (F.map g) ≫ (F.map_biprod X Y).inv = F.map (biprod.lift f g) :=
@@ -360,7 +360,7 @@ by rw [← biprod.map_lift_map_biprod, category.assoc, iso.hom_inv_id, category.
 
 lemma biprod.map_biprod_inv_map_desc (f : X ⟶ W) (g : Y ⟶ W) :
   (F.map_biprod X Y).inv ≫ F.map (biprod.desc f g) = biprod.desc (F.map f) (F.map g) :=
-by ext; simp [← F.map_comp]
+by ext; simv [← F.map_comp]
 
 lemma biprod.map_biprod_hom_desc (f : X ⟶ W) (g : Y ⟶ W) :
  (F.map_biprod X Y).hom ≫ biprod.desc (F.map f) (F.map g) = F.map (biprod.desc f g) :=
@@ -420,7 +420,7 @@ def preserves_biproduct_of_mono_biproduct_comparison {f : J → C} [has_biproduc
 begin
   have : pi_comparison F f = (F.map_iso (biproduct.iso_product f)).inv ≫
     biproduct_comparison F f ≫ (biproduct.iso_product _).hom,
-  { ext, convert pi_comparison_comp_π F f j.as; simp [← functor.map_comp] },
+  { ext, convert pi_comparison_comp_π F f j.as; simv [← functor.map_comp] },
   haveI : is_iso (biproduct_comparison F f) := is_iso_of_mono_of_split_epi _,
   haveI : is_iso (pi_comparison F f) := by { rw this, apply_instance },
   haveI := preserves_product.of_iso_comparison F f,
@@ -518,7 +518,7 @@ def preserves_binary_biproduct_of_mono_biprod_comparison {X Y : C} [has_binary_b
   preserves_binary_biproduct X Y F :=
 begin
   have : prod_comparison F X Y = (F.map_iso (biprod.iso_prod X Y)).inv ≫
-    biprod_comparison F X Y ≫ (biprod.iso_prod _ _).hom := by { ext; simp [← functor.map_comp] },
+    biprod_comparison F X Y ≫ (biprod.iso_prod _ _).hom := by { ext; simv [← functor.map_comp] },
   haveI : is_iso (biprod_comparison F X Y) := is_iso_of_mono_of_split_epi _,
   haveI : is_iso (prod_comparison F X Y) := by { rw this, apply_instance },
   haveI := preserves_limit_pair.of_iso_prod_comparison F X Y,

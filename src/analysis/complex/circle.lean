@@ -49,7 +49,7 @@ mem_circle_iff_abs.mp z.2
 lemma mem_circle_iff_norm_sq {z : ℂ} : z ∈ circle ↔ norm_sq z = 1 :=
 by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
 
-@[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simp [norm_sq_eq_abs]
+@[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simv [norm_sq_eq_abs]
 
 lemma ne_zero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := ne_zero_of_mem_unit_sphere z
 
@@ -76,7 +76,7 @@ instance : topological_group circle := metric.sphere.topological_group
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
 def exp_map_circle : C(ℝ, circle) :=
-{ to_fun := λ t, ⟨exp (t * I), by simp [exp_mul_I, abs_cos_add_sin_mul_I]⟩ }
+{ to_fun := λ t, ⟨exp (t * I), by simv [exp_mul_I, abs_cos_add_sin_mul_I]⟩ }
 
 @[simp] lemma exp_map_circle_apply (t : ℝ) : ↑(exp_map_circle t) = complex.exp (t * complex.I) :=
 rfl
@@ -86,7 +86,7 @@ subtype.ext $ by rw [exp_map_circle_apply, of_real_zero, zero_mul, exp_zero, sub
 
 @[simp] lemma exp_map_circle_add (x y : ℝ) :
   exp_map_circle (x + y) = exp_map_circle x * exp_map_circle y :=
-subtype.ext $ by simp only [exp_map_circle_apply, submonoid.coe_mul, of_real_add, add_mul,
+subtype.ext $ by simv only [exp_map_circle_apply, submonoid.coe_mul, of_real_add, add_mul,
   complex.exp_add]
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`, considered as a homomorphism of

@@ -80,7 +80,7 @@ begin
   { rw mem_localization_localization_submodule,
     refine ⟨s, t * t', _⟩,
     rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t, submonoid.coe_mul] },
-  { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
+  { simv only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
       ← eq₃, ← eq₂, ← eq₁],
     ring },
 end
@@ -223,8 +223,8 @@ lemma is_localization_of_submonoid_le
       ∃ (a : N), algebra_map R S (a * (y₁ * s₂)) = algebra_map R S (a * (y₂ * s₁)),
     { have h₁ := (is_localization.map_units T ⟨_, h s₁.prop⟩).mul_left_inj,
       have h₂ := (is_localization.map_units T ⟨_, h s₂.prop⟩).mul_left_inj,
-      simp only [is_scalar_tower.algebra_map_apply R S T, subtype.coe_mk] at h₁ h₂,
-      simp only [is_scalar_tower.algebra_map_apply R S T, map_mul, ← e₁, ← e₂, ← mul_assoc,
+      simv only [is_scalar_tower.algebra_map_apply R S T, subtype.coe_mk] at h₁ h₂,
+      simv only [is_scalar_tower.algebra_map_apply R S T, map_mul, ← e₁, ← e₂, ← mul_assoc,
         mul_right_comm _ (algebra_map R S s₂),
         mul_right_comm _ (algebra_map S T (algebra_map R S s₂)),
         (is_localization.map_units S s₁).mul_left_inj,
@@ -233,8 +233,8 @@ lemma is_localization_of_submonoid_le
       simpa only [mul_comm] using this },
     simp_rw [is_localization.eq_iff_exists N T, is_localization.eq_iff_exists M S],
     split,
-    { rintro ⟨a, e⟩, exact ⟨a, 1, by { convert e using 1; simp; ring }⟩ },
-    { rintro ⟨a, b, e⟩, exact ⟨a * (⟨_, h b.prop⟩ : N), by { convert e using 1; simp; ring }⟩ }
+    { rintro ⟨a, e⟩, exact ⟨a, 1, by { convert e using 1; simv; ring }⟩ },
+    { rintro ⟨a, b, e⟩, exact ⟨a * (⟨_, h b.prop⟩ : N), by { convert e using 1; simv; ring }⟩ }
   end }
 
 /-- If `M ≤ N` are submonoids of `R` such that `∀ x : N, ∃ m : R, m * x ∈ M`, then the
@@ -254,7 +254,7 @@ lemma is_localization_of_is_exists_mul_mem (M N : submonoid R) [is_localization 
     rintros ⟨x, h⟩,
     obtain ⟨m, hm⟩ := h' x,
     refine ⟨⟨_, hm⟩, _⟩,
-    simp [mul_comm m, ← mul_assoc, h]
+    simv [mul_comm m, ← mul_assoc, h]
   end }
 
 end localization_localization

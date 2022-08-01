@@ -61,7 +61,7 @@ begin
       work_on_goal 1 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals {
       intros,
-      simp only [linear_map.map_zero, linear_map.zero_apply, zero_mem,
+      simv only [linear_map.map_zero, linear_map.zero_apply, zero_mem,
         linear_map.map_add, linear_map.add_apply, linear_map.map_smul, linear_map.smul_apply] },
     all_goals {
       solve_by_elim [add_mem _ _, zero_mem _, smul_mem _ _ _]

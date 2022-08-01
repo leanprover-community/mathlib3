@@ -56,7 +56,7 @@ variables {R M N G M' : Type*} [normed_field R]
   {f : M →L[R] N} {g : N →L[R] G} {c : R}
 
 lemma is_conformal_map_id : is_conformal_map (id R M) :=
-⟨1, one_ne_zero, id, by simp⟩
+⟨1, one_ne_zero, id, by simv⟩
 
 lemma is_conformal_map.smul (hf : is_conformal_map f) {c : R} (hc : c ≠ 0) :
   is_conformal_map (c • f) :=
@@ -74,7 +74,7 @@ protected lemma linear_isometry.is_conformal_map (f' : M →ₗᵢ[R] N) :
 
 @[nontriviality] lemma is_conformal_map_of_subsingleton [subsingleton M] (f' : M →L[R] N) :
   is_conformal_map f' :=
-⟨1, one_ne_zero, ⟨0, λ x, by simp [subsingleton.elim x 0]⟩, subsingleton.elim _ _⟩
+⟨1, one_ne_zero, ⟨0, λ x, by simv [subsingleton.elim x 0]⟩, subsingleton.elim _ _⟩
 
 namespace is_conformal_map
 

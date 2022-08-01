@@ -240,7 +240,7 @@ def factor_multiset_equiv : ℕ+ ≃ prime_multiset :=
 /-- Factoring gives a homomorphism from the multiplicative
  monoid ℕ+ to the additive monoid of multisets. -/
 theorem factor_multiset_one : factor_multiset 1 = 0 :=
-by simp [factor_multiset, prime_multiset.of_nat_list, prime_multiset.of_nat_multiset]
+by simv [factor_multiset, prime_multiset.of_nat_list, prime_multiset.of_nat_multiset]
 
 theorem factor_multiset_mul (n m : ℕ+) :
   factor_multiset (n * m) = (factor_multiset n) + (factor_multiset m) :=

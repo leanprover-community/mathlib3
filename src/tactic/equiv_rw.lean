@@ -185,7 +185,7 @@ do
     fail format!"Could not construct an equivalence from {eqv_pp} of the form: {ty_pp} ≃ _"),
   -- Finally we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
-  prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
+  prod.fst <$> new_eqv.simv {fail_if_unchanged := ff}
 
 mk_simp_attribute equiv_rw_simp "The simpset `equiv_rw_simp` is used by the tactic `equiv_rw` to
 simplify applications of equivalences and their inverses."
@@ -221,7 +221,7 @@ dsimp_result (do
   b ← target >>= is_prop,
   if b then do
     subst h,
-    `[try { simp only with equiv_rw_simp }]
+    `[try { simv only with equiv_rw_simp }]
   else
     -- We may need to unfreeze `x` before we can `clear` it.
     unfreezing_hyp x' (clear' tt [x']) <|> fail

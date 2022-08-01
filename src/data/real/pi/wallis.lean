@@ -21,14 +21,14 @@ begin
     ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
   { rintro ⟨n⟩,
     { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
-      simp [this] },
+      simv [this] },
     calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
       (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
       by { refine div_le_div (integral_sin_pow_pos _).le le_rfl (integral_sin_pow_pos _) _,
         convert integral_sin_pow_succ_le (2 * n + 1) using 1 }
     ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
       by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
-           convert integral_sin_pow (2 * n + 1), simp with field_simps, norm_cast } },
+           convert integral_sin_pow (2 * n + 1), simv with field_simps, norm_cast } },
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
   { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨⌈1 / ε⌉₊, λ n hn, _⟩),
     have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),

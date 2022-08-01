@@ -20,18 +20,18 @@ import tactic.basic
 Set of rewrite rules and automation for monads in general and
 `reader_t`, `state_t`, `except_t` and `option_t` in particular.
 
-The rewrite rules for monads are carefully chosen so that `simp with
+The rewrite rules for monads are carefully chosen so that `simv with
 functor_norm` will not introduce monadic vocabulary in a context where
 applicatives would do just fine but will handle monadic notation
 already present in an expression.
 
-In a context where monadic reasoning is desired `simp with monad_norm`
+In a context where monadic reasoning is desired `simv with monad_norm`
 will translate functor and applicative notation into monad notation
 and use regular `functor_norm` rules as well.
 
 ## Tags
 
-functor, applicative, monad, simp
+functor, applicative, monad, simv
 
 -/
 

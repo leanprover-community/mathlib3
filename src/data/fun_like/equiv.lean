@@ -51,7 +51,7 @@ end my_iso
 ```
 
 This file will then provide a `has_coe_to_fun` instance and various
-extensionality and simp lemmas.
+extensionality and simv lemmas.
 
 ## Isomorphism classes extending `equiv_like`
 

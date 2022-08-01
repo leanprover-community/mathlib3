@@ -109,11 +109,11 @@ def lift :
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
   left_inv := λ f, by { ext,
-    simp only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
+    simv only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
                subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
                tensor_algebra.lift_ι_apply] },
   right_inv := λ F, by { ext,
-    simp only [ι, alg_hom.comp_to_linear_map, alg_hom.to_linear_map_apply, function.comp_app,
+    simv only [ι, alg_hom.comp_to_linear_map, alg_hom.to_linear_map_apply, function.comp_app,
                linear_map.coe_comp, subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
                tensor_algebra.lift_ι_apply] } }
 
@@ -136,7 +136,7 @@ theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m : M, f m * f m = algebra_m
 begin
   convert (lift Q).symm_apply_eq,
   rw lift_symm_apply,
-  simp only,
+  simv only,
 end
 
 attribute [irreducible] clifford_algebra ι lift
@@ -158,7 +158,7 @@ begin
   intro h,
   apply (lift Q).symm.injective,
   rw [lift_symm_apply, lift_symm_apply],
-  simp only [h],
+  simv only [h],
 end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
@@ -188,7 +188,7 @@ begin
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (clifford_algebra Q) = s.val.comp (lift Q of),
   { ext,
-    simp [of], },
+    simv [of], },
   -- finding a proof is finding an element of the subalgebra
   convert subtype.prop (lift Q of a),
   exact alg_hom.congr_fun of_id a,
@@ -305,6 +305,6 @@ def to_clifford : tensor_algebra R M →ₐ[R] clifford_algebra Q :=
 tensor_algebra.lift R (clifford_algebra.ι Q)
 
 @[simp] lemma to_clifford_ι (m : M) : (tensor_algebra.ι R m).to_clifford = clifford_algebra.ι Q m :=
-by simp [to_clifford]
+by simv [to_clifford]
 
 end tensor_algebra

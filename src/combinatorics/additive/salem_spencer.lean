@@ -69,14 +69,14 @@ variables {s t}
 lemma mul_salem_spencer.mono (h : t ⊆ s) (hs : mul_salem_spencer s) : mul_salem_spencer t :=
 λ a b c ha hb hc, hs (h ha) (h hb) (h hc)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_salem_spencer_empty : mul_salem_spencer (∅ : set α) := λ a _ _ ha, ha.elim
 
 @[to_additive]
 lemma set.subsingleton.mul_salem_spencer (hs : s.subsingleton) : mul_salem_spencer s :=
 λ a b _ ha hb _ _, hs ha hb
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_salem_spencer_singleton (a : α) : mul_salem_spencer ({a} : set α) :=
 subsingleton_singleton.mul_salem_spencer
 
@@ -142,7 +142,7 @@ begin
   { exact hs hb hc hd h }
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_salem_spencer_pair (a b : α) : mul_salem_spencer ({a, b} : set α) :=
 begin
   rw mul_salem_spencer_insert,
@@ -317,11 +317,11 @@ lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :
   mul_roth_number s = s.card :=
 (mul_roth_number_le _).antisymm $ hs.le_mul_roth_number $ subset.refl _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_roth_number_empty : mul_roth_number (∅ : finset α) = 0 :=
 nat.eq_zero_of_le_zero $ (mul_roth_number_le _).trans card_empty.le
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_roth_number_singleton (a : α) : mul_roth_number ({a} : finset α) = 1 :=
 begin
   convert mul_salem_spencer.roth_number_eq _,
@@ -372,7 +372,7 @@ end monoid
 section cancel_comm_monoid
 variables [cancel_comm_monoid α] (s : finset α) (a : α)
 
-@[simp, to_additive] lemma mul_roth_number_map_mul_left :
+@[simv, to_additive] lemma mul_roth_number_map_mul_left :
   mul_roth_number (s.map $ mul_left_embedding a) = mul_roth_number s :=
 begin
   refine le_antisymm _ _,
@@ -390,7 +390,7 @@ begin
     rw [card_map, hcard] }
 end
 
-@[simp, to_additive] lemma mul_roth_number_map_mul_right :
+@[simv, to_additive] lemma mul_roth_number_map_mul_right :
   mul_roth_number (s.map $ mul_right_embedding a) = mul_roth_number s :=
 by rw [←mul_left_embedding_eq_mul_right_embedding, mul_roth_number_map_mul_left s a]
 

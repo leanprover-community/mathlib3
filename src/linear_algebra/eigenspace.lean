@@ -57,7 +57,7 @@ def eigenspace (f : End R M) (μ : R) : submodule R M :=
 (f - algebra_map R (End R M) μ).ker
 
 @[simp] lemma eigenspace_zero (f : End R M) : f.eigenspace 0 = f.ker :=
-by simp [eigenspace]
+by simv [eigenspace]
 
 /-- A nonzero element of an eigenspace is an eigenvector. (Def 5.7 of [axler2015]) -/
 def has_eigenvector (f : End R M) (μ : R) (x : M) : Prop :=
@@ -125,7 +125,7 @@ calc
       = (q.leading_coeff • f - algebra_map K (End K V) (- q.coeff 0)).ker
     : by { rw eigenspace_div, intro h, rw leading_coeff_eq_zero_iff_deg_eq_bot.1 h at hq, cases hq }
   ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
-    : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
+    : by { rw [C_mul', aeval_def], simv [algebra_map, algebra.to_ring_hom], }
   ... = (aeval f q).ker
     : by rwa ← eq_X_add_C_of_degree_eq_one
 
@@ -134,7 +134,7 @@ lemma ker_aeval_ring_hom'_unit_polynomial
   (aeval f (c : K[X])).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
-  simp only [aeval_def, eval₂_C],
+  simv only [aeval_def, eval₂_C],
   apply ker_algebra_map_End,
   apply coeff_coe_units_zero_ne_zero c
 end
@@ -144,11 +144,11 @@ theorem aeval_apply_of_has_eigenvector {f : End K V}
   aeval f p x = (p.eval μ) • x :=
 begin
   apply p.induction_on,
-  { intro a, simp [module.algebra_map_End_apply] },
-  { intros p q hp hq, simp [hp, hq, add_smul] },
+  { intro a, simv [module.algebra_map_End_apply] },
+  { intros p q hp hq, simv [hp, hq, add_smul] },
   { intros n a hna,
     rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
-    simp only [mem_eigenspace_iff.1 h.1, smul_smul, aeval_X, eval_mul, eval_C, eval_pow, eval_X,
+    simv only [mem_eigenspace_iff.1 h.1, smul_smul, aeval_X, eval_mul, eval_C, eval_pow, eval_X,
       linear_map.map_smulₛₗ, ring_hom.id_apply, mul_comm] }
 end
 
@@ -159,7 +159,7 @@ theorem is_root_of_has_eigenvalue {f : End K V} {μ : K} (h : f.has_eigenvalue �
 begin
   rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
   refine or.resolve_right (smul_eq_zero.1 _) ne0,
-  simp [← aeval_apply_of_has_eigenvector ⟨H, ne0⟩, minpoly.aeval K f],
+  simv [← aeval_apply_of_has_eigenvector ⟨H, ne0⟩, minpoly.aeval K f],
 end
 
 variables [finite_dimensional K V] (f : End K V)
@@ -183,7 +183,7 @@ begin
     linarith, },
   { have h_aeval := minpoly.aeval K f,
     revert h_aeval,
-    simp [hp, ← hu] },
+    simv [hp, ← hu] },
 end
 
 theorem has_eigenvalue_iff_is_root :
@@ -199,7 +199,7 @@ begin
   ext μ,
   have : (μ ∈ {μ : K | f.eigenspace μ = ⊥ → false}) ↔ ¬f.eigenspace μ = ⊥ := by tauto,
   convert rfl.mpr this,
-  simp [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
+  simv [polynomial.root_set_def, polynomial.mem_roots h, ← has_eigenvalue_iff_is_root,
     has_eigenvalue]
 end
 
@@ -255,7 +255,7 @@ begin
     { rw [← finset.erase_insert hμ₀, ← h_l_support],
       ext a,
       have : ¬(a = μ₀ ∨ l a = 0) ↔ ¬a = μ₀ ∧ ¬l a = 0 := not_or_distrib,
-      simp only [l', dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
+      simv only [l', dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
         dfinsupp.mem_support_iff, finset.mem_erase, id.def, linear_map.id_coe,
         linear_map.smul_apply, ne.def, smul_eq_zero, sub_eq_zero, this] },
     -- The entries of `l'` add up to `0`.
@@ -272,21 +272,21 @@ begin
       { exact dfinsupp.sum_map_range_index.linear_map },
       { congr,
         ext μ v,
-        simp only [g, eq_self_iff_true, function.comp_app, id.def, linear_map.coe_comp,
+        simv only [g, eq_self_iff_true, function.comp_app, id.def, linear_map.coe_comp,
           linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply,
           module.algebra_map_End_apply, sub_left_inj, sub_smul, submodule.coe_smul_of_tower,
           submodule.coe_sub, submodule.subtype_apply, mem_eigenspace_iff.1 v.prop], },
       { rw dfinsupp.sum_map_range_index.linear_map },
-      { simp only [dfinsupp.sum_add_hom_apply, linear_map.id_coe, linear_map.map_dfinsupp_sum,
+      { simv only [dfinsupp.sum_add_hom_apply, linear_map.id_coe, linear_map.map_dfinsupp_sum,
           id.def, linear_map.to_add_monoid_hom_coe, dfinsupp.lsum_apply_apply], },
       { congr,
-        simp only [S, a, dfinsupp.sum_map_range_index.linear_map, linear_map.id_comp] } },
+        simv only [S, a, dfinsupp.sum_map_range_index.linear_map, linear_map.id_comp] } },
     -- Therefore, by the induction hypothesis, all entries of `l'` are zero.
     have l'_eq_0 := ih l' total_l' h_l_support',
     -- By the definition of `l'`, this means that `(μ - μ₀) • l μ = 0` for all `μ`.
     have h_smul_eq_0 : ∀ μ, (μ - μ₀) • l μ = 0,
     { intro μ,
-      calc (μ - μ₀) • l μ = l' μ : by simp only [l', linear_map.id_coe, id.def,
+      calc (μ - μ₀) • l μ = l' μ : by simv only [l', linear_map.id_coe, id.def,
         linear_map.smul_apply, dfinsupp.map_range_apply, dfinsupp.map_range.linear_map_apply]
       ... = 0 : by { rw [l'_eq_0], refl } },
     -- Thus, the eigenspace-representatives in `l` for all `μ ≠ μ₀` are `0`.
@@ -305,7 +305,7 @@ begin
     -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
     -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
     have : l μ₀ = 0,
-    { simp only [S, dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply,
+    { simv only [S, dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply,
         linear_map.to_add_monoid_hom_coe, dfinsupp.sum, h_l_support, submodule.subtype_apply,
         submodule.coe_eq_zero, finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
       exact hl },
@@ -336,7 +336,7 @@ def generalized_eigenspace (f : End R M) (μ : R) : ℕ →o submodule R M :=
 { to_fun    := λ k, ((f - algebra_map R (End R M) μ) ^ k).ker,
   monotone' := λ k m hm,
   begin
-    simp only [← pow_sub_mul_pow _ hm],
+    simv only [← pow_sub_mul_pow _ hm],
     exact linear_map.ker_le_ker_comp
       ((f - algebra_map R (End R M) μ) ^ k) ((f - algebra_map R (End R M) μ) ^ (m - k)),
   end }
@@ -347,7 +347,7 @@ iff.rfl
 
 @[simp] lemma generalized_eigenspace_zero (f : End R M) (k : ℕ) :
   f.generalized_eigenspace 0 k = (f^k).ker :=
-by simp [module.End.generalized_eigenspace]
+by simv [module.End.generalized_eigenspace]
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/
@@ -382,7 +382,7 @@ le_supr _ _
 
 @[simp] lemma mem_maximal_generalized_eigenspace (f : End R M) (μ : R) (m : M) :
   m ∈ f.maximal_generalized_eigenspace μ ↔ ∃ (k : ℕ), ((f - μ • 1)^k) m = 0 :=
-by simp only [maximal_generalized_eigenspace, ← mem_generalized_eigenspace,
+by simv only [maximal_generalized_eigenspace, ← mem_generalized_eigenspace,
   submodule.mem_supr_of_chain]
 
 /-- If there exists a natural number `k` such that the kernel of `(f - μ • id) ^ k` is the
@@ -464,7 +464,7 @@ lemma generalized_eigenspace_restrict
   generalized_eigenspace (linear_map.restrict f hfp) μ k =
     submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
 begin
-  simp only [generalized_eigenspace, order_hom.coe_fun_mk, ← linear_map.ker_comp],
+  simv only [generalized_eigenspace, order_hom.coe_fun_mk, ← linear_map.ker_comp],
   induction k with k ih,
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
@@ -479,7 +479,7 @@ lemma eigenspace_restrict_le_eigenspace (f : End R M) {p : submodule R M}
   (eigenspace (f.restrict hfp) μ).map p.subtype ≤ f.eigenspace μ :=
 begin
   rintros a ⟨x, hx, rfl⟩,
-  simp only [set_like.mem_coe, mem_eigenspace_iff, linear_map.restrict_apply] at hx ⊢,
+  simv only [set_like.mem_coe, mem_eigenspace_iff, linear_map.restrict_apply] at hx ⊢,
   exact congr_arg coe hx
 end
 
@@ -542,7 +542,7 @@ begin
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,
-    simp only [finrank_eq_zero.1 (eq.trans finrank_top h_dim), bot_le] },
+    simv only [finrank_eq_zero.1 (eq.trans finrank_top h_dim), bot_le] },
   -- Otherwise the vector space is nontrivial.
   { haveI : nontrivial V := finrank_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
     -- Hence, `f` has an eigenvalue `μ₀`.
@@ -572,7 +572,7 @@ begin
     -- The induction hypothesis gives us a statement about subspaces of `ER`. We can transfer this
     -- to a statement about subspaces of `V` via `submodule.subtype`:
     have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.generalized_eigenspace μ k).map ER.subtype) = ER,
-      by simp only [(submodule.map_supr _ _).symm, ih_ER, submodule.map_subtype_top ER],
+      by simv only [(submodule.map_supr _ _).symm, ih_ER, submodule.map_subtype_top ER],
     -- Moreover, every generalized eigenspace of `f'` is contained in the corresponding generalized
     -- eigenspace of `f`.
     have hff' : ∀ μ k,

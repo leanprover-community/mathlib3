@@ -52,7 +52,7 @@ begin
   refine continuous_induced_rng.2 (continuous.prod_mk f.continuous
     (mul_opposite.continuous_op.comp (continuous_iff_continuous_at.mpr (λ x, _)))),
   have := normed_ring.inverse_continuous_at (h x).unit,
-  simp only [←ring.inverse_unit, is_unit.unit_spec, ←function.comp_apply] at this ⊢,
+  simv only [←ring.inverse_unit, is_unit.unit_spec, ←function.comp_apply] at this ⊢,
   exact this.comp (f.continuous_at x),
 end
 
@@ -87,7 +87,7 @@ lemma spectrum_eq_range (f : C(X, 𝕜)) :
   spectrum 𝕜 f = set.range f :=
 begin
   ext,
-  simp only [spectrum.mem_iff, is_unit_iff_forall_ne_zero, not_forall, coe_sub,
+  simv only [spectrum.mem_iff, is_unit_iff_forall_ne_zero, not_forall, coe_sub,
     pi.sub_apply, algebra_map_apply, algebra.id.smul_eq_mul, mul_one, not_not, set.mem_range,
     sub_eq_zero, @eq_comm _ x _]
 end

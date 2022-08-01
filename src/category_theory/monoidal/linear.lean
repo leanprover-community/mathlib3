@@ -33,7 +33,7 @@ class monoidal_linear :=
 
 restate_axiom monoidal_linear.tensor_smul'
 restate_axiom monoidal_linear.smul_tensor'
-attribute [simp] monoidal_linear.tensor_smul monoidal_linear.smul_tensor
+attribute [simv] monoidal_linear.tensor_smul monoidal_linear.smul_tensor
 
 variables [monoidal_linear R C]
 

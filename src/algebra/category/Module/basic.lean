@@ -197,8 +197,8 @@ This version is better than `linear_equiv_to_Module_iso` when applicable, becaus
 def linear_equiv.to_Module_iso' {M N : Module.{v} R} (i : M ≃ₗ[R] N) : M ≅ N :=
 { hom := i,
   inv := i.symm,
-  hom_inv_id' := linear_map.ext $ λ x, by simp,
-  inv_hom_id' := linear_map.ext $ λ x, by simp }
+  hom_inv_id' := linear_map.ext $ λ x, by simv,
+  inv_hom_id' := linear_map.ext $ λ x, by simv }
 
 /--
 Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
@@ -210,8 +210,8 @@ def linear_equiv.to_Module_iso'_left {X₁ : Module.{v} R} {g₂ : add_comm_grou
   (e : X₁ ≃ₗ[R] X₂) : X₁ ≅ Module.of R X₂ :=
 { hom := (e : X₁ →ₗ[R] X₂),
   inv := (e.symm : X₂ →ₗ[R] X₁),
-  hom_inv_id' := linear_map.ext $ λ x, by simp,
-  inv_hom_id' := linear_map.ext $ λ x, by simp }
+  hom_inv_id' := linear_map.ext $ λ x, by simv,
+  inv_hom_id' := linear_map.ext $ λ x, by simv }
 
 /--
 Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
@@ -223,8 +223,8 @@ def linear_equiv.to_Module_iso'_right {g₁ : add_comm_group X₁} {m₁ : modul
   {X₂ : Module.{v} R} (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ X₂ :=
 { hom := (e : X₁ →ₗ[R] X₂),
   inv := (e.symm : X₂ →ₗ[R] X₁),
-  hom_inv_id' := linear_map.ext $ λ x, by simp,
-  inv_hom_id' := linear_map.ext $ λ x, by simp }
+  hom_inv_id' := linear_map.ext $ λ x, by simv,
+  inv_hom_id' := linear_map.ext $ λ x, by simv }
 
 namespace category_theory.iso
 
@@ -253,9 +253,9 @@ namespace Module
 
 instance : preadditive (Module.{v} R) :=
 { add_comp' := λ P Q R f f' g,
-    show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
+    show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simv },
   comp_add' := λ P Q R f g g',
-    show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
+    show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simv } }
 
 instance forget₂_AddCommGroup_additive : (forget₂ (Module.{v} R) AddCommGroup).additive := {}
 
@@ -264,8 +264,8 @@ variables {S : Type u} [comm_ring S]
 
 instance : linear S (Module.{v} S) :=
 { hom_module := λ X Y, linear_map.module,
-  smul_comp' := by { intros, ext, simp },
-  comp_smul' := by { intros, ext, simp }, }
+  smul_comp' := by { intros, ext, simv },
+  comp_smul' := by { intros, ext, simv }, }
 
 variables {X Y X' Y' : Module.{v} S}
 

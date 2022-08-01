@@ -34,7 +34,7 @@ def update (m : nat) (a : α) (v : nat → α) : nat → α
 localized "notation v ` ⟨` m ` ↦ ` a `⟩` := omega.update m a v" in omega
 
 lemma update_eq (m : nat) (a : α) (v : nat → α) : (v ⟨m ↦ a⟩) m = a :=
-by simp only [update, if_pos rfl]
+by simv only [update, if_pos rfl]
 
 lemma update_eq_of_ne {m : nat} {a : α} {v : nat → α} (k : nat) :
   k ≠ m → update m a v k = v k :=

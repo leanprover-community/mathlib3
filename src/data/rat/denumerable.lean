@@ -37,4 +37,4 @@ end rat
 
 open_locale cardinal
 
-lemma cardinal.mk_rat : #ℚ = ℵ₀ := by simp
+lemma cardinal.mk_rat : #ℚ = ℵ₀ := by simv

@@ -109,9 +109,9 @@ lemma final_of_adjunction {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : final R 
   let u : structured_arrow c R := structured_arrow.mk (adj.unit.app c) in
   @zigzag_is_connected _ _ ⟨u⟩ $ λ f g, relation.refl_trans_gen.trans
     (relation.refl_trans_gen.single (show zag f u, from
-      or.inr ⟨structured_arrow.hom_mk ((adj.hom_equiv c f.right).symm f.hom) (by simp)⟩))
+      or.inr ⟨structured_arrow.hom_mk ((adj.hom_equiv c f.right).symm f.hom) (by simv)⟩))
     (relation.refl_trans_gen.single (show zag u g, from
-      or.inl ⟨structured_arrow.hom_mk ((adj.hom_equiv c g.right).symm g.hom) (by simp)⟩)) }
+      or.inl ⟨structured_arrow.hom_mk ((adj.hom_equiv c g.right).symm g.hom) (by simv)⟩)) }
 
 /-- If a functor `L : C ⥤ D` is a left adjoint, it is initial. -/
 lemma initial_of_adjunction {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : initial L :=
@@ -119,9 +119,9 @@ lemma initial_of_adjunction {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : initia
   let u : costructured_arrow L d := costructured_arrow.mk (adj.counit.app d) in
   @zigzag_is_connected _ _ ⟨u⟩ $ λ f g, relation.refl_trans_gen.trans
     (relation.refl_trans_gen.single (show zag f u, from
-      or.inl ⟨costructured_arrow.hom_mk (adj.hom_equiv f.left d f.hom) (by simp)⟩))
+      or.inl ⟨costructured_arrow.hom_mk (adj.hom_equiv f.left d f.hom) (by simv)⟩))
     (relation.refl_trans_gen.single (show zag u g, from
-      or.inr ⟨costructured_arrow.hom_mk (adj.hom_equiv g.left d g.hom) (by simp)⟩)) }
+      or.inr ⟨costructured_arrow.hom_mk (adj.hom_equiv g.left d g.hom) (by simv)⟩)) }
 
 @[priority 100]
 instance final_of_is_right_adjoint (F : C ⥤ D) [h : is_right_adjoint F] : final F :=
@@ -172,8 +172,8 @@ begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
     (λ (Y : structured_arrow d F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
-  { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
-  { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
+  { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simv, },
+  { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simv, },
 end
 
 variables {F G}
@@ -189,7 +189,7 @@ def extend_cocone : cocone (F ⋙ G) ⥤ cocone G :=
     { app := λ X, G.map (hom_to_lift F X) ≫ c.ι.app (lift F X),
       naturality' := λ X Y f,
       begin
-        dsimp, simp,
+        dsimp, simv,
         -- This would be true if we'd chosen `lift F X` to be `lift F Y`
         -- and `hom_to_lift F X` to be `f ≫ hom_to_lift F Y`.
         apply induction F
@@ -266,7 +266,7 @@ begin
   dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
   intro j,
-  dsimp, simp,
+  dsimp, simv,
 end
 
 instance colimit_pre_is_iso [has_colimit G] :
@@ -419,8 +419,8 @@ begin
   apply nonempty.some,
   apply @is_preconnected_induction _ _ _
     (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ { left := X₀, hom := k₀ } z,
-  { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
-  { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
+  { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.left _ a, convert f.w, dsimp, simv, },
+  { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.left _ a, convert f.w, dsimp, simv, },
 end
 
 variables {F G}
@@ -436,7 +436,7 @@ def extend_cone : cone (F ⋙ G) ⥤ cone G :=
     { app := λ d, c.π.app (lift F d) ≫ G.map (hom_to_lift F d),
       naturality' := λ X Y f,
       begin
-        dsimp, simp,
+        dsimp, simv,
         -- This would be true if we'd chosen `lift F Y` to be `lift F X`
         -- and `hom_to_lift F Y` to be `hom_to_lift F X ≫ f`.
         apply induction F (λ Z k, (c.π.app Z ≫ G.map k : c.X ⟶ _) =
@@ -514,7 +514,7 @@ begin
   dsimp [is_limit_whisker_equiv],
   apply P.hom_ext,
   intro j,
-  simp,
+  simv,
 end
 
 instance limit_pre_is_iso [has_limit G] :

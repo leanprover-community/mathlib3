@@ -124,7 +124,7 @@ instance action_groupoid_is_free {G A : Type u} [group G] [is_free_group G] [mul
       apply functor.hext,
       { intro, apply unit.ext },
       { refine action_category.cases _, intros,
-        simp only [←this, uncurry_map, curry_apply_left, coe_back, hom_of_pair.val] } },
+        simv only [←this, uncurry_map, curry_apply_left, coe_back, hom_of_pair.val] } },
   end }
 
 namespace spanning_tree
@@ -168,7 +168,7 @@ begin
   cases H,
   { rw [tree_hom_eq T (path.cons default ⟨sum.inl e, H⟩), hom_of_path], refl },
   { rw [tree_hom_eq T (path.cons default ⟨sum.inr e, H⟩), hom_of_path],
-    simp only [is_iso.inv_hom_id, category.comp_id, category.assoc, tree_hom] }
+    simv only [is_iso.inv_hom_id, category.comp_id, category.assoc, tree_hom] }
 end
 
 /-- Since a hom gives a loop, any homomorphism from the vertex group at the root
@@ -184,7 +184,7 @@ end
   map_comp' := begin
     intros,
     rw [comp_as_mul, ←f.map_mul],
-    simp only [is_iso.inv_hom_id_assoc, loop_of_hom, End.mul_def, category.assoc]
+    simv only [is_iso.inv_hom_id_assoc, loop_of_hom, End.mul_def, category.assoc]
   end }
 
 /-- Given a free groupoid and an arborescence of its generating quiver, the vertex
@@ -207,7 +207,7 @@ is_free_group.of_unique_lift
         exact dif_neg h },
       intros,
       suffices : ∀ {a} (p : path (root' T) a), F'.map (hom_of_path T p) = 1,
-      { simp only [this, tree_hom, comp_as_mul, inv_as_inv, loop_of_hom,
+      { simv only [this, tree_hom, comp_as_mul, inv_as_inv, loop_of_hom,
         inv_one, mul_one, one_mul, functor.map_inv, functor.map_comp] },
       intros a p, induction p with b c p e ih,
       { rw [hom_of_path, F'.map_id, id_as_one] },

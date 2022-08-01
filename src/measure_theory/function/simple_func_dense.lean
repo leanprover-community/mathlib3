@@ -72,12 +72,12 @@ lemma nearest_pt_ind_succ (e : ℕ → α) (N : ℕ) (x : α) :
   nearest_pt_ind e (N + 1) x =
     if ∀ k ≤ N, edist (e (N + 1)) x < edist (e k) x
     then N + 1 else nearest_pt_ind e N x :=
-by { simp only [nearest_pt_ind, coe_piecewise, set.piecewise], congr, simp }
+by { simv only [nearest_pt_ind, coe_piecewise, set.piecewise], congr, simv }
 
 lemma nearest_pt_ind_le (e : ℕ → α) (N : ℕ) (x : α) : nearest_pt_ind e N x ≤ N :=
 begin
-  induction N with N ihN, { simp },
-  simp only [nearest_pt_ind_succ],
+  induction N with N ihN, { simv },
+  simv only [nearest_pt_ind_succ],
   split_ifs,
   exacts [le_rfl, ihN.trans N.le_succ]
 end
@@ -86,8 +86,8 @@ lemma edist_nearest_pt_le (e : ℕ → α) (x : α) {k N : ℕ} (hk : k ≤ N) :
   edist (nearest_pt e N x) x ≤ edist (e k) x :=
 begin
   induction N with N ihN generalizing k,
-  { simp [nonpos_iff_eq_zero.1 hk, le_refl] },
-  { simp only [nearest_pt, nearest_pt_ind_succ, map_apply],
+  { simv [nonpos_iff_eq_zero.1 hk, le_refl] },
+  { simv only [nearest_pt, nearest_pt_ind_succ, map_apply],
     split_ifs,
     { rcases hk.eq_or_lt with rfl|hk,
       exacts [le_rfl, (h k (nat.lt_succ_iff.1 hk)).le] },
@@ -142,9 +142,9 @@ lemma tendsto_approx_on {f : β → α} (hf : measurable f) {s : set α} {y₀ :
 begin
   haveI : nonempty s := ⟨⟨y₀, h₀⟩⟩,
   rw [← @subtype.range_coe _ s, ← image_univ, ← (dense_range_dense_seq s).closure_eq] at hx,
-  simp only [approx_on, coe_comp],
+  simv only [approx_on, coe_comp],
   refine tendsto_nearest_pt (closure_minimal _ is_closed_closure hx),
-  simp only [nat.range_cases_on, closure_union, range_comp coe],
+  simv only [nat.range_cases_on, closure_union, range_comp coe],
   exact subset.trans (image_closure_subset_closure_image continuous_subtype_coe)
     (subset_union_right _ _)
 end

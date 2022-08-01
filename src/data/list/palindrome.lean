@@ -45,7 +45,7 @@ namespace palindrome
 variables {l : list α}
 
 lemma reverse_eq {l : list α} (p : palindrome l) : reverse l = l :=
-palindrome.rec_on p rfl (λ _, rfl) (λ x l p h, by simp [h])
+palindrome.rec_on p rfl (λ _, rfl) (λ x l p h, by simv [h])
 
 lemma of_reverse_eq {l : list α} : reverse l = l → palindrome l :=
 begin

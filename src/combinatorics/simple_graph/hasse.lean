@@ -39,7 +39,7 @@ variables {α β} {a b : α}
 
 /-- `αᵒᵈ` and `α` have the same Hasse diagram. -/
 def hasse_dual_iso : hasse αᵒᵈ ≃g hasse α :=
-{ map_rel_iff' := λ a b, by simp [or_comm],
+{ map_rel_iff' := λ a b, by simv [or_comm],
   ..of_dual }
 
 @[simp] lemma hasse_dual_iso_apply (a : αᵒᵈ) : hasse_dual_iso a = of_dual a := rfl

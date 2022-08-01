@@ -42,7 +42,7 @@ begin
   borelize G,
   haveI : separable_space (set.range f ∪ {0} : set G) :=
     hf_meas.separable_space_range_union_singleton,
-  let fs := simple_func.approx_on f hf_meas.measurable (set.range f ∪ {0}) 0 (by simp),
+  let fs := simple_func.approx_on f hf_meas.measurable (set.range f ∪ {0}) 0 (by simv),
   refine ⟨fs, _, _⟩,
   { have h_fs_Lp : ∀ n, mem_ℒp (fs n) p μ,
       from simple_func.mem_ℒp_approx_on_range hf_meas.measurable hf,
@@ -50,7 +50,7 @@ begin
   { assume x,
     apply simple_func.tendsto_approx_on,
     apply subset_closure,
-    simp },
+    simv },
 end
 
 lemma mem_ℒp.ae_fin_strongly_measurable (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0)

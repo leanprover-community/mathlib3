@@ -107,15 +107,15 @@ begin
   have h_splits : (minpoly F α).splits (algebra_map F E) := is_galois.splits F α,
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minpoly F α),
   { have p : iso.symm.to_alg_hom.to_ring_hom.comp (algebra_map F E) = (algebra_map F ↥F⟮α⟯),
-    { ext, simp, },
+    { ext, simv, },
     simpa [p] using polynomial.splits_comp_of_splits
       (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits, },
   rw ← linear_equiv.finrank_eq iso.to_linear_equiv,
   rw ← intermediate_field.adjoin_simple.card_aut_eq_finrank F E H h_sep h_splits,
   apply fintype.card_congr,
   apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
-  { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
-  { intro ϕ, ext1, simp only [trans_apply, symm_apply_apply] },
+  { intro ϕ, ext1, simv only [trans_apply, apply_symm_apply] },
+  { intro ϕ, ext1, simv only [trans_apply, symm_apply_apply] },
 end
 
 end is_galois
@@ -392,7 +392,7 @@ begin
     apply fintype.card_congr,
     rw intermediate_field.adjoin_zero },
   intros K x hx hK,
-  simp only [P] at *,
+  simv only [P] at *,
   rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
     hK, finrank_mul_finrank],
   symmetry,

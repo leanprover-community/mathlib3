@@ -73,7 +73,7 @@ structure mono_factorisation (f : X ⟶ Y) :=
 (fac' : e ≫ m = f . obviously)
 
 restate_axiom mono_factorisation.fac'
-attribute [simp, reassoc] mono_factorisation.fac
+attribute [simv, reassoc] mono_factorisation.fac
 attribute [instance] mono_factorisation.m_mono
 
 attribute [instance] mono_factorisation.m_mono
@@ -100,7 +100,7 @@ lemma ext
 begin
   cases F, cases F',
   cases hI,
-  simp at hm,
+  simv at hm,
   dsimp at F_fac' F'_fac',
   congr,
   { assumption },
@@ -153,7 +153,7 @@ def of_arrow_iso {f g : arrow C} (F : mono_factorisation f.hom) (sq : f ⟶ g) [
   m := F.m ≫ sq.right,
   e := inv sq.left ≫ F.e,
   m_mono := mono_comp _ _,
-  fac' := by simp only [fac_assoc, arrow.w, is_iso.inv_comp_eq, category.assoc] }
+  fac' := by simv only [fac_assoc, arrow.w, is_iso.inv_comp_eq, category.assoc] }
 
 end mono_factorisation
 
@@ -165,13 +165,13 @@ structure is_image (F : mono_factorisation f) :=
 (lift_fac' : Π (F' : mono_factorisation f), lift F' ≫ F'.m = F.m . obviously)
 
 restate_axiom is_image.lift_fac'
-attribute [simp, reassoc] is_image.lift_fac
+attribute [simv, reassoc] is_image.lift_fac
 
 namespace is_image
 
-@[simp, reassoc] lemma fac_lift {F : mono_factorisation f} (hF : is_image F)
+@[simv, reassoc] lemma fac_lift {F : mono_factorisation f} (hF : is_image F)
   (F' : mono_factorisation f) : F.e ≫ hF.lift F' = F'.e :=
-(cancel_mono F'.m).1 $ by simp
+(cancel_mono F'.m).1 $ by simv
 
 variable (f)
 
@@ -192,15 +192,15 @@ must factor through isomorphic objects. -/
 def iso_ext {F F' : mono_factorisation f} (hF : is_image F) (hF' : is_image F') : F.I ≅ F'.I :=
 { hom := hF.lift F',
   inv := hF'.lift F,
-  hom_inv_id' := (cancel_mono F.m).1 (by simp),
-  inv_hom_id' := (cancel_mono F'.m).1 (by simp) }
+  hom_inv_id' := (cancel_mono F.m).1 (by simv),
+  inv_hom_id' := (cancel_mono F'.m).1 (by simv) }
 
 variables {F F' : mono_factorisation f} (hF : is_image F) (hF' : is_image F')
 
-lemma iso_ext_hom_m : (iso_ext hF hF').hom ≫ F'.m = F.m := by simp
-lemma iso_ext_inv_m : (iso_ext hF hF').inv ≫ F.m = F'.m := by simp
-lemma e_iso_ext_hom : F.e ≫ (iso_ext hF hF').hom = F'.e := by simp
-lemma e_iso_ext_inv : F'.e ≫ (iso_ext hF hF').inv = F.e := by simp
+lemma iso_ext_hom_m : (iso_ext hF hF').hom ≫ F'.m = F.m := by simv
+lemma iso_ext_inv_m : (iso_ext hF hF').inv ≫ F.m = F'.m := by simv
+lemma e_iso_ext_hom : F.e ≫ (iso_ext hF hF').hom = F'.e := by simv
+lemma e_iso_ext_inv : F'.e ≫ (iso_ext hF hF').inv = F.e := by simv
 
 /-- If `f` and `g` are isomorphic arrows, then a mono factorisation of `f` that is an image
 gives a mono factorisation of `g` that is an image -/
@@ -275,7 +275,7 @@ def factor_thru_image : X ⟶ image f := (image.mono_factorisation f).e
 /-- Rewrite in terms of the `factor_thru_image` interface. -/
 @[simp]
 lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image f := rfl
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 
 variable {f}
@@ -283,10 +283,10 @@ variable {f}
 /-- Any other factorisation of the morphism `f` through a monomorphism receives a map from the
 image. -/
 def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I := (image.is_image f).lift F'
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
 (image.is_image f).lift_fac' F'
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
 (image.is_image f).fac_lift F'
 @[simp]
@@ -294,7 +294,7 @@ lemma image.is_image_lift (F : mono_factorisation f) :
   (image.is_image f).lift F = image.lift F :=
 rfl
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma is_image.lift_ι {F : mono_factorisation f} (hF : is_image F) :
   hF.lift (image.mono_factorisation f) ≫ image.ι f = F.m :=
 hF.lift_fac _
@@ -311,7 +311,7 @@ by { apply mono_of_mono _ F'.m, simpa using mono_factorisation.m_mono _ }
 lemma has_image.uniq
   (F' : mono_factorisation f) (l : image f ⟶ F'.I) (w : l ≫ F'.m = image.ι f) :
   l = image.lift F' :=
-(cancel_mono F'.m).1 (by simp [w])
+(cancel_mono F'.m).1 (by simv [w])
 
 /-- If `has_image g`, then `has_image (f ≫ g)` when `f` is an isomorphism. -/
 instance {X Y Z : C} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) [has_image g] : has_image (f ≫ g) :=
@@ -340,10 +340,10 @@ variables (f)
 def image_mono_iso_source [mono f] : image f ≅ X :=
 is_image.iso_ext (image.is_image f) (is_image.self f)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image_mono_iso_source_inv_ι [mono f] : (image_mono_iso_source f).inv ≫ image.ι f = f :=
-by simp [image_mono_iso_source]
-@[simp, reassoc]
+by simv [image_mono_iso_source]
+@[simv, reassoc]
 lemma image_mono_iso_source_hom_self [mono f] : (image_mono_iso_source f).hom ≫ f = image.ι f :=
 begin
   conv { to_lhs, congr, skip, rw ←image_mono_iso_source_inv_ι f, },
@@ -411,8 +411,8 @@ image.lift
 
 instance (h : f = f') : is_iso (image.eq_to_hom h) :=
 ⟨⟨image.eq_to_hom h.symm,
-  ⟨(cancel_mono (image.ι f)).1 (by simp [image.eq_to_hom]),
-   (cancel_mono (image.ι f')).1 (by simp [image.eq_to_hom])⟩⟩⟩
+  ⟨(cancel_mono (image.ι f)).1 (by simv [image.eq_to_hom]),
+   (cancel_mono (image.ι f')).1 (by simv [image.eq_to_hom])⟩⟩⟩
 
 /-- An equation between morphisms gives an isomorphism between the images. -/
 def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
@@ -423,7 +423,7 @@ the image inclusion maps commute with `image.eq_to_iso`.
 -/
 lemma image.eq_fac [has_equalizers C] (h : f = f') :
   image.ι f = (image.eq_to_iso h).hom ≫ image.ι f' :=
-by { ext, simp [image.eq_to_iso, image.eq_to_hom], }
+by { ext, simv [image.eq_to_iso, image.eq_to_hom], }
 
 end
 
@@ -437,15 +437,15 @@ image.lift
   m := image.ι g,
   e := f ≫ factor_thru_image g }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image.pre_comp_ι [has_image g] [has_image (f ≫ g)] :
   image.pre_comp f g ≫ image.ι g = image.ι (f ≫ g) :=
-by simp [image.pre_comp]
+by simv [image.pre_comp]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
   factor_thru_image (f ≫ g) ≫ image.pre_comp f g = f ≫ factor_thru_image g :=
-by simp [image.pre_comp]
+by simv [image.pre_comp]
 
 /--
 `image.pre_comp f g` is a monomorphism.
@@ -453,7 +453,7 @@ by simp [image.pre_comp]
 instance image.pre_comp_mono [has_image g] [has_image (f ≫ g)] : mono (image.pre_comp f g) :=
 begin
   apply mono_of_mono _ (image.ι g),
-  simp only [image.pre_comp_ι],
+  simv only [image.pre_comp_ι],
   apply_instance,
 end
 
@@ -470,7 +470,7 @@ lemma image.pre_comp_comp {W : C} (h : Z ⟶ W)
     image.eq_to_hom (category.assoc f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
 begin
   apply (cancel_mono (image.ι h)).1,
-  simp [image.pre_comp, image.eq_to_hom],
+  simv [image.pre_comp, image.eq_to_hom],
 end
 
 variables [has_equalizers C]
@@ -501,7 +501,7 @@ instance image.is_iso_precomp_iso (f : X ⟶ Y) [is_iso f] [has_image g] :
   { I := image (f ≫ g),
     m := image.ι (f ≫ g),
     e := inv f ≫ factor_thru_image (f ≫ g) },
-  ⟨by { ext, simp [image.pre_comp], }, by { ext, simp [image.pre_comp], }⟩⟩⟩
+  ⟨by { ext, simv [image.pre_comp], }, by { ext, simv [image.pre_comp], }⟩⟩⟩
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.
@@ -517,13 +517,13 @@ def image.comp_iso [has_image f] [is_iso g] :
 { hom := image.lift (image.mono_factorisation (f ≫ g)).of_comp_iso,
   inv := image.lift ((image.mono_factorisation f).comp_mono g) }
 
-@[simp, reassoc] lemma image.comp_iso_hom_comp_image_ι [has_image f] [is_iso g] :
+@[simv, reassoc] lemma image.comp_iso_hom_comp_image_ι [has_image f] [is_iso g] :
   (image.comp_iso f g).hom ≫ image.ι (f ≫ g) = image.ι f ≫ g :=
-by { ext, simp [image.comp_iso] }
+by { ext, simv [image.comp_iso] }
 
-@[simp, reassoc] lemma image.comp_iso_inv_comp_image_ι [has_image f] [is_iso g] :
+@[simv, reassoc] lemma image.comp_iso_inv_comp_image_ι [has_image f] [is_iso g] :
   (image.comp_iso f g).inv ≫ image.ι f = image.ι (f ≫ g) ≫ inv g :=
-by { ext, simp [image.comp_iso] }
+by { ext, simv [image.comp_iso] }
 
 end
 
@@ -552,13 +552,13 @@ instance inhabited_image_map {f : arrow C} [has_image f.hom] : inhabited (image_
 ⟨⟨𝟙 _, by tidy⟩⟩
 
 restate_axiom image_map.map_ι'
-attribute [simp, reassoc] image_map.map_ι
+attribute [simv, reassoc] image_map.map_ι
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma image_map.factor_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
   (m : image_map sq) :
   factor_thru_image f.hom ≫ m.map = sq.left ≫ factor_thru_image g.hom :=
-(cancel_mono (image.ι g.hom)).1 $ by simp
+(cancel_mono (image.ι g.hom)).1 $ by simv
 
 /-- To give an image map for a commutative square with `f` at the top and `g` at the bottom, it
     suffices to give a map between any mono factorisation of `f` and any image factorisation of
@@ -567,7 +567,7 @@ def image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq 
   (F : mono_factorisation f.hom) {F' : mono_factorisation g.hom} (hF' : is_image F')
   {map : F.I ⟶ F'.I} (map_ι : map ≫ F'.m = F.m ≫ sq.right) : image_map sq :=
 { map := image.lift F ≫ map ≫ hF'.lift (image.mono_factorisation g.hom),
-  map_ι' := by simp [map_ι] }
+  map_ι' := by simv [map_ι] }
 
 /-- `has_image_map sq` means that there is an `image_map` for the square `sq`. -/
 class has_image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g) : Prop :=
@@ -605,7 +605,7 @@ instance has_image_map.comp {f g h : arrow C} [has_image f.hom] [has_image g.hom
 has_image_map.mk
 { map := (has_image_map.image_map sq1).map ≫ (has_image_map.image_map sq2).map,
   map_ι' :=
-  by simp only [image_map.map_ι, image_map.map_ι_assoc, comma.comp_right, category.assoc] }
+  by simv only [image_map.map_ι, image_map.map_ι_assoc, comma.comp_right, category.assoc] }
 
 variables {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
 
@@ -614,7 +614,7 @@ local attribute [ext] image_map
 
 instance : subsingleton (image_map sq) :=
 subsingleton.intro $ λ a b, image_map.ext a b $ (cancel_mono (image.ι g.hom)).1 $
-  by simp only [image_map.map_ι]
+  by simv only [image_map.map_ι]
 
 end
 
@@ -626,9 +626,9 @@ abbreviation image.map : image f.hom ⟶ image g.hom :=
 
 lemma image.factor_map :
   factor_thru_image f.hom ≫ image.map sq = sq.left ≫ factor_thru_image g.hom :=
-by simp
+by simv
 lemma image.map_ι : image.map sq ≫ image.ι g.hom = image.ι f.hom ≫ sq.right :=
-by simp
+by simv
 lemma image.map_hom_mk'_ι {X Y P Q : C} {k : X ⟶ Y} [has_image k] {l : P ⟶ Q} [has_image l]
   {m : X ⟶ P} {n : Y ⟶ Q} (w : m ≫ l = k ≫ n) [has_image_map (arrow.hom_mk' w)] :
   image.map (arrow.hom_mk' w) ≫ image.ι l = image.ι k ≫ n :=
@@ -700,7 +700,7 @@ attribute [instance] strong_epi_mono_factorisation.e_strong_epi
 /-- Satisfying the inhabited linter -/
 instance strong_epi_mono_factorisation_inhabited {X Y : C} (f : X ⟶ Y) [strong_epi f] :
   inhabited (strong_epi_mono_factorisation f) :=
-⟨⟨⟨Y, 𝟙 Y, f, by simp⟩⟩⟩
+⟨⟨⟨Y, 𝟙 Y, f, by simv⟩⟩⟩
 
 /-- A mono factorisation coming from a strong epi-mono factorisation always has the universal
     property of the image. -/
@@ -777,7 +777,7 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
   has_image_maps C :=
 { has_image_map := λ f g st, has_image_map.mk
   { map := arrow.lift $ arrow.hom_mk' $ show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
-      factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp } }
+      factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simv } }
 
 /-- If a category has images, equalizers and pullbacks, then images are automatically strong epi
     images. -/

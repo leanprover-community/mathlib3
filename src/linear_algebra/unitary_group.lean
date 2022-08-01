@@ -145,7 +145,7 @@ by { ext1 v i, rw [coe_to_GL, to_lin'_mul], refl }
 /-- `unitary_group.embedding_GL` is the embedding from `unitary_group n α`
 to `general_linear_group n α`. -/
 def embedding_GL : unitary_group n α →* general_linear_group α (n → α) :=
-⟨λ A, to_GL A, by simp, by simp⟩
+⟨λ A, to_GL A, by simv, by simv⟩
 
 end unitary_group
 

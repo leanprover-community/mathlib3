@@ -38,7 +38,7 @@ end
 lemma Union_accumulate [preorder α] : (⋃ x, accumulate s x) = ⋃ x, s x :=
 begin
   apply subset.antisymm,
-  { simp only [subset_def, mem_Union, exists_imp_distrib, mem_accumulate],
+  { simv only [subset_def, mem_Union, exists_imp_distrib, mem_accumulate],
     intros z x x' hx'x hz, exact ⟨x', hz⟩ },
   { exact Union_mono (λ i, subset_accumulate), }
 end

@@ -48,11 +48,11 @@ adjunction.mk_of_hom_equiv
   begin
     intros S T M f g,
     ext,
-    simp only [equiv.symm_symm, adjoin_one_map, coe_comp],
+    simv only [equiv.symm_symm, adjoin_one_map, coe_comp],
     simp_rw with_one.map,
     apply with_one.cases_on x,
     { refl },
-    { simp }
+    { simv }
   end }
 
 

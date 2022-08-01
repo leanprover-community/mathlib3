@@ -79,7 +79,7 @@ lemma eq_on_open_of_ae_eq {f g : X → Y} (h : f =ᵐ[μ.restrict U] g) (hU : is
   eq_on f g U :=
 begin
   replace h := ae_imp_of_ae_restrict h,
-  simp only [eventually_eq, ae_iff, not_imp] at h,
+  simv only [eventually_eq, ae_iff, not_imp] at h,
   have : is_open (U ∩ {a | f a ≠ g a}),
   { refine is_open_iff_mem_nhds.mpr (λ a ha, inter_mem (hU.mem_nhds ha.1) _),
     rcases ha with ⟨ha : a ∈ U, ha' : (f a, g a) ∈ (diagonal Y)ᶜ⟩,

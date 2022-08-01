@@ -66,7 +66,7 @@ end
 section examples
 
 @[simp] lemma bernoulli_zero : bernoulli 0 = 1 :=
-by simp [bernoulli]
+by simv [bernoulli]
 
 @[simp] lemma bernoulli_eval_zero (n : ℕ) : (bernoulli n).eval 0 = _root_.bernoulli n :=
 begin
@@ -74,18 +74,18 @@ begin
   have : ∑ (x : ℕ) in range n, _root_.bernoulli x * (n.choose x) * 0 ^ (n - x) = 0,
   { apply sum_eq_zero (λ x hx, _),
     have h : 0 < n - x := tsub_pos_of_lt (mem_range.1 hx),
-    simp [h] },
-  simp [this],
+    simv [h] },
+  simv [this],
 end
 
 @[simp] lemma bernoulli_eval_one (n : ℕ) : (bernoulli n).eval 1 = _root_.bernoulli' n :=
 begin
-  simp only [bernoulli, eval_finset_sum],
-  simp only [←succ_eq_add_one, sum_range_succ, mul_one, cast_one, choose_self,
+  simv only [bernoulli, eval_finset_sum],
+  simv only [←succ_eq_add_one, sum_range_succ, mul_one, cast_one, choose_self,
     (_root_.bernoulli _).mul_comm, sum_bernoulli, one_pow, mul_one, eval_C, eval_monomial],
   by_cases h : n = 1,
   { norm_num [h], },
-  { simp [h],
+  { simv [h],
     exact bernoulli_eq_bernoulli'_of_ne_one h, }
 end
 
@@ -118,7 +118,7 @@ end
 begin
  simp_rw [bernoulli_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
-  simp only [cast_succ, add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
+  simv only [cast_succ, add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
   simp_rw [smul_monomial, mul_comm (_root_.bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
@@ -127,7 +127,7 @@ begin
         mul_assoc, mul_comm, ←smul_eq_mul, ←smul_monomial] },
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
-  simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, add_tsub_cancel_left,
+  simv only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, add_tsub_cancel_left,
     choose_succ_self_right, one_smul, _root_.bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
   apply sum_eq_zero (λ x hx, _),
@@ -137,7 +137,7 @@ begin
     exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (le_tsub_of_add_le_left (succ_le_succ H))) },
   rw [sum_bernoulli],
   have g : (ite (n + 1 - x = 1) (1 : ℚ) 0) = 0,
-  { simp only [ite_eq_right_iff, one_ne_zero],
+  { simv only [ite_eq_right_iff, one_ne_zero],
     intro h₁,
     exact (f x hx) h₁, },
   rw [g, zero_smul],
@@ -158,7 +158,7 @@ begin
   { simp_rw [eval_monomial],
     symmetry,
     rw [←sum_flip _, sum_range_succ],
-    simp only [tsub_self, tsub_zero, choose_zero_right, cast_one, mul_one, pow_zero,
+    simv only [tsub_self, tsub_zero, choose_zero_right, cast_one, mul_one, pow_zero,
       add_tsub_cancel_right],
     apply sum_congr rfl (λ x hx, _),
     apply congr_arg2 _ (congr_arg2 _ _ _) rfl,
@@ -203,14 +203,14 @@ theorem bernoulli_generating_function (t : A) :
 begin
   -- check equality of power series by checking coefficients of X^n
   ext n,
-  -- n = 0 case solved by `simp`
-  cases n, { simp },
+  -- n = 0 case solved by `simv`
+  cases n, { simv },
   -- n ≥ 1, the coefficients is a sum to n+2, so use `sum_range_succ` to write as
   -- last term plus sum to n+1
   rw [coeff_succ_X_mul, coeff_rescale, coeff_exp, power_series.coeff_mul,
     nat.sum_antidiagonal_eq_sum_range_succ_mk, sum_range_succ],
   -- last term is zero so kill with `add_zero`
-  simp only [ring_hom.map_sub, tsub_self, constant_coeff_one, constant_coeff_exp,
+  simv only [ring_hom.map_sub, tsub_self, constant_coeff_one, constant_coeff_exp,
     coeff_zero_eq_constant_coeff, mul_zero, sub_self, add_zero],
   -- Let's multiply both sides by (n+1)! (OK because it's a unit)
   set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
@@ -233,7 +233,7 @@ begin
   -- factorials and binomial coefficients between ℕ and ℚ and A.
   intros i hi,
   -- deal with coefficients of e^X-1
-  simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
+  simv only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
     units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
     mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one,

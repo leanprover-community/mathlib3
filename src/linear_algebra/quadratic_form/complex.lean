@@ -49,14 +49,14 @@ begin
   simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
   split_ifs,
-  { simp only [h, zero_smul, zero_mul]},
+  { simv only [h, zero_smul, zero_mul]},
   have hww' : w' j = w j,
-  { simp only [w, dif_neg h, units.coe_mk0] },
-  simp only [hww', one_mul],
+  { simv only [w, dif_neg h, units.coe_mk0] },
+  simv only [hww', one_mul],
   change v j * v j = ↑(w j) * ((v j * ↑(w j) ^ -(1 / 2 : ℂ)) * (v j * ↑(w j) ^ -(1 / 2 : ℂ))),
   suffices : v j * v j = w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { rw [this], ring },
-  rw [← complex.cpow_add _ _ (w j).ne_zero, show -(1 / 2 : ℂ) + -(1 / 2) = -1, by simp [← two_mul],
+  rw [← complex.cpow_add _ _ (w j).ne_zero, show -(1 / 2 : ℂ) + -(1 / 2) = -1, by simv [← two_mul],
       complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero, one_mul],
 end
 

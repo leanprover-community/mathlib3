@@ -48,7 +48,7 @@ variable {n : ℕ}
 /-- `shl x i` is the bitvector obtained by left-shifting `x` `i` times and padding with `ff`.
 If `x.length < i` then this will return the all-`ff`s bitvector. -/
 def shl (x : bitvec n) (i : ℕ) : bitvec n :=
-bitvec.cong (by simp) $
+bitvec.cong (by simv) $
   drop i x ++ₜ repeat ff (min n i)
 
 /-- `fill_shr x i fill` is the bitvector obtained by right-shifting `x` `i` times and then
@@ -205,30 +205,30 @@ bits_to_nat (to_list v)
 theorem bits_to_nat_to_list {n : ℕ} (x : bitvec n) :
 bitvec.to_nat x = bits_to_nat (vector.to_list x)  := rfl
 
-local attribute [simp] nat.add_comm nat.add_assoc nat.add_left_comm nat.mul_comm nat.mul_assoc
-local attribute [simp] nat.zero_add nat.add_zero nat.one_mul nat.mul_one nat.zero_mul nat.mul_zero
+local attribute [simv] nat.add_comm nat.add_assoc nat.add_left_comm nat.mul_comm nat.mul_assoc
+local attribute [simv] nat.zero_add nat.add_zero nat.one_mul nat.mul_one nat.zero_mul nat.mul_zero
 -- mul_left_comm
 
 theorem to_nat_append {m : ℕ} (xs : bitvec m) (b : bool) :
 bitvec.to_nat (xs ++ₜ b::ᵥnil) = bitvec.to_nat xs * 2 + bitvec.to_nat (b::ᵥnil) :=
 begin
   cases xs with xs P,
-  simp [bits_to_nat_to_list], clear P,
+  simv [bits_to_nat_to_list], clear P,
   unfold bits_to_nat list.foldl,
   -- generalize the accumulator of foldl
   generalize h : 0 = x, conv in (add_lsb x b) { rw ←h }, clear h,
-  simp,
+  simv,
   induction xs with x xs generalizing x,
-  { simp, unfold list.foldl add_lsb, simp [nat.mul_succ] },
-  { simp, apply xs_ih }
+  { simv, unfold list.foldl add_lsb, simv [nat.mul_succ] },
+  { simv, apply xs_ih }
 end
 
 theorem bits_to_nat_to_bool (n : ℕ)
 : bitvec.to_nat (to_bool (n % 2 = 1) ::ᵥ nil) = n % 2 :=
 begin
-  simp [bits_to_nat_to_list],
+  simv [bits_to_nat_to_list],
   unfold bits_to_nat add_lsb list.foldl cond,
-  simp [cond_to_bool_mod_two],
+  simv [cond_to_bool_mod_two],
 end
 
 theorem of_nat_succ {k n : ℕ}
@@ -239,7 +239,7 @@ theorem to_nat_of_nat {k n : ℕ}
 : bitvec.to_nat (bitvec.of_nat k n) = n % 2 ^ k :=
 begin
   induction k with k ih generalizing n,
-  { simp [nat.mod_one], refl },
+  { simv [nat.mod_one], refl },
   { rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ, nat.mul_comm] }
 end
 

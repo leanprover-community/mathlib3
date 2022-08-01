@@ -116,7 +116,7 @@ begin
   { mfld_set_tac },
   { mfld_set_tac },
   { intros b hb, ext L v,
-    simp only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
+    simv only [continuous_linear_map_coord_change, continuous_linear_equiv.coe_coe,
       continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compSL_apply,
       flip_apply, continuous_linear_equiv.symm_symm] },
 end
@@ -141,13 +141,13 @@ def continuous_linear_map :
   begin
     simp_rw [sigma.mk.inj_iff, eq_self_iff_true, heq_iff_eq, true_and],
     ext v,
-    simp only [comp_apply, trivialization.symmL_continuous_linear_map_at, h₁, h₂]
+    simv only [comp_apply, trivialization.symmL_continuous_linear_map_at, h₁, h₂]
   end,
   right_inv' := λ ⟨x, f⟩ ⟨⟨h₁, h₂⟩, _⟩,
   begin
     simp_rw [prod.mk.inj_iff, eq_self_iff_true, true_and],
     ext v,
-    simp only [comp_apply, trivialization.continuous_linear_map_at_symmL, h₁, h₂]
+    simv only [comp_apply, trivialization.continuous_linear_map_at_symmL, h₁, h₂]
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,
   base_set := e₁.base_set ∩ e₂.base_set,

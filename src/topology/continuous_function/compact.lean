@@ -52,7 +52,7 @@ lemma uniform_inducing_equiv_bounded_of_compact :
   uniform_inducing (equiv_bounded_of_compact α β) :=
 uniform_inducing.mk'
 begin
-  simp only [has_basis_compact_convergence_uniformity.mem_iff, uniformity_basis_dist_le.mem_iff],
+  simv only [has_basis_compact_convergence_uniformity.mem_iff, uniformity_basis_dist_le.mem_iff],
   exact λ s, ⟨λ ⟨⟨a, b⟩, ⟨ha, ⟨ε, hε, hb⟩⟩, hs⟩, ⟨{p | ∀ x, (p.1 x, p.2 x) ∈ b},
     ⟨ε, hε, λ _ h x, hb (by exact (dist_le hε.le).mp h x)⟩, λ f g h, hs (by exact λ x hx, h x)⟩,
     λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩, ⟨compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
@@ -102,26 +102,26 @@ variables {α β} {f g : C(α, β)} {C : ℝ}
 
 /-- The pointwise distance is controlled by the distance between functions, by definition. -/
 lemma dist_apply_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
-by simp only [← dist_mk_of_compact, dist_coe_le_dist, ← mk_of_compact_apply]
+by simv only [← dist_mk_of_compact, dist_coe_le_dist, ← mk_of_compact_apply]
 
 /-- The distance between two functions is controlled by the supremum of the pointwise distances -/
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
-by simp only [← dist_mk_of_compact, dist_le C0, mk_of_compact_apply]
+by simv only [← dist_mk_of_compact, dist_le C0, mk_of_compact_apply]
 
 lemma dist_le_iff_of_nonempty [nonempty α] :
   dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
-by simp only [← dist_mk_of_compact, dist_le_iff_of_nonempty, mk_of_compact_apply]
+by simv only [← dist_mk_of_compact, dist_le_iff_of_nonempty, mk_of_compact_apply]
 
 lemma dist_lt_iff_of_nonempty [nonempty α] :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
-by simp only [← dist_mk_of_compact, dist_lt_iff_of_nonempty_compact, mk_of_compact_apply]
+by simv only [← dist_mk_of_compact, dist_lt_iff_of_nonempty_compact, mk_of_compact_apply]
 
 lemma dist_lt_of_nonempty [nonempty α] (w : ∀x:α, dist (f x) (g x) < C) : dist f g < C :=
 (dist_lt_iff_of_nonempty).2 w
 
 lemma dist_lt_iff (C0 : (0 : ℝ) < C) :
   dist f g < C ↔ ∀x:α, dist (f x) (g x) < C :=
-by simp only [← dist_mk_of_compact, dist_lt_iff_of_compact C0, mk_of_compact_apply]
+by simv only [← dist_mk_of_compact, dist_lt_iff_of_compact C0, mk_of_compact_apply]
 
 end
 
@@ -223,7 +223,7 @@ the `𝕜`-algebra of bounded continuous maps `α →ᵇ β` is
 -/
 def linear_isometry_bounded_of_compact :
   C(α, E) ≃ₗᵢ[𝕜] (α →ᵇ E) :=
-{ map_smul' := λ c f, by { ext, simp, },
+{ map_smul' := λ c f, by { ext, simv, },
   norm_map' := λ f, rfl,
   .. add_equiv_bounded_of_compact α E }
 
@@ -389,11 +389,11 @@ def comp_right_alg_hom {X Y : Type*} (R : Type*)
   [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
   C(Y, R) →ₐ[R] C(X, R) :=
 { to_fun := λ g, g.comp f,
-  map_zero' := by { ext, simp, },
-  map_add' := λ g₁ g₂, by { ext, simp, },
-  map_one' := by { ext, simp, },
-  map_mul' := λ g₁ g₂, by { ext, simp, },
-  commutes' := λ r, by { ext, simp, }, }
+  map_zero' := by { ext, simv, },
+  map_add' := λ g₁ g₂, by { ext, simv, },
+  map_one' := by { ext, simv, },
+  map_mul' := λ g₁ g₂, by { ext, simv, },
+  commutes' := λ r, by { ext, simv, }, }
 
 @[simp] lemma comp_right_alg_hom_apply {X Y : Type*} (R : Type*)
   [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) (g : C(Y, R)) :
@@ -425,7 +425,7 @@ begin
   refine (continuous_map.exists_tendsto_compact_open_iff_forall _).2 (λ K hK, _),
   lift K to compacts X using hK,
   have A : ∀ s : finset ι, restrict ↑K (∑ i in s, F i) = ∑ i in s, restrict K (F i),
-  { intro s, ext1 x, simp },
+  { intro s, ext1 x, simv },
   simpa only [has_sum, A] using summable_of_summable_norm (hF K)
 end
 
@@ -467,7 +467,7 @@ instance [compact_space α] [cstar_ring β] : cstar_ring C(α, β) :=
     refine le_antisymm _ _,
     { rw [←sq, continuous_map.norm_le _ (sq_nonneg _)],
       intro x,
-      simp only [continuous_map.coe_mul, coe_star, pi.mul_apply, pi.star_apply,
+      simv only [continuous_map.coe_mul, coe_star, pi.mul_apply, pi.star_apply,
                  cstar_ring.norm_star_mul_self, ←sq],
       refine sq_le_sq' _ _,
       { linarith [norm_nonneg (f x), norm_nonneg f] },

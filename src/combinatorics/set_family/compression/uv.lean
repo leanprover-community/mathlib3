@@ -150,7 +150,7 @@ end
 lemma compress_mem_compression_of_mem_compression (ha : a ∈ 𝓒 u v s) : compress u v a ∈ 𝓒 u v s :=
 begin
   rw mem_compression at ⊢ ha,
-  simp only [compress_idem, exists_prop],
+  simv only [compress_idem, exists_prop],
   obtain ⟨_, ha⟩ | ⟨_, b, hb, rfl⟩ := ha,
   { exact or.inl ⟨ha, ha⟩ },
   { exact or.inr ⟨by rwa compress_idem, b, hb, (compress_idem _ _ _).symm⟩ }

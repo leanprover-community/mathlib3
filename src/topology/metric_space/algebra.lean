@@ -83,7 +83,7 @@ instance real.has_lipschitz_add : has_lipschitz_add ℝ :=
 { lipschitz_add := ⟨2, begin
     rw lipschitz_with_iff_dist_le_mul,
     intros p q,
-    simp only [real.dist_eq, prod.dist_eq, prod.fst_sub, prod.snd_sub, nnreal.coe_one,
+    simv only [real.dist_eq, prod.dist_eq, prod.fst_sub, prod.snd_sub, nnreal.coe_one,
       nnreal.coe_bit0],
     convert le_trans (abs_add (p.1 - q.1) (p.2 - q.2)) _ using 2,
     { abel },

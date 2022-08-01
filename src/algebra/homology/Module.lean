@@ -38,7 +38,7 @@ begin
   refine cokernel_funext (λ n, _),
   -- Gosh it would be nice if `equiv_rw` could directly use an isomorphism, or an enriched `≃`.
   equiv_rw (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).to_linear_equiv.to_equiv at n,
-  convert w n; simp [to_kernel_subobject],
+  convert w n; simv [to_kernel_subobject],
 end
 
 /-- Bundle an element `C.X i` such that `C.d_from i x = 0` as a term of `C.cycles i`. -/
@@ -57,8 +57,8 @@ end
 local attribute [instance] concrete_category.has_coe_to_sort
 
 @[simp] lemma cycles_map_to_cycles (f : C ⟶ D) {i : ι} (x : linear_map.ker (C.d_from i)) :
-  (cycles_map f i) (to_cycles x) = to_cycles ⟨f.f i x.1, by simp [x.2]⟩ :=
-by { ext, simp, }
+  (cycles_map f i) (to_cycles x) = to_cycles ⟨f.f i x.1, by simv [x.2]⟩ :=
+by { ext, simv, }
 
 /-- Build a term of `C.homology i` from an element `C.X i` such that `C.d_from i x = 0`. -/
 abbreviation to_homology
@@ -81,13 +81,13 @@ begin
   -- To check that two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
   dsimp,
-  simp only [homology.π_map_apply],
+  simv only [homology.π_map_apply],
   -- To check that two elements are equal mod boundaries, it suffices to exhibit a boundary:
   ext1,
   swap, exact (to_prev i h.hom) x.1,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
   ext1,
-  simp [h.comm i, x.2]; abel,
+  simv [h.comm i, x.2]; abel,
 end
 
 end Module

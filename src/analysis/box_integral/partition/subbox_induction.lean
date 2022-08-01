@@ -39,7 +39,7 @@ namespace prepartition
 /-- Split a box in `ℝⁿ` into `2 ^ n` boxes by hyperplanes passing through its center. -/
 def split_center (I : box ι) : prepartition I :=
 { boxes := finset.univ.map (box.split_center_box_emb I),
-  le_of_mem' := by simp [I.split_center_box_le],
+  le_of_mem' := by simv [I.split_center_box_le],
   pairwise_disjoint :=
     begin
       rw [finset.coe_map, finset.coe_univ, image_univ],
@@ -48,10 +48,10 @@ def split_center (I : box ι) : prepartition I :=
     end }
 
 @[simp] lemma mem_split_center : J ∈ split_center I ↔ ∃ s, I.split_center_box s = J :=
-by simp [split_center]
+by simv [split_center]
 
 lemma is_partition_split_center (I : box ι) : is_partition (split_center I) :=
-λ x hx, by simp [hx]
+λ x hx, by simv [hx]
 
 lemma upper_sub_lower_of_mem_split_center (h : J ∈ split_center I) (i : ι) :
   J.upper i - J.lower i = (I.upper i - I.lower i) / 2 :=
@@ -110,7 +110,7 @@ begin
     { intros J' hJ',
       rcases (split_center J).mem_bUnion_tagged.1 hJ' with ⟨J₁, h₁, h₂⟩,
       refine ⟨n J₁ J' + 1, λ i, _⟩,
-      simp only [hn J₁ h₁ J' h₂, upper_sub_lower_of_mem_split_center h₁, pow_succ, div_div] },
+      simv only [hn J₁ h₁ J' h₂, upper_sub_lower_of_mem_split_center h₁, pow_succ, div_div] },
     refine ⟨_, hP, is_Henstock_bUnion_tagged.2 hHen, is_subordinate_bUnion_tagged.2 hr, hsub, _⟩,
     refine tagged_prepartition.distortion_of_const _ hP.nonempty_boxes (λ J' h', _),
     rcases hsub J' h' with ⟨n, hn⟩,
@@ -121,8 +121,8 @@ begin
     rw set.subset_inter_iff at HIcc,
     refine ⟨single _ _ le_rfl _ Hmem, is_partition_single _, is_Henstock_single _,
       (is_subordinate_single _ _).2 HIcc.2, _, distortion_single _ _⟩,
-    simp only [tagged_prepartition.mem_single, forall_eq],
-    refine ⟨0, λ i, _⟩, simp }
+    simv only [tagged_prepartition.mem_single, forall_eq],
+    refine ⟨0, λ i, _⟩, simv }
 end
 
 end box
@@ -225,7 +225,7 @@ rfl
 @[simp] lemma distortion_union_compl_to_subordinate (π₁ : tagged_prepartition I)
   (π₂ : prepartition I) (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
   (π₁.union_compl_to_subordinate π₂ hU r).distortion = max π₁.distortion π₂.distortion :=
-by simp [union_compl_to_subordinate]
+by simv [union_compl_to_subordinate]
 
 end tagged_prepartition
 

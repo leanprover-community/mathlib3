@@ -81,7 +81,7 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
 
 @[to_additive] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
-@[simp, to_additive] lemma mul_opposite.smul_eq_mul_unop [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
+@[simv, to_additive] lemma mul_opposite.smul_eq_mul_unop [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
   a • a' = a' * a.unop := rfl
 
 /-- The right regular action of a group on itself is transitive. -/
@@ -115,7 +115,7 @@ instance is_scalar_tower.opposite_mid {M N} [has_mul N] [has_smul M N]
 instance smul_comm_class.opposite_mid {M N} [has_mul N] [has_smul M N]
   [is_scalar_tower M N N] :
   smul_comm_class M Nᵐᵒᵖ N :=
-⟨λ x y z, by { induction y using mul_opposite.rec, simp [smul_mul_assoc] }⟩
+⟨λ x y z, by { induction y using mul_opposite.rec, simv [smul_mul_assoc] }⟩
 
 -- The above instance does not create an unwanted diamond, the two paths to
 -- `mul_action αᵐᵒᵖ αᵐᵒᵖ` are defeq.

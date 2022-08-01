@@ -20,7 +20,7 @@ begin
   intro x,
   -- to prove cong_mod37 x x we just observe that k = 0 will do.
   use (0 : ℤ), -- this is k
-  simp,
+  simv,
 end
 
 theorem cong_mod_symm : symmetric (cong_mod37) :=
@@ -31,7 +31,7 @@ begin
   -- Hl : l * 37 = (b - a)
   -- Goal is to find an integer k with k * 37 = a - b
   use -l,
-  simp [Hl],
+  simv [Hl],
 end
 
 theorem cong_mod_trans : transitive (cong_mod37) :=
@@ -77,7 +77,7 @@ local attribute [instance] coe_int_Zmod37
 instance : has_zero (Zmod37) := ⟨reduce_mod37 0⟩
 instance : has_one (Zmod37) := ⟨reduce_mod37 1⟩
 
--- Add basic facts about 0 and 1 to the set of simp facts
+-- Add basic facts about 0 and 1 to the set of simv facts
 @[simp] theorem of_int_zero : (0 : (Zmod37))  = reduce_mod37 0 := rfl
 @[simp] theorem of_int_one : (1 : (Zmod37))  = reduce_mod37 1 := rfl
 
@@ -114,7 +114,7 @@ end)
 -- I spelt out the proof for add, here's a quick term proof for neg.
 
 lemma congr_neg (a b : ℤ) : a ≈ b → ⟦-a⟧ = ⟦-b⟧ :=
-λ ⟨m, Hm⟩, quotient.sound ⟨-m, by simp [Hm]⟩
+λ ⟨m, Hm⟩, quotient.sound ⟨-m, by simv [Hm]⟩
 
 protected def neg : Zmod37 → Zmod37 := quotient.lift (λ a : ℤ, ⟦-a⟧) congr_neg
 
@@ -156,7 +156,7 @@ instance : add_comm_group (Zmod37)  :=
       -- goal is now 0 + a ≈ a
       -- here's the way we used to do it.
       use (0 : ℤ),
-      simp,
+      simv,
       -- but there are tricks now, which I'll show you with add_zero and add_assoc.
     end),
   add_assoc    := λ abar bbar cbar,quotient.induction_on₃ abar bbar cbar (λ a b c,
@@ -179,7 +179,7 @@ instance : add_comm_group (Zmod37)  :=
       rw [←Ha],
       apply quot.sound,
       use (0 : ℤ),
-      simp,
+      simv,
     end,
   -- but really all proofs should just look something like this
   add_comm     := λ abar bbar, quotient.induction_on₂ abar bbar $

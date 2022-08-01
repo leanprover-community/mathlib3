@@ -136,7 +136,7 @@ instance {M} [monoid M] [distrib_mul_action M α] [has_uniform_continuous_const_
   smul_add := λ r x y, induction_on₂ x y
     (is_closed_eq ((continuous_fst.add continuous_snd).const_smul _)
       ((continuous_fst.const_smul _).add (continuous_snd.const_smul _)))
-    (λ a b, by simp only [← coe_add, ← coe_smul, smul_add]),
+    (λ a b, by simv only [← coe_add, ← coe_smul, smul_add]),
   smul_zero := λ r, by rw [← coe_zero, ← coe_smul, smul_zero r],
   .. completion.mul_action M α }
 
@@ -218,9 +218,9 @@ begin
   ext x,
   apply completion.induction_on x,
   { apply is_closed_eq ((0 : α →+ β).continuous_completion continuous_const),
-    simp [continuous_const] },
+    simv [continuous_const] },
   { intro a,
-    simp [(0 : α →+ β).completion_coe continuous_const, coe_zero] }
+    simv [(0 : α →+ β).completion_coe continuous_const, coe_zero] }
 end
 
 lemma add_monoid_hom.completion_add {γ : Type*} [add_comm_group γ] [uniform_space γ]
@@ -233,7 +233,7 @@ begin
   { exact is_closed_eq ((f+g).continuous_completion hfg)
     ((f.continuous_completion hf).add (g.continuous_completion hg)) },
   { intro a,
-    simp [(f+g).completion_coe hfg, coe_add, f.completion_coe hf, g.completion_coe hg] }
+    simv [(f+g).completion_coe hfg, coe_add, f.completion_coe hf, g.completion_coe hg] }
 end
 
 end add_monoid_hom

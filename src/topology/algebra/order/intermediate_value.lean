@@ -442,7 +442,7 @@ lemma set_of_is_preconnected_eq_of_ordered :
     (range Ici ∪ range Ioi ∪ range Iic ∪ range Iio ∪ {univ, ∅}) :=
 begin
   refine subset.antisymm set_of_is_preconnected_subset_of_ordered _,
-  simp only [subset_def, -mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
+  simv only [subset_def, -mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
     mem_union, mem_set_of_eq, insert_eq, mem_singleton_iff, forall_eq, forall_true_iff, and_true,
     is_preconnected_Icc, is_preconnected_Ico, is_preconnected_Ioc,
     is_preconnected_Ioo, is_preconnected_Ioi, is_preconnected_Iio, is_preconnected_Ici,
@@ -473,7 +473,7 @@ is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab
 /-- **Intermediate Value Theorem** for continuous functions on closed intervals, unordered case. -/
 lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
   interval (f a) (f b) ⊆ f '' interval a b :=
-by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
+by cases le_total (f a) (f b); simv [*, is_preconnected_interval.intermediate_value]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=
@@ -533,7 +533,7 @@ hs.is_preconnected.intermediate_value ha hb hf
 lemma continuous_on.surj_on_interval {s : set α} [hs : ord_connected s] {f : α → δ}
   (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   surj_on f s (interval (f a) (f b)) :=
-by cases le_total (f a) (f b) with hab hab; simp [hf.surj_on_Icc, *]
+by cases le_total (f a) (f b) with hab hab; simv [hf.surj_on_Icc, *]
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/
 lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto f at_top at_top)

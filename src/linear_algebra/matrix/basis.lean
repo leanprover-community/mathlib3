@@ -71,7 +71,7 @@ by { ext M i j, refl, }
 begin
   rw basis.to_matrix,
   ext i j,
-  simp [basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
+  simv [basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
 end
 
 lemma to_matrix_update [decidable_eq ι'] (x : M) :
@@ -90,8 +90,8 @@ end
 begin
   ext i j,
   by_cases h : i = j,
-  { simp [h, to_matrix_apply, units_smul_apply, units.smul_def] },
-  { simp [h, to_matrix_apply, units_smul_apply, units.smul_def, ne.symm h] }
+  { simv [h, to_matrix_apply, units_smul_apply, units.smul_def] },
+  { simv [h, to_matrix_apply, units_smul_apply, units.smul_def, ne.symm h] }
 end
 
 /-- The basis constructed by `is_unit_smul` has vectors given by a diagonal matrix. -/
@@ -141,7 +141,7 @@ def to_matrix_equiv [fintype ι] (e : basis ι R M) : (ι → M) ≃ₗ[R] matri
   right_inv := begin
     intros m,
     ext k l,
-    simp only [e.to_matrix_apply, ← e.equiv_fun_apply, ← e.equiv_fun_symm_apply,
+    simv only [e.to_matrix_apply, ← e.equiv_fun_apply, ← e.equiv_fun_symm_apply,
                linear_equiv.apply_symm_apply],
   end }
 
@@ -197,7 +197,7 @@ lemma basis_to_matrix_basis_fun_mul (b : basis ι R (ι → R)) (A : matrix ι �
   b.to_matrix (pi.basis_fun R ι) ⬝ A = of (λ i j, b.repr (Aᵀ j) i) :=
 begin
   classical,
-  simp only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
+  simv only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
   ext i j,
   rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply,
     matrix.mul_vec_std_basis_apply, matrix.of_apply]
@@ -209,11 +209,11 @@ end
 by { haveI := classical.dec_eq ι',
       rw [←@basis_to_matrix_mul_linear_map_to_matrix _ _ ι, to_matrix_id, matrix.mul_one] }
 
-/-- See also `basis.to_matrix_reindex` which gives the `simp` normal form of this result. -/
+/-- See also `basis.to_matrix_reindex` which gives the `simv` normal form of this result. -/
 lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = matrix.reindex_alg_equiv _ e (b.to_matrix (v ∘ e)) :=
-by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
+by { ext, simv only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
         matrix.reindex_apply, matrix.minor_apply, function.comp_app, e.apply_symm_apply] }
 
 end fintype
@@ -226,7 +226,7 @@ begin
   have  := classical.dec_eq ι',
   haveI := classical.dec_eq ι'',
   ext i j,
-  simp only [matrix.mul_apply, basis.to_matrix_apply, basis.sum_repr_mul_repr],
+  simv only [matrix.mul_apply, basis.to_matrix_apply, basis.sum_repr_mul_repr],
 end
 
 /-- `b.to_matrix b'` and `b'.to_matrix b` are inverses. -/
@@ -238,12 +238,12 @@ by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 lemma basis.to_matrix_reindex
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = (b.to_matrix v).minor e.symm id :=
-by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
+by { ext, simv only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
 
 @[simp]
 lemma basis.to_matrix_map (b : basis ι R M) (f : M ≃ₗ[R] N) (v : ι → N) :
   (b.map f).to_matrix v = b.to_matrix (f.symm ∘ v) :=
-by { ext, simp only [basis.to_matrix_apply, basis.map, linear_equiv.trans_apply] }
+by { ext, simv only [basis.to_matrix_apply, basis.map, linear_equiv.trans_apply] }
 
 end mul_linear_map_to_matrix
 

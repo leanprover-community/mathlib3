@@ -25,7 +25,7 @@ To illustrate the technique, we also prove a similar result.
 -- open_locale classical
 
 local attribute [instance] classical.prop_decidable
-local attribute [simp] sq
+local attribute [simv] sq
 
 /-- Constant descent Vieta jumping.
 
@@ -91,7 +91,7 @@ begin
   -- Our assumptions ensure that we can then prove the claim.
   suffices exc : exceptional.nonempty,
   { -- Suppose that there exists an element in the exceptional locus.
-    simp [exceptional, -add_comm, set.nonempty] at exc,
+    simv [exceptional, -add_comm, set.nonempty] at exc,
     -- Let (a,b) be such an element, and consider all the possible cases.
     rcases exc with ⟨a, b, hH, hb⟩, rcases hb with _|rfl|rfl|hB|hB,
     -- The first three cases are rather easy to solve.
@@ -105,7 +105,7 @@ begin
       -- We find the other root of the equation, and Vieta's formulas.
       rcases Vieta_formula_quadratic hH with ⟨c, h_root, hV₁, hV₂⟩,
       -- By substitutions we find that b = 0 or b = a.
-      simp [hB] at hV₁, subst hV₁,
+      simv [hB] at hV₁, subst hV₁,
       rw [← int.coe_nat_zero] at *,
       rw ← H_quad at h_root,
       -- And hence we are done by H_zero and H_diag.
@@ -134,7 +134,7 @@ begin
   rcases m_mem with ⟨⟨mx, my⟩, ⟨⟨hHm, mx_lt_my⟩, h_base⟩, m_eq⟩,
   -- This means that m_y = m,
   -- and the conditions H(m_x, m_y) and m_x < m_y are satisfied.
-  simp [exceptional, hHm] at mx_lt_my h_base m_eq,
+  simv [exceptional, hHm] at mx_lt_my h_base m_eq,
   push_neg at h_base,
   -- Finally, it also means that (m_x, m_y) does not lie in the base locus,
   -- that m_x ≠ 0, m_x ≠ m_y, B(m_x) ≠ m_y, and B(m_x) ≠ m_x + m_y.
@@ -177,7 +177,7 @@ begin
     -- However, recall that B(m_x) ≠ m_x + m_y.
     -- If c = m_x, we can prove B(m_x) = m_x + m_y.
     contrapose! hm_B₂, subst c,
-    simp [hV₁], }
+    simv [hV₁], }
     -- Hence p' = (c, m_x) lies on the upper branch, and we are done.
 end
 
@@ -188,7 +188,7 @@ lemma imo1988_q6 {a b : ℕ} (h : (a*b+1) ∣ a^2 + b^2) :
 begin
   rcases h with ⟨k, hk⟩,
   rw [hk, nat.mul_div_cancel_left _ (nat.succ_pos (a*b))],
-  simp only [sq] at hk,
+  simv only [sq] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
@@ -196,9 +196,9 @@ begin
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
     norm_cast,
-    simp, ring, },
+    simv, ring, },
   { -- Show that the solution set is symmetric in a and b.
-    intros x y, simp [add_comm (x*x), mul_comm x], },
+    intros x y, simv [add_comm (x*x), mul_comm x], },
   { -- Show that the claim is true if b = 0.
     suffices : ∀ a, a * a = k → ∃ d, d * d = k, by simpa,
     rintros x rfl, use x },
@@ -207,8 +207,8 @@ begin
     suffices : k ≤ 1,
     { rw [nat.le_add_one_iff, nat.le_zero_iff] at this,
       rcases this with rfl|rfl,
-      { use 0, simp },
-      { use 1, simp } },
+      { use 0, simv },
+      { use 1, simv } },
     contrapose! hx with k_lt_one,
     apply ne_of_lt,
     calc x*x + x*x = x*x * 2       : by rw mul_two
@@ -234,7 +234,7 @@ begin
       calc z * y > x*x     : by apply mul_lt_mul'; linarith
              ... ≥ x*x - k : sub_le_self _ (int.coe_zero_le k) }, },
   { -- There is no base case in this application of Vieta jumping.
-    simp },
+    simv },
 end
 
 /-
@@ -246,19 +246,19 @@ example {a b : ℕ} (h : a*b ∣ a^2 + b^2 + 1) :
   3*a*b = a^2 + b^2 + 1 :=
 begin
   rcases h with ⟨k, hk⟩,
-  suffices : k = 3, { simp * at *, ring, },
-  simp only [sq] at hk,
+  suffices : k = 3, { simv * at *, ring, },
+  simv only [sq] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
-    simp, ring, },
+    simv, ring, },
   { -- Show that the solution set is symmetric in a and b.
     cc },
   { -- Show that the claim is true if b = 0.
-    simp },
+    simv },
   { -- Show that the claim is true if a = b.
     intros x hx,
     have x_sq_dvd : x*x ∣ x*x*k := dvd_mul_right (x*x) k,
@@ -288,7 +288,7 @@ begin
     intros x y h h_base,
     obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, nat.le_zero_iff] at h_base,
     { simpa using h, },
-    { simp only [mul_one, one_mul, add_comm, zero_add] at h,
+    { simv only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
       obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,

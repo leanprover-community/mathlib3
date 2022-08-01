@@ -50,13 +50,13 @@ add_decl_doc AddGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
 add_decl_doc AddGroup.of_hom
 
-@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [group X] [group Y] (f : X →* Y) (x : X) :
+@[simv, to_additive] lemma of_hom_apply {X Y : Type*} [group X] [group Y] (f : X →* Y) (x : X) :
   of_hom f x = f x := rfl
 
 @[to_additive]
 instance (G : Group) : group G := G.str
 
-@[simp, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
+@[simv, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
 
 @[to_additive]
 instance : inhabited Group := ⟨Group.of punit⟩
@@ -64,7 +64,7 @@ instance : inhabited Group := ⟨Group.of punit⟩
 @[to_additive]
 instance of_unique (G : Type*) [group G] [i : unique G] : unique (Group.of G) := i
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
 @[ext, to_additive]
@@ -113,13 +113,13 @@ add_decl_doc AddCommGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
 add_decl_doc AddCommGroup.of_hom
 
-@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y)
+@[simv, to_additive] lemma of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y)
   (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
-@[simp, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
+@[simv, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
 
 @[to_additive]
 instance : inhabited CommGroup := ⟨CommGroup.of punit⟩
@@ -127,7 +127,7 @@ instance : inhabited CommGroup := ⟨CommGroup.of punit⟩
 @[to_additive]
 instance of_unique (G : Type*) [comm_group G] [i : unique G] : unique (CommGroup.of G) := i
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
 @[ext, to_additive]
@@ -150,12 +150,12 @@ induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 end CommGroup
 
 -- This example verifies an improvement possible in Lean 3.8.
--- Before that, to have `monoid_hom.map_map` usable by `simp` here,
+-- Before that, to have `monoid_hom.map_map` usable by `simv` here,
 -- we had to mark all the concrete category `has_coe_to_sort` instances reducible.
 -- Now, it just works.
 @[to_additive]
 example {R S : CommGroup} (i : R ⟶ S) (r : R) (h : r = 1) : i r = 1 :=
-by simp [h]
+by simv [h]
 
 namespace AddCommGroup
 
@@ -171,7 +171,7 @@ zmultiples_hom G g
 lemma as_hom_apply {G : AddCommGroup.{0}} (g : G) (i : ℤ) : (as_hom g) i = i • g := rfl
 
 lemma as_hom_injective {G : AddCommGroup.{0}} : function.injective (@as_hom G) :=
-λ h k w, by convert congr_arg (λ k : (AddCommGroup.of ℤ) ⟶ G, (k : ℤ → G) (1 : ℤ)) w; simp
+λ h k w, by convert congr_arg (λ k : (AddCommGroup.of ℤ) ⟶ G, (k : ℤ → G) (1 : ℤ)) w; simv
 
 @[ext]
 lemma int_hom_ext

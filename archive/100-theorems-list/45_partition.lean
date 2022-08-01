@@ -99,15 +99,15 @@ lemma mem_cut {ι : Type*} (s : finset ι) (n : ℕ) (f : ι → ℕ) :
 begin
   rw [cut, mem_filter, and_comm, and_congr_right],
   intro h,
-  simp only [mem_map, exists_prop, function.embedding.coe_fn_mk, mem_pi],
+  simv only [mem_map, exists_prop, function.embedding.coe_fn_mk, mem_pi],
   split,
   { rintro ⟨_, _, rfl⟩ _ _,
-    simp [dif_neg H] },
+    simv [dif_neg H] },
   { intro hf,
     refine ⟨λ i hi, f i, λ i hi, _, _⟩,
     { rw [mem_range, nat.lt_succ_iff, ← h],
       apply single_le_sum _ hi,
-      simp },
+      simv },
     { ext,
       rw [dite_eq_ite, ite_eq_left_iff, eq_comm],
       exact hf x } }
@@ -119,12 +119,12 @@ begin
   ext ⟨x₁, x₂⟩,
   simp_rw [equiv.finset_congr_apply, mem_map, equiv.to_embedding, function.embedding.coe_fn_mk,
            ←equiv.eq_symm_apply],
-  simp [mem_cut, add_comm],
+  simv [mem_cut, add_comm],
 end
 
 lemma cut_univ_fin_eq_antidiagonal_tuple (n : ℕ) (k : ℕ) :
   cut univ n = nat.antidiagonal_tuple k n :=
-by { ext, simp [nat.mem_antidiagonal_tuple, mem_cut] }
+by { ext, simv [nat.mem_antidiagonal_tuple, mem_cut] }
 
 /-- There is only one `cut` of 0. -/
 @[simp]
@@ -161,7 +161,7 @@ begin
   rw [mem_cut, mem_bUnion, sum_insert h],
   split,
   { rintro ⟨rfl, h₁⟩,
-    simp only [exists_prop, function.embedding.coe_fn_mk, mem_map,
+    simv only [exists_prop, function.embedding.coe_fn_mk, mem_map,
                nat.mem_antidiagonal, prod.exists],
     refine ⟨f a, s.sum f, rfl, λ i, if i = a then 0 else f i, _, _⟩,
     { rw [mem_cut],
@@ -171,23 +171,23 @@ begin
         { apply filter_true_of_mem,
           rintro i hi rfl,
           apply h hi },
-        simp [this] },
+        simv [this] },
       { intros i hi,
         rw ite_eq_left_iff,
         intro hne,
         apply h₁,
-        simp [not_or_distrib, hne, hi] } },
+        simv [not_or_distrib, hne, hi] } },
     { ext,
       obtain rfl|h := eq_or_ne x a,
-      { simp },
-      { simp [if_neg h] } } },
-  { simp only [mem_insert, function.embedding.coe_fn_mk, mem_map, nat.mem_antidiagonal, prod.exists,
+      { simv },
+      { simv [if_neg h] } } },
+  { simv only [mem_insert, function.embedding.coe_fn_mk, mem_map, nat.mem_antidiagonal, prod.exists,
                exists_prop, mem_cut, not_or_distrib],
     rintro ⟨p, q, rfl, g, ⟨rfl, hg₂⟩, rfl⟩,
     refine ⟨_, _⟩,
-    { simp [sum_add_distrib, if_neg h, hg₂ _ h, add_comm] },
+    { simv [sum_add_distrib, if_neg h, hg₂ _ h, add_comm] },
     { rintro i ⟨h₁, h₂⟩,
-      simp [if_neg h₁, hg₂ _ h₂] } }
+      simv [if_neg h₁, hg₂ _ h₂] } }
 end
 
 lemma coeff_prod_range
@@ -197,12 +197,12 @@ begin
   revert n,
   apply finset.induction_on s,
   { rintro ⟨_ | n⟩,
-    { simp },
-    simp [cut_empty_succ, if_neg (nat.succ_ne_zero _)] },
+    { simv },
+    simv [cut_empty_succ, if_neg (nat.succ_ne_zero _)] },
   intros a s hi ih n,
   rw [cut_insert _ _ _ hi, prod_insert hi, coeff_mul, sum_bUnion],
   { congrm finset.sum _ (λ i, _),
-    simp only [sum_map, pi.add_apply, function.embedding.coe_fn_mk, prod_insert hi, if_pos rfl, ih,
+    simv only [sum_map, pi.add_apply, function.embedding.coe_fn_mk, prod_insert hi, if_pos rfl, ih,
       mul_sum],
     apply sum_congr rfl _,
     intros x hx,
@@ -213,11 +213,11 @@ begin
     intros k hk,
     rw [if_neg, add_zero],
     exact ne_of_mem_of_not_mem hk hi },
-  { simp only [set.pairwise_disjoint, set.pairwise, prod.forall, not_and, ne.def,
+  { simv only [set.pairwise_disjoint, set.pairwise, prod.forall, not_and, ne.def,
       nat.mem_antidiagonal, disjoint_left, mem_map, exists_prop, function.embedding.coe_fn_mk,
       exists_imp_distrib, not_exists, finset.mem_coe],
     rintro p₁ q₁ rfl p₂ q₂ h t x hx,
-    simp only [finset.inf_eq_inter, finset.mem_map, finset.mem_inter, mem_cut, exists_prop,
+    simv only [finset.inf_eq_inter, finset.mem_map, finset.mem_inter, mem_cut, exists_prop,
       function.embedding.coe_fn_mk] at hx,
     rcases hx with ⟨⟨p, ⟨hp, hp2⟩, hp3⟩, ⟨q, ⟨hq, hq2⟩, hq3⟩⟩,
     have z := hp3.trans hq3.symm,
@@ -250,11 +250,11 @@ lemma two_series (i : ℕ) [semiring α] :
   (1 + (X : power_series α)^i.succ) = indicator_series α {0, i.succ} :=
 begin
   ext,
-  simp only [coeff_indicator, coeff_one, coeff_X_pow, set.mem_insert_iff, set.mem_singleton_iff,
+  simv only [coeff_indicator, coeff_one, coeff_X_pow, set.mem_insert_iff, set.mem_singleton_iff,
     map_add],
   cases n with d,
-  { simp [(nat.succ_ne_zero i).symm] },
-  { simp [nat.succ_ne_zero d], },
+  { simv [(nat.succ_ne_zero i).symm] },
+  { simv [nat.succ_ne_zero d], },
 end
 
 lemma num_series' [field α] (i : ℕ) :
@@ -263,8 +263,8 @@ begin
   rw power_series.inv_eq_iff_mul_eq_one,
   { ext,
     cases n,
-    { simp [mul_sub, zero_pow, constant_coeff_indicator] },
-    { simp only [coeff_one, if_neg n.succ_ne_zero, mul_sub, mul_one,
+    { simv [mul_sub, zero_pow, constant_coeff_indicator] },
+    { simv only [coeff_one, if_neg n.succ_ne_zero, mul_sub, mul_one,
                  coeff_indicator, linear_map.map_sub],
       simp_rw [coeff_mul, coeff_X_pow, coeff_indicator, boole_mul, sum_ite, filter_filter,
                sum_const_zero, add_zero, sum_const, nsmul_eq_mul, mul_one, sub_eq_iff_eq_add,
@@ -273,12 +273,12 @@ begin
       split_ifs,
       { suffices :
         ((nat.antidiagonal n.succ).filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1)).card = 1,
-        { simp only [set.mem_set_of_eq], rw this, norm_cast },
+        { simv only [set.mem_set_of_eq], rw this, norm_cast },
         rw card_eq_one,
         cases h with p hp,
         refine ⟨((i+1) * (p-1), i+1), _⟩,
         ext ⟨a₁, a₂⟩,
-        simp only [mem_filter, prod.mk.inj_iff, nat.mem_antidiagonal, mem_singleton],
+        simv only [mem_filter, prod.mk.inj_iff, nat.mem_antidiagonal, mem_singleton],
         split,
         { rintro ⟨a_left, ⟨a, rfl⟩, rfl⟩,
           refine ⟨_, rfl⟩,
@@ -287,17 +287,17 @@ begin
           cases p,
           { rw mul_zero at hp, cases hp },
           rw hp,
-          simp [nat.succ_eq_add_one, mul_add] } },
+          simv [nat.succ_eq_add_one, mul_add] } },
       { suffices :
         (filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1) (nat.antidiagonal n.succ)).card = 0,
-        { simp only [set.mem_set_of_eq], rw this, norm_cast },
+        { simv only [set.mem_set_of_eq], rw this, norm_cast },
         rw card_eq_zero,
         apply eq_empty_of_forall_not_mem,
-        simp only [prod.forall, mem_filter, not_and, nat.mem_antidiagonal],
+        simv only [prod.forall, mem_filter, not_and, nat.mem_antidiagonal],
         rintro _ h₁ h₂ ⟨a, rfl⟩ rfl,
         apply h,
-        simp [← h₂] } } },
-  { simp [zero_pow] },
+        simv [← h₂] } } },
+  { simv [zero_pow] },
 end
 
 def mk_odd : ℕ ↪ ℕ := ⟨λ i, 2 * i + 1, λ x y h, by linarith⟩
@@ -314,7 +314,7 @@ begin
   simp_rw [coeff_prod_range, coeff_indicator, prod_boole, sum_boole],
   congr' 1,
   refine finset.card_congr (λ p _ i, multiset.count i p.parts • i) _ _ _,
-  { simp only [mem_filter, mem_cut, mem_univ, true_and, exists_prop, and_assoc, and_imp,
+  { simv only [mem_filter, mem_cut, mem_univ, true_and, exists_prop, and_assoc, and_imp,
                smul_eq_zero, function.embedding.coe_fn_mk, exists_imp_distrib],
     rintro ⟨p, hp₁, hp₂⟩ hp₃ hp₄,
     dsimp only at *,
@@ -326,7 +326,7 @@ begin
     { exact λ i hi, ⟨_, hp₃ i, rfl⟩ } },
   { intros p₁ p₂ hp₁ hp₂ h,
     apply nat.partition.ext,
-    simp only [true_and, mem_univ, mem_filter] at hp₁ hp₂,
+    simv only [true_and, mem_univ, mem_filter] at hp₁ hp₂,
     ext i,
     rw function.funext_iff at h,
     specialize h i,
@@ -336,11 +336,11 @@ begin
       intro a, exact nat.lt_irrefl 0 (hs 0 (hp₂.2 0 a)),
       intro a, exact nat.lt_irrefl 0 (hs 0 (hp₁.2 0 a)) },
     { rwa [nat.nsmul_eq_mul, nat.nsmul_eq_mul, nat.mul_left_inj i.succ_pos] at h } },
-  { simp only [mem_filter, mem_cut, mem_univ, exists_prop, true_and, and_assoc],
+  { simv only [mem_filter, mem_cut, mem_univ, exists_prop, true_and, and_assoc],
     rintros f ⟨hf₁, hf₂, hf₃⟩,
     refine ⟨⟨∑ i in s, multiset.repeat i (f i / i), _, _⟩, _, _, _⟩,
     { intros i hi,
-      simp only [exists_prop, mem_sum, mem_map, function.embedding.coe_fn_mk] at hi,
+      simv only [exists_prop, mem_sum, mem_map, function.embedding.coe_fn_mk] at hi,
       rcases hi with ⟨t, ht, z⟩,
       apply hs,
       rwa multiset.eq_of_mem_repeat z },
@@ -375,7 +375,7 @@ begin
   rw partial_odd_gf,
   convert partial_gf_prop α n ((range m).map mk_odd) _ (λ _, set.univ) (λ _ _, trivial) using 2,
   { congrm card (filter (λ p, _) _),
-    simp only [true_and, forall_const, set.mem_univ] },
+    simv only [true_and, forall_const, set.mem_univ] },
   { rw finset.prod_map,
     simp_rw num_series',
     congrm finset.prod _ (λ x, indicator_series α _),
@@ -402,7 +402,7 @@ begin
   intros i hi,
   have hin : i ≤ n,
   { simpa [p.parts_sum] using multiset.single_le_sum (λ _ _, nat.zero_le _) _ hi },
-  simp only [mk_odd, exists_prop, mem_range, function.embedding.coe_fn_mk, mem_map],
+  simv only [mk_odd, exists_prop, mem_range, function.embedding.coe_fn_mk, mem_map],
   split,
   { intro hi₂,
     have := nat.mod_add_div i 2,
@@ -429,11 +429,11 @@ begin
     rw multiset.nodup_iff_count_le_one,
     congrm ∀ (i : ℕ), (_ : Prop),
     rcases multiset.count i p.parts with _|_|ms;
-    simp },
+    simv },
   { simp_rw [finset.prod_map, two_series],
     congrm finset.prod _ (λ i, indicator_series _ _),
-    simp [set.image_pair] },
-  { simp only [mem_map, function.embedding.coe_fn_mk],
+    simv [set.image_pair] },
+  { simv only [mem_map, function.embedding.coe_fn_mk],
     rintro i ⟨_, _, rfl⟩,
     apply nat.succ_pos }
 end
@@ -450,7 +450,7 @@ begin
   intros i hi,
   have : i ≤ n,
   { simpa [p.parts_sum] using multiset.single_le_sum (λ _ _, nat.zero_le _) _ hi },
-  simp only [mk_odd, exists_prop, mem_range, function.embedding.coe_fn_mk, mem_map],
+  simv only [mk_odd, exists_prop, mem_range, function.embedding.coe_fn_mk, mem_map],
   refine ⟨i-1, _, nat.succ_pred_eq_of_pos (p.parts_pos hi)⟩,
   rw tsub_lt_iff_right (nat.one_le_iff_ne_zero.mpr (p.parts_pos hi).ne'),
   exact lt_of_le_of_lt this h,
@@ -467,7 +467,7 @@ lemma same_gf [field α] (m : ℕ) :
 begin
   rw [partial_odd_gf, partial_distinct_gf],
   induction m with m ih,
-  { simp },
+  { simv },
 
   rw nat.succ_eq_add_one,
 

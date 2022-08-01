@@ -51,7 +51,7 @@ begin
     { rw list.sum_cons,
       apply add_pos_of_pos_of_nonneg hx,
       cases l with hd tl,
-      { simp },
+      { simv },
       { apply le_of_lt (hl (hd :: tl) (list.cons_ne_nil hd tl) (hd :: tl).suffix_refl) } },
     { apply hl _ hl₁ hl₂ } }
 end
@@ -82,7 +82,7 @@ begin
     { rwa ← list.count_eq_length.2 this },
     { exact λ x hx, (this x hx).symm } },
   { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    simv only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
     refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
     { norm_num },
     { rintro ⟨-, rfl⟩,
@@ -105,7 +105,7 @@ begin
     { rwa ← list.count_eq_length.2 this },
     { exact λ x hx, (this x hx).symm } },
   { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    simv only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
     refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
     { norm_num },
     { rintro ⟨-, rfl⟩,
@@ -175,8 +175,8 @@ begin
 end
 
 lemma counted_sequence_finite : ∀ (p q : ℕ), (counted_sequence p q).finite
-| 0 q := by simp
-| (p + 1) 0 := by simp
+| 0 q := by simv
+| (p + 1) 0 := by simv
 | (p + 1) (q + 1) :=
   begin
     rw [counted_succ_succ, set.finite_union, set.finite_image_iff (list.cons_injective.inj_on _),
@@ -185,8 +185,8 @@ lemma counted_sequence_finite : ∀ (p q : ℕ), (counted_sequence p q).finite
   end
 
 lemma counted_sequence_nonempty : ∀ (p q : ℕ), (counted_sequence p q).nonempty
-| 0 q := by simp
-| (p + 1) 0 := by simp
+| 0 q := by simv
+| (p + 1) 0 := by simv
 | (p + 1) (q + 1) :=
   begin
     rw [counted_succ_succ, union_nonempty, nonempty_image_iff],
@@ -198,16 +198,16 @@ lemma sum_of_mem_counted_sequence :
 | 0 q l hl :=
   begin
     rw [counted_left_zero, mem_singleton_iff] at hl,
-    simp [hl],
+    simv [hl],
   end
 | p 0 l hl :=
   begin
     rw [counted_right_zero, mem_singleton_iff] at hl,
-    simp [hl],
+    simv [hl],
   end
 | (p + 1) (q + 1) l hl :=
   begin
-    simp only [counted_succ_succ, mem_union, mem_image] at hl,
+    simv only [counted_succ_succ, mem_union, mem_image] at hl,
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
     { rw [list.sum_cons, sum_of_mem_counted_sequence hl],
       push_cast,
@@ -233,7 +233,7 @@ lemma mem_of_mem_counted_sequence :
   end
 | (p + 1) (q + 1) l hl x hx :=
   begin
-    simp only [counted_succ_succ, mem_union, mem_image] at hl,
+    simv only [counted_succ_succ, mem_union, mem_image] at hl,
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩);
     rcases hx with (rfl | hx),
     { left, refl },
@@ -247,16 +247,16 @@ lemma length_of_mem_counted_sequence :
 | 0 q l hl :=
   begin
     rw [counted_left_zero, mem_singleton_iff] at hl,
-    simp [hl],
+    simv [hl],
   end
 | p 0 l hl :=
   begin
     rw [counted_right_zero, mem_singleton_iff] at hl,
-    simp [hl],
+    simv [hl],
   end
 | (p + 1) (q + 1) l hl :=
   begin
-    simp only [counted_succ_succ, mem_union, mem_image] at hl,
+    simv only [counted_succ_succ, mem_union, mem_image] at hl,
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
     { rw [list.length_cons, length_of_mem_counted_sequence hl, add_right_comm] },
     { rw [list.length_cons, length_of_mem_counted_sequence hl, ←add_assoc] }
@@ -286,8 +286,8 @@ private lemma list_int_measurable_set {s : set (list ℤ)} : measurable_set s :=
 trivial
 
 lemma count_counted_sequence : ∀ p q : ℕ, count (counted_sequence p q) = (p + q).choose p
-| p 0 := by simp [counted_right_zero, count_singleton]
-| 0 q := by simp [counted_left_zero, count_singleton]
+| p 0 := by simv [counted_right_zero, count_singleton]
+| 0 q := by simv [counted_left_zero, count_singleton]
 | (p + 1) (q + 1) :=
   begin
     rw [counted_succ_succ, measure_union (disjoint_bits _ _) list_int_measurable_set,
@@ -304,7 +304,7 @@ lemma first_vote_pos :
 | (p + 1) 0 h :=
   begin
     rw [counted_right_zero, cond_count_singleton],
-    simp [ennreal.div_self _ _],
+    simv [ennreal.div_self _ _],
   end
 | 0 (q + 1) _ :=
   begin
@@ -320,7 +320,7 @@ lemma first_vote_pos :
         (nonempty_image_iff.2 (counted_sequence_nonempty _ _))],
     { have : list.cons (-1) '' counted_sequence (p + 1) q ∩ {l : list ℤ | l.head = 1} = ∅,
       { ext,
-        simp only [mem_inter_eq, mem_image, mem_set_of_eq, mem_empty_eq, iff_false, not_and,
+        simv only [mem_inter_eq, mem_image, mem_set_of_eq, mem_empty_eq, iff_false, not_and,
           forall_exists_index, and_imp],
         rintro l _ rfl,
         norm_num },
@@ -336,9 +336,9 @@ lemma first_vote_pos :
         { norm_cast,
           rw [mul_comm _ (p + 1), ← nat.succ_eq_add_one p, nat.succ_add,
             nat.succ_mul_choose_eq, mul_comm] },
-          all_goals { simp [(nat.choose_pos $ (le_add_iff_nonneg_right _).2 zero_le').ne.symm] } },
+          all_goals { simv [(nat.choose_pos $ (le_add_iff_nonneg_right _).2 zero_le').ne.symm] } },
       all_goals { apply_instance } },
-    { simp },
+    { simv },
     { apply_instance }
   end
 
@@ -354,12 +354,12 @@ begin
     (counted_sequence_finite p q) (counted_sequence_nonempty p q),
   rw [compl_compl, first_vote_pos _ _ h] at this,
   rw [(_ : (q / (p + q) : ennreal) = 1 - p / (p + q)), ← this, ennreal.add_sub_cancel_right],
-  { simp only [ne.def, ennreal.div_eq_top, nat.cast_eq_zero, add_eq_zero_iff,
+  { simv only [ne.def, ennreal.div_eq_top, nat.cast_eq_zero, add_eq_zero_iff,
       ennreal.nat_ne_top, false_and, or_false, not_and],
     intros,
     contradiction },
   rw [eq_comm, ennreal.eq_div_iff, ennreal.mul_sub, ennreal.mul_div_cancel'],
-  all_goals { simp, try { rintro rfl, rw zero_add at h, exact h.ne.symm } },
+  all_goals { simv, try { rintro rfl, rw zero_add at h, exact h.ne.symm } },
 end
 
 lemma ballot_same (p : ℕ) : cond_count (counted_sequence (p + 1) (p + 1)) stays_positive = 0 :=
@@ -392,7 +392,7 @@ begin
   rw [counted_succ_succ, union_inter_distrib_right,
     (_ : list.cons (-1) '' counted_sequence (p + 1) q ∩ {l | l.head = 1} = ∅), union_empty];
   { ext,
-    simp only [mem_inter_eq, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_eq,
+    simv only [mem_inter_eq, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_eq,
       iff_false, not_and, forall_exists_index, and_imp],
     rintro y hy rfl,
     norm_num }
@@ -410,14 +410,14 @@ begin
   have : (counted_sequence p (q + 1)).image (list.cons 1) ∩ stays_positive =
          (counted_sequence p (q + 1) ∩ stays_positive).image (list.cons 1),
   { ext t,
-    simp only [mem_inter_eq, mem_image],
+    simv only [mem_inter_eq, mem_image],
     split,
-    { simp only [and_imp, exists_imp_distrib],
+    { simv only [and_imp, exists_imp_distrib],
       rintro l hl rfl t,
       refine ⟨l, ⟨hl, _⟩, rfl⟩,
       rwa stays_positive_cons_pos at t,
       norm_num },
-    { simp only [and_imp, exists_imp_distrib],
+    { simv only [and_imp, exists_imp_distrib],
       rintro l hl₁ hl₂ rfl,
       refine ⟨⟨_, hl₁, rfl⟩, _⟩,
       rwa stays_positive_cons_pos,
@@ -433,7 +433,7 @@ begin
   rw [counted_succ_succ, union_inter_distrib_right,
     (_ : list.cons 1 '' counted_sequence p (q + 1) ∩ {l : list ℤ | l.head = 1}ᶜ = ∅), empty_union];
   { ext,
-    simp only [mem_inter_eq, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_eq,
+    simv only [mem_inter_eq, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_eq,
       iff_false, not_and, forall_exists_index, and_imp],
     rintro y hy rfl,
     norm_num }
@@ -451,17 +451,17 @@ begin
   have : (counted_sequence (p + 1) q).image (list.cons (-1)) ∩ stays_positive =
          ((counted_sequence (p + 1) q) ∩ stays_positive).image (list.cons (-1)),
   { ext t,
-    simp only [mem_inter_eq, mem_image],
+    simv only [mem_inter_eq, mem_image],
     split,
-    { simp only [and_imp, exists_imp_distrib],
+    { simv only [and_imp, exists_imp_distrib],
       rintro l hl rfl t,
       exact ⟨_, ⟨hl, λ l₁ hl₁ hl₂, t l₁ hl₁ (hl₂.trans (list.suffix_cons _ _))⟩, rfl⟩ },
-    { simp only [and_imp, exists_imp_distrib],
+    { simv only [and_imp, exists_imp_distrib],
       rintro l hl₁ hl₂ rfl,
       refine ⟨⟨l, hl₁, rfl⟩, λ l₁ hl₃ hl₄, _⟩,
       rw list.suffix_cons_iff at hl₄,
       rcases hl₄ with (rfl | hl₄),
-      { simp [list.sum_cons, sum_of_mem_counted_sequence hl₁, sub_eq_add_neg, ← add_assoc, qp] },
+      { simv [list.sum_cons, sum_of_mem_counted_sequence hl₁, sub_eq_add_neg, ← add_assoc, qp] },
       exact hl₂ _ hl₃ hl₄ } },
   rw [this, count_injective_image],
   exact list.cons_injective
@@ -474,10 +474,10 @@ begin
   apply nat.diag_induction,
   { intro p,
     rw ballot_same,
-    simp },
+    simv },
   { intro p,
     rw ballot_edge,
-    simp only [ennreal.one_to_real, nat.cast_add, nat.cast_one, nat.cast_zero, sub_zero, add_zero],
+    simv only [ennreal.one_to_real, nat.cast_add, nat.cast_one, nat.cast_zero, sub_zero, add_zero],
     rw div_self ,
     exact nat.cast_add_one_ne_zero p },
   { intros q p qp h₁ h₂,
@@ -505,7 +505,7 @@ begin
       field_simp [h₄, h₅, h₆] at *,
       ring },
     all_goals { refine (ennreal.mul_lt_top (measure_lt_top _ _).ne _).ne,
-      simp [ne.def, ennreal.div_eq_top] } }
+      simv [ne.def, ennreal.div_eq_top] } }
 end
 
 /-- The ballot problem. -/
@@ -522,7 +522,7 @@ begin
       ennreal.to_real_sub_of_le, ennreal.to_real_nat, ennreal.to_real_nat],
     exacts [ennreal.coe_nat_le_coe_nat.2 qp.le, ennreal.nat_ne_top _] },
   rwa ennreal.to_real_eq_to_real (measure_lt_top _ _).ne at this,
-  { simp only [ne.def, ennreal.div_eq_top, tsub_eq_zero_iff_le, ennreal.coe_nat_le_coe_nat,
+  { simv only [ne.def, ennreal.div_eq_top, tsub_eq_zero_iff_le, ennreal.coe_nat_le_coe_nat,
       not_le, add_eq_zero_iff, nat.cast_eq_zero, ennreal.add_eq_top, ennreal.nat_ne_top,
       or_self, not_false_iff, and_true],
     push_neg,

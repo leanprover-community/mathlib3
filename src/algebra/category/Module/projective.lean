@@ -54,6 +54,6 @@ instance Module_enough_projectives : enough_projectives (Module.{max u v} R) :=
     projective := projective_of_free finsupp.basis_single_one,
     f := finsupp.basis_single_one.constr ℕ id,
     epi := (epi_iff_range_eq_top _).mpr
-      (range_eq_top.2 (λ m, ⟨finsupp.single m (1 : R), by simp [basis.constr]⟩)) }⟩, }
+      (range_eq_top.2 (λ m, ⟨finsupp.single m (1 : R), by simv [basis.constr]⟩)) }⟩, }
 
 end Module

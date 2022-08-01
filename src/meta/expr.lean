@@ -667,7 +667,7 @@ match e.get_app_fn with
 | _ := ff
 end
 
-/-- `get_simp_args e` returns the arguments of `e` that simp can reach via congruence lemmas. -/
+/-- `get_simp_args e` returns the arguments of `e` that simv can reach via congruence lemmas. -/
 meta def get_simp_args (e : expr) : tactic (list expr) :=
 -- `mk_specialized_congr_lemma_simp` throws an assertion violation if its argument is not an app
 if ¬ e.is_app then pure [] else do
@@ -680,7 +680,7 @@ pure $ do
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof
   `pr : e = new_e`. -/
-meta def simp (t : expr)
+meta def simv (t : expr)
   (cfg : simp_config := {}) (discharger : tactic unit := failed)
   (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
   tactic (expr × expr × name_set) :=

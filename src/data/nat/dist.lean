@@ -19,10 +19,10 @@ def dist (n m : ℕ) := (n - m) + (m - n)
 theorem dist.def (n m : ℕ) : dist n m = (n - m) + (m - n) := rfl
 
 theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
-by simp [dist.def, add_comm]
+by simv [dist.def, add_comm]
 
 @[simp] theorem dist_self (n : ℕ) : dist n n = 0 :=
-by simp [dist.def, tsub_self]
+by simv [dist.def, tsub_self]
 
 theorem eq_of_dist_eq_zero {n m : ℕ} (h : dist n m = 0) : n = m :=
 have n - m = 0, from nat.eq_zero_of_add_eq_zero_right h,
@@ -75,7 +75,7 @@ calc
 
 theorem dist.triangle_inequality (n m k : ℕ) : dist n k ≤ dist n m + dist m k :=
 have dist n m + dist m k = (n - m) + (m - k) + ((k - m) + (m - n)),
-  by simp [dist.def, add_comm, add_left_comm],
+  by simv [dist.def, add_comm, add_left_comm],
 by { rw [this, dist.def], exact add_le_add tsub_le_tsub_add_tsub tsub_le_tsub_add_tsub }
 
 theorem dist_mul_right (n k m : ℕ) : dist (n * k) (m * k) = dist n m * k :=
@@ -96,7 +96,7 @@ or.elim (lt_or_ge i j)
 -/
 
 theorem dist_succ_succ {i j : nat} : dist (succ i) (succ j) = dist i j :=
-by simp [dist.def, succ_sub_succ]
+by simv [dist.def, succ_sub_succ]
 
 theorem dist_pos_of_ne {i j : nat} : i ≠ j → 0 < dist i j :=
 assume hne, nat.lt_by_cases

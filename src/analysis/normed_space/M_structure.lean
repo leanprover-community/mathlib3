@@ -185,7 +185,7 @@ instance [has_faithful_smul M X] : has_sdiff {P : M // is_Lprojection X P} :=
 instance [has_faithful_smul M X] : partial_order {P : M // is_Lprojection X P} :=
 { le := λ P Q, (↑P : M) = ↑(P ⊓ Q),
   le_refl := λ P, by simpa only [coe_inf, ←sq] using (P.prop.proj.eq).symm,
-  le_trans := λ P Q R h₁ h₂, by { simp only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
+  le_trans := λ P Q R h₁ h₂, by { simv only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
   le_antisymm := λ P Q h₁ h₂, subtype.eq (by convert (P.prop.commute Q.prop).eq) }
 
 lemma le_def [has_faithful_smul M X] (P Q : {P : M // is_Lprojection X P}) :
@@ -194,7 +194,7 @@ iff.rfl
 
 instance : has_zero {P : M // is_Lprojection X P} :=
 ⟨⟨0, ⟨by rw [is_idempotent_elem, zero_mul],
-     λ x, by simp only [zero_smul, norm_zero, sub_zero,
+     λ x, by simv only [zero_smul, norm_zero, sub_zero,
                         one_smul, zero_add]⟩⟩⟩
 
 @[simp] lemma coe_zero : ↑(0 : {P : M // is_Lprojection X P}) = (0 : M) :=

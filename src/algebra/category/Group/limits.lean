@@ -44,7 +44,7 @@ def sections_subgroup (F : J ⥤ Group) :
 { carrier := (F ⋙ forget Group).sections,
   inv_mem' := λ a ah j j' f,
   begin
-    simp only [forget_map_eq_coe, functor.comp_map, pi.inv_apply, monoid_hom.map_inv, inv_inj],
+    simv only [forget_map_eq_coe, functor.comp_map, pi.inv_apply, monoid_hom.map_inv, inv_inj],
     dsimp [functor.sections] at ah,
     rw ah f,
   end,
@@ -271,18 +271,18 @@ def kernel_iso_ker {G H : AddCommGroup.{u}} (f : G ⟶ H) :
     begin
       -- TODO where is this `has_coe_t_aux.coe` coming from? can we prevent it appearing?
       change (kernel.ι f) g ∈ f.ker,
-      simp [add_monoid_hom.mem_ker],
+      simv [add_monoid_hom.mem_ker],
     end⟩,
-    map_zero' := by { ext, simp, },
-    map_add' := λ g g', by { ext, simp, }, },
+    map_zero' := by { ext, simv, },
+    map_add' := λ g g', by { ext, simv, }, },
   inv := kernel.lift f (add_subgroup.subtype f.ker) (by tidy),
-  hom_inv_id' := by { apply equalizer.hom_ext _, ext, simp, },
+  hom_inv_id' := by { apply equalizer.hom_ext _, ext, simv, },
   inv_hom_id' :=
   begin
     apply AddCommGroup.ext,
-    simp only [add_monoid_hom.coe_mk, coe_id, coe_comp],
+    simv only [add_monoid_hom.coe_mk, coe_id, coe_comp],
     rintro ⟨x, mem⟩,
-    simp,
+    simv,
   end, }.
 
 @[simp]
@@ -295,7 +295,7 @@ lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
   (kernel_iso_ker f).inv ≫ kernel.ι f = add_subgroup.subtype f.ker :=
 begin
   ext,
-  simp [kernel_iso_ker],
+  simv [kernel_iso_ker],
 end
 
 /--
@@ -305,6 +305,6 @@ agrees with the `subtype` map.
 @[simps]
 def kernel_iso_ker_over {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
-over.iso_mk (kernel_iso_ker f) (by simp)
+over.iso_mk (kernel_iso_ker f) (by simv)
 
 end AddCommGroup

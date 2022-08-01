@@ -100,13 +100,13 @@ noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0
     map_add' := λ y z, begin
       rw [← add_smul],
       apply H,
-      simp only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
+      simv only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
       apply coe_add
     end,
     map_smul' := λ c z, begin
       rw [smul_smul],
       apply H,
-      simp only [mul_smul, classical.some_spec (mem_span_singleton.1 _)],
+      simv only [mul_smul, classical.some_spec (mem_span_singleton.1 _)],
       apply coe_smul
     end } }
 
@@ -120,7 +120,7 @@ begin
   dsimp [mk_span_singleton'],
   rw [← sub_eq_zero, ← sub_smul],
   apply H,
-  simp only [sub_smul, one_smul, sub_eq_zero],
+  simv only [sub_smul, one_smul, sub_eq_zero],
   apply classical.some_spec (mem_span_singleton.1 h),
 end
 
@@ -236,20 +236,20 @@ begin
     dsimp [fg],
     rw [add_comm, ← sub_eq_sub_iff_add_eq_add, eq_comm, ← map_sub, ← map_sub],
     apply h,
-    simp only [← eq_sub_iff_add_eq] at hxy,
-    simp only [add_subgroup_class.coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self,
+    simv only [← eq_sub_iff_add_eq] at hxy,
+    simv only [add_subgroup_class.coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self,
       zero_sub, ← H],
     apply neg_add_eq_sub },
   refine ⟨{ to_fun := fg, .. }, fg_eq⟩,
   { rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,
     rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
     apply fg_eq,
-    simp only [coe_add, coe_mk, ← add_assoc],
+    simv only [coe_add, coe_mk, ← add_assoc],
     rw [add_right_comm (x _), hxy, add_assoc, hxy, coe_mk, coe_mk] },
   { intros c z,
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,
-    simp only [coe_smul, coe_mk, ← smul_add, hxy, ring_hom.id_apply] },
+    simv only [coe_smul, coe_mk, ← smul_add, hxy, ring_hom.id_apply] },
 end
 
 /-- Given two partial linear maps that agree on the intersection of their domains,
@@ -307,7 +307,7 @@ begin
   rw [disjoint_def] at h,
   have hy : y = 0, from subtype.eq (h y (hxy ▸ x.2) y.2),
   have hx : x = 0, from subtype.eq (hxy.trans $ congr_arg _ hy),
-  simp [*]
+  simv [*]
 end
 
 section smul
@@ -362,7 +362,7 @@ end
 private lemma Sup_aux (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :
   ∃ f : ↥(Sup (domain '' c)) →ₗ[R] F, (⟨_, f⟩ : linear_pmap R E F) ∈ upper_bounds c :=
 begin
-  cases c.eq_empty_or_nonempty with ceq cne, { subst c, simp },
+  cases c.eq_empty_or_nonempty with ceq cne, { subst c, simv },
   have hdir : directed_on (≤) (domain '' c),
     from directed_on_image.2 (hc.mono domain_mono.monotone),
   have P : Π x : Sup (domain '' c), {p : c // (x : E) ∈ p.val.domain },
@@ -384,7 +384,7 @@ begin
     rw [f_eq ⟨p, hpc⟩ x x' rfl, f_eq ⟨p, hpc⟩ y y' rfl, f_eq ⟨p, hpc⟩ (x + y) (x' + y') rfl,
       map_add] },
   { intros c x,
-    simp [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul] },
+    simv [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul] },
   { intros p hpc,
     refine ⟨le_Sup $ mem_image_of_mem domain hpc, λ x y hxy, eq.symm _⟩,
     exact f_eq ⟨p, hpc⟩ _ _ hxy.symm }
@@ -471,7 +471,7 @@ f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
 
 lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
-by simp [graph]
+by simv [graph]
 
 @[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
@@ -479,7 +479,7 @@ by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 
 /-- The tuple `(x, f x)` is contained in the graph of `f`. -/
 lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
-by simp
+by simv
 
 variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F] (y : M)
 
@@ -493,20 +493,20 @@ begin
     rcases h with ⟨y, hy, h⟩,
     rw linear_pmap.smul_apply at h,
     rw submodule.mem_map,
-    simp only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
+    simv only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
       linear_map.smul_apply, prod.mk.inj_iff, prod.exists, exists_exists_and_eq_and],
     use [x_fst, y],
-    simp [hy, h] },
+    simv [hy, h] },
   rw submodule.mem_map at h,
   rcases h with ⟨x', hx', h⟩,
   cases x',
-  simp only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.smul_apply,
+  simv only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.smul_apply,
     prod.mk.inj_iff] at h,
   rw mem_graph_iff at hx' ⊢,
   rcases hx' with ⟨y, hy, hx'⟩,
   use y,
   rw [←h.1, ←h.2],
-  simp[hy, hx'],
+  simv[hy, hx'],
 end
 
 /-- The graph of `-f` as a pushforward. -/
@@ -519,20 +519,20 @@ begin
     rcases h with ⟨y, hy, h⟩,
     rw linear_pmap.neg_apply at h,
     rw submodule.mem_map,
-    simp only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
+    simv only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
       linear_map.neg_apply, prod.mk.inj_iff, prod.exists, exists_exists_and_eq_and],
     use [x_fst, y],
-    simp [hy, h] },
+    simv [hy, h] },
   rw submodule.mem_map at h,
   rcases h with ⟨x', hx', h⟩,
   cases x',
-  simp only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.neg_apply,
+  simv only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.neg_apply,
     prod.mk.inj_iff] at h,
   rw mem_graph_iff at hx' ⊢,
   rcases hx' with ⟨y, hy, hx'⟩,
   use y,
   rw [←h.1, ←h.2],
-  simp [hy, hx'],
+  simv [hy, hx'],
 end
 
 lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
@@ -541,7 +541,7 @@ begin
   rw [mem_graph_iff] at hx hy,
   rcases hx with ⟨x'', hx1, hx2⟩,
   rcases hy with ⟨y'', hy1, hy2⟩,
-  simp only at hx1 hx2 hy1 hy2,
+  simv only at hx1 hx2 hy1 hy2,
   rw [←hx1, ←hy1, set_like.coe_eq_coe] at hxy,
   rw [←hx2, ←hy2, hxy],
 end
@@ -563,9 +563,9 @@ begin
   cases h with y h,
   rw mem_graph_iff at h,
   cases h with x' h,
-  simp only at h,
+  simv only at h,
   rw ←h.1,
-  simp,
+  simv,
 end
 
 lemma image_iff {f : linear_pmap R E F} {x : E} {y : F} (hx : x ∈ f.domain) :
@@ -574,10 +574,10 @@ begin
   rw mem_graph_iff,
   split; intro h,
   { use ⟨x, hx⟩,
-    simp [h] },
+    simv [h] },
   rcases h with ⟨⟨x', hx'⟩, ⟨h1, h2⟩⟩,
-  simp only [submodule.coe_mk] at h1 h2,
-  simp only [←h2, h1],
+  simv only [submodule.coe_mk] at h1 h2,
+  simv only [←h2, h1],
 end
 
 lemma mem_range_iff {f : linear_pmap R E F} {y : F} : y ∈ set.range f ↔ ∃ x : E, (x,y) ∈ f.graph :=
@@ -593,7 +593,7 @@ begin
   cases h with x h,
   rw set.mem_range,
   use x,
-  simp only at h,
+  simv only at h,
   rw h.2,
 end
 
@@ -612,10 +612,10 @@ begin
   rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
   rw image_iff,
   refine h _,
-  simp only [submodule.coe_mk] at hxy,
+  simv only [submodule.coe_mk] at hxy,
   rw hxy at hx,
   rw ←image_iff hx,
-  simp [hxy],
+  simv [hxy],
 end
 
 lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
@@ -635,14 +635,14 @@ lemma exists_unique_from_graph {g : submodule R (E × F)}
   ∃! (b : F), (a,b) ∈ g :=
 begin
   refine exists_unique_of_exists_of_unique _ _,
-  { convert ha, simp },
+  { convert ha, simv },
   intros y₁ y₂ hy₁ hy₂,
   have hy : ((0 : E), y₁ - y₂) ∈ g :=
   begin
     convert g.sub_mem hy₁ hy₂,
     exact (sub_self _).symm,
   end,
-  exact sub_eq_zero.mp (hg hy (by simp)),
+  exact sub_eq_zero.mp (hg hy (by simv)),
 end
 
 /-- Auxiliary definition to unfold the existential quantifier. -/
@@ -699,7 +699,7 @@ begin
   cases x,
   have hx_fst : x_fst ∈ g.map (linear_map.fst R E F) :=
   begin
-    simp only [mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
+    simv only [mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
       exists_eq_right],
     exact ⟨x_snd, hx⟩,
   end,

@@ -119,7 +119,7 @@ instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite
         refine congr_arg _ (hb.is_limit.hom_ext (λ j, hb.is_colimit.hom_ext (λ j', _))),
         cases j, cases j',
         dsimp only [limits.bicone.to_cone_π_app],
-        simp [sum_comp, comp_sum, bicone.ι_π, comp_dite, dite_comp],
+        simv [sum_comp, comp_sum, bicone.ι_π, comp_dite, dite_comp],
       end } } }
 
 lemma additive_of_preserves_binary_biproducts [has_binary_biproducts C] [preserves_zero_morphisms F]
@@ -137,7 +137,7 @@ namespace equivalence
 variables {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
 
 instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additive :=
-{ map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
+{ map_add' := λ X Y f g, by { apply e.functor.map_injective, simv, }, }
 
 end equivalence
 

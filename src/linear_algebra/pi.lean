@@ -48,10 +48,10 @@ def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
   pi f c i = f i c := rfl
 
 lemma ker_pi (f : Πi, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
-by ext c; simp [funext_iff]; refl
+by ext c; simv [funext_iff]; refl
 
 lemma pi_eq_zero (f : Πi, M₂ →ₗ[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
-by simp only [linear_map.ext_iff, pi_apply, funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
+by simv only [linear_map.ext_iff, pi_apply, funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
 
 lemma pi_zero : pi (λi, 0 : Πi, M₂ →ₗ[R] φ i) = 0 :=
 by ext; refl
@@ -76,7 +76,7 @@ ext $ assume c, rfl
 lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
 bot_unique $ set_like.le_def.2 $ assume a h,
 begin
-  simp only [mem_infi, mem_ker, proj_apply] at h,
+  simv only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
 
@@ -110,9 +110,9 @@ families of functions on these modules. See note [bundled maps over different ri
   (Π i, φ i →ₗ[R] M) ≃ₗ[S] ((Π i, φ i) →ₗ[R] M) :=
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
   inv_fun := λ f i, f.comp (single i),
-  map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
-  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum, ring_hom.id_apply],
-  left_inv := λ f, by { ext i x, simp [apply_single] },
+  map_add' := λ f g, by simv only [pi.add_apply, add_comp, finset.sum_add_distrib],
+  map_smul' := λ c f, by simv only [pi.smul_apply, smul_comp, finset.smul_sum, ring_hom.id_apply],
+  left_inv := λ f, by { ext i x, simv [apply_single] },
   right_inv := λ f,
     begin
       ext,
@@ -160,13 +160,13 @@ begin
     (pi $ λi, (proj (i:ι)).comp (submodule.subtype _))
     (cod_restrict _ (pi $ λi, if h : i ∈ I then proj (⟨i, h⟩ : I) else 0) _) _ _,
   { assume b,
-    simp only [mem_infi, mem_ker, funext_iff, proj_apply, pi_apply],
+    simv only [mem_infi, mem_ker, funext_iff, proj_apply, pi_apply],
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
+  { simv only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
     ext b ⟨j, hj⟩,
-    simp only [dif_pos, function.comp_app, function.eval_apply, linear_map.cod_restrict_apply,
+    simv only [dif_pos, function.comp_app, function.eval_apply, linear_map.cod_restrict_apply,
       linear_map.coe_comp, linear_map.coe_proj, linear_map.pi_apply, submodule.subtype_apply,
       subtype.coe_prop], refl },
   { ext1 ⟨b, hb⟩,
@@ -174,7 +174,7 @@ begin
     ext j,
     have hb : ∀i ∈ J, b i = 0,
     { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },
-    simp only [comp_apply, pi_apply, id_apply, proj_apply, subtype_apply, cod_restrict_apply],
+    simv only [comp_apply, pi_apply, id_apply, proj_apply, subtype_apply, cod_restrict_apply],
     split_ifs,
     { refl },
     { exact (hb _ $ (hu trivial).resolve_left h).symm } }
@@ -219,7 +219,7 @@ variables {I : set ι} {p q : Π i, submodule R (φ i)} {x : Π i, φ i}
 
 @[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
 
-@[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+@[simv, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
 
 @[simp] lemma pi_empty (p : Π i, submodule R (φ i)) : pi ∅ p = ⊤ :=
 set_like.coe_injective $ set.empty_pi _
@@ -231,17 +231,17 @@ lemma pi_mono {s : set ι} (h : ∀ i ∈ s, p i ≤ q i) : pi s p ≤ pi s q :=
 set.pi_mono h
 
 lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
-by { ext x, simp }
+by { ext x, simv }
 
 lemma infi_comap_proj : (⨅ i, comap (proj i) (p i)) = pi set.univ p :=
-by { ext x, simp }
+by { ext x, simv }
 
 lemma supr_map_single [decidable_eq ι] [fintype ι] :
   (⨆ i, map (linear_map.single i) (p i)) = pi set.univ p :=
 begin
   refine (supr_le $ λ i, _).antisymm _,
   { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,
-    rcases em (j = i) with rfl|hj; simp * },
+    rcases em (j = i) with rfl|hj; simv * },
   { intros x hx,
     rw [← finset.univ_sum_single x],
     exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
@@ -261,7 +261,7 @@ This is `equiv.Pi_congr_right` as a `linear_equiv` -/
 @[simps apply] def Pi_congr_right (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
 { to_fun := λ f i, e i (f i),
   inv_fun := λ f i, (e i).symm (f i),
-  map_smul' := λ c f, by { ext, simp },
+  map_smul' := λ c f, by { ext, simv },
   .. add_equiv.Pi_congr_right (λ j, (e j).to_add_equiv) }
 
 @[simp]
@@ -296,8 +296,8 @@ def Pi_congr_left (e : ι' ≃ ι) : (Π i', φ (e i')) ≃ₗ[R] (Π i, φ i) :
 def pi_option_equiv_prod {ι : Type*} {M : option ι → Type*}
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] :
   (Π i : option ι, M i) ≃ₗ[R] (M none × Π i : ι, M (some i)) :=
-{ map_add' := by simp [function.funext_iff],
-  map_smul' := by simp [function.funext_iff],
+{ map_add' := by simv [function.funext_iff],
+  map_smul' := by simv [function.funext_iff],
   ..equiv.pi_option_equiv_prod }
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
@@ -322,7 +322,7 @@ rfl
 
 @[simp] lemma pi_ring_symm_apply (f : ι → M) (g : ι → R) :
   (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
-by simp [pi_ring, linear_map.lsum]
+by simv [pi_ring, linear_map.lsum]
 
 /--
 `equiv.sum_arrow_equiv_prod_arrow` as a linear equivalence.
@@ -446,9 +446,9 @@ def linear_map.vec_cons₂ {n} (f : M →ₗ[R] M₂ →ₗ[R] M₃) (g : M →�
   M →ₗ[R] M₂ →ₗ[R] (fin n.succ → M₃) :=
 { to_fun := λ m, linear_map.vec_cons (f m) (g m),
   map_add' := λ x y, linear_map.ext $ λ z, by
-    simp only [f.map_add, g.map_add, linear_map.add_apply, linear_map.vec_cons_apply,
+    simv only [f.map_add, g.map_add, linear_map.add_apply, linear_map.vec_cons_apply,
       matrix.cons_add_cons (f x z)],
-  map_smul' := λ r x, linear_map.ext $ λ z, by simp [matrix.smul_cons r (f x z)], }
+  map_smul' := λ r x, linear_map.ext $ λ z, by simv [matrix.smul_cons r (f x z)], }
 
 end comm_semiring
 

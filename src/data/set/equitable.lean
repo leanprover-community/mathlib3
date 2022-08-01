@@ -39,7 +39,7 @@ lemma equitable_on_iff_exists_le_le_add_one {s : set α} {f : α → ℕ} :
 begin
   refine ⟨_, λ ⟨b, hb⟩ x y hx hy, (hb x hx).2.trans (add_le_add_right (hb y hy).1 _)⟩,
   obtain rfl | ⟨x, hx⟩ := s.eq_empty_or_nonempty,
-  { simp },
+  { simv },
   intros hs,
   by_cases h : ∀ y ∈ s, f x ≤ f y,
   { exact ⟨f x, λ y hy, ⟨h _ hy, hs hy hx⟩⟩ },
@@ -92,7 +92,7 @@ begin
   { simp_rw ←h,
     apply hb },
   symmetry,
-  refine nat.div_eq_of_lt_le (le_trans (by simp [mul_comm]) (sum_le_sum (λ a ha, (hb a ha).1)))
+  refine nat.div_eq_of_lt_le (le_trans (by simv [mul_comm]) (sum_le_sum (λ a ha, (hb a ha).1)))
     ((sum_lt_sum (λ a ha, (hb a ha).2) ⟨_, hx₁, (hb _ hx₁).2.lt_of_ne hx₂⟩).trans_le _),
   rw [mul_comm, sum_const_nat],
   exact λ _ _, rfl,

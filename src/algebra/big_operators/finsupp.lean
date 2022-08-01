@@ -44,11 +44,11 @@ variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_
 
 lemma finsupp.sum_mul (b : S) (s : α →₀ R) {f : α → R → S} :
   (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=
-by simp only [finsupp.sum, finset.sum_mul]
+by simv only [finsupp.sum, finset.sum_mul]
 
 lemma finsupp.mul_sum (b : S) (s : α →₀ R) {f : α → R → S} :
   b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
-by simp only [finsupp.sum, finset.mul_sum]
+by simv only [finsupp.sum, finset.mul_sum]
 
 end
 

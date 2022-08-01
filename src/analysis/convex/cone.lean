@@ -82,7 +82,7 @@ instance : has_le (convex_cone 𝕜 E) := ⟨λ S T, (S : set E) ⊆ T⟩
 
 instance : has_lt (convex_cone 𝕜 E) := ⟨λ S T, (S : set E) ⊂ T⟩
 
-@[simp, norm_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
+@[simv, norm_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma coe_mk {s : set E} {h₁ h₂} : ↑(@mk 𝕜 _ _ _ _ s h₁ h₂) = s := rfl
 
@@ -121,10 +121,10 @@ instance : has_Inf (convex_cone 𝕜 E) :=
 lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_Inter₂
 
 @[simp] lemma coe_infi {ι : Sort*} (f : ι → convex_cone 𝕜 E) : ↑(infi f) = ⋂ i, (f i : set E) :=
-by simp [infi]
+by simv [infi]
 
 lemma mem_infi {ι : Sort*} {x : E} {f : ι → convex_cone 𝕜 E} : x ∈ infi f ↔ ∀ i, x ∈ f i :=
-mem_Inter₂.trans $ by simp
+mem_Inter₂.trans $ by simv
 
 variables (𝕜)
 
@@ -381,19 +381,19 @@ namespace convex
 def to_cone (s : set E) (hs : convex 𝕜 s) : convex_cone 𝕜 E :=
 begin
   apply convex_cone.mk (⋃ (c : 𝕜) (H : 0 < c), c • s);
-    simp only [mem_Union, mem_smul_set],
+    simv only [mem_Union, mem_smul_set],
   { rintros c c_pos _ ⟨c', c'_pos, x, hx, rfl⟩,
     exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, (smul_smul _ _ _).symm⟩ },
   { rintros _ ⟨cx, cx_pos, x, hx, rfl⟩ _ ⟨cy, cy_pos, y, hy, rfl⟩,
     have : 0 < cx + cy, from add_pos cx_pos cy_pos,
     refine ⟨_, this, _, convex_iff_div.1 hs hx hy cx_pos.le cy_pos.le this, _⟩,
-    simp only [smul_add, smul_smul, mul_div_assoc', mul_div_cancel_left _ this.ne'] }
+    simv only [smul_add, smul_smul, mul_div_assoc', mul_div_cancel_left _ this.ne'] }
 end
 
 variables {s : set E} (hs : convex 𝕜 s) {x : E}
 
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c : 𝕜), 0 < c ∧ ∃ y ∈ s, c • y = x :=
-by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
+by simv only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
 
 lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ (c : 𝕜), 0 < c ∧ c • x ∈ s :=
 begin
@@ -491,7 +491,7 @@ begin
   { rintros ⟨z, hz⟩ hzs,
     rcases mem_sup.1 hz with ⟨x, hx, y', hy', rfl⟩,
     rcases mem_span_singleton.1 hy' with ⟨r, rfl⟩,
-    simp only [subtype.coe_mk] at hzs,
+    simv only [subtype.coe_mk] at hzs,
     erw [linear_pmap.sup_span_singleton_apply_mk _ _ _ _ _ hx, smul_neg,
       ← sub_eq_add_neg, sub_nonneg],
     rcases lt_trichotomy r 0 with hr|hr|hr,
@@ -503,7 +503,7 @@ begin
         neg_le_neg_iff, f.map_smul, smul_eq_mul, ← mul_assoc, mul_inv_cancel hr.ne,
         one_mul] at this },
     { subst r,
-      simp only [zero_smul, add_zero] at hzs ⊢,
+      simv only [zero_smul, add_zero] at hzs ⊢,
       apply nonneg,
       exact hzs },
     { have : r⁻¹ • x + y ∈ s,
@@ -551,7 +551,7 @@ begin
   rcases riesz_extension.exists_top s f nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
   clear hpg,
   refine ⟨g ∘ₗ ↑(linear_equiv.of_top _ htop).symm, _, _⟩;
-    simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.of_top_symm_apply],
+    simv only [comp_apply, linear_equiv.coe_coe, linear_equiv.of_top_symm_apply],
   { exact λ x, (hfg (submodule.coe_mk _ _).symm).symm },
   { exact λ x hx, hgs ⟨x, _⟩ hx }
 end
@@ -574,24 +574,24 @@ begin
     add_mem' := λ x hx y hy, (N_add _ _).trans (add_le_add hx hy) },
   obtain ⟨g, g_eq, g_nonneg⟩ :=
     riesz_extension s ((-f).coprod (linear_map.id.to_pmap ⊤)) _ _;
-    try { simp only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
+    try { simv only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
             linear_pmap.neg_apply, ← sub_eq_neg_add, sub_nonneg, subtype.coe_mk] at * },
   replace g_eq : ∀ (x : f.domain) (y : ℝ), g (x, y) = y - f x,
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
-  { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
-    { intro x, simp [g_eq x 0] },
+  { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simv only [neg_apply, inl_apply, comp_apply],
+    { intro x, simv [g_eq x 0] },
     { intro x,
-      have A : (x, N x) = (x, 0) + (0, N x), by simp,
+      have A : (x, N x) = (x, 0) + (0, N x), by simv,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),
       rw [A, map_add, ← neg_le_iff_add_nonneg'] at B,
       have C := g_eq 0 (N x),
-      simp only [submodule.coe_zero, f.map_zero, sub_zero] at C,
+      simv only [submodule.coe_zero, f.map_zero, sub_zero] at C,
       rwa ← C } },
   { exact λ x hx, le_trans (hf _) hx },
   { rintros ⟨x, y⟩,
     refine ⟨⟨(0, N x - y), ⟨f.domain.zero_mem, trivial⟩⟩, _⟩,
-    simp only [convex_cone.mem_mk, mem_set_of_eq, subtype.coe_mk, prod.fst_add, prod.snd_add,
+    simv only [convex_cone.mem_mk, mem_set_of_eq, subtype.coe_mk, prod.fst_add, prod.snd_add,
       zero_add, sub_add_cancel] }
 end
 
@@ -639,7 +639,7 @@ begin
   { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
     rintro ⟨ ⟩,
     exact hx i hi },
-  { simp only [set.mem_Inter, convex_cone.mem_coe, mem_inner_dual_cone,
+  { simv only [set.mem_Inter, convex_cone.mem_coe, mem_inner_dual_cone,
       set.mem_singleton_iff, forall_eq, imp_self] }
 end
 

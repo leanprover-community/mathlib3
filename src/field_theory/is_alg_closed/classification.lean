@@ -49,9 +49,9 @@ lemma cardinal_mk_le_sigma_polynomial :
         ← polynomial.aeval_def, p.2.2],
       end⟩) (λ x y, begin
     intro h,
-    simp only at h,
+    simv only at h,
     refine (subtype.heq_iff_coe_eq _).1 h.2,
-    simp only [h.1, iff_self, forall_true_iff]
+    simv only [h.1, iff_self, forall_true_iff]
   end)
 
 /--The cardinality of an algebraic extension is at most the maximum of the cardinality
@@ -67,7 +67,7 @@ calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
 ... ≤ max (max (#R[X]) ℵ₀) ℵ₀ : mul_le_max _ _
 ... ≤ max (max (max (#R) ℵ₀) ℵ₀) ℵ₀ :
   max_le_max (max_le_max polynomial.cardinal_mk_le_max le_rfl) le_rfl
-... = max (#R) ℵ₀ : by simp only [max_assoc, max_comm ℵ₀, max_left_comm ℵ₀, max_self]
+... = max (#R) ℵ₀ : by simv only [max_assoc, max_comm ℵ₀, max_left_comm ℵ₀, max_self]
 
 end algebra.is_algebraic
 
@@ -109,8 +109,8 @@ begin
       (mv_polynomial.rename e)
       (mv_polynomial.rename e.symm)
       _ _).to_ring_equiv.trans _,
-    { ext, simp },
-    { ext, simp },
+    { ext, simv },
+    { ext, simv },
     exact hw.1.aeval_equiv.to_ring_equiv },
   exact is_alg_closure.equiv_of_equiv K L e
 end
@@ -131,7 +131,7 @@ calc #K ≤ max (#(algebra.adjoin R (set.range v))) ℵ₀ :
    exact algebra.is_algebraic.cardinal_mk_le_max _ _ is_alg_closure.algebraic
 ... = max (#(mv_polynomial ι R)) ℵ₀ : by rw [cardinal.eq.2 ⟨(hv.1.aeval_equiv).to_equiv⟩]
 ... ≤ max (max (max (#R) (#ι)) ℵ₀) ℵ₀ : max_le_max mv_polynomial.cardinal_mk_le_max le_rfl
-... = _ : by simp [max_assoc]
+... = _ : by simv [max_assoc]
 
 /-- If `K` is an uncountable algebraically closed field, then its
 cardinality is the same as that of a transcendence basis. -/

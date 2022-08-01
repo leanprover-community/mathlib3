@@ -61,11 +61,11 @@ structure non_unital_ring_hom (α β : Type*) [non_unital_non_assoc_semiring α]
 infixr ` →ₙ+* `:25 := non_unital_ring_hom
 
 /-- Reinterpret a non-unital ring homomorphism `f : α →ₙ+* β` as a semigroup
-homomorphism `α →ₙ* β`. The `simp`-normal form is `(f : α →ₙ* β)`. -/
+homomorphism `α →ₙ* β`. The `simv`-normal form is `(f : α →ₙ* β)`. -/
 add_decl_doc non_unital_ring_hom.to_mul_hom
 
 /-- Reinterpret a non-unital ring homomorphism `f : α →ₙ+* β` as an additive
-monoid homomorphism `α →+ β`. The `simp`-normal form is `(f : α →+ β)`. -/
+monoid homomorphism `α →+ β`. The `simv`-normal form is `(f : α →+ β)`. -/
 add_decl_doc non_unital_ring_hom.to_add_monoid_hom
 
 section non_unital_ring_hom_class
@@ -196,7 +196,7 @@ lemma comp_assoc {δ} {rδ : non_unital_non_assoc_semiring δ} (f : α →ₙ+* 
 @[simp] lemma coe_comp_mul_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
   (g.comp f : α →ₙ* γ) = (g : β →ₙ* γ).comp f := rfl
 
-@[simp] lemma comp_zero (g : β →ₙ+* γ) : g.comp (0 : α →ₙ+* β) = 0 := by { ext, simp }
+@[simp] lemma comp_zero (g : β →ₙ+* γ) : g.comp (0 : α →ₙ+* β) = 0 := by { ext, simv }
 @[simp] lemma zero_comp (f : α →ₙ+* β) : (0 : β →ₙ+* γ).comp f = 0 := by { ext, refl }
 
 omit rγ
@@ -248,19 +248,19 @@ structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_
 infixr ` →+* `:25 := ring_hom
 
 /-- Reinterpret a ring homomorphism `f : α →+* β` as a monoid with zero homomorphism `α →*₀ β`.
-The `simp`-normal form is `(f : α →*₀ β)`. -/
+The `simv`-normal form is `(f : α →*₀ β)`. -/
 add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : α →+* β` as a monoid homomorphism `α →* β`.
-The `simp`-normal form is `(f : α →* β)`. -/
+The `simv`-normal form is `(f : α →* β)`. -/
 add_decl_doc ring_hom.to_monoid_hom
 
 /-- Reinterpret a ring homomorphism `f : α →+* β` as an additive monoid homomorphism `α →+ β`.
-The `simp`-normal form is `(f : α →+ β)`. -/
+The `simv`-normal form is `(f : α →+ β)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
 /-- Reinterpret a ring homomorphism `f : α →+* β` as a non-unital ring homomorphism `α →ₙ+* β`. The
-`simp`-normal form is `(f : α →ₙ+* β)`. -/
+`simv`-normal form is `(f : α →ₙ+* β)`. -/
 add_decl_doc ring_hom.to_non_unital_ring_hom
 
 section ring_hom_class
@@ -278,7 +278,7 @@ class ring_hom_class (F : Type*) (α β : out_param Type*)
 variables [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
 
 /-- Ring homomorphisms preserve `bit1`. -/
-@[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) := by simp [bit1]
+@[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) := by simv [bit1]
 
 instance : has_coe_t F (α →+* β) :=
 ⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
@@ -326,7 +326,7 @@ rfl
 
 instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.to_monoid_hom⟩
 
-@[simp, norm_cast] lemma coe_monoid_hom (f : α →+* β) : ⇑(f : α →* β) = f := rfl
+@[simv, norm_cast] lemma coe_monoid_hom (f : α →+* β) : ⇑(f : α →* β) = f := rfl
 
 @[simp] lemma to_monoid_hom_eq_coe (f : α →+* β) : f.to_monoid_hom = f := rfl
 @[simp] lemma to_monoid_with_zero_hom_eq_coe (f : α →+* β) :
@@ -335,7 +335,7 @@ instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.
 @[simp] lemma coe_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →* β) = ⟨f, h₁, h₂⟩ := rfl
 
-@[simp, norm_cast] lemma coe_add_monoid_hom (f : α →+* β) : ⇑(f : α →+ β) = f := rfl
+@[simv, norm_cast] lemma coe_add_monoid_hom (f : α →+* β) : ⇑(f : α →+ β) = f := rfl
 
 @[simp] lemma to_add_monoid_hom_eq_coe (f : α →+* β) : f.to_add_monoid_hom = f := rfl
 
@@ -402,7 +402,7 @@ f.codomain_trivial_iff_map_one_eq_zero.trans
 /-- `f : α →+* β` has a trivial codomain iff its range is `{0}`. -/
 lemma codomain_trivial_iff_range_eq_singleton_zero : (0 : β) = 1 ↔ set.range f = {0} :=
 f.codomain_trivial_iff_range_trivial.trans
-  ⟨ λ h, set.ext (λ y, ⟨λ ⟨x, hx⟩, by simp [←hx, h x], λ hy, ⟨0, by simpa using hy.symm⟩⟩),
+  ⟨ λ h, set.ext (λ y, ⟨λ ⟨x, hx⟩, by simv [←hx, h x], λ hy, ⟨0, by simpa using hy.symm⟩⟩),
     λ h x, set.mem_singleton_iff.mp (h ▸ set.mem_range_self x)⟩
 
 /-- `f : α →+* β` doesn't map `1` to `0` if `β` is nontrivial -/
@@ -456,7 +456,7 @@ include rβ rγ
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp (g : β →+* γ) (f : α →+* β) : α →+* γ :=
 { to_fun := g ∘ f,
-  map_one' := by simp,
+  map_one' := by simv,
   ..g.to_non_unital_ring_hom.comp f.to_non_unital_ring_hom }
 
 /-- Composition of semiring homomorphisms is associative. -/
@@ -521,7 +521,7 @@ def mk_ring_hom_of_mul_self_of_two_ne_zero (h : ∀ x, f (x * x) = f x * f x) (h
     rw [mul_add, add_mul, add_mul, f.map_add, f.map_add, f.map_add, f.map_add, h x, h y, add_mul,
       mul_add, mul_add, ← sub_eq_zero, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
       mul_comm y x, mul_comm (f y) (f x)] at hxy,
-    simp only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,
+    simv only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,
     rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub, mul_eq_zero, sub_eq_zero,
       or_iff_not_imp_left] at hxy,
     exact hxy h_two,

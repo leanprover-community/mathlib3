@@ -40,7 +40,7 @@ lemma algebra_map_monotone : monotone (algebra_map R A) :=
 begin
   rw [algebra.algebra_map_eq_smul_one, algebra.algebra_map_eq_smul_one, ←sub_nonneg, ←sub_smul],
   transitivity (b - a) • (0 : A),
-  { simp, },
+  { simv, },
   { exact smul_le_smul_of_nonneg zero_le_one (sub_nonneg.mpr h) }
 end
 

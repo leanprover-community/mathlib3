@@ -68,7 +68,7 @@ structure box (ι : Type*) :=
 (lower upper : ι → ℝ)
 (lower_lt_upper : ∀ i, lower i < upper i)
 
-attribute [simp] box.lower_lt_upper
+attribute [simv] box.lower_lt_upper
 
 namespace box
 
@@ -83,7 +83,7 @@ instance : has_mem (ι → ℝ) (box ι) := ⟨λ x I, ∀ i, x i ∈ Ioc (I.low
 instance : has_coe_t (box ι) (set $ ι → ℝ) := ⟨λ I, {x | x ∈ I}⟩
 
 @[simp] lemma mem_mk {l u x : ι → ℝ} {H} : x ∈ mk l u H ↔ ∀ i, x i ∈ Ioc (l i) (u i) := iff.rfl
-@[simp, norm_cast] lemma mem_coe : x ∈ (I : set (ι → ℝ)) ↔ x ∈ I := iff.rfl
+@[simv, norm_cast] lemma mem_coe : x ∈ (I : set (ι → ℝ)) ↔ x ∈ I := iff.rfl
 
 lemma mem_def : x ∈ I ↔ ∀ i, x i ∈ Ioc (I.lower i) (I.upper i) := iff.rfl
 
@@ -121,18 +121,18 @@ end
 
 variables {I J}
 
-@[simp, norm_cast] lemma coe_subset_coe : (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J := iff.rfl
+@[simv, norm_cast] lemma coe_subset_coe : (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J := iff.rfl
 lemma le_iff_bounds : I ≤ J ↔ J.lower ≤ I.lower ∧ I.upper ≤ J.upper := (le_tfae I J).out 0 3
 
 lemma injective_coe : injective (coe : box ι → set (ι → ℝ)) :=
 begin
   rintros ⟨l₁, u₁, h₁⟩ ⟨l₂, u₂, h₂⟩ h,
-  simp only [subset.antisymm_iff, coe_subset_coe, le_iff_bounds] at h,
+  simv only [subset.antisymm_iff, coe_subset_coe, le_iff_bounds] at h,
   congr,
   exacts [le_antisymm h.2.1 h.1.1, le_antisymm h.1.2 h.2.2]
 end
 
-@[simp, norm_cast] lemma coe_inj : (I : set (ι → ℝ)) = J ↔ I = J :=
+@[simv, norm_cast] lemma coe_inj : (I : set (ι → ℝ)) = J ↔ I = J :=
 injective_coe.eq_iff
 
 @[ext] lemma ext (H : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
@@ -194,29 +194,29 @@ In this section we define coercion from `with_bot (box ι)` to `set (ι → ℝ)
 
 instance with_bot_coe : has_coe_t (with_bot (box ι)) (set (ι → ℝ)) := ⟨λ o, o.elim ∅ coe⟩
 
-@[simp, norm_cast] lemma coe_bot : ((⊥ : with_bot (box ι)) : set (ι → ℝ)) = ∅ := rfl
+@[simv, norm_cast] lemma coe_bot : ((⊥ : with_bot (box ι)) : set (ι → ℝ)) = ∅ := rfl
 
-@[simp, norm_cast] lemma coe_coe : ((I : with_bot (box ι)) : set (ι → ℝ)) = I := rfl
+@[simv, norm_cast] lemma coe_coe : ((I : with_bot (box ι)) : set (ι → ℝ)) = I := rfl
 
 lemma is_some_iff : ∀ {I : with_bot (box ι)}, I.is_some ↔ (I : set (ι → ℝ)).nonempty
-| ⊥ := by { erw option.is_some, simp }
-| (I : box ι) := by { erw option.is_some, simp [I.nonempty_coe] }
+| ⊥ := by { erw option.is_some, simv }
+| (I : box ι) := by { erw option.is_some, simv [I.nonempty_coe] }
 
 lemma bUnion_coe_eq_coe (I : with_bot (box ι)) :
   (⋃ (J : box ι) (hJ : ↑J = I), (J : set (ι → ℝ))) = I :=
-by induction I using with_bot.rec_bot_coe; simp [with_bot.coe_eq_coe]
+by induction I using with_bot.rec_bot_coe; simv [with_bot.coe_eq_coe]
 
-@[simp, norm_cast] lemma with_bot_coe_subset_iff {I J : with_bot (box ι)} :
+@[simv, norm_cast] lemma with_bot_coe_subset_iff {I J : with_bot (box ι)} :
   (I : set (ι → ℝ)) ⊆ J ↔ I ≤ J :=
 begin
-  induction I using with_bot.rec_bot_coe, { simp },
-  induction J using with_bot.rec_bot_coe, { simp [subset_empty_iff] },
-  simp
+  induction I using with_bot.rec_bot_coe, { simv },
+  induction J using with_bot.rec_bot_coe, { simv [subset_empty_iff] },
+  simv
 end
 
-@[simp, norm_cast] lemma with_bot_coe_inj {I J : with_bot (box ι)} :
+@[simv, norm_cast] lemma with_bot_coe_inj {I J : with_bot (box ι)} :
   (I : set (ι → ℝ)) = J ↔ I = J :=
-by simp only [subset.antisymm_iff, ← le_antisymm_iff,  with_bot_coe_subset_iff]
+by simv only [subset.antisymm_iff, ← le_antisymm_iff,  with_bot_coe_subset_iff]
 
 /-- Make a `with_bot (box ι)` from a pair of corners `l u : ι → ℝ`. If `l i < u i` for all `i`,
 then the result is `⟨l, u, _⟩ : box ι`, otherwise it is `⊥`. In any case, the result interpreted
@@ -230,7 +230,7 @@ by { rw mk', split_ifs; simpa using h }
 @[simp] lemma mk'_eq_coe {l u : ι → ℝ} : mk' l u = I ↔ l = I.lower ∧ u = I.upper :=
 begin
   cases I with lI uI hI, rw mk', split_ifs,
-  { simp [with_bot.coe_eq_coe] },
+  { simv [with_bot.coe_eq_coe] },
   { suffices : l = lI → u ≠ uI, by simpa,
     rintro rfl rfl, exact h hI }
 end
@@ -249,10 +249,10 @@ instance : has_inf (with_bot (box ι)) :=
 
 @[simp] lemma coe_inf (I J : with_bot (box ι)) : (↑(I ⊓ J) : set (ι → ℝ)) = I ∩ J :=
 begin
-  induction I using with_bot.rec_bot_coe, { change ∅ = _, simp },
-  induction J using with_bot.rec_bot_coe, { change ∅ = _, simp },
+  induction I using with_bot.rec_bot_coe, { change ∅ = _, simv },
+  induction J using with_bot.rec_bot_coe, { change ∅ = _, simv },
   change ↑(mk' _ _) = _,
-  simp only [coe_eq_pi, ← pi_inter_distrib, Ioc_inter_Ioc, pi.sup_apply, pi.inf_apply, coe_mk',
+  simv only [coe_eq_pi, ← pi_inter_distrib, Ioc_inter_Ioc, pi.sup_apply, pi.inf_apply, coe_mk',
     coe_coe]
 end
 
@@ -269,14 +269,14 @@ instance : lattice (with_bot (box ι)) :=
     end,
   le_inf := λ I J₁ J₂ h₁ h₂,
     begin
-      simp only [← with_bot_coe_subset_iff, coe_inf] at *,
+      simv only [← with_bot_coe_subset_iff, coe_inf] at *,
       exact subset_inter h₁ h₂
     end,
   .. with_bot.semilattice_sup, .. box.with_bot.has_inf }
 
-@[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
+@[simv, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
   disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=
-by { simp only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
+by { simv only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
 
 lemma disjoint_coe : disjoint (I : with_bot (box ι)) J ↔ disjoint (I : set (ι → ℝ)) J :=
 disjoint_with_bot_coe.symm
@@ -374,14 +374,14 @@ lemma distortion_eq_of_sub_eq_div {I J : box ι} {r : ℝ}
   (h : ∀ i, I.upper i - I.lower i = (J.upper i - J.lower i) / r) :
   distortion I = distortion J :=
 begin
-  simp only [distortion, nndist_pi_def, real.nndist_eq', h, real.nnabs.map_div],
+  simv only [distortion, nndist_pi_def, real.nndist_eq', h, real.nnabs.map_div],
   congr' 1 with i,
   have : 0 < r,
   { by_contra hr,
     have := div_nonpos_of_nonneg_of_nonpos (sub_nonneg.2 $ J.lower_le_upper i) (not_lt.1 hr),
     rw ← h at this,
     exact this.not_lt (sub_pos.2 $ I.lower_lt_upper i) },
-  simp only [nnreal.finset_sup_div, div_div_div_cancel_right _ (real.nnabs.map_ne_zero.2 this.ne')]
+  simv only [nnreal.finset_sup_div, div_div_div_cancel_right _ (real.nnabs.map_ne_zero.2 this.ne')]
 end
 
 lemma nndist_le_distortion_mul (I : box ι) (i : ι) :

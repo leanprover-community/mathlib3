@@ -31,7 +31,7 @@ lemma tendsto_abs_tan_of_cos_eq_zero {x : ℝ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[≠] x) at_top :=
 begin
   have hx : complex.cos x = 0, by exact_mod_cast hx,
-  simp only [← complex.abs_of_real, complex.of_real_tan],
+  simv only [← complex.abs_of_real, complex.of_real_tan],
   refine (complex.tendsto_abs_tan_of_cos_eq_zero hx).comp _,
   refine tendsto.inf complex.continuous_of_real.continuous_at _,
   exact tendsto_principal_principal.2 (λ y, mt complex.of_real_inj.1)
@@ -54,7 +54,7 @@ lemma differentiable_at_tan {x : ℝ} : differentiable_at ℝ tan x ↔ cos x �
 @[simp] lemma deriv_tan (x : ℝ) : deriv tan x = 1 / (cos x)^2 :=
 if h : cos x = 0 then
   have ¬differentiable_at ℝ tan x := mt differentiable_at_tan.1 (not_not.2 h),
-  by simp [deriv_zero_of_not_differentiable_at this, h, sq]
+  by simv [deriv_zero_of_not_differentiable_at this, h, sq]
 else (has_deriv_at_tan h).deriv
 
 @[simp] lemma cont_diff_at_tan {n x} : cont_diff_at ℝ n tan x ↔ cos x ≠ 0 :=
@@ -98,7 +98,7 @@ section
 ### Lemmas for derivatives of the composition of `real.arctan` with a differentiable function
 
 In this section we register lemmas for the derivatives of the composition of `real.arctan` with a
-differentiable function, for standalone use and use with `simp`. -/
+differentiable function, for standalone use and use with `simv`. -/
 
 open real
 

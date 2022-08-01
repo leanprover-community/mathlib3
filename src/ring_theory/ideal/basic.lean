@@ -59,7 +59,7 @@ lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=
 eq_top_iff.2 $ λ z _, calc
-    z = z * (y * x) : by simp [h]
+    z = z * (y * x) : by simv [h]
   ... = (z * y) * x : eq.symm $ mul_assoc z y x
   ... ∈ I : I.mul_mem_left _ hx
 
@@ -68,7 +68,7 @@ let ⟨y, hy⟩ := h.exists_left_inv in eq_top_of_unit_mem I x y hx hy
 
 theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 ⟨by rintro rfl; trivial,
- λ h, eq_top_of_unit_mem _ _ 1 h (by simp)⟩
+ λ h, eq_top_of_unit_mem _ _ 1 h (by simv)⟩
 
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
@@ -243,7 +243,7 @@ end
 
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
-by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
+by simv [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
 
 theorem is_maximal.exists_inv {I : ideal α}
   (hI : I.is_maximal) {x} (hx : x ∉ I) : ∃ y, ∃ i ∈ I, y * x + i = 1 :=
@@ -351,7 +351,7 @@ by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton
 
 theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
-by simp [is_prime_iff, prime, span_singleton_eq_top, hp, mem_span_singleton]
+by simv [is_prime_iff, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
 theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
@@ -403,8 +403,8 @@ theorem pow_multiset_sum_mem_span_pow (s : multiset α) (n : ℕ) :
   s.sum ^ (s.card * n + 1) ∈ span ((s.map (λ x, x ^ (n + 1))).to_finset : set α) :=
 begin
   induction s using multiset.induction_on with a s hs,
-  { simp },
-  simp only [finset.coe_insert, multiset.map_cons, multiset.to_finset_cons, multiset.sum_cons,
+  { simv },
+  simv only [finset.coe_insert, multiset.map_cons, multiset.to_finset_cons, multiset.sum_cons,
     multiset.card_cons, add_pow],
   refine submodule.sum_mem _ _,
   intros c hc,
@@ -504,7 +504,7 @@ lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
 lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
-⟨⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+⟨⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simv),
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩⟩
 
 end ideal
@@ -588,7 +588,7 @@ lemma bot_lt_of_maximal (M : ideal R) [hm : M.is_maximal] (non_field : ¬ is_fie
 begin
   rcases (ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top.1 non_field)
     with ⟨I, Ibot, Itop⟩,
-  split, { simp },
+  split, { simv },
   intro mle,
   apply @irrefl _ (<) _ (⊤ : ideal R),
   have : M = ⊥ := eq_bot_iff.mpr mle,

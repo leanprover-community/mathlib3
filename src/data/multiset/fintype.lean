@@ -76,7 +76,7 @@ fintype.of_finset
 (m.to_finset.bUnion (λ x, (finset.range (m.count x)).map ⟨prod.mk x, prod.mk.inj_left x⟩))
 begin
   rintro ⟨x, i⟩,
-  simp only [finset.mem_bUnion, multiset.mem_to_finset, finset.mem_map, finset.mem_range,
+  simv only [finset.mem_bUnion, multiset.mem_to_finset, finset.mem_map, finset.mem_range,
     function.embedding.coe_fn_mk, prod.mk.inj_iff, exists_prop, exists_eq_right_right,
     set.mem_set_of_eq, and_iff_right_iff_imp],
   exact λ h, multiset.count_pos.mp (pos_of_gt h),
@@ -100,7 +100,7 @@ lemma multiset.to_enum_finset_mono {m₁ m₂ : multiset α}
   (h : m₁ ≤ m₂) : m₁.to_enum_finset ⊆ m₂.to_enum_finset :=
 begin
   intro p,
-  simp only [multiset.mem_to_enum_finset],
+  simv only [multiset.mem_to_enum_finset],
   exact gt_of_ge_of_gt (multiset.le_iff_count.mp h p.1),
 end
 
@@ -116,7 +116,7 @@ begin
     { rw multiset.mem_to_enum_finset,
       exact nat.pred_lt (ne_of_gt (multiset.count_pos.mpr hx)), },
     simpa only [multiset.mem_to_enum_finset] using h this, },
-  { simp [hx] },
+  { simv [hx] },
 end
 
 /-- The embedding from a multiset into `α × ℕ` where the second coordinate enumerates repeats.
@@ -128,7 +128,7 @@ def multiset.coe_embedding (m : multiset α) :
 { to_fun := λ x, (x, x.2),
   inj' := begin
     rintro ⟨x, i, hi⟩ ⟨y, j, hj⟩,
-    simp only [prod.mk.inj_iff, sigma.mk.inj_iff, and_imp, multiset.coe_eq, fin.coe_mk],
+    simv only [prod.mk.inj_iff, sigma.mk.inj_iff, and_imp, multiset.coe_eq, fin.coe_mk],
     rintro rfl rfl,
     exact ⟨rfl, heq.rfl⟩
   end }
@@ -145,14 +145,14 @@ def multiset.coe_equiv (m : multiset α) :
 
 @[simp] lemma multiset.to_embedding_coe_equiv_trans (m : multiset α) :
   m.coe_equiv.to_embedding.trans (function.embedding.subtype _) = m.coe_embedding :=
-by ext; simp
+by ext; simv
 
 instance multiset.fintype_coe : fintype m :=
 fintype.of_equiv m.to_enum_finset m.coe_equiv.symm
 
 lemma multiset.map_univ_coe_embedding (m : multiset α) :
   (finset.univ : finset m).map m.coe_embedding = m.to_enum_finset :=
-by { ext ⟨x, i⟩, simp only [fin.exists_iff, finset.mem_map, finset.mem_univ,
+by { ext ⟨x, i⟩, simv only [fin.exists_iff, finset.mem_map, finset.mem_univ,
   multiset.coe_embedding_apply, prod.mk.inj_iff, exists_true_left, multiset.exists_coe,
   multiset.coe_mk, fin.coe_mk, exists_prop, exists_eq_right_right, exists_eq_right,
   multiset.mem_to_enum_finset, iff_self, true_and] }
@@ -162,7 +162,7 @@ lemma multiset.to_enum_finset_filter_eq (m : multiset α) (x : α) :
   (finset.range (m.count x)).map ⟨prod.mk x, prod.mk.inj_left x⟩ :=
 begin
   ext ⟨y, i⟩,
-  simp only [eq_comm, finset.mem_filter, multiset.mem_to_enum_finset, finset.mem_map,
+  simv only [eq_comm, finset.mem_filter, multiset.mem_to_enum_finset, finset.mem_map,
     finset.mem_range, function.embedding.coe_fn_mk, prod.mk.inj_iff, exists_prop,
     exists_eq_right_right', and.congr_left_iff],
   rintro rfl,
@@ -173,7 +173,7 @@ end
   m.to_enum_finset.val.map prod.fst = m :=
 begin
   ext x,
-  simp only [multiset.count_map, ← finset.filter_val, multiset.to_enum_finset_filter_eq,
+  simv only [multiset.count_map, ← finset.filter_val, multiset.to_enum_finset_filter_eq,
     finset.map_val, finset.range_coe, multiset.card_map, multiset.card_range],
 end
 
@@ -203,16 +203,16 @@ begin
 end
 
 @[simp] lemma multiset.card_coe (m : multiset α) : fintype.card m = m.card :=
-by { rw fintype.card_congr m.coe_equiv, simp }
+by { rw fintype.card_congr m.coe_equiv, simv }
 
 @[to_additive]
 lemma multiset.prod_eq_prod_coe [comm_monoid α] (m : multiset α) : m.prod = ∏ (x : m), x :=
-by { congr, simp }
+by { congr, simv }
 
 @[to_additive]
 lemma multiset.prod_eq_prod_to_enum_finset [comm_monoid α] (m : multiset α) :
   m.prod = ∏ x in m.to_enum_finset, x.1 :=
-by { congr, simp }
+by { congr, simv }
 
 @[to_additive]
 lemma multiset.prod_to_enum_finset {β : Type*} [comm_monoid β] (m : multiset α) (f : α → ℕ → β) :
@@ -220,6 +220,6 @@ lemma multiset.prod_to_enum_finset {β : Type*} [comm_monoid β] (m : multiset �
 begin
   rw fintype.prod_equiv m.coe_equiv (λ x, f x x.2) (λ x, f x.1.1 x.1.2),
   { rw ← m.to_enum_finset.prod_coe_sort (λ x, f x.1 x.2),
-    simp, },
-  { simp }
+    simv, },
+  { simv }
 end

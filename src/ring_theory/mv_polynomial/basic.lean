@@ -97,7 +97,7 @@ end
 lemma mem_restrict_degree_iff_sup (p : mv_polynomial σ R) (n : ℕ) :
   p ∈ restrict_degree σ R n ↔ ∀i, p.degrees.count i ≤ n :=
 begin
-  simp only [mem_restrict_degree, degrees, multiset.count_finset_sup, finsupp.count_to_multiset,
+  simv only [mem_restrict_degree, degrees, multiset.count_finset_sup, finsupp.count_to_multiset,
     finset.sup_le_iff],
   exact ⟨assume h n s hs, h s hs n, assume h s hs n, h n s hs⟩
 end

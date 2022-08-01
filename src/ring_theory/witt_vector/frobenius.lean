@@ -161,7 +161,7 @@ begin
   apply nat.strong_induction_on n, clear n,
   intros n IH,
   rw [X_in_terms_of_W_eq],
-  simp only [alg_hom.map_sum, alg_hom.map_sub, alg_hom.map_mul, alg_hom.map_pow, bind₁_C_right],
+  simv only [alg_hom.map_sum, alg_hom.map_sub, alg_hom.map_mul, alg_hom.map_pow, bind₁_C_right],
   have h1 : (↑p ^ n) * (⅟ (↑p : ℚ) ^ n) = 1 := by rw [←mul_pow, mul_inv_of_self, one_pow],
   rw [bind₁_X_right, function.comp_app, witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ,
       sum_range_succ, tsub_self, add_tsub_cancel_left, pow_zero, pow_one, pow_one, sub_mul,
@@ -169,7 +169,7 @@ begin
       mul_assoc ↑p (↑p ^ n), h1, mul_one, C_1, one_mul, add_comm _ (X n ^ p), add_assoc, ←add_sub,
       add_right_inj, frobenius_poly_aux_eq, ring_hom.map_sub, map_X, mul_sub, sub_eq_add_neg,
       add_comm _ (C ↑p * X (n + 1)), ←add_sub, add_right_inj, neg_eq_iff_neg_eq, neg_sub],
-  simp only [ring_hom.map_sum, mul_sum, sum_mul, ←sum_sub_distrib],
+  simv only [ring_hom.map_sum, mul_sum, sum_mul, ←sum_sub_distrib],
   apply sum_congr rfl,
   intros i hi,
   rw mem_range at hi,
@@ -184,16 +184,16 @@ begin
   rw [ring_hom.map_mul, ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_pow, ring_hom.map_pow,
       ring_hom.map_pow, ring_hom.map_pow, map_C, map_X, mul_pow],
   rw [mul_comm (C ↑p ^ i), mul_comm _ ((X i ^ p) ^ _), mul_comm (C ↑p ^ (j + 1)), mul_comm (C ↑p)],
-  simp only [mul_assoc],
+  simv only [mul_assoc],
   apply congr_arg,
   apply congr_arg,
   rw [←C_eq_coe_nat],
-  simp only [←ring_hom.map_pow, ←C_mul],
+  simv only [←ring_hom.map_pow, ←C_mul],
   rw C_inj,
-  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow, int.cast_coe_nat, nat.cast_mul,
+  simv only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow, int.cast_coe_nat, nat.cast_mul,
     int.cast_mul],
   rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
-  simp only [nat.cast_pow, pow_add, pow_one],
+  simv only [nat.cast_pow, pow_add, pow_one],
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =
     p ^ j * p * ((p ^ (n - i)).choose (j + 1) * p ^ i) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
@@ -207,7 +207,7 @@ lemma frobenius_poly_zmod (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
 begin
   rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
-  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.nat_cast_self, zero_mul, C_0],
+  simv only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.nat_cast_self, zero_mul, C_0],
 end
 
 @[simp]
@@ -215,7 +215,7 @@ lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
   bind₁ (frobenius_poly p) (witt_polynomial p ℤ n) = (witt_polynomial p ℤ (n+1)) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_bind₁, map_frobenius_poly, bind₁_frobenius_poly_rat_witt_polynomial,
+  simv only [map_bind₁, map_frobenius_poly, bind₁_frobenius_poly_rat_witt_polynomial,
     map_witt_polynomial],
 end
 
@@ -243,7 +243,7 @@ variable {p}
 
 @[ghost_simps] lemma ghost_component_frobenius_fun (n : ℕ) (x : 𝕎 R) :
   ghost_component n (frobenius_fun x) = ghost_component (n + 1) x :=
-by simp only [ghost_component_apply, frobenius_fun, coeff_mk,
+by simv only [ghost_component_apply, frobenius_fun, coeff_mk,
     ← bind₁_frobenius_poly_witt_polynomial, aeval_bind₁]
 
 /--
@@ -311,13 +311,13 @@ lemma frobenius_eq_map_frobenius :
   @frobenius p R _ _ = map (_root_.frobenius R p) :=
 begin
   ext x n,
-  simp only [coeff_frobenius_char_p, map_coeff, frobenius_def],
+  simv only [coeff_frobenius_char_p, map_coeff, frobenius_def],
 end
 
 @[simp]
 lemma frobenius_zmodp (x : 𝕎 (zmod p)) :
   (frobenius x) = x :=
-by simp only [ext_iff, coeff_frobenius_char_p, zmod.pow_card, eq_self_iff_true, forall_const]
+by simv only [ext_iff, coeff_frobenius_char_p, zmod.pow_card, eq_self_iff_true, forall_const]
 
 variables (p R)
 /-- `witt_vector.frobenius` as an equiv. -/

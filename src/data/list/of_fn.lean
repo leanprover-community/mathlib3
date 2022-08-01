@@ -47,20 +47,20 @@ lemma nth_of_fn_aux {n} (f : fin n → α) (i) :
 | 0        h l H := H i
 | (succ m) h l H := nth_of_fn_aux m _ _ begin
   intro j, cases j with j,
-  { simp only [nth, of_fn_nth_val, zero_add, dif_pos (show m < n, from h)] },
-  { simp only [nth, H, add_succ, succ_add] }
+  { simv only [nth, of_fn_nth_val, zero_add, dif_pos (show m < n, from h)] },
+  { simv only [nth, H, add_succ, succ_add] }
 end
 
 /-- The `n`th element of a list -/
 @[simp] theorem nth_of_fn {n} (f : fin n → α) (i) :
   nth (of_fn f) i = of_fn_nth_val f i :=
 nth_of_fn_aux f _ _ _ _ $ λ i,
-by simp only [of_fn_nth_val, dif_neg (not_lt.2 (nat.le_add_left n i))]; refl
+by simv only [of_fn_nth_val, dif_neg (not_lt.2 (nat.le_add_left n i))]; refl
 
 theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
   nth_le (of_fn f) i ((length_of_fn f).symm ▸ i.2) = f i :=
 option.some.inj $ by rw [← nth_le_nth];
-  simp only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.is_lt]
+  simv only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.is_lt]
 
 @[simp] theorem nth_le_of_fn' {n} (f : fin n → α) {i : ℕ} (h : i < (of_fn f).length) :
   nth_le (of_fn f) i h = f ⟨i, ((length_of_fn f) ▸ h)⟩ :=
@@ -68,7 +68,7 @@ nth_le_of_fn f ⟨i, ((length_of_fn f) ▸ h)⟩
 
 @[simp] lemma map_of_fn {β : Type*} {n : ℕ} (f : fin n → α) (g : α → β) :
   map g (of_fn f) = of_fn (g ∘ f) :=
-ext_le (by simp) (λ i h h', by simp)
+ext_le (by simv) (λ i h h', by simv)
 
 /-- Arrays converted to lists are the same as `of_fn` on the indexing function of the array. -/
 theorem array_eq_of_fn {n} (a : array n α) : a.to_list = of_fn a.read :=
@@ -76,7 +76,7 @@ suffices ∀ {m h l}, d_array.rev_iterate_aux a
   (λ i, cons) m h l = of_fn_aux (d_array.read a) m h l, from this,
 begin
   intros, induction m with m IH generalizing l, {refl},
-  simp only [d_array.rev_iterate_aux, of_fn_aux, IH]
+  simv only [d_array.rev_iterate_aux, of_fn_aux, IH]
 end
 
 @[congr]
@@ -140,24 +140,24 @@ by simp_rw [mul_comm m n, mul_comm m, of_fn_mul, fin.cast_mk]
 
 theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i i.2) = l
 | [] := rfl
-| (a::l) := by { rw of_fn_succ, congr, simp only [fin.coe_succ], exact of_fn_nth_le l }
+| (a::l) := by { rw of_fn_succ, congr, simv only [fin.coe_succ], exact of_fn_nth_le l }
 
--- not registered as a simp lemma, as otherwise it fires before `forall_mem_of_fn_iff` which
+-- not registered as a simv lemma, as otherwise it fires before `forall_mem_of_fn_iff` which
 -- is much more useful
 lemma mem_of_fn {n} (f : fin n → α) (a : α) :
   a ∈ of_fn f ↔ a ∈ set.range f :=
 begin
-  simp only [mem_iff_nth_le, set.mem_range, nth_le_of_fn'],
+  simv only [mem_iff_nth_le, set.mem_range, nth_le_of_fn'],
   exact ⟨λ ⟨i, hi, h⟩, ⟨_, h⟩, λ ⟨i, hi⟩, ⟨i.1, (length_of_fn f).symm ▸ i.2, by simpa using hi⟩⟩
 end
 
 @[simp] lemma forall_mem_of_fn_iff {n : ℕ} {f : fin n → α} {P : α → Prop} :
   (∀ i ∈ of_fn f, P i) ↔ ∀ j : fin n, P (f j) :=
-by simp only [mem_of_fn, set.forall_range_iff]
+by simv only [mem_of_fn, set.forall_range_iff]
 
 @[simp] lemma of_fn_const (n : ℕ) (c : α) :
   of_fn (λ i : fin n, c) = repeat c n :=
-nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
+nat.rec_on n (by simv) $ λ n ihn, by simv [ihn]
 
 /-- Lists are equivalent to the sigma type of tuples of a given length. -/
 @[simps]

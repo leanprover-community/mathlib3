@@ -54,31 +54,31 @@ def moment (X : Ω → ℝ) (p : ℕ) (μ : measure Ω) : ℝ := μ[X ^ p]
 def central_moment (X : Ω → ℝ) (p : ℕ) (μ : measure Ω) : ℝ := μ[(X - (λ x, μ[X])) ^ p]
 
 @[simp] lemma moment_zero (hp : p ≠ 0) : moment 0 p μ = 0 :=
-by simp only [moment, hp, zero_pow', ne.def, not_false_iff, pi.zero_apply, integral_const,
+by simv only [moment, hp, zero_pow', ne.def, not_false_iff, pi.zero_apply, integral_const,
   algebra.id.smul_eq_mul, mul_zero]
 
 @[simp] lemma central_moment_zero (hp : p ≠ 0) : central_moment 0 p μ = 0 :=
-by simp only [central_moment, hp, pi.zero_apply, integral_const, algebra.id.smul_eq_mul,
+by simv only [central_moment, hp, pi.zero_apply, integral_const, algebra.id.smul_eq_mul,
   mul_zero, zero_sub, pi.pow_apply, pi.neg_apply, neg_zero', zero_pow', ne.def, not_false_iff]
 
 lemma central_moment_one' [is_finite_measure μ] (h_int : integrable X μ) :
   central_moment X 1 μ = (1 - (μ set.univ).to_real) * μ[X] :=
 begin
-  simp only [central_moment, pi.sub_apply, pow_one],
+  simv only [central_moment, pi.sub_apply, pow_one],
   rw integral_sub h_int (integrable_const _),
-  simp only [sub_mul, integral_const, algebra.id.smul_eq_mul, one_mul],
+  simv only [sub_mul, integral_const, algebra.id.smul_eq_mul, one_mul],
 end
 
 @[simp] lemma central_moment_one [is_probability_measure μ] : central_moment X 1 μ = 0 :=
 begin
   by_cases h_int : integrable X μ,
   { rw central_moment_one' h_int,
-    simp only [measure_univ, ennreal.one_to_real, sub_self, zero_mul], },
-  { simp only [central_moment, pi.sub_apply, pow_one],
+    simv only [measure_univ, ennreal.one_to_real, sub_self, zero_mul], },
+  { simv only [central_moment, pi.sub_apply, pow_one],
     have : ¬ integrable (λ x, X x - integral μ X) μ,
     { refine λ h_sub, h_int _,
       have h_add : X = (λ x, X x - integral μ X) + (λ x, integral μ X),
-      { ext1 x, simp, },
+      { ext1 x, simv, },
       rw h_add,
       exact h_sub.add (integrable_const _), },
     rw integral_undef this, },
@@ -97,60 +97,60 @@ def mgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := μ[λ ω, exp (t *
 def cgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := log (mgf X μ t)
 
 @[simp] lemma mgf_zero_fun : mgf 0 μ t = (μ set.univ).to_real :=
-by simp only [mgf, pi.zero_apply, mul_zero, exp_zero, integral_const, algebra.id.smul_eq_mul,
+by simv only [mgf, pi.zero_apply, mul_zero, exp_zero, integral_const, algebra.id.smul_eq_mul,
   mul_one]
 
 @[simp] lemma cgf_zero_fun : cgf 0 μ t = log (μ set.univ).to_real :=
-by simp only [cgf, mgf_zero_fun]
+by simv only [cgf, mgf_zero_fun]
 
 @[simp] lemma mgf_zero_measure : mgf X (0 : measure Ω) t = 0 :=
-by simp only [mgf, integral_zero_measure]
+by simv only [mgf, integral_zero_measure]
 
 @[simp] lemma cgf_zero_measure : cgf X (0 : measure Ω) t = 0 :=
-by simp only [cgf, log_zero, mgf_zero_measure]
+by simv only [cgf, log_zero, mgf_zero_measure]
 
 @[simp] lemma mgf_const' (c : ℝ) : mgf (λ _, c) μ t = (μ set.univ).to_real * exp (t * c) :=
-by simp only [mgf, integral_const, algebra.id.smul_eq_mul]
+by simv only [mgf, integral_const, algebra.id.smul_eq_mul]
 
 @[simp] lemma mgf_const (c : ℝ) [is_probability_measure μ] : mgf (λ _, c) μ t = exp (t * c) :=
-by simp only [mgf_const', measure_univ, ennreal.one_to_real, one_mul]
+by simv only [mgf_const', measure_univ, ennreal.one_to_real, one_mul]
 
 @[simp] lemma cgf_const' [is_finite_measure μ] (hμ : μ ≠ 0) (c : ℝ) :
   cgf (λ _, c) μ t = log (μ set.univ).to_real + t * c :=
 begin
-  simp only [cgf, mgf_const'],
+  simv only [cgf, mgf_const'],
   rw log_mul _ (exp_pos _).ne',
   { rw log_exp _, },
   { rw [ne.def, ennreal.to_real_eq_zero_iff, measure.measure_univ_eq_zero],
-    simp only [hμ, measure_ne_top μ set.univ, or_self, not_false_iff], },
+    simv only [hμ, measure_ne_top μ set.univ, or_self, not_false_iff], },
 end
 
 @[simp] lemma cgf_const [is_probability_measure μ] (c : ℝ) : cgf (λ _, c) μ t = t * c :=
-by simp only [cgf, mgf_const, log_exp]
+by simv only [cgf, mgf_const, log_exp]
 
 @[simp] lemma mgf_zero' : mgf X μ 0 = (μ set.univ).to_real :=
-by simp only [mgf, zero_mul, exp_zero, integral_const, algebra.id.smul_eq_mul, mul_one]
+by simv only [mgf, zero_mul, exp_zero, integral_const, algebra.id.smul_eq_mul, mul_one]
 
 @[simp] lemma mgf_zero [is_probability_measure μ] : mgf X μ 0 = 1 :=
-by simp only [mgf_zero', measure_univ, ennreal.one_to_real]
+by simv only [mgf_zero', measure_univ, ennreal.one_to_real]
 
 @[simp] lemma cgf_zero' : cgf X μ 0 = log (μ set.univ).to_real :=
-by simp only [cgf, mgf_zero']
+by simv only [cgf, mgf_zero']
 
 @[simp] lemma cgf_zero [is_probability_measure μ] : cgf X μ 0 = 0 :=
-by simp only [cgf_zero', measure_univ, ennreal.one_to_real, log_one]
+by simv only [cgf_zero', measure_univ, ennreal.one_to_real, log_one]
 
 lemma mgf_undef (hX : ¬ integrable (λ ω, exp (t * X ω)) μ) : mgf X μ t = 0 :=
-by simp only [mgf, integral_undef hX]
+by simv only [mgf, integral_undef hX]
 
 lemma cgf_undef (hX : ¬ integrable (λ ω, exp (t * X ω)) μ) : cgf X μ t = 0 :=
-by simp only [cgf, mgf_undef hX, log_zero]
+by simv only [cgf, mgf_undef hX, log_zero]
 
 lemma mgf_nonneg : 0 ≤ mgf X μ t :=
 begin
   refine integral_nonneg _,
   intro ω,
-  simp only [pi.zero_apply],
+  simv only [pi.zero_apply],
   exact (exp_pos _).le,
 end
 
@@ -158,15 +158,15 @@ lemma mgf_pos' (hμ : μ ≠ 0) (h_int_X : integrable (λ ω, exp (t * X ω)) μ
 begin
   simp_rw mgf,
   have : ∫ (x : Ω), exp (t * X x) ∂μ = ∫ (x : Ω) in set.univ, exp (t * X x) ∂μ,
-  { simp only [measure.restrict_univ], },
+  { simv only [measure.restrict_univ], },
   rw [this, set_integral_pos_iff_support_of_nonneg_ae _ _],
   { have h_eq_univ : function.support (λ (x : Ω), exp (t * X x)) = set.univ,
     { ext1 x,
-      simp only [function.mem_support, set.mem_univ, iff_true],
+      simv only [function.mem_support, set.mem_univ, iff_true],
       exact (exp_pos _).ne', },
     rw [h_eq_univ, set.inter_univ _],
     refine ne.bot_lt _,
-    simp only [hμ, ennreal.bot_eq_zero, ne.def, measure.measure_univ_eq_zero, not_false_iff], },
+    simv only [hμ, ennreal.bot_eq_zero, ne.def, measure.measure_univ_eq_zero, not_false_iff], },
   { refine eventually_of_forall (λ x, _),
     rw pi.zero_apply,
     exact (exp_pos _).le, },
@@ -206,8 +206,8 @@ lemma indep_fun.cgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   cgf (X + Y) μ t = cgf X μ t + cgf Y μ t :=
 begin
   by_cases hμ : μ = 0,
-  { simp [hμ], },
-  simp only [cgf, h_indep.mgf_add h_int_X h_int_Y],
+  { simv [hμ], },
+  simv only [cgf, h_indep.mgf_add h_int_X h_int_Y],
   exact log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
 end
 
@@ -227,7 +227,7 @@ lemma Indep_fun.integrable_exp_mul_sum [is_probability_measure μ]
 begin
   classical,
   induction s using finset.induction_on with i s hi_notin_s h_rec h_int,
-  { simp only [pi.zero_apply, sum_apply, sum_empty, mul_zero, exp_zero],
+  { simv only [pi.zero_apply, sum_apply, sum_empty, mul_zero, exp_zero],
     exact integrable_const _, },
   { have : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), exp (t * X i ω)) μ,
       from λ i hi, h_int i (mem_insert_of_mem hi),
@@ -244,7 +244,7 @@ lemma Indep_fun.mgf_sum [is_probability_measure μ]
 begin
   classical,
   induction s using finset.induction_on with i s hi_notin_s h_rec h_int,
-  { simp only [sum_empty, mgf_zero_fun, measure_univ, ennreal.one_to_real, prod_empty], },
+  { simv only [sum_empty, mgf_zero_fun, measure_univ, ennreal.one_to_real, prod_empty], },
   { have h_int' : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), exp (t * X i ω)) μ,
       from λ i hi, h_int i (mem_insert_of_mem hi),
     rw [sum_insert hi_notin_s, indep_fun.mgf_add
@@ -271,14 +271,14 @@ lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
 begin
   cases ht.eq_or_lt with ht_zero_eq ht_pos,
   { rw ht_zero_eq.symm,
-    simp only [neg_zero', zero_mul, exp_zero, mgf_zero', one_mul],
+    simv only [neg_zero', zero_mul, exp_zero, mgf_zero', one_mul],
     rw ennreal.to_real_le_to_real (measure_ne_top μ _) (measure_ne_top μ _),
     exact measure_mono (set.subset_univ _), },
   calc (μ {ω | ε ≤ X ω}).to_real
       = (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real :
     begin
       congr' with ω,
-      simp only [exp_le_exp, eq_iff_iff],
+      simv only [exp_le_exp, eq_iff_iff],
       exact ⟨λ h, mul_le_mul_of_nonneg_left h ht_pos.le, λ h, le_of_mul_le_mul_left h ht_pos⟩,
     end
   ... ≤ (exp (t * ε))⁻¹ * μ[λ ω, exp (t * X ω)] :
@@ -299,7 +299,7 @@ begin
   rw [← neg_neg t, ← mgf_neg, neg_neg, ← neg_mul_neg (-t)],
   refine eq.trans_le _ (measure_ge_le_exp_mul_mgf (-ε) (neg_nonneg.mpr ht) _),
   { congr' with ω,
-    simp only [pi.neg_apply, neg_le_neg_iff], },
+    simv only [pi.neg_apply, neg_le_neg_iff], },
   { simp_rw [pi.neg_apply, neg_mul_neg],
     exact h_int, },
 end

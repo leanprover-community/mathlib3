@@ -95,12 +95,12 @@ def seminormed_add_comm_group.of_core (E : Type*) [add_comm_group E] [has_norm E
   (C : seminormed_add_comm_group.core E) : seminormed_add_comm_group E :=
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
-  dist_self := assume x, by simp [C.norm_zero],
+  dist_self := assume x, by simv [C.norm_zero],
   dist_triangle := assume x y z,
     calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
             ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
   dist_comm := assume x y,
-    calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
+    calc ∥x - y∥ = ∥ -(y - x)∥ : by simv
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
 
 instance : normed_add_comm_group punit :=
@@ -145,10 +145,10 @@ by simpa only [dist_eq_norm] using dist_comm g h
 by simpa using norm_sub_rev 0 g
 
 @[simp] lemma dist_add_left (g h₁ h₂ : E) : dist (g + h₁) (g + h₂) = dist h₁ h₂ :=
-by simp [dist_eq_norm]
+by simv [dist_eq_norm]
 
 @[simp] lemma dist_add_right (g₁ g₂ h : E) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
-by simp [dist_eq_norm]
+by simv [dist_eq_norm]
 
 lemma dist_neg (x y : E) : dist (-x) y = dist x (-y) :=
 by simp_rw [dist_eq_norm, ←norm_neg (-x - y), neg_sub, sub_neg_eq_add, add_comm]
@@ -156,7 +156,7 @@ by simp_rw [dist_eq_norm, ←norm_neg (-x - y), neg_sub, sub_neg_eq_add, add_com
 @[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h := by rw [dist_neg, neg_neg]
 
 @[simp] lemma dist_sub_left (g h₁ h₂ : E) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
-by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
+by simv only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
 
 @[simp] lemma dist_sub_right (g₁ g₂ h : E) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
@@ -245,7 +245,7 @@ lemma dist_sum_sum_le_of_le (s : finset ι) {f g : ι → E} {d : ι → ℝ}
   (h : ∀ b ∈ s, dist (f b) (g b) ≤ d b) :
   dist (∑ b in s, f b) (∑ b in s, g b) ≤ ∑ b in s, d b :=
 begin
-  simp only [dist_eq_norm, ← finset.sum_sub_distrib] at *,
+  simv only [dist_eq_norm, ← finset.sum_sub_distrib] at *,
   exact norm_sum_le_of_le s h
 end
 
@@ -286,10 +286,10 @@ calc ∥u∥ = ∥u + v - v∥ : by rw add_sub_cancel
 ... ≤ ∥u + v∥ + ∥v∥ : norm_sub_le _ _
 
 lemma ball_eq (y : E) (ε : ℝ) : metric.ball y ε = { x | ∥x - y∥ < ε} :=
-by { ext, simp [dist_eq_norm], }
+by { ext, simv [dist_eq_norm], }
 
 lemma ball_zero_eq (ε : ℝ) : ball (0 : E) ε = {x | ∥x∥ < ε} :=
-set.ext $ assume a, by simp
+set.ext $ assume a, by simv
 
 lemma mem_ball_iff_norm {g h : E} {r : ℝ} :
   h ∈ ball g r ↔ ∥h - g∥ < r :=
@@ -350,7 +350,7 @@ by simpa only [set.subset_def, mem_closed_ball_iff_norm, sub_zero]
 @[simp] lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
 begin
   ext z,
-  simp only [dist_eq_norm, set.mem_preimage, mem_ball],
+  simv only [dist_eq_norm, set.mem_preimage, mem_ball],
   abel
 end
 
@@ -358,15 +358,15 @@ end
   ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
 begin
   ext z,
-  simp only [dist_eq_norm, set.mem_preimage, mem_closed_ball],
+  simv only [dist_eq_norm, set.mem_preimage, mem_closed_ball],
   abel
 end
 
 @[simp] lemma mem_sphere_iff_norm (v w : E) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
-by simp [dist_eq_norm]
+by simv [dist_eq_norm]
 
 @[simp] lemma mem_sphere_zero_iff_norm {w : E} {r : ℝ} : w ∈ sphere (0:E) r ↔ ∥w∥ = r :=
-by simp [dist_eq_norm]
+by simv [dist_eq_norm]
 
 @[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:E) r) : ∥(x:E)∥ = r :=
 mem_sphere_zero_iff_norm.mp x.2
@@ -375,7 +375,7 @@ lemma preimage_add_sphere (x y : E) (r : ℝ) :
   ((+) y) ⁻¹' (sphere x r) = sphere (x - y) r :=
 begin
   ext z,
-  simp only [set.mem_preimage, mem_sphere_iff_norm],
+  simv only [set.mem_preimage, mem_sphere_iff_norm],
   abel
 end
 
@@ -438,7 +438,7 @@ end isometric
 
 theorem normed_add_comm_group.tendsto_nhds_zero {f : α → E} {l : filter α} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
-metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
+metric.tendsto_nhds.trans $ by simv only [dist_zero_right]
 
 lemma normed_add_comm_group.tendsto_nhds_nhds {f : E → F} {x : E} {y : F} :
   tendsto f (𝓝 x) (𝓝 y) ↔ ∀ ε > 0, ∃ δ > 0, ∀ x', ∥x' - x∥ < δ → ∥f x' - y∥ < ε :=
@@ -446,7 +446,7 @@ by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
 lemma normed_add_comm_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
-by simp [metric.cauchy_seq_iff, dist_eq_norm]
+by simv [metric.cauchy_seq_iff, dist_eq_norm]
 
 lemma normed_add_comm_group.nhds_basis_norm_lt (x : E) :
   (𝓝 x).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y - x∥ < ε }) :=
@@ -459,14 +459,14 @@ lemma normed_add_comm_group.nhds_zero_basis_norm_lt :
   (𝓝 (0 : E)).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y∥ < ε }) :=
 begin
   convert normed_add_comm_group.nhds_basis_norm_lt (0 : E),
-  simp,
+  simv,
 end
 
 lemma normed_add_comm_group.uniformity_basis_dist :
   (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
 begin
   convert metric.uniformity_basis_dist,
-  simp [dist_eq_norm]
+  simv [dist_eq_norm]
 end
 
 open finset
@@ -480,7 +480,7 @@ lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, map_sub] using
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : E → F} {C : ℝ≥0} {s : set E} :
   lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s), ∥f x - f y∥ ≤ C * ∥x - y∥ :=
-by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
+by simv only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 
 lemma lipschitz_on_with.norm_sub_le {f : E → F} {C : ℝ≥0} {s : set E} (h : lipschitz_on_with C f s)
   {x y : E} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
@@ -493,7 +493,7 @@ lemma lipschitz_on_with.norm_sub_le_of_le {f : E → F} {C : ℝ≥0} {s : set E
 
 lemma lipschitz_with_iff_norm_sub_le {f : E → F} {C : ℝ≥0} :
   lipschitz_with C f ↔ ∀ x y, ∥f x - f y∥ ≤ C * ∥x - y∥ :=
-by simp only [lipschitz_with_iff_dist_le_mul, dist_eq_norm]
+by simv only [lipschitz_with_iff_dist_le_mul, dist_eq_norm]
 
 alias lipschitz_with_iff_norm_sub_le ↔ lipschitz_with.norm_sub_le _
 
@@ -524,7 +524,7 @@ end
 lemma add_monoid_hom_class.isometry_iff_norm {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F]
   (f : 𝓕) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
 begin
-  simp only [isometry_iff_dist_eq, dist_eq_norm, ←map_sub],
+  simv only [isometry_iff_dist_eq, dist_eq_norm, ←map_sub],
   refine ⟨λ h x, _, λ h x y, h _⟩,
   simpa using h x 0
 end
@@ -596,7 +596,7 @@ notation `∥`e`∥₊` := nnnorm e
 @[priority 100] -- see Note [lower instance priority]
 instance seminormed_add_comm_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, norm_nonneg a⟩⟩
 
-@[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
+@[simv, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
 @[simp] lemma coe_comp_nnnorm : (coe : ℝ≥0 → ℝ) ∘ (nnnorm : E → ℝ≥0) = norm := rfl
 
@@ -645,19 +645,19 @@ nnreal.coe_le_coe.1 $ dist_add_add_le g₁ g₂ h₁ h₂
 
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
-by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
+by { simv only [edist_nndist], norm_cast, apply nndist_add_add_le }
 
 @[simp] lemma edist_add_left (g h₁ h₂ : E) : edist (g + h₁) (g + h₂) = edist h₁ h₂ :=
-by simp [edist_dist]
+by simv [edist_dist]
 
 @[simp] lemma edist_add_right (g₁ g₂ h : E) : edist (g₁ + h) (g₂ + h) = edist g₁ g₂ :=
-by simp [edist_dist]
+by simv [edist_dist]
 
 lemma edist_neg (x y : E) : edist (-x) y = edist x (-y) := by simp_rw [edist_dist, dist_neg]
 @[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y := by rw [edist_neg, neg_neg]
 
 @[simp] lemma edist_sub_left (g h₁ h₂ : E) : edist (g - h₁) (g - h₂) = edist h₁ h₂ :=
-by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
+by simv only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
 
 @[simp] lemma edist_sub_right (g₁ g₂ h : E) : edist (g₁ - h) (g₂ - h) = edist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
@@ -733,7 +733,7 @@ by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with 
 
 lemma le_mul_norm_sub {f : E → F} (hf : antilipschitz_with K f) (x y : E) :
   ∥x - y∥ ≤ K * ∥f x - f y∥ :=
-by simp [← dist_eq_norm, hf.le_mul_dist x y]
+by simv [← dist_eq_norm, hf.le_mul_dist x y]
 
 end antilipschitz_with
 
@@ -764,7 +764,7 @@ rfl
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`.
 
-This is a reversed version of the `simp` lemma `add_subgroup.coe_norm` for use by `norm_cast`.
+This is a reversed version of the `simv` lemma `add_subgroup.coe_norm` for use by `norm_cast`.
 -/
 
 @[norm_cast] lemma add_subgroup.norm_coe {E : Type*} [seminormed_add_comm_group E]
@@ -793,7 +793,7 @@ rfl
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
 norm in `s`.
 
-This is a reversed version of the `simp` lemma `submodule.coe_norm` for use by `norm_cast`.
+This is a reversed version of the `simv` lemma `submodule.coe_norm` for use by `norm_cast`.
 
 See note [implicit instance arguments]. -/
 @[norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
@@ -814,12 +814,12 @@ lemma ulift.nnnorm_def (x : ulift E) : ∥x∥₊ = ∥x.down∥₊ := rfl
 noncomputable instance prod.seminormed_add_comm_group : seminormed_add_comm_group (E × F) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : E × F),
-    show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
+    show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simv [dist_eq_norm] }
 
 lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
 lemma prod.nnnorm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
-by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+by { have := x.norm_def, simv only [← coe_nnnorm] at this, exact_mod_cast this }
 
 lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
@@ -848,7 +848,7 @@ lemma pi.nnnorm_def : ∥f∥₊ = finset.univ.sup (λ b, ∥f b∥₊) := subty
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
 lemma pi_norm_le_iff {r : ℝ} (hr : 0 ≤ r) {x : Π i, π i} : ∥x∥ ≤ r ↔ ∀ i, ∥x i∥ ≤ r :=
-by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
+by simv only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
 
 lemma pi_nnnorm_le_iff {r : ℝ≥0} {x : Π i, π i} : ∥x∥₊ ≤ r ↔ ∀i, ∥x i∥₊ ≤ r :=
 pi_norm_le_iff r.coe_nonneg
@@ -856,7 +856,7 @@ pi_norm_le_iff r.coe_nonneg
 /-- The seminorm of an element in a product space is `< r` if and only if the norm of each
 component is. -/
 lemma pi_norm_lt_iff {r : ℝ} (hr : 0 < r) {x : Π i, π i} : ∥x∥ < r ↔ ∀ i, ∥x i∥ < r :=
-by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
+by simv only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
 lemma pi_nnnorm_lt_iff {r : ℝ≥0} (hr : 0 < r) {x : Π i, π i} : ∥x∥₊ < r ↔ ∀ i, ∥x i∥₊ < r :=
 pi_norm_lt_iff hr
@@ -883,11 +883,11 @@ end pi
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
-by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }
+by { convert tendsto_iff_dist_tendsto_zero, simv [dist_eq_norm] }
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : α → E} {a : filter α} :
   tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
-by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
+by { rw [tendsto_iff_norm_tendsto_zero], simv only [sub_zero] }
 
 lemma comap_norm_nhds_zero : comap norm (𝓝 0) = 𝓝 (0 : E) :=
 by simpa only [dist_zero_right] using nhds_comap_dist (0 : E)
@@ -1038,7 +1038,7 @@ by apply_instance -- short-circuit type class inference
 
 lemma seminormed_add_comm_group.mem_closure_iff {s : set E} {x : E} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=
-by simp [metric.mem_closure_iff, dist_eq_norm]
+by simv [metric.mem_closure_iff, dist_eq_norm]
 
 lemma norm_le_zero_iff' [t0_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
@@ -1059,13 +1059,13 @@ lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n �
 begin
   let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
   rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
-    by { ext n, simp [d] },
+    by { ext n, simv [d] },
   have : ∀ n ≥ N, d n = d N,
   { intros n hn,
     dsimp [d],
     rw eventually_constant_sum _ hn,
     intros m hm,
-    simp [huv m hm] },
+    simv [huv m hm] },
   exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
 end
 

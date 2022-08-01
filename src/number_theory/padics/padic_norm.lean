@@ -53,11 +53,11 @@ variables (p : ℕ)
 /-- Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`. -/
 @[simp] protected lemma eq_zpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
   padic_norm p q = p ^ (-(padic_val_rat p q)) :=
-by simp [hq, padic_norm]
+by simv [hq, padic_norm]
 
 /-- The p-adic norm is nonnegative. -/
 protected lemma nonneg (q : ℚ) : 0 ≤ padic_norm p q :=
-if hq : q = 0 then by simp [hq, padic_norm]
+if hq : q = 0 then by simv [hq, padic_norm]
 else
   begin
     unfold padic_norm; split_ifs,
@@ -66,10 +66,10 @@ else
   end
 
 /-- The p-adic norm of 0 is 0. -/
-@[simp] protected lemma zero : padic_norm p 0 = 0 := by simp [padic_norm]
+@[simp] protected lemma zero : padic_norm p 0 = 0 := by simv [padic_norm]
 
 /-- The p-adic norm of 1 is 1. -/
-@[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
+@[simp] protected lemma one : padic_norm p 1 = 1 := by simv [padic_norm]
 
 /--
 The p-adic norm of `p` is `1/p` if `p > 1`.
@@ -77,7 +77,7 @@ The p-adic norm of `p` is `1/p` if `p > 1`.
 See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
 lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
-by simp [padic_norm, (pos_of_gt hp).ne', padic_val_nat.self hp]
+by simv [padic_norm, (pos_of_gt hp).ne', padic_val_nat.self hp]
 
 /--
 The p-adic norm of `p` is `1/p` if `p` is prime.
@@ -93,7 +93,7 @@ lemma padic_norm_of_prime_of_ne {p q : ℕ} [p_prime : fact p.prime] [q_prime : 
 begin
   have p : padic_val_rat p q = 0,
   { exact_mod_cast @padic_val_nat_primes p q p_prime q_prime neq },
-  simp [padic_norm, p, q_prime.1.1, q_prime.1.ne_zero],
+  simv [padic_norm, p, q_prime.1.1, q_prime.1.ne_zero],
 end
 
 /--
@@ -118,12 +118,12 @@ padic_norm_p_lt_one $ nat.prime.one_lt (fact.out _)
 
 /-- `padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`. -/
 protected theorem values_discrete {q : ℚ} (hq : q ≠ 0) : ∃ z : ℤ, padic_norm p q = p ^ (-z) :=
-⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
+⟨ (padic_val_rat p q), by simv [padic_norm, hq] ⟩
 
 /-- `padic_norm p` is symmetric. -/
 @[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
-if hq : q = 0 then by simp [hq]
-else by simp [padic_norm, hq]
+if hq : q = 0 then by simv [hq]
+else by simv [padic_norm, hq]
 
 variable [hp : fact p.prime]
 include hp
@@ -149,29 +149,29 @@ end
 /-- The p-adic norm is multiplicative. -/
 @[simp] protected theorem mul (q r : ℚ) : padic_norm p (q*r) = padic_norm p q * padic_norm p r :=
 if hq : q = 0 then
-  by simp [hq]
+  by simv [hq]
 else if hr : r = 0 then
-  by simp [hr]
+  by simv [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [hp.1.ne_zero],
-  by simp [padic_norm, *, padic_val_rat.mul, zpow_add₀ this, mul_comm]
+  have (↑p : ℚ) ≠ 0, by simv [hp.1.ne_zero],
+  by simv [padic_norm, *, padic_val_rat.mul, zpow_add₀ this, mul_comm]
 
 /-- The p-adic norm respects division. -/
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
-if hr : r = 0 then by simp [hr] else
+if hr : r = 0 then by simv [hr] else
 eq_div_of_mul_eq (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
 /-- The p-adic norm of an integer is at most 1. -/
 protected theorem of_int (z : ℤ) : padic_norm p ↑z ≤ 1 :=
-if hz : z = 0 then by simp [hz, zero_le_one] else
+if hz : z = 0 then by simv [hz, zero_le_one] else
 begin
   unfold padic_norm,
   rw [if_neg _],
   { refine zpow_le_one_of_nonpos _ _,
     { exact_mod_cast le_of_lt hp.1.one_lt, },
     { rw [padic_val_rat.of_int, neg_nonpos],
-      norm_cast, simp }},
+      norm_cast, simv }},
   exact_mod_cast hz,
 end
 
@@ -180,9 +180,9 @@ private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_va
 have hnqp : padic_norm p q ≥ 0, from padic_norm.nonneg _ _,
 have hnrp : padic_norm p r ≥ 0, from padic_norm.nonneg _ _,
 if hq : q = 0 then
-  by simp [hq, max_eq_right hnrp, le_max_right]
+  by simv [hq, max_eq_right hnrp, le_max_right]
 else if hr : r = 0 then
-  by simp [hr, max_eq_left hnqp, le_max_left]
+  by simv [hr, max_eq_left hnqp, le_max_left]
 else if hqr : q + r = 0 then
   le_trans (by simpa [hqr] using hnqp) (le_max_left _ _)
 else
@@ -239,7 +239,7 @@ begin
   have : padic_norm p q ≤ max (padic_norm p (q + r)) (padic_norm p r), from calc
    padic_norm p q = padic_norm p (q + r - r) : by congr; ring
                ... ≤ max (padic_norm p (q + r)) (padic_norm p (-r)) : padic_norm.nonarchimedean p
-               ... = max (padic_norm p (q + r)) (padic_norm p r) : by simp,
+               ... = max (padic_norm p (q + r)) (padic_norm p r) : by simv,
   have hnge : padic_norm p r ≤ padic_norm p (q + r),
   { apply le_of_not_gt,
     intro hgt,
@@ -264,7 +264,7 @@ instance : is_absolute_value (padic_norm p) :=
       intros,
       constructor; intro,
       { apply zero_of_padic_norm_eq_zero p, assumption },
-      { simp [*] }
+      { simv [*] }
     end,
   abv_add := padic_norm.triangle_ineq p,
   abv_mul := padic_norm.mul p }
@@ -276,12 +276,12 @@ begin
   unfold padic_norm, split_ifs with hz,
   { norm_cast at hz,
     have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
-    simp [hz, this] },
+    simv [hz, this] },
   { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int,
       padic_val_int.of_ne_one_ne_zero hp.1.ne_one _],
     { norm_cast,
       rw [← part_enat.coe_le_coe, part_enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
-      simp },
+      simv },
     { exact_mod_cast hz },
     { exact_mod_cast hp.1.one_lt } }
 end

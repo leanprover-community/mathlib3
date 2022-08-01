@@ -154,21 +154,21 @@ open_locale real
 
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
-    sin_add, cos_pi_div_two]; simp
+    sin_add, cos_pi_div_two]; simv
 
 @[simp] lemma cos_pi : cos π = -1 :=
 by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
-  simp [bit0, pow_add]
+  simv [bit0, pow_add]
 
 @[simp] lemma sin_two_pi : sin (2 * π) = 0 :=
-by simp [two_mul, sin_add]
+by simv [two_mul, sin_add]
 
 @[simp] lemma cos_two_pi : cos (2 * π) = 1 :=
-by simp [two_mul, cos_add]
+by simv [two_mul, cos_add]
 
 lemma sin_antiperiodic : function.antiperiodic sin π :=
-by simp [sin_add]
+by simv [sin_add]
 
 lemma sin_periodic : function.periodic sin (2 * π) :=
 sin_antiperiodic.periodic
@@ -216,7 +216,7 @@ sin_neg x ▸ sin_periodic.nat_mul_sub_eq n
 sin_neg x ▸ sin_periodic.int_mul_sub_eq n
 
 lemma cos_antiperiodic : function.antiperiodic cos π :=
-by simp [cos_add]
+by simv [cos_add]
 
 lemma cos_periodic : function.periodic cos (2 * π) :=
 cos_antiperiodic.periodic
@@ -310,19 +310,19 @@ this.resolve_right
     h ▸ sin_pos_of_pos_of_lt_pi pi_div_two_pos (half_lt_self pi_pos))
 
 lemma sin_add_pi_div_two (x : ℝ) : sin (x + π / 2) = cos x :=
-by simp [sin_add]
+by simv [sin_add]
 
 lemma sin_sub_pi_div_two (x : ℝ) : sin (x - π / 2) = -cos x :=
-by simp [sub_eq_add_neg, sin_add]
+by simv [sub_eq_add_neg, sin_add]
 
 lemma sin_pi_div_two_sub (x : ℝ) : sin (π / 2 - x) = cos x :=
-by simp [sub_eq_add_neg, sin_add]
+by simv [sub_eq_add_neg, sin_add]
 
 lemma cos_add_pi_div_two (x : ℝ) : cos (x + π / 2) = -sin x :=
-by simp [cos_add]
+by simv [cos_add]
 
 lemma cos_sub_pi_div_two (x : ℝ) : cos (x - π / 2) = sin x :=
-by simp [sub_eq_add_neg, cos_add]
+by simv [sub_eq_add_neg, cos_add]
 
 lemma cos_pi_div_two_sub (x : ℝ) : cos (π / 2 - x) = sin x :=
 by rw [← cos_neg, neg_sub, cos_sub_pi_div_two]
@@ -361,13 +361,13 @@ lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
     (le_of_not_gt (λ h0, lt_irrefl (0 : ℝ) $
       calc 0 = sin x : h.symm
         ... < 0 : sin_neg_of_neg_of_neg_pi_lt h0 hx₁)),
-  λ h, by simp [h]⟩
+  λ h, by simv [h]⟩
 
 lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x :=
 ⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (int.sub_floor_div_mul_nonneg _ pi_pos))
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃,
     (sin_pos_of_pos_of_lt_pi h₃ (int.sub_floor_div_mul_lt _ pi_pos)).ne
-    (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
+    (by simv [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
 lemma sin_ne_zero_iff {x : ℝ} : sin x ≠ 0 ↔ ∀ n : ℤ, (n : ℝ) * π ≠ x :=
@@ -398,9 +398,9 @@ lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 
       rw [neg_lt, neg_mul_eq_neg_mul, mul_lt_iff_lt_one_left two_pi_pos] at hx₁,
       norm_cast at hx₁ hx₂,
       obtain rfl : n = 0 := le_antisymm (by linarith) (by linarith),
-      simp
+      simv
     end,
-  λ h, by simp [h]⟩
+  λ h, by simv [h]⟩
 
 lemma cos_lt_cos_of_nonneg_of_le_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hy₂ : y ≤ π / 2)
   (hxy : x < y) :
@@ -494,13 +494,13 @@ variable (x : ℝ)
 /-- the series `sqrt_two_add_series x n` is `sqrt(2 + sqrt(2 + ... ))` with `n` square roots,
   starting with `x`. We define it here because `cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2`
 -/
-@[simp, pp_nodot] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
+@[simv, pp_nodot] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
 | 0     := x
 | (n+1) := sqrt (2 + sqrt_two_add_series n)
 
-lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := by simp
-lemma sqrt_two_add_series_one : sqrt_two_add_series 0 1 = sqrt 2 := by simp
-lemma sqrt_two_add_series_two : sqrt_two_add_series 0 2 = sqrt (2 + sqrt 2) := by simp
+lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := by simv
+lemma sqrt_two_add_series_one : sqrt_two_add_series 0 1 = sqrt 2 := by simv
+lemma sqrt_two_add_series_two : sqrt_two_add_series 0 2 = sqrt (2 + sqrt 2) := by simv
 
 lemma sqrt_two_add_series_zero_nonneg : ∀(n : ℕ), 0 ≤ sqrt_two_add_series 0 n
 | 0     := le_refl 0
@@ -535,7 +535,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
   end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (π / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
-| 0     := by simp
+| 0     := by simv
 | (n+1) :=
   begin
     have : (2 : ℝ) ≠ 0 := two_ne_zero,
@@ -581,28 +581,28 @@ begin
 end
 
 @[simp] lemma cos_pi_div_four : cos (π / 4) = sqrt 2 / 2 :=
-by { transitivity cos (π / 2 ^ 2), congr, norm_num, simp }
+by { transitivity cos (π / 2 ^ 2), congr, norm_num, simv }
 
 @[simp] lemma sin_pi_div_four : sin (π / 4) = sqrt 2 / 2 :=
-by { transitivity sin (π / 2 ^ 2), congr, norm_num, simp }
+by { transitivity sin (π / 2 ^ 2), congr, norm_num, simv }
 
 @[simp] lemma cos_pi_div_eight : cos (π / 8) = sqrt (2 + sqrt 2) / 2 :=
-by { transitivity cos (π / 2 ^ 3), congr, norm_num, simp }
+by { transitivity cos (π / 2 ^ 3), congr, norm_num, simv }
 
 @[simp] lemma sin_pi_div_eight : sin (π / 8) = sqrt (2 - sqrt 2) / 2 :=
-by { transitivity sin (π / 2 ^ 3), congr, norm_num, simp }
+by { transitivity sin (π / 2 ^ 3), congr, norm_num, simv }
 
 @[simp] lemma cos_pi_div_sixteen : cos (π / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity cos (π / 2 ^ 4), congr, norm_num, simp }
+by { transitivity cos (π / 2 ^ 4), congr, norm_num, simv }
 
 @[simp] lemma sin_pi_div_sixteen : sin (π / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity sin (π / 2 ^ 4), congr, norm_num, simp }
+by { transitivity sin (π / 2 ^ 4), congr, norm_num, simv }
 
 @[simp] lemma cos_pi_div_thirty_two : cos (π / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity cos (π / 2 ^ 5), congr, norm_num, simp }
+by { transitivity cos (π / 2 ^ 5), congr, norm_num, simv }
 
 @[simp] lemma sin_pi_div_thirty_two : sin (π / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity sin (π / 2 ^ 5), congr, norm_num, simp }
+by { transitivity sin (π / 2 ^ 5), congr, norm_num, simv }
 
 -- This section is also a convenient location for other explicit values of `sin` and `cos`.
 
@@ -692,7 +692,7 @@ begin
   exact div_self (ne_of_gt h),
 end
 
-@[simp] lemma tan_pi_div_two : tan (π / 2) = 0 := by simp [tan_eq_sin_div_cos]
+@[simp] lemma tan_pi_div_two : tan (π / 2) = 0 := by simv [tan_eq_sin_div_cos]
 
 lemma tan_pos_of_pos_of_lt_pi_div_two {x : ℝ} (h0x : 0 < x) (hxp : x < π / 2) : 0 < tan x :=
 by rw tan_eq_sin_div_cos; exact div_pos (sin_pos_of_pos_of_lt_pi h0x (by linarith))
@@ -701,8 +701,8 @@ by rw tan_eq_sin_div_cos; exact div_pos (sin_pos_of_pos_of_lt_pi h0x (by linarit
 lemma tan_nonneg_of_nonneg_of_le_pi_div_two {x : ℝ} (h0x : 0 ≤ x) (hxp : x ≤ π / 2) : 0 ≤ tan x :=
 match lt_or_eq_of_le h0x, lt_or_eq_of_le hxp with
 | or.inl hx0, or.inl hxp := le_of_lt (tan_pos_of_pos_of_lt_pi_div_two hx0 hxp)
-| or.inl hx0, or.inr hxp := by simp [hxp, tan_eq_sin_div_cos]
-| or.inr hx0, _          := by simp [hx0.symm]
+| or.inl hx0, or.inr hxp := by simv [hxp, tan_eq_sin_div_cos]
+| or.inr hx0, _          := by simv [hx0.symm]
 end
 
 lemma tan_neg_of_neg_of_pi_div_two_lt {x : ℝ} (hx0 : x < 0) (hpx : -(π / 2) < x) : tan x < 0 :=
@@ -787,12 +787,12 @@ tan_neg x ▸ tan_periodic.int_mul_sub_eq n
 
 
 lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[<] (π/2)) (𝓝 1) :=
-by { convert continuous_sin.continuous_within_at, simp }
+by { convert continuous_sin.continuous_within_at, simv }
 
 lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[<] (π/2)) (𝓝[>] 0) :=
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
-  { convert continuous_cos.continuous_within_at, simp },
+  { convert continuous_cos.continuous_within_at, simv },
   { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (neg_lt_self pi_div_two_pos))]
       with x hx using cos_pos_of_mem_Ioo hx },
 end
@@ -801,16 +801,16 @@ lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[<] (π/2)) at_top :=
 begin
   convert tendsto_cos_pi_div_two.inv_tendsto_zero.at_top_mul zero_lt_one
             tendsto_sin_pi_div_two,
-  simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
+  simv only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
 lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[>] (-(π/2))) (𝓝 (-1)) :=
-by { convert continuous_sin.continuous_within_at, simp }
+by { convert continuous_sin.continuous_within_at, simv }
 
 lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[>] (-(π/2))) (𝓝[>] 0) :=
 begin
   apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
-  { convert continuous_cos.continuous_within_at, simp },
+  { convert continuous_cos.continuous_within_at, simv },
   { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr (neg_lt_self pi_div_two_pos))]
       with x hx using cos_pos_of_mem_Ioo hx },
 end
@@ -819,7 +819,7 @@ lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[>] (-(π/2))) at_bot :=
 begin
   convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,
-  simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
+  simv only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
 end real
@@ -833,27 +833,27 @@ by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq, sq, sq, ← sub_eq_iff_eq
   exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-calc cos (π / 2) = real.cos (π / 2) : by rw [of_real_cos]; simp
-... = 0 : by simp
+calc cos (π / 2) = real.cos (π / 2) : by rw [of_real_cos]; simv
+... = 0 : by simv
 
 @[simp] lemma sin_pi_div_two : sin (π / 2) = 1 :=
-calc sin (π / 2) = real.sin (π / 2) : by rw [of_real_sin]; simp
-... = 1 : by simp
+calc sin (π / 2) = real.sin (π / 2) : by rw [of_real_sin]; simv
+... = 1 : by simv
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← of_real_sin, real.sin_pi]; simp
+by rw [← of_real_sin, real.sin_pi]; simv
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← of_real_cos, real.cos_pi]; simp
+by rw [← of_real_cos, real.cos_pi]; simv
 
 @[simp] lemma sin_two_pi : sin (2 * π) = 0 :=
-by simp [two_mul, sin_add]
+by simv [two_mul, sin_add]
 
 @[simp] lemma cos_two_pi : cos (2 * π) = 1 :=
-by simp [two_mul, cos_add]
+by simv [two_mul, cos_add]
 
 lemma sin_antiperiodic : function.antiperiodic sin π :=
-by simp [sin_add]
+by simv [sin_add]
 
 lemma sin_periodic : function.periodic sin (2 * π) :=
 sin_antiperiodic.periodic
@@ -901,7 +901,7 @@ lemma sin_int_mul_two_pi_sub (x : ℂ) (n : ℤ) : sin (n * (2 * π) - x) = -sin
 sin_neg x ▸ sin_periodic.int_mul_sub_eq n
 
 lemma cos_antiperiodic : function.antiperiodic cos π :=
-by simp [cos_add]
+by simv [cos_add]
 
 lemma cos_periodic : function.periodic cos (2 * π) :=
 cos_antiperiodic.periodic
@@ -961,19 +961,19 @@ lemma cos_int_mul_two_pi_sub_pi (n : ℤ) : cos (n * (2 * π) - π) = -1 :=
 by simpa only [cos_zero] using (cos_periodic.int_mul n).sub_antiperiod_eq cos_antiperiodic
 
 lemma sin_add_pi_div_two (x : ℂ) : sin (x + π / 2) = cos x :=
-by simp [sin_add]
+by simv [sin_add]
 
 lemma sin_sub_pi_div_two (x : ℂ) : sin (x - π / 2) = -cos x :=
-by simp [sub_eq_add_neg, sin_add]
+by simv [sub_eq_add_neg, sin_add]
 
 lemma sin_pi_div_two_sub (x : ℂ) : sin (π / 2 - x) = cos x :=
-by simp [sub_eq_add_neg, sin_add]
+by simv [sub_eq_add_neg, sin_add]
 
 lemma cos_add_pi_div_two (x : ℂ) : cos (x + π / 2) = -sin x :=
-by simp [cos_add]
+by simv [cos_add]
 
 lemma cos_sub_pi_div_two (x : ℂ) : cos (x - π / 2) = sin x :=
-by simp [sub_eq_add_neg, cos_add]
+by simv [sub_eq_add_neg, cos_add]
 
 lemma cos_pi_div_two_sub (x : ℂ) : cos (π / 2 - x) = sin x :=
 by rw [← cos_neg, neg_sub, cos_sub_pi_div_two]
@@ -1015,7 +1015,7 @@ lemma tan_int_mul_pi_sub (x : ℂ) (n : ℤ) : tan (n * π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.int_mul_sub_eq n
 
 lemma exp_antiperiodic : function.antiperiodic exp (π * I) :=
-by simp [exp_add, exp_mul_I]
+by simv [exp_add, exp_mul_I]
 
 lemma exp_periodic : function.periodic exp (2 * π * I) :=
 (mul_assoc (2:ℂ) π I).symm ▸ exp_antiperiodic.periodic
@@ -1052,7 +1052,7 @@ lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le {a b : ℝ} (ha : a ≤ 0)
   {z : ℂ} (hz : |z.im| ≤ b) (hb : b ≤ π / 2) :
   abs (exp (a * (exp z + exp (-z)))) ≤ real.exp (a * real.cos b * real.exp (|z.re|)) :=
 begin
-  simp only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
+  simv only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
     ← add_mul, mul_assoc, mul_comm (real.cos b), neg_re, ← real.cos_abs z.im],
   have : real.exp (|z.re|) ≤ real.exp z.re + real.exp (-z.re),
     from apply_abs_le_add_of_nonneg (λ x, (real.exp_pos x).le) z.re,

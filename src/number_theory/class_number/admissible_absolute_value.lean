@@ -60,7 +60,7 @@ begin
   let e := fintype.equiv_fin ι,
   obtain ⟨t, ht⟩ := h.exists_partition' (fintype.card ι) hε hb (A ∘ e.symm),
   refine ⟨t ∘ e, λ i₀ i₁ h, _⟩,
-  convert ht (e i₀) (e i₁) h; simp only [e.symm_apply_apply]
+  convert ht (e i₀) (e i₁) h; simv only [e.symm_apply_apply]
 end
 
 /-- Any large enough family of vectors in `R^n` has a pair of elements
@@ -73,7 +73,7 @@ begin
   induction n with n ih,
   { intros ε hε b hb A,
     refine ⟨0, 1, _, _⟩,
-    { simp },
+    { simv },
     rintros ⟨i, ⟨⟩⟩ },
   intros ε hε b hb A,
   set M := h.card ε with hM,
@@ -118,7 +118,7 @@ begin
   let e := fintype.equiv_fin ι,
   obtain ⟨i₀, i₁, ne, h⟩ := h.exists_approx_aux (fintype.card ι) hε hb (λ x y, A x (e.symm y)),
   refine ⟨i₀, i₁, ne, λ k, _⟩,
-  convert h (e k); simp only [e.symm_apply_apply]
+  convert h (e k); simv only [e.symm_apply_apply]
 end
 
 end is_admissible

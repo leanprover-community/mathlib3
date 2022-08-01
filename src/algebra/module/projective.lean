@@ -103,7 +103,7 @@ begin
   use φ.comp s,
   ext p,
   conv_rhs {rw ← hs p},
-  simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
+  simv [φ, finsupp.total_apply, function.surj_inv_eq hf],
 end
 
 /-- A module which satisfies the universal property is projective. Note that the universe variables
@@ -128,7 +128,7 @@ begin
     rwa linear_map.ext_iff at hs },
   { intro p,
     use finsupp.single p 1,
-    simp },
+    simv },
 end
 
 end semiring
@@ -162,7 +162,7 @@ begin
     rwa linear_map.ext_iff at hs },
   { intro p,
     use finsupp.single p 1,
-    simp },
+    simv },
 end
 
 /-- Free modules are projective. -/
@@ -172,7 +172,7 @@ begin
   -- get it from `ι → (P →₀ R)` coming from `b`.
   use b.constr ℕ (λ i, finsupp.single (b i) (1 : R)),
   intro m,
-  simp only [b.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
+  simv only [b.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
     linear_map.map_finsupp_sum],
   exact b.total_repr m,
 end

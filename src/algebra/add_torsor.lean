@@ -220,7 +220,7 @@ by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 lemma vsub_vadd_comm (p1 p2 p3 : P) : (p1 -ᵥ p2 : G) +ᵥ p3 = p3 -ᵥ p2 +ᵥ p1 :=
 begin
   rw [←@vsub_eq_zero_iff_eq G, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub],
-  simp
+  simv
 end
 
 lemma vadd_eq_vadd_iff_sub_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
@@ -240,12 +240,12 @@ variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_g
 
 instance : add_torsor (G × G') (P × P') :=
 { vadd := λ v p, (v.1 +ᵥ p.1, v.2 +ᵥ p.2),
-  zero_vadd := λ p, by simp,
-  add_vadd := by simp [add_vadd],
+  zero_vadd := λ p, by simv,
+  add_vadd := by simv [add_vadd],
   vsub := λ p₁ p₂, (p₁.1 -ᵥ p₂.1, p₁.2 -ᵥ p₂.2),
   nonempty := prod.nonempty,
-  vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simp,
-  vadd_vsub' := λ v p, show (v.1 +ᵥ p.1 -ᵥ p.1, v.2 +ᵥ p.2 -ᵥ p.2)  =v, by simp }
+  vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simv,
+  vadd_vsub' := λ v p, show (v.1 +ᵥ p.1 -ᵥ p.1, v.2 +ᵥ p.2 -ᵥ p.2)  =v, by simv }
 
 @[simp] lemma fst_vadd (v : G × G') (p : P × P') : (v +ᵥ p).1 = v.1 +ᵥ p.1 := rfl
 @[simp] lemma snd_vadd (v : G × G') (p : P × P') : (v +ᵥ p).2 = v.2 +ᵥ p.2 := rfl
@@ -299,8 +299,8 @@ def vadd_const (p : P) : G ≃ P :=
 def const_vsub (p : P) : P ≃ G :=
 { to_fun := (-ᵥ) p,
   inv_fun := λ v, -v +ᵥ p,
-  left_inv := λ p', by simp,
-  right_inv := λ v, by simp [vsub_vadd_eq_vsub_sub] }
+  left_inv := λ p', by simv,
+  right_inv := λ v, by simv [vsub_vadd_eq_vsub_sub] }
 
 @[simp] lemma coe_const_vsub (p : P) : ⇑(const_vsub p) = (-ᵥ) p := rfl
 
@@ -312,8 +312,8 @@ variables (P)
 def const_vadd (v : G) : equiv.perm P :=
 { to_fun := (+ᵥ) v,
   inv_fun := (+ᵥ) (-v),
-  left_inv := λ p, by simp [vadd_vadd],
-  right_inv := λ p, by simp [vadd_vadd] }
+  left_inv := λ p, by simv [vadd_vadd],
+  right_inv := λ p, by simv [vadd_vadd] }
 
 @[simp] lemma coe_const_vadd (v : G) : ⇑(const_vadd P v) = (+ᵥ) v := rfl
 
@@ -343,7 +343,7 @@ def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)
 lemma point_reflection_apply (x y : P) : point_reflection x y = x -ᵥ y +ᵥ x := rfl
 
 @[simp] lemma point_reflection_symm (x : P) : (point_reflection x).symm = point_reflection x :=
-ext $ by simp [point_reflection]
+ext $ by simv [point_reflection]
 
 @[simp] lemma point_reflection_self (x : P) : point_reflection x x = x := vsub_vadd _ _
 

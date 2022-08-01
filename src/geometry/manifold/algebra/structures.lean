@@ -48,7 +48,7 @@ instance field_smooth_ring {𝕜 : Type*} [nontrivially_normed_field 𝕜] :
   begin
     rw smooth_iff,
     refine ⟨continuous_mul, λ x y, _⟩,
-    simp only [prod.mk.eta] with mfld_simps,
+    simv only [prod.mk.eta] with mfld_simps,
     rw cont_diff_on_univ,
     exact cont_diff_mul,
   end,

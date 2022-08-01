@@ -37,11 +37,11 @@ A logarithmic upper bound on the multiplicity of a prime in a binomial coefficie
 -/
 lemma factorization_choose_le_log : (choose n k).factorization p ≤ log p n :=
 begin
-  by_cases h : (choose n k).factorization p = 0, { simp [h] },
+  by_cases h : (choose n k).factorization p = 0, { simv [h] },
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
-  have hkn : k ≤ n, { refine le_of_not_lt (λ hnk, h _), simp [choose_eq_zero_of_lt hnk] },
+  have hkn : k ≤ n, { refine le_of_not_lt (λ hnk, h _), simv [choose_eq_zero_of_lt hnk] },
   rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
-  simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe],
+  simv only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
 
@@ -61,7 +61,7 @@ Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the bin
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
   apply factorization_choose_le_log.trans,
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  rcases n.eq_zero_or_pos with rfl | hn0, { simv },
   refine lt_succ_iff.1 ((lt_pow_iff_log_lt _ hn0).1 p_large),
   contrapose! hn0,
   exact lt_succ_iff.1 (lt_of_lt_of_le p_large (pow_le_one' hn0 2)),
@@ -74,9 +74,9 @@ begin
   cases em' p.prime with hp hp,
   { exact factorization_eq_zero_of_non_prime (choose n k) hp },
   cases lt_or_le n k with hnk hkn,
-  { simp [choose_eq_zero_of_lt hnk] },
+  { simv [choose_eq_zero_of_lt hnk] },
   rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
-  simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe,
+  simv only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe,
     finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
   intros i hi,
   rcases eq_or_lt_of_le (finset.mem_Ico.mp hi).1 with rfl | hi,
@@ -110,7 +110,7 @@ end
 lemma factorization_factorial_eq_zero_of_lt (h : n < p) :
   (factorial n).factorization p = 0 :=
 begin
-  induction n with n hn, { simp },
+  induction n with n hn, { simv },
   rw [factorial_succ, factorization_mul n.succ_ne_zero n.factorial_ne_zero, finsupp.coe_add,
       pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
 end
@@ -118,7 +118,7 @@ end
 lemma factorization_choose_eq_zero_of_lt (h : n < p) :
   (choose n k).factorization p = 0 :=
 begin
-  by_cases hnk : n < k, { simp [choose_eq_zero_of_lt hnk] },
+  by_cases hnk : n < k, { simv [choose_eq_zero_of_lt hnk] },
   rw [choose_eq_factorial_div_factorial (le_of_not_lt hnk),
       factorization_div (factorial_mul_factorial_dvd_factorial (le_of_not_lt hnk)),
       finsupp.coe_tsub, pi.sub_apply, factorization_factorial_eq_zero_of_lt h, zero_tsub],
@@ -152,7 +152,7 @@ begin
     rw finset.mem_range,
     contrapose! hp,
     rw [finsupp.mem_support_iff, not_not, factorization_choose_eq_zero_of_lt hp] },
-  { intros p _ h2, simp [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
+  { intros p _ h2, simv [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
 end
 
 /-- The `n`th central binomial coefficient is the product of its prime factors, which are

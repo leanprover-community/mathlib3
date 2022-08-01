@@ -62,8 +62,8 @@ lemma card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 := (not_congr card_eq_zer
 lemma card_singleton_inter [decidable_eq α] : ({a} ∩ s).card ≤ 1 :=
 begin
   cases (finset.decidable_mem a s),
-  { simp [finset.singleton_inter_of_not_mem h] },
-  { simp [finset.singleton_inter_of_mem h] }
+  { simv [finset.singleton_inter_of_not_mem h] },
+  { simv [finset.singleton_inter_of_mem h] }
 end
 
 @[simp] lemma card_cons (h : a ∉ s) : (s.cons a h).card = s.card + 1 := card_cons _ _
@@ -147,7 +147,7 @@ lemma card_image_le [decidable_eq β] : (s.image f).card ≤ s.card :=
 by simpa only [card_map] using (s.1.map f).to_finset_card_le
 
 lemma card_image_of_inj_on [decidable_eq β] (H : set.inj_on f s) : (s.image f).card = s.card :=
-by simp only [card, image_val_of_inj_on H, card_map]
+by simv only [card, image_val_of_inj_on H, card_map]
 
 lemma inj_on_of_card_image_eq [decidable_eq β] (H : (s.image f).card = s.card) : set.inj_on f s :=
 begin
@@ -155,7 +155,7 @@ begin
   have : (s.1.map f).dedup = s.1.map f,
   { refine multiset.eq_of_le_of_card_le (multiset.dedup_le _) _,
     rw H,
-    simp only [multiset.card_map] },
+    simv only [multiset.card_map] },
   rw multiset.dedup_eq_self at this,
   exact inj_on_of_nodup_map this,
 end
@@ -175,7 +175,7 @@ by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 
 @[simp] lemma card_subtype (p : α → Prop) [decidable_pred p] (s : finset α) :
   (s.subtype p).card = (s.filter p).card :=
-by simp [finset.subtype]
+by simv [finset.subtype]
 
 lemma card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   (s.filter p).card ≤ s.card :=
@@ -226,7 +226,7 @@ calc s.card = s.attach.card : card_attach.symm
     : eq.symm (card_image_of_injective _ $ λ a b h, subtype.eq $ h₂ _ _ _ _ h)
 ... = t.card : congr_arg card (finset.ext $ λ b,
     ⟨λ h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in ha₂ ▸ h₁ _ _,
-      λ h, let ⟨a, ha₁, ha₂⟩ := h₃ b h in mem_image.2 ⟨⟨a, ha₁⟩, by simp [ha₂]⟩⟩)
+      λ h, let ⟨a, ha₁, ha₂⟩ := h₃ b h in mem_image.2 ⟨⟨a, ha₁⟩, by simv [ha₂]⟩⟩)
 
 lemma card_le_card_of_inj_on {t : finset β} (f : α → β) (hf : ∀ a ∈ s, f a ∈ t)
   (f_inj : ∀ a₁ ∈ s, ∀ a₂ ∈ s, f a₁ = f a₂ → a₁ = a₂) :
@@ -264,7 +264,7 @@ begin
       (λ ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ h, subtype.eq $ hinj _ _ _ _ h) },
   have h' : image (λ a : {a // a ∈ s}, f a a.prop) s.attach = t,
   { exact eq_of_subset_of_card_le (λ b h, let ⟨a, ha₁, ha₂⟩ := mem_image.1 h in
-      ha₂ ▸ hf _ _) (by simp [hst, h]) },
+      ha₂ ▸ hf _ _) (by simv [hst, h]) },
   rw ←h' at hb,
   obtain ⟨a, ha₁, ha₂⟩ := mem_image.1 hb,
   exact ⟨a, a.2, ha₂.symm⟩,
@@ -299,7 +299,7 @@ section lattice
 variables [decidable_eq α]
 
 lemma card_union_add_card_inter (s t : finset α) : (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
-finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
+finset.induction_on t (by simv) $ λ a r har, by by_cases a ∈ s; simv *; cc
 
 lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
@@ -330,7 +330,7 @@ end lattice
 
 lemma filter_card_add_filter_neg_card_eq_card (p : α → Prop) [decidable_pred p] :
   (s.filter p).card + (s.filter (not ∘ p)).card = s.card :=
-by { classical, simp [←card_union_eq, filter_union_filter_neg_eq, disjoint_filter] }
+by { classical, simv [←card_union_eq, filter_union_filter_neg_eq, disjoint_filter] }
 
 /-- Given a set `A` and a set `B` inside it, we can shrink `A` to any appropriate size, and keep `B`
 inside it. -/
@@ -379,7 +379,7 @@ end
 /-! ### Explicit description of a finset from its card -/
 
 lemma card_eq_one : s.card = 1 ↔ ∃ a, s = {a} :=
-by cases s; simp only [multiset.card_eq_one, finset.card, ←val_inj, singleton_val]
+by cases s; simv only [multiset.card_eq_one, finset.card, ←val_inj, singleton_val]
 
 lemma exists_eq_insert_iff [decidable_eq α] {s t : finset α} :
   (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.card + 1 = t.card :=
@@ -399,10 +399,10 @@ end
 lemma card_le_one : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
 begin
   obtain rfl | ⟨x, hx⟩ := s.eq_empty_or_nonempty,
-  { simp },
+  { simv },
   refine (nat.succ_le_of_lt (card_pos.2 ⟨x, hx⟩)).le_iff_eq.trans (card_eq_one.trans ⟨_, _⟩),
   { rintro ⟨y, rfl⟩,
-    simp },
+    simv },
   { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
 end
 
@@ -427,7 +427,7 @@ lemma one_lt_card : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ←not_iff_not, push_neg, exact card_le_one }
 
 lemma one_lt_card_iff : 1 < s.card ↔ ∃ a b, a ∈ s ∧ b ∈ s ∧ a ≠ b :=
-by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
+by { rw one_lt_card, simv only [exists_prop, exists_and_distrib_left] }
 
 lemma two_lt_card_iff : 2 < s.card ↔ ∃ a b c, a ∈ s ∧ b ∈ s ∧ c ∈ s ∧ a ≠ b ∧ a ≠ c ∧ b ≠ c :=
 begin
@@ -459,7 +459,7 @@ lemma card_eq_succ [decidable_eq α] : s.card = n + 1 ↔ ∃ a t, a ∉ t ∧ i
 ⟨λ h,
   let ⟨a, has⟩ := card_pos.mp (h.symm ▸ nat.zero_lt_succ _ : 0 < s.card) in
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has,
-      by simp only [h, card_erase_of_mem has, add_tsub_cancel_right]⟩,
+      by simv only [h, card_erase_of_mem has, add_tsub_cancel_right]⟩,
   λ ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat⟩
 
 lemma card_eq_two [decidable_eq α] : s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=
@@ -483,7 +483,7 @@ begin
     rw [mem_insert, mem_singleton, not_or_distrib] at abc,
     exact ⟨a, b, c, abc.1, abc.2, bc, rfl⟩ },
   { rintro ⟨x, y, z, xy, xz, yz, rfl⟩,
-    simp only [xy, xz, yz, mem_insert, card_insert_of_not_mem, not_false_iff, mem_singleton,
+    simv only [xy, xz, yz, mem_insert, card_insert_of_not_mem, not_false_iff, mem_singleton,
       or_self, card_singleton] }
 end
 

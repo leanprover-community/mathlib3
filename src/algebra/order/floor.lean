@@ -235,30 +235,30 @@ ext $ λ x, ceil_eq_iff hn
 
 @[simp] lemma preimage_Ioo {a b : α} (ha : 0 ≤ a) :
   ((coe : ℕ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋₊ ⌈b⌉₊ :=
-by { ext, simp [floor_lt, lt_ceil, ha] }
+by { ext, simv [floor_lt, lt_ceil, ha] }
 
 @[simp] lemma preimage_Ico {a b : α} : ((coe : ℕ → α) ⁻¹' (set.Ico a b)) = set.Ico ⌈a⌉₊ ⌈b⌉₊ :=
-by { ext, simp [ceil_le, lt_ceil] }
+by { ext, simv [ceil_le, lt_ceil] }
 
 @[simp] lemma preimage_Ioc {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) :
   ((coe : ℕ → α) ⁻¹' (set.Ioc a b)) = set.Ioc ⌊a⌋₊ ⌊b⌋₊ :=
-by { ext, simp [floor_lt, le_floor_iff, hb, ha] }
+by { ext, simv [floor_lt, le_floor_iff, hb, ha] }
 
 @[simp] lemma preimage_Icc {a b : α} (hb : 0 ≤ b) :
   ((coe : ℕ → α) ⁻¹' (set.Icc a b)) = set.Icc ⌈a⌉₊ ⌊b⌋₊ :=
-by { ext, simp [ceil_le, hb, le_floor_iff] }
+by { ext, simv [ceil_le, hb, le_floor_iff] }
 
 @[simp] lemma preimage_Ioi {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Ioi a)) = set.Ioi ⌊a⌋₊ :=
-by { ext, simp [floor_lt, ha] }
+by { ext, simv [floor_lt, ha] }
 
 @[simp] lemma preimage_Ici {a : α} : ((coe : ℕ → α) ⁻¹' (set.Ici a)) = set.Ici ⌈a⌉₊ :=
-by { ext, simp [ceil_le] }
+by { ext, simv [ceil_le] }
 
 @[simp] lemma preimage_Iio {a : α} : ((coe : ℕ → α) ⁻¹' (set.Iio a)) = set.Iio ⌈a⌉₊ :=
-by { ext, simp [lt_ceil] }
+by { ext, simv [lt_ceil] }
 
 @[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
-by { ext, simp [le_floor_iff, ha] }
+by { ext, simv [le_floor_iff, ha] }
 
 end linear_ordered_semiring
 
@@ -316,7 +316,7 @@ lemma floor_div_nat (a : α) (n : ℕ) : ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
 begin
   cases le_total a 0 with ha ha,
   { rw [floor_of_nonpos, floor_of_nonpos ha],
-    { simp },
+    { simv },
     apply div_nonpos_of_nonpos_of_nonneg ha n.cast_nonneg },
   obtain rfl | hn := n.eq_zero_or_pos,
   { rw [cast_zero, div_zero, nat.div_zero, floor_zero] },
@@ -401,7 +401,7 @@ def fract (a : α) : α := a - floor a
 
 @[simp] lemma floor_int : (int.floor : ℤ → ℤ) = id := rfl
 @[simp] lemma ceil_int : (int.ceil : ℤ → ℤ) = id := rfl
-@[simp] lemma fract_int : (int.fract : ℤ → ℤ) = 0 := funext $ λ x, by simp [fract]
+@[simp] lemma fract_int : (int.fract : ℤ → ℤ) = 0 := funext $ λ x, by simv [fract]
 
 notation `⌊` a `⌋` := int.floor a
 notation `⌈` a `⌉` := int.ceil a
@@ -503,10 +503,10 @@ ext $ λ x, floor_eq_iff
 @[simp] lemma fract_add_floor (a : α) : fract a + ⌊a⌋ = a := sub_add_cancel _ _
 
 @[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a :=
-by { rw fract, simp }
+by { rw fract, simv }
 
 @[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a :=
-by { rw fract, simp }
+by { rw fract, simv }
 
 @[simp] lemma fract_int_add (m : ℤ) (a : α) : fract (↑m + a) = fract a :=
 by rw [add_comm, fract_add_int]
@@ -522,7 +522,7 @@ lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
 @[simp] lemma fract_zero : fract (0 : α) = 0 := by rw [fract, floor_zero, cast_zero, sub_self]
 
 @[simp] lemma fract_one : fract (1 : α) = 0 :=
-by simp [fract]
+by simv [fract]
 
 @[simp] lemma fract_coe (z : ℤ) : fract (z : α) = 0 :=
 by { unfold fract, rw floor_coe, exact sub_self _ }
@@ -553,18 +553,18 @@ lemma fract_eq_fract {a b : α} : fract a = fract b ↔ ∃ z : ℤ, a - b = z :
 end⟩
 
 @[simp] lemma fract_eq_self {a : α} : fract a = a ↔ 0 ≤ a ∧ a < 1 :=
-fract_eq_iff.trans $ and.assoc.symm.trans $ and_iff_left ⟨0, by simp⟩
+fract_eq_iff.trans $ and.assoc.symm.trans $ and_iff_left ⟨0, by simv⟩
 
 @[simp] lemma fract_fract (a : α) : fract (fract a) = fract a :=
 fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 
 lemma fract_add (a b : α) : ∃ z : ℤ, fract (a + b) - fract a - fract b = z :=
-⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simp [sub_eq_add_neg], abel }⟩
+⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simv [sub_eq_add_neg], abel }⟩
 
 lemma fract_mul_nat (a : α) (b : ℕ) : ∃ z : ℤ, fract a * b - fract (a * b) = z :=
 begin
   induction b with c hc,
-    use 0, simp,
+    use 0, simv,
   rcases hc with ⟨z, hz⟩,
   rw [nat.succ_eq_add_one, nat.cast_add, mul_add, mul_add, nat.cast_one, mul_one, mul_one],
   rcases fract_add (a * c) a with ⟨y, hy⟩,
@@ -576,7 +576,7 @@ end
 lemma preimage_fract (s : set α) : fract ⁻¹' s = ⋃ m : ℤ, (λ x, x - m) ⁻¹' (s ∩ Ico (0 : α) 1) :=
 begin
   ext x,
-  simp only [mem_preimage, mem_Union, mem_inter_eq],
+  simv only [mem_preimage, mem_Union, mem_inter_eq],
   refine ⟨λ h, ⟨⌊x⌋, h, fract_nonneg x, fract_lt_one x⟩, _⟩,
   rintro ⟨m, hms, hm0, hm1⟩,
   obtain rfl : ⌊x⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 hm0, sub_lt_iff_lt_add'.1 hm1⟩,
@@ -586,7 +586,7 @@ end
 lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
 begin
   ext x,
-  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  simv only [mem_image, mem_inter_eq, mem_Union], split,
   { rintro ⟨y, hy, rfl⟩,
     exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
   { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,
@@ -682,28 +682,28 @@ ext $ λ x, ceil_eq_iff
 /-! #### Intervals -/
 
 @[simp] lemma preimage_Ioo {a b : α} : ((coe : ℤ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋ ⌈b⌉ :=
-by { ext, simp [floor_lt, lt_ceil] }
+by { ext, simv [floor_lt, lt_ceil] }
 
 @[simp] lemma preimage_Ico {a b : α} : ((coe : ℤ → α) ⁻¹' (set.Ico a b)) = set.Ico ⌈a⌉ ⌈b⌉ :=
-by { ext, simp [ceil_le, lt_ceil] }
+by { ext, simv [ceil_le, lt_ceil] }
 
 @[simp] lemma preimage_Ioc {a b : α} : ((coe : ℤ → α) ⁻¹' (set.Ioc a b)) = set.Ioc ⌊a⌋ ⌊b⌋ :=
-by { ext, simp [floor_lt, le_floor] }
+by { ext, simv [floor_lt, le_floor] }
 
 @[simp] lemma preimage_Icc {a b : α} : ((coe : ℤ → α) ⁻¹' (set.Icc a b)) = set.Icc ⌈a⌉ ⌊b⌋ :=
-by { ext, simp [ceil_le, le_floor] }
+by { ext, simv [ceil_le, le_floor] }
 
 @[simp] lemma preimage_Ioi : ((coe : ℤ → α) ⁻¹' (set.Ioi a)) = set.Ioi ⌊a⌋ :=
-by { ext, simp [floor_lt] }
+by { ext, simv [floor_lt] }
 
 @[simp] lemma preimage_Ici : ((coe : ℤ → α) ⁻¹' (set.Ici a)) = set.Ici ⌈a⌉ :=
-by { ext, simp [ceil_le] }
+by { ext, simv [ceil_le] }
 
 @[simp] lemma preimage_Iio : ((coe : ℤ → α) ⁻¹' (set.Iio a)) = set.Iio ⌈a⌉ :=
-by { ext, simp [lt_ceil] }
+by { ext, simv [lt_ceil] }
 
 @[simp] lemma preimage_Iic : ((coe : ℤ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋ :=
-by { ext, simp [le_floor] }
+by { ext, simv [le_floor] }
 
 end int
 

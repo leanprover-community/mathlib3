@@ -31,12 +31,12 @@ def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
   (q : R) ^ n = 1 ↔ q = 1 :=
 by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
-  { simp },
+  { simv },
   { exact cast_div n_dvd (cast_ne_zero.2 hn), },
 end
 
@@ -63,7 +63,7 @@ variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R]
 
 @[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
-by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]
+by simv only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]
 
 @[simp]
 lemma bit0_eq_zero {a : R} : bit0 a = 0 ↔ a = 0 := add_self_eq_zero
@@ -93,14 +93,14 @@ by simpa [w] using nat_mul_inj h
 lemma bit0_injective : function.injective (bit0 : R → R) :=
 λ a b h, begin
   dsimp [bit0] at h,
-  simp only [(two_mul a).symm, (two_mul b).symm] at h,
+  simv only [(two_mul a).symm, (two_mul b).symm] at h,
   refine nat_mul_inj' _ two_ne_zero,
   exact_mod_cast h,
 end
 
 lemma bit1_injective : function.injective (bit1 : R → R) :=
 λ a b h, begin
-  simp only [bit1, add_left_inj] at h,
+  simv only [bit1, add_left_inj] at h,
   exact bit0_injective h,
 end
 
@@ -112,7 +112,7 @@ bit1_injective.eq_iff
 
 @[simp]
 lemma bit1_eq_one {a : R} : bit1 a = 1 ↔ a = 0 :=
-by rw [show (1 : R) = bit1 0, by simp, bit1_eq_bit1]
+by rw [show (1 : R) = bit1 0, by simv, bit1_eq_bit1]
 
 @[simp]
 lemma one_eq_bit1 {a : R} : 1 = bit1 a ↔ a = 0 :=

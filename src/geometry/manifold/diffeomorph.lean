@@ -108,7 +108,7 @@ protected lemma mdifferentiable_on (h : M ≃ₘ^n⟮I, I'⟯ M') (s : set M) (h
 (h.mdifferentiable hn).mdifferentiable_on
 
 @[simp] lemma coe_to_equiv (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑h.to_equiv = h := rfl
-@[simp, norm_cast] lemma coe_coe (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑(h : C^n⟮I, M; I', M'⟯) = h := rfl
+@[simv, norm_cast] lemma coe_coe (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑(h : C^n⟮I, M; I', M'⟯) = h := rfl
 
 lemma to_equiv_injective : injective (diffeomorph.to_equiv : (M ≃ₘ^n⟮I, I'⟯ M') → (M ≃ M'))
 | ⟨e, _, _⟩ ⟨e', _, _⟩ rfl := rfl
@@ -172,14 +172,14 @@ ext h.apply_symm_apply
 @[simp] lemma symm_trans' (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
 @[simp] lemma symm_to_equiv (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.to_equiv = h.to_equiv.symm := rfl
-@[simp, mfld_simps] lemma to_equiv_coe_symm (h : M ≃ₘ^n⟮I, J⟯ N) : ⇑h.to_equiv.symm = h.symm := rfl
+@[simv, mfld_simps] lemma to_equiv_coe_symm (h : M ≃ₘ^n⟮I, J⟯ N) : ⇑h.to_equiv.symm = h.symm := rfl
 
 lemma image_eq_preimage (h : M ≃ₘ^n⟮I, J⟯ N) (s : set M) : h '' s = h.symm ⁻¹' s :=
 h.to_equiv.image_eq_preimage s
 lemma symm_image_eq_preimage (h : M ≃ₘ^n⟮I, J⟯ N) (s : set N) : h.symm '' s = h ⁻¹' s :=
 h.symm.image_eq_preimage s
 
-@[simp, mfld_simps] lemma range_comp {α} (h : M ≃ₘ^n⟮I, J⟯ N) (f : α → M) :
+@[simv, mfld_simps] lemma range_comp {α} (h : M ≃ₘ^n⟮I, J⟯ N) (f : α → M) :
   range (h ∘ f) = h.symm ⁻¹' (range f) :=
 by rw [range_comp, image_eq_preimage]
 
@@ -220,7 +220,7 @@ end
 @[simp] lemma cont_mdiff_on_comp_diffeomorph_iff {m} (h : M ≃ₘ^n⟮I, J⟯ N) {f : N → M'}
   {s} (hm : m ≤ n) :
   cont_mdiff_on I I' m (f ∘ h) s ↔ cont_mdiff_on J I' m f (h.symm ⁻¹' s) :=
-h.to_equiv.forall_congr $ λ x, by simp only [hm, coe_to_equiv, symm_apply_apply,
+h.to_equiv.forall_congr $ λ x, by simv only [hm, coe_to_equiv, symm_apply_apply,
   cont_mdiff_within_at_comp_diffeomorph_iff, mem_preimage]
 
 @[simp] lemma cont_mdiff_at_comp_diffeomorph_iff {m} (h : M ≃ₘ^n⟮I, J⟯ N) {f : N → M'} {x}
@@ -306,7 +306,7 @@ lemma unique_mdiff_on_image_aux (h : M ≃ₘ^n⟮I, J⟯ N) (hn : 1 ≤ n)
   unique_mdiff_on J (h '' s) :=
 begin
   convert hs.unique_mdiff_on_preimage (h.to_local_homeomorph_mdifferentiable hn),
-  simp [h.image_eq_preimage]
+  simv [h.image_eq_preimage]
 end
 
 @[simp] lemma unique_mdiff_on_image (h : M ≃ₘ^n⟮I, J⟯ N) (hn : 1 ≤ n) {s : set M} :
@@ -320,7 +320,7 @@ h.symm_image_eq_preimage s ▸ h.symm.unique_mdiff_on_image hn
 
 @[simp] lemma unique_diff_on_image (h : E ≃ₘ^n[𝕜] F) (hn : 1 ≤ n) {s : set E} :
   unique_diff_on 𝕜 (h '' s) ↔ unique_diff_on 𝕜 s :=
-by simp only [← unique_mdiff_on_iff_unique_diff_on, unique_mdiff_on_image, hn]
+by simv only [← unique_mdiff_on_iff_unique_diff_on, unique_mdiff_on_image, hn]
 
 @[simp] lemma unique_diff_on_preimage (h : E ≃ₘ^n[𝕜] F) (hn : 1 ≤ n) {s : set F} :
   unique_diff_on 𝕜 (h ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
@@ -352,13 +352,13 @@ variables (I) (e : E ≃ₘ[𝕜] E')
 def trans_diffeomorph (I : model_with_corners 𝕜 E H) (e : E ≃ₘ[𝕜] E') :
   model_with_corners 𝕜 E' H :=
 { to_local_equiv := I.to_local_equiv.trans e.to_equiv.to_local_equiv,
-  source_eq := by simp,
-  unique_diff' := by simp [range_comp e, I.unique_diff],
+  source_eq := by simv,
+  unique_diff' := by simv [range_comp e, I.unique_diff],
   continuous_to_fun := e.continuous.comp I.continuous,
   continuous_inv_fun := I.continuous_symm.comp e.symm.continuous }
 
-@[simp, mfld_simps] lemma coe_trans_diffeomorph : ⇑(I.trans_diffeomorph e) = e ∘ I := rfl
-@[simp, mfld_simps] lemma coe_trans_diffeomorph_symm :
+@[simv, mfld_simps] lemma coe_trans_diffeomorph : ⇑(I.trans_diffeomorph e) = e ∘ I := rfl
+@[simv, mfld_simps] lemma coe_trans_diffeomorph_symm :
   ⇑(I.trans_diffeomorph e).symm = I.symm ∘ e.symm := rfl
 
 lemma trans_diffeomorph_range : range (I.trans_diffeomorph e) = e '' (range I) :=
@@ -372,7 +372,7 @@ lemma coe_ext_chart_at_trans_diffeomorph_symm (x : M) :
 
 lemma ext_chart_at_trans_diffeomorph_target (x : M) :
   (ext_chart_at (I.trans_diffeomorph e) x).target = e.symm ⁻¹' (ext_chart_at I x).target :=
-by simp only [range_comp e, e.image_eq_preimage, preimage_preimage] with mfld_simps
+by simv only [range_comp e, e.image_eq_preimage, preimage_preimage] with mfld_simps
 
 end model_with_corners
 
@@ -400,20 +400,20 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
     begin
       refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
-      { simp only [equiv.coe_refl, id, (∘), I.coe_ext_chart_at_trans_diffeomorph,
+      { simv only [equiv.coe_refl, id, (∘), I.coe_ext_chart_at_trans_diffeomorph,
           (ext_chart_at I x).right_inv hy.1] },
       exact ⟨(ext_chart_at I x).map_source (mem_ext_chart_source I x), trivial,
-        by simp only with mfld_simps⟩
+        by simv only with mfld_simps⟩
     end,
   cont_mdiff_inv_fun := λ x,
     begin
       refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.symm.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
-      { simp only [mem_inter_eq, I.ext_chart_at_trans_diffeomorph_target] at hy,
-        simp only [equiv.coe_refl, equiv.refl_symm, id, (∘),
+      { simv only [mem_inter_eq, I.ext_chart_at_trans_diffeomorph_target] at hy,
+        simv only [equiv.coe_refl, equiv.refl_symm, id, (∘),
           I.coe_ext_chart_at_trans_diffeomorph_symm, (ext_chart_at I x).right_inv hy.1] },
       exact ⟨(ext_chart_at _ x).map_source (mem_ext_chart_source _ x), trivial,
-        by simp only [e.symm_apply_apply, equiv.refl_symm, equiv.coe_refl] with mfld_simps⟩
+        by simv only [e.symm_apply_apply, equiv.refl_symm, equiv.coe_refl] with mfld_simps⟩
     end }
 
 variables {I M}

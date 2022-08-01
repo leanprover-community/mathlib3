@@ -33,5 +33,5 @@ begin
   ... = ∑ (ij : ℕ × ℕ) in antidiagonal k, m.choose ij.1 * n.choose ij.2 : _,
   { rw [coeff_X_add_one_pow, nat.cast_id], },
   { rw [coeff_mul, finset.sum_congr rfl],
-    simp only [coeff_X_add_one_pow, nat.cast_id, eq_self_iff_true, imp_true_iff], }
+    simv only [coeff_X_add_one_pow, nat.cast_id, eq_self_iff_true, imp_true_iff], }
 end

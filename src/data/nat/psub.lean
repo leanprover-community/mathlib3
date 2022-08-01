@@ -44,21 +44,21 @@ theorem sub_eq_psub (m : ℕ) : ∀ n, m - n = (psub m n).get_or_else 0
 | (n+1) := by dsimp; split; intro h; injection h; subst n
 
 @[simp] theorem ppred_eq_none : ∀ {n : ℕ}, ppred n = none ↔ n = 0
-| 0     := by simp
+| 0     := by simv
 | (n+1) := by dsimp; split; contradiction
 
 theorem psub_eq_some {m : ℕ} : ∀ {n k}, psub m n = some k ↔ k + n = m
-| 0     k := by simp [eq_comm]
+| 0     k := by simv [eq_comm]
 | (n+1) k :=
   begin
     dsimp,
     apply option.bind_eq_some.trans,
-    simp [psub_eq_some, add_comm, add_left_comm, nat.succ_eq_add_one]
+    simv [psub_eq_some, add_comm, add_left_comm, nat.succ_eq_add_one]
   end
 
 theorem psub_eq_none {m n : ℕ} : psub m n = none ↔ m < n :=
 begin
-  cases s : psub m n; simp [eq_comm],
+  cases s : psub m n; simv [eq_comm],
   { show m < n, refine lt_of_not_ge (λ h, _),
     cases le.dest h with k e,
     injection s.symm.trans (psub_eq_some.2 $ (add_comm _ _).trans e) },
@@ -72,7 +72,7 @@ theorem psub_eq_sub {m n} (h : n ≤ m) : psub m n = some (m - n) :=
 psub_eq_some.2 $ tsub_add_cancel_of_le h
 
 theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
-by induction k; simp [*, add_succ, bind_assoc]
+by induction k; simv [*, add_succ, bind_assoc]
 
 /-- Same as `psub`, but with a more efficient implementation. -/
 @[inline] def psub' (m n : ℕ) : option ℕ := if n ≤ m then some (m - n) else none

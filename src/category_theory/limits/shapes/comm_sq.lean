@@ -173,7 +173,7 @@ then we have `is_pullback c.fst c.snd 0 0`
 lemma of_is_product {c : binary_fan X Y} (h : limits.is_limit c) (t : is_terminal Z) :
   is_pullback c.fst c.snd (t.from _) (t.from _) :=
 of_is_limit (is_pullback_of_is_terminal_is_product _ _ _ _ t
-  (is_limit.of_iso_limit h (limits.cones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simp, }))))
+  (is_limit.of_iso_limit h (limits.cones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simv, }))))
 
 variables (X Y)
 
@@ -197,16 +197,16 @@ def iso_pullback (h : is_pullback fst snd f g) [has_pullback f g] : P ≅ pullba
 
 @[simp] lemma iso_pullback_hom_fst (h : is_pullback fst snd f g) [has_pullback f g] :
   h.iso_pullback.hom ≫ pullback.fst = fst :=
-by { dsimp [iso_pullback, cone, comm_sq.cone], simp, }
+by { dsimp [iso_pullback, cone, comm_sq.cone], simv, }
 @[simp] lemma iso_pullback_hom_snd (h : is_pullback fst snd f g) [has_pullback f g] :
   h.iso_pullback.hom ≫ pullback.snd = snd :=
-by { dsimp [iso_pullback, cone, comm_sq.cone], simp, }
+by { dsimp [iso_pullback, cone, comm_sq.cone], simv, }
 @[simp] lemma iso_pullback_inv_fst (h : is_pullback fst snd f g) [has_pullback f g] :
   h.iso_pullback.inv ≫ fst = pullback.fst :=
-by simp [iso.inv_comp_eq]
+by simv [iso.inv_comp_eq]
 @[simp] lemma iso_pullback_inv_snd (h : is_pullback fst snd f g) [has_pullback f g] :
   h.iso_pullback.inv ≫ snd = pullback.snd :=
-by simp [iso.inv_comp_eq]
+by simv [iso.inv_comp_eq]
 
 lemma of_iso_pullback (h : comm_sq fst snd f g) [has_pullback f g] (i : P ≅ pullback f g)
   (w₁ : i.hom ≫ pullback.fst = fst) (w₂ : i.hom ≫ pullback.snd = snd) : is_pullback fst snd f g :=
@@ -255,7 +255,7 @@ lemma of_is_coproduct {c : binary_cofan X Y} (h : limits.is_colimit c) (t : is_i
   is_pushout (t.to _) (t.to _) c.inl c.inr :=
 of_is_colimit (is_pushout_of_is_initial_is_coproduct _ _ _ _ t
   (is_colimit.of_iso_colimit h
-    (limits.cocones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simp, }))))
+    (limits.cocones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simv, }))))
 
 variables (X Y)
 
@@ -280,16 +280,16 @@ def iso_pushout (h : is_pushout f g inl inr) [has_pushout f g] : P ≅ pushout f
 
 @[simp] lemma inl_iso_pushout_inv (h : is_pushout f g inl inr) [has_pushout f g] :
   pushout.inl ≫ h.iso_pushout.inv = inl :=
-by { dsimp [iso_pushout, cocone, comm_sq.cocone], simp, }
+by { dsimp [iso_pushout, cocone, comm_sq.cocone], simv, }
 @[simp] lemma inr_iso_pushout_inv (h : is_pushout f g inl inr) [has_pushout f g] :
   pushout.inr ≫ h.iso_pushout.inv = inr :=
-by { dsimp [iso_pushout, cocone, comm_sq.cocone], simp, }
+by { dsimp [iso_pushout, cocone, comm_sq.cocone], simv, }
 @[simp] lemma inl_iso_pushout_hom (h : is_pushout f g inl inr) [has_pushout f g] :
   inl ≫ h.iso_pushout.hom = pushout.inl :=
-by simp [←iso.eq_comp_inv]
+by simv [←iso.eq_comp_inv]
 @[simp] lemma inr_iso_pushout_hom (h : is_pushout f g inl inr) [has_pushout f g] :
   inr ≫ h.iso_pushout.hom = pushout.inr :=
-by simp [←iso.eq_comp_inv]
+by simv [←iso.eq_comp_inv]
 
 lemma of_iso_pushout (h : comm_sq f g inl inr) [has_pushout f g] (i : P ≅ pushout f g)
   (w₁ : inl ≫ i.hom = pushout.inl) (w₂ : inr ≫ i.hom = pushout.inr) : is_pushout f g inl inr :=
@@ -312,7 +312,7 @@ open_locale zero_object
 
 /-- The square with `0 : 0 ⟶ 0` on the left and `𝟙 X` on the right is a pullback square. -/
 lemma zero_left (X : C) : is_pullback (0 : 0 ⟶ X) (0 : 0 ⟶ 0) (𝟙 X) (0 : 0 ⟶ X) :=
-{ w := by simp,
+{ w := by simv,
   is_limit' :=
   ⟨{ lift := λ s, 0,
      fac' := λ s, by simpa using @pullback_cone.equalizer_ext _ _ _ _ _ _ _ s _ 0 (𝟙 _)
@@ -391,11 +391,11 @@ open_locale zero_object
 
 /-- The square with `0 : 0 ⟶ 0` on the right and `𝟙 X` on the left is a pushout square. -/
 lemma zero_right (X : C) : is_pushout (0 : X ⟶ 0) (𝟙 X) (0 : 0 ⟶ 0) (0 : X ⟶ 0) :=
-{ w := by simp,
+{ w := by simv,
   is_colimit' :=
   ⟨{ desc := λ s, 0,
      fac' := λ s, begin
-       have c := @pushout_cocone.coequalizer_ext _ _ _ _ _ _ _ s _ 0 (𝟙 _) (by simp)
+       have c := @pushout_cocone.coequalizer_ext _ _ _ _ _ _ _ s _ 0 (𝟙 _) (by simv)
          (by simpa using (pushout_cocone.condition s)),
       dsimp at c,
       simpa using c,
@@ -474,8 +474,8 @@ begin
     (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
       (is_limit_of_preserves F s.is_limit)),
   { refl, },
-  { dsimp, simp, refl, },
-  { dsimp, simp, refl, },
+  { dsimp, simv, refl, },
+  { dsimp, simv, refl, },
 end
 
 lemma map_is_pushout [preserves_colimit (span f g) F] (s : is_pushout f g h i) :
@@ -485,8 +485,8 @@ begin
     (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
       (is_colimit_of_preserves F s.is_colimit)),
   { refl, },
-  { dsimp, simp, refl, },
-  { dsimp, simp, refl, },
+  { dsimp, simv, refl, },
+  { dsimp, simv, refl, },
 end
 
 end functor

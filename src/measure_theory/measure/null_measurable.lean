@@ -190,7 +190,7 @@ begin
   rcases h with ⟨t, htm, hst⟩,
   refine ⟨t ∪ to_measurable μ (s \ t), _, htm.union (measurable_set_to_measurable _ _), _⟩,
   { exact diff_subset_iff.1 (subset_to_measurable _ _) },
-  { have : to_measurable μ (s \ t) =ᵐ[μ] (∅ : set α), by simp [ae_le_set.1 hst.le],
+  { have : to_measurable μ (s \ t) =ᵐ[μ] (∅ : set α), by simv [ae_le_set.1 hst.le],
     simpa only [union_empty] using hst.symm.union this }
 end
 
@@ -234,7 +234,7 @@ lemma measure_Union {m0 : measurable_space α} {μ : measure α} [encodable ι] 
 begin
   rw [measure_eq_extend (measurable_set.Union h),
     extend_Union measurable_set.empty _ measurable_set.Union _ hn h],
-  { simp [measure_eq_extend, h] },
+  { simv [measure_eq_extend, h] },
   { exact μ.empty },
   { exact μ.m_Union }
 end
@@ -417,7 +417,7 @@ def completion {_ : measurable_space α} (μ : measure α) :
   m_Union := λ s hs hd, measure_Union₀ (hd.mono $ λ i j h, h.ae_disjoint) hs,
   trimmed := begin
     refine le_antisymm (λ s, _) (outer_measure.le_trim _),
-    rw outer_measure.trim_eq_infi, simp only [to_outer_measure_apply],
+    rw outer_measure.trim_eq_infi, simv only [to_outer_measure_apply],
     refine (infi₂_mono _).trans_eq (measure_eq_infi _).symm,
     exact λ t ht, infi_mono' (λ h, ⟨h.null_measurable_set, le_rfl⟩)
   end }

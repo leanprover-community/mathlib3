@@ -119,7 +119,7 @@ instance to_monoid_with_zero_hom_class {α β : Type*} [mul_zero_one_class α]
 
 variables {F}
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma map_eq_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
   (h : F) {x : M} : h x = 1 ↔ x = 1 :=
 map_eq_one_iff h (equiv_like.injective h)
@@ -149,16 +149,16 @@ instance [has_mul M] [has_mul N] : mul_equiv_class (M ≃* N) M N :=
 
 variables [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma to_equiv_eq_coe (f : M ≃* N) : f.to_equiv = f := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma to_fun_eq_coe {f : M ≃* N} : f.to_fun = f := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_to_equiv {f : M ≃* N} : ⇑(f : M ≃ N) = f := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_to_mul_hom {f : M ≃* N} : ⇑f.to_mul_hom = f := rfl
 
 /-- A multiplicative isomorphism preserves multiplication. -/
@@ -194,7 +194,7 @@ def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_fun_eq_symm {f : M ≃* N} : f.inv_fun = f.symm := rfl
 
 /-- See Note [custom simps projection] -/
@@ -206,17 +206,17 @@ def simps.symm_apply (e : M ≃* N) : N → M := e.symm
 initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
 initialize_simps_projections mul_equiv (to_fun → apply, inv_fun → symm_apply)
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma to_equiv_mk (f : M → N) (g : N → M) (h₁ h₂ h₃) :
   (mk f g h₁ h₂ h₃).to_equiv = ⟨f, g, h₁, h₂⟩ := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma symm_symm : ∀ (f : M ≃* N), f.symm.symm = f
 | ⟨f, g, h₁, h₂, h₃⟩ := rfl
 
@@ -224,12 +224,12 @@ lemma symm_symm : ∀ (f : M ≃* N), f.symm.symm = f
 lemma symm_bijective : function.bijective (symm : (M ≃* N) → (N ≃* M)) :=
 equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
   (mul_equiv.mk f g h₁ h₂ h₃).symm =
   { to_fun := g, inv_fun := f, ..(mul_equiv.mk f g h₁ h₂ h₃).symm} := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem refl_symm : (refl M).symm = refl M := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
@@ -240,37 +240,37 @@ def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
   ..h1.to_equiv.trans h2.to_equiv }
 
 /-- `e.symm` is a right inverse of `e`, written as `e (e.symm y) = y`. -/
-@[simp, to_additive "`e.symm` is a right inverse of `e`, written as `e (e.symm y) = y`."]
+@[simv, to_additive "`e.symm` is a right inverse of `e`, written as `e (e.symm y) = y`."]
 lemma apply_symm_apply (e : M ≃* N) (y : N) : e (e.symm y) = y :=
 e.to_equiv.apply_symm_apply y
 
 /-- `e.symm` is a left inverse of `e`, written as `e.symm (e y) = y`. -/
-@[simp, to_additive "`e.symm` is a left inverse of `e`, written as `e.symm (e y) = y`."]
+@[simv, to_additive "`e.symm` is a left inverse of `e`, written as `e.symm (e y) = y`."]
 lemma symm_apply_apply (e : M ≃* N) (x : M) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem symm_comp_self (e : M ≃* N) : e.symm ∘ e = id := funext e.symm_apply_apply
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem self_comp_symm (e : M ≃* N) : e ∘ e.symm = id := funext e.apply_symm_apply
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem coe_refl : ⇑(refl M) = id := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem refl_apply (m : M) : refl M m = m := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
-@[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
+@[simv, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
   (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
 
-@[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
+@[simv, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
 e.injective.eq_iff
 
 @[to_additive]
@@ -305,10 +305,10 @@ lemma ext {f g : mul_equiv M N} (h : ∀ x, f x = g x) : f = g := fun_like.ext f
 
 @[to_additive] lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
-@[simp, to_additive] lemma mk_coe (e : M ≃* N) (e' h₁ h₂ h₃) :
+@[simv, to_additive] lemma mk_coe (e : M ≃* N) (e' h₁ h₂ h₃) :
   (⟨e, e', h₁, h₂, h₃⟩ : M ≃* N) = e := ext $ λ _, rfl
 
-@[simp, to_additive] lemma mk_coe' (e : M ≃* N) (f h₁ h₂ h₃) :
+@[simv, to_additive] lemma mk_coe' (e : M ≃* N) (f h₁ h₂ h₃) :
   (mul_equiv.mk f ⇑e h₁ h₂ h₃ : N ≃* M) = e.symm :=
 symm_bijective.injective $ ext $ λ x, rfl
 
@@ -374,7 +374,7 @@ as an addition-preserving function."]
 def to_monoid_hom {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_to_monoid_hom {M N} [mul_one_class M] [mul_one_class N] (e : M ≃* N) :
   ⇑e.to_monoid_hom = e :=
 rfl
@@ -394,9 +394,9 @@ def arrow_congr {M N P Q : Type*} [has_mul P] [has_mul Q]
   (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
 { to_fun := λ h n, g (h (f.symm n)),
   inv_fun := λ k m, g.symm (k (f m)),
-  left_inv := λ h, by { ext, simp, },
-  right_inv := λ k, by { ext, simp, },
-  map_mul' := λ h k, by { ext, simp, }, }
+  left_inv := λ h, by { ext, simv, },
+  right_inv := λ k, by { ext, simv, },
+  map_mul' := λ h k, by { ext, simv, }, }
 
 /--
 A multiplicative analogue of `equiv.arrow_congr`,
@@ -410,9 +410,9 @@ def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid 
   g.to_monoid_hom.comp (h.comp f.symm.to_monoid_hom),
   inv_fun := λ k,
   g.symm.to_monoid_hom.comp (k.comp f.to_monoid_hom),
-  left_inv := λ h, by { ext, simp, },
-  right_inv := λ k, by { ext, simp, },
-  map_mul' := λ h k, by { ext, simp, }, }
+  left_inv := λ h, by { ext, simv, },
+  right_inv := λ k, by { ext, simv, },
+  map_mul' := λ h k, by { ext, simv, }, }
 
 /-- A family of multiplicative equivalences `Π j, (Ms j ≃* Ns j)` generates a
 multiplicative equivalence between `Π j, Ms j` and `Π j, Ns j`.
@@ -500,7 +500,7 @@ def to_units [group G] : G ≃* Gˣ :=
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
-@[simp, to_additive] lemma coe_to_units [group G] (g : G) :
+@[simv, to_additive] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
 @[to_additive]
@@ -527,7 +527,7 @@ def mul_left (u : Mˣ) : equiv.perm M :=
   left_inv  := u.inv_mul_cancel_left,
   right_inv := u.mul_inv_cancel_left }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_left_symm (u : Mˣ) : u.mul_left.symm = u⁻¹.mul_left :=
 equiv.ext $ λ x, rfl
 
@@ -544,7 +544,7 @@ def mul_right (u : Mˣ) : equiv.perm M :=
   left_inv  := λ x, mul_inv_cancel_right x u,
   right_inv := λ x, inv_mul_cancel_right x u }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_right_symm (u : Mˣ) : u.mul_right.symm = u⁻¹.mul_right :=
 equiv.ext $ λ x, rfl
 
@@ -567,7 +567,7 @@ protected def inv : perm G := inv_involutive.to_perm _
 
 variable {G}
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end has_involutive_neg
@@ -579,15 +579,15 @@ variables [group G]
 @[to_additive "Left addition in an `add_group` is a permutation of the underlying type."]
 protected def mul_left (a : G) : perm G := (to_units a).mul_left
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
 
-/-- Extra simp lemma that `dsimp` can use. `simp` will never use this. -/
-@[simp, nolint simp_nf,
-  to_additive "Extra simp lemma that `dsimp` can use. `simp` will never use this."]
+/-- Extra simv lemma that `dsimp` can use. `simv` will never use this. -/
+@[simv, nolint simp_nf,
+  to_additive "Extra simv lemma that `dsimp` can use. `simv` will never use this."]
 lemma mul_left_symm_apply (a : G) : ((equiv.mul_left a).symm : G → G) = (*) a⁻¹ := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
 
@@ -599,16 +599,16 @@ lemma _root_.group.mul_left_bijective (a : G) : function.bijective ((*) a) :=
 @[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
 protected def mul_right (a : G) : perm G := (to_units a).mul_right
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_right_symm (a : G) : (equiv.mul_right a).symm = equiv.mul_right a⁻¹ :=
 ext $ λ x, rfl
 
-/-- Extra simp lemma that `dsimp` can use. `simp` will never use this. -/
-@[simp, nolint simp_nf,
-  to_additive "Extra simp lemma that `dsimp` can use. `simp` will never use this."]
+/-- Extra simv lemma that `dsimp` can use. `simv` will never use this. -/
+@[simv, nolint simp_nf,
+  to_additive "Extra simv lemma that `dsimp` can use. `simv` will never use this."]
 lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
 
 @[to_additive]
@@ -620,8 +620,8 @@ lemma _root_.group.mul_right_bijective (a : G) : function.bijective (* a) :=
 protected def div_left (a : G) : G ≃ G :=
 { to_fun := λ b, a / b,
   inv_fun := λ b, b⁻¹ * a,
-  left_inv := λ b, by simp [div_eq_mul_inv],
-  right_inv := λ b, by simp [div_eq_mul_inv] }
+  left_inv := λ b, by simv [div_eq_mul_inv],
+  right_inv := λ b, by simv [div_eq_mul_inv] }
 
 @[to_additive]
 lemma div_left_eq_inv_trans_mul_left (a : G) :
@@ -633,8 +633,8 @@ ext $ λ _, div_eq_mul_inv _ _
 protected def div_right (a : G) : G ≃ G :=
 { to_fun := λ b, b / a,
   inv_fun := λ b, b * a,
-  left_inv := λ b, by simp [div_eq_mul_inv],
-  right_inv := λ b, by simp [div_eq_mul_inv] }
+  left_inv := λ b, by simv [div_eq_mul_inv],
+  right_inv := λ b, by simv [div_eq_mul_inv] }
 
 @[to_additive]
 lemma div_right_eq_mul_right_inv (a : G) : equiv.div_right a = equiv.mul_right a⁻¹ :=

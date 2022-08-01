@@ -75,7 +75,7 @@ nodupkeys_iff_pairwise.1 h
 
 @[simp] theorem nodupkeys_cons {s : sigma β} {l : list (sigma β)} :
   nodupkeys (s::l) ↔ s.1 ∉ l.keys ∧ nodupkeys l :=
-by simp [keys, nodupkeys]
+by simv [keys, nodupkeys]
 
 theorem nodupkeys.eq_of_fst_eq {l : list (sigma β)}
   (nd : nodupkeys l) {s s' : sigma β} (h : s ∈ l) (h' : s' ∈ l) :
@@ -104,13 +104,13 @@ theorem nodupkeys_join {L : list (list (sigma β))} :
   nodupkeys (join L) ↔ (∀ l ∈ L, nodupkeys l) ∧ pairwise disjoint (L.map keys) :=
 begin
   rw [nodupkeys_iff_pairwise, pairwise_join, pairwise_map],
-  refine and_congr (ball_congr $ λ l h, by simp [nodupkeys_iff_pairwise]) _,
+  refine and_congr (ball_congr $ λ l h, by simv [nodupkeys_iff_pairwise]) _,
   apply iff_of_eq, congr' with l₁ l₂,
-  simp [keys, disjoint_iff_ne]
+  simv [keys, disjoint_iff_ne]
 end
 
 theorem nodup_enum_map_fst (l : list α) : (l.enum.map prod.fst).nodup :=
-by simp [list.nodup_range]
+by simv [list.nodup_range]
 
 lemma mem_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
@@ -119,20 +119,20 @@ begin
   induction l₀ with x xs generalizing l₁; cases l₁ with y ys,
   { constructor },
   iterate 2
-  { specialize h x <|> specialize h y, simp at h,
+  { specialize h x <|> specialize h y, simv at h,
     cases h },
-  simp at nd₀ nd₁, classical,
+  simv at nd₀ nd₁, classical,
   obtain rfl | h' := eq_or_ne x y,
   { constructor,
     refine l₀_ih nd₀.2 nd₁.2 (λ a, _),
-    specialize h a, simp at h,
+    specialize h a, simv at h,
     obtain rfl | h' := eq_or_ne a x,
     { exact iff_of_false nd₀.1 nd₁.1 },
     { simpa [h'] using h } },
   { transitivity x :: y :: ys.erase x,
     { constructor,
       refine l₀_ih nd₀.2 ((nd₁.2.erase _).cons $ λ h, nd₁.1 $ mem_of_mem_erase h) (λ a, _),
-      { specialize h a, simp at h,
+      { specialize h a, simv at h,
         obtain rfl | h' := eq_or_ne a x,
         { exact iff_of_false nd₀.1 (λ h, h.elim h' nd₁.2.not_mem_erase) },
         { rw or_iff_right h' at h,
@@ -141,7 +141,7 @@ begin
     transitivity y :: x :: ys.erase x,
     { constructor },
     { constructor, symmetry, apply perm_cons_erase,
-      specialize h x, simp [h'] at h, exact h } }
+      specialize h x, simv [h'] at h, exact h } }
 end
 
 variables [decidable_eq α]
@@ -165,23 +165,23 @@ dif_pos rfl
 
 theorem lookup_is_some {a : α} : ∀ {l : list (sigma β)},
   (lookup a l).is_some ↔ a ∈ l.keys
-| []             := by simp
+| []             := by simv
 | (⟨a', b⟩ :: l) := begin
   by_cases h : a = a',
-  { subst a', simp },
-  { simp [h, lookup_is_some] },
+  { subst a', simv },
+  { simv [h, lookup_is_some] },
 end
 
 theorem lookup_eq_none {a : α} {l : list (sigma β)} :
   lookup a l = none ↔ a ∉ l.keys :=
-by simp [← lookup_is_some, option.is_none_iff_eq_none]
+by simv [← lookup_is_some, option.is_none_iff_eq_none]
 
 theorem of_mem_lookup
   {a : α} {b : β a} : ∀ {l : list (sigma β)}, b ∈ lookup a l → sigma.mk a b ∈ l
 | (⟨a', b'⟩ :: l) H := begin
   by_cases h : a = a',
-  { subst a', simp at H, simp [H] },
-  { simp [h] at H, exact or.inr (of_mem_lookup H) }
+  { subst a', simv at H, simv [H] },
+  { simv [h] at H, exact or.inr (of_mem_lookup H) }
 end
 
 theorem mem_lookup {a} {b : β a} {l : list (sigma β)} (nd : l.nodupkeys)
@@ -197,8 +197,8 @@ theorem map_lookup_eq_find (a : α) : ∀ l : list (sigma β),
 | [] := rfl
 | (⟨a', b'⟩ :: l) := begin
   by_cases h : a = a',
-  { subst a', simp },
-  { simp [h, map_lookup_eq_find] }
+  { subst a', simv },
+  { simv [h, map_lookup_eq_find] }
 end
 
 theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.nodupkeys) :
@@ -207,7 +207,7 @@ theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.nodupke
 
 theorem perm_lookup (a : α) {l₁ l₂ : list (sigma β)}
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
-by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact p.mem_iff
+by ext b; simv [mem_lookup_iff, nd₁, nd₂]; exact p.mem_iff
 
 lemma lookup_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodupkeys) (nd₁ : l₁.nodupkeys)
@@ -233,30 +233,30 @@ dif_pos rfl
 
 theorem lookup_all_eq_nil {a : α} : ∀ {l : list (sigma β)},
   lookup_all a l = [] ↔ ∀ b : β a, sigma.mk a b ∉ l
-| []             := by simp
+| []             := by simv
 | (⟨a', b⟩ :: l) := begin
   by_cases h : a = a',
-  { subst a', simp },
-  { simp [h, lookup_all_eq_nil] },
+  { subst a', simv },
+  { simv [h, lookup_all_eq_nil] },
 end
 
 theorem head_lookup_all (a : α) : ∀ l : list (sigma β),
   head' (lookup_all a l) = lookup a l
-| []             := by simp
-| (⟨a', b⟩ :: l) := by by_cases h : a = a'; [{subst h, simp}, simp *]
+| []             := by simv
+| (⟨a', b⟩ :: l) := by by_cases h : a = a'; [{subst h, simv}, simv *]
 
 theorem mem_lookup_all {a : α} {b : β a} :
   ∀ {l : list (sigma β)}, b ∈ lookup_all a l ↔ sigma.mk a b ∈ l
-| []              := by simp
-| (⟨a', b'⟩ :: l) := by by_cases h : a = a'; [{subst h, simp *}, simp *]
+| []              := by simv
+| (⟨a', b'⟩ :: l) := by by_cases h : a = a'; [{subst h, simv *}, simv *]
 
 theorem lookup_all_sublist (a : α) :
   ∀ l : list (sigma β), (lookup_all a l).map (sigma.mk a) <+ l
-| []              := by simp
+| []              := by simv
 | (⟨a', b'⟩ :: l) := begin
     by_cases h : a = a',
-    { subst h, simp, exact (lookup_all_sublist l).cons2 _ _ _ },
-    { simp [h], exact (lookup_all_sublist l).cons _ _ _ }
+    { subst h, simv, exact (lookup_all_sublist l).cons2 _ _ _ },
+    { simv [h], exact (lookup_all_sublist l).cons _ _ _ }
   end
 
 theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
@@ -279,7 +279,7 @@ by rw lookup_all_eq_lookup a h; apply option.to_list_nodup
 
 theorem perm_lookup_all (a : α) {l₁ l₂ : list (sigma β)}
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup_all a l₁ = lookup_all a l₂ :=
-by simp [lookup_all_eq_lookup, nd₁, nd₂, perm_lookup a nd₁ nd₂ p]
+by simv [lookup_all_eq_lookup, nd₁, nd₂, perm_lookup a nd₁ nd₂ p]
 
 /-! ### `kreplace` -/
 
@@ -309,11 +309,11 @@ end
 theorem keys_kreplace (a : α) (b : β a) : ∀ l : list (sigma β),
   (kreplace a b l).keys = l.keys :=
 lookmap_map_eq _ _ $ by rintro ⟨a₁, b₂⟩ ⟨a₂, b₂⟩;
-  dsimp; split_ifs; simp [h] {contextual := tt}
+  dsimp; split_ifs; simv [h] {contextual := tt}
 
 theorem kreplace_nodupkeys (a : α) (b : β a) {l : list (sigma β)} :
   (kreplace a b l).nodupkeys ↔ l.nodupkeys :=
-by simp [nodupkeys, keys_kreplace]
+by simv [nodupkeys, keys_kreplace]
 
 theorem perm.kreplace {a : α} {b : β a} {l₁ l₂ : list (sigma β)}
   (nd : l₁.nodupkeys) : l₁ ~ l₂ →
@@ -334,21 +334,21 @@ erasep $ λ s, a = s.1
 @[simp] theorem kerase_nil {a} : @kerase _ β _ a [] = [] :=
 rfl
 
-@[simp, priority 990]
+@[simv, priority 990]
 theorem kerase_cons_eq {a} {s : sigma β} {l : list (sigma β)} (h : a = s.1) :
   kerase a (s :: l) = l :=
-by simp [kerase, h]
+by simv [kerase, h]
 
-@[simp, priority 990]
+@[simv, priority 990]
 theorem kerase_cons_ne {a} {s : sigma β} {l : list (sigma β)} (h : a ≠ s.1) :
   kerase a (s :: l) = s :: kerase a l :=
-by simp [kerase, h]
+by simv [kerase, h]
 
-@[simp, priority 980]
+@[simv, priority 980]
 theorem kerase_of_not_mem_keys {a} {l : list (sigma β)} (h : a ∉ l.keys) :
   kerase a l = l :=
 by induction l with _ _ ih;
-   [refl, { simp [not_or_distrib] at h, simp [h.1, ih h.2] }]
+   [refl, { simv [not_or_distrib] at h, simv [h.1, ih h.2] }]
 
 theorem kerase_sublist (a : α) (l : list (sigma β)) : kerase a l <+ l :=
 erasep_sublist _
@@ -372,17 +372,17 @@ begin
   case list.cons : hd tl ih
   { by_cases e : a = hd.1,
     { subst e,
-      exact ⟨hd.2, [], tl, by simp, by cases hd; refl, by simp⟩ },
-    { simp at h,
+      exact ⟨hd.2, [], tl, by simv, by cases hd; refl, by simv⟩ },
+    { simv at h,
       cases h,
       case or.inl : h { exact absurd h e },
       case or.inr : h
       { rcases ih h with ⟨b, tl₁, tl₂, h₁, h₂, h₃⟩,
         exact ⟨b, hd :: tl₁, tl₂, not_mem_cons_of_ne_of_not_mem e h₁,
-               by rw h₂; refl, by simp [e, h₃]⟩ } } }
+               by rw h₂; refl, by simv [e, h₃]⟩ } } }
 end
 
-@[simp, priority 990]
+@[simv, priority 990]
 theorem mem_keys_kerase_of_ne {a₁ a₂} {l : list (sigma β)} (h : a₁ ≠ a₂) :
   a₁ ∈ (kerase a₂ l).keys ↔ a₁ ∈ l.keys :=
 iff.intro mem_keys_of_mem_keys_kerase $ λ p,
@@ -391,7 +391,7 @@ iff.intro mem_keys_of_mem_keys_kerase $ λ p,
     | _, _, ⟨_, _, _, _, rfl, rfl⟩, p := by simpa [keys, h] using p
     end
   else
-    by simp [q, p]
+    by simv [q, p]
 
 theorem keys_kerase {a} {l : list (sigma β)} : (kerase a l).keys = l.keys.erase a :=
 by rw [keys, kerase, ←erasep_map sigma.fst l, erase_eq_erasep]
@@ -403,10 +403,10 @@ begin
   { subst a' },
   induction l with x xs, { refl },
   { by_cases a' = x.1,
-    { subst a', simp [kerase_cons_ne h,kerase_cons_eq rfl] },
+    { subst a', simv [kerase_cons_ne h,kerase_cons_eq rfl] },
     by_cases h' : a = x.1,
-    { subst a, simp [kerase_cons_eq rfl,kerase_cons_ne (ne.symm h)] },
-    { simp [kerase_cons_ne,*] } }
+    { subst a, simv [kerase_cons_eq rfl,kerase_cons_ne (ne.symm h)] },
+    { simv [kerase_cons_ne,*] } }
 end
 
 lemma nodupkeys.kerase (a : α) : nodupkeys l → (kerase a l).nodupkeys :=
@@ -421,12 +421,12 @@ by rintro x y h rfl; exact h
   a ∉ (kerase a l).keys :=
 begin
   induction l,
-  case list.nil { simp },
+  case list.nil { simv },
   case list.cons : hd tl ih
-  { simp at nd,
+  { simv at nd,
     by_cases h : a = hd.1,
-    { subst h, simp [nd.1] },
-    { simp [h, ih nd.2] } }
+    { subst h, simv [nd.1] },
+    { simv [h, ih nd.2] } }
 end
 
 @[simp] theorem lookup_kerase (a) {l : list (sigma β)} (nd : l.nodupkeys) :
@@ -442,9 +442,9 @@ begin
   { cases hd with ah bh,
     by_cases h₁ : a = ah; by_cases h₂ : a' = ah,
     { substs h₁ h₂, cases ne.irrefl h },
-    { subst h₁, simp [h₂] },
-    { subst h₂, simp [h] },
-    { simp [h₁, h₂, ih] } }
+    { subst h₁, simv [h₂] },
+    { subst h₂, simv [h] },
+    { simv [h₁, h₂, ih] } }
 end
 
 theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},
@@ -452,37 +452,37 @@ theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},
 | []        _  h  := by cases h
 | (s :: l₁) l₂ h₁ :=
   if h₂ : a = s.1 then
-    by simp [h₂]
+    by simv [h₂]
   else
-    by simp at h₁;
+    by simv at h₁;
        cases h₁;
-       [exact absurd h₁ h₂, simp [h₂, kerase_append_left h₁]]
+       [exact absurd h₁ h₂, simv [h₂, kerase_append_left h₁]]
 
 theorem kerase_append_right {a} : ∀ {l₁ l₂ : list (sigma β)},
   a ∉ l₁.keys → kerase a (l₁ ++ l₂) = l₁ ++ kerase a l₂
 | []        _  h := rfl
-| (_ :: l₁) l₂ h := by simp [not_or_distrib] at h;
-                       simp [h.1, kerase_append_right h.2]
+| (_ :: l₁) l₂ h := by simv [not_or_distrib] at h;
+                       simv [h.1, kerase_append_right h.2]
 
 theorem kerase_comm (a₁ a₂) (l : list (sigma β)) :
   kerase a₂ (kerase a₁ l) = kerase a₁ (kerase a₂ l) :=
 if h : a₁ = a₂ then
-  by simp [h]
+  by simv [h]
 else if ha₁ : a₁ ∈ l.keys then
   if ha₂ : a₂ ∈ l.keys then
     match l, kerase a₁ l, exists_of_kerase ha₁, ha₂ with
     | _, _, ⟨b₁, l₁, l₂, a₁_nin_l₁, rfl, rfl⟩, a₂_in_l₁_app_l₂ :=
       if h' : a₂ ∈ l₁.keys then
-        by simp [kerase_append_left h',
+        by simv [kerase_append_left h',
                  kerase_append_right (mt (mem_keys_kerase_of_ne h).mp a₁_nin_l₁)]
       else
-        by simp [kerase_append_right h', kerase_append_right a₁_nin_l₁,
+        by simv [kerase_append_right h', kerase_append_right a₁_nin_l₁,
                  @kerase_cons_ne _ _ _ a₂ ⟨a₁, b₁⟩ _ (ne.symm h)]
     end
   else
-    by simp [ha₂, mt mem_keys_of_mem_keys_kerase ha₂]
+    by simv [ha₂, mt mem_keys_of_mem_keys_kerase ha₂]
 else
-  by simp [ha₁, mt mem_keys_of_mem_keys_kerase ha₁]
+  by simv [ha₁, mt mem_keys_of_mem_keys_kerase ha₁]
 
 lemma sizeof_kerase {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)] (x : α)
   (xs : list (sigma β)) :
@@ -490,8 +490,8 @@ lemma sizeof_kerase {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigm
 begin
   unfold_wf,
   induction xs with y ys,
-  { simp },
-  { by_cases x = y.1; simp [*, list.sizeof] },
+  { simv },
+  { by_cases x = y.1; simv [*, list.sizeof] },
 end
 
 /-! ### `kinsert` -/
@@ -505,7 +505,7 @@ def kinsert (a : α) (b : β a) (l : list (sigma β)) : list (sigma β) :=
 
 theorem mem_keys_kinsert {a a'} {b' : β a'} {l : list (sigma β)} :
   a ∈ (kinsert a' b' l).keys ↔ a = a' ∨ a ∈ l.keys :=
-by by_cases h : a = a'; simp [h]
+by by_cases h : a = a'; simv [h]
 
 theorem kinsert_nodupkeys (a) (b : β a) {l : list (sigma β)} (nd : l.nodupkeys) :
   (kinsert a b l).nodupkeys :=
@@ -517,11 +517,11 @@ theorem perm.kinsert {a} {b : β a} {l₁ l₂ : list (sigma β)} (nd₁ : l₁.
 
 theorem lookup_kinsert {a} {b : β a} (l : list (sigma β)) :
   lookup a (kinsert a b l) = some b :=
-by simp only [kinsert, lookup_cons_eq]
+by simv only [kinsert, lookup_cons_eq]
 
 theorem lookup_kinsert_ne {a a'} {b' : β a'} {l : list (sigma β)} (h : a ≠ a') :
   lookup a (kinsert a' b' l) = lookup a l :=
-by simp [h]
+by simv [h]
 
 /-! ### `kextract` -/
 
@@ -536,9 +536,9 @@ def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
   ∀ l : list (sigma β), kextract a l = (lookup a l, kerase a l)
 | []     := rfl
 | (⟨a', b⟩::l) := begin
-    simp [kextract], dsimp, split_ifs,
-    { subst a', simp [kerase] },
-    { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
+    simv [kextract], dsimp, split_ifs,
+    { subst a', simv [kerase] },
+    { simv [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
   end
 
 /-! ### `dedupkeys` -/
@@ -557,8 +557,8 @@ begin
   clear hl,
   induction l with x xs,
   { apply this },
-  { cases x, simp [dedupkeys], split,
-    { simp [keys_kerase], apply l_ih.not_mem_erase },
+  { cases x, simv [dedupkeys], split,
+    { simv [keys_kerase], apply l_ih.not_mem_erase },
     { exact l_ih.kerase _ } }
 end
 
@@ -577,8 +577,8 @@ lemma sizeof_dedupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (s
 begin
   unfold_wf,
   induction xs with x xs,
-  { simp [list.dedupkeys] },
-  { simp only [dedupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
+  { simv [list.dedupkeys] },
+  { simv only [dedupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
     transitivity, apply sizeof_kerase,
     assumption }
 end
@@ -606,24 +606,24 @@ rfl
   a ∈ (kunion l₁ l₂).keys ↔ a ∈ l₁.keys ∨ a ∈ l₂.keys :=
 begin
   induction l₁ generalizing l₂,
-  case list.nil { simp },
-  case list.cons : s l₁ ih { by_cases h : a = s.1; [simp [h], simp [h, ih]] }
+  case list.nil { simv },
+  case list.cons : s l₁ ih { by_cases h : a = s.1; [simv [h], simv [h, ih]] }
 end
 
 @[simp] theorem kunion_kerase {a} : ∀ {l₁ l₂ : list (sigma β)},
   kunion (kerase a l₁) (kerase a l₂) = kerase a (kunion l₁ l₂)
 | []       _ := rfl
 | (s :: _) l := by by_cases h : a = s.1;
-                   simp [h, kerase_comm a s.1 l, kunion_kerase]
+                   simv [h, kerase_comm a s.1 l, kunion_kerase]
 
 lemma nodupkeys.kunion
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) : (kunion l₁ l₂).nodupkeys :=
 begin
   induction l₁ generalizing l₂,
-  case list.nil { simp only [nil_kunion, nd₂] },
+  case list.nil { simv only [nil_kunion, nd₂] },
   case list.cons : s l₁ ih
-  { simp at nd₁,
-    simp [not_or_distrib, nd₁.1, nd₂, ih nd₁.2 (nd₂.kerase s.1)] }
+  { simv at nd₁,
+    simv [not_or_distrib, nd₁.1, nd₂, ih nd₁.2 (nd₂.kerase s.1)] }
 end
 
 theorem perm.kunion_right {l₁ l₂ : list (sigma β)} (p : l₁ ~ l₂) (l) :
@@ -632,9 +632,9 @@ begin
   induction p generalizing l,
   case list.perm.nil { refl },
   case list.perm.cons : hd tl₁ tl₂ p ih
-  { simp [ih (kerase hd.1 l), perm.cons] },
+  { simv [ih (kerase hd.1 l), perm.cons] },
   case list.perm.swap : s₁ s₂ l
-  { simp [kerase_comm, perm.swap] },
+  { simv [kerase_comm, perm.swap] },
   case list.perm.trans : l₁ l₂ l₃ p₁₂ p₂₃ ih₁₂ ih₂₃
   { exact perm.trans (ih₁₂ l) (ih₂₃ l) }
 end
@@ -643,7 +643,7 @@ theorem perm.kunion_left : ∀ l {l₁ l₂ : list (sigma β)},
   l₁.nodupkeys → l₁ ~ l₂ → kunion l l₁ ~ kunion l l₂
 | []       _  _  _   p := p
 | (s :: l) l₁ l₂ nd₁ p :=
-  by simp [((p.kerase nd₁).kunion_left l $ nd₁.kerase s.1).cons s]
+  by simv [((p.kerase nd₁).kunion_left l $ nd₁.kerase s.1).cons s]
 
 theorem perm.kunion {l₁ l₂ l₃ l₄ : list (sigma β)} (nd₃ : l₃.nodupkeys)
   (p₁₂ : l₁ ~ l₂) (p₃₄ : l₃ ~ l₄) : kunion l₁ l₃ ~ kunion l₂ l₄ :=
@@ -652,32 +652,32 @@ theorem perm.kunion {l₁ l₂ l₃ l₄ : list (sigma β)} (nd₃ : l₃.nodupk
 @[simp] theorem lookup_kunion_left {a} {l₁ l₂ : list (sigma β)} (h : a ∈ l₁.keys) :
   lookup a (kunion l₁ l₂) = lookup a l₁ :=
 begin
-  induction l₁ with s _ ih generalizing l₂; simp at h; cases h; cases s with a',
-  { subst h, simp },
+  induction l₁ with s _ ih generalizing l₂; simv at h; cases h; cases s with a',
+  { subst h, simv },
   { rw kunion_cons,
     by_cases h' : a = a',
-    { subst h', simp },
-    { simp [h', ih h] } }
+    { subst h', simv },
+    { simv [h', ih h] } }
 end
 
 @[simp] theorem lookup_kunion_right {a} {l₁ l₂ : list (sigma β)} (h : a ∉ l₁.keys) :
   lookup a (kunion l₁ l₂) = lookup a l₂ :=
 begin
   induction l₁ generalizing l₂,
-  case list.nil { simp },
-  case list.cons : _ _ ih { simp [not_or_distrib] at h, simp [h.1, ih h.2] }
+  case list.nil { simv },
+  case list.cons : _ _ ih { simv [not_or_distrib] at h, simv [h.1, ih h.2] }
 end
 
 @[simp] theorem mem_lookup_kunion {a} {b : β a} {l₁ l₂ : list (sigma β)} :
   b ∈ lookup a (kunion l₁ l₂) ↔ b ∈ lookup a l₁ ∨ a ∉ l₁.keys ∧ b ∈ lookup a l₂ :=
 begin
   induction l₁ generalizing l₂,
-  case list.nil { simp },
+  case list.nil { simv },
   case list.cons : s _ ih
   { cases s with a',
     by_cases h₁ : a = a',
-    { subst h₁, simp },
-    { let h₂ := @ih (kerase a' l₂), simp [h₁] at h₂, simp [h₁, h₂] } }
+    { subst h₁, simv },
+    { let h₂ := @ih (kerase a' l₂), simv [h₁] at h₂, simv [h₁, h₂] } }
 end
 
 theorem mem_lookup_kunion_middle {a} {b : β a} {l₁ l₂ l₃ : list (sigma β)}

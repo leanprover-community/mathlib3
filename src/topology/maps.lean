@@ -135,7 +135,7 @@ by rw [hf.induced, is_open_induced_iff]
 
 lemma inducing.dense_iff {f : α → β} (hf : inducing f) {s : set α} :
   dense s ↔ ∀ x, f x ∈ closure (f '' s) :=
-by simp only [dense, hf.closure_eq_preimage_closure_image, mem_preimage]
+by simv only [dense, hf.closure_eq_preimage_closure_image, mem_preimage]
 
 end inducing
 
@@ -170,7 +170,7 @@ lemma embedding.comp {g : β → γ} {f : α → β} (hg : embedding g) (hf : em
 lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : embedding (g ∘ f)) : embedding f :=
 { induced := (inducing_of_inducing_compose hf hg hgf.to_inducing).induced,
-  inj := assume a₁ a₂ h, hgf.inj $ by simp [h, (∘)] }
+  inj := assume a₁ a₂ h, hgf.inj $ by simv [h, (∘)] }
 
 protected lemma function.left_inverse.embedding {f : α → β} {g : β → α}
   (h : left_inverse f g) (hf : continuous f) (hg : continuous g) :
@@ -251,7 +251,7 @@ protected lemma is_open_preimage (hf : quotient_map f) {s : set β} :
 
 protected lemma is_closed_preimage (hf : quotient_map f) {s : set β} :
   is_closed (f ⁻¹' s) ↔ is_closed s :=
-by simp only [← is_open_compl_iff, ← preimage_compl, hf.is_open_preimage]
+by simv only [← is_open_compl_iff, ← preimage_compl, hf.is_open_preimage]
 
 end quotient_map
 
@@ -330,7 +330,7 @@ lemma preimage_closure_subset_closure_preimage (hf : is_open_map f) {s : set β}
   f ⁻¹' (closure s) ⊆ closure (f ⁻¹' s) :=
 begin
   rw ← compl_subset_compl,
-  simp only [← interior_compl, ← preimage_compl, hf.interior_preimage_subset_preimage_interior]
+  simv only [← interior_compl, ← preimage_compl, hf.interior_preimage_subset_preimage_interior]
 end
 
 lemma preimage_closure_eq_closure_preimage (hf : is_open_map f) (hfc : continuous f) (s : set β) :
@@ -345,7 +345,7 @@ by simpa only [frontier_eq_closure_inter_closure, preimage_inter]
 
 lemma preimage_frontier_eq_frontier_preimage (hf : is_open_map f) (hfc : continuous f) (s : set β) :
   f ⁻¹' (frontier s) = frontier (f ⁻¹' s) :=
-by simp only [frontier_eq_closure_inter_closure, preimage_inter, preimage_compl,
+by simv only [frontier_eq_closure_inter_closure, preimage_inter, preimage_compl,
   hf.preimage_closure_eq_closure_preimage hfc]
 
 end is_open_map
@@ -394,7 +394,7 @@ lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
   is_closed_map f :=
 assume s hs,
-have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
+have f' ⁻¹' s = f '' s, by ext x; simv [mem_image_iff_of_inverse r_inv l_inv],
 this ▸ hs.preimage h
 
 lemma of_nonempty {f : α → β} (h : ∀ s, is_closed s → s.nonempty → is_closed (f '' s)) :
@@ -473,7 +473,7 @@ lemma open_embedding_iff_embedding_open {f : α → β} :
 lemma open_embedding_of_continuous_injective_open {f : α → β} (h₁ : continuous f)
   (h₂ : injective f) (h₃ : is_open_map f) : open_embedding f :=
 begin
-  simp only [open_embedding_iff_embedding_open, embedding_iff, inducing_iff_nhds, *, and_true],
+  simv only [open_embedding_iff_embedding_open, embedding_iff, inducing_iff_nhds, *, and_true],
   exact λ a, le_antisymm (h₁.tendsto _).le_comap
     (@comap_map _ _ (𝓝 a) _ h₂ ▸ comap_mono (h₃.nhds_le _))
 end
@@ -492,12 +492,12 @@ lemma open_embedding.comp {g : β → γ} {f : α → β}
 
 lemma open_embedding.is_open_map_iff {g : β → γ} {f : α → β} (hg : open_embedding g) :
   is_open_map f ↔ is_open_map (g ∘ f) :=
-by simp only [is_open_map_iff_nhds_le, ← @map_map _ _ _ _ f g, ← hg.map_nhds_eq,
+by simv only [is_open_map_iff_nhds_le, ← @map_map _ _ _ _ f g, ← hg.map_nhds_eq,
   map_le_map_iff hg.inj]
 
 lemma open_embedding.of_comp_iff (f : α → β) {g : β → γ} (hg : open_embedding g) :
   open_embedding (g ∘ f) ↔ open_embedding f :=
-by simp only [open_embedding_iff_continuous_injective_open, ← hg.is_open_map_iff,
+by simv only [open_embedding_iff_continuous_injective_open, ← hg.is_open_map_iff,
   ← hg.1.continuous_iff, hg.inj.of_comp_iff]
 
 lemma open_embedding.of_comp (f : α → β) {g : β → γ} (hg : open_embedding g)
@@ -543,7 +543,7 @@ end
 
 lemma closed_embedding_of_embedding_closed (h₁ : embedding f)
   (h₂ : is_closed_map f) : closed_embedding f :=
-⟨h₁, by convert h₂ univ is_closed_univ; simp⟩
+⟨h₁, by convert h₂ univ is_closed_univ; simv⟩
 
 lemma closed_embedding_of_continuous_injective_closed (h₁ : continuous f)
   (h₂ : injective f) (h₃ : is_closed_map f) : closed_embedding f :=

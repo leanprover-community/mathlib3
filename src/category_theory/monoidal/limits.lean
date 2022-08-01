@@ -46,18 +46,18 @@ instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
         naturality' := λ j j' f,
         begin
           dsimp,
-          simp only [category.id_comp, ←tensor_comp, limit.w],
+          simv only [category.id_comp, ←tensor_comp, limit.w],
         end, } },
   μ_natural' := λ X Y X' Y' f g,
   begin
     ext, dsimp,
-    simp only [limit.lift_π, cones.postcompose_obj_π, monoidal.tensor_hom_app, limit.lift_map,
+    simv only [limit.lift_π, cones.postcompose_obj_π, monoidal.tensor_hom_app, limit.lift_map,
       nat_trans.comp_app, category.assoc, ←tensor_comp, lim_map_π],
   end,
   associativity' := λ X Y Z,
   begin
     ext, dsimp,
-    simp only [limit.lift_π, cones.postcompose_obj_π, monoidal.associator_hom_app, limit.lift_map,
+    simv only [limit.lift_π, cones.postcompose_obj_π, monoidal.associator_hom_app, limit.lift_map,
       nat_trans.comp_app, category.assoc],
     slice_lhs 2 2 { rw [←tensor_id_comp_id_tensor], },
     slice_lhs 1 2 { rw [←comp_tensor_id, limit.lift_π], dsimp, },
@@ -65,25 +65,25 @@ instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
     conv_lhs { rw [associator_naturality], },
     conv_rhs { rw [←id_tensor_comp_tensor_id (limit.π (Y ⊗ Z) j)], },
     slice_rhs 2 3 { rw [←id_tensor_comp, limit.lift_π], dsimp, },
-    dsimp, simp,
+    dsimp, simv,
   end,
   left_unitality' := λ X,
   begin
     ext, dsimp,
-    simp,
+    simv,
     conv_rhs { rw [←tensor_id_comp_id_tensor (limit.π X j)], },
     slice_rhs 1 2 { rw [←comp_tensor_id], erw [limit.lift_π], dsimp, },
     slice_rhs 2 3 { rw [left_unitor_naturality], },
-    simp,
+    simv,
   end,
   right_unitality' := λ X,
   begin
     ext, dsimp,
-    simp,
+    simv,
     conv_rhs { rw [←id_tensor_comp_tensor_id _ (limit.π X j)], },
     slice_rhs 1 2 { rw [←id_tensor_comp], erw [limit.lift_π], dsimp, },
     slice_rhs 2 3 { rw [right_unitor_naturality], },
-    simp,
+    simv,
   end, }
 
 /-- The limit functor `F ↦ limit F` bundled as a lax monoidal functor. -/
@@ -106,7 +106,7 @@ lemma lim_lax_obj' (F : J ⥤ C) : lim_lax.obj F = lim.obj F := rfl
         naturality' := λ j j' f,
         begin
           dsimp,
-          simp only [category.id_comp, ←tensor_comp, limit.w],
+          simv only [category.id_comp, ←tensor_comp, limit.w],
         end, } } := rfl
 
 end category_theory.limits

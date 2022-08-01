@@ -105,7 +105,7 @@ lemma le_Sup_iff : a ≤ Sup s ↔ ∀ b ∈ upper_bounds s, a ≤ b :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
 lemma le_supr_iff {s : ι → α} : a ≤ supr s ↔ ∀ b, (∀ i, s i ≤ b) → a ≤ b :=
-by simp [supr, le_Sup_iff, upper_bounds]
+by simv [supr, le_Sup_iff, upper_bounds]
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
 le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
@@ -152,11 +152,11 @@ lemma Inf_le_iff : Inf s ≤ a ↔ ∀ b ∈ lower_bounds s, b ≤ a :=
 ⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
 
 lemma infi_le_iff {s : ι → α} : infi s ≤ a ↔ ∀ b, (∀ i, b ≤ s i) → b ≤ a :=
-by simp [infi, Inf_le_iff, lower_bounds]
+by simv [infi, Inf_le_iff, lower_bounds]
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
 le_of_forall_le begin
-  simp only [le_Inf_iff],
+  simv only [le_Inf_iff],
   introv h₀ h₁,
   rcases h _ h₁ with ⟨y, hy, hy'⟩,
   solve_by_elim [le_trans _ hy']
@@ -200,13 +200,13 @@ def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
 { bot := Inf univ,
   bot_le := λ x, (is_glb_Inf univ).1 trivial,
   top := Inf ∅,
-  le_top := λ a, (is_glb_Inf ∅).2 $ by simp,
+  le_top := λ a, (is_glb_Inf ∅).2 $ by simv,
   sup := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   inf := λ a b, Inf {a, b},
-  le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simp [*] },
+  le_inf := λ a b c hab hac, by { apply (is_glb_Inf _).2, simv [*] },
   inf_le_right := λ a b, (is_glb_Inf _).1 $ mem_insert_of_mem _ $ mem_singleton _,
   inf_le_left := λ a b, (is_glb_Inf _).1 $ mem_insert _ _,
-  sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
+  sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simv [*],
   le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
   le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
   le_Inf := λ s a ha, (is_glb_Inf s).2 ha,
@@ -247,13 +247,13 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
 { top := Sup univ,
   le_top := λ x, (is_lub_Sup univ).1 trivial,
   bot := Sup ∅,
-  bot_le := λ x, (is_lub_Sup ∅).2 $ by simp,
+  bot_le := λ x, (is_lub_Sup ∅).2 $ by simv,
   sup := λ a b, Sup {a, b},
-  sup_le := λ a b c hac hbc, (is_lub_Sup _).2 (by simp [*]),
+  sup_le := λ a b c hac hbc, (is_lub_Sup _).2 (by simv [*]),
   le_sup_left := λ a b, (is_lub_Sup _).1 $ mem_insert _ _,
   le_sup_right := λ a b, (is_lub_Sup _).1 $ mem_insert_of_mem _ $ mem_singleton _,
   inf := λ a b, Sup {x | x ≤ a ∧ x ≤ b},
-  le_inf := λ a b c hab hac, (is_lub_Sup _).1 $ by simp [*],
+  le_inf := λ a b c hab hac, (is_lub_Sup _).1 $ by simv [*],
   inf_le_left := λ a b, (is_lub_Sup _).2 (λ x, and.left),
   inf_le_right := λ a b, (is_lub_Sup _).2 (λ x, and.right),
   Inf := λ s, Sup (lower_bounds s),
@@ -410,7 +410,7 @@ lemma supr_congr (h : ∀ i, f i = g i) : (⨆ i, f i) = ⨆ i, g i := congr_arg
 
 lemma function.surjective.supr_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   (⨆ x, g (f x)) = ⨆ y, g y :=
-by simp only [supr, hf.range_comp]
+by simv only [supr, hf.range_comp]
 
 protected lemma function.surjective.supr_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
@@ -595,7 +595,7 @@ hf.dual_left.le_map_Sup
 lemma order_iso.map_supr [complete_lattice β] (f : α ≃o β) (x : ι → α) :
   f (⨆ i, x i) = ⨆ i, f (x i) :=
 eq_of_forall_ge_iff $ f.surjective.forall.2 $ λ x,
-  by simp only [f.le_iff_le, supr_le_iff]
+  by simv only [f.le_iff_le, supr_le_iff]
 
 lemma order_iso.map_infi [complete_lattice β] (f : α ≃o β) (x : ι → α) :
   f (⨅ i, x i) = ⨅ i, f (x i) :=
@@ -603,7 +603,7 @@ order_iso.map_supr f.dual _
 
 lemma order_iso.map_Sup [complete_lattice β] (f : α ≃o β) (s : set α) :
   f (Sup s) = ⨆ a ∈ s, f a :=
-by simp only [Sup_eq_supr, order_iso.map_supr]
+by simv only [Sup_eq_supr, order_iso.map_supr]
 
 lemma order_iso.map_Inf [complete_lattice β] (f : α ≃o β) (s : set α) :
   f (Inf s) = ⨅ a ∈ s, f a :=
@@ -697,7 +697,7 @@ theorem infi_eq_of_forall_ge_of_forall_gt_exists_lt :
 
 lemma supr_eq_dif {p : Prop} [decidable p] (a : p → α) :
   (⨆ h : p, a h) = if h : p then a h else ⊥ :=
-by by_cases p; simp [h]
+by by_cases p; simv [h]
 
 lemma supr_eq_if {p : Prop} [decidable p] (a : α) :
   (⨆ h : p, a) = if p then a else ⊥ :=
@@ -721,18 +721,18 @@ lemma infi_comm {f : ι → ι' → α} : (⨅ i j, f i j) = ⨅ j i, f i j := @
 lemma supr₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
   (f : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → α) :
   (⨆ i₁ j₁ i₂ j₂, f i₁ j₁ i₂ j₂) = ⨆ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂ :=
-by simp only [@supr_comm _ (κ₁ _), @supr_comm _ ι₁]
+by simv only [@supr_comm _ (κ₁ _), @supr_comm _ ι₁]
 
 lemma infi₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
   (f : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → α) :
   (⨅ i₁ j₁ i₂ j₂, f i₁ j₁ i₂ j₂) = ⨅ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂ :=
-by simp only [@infi_comm _ (κ₁ _), @infi_comm _ ι₁]
+by simv only [@infi_comm _ (κ₁ _), @infi_comm _ ι₁]
 
 /- TODO: this is strange. In the proof below, we get exactly the desired
    among the equalities, but close does not get it.
 begin
   apply @le_antisymm,
-    simp, intros,
+    simv, intros,
     begin [smt]
       ematch, ematch, ematch, trace_state, have := le_refl (f i_1 i),
       trace_state, close
@@ -870,7 +870,7 @@ begin
   rw ←supr_sup_eq,
   congr' 1 with i,
   split_ifs with h;
-  simp [h],
+  simv [h],
 end
 
 lemma infi_dite (f : Π i, p i → α) (g : Π i, ¬p i → α) :
@@ -902,11 +902,11 @@ theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = ⨅ a ∈ s, f a
 ### supr and infi under set constructions
 -/
 
-theorem supr_emptyset {f : β → α} : (⨆ x ∈ (∅ : set β), f x) = ⊥ := by simp
-theorem infi_emptyset {f : β → α} : (⨅ x ∈ (∅ : set β), f x) = ⊤ := by simp
+theorem supr_emptyset {f : β → α} : (⨆ x ∈ (∅ : set β), f x) = ⊥ := by simv
+theorem infi_emptyset {f : β → α} : (⨅ x ∈ (∅ : set β), f x) = ⊤ := by simv
 
-theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = ⨆ x, f x := by simp
-theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = ⨅ x, f x := by simp
+theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = ⨆ x, f x := by simv
+theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = ⨅ x, f x := by simv
 
 theorem supr_union {f : β → α} {s t : set β} :
   (⨆ x ∈ s ∪ t, f x) = (⨆ x ∈ s, f x) ⊔ (⨆ x ∈ t, f x) :=
@@ -925,7 +925,7 @@ lemma infi_split : ∀ (f : β → α) (p : β → Prop),
 @supr_split αᵒᵈ _ _
 
 lemma supr_split_single (f : β → α) (i₀ : β) : (⨆ i, f i) = f i₀ ⊔ ⨆ i (h : i ≠ i₀), f i :=
-by { convert supr_split _ _, simp }
+by { convert supr_split _ _, simv }
 
 lemma infi_split_single (f : β → α) (i₀ : β) : (⨅ i, f i) = f i₀ ⊓ ⨅ i (h : i ≠ i₀), f i :=
 @supr_split_single αᵒᵈ _ _ _ _
@@ -945,10 +945,10 @@ theorem infi_insert {f : β → α} {s : set β} {b : β} :
 eq.trans infi_union $ congr_arg (λ x, x ⊓ (⨅ x ∈ s, f x)) infi_infi_eq_left
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
-by simp
+by simv
 
 theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set β), f x) = f b :=
-by simp
+by simv
 
 theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
 by rw [supr_insert, supr_singleton]
@@ -968,7 +968,7 @@ theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
   (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+  simv [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
 end
 
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
@@ -1008,13 +1008,13 @@ lemma is_lub_bsupr {s : set β} {f : β → α} : is_lub (f '' s) (⨆ x ∈ s, 
 by simpa only [range_comp, subtype.range_coe, supr_subtype'] using @is_lub_supr α s _ (f ∘ coe)
 
 theorem supr_sigma {p : β → Type*} {f : sigma p → α} : (⨆ x, f x) = ⨆ i j, f ⟨i, j⟩ :=
-eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sigma.forall]
+eq_of_forall_ge_iff $ λ c, by simv only [supr_le_iff, sigma.forall]
 
 theorem infi_sigma {p : β → Type*} {f : sigma p → α} : (⨅ x, f x) = ⨅ i j, f ⟨i, j⟩ :=
 @supr_sigma αᵒᵈ _ _ _ _
 
 theorem supr_prod {f : β × γ → α} : (⨆ x, f x) = ⨆ i j, f (i, j) :=
-eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, prod.forall]
+eq_of_forall_ge_iff $ λ c, by simv only [supr_le_iff, prod.forall]
 
 theorem infi_prod {f : β × γ → α} : (⨅ x, f x)  = ⨅ i j, f (i, j) := @supr_prod αᵒᵈ _ _ _ _
 
@@ -1028,20 +1028,20 @@ lemma binfi_prod {f : β × γ → α} {s : set β} {t : set γ} :
 
 theorem supr_sum {f : β ⊕ γ → α} :
   (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
-eq_of_forall_ge_iff $ λ c, by simp only [sup_le_iff, supr_le_iff, sum.forall]
+eq_of_forall_ge_iff $ λ c, by simv only [sup_le_iff, supr_le_iff, sum.forall]
 
 theorem infi_sum {f : β ⊕ γ → α} : (⨅ x, f x) = (⨅ i, f (sum.inl i)) ⊓ (⨅ j, f (sum.inr j)) :=
 @supr_sum αᵒᵈ _ _ _ _
 
 theorem supr_option (f : option β → α) : (⨆ o, f o) = f none ⊔ ⨆ b, f (option.some b) :=
-eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sup_le_iff, option.forall]
+eq_of_forall_ge_iff $ λ c, by simv only [supr_le_iff, sup_le_iff, option.forall]
 
 theorem infi_option (f : option β → α) : (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
 @supr_option αᵒᵈ _ _ _
 
 /-- A version of `supr_option` useful for rewriting right-to-left. -/
 lemma supr_option_elim (a : α) (f : β → α) : (⨆ o : option β, o.elim a f) = a ⊔ ⨆ b, f b :=
-by simp [supr_option]
+by simv [supr_option]
 
 /-- A version of `infi_option` useful for rewriting right-to-left. -/
 lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
@@ -1052,7 +1052,7 @@ dropped, without changing the result. -/
 lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = ⨆ i, f i :=
 begin
   by_cases htriv : ∀ i, f i = ⊥,
-  { simp only [supr_bot, (funext htriv : f = _)] },
+  { simv only [supr_bot, (funext htriv : f = _)] },
   refine (supr_comp_le f _).antisymm (supr_mono' $ λ i, _),
   by_cases hi : f i = ⊥,
   { rw hi,
@@ -1081,7 +1081,7 @@ by rw [←image_prod, Inf_image, binfi_prod]
 lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
 begin
   apply le_antisymm;
-  simp only [supr_le_iff],
+  simv only [supr_le_iff],
   { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw tsub_add_cancel_of_le hi }⟩ },
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
@@ -1112,7 +1112,7 @@ end
 lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
 begin
   refine eq_of_forall_ge_iff (λ c, _),
-  simp only [sup_le_iff, supr_le_iff],
+  simv only [sup_le_iff, supr_le_iff],
   refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
   rintro (_|i),
   exacts [h.1, h.2 i]
@@ -1127,10 +1127,10 @@ section complete_linear_order
 variables [complete_linear_order α]
 
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ ∀ b < ⊤, ∃ i, b < f i :=
-by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
+by simv only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ ∀ b > ⊥, ∃ i, f i < b :=
-by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
+by simv only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 
 end complete_linear_order
 
@@ -1195,19 +1195,19 @@ by rw [supr, Sup_apply, supr, supr, ← image_eq_range (λ f : Π i, β i, f a) 
 
 lemma unary_relation_Sup_iff {α : Type*} (s : set (α → Prop)) {a : α} :
   Sup s a ↔ ∃ r : α → Prop, r ∈ s ∧ r a :=
-by { unfold Sup, simp [←eq_iff_iff] }
+by { unfold Sup, simv [←eq_iff_iff] }
 
 lemma unary_relation_Inf_iff {α : Type*} (s : set (α → Prop)) {a : α} :
   Inf s a ↔ ∀ r : α → Prop, r ∈ s → r a :=
-by { unfold Inf, simp [←eq_iff_iff] }
+by { unfold Inf, simv [←eq_iff_iff] }
 
 lemma binary_relation_Sup_iff {α β : Type*} (s : set (α → β → Prop)) {a : α} {b : β} :
   Sup s a b ↔ ∃ r : α → β → Prop, r ∈ s ∧ r a b :=
-by { unfold Sup, simp [←eq_iff_iff] }
+by { unfold Sup, simv [←eq_iff_iff] }
 
 lemma binary_relation_Inf_iff {α β : Type*} (s : set (α → β → Prop)) {a : α} {b : β} :
   Inf s a b ↔ ∀ r : α → β → Prop, r ∈ s → r a b :=
-by { unfold Inf, simp [←eq_iff_iff] }
+by { unfold Inf, simv [←eq_iff_iff] }
 
 section complete_lattice
 variables [preorder α] [complete_lattice β]

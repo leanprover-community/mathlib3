@@ -87,7 +87,7 @@ which provides a set and a `set.finite`.
 -/
 noncomputable def finset_basis [is_noetherian K V] :
   basis (finset_basis_index K V) K V :=
-(basis.of_vector_space K V).reindex (by simp)
+(basis.of_vector_space K V).reindex (by simv)
 
 @[simp] lemma range_finset_basis [is_noetherian K V] :
   set.range (finset_basis K V) = basis.of_vector_space_index K V :=
@@ -101,7 +101,7 @@ lemma iff_fg :
 begin
   split,
   { introI h,
-    exact ⟨⟨finset_basis_index K V, by { convert (finset_basis K V).span_eq, simp }⟩⟩ },
+    exact ⟨⟨finset_basis_index K V, by { convert (finset_basis K V).span_eq, simv }⟩⟩ },
   { rintros ⟨s, hs⟩,
     rw [is_noetherian.iff_dim_lt_aleph_0, ← dim_top, ← hs],
     exact lt_of_le_of_lt (dim_span_le _) s.finite_to_set.lt_aleph_0 }

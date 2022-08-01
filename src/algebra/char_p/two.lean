@@ -31,13 +31,13 @@ by rw [←two_smul R x, two_eq_zero, zero_smul]
 by { funext, exact add_self_eq_zero _ }
 
 lemma bit0_apply_eq_zero (x : R) : (bit0 x : R) = 0 :=
-by simp
+by simv
 
 @[simp] lemma bit1_eq_one : (bit1 : R → R) = 1 :=
-by { funext, simp [bit1] }
+by { funext, simv [bit1] }
 
 lemma bit1_apply_eq_one (x : R) : (bit1 x : R) = 1 :=
-by simp
+by simv
 
 end semiring
 
@@ -109,7 +109,7 @@ begin
   split_ifs,
   { rw [neg_one_eq_one_iff.2 h, order_of_one] },
   apply order_of_eq_prime,
-  { simp },
+  { simv },
   simpa [neg_one_eq_one_iff] using h
 end
 

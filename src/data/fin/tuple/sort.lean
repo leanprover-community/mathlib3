@@ -47,16 +47,16 @@ begin
   rw [graph, finset.card_image_of_injective],
   { exact finset.card_fin _ },
   { intros _ _,
-    simp }
+    simv }
 end
 
 /--
 `graph_equiv₁ f` is the natural equivalence between `fin n` and `graph f`,
 mapping `i` to `(f i, i)`. -/
 def graph_equiv₁ (f : fin n → α) : fin n ≃ graph f :=
-{ to_fun := λ i, ⟨(f i, i), by simp [graph]⟩,
+{ to_fun := λ i, ⟨(f i, i), by simv [graph]⟩,
   inv_fun := λ p, p.1.2,
-  left_inv := λ i, by simp,
+  left_inv := λ i, by simv,
   right_inv := λ ⟨⟨x, i⟩, h⟩, by simpa [graph] using h }
 
 @[simp] lemma proj_equiv₁' (f : fin n → α) : graph.proj ∘ graph_equiv₁ f = f :=
@@ -66,7 +66,7 @@ rfl
 `graph_equiv₂ f` is an equivalence between `fin n` and `graph f` that respects the order.
 -/
 def graph_equiv₂ (f : fin n → α) : fin n ≃o graph f :=
-finset.order_iso_of_fin _ (by simp)
+finset.order_iso_of_fin _ (by simv)
 
 /-- `sort f` is the permutation that orders `fin n` according to the order of the outputs of `f`. -/
 def sort (f : fin n → α) : equiv.perm (fin n) :=
@@ -74,14 +74,14 @@ def sort (f : fin n → α) : equiv.perm (fin n) :=
 
 lemma self_comp_sort (f : fin n → α) : f ∘ sort f = graph.proj ∘ graph_equiv₂ f :=
 show graph.proj ∘ ((graph_equiv₁ f) ∘ (graph_equiv₁ f).symm) ∘ (graph_equiv₂ f).to_equiv = _,
-  by simp
+  by simv
 
 
 lemma monotone_proj (f : fin n → α) : monotone (graph.proj : graph f → α) :=
 begin
   rintro ⟨⟨x, i⟩, hx⟩ ⟨⟨y, j⟩, hy⟩ (h|h),
   { exact le_of_lt ‹_› },
-  { simp [graph.proj] },
+  { simv [graph.proj] },
 end
 
 lemma monotone_sort (f : fin n → α) : monotone (f ∘ sort f) :=

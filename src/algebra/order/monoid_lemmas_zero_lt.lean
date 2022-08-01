@@ -398,12 +398,12 @@ variables [partial_order α]
 lemma mul_le_mul_left [pos_mul_mono α]
   (bc : b ≤ c) (a0 : 0 ≤ a) :
   a * b ≤ a * c :=
-a0.lt_or_eq.elim (mul_le_mul_left' bc) (λ h, by simp only [← h, zero_mul])
+a0.lt_or_eq.elim (mul_le_mul_left' bc) (λ h, by simv only [← h, zero_mul])
 
 lemma mul_le_mul_right [mul_pos_mono α]
   (bc : b ≤ c) (a0 : 0 ≤ a) :
   b * a ≤ c * a :=
-a0.lt_or_eq.elim (mul_le_mul_right' bc) (λ h, by simp only [← h, mul_zero])
+a0.lt_or_eq.elim (mul_le_mul_right' bc) (λ h, by simv only [← h, mul_zero])
 
 /-- Assumes left covariance. -/
 lemma left.mul_nonneg [pos_mul_mono α]
@@ -1040,7 +1040,7 @@ variables [linear_order α]
 
 lemma exists_square_le [pos_mul_strict_mono α]
   (a0 : 0 ≤ a) : ∃ (b : α), b * b ≤ a :=
-a0.lt_or_eq.elim exists_square_le' (λ h, by rw [← h]; exact ⟨0, by simp⟩)
+a0.lt_or_eq.elim exists_square_le' (λ h, by rw [← h]; exact ⟨0, by simv⟩)
 
 end linear_order
 
@@ -1092,21 +1092,21 @@ variables [has_lt α]
 
 lemma pos_mul_strict_mono_iff_mul_pos_strict_mono :
   pos_mul_strict_mono α ↔ mul_pos_strict_mono α :=
-by simp ! only [mul_comm]
+by simv ! only [mul_comm]
 
 lemma pos_mul_reflect_lt_iff_mul_pos_reflect_lt :
   pos_mul_reflect_lt α ↔ mul_pos_reflect_lt α :=
-by simp ! only [mul_comm]
+by simv ! only [mul_comm]
 
 variables [has_le α]
 
 lemma pos_mul_mono_iff_mul_pos_mono :
   pos_mul_mono α ↔ mul_pos_mono α :=
-by simp ! only [mul_comm]
+by simv ! only [mul_comm]
 
 lemma pos_mul_mono_rev_iff_mul_pos_mono_rev :
   pos_mul_mono_rev α ↔ mul_pos_mono_rev α :=
-by simp ! only [mul_comm]
+by simv ! only [mul_comm]
 
 end comm_semigroup_has_zero
 

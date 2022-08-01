@@ -61,14 +61,14 @@ continuous_on_iff_continuous_restrict.1 continuous_on_tan
 lemma continuous_on_tan_Ioo : continuous_on tan (Ioo (-(π/2)) (π/2)) :=
 begin
   refine continuous_on.mono continuous_on_tan (λ x, _),
-  simp only [and_imp, mem_Ioo, mem_set_of_eq, ne.def],
+  simv only [and_imp, mem_Ioo, mem_set_of_eq, ne.def],
   rw cos_eq_zero_iff,
   rintros hx_gt hx_lt ⟨r, hxr_eq⟩,
   cases le_or_lt 0 r,
   { rw lt_iff_not_ge at hx_lt,
     refine hx_lt _,
     rw [hxr_eq, ← one_mul (π / 2), mul_div_assoc, ge_iff_le, mul_le_mul_right (half_pos pi_pos)],
-    simp [h], },
+    simv [h], },
   { rw lt_iff_not_ge at hx_gt,
     refine hx_gt _,
     rw [hxr_eq, ← one_mul (π / 2), mul_div_assoc, ge_iff_le, neg_mul_eq_neg_mul,
@@ -82,7 +82,7 @@ end
 lemma surj_on_tan : surj_on tan (Ioo (-(π / 2)) (π / 2)) univ :=
 have _ := neg_lt_self pi_div_two_pos,
 continuous_on_tan_Ioo.surj_on_of_tendsto (nonempty_Ioo.2 this)
-  (by simp [tendsto_tan_neg_pi_div_two, this]) (by simp [tendsto_tan_pi_div_two, this])
+  (by simv [tendsto_tan_neg_pi_div_two, this]) (by simv [tendsto_tan_pi_div_two, this])
 
 lemma tan_surjective : function.surjective tan :=
 λ x, surj_on_tan.subset_range trivial
@@ -142,7 +142,7 @@ begin
 end
 
 @[simp] lemma arctan_zero : arctan 0 = 0 :=
-by simp [arctan_eq_arcsin]
+by simv [arctan_eq_arcsin]
 
 lemma arctan_eq_of_tan_eq {x y : ℝ} (h : tan x = y) (hx : x ∈ Ioo (-(π / 2)) (π / 2)) :
   arctan y = x :=
@@ -152,7 +152,7 @@ inj_on_tan (arctan_mem_Ioo _) hx (by rw [tan_arctan, h])
 arctan_eq_of_tan_eq tan_pi_div_four $ by split; linarith [pi_pos]
 
 @[simp] lemma arctan_neg (x : ℝ) : arctan (-x) = - arctan x :=
-by simp [arctan_eq_arcsin, neg_div]
+by simv [arctan_eq_arcsin, neg_div]
 
 @[continuity]
 lemma continuous_arctan : continuous arctan :=

@@ -9,7 +9,7 @@ begin
   guard_target y + y + y = 9,
   set! z : ℕ := y,
   guard_target y + y + y = 9,
-  simp [h]
+  simv [h]
 end
 
 example : true :=

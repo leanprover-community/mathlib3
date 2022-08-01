@@ -72,9 +72,9 @@ instance : mvqpf (comp F G) :=
   abs       := λ α, comp.mk ∘ map (λ i, abs) ∘ abs ∘ mvpfunctor.comp.get,
   repr      := λ α,  mvpfunctor.comp.mk ∘ repr ∘
                  map (λ i, (repr : G i α → (λ (i : fin2 n), obj (P (G i)) α) i)) ∘ comp.get,
-  abs_repr  := by { intros, simp [(∘), mvfunctor.map_map, (⊚), abs_repr] },
-  abs_map   := by { intros, simp [(∘)], rw [← abs_map],
-                    simp [mvfunctor.id_map, (⊚), map_mk, mvpfunctor.comp.get_map, abs_map,
+  abs_repr  := by { intros, simv [(∘), mvfunctor.map_map, (⊚), abs_repr] },
+  abs_map   := by { intros, simv [(∘)], rw [← abs_map],
+                    simv [mvfunctor.id_map, (⊚), map_mk, mvpfunctor.comp.get_map, abs_map,
                       mvfunctor.map_map, abs_repr] } }
 
 end comp

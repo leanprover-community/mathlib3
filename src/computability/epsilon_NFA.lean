@@ -72,7 +72,7 @@ list.foldl M.step_set (M.ε_closure start)
   M.eval_from S [a] = M.step_set (M.ε_closure S) a := rfl
 @[simp] lemma eval_from_append_singleton (S : set σ) (x : list α) (a : α) :
   M.eval_from S (x ++ [a]) = M.step_set (M.eval_from S x) a :=
-by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+by simv only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
 
 @[simp] lemma eval_from_empty (x : list α) : M.eval_from ∅ x = ∅ :=
 begin
@@ -148,9 +148,9 @@ begin
   rw [eval_from, ε_NFA.eval_from, to_ε_NFA_ε_closure],
   congr,
   ext S s,
-  simp only [step_set, ε_NFA.step_set, exists_prop, set.mem_Union, set.bind_def],
+  simv only [step_set, ε_NFA.step_set, exists_prop, set.mem_Union, set.bind_def],
   apply exists_congr,
-  simp only [and.congr_right_iff],
+  simv only [and.congr_right_iff],
   intros t ht,
   rw M.to_ε_NFA_ε_closure,
   refl

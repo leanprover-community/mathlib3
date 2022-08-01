@@ -48,7 +48,7 @@ def is_Gδ (s : set α) : Prop :=
 
 /-- An open set is a Gδ set. -/
 lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
-⟨{s}, by simp [h], countable_singleton _, (set.sInter_singleton _).symm⟩
+⟨{s}, by simv [h], countable_singleton _, (set.sInter_singleton _).symm⟩
 
 @[simp] lemma is_Gδ_empty : is_Gδ (∅ : set α) := is_open_empty.is_Gδ
 
@@ -101,8 +101,8 @@ end
 lemma is_Gδ_bUnion {s : set ι} (hs : s.finite) {f : ι → set α} (h : ∀ i ∈ s, is_Gδ (f i)) :
   is_Gδ (⋃ i ∈ s, f i) :=
 begin
-  refine finite.induction_on hs (by simp) _ h,
-  simp only [ball_insert_iff, bUnion_insert],
+  refine finite.induction_on hs (by simv) _ h,
+  simv only [ball_insert_iff, bUnion_insert],
   exact λ a s _ _ ihs H, H.1.union (ihs H.2)
 end
 
@@ -167,8 +167,8 @@ lemma is_Gδ_set_of_continuous_at [uniform_space β] [is_countably_generated (�
   is_Gδ {x | continuous_at f x} :=
 begin
   obtain ⟨U, hUo, hU⟩ := (@uniformity_has_basis_open_symmetric β _).exists_antitone_subbasis,
-  simp only [uniform.continuous_at_iff_prod, nhds_prod_eq],
-  simp only [(nhds_basis_opens _).prod_self.tendsto_iff hU.to_has_basis, forall_prop_of_true,
+  simv only [uniform.continuous_at_iff_prod, nhds_prod_eq],
+  simv only [(nhds_basis_opens _).prod_self.tendsto_iff hU.to_has_basis, forall_prop_of_true,
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,

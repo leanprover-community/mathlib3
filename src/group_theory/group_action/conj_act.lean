@@ -98,10 +98,10 @@ rfl
 
 instance units_mul_distrib_mul_action : mul_distrib_mul_action (conj_act Mˣ) M :=
 { smul := (•),
-  one_smul := by simp [units_smul_def],
-  mul_smul := by simp [units_smul_def, mul_assoc, mul_inv_rev],
-  smul_mul := by simp [units_smul_def, mul_assoc],
-  smul_one := by simp [units_smul_def], }
+  one_smul := by simv [units_smul_def],
+  mul_smul := by simv [units_smul_def, mul_assoc, mul_inv_rev],
+  smul_mul := by simv [units_smul_def, mul_assoc],
+  smul_one := by simv [units_smul_def], }
 
 end monoid
 
@@ -110,8 +110,8 @@ variables [semiring R]
 
 instance units_mul_semiring_action : mul_semiring_action (conj_act Rˣ) R :=
 { smul := (•),
-  smul_zero := by simp [units_smul_def],
-  smul_add := by simp [units_smul_def, mul_add, add_mul],
+  smul_zero := by simv [units_smul_def],
+  smul_add := by simv [units_smul_def, mul_add, add_mul],
   ..conj_act.units_mul_distrib_mul_action}
 
 end semiring
@@ -126,8 +126,8 @@ variable [group_with_zero G₀]
 
 instance mul_action₀ : mul_action (conj_act G₀) G₀ :=
 { smul := (•),
-  one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev] }
+  one_smul := by simv [smul_def],
+  mul_smul := by simv [smul_def, mul_assoc, mul_inv_rev] }
 
 end group_with_zero
 
@@ -136,8 +136,8 @@ variables [division_ring K]
 
 instance distrib_mul_action₀ : distrib_mul_action (conj_act K) K :=
 { smul := (•),
-  smul_zero := by simp [smul_def],
-  smul_add := by simp [smul_def, mul_add, add_mul],
+  smul_zero := by simv [smul_def],
+  smul_add := by simv [smul_def, mul_add, add_mul],
   ..conj_act.mul_action₀ }
 
 end division_ring
@@ -146,10 +146,10 @@ variables [group G]
 
 instance : mul_distrib_mul_action (conj_act G) G :=
 { smul := (•),
-  smul_mul := by simp [smul_def, mul_assoc],
-  smul_one := by simp [smul_def],
-  one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc] }
+  smul_mul := by simv [smul_def, mul_assoc],
+  smul_one := by simv [smul_def],
+  one_smul := by simv [smul_def],
+  mul_smul := by simv [smul_def, mul_assoc] }
 
 lemma smul_eq_mul_aut_conj (g : conj_act G) (h : G) : g • h = mul_aut.conj (of_conj_act g) h := rfl
 
@@ -157,7 +157,7 @@ lemma smul_eq_mul_aut_conj (g : conj_act G) (h : G) : g • h = mul_aut.conj (of
 lemma fixed_points_eq_center : fixed_points (conj_act G) G = center G :=
 begin
   ext x,
-  simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
+  simv [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
 
 /-- As normal subgroups are closed under conjugation, they inherit the conjugation action

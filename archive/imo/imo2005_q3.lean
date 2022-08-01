@@ -39,7 +39,7 @@ begin
   calc  (x^5-x^2)/(x^5+y^2+z^2)
       ≥ (x^5-x^2)/(x^3*(x^2+y^2+z^2)) : by linarith [key, h₅]
   ... ≥ (x^5-x^2*(x*y*z))/(x^3*(x^2+y^2+z^2)) :
-        by { refine (div_le_div_right h₄).mpr _, simp,
+        by { refine (div_le_div_right h₄).mpr _, simv,
              exact (le_mul_iff_one_le_right (pow_pos hx 2)).mpr h }
   ... = (x^2-y*z)/(x^2+y^2+z^2) :
         by { field_simp [h₂.ne', h₃.ne'], ring },

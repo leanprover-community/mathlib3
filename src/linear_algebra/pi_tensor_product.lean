@@ -169,15 +169,15 @@ def lift_add_hom (φ : (R × Π i, s i) → F)
 (add_con_gen (pi_tensor_product.eqv R s)).lift (free_add_monoid.lift φ) $ add_con.add_con_gen_le $
 λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero r' f i hf)        := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C0 r' f i hf]
+    by simv [free_add_monoid.lift_eval_of, C0 r' f i hf]
 | _, _, (eqv.of_zero_scalar f)        := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C0']
+    by simv [free_add_monoid.lift_eval_of, C0']
 | _, _, (eqv.of_add z f i m₁ m₂)      := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C_add]
+    by simv [free_add_monoid.lift_eval_of, C_add]
 | _, _, (eqv.of_add_scalar z₁ z₂ f)      := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C_add_scalar]
+    by simv [free_add_monoid.lift_eval_of, C_add_scalar]
 | _, _, (eqv.of_smul z f i r')     := (add_con.ker_rel _).2 $
-    by simp [free_add_monoid.lift_eval_of, C_smul]
+    by simv [free_add_monoid.lift_eval_of, C_smul]
 | _, _, (eqv.add_comm x y)         := (add_con.ker_rel _).2 $
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end
@@ -196,7 +196,7 @@ begin
   simp_rw add_con.coe_add,
   refine λ f y ih, Cp _ ih,
   convert @C1 f.1 f.2,
-  simp only [prod.mk.eta],
+  simv only [prod.mk.eta],
 end
 
 section distrib_mul_action
@@ -208,10 +208,10 @@ variables [monoid R₂] [distrib_mul_action R₂ R] [smul_comm_class R₂ R R]
 instance has_smul' : has_smul R₁ (⨂[R] i, s i) :=
 ⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r • f.1) f.2)
   (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
-  (λ f, by simp [zero_tprod_coeff])
-  (λ r' f i m₁ m₂, by simp [add_tprod_coeff])
-  (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
-  (λ z f i r', by simp [smul_tprod_coeff, mul_smul_comm])⟩
+  (λ f, by simv [zero_tprod_coeff])
+  (λ r' f i m₁ m₂, by simv [add_tprod_coeff])
+  (λ r' r'' f, by simv [add_tprod_coeff', mul_add])
+  (λ z f i r', by simv [smul_tprod_coeff, mul_smul_comm])⟩
 
 instance : has_smul R (⨂[R] i, s i) := pi_tensor_product.has_smul'
 
@@ -226,22 +226,22 @@ instance distrib_mul_action' : distrib_mul_action R₁ (⨂[R] i, s i) :=
 { smul := (•),
   smul_add := λ r x y, add_monoid_hom.map_add _ _ _,
   mul_smul := λ r r' x, pi_tensor_product.induction_on' x
-    (λ r'' f, by simp [smul_tprod_coeff', smul_smul])
+    (λ r'' f, by simv [smul_tprod_coeff', smul_smul])
     (λ x y ihx ihy, by simp_rw [pi_tensor_product.smul_add, ihx, ihy]),
   one_smul := λ x, pi_tensor_product.induction_on' x
-    (λ f, by simp [smul_tprod_coeff' _ _])
+    (λ f, by simv [smul_tprod_coeff' _ _])
     (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy]),
   smul_zero := λ r, add_monoid_hom.map_zero _ }
 
 instance smul_comm_class' [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
-  (λ xr xf, by simp only [smul_tprod_coeff', smul_comm])
+  (λ xr xf, by simv only [smul_tprod_coeff', smul_comm])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
 
 instance is_scalar_tower' [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ R] :
   is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
-  (λ xr xf, by simp only [smul_tprod_coeff', smul_assoc])
+  (λ xr xf, by simv only [smul_tprod_coeff', smul_assoc])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
 
 end distrib_mul_action
@@ -251,8 +251,8 @@ end distrib_mul_action
 instance module' [semiring R₁] [module R₁ R] [smul_comm_class R₁ R R] : module R₁ (⨂[R] i, s i) :=
 { smul := (•),
   add_smul := λ r r' x, pi_tensor_product.induction_on' x
-    (λ r f, by simp [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'])
-    (λ x y ihx ihy, by simp [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm]),
+    (λ r f, by simv [smul_tprod_coeff' _ _, add_smul, add_tprod_coeff'])
+    (λ x y ihx ihy, by simv [pi_tensor_product.smul_add, ihx, ihy, add_add_add_comm]),
   zero_smul := λ x, pi_tensor_product.induction_on' x
     (λ r f, by { simp_rw [smul_tprod_coeff' _ _, zero_smul], exact zero_tprod_coeff _ })
     (λ x y ihx ihy, by rw [pi_tensor_product.smul_add, ihx, ihy, add_zero]),
@@ -280,7 +280,7 @@ notation `⨂ₜ[`:100 R`] ` binders `, ` r:(scoped:67 f, tprod R f) := r
 @[simp]
 lemma tprod_coeff_eq_smul_tprod (z : R) (f : Π i, s i) : tprod_coeff R z f = z • tprod R f :=
 begin
-  have : z = z • (1 : R) := by simp only [mul_one, algebra.id.smul_eq_mul],
+  have : z = z • (1 : R) := by simv only [mul_one, algebra.id.smul_eq_mul],
   conv_lhs { rw this },
   rw ←smul_tprod_coeff',
   refl,
@@ -325,15 +325,15 @@ def lift_aux (φ : multilinear_map R s E) : (⨂[R] i, s i) →+ E :=
     (λ f, by rw [zero_smul])
     (λ z f i m₁ m₂, by rw [←smul_add, φ.map_add])
     (λ z₁ z₂ f, by rw [←add_smul])
-    (λ z f i r, by simp [φ.map_smul, smul_smul, mul_comm])
+    (λ z f i r, by simv [φ.map_smul, smul_smul, mul_comm])
 
 lemma lift_aux_tprod (φ : multilinear_map R s E) (f : Π i, s i) : lift_aux φ (tprod R f) = φ f :=
-by simp only [lift_aux, lift_add_hom, tprod, multilinear_map.coe_mk, tprod_coeff,
+by simv only [lift_aux, lift_add_hom, tprod, multilinear_map.coe_mk, tprod_coeff,
               free_add_monoid.lift_eval_of, one_smul, add_con.lift_mk']
 
 lemma lift_aux_tprod_coeff (φ : multilinear_map R s E) (z : R) (f : Π i, s i) :
   lift_aux φ (tprod_coeff R z f) = z • φ f :=
-by simp [lift_aux, lift_add_hom, tprod_coeff, free_add_monoid.lift_eval_of]
+by simv [lift_aux, lift_add_hom, tprod_coeff, free_add_monoid.lift_eval_of]
 
 lemma lift_aux.smul {φ : multilinear_map R s E} (r : R) (x : ⨂[R] i, s i) :
   lift_aux φ (r • x) = r • lift_aux φ x :=
@@ -351,10 +351,10 @@ the given multilinear map `φ`. -/
 def lift : (multilinear_map R s E) ≃ₗ[R] ((⨂[R] i, s i) →ₗ[R] E) :=
 { to_fun := λ φ, { map_smul' := lift_aux.smul, .. lift_aux φ },
   inv_fun := λ φ', φ'.comp_multilinear_map (tprod R),
-  left_inv := λ φ, by { ext, simp [lift_aux_tprod, linear_map.comp_multilinear_map] },
-  right_inv := λ φ, by { ext, simp [lift_aux_tprod] },
-  map_add' := λ φ₁ φ₂, by { ext, simp [lift_aux_tprod] },
-  map_smul' := λ r φ₂, by { ext, simp [lift_aux_tprod] } }
+  left_inv := λ φ, by { ext, simv [lift_aux_tprod, linear_map.comp_multilinear_map] },
+  right_inv := λ φ, by { ext, simv [lift_aux_tprod] },
+  map_add' := λ φ₁ φ₂, by { ext, simv [lift_aux_tprod] },
+  map_smul' := λ r φ₂, by { ext, simv [lift_aux_tprod] } }
 
 variables {φ : multilinear_map R s E}
 
@@ -386,10 +386,10 @@ def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M 
 linear_equiv.of_linear
   (lift (dom_dom_congr e.symm (tprod R : multilinear_map R _ (⨂[R] i : ι₂, M))))
   (lift (dom_dom_congr e (tprod R : multilinear_map R _ (⨂[R] i : ι, M))))
-  (by { ext, simp only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
+  (by { ext, simv only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
                         linear_map.comp_multilinear_map_apply, lift.tprod,
                         dom_dom_congr_apply, equiv.apply_symm_apply] })
-  (by { ext, simp only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
+  (by { ext, simv only [linear_map.comp_apply, linear_map.id_apply, lift_tprod,
                         linear_map.comp_multilinear_map_apply, lift.tprod,
                         dom_dom_congr_apply, equiv.symm_apply_apply] })
 
@@ -406,7 +406,7 @@ multilinear_map.ext $ reindex_tprod e
 
 @[simp] lemma lift_comp_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _ : ι₂, M) E) :
   (lift φ) ∘ₗ ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
-by { ext, simp, }
+by { ext, simv, }
 
 @[simp]
 lemma lift_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _, M) E) (x : ⨂[R] i, M) :
@@ -418,7 +418,7 @@ linear_map.congr_fun (lift_comp_reindex e φ) x
 begin
   apply linear_equiv.to_linear_map_injective,
   ext f,
-  simp only [linear_equiv.trans_apply, linear_equiv.coe_coe, reindex_tprod,
+  simv only [linear_equiv.trans_apply, linear_equiv.coe_coe, reindex_tprod,
     linear_map.coe_comp_multilinear_map, function.comp_app, multilinear_map.dom_dom_congr_apply,
     reindex_comp_tprod],
   congr,
@@ -450,11 +450,11 @@ def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
   { apply x.induction_on,
     { intros r f,
       have := subsingleton.elim f is_empty_elim,
-      simp [this], },
-    { simp only,
+      simv [this], },
+    { simv only,
       intros x y hx hy,
-      simp [add_smul, hx, hy] }},
-  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, const_of_is_empty_apply,
+      simv [add_smul, hx, hy] }},
+  right_inv := λ t, by simv only [mul_one, algebra.id.smul_eq_mul, const_of_is_empty_apply,
     linear_map.map_smul, pi_tensor_product.lift.tprod],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
@@ -478,12 +478,12 @@ def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R
       rw [subsingleton.elim i i₀, function.update_same] },
     apply x.induction_on,
     { intros r f,
-      simp only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
+      simv only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
                  this f, multilinear_map.map_smul, update_eq_self], },
     { intros x y hx hy,
-      simp only [multilinear_map.map_add, this 0 (_ + _), linear_map.map_add, ←this 0 (lift _ _),
+      simv only [multilinear_map.map_add, this 0 (_ + _), linear_map.map_add, ←this 0 (lift _ _),
         hx, hy] } },
-  right_inv := λ t, by simp only [of_subsingleton_apply, lift.tprod, function.eval_apply],
+  right_inv := λ t, by simv only [of_subsingleton_apply, lift.tprod, function.eval_apply],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
 
@@ -499,8 +499,8 @@ private def tmul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂
 tensor_product.lift
   { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
       (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
-    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
-    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul,
+    map_add' := λ a b, by simv only [linear_equiv.map_add, linear_map.map_add],
+    map_smul' := λ r a, by simv only [linear_equiv.map_smul, linear_map.map_smul,
                                       ring_hom.id_apply], }
 
 private lemma tmul_apply (a : ι → M) (b : ι₂ → M) :
@@ -530,11 +530,11 @@ For simplicity, this is defined only for homogeneously- (rather than dependently
 def tmul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
 linear_equiv.of_linear tmul tmul_symm
   (by { ext x,
-        show tmul (tmul_symm (tprod R x)) = tprod R x, -- Speed up the call to `simp`.
-        simp only [tmul_symm_apply, tmul_apply, sum.elim_comp_inl_inr], })
+        show tmul (tmul_symm (tprod R x)) = tprod R x, -- Speed up the call to `simv`.
+        simv only [tmul_symm_apply, tmul_apply, sum.elim_comp_inl_inr], })
   (by { ext x y,
         show tmul_symm (tmul (tprod R x ⊗ₜ[R] tprod R y)) = tprod R x ⊗ₜ[R] tprod R y,
-        simp only [tmul_apply, tmul_symm_apply, sum.elim_inl, sum.elim_inr], })
+        simv only [tmul_apply, tmul_symm_apply, sum.elim_inl, sum.elim_inr], })
 
 @[simp] lemma tmul_equiv_apply (a : ι → M) (b : ι₂ → M) :
   tmul_equiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=

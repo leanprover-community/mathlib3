@@ -65,13 +65,13 @@ lemma is_bounded_under_of {f : filter β} {u : β → α} :
 | ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall hb⟩
 
 lemma is_bounded_bot : is_bounded r ⊥ ↔ nonempty α :=
-by simp [is_bounded, exists_true_iff_nonempty]
+by simv [is_bounded, exists_true_iff_nonempty]
 
 lemma is_bounded_top : is_bounded r ⊤ ↔ (∃t, ∀x, r x t) :=
-by simp [is_bounded, eq_univ_iff_forall]
+by simv [is_bounded, eq_univ_iff_forall]
 
 lemma is_bounded_principal (s : set α) : is_bounded r (𝓟 s) ↔ (∃t, ∀x∈s, r x t) :=
-by simp [is_bounded, subset_def]
+by simv [is_bounded, subset_def]
 
 lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b₂ b) :
   is_bounded r f → is_bounded r g → is_bounded r (f ⊔ g)
@@ -177,14 +177,14 @@ lemma is_bounded.is_cobounded_le [preorder α] [ne_bot f] (h : f.is_bounded (≥
 h.is_cobounded_flip
 
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
-by simp [is_cobounded]
+by simv [is_cobounded]
 
 lemma is_cobounded_top : is_cobounded r ⊤ ↔ nonempty α :=
-by simp [is_cobounded, eq_univ_iff_forall, exists_true_iff_nonempty] {contextual := tt}
+by simv [is_cobounded, eq_univ_iff_forall, exists_true_iff_nonempty] {contextual := tt}
 
 lemma is_cobounded_principal (s : set α) :
   (𝓟 s).is_cobounded r ↔ (∃b, ∀a, (∀x∈s, r x a) → r b a) :=
-by simp [is_cobounded, subset_def]
+by simv [is_cobounded, subset_def]
 
 lemma is_cobounded.mono (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
 | ⟨b, hb⟩ := ⟨b, assume a ha, hb a (h ha)⟩
@@ -206,19 +206,19 @@ lemma is_bounded_ge_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_b
 @[simp] lemma _root_.order_iso.is_bounded_under_le_comp [preorder α] [preorder β] (e : α ≃o β)
   {l : filter γ} {u : γ → α} :
   is_bounded_under (≤) l (λ x, e (u x)) ↔ is_bounded_under (≤) l u :=
-e.surjective.exists.trans $ exists_congr $ λ a, by simp only [eventually_map, e.le_iff_le]
+e.surjective.exists.trans $ exists_congr $ λ a, by simv only [eventually_map, e.le_iff_le]
 
 @[simp] lemma _root_.order_iso.is_bounded_under_ge_comp [preorder α] [preorder β] (e : α ≃o β)
   {l : filter γ} {u : γ → α} :
   is_bounded_under (≥) l (λ x, e (u x)) ↔ is_bounded_under (≥) l u :=
 e.dual.is_bounded_under_le_comp
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_bounded_under_le_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
   is_bounded_under (≤) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≥) l u :=
 (order_iso.inv α).is_bounded_under_ge_comp
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_bounded_under_ge_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
   is_bounded_under (≥) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≤) l u :=
 (order_iso.inv α).is_bounded_under_le_comp
@@ -354,7 +354,7 @@ Liminf_le_Liminf_of_le (map_mono h) hf hg
 
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   (𝓟 s).Limsup = Sup s :=
-by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
+by simv [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
 
 theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   (𝓟 s).Liminf = Inf s :=
@@ -365,7 +365,7 @@ lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter 
 begin
   rw limsup_eq,
   congr' with b,
-  exact eventually_congr (h.mono $ λ x hx, by simp [hx])
+  exact eventually_congr (h.mono $ λ x hx, by simv [hx])
 end
 
 lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
@@ -392,18 +392,18 @@ section complete_lattice
 variables [complete_lattice α]
 
 @[simp] theorem Limsup_bot : (⊥ : filter α).Limsup = ⊥ :=
-bot_unique $ Inf_le $ by simp
+bot_unique $ Inf_le $ by simv
 
 @[simp] theorem Liminf_bot : (⊥ : filter α).Liminf = ⊤ :=
-top_unique $ le_Sup $ by simp
+top_unique $ le_Sup $ by simv
 
 @[simp] theorem Limsup_top : (⊤ : filter α).Limsup = ⊤ :=
 top_unique $ le_Inf $
-  by simp [eq_univ_iff_forall]; exact assume b hb, (top_unique $ hb _)
+  by simv [eq_univ_iff_forall]; exact assume b hb, (top_unique $ hb _)
 
 @[simp] theorem Liminf_top : (⊤ : filter α).Liminf = ⊥ :=
 bot_unique $ Sup_le $
-  by simp [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
+  by simv [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
 
 /-- Same as limsup_const applied to `⊥` but without the `ne_bot f` assumption -/
 lemma limsup_const_bot {f : filter β} : limsup f (λ x : β, (⊥ : α)) = (⊥ : α) :=
@@ -437,18 +437,18 @@ theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
 of the supremum of the function over `s` -/
 theorem limsup_eq_infi_supr {f : filter β} {u : β → α} : f.limsup u = ⨅ s ∈ f, ⨆ a ∈ s, u a :=
 (f.basis_sets.map u).Limsup_eq_infi_Sup.trans $
-  by simp only [Sup_image, id]
+  by simv only [Sup_image, id]
 
 lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅ n : ℕ, ⨆ i ≥ n, u i :=
 (at_top_basis.map u).Limsup_eq_infi_Sup.trans $
-  by simp only [Sup_image, infi_const]; refl
+  by simv only [Sup_image, infi_const]; refl
 
 lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅ n : ℕ, ⨆ i : ℕ, u (i + n) :=
-by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
+by simv only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
 
 theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
   (h : f.has_basis p s) : f.limsup u = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
-(h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
+(h.map u).Limsup_eq_infi_Sup.trans $ by simv only [Sup_image, id]
 
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
@@ -518,7 +518,7 @@ lemma frequently_lt_of_lt_Limsup {f : filter α} [conditionally_complete_linear_
   (hf : f.is_cobounded (≤) . is_bounded_default) (h : a < f.Limsup) : ∃ᶠ n in f, a < n :=
 begin
   contrapose! h,
-  simp only [not_frequently, not_lt] at h,
+  simv only [not_frequently, not_lt] at h,
   exact Limsup_le_of_le hf h,
 end
 

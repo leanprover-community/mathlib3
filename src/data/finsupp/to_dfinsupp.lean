@@ -76,12 +76,12 @@ variables [decidable_eq ι] [has_zero M]
 
 @[simp] lemma finsupp.to_dfinsupp_single (i : ι) (m : M) :
   (finsupp.single i m).to_dfinsupp = dfinsupp.single i m :=
-by { ext, simp [finsupp.single_apply, dfinsupp.single_apply] }
+by { ext, simv [finsupp.single_apply, dfinsupp.single_apply] }
 
 variables [Π m : M, decidable (m ≠ 0)]
 
 @[simp] lemma to_dfinsupp_support (f : ι →₀ M) : f.to_dfinsupp.support = f.support :=
-by { ext, simp, }
+by { ext, simv, }
 
 /-- Interpret a homogenous `dfinsupp` as a `finsupp`.
 
@@ -89,15 +89,15 @@ Note that the elaborator has a lot of trouble with this definition - it is often
 write `(dfinsupp.to_finsupp f : ι →₀ M)` instead of `f.to_finsupp`, as for some unknown reason
 using dot notation or omitting the type ascription prevents the type being resolved correctly. -/
 def dfinsupp.to_finsupp (f : Π₀ i : ι, M) : ι →₀ M :=
-⟨f.support, f, λ i, by simp only [dfinsupp.mem_support_iff]⟩
+⟨f.support, f, λ i, by simv only [dfinsupp.mem_support_iff]⟩
 
 @[simp] lemma dfinsupp.to_finsupp_coe (f : Π₀ i : ι, M) : ⇑f.to_finsupp = f := rfl
 @[simp] lemma dfinsupp.to_finsupp_support (f : Π₀ i : ι, M) : f.to_finsupp.support = f.support :=
-by { ext, simp, }
+by { ext, simv, }
 
 @[simp] lemma dfinsupp.to_finsupp_single (i : ι) (m : M) :
   (dfinsupp.single i m : Π₀ i : ι, M).to_finsupp = finsupp.single i m :=
-by { ext, simp [finsupp.single_apply, dfinsupp.single_apply] }
+by { ext, simv [finsupp.single_apply, dfinsupp.single_apply] }
 
 @[simp] lemma finsupp.to_dfinsupp_to_finsupp (f : ι →₀ M) : f.to_dfinsupp.to_finsupp = f :=
 finsupp.coe_fn_injective rfl
@@ -215,13 +215,13 @@ def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π�
   begin
     refine on_finset (finset.sigma f.support (λ j, (f j).support)) (λ ji, f ji.1 ji.2)
       (λ g hg, finset.mem_sigma.mpr ⟨_, mem_support_iff.mpr hg⟩),
-    simp only [ne.def, dfinsupp.mem_support_to_fun],
+    simv only [ne.def, dfinsupp.mem_support_to_fun],
     intro h,
     rw h at hg,
     simpa using hg
   end,
-  left_inv := λ f, by { ext, simp [split] },
-  right_inv := λ f, by { ext, simp [split] } }
+  left_inv := λ f, by { ext, simv [split] },
+  right_inv := λ f, by { ext, simv [split] } }
 
 @[simp]
 lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : (Σ i, η i) →₀ N) :
@@ -248,10 +248,10 @@ begin
   ext j b,
   by_cases h : i = j,
   { subst h,
-    simp [split_apply, finsupp.single_apply] },
+    simv [split_apply, finsupp.single_apply] },
   suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
-  { simp [split_apply, dif_neg h, this] },
-  have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  { simv [split_apply, dif_neg h, this] },
+  have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simv [h],
   rw [finsupp.single_apply, if_neg H]
 end
 

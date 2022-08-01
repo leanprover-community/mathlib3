@@ -28,7 +28,7 @@ open nat_trans category category_theory.functor
 
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
-local attribute [simp] vcomp_app
+local attribute [simv] vcomp_app
 /--
 `functor.category C D` gives the category structure on functors and natural transformations
 between categories `C` and `D`.
@@ -86,9 +86,9 @@ lemma epi_app_of_epi (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
 infix ` ◫ `:80 := hcomp
 
 @[simp] lemma hcomp_id_app {H : D ⥤ E} (α : F ⟶ G) (X : C) : (α ◫ 𝟙 H).app X = H.map (α.app X) :=
-  by {dsimp, simp} -- See note [dsimp, simp].
+  by {dsimp, simv} -- See note [dsimp, simv].
 
-lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X = α.app _ := by simp
+lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X = α.app _ := by simv
 
 -- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
 -- need to use associativity of functor composition. (It's true without the explicit associator,
@@ -97,7 +97,7 @@ lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X 
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=
-by ext; simp
+by ext; simv
 
 end nat_trans
 open nat_trans
@@ -115,12 +115,12 @@ namespace functor
 
 end functor
 
-@[simp, reassoc] lemma map_hom_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+@[simv, reassoc] lemma map_hom_inv_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
   (F.map e.hom).app Z ≫ (F.map e.inv).app Z = 𝟙 _ :=
-by simp [← nat_trans.comp_app, ← functor.map_comp]
+by simv [← nat_trans.comp_app, ← functor.map_comp]
 
-@[simp, reassoc] lemma map_inv_hom_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
+@[simv, reassoc] lemma map_inv_hom_app (F : C ⥤ D ⥤ E) {X Y : C} (e : X ≅ Y) (Z : D) :
   (F.map e.inv).app Z ≫ (F.map e.hom).app Z = 𝟙 _ :=
-by simp [← nat_trans.comp_app, ← functor.map_comp]
+by simv [← nat_trans.comp_app, ← functor.map_comp]
 
 end category_theory

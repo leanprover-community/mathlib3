@@ -63,7 +63,7 @@ add_decl_doc AddMagma.of
 /-- Typecheck a `add_hom` as a morphism in `AddMagma`. -/
 add_decl_doc AddMagma.of_hom
 
-@[simp, to_additive] lemma of_hom_apply {X Y : Type u} [has_mul X] [has_mul Y] (f : X →ₙ* Y)
+@[simv, to_additive] lemma of_hom_apply {X Y : Type u} [has_mul X] [has_mul Y] (f : X →ₙ* Y)
   (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
@@ -72,7 +72,7 @@ instance : inhabited Magma := ⟨Magma.of pempty⟩
 @[to_additive]
 instance (M : Magma) : has_mul M := M.str
 
-@[simp, to_additive] lemma coe_of (R : Type u) [has_mul R] : (Magma.of R : Type u) = R := rfl
+@[simv, to_additive] lemma coe_of (R : Type u) [has_mul R] : (Magma.of R : Type u) = R := rfl
 
 end Magma
 
@@ -107,7 +107,7 @@ add_decl_doc AddSemigroup.of
 /-- Typecheck a `add_hom` as a morphism in `AddSemigroup`. -/
 add_decl_doc AddSemigroup.of_hom
 
-@[simp, to_additive] lemma of_hom_apply {X Y : Type u} [semigroup X] [semigroup Y] (f : X →ₙ* Y)
+@[simv, to_additive] lemma of_hom_apply {X Y : Type u} [semigroup X] [semigroup Y] (f : X →ₙ* Y)
   (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
@@ -116,7 +116,7 @@ instance : inhabited Semigroup := ⟨Semigroup.of pempty⟩
 @[to_additive]
 instance (M : Semigroup) : semigroup M := M.str
 
-@[simp, to_additive] lemma coe_of (R : Type u) [semigroup R] : (Semigroup.of R : Type u) = R := rfl
+@[simv, to_additive] lemma coe_of (R : Type u) [semigroup R] : (Semigroup.of R : Type u) = R := rfl
 
 @[to_additive has_forget_to_AddMagma]
 instance has_forget_to_Magma : has_forget₂ Semigroup Magma := bundled_hom.forget₂ _ _
@@ -157,9 +157,9 @@ namespace category_theory.iso
 def Magma_iso_to_mul_equiv {X Y : Magma} (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
   inv_fun := i.inv,
-  left_inv := λ x, by simp,
-  right_inv := λ y, by simp,
-  map_mul' := by simp }
+  left_inv := λ x, by simv,
+  right_inv := λ y, by simv,
+  map_mul' := by simv }
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Semigroup`. -/
 @[to_additive "Build an `add_equiv` from an isomorphism in the category
@@ -167,9 +167,9 @@ def Magma_iso_to_mul_equiv {X Y : Magma} (i : X ≅ Y) : X ≃* Y :=
 def Semigroup_iso_to_mul_equiv {X Y : Semigroup} (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
   inv_fun := i.inv,
-  left_inv := λ x, by simp,
-  right_inv := λ y, by simp,
-  map_mul' := by simp }
+  left_inv := λ x, by simv,
+  right_inv := λ y, by simv,
+  map_mul' := by simv }
 
 end category_theory.iso
 

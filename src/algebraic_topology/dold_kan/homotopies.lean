@@ -107,14 +107,14 @@ def hσ' (q : ℕ) : Π n m, c.rel m n → (K[X].X n ⟶ K[X].X m) :=
 
 lemma hσ'_eq_zero {q n m : ℕ} (hnq : n<q) (hnm : c.rel m n) :
   (hσ' q n m hnm : X _[n] ⟶ X _[m])= 0 :=
-by { simp only [hσ', hσ], split_ifs, exact zero_comp, }
+by { simv only [hσ', hσ], split_ifs, exact zero_comp, }
 
 lemma hσ'_eq {q n a m : ℕ} (ha : n=a+q) (hnm : c.rel m n) :
   (hσ' q n m hnm : X _[n] ⟶ X _[m]) =
   ((-1 : ℤ)^a • X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (eq.symm ha))⟩) ≫
       eq_to_hom (by congr') :=
 begin
-  simp only [hσ', hσ],
+  simv only [hσ', hσ],
   split_ifs,
   { exfalso, linarith, },
   { have h' := tsub_eq_of_eq_add ha,
@@ -135,9 +135,9 @@ begin
   rw null_homotopic_map'_f_of_not_rel_left (c_mk 1 0 rfl) cs_down_0_not_rel_left,
   cases q,
   { rw hσ'_eq (show 0=0+0, by refl) (c_mk 1 0 rfl),
-    simp only [pow_zero, fin.mk_zero, one_zsmul, eq_to_hom_refl, category.comp_id],
+    simv only [pow_zero, fin.mk_zero, one_zsmul, eq_to_hom_refl, category.comp_id],
     erw chain_complex.of_d,
-    simp only [alternating_face_map_complex.obj_d, fin.sum_univ_two,
+    simv only [alternating_face_map_complex.obj_d, fin.sum_univ_two,
       fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one, comp_add,
       neg_smul, one_zsmul, comp_neg, add_neg_eq_zero],
     erw [δ_comp_σ_self, δ_comp_σ_succ], },
@@ -151,11 +151,11 @@ lemma hσ'_naturality (q : ℕ) (n m : ℕ) (hnm : c.rel m n)
 begin
   have h : n+1 = m := hnm,
   subst h,
-  simp only [hσ', eq_to_hom_refl, comp_id],
+  simv only [hσ', eq_to_hom_refl, comp_id],
   unfold hσ,
   split_ifs,
   { rw [zero_comp, comp_zero], },
-  { simp only [zsmul_comp, comp_zsmul],
+  { simv only [zsmul_comp, comp_zsmul],
     erw f.naturality,
     refl, },
 end
@@ -169,7 +169,7 @@ def nat_trans_Hσ (q : ℕ) :
     rw [null_homotopic_map'_comp, comp_null_homotopic_map'],
     congr,
     ext n m hnm,
-    simp only [alternating_face_map_complex_map_f, hσ'_naturality],
+    simv only [alternating_face_map_complex_map_f, hσ'_naturality],
   end, }
 
 /-- The maps `hσ' q n m hnm` are compatible with the application of additive functors. -/
@@ -181,7 +181,7 @@ lemma map_hσ' {D : Type*} [category D] [preadditive D]
 begin
   unfold hσ' hσ,
   split_ifs,
-  { simp only [functor.map_zero, zero_comp], },
+  { simv only [functor.map_zero, zero_comp], },
   { simpa only [eq_to_hom_map, functor.map_comp, functor.map_zsmul], },
 end
 
@@ -193,7 +193,7 @@ lemma map_Hσ {D : Type*} [category D] [preadditive D]
 begin
   unfold Hσ,
   have eq := homological_complex.congr_hom (map_null_homotopic_map' G (hσ' q)) n,
-  simp only [functor.map_homological_complex_map_f, ← map_hσ'] at eq,
+  simv only [functor.map_homological_complex_map_f, ← map_hσ'] at eq,
   rw eq,
   let h := (functor.congr_obj (map_alternating_face_map_complex G) X).symm,
   congr',

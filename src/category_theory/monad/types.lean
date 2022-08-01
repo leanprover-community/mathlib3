@@ -50,7 +50,7 @@ def eq : Kleisli m ≌ kleisli (of_type_monad m) :=
       unfold_projs,
       ext,
       dsimp,
-      simp [mjoin, seq_bind_eq],
+      simv [mjoin, seq_bind_eq],
     end },
   inverse :=
   { obj := λ X, X,
@@ -61,13 +61,13 @@ def eq : Kleisli m ≌ kleisli (of_type_monad m) :=
       unfold_projs,
       ext,
       dsimp,
-      simp [mjoin, seq_bind_eq],
+      simv [mjoin, seq_bind_eq],
     end },
   unit_iso :=
   begin
     refine nat_iso.of_components (λ X, iso.refl X) (λ X Y f, _),
     change f >=> pure = pure >=> f,
-    simp with functor_norm,
+    simv with functor_norm,
   end,
   counit_iso := nat_iso.of_components (λ X, iso.refl X) (λ X Y f, by tidy) }
 

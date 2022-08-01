@@ -301,7 +301,7 @@ performing at most `max_depth` recursive steps.
 By default, the assumptions passed to `apply` are the local context, `rfl`, `trivial`,
 `congr_fun` and `congr_arg`.
 
-The assumptions can be modified with similar syntax as for `simp`:
+The assumptions can be modified with similar syntax as for `simv`:
 * `solve_by_elim [h₁, h₂, ..., hᵣ]` also applies the named lemmas.
 * `solve_by_elim with attr₁ ... attrᵣ` also applies all lemmas tagged with the specified attributes.
 * `solve_by_elim only [h₁, h₂, ..., hᵣ]` does not include the local context,

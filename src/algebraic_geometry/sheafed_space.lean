@@ -76,7 +76,7 @@ SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
 variables {C}
 
 section
-local attribute [simp] id comp
+local attribute [simv] id comp
 
 @[simp] lemma id_base (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl
@@ -86,7 +86,7 @@ lemma id_c (X : SheafedSpace C) :
 
 @[simp] lemma id_c_app (X : SheafedSpace C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { induction U using opposite.rec, cases U, refl }) :=
-by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
+by { induction U using opposite.rec, cases U, simv only [id_c], dsimp, simv, }
 
 @[simp] lemma comp_base {X Y Z : SheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl

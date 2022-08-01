@@ -82,10 +82,10 @@ begin
     obtain ⟨u_in, v_in⟩ : u ∈ closure s ∧ v ∈ closure s,
       by simpa [closure_prod_eq] using closure_mono this uv_in,
     apply continuous_within_at.mono _ this,
-    simp only [continuous_within_at] },
+    simv only [continuous_within_at] },
   rw nhds_within_prod_eq,
   { have : ∀ u v, f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by { intros, abel },
-    simp only [this],
+    simv only [this],
     exact tendsto.comp continuous_norm.continuous_at
       ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $
         tendsto.comp (f_cont' u u_in) tendsto_fst) },
@@ -122,7 +122,7 @@ begin
     { have : y ∈ s := sab ⟨lt_of_le_of_ne hy.1 (ne.symm h), hy.2⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp only [deriv_fderiv.symm],
+  { simv only [deriv_fderiv.symm],
     exact tendsto.comp
       (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
         .continuous_right.continuous_at
@@ -161,7 +161,7 @@ begin
     { have : y ∈ s := sab ⟨hy.1, lt_of_le_of_ne hy.2 h⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp only [deriv_fderiv.symm],
+  { simv only [deriv_fderiv.symm],
     exact tendsto.comp
       (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
         .continuous_right.continuous_at

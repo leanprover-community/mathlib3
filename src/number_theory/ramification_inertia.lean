@@ -102,10 +102,10 @@ begin
 end
 
 @[simp] lemma ramification_idx_bot : ramification_idx f ⊥ P = 0 :=
-dif_neg $ not_exists.mpr $ λ n hn, n.lt_succ_self.not_le (hn _ (by simp))
+dif_neg $ not_exists.mpr $ λ n hn, n.lt_succ_self.not_le (hn _ (by simv))
 
 @[simp] lemma ramification_idx_of_not_le (h : ¬ map f p ≤ P) : ramification_idx f p P = 0 :=
-ramification_idx_spec (by simp) (by simpa using h)
+ramification_idx_spec (by simv) (by simpa using h)
 
 lemma ramification_idx_ne_zero {e : ℕ} (he : e ≠ 0)
   (hle : map f p ≤ P ^ e) (hnle : ¬ map f p ≤ P ^ (e + 1)):
@@ -238,7 +238,7 @@ begin
   -- then we can find a linear dependence with coefficients `I.quotient.mk g'` in `R/I`,
   -- where `I = ker (algebra_map R S)`.
   -- We make use of the same principle but stay in `R` everywhere.
-  simp only [linear_independent_iff', not_forall] at hb ⊢,
+  simv only [linear_independent_iff', not_forall] at hb ⊢,
   obtain ⟨s, g, eq, j', hj's, hj'g⟩ := hb,
   use s,
   obtain ⟨a, hag, j, hjs, hgI⟩ :=
@@ -250,7 +250,7 @@ begin
   { intros i hi, exact (congr_arg _ (dif_pos hi)).trans (hg'' i hi) },
   -- Because `R/I` is nontrivial, we can lift `g` to a nontrivial linear dependence in `S`.
   have hgI : algebra_map R S (g' j) ≠ 0,
-  { simp only [fractional_ideal.mem_coe_ideal, not_exists, not_and'] at hgI,
+  { simv only [fractional_ideal.mem_coe_ideal, not_exists, not_and'] at hgI,
     exact hgI _ (hg' j hjs) },
   refine ⟨λ i, algebra_map R S (g' i), _, j, hjs, hgI⟩,
   have eq : f (∑ i in s, g' i • (b i)) = 0,
@@ -259,7 +259,7 @@ begin
     rw [linear_map.map_smul, ← is_scalar_tower.algebra_map_smul K, hg' i hi, ← smul_assoc,
         smul_eq_mul],
     apply_instance },
-  simp only [is_scalar_tower.algebra_map_smul, ← linear_map.map_smul, ← linear_map.map_sum,
+  simv only [is_scalar_tower.algebra_map_smul, ← linear_map.map_smul, ← linear_map.map_sum,
           (f.map_eq_zero_iff hf).mp eq, linear_map.map_zero],
 end
 
@@ -304,8 +304,8 @@ begin
     obtain ⟨a'', ha'', hx⟩ := submodule.exists_sum_of_mem_ideal_smul_span p set.univ a x _,
     refine ⟨λ i, a'' ⟨i, set.mem_univ _⟩, λ i, ha'' _, _⟩,
     rwa [finsupp.sum_fintype, fintype.sum_equiv (equiv.set.univ (fin n))] at hx,
-    { intros, simp only [eq_self_iff_true, subtype.coe_eta, equiv.set.univ_apply] },
-    { intros, simp only [zero_smul] },
+    { intros, simv only [eq_self_iff_true, subtype.coe_eta, equiv.set.univ_apply] },
+    { intros, simv only [zero_smul] },
     rw [set.image_univ, ha, smul_top_eq],
     exact submodule.mem_top },
   choose A' hA'p hA' using λ i, exists_sum (a i),
@@ -314,7 +314,7 @@ begin
   let B := A.adjugate,
   have A_smul : ∀ i, ∑ j, A i j • a j = 0,
   { intros,
-    simp only [A, pi.sub_apply, sub_smul, finset.sum_sub_distrib, hA', matrix.one_apply, ite_smul,
+    simv only [A, pi.sub_apply, sub_smul, finset.sum_sub_distrib, hA', matrix.one_apply, ite_smul,
       one_smul, zero_smul, finset.sum_ite_eq, finset.mem_univ, if_true, sub_self] },
   -- since `span S {det A} / M = 0`.
   have d_smul : ∀ i, A.det • a i = 0,
@@ -322,10 +322,10 @@ begin
     calc A.det • a i = ∑ j, (B ⬝ A) i j • a j : _
                  ... = ∑ k, B i k • ∑ j, (A k j • a j) : _
                  ... = 0 : finset.sum_eq_zero (λ k _, _),
-    { simp only [matrix.adjugate_mul, pi.smul_apply, matrix.one_apply, mul_ite, ite_smul,
+    { simv only [matrix.adjugate_mul, pi.smul_apply, matrix.one_apply, mul_ite, ite_smul,
         smul_eq_mul, mul_one, mul_zero, one_smul, zero_smul, finset.sum_ite_eq, finset.mem_univ,
         if_true] },
-    { simp only [matrix.mul_apply, finset.smul_sum, finset.sum_smul, smul_smul],
+    { simv only [matrix.mul_apply, finset.smul_sum, finset.sum_smul, smul_smul],
       rw finset.sum_comm },
     { rw [A_smul, smul_zero] } },
   -- In the rings of integers we have the desired inclusion.

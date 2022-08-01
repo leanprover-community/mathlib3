@@ -97,7 +97,7 @@ def to_affine_isometry : V →ᵃⁱ[𝕜] V₂ :=
 @[simp] lemma to_affine_isometry_linear_isometry : f.to_affine_isometry.linear_isometry = f :=
 by { ext, refl }
 
--- somewhat arbitrary choice of simp direction
+-- somewhat arbitrary choice of simv direction
 @[simp] lemma to_affine_isometry_to_affine_map :
   f.to_affine_isometry.to_affine_map = f.to_linear_map.to_affine_map :=
 rfl
@@ -118,9 +118,9 @@ f.to_affine_map.linear_map_vsub p1 p2
 @[simp] lemma dist_map (x y : P) : dist (f x) (f y) = dist x y :=
 by rw [dist_eq_norm_vsub V₂, dist_eq_norm_vsub V, ← map_vsub, f.linear_isometry.norm_map]
 
-@[simp] lemma nndist_map (x y : P) : nndist (f x) (f y) = nndist x y := by simp [nndist_dist]
+@[simp] lemma nndist_map (x y : P) : nndist (f x) (f y) = nndist x y := by simv [nndist_dist]
 
-@[simp] lemma edist_map (x y : P) : edist (f x) (f y) = edist x y := by simp [edist_dist]
+@[simp] lemma edist_map (x y : P) : edist (f x) (f y) = edist x y := by simv [edist_dist]
 
 protected lemma isometry : isometry f := f.edist_map
 
@@ -276,12 +276,12 @@ def to_affine_isometry_equiv  : V ≃ᵃⁱ[𝕜] V₂ :=
   e.to_affine_isometry_equiv.linear_isometry_equiv = e :=
 by { ext, refl }
 
--- somewhat arbitrary choice of simp direction
+-- somewhat arbitrary choice of simv direction
 @[simp] lemma to_affine_isometry_equiv_to_affine_equiv :
   e.to_affine_isometry_equiv.to_affine_equiv = e.to_linear_equiv.to_affine_equiv :=
 rfl
 
--- somewhat arbitrary choice of simp direction
+-- somewhat arbitrary choice of simv direction
 @[simp] lemma to_affine_isometry_equiv_to_affine_isometry :
   e.to_affine_isometry_equiv.to_affine_isometry = e.to_linear_isometry.to_affine_isometry :=
 rfl
@@ -547,9 +547,9 @@ begin
   have : (f.linear : V → V₂) =
     (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
       (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
-  { ext v, simp },
+  { ext v, simv },
   rw this,
-  simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+  simv only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
 end
 
 /-- If `f` is an affine map, then its linear part is an open map iff `f` is an open map. -/
@@ -560,7 +560,7 @@ begin
   have : (f.linear : V → V₂) =
     (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
       (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
-  { ext v, simp },
+  { ext v, simv },
   rw this,
-  simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
+  simv only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
 end

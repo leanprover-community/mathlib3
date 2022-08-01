@@ -134,19 +134,19 @@ variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 The morphism between cycles induced by a chain map.
 -/
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
-subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
+subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simv))
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
-by { simp, }
+by { simv, }
 
 @[simp] lemma cycles_map_id (i : ι) : cycles_map (𝟙 C₁) i = 𝟙 _ :=
-by { dunfold cycles_map, simp, }
+by { dunfold cycles_map, simv, }
 
 @[simp] lemma cycles_map_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
   cycles_map (f ≫ g) i = cycles_map f i ≫ cycles_map g i :=
-by { dunfold cycles_map, simp [subobject.factor_thru_right], }
+by { dunfold cycles_map, simv [subobject.factor_thru_right], }
 
 variables (V c)
 
@@ -185,10 +185,10 @@ section
 variables [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma boundaries_to_cycles_naturality (i : ι) :
   boundaries_map f i ≫ C₂.boundaries_to_cycles i = C₁.boundaries_to_cycles i ≫ cycles_map f i :=
-by { ext, simp, }
+by { ext, simv, }
 
 variables (V c)
 
@@ -210,13 +210,13 @@ def homology_functor [has_cokernels V] (i : ι) :
   map_id' :=
   begin
     intros, ext1,
-    simp only [homology.π_map, kernel_subobject_map_id, hom.sq_from_id,
+    simv only [homology.π_map, kernel_subobject_map_id, hom.sq_from_id,
       category.id_comp, category.comp_id]
   end,
   map_comp' :=
   begin
     intros, ext1,
-    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
+    simv only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
       homology.π_map, category.assoc]
   end }
 
@@ -228,13 +228,13 @@ def homology_functor [has_cokernels V] (i : ι) :
   map_id' :=
   begin
     intros, ext,
-    simp only [pi.id_apply, homology.π_map, homology_functor_map, kernel_subobject_map_id,
+    simv only [pi.id_apply, homology.π_map, homology_functor_map, kernel_subobject_map_id,
       hom.sq_from_id, category.id_comp, category.comp_id]
   end,
   map_comp' :=
   begin
     intros, ext,
-    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
+    simv only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
       pi.comp_apply, homology.π_map, homology_functor_map, category.assoc]
   end }
 

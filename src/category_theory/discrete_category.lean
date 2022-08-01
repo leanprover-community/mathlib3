@@ -153,7 +153,7 @@ as the naturality squares are trivial.
 def nat_trans {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
 { app := f,
-  naturality' := λ X Y g, by { discrete_cases, cases g, simp, } }
+  naturality' := λ X Y g, by { discrete_cases, cases g, simv, } }
 
 /--
 For functors out of a discrete category,
@@ -163,7 +163,7 @@ as the naturality squares are trivial.
 @[simps]
 def nat_iso {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) : F ≅ G :=
-nat_iso.of_components f (λ X Y g, by { discrete_cases, cases g, simp, })
+nat_iso.of_components f (λ X Y g, by { discrete_cases, cases g, simv, })
 
 @[simp]
 lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}
@@ -192,8 +192,8 @@ an equivalence between the corresponding `discrete` categories.
 def equivalence {I : Type u₁} {J : Type u₂} (e : I ≃ J) : discrete I ≌ discrete J :=
 { functor := discrete.functor (discrete.mk ∘ (e : I → J)),
   inverse := discrete.functor (discrete.mk ∘ (e.symm : J → I)),
-  unit_iso := discrete.nat_iso (λ i, eq_to_iso (by { discrete_cases, simp })),
-  counit_iso := discrete.nat_iso (λ j, eq_to_iso (by { discrete_cases, simp })), }
+  unit_iso := discrete.nat_iso (λ i, eq_to_iso (by { discrete_cases, simv })),
+  counit_iso := discrete.nat_iso (λ j, eq_to_iso (by { discrete_cases, simv })), }
 
 /-- We can convert an equivalence of `discrete` categories to a type-level `equiv`. -/
 @[simps]
@@ -216,8 +216,8 @@ protected def opposite (α : Type u₁) : (discrete α)ᵒᵖ ≌ discrete α :=
 let F : discrete α ⥤ (discrete α)ᵒᵖ := discrete.functor (λ x, op (discrete.mk x)) in
 begin
   refine equivalence.mk (functor.left_op F) F _
-    (discrete.nat_iso $ λ X, by { discrete_cases, simp [F] }),
-  refine nat_iso.of_components (λ X, by { tactic.op_induction', discrete_cases, simp [F], }) _,
+    (discrete.nat_iso $ λ X, by { discrete_cases, simv [F] }),
+  refine nat_iso.of_components (λ X, by { tactic.op_induction', discrete_cases, simv [F], }) _,
   tidy
 end
 
@@ -228,7 +228,7 @@ variables {C : Type u₂} [category.{v₂} C]
 begin
   have h : f = 𝟙 j, { cases f, cases f, ext, },
   rw h,
-  simp,
+  simv,
 end
 
 end discrete

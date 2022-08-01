@@ -68,13 +68,13 @@ lemma exponent_exists_iff_ne_zero : exponent_exists G ↔ exponent G ≠ 0 :=
 begin
   rw [exponent],
   split_ifs,
-  { simp [h, @not_lt_zero' ℕ] }, --if this isn't done this way, `to_additive` freaks
+  { simv [h, @not_lt_zero' ℕ] }, --if this isn't done this way, `to_additive` freaks
   { tauto },
 end
 
 @[to_additive]
 lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
-by simp only [exponent_exists_iff_ne_zero, not_not]
+by simv only [exponent_exists_iff_ne_zero, not_not]
 
 @[to_additive]
 lemma exponent_eq_zero_of_order_zero {g : G} (hg : order_of g = 0) : exponent G = 0 :=
@@ -92,7 +92,7 @@ end
 @[to_additive]
 lemma pow_eq_mod_exponent {n : ℕ} (g : G): g ^ n = g ^ (n % exponent G) :=
 calc g ^ n = g ^ (n % exponent G + exponent G * (n / exponent G)) : by rw [nat.mod_add_div]
-  ... = g ^ (n % exponent G) : by simp [pow_add, pow_mul, pow_exponent_eq_one]
+  ... = g ^ (n % exponent G) : by simv [pow_add, pow_mul, pow_exponent_eq_one]
 
 @[to_additive]
 lemma exponent_pos_of_exists (n : ℕ) (hpos : 0 < n) (hG : ∀ g : G, g ^ n = 1) :
@@ -121,15 +121,15 @@ begin
   linarith,
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma exp_eq_one_of_subsingleton [subsingleton G] : exponent G = 1 :=
 begin
   apply le_antisymm,
   { apply exponent_min' _ nat.one_pos,
-    simp },
+    simv },
   { apply nat.succ_le_of_lt,
     apply exponent_pos_of_exists 1 (nat.one_pos),
-    simp },
+    simv },
 end
 
 @[to_additive add_order_dvd_exponent]
@@ -262,7 +262,7 @@ begin
   by_contra' h,
   obtain ⟨p, hp, hpe⟩ := h,
   replace hp := nat.prime_of_mem_factors hp,
-  simp only [nat.factors_count_eq] at hpe,
+  simv only [nat.factors_count_eq] at hpe,
   set k := (order_of t).factorization p with hk,
   obtain ⟨g, hg⟩ := hp.exists_order_of_eq_pow_factorization_exponent G,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
@@ -278,7 +278,7 @@ begin
     nth_rewrite 0 ←pow_one p,
     convert nat.pow_succ_factorization_not_dvd (h $ t ^ p ^ k).ne' hp,
     rw [hpk', nat.factorization_div hpk],
-    simp [hp] },
+    simv [hp] },
   rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime, hpk', hg, ha, ←ht, ←hk,
       pow_add, pow_add, pow_one, ←mul_assoc, ←mul_assoc, nat.div_mul_cancel, mul_assoc,
       lt_mul_iff_one_lt_right $ h t, ←pow_succ'],
@@ -303,7 +303,7 @@ section cancel_comm_monoid
 variables [cancel_comm_monoid G]
 
 @[to_additive] lemma exponent_eq_max'_order_of [fintype G] :
-  exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simp⟩ :=
+  exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simv⟩ :=
 begin
   rw [←finset.nonempty.cSup_eq_max', finset.coe_image, finset.coe_univ, set.image_univ, ← supr],
   exact exponent_eq_supr_order_of order_of_pos

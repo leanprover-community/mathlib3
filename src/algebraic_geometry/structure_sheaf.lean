@@ -154,13 +154,13 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
     { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
-    { simp, },
+    { simv, },
   end,
   one_mem' :=
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
     { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
-    { simp, },
+    { simv, },
   end,
   add_mem' :=
   begin
@@ -173,9 +173,9 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
     fsplit,
     { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
-    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
+    { simv only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
       erw [←wa, ←wb],
-      simp only [mul_assoc],
+      simv only [mul_assoc],
       congr' 2,
       rw [mul_comm], refl, }
   end,
@@ -188,9 +188,9 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     rcases w y with ⟨nm, w⟩,
     fsplit,
     { exact nm, },
-    { simp only [ring_hom.map_neg, pi.neg_apply],
+    { simv only [ring_hom.map_neg, pi.neg_apply],
       erw [←w],
-      simp only [neg_mul], }
+      simv only [neg_mul], }
   end,
   mul_mem' :=
   begin
@@ -203,9 +203,9 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
     fsplit,
     { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
-    { simp only [pi.mul_apply, ring_hom.map_mul],
+    { simv only [pi.mul_apply, ring_hom.map_mul],
       erw [←wa, ←wb],
-      simp only [mul_left_comm, mul_assoc, mul_comm],
+      simv only [mul_left_comm, mul_assoc, mul_comm],
       refl, }
   end, }
 
@@ -515,7 +515,7 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
   inv := localization_to_stalk R x,
   hom_inv_id' := (structure_sheaf R).presheaf.stalk_hom_ext $ λ U hxU,
   begin
-    ext s, simp only [comp_apply], rw [id_apply, stalk_to_fiber_ring_hom_germ'],
+    ext s, simv only [comp_apply], rw [id_apply, stalk_to_fiber_ring_hom_germ'],
     obtain ⟨V, hxV, iVU, f, g, hg, hs⟩ := exists_const _ _ s x hxU,
     erw [← res_apply R U V iVU s ⟨x, hxV⟩, ← hs, const_apply, localization_to_stalk_mk'],
     refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
@@ -525,7 +525,7 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
       (localization.at_prime x.as_ideal) _ _ (localization.at_prime x.as_ideal) _ _
       (ring_hom.comp (stalk_to_fiber_ring_hom R x) (localization_to_stalk R x))
       (ring_hom.id (localization.at_prime _)) $
-    by { ext f, simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
+    by { ext f, simv only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
                            stalk_to_fiber_ring_hom_to_stalk] } }
 
 instance (x : prime_spectrum R) : is_iso (stalk_to_fiber_ring_hom R x) :=
@@ -534,11 +534,11 @@ is_iso.of_iso (stalk_iso R x)
 instance (x : prime_spectrum R) : is_iso (localization_to_stalk R x) :=
 is_iso.of_iso (stalk_iso R x).symm
 
-@[simp, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
+@[simv, reassoc] lemma stalk_to_fiber_ring_hom_localization_to_stalk (x : prime_spectrum.Top R) :
   stalk_to_fiber_ring_hom R x ≫ localization_to_stalk R x = 𝟙 _ :=
 (stalk_iso R x).hom_inv_id
 
-@[simp, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
+@[simv, reassoc] lemma localization_to_stalk_stalk_to_fiber_ring_hom (x : prime_spectrum.Top R) :
   localization_to_stalk R x ≫ stalk_to_fiber_ring_hom R x = 𝟙 _ :=
 (stalk_iso R x).inv_hom_id
 
@@ -571,7 +571,7 @@ begin
   intros s t h_eq,
   obtain ⟨a, ⟨b, hb⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers f) s,
   obtain ⟨c, ⟨d, hd⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers f) t,
-  simp only [to_basic_open_mk'] at h_eq,
+  simv only [to_basic_open_mk'] at h_eq,
   rw is_localization.eq,
   -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
   -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
@@ -579,9 +579,9 @@ begin
   -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
   let I : ideal R :=
   { carrier := {r : R | a * d * r = c * b * r},
-    zero_mem' := by simp only [set.mem_set_of_eq, mul_zero],
-    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [mul_add, hr₁, hr₂] },
-    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
+    zero_mem' := by simv only [set.mem_set_of_eq, mul_zero],
+    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simv only [mul_add, hr₁, hr₂] },
+    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simv only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
   { cases this with n hn,
@@ -664,7 +664,7 @@ begin
     -- Crucially, we need injectivity of `to_basic_open`
     apply to_basic_open_injective R (h i * h j),
     rw [to_basic_open_mk', to_basic_open_mk'],
-    simp only [set_like.coe_mk],
+    simv only [set_like.coe_mk],
     -- Here, both sides of the equation are equal to a restriction of `s`
     transitivity,
     convert congr_arg ((structure_sheaf R).1.map iDj.op) (hs j).symm using 1,
@@ -701,11 +701,11 @@ begin
     -- `n (i, j)` which was originally chosen. We denote their difference by `k`
     have n_le_N : n (i, j) ≤ N := finset.le_sup (finset.mem_product.mpr ⟨hi, hj⟩),
     cases nat.le.dest n_le_N with k hk,
-    simp only [← hk, pow_add, pow_one],
+    simv only [← hk, pow_add, pow_one],
     -- To accommodate for the difference `k`, we multiply both sides of the equation `n_spec (i, j)`
     -- by `(h i * h j) ^ k`
     convert congr_arg (λ z, z * (h i * h j) ^ k) (n_spec (i, j)) using 1 ;
-    { simp only [n, mul_pow], ring } },
+    { simv only [n, mul_pow], ring } },
 
   -- Lastly, we need to show that the new fractions still represent our original `s`
   intros i hi,
@@ -882,13 +882,13 @@ as_iso (to_open R ⊤)
 @[simp] lemma global_sections_iso_hom (R : CommRing) :
   (global_sections_iso R).hom = to_open R ⊤ := rfl
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma to_stalk_stalk_specializes {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
   to_stalk R y ≫ (structure_sheaf R).presheaf.stalk_specializes h = to_stalk R x :=
 by { dsimp[to_stalk], simpa [-to_open_germ], }
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma localization_to_stalk_stalk_specializes {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
   structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).presheaf.stalk_specializes h =
@@ -904,7 +904,7 @@ begin
   exact to_stalk_stalk_specializes h
 end
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma stalk_specializes_stalk_to_fiber {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
   (structure_sheaf R).presheaf.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =

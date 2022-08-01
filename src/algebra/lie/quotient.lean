@@ -95,7 +95,7 @@ instance lie_quotient_has_bracket : has_bracket (L ⧸ I) (L ⧸ I) :=
   apply (submodule.quotient.eq I.to_submodule).2,
   rw submodule.quotient_rel_r_def at h₁ h₂,
   have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆,
-    by simp [-lie_skew, sub_eq_add_neg, add_assoc],
+    by simv [-lie_skew, sub_eq_add_neg, add_assoc],
   rw h,
   apply submodule.add_mem,
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },
@@ -141,7 +141,7 @@ def mk' : M →ₗ⁅R,L⁆ M ⧸ N :=
 submodule.quotient.mk_eq_zero N.to_submodule
 
 @[simp] lemma mk'_ker : (mk' N).ker = N :=
-by { ext, simp, }
+by { ext, simv, }
 
 @[simp] lemma map_mk'_eq_bot_le : map (mk' N) N' = ⊥ ↔ N' ≤ N :=
 by rw [← lie_module_hom.le_ker_iff_map, mk'_ker]
@@ -172,7 +172,7 @@ variables (f : L →ₗ⁅R⁆ L')
   begin
     rintros ⟨x⟩ ⟨y⟩,
     rw [← set_like.coe_eq_coe, lie_subalgebra.coe_bracket],
-    simp only [submodule.quotient.quot_mk_eq_mk, linear_map.quot_ker_equiv_range_apply_mk,
+    simv only [submodule.quotient.quot_mk_eq_mk, linear_map.quot_ker_equiv_range_apply_mk,
       ← lie_submodule.quotient.mk_bracket, coe_to_linear_map, map_lie],
   end,
   .. (f : L →ₗ[R] L').quot_ker_equiv_range, }

@@ -253,7 +253,7 @@ begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, simp }
+    congr, simv }
 end
 
 end

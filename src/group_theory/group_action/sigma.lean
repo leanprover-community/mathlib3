@@ -28,7 +28,7 @@ variables [Π i, has_smul M (α i)] [Π i, has_smul N (α i)] (a : M) (i : ι) (
 @[to_additive sigma.has_vadd] instance : has_smul M (Σ i, α i) := ⟨λ a, sigma.map id $ λ i, (•) a⟩
 
 @[to_additive] lemma smul_def : a • x = x.map id (λ i, (•) a) := rfl
-@[simp, to_additive] lemma smul_mk : a • mk i b = ⟨i, a • b⟩ := rfl
+@[simv, to_additive] lemma smul_mk : a • mk i b = ⟨i, a • b⟩ := rfl
 
 instance [has_smul M N] [Π i, is_scalar_tower M N (α i)] : is_scalar_tower M N (Σ i, α i) :=
 ⟨λ a b x, by { cases x, rw [smul_mk, smul_mk, smul_mk, smul_assoc] }⟩

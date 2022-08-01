@@ -182,7 +182,7 @@ instance extension_of.inhabited : inhabited (extension_of i f) :=
       end },
     le := le_refl _,
     is_extension := λ m, begin
-      simp only [linear_pmap.mk_apply, linear_map.coe_mk],
+      simv only [linear_pmap.mk_apply, linear_map.coe_mk],
       congr,
       exact fact.out (function.injective i) (⟨i m, ⟨_, rfl⟩⟩ : i.range).2.some_spec.symm,
     end } }
@@ -240,8 +240,8 @@ def extension_of_max_adjoin.ideal (y : N) :
 def extension_of_max_adjoin.ideal_to (y : N) :
   extension_of_max_adjoin.ideal i f y →ₗ[R] Q :=
 { to_fun := λ z, (extension_of_max i f).to_linear_pmap ⟨(↑z : R) • y, z.prop⟩,
-  map_add' := λ z1 z2, by simp [← (extension_of_max i f).to_linear_pmap.map_add, add_smul],
-  map_smul' := λ z1 z2, by simp [← (extension_of_max i f).to_linear_pmap.map_smul, mul_smul]; refl }
+  map_add' := λ z1 z2, by simv [← (extension_of_max i f).to_linear_pmap.map_add, add_smul],
+  map_smul' := λ z1 z2, by simv [← (extension_of_max i f).to_linear_pmap.map_smul, mul_smul]; refl }
 
 /-- Since we assumed `Q` being Baer, the linear map `x ↦ f' (x • y) : I ⟶ Q` extends to `R ⟶ Q`,
 call this extended map `φ`-/
@@ -260,7 +260,7 @@ lemma extension_of_max_adjoin.extend_ideal_to_wd' (h : module.Baer R Q) {y : N} 
 begin
   rw extension_of_max_adjoin.extend_ideal_to_is_extension i f h y r
     (by rw eq1; exact submodule.zero_mem _ : r • y ∈ _),
-  simp only [extension_of_max_adjoin.ideal_to, linear_map.coe_mk, eq1, subtype.coe_mk,
+  simv only [extension_of_max_adjoin.ideal_to, linear_map.coe_mk, eq1, subtype.coe_mk,
     ← add_submonoid_class.zero_def, (extension_of_max i f).to_linear_pmap.map_zero]
 end
 
@@ -278,7 +278,7 @@ lemma extension_of_max_adjoin.extend_ideal_to_eq (h : module.Baer R Q) {y : N} (
   (hr : r • y ∈ (extension_of_max i f).domain) :
   extension_of_max_adjoin.extend_ideal_to i f h y r =
     (extension_of_max i f).to_linear_pmap ⟨r • y, hr⟩ :=
-by simp only [extension_of_max_adjoin.extend_ideal_to_is_extension i f h _ _ hr,
+by simv only [extension_of_max_adjoin.extend_ideal_to_is_extension i f h _ _ hr,
   extension_of_max_adjoin.ideal_to, linear_map.coe_mk, subtype.coe_mk]
 
 /--We can finally define a linear map `M ⊔ ⟨y⟩ ⟶ Q` by `x + r • y ↦ f x + φ r`
@@ -304,7 +304,7 @@ begin
       sub_eq_zero, ← sub_smul] at eq1 },
   have eq3 := extension_of_max_adjoin.extend_ideal_to_eq i f h (r - extension_of_max_adjoin.snd i x)
     (by rw ← eq2; exact submodule.sub_mem _ (extension_of_max_adjoin.fst i x).2 ha),
-  simp only [map_sub, sub_smul, sub_eq_iff_eq_add] at eq3,
+  simv only [map_sub, sub_smul, sub_eq_iff_eq_add] at eq3,
   unfold extension_of_max_adjoin.extension_to_fun,
   rw [eq3, ← add_assoc, ← (extension_of_max i f).to_linear_pmap.map_add, add_mem_class.mk_add_mk],
   congr,
@@ -342,10 +342,10 @@ def extension_of_max_adjoin (h : module.Baer R Q) (y : N) :
         congr',
       end },
   is_extension := λ m, begin
-    simp only [linear_pmap.mk_apply, linear_map.coe_mk],
+    simv only [linear_pmap.mk_apply, linear_map.coe_mk],
     rw [(extension_of_max i f).is_extension, extension_of_max_adjoin.extension_to_fun_wd i f h
       _ ⟨i m, _⟩ 0 _, map_zero, add_zero],
-    simp,
+    simv,
   end }
 
 lemma extension_of_max_le (h : module.Baer R Q) {y : N} :
@@ -353,7 +353,7 @@ lemma extension_of_max_le (h : module.Baer R Q) {y : N} :
 ⟨le_sup_left, λ x x' EQ, begin
   symmetry,
   change extension_of_max_adjoin.extension_to_fun i f h _ = _,
-  rw [extension_of_max_adjoin.extension_to_fun_wd i f h x' x 0 (by simp [EQ]), map_zero, add_zero],
+  rw [extension_of_max_adjoin.extension_to_fun_wd i f h x' x 0 (by simv [EQ]), map_zero, add_zero],
 end⟩
 
 lemma extension_of_max_to_submodule_eq_top (h : module.Baer R Q) :

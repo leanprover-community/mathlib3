@@ -40,12 +40,12 @@ rfl
 lemma support_mul [decidable_eq α] {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
 begin
   intros a h,
-  simp only [mul_apply, mem_support_iff] at h,
-  simp only [mem_support_iff, mem_inter, ne.def],
+  simv only [mul_apply, mem_support_iff] at h,
+  simv only [mem_support_iff, mem_inter, ne.def],
   rw ←not_or_distrib,
   intro w,
   apply h,
-  cases w; { rw w, simp },
+  cases w; { rw w, simv },
 end
 
 instance : mul_zero_class (α →₀ β) :=
@@ -83,7 +83,7 @@ finsupp.coe_fn_injective.non_unital_comm_ring _
 instance pointwise_scalar [semiring β] : has_smul (α → β) (α →₀ β) :=
 { smul := λ f g, finsupp.of_support_finite (λ a, f a • g a) begin
     apply set.finite.subset g.finite_support,
-    simp only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,
+    simv only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,
       finsupp.fun_support_eq, finset.mem_coe],
     intros x hx h,
     apply hx,

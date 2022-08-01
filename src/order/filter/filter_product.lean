@@ -36,7 +36,7 @@ local notation `β*` := germ (φ : filter α) β
 instance [division_ring β] : division_ring β* :=
 { mul_inv_cancel := λ f, induction_on f $ λ f hf, coe_eq.2 $ (φ.em (λ y, f y = 0)).elim
     (λ H, (hf $ coe_eq.2 H).elim) (λ H, H.mono $ λ x, mul_inv_cancel),
-  inv_zero := coe_eq.2 $ by simp only [(∘), inv_zero],
+  inv_zero := coe_eq.2 $ by simv only [(∘), inv_zero],
   .. germ.ring, .. germ.div_inv_monoid, .. germ.nontrivial }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a field. -/
@@ -50,10 +50,10 @@ noncomputable instance [linear_order β] : linear_order β* :=
   decidable_le := by apply_instance,
   .. germ.partial_order }
 
-@[simp, norm_cast] lemma const_div [division_ring β] (x y : β) : (↑(x / y) : β*) = ↑x / ↑y := rfl
+@[simv, norm_cast] lemma const_div [division_ring β] (x y : β) : (↑(x / y) : β*) = ↑x / ↑y := rfl
 
 lemma coe_lt [preorder β] {f g : α → β} : (f : β*) < g ↔ ∀* x, f x < g x :=
-by simp only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventually_le]
+by simv only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventually_le]
 
 lemma coe_pos [preorder β] [has_zero β] {f : α → β} : 0 < (f : β*) ↔ ∀* x, 0 < f x :=
 coe_lt

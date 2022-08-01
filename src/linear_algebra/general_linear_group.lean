@@ -98,8 +98,8 @@ def to_linear : general_linear_group n R ≃* linear_map.general_linear_group R 
 units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
 -- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
--- decidability argument, which prevents `simp` from obtaining the instance by unification.
--- These `λ a b, _inst a b` terms also appear in the type of `A`, but simp doesn't get confused by
+-- decidability argument, which prevents `simv` from obtaining the instance by unification.
+-- These `λ a b, _inst a b` terms also appear in the type of `A`, but simv doesn't get confused by
 -- them so for now we do not care.
 @[simp] lemma coe_to_linear :
   (@to_linear n ‹_› ‹_› _ _ A : (n → R) →ₗ[R] (n → R)) = matrix.mul_vec_lin A :=
@@ -225,7 +225,7 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance
 
-/-- This instance is here for convenience, but is not the simp-normal form. -/
+/-- This instance is here for convenience, but is not the simv-normal form. -/
 instance : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
 { coe := λ A, A.val }
 

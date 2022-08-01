@@ -42,7 +42,7 @@ variables {S : Type*} [semiring S]
 
 lemma nat_degree_list_sum_le (l : list S[X]) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max 0 :=
-list.sum_le_foldr_max nat_degree (by simp) nat_degree_add_le _
+list.sum_le_foldr_max nat_degree (by simv) nat_degree_add_le _
 
 lemma nat_degree_multiset_sum_le (l : multiset S[X]) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max max_left_comm 0 :=
@@ -56,7 +56,7 @@ lemma degree_list_sum_le (l : list S[X]) :
   degree l.sum ≤ (l.map nat_degree).maximum :=
 begin
   by_cases h : l.sum = 0,
-  { simp [h] },
+  { simv [h] },
   { rw degree_eq_nat_degree h,
     suffices : (l.map nat_degree).maximum = ((l.map nat_degree).foldr max 0 : ℕ),
     { rw this,
@@ -65,14 +65,14 @@ begin
     { congr },
     contrapose! h,
     rw [list.map_eq_nil] at h,
-    simp [h] }
+    simv [h] }
 end
 
 lemma nat_degree_list_prod_le (l : list S[X]) :
   nat_degree l.prod ≤ (l.map nat_degree).sum :=
 begin
   induction l with hd tl IH,
-  { simp },
+  { simv },
   { simpa using nat_degree_mul_le.trans (add_le_add_left IH _) }
 end
 
@@ -80,7 +80,7 @@ lemma degree_list_prod_le (l : list S[X]) :
   degree l.prod ≤ (l.map degree).sum :=
 begin
   induction l with hd tl IH,
-  { simp },
+  { simv },
   { simpa using (degree_mul_le _ _).trans (add_le_add_left IH _) }
 end
 
@@ -89,9 +89,9 @@ lemma coeff_list_prod_of_nat_degree_le (l : list S[X]) (n : ℕ)
   coeff (list.prod l) (l.length * n) = (l.map (λ p, coeff p n)).prod :=
 begin
   induction l with hd tl IH,
-  { simp },
+  { simv },
   { have hl' : ∀ (p ∈ tl), nat_degree p ≤ n := λ p hp, hl p (list.mem_cons_of_mem _ hp),
-    simp only [list.prod_cons, list.map, list.length],
+    simv only [list.prod_cons, list.map, list.length],
     rw [add_mul, one_mul, add_comm, ←IH hl', mul_comm tl.length],
     have h : nat_degree tl.prod ≤ n * tl.length,
     { refine (nat_degree_list_prod_le _).trans _,
@@ -141,8 +141,8 @@ where this condition is automatically satisfied.
 lemma leading_coeff_multiset_prod' (h : (t.map leading_coeff).prod ≠ 0) :
   t.prod.leading_coeff = (t.map leading_coeff).prod :=
 begin
-  induction t using multiset.induction_on with a t ih, { simp },
-  simp only [multiset.map_cons, multiset.prod_cons] at h ⊢,
+  induction t using multiset.induction_on with a t ih, { simv },
+  simv only [multiset.map_cons, multiset.prod_cons] at h ⊢,
   rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul h }
 end
 
@@ -168,7 +168,7 @@ lemma nat_degree_multiset_prod' (h : (t.map (λ f, leading_coeff f)).prod ≠ 0)
   t.prod.nat_degree = (t.map (λ f, nat_degree f)).sum :=
 begin
   revert h,
-  refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
+  refine multiset.induction_on t _ (λ a t ih ht, _), { simv },
   rw [multiset.map_cons, multiset.prod_cons] at ht ⊢,
   rw [multiset.sum_cons, polynomial.nat_degree_mul', ih],
   { apply right_ne_zero_of_mul ht },
@@ -191,13 +191,13 @@ lemma nat_degree_multiset_prod_of_monic (h : ∀ f ∈ t, monic f) :
 begin
   nontriviality R,
   apply nat_degree_multiset_prod',
-  suffices : (t.map (λ f, leading_coeff f)).prod = 1, { rw this, simp },
+  suffices : (t.map (λ f, leading_coeff f)).prod = 1, { rw this, simv },
   convert prod_repeat (1 : R) t.card,
-  { simp only [eq_repeat, multiset.card_map, eq_self_iff_true, true_and],
+  { simv only [eq_repeat, multiset.card_map, eq_self_iff_true, true_and],
     rintros i hi,
     obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hi,
     apply h, assumption },
-  { simp }
+  { simv }
 end
 
 lemma nat_degree_prod_of_monic (h : ∀ i ∈ s, (f i).monic) :
@@ -218,15 +218,15 @@ lemma coeff_prod_of_nat_degree_le (f : ι → R[X]) (n : ℕ)
 begin
   cases s with l hl,
   convert coeff_multiset_prod_of_nat_degree_le (l.map f) _ _,
-  { simp },
-  { simp },
+  { simv },
+  { simv },
   { simpa using h }
 end
 
 lemma coeff_zero_multiset_prod :
   t.prod.coeff 0 = (t.map (λ f, coeff f 0)).prod :=
 begin
-  refine multiset.induction_on t _ (λ a t ht, _), { simp },
+  refine multiset.induction_on t _ (λ a t ht, _), { simv },
   rw [multiset.prod_cons, multiset.map_cons, multiset.prod_cons, polynomial.mul_coeff_zero, ht]
 end
 
@@ -246,7 +246,7 @@ lemma multiset_prod_X_sub_C_next_coeff (t : multiset R) :
   next_coeff (t.map (λ x, X - C x)).prod = -t.sum :=
 begin
   rw next_coeff_multiset_prod,
-  { simp only [next_coeff_X_sub_C],
+  { simv only [next_coeff_X_sub_C],
     exact t.sum_hom (-add_monoid_hom.id R) },
   { intros, apply monic_X_sub_C }
 end
@@ -261,13 +261,13 @@ begin
   nontriviality R,
   convert multiset_prod_X_sub_C_next_coeff (by assumption),
   rw next_coeff, split_ifs,
-  { rw nat_degree_multiset_prod_of_monic at h; simp only [multiset.mem_map] at *,
+  { rw nat_degree_multiset_prod_of_monic at h; simv only [multiset.mem_map] at *,
     swap, { rintros _ ⟨_, _, rfl⟩, apply monic_X_sub_C },
     simp_rw [multiset.sum_eq_zero_iff, multiset.mem_map] at h,
     contrapose! h,
     obtain ⟨x, hx⟩ := card_pos_iff_exists_mem.mp ht,
     exact ⟨_, ⟨_, ⟨x, hx, rfl⟩, nat_degree_X_sub_C _⟩, one_ne_zero⟩ },
-  congr, rw nat_degree_multiset_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
+  congr, rw nat_degree_multiset_prod_of_monic; { simv [nat_degree_X_sub_C, monic_X_sub_C] },
 end
 
 lemma prod_X_sub_C_coeff_card_pred (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
@@ -308,7 +308,7 @@ begin
   nontriviality R,
   apply nat_degree_prod',
   rw prod_ne_zero_iff,
-  intros x hx, simp [h x hx]
+  intros x hx, simv [h x hx]
 end
 
 lemma nat_degree_multiset_prod (h : (0 : R[X]) ∉ t) :

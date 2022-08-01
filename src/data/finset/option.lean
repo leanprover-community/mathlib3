@@ -38,7 +38,7 @@ def to_finset (o : option α) : finset α := o.elim ∅ singleton
 @[simp] theorem to_finset_some {a : α} : (some a).to_finset = {a} := rfl
 
 @[simp] theorem mem_to_finset {a : α} {o : option α} : a ∈ o.to_finset ↔ a ∈ o :=
-by cases o; simp [eq_comm]
+by cases o; simv [eq_comm]
 
 theorem card_to_finset (o : option α) : o.to_finset.card = o.elim 0 1 :=
 by cases o; refl
@@ -50,22 +50,22 @@ namespace finset
 /-- Given a finset on `α`, lift it to being a finset on `option α`
 using `option.some` and then insert `option.none`. -/
 def insert_none : finset α ↪o finset (option α) :=
-order_embedding.of_map_le_iff (λ s, cons none (s.map embedding.some) $ by simp) $ λ s t,
+order_embedding.of_map_le_iff (λ s, cons none (s.map embedding.some) $ by simv) $ λ s t,
   cons_subset_cons.trans map_subset_map
 
 /-⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
-  ⟨by simp, s.nodup.map $ λ a b, option.some.inj⟩⟩-/
+  ⟨by simv, s.nodup.map $ λ a b, option.some.inj⟩⟩-/
 
 @[simp] theorem mem_insert_none {s : finset α} : ∀ {o : option α},
   o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s
 | none     := iff_of_true (multiset.mem_cons_self _ _) (λ a h, by cases h)
-| (some a) := multiset.mem_cons.trans $ by simp; refl
+| (some a) := multiset.mem_cons.trans $ by simv; refl
 
 theorem some_mem_insert_none {s : finset α} {a : α} :
-  some a ∈ s.insert_none ↔ a ∈ s := by simp
+  some a ∈ s.insert_none ↔ a ∈ s := by simv
 
 @[simp] theorem card_insert_none (s : finset α) : s.insert_none.card = s.card + 1 :=
-by simp [insert_none]
+by simv [insert_none]
 
 /-- Given `s : finset (option α)`, `s.erase_none : finset α` is the set of `x : α` such that
 `some x ∈ s`. -/
@@ -75,14 +75,14 @@ def erase_none : finset (option α) →o finset α :=
 
 @[simp] lemma mem_erase_none {s : finset (option α)} {x : α} :
   x ∈ s.erase_none ↔ some x ∈ s :=
-by simp [erase_none]
+by simv [erase_none]
 
 lemma erase_none_eq_bUnion [decidable_eq α] (s : finset (option α)) :
   s.erase_none = s.bUnion option.to_finset :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma erase_none_map_some (s : finset α) : (s.map embedding.some).erase_none = s :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma erase_none_image_some [decidable_eq (option α)] (s : finset α) :
   (s.image some).erase_none = s :=
@@ -95,20 +95,20 @@ set.ext $ λ x, mem_erase_none
 @[simp] lemma erase_none_union [decidable_eq (option α)] [decidable_eq α]
   (s t : finset (option α)) :
   (s ∪ t).erase_none = s.erase_none ∪ t.erase_none :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma erase_none_inter [decidable_eq (option α)] [decidable_eq α]
   (s t : finset (option α)) :
   (s ∩ t).erase_none = s.erase_none ∩ t.erase_none :=
-by { ext, simp }
+by { ext, simv }
 
-@[simp] lemma erase_none_empty : (∅ : finset (option α)).erase_none = ∅ := by { ext, simp }
+@[simp] lemma erase_none_empty : (∅ : finset (option α)).erase_none = ∅ := by { ext, simv }
 
-@[simp] lemma erase_none_none : ({none} : finset (option α)).erase_none = ∅ := by { ext, simp }
+@[simp] lemma erase_none_none : ({none} : finset (option α)).erase_none = ∅ := by { ext, simv }
 
 @[simp] lemma image_some_erase_none [decidable_eq (option α)] (s : finset (option α)) :
   s.erase_none.image some = s.erase none :=
-by ext (_|x); simp
+by ext (_|x); simv
 
 @[simp] lemma map_some_erase_none [decidable_eq (option α)] (s : finset (option α)) :
   s.erase_none.map embedding.some = s.erase none :=
@@ -116,9 +116,9 @@ by rw [map_eq_image, embedding.some_apply, image_some_erase_none]
 
 @[simp] lemma insert_none_erase_none [decidable_eq (option α)] (s : finset (option α)) :
   insert_none (erase_none s) = insert none s :=
-by ext (_|x); simp
+by ext (_|x); simv
 
 @[simp] lemma erase_none_insert_none (s : finset α) : erase_none (insert_none s) = s :=
-by { ext, simp }
+by { ext, simv }
 
 end finset

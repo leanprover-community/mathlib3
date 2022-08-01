@@ -50,7 +50,7 @@ lemma mem_convex_hull_erase [decidable_eq E] {t : finset E}
   (h : ¬ affine_independent 𝕜 (coe : t → E)) {x : E} (m : x ∈ convex_hull 𝕜 (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull 𝕜 (↑(t.erase y) : set E) :=
 begin
-  simp only [finset.convex_hull_eq, mem_set_of_eq] at m ⊢,
+  simv only [finset.convex_hull_eq, mem_set_of_eq] at m ⊢,
   obtain ⟨f, fpos, fsum, rfl⟩ := m,
   obtain ⟨g, gcombo, gsum, gpos⟩ := exists_nontrivial_relation_sum_zero_of_not_affine_ind h,
   replace gpos := exists_pos_of_sum_zero_of_exists_nonzero g gsum gpos,
@@ -70,7 +70,7 @@ begin
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) : rfl
     ... = 1 : by rw [sum_sub_distrib, fsum, ← mul_sum, gsum, mul_zero, sub_zero] },
   refine ⟨⟨i₀, hi₀⟩, k, _, by convert ksum, _⟩,
-  { simp only [and_imp, sub_nonneg, mem_erase, ne.def, subtype.coe_mk],
+  { simv only [and_imp, sub_nonneg, mem_erase, ne.def, subtype.coe_mk],
     intros e hei₀ het,
     by_cases hes : e ∈ s,
     { have hge : 0 < g e := by { rw mem_filter at hes, exact hes.2 },
@@ -80,11 +80,11 @@ begin
          ... ≤ f e : fpos e het,
       { apply div_nonneg (fpos i₀ (mem_of_subset (filter_subset _ t) mem)) (le_of_lt hg) },
       { simpa only [mem_filter, het, true_and, not_lt] using hes } } },
-  { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
+  { simv only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
     calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e : sum_erase _ (by rw [hk, zero_smul])
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
     ... = t.center_mass f id : _,
-    simp only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,
+    simv only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,
       sub_zero, center_mass, fsum, inv_one, one_smul, id.def] }
 end
 
@@ -146,7 +146,7 @@ lemma convex_hull_eq_union :
 begin
   apply set.subset.antisymm,
   { intros x hx,
-    simp only [exists_prop, set.mem_Union],
+    simv only [exists_prop, set.mem_Union],
     exact ⟨caratheodory.min_card_finset_of_mem_convex_hull hx,
            caratheodory.min_card_finset_of_mem_convex_hull_subseteq hx,
            caratheodory.affine_independent_min_card_finset_of_mem_convex_hull hx,
@@ -162,9 +162,9 @@ theorem eq_pos_convex_span_of_mem_convex_hull {x : E} (hx : x ∈ convex_hull �
     (hw : ∀ i, 0 < w i), ∑ i, w i = 1 ∧ ∑ i, w i • z i = x :=
 begin
   rw convex_hull_eq_union at hx,
-  simp only [exists_prop, set.mem_Union] at hx,
+  simv only [exists_prop, set.mem_Union] at hx,
   obtain ⟨t, ht₁, ht₂, ht₃⟩ := hx,
-  simp only [t.convex_hull_eq, exists_prop, set.mem_set_of_eq] at ht₃,
+  simv only [t.convex_hull_eq, exists_prop, set.mem_set_of_eq] at ht₃,
   obtain ⟨w, hw₁, hw₂, hw₃⟩ := ht₃,
   let t' := t.filter (λ i, w i ≠ 0),
   refine ⟨t', t'.fintype_coe_sort, (coe : t' → E), w ∘ (coe : t' → E), _, _, _, _, _⟩,

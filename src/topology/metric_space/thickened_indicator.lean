@@ -75,7 +75,7 @@ by simp_rw [thickened_indicator_aux, inf_edist_closure]
 
 lemma thickened_indicator_aux_one (δ : ℝ) (E : set α) {x : α} (x_in_E : x ∈ E) :
   thickened_indicator_aux δ E x = 1 :=
-by simp [thickened_indicator_aux, inf_edist_zero_of_mem x_in_E, tsub_zero]
+by simv [thickened_indicator_aux, inf_edist_zero_of_mem x_in_E, tsub_zero]
 
 lemma thickened_indicator_aux_one_of_mem_closure
   (δ : ℝ) (E : set α) {x : α} (x_mem : x ∈ closure E) :
@@ -103,8 +103,8 @@ lemma indicator_le_thickened_indicator_aux (δ : ℝ) (E : set α) :
 begin
   intro a,
   by_cases a ∈ E,
-  { simp only [h, indicator_of_mem, thickened_indicator_aux_one δ E h, le_refl], },
-  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+  { simv only [h, indicator_of_mem, thickened_indicator_aux_one δ E h, le_refl], },
+  { simv only [h, indicator_of_not_mem, not_false_iff, zero_le], },
 end
 
 lemma thickened_indicator_aux_subset (δ : ℝ) {E₁ E₂ : set α} (subset : E₁ ⊆ E₂) :
@@ -128,10 +128,10 @@ begin
   by_cases x_mem_closure : x ∈ closure E,
   { simp_rw [thickened_indicator_aux_one_of_mem_closure _ E x_mem_closure],
     rw (show (indicator (closure E) (λ _, (1 : ℝ≥0∞))) x = 1,
-        by simp only [x_mem_closure, indicator_of_mem]),
+        by simv only [x_mem_closure, indicator_of_mem]),
     exact tendsto_const_nhds, },
   { rw (show (closure E).indicator (λ _, (1 : ℝ≥0∞)) x = 0,
-        by simp only [x_mem_closure, indicator_of_not_mem, not_false_iff]),
+        by simv only [x_mem_closure, indicator_of_not_mem, not_false_iff]),
     rw mem_closure_iff_inf_edist_zero at x_mem_closure,
     obtain ⟨ε, ⟨ε_pos, ε_le⟩⟩ : ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E,
     { by_cases dist_infty : inf_edist x E = ∞,
@@ -142,7 +142,7 @@ begin
                 of_real_to_real_le⟩, }, },
     rw metric.tendsto_nhds at δseq_lim,
     specialize δseq_lim ε ε_pos,
-    simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δseq_lim,
+    simv only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δseq_lim,
     rcases δseq_lim with ⟨N, hN⟩,
     apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
     intros n n_large,
@@ -210,8 +210,8 @@ lemma indicator_le_thickened_indicator {δ : ℝ} (δ_pos : 0 < δ) (E : set α)
 begin
   intro a,
   by_cases a ∈ E,
-  { simp only [h, indicator_of_mem, thickened_indicator_one δ_pos E h, le_refl], },
-  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+  { simv only [h, indicator_of_mem, thickened_indicator_one δ_pos E h, le_refl], },
+  { simv only [h, indicator_of_not_mem, not_false_iff, zero_le], },
 end
 
 lemma thickened_indicator_mono {δ₁ δ₂ : ℝ}
@@ -247,7 +247,7 @@ begin
          = (indicator (closure E) (λ x, (1 : ℝ≥0∞)) x).to_nnreal,
       by refine (congr_fun (comp_indicator_const 1 ennreal.to_nnreal zero_to_nnreal) x).symm),
   refine tendsto.comp (tendsto_to_nnreal _) (key x),
-  by_cases x_mem : x ∈ closure E; simp [x_mem],
+  by_cases x_mem : x ∈ closure E; simv [x_mem],
 end
 
 end thickened_indicator -- section

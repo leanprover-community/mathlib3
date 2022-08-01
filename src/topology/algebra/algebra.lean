@@ -36,7 +36,7 @@ lemma continuous_algebra_map_iff_smul [algebra R A] [topological_semiring A] :
   continuous (algebra_map R A) ↔ continuous (λ p : R × A, p.1 • p.2) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { simp only [algebra.smul_def], exact (h.comp continuous_fst).mul continuous_snd },
+  { simv only [algebra.smul_def], exact (h.comp continuous_fst).mul continuous_snd },
   { rw algebra_map_eq_smul_one', exact h.comp (continuous_id.prod_mk continuous_const) }
 end
 
@@ -109,8 +109,8 @@ lemma subalgebra.topological_closure_comap_homeomorph
   s.topological_closure.comap f = (s.comap f).topological_closure :=
 begin
   apply set_like.ext',
-  simp only [subalgebra.topological_closure_coe],
-  simp only [subalgebra.coe_comap, subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
+  simv only [subalgebra.topological_closure_coe],
+  simv only [subalgebra.coe_comap, subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
   rw [w],
   exact f'.preimage_closure _,
 end

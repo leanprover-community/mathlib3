@@ -8,7 +8,7 @@ import category_theory.limits.has_limits
 import category_theory.limits.shapes.kernels
 
 /-!
-In this file we provide various simp lemmas in its elementwise form via `tactic.elementwise`.
+In this file we provide various simv lemmas in its elementwise form via `tactic.elementwise`.
 -/
 
 open category_theory category_theory.limits

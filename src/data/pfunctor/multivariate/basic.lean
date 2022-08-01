@@ -116,7 +116,7 @@ by { cases x, refl }
 lemma comp.get_mk (x : P.obj (λ i, (Q i).obj α)) : comp.get (comp.mk x) = x :=
 begin
   cases x,
-  simp! [comp.get,comp.mk],
+  simv! [comp.get,comp.mk],
 end
 
 @[simp]
@@ -148,7 +148,7 @@ end
 theorem liftp_iff' {α : typevec n} (p : Π ⦃i⦄ , α i → Prop) (a : P.A) (f : P.B a ⟹ α) :
   @liftp.{u} _ P.obj _ α p ⟨a,f⟩ ↔ ∀ i x, p (f i x) :=
 begin
-  simp only [liftp_iff, sigma.mk.inj_iff]; split; intro,
+  simv only [liftp_iff, sigma.mk.inj_iff]; split; intro,
   { casesm* [Exists _, _ ∧ _], subst_vars, assumption },
   repeat { constructor <|> assumption }
 end
@@ -174,11 +174,11 @@ open set mvfunctor
 theorem supp_eq {α : typevec n} (a : P.A) (f : P.B a ⟹ α) (i) :
   @supp.{u} _ P.obj _ α  (⟨a,f⟩ : P.obj α) i = f i '' univ :=
 begin
-  ext, simp only [supp, image_univ, mem_range, mem_set_of_eq],
+  ext, simv only [supp, image_univ, mem_range, mem_set_of_eq],
   split; intro h,
   { apply @h (λ i x, ∃ (y : P.B a i), f i y = x),
     rw liftp_iff', intros, refine ⟨_,rfl⟩ },
-  { simp only [liftp_iff'], cases h, subst x,
+  { simv only [liftp_iff'], cases h, subst x,
     tauto }
 end
 

@@ -78,7 +78,7 @@ tensor_product.lift (lmul R A).to_linear_map
 variables {R A}
 
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
-by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
+by simv only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
 
 @[simp] lemma lmul_left_apply (p q : A) : lmul_left R p q = p * q := rfl
 @[simp] lemma lmul_right_apply (p q : A) : lmul_right R p q = q * p := rfl
@@ -86,18 +86,18 @@ by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_app
   lmul_left_right R vw p = vw.1 * p * vw.2 := rfl
 
 @[simp] lemma lmul_left_one : lmul_left R (1:A) = linear_map.id :=
-by { ext, simp only [linear_map.id_coe, one_mul, id.def, lmul_left_apply] }
+by { ext, simv only [linear_map.id_coe, one_mul, id.def, lmul_left_apply] }
 
 @[simp] lemma lmul_left_mul (a b : A) :
   lmul_left R (a * b) = (lmul_left R a).comp (lmul_left R b) :=
-by { ext, simp only [lmul_left_apply, linear_map.comp_apply, mul_assoc] }
+by { ext, simv only [lmul_left_apply, linear_map.comp_apply, mul_assoc] }
 
 @[simp] lemma lmul_right_one : lmul_right R (1:A) = linear_map.id :=
-by { ext, simp only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
+by { ext, simv only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
 
 @[simp] lemma lmul_right_mul (a b : A) :
   lmul_right R (a * b) = (lmul_right R b).comp (lmul_right R a) :=
-by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
+by { ext, simv only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
 
 @[simp] lemma lmul_left_zero_eq_zero :
   lmul_left R (0 : A) = 0 :=

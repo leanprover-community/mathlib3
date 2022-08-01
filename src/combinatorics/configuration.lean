@@ -155,7 +155,7 @@ lemma sum_line_count_eq_sum_point_count [fintype P] [fintype L] :
   ∑ p : P, line_count L p = ∑ l : L, point_count P l :=
 begin
   classical,
-  simp only [line_count, point_count, nat.card_eq_fintype_card, ←fintype.card_sigma],
+  simv only [line_count, point_count, nat.card_eq_fintype_card, ←fintype.card_sigma],
   apply fintype.card_congr,
   calc (Σ p, {l : L // p ∈ l}) ≃ {x : P × L // x.1 ∈ x.2} :
     (equiv.subtype_prod_equiv_sigma_subtype (∈)).symm

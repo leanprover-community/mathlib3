@@ -489,7 +489,7 @@ do t ← target >>= instantiate_mvars,
    for `x + y < w + z` could be broken down into either
     - left:  `x ≤ w` and `y < z` or
     - right: `x < w` and `y ≤ z`
-- `mono using [rule1,rule2]` calls `simp [rule1,rule2]` before applying mono.
+- `mono using [rule1,rule2]` calls `simv [rule1,rule2]` before applying mono.
 - The general syntax is
   `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?`
 
@@ -554,7 +554,7 @@ associative operator and if the operator is commutative
 meta def ac_mono_aux (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 hide_meta_vars $ λ asms,
-do try `[simp only [sub_eq_add_neg]],
+do try `[simv only [sub_eq_add_neg]],
    tgt ← target >>= instantiate_mvars,
    (l,r,id_rs,g) ← ac_monotonicity_goal cfg tgt
              <|> fail "monotonic context not found",
@@ -573,12 +573,12 @@ do try `[simp only [sub_eq_add_neg]],
              ( done <|>
                refl <|>
                ac_refl <|>
-               `[simp only [is_associative.assoc]]) ),
+               `[simv only [is_associative.assoc]]) ),
      solve_mvar v₁ (try (any_of id_rs rewrite_target) >>
              ( done <|>
                refl <|>
                ac_refl <|>
-               `[simp only [is_associative.assoc]]) ),
+               `[simv only [is_associative.assoc]]) ),
      n ← num_goals,
      iterate_exactly (n-1) (try $ solve1 $ apply_instance <|>
        tactic.solve_by_elim { lemmas := some asms }))

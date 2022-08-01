@@ -70,7 +70,7 @@ begin
           { intros m hm,
             rw fork.ι_of_ι at hm,
             rw [← hm],
-            simp only [← hm, assoc, h₁],
+            simv only [← hm, assoc, h₁],
             exact (comp_id m).symm }
         end }⟩, },
   { intro h,
@@ -95,7 +95,7 @@ then `𝟙 X - p` is also idempotent. -/
 lemma idem_of_id_sub_idem [preadditive C]
   {X : C} (p : X ⟶ X) (hp : p ≫ p = p) :
   (𝟙 _ - p) ≫ (𝟙 _ - p) = (𝟙 _ - p) :=
-by simp only [comp_sub, sub_comp, id_comp, comp_id, hp, sub_self, sub_zero]
+by simv only [comp_sub, sub_comp, id_comp, comp_id, hp, sub_self, sub_zero]
 
 variables (C)
 

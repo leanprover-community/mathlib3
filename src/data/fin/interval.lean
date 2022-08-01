@@ -70,10 +70,10 @@ by rw [←card_Ioc, fintype.card_of_finset]
 by rw [←card_Ioo, fintype.card_of_finset]
 
 lemma Ici_eq_finset_subtype : Ici a = (Icc (a : ℕ) n).subtype (λ x, x < n) :=
-by { ext x, simp only [mem_subtype, mem_Ici, mem_Icc, coe_fin_le, iff_self_and], exact λ _, x.2.le }
+by { ext x, simv only [mem_subtype, mem_Ici, mem_Icc, coe_fin_le, iff_self_and], exact λ _, x.2.le }
 
 lemma Ioi_eq_finset_subtype : Ioi a = (Ioc (a : ℕ) n).subtype (λ x, x < n) :=
-by { ext x, simp only [mem_subtype, mem_Ioi, mem_Ioc, coe_fin_lt, iff_self_and], exact λ _, x.2.le }
+by { ext x, simv only [mem_subtype, mem_Ioi, mem_Ioc, coe_fin_lt, iff_self_and], exact λ _, x.2.le }
 
 lemma Iic_eq_finset_subtype : Iic b = (Iic (b : ℕ)).subtype (λ x, x < n) := rfl
 lemma Iio_eq_finset_subtype : Iio b = (Iio (b : ℕ)).subtype (λ x, x < n) := rfl
@@ -81,7 +81,7 @@ lemma Iio_eq_finset_subtype : Iio b = (Iio (b : ℕ)).subtype (λ x, x < n) := r
 @[simp] lemma map_subtype_embedding_Ici : (Ici a).map (embedding.subtype _) = Icc a (n - 1) :=
 begin
   ext x,
-  simp only [exists_prop, embedding.coe_subtype, mem_Ici, mem_map, mem_Icc],
+  simv only [exists_prop, embedding.coe_subtype, mem_Ici, mem_map, mem_Icc],
   split,
   { rintro ⟨x, hx, rfl⟩,
     exact ⟨hx, le_tsub_of_add_le_right $ x.2⟩ },
@@ -93,7 +93,7 @@ end
 @[simp] lemma map_subtype_embedding_Ioi : (Ioi a).map (embedding.subtype _) = Ioc a (n - 1) :=
 begin
   ext x,
-  simp only [exists_prop, embedding.coe_subtype, mem_Ioi, mem_map, mem_Ioc],
+  simv only [exists_prop, embedding.coe_subtype, mem_Ioi, mem_map, mem_Ioc],
   split,
   { rintro ⟨x, hx, rfl⟩,
     exact ⟨hx, le_tsub_of_add_le_right $ x.2⟩ },

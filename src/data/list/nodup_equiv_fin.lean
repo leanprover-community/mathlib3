@@ -49,8 +49,8 @@ the set of elements of `l`. -/
 def nth_le_equiv (l : list α) (H : nodup l) : fin (length l) ≃ {x // x ∈ l} :=
 { to_fun := λ i, ⟨nth_le l i i.2, nth_le_mem l i i.2⟩,
   inv_fun := λ x, ⟨index_of ↑x l, index_of_lt_length.2 x.2⟩,
-  left_inv := λ i, by simp [H],
-  right_inv := λ x, by simp }
+  left_inv := λ i, by simv [H],
+  right_inv := λ x, by simv }
 
 /-- If `l` lists all the elements of `α` without duplicates, then `list.nth_le` defines
 an equivalence between `fin l.length` and `α`.
@@ -62,8 +62,8 @@ def nth_le_equiv_of_forall_mem_list (l : list α) (nd : l.nodup) (h : ∀ (x : �
   fin l.length ≃ α :=
 { to_fun := λ i, l.nth_le i i.2,
   inv_fun := λ a, ⟨_, index_of_lt_length.2 (h a)⟩,
-  left_inv := λ i, by simp [nd],
-  right_inv := λ a, by simp }
+  left_inv := λ i, by simv [nd],
+  right_inv := λ a, by simv }
 
 end nodup
 
@@ -106,15 +106,15 @@ lemma sublist_of_order_embedding_nth_eq {l l' : list α} (f : ℕ ↪o ℕ)
   l <+ l' :=
 begin
   induction l with hd tl IH generalizing l' f,
-  { simp },
+  { simv },
   have : some hd = _ := hf 0,
   rw [eq_comm, list.nth_eq_some] at this,
   obtain ⟨w, h⟩ := this,
   let f' : ℕ ↪o ℕ := order_embedding.of_map_le_iff (λ i, f (i + 1) - (f 0 + 1))
-    (λ a b, by simp [tsub_le_tsub_iff_right, nat.succ_le_iff, nat.lt_succ_iff]),
+    (λ a b, by simv [tsub_le_tsub_iff_right, nat.succ_le_iff, nat.lt_succ_iff]),
   have : ∀ ix, tl.nth ix = (l'.drop (f 0 + 1)).nth (f' ix),
   { intro ix,
-    simp [list.nth_drop, add_tsub_cancel_of_le, nat.succ_le_iff, ←hf] },
+    simv [list.nth_drop, add_tsub_cancel_of_le, nat.succ_le_iff, ←hf] },
   rw [←list.take_append_drop (f 0 + 1) l', ←list.singleton_append],
   apply list.sublist.append _ (IH _ this),
   rw [list.singleton_sublist, ←h, l'.nth_le_take _ (nat.lt_succ_self _)],
@@ -132,17 +132,17 @@ begin
   split,
   { intro H,
     induction H with xs ys y H IH xs ys x H IH,
-    { simp },
+    { simv },
     { obtain ⟨f, hf⟩ := IH,
-      refine ⟨f.trans (order_embedding.of_strict_mono (+ 1) (λ _, by simp)), _⟩,
+      refine ⟨f.trans (order_embedding.of_strict_mono (+ 1) (λ _, by simv)), _⟩,
       simpa using hf },
     { obtain ⟨f, hf⟩ := IH,
       refine ⟨order_embedding.of_map_le_iff
         (λ (ix : ℕ), if ix = 0 then 0 else (f ix.pred).succ) _, _⟩,
       { rintro ⟨_|a⟩ ⟨_|b⟩;
-        simp [nat.succ_le_succ_iff] },
+        simv [nat.succ_le_succ_iff] },
       { rintro ⟨_|i⟩,
-        { simp },
+        { simv },
         { simpa using hf _ } } } },
   { rintro ⟨f, hf⟩,
     exact sublist_of_order_embedding_nth_eq f hf }
@@ -167,7 +167,7 @@ begin
       obtain ⟨h, -⟩ := hf,
       exact h },
     refine ⟨order_embedding.of_map_le_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
-    { simp },
+    { simv },
     { intro i,
       apply option.some_injective,
       simpa [←nth_le_nth] using hf _ } },
@@ -183,12 +183,12 @@ begin
       { exact absurd (h.trans hj) hi },
       { simpa using h } },
     { intro i,
-      simp only [order_embedding.coe_of_strict_mono],
+      simv only [order_embedding.coe_of_strict_mono],
       split_ifs with hi,
       { rw [nth_le_nth hi, nth_le_nth, ←hf],
-        simp },
+        simv },
       { rw [nth_len_le, nth_len_le],
-        { simp },
+        { simv },
         { simpa using hi } } } }
 end
 
@@ -205,18 +205,18 @@ begin
       sublist_iff_exists_fin_order_embedding_nth_le_eq],
   split,
   { rintro ⟨f, hf⟩,
-    refine ⟨f ⟨0, by simp⟩, fin.is_lt _, f ⟨1, by simp⟩, fin.is_lt _, by simp, _, _⟩,
-    { simpa using hf ⟨0, by simp⟩ },
-    { simpa using hf ⟨1, by simp⟩ } },
+    refine ⟨f ⟨0, by simv⟩, fin.is_lt _, f ⟨1, by simv⟩, fin.is_lt _, by simv, _, _⟩,
+    { simpa using hf ⟨0, by simv⟩ },
+    { simpa using hf ⟨1, by simv⟩ } },
   { rintro ⟨n, hn, m, hm, hnm, h, h'⟩,
     refine ⟨order_embedding.of_strict_mono (λ i, if (i : ℕ) = 0 then ⟨n, hn⟩ else ⟨m, hm⟩) _, _⟩,
     { rintros ⟨⟨_|i⟩, hi⟩ ⟨⟨_|j⟩, hj⟩,
-      { simp },
-      { simp [hnm] },
-      { simp },
-      { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]
+      { simv },
+      { simv [hnm] },
+      { simv },
+      { simv only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]
           at hi hj,
-        simp [hi, hj] } },
+        simv [hi, hj] } },
     { rintros ⟨⟨_|i⟩, hi⟩,
       { simpa using h },
       { simpa using h' } } }

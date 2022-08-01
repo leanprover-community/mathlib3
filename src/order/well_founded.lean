@@ -88,7 +88,7 @@ end
 
 theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
-by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
+by simv only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
 
 theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=

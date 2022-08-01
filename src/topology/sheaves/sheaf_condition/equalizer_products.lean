@@ -66,7 +66,7 @@ are given by the restriction maps from `U j` to `U i ⊓ U j`.
 def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
-@[simp, elementwise]
+@[simv, elementwise]
 lemma res_π (i : ι) : res F U ≫ limit.π _ ⟨i⟩ = F.map (opens.le_supr U i).op :=
 by rw [res, limit.lift_π, fan.mk_π_app]
 
@@ -75,7 +75,7 @@ lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
 begin
   dsimp [res, left_res, right_res],
   ext,
-  simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
+  simv only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
   rw [←F.map_comp],
   rw [←F.map_comp],
   congr,
@@ -124,10 +124,10 @@ nat_iso.of_components
   begin rintro ⟨⟩, exact pi_opens.iso_of_iso U α, exact pi_inters.iso_of_iso U α end
   begin
     rintro ⟨⟩ ⟨⟩ ⟨⟩,
-    { simp, },
-    { ext, simp [left_res], },
-    { ext, simp [right_res], },
-    { simp, },
+    { simv, },
+    { ext, simv [left_res], },
+    { ext, simv [right_res], },
+    { simv, },
   end.
 
 /--
@@ -142,8 +142,8 @@ begin
   fapply fork.ext,
   { apply α.app, },
   { ext,
-    dunfold fork.ι, -- Ugh, `simp` can't unfold abbreviations.
-    simp [res, diagram.iso_of_iso], }
+    dunfold fork.ι, -- Ugh, `simv` can't unfold abbreviations.
+    simv [res, diagram.iso_of_iso], }
 end
 
 section open_embedding
@@ -176,10 +176,10 @@ pi.map_iso (λ X, F.map_iso
     dsimp [is_open_map.functor],
     exact iso.op
     { hom := hom_of_le (by
-      { simp only [oe.to_embedding.inj, set.image_inter],
+      { simv only [oe.to_embedding.inj, set.image_inter],
         exact le_rfl, }),
       inv := hom_of_le (by
-      { simp only [oe.to_embedding.inj, set.image_inter],
+      { simv only [oe.to_embedding.inj, set.image_inter],
         exact le_rfl, }), },
   end)
 
@@ -194,10 +194,10 @@ nat_iso.of_components
   end
   begin
     rintro ⟨⟩ ⟨⟩ ⟨⟩,
-    { simp, },
+    { simv, },
     { ext,
       dsimp [left_res, is_open_map.functor],
-      simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
+      simv only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
         functor.map_iso_refl, functor.map_iso_hom, lim_map_π_assoc, limit.lift_map, fan.mk_π_app,
         nat_trans.comp_app, category.assoc],
       dsimp,
@@ -205,13 +205,13 @@ nat_iso.of_components
       refl, },
     { ext,
       dsimp [right_res, is_open_map.functor],
-      simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
+      simv only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
         functor.map_iso_refl, functor.map_iso_hom, lim_map_π_assoc, limit.lift_map, fan.mk_π_app,
         nat_trans.comp_app, category.assoc],
       dsimp,
       rw [category.id_comp, ←F.map_comp],
       refl, },
-    { simp, },
+    { simv, },
   end.
 
 /--
@@ -232,13 +232,13 @@ begin
     exact
     F.map_iso (iso.op
     { hom := hom_of_le
-      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      (by simv only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+      (by simv only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
   { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
-    simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
+    simv only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,
       fork_π_app_walking_parallel_pair_zero, pi_opens.iso_of_open_embedding,
       nat_iso.of_components_inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,

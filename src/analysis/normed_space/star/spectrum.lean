@@ -62,7 +62,7 @@ begin
   refine funext (λ n, _),
   rw [function.comp_app, nnnorm_pow_two_pow_of_self_adjoint ha, ennreal.coe_pow, ←rpow_nat_cast,
     ←rpow_mul],
-  simp,
+  simv,
 end
 
 lemma spectral_radius_eq_nnnorm_of_star_normal [norm_one_class A] (a : A) [is_star_normal a] :

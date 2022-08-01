@@ -86,7 +86,7 @@ lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subt
 
 @[simp]
 lemma subtype.order_iso_of_nat_apply {n : ℕ} : subtype.order_iso_of_nat s n = subtype.of_nat s n :=
-by simp [subtype.order_iso_of_nat]
+by simv [subtype.order_iso_of_nat]
 
 variable (s)
 
@@ -98,7 +98,7 @@ theorem exists_subseq_of_forall_mem_union {s t : set α} (e : ℕ → α) (he : 
 begin
   classical,
   have : infinite (e ⁻¹' s) ∨ infinite (e ⁻¹' t),
-    by simp only [set.infinite_coe_iff, ← set.infinite_union, ← set.preimage_union,
+    by simv only [set.infinite_coe_iff, ← set.infinite_union, ← set.preimage_union,
       set.eq_univ_of_forall (λ n, set.mem_preimage.2 (he n)), set.infinite_univ],
   casesI this,
   exacts [⟨nat.order_embedding_of_set (e ⁻¹' s), or.inl $ λ n, (nat.subtype.of_nat (e ⁻¹' s) _).2⟩,
@@ -128,7 +128,7 @@ begin
     have h : ∀ (n : ℕ), ∃ (n' : ℕ), n < n' ∧ r (f (n + m)) (f (n' + m)),
     { intro n,
       have h := hm _ (le_add_of_nonneg_left n.zero_le),
-      simp only [exists_prop, not_not, set.mem_set_of_eq, not_forall] at h,
+      simv only [exists_prop, not_not, set.mem_set_of_eq, not_forall] at h,
       obtain ⟨n', hn1, hn2⟩ := h,
       obtain ⟨x, hpos, rfl⟩ := exists_pos_add_of_lt hn1,
       refine ⟨n + x, add_lt_add_left hpos n, _⟩,
@@ -160,7 +160,7 @@ lemma well_founded.monotone_chain_condition' [preorder α] :
   well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → ¬ a n < a m :=
 begin
   refine ⟨λ h a, _, λ h, _⟩,
-  { have hne : (set.range a).nonempty := ⟨a 0, by simp⟩,
+  { have hne : (set.range a).nonempty := ⟨a 0, by simv⟩,
     obtain ⟨x, ⟨n, rfl⟩, H⟩ := h.has_min _ hne,
     exact ⟨n, λ m hm, H _ (set.mem_range_self _)⟩ },
   { refine rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ a, _⟩,
@@ -174,7 +174,7 @@ lemma well_founded.monotone_chain_condition [partial_order α] :
 well_founded.monotone_chain_condition'.trans $ begin
   congrm ∀ a, ∃ n, ∀ m (h : n ≤ m), (_ : Prop),
   rw lt_iff_le_and_ne,
-  simp [a.mono h]
+  simv [a.mono h]
 end
 
 /-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered

@@ -67,29 +67,29 @@ def eq_to_iso {n m : ℕ} (h : n = m) : X _[n] ≅ X _[m] :=
 X.map_iso (eq_to_iso (by rw h))
 
 @[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=
-by { ext, simp [eq_to_iso], }
+by { ext, simv [eq_to_iso], }
 
 
 /-- The generic case of the first simplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   X.δ j.succ ≫ X.δ i = X.δ i.cast_succ ≫ X.δ j :=
-by { dsimp [δ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ H] }
+by { dsimp [δ], simv only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ H] }
 
 /-- The special case of the first simplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : X.δ i.cast_succ ≫ X.δ i = X.δ i.succ ≫ X.δ i :=
-by { dsimp [δ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ_self] }
+by { dsimp [δ], simv only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ_self] }
 
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   X.σ j.succ ≫ X.δ i.cast_succ = X.δ i ≫ X.σ j :=
-by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_le H] }
+by { dsimp [δ, σ], simv only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_le H] }
 
 /-- The first part of the third simplicial identity -/
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
   X.σ i ≫ X.δ i.cast_succ = 𝟙 _ :=
 begin
   dsimp [δ, σ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_self, op_id, X.map_id],
+  simv only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_self, op_id, X.map_id],
 end
 
 /-- The second part of the third simplicial identity -/
@@ -97,18 +97,18 @@ lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
   X.σ i ≫ X.δ i.succ = 𝟙 _ :=
 begin
   dsimp [δ, σ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_succ, op_id, X.map_id],
+  simv only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_succ, op_id, X.map_id],
 end
 
 /-- The fourth simplicial identity -/
 lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
   X.σ j.cast_succ ≫ X.δ i.succ = X.δ i ≫ X.σ j :=
-by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_gt H] }
+by { dsimp [δ, σ], simv only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_gt H] }
 
 /-- The fifth simplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ j ≫ X.σ i.cast_succ = X.σ i ≫ X.σ j.succ :=
-by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
+by { dsimp [δ, σ], simv only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
 
 variable (C)
 
@@ -297,29 +297,29 @@ def eq_to_iso {n m : ℕ} (h : n = m) : X _[n] ≅ X _[m] :=
 X.map_iso (eq_to_iso (by rw h))
 
 @[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=
-by { ext, simp [eq_to_iso], }
+by { ext, simv [eq_to_iso], }
 
 
 /-- The generic case of the first cosimplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   X.δ i ≫ X.δ j.succ = X.δ j ≫ X.δ i.cast_succ :=
-by { dsimp [δ], simp only [←X.map_comp, simplex_category.δ_comp_δ H], }
+by { dsimp [δ], simv only [←X.map_comp, simplex_category.δ_comp_δ H], }
 
 /-- The special case of the first cosimplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : X.δ i ≫ X.δ i.cast_succ = X.δ i ≫ X.δ i.succ :=
-by { dsimp [δ], simp only [←X.map_comp, simplex_category.δ_comp_δ_self] }
+by { dsimp [δ], simv only [←X.map_comp, simplex_category.δ_comp_δ_self] }
 
 /-- The second cosimplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   X.δ i.cast_succ ≫ X.σ j.succ = X.σ j ≫ X.δ i :=
-by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.δ_comp_σ_of_le H] }
+by { dsimp [δ, σ], simv only [←X.map_comp, simplex_category.δ_comp_σ_of_le H] }
 
 /-- The first part of the third cosimplicial identity -/
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
   X.δ i.cast_succ ≫ X.σ i = 𝟙 _ :=
 begin
   dsimp [δ, σ],
-  simp only [←X.map_comp, simplex_category.δ_comp_σ_self, X.map_id],
+  simv only [←X.map_comp, simplex_category.δ_comp_σ_self, X.map_id],
 end
 
 /-- The second part of the third cosimplicial identity -/
@@ -327,18 +327,18 @@ lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
   X.δ i.succ ≫ X.σ i = 𝟙 _ :=
 begin
   dsimp [δ, σ],
-  simp only [←X.map_comp, simplex_category.δ_comp_σ_succ, X.map_id],
+  simv only [←X.map_comp, simplex_category.δ_comp_σ_succ, X.map_id],
 end
 
 /-- The fourth cosimplicial identity -/
 lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
   X.δ i.succ ≫ X.σ j.cast_succ = X.σ j ≫ X.δ i :=
-by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.δ_comp_σ_of_gt H] }
+by { dsimp [δ, σ], simv only [←X.map_comp, simplex_category.δ_comp_σ_of_gt H] }
 
 /-- The fifth cosimplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ i.cast_succ ≫ X.σ j = X.σ j.succ ≫ X.σ i :=
-by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.σ_comp_σ H] }
+by { dsimp [δ, σ], simv only [←X.map_comp, simplex_category.σ_comp_σ H] }
 
 variable (C)
 
@@ -525,14 +525,14 @@ object and back is isomorphic to the given object. -/
 @[simps]
 def simplicial_object.augmented.right_op_left_op_iso (X : simplicial_object.augmented C) :
   X.right_op.left_op ≅ X :=
-comma.iso_mk X.left.right_op_left_op_iso (eq_to_iso $ by simp) (by tidy)
+comma.iso_mk X.left.right_op_left_op_iso (eq_to_iso $ by simv) (by tidy)
 
 /-- Converting an augmented cosimplicial object to an augmented simplicial
 object and back is isomorphic to the given object. -/
 @[simps]
 def cosimplicial_object.augmented.left_op_right_op_iso (X : cosimplicial_object.augmented Cᵒᵖ) :
   X.left_op.right_op ≅ X :=
-comma.iso_mk (eq_to_iso $ by simp) X.right.left_op_right_op_iso (by tidy)
+comma.iso_mk (eq_to_iso $ by simv) X.right.left_op_right_op_iso (by tidy)
 
 variable (C)
 
@@ -579,7 +579,7 @@ def simplicial_cosimplicial_augmented_equiv :
     (λ X, X.unop.right_op_left_op_iso.op) begin
       intros X Y f,
       dsimp,
-      rw (show f = f.unop.op, by simp),
+      rw (show f = f.unop.op, by simv),
       simp_rw ← op_comp,
       congr' 1,
       tidy,

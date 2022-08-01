@@ -26,7 +26,7 @@ variable [monoid R]
 
 /--  Any power of a left-regular element is left-regular. -/
 lemma is_left_regular.pow (n : ℕ) (rla : is_left_regular a) : is_left_regular (a ^ n) :=
-by simp only [is_left_regular, ← mul_left_iterate, rla.iterate n]
+by simv only [is_left_regular, ← mul_left_iterate, rla.iterate n]
 
 /--  Any power of a right-regular element is right-regular. -/
 lemma is_right_regular.pow (n : ℕ) (rra : is_right_regular a) : is_right_regular (a ^ n) :=

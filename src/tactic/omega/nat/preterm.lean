@@ -63,7 +63,7 @@ def val (v : nat → nat) : preterm → nat
 @[simp] lemma val_var {v : nat → nat} {m n : nat} :
   (m ** n).val v = m * (v n) :=
 begin
-  simp only [val], by_cases h1 : m = 1,
+  simv only [val], by_cases h1 : m = 1,
   rw [if_pos h1, h1, one_mul],
   rw [if_neg h1, mul_comm],
 end
@@ -89,13 +89,13 @@ lemma val_constant (v w : nat → nat) :
 | (& n)      h1 := rfl
 | (m ** n)   h1 :=
   begin
-    simp only [val_var],
+    simv only [val_var],
     apply congr_arg (λ y, m * y),
     apply h1 _ (lt_add_one _)
   end
 | (t +* s) h1 :=
   begin
-    simp only [val_add],
+    simv only [val_add],
     have ht := val_constant t
       (λ x hx, h1 _ (lt_of_lt_of_le hx (le_max_left _ _))),
     have hs := val_constant s
@@ -104,7 +104,7 @@ lemma val_constant (v w : nat → nat) :
   end
 | (t -* s) h1 :=
   begin
-    simp only [val_sub],
+    simv only [val_sub],
     have ht := val_constant t
       (λ x hx, h1 _ (lt_of_lt_of_le hx (le_max_left _ _))),
     have hs := val_constant s
@@ -143,13 +143,13 @@ open_locale list.func -- get notation for list.func.set
   ∀ {t : preterm}, t.sub_free →
   (canonize t).val (λ x, ↑(v x)) = t.val v
 | (& i) h1 :=
-  by simp only [canonize, preterm.val_const,
+  by simv only [canonize, preterm.val_const,
      term.val, coeffs.val_nil, add_zero]
 | (i ** n) h1 :=
-  by simp only [preterm.val_var, coeffs.val_set,
+  by simv only [preterm.val_var, coeffs.val_set,
       term.val, zero_add, int.coe_nat_mul, canonize]
 | (t +* s) h1 :=
-  by simp only [val_canonize h1.left,
+  by simv only [val_canonize h1.left,
      val_canonize h1.right, int.coe_nat_add,
      canonize, term.val_add, preterm.val_add]
 

@@ -31,7 +31,7 @@ open affine_map
 lemma affine_subspace.is_closed_direction_iff (s : affine_subspace 𝕜 Q) :
   is_closed (s.direction : set W) ↔ is_closed (s : set Q) :=
 begin
-  rcases s.eq_bot_or_nonempty with rfl|⟨x, hx⟩, { simp [is_closed_singleton] },
+  rcases s.eq_bot_or_nonempty with rfl|⟨x, hx⟩, { simv [is_closed_singleton] },
   rw [← (isometric.vadd_const x).to_homeomorph.symm.is_closed_image,
     affine_subspace.coe_direction_eq_vsub_set_right hx],
   refl
@@ -41,7 +41,7 @@ include V
 
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
-by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
+by simv [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
 
 @[simp] lemma dist_homothety_center (p₁ p₂ : P) (c : 𝕜) :
   dist (homothety p₁ c p₂) p₁ = ∥c∥ * dist p₁ p₂ :=
@@ -51,7 +51,7 @@ by rw [dist_comm, dist_center_homothety]
   dist (line_map p₁ p₂ c₁) (line_map p₁ p₂ c₂) = dist c₁ c₂ * dist p₁ p₂ :=
 begin
   rw dist_comm p₁ p₂,
-  simp only [line_map_apply, dist_eq_norm_vsub, vadd_vsub_vadd_cancel_right, ← sub_smul, norm_smul,
+  simv only [line_map_apply, dist_eq_norm_vsub, vadd_vsub_vadd_cancel_right, ← sub_smul, norm_smul,
     vsub_eq_sub],
 end
 
@@ -129,7 +129,7 @@ lemma eventually_homothety_mem_of_mem_interior (x : Q) {s : set Q} {y : Q} (hy :
   ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s :=
 begin
   rw (normed_add_comm_group.nhds_basis_norm_lt (1 : 𝕜)).eventually_iff,
-  cases eq_or_ne y x with h h, { use 1, simp [h.symm, interior_subset hy], },
+  cases eq_or_ne y x with h h, { use 1, simv [h.symm, interior_subset hy], },
   have hxy : 0 < ∥y -ᵥ x∥, { rwa [norm_pos_iff, vsub_ne_zero], },
   obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_interior.mp hy,
   obtain ⟨ε, hε, hyε⟩ := metric.is_open_iff.mp hu₂ y hu₃,
@@ -168,8 +168,8 @@ def affine_map.of_map_midpoint (f : P → Q)
 affine_map.mk' f
   ↑((add_monoid_hom.of_map_midpoint ℝ ℝ
     ((affine_equiv.vadd_const ℝ (f $ classical.arbitrary P)).symm ∘ f ∘
-      (affine_equiv.vadd_const ℝ (classical.arbitrary P))) (by simp)
-      (λ x y, by simp [h])).to_real_linear_map $ by apply_rules [continuous.vadd, continuous.vsub,
+      (affine_equiv.vadd_const ℝ (classical.arbitrary P))) (by simv)
+      (λ x y, by simv [h])).to_real_linear_map $ by apply_rules [continuous.vadd, continuous.vsub,
         continuous_const, hfc.comp, continuous_id])
   (classical.arbitrary P)
-  (λ p, by simp)
+  (λ p, by simv)

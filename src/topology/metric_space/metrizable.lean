@@ -154,7 +154,7 @@ begin
   { intro UV,
     rcases exists_continuous_zero_one_of_closed is_closed_closure
       (hB.is_open UV.2.1.2).is_closed_compl (hd UV) with ⟨f, hf₀, hf₁, hf01⟩,
-    exact ⟨ε UV • f, λ x hx, by simp [hf₀ (subset_closure hx)], λ x hx, by simp [hf₁ hx],
+    exact ⟨ε UV • f, λ x hx, by simv [hf₀ (subset_closure hx)], λ x hx, by simv [hf₁ hx],
       λ x, ⟨mul_nonneg (ε01 _).1.le (hf01 _).1, mul_le_of_le_one_right (ε01 _).1.le (hf01 _).2⟩⟩ },
   choose f hf0 hfε hf0ε,
   have hf01 : ∀ UV x, f UV x ∈ Icc (0 : ℝ) 1,

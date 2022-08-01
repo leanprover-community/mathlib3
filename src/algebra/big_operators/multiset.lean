@@ -30,53 +30,53 @@ variables [comm_monoid α] {s t : multiset α} {a : α} {m : multiset ι} {f g :
   `prod {a, b, c} = a * b * c` -/
 @[to_additive "Sum of a multiset given a commutative additive monoid structure on `α`.
   `sum {a, b, c} = a + b + c`"]
-def prod : multiset α → α := foldr (*) (λ x y z, by simp [mul_left_comm]) 1
+def prod : multiset α → α := foldr (*) (λ x y z, by simv [mul_left_comm]) 1
 
 @[to_additive]
-lemma prod_eq_foldr (s : multiset α) : prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s :=
+lemma prod_eq_foldr (s : multiset α) : prod s = foldr (*) (λ x y z, by simv [mul_left_comm]) 1 s :=
 rfl
 
 @[to_additive]
-lemma prod_eq_foldl (s : multiset α) : prod s = foldl (*) (λ x y z, by simp [mul_right_comm]) 1 s :=
-(foldr_swap _ _ _ _).trans (by simp [mul_comm])
+lemma prod_eq_foldl (s : multiset α) : prod s = foldl (*) (λ x y z, by simv [mul_right_comm]) 1 s :=
+(foldr_swap _ _ _ _).trans (by simv [mul_comm])
 
-@[simp, norm_cast, to_additive] lemma coe_prod (l : list α) : prod ↑l = l.prod := prod_eq_foldl _
+@[simv, norm_cast, to_additive] lemma coe_prod (l : list α) : prod ↑l = l.prod := prod_eq_foldl _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_to_list (s : multiset α) : s.to_list.prod = s.prod :=
 begin
   conv_rhs { rw ←coe_to_list s },
   rw coe_prod,
 end
 
-@[simp, to_additive] lemma prod_zero : @prod α _ 0 = 1 := rfl
+@[simv, to_additive] lemma prod_zero : @prod α _ 0 = 1 := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _ _ _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_erase [decidable_eq α] (h : a ∈ s) : a * (s.erase a).prod = s.prod :=
 by rw [← s.coe_to_list, coe_erase, coe_prod, coe_prod, list.prod_erase ((s.mem_to_list a).2 h)]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=
-by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
+by simv only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
 
 @[to_additive]
 lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
 by rw [insert_eq_cons, prod_cons, prod_singleton]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_add (s t : multiset α) : prod (s + t) = prod s * prod t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, by simp
+quotient.induction_on₂ s t $ λ l₁ l₂, by simv
 
 lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 | 0       := by { rw [zero_nsmul, pow_zero], refl }
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
-@[simp, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
-by simp [repeat, list.prod_repeat]
+@[simv, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
+by simv [repeat, list.prod_repeat]
 
 @[to_additive]
 lemma pow_count [decidable_eq α] (a : α) : a ^ s.count a = (s.filter (eq a)).prod :=
@@ -85,7 +85,7 @@ by rw [filter_eq, prod_repeat]
 @[to_additive]
 lemma prod_hom [comm_monoid β] (s : multiset α) {F : Type*} [monoid_hom_class F α β] (f : F) :
   (s.map f).prod = f s.prod :=
-quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
+quotient.induction_on s $ λ l, by simv only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
 lemma prod_hom' [comm_monoid β] (s : multiset ι) {F : Type*} [monoid_hom_class F α β] (f : F)
@@ -97,19 +97,19 @@ lemma prod_hom₂ [comm_monoid β] [comm_monoid γ] (s : multiset ι) (f : α �
   (hf : ∀ a b c d, f (a * b) (c * d) = f a c * f b d) (hf' : f 1 1 = 1) (f₁ : ι → α) (f₂ : ι → β) :
   (s.map $ λ i, f (f₁ i) (f₂ i)).prod = f (s.map f₁).prod (s.map f₂).prod :=
 quotient.induction_on s $ λ l,
-  by simp only [l.prod_hom₂ f hf hf', quot_mk_to_coe, coe_map, coe_prod]
+  by simv only [l.prod_hom₂ f hf hf', quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid β] (s : multiset ι) {r : α → β → Prop} {f : ι → α} {g : ι → β}
   (h₁ : r 1 1) (h₂ : ∀ ⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
   r (s.map f).prod (s.map g).prod :=
 quotient.induction_on s $ λ l,
-  by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
+  by simv only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
 lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod_repeat, one_pow]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
 m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
@@ -120,7 +120,7 @@ m.prod_hom' (pow_monoid_hom n : α →* α) f
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :
   prod (m.map $ λ a, prod $ n.map $ λ b, f a b) = prod (n.map $ λ b, prod $ m.map $ λ a, f a b) :=
-multiset.induction_on m (by simp) (λ a m ih, by simp [ih])
+multiset.induction_on m (by simv) (λ a m ih, by simv [ih])
 
 @[to_additive]
 lemma prod_induction (p : α → Prop) (s : multiset α) (p_mul : ∀ a b, p a → p b → p (a * b))
@@ -128,7 +128,7 @@ lemma prod_induction (p : α → Prop) (s : multiset α) (p_mul : ∀ a b, p a �
   p s.prod :=
 begin
   rw prod_eq_foldr,
-  exact foldr_induction (*) (λ x y z, by simp [mul_left_comm]) 1 p s p_mul p_one p_s,
+  exact foldr_induction (*) (λ x y z, by simv [mul_left_comm]) 1 p s p_mul p_one p_s,
 end
 
 @[to_additive]
@@ -144,7 +144,7 @@ begin
   intros a s hs hsa hpsa,
   rw prod_cons,
   by_cases hs_empty : s = ∅,
-  { simp [hs_empty, hpsa a] },
+  { simv [hs_empty, hpsa a] },
   have hps : ∀ x, x ∈ s → p x, from λ x hxs, hpsa x (mem_cons_of_mem hxs),
   exact p_mul a s.prod (hpsa a (mem_cons_self a s)) (hs hs_empty hps),
 end
@@ -153,7 +153,7 @@ lemma dvd_prod : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
 lemma prod_dvd_prod_of_le (h : s ≤ t) : s.prod ∣ t.prod :=
-by { obtain ⟨z, rfl⟩ := exists_add_of_le h, simp only [prod_add, dvd_mul_right] }
+by { obtain ⟨z, rfl⟩ := exists_add_of_le h, simv only [prod_add, dvd_mul_right] }
 
 end comm_monoid
 
@@ -161,9 +161,9 @@ lemma prod_dvd_prod_of_dvd [comm_monoid β] {S : multiset α} (g1 g2 : α → β
   (h : ∀ a ∈ S, g1 a ∣ g2 a) :
   (multiset.map g1 S).prod ∣ (multiset.map g2 S).prod :=
 begin
-  apply multiset.induction_on' S, { simp },
+  apply multiset.induction_on' S, { simv },
   intros a T haS _ IH,
-  simp [mul_dvd_mul (h a haS) IH]
+  simv [mul_dvd_mul (h a haS) IH]
 end
 
 
@@ -187,7 +187,7 @@ variables [comm_monoid_with_zero α]
 lemma prod_eq_zero {s : multiset α} (h : (0 : α) ∈ s) : s.prod = 0 :=
 begin
   rcases multiset.exists_cons_of_mem h with ⟨s', hs'⟩,
-  simp [hs', multiset.prod_cons]
+  simv [hs', multiset.prod_cons]
 end
 
 variables [no_zero_divisors α] [nontrivial α] {s : multiset α}
@@ -205,10 +205,10 @@ variables [division_comm_monoid α] {m : multiset ι} {f g : ι → α}
 @[to_additive] lemma prod_map_inv' (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
 m.prod_hom (inv_monoid_hom : α →* α)
 
-@[simp, to_additive] lemma prod_map_inv : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
+@[simv, to_additive] lemma prod_map_inv : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
 by { convert (m.map f).prod_map_inv', rw map_map }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
 m.prod_hom₂ (/) mul_div_mul_comm (div_one _) _ _
 
@@ -234,10 +234,10 @@ lemma _root_.commute.multiset_sum_left (s : multiset α) (b : α) (h : ∀ a ∈
 (commute.multiset_sum_right _ _ $ λ a ha, (h _ ha).symm).symm
 
 lemma sum_map_mul_left : sum (s.map (λ i, a * f i)) = a * sum (s.map f) :=
-multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])
+multiset.induction_on s (by simv) (λ i s ih, by simv [ih, mul_add])
 
 lemma sum_map_mul_right : sum (s.map (λ i, f i * a)) = sum (s.map f) * a :=
-multiset.induction_on s (by simp) (λ a s ih, by simp [ih, add_mul])
+multiset.induction_on s (by simv) (λ a s ih, by simv [ih, add_mul])
 
 end non_unital_non_assoc_semiring
 
@@ -276,7 +276,7 @@ lemma all_one_of_le_one_le_of_prod_eq_one :
   (∀ x ∈ s, (1 : α) ≤ x) → s.prod = 1 → ∀ x ∈ s, x = (1 : α) :=
 begin
   apply quotient.induction_on s,
-  simp only [quot_mk_to_coe, coe_prod, mem_coe],
+  simv only [quot_mk_to_coe, coe_prod, mem_coe],
   exact λ l, list.all_one_of_le_one_le_of_prod_eq_one,
 end
 
@@ -337,7 +337,7 @@ lemma le_prod_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid
 begin
   revert s,
   refine multiset.induction _ _,
-  { simp [le_of_eq h_one] },
+  { simv [le_of_eq h_one] },
   intros a s hs hpsa,
   have hps : ∀ x, x ∈ s → p x, from λ x hx, hpsa x (mem_cons_of_mem hx),
   have hp_prod : p s.prod, from prod_induction p s hp_mul hp_one hps,
@@ -349,8 +349,8 @@ end
 lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_one : f 1 = 1) (h_mul : ∀ a b, f (a * b) ≤ f a * f b) (s : multiset α) :
   f s.prod ≤ (s.map f).prod :=
-le_prod_of_submultiplicative_on_pred f (λ i, true) h_one trivial (λ x y _ _ , h_mul x y) (by simp)
-  s (by simp)
+le_prod_of_submultiplicative_on_pred f (λ i, true) h_one trivial (λ x y _ _ , h_mul x y) (by simv)
+  s (by simv)
 
 @[to_additive le_sum_nonempty_of_subadditive_on_pred]
 lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
@@ -367,7 +367,7 @@ begin
   rintros a s hs hsa_nonempty hsa_prop,
   rw [prod_cons, map_cons, prod_cons],
   by_cases hs_empty : s = ∅,
-  { simp [hs_empty] },
+  { simv [hs_empty] },
   have hsa_restrict : (∀ x, x ∈ s → p x), from λ x hx, hsa_prop x (mem_cons_of_mem hx),
   have hp_sup : p s.prod,
     from prod_induction_nonempty p hp_mul hs_empty hsa_restrict,
@@ -379,11 +379,11 @@ end
 lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_mul : ∀ a b, f (a * b) ≤ f a * f b) (s : multiset α) (hs_nonempty : s ≠ ∅) :
   f s.prod ≤ (s.map f).prod :=
-le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) s
-  hs_nonempty (by simp)
+le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simv [h_mul]) (by simv) s
+  hs_nonempty (by simv)
 
 @[simp] lemma sum_map_singleton (s : multiset α) : (s.map (λ a, ({a} : multiset α))).sum = s :=
-multiset.induction_on s (by simp) (by simp [singleton_eq_cons])
+multiset.induction_on s (by simv) (by simv [singleton_eq_cons])
 
 lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

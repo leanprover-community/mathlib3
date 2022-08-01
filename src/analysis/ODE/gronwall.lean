@@ -51,13 +51,13 @@ lemma has_deriv_at_gronwall_bound (δ K ε x : ℝ) :
 begin
   by_cases hK : K = 0,
   { subst K,
-    simp only [gronwall_bound_K0, zero_mul, zero_add],
+    simv only [gronwall_bound_K0, zero_mul, zero_add],
     convert ((has_deriv_at_id x).const_mul ε).const_add δ,
     rw [mul_one] },
-  { simp only [gronwall_bound_of_K_ne_0 hK],
+  { simv only [gronwall_bound_of_K_ne_0 hK],
     convert (((has_deriv_at_id x).const_mul K).exp.const_mul δ).add
       ((((has_deriv_at_id x).const_mul K).exp.sub_const 1).const_mul (ε / K)) using 1,
-    simp only [id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K, mul_div_cancel' _ hK],
+    simv only [id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K, mul_div_cancel' _ hK],
     ring }
 end
 
@@ -71,26 +71,26 @@ end
 lemma gronwall_bound_x0 (δ K ε : ℝ) : gronwall_bound δ K ε 0 = δ :=
 begin
   by_cases hK : K = 0,
-  { simp only [gronwall_bound, if_pos hK, mul_zero, add_zero] },
-  { simp only [gronwall_bound, if_neg hK, mul_zero, exp_zero, sub_self, mul_one, add_zero] }
+  { simv only [gronwall_bound, if_pos hK, mul_zero, add_zero] },
+  { simv only [gronwall_bound, if_neg hK, mul_zero, exp_zero, sub_self, mul_one, add_zero] }
 end
 
 lemma gronwall_bound_ε0 (δ K x : ℝ) : gronwall_bound δ K 0 x = δ * exp (K * x) :=
 begin
   by_cases hK : K = 0,
-  { simp only [gronwall_bound_K0, hK, zero_mul, exp_zero, add_zero, mul_one] },
-  { simp only [gronwall_bound_of_K_ne_0 hK, zero_div, zero_mul, add_zero] }
+  { simv only [gronwall_bound_K0, hK, zero_mul, exp_zero, add_zero, mul_one] },
+  { simv only [gronwall_bound_of_K_ne_0 hK, zero_div, zero_mul, add_zero] }
 end
 
 lemma gronwall_bound_ε0_δ0 (K x : ℝ) : gronwall_bound 0 K 0 x = 0 :=
-by simp only [gronwall_bound_ε0, zero_mul]
+by simv only [gronwall_bound_ε0, zero_mul]
 
 lemma gronwall_bound_continuous_ε (δ K x : ℝ) : continuous (λ ε, gronwall_bound δ K ε x) :=
 begin
   by_cases hK : K = 0,
-  { simp only [gronwall_bound_K0, hK],
+  { simv only [gronwall_bound_K0, hK],
     exact continuous_const.add (continuous_id.mul continuous_const) },
-  { simp only [gronwall_bound_of_K_ne_0 hK],
+  { simv only [gronwall_bound_of_K_ne_0 hK],
     exact continuous_const.add ((continuous_id.mul continuous_const).mul continuous_const) }
 end
 
@@ -123,7 +123,7 @@ begin
   assume x hx,
   change f x ≤ (λ ε', gronwall_bound δ K ε' (x - a)) ε,
   convert continuous_within_at_const.closure_le _ _ (H x hx),
-  { simp only [closure_Ioi, left_mem_Ici] },
+  { simv only [closure_Ioi, left_mem_Ici] },
   exact (gronwall_bound_continuous_ε δ K (x - a)).continuous_within_at
 end
 
@@ -158,7 +158,7 @@ theorem dist_le_of_approx_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s :
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 begin
-  simp only [dist_eq_norm] at ha ⊢,
+  simv only [dist_eq_norm] at ha ⊢,
   have h_deriv : ∀ t ∈ Ico a b, has_deriv_within_at (λ t, f t - g t) (f' t - g' t) (Ici t) t,
     from λ t ht, (hf' t ht).sub (hg' t ht),
   apply norm_le_gronwall_bound_of_norm_deriv_right_le (hf.sub hg) h_deriv ha,

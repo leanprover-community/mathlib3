@@ -167,10 +167,10 @@ instance : non_unital_non_assoc_semiring (⨁ i, A i) :=
 { mul := λ a b, mul_hom A a b,
   zero := 0,
   add := (+),
-  zero_mul := λ a, by simp only [add_monoid_hom.map_zero, add_monoid_hom.zero_apply],
-  mul_zero := λ a, by simp only [add_monoid_hom.map_zero],
-  left_distrib := λ a b c, by simp only [add_monoid_hom.map_add],
-  right_distrib := λ a b c, by simp only [add_monoid_hom.map_add, add_monoid_hom.add_apply],
+  zero_mul := λ a, by simv only [add_monoid_hom.map_zero, add_monoid_hom.zero_apply],
+  mul_zero := λ a, by simv only [add_monoid_hom.map_zero],
+  left_distrib := λ a b c, by simv only [add_monoid_hom.map_add],
+  right_distrib := λ a b c, by simv only [add_monoid_hom.map_add, add_monoid_hom.add_apply],
   .. direct_sum.add_comm_monoid _ _}
 
 variables {A}
@@ -253,9 +253,9 @@ lemma of_list_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) 
   of A _ (l.dprod fι fA) = (l.map $ λ a, of A (fι a) (fA a)).prod :=
 begin
   induction l,
-  { simp only [list.map_nil, list.prod_nil, list.dprod_nil],
+  { simv only [list.map_nil, list.prod_nil, list.dprod_nil],
     refl },
-  { simp only [list.map_cons, list.prod_cons, list.dprod_cons, ←l_ih, direct_sum.of_mul_of],
+  { simv only [list.map_cons, list.prod_cons, list.dprod_cons, ←l_ih, direct_sum.of_mul_of],
     refl },
 end
 
@@ -274,7 +274,7 @@ lemma mul_eq_sum_support_ghas_mul
 begin
   change direct_sum.mul_hom _ a a' = _,
   dsimp [direct_sum.mul_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
-  simp only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
+  simv only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
     add_monoid_hom.coe_finset_sum, finset.sum_apply, add_monoid_hom.flip_apply,
     add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
     direct_sum.gmul_hom_apply_apply],
@@ -569,11 +569,11 @@ def lift_ring_hom :
 { to_fun := λ f, to_semiring f.1 f.2.1 f.2.2,
   inv_fun := λ F,
     ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of _ i), begin
-      simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
+      simv only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
       rw ←F.map_one,
       refl
     end, λ i j ai aj, begin
-      simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
+      simv only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
       rw [←F.map_mul, of_mul_of],
     end⟩,
   left_inv := λ f, begin
@@ -583,7 +583,7 @@ def lift_ring_hom :
   right_inv := λ F, begin
     apply ring_hom.coe_add_monoid_hom_injective,
     ext xi xv,
-    simp only [ring_hom.coe_add_monoid_hom_mk,
+    simv only [ring_hom.coe_add_monoid_hom_mk,
       direct_sum.to_add_monoid_of,
       add_monoid_hom.mk_coe,
       add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],

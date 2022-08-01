@@ -186,7 +186,7 @@ by { ext, unfold linear_map.det,
 
 end
 
--- Auxiliary lemma, the `simp` normal form goes in the other direction
+-- Auxiliary lemma, the `simv` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
 lemma det_eq_det_to_matrix_of_finset [decidable_eq M]
   {s : finset M} (b : basis s A M) (f : M →ₗ[A] M) :
@@ -204,7 +204,7 @@ by { haveI := classical.dec_eq M,
 @[simp] lemma det_to_matrix' {ι : Type*} [fintype ι] [decidable_eq ι]
   (f : (ι → A) →ₗ[A] (ι → A)) :
   det f.to_matrix' = f.det :=
-by simp [← to_matrix_eq_to_matrix']
+by simv [← to_matrix_eq_to_matrix']
 
 @[simp] lemma det_to_lin (b : basis ι R M) (f : matrix ι ι R) :
   linear_map.det (matrix.to_lin b b f) = f.det :=
@@ -239,11 +239,11 @@ begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
   { haveI : finite_dimensional 𝕜 M,
     { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
-    simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
+    simv only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
               fintype.card_fin, det_smul] },
   { classical,
     have : finite_dimensional.finrank 𝕜 M = 0 := finrank_eq_zero_of_not_exists_basis H,
-    simp [coe_det, H, this] }
+    simv [coe_det, H, this] }
 end
 
 lemma det_zero' {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
@@ -257,7 +257,7 @@ and `0` otherwise. We give a formula that also works in infinite dimension, wher
 the determinant to be `1`. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
-by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
+by simv only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
 
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
@@ -277,7 +277,7 @@ begin
     { contrapose! H,
       rcases H with ⟨s, ⟨b⟩⟩,
       exact ⟨_, ⟨(b.map e.symm).reindex_finset_range⟩⟩ },
-    simp only [coe_det, H, H', pi.one_apply, dif_neg, not_false_iff] }
+    simv only [coe_det, H, H', pi.one_apply, dif_neg, not_false_iff] }
 end
 
 /-- If a linear map is invertible, so is its determinant. -/
@@ -286,7 +286,7 @@ lemma is_unit_det {A : Type*} [comm_ring A] [module A M]
 begin
   obtain ⟨g, hg⟩ : ∃ g, f.comp g = 1 := hf.exists_right_inv,
   have : linear_map.det f * linear_map.det g = 1,
-    by simp only [← linear_map.det_comp, hg, monoid_hom.map_one],
+    by simv only [← linear_map.det_comp, hg, monoid_hom.map_one],
   exact is_unit_of_mul_eq_one _ _ this,
 end
 
@@ -297,7 +297,7 @@ begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
   { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
   { classical,
-    simp [linear_map.coe_det, H] at hf,
+    simv [linear_map.coe_det, H] at hf,
     exact hf.elim }
 end
 
@@ -305,9 +305,9 @@ end
 lemma range_lt_top_of_det_eq_zero {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
   {f : M →ₗ[𝕜] M} (hf : f.det = 0) : f.range < ⊤ :=
 begin
-  haveI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
+  haveI : finite_dimensional 𝕜 M, by simv [f.finite_dimensional_of_det_ne_one, hf],
   contrapose hf,
-  simp only [lt_top_iff_ne_top, not_not, ← is_unit_iff_range_eq_top] at hf,
+  simv only [lt_top_iff_ne_top, not_not, ← is_unit_iff_range_eq_top] at hf,
   exact is_unit_iff_ne_zero.1 (f.is_unit_det hf)
 end
 
@@ -315,9 +315,9 @@ end
 lemma bot_lt_ker_of_det_eq_zero {𝕜 : Type*} [field 𝕜] [module 𝕜 M]
   {f : M →ₗ[𝕜] M} (hf : f.det = 0) : ⊥ < f.ker :=
 begin
-  haveI : finite_dimensional 𝕜 M, by simp [f.finite_dimensional_of_det_ne_one, hf],
+  haveI : finite_dimensional 𝕜 M, by simv [f.finite_dimensional_of_det_ne_one, hf],
   contrapose hf,
-  simp only [bot_lt_iff_ne_bot, not_not, ← is_unit_iff_ker_eq_bot] at hf,
+  simv only [bot_lt_iff_ne_bot, not_not, ← is_unit_iff_ker_eq_bot] at hf,
   exact is_unit_iff_ne_zero.1 (f.is_unit_det hf)
 end
 
@@ -349,12 +349,12 @@ end linear_equiv
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
 @[simp] lemma linear_equiv.det_mul_det_symm {A : Type*} [comm_ring A] [module A M]
   (f : M ≃ₗ[A] M) : (f : M →ₗ[A] M).det * (f.symm : M →ₗ[A] M).det = 1 :=
-by simp [←linear_map.det_comp]
+by simv [←linear_map.det_comp]
 
 /-- The determinants of a `linear_equiv` and its inverse multiply to 1. -/
 @[simp] lemma linear_equiv.det_symm_mul_det {A : Type*} [comm_ring A] [module A M]
   (f : M ≃ₗ[A] M) : (f.symm : M →ₗ[A] M).det * (f : M →ₗ[A] M).det = 1 :=
-by simp [←linear_map.det_comp]
+by simv [←linear_map.det_comp]
 
 -- Cannot be stated using `linear_map.det` because `f` is not an endomorphism.
 lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (v : basis ι R M) (v' : basis ι R M') :
@@ -386,12 +386,12 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : ba
     calc to_lin v' v (to_matrix v v' f)⁻¹ (f x)
         = to_lin v v ((to_matrix v v' f)⁻¹ ⬝ to_matrix v v' f) x :
       by { rw [to_lin_mul v v' v, to_lin_to_matrix, linear_map.comp_apply] }
-    ... = x : by simp [h],
+    ... = x : by simv [h],
   right_inv := λ x,
     calc f (to_lin v' v (to_matrix v v' f)⁻¹ x)
         = to_lin v' v' (to_matrix v v' f ⬝ (to_matrix v v' f)⁻¹) x :
       by { rw [to_lin_mul v' v v', linear_map.comp_apply, to_lin_to_matrix v v'] }
-    ... = x : by simp [h] }
+    ... = x : by simv [h] }
 
 @[simp] lemma linear_equiv.coe_of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : basis ι R M'}
   (h : is_unit (linear_map.to_matrix v v' f).det) :
@@ -406,7 +406,7 @@ determinant is nonzero. -/
   M ≃ₗ[𝕜] M :=
 have is_unit (linear_map.to_matrix (finite_dimensional.fin_basis 𝕜 M)
   (finite_dimensional.fin_basis 𝕜 M) f).det :=
-    by simp only [linear_map.det_to_matrix, is_unit_iff_ne_zero.2 hf],
+    by simv only [linear_map.det_to_matrix, is_unit_iff_ne_zero.2 hf],
 linear_equiv.of_is_unit_det this
 
 lemma linear_map.associated_det_of_eq_comp (e : M ≃ₗ[R] M) (f f' : M →ₗ[R] M)
@@ -424,7 +424,7 @@ lemma linear_map.associated_det_comp_equiv {N : Type*} [add_comm_group N] [modul
 begin
   refine linear_map.associated_det_of_eq_comp (e.trans e'.symm) _ _ _,
   intro x,
-  simp only [linear_map.comp_apply, linear_equiv.coe_coe, linear_equiv.trans_apply,
+  simv only [linear_map.comp_apply, linear_equiv.coe_coe, linear_equiv.trans_apply,
              linear_equiv.apply_symm_apply],
 end
 
@@ -434,12 +434,12 @@ def basis.det : alternating_map R M R ι :=
 { to_fun := λ v, det (e.to_matrix v),
   map_add' := begin
     intros v i x y,
-    simp only [e.to_matrix_update, linear_equiv.map_add],
+    simv only [e.to_matrix_update, linear_equiv.map_add],
     apply det_update_column_add
   end,
   map_smul' := begin
     intros u i c x,
-    simp only [e.to_matrix_update, algebra.id.smul_eq_mul, linear_equiv.map_smul],
+    simv only [e.to_matrix_update, algebra.id.smul_eq_mul, linear_equiv.map_smul],
     apply det_update_column_smul
   end,
   map_eq_zero_of_eq' := begin
@@ -453,7 +453,7 @@ def basis.det : alternating_map R M R ι :=
 lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 
 lemma basis.det_self : e.det e = 1 :=
-by simp [e.det_apply]
+by simv [e.det_apply]
 
 /-- `basis.det` is not the zero map. -/
 lemma basis.det_ne_zero [nontrivial R] : e.det ≠ 0 :=
@@ -468,7 +468,7 @@ begin
     rw e.det_apply,
     convert linear_equiv.is_unit_det (linear_equiv.refl _ _) v' e using 2,
     ext i j,
-    simp },
+    simv },
   { intro h,
     rw [basis.det_apply, basis.to_matrix_eq_to_matrix_constr] at h,
     set v' := basis.map e (linear_equiv.of_is_unit_det h) with v'_def,
@@ -488,7 +488,7 @@ begin
   refine basis.ext_alternating e (λ i h, _),
   let σ : equiv.perm ι := equiv.of_bijective i (fintype.injective_iff_bijective.1 h),
   change f (e ∘ σ) = (f e • e.det) (e ∘ σ),
-  simp [alternating_map.map_perm, basis.det_self]
+  simv [alternating_map.map_perm, basis.det_self]
 end
 
 @[simp] lemma alternating_map.map_basis_eq_zero_iff (f : alternating_map R M R ι) :
@@ -541,16 +541,16 @@ begin
   apply (basis.mk hli hsp).ext,
   intros k,
   rcases eq_or_ne k i with rfl | hik;
-  simp only [algebra.id.smul_eq_mul, basis.coe_mk, linear_map.smul_apply, linear_map.coe_mk,
+  simv only [algebra.id.smul_eq_mul, basis.coe_mk, linear_map.smul_apply, linear_map.coe_mk,
     multilinear_map.to_linear_map_apply],
   { rw [basis.mk_coord_apply_eq, mul_one, update_eq_self], congr, },
   { rw [basis.mk_coord_apply_ne hik, mul_zero, eq_comm],
-    exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
+    exact e.det.map_eq_zero_of_eq _ (by simv [hik, function.update_apply]) hik, },
 end
 
 /-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
 @[simp] lemma basis.det_units_smul (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
-by simp [basis.det_apply]
+by simv [basis.det_apply]
 
 /-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
 @[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :

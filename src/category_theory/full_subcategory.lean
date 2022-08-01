@@ -138,7 +138,7 @@ def full_subcategory.lift (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) : C ⥤ {X // 
     `full_subcategory.inclusion_obj_lift_obj` and `full_subcategory.inclusion_map_lift_map`. -/
 def full_subcategory.lift_comp_inclusion (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) :
   full_subcategory.lift P F hF ⋙ full_subcategory_inclusion P ≅ F :=
-nat_iso.of_components (λ X, iso.refl _) (by simp)
+nat_iso.of_components (λ X, iso.refl _) (by simv)
 
 @[simp]
 lemma full_subcategory.inclusion_obj_lift_obj (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) {X : C} :

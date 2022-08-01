@@ -57,7 +57,7 @@ structure glue_data :=
 (t_fac : ∀ i j k, t' i j k ≫ pullback.snd = pullback.fst ≫ t i j)
 (cocycle : ∀ i j k , t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _)
 
-attribute [simp] glue_data.t_id
+attribute [simv] glue_data.t_id
 attribute [instance] glue_data.f_id glue_data.f_mono glue_data.f_has_pullback
 attribute [reassoc] glue_data.t_fac glue_data.cocycle
 
@@ -77,19 +77,19 @@ begin
 end
 
 lemma t'_jii (i j : D.J) : D.t' j i i = pullback.fst ≫ D.t j i ≫ inv pullback.snd :=
-by { rw [←category.assoc, ←D.t_fac], simp }
+by { rw [←category.assoc, ←D.t_fac], simv }
 
 lemma t'_iji (i j : D.J) : D.t' i j i = pullback.fst ≫ D.t i j ≫ inv pullback.snd :=
-by { rw [←category.assoc, ←D.t_fac], simp }
+by { rw [←category.assoc, ←D.t_fac], simv }
 
-@[simp, reassoc, elementwise] lemma t_inv (i j : D.J) :
+@[simv, reassoc, elementwise] lemma t_inv (i j : D.J) :
   D.t i j ≫ D.t j i = 𝟙 _ :=
 begin
   have eq : (pullback_symmetry (D.f i i) (D.f i j)).hom = pullback.snd ≫ inv pullback.fst,
-  { simp },
+  { simv },
   have := D.cocycle i j i,
   rw [D.t'_iij, D.t'_jii, D.t'_iji, fst_eq_snd_of_mono_eq, eq] at this,
-  simp only [category.assoc, is_iso.inv_hom_id_assoc] at this,
+  simv only [category.assoc, is_iso.inv_hom_id_assoc] at this,
   rw [←is_iso.eq_inv_comp, ←category.assoc, is_iso.comp_inv_eq] at this,
   simpa using this,
 end
@@ -98,7 +98,7 @@ lemma t'_inv (i j k : D.J) : D.t' i j k ≫ (pullback_symmetry _ _).hom ≫
   D.t' j i k ≫ (pullback_symmetry _ _).hom = 𝟙 _ :=
 begin
   rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
-  simp [t_fac, t_fac_assoc]
+  simv [t_fac, t_fac_assoc]
 end
 
 instance t_is_iso (i j : D.J) : is_iso (D.t i j) :=
@@ -115,7 +115,7 @@ begin
   transitivity inv (D.t' i j k),
   { exact is_iso.eq_inv_of_hom_inv_id (D.cocycle _ _ _) },
   { rw ← cancel_mono (pullback.fst : pullback (D.f i j) (D.f i k) ⟶ _),
-    simp [t_fac, t_fac_assoc] }
+    simv [t_fac, t_fac_assoc] }
 end
 
 /-- (Implementation) The disjoint union of `U i`. -/
@@ -149,7 +149,7 @@ def glued : C := multicoequalizer D.diagram
 def ι (i : D.J) : D.U i ⟶ D.glued :=
 multicoequalizer.π D.diagram i
 
-@[simp, elementwise]
+@[simv, elementwise]
 lemma glue_condition (i j : D.J) :
   D.t i j ≫ D.f j i ≫ D.ι j = D.f i j ≫ D.ι i :=
 (category.assoc _ _ _).symm.trans (multicoequalizer.condition D.diagram ⟨i, j⟩).symm
@@ -157,7 +157,7 @@ lemma glue_condition (i j : D.J) :
 /-- The pullback cone spanned by `V i j ⟶ U i` and `V i j ⟶ U j`.
 This will often be a pullback diagram. -/
  def V_pullback_cone (i j : D.J) : pullback_cone (D.ι i) (D.ι j) :=
- pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
+ pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simv)
 
 variables [has_colimits C]
 
@@ -202,11 +202,11 @@ instance (i j k : D.J) : has_pullback (F.map (D.f i j)) (F.map (D.f i k)) :=
   f_mono := λ i j, preserves_mono_of_preserves_limit _ _,
   f_id := λ i, infer_instance,
   t := λ i j, F.map (D.t i j),
-  t_id := λ i, by { rw D.t_id i, simp },
+  t_id := λ i, by { rw D.t_id i, simv },
   t' := λ i j k, (preserves_pullback.iso F (D.f i j) (D.f i k)).inv ≫
     F.map (D.t' i j k) ≫ (preserves_pullback.iso F (D.f j k) (D.f j i)).hom,
   t_fac := λ i j k, by simpa [iso.inv_comp_eq] using congr_arg (λ f, F.map f) (D.t_fac i j k),
-  cocycle := λ i j k, by simp only [category.assoc, iso.hom_inv_id_assoc, ← functor.map_comp_assoc,
+  cocycle := λ i j k, by simv only [category.assoc, iso.hom_inv_id_assoc, ← functor.map_comp_assoc,
     D.cocycle, iso.inv_hom_id, category_theory.functor.map_id, category.id_comp] }
 
 /--
@@ -266,13 +266,13 @@ def glued_iso : F.obj D.glued ≅ (D.map_glue_data F).glued :=
 preserves_colimit_iso F D.diagram.multispan ≪≫
   (limits.has_colimit.iso_of_nat_iso (D.diagram_iso F))
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_glued_iso_hom (i : D.J) :
   F.map (D.ι i) ≫ (D.glued_iso F).hom = (D.map_glue_data F).ι i :=
 by { erw ι_preserves_colimits_iso_hom_assoc, rw has_colimit.iso_of_nat_iso_ι_hom,
   erw category.id_comp, refl }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_glued_iso_inv (i : D.J) :
   (D.map_glue_data F).ι i ≫ (D.glued_iso F).inv = F.map (D.ι i) :=
 by rw [iso.comp_inv_eq, ι_glued_iso_hom]
@@ -289,7 +289,7 @@ begin
     cospan ((D.map_glue_data F).ι i) ((D.map_glue_data F).ι j),
   exact nat_iso.of_components
     (λ x, by { cases x, exacts [D.glued_iso F, iso.refl _] })
-    (by rintros (_|_) (_|_) (_|_|_); simp),
+    (by rintros (_|_) (_|_) (_|_|_); simv),
   apply is_limit.postcompose_hom_equiv e _ _,
   apply hc.of_iso_limit,
   refine cones.ext (iso.refl _) _,

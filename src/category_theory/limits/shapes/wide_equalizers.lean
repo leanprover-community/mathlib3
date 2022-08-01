@@ -36,7 +36,7 @@ Each of these has a dual.
 
 ## Implementation notes
 As with the other special shapes in the limits library, all the definitions here are given as
-`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+`abbreviation`s of the general statements for limits, so all the `simv` lemmas and theorems about
 general limits can be used.
 
 ## References
@@ -117,7 +117,7 @@ def parallel_family : walking_parallel_family J ⥤ C :=
   map_comp' :=
   begin
     rintro _ _ _ ⟨⟩ ⟨⟩;
-    { unfold_aux, simp; refl },
+    { unfold_aux, simv; refl },
   end }
 
 @[simp] lemma parallel_family_obj_zero : (parallel_family f).obj zero = X := rfl
@@ -164,11 +164,11 @@ abbreviation cotrident.π (t : cotrident f) := t.ι.app one
 @[simp] lemma trident.ι_eq_app_zero (t : trident f) : t.ι = t.π.app zero := rfl
 @[simp] lemma cotrident.π_eq_app_one (t : cotrident f) : t.π = t.ι.app one := rfl
 
-@[simp, reassoc] lemma trident.app_zero (s : trident f) (j : J) :
+@[simv, reassoc] lemma trident.app_zero (s : trident f) (j : J) :
   s.π.app zero ≫ f j = s.π.app one :=
 by rw [←s.w (line j), parallel_family_map_left]
 
-@[simp, reassoc] lemma cotrident.app_one (s : cotrident f) (j : J) :
+@[simv, reassoc] lemma cotrident.app_one (s : cotrident f) (j : J) :
   f j ≫ s.ι.app one = s.ι.app zero :=
 by rw [←s.w (line j), parallel_family_map_left]
 
@@ -186,8 +186,8 @@ def trident.of_ι [nonempty J] {P : C} (ι : P ⟶ X) (w : ∀ j₁ j₂, ι ≫
       begin
         dsimp,
         cases f with _ k,
-        { simp },
-        { simp [w (classical.arbitrary J) k] },
+        { simv },
+        { simv [w (classical.arbitrary J) k] },
       end } }
 
 /--
@@ -204,9 +204,9 @@ def cotrident.of_π [nonempty J] {P : C} (π : Y ⟶ P) (w : ∀ j₁ j₂, f j�
       begin
         dsimp,
         cases f with _ k,
-        { simp },
-        { simp [w (classical.arbitrary J) k] }
-      end } } -- See note [dsimp, simp]
+        { simv },
+        { simv [w (classical.arbitrary J) k] }
+      end } } -- See note [dsimp, simv]
 
 lemma trident.ι_of_ι [nonempty J] {P : C} (ι : P ⟶ X) (w : ∀ j₁ j₂, ι ≫ f j₁ = ι ≫ f j₂) :
   (trident.of_ι ι w).ι = ι := rfl
@@ -319,7 +319,7 @@ Further, this bijection is natural in `Z`: see `trident.is_limit.hom_iso_natural
 @[simps]
 def trident.is_limit.hom_iso [nonempty J] {t : trident f} (ht : is_limit t) (Z : C) :
   (Z ⟶ t.X) ≃ {h : Z ⟶ X // ∀ j₁ j₂, h ≫ f j₁ = h ≫ f j₂} :=
-{ to_fun := λ k, ⟨k ≫ t.ι, by simp⟩,
+{ to_fun := λ k, ⟨k ≫ t.ι, by simv⟩,
   inv_fun := λ h, (trident.is_limit.lift' ht _ h.prop).1,
   left_inv := λ k, trident.is_limit.hom_ext ht (trident.is_limit.lift' _ _ _).prop,
   right_inv := λ h, subtype.ext (trident.is_limit.lift' ht _ _).prop }
@@ -340,7 +340,7 @@ point to `Z` are in bijection with morphisms `h : Z ⟶ X` such that
 @[simps]
 def cotrident.is_colimit.hom_iso [nonempty J] {t : cotrident f} (ht : is_colimit t) (Z : C) :
   (t.X ⟶ Z) ≃ {h : Y ⟶ Z // ∀ j₁ j₂, f j₁ ≫ h = f j₂ ≫ h} :=
-{ to_fun := λ k, ⟨t.π ≫ k, by simp⟩,
+{ to_fun := λ k, ⟨t.π ≫ k, by simv⟩,
   inv_fun := λ h, (cotrident.is_colimit.desc' ht _ h.prop).1,
   left_inv := λ k, cotrident.is_colimit.hom_ext ht (cotrident.is_colimit.desc' _ _ _).prop,
   right_inv := λ h, subtype.ext (cotrident.is_colimit.desc' ht _ _).prop }
@@ -365,7 +365,7 @@ def cone.of_trident
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
-    naturality' := λ j j' g, by { cases g; { dsimp, simp } } } }
+    naturality' := λ j j' g, by { cases g; { dsimp, simv } } } }
 
 /-- This is a helper construction that can be useful when verifying that a category has all
     coequalizers. Given `F : walking_parallel_family ⥤ C`, which is really the same as
@@ -380,7 +380,7 @@ def cocone.of_cotrident
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
-    naturality' := λ j j' g, by { cases g; dsimp; simp [cotrident.app_one t] } } }
+    naturality' := λ j j' g, by { cases g; dsimp; simv [cotrident.app_one t] } } }
 
 @[simp] lemma cone.of_trident_π
   {F : walking_parallel_family J ⥤ C} (t : trident (λ j, F.map (line j))) (j) :
@@ -507,7 +507,7 @@ abbreviation wide_equalizer.lift [nonempty J] {W : C} (k : W ⟶ X)
   W ⟶ wide_equalizer f :=
 limit.lift (parallel_family f) (trident.of_ι k h)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma wide_equalizer.lift_ι [nonempty J] {W : C} (k : W ⟶ X) (h : ∀ j₁ j₂, k ≫ f j₁ = k ≫ f j₂) :
   wide_equalizer.lift k h ≫ wide_equalizer.ι f = k :=
 limit.lift_π _ _
@@ -587,7 +587,7 @@ abbreviation wide_coequalizer.desc [nonempty J] {W : C} (k : Y ⟶ W)
   wide_coequalizer f ⟶ W :=
 colimit.desc (parallel_family f) (cotrident.of_π k h)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma wide_coequalizer.π_desc [nonempty J] {W : C} (k : Y ⟶ W) (h : ∀ j₁ j₂, f j₁ ≫ k = f j₂ ≫ k) :
   wide_coequalizer.π f ≫ wide_coequalizer.desc k h = k :=
 colimit.ι_desc _ _

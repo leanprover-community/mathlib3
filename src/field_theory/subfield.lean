@@ -268,14 +268,14 @@ subtype.coe_injective.linear_ordered_field coe
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl)
 
-@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
-@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
-@[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
-@[simp, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
-@[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
+@[simv, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
+@[simv, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
+@[simv, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
+@[simv, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
+@[simv, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
+@[simv, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
+@[simv, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
 
 end derived_from_subfield_class
 
@@ -371,7 +371,7 @@ def field_range : subfield L :=
 @[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl
 
 lemma field_range_eq_map : f.field_range = subfield.map f ⊤ :=
-by { ext, simp }
+by { ext, simv }
 
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
 by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
@@ -410,7 +410,7 @@ instance : has_Inf (subfield K) :=
     end,
     .. Inf (subfield.to_subring '' S) }⟩
 
-@[simp, norm_cast] lemma coe_Inf (S : set (subfield K)) :
+@[simv, norm_cast] lemma coe_Inf (S : set (subfield K)) :
   ((Inf S : subfield K) : set K) = ⋂ s ∈ S, ↑s :=
 show ((Inf (subfield.to_subring '' S) : subring K) : set K) = ⋂ s ∈ S, ↑s,
 begin
@@ -418,7 +418,7 @@ begin
   rw [subring.coe_Inf, set.mem_Inter, set.mem_Inter],
   exact ⟨λ h s s' ⟨s_mem, s'_eq⟩, h s.to_subring _ ⟨⟨s, s_mem, rfl⟩, s'_eq⟩,
          λ h s s' ⟨⟨s'', s''_mem, s_eq⟩, (s'_eq : ↑s = s')⟩,
-           h s'' _ ⟨s''_mem, by simp [←s_eq, ← s'_eq]⟩⟩
+           h s'' _ ⟨s''_mem, by simv [←s_eq, ← s'_eq]⟩⟩
 end
 
 lemma mem_Inf {S : set (subfield K)} {x : K} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
@@ -600,19 +600,19 @@ end
 
 lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subfield K} (hS : directed (≤) S) :
   ((⨆ i, S i : subfield K) : set K) = ⋃ i, ↑(S i) :=
-set.ext $ λ x, by simp [mem_supr_of_directed hS]
+set.ext $ λ x, by simv [mem_supr_of_directed hS]
 
 lemma mem_Sup_of_directed_on {S : set (subfield K)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : K} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
   haveI : nonempty S := Sne.to_subtype,
-  simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
+  simv only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 lemma coe_Sup_of_directed_on {S : set (subfield K)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
   (↑(Sup S) : set K) = ⋃ s ∈ S, ↑s :=
-set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
+set.ext $ λ x, by simv [mem_Sup_of_directed_on Sne hS]
 
 end subfield
 

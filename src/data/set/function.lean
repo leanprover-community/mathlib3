@@ -126,7 +126,7 @@ rfl
 
 @[simp] lemma injective_cod_restrict {f : ι → α} {s : set α} (h : ∀ x, f x ∈ s) :
   injective (cod_restrict f s h) ↔ injective f :=
-by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
+by simv only [injective, subtype.ext_iff, coe_cod_restrict_apply]
 
 alias injective_cod_restrict ↔ _ _root_.function.injective.cod_restrict
 
@@ -302,7 +302,7 @@ begin
   rw [subtype.ext_iff, maps_to.coe_restrict_apply],
   induction n with n ihn generalizing x,
   { refl },
-  { simp [nat.iterate, ihn] }
+  { simv [nat.iterate, ihn] }
 end
 
 theorem maps_to.mono (hf : maps_to f s₁ t₁) (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) :
@@ -411,7 +411,7 @@ end
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
 have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
-by { rw [← union_singleton, inj_on_union this], simp }
+by { rw [← union_singleton, inj_on_union this], simv }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
@@ -517,7 +517,7 @@ theorem surj_on.comp (hg : surj_on g t p) (hf : surj_on f s t) : surj_on (g ∘ 
 subset.trans hg $ subset.trans (image_subset g hf) $ (image_comp g f s) ▸ subset.refl _
 
 lemma surjective_iff_surj_on_univ : surjective f ↔ surj_on f univ univ :=
-by simp [surjective, surj_on, subset_def]
+by simv [surjective, surj_on, subset_def]
 
 lemma surj_on_iff_surjective : surj_on f s univ ↔ surjective (s.restrict f) :=
 ⟨λ H b, let ⟨a, as, e⟩ := @H b trivial in ⟨⟨a, as⟩, e⟩,
@@ -838,8 +838,8 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
-  { simp [mem_preimage, inv_fun_neg hx, h, hx] }
+  { simv [left_inverse_inv_fun hf _, hf.mem_set_image] },
+  { simv [mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
 lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : injective f)
@@ -849,7 +849,7 @@ begin
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
   { rw [mem_preimage, left_inverse_inv_fun hf, hf.mem_set_image] },
   { have : x ∉ f '' s, from λ h', hx (image_subset_range _ _ h'),
-    simp only [mem_preimage, inv_fun_neg hx, h, this] },
+    simv only [mem_preimage, inv_fun_neg hx, h, this] },
 end
 
 end set
@@ -877,15 +877,15 @@ namespace set
 variables {δ : α → Sort y} (s : set α) (f g : Πi, δ i)
 
 @[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : set α))] : piecewise ∅ f g = g :=
-by { ext i, simp [piecewise] }
+by { ext i, simv [piecewise] }
 
 @[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (set.univ : set α))] :
   piecewise set.univ f g = f :=
-by { ext i, simp [piecewise] }
+by { ext i, simv [piecewise] }
 
 @[simp] lemma piecewise_insert_self {j : α} [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g j = f j :=
-by simp [piecewise]
+by simv [piecewise]
 
 variable [∀j, decidable (j ∈ s)]
 
@@ -894,22 +894,22 @@ instance compl.decidable_mem (j : α) : decidable (j ∈ sᶜ) := not.decidable
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
 begin
-  simp [piecewise],
+  simv [piecewise],
   ext i,
   by_cases h : i = j,
-  { rw h, simp },
-  { by_cases h' : i ∈ s; simp [h, h'] }
+  { rw h, simv },
+  { by_cases h' : i ∈ s; simv [h, h'] }
 end
 
-@[simp, priority 990]
+@[simv, priority 990]
 lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i := if_pos hi
 
-@[simp, priority 990]
+@[simv, priority 990]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i := if_neg hi
 
 lemma piecewise_singleton (x : α) [Π y, decidable (y ∈ ({x} : set α))] [decidable_eq α]
   (f g : α → β) : piecewise {x} f g = function.update g x (f x) :=
-by { ext y, by_cases hy : y = x, { subst y, simp }, { simp [hy] } }
+by { ext y, by_cases hy : y = x, { subst y, simv }, { simv [hy] } }
 
 lemma piecewise_eq_on (f g : α → β) : eq_on (s.piecewise f g) f s :=
 λ _, piecewise_eq_of_mem _ _ _
@@ -920,7 +920,7 @@ lemma piecewise_eq_on_compl (f g : α → β) : eq_on (s.piecewise f g) g sᶜ :
 lemma piecewise_le {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
   {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g i) (h₂ : ∀ i ∉ s, f₂ i ≤ g i) :
   s.piecewise f₁ f₂ ≤ g :=
-λ i, if h : i ∈ s then by simp * else by simp *
+λ i, if h : i ∈ s then by simv * else by simv *
 
 lemma le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
   {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, g i ≤ f₁ i) (h₂ : ∀ i ∉ s, g i ≤ f₂ i) :
@@ -931,15 +931,15 @@ lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : se
   [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g₁ i)
   (h₂ : ∀ i ∉ s, f₂ i ≤ g₂ i) :
   s.piecewise f₁ f₂ ≤ s.piecewise g₁ g₂ :=
-by apply piecewise_le; intros; simp *
+by apply piecewise_le; intros; simv *
 
-@[simp, priority 990]
+@[simv, priority 990]
 lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
-by simp [piecewise, h]
+by simv [piecewise, h]
 
 @[simp] lemma piecewise_compl [∀ i, decidable (i ∈ sᶜ)] : sᶜ.piecewise f g = s.piecewise g f :=
-funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
+funext $ λ x, if hx : x ∈ s then by simv [hx] else by simv [hx]
 
 @[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
   (g₁ g₂ : α → β) :
@@ -959,14 +959,14 @@ end
 theorem eq_on_piecewise {f f' g : α → β} {t} :
   eq_on (s.piecewise f f') g t ↔ eq_on f g (t ∩ s) ∧ eq_on f' g (t ∩ sᶜ) :=
 begin
-  simp only [eq_on, ← forall_and_distrib],
-  refine forall_congr (λ a, _), by_cases a ∈ s; simp *
+  simv only [eq_on, ← forall_and_distrib],
+  refine forall_congr (λ a, _), by_cases a ∈ s; simv *
 end
 
 theorem eq_on.piecewise_ite' {f f' g : α → β} {t t'} (h : eq_on f g (t ∩ s))
   (h' : eq_on f' g (t' ∩ sᶜ)) :
   eq_on (s.piecewise f f') g (s.ite t t') :=
-by simp [eq_on_piecewise, *]
+by simv [eq_on_piecewise, *]
 
 theorem eq_on.piecewise_ite {f f' g : α → β} {t t'} (h : eq_on f g t)
   (h' : eq_on f' g t') :
@@ -975,17 +975,17 @@ theorem eq_on.piecewise_ite {f f' g : α → β} {t t'} (h : eq_on f g t)
 
 lemma piecewise_preimage (f g : α → β) (t) :
   s.piecewise f g ⁻¹' t = s.ite (f ⁻¹' t) (g ⁻¹' t) :=
-ext $ λ x, by by_cases x ∈ s; simp [*, set.ite]
+ext $ λ x, by by_cases x ∈ s; simv [*, set.ite]
 
 lemma apply_piecewise {δ' : α → Sort*} (h : Π i, δ i → δ' i) {x : α} :
   h x (s.piecewise f g x) = s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) x :=
-by by_cases hx : x ∈ s; simp [hx]
+by by_cases hx : x ∈ s; simv [hx]
 
 lemma apply_piecewise₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i, δ i → δ' i → δ'' i)
   {x : α} :
   h x (s.piecewise f g x) (s.piecewise f' g' x) =
     s.piecewise (λ x, h x (f x) (f' x)) (λ x, h x (g x) (g' x)) x :=
-by by_cases hx : x ∈ s; simp [hx]
+by by_cases hx : x ∈ s; simv [hx]
 
 lemma piecewise_op {δ' : α → Sort*} (h : Π i, δ i → δ' i) :
   s.piecewise (λ x, h x (f x)) (λ x, h x (g x)) = λ x, h x (s.piecewise f g x) :=
@@ -997,13 +997,13 @@ lemma piecewise_op₂ {δ' δ'' : α → Sort*} (f' g' : Π i, δ' i) (h : Π i,
 funext $ λ x, (apply_piecewise₂ _ _ _ _ _ _).symm
 
 @[simp] lemma piecewise_same : s.piecewise f f = f :=
-by { ext x, by_cases hx : x ∈ s; simp [hx] }
+by { ext x, by_cases hx : x ∈ s; simv [hx] }
 
 lemma range_piecewise (f g : α → β) : range (s.piecewise f g) = f '' s ∪ g '' sᶜ :=
 begin
   ext y, split,
-  { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simp [h] },
-  { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
+  { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simv [h] },
+  { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simv * at * }
 end
 
 lemma injective_piecewise_iff {f g : α → β} :
@@ -1018,22 +1018,22 @@ end
 lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
   {f g} (hf : f ∈ pi t t') (hg : g ∈ pi t t') :
   s.piecewise f g ∈ pi t t' :=
-by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
+by { intros i ht, by_cases hs : i ∈ s; simv [hf i ht, hg i ht, hs] }
 
 @[simp] lemma pi_piecewise {ι : Type*} {α : ι → Type*} (s s' : set ι)
   (t t' : Π i, set (α i)) [Π x, decidable (x ∈ s')] :
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simv only [mem_pi, mem_inter_eq, ← forall_and_distrib],
   refine forall_congr (λ i, _),
-  by_cases hi : i ∈ s'; simp *
+  by_cases hi : i ∈ s'; simv *
 end
 
 lemma univ_pi_piecewise {ι : Type*} {α : ι → Type*} (s : set ι)
   (t : Π i, set (α i)) [Π x, decidable (x ∈ s)] :
   pi univ (s.piecewise t (λ _, univ)) = pi s t :=
-by simp
+by simv
 
 end set
 
@@ -1127,7 +1127,7 @@ lemma inj_on_image (h : semiconj f fa fb) (ha : inj_on fa s) (hf : inj_on f (fa 
   inj_on fb (f '' s) :=
 begin
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ H,
-  simp only [← h.eq] at H,
+  simv only [← h.eq] at H,
   exact congr_arg f (ha hx hy $ hf (mem_image_of_mem fa hx) (mem_image_of_mem fa hy) H)
 end
 
@@ -1149,7 +1149,7 @@ end
 
 lemma maps_to_preimage (h : semiconj f fa fb) {s t : set β} (hb : maps_to fb s t) :
   maps_to fa (f ⁻¹' s) (f ⁻¹' t) :=
-λ x hx, by simp only [mem_preimage, h x, hb hx]
+λ x hx, by simv only [mem_preimage, h x, hb hx]
 
 lemma inj_on_preimage (h : semiconj f fa fb) {s : set β} (hb : inj_on fb s)
   (hf : inj_on f (f ⁻¹' s)) :

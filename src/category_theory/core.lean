@@ -81,7 +81,7 @@ def of_equiv_functor (m : Type u₁ → Type u₂) [equiv_functor m] :
   map_comp' := λ α β γ f g,
   begin
     ext,
-    simp only [equiv_functor.map_equiv_apply, equiv.to_iso_hom,
+    simv only [equiv_functor.map_equiv_apply, equiv.to_iso_hom,
       function.comp_app, core.comp_hom, types_comp],
     erw [iso.to_equiv_comp, equiv_functor.map_trans],
   end, }

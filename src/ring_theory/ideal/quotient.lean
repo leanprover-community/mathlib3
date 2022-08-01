@@ -64,8 +64,8 @@ instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
 { mul := (*),
   one := 1,
   nat_cast := λ n, submodule.quotient.mk n,
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := by simp [nat.cast]; refl,
+  nat_cast_zero := by simv [nat.cast],
+  nat_cast_succ := by simv [nat.cast]; refl,
   mul_assoc := λ a b c, quotient.induction_on₃' a b c $
     λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
   mul_comm := λ a b, quotient.induction_on₂' a b $
@@ -127,8 +127,8 @@ lemma quotient_ring_saturate (I : ideal R) (s : set R) :
   mk I ⁻¹' (mk I '' s) = (⋃ x : I, (λ y, x.1 + y) '' s) :=
 begin
   ext x,
-  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
-  exact ⟨λ ⟨a, a_in, h⟩, ⟨⟨_, I.neg_mem h⟩, a, a_in, by simp⟩,
+  simv only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
+  exact ⟨λ ⟨a, a_in, h⟩, ⟨⟨_, I.neg_mem h⟩, a, a_in, by simv⟩,
          λ ⟨⟨i, hi⟩, a, ha, eq⟩,
            ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
 end
@@ -143,7 +143,7 @@ instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
 
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
 ⟨ λ ⟨h1, h2⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h2⟩, λ x y h,
-    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩,
+    by { simv only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩,
   λ h, by { resetI, apply_instance }⟩
 
 lemma exists_inv {I : ideal R} [hI : I.is_maximal] :
@@ -256,7 +256,7 @@ instance module_pi : module (R ⧸ I) ((ι → R) ⧸ I.pi ι) :=
   mul_smul := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    simp only [(•)],
+    simv only [(•)],
     congr' with i, exact mul_assoc a b (c i),
   end,
   smul_add := begin
@@ -309,7 +309,7 @@ lemma map_pi {ι} [fintype ι] {ι' : Type w} (x : ι → R) (hi : ∀ i, x i �
 begin
   classical,
   rw pi_eq_sum_univ x,
-  simp only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
+  simv only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
   exact I.sum_mem (λ j hj, I.mul_mem_right _ (hi j))
 end
 

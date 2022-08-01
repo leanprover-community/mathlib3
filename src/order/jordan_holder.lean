@@ -219,14 +219,14 @@ have h₂ : ∀ i : fin s₁.length.succ, (s₁ i) = s₂ (fin.cast (congr_arg n
   begin
     assume i,
     rw [← list.nth_le_of_fn s₁ i, ← list.nth_le_of_fn s₂],
-    simp [h]
+    simv [h]
   end,
 begin
   cases s₁, cases s₂,
   dsimp at *,
   subst h₁,
-  simp only [heq_iff_eq, eq_self_iff_true, true_and],
-  simp only [fin.cast_refl] at h₂,
+  simv only [heq_iff_eq, eq_self_iff_true, true_and],
+  simv only [fin.cast_refl] at h₂,
   exact funext h₂
 end
 
@@ -235,7 +235,7 @@ lemma chain'_to_list (s : composition_series X) :
 list.chain'_iff_nth_le.2
   begin
     assume i hi,
-    simp only [to_list, list.nth_le_of_fn'],
+    simv only [to_list, list.nth_le_of_fn'],
     rw [length_to_list] at hi,
     exact s.step ⟨i, hi⟩
   end
@@ -299,7 +299,7 @@ to_list_injective $ list.eq_of_perm_of_sorted
   (by classical; exact list.perm_of_nodup_nodup_to_finset_eq
     s₁.to_list_nodup
     s₂.to_list_nodup
-    (finset.ext $ by simp *))
+    (finset.ext $ by simv *))
   s₁.to_list_sorted s₂.to_list_sorted
 
 /-- The largest element of a `composition_series` -/
@@ -357,12 +357,12 @@ lemma top_erase_top (s : composition_series X) :
 show s _ = s _, from congr_arg s
 begin
   ext,
-  simp only [erase_top_length, fin.coe_last, fin.coe_cast_succ, fin.coe_of_nat_eq_mod,
+  simv only [erase_top_length, fin.coe_last, fin.coe_cast_succ, fin.coe_of_nat_eq_mod,
     fin.coe_mk, coe_coe]
 end
 
 lemma erase_top_top_le (s : composition_series X) : s.erase_top.top ≤ s.top :=
-by simp [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, tsub_le_self]
+by simv [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, tsub_le_self]
 
 @[simp] lemma bot_erase_top (s : composition_series X) : s.erase_top.bot = s.bot := rfl
 
@@ -377,20 +377,20 @@ begin
       (nat.le_of_lt_succ i.2)
       (by simpa [top, s.inj, fin.ext_iff] using hx) },
   refine ⟨i.cast_succ, _⟩,
-  simp [fin.ext_iff, nat.mod_eq_of_lt hi]
+  simv [fin.ext_iff, nat.mod_eq_of_lt hi]
 end
 
 lemma mem_erase_top {s : composition_series X} {x : X}
   (h : 0 < s.length) : x ∈ s.erase_top ↔ x ≠ s.top ∧ x ∈ s :=
 begin
-  simp only [mem_def],
+  simv only [mem_def],
   dsimp only [erase_top, coe_fn_mk],
   split,
   { rintros ⟨i, rfl⟩,
     have hi : (i : ℕ) < s.length,
     { conv_rhs { rw [← nat.succ_sub_one s.length, nat.succ_sub h] },
       exact i.2 },
-    simp [top, fin.ext_iff, (ne_of_lt hi)] },
+    simv [top, fin.ext_iff, (ne_of_lt hi)] },
   { intro h,
     exact mem_erase_top_of_ne_of_mem h.1 h.2 }
 end
@@ -408,7 +408,7 @@ have s.length - 1 + 1 = s.length,
 begin
   rw [top_erase_top, top],
   convert s.step ⟨s.length - 1, nat.sub_lt h zero_lt_one⟩;
-  ext; simp [this]
+  ext; simv [this]
 end
 
 lemma append_cast_add_aux
@@ -416,7 +416,7 @@ lemma append_cast_add_aux
   (i : fin s₁.length) :
   fin.append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂
   (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-by { cases i, simp [fin.append, *] }
+by { cases i, simv [fin.append, *] }
 
 lemma append_succ_cast_add_aux
   {s₁ s₂ : composition_series X}
@@ -426,15 +426,15 @@ lemma append_succ_cast_add_aux
   (fin.cast_add s₂.length i).succ = s₁ i.succ :=
 begin
   cases i with i hi,
-  simp only [fin.append, hi, fin.succ_mk, function.comp_app, fin.cast_succ_mk,
+  simv only [fin.append, hi, fin.succ_mk, function.comp_app, fin.cast_succ_mk,
     fin.coe_mk, fin.cast_add_mk],
   split_ifs,
   { refl },
   { have : i + 1 = s₁.length, from le_antisymm hi (le_of_not_gt h_1),
-    calc s₂ ⟨i + 1 - s₁.length, by simp [this]⟩
-        = s₂ 0 : congr_arg s₂ (by simp [fin.ext_iff, this])
+    calc s₂ ⟨i + 1 - s₁.length, by simv [this]⟩
+        = s₂ 0 : congr_arg s₂ (by simv [fin.ext_iff, this])
     ... = s₁ (fin.last _) : h.symm
-    ... = _ : congr_arg s₁ (by simp [fin.ext_iff, this]) }
+    ... = _ : congr_arg s₁ (by simv [fin.ext_iff, this]) }
 end
 
 lemma append_nat_add_aux
@@ -444,7 +444,7 @@ lemma append_nat_add_aux
   (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
 begin
   cases i,
-  simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
+  simv only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
     add_tsub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
 end
 
@@ -455,7 +455,7 @@ lemma append_succ_nat_add_aux
   (fin.nat_add s₁.length i).succ = s₂ i.succ :=
 begin
   cases i with i hi,
-  simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
+  simv only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
     add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
 
@@ -527,24 +527,24 @@ by rw [bot, bot, ← fin.cast_succ_zero, snoc_cast_succ]
 lemma mem_snoc {s : composition_series X} {x y: X}
   {hsat : is_maximal s.top x} : y ∈ snoc s x hsat ↔ y ∈ s ∨ y = x :=
 begin
-  simp only [snoc, mem_def],
+  simv only [snoc, mem_def],
   split,
   { rintros ⟨i, rfl⟩,
     refine fin.last_cases _ (λ i, _) i,
-    { right, simp },
-    { left, simp } },
+    { right, simv },
+    { left, simv } },
   { intro h,
     rcases h with ⟨i, rfl⟩ | rfl,
-    { use i.cast_succ, simp },
-    { use (fin.last _), simp } }
+    { use i.cast_succ, simv },
+    { use (fin.last _), simv } }
 end
 
 lemma eq_snoc_erase_top {s : composition_series X} (h : 0 < s.length) :
   s = snoc (erase_top s) s.top (is_maximal_erase_top_top h) :=
 begin
   ext x,
-  simp [mem_snoc, mem_erase_top h],
-  by_cases h : x = s.top; simp [*, s.top_mem]
+  simv [mem_snoc, mem_erase_top h],
+  by_cases h : x = s.top; simv [*, s.top_mem]
 end
 
 @[simp] lemma snoc_erase_top_top {s : composition_series X}
@@ -553,7 +553,7 @@ have h : 0 < s.length,
   from nat.pos_of_ne_zero begin
     assume hs,
     refine ne_of_gt (lt_of_is_maximal h) _,
-    simp [top, fin.ext_iff, hs]
+    simv [top, fin.ext_iff, hs]
   end,
 (eq_snoc_erase_top h).symm
 
@@ -639,10 +639,10 @@ let e : fin (s.length + 1 + 1) ≃ fin (s.length + 1 + 1) :=
 equiv.swap (fin.last _) (fin.cast_succ (fin.last _)) in
 have h1 : ∀ {i : fin s.length},
   i.cast_succ.cast_succ ≠ (fin.last _).cast_succ,
-  from λ _, ne_of_lt (by simp [fin.cast_succ_lt_last]),
+  from λ _, ne_of_lt (by simv [fin.cast_succ_lt_last]),
 have h2 : ∀ {i : fin s.length},
   i.cast_succ.cast_succ ≠ (fin.last _),
-  from λ _, ne_of_lt (by simp [fin.cast_succ_lt_last]),
+  from λ _, ne_of_lt (by simv [fin.cast_succ_lt_last]),
 ⟨e, begin
   intro i,
   dsimp only [e],
@@ -670,7 +670,7 @@ lemma length_eq_zero_of_bot_eq_bot_of_top_eq_top_of_length_eq_zero
   (hs₁ : s₁.length = 0) : s₂.length = 0 :=
 begin
   have : s₁.bot = s₁.top,
-    from congr_arg s₁ (fin.ext (by simp [hs₁])),
+    from congr_arg s₁ (fin.ext (by simv [hs₁])),
   have : (fin.last s₂.length) = (0 : fin s₂.length.succ),
     from s₂.injective (hb.symm.trans (this.trans ht)).symm,
   simpa [fin.ext_iff]
@@ -681,7 +681,7 @@ lemma length_pos_of_bot_eq_bot_of_top_eq_top_of_length_pos
   (hb : s₁.bot = s₂.bot) (ht : s₁.top = s₂.top) :
   0 < s₁.length → 0 < s₂.length :=
 not_imp_not.1 begin
-  simp only [pos_iff_ne_zero, ne.def, not_iff_not, not_not],
+  simv only [pos_iff_ne_zero, ne.def, not_iff_not, not_not],
   exact length_eq_zero_of_bot_eq_bot_of_top_eq_top_of_length_eq_zero hb.symm ht.symm
 end
 
@@ -696,7 +696,7 @@ have ∀ x, x ∈ s₂ ↔ x = s₂.top,
   from λ x, ⟨λ hx, forall_mem_eq_of_length_eq_zero
       (length_eq_zero_of_bot_eq_bot_of_top_eq_top_of_length_eq_zero hb ht hs₁0)
     hx s₂.top_mem, λ hx, hx.symm ▸ s₂.top_mem⟩,
-by { ext, simp * }
+by { ext, simv * }
 
 /-- Given a `composition_series`, `s`, and an element `x`
 such that `x` is maximal inside `s.top` there is a series, `t`,
@@ -713,18 +713,18 @@ begin
   { have h0s : 0 < s.length, from hn.symm ▸ nat.succ_pos _,
     by_cases hetx : s.erase_top.top = x,
     { use s.erase_top,
-      simp [← hetx, hn] },
+      simv [← hetx, hn] },
     { have imxs : is_maximal (x ⊓ s.erase_top.top) s.erase_top.top,
         from is_maximal_of_eq_inf x s.top rfl (ne.symm hetx) hm
           (is_maximal_erase_top_top h0s),
-      have := ih _ _ imxs (le_inf (by simpa) (le_top_of_mem s.erase_top.bot_mem)) (by simp [hn]),
+      have := ih _ _ imxs (le_inf (by simpa) (le_top_of_mem s.erase_top.bot_mem)) (by simv [hn]),
       rcases this with ⟨t, htb, htl, htt, hteqv⟩,
       have hmtx : is_maximal t.top x,
         from is_maximal_of_eq_inf s.erase_top.top s.top
           (by rw [inf_comm, htt]) hetx
           (is_maximal_erase_top_top h0s) hm,
       use snoc t x hmtx,
-      refine ⟨by simp [htb], by simp [htl], by simp, _⟩,
+      refine ⟨by simv [htb], by simv [htl], by simv, _⟩,
       have : s.equivalent ((snoc t s.erase_top.top (htt.symm ▸ imxs)).snoc s.top
         (by simpa using is_maximal_erase_top_top h0s)),
       { conv_lhs { rw eq_snoc_erase_top h0s },
@@ -757,12 +757,12 @@ begin
     rcases exists_top_eq_snoc_equivalant s₁ s₂.erase_top.top
       (ht.symm ▸ is_maximal_erase_top_top h0s₂)
       (hb.symm ▸ s₂.bot_erase_top ▸ bot_le_of_mem (top_mem _)) with ⟨t, htb, htl, htt, hteq⟩,
-    have := ih t s₂.erase_top (by simp [htb, ← hb]) htt (nat.succ_inj'.1 (htl.trans hle)),
+    have := ih t s₂.erase_top (by simv [htb, ← hb]) htt (nat.succ_inj'.1 (htl.trans hle)),
     refine hteq.trans _,
     conv_rhs { rw [eq_snoc_erase_top h0s₂] },
-    simp only [ht],
+    simv only [ht],
     exact equivalent.snoc this
-      (by simp [htt, (is_maximal_erase_top_top h0s₂).iso_refl]) }
+      (by simv [htt, (is_maximal_erase_top_top h0s₂).iso_refl]) }
 end
 
 end composition_series

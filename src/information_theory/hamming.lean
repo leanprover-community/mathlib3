@@ -259,7 +259,7 @@ variables [fintype ι] [Π i, decidable_eq (β i)]
 
 instance : has_dist (hamming β) := ⟨λ x y, hamming_dist (of_hamming x) (of_hamming y)⟩
 
-@[simp, push_cast] lemma dist_eq_hamming_dist (x y : hamming β) :
+@[simv, push_cast] lemma dist_eq_hamming_dist (x y : hamming β) :
   dist x y = hamming_dist (of_hamming x) (of_hamming y) := rfl
 
 instance : pseudo_metric_space (hamming β) :=
@@ -289,7 +289,7 @@ instance : pseudo_metric_space (hamming β) :=
   end,
   ..hamming.has_dist }
 
-@[simp, push_cast] lemma nndist_eq_hamming_dist (x y : hamming β) :
+@[simv, push_cast] lemma nndist_eq_hamming_dist (x y : hamming β) :
   nndist x y = hamming_dist (of_hamming x) (of_hamming y) := rfl
 
 instance : metric_space (hamming β) :=
@@ -299,13 +299,13 @@ instance : metric_space (hamming β) :=
 
 instance [Π i, has_zero (β i)] : has_norm (hamming β) := ⟨λ x, hamming_norm (of_hamming x)⟩
 
-@[simp, push_cast] lemma norm_eq_hamming_norm [Π i, has_zero (β i)] (x : hamming β) :
+@[simv, push_cast] lemma norm_eq_hamming_norm [Π i, has_zero (β i)] (x : hamming β) :
   ∥x∥ = hamming_norm (of_hamming x) := rfl
 
 instance [Π i, add_comm_group (β i)] : seminormed_add_comm_group (hamming β) :=
 { dist_eq := by { push_cast, exact_mod_cast hamming_dist_eq_hamming_norm }, ..pi.add_comm_group }
 
-@[simp, push_cast] lemma nnnorm_eq_hamming_norm [Π i, add_comm_group (β i)] (x : hamming β) :
+@[simv, push_cast] lemma nnnorm_eq_hamming_norm [Π i, add_comm_group (β i)] (x : hamming β) :
   ∥x∥₊ = hamming_norm (of_hamming x) := rfl
 
 instance [Π i, add_comm_group (β i)] : normed_add_comm_group (hamming β) :=

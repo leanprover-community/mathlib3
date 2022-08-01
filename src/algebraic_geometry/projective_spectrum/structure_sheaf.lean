@@ -115,7 +115,7 @@ begin
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,
     { obtain ⟨nin, -⟩ := (wa ⟨y, (opens.inf_le_left Va Vb y).2⟩), exact nin h },
     { obtain ⟨nin, -⟩ := (wb ⟨y, (opens.inf_le_right Va Vb y).2⟩), exact nin h } },
-  { simp only [add_mul, map_add, pi.add_apply, ring_hom.map_mul, ext_iff_val, add_val],
+  { simv only [add_mul, map_add, pi.add_apply, ring_hom.map_mul, ext_iff_val, add_val],
     obtain ⟨nin1, hy1⟩ := (wa (opens.inf_le_left Va Vb y)),
     obtain ⟨nin2, hy2⟩ := (wb (opens.inf_le_right Va Vb y)),
     dsimp only at hy1 hy2,
@@ -131,8 +131,8 @@ begin
   rcases ha x with ⟨V, m, i, j, ⟨r, r_mem⟩, ⟨s, s_mem⟩, w⟩,
   choose nin hy using w,
   refine ⟨V, m, i, j, ⟨-r, submodule.neg_mem _ r_mem⟩, ⟨s, s_mem⟩, λ y, ⟨nin y, _⟩⟩,
-  simp only [ext_iff_val, val_mk', ←subtype.val_eq_coe] at hy,
-  simp only [pi.neg_apply, ext_iff_val, neg_val, hy, val_mk', ←subtype.val_eq_coe, neg_mk],
+  simv only [ext_iff_val, val_mk', ←subtype.val_eq_coe] at hy,
+  simv only [pi.neg_apply, ext_iff_val, neg_val, hy, val_mk', ←subtype.val_eq_coe, neg_mk],
 end
 
 lemma mul_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
@@ -148,7 +148,7 @@ begin
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,
     { choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩, exact nin h },
     { choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩, exact nin h }, },
-  { simp only [pi.mul_apply, ring_hom.map_mul],
+  { simv only [pi.mul_apply, ring_hom.map_mul],
     choose nin1 hy1 using wa (opens.inf_le_left Va Vb y),
     choose nin2 hy2 using wb (opens.inf_le_right Va Vb y),
     rw ext_iff_val at hy1 hy2 ⊢,
@@ -318,7 +318,7 @@ ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
   change localization.mk _ _ = localization.mk _ _ at eq3,
   rw [localization.mk_eq_mk', is_localization.eq] at eq3,
   obtain ⟨⟨c, hc⟩, eq3⟩ := eq3,
-  simp only [← subtype.val_eq_coe] at eq3,
+  simv only [← subtype.val_eq_coe] at eq3,
   have eq3' : ∀ (y : projective_spectrum.Top 𝒜)
     (hy : y ∈ projective_spectrum.basic_open 𝒜 b1 ⊓
       projective_spectrum.basic_open 𝒜 b2 ⊓
@@ -344,10 +344,10 @@ ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
     (opens.inf_le_left _ _ ≫ opens.inf_le_right _ _ ≫ i1) (opens.inf_le_right _ _ ≫ i2) _,
   rw subtype.ext_iff_val,
   ext1 y,
-  simp only [res_apply],
+  simv only [res_apply],
   obtain ⟨b1_nin_y, eq6⟩ := hs1 ⟨_, le_of_hom (opens.inf_le_left _ _ ≫ opens.inf_le_right _ _) y.2⟩,
   obtain ⟨b2_nin_y, eq7⟩ := hs2 ⟨_, le_of_hom (opens.inf_le_right _ _) y.2⟩,
-  simp only at eq6 eq7,
+  simv only at eq6 eq7,
   erw [eq6, eq7, quotient.eq],
   change localization.mk _ _ = localization.mk _ _,
   exact eq3' _ ⟨⟨le_of_hom (opens.inf_le_left _ _ ≫ opens.inf_le_left _ _ ≫
@@ -361,7 +361,7 @@ end, function.surjective_iff_has_right_inverse.mpr ⟨homogeneous_localization_t
     rw homogeneous_localization_to_stalk,
     erw stalk_to_fiber_ring_hom_germ 𝒜
       (projective_spectrum.basic_open 𝒜 f.denom) ⟨x, _⟩ (section_in_basic_open _ x f),
-    simp only [section_in_basic_open, subtype.ext_iff_val, homogeneous_localization.ext_iff_val,
+    simv only [section_in_basic_open, subtype.ext_iff_val, homogeneous_localization.ext_iff_val,
       homogeneous_localization.val_mk', f.eq_num_div_denom],
     refl,
   end⟩⟩

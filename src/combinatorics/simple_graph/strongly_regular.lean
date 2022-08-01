@@ -56,10 +56,10 @@ lemma bot_strongly_regular :
   regular := bot_degree,
   of_adj := λ v w h, h.elim,
   of_not_adj := λ v w h, begin
-    simp only [card_eq_zero, filter_congr_decidable, fintype.card_of_finset, forall_true_left,
+    simv only [card_eq_zero, filter_congr_decidable, fintype.card_of_finset, forall_true_left,
       not_false_iff, bot_adj],
     ext,
-    simp [mem_common_neighbors],
+    simv [mem_common_neighbors],
   end }
 
 /-- Complete graphs are strongly regular. Note that `μ` can take any value
@@ -80,10 +80,10 @@ lemma is_SRG_with.card_neighbor_finset_union_eq {v w : V} (h : G.is_SRG_with n k
 begin
   apply @nat.add_right_cancel _ (fintype.card (G.common_neighbors v w)),
   rw [nat.sub_add_cancel, ← set.to_finset_card],
-  { simp [neighbor_finset, common_neighbors, set.to_finset_inter, finset.card_union_add_card_inter,
+  { simv [neighbor_finset, common_neighbors, set.to_finset_inter, finset.card_union_add_card_inter,
       h.regular.degree_eq, two_mul], },
   { apply le_trans (card_common_neighbors_le_degree_left _ _ _),
-    simp [h.regular.degree_eq, two_mul], },
+    simv [h.regular.degree_eq, two_mul], },
 end
 
 /-- Assuming `G` is strongly regular, `2*(k + 1) - m` in `G` is the number of vertices that are
@@ -108,14 +108,14 @@ end
 lemma compl_neighbor_finset_sdiff_inter_eq {v w : V} :
   (G.neighbor_finset v)ᶜ \ {v} ∩ ((G.neighbor_finset w)ᶜ \ {w}) =
     (G.neighbor_finset v)ᶜ ∩ (G.neighbor_finset w)ᶜ \ ({w} ∪ {v}) :=
-by { ext, rw ← not_iff_not, simp [imp_iff_not_or, or_assoc, or_comm, or.left_comm], }
+by { ext, rw ← not_iff_not, simv [imp_iff_not_or, or_assoc, or_comm, or.left_comm], }
 
 lemma sdiff_compl_neighbor_finset_inter_eq {v w : V} (h : G.adj v w) :
   (G.neighbor_finset v)ᶜ ∩ (G.neighbor_finset w)ᶜ \ ({w} ∪ {v}) =
     (G.neighbor_finset v)ᶜ ∩ (G.neighbor_finset w)ᶜ :=
 begin
   ext,
-  simp only [and_imp, mem_union, mem_sdiff, mem_compl, and_iff_left_iff_imp,
+  simv only [and_imp, mem_union, mem_sdiff, mem_compl, and_iff_left_iff_imp,
     mem_neighbor_finset, mem_inter, mem_singleton],
   rintros hnv hnw (rfl|rfl),
   { exact hnv h, },
@@ -133,7 +133,7 @@ lemma is_SRG_with.card_common_neighbors_eq_of_adj_compl (h : G.is_SRG_with n k �
   {v w : V} (ha : Gᶜ.adj v w) :
   fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - μ) - 2 :=
 begin
-  simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
+  simv only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
     set.to_finset_diff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
   simp_rw compl_neighbor_finset_sdiff_inter_eq,
   have hne : v ≠ w := ne_of_adj _ ha,
@@ -141,9 +141,9 @@ begin
   rw [card_sdiff, ← insert_eq, card_insert_of_not_mem, card_singleton, ← finset.compl_union],
   { change (1 + 1) with 2,
     rw [card_compl, h.card_neighbor_finset_union_of_not_adj hne ha.2, ← h.card], },
-  { simp only [hne.symm, not_false_iff, mem_singleton], },
+  { simv only [hne.symm, not_false_iff, mem_singleton], },
   { intro u,
-    simp only [mem_union, mem_compl, mem_neighbor_finset, mem_inter, mem_singleton],
+    simv only [mem_union, mem_compl, mem_neighbor_finset, mem_inter, mem_singleton],
     rintro (rfl|rfl);
     simpa [adj_comm] using ha.2, },
 end
@@ -152,9 +152,9 @@ lemma is_SRG_with.card_common_neighbors_eq_of_not_adj_compl (h : G.is_SRG_with n
   {v w : V} (hn : v ≠ w) (hna : ¬Gᶜ.adj v w)  :
   fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - ℓ) :=
 begin
-  simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
+  simv only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
     set.to_finset_diff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
-  simp only [not_and, not_not, compl_adj] at hna,
+  simv only [not_and, not_not, compl_adj] at hna,
   have h2' := hna hn,
   simp_rw [compl_neighbor_finset_sdiff_inter_eq, sdiff_compl_neighbor_finset_inter_eq h2'],
   rwa [← finset.compl_union, card_compl, h.card_neighbor_finset_union_of_adj, ← h.card],

@@ -130,16 +130,16 @@ is_complement_top_singleton
 @[to_additive] lemma is_complement'_bot_top : is_complement' (⊥ : subgroup G) ⊤ :=
 is_complement_singleton_top
 
-@[simp, to_additive] lemma is_complement'_bot_left : is_complement' ⊥ H ↔ H = ⊤ :=
+@[simv, to_additive] lemma is_complement'_bot_left : is_complement' ⊥ H ↔ H = ⊤ :=
 is_complement_singleton_left.trans coe_eq_univ
 
-@[simp, to_additive] lemma is_complement'_bot_right : is_complement' H ⊥ ↔ H = ⊤ :=
+@[simv, to_additive] lemma is_complement'_bot_right : is_complement' H ⊥ ↔ H = ⊤ :=
 is_complement_singleton_right.trans coe_eq_univ
 
-@[simp, to_additive] lemma is_complement'_top_left : is_complement' ⊤ H ↔ H = ⊥ :=
+@[simv, to_additive] lemma is_complement'_top_left : is_complement' ⊤ H ↔ H = ⊥ :=
 is_complement_top_left.trans coe_eq_singleton
 
-@[simp, to_additive] lemma is_complement'_top_right : is_complement' H ⊤ ↔ H = ⊥ :=
+@[simv, to_additive] lemma is_complement'_top_right : is_complement' H ⊤ ↔ H = ⊥ :=
 is_complement_top_right.trans coe_eq_singleton
 
 @[to_additive] lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
@@ -318,7 +318,7 @@ variables {F : Type*} [group F] [mul_action F G] [quotient_action F H]
     { exact (congr_arg _ (smul_inv_smul f g)).mp (quotient_action.inv_mul_mem f ht1) },
     { rintros ⟨-, t', ht', rfl⟩ h,
       replace h := quotient_action.inv_mul_mem f⁻¹ h,
-      simp only [subtype.ext_iff, subtype.coe_mk, smul_left_cancel_iff, inv_smul_smul] at h ⊢,
+      simv only [subtype.ext_iff, subtype.coe_mk, smul_left_cancel_iff, inv_smul_smul] at h ⊢,
       exact subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ h) } }⟩,
   one_smul := λ T, subtype.ext (one_smul F T),
   mul_smul := λ f₁ f₂ T, subtype.ext (mul_smul f₁ f₂ T) }

@@ -75,10 +75,10 @@ begin
 end
 
 example (s₀ s₁ : set ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
-by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simp * }
+by { ext1, guard_target x ∈ s₀ ↔ x ∈ s₁, simv * }
 
 example (s₀ s₁ : stream ℕ) (h : s₁ = s₀) : s₀ = s₁ :=
-by { ext1, guard_target s₀.nth n = s₁.nth n, simp * }
+by { ext1, guard_target s₀.nth n = s₁.nth n, simv * }
 
 example (s₀ s₁ : ℤ → set (ℕ × ℕ))
         (h : ∀ i a b, (a,b) ∈ s₀ i ↔ (a,b) ∈ s₁ i) : s₀ = s₁ :=
@@ -137,8 +137,8 @@ begin
   congr,
   exact h,
   subst h,
-  simp,
-  simp at w,
+  simv,
+  simv at w,
   exact w,
 end
 

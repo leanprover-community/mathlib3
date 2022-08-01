@@ -33,9 +33,9 @@ def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
 @[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m n : ℕ) :
+@[simv, norm_cast] theorem cast_mul [non_assoc_semiring α] (m n : ℕ) :
   ((m * n : ℕ) : α) = m * n :=
-by induction n; simp [mul_succ, mul_add, *]
+by induction n; simv [mul_succ, mul_add, *]
 
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
@@ -68,11 +68,11 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 
 variable [nontrivial α]
 
-@[simp, norm_cast] theorem cast_le {m n : ℕ} :
+@[simv, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
-@[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
+@[simv, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
 
 @[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
@@ -81,29 +81,29 @@ by rw [← cast_zero, cast_lt]
 lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
   add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
-@[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
+@[simv, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
 
-@[simp, norm_cast] theorem one_le_cast {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
+@[simv, norm_cast] theorem one_le_cast {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
 by rw [← cast_one, cast_le]
 
-@[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
+@[simv, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
 by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 
-@[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
+@[simv, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
 end
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
+@[simv, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
 (@mono_cast α _).map_min
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
+@[simv, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
   (↑(max a b) : α) = max a b :=
 (@mono_cast α _).map_max
 
-@[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
+@[simv, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
@@ -125,10 +125,10 @@ instance : add_monoid_with_one (α × β) :=
   .. prod.add_monoid, .. prod.has_one }
 
 @[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
-by induction n; simp *
+by induction n; simv *
 
 @[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
-by induction n; simp *
+by induction n; simv *
 
 end prod
 
@@ -139,8 +139,8 @@ variables {A B F : Type*} [add_monoid_with_one B]
 lemma ext_nat' [add_monoid A] [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
   apply nat.rec,
-  { simp only [nat.nat_zero_eq_zero, map_zero] },
-  simp [nat.succ_eq_add_one, h] {contextual := tt}
+  { simv only [nat.nat_zero_eq_zero, map_zero] },
+  simv [nat.succ_eq_add_one, h] {contextual := tt}
 end
 
 @[ext] lemma add_monoid_hom.ext_nat [add_monoid A] : ∀ {f g : ℕ →+ A}, ∀ h : f 1 = g 1, f = g :=
@@ -151,12 +151,12 @@ variable [add_monoid_with_one A]
 -- these versions are primed so that the `ring_hom_class` versions aren't
 lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
   ∀ n : ℕ, f n = n
-| 0     := by simp
+| 0     := by simv
 | (n+1) := by rw [map_add, h1, eq_nat_cast' n, nat.cast_add_one]
 
 lemma map_nat_cast' {A} [add_monoid_with_one A] [add_monoid_hom_class F A B]
                     (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
-| 0     := by simp
+| 0     := by simv
 | (n+1) := by rw [nat.cast_add, map_add, nat.cast_add, map_nat_cast', nat.cast_one, h, nat.cast_one]
 
 end add_monoid_hom_class
@@ -171,7 +171,7 @@ theorem ext_nat'' [monoid_with_zero_hom_class F ℕ A] (f g : F)
 begin
   apply fun_like.ext,
   rintro (_|n),
-  { simp },
+  { simv },
   exact h_pos n.succ_pos
 end
 
@@ -191,7 +191,7 @@ eq_nat_cast' f $ map_one f
 map_nat_cast' f $ map_one f
 
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
-ext_nat' f g $ by simp only [map_one]
+ext_nat' f g $ by simv only [map_one]
 
 end ring_hom_class
 
@@ -203,7 +203,7 @@ ring_hom.ext $ eq_nat_cast f
 
 end ring_hom
 
-@[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
+@[simv, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 rfl
 
 @[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ := rfl
@@ -219,9 +219,9 @@ namespace mul_opposite
 
 variables {α : Type*} [add_monoid_with_one α]
 
-@[simp, norm_cast] lemma op_nat_cast (n : ℕ) : op (n : α) = n := rfl
+@[simv, norm_cast] lemma op_nat_cast (n : ℕ) : op (n : α) = n := rfl
 
-@[simp, norm_cast] lemma unop_nat_cast (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
+@[simv, norm_cast] lemma unop_nat_cast (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 end mul_opposite
 
@@ -230,7 +230,7 @@ variables {α : Type*}
 
 variables [add_monoid_with_one α]
 
-@[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
+@[simv, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
 | 0     := rfl
 | (n+1) := by { push_cast, rw [coe_nat n] }
 

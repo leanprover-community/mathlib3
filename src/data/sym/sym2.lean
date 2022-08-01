@@ -71,7 +71,7 @@ instance rel.setoid (α : Type u) : setoid (α × α) := ⟨rel α, rel.is_equiv
   (x, y) ≈ (z, w) ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
 begin
   split; intro h,
-  { cases h; simp },
+  { cases h; simv },
   { cases h; rw [h.1, h.2], constructor }
 end
 
@@ -119,11 +119,11 @@ by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-by simp
+by simv
 
 lemma mk_eq_mk_iff {p q : α × α} :
   ⟦p⟧ = ⟦q⟧ ↔ p = q ∨ p = q.swap :=
-by { cases p, cases q, simp only [eq_iff, prod.mk.inj_iff, prod.swap_prod_mk] }
+by { cases p, cases q, simv only [eq_iff, prod.mk.inj_iff, prod.swap_prod_mk] }
 
 /-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
 functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more convenient to use
@@ -167,7 +167,7 @@ begin
   cases z with x y,
   cases z' with x' y',
   repeat { rw [map_pair_eq, eq_iff] },
-  rintro (h|h); simp [hinj h.1, hinj h.2],
+  rintro (h|h); simv [hinj h.1, hinj h.2],
 end
 
 section membership
@@ -223,8 +223,8 @@ begin
     rw [mem_iff, mem_iff],
     rintro ⟨rfl | rfl, rfl | rfl⟩;
     try { trivial };
-    simp only [sym2.eq_swap] },
-  { rintro rfl, simp },
+    simv only [sym2.eq_swap] },
+  { rintro rfl, simv },
 end
 
 lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
@@ -237,9 +237,9 @@ begin
   induction z using sym2.ind with x y,
   induction z' using sym2.ind with x' y',
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
-  simp only [mem_iff, eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
+  simv only [mem_iff, eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
   cases hx; cases hy; cases hx'; cases hy'; subst_vars,
-  simp only [sym2.eq_swap],
+  simv only [sym2.eq_swap],
 end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
@@ -251,20 +251,20 @@ end membership
   b ∈ sym2.map f z ↔ ∃ a, a ∈ z ∧ f a = b :=
 begin
   induction z using sym2.ind with x y,
-  simp only [map, quotient.map_mk, prod.map_mk, mem_iff],
+  simv only [map, quotient.map_mk, prod.map_mk, mem_iff],
   split,
   { rintro (rfl | rfl),
-    { exact ⟨x, by simp⟩, },
-    { exact ⟨y, by simp⟩, } },
-  { rintro ⟨w, rfl | rfl, rfl⟩; simp, },
+    { exact ⟨x, by simv⟩, },
+    { exact ⟨y, by simv⟩, } },
+  { rintro ⟨w, rfl | rfl, rfl⟩; simv, },
 end
 
 @[congr] lemma map_congr {f g : α → β} {s : sym2 α} (h : ∀ x ∈ s, f x = g x) :
   map f s = map g s :=
 begin
   ext y,
-  simp only [mem_map],
-  split; { rintro ⟨w, hw, rfl⟩, exact ⟨w, hw, by simp [hw, h]⟩ },
+  simv only [mem_map],
+  split; { rintro ⟨w, hw, rfl⟩, exact ⟨w, hw, by simv [hw, h]⟩ },
 end
 
 /-- Note: `sym2.map_id` will not simplify `sym2.map id z` due to `sym2.map_congr`. -/
@@ -315,7 +315,7 @@ begin
   have h' := sym2.other_spec h,
   rw hd at h',
   rw ←h',
-  simp,
+  simv,
 end
 
 section relations
@@ -356,7 +356,7 @@ def to_rel (s : set (sym2 α)) (x y : α) : Prop := ⟦(x, y)⟧ ∈ s
 
 @[simp] lemma to_rel_prop (s : set (sym2 α)) (x y : α) : to_rel s x y ↔ ⟦(x, y)⟧ ∈ s := iff.rfl
 
-lemma to_rel_symmetric (s : set (sym2 α)) : symmetric (to_rel s) := λ x y, by simp [eq_swap]
+lemma to_rel_symmetric (s : set (sym2 α)) : symmetric (to_rel s) := λ x y, by simv [eq_swap]
 
 lemma to_rel_from_rel (sym : symmetric r) : to_rel (from_rel sym) = r := rfl
 
@@ -376,7 +376,7 @@ private def from_vector : vector α 2 → α × α
 
 private lemma perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
   [a₁, b₁].perm [a₂, b₂] ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ a₁ = b₂ ∧ b₁ = a₂ :=
-{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
+{ mp  := by { simv [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
   mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--
@@ -390,10 +390,10 @@ def sym2_equiv_sym' : equiv (sym2 α) (sym' α 2) :=
     rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
     cases x with _ x, { simpa using hx, },
     cases x with _ x, { simpa using hx, },
-    cases x with _ x, swap, { exfalso, simp at hx, linarith [hx] },
+    cases x with _ x, swap, { exfalso, simv at hx, linarith [hx] },
     cases y with _ y, { simpa using hy, },
     cases y with _ y, { simpa using hy, },
-    cases y with _ y, swap, { exfalso, simp at hy, linarith [hy] },
+    cases y with _ y, swap, { exfalso, simv at hy, linarith [hy] },
     rcases perm_card_two_iff.mp h with ⟨rfl,rfl⟩|⟨rfl,rfl⟩, { refl },
     apply sym2.rel.swap,
   end),
@@ -403,7 +403,7 @@ def sym2_equiv_sym' : equiv (sym2 α) (sym' α 2) :=
     { cases x with x hx,
       cases x with _ x, { simpa using hx, },
       cases x with _ x, { simpa using hx, },
-      cases x with _ x, swap, { exfalso, simp at hx, linarith [hx] },
+      cases x with _ x, swap, { exfalso, simv at hx, linarith [hx] },
       refl },
   end }
 
@@ -436,7 +436,7 @@ lemma rel_bool_spec [decidable_eq α] (x y : α × α) : ↥(rel_bool x y) ↔ r
 begin
   cases x with x₁ x₂, cases y with y₁ y₂,
   dsimp [rel_bool], split_ifs;
-  simp only [false_iff, bool.coe_sort_ff, bool.of_to_bool_iff],
+  simv only [false_iff, bool.coe_sort_ff, bool.of_to_bool_iff],
   rotate 2, { contrapose! h, cases h; cc },
   all_goals { subst x₁, split; intro h1,
     { subst h1; apply sym2.rel.swap },
@@ -474,9 +474,9 @@ quot.rec (λ x h', pair_other a x) (begin
   cases x with x₁ x₂, cases y with y₁ y₂,
   cases mem_iff.mp hy with hy'; subst a; dsimp [rel_bool] at h';
     split_ifs at h'; try { rw bool.of_to_bool_iff at h', subst x₁, subst x₂ }; dsimp [pair_other],
-  simp only [ne.symm h_1, if_true, eq_self_iff_true, if_false],
+  simv only [ne.symm h_1, if_true, eq_self_iff_true, if_false],
   exfalso, exact bool.not_ff h',
-  simp only [h_1, if_true, eq_self_iff_true, if_false],
+  simv only [h_1, if_true, eq_self_iff_true, if_false],
   exfalso, exact bool.not_ff h',
 end) z h
 
@@ -487,7 +487,7 @@ begin
   have h' := mem_iff.mp h,
   dsimp [mem.other', quot.rec, pair_other],
   cases h'; subst a,
-  { simp only [if_true, eq_self_iff_true], refl, },
+  { simv only [if_true, eq_self_iff_true], refl, },
   { split_ifs, subst h_1, refl, rw eq_swap, refl, },
   refl,
 end
@@ -505,9 +505,9 @@ begin
   induction z, cases z with x y,
   dsimp [mem.other', quot.rec, pair_other] at hb,
   split_ifs at hb; dsimp [mem.other', quot.rec, pair_other],
-  simp only [h, if_true, eq_self_iff_true],
+  simv only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
-  simp only [h, if_false, if_true, eq_self_iff_true],
+  simv only [h, if_false, if_true, eq_self_iff_true],
   exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
@@ -526,7 +526,7 @@ begin
   ext z,
   induction z using quotient.induction_on,
   rcases z with ⟨x, y⟩,
-  simp only [mem_image, mem_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  simv only [mem_image, mem_diag, exists_prop, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
     rw [←h, sym2.mk_is_diag_iff] at hab,
@@ -543,7 +543,7 @@ begin
   ext z,
   induction z using quotient.induction_on,
   rcases z with ⟨x, y⟩,
-  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  simv only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
     rw [←h, sym2.mk_is_diag_iff] at hab,

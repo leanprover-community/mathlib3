@@ -52,7 +52,7 @@ include i
 lemma has_kernels [preserves_finite_limits G] : has_kernels C :=
 { has_limit := λ X Y f, begin
     have := nat_iso.naturality_1 i f,
-    simp at this,
+    simv at this,
     rw ←this,
     haveI : has_kernel (G.map (F.map f) ≫ i.hom.app _) := limits.has_kernel_comp_mono _ _,
     apply limits.has_kernel_iso_comp,
@@ -65,7 +65,7 @@ lemma has_cokernels : has_cokernels C :=
 { has_colimit := λ X Y f, begin
     haveI : preserves_colimits G := adj.left_adjoint_preserves_colimits,
     have := nat_iso.naturality_1 i f,
-    simp at this,
+    simv at this,
     rw ←this,
     haveI : has_cokernel (G.map (F.map f) ≫ i.hom.app _) := limits.has_cokernel_comp_iso _ _,
     apply limits.has_cokernel_epi_comp,
@@ -101,10 +101,10 @@ begin
           : kernel_iso_of_eq (π_comp_cokernel_iso_of_eq_hom (nat_iso.naturality_2 i f)).symm
   ... ≅ kernel (cokernel.π (_ ≫ f ≫ _))       : kernel_comp_mono _ _
   ... ≅ kernel (cokernel.π (f ≫ i.inv.app Y) ≫ (cokernel_epi_comp (i.hom.app X) _).inv)
-          : kernel_iso_of_eq (by simp only [cokernel.π_desc, cokernel_epi_comp_inv])
+          : kernel_iso_of_eq (by simv only [cokernel.π_desc, cokernel_epi_comp_inv])
   ... ≅ kernel (cokernel.π (f ≫ _))           : kernel_comp_mono _ _
   ... ≅ kernel (inv (i.inv.app Y) ≫ cokernel.π f ≫ (cokernel_comp_is_iso f (i.inv.app Y)).inv)
-          : kernel_iso_of_eq (by simp only [cokernel.π_desc, cokernel_comp_is_iso_inv,
+          : kernel_iso_of_eq (by simv only [cokernel.π_desc, cokernel_comp_is_iso_inv,
               iso.hom_inv_id_app_assoc, nat_iso.inv_inv_app])
   ... ≅ kernel (cokernel.π f ≫ _)             : kernel_is_iso_comp _ _
   ... ≅ kernel (cokernel.π f)                 : kernel_comp_mono _ _
@@ -124,7 +124,7 @@ begin
       ≅ cokernel (kernel.ι f)                 : iso.refl _
   ... ≅ G.obj (cokernel (F.map (kernel.ι f))) : (cokernel_iso _ _ i adj _).symm
   ... ≅ G.obj (cokernel (kernel_comparison f F ≫ (kernel.ι (F.map f))))
-                                              : G.map_iso (cokernel_iso_of_eq (by simp))
+                                              : G.map_iso (cokernel_iso_of_eq (by simv))
   ... ≅ G.obj (cokernel (kernel.ι (F.map f))) : G.map_iso (cokernel_epi_comp _ _)
   ... ≅ G.obj (abelian.coimage (F.map f))     : iso.refl _
   ... ≅ G.obj (abelian.image (F.map f))       : G.map_iso (abelian.coimage_iso_image _)
@@ -134,7 +134,7 @@ begin
   ... ≅ abelian.image f                       : iso.refl _,
 end
 
-local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
+local attribute [simv] cokernel_iso coimage_iso_image coimage_iso_image_aux
 
 -- The account of this proof in the Stacks project omits this calculation.
 lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :

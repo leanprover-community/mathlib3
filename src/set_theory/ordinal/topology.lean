@@ -193,7 +193,7 @@ end
 
 theorem is_limit_of_mem_frontier (ha : a ∈ frontier s) : is_limit a :=
 begin
-  simp only [frontier_eq_closure_inter_closure, set.mem_inter_iff, mem_closure_iff] at ha,
+  simv only [frontier_eq_closure_inter_closure, set.mem_inter_iff, mem_closure_iff] at ha,
   by_contra h,
   rw ←is_open_singleton_iff at h,
   rcases ha.1 _ h rfl with ⟨b, hb, hb'⟩,

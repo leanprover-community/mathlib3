@@ -36,8 +36,8 @@ lemma list.support_sum_subset [add_monoid M] (l : list (ι →₀ M)) :
   l.sum.support ⊆ l.foldr ((⊔) ∘ finsupp.support) ∅ :=
 begin
   induction l with hd tl IH,
-  { simp },
-  { simp only [list.sum_cons, list.foldr_cons, finset.union_comm],
+  { simv },
+  { simv only [list.sum_cons, list.foldr_cons, finset.union_comm],
     refine finsupp.support_add.trans (finset.union_subset_union _ IH),
     refl }
 end
@@ -51,15 +51,15 @@ end
 
 lemma finset.support_sum_subset [add_comm_monoid M] (s : finset (ι →₀ M)) :
   (s.sum id).support ⊆ finset.sup s finsupp.support :=
-by { classical, convert multiset.support_sum_subset s.1; simp }
+by { classical, convert multiset.support_sum_subset s.1; simv }
 
 lemma list.mem_foldr_sup_support_iff [has_zero M] {l : list (ι →₀ M)} {x : ι} :
   x ∈ l.foldr ((⊔) ∘ finsupp.support) ∅ ↔ ∃ (f : ι →₀ M) (hf : f ∈ l), x ∈ f.support :=
 begin
-  simp only [finset.sup_eq_union, list.foldr_map, finsupp.mem_support_iff, exists_prop],
+  simv only [finset.sup_eq_union, list.foldr_map, finsupp.mem_support_iff, exists_prop],
   induction l with hd tl IH,
-  { simp },
-  { simp only [IH, list.foldr_cons, finset.mem_union, finsupp.mem_support_iff, list.mem_cons_iff],
+  { simv },
+  { simv only [IH, list.foldr_cons, finset.mem_union, finsupp.mem_support_iff, list.mem_cons_iff],
     split,
     { rintro (h|h),
       { exact ⟨hd, or.inl rfl, h⟩ },
@@ -82,16 +82,16 @@ lemma list.support_sum_eq [add_monoid M] (l : list (ι →₀ M))
   l.sum.support = l.foldr ((⊔) ∘ finsupp.support) ∅ :=
 begin
   induction l with hd tl IH,
-  { simp },
-  { simp only [list.pairwise_cons] at hl,
-    simp only [list.sum_cons, list.foldr_cons, function.comp_app],
+  { simv },
+  { simv only [list.pairwise_cons] at hl,
+    simv only [list.sum_cons, list.foldr_cons, function.comp_app],
     rw [finsupp.support_add_eq, IH hl.right, finset.sup_eq_union],
     suffices : disjoint hd.support (tl.foldr ((⊔) ∘ finsupp.support) ∅),
     { exact finset.disjoint_of_subset_right (list.support_sum_subset _) this },
     { rw [←list.foldr_map, ←finset.bot_eq_empty, list.foldr_sup_eq_sup_to_finset],
       rw finset.disjoint_sup_right,
       intros f hf,
-      simp only [list.mem_to_finset, list.mem_map] at hf,
+      simv only [list.mem_to_finset, list.mem_map] at hf,
       obtain ⟨f, hf, rfl⟩ := hf,
       exact hl.left _ hf } }
 end
@@ -103,9 +103,9 @@ begin
   induction s using quot.induction_on,
   obtain ⟨l, hl, hd⟩ := hs,
   convert list.support_sum_eq _ _,
-  { simp },
-  { simp },
-  { simp only [multiset.quot_mk_to_coe'', multiset.coe_map, multiset.coe_eq_coe] at hl,
+  { simv },
+  { simv },
+  { simv only [multiset.quot_mk_to_coe'', multiset.coe_map, multiset.coe_eq_coe] at hl,
     exact hl.symm.pairwise hd (λ _ _ h, disjoint.symm h) }
 end
 
@@ -118,7 +118,7 @@ begin
   { exact (finset.sum_val _).symm },
   { obtain ⟨l, hl, hn⟩ : ∃ (l : list (ι →₀ M)), l.to_finset = s ∧ l.nodup,
     { refine ⟨s.to_list, _, finset.nodup_to_list _⟩,
-      simp },
+      simv },
     subst hl,
     rwa [list.to_finset_val, list.dedup_eq_self.mpr hn,
         multiset.pairwise_coe_iff_pairwise,

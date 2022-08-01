@@ -75,7 +75,7 @@ exp_injective $ by rw [exp_log zero_lt_one, exp_zero]
 @[simp] lemma log_abs (x : ℝ) : log (|x|) = log x :=
 begin
   by_cases h : x = 0,
-  { simp [h] },
+  { simv [h] },
   { rw [← exp_eq_exp, exp_log_eq_abs h, exp_log_eq_abs (abs_pos.2 h).ne', abs_abs] }
 end
 
@@ -101,7 +101,7 @@ by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_e
 
 @[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
 begin
-  by_cases hx : x = 0, { simp [hx] },
+  by_cases hx : x = 0, { simv [hx] },
   rw [← exp_eq_exp, exp_log_eq_abs (inv_ne_zero hx), exp_neg, exp_log_eq_abs hx, abs_inv]
 end
 
@@ -145,7 +145,7 @@ by rw [← not_lt, log_pos_iff hx, not_lt]
 lemma log_nonpos_iff' (hx : 0 ≤ x) : log x ≤ 0 ↔ x ≤ 1 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { simp [le_refl, zero_le_one] },
+  { simv [le_refl, zero_le_one] },
   exact log_nonpos_iff hx
 end
 
@@ -182,15 +182,15 @@ begin
       exact (eq_one_of_pos_of_log_eq_zero (neg_pos.mpr x_lt_zero) h).symm, },
     { exact or.inl rfl },
     { exact or.inr (or.inl (eq_one_of_pos_of_log_eq_zero x_gt_zero h)), }, },
-  { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
+  { rintro (rfl|rfl|rfl); simv only [log_one, log_zero, log_neg_eq_log], }
 end
 
 @[simp] lemma log_pow (x : ℝ) (n : ℕ) : log (x ^ n) = n * log x :=
 begin
   induction n with n ih,
-  { simp },
+  { simv },
   rcases eq_or_ne x 0 with rfl | hx,
-  { simp },
+  { simv },
   rw [pow_succ', log_mul (pow_ne_zero _ hx) hx, ih, nat.cast_succ, add_mul, one_mul],
 end
 
@@ -266,15 +266,15 @@ lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, 
   log (∏ i in s, f i) = ∑ i in s, log (f i) :=
 begin
   induction s using finset.cons_induction_on with a s ha ih,
-  { simp },
+  { simv },
   { rw [finset.forall_mem_cons] at hf,
-    simp [ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)] }
+    simv [ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)] }
 end
 
 lemma log_nat_eq_sum_factorization (n : ℕ) : log n = n.factorization.sum (λ p t, t * log p) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
-  { simp },
+  { simv },
   nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
   rw [finsupp.prod, nat.cast_prod, log_prod _ _ (λ p hp, _), finsupp.sum],
   { simp_rw [nat.cast_pow, log_pow] },
@@ -285,7 +285,7 @@ end
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
   tendsto (λ x, log x ^ n / (a * x + b)) at_top (𝓝 0) :=
 ((tendsto_div_pow_mul_exp_add_at_top a b n ha.symm).comp tendsto_log_at_top).congr'
-  (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simp [exp_log hx])
+  (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simv [exp_log hx])
 
 lemma is_o_pow_log_id_at_top {n : ℕ} : (λ x, log x ^ n) =o[at_top] id :=
 begin

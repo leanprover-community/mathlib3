@@ -60,7 +60,7 @@ lemma map_is_greatest (hf : left_ord_continuous f) {s : set α} {x : α} (h : is
 
 lemma mono (hf : left_ord_continuous f) : monotone f :=
 λ a₁ a₂ h,
-have is_greatest {a₁, a₂} a₂ := ⟨or.inr rfl, by simp [*]⟩,
+have is_greatest {a₁, a₂} a₂ := ⟨or.inr rfl, by simv [*]⟩,
 (hf.map_is_greatest this).2 $ mem_image_of_mem _ (or.inl rfl)
 
 lemma comp (hg : left_ord_continuous g) (hf : left_ord_continuous f) :
@@ -79,15 +79,15 @@ variables [semilattice_sup α] [semilattice_sup β] {f : α → β}
 
 lemma map_sup (hf : left_ord_continuous f) (x y : α) :
   f (x ⊔ y) = f x ⊔ f y :=
-(hf is_lub_pair).unique $ by simp only [image_pair, is_lub_pair]
+(hf is_lub_pair).unique $ by simv only [image_pair, is_lub_pair]
 
 lemma le_iff (hf : left_ord_continuous f) (h : injective f) {x y} :
   f x ≤ f y ↔ x ≤ y :=
-by simp only [← sup_eq_right, ← hf.map_sup, h.eq_iff]
+by simv only [← sup_eq_right, ← hf.map_sup, h.eq_iff]
 
 lemma lt_iff (hf : left_ord_continuous f) (h : injective f) {x y} :
   f x < f y ↔ x < y :=
-by simp only [lt_iff_le_not_le, hf.le_iff h]
+by simv only [lt_iff_le_not_le, hf.le_iff h]
 
 variable (f)
 
@@ -117,7 +117,7 @@ by rw [hf.map_Sup', Sup_image]
 
 lemma map_supr (hf : left_ord_continuous f) (g : ι → α) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by simp only [supr, hf.map_Sup', ← range_comp]
+by simv only [supr, hf.map_Sup', ← range_comp]
 
 end complete_lattice
 
@@ -132,7 +132,7 @@ lemma map_cSup (hf : left_ord_continuous f) {s : set α} (sne : s.nonempty) (sbd
 
 lemma map_csupr (hf : left_ord_continuous f) {g : ι → α} (hg : bdd_above (range g)) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by simp only [supr, hf.map_cSup (range_nonempty _) hg, ← range_comp]
+by simv only [supr, hf.map_cSup (range_nonempty _) hg, ← range_comp]
 
 end conditionally_complete_lattice
 

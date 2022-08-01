@@ -50,7 +50,7 @@ do
   -- the invariance goal has a useless `e_p : true` hypothesis,
   -- and after casing on that we may be able to simplify away
   -- the `eq.rec`.
-  swap, (tactic.cases e_p >> `[try { simp only [eq_rec_constant] }]), swap,
+  swap, (tactic.cases e_p >> `[try { simv only [eq_rec_constant] }]), swap,
   return e
 
 namespace interactive

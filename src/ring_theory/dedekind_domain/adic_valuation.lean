@@ -150,7 +150,7 @@ by rw [v.int_valuation_def_if_neg (zero_ne_one.symm : (1 : R) ≠ 0), ideal.span
 lemma int_valuation.map_mul' (x y : R) :
   v.int_valuation_def (x * y) = v.int_valuation_def x * v.int_valuation_def y :=
 begin
-  simp only [int_valuation_def],
+  simv only [int_valuation_def],
   by_cases hx : x = 0,
   { rw [hx, zero_mul, if_pos (eq.refl _), zero_mul] },
   { by_cases hy : y = 0,

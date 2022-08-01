@@ -38,7 +38,7 @@ begin
   rw [nat.lt_succ_iff, le_iff_exists_add] at hk,
   rcases hk with ⟨c, rfl⟩,
   have : k + c + (k + c + 1 - k) = c + (k + c + 1),
-  { simp only [add_assoc, add_tsub_cancel_left, add_left_comm] },
+  { simv only [add_assoc, add_tsub_cancel_left, add_left_comm] },
   rw [fin.coe_mk, this, nat.add_mod_right, nat.mod_eq_of_lt, nat.add_sub_cancel],
   linarith
 end
@@ -54,7 +54,7 @@ begin
   -- We reindex the sum by fin (m+1)
   have : ∑ x in A, x = ∑ i : fin (m+1), a i,
   { convert sum_image (λ x hx y hy, (order_embedding.eq_iff_eq a).1),
-    rw ←coe_inj, simp },
+    rw ←coe_inj, simv },
   rw this, clear this,
 
   -- The main proof is a simple calculation by rearranging one of the two sums
@@ -81,8 +81,8 @@ begin
   -- Proof that the `f i` are greater than `a (rev k)` for `i ≤ k`
   have hf : map f (Icc 0 k) ⊆ map a.to_embedding (Ioc (rev k) (fin.last m)),
   { intros x hx,
-    simp only [equiv.sub_left_apply] at h,
-    simp only [mem_map, f, mem_Icc, mem_Ioc, fin.zero_le, true_and, equiv.sub_left_apply,
+    simv only [equiv.sub_left_apply] at h,
+    simv only [mem_map, f, mem_Icc, mem_Ioc, fin.zero_le, true_and, equiv.sub_left_apply,
       function.embedding.coe_fn_mk, exists_prop, rel_embedding.coe_fn_to_embedding] at hx ⊢,
     rcases hx with ⟨i, ⟨hi, rfl⟩⟩,
     have h1 : a i + a (fin.last m - k) ≤ n,

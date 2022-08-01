@@ -45,14 +45,14 @@ lemma val_neg {v : nat → int} {t : term} :
 (neg t).val v = -(t.val v) :=
 begin
   cases t with b as,
-  simp only [val, neg_add, neg, val, coeffs.val_neg]
+  simv only [val, neg_add, neg, val, coeffs.val_neg]
 end
 
 @[simp] lemma val_sub {v : nat → int} {t1 t2 : term} :
 (sub t1 t2).val v = t1.val v - t2.val v :=
 begin
   cases t1, cases t2,
-  simp only [add_assoc, coeffs.val_sub, neg_add_rev,
+  simv only [add_assoc, coeffs.val_sub, neg_add_rev,
     val, sub, add_comm, add_left_comm, sub_eq_add_neg]
 end
 
@@ -60,7 +60,7 @@ end
 (add t1 t2).val v = t1.val v + t2.val v :=
 begin
   cases t1, cases t2,
-  simp only [coeffs.val_add, add,
+  simv only [coeffs.val_add, add,
     val, add_comm, add_left_comm]
 end
 
@@ -68,14 +68,14 @@ end
 val v (mul i t) = i * (val v t) :=
 begin
   cases t,
-  simp only [mul, mul_add, add_mul, list.length_map,
+  simv only [mul, mul_add, add_mul, list.length_map,
     coeffs.val, coeffs.val_between_map_mul, val, list.map]
 end
 
 lemma val_div {v : nat → int} {i b : int} {as : list int} :
   i ∣ b → (∀ x ∈ as, i ∣ x) → (div i (b,as)).val v = (val v (b,as)) / i :=
 begin
-  intros h1 h2, simp only [val, div, list.map],
+  intros h1 h2, simv only [val, div, list.map],
   rw [int.add_div_of_dvd_left h1],
   apply fun_mono_2 rfl,
   rw ← coeffs.val_map_div h2

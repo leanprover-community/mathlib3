@@ -42,8 +42,8 @@ def to_monad (h : L ⊣ R) : monad C :=
 { to_functor := L ⋙ R,
   η' := h.unit,
   μ' := whisker_right (whisker_left L h.counit) R,
-  assoc' := λ X, by { dsimp, rw [←R.map_comp], simp },
-  right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp } }
+  assoc' := λ X, by { dsimp, rw [←R.map_comp], simv },
+  right_unit' := λ X, by { dsimp, rw [←R.map_comp], simv } }
 
 /--
 For a pair of functors `L : C ⥤ D`, `R : D ⥤ C`, an adjunction `h : L ⊣ R` induces a comonad on
@@ -54,22 +54,22 @@ def to_comonad (h : L ⊣ R) : comonad D :=
 { to_functor := R ⋙ L,
   ε' := h.counit,
   δ' := whisker_right (whisker_left R h.unit) L,
-  coassoc' := λ X, by { dsimp, rw ← L.map_comp, simp },
-  right_counit' := λ X, by { dsimp, rw ← L.map_comp, simp } }
+  coassoc' := λ X, by { dsimp, rw ← L.map_comp, simv },
+  right_counit' := λ X, by { dsimp, rw ← L.map_comp, simv } }
 
 /-- The monad induced by the Eilenberg-Moore adjunction is the original monad.  -/
 @[simps]
 def adj_to_monad_iso (T : monad C) : T.adj.to_monad ≅ T :=
 monad_iso.mk (nat_iso.of_components (λ X, iso.refl _) (by tidy))
-  (λ X, by { dsimp, simp })
-  (λ X, by { dsimp, simp })
+  (λ X, by { dsimp, simv })
+  (λ X, by { dsimp, simv })
 
 /-- The comonad induced by the Eilenberg-Moore adjunction is the original comonad. -/
 @[simps]
 def adj_to_comonad_iso (G : comonad C) : G.adj.to_comonad ≅ G :=
 comonad_iso.mk (nat_iso.of_components (λ X, iso.refl _) (by tidy))
-  (λ X, by { dsimp, simp })
-  (λ X, by { dsimp, simp })
+  (λ X, by { dsimp, simv })
+  (λ X, by { dsimp, simv })
 
 end adjunction
 
@@ -111,7 +111,7 @@ instance (T : monad C) : full (monad.comparison T.adj) :=
 instance (T : monad C) : ess_surj (monad.comparison T.adj) :=
 { mem_ess_image := λ X,
   ⟨{ A := X.A, a := X.a, unit' := by simpa using X.unit, assoc' := by simpa using X.assoc },
-    ⟨monad.algebra.iso_mk (iso.refl _) (by simp)⟩⟩ }
+    ⟨monad.algebra.iso_mk (iso.refl _) (by simv)⟩⟩ }
 
 /--
 Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.comonad.comparison L`
@@ -126,7 +126,7 @@ def comonad.comparison (h : L ⊣ R) : C ⥤ h.to_comonad.coalgebra :=
     coassoc' := by { dsimp, rw [← L.map_comp, ← adjunction.unit_naturality, L.map_comp], refl } },
   map := λ X Y f,
   { f := L.map f,
-    h' := by { dsimp, rw ← L.map_comp, simp } } }
+    h' := by { dsimp, rw ← L.map_comp, simv } } }
 
 /--
 The underlying object of `(comonad.comparison L).obj X` is just `L.obj X`.
@@ -149,7 +149,7 @@ instance (G : comonad C) : full (comonad.comparison G.adj) :=
 instance (G : comonad C) : ess_surj (comonad.comparison G.adj) :=
 { mem_ess_image := λ X,
   ⟨{ A := X.A, a := X.a, counit' := by simpa using X.counit, coassoc' := by simpa using X.coassoc },
-    ⟨comonad.coalgebra.iso_mk (iso.refl _) (by simp)⟩⟩ }
+    ⟨comonad.coalgebra.iso_mk (iso.refl _) (by simv)⟩⟩ }
 
 /--
 A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison functor `monad.comparison R`
@@ -188,7 +188,7 @@ instance [reflective R] (X : (adjunction.of_right_adjoint R).to_monad.algebra) :
     dsimp only [functor.comp_obj, adjunction.to_monad_coe],
     rw [unit_obj_eq_map_unit, ←functor.map_comp, ←functor.map_comp],
     erw X.unit,
-    simp,
+    simv,
   end⟩⟩⟩
 
 instance comparison_ess_surj [reflective R] :

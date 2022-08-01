@@ -38,8 +38,8 @@ The equivalence of categories expressing associativity of products of categories
 -/
 def associativity : (C × D) × E ≌ C × (D × E) :=
 equivalence.mk (associator C D E) (inverse_associator C D E)
-  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
-  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by simv)) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by simv)) (by tidy))
 
 instance associator_is_equivalence : is_equivalence (associator C D E) :=
 (by apply_instance : is_equivalence (associativity C D E).functor)

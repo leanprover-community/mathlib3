@@ -162,7 +162,7 @@ lemma ad_conj {R : Type*} [rack R] (x y : R) :
   act (x ◃ y) = act x * act y * (act x)⁻¹ :=
 begin
   apply @mul_right_cancel _ _ _ (act x), ext z,
-  simp only [inv_mul_cancel_right],
+  simv only [inv_mul_cancel_right],
   apply self_distrib.symm,
 end
 
@@ -172,12 +172,12 @@ The opposite rack, swapping the roles of `◃` and `◃⁻¹`.
 instance opposite_rack : rack Rᵐᵒᵖ :=
 { act := λ x y, op (inv_act (unop x) (unop y)),
   self_distrib := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, mul_opposite.rec $ λ z, begin
-    simp only [unop_op, op_inj],
+    simv only [unop_op, op_inj],
     exact self_distrib_inv,
   end,
   inv_act := λ x y, op (shelf.act (unop x) (unop y)),
-  left_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simp,
-  right_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simp }
+  left_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simv,
+  right_inv := mul_opposite.rec $ λ x, mul_opposite.rec $ λ y, by simv }
 
 @[simp] lemma op_act_op_eq {x y : R} : (op x) ◃ (op y) = op (x ◃⁻¹ y) := rfl
 @[simp] lemma op_inv_act_op_eq {x y : R} : (op x) ◃⁻¹ (op y) = op (x ◃ y) := rfl
@@ -217,8 +217,8 @@ regular isotopy version of the Reidemeister I move for knot diagrams.)
 def self_apply_equiv (R : Type*) [rack R] : R ≃ R :=
 { to_fun := λ x, x ◃ x,
   inv_fun := λ x, x ◃⁻¹ x,
-  left_inv := λ x, by simp,
-  right_inv := λ x, by simp }
+  left_inv := λ x, by simv,
+  right_inv := λ x, by simv }
 
 /--
 An involutory rack is one for which `rack.op R x` is an involution for every x.
@@ -259,7 +259,7 @@ instance : has_coe_to_fun (S₁ →◃ S₂) (λ _, S₁ → S₂) := ⟨shelf_h
 /-- The identity homomorphism -/
 def id (S : Type*) [shelf S] : S →◃ S :=
 { to_fun := id,
-  map_act' := by simp }
+  map_act' := by simv }
 
 instance inhabited (S : Type*) [shelf S] : inhabited (S →◃ S) :=
 ⟨id S⟩
@@ -267,7 +267,7 @@ instance inhabited (S : Type*) [shelf S] : inhabited (S →◃ S) :=
 /-- The composition of shelf homomorphisms -/
 def comp (g : S₂ →◃ S₃) (f : S₁ →◃ S₂) : S₁ →◃ S₃ :=
 { to_fun := g.to_fun ∘ f.to_fun,
-  map_act' := by simp }
+  map_act' := by simv }
 
 @[simp]
 lemma comp_apply (g : S₂ →◃ S₃) (f : S₁ →◃ S₂) (x : S₁) :
@@ -285,14 +285,14 @@ namespace quandle
 open rack
 variables {Q : Type*} [quandle Q]
 
-attribute [simp] fix
+attribute [simv] fix
 
 @[simp]
 lemma fix_inv {x : Q} : x ◃⁻¹ x = x :=
-by { rw ←left_cancel x, simp }
+by { rw ←left_cancel x, simv }
 
 instance opposite_quandle : quandle Qᵐᵒᵖ :=
-{ fix := λ x, by { induction x using mul_opposite.rec, simp } }
+{ fix := λ x, by { induction x using mul_opposite.rec, simv } }
 
 /--
 The conjugation quandle of a group.  Each element of the group acts by
@@ -310,7 +310,7 @@ instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
   inv_act := (λ x, (@mul_aut.conj G _ x).symm),
   left_inv := λ x y, by { dsimp [act, conj], group },
   right_inv := λ x y, by { dsimp [act, conj], group },
-  fix := λ x, by simp }
+  fix := λ x, by simv }
 
 @[simp]
 lemma conj_act_eq_conj {G : Type*} [group G] (x y : conj G) :
@@ -320,7 +320,7 @@ lemma conj_swap {G : Type*} [group G] (x y : conj G) :
   x ◃ y = y ↔ y ◃ x = x :=
 begin
   dsimp [conj] at *, split,
-  repeat { intro h, conv_rhs { rw eq_mul_inv_of_mul_eq (eq_mul_inv_of_mul_eq h) }, simp, },
+  repeat { intro h, conv_rhs { rw eq_mul_inv_of_mul_eq (eq_mul_inv_of_mul_eq h) }, simv, },
 end
 
 /--
@@ -328,7 +328,7 @@ end
 -/
 def conj.map {G : Type*} {H : Type*} [group G] [group H] (f : G →* H) : conj G →◃ conj H :=
 { to_fun := f,
-  map_act' := by simp }
+  map_act' := by simv }
 
 instance {G : Type*} {H : Type*} [group G] [group H] : has_lift (G →* H) (conj G →◃ conj H) :=
 { lift := conj.map }
@@ -575,13 +575,13 @@ lemma well_def {R : Type*} [rack R] {G : Type*} [group G] (f : R →◃ quandle.
 | a b refl := rfl
 | a b (symm h) := (well_def h).symm
 | a b (trans hac hcb) := eq.trans (well_def hac) (well_def hcb)
-| _ _ (congr_mul ha hb) := by { simp [to_envel_group.map_aux, well_def ha, well_def hb] }
-| _ _ (congr_inv ha) := by { simp [to_envel_group.map_aux, well_def ha] }
+| _ _ (congr_mul ha hb) := by { simv [to_envel_group.map_aux, well_def ha, well_def hb] }
+| _ _ (congr_inv ha) := by { simv [to_envel_group.map_aux, well_def ha] }
 | _ _ (assoc a b c) := by { apply mul_assoc }
-| _ _ (one_mul a) := by { simp [to_envel_group.map_aux] }
-| _ _ (mul_one a) := by { simp [to_envel_group.map_aux] }
-| _ _ (mul_left_inv a) := by { simp [to_envel_group.map_aux] }
-| _ _ (act_incl x y) := by { simp [to_envel_group.map_aux] }
+| _ _ (one_mul a) := by { simv [to_envel_group.map_aux] }
+| _ _ (mul_one a) := by { simv [to_envel_group.map_aux] }
+| _ _ (mul_left_inv a) := by { simv [to_envel_group.map_aux] }
+| _ _ (act_incl x y) := by { simv [to_envel_group.map_aux] }
 
 end to_envel_group.map_aux
 
@@ -596,11 +596,11 @@ def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
                     (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
     map_one' := begin
       change quotient.lift_on ⟦rack.pre_envel_group.unit⟧ (to_envel_group.map_aux f) _ = 1,
-      simp [to_envel_group.map_aux],
+      simv [to_envel_group.map_aux],
     end,
     map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin
       change quotient.lift_on ⟦mul x y⟧ (to_envel_group.map_aux f) _ = _,
-      simp [to_envel_group.map_aux],
+      simv [to_envel_group.map_aux],
     end) },
   inv_fun := λ F, (quandle.conj.map F).comp (to_envel_group R),
   left_inv := λ f, by { ext, refl },

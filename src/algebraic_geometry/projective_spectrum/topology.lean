@@ -119,7 +119,7 @@ by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 @[simp] lemma vanishing_ideal_singleton (x : projective_spectrum 𝒜) :
   vanishing_ideal ({x} : set (projective_spectrum 𝒜)) = x.as_homogeneous_ideal :=
-by simp [vanishing_ideal]
+by simv [vanishing_ideal]
 
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum 𝒜))
   (I : ideal A) :
@@ -243,7 +243,7 @@ lemma zero_locus_Union {γ : Sort*} (s : γ → set A) :
 
 lemma zero_locus_bUnion (s : set (set A)) :
   zero_locus 𝒜 (⋃ s' ∈ s, s' : set A) = ⋂ s' ∈ s, zero_locus 𝒜 s' :=
-by simp only [zero_locus_Union]
+by simv only [zero_locus_Union]
 
 lemma vanishing_ideal_Union {γ : Sort*} (t : γ → set (projective_spectrum 𝒜)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
@@ -256,7 +256,7 @@ set.ext $ λ x, by simpa using x.2.1.inf_le
 
 lemma union_zero_locus (s s' : set A) :
   zero_locus 𝒜 s ∪ zero_locus 𝒜 s' = zero_locus 𝒜 ((ideal.span s) ⊓ (ideal.span s'): ideal A) :=
-by { rw zero_locus_inf, simp }
+by { rw zero_locus_inf, simv }
 
 lemma zero_locus_mul_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I * J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
@@ -294,13 +294,13 @@ is defined via the closed sets of the topology:
 they are exactly those sets that are the zero locus of a subset of the ring. -/
 instance zariski_topology : topological_space (projective_spectrum 𝒜) :=
 topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
-  (⟨set.univ, by simp⟩)
+  (⟨set.univ, by simv⟩)
   begin
     intros Zs h,
     rw set.sInter_eq_Inter,
     let f : Zs → set _ := λ i, classical.some (h i.2),
     have hf : ∀ i : Zs, ↑i = zero_locus 𝒜 (f i) := λ i, (classical.some_spec (h i.2)).symm,
-    simp only [hf],
+    simv only [hf],
     exact ⟨_, zero_locus_Union 𝒜 _⟩
   end
   (by { rintros _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
@@ -312,7 +312,7 @@ def Top : Top := Top.of (projective_spectrum 𝒜)
 
 lemma is_open_iff (U : set (projective_spectrum 𝒜)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus 𝒜 s :=
-by simp only [@eq_comm _ Uᶜ]; refl
+by simv only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (projective_spectrum 𝒜)) :
   is_closed Z ↔ ∃ s, Z = zero_locus 𝒜 s :=
@@ -367,13 +367,13 @@ lemma is_open_basic_open {a : A} : is_open ((basic_open 𝒜 a) :
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open 𝒜 (1 : A) = ⊤ :=
-topological_space.opens.ext $ by simp
+topological_space.opens.ext $ by simv
 
 @[simp] lemma basic_open_zero : basic_open 𝒜 (0 : A) = ⊥ :=
-topological_space.opens.ext $ by simp
+topological_space.opens.ext $ by simv
 
 lemma basic_open_mul (f g : A) : basic_open 𝒜 (f * g) = basic_open 𝒜 f ⊓ basic_open 𝒜 g :=
-topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
+topological_space.opens.ext $ by {simv [zero_locus_singleton_mul]}
 
 lemma basic_open_mul_le_left (f g : A) : basic_open 𝒜 (f * g) ≤ basic_open 𝒜 f :=
 by { rw basic_open_mul 𝒜 f g, exact inf_le_left }
@@ -442,7 +442,7 @@ lemma le_iff_mem_closure (x y : projective_spectrum 𝒜) :
 begin
   rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
     mem_zero_locus, vanishing_ideal_singleton],
-  simp only [coe_subset_coe, subtype.coe_le_coe, coe_coe],
+  simv only [coe_subset_coe, subtype.coe_le_coe, coe_coe],
 end
 
 end order

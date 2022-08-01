@@ -64,12 +64,12 @@ end
 lemma algebra.is_algebraic_iff : algebra.is_algebraic R A ↔ (⊤ : subalgebra R A).is_algebraic :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
-  simp only [algebra.mem_top, forall_prop_of_true, iff_self],
+  simv only [algebra.mem_top, forall_prop_of_true, iff_self],
 end
 
 lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
   ¬ function.injective (polynomial.aeval x : R[X] →ₐ[R] A) :=
-by simp only [is_algebraic, injective_iff_map_eq_zero, not_forall, and.comm, exists_prop]
+by simv only [is_algebraic, injective_iff_map_eq_zero, not_forall, and.comm, exists_prop]
 
 end
 
@@ -148,7 +148,7 @@ then A is algebraic over K. -/
 lemma is_algebraic_trans (L_alg : is_algebraic K L) (A_alg : is_algebraic L A) :
   is_algebraic K A :=
 begin
-  simp only [is_algebraic, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
+  simv only [is_algebraic, is_algebraic_iff_is_integral] at L_alg A_alg ⊢,
   exact is_integral_trans L_alg A_alg,
 end
 
@@ -221,7 +221,7 @@ begin
     ((injective_iff_map_eq_zero _).mp inj),
   refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
     is_integral_closure.algebra_map_injective S R L _⟩,
-  simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
+  simv only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
     ← is_scalar_tower.algebra_map_apply],
   rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
   exact mt ((injective_iff_map_eq_zero _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
@@ -332,13 +332,13 @@ variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S
 noncomputable def polynomial.algebra_pi :
   algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
-  map_one' := funext $ λ z, by simp only [polynomial.aeval_one, pi.one_apply, map_one],
-  map_mul' := λ f g, funext $ λ z, by simp only [pi.mul_apply, map_mul],
-  map_zero' := funext $ λ z, by simp only [polynomial.aeval_zero, pi.zero_apply, map_zero],
-  map_add' := λ f g, funext $ λ z, by simp only [polynomial.aeval_add, pi.add_apply, map_add],
+  map_one' := funext $ λ z, by simv only [polynomial.aeval_one, pi.one_apply, map_one],
+  map_mul' := λ f g, funext $ λ z, by simv only [pi.mul_apply, map_mul],
+  map_zero' := funext $ λ z, by simv only [polynomial.aeval_zero, pi.zero_apply, map_zero],
+  map_add' := λ f g, funext $ λ z, by simv only [polynomial.aeval_add, pi.add_apply, map_add],
   commutes' := λ p f, funext $ λ z, mul_comm _ _,
   smul_def' := λ p f, funext $ λ z, by
-    simp only [algebra.algebra_map_eq_smul_one, polynomial_smul_apply', one_mul,
+    simv only [algebra.algebra_map_eq_smul_one, polynomial_smul_apply', one_mul,
       pi.mul_apply, algebra.smul_mul_assoc],
   ..polynomial.has_smul_pi' R' S' T' }
 

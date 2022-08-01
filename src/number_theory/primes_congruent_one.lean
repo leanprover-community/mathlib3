@@ -27,7 +27,7 @@ begin
           (2 : ℕ).lt_succ_self (le_mul_of_le_of_one_le (nat.succ_pos _) n.factorial_pos),
     rcases k with _ | _ | k,
     { simpa using hpos, },
-    { simp only [one_mul, int.coe_nat_mul, int.coe_nat_succ, int.coe_nat_zero, zero_add,
+    { simv only [one_mul, int.coe_nat_mul, int.coe_nat_succ, int.coe_nat_zero, zero_add,
         cyclotomic_one, eval_sub, eval_X, eval_one],
       convert int.nat_abs_lt_nat_abs_of_nonneg_of_lt int.one_nonneg _,
       rw lt_sub_iff_add_lt,

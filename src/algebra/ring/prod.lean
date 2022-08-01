@@ -11,7 +11,7 @@ import algebra.ring.equiv
 # Semiring, ring etc structures on `R × S`
 
 In this file we define two-binop (`semiring`, `ring` etc) structures on `R × S`. We also prove
-trivial `simp` lemmas, and define the following operations on `ring_hom`s and similarly for
+trivial `simv` lemmas, and define the following operations on `ring_hom`s and similarly for
 `non_unital_ring_hom`s:
 
 * `fst R S : R × S →+* R`, `snd R S : R × S →+* S`: projections `prod.fst` and `prod.snd`
@@ -121,7 +121,7 @@ ext $ λ x, rfl
 
 lemma prod_unique (f : R →ₙ+* S × T) :
   ((fst S T).comp f).prod ((snd S T).comp f) = f :=
-ext $ λ x, by simp only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
+ext $ λ x, by simv only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
 
 end prod
 
@@ -182,7 +182,7 @@ ext $ λ x, rfl
 
 lemma prod_unique (f : R →+* S × T) :
   ((fst S T).comp f).prod ((snd S T).comp f) = f :=
-ext $ λ x, by simp only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
+ext $ λ x, by simv only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
 
 end prod
 
@@ -231,19 +231,19 @@ variables (R S) [subsingleton S]
 @[simps] def prod_zero_ring : R ≃+* R × S :=
 { to_fun := λ x, (x, 0),
   inv_fun := prod.fst,
-  map_add' := by simp,
-  map_mul' := by simp,
+  map_add' := by simv,
+  map_mul' := by simv,
   left_inv := λ x, rfl,
-  right_inv := λ x, by cases x; simp }
+  right_inv := λ x, by cases x; simv }
 
 /-- A ring `R` is isomorphic to `S × R` when `S` is the zero ring -/
 @[simps] def zero_ring_prod : R ≃+* S × R :=
 { to_fun := λ x, (0, x),
   inv_fun := prod.snd,
-  map_add' := by simp,
-  map_mul' := by simp,
+  map_add' := by simv,
+  map_mul' := by simv,
   left_inv := λ x, rfl,
-  right_inv := λ x, by cases x; simp }
+  right_inv := λ x, by cases x; simv }
 
 end ring_equiv
 
@@ -252,7 +252,7 @@ lemma false_of_nontrivial_of_product_domain (R S : Type*) [ring R] [ring S]
   [is_domain (R × S)] [nontrivial R] [nontrivial S] : false :=
 begin
   have := is_domain.eq_zero_or_eq_zero_of_mul_eq_zero
-    (show ((0 : R), (1 : S)) * (1, 0) = 0, by simp),
+    (show ((0 : R), (1 : S)) * (1, 0) = 0, by simv),
   rw [prod.mk_eq_zero,prod.mk_eq_zero] at this,
   rcases this with (⟨_,h⟩|⟨h,_⟩),
   { exact zero_ne_one h.symm },

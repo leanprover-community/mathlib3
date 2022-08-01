@@ -90,7 +90,7 @@ lemma eq_to_GH_space_iff {X : Type u} [metric_space X] [compact_space X] [nonemp
   {p : nonempty_compacts ℓ_infty_ℝ} :
   ⟦p⟧ = to_GH_space X ↔ ∃ Ψ : X → ℓ_infty_ℝ, isometry Ψ ∧ range Ψ = p :=
 begin
-  simp only [to_GH_space, quotient.eq],
+  simv only [to_GH_space, quotient.eq],
   refine ⟨λ h, _, _⟩,
   { rcases setoid.symm h with ⟨e⟩,
     have f := (Kuratowski_embedding.isometry X).isometric_on_range.trans e,
@@ -131,7 +131,7 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [co
   [nonempty X] {Y : Type v} [metric_space Y] [compact_space Y] [nonempty Y] :
   to_GH_space X = to_GH_space Y ↔ nonempty (X ≃ᵢ Y) :=
 ⟨begin
-  simp only [to_GH_space, quotient.eq],
+  simv only [to_GH_space, quotient.eq],
   rintro ⟨e⟩,
   have I : ((nonempty_compacts.Kuratowski_embedding X) ≃ᵢ
              (nonempty_compacts.Kuratowski_embedding Y))
@@ -143,7 +143,7 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [co
 end,
 begin
   rintro ⟨e⟩,
-  simp only [to_GH_space, quotient.eq],
+  simv only [to_GH_space, quotient.eq],
   have f := (Kuratowski_embedding.isometry X).isometric_on_range.symm,
   have g := (Kuratowski_embedding.isometry Y).isometric_on_range,
   have I : ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))) =
@@ -214,10 +214,10 @@ begin
   { rw eq_to_GH_space_iff,
     exact ⟨λ x, F (Ψ' x), (Kuratowski_embedding.isometry _).comp IΨ', range_comp _ _⟩ },
   refine cInf_le ⟨0,
-    begin simp [lower_bounds], assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
+    begin simv [lower_bounds], assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
   apply (mem_image _ _ _).2,
   existsi (⟨A, B⟩ : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
-  simp [AX, BY],
+  simv [AX, BY],
 end
 
 /-- The optimal coupling constructed above realizes exactly the Gromov-Hausdorff distance,
@@ -267,7 +267,7 @@ begin
     let F : (X ⊕ Y) × (X ⊕ Y) → ℝ := λ p, dist (f p.1) (f p.2),
     -- check that the induced "distance" is a candidate
     have Fgood : F ∈ candidates X Y,
-    { simp only [candidates, forall_const, and_true, add_comm, eq_self_iff_true, dist_eq_zero,
+    { simv only [candidates, forall_const, and_true, add_comm, eq_self_iff_true, dist_eq_zero,
                  and_self, set.mem_set_of_eq],
       repeat {split},
       { exact λ x y, calc
@@ -323,7 +323,7 @@ begin
         ... = dist (Φ x) (Ψ y) : rfl
         ... = dist z (f (inr y)) : by rw hx
         ... ≤ r : le_of_lt hz },
-    simp [HD, csupr_le I1, csupr_le I2] },
+    simv [HD, csupr_le I1, csupr_le I2] },
   /- Get the same inequality for any coupling. If the coupling is quite good, the desired
   inequality has been proved above. If it is bad, then the inequality is obvious. -/
   have B : ∀ p q : nonempty_compacts ℓ_infty_ℝ, ⟦p⟧ = to_GH_space X → ⟦q⟧ = to_GH_space Y →
@@ -372,7 +372,7 @@ instance : metric_space GH_space :=
     refine le_antisymm _ _,
     { apply cInf_le,
       { exact ⟨0, by { rintro b ⟨⟨u, v⟩, ⟨hu, hv⟩, rfl⟩, exact Hausdorff_dist_nonneg } ⟩},
-      { simp, existsi [y, y], simpa } },
+      { simv, existsi [y, y], simpa } },
     { apply le_cInf,
       { exact (nonempty.prod ⟨y, hy⟩ ⟨y, hy⟩).image _ },
       { rintro b ⟨⟨u, v⟩, ⟨hu, hv⟩, rfl⟩, exact Hausdorff_dist_nonneg } },
@@ -384,8 +384,8 @@ instance : metric_space GH_space :=
            = ((λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist (p.1 : set ℓ_infty_ℝ) p.2) ∘ prod.swap) ''
                  ({a | ⟦a⟧ = x} ×ˢ {b | ⟦b⟧ = y}) :=
-      by { congr, funext, simp, rw Hausdorff_dist_comm },
-    simp only [dist, A, image_comp, image_swap_prod],
+      by { congr, funext, simv, rw Hausdorff_dist_comm },
+    simv only [dist, A, image_comp, image_swap_prod],
   end,
   eq_of_dist_eq_zero := λ x y hxy, begin
     /- To show that two spaces at zero distance are isometric, we argue that the distance
@@ -449,7 +449,7 @@ instance : metric_space GH_space :=
                            ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injr X Y)))
           + Hausdorff_dist ((to_glue_r hΦ hΨ) '' (range (optimal_GH_injl Y Z)))
                            ((to_glue_r hΦ hΨ) '' (range (optimal_GH_injr Y Z))) :
-        by simp only [← range_comp, Comm, eq_self_iff_true, add_right_inj]
+        by simv only [← range_comp, Comm, eq_self_iff_true, add_right_inj]
       ... = Hausdorff_dist (range (optimal_GH_injl X Y))
                            (range (optimal_GH_injr X Y))
           + Hausdorff_dist (range (optimal_GH_injl Y Z))
@@ -651,7 +651,7 @@ begin
       have C3 : (E q).symm ⟨i, hi⟩ = ⟨y, ys⟩,
         by { rw ihi_eq, exact (E q).symm_apply_apply ⟨y, ys⟩ },
       have : Φ z = y :=
-        by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
+        by { simv only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
       exact le_of_lt hy },
     show ∀ x y : s p, |dist x y - dist (Φ x) (Φ y)| ≤ ε,
@@ -665,20 +665,20 @@ begin
       let i : ℕ := E p x,
       have hip : i < N p := ((E p) x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q) (Ψ x)), by { simp [Ψ] },
+      have i' : i = ((E q) (Ψ x)), by { simv [Ψ] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
       let j : ℕ := E p y,
       have hjp : j < N p := ((E p) y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q) (Ψ y)).1, by { simp [Ψ] },
+      have j' : j = ((E q) (Ψ y)).1, by { simv [Ψ] },
       -- Express `dist x y` in terms of `F p`
       have : (F p).2 ((E p) x) ((E p) y) = floor (ε⁻¹ * dist x y),
-        by simp only [F, (E p).symm_apply_apply],
+        by simv only [F, (E p).symm_apply_apply],
       have Ap : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = floor (ε⁻¹ * dist x y),
         by { rw ← this, congr; apply (fin.ext_iff _ _).2; refl },
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
       have : (F q).2 ((E q) (Ψ x)) ((E q) (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
-        by simp only [F, (E q).symm_apply_apply],
+        by simv only [F, (E q).symm_apply_apply],
       have Aq : (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩ = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
         by { rw ← this, congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] },
       -- use the equality between `F p` and `F q` to deduce that the distances have equal
@@ -710,7 +710,7 @@ begin
         ... = ε : mul_one _ } },
   calc dist p q = GH_dist p.rep (q.rep) : dist_GH_dist p q
     ... ≤ ε + ε/2 + ε : main
-    ... = δ : by { simp [ε], ring }
+    ... = δ : by { simv [ε], ring }
 end
 
 /-- Compactness criterion: a closed set of compact metric spaces is compact if the spaces have
@@ -735,7 +735,7 @@ begin
   rcases metric.tendsto_at_top.1 ulim ε εpos with ⟨n, hn⟩,
   have u_le_ε : u n ≤ ε,
   { have := hn n le_rfl,
-    simp only [real.dist_eq, add_zero, sub_eq_add_neg, neg_zero] at this,
+    simv only [real.dist_eq, add_zero, sub_eq_add_neg, neg_zero] at this,
     exact le_of_lt (lt_of_le_of_lt (le_abs_self _) this) },
   -- construct a finite subset `s p` of `p` which is `ε`-dense and has cardinal `≤ K n`
   have : ∀ p:GH_space, ∃ s : set p.rep, ∃ N ≤ K n, ∃ E : equiv s (fin N),
@@ -743,7 +743,7 @@ begin
   { assume p,
     by_cases hp : p ∉ t,
     { have : nonempty (equiv (∅ : set p.rep) (fin 0)),
-      { rw ← fintype.card_eq, simp },
+      { rw ← fintype.card_eq, simv },
       use [∅, 0, bot_le, choice (this)] },
     { rcases hcov _ (set.not_not_mem.1 hp) n with ⟨s, ⟨scard, scover⟩⟩,
       rcases cardinal.lt_aleph_0.1 (lt_of_le_of_lt scard (cardinal.nat_lt_aleph_0 _)) with ⟨N, hN⟩,
@@ -751,7 +751,7 @@ begin
       have : cardinal.mk s = cardinal.mk (fin N), by rw [hN, cardinal.mk_fin],
       cases quotient.exact this with E,
       use [s, N, scard, E],
-      simp [hp, scover] } },
+      simv [hp, scover] } },
   choose s N hN E hs using this,
   -- Define a function `F` taking values in a finite type and associating to `p` enough data
   -- to reconstruct it up to `ε`, namely the (discretized) distances between elements of `s p`.
@@ -794,7 +794,7 @@ begin
       have C3 : (E q).symm ⟨i, hi⟩ = ⟨y, ys⟩,
         by { rw ihi_eq, exact (E q).symm_apply_apply ⟨y, ys⟩ },
       have : Φ z = y :=
-        by { simp only [Φ, Ψ], rw [C1, C2, C3], refl },
+        by { simv only [Φ, Ψ], rw [C1, C2, C3], refl },
       rw this,
       exact le_trans (le_of_lt hy) u_le_ε },
     show ∀ x y : s p, |dist x y - dist (Φ x) (Φ y)| ≤ ε,
@@ -808,18 +808,18 @@ begin
       let i : ℕ := E p x,
       have hip : i < N p := ((E p) x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q) (Ψ x)), by { simp [Ψ] },
+      have i' : i = ((E q) (Ψ x)), by { simv [Ψ] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
       let j : ℕ := E p y,
       have hjp : j < N p := ((E p) y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q) (Ψ y)), by { simp [Ψ] },
+      have j' : j = ((E q) (Ψ y)), by { simv [Ψ] },
       -- Express `dist x y` in terms of `F p`
       have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ⌊ε⁻¹ * dist x y⌋₊ := calc
         ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p) x) ((E p) y)).1 :
           by { congr; apply (fin.ext_iff _ _).2; refl }
         ... = min M ⌊ε⁻¹ * dist x y⌋₊ :
-          by simp only [F, (E p).symm_apply_apply]
+          by simv only [F, (E p).symm_apply_apply]
         ... = ⌊ε⁻¹ * dist x y⌋₊ :
         begin
           refine min_eq_right (nat.floor_mono _),
@@ -833,7 +833,7 @@ begin
         ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q) (Ψ x)) ((E q) (Ψ y))).1 :
           by { congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] }
         ... = min M ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :
-          by simp only [F, (E q).symm_apply_apply]
+          by simv only [F, (E q).symm_apply_apply]
         ... = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :
         begin
           refine min_eq_right (nat.floor_mono _),
@@ -878,7 +878,7 @@ begin
         ... = ε : mul_one _ } },
   calc dist p q = GH_dist p.rep (q.rep) : dist_GH_dist p q
     ... ≤ ε + ε/2 + ε : main
-    ... = δ/2 : by { simp [ε], ring }
+    ... = δ/2 : by { simv [ε], ring }
     ... < δ : half_lt_self δpos
 end
 
@@ -943,7 +943,7 @@ begin
   letI : ∀ n, metric_space (Y n).space := λ n, (Y n).metric,
   have E : ∀ n : ℕ,
     glue_space (Y n).isom (isometry_optimal_GH_injl (X n) (X n.succ)) = (Y n.succ).space :=
-    λ n, by { simp [Y, aux_gluing], refl },
+    λ n, by { simv [Y, aux_gluing], refl },
   let c := λ n, cast (E n),
   have ic : ∀ n, isometry (c n) := λ n x y, rfl,
   -- there is a canonical embedding of `Y n` in `Y (n+1)`, by construction
@@ -975,9 +975,9 @@ begin
     { change X2 n = range (coeZ ∘ (Φ n.succ) ∘ (c n)
         ∘ (to_glue_r (Y n).isom (isometry_optimal_GH_injl (X n) (X n.succ)))
         ∘ (optimal_GH_injl (X n) (X n.succ))),
-      simp only [X2, Φ],
+      simv only [X2, Φ],
       rw [← to_inductive_limit_commute I],
-      simp only [f],
+      simv only [f],
       rw ← to_glue_commute },
     rw range_comp at X2n,
     have X2nsucc : X2 n.succ = range ((coeZ ∘ (Φ n.succ) ∘ (c n)

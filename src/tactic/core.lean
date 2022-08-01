@@ -423,9 +423,9 @@ whether `decl_name` exists and has attribute `attr_name`. -/
 meta def has_attribute' (attr_name decl_name : name) : tactic bool :=
 succeeds (has_attribute attr_name decl_name)
 
-/-- Checks whether the name is a simp lemma -/
+/-- Checks whether the name is a simv lemma -/
 meta def is_simp_lemma : name → tactic bool :=
-has_attribute' `simp
+has_attribute' `simv
 
 /-- Checks whether the name is an instance. -/
 meta def is_instance : name → tactic bool :=
@@ -1464,13 +1464,13 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
    /- Now calculate lists of a) the explicitly `include`ed variables and b) the variables which were
       referenced in `e` when it was resolved to `fake_e`.
 
-      It is important that we include variables of the kind a) because we want `simp` to have access
+      It is important that we include variables of the kind a) because we want `simv` to have access
       to declared local instances, and it is important that we only restrict to variables of kind a)
       and b) together since we do not to recognise a hypothesis which is posited as a `variable`
       in the environment but not referenced in the `pexpr` we were passed.
 
-      One use case for this behaviour is running `simp` on the passed `pexpr`, since we do not want
-      simp to use arbitrary hypotheses which were declared as `variables` in the local environment
+      One use case for this behaviour is running `simv` on the passed `pexpr`, since we do not want
+      simv to use arbitrary hypotheses which were declared as `variables` in the local environment
       but not referenced in the expression to simplify (as one would be expect generally in tactic
       mode). -/
    included_vars ← list_include_var_names,
@@ -1843,7 +1843,7 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
        lmm' ← higher_order_attr.get_param lmm,
        lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure lmm.add_prime,
        add_decl $ declaration.thm lmm' lvls t' (pure pr),
-       copy_attribute `simp lmm lmm',
+       copy_attribute `simv lmm lmm',
        copy_attribute `functor_norm lmm lmm' }
 
 add_tactic_doc
@@ -2398,19 +2398,19 @@ add_tactic_doc
   tags                     := ["renaming"] }
 
 /--
-The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
-Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
+The command `mk_simp_attribute simp_name "description"` creates a simv set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simv with simp_name` is called.
 `mk_simp_attribute simp_name none` will use a default description.
 
 Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
-`attr1`, `attr2`, ... in the new simp set.
+`attr1`, `attr2`, ... in the new simv set.
 
 This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
-to the attribute that is defined. If you need to create a simp set in a file where this command is
+to the attribute that is defined. If you need to create a simv set in a file where this command is
 not available, you should use
 ```lean
 run_cmd mk_simp_attr `simp_name
-run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+run_cmd add_doc_string `simp_attr.simp_name "Description of the simv set here"
 ```
 -/
 @[user_command]
@@ -2421,7 +2421,7 @@ do n ← ident,
    descr ← eval_expr (option string) d,
    with_list ← (tk "with" *> many ident) <|> return [],
    mk_simp_attr n with_list,
-   add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simp set for " ++ to_string n
+   add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simv set for " ++ to_string n
 
 add_tactic_doc
 { name                     := "mk_simp_attribute",
@@ -2464,6 +2464,26 @@ then do
       "Solution: provide an `inhabited` instance."),
   tac
 else fail msg
+
+namespace interactive
+
+setup_tactic_parser
+/--  A verbose `simv`. -/
+meta def simv (use_iota_eqn : parse $ (tk "!")?) (trace_lemmas : parse $ (tk "?")?)
+  (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+              (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
+let cfg := match use_iota_eqn, trace_lemmas with
+| none    , none     := cfg
+| (some _), none     := {iota_eqn := tt, ..cfg}
+| none    , (some _) := {trace_lemmas := tt, ..cfg}
+| (some _), (some _) := {iota_eqn := tt, trace_lemmas := tt, ..cfg}
+end in
+propagate_tags $
+do lms ← simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat,
+  if cfg.trace_lemmas then trace (↑"Try this: simv only " ++ to_fmt lms.to_list) else skip,
+if no_dflt then skip else done <|> trace "squeeze me!"
+
+end interactive
 
 end tactic
 

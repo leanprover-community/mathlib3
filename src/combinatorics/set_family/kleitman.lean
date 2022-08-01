@@ -39,7 +39,7 @@ begin
       (hf _ hi).ne_bot ha).trans_eq _,
     rw [card_compl, fintype.card_finset, card_singleton] },
   induction s using finset.cons_induction with i s hi ih generalizing f,
-  { simp },
+  { simv },
   classical,
   set f' : ι → finset (finset α) := λ j,
     if hj : j ∈ cons i s hi then (hf j hj).exists_card_eq.some else ∅ with hf',

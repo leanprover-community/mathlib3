@@ -254,7 +254,7 @@ begin
   refine monic.is_eisenstein_at_of_mem_of_not_mem _
     (ideal.is_prime.ne_top $(ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2 $
     nat.prime_iff_prime_int.1 hp.out) (λ i hi, _) _,
-  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simv],
     refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h, _)),
     rw [nat_degree_X_add_C] at h,
     exact zero_ne_one h.symm },
@@ -262,9 +262,9 @@ begin
       linear_map.map_sum],
     conv { congr, congr, skip, funext,
       rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
-    rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C, mul_one,
+    rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simv, nat_degree_X_add_C, mul_one,
       nat_degree_cyclotomic, nat.totient_prime hp.out] at hi,
-    simp only [lt_of_lt_of_le hi (nat.sub_le _ _), sum_ite_eq', mem_range,
+    simv only [lt_of_lt_of_le hi (nat.sub_le _ _), sum_ite_eq', mem_range,
       if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
     exact int.coe_nat_dvd.2
       (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out) },
@@ -285,7 +285,7 @@ begin
   refine monic.is_eisenstein_at_of_mem_of_not_mem _
     (ideal.is_prime.ne_top $(ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2 $
     nat.prime_iff_prime_int.1 hp.out) _ _,
-  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simv],
     refine ((cyclotomic.monic _ ℤ).comp (monic_X_add_C 1) (λ h, _)),
     rw [nat_degree_X_add_C] at h,
     exact zero_ne_one h.symm },
@@ -298,9 +298,9 @@ begin
         ← int.coe_cast_ring_hom, ← coeff_map, map_comp, map_cyclotomic, polynomial.map_add, map_X,
         polynomial.map_one, pow_add, pow_one, cyclotomic_mul_prime_dvd_eq_pow, pow_comp,
         ← zmod.expand_card, coeff_expand hp.out.pos],
-      { simp only [ite_eq_right_iff],
+      { simv only [ite_eq_right_iff],
         rintro ⟨k, hk⟩,
-        rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C,
+        rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simv, nat_degree_X_add_C,
           mul_one, nat_degree_cyclotomic, nat.totient_prime_pow hp.out (nat.succ_pos _),
           nat.succ_sub_one] at hn hi,
         rw [hk, pow_succ, mul_assoc] at hi,
@@ -312,7 +312,7 @@ begin
       { exact ⟨p ^ n, by rw [pow_succ]⟩ } } },
   { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
       eval_X, eval_one, zero_add, eval_finset_sum],
-    simp only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
+    simv only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
       submodule_span_eq, ideal.submodule_span_eq,
       ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,
@@ -355,7 +355,7 @@ begin
         (minpoly.monic hBint).nat_degree_map (algebra_map R K)] },
   choose! f hf using hei.is_weakly_eisenstein_at.exists_mem_adjoin_mul_eq_pow_nat_degree_le
     (minpoly.aeval R B.gen) (minpoly.monic hBint),
-  simp only [(minpoly.monic hBint).nat_degree_map, deg_R_P] at hf,
+  simv only [(minpoly.monic hBint).nat_degree_map, deg_R_P] at hf,
 
   -- The Eisenstein condition shows that `p` divides `Q.coeff 0`
   -- if `p^n.succ` divides the following multiple of `Q.coeff 0^n.succ`:
@@ -366,12 +366,12 @@ begin
     refine prime.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd hp ((_ : _ ^ n.succ ∣ _)) hndiv,
     convert (is_unit.dvd_mul_right ⟨(-1) ^ (n.succ * n), rfl⟩).mpr this using 1,
     push_cast,
-    ring_nf, simp [pow_right_comm _ _ 2] },
+    ring_nf, simv [pow_right_comm _ _ 2] },
 
   -- We claim the quotient of `Q^n * _` by `p^n` is the following `r`:
   have aux : ∀ i ∈ (range (Q.nat_degree + 1)).erase 0, B.dim ≤ i + n,
   { intros i hi,
-    simp only [mem_range, mem_erase] at hi,
+    simv only [mem_range, mem_erase] at hi,
     rw [hn],
     exact le_add_pred_of_pos _ hi.1 },
   have hintsum : is_integral R (z * B.gen ^ n -
@@ -384,14 +384,14 @@ begin
 
   -- Do the computation in `K` so we can work in terms of `z` instead of `r`.
   apply is_fraction_ring.injective R K,
-  simp only [_root_.map_mul, _root_.map_pow, _root_.map_neg, _root_.map_one],
+  simv only [_root_.map_mul, _root_.map_pow, _root_.map_neg, _root_.map_one],
   -- Both sides are actually norms:
   calc _ = norm K (Q.coeff 0 • B.gen ^ n) : _
   ... = norm K (p • (z * B.gen ^ n) - ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0,
           p • Q.coeff x • f (x + n))
     : congr_arg (norm K) (eq_sub_of_add_eq _)
   ... = _ : _,
-  { simp only [algebra.smul_def, algebra_map_apply R K L, algebra.norm_algebra_map, _root_.map_mul,
+  { simv only [algebra.smul_def, algebra_map_apply R K L, algebra.norm_algebra_map, _root_.map_mul,
       _root_.map_pow, finrank_K_L, power_basis.norm_gen_eq_coeff_zero_minpoly,
       minpoly.gcd_domain_eq_field_fractions' K hBint, coeff_map, ← hn],
     ring_exp },
@@ -409,10 +409,10 @@ begin
       p • Q.coeff i • f (i + n),
     { intros i hi,
       rw [←pow_add, ←(hf _ (aux i hi)).2, ←algebra.smul_def, smul_smul, mul_comm _ p, smul_smul] },
-    simp only [add_mul, smul_mul_assoc, one_mul, sum_mul, sum_congr rfl this] },
+    simv only [add_mul, smul_mul_assoc, one_mul, sum_mul, sum_congr rfl this] },
   { rw [aeval_eq_sum_range,
         finset.add_sum_erase (range (Q.nat_degree + 1)) (λ i, Q.coeff i • B.gen ^ i)],
-    simp },
+    simv },
 end
 
 lemma mem_adjoin_of_dvd_coeff_of_dvd_aeval {A B : Type*} [comm_semiring A] [comm_ring B]
@@ -457,7 +457,7 @@ begin
   { rw [← mod_by_monic_add_div Q₁ (minpoly.monic hBint)] at hQ,
     simpa using hQ },
   by_cases hQzero : Q = 0,
-  { simp only [hQzero, algebra.smul_def, zero_eq_mul, aeval_zero] at hQ,
+  { simv only [hQzero, algebra.smul_def, zero_eq_mul, aeval_zero] at hQ,
     cases hQ with H H₁,
     { have : function.injective (algebra_map R L),
       { rw [algebra_map_eq R K L],
@@ -566,7 +566,7 @@ begin
       algebra.norm_algebra_map, _root_.map_mul, algebra_map_apply R K L, algebra.norm_algebra_map,
       finrank B, ← hr,
       power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions' K hBint,
-      coeff_map, show (-1 : K) = algebra_map R K (-1), by simp, ← map_pow, ← map_pow,
+      coeff_map, show (-1 : K) = algebra_map R K (-1), by simv, ← map_pow, ← map_pow,
       ← _root_.map_mul, ← map_pow, ← _root_.map_mul, ← map_pow, ← _root_.map_mul] at hQ,
 
     -- We can now finish the proof.

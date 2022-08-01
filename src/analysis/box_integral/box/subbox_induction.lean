@@ -43,15 +43,15 @@ def split_center_box (I : box ι) (s : set ι) : box ι :=
 { lower := s.piecewise (λ i, (I.lower i + I.upper i) / 2) I.lower,
   upper := s.piecewise I.upper (λ i, (I.lower i + I.upper i) / 2),
   lower_lt_upper := λ i, by { dunfold set.piecewise, split_ifs;
-    simp only [left_lt_add_div_two, add_div_two_lt_right, I.lower_lt_upper] } }
+    simv only [left_lt_add_div_two, add_div_two_lt_right, I.lower_lt_upper] } }
 
 lemma mem_split_center_box {s : set ι} {y : ι → ℝ} :
   y ∈ I.split_center_box s ↔ y ∈ I ∧ ∀ i, (I.lower i + I.upper i) / 2 < y i ↔ i ∈ s :=
 begin
-  simp only [split_center_box, mem_def, ← forall_and_distrib],
+  simv only [split_center_box, mem_def, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   dunfold set.piecewise,
-  split_ifs with hs; simp only [hs, iff_true, iff_false, not_lt],
+  split_ifs with hs; simv only [hs, iff_true, iff_false, not_lt],
   exacts [⟨λ H, ⟨⟨(left_lt_add_div_two.2 (I.lower_lt_upper i)).trans H.1, H.2⟩, H.1⟩,
     λ H, ⟨H.2, H.1.2⟩⟩,
     ⟨λ H, ⟨⟨H.1, H.2.trans (add_div_two_lt_right.2 (I.lower_lt_upper i)).le⟩, H.2⟩,
@@ -84,7 +84,7 @@ lemma injective_split_center_box (I : box ι) : injective I.split_center_box :=
 
 @[simp] lemma Union_coe_split_center_box (I : box ι) :
   (⋃ s, (I.split_center_box s : set (ι → ℝ))) = I :=
-by { ext x, simp }
+by { ext x, simv }
 
 @[simp] lemma upper_sub_lower_split_center_box (I : box ι) (s : set ι) (i : ι) :
   (I.split_center_box s).upper i - (I.split_center_box s).lower i = (I.upper i - I.lower i) / 2 :=
@@ -115,7 +115,7 @@ begin
   by_contra hpI,
   -- First we use `H_ind` to construct a decreasing sequence of boxes such that `∀ m, ¬p (J m)`.
   replace H_ind := λ J hJ, not_imp_not.2 (H_ind J hJ),
-  simp only [exists_imp_distrib, not_forall] at H_ind,
+  simv only [exists_imp_distrib, not_forall] at H_ind,
   choose! s hs using H_ind,
   set J : ℕ → box ι := λ m, (λ J, split_center_box J (s J))^[m] I,
   have J_succ : ∀ m, J (m + 1) = split_center_box (J m) (s $ J m) := λ m, iterate_succ_apply' _ _ _,
@@ -126,8 +126,8 @@ begin
   have hJp : ∀ m, ¬p (J m),
     from λ m, nat.rec_on m hpI (λ m, by simpa only [J_succ] using hs (J m) (hJle m)),
   have hJsub : ∀ m i, (J m).upper i - (J m).lower i = (I.upper i - I.lower i) / 2 ^ m,
-  { intros m i, induction m with m ihm, { simp [J] },
-    simp only [pow_succ', J_succ, upper_sub_lower_split_center_box, ihm, div_div] },
+  { intros m i, induction m with m ihm, { simv [J] },
+    simv only [pow_succ', J_succ, upper_sub_lower_split_center_box, ihm, div_div] },
   have h0 : J 0 = I, from rfl,
   -- Now we clear unneeded assumptions
   clear_value J, clear hpI hs J_succ s,

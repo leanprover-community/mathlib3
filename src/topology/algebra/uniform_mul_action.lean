@@ -103,7 +103,7 @@ instance [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (
 
 variables {M X} [has_uniform_continuous_const_smul M X]
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_smul (c : M) (x : X) : ↑(c • x) = (c • x : completion X) :=
 (map_coe (uniform_continuous_const_smul c) x).symm
 
@@ -114,7 +114,7 @@ end has_smul
 { smul := (•),
   one_smul := ext' (continuous_const_smul _) continuous_id $ λ a, by rw [← coe_smul, one_smul],
   mul_smul := λ x y, ext' (continuous_const_smul _) ((continuous_const_smul _).const_smul _) $
-    λ a, by simp only [← coe_smul, mul_smul] }
+    λ a, by simv only [← coe_smul, mul_smul] }
 
 end completion
 

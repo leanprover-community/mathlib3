@@ -59,7 +59,7 @@ end
 lemma pow_eq_zero_iff' [no_zero_divisors M] [nontrivial M]
   {a : M} {n : ℕ} :
   a ^ n = 0 ↔ a = 0 ∧ n ≠ 0 :=
-by cases (zero_le n).eq_or_gt; simp [*, ne_of_gt]
+by cases (zero_le n).eq_or_gt; simv [*, ne_of_gt]
 
 lemma pow_ne_zero_iff [no_zero_divisors M] {a : M} {n : ℕ} (hn : 0 < n) :
   a ^ n ≠ 0 ↔ a ≠ 0 :=
@@ -139,7 +139,7 @@ section comm_semiring
 variables [comm_semiring R]
 
 lemma add_sq (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
-by simp only [sq, add_mul_self_eq]
+by simv only [sq, add_mul_self_eq]
 
 lemma add_sq' (a b : R) : (a + b) ^ 2 = a ^ 2 + b ^ 2 + 2 * a * b :=
 by rw [add_sq, add_assoc, add_comm _ (b ^ 2), add_assoc]
@@ -166,9 +166,9 @@ theorem neg_pow (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 by rw [pow_bit0', neg_mul_neg, pow_bit0']
 
 @[simp] theorem neg_pow_bit1 (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
-by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
+by simv only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
-@[simp] lemma neg_sq (a : R) : (-a) ^ 2 = a ^ 2 := by simp [sq]
+@[simp] lemma neg_sq (a : R) : (-a) ^ 2 = a ^ 2 := by simv [sq]
 @[simp] lemma neg_one_sq : (-1 : R) ^ 2 = 1 := by rw [neg_sq, one_pow]
 
 alias neg_sq ← neg_pow_two
@@ -184,11 +184,11 @@ by rw [sq, sq, h.mul_self_sub_mul_self_eq]
 
 @[simp]
 lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
-by rcases neg_one_pow_eq_or R n; simp [h]
+by rcases neg_one_pow_eq_or R n; simv [h]
 
 @[simp]
 lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
-by rcases neg_one_pow_eq_or R n; simp [h]
+by rcases neg_one_pow_eq_or R n; simv [h]
 
 variables [no_zero_divisors R]
 

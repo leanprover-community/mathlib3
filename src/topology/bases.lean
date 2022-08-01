@@ -112,7 +112,7 @@ lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
 begin
   change s ∈ (𝓝 a).sets ↔ ∃ t ∈ b, a ∈ t ∧ t ⊆ s,
   rw [hb.eq_generate_from, nhds_generate_from, binfi_sets_eq],
-  { simp [and_assoc, and.left_comm] },
+  { simv [and_assoc, and.left_comm] },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
@@ -124,11 +124,11 @@ end
 
 lemma is_topological_basis.is_open_iff {s : set α} {b : set (set α)} (hb : is_topological_basis b) :
   is_open s ↔ ∀ a ∈ s, ∃ t ∈ b, a ∈ t ∧ t ⊆ s :=
-by simp [is_open_iff_mem_nhds, hb.mem_nhds_iff]
+by simv [is_open_iff_mem_nhds, hb.mem_nhds_iff]
 
 lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topological_basis b) {a : α} :
   (𝓝 a).has_basis (λ t : set α, t ∈ b ∧ a ∈ t) (λ t, t) :=
-⟨λ s, hb.mem_nhds_iff.trans $ by simp only [exists_prop, and_assoc]⟩
+⟨λ s, hb.mem_nhds_iff.trans $ by simv only [exists_prop, and_assoc]⟩
 
 protected lemma is_topological_basis.is_open {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
@@ -165,13 +165,13 @@ lemma is_topological_basis.open_eq_Union {B : set (set α)}
 lemma is_topological_basis.mem_closure_iff {b : set (set α)} (hb : is_topological_basis b)
   {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ o ∈ b, a ∈ o → (o ∩ s).nonempty :=
-(mem_closure_iff_nhds_basis' hb.nhds_has_basis).trans $ by simp only [and_imp]
+(mem_closure_iff_nhds_basis' hb.nhds_has_basis).trans $ by simv only [and_imp]
 
  /-- A set is dense iff it has non-trivial intersection with all basis sets. -/
 lemma is_topological_basis.dense_iff {b : set (set α)} (hb : is_topological_basis b) {s : set α} :
   dense s ↔ ∀ o ∈ b, set.nonempty o → (o ∩ s).nonempty :=
 begin
-  simp only [dense, hb.mem_closure_iff],
+  simv only [dense, hb.mem_closure_iff],
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
@@ -231,7 +231,7 @@ lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_op
   is_topological_basis (⋃ i : ι, image (coe : U i → α) '' (b i)) :=
 begin
   refine is_topological_basis_of_open_of_nhds (λ u hu, _) _,
-  { simp only [mem_Union, mem_image] at hu,
+  { simv only [mem_Union, mem_image] at hu,
     rcases hu with ⟨i, s, sb, rfl⟩,
     exact (Uo i).is_open_map_subtype_coe _ ((hb i).is_open sb) },
   { intros a u ha uo,
@@ -311,7 +311,7 @@ begin
   lift f to a → u using hfu,
   have f_inj : injective f,
   { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
-    simp only [congr_arg coe hfij, hfs j] },
+    simv only [congr_arg coe hfij, hfs j] },
   exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end
 
@@ -433,7 +433,7 @@ begin
   split,
   { rintros ⟨U, F, h1, h2⟩,
     have : (F : set ι).pi U = (⋂ (i : ι) (hi : i ∈ F),
-        (λ (z : Π j, X j), z i) ⁻¹' (U i)), by { ext, simp },
+        (λ (z : Π j, X j), z i) ⁻¹' (U i)), by { ext, simv },
     refine ⟨(F : set ι).pi U, ⟨U, F, h1, rfl⟩, _⟩,
     rw [this, h2, set.preimage_Inter],
     congr' 1,
@@ -443,7 +443,7 @@ begin
   { rintros ⟨U, ⟨U, F, h1, rfl⟩, h⟩,
     refine ⟨U, F, h1, _⟩,
     have : (F : set ι).pi U = (⋂ (i : ι) (hi : i ∈ F),
-        (λ (z : Π j, X j), z i) ⁻¹' (U i)), by { ext, simp },
+        (λ (z : Π j, X j), z i) ⁻¹' (U i)), by { ext, simv },
     rw [← h, this, set.preimage_Inter],
     congr' 1,
     ext1,
@@ -570,7 +570,7 @@ let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countab
 let b' := (λs, ⋂₀ s) '' {s:set (set α) | s.finite ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
 ⟨b',
   ((countable_set_of_finite_subset hb₁).mono
-    (by { simp only [← and_assoc], apply inter_subset_left })).image _,
+    (by { simv only [← and_assoc], apply inter_subset_left })).image _,
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
   is_topological_basis_of_subbasis hb₂⟩
 
@@ -647,14 +647,14 @@ begin
   constructor, refine ⟨_, _, rfl⟩,
   have : set.countable {T : set (Π i, π i) | ∃ (I : finset ι) (s : Π i : I, set (π i)),
     (∀ i, s i ∈ countable_basis (π i)) ∧ T = {f | ∀ i : I, f i ∈ s i}},
-  { simp only [set_of_exists, ← exists_prop],
+  { simv only [set_of_exists, ← exists_prop],
     refine countable_Union (λ I, countable.bUnion _ (λ _ _, countable_singleton _)),
     change set.countable {s : Π i : I, set (π i) | ∀ i, s i ∈ countable_basis (π i)},
     exact countable_pi (λ i, countable_countable_basis _) },
   convert this using 1, ext1 T, split,
   { rintro ⟨s, I, hs, rfl⟩,
     refine ⟨I, λ i, s i, λ i, hs i i.2, _⟩,
-    simp only [set.pi, set_coe.forall'], refl },
+    simv only [set.pi, set_coe.forall'], refl },
   { rintro ⟨I, s, hs, rfl⟩,
     rcases @subtype.surjective_restrict ι (λ i, set (π i)) _ (λ i, i ∈ I) s with ⟨s, rfl⟩,
     exact ⟨s, I, λ i hi, hs ⟨i, hi⟩, set.ext $ λ f, subtype.forall⟩ }
@@ -715,7 +715,7 @@ begin
   rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
     from ⟨s, hsc, flip eq_univ_of_subset this $ Union₂_mono $ λ _ _, interior_subset⟩,
-  simp only [hsU, eq_univ_iff_forall, mem_Union],
+  simv only [hsU, eq_univ_iff_forall, mem_Union],
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
 end
 
@@ -725,7 +725,7 @@ begin
   have : ∀ x : s, coe ⁻¹' (f x) ∈ 𝓝 x, from λ x, preimage_coe_mem_nhds_subtype.2 (hf x x.2),
   rcases countable_cover_nhds this with ⟨t, htc, htU⟩,
   refine ⟨coe '' t, subtype.coe_image_subset _ _, htc.image _, λ x hx, _⟩,
-  simp only [bUnion_image, eq_univ_iff_forall, ← preimage_Union, mem_preimage] at htU ⊢,
+  simv only [bUnion_image, eq_univ_iff_forall, ← preimage_Union, mem_preimage] at htU ⊢,
   exact htU ⟨x, hx⟩
 end
 

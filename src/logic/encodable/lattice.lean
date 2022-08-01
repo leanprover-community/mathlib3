@@ -27,7 +27,7 @@ variables {α : Type*} {β : Type*} [encodable β]
 
 lemma supr_decode₂ [complete_lattice α] (f : β → α) :
   (⨆ (i : ℕ) (b ∈ decode₂ β i), f b) = (⨆ b, f b) :=
-by { rw [supr_comm], simp [mem_decode₂] }
+by { rw [supr_comm], simv [mem_decode₂] }
 
 lemma Union_decode₂ (f : β → set α) : (⋃ (i : ℕ) (b ∈ decode₂ β i), f b) = (⋃ b, f b) :=
 supr_decode₂ f
@@ -37,8 +37,8 @@ supr_decode₂ f
   (H0 : C ∅) (H1 : ∀ b, C (f b)) {n} :
   C (⋃ b ∈ decode₂ β n, f b) :=
 match decode₂ β n with
-| none := by { simp, apply H0 }
-| (some b) := by { convert H1 b, simp [ext_iff] }
+| none := by { simv, apply H0 }
+| (some b) := by { convert H1 b, simv [ext_iff] }
 end
 
 theorem Union_decode₂_disjoint_on {f : β → set α} (hd : pairwise (disjoint on f)) :

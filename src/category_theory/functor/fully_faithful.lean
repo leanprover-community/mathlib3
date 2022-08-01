@@ -45,7 +45,7 @@ class full (F : C ⥤ D) :=
 (witness' : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
 
 restate_axiom full.witness'
-attribute [simp] full.witness
+attribute [simv] full.witness
 
 /--
 A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.
@@ -93,13 +93,13 @@ section
 variables {F : C ⥤ D} [full F] [faithful F] {X Y Z : C}
 
 @[simp] lemma preimage_id : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
-F.map_injective (by simp)
+F.map_injective (by simv)
 @[simp] lemma preimage_comp (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
   F.preimage (f ≫ g) = F.preimage f ≫ F.preimage g :=
-F.map_injective (by simp)
+F.map_injective (by simv)
 @[simp] lemma preimage_map (f : X ⟶ Y) :
   F.preimage (F.map f) = f :=
-F.map_injective (by simp)
+F.map_injective (by simv)
 
 variables (F)
 
@@ -110,12 +110,12 @@ namespace functor
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
-  hom_inv_id' := F.map_injective (by simp),
-  inv_hom_id' := F.map_injective (by simp), }
+  hom_inv_id' := F.map_injective (by simv),
+  inv_hom_id' := F.map_injective (by simv), }
 
 @[simp] lemma preimage_iso_map_iso (f : X ≅ Y) :
   F.preimage_iso (F.map_iso f) = f :=
-by { ext, simp, }
+by { ext, simv, }
 
 end functor
 
@@ -125,23 +125,23 @@ then the original morphisms is also an isomorphism.
 -/
 lemma is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 ⟨⟨F.preimage (inv (F.map f)),
-  ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩
+  ⟨F.map_injective (by simv), F.map_injective (by simv)⟩⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
 @[simps]
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
 { to_fun := λ f, F.map f,
   inv_fun := λ f, F.preimage f,
-  left_inv := λ f, by simp,
-  right_inv := λ f, by simp }
+  left_inv := λ f, by simv,
+  right_inv := λ f, by simv }
 
 /-- If `F` is fully faithful, we have an equivalence of iso-sets `X ≅ Y` and `F X ≅ F Y`. -/
 @[simps]
 def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
 { to_fun := λ f, F.map_iso f,
   inv_fun := λ f, F.preimage_iso f,
-  left_inv := λ f, by simp,
-  right_inv := λ f, by { ext, simp, } }
+  left_inv := λ f, by simv,
+  right_inv := λ f, by { ext, simv, } }
 
 end
 
@@ -165,11 +165,11 @@ nat_iso.of_components
 
 lemma nat_iso_of_comp_fully_faithful_hom (i : F ⋙ H ≅ G ⋙ H) :
   (nat_iso_of_comp_fully_faithful H i).hom = nat_trans_of_comp_fully_faithful H i.hom :=
-by { ext, simp [nat_iso_of_comp_fully_faithful], }
+by { ext, simv [nat_iso_of_comp_fully_faithful], }
 
 lemma nat_iso_of_comp_fully_faithful_inv (i : F ⋙ H ≅ G ⋙ H) :
   (nat_iso_of_comp_fully_faithful H i).inv = nat_trans_of_comp_fully_faithful H i.inv :=
-by { ext, simp [←preimage_comp], dsimp, simp, }
+by { ext, simv [←preimage_comp], dsimp, simv, }
 
 end
 
@@ -199,7 +199,7 @@ variables {F F'}
 /-- If `F` is full, and naturally isomorphic to some `F'`, then `F'` is also full. -/
 def full.of_iso [full F] (α : F ≅ F') : full F' :=
 { preimage := λ X Y f, F.preimage ((α.app X).hom ≫ f ≫ (α.app Y).inv),
-  witness' := λ X Y f, by simp [←nat_iso.naturality_1 α], }
+  witness' := λ X Y f, by simv [←nat_iso.naturality_1 α], }
 
 lemma faithful.of_iso [faithful F] (α : F ≅ F') : faithful F' :=
 { map_injective' := λ X Y f f' h, F.map_injective

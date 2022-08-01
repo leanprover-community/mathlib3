@@ -29,7 +29,7 @@ structure uniform_inducing (f : α → β) : Prop :=
 
 lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
-⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
+⟨by simv [eq_comm, filter.ext_iff, subset_def, h]⟩
 
 lemma uniform_inducing_id : uniform_inducing (@id α) :=
 ⟨by rw [← prod.map_def, prod.map_id, comap_id]⟩
@@ -37,7 +37,7 @@ lemma uniform_inducing_id : uniform_inducing (@id α) :=
 lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
 ⟨ by rw [show (λ (x : α × α), ((g ∘ f) x.1, (g ∘ f) x.2)) =
-         (λ y : β × β, (g y.1, g y.2)) ∘ (λ x : α × α, (f x.1, f x.2)), by ext ; simp,
+         (λ y : β × β, (g y.1, g y.2)) ∘ (λ x : α × α, (f x.1, f x.2)), by ext ; simv,
         ← filter.comap_comap, hg.1, hf.1]⟩
 
 lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f)
@@ -86,18 +86,18 @@ begin
   split,
   { rintro ⟨⟨h⟩, h'⟩,
     rw [eq_comm, filter.ext_iff] at h,
-    simp [*, subset_def] },
+    simv [*, subset_def] },
   { rintro ⟨h, h'⟩,
     refine uniform_embedding.mk ⟨_⟩ h,
     rw [eq_comm, filter.ext_iff],
-    simp [*, subset_def] }
+    simv [*, subset_def] }
 end
 
 theorem uniform_embedding_def' {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ s, s ∈ 𝓤 α →
       ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s :=
-by simp only [uniform_embedding_def, uniform_continuous_def]; exact
+by simv only [uniform_embedding_def, uniform_continuous_def]; exact
 ⟨λ ⟨I, H⟩, ⟨I, λ s su, (H _).2 ⟨s, su, λ x y, id⟩, λ s, (H s).1⟩,
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
@@ -122,9 +122,9 @@ begin
     refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' s ∪
       (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' univ, _, _⟩,
     { exact union_mem_uniformity_sum hs univ_mem },
-    { simp } },
+    { simv } },
   { rintros ⟨t, ht, h't⟩,
-    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    simv only [sum.uniformity, mem_sup, mem_map] at ht,
     apply filter.mem_of_superset ht.1,
     rintros ⟨x, y⟩ hx,
     exact h't _ _ hx }
@@ -137,9 +137,9 @@ begin
     refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' univ ∪
       (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' s, _, _⟩,
     { exact union_mem_uniformity_sum univ_mem hs },
-    { simp } },
+    { simv } },
   { rintros ⟨t, ht, h't⟩,
-    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    simv only [sum.uniformity, mem_sup, mem_map] at ht,
     apply filter.mem_of_superset ht.2,
     rintros ⟨x, y⟩ hx,
     exact h't _ _ hx }
@@ -180,7 +180,7 @@ end
 
 lemma uniform_inducing.uniform_continuous {f : α → β}
   (hf : uniform_inducing f) : uniform_continuous f :=
-by simp [uniform_continuous, hf.comap_uniformity.symm, tendsto_comap]
+by simv [uniform_continuous, hf.comap_uniformity.symm, tendsto_comap]
 
 lemma uniform_inducing.uniform_continuous_iff {f : α → β} {g : β → γ} (hg : uniform_inducing g) :
   uniform_continuous f ↔ uniform_continuous (g ∘ f) :=
@@ -198,7 +198,7 @@ end
 lemma uniform_inducing.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uniform_space β']
   {e₁ : α → α'} {e₂ : β → β'} (h₁ : uniform_inducing e₁) (h₂ : uniform_inducing e₂) :
   uniform_inducing (λp:α×β, (e₁ p.1, e₂ p.2)) :=
-⟨by simp [(∘), uniformity_prod, h₁.comap_uniformity.symm, h₂.comap_uniformity.symm,
+⟨by simv [(∘), uniformity_prod, h₁.comap_uniformity.symm, h₂.comap_uniformity.symm,
            comap_inf, comap_comap]⟩
 
 lemma uniform_inducing.dense_inducing {f : α → β} (h : uniform_inducing f) (hd : dense_range f) :
@@ -263,7 +263,7 @@ have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
 
 lemma uniform_embedding_subtype_emb (p : α → Prop) {e : α → β} (ue : uniform_embedding e)
   (de : dense_embedding e) : uniform_embedding (dense_embedding.subtype_emb p e) :=
-{ comap_uniformity := by simp [comap_comap, (∘), dense_embedding.subtype_emb,
+{ comap_uniformity := by simv [comap_comap, (∘), dense_embedding.subtype_emb,
            uniformity_subtype, ue.comap_uniformity.symm],
   inj := (de.subtype p).inj }
 
@@ -288,7 +288,7 @@ end
 lemma is_complete.complete_space_coe {s : set α} (hs : is_complete s) :
   complete_space s :=
 complete_space_iff_is_complete_univ.2 $
-  is_complete_of_complete_image uniform_embedding_subtype_coe.to_uniform_inducing $ by simp [hs]
+  is_complete_of_complete_image uniform_embedding_subtype_coe.to_uniform_inducing $ by simv [hs]
 
 /-- A set is complete iff its image under a uniform inducing map is complete. -/
 lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_inducing m) :
@@ -404,7 +404,7 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   rcases totally_bounded_iff_subset.1
     (totally_bounded_subset (image_preimage_subset f s) hs) _ ht' with ⟨c, cs, hfc, hct⟩,
   refine ⟨f ⁻¹' c, hfc.preimage (hf.inj.inj_on _), λ x h, _⟩,
-  have := hct (mem_image_of_mem f h), simp at this ⊢,
+  have := hct (mem_image_of_mem f h), simv at this ⊢,
   rcases this with ⟨z, zc, zt⟩,
   rcases cs zc with ⟨y, yc, rfl⟩,
   exact ⟨y, zc, ts (by exact zt)⟩
@@ -484,7 +484,7 @@ let ⟨c, (hc : tendsto (f ∘ subtype.val)
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
   rw [nhds_subtype_eq_comap] at hc,
-  simp [comap_comap] at hc,
+  simv [comap_comap] at hc,
   change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (𝓝 b)) (𝓝 c)) at hc,
   rw [←comap_comap, tendsto_comap'_iff] at hc,
   exact ⟨c, hc⟩,

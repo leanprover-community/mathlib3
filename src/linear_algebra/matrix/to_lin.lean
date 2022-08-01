@@ -92,7 +92,7 @@ begin
   { simp_rw [boole_mul, finset.sum_ite_eq, finset.mem_univ, if_true] },
   convert this,
   ext,
-  split_ifs with h; simp only [std_basis_apply],
+  split_ifs with h; simv only [std_basis_apply],
   { rw [h, function.update_same] },
   { rw [function.update_noteq (ne.symm h), pi.zero_apply] }
 end
@@ -105,14 +105,14 @@ def linear_map.to_matrix_right' : ((m → R) →ₗ[R] (n → R)) ≃ₗ[Rᵐᵒ
 { to_fun := λ f i j, f (std_basis R (λ _, R) i 1) j,
   inv_fun := matrix.vec_mul_linear,
   right_inv := λ M, by
-  { ext i j, simp only [matrix.vec_mul_std_basis, matrix.vec_mul_linear_apply] },
+  { ext i j, simv only [matrix.vec_mul_std_basis, matrix.vec_mul_linear_apply] },
   left_inv := λ f, begin
     apply (pi.basis_fun R m).ext,
     intro j, ext i,
-    simp only [pi.basis_fun_apply, matrix.vec_mul_std_basis, matrix.vec_mul_linear_apply]
+    simv only [pi.basis_fun_apply, matrix.vec_mul_std_basis, matrix.vec_mul_linear_apply]
   end,
-  map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply] },
-  map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply,
+  map_add' := λ f g, by { ext i j, simv only [pi.add_apply, linear_map.add_apply] },
+  map_smul' := λ c f, by { ext i j, simv only [pi.smul_apply, linear_map.smul_apply,
                                                ring_hom.id_apply] } }
 
 /-- A `matrix m n R` is linearly equivalent over `Rᵐᵒᵖ` to a linear map `(m → R) →ₗ[R] (n → R)`,
@@ -135,7 +135,7 @@ lemma matrix.to_linear_map_right'_mul_apply [fintype l] [decidable_eq l] (M : ma
 
 @[simp] lemma matrix.to_linear_map_right'_one :
   matrix.to_linear_map_right' (1 : matrix m m R) = id :=
-by { ext, simp [linear_map.one_apply, std_basis_apply] }
+by { ext, simv [linear_map.one_apply, std_basis_apply] }
 
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `n → A`
 and `m → A` corresponding to `M.vec_mul` and `M'.vec_mul`. -/
@@ -185,16 +185,16 @@ funext $ λ i, matrix.mul_vec_std_basis M i j
 def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
 { to_fun := λ f, of (λ i j, f (std_basis R (λ _, R) j 1) i),
   inv_fun := matrix.mul_vec_lin,
-  right_inv := λ M, by { ext i j, simp only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply,
+  right_inv := λ M, by { ext i j, simv only [matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply,
                                              of_apply] },
   left_inv := λ f, begin
     apply (pi.basis_fun R n).ext,
     intro j, ext i,
-    simp only [pi.basis_fun_apply, matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply,
+    simv only [pi.basis_fun_apply, matrix.mul_vec_std_basis, matrix.mul_vec_lin_apply,
       of_apply]
   end,
-  map_add' := λ f g, by { ext i j, simp only [pi.add_apply, linear_map.add_apply, of_apply] },
-  map_smul' := λ c f, by { ext i j, simp only [pi.smul_apply, linear_map.smul_apply,
+  map_add' := λ f g, by { ext i j, simv only [pi.add_apply, linear_map.add_apply, of_apply] },
+  map_smul' := λ c f, by { ext i j, simv only [pi.smul_apply, linear_map.smul_apply,
                                                ring_hom.id_apply, of_apply] } }
 
 /-- A `matrix m n R` is linearly equivalent to a linear map `(n → R) →ₗ[R] (m → R)`. -/
@@ -220,7 +220,7 @@ matrix.to_lin'.apply_symm_apply f
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
   linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
 begin
-  simp only [linear_map.to_matrix', linear_equiv.coe_mk, of_apply],
+  simv only [linear_map.to_matrix', linear_equiv.coe_mk, of_apply],
   congr,
   ext j',
   split_ifs with h,
@@ -233,7 +233,7 @@ end
 
 @[simp] lemma matrix.to_lin'_one :
   matrix.to_lin' (1 : matrix n n R) = id :=
-by { ext, simp [linear_map.one_apply, std_basis_apply] }
+by { ext, simv [linear_map.one_apply, std_basis_apply] }
 
 @[simp] lemma linear_map.to_matrix'_id :
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
@@ -262,11 +262,11 @@ linear_map.to_matrix'_comp f g
 
 @[simp] lemma linear_map.to_matrix'_algebra_map (x : R) :
   linear_map.to_matrix' (algebra_map R (module.End R (n → R)) x) = scalar n x :=
-by simp [module.algebra_map_End_eq_smul_id]
+by simv [module.algebra_map_End_eq_smul_id]
 
 lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
   M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
-by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
+by simv only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
 
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
@@ -309,7 +309,7 @@ matrix.to_lin_alg_equiv'.apply_symm_apply f
 
 @[simp] lemma linear_map.to_matrix_alg_equiv'_apply (f : (n → R) →ₗ[R] (n → R)) (i j) :
   linear_map.to_matrix_alg_equiv' f i j = f (λ j', if j' = j then 1 else 0) i :=
-by simp [linear_map.to_matrix_alg_equiv']
+by simv [linear_map.to_matrix_alg_equiv']
 
 @[simp] lemma matrix.to_lin_alg_equiv'_apply (M : matrix n n R) (v : n → R) :
   matrix.to_lin_alg_equiv' M v = M.mul_vec v := rfl
@@ -439,7 +439,7 @@ end
 lemma linear_map.to_matrix_id : linear_map.to_matrix v₁ v₁ id = 1 :=
 begin
   ext i j,
-  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single, eq_comm]
+  simv [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single, eq_comm]
 end
 
 lemma linear_map.to_matrix_one : linear_map.to_matrix v₁ v₁ 1 = 1 :=
@@ -472,7 +472,7 @@ by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl
 
 @[simp] lemma linear_map.to_matrix_algebra_map (x : R) :
   linear_map.to_matrix v₁ v₁ (algebra_map R (module.End R M₁) x) = scalar n x :=
-by simp [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id]
+by simv [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id]
 
 lemma linear_map.to_matrix_mul_vec_repr (f : M₁ →ₗ[R] M₂) (x : M₁) :
   (linear_map.to_matrix v₁ v₂ f).mul_vec (v₁.repr x) = v₂.repr (f x) :=
@@ -542,7 +542,7 @@ by rw [← matrix.to_lin_alg_equiv_symm, alg_equiv.symm_apply_apply]
 
 lemma linear_map.to_matrix_alg_equiv_apply (f : M₁ →ₗ[R] M₁) (i j : n) :
   linear_map.to_matrix_alg_equiv v₁ f i j = v₁.repr (f (v₁ j)) i :=
-by simp [linear_map.to_matrix_alg_equiv, linear_map.to_matrix_apply]
+by simv [linear_map.to_matrix_alg_equiv, linear_map.to_matrix_apply]
 
 lemma linear_map.to_matrix_alg_equiv_transpose_apply (f : M₁ →ₗ[R] M₁) (j : n) :
   (linear_map.to_matrix_alg_equiv v₁ f)ᵀ j = v₁.repr (f (v₁ j)) :=
@@ -584,7 +584,7 @@ by simp_rw [linear_map.to_matrix_alg_equiv_apply,
 lemma linear_map.to_matrix_alg_equiv_comp (f g : M₁ →ₗ[R] M₁) :
   linear_map.to_matrix_alg_equiv v₁ (f.comp g) =
   linear_map.to_matrix_alg_equiv v₁ f ⬝ linear_map.to_matrix_alg_equiv v₁ g :=
-by simp [linear_map.to_matrix_alg_equiv, linear_map.to_matrix_comp v₁ v₁ v₁ f g]
+by simv [linear_map.to_matrix_alg_equiv, linear_map.to_matrix_comp v₁ v₁ v₁ f g]
 
 lemma linear_map.to_matrix_alg_equiv_mul (f g : M₁ →ₗ[R] M₁) :
   linear_map.to_matrix_alg_equiv v₁ (f * g) =
@@ -600,7 +600,7 @@ by convert matrix.to_lin_mul v₁ v₁ v₁ A B
 @[simp] lemma matrix.to_lin_fin_two_prod_apply (a b c d : R) (x : R × R) :
   matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) !![a, b; c, d] x =
     (a * x.fst + b * x.snd, c * x.fst + d * x.snd) :=
-by simp [matrix.to_lin_apply, matrix.mul_vec, matrix.dot_product]
+by simv [matrix.to_lin_apply, matrix.mul_vec, matrix.dot_product]
 
 lemma matrix.to_lin_fin_two_prod (a b c d : R) :
   matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) !![a, b; c, d] =
@@ -629,7 +629,7 @@ by rw [linear_map.to_matrix_apply', lmul_apply]
   linear_map.to_matrix b b (algebra.lsmul R S x) i j = if i = j then x else 0 :=
 by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_equiv.map_smul, finsupp.smul_apply,
          b.repr_self_apply, smul_eq_mul, mul_boole],
-     congr' 1; simp only [eq_comm] }
+     congr' 1; simv only [eq_comm] }
 
 /-- `left_mul_matrix b x` is the matrix corresponding to the linear map `λ y, x * y`.
 
@@ -674,7 +674,7 @@ variable [fintype n]
 lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =
     left_mul_matrix b (left_mul_matrix c x ik.2 jk.2) ik.1 jk.1 :=
-by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, mul_comm, basis.smul_apply,
+by simv only [left_mul_matrix_apply, linear_map.to_matrix_apply, mul_comm, basis.smul_apply,
               basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
               linear_equiv.map_smul, mul_smul_comm]
 
@@ -683,7 +683,7 @@ lemma smul_left_mul_matrix_algebra_map (x : S) :
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   rw [smul_left_mul_matrix, alg_hom.commutes, block_diagonal_apply, algebra_map_matrix_apply],
-  split_ifs with h; simp [h],
+  split_ifs with h; simv [h],
 end
 
 lemma smul_left_mul_matrix_algebra_map_eq (x : S) (i j k) :

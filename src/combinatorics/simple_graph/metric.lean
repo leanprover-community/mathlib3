@@ -60,28 +60,28 @@ lemma dist_le {u v : V} (p : G.walk u v) : G.dist u v ≤ p.length := nat.Inf_le
 
 @[simp]
 lemma dist_eq_zero_iff_eq_or_not_reachable {u v : V} : G.dist u v = 0 ↔ u = v ∨ ¬ G.reachable u v :=
-by simp [dist, nat.Inf_eq_zero, reachable]
+by simv [dist, nat.Inf_eq_zero, reachable]
 
-lemma dist_self {v : V} : dist G v v = 0 := by simp
+lemma dist_self {v : V} : dist G v v = 0 := by simv
 
 protected
 lemma reachable.dist_eq_zero_iff {u v : V} (hr : G.reachable u v) :
-  G.dist u v = 0 ↔ u = v := by simp [hr]
+  G.dist u v = 0 ↔ u = v := by simv [hr]
 
 protected
 lemma reachable.pos_dist_of_ne {u v : V} (h : G.reachable u v) (hne : u ≠ v) : 0 < G.dist u v :=
-nat.pos_of_ne_zero (by simp [h, hne])
+nat.pos_of_ne_zero (by simv [h, hne])
 
 protected
 lemma connected.dist_eq_zero_iff (hconn : G.connected) {u v : V} :
-  G.dist u v = 0 ↔ u = v := by simp [hconn u v]
+  G.dist u v = 0 ↔ u = v := by simv [hconn u v]
 
 protected
 lemma connected.pos_dist_of_ne {u v : V} (hconn : G.connected) (hne : u ≠ v) : 0 < G.dist u v :=
-nat.pos_of_ne_zero (by simp [hconn.dist_eq_zero_iff, hne])
+nat.pos_of_ne_zero (by simv [hconn.dist_eq_zero_iff, hne])
 
 lemma dist_eq_zero_of_not_reachable {u v : V} (h : ¬ G.reachable u v) : G.dist u v = 0 :=
-by simp [h]
+by simv [h]
 
 lemma nonempty_of_pos_dist {u v : V} (h : 0 < G.dist u v) :
   (set.univ : set (G.walk u v)).nonempty :=
@@ -111,7 +111,7 @@ begin
   by_cases h : G.reachable u v,
   { apply le_antisymm (dist_comm_aux h) (dist_comm_aux h.symm), },
   { have h' : ¬ G.reachable v u := λ h', absurd h'.symm h,
-    simp [h, h', dist_eq_zero_of_not_reachable], },
+    simv [h, h', dist_eq_zero_of_not_reachable], },
 end
 
 end simple_graph

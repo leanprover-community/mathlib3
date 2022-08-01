@@ -69,8 +69,8 @@ def trivial : Type u ⥤ Top.{u} :=
 @[simps] def homeo_of_iso {X Y : Top.{u}} (f : X ≅ Y) : X ≃ₜ Y :=
 { to_fun := f.hom,
   inv_fun := f.inv,
-  left_inv := λ x, by simp,
-  right_inv := λ x, by simp,
+  left_inv := λ x, by simv,
+  right_inv := λ x, by simv,
   continuous_to_fun := f.hom.continuous,
   continuous_inv_fun := f.inv.continuous }
 

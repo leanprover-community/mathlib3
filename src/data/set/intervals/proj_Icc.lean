@@ -31,13 +31,13 @@ def proj_Icc (a b : α) (h : a ≤ b) (x : α) : Icc a b :=
 variables {a b : α} (h : a ≤ b) {x : α}
 
 lemma proj_Icc_of_le_left (hx : x ≤ a) : proj_Icc a b h x = ⟨a, left_mem_Icc.2 h⟩ :=
-by simp [proj_Icc, hx, hx.trans h]
+by simv [proj_Icc, hx, hx.trans h]
 
 @[simp] lemma proj_Icc_left : proj_Icc a b h a = ⟨a, left_mem_Icc.2 h⟩ :=
 proj_Icc_of_le_left h le_rfl
 
 lemma proj_Icc_of_right_le (hx : b ≤ x) : proj_Icc a b h x = ⟨b, right_mem_Icc.2 h⟩ :=
-by simp [proj_Icc, hx, h]
+by simv [proj_Icc, hx, h]
 
 @[simp] lemma proj_Icc_right : proj_Icc a b h b = ⟨b, right_mem_Icc.2 h⟩ :=
 proj_Icc_of_right_le h le_rfl
@@ -53,12 +53,12 @@ lemma proj_Icc_eq_right (h : a < b) : proj_Icc a b h.le x = ⟨b, right_mem_Icc.
 begin
   refine ⟨λ h', _, proj_Icc_of_right_le _⟩,
   simp_rw [subtype.ext_iff_val, proj_Icc] at h',
-  have := ((max_choice _ _).resolve_left (by simp [h.ne', h'])).symm.trans h',
+  have := ((max_choice _ _).resolve_left (by simv [h.ne', h'])).symm.trans h',
   exact min_eq_left_iff.mp this
 end
 
 lemma proj_Icc_of_mem (hx : x ∈ Icc a b) : proj_Icc a b h x = ⟨x, hx⟩ :=
-by simp [proj_Icc, hx.1, hx.2]
+by simv [proj_Icc, hx.1, hx.2]
 
 @[simp] lemma proj_Icc_coe (x : Icc a b) : proj_Icc a b h x = x :=
 by { cases x, apply proj_Icc_of_mem }
@@ -84,7 +84,7 @@ f ∘ proj_Icc a b h
 
 @[simp] lemma Icc_extend_range (f : Icc a b → β) :
   range (Icc_extend h f) = range f :=
-by simp only [Icc_extend, range_comp f, range_proj_Icc, range_id']
+by simv only [Icc_extend, range_comp f, range_proj_Icc, range_id']
 
 lemma Icc_extend_of_le_left (f : Icc a b → β) (hx : x ≤ a) :
   Icc_extend h f x = f ⟨a, left_mem_Icc.2 h⟩ :=

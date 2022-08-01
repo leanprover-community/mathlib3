@@ -40,7 +40,7 @@ variables {L}
 theorem card_functions_sum_skolem₁ :
   # (Σ n, (L.sum L.skolem₁).functions n) = # (Σ n, L.bounded_formula empty (n + 1)) :=
 begin
-  simp only [card_functions_sum, skolem₁_functions, lift_id', mk_sigma, sum_add_distrib'],
+  simv only [card_functions_sum, skolem₁_functions, lift_id', mk_sigma, sum_add_distrib'],
   rw [add_comm, add_eq_max, max_eq_left],
   { refine sum_le_sum _ _ (λ n, _),
     rw [← lift_le, lift_lift, lift_mk_le],
@@ -59,7 +59,7 @@ begin
   { exact ⟨⟨sigma.map nat.succ (λ _, id), nat.succ_injective.sigma_map
     (λ _, function.injective_id)⟩⟩ },
   { refine trans bounded_formula.card_le (lift_le.1 _),
-    simp only [mk_empty, lift_zero, lift_uzero, zero_add] }
+    simv only [mk_empty, lift_zero, lift_uzero, zero_add] }
 end
 
 /-- The structure assigning each function symbol of `L.skolem₁` to a skolem function generated with
@@ -137,7 +137,7 @@ begin
   { rw [lift_max, lift_aleph_0, max_le_iff, aleph_0_le_lift, and_comm,
       ← lift_le.{_ w'}, lift_lift, lift_lift, ← aleph_0_le_lift, h],
     refine ⟨_, h1⟩,
-    simp only [← lift_lift, lift_umax, lift_umax'],
+    simv only [← lift_lift, lift_umax, lift_umax'],
     rw [lift_lift, ← lift_lift.{w' w} L.card],
     refine trans ((lift_le.{_ w}).2 h3) _,
     rw [lift_lift, ← lift_lift.{w (max u v)}, ← hs', ← h, lift_lift, lift_lift, lift_lift] },

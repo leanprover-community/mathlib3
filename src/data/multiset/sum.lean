@@ -38,7 +38,7 @@ by simp_rw [disj_sum, mem_add, mem_map]
 @[simp] lemma inl_mem_disj_sum : inl a ∈ s.disj_sum t ↔ a ∈ s :=
 begin
   rw [mem_disj_sum, or_iff_left],
-  simp only [exists_eq_right],
+  simv only [exists_eq_right],
   rintro ⟨b, _, hb⟩,
   exact inr_ne_inl hb,
 end
@@ -46,7 +46,7 @@ end
 @[simp] lemma inr_mem_disj_sum : inr b ∈ s.disj_sum t ↔ b ∈ t :=
 begin
   rw [mem_disj_sum, or_iff_right],
-  simp only [exists_eq_right],
+  simv only [exists_eq_right],
   rintro ⟨a, _, ha⟩,
   exact inl_ne_inr ha,
 end

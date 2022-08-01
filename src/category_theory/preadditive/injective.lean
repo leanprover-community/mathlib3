@@ -110,10 +110,10 @@ instance {P Q : C} [has_binary_product P Q] [injective P] [injective Q] :
 { factors := λ X Y g f mono, begin
   resetI,
   use limits.prod.lift (factor_thru (g ≫ limits.prod.fst) f) (factor_thru (g ≫ limits.prod.snd) f),
-  simp only [prod.comp_lift, comp_factor_thru],
+  simv only [prod.comp_lift, comp_factor_thru],
   ext,
-  { simp only [prod.lift_fst] },
-  { simp only [prod.lift_snd] },
+  { simv only [prod.lift_fst] },
+  { simv only [prod.lift_snd] },
 end }
 
 instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
@@ -122,7 +122,7 @@ instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
   resetI,
   refine ⟨pi.lift (λ b, factor_thru (g ≫ (pi.π c _)) f), _⟩,
   ext ⟨j⟩,
-  simp only [category.assoc, limit.lift_π, fan.mk_π_app, comp_factor_thru],
+  simv only [category.assoc, limit.lift_π, fan.mk_π_app, comp_factor_thru],
 end }
 
 instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
@@ -132,8 +132,8 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   resetI,
   refine ⟨biprod.lift (factor_thru (g ≫ biprod.fst) f) (factor_thru (g ≫ biprod.snd) f), _⟩,
   ext,
-  { simp only [category.assoc, biprod.lift_fst, comp_factor_thru] },
-  { simp only [category.assoc, biprod.lift_snd, comp_factor_thru] },
+  { simv only [category.assoc, biprod.lift_fst, comp_factor_thru] },
+  { simv only [category.assoc, biprod.lift_snd, comp_factor_thru] },
 end }
 
 instance {β : Type v} (c : β → C) [has_zero_morphisms C] [has_biproduct c]
@@ -142,24 +142,24 @@ instance {β : Type v} (c : β → C) [has_zero_morphisms C] [has_biproduct c]
   resetI,
   refine ⟨biproduct.lift (λ b, factor_thru (g ≫ biproduct.π _ _) f), _⟩,
   ext,
-  simp only [category.assoc, biproduct.lift_π, comp_factor_thru],
+  simv only [category.assoc, biproduct.lift_π, comp_factor_thru],
 end }
 
 instance {P : Cᵒᵖ} [projective P] : injective (unop P) :=
 { factors := λ X Y g f mono, by exactI ⟨(@projective.factor_thru Cᵒᵖ _ P _ _ _ g.op f.op _).unop,
-      quiver.hom.op_inj (by simp)⟩ }
+      quiver.hom.op_inj (by simv)⟩ }
 
 instance {J : Cᵒᵖ} [injective J] : projective (unop J) :=
 { factors := λ E X f e he, by exactI ⟨(@factor_thru Cᵒᵖ _ J _ _ _ f.op e.op _).unop,
-    quiver.hom.op_inj (by simp)⟩ }
+    quiver.hom.op_inj (by simv)⟩ }
 
 instance {J : C} [injective J] : projective (op J) :=
 { factors := λ E X f e epi, by exactI ⟨(@factor_thru C _ J _ _ _ f.unop e.unop _).op,
-    quiver.hom.unop_inj (by simp)⟩ }
+    quiver.hom.unop_inj (by simv)⟩ }
 
 instance {P : C} [projective P] : injective (op P) :=
 { factors := λ X Y g f mono, by exactI ⟨(@projective.factor_thru C _ P _ _ _ g.unop f.unop _).op,
-    quiver.hom.unop_inj (by simp)⟩ }
+    quiver.hom.unop_inj (by simv)⟩ }
 
 lemma injective_iff_projective_op {J : C} : injective J ↔ projective (op J) :=
 ⟨λ h, by exactI infer_instance, λ h, show injective (unop (op J)), by exactI infer_instance⟩

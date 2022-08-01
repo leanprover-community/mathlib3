@@ -33,12 +33,12 @@ lemma exists_null_pairwise_disjoint_diff [encodable ι] {s : ι → set α}
 begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
     λ i, measurable_set_to_measurable _ _, λ i, _, _⟩,
-  { simp only [measure_to_measurable, inter_Union],
+  { simv only [measure_to_measurable, inter_Union],
     exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd _ _ (ne.symm hj)) },
-  { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
+  { simv only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,
     replace hU : x ∉ s i ∩ ⋃ j ≠ i, s j := λ h, hU (subset_to_measurable _ _ h),
-    simp only [mem_inter_eq, mem_Union, not_and, not_exists] at hU,
+    simv only [mem_inter_eq, mem_Union, not_and, not_exists] at hU,
     exact (hU hi j hne.symm hj).elim }
 end
 
@@ -73,17 +73,17 @@ h.mono_ae hu.eventually_le hv.eventually_le
 
 @[simp] lemma Union_left_iff [encodable ι] {s : ι → set α} :
   ae_disjoint μ (⋃ i, s i) t ↔ ∀ i, ae_disjoint μ (s i) t :=
-by simp only [ae_disjoint, Union_inter, measure_Union_null_iff]
+by simv only [ae_disjoint, Union_inter, measure_Union_null_iff]
 
 @[simp] lemma Union_right_iff [encodable ι] {t : ι → set α} :
   ae_disjoint μ s (⋃ i, t i) ↔ ∀ i, ae_disjoint μ s (t i) :=
-by simp only [ae_disjoint, inter_Union, measure_Union_null_iff]
+by simv only [ae_disjoint, inter_Union, measure_Union_null_iff]
 
 @[simp] lemma union_left_iff : ae_disjoint μ (s ∪ t) u ↔ ae_disjoint μ s u ∧ ae_disjoint μ t u :=
-by simp [union_eq_Union, and.comm]
+by simv [union_eq_Union, and.comm]
 
 @[simp] lemma union_right_iff : ae_disjoint μ s (t ∪ u) ↔ ae_disjoint μ s t ∧ ae_disjoint μ s u :=
-by simp [union_eq_Union, and.comm]
+by simv [union_eq_Union, and.comm]
 
 lemma union_left (hs : ae_disjoint μ s u) (ht : ae_disjoint μ t u) : ae_disjoint μ (s ∪ t) u :=
 union_left_iff.mpr ⟨hs, ht⟩

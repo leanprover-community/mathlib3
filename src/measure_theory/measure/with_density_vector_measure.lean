@@ -39,7 +39,7 @@ def measure.with_densityᵥ {m : measurable_space α} (μ : measure α) (f : α 
   vector_measure α E :=
 if hf : integrable f μ then
 { measure_of' := λ s, if measurable_set s then ∫ x in s, f x ∂μ else 0,
-  empty' := by simp,
+  empty' := by simv,
   not_measurable' := λ s hs, if_neg hs,
   m_Union' := λ s hs₁ hs₂,
   begin
@@ -60,7 +60,7 @@ lemma with_densityᵥ_apply (hf : integrable f μ) {s : set α} (hs : measurable
 by { rw [with_densityᵥ, dif_pos hf], exact dif_pos hs }
 
 @[simp] lemma with_densityᵥ_zero : μ.with_densityᵥ (0 : α → E) = 0 :=
-by { ext1 s hs, erw [with_densityᵥ_apply (integrable_zero α E μ) hs], simp, }
+by { ext1 s hs, erw [with_densityᵥ_apply (integrable_zero α E μ) hs], simv, }
 
 @[simp] lemma with_densityᵥ_neg : μ.with_densityᵥ (-f) = -μ.with_densityᵥ f :=
 begin
@@ -200,7 +200,7 @@ begin
   refine vector_measure.absolutely_continuous.mk (λ j hj₁ hj₂, _),
   rw [measure.to_ennreal_vector_measure_apply_measurable hj₁, trim_measurable_set_eq hm hj₁] at hj₂,
   rw [vector_measure.trim_measurable_set_eq hm hj₁, with_densityᵥ_apply hfi (hm _ hj₁)],
-  simp only [measure.restrict_eq_zero.mpr hj₂, integral_zero_measure]
+  simv only [measure.restrict_eq_zero.mpr hj₂, integral_zero_measure]
 end
 
 end signed_measure

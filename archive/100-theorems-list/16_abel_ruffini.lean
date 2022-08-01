@@ -36,13 +36,13 @@ noncomputable def Φ : R[X] := X ^ 5 - C ↑a * X + C ↑b
 variables {R}
 
 @[simp] lemma map_Phi {S : Type*} [comm_ring S] (f : R →+* S) : (Φ R a b).map f = Φ S a b :=
-by simp [Φ]
+by simv [Φ]
 
 @[simp] lemma coeff_zero_Phi : (Φ R a b).coeff 0 = ↑b :=
-by simp [Φ, coeff_X_pow]
+by simv [Φ, coeff_X_pow]
 
 @[simp] lemma coeff_five_Phi : (Φ R a b).coeff 5 = 1 :=
-by simp [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -map_nat_cast]
+by simv [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -map_nat_cast]
 
 variables [nontrivial R]
 
@@ -76,12 +76,12 @@ begin
     rw mem_span_singleton,
     rw [degree_Phi, with_bot.coe_lt_coe] at hn,
     interval_cases n with hn;
-    simp only [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, if_true, coeff_C_mul, if_false,
+    simv only [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, if_true, coeff_C_mul, if_false,
       nat.zero_ne_bit1, eq_self_iff_true, coeff_X_zero, hpa, coeff_add, zero_add, mul_zero,
       coeff_sub, sub_self, nat.one_ne_zero, add_zero, coeff_X_one, mul_one,
       zero_sub, dvd_neg, nat.one_eq_bit1, bit0_eq_zero, neg_zero, nat.bit0_ne_bit1,
       dvd_mul_of_dvd_left, nat.bit1_eq_bit1, nat.one_ne_bit0, nat.bit1_ne_zero], },
-  { simp only [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe, nat.succ_pos'] },
+  { simv only [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe, nat.succ_pos'] },
   { rw [coeff_zero_Phi, span_singleton_pow, mem_span_singleton],
     exact mt int.coe_nat_dvd.mp hp2b },
   all_goals { exact monic.is_primitive (monic_Phi a b) },
@@ -101,7 +101,7 @@ lemma real_roots_Phi_ge_aux (hab : b < a) :
   ∃ x y : ℝ, x ≠ y ∧ aeval x (Φ ℚ a b) = 0 ∧ aeval y (Φ ℚ a b) = 0 :=
 begin
   let f := λ x : ℝ, aeval x (Φ ℚ a b),
-  have hf : f = λ x, x ^ 5 - a * x + b := by simp [f, Φ],
+  have hf : f = λ x, x ^ 5 - a * x + b := by simv [f, Φ],
   have hc : ∀ s : set ℝ, continuous_on f s := λ s, (Φ ℚ a b).continuous_on_aeval,
   have ha : (1 : ℝ) ≤ a := nat.one_le_cast.mpr (nat.one_le_of_lt hab),
   have hle : (0 : ℝ) ≤ 1 := zero_le_one,
@@ -131,9 +131,9 @@ begin
   have q_ne_zero : Φ ℚ a b ≠ 0 := (monic_Phi a b).ne_zero,
   obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab,
   have key : ↑({x, y} : finset ℝ) ⊆ (Φ ℚ a b).root_set ℝ,
-  { simp [set.insert_subset, mem_root_set q_ne_zero, hx, hy] },
+  { simv [set.insert_subset, mem_root_set q_ne_zero, hx, hy] },
   convert fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
-  simp only [finset.coe_sort_coe, fintype.card_coe, finset.card_singleton,
+  simv only [finset.coe_sort_coe, fintype.card_coe, finset.card_singleton,
              finset.card_insert_of_not_mem (mt finset.mem_singleton.mp hxy)]
 end
 

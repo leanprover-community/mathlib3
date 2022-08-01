@@ -97,7 +97,7 @@ def pseudo_equal (P : C) (f g : over P) : Prop :=
 ∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) (_ : epi p) (_ : epi q), p ≫ f.hom = q ≫ g.hom
 
 lemma pseudo_equal_refl {P : C} : reflexive (pseudo_equal P) :=
-λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, by apply_instance, by apply_instance, by simp⟩
+λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, by apply_instance, by apply_instance, by simv⟩
 
 lemma pseudo_equal_symm {P : C} : symmetric (pseudo_equal P) :=
 λ f g ⟨R, p, q, ep, eq, comm⟩, ⟨R, q, p, eq, ep, comm.symm⟩
@@ -192,7 +192,7 @@ local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- The arrows pseudo-equal to a zero morphism are precisely the zero morphisms -/
 lemma pseudo_zero_aux {P : C} (Q : C) (f : over P) : f ≈ (0 : Q ⟶ P) ↔ f.hom = 0 :=
-⟨λ ⟨R, p, q, ep, eq, comm⟩, by exactI zero_of_epi_comp p (by simp [comm]),
+⟨λ ⟨R, p, q, ep, eq, comm⟩, by exactI zero_of_epi_comp p (by simv [comm]),
   λ hf, ⟨biprod f.1 Q, biprod.fst, biprod.snd, by apply_instance, by apply_instance,
     by rw [hf, over.coe_hom, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]⟩⟩
 
@@ -229,12 +229,12 @@ open_locale pseudoelement
 
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
 @[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
-by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
+by { rw [pseudo_zero_def, pseudo_apply_mk], simv }
 
 /-- The zero morphism maps every pseudoelement to 0. -/
 @[simp] theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=
 quotient.induction_on a $ λ a',
-  by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
+  by { rw [pseudo_zero_def, pseudo_apply_mk], simv }
 
 /-- An extensionality lemma for being the zero arrow. -/
 theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
@@ -247,14 +247,14 @@ localized "attribute [ext] category_theory.abelian.pseudoelement.zero_morphism_e
   category_theory.abelian.pseudoelement.zero_morphism_ext'" in pseudoelement
 
 theorem eq_zero_iff {P Q : C} (f : P ⟶ Q) : f = 0 ↔ ∀ a, f a = 0 :=
-⟨λ h a, by simp [h], zero_morphism_ext _⟩
+⟨λ h a, by simv [h], zero_morphism_ext _⟩
 
 /-- A monomorphism is injective on pseudoelements. -/
 theorem pseudo_injective_of_mono {P Q : C} (f : P ⟶ Q) [mono f] : function.injective f :=
 λ abar abar', quotient.induction_on₂ abar abar' $ λ a a' ha, quotient.sound $
   have ⟦(a.hom ≫ f : over Q)⟧ = ⟦a'.hom ≫ f⟧, by convert ha,
   match quotient.exact this with ⟨R, p, q, ep, eq, comm⟩ :=
-    ⟨R, p, q, ep, eq, (cancel_mono f).1 $ by { simp only [category.assoc], exact comm }⟩
+    ⟨R, p, q, ep, eq, (cancel_mono f).1 $ by { simv only [category.assoc], exact comm }⟩
   end
 
 /-- A morphism that is injective on pseudoelements only maps the zero element to zero. -/
@@ -325,7 +325,7 @@ theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} (h : exact
 end
 
 lemma apply_eq_zero_of_comp_eq_zero {P Q R : C} (f : Q ⟶ R) (a : P ⟶ Q) : a ≫ f = 0 → f a = 0 :=
-λ h, by simp [over_coe_def, pseudo_apply_mk, over.coe_hom, h]
+λ h, by simv [over_coe_def, pseudo_apply_mk, over.coe_hom, h]
 
 section
 
@@ -348,7 +348,7 @@ begin
   -- a cone over this pullback, so we get a factorization z.
   obtain ⟨z, hz₁, hz₂⟩ := @pullback.lift' _ _ _ _ _ _ (kernel.ι (cokernel.π f)) (kernel.ι g) _
     (r ≫ a.hom ≫ abelian.factor_thru_image f) q
-      (by { simp only [category.assoc, abelian.image.fac], exact comm }),
+      (by { simv only [category.assoc, abelian.image.fac], exact comm }),
 
   -- Let's give a name to the second pullback morphism.
   let j : pullback (kernel.ι (cokernel.π f)) (kernel.ι g) ⟶ kernel g := pullback.snd,
@@ -364,7 +364,7 @@ begin
   -- But then kernel.ι g can be expressed using all of the maps of the pullback square, and we
   -- are done.
   rw (iso.eq_inv_comp (as_iso j)).2 pullback.condition.symm,
-  simp only [category.assoc, kernel.condition, has_zero_morphisms.comp_zero]
+  simv only [category.assoc, kernel.condition, has_zero_morphisms.comp_zero]
 end⟩
 
 end
@@ -378,7 +378,7 @@ quotient.induction_on₂ x y $ λ a a' h,
 match quotient.exact h with ⟨R, p, q, ep, eq, comm⟩ :=
   let a'' : R ⟶ P := p ≫ a.hom - q ≫ a'.hom in ⟨a'',
     ⟨show ⟦((p ≫ a.hom - q ≫ a'.hom) ≫ f : over Q)⟧ = ⟦(0 : Q ⟶ Q)⟧,
-      by { dsimp at comm, simp [sub_eq_zero.2 comm] },
+      by { dsimp at comm, simv [sub_eq_zero.2 comm] },
       λ Z g hh,
       begin
         obtain ⟨X, p', q', ep', eq', comm'⟩ := quotient.exact hh,
@@ -392,7 +392,7 @@ match quotient.exact h with ⟨R, p, q, ep, eq, comm⟩ :=
         -- Can we prevent quotient.sound from giving us this weird `coe_b` thingy?
         change app g (a'' : over P) ≈ app g a,
 
-        exact ⟨R, 𝟙 R, p, by apply_instance, ep, by simp [sub_eq_add_neg, this]⟩
+        exact ⟨R, 𝟙 R, p, by apply_instance, ep, by simv [sub_eq_add_neg, this]⟩
       end⟩⟩
 end
 
@@ -409,7 +409,7 @@ begin
   obtain ⟨Z, a, b, ea, eb, comm⟩ := quotient.exact h,
 
   obtain ⟨l, hl₁, hl₂⟩ := @pullback.lift' _ _ _ _ _ _ f g _ (a ≫ x.hom) (b ≫ y.hom)
-    (by { simp only [category.assoc], exact comm }),
+    (by { simv only [category.assoc], exact comm }),
 
   exact ⟨l, ⟨quotient.sound ⟨Z, 𝟙 Z, a, by apply_instance, ea, by rwa category.id_comp⟩,
     quotient.sound ⟨Z, 𝟙 Z, b, by apply_instance, eb, by rwa category.id_comp⟩⟩⟩

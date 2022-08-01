@@ -77,12 +77,12 @@ begin
   rcases is_localization.surj M z with ⟨⟨r, m⟩, e : z * _ = algebra_map R S r⟩,
   refine ⟨r, m, _⟩,
   rw [algebra.smul_def, ← e, mul_assoc],
-  simp,
+  simv,
 end
 
 lemma to_inv_submonoid_eq_mk' (x : M) :
   (to_inv_submonoid M S x : S) = mk' S 1 x :=
-by { rw ← (is_localization.map_units S x).mul_left_inj, simp }
+by { rw ← (is_localization.map_units S x).mul_left_inj, simv }
 
 lemma mem_inv_submonoid_iff_exists_mk' (x : S) :
   x ∈ inv_submonoid M S ↔ ∃ m : M, mk' S 1 m = x :=

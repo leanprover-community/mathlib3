@@ -54,7 +54,7 @@ list.foldl M.step_set start
 @[simp] lemma eval_from_singleton (S : set σ) (a : α) : M.eval_from S [a] = M.step_set S a := rfl
 @[simp] lemma eval_from_append_singleton (S : set σ) (x : list α) (a : α) :
   M.eval_from S (x ++ [a]) = M.step_set (M.eval_from S x) a :=
-by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+by simv only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
 
 /-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
   `M.start`. -/

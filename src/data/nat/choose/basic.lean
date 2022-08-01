@@ -60,13 +60,13 @@ lemma choose_eq_zero_of_lt : ∀ {n k}, n < k → choose n k = 0
   by rw [choose_succ_succ, choose_eq_zero_of_lt hnk, choose_eq_zero_of_lt hnk1]
 
 @[simp] lemma choose_self (n : ℕ) : choose n n = 1 :=
-by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
+by induction n; simv [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
 
 @[simp] lemma choose_succ_self (n : ℕ) : choose n (succ n) = 0 :=
 choose_eq_zero_of_lt (lt_succ_self _)
 
 @[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
-by induction n; simp [*, choose, add_comm]
+by induction n; simv [*, choose, add_comm]
 
 /- The `n+1`-st triangle number is `n` more than the `n`-th triangle number -/
 lemma triangle_succ (n : ℕ) : (n + 1) * ((n + 1) - 1) / 2 = n * (n - 1) / 2 + n :=
@@ -79,13 +79,13 @@ end
 lemma choose_two_right (n : ℕ) : choose n 2 = n * (n - 1) / 2 :=
 begin
   induction n with n ih,
-  simp,
-  {rw triangle_succ n, simp [choose, ih], rw add_comm},
+  simv,
+  {rw triangle_succ n, simv [choose, ih], rw add_comm},
 end
 
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [nat.eq_zero_of_le_zero hk]; exact dec_trivial
-| (n + 1)       0 hk := by simp; exact dec_trivial
+| (n + 1)       0 hk := by simv; exact dec_trivial
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
 
@@ -94,31 +94,31 @@ lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
 
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
 | 0             0 := dec_trivial
-| 0       (k + 1) := by simp [choose]
-| (n + 1)       0 := by simp
+| 0       (k + 1) := by simv [choose]
+| (n + 1)       0 := by simv
 | (n + 1) (k + 1) :=
   by rw [choose_succ_succ (succ n) (succ k), add_mul, ←succ_mul_choose_eq, mul_succ,
   ←succ_mul_choose_eq, add_right_comm, ←mul_add, ←choose_succ_succ, ←succ_mul]
 
 lemma choose_mul_factorial_mul_factorial : ∀ {n k}, k ≤ n → choose n k * k! * (n - k)! = n!
-| 0              _ hk := by simp [nat.eq_zero_of_le_zero hk]
-| (n + 1)        0 hk := by simp
+| 0              _ hk := by simv [nat.eq_zero_of_le_zero hk]
+| (n + 1)        0 hk := by simv
 | (n + 1) (succ k) hk :=
 begin
   cases lt_or_eq_of_le hk with hk₁ hk₁,
   { have h : choose n k * k.succ! * (n-k)! = (k + 1) * n! :=
       by rw ← choose_mul_factorial_mul_factorial (le_of_succ_le_succ hk);
-      simp [factorial_succ, mul_comm, mul_left_comm],
+      simv [factorial_succ, mul_comm, mul_left_comm],
     have h₁ : (n - k)! = (n - k) * (n - k.succ)! :=
       by rw [← succ_sub_succ, succ_sub (le_of_lt_succ hk₁), factorial_succ],
     have h₂ : choose n (succ k) * k.succ! * ((n - k) * (n - k.succ)!) = (n - k) * n! :=
       by rw ← choose_mul_factorial_mul_factorial (le_of_lt_succ hk₁);
-      simp [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
+      simv [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
     have h₃ : k * n! ≤ n * n! := nat.mul_le_mul_right _ (le_of_succ_le_succ hk),
     rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, add_mul,
       tsub_mul, factorial_succ, ← add_tsub_assoc_of_le h₃, add_assoc, ← add_mul,
       add_tsub_cancel_left, add_comm] },
-  { simp [hk₁, mul_comm, choose, tsub_self] }
+  { simv [hk₁, mul_comm, choose, tsub_self] }
 end
 
 lemma choose_mul {n k s : ℕ} (hkn : k ≤ n) (hsk : s ≤ k) :
@@ -194,7 +194,7 @@ end
 lemma choose_mul_succ_eq (n k : ℕ) :
   (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k) :=
 begin
-  induction k with k ih, { simp },
+  induction k with k ih, { simv },
   obtain hk | hk := le_or_lt (k + 1) (n + 1),
   { rw [choose_succ_succ, add_mul, succ_sub_succ, ←choose_succ_right_eq, ←succ_sub_succ,
       mul_tsub, add_tsub_cancel_of_le (nat.mul_le_mul_left _ hk)] },
@@ -283,12 +283,12 @@ end
 /-! #### Inequalities about increasing the first argument -/
 
 lemma choose_le_succ (a c : ℕ) : choose a c ≤ choose a.succ c :=
-by cases c; simp [nat.choose_succ_succ]
+by cases c; simv [nat.choose_succ_succ]
 
 lemma choose_le_add (a b c : ℕ) : choose a c ≤ choose (a + b) c :=
 begin
   induction b with b_n b_ih,
-  { simp, },
+  { simv, },
   exact le_trans b_ih (choose_le_succ (a + b_n) c),
 end
 
@@ -324,38 +324,38 @@ def multichoose : ℕ → ℕ → ℕ
 | (n + 1) (k + 1) := multichoose n (k + 1) + multichoose (n + 1) k
 
 @[simp] lemma multichoose_zero_right (n : ℕ) : multichoose n 0 = 1 :=
-by { cases n; simp [multichoose] }
+by { cases n; simv [multichoose] }
 
-@[simp] lemma multichoose_zero_succ (k : ℕ) : multichoose 0 (k + 1) = 0 := by simp [multichoose]
+@[simp] lemma multichoose_zero_succ (k : ℕ) : multichoose 0 (k + 1) = 0 := by simv [multichoose]
 
 lemma multichoose_succ_succ (n k : ℕ) :
   multichoose (n + 1) (k + 1) = multichoose n (k + 1) + multichoose (n + 1) k :=
-by simp [multichoose]
+by simv [multichoose]
 
 @[simp] lemma multichoose_one (k : ℕ) : multichoose 1 k = 1 :=
 begin
-  induction k with k IH, { simp },
-  simp [multichoose_succ_succ 0 k, IH],
+  induction k with k IH, { simv },
+  simv [multichoose_succ_succ 0 k, IH],
 end
 
 @[simp] lemma multichoose_two (k : ℕ) : multichoose 2 k = k + 1 :=
 begin
-  induction k with k IH, { simp },
-  simp [multichoose_succ_succ 1 k, IH],
+  induction k with k IH, { simv },
+  simv [multichoose_succ_succ 1 k, IH],
   rw add_comm,
 end
 
 @[simp] lemma multichoose_one_right (n : ℕ) : multichoose n 1 = n :=
 begin
-  induction n with n IH, { simp },
-  simp [multichoose_succ_succ n 0, IH],
+  induction n with n IH, { simv },
+  simv [multichoose_succ_succ n 0, IH],
 end
 
 lemma multichoose_eq : ∀ (n k : ℕ), multichoose n k = (n + k - 1).choose k
-| _      0    := by simp
-| 0     (k+1) := by simp
+| _      0    := by simv
+| 0     (k+1) := by simv
 | (n+1) (k+1) := by
   { rw [multichoose_succ_succ, add_comm, nat.succ_add_sub_one, ←add_assoc, nat.choose_succ_succ],
-    simp [multichoose_eq] }
+    simv [multichoose_eq] }
 
 end nat

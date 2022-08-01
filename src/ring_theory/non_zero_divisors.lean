@@ -39,7 +39,7 @@ lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x 
 
 lemma mul_right_mem_non_zero_divisors_eq_zero_iff {x r : M} (hr : r ∈ M⁰) :
   x * r = 0 ↔ x = 0 :=
-⟨hr _, by simp {contextual := tt}⟩
+⟨hr _, by simv {contextual := tt}⟩
 
 @[simp] lemma mul_right_coe_non_zero_divisors_eq_zero_iff {x : M} {c : M⁰} :
   x * c = 0 ↔ x = 0 :=
@@ -135,7 +135,7 @@ lemma map_le_non_zero_divisors_of_injective [no_zero_divisors M']
   (hS : S ≤ M⁰) : S.map f ≤ M'⁰ :=
 begin
   casesI subsingleton_or_nontrivial M,
-  { simp [subsingleton.elim S ⊥] },
+  { simv [subsingleton.elim S ⊥] },
   { exact le_non_zero_divisors_of_no_zero_divisors (λ h, let ⟨x, hx, hx0⟩ := h in
       zero_ne_one (hS (hf (trans hx0 ((map_zero f).symm)) ▸ hx : 0 ∈ S) 1 (mul_zero 1)).symm) }
 end

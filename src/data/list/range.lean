@@ -40,7 +40,7 @@ by rw [← length_eq_zero, length_range']
     from λ e, e ▸ lt_succ_of_le (nat.le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
     by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
-  (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
+  (mem_cons_iff _ _ _).trans $ by simv only [mem_range',
     or_and_distrib_left, or_iff_right_of_imp this, l, add_right_comm]; refl
 
 theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a + s) n
@@ -114,37 +114,37 @@ theorem range'_eq_map_range (s n : ℕ) : range' s n = map ((+) s) (range n) :=
 by rw [range_eq_range', map_add_range']; refl
 
 @[simp] theorem length_range (n : ℕ) : length (range n) = n :=
-by simp only [range_eq_range', length_range']
+by simv only [range_eq_range', length_range']
 
 @[simp] theorem range_eq_nil {n : ℕ} : range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_range]
 
 theorem pairwise_lt_range (n : ℕ) : pairwise (<) (range n) :=
-by simp only [range_eq_range', pairwise_lt_range']
+by simv only [range_eq_range', pairwise_lt_range']
 
 theorem nodup_range (n : ℕ) : nodup (range n) :=
-by simp only [range_eq_range', nodup_range']
+by simv only [range_eq_range', nodup_range']
 
 theorem range_sublist {m n : ℕ} : range m <+ range n ↔ m ≤ n :=
-by simp only [range_eq_range', range'_sublist_right]
+by simv only [range_eq_range', range'_sublist_right]
 
 theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n :=
-by simp only [range_eq_range', range'_subset_right]
+by simv only [range_eq_range', range'_subset_right]
 
 @[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n :=
-by simp only [range_eq_range', mem_range', nat.zero_le, true_and, zero_add]
+by simv only [range_eq_range', mem_range', nat.zero_le, true_and, zero_add]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _
 
 @[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) :=
-by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
+by simv only [succ_pos', lt_add_iff_pos_right, mem_range]
 
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
-by simp only [range_eq_range', nth_range' _ h, zero_add]
+by simv only [range_eq_range', nth_range' _ h, zero_add]
 
 theorem range_succ (n : ℕ) : range (succ n) = range n ++ [n] :=
-by simp only [range_eq_range', range'_concat, zero_add]
+by simv only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
@@ -153,9 +153,9 @@ theorem chain'_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
 begin
   rw range_succ,
   induction n with n hn,
-  { simp },
+  { simv },
   { rw range_succ,
-    simp only [append_assoc, singleton_append, chain'_append_cons_cons, chain'_singleton, and_true],
+    simv only [append_assoc, singleton_append, chain'_append_cons_cons, chain'_singleton, and_true],
     rw [hn, forall_lt_succ] }
 end
 
@@ -174,20 +174,20 @@ lemma range_add (a : ℕ) :
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
-| (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n,
+| (n+1) := by simv only [iota, range'_concat, iota_eq_reverse_range' n,
              reverse_append, add_comm]; refl
 
 @[simp] theorem length_iota (n : ℕ) : length (iota n) = n :=
-by simp only [iota_eq_reverse_range', length_reverse, length_range']
+by simv only [iota_eq_reverse_range', length_reverse, length_range']
 
 theorem pairwise_gt_iota (n : ℕ) : pairwise (>) (iota n) :=
-by simp only [iota_eq_reverse_range', pairwise_reverse, pairwise_lt_range']
+by simv only [iota_eq_reverse_range', pairwise_reverse, pairwise_lt_range']
 
 theorem nodup_iota (n : ℕ) : nodup (iota n) :=
-by simp only [iota_eq_reverse_range', nodup_reverse, nodup_range']
+by simv only [iota_eq_reverse_range', nodup_reverse, nodup_range']
 
 theorem mem_iota {m n : ℕ} : m ∈ iota n ↔ 1 ≤ m ∧ m ≤ n :=
-by simp only [iota_eq_reverse_range', mem_reverse, mem_range', add_comm, lt_succ_iff]
+by simv only [iota_eq_reverse_range', mem_reverse, mem_range', add_comm, lt_succ_iff]
 
 theorem reverse_range' : ∀ s n : ℕ,
   reverse (range' s n) = map (λ i, s + n - 1 - i) (range n)
@@ -256,7 +256,7 @@ nat.rec_on n
 
 @[simp] theorem enum_map_fst (l : list α) :
   map prod.fst (enum l) = range l.length :=
-by simp only [enum, enum_from_map_fst, range_eq_range']
+by simv only [enum, enum_from_map_fst, range_eq_range']
 
 lemma enum_eq_zip_range (l : list α) :
   l.enum = (range l.length).zip l :=
@@ -264,7 +264,7 @@ zip_of_prod (enum_map_fst _) (enum_map_snd _)
 
 @[simp] lemma unzip_enum_eq_prod (l : list α) :
   l.enum.unzip = (range l.length, l) :=
-by simp only [enum_eq_zip_range, unzip_zip, length_range]
+by simv only [enum_eq_zip_range, unzip_zip, length_range]
 
 lemma enum_from_eq_zip_range' (l : list α) {n : ℕ} :
   l.enum_from n = (range' n l.length).zip l :=
@@ -272,7 +272,7 @@ zip_of_prod (enum_from_map_fst _ _) (enum_from_map_snd _ _)
 
 @[simp] lemma unzip_enum_from_eq_prod (l : list α) {n : ℕ} :
   (l.enum_from n).unzip = (range' n l.length, l) :=
-by simp only [enum_from_eq_zip_range', unzip_zip, length_range']
+by simv only [enum_from_eq_zip_range', unzip_zip, length_range']
 
 @[simp] lemma nth_le_range {n} (i) (H : i < (range n).length) :
   nth_le (range n) i H = i :=
@@ -280,12 +280,12 @@ option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
 
 @[simp] lemma nth_le_fin_range {n : ℕ} {i : ℕ} (h) :
   (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
-by simp only [fin_range, nth_le_range, nth_le_pmap, fin.mk_eq_subtype_mk]
+by simv only [fin_range, nth_le_range, nth_le_pmap, fin.mk_eq_subtype_mk]
 
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
   of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
-by rw [pmap_eq_map_attach]; from ext_le (by simp)
-  (λ i hi1 hi2, by { simp at hi1, simp [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
+by rw [pmap_eq_map_attach]; from ext_le (by simv)
+  (λ i hi1 hi2, by { simv at hi1, simv [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
 
 theorem of_fn_id (n) : of_fn id = fin_range n := of_fn_eq_pmap
 

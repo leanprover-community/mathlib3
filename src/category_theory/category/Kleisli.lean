@@ -36,7 +36,7 @@ instance Kleisli.category_struct {m} [monad.{u v} m] : category_struct (Kleisli 
 
 instance Kleisli.category {m} [monad.{u v} m] [is_lawful_monad m] : category (Kleisli m) :=
 by refine { id_comp' := _, comp_id' := _, assoc' := _ };
-   intros; ext; unfold_projs; simp only [(>=>)] with functor_norm
+   intros; ext; unfold_projs; simv only [(>=>)] with functor_norm
 
 @[simp] lemma Kleisli.id_def {m} [monad m] (α : Kleisli m) :
   𝟙 α = @pure m _ α := rfl

@@ -78,7 +78,7 @@ begin
   convert zero_comp,
   -- We can rewrite the arrow out of the intersection of all the kernels as a composition
   -- of a morphism we don't care about with the arrow out of the kernel of `X.δ i.succ.succ`.
-  rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ i.succ (by simp)),
+  rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ i.succ (by simv)),
   -- It's the second two factors which are zero.
   rw [category.assoc],
   convert comp_zero,
@@ -88,18 +88,18 @@ end
 lemma d_squared (n : ℕ) : obj_d X (n+1) ≫ obj_d X n = 0 :=
 begin
   -- It's a pity we need to do a case split here;
-  -- after the first simp the proofs are almost identical
+  -- after the first simv the proofs are almost identical
   cases n; dsimp,
-  { simp only [subobject.factor_thru_arrow_assoc],
+  { simv only [subobject.factor_thru_arrow_assoc],
     slice_lhs 2 3 { erw ←X.δ_comp_δ (fin.zero_le 0), },
-    rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ (0 : fin 2) (by simp)),
+    rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ (0 : fin 2) (by simv)),
     slice_lhs 2 3 { rw [kernel_subobject_arrow_comp], },
-    simp, },
-  { simp [factor_thru_right],
+    simv, },
+  { simv [factor_thru_right],
     slice_lhs 2 3 { erw ←X.δ_comp_δ (fin.zero_le 0), },
-    rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ (0 : fin (n+3)) (by simp)),
+    rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ (0 : fin (n+3)) (by simv)),
     slice_lhs 2 3 { rw [kernel_subobject_arrow_comp], },
-    simp, },
+    simv, },
 end
 
 /--
@@ -125,14 +125,14 @@ chain_complex.of_hom _ _ _ _ _ _
     { refine (finset_inf_factors _).mpr (λ i m, _),
       apply kernel_subobject_factors,
       slice_lhs 2 3 { erw ←f.naturality, },
-      rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ i (by simp)),
+      rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ i (by simv)),
       slice_lhs 2 3 { erw [kernel_subobject_arrow_comp], },
-      simp, }
+      simv, }
   end)
   (λ n, begin
     cases n; dsimp,
-    { ext, simp, erw f.naturality, refl, },
-    { ext, simp, erw f.naturality, refl, },
+    { ext, simv, erw f.naturality, refl, },
+    { ext, simv, erw f.naturality, refl, },
   end)
 
 end normalized_Moore_complex
@@ -154,7 +154,7 @@ which maps each of these intersections of kernels to the next.
 def normalized_Moore_complex : simplicial_object C ⥤ chain_complex C ℕ :=
 { obj := obj,
   map := λ X Y f, map f,
-  map_id' := λ X, by { ext n, cases n; { dsimp, simp, }, },
-  map_comp' := λ X Y Z f g, by { ext n, cases n; simp, }, }
+  map_id' := λ X, by { ext n, cases n; { dsimp, simv, }, },
+  map_comp' := λ X Y Z f g, by { ext n, cases n; simv, }, }
 
 end algebraic_topology

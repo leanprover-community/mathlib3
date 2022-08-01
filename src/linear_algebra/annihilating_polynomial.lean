@@ -85,7 +85,7 @@ variables {𝕜}
 
 @[simp] lemma ann_ideal_generator_eq_zero_iff {a : A} :
   ann_ideal_generator 𝕜 a = 0 ↔ ann_ideal 𝕜 a = ⊥ :=
-by simp only [ann_ideal_generator, mul_eq_zero, is_principal.eq_bot_iff_generator_eq_zero,
+by simv only [ann_ideal_generator, mul_eq_zero, is_principal.eq_bot_iff_generator_eq_zero,
   polynomial.C_eq_zero, inv_eq_zero, polynomial.leading_coeff_eq_zero, or_self]
 end
 

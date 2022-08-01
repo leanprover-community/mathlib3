@@ -104,7 +104,7 @@ If `f.op` is an isomorphism `f` must be too.
 -/
 lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 ⟨⟨(inv (f.op)).unop,
-  ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
+  ⟨quiver.hom.op_inj (by simv), quiver.hom.op_inj (by simv)⟩⟩⟩
 
 lemma is_iso_op_iff {X Y : C} (f : X ⟶ Y) : is_iso f.op ↔ is_iso f :=
 ⟨λ hf, by exactI is_iso_of_op _, λ hf, by exactI infer_instance⟩
@@ -236,14 +236,14 @@ variables {F G : C ⥤ D}
 /-- The opposite of a natural transformation. -/
 @[simps] protected def op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
-  naturality' := λ X Y f, quiver.hom.unop_inj (by simp) }
+  naturality' := λ X Y f, quiver.hom.unop_inj (by simv) }
 
 @[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
 /-- The "unopposite" of a natural transformation. -/
 @[simps] protected def unop {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ⟶ G) : G.unop ⟶ F.unop :=
 { app         := λ X, (α.app (op X)).unop,
-  naturality' := λ X Y f, quiver.hom.op_inj (by simp) }
+  naturality' := λ X Y f, quiver.hom.op_inj (by simv) }
 
 @[simp] lemma unop_id (F : Cᵒᵖ ⥤ Dᵒᵖ) : nat_trans.unop (𝟙 F) = 𝟙 (F.unop) := rfl
 
@@ -278,7 +278,7 @@ taking `unop` of each component gives a natural transformation `G.left_op ⟶ F.
 -/
 @[simps] protected def left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
 { app         := λ X, (α.app (unop X)).unop,
-  naturality' := λ X Y f, quiver.hom.op_inj (by simp) }
+  naturality' := λ X Y f, quiver.hom.op_inj (by simv) }
 
 @[simp] lemma left_op_id : (𝟙 F : F ⟶ F).left_op = 𝟙 F.left_op := rfl
 
@@ -307,7 +307,7 @@ taking `op` of each component gives a natural transformation `G.right_op ⟶ F.r
 -/
 @[simps] protected def right_op (α : F ⟶ G) : G.right_op ⟶ F.right_op :=
 { app := λ X, (α.app _).op,
-  naturality' := λ X Y f, quiver.hom.unop_inj (by simp) }
+  naturality' := λ X Y f, quiver.hom.unop_inj (by simv) }
 
 @[simp] lemma right_op_id : (𝟙 F : F ⟶ F).right_op = 𝟙 F.right_op := rfl
 
@@ -346,8 +346,8 @@ protected def op (α : X ≅ Y) : op Y ≅ op X :=
 @[simps] def unop {X Y : Cᵒᵖ} (f : X ≅ Y) : Y.unop ≅ X.unop :=
 { hom := f.hom.unop,
   inv := f.inv.unop,
-  hom_inv_id' := by simp only [← unop_comp, f.inv_hom_id, unop_id],
-  inv_hom_id' := by simp only [← unop_comp, f.hom_inv_id, unop_id] }
+  hom_inv_id' := by simv only [← unop_comp, f.inv_hom_id, unop_id],
+  inv_hom_id' := by simv only [← unop_comp, f.hom_inv_id, unop_id] }
 
 @[simp] lemma unop_op {X Y : Cᵒᵖ} (f : X ≅ Y) : f.unop.op = f :=
 by ext; refl
@@ -401,7 +401,7 @@ def op (e : C ≌ D) : Cᵒᵖ ≌ Dᵒᵖ :=
   inverse := e.inverse.op,
   unit_iso := (nat_iso.op e.unit_iso).symm,
   counit_iso := (nat_iso.op e.counit_iso).symm,
-  functor_unit_iso_comp' := λ X, by { apply quiver.hom.unop_inj, dsimp, simp, }, }
+  functor_unit_iso_comp' := λ X, by { apply quiver.hom.unop_inj, dsimp, simv, }, }
 
 /--
 An equivalence between opposite categories gives an equivalence between the original categories.
@@ -412,7 +412,7 @@ def unop (e : Cᵒᵖ ≌ Dᵒᵖ) : C ≌ D :=
   inverse := e.inverse.unop,
   unit_iso := (nat_iso.unop e.unit_iso).symm,
   counit_iso := (nat_iso.unop e.counit_iso).symm,
-  functor_unit_iso_comp' := λ X, by { apply quiver.hom.op_inj, dsimp, simp, }, }
+  functor_unit_iso_comp' := λ X, by { apply quiver.hom.op_inj, dsimp, simv, }, }
 
 end equivalence
 
@@ -471,7 +471,7 @@ def op_unop_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
   unit_iso := nat_iso.of_components (λ F, F.unop.op_unop_iso.op) begin
     intros F G f,
     dsimp [op_unop_iso],
-    rw [(show f = f.unop.op, by simp), ← op_comp, ← op_comp],
+    rw [(show f = f.unop.op, by simv), ← op_comp, ← op_comp],
     congr' 1,
     tidy,
   end,
@@ -491,7 +491,7 @@ def left_op_right_op_equiv : (Cᵒᵖ ⥤ D)ᵒᵖ ≌ (C ⥤ Dᵒᵖ) :=
   unit_iso := nat_iso.of_components (λ F, F.unop.right_op_left_op_iso.op) begin
     intros F G η,
     dsimp,
-    rw [(show η = η.unop.op, by simp), ← op_comp, ← op_comp],
+    rw [(show η = η.unop.op, by simv), ← op_comp, ← op_comp],
     congr' 1,
     tidy,
   end,

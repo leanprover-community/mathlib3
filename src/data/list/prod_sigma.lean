@@ -30,13 +30,13 @@ namespace list
 
 @[simp] lemma mem_product {l₁ : list α} {l₂ : list β} {a : α} {b : β} :
   (a, b) ∈ product l₁ l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ :=
-by simp only [product, mem_bind, mem_map, prod.ext_iff, exists_prop,
+by simv only [product, mem_bind, mem_map, prod.ext_iff, exists_prop,
   and.left_comm, exists_and_distrib_left, exists_eq_left, exists_eq_right]
 
 lemma length_product (l₁ : list α) (l₂ : list β) :
   length (product l₁ l₂) = length l₁ * length l₂ :=
 by induction l₁ with x l₁ IH; [exact (zero_mul _).symm,
-  simp only [length, product_cons, length_append, IH,
+  simv only [length, product_cons, length_append, IH,
     right_distrib, one_mul, length_map, add_comm]]
 
 
@@ -55,12 +55,12 @@ variable {σ : α → Type*}
 
 @[simp] lemma mem_sigma {l₁ : list α} {l₂ : Π a, list (σ a)} {a : α} {b : σ a} :
   sigma.mk a b ∈ l₁.sigma l₂ ↔ a ∈ l₁ ∧ b ∈ l₂ a :=
-by simp only [list.sigma, mem_bind, mem_map, exists_prop, exists_and_distrib_left,
+by simv only [list.sigma, mem_bind, mem_map, exists_prop, exists_and_distrib_left,
   and.left_comm, exists_eq_left, heq_iff_eq, exists_eq_right]
 
 lemma length_sigma (l₁ : list α) (l₂ : Π a, list (σ a)) :
   length (l₁.sigma l₂) = (l₁.map (λ a, length (l₂ a))).sum :=
 by induction l₁ with x l₁ IH; [refl,
-simp only [map, sigma_cons, length_append, length_map, IH, sum_cons]]
+simv only [map, sigma_cons, length_append, length_map, IH, sum_cons]]
 
 end list

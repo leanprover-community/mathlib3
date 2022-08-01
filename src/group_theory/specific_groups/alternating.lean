@@ -109,13 +109,13 @@ begin
     obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
     { rw [mem_alternating_group, monoid_hom.map_mul, h, sign_swap ab, int.units_mul_self] },
-    { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
+    { simv only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
       rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
-      simp [mul_assoc] } }
+      simv [mul_assoc] } }
 end
 
 lemma is_three_cycle_is_conj (h5 : 5 ≤ fintype.card α)
@@ -142,7 +142,7 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     exact hind n l hl hn },
   intro n,
   induction n with n ih; intros l hl hn,
-  { simp [list.length_eq_zero.1 hn, one_mem] },
+  { simv [list.length_eq_zero.1 hn, one_mem] },
   rw [nat.mul_succ] at hn,
   obtain ⟨a, l, rfl⟩ := l.exists_of_length_succ hn,
   rw [list.length_cons, nat.succ_inj'] at hn,
@@ -178,7 +178,7 @@ lemma is_three_cycle_sq_of_three_mem_cycle_type_five {g : perm (fin 5)} (h : 3 �
   is_three_cycle (g * g) :=
 begin
   obtain ⟨c, g', rfl, hd, hc, h3⟩ := mem_cycle_type_iff.1 h,
-  simp only [mul_assoc],
+  simv only [mul_assoc],
   rw [hd.commute.eq, ← mul_assoc g'],
   suffices hg' : order_of g' ∣ 2,
   { rw [← pow_two, order_of_dvd_iff_pow_eq_one.1 hg', one_mul],
@@ -239,7 +239,7 @@ begin
     alternating_group (fin 5)),
   have h5 : g1 * g2 * g1⁻¹ * g2⁻¹ = ⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩,
   { rw subtype.ext_iff,
-    simp only [fin.coe_mk, subgroup.coe_mul, subgroup.coe_inv, fin.coe_mk],
+    simv only [fin.coe_mk, subgroup.coe_mul, subgroup.coe_inv, fin.coe_mk],
     dec_trivial },
   rw [eq_top_iff, ← normal_closure_fin_rotate_five],
   refine normal_closure_le_normal _,
@@ -273,7 +273,7 @@ begin
   interval_cases multiset.card g.cycle_type,
   { exact (h1 (card_cycle_type_eq_zero.1 h_1)).elim },
   { contrapose! ha,
-    simp [h_1] },
+    simv [h_1] },
   { have h04 : (0 : fin 5) ≠ 4 := dec_trivial,
     have h13 : (1 : fin 5) ≠ 3 := dec_trivial,
     rw [h_1, disjoint.cycle_type, (is_cycle_swap h04).cycle_type, (is_cycle_swap h13).cycle_type,
@@ -282,7 +282,7 @@ begin
     { rw [disjoint_iff_disjoint_support, support_swap h04, support_swap h13],
       dec_trivial } },
   { contrapose! ha,
-    simp [h_1] }
+    simv [h_1] }
 end
 
 /-- Shows that $A_5$ is simple by taking an arbitrary non-identity element and showing by casework

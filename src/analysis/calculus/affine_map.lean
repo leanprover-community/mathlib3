@@ -29,7 +29,7 @@ lemma cont_diff {n : with_top ℕ} (f : V →A[𝕜] W) :
 begin
   rw f.decomp,
   apply f.cont_linear.cont_diff.add,
-  simp only,
+  simv only,
   exact cont_diff_const,
 end
 

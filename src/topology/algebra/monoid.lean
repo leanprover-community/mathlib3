@@ -147,9 +147,9 @@ lemma has_continuous_mul.of_nhds_one {M : Type u} [monoid M] [topological_space 
     rw continuous_iff_continuous_at,
     rintros ⟨x₀, y₀⟩,
     have key : (λ p : M × M, x₀ * p.1 * (p.2 * y₀)) = ((λ x, x₀*x) ∘ (λ x, x*y₀)) ∘ (uncurry (*)),
-    { ext p, simp [uncurry, mul_assoc] },
+    { ext p, simv [uncurry, mul_assoc] },
     have key₂ : (λ x, x₀*x) ∘ (λ x, y₀*x) = λ x, (x₀ *y₀)*x,
-    { ext x, simp },
+    { ext x, simv },
     calc map (uncurry (*)) (𝓝 (x₀, y₀))
         = map (uncurry (*)) (𝓝 x₀ ×ᶠ 𝓝 y₀) : by rw nhds_prod_eq
     ... = map (λ (p : M × M), x₀ * p.1 * (p.2 * y₀)) ((𝓝 1) ×ᶠ (𝓝 1))
@@ -183,7 +183,7 @@ is_closed_eq (continuous_apply 1) continuous_const
 @[to_additive] lemma is_closed_set_of_map_mul [has_mul M₁] [has_mul M₂] [has_continuous_mul M₂] :
   is_closed {f : M₁ → M₂ | ∀ x y, f (x * y) = f x * f y} :=
 begin
-  simp only [set_of_forall],
+  simv only [set_of_forall],
   exact is_closed_Inter (λ x, is_closed_Inter (λ y, is_closed_eq (continuous_apply _)
     ((continuous_apply _).mul (continuous_apply _))))
 end
@@ -252,10 +252,10 @@ lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
 calc
 (closure (s : set M)) * closure (s : set M)
-    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simp [closure_prod_eq]
+    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M) ×ˢ (s : set M))) : by simv [closure_prod_eq]
 ... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M) ×ˢ (s : set M))) :
   image_closure_subset_closure_image continuous_mul
-... = closure s : by simp [s.coe_mul_self_eq]
+... = closure s : by simv [s.coe_mul_self_eq]
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
@@ -312,7 +312,7 @@ def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
     change f₁ ⟨a, b⟩ = f₂ ⟨a, b⟩,
     refine h₃ _,
     rw [closure_prod_eq, set.mem_prod],
-    exact ⟨by simp [←h₁], by simp [←h₁]⟩
+    exact ⟨by simv [←h₁], by simv [←h₁]⟩
   end,
   ..s.topological_closure.to_monoid }
 
@@ -362,10 +362,10 @@ by { rw [← image_mul_prod], exact (hs.prod ht).image continuous_mul }
 lemma tendsto_list_prod {f : ι → α → M} {x : filter α} {a : ι → M} :
   ∀ l:list ι, (∀i∈l, tendsto (f i) x (𝓝 (a i))) →
     tendsto (λb, (l.map (λc, f c b)).prod) x (𝓝 ((l.map a).prod))
-| []       _ := by simp [tendsto_const_nhds]
+| []       _ := by simv [tendsto_const_nhds]
 | (f :: l) h :=
   begin
-    simp only [list.map_cons, list.prod_cons],
+    simv only [list.map_cons, list.prod_cons],
     exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end
@@ -380,7 +380,7 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 @[continuity, to_additive]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
-| (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
+| (k+1) := by { simv only [pow_succ], exact continuous_id.mul (continuous_pow _) }
 
 instance add_monoid.has_continuous_const_smul_nat {A} [add_monoid A] [topological_space A]
   [has_continuous_add A] : has_continuous_const_smul ℕ A := ⟨continuous_nsmul⟩
@@ -431,7 +431,7 @@ instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has
   [is_scalar_tower R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=
 { continuous_const_smul := λ q, begin
-    simp only [←smul_one_mul q (_ : A)] { single_pass := tt },
+    simv only [←smul_one_mul q (_ : A)] { single_pass := tt },
     exact continuous_const.mul continuous_id,
   end }
 
@@ -444,7 +444,7 @@ instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has
   [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=
 { continuous_const_smul := λ q, begin
-    simp only [←mul_smul_one q (_ : A)] { single_pass := tt },
+    simv only [←mul_smul_one q (_ : A)] { single_pass := tt },
     exact continuous_id.mul continuous_const,
   end }
 
@@ -544,7 +544,7 @@ end
   (hc : ∀ i, p i → continuous (f i)) (hf : locally_finite (λ i, mul_support (f i))) :
   continuous (λ x, ∏ᶠ i (hi : p i), f i x) :=
 begin
-  simp only [← finprod_subtype_eq_finprod_cond],
+  simv only [← finprod_subtype_eq_finprod_cond],
   exact continuous_finprod (λ i, hc i i.2) (hf.comp_injective subtype.coe_injective)
 end
 

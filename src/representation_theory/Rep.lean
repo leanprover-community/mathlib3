@@ -97,11 +97,11 @@ lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
 begin
   apply monoid_algebra.induction_on r,
   { intro g,
-    simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
+    simv only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
     exact linear_map.congr_fun (w g) x, },
-  { intros g h gw hw, simp only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
+  { intros g h gw hw, simv only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
   { intros r g w,
-    simp only [alg_hom.map_smul, w, ring_hom.id_apply,
+    simv only [alg_hom.map_smul, w, ring_hom.id_apply,
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
 
@@ -154,7 +154,7 @@ def counit_iso (M : Module.{u} (monoid_algebra k G)) :
 linear_equiv.to_Module_iso'
 { map_smul' := λ r x, begin
     dsimp [counit_iso_add_equiv],
-    simp,
+    simv,
   end,
   ..counit_iso_add_equiv, }
 
@@ -164,7 +164,7 @@ lemma unit_iso_comm (V : Rep k G) (g : G) (x : V) :
       (unit_iso_add_equiv x) :=
 begin
   dsimp [unit_iso_add_equiv, of_Module_monoid_algebra, to_Module_monoid_algebra],
-  simp only [add_equiv.apply_eq_iff_eq, add_equiv.apply_symm_apply,
+  simv only [add_equiv.apply_eq_iff_eq, add_equiv.apply_symm_apply,
     representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act],
 end
 
@@ -174,7 +174,7 @@ def unit_iso (V : Rep k G) :
 Action.mk_iso (linear_equiv.to_Module_iso'
 { map_smul' := λ r x, begin
     dsimp [unit_iso_add_equiv],
-    simp only [representation.as_module_equiv_symm_map_smul,
+    simv only [representation.as_module_equiv_symm_map_smul,
       restrict_scalars.add_equiv_symm_map_algebra_map_smul],
   end,
   ..unit_iso_add_equiv, })

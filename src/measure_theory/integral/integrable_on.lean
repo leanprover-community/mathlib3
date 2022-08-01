@@ -35,7 +35,7 @@ def strongly_measurable_at_filter (f : α → β) (l : filter α) (μ : measure 
 ∃ s ∈ l, ae_strongly_measurable f (μ.restrict s)
 
 @[simp] lemma strongly_measurable_at_bot {f : α → β} : strongly_measurable_at_filter f ⊥ μ :=
-⟨∅, mem_bot, by simp⟩
+⟨∅, mem_bot, by simv⟩
 
 protected lemma strongly_measurable_at_filter.eventually (h : strongly_measurable_at_filter f l μ) :
   ∀ᶠ s in l.small_sets, ae_strongly_measurable f (μ.restrict s) :=
@@ -84,7 +84,7 @@ lemma integrable_on.integrable (h : integrable_on f s μ) :
   integrable f (μ.restrict s) := h
 
 @[simp] lemma integrable_on_empty : integrable_on f ∅ μ :=
-by simp [integrable_on, integrable_zero_measure]
+by simv [integrable_on, integrable_zero_measure]
 
 @[simp] lemma integrable_on_univ : integrable_on f univ μ ↔ integrable f μ :=
 by rw [integrable_on, measure.restrict_univ]
@@ -152,17 +152,17 @@ lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ
 begin
   have : f =ᵐ[μ.restrict {x}] (λ y, f x),
   { filter_upwards [ae_restrict_mem (measurable_set_singleton x)] with _ ha,
-    simp only [mem_singleton_iff.1 ha], },
+    simv only [mem_singleton_iff.1 ha], },
   rw [integrable_on, integrable_congr this, integrable_const_iff],
-  simp,
+  simv,
 end
 
 @[simp] lemma integrable_on_finite_Union {s : set β} (hs : s.finite)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
-  { simp },
-  { intros a s ha hs hf, simp [hf, or_imp_distrib, forall_and_distrib] }
+  { simv },
+  { intros a s ha hs hf, simv [hf, or_imp_distrib, forall_and_distrib] }
 end
 
 @[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
@@ -186,12 +186,12 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 lemma _root_.measurable_embedding.integrable_on_map_iff [measurable_space β] {e : α → β}
   (he : measurable_embedding e) {f : β → E} {μ : measure α} {s : set β} :
   integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
-by simp only [integrable_on, he.restrict_map, he.integrable_map_iff]
+by simv only [integrable_on, he.restrict_map, he.integrable_map_iff]
 
 lemma integrable_on_map_equiv [measurable_space β] (e : α ≃ᵐ β) {f : β → E} {μ : measure α}
   {s : set β} :
   integrable_on f s (measure.map e μ) ↔ integrable_on (f ∘ e) (e ⁻¹' s) μ :=
-by simp only [integrable_on, e.restrict_map, integrable_map_equiv e]
+by simv only [integrable_on, e.restrict_map, integrable_map_equiv e]
 
 lemma measure_preserving.integrable_on_comp_preimage [measurable_space β] {e : α → β} {ν}
   (h₁ : measure_preserving e μ ν) (h₂ : measurable_embedding e) {f : β → E} {s : set β} :
@@ -205,7 +205,7 @@ lemma measure_preserving.integrable_on_image [measurable_space β] {e : α → �
 
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
-by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
+by simv [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
   ennreal.coe_indicator, lintegral_indicator _ hs, ae_strongly_measurable_indicator_iff hs]
 
 lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s) :
@@ -275,7 +275,7 @@ begin
   rintros ⟨s, ⟨t, ht, u, hu, rfl⟩, hf⟩,
   refine ⟨t, ht, _⟩,
   refine hf.integrable.mono_measure (λ v hv, _),
-  simp only [measure.restrict_apply hv],
+  simv only [measure.restrict_apply hv],
   refine measure_mono_ae (mem_of_superset hu $ λ x hx, _),
   exact λ ⟨hv, ht⟩, ⟨hv, ⟨ht, hx⟩⟩
 end
@@ -386,7 +386,7 @@ begin
     have B : is_separable (univ : set s) := is_separable_of_separable_space _,
     convert is_separable.image B A using 1,
     ext x,
-    simp },
+    simv },
   { exact is_separable_of_separable_space _ }
 end
 

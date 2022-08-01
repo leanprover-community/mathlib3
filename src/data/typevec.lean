@@ -176,7 +176,7 @@ eq_of_drop_last_eq rfl rfl
 theorem split_fun_inj
   {α α' : typevec (n+1)} {f f' : drop α ⟹ drop α'} {g g' : last α → last α'}
   (H : split_fun f g = split_fun f' g') : f = f' ∧ g = g' :=
-by rw [← drop_fun_split_fun f g, H, ← last_fun_split_fun f g, H]; simp
+by rw [← drop_fun_split_fun f g, H, ← last_fun_split_fun f g, H]; simv
 
 theorem append_fun_inj {α α' : typevec n} {β β' : Type*} {f f' : α ⟹ α'} {g g' : β → β'} :
   f ::: g = f' ::: g' →  f = f' ∧ g = g' :=
@@ -235,9 +235,9 @@ instance subsingleton0 : subsingleton (typevec 0) :=
 run_cmd do
   mk_simp_attr `typevec,
   tactic.add_doc_string `simp_attr.typevec
-"simp set for the manipulation of typevec and arrow expressions"
+"simv set for the manipulation of typevec and arrow expressions"
 
-local prefix `♯`:0 := cast (by try { simp }; congr' 1; try { simp })
+local prefix `♯`:0 := cast (by try { simv }; congr' 1; try { simv })
 
 /-- cases distinction for 0-length type vector -/
 protected def cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
@@ -429,12 +429,12 @@ def prod.mk : Π {n} {α β : typevec.{u} n} (i : fin2 n), α i → β i → (α
 @[simp]
 lemma prod_fst_mk {α β : typevec n} (i : fin2 n) (a : α i) (b : β i) :
   typevec.prod.fst i (prod.mk i a b) = a :=
-by induction i; simp [prod.fst, prod.mk, *] at *
+by induction i; simv [prod.fst, prod.mk, *] at *
 
 @[simp]
 lemma prod_snd_mk {α β : typevec n} (i : fin2 n) (a : α i) (b : β i) :
   typevec.prod.snd i (prod.mk i a b) = b :=
-by induction i; simp [prod.snd, prod.mk, *] at *
+by induction i; simv [prod.snd, prod.mk, *] at *
 
 /-- `prod` is functorial -/
 protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) → (α' ⟹ β') → α ⊗ α' ⟹ β ⊗ β'
@@ -491,13 +491,13 @@ def of_subtype : Π {n} {α : typevec.{u} n} (p : α ⟹ repeat n Prop),
 def to_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop),
   (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) }) ⟹ subtype_ p
 | (succ n) α p (fin2.fs i) x := to_subtype' (drop_fun p) i x
-| (succ n) α p fin2.fz x := ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩
+| (succ n) α p fin2.fz x := ⟨x.val,cast (by congr; simv [prod.mk]) x.property⟩
 
 /-- similar to `of_subtype` adapted to relations (i.e. predicate on product) -/
 def of_subtype' : Π {n} {α : typevec.{u} n} (p : α ⊗ α ⟹ repeat n Prop),
   subtype_ p ⟹ (λ (i : fin2 n), { x : α i × α i // of_repeat $ p i (prod.mk _ x.1 x.2) })
 | ._ α p (fin2.fs i) x := of_subtype' _ i x
-| ._ α p fin2.fz x := ⟨x.val,cast (by congr; simp [prod.mk]) x.property⟩
+| ._ α p fin2.fz x := ⟨x.val,cast (by congr; simv [prod.mk]) x.property⟩
 
 /-- similar to `diag` but the target vector is a `subtype_`
 guaranteeing the equality of the components -/
@@ -532,7 +532,7 @@ end liftp'
 @[simp]
 lemma drop_fun_diag {α} :
   drop_fun (@prod.diag (n+1) α) = prod.diag :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simv [drop_fun,*]; refl }
 
 @[simp]
 lemma drop_fun_subtype_val {α} (p : α ⟹ repeat (n+1) Prop) :
@@ -545,40 +545,40 @@ lemma last_fun_subtype_val {α} (p : α ⟹ repeat (n+1) Prop) :
 @[simp]
 lemma drop_fun_to_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   drop_fun (to_subtype p) = to_subtype _ :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simv [drop_fun,*]; refl }
 
 @[simp]
 lemma last_fun_to_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   last_fun (to_subtype p) = _root_.id :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simv [drop_fun,*]; refl }
 
 @[simp]
 lemma drop_fun_of_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   drop_fun (of_subtype p) = of_subtype _ :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simv [drop_fun,*]; refl }
 
 @[simp]
 lemma last_fun_of_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   last_fun (of_subtype p) = _root_.id :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simv [drop_fun,*]; refl }
 
 @[simp]
 lemma drop_fun_rel_last {α : typevec n} {β}
   (R : β → β → Prop) :
   drop_fun (rel_last' α R) = repeat_eq α := rfl
 
-attribute [simp] drop_append1'
+attribute [simv] drop_append1'
 open_locale mvfunctor
 
 @[simp]
 lemma drop_fun_prod {α α' β β' : typevec (n+1)} (f : α ⟹ β) (f' : α' ⟹ β') :
   drop_fun (f ⊗' f') = (drop_fun f ⊗' drop_fun f') :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simv [drop_fun,*]; refl }
 
 @[simp]
 lemma last_fun_prod {α α' β β' : typevec (n+1)} (f : α ⟹ β) (f' : α' ⟹ β') :
   last_fun (f ⊗' f') = _root_.prod.map (last_fun f) (last_fun f') :=
-by { ext i : 1, induction i; simp [last_fun,*]; refl }
+by { ext i : 1, induction i; simv [last_fun,*]; refl }
 
 @[simp]
 lemma drop_fun_from_append1_drop_last {α : typevec (n+1)} :
@@ -595,7 +595,7 @@ lemma drop_fun_id {α : typevec (n+1)} :
 @[simp]
 lemma prod_map_id {α β : typevec n} :
   (@typevec.id _ α ⊗' @typevec.id _ β) = id :=
-by { ext i : 2, induction i; simp only [typevec.prod.map,*,drop_fun_id],
+by { ext i : 2, induction i; simv only [typevec.prod.map,*,drop_fun_id],
      cases x, refl, refl }
 
 @[simp]
@@ -606,26 +606,26 @@ by { clear_except, ext i, induction i; [refl, apply i_ih], }
 @[simp]
 lemma to_subtype_of_subtype {α : typevec n} (p : α ⟹ repeat n Prop) :
   to_subtype p ⊚ of_subtype p = id :=
-by ext i x; induction i; dsimp only [id, to_subtype, comp, of_subtype] at *; simp *
+by ext i x; induction i; dsimp only [id, to_subtype, comp, of_subtype] at *; simv *
 
 @[simp]
 lemma subtype_val_to_subtype {α : typevec n} (p : α ⟹ repeat n Prop) :
   subtype_val p ⊚ to_subtype p = λ _, subtype.val :=
-by ext i x; induction i; dsimp only [to_subtype, comp, subtype_val] at *; simp *
+by ext i x; induction i; dsimp only [to_subtype, comp, subtype_val] at *; simv *
 
 @[simp]
 lemma to_subtype_of_subtype_assoc {α β : typevec n} (p : α ⟹ repeat n Prop)
   (f : β ⟹ subtype_ p) :
   @to_subtype n _ p ⊚ of_subtype _ ⊚ f = f :=
-by rw [← comp_assoc,to_subtype_of_subtype]; simp
+by rw [← comp_assoc,to_subtype_of_subtype]; simv
 
 @[simp]
 lemma to_subtype'_of_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   to_subtype' r ⊚ of_subtype' r = id :=
-by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simp [subtype.eta, *]
+by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simv [subtype.eta, *]
 
 lemma subtype_val_to_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
   subtype_val r ⊚ to_subtype' r = λ i x, prod.mk i x.1.fst x.1.snd :=
-by ext i x; induction i; dsimp only [id, to_subtype', comp, subtype_val, prod.mk] at *; simp *
+by ext i x; induction i; dsimp only [id, to_subtype', comp, subtype_val, prod.mk] at *; simv *
 
 end typevec

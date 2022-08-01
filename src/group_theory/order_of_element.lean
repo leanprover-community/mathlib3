@@ -66,7 +66,7 @@ lemma is_of_fin_order_of_add_iff :
 @[to_additive is_of_fin_add_order_iff_nsmul_eq_zero]
 lemma is_of_fin_order_iff_pow_eq_one (x : G) :
   is_of_fin_order x ↔ ∃ n, 0 < n ∧ x ^ n = 1 :=
-by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
+by { convert iff.rfl, simv [is_periodic_pt_mul_iff_pow_eq_one] }
 
 /-- Elements of finite order are of finite order in submonoids.-/
 @[to_additive is_of_fin_add_order_iff_coe]
@@ -153,17 +153,17 @@ lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠
 lemma order_of_le_of_pow_eq_one (hn : 0 < n) (h : x ^ n = 1) : order_of x ≤ n :=
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
-@[simp, to_additive] lemma order_of_one : order_of (1 : G) = 1 :=
+@[simv, to_additive] lemma order_of_one : order_of (1 : G) = 1 :=
 by rw [order_of, one_mul_eq_id, minimal_period_id]
 
-@[simp, to_additive add_monoid.order_of_eq_one_iff] lemma order_of_eq_one_iff :
+@[simv, to_additive add_monoid.order_of_eq_one_iff] lemma order_of_eq_one_iff :
   order_of x = 1 ↔ x = 1 :=
 by rw [order_of, is_fixed_point_iff_minimal_period_eq_one, is_fixed_pt, mul_one]
 
 @[to_additive nsmul_eq_mod_add_order_of]
 lemma pow_eq_mod_order_of {n : ℕ} : x ^ n = x ^ (n % order_of x) :=
 calc x ^ n = x ^ (n % order_of x + order_of x * (n / order_of x)) : by rw [nat.mod_add_div]
-       ... = x ^ (n % order_of x) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
+       ... = x ^ (n % order_of x) : by simv [pow_add, pow_mul, pow_order_of_eq_one]
 
 @[to_additive add_order_of_dvd_of_nsmul_eq_zero]
 lemma order_of_dvd_of_pow_eq_one (h : x ^ n = 1) : order_of x ∣ n :=
@@ -203,7 +203,7 @@ theorem order_of_eq_of_pow_and_pow_div_prime (hn : 0 < n) (hx : x^n = 1)
 begin
   -- Let `a` be `n/(order_of x)`, and show `a = 1`
   cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one hx) with a ha,
-  suffices : a = 1, by simp [this, ha],
+  suffices : a = 1, by simv [this, ha],
   -- Assume `a` is not one...
   by_contra,
   have a_min_fac_dvd_p_sub_one : a.min_fac ∣ n,
@@ -229,7 +229,7 @@ lemma order_of_injective {H : Type*} [monoid H] (f : G →* H)
   (hf : function.injective f) (x : G) : order_of (f x) = order_of x :=
 by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff_self, forall_const]
 
-@[simp, norm_cast, to_additive] lemma order_of_submonoid {H : submonoid G}
+@[simv, norm_cast, to_additive] lemma order_of_submonoid {H : submonoid G}
   (y : H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
@@ -244,7 +244,7 @@ lemma order_of_pow' (h : n ≠ 0) :
   order_of (x ^ n) = order_of x / gcd (order_of x) n :=
 begin
   convert minimal_period_iterate_eq_div_gcd h,
-  simp only [order_of, mul_left_iterate],
+  simv only [order_of, mul_left_iterate],
 end
 
 variables (a) (n)
@@ -254,7 +254,7 @@ lemma order_of_pow'' (h : is_of_fin_order x) :
   order_of (x ^ n) = order_of x / gcd (order_of x) n :=
 begin
   convert minimal_period_iterate_eq_div_gcd' h,
-  simp only [order_of, mul_left_iterate],
+  simv only [order_of, mul_left_iterate],
 end
 
 @[to_additive]
@@ -276,7 +276,7 @@ lemma commute.order_of_mul_eq_mul_order_of_of_coprime {x y : G} (h : commute x y
   order_of (x * y) = (order_of x) * (order_of y) :=
 begin
   convert h.function_commute_mul_left.minimal_period_of_comp_eq_mul_of_coprime hco,
-  simp only [order_of, comp_mul_left],
+  simv only [order_of, comp_mul_left],
 end
 
 /-- Commuting elements of finite order are closed under multiplication. -/
@@ -361,7 +361,7 @@ lemma is_of_fin_order.inv {x : G} (hx : is_of_fin_order x) : is_of_fin_order x�
 end
 
 /-- Inverses of elements of finite order have finite order. -/
-@[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
+@[simv, to_additive "Inverses of elements of finite additive order have finite additive order."]
 lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
 ⟨λ h, inv_inv x ▸ h.inv, is_of_fin_order.inv⟩
 
@@ -374,11 +374,11 @@ begin
       order_of_dvd_iff_pow_eq_one] }
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma order_of_inv (x : G) : order_of x⁻¹ = order_of x :=
-by simp [order_of_eq_order_of_iff]
+by simv [order_of_eq_order_of_iff]
 
-@[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
+@[simv, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
@@ -387,7 +387,7 @@ lemma zpow_eq_mod_order_of : x ^ i = x ^ (i % order_of x) :=
 calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
     by rw [int.mod_add_div]
        ... = x ^ (i % order_of x) :
-    by simp [zpow_add, zpow_mul, pow_order_of_eq_one]
+    by simv [zpow_add, zpow_mul, pow_order_of_eq_one]
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
@@ -397,11 +397,11 @@ begin
   push_neg at h,
   induction n with n IH generalizing m,
   { cases m,
-    { simp },
+    { simv },
     { simpa [eq_comm] using h m.succ m.zero_lt_succ } },
   { cases m,
     { simpa using h n.succ n.zero_lt_succ },
-    { simp [pow_succ, IH] } }
+    { simv [pow_succ, IH] } }
 end
 
 @[to_additive]
@@ -409,7 +409,7 @@ lemma pow_inj_mod {n m : ℕ} :
   x ^ n = x ^ m ↔ n % order_of x = m % order_of x :=
 begin
   cases (order_of x).zero_le.eq_or_lt with hx hx,
-  { simp [pow_inj_iff_of_order_of_eq_zero, hx.symm] },
+  { simv [pow_inj_iff_of_order_of_eq_zero, hx.symm] },
   rw [pow_eq_mod_order_of, @pow_eq_mod_order_of _ _ _ m],
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
@@ -516,11 +516,11 @@ equiv.of_bijective (λ n, ⟨x ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, 
   subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.1 ij)),
   λ ⟨_, i, rfl⟩, ⟨⟨i % order_of x, mod_lt i (order_of_pos x)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
 
-@[simp, to_additive fin_equiv_multiples_apply]
+@[simv, to_additive fin_equiv_multiples_apply]
 lemma fin_equiv_powers_apply {x : G} {n : fin (order_of x)} :
   fin_equiv_powers x n = ⟨x ^ ↑n, n, rfl⟩ := rfl
 
-@[simp, to_additive fin_equiv_multiples_symm_apply]
+@[simv, to_additive fin_equiv_multiples_symm_apply]
 lemma fin_equiv_powers_symm_apply (x : G) (n : ℕ)
   {hn : ∃ (m : ℕ), x ^ m = x ^ n} :
   ((fin_equiv_powers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
@@ -536,13 +536,13 @@ noncomputable def powers_equiv_powers (h : order_of x = order_of y) :
   (submonoid.powers x : set G) ≃ (submonoid.powers y : set G) :=
 (fin_equiv_powers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_powers y))
 
-@[simp, to_additive multiples_equiv_multiples_apply]
+@[simv, to_additive multiples_equiv_multiples_apply]
 lemma powers_equiv_powers_apply (h : order_of x = order_of y)
   (n : ℕ) : powers_equiv_powers h ⟨x ^ n, n, rfl⟩ = ⟨y ^ n, n, rfl⟩ :=
 begin
   rw [powers_equiv_powers, equiv.trans_apply, equiv.trans_apply,
     fin_equiv_powers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_powers_symm_apply],
-  simp [h]
+  simv [h]
 end
 
 @[to_additive add_order_of_eq_card_multiples]
@@ -568,7 +568,7 @@ open subgroup
 
 @[to_additive mem_multiples_iff_mem_zmultiples]
 lemma mem_powers_iff_mem_zpowers : y ∈ submonoid.powers x ↔ y ∈ zpowers x :=
-⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+⟨λ ⟨n, hn⟩, ⟨n, by simv * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of x).nat_abs,
   by rwa [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
     (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos x))),
@@ -600,11 +600,11 @@ noncomputable def fin_equiv_zpowers (x : G) :
   fin (order_of x) ≃ (subgroup.zpowers x : set G) :=
 (fin_equiv_powers x).trans (equiv.set.of_eq (powers_eq_zpowers x))
 
-@[simp, to_additive fin_equiv_zmultiples_apply]
+@[simv, to_additive fin_equiv_zmultiples_apply]
 lemma fin_equiv_zpowers_apply {n : fin (order_of x)} :
   fin_equiv_zpowers x n = ⟨x ^ (n : ℕ), n, zpow_coe_nat x n⟩ := rfl
 
-@[simp, to_additive fin_equiv_zmultiples_symm_apply]
+@[simv, to_additive fin_equiv_zmultiples_symm_apply]
 lemma fin_equiv_zpowers_symm_apply (x : G) (n : ℕ)
   {hn : ∃ (m : ℤ), x ^ m = x ^ n} :
   ((fin_equiv_zpowers x).symm ⟨x ^ n, hn⟩) = ⟨n % order_of x, nat.mod_lt _ (order_of_pos x)⟩ :=
@@ -620,13 +620,13 @@ noncomputable def zpowers_equiv_zpowers (h : order_of x = order_of y) :
   (subgroup.zpowers x : set G) ≃ (subgroup.zpowers y : set G) :=
 (fin_equiv_zpowers x).symm.trans ((fin.cast h).to_equiv.trans (fin_equiv_zpowers y))
 
-@[simp, to_additive zmultiples_equiv_zmultiples_apply]
+@[simv, to_additive zmultiples_equiv_zmultiples_apply]
 lemma zpowers_equiv_zpowers_apply (h : order_of x = order_of y)
   (n : ℕ) : zpowers_equiv_zpowers h ⟨x ^ n, n, zpow_coe_nat x n⟩ = ⟨y ^ n, n, zpow_coe_nat y n⟩ :=
 begin
   rw [zpowers_equiv_zpowers, equiv.trans_apply, equiv.trans_apply,
     fin_equiv_zpowers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_zpowers_symm_apply],
-  simp [h]
+  simv [h]
 end
 
 @[to_additive add_order_eq_card_zmultiples]
@@ -660,9 +660,9 @@ begin
           (by rw [eq₁, eq₂, mul_comm])
 end
 
-@[simp, to_additive card_nsmul_eq_zero] lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
+@[simv, to_additive card_nsmul_eq_zero] lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
-by simp [hm, pow_mul, pow_order_of_eq_one]
+by simv [hm, pow_mul, pow_order_of_eq_one]
 
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
   [fintype (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
@@ -692,10 +692,10 @@ by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_o
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
       h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key } }
 
-@[simp, to_additive] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) :
+@[simv, to_additive] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) :
   pow_coprime h 1 = 1 := one_pow n
 
-@[simp, to_additive] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
+@[simv, to_additive] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
   pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
 
 @[to_additive add_inf_eq_bot_of_coprime]
@@ -788,9 +788,9 @@ end
 lemma linear_ordered_ring.order_of_le_two : order_of x ≤ 2 :=
 begin
   cases ne_or_eq (|x|) 1 with h h,
-  { simp [order_of_abs_ne_one h] },
+  { simv [order_of_abs_ne_one h] },
   rcases eq_or_eq_neg_of_abs_eq h with rfl | rfl,
-  { simp },
+  { simv },
   apply order_of_le_of_pow_eq_one; norm_num
 end
 

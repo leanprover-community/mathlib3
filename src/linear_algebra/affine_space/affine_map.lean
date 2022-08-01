@@ -141,7 +141,7 @@ variables (k P1)
 def const (p : P2) : P1 →ᵃ[k] P2 :=
 { to_fun := function.const P1 p,
   linear := 0,
-  map_vadd' := λ p v, by simp }
+  map_vadd' := λ p v, by simv }
 
 @[simp] lemma coe_const (p : P2) : ⇑(const k P1 p) = function.const P1 p := rfl
 
@@ -182,11 +182,11 @@ variables {R : Type*} [monoid R] [distrib_mul_action R V2] [smul_comm_class k R 
 
 /-- The space of affine maps to a module inherits an `R`-action from the action on its codomain. -/
 instance : mul_action R (P1 →ᵃ[k] V2) :=
-{ smul := λ c f, ⟨c • f, c • f.linear, λ p v, by simp [smul_add]⟩,
+{ smul := λ c f, ⟨c • f, c • f.linear, λ p v, by simv [smul_add]⟩,
   one_smul := λ f, ext $ λ p, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ p, mul_smul _ _ _ }
 
-@[simp, norm_cast] lemma coe_smul (c : R) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
+@[simv, norm_cast] lemma coe_smul (c : R) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
 
 @[simp] lemma smul_linear (t : R) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
 
@@ -198,15 +198,15 @@ end has_smul
 
 instance : has_zero (P1 →ᵃ[k] V2) := { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩ }
 instance : has_add (P1 →ᵃ[k] V2) :=
-{ add := λ f g, ⟨f + g, f.linear + g.linear, λ p v, by simp [add_add_add_comm]⟩ }
+{ add := λ f g, ⟨f + g, f.linear + g.linear, λ p v, by simv [add_add_add_comm]⟩ }
 instance : has_sub (P1 →ᵃ[k] V2) :=
-{ sub := λ f g, ⟨f - g, f.linear - g.linear, λ p v, by simp [sub_add_sub_comm]⟩ }
-instance : has_neg (P1 →ᵃ[k] V2) := { neg := λ f, ⟨-f, -f.linear, λ p v, by simp [add_comm]⟩ }
+{ sub := λ f g, ⟨f - g, f.linear - g.linear, λ p v, by simv [sub_add_sub_comm]⟩ }
+instance : has_neg (P1 →ᵃ[k] V2) := { neg := λ f, ⟨-f, -f.linear, λ p v, by simv [add_comm]⟩ }
 
-@[simp, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
-@[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
-@[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
-@[simp, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
+@[simv, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
+@[simv, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
+@[simv, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(-f) = -f := rfl
+@[simv, norm_cast] lemma coe_sub (f g : P1 →ᵃ[k] V2) : ⇑(f - g) = f - g := rfl
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl
 @[simp] lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
 @[simp] lemma sub_linear (f g : P1 →ᵃ[k] V2) : (f - g).linear = f.linear - g.linear := rfl
@@ -221,11 +221,11 @@ coe_fn_injective.add_comm_group _
 from `P1` to the vector space `V2` corresponding to `P2`. -/
 instance : affine_space (P1 →ᵃ[k] V2) (P1 →ᵃ[k] P2) :=
 { vadd := λ f g, ⟨λ p, f p +ᵥ g p, f.linear + g.linear, λ p v,
-    by simp [vadd_vadd, add_right_comm]⟩,
+    by simv [vadd_vadd, add_right_comm]⟩,
   zero_vadd := λ f, ext $ λ p, zero_vadd _ (f p),
   add_vadd := λ f₁ f₂ f₃, ext $ λ p, add_vadd (f₁ p) (f₂ p) (f₃ p),
   vsub := λ f g, ⟨λ p, f p -ᵥ g p, f.linear - g.linear, λ p v,
-    by simp [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub, sub_add_eq_add_sub]⟩,
+    by simv [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub, sub_add_eq_add_sub]⟩,
   vsub_vadd' := λ f g, ext $ λ p, vsub_vadd (f p) (g p),
   vadd_vsub' := λ f g, ext $ λ p, vadd_vsub (f p) (g p) }
 
@@ -335,7 +335,7 @@ include V2
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
   have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
-  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  { ext v, simv [f.map_vadd, vadd_vsub_assoc], },
   rw [h, equiv.comp_injective, equiv.injective_comp],
 end
 
@@ -344,7 +344,7 @@ end
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
   have h : ⇑f.linear = (equiv.vadd_const (f p)).symm ∘ f ∘ (equiv.vadd_const p),
-  { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
+  { ext v, simv [f.map_vadd, vadd_vsub_assoc], },
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
 
@@ -352,7 +352,7 @@ lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
   (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
 begin
   ext v,
-  simp only [set.mem_vsub, set.mem_image, exists_exists_and_eq_and, exists_and_distrib_left,
+  simv only [set.mem_vsub, set.mem_image, exists_exists_and_eq_and, exists_and_distrib_left,
     ← f.linear_map_vsub],
   split,
   { rintros ⟨x, hx, y, hy, hv⟩,
@@ -376,7 +376,7 @@ lemma line_map_apply (p₀ p₁ : P1) (c : k) : line_map p₀ p₁ c = c • (p�
 lemma line_map_apply_module' (p₀ p₁ : V1) (c : k) : line_map p₀ p₁ c = c • (p₁ - p₀) + p₀ := rfl
 
 lemma line_map_apply_module (p₀ p₁ : V1) (c : k) : line_map p₀ p₁ c = (1 - c) • p₀ + c • p₁ :=
-by simp [line_map_apply_module', smul_sub, sub_smul]; abel
+by simv [line_map_apply_module', smul_sub, sub_smul]; abel
 
 omit V1
 
@@ -396,22 +396,22 @@ by rw [line_map_apply, vadd_vsub]
   (line_map p₀ p₁ : k →ᵃ[k] P1).linear = linear_map.id.smul_right (p₁ -ᵥ p₀) :=
 add_zero _
 
-lemma line_map_same_apply (p : P1) (c : k) : line_map p p c = p := by simp [line_map_apply]
+lemma line_map_same_apply (p : P1) (c : k) : line_map p p c = p := by simv [line_map_apply]
 
 @[simp] lemma line_map_same (p : P1) : line_map p p = const k k p :=
 ext $ line_map_same_apply p
 
 @[simp] lemma line_map_apply_zero (p₀ p₁ : P1) : line_map p₀ p₁ (0:k) = p₀ :=
-by simp [line_map_apply]
+by simv [line_map_apply]
 
 @[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
-by simp [line_map_apply]
+by simv [line_map_apply]
 
 include V2
 
 @[simp] lemma apply_line_map (f : P1 →ᵃ[k] P2) (p₀ p₁ : P1) (c : k) :
   f (line_map p₀ p₁ c) = line_map (f p₀) (f p₁) c :=
-by simp [line_map_apply]
+by simv [line_map_apply]
 
 @[simp] lemma comp_line_map (f : P1 →ᵃ[k] P2) (p₀ p₁ : P1) :
   f.comp (line_map p₀ p₁) = line_map (f p₀) (f p₁) :=
@@ -429,11 +429,11 @@ omit V2
 
 lemma line_map_symm (p₀ p₁ : P1) :
   line_map p₀ p₁ = (line_map p₁ p₀).comp (line_map (1:k) (0:k)) :=
-by { rw [comp_line_map], simp }
+by { rw [comp_line_map], simv }
 
 lemma line_map_apply_one_sub (p₀ p₁ : P1) (c : k) :
   line_map p₀ p₁ (1 - c) = line_map p₁ p₀ c :=
-by { rw [line_map_symm p₀, comp_apply], congr, simp [line_map_apply] }
+by { rw [line_map_symm p₀, comp_apply], congr, simv [line_map_apply] }
 
 @[simp] lemma line_map_vsub_left (p₀ p₁ : P1) (c : k) :
   line_map p₀ p₁ c -ᵥ p₀ = c • (p₁ -ᵥ p₀) :=
@@ -467,14 +467,14 @@ lemma decomp (f : V1 →ᵃ[k] V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=
 begin
   ext x,
   calc
-    f x = f.linear x +ᵥ f 0                      : by simp [← f.map_vadd]
-    ... = (f.linear.to_fun + λ (z : V1), f 0) x  : by simp
+    f x = f.linear x +ᵥ f 0                      : by simv [← f.map_vadd]
+    ... = (f.linear.to_fun + λ (z : V1), f 0) x  : by simv
 end
 
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/
 lemma decomp' (f : V1 →ᵃ[k] V2) : (f.linear : V1 → V2) = f - (λ z, f 0) :=
-by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
+by rw decomp ; simv only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
 
 omit V1
 
@@ -486,9 +486,9 @@ begin
   { ext x,
     change f x = x • (f 1 -ᵥ f 0) +ᵥ f 0,
     rw [← f.linear_map_vsub, ← f.linear.map_smul, ← f.map_vadd],
-    simp only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
+    simv only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
   rw [this, set.image_comp],
-  simp only [set.image_add_const_interval, set.image_mul_const_interval]
+  simv only [set.image_add_const_interval, set.image_mul_const_interval]
 end
 
 section
@@ -556,10 +556,10 @@ See note [bundled maps over different rings]-/
 @[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[R] V2 × (V1 →ₗ[k] V2) :=
 { to_fun    := λ f, ⟨f 0, f.linear⟩,
   inv_fun   := λ p, p.2.to_affine_map + const k V1 p.1,
-  left_inv  := λ f, by { ext, rw f.decomp, simp, },
-  right_inv := by { rintros ⟨v, f⟩, ext; simp, },
-  map_add'  := by simp,
-  map_smul' := by simp, }
+  left_inv  := λ f, by { ext, rw f.decomp, simv, },
+  right_inv := by { rintros ⟨v, f⟩, ext; simv, },
+  map_add'  := by simv,
+  map_smul' := by simv, }
 
 end module
 
@@ -584,24 +584,24 @@ lemma homothety_apply (c : P1) (r : k) (p : P1) : homothety c r p = r • (p -�
 lemma homothety_eq_line_map (c : P1) (r : k) (p : P1) : homothety c r p = line_map c p r := rfl
 
 @[simp] lemma homothety_one (c : P1) : homothety c (1:k) = id k P1 :=
-by { ext p, simp [homothety_apply] }
+by { ext p, simv [homothety_apply] }
 
 @[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
 
 lemma homothety_mul_apply (c : P1) (r₁ r₂ : k) (p : P1) :
   homothety c (r₁ * r₂) p = homothety c r₁ (homothety c r₂ p) :=
-by simp [homothety_apply, mul_smul]
+by simv [homothety_apply, mul_smul]
 
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=
 ext $ homothety_mul_apply c r₁ r₂
 
 @[simp] lemma homothety_zero (c : P1) : homothety c (0:k) = const k P1 c :=
-by { ext p, simp [homothety_apply] }
+by { ext p, simv [homothety_apply] }
 
 @[simp] lemma homothety_add (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ + r₂) = r₁ • (id k P1 -ᵥ const k P1 c) +ᵥ homothety c r₂ :=
-by simp only [homothety_def, add_smul, vadd_vadd]
+by simv only [homothety_def, add_smul, vadd_vadd]
 
 /-- `homothety` as a multiplicative monoid homomorphism. -/
 def homothety_hom (c : P1) : k →* P1 →ᵃ[k] P1 :=

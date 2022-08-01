@@ -26,21 +26,21 @@ open_locale big_operators
 
 @[simp] lemma eval_one_cyclotomic_prime {R : Type*} [comm_ring R] {p : ℕ} [hn : fact p.prime] :
   eval 1 (cyclotomic p R) = p :=
-by simp only [cyclotomic_eq_geom_sum hn.out, eval_X, one_pow, finset.sum_const, eval_pow,
+by simv only [cyclotomic_eq_geom_sum hn.out, eval_X, one_pow, finset.sum_const, eval_pow,
               eval_finset_sum, finset.card_range, smul_one_eq_coe]
 
 @[simp] lemma eval₂_one_cyclotomic_prime {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
   {p : ℕ} [fact p.prime] : eval₂ f 1 (cyclotomic p R) = p :=
-by simp
+by simv
 
 @[simp] lemma eval_one_cyclotomic_prime_pow {R : Type*} [comm_ring R] {p : ℕ} (k : ℕ)
   [hn : fact p.prime] : eval 1 (cyclotomic (p ^ (k + 1)) R) = p :=
-by simp only [cyclotomic_prime_pow_eq_geom_sum hn.out, eval_X, one_pow, finset.sum_const,
+by simv only [cyclotomic_prime_pow_eq_geom_sum hn.out, eval_X, one_pow, finset.sum_const,
               eval_pow, eval_finset_sum, finset.card_range, smul_one_eq_coe]
 
 @[simp] lemma eval₂_one_cyclotomic_prime_pow {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
   {p : ℕ} (k : ℕ) [fact p.prime] : eval₂ f 1 (cyclotomic (p ^ (k + 1)) R) = p :=
-by simp
+by simv
 
 private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] :
   0 < eval (-1 : R) (cyclotomic n R) :=
@@ -51,7 +51,7 @@ begin
   suffices : 0 < eval ↑(-1 : ℤ) (cyclotomic n ℝ),
   { rw [←map_cyclotomic_int n ℝ, eval_int_cast_map, int.coe_cast_ring_hom] at this,
     exact_mod_cast this },
-  simp only [int.cast_one, int.cast_neg],
+  simv only [int.cast_one, int.cast_neg],
   have h0 := cyclotomic_coeff_zero ℝ hn.le,
   rw coeff_zero_eq_eval_zero at h0,
   by_contra' hx,
@@ -74,7 +74,7 @@ begin
   rw [divisors_eq_proper_divisors_insert_self_of_pos hn', finset.insert_sdiff_of_not_mem,
       finset.prod_insert, eval_mul, eval_geom_sum] at this,
   rotate,
-  { simp only [lt_self_iff_false, finset.mem_sdiff, not_false_iff, mem_proper_divisors, and_false,
+  { simv only [lt_self_iff_false, finset.mem_sdiff, not_false_iff, mem_proper_divisors, and_false,
       false_and]},
   { simpa only [finset.mem_singleton] using hn''.ne' },
   rcases lt_trichotomy 0 (∑ i in finset.range n, x ^ i) with h | h | h,
@@ -82,7 +82,7 @@ begin
     { rwa this },
     rw eval_prod,
     refine finset.prod_nonneg (λ i hi, _),
-    simp only [finset.mem_sdiff, mem_proper_divisors, finset.mem_singleton] at hi,
+    simv only [finset.mem_sdiff, mem_proper_divisors, finset.mem_singleton] at hi,
     rw geom_sum_pos_iff hn'' at h,
     cases h with hk hx,
     { refine (ih _ hi.1.2 (nat.two_lt_of_ne _ hi.2 _)).le; rintro rfl,
@@ -105,7 +105,7 @@ begin
     rw [eval_prod, ←finset.prod_sdiff h2, finset.prod_singleton]; try { apply_instance },
     apply mul_nonpos_of_nonneg_of_nonpos,
     { refine finset.prod_nonneg (λ i hi, le_of_lt _),
-      simp only [finset.mem_sdiff, mem_proper_divisors, finset.mem_singleton] at hi,
+      simv only [finset.mem_sdiff, mem_proper_divisors, finset.mem_singleton] at hi,
       refine ih _ hi.1.1.2 (nat.two_lt_of_ne _ hi.1.2 hi.2),
       rintro rfl,
       rw zero_dvd_iff at hi,
@@ -117,7 +117,7 @@ lemma cyclotomic_pos_and_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] (x : 
   (1 < x → 0 < eval x (cyclotomic n R)) ∧ (1 ≤ x → 0 ≤ eval x (cyclotomic n R)) :=
 begin
   rcases n with _ | _ | _ | n;
-  simp only [cyclotomic_zero, cyclotomic_one, cyclotomic_two, succ_eq_add_one,
+  simv only [cyclotomic_zero, cyclotomic_one, cyclotomic_two, succ_eq_add_one,
     eval_X, eval_one, eval_add, eval_sub, sub_nonneg, sub_pos,
     zero_lt_one, zero_le_one, implies_true_iff, imp_self, and_self],
   { split; intro; linarith, },
@@ -141,7 +141,7 @@ lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [ring R] {n : ℕ}
   (h : ∀ {p : ℕ}, p.prime → ∀ k : ℕ, p ^ k ≠ n) : eval 1 (cyclotomic n R) = 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn',
-  { simp },
+  { simv },
   have hn : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn'.ne', (h nat.prime_two 0).symm⟩,
   suffices : eval 1 (cyclotomic n ℤ) = 1 ∨ eval 1 (cyclotomic n ℤ) = -1,
   { cases this with h h,
@@ -169,14 +169,14 @@ begin
   rw [←finset.prod_sdiff $ show {n} ⊆ _, from _] at this,
   any_goals {apply_instance},
   swap,
-  { simp only [not_exists, true_and, exists_prop, dvd_rfl, finset.mem_image, finset.mem_range,
+  { simv only [not_exists, true_and, exists_prop, dvd_rfl, finset.mem_image, finset.mem_range,
     finset.mem_singleton, finset.singleton_subset_iff, finset.mem_sdiff, nat.mem_divisors, not_and],
     exact ⟨⟨hn'.ne', hn.ne'⟩, λ t _, h hp _⟩ },
   rw [←int.nat_abs_of_nat p, int.nat_abs_dvd_iff_dvd] at hpe,
   obtain ⟨t, ht⟩ := hpe,
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,
   have : (p ^ (padic_val_nat p n) * p : ℤ) ∣ n := ⟨_, this⟩,
-  simp only [←pow_succ', ←int.nat_abs_dvd_iff_dvd, int.nat_abs_of_nat, int.nat_abs_pow] at this,
+  simv only [←pow_succ', ←int.nat_abs_dvd_iff_dvd, int.nat_abs_of_nat, int.nat_abs_pow] at this,
   exact pow_succ_padic_val_nat_not_dvd hn' this,
   { rintro x - y - hxy,
     apply nat.succ_injective,
@@ -200,7 +200,7 @@ begin
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) ζ,
     { convert lt_norm_sub_of_not_same_ray this;
-      simp [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne'] },
+      simv [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne'] },
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', hζ.ne_zero hn.ne', _⟩,
@@ -211,25 +211,25 @@ begin
   have : ¬eval ↑q (cyclotomic n ℂ) = 0,
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simpa using (cyclotomic_pos' n hq').ne' },
-  suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simp [hq'])) ^ totient n
-              < units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this]),
-  { simp only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
+  suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simv [hq'])) ^ totient n
+              < units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simv [this]),
+  { simv only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
                nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
     convert this,
     erw [(cyclotomic.eval_apply q n (algebra_map ℝ ℂ)), eq_comm],
-    simp [cyclotomic_nonneg n hq'.le], },
-  simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
+    simv [cyclotomic_nonneg n hq'.le], },
+  simv only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
              eval_X, eval_sub, nnnorm_prod, units.mk0_prod],
   convert finset.prod_lt_prod' _ _,
-  swap, { exact λ _, units.mk0 (real.to_nnreal (q - 1)) (by simp [hq']) },
-  { simp [complex.card_primitive_roots] },
-  { simp only [subtype.coe_mk, finset.mem_attach, forall_true_left, subtype.forall,
+  swap, { exact λ _, units.mk0 (real.to_nnreal (q - 1)) (by simv [hq']) },
+  { simv [complex.card_primitive_roots] },
+  { simv only [subtype.coe_mk, finset.mem_attach, forall_true_left, subtype.forall,
       ←units.coe_le_coe, ← nnreal.coe_le_coe, complex.abs_nonneg, hq'.le, units.coe_mk0,
       real.coe_to_nnreal', coe_nnnorm, complex.norm_eq_abs, max_le_iff, tsub_le_iff_right],
     intros x hx,
     simpa using hfor x hx, },
-  { simp only [subtype.coe_mk, finset.mem_attach, exists_true_left, subtype.exists,
+  { simv only [subtype.coe_mk, finset.mem_attach, exists_true_left, subtype.exists,
       ← nnreal.coe_lt_coe, ← units.coe_lt_coe, units.coe_mk0 _, coe_nnnorm],
     simpa [hq'.le] using hex, },
 end
@@ -251,7 +251,7 @@ begin
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
     { convert norm_add_lt_of_not_same_ray this;
-      simp [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
+      simv [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', neg_ne_zero.mpr $ hζ.ne_zero hn.ne', _⟩,
@@ -267,36 +267,36 @@ begin
     rw this at hζ,
     linarith [hζ.unique $ is_primitive_root.neg_one 0 two_ne_zero.symm],
     { contrapose! hζ₀,
-      ext; simp [hζ₀, h.2] } },
+      ext; simv [hζ₀, h.2] } },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0,
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
-    simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
+    simv only [complex.coe_algebra_map, complex.of_real_eq_zero],
     exact (cyclotomic_pos' n hq').ne.symm, },
-  suffices : units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this])
-           < (units.mk0 (real.to_nnreal (q + 1)) (by simp; linarith)) ^ totient n,
-  { simp only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
+  suffices : units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simv [this])
+           < (units.mk0 (real.to_nnreal (q + 1)) (by simv; linarith)) ^ totient n,
+  { simv only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
                nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
     convert this,
     { erw [(cyclotomic.eval_apply q n (algebra_map ℝ ℂ)), eq_comm],
-      simp [cyclotomic_nonneg n hq'.le] },
+      simv [cyclotomic_nonneg n hq'.le] },
     rw [eq_comm, max_eq_left_iff],
     linarith },
-  simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
+  simv only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
              eval_X, eval_sub, nnnorm_prod, units.mk0_prod],
   convert finset.prod_lt_prod' _ _,
-  swap, { exact λ _, units.mk0 (real.to_nnreal (q + 1)) (by simp; linarith only [hq']) },
-  { simp [complex.card_primitive_roots], },
-  { simp only [subtype.coe_mk, finset.mem_attach, forall_true_left, subtype.forall,
+  swap, { exact λ _, units.mk0 (real.to_nnreal (q + 1)) (by simv; linarith only [hq']) },
+  { simv [complex.card_primitive_roots], },
+  { simv only [subtype.coe_mk, finset.mem_attach, forall_true_left, subtype.forall,
       ←units.coe_le_coe, ← nnreal.coe_le_coe, complex.abs_nonneg, hq'.le, units.coe_mk0,
       real.coe_to_nnreal, coe_nnnorm, complex.norm_eq_abs, max_le_iff],
     intros x hx,
     have : complex.abs _ ≤ _ := hfor x hx,
-    simp [this], },
-  { simp only [subtype.coe_mk, finset.mem_attach, exists_true_left, subtype.exists,
+    simv [this], },
+  { simv only [subtype.coe_mk, finset.mem_attach, exists_true_left, subtype.exists,
       ← nnreal.coe_lt_coe, ← units.coe_lt_coe, units.coe_mk0 _, coe_nnnorm],
     obtain ⟨ζ, hζ, hhζ : complex.abs _ < _⟩ := hex,
-    exact ⟨ζ, hζ, by simp [hhζ]⟩ },
+    exact ⟨ζ, hζ, by simv [hhζ]⟩ },
 end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq' : q ≠ 1) :
@@ -314,17 +314,17 @@ begin
   calc _ ≤ ((q + 2 - 1) ^ n.totient : ℝ) : _
     ...  < _ : _,
   { norm_num,
-    convert pow_mono (by simp : 1 ≤ (q : ℝ) + 1) (totient_pos (pos_of_gt hn') : 1 ≤ n.totient),
-    { simp },
+    convert pow_mono (by simv : 1 ≤ (q : ℝ) + 1) (totient_pos (pos_of_gt hn') : 1 ≤ n.totient),
+    { simv },
     { ring }, },
   convert sub_one_pow_totient_lt_cyclotomic_eval (show 2 ≤ n, by linarith)
                           (show (1 : ℝ) < q + 2, by {norm_cast, linarith}),
   norm_cast,
   erw cyclotomic.eval_apply (q + 2 : ℤ) n (algebra_map ℤ ℝ),
-  simp only [int.coe_nat_succ, ring_hom.eq_int_cast],
+  simv only [int.coe_nat_succ, ring_hom.eq_int_cast],
   norm_cast,
   rw [int.coe_nat_abs_eq_normalize, int.normalize_of_nonneg],
-  simp only [int.coe_nat_succ],
+  simv only [int.coe_nat_succ],
   exact cyclotomic_nonneg n (by linarith),
 end
 

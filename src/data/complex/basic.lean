@@ -46,7 +46,7 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 | ⟨zr, zi⟩ ⟨_, _⟩ rfl rfl := rfl
 
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
-⟨λ H, by simp [H], and.rec ext⟩
+⟨λ H, by simv [H], and.rec ext⟩
 
 theorem re_surjective : surjective re := λ x, ⟨⟨x, 0⟩, rfl⟩
 theorem im_surjective : surjective im := λ y, ⟨⟨0, y⟩, rfl⟩
@@ -56,11 +56,11 @@ theorem im_surjective : surjective im := λ y, ⟨⟨0, y⟩, rfl⟩
 
 instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
-@[simp, norm_cast] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl
-@[simp, norm_cast] lemma of_real_im (r : ℝ) : (r : ℂ).im = 0 := rfl
+@[simv, norm_cast] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl
+@[simv, norm_cast] lemma of_real_im (r : ℝ) : (r : ℂ).im = 0 := rfl
 lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 
-@[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
+@[simv, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
 
 theorem of_real_injective : function.injective (coe : ℝ → ℂ) :=
@@ -84,7 +84,7 @@ instance : inhabited ℂ := ⟨0⟩
 
 @[simp] lemma zero_re : (0 : ℂ).re = 0 := rfl
 @[simp] lemma zero_im : (0 : ℂ).im = 0 := rfl
-@[simp, norm_cast] lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
+@[simv, norm_cast] lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : (z : ℂ) = 0 ↔ z = 0 := of_real_inj
 theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
@@ -93,7 +93,7 @@ instance : has_one ℂ := ⟨(1 : ℝ)⟩
 
 @[simp] lemma one_re : (1 : ℂ).re = 1 := rfl
 @[simp] lemma one_im : (1 : ℂ).im = 0 := rfl
-@[simp, norm_cast] lemma of_real_one : ((1 : ℝ) : ℂ) = 1 := rfl
+@[simv, norm_cast] lemma of_real_one : ((1 : ℝ) : ℂ) = 1 := rfl
 
 @[simp] theorem of_real_eq_one {z : ℝ} : (z : ℂ) = 1 ↔ z = 1 := of_real_inj
 theorem of_real_ne_one {z : ℝ} : (z : ℂ) ≠ 1 ↔ z ≠ 1 := not_congr of_real_eq_one
@@ -108,20 +108,20 @@ instance : has_add ℂ := ⟨λ z w, ⟨z.re + w.re, z.im + w.im⟩⟩
 @[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := eq.refl _
 @[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := add_zero _
 
-@[simp, norm_cast] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : ℂ) = r + s :=
-ext_iff.2 $ by simp
+@[simv, norm_cast] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : ℂ) = r + s :=
+ext_iff.2 $ by simv
 
-@[simp, norm_cast] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : ℂ) = bit0 r :=
-ext_iff.2 $ by simp [bit0]
+@[simv, norm_cast] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : ℂ) = bit0 r :=
+ext_iff.2 $ by simv [bit0]
 
-@[simp, norm_cast] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : ℂ) = bit1 r :=
-ext_iff.2 $ by simp [bit1]
+@[simv, norm_cast] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : ℂ) = bit1 r :=
+ext_iff.2 $ by simv [bit1]
 
 instance : has_neg ℂ := ⟨λ z, ⟨-z.re, -z.im⟩⟩
 
 @[simp] lemma neg_re (z : ℂ) : (-z).re = -z.re := rfl
 @[simp] lemma neg_im (z : ℂ) : (-z).im = -z.im := rfl
-@[simp, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simp
+@[simv, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : ℂ) = -r := ext_iff.2 $ by simv
 
 instance : has_sub ℂ := ⟨λ z w, ⟨z.re - w.re, z.im - w.im⟩⟩
 
@@ -129,10 +129,10 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 
 @[simp] lemma mul_re (z w : ℂ) : (z * w).re = z.re * w.re - z.im * w.im := rfl
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
-@[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
+@[simv, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simv
 
-lemma of_real_mul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
-lemma of_real_mul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+lemma of_real_mul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simv
+lemma of_real_mul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simv
 lemma of_real_mul' (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
 ext (of_real_mul_re _ _) (of_real_mul_im _ _)
 
@@ -144,26 +144,26 @@ def I : ℂ := ⟨0, 1⟩
 @[simp] lemma I_re : I.re = 0 := rfl
 @[simp] lemma I_im : I.im = 1 := rfl
 
-@[simp] lemma I_mul_I : I * I = -1 := ext_iff.2 $ by simp
+@[simp] lemma I_mul_I : I * I = -1 := ext_iff.2 $ by simv
 lemma I_mul (z : ℂ) : I * z = ⟨-z.im, z.re⟩ :=
-ext_iff.2 $ by simp
+ext_iff.2 $ by simv
 
 lemma I_ne_zero : (I : ℂ) ≠ 0 := mt (congr_arg im) zero_ne_one.symm
 
 lemma mk_eq_add_mul_I (a b : ℝ) : complex.mk a b = a + b * I :=
-ext_iff.2 $ by simp
+ext_iff.2 $ by simv
 
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
-ext_iff.2 $ by simp
+ext_iff.2 $ by simv
 
-lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
-lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
-lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
-lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
+lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simv
+lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simv
+lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simv
+lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simv
 
 @[simp] lemma equiv_real_prod_symm_apply (p : ℝ × ℝ) :
   equiv_real_prod.symm p = p.1 + p.2 * I :=
-by { ext; simp [equiv_real_prod] }
+by { ext; simv [equiv_real_prod] }
 
 /-! ### Commutative ring instance and lemmas -/
 
@@ -179,15 +179,15 @@ by refine_struct
     sub := has_sub.sub,
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
-intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
+intros; try { refl }; apply ext_iff.2; split; simv; {ring1 <|> ring_nf}
 
 instance : add_group_with_one ℂ :=
 { nat_cast := λ n, ⟨n, 0⟩,
-  nat_cast_zero := by ext; simp [nat.cast],
-  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  nat_cast_zero := by ext; simv [nat.cast],
+  nat_cast_succ := λ _, by ext; simv [nat.cast],
   int_cast := λ n, ⟨n, 0⟩,
-  int_cast_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
-  int_cast_neg_succ_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  int_cast_of_nat := λ _, by ext; simv [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  int_cast_neg_succ_of_nat := λ _, by ext; simv [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
   one := 1,
   .. complex.add_comm_group }
 
@@ -199,7 +199,7 @@ by refine_struct
     mul := (*),
     npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
     .. complex.add_group_with_one };
-intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
+intros; try { refl }; apply ext_iff.2; split; simv; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
@@ -238,28 +238,28 @@ is recommended to use the ring endomorphism version `star_ring_end`, available u
 notation `conj` in the locale `complex_conjugate`. -/
 instance : star_ring ℂ :=
 { star := λ z, ⟨z.re, -z.im⟩,
-  star_involutive := λ x, by simp only [eta, neg_neg],
-  star_mul := λ a b, by ext; simp [add_comm]; ring,
-  star_add := λ a b, by ext; simp [add_comm] }
+  star_involutive := λ x, by simv only [eta, neg_neg],
+  star_mul := λ a b, by ext; simv [add_comm]; ring,
+  star_add := λ a b, by ext; simv [add_comm] }
 
 @[simp] lemma conj_re (z : ℂ) : (conj z).re = z.re := rfl
 @[simp] lemma conj_im (z : ℂ) : (conj z).im = -z.im := rfl
 
-lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simp [conj]
+lemma conj_of_real (r : ℝ) : conj (r : ℂ) = r := ext_iff.2 $ by simv [conj]
 
-@[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
+@[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simv
 
-lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
-lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
+lemma conj_bit0 (z : ℂ) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simv [bit0]
+lemma conj_bit1 (z : ℂ) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simv [bit0]
 
-@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
+@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simv
 
 lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 ⟨λ h, ⟨z.re, ext rfl $ eq_zero_of_neg_eq (congr_arg im h)⟩,
  λ ⟨h, e⟩, by rw [e, conj_of_real]⟩
 
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
-eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
+eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simv, λ h, ⟨_, h.symm⟩⟩
 
 lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
@@ -267,21 +267,21 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 
 -- `simp_nf` complains about this being provable by `is_R_or_C.star_def` even
 -- though it's not imported by this file.
-@[simp, nolint simp_nf] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
+@[simv, nolint simp_nf] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/
 @[pp_nodot] def norm_sq : ℂ →*₀ ℝ :=
 { to_fun := λ z, z.re * z.re + z.im * z.im,
-  map_zero' := by simp,
-  map_one' := by simp,
+  map_zero' := by simv,
+  map_one' := by simv,
   map_mul' := λ z w, by { dsimp, ring } }
 
 lemma norm_sq_apply (z : ℂ) : norm_sq z = z.re * z.re + z.im * z.im := rfl
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
-by simp [norm_sq]
+by simv [norm_sq]
 
 @[simp] lemma norm_sq_mk (x y : ℝ) : norm_sq ⟨x, y⟩ = x * x + y * y := rfl
 
@@ -289,11 +289,11 @@ lemma norm_sq_add_mul_I (x y : ℝ) : norm_sq (x + y * I) = x ^ 2 + y ^ 2 :=
 by rw [← mk_eq_add_mul_I, norm_sq_mk, sq, sq]
 
 lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
-by { ext; simp [norm_sq, mul_comm], }
+by { ext; simv [norm_sq, mul_comm], }
 
 @[simp] lemma norm_sq_zero : norm_sq 0 = 0 := norm_sq.map_zero
 @[simp] lemma norm_sq_one : norm_sq 1 = 1 := norm_sq.map_one
-@[simp] lemma norm_sq_I : norm_sq I = 1 := by simp [norm_sq]
+@[simp] lemma norm_sq_I : norm_sq I = 1 := by simv [norm_sq]
 
 lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
@@ -312,10 +312,10 @@ lemma norm_sq_eq_zero {z : ℂ} : norm_sq z = 0 ↔ z = 0 :=
 (norm_sq_nonneg z).lt_iff_ne.trans $ not_congr (eq_comm.trans norm_sq_eq_zero)
 
 @[simp] lemma norm_sq_neg (z : ℂ) : norm_sq (-z) = norm_sq z :=
-by simp [norm_sq]
+by simv [norm_sq]
 
 @[simp] lemma norm_sq_conj (z : ℂ) : norm_sq (conj z) = norm_sq z :=
-by simp [norm_sq]
+by simv [norm_sq]
 
 lemma norm_sq_mul (z w : ℂ) : norm_sq (z * w) = norm_sq z * norm_sq w :=
 norm_sq.map_mul z w
@@ -331,10 +331,10 @@ lemma im_sq_le_norm_sq (z : ℂ) : z.im * z.im ≤ norm_sq z :=
 le_add_of_nonneg_left (mul_self_nonneg _)
 
 theorem mul_conj (z : ℂ) : z * conj z = norm_sq z :=
-ext_iff.2 $ by simp [norm_sq, mul_comm, sub_eq_neg_add, add_comm]
+ext_iff.2 $ by simv [norm_sq, mul_comm, sub_eq_neg_add, add_comm]
 
 theorem add_conj (z : ℂ) : z + conj z = (2 * z.re : ℝ) :=
-ext_iff.2 $ by simp [two_mul]
+ext_iff.2 $ by simv [two_mul]
 
 /-- The coercion `ℝ → ℂ` as a `ring_hom`. -/
 def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
@@ -345,17 +345,17 @@ def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, o
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
-@[simp, norm_cast] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := ext_iff.2 $ by simp
-@[simp, norm_cast] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : ℂ) = r ^ n :=
-by induction n; simp [*, of_real_mul, pow_succ]
+@[simv, norm_cast] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : ℂ) = r - s := ext_iff.2 $ by simv
+@[simv, norm_cast] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : ℂ) = r ^ n :=
+by induction n; simv [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
-ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
+ext_iff.2 $ by simv [two_mul, sub_eq_add_neg]
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
 by { rw [sub_eq_add_neg, norm_sq_add],
-     simp only [ring_hom.map_neg, mul_neg, neg_re,
+     simv only [ring_hom.map_neg, mul_neg, neg_re,
                 tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
@@ -363,11 +363,11 @@ by { rw [sub_eq_add_neg, norm_sq_add],
 noncomputable instance : has_inv ℂ := ⟨λ z, conj z * ((norm_sq z)⁻¹:ℝ)⟩
 
 theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
-@[simp] lemma inv_re (z : ℂ) : (z⁻¹).re = z.re / norm_sq z := by simp [inv_def, division_def]
-@[simp] lemma inv_im (z : ℂ) : (z⁻¹).im = -z.im / norm_sq z := by simp [inv_def, division_def]
+@[simp] lemma inv_re (z : ℂ) : (z⁻¹).re = z.re / norm_sq z := by simv [inv_def, division_def]
+@[simp] lemma inv_im (z : ℂ) : (z⁻¹).im = -z.im / norm_sq z := by simv [inv_def, division_def]
 
-@[simp, norm_cast] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
-ext_iff.2 $ by simp
+@[simv, norm_cast] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : ℂ) = r⁻¹ :=
+ext_iff.2 $ by simv
 
 protected lemma inv_zero : (0⁻¹ : ℂ) = 0 :=
 by rw [← of_real_zero, ← of_real_inv, inv_zero]
@@ -392,23 +392,23 @@ by rw [zpow_bit0', I_mul_I]
 by rw [zpow_bit1', I_mul_I]
 
 lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
-by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
+by simv [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
-by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
+by simv [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 
 lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
-@[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
+@[simv, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 of_real.map_div r s
 
-@[simp, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
+@[simv, norm_cast] lemma of_real_zpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
 of_real.map_zpow r n
 
 @[simp] lemma div_I (z : ℂ) : z / I = -(z * I) :=
-(div_eq_iff_mul_eq I_ne_zero).2 $ by simp [mul_assoc]
+(div_eq_iff_mul_eq I_ne_zero).2 $ by simv [mul_assoc]
 
 @[simp] lemma inv_I : I⁻¹ = -I :=
-by simp [inv_eq_one_div]
+by simv [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 norm_sq.map_inv z
@@ -418,30 +418,30 @@ norm_sq.map_div z w
 
 /-! ### Cast lemmas -/
 
-@[simp, norm_cast] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
+@[simv, norm_cast] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
 map_nat_cast of_real n
 
-@[simp, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
+@[simv, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
 by rw [← of_real_nat_cast, of_real_re]
 
-@[simp, norm_cast] lemma nat_cast_im (n : ℕ) : (n : ℂ).im = 0 :=
+@[simv, norm_cast] lemma nat_cast_im (n : ℕ) : (n : ℂ).im = 0 :=
 by rw [← of_real_nat_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_int_cast (n : ℤ) : ((n : ℝ) : ℂ) = n :=
+@[simv, norm_cast] theorem of_real_int_cast (n : ℤ) : ((n : ℝ) : ℂ) = n :=
 of_real.map_int_cast n
 
-@[simp, norm_cast] lemma int_cast_re (n : ℤ) : (n : ℂ).re = n :=
+@[simv, norm_cast] lemma int_cast_re (n : ℤ) : (n : ℂ).re = n :=
 by rw [← of_real_int_cast, of_real_re]
 
-@[simp, norm_cast] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
+@[simv, norm_cast] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
 by rw [← of_real_int_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n := map_rat_cast of_real n
+@[simv, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n := map_rat_cast of_real n
 
-@[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
+@[simv, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
 by rw [← of_real_rat_cast, of_real_re]
 
-@[simp, norm_cast] lemma rat_cast_im (q : ℚ) : (q : ℂ).im = 0 :=
+@[simv, norm_cast] lemma rat_cast_im (q : ℚ) : (q : ℂ).im = 0 :=
 by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
@@ -452,12 +452,12 @@ by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 /-- A complex number `z` plus its conjugate `conj z` is `2` times its real part. -/
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
-by simp only [add_conj, of_real_mul, of_real_one, of_real_bit0,
+by simv only [add_conj, of_real_mul, of_real_one, of_real_bit0,
      mul_div_cancel_left (z.re:ℂ) two_ne_zero']
 
 /-- A complex number `z` minus its conjugate `conj z` is `2i` times its imaginary part. -/
 theorem im_eq_sub_conj (z : ℂ) : (z.im : ℂ) = (z - conj(z))/(2 * I) :=
-by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
+by simv only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
      mul_div_cancel_left _ (mul_ne_zero two_ne_zero' I_ne_zero : 2 * I ≠ 0)]
 
 /-! ### Absolute value -/
@@ -467,8 +467,8 @@ by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
 
 local notation `abs'` := has_abs.abs
 
-@[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = |r| :=
-by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
+@[simv, norm_cast] lemma abs_of_real (r : ℝ) : abs r = |r| :=
+by simv [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
@@ -489,9 +489,9 @@ by rw [sq_abs, norm_sq_apply, ← sq, ← sq, add_sub_cancel']
 @[simp] lemma sq_abs_sub_sq_im (z : ℂ) : abs z ^ 2 - z.im ^ 2 = z.re ^ 2 :=
 by rw [← sq_abs_sub_sq_re, sub_sub_cancel]
 
-@[simp] lemma abs_zero : abs 0 = 0 := by simp [abs]
-@[simp] lemma abs_one : abs 1 = 1 := by simp [abs]
-@[simp] lemma abs_I : abs I = 1 := by simp [abs]
+@[simp] lemma abs_zero : abs 0 = 0 := by simv [abs]
+@[simp] lemma abs_one : abs 1 = 1 := by simv [abs]
+@[simp] lemma abs_I : abs I = 1 := by simv [abs]
 
 @[simp] lemma abs_two : abs 2 = 2 :=
 calc abs 2 = abs (2 : ℝ) : by rw [of_real_bit0, of_real_one]
@@ -510,7 +510,7 @@ lemma abs_ne_zero {z : ℂ} : abs z ≠ 0 ↔ z ≠ 0 :=
 not_congr abs_eq_zero
 
 @[simp] lemma abs_conj (z : ℂ) : abs (conj z) = abs z :=
-by simp [abs]
+by simv [abs]
 
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
@@ -594,7 +594,7 @@ by simpa [re_add_im] using abs_add z.re (z.im * I)
 lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
 begin
   cases z with x y,
-  simp only [abs, norm_sq_mk, ← sq],
+  simv only [abs, norm_sq_mk, ← sq],
   wlog hle : |x| ≤ |y| := le_total (|x|) (|y|) using [x y, y x] tactic.skip,
   { calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
       real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
@@ -604,17 +604,17 @@ begin
 end
 
 lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=
-if hz : z = 0 then by simp [hz, zero_le_one]
+if hz : z = 0 then by simv [hz, zero_le_one]
 else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_re_le_abs] }
 
 lemma abs_im_div_abs_le_one (z : ℂ) : |z.im / z.abs| ≤ 1 :=
-if hz : z = 0 then by simp [hz, zero_le_one]
+if hz : z = 0 then by simv [hz, zero_le_one]
 else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_im_le_abs] }
 
-@[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
+@[simv, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 
-@[simp, norm_cast] lemma int_cast_abs (n : ℤ) : ↑|n| = abs n :=
+@[simv, norm_cast] lemma int_cast_abs (n : ℤ) : ↑|n| = abs n :=
 by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
@@ -639,12 +639,12 @@ localized "attribute [instance] complex.partial_order" in complex_order
 lemma le_def {z w : ℂ} : z ≤ w ↔ z.re ≤ w.re ∧ z.im = w.im := iff.rfl
 lemma lt_def {z w : ℂ} : z < w ↔ z.re < w.re ∧ z.im = w.im := iff.rfl
 
-@[simp, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y := by simp [le_def]
+@[simv, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y := by simv [le_def]
 
-@[simp, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y := by simp [lt_def]
+@[simv, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y := by simv [lt_def]
 
-@[simp, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
-@[simp, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
+@[simv, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
+@[simv, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
 
 lemma not_le_iff {z w : ℂ} : ¬(z ≤ w) ↔ w.re < z.re ∨ z.im ≠ w.im :=
 by rw [le_def, not_and_distrib, not_le]
@@ -662,7 +662,7 @@ protected def ordered_comm_ring : ordered_comm_ring ℂ :=
 { zero_le_one := ⟨zero_le_one, rfl⟩,
   add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩,
   mul_pos := λ z w hz hw,
-    by simp [lt_def, mul_re, mul_im, ← hz.2, ← hw.2, mul_pos hz.1 hw.1],
+    by simv [lt_def, mul_re, mul_im, ← hz.2, ← hw.2, mul_pos hz.1 hw.1],
   .. complex.partial_order,
   .. complex.comm_ring }
 
@@ -678,12 +678,12 @@ protected def star_ordered_ring : star_ordered_ring ℂ :=
     { have h₁ : 0 ≤ r.re := by { rw [le_def] at hr, exact hr.1 },
       have h₂ : r.im = 0 := by { rw [le_def] at hr, exact hr.2.symm },
       ext,
-      { simp only [of_real_im, star_def, of_real_re, sub_zero, conj_re, mul_re, mul_zero,
+      { simv only [of_real_im, star_def, of_real_re, sub_zero, conj_re, mul_re, mul_zero,
                    ←real.sqrt_mul h₁ r.re, real.sqrt_mul_self h₁] },
-      { simp only [h₂, add_zero, of_real_im, star_def, zero_mul, conj_im,
+      { simv only [h₂, add_zero, of_real_im, star_def, zero_mul, conj_im,
                    mul_im, mul_zero, neg_zero] } },
     { obtain ⟨s, rfl⟩ := h,
-      simp only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
+      simv only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
   ..complex.ordered_comm_ring }
 
 localized "attribute [instance] complex.star_ordered_ring" in complex_order
@@ -739,13 +739,13 @@ lemma lim_eq_lim_im_add_lim_re (f : cau_seq ℂ abs) : lim f =
 lim_eq_of_equiv_const $
 calc f ≈ _ : equiv_lim_aux f
 ... = cau_seq.const abs (↑(lim (cau_seq_re f)) + ↑(lim (cau_seq_im f)) * I) :
-  cau_seq.ext (λ _, complex.ext (by simp [lim_aux, cau_seq_re]) (by simp [lim_aux, cau_seq_im]))
+  cau_seq.ext (λ _, complex.ext (by simv [lim_aux, cau_seq_re]) (by simv [lim_aux, cau_seq_im]))
 
 lemma lim_re (f : cau_seq ℂ abs) : lim (cau_seq_re f) = (lim f).re :=
-by rw [lim_eq_lim_im_add_lim_re]; simp
+by rw [lim_eq_lim_im_add_lim_re]; simv
 
 lemma lim_im (f : cau_seq ℂ abs) : lim (cau_seq_im f) = (lim f).im :=
-by rw [lim_eq_lim_im_add_lim_re]; simp
+by rw [lim_eq_lim_im_add_lim_re]; simv
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
@@ -756,8 +756,8 @@ noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=
 ⟨_, is_cau_seq_conj f⟩
 
 lemma lim_conj (f : cau_seq ℂ abs) : lim (cau_seq_conj f) = conj (lim f) :=
-complex.ext (by simp [cau_seq_conj, (lim_re _).symm, cau_seq_re])
-  (by simp [cau_seq_conj, (lim_im _).symm, cau_seq_im, (lim_neg _).symm]; refl)
+complex.ext (by simv [cau_seq_conj, (lim_re _).symm, cau_seq_re])
+  (by simv [cau_seq_conj, (lim_im _).symm, cau_seq_im, (lim_neg _).symm]; refl)
 
 /-- The absolute value of a complex Cauchy sequence, as a real Cauchy sequence. -/
 noncomputable def cau_seq_abs (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
@@ -770,11 +770,11 @@ let ⟨i, hi⟩ := equiv_lim f ε ε0 in
 
 variables {α : Type*} (s : finset α)
 
-@[simp, norm_cast] lemma of_real_prod (f : α → ℝ) :
+@[simv, norm_cast] lemma of_real_prod (f : α → ℝ) :
   ((∏ i in s, f i : ℝ) : ℂ) = ∏ i in s, (f i : ℂ) :=
 ring_hom.map_prod of_real _ _
 
-@[simp, norm_cast] lemma of_real_sum (f : α → ℝ) :
+@[simv, norm_cast] lemma of_real_sum (f : α → ℝ) :
   ((∑ i in s, f i : ℝ) : ℂ) = ∑ i in s, (f i : ℂ) :=
 ring_hom.map_sum of_real _ _
 

@@ -72,23 +72,23 @@ def matrix_decomposition
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { to_fun := λ z i j k,
-    eq_to_hom (by { rcases k with ⟨k, ⟨⟩⟩, simp, }) ≫
-      biproduct.components z k j ≫ eq_to_hom (by { rcases j with ⟨j, ⟨⟩⟩, simp, }),
+    eq_to_hom (by { rcases k with ⟨k, ⟨⟩⟩, simv, }) ≫
+      biproduct.components z k j ≫ eq_to_hom (by { rcases j with ⟨j, ⟨⟩⟩, simv, }),
   inv_fun := λ z, biproduct.matrix (λ j k, if h : f j = g k then
-      z (f j) ⟨k, by simp [h]⟩ ⟨j, by simp⟩ ≫ eq_to_hom (by simp [h])
+      z (f j) ⟨k, by simv [h]⟩ ⟨j, by simv⟩ ≫ eq_to_hom (by simv [h])
     else
       0),
   left_inv := λ z, begin
     ext j k,
-    simp only [category.assoc, biproduct.lift_π, biproduct.ι_matrix],
+    simv only [category.assoc, biproduct.lift_π, biproduct.ι_matrix],
     split_ifs,
-    { simp, refl, },
+    { simv, refl, },
     { symmetry, apply o.eq_zero h, },
   end,
   right_inv := λ z, begin
     ext i ⟨j, w⟩ ⟨k, ⟨⟩⟩,
-    simp only [set.mem_preimage, set.mem_singleton_iff],
-    simp [w.symm], refl,
+    simv only [set.mem_preimage, set.mem_singleton_iff],
+    simv [w.symm], refl,
   end, }
 
 end
@@ -102,7 +102,7 @@ def matrix_decomposition_add_equiv
   (o : hom_orthogonal s) {α β : Type} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃+
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
-{ map_add' := λ w z, by { ext, dsimp [biproduct.components], simp, },
+{ map_add' := λ w z, by { ext, dsimp [biproduct.components], simv, },
   ..o.matrix_decomposition, }.
 
 @[simp]
@@ -111,11 +111,11 @@ lemma matrix_decomposition_id
   o.matrix_decomposition (𝟙 (⨁ (λ a, s (f a)))) i = 1 :=
 begin
   ext ⟨b, ⟨⟩⟩ ⟨a⟩,
-  simp only [set.mem_preimage, set.mem_singleton_iff] at j_property,
-  simp only [category.comp_id, category.id_comp, category.assoc, End.one_def, eq_to_hom_refl,
+  simv only [set.mem_preimage, set.mem_singleton_iff] at j_property,
+  simv only [category.comp_id, category.id_comp, category.assoc, End.one_def, eq_to_hom_refl,
     matrix.one_apply, hom_orthogonal.matrix_decomposition_apply, biproduct.components],
   split_ifs with h,
-  { cases h, simp, },
+  { cases h, simv, },
   { convert comp_zero,
     simpa using biproduct.ι_π_ne _ (ne.symm h), },
 end
@@ -128,18 +128,18 @@ lemma matrix_decomposition_comp
   o.matrix_decomposition (z ≫ w) i = o.matrix_decomposition w i ⬝ o.matrix_decomposition z i :=
 begin
   ext ⟨c, ⟨⟩⟩ ⟨a⟩,
-  simp only [set.mem_preimage, set.mem_singleton_iff] at j_property,
-  simp only [matrix.mul_apply, limits.biproduct.components,
+  simv only [set.mem_preimage, set.mem_singleton_iff] at j_property,
+  simv only [matrix.mul_apply, limits.biproduct.components,
     hom_orthogonal.matrix_decomposition_apply,
     category.comp_id, category.id_comp, category.assoc, End.mul_def,
     eq_to_hom_refl, eq_to_hom_trans_assoc, finset.sum_congr],
   conv_lhs { rw [←category.id_comp w, ←biproduct.total], },
-  simp only [preadditive.sum_comp, preadditive.comp_sum],
+  simv only [preadditive.sum_comp, preadditive.comp_sum],
   apply finset.sum_congr_set,
-  { intros, simp, refl, },
+  { intros, simv, refl, },
   { intros b nm,
-    simp only [set.mem_preimage, set.mem_singleton_iff] at nm,
-    simp only [category.assoc],
+    simv only [set.mem_preimage, set.mem_singleton_iff] at nm,
+    simv only [category.assoc],
     convert comp_zero,
     convert comp_zero,
     convert comp_zero,
@@ -157,7 +157,7 @@ def matrix_decomposition_linear_equiv
   {α β : Type} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃ₗ[R]
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
-{ map_smul' := λ w z, by { ext, dsimp [biproduct.components], simp, },
+{ map_smul' := λ w z, by { ext, dsimp [biproduct.components], simv, },
   ..o.matrix_decomposition_add_equiv, }
 
 end
@@ -182,11 +182,11 @@ begin
   intro c,
   apply nonempty.some,
   apply cardinal.eq.1,
-  simp only [cardinal.mk_fintype, nat.cast_inj],
+  simv only [cardinal.mk_fintype, nat.cast_inj],
   exact matrix.square_of_invertible
     (o.matrix_decomposition i.inv c) (o.matrix_decomposition i.hom c)
-    (by { rw ←o.matrix_decomposition_comp, simp, })
-    (by { rw ←o.matrix_decomposition_comp, simp, })
+    (by { rw ←o.matrix_decomposition_comp, simv, })
+    (by { rw ←o.matrix_decomposition_comp, simv, })
 end
 
 end

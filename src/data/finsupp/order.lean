@@ -108,12 +108,12 @@ variables [canonically_ordered_add_monoid α]
 
 instance : order_bot (ι →₀ α) :=
 { bot := 0,
-  bot_le := by simp only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le]}
+  bot_le := by simv only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le]}
 
 protected lemma bot_eq_zero : (⊥ : ι →₀ α) = 0 := rfl
 
 @[simp] lemma add_eq_zero_iff (f g : ι →₀ α) : f + g = 0 ↔ f = 0 ∧ g = 0 :=
-by simp [ext_iff, forall_and_distrib]
+by simv [ext_iff, forall_and_distrib]
 
 lemma le_iff' (f g : ι →₀ α) {s : finset ι} (hf : f.support ⊆ s) : f ≤ g ↔ ∀ i ∈ s, f i ≤ g i :=
 ⟨λ h s hs, h s,
@@ -125,7 +125,7 @@ instance decidable_le [decidable_rel (@has_le.le α _)] : decidable_rel (@has_le
 λ f g, decidable_of_iff _ (le_iff f g).symm
 
 @[simp] lemma single_le_iff {i : ι} {x : α} {f : ι →₀ α} : single i x ≤ f ↔ x ≤ f i :=
-(le_iff' _ _ support_single_subset).trans $ by simp
+(le_iff' _ _ support_single_subset).trans $ by simv
 
 variables [has_sub α] [has_ordered_sub α] {f g : ι →₀ α} {i : ι} {a b : α}
 
@@ -154,11 +154,11 @@ begin
 end
 
 lemma support_tsub {f1 f2 : ι →₀ α} : (f1 - f2).support ⊆ f1.support :=
-by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
+by simv only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
     not_imp_not, zero_le, implies_true_iff] {contextual := tt}
 
 lemma subset_support_tsub {f1 f2 : ι →₀ α} : f1.support \ f2.support ⊆ (f1 - f2).support :=
-by simp [subset_iff] {contextual := tt}
+by simv [subset_iff] {contextual := tt}
 
 end canonically_ordered_add_monoid
 
@@ -168,15 +168,15 @@ variables [canonically_linear_ordered_add_monoid α] [decidable_eq ι] {f g : ι
 @[simp] lemma support_inf : (f ⊓ g).support = f.support ∩ g.support :=
 begin
   ext,
-  simp only [inf_apply, mem_support_iff,  ne.def,
+  simv only [inf_apply, mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
-  simp only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
+  simv only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
 end
 
 @[simp] lemma support_sup : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext,
-  simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
+  simv only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
   rw [_root_.sup_eq_bot_iff, not_and_distrib],
 end
 

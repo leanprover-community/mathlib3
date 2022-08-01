@@ -65,7 +65,7 @@ lemma subset_range_enumerate {s : set α} (h : s.countable) (default : α) :
    s ⊆ range (enumerate_countable h default) :=
 assume x hx,
 ⟨@encodable.encode s h.to_encodable ⟨x, hx⟩,
-by simp [enumerate_countable, encodable.encodek]⟩
+by simv [enumerate_countable, encodable.encodek]⟩
 
 end enumerate
 
@@ -170,14 +170,14 @@ alias countable.bUnion_iff ↔ _ countable.bUnion
 alias countable.sUnion_iff ↔ _ countable.sUnion
 
 @[simp] lemma countable_union {s t : set α} : (s ∪ t).countable ↔ s.countable ∧ t.countable :=
-by simp [union_eq_Union, and.comm]
+by simv [union_eq_Union, and.comm]
 
 lemma countable.union {s t : set α} (hs : s.countable) (ht : t.countable) :
   (s ∪ t).countable :=
 countable_union.2 ⟨hs, ht⟩
 
 @[simp] lemma countable_insert {s : set α} {a : α} : (insert a s).countable ↔ s.countable :=
-by simp only [insert_eq, countable_union, countable_singleton, true_and]
+by simv only [insert_eq, countable_union, countable_singleton, true_and]
 
 lemma countable.insert {s : set α} (a : α) (h : s.countable) : (insert a s).countable :=
 countable_insert.2 h

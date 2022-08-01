@@ -25,7 +25,7 @@ theorem cast_eq_zero [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α)
     contradiction }
 end, λ h, by rw [h, cast_zero]⟩
 
-@[simp, norm_cast] theorem cast_inj [add_group_with_one α] [char_zero α] {m n : ℤ} :
+@[simv, norm_cast] theorem cast_inj [add_group_with_one α] [char_zero α] {m n : ℤ} :
   (m : α) = n ↔ m = n :=
 by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
 
@@ -35,12 +35,12 @@ theorem cast_injective [add_group_with_one α] [char_zero α] : function.injecti
 theorem cast_ne_zero [add_group_with_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℤ}
   (n_dvd : n ∣ m) : ((m / n : ℤ) : k) = m / n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
-  { simp [int.div_zero] },
+  { simv [int.div_zero] },
   { exact cast_div n_dvd (cast_ne_zero.mpr hn), },
 end
 

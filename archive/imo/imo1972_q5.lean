@@ -43,7 +43,7 @@ begin
   have hk₂ : ∀ x, 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
   { intro x,
     calc 2 * (∥f x∥ * ∥g y∥)
-        = ∥2 * f x * g y∥ : by simp [abs_mul, mul_assoc]
+        = ∥2 * f x * g y∥ : by simv [abs_mul, mul_assoc]
     ... = ∥f (x + y) + f (x - y)∥ : by rw hf1
     ... ≤ ∥f (x + y)∥ + ∥f (x - y)∥ : norm_add_le _ _
     ... ≤ k + k : add_le_add (hk₁ _) (hk₁ _)
@@ -114,7 +114,7 @@ begin
     suffices : 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
       by { rwa [le_div_iff hgy, ←mul_le_mul_left zero_lt_two], apply_instance },
     calc 2 * (∥f x∥ * ∥g y∥)
-        = ∥2 * f x * g y∥           : by simp [abs_mul, mul_assoc]
+        = ∥2 * f x * g y∥           : by simv [abs_mul, mul_assoc]
     ... = ∥f (x + y) + f (x - y)∥   : by rw hf1
     ... ≤ ∥f (x + y)∥ + ∥f (x - y)∥ : abs_add _ _
     ... ≤ 2 * k                     : by linarith [h (x+y), h (x -y)] },

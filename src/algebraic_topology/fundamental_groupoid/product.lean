@@ -59,7 +59,7 @@ def pi_to_pi_Top : (Π i, πₓ (X i)) ⥤ πₓ (Top.of (Π i, X i)) :=
   begin
     intro x,
     change path.homotopic.pi (λ i, 𝟙 (x i)) = _,
-    simp only [fundamental_groupoid.id_eq_path_refl, path.homotopic.pi_lift],
+    simv only [fundamental_groupoid.id_eq_path_refl, path.homotopic.pi_lift],
     refl,
   end,
   map_comp' := λ x y z f g, (path.homotopic.comp_pi_eq_pi_comp f g).symm, }
@@ -76,7 +76,7 @@ def pi_iso : category_theory.Groupoid.of (Π i : I, πₓ (X i)) ≅ πₓ (Top.
   begin
     change pi_to_pi_Top X ⋙ (category_theory.functor.pi' (proj X)) = 𝟭 _,
     apply category_theory.functor.ext; intros,
-    { ext, simp, }, { refl, },
+    { ext, simv, }, { refl, },
   end,
   inv_hom_id' :=
   begin
@@ -85,7 +85,7 @@ def pi_iso : category_theory.Groupoid.of (Π i : I, πₓ (X i)) ≅ πₓ (Top.
     { suffices : path.homotopic.pi ((category_theory.functor.pi' (proj X)).map f) = f, { simpa, },
       change (category_theory.functor.pi' (proj X)).map f
         with λ i, (category_theory.functor.pi' (proj X)).map f i,
-      simp, }, { refl, }
+      simv, }, { refl, }
   end }
 
 section preserves
@@ -115,7 +115,7 @@ def preserves_product : limits.preserves_limit (discrete.functor X) π :=
 begin
   apply limits.preserves_limit_of_preserves_limit_cone (Top.pi_fan_is_limit.{u} X),
   apply (limits.is_limit.of_cone_equiv (cone_discrete_comp X)).to_fun,
-  simp only [cone_discrete_comp_obj_map_cone],
+  simv only [cone_discrete_comp_obj_map_cone],
   apply limits.is_limit.of_iso_limit _ (as_iso (pi_Top_to_pi_cone X)).symm,
   exact Groupoid.pi_limit_fan_is_limit _,
 end
@@ -154,7 +154,7 @@ def prod_to_prod_Top : (πₓ A) × (πₓ B) ⥤ πₓ (Top.of (A × B)) :=
   map_id' :=
   begin
     rintro ⟨x₀, x₁⟩,
-    simp only [category_theory.prod_id, fundamental_groupoid.id_eq_path_refl],
+    simv only [category_theory.prod_id, fundamental_groupoid.id_eq_path_refl],
     unfold_aux, rw path.homotopic.prod_lift, refl,
   end,
   map_comp' := λ x y z f g, match x, y, z, f, g with
@@ -178,7 +178,7 @@ def prod_iso : category_theory.Groupoid.of ((πₓ A) × (πₓ B)) ≅ (πₓ (
   hom_inv_id' :=
   begin
     change prod_to_prod_Top A B ⋙ ((proj_left A B).prod' (proj_right A B)) = 𝟭 _,
-    apply category_theory.functor.hext, { intros, ext; simp; refl, },
+    apply category_theory.functor.hext, { intros, ext; simv; refl, },
     rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ ⟨f₀, f₁⟩,
     have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
     simpa,
@@ -186,7 +186,7 @@ def prod_iso : category_theory.Groupoid.of ((πₓ A) × (πₓ B)) ≅ (πₓ (
   inv_hom_id' :=
   begin
     change ((proj_left A B).prod' (proj_right A B)) ⋙ prod_to_prod_Top A B = 𝟭 _,
-    apply category_theory.functor.hext, { intros, ext; simp; refl, },
+    apply category_theory.functor.hext, { intros, ext; simv; refl, },
     rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ f,
     have := path.homotopic.prod_proj_left_proj_right f,
     simpa,

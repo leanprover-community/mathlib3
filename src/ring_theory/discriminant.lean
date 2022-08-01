@@ -88,8 +88,8 @@ begin
   have : (trace_matrix A b).mul_vec g = 0,
   { ext i,
     have : ∀ j, (trace A B) (b i * b j) * g j = (trace A B) (((g j) • (b j)) * b i),
-    { intro j, simp [mul_comm], },
-    simp only [mul_vec, dot_product, trace_matrix, pi.zero_apply, trace_form_apply,
+    { intro j, simv [mul_comm], },
+    simv only [mul_vec, dot_product, trace_matrix, pi.zero_apply, trace_form_apply,
       λ j, this j, ← linear_map.map_sum, ← sum_mul, hg, zero_mul, linear_map.map_zero] },
   by_contra h,
   rw discr_def at h,
@@ -124,7 +124,7 @@ variables [module.finite K L]  [is_alg_closed E]
 lemma discr_not_zero_of_basis [is_separable K L] (b : basis ι K L) : discr K b ≠ 0 :=
 begin
   casesI is_empty_or_nonempty ι,
-  { simp [discr] },
+  { simv [discr] },
   { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
     rw [discr_def, trace_matrix_def],
@@ -182,19 +182,19 @@ begin
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
     prod_mul_distrib],
   congr,
-  simp only [prod_pow_eq_pow_sum, prod_const],
+  simv only [prod_pow_eq_pow_sum, prod_const],
   congr,
   rw [← @nat.cast_inj ℚ, nat.cast_sum],
-  have : ∀ (x : fin pb.dim), (↑x + 1) ≤ pb.dim := by simp [nat.succ_le_iff, fin.is_lt],
+  have : ∀ (x : fin pb.dim), (↑x + 1) ≤ pb.dim := by simv [nat.succ_le_iff, fin.is_lt],
   simp_rw [fin.card_Ioi, nat.sub_sub, add_comm 1],
-  simp only [nat.cast_sub, this, finset.card_fin, nsmul_eq_mul, sum_const, sum_sub_distrib,
+  simv only [nat.cast_sub, this, finset.card_fin, nsmul_eq_mul, sum_const, sum_sub_distrib,
     nat.cast_add, nat.cast_one, sum_add_distrib, mul_one],
   rw [← nat.cast_sum, ← @finset.sum_range ℕ _ pb.dim (λ i, i), sum_range_id ],
   have hn : n = pb.dim,
   { rw [← alg_hom.card K L E, ← fintype.card_fin pb.dim],
     exact card_congr (equiv.symm e) },
   have h₂ : 2 ∣ (pb.dim * (pb.dim - 1)) := even_iff_two_dvd.1 (nat.even_mul_self_pred _),
-  have hne : ((2 : ℕ) : ℚ) ≠ 0 := by simp,
+  have hne : ((2 : ℕ) : ℚ) ≠ 0 := by simv,
   have hle : 1 ≤ pb.dim,
   { rw [← hn, nat.one_le_iff_ne_zero, ← zero_lt_iff, finite_dimensional.finrank_pos_iff],
     apply_instance },
@@ -219,7 +219,7 @@ begin
   have hroots : ∀ σ : L →ₐ[K] E, σ pb.gen ∈ (map (algebra_map K E) (minpoly K pb.gen)).roots,
   { intro σ,
     rw [mem_roots, is_root.def, eval_map, ← aeval_def, aeval_alg_hom_apply],
-    repeat { simp [minpoly.ne_zero (is_separable.is_integral K pb.gen)] } },
+    repeat { simv [minpoly.ne_zero (is_separable.is_integral K pb.gen)] } },
 
   apply (algebra_map K E).injective,
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
@@ -231,29 +231,29 @@ begin
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),
       ← finset.prod_mk _ (hnodup.erase _)] },
   rw [prod_sigma', prod_sigma'],
-  refine prod_bij (λ i hi, ⟨e i.2, e i.1 pb.gen⟩) (λ i hi, _) (λ i hi, by simp at hi)
+  refine prod_bij (λ i hi, ⟨e i.2, e i.1 pb.gen⟩) (λ i hi, _) (λ i hi, by simv at hi)
     (λ i j hi hj hij, _) (λ σ hσ, _),
-  { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma],
+  { simv only [true_and, finset.mem_mk, mem_univ, mem_sigma],
     rw [multiset.mem_erase_of_ne (λ h, _)],
     { exact hroots _ },
-    { simp only [true_and, mem_univ, ne.def, mem_sigma, mem_compl, mem_singleton] at hi,
+    { simv only [true_and, mem_univ, ne.def, mem_sigma, mem_compl, mem_singleton] at hi,
       rw [← power_basis.lift_equiv_apply_coe, ← power_basis.lift_equiv_apply_coe] at h,
       exact hi (e.injective $ pb.lift_equiv.injective $ subtype.eq h.symm) } },
-  { simp only [equiv.apply_eq_iff_eq, heq_iff_eq] at hij,
+  { simv only [equiv.apply_eq_iff_eq, heq_iff_eq] at hij,
     have h := hij.2,
     rw [← power_basis.lift_equiv_apply_coe, ← power_basis.lift_equiv_apply_coe] at h,
-    refine sigma.eq (equiv.injective e (equiv.injective _ (subtype.eq h))) (by simp [hij.1]) },
-  { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma] at ⊢ hσ,
-    simp only [sigma.exists, exists_prop, mem_compl, mem_singleton, ne.def],
+    refine sigma.eq (equiv.injective e (equiv.injective _ (subtype.eq h))) (by simv [hij.1]) },
+  { simv only [true_and, finset.mem_mk, mem_univ, mem_sigma] at ⊢ hσ,
+    simv only [sigma.exists, exists_prop, mem_compl, mem_singleton, ne.def],
     refine ⟨e.symm (power_basis.lift pb σ.2 _), e.symm σ.1, ⟨λ h, _, sigma.eq _ _⟩⟩,
     { rw [aeval_def, eval₂_eq_eval_map, ← is_root.def, ← mem_roots],
       { exact multiset.erase_subset _ _ hσ },
-      { simp [minpoly.ne_zero (is_separable.is_integral K pb.gen)] } },
+      { simv [minpoly.ne_zero (is_separable.is_integral K pb.gen)] } },
     { replace h := alg_hom.congr_fun (equiv.injective _ h) pb.gen,
       rw [power_basis.lift_gen] at h,
       rw [← h] at hσ,
       exact hnodup.not_mem_erase hσ },
-    all_goals { simp } }
+    all_goals { simv } }
 end
 
 section integral
@@ -302,8 +302,8 @@ begin
     rw [ring_hom.map_mul, hr, hr', ← det_mul, basis.to_matrix_mul_to_matrix_flip, det_one] },
   rw [← ring_hom.map_one (algebra_map ℤ ℚ), ← hr],
   cases int.is_unit_iff.1 hunit with hp hm,
-  { simp [hp] },
-  { simp [hm] }
+  { simv [hp] },
+  { simv [hm] }
 end
 
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
@@ -341,10 +341,10 @@ begin
   rw [← congr_fun cramer i, cramer_apply, det_apply],
   refine subalgebra.sum_mem _ (λ σ _, subalgebra.zsmul_mem _ (subalgebra.prod_mem _ (λ j _, _)) _),
   by_cases hji : j = i,
-  { simp only [update_column_apply, hji, eq_self_iff_true, power_basis.coe_basis],
+  { simv only [update_column_apply, hji, eq_self_iff_true, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace $
       is_integral_mul hz $ is_integral.pow hint _) },
-  { simp only [update_column_apply, hji, power_basis.coe_basis],
+  { simv only [update_column_apply, hji, power_basis.coe_basis],
     exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace
       $ is_integral_mul (is_integral.pow hint _) (is_integral.pow hint _)) }
 end

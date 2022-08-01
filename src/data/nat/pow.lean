@@ -33,7 +33,7 @@ lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
 pow_lt_pow_of_lt_right h n.lt_succ_self
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
-| 0 := by simp [zero_lt_one]
+| 0 := by simv [zero_lt_one]
 | (n+1) := calc
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
@@ -55,14 +55,14 @@ one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
 @[simp] lemma one_lt_pow_iff {k n : ℕ} (h : 0 ≠ k) : 1 < n ^ k ↔ 1 < n :=
 begin
   cases n,
-  { cases k; simp [zero_pow_eq] },
+  { cases k; simv [zero_pow_eq] },
   cases n,
   { rw one_pow },
   refine ⟨λ _, one_lt_succ_succ n, λ _, _⟩,
   induction k with k hk,
   { exact absurd rfl h },
   cases k,
-  { simp },
+  { simv },
   exact one_lt_mul (one_lt_succ_succ _).le (hk (succ_ne_zero k).symm),
 end
 
@@ -118,14 +118,14 @@ alias sq_sub_sq ← pow_two_sub_pow_two
 theorem pow_mod (a b n : ℕ) : a ^ b % n = (a % n) ^ b % n :=
 begin
   induction b with b ih,
-  refl, simp [pow_succ, nat.mul_mod, ih],
+  refl, simv [pow_succ, nat.mul_mod, ih],
 end
 
 theorem mod_pow_succ {b : ℕ} (w m : ℕ) :
   m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin
   by_cases b_h : b = 0,
-  { simp [b_h, pow_succ], },
+  { simv [b_h, pow_succ], },
   have b_pos := nat.pos_of_ne_zero b_h,
   apply nat.strong_induction_on m,
   clear m,
@@ -136,7 +136,7 @@ begin
     { rw [div_lt_iff_lt_mul b_pos],
       simpa [pow_succ'] using h₁ },
     rw [mod_eq_of_lt h₁, mod_eq_of_lt h₂],
-    simp [div_add_mod] },
+    simv [div_add_mod] },
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
@@ -144,8 +144,8 @@ begin
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1
-    simp only [pow_succ],
-    simp only [ge, pow_succ] at h₁,
+    simv only [pow_succ],
+    simv only [ge, pow_succ] at h₁,
     -- Pull subtraction outside mod and div
     rw [sub_mul_mod _ _ _ h₁, sub_mul_div _ _ _ h₁],
     -- Cancel subtraction inside mod b^w
@@ -161,7 +161,7 @@ begin
   split,
   { intro a, exact le_of_dvd (pow_pos (succ_pos x) l) a, },
   { intro a, cases x with x,
-    { simp only [one_pow], },
+    { simv only [one_pow], },
     { have le := (pow_le_iff_le_right (nat.le_add_left _ _)).mp a,
       use (x+2)^(l-k),
       rw [←pow_add, add_comm k, tsub_add_cancel_of_le le], } }
@@ -208,7 +208,7 @@ lemma shiftl_eq_mul_pow (m) : ∀ n, shiftl m n = m * 2 ^ n
   by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm, mul_comm 2]
 
 lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
-| 0     := by simp [shiftl, shiftl', pow_zero, nat.one_mul]
+| 0     := by simv [shiftl, shiftl', pow_zero, nat.one_mul]
 | (k+1) :=
 begin
   change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 * 2 ^ k),
@@ -232,7 +232,7 @@ lemma shiftr_eq_div_pow (m) : ∀ n, shiftr m n = m / 2 ^ n
 (shiftr_eq_div_pow _ _).trans (nat.zero_div _)
 
 theorem shiftl'_ne_zero_left (b) {m} (h : m ≠ 0) (n) : shiftl' b m n ≠ 0 :=
-by induction n; simp [shiftl', bit_ne_zero, *]
+by induction n; simv [shiftl', bit_ne_zero, *]
 
 theorem shiftl'_tt_ne_zero (m) : ∀ {n} (h : n ≠ 0), shiftl' tt m n ≠ 0
 | 0        h := absurd rfl h
@@ -240,12 +240,12 @@ theorem shiftl'_tt_ne_zero (m) : ∀ {n} (h : n ≠ 0), shiftl' tt m n ≠ 0
 
 /-! ### `size` -/
 
-@[simp] theorem size_zero : size 0 = 0 := by simp [size]
+@[simp] theorem size_zero : size 0 = 0 := by simv [size]
 
 @[simp] theorem size_bit {b n} (h : bit b n ≠ 0) : size (bit b n) = succ (size n) :=
 begin
   rw size,
-  conv { to_lhs, rw [binary_rec], simp [h] },
+  conv { to_lhs, rw [binary_rec], simv [h] },
   rw div2_bit,
 end
 
@@ -261,7 +261,7 @@ show size (bit1 0) = 1, by rw [size_bit1, size_zero]
 @[simp] theorem size_shiftl' {b m n} (h : shiftl' b m n ≠ 0) :
   size (shiftl' b m n) = size m + n :=
 begin
-  induction n with n IH; simp [shiftl'] at h ⊢,
+  induction n with n IH; simv [shiftl'] at h ⊢,
   rw [size_bit h, nat.add_succ],
   by_cases s0 : shiftl' b m n = 0; [skip, rw [IH s0]],
   rw s0 at h ⊢,
@@ -282,7 +282,7 @@ size_shiftl' (shiftl'_ne_zero_left _ h _)
 theorem lt_size_self (n : ℕ) : n < 2^size n :=
 begin
   rw [← one_shiftl],
-  have : ∀ {n}, n = 0 → n < shiftl 1 (size n), { simp },
+  have : ∀ {n}, n = 0 → n < shiftl 1 (size n), { simv },
   apply binary_rec _ _ n, {apply this rfl},
   intros b n IH,
   by_cases bit b n = 0, {apply this h},
@@ -295,9 +295,9 @@ theorem size_le {m n : ℕ} : size m ≤ n ↔ m < 2^n :=
 begin
   rw [← one_shiftl], revert n,
   apply binary_rec _ _ m,
-  { intros n h, simp },
+  { intros n h, simv },
   { intros b m IH n h,
-    by_cases e : bit b m = 0, { simp [e] },
+    by_cases e : bit b m = 0, { simv [e] },
     rw [size_bit e],
     cases n with n,
     { exact e.elim (nat.eq_zero_of_le_zero (le_of_lt_succ h)) },
@@ -312,7 +312,7 @@ theorem size_pos {n : ℕ} : 0 < size n ↔ 0 < n :=
 by rw lt_size; refl
 
 theorem size_eq_zero {n : ℕ} : size n = 0 ↔ n = 0 :=
-by have := @size_pos n; simp [pos_iff_ne_zero] at this;
+by have := @size_pos n; simv [pos_iff_ne_zero] at this;
    exact decidable.not_iff_not.1 this
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=

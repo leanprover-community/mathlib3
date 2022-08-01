@@ -57,7 +57,7 @@ existence of `g` maximizing `(g•z).im` (see `modular_group.exists_max_im`), an
 those, to minimize `|(g•z).re|` (see `modular_group.exists_row_one_eq_and_min_re`).
 -/
 
-/- Disable these instances as they are not the simp-normal form, and having them disabled ensures
+/- Disable these instances as they are not the simv-normal form, and having them disabled ensures
 we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
@@ -98,9 +98,9 @@ begin
   let A := of ![![a, -b₀], cd],
   have det_A_1 : det A = 1,
   { convert gcd_eqn,
-    simp [A, det_fin_two, (by ring : a * (cd 1) + b₀ * (cd 0) = b₀ * (cd 0) + a * (cd 1))] },
+    simv [A, det_fin_two, (by ring : a * (cd 1) + b₀ * (cd 0) = b₀ * (cd 0) + a * (cd 1))] },
   refine ⟨⟨A, det_A_1⟩, set.mem_univ _, _⟩,
-  ext; simp [A]
+  ext; simv [A]
 end
 
 end bottom_row
@@ -109,7 +109,7 @@ section tendsto_lemmas
 
 open filter continuous_linear_map
 local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
-local attribute [simp] coe_smul
+local attribute [simv] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
 -/
@@ -151,7 +151,7 @@ begin
       rw [f_def, ring_hom.map_add, ring_hom.map_mul, mul_add, mul_left_comm, mul_conj,
         conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
         inv_mul_eq_iff_eq_mul₀ hz],
-      simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
+      simv only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
   have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
   have h₂ : tendsto (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p) cofinite (cocompact _),
   { convert tendsto.pi_map_Coprod (λ i, int.tendsto_coe_cofinite),
@@ -195,7 +195,7 @@ begin
   let mB : ℝ → (matrix (fin 2) (fin 2) ℝ) := λ t, of ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
   { refine continuous_matrix _,
-    simp only [fin.forall_fin_two, mB, continuous_const, continuous_id', of_apply,
+    simv only [fin.forall_fin_two, mB, continuous_const, continuous_id', of_apply,
       cons_val_zero, cons_val_one, and_self ] },
   refine filter.tendsto.of_tendsto_comp _ (comap_cocompact_le hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
@@ -212,14 +212,14 @@ begin
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   ext ⟨g, rfl⟩ i j : 3,
   fin_cases i; [fin_cases j, skip],
-  -- the following are proved by `simp`, but it is replaced by `simp only` to avoid timeouts.
-  { simp only [mB, mul_vec, dot_product, fin.sum_univ_two, _root_.coe_coe, coe_matrix_coe,
+  -- the following are proved by `simv`, but it is replaced by `simv only` to avoid timeouts.
+  { simv only [mB, mul_vec, dot_product, fin.sum_univ_two, _root_.coe_coe, coe_matrix_coe,
       int.coe_cast_ring_hom, lc_row0_apply, function.comp_app, cons_val_zero, lc_row0_extend_apply,
       linear_map.general_linear_group.coe_fn_general_linear_equiv,
       general_linear_group.to_linear_apply, coe_plane_conformal_matrix, neg_neg, mul_vec_lin_apply,
       cons_val_one, head_cons, of_apply] },
   { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-    simp only [f₁, mul_vec, dot_product, fin.sum_univ_two, matrix.det_fin_two, function.comp_app,
+    simv only [f₁, mul_vec, dot_product, fin.sum_univ_two, matrix.det_fin_two, function.comp_app,
       subtype.coe_mk, lc_row0_extend_apply, cons_val_zero,
       linear_map.general_linear_group.coe_fn_general_linear_equiv,
       general_linear_group.to_linear_apply, coe_plane_conformal_matrix, mul_vec_lin_apply,
@@ -239,9 +239,9 @@ begin
   have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, hp.ne_zero (by ext i; simpa using congr_fun h i),
   have nonZ2 : (p 0 : ℂ) * z + p 1 ≠ 0 := by simpa using linear_ne_zero _ z this,
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
-  rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
+  rw (by simv : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [int.coe_cast_ring_hom, coe_matrix_coe, int.cast_mul, of_real_int_cast, map_apply,
+  simv only [int.coe_cast_ring_hom, coe_matrix_coe, int.cast_mul, of_real_int_cast, map_apply,
   denom, int.cast_sub, _root_.coe_coe,coe_GL_pos_coe_GL_coe_matrix],
   ring,
 end
@@ -269,7 +269,7 @@ end tendsto_lemmas
 
 section fundamental_domain
 
-local attribute [simp] coe_smul re_smul
+local attribute [simv] coe_smul re_smul
 
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
 lemma exists_max_im :
@@ -317,7 +317,7 @@ lemma coe_S : ↑ₘS = !![0, -1; 1, 0] := rfl
 
 lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
 
-lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
+lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simv [coe_inv, coe_T, adjugate_fin_two]
 
 lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
@@ -331,7 +331,7 @@ begin
 end
 
 @[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
-by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
+by simv [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
 
 @[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
 by simpa using T_pow_mul_apply_one 1 g
@@ -340,7 +340,7 @@ by simpa using T_pow_mul_apply_one 1 g
 by simpa using T_pow_mul_apply_one (-1) g
 
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
-by simp [coe_T_zpow]
+by simv [coe_T_zpow]
 
 lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
 by rw [←coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re]
@@ -365,11 +365,11 @@ begin
   { use ↑ₘg 0 1,
     suffices : g = T^(↑ₘg 0 1), { intros z, conv_lhs { rw this, }, },
     ext i j, fin_cases i; fin_cases j;
-    simp [ha, hc, hd, coe_T_zpow], },
+    simv [ha, hc, hd, coe_T_zpow], },
   { use -↑ₘg 0 1,
     suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, SL_neg_smul], }, },
     ext i j, fin_cases i; fin_cases j;
-    simp [ha, hc, hd, coe_T_zpow], },
+    simv [ha, hc, hd, coe_T_zpow], },
 end
 
 /- If `c = 1`, then `g` factorises into a product terms involving only `T` and `S`. -/
@@ -381,7 +381,7 @@ begin
   refine subtype.ext _,
   conv_lhs { rw matrix.eta_fin_two ↑ₘg },
   rw [hc, hg],
-  simp only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
+  simv only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
   congrm !![_, _; _, _]; ring
 end
 
@@ -397,7 +397,7 @@ begin
     apply (lt_div_iff z.norm_sq_pos).mpr,
     nlinarith },
   convert this,
-  simp only [special_linear_group.im_smul_eq_div_norm_sq],
+  simv only [special_linear_group.im_smul_eq_div_norm_sq],
   field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
 end
 
@@ -524,13 +524,13 @@ begin
     let d := ↑ₘg' 1 1,
     have had : T^(-a) * g' = S * T^d, { rw g_eq_of_c_eq_one hc, group, },
     let w := T^(-a) • (g' • z),
-    have h₁ : w = S • (T^d • z), { simp only [w, ← mul_smul, had], },
+    have h₁ : w = S • (T^d • z), { simv only [w, ← mul_smul, had], },
     replace h₁ : norm_sq w < 1 := h₁.symm ▸ norm_sq_S_smul_lt_one (one_lt_norm_sq_T_zpow_smul hz d),
     have h₂ : 1 < norm_sq w := one_lt_norm_sq_T_zpow_smul hg' (-a),
     linarith, },
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
-    replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
+    replace hc : ↑ₘ(-g) 1 0 = 1, { simv [eq_neg_of_eq_neg hc], },
     replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,
@@ -544,7 +544,7 @@ lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ �
 begin
   obtain ⟨n, hn⟩ := exists_eq_T_zpow_of_c_eq_zero (c_eq_zero hz hg),
   rw hn at hg ⊢,
-  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg, one_smul],
+  simv [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg, one_smul],
 end
 
 end unique_representative

@@ -66,8 +66,8 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
 /-- The prod of two linear maps is a linear map. -/
 @[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
 { to_fun    := pi.prod f g,
-  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
-  map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
+  map_add'  := λ x y, by simv only [pi.prod, prod.mk_add_mk, map_add],
+  map_smul' := λ c x, by simv only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
 
 lemma coe_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : ⇑(f.prod g) = pi.prod f g := rfl
 
@@ -106,7 +106,7 @@ def inr : M₂ →ₗ[R] M × M₂ := prod 0 linear_map.id
 theorem range_inl : range (inl R M M₂) = ker (snd R M M₂) :=
 begin
   ext x,
-  simp only [mem_ker, mem_range],
+  simv only [mem_ker, mem_range],
   split,
   { rintros ⟨y, rfl⟩, refl },
   { intro h, exact ⟨x.fst, prod.ext rfl h.symm⟩ }
@@ -118,7 +118,7 @@ eq.symm $ range_inl R M M₂
 theorem range_inr : range (inr R M M₂) = ker (fst R M M₂) :=
 begin
   ext x,
-  simp only [mem_ker, mem_range],
+  simv only [mem_ker, mem_range],
   split,
   { rintros ⟨y, rfl⟩, refl },
   { intro h, exact ⟨x.snd, prod.ext h.symm rfl⟩ }
@@ -140,10 +140,10 @@ theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
 theorem inr_eq_prod : inr R M M₂ = prod 0 linear_map.id := rfl
 
 theorem inl_injective : function.injective (inl R M M₂) :=
-λ _, by simp
+λ _, by simv
 
 theorem inr_injective : function.injective (inr R M M₂) :=
-λ _, by simp
+λ _, by simv
 
 /-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
@@ -154,23 +154,23 @@ f.comp (fst _ _ _) + g.comp (snd _ _ _)
 
 @[simp] theorem coprod_inl (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (coprod f g).comp (inl R M M₂) = f :=
-by ext; simp only [map_zero, add_zero, coprod_apply, inl_apply, comp_apply]
+by ext; simv only [map_zero, add_zero, coprod_apply, inl_apply, comp_apply]
 
 @[simp] theorem coprod_inr (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (coprod f g).comp (inr R M M₂) = g :=
-by ext; simp only [map_zero, coprod_apply, inr_apply, zero_add, comp_apply]
+by ext; simv only [map_zero, coprod_apply, inr_apply, zero_add, comp_apply]
 
 @[simp] theorem coprod_inl_inr : coprod (inl R M M₂) (inr R M M₂) = linear_map.id :=
-by ext; simp only [prod.mk_add_mk, add_zero, id_apply, coprod_apply,
+by ext; simv only [prod.mk_add_mk, add_zero, id_apply, coprod_apply,
   inl_apply, inr_apply, zero_add]
 
 theorem comp_coprod (f : M₃ →ₗ[R] M₄) (g₁ : M →ₗ[R] M₃) (g₂ : M₂ →ₗ[R] M₃) :
   f.comp (g₁.coprod g₂) = (f.comp g₁).coprod (f.comp g₂) :=
 ext $ λ x, f.map_add (g₁ x.1) (g₂ x.2)
 
-theorem fst_eq_coprod : fst R M M₂ = coprod linear_map.id 0 := by ext; simp
+theorem fst_eq_coprod : fst R M M₂ = coprod linear_map.id 0 := by ext; simv
 
-theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
+theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simv
 
 @[simp] theorem coprod_comp_prod (f : M₂ →ₗ[R] M₄) (g : M₃ →ₗ[R] M₄)
   (f' : M →ₗ[R] M₂) (g' : M →ₗ[R] M₃) :
@@ -182,7 +182,7 @@ lemma coprod_map_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (S : subm
   (S' : submodule R M₂) :
   (submodule.prod S S').map (linear_map.coprod f g) = S.map f ⊔ S'.map g :=
 set_like.coe_injective $ begin
-  simp only [linear_map.coprod_apply, submodule.coe_sup, submodule.map_coe],
+  simv only [linear_map.coprod_apply, submodule.coe_sup, submodule.map_coe],
   rw [←set.image2_add, set.image2_image_left, set.image2_image_right],
   exact set.image_prod (λ m m₂, f m + g m₂),
 end
@@ -195,12 +195,12 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
   ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M × M₂ →ₗ[R] M₃) :=
 { to_fun := λ f, f.1.coprod f.2,
   inv_fun := λ f, (f.comp (inl _ _ _), f.comp (inr _ _ _)),
-  left_inv := λ f, by simp only [prod.mk.eta, coprod_inl, coprod_inr],
-  right_inv := λ f, by simp only [←comp_coprod, comp_id, coprod_inl_inr],
+  left_inv := λ f, by simv only [prod.mk.eta, coprod_inl, coprod_inr],
+  right_inv := λ f, by simv only [←comp_coprod, comp_id, coprod_inl_inr],
   map_add' := λ a b,
-    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add, add_add_add_comm] },
+    by { ext, simv only [prod.snd_add, add_apply, coprod_apply, prod.fst_add, add_add_add_comm] },
   map_smul' := λ r a,
-    by { dsimp, ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst,
+    by { dsimp, ext, simv only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst,
                                 coprod_apply] } }
 
 theorem prod_ext_iff {f g : M × M₂ →ₗ[R] M₃} :
@@ -290,11 +290,11 @@ variables {B : Type*} [non_unital_non_assoc_semiring B] [module R B]
 
 lemma inl_map_mul (a₁ a₂ : A) : linear_map.inl R A B (a₁ * a₂) =
   linear_map.inl R A B a₁ * linear_map.inl R A B a₂ :=
-prod.ext rfl (by simp)
+prod.ext rfl (by simv)
 
 lemma inr_map_mul (b₁ b₂ : B) : linear_map.inr R A B (b₁ * b₂) =
   linear_map.inr R A B b₁ * linear_map.inr R A B b₂ :=
-prod.ext (by simp) rfl
+prod.ext (by simv) rfl
 
 end map_mul
 
@@ -326,25 +326,25 @@ variables [semiring R]
 
 lemma range_coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (f.coprod g).range = f.range ⊔ g.range :=
-submodule.ext $ λ x, by simp [mem_sup]
+submodule.ext $ λ x, by simv [mem_sup]
 
 lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
   split,
   { rintros ⟨_, _⟩ ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
-    simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
+    simv only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
     exact ⟨hy.1.symm, hx.2.symm⟩ },
   { rintros ⟨x, y⟩ -,
-    simp only [mem_sup, mem_range, exists_prop],
+    simv only [mem_sup, mem_range, exists_prop],
     refine ⟨(x, 0), ⟨x, rfl⟩, (0, y), ⟨y, rfl⟩, _⟩,
-    simp }
+    simv }
 end
 
 lemma sup_range_inl_inr : (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
 is_compl_range_inl_inr.sup_eq_top
 
 lemma disjoint_inl_inr : disjoint (inl R M M₂).range (inr R M M₂).range :=
-by simp [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros; refl
+by simv [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros; refl
 theorem map_coprod_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃)
   (p : submodule R M) (q : submodule R M₂) :
   map (coprod f g) (p.prod q) = map f p ⊔ map g q :=
@@ -352,8 +352,8 @@ begin
   refine le_antisymm _ (sup_le (map_le_iff_le_comap.2 _) (map_le_iff_le_comap.2 _)),
   { rw set_like.le_def, rintro _ ⟨x, ⟨h₁, h₂⟩, rfl⟩,
     exact mem_sup.2 ⟨_, ⟨_, h₁, rfl⟩, _, ⟨_, h₂, rfl⟩, rfl⟩ },
-  { exact λ x hx, ⟨(x, 0), by simp [hx]⟩ },
-  { exact λ x hx, ⟨(0, x), by simp [hx]⟩ }
+  { exact λ x hx, ⟨(x, 0), by simv [hx]⟩ },
+  { exact λ x hx, ⟨(0, x), by simv [hx]⟩ }
 end
 
 theorem comap_prod_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃)
@@ -380,7 +380,7 @@ by rw [ker, ← prod_bot, comap_prod_prod]; refl
 lemma range_prod_le (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   range (prod f g) ≤ (range f).prod (range g) :=
 begin
-  simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod,
+  simv only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod,
     exists_imp_distrib],
   rintro _ x rfl,
   exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
@@ -390,7 +390,7 @@ lemma ker_prod_ker_le_ker_coprod {M₂ : Type*} [add_comm_group M₂] [module R 
   {M₃ : Type*} [add_comm_group M₃] [module R M₃]
   (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (ker f).prod (ker g) ≤ ker (f.coprod g) :=
-by { rintros ⟨y, z⟩, simp {contextual := tt} }
+by { rintros ⟨y, z⟩, simv {contextual := tt} }
 
 lemma ker_coprod_of_disjoint_range {M₂ : Type*} [add_comm_group M₂] [module R M₂]
   {M₃ : Type*} [add_comm_group M₃] [module R M₃]
@@ -399,9 +399,9 @@ lemma ker_coprod_of_disjoint_range {M₂ : Type*} [add_comm_group M₂] [module 
 begin
   apply le_antisymm _ (ker_prod_ker_le_ker_coprod f g),
   rintros ⟨y, z⟩ h,
-  simp only [mem_ker, mem_prod, coprod_apply] at h ⊢,
+  simv only [mem_ker, mem_prod, coprod_apply] at h ⊢,
   have : f y ∈ f.range ⊓ g.range,
-  { simp only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
+  { simv only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
     use -z,
     rwa [eq_comm, map_neg, ← sub_eq_zero, sub_neg_eq_add] },
   rw [hd.eq_bot, mem_bot] at this,
@@ -419,32 +419,32 @@ variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R M₂]
 
 lemma sup_eq_range (p q : submodule R M) : p ⊔ q = (p.subtype.coprod q.subtype).range :=
-submodule.ext $ λ x, by simp [submodule.mem_sup, set_like.exists]
+submodule.ext $ λ x, by simv [submodule.mem_sup, set_like.exists]
 
 variables (p : submodule R M) (q : submodule R M₂)
 
 @[simp] theorem map_inl : p.map (inl R M M₂) = prod p ⊥ :=
-by { ext ⟨x, y⟩, simp only [and.left_comm, eq_comm, mem_map, prod.mk.inj_iff, inl_apply, mem_bot,
+by { ext ⟨x, y⟩, simv only [and.left_comm, eq_comm, mem_map, prod.mk.inj_iff, inl_apply, mem_bot,
   exists_eq_left', mem_prod] }
 
 @[simp] theorem map_inr : q.map (inr R M M₂) = prod ⊥ q :=
-by ext ⟨x, y⟩; simp [and.left_comm, eq_comm]
+by ext ⟨x, y⟩; simv [and.left_comm, eq_comm]
 
 @[simp] theorem comap_fst : p.comap (fst R M M₂) = prod p ⊤ :=
-by ext ⟨x, y⟩; simp
+by ext ⟨x, y⟩; simv
 
 @[simp] theorem comap_snd : q.comap (snd R M M₂) = prod ⊤ q :=
-by ext ⟨x, y⟩; simp
+by ext ⟨x, y⟩; simv
 
-@[simp] theorem prod_comap_inl : (prod p q).comap (inl R M M₂) = p := by ext; simp
+@[simp] theorem prod_comap_inl : (prod p q).comap (inl R M M₂) = p := by ext; simv
 
-@[simp] theorem prod_comap_inr : (prod p q).comap (inr R M M₂) = q := by ext; simp
+@[simp] theorem prod_comap_inr : (prod p q).comap (inr R M M₂) = q := by ext; simv
 
 @[simp] theorem prod_map_fst : (prod p q).map (fst R M M₂) = p :=
-by ext x; simp [(⟨0, zero_mem _⟩ : ∃ x, x ∈ q)]
+by ext x; simv [(⟨0, zero_mem _⟩ : ∃ x, x ∈ q)]
 
 @[simp] theorem prod_map_snd : (prod p q).map (snd R M M₂) = q :=
-by ext x; simp [(⟨0, zero_mem _⟩ : ∃ x, x ∈ p)]
+by ext x; simv [(⟨0, zero_mem _⟩ : ∃ x, x ∈ p)]
 
 @[simp] theorem ker_inl : (inl R M M₂).ker = ⊥ :=
 by rw [ker, ← prod_bot, prod_comap_inl]
@@ -467,8 +467,8 @@ def fst : submodule R (M × M₂) := (⊥ : submodule R M₂).comap (linear_map.
 @[simps] def fst_equiv : submodule.fst R M M₂ ≃ₗ[R] M :=
 { to_fun := λ x, x.1.1,
   inv_fun := λ m, ⟨⟨m, 0⟩, by tidy⟩,
-  map_add' := by simp,
-  map_smul' := by simp,
+  map_add' := by simv,
+  map_smul' := by simv,
   left_inv := by tidy,
   right_inv := by tidy, }
 
@@ -484,8 +484,8 @@ def snd : submodule R (M × M₂) := (⊥ : submodule R M).comap (linear_map.fst
 @[simps] def snd_equiv : submodule.snd R M M₂ ≃ₗ[R] M₂ :=
 { to_fun := λ x, x.1.2,
   inv_fun := λ n, ⟨⟨0, n⟩, by tidy⟩,
-  map_add' := by simp,
-  map_smul' := by simp,
+  map_add' := by simv,
+  map_smul' := by simv,
   left_inv := by tidy,
   right_inv := by tidy, }
 
@@ -498,10 +498,10 @@ lemma fst_sup_snd : submodule.fst R M M₂ ⊔ submodule.snd R M M₂ = ⊤ :=
 begin
   rw eq_top_iff,
   rintro ⟨m, n⟩ -,
-  rw [show (m, n) = (m, 0) + (0, n), by simp],
+  rw [show (m, n) = (m, 0) + (0, n), by simv],
   apply submodule.add_mem (submodule.fst R M M₂ ⊔ submodule.snd R M M₂),
-  { exact submodule.mem_sup_left (submodule.mem_comap.mpr (by simp)), },
-  { exact submodule.mem_sup_right (submodule.mem_comap.mpr (by simp)), },
+  { exact submodule.mem_sup_left (submodule.mem_comap.mpr (by simv)), },
+  { exact submodule.mem_sup_right (submodule.mem_comap.mpr (by simv)), },
 end
 
 lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := by tidy
@@ -533,11 +533,11 @@ end
 
 lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
   p₁.prod p₂ = ⊥ ↔ p₁ = ⊥ ∧ p₂ = ⊥ :=
-by simp only [eq_bot_iff, prod_le_iff, (gc_map_comap _).le_iff_le, comap_bot, ker_inl, ker_inr]
+by simv only [eq_bot_iff, prod_le_iff, (gc_map_comap _).le_iff_le, comap_bot, ker_inl, ker_inr]
 
 lemma prod_eq_top_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
   p₁.prod p₂ = ⊤ ↔ p₁ = ⊤ ∧ p₂ = ⊤ :=
-by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, map_top, range_fst, range_snd]
+by simv only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, map_top, range_fst, range_snd]
 
 end submodule
 
@@ -570,7 +570,7 @@ lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 @[simp] lemma prod_apply (p) :
   e₁.prod e₂ p = (e₁ p.1, e₂ p.2) := rfl
 
-@[simp, norm_cast] lemma coe_prod :
+@[simv, norm_cast] lemma coe_prod :
   (e₁.prod e₂ : (M × M₃) →ₗ[R] (M₂ × M₄)) = (e₁ : M →ₗ[R] M₂).prod_map (e₂ : M₃ →ₗ[R] M₄) := rfl
 
 end
@@ -587,8 +587,8 @@ variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 protected def skew_prod (f : M →ₗ[R] M₄) :
   (M × M₃) ≃ₗ[R] M₂ × M₄ :=
 { inv_fun := λ p : M₂ × M₄, (e₁.symm p.1, e₂.symm (p.2 - f (e₁.symm p.1))),
-  left_inv := λ p, by simp,
-  right_inv := λ p, by simp,
+  left_inv := λ p, by simv,
+  right_inv := λ p, by simv,
   .. ((e₁ : M →ₗ[R] M₂).comp (linear_map.fst R M M₃)).prod
     ((e₂ : M₃ →ₗ[R] M₄).comp (linear_map.snd R M M₃) +
       f.comp (linear_map.fst R M M₃)) }
@@ -615,11 +615,11 @@ lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔
   range (prod f g) = (range f).prod (range g) :=
 begin
   refine le_antisymm (f.range_prod_le g) _,
-  simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod, exists_imp_distrib,
+  simv only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod, exists_imp_distrib,
     and_imp, prod.forall, pi.prod],
   rintros _ _ x rfl y rfl,
-  simp only [prod.mk.inj_iff, ← sub_mem_ker_iff],
-  have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },
+  simv only [prod.mk.inj_iff, ← sub_mem_ker_iff],
+  have : y - x ∈ ker f ⊔ ker g, { simv only [h, mem_top] },
   rcases mem_sup.1 this with ⟨x', hx', y', hy', H⟩,
   refine ⟨x' + x, _, _⟩,
   { rwa add_sub_cancel },
@@ -736,19 +736,19 @@ partial_sups (tailing f i)
 
 @[simp] lemma tailings_zero (f : M × N →ₗ[R] M) (i : injective f) :
   tailings f i 0 = tailing f i 0 :=
-by simp [tailings]
+by simv [tailings]
 
 @[simp] lemma tailings_succ (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
   tailings f i (n+1) = tailings f i n ⊔ tailing f i (n+1) :=
-by simp [tailings]
+by simv [tailings]
 
 lemma tailings_disjoint_tunnel (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) :
   disjoint (tailings f i n) (tunnel f i (n+1)).of_dual :=
 begin
   induction n with n ih,
-  { simp only [tailings_zero],
+  { simv only [tailings_zero],
     apply tailing_disjoint_tunnel_succ, },
-  { simp only [tailings_succ],
+  { simv only [tailings_succ],
     refine disjoint.disjoint_sup_left_of_disjoint_sup_right _ _,
     apply tailing_disjoint_tunnel_succ,
     apply disjoint.mono_right _ ih,

@@ -245,7 +245,7 @@ subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_equiv.of_injective_field
 lemma alg_hom.restrict_normal_comp [normal F E] :
   (ψ.restrict_normal E).comp (ϕ.restrict_normal E) = (ψ.comp ϕ).restrict_normal E :=
 alg_hom.ext (λ _, (algebra_map E K₃).injective
-  (by simp only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes]))
+  (by simv only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes]))
 
 /-- Restrict algebra isomorphism to a normal subfield -/
 def alg_equiv.restrict_normal [h : normal F E] : E ≃ₐ[F] E :=
@@ -258,7 +258,7 @@ alg_hom.restrict_normal' χ.to_alg_hom E
 lemma alg_equiv.restrict_normal_trans [normal F E] :
   (χ.trans ω).restrict_normal E = (χ.restrict_normal E).trans (ω.restrict_normal E) :=
 alg_equiv.ext (λ _, (algebra_map E K₃).injective
-(by simp only [alg_equiv.trans_apply, alg_equiv.restrict_normal_commutes]))
+(by simv only [alg_equiv.trans_apply, alg_equiv.restrict_normal_commutes]))
 
 
 /-- Restriction to an normal subfield as a group homomorphism -/
@@ -274,14 +274,14 @@ variables (F K₁ E)
   inv_fun := λ σ, (is_scalar_tower.to_alg_hom F E K₁).comp σ.to_alg_hom,
   left_inv := λ σ, begin
     ext,
-    simp[alg_hom.restrict_normal'],
+    simv[alg_hom.restrict_normal'],
   end,
   right_inv := λ σ, begin
     ext,
-    simp only [alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
+    simv only [alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
     apply no_zero_smul_divisors.algebra_map_injective E K₁,
     rw alg_hom.restrict_normal_commutes,
-    simp,
+    simv,
   end }
 
 

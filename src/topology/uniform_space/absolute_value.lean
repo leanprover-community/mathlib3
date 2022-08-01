@@ -67,9 +67,9 @@ begin
   { rw infi_subtype at this,
     exact this },
   rw mem_infi_of_directed,
-  { simp [subset_def] },
+  { simv [subset_def] },
   { rintros ⟨r, hr⟩ ⟨p, hp⟩,
-    exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
+    exact ⟨⟨min r p, lt_min hr hp⟩, by simv [lt_min_iff, (≥)] {contextual := tt}⟩, },
 end
 
 end is_absolute_value

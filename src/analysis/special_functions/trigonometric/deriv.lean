@@ -29,10 +29,10 @@ namespace complex
 /-- The complex sine function is everywhere strictly differentiable, with the derivative `cos x`. -/
 lemma has_strict_deriv_at_sin (x : ℂ) : has_strict_deriv_at sin (cos x) x :=
 begin
-  simp only [cos, div_eq_mul_inv],
+  simv only [cos, div_eq_mul_inv],
   convert ((((has_strict_deriv_at_id x).neg.mul_const I).cexp.sub
     ((has_strict_deriv_at_id x).mul_const I).cexp).mul_const I).mul_const (2:ℂ)⁻¹,
-  simp only [function.comp, id],
+  simv only [function.comp, id],
   rw [sub_mul, mul_assoc, mul_assoc, I_mul_I, neg_one_mul, neg_neg, mul_one, one_mul, mul_assoc,
       I_mul_I, mul_neg_one, sub_neg_eq_add, add_comm]
 end
@@ -58,10 +58,10 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 `-sin x`. -/
 lemma has_strict_deriv_at_cos (x : ℂ) : has_strict_deriv_at cos (-sin x) x :=
 begin
-  simp only [sin, div_eq_mul_inv, neg_mul_eq_neg_mul],
+  simv only [sin, div_eq_mul_inv, neg_mul_eq_neg_mul],
   convert (((has_strict_deriv_at_id x).mul_const I).cexp.add
     ((has_strict_deriv_at_id x).neg.mul_const I).cexp).mul_const (2:ℂ)⁻¹,
-  simp only [function.comp, id],
+  simv only [function.comp, id],
   ring
 end
 
@@ -89,7 +89,7 @@ funext $ λ x, deriv_cos
 `cosh x`. -/
 lemma has_strict_deriv_at_sinh (x : ℂ) : has_strict_deriv_at sinh (cosh x) x :=
 begin
-  simp only [cosh, div_eq_mul_inv],
+  simv only [cosh, div_eq_mul_inv],
   convert ((has_strict_deriv_at_exp x).sub (has_strict_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
   rw [id, mul_neg_one, sub_eq_add_neg, neg_neg]
 end
@@ -115,7 +115,7 @@ funext $ λ x, (has_deriv_at_sinh x).deriv
 derivative `sinh x`. -/
 lemma has_strict_deriv_at_cosh (x : ℂ) : has_strict_deriv_at cosh (sinh x) x :=
 begin
-  simp only [sinh, div_eq_mul_inv],
+  simv only [sinh, div_eq_mul_inv],
   convert ((has_strict_deriv_at_exp x).add (has_strict_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
   rw [id, mul_neg_one, sub_eq_add_neg]
 end
@@ -579,14 +579,14 @@ cosh_abs x ▸ cosh_abs y ▸ cosh_strict_mono_on.le_iff_le (_root_.abs_nonneg x
 lt_iff_lt_of_le_iff_le cosh_le_cosh
 
 @[simp] lemma one_le_cosh (x : ℝ) : 1 ≤ cosh x :=
-cosh_zero ▸ cosh_le_cosh.2 (by simp only [_root_.abs_zero, _root_.abs_nonneg])
+cosh_zero ▸ cosh_le_cosh.2 (by simv only [_root_.abs_zero, _root_.abs_nonneg])
 
 @[simp] lemma one_lt_cosh : 1 < cosh x ↔ x ≠ 0 :=
-cosh_zero ▸ cosh_lt_cosh.trans (by simp only [_root_.abs_zero, abs_pos])
+cosh_zero ▸ cosh_lt_cosh.trans (by simv only [_root_.abs_zero, abs_pos])
 
 lemma sinh_sub_id_strict_mono : strict_mono (λ x, sinh x - x) :=
 begin
-  refine strict_mono_of_odd_strict_mono_on_nonneg (λ x, by simp) _,
+  refine strict_mono_of_odd_strict_mono_on_nonneg (λ x, by simv) _,
   refine (convex_Ici _).strict_mono_on_of_deriv_pos _ (λ x hx, _),
   { exact (continuous_sinh.sub continuous_id).continuous_on },
   { rw [interior_Ici, mem_Ioi] at hx,
@@ -595,11 +595,11 @@ begin
 end
 
 @[simp] lemma self_le_sinh_iff : x ≤ sinh x ↔ 0 ≤ x :=
-calc x ≤ sinh x ↔ sinh 0 - 0 ≤ sinh x - x : by simp
+calc x ≤ sinh x ↔ sinh 0 - 0 ≤ sinh x - x : by simv
 ... ↔ 0 ≤ x : sinh_sub_id_strict_mono.le_iff_le
 
 @[simp] lemma sinh_le_self_iff : sinh x ≤ x ↔ x ≤ 0 :=
-calc sinh x ≤ x ↔ sinh x - x ≤ sinh 0 - 0 : by simp
+calc sinh x ≤ x ↔ sinh x - x ≤ sinh 0 - 0 : by simv
 ... ↔ x ≤ 0 : sinh_sub_id_strict_mono.le_iff_le
 
 @[simp] lemma self_lt_sinh_iff : x < sinh x ↔ 0 < x :=

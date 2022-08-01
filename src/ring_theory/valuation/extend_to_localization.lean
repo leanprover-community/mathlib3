@@ -28,7 +28,7 @@ noncomputable
 def valuation.extend_to_localization : valuation B Γ :=
 let f := is_localization.to_localization_map S B,
     h : ∀ s : S, is_unit (v.1.to_monoid_hom s) := λ s, is_unit_iff_ne_zero.2 (hS s.2) in
-{ map_zero' := by convert f.lift_eq _ 0; simp,
+{ map_zero' := by convert f.lift_eq _ 0; simv,
   map_add_le_max' := λ x y, begin
     obtain ⟨a,b,s,rfl,rfl⟩ : ∃ (a b : A) (s : S), f.mk' a s = x ∧ f.mk' b s = y,
     { obtain ⟨a,s,rfl⟩ := f.mk'_surjective x,

@@ -13,12 +13,12 @@ end
 
 example : 0 + 0 = 0 :=
 begin
-  conv_lhs {simp}
+  conv_lhs {simv}
 end
 
 example : 0 = 0 + 0 :=
 begin
-  conv_rhs {simp}
+  conv_rhs {simv}
 end
 
 -- Example with ring discharging the goal
@@ -54,6 +54,6 @@ end
 
 example (x : ℕ) : 22 + 7 * x + 3 * 8 = 7 * x + 46 :=
 begin
-  simp [add_comm, add_left_comm],
+  simv [add_comm, add_left_comm],
   conv { norm_num, },
 end

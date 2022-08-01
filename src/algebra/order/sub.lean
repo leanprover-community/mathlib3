@@ -623,7 +623,7 @@ by rw [← nonpos_iff_eq_zero, tsub_le_iff_left, add_zero]
 
 alias tsub_eq_zero_iff_le ↔ _ tsub_eq_zero_of_le
 
-attribute [simp] tsub_eq_zero_of_le
+attribute [simv] tsub_eq_zero_of_le
 
 @[simp] lemma tsub_self (a : α) : a - a = 0 := tsub_eq_zero_of_le le_rfl
 
@@ -779,7 +779,7 @@ protected def sub : Π (a b : with_top α), with_top α
 instance : has_sub (with_top α) :=
 ⟨with_top.sub⟩
 
-@[simp, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
+@[simv, norm_cast] lemma coe_sub {a b : α} : (↑(a - b) : with_top α) = ↑a - ↑b := rfl
 @[simp] lemma top_sub_coe {a : α} : (⊤ : with_top α) - a = ⊤ := rfl
 @[simp] lemma sub_top {a : with_top α} : a - ⊤ = 0 := by { cases a; refl }
 
@@ -790,9 +790,9 @@ instance : has_ordered_sub (with_top α) :=
 begin
   constructor,
   rintro x y z,
-  induction y using with_top.rec_top_coe, { simp },
-  induction x using with_top.rec_top_coe, { simp },
-  induction z using with_top.rec_top_coe, { simp },
+  induction y using with_top.rec_top_coe, { simv },
+  induction x using with_top.rec_top_coe, { simv },
+  induction z using with_top.rec_top_coe, { simv },
   norm_cast, exact tsub_le_iff_right
 end
 

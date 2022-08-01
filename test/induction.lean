@@ -61,7 +61,7 @@ example (k) : 0 + k = k :=
 begin
   induction' k,
   { refl },
-  { simp }
+  { simv }
 end
 
 example {k} (fk : Fin k) : Fin (k + 1) :=
@@ -210,7 +210,7 @@ end
 example {n m : ℕ} : n + m = m + n :=
 begin
   induction' m,
-  case zero { simp },
+  case zero { simv },
   case succ : k IH {
     guard_hyp k : ℕ,
     guard_hyp n : ℕ,
@@ -230,7 +230,7 @@ begin
     cases' m,
     { cases' h },
     { rw @ih m,
-      simp only [nat.succ_eq_add_one] at h,
+      simv only [nat.succ_eq_add_one] at h,
       replace h : n + n + 2 = m + m + 2 := by linarith,
       injections } }
 end
@@ -240,7 +240,7 @@ end
 example {n m : ℕ} : n + m = m + n :=
 begin
   induction' m fixing n,
-  case zero { simp },
+  case zero { simv },
   case succ : k IH {
     guard_hyp k : ℕ,
     guard_hyp n : ℕ,
@@ -254,7 +254,7 @@ end
 example {n m k : ℕ} (h : n + m = k) : n + m = k :=
 begin
   induction' n fixing *,
-  case zero { simp [*] },
+  case zero { simv [*] },
   case succ : n IH {
     guard_hyp n : ℕ,
     guard_hyp m : ℕ,
@@ -272,7 +272,7 @@ end
 example {n m k : ℕ} (h : n + m = k) : n + m = k :=
 begin
   induction' n generalizing k,
-  case zero { simp [*] },
+  case zero { simv [*] },
   case succ : n IH {
     guard_hyp n : ℕ,
     guard_hyp m : ℕ,
@@ -290,7 +290,7 @@ end
 example (n m k : ℕ) : m + k = k + m :=
 begin
   induction' m,
-  case zero { simp },
+  case zero { simv },
   case succ {
     guard_hyp ih : ∀ k, m + k = k + m,
     -- k was generalised because this makes the IH more general.
@@ -324,10 +324,10 @@ begin
   cases t,
   induction' k,
   { refl },
-  { simp },
+  { simv },
   induction' k,
   { refl },
-  { simp }
+  { simv }
 end
 
 -- The type of the induction premise can be a complex expression so long as it
@@ -336,7 +336,7 @@ example (n) : 0 + n = n :=
 begin
   let T := ℕ,
   change T at n,
-  induction' n; simp
+  induction' n; simv
 end
 
 -- Fail if the type of the induction premise is not an inductive type
@@ -727,12 +727,12 @@ have accufact_eq_fact_mul : ∀m a, accufact a m = nat.factorial m * a :=
     intros m a,
     induction' m,
     case zero {
-      simp [nat.factorial, accufact] },
+      simv [nat.factorial, accufact] },
     case succ {
-      simp [nat.factorial, accufact, ih, nat.succ_eq_add_one],
+      simv [nat.factorial, accufact, ih, nat.succ_eq_add_one],
       cc }
   end,
-by simp [accufact_eq_fact_mul n 1]
+by simv [accufact_eq_fact_mul n 1]
 
 
 /- Substitution -/
@@ -937,7 +937,7 @@ begin
     case zero {
       linarith },
     case succ {
-      simp [nat.succ_eq_add_one] at *,
+      simv [nat.succ_eq_add_one] at *,
       linarith } }
 end
 
@@ -1258,12 +1258,12 @@ lemma big_step_while_true_iff {b : state → Prop} {S s u}
     (hcond : b s) :
   (stmt.while b S, s) ⟹ u ↔
   (∃t, (S, s) ⟹ t ∧ (stmt.while b S, t) ⟹ u) :=
-by rw big_step_while_iff; simp [hcond]
+by rw big_step_while_iff; simv [hcond]
 
 @[simp] lemma big_step_while_false_iff {b : state → Prop}
     {S s t} (hcond : ¬ b s) :
   (stmt.while b S, s) ⟹ t ↔ t = s :=
-by rw big_step_while_iff; simp [hcond]
+by rw big_step_while_iff; simv [hcond]
 
 
 lemma small_step_final (S s) :
@@ -1271,16 +1271,16 @@ lemma small_step_final (S s) :
 begin
   induction' S,
   case skip {
-    simp,
+    simv,
     intros T t hstep,
     cases' hstep },
   case assign : x a {
-    simp,
+    simv,
     apply exists.intro stmt.skip,
     apply exists.intro (s{x ↦ a s}),
     exact small_step.assign },
   case seq : S T ihS ihT {
-    simp,
+    simv,
     cases' classical.em (S = stmt.skip),
     case inl {
       rw h,
@@ -1288,14 +1288,14 @@ begin
       apply exists.intro s,
       exact small_step.seq_skip },
     case inr {
-      simp [h, not_forall, not_not] at ihS,
+      simv [h, not_forall, not_not] at ihS,
       cases' ihS s with S' hS',
       cases' hS' with s' hs',
       apply exists.intro (S' ;; T),
       apply exists.intro s',
       exact small_step.seq_step hs' } },
   case ite : b S T ihS ihT {
-    simp,
+    simv,
     cases' classical.em (b s),
     case inl {
       apply exists.intro S,
@@ -1306,7 +1306,7 @@ begin
       apply exists.intro s,
       exact small_step.ite_false h } },
   case while : b S ih {
-    simp,
+    simv,
     apply exists.intro (stmt.ite b (S ;; stmt.while b S) stmt.skip),
     apply exists.intro s,
     exact small_step.while }
@@ -1446,7 +1446,7 @@ lemma big_step_of_small_step_of_big_step {S₀ S₁ s₀ s₁ s₂}
   (S₁, s₁) ⟹ s₂ → (S₀, s₀) ⟹ s₂ :=
 begin
   induction' h₁;
-    simp [*, big_step_while_true_iff, or_imp_distrib] {contextual := tt},
+    simv [*, big_step_while_true_iff, or_imp_distrib] {contextual := tt},
   case seq_step {
     intros u hS' hT,
     apply exists.intro u,

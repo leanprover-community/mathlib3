@@ -54,14 +54,14 @@ noncomputable def of_prenndist (d : X → X → ℝ≥0) (dist_self : ∀ x, d x
   pseudo_metric_space X :=
 { dist := λ x y, ↑(⨅ l : list X, ((x :: l).zip_with d (l ++ [y])).sum : ℝ≥0),
   dist_self := λ x, (nnreal.coe_eq_zero _).2 $ nonpos_iff_eq_zero.1 $
-    (cinfi_le (order_bot.bdd_below _) []).trans_eq $ by simp [dist_self],
+    (cinfi_le (order_bot.bdd_below _) []).trans_eq $ by simv [dist_self],
   dist_comm := λ x y, nnreal.coe_eq.2 $
     begin
       refine reverse_surjective.infi_congr _ (λ l, _),
       rw [← sum_reverse, zip_with_distrib_reverse, reverse_append, reverse_reverse,
         reverse_singleton, singleton_append, reverse_cons, reverse_reverse,
         zip_with_comm _ dist_comm],
-      simp only [length, length_append]
+      simv only [length, length_append]
     end,
   dist_triangle := λ x y z,
     begin
@@ -86,7 +86,7 @@ lemma dist_of_prenndist_le (d : X → X → ℝ≥0) (dist_self : ∀ x, d x x =
   (dist_comm : ∀ x y, d x y = d y x) (x y : X) :
   @dist X (@pseudo_metric_space.to_has_dist X
     (pseudo_metric_space.of_prenndist d dist_self dist_comm)) x y ≤ d x y :=
-nnreal.coe_le_coe.2 $ (cinfi_le (order_bot.bdd_below _) []).trans_eq $ by simp
+nnreal.coe_le_coe.2 $ (cinfi_le (order_bot.bdd_below _) []).trans_eq $ by simv
 
 /-- Consider a function `d : X → X → ℝ≥0` such that `d x x = 0` and `d x y = d y x` for all `x`,
 `y`. Let `dist` be the largest pseudometric distance such that `dist x y ≤ d x y`, see
@@ -112,15 +112,15 @@ begin
     simpa only [*, max_eq_right, mul_zero] using hd a b c c },
   haveI : is_trans X (λ x y, d x y = 0) := ⟨hd₀_trans⟩,
   induction hn : length l using nat.strong_induction_on with n ihn generalizing x y l,
-  simp only at ihn, subst n,
+  simv only at ihn, subst n,
   set L := zip_with d (x :: l) (l ++ [y]),
-  have hL_len : length L = length l + 1, by simp,
-  cases eq_or_ne (d x y) 0 with hd₀ hd₀, { simp only [hd₀, zero_le] },
+  have hL_len : length L = length l + 1, by simv,
+  cases eq_or_ne (d x y) 0 with hd₀ hd₀, { simv only [hd₀, zero_le] },
   suffices : ∃ z z' : X, d x z ≤ L.sum ∧ d z z' ≤ L.sum ∧ d z' y ≤ L.sum,
   { rcases this with ⟨z, z', hxz, hzz', hz'y⟩,
     exact (hd x z z' y).trans (mul_le_mul_left' (max_le hxz (max_le hzz' hz'y)) _) },
   set s : set ℕ := {m : ℕ | 2 * (take m L).sum ≤ L.sum},
-  have hs₀ : 0 ∈ s, by simp [s],
+  have hs₀ : 0 ∈ s, by simv [s],
   have hsne : s.nonempty, from ⟨0, hs₀⟩,
   obtain ⟨M, hMl, hMs⟩ : ∃ M ≤ length l, is_greatest s M,
   { have hs_ub : length l ∈ upper_bounds s,
@@ -129,7 +129,7 @@ begin
       intro hLm,
       rw [mem_set_of_eq, take_all_of_le hLm, two_mul, add_le_iff_nonpos_left, nonpos_iff_eq_zero,
         sum_eq_zero_iff, ← all₂_iff_forall, all₂_zip_with, ← chain_append_singleton_iff_forall₂]
-        at hm; [skip, by simp],
+        at hm; [skip, by simv],
       exact hd₀ (hm.rel (mem_append.2 $ or.inr $ mem_singleton_self _)) },
     have hs_bdd : bdd_above s, from ⟨length l, hs_ub⟩,
     exact ⟨Sup s, cSup_le hsne hs_ub, ⟨nat.Sup_mem hsne hs_bdd, λ k, le_cSup hs_bdd⟩⟩ },
@@ -137,10 +137,10 @@ begin
   have hM_ltx : M < length (x :: l), from lt_length_left_of_zip_with hM_lt,
   have hM_lty : M < length (l ++ [y]), from lt_length_right_of_zip_with hM_lt,
   refine ⟨(x :: l).nth_le M hM_ltx, (l ++ [y]).nth_le M hM_lty, _, _, _⟩,
-  { cases M, { simp [dist_self] },
+  { cases M, { simv [dist_self] },
     rw nat.succ_le_iff at hMl,
     have hMl' : length (take M l) = M, from (length_take _ _).trans (min_eq_left hMl.le),
-    simp only [nth_le],
+    simv only [nth_le],
     refine (ihn _ hMl _ _ _ hMl').trans _,
     convert hMs.1.out,
     rw [zip_with_distrib_take, take, take_succ, nth_append hMl, nth_le_nth hMl,
@@ -149,7 +149,7 @@ begin
   { refine single_le_sum (λ x hx, zero_le x) _ (mem_iff_nth_le.2 ⟨M, hM_lt, _⟩),
     apply nth_le_zip_with },
   { rcases hMl.eq_or_lt with rfl|hMl,
-    { simp only [nth_le_append_right le_rfl, sub_self, nth_le_singleton, dist_self, zero_le] },
+    { simv only [nth_le_append_right le_rfl, sub_self, nth_le_singleton, dist_self, zero_le] },
     rw [nth_le_append _ hMl],
     have hlen : length (drop (M + 1) l) = length l - (M + 1), from length_drop _ _,
     have hlen_lt : length l - (M + 1) < length l, from nat.sub_lt_of_pos_le _ _ M.succ_pos hMl,
@@ -192,13 +192,13 @@ begin
   have hd₀ : ∀ {x y}, d x y = 0 ↔ x ≈ y,
   { intros x y, dsimp only [d],
     refine iff.trans _ hB.to_has_basis.mem_separation_rel.symm,
-    simp only [true_implies_iff],
+    simv only [true_implies_iff],
     split_ifs with h,
-    { rw [← not_forall] at h, simp [h, pow_eq_zero_iff'] },
+    { rw [← not_forall] at h, simv [h, pow_eq_zero_iff'] },
     { simpa only [not_exists, not_not, eq_self_iff_true, true_iff] using h } },
   have hd_symm : ∀ x y, d x y = d y x,
   { intros x y, dsimp only [d],
-    simp only [@symmetric_rel.mk_mem_comm _ _ (hU_symm _) x y] },
+    simv only [@symmetric_rel.mk_mem_comm _ _ (hU_symm _) x y] },
   have hr : (1 / 2 : ℝ≥0) ∈ Ioo (0 : ℝ≥0) 1,
     from ⟨nnreal.half_pos one_pos, nnreal.half_lt_self one_ne_zero⟩,
   letI I := pseudo_metric_space.of_prenndist d (λ x, hd₀.2 (setoid.refl _)) hd_symm, 
@@ -206,17 +206,17 @@ begin
     from pseudo_metric_space.dist_of_prenndist_le _ _ _,
   have hle_d : ∀ {x y : X} {n : ℕ}, (1 / 2) ^ n ≤ d x y ↔ (x, y) ∉ U n,
   { intros x y n,
-    simp only [d], split_ifs with h,
+    simv only [d], split_ifs with h,
     { rw [(strict_anti_pow hr.1 hr.2).le_iff_le, nat.find_le_iff],
       exact ⟨λ ⟨m, hmn, hm⟩ hn, hm (hB.antitone hmn hn), λ h, ⟨n, le_rfl, h⟩⟩ },
     { push_neg at h,
-      simp only [h, not_true, (pow_pos hr.1 _).not_le] } },
+      simv only [h, not_true, (pow_pos hr.1 _).not_le] } },
   have hd_le : ∀ x y, ↑(d x y) ≤ 2 * dist x y,
   { refine pseudo_metric_space.le_two_mul_dist_of_prenndist _ _ _ (λ x₁ x₂ x₃ x₄, _),
     by_cases H : ∃ n, (x₁, x₄) ∉ U n,
     { refine (dif_pos H).trans_le _,
       rw [← nnreal.div_le_iff' two_ne_zero, ← mul_one_div (_ ^ _), ← pow_succ'],
-      simp only [le_max_iff, hle_d, ← not_and_distrib],
+      simv only [le_max_iff, hle_d, ← not_and_distrib],
       rintro ⟨h₁₂, h₂₃, h₃₄⟩,
       refine nat.find_spec H (hU_comp (lt_add_one $ nat.find H) _),
       exact ⟨x₂, h₁₂, x₃, h₂₃, h₃₄⟩ },

@@ -31,8 +31,8 @@ begin
   { intros u h,
     rw ← generate_from_Union_is_open,
     apply is_open_generate_from_of_mem,
-    simp only [set.mem_Union, set.mem_set_of_eq, is_open_induced_iff'],
-    exact ⟨⟨u, h⟩, {true}, is_open_singleton_true, by simp [set.preimage]⟩ },
+    simv only [set.mem_Union, set.mem_set_of_eq, is_open_induced_iff'],
+    exact ⟨⟨u, h⟩, {true}, is_open_singleton_true, by simv [set.preimage]⟩ },
 end
 
 variables (X : Type*) [topological_space X]

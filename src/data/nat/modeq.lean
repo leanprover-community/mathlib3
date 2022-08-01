@@ -108,7 +108,7 @@ h.add modeq.rfl
 protected theorem add_left_cancel (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) :
   c ≡ d [MOD n] :=
 begin
-  simp only [modeq_iff_dvd, int.coe_nat_add] at *,
+  simv only [modeq_iff_dvd, int.coe_nat_add] at *,
   rw add_sub_add_comm at h₂,
   convert _root_.dvd_sub h₂ h₁ using 1,
   rw add_sub_cancel',
@@ -126,7 +126,7 @@ modeq.rfl.add_right_cancel h
 
 protected theorem mul_left_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
   c * a ≡ c * b [MOD c * m] → a ≡ b [MOD m] :=
-by simp [modeq_iff_dvd, ←mul_sub, mul_dvd_mul_iff_left (by simp [hc] : (c : ℤ) ≠ 0)]
+by simv [modeq_iff_dvd, ←mul_sub, mul_dvd_mul_iff_left (by simv [hc] : (c : ℤ) ≠ 0)]
 
 protected theorem mul_left_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
   c * a ≡ c * b [MOD c * m] ↔ a ≡ b [MOD m] :=
@@ -134,7 +134,7 @@ protected theorem mul_left_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
 
 protected theorem mul_right_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
   a * c ≡ b * c [MOD m * c] → a ≡ b [MOD m] :=
-by simp [modeq_iff_dvd, ←sub_mul, mul_dvd_mul_iff_right (by simp [hc] : (c : ℤ) ≠ 0)]
+by simv [modeq_iff_dvd, ←sub_mul, mul_dvd_mul_iff_right (by simv [hc] : (c : ℤ) ≠ 0)]
 
 protected theorem mul_right_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
   a * c ≡ b * c [MOD m * c] ↔ a ≡ b [MOD m] :=
@@ -173,7 +173,7 @@ le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
 lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   d ∣ a ↔ d ∣ b :=
 begin
-  simp only [←modeq_zero_iff_dvd],
+  simv only [←modeq_zero_iff_dvd],
   replace h := h.modeq_of_dvd hdm,
   exact ⟨h.symm.trans, h.trans⟩,
 end
@@ -209,7 +209,7 @@ begin
     rw mul_sub,
     exact modeq_iff_dvd.mp h },
   show int.gcd (m/d) (c/d) = 1,
-  { simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
+  { simv only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
         nat.div_self (gcd_pos_of_pos_left c hm)] },
 end
 
@@ -232,8 +232,8 @@ lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * 
   a ≡ b [MOD m] :=
 begin
   rcases m.eq_zero_or_pos with rfl | hm,
-  { simp only [gcd_zero_left] at hmc,
-    simp only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
+  { simv only [gcd_zero_left] at hmc,
+    simv only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
     subst h },
   simpa [hmc] using modeq_cancel_left_div_gcd hm h
 end
@@ -322,7 +322,7 @@ end)
 (mod_modeq _ _).of_modeq_mul_left _
 
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
-if hb0 : b = 0 then by simp [hb0]
+if hb0 : b = 0 then by simv [hb0]
 else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
   ← nat.mul_right_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
   mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
@@ -332,7 +332,7 @@ lemma add_mod_add_ite (a b c : ℕ) :
   (a + b) % c + (if c ≤ a % c + b % c then c else 0) = a % c + b % c :=
 have (a + b) % c = (a % c + b % c) % c,
   from ((mod_modeq _ _).add $ mod_modeq _ _).symm,
-if hc0 : c = 0 then by simp [hc0]
+if hc0 : c = 0 then by simv [hc0]
 else
   begin
     rw this,
@@ -365,17 +365,17 @@ begin
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
   conv_lhs { rw ← add_mod_add_ite },
-  simp, ac_refl
+  simv, ac_refl
 end
 
 lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
   (a + b) / c = a / c + b / c :=
-if hc0 : c = 0 then by simp [hc0]
+if hc0 : c = 0 then by simv [hc0]
 else by rw [add_div (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
 
 protected lemma add_div_of_dvd_right {a b c : ℕ} (hca : c ∣ a) :
   (a + b) / c = a / c + b / c :=
-if h : c = 0 then by simp [h] else add_div_eq_of_add_mod_lt begin
+if h : c = 0 then by simv [h] else add_div_eq_of_add_mod_lt begin
   rw [nat.mod_eq_zero_of_dvd hca, zero_add],
   exact nat.mod_lt _ (pos_iff_ne_zero.mpr h),
 end
@@ -389,22 +389,22 @@ lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0
 by rw [add_div hc0, if_pos hc]
 
 lemma add_div_le_add_div (a b c : ℕ) : a / c + b / c ≤ (a + b) / c :=
-if hc0 : c = 0 then by simp [hc0]
+if hc0 : c = 0 then by simv [hc0]
 else by rw [nat.add_div (nat.pos_of_ne_zero hc0)]; exact nat.le_add_right _ _
 
 lemma le_mod_add_mod_of_dvd_add_of_not_dvd {a b c : ℕ} (h : c ∣ a + b) (ha : ¬ c ∣ a) :
   c ≤ a % c + b % c :=
 by_contradiction $ λ hc,
   have (a + b) % c = a % c + b % c, from add_mod_of_add_mod_lt (lt_of_not_ge hc),
-  by simp [dvd_iff_mod_eq_zero, *] at *
+  by simv [dvd_iff_mod_eq_zero, *] at *
 
 lemma odd_mul_odd {n m : ℕ} : n % 2 = 1 → m % 2 = 1 → (n * m) % 2 = 1 :=
 by simpa [nat.modeq] using @modeq.mul 2 n 1 m 1
 
 lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
-have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
-have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
+have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simv * at *),
+have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simv * at *),
 (nat.mul_right_inj zero_lt_two).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
@@ -432,7 +432,7 @@ variable {α : Type*}
 lemma nth_rotate : ∀ {l : list α} {n m : ℕ} (hml : m < l.length),
   (l.rotate n).nth m = l.nth ((m + n) % l.length)
 | []     n     m hml := (nat.not_lt_zero _ hml).elim
-| l      0     m hml := by simp [nat.mod_eq_of_lt hml]
+| l      0     m hml := by simv [nat.mod_eq_of_lt hml]
 | (a::l) (n+1) m hml :=
 have h₃ : m < list.length (l ++ [a]), by simpa using hml,
 (lt_or_eq_of_le (nat.le_of_lt_succ $ nat.mod_lt (m + n)
@@ -445,33 +445,33 @@ have h₃ : m < list.length (l ++ [a]), by simpa using hml,
         add_assoc m n 1 ▸ nat.modeq.add_right 1 (nat.mod_mod _ _).symm
     ... = (m + n) % (l.length + 1) + 1 : nat.mod_eq_of_lt (nat.succ_lt_succ hml'),
   have h₂ : (m + n) % (l ++ [a]).length < l.length, by simpa [nat.add_one] using hml',
-  by rw [list.rotate_cons_succ, nth_rotate h₃, list.nth_append h₂, h₁, list.nth]; simp)
+  by rw [list.rotate_cons_succ, nth_rotate h₃, list.nth_append h₂, h₁, list.nth]; simv)
 (λ hml',
   have h₁ : (m + (n + 1)) % (l.length + 1) = 0,
     from calc (m + (n + 1)) % (l.length + 1) = (l.length + 1) % (l.length + 1) :
       add_assoc m n 1 ▸ nat.modeq.add_right 1
         (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm)
-    ... = 0 : by simp,
+    ... = 0 : by simv,
   by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
     list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
 
 lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
   (∀ n, l.rotate n = l) ↔ ∃ a, l = list.repeat a l.length
-| []     := ⟨λ h, nonempty.elim hα (λ a, ⟨a, by simp⟩), by simp⟩
+| []     := ⟨λ h, nonempty.elim hα (λ a, ⟨a, by simv⟩), by simv⟩
 | (a::l) :=
-⟨λ h, ⟨a, list.ext_le (by simp) $ λ n hn h₁,
+⟨λ h, ⟨a, list.ext_le (by simv) $ λ n hn h₁,
   begin
     rw [← option.some_inj, ← list.nth_le_nth],
     conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
     rw [nth_rotate hn, add_tsub_cancel_of_le (le_of_lt hn),
       nat.mod_self, nth_le_repeat], refl
   end⟩,
-  λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)
+  λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simv)
     (λ m hm h,
       have hm' : (m + n) % (list.repeat a (list.length (a :: l))).length < list.length (a :: l),
         by rw list.length_repeat; exact nat.mod_lt _ (nat.succ_pos _),
       by rw [nth_le_repeat, ← option.some_inj, ← list.nth_le_nth, nth_rotate h, list.nth_le_nth,
-        nth_le_repeat]; simp * at *)⟩
+        nth_le_repeat]; simv * at *)⟩
 
 lemma rotate_repeat (a : α) (n : ℕ) (k : ℕ) :
   (list.repeat a n).rotate k = list.repeat a n :=

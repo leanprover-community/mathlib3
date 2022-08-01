@@ -48,51 +48,51 @@ variables [has_smul R ℝ]
 instance : has_smul R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
-lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
-lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
+lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simv [(•)]
+lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simv [(•)]
 
 @[simp] lemma real_smul {x : ℝ} {z : ℂ} : x • z = x * z := rfl
 
 end
 
 instance [has_smul R ℝ] [has_smul S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
-{ smul_comm := λ r s x, by ext; simp [smul_re, smul_im, smul_comm] }
+{ smul_comm := λ r s x, by ext; simv [smul_re, smul_im, smul_comm] }
 
 instance [has_smul R S] [has_smul R ℝ] [has_smul S ℝ] [is_scalar_tower R S ℝ] :
   is_scalar_tower R S ℂ :=
-{ smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
+{ smul_assoc := λ r s x, by ext; simv [smul_re, smul_im, smul_assoc] }
 
 instance [has_smul R ℝ] [has_smul Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
   is_central_scalar R ℂ :=
-{ op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
+{ op_smul_eq_smul := λ r x, by ext; simv [smul_re, smul_im, op_smul_eq_smul] }
 
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
-{ one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
-  mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
+{ one_smul := λ x, by ext; simv [smul_re, smul_im, one_smul],
+  mul_smul := λ r s x, by ext; simv [smul_re, smul_im, mul_smul] }
 
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
-{ smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
-  smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+{ smul_add := λ r x y, by ext; simv [smul_re, smul_im, smul_add],
+  smul_zero := λ r, by ext; simv [smul_re, smul_im, smul_zero] }
 
 instance [semiring R] [module R ℝ] : module R ℂ :=
-{ add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],
-  zero_smul := λ r, by ext; simp [smul_re, smul_im, zero_smul] }
+{ add_smul := λ r s x, by ext; simv [smul_re, smul_im, add_smul],
+  zero_smul := λ r, by ext; simv [smul_re, smul_im, zero_smul] }
 
 instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
 { smul := (•),
-  smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
-  commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
+  smul_def' := λ r x, by ext; simv [smul_re, smul_im, algebra.smul_def],
+  commutes' := λ r ⟨xr, xi⟩, by ext; simv [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
 instance : star_module ℝ ℂ :=
-⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩
+⟨λ r x, by simv only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩
 
 @[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
 section
 variables {A : Type*} [semiring A] [algebra ℝ A]
 
-/-- We need this lemma since `complex.coe_algebra_map` diverts the simp-normal form away from
+/-- We need this lemma since `complex.coe_algebra_map` diverts the simv-normal form away from
 `alg_hom.commutes`. -/
 @[simp] lemma _root_.alg_hom.map_coe_real_complex (f : ℂ →ₐ[ℝ] A) (x : ℝ) :
   f x = algebra_map ℝ A x :=
@@ -103,7 +103,7 @@ f.commutes x
 lemma alg_hom_ext ⦃f g : ℂ →ₐ[ℝ] A⦄ (h : f I = g I) : f = g :=
 begin
   ext ⟨x, y⟩,
-  simp only [mk_eq_add_mul_I, alg_hom.map_add, alg_hom.map_coe_real_complex, alg_hom.map_mul, h]
+  simv only [mk_eq_add_mul_I, alg_hom.map_add, alg_hom.map_coe_real_complex, alg_hom.map_mul, h]
 end
 
 end
@@ -112,7 +112,7 @@ section
 open_locale complex_order
 
 protected lemma ordered_smul : ordered_smul ℝ ℂ :=
-ordered_smul.mk' $ λ a b r hab hr, ⟨by simp [hr, hab.1.le], by simp [hab.2]⟩
+ordered_smul.mk' $ λ a b r hab hr, ⟨by simv [hr, hab.1.le], by simv [hab.2]⟩
 
 localized "attribute [instance] complex.ordered_smul" in complex_order
 
@@ -125,18 +125,18 @@ noncomputable def basis_one_I : basis (fin 2) ℝ ℂ :=
 basis.of_equiv_fun
 { to_fun := λ z, ![z.re, z.im],
   inv_fun := λ c, c 0 + c 1 • I,
-  left_inv := λ z, by simp,
-  right_inv := λ c, by { ext i, fin_cases i; simp },
-  map_add' := λ z z', by simp,
-  -- why does `simp` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
-  map_smul' := λ c z, by simp [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
+  left_inv := λ z, by simv,
+  right_inv := λ c, by { ext i, fin_cases i; simv },
+  map_add' := λ z z', by simv,
+  -- why does `simv` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
+  map_smul' := λ c z, by simv [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
 
 @[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 
 @[simp] lemma coe_basis_one_I : ⇑basis_one_I = ![1, I] :=
 funext $ λ i, basis.apply_eq_iff.mpr $ finsupp.ext $ λ j,
 by fin_cases i; fin_cases j;
-    simp only [coe_basis_one_I_repr, finsupp.single_eq_same, finsupp.single_eq_of_ne,
+    simv only [coe_basis_one_I_repr, finsupp.single_eq_same, finsupp.single_eq_of_ne,
               matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
               nat.one_ne_zero, fin.one_eq_zero_iff, fin.zero_eq_one_iff, ne.def, not_false_iff,
               one_re, one_im, I_re, I_im]
@@ -147,10 +147,10 @@ instance : finite_dimensional ℝ ℂ := of_fintype_basis basis_one_I
 by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
-by simp [← finrank_eq_dim, finrank_real_complex]
+by simv [← finrank_eq_dim, finrank_real_complex]
 
 lemma {u} dim_real_complex' : cardinal.lift.{u} (module.rank ℝ ℂ) = 2 :=
-by simp [← finrank_eq_dim, finrank_real_complex, bit0]
+by simv [← finrank_eq_dim, finrank_real_complex, bit0]
 
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
@@ -168,7 +168,7 @@ instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E]
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
 
-@[simp, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
+@[simv, norm_cast] lemma complex.coe_smul {E : Type*} [add_comm_group E] [module ℂ E]
   (x : ℝ) (y : E) :
   (x : ℂ) • y = x • y :=
 rfl
@@ -181,7 +181,7 @@ finite_dimensional.trans ℝ ℂ E
 lemma dim_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   module.rank ℝ E = 2 * module.rank ℂ E :=
 cardinal.lift_inj.1 $
-  by { rw [← dim_mul_dim' ℝ ℂ E, complex.dim_real_complex], simp [bit0] }
+  by { rw [← dim_mul_dim' ℝ ℂ E, complex.dim_real_complex], simv [bit0] }
 
 lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
@@ -201,7 +201,7 @@ open_locale complex_conjugate
 def re_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
   map_add' := add_re,
-  map_smul' := by simp, }
+  map_smul' := by simv, }
 
 @[simp] lemma re_lm_coe : ⇑re_lm = re := rfl
 
@@ -209,7 +209,7 @@ def re_lm : ℂ →ₗ[ℝ] ℝ :=
 def im_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
   map_add' := add_im,
-  map_smul' := by simp, }
+  map_smul' := by simv, }
 
 @[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
@@ -233,8 +233,8 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
   linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = !![1, 0; 0, -1] :=
 begin
   ext i j,
-  simp [linear_map.to_matrix_apply],
-  fin_cases i; fin_cases j; simp
+  simv [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simv
 end
 
 section lift
@@ -264,7 +264,7 @@ alg_hom.of_linear_map
 lemma lift_aux_apply (I' : A) (hI') (z : ℂ) :
  lift_aux I' hI' z = algebra_map ℝ A z.re + z.im • I' := rfl
 
-lemma lift_aux_apply_I (I' : A) (hI') : lift_aux I' hI' I = I' := by simp
+lemma lift_aux_apply_I (I' : A) (hI') : lift_aux I' hI' I = I' := by simv
 
 /-- A universal property of the complex numbers, providing a unique `ℂ →ₐ[ℝ] A` for every element
 of `A` which squares to `-1`.

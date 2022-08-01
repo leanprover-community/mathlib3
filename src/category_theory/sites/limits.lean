@@ -59,10 +59,10 @@ def multifork_evaluation_cone (F : K ⥤ Sheaf J D)
   { app := λ k, (presheaf.is_limit_of_is_sheaf J (F.obj k).1 W (F.obj k).2).lift $
       multifork.of_ι _ S.X (λ i, S.ι i ≫ (E.π.app k).app (op i.Y)) begin
         intros i,
-        simp only [category.assoc],
+        simv only [category.assoc],
         erw [← (E.π.app k).naturality, ← (E.π.app k).naturality],
         dsimp,
-        simp only [← category.assoc],
+        simv only [← category.assoc],
         congr' 1,
         apply S.condition,
       end,
@@ -140,7 +140,7 @@ instance (F : K ⥤ Sheaf J D) : creates_limit F (Sheaf_to_presheaf J D) :=
 creates_limit_of_reflects_iso $ λ E hE,
 { lifted_cone := ⟨⟨E.X, is_sheaf_of_is_limit _ _ hE⟩,
     ⟨λ t, ⟨E.π.app _⟩, λ u v e, Sheaf.hom.ext _ _ $ E.π.naturality _⟩⟩,
-  valid_lift := cones.ext (eq_to_iso rfl) $ λ j, by { dsimp, simp },
+  valid_lift := cones.ext (eq_to_iso rfl) $ λ j, by { dsimp, simv },
   makes_limit :=
   { lift := λ S, ⟨hE.lift ((Sheaf_to_presheaf J D).map_cone S)⟩,
     fac' := λ S j, by { ext1, apply hE.fac ((Sheaf_to_presheaf J D).map_cone S) j },

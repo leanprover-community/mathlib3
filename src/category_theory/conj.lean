@@ -43,16 +43,16 @@ rfl
 lemma hom_congr_comp {X Y Z X₁ Y₁ Z₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (γ : Z ≅ Z₁)
   (f : X ⟶ Y) (g : Y ⟶ Z) :
   α.hom_congr γ (f ≫ g) = α.hom_congr β f ≫ β.hom_congr γ g :=
-by simp
+by simv
 
 @[simp] lemma hom_congr_refl {X Y : C} (f : X ⟶ Y) :
   (iso.refl X).hom_congr (iso.refl Y) f = f :=
-by simp
+by simv
 
 @[simp] lemma hom_congr_trans {X₁ Y₁ X₂ Y₂ X₃ Y₃ : C}
   (α₁ : X₁ ≅ X₂) (β₁ : Y₁ ≅ Y₂) (α₂ : X₂ ≅ X₃) (β₂ : Y₂ ≅ Y₃) (f : X₁ ⟶ Y₁) :
   (α₁ ≪≫ α₂).hom_congr (β₁ ≪≫ β₂) f = (α₁.hom_congr β₁).trans (α₂.hom_congr β₂) f :=
-by simp
+by simv
 
 @[simp] lemma hom_congr_symm {X₁ Y₁ X₂ Y₂ : C} (α : X₁ ≅ X₂) (β : Y₁ ≅ Y₂) :
   (α.hom_congr β).symm = α.symm.hom_congr β.symm :=
@@ -102,7 +102,7 @@ by cases f; cases α; ext; refl
 
 @[simp] lemma trans_conj_Aut {Z : C} (β : Y ≅ Z) (f : Aut X) :
   (α ≪≫ β).conj_Aut f = β.conj_Aut (α.conj_Aut f) :=
-by simp only [conj_Aut_apply, iso.trans_symm, iso.trans_assoc]
+by simv only [conj_Aut_apply, iso.trans_symm, iso.trans_assoc]
 
 @[simp] lemma conj_Aut_mul (f g : Aut X) : α.conj_Aut (f * g) = α.conj_Aut f * α.conj_Aut g :=
 α.conj_Aut.map_mul f g
@@ -126,7 +126,7 @@ variables {C : Type u} [category.{v} C] {D : Type u₁} [category.{v₁} D] (F :
 
 lemma map_hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (f : X ⟶ Y) :
   F.map (iso.hom_congr α β f) = iso.hom_congr (F.map_iso α) (F.map_iso β) (F.map f) :=
-by simp
+by simv
 
 lemma map_conj {X Y : C} (α : X ≅ Y) (f : End X) :
   F.map (α.conj f) = (F.map_iso α).conj (F.map f) :=
@@ -134,8 +134,8 @@ map_hom_congr F α α f
 
 lemma map_conj_Aut (F : C ⥤ D) {X Y : C} (α : X ≅ Y) (f : Aut X) :
   F.map_iso (α.conj_Aut f) = (F.map_iso α).conj_Aut (F.map_iso f) :=
-by ext; simp only [map_iso_hom, iso.conj_Aut_hom, F.map_conj]
--- alternative proof: by simp only [iso.conj_Aut_apply, F.map_iso_trans, F.map_iso_symm]
+by ext; simv only [map_iso_hom, iso.conj_Aut_hom, F.map_conj]
+-- alternative proof: by simv only [iso.conj_Aut_apply, F.map_iso_trans, F.map_iso_symm]
 
 end functor
 end category_theory

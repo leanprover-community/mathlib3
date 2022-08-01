@@ -82,14 +82,14 @@ rfl
   to_affine_map (mk f f' h) = ⟨f, f', h⟩ :=
 rfl
 
-@[norm_cast, simp] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
+@[norm_cast, simv] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
 
 @[simp] lemma linear_to_affine_map (e : P₁ ≃ᵃ[k] P₂) : e.to_affine_map.linear = e.linear := rfl
 
 lemma to_affine_map_injective : injective (to_affine_map : (P₁ ≃ᵃ[k] P₂) → (P₁ →ᵃ[k] P₂)) :=
 begin
   rintros ⟨e, el, h⟩ ⟨e', el', h'⟩ H,
-  simp only [to_affine_map_mk, equiv.coe_inj, linear_equiv.to_linear_map_inj] at H,
+  simv only [to_affine_map_mk, equiv.coe_inj, linear_equiv.to_linear_map_inj] at H,
   congr,
   exacts [H.1, H.2]
 end
@@ -104,7 +104,7 @@ to_affine_map_injective $ affine_map.ext h
 lemma coe_fn_injective : @injective (P₁ ≃ᵃ[k] P₂) (P₁ → P₂) coe_fn :=
 λ e e' H, ext $ congr_fun H
 
-@[simp, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
+@[simv, norm_cast] lemma coe_fn_inj {e e' : P₁ ≃ᵃ[k] P₂} : (e : P₁ → P₂) = e' ↔ e = e' :=
 coe_fn_injective.eq_iff
 
 lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁ ≃ P₂)) :=
@@ -125,10 +125,10 @@ def mk' (e : P₁ → P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : 
   P₁ ≃ᵃ[k] P₂ :=
 { to_fun := e,
   inv_fun := λ q' : P₂, e'.symm (q' -ᵥ e p) +ᵥ p,
-  left_inv := λ p', by simp [h p'],
-  right_inv := λ q', by simp [h (e'.symm (q' -ᵥ e p) +ᵥ p)],
+  left_inv := λ p', by simv [h p'],
+  right_inv := λ q', by simv [h (e'.symm (q' -ᵥ e p) +ᵥ p)],
   linear := e',
-  map_vadd' := λ p' v, by { simp [h p', h (v +ᵥ p'), vadd_vsub_assoc, vadd_vadd] } }
+  map_vadd' := λ p' v, by { simv [h p', h (v +ᵥ p'), vadd_vsub_assoc, vadd_vadd] } }
 
 @[simp] lemma coe_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) : ⇑(mk' e e' p h) = e := rfl
 @[simp] lemma linear_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
@@ -201,7 +201,7 @@ include V₂ V₃
 @[trans] def trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : P₁ ≃ᵃ[k] P₃ :=
 { to_equiv := e.to_equiv.trans e'.to_equiv,
   linear := e.linear.trans e'.linear,
-  map_vadd' := λ p v, by simp only [linear_equiv.trans_apply, coe_to_equiv, (∘),
+  map_vadd' := λ p v, by simv only [linear_equiv.trans_apply, coe_to_equiv, (∘),
     equiv.coe_trans, map_vadd] }
 
 @[simp] lemma coe_trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : ⇑(e.trans e') = e' ∘ e := rfl
@@ -291,7 +291,7 @@ def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 { to_equiv := equiv.const_vsub p,
   linear := linear_equiv.neg k,
-  map_vadd' := λ p' v, by simp [vsub_vadd_eq_vsub_sub, neg_add_eq_sub] }
+  map_vadd' := λ p' v, by simv [vsub_vadd_eq_vsub_sub, neg_add_eq_sub] }
 
 @[simp] lemma coe_const_vsub (p : P₁) : ⇑(const_vsub k p) = (-ᵥ) p := rfl
 
@@ -437,6 +437,6 @@ variables {R' : Type*} [comm_ring R'] [module R' V₁]
 
 lemma homothety_neg_one_apply (c p : P₁) :
   homothety c (-1:R') p = point_reflection R' c p :=
-by simp [homothety_apply, point_reflection_apply]
+by simv [homothety_apply, point_reflection_apply]
 
 end affine_map

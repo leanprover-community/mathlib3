@@ -62,7 +62,7 @@ lemma homotopy_equiv.to_quasi_iso {W : Type*} [category W] [preadditive W]
   quasi_iso e.hom :=
 ⟨λ i, begin
   refine ⟨⟨(homology_functor W c i).map e.inv, _⟩⟩,
-  simp only [← functor.map_comp, ← (homology_functor W c i).map_id],
+  simv only [← functor.map_comp, ← (homology_functor W c i).map_id],
   split; apply homology_map_eq_of_homotopy,
   exacts [e.homotopy_hom_inv_id, e.homotopy_inv_hom_id],
 end⟩

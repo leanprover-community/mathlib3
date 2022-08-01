@@ -82,7 +82,7 @@ by rw [le_iff_lt_or_eq, h.lt_iff]
 lemma is_atom.Iic_eq (h : is_atom a) : set.Iic a = {⊥, a} := set.ext $ λ x, h.le_iff
 
 @[simp] lemma bot_covby_iff : ⊥ ⋖ a ↔ is_atom a :=
-by simp only [covby, bot_lt_iff_ne_bot, is_atom, not_imp_not]
+by simv only [covby, bot_lt_iff_ne_bot, is_atom, not_imp_not]
 
 alias bot_covby_iff ↔ covby.is_atom is_atom.bot_covby
 
@@ -259,7 +259,7 @@ variable [is_atomistic α]
 instance : is_atomic α :=
 ⟨λ b, by { rcases eq_Sup_atoms b with ⟨s, rfl, hs⟩,
   cases s.eq_empty_or_nonempty with h h,
-  { simp [h] },
+  { simv [h] },
   { exact or.intro_right _ ⟨h.some, hs _ h.some_spec, le_Sup h.some_spec⟩ } } ⟩
 
 end is_atomistic
@@ -301,7 +301,7 @@ variable [is_coatomistic α]
 instance : is_coatomic α :=
 ⟨λ b, by { rcases eq_Inf_coatoms b with ⟨s, rfl, hs⟩,
   cases s.eq_empty_or_nonempty with h h,
-  { simp [h] },
+  { simv [h] },
   { exact or.intro_right _ ⟨h.some, hs _ h.some_spec, Inf_le h.some_spec⟩ } } ⟩
 
 end is_coatomistic
@@ -343,19 +343,19 @@ is_simple_order_iff_is_simple_order_order_dual.1 (by apply_instance)
 protected def is_simple_order.preorder {α} [has_le α] [bounded_order α] [is_simple_order α] :
   preorder α :=
 { le := (≤),
-  le_refl := λ a, by rcases eq_bot_or_eq_top a with rfl|rfl; simp,
+  le_refl := λ a, by rcases eq_bot_or_eq_top a with rfl|rfl; simv,
   le_trans := λ a b c, begin
     rcases eq_bot_or_eq_top a with rfl|rfl,
-    { simp },
+    { simv },
     { rcases eq_bot_or_eq_top b with rfl|rfl,
-      { rcases eq_bot_or_eq_top c with rfl|rfl; simp },
-      { simp } }
+      { rcases eq_bot_or_eq_top c with rfl|rfl; simv },
+      { simv } }
   end }
 
 /-- A simple partial ordered `bounded_order` induces a linear order.
 This is not an instance to prevent loops. -/
 protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :=
-{ le_total := λ a b, by rcases eq_bot_or_eq_top a with rfl|rfl; simp,
+{ le_total := λ a b, by rcases eq_bot_or_eq_top a with rfl|rfl; simv,
   decidable_le := λ a b, if ha : a = ⊥ then is_true (ha.le.trans bot_le) else
     if hb : b = ⊤ then is_true (le_top.trans hb.ge) else
       is_false (λ H, hb (top_unique
@@ -397,7 +397,7 @@ protected def lattice {α} [decidable_eq α] [partial_order α] [bounded_order �
 /-- A lattice that is a `bounded_order` is a distributive lattice.
 This is not an instance to prevent loops -/
 protected def distrib_lattice : distrib_lattice α :=
-{ le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
+{ le_sup_inf := λ x y z, by { rcases eq_bot_or_eq_top x with rfl | rfl; simv },
   .. (infer_instance : lattice α) }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -419,17 +419,17 @@ variables [decidable_eq α] [partial_order α] [bounded_order α] [is_simple_ord
   α ≃ bool :=
 { to_fun := λ x, x = ⊤,
   inv_fun := λ x, cond x ⊤ ⊥,
-  left_inv := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simp [bot_ne_top] },
-  right_inv := λ x, by { cases x; simp [bot_ne_top] } }
+  left_inv := λ x, by { rcases (eq_bot_or_eq_top x) with rfl | rfl; simv [bot_ne_top] },
+  right_inv := λ x, by { cases x; simv [bot_ne_top] } }
 
 /-- Every simple lattice over a partial order is order-isomorphic to `bool`. -/
 def order_iso_bool : α ≃o bool :=
 { map_rel_iff' := λ a b, begin
     rcases (eq_bot_or_eq_top a) with rfl | rfl,
-    { simp [bot_ne_top] },
+    { simv [bot_ne_top] },
     { rcases (eq_bot_or_eq_top b) with rfl | rfl,
-      { simp [bot_ne_top.symm, bot_ne_top, bool.ff_lt_tt] },
-      { simp [bot_ne_top] } }
+      { simv [bot_ne_top.symm, bot_ne_top, bool.ff_lt_tt] },
+      { simv [bot_ne_top] } }
   end,
   ..equiv_bool }
 
@@ -445,15 +445,15 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
   sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
   sdiff_eq := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      simp [bot_ne_top, has_sdiff.sdiff, compl],
+      simv [bot_ne_top, has_sdiff.sdiff, compl],
   inf_compl_le_bot := λ x, begin
       rcases eq_bot_or_eq_top x with rfl | rfl,
-      { simp },
-      { simp only [top_inf_eq],
+      { simv },
+      { simv only [top_inf_eq],
         split_ifs with h h;
-        simp [h] }
+        simv [h] }
     end,
-  top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
+  top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simv,
   .. (show bounded_order α, by apply_instance),
   .. is_simple_order.distrib_lattice }
 
@@ -488,11 +488,11 @@ protected noncomputable def complete_lattice : complete_lattice α :=
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
 { infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
-    { simp only [bot_sup_eq, ← Inf_eq_infi], exact le_rfl },
-    { simp only [top_sup_eq, le_top] }, },
+    { simv only [bot_sup_eq, ← Inf_eq_infi], exact le_rfl },
+    { simv only [top_sup_eq, le_top] }, },
   inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
-    { simp only [bot_inf_eq, bot_le] },
-    { simp only [top_inf_eq, ← Sup_eq_supr], exact le_rfl } },
+    { simv only [bot_inf_eq, bot_le] },
+    { simv only [top_inf_eq, ← Sup_eq_supr], exact le_rfl } },
   .. is_simple_order.complete_lattice,
   .. is_simple_order.boolean_algebra }
 
@@ -518,7 +518,7 @@ lemma univ : (finset.univ : finset α) = {⊤, ⊥} :=
 begin
   change finset.map _ (finset.univ : finset bool) = _,
   rw fintype.univ_bool,
-  simp only [finset.map_insert, function.embedding.coe_fn_mk, finset.map_singleton],
+  simv only [finset.map_insert, function.embedding.coe_fn_mk, finset.map_singleton],
   refl,
 end
 

@@ -52,7 +52,7 @@ lemma id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
 /-- The composition of maps which preserve multiplication, also preserves multiplication. -/
 @[to_additive "The composition of addition preserving maps also preserves addition"]
 lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
-{ map_mul := λ x y, by simp only [function.comp, hf.map_mul, hg.map_mul] }
+{ map_mul := λ x y, by simv only [function.comp, hf.map_mul, hg.map_mul] }
 
 /-- A product of maps which preserve multiplication,
 preserves multiplication when the target is commutative. -/
@@ -61,7 +61,7 @@ is commutative."]
 lemma mul {α β} [semigroup α] [comm_semigroup β]
   {f g : α → β} (hf : is_mul_hom f) (hg : is_mul_hom g) :
   is_mul_hom (λ a, f a * g a) :=
-{ map_mul := λ a b, by simp only [hf.map_mul, hg.map_mul, mul_comm, mul_assoc, mul_left_comm] }
+{ map_mul := λ a b, by simv only [hf.map_mul, hg.map_mul, mul_comm, mul_assoc, mul_left_comm] }
 
 /-- The inverse of a map which preserves multiplication,
 preserves multiplication when the target is commutative. -/
@@ -97,7 +97,7 @@ def of {f : M → N} (h : is_monoid_hom f) : M →* N :=
   map_mul' := h.1.1 }
 
 variables {mM mN}
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_of {f : M → N} (hf : is_monoid_hom f) : ⇑ (monoid_hom.of hf) = f :=
 rfl
 

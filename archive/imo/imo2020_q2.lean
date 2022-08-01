@@ -33,7 +33,7 @@ begin
     mul_le_mul_of_nonneg_left hp (by linarith)
   ... = (a + 2 * b + 3 * c + 4 * d) * (a * a) + (a + 2 * b + 3 * c + 4 * d) * (b * b) +
         (a + 2 * b + 3 * c + 4 * d) * (c * c) + (a + 2 * b + 3 * c + 4 * d) * (d * d) :
-    by simp only [mul_add]
+    by simv only [mul_add]
   ... ≤ (a + 3 * b + 3 * c + 3 * d) * (a * a) + (3 * a + b + 3 * c + 3 * d) * (b * b) +
         (3 * a + 3 * b + c + 3 * d) * (c * c) + (3 * a + 3 * b + 3 * c + d) * (d * d) :
     by apply_rules [add_le_add]; refine mul_le_mul_of_nonneg_right _ (mul_self_nonneg _); linarith
@@ -42,5 +42,5 @@ begin
         (6 * a * b * c + 6 * a * b * d + 6 * a * c * d + 6 * b * c * d) :
     lt_add_of_pos_right _ (by apply_rules [add_pos, mul_pos, zero_lt_one]; linarith)
   ... = (a + b + c + d) ^ 3 : by ring
-  ... = 1 : by simp [h1]
+  ... = 1 : by simv [h1]
 end

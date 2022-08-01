@@ -48,5 +48,5 @@ lemma exists_bounded_mem_Icc_of_closed_of_le {X : Type*} [topological_space X] [
   ∃ f : X →ᵇ ℝ, eq_on f (const X a) s ∧ eq_on f (const X b) t ∧ ∀ x, f x ∈ Icc a b :=
 let ⟨f, hfs, hft, hf01⟩ := exists_bounded_zero_one_of_closed hs ht hd
 in ⟨bounded_continuous_function.const X a + (b - a) • f,
-  λ x hx, by simp [hfs hx], λ x hx, by simp [hft hx],
+  λ x hx, by simv [hfs hx], λ x hx, by simv [hft hx],
   λ x, ⟨by dsimp; nlinarith [(hf01 x).1], by dsimp; nlinarith [(hf01 x).2]⟩⟩

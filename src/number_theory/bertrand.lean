@@ -97,7 +97,7 @@ lemma bertrand_main_inequality {n : ℕ} (n_large : 512 ≤ n) :
   n * (2 * n) ^ sqrt (2 * n) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ← @cast_le ℝ,
-  simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ← real.rpow_nat_cast],
+  simv only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ← real.rpow_nat_cast],
   have n_pos : 0 < n := (dec_trivial : 0 < 512).trans_le n_large,
   have n2_pos : 1 ≤ 2 * n := mul_pos dec_trivial n_pos,
   refine trans (mul_le_mul _ _ _ _) (bertrand.real_main_inequality (by exact_mod_cast n_large)),

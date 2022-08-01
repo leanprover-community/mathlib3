@@ -46,7 +46,7 @@ pullback.fst
 
 lemma pullback_fst_eq_pullback_snd (F : walking_parallel_pair ⥤ C) :
   pullback_fst F = pullback.snd :=
-by convert pullback.condition =≫ limits.prod.fst; simp
+by convert pullback.condition =≫ limits.prod.fst; simv
 
 /-- Define the equalizing cone -/
 @[reducible]
@@ -55,7 +55,7 @@ cone.of_fork
   (fork.of_ι (pullback_fst F)
     (begin
       conv_rhs { rw pullback_fst_eq_pullback_snd, },
-      convert pullback.condition =≫ limits.prod.snd using 1; simp
+      convert pullback.condition =≫ limits.prod.snd using 1; simv
      end))
 
 /-- Show the equalizing cone is a limit -/
@@ -64,13 +64,13 @@ def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equali
   begin
     intro c, apply pullback.lift (c.π.app _) (c.π.app _),
     apply limit.hom_ext,
-    rintro (_ | _); simp
+    rintro (_ | _); simv
   end,
-  fac' := by rintros c (_ | _); simp,
+  fac' := by rintros c (_ | _); simv,
   uniq' :=
   begin
     intros c _ J,
-    have J0 := J walking_parallel_pair.zero, simp at J0,
+    have J0 := J walking_parallel_pair.zero, simv at J0,
     apply pullback.hom_ext,
     { rwa limit.lift_π },
     { erw [limit.lift_π, ← J0, pullback_fst_eq_pullback_snd] }
@@ -103,16 +103,16 @@ def preserves_equalizers_of_pullbacks_and_binary_products
     apply (map_is_limit_of_preserves_of_is_limit G _ _ (prod_is_prod _ _)).hom_ext,
     swap, apply_instance,
     rintro (_|_),
-    { simp only [category.assoc, ← G.map_comp, prod.lift_fst,
+    { simv only [category.assoc, ← G.map_comp, prod.lift_fst,
         binary_fan.π_app_left, binary_fan.mk_fst], },
-    { simp only [binary_fan.π_app_right, binary_fan.mk_snd,
+    { simv only [binary_fan.π_app_right, binary_fan.mk_snd,
         category.assoc, ← G.map_comp, prod.lift_snd],
       exact (c.π.naturality (walking_parallel_pair_hom.left)).symm.trans
         (c.π.naturality (walking_parallel_pair_hom.right)) },
   end,
   fac' := λ c j, begin
     rcases j with (_|_);
-      simp only [category.comp_id, preserves_pullback.iso_inv_fst, cone.of_fork_π, G.map_comp,
+      simv only [category.comp_id, preserves_pullback.iso_inv_fst, cone.of_fork_π, G.map_comp,
         preserves_pullback.iso_inv_fst_assoc, functor.map_cone_π_app, eq_to_hom_refl,
         category.assoc, fork.of_ι_π_app, pullback.lift_fst, pullback.lift_fst_assoc],
       exact (c.π.naturality (walking_parallel_pair_hom.left)).symm.trans (category.id_comp _)
@@ -121,7 +121,7 @@ def preserves_equalizers_of_pullbacks_and_binary_products
     rw iso.eq_comp_inv,
     have := h walking_parallel_pair.zero,
     dsimp [equalizer_cone] at this,
-    ext; simp only [preserves_pullback.iso_hom_snd,
+    ext; simv only [preserves_pullback.iso_hom_snd,
       category.assoc, preserves_pullback.iso_hom_fst, pullback.lift_fst, pullback.lift_snd,
       category.comp_id, ← pullback_fst_eq_pullback_snd, ← this],
   end }⟩
@@ -145,7 +145,7 @@ pushout.inl
 
 lemma pushout_inl_eq_pushout_inr (F : walking_parallel_pair ⥤ C) :
   pushout_inl F = pushout.inr :=
-by convert limits.coprod.inl ≫= pushout.condition; simp
+by convert limits.coprod.inl ≫= pushout.condition; simv
 
 /-- Define the equalizing cocone -/
 @[reducible]
@@ -154,7 +154,7 @@ cocone.of_cofork
   (cofork.of_π (pushout_inl F)
     (begin
       conv_rhs { rw pushout_inl_eq_pushout_inr, },
-      convert limits.coprod.inr ≫= pushout.condition using 1; simp
+      convert limits.coprod.inr ≫= pushout.condition using 1; simv
      end))
 
 /-- Show the equalizing cocone is a colimit -/
@@ -164,9 +164,9 @@ def coequalizer_cocone_is_colimit (F : walking_parallel_pair ⥤ C) :
   begin
     intro c, apply pushout.desc (c.ι.app _) (c.ι.app _),
     apply colimit.hom_ext,
-    rintro (_ | _); simp
+    rintro (_ | _); simv
   end,
-  fac' := by rintros c (_ | _); simp,
+  fac' := by rintros c (_ | _); simv,
   uniq' :=
   begin
     intros c _ J,
@@ -204,15 +204,15 @@ def preserves_coequalizers_of_pushouts_and_binary_coproducts
     apply (map_is_colimit_of_preserves_of_is_colimit G _ _ (coprod_is_coprod _ _)).hom_ext,
     swap, apply_instance,
     rintro (_|_),
-    { simp only [binary_cofan.ι_app_left, binary_cofan.mk_inl, category.assoc, ← G.map_comp_assoc,
+    { simv only [binary_cofan.ι_app_left, binary_cofan.mk_inl, category.assoc, ← G.map_comp_assoc,
         coprod.inl_desc] },
-    { simp only [binary_cofan.ι_app_right, binary_cofan.mk_inr, category.assoc, ← G.map_comp_assoc,
+    { simv only [binary_cofan.ι_app_right, binary_cofan.mk_inr, category.assoc, ← G.map_comp_assoc,
         coprod.inr_desc],
       exact (c.ι.naturality walking_parallel_pair_hom.left).trans
         (c.ι.naturality walking_parallel_pair_hom.right).symm, },
   end,
   fac' := λ c j, begin
-    rcases j with (_|_); simp only [functor.map_cocone_ι_app, cocone.of_cofork_ι, category.id_comp,
+    rcases j with (_|_); simv only [functor.map_cocone_ι_app, cocone.of_cofork_ι, category.id_comp,
       eq_to_hom_refl, category.assoc, functor.map_comp, cofork.of_π_ι_app, pushout.inl_desc,
       preserves_pushout.inl_iso_inv_assoc],
       exact (c.ι.naturality (walking_parallel_pair_hom.left)).trans (category.comp_id _)
@@ -221,7 +221,7 @@ def preserves_coequalizers_of_pushouts_and_binary_coproducts
     rw iso.eq_inv_comp,
     have := h walking_parallel_pair.one,
     dsimp [coequalizer_cocone] at this,
-    ext; simp only [preserves_pushout.inl_iso_hom_assoc, category.id_comp, pushout.inl_desc,
+    ext; simv only [preserves_pushout.inl_iso_hom_assoc, category.id_comp, pushout.inl_desc,
       pushout.inr_desc, preserves_pushout.inr_iso_hom_assoc,
       ← pushout_inl_eq_pushout_inr, ← this],
   end }⟩

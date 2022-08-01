@@ -117,7 +117,7 @@ by rw [←matrix.mul_assoc, trace_mul_comm]
 
 @[simp] lemma trace_col_mul_row [non_unital_non_assoc_semiring R] (a b : n → R) :
   trace (col a ⬝ row b) = dot_product a b :=
-by simp [dot_product, trace]
+by simv [dot_product, trace]
 
 end mul
 
@@ -126,7 +126,7 @@ variables [add_comm_monoid R]
 
 /-! ### Special cases for `fin n`
 
-While `simp [fin.sum_univ_succ]` can prove these, we include them for convenience and consistency
+While `simv [fin.sum_univ_succ]` can prove these, we include them for convenience and consistency
 with `matrix.det_fin_two` etc.
 -/
 

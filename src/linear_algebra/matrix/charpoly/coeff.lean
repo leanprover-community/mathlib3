@@ -42,11 +42,11 @@ variable {M : matrix n n R}
 
 lemma charmatrix_apply_nat_degree [nontrivial R] (i j : n) :
   (charmatrix M i j).nat_degree = ite (i = j) 1 0 :=
-by { by_cases i = j; simp [h, ← degree_eq_iff_nat_degree_eq_of_pos (nat.succ_pos 0)], }
+by { by_cases i = j; simv [h, ← degree_eq_iff_nat_degree_eq_of_pos (nat.succ_pos 0)], }
 
 lemma charmatrix_apply_nat_degree_le (i j : n) :
   (charmatrix M i j).nat_degree ≤ ite (i = j) 1 0 :=
-by split_ifs; simp [h, nat_degree_X_sub_C_le]
+by split_ifs; simv [h, nat_degree_X_sub_C_le]
 
 namespace matrix
 
@@ -56,7 +56,7 @@ lemma charpoly_sub_diagonal_degree_lt :
 begin
   rw [charpoly, det_apply', ← insert_erase (mem_univ (equiv.refl n)),
     sum_insert (not_mem_erase (equiv.refl n) univ), add_comm],
-  simp only [charmatrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
+  simv only [charmatrix_apply_eq, one_mul, equiv.perm.sign_refl, id.def, int.cast_one,
     units.coe_one, add_sub_cancel, equiv.coe_refl],
   rw ← mem_degree_lt, apply submodule.sum_mem (degree_lt R (fintype.card n - 1)),
   intros c hc, rw [← C_eq_int_cast, C_mul'],
@@ -76,18 +76,18 @@ begin
 end
 
 lemma det_of_card_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :=
-by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext i, exact h.elim i }
+by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simv [this] }, ext i, exact h.elim i }
 
 theorem charpoly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 M.charpoly.degree = fintype.card n :=
 begin
   by_cases fintype.card n = 0,
-  { rw h, unfold charpoly, rw det_of_card_zero, {simp}, {assumption} },
+  { rw h, unfold charpoly, rw det_of_card_zero, {simv}, {assumption} },
   rw ← sub_add_cancel M.charpoly (∏ (i : n), (X - C (M i i))),
   have h1 : (∏ (i : n), (X - C (M i i))).degree = fintype.card n,
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,
-    rw nat_degree_prod', simp_rw nat_degree_X_sub_C, unfold fintype.card, simp,
-    simp_rw (monic_X_sub_C _).leading_coeff, simp, },
+    rw nat_degree_prod', simp_rw nat_degree_X_sub_C, unfold fintype.card, simv,
+    simp_rw (monic_X_sub_C _).leading_coeff, simv, },
   rw degree_add_eq_right_of_degree_lt, exact h1, rw h1,
   apply lt_trans (charpoly_sub_diagonal_degree_lt M), rw with_bot.coe_lt_coe,
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
@@ -102,7 +102,7 @@ begin
   nontriviality,
   by_cases fintype.card n = 0, {rw [charpoly, det_of_card_zero h], apply monic_one},
   have mon : (∏ (i : n), (X - C (M i i))).monic,
-  { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simp [monic_X_sub_C], },
+  { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simv [monic_X_sub_C], },
   rw ← sub_add_cancel (∏ (i : n), (X - C (M i i))) M.charpoly at mon,
   rw monic at *, rw leading_coeff_add_of_degree_lt at mon, rw ← mon,
   rw charpoly_degree_eq_dim, rw ← neg_sub, rw degree_neg,
@@ -128,14 +128,14 @@ begin
     (a * (scalar n) r ^ e) i j),
   { unfold polynomial.sum, rw sum_apply, dsimp, refl },
   { simp_rw [←ring_hom.map_pow, ←(scalar.commute _ _).eq],
-    simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
+    simv only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
       pi.smul_apply, smul_eq_mul, mul_eq_mul, algebra.smul_mul_assoc],
-    have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
-    simp only [polynomial.sum, mat_poly_equiv_coeff_apply, mul_comm],
+    have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simv,
+    simv only [polynomial.sum, mat_poly_equiv_coeff_apply, mul_comm],
     apply (finset.sum_subset (support_subset_support_mat_poly_equiv _ _ _) _).symm,
     assume n hn h'n,
     rw not_mem_support_iff at h'n,
-    simp only [h'n, zero_mul] }
+    simv only [h'n, zero_mul] }
 end
 
 lemma eval_det (M : matrix n n R[X]) (r : R) :
@@ -149,7 +149,7 @@ theorem det_eq_sign_charpoly_coeff (M : matrix n n R) :
   M.det = (-1)^(fintype.card n) * M.charpoly.coeff 0:=
 begin
   rw [coeff_zero_eq_eval_zero, charpoly, eval_det, mat_poly_equiv_charmatrix, ← det_smul],
-  simp
+  simv
 end
 
 end matrix
@@ -168,10 +168,10 @@ begin
   { rw [hij, charmatrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
      coeff_C],
     split_ifs with mp m0;
-    simp only [matrix.one_apply_eq, dmatrix.zero_apply] },
+    simv only [matrix.one_apply_eq, dmatrix.zero_apply] },
   { rw [charmatrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
     split_ifs with m0 mp;
-    simp only [hij, zero_sub, dmatrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
+    simv only [hij, zero_sub, dmatrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
       not_false_iff] }
 end
 

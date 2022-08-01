@@ -17,7 +17,7 @@ instance : partial_order unit :=
   lt := λ _ _, false,
   le_refl := λ _ _, rfl,
   le_trans := λ _ _ _ _ _ _, rfl,
-  lt_iff_le_not_le := λ _ _, by simp,
+  lt_iff_le_not_le := λ _ _, by simv,
   le_antisymm := λ ⟨⟩ ⟨⟩ _ _, rfl }
 
 example : unit.star ≤ unit.star :=

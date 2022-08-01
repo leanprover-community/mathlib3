@@ -93,7 +93,7 @@ lemma relabel_id (t : L.term α) :
 begin
   induction t with _ _ _ _ ih,
   { refl, },
-  { simp [ih] },
+  { simv [ih] },
 end
 
 @[simp] lemma relabel_id_eq_id :
@@ -105,7 +105,7 @@ funext relabel_id
 begin
   induction t with _ _ _ _ ih,
   { refl, },
-  { simp [ih] },
+  { simv [ih] },
 end
 
 @[simp] lemma relabel_comp_relabel (f : α → β) (g : β → γ) :
@@ -302,10 +302,10 @@ open finset
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp [fin.cast_le_of_eq], },
-  { simp [fin.cast_le_of_eq], },
-  { simp [fin.cast_le_of_eq, ih1, ih2], },
-  { simp [fin.cast_le_of_eq, ih3], },
+  { simv [fin.cast_le_of_eq], },
+  { simv [fin.cast_le_of_eq], },
+  { simv [fin.cast_le_of_eq, ih1, ih2], },
+  { simv [fin.cast_le_of_eq, ih3], },
 end
 
 @[simp] lemma cast_le_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) (φ : L.bounded_formula α k) :
@@ -315,12 +315,12 @@ begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3;
   intros m n km mn,
   { refl },
-  { simp },
-  { simp only [cast_le, eq_self_iff_true, heq_iff_eq, true_and],
+  { simv },
+  { simv only [cast_le, eq_self_iff_true, heq_iff_eq, true_and],
     rw [← function.comp.assoc, relabel_comp_relabel],
-    simp },
-  { simp [ih1, ih2] },
-  { simp only [cast_le, ih3] }
+    simv },
+  { simv [ih1, ih2] },
+  { simv only [cast_le, ih3] }
 end
 
 @[simp] lemma cast_le_comp_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) :
@@ -381,10 +381,10 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp [map_term_rel] },
-  { simp [map_term_rel] },
-  { simp [map_term_rel, ih1, ih2] },
-  { simp [map_term_rel, ih3], }
+  { simv [map_term_rel] },
+  { simv [map_term_rel] },
+  { simv [map_term_rel, ih1, ih2] },
+  { simv [map_term_rel, ih3], }
 end
 
 @[simp] lemma map_term_rel_id_id_id {n} (φ : L.bounded_formula α n) :
@@ -392,10 +392,10 @@ end
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp [map_term_rel] },
-  { simp [map_term_rel] },
-  { simp [map_term_rel, ih1, ih2] },
-  { simp [map_term_rel, ih3], }
+  { simv [map_term_rel] },
+  { simv [map_term_rel] },
+  { simv [map_term_rel, ih1, ih2] },
+  { simv [map_term_rel, ih3], }
 end
 
 /-- An equivalence of bounded formulas given by an equivalence of terms and an equivalence of
@@ -405,7 +405,7 @@ relations. -/
   L.bounded_formula α n ≃ L'.bounded_formula β n :=
 ⟨map_term_rel (λ n, ft n) (λ n, fr n) (λ _, id),
   map_term_rel (λ n, (ft n).symm) (λ n, (fr n).symm) (λ _, id),
-  λ φ, by simp, λ φ, by simp⟩
+  λ φ, by simv, λ φ, by simv⟩
 
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux (g : α → β ⊕ fin n) (k : ℕ) :
@@ -419,10 +419,10 @@ sum.map id fin_sum_fin_equiv ∘ equiv.sum_assoc _ _ _ ∘ sum.map g id
 begin
   ext x,
   cases x,
-  { simp only [bounded_formula.relabel_aux, function.comp_app, sum.map_inl, sum.elim_inl],
+  { simv only [bounded_formula.relabel_aux, function.comp_app, sum.map_inl, sum.elim_inl],
     cases g x with l r;
-    simp },
-  { simp [bounded_formula.relabel_aux] }
+    simv },
+  { simv [bounded_formula.relabel_aux] }
 end
 
 @[simp] lemma relabel_aux_sum_inl (k : ℕ) :
@@ -431,7 +431,7 @@ end
 begin
   ext x,
   cases x;
-  { simp [relabel_aux] },
+  { simv [relabel_aux] },
 end
 
 /-- Relabels a bounded formula's variables along a particular function. -/
@@ -454,30 +454,30 @@ rfl
 
 @[simp] lemma relabel_not (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α k) :
   φ.not.relabel g = (φ.relabel g).not :=
-by simp [bounded_formula.not]
+by simv [bounded_formula.not]
 
 @[simp] lemma relabel_all (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α (k + 1)) :
   φ.all.relabel g = (φ.relabel g).all :=
 begin
   rw [relabel, map_term_rel, relabel],
-  simp,
+  simv,
 end
 
 @[simp] lemma relabel_ex (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α (k + 1)) :
   φ.ex.relabel g = (φ.relabel g).ex :=
-by simp [bounded_formula.ex]
+by simv [bounded_formula.ex]
 
 @[simp] lemma relabel_sum_inl (φ : L.bounded_formula α n) :
   (φ.relabel sum.inl : L.bounded_formula α (0 + n)) =
   φ.cast_le (ge_of_eq (zero_add n)) :=
 begin
-  simp only [relabel, relabel_aux_sum_inl],
+  simv only [relabel, relabel_aux_sum_inl],
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp [fin.nat_add_zero, cast_le_of_eq, map_term_rel] },
-  { simp [fin.nat_add_zero, cast_le_of_eq, map_term_rel] },
-  { simp [map_term_rel, ih1, ih2], },
-  { simp [map_term_rel, ih3, cast_le], },
+  { simv [fin.nat_add_zero, cast_le_of_eq, map_term_rel] },
+  { simv [fin.nat_add_zero, cast_le_of_eq, map_term_rel] },
+  { simv [map_term_rel, ih1, ih2], },
+  { simv [map_term_rel, ih3, cast_le], },
 end
 
 /-- Substitutes the variables in a given formula with terms. -/
@@ -595,8 +595,8 @@ lemma is_prenex.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_prene
   (φ.relabel f).is_prenex :=
 is_prenex.rec_on h
   (λ _ _ h, (h.relabel f).is_prenex)
-  (λ _ _ _ h, by simp [h.all])
-  (λ _ _ _ h, by simp [h.ex])
+  (λ _ _ _ h, by simv [h.all])
+  (λ _ _ _ h, by simv [h.ex])
 
 lemma is_prenex.cast_le (hφ : is_prenex φ) :
   ∀ {n} {h : l ≤ n}, (φ.cast_le h).is_prenex :=
@@ -723,12 +723,12 @@ begin
   ext f,
   induction f with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp only [on_bounded_formula, comp_on_term, function.comp_app],
+  { simv only [on_bounded_formula, comp_on_term, function.comp_app],
     refl, },
-  { simp only [on_bounded_formula, comp_on_relation, comp_on_term, function.comp_app],
+  { simv only [on_bounded_formula, comp_on_relation, comp_on_term, function.comp_app],
     refl },
-  { simp only [on_bounded_formula, function.comp_app, ih1, ih2, eq_self_iff_true, and_self], },
-  { simp only [ih3, on_bounded_formula, function.comp_app] }
+  { simv only [on_bounded_formula, function.comp_app, ih1, ih2, eq_self_iff_true, and_self], },
+  { simv only [ih3, on_bounded_formula, function.comp_app] }
 end
 
 /-- Maps a formula's symbols along a language map. -/
@@ -883,16 +883,16 @@ lemma distinct_constants_theory_eq_Union (s : set α) :
     (t.map (function.embedding.subtype (λ x, x ∈ s))) :=
 begin
   classical,
-  simp only [distinct_constants_theory],
+  simv only [distinct_constants_theory],
   rw [← image_Union, ← Union_inter],
   refine congr rfl (congr (congr rfl _) rfl),
   ext ⟨i, j⟩,
-  simp only [prod_mk_mem_set_prod_eq, finset.coe_map, function.embedding.coe_subtype, mem_Union,
+  simv only [prod_mk_mem_set_prod_eq, finset.coe_map, function.embedding.coe_subtype, mem_Union,
     mem_image, finset.mem_coe, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
     exists_eq_right],
   refine ⟨λ h, ⟨{⟨i, h.1⟩, ⟨j, h.2⟩}, ⟨h.1, _⟩, ⟨h.2, _⟩⟩, _⟩,
-  { simp },
-  { simp },
+  { simv },
+  { simv },
   { rintros ⟨t, ⟨is, _⟩, ⟨js, _⟩⟩,
     exact ⟨is, js⟩ }
 end

@@ -96,23 +96,23 @@ def coev : 𝟭 C ⟶ tensor_left A ⋙ ihom A :=
 @[simp] lemma ihom_adjunction_counit : (ihom.adjunction A).counit = ev A := rfl
 @[simp] lemma ihom_adjunction_unit : (ihom.adjunction A).unit = coev A := rfl
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
   ((𝟙 A) ⊗ ((ihom A).map f)) ≫ (ev A).app Y = (ev A).app X ≫ f :=
 (ev A).naturality f
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (ihom A).map ((𝟙 A) ⊗ f) :=
 (coev A).naturality f
 
 notation A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
 
-@[simp, reassoc] lemma ev_coev :
+@[simv, reassoc] lemma ev_coev :
   ((𝟙 A) ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=
 adjunction.left_triangle_components (ihom.adjunction A)
 
-@[simp, reassoc] lemma coev_ev :
+@[simv, reassoc] lemma coev_ev :
   (coev A).app (A ⟶[C] B) ≫ (ihom A).map ((ev A).app B) = 𝟙 (A ⟶[C] B) :=
 adjunction.right_triangle_components (ihom.adjunction A)
 
@@ -176,7 +176,7 @@ lemma eq_curry_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ (A ⟶[C] X)) :
   g = curry f ↔ uncurry g = f :=
 adjunction.eq_hom_equiv_apply _ f g
 
--- I don't think these two should be simp.
+-- I don't think these two should be simv.
 lemma uncurry_eq (g : Y ⟶ (A ⟶[C] X)) : uncurry g = ((𝟙 A) ⊗ g) ≫ (ihom.ev A).app X :=
 adjunction.hom_equiv_counit _
 
@@ -221,7 +221,7 @@ unit_transfer_nat_trans_self _ _ ((tensoring_left C).map f) X
 
 @[simp]
 lemma pre_id (A : C) [closed A] : pre (𝟙 A) = 𝟙 _ :=
-by { simp only [pre, functor.map_id], dsimp, simp, }
+by { simv only [pre, functor.map_id], dsimp, simv, }
 
 @[simp]
 lemma pre_map {A₁ A₂ A₃ : C} [closed A₁] [closed A₂] [closed A₃]

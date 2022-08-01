@@ -73,7 +73,7 @@ lemma pullback.continuous_total_space_mk [∀ x, topological_space (E x)]
   [topological_vector_bundle 𝕜 F E] {f : B' → B} {x : B'} :
   continuous (@total_space_mk _ (f *ᵖ E) x) :=
 begin
-  simp only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
+  simv only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
     induced_inf, function.comp, total_space_mk, total_space.proj, induced_const, top_inf_eq,
     pullback_topology],
   exact le_of_eq (topological_vector_bundle.total_space_mk_inducing 𝕜 F E (f x)).induced,

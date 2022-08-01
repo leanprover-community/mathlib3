@@ -80,7 +80,7 @@ protected def equiv.star [has_involutive_star R] : equiv.perm R :=
 star_involutive.to_perm _
 
 lemma eq_star_of_eq_star [has_involutive_star R] {r s : R} (h : r = star s) : s = star r :=
-by simp [h]
+by simv [h]
 
 lemma eq_star_iff_eq_star [has_involutive_star R] {r s : R} : r = star s ↔ s = star r :=
 ⟨eq_star_of_eq_star, eq_star_of_eq_star⟩
@@ -95,7 +95,7 @@ class has_trivial_star (R : Type u) [has_star R] : Prop :=
 (star_trivial : ∀ (r : R), star r = r)
 
 export has_trivial_star (star_trivial)
-attribute [simp] star_trivial
+attribute [simv] star_trivial
 
 /--
 A `*`-semigroup is a semigroup `R` with an involutive operations `star`
@@ -105,9 +105,9 @@ class star_semigroup (R : Type u) [semigroup R] extends has_involutive_star R :=
 (star_mul : ∀ r s : R, star (r * s) = star s * star r)
 
 export star_semigroup (star_mul)
-attribute [simp] star_mul
+attribute [simv] star_mul
 
-/-- In a commutative ring, make `simp` prefer leaving the order unchanged. -/
+/-- In a commutative ring, make `simv` prefer leaving the order unchanged. -/
 @[simp] lemma star_mul' [comm_semigroup R] [star_semigroup R] (x y : R) :
   star (x * y) = star x * star y :=
 (star_mul x y).trans (mul_comm _ _)
@@ -174,7 +174,7 @@ def star_semigroup_of_comm {R : Type*} [comm_monoid R] : star_semigroup R :=
 section
 local attribute [instance] star_semigroup_of_comm
 
-/-- Note that since `star_semigroup_of_comm` is reducible, `simp` can already prove this. --/
+/-- Note that since `star_semigroup_of_comm` is reducible, `simv` can already prove this. --/
 lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end
@@ -187,7 +187,7 @@ class star_add_monoid (R : Type u) [add_monoid R] extends has_involutive_star R 
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
 export star_add_monoid (star_add)
-attribute [simp] star_add
+attribute [simv] star_add
 
 /-- `star` as an `add_equiv` -/
 @[simps apply]
@@ -254,15 +254,15 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv }
 
-@[simp, norm_cast] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) :
+@[simv, norm_cast] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) :
   star (n : R) = n :=
 (congr_arg unop (map_nat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) n)).trans (unop_nat_cast _)
 
-@[simp, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
+@[simv, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
   star (z : R) = z :=
 (congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_int_cast z)).trans (unop_int_cast _)
 
-@[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
+@[simv, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
 (congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
 
@@ -286,8 +286,8 @@ variables {R}
 
 localized "notation `conj` := star_ring_end _" in complex_conjugate
 
-/-- This is not a simp lemma, since we usually want simp to keep `star_ring_end` bundled.
- For example, for complex conjugation, we don't want simp to turn `conj x`
+/-- This is not a simv lemma, since we usually want simv to keep `star_ring_end` bundled.
+ For example, for complex conjugation, we don't want simv to turn `conj x`
  into the bare function `star x` automatically since most lemmas are about `conj x`. -/
 lemma star_ring_end_apply [comm_semiring R] [star_ring R] {x : R} :
   star_ring_end R x = star x := rfl
@@ -314,10 +314,10 @@ op_injective $
 
 @[simp] lemma star_bit0 [add_monoid R] [star_add_monoid R] (r : R) :
   star (bit0 r) = bit0 (star r) :=
-by simp [bit0]
+by simv [bit0]
 
 @[simp] lemma star_bit1 [semiring R] [star_ring R] (r : R) : star (bit1 r) = bit1 (star r) :=
-by simp [bit1]
+by simv [bit1]
 
 /--
 Any commutative semiring admits the trivial `*`-structure.
@@ -375,7 +375,7 @@ class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_smul 
 (star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
 
 export star_module (star_smul)
-attribute [simp] star_smul
+attribute [simv] star_smul
 
 /-- A commutative star monoid is a star module over itself via `monoid.to_mul_action`. -/
 instance star_semigroup.to_star_module [comm_monoid R] [star_semigroup R] : star_module R R :=

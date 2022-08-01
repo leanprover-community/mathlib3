@@ -70,13 +70,13 @@ begin
   -- Also note that `f` maps `s` to itself
   have hf_maps_to : maps_to f s s,
   { rintros e ⟨hx, hy⟩,
-    split; simp [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm], },
+    split; simv [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm], },
   -- Therefore, `dist (e z) z = 0` for all `e ∈ s`.
   set c := ⨆ e : s, dist ((e : PE ≃ᵢ PE) z) z,
   have : c ≤ c / 2,
   { apply csupr_le,
     rintros ⟨e, he⟩,
-    simp only [subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
+    simv only [subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
     exact le_csupr h_bdd ⟨f e, hf_maps_to he⟩ },
   replace : c ≤ 0, { linarith },
   refine λ e hx hy, dist_le_zero.1 (le_trans _ this),
@@ -91,10 +91,10 @@ begin
   set e : PE ≃ᵢ PE :=
     ((f.trans $ (point_reflection ℝ $ midpoint ℝ (f x) (f y)).to_isometric).trans f.symm).trans
     (point_reflection ℝ $ midpoint ℝ x y).to_isometric,
-  have hx : e x = x, by simp,
-  have hy : e y = y, by simp,
+  have hx : e x = x, by simv,
+  have hy : e y = y, by simv,
   have hm := e.midpoint_fixed hx hy,
-  simp only [e, trans_apply] at hm,
+  simv only [e, trans_apply] at hm,
   rwa [← eq_symm_apply, to_isometric_symm, point_reflection_symm, coe_to_isometric,
     coe_to_isometric, point_reflection_self, symm_apply_eq, point_reflection_fixed_iff] at hm
 end
@@ -108,7 +108,7 @@ We define a conversion to a `continuous_linear_equiv` first, then a conversion t
 over `ℝ` and `f 0 = 0`, then `f` is a linear isometry equivalence. -/
 def to_real_linear_isometry_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   E ≃ₗᵢ[ℝ] F :=
-{ norm_map' := λ x, show ∥f x∥ = ∥x∥, by simp only [← dist_zero_right, ← h0, f.dist_eq],
+{ norm_map' := λ x, show ∥f x∥ = ∥x∥, by simv only [← dist_zero_right, ← h0, f.dist_eq],
   .. ((add_monoid_hom.of_map_midpoint ℝ ℝ f h0 f.map_midpoint).to_real_linear_map f.continuous),
   .. f }
 
@@ -137,7 +137,7 @@ def to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) : PE ≃ᵃⁱ[ℝ] PF :=
 affine_isometry_equiv.mk' f
   (((vadd_const (classical.arbitrary PE)).trans $ f.trans
     (vadd_const (f $ classical.arbitrary PE)).symm).to_real_linear_isometry_equiv)
-  (classical.arbitrary PE) (λ p, by simp)
+  (classical.arbitrary PE) (λ p, by simv)
 
 @[simp] lemma coe_fn_to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) :
   ⇑f.to_real_affine_isometry_equiv = f :=

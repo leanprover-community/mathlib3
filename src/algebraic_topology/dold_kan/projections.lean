@@ -57,7 +57,7 @@ begin
   induction q with q hq,
   { refl, },
   { unfold P,
-    simp only [homological_complex.add_f_apply, homological_complex.comp_f,
+    simv only [homological_complex.add_f_apply, homological_complex.comp_f,
       homological_complex.id_f, id_comp, hq, Hσ_eq_zero, add_zero], },
 end
 
@@ -73,12 +73,12 @@ homological_complex.congr_hom (P_add_Q q) n
 lemma Q_eq_zero : (Q 0 : K[X] ⟶ _) = 0 := sub_self _
 
 lemma Q_eq (q : ℕ) : (Q (q+1) : K[X] ⟶ _) = Q q - P q ≫ Hσ q :=
-by { unfold Q P, simp only [comp_add, comp_id], abel, }
+by { unfold Q P, simv only [comp_add, comp_id], abel, }
 
 /-- All the `Q q` coincide with `0` in degree 0. -/
 @[simp]
 lemma Q_f_0_eq (q : ℕ) : ((Q q).f 0 : X _[0] ⟶ X _[0]) = 0 :=
-by simp only [homological_complex.sub_f_apply, homological_complex.id_f, Q, P_f_0_eq, sub_self]
+by simv only [homological_complex.sub_f_apply, homological_complex.id_f, Q, P_f_0_eq, sub_self]
 
 namespace higher_faces_vanish
 
@@ -96,17 +96,17 @@ begin
   { unfold P,
     apply comp_id, },
   { unfold P,
-    simp only [comp_add, homological_complex.comp_f, homological_complex.add_f_apply,
+    simv only [comp_add, homological_complex.comp_f, homological_complex.add_f_apply,
       comp_id, ← assoc, hq v.of_succ, add_right_eq_self],
     by_cases hqn : n<q,
     { exact v.of_succ.comp_Hσ_eq_zero hqn, },
     { cases nat.le.dest (not_lt.mp hqn) with a ha,
       have hnaq : n=a+q := by linarith,
-      simp only [v.of_succ.comp_Hσ_eq hnaq, neg_eq_zero, ← assoc],
+      simv only [v.of_succ.comp_Hσ_eq hnaq, neg_eq_zero, ← assoc],
       have eq := v ⟨a, by linarith⟩
-        (by simp only [hnaq, fin.coe_mk, nat.succ_eq_add_one, add_assoc]),
-      simp only [fin.succ_mk] at eq,
-      simp only [eq, zero_comp], }, },
+        (by simv only [hnaq, fin.coe_mk, nat.succ_eq_add_one, add_assoc]),
+      simv only [fin.succ_mk] at eq,
+      simv only [eq, zero_comp], }, },
 end
 
 end higher_faces_vanish
@@ -122,7 +122,7 @@ begin
   { exact higher_faces_vanish.comp_P_eq_self, },
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma P_f_idem (q n : ℕ) :
   ((P q).f n : X _[n] ⟶ _) ≫ ((P q).f n) = (P q).f n :=
 begin
@@ -131,7 +131,7 @@ begin
   { exact (higher_faces_vanish.of_P q n).comp_P_eq_self, }
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma P_idem (q : ℕ) : (P q : K[X] ⟶ K[X]) ≫ P q = P q :=
 by { ext n, exact P_f_idem q n, }
 
@@ -145,14 +145,14 @@ def nat_trans_P (q : ℕ) :
       dsimp only [alternating_face_map_complex],
       rw [id_comp, comp_id], },
     { unfold P,
-      simp only [add_comp, comp_add, assoc, comp_id, hq],
+      simv only [add_comp, comp_add, assoc, comp_id, hq],
       congr' 1,
       rw [← assoc, hq, assoc],
       congr' 1,
       exact (nat_trans_Hσ q).naturality' f, }
   end }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma P_f_naturality (q n : ℕ) {X Y : simplicial_object C} (f : X ⟶ Y) :
   f.app (op [n]) ≫ (P q).f n = (P q).f n ≫ f.app (op [n]) :=
 homological_complex.congr_hom ((nat_trans_P q).naturality f) n
@@ -165,7 +165,7 @@ begin
   { unfold P,
     apply G.map_id, },
   { unfold P,
-    simp only [comp_add, homological_complex.comp_f, homological_complex.add_f_apply,
+    simv only [comp_add, homological_complex.comp_f, homological_complex.add_f_apply,
       comp_id, functor.map_add, functor.map_comp, hq, map_Hσ], }
 end
 

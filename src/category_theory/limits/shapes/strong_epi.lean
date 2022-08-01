@@ -75,7 +75,7 @@ lemma strong_epi_comp [strong_epi f] [strong_epi g] : strong_epi (f ≫ g) :=
     have h₀ : u ≫ z = f ≫ g ≫ v, by simpa [category.assoc] using h,
     let w : Q ⟶ X := arrow.lift (arrow.hom_mk' h₀),
     have h₁ : w ≫ z = g ≫ v, by rw arrow.lift_mk'_right,
-    exact arrow.has_lift.mk ⟨(arrow.lift (arrow.hom_mk' h₁) : R ⟶ X), by simp, by simp⟩
+    exact arrow.has_lift.mk ⟨(arrow.lift (arrow.hom_mk' h₁) : R ⟶ X), by simv, by simv⟩
   end }
 
 /-- The composition of two strong monomorphisms is a strong monomorphism. -/
@@ -87,7 +87,7 @@ lemma strong_mono_comp [strong_mono f] [strong_mono g] : strong_mono (f ≫ g) :
     have h₀ : (u ≫ f) ≫ g = z ≫ v, by simpa [category.assoc] using h,
     let w : Y ⟶ Q := arrow.lift (arrow.hom_mk' h₀),
     have h₁ : u ≫ f = z ≫ w, by rw arrow.lift_mk'_left,
-    exact arrow.has_lift.mk ⟨(arrow.lift (arrow.hom_mk' h₁) : Y ⟶ P), by simp, by simp⟩
+    exact arrow.has_lift.mk ⟨(arrow.lift (arrow.hom_mk' h₁) : Y ⟶ P), by simv, by simv⟩
   end }
 
 /-- If `f ≫ g` is a strong epimorphism, then so is `g`. -/
@@ -96,9 +96,9 @@ lemma strong_epi_of_strong_epi [strong_epi (f ≫ g)] : strong_epi g :=
   has_lift :=
   begin
     introsI,
-    have h₀ : (f ≫ u) ≫ z = (f ≫ g) ≫ v, by simp only [category.assoc, h],
+    have h₀ : (f ≫ u) ≫ z = (f ≫ g) ≫ v, by simv only [category.assoc, h],
     exact arrow.has_lift.mk
-      ⟨(arrow.lift (arrow.hom_mk' h₀) : R ⟶ X), (cancel_mono z).1 (by simp [h]), by simp⟩,
+      ⟨(arrow.lift (arrow.hom_mk' h₀) : R ⟶ X), (cancel_mono z).1 (by simv [h]), by simv⟩,
   end }
 
 /-- If `f ≫ g` is a strong monomorphism, then so is `f`. -/
@@ -109,29 +109,29 @@ lemma strong_mono_of_strong_mono [strong_mono (f ≫ g)] : strong_mono f :=
     introsI,
     have h₀ : u ≫ f ≫ g = z ≫ v ≫ g, by rw reassoc_of h,
     exact arrow.has_lift.mk
-      ⟨(arrow.lift (arrow.hom_mk' h₀) : Y ⟶ P), by simp, (cancel_epi z).1 (by simp [h])⟩
+      ⟨(arrow.lift (arrow.hom_mk' h₀) : Y ⟶ P), by simv, (cancel_epi z).1 (by simv [h])⟩
   end }
 
 /-- An isomorphism is in particular a strong epimorphism. -/
 @[priority 100] instance strong_epi_of_is_iso [is_iso f] : strong_epi f :=
 { epi := by apply_instance,
-  has_lift := λ X Y u v z _ h, arrow.has_lift.mk ⟨inv f ≫ u, by simp, by simp [h]⟩ }
+  has_lift := λ X Y u v z _ h, arrow.has_lift.mk ⟨inv f ≫ u, by simv, by simv [h]⟩ }
 
 /-- An isomorphism is in particular a strong monomorphism. -/
 @[priority 100] instance strong_mono_of_is_iso [is_iso f] : strong_mono f :=
 { mono := by apply_instance,
   has_lift := λ X Y u v z _ h, arrow.has_lift.mk
-    ⟨v ≫ inv f, by simp [← category.assoc, ← h], by simp⟩ }
+    ⟨v ≫ inv f, by simv [← category.assoc, ← h], by simv⟩ }
 
 end
 
 /-- A strong epimorphism that is a monomorphism is an isomorphism. -/
 lemma is_iso_of_mono_of_strong_epi (f : P ⟶ Q) [mono f] [strong_epi f] : is_iso f :=
-⟨⟨arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simp, by tidy⟩⟩
+⟨⟨arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simv, by tidy⟩⟩
 
 /-- A strong monomorphism that is an epimorphism is an isomorphism. -/
 lemma is_iso_of_epi_of_strong_mono (f : P ⟶ Q) [epi f] [strong_mono f] : is_iso f :=
-⟨⟨arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simp, by tidy⟩⟩
+⟨⟨arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simv, by tidy⟩⟩
 
 section
 variables (C)

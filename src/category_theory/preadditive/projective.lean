@@ -86,7 +86,7 @@ begin
   fsplit,
   introsI E X f e e_epi,
   obtain ⟨f', hf'⟩ := projective.factors (i.hom ≫ f) e,
-  exact ⟨i.inv ≫ f', by simp [hf']⟩
+  exact ⟨i.inv ≫ f', by simv [hf']⟩
 end
 
 lemma iso_iff {P Q : C} (i : P ≅ Q) : projective P ↔ projective Q :=
@@ -204,7 +204,7 @@ factor_thru
 @[simp] lemma exact.lift_comp {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
   (hfg : exact f g) (w : h ≫ g = 0) : exact.lift h f g hfg w ≫ f = h :=
 begin
-  simp [exact.lift],
+  simv [exact.lift],
   conv_lhs { congr, skip, rw ← image_subobject_arrow_comp f, },
   rw [←category.assoc, factor_thru_comp, ←image_to_kernel_arrow,
     ←category.assoc, category_theory.projective.factor_thru_comp,

@@ -74,7 +74,7 @@ lemma refine_apply {X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X} (x : meq P T) (
 def pullback {Y X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) (f : Y ⟶ X) :
   meq P ((J.pullback f).obj S) :=
 ⟨λ I, x ⟨_,I.f ≫ f, I.hf⟩, λ I, x.condition
-  ⟨I.Y₁, I.Y₂, I.Z, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂ ≫ f, I.h₁, I.h₂, by simp [reassoc_of I.w]⟩ ⟩
+  ⟨I.Y₁, I.Y₂, I.Z, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂ ≫ f, I.h₁, I.h₂, by simv [reassoc_of I.w]⟩ ⟩
 
 @[simp]
 lemma pullback_apply {Y X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : meq P S) (f : Y ⟶ X)
@@ -87,7 +87,7 @@ lemma pullback_refine {Y X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X} (h : S ⟶
 
 /-- Make a term of `meq P S`. -/
 def mk {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) : meq P S :=
-⟨λ I, P.map I.f.op x, λ I, by { dsimp, simp only [← comp_apply, ← P.map_comp, ← op_comp, I.w] }⟩
+⟨λ I, P.map I.f.op x, λ I, by { dsimp, simv only [← comp_apply, ← P.map_comp, ← op_comp, I.w] }⟩
 
 lemma mk_apply {X : C} {P : Cᵒᵖ ⥤ D} (S : J.cover X) (x : P.obj (op X)) (I : S.arrow) :
   mk S x I = P.map I.f.op x := rfl
@@ -111,7 +111,7 @@ lemma equiv_symm_eq_apply {X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} [has_multi
 begin
   let z := (meq.equiv P S).symm x,
   rw ← equiv_apply,
-  simp,
+  simv,
 end
 
 end meq
@@ -140,13 +140,13 @@ lemma res_mk_eq_mk_pullback {Y X : C} {P : Cᵒᵖ ⥤ D} {S : J.cover X} (x : m
   (J.plus_obj P).map f.op (mk x) = mk (x.pullback f) :=
 begin
   dsimp [mk, plus_obj],
-  simp only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
+  simv only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
   simp_rw [comp_apply],
   congr' 1,
   apply_fun meq.equiv P _,
   erw equiv.apply_symm_apply,
   ext i,
-  simp only [diagram_pullback_app,
+  simv only [diagram_pullback_app,
     meq.pullback_apply, meq.equiv_apply, ← comp_apply],
   erw [multiequalizer.lift_ι, meq.equiv_symm_eq_apply],
   cases i, refl,
@@ -159,7 +159,7 @@ begin
   let e : S ⟶ ⊤ := hom_of_le (order_top.le_top _),
   rw ← colimit.w _ e.op,
   delta cover.to_multiequalizer,
-  simp only [comp_apply],
+  simv only [comp_apply],
   congr' 1,
   dsimp [diagram],
   apply concrete.multiequalizer_ext,
@@ -174,20 +174,20 @@ begin
   dsimp only [to_plus, plus_obj],
   delta cover.to_multiequalizer,
   dsimp [mk],
-  simp only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
-  simp only [comp_apply],
+  simv only [← comp_apply, colimit.ι_pre, ι_colim_map_assoc],
+  simv only [comp_apply],
   dsimp only [functor.op],
   let e : (J.pullback I.f).obj (unop (op S)) ⟶ ⊤ := hom_of_le (order_top.le_top _),
   rw ← colimit.w _ e.op,
-  simp only [comp_apply],
+  simv only [comp_apply],
   congr' 1,
   apply concrete.multiequalizer_ext,
   intros i,
   dsimp [diagram],
-  simp only [← comp_apply, category.assoc, multiequalizer.lift_ι,
+  simv only [← comp_apply, category.assoc, multiequalizer.lift_ι,
     category.comp_id, meq.equiv_symm_eq_apply],
   let RR : S.relation :=
-    ⟨_, _, _, i.f, 𝟙 _, I.f, i.f ≫ I.f, I.hf, sieve.downward_closed _ I.hf _, by simp⟩,
+    ⟨_, _, _, i.f, 𝟙 _, I.f, i.f ≫ I.f, I.hf, sieve.downward_closed _ I.hf _, by simv⟩,
   cases I,
   erw x.condition RR,
   simpa [RR],
@@ -198,7 +198,7 @@ lemma to_plus_eq_mk {X : C} {P : Cᵒᵖ ⥤ D} (x : P.obj (op X)) :
 begin
   dsimp [mk, to_plus],
   delta cover.to_multiequalizer,
-  simp only [comp_apply],
+  simv only [comp_apply],
   congr' 1,
   apply_fun (meq.equiv P ⊤),
   ext i,
@@ -214,7 +214,7 @@ begin
   use [S.unop, meq.equiv _ _ y],
   rw ← h,
   dsimp [mk],
-  simp,
+  simv,
 end
 
 lemma eq_mk_iff_exists {X : C} {P : Cᵒᵖ ⥤ D} {S T : J.cover X}
@@ -230,7 +230,7 @@ begin
     convert hh,
     all_goals
     { dsimp [diagram],
-      simp only [← comp_apply, multiequalizer.lift_ι, category.comp_id, meq.equiv_symm_eq_apply],
+      simv only [← comp_apply, multiequalizer.lift_ι, category.comp_id, meq.equiv_symm_eq_apply],
       cases I, refl } },
   { rintros ⟨S,h1,h2,e⟩,
     apply concrete.colimit_rep_eq_of_exists,
@@ -241,7 +241,7 @@ begin
     convert e,
     all_goals
     { dsimp [diagram],
-      simp only [← comp_apply, multiequalizer.lift_ι, meq.equiv_symm_eq_apply],
+      simv only [← comp_apply, multiequalizer.lift_ι, meq.equiv_symm_eq_apply],
       cases i, refl } },
 end
 
@@ -253,7 +253,7 @@ begin
   -- First, we choose representatives for x and y.
   obtain ⟨Sx,x,rfl⟩ := exists_rep x,
   obtain ⟨Sy,y,rfl⟩ := exists_rep y,
-  simp only [res_mk_eq_mk_pullback] at h,
+  simv only [res_mk_eq_mk_pullback] at h,
 
   -- Next, using our assumption,
   -- choose covers over which the pullbacks of these representatives become equal.
@@ -294,11 +294,11 @@ begin
   apply_fun (λ e, e IW) at hh,
   convert hh,
   { let Rx : Sx.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f,
-      I.to_middle_hom ≫ I.from_middle_hom, _, _, by simp [I.middle_spec]⟩,
+      I.to_middle_hom ≫ I.from_middle_hom, _, _, by simv [I.middle_spec]⟩,
     have := x.condition Rx,
     simpa using this },
   { let Ry : Sy.relation := ⟨I.Y, I.Y, I.Y, 𝟙 _, 𝟙 _, I.f,
-      I.to_middle_hom ≫ I.from_middle_hom, _, _, by simp [I.middle_spec]⟩,
+      I.to_middle_hom ≫ I.from_middle_hom, _, _, by simv [I.middle_spec]⟩,
     have := y.condition Ry,
     simpa using this },
 end
@@ -308,7 +308,7 @@ lemma inj_of_sep (P : Cᵒᵖ ⥤ D) (hsep : ∀ (X : C) (S : J.cover X) (x y : 
   function.injective ((J.to_plus P).app (op X)) :=
 begin
   intros x y h,
-  simp only [to_plus_eq_mk] at h,
+  simv only [to_plus_eq_mk] at h,
   rw eq_mk_iff_exists at h,
   obtain ⟨W, h1, h2, hh⟩ := h,
   apply hsep X W,
@@ -345,7 +345,7 @@ def meq_of_sep (P : Cᵒᵖ ⥤ D)
       ⟨_, _, _, II.g₁ ≫ II.fst.to_middle_hom, II.g₂ ≫ II.snd.to_middle_hom,
         II.fst.from_middle_hom, II.snd.from_middle_hom, II.fst.from_middle_condition,
         II.snd.from_middle_condition, _⟩,
-    swap, { simp only [category.assoc, II.fst.middle_spec, II.snd.middle_spec], apply II.w },
+    swap, { simv only [category.assoc, II.fst.middle_spec, II.snd.middle_spec], apply II.w },
     exact s.condition IR,
   end }
 
@@ -380,7 +380,7 @@ begin
   -- original local sections.
   apply sep P (T I),
   intros II,
-  simp only [res_mk_eq_mk_pullback, eq_mk_iff_exists],
+  simv only [res_mk_eq_mk_pullback, eq_mk_iff_exists],
 
   -- It suffices to prove equality for representatives over a
   -- convenient sufficiently large cover...
@@ -479,17 +479,17 @@ J.plus_map $ J.plus_map η
 
 @[simp]
 lemma sheafify_map_id (P : Cᵒᵖ ⥤ D) : J.sheafify_map (𝟙 P) = 𝟙 (J.sheafify P) :=
-by { dsimp [sheafify_map, sheafify], simp }
+by { dsimp [sheafify_map, sheafify], simv }
 
 @[simp]
 lemma sheafify_map_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) :
   J.sheafify_map (η ≫ γ) = J.sheafify_map η ≫ J.sheafify_map γ :=
-by { dsimp [sheafify_map, sheafify], simp }
+by { dsimp [sheafify_map, sheafify], simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma to_sheafify_naturality {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) :
   η ≫ J.to_sheafify _ = J.to_sheafify _ ≫ J.sheafify_map η :=
-by { dsimp [sheafify_map, sheafify, to_sheafify], simp }
+by { dsimp [sheafify_map, sheafify, to_sheafify], simv }
 
 variable (D)
 
@@ -538,10 +538,10 @@ lemma iso_sheafify_hom {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
 def sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.sheafify P ⟶ Q := J.plus_lift (J.plus_lift η hQ) hQ
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma to_sheafify_sheafify_lift {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q) :
   J.to_sheafify P ≫ sheafify_lift J η hQ = η :=
-by { dsimp only [sheafify_lift, to_sheafify], simp }
+by { dsimp only [sheafify_lift, to_sheafify], simv }
 
 lemma sheafify_lift_unique {P Q : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
   (γ : J.sheafify P ⟶ Q) :
@@ -559,7 +559,7 @@ lemma iso_sheafify_inv {P : Cᵒᵖ ⥤ D} (hP : presheaf.is_sheaf J P) :
   (J.iso_sheafify hP).inv = J.sheafify_lift (𝟙 _) hP :=
 begin
   apply J.sheafify_lift_unique,
-  simp [iso.comp_inv_eq],
+  simv [iso.comp_inv_eq],
 end
 
 lemma sheafify_hom_ext {P Q : Cᵒᵖ ⥤ D} (η γ : J.sheafify P ⟶ Q) (hQ : presheaf.is_sheaf J Q)
@@ -571,7 +571,7 @@ begin
   exact h,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma sheafify_map_sheafify_lift {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R)
   (hR : presheaf.is_sheaf J R) :
   J.sheafify_map η ≫ J.sheafify_lift γ hR = J.sheafify_lift (η ≫ γ) hR :=

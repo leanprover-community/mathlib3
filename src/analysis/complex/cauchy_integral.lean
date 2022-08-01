@@ -172,11 +172,11 @@ begin
   set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prodₗ.symm,
   have he : ∀ x y : ℝ, ↑x + ↑y * I = e (x, y), from λ x y, (mk_eq_add_mul_I x y).symm,
   have he₁ : e (1, 0) = 1 := rfl, have he₂ : e (0, 1) = I := rfl,
-  simp only [he] at *,
+  simv only [he] at *,
   set F : (ℝ × ℝ) → E := f ∘ e,
   set F' : (ℝ × ℝ) → (ℝ × ℝ) →L[ℝ] E := λ p, (f' (e p)).comp (e : (ℝ × ℝ) →L[ℝ] ℂ),
   have hF' : ∀ p : ℝ × ℝ, (-(I • F' p)) (1, 0) + F' p (0, 1) = -(I • f' (e p) 1 - f' (e p) I),
-  { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add], },
+  { rintro ⟨x, y⟩, simv [F', he₁, he₂, ← sub_eq_neg_add], },
   set R : set (ℝ × ℝ) := [z.re, w.re] ×ˢ [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
   rw [interval_swap z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
@@ -243,7 +243,7 @@ lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ
 by refine (integral_boundary_rect_of_has_fderiv_at_real_off_countable f
   (λ z, (fderiv ℂ f z).restrict_scalars ℝ) z w s hs Hc
   (λ x hx, (Hd x hx).has_fderiv_at.restrict_scalars ℝ) _).trans _;
-    simp [← continuous_linear_map.map_smul]
+    simv [← continuous_linear_map.map_smul]
 
 /-- **Cauchy-Goursat theorem for a rectangle**: the integral of a complex differentiable function
 over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed
@@ -358,11 +358,11 @@ begin
       congr' 2,
       { exact circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
           hr0 hrR hs (hc.mono hsub) (λ z hz, hd z ⟨hsub' hz.1, hz.2⟩) },
-      { simp [hr0.ne'] }
+      { simv [hr0.ne'] }
     end
   ... = ∥∮ z in C(c, r), (z - c)⁻¹ • (f z - y)∥ :
     begin
-      simp only [smul_sub],
+      simv only [smul_sub],
       have hc' : continuous_on (λ z, (z - c)⁻¹) (sphere c r),
         from (continuous_on_id.sub continuous_on_const).inv₀ (λ z hz, sub_ne_zero.2 $ hzne _ hz),
       rw circle_integral.integral_sub; refine (hc'.smul _).circle_integrable hr0.le,
@@ -465,7 +465,7 @@ begin
     intros z hz,
     rw [circle_integral_sub_inv_smul_of_differentiable_on_off_countable_aux hs hz hc hd,
       inv_smul_smul₀],
-    simp [real.pi_ne_zero, I_ne_zero] },
+    simv [real.pi_ne_zero, I_ne_zero] },
   refine mem_closure_iff_nhds.2 (λ t ht, _),
   -- TODO: generalize to any vector space over `ℝ`
   set g : ℝ → ℂ := λ x, w + x,
@@ -491,7 +491,7 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 by { rw [← two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
-  hs hw hc hd, smul_inv_smul₀], simp [real.pi_ne_zero, I_ne_zero] }
+  hs hw hc hd, smul_inv_smul₀], simv [real.pi_ne_zero, I_ne_zero] }
 
 /-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on an open disc and is
 continuous on its closure, then for any `w` in this open ball we have

@@ -52,19 +52,19 @@ def ore_eqv : setoid (R × S) :=
   iseqv :=
   begin
     refine ⟨_, _, _⟩,
-    { rintro ⟨r,s⟩, use 1, use 1, simp [submonoid.one_mem] },
+    { rintro ⟨r,s⟩, use 1, use 1, simv [submonoid.one_mem] },
     { rintros ⟨r, s⟩ ⟨r', s'⟩ ⟨u, v, hru, hsu⟩,
       rcases ore_condition (s : R) s' with ⟨r₂, s₂, h₁⟩,
       rcases ore_condition r₂ u with ⟨r₃, s₃, h₂⟩,
       have : (s : R) * ((v : R) * r₃) = (s : R) * (s₂ * s₃),
       { assoc_rw [h₁, h₂, hsu], symmetry, apply mul_assoc },
       rcases ore_left_cancel (v * r₃) (s₂ * s₃) s this with ⟨w, hw⟩,
-      use s₂ * s₃ * w, use u * r₃ * w, split; simp only [submonoid.coe_mul],
-      { assoc_rw [hru, ←hw], simp [mul_assoc] },
-      { assoc_rw [hsu, ←hw], simp [mul_assoc] } },
+      use s₂ * s₃ * w, use u * r₃ * w, split; simv only [submonoid.coe_mul],
+      { assoc_rw [hru, ←hw], simv [mul_assoc] },
+      { assoc_rw [hsu, ←hw], simv [mul_assoc] } },
     { rintros ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨r₃, s₃⟩ ⟨u, v, hur₁, hs₁u⟩ ⟨u', v', hur₂, hs₂u⟩,
       rcases ore_condition v' u with ⟨r', s', h⟩,
-      use u' * s', use v * r', split; simp only [submonoid.coe_mul],
+      use u' * s', use v * r', split; simv only [submonoid.coe_mul],
       { assoc_rw [hur₂, h, hur₁, mul_assoc] },
       { assoc_rw [hs₂u, h, hs₁u, mul_assoc] } }
   end }
@@ -118,13 +118,13 @@ protected lemma eq_of_num_factor_eq {r r' r₁ r₂ : R} {s t : S}
 begin
   rcases ore_condition r₂ t with ⟨r₂',t', hr₂⟩,
   calc (r₁ * r * r₂) /ₒ s = (r₁ * r * r₂ * t') /ₒ (s * t') : ore_localization.expand _ _ t' _
-  ...                     = ((r₁ * r) * (r₂ * t')) /ₒ (s * t') : by simp [←mul_assoc]
+  ...                     = ((r₁ * r) * (r₂ * t')) /ₒ (s * t') : by simv [←mul_assoc]
   ...                     = ((r₁ * r) * (t * r₂')) /ₒ (s * t') : by rw hr₂
-  ...                     = (r₁ * (r * t) * r₂') /ₒ (s * t') : by simp [←mul_assoc]
+  ...                     = (r₁ * (r * t) * r₂') /ₒ (s * t') : by simv [←mul_assoc]
   ...                     = (r₁ * (r' * t) * r₂') /ₒ (s * t') : by rw h
-  ...                     = (r₁ * r' * (t * r₂')) /ₒ (s * t') : by simp [←mul_assoc]
+  ...                     = (r₁ * r' * (t * r₂')) /ₒ (s * t') : by simv [←mul_assoc]
   ...                     = (r₁ * r' * (r₂ * t')) /ₒ (s * t') : by rw hr₂
-  ...                     = (r₁ * r' * r₂ * t') /ₒ (s * t') : by simp [←mul_assoc]
+  ...                     = (r₁ * r' * r₂ * t') /ₒ (s * t') : by simv [←mul_assoc]
   ...                     = (r₁ * r' * r₂) /ₒ s : by symmetry; apply ore_localization.expand
 end
 
@@ -139,7 +139,7 @@ begin
   dsimp at *,
   have s₁vS : (s₁ : R) * v ∈ S,
   { rw [←hs₂, ←S.coe_mul], exact set_like.coe_mem (s₂ * u) },
-  replace hs₂ : s₂ * u = ⟨(s₁ : R) * v, s₁vS⟩, { ext, simp [hs₂] },
+  replace hs₂ : s₂ * u = ⟨(s₁ : R) * v, s₁vS⟩, { ext, simv [hs₂] },
   rw [hP r₁ v s₁ s₁vS, hP r₂ u s₂ (by { norm_cast, rw hs₂, assumption }), hr₂],
   simpa [← hs₂]
 end
@@ -157,11 +157,11 @@ def lift₂_expand {C : Sort*} (P : R → S → R → S → C)
           (r₂ t₂ : R) (s₂ : S) (ht₂ : (s₂ : R) * t₂ ∈ S),
     P r₁ s₁ r₂ s₂ = P (r₁ * t₁) ⟨s₁ * t₁, ht₁⟩ (r₂ * t₂) ⟨s₂ * t₂, ht₂⟩) : R[S⁻¹] → R[S⁻¹] → C :=
 lift_expand
-  (λ r₁ s₁, lift_expand (P r₁ s₁) $ λ r₂ t₂ s₂ ht₂, by simp [hP r₁ 1 s₁ (by simp) r₂ t₂ s₂ ht₂]) $
+  (λ r₁ s₁, lift_expand (P r₁ s₁) $ λ r₂ t₂ s₂ ht₂, by simv [hP r₁ 1 s₁ (by simv) r₂ t₂ s₂ ht₂]) $
    λ r₁ t₁ s₁ ht₁,
    begin
      ext x, induction x using ore_localization.ind with r₂ s₂,
-     rw [lift_expand_of, lift_expand_of, hP r₁ t₁ s₁ ht₁ r₂ 1 s₂ (by simp)], simp,
+     rw [lift_expand_of, lift_expand_of, hP r₁ t₁ s₁ ht₁ r₂ 1 s₂ (by simv)], simv,
    end
 
 @[simp]
@@ -179,7 +179,7 @@ private def mul' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S⁻¹] :=
 private lemma mul'_char (r₁ r₂ : R) (s₁ s₂ : S) (u : S) (v : R) (huv : r₂ * (u : R) = s₁ * v) :
   mul' r₁ s₁ r₂ s₂ = (r₁ * v) /ₒ (s₂ * u) :=
 begin
-  simp only [mul'],
+  simv only [mul'],
   have h₀ := ore_eq r₂ s₁, set v₀ := ore_num r₂ s₁, set u₀ := ore_denom r₂ s₁,
   rcases ore_condition (u₀ : R) u with ⟨r₃, s₃, h₃⟩,
   have :=
@@ -188,9 +188,9 @@ begin
   ...                      = s₁ * (v₀ * s₃) : by assoc_rw h₀; apply mul_assoc,
   rcases ore_left_cancel _ _ _ this with ⟨s₄, hs₄⟩,
   symmetry, rw ore_div_eq_iff,
-  use s₃ * s₄, use r₃ * s₄, simp only [submonoid.coe_mul], split,
-  { assoc_rw ←hs₄, simp only [mul_assoc] },
-  { assoc_rw h₃, simp only [mul_assoc] }
+  use s₃ * s₄, use r₃ * s₄, simv only [submonoid.coe_mul], split,
+  { assoc_rw ←hs₄, simv only [mul_assoc] },
+  { assoc_rw h₃, simv only [mul_assoc] }
 end
 
 /-- The multiplication on the Ore localization of monoids. -/
@@ -199,18 +199,18 @@ lift₂_expand mul' $ λ r₂ p s₂ hp r₁ r s₁ hr,
 begin
   have h₁ := ore_eq r₁ s₂, set r₁' := ore_num r₁ s₂, set s₂' := ore_denom r₁ s₂,
   rcases ore_condition (↑s₂ * r₁') ⟨s₂ * p, hp⟩ with ⟨p', s_star, h₂⟩, dsimp at h₂,
-  rcases ore_condition r (s₂' * s_star) with ⟨p_flat, s_flat, h₃⟩, simp only [S.coe_mul] at h₃,
+  rcases ore_condition r (s₂' * s_star) with ⟨p_flat, s_flat, h₃⟩, simv only [S.coe_mul] at h₃,
   have : r₁ * r * s_flat = s₂ * p * (p' * p_flat),
-  { rw [←mul_assoc, ←h₂, ←h₁, mul_assoc, h₃], simp only [mul_assoc] },
+  { rw [←mul_assoc, ←h₂, ←h₁, mul_assoc, h₃], simv only [mul_assoc] },
   rw mul'_char (r₂ * p) (r₁ * r) ⟨↑s₂ * p, hp⟩ ⟨↑s₁ * r, hr⟩ _ _ this, clear this,
   have hsssp : ↑s₁ * ↑s₂' * ↑s_star * p_flat ∈ S,
   { rw [mul_assoc, mul_assoc, ←mul_assoc ↑s₂', ←h₃, ←mul_assoc],
     exact S.mul_mem hr (set_like.coe_mem s_flat) },
   have : (⟨↑s₁ * r, hr⟩ : S) * s_flat = ⟨s₁ * s₂' * s_star * p_flat, hsssp⟩,
-  { ext, simp only [set_like.coe_mk, submonoid.coe_mul],
+  { ext, simv only [set_like.coe_mk, submonoid.coe_mul],
     rw [mul_assoc, h₃, ←mul_assoc, ←mul_assoc] },
   rw this, clear this,
-  rcases ore_left_cancel (p * p') (r₁' * ↑s_star) s₂ (by simp [←mul_assoc, h₂]) with ⟨s₂'', h₂''⟩,
+  rcases ore_left_cancel (p * p') (r₁' * ↑s_star) s₂ (by simv [←mul_assoc, h₂]) with ⟨s₂'', h₂''⟩,
   rw [←mul_assoc, mul_assoc r₂, ore_localization.eq_of_num_factor_eq h₂''],
   norm_cast at ⊢ hsssp, rw [←ore_localization.expand _ _ _ hsssp, ←mul_assoc],
   apply ore_localization.expand
@@ -242,7 +242,7 @@ instance : inhabited R[S⁻¹] := ⟨1⟩
 
 @[simp]
 protected lemma div_eq_one' {r : R} (hr : r ∈ S) : r /ₒ ⟨r, hr⟩ = 1 :=
-by { rw [ore_localization.one_def, ore_div_eq_iff], exact ⟨⟨r, hr⟩, 1, by simp, by simp⟩ }
+by { rw [ore_localization.one_def, ore_div_eq_iff], exact ⟨⟨r, hr⟩, 1, by simv, by simv⟩ }
 
 @[simp]
 protected lemma div_eq_one {s : S} : (s : R) /ₒ s = 1 :=
@@ -251,13 +251,13 @@ by { cases s; apply ore_localization.div_eq_one' }
 protected lemma one_mul (x : R[S⁻¹]) : 1 * x = x :=
 begin
   induction x using ore_localization.ind with r s,
-  simp [ore_localization.one_def, ore_div_mul_char (1 : R) r (1 : S) s r 1 (by simp)]
+  simv [ore_localization.one_def, ore_div_mul_char (1 : R) r (1 : S) s r 1 (by simv)]
 end
 
 protected lemma mul_one (x : R[S⁻¹]) : x * 1 = x :=
 begin
   induction x using ore_localization.ind with r s,
-  simp [ore_localization.one_def, ore_div_mul_char r 1 s 1 1 s (by simp)]
+  simv [ore_localization.one_def, ore_div_mul_char r 1 s 1 1 s (by simv)]
 end
 
 protected lemma mul_assoc (x y z : R[S⁻¹]) : x * y * z = x * (y * z) :=
@@ -269,7 +269,7 @@ begin
   rcases ore_div_mul_char' r₂ r₃ s₂ s₃ with ⟨rb, sb, hb, hb'⟩, rw hb', clear hb',
   rcases ore_condition rb sa with ⟨rc, sc, hc⟩,
   rw ore_div_mul_char (r₁ * ra) r₃ (s₂ * sa) s₃ rc (sb * sc)
-    (by { simp only [submonoid.coe_mul], assoc_rw [hb, hc] }),
+    (by { simv only [submonoid.coe_mul], assoc_rw [hb, hc] }),
   rw [mul_assoc, ←mul_assoc s₃],
   symmetry, apply ore_div_mul_char,
   assoc_rw [hc, ←ha], apply mul_assoc
@@ -283,24 +283,24 @@ instance : monoid R[S⁻¹] :=
   .. ore_localization.has_one }
 
 protected lemma mul_inv (s s' : S) : ((s : R) /ₒ s') * (s' /ₒ s) = 1 :=
-by simp [ore_div_mul_char (s :R) s' s' s 1 1 (by simp)]
+by simv [ore_div_mul_char (s :R) s' s' s 1 1 (by simv)]
 
 @[simp]
 protected lemma mul_one_div {r : R} {s t : S} : (r /ₒ s) * (1 /ₒ t) = r /ₒ (t * s) :=
-by simp [ore_div_mul_char r 1 s t 1 s (by simp)]
+by simv [ore_div_mul_char r 1 s t 1 s (by simv)]
 
 @[simp]
 protected lemma mul_cancel {r : R} {s t : S} : (r /ₒ s) * (s /ₒ t) = r /ₒ t :=
-by simp [ore_div_mul_char r s s t 1 1 (by simp)]
+by simv [ore_div_mul_char r s s t 1 1 (by simv)]
 
 @[simp]
 protected lemma mul_cancel' {r₁ r₂ : R} {s t : S} : (r₁ /ₒ s) * ((s * r₂) /ₒ t) = (r₁ * r₂) /ₒ t :=
-by simp [ore_div_mul_char r₁ (s * r₂) s t r₂ 1 (by simp)]
+by simv [ore_div_mul_char r₁ (s * r₂) s t r₂ 1 (by simv)]
 
 @[simp]
 lemma div_one_mul {p r : R} {s : S} :
   (r /ₒ 1) * (p /ₒ s) = (r * p) /ₒ s := --TODO use coercion r ↦ r /ₒ 1
-by simp [ore_div_mul_char r p 1 s p 1 (by simp)]
+by simv [ore_div_mul_char r p 1 s p 1 (by simv)]
 
 /-- The fraction `s /ₒ 1` as a unit in `R[S⁻¹]`, where `s : S`. -/
 def numerator_unit (s : S) : units R[S⁻¹] :=
@@ -335,12 +335,12 @@ def universal_mul_hom : R[S⁻¹] →* T :=
 { to_fun := λ x, x.lift_expand (λ r s, (f r) * ((fS s)⁻¹ : units T)) $ λ r t s ht,
   begin
     have : ((fS ⟨s * t, ht⟩) : T) = fS s * f t,
-    { simp only [←hf, set_like.coe_mk, monoid_hom.map_mul] },
+    { simv only [←hf, set_like.coe_mk, monoid_hom.map_mul] },
     conv_rhs { rw [monoid_hom.map_mul, ←mul_one (f r), ←units.coe_one, ←mul_left_inv (fS s)],
       rw [units.coe_mul, ←mul_assoc, mul_assoc _ ↑(fS s), ←this, mul_assoc] },
-    simp only [mul_one, units.mul_inv]
+    simv only [mul_one, units.mul_inv]
   end,
-  map_one' := by rw [ore_localization.one_def, lift_expand_of]; simp,
+  map_one' := by rw [ore_localization.one_def, lift_expand_of]; simv,
   map_mul' := λ x y,
   begin
     induction x using ore_localization.ind with r₁ s₁,
@@ -358,7 +358,7 @@ lemma universal_mul_hom_apply {r : R} {s : S} :
 rfl
 
 lemma universal_mul_hom_commutes {r : R} : universal_mul_hom f fS hf (numerator_hom r) = f r :=
-by simp [numerator_hom_apply, universal_mul_hom_apply]
+by simv [numerator_hom_apply, universal_mul_hom_apply]
 
 /-- The universal morphism `universal_mul_hom` is unique. -/
 lemma universal_mul_hom_unique (φ : R[S⁻¹] →* T) (huniv : ∀ (r : R), φ (numerator_hom r) = f r) :
@@ -380,7 +380,7 @@ variables {R : Type*} [comm_monoid R] {S : submonoid R} [ore_set S]
 
 lemma ore_div_mul_ore_div_comm {r₁ r₂ : R} {s₁ s₂ : S} :
   (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * r₂) /ₒ (s₁ * s₂) :=
-by rw [ore_div_mul_char r₁ r₂ s₁ s₂ r₂ s₁ (by simp [mul_comm]), mul_comm s₂]
+by rw [ore_div_mul_char r₁ r₂ s₁ s₂ r₂ s₁ (by simv [mul_comm]), mul_comm s₂]
 
 instance : comm_monoid R[S⁻¹] :=
 { mul_comm := λ x y,
@@ -397,13 +397,13 @@ variables (R S)
 protected def localization_map : S.localization_map R[S⁻¹] :=
 { to_fun := numerator_hom,
   map_one' := rfl,
-  map_mul' := λ r₁ r₂, by simp,
+  map_mul' := λ r₁ r₂, by simv,
   map_units' := numerator_is_unit,
   surj' := λ z,
   begin
     induction z using ore_localization.ind with r s,
     use (r, s), dsimp,
-    rw [numerator_hom_apply, numerator_hom_apply], simp
+    rw [numerator_hom_apply, numerator_hom_apply], simv
   end,
   eq_iff_exists' := λ r₁ r₂,
   begin
@@ -414,7 +414,7 @@ protected def localization_map : S.localization_map R[S⁻¹] :=
       rw [one_mul, one_mul] at h₂, subst h₂, use u, exact h₁.symm },
     { rintro ⟨s, h⟩,
       rw [numerator_hom_apply, numerator_hom_apply, ore_div_eq_iff],
-      use s, use s, simp [h, one_mul] }
+      use s, use s, simv [h, one_mul] }
   end }
 
 /-- If `R` is commutative, Ore localization and monoid localization are isomorphic. -/
@@ -435,7 +435,7 @@ private lemma add''_char
   (rb : R) (sb : S) (hb : (s₁ : R) * sb = (s₂ : R) * rb) :
 add'' r₁ s₁ r₂ s₂ = (r₁ * sb + r₂ * rb) /ₒ (s₁ * sb) :=
 begin
-  simp only [add''],
+  simv only [add''],
   have ha := ore_eq (s₁ : R) s₂,
   set! ra := ore_num (s₁ : R) s₂ with h, rw ←h at *, clear h, -- r tilde
   set! sa := ore_denom (s₁ : R) s₂ with h, rw ←h at *, clear h, -- s tilde
@@ -445,7 +445,7 @@ begin
   rcases ore_left_cancel _ _ s₂ this with ⟨sd, hd⟩, -- s#
   symmetry, rw ore_div_eq_iff,
   use sc * sd, use rc * sd,
-  split; simp only [submonoid.coe_mul],
+  split; simv only [submonoid.coe_mul],
   { noncomm_ring, assoc_rw [hd, hc], noncomm_ring },
   { assoc_rewrite [hc], noncomm_ring }
 end
@@ -460,18 +460,18 @@ begin
   rcases ore_condition rb sc with ⟨rd, sd, hd⟩, -- s#, r#
   dsimp at *, rw add''_char _ _ _ _ rc sc hc,
   have : ↑s₁ * ↑(sb * sd) = ↑s₂ * (rc * rd),
-  { simp only [submonoid.coe_mul], assoc_rewrite [hb', hd, hc], noncomm_ring },
+  { simv only [submonoid.coe_mul], assoc_rewrite [hb', hd, hc], noncomm_ring },
   rw add''_char _ _ _ _ (rc * rd : R) (sb * sd : S) this,
-  simp only [submonoid.coe_mul], assoc_rw [hb, hd],
+  simv only [submonoid.coe_mul], assoc_rw [hb, hd],
   rw [←mul_assoc, ←add_mul, ore_div_eq_iff],
   use 1, use rd, split,
-  { simp },
-  { simp only [mul_one, submonoid.coe_one, submonoid.coe_mul] at ⊢ this, assoc_rw [hc, this] },
+  { simv },
+  { simv only [mul_one, submonoid.coe_one, submonoid.coe_mul] at ⊢ this, assoc_rw [hc, this] },
 end
 
 private lemma add'_comm (r₁ r₂ : R) (s₁ s₂ : S) : add' r₁ s₁ (r₂ /ₒ s₂) = add' r₂ s₂ (r₁ /ₒ s₁) :=
 begin
-  simp only [add', ore_div, add'', quotient.lift_mk, quotient.eq],
+  simv only [add', ore_div, add'', quotient.lift_mk, quotient.eq],
   have hb := ore_eq ↑s₂ s₁, set rb := ore_num ↑s₂ s₁ with h, -- r~~
     rw ←h, clear h, set sb := ore_denom ↑s₂ s₁ with h, rw ←h, clear h, -- s~~
   have ha := ore_eq ↑s₁ s₂, set ra := ore_num ↑s₁ s₂ with h, -- r~
@@ -494,7 +494,7 @@ begin
   rintros ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ hyz,
   induction x using ore_localization.ind with r₃ s₃,
   dsimp, rw [add'_comm, add'_comm r₂],
-  simp [(/ₒ), quotient.sound hyz],
+  simv [(/ₒ), quotient.sound hyz],
 end
 
 instance : has_add R[S⁻¹] := ⟨add⟩
@@ -518,7 +518,7 @@ def ore_div_add_char' (r r' : R) (s s' : S) :
 ⟨ore_num s s', ore_denom s s', ore_eq s s', ore_div_add_ore_div⟩
 
 @[simp] lemma add_ore_div {r r' : R} {s : S} : (r /ₒ s) + (r' /ₒ s) = (r + r') /ₒ s :=
-by simp [ore_div_add_char s s 1 1 (by simp)]
+by simv [ore_div_add_char s s 1 1 (by simv)]
 
 protected lemma add_assoc (x y z : R[S⁻¹]) :
   (x + y) + z = x + (y + z) :=
@@ -557,12 +557,12 @@ protected lemma zero_def : (0 : R[S⁻¹]) = 0 /ₒ 1 := rfl
 
 @[simp]
 lemma zero_div_eq_zero (s : S) : 0 /ₒ s = 0 :=
-by { rw [ore_localization.zero_def, ore_div_eq_iff], exact ⟨s, 1, by simp⟩ }
+by { rw [ore_localization.zero_def, ore_div_eq_iff], exact ⟨s, 1, by simv⟩ }
 
 protected lemma zero_add (x : R[S⁻¹]) : 0 + x = x :=
 begin
   induction x using ore_localization.ind,
-  rw [←zero_div_eq_zero, add_ore_div], simp
+  rw [←zero_div_eq_zero, add_ore_div], simv
 end
 
 protected lemma add_comm (x y : R[S⁻¹]) : x + y = y + x :=
@@ -583,13 +583,13 @@ instance : add_comm_monoid R[S⁻¹] :=
 protected lemma zero_mul (x : R[S⁻¹]) : 0 * x = 0 :=
 begin
   induction x using ore_localization.ind with r s,
-  rw [ore_localization.zero_def, ore_div_mul_char 0 r 1 s r 1 (by simp)], simp
+  rw [ore_localization.zero_def, ore_div_mul_char 0 r 1 s r 1 (by simv)], simv
 end
 
 protected lemma mul_zero (x : R[S⁻¹]) : x * 0 = 0 :=
 begin
   induction x using ore_localization.ind with r s,
-  rw [ore_localization.zero_def, ore_div_mul_char r 0 s 1 0 1 (by simp)], simp
+  rw [ore_localization.zero_def, ore_div_mul_char r 0 s 1 0 1 (by simv)], simv
 end
 
 protected lemma left_distrib (x y z : R[S⁻¹]) : x * (y + z) = x * y + x * z :=
@@ -602,14 +602,14 @@ begin
   rcases ore_div_mul_char' r₁ (r₂ * sa) s₁ (s₂ * sa) with ⟨rb, sb, hb, q⟩, rw q, clear q,
   have hs₃rasb : ↑s₃ * (ra * sb) ∈ S, { rw [←mul_assoc, ←ha], norm_cast, apply set_like.coe_mem },
   rw ore_localization.expand _ _ _ hs₃rasb,
-  have ha' : (↑(s₂ * sa * sb)) = ↑s₃ * (ra * sb), { simp [ha, ←mul_assoc] },
+  have ha' : (↑(s₂ * sa * sb)) = ↑s₃ * (ra * sb), { simv [ha, ←mul_assoc] },
   rw ←subtype.coe_eq_of_eq_mk ha',
   rcases ore_div_mul_char' r₁ (r₃ * (ra * sb)) s₁ (s₂ * sa * sb) with ⟨rc, sc, hc, hc'⟩, rw hc',
-  rw ore_div_add_char (s₂ * sa * sb) (s₂ * sa * sb * sc) 1 sc (by simp),
+  rw ore_div_add_char (s₂ * sa * sb) (s₂ * sa * sb * sc) 1 sc (by simv),
   rw ore_localization.expand' (r₂ * ↑sa + r₃ * ra) (s₂ * sa) (sb * sc),
   conv_lhs { congr, skip, congr,
     rw [add_mul, S.coe_mul, ←mul_assoc, hb, ←mul_assoc, mul_assoc r₃, hc, mul_assoc, ←mul_add] },
-  rw ore_localization.mul_cancel', simp only [mul_one, submonoid.coe_mul, mul_add, ←mul_assoc],
+  rw ore_localization.mul_cancel', simv only [mul_one, submonoid.coe_mul, mul_add, ←mul_assoc],
 end
 
 lemma right_distrib (x y z : R[S⁻¹]) : (x + y) * z = x * z + y * z :=
@@ -621,7 +621,7 @@ begin
   rw ore_localization.expand' r₁ s₁ sa,
   rw ore_localization.expand r₂ s₂ ra (by rw ←ha; apply set_like.coe_mem),
   rw ←subtype.coe_eq_of_eq_mk ha,
-  repeat { rw ore_div_mul_ore_div }, simp only [add_mul, add_ore_div]
+  repeat { rw ore_div_mul_ore_div }, simv only [add_mul, add_ore_div]
 end
 
 instance : semiring R[S⁻¹] :=
@@ -646,18 +646,18 @@ def universal_hom : R[S⁻¹] →+* T :=
 { map_zero' :=
   begin
     rw [monoid_hom.to_fun_eq_coe, ore_localization.zero_def, universal_mul_hom_apply],
-    simp
+    simv
   end,
   map_add' := λ x y,
   begin
     induction x using ore_localization.ind with r₁ s₁,
     induction y using ore_localization.ind with r₂ s₂,
     rcases ore_div_add_char' r₁ r₂ s₁ s₂ with ⟨r₃, s₃, h₃, h₃'⟩, rw h₃', clear h₃',
-    simp only [universal_mul_hom_apply, ring_hom.coe_monoid_hom,
+    simv only [universal_mul_hom_apply, ring_hom.coe_monoid_hom,
       ring_hom.to_monoid_hom_eq_coe, monoid_hom.to_fun_eq_coe],
-    simp only [mul_inv_rev, monoid_hom.map_mul, ring_hom.map_add, ring_hom.map_mul, units.coe_mul],
+    simv only [mul_inv_rev, monoid_hom.map_mul, ring_hom.map_add, ring_hom.map_mul, units.coe_mul],
     rw [add_mul, ←mul_assoc, mul_assoc (f r₁), hf, ←units.coe_mul],
-    simp only [mul_one, mul_right_inv, units.coe_one],
+    simv only [mul_one, mul_right_inv, units.coe_one],
     congr' 1, rw [mul_assoc], congr' 1,
     norm_cast at h₃, have h₃' := subtype.coe_eq_of_eq_mk h₃,
     rw [←units.coe_mul, ←mul_inv_rev, ←fS.map_mul, h₃'],
@@ -676,7 +676,7 @@ lemma universal_hom_apply {r : R} {s : S} :
   universal_hom f fS hf (r /ₒ s) = (f r) * ((fS s)⁻¹ : units T) := rfl
 
 lemma universal_hom_commutes {r : R} : universal_hom f fS hf (numerator_hom r) = f r :=
-by simp [numerator_hom_apply, universal_hom_apply]
+by simv [numerator_hom_apply, universal_hom_apply]
 
 lemma universal_hom_unique (φ : R[S⁻¹] →+* T) (huniv : ∀ (r : R), φ (numerator_hom r) = f r) :
   φ = universal_hom f fS hf :=
@@ -700,7 +700,7 @@ instance : has_neg R[S⁻¹] := ⟨ore_localization.neg⟩
 @[simp] protected lemma neg_def (r : R) (s : S) : - (r /ₒ s) = (- r) /ₒ s := rfl
 
 protected lemma add_left_neg (x : R[S⁻¹]) : (- x) + x = 0 :=
-by induction x using ore_localization.ind with r s; simp
+by induction x using ore_localization.ind with r s; simv
 
 instance : ring R[S⁻¹] :=
 { add_left_neg := ore_localization.add_left_neg,
@@ -714,7 +714,7 @@ lemma numerator_hom_inj (hS : S ≤ R⁰) : function.injective (numerator_hom : 
 begin
   rw [numerator_hom_apply, numerator_hom_apply, ore_div_eq_iff] at h,
   rcases h with ⟨u, v, h₁, h₂⟩,
-  simp only [S.coe_one, one_mul] at h₂,
+  simv only [S.coe_one, one_mul] at h₂,
   rwa [←h₂, mul_cancel_right_mem_non_zero_divisor (hS (set_like.coe_mem u)), eq_comm] at h₁,
 end
 
@@ -748,10 +748,10 @@ lift_expand (λ r s, if hr: r = (0 : R) then (0 : R[R⁰⁻¹])
 begin
   intros r t s hst,
   by_cases hr : r = 0,
-  { simp [hr] },
+  { simv [hr] },
   { by_cases ht : t = 0,
-    { exfalso, apply non_zero_divisors.coe_ne_zero ⟨_, hst⟩, simp [ht, mul_zero] },
-    { simp only [hr, ht, set_like.coe_mk, dif_neg, not_false_iff, or_self, mul_eq_zero],
+    { exfalso, apply non_zero_divisors.coe_ne_zero ⟨_, hst⟩, simv [ht, mul_zero] },
+    { simv only [hr, ht, set_like.coe_mk, dif_neg, not_false_iff, or_self, mul_eq_zero],
       apply ore_localization.expand } }
 end
 
@@ -766,12 +766,12 @@ begin
   induction x using ore_localization.ind with r s,
   rw [ore_localization.inv_def, ore_localization.one_def],
   by_cases hr : r = 0,
-  { exfalso, apply h, simp [hr] },
-  { simp [hr], apply ore_localization.div_eq_one' }
+  { exfalso, apply h, simv [hr] },
+  { simv [hr], apply ore_localization.div_eq_one' }
 end
 
 protected lemma inv_zero : (0 : R[R⁰⁻¹])⁻¹ = 0 :=
-by { rw [ore_localization.zero_def, ore_localization.inv_def], simp }
+by { rw [ore_localization.zero_def, ore_localization.inv_def], simv }
 
 instance : division_ring R[(R⁰)⁻¹] :=
 { mul_inv_cancel := ore_localization.mul_inv_cancel,

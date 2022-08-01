@@ -119,7 +119,7 @@ begin
   dsimp only [add_monoid_hom.comp_apply, add_monoid_hom.compl₂_apply,
     add_monoid_hom.compr₂_apply, add_monoid_hom.mul_apply, add_equiv.coe_to_add_monoid_hom,
     finsupp.single_add_hom_apply],
-  simp only [add_monoid_algebra.single_mul_single, to_hom, add_monoid_hom.coe_mk,
+  simv only [add_monoid_algebra.single_mul_single, to_hom, add_monoid_hom.coe_mk,
       add_monoid_algebra.to_direct_sum_single, direct_sum.of_mul_of, has_mul.ghas_mul_mul]
 end
 
@@ -141,7 +141,7 @@ dfinsupp.to_finsupp_add _ _
   (f * g).to_add_monoid_algebra = to_add_monoid_algebra f * to_add_monoid_algebra g :=
 begin
   apply_fun add_monoid_algebra.to_direct_sum,
-  { simp },
+  { simv },
   { apply function.left_inverse.injective,
     apply add_monoid_algebra.to_direct_sum_to_add_monoid_algebra }
 end

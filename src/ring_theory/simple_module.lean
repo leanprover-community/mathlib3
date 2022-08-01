@@ -42,7 +42,7 @@ theorem is_simple_module.nontrivial [is_simple_module R M] : nontrivial M :=
   have h : (⊥ : submodule R M) ≠ ⊤ := bot_ne_top,
   contrapose! h,
   ext,
-  simp [submodule.mem_bot,submodule.mem_top, h x],
+  simv [submodule.mem_bot,submodule.mem_top, h x],
 end⟩⟩
 
 variables {R} {M} {m : submodule R M} {N : Type*} [add_comm_group N] [module R N]

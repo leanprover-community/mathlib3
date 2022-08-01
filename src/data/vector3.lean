@@ -99,13 +99,13 @@ local infix ` +-+ `:65 := vector3.append
 
 @[simp] lemma append_left : ∀ {m} (i : fin2 m) (v : vector3 α m) {n} (w : vector3 α n),
   (v +-+ w) (left n i) = v i
-| ._ (@fz m)   v n w := v.cons_elim (λ a t, by simp [*, left])
-| ._ (@fs m i) v n w := v.cons_elim (λ a t, by simp [*, left])
+| ._ (@fz m)   v n w := v.cons_elim (λ a t, by simv [*, left])
+| ._ (@fs m i) v n w := v.cons_elim (λ a t, by simv [*, left])
 
 @[simp] lemma append_add : ∀ {m} (v : vector3 α m) {n} (w : vector3 α n) (i : fin2 n),
   (v +-+ w) (add i m) = w i
 | 0        v n w i := rfl
-| (succ m) v n w i := v.cons_elim (λ a t, by simp [*, add])
+| (succ m) v n w i := v.cons_elim (λ a t, by simv [*, add])
 
 /-- Insert `a` into `v` at index `i`. -/
 def insert (a : α) (v : vector3 α n) (i : fin2 (succ n)) : vector3 α (succ n) :=
@@ -117,8 +117,8 @@ by refine funext (λ j, j.cases' _ _); intros; refl
 @[simp] lemma insert_fs (a : α) (b : α) (v : vector3 α n) (i : fin2 (succ n)) :
   insert a (b :: v) (fs i) = b :: insert a v i :=
 funext $ λ j, by
-{ refine j.cases' _ (λ j, _); simp [insert, insert_perm],
-  refine fin2.cases' _ _ (insert_perm i j); simp [insert_perm] }
+{ refine j.cases' _ (λ j, _); simv [insert, insert_perm],
+  refine fin2.cases' _ _ (insert_perm i j); simv [insert_perm] }
 
 lemma append_insert (a : α) (t : vector3 α m) (v : vector3 α n) (i : fin2 (succ n))
   (e : succ n + m = succ (n + m)) :
@@ -130,7 +130,7 @@ begin
     = eq.rec_on (congr_arg succ e') (b :: (t +-+ insert a v i)),
   rw ← (eq.drec_on e' rfl : fs (eq.rec_on e' (i.add k) : fin2 (succ (n + k))) = eq.rec_on
     (congr_arg succ e') (fs (i.add k))),
-  simp, rw IH, exact eq.drec_on e' rfl
+  simv, rw IH, exact eq.drec_on e' rfl
 end
 
 end vector3
@@ -179,10 +179,10 @@ lemma vector_allp_iff_forall (p : α → Prop) (v : vector3 α n) : vector_allp 
 begin
   refine v.rec_on _ _,
   { exact ⟨λ _, fin2.elim0, λ _, trivial⟩ },
-  { simp, refine λ n a v IH, (and_congr_right (λ _, IH)).trans
+  { simv, refine λ n a v IH, (and_congr_right (λ _, IH)).trans
       ⟨λ ⟨pa, h⟩ i, by {refine i.cases' _ _, exacts [pa, h]}, λ h, ⟨_, λ i, _⟩⟩,
-    { have h0 := h fz, simp at h0, exact h0 },
-    { have hs := h (fs i), simp at hs, exact hs } }
+    { have h0 := h fz, simv at h0, exact h0 },
+    { have hs := h (fs i), simv at hs, exact hs } }
 end
 
 lemma vector_allp.imp {p q : α → Prop} (h : ∀ x, p x → q x) {v : vector3 α n}

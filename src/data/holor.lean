@@ -64,18 +64,18 @@ cast (congr_arg holor_index (append_assoc ds₁ ds₂ ds₃).symm)
 lemma take_take :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.take = t.take.take
-| ⟨ is , h ⟩ := subtype.eq $ by simp [assoc_right,take, cast_type, list.take_take,
+| ⟨ is , h ⟩ := subtype.eq $ by simv [assoc_right,take, cast_type, list.take_take,
                                      nat.le_add_right, min_eq_left]
 
 lemma drop_take :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.drop.take = t.take.drop
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right, take, drop, cast_type, list.drop_take])
+| ⟨ is , h ⟩ := subtype.eq (by simv [assoc_right, take, drop, cast_type, list.drop_take])
 
 lemma drop_drop :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.drop.drop = t.drop
-| ⟨ is , h ⟩ := subtype.eq (by simp [add_comm, assoc_right, drop, cast_type, list.drop_drop])
+| ⟨ is , h ⟩ := subtype.eq (by simv [add_comm, assoc_right, drop, cast_type, list.drop_drop])
 
 end holor_index
 
@@ -155,7 +155,7 @@ end)
 
 lemma mul_assoc [semigroup α] (x : holor α ds₁) (y : holor α ds₂) (z : holor α ds₃) :
   mul (mul x y) z == (mul x (mul y z)) :=
-by simp [cast_heq, mul_assoc0, assoc_left].
+by simv [cast_heq, mul_assoc0, assoc_left].
 
 lemma mul_left_distrib [distrib α] (x : holor α ds₁) (y : holor α ds₂) (z : holor α ds₂) :
   x ⊗ (y + z) = x ⊗ y + x ⊗ z :=
@@ -175,7 +175,7 @@ funext (λ t, mul_zero (x (holor_index.take t)))
 
 lemma mul_scalar_mul [monoid α] (x : holor α []) (y : holor α ds) :
   x ⊗ y = x ⟨[], forall₂.nil⟩ • y :=
-by simp [mul, has_smul.smul, holor_index.take, holor_index.drop]
+by simv [mul, has_smul.smul, holor_index.take, holor_index.drop]
 
 /- holor slices -/
 
@@ -209,11 +209,11 @@ lemma slice_unit_vec_mul [ring α] {i : ℕ} {j : ℕ}
   (hid : i < d) (x : holor α ds) :
   slice (unit_vec d j ⊗ x) i hid = if i=j then x else 0 :=
 funext $ λ t : holor_index ds, if h : i = j
-  then by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]
-  else by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]; refl
+  then by simv [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]
+  else by simv [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]; refl
 
 lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (y : holor α (d :: ds)) :
-  slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simp [slice,(+)])
+  slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simv [slice,(+)])
 
 lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
   slice (0 : holor α (d :: ds)) i hid = 0 := rfl
@@ -224,7 +224,7 @@ lemma slice_sum [add_comm_monoid α] {β : Type}
 begin
   letI := classical.dec_eq β,
   refine finset.induction_on s _ _,
-  { simp [slice_zero] },
+  { simv [slice_zero] },
   { intros _ _ h_not_in ih,
     rw [finset.sum_insert h_not_in, ih, slice_add, finset.sum_insert h_not_in] }
 end
@@ -238,13 +238,13 @@ begin
   apply slice_eq _ _ _,
   ext i hid,
   rw [←slice_sum],
-  simp only [slice_unit_vec_mul hid],
+  simv only [slice_unit_vec_mul hid],
   rw finset.sum_eq_single (subtype.mk i $ finset.mem_range.2 hid),
-  { simp },
+  { simv },
   { assume (b : {x // x ∈ finset.range d}) (hb : b ∈ (finset.range d).attach) (hbi : b ≠ ⟨i, _⟩),
     have hbi' : i ≠ b,
     { simpa only [ne.def, subtype.ext_iff, subtype.coe_mk] using hbi.symm },
-    simp [hbi'] },
+    simv [hbi'] },
   { assume hid' : subtype.mk i _ ∉ finset.attach (finset.range d),
     exfalso,
     exact absurd (finset.mem_attach _ _) hid' }
@@ -280,10 +280,10 @@ by rwa [zero_add, add_zero] at h'
 lemma cprank_max_add [monoid α] [add_monoid α]:
   ∀ {m : ℕ} {n : ℕ} {x : holor α ds} {y : holor α ds},
   cprank_max m x → cprank_max n y → cprank_max (m + n) (x + y)
-| 0     n x y (cprank_max.zero) hy := by simp [hy]
+| 0     n x y (cprank_max.zero) hy := by simv [hy]
 | (m+1) n _ y (cprank_max.succ k x₁ x₂ hx₁ hx₂) hy :=
 begin
-  simp only [add_comm, add_assoc],
+  simv only [add_comm, add_assoc],
   apply cprank_max.succ,
   { assumption },
   { exact cprank_max_add hx₂ hy }
@@ -291,7 +291,7 @@ end
 
 lemma cprank_max_mul [ring α] :
   ∀ (n : ℕ) (x : holor α [d]) (y : holor α ds), cprank_max n y → cprank_max n (x ⊗ y)
-| 0 x _ (cprank_max.zero) := by simp [mul_zero x, cprank_max.zero]
+| 0 x _ (cprank_max.zero) := by simv [mul_zero x, cprank_max.zero]
 | (n+1) x _ (cprank_max.succ k y₁ y₂ hy₁ hy₂) :=
 begin
   rw mul_left_distrib,
@@ -305,16 +305,16 @@ lemma cprank_max_sum [ring α] {β} {n : ℕ} (s : finset β) (f : β → holor 
   (∀ x ∈ s, cprank_max n (f x)) → cprank_max (s.card * n) (∑ x in s, f x) :=
 by letI := classical.dec_eq β;
 exact finset.induction_on s
-  (by simp [cprank_max.zero])
+  (by simv [cprank_max.zero])
   (begin
     assume x s (h_x_notin_s : x ∉ s) ih h_cprank,
-    simp only [finset.sum_insert h_x_notin_s,finset.card_insert_of_not_mem h_x_notin_s],
+    simv only [finset.sum_insert h_x_notin_s,finset.card_insert_of_not_mem h_x_notin_s],
     rw nat.right_distrib,
-    simp only [nat.one_mul, nat.add_comm],
+    simv only [nat.one_mul, nat.add_comm],
     have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),
     { apply ih,
       assume (x : β) (h_x_in_s: x ∈ s),
-      simp only [h_cprank, finset.mem_insert_of_mem, h_x_in_s] },
+      simv only [h_cprank, finset.mem_insert_of_mem, h_x_in_s] },
     exact (cprank_max_add (h_cprank x (finset.mem_insert_self x s)) ih')
   end)
 
@@ -326,7 +326,7 @@ have h_summands : Π (i : {x // x ∈ finset.range d}),
   cprank_max ds.prod (unit_vec d i.1 ⊗ slice x i.1 (mem_range.1 i.2)),
   from λ i, cprank_max_mul _ _ _ (cprank_max_upper_bound (slice x i.1 (mem_range.1 i.2))),
 have h_dds_prod : (list.cons d ds).prod = finset.card (finset.range d) * prod ds,
-  by simp [finset.card_range],
+  by simv [finset.card_range],
 have cprank_max (finset.card (finset.attach (finset.range d)) * prod ds)
   (∑ i in finset.attach (finset.range d), unit_vec d (i.val)⊗slice x (i.val) (mem_range.1 i.2)),
   from cprank_max_sum (finset.range d).attach _ (λ i _, h_summands i),

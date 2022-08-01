@@ -49,7 +49,7 @@ begin
   have h3 : (0 : ℝ) < 3 := by norm_num1,
   have h23 : 0 < (2 / 3 : ℝ) := by norm_num1,
   -- In the trivial case `f = 0`, we take `g = 0`
-  rcases eq_or_ne f 0 with (rfl|hf), { use 0, simp },
+  rcases eq_or_ne f 0 with (rfl|hf), { use 0, simv },
   replace hf : 0 < ∥f∥ := norm_pos_iff.2 hf,
   /- Otherwise, the closed sets `e '' (f ⁻¹' (Iic (-∥f∥ / 3)))` and `e '' (f ⁻¹' (Ici (∥f∥ / 3)))`
   are disjoint, hence by Urysohn's lemma there exists a function `g` that is equal to `-∥f∥ / 3`
@@ -75,7 +75,7 @@ begin
         by rw [hg₁ (mem_image_of_mem _ hle₁), abs_of_nonneg (sub_nonneg.2 hle₁)]
       ... ≤ (2 / 3) * ∥f∥ : by linarith },
     { cases le_total (f x) (∥f∥ / 3) with hle₂ hle₂,
-      { simp only [neg_div] at *,
+      { simv only [neg_div] at *,
         calc dist (g (e x)) (f x) ≤ |g (e x)| + |f x| : dist_le_norm_add_norm _ _
         ... ≤ ∥f∥ / 3 + ∥f∥ / 3 :
           add_le_add (abs_le.2 $ hgf _) (abs_le.2 ⟨hle₁, hle₂⟩)
@@ -102,7 +102,7 @@ begin
     from λ n, function.iterate_succ_apply' _ _ _,
   have hgf : ∀ n, dist ((g n).comp_continuous e) f ≤ (2 / 3) ^ n * ∥f∥,
   { intro n, induction n with n ihn,
-    { simp [g0] },
+    { simv [g0] },
     { rw [g_succ n, add_comp_continuous, ← dist_sub_right, add_sub_cancel', pow_succ, mul_assoc],
       refine (hF_dist _).trans (mul_le_mul_of_nonneg_left _ (by norm_num1)),
       rwa ← dist_eq_norm' } },
@@ -175,7 +175,7 @@ begin
     simpa only [real.Icc_eq_closed_ball] using hf x },
   { ext x,
     have : g (e x) = f x - (a + b) / 2 := congr_fun hge x,
-    simp [this] }
+    simv [this] }
 end
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
@@ -199,12 +199,12 @@ begin
   have hle : a ≤ b := (hmem default).1.trans (hmem default).2,
   rcases hle.eq_or_lt with (rfl|hlt),
   { have : ∀ x, f x = a, by simpa using hmem,
-    use const Y a, simp [this, function.funext_iff] },
+    use const Y a, simv [this, function.funext_iff] },
   -- Put `c = (a + b) / 2`. Then `a < c < b` and `c - a = b - c`.
   set c := (a + b) / 2,
   have hac : a < c := left_lt_add_div_two.2 hlt,
   have hcb : c < b := add_div_two_lt_right.2 hlt,
-  have hsub : c - a = b - c, by { simp only [c], field_simp, ring },
+  have hsub : c - a = b - c, by { simv only [c], field_simp, ring },
   /- Due to `exists_extension_forall_mem_Icc_of_closed_embedding`, there exists an extension `g`
   such that `g y ∈ [a, b]` for all `y`. However, if `a` and/or `b` do not belong to the range of
   `f`, then we need to ensure that these points do not belong to the range of `g`. This is done
@@ -228,7 +228,7 @@ begin
       (is_closed_singleton.preimage g.continuous) hd (sub_nonneg.2 hac.le)
       with ⟨dg, dg0, dga, dgmem⟩,
     replace hgf : ∀ x, (g + dg) (e x) = f x,
-    { intro x, simp [dg0 (or.inl $ mem_range_self _), ← hgf] },
+    { intro x, simv [dg0 (or.inl $ mem_range_self _), ← hgf] },
     refine ⟨g + dg, λ y, _, funext hgf⟩,
     { have hay : a < (g + dg) y,
       { rcases (hg_mem y).1.eq_or_lt with rfl|hlt,
@@ -239,7 +239,7 @@ begin
       rcases ha.exists_between hay with ⟨_, ⟨x, rfl⟩, hax, hxy⟩,
       refine ⟨x, hxy.le, _⟩,
       cases le_total c (g y) with hc hc,
-      { simp [dg0 (or.inr hc), (hg_mem y).2] },
+      { simv [dg0 (or.inr hc), (hg_mem y).2] },
       { calc g y + dg y ≤ c + (c - a) : add_le_add hc (dgmem _).2
                     ... = b           : by rw [hsub, add_sub_cancel'_right] } } },
   /- Now we deal with the case `∀ x, f x ≠ b`. The proof is the same as in the first case, with
@@ -257,7 +257,7 @@ begin
     (is_closed_singleton.preimage g.continuous) hd (sub_nonneg.2 hcb.le)
     with ⟨dg, dg0, dgb, dgmem⟩,
   replace hgf : ∀ x, (g - dg) (e x) = f x,
-  { intro x, simp [dg0 (or.inl $ mem_range_self _), ← hgf] },
+  { intro x, simv [dg0 (or.inl $ mem_range_self _), ← hgf] },
   refine ⟨g - dg, λ y, _, funext hgf⟩,
   { have hyb : (g - dg) y < b,
     { rcases (hgb y).eq_or_lt with rfl|hlt,
@@ -278,7 +278,7 @@ begin
         rcases ha.exists_between hay with ⟨_, ⟨x, rfl⟩, ha, hxy⟩,
         exact ⟨x, xu, hxy.le, hyxu.le⟩ } },
     { refine ⟨xl y, xu, _, hyxu.le⟩,
-      simp [dg0 (or.inr hc), hxl] } },
+      simv [dg0 (or.inr hc), hxl] } },
 end
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed

@@ -239,14 +239,14 @@ theorem cseval_add_const {α} [comm_semiring α] (t : tree α)
   (add_const k.to_znum e).is_cs ∧
     cseval t (add_const k.to_znum e) = k + cseval t e :=
 begin
-  simp [add_const],
-  cases k; simp! *,
-  simp [show znum.pos k ≠ 0, from dec_trivial],
-  induction e with n a x n b A B; simp *,
+  simv [add_const],
+  cases k; simv! *,
+  simv [show znum.pos k ≠ 0, from dec_trivial],
+  induction e with n a x n b A B; simv *,
   { rcases cs with ⟨n, rfl⟩,
-    refine ⟨⟨n + num.pos k, by simp [add_comm]; refl⟩, _⟩,
-    cases n; simp! },
-  { rcases B cs.2 with ⟨csb, h⟩, simp! [*, cs.1],
+    refine ⟨⟨n + num.pos k, by simv [add_comm]; refl⟩, _⟩,
+    cases n; simv! },
+  { rcases B cs.2 with ⟨csb, h⟩, simv! [*, cs.1],
     rw [← tactic.ring.horner_add_const, add_comm], rw add_comm }
 end
 
@@ -255,11 +255,11 @@ theorem cseval_horner' {α} [comm_semiring α] (t : tree α)
   (horner' a x n b).is_cs ∧ cseval t (horner' a x n b) =
     tactic.ring.horner (cseval t a) (t.get_or_zero x) n (cseval t b) :=
 begin
-  cases a with n₁ a₁ x₁ n₁ b₁; simp [horner']; split_ifs,
-  { simp! [*, tactic.ring.horner] },
+  cases a with n₁ a₁ x₁ n₁ b₁; simv [horner']; split_ifs,
+  { simv! [*, tactic.ring.horner] },
   { exact ⟨⟨h₁, h₂⟩, rfl⟩ },
-  { refine ⟨⟨h₁.1, h₂⟩, eq.symm _⟩, simp! *,
-    apply tactic.ring.horner_horner, simp },
+  { refine ⟨⟨h₁.1, h₂⟩, eq.symm _⟩, simv! *,
+    apply tactic.ring.horner_horner, simv },
   { exact ⟨⟨h₁, h₂⟩, rfl⟩ }
 end
 
@@ -268,15 +268,15 @@ theorem cseval_add {α} [comm_semiring α] (t : tree α)
   (add e₁ e₂).is_cs ∧
   cseval t (add e₁ e₂) = cseval t e₁ + cseval t e₂ :=
 begin
-  induction e₁ with n₁ a₁ x₁ n₁ b₁ A₁ B₁ generalizing e₂; simp!,
+  induction e₁ with n₁ a₁ x₁ n₁ b₁ A₁ B₁ generalizing e₂; simv!,
   { rcases cs₁ with ⟨n₁, rfl⟩,
     simpa using cseval_add_const t n₁ cs₂ },
   induction e₂ with n₂ a₂ x₂ n₂ b₂ A₂ B₂ generalizing n₁ b₁,
   { rcases cs₂ with ⟨n₂, rfl⟩,
-    simp! [cseval_add_const t n₂ cs₁, add_comm] },
+    simv! [cseval_add_const t n₂ cs₁, add_comm] },
   cases cs₁ with csa₁ csb₁, cases id cs₂ with csa₂ csb₂,
-  simp!, have C := pos_num.cmp_to_nat x₁ x₂,
-  cases pos_num.cmp x₁ x₂; simp!,
+  simv!, have C := pos_num.cmp_to_nat x₁ x₂,
+  cases pos_num.cmp x₁ x₂; simv!,
   { rcases B₁ csb₁ cs₂ with ⟨csh, h⟩,
     refine ⟨⟨csa₁, csh⟩, eq.symm _⟩,
     apply tactic.ring.horner_add_const,
@@ -285,20 +285,20 @@ begin
     have B0 : is_cs 0 → ∀ {e₂ : horner_expr}, is_cs e₂ →
       is_cs (add 0 e₂) ∧ cseval t (add 0 e₂) = cseval t 0 + cseval t e₂ :=
       λ _ e₂ c, ⟨c, (zero_add _).symm⟩,
-     cases e : num.sub' n₁ n₂ with k k; simp!,
+     cases e : num.sub' n₁ n₂ with k k; simv!,
     { have : n₁ = n₂,
       { have := congr_arg (coe : znum → ℤ) e,
-        simp at this,
+        simv at this,
         have := sub_eq_zero.1 this,
         rw [← num.to_nat_to_int, ← num.to_nat_to_int] at this,
         exact num.to_nat_inj.1 (int.coe_nat_inj this) },
       subst n₂,
       rcases cseval_horner' _ _ _ _ _ _ _ with ⟨csh, h⟩,
       { refine ⟨csh, h.trans (eq.symm _)⟩,
-        simp *,
+        simv *,
         apply tactic.ring.horner_add_horner_eq; try {refl} },
-      all_goals {simp! *} },
-    { simp [B₁ csb₁ csb₂, add_comm],
+      all_goals {simv! *} },
+    { simv [B₁ csb₁ csb₂, add_comm],
       rcases A₂ csa₂ _ _ B0 ⟨csa₁, 0, rfl⟩ with ⟨csh, h⟩,
       refine ⟨csh, eq.symm _⟩,
       rw [show id = add 0, from rfl, h],
@@ -310,7 +310,7 @@ begin
       { refl },
       { apply add_comm } },
     { have : (horner a₂ x₁ (num.pos k) 0).is_cs := ⟨csa₂, 0, rfl⟩,
-      simp [B₁ csb₁ csb₂, A₁ csa₁ this],
+      simv [B₁ csb₁ csb₂, A₁ csa₁ this],
       symmetry, apply tactic.ring.horner_add_horner_lt,
       { change (_ + k : ℕ) = _,
           rw [← int.coe_nat_inj', int.coe_nat_add,
@@ -320,7 +320,7 @@ begin
   { rcases B₂ csb₂ _ _ B₁ ⟨csa₁, csb₁⟩ with ⟨csh, h⟩,
     refine ⟨⟨csa₂, csh⟩, eq.symm _⟩,
     apply tactic.ring.const_add_horner,
-    simp [h] }
+    simv [h] }
 end
 
 theorem cseval_mul_const {α} [comm_semiring α] (t : tree α)
@@ -328,18 +328,18 @@ theorem cseval_mul_const {α} [comm_semiring α] (t : tree α)
   (mul_const k.to_znum e).is_cs ∧
     cseval t (mul_const k.to_znum e) = cseval t e * k :=
 begin
-  simp [mul_const],
+  simv [mul_const],
   split_ifs with h h,
   { cases (num.to_znum_inj.1 h : k = 0),
     exact ⟨⟨0, rfl⟩, (mul_zero _).symm⟩ },
   { cases (num.to_znum_inj.1 h : k = 1),
     exact ⟨cs, (mul_one _).symm⟩ },
-  induction e with n a x n b A B; simp *,
+  induction e with n a x n b A B; simv *,
   { rcases cs with ⟨n, rfl⟩,
     suffices, refine ⟨⟨n * k, this⟩, _⟩,
     swap, {cases n; cases k; refl},
-    rw [show _, from this], simp! },
-  { cases cs, simp! *,
+    rw [show _, from this], simv! },
+  { cases cs, simv! *,
     symmetry, apply tactic.ring.horner_mul_const; refl }
 end
 
@@ -348,31 +348,31 @@ theorem cseval_mul {α} [comm_semiring α] (t : tree α)
   (mul e₁ e₂).is_cs ∧
   cseval t (mul e₁ e₂) = cseval t e₁ * cseval t e₂ :=
 begin
-  induction e₁ with n₁ a₁ x₁ n₁ b₁ A₁ B₁ generalizing e₂; simp!,
+  induction e₁ with n₁ a₁ x₁ n₁ b₁ A₁ B₁ generalizing e₂; simv!,
   { rcases cs₁ with ⟨n₁, rfl⟩,
     simpa [mul_comm] using cseval_mul_const t n₁ cs₂ },
   induction e₂ with n₂ a₂ x₂ n₂ b₂ A₂ B₂,
   { rcases cs₂ with ⟨n₂, rfl⟩,
     simpa! using cseval_mul_const t n₂ cs₁ },
   cases cs₁ with csa₁ csb₁, cases id cs₂ with csa₂ csb₂,
-  simp!, have C := pos_num.cmp_to_nat x₁ x₂,
+  simv!, have C := pos_num.cmp_to_nat x₁ x₂,
   cases A₂ csa₂ with csA₂ hA₂,
-  cases pos_num.cmp x₁ x₂; simp!,
-  { simp [A₁ csa₁ cs₂, B₁ csb₁ cs₂],
+  cases pos_num.cmp x₁ x₂; simv!,
+  { simv [A₁ csa₁ cs₂, B₁ csb₁ cs₂],
     symmetry, apply tactic.ring.horner_mul_const; refl },
   { cases cseval_horner' t _ x₁ n₂ 0 csA₂ ⟨0, rfl⟩ with csh₁ h₁,
     cases C, split_ifs,
     { subst b₂,
       refine ⟨csh₁, h₁.trans (eq.symm _)⟩,
       apply tactic.ring.horner_mul_horner_zero; try {refl},
-      simp! [hA₂] },
+      simv! [hA₂] },
     { cases A₁ csa₁ csb₂ with csA₁ hA₁,
       cases cseval_add t csh₁ _ with csh₂ h₂,
       { refine ⟨csh₂, h₂.trans (eq.symm _)⟩,
         apply tactic.ring.horner_mul_horner; try {refl},
-        simp! * },
+        simv! * },
       exact ⟨csA₁, (B₁ csb₁ csb₂).1⟩ } },
-  { simp [A₂ csa₂, B₂ csb₂], rw [mul_comm, eq_comm],
+  { simv [A₂ csa₂, B₂ csb₂], rw [mul_comm, eq_comm],
     apply tactic.ring.horner_const_mul,
     {apply mul_comm}, {refl} },
 end
@@ -383,15 +383,15 @@ theorem cseval_pow {α} [comm_semiring α] (t : tree α)
     cseval t (pow x n) = cseval t x ^ (n : ℕ)
 | 0 := ⟨⟨1, rfl⟩, (pow_zero _).symm⟩
 | (num.pos p) := begin
-  simp [pow], induction p with p ep p ep,
-  { simp * },
-  { simp [pow_bit1],
+  simv [pow], induction p with p ep p ep,
+  { simv * },
+  { simv [pow_bit1],
     cases cseval_mul t ep.1 ep.1 with cs₀ h₀,
     cases cseval_mul t cs₀ cs with cs₁ h₁,
-    simp * },
-  { simp [pow_bit0],
+    simv * },
+  { simv [pow_bit0],
     cases cseval_mul t ep.1 ep.1 with cs₀ h₀,
-    simp * }
+    simv * }
 end
 
 /-- For any given tree `t` of atoms and any reflected expression `r`,
@@ -404,14 +404,14 @@ theorem cseval_of_csexpr {α} [comm_semiring α] (t : tree α) :
 | (csring_expr.add x y) :=
   let ⟨cs₁, h₁⟩ := cseval_of_csexpr x,
       ⟨cs₂, h₂⟩ := cseval_of_csexpr y,
-      ⟨cs, h⟩ := cseval_add t cs₁ cs₂ in ⟨cs, by simp! [h, *]⟩
+      ⟨cs, h⟩ := cseval_add t cs₁ cs₂ in ⟨cs, by simv! [h, *]⟩
 | (csring_expr.mul x y) :=
   let ⟨cs₁, h₁⟩ := cseval_of_csexpr x,
       ⟨cs₂, h₂⟩ := cseval_of_csexpr y,
-      ⟨cs, h⟩ := cseval_mul t cs₁ cs₂ in ⟨cs, by simp! [h, *]⟩
+      ⟨cs, h⟩ := cseval_mul t cs₁ cs₂ in ⟨cs, by simv! [h, *]⟩
 | (csring_expr.pow x n) :=
   let ⟨cs, h⟩ := cseval_of_csexpr x,
-      ⟨cs, h⟩ := cseval_pow t cs n in ⟨cs, by simp! [h, *]⟩
+      ⟨cs, h⟩ := cseval_pow t cs n in ⟨cs, by simv! [h, *]⟩
 
 end horner_expr
 

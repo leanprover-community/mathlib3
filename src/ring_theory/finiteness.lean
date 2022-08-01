@@ -199,7 +199,7 @@ begin
   refine ⟨⟨S, eq_top_iff.2 (λ b, _)⟩⟩,
   have le : adjoin R (S : set B) ≤ subalgebra.restrict_scalars R (adjoin A S),
   { apply (algebra.adjoin_le _ : _ ≤ (subalgebra.restrict_scalars R (adjoin A ↑S))),
-    simp only [subalgebra.coe_restrict_scalars],
+    simv only [subalgebra.coe_restrict_scalars],
     exact algebra.subset_adjoin, },
   exact le (eq_top_iff.1 hS b),
 end
@@ -361,7 +361,7 @@ begin
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
   { refine ideal.fg_ker_comp _ _ hf.2 _ hf.1,
-    simp [h] }
+    simv [h] }
 end
 
 /-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,
@@ -470,7 +470,7 @@ lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite) (hf : f.finite) : (g.
 begin
   fconstructor,
   intros a b c,
-  simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
+  simv only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
   refl
 end
 hf hg
@@ -512,7 +512,7 @@ lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_type) (hf : f.finite_t
 begin
   fconstructor,
   intros a b c,
-  simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
+  simv only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
   refl
 end
 hf hg
@@ -556,7 +556,7 @@ lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_presentation) (hf : f.
   (g.comp f).finite_presentation :=
 @algebra.finite_presentation.trans A B C _ _ f.to_algebra _ (g.comp f).to_algebra g.to_algebra
 { smul_assoc := λ a b c, begin
-    simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
+    simv only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
     refl
   end }
 hf hg
@@ -707,7 +707,7 @@ begin
   suffices : of' R M '' (⋃ f ∈ S, (f.support : set M)) = ⋃ f ∈ S, (of' R M '' (f.support : set M)),
   { rw this,
     exact support_gen_of_gen hS },
-  simp only [set.image_Union]
+  simv only [set.image_Union]
 end
 
 end semiring
@@ -725,7 +725,7 @@ begin
   letI : decidable_eq M := classical.dec_eq M,
   use finset.bUnion S (λ f, f.support),
   have : (finset.bUnion S (λ f, f.support) : set M) = ⋃ f ∈ S, (f.support : set M),
-  { simp only [finset.set_bUnion_coe, finset.coe_bUnion] },
+  { simv only [finset.set_bUnion_coe, finset.coe_bUnion] },
   rw [this],
   exact support_gen_of_gen' hS
 end
@@ -805,7 +805,7 @@ begin
   obtain ⟨S, hS⟩ := @exists_finset_adjoin_eq_top R M _ _ h,
   refine add_monoid.fg_def.2 ⟨S, (eq_top_iff' _).2 (λ m, _)⟩,
   have hm : of' R M m ∈ (adjoin R (of' R M '' ↑S)).to_submodule,
-  { simp only [hS, top_to_submodule, submodule.mem_top], },
+  { simv only [hS, top_to_submodule, submodule.mem_top], },
   rw [adjoin_eq_span] at hm,
   exact mem_closure_of_mem_span_closure hm
 end
@@ -865,7 +865,7 @@ begin
   suffices : of R M '' (⋃ f ∈ S, (f.support : set M)) = ⋃ f ∈ S, (of R M '' (f.support : set M)),
   { rw this,
     exact support_gen_of_gen hS },
-  simp only [set.image_Union]
+  simv only [set.image_Union]
 end
 
 end semiring
@@ -883,7 +883,7 @@ begin
   letI : decidable_eq M := classical.dec_eq M,
   use finset.bUnion S (λ f, f.support),
   have : (finset.bUnion S (λ f, f.support) : set M) = ⋃ f ∈ S, (f.support : set M),
-  { simp only [finset.set_bUnion_coe, finset.coe_bUnion] },
+  { simv only [finset.set_bUnion_coe, finset.coe_bUnion] },
   rw [this],
   exact support_gen_of_gen' hS
 end
@@ -977,7 +977,7 @@ begin
   letI := module_polynomial_of_endo f,
   constructor,
   intros x y z,
-  simp,
+  simv,
 end
 
 open polynomial module
@@ -996,7 +996,7 @@ begin
   have hfgpoly : finite R[X] M, from finite.of_restrict_scalars_finite R _ _,
   have X_mul : ∀ o, (X : R[X]) • o = f o,
   { intro,
-    simp, },
+    simv, },
   have : (⊤ : submodule R[X] M) ≤ ideal.span {X} • ⊤,
   { intros a ha,
     obtain ⟨y, rfl⟩ := f_surj a,
@@ -1009,7 +1009,7 @@ begin
   rw ideal.mem_span_singleton' at hFa,
   obtain ⟨G, hG⟩ := hFa,
   suffices : (F - 1) • m = 0,
-  { have Fmzero := hFb m (by simp),
+  { have Fmzero := hFb m (by simv),
     rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
   rw [← hG, mul_smul, X_mul m, hm, smul_zero],
 end

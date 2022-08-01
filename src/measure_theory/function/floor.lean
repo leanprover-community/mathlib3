@@ -51,7 +51,7 @@ measurable_fract.comp hf
 lemma measurable_set.image_fract [borel_space R] {s : set R} (hs : measurable_set s) :
   measurable_set (int.fract '' s) :=
 begin
-  simp only [int.image_fract, sub_eq_add_neg, image_add_right'],
+  simv only [int.image_fract, sub_eq_add_neg, image_add_right'],
   exact measurable_set.Union (λ m, (measurable_add_const _ hs).inter measurable_set_Ico)
 end
 
@@ -64,13 +64,13 @@ variables {α R : Type*} [measurable_space α] [linear_ordered_semiring R] [floo
   {f : α → R}
 
 lemma nat.measurable_floor : measurable (nat.floor : R → ℕ) :=
-measurable_to_encodable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simp [*, nat.preimage_floor_of_ne_zero]
+measurable_to_encodable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simv [*, nat.preimage_floor_of_ne_zero]
 
 @[measurability] lemma measurable.nat_floor (hf : measurable f) : measurable (λ x, ⌊f x⌋₊) :=
 nat.measurable_floor.comp hf
 
 lemma nat.measurable_ceil : measurable (nat.ceil : R → ℕ) :=
-measurable_to_encodable $ λ n, by cases eq_or_ne ⌈n⌉₊ 0; simp [*, nat.preimage_ceil_of_ne_zero]
+measurable_to_encodable $ λ n, by cases eq_or_ne ⌈n⌉₊ 0; simv [*, nat.preimage_ceil_of_ne_zero]
 
 @[measurability] lemma measurable.nat_ceil (hf : measurable f) : measurable (λ x, ⌈f x⌉₊) :=
 nat.measurable_ceil.comp hf

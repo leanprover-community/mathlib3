@@ -99,9 +99,9 @@ begin
   apply q.P.W_cases _ y,
   intros a₁ f'₁ f₁,
   intro h, induction h,
-  case mvqpf.Wequiv.ind : a f' f₀ f₁ h ih { simp only [recF_eq, function.comp, ih] },
+  case mvqpf.Wequiv.ind : a f' f₀ f₁ h ih { simv only [recF_eq, function.comp, ih] },
   case mvqpf.Wequiv.abs : a₀ f'₀ f₀ a₁ f'₁ f₁ h
-    { simp only [recF_eq', abs_map, mvpfunctor.W_dest'_W_mk, h] },
+    { simv only [recF_eq', abs_map, mvpfunctor.W_dest'_W_mk, h] },
   case mvqpf.Wequiv.trans : x y z e₁ e₂ ih₁ ih₂
     { exact eq.trans ih₁ ih₂ }
 end
@@ -321,7 +321,7 @@ def fix.drec {β : fix F α → Type u}
 let y := @fix.rec _ F _ _ α (sigma β) (λ i, ⟨_,g i⟩) x in
 have x = y.1,
   by { symmetry, dsimp [y], apply fix.ind_rec _ id _ x, intros x' ih,
-       rw fix.rec_eq, dsimp, simp [append_fun_id_id] at ih,
+       rw fix.rec_eq, dsimp, simv [append_fun_id_id] at ih,
        congr, conv { to_rhs, rw [← ih] }, rw [mvfunctor.map_map,← append_fun_comp,id_comp], },
 cast (by rw this) y.2
 

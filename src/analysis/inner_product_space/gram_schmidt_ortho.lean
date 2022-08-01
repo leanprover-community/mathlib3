@@ -83,15 +83,15 @@ begin
   revert a,
   apply well_founded.induction (@is_well_order.wf ι (<) _) b,
   intros b ih a h₀,
-  simp only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
+  simv only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
     orthogonal_projection_singleton, inner_smul_right],
   rw finset.sum_eq_single_of_mem a (finset.mem_Iio.mpr h₀),
   { by_cases h : gram_schmidt 𝕜 f a = 0,
-    { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
+    { simv only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
       rwa [ne.def, inner_self_eq_zero], }, },
   simp_intros i hi hia only [finset.mem_range],
-  simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
+  simv only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
   right,
   cases hia.lt_or_lt with hia₁ hia₂,
   { rw inner_eq_zero_sym,
@@ -158,7 +158,7 @@ begin
   { rw [← span_gram_schmidt_Iio 𝕜 f n, gram_schmidt_def' _ f, h, zero_add],
     apply submodule.sum_mem _ _,
     simp_intros a ha only [finset.mem_Ico],
-    simp only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
+    simv only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
     apply submodule.smul_mem _ _ _,
     rw finset.mem_Iio at ha,
     refine subset_span ⟨a, ha, by refl⟩ },
@@ -169,7 +169,7 @@ begin
     ext i,
     simpa using @le_of_lt _ _ i n },
   apply linear_independent.not_mem_span_image h₀ _ h₂,
-  simp only [set.mem_Iio, lt_self_iff_false, not_false_iff]
+  simv only [set.mem_Iio, lt_self_iff_false, not_false_iff]
 end
 
 /-- If the input vectors of `gram_schmidt` are linearly independent,
@@ -215,7 +215,7 @@ noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
 lemma gram_schmidt_normed_unit_length_coe
     (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
   ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero_coe 𝕜 f n h₀,
+by simv only [gram_schmidt_ne_zero_coe 𝕜 f n h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 lemma gram_schmidt_normed_unit_length (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
@@ -229,9 +229,9 @@ theorem gram_schmidt_orthonormal (f : ι → E) (h₀ : linear_independent 𝕜 
 begin
   unfold orthonormal,
   split,
-  { simp only [gram_schmidt_normed_unit_length, h₀, eq_self_iff_true, implies_true_iff], },
+  { simv only [gram_schmidt_normed_unit_length, h₀, eq_self_iff_true, implies_true_iff], },
   { intros i j hij,
-    simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
+    simv only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
     repeat { right },
     exact gram_schmidt_orthogonal 𝕜 f hij }
@@ -243,9 +243,9 @@ begin
   refine span_eq_span (set.image_subset_iff.2 $ λ i hi, smul_mem _ _ $ subset_span $
     mem_image_of_mem _ hi)
     (set.image_subset_iff.2 $ λ i hi, span_mono (image_subset _ $ singleton_subset_set_iff.2 hi) _),
-  simp only [coe_singleton, set.image_singleton],
+  simv only [coe_singleton, set.image_singleton],
   by_cases h : gram_schmidt 𝕜 f i = 0,
-  { simp [h] },
+  { simv [h] },
   { refine mem_span_singleton.2 ⟨∥gram_schmidt 𝕜 f i∥, smul_inv_smul₀ _ _⟩,
     exact_mod_cast (norm_ne_zero_iff.2 h) }
 end

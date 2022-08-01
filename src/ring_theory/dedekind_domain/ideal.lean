@@ -81,7 +81,7 @@ fractional_ideal.mem_div_iff_of_nonzero hI
 
 lemma inv_anti_mono (hI : I ≠ 0) (hJ : J ≠ 0) (hIJ : I ≤ J) :
   J⁻¹ ≤ I⁻¹ :=
-λ x, by { simp only [mem_inv_iff hI, mem_inv_iff hJ], exact λ h y hy, h y (hIJ hy) }
+λ x, by { simv only [mem_inv_iff hI, mem_inv_iff hJ], exact λ h y hy, h y (hIJ hy) }
 
 lemma le_self_mul_inv {I : fractional_ideal R₁⁰ K} (hI : I ≤ (1 : fractional_ideal R₁⁰ K)) :
   I ≤ I * I⁻¹ :=
@@ -212,7 +212,7 @@ begin
   let h := fractional_ideal.map_equiv (fraction_ring.alg_equiv A K),
   refine h.to_equiv.forall_congr (λ I, _),
   rw ← h.to_equiv.apply_eq_iff_eq,
-  simp [is_dedekind_domain_inv, show ⇑h.to_equiv = h, from rfl],
+  simv [is_dedekind_domain_inv, show ⇑h.to_equiv = h, from rfl],
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
@@ -221,9 +221,9 @@ lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fract
 begin
   set I := adjoin_integral A⁰ x hx,
   have mul_self : I * I = I,
-  { apply fractional_ideal.coe_to_submodule_injective, simp },
+  { apply fractional_ideal.coe_to_submodule_injective, simv },
   convert congr_arg (* I⁻¹) mul_self;
-  simp only [(mul_inv_cancel_iff_is_unit K).mpr hI, mul_assoc, mul_one],
+  simv only [(mul_inv_cancel_iff_is_unit K).mpr hI, mul_assoc, mul_one],
 end
 
 namespace is_dedekind_domain_inv
@@ -478,7 +478,7 @@ begin
     rw mem_inv_iff at ⊢ hx,
     swap, { exact fractional_ideal.coe_ideal_ne_zero hI0 },
     swap, { exact hJ0 },
-    simp only [mul_assoc, mul_comm b] at ⊢ hx,
+    simv only [mul_assoc, mul_comm b] at ⊢ hx,
     intros y hy,
     exact hx _ (fractional_ideal.mul_mem_mul hy hb) },
   -- It turns out the subalgebra consisting of all `p(x)` for `p : polynomial A` works.
@@ -530,7 +530,7 @@ end
 
 lemma mul_left_le_iff [is_dedekind_domain A] {J : fractional_ideal A⁰ K}
   (hJ : J ≠ 0) {I I'} : J * I ≤ J * I' ↔ I ≤ I' :=
-by convert fractional_ideal.mul_right_le_iff hJ using 1; simp only [mul_comm]
+by convert fractional_ideal.mul_right_le_iff hJ using 1; simv only [mul_comm]
 
 lemma mul_right_strict_mono [is_dedekind_domain A] {I : fractional_ideal A⁰ K}
   (hI : I ≠ 0) : strict_mono (* I) :=
@@ -658,7 +658,7 @@ begin
   { unfreezingI { rintro rfl },
     rw ← ideal.one_eq_top at h,
     exact h.not_unit is_unit_one },
-  { simp only [← ideal.dvd_span_singleton, ← ideal.span_singleton_mul_span_singleton] at ⊢ hxy,
+  { simv only [← ideal.dvd_span_singleton, ← ideal.span_singleton_mul_span_singleton] at ⊢ hxy,
     exact h.dvd_or_dvd hxy }
 end
 
@@ -798,7 +798,7 @@ lemma irreducible_pow_sup_of_le (hJ : irreducible J) (n : ℕ)
   (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=
 begin
   by_cases hI : I = ⊥,
-  { simp [*] at *, },
+  { simv [*] at *, },
   rw [irreducible_pow_sup hI hJ, min_eq_right],
   rwa [multiplicity_eq_count_normalized_factors hJ hI, part_enat.coe_le_coe, normalize_eq J] at hn
 end
@@ -893,7 +893,7 @@ def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.sur
 @[simp]
 lemma ideal_factors_fun_of_quot_hom_id :
   ideal_factors_fun_of_quot_hom  (ring_hom.id (A ⧸ J)).is_surjective = order_hom.id :=
-order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, map_id,
+order_hom.ext _ _ (funext $ λ X, by simv only [ideal_factors_fun_of_quot_hom, map_id,
   order_hom.coe_fun_mk, order_hom.id_coe, id.def, comap_map_of_surjective J^.quotient.mk
   quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot J^.quotient.mk, mk_ker, sup_eq_left.mpr
   (dvd_iff_le.mp X.prop), subtype.coe_eta] )
@@ -924,11 +924,11 @@ order_iso.of_hom_inv
     (f : R ⧸I →+* A ⧸ J), from f.surjective))
     (ideal_factors_fun_of_quot_hom (show function.surjective
     (f.symm : A ⧸J →+* R ⧸ I), from f.symm.surjective))
-  (by simp only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
+  (by simv only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
     ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
     ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.symm_trans_self,
     ring_equiv.to_ring_hom_refl])
-  (by simp only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
+  (by simv only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
     ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
     ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.self_trans_symm,
     ring_equiv.to_ring_hom_refl])
@@ -962,9 +962,9 @@ variables {R} [is_domain R] [is_dedekind_domain R]
 lemma ideal.is_prime.mul_mem_pow (I : ideal R) [hI : I.is_prime] {a b : R} {n : ℕ}
   (h : a * b ∈ I^n) : a ∈ I ∨ b ∈ I^n :=
 begin
-  cases n, { simp },
+  cases n, { simv },
   by_cases hI0 : I = ⊥, { simpa [pow_succ, hI0] using h },
-  simp only [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq, ← ideal.dvd_iff_le,
+  simv only [← submodule.span_singleton_le_iff_mem, ideal.submodule_span_eq, ← ideal.dvd_iff_le,
     ← ideal.span_singleton_mul_span_singleton] at h ⊢,
   by_cases ha : I ∣ span {a},
   { exact or.inl ha },
@@ -992,7 +992,7 @@ lemma ideal.le_mul_of_no_prime_factors
   {I J K : ideal R} (coprime : ∀ P, J ≤ P → K ≤ P → ¬ is_prime P) (hJ : I ≤ J) (hK : I ≤ K) :
   I ≤ J * K :=
 begin
-  simp only [← ideal.dvd_iff_le] at coprime hJ hK ⊢,
+  simv only [← ideal.dvd_iff_le] at coprime hJ hK ⊢,
   by_cases hJ0 : J = 0,
   { simpa only [hJ0, zero_mul] using hJ },
   obtain ⟨I', rfl⟩ := hK,
@@ -1006,7 +1006,7 @@ end
 lemma ideal.le_of_pow_le_prime {I P : ideal R} [hP : P.is_prime] {n : ℕ} (h : I^n ≤ P) : I ≤ P :=
 begin
   by_cases hP0 : P = ⊥,
-  { simp only [hP0, le_bot_iff] at ⊢ h,
+  { simv only [hP0, le_bot_iff] at ⊢ h,
     exact pow_eq_zero h },
   rw ← ideal.dvd_iff_le at ⊢ h,
   exact ((ideal.prime_iff_is_prime hP0).mpr hP).dvd_of_dvd_pow h
@@ -1021,9 +1021,9 @@ lemma ideal.prod_le_prime {ι : Type*} {s : finset ι} {f : ι → ideal R} {P :
   ∏ i in s, f i ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
 begin
   by_cases hP0 : P = ⊥,
-  { simp only [hP0, le_bot_iff],
+  { simv only [hP0, le_bot_iff],
     rw [← ideal.zero_eq_bot, finset.prod_eq_zero_iff] },
-  simp only [← ideal.dvd_iff_le],
+  simv only [← ideal.dvd_iff_le],
   exact ((ideal.prime_iff_is_prime hP0).mpr hP).dvd_finset_prod_iff _
 end
 
@@ -1037,7 +1037,7 @@ begin
   letI := classical.dec_eq ι,
   revert prime coprime,
   refine s.induction _ _,
-  { simp },
+  { simv },
   intros a s ha ih prime coprime,
   specialize ih (λ i hi, prime i (finset.mem_insert_of_mem hi))
     (λ i hi j hj, coprime i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj)),
@@ -1064,7 +1064,7 @@ noncomputable def is_dedekind_domain.quotient_equiv_pi_of_prod_eq {ι : Type*} [
   (I : ideal R) (P : ι → ideal R) (e : ι → ℕ)
   (prime : ∀ i, prime (P i)) (coprime : ∀ i j, i ≠ j → P i ≠ P j) (prod_eq : (∏ i, P i ^ e i) = I) :
   R ⧸ I ≃+* Π i, R ⧸ (P i ^ e i) :=
-(ideal.quot_equiv_of_eq (by { simp only [← prod_eq, finset.inf_eq_infi, finset.mem_univ, cinfi_pos,
+(ideal.quot_equiv_of_eq (by { simv only [← prod_eq, finset.inf_eq_infi, finset.mem_univ, cinfi_pos,
   ← is_dedekind_domain.inf_prime_pow_eq_prod _ _ _ (λ i _, prime i) (λ i _ j _, coprime i j)] }))
     .trans $
 ideal.quotient_inf_ring_equiv_pi_quotient _ (λ i j hij, ideal.coprime_of_no_prime_ge (begin

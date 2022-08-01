@@ -240,7 +240,7 @@ rfl
 
 lemma pair_eq_mk (f : α →ₘ[μ] β) (g : α →ₘ[μ] γ) :
   f.pair g = mk (λ x, (f x, g x)) (f.ae_strongly_measurable.prod_mk g.ae_strongly_measurable) :=
-by simp only [← pair_mk_mk, mk_coe_fn]
+by simv only [← pair_mk_mk, mk_coe_fn]
 
 lemma coe_fn_pair (f : α →ₘ[μ] β) (g : α →ₘ[μ] γ) :
   f.pair g =ᵐ[μ] (λ x, (f x, g x)) :=
@@ -332,18 +332,18 @@ lemma to_germ_injective : injective (to_germ : (α →ₘ[μ] β) → germ μ.ae
 
 lemma comp_to_germ (g : β → γ) (hg : continuous g) (f : α →ₘ[μ] β) :
   (comp g hg f).to_germ = f.to_germ.map g :=
-induction_on f $ λ f hf, by simp
+induction_on f $ λ f hf, by simv
 
 lemma comp_measurable_to_germ [measurable_space β] [borel_space β] [pseudo_metrizable_space β]
   [pseudo_metrizable_space γ] [second_countable_topology γ] [measurable_space γ]
   [opens_measurable_space γ] (g : β → γ) (hg : measurable g) (f : α →ₘ[μ] β) :
   (comp_measurable g hg f).to_germ = f.to_germ.map g :=
-induction_on f $ λ f hf, by simp
+induction_on f $ λ f hf, by simv
 
 lemma comp₂_to_germ (g : β → γ → δ) (hg : continuous (uncurry g))
   (f₁ : α →ₘ[μ] β) (f₂ : α →ₘ[μ] γ) :
   (comp₂ g hg f₁ f₂).to_germ = f₁.to_germ.map₂ g f₂.to_germ :=
-induction_on₂ f₁ f₂ $ λ f₁ hf₁ f₂ hf₂, by simp
+induction_on₂ f₁ f₂ $ λ f₁ hf₁ f₂ hf₂, by simv
 
 lemma comp₂_measurable_to_germ
   [pseudo_metrizable_space β] [second_countable_topology β] [measurable_space β] [borel_space β]
@@ -352,7 +352,7 @@ lemma comp₂_measurable_to_germ
   [opens_measurable_space δ] (g : β → γ → δ) (hg : measurable (uncurry g))
   (f₁ : α →ₘ[μ] β) (f₂ : α →ₘ[μ] γ) :
   (comp₂_measurable g hg f₁ f₂).to_germ = f₁.to_germ.map₂ g f₂.to_germ :=
-induction_on₂ f₁ f₂ $ λ f₁ hf₁ f₂ hf₂, by simp
+induction_on₂ f₁ f₂ $ λ f₁ hf₁ f₂ hf₂, by simv
 
 /-- Given a predicate `p` and an equivalence class `[f]`, return true if `p` holds of `f a`
     for almost all `a` -/
@@ -379,7 +379,7 @@ instance [preorder β] : preorder (α →ₘ[μ] β) := preorder.lift to_germ
   (mk f hf : α →ₘ[μ] β) ≤ mk g hg ↔ f ≤ᵐ[μ] g :=
 iff.rfl
 
-@[simp, norm_cast] lemma coe_fn_le [preorder β] {f g : α →ₘ[μ] β} :
+@[simv, norm_cast] lemma coe_fn_le [preorder β] {f g : α →ₘ[μ] β} :
   (f : α → β) ≤ᵐ[μ] g ↔ f ≤ g :=
 lift_rel_iff_coe_fn.symm
 
@@ -469,7 +469,7 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 @[to_additive] lemma one_def [has_one β] :
   (1 : α →ₘ[μ] β) = mk (λ a:α, 1) ae_strongly_measurable_const := rfl
 @[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₘ[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
-@[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
+@[simv, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
 -- Note we set up the scalar actions before the `monoid` structures in case we want to
 -- try to override the `nsmul` or `zsmul` fields in future.
@@ -508,14 +508,14 @@ variables [has_mul γ] [has_continuous_mul γ]
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) continuous_mul⟩
 
-@[simp, to_additive] lemma mk_mul_mk (f g : α → γ) (hf : ae_strongly_measurable f μ)
+@[simv, to_additive] lemma mk_mul_mk (f g : α → γ) (hf : ae_strongly_measurable f μ)
   (hg : ae_strongly_measurable g μ) :
   (mk f hf : α →ₘ[μ] γ) * (mk g hg) = mk (f * g) (hf.mul hg) :=
 rfl
 
 @[to_additive] lemma coe_fn_mul (f g : α →ₘ[μ] γ) : ⇑(f * g) =ᵐ[μ] f * g := coe_fn_comp₂ _ _ _ _
 
-@[simp, to_additive] lemma mul_to_germ (f g : α →ₘ[μ] γ) :
+@[simv, to_additive] lemma mul_to_germ (f g : α →ₘ[μ] γ) :
   (f * g).to_germ = f.to_germ * g.to_germ :=
 comp₂_to_germ _ _ _ _
 
@@ -568,7 +568,7 @@ section inv
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv continuous_inv⟩
 
-@[simp, to_additive] lemma inv_mk (f : α → γ) (hf) : (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ hf.inv := rfl
+@[simv, to_additive] lemma inv_mk (f : α → γ) (hf) : (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ hf.inv := rfl
 
 @[to_additive] lemma coe_fn_inv (f : α →ₘ[μ] γ) : ⇑(f⁻¹) =ᵐ[μ] f⁻¹ := coe_fn_comp _ _ _
 
@@ -580,7 +580,7 @@ section div
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div continuous_div'⟩
 
-@[simp, to_additive] lemma mk_div (f g : α → γ)
+@[simv, to_additive] lemma mk_div (f g : α → γ)
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   mk (f / g) (hf.div hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
 rfl
@@ -670,7 +670,7 @@ by rw [← lintegral_mk, mk_coe_fn]
 induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf.ae_measurable).trans mk_eq_mk.symm
 
 lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
-induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add_left' hf.ae_measurable]
+induction_on₂ f g $ λ f hf g hg, by simv [lintegral_add_left' hf.ae_measurable]
 
 lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg

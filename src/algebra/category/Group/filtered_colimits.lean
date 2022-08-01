@@ -85,7 +85,7 @@ instance colimit_has_inv : has_inv G :=
   exact h,
 end }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma colimit_inv_mk_eq (x : Σ j, F.obj j) : (G.mk x) ⁻¹ = G.mk ⟨x.1, x.2 ⁻¹⟩ := rfl
 
 @[to_additive]
@@ -97,7 +97,7 @@ instance colimit_group : group G :=
       colimit_mul_mk_eq (F ⋙ forget₂ Group Mon.{max v u}) ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j),
       colimit_one_eq (F ⋙ forget₂ Group Mon.{max v u}) j],
     dsimp,
-    simp only [category_theory.functor.map_id, id_apply, mul_left_inv],
+    simv only [category_theory.functor.map_id, id_apply, mul_left_inv],
   end,
   .. G.monoid,
   .. colimit_has_inv }

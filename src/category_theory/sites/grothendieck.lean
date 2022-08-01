@@ -129,7 +129,7 @@ lemma intersection_covering (rj : R ∈ J X) (sj : S ∈ J X) : R ⊓ S ∈ J X 
 begin
   apply J.transitive rj _ (λ Y f Hf, _),
   rw [sieve.pullback_inter, R.pullback_eq_top_of_mem Hf],
-  simp [sj],
+  simv [sj],
 end
 
 @[simp]
@@ -152,7 +152,7 @@ lemma covers_iff (S : sieve X) (f : Y ⟶ X) : J.covers S f ↔ S.pullback f ∈
 iff.rfl
 
 lemma covering_iff_covers_id (S : sieve X) : S ∈ J X ↔ J.covers S (𝟙 X) :=
-by simp [covers_iff]
+by simv [covers_iff]
 
 /-- The maximality axiom in 'arrow' form: Any arrow `f` in `S` is covered by `S`. -/
 lemma arrow_max (f : Y ⟶ X) (S : sieve X) (hf : S f) : J.covers S f :=
@@ -166,7 +166,7 @@ lemma arrow_stable (f : Y ⟶ X) (S : sieve X) (h : J.covers S f) {Z : C} (g : Z
   J.covers S (g ≫ f) :=
 begin
   rw covers_iff at h ⊢,
-  simp [h, sieve.pullback_comp],
+  simv [h, sieve.pullback_comp],
 end
 
 /--
@@ -201,7 +201,7 @@ def trivial : grothendieck_topology C :=
   pullback_stable' := λ X Y S f hf,
   begin
     rw set.mem_singleton_iff at ⊢ hf,
-    simp [hf],
+    simv [hf],
   end,
   transitive' := λ X S hS R hR,
   begin
@@ -216,9 +216,9 @@ See https://en.wikipedia.org/wiki/Grothendieck_topology#The_discrete_and_indiscr
 -/
 def discrete : grothendieck_topology C :=
 { sieves := λ X, set.univ,
-  top_mem' := by simp,
-  pullback_stable' := λ X Y f, by simp,
-  transitive' := by simp }
+  top_mem' := by simv,
+  pullback_stable' := λ X Y f, by simv,
+  transitive' := by simv }
 variable {C}
 
 lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
@@ -244,7 +244,7 @@ instance : has_Inf (grothendieck_topology C) :=
     top_mem' :=
     begin
       rintro X S ⟨⟨_, J, hJ, rfl⟩, rfl⟩,
-      simp,
+      simv,
     end,
     pullback_stable' :=
     begin
@@ -306,7 +306,7 @@ lemma bot_covers (S : sieve X) (f : Y ⟶ X) :
 by rw [covers_iff, bot_covering, ← sieve.pullback_eq_top_iff_mem]
 
 @[simp] lemma top_covers (S : sieve X) (f : Y ⟶ X) : (⊤ : grothendieck_topology C).covers S f :=
-by simp [covers_iff]
+by simv [covers_iff]
 
 /--
 The dense Grothendieck topology.
@@ -358,7 +358,7 @@ def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
     rintros X Y S h ⟨Z, f, hf⟩,
     rcases hro h f with ⟨W, g, k, comm⟩,
     refine ⟨_, g, _⟩,
-    simp [comm, hf],
+    simv [comm, hf],
   end,
   transitive' :=
   begin
@@ -466,7 +466,7 @@ def arrow.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).arrow) : S.arro
 /-- A relation of `S.pullback f` gives rise to a relation of `S`. -/
 @[simps]
 def relation.base {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).relation) : S.relation :=
-⟨_, _, _, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂≫ f, I.h₁, I.h₂, by simp [reassoc_of I.w]⟩
+⟨_, _, _, I.g₁, I.g₂, I.f₁ ≫ f, I.f₂≫ f, I.h₁, I.h₂, by simv [reassoc_of I.w]⟩
 
 @[simp]
 lemma relation.base_fst {f : Y ⟶ X} {S : J.cover X} (I : (S.pullback f).relation) :
@@ -482,12 +482,12 @@ lemma coe_pullback {Z : C} (f : Y ⟶ X) (g : Z ⟶ Y) (S : J.cover X) :
 
 /-- The isomorphism between `S` and the pullback of `S` w.r.t. the identity. -/
 def pullback_id (S : J.cover X) : S.pullback (𝟙 X) ≅ S :=
-eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
+eq_to_iso $ cover.ext _ _ $ λ Y f, by simv
 
 /-- Pulling back with respect to a composition is the composition of the pullbacks. -/
 def pullback_comp {X Y Z : C} (S : J.cover X) (f : Z ⟶ Y) (g : Y ⟶ X) :
   S.pullback (f ≫ g) ≅ (S.pullback g).pullback f :=
-eq_to_iso $ cover.ext _ _ $ λ Y f, by simp
+eq_to_iso $ cover.ext _ _ $ λ Y f, by simv
 
 /-- Combine a family of covers over a cover. -/
 def bind {X : C} (S : J.cover X) (T : Π (I : S.arrow), J.cover I.Y) : J.cover X :=
@@ -563,7 +563,7 @@ abbreviation multifork {D : Type w} [category.{max v u} D] (S : J.cover X) (P : 
 limits.multifork.of_ι _ (P.obj (opposite.op X)) (λ I, P.map I.f.op) begin
   intros I,
   dsimp [index],
-  simp only [← P.map_comp, ← op_comp, I.w]
+  simv only [← P.map_comp, ← op_comp, I.w]
 end
 
 /-- The canonical map from `P.obj (op X)` to the multiequalizer associated to a covering sieve,
@@ -576,7 +576,7 @@ P.obj (opposite.op X) ⟶ limits.multiequalizer (S.index P) :=
 limits.multiequalizer.lift _ _ (λ I, P.map I.f.op) begin
   intros I,
   dsimp only [index, relation.fst, relation.snd],
-  simp only [← P.map_comp, ← op_comp, I.w],
+  simv only [← P.map_comp, ← op_comp, I.w],
 end
 
 end cover

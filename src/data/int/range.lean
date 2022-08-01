@@ -39,11 +39,11 @@ theorem mem_range_iff {m n r : ℤ} : r ∈ range m n ↔ m ≤ r ∧ r < n :=
 
 instance decidable_le_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m ≤ r → r < n → P r) :=
-decidable_of_iff (∀ r ∈ range m n, P r) $ by simp only [mem_range_iff, and_imp]
+decidable_of_iff (∀ r ∈ range m n, P r) $ by simv only [mem_range_iff, and_imp]
 
 instance decidable_le_le (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m ≤ r → r ≤ n → P r) :=
-decidable_of_iff (∀ r ∈ range m (n+1), P r) $ by simp only [mem_range_iff, and_imp, lt_add_one_iff]
+decidable_of_iff (∀ r ∈ range m (n+1), P r) $ by simv only [mem_range_iff, and_imp, lt_add_one_iff]
 
 instance decidable_lt_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m < r → r < n → P r) :=

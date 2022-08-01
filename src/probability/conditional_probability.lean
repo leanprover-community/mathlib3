@@ -86,11 +86,11 @@ lemma cond_is_probability_measure [is_finite_measure μ] (hcs : μ s ≠ 0) :
 section bayes
 
 @[simp] lemma cond_empty : μ[|∅] = 0 :=
-by simp [cond]
+by simv [cond]
 
 @[simp] lemma cond_univ [is_probability_measure μ] :
   μ[|set.univ] = μ :=
-by simp [cond, measure_univ, measure.restrict_univ]
+by simv [cond, measure_univ, measure.restrict_univ]
 
 /-- The axiomatic definition of conditional probability derived from a measure-theoretic one. -/
 lemma cond_apply (hms : measurable_set s) (t : set α) :
@@ -107,7 +107,7 @@ begin
   refine pos_iff_ne_zero.mpr (right_ne_zero_of_mul _),
   { exact (μ s)⁻¹ },
   convert hcst,
-  simp [hms, set.inter_comm]
+  simv [hms, set.inter_comm]
 end
 
 lemma cond_pos_of_inter_ne_zero [is_finite_measure μ]
@@ -126,7 +126,7 @@ begin
   have hcs : μ s ≠ 0 := (μ.to_outer_measure.pos_of_subset_ne_zero
     (set.inter_subset_left _ _) hci).ne',
   ext u,
-  simp [*, hms.inter hmt, cond_apply, ← mul_assoc, ← set.inter_assoc,
+  simv [*, hms.inter hmt, cond_apply, ← mul_assoc, ← set.inter_assoc,
     ennreal.mul_inv, mul_comm, ← mul_assoc, ennreal.inv_mul_cancel],
 end
 
@@ -164,7 +164,7 @@ theorem cond_eq_inv_mul_cond_mul [is_finite_measure μ]
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
 begin
   by_cases ht : μ t = 0,
-  { simp [cond, ht, measure.restrict_apply hmt, or.inr (measure_inter_null_of_null_left s ht)] },
+  { simv [cond, ht, measure.restrict_apply hmt, or.inr (measure_inter_null_of_null_left s ht)] },
   { rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_apply _ hms] }
 end
 

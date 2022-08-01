@@ -258,7 +258,7 @@ protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedd
   (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
-    by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
+    by simv; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
   ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
 
 /-- The dense embedding of a subtype inside its closure. -/
@@ -275,7 +275,7 @@ protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
     end,
   inj := (de.inj.comp subtype.coe_injective).cod_restrict _,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
-    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
+    by simv [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
 lemma dense_image {s : set α} : dense (e '' s) ↔ dense s :=
 de.to_dense_inducing.dense_image

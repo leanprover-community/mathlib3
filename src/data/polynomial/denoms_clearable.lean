@@ -36,7 +36,7 @@ def denoms_clearable (a b : R) (N : ℕ) (f : R[X]) (i : R →+* K) : Prop :=
 
 lemma denoms_clearable_zero (N : ℕ) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b N 0 i :=
-⟨0, bi, bu, by simp only [eval_zero, ring_hom.map_zero, mul_zero, polynomial.map_zero]⟩
+⟨0, bi, bu, by simv only [eval_zero, ring_hom.map_zero, mul_zero, polynomial.map_zero]⟩
 
 lemma denoms_clearable_C_mul_X_pow {N : ℕ} (a : R) (bu : bi * i b = 1) {n : ℕ} (r : R)
   (nN : n ≤ N) : denoms_clearable a b N (C r * X ^ n) i :=

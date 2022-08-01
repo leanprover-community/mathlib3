@@ -65,7 +65,7 @@ by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
 by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
 
 @[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ∥v∥ :=
-by simp [dist_eq_norm_vsub V _ x]
+by simv [dist_eq_norm_vsub V _ x]
 
 @[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
 by rw [dist_comm, dist_vadd_left]
@@ -128,19 +128,19 @@ by { rw [dist_eq_norm, vsub_sub_vsub_comm, dist_eq_norm_vsub V, dist_eq_norm_vsu
 
 lemma nndist_vadd_vadd_le (v v' : V) (p p' : P) :
   nndist (v +ᵥ p) (v' +ᵥ p') ≤ nndist v v' + nndist p p' :=
-by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vadd_vadd_le]
+by simv only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vadd_vadd_le]
 
 lemma nndist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
   nndist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ nndist p₁ p₃ + nndist p₂ p₄ :=
-by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vsub_vsub_le]
+by simv only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vsub_vsub_le]
 
 lemma edist_vadd_vadd_le (v v' : V) (p p' : P) :
   edist (v +ᵥ p) (v' +ᵥ p') ≤ edist v v' + edist p p' :=
-by { simp only [edist_nndist], apply_mod_cast nndist_vadd_vadd_le }
+by { simv only [edist_nndist], apply_mod_cast nndist_vadd_vadd_le }
 
 lemma edist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
   edist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ edist p₁ p₃ + edist p₂ p₄ :=
-by { simp only [edist_nndist], apply_mod_cast nndist_vsub_vsub_le }
+by { simv only [edist_nndist], apply_mod_cast nndist_vsub_vsub_le }
 
 omit V
 
@@ -150,8 +150,8 @@ P`. -/
 def pseudo_metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
   [seminormed_add_comm_group V] [add_torsor V P] : pseudo_metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
-  dist_self := λ x, by simp,
-  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
+  dist_self := λ x, by simv,
+  dist_comm := λ x y, by simv only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
     change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
@@ -166,9 +166,9 @@ def metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
   [normed_add_comm_group V] [add_torsor V P] :
   metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
-  dist_self := λ x, by simp,
+  dist_self := λ x, by simv,
   eq_of_dist_eq_zero := λ x y h, by simpa using h,
-  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
+  dist_comm := λ x y, by simv only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
     change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,

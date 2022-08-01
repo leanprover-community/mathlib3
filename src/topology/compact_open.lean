@@ -159,12 +159,12 @@ lemma compact_open_le_induced (s : set α) :
   (continuous_map.compact_open : topological_space C(α, β))
   ≤ topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
 begin
-  simp only [induced_generate_from_eq, continuous_map.compact_open],
+  simv only [induced_generate_from_eq, continuous_map.compact_open],
   apply generate_from_mono,
   rintros b ⟨a, ⟨c, hc, u, hu, rfl⟩, rfl⟩,
   refine ⟨coe '' c, hc.image continuous_subtype_coe, u, hu, _⟩,
   ext f,
-  simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+  simv only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
   rw image_comp f (coe : s → α),
 end
 
@@ -179,15 +179,15 @@ begin
   refine le_antisymm _ _,
   { refine le_infi₂ _,
     exact λ s hs, compact_open_le_induced s },
-  simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
+  simv only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
   apply generate_from_mono,
   rintros _ ⟨s, hs, u, hu, rfl⟩,
   rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
   ext f,
-  simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+  simv only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
   rw image_comp f (coe : s → α),
-  simp
+  simv
 end
 
 /-- For any subset `s` of `α`, the restriction of continuous functions to `s` is continuous as a
@@ -197,7 +197,7 @@ by { rw continuous_iff_le_induced, exact compact_open_le_induced s }
 
 lemma nhds_compact_open_eq_Inf_nhds_induced (f : C(α, β)) :
   𝓝 f = ⨅ s (hs : is_compact s), (𝓝 (f.restrict s)).comap (continuous_map.restrict s) :=
-by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced] }
+by { rw [compact_open_eq_Inf_induced], simv [nhds_infi, nhds_induced] }
 
 lemma tendsto_compact_open_restrict {ι : Type*} {l : filter ι} {F : ι → C(α, β)} {f : C(α, β)}
   (hFf : filter.tendsto F l (𝓝 f)) (s : set α) :
@@ -207,7 +207,7 @@ lemma tendsto_compact_open_restrict {ι : Type*} {l : filter ι} {F : ι → C(�
 lemma tendsto_compact_open_iff_forall {ι : Type*} {l : filter ι} (F : ι → C(α, β)) (f : C(α, β)) :
   filter.tendsto F l (𝓝 f)
   ↔ ∀ s (hs : is_compact s), filter.tendsto (λ i, (F i).restrict s) l (𝓝 (f.restrict s)) :=
-by { rw [compact_open_eq_Inf_induced], simp [nhds_infi, nhds_induced, filter.tendsto_comap_iff] }
+by { rw [compact_open_eq_Inf_induced], simv [nhds_infi, nhds_induced, filter.tendsto_comap_iff] }
 
 /-- A family `F` of functions in `C(α, β)` converges in the compact-open topology, if and only if
 it converges in the compact-open topology on each compact subset of `α`. -/
@@ -406,7 +406,7 @@ begin
   have : continuous (λ p : X₀ × Y, (g ∘ prod.swap) (f p.1, p.2)) := this,
   convert (hf.continuous_lift_prod_left this).comp continuous_swap,
   ext x,
-  simp,
+  simv,
 end
 
 end quotient_map

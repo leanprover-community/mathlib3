@@ -27,9 +27,9 @@ def exact_pairing_of_faithful [faithful F.to_functor]
 { evaluation := eval,
   coevaluation := coeval,
   evaluation_coevaluation' := F.to_functor.map_injective
-    (by simp [map_eval, map_coeval, monoidal_functor.map_tensor]),
+    (by simv [map_eval, map_coeval, monoidal_functor.map_tensor]),
   coevaluation_evaluation' := F.to_functor.map_injective
-    (by simp [map_eval, map_coeval, monoidal_functor.map_tensor]), }
+    (by simv [map_eval, map_coeval, monoidal_functor.map_tensor]), }
 
 /--
 Given a pair of objects which are sent by a fully faithful functor to a pair of objects
@@ -40,7 +40,7 @@ def exact_pairing_of_fully_faithful [full F.to_functor] [faithful F.to_functor] 
 exact_pairing_of_faithful F
   (F.to_functor.preimage (inv (F.μ _ _) ≫ ε_ _ _ ≫ F.ε))
   (F.to_functor.preimage (inv F.ε ≫ η_ _ _ ≫ F.μ _ _))
-  (by simp) (by simp)
+  (by simv) (by simv)
 
 /-- Pull back a left dual along an equivalence. -/
 def has_left_dual_of_equivalence [is_equivalence F.to_functor] (X : C) [has_left_dual (F.obj X)] :

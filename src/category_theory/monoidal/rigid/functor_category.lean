@@ -25,7 +25,7 @@ instance functor_has_right_dual [right_rigid_category D] (F : C ⥤ D) : has_rig
 { right_dual :=
   { obj := λ X, (F.obj X)ᘁ,
     map := λ X Y f, (F.map (inv f))ᘁ,
-    map_comp' := λ X Y Z f g, by { simp [comp_right_adjoint_mate], }, },
+    map_comp' := λ X Y Z f g, by { simv [comp_right_adjoint_mate], }, },
   exact :=
   { evaluation :=
     { app := λ X, ε_ _ _,
@@ -50,7 +50,7 @@ instance functor_has_left_dual [left_rigid_category D] (F : C ⥤ D) : has_left_
 { left_dual :=
   { obj := λ X, ᘁ(F.obj X),
     map := λ X Y f, ᘁ(F.map (inv f)),
-    map_comp' := λ X Y Z f g, by { simp [comp_left_adjoint_mate], }, },
+    map_comp' := λ X Y Z f g, by { simv [comp_left_adjoint_mate], }, },
   exact :=
   { evaluation :=
     { app := λ X, ε_ _ _,

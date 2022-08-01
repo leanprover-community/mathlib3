@@ -85,14 +85,14 @@ instance : has_smul R p :=
 { smul := λ c x, ⟨c • x.1, smul_mem _ c x.2⟩ }
 
 variables {p}
-@[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
+@[simv, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+@[simv, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 
 variables (p)
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →[R] M :=
-by refine {to_fun := coe, ..}; simp [coe_smul]
+by refine {to_fun := coe, ..}; simv [coe_smul]
 
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
@@ -117,7 +117,7 @@ instance has_smul' : has_smul S p :=
 instance : is_scalar_tower S R p :=
 { smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
 
-@[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
+@[simv, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
 
 @[simp] lemma smul_mem_iff' {G} [group G] [has_smul G R] [mul_action G M]
   [is_scalar_tower G R M] (g : G) {x : M} :
@@ -160,7 +160,7 @@ lemma stabilizer_of_sub_mul.submonoid {p : sub_mul_action R M} (m : p) :
   mul_action.stabilizer.submonoid R m = mul_action.stabilizer.submonoid R (m : M) :=
 begin
   ext,
-  simp only [mul_action.mem_stabilizer_submonoid_iff,
+  simv only [mul_action.mem_stabilizer_submonoid_iff,
       ← sub_mul_action.coe_smul, set_like.coe_eq_coe]
 end
 
@@ -211,7 +211,7 @@ lemma neg_mem (hx : x ∈ p) : -x ∈ p := by { rw ← neg_one_smul R, exact p.s
 
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 
-@[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
+@[simv, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
 
 end add_comm_group
 

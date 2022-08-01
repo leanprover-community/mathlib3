@@ -42,7 +42,7 @@ variables (ι : S ⥤ L)
 
 namespace Ran
 
-local attribute [simp] structured_arrow.proj
+local attribute [simv] structured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : structured_arrow x ι ⥤ D :=
@@ -60,7 +60,7 @@ def cone {F : S ⥤ D} {G : L ⥤ D} (x : L) (f : ι ⋙ G ⟶ F) :
     naturality' := begin
       rintro ⟨⟨il⟩, ir, i⟩ ⟨⟨jl⟩, jr, j⟩ ⟨⟨⟨fl⟩⟩, fr, ff⟩,
       dsimp at *,
-      simp only [category.id_comp, category.assoc] at *,
+      simv only [category.id_comp, category.assoc] at *,
       rw [ff],
       have := f.naturality,
       tidy,
@@ -76,9 +76,9 @@ def loc (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] : L ⥤ D :=
   map_id' := begin
     intro l,
     ext j,
-    simp only [category.id_comp, limit.pre_π],
+    simv only [category.id_comp, limit.pre_π],
     congr' 1,
-    simp,
+    simv,
   end,
   map_comp' := begin
     intros x y z f g,
@@ -97,7 +97,7 @@ def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
   naturality' := begin
     intros x y ff,
     dsimp only [whiskering_left],
-    simp only [functor.comp_map, nat_trans.naturality_assoc, loc_map, category.assoc],
+    simv only [functor.comp_map, nat_trans.naturality_assoc, loc_map, category.assoc],
     congr' 1,
     erw limit.pre_π,
     change _ = _ ≫ (diagram ι F (ι.obj x)).map (structured_arrow.hom_mk _ _),
@@ -117,7 +117,7 @@ def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
     ext k j,
     dsimp only [cone],
     rw limit.lift_π,
-    simp only [nat_trans.naturality_assoc, loc_map],
+    simv only [nat_trans.naturality_assoc, loc_map],
     erw limit.pre_π,
     congr,
     rcases j with ⟨⟨⟩, _, _⟩,
@@ -149,7 +149,7 @@ begin
   apply nat_iso.is_iso_of_is_iso_app _,
   intros X,
   dsimp [adjunction],
-  simp only [category.id_comp],
+  simv only [category.id_comp],
   exact is_iso.of_iso ((limit.is_limit _).cone_point_unique_up_to_iso
     (limit_of_diagram_initial structured_arrow.mk_id_initial _)),
 end
@@ -158,7 +158,7 @@ end Ran
 
 namespace Lan
 
-local attribute [simp] costructured_arrow.proj
+local attribute [simv] costructured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : costructured_arrow ι x ⥤ D :=
@@ -175,7 +175,7 @@ def cocone {F : S ⥤ D} {G : L ⥤ D} (x : L) (f : F ⟶ ι ⋙ G) :
     naturality' := begin
       rintro ⟨ir, ⟨il⟩, i⟩ ⟨jl, ⟨jr⟩, j⟩ ⟨fl, ⟨⟨fl⟩⟩, ff⟩,
       dsimp at *,
-      simp only [functor.comp_map, category.comp_id, nat_trans.naturality_assoc],
+      simv only [functor.comp_map, category.comp_id, nat_trans.naturality_assoc],
       rw [← G.map_comp, ff],
       tidy,
     end } }
@@ -193,7 +193,7 @@ def loc (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] : L ⥤ D :=
     ext j,
     erw [colimit.ι_pre, category.comp_id],
     congr' 1,
-    simp,
+    simv,
   end,
   map_comp' := begin
     intros x y z f g,
@@ -208,7 +208,7 @@ def loc (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] : L ⥤ D :=
     change _ = colimit.ι ((ff ⋙ gg) ⋙ dd) j ≫ _ ≫ _,
     erw [colimit.pre_pre dd gg ff, colimit.ι_pre, colimit.ι_pre],
     congr' 1,
-    simp,
+    simv,
   end }
 
 /-- An auxiliary definition used to define `Lan` and `Lan.adjunction`. -/
@@ -221,7 +221,7 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
   naturality' := begin
     intros x y ff,
     dsimp only [whiskering_left],
-    simp only [functor.comp_map, category.assoc],
+    simv only [functor.comp_map, category.assoc],
     rw [← f.naturality (ι.map ff), ← category.assoc, ← category.assoc],
     let fff : costructured_arrow ι _ ⥤ _ := costructured_arrow.map (ι.map ff),
     -- same issue :-(
@@ -230,10 +230,10 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
     let xx : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (ι.map ff),
     let yy : costructured_arrow ι (ι.obj y) := costructured_arrow.mk (𝟙 _),
     let fff : xx ⟶ yy := costructured_arrow.hom_mk ff
-      (by {simp only [costructured_arrow.mk_hom_eq_self], erw category.comp_id}),
+      (by {simv only [costructured_arrow.mk_hom_eq_self], erw category.comp_id}),
     erw colimit.w (diagram ι F (ι.obj y)) fff,
     congr,
-    simp,
+    simv,
   end },
   inv_fun := λ f,
   { app := λ x, colimit.desc (diagram ι F x) (cocone _ f),
@@ -282,7 +282,7 @@ begin
   apply nat_iso.is_iso_of_is_iso_app _,
   intros X,
   dsimp [adjunction],
-  simp only [category.comp_id],
+  simv only [category.comp_id],
   exact is_iso.of_iso ((colimit.is_colimit _).cocone_point_unique_up_to_iso
     (colimit_of_diagram_terminal costructured_arrow.mk_id_terminal _)).symm,
 end

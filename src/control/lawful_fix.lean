@@ -65,7 +65,7 @@ end
 lemma mem_iff (a : α) (b : β a) : b ∈ part.fix f a ↔ ∃ i, b ∈ approx f i a :=
 begin
   by_cases h₀ : ∃ (i : ℕ), (approx f i a).dom,
-  { simp only [part.fix_def f h₀],
+  { simv only [part.fix_def f h₀],
     split; intro hh, exact ⟨_,hh⟩,
     have h₁ := nat.find_spec h₀,
     rw [dom_iff_mem] at h₁,
@@ -77,8 +77,8 @@ begin
     wlog : i ≤ j := le_total i j using [i j b y,j i y b],
     replace hh := approx_mono f case _ _ hh,
     apply part.mem_unique h₁ hh },
-  { simp only [fix_def' ⇑f h₀, not_exists, false_iff, not_mem_none],
-    simp only [dom_iff_mem, not_exists] at h₀,
+  { simv only [fix_def' ⇑f h₀, not_exists, false_iff, not_mem_none],
+    simv only [dom_iff_mem, not_exists] at h₀,
     intro, apply h₀ }
 end
 
@@ -94,9 +94,9 @@ begin
     have hb' := approx_le_fix f i _ _ hb,
     obtain rfl := part.mem_unique h' hb',
     exact hb },
-  { simp only [not_exists] at hh, existsi 0,
+  { simv only [not_exists] at hh, existsi 0,
     intros b' h',
-    simp only [mem_iff f] at h',
+    simv only [mem_iff f] at h',
     cases h' with i h',
     cases hh _ _ h' }
 end
@@ -108,7 +108,7 @@ def approx_chain : chain (Π a, part $ β a) := ⟨approx f, approx_mono f⟩
 
 lemma le_f_of_mem_approx {x} : x ∈ approx_chain f → x ≤ f x :=
 begin
-  simp only [(∈), forall_exists_index],
+  simv only [(∈), forall_exists_index],
   rintro i rfl,
   apply approx_mono'
 end
@@ -137,7 +137,7 @@ begin
     apply' le_ωSup_of_le i.succ,
     dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
-    simp only [fix.approx_chain, order_hom.coe_fun_mk],
+    simv only [fix.approx_chain, order_hom.coe_fun_mk],
     intros y x, apply approx_le_fix f },
 end
 
@@ -145,7 +145,7 @@ lemma fix_le {X : Π a, part $ β a} (hX : f X ≤ X) : part.fix f ≤ X :=
 begin
   rw fix_eq_ωSup f,
   apply ωSup_le _ _ _,
-  simp only [fix.approx_chain, order_hom.coe_fun_mk],
+  simv only [fix.approx_chain, order_hom.coe_fun_mk],
   intros i,
   induction i, dsimp [fix.approx], apply' bot_le,
   transitivity' f X, apply f.monotone i_ih,

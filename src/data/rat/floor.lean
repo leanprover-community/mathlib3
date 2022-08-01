@@ -30,7 +30,7 @@ protected def floor : ℚ → ℤ
 
 protected theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ rat.floor r ↔ (z : ℚ) ≤ r
 | ⟨n, d, h, c⟩ := begin
-  simp [rat.floor],
+  simv [rat.floor],
   rw [num_denom'],
   have h' := int.coe_nat_lt.2 h,
   conv { to_rhs,
@@ -47,7 +47,7 @@ lemma floor_int_div_nat_eq_div {n : ℤ} {d : ℕ} : ⌊(↑n : ℚ) / (↑d : �
 begin
   rw [rat.floor_def],
   obtain rfl | hd := @eq_zero_or_pos _ _ d,
-  { simp },
+  { simv },
   set q := (n : ℚ) / d with q_eq,
   obtain ⟨c, n_eq_c_mul_num, d_eq_c_mul_denom⟩ : ∃ c, n = c * q.num ∧ (d : ℤ) = c * q.denom, by
   { rw q_eq,
@@ -57,18 +57,18 @@ begin
   rwa [←d_eq_c_mul_denom, int.coe_nat_pos],
 end
 
-@[simp, norm_cast] lemma floor_cast (x : ℚ) : ⌊(x : α)⌋ = ⌊x⌋ :=
+@[simv, norm_cast] lemma floor_cast (x : ℚ) : ⌊(x : α)⌋ = ⌊x⌋ :=
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
-@[simp, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
+@[simv, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
 by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
 
-@[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
-have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
+@[simv, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
+have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simv,
 by rw [round, round, ← this, floor_cast]
 
-@[simp, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
-by simp only [fract, cast_sub, cast_coe_int, floor_cast]
+@[simv, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
+by simv only [fract, cast_sub, cast_coe_int, floor_cast]
 
 end rat
 
@@ -98,12 +98,12 @@ begin
   { have : (q - fract q + 1) * q.denom = q.num + (1 - fract q) * q.denom, calc
       (q - fract q + 1) * q.denom = (q + (1 - fract q)) * q.denom            : by ring
                               ... = q * q.denom + (1 - fract q) * q.denom    : by rw add_mul
-                              ... = q.num + (1 - fract q) * q.denom : by simp,
+                              ... = q.num + (1 - fract q) * q.denom : by simv,
     rwa this },
   suffices : 0 < (1 - fract q) * q.denom, by { rw ←sub_lt_iff_lt_add', simpa },
   have : 0 < 1 - fract q, by
   { have : fract q < 1, from fract_lt_one q,
-    have : 0 + fract q < 1, by simp [this],
+    have : 0 + fract q < 1, by simv [this],
     rwa lt_sub_iff_add_lt },
   exact mul_pos this (by exact_mod_cast q.pos)
 end
@@ -138,7 +138,7 @@ begin
   -- of `q`
   have : q_inv.num = q.denom ∧ q_inv.denom = q.num.nat_abs, by
   { have coprime_q_denom_q_num : q.denom.coprime q.num.nat_abs, from q.cop.symm,
-    have : int.nat_abs q.denom = q.denom, by simp,
+    have : int.nat_abs q.denom = q.denom, by simv,
     rw ←this at coprime_q_denom_q_num,
     rw q_inv_def,
     split,

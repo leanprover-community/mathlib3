@@ -56,8 +56,8 @@ protected def function.injective.mul_zero_class [has_mul M₀'] [has_zero M₀']
   mul_zero_class M₀' :=
 { mul := (*),
   zero := 0,
-  zero_mul := λ a, hf $ by simp only [mul, zero, zero_mul],
-  mul_zero := λ a, hf $ by simp only [mul, zero, mul_zero] }
+  zero_mul := λ a, hf $ by simv only [mul, zero, zero_mul],
+  mul_zero := λ a, hf $ by simv only [mul, zero, mul_zero] }
 
 /-- Pushforward a `mul_zero_class` instance along an surjective function.
 See note [reducible non-instances]. -/
@@ -67,8 +67,8 @@ protected def function.surjective.mul_zero_class [has_mul M₀'] [has_zero M₀'
   mul_zero_class M₀' :=
 { mul := (*),
   zero := 0,
-  mul_zero := hf.forall.2 $ λ x, by simp only [← zero, ← mul, mul_zero],
-  zero_mul := hf.forall.2 $ λ x, by simp only [← zero, ← mul, zero_mul] }
+  mul_zero := hf.forall.2 $ λ x, by simv only [← zero, ← mul, mul_zero],
+  zero_mul := hf.forall.2 $ λ x, by simv only [← zero, ← mul, zero_mul] }
 
 lemma mul_eq_zero_of_left (h : a = 0) (b : M₀) : a * b = 0 := h.symm ▸ zero_mul b
 
@@ -140,8 +140,8 @@ mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
 theorem mul_ne_zero_comm : a * b ≠ 0 ↔ b * a ≠ 0 :=
 not_congr mul_eq_zero_comm
 
-lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
-lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
+lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simv
+lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simv
 lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := not_congr mul_self_eq_zero
 lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := not_congr zero_eq_mul_self
 
@@ -357,7 +357,7 @@ noncomputable def inverse : M₀ → M₀ :=
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
 @[simp] lemma inverse_unit (u : M₀ˣ) : inverse (u : M₀) = (u⁻¹ : M₀ˣ) :=
 begin
-  simp only [units.is_unit, inverse, dif_pos],
+  simv only [units.is_unit, inverse, dif_pos],
   exact units.inv_unique rfl
 end
 
@@ -442,10 +442,10 @@ lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := (mul_left_inject
 lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := (mul_right_injective₀ ha).eq_iff
 
 @[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
-by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
+by by_cases hc : c = 0; [simv [hc], simv [mul_left_inj', hc]]
 
 @[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
-by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
+by by_cases ha : a = 0; [simv [ha], simv [mul_right_inj', ha]]
 
 lemma mul_right_eq_self₀ : a * b = a ↔ b = 1 ∨ a = 0 :=
 calc a * b = a ↔ a * b = a * 1 : by rw mul_one
@@ -537,20 +537,20 @@ protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀
 @[simp] lemma mul_inv_cancel_right₀ (h : b ≠ 0) (a : G₀) :
   (a * b) * b⁻¹ = a :=
 calc (a * b) * b⁻¹ = a * (b * b⁻¹) : mul_assoc _ _ _
-               ... = a             : by simp [h]
+               ... = a             : by simv [h]
 
 @[simp] lemma mul_inv_cancel_left₀ (h : a ≠ 0) (b : G₀) :
   a * (a⁻¹ * b) = b :=
 calc a * (a⁻¹ * b) = (a * a⁻¹) * b : (mul_assoc _ _ _).symm
-               ... = b             : by simp [h]
+               ... = b             : by simv [h]
 
 lemma inv_ne_zero (h : a ≠ 0) : a⁻¹ ≠ 0 :=
 assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel h
 
 @[simp] lemma inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
-calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero h]
-         ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
-         ... = 1                       : by simp [inv_ne_zero h]
+calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simv [inv_ne_zero h]
+         ... = a⁻¹ * a⁻¹⁻¹             : by simv [h]
+         ... = 1                       : by simv [inv_ne_zero h]
 
 lemma group_with_zero.mul_left_injective (h : x ≠ 0) :
   function.injective (λ y, x * y) :=
@@ -563,12 +563,12 @@ lemma group_with_zero.mul_right_injective (h : x ≠ 0) :
 @[simp] lemma inv_mul_cancel_right₀ (h : b ≠ 0) (a : G₀) :
   (a * b⁻¹) * b = a :=
 calc (a * b⁻¹) * b = a * (b⁻¹ * b) : mul_assoc _ _ _
-               ... = a             : by simp [h]
+               ... = a             : by simv [h]
 
 @[simp] lemma inv_mul_cancel_left₀ (h : a ≠ 0) (b : G₀) :
   a⁻¹ * (a * b) = b :=
 calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
-               ... = b             : by simp [h]
+               ... = b             : by simv [h]
 
 private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
 by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
@@ -578,14 +578,14 @@ instance group_with_zero.to_division_monoid : division_monoid G₀ :=
 { inv := has_inv.inv,
   inv_inv := λ a, begin
     by_cases h : a = 0,
-    { simp [h] },
+    { simv [h] },
     { exact left_inv_eq_right_inv (inv_mul_cancel $ inv_ne_zero h) (inv_mul_cancel h) }
   end,
   mul_inv_rev := λ a b, begin
-    by_cases ha : a = 0, { simp [ha] },
-    by_cases hb : b = 0, { simp [hb] },
+    by_cases ha : a = 0, { simv [ha] },
+    by_cases hb : b = 0, { simv [hb] },
     refine inv_eq_of_mul _,
-    simp [mul_assoc, ha, hb]
+    simv [mul_assoc, ha, hb]
   end,
   inv_eq_of_mul := λ a b, inv_eq_of_mul,
   ..‹group_with_zero G₀› }
@@ -631,7 +631,7 @@ lemma exists0' {p : Π g : G₀, g ≠ 0 → Prop} :
 iff.trans (by simp_rw [coe_mk0]) exists0.symm
 
 @[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : G₀ˣ, ↑u = x) ↔ x ≠ 0 :=
-by simp [exists0]
+by simv [exists0]
 
 lemma _root_.group_with_zero.eq_zero_or_unit (a : G₀) :
   a = 0 ∨ ∃ u : G₀ˣ, a = u :=
@@ -780,15 +780,15 @@ zero. -/
 by rw [div_eq_mul_inv, mul_inv_mul_self a]
 
 lemma div_mul_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a / b * b = a :=
-classical.by_cases (λ hb : b = 0, by simp [*]) (div_mul_cancel a)
+classical.by_cases (λ hb : b = 0, by simv [*]) (div_mul_cancel a)
 
 lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :=
-classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
+classical.by_cases (λ hb : b = 0, by simv [*]) (mul_div_cancel a)
 
-local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
+local attribute [simv] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 @[simp] lemma div_self_mul_self' (a : G₀) : a / (a * a) = a⁻¹ :=
-calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simp [mul_inv_rev]
+calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simv [mul_inv_rev]
 ... = a⁻¹ : inv_mul_mul_self _
 
 lemma one_div_ne_zero {a : G₀} (h : a ≠ 0) : 1 / a ≠ 0 :=
@@ -808,7 +808,7 @@ lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
 by { rw div_eq_mul_inv, exact mul_ne_zero ha (inv_ne_zero hb) }
 
 @[simp] lemma div_eq_zero_iff : a / b = 0 ↔ a = 0 ∨ b = 0:=
-by simp [div_eq_mul_inv]
+by simv [div_eq_mul_inv]
 
 lemma div_ne_zero_iff : a / b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
 (not_congr div_eq_zero_iff).trans not_or_distrib
@@ -816,7 +816,7 @@ lemma div_ne_zero_iff : a / b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
 lemma ring.inverse_eq_inv (a : G₀) : ring.inverse a = a⁻¹ :=
 begin
   obtain rfl | ha := eq_or_ne a 0,
-  { simp },
+  { simv },
   { exact ring.inverse_unit (units.mk0 a ha) }
 end
 
@@ -906,16 +906,16 @@ end comm_group_with_zero
 namespace semiconj_by
 
 @[simp] lemma zero_right [mul_zero_class G₀] (a : G₀) : semiconj_by a 0 0 :=
-by simp only [semiconj_by, mul_zero, zero_mul]
+by simv only [semiconj_by, mul_zero, zero_mul]
 
 @[simp] lemma zero_left [mul_zero_class G₀] (x y : G₀) : semiconj_by 0 x y :=
-by simp only [semiconj_by, mul_zero, zero_mul]
+by simv only [semiconj_by, mul_zero, zero_mul]
 
 variables [group_with_zero G₀] {a x y x' y' : G₀}
 
 @[simp] lemma inv_symm_left_iff₀ : semiconj_by a⁻¹ x y ↔ semiconj_by a y x :=
 classical.by_cases
-  (λ ha : a = 0, by simp only [ha, inv_zero, semiconj_by.zero_left])
+  (λ ha : a = 0, by simv only [ha, inv_zero, semiconj_by.zero_left])
   (λ ha, @units_inv_symm_left_iff _ _ (units.mk0 a ha) _ _)
 
 lemma inv_symm_left₀ (h : semiconj_by a x y) : semiconj_by a⁻¹ y x :=
@@ -924,11 +924,11 @@ semiconj_by.inv_symm_left_iff₀.2 h
 lemma inv_right₀ (h : semiconj_by a x y) : semiconj_by a x⁻¹ y⁻¹ :=
 begin
   by_cases ha : a = 0,
-  { simp only [ha, zero_left] },
+  { simv only [ha, zero_left] },
   by_cases hx : x = 0,
   { subst x,
-    simp only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero] at h,
-    simp [h.resolve_right ha] },
+    simv only [semiconj_by, mul_zero, @eq_comm _ _ (y * a), mul_eq_zero] at h,
+    simv [h.resolve_right ha] },
   { have := mul_ne_zero ha hx,
     rw [h.eq, mul_ne_zero_iff] at this,
     exact @units_inv_right _ _ _ (units.mk0 x hx) (units.mk0 y this.1) h },
@@ -993,7 +993,7 @@ variables (f : G₀ →*₀ G₀') (a b : G₀)
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 @[simp] lemma map_inv : f a⁻¹ = (f a)⁻¹ :=
 begin
-  by_cases h : a = 0, by simp [h],
+  by_cases h : a = 0, by simv [h],
   apply eq_inv_of_mul_eq_one_left,
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end

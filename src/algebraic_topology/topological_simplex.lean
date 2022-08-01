@@ -41,16 +41,16 @@ def to_Top_map {x y : simplex_category} (f : x ⟶ y) : x.to_Top_obj → y.to_To
 λ g, ⟨λ i, ∑ j in (finset.univ.filter (λ k, f k = i)), g j,
 begin
   dsimp [to_Top_obj],
-  simp only [finset.filter_congr_decidable, finset.sum_congr],
+  simv only [finset.filter_congr_decidable, finset.sum_congr],
   rw ← finset.sum_bUnion,
   convert g.2,
   { rw finset.eq_univ_iff_forall,
     intros i,
     rw finset.mem_bUnion,
-    exact ⟨f i, by simp, by simp⟩ },
+    exact ⟨f i, by simv, by simv⟩ },
   { intros i hi j hj h e he,
     apply h,
-    simp only [true_and, finset.inf_eq_inter,
+    simv only [true_and, finset.inf_eq_inter,
       finset.mem_univ, finset.mem_filter, finset.mem_inter] at he,
     rw [← he.1, ← he.2] }
 end⟩
@@ -74,7 +74,7 @@ def to_Top : simplex_category ⥤ Top :=
     intros x,
     ext f i : 3,
     change (finset.univ.filter (λ k, k = i)).sum _ = _,
-    simp [finset.sum_filter]
+    simv [finset.sum_filter]
   end,
   map_comp' := begin
     intros x y z f g,
@@ -86,7 +86,7 @@ def to_Top : simplex_category ⥤ Top :=
     { tauto },
     { intros j hj k hk h e he,
       apply h,
-      simp only [true_and, finset.inf_eq_inter,
+      simv only [true_and, finset.inf_eq_inter,
         finset.mem_univ, finset.mem_filter, finset.mem_inter] at he,
       rw [← he.1, ← he.2] },
   end }

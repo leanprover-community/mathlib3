@@ -61,18 +61,18 @@ begin
   exact (preserves_product.iso _ _),
   exact (preserves_product.iso _ _),
   rintros ⟨⟩ ⟨⟩ ⟨⟩,
-  { ext, simp, dsimp, simp, }, -- non-terminal `simp`, but `squeeze_simp` fails
+  { ext, simv, dsimp, simv, }, -- non-terminal `simv`, but `squeeze_simp` fails
   { ext,
-    simp only [limit.lift_π, functor.comp_map, map_lift_pi_comparison, fan.mk_π_app,
+    simv only [limit.lift_π, functor.comp_map, map_lift_pi_comparison, fan.mk_π_app,
                preserves_product.iso_hom, parallel_pair_map_left, functor.map_comp,
                category.assoc],
-    dsimp, simp, },
+    dsimp, simv, },
   { ext,
-    simp only [limit.lift_π, functor.comp_map, parallel_pair_map_right, fan.mk_π_app,
+    simv only [limit.lift_π, functor.comp_map, parallel_pair_map_right, fan.mk_π_app,
                preserves_product.iso_hom, map_lift_pi_comparison, functor.map_comp,
                category.assoc],
-    dsimp, simp, },
-  { ext, simp, dsimp, simp, },
+    dsimp, simv, },
+  { ext, simv, dsimp, simv, },
 end
 
 local attribute [reducible] res
@@ -86,15 +86,15 @@ def map_cone_fork : G.map_cone (fork F U) ≅
   (cones.postcompose (diagram_comp_preserves_limits G F U).inv).obj (fork (F ⋙ G) U) :=
 cones.ext (iso.refl _) (λ j,
 begin
-  dsimp, simp [diagram_comp_preserves_limits], cases j; dsimp,
+  dsimp, simv [diagram_comp_preserves_limits], cases j; dsimp,
   { rw iso.eq_comp_inv,
     ext,
-    simp, dsimp, simp, },
+    simv, dsimp, simv, },
   { rw iso.eq_comp_inv,
     ext,
-    simp, -- non-terminal `simp`, but `squeeze_simp` fails
+    simv, -- non-terminal `simv`, but `squeeze_simp` fails
     dsimp,
-    simp only [limit.lift_π, fan.mk_π_app, ←G.map_comp, limit.lift_π_assoc, fan.mk_π_app] }
+    simv only [limit.lift_π, fan.mk_π_app, ←G.map_comp, limit.lift_π_assoc, fan.mk_π_app] }
 end)
 
 end sheaf_condition
@@ -161,7 +161,7 @@ begin
       apply iso.symm,
       fapply cones.ext,
       exact (as_iso f),
-      rintro ⟨_|_⟩; { dsimp [f], simp, }, },
+      rintro ⟨_|_⟩; { dsimp [f], simv, }, },
     { -- Returning to the task of shwoing that `G.map f` is an isomorphism,
       -- we note that `G.map f` is almost but not quite (see below) a morphism
       -- from the sheaf condition cone for `F ⋙ G` to the
@@ -188,9 +188,9 @@ begin
         dunfold fork.ι,
         ext1 j,
         dsimp,
-        simp only [category.assoc, ←functor.map_comp_assoc, equalizer.lift_ι,
+        simv only [category.assoc, ←functor.map_comp_assoc, equalizer.lift_ι,
           map_lift_pi_comparison_assoc],
-        dsimp [res], simp,
+        dsimp [res], simv,
       end,
       -- conclude that it is an isomorphism,
       -- just because it's a morphism between two limit cones.

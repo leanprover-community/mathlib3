@@ -193,7 +193,7 @@ section
 
   example (h₁ : a → b ∨ c) (h₂ : ¬ b) : a → c :=
   begin
-    simp * at *,
+    simv * at *,
     assumption
   end
 end

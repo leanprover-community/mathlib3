@@ -42,13 +42,13 @@ which we can't use directly between `G.map 0 = 0` does not hold definitionally.
 -/
 def is_limit_map_cone_fork_equiv' :
   is_limit (G.map_cone (kernel_fork.of_ι h w)) ≃
-  is_limit (kernel_fork.of_ι (G.map h) (by simp only [←G.map_comp, w, functor.map_zero])
+  is_limit (kernel_fork.of_ι (G.map h) (by simv only [←G.map_comp, w, functor.map_zero])
     : fork (G.map f) 0) :=
 begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
-  refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
+  refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simv,
   refine fork.ext (iso.refl _) _,
-  simp [fork.ι]
+  simv [fork.ι]
 end
 
 /--
@@ -59,7 +59,7 @@ which we can't use directly between `G.map 0 = 0` does not hold definitionally.
 -/
 def is_limit_fork_map_of_is_limit' [preserves_limit (parallel_pair f 0) G]
   (l : is_limit (kernel_fork.of_ι h w)) :
-  is_limit (kernel_fork.of_ι (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :
+  is_limit (kernel_fork.of_ι (G.map h) (by simv only [←G.map_comp, w, functor.map_zero]) :
     fork (G.map f) 0) :=
 is_limit_map_cone_fork_equiv' G w (preserves_limit.preserves l)
 
@@ -71,7 +71,7 @@ a kernel fork is a limit.
 -/
 def is_limit_of_has_kernel_of_preserves_limit [preserves_limit (parallel_pair f 0) G] :
   is_limit (fork.of_ι (G.map (kernel.ι f))
-    (by simp only [←G.map_comp, equalizer.condition, comp_zero, functor.map_zero])
+    (by simv only [←G.map_comp, equalizer.condition, comp_zero, functor.map_zero])
       : fork (G.map f) 0) :=
 is_limit_fork_map_of_is_limit' G (kernel.condition f) (kernel_is_kernel f)
 
@@ -131,13 +131,13 @@ which we can't use directly between `G.map 0 = 0` does not hold definitionally.
 -/
 def is_colimit_map_cocone_cofork_equiv' :
   is_colimit (G.map_cocone (cokernel_cofork.of_π h w)) ≃
-  is_colimit (cokernel_cofork.of_π (G.map h) (by simp only [←G.map_comp, w, functor.map_zero])
+  is_colimit (cokernel_cofork.of_π (G.map h) (by simv only [←G.map_comp, w, functor.map_zero])
     : cofork (G.map f) 0) :=
 begin
   refine (is_colimit.precompose_hom_equiv _ _).symm.trans (is_colimit.equiv_iso_colimit _),
-  refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
+  refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simv,
   refine cofork.ext (iso.refl _) _,
-  simp only [cofork.π, iso.refl_hom, id_comp, cocones.precompose_obj_ι,
+  simv only [cofork.π, iso.refl_hom, id_comp, cocones.precompose_obj_ι,
     nat_trans.comp_app, parallel_pair.ext_hom_app, functor.map_cocone_ι_app,
     cofork.of_π_ι_app],
   apply category.comp_id
@@ -151,7 +151,7 @@ which we can't use directly between `G.map 0 = 0` does not hold definitionally.
 -/
 def is_colimit_cofork_map_of_is_colimit' [preserves_colimit (parallel_pair f 0) G]
   (l : is_colimit (cokernel_cofork.of_π h w)) :
-  is_colimit (cokernel_cofork.of_π (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :
+  is_colimit (cokernel_cofork.of_π (G.map h) (by simv only [←G.map_comp, w, functor.map_zero]) :
     cofork (G.map f) 0) :=
 is_colimit_map_cocone_cofork_equiv' G w (preserves_colimit.preserves l)
 
@@ -163,7 +163,7 @@ a cokernel cofork is a colimit.
 -/
 def is_colimit_of_has_cokernel_of_preserves_colimit [preserves_colimit (parallel_pair f 0) G] :
   is_colimit (cofork.of_π (G.map (cokernel.π f))
-    (by simp only [←G.map_comp, coequalizer.condition, zero_comp, functor.map_zero])
+    (by simv only [←G.map_comp, coequalizer.condition, zero_comp, functor.map_zero])
       : cofork (G.map f) 0) :=
 is_colimit_cofork_map_of_is_colimit' G (cokernel.condition f) (cokernel_is_cokernel f)
 

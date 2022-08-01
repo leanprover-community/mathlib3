@@ -78,14 +78,14 @@ variables (Q)
 @[simps bilin_apply_apply_coe]
 def even.ι : even_hom Q (even Q) :=
 { bilin := linear_map.mk₂ R (λ m₁ m₂, ⟨ι Q m₁ * ι Q m₂, ι_mul_ι_mem_even_odd_zero _ _ _⟩)
-             (λ _ _ _, by { simp only [linear_map.map_add, add_mul], refl })
-             (λ _ _ _, by { simp only [linear_map.map_smul, smul_mul_assoc], refl })
-             (λ _ _ _, by { simp only [linear_map.map_add, mul_add], refl })
-             (λ _ _ _, by { simp only [linear_map.map_smul, mul_smul_comm], refl }),
+             (λ _ _ _, by { simv only [linear_map.map_add, add_mul], refl })
+             (λ _ _ _, by { simv only [linear_map.map_smul, smul_mul_assoc], refl })
+             (λ _ _ _, by { simv only [linear_map.map_add, mul_add], refl })
+             (λ _ _ _, by { simv only [linear_map.map_smul, mul_smul_comm], refl }),
   contract := λ m, subtype.ext $ ι_sq_scalar Q m,
   contract_mid := λ m₁ m₂ m₃, subtype.ext $
     calc  ι Q m₁ * ι Q m₂ * (ι Q m₂ * ι Q m₃)
-        = ι Q m₁ * ((ι Q m₂ * ι Q m₂) * ι Q m₃) : by simp only [mul_assoc]
+        = ι Q m₁ * ((ι Q m₂ * ι Q m₂) * ι Q m₃) : by simv only [mul_assoc]
     ... = Q m₂ • (ι Q m₁ * ι Q m₃) : by rw [algebra.smul_def, ι_sq_scalar, algebra.left_comm] }
 
 instance : inhabited (even_hom Q (even Q)) := ⟨even.ι Q⟩

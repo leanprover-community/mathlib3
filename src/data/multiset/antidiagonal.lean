@@ -37,9 +37,9 @@ quot.sound revzip_powerset_aux_perm_aux'
 @[simp] theorem mem_antidiagonal {s : multiset α} {x : multiset α × multiset α} :
   x ∈ antidiagonal s ↔ x.1 + x.2 = s :=
 quotient.induction_on s $ λ l, begin
-  simp [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
+  simv [antidiagonal_coe], refine ⟨λ h, revzip_powerset_aux h, λ h, _⟩,
   haveI := classical.dec_eq α,
-  simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
+  simv [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
   cases x with x₁ x₂,
   dsimp only,
   exact ⟨x₁, le_add_right _ _, by rw add_tsub_cancel_left x₁ x₂⟩
@@ -48,12 +48,12 @@ end
 @[simp] theorem antidiagonal_map_fst (s : multiset α) :
   (antidiagonal s).map prod.fst = powerset s :=
 quotient.induction_on s $ λ l,
-by simp [powerset_aux']
+by simv [powerset_aux']
 
 @[simp] theorem antidiagonal_map_snd (s : multiset α) :
   (antidiagonal s).map prod.snd = powerset s :=
 quotient.induction_on s $ λ l,
-by simp [powerset_aux']
+by simv [powerset_aux']
 
 @[simp] theorem antidiagonal_zero : @antidiagonal α 0 = {(0, 0)} := rfl
 
@@ -61,10 +61,10 @@ by simp [powerset_aux']
   map (prod.map id (cons a)) (antidiagonal s) +
   map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin
-  simp only [revzip, reverse_append, quot_mk_to_coe, coe_eq_coe, powerset_aux'_cons, cons_coe,
+  simv only [revzip, reverse_append, quot_mk_to_coe, coe_eq_coe, powerset_aux'_cons, cons_coe,
     coe_map, antidiagonal_coe', coe_add],
   rw [← zip_map, ← zip_map, zip_append, (_ : _++_=_)],
-  {congr; simp}, {simp}
+  {congr; simv}, {simv}
 end
 
 @[simp] theorem card_antidiagonal (s : multiset α) :
@@ -77,10 +77,10 @@ lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
   sum ((antidiagonal s).map (λp, (p.1.map f).prod * (p.2.map g).prod)) :=
 begin
   refine s.induction_on _ _,
-  { simp },
+  { simv },
   { assume a s ih,
     have := @sum_map_mul_left α β _,
-    simp [ih, add_mul, mul_comm, mul_left_comm (f a), mul_left_comm (g a), mul_assoc,
+    simv [ih, add_mul, mul_comm, mul_left_comm (f a), mul_left_comm (g a), mul_assoc,
       sum_map_mul_left.symm],
     cc },
 end

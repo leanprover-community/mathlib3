@@ -84,11 +84,11 @@ rfl
 @[simp] lemma to_continuous_map_coe (f : P →A[R] Q) : f.to_continuous_map = ↑f :=
 rfl
 
-@[simp, norm_cast] lemma coe_to_affine_map (f : P →A[R] Q) :
+@[simv, norm_cast] lemma coe_to_affine_map (f : P →A[R] Q) :
   ((f : P →ᵃ[R] Q) : P → Q) = f :=
 rfl
 
-@[simp, norm_cast] lemma coe_to_continuous_map (f : P →A[R] Q) :
+@[simv, norm_cast] lemma coe_to_continuous_map (f : P →A[R] Q) :
   ((f : C(P, Q)) : P → Q) = f :=
 rfl
 
@@ -142,7 +142,7 @@ def comp (f : Q →A[R] Q₂) (g : P →A[R] Q) : P →A[R] Q₂ :=
 { cont := f.cont.comp g.cont,
   .. (f : Q →ᵃ[R] Q₂).comp (g : P →ᵃ[R] Q), }
 
-@[simp, norm_cast] lemma coe_comp (f : Q →A[R] Q₂) (g : P →A[R] Q) :
+@[simv, norm_cast] lemma coe_comp (f : Q →A[R] Q₂) (g : P →A[R] Q) :
   (f.comp g : P → Q₂) = (f : Q → Q₂) ∘ (g : P → Q) :=
 rfl
 
@@ -159,7 +159,7 @@ variables [topological_space W]
 
 instance : has_zero (P →A[R] W) := ⟨continuous_affine_map.const R P 0⟩
 
-@[norm_cast, simp] lemma coe_zero : ((0 : P →A[R] W) : P → W) = 0 := rfl
+@[norm_cast, simv] lemma coe_zero : ((0 : P →A[R] W) : P → W) = 0 := rfl
 
 lemma zero_apply (x : P) : (0 : P →A[R] W) x = 0 := rfl
 
@@ -170,7 +170,7 @@ variables [has_continuous_const_smul S W]
 instance : has_smul S (P →A[R] W) :=
 { smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[R] W)) } }
 
-@[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[R] W) : ⇑(t • f) = t • f := rfl
+@[norm_cast, simv] lemma coe_smul (t : S) (f : P →A[R] W) : ⇑(t • f) = t • f := rfl
 
 lemma smul_apply (t : S) (f : P →A[R] W) (x : P) : (t • f) x = t • (f x) := rfl
 
@@ -187,21 +187,21 @@ variables [topological_add_group W]
 instance : has_add (P →A[R] W) :=
 { add := λ f g, { cont := f.continuous.add g.continuous, .. ((f : P →ᵃ[R] W) + (g : P →ᵃ[R] W)) }, }
 
-@[norm_cast, simp] lemma coe_add (f g : P →A[R] W) : ⇑(f + g) = f + g := rfl
+@[norm_cast, simv] lemma coe_add (f g : P →A[R] W) : ⇑(f + g) = f + g := rfl
 
 lemma add_apply (f g : P →A[R] W) (x : P) : (f + g) x = f x + g x := rfl
 
 instance : has_sub (P →A[R] W) :=
 { sub := λ f g, { cont := f.continuous.sub g.continuous, .. ((f : P →ᵃ[R] W) - (g : P →ᵃ[R] W)) }, }
 
-@[norm_cast, simp] lemma coe_sub (f g : P →A[R] W) : ⇑(f - g) = f - g := rfl
+@[norm_cast, simv] lemma coe_sub (f g : P →A[R] W) : ⇑(f - g) = f - g := rfl
 
 lemma sub_apply (f g : P →A[R] W) (x : P) : (f - g) x = f x - g x := rfl
 
 instance : has_neg (P →A[R] W) :=
 { neg := λ f, { cont := f.continuous.neg, .. (-(f : P →ᵃ[R] W)) }, }
 
-@[norm_cast, simp] lemma coe_neg (f : P →A[R] W) : ⇑(-f) = -f := rfl
+@[norm_cast, simv] lemma coe_neg (f : P →A[R] W) : ⇑(-f) = -f := rfl
 
 lemma neg_apply (f : P →A[R] W) (x : P) : (-f) x = -(f x) := rfl
 
@@ -233,7 +233,7 @@ variables [add_comm_group W] [module R W] [topological_space W]
 def to_continuous_affine_map (f : V →L[R] W) : V →A[R] W :=
 { to_fun    := f,
   linear    := f,
-  map_vadd' := by simp,
+  map_vadd' := by simv,
   cont      := f.cont, }
 
 @[simp] lemma coe_to_continuous_affine_map (f : V →L[R] W) :
@@ -242,6 +242,6 @@ rfl
 
 @[simp] lemma to_continuous_affine_map_map_zero (f : V →L[R] W) :
   f.to_continuous_affine_map 0 = 0 :=
-by simp
+by simv
 
 end continuous_linear_map

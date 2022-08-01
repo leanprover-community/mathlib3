@@ -105,7 +105,7 @@ lemma proj_surjective : function.surjective S.proj := quotient.surjective_quotie
 lemma fiber_eq (x : X) : S.proj ⁻¹' {S.proj x} = set_of (S.rel x) :=
 begin
   ext1 y,
-  simp only [set.mem_preimage, set.mem_singleton_iff, quotient.eq',
+  simv only [set.mem_preimage, set.mem_singleton_iff, quotient.eq',
     discrete_quotient.proj.equations._eqn_1, set.mem_set_of_eq],
   exact ⟨λ h, S.symm _ _ h, λ h, S.symm _ _ h⟩,
 end
@@ -115,7 +115,7 @@ begin
    rw (is_locally_constant.tfae S.proj).out 0 3,
    intros x,
    rcases S.proj_surjective x with ⟨x,rfl⟩,
-   simp [fiber_eq, (S.clopen x).1],
+   simv [fiber_eq, (S.clopen x).1],
 end
 
 lemma proj_continuous : continuous S.proj :=
@@ -183,14 +183,14 @@ def of_le {A B : discrete_quotient X} (h : A ≤ B) : A → B :=
 @[simp]
 lemma of_le_refl {A : discrete_quotient X} : of_le (le_refl A) = id := by { ext ⟨⟩, refl }
 
-lemma of_le_refl_apply {A : discrete_quotient X} (a : A) : of_le (le_refl A) a = a := by simp
+lemma of_le_refl_apply {A : discrete_quotient X} (a : A) : of_le (le_refl A) a = a := by simv
 
 @[simp]
 lemma of_le_comp {A B C : discrete_quotient X} (h1 : A ≤ B) (h2 : B ≤ C) :
   of_le (le_trans h1 h2) = of_le h2 ∘ of_le h1 := by { ext ⟨⟩, refl }
 
 lemma of_le_comp_apply {A B C : discrete_quotient X} (h1 : A ≤ B) (h2 : B ≤ C) (a : A) :
-  of_le (le_trans h1 h2) a = of_le h2 (of_le h1 a) := by simp
+  of_le (le_trans h1 h2) a = of_le h2 (of_le h1 a) := by simv
 
 lemma of_le_continuous {A B : discrete_quotient X} (h : A ≤ B) :
   continuous (of_le h) := continuous_of_discrete_topology
@@ -201,7 +201,7 @@ lemma of_le_proj {A B : discrete_quotient X} (h : A ≤ B) :
 
 @[simp]
 lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
-  of_le h (A.proj x) = B.proj x := by { change (of_le h ∘ A.proj) x = _, simp }
+  of_le h (A.proj x) = B.proj x := by { change (of_le h ∘ A.proj) x = _, simv }
 
 end of_le
 

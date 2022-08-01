@@ -56,7 +56,7 @@ finitely many vertices.
   is locally finite, too.
 
 * Morphisms of graphs are abbreviations for `rel_hom`, `rel_embedding`, and `rel_iso`.
-  To make use of pre-existing simp lemmas, definitions involving morphisms are
+  To make use of pre-existing simv lemmas, definitions involving morphisms are
   abbreviations as well.
 
 ## Naming Conventions
@@ -125,11 +125,11 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
 { adj := λ v w, (v.is_left ∧ w.is_right) ∨ (v.is_right ∧ w.is_left),
   symm := begin
     intros v w,
-    cases v; cases w; simp,
+    cases v; cases w; simv,
   end,
   loopless := begin
     intro v,
-    cases v; simp,
+    cases v; simv,
   end }
 
 namespace simple_graph
@@ -301,7 +301,7 @@ begin
 end
 
 lemma adj_iff_exists_edge_coe : G.adj a b ↔ ∃ (e : G.edge_set), ↑e = ⟦(a, b)⟧ :=
-by simp only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtype.coe_mk]
+by simv only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtype.coe_mk]
 
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
@@ -339,8 +339,8 @@ instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
 fintype.of_equiv (Σ v, G.neighbor_set v)
 { to_fun := λ s, ⟨(s.fst, s.snd), s.snd.property⟩,
   inv_fun := λ d, ⟨d.fst, d.snd, d.is_adj⟩,
-  left_inv := λ s, by ext; simp,
-  right_inv := λ d, by ext; simp }
+  left_inv := λ s, by ext; simv,
+  right_inv := λ d, by ext; simv }
 
 /-- The edge associated to the dart. -/
 def dart.edge (d : G.dart) : sym2 V := ⟦d.to_prod⟧
@@ -375,7 +375,7 @@ ne_of_apply_ne (prod.snd ∘ dart.to_prod) d.is_adj.ne
 
 lemma dart_edge_eq_iff : Π (d₁ d₂ : G.dart),
   d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.symm :=
-by { rintros ⟨p, hp⟩ ⟨q, hq⟩, simp [sym2.mk_eq_mk_iff] }
+by { rintros ⟨p, hp⟩ ⟨q, hq⟩, simv [sym2.mk_eq_mk_iff] }
 
 lemma dart_edge_eq_mk_iff : Π {d : G.dart} {p : V × V},
   d.edge = ⟦p⟧ ↔ d.to_prod = p ∨ d.to_prod = p.swap :=
@@ -383,7 +383,7 @@ by { rintro ⟨p, h⟩, apply sym2.mk_eq_mk_iff }
 
 lemma dart_edge_eq_mk_iff' : Π {d : G.dart} {u v : V},
   d.edge = ⟦(u, v)⟧ ↔ d.fst = u ∧ d.snd = v ∨ d.fst = v ∧ d.snd = u :=
-by { rintro ⟨⟨a, b⟩, h⟩ u v, rw dart_edge_eq_mk_iff, simp }
+by { rintro ⟨⟨a, b⟩, h⟩ u v, rw dart_edge_eq_mk_iff, simv }
 
 variables (G)
 
@@ -474,16 +474,16 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 iff.rfl
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
-by simp [incidence_set]
+by simv [incidence_set]
 
 lemma mem_incidence_iff_neighbor {v w : V} : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ w ∈ G.neighbor_set v :=
-by simp only [mem_incidence_set, mem_neighbor_set]
+by simv only [mem_incidence_set, mem_neighbor_set]
 
 lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : v ∈ e) :
   G.incidence_set v ∩ G.incidence_set h.other = {e} :=
 begin
   ext e',
-  simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
+  simv only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
   refine ⟨λ h', _, _⟩,
   { rw ←sym2.other_spec h,
     exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩ },
@@ -521,7 +521,7 @@ end
 
 lemma neighbor_set_compl (G : simple_graph V) (v : V) :
   Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
-by { ext w, simp [and_comm, eq_comm] }
+by { ext w, simv [and_comm, eq_comm] }
 
 /--
 The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
@@ -558,7 +558,7 @@ instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
 
 lemma common_neighbors_top_eq {v w : V} :
   (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
-by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
+by { ext u, simv [common_neighbors, eq_comm, not_or_distrib.symm] }
 
 section incidence
 variable [decidable_eq V]
@@ -570,7 +570,7 @@ def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) 
 
 lemma edge_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   e ∈ G.incidence_set (G.other_vertex_of_incident h) :=
-by { use h.1, simp [other_vertex_of_incident, sym2.other_mem'] }
+by { use h.1, simv [other_vertex_of_incident, sym2.other_mem'] }
 
 lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=
@@ -588,8 +588,8 @@ vertex and the set of vertices adjacent to the vertex.
 @[simps] def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
 { to_fun := λ e, ⟨G.other_vertex_of_incident e.2, G.incidence_other_prop e.2⟩,
   inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.mem_incidence_iff_neighbor.mpr w.2⟩,
-  left_inv := λ x, by simp [other_vertex_of_incident],
-  right_inv := λ ⟨w, hw⟩, by simp }
+  left_inv := λ x, by simv [other_vertex_of_incident],
+  right_inv := λ ⟨w, hw⟩, by simv }
 
 end incidence
 
@@ -601,42 +601,42 @@ graph's edge set, if present.
 See also: `simple_graph.subgraph.delete_edges`. -/
 def delete_edges (s : set (sym2 V)) : simple_graph V :=
 { adj := G.adj \ sym2.to_rel s,
-  symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
+  symm := λ a b, by simv [adj_comm, sym2.eq_swap] }
 
 @[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
   (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
 
 lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
   G \ G' = G.delete_edges G'.edge_set :=
-by { ext, simp }
+by { ext, simv }
 
 lemma compl_eq_delete_edges :
   Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
-by { ext, simp [and_assoc, not_or_distrib] }
+by { ext, simv [and_assoc, not_or_distrib] }
 
 @[simp] lemma delete_edges_empty_eq : G.delete_edges ∅ = G :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma delete_edges_univ_eq : G.delete_edges set.univ = ⊥ :=
-by { ext, simp }
+by { ext, simv }
 
 lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G :=
-by { intro, simp { contextual := tt } }
+by { intro, simv { contextual := tt } }
 
 lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
   G.delete_edges s' ≤ G.delete_edges s :=
 λ v w, begin
-  simp only [delete_edges_adj, and_imp, true_and] { contextual := tt },
+  simv only [delete_edges_adj, and_imp, true_and] { contextual := tt },
   exact λ ha hn hs, hn (h hs),
 end
 
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
-by { ext, simp [imp_false] { contextual := tt } }
+by { ext, simv [imp_false] { contextual := tt } }
 
 /-! ## Map and comap -/
 
@@ -665,7 +665,7 @@ lemma comap_monotone (f : V ↪ W) : monotone (simple_graph.comap f) :=
 by { intros G G' h _ _ ha, exact h ha }
 
 @[simp] lemma comap_map_eq (f : V ↪ W) (G : simple_graph V) : (G.map f).comap f = G :=
-by { ext, simp }
+by { ext, simv }
 
 lemma left_inverse_comap_map (f : V ↪ W) :
   function.left_inverse (simple_graph.comap f) (simple_graph.map f) := comap_map_eq f
@@ -743,14 +743,14 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 (set.to_finset_card _).symm
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
-by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
+by simv only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 
 lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
   Gᶜ.degree v = fintype.card V - 1 - G.degree v :=
 begin
   classical,
   rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
-  simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
+  simv [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
 end
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
@@ -764,7 +764,7 @@ def incidence_finset [decidable_eq V] : finset (sym2 V) := (G.incidence_set v).t
 @[simp]
 lemma card_incidence_set_eq_degree [decidable_eq V] :
   fintype.card (G.incidence_set v) = G.degree v :=
-by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
+by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simv }
 
 @[simp]
 lemma card_incidence_finset_eq_degree [decidable_eq V] :
@@ -781,7 +781,7 @@ lemma incidence_finset_eq_filter [decidable_eq V] [fintype G.edge_set] :
 begin
   ext e,
   refine sym2.ind (λ x y, _) e,
-  simp [mk_mem_incidence_set_iff],
+  simv [mk_mem_incidence_set_iff],
 end
 
 end finite_at
@@ -823,11 +823,11 @@ instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbo
 
 lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
-by { ext, simp }
+by { ext, simv }
 
 lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_diff, set.to_finset_compl,
+by simv only [neighbor_finset, neighbor_set_compl, set.to_finset_diff, set.to_finset_compl,
     set.to_finset_singleton]
 
 @[simp]
@@ -843,7 +843,7 @@ end
 
 lemma is_regular_of_degree.top [decidable_eq V] :
   (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
-by { intro v, simp }
+by { intro v, simv }
 
 /--
 The minimum degree of all vertices (and `0` if there are no vertices).
@@ -862,7 +862,7 @@ lemma exists_minimal_degree_vertex [decidable_rel G.adj] [nonempty V] :
 begin
   obtain ⟨t, ht : _ = _⟩ := min_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
   obtain ⟨v, _, rfl⟩ := mem_image.mp (mem_of_min ht),
-  refine ⟨v, by simp [min_degree, ht]⟩,
+  refine ⟨v, by simv [min_degree, ht]⟩,
 end
 
 /-- The minimum degree in the graph is at most the degree of any particular vertex. -/
@@ -900,7 +900,7 @@ lemma exists_maximal_degree_vertex [decidable_rel G.adj] [nonempty V] :
 begin
   obtain ⟨t, ht⟩ := max_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
   have ht₂ := mem_of_max ht,
-  simp only [mem_image, mem_univ, exists_prop_of_true] at ht₂,
+  simv only [mem_image, mem_univ, exists_prop_of_true] at ht₂,
   rcases ht₂ with ⟨v, rfl⟩,
   refine ⟨v, _⟩,
   rw [max_degree, ht],
@@ -938,7 +938,7 @@ begin
   classical,
   apply finset.card_lt_card,
   rw finset.ssubset_iff,
-  exact ⟨v, by simp, finset.subset_univ _⟩,
+  exact ⟨v, by simv, finset.subset_univ _⟩,
 end
 
 /--
@@ -994,10 +994,10 @@ end
 lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
   fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
 begin
-  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
+  simv only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
-  { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_mono, set.subset_univ] },
+  { simv [finset.card_univ, h], },
+  { simv only [set.to_finset_mono, set.subset_univ] },
 end
 
 end finite
@@ -1084,7 +1084,7 @@ end
 When the function is injective, this is an embedding (see `simple_graph.embedding.comap`). -/
 @[simps] protected def comap (f : V → W) (G : simple_graph W) : G.comap f →g G :=
 { to_fun := f,
-  map_rel' := by simp }
+  map_rel' := by simv }
 
 variable {G'' : simple_graph X}
 
@@ -1130,12 +1130,12 @@ map_adj_iff f
 graph. -/
 @[simps]
 protected def comap (f : V ↪ W) (G : simple_graph W) : G.comap f ↪g G :=
-{ map_rel_iff' := by simp, ..f }
+{ map_rel_iff' := by simv, ..f }
 
 /-- Given an injective function, there is an embedding from a graph into the mapped graph. -/
 @[simps]
 protected def map (f : V ↪ W) (G : simple_graph V) : G ↪g G.map f :=
-{ map_rel_iff' := by simp, ..f }
+{ map_rel_iff' := by simv, ..f }
 
 /-- Induced graphs embed in the original graph.
 
@@ -1151,7 +1151,7 @@ simple_graph.embedding.map (function.embedding.subtype _) G
 /-- Embeddings of types induce embeddings of complete graphs on those types. -/
 protected def complete_graph {α β : Type*} (f : α ↪ β) :
   (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
-{ map_rel_iff' := by simp, ..f }
+{ map_rel_iff' := by simv, ..f }
 
 variables {G'' : simple_graph X}
 
@@ -1191,7 +1191,7 @@ map_adj_iff f
   inv_fun := hom.map_edge_set f.symm,
   left_inv := begin
     rintro ⟨e, h⟩,
-    simp only [hom.map_edge_set, sym2.map_map, rel_iso.coe_coe_fn,
+    simv only [hom.map_edge_set, sym2.map_map, rel_iso.coe_coe_fn,
       rel_embedding.coe_coe_fn, subtype.mk_eq_mk, subtype.coe_mk, coe_coe],
     apply congr_fun,
     convert sym2.map_id,
@@ -1199,7 +1199,7 @@ map_adj_iff f
   end,
   right_inv := begin
     rintro ⟨e, h⟩,
-    simp only [hom.map_edge_set, sym2.map_map, rel_iso.coe_coe_fn,
+    simv only [hom.map_edge_set, sym2.map_map, rel_iso.coe_coe_fn,
       rel_embedding.coe_coe_fn, subtype.mk_eq_mk, subtype.coe_mk, coe_coe],
     apply congr_fun,
     convert sym2.map_id,
@@ -1211,10 +1211,10 @@ map_adj_iff f
 { to_fun := λ w, ⟨f w, f.apply_mem_neighbor_set_iff.mpr w.2⟩,
   inv_fun := λ w, ⟨f.symm w, begin
     convert f.symm.apply_mem_neighbor_set_iff.mpr w.2,
-    simp only [rel_iso.symm_apply_apply],
+    simv only [rel_iso.symm_apply_apply],
   end⟩,
-  left_inv := λ w, by simp,
-  right_inv := λ w, by simp }
+  left_inv := λ w, by simv,
+  right_inv := λ w, by simv }
 
 lemma card_eq_of_iso [fintype V] [fintype W] (f : G ≃g G') : fintype.card V = fintype.card W :=
 by convert (fintype.of_equiv_card f.to_equiv).symm
@@ -1222,16 +1222,16 @@ by convert (fintype.of_equiv_card f.to_equiv).symm
 /-- Given a bijection, there is an embedding from the comapped graph into the original
 graph. -/
 @[simps] protected def comap (f : V ≃ W) (G : simple_graph W) : G.comap f.to_embedding ≃g G :=
-{ map_rel_iff' := by simp, ..f }
+{ map_rel_iff' := by simv, ..f }
 
 /-- Given an injective function, there is an embedding from a graph into the mapped graph. -/
 @[simps] protected def map (f : V ≃ W) (G : simple_graph V) : G ≃g G.map f.to_embedding :=
-{ map_rel_iff' := by simp, ..f }
+{ map_rel_iff' := by simv, ..f }
 
 /-- Equivalences of types induce isomorphisms of complete graphs on those types. -/
 protected def complete_graph {α β : Type*} (f : α ≃ β) :
   (⊤ : simple_graph α) ≃g (⊤ : simple_graph β) :=
-{ map_rel_iff' := by simp, ..f }
+{ map_rel_iff' := by simv, ..f }
 
 lemma to_embedding_complete_graph {α β : Type*} (f : α ≃ β) :
   (iso.complete_graph f).to_embedding = embedding.complete_graph f.to_embedding := rfl

@@ -10,7 +10,7 @@ import tactic.norm_num
 /-!
 # `field_simp` tactic
 
-Tactic to clear denominators in algebraic expressions, based on `simp` with a specific simpset.
+Tactic to clear denominators in algebraic expressions, based on `simv` with a specific simpset.
 -/
 
 namespace tactic
@@ -43,7 +43,7 @@ If the goal is an equality, this simpset will also clear the denominators, so th
 can normally be concluded by an application of `ring` or `ring_exp`.
 
 `field_simp [hx, hy]` is a short form for
-`simp [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := tactic.field_simp.ne_zero}`
+`simv [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := tactic.field_simp.ne_zero}`
 
 Note that this naive algorithm will not try to detect common factors in denominators to reduce the
 complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle

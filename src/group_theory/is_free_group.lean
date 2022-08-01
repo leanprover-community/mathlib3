@@ -61,8 +61,8 @@ def lift : (generators G → H) ≃ (G →* H) :=
 free_group.lift.trans
   { to_fun := λ f, f.comp (mul_equiv G).symm.to_monoid_hom,
     inv_fun := λ f, f.comp (mul_equiv G).to_monoid_hom,
-    left_inv := λ f, by { ext, simp, },
-    right_inv := λ f, by { ext, simp, }, }
+    left_inv := λ f, by { ext, simv, },
+    right_inv := λ f, by { ext, simv, }, }
 
 @[simp] lemma lift'_eq_free_group_lift {A : Type u} :
   (@lift (free_group A) _ _ H _) = free_group.lift := rfl
@@ -97,14 +97,14 @@ def of_lift {G : Type u} [group G] (X : Type u)
     (lift free_group.of)
     begin
       apply free_group.ext_hom, intro x,
-      simp only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply, free_group.lift.of,
+      simv only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply, free_group.lift.of,
         lift_of],
     end
     begin
       let lift_symm_of : ∀ {H : Type u} [group H], by exactI ∀ (f : G →* H) a,
-        lift.symm f a = f (of a) := by introsI H _ f a; simp [← lift_of (lift.symm f)],
+        lift.symm f a = f (of a) := by introsI H _ f a; simv [← lift_of (lift.symm f)],
       apply lift.symm.injective, ext x,
-      simp only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
+      simv only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
         free_group.lift.of, lift_of, lift_symm_of],
     end }
 

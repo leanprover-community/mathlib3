@@ -24,7 +24,7 @@ We don't attempt to set up the full theory here, but do provide the natural isom
 `map_id : map (𝟙 X) ≅ 𝟭 (opens X)` and
 `map_comp : map (f ≫ g) ≅ map g ⋙ map f`.
 
-Beyond that, there's a collection of simp lemmas for working with these constructions.
+Beyond that, there's a collection of simv lemmas for working with these constructions.
 -/
 
 open category_theory
@@ -77,7 +77,7 @@ The inclusion `U ⟶ ⊤` as a morphism in the category of open sets.
 -/
 def le_top (U : opens X) : U ⟶ ⊤ := le_top.hom
 
--- We do not mark this as a simp lemma because it breaks open `x`.
+-- We do not mark this as a simv lemma because it breaks open `x`.
 -- Nevertheless, it is useful in `sheaf_of_functions`.
 lemma inf_le_left_apply (U V : opens X) (x) :
   (inf_le_left U V) x = ⟨x.1, (@_root_.inf_le_left _ _ U V : _ ≤ _) x.2⟩ :=
@@ -143,7 +143,7 @@ rfl
 @[simp] lemma map_id_obj_unop (U : (opens X)ᵒᵖ) : (map (𝟙 X)).obj (unop U) = unop U :=
 let ⟨_,_⟩ := U.unop in rfl
 @[simp] lemma op_map_id_obj (U : (opens X)ᵒᵖ) : (map (𝟙 X)).op.obj U = U :=
-by simp
+by simv
 
 /--
 The inclusion `U ⟶ (map f).obj ⊤` as a morphism in the category of open sets.
@@ -235,10 +235,10 @@ rfl
 @[simps] def map_map_iso {X Y : Top.{u}} (H : X ≅ Y) : opens Y ≌ opens X :=
 { functor := map H.hom,
   inverse := map H.inv,
-  unit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp [map, set.preimage_preimage]))
-    (by { intros _ _ _, simp }),
-  counit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp [map, set.preimage_preimage]))
-    (by { intros _ _ _, simp }) }
+  unit_iso := nat_iso.of_components (λ U, eq_to_iso (by simv [map, set.preimage_preimage]))
+    (by { intros _ _ _, simv }),
+  counit_iso := nat_iso.of_components (λ U, eq_to_iso (by simv [map, set.preimage_preimage]))
+    (by { intros _ _ _, simv }) }
 
 end topological_space.opens
 
@@ -281,7 +281,7 @@ by { ext1, exact subtype.coe_preimage_self _ }
 
 @[simp]
 lemma adjunction_counit_app_self {X : Top} (U : opens X) :
-  U.open_embedding.is_open_map.adjunction.counit.app U = eq_to_hom (by simp) :=
+  U.open_embedding.is_open_map.adjunction.counit.app U = eq_to_hom (by simv) :=
 by ext
 
 lemma inclusion_top_functor (X : Top) :

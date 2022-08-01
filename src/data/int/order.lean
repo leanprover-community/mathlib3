@@ -59,9 +59,9 @@ begin
 end
 
 @[simp]
-lemma cSup_empty : Sup (∅ : set ℤ) = 0 := dif_neg (by simp)
+lemma cSup_empty : Sup (∅ : set ℤ) = 0 := dif_neg (by simv)
 
-lemma cSup_of_not_bdd_above {s : set ℤ} (h : ¬ bdd_above s) : Sup s = 0 := dif_neg (by simp [h])
+lemma cSup_of_not_bdd_above {s : set ℤ} (h : ¬ bdd_above s) : Sup s = 0 := dif_neg (by simv [h])
 
 lemma cInf_eq_least_of_bdd {s : set ℤ} [decidable_pred (∈ s)]
   (b : ℤ) (Hb : ∀ z ∈ s, b ≤ z) (Hinh : ∃ z : ℤ, z ∈ s) :
@@ -73,9 +73,9 @@ begin
 end
 
 @[simp]
-lemma cInf_empty : Inf (∅ : set ℤ) = 0 := dif_neg (by simp)
+lemma cInf_empty : Inf (∅ : set ℤ) = 0 := dif_neg (by simv)
 
-lemma cInf_of_not_bdd_below {s : set ℤ} (h : ¬ bdd_below s) : Inf s = 0 := dif_neg (by simp [h])
+lemma cInf_of_not_bdd_below {s : set ℤ} (h : ¬ bdd_below s) : Inf s = 0 := dif_neg (by simv [h])
 
 lemma cSup_mem {s : set ℤ} (h1 : s.nonempty) (h2 : bdd_above s) : Sup s ∈ s :=
 begin

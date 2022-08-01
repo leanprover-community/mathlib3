@@ -31,7 +31,7 @@ noncomputable
 def map_to_fraction_ring (B : Type*) [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) :
   B →ₐ[A] K :=
-{ commutes' := λ a, by simp,
+{ commutes' := λ a, by simv,
   ..is_localization.lift (map_is_unit_of_le K S hS) }
 
 @[simp]

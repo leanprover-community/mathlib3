@@ -135,7 +135,7 @@ begin
 end
 
 @[simp] lemma esymm_zero : esymm σ R 0 = 1 :=
-by simp only [esymm, powerset_len_zero, sum_singleton, prod_empty]
+by simv only [esymm, powerset_len_zero, sum_singleton, prod_empty]
 
 lemma map_esymm (n : ℕ) (f : R →+* S) : map f (esymm σ R n) = esymm σ S n :=
 by simp_rw [esymm, map_sum, map_prod, map_X]
@@ -145,7 +145,7 @@ calc rename e (esymm σ R n)
      = ∑ x in powerset_len n univ, ∏ i in x, X (e i)
        : by simp_rw [esymm, map_sum, map_prod, rename_X]
  ... = ∑ t in powerset_len n (univ.map e.to_embedding), ∏ i in t, X i
-       : by simp [finset.powerset_len_map, -finset.map_univ_equiv]
+       : by simv [finset.powerset_len_map, -finset.map_univ_equiv]
  ... = ∑ t in powerset_len n univ, ∏ i in t, X i : by rw finset.map_univ_equiv
 
 lemma esymm_is_symmetric (n : ℕ) : is_symmetric (esymm σ R n) :=
@@ -156,17 +156,17 @@ lemma support_esymm'' (n : ℕ) [decidable_eq σ] [nontrivial R] :
     (λ t, (finsupp.single (∑ (i : σ) in t, finsupp.single i 1) (1:R)).support) :=
 begin
   rw esymm_eq_sum_monomial,
-  simp only [← single_eq_monomial],
+  simv only [← single_eq_monomial],
   convert finsupp.support_sum_eq_bUnion (powerset_len n (univ : finset σ)) _,
   intros s t hst d,
-  simp only [finsupp.support_single_ne_zero _ one_ne_zero, and_imp, inf_eq_inter, mem_inter,
+  simv only [finsupp.support_single_ne_zero _ one_ne_zero, and_imp, inf_eq_inter, mem_inter,
              mem_singleton],
   rintro h rfl,
   have := congr_arg finsupp.support h,
   rw [finsupp.support_sum_eq_bUnion, finsupp.support_sum_eq_bUnion] at this,
-  { simp only [finsupp.support_single_ne_zero _ one_ne_zero, bUnion_singleton_eq_self] at this,
+  { simv only [finsupp.support_single_ne_zero _ one_ne_zero, bUnion_singleton_eq_self] at this,
     exact absurd this hst.symm },
-  all_goals { intros x y, simp [finsupp.support_single_disjoint] }
+  all_goals { intros x y, simv [finsupp.support_single_disjoint] }
 end
 
 lemma support_esymm' (n : ℕ) [decidable_eq σ] [nontrivial R] :
@@ -190,12 +190,12 @@ lemma degrees_esymm [nontrivial R]
 begin
   classical,
   have : (finsupp.to_multiset ∘ λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) = finset.val,
-  { funext, simp [finsupp.to_multiset_sum_single] },
+  { funext, simv [finsupp.to_multiset_sum_single] },
   rw [degrees, support_esymm, sup_finset_image, this, ←comp_sup_eq_sup_comp],
   { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
     simpa using powerset_len_sup _ _ (nat.lt_of_succ_le hn) },
   { intros,
-    simp only [union_val, sup_eq_union],
+    simv only [union_val, sup_eq_union],
     congr },
   { refl }
 end

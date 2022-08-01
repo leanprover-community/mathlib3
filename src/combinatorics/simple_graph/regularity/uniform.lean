@@ -76,7 +76,7 @@ begin
 end
 
 lemma not_is_uniform_zero : ¬ G.is_uniform (0 : 𝕜) s t :=
-λ h, (abs_nonneg _).not_lt $ h (empty_subset _) (empty_subset _) (by simp) (by simp)
+λ h, (abs_nonneg _).not_lt $ h (empty_subset _) (empty_subset _) (by simv) (by simv)
 
 lemma is_uniform_one : G.is_uniform (1 : 𝕜) s t :=
 begin
@@ -92,7 +92,7 @@ variables {G}
 lemma not_is_uniform_iff :
   ¬ G.is_uniform ε s t ↔ ∃ s', s' ⊆ s ∧ ∃ t', t' ⊆ t ∧ ↑s.card * ε ≤ s'.card ∧
     ↑t.card * ε ≤ t'.card ∧  ε ≤ |G.edge_density s' t' - G.edge_density s t| :=
-by { unfold is_uniform, simp only [not_forall, not_lt, exists_prop] }
+by { unfold is_uniform, simv only [not_forall, not_lt, exists_prop] }
 
 open_locale classical
 variables (G)
@@ -191,7 +191,7 @@ lemma non_uniforms_bot (hε : 0 < ε) : (⊥ : finpartition A).non_uniforms G ε
 begin
   rw eq_empty_iff_forall_not_mem,
   rintro ⟨u, v⟩,
-  simp only [finpartition.mk_mem_non_uniforms_iff, finpartition.parts_bot, mem_map, not_and,
+  simv only [finpartition.mk_mem_non_uniforms_iff, finpartition.parts_bot, mem_map, not_and,
     not_not, exists_imp_distrib],
   rintro x hx rfl y hy rfl h,
   exact G.is_uniform_singleton hε,
@@ -223,7 +223,7 @@ lemma is_uniform.mono {ε ε' : 𝕜} (hP : P.is_uniform G ε) (h : ε ≤ ε') 
   mul_le_mul_of_nonneg_left h $ nat.cast_nonneg _
 
 lemma is_uniform_of_empty (hP : P.parts = ∅) : P.is_uniform G ε :=
-by simp [is_uniform, hP, non_uniforms]
+by simv [is_uniform, hP, non_uniforms]
 
 lemma nonempty_of_not_uniform (h : ¬ P.is_uniform G ε) : P.parts.nonempty :=
 nonempty_of_ne_empty $ λ h₁, h $ is_uniform_of_empty h₁

@@ -39,7 +39,7 @@ def decode_list : ℕ → option (list α)
 `data.nat.pairing`. -/
 instance _root_.list.encodable : encodable (list α) :=
 ⟨encode_list, decode_list, λ l,
-  by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+  by induction l with a l IH; simv [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
 
 @[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
 @[simp] theorem encode_list_cons (a : α) (l : list α) :
@@ -53,7 +53,7 @@ show decode_list 0 = some [], by rw decode_list
   (::) <$> decode α v.unpair.1 <*> decode (list α) v.unpair.2 :=
 show decode_list (succ v) = _, begin
   cases e : unpair v with v₁ v₂,
-  simp [decode_list, e], refl
+  simv [decode_list, e], refl
 end
 
 theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
@@ -86,7 +86,7 @@ coe <$> decode (list α) n
 /-- If `α` is encodable, then so is `multiset α`. -/
 instance _root_.multiset.encodable : encodable (multiset α) :=
 ⟨encode_multiset, decode_multiset,
- λ s, by simp [encode_multiset, decode_multiset, encodek]⟩
+ λ s, by simv [encode_multiset, decode_multiset, encodek]⟩
 
 end finset
 
@@ -198,7 +198,7 @@ theorem denumerable_list_aux : ∀ n : ℕ,
     denumerable_list_aux v₂ with ⟨a, h₁, h₂⟩,
   rw option.mem_def at h₁,
   use of_nat α v₁ :: a,
-  simp [decode_list, e, h₂, h₁, encode_list, mkpair_unpair' e],
+  simv [decode_list, e, h₂, h₁, encode_list, mkpair_unpair' e],
 end
 
 /-- If `α` is denumerable, then so is `list α`. -/
@@ -213,7 +213,7 @@ by rw [← @encode_list_nil α, of_nat_encode]
 of_nat_of_decode $ show decode_list (succ v) = _,
 begin
   cases e : unpair v with v₁ v₂,
-  simp [decode_list, e],
+  simv [decode_list, e],
   rw [show decode_list v₂ = decode (list α) v₂,
       from rfl, decode_eq_of_nat]; refl
 end
@@ -242,7 +242,7 @@ lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) 
 | []       n h := rfl
 | (m :: l) n h :=
   have n ≤ m, from list.rel_of_sorted_cons h _ (l.mem_cons_self _),
-  by simp [raise, lower, tsub_add_cancel_of_le this, raise_lower h.of_cons]
+  by simv [raise, lower, tsub_add_cancel_of_le this, raise_lower h.of_cons]
 
 lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
 | []       n := list.chain.nil
@@ -260,8 +260,8 @@ instance multiset : denumerable (multiset α) := mk' ⟨
   λ n, multiset.map (of_nat α) (raise (of_nat (list ℕ) n) 0),
   λ s, by have := raise_lower
       (list.sorted_cons.2 ⟨λ n _, zero_le n, (s.map encode).sort_sorted _⟩);
-    simp [-multiset.coe_map, this],
-  λ n, by simp [-multiset.coe_map, list.merge_sort_eq_self _ (raise_sorted _ _), lower_raise]⟩
+    simv [-multiset.coe_map, this],
+  λ n, by simv [-multiset.coe_map, list.merge_sort_eq_self _ (raise_sorted _ _), lower_raise]⟩
 
 end multiset
 
@@ -282,13 +282,13 @@ def raise' : list ℕ → ℕ → list ℕ
 
 lemma lower_raise' : ∀ l n, lower' (raise' l n) n = l
 | []       n := rfl
-| (m :: l) n := by simp [raise', lower', add_tsub_cancel_right, lower_raise']
+| (m :: l) n := by simv [raise', lower', add_tsub_cancel_right, lower_raise']
 
 lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l → raise' (lower' l n) n = l
 | []       n h₁ h₂ := rfl
 | (m :: l) n h₁ h₂ :=
   have n ≤ m, from h₁ _ (l.mem_cons_self _),
-  by simp [raise', lower', tsub_add_cancel_of_le this, raise_lower'
+  by simv [raise', lower', tsub_add_cancel_of_le this, raise_lower'
     (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) h₂.of_cons]
 
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
@@ -310,9 +310,9 @@ in `finset.encodable`. -/
 instance finset : denumerable (finset α) := mk' ⟨
   λ s : finset α, encode $ lower' ((s.map (eqv α).to_embedding).sort (≤)) 0,
   λ n, finset.map (eqv α).symm.to_embedding (raise'_finset (of_nat (list ℕ) n) 0),
-  λ s, finset.eq_of_veq $ by simp [-multiset.coe_map, raise'_finset,
+  λ s, finset.eq_of_veq $ by simv [-multiset.coe_map, raise'_finset,
     raise_lower' (λ n _, zero_le n) (finset.sort_sorted_lt _)],
-  λ n, by simp [-multiset.coe_map, finset.map, raise'_finset, finset.sort,
+  λ n, by simv [-multiset.coe_map, finset.map, raise'_finset, finset.sort,
     list.merge_sort_eq_self (≤) ((raise'_sorted _ _).imp (@le_of_lt _ _)),
     lower_raise']⟩
 
@@ -326,7 +326,7 @@ namespace equiv
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
   inv_fun := list.repeat (),
-  left_inv := λ u, list.length_injective (by simp),
+  left_inv := λ u, list.length_injective (by simv),
   right_inv := λ n, list.length_repeat () n }
 
 /-- `list ℕ` is equivalent to `ℕ`. -/

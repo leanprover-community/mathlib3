@@ -26,20 +26,20 @@ example : ∫ x : ℝ in 2..4, x ^ (3 : ℕ) = 60 := by norm_num
 
 /- trigonometric functions -/
 example : ∫ x in 0..π, sin x = 2 := by norm_num
-example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simp
+example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simv
 example : ∫ x in 0..π, 2 * sin x = 4 := by norm_num
-example : ∫ x in 0..π/2, cos x / 2 = 1 / 2 := by simp
-example : ∫ x : ℝ in 0..1, 1 / (1 + x ^ 2) = π / 4 := by simp
-example : ∫ x in 0..2*π, sin x ^ 2 = π := by simp [mul_div_cancel_left]
+example : ∫ x in 0..π/2, cos x / 2 = 1 / 2 := by simv
+example : ∫ x : ℝ in 0..1, 1 / (1 + x ^ 2) = π / 4 := by simv
+example : ∫ x in 0..2*π, sin x ^ 2 = π := by simv [mul_div_cancel_left]
 example : ∫ x in 0..π/2, cos x ^ 2 / 2 = π / 8 := by norm_num [div_div]
-example : ∫ x in 0..π, cos x ^ 2 - sin x ^ 2 = 0 := by simp [integral_cos_sq_sub_sin_sq]
+example : ∫ x in 0..π, cos x ^ 2 - sin x ^ 2 = 0 := by simv [integral_cos_sq_sub_sin_sq]
 example : ∫ x in 0..π/2, sin x ^ 3 = 2 / 3 := by norm_num
 example : ∫ x in 0..π/2, cos x ^ 3 = 2 / 3 := by norm_num
-example : ∫ x in 0..π, sin x * cos x = 0 := by simp
+example : ∫ x in 0..π, sin x * cos x = 0 := by simv
 example : ∫ x in 0..π, sin x ^ 2 * cos x ^ 2 = π / 8 := by simpa using sin_nat_mul_pi 4
 
 /- the exponential function -/
-example : ∫ x in 0..2, -exp x = 1 - exp 2 := by simp
+example : ∫ x in 0..2, -exp x = 1 - exp 2 := by simv
 
 /- the logarithmic function -/
 example : ∫ x in 1..2, log x = 2 * log 2 - 1 := by { norm_num, ring }
@@ -55,7 +55,7 @@ example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 := by norm_num
 example : ∫ x in 1..2, exp (5*x - 5) = 1/5 * (exp 5 - 1) := by norm_num
 example : ∫ x in 0..π, cos (x/2) = 2 := by norm_num
 example : ∫ x in 0..π/4, sin (2*x) = 1/2 := by norm_num [mul_div_left_comm, mul_one_div]
-example (ω φ : ℝ) : ω * ∫ θ in 0..π, sin (ω*θ + φ) = cos φ - cos (ω*π + φ) := by simp
+example (ω φ : ℝ) : ω * ∫ θ in 0..π, sin (ω*θ + φ) = cos φ - cos (ω*π + φ) := by simv
 
 /- some examples may require a bit of algebraic massaging -/
 example {L : ℝ} (h : L ≠ 0) : ∫ x in 0..2/L*π, sin (L/2 * x) = 4 / L :=
@@ -70,7 +70,7 @@ end
 example : ∫ x : ℝ in 0..2, 3 * (x + 1) ^ 2 = 26 :=
   by norm_num [integral_comp_add_right (λ x, x ^ 2)]
 example : ∫ x : ℝ in -1..0, (1 + (x + 1) ^ 2)⁻¹ = π / 4 :=
-  by simp [integral_comp_add_right (λ x, (1 + x ^ 2)⁻¹)]
+  by simv [integral_comp_add_right (λ x, (1 + x ^ 2)⁻¹)]
 
 /-! ### Compositions of functions (aka "change of variables" or "integration by substitution") -/
 
@@ -79,9 +79,9 @@ example : ∫ x : ℝ in -1..0, (1 + (x + 1) ^ 2)⁻¹ = π / 4 :=
 example {a b : ℝ} : ∫ x in a..b, exp (exp x) * exp x = ∫ x in exp a..exp b, exp x :=
 integral_comp_mul_deriv (λ x hx, has_deriv_at_exp x) continuous_on_exp continuous_exp
 
-/- if it is known (to mathlib), the integral of `g` can then be evaluated using `simp`/`norm_num` -/
+/- if it is known (to mathlib), the integral of `g` can then be evaluated using `simv`/`norm_num` -/
 example : ∫ x in 0..1, exp (exp x) * exp x = exp (exp 1) - exp 1 :=
-by rw integral_comp_mul_deriv (λ x hx, has_deriv_at_exp x) continuous_on_exp continuous_exp; simp
+by rw integral_comp_mul_deriv (λ x hx, has_deriv_at_exp x) continuous_on_exp continuous_exp; simv
 
 /- a more detailed example -/
 example : ∫ x in 0..2, exp (x ^ 2) * (2 * x) = exp 4 - 1 :=
@@ -98,7 +98,7 @@ end
 example : ∫ x : ℝ in 0..1, exp (x ^ 2) * (2 * x) = exp 1 - 1 :=
 begin
   rw integral_deriv_comp_mul_deriv (λ x hx, _) (λ x hx, has_deriv_at_exp (x^2)) _ continuous_exp,
-  { simp },
+  { simv },
   { simpa using has_deriv_at_pow 2 x },
   { exact continuous_on_const.mul continuous_on_id },
 end

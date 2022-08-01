@@ -40,10 +40,10 @@ dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin
   cases eq_empty_or_nonempty s,
-  { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
+  { subst h, simv only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
       mem_empty_eq, exists_false, dif_neg, not_false_iff] },
   { have := ne_empty_iff_nonempty.mpr h,
-    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
+    simv only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
@@ -105,7 +105,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+    simv only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
       exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial
@@ -151,10 +151,10 @@ section
 variables {α : Type*} [complete_lattice α]
 
 lemma supr_lt_succ (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = (⨆ k < n, u k) ⊔ u n :=
-by simp [nat.lt_succ_iff_lt_or_eq, supr_or, supr_sup_eq]
+by simv [nat.lt_succ_iff_lt_or_eq, supr_or, supr_sup_eq]
 
 lemma supr_lt_succ' (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = u 0 ⊔ (⨆ k < n, u (k + 1)) :=
-by { rw ← sup_supr_nat_succ, simp }
+by { rw ← sup_supr_nat_succ, simv }
 
 lemma infi_lt_succ (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = (⨅ k < n, u k) ⊓ u n :=
 @supr_lt_succ αᵒᵈ _ _ _

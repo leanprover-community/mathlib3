@@ -60,7 +60,7 @@ def mk' (v : { v : V // v ≠ 0 }) : ℙ K V := quotient.mk' v
 
 @[simp] lemma mk'_eq_mk (v : { v : V // v ≠ 0}) :
   mk' K v = mk K v v.2 :=
-by { dsimp [mk, mk'], congr' 1, simp }
+by { dsimp [mk, mk'], congr' 1, simv }
 
 instance [nontrivial V] : nonempty (ℙ K V) :=
 let ⟨v, hv⟩ := exists_ne (0 : V) in ⟨mk K v hv⟩
@@ -75,7 +75,7 @@ lemma rep_nonzero (v : ℙ K V) : v.rep ≠ 0 := v.out'.2
 @[simp]
 lemma mk_rep (v : ℙ K V) :
   mk K v.rep v.rep_nonzero = v :=
-by { dsimp [mk, projectivization.rep], simp }
+by { dsimp [mk, projectivization.rep], simv }
 
 open finite_dimensional
 
@@ -135,7 +135,7 @@ lemma submodule_injective : function.injective
   (projectivization.submodule : ℙ K V → submodule K V) :=
 begin
   intros u v h, replace h := le_of_eq h,
-  simp only [submodule_eq] at h,
+  simv only [submodule_eq] at h,
   rw submodule.le_span_singleton_iff at h,
   rw [← mk_rep v, ← mk_rep u],
   apply quotient.sound',
@@ -182,12 +182,12 @@ lemma submodule_mk'' (H : _root_.submodule K V) (h : finrank K H = 1) :
 begin
   suffices : (equiv_submodule K V) (mk'' H h) = ⟨H,h⟩, by exact congr_arg coe this,
   dsimp [mk''],
-  simp
+  simv
 end
 
 @[simp]
 lemma mk''_submodule (v : ℙ K V) : mk'' v.submodule v.finrank_submodule = v :=
-show (equiv_submodule K V).symm (equiv_submodule K V _) = _, by simp
+show (equiv_submodule K V).symm (equiv_submodule K V _) = _, by simv
 
 section map
 
@@ -196,7 +196,7 @@ variables {L W : Type*} [field L] [add_comm_group W] [module L W]
 /-- An injective semilinear map of vector spaces induces a map on projective spaces. -/
 def map {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) :
   ℙ K V → ℙ L W :=
-quotient.map' (λ v, ⟨f v, λ c, v.2 (hf (by simp [c]))⟩)
+quotient.map' (λ v, ⟨f v, λ c, v.2 (hf (by simv [c]))⟩)
 begin
   rintros ⟨u,hu⟩ ⟨v,hv⟩ ⟨a,ha⟩,
   use units.map σ.to_monoid_hom a,
@@ -214,7 +214,7 @@ begin
   rw [← u.mk_rep, ← v.mk_rep] at *,
   apply quotient.sound',
   dsimp [map, mk] at h,
-  simp only [quotient.eq'] at h,
+  simv only [quotient.eq'] at h,
   obtain ⟨a,ha⟩ := h,
   use units.map τ.to_monoid_hom a,
   dsimp at ⊢ ha,

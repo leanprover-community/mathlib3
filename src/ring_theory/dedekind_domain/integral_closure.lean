@@ -61,7 +61,7 @@ lemma is_integral_closure.range_le_span_dual_basis [is_separable K L]
 begin
   let db := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
   rintros _ ⟨x, rfl⟩,
-  simp only [linear_map.coe_restrict_scalars_eq_coe, algebra.linear_map_apply],
+  simv only [linear_map.coe_restrict_scalars_eq_coe, algebra.linear_map_apply],
   have hx : is_integral A (algebra_map C L x) :=
     (is_integral_closure.is_integral A L x).algebra_map,
   suffices : ∃ (c : ι → A), algebra_map C L x = ∑ i, c i • db i,
@@ -144,11 +144,11 @@ begin
                         right_inv := _,
                         .. algebra.lmul _ _ (algebra_map A L y) },
           _⟩,
-  { intros x, simp only [inv_mul_cancel_left₀ hy'] },
-  { intros x, simp only [mul_inv_cancel_left₀ hy'] },
+  { intros x, simv only [inv_mul_cancel_left₀ hy'] },
+  { intros x, simv only [mul_inv_cancel_left₀ hy'] },
   { rintros ⟨x', hx'⟩,
-    simp only [algebra.smul_def, finset.mem_image, exists_prop, finset.mem_univ, true_and] at his',
-    simp only [basis.map_apply, linear_equiv.coe_mk],
+    simv only [algebra.smul_def, finset.mem_image, exists_prop, finset.mem_univ, true_and] at his',
+    simv only [basis.map_apply, linear_equiv.coe_mk],
     exact his' _ ⟨_, rfl⟩ }
 end
 

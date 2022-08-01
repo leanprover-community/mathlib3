@@ -79,7 +79,7 @@ lemma to_fun_linear_tmul_apply (a : A) (p : R[X]) :
 lemma to_fun_linear_mul_tmul_mul_aux_1
   (p : R[X]) (k : ℕ) (h : decidable (¬p.coeff k = 0)) (a : A) :
   ite (¬coeff p k = 0) (a * (algebra_map R A) (coeff p k)) 0 = a * (algebra_map R A) (coeff p k) :=
-by { classical, split_ifs; simp *, }
+by { classical, split_ifs; simv *, }
 
 lemma to_fun_linear_mul_tmul_mul_aux_2 (k : ℕ) (a₁ a₂ : A) (p₁ p₂ : R[X]) :
   a₁ * a₂ * (algebra_map R A) ((p₁ * p₂).coeff k) =
@@ -96,7 +96,7 @@ lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : R[X]) :
     (to_fun_linear R A) (a₁ ⊗ₜ[R] p₁) * (to_fun_linear R A) (a₂ ⊗ₜ[R] p₂) :=
 begin
   classical,
-  simp only [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
+  simv only [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
   ext k,
   simp_rw [coeff_sum, coeff_monomial, sum_def, finset.sum_ite_eq', mem_support_iff, ne.def],
   conv_rhs { rw [coeff_mul] },
@@ -143,7 +143,7 @@ p.eval₂
 
 @[simp]
 lemma inv_fun_add {p q} : inv_fun R A (p + q) = inv_fun R A p + inv_fun R A q :=
-by simp only [inv_fun, eval₂_add]
+by simv only [inv_fun, eval₂_add]
 
 lemma inv_fun_monomial (n : ℕ) (a : A) :
   inv_fun R A (monomial n a) = include_left a * ((1 : A) ⊗ₜ[R] (X : R[X])) ^ n :=
@@ -153,29 +153,29 @@ lemma left_inv (x : A ⊗ R[X]) :
   inv_fun R A ((to_fun_alg_hom R A) x) = x :=
 begin
   apply tensor_product.induction_on x,
-  { simp [inv_fun], },
+  { simv [inv_fun], },
   { intros a p, dsimp only [inv_fun],
     rw [to_fun_alg_hom_apply_tmul, eval₂_sum],
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def, smul_tmul, sum_def, ←tmul_sum],
     conv_rhs { rw [←sum_C_mul_X_eq p], },
-    simp only [algebra.smul_def],
+    simv only [algebra.smul_def],
     refl, },
   { intros p q hp hq,
-    simp only [alg_hom.map_add, inv_fun_add, hp, hq], },
+    simv only [alg_hom.map_add, inv_fun_add, hp, hq], },
 end
 
 lemma right_inv (x : A[X]) :
   (to_fun_alg_hom R A) (inv_fun R A x) = x :=
 begin
   apply polynomial.induction_on' x,
-  { intros p q hp hq, simp only [inv_fun_add, alg_hom.map_add, hp, hq], },
+  { intros p q hp hq, simv only [inv_fun_add, alg_hom.map_add, hp, hq], },
   { intros n a,
     rw [inv_fun_monomial, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, to_fun_alg_hom_apply_tmul, X_pow_eq_monomial, sum_monomial_index];
-    simp, }
+    simv, }
 end
 
 /--
@@ -236,17 +236,17 @@ lemma mat_poly_equiv_coeff_apply_aux_1 (i j : n) (k : ℕ) (x : R) :
   mat_poly_equiv (std_basis_matrix i j $ monomial k x) =
     monomial k (std_basis_matrix i j x) :=
 begin
-  simp only [mat_poly_equiv, alg_equiv.trans_apply,
+  simv only [mat_poly_equiv, alg_equiv.trans_apply,
     matrix_equiv_tensor_apply_std_basis],
   apply (poly_equiv_tensor R (matrix n n R)).injective,
-  simp only [alg_equiv.apply_symm_apply],
+  simv only [alg_equiv.apply_symm_apply],
   convert algebra.tensor_product.comm_tmul _ _ _ _ _,
-  simp only [poly_equiv_tensor_apply],
+  simv only [poly_equiv_tensor_apply],
   convert eval₂_monomial _ _,
-  simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
+  simv only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
   rw [monomial_eq_smul_X, ← tensor_product.smul_tmul],
-  congr' with i' j'; simp
+  congr' with i' j'; simv
 end
 
 lemma mat_poly_equiv_coeff_apply_aux_2
@@ -256,10 +256,10 @@ lemma mat_poly_equiv_coeff_apply_aux_2
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, ext,
-    simp [hp, hq, coeff_add, add_apply, std_basis_matrix_add], },
+    simv [hp, hq, coeff_add, add_apply, std_basis_matrix_add], },
   { intros k x,
-    simp only [mat_poly_equiv_coeff_apply_aux_1, coeff_monomial],
-    split_ifs; { funext, simp, }, }
+    simv only [mat_poly_equiv_coeff_apply_aux_1, coeff_monomial],
+    split_ifs; { funext, simv, }, }
 end
 
 @[simp] lemma mat_poly_equiv_coeff_apply
@@ -267,14 +267,14 @@ end
   coeff (mat_poly_equiv m) k i j = coeff (m i j) k :=
 begin
   apply matrix.induction_on' m,
-  { simp, },
-  { intros p q hp hq, simp [hp, hq], },
+  { simv, },
+  { intros p q hp hq, simv [hp, hq], },
   { intros i' j' x,
     erw mat_poly_equiv_coeff_apply_aux_2,
     dsimp [std_basis_matrix],
     split_ifs,
-    { rcases h with ⟨rfl, rfl⟩, simp [std_basis_matrix], },
-    { simp [std_basis_matrix, h], }, },
+    { rcases h with ⟨rfl, rfl⟩, simv [std_basis_matrix], },
+    { simv [std_basis_matrix, h], }, },
 end
 
 @[simp] lemma mat_poly_equiv_symm_apply_coeff
@@ -282,18 +282,18 @@ end
   coeff (mat_poly_equiv.symm p i j) k = coeff p k i j :=
 begin
   have t : p = mat_poly_equiv
-    (mat_poly_equiv.symm p) := by simp,
+    (mat_poly_equiv.symm p) := by simv,
   conv_rhs { rw t, },
-  simp only [mat_poly_equiv_coeff_apply],
+  simv only [mat_poly_equiv_coeff_apply],
 end
 
 lemma mat_poly_equiv_smul_one (p : R[X]) :
   mat_poly_equiv (p • 1) = p.map (algebra_map R (matrix n n R)) :=
 begin
   ext m i j,
-  simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
+  simv only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
     pi.smul_apply, mat_poly_equiv_coeff_apply],
-  split_ifs; simp,
+  split_ifs; simv,
 end
 
 lemma support_subset_support_mat_poly_equiv
@@ -302,7 +302,7 @@ lemma support_subset_support_mat_poly_equiv
 begin
   assume k,
   contrapose,
-  simp only [not_mem_support_iff],
+  simv only [not_mem_support_iff],
   assume hk,
   rw [← mat_poly_equiv_coeff_apply, hk],
   refl

@@ -55,7 +55,7 @@ class split_epi {X Y : C} (f : X ⟶ Y) :=
 
 /-- The chosen retraction of a split monomorphism. -/
 def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.retraction f
-@[simp, reassoc]
+@[simv, reassoc]
 lemma split_mono.id {X Y : C} (f : X ⟶ Y) [split_mono f] : f ≫ retraction f = 𝟙 X :=
 split_mono.id'
 /-- The retraction of a split monomorphism is itself a split epimorphism. -/
@@ -64,14 +64,14 @@ instance retraction_split_epi {X Y : C} (f : X ⟶ Y) [split_mono f] : split_epi
 
 /-- A split mono which is epi is an iso. -/
 lemma is_iso_of_epi_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] [epi f] : is_iso f :=
-⟨⟨retraction f, ⟨by simp, by simp [← cancel_epi f]⟩⟩⟩
+⟨⟨retraction f, ⟨by simv, by simv [← cancel_epi f]⟩⟩⟩
 
 /--
 The chosen section of a split epimorphism.
 (Note that `section` is a reserved keyword, so we append an underscore.)
 -/
 def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_ f
-@[simp, reassoc]
+@[simv, reassoc]
 lemma split_epi.id {X Y : C} (f : X ⟶ Y) [split_epi f] : section_ f ≫ f = 𝟙 Y :=
 split_epi.id'
 /-- The section of a split epimorphism is itself a split monomorphism. -/
@@ -80,7 +80,7 @@ instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (
 
 /-- A split epi which is mono is an iso. -/
 lemma is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [split_epi f] : is_iso f :=
-⟨⟨section_ f, ⟨by simp [← cancel_mono f], by simp⟩⟩⟩
+⟨⟨section_ f, ⟨by simv [← cancel_mono f], by simv⟩⟩⟩
 
 /-- Every iso is a split mono. -/
 @[priority 100]
@@ -107,12 +107,12 @@ instance split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 /-- Every split mono whose retraction is mono is an iso. -/
 lemma is_iso.of_mono_retraction {X Y : C} {f : X ⟶ Y} [split_mono f] [mono $ retraction f]
   : is_iso f :=
-⟨⟨retraction f, ⟨by simp, (cancel_mono_id $ retraction f).mp (by simp)⟩⟩⟩
+⟨⟨retraction f, ⟨by simv, (cancel_mono_id $ retraction f).mp (by simv)⟩⟩⟩
 
 /-- Every split epi whose section is epi is an iso. -/
 lemma is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section_ f]
   : is_iso f :=
-⟨⟨section_ f, ⟨(cancel_epi_id $ section_ f).mp (by simp), by simp⟩⟩⟩
+⟨⟨section_ f, ⟨(cancel_epi_id $ section_ f).mp (by simv), by simv⟩⟩⟩
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
 -- FIXME this has unnecessarily become noncomputable!

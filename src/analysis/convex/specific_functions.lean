@@ -44,7 +44,7 @@ lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
 lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
   apply convex_on_univ_of_deriv2_nonneg (differentiable_pow n),
-  { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
+  { simv only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
     obtain ⟨k, hk⟩ := (hn.tsub $ even_bit0 _).exists_two_nsmul _,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
@@ -67,7 +67,7 @@ lemma convex_on_pow (n : ℕ) : convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
     (differentiable_on_pow n),
-  { simp only [deriv_pow'], exact (@differentiable_on_pow ℝ _ _ _).const_mul (n : ℝ) },
+  { simv only [deriv_pow'], exact (@differentiable_on_pow ℝ _ _ _).const_mul (n : ℝ) },
   { intros x hx,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
     exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (interior_subset hx) _) }
@@ -89,7 +89,7 @@ lemma finset.prod_nonneg_of_card_nonpos_even
   0 ≤ ∏ x in s, f x :=
 calc 0 ≤ (∏ x in s, ((if f x ≤ 0 then (-1:β) else 1) * f x)) :
   finset.prod_nonneg (λ x _, by
-    { split_ifs with hx hx, by simp [hx], simp at hx ⊢, exact le_of_lt hx })
+    { split_ifs with hx hx, by simv [hx], simv at hx ⊢, exact le_of_lt hx })
 ... = _ : by rw [finset.prod_mul_distrib, finset.prod_ite, finset.prod_const_one,
   mul_one, finset.prod_const, neg_one_pow_eq_pow_mod_two, nat.even_iff.1 h0, pow_zero, one_mul]
 
@@ -97,7 +97,7 @@ lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : even n) :
   0 ≤ ∏ k in finset.range n, (m - k) :=
 begin
   rcases hn with ⟨n, rfl⟩,
-  induction n with n ihn, { simp },
+  induction n with n ihn, { simv },
   rw ← two_mul at ihn,
   rw [← two_mul, nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
     finset.prod_range_succ, mul_assoc],
@@ -124,7 +124,7 @@ begin
   have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
     from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
   apply convex_on_of_deriv2_nonneg (convex_Ioi 0);
-    try { simp only [interior_Ioi, deriv_zpow'] },
+    try { simv only [interior_Ioi, deriv_zpow'] },
   { exact (this _).continuous_on },
   { exact this _ },
   { exact (this _).const_mul _ },
@@ -151,14 +151,14 @@ end
 
 lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
 begin
-  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
+  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simv [hp] },
   apply convex_on_of_deriv2_nonneg (convex_Ici 0),
   { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp)) },
   { exact (differentiable_rpow_const hp).differentiable_on },
   { rw A,
     assume x hx,
-    replace hx : x ≠ 0, by { simp at hx, exact ne_of_gt hx },
-    simp [differentiable_at.differentiable_within_at, hx] },
+    replace hx : x ≠ 0, by { simv at hx, exact ne_of_gt hx },
+    simv [differentiable_at.differentiable_within_at, hx] },
   { assume x hx,
     replace hx : 0 < x, by simpa using hx,
     suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
@@ -168,7 +168,7 @@ end
 
 lemma strict_convex_on_rpow {p : ℝ} (hp : 1 < p) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
 begin
-  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp.le] },
+  have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simv [hp.le] },
   apply strict_convex_on_of_deriv2_pos (convex_Ici 0),
   { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp.le)) },
   rw interior_Ici,
@@ -227,7 +227,7 @@ funext deriv_sqrt_mul_log
 lemma deriv2_sqrt_mul_log (x : ℝ) :
   deriv^[2] (λ x, sqrt x * log x) x = -log x / (4 * sqrt x ^ 3) :=
 begin
-  simp only [nat.iterate, deriv_sqrt_mul_log'],
+  simv only [nat.iterate, deriv_sqrt_mul_log'],
   cases le_or_lt x 0 with hx hx,
   { rw [sqrt_eq_zero_of_nonpos hx, zero_pow zero_lt_three, mul_zero, div_zero],
     refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 x hx),
@@ -258,12 +258,12 @@ lemma strict_concave_on_sin_Icc : strict_concave_on ℝ (Icc 0 π) sin :=
 begin
   apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_sin (λ x hx, _),
   rw interior_Icc at hx,
-  simp [sin_pos_of_mem_Ioo hx],
+  simv [sin_pos_of_mem_Ioo hx],
 end
 
 lemma strict_concave_on_cos_Icc : strict_concave_on ℝ (Icc (-(π/2)) (π/2)) cos :=
 begin
   apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_cos (λ x hx, _),
   rw interior_Icc at hx,
-  simp [cos_pos_of_mem_Ioo hx],
+  simv [cos_pos_of_mem_Ioo hx],
 end

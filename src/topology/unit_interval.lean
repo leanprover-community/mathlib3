@@ -50,23 +50,23 @@ end
 
 instance has_zero : has_zero I := ⟨⟨0, zero_mem⟩⟩
 
-@[simp, norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
 
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : I) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_eq_zero {x : I} : (x : ℝ) = 0 ↔ x = 0 :=
+@[simv, norm_cast] lemma coe_eq_zero {x : I} : (x : ℝ) = 0 ↔ x = 0 :=
 by { symmetry, exact subtype.ext_iff }
 
 instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
 
-@[simp, norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
+@[simv, norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
 
 lemma coe_ne_zero {x : I} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
 
 @[simp] lemma mk_one (h : (1 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨1, h⟩ : I) = 1 := rfl
 
-@[simp, norm_cast] lemma coe_eq_one {x : I} : (x : ℝ) = 1 ↔ x = 1 :=
+@[simv, norm_cast] lemma coe_eq_one {x : I} : (x : ℝ) = 1 ↔ x = 1 :=
 by { symmetry, exact subtype.ext_iff }
 
 lemma coe_ne_one {x : I} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
@@ -76,7 +76,7 @@ instance : nonempty I := ⟨0⟩
 
 instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x.2 y.2⟩⟩
 
-@[simp, norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
+@[simv, norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
 
 -- todo: we could set up a `linear_ordered_comm_monoid_with_zero I` instance
 
@@ -92,13 +92,13 @@ def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
 localized "notation `σ` := unit_interval.symm" in unit_interval
 
 @[simp] lemma symm_zero : σ 0 = 1 :=
-subtype.ext $ by simp [symm]
+subtype.ext $ by simv [symm]
 
 @[simp] lemma symm_one : σ 1 = 0 :=
-subtype.ext $ by simp [symm]
+subtype.ext $ by simv [symm]
 
 @[simp] lemma symm_symm (x : I) : σ (σ x) = x :=
-subtype.ext $ by simp [symm]
+subtype.ext $ by simv [symm]
 
 @[simp] lemma coe_symm_eq (x : I) : (σ x : ℝ) = 1 - x := rfl
 
@@ -161,7 +161,7 @@ The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -- At the end of the day I only care about `ℝ`, so I'm hesitant to put work into generalizing.
 lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) :
   affine_homeomorph a b h.ne.symm '' set.Icc 0 1 = set.Icc b (a + b) :=
-by simp [h]
+by simv [h]
 
 /--
 The affine homeomorphism from a nontrivial interval `[a,b]` to `[0,1]`.
@@ -171,7 +171,7 @@ begin
   let e := homeomorph.image (affine_homeomorph (b-a) a (sub_pos.mpr h).ne.symm) (set.Icc 0 1),
   refine (e.trans _).symm,
   apply homeomorph.set_congr,
-  simp [sub_pos.mpr h],
+  simv [sub_pos.mpr h],
 end
 
 @[simp] lemma Icc_homeo_I_apply_coe (a b : 𝕜) (h : a < b) (x : set.Icc a b) :

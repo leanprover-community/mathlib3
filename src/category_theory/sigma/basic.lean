@@ -126,7 +126,7 @@ rfl
 This shows that when `desc F` is restricted to just the subcategory `C i`, `desc F` agrees with
 `F i`.
 -/
--- We hand-generate the simp lemmas about this since they come out cleaner.
+-- We hand-generate the simv lemmas about this since they come out cleaner.
 def incl_desc (i : I) : incl i ⋙ desc F ≅ F i :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 

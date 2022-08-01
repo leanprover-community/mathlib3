@@ -118,7 +118,7 @@ theorem size_eq_real_size : ∀ {t : ordnode α}, sized t → size t = real_size
   by rw [size, h₁, size_eq_real_size h₂, size_eq_real_size h₃]; refl
 
 @[simp] theorem sized.size_eq_zero {t : ordnode α} (ht : sized t) : size t = 0 ↔ t = nil :=
-by cases t; [simp, simp [ht.1]]
+by cases t; [simv, simv [ht.1]]
 
 theorem sized.pos {s l x r} (h : sized (@node α s l x r)) : 0 < s :=
 by rw h.1; apply nat.le_add_left
@@ -155,7 +155,7 @@ theorem balanced_sz.symm {l r : ℕ} : balanced_sz l r → balanced_sz r l :=
 or.imp (by rw add_comm; exact id) and.symm
 
 theorem balanced_sz_zero {l : ℕ} : balanced_sz l 0 ↔ l ≤ 1 :=
-by simp [balanced_sz] { contextual := tt }
+by simv [balanced_sz] { contextual := tt }
 
 theorem balanced_sz_up {l r₁ r₂ : ℕ} (h₁ : r₁ ≤ r₂)
   (h₂ : l + r₂ ≤ 1 ∨ r₂ ≤ delta * l)
@@ -240,28 +240,28 @@ if size l > delta * size r then rotate_r l x r else
 node' l x r
 
 theorem dual_node' (l : ordnode α) (x : α) (r : ordnode α) :
-  dual (node' l x r) = node' (dual r) x (dual l) := by simp [node', add_comm]
+  dual (node' l x r) = node' (dual r) x (dual l) := by simv [node', add_comm]
 
 theorem dual_node3_l (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) :
   dual (node3_l l x m y r) = node3_r (dual r) y (dual m) x (dual l) :=
-by simp [node3_l, node3_r, dual_node']
+by simv [node3_l, node3_r, dual_node']
 
 theorem dual_node3_r (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) :
   dual (node3_r l x m y r) = node3_l (dual r) y (dual m) x (dual l) :=
-by simp [node3_l, node3_r, dual_node']
+by simv [node3_l, node3_r, dual_node']
 
 theorem dual_node4_l (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) :
   dual (node4_l l x m y r) = node4_r (dual r) y (dual m) x (dual l) :=
-by cases m; simp [node4_l, node4_r, dual_node3_l, dual_node']
+by cases m; simv [node4_l, node4_r, dual_node3_l, dual_node']
 
 theorem dual_node4_r (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) :
   dual (node4_r l x m y r) = node4_l (dual r) y (dual m) x (dual l) :=
-by cases m; simp [node4_l, node4_r, dual_node3_r, dual_node']
+by cases m; simv [node4_l, node4_r, dual_node3_r, dual_node']
 
 theorem dual_rotate_l (l : ordnode α) (x : α) (r : ordnode α) :
   dual (rotate_l l x r) = rotate_r (dual r) x (dual l) :=
-by cases r; simp [rotate_l, rotate_r, dual_node'];
-   split_ifs; simp [dual_node3_l, dual_node4_l]
+by cases r; simv [rotate_l, rotate_r, dual_node'];
+   split_ifs; simv [dual_node3_l, dual_node4_l]
 
 theorem dual_rotate_r (l : ordnode α) (x : α) (r : ordnode α) :
   dual (rotate_r l x r) = rotate_l (dual r) x (dual l) :=
@@ -270,7 +270,7 @@ by rw [← dual_dual (rotate_l _ _ _), dual_rotate_l, dual_dual, dual_dual]
 theorem dual_balance' (l : ordnode α) (x : α) (r : ordnode α) :
   dual (balance' l x r) = balance' (dual r) x (dual l) :=
 begin
-  simp [balance', add_comm], split_ifs; simp [dual_node', dual_rotate_l, dual_rotate_r],
+  simv [balance', add_comm], split_ifs; simv [dual_node', dual_rotate_l, dual_rotate_r],
   cases delta_lt_false h_1 h_2
 end
 
@@ -282,13 +282,13 @@ begin
   { cases l with ls ll lx lr, {refl},
     cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr;
       dsimp only [dual]; try {refl},
-    split_ifs; repeat {simp [h, add_comm]} },
+    split_ifs; repeat {simv [h, add_comm]} },
   { cases l with ls ll lx lr, {refl},
     dsimp only [dual],
-    split_ifs, swap, {simp [add_comm]},
+    split_ifs, swap, {simv [add_comm]},
     cases ll with lls lll llx llr; cases lr with lrs lrl lrx lrr; try {refl},
     dsimp only [dual],
-    split_ifs; simp [h, add_comm] },
+    split_ifs; simv [h, add_comm] },
 end
 
 theorem dual_balance_r (l : ordnode α) (x : α) (r : ordnode α) :
@@ -318,12 +318,12 @@ by dsimp [node3_r, node', size]; rw [← add_assoc, ← add_assoc]
 
 theorem node4_l_size {l x m y r} (hm : sized m) :
   size (@node4_l α l x m y r) = size l + size m + size r + 2 :=
-by cases m; simp [node4_l, node3_l, node', add_comm, add_left_comm]; [skip, simp [size, hm.1]];
-   rw [← add_assoc, ← bit0]; simp [add_comm, add_left_comm]
+by cases m; simv [node4_l, node3_l, node', add_comm, add_left_comm]; [skip, simv [size, hm.1]];
+   rw [← add_assoc, ← bit0]; simv [add_comm, add_left_comm]
 
 theorem sized.dual : ∀ {t : ordnode α} (h : sized t), sized (dual t)
 | nil h := ⟨⟩
-| (node s l x r) ⟨rfl, sl, sr⟩ := ⟨by simp [size_dual, add_comm], sized.dual sr, sized.dual sl⟩
+| (node s l x r) ⟨rfl, sl, sr⟩ := ⟨by simv [size_dual, add_comm], sized.dual sr, sized.dual sl⟩
 
 theorem sized.dual_iff {t : ordnode α} : sized (dual t) ↔ sized t :=
 ⟨λ h, by rw ← dual_dual t; exact h.dual, sized.dual⟩
@@ -342,9 +342,9 @@ sized.dual_iff.1 $ by rw dual_rotate_r; exact hr.dual.rotate_l hl.dual
 theorem sized.rotate_l_size {l x r} (hm : sized r) :
   size (@rotate_l α l x r) = size l + size r + 1 :=
 begin
-  cases r; simp [rotate_l],
-  simp [size, hm.1, add_comm, add_left_comm], rw [← add_assoc, ← bit0], simp,
-  split_ifs; simp [node3_l_size, node4_l_size hm.2.1, add_comm, add_left_comm]
+  cases r; simv [rotate_l],
+  simv [size, hm.1, add_comm, add_left_comm], rw [← add_assoc, ← bit0], simv,
+  split_ifs; simv [node3_l_size, node4_l_size hm.2.1, add_comm, add_left_comm]
 end
 
 theorem sized.rotate_r_size {l x r} (hl : sized l) :
@@ -397,12 +397,12 @@ theorem all_dual {P : α → Prop} : ∀ {t : ordnode α},
 theorem all_iff_forall {P : α → Prop} : ∀ {t}, all P t ↔ ∀ x, emem x t → P x
 | nil := (iff_true_intro $ by rintro _ ⟨⟩).symm
 | (node _ l x r) :=
-  by simp [all, emem, all_iff_forall, any, or_imp_distrib, forall_and_distrib]
+  by simv [all, emem, all_iff_forall, any, or_imp_distrib, forall_and_distrib]
 
 theorem any_iff_exists {P : α → Prop} : ∀ {t}, any P t ↔ ∃ x, emem x t ∧ P x
 | nil := ⟨by rintro ⟨⟩, by rintro ⟨_, ⟨⟩, _⟩⟩
 | (node _ l x r) :=
-  by simp [any, emem, any_iff_exists, or_and_distrib_right, exists_or_distrib]
+  by simv [any, emem, any_iff_exists, or_and_distrib_right, exists_or_distrib]
 
 theorem emem_iff_all {x : α} {t} : emem x t ↔ ∀ P, all P t → P x :=
 ⟨λ h P al, all_iff_forall.1 al _ h,
@@ -413,32 +413,32 @@ theorem all_node' {P l x r} :
 
 theorem all_node3_l {P l x m y r} :
   @all α P (node3_l l x m y r) ↔ all P l ∧ P x ∧ all P m ∧ P y ∧ all P r :=
-by simp [node3_l, all_node', and_assoc]
+by simv [node3_l, all_node', and_assoc]
 
 theorem all_node3_r {P l x m y r} :
   @all α P (node3_r l x m y r) ↔ all P l ∧ P x ∧ all P m ∧ P y ∧ all P r := iff.rfl
 
 theorem all_node4_l {P l x m y r} :
   @all α P (node4_l l x m y r) ↔ all P l ∧ P x ∧ all P m ∧ P y ∧ all P r :=
-by cases m; simp [node4_l, all_node', all, all_node3_l, and_assoc]
+by cases m; simv [node4_l, all_node', all, all_node3_l, and_assoc]
 
 theorem all_node4_r {P l x m y r} :
   @all α P (node4_r l x m y r) ↔ all P l ∧ P x ∧ all P m ∧ P y ∧ all P r :=
-by cases m; simp [node4_r, all_node', all, all_node3_r, and_assoc]
+by cases m; simv [node4_r, all_node', all, all_node3_r, and_assoc]
 
 theorem all_rotate_l {P l x r} :
   @all α P (rotate_l l x r) ↔ all P l ∧ P x ∧ all P r :=
-by cases r; simp [rotate_l, all_node'];
-   split_ifs; simp [all_node3_l, all_node4_l, all]
+by cases r; simv [rotate_l, all_node'];
+   split_ifs; simv [all_node3_l, all_node4_l, all]
 
 theorem all_rotate_r {P l x r} :
   @all α P (rotate_r l x r) ↔ all P l ∧ P x ∧ all P r :=
 by rw [← all_dual, dual_rotate_r, all_rotate_l];
-   simp [all_dual, and_comm, and.left_comm]
+   simv [all_dual, and_comm, and.left_comm]
 
 theorem all_balance' {P l x r} :
   @all α P (balance' l x r) ↔ all P l ∧ P x ∧ all P r :=
-by rw balance'; split_ifs; simp [all_node', all_rotate_l, all_rotate_r]
+by rw balance'; split_ifs; simv [all_node', all_rotate_l, all_rotate_r]
 
 /-! ### `to_list` -/
 
@@ -454,7 +454,7 @@ theorem foldr_cons_eq_to_list : ∀ (t : ordnode α) (r : list α),
 by rw [to_list, foldr, foldr_cons_eq_to_list]; refl
 
 theorem emem_iff_mem_to_list {x : α} {t} : emem x t ↔ x ∈ to_list t :=
-by unfold emem; induction t; simp [any, *, or_assoc]
+by unfold emem; induction t; simv [any, *, or_assoc]
 
 theorem length_to_list' : ∀ t : ordnode α, (to_list t).length = t.real_size
 | nil := rfl
@@ -472,7 +472,7 @@ and_iff_right_of_imp $ λ h, by rw [← length_to_list h₁, h, length_to_list h
 
 theorem pos_size_of_mem [has_le α] [@decidable_rel α (≤)]
   {x : α} {t : ordnode α} (h : sized t) (h_mem : x ∈ t) : 0 < size t :=
-by { cases t, { contradiction }, { simp [h.1] } }
+by { cases t, { contradiction }, { simv [h.1] } }
 
 /-! ### `(find/erase/split)_(min/max)` -/
 
@@ -546,7 +546,7 @@ theorem dual_insert [preorder α] [is_total α (≤)] [@decidable_rel α (≤)] 
   have : @cmp_le αᵒᵈ _ _ x y = cmp_le y x := rfl,
   rw [ordnode.insert, dual, ordnode.insert, this, ← cmp_le_swap x y],
   cases cmp_le x y;
-    simp [ordering.swap, ordnode.insert, dual_balance_l, dual_balance_r, dual_insert]
+    simv [ordering.swap, ordnode.insert, dual_balance_l, dual_balance_r, dual_insert]
 end
 
 /-! ### `balance` properties -/
@@ -583,8 +583,8 @@ begin
         all_goals {exact dec_trivial} },
       { symmetry, rw [zero_add, if_neg, if_pos, rotate_l],
         { split_ifs,
-          { simp [node3_l, node', add_comm, add_left_comm] },
-          { simp [node4_l, node', sr.2.1.1, add_comm, add_left_comm] } },
+          { simv [node3_l, node', add_comm, add_left_comm] },
+          { simv [node4_l, node', sr.2.1.1, add_comm, add_left_comm] } },
         { exact dec_trivial },
         { exact not_le_of_gt (nat.succ_lt_succ
             (add_pos sr.2.1.pos sr.2.2.pos)) } } } },
@@ -613,13 +613,13 @@ begin
         all_goals {exact dec_trivial} },
       { symmetry, rw [if_neg, if_neg, if_pos, rotate_r],
         { split_ifs,
-          { simp [node3_r, node', add_comm, add_left_comm] },
-          { simp [node4_r, node', sl.2.2.1, add_comm, add_left_comm] } },
+          { simv [node3_r, node', add_comm, add_left_comm] },
+          { simv [node4_r, node', sl.2.2.1, add_comm, add_left_comm] } },
         { exact dec_trivial },
         { exact dec_trivial },
         { exact not_le_of_gt (nat.succ_lt_succ
             (add_pos sl.2.1.pos sl.2.2.pos)) } } },
-    { simp [balance, balance'],
+    { simv [balance, balance'],
       symmetry, rw [if_neg],
       { split_ifs,
         { have rd : delta ≤ size rl + size rr,
@@ -631,8 +631,8 @@ begin
           cases rr with rrs rrl rrx rrr,
           { exact absurd (le_trans rd (balanced_sz_zero.1 hr.1)) dec_trivial },
           dsimp [rotate_l], split_ifs,
-          { simp [node3_l, node', sr.1, add_comm, add_left_comm] },
-          { simp [node4_l, node', sr.1, sr.2.1.1, add_comm, add_left_comm] } },
+          { simv [node3_l, node', sr.1, add_comm, add_left_comm] },
+          { simv [node4_l, node', sr.1, sr.2.1.1, add_comm, add_left_comm] } },
         { have ld : delta ≤ size ll + size lr,
           { have := lt_of_le_of_lt (nat.mul_le_mul_left _ sr.pos) h_1,
             rwa [sl.1, nat.lt_succ_iff] at this },
@@ -642,9 +642,9 @@ begin
           cases lr with lrs lrl lrx lrr,
           { exact absurd (le_trans ld (balanced_sz_zero.1 hl.1)) dec_trivial },
           dsimp [rotate_r], split_ifs,
-          { simp [node3_r, node', sl.1, add_comm, add_left_comm] },
-          { simp [node4_r, node', sl.1, sl.2.2.1, add_comm, add_left_comm] } },
-        { simp [node'] } },
+          { simv [node3_r, node', sl.1, add_comm, add_left_comm] },
+          { simv [node4_r, node', sl.1, sl.2.2.1, add_comm, add_left_comm] } },
+        { simv [node'] } },
       { exact not_le_of_gt (add_le_add sl.pos sr.pos : 2 ≤ ls + rs) } } }
 end
 
@@ -665,7 +665,7 @@ begin
       cases sr.2.2.size_eq_zero.1 this.2,
       rw sr.eq_node', refl },
     { replace H2 : ¬ rs > delta * ls := not_lt_of_le (H2 sl.pos sr.pos),
-      simp [balance_l, balance, H2]; split_ifs; simp [add_comm] } }
+      simv [balance_l, balance, H2]; split_ifs; simv [add_comm] } }
 end
 
 /-- `raised n m` means `m` is either equal or one up from `n`. -/
@@ -934,7 +934,7 @@ theorem valid'.dual : ∀ {t : ordnode α} {o₁ o₂} (h : valid' o₁ t o₂),
   let ⟨ol', sl', bl'⟩ := valid'.dual ⟨ol, sl, bl⟩,
       ⟨or', sr', br'⟩ := valid'.dual ⟨or, sr, br⟩ in
   ⟨⟨or', ol'⟩,
-   ⟨by simp [size_dual, add_comm], sr', sl'⟩,
+   ⟨by simv [size_dual, add_comm], sr', sl'⟩,
    ⟨by rw [size_dual, size_dual]; exact b.symm, br', bl'⟩⟩
 
 theorem valid'.dual_iff {t : ordnode α} {o₁ o₂} : valid' o₁ t o₂ ↔ @valid' αᵒᵈ _ o₂ (dual t) o₁ :=
@@ -1335,7 +1335,7 @@ begin
   refine ⟨valid'.balance_l_aux v hr.right H₁ H₂ _, _⟩,
   { rw e, exact or.inl (valid'.merge_lemma h hr₁) },
   { rw [balance_l_eq_balance v.2 hr.2.2.2 H₁ H₂, balance_eq_balance' v.3 hr.3.2.2 v.2 hr.2.2.2,
-      size_balance' v.2 hr.2.2.2, e, hl.2.1, hr.2.1], simp [add_comm, add_left_comm] },
+      size_balance' v.2 hr.2.2.2, e, hl.2.1, hr.2.1], simv [add_comm, add_left_comm] },
   { rw [e, add_right_comm], rintro ⟨⟩ },
   { intros _ h₁, rw e, unfold delta at hr₂ ⊢, linarith }
 end
@@ -1402,7 +1402,7 @@ theorem insert_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, ordnode.insert x t = insert_with (λ _, x) x t
 | nil := rfl
 | (node _ l y r) := by unfold ordnode.insert insert_with;
-  cases cmp_le x y; unfold ordnode.insert insert_with; simp [insert_eq_insert_with]
+  cases cmp_le x y; unfold ordnode.insert insert_with; simv [insert_eq_insert_with]
 
 theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (ordnode.insert x t) :=
@@ -1413,7 +1413,7 @@ theorem insert'_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, insert' x t = insert_with id x t
 | nil := rfl
 | (node _ l y r) := by unfold insert' insert_with;
-  cases cmp_le x y; unfold insert' insert_with; simp [insert'_eq_insert_with]
+  cases cmp_le x y; unfold insert' insert_with; simv [insert'_eq_insert_with]
 
 theorem insert'.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (insert' x t) :=
@@ -1424,17 +1424,17 @@ theorem valid'.map_aux {β} [preorder β] {f : α → β} (f_strict_mono : stric
   valid' (option.map f a₁) (map f t) (option.map f a₂) ∧ (map f t).size = t.size :=
 begin
   induction t generalizing a₁ a₂,
-  { simp [map], apply valid'_nil,
+  { simv [map], apply valid'_nil,
     cases a₁, { trivial },
     cases a₂, { trivial },
-    simp [bounded],
+    simv [bounded],
     exact f_strict_mono h.ord },
   { have t_ih_l' := t_ih_l h.left,
     have t_ih_r' := t_ih_r h.right,
     clear t_ih_l t_ih_r,
     cases t_ih_l' with t_l_valid t_l_size,
     cases t_ih_r' with t_r_valid t_r_size,
-    simp [map],
+    simv [map],
     split,
     { exact and.intro t_l_valid.ord t_r_valid.ord },
     { repeat { split },
@@ -1455,15 +1455,15 @@ theorem valid'.erase_aux [@decidable_rel α (≤)] (x : α) {t a₁ a₂} (h : v
   valid' a₁ (erase x t) a₂ ∧ raised (erase x t).size t.size :=
 begin
   induction t generalizing a₁ a₂,
-  { simp [erase, raised], exact h },
-  { simp [erase],
+  { simv [erase, raised], exact h },
+  { simv [erase],
     have t_ih_l' := t_ih_l h.left,
     have t_ih_r' := t_ih_r h.right,
     clear t_ih_l t_ih_r,
     cases t_ih_l' with t_l_valid t_l_size,
     cases t_ih_r' with t_r_valid t_r_size,
     cases (cmp_le x t_x);
-      simp [erase._match_1]; rw h.sz.1,
+      simv [erase._match_1]; rw h.sz.1,
     { suffices h_balanceable,
       split,
       { exact valid'.balance_r t_l_valid h.right h_balanceable },
@@ -1501,7 +1501,7 @@ begin
     unfold has_mem.mem mem at h_mem,
     unfold erase,
     cases (cmp_le x t_x);
-      simp [mem._match_1] at h_mem; simp [erase._match_1],
+      simv [mem._match_1] at h_mem; simv [erase._match_1],
     { have t_ih_l := t_ih_l' h_mem,
       clear t_ih_l' t_ih_r',
       have t_l_h := valid'.erase_aux x h.left,
@@ -1511,7 +1511,7 @@ begin
       rw [t_ih_l, h.sz.1],
       have h_pos_t_l_size := pos_size_of_mem h.left.sz h_mem,
       cases t_l.size with t_l_size, { cases h_pos_t_l_size },
-      simp [nat.succ_add] },
+      simv [nat.succ_add] },
     { rw [(valid'.glue h.left h.right h.bal.1).2, h.sz.1], refl },
     { have t_ih_r := t_ih_r' h_mem,
       clear t_ih_l' t_ih_r',
@@ -1522,7 +1522,7 @@ begin
       rw [t_ih_r, h.sz.1],
       have h_pos_t_r_size := pos_size_of_mem h.right.sz h_mem,
       cases t_r.size with t_r_size, { cases h_pos_t_r_size },
-      simp [nat.succ_add, nat.add_succ] } },
+      simv [nat.succ_add, nat.add_succ] } },
 end
 
 end
@@ -1591,7 +1591,7 @@ instance mem.decidable (x : α) (s : ordset α) : decidable (x ∈ s) := bool.de
 
 theorem pos_size_of_mem {x : α} {t : ordset α} (h_mem : x ∈ t) : 0 < size t :=
 begin
-  simp [has_mem.mem, mem] at h_mem,
+  simv [has_mem.mem, mem] at h_mem,
   apply ordnode.pos_size_of_mem t.property.sz h_mem,
 end
 

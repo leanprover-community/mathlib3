@@ -182,25 +182,25 @@ end
 lemma mod_inj_on_Ico (n a : ℕ) : set.inj_on (% a) (finset.Ico n (n+a)) :=
 begin
   induction n with n ih,
-  { simp only [zero_add, nat_zero_eq_zero, Ico_zero_eq_range],
+  { simv only [zero_add, nat_zero_eq_zero, Ico_zero_eq_range],
     rintro k hk l hl (hkl : k % a = l % a),
-    simp only [finset.mem_range, finset.mem_coe] at hk hl,
+    simv only [finset.mem_range, finset.mem_coe] at hk hl,
     rwa [mod_eq_of_lt hk, mod_eq_of_lt hl] at hkl, },
   rw [Ico_succ_left_eq_erase_Ico, succ_add, Ico_succ_right_eq_insert_Ico le_self_add],
   rintro k hk l hl (hkl : k % a = l % a),
   have ha : 0 < a,
-  { by_contra ha, simp only [not_lt, nonpos_iff_eq_zero] at ha, simpa [ha] using hk },
-  simp only [finset.mem_coe, finset.mem_insert, finset.mem_erase] at hk hl,
+  { by_contra ha, simv only [not_lt, nonpos_iff_eq_zero] at ha, simpa [ha] using hk },
+  simv only [finset.mem_coe, finset.mem_insert, finset.mem_erase] at hk hl,
   rcases hk with ⟨hkn, (rfl|hk)⟩; rcases hl with ⟨hln, (rfl|hl)⟩,
   { refl },
   { rw add_mod_right at hkl,
     refine (hln $ ih hl _ hkl.symm).elim,
-    simp only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
+    simv only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
   { rw add_mod_right at hkl,
     suffices : k = n, { contradiction },
     refine ih hk _ hkl,
-    simp only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
-  { refine ih _ _ hkl; simp only [finset.mem_coe, hk, hl], },
+    simv only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
+  { refine ih _ _ hkl; simv only [finset.mem_coe, hk, hl], },
 end
 
 /-- Note that while this lemma cannot be easily generalized to a type class, it holds for ℤ as
@@ -211,7 +211,7 @@ begin
   obtain rfl | ha := eq_or_ne a 0,
   { rw [range_zero, add_zero, Ico_self, image_empty], },
   ext i,
-  simp only [mem_image, exists_prop, mem_range, mem_Ico],
+  simv only [mem_image, exists_prop, mem_range, mem_Ico],
   split,
   { rintro ⟨i, h, rfl⟩, exact mod_lt i ha.bot_lt },
   intro hia,
@@ -228,7 +228,7 @@ begin
     { exact hn.symm.le.trans (add_le_add_right hi _), },
     { rw [add_comm n a],
       refine add_lt_add_of_lt_of_le hia (le_trans _ hn.le),
-      simp only [zero_le, le_add_iff_nonneg_left], },
+      simv only [zero_le, le_add_iff_nonneg_left], },
     { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
 end
 

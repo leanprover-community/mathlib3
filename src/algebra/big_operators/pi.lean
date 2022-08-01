@@ -29,7 +29,7 @@ lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (�
 
 end pi
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
 (pi.eval_monoid_hom β a).map_prod _ _
@@ -40,7 +40,7 @@ lemma finset.prod_fn {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (�
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) = (λ a, ∏ c in s, g c a) :=
 funext (λ a, finset.prod_apply _ _ _)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype γ]
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g
@@ -49,7 +49,7 @@ finset.prod_apply a finset.univ g
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
 by haveI := classical.dec_eq γ; exact
-finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
+finset.induction_on s rfl (by simv [prod.ext_iff] {contextual := tt})
 
 section single
 variables {I : Type*} [decidable_eq I] {Z : I → Type*}
@@ -58,7 +58,7 @@ variables [Π i, add_comm_monoid (Z i)]
 -- As we only defined `single` into `add_monoid`, we only prove the `finset.sum` version here.
 lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
   ∑ i, pi.single i (f i) = f :=
-by { ext a, simp }
+by { ext a, simv }
 
 lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
   [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
@@ -66,7 +66,7 @@ lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
 begin
   ext k,
   rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
-  simp only [w]
+  simv only [w]
 end
 
 /-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in

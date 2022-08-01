@@ -111,7 +111,7 @@ begin
         by simpa [continuants_aux, fract_eq_zero, comp_exact_value],
       calc
           v = int.fract v + ⌊v⌋ : by rw int.fract_add_floor
-        ... = ⌊v⌋           : by simp [fract_eq_zero] },
+        ... = ⌊v⌋           : by simv [fract_eq_zero] },
     -- int.fract v ≠ 0; the claim then easily follows by unfolding a single computation step
     { field_simp [continuants_aux, next_continuants, next_numerator, next_denominator,
         of_h_eq_floor, comp_exact_value, fract_ne_zero] } },

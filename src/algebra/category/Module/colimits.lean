@@ -300,15 +300,15 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { simp, },
+    { simv, },
     -- zero
-    { simp, },
+    { simv, },
     -- neg
-    { simp, },
+    { simv, },
     -- add
-    { simp, },
+    { simv, },
     -- smul,
-    { simp, },
+    { simv, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -358,10 +358,10 @@ def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp *, },
-    { simp *, },
-    { simp *, },
-    { simp *, },
+    { simv *, },
+    { simv *, },
+    { simv *, },
+    { simv *, },
     refl
   end }.
 

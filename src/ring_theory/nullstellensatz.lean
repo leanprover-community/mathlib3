@@ -53,9 +53,9 @@ eq_bot_iff.2 $ λ x hx, one_ne_zero ((eval x).map_one ▸ (hx 1 submodule.mem_to
 def vanishing_ideal (V : set (σ → k)) : ideal (mv_polynomial σ k) :=
 { carrier := {p | ∀ x ∈ V, eval x p = 0},
   zero_mem' := λ x hx, ring_hom.map_zero _,
-  add_mem' := λ p q hp hq x hx, by simp only [hq x hx, hp x hx, add_zero, ring_hom.map_add],
+  add_mem' := λ p q hp hq x hx, by simv only [hq x hx, hp x hx, add_zero, ring_hom.map_add],
   smul_mem' := λ p q hq x hx,
-    by simp only [hq x hx, algebra.id.smul_eq_mul, mul_zero, ring_hom.map_mul] }
+    by simv only [hq x hx, algebra.id.smul_eq_mul, mul_zero, ring_hom.map_mul] }
 
 @[simp] lemma mem_vanishing_ideal_iff {V : set (σ → k)} {p : mv_polynomial σ k} :
   p ∈ vanishing_ideal V ↔ ∀ x ∈ V, eval x p = 0 := iff.rfl
@@ -92,7 +92,7 @@ begin
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
       refine ⟨(injective_iff_map_eq_zero _).mpr (λ p hp, _), λ z,
-        ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simp⟩⟩,
+        ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simv⟩⟩,
       obtain ⟨q, rfl⟩ := quotient.mk_surjective p,
       rwa [ideal.quotient.lift_mk, ← mem_vanishing_ideal_singleton_iff,
         ← quotient.eq_zero_iff_mem] at hp,

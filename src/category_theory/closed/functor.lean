@@ -90,7 +90,7 @@ lemma exp_comparison_ev (A B : C) :
 begin
   convert transfer_nat_trans_counit _ _ (prod_comparison_nat_iso F A).inv B,
   ext,
-  simp,
+  simv,
 end
 
 lemma coev_exp_comparison (A B : C) :
@@ -100,7 +100,7 @@ begin
   convert unit_transfer_nat_trans _ _ (prod_comparison_nat_iso F A).inv B,
   ext,
   dsimp,
-  simp,
+  simv,
 end
 
 lemma uncurry_exp_comparison (A B : C) :
@@ -140,17 +140,17 @@ lemma frobenius_morphism_mate (h : L ⊣ F) (A : C) :
     rw ←equiv.eq_symm_apply,
     ext B : 2,
     dsimp [frobenius_morphism, transfer_nat_trans_self, transfer_nat_trans, adjunction.comp],
-    simp only [id_comp, comp_id],
+    simv only [id_comp, comp_id],
     rw [←L.map_comp_assoc, prod.map_id_comp, assoc, exp_comparison_ev, prod.map_id_comp, assoc,
       ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, exp.ev_coev,
       F.map_id (A ⨯ L.obj B), comp_id],
     apply prod.hom_ext,
     { rw [assoc, assoc, ←h.counit_naturality, ←L.map_comp_assoc, assoc,
         inv_prod_comparison_map_fst],
-      simp },
+      simv },
     { rw [assoc, assoc, ←h.counit_naturality, ←L.map_comp_assoc, assoc,
         inv_prod_comparison_map_snd],
-      simp },
+      simv },
   end
 
 /--

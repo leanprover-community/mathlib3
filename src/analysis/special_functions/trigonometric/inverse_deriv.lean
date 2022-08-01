@@ -34,7 +34,7 @@ begin
       cont_diff_at_const.congr_of_eventually_eq this⟩ },
   cases h₂.lt_or_lt with h₂ h₂,
   { have : 0 < sqrt (1 - x ^ 2) := sqrt_pos.2 (by nlinarith [h₁, h₂]),
-    simp only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
+    simv only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
     exact ⟨sin_local_homeomorph.has_strict_deriv_at_symm ⟨h₁, h₂⟩ this.ne'
       (has_strict_deriv_at_sin _),
       sin_local_homeomorph.cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩
@@ -63,7 +63,7 @@ lemma has_deriv_within_at_arcsin_Ici {x : ℝ} (h : x ≠ -1) :
 begin
   rcases em (x = 1) with (rfl|h'),
   { convert (has_deriv_within_at_const _ _ (π / 2)).congr _ _;
-      simp [arcsin_of_one_le] { contextual := tt } },
+      simv [arcsin_of_one_le] { contextual := tt } },
   { exact (has_deriv_at_arcsin h h').has_deriv_within_at }
 end
 
@@ -72,7 +72,7 @@ lemma has_deriv_within_at_arcsin_Iic {x : ℝ} (h : x ≠ 1) :
 begin
   rcases em (x = -1) with (rfl|h'),
   { convert (has_deriv_within_at_const _ _ (-(π / 2))).congr _ _;
-      simp [arcsin_of_le_neg_one] { contextual := tt } },
+      simv [arcsin_of_le_neg_one] { contextual := tt } },
   { exact (has_deriv_at_arcsin h' h).has_deriv_within_at }
 end
 
@@ -84,7 +84,7 @@ begin
   have : sin ∘ arcsin =ᶠ[𝓝[≥] (-1 : ℝ)] id,
   { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩]
       with x using sin_arcsin', },
-  have := h.has_deriv_within_at.sin.congr_of_eventually_eq this.symm (by simp),
+  have := h.has_deriv_within_at.sin.congr_of_eventually_eq this.symm (by simv),
   simpa using (unique_diff_on_Ici _ _ left_mem_Ici).eq_deriv _ this (has_deriv_within_at_id _ _)
 end
 
@@ -109,8 +109,8 @@ begin
   by_cases h : x ≠ -1 ∧ x ≠ 1,
   { exact (has_deriv_at_arcsin h.1 h.2).deriv },
   { rw [deriv_zero_of_not_differentiable_at (mt differentiable_at_arcsin.1 h)],
-    simp only [not_and_distrib, ne.def, not_not] at h,
-    rcases h with (rfl|rfl); simp }
+    simv only [not_and_distrib, ne.def, not_not] at h,
+    rcases h with (rfl|rfl); simv }
 end
 
 lemma differentiable_on_arcsin : differentiable_on ℝ arcsin {-1, 1}ᶜ :=
@@ -165,7 +165,7 @@ lemma differentiable_at_arccos {x : ℝ} :
 (differentiable_at_const_sub_iff _).trans differentiable_at_arcsin
 
 @[simp] lemma deriv_arccos : deriv arccos = λ x, -(1 / sqrt (1 - x ^ 2)) :=
-funext $ λ x, (deriv_const_sub _).trans $ by simp only [deriv_arcsin]
+funext $ λ x, (deriv_const_sub _).trans $ by simv only [deriv_arcsin]
 
 lemma differentiable_on_arccos : differentiable_on ℝ arccos {-1, 1}ᶜ :=
 differentiable_on_arcsin.const_sub _

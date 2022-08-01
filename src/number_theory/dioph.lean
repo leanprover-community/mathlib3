@@ -138,7 +138,7 @@ instance : add_comm_group (poly α) := by refine_struct
   zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
   nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ };
 intros; try { refl }; refine ext (λ _, _);
-simp [sub_eq_add_neg, add_comm, add_assoc]
+simv [sub_eq_add_neg, add_comm, add_assoc]
 
 instance : add_group_with_one (poly α) :=
 { one := 1,
@@ -154,7 +154,7 @@ instance : comm_ring (poly α) := by refine_struct
   npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
   .. poly.add_group_with_one, .. poly.add_comm_group };
 intros; try { refl }; refine ext (λ _, _);
-simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
+simv [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
 lemma induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))
@@ -176,17 +176,17 @@ def sumsq : list (poly α) → poly α
 
 lemma sumsq_nonneg (x : α → ℕ) : ∀ l, 0 ≤ sumsq l x
 | []      := le_refl 0
-| (p::ps) := by rw sumsq; simp [-add_comm];
+| (p::ps) := by rw sumsq; simv [-add_comm];
                 exact add_nonneg (mul_self_nonneg _) (sumsq_nonneg ps)
 
 lemma sumsq_eq_zero (x) : ∀ l, sumsq l x = 0 ↔ l.all₂ (λ a : poly α, a x = 0)
 | []      := eq_self_iff_true _
-| (p::ps) := by rw [list.all₂_cons, ← sumsq_eq_zero ps]; rw sumsq; simp [-add_comm]; exact
+| (p::ps) := by rw [list.all₂_cons, ← sumsq_eq_zero ps]; rw sumsq; simv [-add_comm]; exact
   ⟨λ (h : p x * p x + sumsq ps x = 0),
    have p x = 0, from eq_zero_of_mul_self_eq_zero $ le_antisymm
      (by rw ← h; have t := add_le_add_left (sumsq_nonneg x ps) (p x * p x); rwa [add_zero] at t)
      (mul_self_nonneg _),
-   ⟨this, by simp [this] at h; exact h⟩,
+   ⟨this, by simv [this] at h; exact h⟩,
   λ ⟨h1, h2⟩, by rw [h1, h2]; refl⟩
 
 end
@@ -194,10 +194,10 @@ end
 /-- Map the index set of variables, replacing `x_i` with `x_(f i)`. -/
 def map {α β} (f : α → β) (g : poly α) : poly β :=
 ⟨λ v, g $ v ∘ f, g.induction
-  (λ i, by simp; apply is_poly.proj)
-  (λ n, by simp; apply is_poly.const)
-  (λ f g pf pg, by simp; apply is_poly.sub pf pg)
-  (λ f g pf pg, by simp; apply is_poly.mul pf pg)⟩
+  (λ i, by simv; apply is_poly.proj)
+  (λ n, by simv; apply is_poly.const)
+  (λ f g pf pg, by simv; apply is_poly.sub pf pg)
+  (λ f g pf pg, by simv; apply is_poly.mul pf pg)⟩
 @[simp] lemma map_apply {α β} (f : α → β) (g : poly α) (v) : map f g v = g (v ∘ f) := rfl
 
 end poly
@@ -241,7 +241,7 @@ variables (β)
 
 lemma reindex_dioph (f : α → β) : Π (d : dioph S), dioph {v | v ∘ f ∈ S}
 | ⟨γ, p, pe⟩ := ⟨γ, p.map ((inl ∘ f) ⊗ inr), λ v, (pe _).trans $ exists_congr $ λ t,
-  suffices v ∘ f ⊗ t = (v ⊗ t) ∘ (inl ∘ f ⊗ inr), by simp [this],
+  suffices v ∘ f ⊗ t = (v ⊗ t) ∘ (inl ∘ f ⊗ inr), by simv [this],
   funext $ λ s, by cases s with a b; refl⟩
 
 variables {β}
@@ -254,11 +254,11 @@ from let ⟨β, pl, h⟩ := this
   in ⟨β, poly.sumsq pl, λ v, (h v).trans $ exists_congr $ λ t, (poly.sumsq_eq_zero _ _).symm⟩,
 begin
   induction l with S l IH,
-  exact ⟨ulift empty, [], λ v, by simp; exact ⟨λ ⟨t⟩, empty.rec _ t, trivial⟩⟩,
-  simp at d,
+  exact ⟨ulift empty, [], λ v, by simv; exact ⟨λ ⟨t⟩, empty.rec _ t, trivial⟩⟩,
+  simv at d,
   exact let ⟨⟨β, p, pe⟩, dl⟩ := d, ⟨γ, pl, ple⟩ := IH dl in
   ⟨β ⊕ γ, p.map (inl ⊗ inr ∘ inl) :: pl.map (λ q, q.map (inl ⊗ (inr ∘ inr))), λ v,
-    by simp; exact iff.trans (and_congr (pe v) (ple v))
+    by simv; exact iff.trans (and_congr (pe v) (ple v))
     ⟨λ ⟨⟨m, hm⟩, ⟨n, hn⟩⟩,
       ⟨m ⊗ n, by rw [
         show (v ⊗ m ⊗ n) ∘ (inl ⊗ inr ∘ inl) = v ⊗ m,
@@ -300,19 +300,19 @@ by convert reindex_dioph (option β) (option.map g) d
 
 lemma ex_dioph {S : set (α ⊕ β → ℕ)} : dioph S → dioph {v | ∃ x, v ⊗ x ∈ S}
 | ⟨γ, p, pe⟩ := ⟨β ⊕ γ, p.map ((inl ⊗ inr ∘ inl) ⊗ inr ∘ inr), λ v,
-  ⟨λ ⟨x, hx⟩, let ⟨t, ht⟩ := (pe _).1 hx in ⟨x ⊗ t, by simp; rw [
+  ⟨λ ⟨x, hx⟩, let ⟨t, ht⟩ := (pe _).1 hx in ⟨x ⊗ t, by simv; rw [
     show (v ⊗ x ⊗ t) ∘ ((inl ⊗ inr ∘ inl) ⊗ inr ∘ inr) = (v ⊗ x) ⊗ t,
     from funext $ λ s, by cases s with a b; try {cases a}; refl]; exact ht⟩,
-  λ ⟨t, ht⟩, ⟨t ∘ inl, (pe _).2 ⟨t ∘ inr, by simp at ht; rwa [
+  λ ⟨t, ht⟩, ⟨t ∘ inl, (pe _).2 ⟨t ∘ inr, by simv at ht; rwa [
     show (v ⊗ t) ∘ ((inl ⊗ inr ∘ inl) ⊗ inr ∘ inr) = (v ⊗ t ∘ inl) ⊗ t ∘ inr,
     from funext $ λ s, by cases s with a b; try {cases a}; refl] at ht⟩⟩⟩⟩
 
 lemma ex1_dioph {S : set (option α → ℕ)} : dioph S → dioph {v | ∃ x, x ::ₒ v ∈ S}
 | ⟨β, p, pe⟩ := ⟨option β, p.map (inr none ::ₒ inl ⊗ inr ∘ some), λ v,
-  ⟨λ ⟨x, hx⟩, let ⟨t, ht⟩ := (pe _).1 hx in ⟨x ::ₒ t, by simp; rw [
+  ⟨λ ⟨x, hx⟩, let ⟨t, ht⟩ := (pe _).1 hx in ⟨x ::ₒ t, by simv; rw [
     show (v ⊗ x ::ₒ t) ∘ (inr none ::ₒ inl ⊗ inr ∘ some) = x ::ₒ v ⊗ t,
     from funext $ λ s, by cases s with a b; try {cases a}; refl]; exact ht⟩,
-  λ ⟨t, ht⟩, ⟨t none, (pe _).2 ⟨t ∘ some, by simp at ht; rwa [
+  λ ⟨t, ht⟩, ⟨t none, (pe _).2 ⟨t ∘ some, by simv at ht; rwa [
     show (v ⊗ t) ∘ (inr none ::ₒ inl ⊗ inr ∘ some) = t none ::ₒ v ⊗ t ∘ some,
     from funext $ λ s, by cases s with a b; try {cases a}; refl] at ht⟩⟩⟩⟩
 
@@ -376,7 +376,7 @@ lemma dioph_fn_compn : ∀ {n} {S : set (α ⊕ fin2 n → ℕ)} (d : dioph S)
   dioph {v : α → ℕ | v ⊗ (λ i, f i v) ∈ S}
 | 0 S d f := λ df, ext (reindex_dioph _ (id ⊗ fin2.elim0) d) $ λ v,
   by { dsimp, congr', ext x, obtain (_ | _ | _) := x, refl }
-| (succ n) S d f := f.cons_elim $ λ f fl, by simp; exact λ df dfl,
+| (succ n) S d f := f.cons_elim $ λ f fl, by simv; exact λ df dfl,
   have dioph {v |v ∘ inl ⊗ f (v ∘ inl) :: v ∘ inr ∈ S},
   from ext (dioph_fn_comp1 (reindex_dioph _ (some ∘ inl ⊗ none :: some ∘ inr) d) $
     reindex_dioph_fn inl df) $ λ v,
@@ -392,7 +392,7 @@ dioph_fn_compn (reindex_dioph _ inr d) df
 lemma dioph_fn_comp {f : vector3 ℕ n → ℕ} (df : dioph_fn f) (g : vector3 ((α → ℕ) → ℕ) n)
   (dg : vector_allp dioph_fn g) : dioph_fn (λ v, f (λ i, g i v)) :=
 dioph_comp ((dioph_fn_vec _).1 df) ((λ v, v none) :: λ i v, g i (v ∘ some)) $
-by simp; exact ⟨proj_dioph none, (vector_allp_iff_forall _ _).2 $ λ i,
+by simv; exact ⟨proj_dioph none, (vector_allp_iff_forall _ _).2 $ λ i,
   reindex_dioph_fn _ $ (vector_allp_iff_forall _ _).1 dg _⟩
 
 localized "notation x ` D∧ `:35 y := dioph.inter x y" in dioph
@@ -470,7 +470,7 @@ have dioph (λ v : vector3 ℕ 3, (v &2 = 0 ∨ v &0 < v &2) ∧ ∃ (x : ℕ), 
 from (D&2 D= D.0 D∨ D&0 D< D&2) D∧ (D∃3 $ D&1 D+ D&3 D* D&0 D= D&2),
 dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $ ext this $ (vector_all_iff_forall _).1 $ λ z x y,
 show ((y = 0 ∨ z < y) ∧ ∃ c, z + y * c = x) ↔ x % y = z, from
-⟨λ ⟨h, c, hc⟩, begin rw ← hc; simp; cases h with x0 hl, rw [x0, mod_zero],
+⟨λ ⟨h, c, hc⟩, begin rw ← hc; simv; cases h with x0 hl, rw [x0, mod_zero],
   exact mod_eq_of_lt hl end,
 λ e, by rw ← e; exact ⟨or_iff_not_imp_left.2 $ λ h, mod_lt _ (nat.pos_of_ne_zero h), x / y,
   mod_add_div _ _⟩⟩

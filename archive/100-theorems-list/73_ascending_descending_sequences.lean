@@ -51,8 +51,8 @@ begin
   -- The singleton sequence is in both of the above collections.
   -- (This is useful to show that the maximum length subsequence is at least 1, and that the set
   -- of subsequences is nonempty.)
-  have inc_i : ∀ i, {i} ∈ inc_sequences_ending_in i := λ i, by simp [strict_mono_on],
-  have dec_i : ∀ i, {i} ∈ dec_sequences_ending_in i := λ i, by simp [strict_anti_on],
+  have inc_i : ∀ i, {i} ∈ inc_sequences_ending_in i := λ i, by simv [strict_mono_on],
+  have dec_i : ∀ i, {i} ∈ dec_sequences_ending_in i := λ i, by simv [strict_anti_on],
   -- Define the pair of labels: at index `i`, the pair is the maximum length of an increasing
   -- subsequence ending at `i`, paired with the maximum length of a decreasing subsequence ending
   -- at `i`.
@@ -97,7 +97,7 @@ begin
       rw mem_filter at ht₁,
       -- Ensure `t` ends at `i`.
       have : t.max = i,
-        simp [ht₁.2.1],
+        simv [ht₁.2.1],
       -- Now our new subsequence is given by adding `j` at the end of `t`.
       refine ⟨insert j t, _, _⟩,
       -- First make sure it's valid, i.e., that this subsequence ends at `j` and is increasing
@@ -110,7 +110,7 @@ begin
           apply with_bot.coe_le_coe.mpr (le_of_lt ‹i < j›) },
         -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases
         -- on what the possibilities could be - either in `t` or equals `j`.
-        simp only [strict_mono_on, strict_anti_on, coe_insert, set.mem_insert_iff,
+        simv only [strict_mono_on, strict_anti_on, coe_insert, set.mem_insert_iff,
           mem_coe],
         -- Most of the cases are just bashes.
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
@@ -137,7 +137,7 @@ begin
   have : image ab univ ⊆ ran,
   -- First some logical shuffling
   { rintro ⟨x₁, x₂⟩,
-    simp only [mem_image, exists_prop, mem_range, mem_univ, mem_product, true_and, prod.mk.inj_iff],
+    simv only [mem_image, exists_prop, mem_range, mem_univ, mem_product, true_and, prod.mk.inj_iff],
     rintros ⟨i, rfl, rfl⟩,
     specialize q i,
     -- Show `1 ≤ a_i` and `1 ≤ b_i`, which is easy from the fact that `{i}` is a increasing and

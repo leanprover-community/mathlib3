@@ -45,7 +45,7 @@ lemma mem_nhds_set_iff_exists : s ∈ 𝓝ˢ t ↔ ∃ U : set α, is_open U ∧
 by { rw [← subset_interior_iff_mem_nhds_set, subset_interior_iff] }
 
 lemma has_basis_nhds_set (s : set α) : (𝓝ˢ s).has_basis (λ U, is_open U ∧ s ⊆ U) (λ U, U) :=
-⟨λ t, by simp [mem_nhds_set_iff_exists, and_assoc]⟩
+⟨λ t, by simv [mem_nhds_set_iff_exists, and_assoc]⟩
 
 lemma is_open.mem_nhds_set (hU : is_open s) : s ∈ 𝓝ˢ t ↔ t ⊆ s :=
 by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_open.mpr hU]
@@ -61,7 +61,7 @@ lemma mem_nhds_set_empty : s ∈ 𝓝ˢ (∅ : set α) :=
 subset_interior_iff_mem_nhds_set.mp $ empty_subset _
 
 @[simp] lemma nhds_set_empty : 𝓝ˢ (∅ : set α) = ⊥ :=
-by { ext, simp [mem_nhds_set_empty] }
+by { ext, simv [mem_nhds_set_empty] }
 
 @[simp] lemma nhds_set_univ : 𝓝ˢ (univ : set α) = ⊤ :=
 by { ext, rw [← subset_interior_iff_mem_nhds_set, univ_subset_iff, interior_eq_univ, mem_top] }
@@ -70,7 +70,7 @@ lemma monotone_nhds_set : monotone (𝓝ˢ : set α → filter α) :=
 λ s t hst, Sup_le_Sup $ image_subset _ hst
 
 @[simp] lemma nhds_set_union (s t : set α) : 𝓝ˢ (s ∪ t) = 𝓝ˢ s ⊔ 𝓝ˢ t :=
-by simp only [nhds_set, image_union, Sup_union]
+by simv only [nhds_set, image_union, Sup_union]
 
 lemma union_mem_nhds_set (h₁ : s₁ ∈ 𝓝ˢ t₁) (h₂ : s₂ ∈ 𝓝ˢ t₂) : s₁ ∪ s₂ ∈ 𝓝ˢ (t₁ ∪ t₂) :=
 by { rw nhds_set_union, exact union_mem_sup h₁ h₂ }

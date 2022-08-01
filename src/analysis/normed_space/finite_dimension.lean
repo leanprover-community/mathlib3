@@ -96,7 +96,7 @@ variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 def to_affine_isometry_equiv [inhabited P₁]
   (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
 affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)
-  (λ p, by simp)
+  (λ p, by simv)
 
 @[simp] lemma coe_to_affine_isometry_equiv [inhabited P₁]
   (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) :
@@ -203,7 +203,7 @@ begin
     refine mul_le_mul' (le_max_left _ _) le_rfl },
   { assume x hx,
     have : A (f x) = g x := gs hx,
-    simp only [(∘), ← this, A.symm_apply_apply] }
+    simv only [(∘), ← this, A.symm_apply_apply] }
 end
 
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
@@ -219,17 +219,17 @@ end
 protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
   (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
 begin
-  simp only [fintype.linear_independent_iff'] at hf ⊢,
+  simv only [fintype.linear_independent_iff'] at hf ⊢,
   rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
   have : tendsto (λ g : ι → E, ∑ i, ∥g i - f i∥) (𝓝 f) (𝓝 $ ∑ i, ∥f i - f i∥),
     from tendsto_finset_sum _ (λ i hi, tendsto.norm $
       ((continuous_apply i).tendsto _).sub tendsto_const_nhds),
-  simp only [sub_self, norm_zero, finset.sum_const_zero] at this,
+  simv only [sub_self, norm_zero, finset.sum_const_zero] at this,
   refine (this.eventually (gt_mem_nhds $ inv_pos.2 K0)).mono (λ g hg, _),
   replace hg : ∑ i, ∥g i - f i∥₊ < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
   rw linear_map.ker_eq_bot,
   refine (hK.add_sub_lipschitz_with (lipschitz_with.of_dist_le_mul $ λ v u, _) hg).injective,
-  simp only [dist_eq_norm, linear_map.lsum_apply, pi.sub_apply, linear_map.sum_apply,
+  simv only [dist_eq_norm, linear_map.lsum_apply, pi.sub_apply, linear_map.sum_apply,
     linear_map.comp_apply, linear_map.proj_apply, linear_map.smul_right_apply, linear_map.id_apply,
     ← finset.sum_sub_distrib, ← smul_sub, ← sub_smul, nnreal.coe_sum, coe_nnnorm, finset.sum_mul],
   refine norm_sum_le_of_le _ (λ i _, _),
@@ -243,7 +243,7 @@ is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
 lemma is_open_set_of_nat_le_rank (n : ℕ) : is_open {f : E →L[𝕜] F | ↑n ≤ rank (f : E →ₗ[𝕜] F)} :=
 begin
-  simp only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
+  simv only [le_rank_iff_exists_linear_independent_finset, set_of_exists, ← exists_prop],
   refine is_open_bUnion (λ t ht, _),
   have : continuous (λ f : E →L[𝕜] F, (λ x : (t : set E), f x)),
     from continuous_pi (λ x, (continuous_linear_map.apply 𝕜 F (x : E)).continuous),
@@ -280,7 +280,7 @@ def basis.constrL (v : basis ι 𝕜 E) (f : ι → F) :
 by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
   exact (v.constr 𝕜 f).to_continuous_linear_map
 
-@[simp, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
+@[simv, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
   (v.constrL f : E →ₗ[𝕜] F) = v.constr 𝕜 f := rfl
 
 /-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
@@ -311,9 +311,9 @@ u.op_nnnorm_le_bound _ $ λ e, begin
   set φ := v.equiv_funL.to_continuous_linear_map,
   calc
   ∥u e∥₊ = ∥u (∑ i, v.equiv_fun e i • v i)∥₊ :   by rw [v.sum_equiv_fun]
-    ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥₊ : by simp [u.map_sum, linear_map.map_smul]
+    ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥₊ : by simv [u.map_sum, linear_map.map_smul]
     ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥₊ : nnnorm_sum_le _ _
-    ... = ∑ i, ∥v.equiv_fun e i∥₊ * ∥u (v i)∥₊ :   by simp only [nnnorm_smul]
+    ... = ∑ i, ∥v.equiv_fun e i∥₊ * ∥u (v i)∥₊ :   by simv only [nnnorm_smul]
     ... ≤ ∑ i, ∥v.equiv_fun e i∥₊ * M : finset.sum_le_sum (λ i hi,
                                                     mul_le_mul_of_nonneg_left (hu i) (zero_le _))
     ... = (∑ i, ∥v.equiv_fun e i∥₊) * M : finset.sum_mul.symm
@@ -322,7 +322,7 @@ u.op_nnnorm_le_bound _ $ λ e, begin
           calc  ∑ i, ∥v.equiv_fun e i∥₊
               ≤ fintype.card ι • ∥φ e∥₊ : pi.sum_nnnorm_apply_le_nnnorm _
           ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) : nsmul_le_nsmul_of_le_right (φ.le_op_nnnorm e) _)
-    ... = fintype.card ι • ∥φ∥₊ * M * ∥e∥₊ : by simp only [smul_mul_assoc, mul_right_comm],
+    ... = fintype.card ι • ∥φ∥₊ * M * ∥e∥₊ : by simv only [smul_mul_assoc, mul_right_comm],
 end
 
 lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} {M : ℝ}
@@ -361,7 +361,7 @@ begin
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (v.constrL $ u ∘ n)∥ ≤ ε/2,
   { intros φ,
     have : ∀ i, ∃ n, ∥φ (v i) - u n∥ ≤ ε/(2*C),
-    { simp only [norm_sub_rev],
+    { simv only [norm_sub_rev],
       intro i,
       have : φ (v i) ∈ closure (range u) := hu _,
       obtain ⟨n, hn⟩ : ∃ n, ∥u n - φ (v i)∥ < ε / (2 * C),
@@ -371,7 +371,7 @@ begin
       exact ⟨n, le_of_lt hn⟩ },
     choose n hn using this,
     use n,
-    replace hn : ∀ i : fin d, ∥(φ - (v.constrL $ u ∘ n)) (v i)∥ ≤ ε / (2 * C), by simp [hn],
+    replace hn : ∀ i : fin d, ∥(φ - (v.constrL $ u ∘ n)) (v i)∥ ≤ ε / (2 * C), by simv [hn],
     have : C * (ε / (2 * C)) = ε/2,
     { rw [eq_div_iff (two_ne_zero : (2 : ℝ) ≠ 0), mul_comm, ← mul_assoc,
           mul_div_cancel' _ (ne_of_gt h_2C)] },
@@ -383,7 +383,7 @@ begin
   use n,
   intros x y hxy,
   calc dist x y ≤ dist x (Φ x) + dist (Φ x) y : dist_triangle _ _ _
-  ... = dist x (Φ x) + dist y (Φ y) : by simp [Φ, hxy, dist_comm]
+  ... = dist x (Φ x) + dist y (Φ y) : by simv [Φ, hxy, dist_comm]
   ... ≤ ε : by linarith [hn x, hn y]
 end
 
@@ -429,7 +429,7 @@ begin
   have Fclosed : is_closed (F : set E) := submodule.closed_of_finite_dimensional _,
   have : ∃ x, x ∉ F,
   { contrapose! h,
-    have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
+    have : (⊤ : submodule 𝕜 E) = F, by { ext x, simv [h] },
     have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
     refine module.finite_def.2 ((submodule.fg_top _).1 (module.finite_def.1 this)) },
   obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
@@ -481,7 +481,7 @@ begin
   let g := λ (n : ℕ), c • f n,
   have A : ∀ n, g n ∈ metric.closed_ball (0 : E) r,
   { assume n,
-    simp only [norm_smul, dist_zero_right, metric.mem_closed_ball],
+    simv only [norm_smul, dist_zero_right, metric.mem_closed_ball],
     calc ∥c∥ * ∥f n∥ ≤ (r / R) * R : mul_le_mul hc.2.le (fle n) (norm_nonneg _) rRpos.le
     ... = r : by field_simp [(zero_lt_one.trans Rgt).ne'] },
   obtain ⟨x, hx, φ, φmono, φlim⟩ : ∃ (x : E) (H : x ∈ metric.closed_ball (0 : E) r) (φ : ℕ → ℕ),
@@ -492,7 +492,7 @@ begin
   apply lt_irrefl (∥c∥),
   calc ∥c∥ ≤ dist (g (φ (N+1))) (g (φ N)) : begin
     conv_lhs { rw [← mul_one (∥c∥)] },
-    simp only [g, dist_eq_norm, ←smul_sub, norm_smul, -mul_one],
+    simv only [g, dist_eq_norm, ←smul_sub, norm_smul, -mul_one],
     apply mul_le_mul_of_nonneg_left (lef _ _ (ne_of_gt _)) (norm_nonneg _),
     exact φmono (nat.lt_succ_self N)
   end

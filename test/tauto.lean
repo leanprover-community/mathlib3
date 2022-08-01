@@ -86,7 +86,7 @@ example {α : Type*} {β : Type*} (a : α)
   {s_1 : set α} :
   (∃ (a_1 : α), a_1 = a ∨ a_1 ∈ s_1) :=
 begin
-  tauto {closer := `[simp]}
+  tauto {closer := `[simv]}
 end
 
 variables {p q r : Prop} {α : Type} {x y z w : α}

@@ -236,7 +236,7 @@ begin
     -- rename mul' mul,
     exact mul, },
   -- transport axioms by simplifying, and applying the original axiom
-  { intros, dsimp, simp, apply S.mul_assoc, }
+  { intros, dsimp, simv, apply S.mul_assoc, }
 end
 
 example {α β : Type} (e : α ≃ β) (S : semigroup α) :
@@ -256,7 +256,7 @@ by { ext, refl, }
 
 lemma semigroup.map_map {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
   semigroup.map (e.trans f) = (semigroup.map f) ∘ (semigroup.map e) :=
-by { ext, dsimp [semigroup.map], simp, }
+by { ext, dsimp [semigroup.map], simv, }
 
 -- TODO (after joining the `transport` branch) create a derive handler for this
 instance : equiv_functor semigroup :=
@@ -291,29 +291,29 @@ begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
   { try { unfold_projs },
-    simp only with transport_simps,
+    simv only with transport_simps,
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
   { try { unfold_projs },
-    simp only with transport_simps,
+    simv only with transport_simps,
     have one_mul := S.one_mul,
     equiv_rw e at one_mul,
     solve_by_elim, },
   { try { unfold_projs },
-    simp only with transport_simps,
+    simv only with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
     solve_by_elim, },
   { have npow := S.npow, equiv_rw e at npow, exact npow, },
   { try { unfold_projs },
-    simp only with transport_simps,
+    simv only with transport_simps,
     have npow_zero' := S.npow_zero',
     equiv_rw e at npow_zero',
     solve_by_elim, },
   { try { unfold_projs },
-    simp only with transport_simps,
+    simv only with transport_simps,
     have npow_succ' := S.npow_succ',
     equiv_rw e at npow_succ',
     solve_by_elim, },

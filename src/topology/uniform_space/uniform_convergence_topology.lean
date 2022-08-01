@@ -183,7 +183,7 @@ protected lemma topological_space_eq :
   uniform_convergence_on.topological_space α β 𝔖 = ⨅ (s : set α) (hs : s ∈ 𝔖),
   topological_space.induced (λ f, s.restrict f) (uniform_convergence.topological_space s β) :=
 begin
-  simp only [uniform_convergence_on.topological_space, to_topological_space_infi,
+  simv only [uniform_convergence_on.topological_space, to_topological_space_infi,
     to_topological_space_infi, to_topological_space_comap],
   refl
 end

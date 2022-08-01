@@ -158,7 +158,7 @@ begin
   rw eq at hV',
   convert get_section_is_amalgamation hu ℱ hS hx Y (fV' ≫ f.right.unop) _ using 1,
   { tidy },
-  { simp only [eq, quiver.hom.unop_op, pulledback_family_apply,
+  { simv only [eq, quiver.hom.unop_op, pulledback_family_apply,
     functor.map_comp, unop_comp, category.assoc] },
   { change S (G.map _ ≫ Y.hom.unop),
     simpa only [functor.map_comp, category.assoc] using hV' }
@@ -195,8 +195,8 @@ begin
     x (G.map fV' ≫ W.hom.unop ≫ f) (by simpa only using hV'),
   { convert H (show S ((G.map fV' ≫ W.hom.unop) ≫ f),
       by simpa only [category.assoc] using hV') using 2,
-    simp only [category.assoc] },
-  simp only [quiver.hom.unop_op, equiv.symm_symm, structured_arrow.map_obj_hom, unop_comp,
+    simv only [category.assoc] },
+  simv only [quiver.hom.unop_op, equiv.symm_symm, structured_arrow.map_obj_hom, unop_comp,
     equiv.coe_fn_mk, functor.comp_map, coyoneda_obj_map, category.assoc, ← this, op_comp,
     Ran_obj_map, nat_trans.id_app],
   erw [category.id_comp, limit.pre_π],
@@ -204,7 +204,7 @@ begin
   convert limit.w (Ran.diagram G.op ℱ.val (op V)) (structured_arrow.hom_mk' W fV'.op),
   rw structured_arrow.map_mk,
   erw category.comp_id,
-  simp only [quiver.hom.unop_op, functor.op_map, quiver.hom.op_unop]
+  simv only [quiver.hom.unop_op, functor.op_map, quiver.hom.op_unop]
 end
 
 /-- Verify that the `glued_section` is an amalgamation of `x`. -/
@@ -212,13 +212,13 @@ lemma glued_section_is_amalgamation : x.is_amalgamation (glued_section hu ℱ hS
 begin
   intros V fV hV,
   ext W,
-  simp only [functor.comp_map, limit.lift_pre, coyoneda_obj_map, Ran_obj_map, glued_section],
+  simv only [functor.comp_map, limit.lift_pre, coyoneda_obj_map, Ran_obj_map, glued_section],
   erw limit.lift_π,
   symmetry,
   convert helper hu ℱ hS hx _ (x fV hV) _ _ using 1,
   intros V' fV' hV',
   convert hx (fV') (𝟙 _) hV hV' (by rw category.id_comp),
-  simp only [op_id, functor_to_types.map_id_apply]
+  simv only [op_id, functor_to_types.map_id_apply]
 end
 
 /-- Verify that the amalgamation is indeed unique. -/
@@ -228,7 +228,7 @@ begin
   ext W,
   erw limit.lift_π,
   convert helper hu ℱ hS hx (𝟙 _) y W _,
-  { simp only [op_id, structured_arrow.map_id] },
+  { simv only [op_id, structured_arrow.map_id] },
   { intros V' fV' hV',
     convert hy fV' (by simpa only [category.comp_id] using hV'),
     erw category.comp_id }

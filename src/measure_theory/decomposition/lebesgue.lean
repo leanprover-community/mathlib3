@@ -449,7 +449,7 @@ begin
       exact hA₃ n },
     { rw [not_lt, le_zero_iff] at hb,
       specialize hA₃ 0,
-      simp [hb, le_zero_iff] at hA₃,
+      simv [hb, le_zero_iff] at hA₃,
       assumption } },
   -- since `μ` and `ν` are not mutually singular, `μ A = 0` implies `ν Aᶜ > 0`
   rw mutually_singular at h, push_neg at h,
@@ -458,7 +458,7 @@ begin
   -- as `Aᶜ = ⋃ n, f n`, `ν Aᶜ > 0` implies there exists some `n` such that `ν (f n) > 0`
   obtain ⟨n, hn⟩ := exists_measure_pos_of_not_measure_Union_null this,
   -- thus, choosing `f n` as the set `E` suffices
-  exact ⟨1 / (n + 1), by simp, f n, hf₁ n, hn, hf₂ n⟩,
+  exact ⟨1 / (n + 1), by simv, f n, hf₁ n, hn, hf₂ n⟩,
 end
 
 namespace lebesgue_decomposition
@@ -471,7 +471,7 @@ def measurable_le (μ ν : measure α) : set (α → ℝ≥0∞) :=
 { f | measurable f ∧ ∀ (A : set α) (hA : measurable_set A), ∫⁻ x in A, f x ∂μ ≤ ν A }
 
 lemma zero_mem_measurable_le : (0 : α → ℝ≥0∞) ∈ measurable_le μ ν :=
-⟨measurable_zero, λ A hA, by simp⟩
+⟨measurable_zero, λ A hA, by simv⟩
 
 lemma sup_mem_measurable_le {f g : α → ℝ≥0∞}
   (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) :
@@ -483,7 +483,7 @@ begin
   have h₂ := hA.inter (measurable_set_lt hg.1 hf.1),
   rw [set_lintegral_max hf.1 hg.1],
   refine (add_le_add (hg.2 _ h₁) (hf.2 _ h₂)).trans_eq _,
-  { simp only [← not_le, ← compl_set_of, ← diff_eq],
+  { simv only [← not_le, ← compl_set_of, ← diff_eq],
     exact measure_inter_add_diff _ (measurable_set_le hf.1 hg.1) }
 end
 
@@ -491,7 +491,7 @@ lemma supr_succ_eq_sup {α} (f : ℕ → α → ℝ≥0∞) (m : ℕ) (a : α) :
   (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) = f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a :=
 begin
   ext x,
-  simp only [option.mem_def, ennreal.some_eq_coe],
+  simv only [option.mem_def, ennreal.some_eq_coe],
   split; intro h; rw ← h, symmetry,
   all_goals
   { set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
@@ -513,8 +513,8 @@ lemma supr_mem_measurable_le
 begin
   induction n with m hm,
   { refine ⟨_, _⟩,
-    { simp [(hf 0).1] },
-    { intros A hA, simp [(hf 0).2 A hA] } },
+    { simv [(hf 0).1] },
+    { intros A hA, simv [(hf 0).2 A hA] } },
   { have : (λ (a : α), ⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) =
       (λ a, f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a),
     { exact funext (λ _, supr_succ_eq_sup _ _ _) },
@@ -527,7 +527,7 @@ lemma supr_mem_measurable_le'
   (⨆ k (hk : k ≤ n), f k) ∈ measurable_le μ ν :=
 begin
   convert supr_mem_measurable_le f hf n,
-  ext, simp
+  ext, simv
 end
 
 section supr_lemmas --TODO: these statements should be moved elsewhere
@@ -565,7 +565,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
   have_lebesgue_decomposition μ ν :=
 ⟨begin
   have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval ν μ)
-    ⟨0, 0, zero_mem_measurable_le, by simp⟩ (order_top.bdd_above _),
+    ⟨0, 0, zero_mem_measurable_le, by simv⟩ (order_top.bdd_above _),
   choose g hmono hg₂ f hf₁ hf₂ using h,
   -- we set `ξ` to be the supremum of an increasing sequence of functions obtained from above
   set ξ := ⨆ n k (hk : k ≤ n), f k with hξ,
@@ -577,20 +577,20 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
       refine tendsto_of_tendsto_of_tendsto_of_le_of_le hg₂ tendsto_const_nhds _ _,
       { intro n, rw ← hf₂ n,
         apply lintegral_mono,
-        simp only [supr_apply, supr_le_le f n n le_rfl] },
+        simv only [supr_apply, supr_le_le f n n le_rfl] },
       { intro n,
         exact le_Sup ⟨⨆ (k : ℕ) (hk : k ≤ n), f k, supr_mem_measurable_le' _ hf₁ _, rfl⟩ } },
     { intro n,
       refine measurable.ae_measurable _,
       convert (supr_mem_measurable_le _ hf₁ n).1,
-      ext, simp },
+      ext, simv },
     { refine filter.eventually_of_forall (λ a, _),
-      simp [supr_monotone' f _] },
+      simv [supr_monotone' f _] },
     { refine filter.eventually_of_forall (λ a, _),
-      simp [tendsto_at_top_supr (supr_monotone' f a)] } },
+      simv [tendsto_at_top_supr (supr_monotone' f a)] } },
   have hξm : measurable ξ,
   { convert measurable_supr (λ n, (supr_mem_measurable_le _ hf₁ n).1),
-    ext, simp [hξ] },
+    ext, simv [hξ] },
   -- `ξ` is the `f` in the theorem statement and we set `μ₁` to be `μ - ν.with_density ξ`
   -- since we need `μ₁ + ν.with_density ξ = μ`
   set μ₁ := μ - ν.with_density ξ with hμ₁,
@@ -642,7 +642,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
     { refine ⟨measurable.add hξm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
       have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂ν =
             ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A \ E, ξ a ∂ν,
-      { simp only [lintegral_add_left measurable_const, lintegral_add_left hξm,
+      { simv only [lintegral_add_left measurable_const, lintegral_add_left hξm,
           set_lintegral_const, add_assoc, lintegral_inter_add_diff _ _ hE₁, pi.add_apply,
           lintegral_indicator _ hE₁, restrict_apply hE₁],
         rw [inter_comm, add_comm] },
@@ -702,7 +702,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
       (measurable_rn_deriv (μn n) (νn n)) (S.set_mem n)) },
   -- We show that `ξ` is mutually singular with respect to `ν`
   { choose A hA₁ hA₂ hA₃ using λ n, mutually_singular_singular_part (μn n) (νn n),
-    simp only [hξ],
+    simv only [hξ],
   -- We use the set `B := ⋃ j, (S.set j) ∩ A j` where `A n` is the set provided as
   -- `singular_part (μn n) (νn n) ⊥ₘ νn n`
     refine ⟨⋃ j, (S.set j) ∩ A j,
@@ -738,7 +738,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
           { by_contra hij, exact h₂ i j hij ⟨hi₁, hj₁⟩ },
           exact hj₂ (this ▸ hi₂) },
         { intros x hx,
-          simp only [mem_Union, sup_eq_union, mem_inter_eq,
+          simv only [mem_Union, sup_eq_union, mem_inter_eq,
                     mem_union_eq, mem_compl_eq, or_iff_not_imp_left],
           intro h, push_neg at h,
           rw [top_eq_univ, ← S.spanning, mem_Union] at hx,
@@ -753,7 +753,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
   --                        `+ ν.with_density (rn_deriv (μn n) (νn n)) ∩ (S.set n)`,
   -- it suffices to show that the individual summands are equal. This follows by the
   -- Lebesgue decomposition properties on the individual `μn n` and `νn n`
-  { simp only [hξ, hf, hμ],
+  { simv only [hξ, hf, hμ],
     rw [with_density_tsum _, sum_add_sum],
     { refine sum_congr (λ n, _),
       conv_lhs { rw have_lebesgue_decomposition_add (μn n) (νn n) },

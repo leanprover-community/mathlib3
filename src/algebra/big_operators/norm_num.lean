@@ -95,7 +95,7 @@ lemma finset.insert_eq_coe_list_cons {α : Type*} [decidable_eq α] (x : α) (xs
   (hxs' : xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs)) :
   insert x xs = finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) :=
 have h : x ∉ xs, by simpa [hxs'] using h,
-by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, hxs'], simp only [multiset.cons_coe] }
+by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, hxs'], simv only [multiset.cons_coe] }
 
 /-- Convert an expression denoting a finset to a list of elements,
 a proof that this list is equal to the original finset,

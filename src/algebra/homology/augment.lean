@@ -65,13 +65,13 @@ def augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫
   | _, _ := 0
   end,
   shape' := λ i j s, begin
-    simp at s,
-    rcases i with _|_|i; cases j; unfold_aux; try { simp },
+    simv at s,
+    rcases i with _|_|i; cases j; unfold_aux; try { simv },
     { simpa using s, },
     { rw [C.shape], simpa [← ne.def, nat.succ_ne_succ] using s },
   end,
   d_comp_d' := λ i j k hij hjk, begin
-    rcases i with _|_|i; rcases j with _|_|j; cases k; unfold_aux; try { simp },
+    rcases i with _|_|i; rcases j with _|_|j; cases k; unfold_aux; try { simv },
     cases i,
     { exact w, },
     { rw [C.shape, zero_comp],
@@ -104,9 +104,9 @@ def truncate_augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.
   { f := λ i, 𝟙 _, },
   inv :=
   { f := λ i, by { exact 𝟙 _, },
-    comm' := λ i j, by { cases j; { dsimp, simp, }, }, },
-  hom_inv_id' := by { ext i, cases i; { dsimp, simp, }, },
-  inv_hom_id' := by { ext i, cases i; { dsimp, simp, }, }, }.
+    comm' := λ i j, by { cases j; { dsimp, simv, }, }, },
+  hom_inv_id' := by { ext i, cases i; { dsimp, simv, }, },
+  inv_hom_id' := by { ext i, cases i; { dsimp, simv, }, }, }.
 
 @[simp] lemma truncate_augment_hom_f
   (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫ f = 0) (i : ℕ) :
@@ -128,12 +128,12 @@ def augment_truncate (C : chain_complex V ℕ) :
   augment (truncate.obj C) (C.d 1 0) (C.d_comp_d _ _ _) ≅ C :=
 { hom :=
   { f := λ i, by { cases i; exact 𝟙 _, },
-    comm' := λ i j, by { rcases i with _|_|i; cases j; { dsimp, simp, }, }, },
+    comm' := λ i j, by { rcases i with _|_|i; cases j; { dsimp, simv, }, }, },
   inv :=
   { f := λ i, by { cases i; exact 𝟙 _, },
-    comm' := λ i j, by { rcases i with _|_|i; cases j; { dsimp, simp, }, }, },
-  hom_inv_id' := by { ext i, cases i; { dsimp, simp, }, },
-  inv_hom_id' := by { ext i, cases i; { dsimp, simp, }, }, }.
+    comm' := λ i j, by { rcases i with _|_|i; cases j; { dsimp, simv, }, }, },
+  hom_inv_id' := by { ext i, cases i; { dsimp, simv, }, },
+  inv_hom_id' := by { ext i, cases i; { dsimp, simv, }, }, }.
 
 @[simp] lemma augment_truncate_hom_f_zero (C : chain_complex V ℕ) :
   (augment_truncate C).hom.f 0 = 𝟙 (C.X 0) :=
@@ -203,17 +203,17 @@ def augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d
   | _, _ := 0
   end,
   shape' := λ i j s, begin
-    simp at s,
-    rcases j with _|_|j; cases i; unfold_aux; try { simp },
+    simv at s,
+    rcases j with _|_|j; cases i; unfold_aux; try { simv },
     { simpa using s, },
-    { rw [C.shape], simp only [complex_shape.up_rel], contrapose! s, rw ←s },
+    { rw [C.shape], simv only [complex_shape.up_rel], contrapose! s, rw ←s },
   end,
   d_comp_d' := λ i j k hij hjk, begin
-    rcases k with _|_|k; rcases j with _|_|j; cases i; unfold_aux; try { simp },
+    rcases k with _|_|k; rcases j with _|_|j; cases i; unfold_aux; try { simv },
     cases k,
     { exact w, },
     { rw [C.shape, comp_zero],
-      simp only [nat.nat_zero_eq_zero, complex_shape.up_rel, zero_add],
+      simv only [nat.nat_zero_eq_zero, complex_shape.up_rel, zero_add],
       exact (nat.one_lt_succ_succ _).ne },
   end, }
 
@@ -244,9 +244,9 @@ def truncate_augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : 
   { f := λ i, 𝟙 _, },
   inv :=
   { f := λ i, by { exact 𝟙 _, },
-    comm' := λ i j, by { cases j; { dsimp, simp, }, }, },
-  hom_inv_id' := by { ext i, cases i; { dsimp, simp, }, },
-  inv_hom_id' := by { ext i, cases i; { dsimp, simp, }, }, }.
+    comm' := λ i j, by { cases j; { dsimp, simv, }, }, },
+  hom_inv_id' := by { ext i, cases i; { dsimp, simv, }, },
+  inv_hom_id' := by { ext i, cases i; { dsimp, simv, }, }, }.
 
 @[simp] lemma truncate_augment_hom_f
   (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d 0 1 = 0) (i : ℕ) :
@@ -258,7 +258,7 @@ rfl
 
 @[simp] lemma cochain_complex_d_succ_succ_zero (C : cochain_complex V ℕ) (i : ℕ) :
   C.d 0 (i+2) = 0 :=
-by { rw C.shape, simp only [complex_shape.up_rel, zero_add], exact (nat.one_lt_succ_succ _).ne }
+by { rw C.shape, simv only [complex_shape.up_rel, zero_add], exact (nat.one_lt_succ_succ _).ne }
 
 /--
 Augmenting a truncated complex with the original object and morphism is isomorphic
@@ -268,12 +268,12 @@ def augment_truncate (C : cochain_complex V ℕ) :
   augment (truncate.obj C) (C.d 0 1) (C.d_comp_d _ _ _) ≅ C :=
 { hom :=
   { f := λ i, by { cases i; exact 𝟙 _, },
-    comm' := λ i j, by { rcases j with _|_|j; cases i; { dsimp, simp, }, }, },
+    comm' := λ i j, by { rcases j with _|_|j; cases i; { dsimp, simv, }, }, },
   inv :=
   { f := λ i, by { cases i; exact 𝟙 _, },
-    comm' := λ i j, by { rcases j with _|_|j; cases i; { dsimp, simp, }, }, },
-  hom_inv_id' := by { ext i, cases i; { dsimp, simp, }, },
-  inv_hom_id' := by { ext i, cases i; { dsimp, simp, }, }, }.
+    comm' := λ i j, by { rcases j with _|_|j; cases i; { dsimp, simv, }, }, },
+  hom_inv_id' := by { ext i, cases i; { dsimp, simv, }, },
+  inv_hom_id' := by { ext i, cases i; { dsimp, simv, }, }, }.
 
 @[simp] lemma augment_truncate_hom_f_zero (C : cochain_complex V ℕ) :
   (augment_truncate C).hom.f 0 = 𝟙 (C.X 0) :=

@@ -31,8 +31,8 @@ lemma frobenius_zmod (f : mv_polynomial σ (zmod p)) : frobenius _ p f = expand 
 begin
   apply induction_on f,
   { intro a, rw [expand_C, frobenius_def, ← C_pow, zmod.pow_card], },
-  { simp only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
-  { simp only [expand_X, ring_hom.map_mul, alg_hom.map_mul],
+  { simv only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
+  { simv only [expand_X, ring_hom.map_mul, alg_hom.map_mul],
     intros _ _ hf, rw [hf, frobenius_def], },
 end
 
@@ -68,7 +68,7 @@ lemma eval_indicator_apply_eq_one (a : σ → K) :
 begin
   nontriviality,
   have : 0 < fintype.card K - 1 := tsub_pos_of_lt fintype.one_lt_card,
-  simp only [indicator, map_prod, map_sub, map_one, map_pow, eval_X, eval_C,
+  simv only [indicator, map_prod, map_sub, map_one, map_pow, eval_X, eval_C,
              sub_self, zero_pow this, sub_zero, finset.prod_const_one]
 end
 
@@ -108,7 +108,7 @@ lemma eval_indicator_apply_eq_zero (a b : σ → K) (h : a ≠ b) :
   eval a (indicator b) = 0 :=
 begin
   obtain ⟨i, hi⟩ : ∃ i, a i ≠ b i := by rwa [(≠), function.funext_iff, not_forall] at h,
-  simp only [indicator, map_prod, map_sub, map_one, map_pow, eval_X, eval_C,
+  simv only [indicator, map_prod, map_sub, map_one, map_pow, eval_X, eval_C,
              sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
   rw [finite_field.pow_card_sub_one_eq_one, sub_self],
@@ -135,9 +135,9 @@ begin
   refine ⟨∑ n : σ → K, e n • indicator n, _, _⟩,
   { exact sum_mem (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
-    simp only [linear_map.map_sum, @finset.sum_apply (σ → K) (λ_, K) _ _ _ _ _,
+    simv only [linear_map.map_sum, @finset.sum_apply (σ → K) (λ_, K) _ _ _ _ _,
       pi.smul_apply, linear_map.map_smul],
-    simp only [evalₗ_apply],
+    simv only [evalₗ_apply],
     transitivity,
     refine finset.sum_eq_single n (λ b _ h, _) _,
     { rw [eval_indicator_apply_eq_zero _ _ h.symm, smul_zero] },
@@ -170,7 +170,7 @@ variables [comm_ring K]
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
-by simp only [set.mem_set_of_eq]; apply_instance
+by simv only [set.mem_set_of_eq]; apply_instance
 
 end comm_ring
 

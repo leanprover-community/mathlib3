@@ -78,7 +78,7 @@ PresheafedSpace.id_c_app X.to_PresheafedSpace U
 lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
 
-@[reassoc, simp]
+@[reassoc, simv]
 lemma comp_coe_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (↑(f ≫ g) : X.to_SheafedSpace ⟶ Z.to_SheafedSpace).base = f.val.base ≫ g.val.base := rfl
 
@@ -86,13 +86,13 @@ lemma comp_coe_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
 lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
 
-@[reassoc, simp]
+@[reassoc, simv]
 lemma comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
 
 lemma congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
   f.val.c.app U = g.val.c.app U ≫ X.presheaf.map (eq_to_hom (by subst e)) :=
-by { subst e, dsimp, simp }
+by { subst e, dsimp, simv }
 
 lemma app_eq {X Y : Scheme} (f : X ⟶ Y) {U V : opens Y.carrier} (e : U = V) :
   f.val.c.app (op U) = Y.presheaf.map (eq_to_hom e.symm).op ≫
@@ -203,7 +203,7 @@ lemma basic_open_res (i : op U ⟶ op V) :
 RingedSpace.basic_open_res _ i f
 
 -- This should fire before `basic_open_res`.
-@[simp, priority 1100]
+@[simv, priority 1100]
 lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
   X.basic_open (X.presheaf.map i f) = X.basic_open f :=
 RingedSpace.basic_open_res_eq _ i f

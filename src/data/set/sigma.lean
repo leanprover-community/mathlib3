@@ -19,14 +19,14 @@ variables {ι ι' : Type*} {α β : ι → Type*} {s s₁ s₂ : set ι} {t t₁
   range (sigma.mk i : α i → sigma α) = sigma.fst ⁻¹' {i} :=
 begin
   apply subset.antisymm,
-  { rintros _ ⟨b, rfl⟩, simp },
+  { rintros _ ⟨b, rfl⟩, simv },
   { rintros ⟨x, y⟩ (rfl|_),
     exact mem_range_self y }
 end
 
 theorem preimage_image_sigma_mk_of_ne (h : i ≠ j) (s : set (α j)) :
   sigma.mk i ⁻¹' (sigma.mk j '' s) = ∅ :=
-by { ext x, simp [h.symm] }
+by { ext x, simv [h.symm] }
 
 lemma image_sigma_mk_preimage_sigma_map_subset {β : ι' → Type*} (f : ι → ι')
   (g : Π i, α i → β (f i)) (i : ι) (s : set (β (f i))) :
@@ -39,7 +39,7 @@ lemma image_sigma_mk_preimage_sigma_map {β : ι' → Type*} {f : ι → ι'} (h
 begin
   refine (image_sigma_mk_preimage_sigma_map_subset f g i s).antisymm _,
   rintro ⟨j, x⟩ ⟨y, hys, hxy⟩,
-  simp only [hf.eq_iff, sigma.map] at hxy,
+  simv only [hf.eq_iff, sigma.map] at hxy,
   rcases hxy with ⟨rfl, hxy⟩, rw [heq_iff_eq] at hxy, subst y,
   exact ⟨x, hys, rfl⟩
 end
@@ -85,7 +85,7 @@ end
 
 @[simp] lemma sigma_singleton {a : Π i, α i} :
   s.sigma (λ i, ({a i} : set (α i))) = (λ i, sigma.mk i $ a i) '' s :=
-by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+by { ext ⟨x, y⟩, simv [and.left_comm, eq_comm] }
 
 lemma singleton_sigma_singleton {a : Π i, α i} :
   ({i} : set ι).sigma (λ i, ({a i} : set (α i))) = {⟨i, a i⟩} :=
@@ -98,7 +98,7 @@ ext $ λ _, or_and_distrib_right
 ext $ λ _, and_or_distrib_left
 
 lemma sigma_inter_sigma : s₁.sigma t₁ ∩ s₂.sigma t₂ = (s₁ ∩ s₂).sigma (λ i, t₁ i ∩ t₂ i) :=
-by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
+by { ext ⟨x, y⟩, simv [and_assoc, and.left_comm] }
 
 lemma insert_sigma : (insert i s).sigma t = (sigma.mk i '' t i) ∪ s.sigma t :=
 by rw [insert_eq, union_sigma, singleton_sigma]
@@ -129,15 +129,15 @@ ext $ λ _, iff_of_false (hi ∘ and.left) id
 
 lemma mk_preimage_sigma_eq_if [decidable_pred (∈ s)] :
   sigma.mk i ⁻¹' s.sigma t = if i ∈ s then t i else ∅ :=
-by split_ifs; simp [h]
+by split_ifs; simv [h]
 
 lemma mk_preimage_sigma_fn_eq_if {β : Type*} [decidable_pred (∈ s)] (g : β → α i) :
   (λ b, sigma.mk i (g b)) ⁻¹' s.sigma t = if i ∈ s then g ⁻¹' t i else ∅ :=
-ext $ λ _, by split_ifs; simp [h]
+ext $ λ _, by split_ifs; simv [h]
 
 lemma sigma_univ_range_eq {f : Π i, α i → β i} :
   (univ : set ι).sigma (λ i, range (f i)) = range (λ x : Σ i, α i, ⟨x.1, f _ x.2⟩) :=
-ext $ by simp [range]
+ext $ by simv [range]
 
 protected lemma nonempty.sigma :
   s.nonempty → (∀ i, (t i).nonempty) → (s.sigma t : set _).nonempty :=
@@ -152,7 +152,7 @@ lemma sigma_nonempty_iff : (s.sigma t : set _).nonempty ↔ ∃ i ∈ s, (t i).n
 
 lemma sigma_eq_empty_iff : s.sigma t = ∅ ↔ ∀ i ∈ s, t i = ∅ :=
 not_nonempty_iff_eq_empty.symm.trans $ sigma_nonempty_iff.not.trans $
-  by simp only [not_nonempty_iff_eq_empty, not_exists]
+  by simv only [not_nonempty_iff_eq_empty, not_exists]
 
 lemma image_sigma_mk_subset_sigma_left {a : Π i, α i} (ha : ∀ i, a i ∈ t i) :
   (λ i, sigma.mk i (a i)) '' s ⊆ s.sigma t :=
@@ -171,6 +171,6 @@ lemma fst_image_sigma (s : set ι) (ht : ∀ i, (t i).nonempty) : sigma.fst '' s
 (fst_image_sigma_subset _ _).antisymm $ λ i hi, let ⟨a, ha⟩ := ht i in ⟨⟨i, a⟩, ⟨hi, ha⟩, rfl⟩
 
 lemma sigma_diff_sigma : s₁.sigma t₁ \ s₂.sigma t₂ = s₁.sigma (t₁ \ t₂) ∪ (s₁ \ s₂).sigma t₁ :=
-ext $ λ x, by by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁ x.1; simp [*, ←imp_iff_or_not]
+ext $ λ x, by by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁ x.1; simv [*, ←imp_iff_or_not]
 
 end set

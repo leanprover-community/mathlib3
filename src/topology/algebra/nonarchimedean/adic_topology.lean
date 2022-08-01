@@ -90,7 +90,7 @@ lemma has_basis_nhds_zero_adic (I : ideal R) :
     replace h : ↑(I ^ i) ⊆ U := by simpa using h,
     use [i, trivial, h] },
   { rintros ⟨i, -, h⟩,
-    exact ⟨(I^i : ideal R), ⟨i, by simp⟩, h⟩ }
+    exact ⟨(I^i : ideal R), ⟨i, by simv⟩, h⟩ }
 end⟩
 
 lemma has_basis_nhds_adic (I : ideal R) (x : R) :
@@ -123,7 +123,7 @@ def open_add_subgroup (n : ℕ) : @open_add_subgroup R _ I.adic_topology :=
 { is_open' := begin
     letI := I.adic_topology,
     convert (I.adic_basis.to_ring_subgroups_basis.open_add_subgroup n).is_open,
-    simp
+    simv
   end,
   ..(I^n).to_add_subgroup}
 
@@ -196,10 +196,10 @@ begin
     simpa using h 1 },
   { introsI,
     split,
-    { simp, },
+    { simv, },
     { intros U U_nhds,
       use 1,
-      simp [mem_of_mem_nhds U_nhds] } },
+      simv [mem_of_mem_nhds U_nhds] } },
 end
 
 end is_adic

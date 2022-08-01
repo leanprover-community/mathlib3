@@ -97,7 +97,7 @@ begin
   { have h : 0 < ifp_n.fr, from
       lt_of_le_of_ne (nth_stream_fr_nonneg nth_stream_eq) stream_nth_fr_ne_zero.symm,
     apply one_le_inv h this },
-  simp only [le_of_lt (nth_stream_fr_lt_one nth_stream_eq)]
+  simv only [le_of_lt (nth_stream_fr_lt_one nth_stream_eq)]
 end
 
 /--
@@ -157,7 +157,7 @@ begin
       nth_of_eq_some_of_succ_nth_int_fract_pair_stream stream_succ_nth_eq,
     have : some gp = some ⟨1, ifp.b⟩, by rwa nth_s_eq at this,
     injection this },
-  simp [this],
+  simv [this],
 end
 
 /-- Shows that the partial numerators `aᵢ` are equal to one. -/
@@ -198,8 +198,8 @@ begin
   clear n,
   assume n IH hyp,
   rcases n with _|_|n,
-  { simp [fib_add_two, continuants_aux] }, -- case n = 0
-  { simp [fib_add_two, continuants_aux] }, -- case n = 1
+  { simv [fib_add_two, continuants_aux] }, -- case n = 0
+  { simv [fib_add_two, continuants_aux] }, -- case n = 1
   { let g := of v,  -- case 2 ≤ n
     have : ¬(n + 2 ≤ 1), by linarith,
     have not_terminated_at_n : ¬g.terminated_at n, from or.resolve_left hyp this,
@@ -257,10 +257,10 @@ begin
   case nat.succ:
   { cases (decidable.em $ g.terminated_at (n - 1)) with terminated not_terminated,
     { cases n, -- terminating case
-      { simp [zero_le_one] },
+      { simv [zero_le_one] },
       { have : g.continuants_aux (n + 2) = g.continuants_aux (n + 1), from
           continuants_aux_stable_step_of_terminated terminated,
-        simp only [this, IH] } },
+        simv only [this, IH] } },
     { calc -- non-terminating case
       (0 : K) ≤ fib (n + 1)                        : by exact_mod_cast (n + 1).fib.zero_le
           ... ≤ ((of v).continuants_aux (n + 1)).b : fib_le_of_continuants_aux_b
@@ -286,7 +286,7 @@ begin
   have h2 : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b,
   { solve_by_elim [le_add_of_nonneg_of_le, le_refl] },
   -- use the recurrence of continuants_aux and the fact that gp_n.a = 1
-  simp [h1, h2, of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
+  simv [h1, h2, of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
      generalized_continued_fraction.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq],
 end
 
@@ -333,7 +333,7 @@ lemma determinant_aux (hyp: n = 0 ∨ ¬(of v).terminated_at (n - 1)) :
   = (-1)^n :=
 begin
   induction n with n IH,
-  case nat.zero { simp [continuants_aux] },
+  case nat.zero { simv [continuants_aux] },
   case nat.succ
   { -- set up some shorthand notation
     let g := of v,
@@ -351,7 +351,7 @@ begin
       option.ne_none_iff_exists'.elim_left not_terminated_at_n,
     -- unfold the recurrence relation for `conts` once and simplify to derive the following
     suffices : pA * (ppB + gp.b * pB) - pB * (ppA + gp.b * pA) = (-1)^(n + 1), by
-    { simp only [conts, (continuants_aux_recurrence s_nth_eq ppred_conts_eq pred_conts_eq)],
+    { simv only [conts, (continuants_aux_recurrence s_nth_eq ppred_conts_eq pred_conts_eq)],
       have gp_a_eq_one : gp.a = 1, from of_part_num_eq_one (part_num_eq_s_a s_nth_eq),
       rw [gp_a_eq_one, this.symm],
       ring },
@@ -423,8 +423,8 @@ begin
     -- To continue, we need use the determinant equality. So let's derive the needed hypothesis.
     have n_eq_zero_or_not_terminated_at_pred_n : n = 0 ∨ ¬g.terminated_at (n - 1), by
     { cases n with n',
-      { simp },
-      { have : int_fract_pair.stream v (n' + 1) ≠ none, by simp [stream_nth_eq],
+      { simv },
+      { have : int_fract_pair.stream v (n' + 1) ≠ none, by simv [stream_nth_eq],
         have : ¬g.terminated_at n', from
           (not_iff_not_of_iff of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none)
           .elim_right this,
@@ -436,13 +436,13 @@ begin
     have pB_ineq : (fib n : K) ≤ pB, by
     { have : n ≤ 1 ∨ ¬g.terminated_at (n - 2), by
       { cases n_eq_zero_or_not_terminated_at_pred_n with n_eq_zero not_terminated_at_pred_n,
-        { simp [n_eq_zero] },
+        { simv [n_eq_zero] },
         { exact (or.inr $ mt (terminated_stable (n - 1).pred_le) not_terminated_at_pred_n) } },
       exact (fib_le_of_continuants_aux_b this) },
     have B_ineq : (fib (n + 1) : K) ≤ B, by
     { have : n + 1 ≤ 1 ∨ ¬g.terminated_at (n + 1 - 2), by
       { cases n_eq_zero_or_not_terminated_at_pred_n with n_eq_zero not_terminated_at_pred_n,
-        { simp [n_eq_zero, le_refl] },
+        { simv [n_eq_zero, le_refl] },
         { exact (or.inr not_terminated_at_pred_n) } },
       exact (fib_le_of_continuants_aux_b this) },
     have zero_lt_B : 0 < B,
@@ -493,7 +493,7 @@ begin
   have gp_a_eq_one : gp.a = 1, from of_part_num_eq_one (part_num_eq_s_a s_nth_eq),
   -- unfold the recurrence relation for `nextConts.b`
   have nextConts_b_eq : nextConts.b = pred_conts.b + gp.b * conts.b, by
-    simp [nextConts, (continuants_aux_recurrence s_nth_eq pred_conts_eq conts_eq), gp_a_eq_one,
+    simv [nextConts, (continuants_aux_recurrence s_nth_eq pred_conts_eq conts_eq), gp_a_eq_one,
       pred_conts_eq.symm, conts_eq.symm, add_comm],
   let denom := conts.b * (pred_conts.b + gp.b * conts.b),
   suffices : |v - g.convergents n| ≤ 1 / denom, by { rw [nextConts_b_eq], congr' 1 },
@@ -512,9 +512,9 @@ begin
     { -- apply `sub_convergens_eq` and simplify the result
       have tmp, from sub_convergents_eq stream_nth_eq,
       delta at tmp,
-      simp only [stream_nth_fr_ne_zero, conts_eq.symm, pred_conts_eq.symm] at tmp,
+      simv only [stream_nth_fr_ne_zero, conts_eq.symm, pred_conts_eq.symm] at tmp,
       rw tmp,
-      simp only [denom'],
+      simv only [denom'],
       ring_nf },
     rwa this },
   -- derive some tedious inequalities that we need to rewrite our goal
@@ -580,7 +580,7 @@ begin
   let B := g.denominators n,
   let nB := g.denominators (n + 1),
   have not_terminated_at_n : ¬g.terminated_at n, by
-  { have : g.partial_denominators.nth n ≠ none, by simp [nth_part_denom_eq],
+  { have : g.partial_denominators.nth n ≠ none, by simv [nth_part_denom_eq],
     exact (not_iff_not_of_iff terminated_at_iff_part_denom_none).elim_right this },
   suffices : 1 / (B * nB) ≤ (1 : K) / (b * B * B), by
   { have : |v - g.convergents n| ≤ 1 / (B * nB), from abs_sub_convergents_le not_terminated_at_n,

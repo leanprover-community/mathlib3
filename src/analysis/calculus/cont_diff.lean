@@ -435,7 +435,7 @@ lemma cont_diff_within_at_iff_forall_nat_le :
 
 lemma cont_diff_within_at_top :
   cont_diff_within_at 𝕜 ∞ f s x ↔ ∀ (n : ℕ), cont_diff_within_at 𝕜 n f s x :=
-cont_diff_within_at_iff_forall_nat_le.trans $ by simp only [forall_prop_of_true, le_top]
+cont_diff_within_at_iff_forall_nat_le.trans $ by simv only [forall_prop_of_true, le_top]
 
 lemma cont_diff_within_at.continuous_within_at
   (h : cont_diff_within_at 𝕜 n f s x) : continuous_within_at f s x :=
@@ -542,7 +542,7 @@ begin
     assume m hm,
     refine ⟨u, _, λ (y : E), (p y).shift, _⟩,
     { convert self_mem_nhds_within,
-      have : x ∈ insert x s, by simp,
+      have : x ∈ insert x s, by simv,
       exact (insert_eq_of_mem (mem_of_mem_nhds_within this hu)) },
     { rw has_ftaylor_series_up_to_on_succ_iff_right at Hp,
       exact Hp.2.2.of_le hm } },
@@ -660,7 +660,7 @@ lemma cont_diff_on_iff_forall_nat_le :
 
 lemma cont_diff_on_top :
   cont_diff_on 𝕜 ∞ f s ↔ ∀ (n : ℕ), cont_diff_on 𝕜 n f s :=
-cont_diff_on_iff_forall_nat_le.trans $ by simp only [le_top, forall_prop_of_true]
+cont_diff_on_iff_forall_nat_le.trans $ by simv only [le_top, forall_prop_of_true]
 
 lemma cont_diff_on_all_iff_nat :
   (∀ n, cont_diff_on 𝕜 n f s) ↔ (∀ n : ℕ, cont_diff_on 𝕜 n f s) :=
@@ -822,7 +822,7 @@ lemma iterated_fderiv_within_congr {n : ℕ}
   iterated_fderiv_within 𝕜 n f₁ s x = iterated_fderiv_within 𝕜 n f s x :=
 begin
   induction n with n IH generalizing x,
-  { ext m, simp [hL x hx] },
+  { ext m, simv [hL x hx] },
   { have : fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f₁ s y) s x
            = fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) s x :=
       fderiv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx),
@@ -837,7 +837,7 @@ lemma iterated_fderiv_within_inter_open {n : ℕ} (hu : is_open u)
   iterated_fderiv_within 𝕜 n f (s ∩ u) x = iterated_fderiv_within 𝕜 n f s x :=
 begin
   induction n with n IH generalizing x,
-  { ext m, simp },
+  { ext m, simv },
   { have A : fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f (s ∩ u) y) (s ∩ u) x
            = fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) (s ∩ u) x :=
       fderiv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx),
@@ -886,7 +886,7 @@ begin
   rw this,
   refine ⟨insert x s, self_mem_nhds_within, ftaylor_series_within 𝕜 f s, _⟩,
   rw has_ftaylor_series_up_to_on_zero_iff,
-  exact ⟨by rwa insert_eq_of_mem hx, λ x hx, by simp [ftaylor_series_within]⟩
+  exact ⟨by rwa insert_eq_of_mem hx, λ x hx, by simv [ftaylor_series_within]⟩
 end
 
 lemma cont_diff_within_at_zero (hx : x ∈ s) :
@@ -897,7 +897,7 @@ begin
     obtain ⟨u, H, p, hp⟩ := h 0 (by norm_num),
     refine ⟨u, _, _⟩,
     { simpa [hx] using H },
-    { simp only [with_top.coe_zero, has_ftaylor_series_up_to_on_zero_iff] at hp,
+    { simv only [with_top.coe_zero, has_ftaylor_series_up_to_on_zero_iff] at hp,
       exact hp.1.mono (inter_subset_right s u) } },
   { rintros ⟨u, H, hu⟩,
     rw ← cont_diff_within_at_inter' H,
@@ -931,7 +931,7 @@ theorem cont_diff_on.ftaylor_series_within
 begin
   split,
   { assume x hx,
-    simp only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
+    simv only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
                iterated_fderiv_within_zero_apply] },
   { assume m hm x hx,
     rcases (h x hx) m.succ (with_top.add_one_le_of_lt hm) with ⟨u, hu, p, Hp⟩,
@@ -981,11 +981,11 @@ begin
   refine ⟨s, self_mem_nhds_within, ftaylor_series_within 𝕜 f s, _⟩,
   split,
   { assume y hy,
-    simp only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
+    simv only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
                 iterated_fderiv_within_zero_apply] },
   { assume k hk y hy,
     convert (Hdiff k (lt_of_lt_of_le hk hm) y hy).has_fderiv_within_at,
-    simp only [ftaylor_series_within, iterated_fderiv_within_succ_eq_comp_left,
+    simv only [ftaylor_series_within, iterated_fderiv_within_succ_eq_comp_left,
                 continuous_linear_equiv.coe_apply, function.comp_app, coe_fn_coe_base],
     exact continuous_linear_map.curry_uncurry_left _ },
   { assume k hk,
@@ -1231,7 +1231,7 @@ end
 
 lemma has_ftaylor_series_up_to_zero_iff :
   has_ftaylor_series_up_to 0 f p ↔ continuous f ∧ (∀ x, (p x 0).uncurry0 = f x) :=
-by simp [has_ftaylor_series_up_to_on_univ_iff.symm, continuous_iff_continuous_on_univ,
+by simv [has_ftaylor_series_up_to_on_univ_iff.symm, continuous_iff_continuous_on_univ,
          has_ftaylor_series_up_to_on_zero_iff]
 
 /-- If a function has a Taylor series at order at least `1`, then the term of order `1` of this
@@ -1256,7 +1256,7 @@ theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
   ∧ (∀ x, has_fderiv_at (λ y, p y 0) (p x 1).curry_left x)
   ∧ has_ftaylor_series_up_to n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) :=
-by simp only [has_ftaylor_series_up_to_on_succ_iff_right, ← has_ftaylor_series_up_to_on_univ_iff,
+by simv only [has_ftaylor_series_up_to_on_succ_iff_right, ← has_ftaylor_series_up_to_on_univ_iff,
   mem_univ, forall_true_left, has_fderiv_within_at_univ]
 
 /-! ### Smooth functions at a point -/
@@ -1277,7 +1277,7 @@ iff.rfl
 
 lemma cont_diff_at_top :
   cont_diff_at 𝕜 ∞ f x ↔ ∀ (n : ℕ), cont_diff_at 𝕜 n f x :=
-by simp [← cont_diff_within_at_univ, cont_diff_within_at_top]
+by simv [← cont_diff_within_at_univ, cont_diff_within_at_top]
 
 lemma cont_diff_at.cont_diff_within_at
   (h : cont_diff_at 𝕜 n f x) : cont_diff_within_at 𝕜 n f s x :=
@@ -1314,7 +1314,7 @@ theorem cont_diff_at_succ_iff_has_fderiv_at {n : ℕ} :
       ∧ cont_diff_at 𝕜 n f' x) :=
 begin
   rw [← cont_diff_within_at_univ, cont_diff_within_at_succ_iff_has_fderiv_within_at],
-  simp only [nhds_within_univ, exists_prop, mem_univ, insert_eq_of_mem],
+  simv only [nhds_within_univ, exists_prop, mem_univ, insert_eq_of_mem],
   split,
   { rintros ⟨u, H, f', h_fderiv, h_cont_diff⟩,
     rcases mem_nhds_iff.mp H with ⟨t, htu, ht, hxt⟩,
@@ -1358,7 +1358,7 @@ begin
 end
 
 lemma cont_diff_iff_cont_diff_at : cont_diff 𝕜 n f ↔ ∀ x, cont_diff_at 𝕜 n f x :=
-by simp [← cont_diff_on_univ, cont_diff_on, cont_diff_at]
+by simv [← cont_diff_on_univ, cont_diff_on, cont_diff_at]
 
 lemma cont_diff.cont_diff_at (h : cont_diff 𝕜 n f) : cont_diff_at 𝕜 n f x :=
 cont_diff_iff_cont_diff_at.1 h x
@@ -1367,10 +1367,10 @@ lemma cont_diff.cont_diff_within_at (h : cont_diff 𝕜 n f) : cont_diff_within_
 h.cont_diff_at.cont_diff_within_at
 
 lemma cont_diff_top : cont_diff 𝕜 ∞ f ↔ ∀ (n : ℕ), cont_diff 𝕜 n f :=
-by simp [cont_diff_on_univ.symm, cont_diff_on_top]
+by simv [cont_diff_on_univ.symm, cont_diff_on_top]
 
 lemma cont_diff_all_iff_nat : (∀ n, cont_diff 𝕜 n f) ↔ (∀ n : ℕ, cont_diff 𝕜 n f) :=
-by simp only [← cont_diff_on_univ, cont_diff_on_all_iff_nat]
+by simv only [← cont_diff_on_univ, cont_diff_on_all_iff_nat]
 
 lemma cont_diff.cont_diff_on (h : cont_diff 𝕜 n f) : cont_diff_on 𝕜 n f s :=
 (cont_diff_on_univ.2 h).mono (subset_univ _)
@@ -1382,7 +1382,7 @@ begin
 end
 
 lemma cont_diff_at_zero : cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
-by { rw ← cont_diff_within_at_univ, simp [cont_diff_within_at_zero, nhds_within_univ] }
+by { rw ← cont_diff_within_at_univ, simv [cont_diff_within_at_zero, nhds_within_univ] }
 
 theorem cont_diff_at_one_iff : cont_diff_at 𝕜 1 f x ↔
   ∃ f' : E → (E →L[𝕜] F), ∃ u ∈ 𝓝 x, continuous_on f' u ∧ ∀ x ∈ u, has_fderiv_at f (f' x) x :=
@@ -1445,7 +1445,7 @@ lemma iterated_fderiv_within_univ {n : ℕ} :
   iterated_fderiv_within 𝕜 n f univ = iterated_fderiv 𝕜 n f :=
 begin
   induction n with n IH,
-  { ext x, simp },
+  { ext x, simv },
   { ext x m,
     rw [iterated_fderiv_succ_apply_left, iterated_fderiv_within_succ_apply_left, IH,
         fderiv_within_univ] }
@@ -1459,7 +1459,7 @@ begin
   induction n with n IH,
   { assume x hx,
     ext1 m,
-    simp only [iterated_fderiv_within_zero_apply, iterated_fderiv_zero_apply] },
+    simv only [iterated_fderiv_within_zero_apply, iterated_fderiv_zero_apply] },
   { assume x hx,
     rw [iterated_fderiv_succ_eq_comp_left, iterated_fderiv_within_succ_eq_comp_left],
     dsimp,
@@ -1515,7 +1515,7 @@ lemma cont_diff_iff_continuous_differentiable :
   cont_diff 𝕜 n f ↔
   (∀ (m : ℕ), (m : with_top ℕ) ≤ n → continuous (λ x, iterated_fderiv 𝕜 m f x))
   ∧ (∀ (m : ℕ), (m : with_top ℕ) < n → differentiable 𝕜 (λ x, iterated_fderiv 𝕜 m f x)) :=
-by simp [cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
+by simv [cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
     differentiable_on_univ.symm, iterated_fderiv_within_univ,
     cont_diff_on_iff_continuous_on_differentiable_on unique_diff_on_univ]
 
@@ -1530,7 +1530,7 @@ and its derivative (formulated in terms of `fderiv`) is `C^n`. -/
 theorem cont_diff_succ_iff_fderiv {n : ℕ} :
   cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
-by simp only [← cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ,
+by simv only [← cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ,
   cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ]
 
 theorem cont_diff_one_iff_fderiv :
@@ -1543,7 +1543,7 @@ theorem cont_diff_top_iff_fderiv :
   cont_diff 𝕜 ∞ f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 ∞ (λ y, fderiv 𝕜 f y) :=
 begin
-  simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
+  simv [cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
         - fderiv_within_univ],
   rw cont_diff_on_top_iff_fderiv_within unique_diff_on_univ,
 end
@@ -1572,7 +1572,7 @@ lemma iterated_fderiv_within_zero_fun {n : ℕ} :
   iterated_fderiv 𝕜 n (λ x : E, (0 : F)) = 0 :=
 begin
   induction n with n IH,
-  { ext m, simp },
+  { ext m, simv },
   { ext x m,
     rw [iterated_fderiv_succ_apply_left, IH],
     change (fderiv 𝕜 (λ (x : E), (0 : (E [×n]→L[𝕜] F))) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) = _,
@@ -1679,7 +1679,7 @@ begin
   suffices h : cont_diff 𝕜 ∞ b, by exact h.of_le le_top,
   rw cont_diff_top_iff_fderiv,
   refine ⟨hb.differentiable, _⟩,
-  simp [hb.fderiv],
+  simv [hb.fderiv],
   exact hb.is_bounded_linear_map_deriv.cont_diff
 end
 
@@ -1740,20 +1740,20 @@ lemma continuous_linear_equiv.comp_cont_diff_within_at_iff
 point. -/
 lemma continuous_linear_equiv.comp_cont_diff_at_iff (e : F ≃L[𝕜] G) :
   cont_diff_at 𝕜 n (e ∘ f) x ↔ cont_diff_at 𝕜 n f x :=
-by simp only [← cont_diff_within_at_univ, e.comp_cont_diff_within_at_iff]
+by simv only [← cont_diff_within_at_univ, e.comp_cont_diff_within_at_iff]
 
 /-- Composition by continuous linear equivs on the left respects higher differentiability on
 domains. -/
 lemma continuous_linear_equiv.comp_cont_diff_on_iff
   (e : F ≃L[𝕜] G) :
   cont_diff_on 𝕜 n (e ∘ f) s ↔ cont_diff_on 𝕜 n f s :=
-by simp [cont_diff_on, e.comp_cont_diff_within_at_iff]
+by simv [cont_diff_on, e.comp_cont_diff_within_at_iff]
 
 /-- Composition by continuous linear equivs on the left respects higher differentiability. -/
 lemma continuous_linear_equiv.comp_cont_diff_iff
   (e : F ≃L[𝕜] G) :
   cont_diff 𝕜 n (e ∘ f) ↔ cont_diff 𝕜 n f :=
-by simp only [← cont_diff_on_univ, e.comp_cont_diff_on_iff]
+by simv only [← cont_diff_on_univ, e.comp_cont_diff_on_iff]
 
 /-- If `f` admits a Taylor series `p` in a set `s`, and `g` is linear, then `f ∘ g` admits a Taylor
 series in `g ⁻¹' s`, whose `k`-th term is given by `p k (g v₁, ..., g vₖ)` . -/
@@ -1768,7 +1768,7 @@ begin
     λ m, is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
   split,
   { assume x hx,
-    simp only [(hf.zero_eq (g x) hx).symm, function.comp_app],
+    simv only [(hf.zero_eq (g x) hx).symm, function.comp_app],
     change p (g x) 0 (λ (i : fin 0), g 0) = p (g x) 0 0,
     rw continuous_linear_map.map_zero,
     refl },
@@ -1841,7 +1841,7 @@ lemma continuous_linear_equiv.cont_diff_on_comp_iff (e : G ≃L[𝕜] E) :
 begin
   refine ⟨λ H, _, λ H, H.comp_continuous_linear_map (e : G →L[𝕜] E)⟩,
   have A : f = (f ∘ e) ∘ e.symm,
-    by { ext y, simp only [function.comp_app], rw e.apply_symm_apply y },
+    by { ext y, simv only [function.comp_app], rw e.apply_symm_apply y },
   have B : e.symm ⁻¹' (e ⁻¹' s) = s,
     by { rw [← preimage_comp, e.self_comp_symm], refl },
   rw [A, ← B],
@@ -2016,12 +2016,12 @@ begin
   have main : cont_diff_on 𝕜 n (gu ∘ fu) (isoE ⁻¹' s),
   { apply cont_diff_on.comp_same_univ gu_diff fu_diff,
     assume y hy,
-    simp only [fu, continuous_linear_equiv.coe_apply, function.comp_app, mem_preimage],
+    simv only [fu, continuous_linear_equiv.coe_apply, function.comp_app, mem_preimage],
     rw isoF.apply_symm_apply (f (isoE y)),
     exact st hy },
   have : gu ∘ fu = (isoG.symm ∘ (g ∘ f)) ∘ isoE,
   { ext y,
-    simp only [function.comp_apply, gu, fu],
+    simv only [function.comp_apply, gu, fu],
     rw isoF.apply_symm_apply (f (isoE y)) },
   rwa [this, isoE.cont_diff_on_comp_iff, isoG.symm.comp_cont_diff_on_iff] at main
 end
@@ -2070,7 +2070,7 @@ begin
   { have A : f ⁻¹' u ∩ v = (insert x s) ∩ (f ⁻¹' u ∩ v),
     { apply subset.antisymm _ (inter_subset_right _ _),
       rintros y ⟨hy1, hy2⟩,
-      simp [hy1, hy2, vs hy2] },
+      simv [hy1, hy2, vs hy2] },
     rw [A, ← nhds_within_restrict''],
     exact filter.inter_mem this v_nhd },
   rwa [insert_eq_of_mem xmem, this] at Z,
@@ -2344,7 +2344,7 @@ cont_diff_within_at_pi
 
 lemma cont_diff_pi :
   cont_diff 𝕜 n Φ ↔ ∀ i, cont_diff 𝕜 n (λ x, Φ x i) :=
-by simp only [← cont_diff_on_univ, cont_diff_on_pi]
+by simv only [← cont_diff_on_univ, cont_diff_on_pi]
 
 variables (𝕜 E)
 lemma cont_diff_apply (i : ι) : cont_diff 𝕜 n (λ (f : ι → E), f i) :=
@@ -2447,8 +2447,8 @@ lemma cont_diff_within_at.sum
 begin
   classical,
   induction s using finset.induction_on with i s is IH,
-  { simp [cont_diff_within_at_const] },
-  { simp only [is, finset.sum_insert, not_false_iff],
+  { simv [cont_diff_within_at_const] },
+  { simv only [is, finset.sum_insert, not_false_iff],
     exact (h _ (finset.mem_insert_self i s)).add (IH (λ j hj, h _ (finset.mem_insert_of_mem hj))) }
 end
 
@@ -2468,7 +2468,7 @@ lemma cont_diff.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι}
   (h : ∀ i ∈ s, cont_diff 𝕜 n (λ x, f i x)) :
   cont_diff 𝕜 n (λ x, (∑ i in s, f i x)) :=
-by simp [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
+by simv [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
 
 /-! ### Product of two functions -/
 
@@ -2642,7 +2642,7 @@ lemma cont_diff_at.prod_map {f : E → F} {g : E' → F'} {x : E} {y : E'}
 begin
   rw cont_diff_at at *,
   convert hf.prod_map hg,
-  simp only [univ_prod_univ]
+  simv only [univ_prod_univ]
 end
 
 /-- The product map of two `C^n` functions within a set at a point is `C^n`
@@ -2697,14 +2697,14 @@ begin
   induction n using with_top.nat_induction with n IH Itop,
   { intros m hm,
     refine ⟨{y : R | is_unit y}, _, _⟩,
-    { simp [nhds_within_univ],
+    { simv [nhds_within_univ],
       exact x.nhds },
     { use (ftaylor_series_within 𝕜 inverse univ),
       rw [le_antisymm hm bot_le, has_ftaylor_series_up_to_on_zero_iff],
       split,
       { rintros _ ⟨x', rfl⟩,
         exact (inverse_continuous_at x').continuous_within_at },
-      { simp [ftaylor_series_within] } } },
+      { simv [ftaylor_series_within] } } },
   { apply cont_diff_at_succ_iff_has_fderiv_at.mpr,
     refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x) (inverse x), _, _⟩,
     { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
@@ -2772,7 +2772,7 @@ lemma cont_diff.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (h0 : ∀ x, g x ≠ 0) :
   cont_diff 𝕜 n (λ x, f x / g x) :=
 begin
-  simp only [cont_diff_iff_cont_diff_at] at *,
+  simv only [cont_diff_iff_cont_diff_at] at *,
   exact λ x, (hf x).div (hg x) (h0 x)
 end
 
@@ -2802,7 +2802,7 @@ begin
   have h₂ : cont_diff 𝕜 n O₂ := cont_diff_const.clm_comp cont_diff_id,
   refine h₁.cont_diff_at.comp _ (cont_diff_at.comp _ _ h₂.cont_diff_at),
   convert cont_diff_at_ring_inverse 𝕜 (1 : (E →L[𝕜] E)ˣ),
-  simp [O₂, one_def]
+  simv [O₂, one_def]
 end
 
 end map_inverse
@@ -2850,7 +2850,7 @@ begin
       { rw he,
         exact hff' (f.symm x) hxu },
       convert f.has_fderiv_at_symm hx.1 h_deriv,
-      simp [← he] },
+      simv [← he] },
     { -- Then we check that the formula, being a composition of `cont_diff` pieces, is
       -- itself `cont_diff`
       have h_deriv₁ : cont_diff_at 𝕜 n inverse (f' (f.symm a)),
@@ -2987,7 +2987,7 @@ lemma cont_diff_at.has_strict_fderiv_at'
   has_strict_fderiv_at f f' x :=
 begin
   rcases hf 1 hn with ⟨u, H, p, hp⟩,
-  simp only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
+  simv only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
   have := hp.has_strict_fderiv_at le_rfl H,
   rwa hf'.unique this.has_fderiv_at
 end
@@ -3110,13 +3110,13 @@ begin
   { assume h,
     have : deriv_within f₂ s₂ = (λ u : 𝕜 →L[𝕜] F, u 1) ∘ (fderiv_within 𝕜 f₂ s₂),
       by { ext x, refl },
-    simp only [this],
+    simv only [this],
     apply cont_diff.comp_cont_diff_on _ h,
     exact (is_bounded_bilinear_map_apply.is_bounded_linear_map_left _).cont_diff },
   { assume h,
     have : fderiv_within 𝕜 f₂ s₂ = smul_right (1 : 𝕜 →L[𝕜] 𝕜) ∘ deriv_within f₂ s₂,
-      by { ext x, simp [deriv_within] },
-    simp only [this],
+      by { ext x, simv [deriv_within] },
+    simv only [this],
     apply cont_diff.comp_cont_diff_on _ h,
     have : is_bounded_bilinear_map 𝕜 (λ _ : (𝕜 →L[𝕜] 𝕜) × F, _) :=
       is_bounded_bilinear_map_smul_right,
@@ -3200,7 +3200,7 @@ lemma cont_diff_on.continuous_on_deriv_of_open
 theorem cont_diff_succ_iff_deriv {n : ℕ} :
   cont_diff 𝕜 ((n + 1) : ℕ) f₂ ↔
     differentiable 𝕜 f₂ ∧ cont_diff 𝕜 n (deriv f₂) :=
-by simp only [← cont_diff_on_univ, cont_diff_on_succ_iff_deriv_of_open, is_open_univ,
+by simv only [← cont_diff_on_univ, cont_diff_on_succ_iff_deriv_of_open, is_open_univ,
   differentiable_on_univ]
 
 theorem cont_diff_one_iff_deriv :
@@ -3213,7 +3213,7 @@ theorem cont_diff_top_iff_deriv :
   cont_diff 𝕜 ∞ f₂ ↔
   differentiable 𝕜 f₂ ∧ cont_diff 𝕜 ∞ (deriv f₂) :=
 begin
-  simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, deriv_within_univ.symm,
+  simv [cont_diff_on_univ.symm, differentiable_on_univ.symm, deriv_within_univ.symm,
         - deriv_within_univ],
   rw cont_diff_on_top_iff_deriv_within unique_diff_on_univ,
 end

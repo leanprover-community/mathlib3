@@ -43,7 +43,7 @@ begin
   push_neg at H,
   simp_rw [not_disjoint_iff, ←inv_smul_mem_iff] at H,
   obtain ⟨b, hb, c, hc₁, hc₂⟩ := H,
-  exact mem_mul.2 ⟨_, _, hb, mem_div.2 ⟨_, _, hc₂, hc₁, by simp [div_eq_mul_inv a b]⟩, by simp⟩,
+  exact mem_mul.2 ⟨_, _, hb, mem_div.2 ⟨_, _, hc₂, hc₁, by simv [div_eq_mul_inv a b]⟩, by simv⟩,
 end
 
 end finset

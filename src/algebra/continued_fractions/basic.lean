@@ -69,7 +69,7 @@ variables {β : Type*} [has_coe α β]
 instance has_coe_to_generalized_continued_fraction_pair : has_coe (pair α) (pair β) :=
 ⟨map coe⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_to_generalized_continued_fraction_pair {a b : α} :
   (↑(pair.mk a b) : pair β) = pair.mk (a : β) (b : β) := rfl
 
@@ -138,7 +138,7 @@ instance has_coe_to_generalized_continued_fraction :
   has_coe (generalized_continued_fraction α) (generalized_continued_fraction β) :=
 ⟨λ g, ⟨(g.h : β), (g.s.map coe : seq $ pair β)⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_to_generalized_continued_fraction {g : generalized_continued_fraction α} :
   (↑(g : generalized_continued_fraction α) : generalized_continued_fraction β) =
     ⟨(g.h : β), (g.s.map coe : seq $ pair β)⟩ :=
@@ -354,7 +354,7 @@ namespace generalized_continued_fraction
 /-- Two gcfs `g` and `g'` are equal if and only if their components are equal. -/
 protected lemma ext_iff {g g' : generalized_continued_fraction α} :
   g = g' ↔ g.h = g'.h ∧ g.s = g'.s :=
-by { cases g, cases g', simp }
+by { cases g, cases g', simv }
 
 @[ext]
 protected lemma ext {g g' : generalized_continued_fraction α} (hyp : g.h = g'.h ∧ g.s = g'.s) :

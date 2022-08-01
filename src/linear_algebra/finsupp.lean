@@ -113,7 +113,7 @@ lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
 begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
-  simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
+  simv only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   assume b hb a₂ h₂,
   have : a₁ ≠ a₂ := assume eq, h ⟨h₁, eq.symm ▸ h₂⟩,
   exact single_eq_of_ne this
@@ -121,7 +121,7 @@ end
 
 lemma infi_ker_lapply_le_bot : (⨅a, ker (lapply a : (α →₀ M) →ₗ[R] M)) ≤ ⊥ :=
 begin
-  simp only [set_like.le_def, mem_infi, mem_ker, mem_bot, lapply_apply],
+  simv only [set_like.le_def, mem_infi, mem_ker, mem_bot, lapply_apply],
   exact assume a h, finsupp.ext h
 end
 
@@ -161,7 +161,7 @@ begin
     refine subset.trans
       (subset.trans (finset.coe_subset.2 support_add) _) (union_subset hp hq),
     rw [finset.coe_union] },
-  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
+  { simv only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
     assume h ha, exact (ha rfl).elim },
   { assume a p hp,
     refine subset.trans (finset.coe_subset.2 support_smul) hp }
@@ -175,7 +175,7 @@ iff.rfl
 lemma mem_supported' {s : set α}  (p : α →₀ M) :
   p ∈ supported M R s ↔ ∀ x ∉ s, p x = 0 :=
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
-   simp [mem_supported, set.subset_def, not_imp_comm]
+   simv [mem_supported, set.subset_def, not_imp_comm]
 
 lemma mem_supported_support (p : α →₀ M) :
   p ∈ finsupp.supported M R (p.support : set α) :=
@@ -193,7 +193,7 @@ begin
   { rw ← l.sum_single,
     refine sum_mem (λ i il, _),
     convert @smul_mem R (α →₀ R) _ _ _ _ (single i 1) (l i) _,
-    { simp },
+    { simv },
     apply subset_span,
     apply set.mem_image_of_mem _ (hl il) }
 end
@@ -219,7 +219,7 @@ theorem restrict_dom_comp_subtype (s : set α) :
   (restrict_dom M R s).comp (submodule.subtype _) = linear_map.id :=
 begin
   ext l a,
-  by_cases a ∈ s; simp [h],
+  by_cases a ∈ s; simv [h],
   exact ((mem_supported' R l.1).1 l.2 a h).symm
 end
 
@@ -234,7 +234,7 @@ theorem supported_mono {s t : set α} (st : s ⊆ t) :
 
 @[simp] theorem supported_empty : supported M R (∅ : set α) = ⊥ :=
 eq_bot_iff.2 $ λ l h, (submodule.mem_bot R).2 $
-by ext; simp [*, mem_supported'] at *
+by ext; simv [*, mem_supported'] at *
 
 @[simp] theorem supported_univ : supported M R (set.univ : set α) = ⊤ :=
 eq_top_iff.2 $ λ l _, set.subset_univ _
@@ -251,7 +251,7 @@ begin
   rintro l ⟨⟩,
   apply finsupp.induction l, { exact zero_mem _ },
   refine λ x a l hl a0, add_mem _,
-  by_cases (∃ i, x ∈ s i); simp [h],
+  by_cases (∃ i, x ∈ s i); simv [h],
   { cases h with i hi,
     exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) }
 end
@@ -262,7 +262,7 @@ by erw [set.union_eq_Union, supported_Union, supr_bool_eq]; refl
 
 theorem supported_Inter {ι : Type*} (s : ι → set α) :
   supported M R (⋂ i, s i) = ⨅ i, supported M R (s i) :=
-submodule.ext $ λ x, by simp [mem_supported, subset_Inter_iff]
+submodule.ext $ λ x, by simv [mem_supported, subset_Inter_iff]
 
 theorem supported_inter (s t : set α) :
   supported M R (s ∩ t) = supported M R s ⊓ supported M R t :=
@@ -307,12 +307,12 @@ def lsum : (α → M →ₗ[R] N) ≃ₗ[S] ((α →₀ M) →ₗ[R] N) :=
 { to_fun := λ F,
   { to_fun := λ d, d.sum (λ i, F i),
     map_add' := (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
-    map_smul' := λ c f, by simp [sum_smul_index', smul_sum] },
+    map_smul' := λ c f, by simv [sum_smul_index', smul_sum] },
   inv_fun := λ F x, F.comp (lsingle x),
-  left_inv := λ F, by { ext x y, simp },
-  right_inv := λ F, by { ext x y, simp },
-  map_add' := λ F G, by { ext x y, simp },
-  map_smul' := λ F G, by { ext x y, simp } }
+  left_inv := λ F, by { ext x y, simv },
+  right_inv := λ F, by { ext x y, simv },
+  map_add' := λ F G, by { ext x y, simv },
+  map_smul' := λ F G, by { ext x y, simv } }
 
 @[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum S f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) :=
 rfl
@@ -397,14 +397,14 @@ theorem lmap_domain_disjoint_ker (f : α → α') {s : set α}
 begin
   rintro l ⟨h₁, h₂⟩,
   rw [set_like.mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
-  simp, ext x,
+  simv, ext x,
   haveI := classical.dec_pred (λ x, x ∈ s),
   by_cases xs : x ∈ s,
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
     { simpa [finsupp.single_apply] },
-    { intros y hy xy, simp [mt (H _ (h₁ hy) _ xs) xy] },
-    { simp {contextual := tt} } },
+    { intros y hy xy, simv [mt (H _ (h₁ hy) _ xs) xy] },
+    { simv {contextual := tt} } },
   { by_contra h, exact xs (h₁ $ finsupp.mem_support_iff.2 h) }
 end
 
@@ -431,11 +431,11 @@ finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_
 
 @[simp] theorem total_single (c : R) (a : α) :
   finsupp.total α M R v (single a c) = c • (v a) :=
-by simp [total_apply, sum_single_index]
+by simv [total_apply, sum_single_index]
 
 theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
   f (finsupp.total α M R v l) = finsupp.total α M' R (f ∘ v) l :=
-by apply finsupp.induction_linear l; simp { contextual := tt, }
+by apply finsupp.induction_linear l; simv { contextual := tt, }
 
 theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l default • v default :=
@@ -445,7 +445,7 @@ lemma total_surjective (h : function.surjective v) : function.surjective (finsup
 begin
   intro x,
   obtain ⟨y, hy⟩ := h x,
-  exact ⟨finsupp.single y 1, by simp [hy]⟩
+  exact ⟨finsupp.single y 1, by simv [hy]⟩
 end
 
 theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
@@ -472,16 +472,16 @@ begin
     rcases hx with ⟨i, hi⟩,
     rw [set_like.mem_coe, linear_map.mem_range],
     use finsupp.single i 1,
-    simp [hi] }
+    simv [hi] }
 end
 
 theorem lmap_domain_total (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v i) = v' (f i)) :
   (finsupp.total α' M' R v').comp (lmap_domain R R f) = g.comp (finsupp.total α M R v) :=
-by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
+by ext l; simv [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
 @[simp] theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (emb_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
-by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
+by simv [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
 
 theorem total_map_domain (f : α → α') (hf : function.injective f) (l : α →₀ R) :
   (finsupp.total α' M' R v') (map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
@@ -514,20 +514,20 @@ begin
     rw set.mem_image at hx,
     apply exists.elim hx,
     intros i hi,
-    exact ⟨_, finsupp.single_mem_supported R 1 hi.1, by simp [hi.2]⟩ },
+    exact ⟨_, finsupp.single_mem_supported R 1 hi.1, by simv [hi.2]⟩ },
   { refine map_le_iff_le_comap.2 (λ z hz, _),
     have : ∀i, z i • v i ∈ span R (v '' s),
     { intro c,
       haveI := classical.dec_pred (λ x, x ∈ s),
       by_cases c ∈ s,
       { exact smul_mem _ _ (subset_span (set.mem_image_of_mem _ h)) },
-      { simp [(finsupp.mem_supported' R _).1 hz _ h] } },
-    refine sum_mem _, simp [this] }
+      { simv [(finsupp.mem_supported' R _).1 hz _ h] } },
+    refine sum_mem _, simv [this] }
 end
 
 theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
-by { rw span_image_eq_map_total, simp, }
+by { rw span_image_eq_map_total, simv, }
 
 lemma total_option (v : option α → M) (f : option α →₀ R) :
   finsupp.total (option α) M R v f =
@@ -538,12 +538,12 @@ lemma total_total {α β : Type*} (A : α → M) (B : β → (α →₀ R)) (f :
   finsupp.total α M R A (finsupp.total β (α →₀ R) R B f) =
     finsupp.total β M R (λ b, finsupp.total α M R A (B b)) f :=
 begin
-  simp only [total_apply],
+  simv only [total_apply],
   apply induction_linear f,
-  { simp only [sum_zero_index], },
+  { simv only [sum_zero_index], },
   { intros f₁ f₂ h₁ h₂,
-    simp [sum_add_index, h₁, h₂, add_smul], },
-  { simp [sum_single_index, sum_smul_index, smul_sum, mul_smul], }
+    simv [sum_add_index, h₁, h₂, add_smul], },
+  { simv [sum_single_index, sum_smul_index, smul_sum, mul_smul], }
 end
 
 @[simp] lemma total_fin_zero (f : fin 0 → M) :
@@ -572,7 +572,7 @@ end
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
-by { ext, simp [total_apply] }
+by { ext, simv [total_apply] }
 
 lemma total_comap_domain
  (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
@@ -585,11 +585,11 @@ lemma total_on_finset
   finsupp.total α M R g (finsupp.on_finset s f hf) =
     finset.sum s (λ (x : α), f x • g x) :=
 begin
-  simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.support_on_finset],
+  simv only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.support_on_finset],
   rw finset.sum_filter_of_ne,
   intros x hx h,
   contrapose! h,
-  simp [h],
+  simv [h],
 end
 
 end total
@@ -625,7 +625,7 @@ linear_equiv.ext $ λ x, rfl
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
-by simp [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
+by simv [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
 
 /-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
@@ -703,7 +703,7 @@ def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →�
 
 @[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (i : ι) (m : M) :
   lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
-by simp [lcongr]
+by simv [lcongr]
 
 @[simp] lemma lcongr_apply_apply {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
   lcongr e₁ e₂ f k = e₂ (f (e₁.symm k)) :=
@@ -713,21 +713,21 @@ theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R
   (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
 begin
   apply_fun lcongr e₁ e₂ using (lcongr e₁ e₂).injective,
-  simp,
+  simv,
 end
 
 @[simp] lemma lcongr_symm {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
   (lcongr e₁ e₂).symm = lcongr e₁.symm e₂.symm :=
 begin
   ext f i,
-  simp only [equiv.symm_symm, finsupp.lcongr_apply_apply],
+  simv only [equiv.symm_symm, finsupp.lcongr_apply_apply],
   apply finsupp.induction_linear f,
-  { simp, },
-  { intros f g hf hg, simp [map_add, hf, hg], },
+  { simv, },
+  { intros f g hf hg, simv [map_add, hf, hg], },
   { intros k m,
-    simp only [finsupp.lcongr_symm_single],
-    simp only [finsupp.single, equiv.symm_apply_eq, finsupp.coe_mk],
-    split_ifs; simp, },
+    simv only [finsupp.lcongr_symm_single],
+    simv only [finsupp.single, equiv.symm_apply_eq, finsupp.coe_mk],
+    split_ifs; simv, },
 end
 
 section sum
@@ -741,7 +741,7 @@ This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. 
   ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
 { map_smul' :=
     by { intros, ext;
-          simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
+          simv only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
               snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp,
               ring_hom.id_apply] },
   .. sum_finsupp_add_equiv_prod_finsupp }
@@ -780,7 +780,7 @@ This is the `linear_equiv` version of `finsupp.sigma_finsupp_add_equiv_pi_finsup
 noncomputable def sigma_finsupp_lequiv_pi_finsupp
   {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M] :
   ((Σ j, ιs j) →₀ M) ≃ₗ[R] Π j, (ιs j →₀ M) :=
-{ map_smul' := λ c f, by { ext, simp },
+{ map_smul' := λ c f, by { ext, simv },
   .. sigma_finsupp_add_equiv_pi_finsupp }
 
 @[simp] lemma sigma_finsupp_lequiv_pi_finsupp_apply
@@ -803,8 +803,8 @@ This is the `linear_equiv` version of `finsupp.finsupp_prod_equiv`. -/
 noncomputable def finsupp_prod_lequiv {α β : Type*} (R : Type*) {M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] :
   (α × β →₀ M) ≃ₗ[R] (α →₀ β →₀ M) :=
-{ map_add' := λ f g, by { ext, simp [finsupp_prod_equiv, curry_apply] },
-  map_smul' := λ c f, by { ext, simp [finsupp_prod_equiv, curry_apply] },
+{ map_add' := λ f g, by { ext, simv [finsupp_prod_equiv, curry_apply] },
+  map_smul' := λ c f, by { ext, simv [finsupp_prod_equiv, curry_apply] },
   .. finsupp_prod_equiv }
 
 @[simp] lemma finsupp_prod_lequiv_apply {α β R M : Type*}
@@ -849,7 +849,7 @@ add_submonoid_class.finsupp_sum_mem S f g h
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
-by simp only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
+by simv only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
 
 lemma submodule.exists_finset_of_mem_supr
   {ι : Sort*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
@@ -857,7 +857,7 @@ lemma submodule.exists_finset_of_mem_supr
 begin
   have := complete_lattice.is_compact_element.exists_finset_of_le_supr (submodule R M)
     (submodule.singleton_span_is_compact_element m) p,
-  simp only [submodule.span_singleton_le_iff_mem] at this,
+  simv only [submodule.span_singleton_le_iff_mem] at this,
   exact this hm,
 end
 
@@ -892,8 +892,8 @@ def module.subsingleton_equiv (R M ι: Type*) [semiring R] [subsingleton R] [add
   [module R M] : M ≃ₗ[R] ι →₀ R :=
 { to_fun := λ m, 0,
   inv_fun := λ f, 0,
-  left_inv := λ m, by { letI := module.subsingleton R M, simp only [eq_iff_true_of_subsingleton] },
-  right_inv := λ f, by simp only [eq_iff_true_of_subsingleton],
+  left_inv := λ m, by { letI := module.subsingleton R M, simv only [eq_iff_true_of_subsingleton] },
+  right_inv := λ f, by simv only [eq_iff_true_of_subsingleton],
   map_add' := λ m n, (add_zero 0).symm,
   map_smul' := λ r m, (smul_zero r).symm }
 

@@ -27,12 +27,12 @@ to the corresponding element of the opposite ring. -/
 def op_ring_equiv (R : Type*) [semiring R] : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
--- for maintenance purposes: `by simp [op_ring_equiv]` proves this lemma
+-- for maintenance purposes: `by simv [op_ring_equiv]` proves this lemma
 /-!  Lemmas to get started, using `op_ring_equiv R` on the various expressions of
 `finsupp.single`: `monomial`, `C a`, `X`, `C a * X ^ n`. -/
 @[simp] lemma op_ring_equiv_op_monomial (n : ℕ) (r : R) :
   op_ring_equiv R (op (monomial n r : R[X])) = monomial n (op r) :=
-by simp only [op_ring_equiv, ring_equiv.trans_apply, ring_equiv.op_apply_apply,
+by simv only [op_ring_equiv, ring_equiv.trans_apply, ring_equiv.op_apply_apply,
     ring_equiv.to_add_equiv_eq_coe, add_equiv.mul_op_apply, add_equiv.to_fun_eq_coe,
     add_equiv.coe_trans, op_add_equiv_apply, ring_equiv.coe_to_add_equiv, op_add_equiv_symm_apply,
     function.comp_app, unop_op, to_finsupp_iso_apply, to_finsupp_monomial,
@@ -48,13 +48,13 @@ op_ring_equiv_op_monomial 1 1
 
 lemma op_ring_equiv_op_C_mul_X_pow (r : R) (n : ℕ) :
   op_ring_equiv R (op (C r * X ^ n : R[X])) = C (op r) * X ^ n :=
-by simp only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, op_ring_equiv_op_C]
+by simv only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, op_ring_equiv_op_C]
 
 /-!  Lemmas to get started, using `(op_ring_equiv R).symm` on the various expressions of
 `finsupp.single`: `monomial`, `C a`, `X`, `C a * X ^ n`. -/
 @[simp] lemma op_ring_equiv_symm_monomial (n : ℕ) (r : Rᵐᵒᵖ) :
   (op_ring_equiv R).symm (monomial n r) = op (monomial n (unop r)) :=
-(op_ring_equiv R).injective (by simp)
+(op_ring_equiv R).injective (by simv)
 
 @[simp] lemma op_ring_equiv_symm_C (a : Rᵐᵒᵖ) :
   (op_ring_equiv R).symm (C a) = op (C (unop a)) :=
@@ -89,8 +89,8 @@ end
   (op_ring_equiv R p).nat_degree = (unop p).nat_degree :=
 begin
   by_cases p0 : p = 0,
-  { simp only [p0, _root_.map_zero, nat_degree_zero, unop_zero] },
-  { simp only [p0, nat_degree_eq_support_max', ne.def, add_equiv_class.map_eq_zero_iff,
+  { simv only [p0, _root_.map_zero, nat_degree_zero, unop_zero] },
+  { simv only [p0, nat_degree_eq_support_max', ne.def, add_equiv_class.map_eq_zero_iff,
       not_false_iff, support_op_ring_equiv, unop_eq_zero_iff] }
 end
 

@@ -120,10 +120,10 @@ begin
   split_ifs,
   { have : i ∈ h.some.carrier ∧ i ∈ chain_Sup_carrier c,
       from ⟨h.some_spec.snd, mem_Union₂.2 h⟩,
-    simp only [this] },
+    simv only [this] },
   { have : i ∉ ne.some.carrier ∧ i ∉ chain_Sup_carrier c,
       from ⟨λ hi, h ⟨_, ne.some_spec, hi⟩, mt mem_Union₂.1 h⟩,
-    simp only [this] }
+    simv only [this] }
 end
 
 lemma find_apply_of_mem {c : set (partial_refinement u s)} (hc : is_chain (≤) c) (ne : c.nonempty)
@@ -171,7 +171,7 @@ lemma exists_gt (v : partial_refinement u s) (hs : is_closed s) (i : ι) (hi : i
   ∃ v' : partial_refinement u s, v < v' :=
 begin
   have I : s ∩ (⋂ j ≠ i, (v j)ᶜ) ⊆ v i,
-  { simp only [subset_def, mem_inter_eq, mem_Inter, and_imp],
+  { simv only [subset_def, mem_inter_eq, mem_Inter, and_imp],
     intros x hxs H,
     rcases mem_Union.1 (v.subset_Union hxs) with ⟨j, hj⟩,
     exact (em (j = i)).elim (λ h, h ▸ hj) (λ h, (H j h hj).elim) },
@@ -179,7 +179,7 @@ begin
     from is_closed.inter hs (is_closed_bInter $ λ _ _, is_closed_compl_iff.2 $ v.is_open _),
   rcases normal_exists_closure_subset C (v.is_open i) I with ⟨vi, ovi, hvi, cvi⟩,
   refine ⟨⟨update v i vi, insert i v.carrier, _, _, _, _⟩, _, _⟩,
-  { intro j, by_cases h : j = i; simp [h, ovi, v.is_open] },
+  { intro j, by_cases h : j = i; simv [h, ovi, v.is_open] },
   { refine λ x hx, mem_Union.2 _,
     rcases em (∃ j ≠ i, x ∈ v j) with ⟨j, hji, hj⟩|h,
     { use j, rwa update_noteq hji },

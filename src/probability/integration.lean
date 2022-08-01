@@ -50,7 +50,7 @@ begin
     simp_rw [← inter_indicator_mul],
     rw [lintegral_indicator _ (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
       lintegral_indicator _ (hMf _ h_meas_s'), lintegral_indicator _ h_meas_T],
-    simp only [measurable_const, lintegral_const, univ_inter, lintegral_const_mul,
+    simv only [measurable_const, lintegral_const, univ_inter, lintegral_const_mul,
       measurable_set.univ, measure.restrict_apply],
     ring_nf,
     congr,

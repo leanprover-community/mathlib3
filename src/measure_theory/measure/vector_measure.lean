@@ -136,8 +136,8 @@ begin
   rw [hg, encodable.Union_decode₂] at this,
 
   have hg₃ : (λ (i : β), v (f i)) = (λ i, v (g (encodable.encode i))),
-  { ext, rw hg, simp only,
-    congr, ext y, simp only [exists_prop, mem_Union, option.mem_def],
+  { ext, rw hg, simv only,
+    congr, ext y, simv only [exists_prop, mem_Union, option.mem_def],
     split,
     { intro hy,
       refine ⟨x, (encodable.decode₂_is_partial_inv _ _).2 rfl, hy⟩ },
@@ -152,7 +152,7 @@ begin
     { exact (v.m_Union hg₁ hg₂).summable },
     { intros x hx,
       convert v.empty,
-      simp only [Union_eq_empty, option.mem_def, not_exists, mem_range] at ⊢ hx,
+      simv only [Union_eq_empty, option.mem_def, not_exists, mem_range] at ⊢ hx,
       intros i hi,
       exact false.elim ((hx i) ((encodable.decode₂_is_partial_inv _ _).1 hi)) } }
 end
@@ -191,7 +191,7 @@ lemma of_diff_of_diff_eq_zero {A B : set α}
   v (A \ B) + v B = v A :=
 begin
   symmetry,
-  calc v A = v (A \ B ∪ A ∩ B) : by simp only [set.diff_union_inter]
+  calc v A = v (A \ B ∪ A ∩ B) : by simv only [set.diff_union_inter]
        ... = v (A \ B) + v (A ∩ B) :
   by { rw of_union,
        { rw disjoint.comm,
@@ -284,9 +284,9 @@ variables [has_continuous_add M]
 /-- The sum of two vector measure is a vector measure. -/
 def add (v w : vector_measure α M) : vector_measure α M :=
 { measure_of' := v + w,
-  empty' := by simp,
+  empty' := by simv,
   not_measurable' := λ _ hi,
-    by simp [v.not_measurable hi, w.not_measurable hi],
+    by simv [v.not_measurable hi, w.not_measurable hi],
   m_Union' := λ f hf₁ hf₂,
     has_sum.add (v.m_Union hf₁ hf₂) (w.m_Union hf₁ hf₂) }
 
@@ -314,8 +314,8 @@ include m
 /-- The negative of a vector measure is a vector measure. -/
 def neg (v : vector_measure α M) : vector_measure α M :=
 { measure_of' := -v,
-  empty' := by simp,
-  not_measurable' := λ _ hi, by simp [v.not_measurable hi],
+  empty' := by simv,
+  not_measurable' := λ _ hi, by simv [v.not_measurable hi],
   m_Union' := λ f hf₁ hf₂, has_sum.neg $ v.m_Union hf₁ hf₂ }
 
 instance : has_neg (vector_measure α M) := ⟨neg⟩
@@ -326,9 +326,9 @@ lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
 /-- The difference of two vector measure is a vector measure. -/
 def sub (v w : vector_measure α M) : vector_measure α M :=
 { measure_of' := v - w,
-  empty' := by simp,
+  empty' := by simv,
   not_measurable' := λ _ hi,
-    by simp [v.not_measurable hi, w.not_measurable hi],
+    by simv [v.not_measurable hi, w.not_measurable hi],
   m_Union' := λ f hf₁ hf₂,
     has_sum.sub (v.m_Union hf₁ hf₂)
       (w.m_Union hf₁ hf₂) }
@@ -377,7 +377,7 @@ include m
 @[simps]
 def to_signed_measure (μ : measure α) [hμ : is_finite_measure μ] : signed_measure α :=
 { measure_of' := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
-  empty' := by simp [μ.empty],
+  empty' := by simv [μ.empty],
   not_measurable' := λ _ hi, if_neg hi,
   m_Union' :=
   begin
@@ -424,7 +424,7 @@ end
 
 @[simp] lemma to_signed_measure_zero :
   (0 : measure α).to_signed_measure = 0 :=
-by { ext i hi, simp }
+by { ext i hi, simv }
 
 @[simp] lemma to_signed_measure_add (μ ν : measure α) [is_finite_measure μ] [is_finite_measure ν] :
   (μ + ν).to_signed_measure = μ.to_signed_measure + ν.to_signed_measure :=
@@ -450,7 +450,7 @@ end
 @[simps]
 def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
 { measure_of' := λ i : set α, if measurable_set i then μ i else 0,
-  empty' := by simp [μ.empty],
+  empty' := by simv [μ.empty],
   not_measurable' := λ _ hi, if_neg hi,
   m_Union' := λ _ hf₁ hf₂,
   begin
@@ -466,7 +466,7 @@ if_pos hi
 
 @[simp] lemma to_ennreal_vector_measure_zero :
   (0 : measure α).to_ennreal_vector_measure = 0 :=
-by { ext i hi, simp }
+by { ext i hi, simv }
 
 @[simp] lemma to_ennreal_vector_measure_add (μ ν : measure α) :
   (μ + ν).to_ennreal_vector_measure = μ.to_ennreal_vector_measure + ν.to_ennreal_vector_measure :=
@@ -524,7 +524,7 @@ def map (v : vector_measure α M) (f : α → β) :
   vector_measure β M :=
 if hf : measurable f then
 { measure_of' := λ s, if measurable_set s then v (f ⁻¹' s) else 0,
-  empty' := by simp,
+  empty' := by simv,
   not_measurable' := λ i hi, if_neg hi,
   m_Union' :=
   begin
@@ -574,7 +574,7 @@ by { ext, refl }
 
 @[simp] lemma map_range_zero {f : M →+ N} (hf : continuous f) :
   map_range (0 : vector_measure α M) f hf = 0 :=
-by { ext, simp }
+by { ext, simv }
 
 section has_continuous_add
 
@@ -582,7 +582,7 @@ variables [has_continuous_add M] [has_continuous_add N]
 
 @[simp] lemma map_range_add {v w : vector_measure α M} {f : M →+ N} (hf : continuous f) :
   (v + w).map_range f hf = v.map_range f hf + w.map_range f hf :=
-by { ext, simp }
+by { ext, simv }
 
 /-- Given a continuous add_monoid_hom `f : M → N`, `map_range_hom` is the add_monoid_hom mapping the
 vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
@@ -604,7 +604,7 @@ vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
 def map_rangeₗ (f : M →ₗ[R] N) (hf : continuous f) : vector_measure α M →ₗ[R] vector_measure α N :=
 { to_fun := λ v, v.map_range f.to_add_monoid_hom hf,
   map_add' := λ _ _, map_range_add hf,
-  map_smul' := by { intros, ext, simp } }
+  map_smul' := by { intros, ext, simv } }
 
 end module
 
@@ -615,7 +615,7 @@ def restrict (v : vector_measure α M) (i : set α) :
   vector_measure α M :=
 if hi : measurable_set i then
 { measure_of' := λ s, if measurable_set s then v (s ∩ i) else 0,
-  empty' := by simp,
+  empty' := by simv,
   not_measurable' := λ i hi, if_neg hi,
   m_Union' :=
   begin
@@ -661,8 +661,8 @@ lemma map_add (v w : vector_measure α M) (f : α → β) :
 begin
   by_cases hf : measurable f,
   { ext i hi,
-    simp [map_apply _ hf hi] },
-  { simp [map, dif_neg hf] }
+    simv [map_apply _ hf hi] },
+  { simv [map, dif_neg hf] }
 end
 
 /-- `vector_measure.map` as an additive monoid homomorphism. -/
@@ -676,8 +676,8 @@ lemma restrict_add (v w : vector_measure α M) (i : set α) :
 begin
   by_cases hi : measurable_set i,
   { ext j hj,
-    simp [restrict_apply _ hi hj] },
-  { simp [restrict_not_measurable _ hi] }
+    simv [restrict_apply _ hi hj] },
+  { simv [restrict_not_measurable _ hi] }
 end
 
 /--`vector_measure.restrict` as an additive monoid homomorphism. -/
@@ -703,10 +703,10 @@ include m
 begin
   by_cases hf : measurable f,
   { ext i hi,
-    simp [map_apply _ hf hi] },
-  { simp only [map, dif_neg hf],
+    simv [map_apply _ hf hi] },
+  { simv only [map, dif_neg hf],
     -- `smul_zero` does not work since we do not require `has_continuous_add`
-    ext i hi, simp }
+    ext i hi, simv }
 end
 
 @[simp] lemma restrict_smul {v :vector_measure α M} {i : set α} (c : R) :
@@ -714,10 +714,10 @@ end
 begin
   by_cases hi : measurable_set i,
   { ext j hj,
-    simp [restrict_apply _ hi hj] },
-  { simp only [restrict_not_measurable _ hi],
+    simv [restrict_apply _ hi hj] },
+  { simv only [restrict_not_measurable _ hi],
     -- `smul_zero` does not work since we do not require `has_continuous_add`
-    ext j hj, simp }
+    ext j hj, simv }
 end
 
 end
@@ -891,8 +891,8 @@ begin
   { intro n, measurability },
   { intro n,
     cases encodable.decode₂ β n with b,
-    { simp },
-    { simp [hf₂ b] } }
+    { simv },
+    { simv [hf₂ b] } }
 end
 
 lemma restrict_le_restrict_union
@@ -1156,7 +1156,7 @@ lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⊥ᵥ w₁) (h₂
 lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [has_continuous_const_smul R N]
   (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
 let ⟨s, hmeas, hs₁, hs₂⟩ := h in
-  ⟨s, hmeas, hs₁, λ t ht, by simp only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
+  ⟨s, hmeas, hs₁, λ t ht, by simv only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
 
 lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
   (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
@@ -1251,7 +1251,7 @@ include m
 /-- The underlying function for `signed_measure.to_measure_of_zero_le`. -/
 def to_measure_of_zero_le' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s)
   (j : set α) (hj : measurable_set j) : ℝ≥0∞ :=
-@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j, le_trans (by simp) (hi j hj)⟩
+@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j, le_trans (by simv) (hi j hj)⟩
 
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure_of_zero_le`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
@@ -1266,7 +1266,7 @@ measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
     { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
       exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
-    simp only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
+    simv only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
                set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
                ennreal.some_eq_coe, id.def],
     have h : ∀ n, 0 ≤ s (i ∩ f n) :=
@@ -1302,7 +1302,7 @@ lemma to_measure_of_le_zero_apply (hi : s ≤[i] 0)
     ((@neg_zero (vector_measure α ℝ) _) ▸ neg_le_neg _ _ hi₁ hi))⟩ :=
 begin
   erw [to_measure_of_zero_le_apply],
-  { simp },
+  { simv },
   { assumption },
 end
 
@@ -1328,14 +1328,14 @@ lemma to_measure_of_zero_le_to_signed_measure (hs : 0 ≤[univ] s) :
   (s.to_measure_of_zero_le univ measurable_set.univ hs).to_signed_measure = s :=
 begin
   ext i hi,
-  simp [measure.to_signed_measure_apply_measurable hi, to_measure_of_zero_le_apply _ _ _ hi],
+  simv [measure.to_signed_measure_apply_measurable hi, to_measure_of_zero_le_apply _ _ _ hi],
 end
 
 lemma to_measure_of_le_zero_to_signed_measure (hs : s ≤[univ] 0) :
   (s.to_measure_of_le_zero univ measurable_set.univ hs).to_signed_measure = -s :=
 begin
   ext i hi,
-  simp [measure.to_signed_measure_apply_measurable hi, to_measure_of_le_zero_apply _ _ _ hi],
+  simv [measure.to_signed_measure_apply_measurable hi, to_measure_of_le_zero_apply _ _ _ hi],
 end
 
 end signed_measure
@@ -1350,7 +1350,7 @@ lemma zero_le_to_signed_measure : 0 ≤ μ.to_signed_measure :=
 begin
   rw ← le_restrict_univ_iff_le,
   refine restrict_le_restrict_of_subset_le _ _ (λ j hj₁ _, _),
-  simp only [measure.to_signed_measure_apply_measurable hj₁, coe_zero, pi.zero_apply,
+  simv only [measure.to_signed_measure_apply_measurable hj₁, coe_zero, pi.zero_apply,
              ennreal.to_real_nonneg, vector_measure.coe_zero]
 end
 
@@ -1360,7 +1360,7 @@ lemma to_signed_measure_to_measure_of_zero_le :
 begin
   refine measure.ext (λ i hi, _),
   lift μ i to ℝ≥0 using (measure_lt_top _ _).ne with m hm,
-  simp [signed_measure.to_measure_of_zero_le_apply _ _ _ hi,
+  simv [signed_measure.to_measure_of_zero_le_apply _ _ _ hi,
         measure.to_signed_measure_apply_measurable hi, ← hm],
 end
 

@@ -149,7 +149,7 @@ lemma ι_jointly_surjective (x : 𝖣 .glued.carrier) :
   ∃ (i : D.J) (y : (D.U i).carrier), (D.ι i).1.base y = x :=
 𝖣 .ι_jointly_surjective (forget_to_Top ⋙ forget Top) x
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma glue_condition (i j : D.J) :
   D.t i j ≫ D.f j i ≫ D.ι j = D.f i j ≫ D.ι i :=
 𝖣 .glue_condition i j
@@ -157,7 +157,7 @@ lemma glue_condition (i j : D.J) :
 /-- The pullback cone spanned by `V i j ⟶ U i` and `V i j ⟶ U j`.
 This is a pullback diagram (`V_pullback_cone_is_limit`). -/
 def V_pullback_cone (i j : D.J) : pullback_cone (D.ι i) (D.ι j) :=
-pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simp)
+pullback_cone.mk (D.f i j) (D.t i j ≫ D.f j i) (by simv)
 
 /-- The following diagram is a pullback, i.e. `Vᵢⱼ` is the intersection of `Uᵢ` and `Uⱼ` in `X`.
 
@@ -193,7 +193,7 @@ lemma ι_iso_carrier_inv (i : D.J) :
     (D.ι i).1.base :=
 begin
   delta iso_carrier,
-  simp only [functor.map_iso_inv, iso.trans_inv, iso.trans_assoc,
+  simv only [functor.map_iso_inv, iso.trans_inv, iso.trans_assoc,
     glue_data.ι_glued_iso_inv_assoc, functor.map_iso_trans, category.assoc],
   iterate 3 { erw ← comp_base },
   simp_rw ← category.assoc,
@@ -252,39 +252,39 @@ begin
   refine _ ≫ (pullback_symmetry _ _).hom,
   refine _ ≫ (pullback_right_pullback_fst_iso _ _ _).inv,
   refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _,
-  { simp [pullback.condition] },
-  { simp }
+  { simv [pullback.condition] },
+  { simv }
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma glued_cover_t'_fst_fst (x y z : 𝒰.J) :
    𝒰.glued_cover_t' x y z ≫ pullback.fst ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
-by { delta glued_cover_t', simp }
+by { delta glued_cover_t', simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma glued_cover_t'_fst_snd (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ pullback.fst ≫ pullback.snd = pullback.snd ≫ pullback.snd :=
-by { delta glued_cover_t', simp }
+by { delta glued_cover_t', simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma glued_cover_t'_snd_fst (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ pullback.snd ≫ pullback.fst = pullback.fst ≫ pullback.snd :=
-by { delta glued_cover_t', simp }
+by { delta glued_cover_t', simv }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma glued_cover_t'_snd_snd (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ pullback.snd ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
-by { delta glued_cover_t', simp }
+by { delta glued_cover_t', simv }
 
 lemma glued_cover_cocycle_fst (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ glued_cover_t' 𝒰 y z x ≫ glued_cover_t' 𝒰 z x y ≫ pullback.fst =
     pullback.fst :=
-by apply pullback.hom_ext; simp
+by apply pullback.hom_ext; simv
 
 lemma glued_cover_cocycle_snd (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ glued_cover_t' 𝒰 y z x ≫ glued_cover_t' 𝒰 z x y ≫ pullback.snd =
     pullback.snd :=
-by apply pullback.hom_ext; simp [pullback.condition]
+by apply pullback.hom_ext; simv [pullback.condition]
 
 lemma glued_cover_cocycle (x y z : 𝒰.J) :
   glued_cover_t' 𝒰 x y z ≫ glued_cover_t' 𝒰 y z x ≫ glued_cover_t' 𝒰 z x y = 𝟙 _ :=
@@ -306,7 +306,7 @@ def glued_cover : Scheme.glue_data.{u} :=
   t := λ x y, (pullback_symmetry _ _).hom,
   t_id := λ x, by simpa,
   t' := λ x y z, glued_cover_t' 𝒰 x y z,
-  t_fac := λ x y z, by apply pullback.hom_ext; simp,
+  t_fac := λ x y z, by apply pullback.hom_ext; simv,
   -- The `cocycle` field could have been `by tidy` but lean timeouts.
   cocycle := λ x y z, glued_cover_cocycle 𝒰 x y z,
   f_open := λ x, infer_instance }
@@ -322,7 +322,7 @@ begin
   simpa using pullback.condition
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_from_glued (x : 𝒰.J) :
   𝒰.glued_cover.ι x ≫ 𝒰.from_glued = 𝒰.map x :=
 multicoequalizer.π_desc _ _ _ _ _
@@ -422,7 +422,7 @@ begin
   exact hf i j
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_glue_morphisms {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
   (hf : ∀ x y, (pullback.fst : pullback (𝒰.map x) (𝒰.map y) ⟶ _) ≫ f x = pullback.snd ≫ f y)
   (x : 𝒰.J) : (𝒰.map x) ≫ 𝒰.glue_morphisms f hf = f x :=

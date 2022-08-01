@@ -70,8 +70,8 @@ Any homeomorphism is a homotopy equivalence.
 def to_homotopy_equiv (h : X ≃ₜ Y) : X ≃ₕ Y :=
 { to_fun := ⟨h⟩,
   inv_fun := ⟨h.symm⟩,
-  left_inv := by { convert continuous_map.homotopic.refl _, ext, simp },
-  right_inv := by { convert continuous_map.homotopic.refl _, ext, simp } }
+  left_inv := by { convert continuous_map.homotopic.refl _, ext, simv },
+  right_inv := by { convert continuous_map.homotopic.refl _, ext, simv } }
 
 @[simp]
 lemma coe_to_homotopy_equiv (h : X ≃ₜ Y) : ⇑(h.to_homotopy_equiv) = h := rfl
@@ -127,7 +127,7 @@ def trans (h₁ : X ≃ₕ Y) (h₂ : Y ≃ₕ Z) : X ≃ₕ Z :=
       h₁.inv_fun.comp ((h₂.inv_fun.comp h₂.to_fun).comp h₁.to_fun),
     refine homotopic.hcomp _ (homotopic.refl _),
     refine homotopic.trans ((homotopic.refl _).hcomp h₂.left_inv) _,
-    -- simp,
+    -- simv,
     rw continuous_map.id_comp,
   end,
   right_inv := begin

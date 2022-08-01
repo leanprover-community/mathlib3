@@ -48,7 +48,7 @@ lemma has_continuous_smul.of_nhds_zero [topological_ring R] [topological_add_gro
   have key : ∀ p : R × M,
     p.1 • p.2 = a₀ • m₀ + ((p.1 - a₀) • m₀ + a₀ • (p.2 - m₀) + (p.1 - a₀) • (p.2 - m₀)),
   { rintro ⟨a, m⟩,
-    simp [sub_smul, smul_sub],
+    simv [sub_smul, smul_sub],
     abel },
   rw funext key, clear key,
   refine tendsto_const_nhds.add (tendsto.add (tendsto.add _ _) _),
@@ -178,7 +178,7 @@ lemma submodule.closure_smul_self_subset (s : submodule R M) :
 calc
 (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
     = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R) ×ˢ (s : set M))) :
-  by simp [closure_prod_eq]
+  by simv [closure_prod_eq]
 ... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ (s : set M))) :
   image_closure_subset_closure_image continuous_smul
 ... = closure s : begin
@@ -186,7 +186,7 @@ calc
   ext x,
   refine ⟨_, λ hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩⟩,
   rintros ⟨⟨c, y⟩, ⟨hc, hy⟩, rfl⟩,
-  simp [s.smul_mem c hy]
+  simv [s.smul_mem c hy]
 end
 
 lemma submodule.closure_smul_self_eq (s : submodule R M) :
@@ -234,7 +234,7 @@ le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_cl
 /-- A subspace is dense iff its topological closure is the entire space. -/
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
   dense (s : set M) ↔ s.topological_closure = ⊤ :=
-by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simv }
 
 end closure
 
@@ -312,7 +312,7 @@ variables (M₁ M₂) (σ : R →+* S)
 
 lemma is_closed_set_of_map_smul : is_closed {f : M₁ → M₂ | ∀ c x, f (c • x) = σ c • f x} :=
 begin
-  simp only [set.set_of_forall],
+  simv only [set.set_of_forall],
   exact is_closed_Inter (λ c, is_closed_Inter (λ x, is_closed_eq (continuous_apply _)
     ((continuous_apply _).const_smul _)))
 end
@@ -395,7 +395,7 @@ protected lemma uniform_continuous {E₁ E₂ : Type*} [uniform_space E₁] [uni
   uniform_continuous f :=
 uniform_continuous_add_monoid_hom_of_continuous f.continuous
 
-@[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
+@[simv, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
   (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
@@ -424,7 +424,7 @@ protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' 
 { to_linear_map := f.to_linear_map.copy f' h,
   cont := show continuous f', from h.symm ▸ f.continuous }
 
--- make some straightforward lemmas available to `simp`.
+-- make some straightforward lemmas available to `simv`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f
 protected lemma map_add (f : M₁ →SL[σ₁₂] M₂) (x y : M₁) : f (x + y) = f x + f y := map_add f x y
 @[simp]
@@ -433,9 +433,9 @@ protected lemma map_smulₛₗ (f : M₁ →SL[σ₁₂] M₂) (c : R₁) (x : M
 
 @[simp]
 protected lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
-by simp only [ring_hom.id_apply, continuous_linear_map.map_smulₛₗ]
+by simv only [ring_hom.id_apply, continuous_linear_map.map_smulₛₗ]
 
-@[simp, priority 900]
+@[simv, priority 900]
 lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M₁]
   [module S M₁] [has_smul R M₂] [module S M₂]
   [linear_map.compatible_smul M₁ M₂ R S] (f : M₁ →L[S] M₂) (c : R) (x : M₁) :
@@ -445,7 +445,7 @@ linear_map.compatible_smul.map_smul f c x
 protected lemma map_sum {ι : Type*} (f : M₁ →SL[σ₁₂] M₂) (s : finset ι) (g : ι → M₁) :
   f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
 
-@[simp, norm_cast] lemma coe_coe (f : M₁ →SL[σ₁₂] M₂) : ⇑(f : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
+@[simv, norm_cast] lemma coe_coe (f : M₁ →SL[σ₁₂] M₂) : ⇑(f : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
 
 @[ext] theorem ext_ring [topological_space R₁] {f g : R₁ →L[R₁] M₁} (h : f 1 = g 1) : f = g :=
 coe_inj.1 $ linear_map.ext_ring h
@@ -485,7 +485,7 @@ lemma _root_.dense_range.topological_closure_map_submodule [ring_hom_surjective 
   (s.map (f : M₁ →ₛₗ[σ₁₂] M₂)).topological_closure = ⊤ :=
 begin
   rw set_like.ext'_iff at hs ⊢,
-  simp only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
+  simv only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
   exact hf'.dense_image f.continuous hs
 end
 
@@ -501,9 +501,9 @@ instance : mul_action S₂ (M₁ →SL[σ₁₂] M₂) :=
   mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
 
 lemma smul_apply (c : S₂) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (c • f) x = c • (f x) := rfl
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_smul (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
-@[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
+@[simv, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
 
 instance [has_smul S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
@@ -519,8 +519,8 @@ instance : inhabited (M₁ →SL[σ₁₂] M₂) := ⟨0⟩
 
 @[simp] lemma default_def : (default : M₁ →SL[σ₁₂] M₂) = 0 := rfl
 @[simp] lemma zero_apply (x : M₁) : (0 : M₁ →SL[σ₁₂] M₂) x = 0 := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = 0 := rfl
-/- no simp attribute on the next line as simp does not always simplify `0 x` to `0`
+@[simv, norm_cast] lemma coe_zero : ((0 : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = 0 := rfl
+/- no simv attribute on the next line as simv does not always simplify `0 x` to `0`
 when `0` is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
 @[norm_cast] lemma coe_zero' : ⇑(0 : M₁ →SL[σ₁₂] M₂) = 0 := rfl
@@ -548,10 +548,10 @@ instance : has_one (M₁ →L[R₁] M₁) := ⟨id R₁ M₁⟩
 
 lemma one_def : (1 : M₁ →L[R₁] M₁) = id R₁ M₁ := rfl
 lemma id_apply (x : M₁) : id R₁ M₁ x = x := rfl
-@[simp, norm_cast] lemma coe_id : (id R₁ M₁ : M₁ →ₗ[R₁] M₁) = linear_map.id := rfl
-@[simp, norm_cast] lemma coe_id' : ⇑(id R₁ M₁) = _root_.id := rfl
+@[simv, norm_cast] lemma coe_id : (id R₁ M₁ : M₁ →ₗ[R₁] M₁) = linear_map.id := rfl
+@[simv, norm_cast] lemma coe_id' : ⇑(id R₁ M₁) = _root_.id := rfl
 
-@[simp, norm_cast] lemma coe_eq_id {f : M₁ →L[R₁] M₁} :
+@[simv, norm_cast] lemma coe_eq_id {f : M₁ →L[R₁] M₁} :
   (f : M₁ →ₗ[R₁] M₁) = linear_map.id ↔ f = id _ _ :=
 by rw [← coe_id, coe_inj]
 
@@ -564,7 +564,7 @@ instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply (f g : M₁ →SL[σ₁₂] M₂)  (x : M₁) : (f + g) x = f x + g x := rfl
-@[simp, norm_cast] lemma coe_add (f g : M₁ →SL[σ₁₂] M₂) : (↑(f + g) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
+@[simv, norm_cast] lemma coe_add (f g : M₁ →SL[σ₁₂] M₂) : (↑(f + g) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
 @[norm_cast] lemma coe_add' (f g : M₁ →SL[σ₁₂] M₂) : ⇑(f + g) = f + g := rfl
 
 instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
@@ -575,20 +575,20 @@ instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
   add_comm := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
   add_assoc := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
   nsmul := (•),
-  nsmul_zero' := λ f, by { ext, simp },
-  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
+  nsmul_zero' := λ f, by { ext, simv },
+  nsmul_succ' := λ n f, by { ext, simv [nat.succ_eq_one_add, add_smul] } }
 
-@[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
+@[simv, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →ₛₗ[σ₁₂] M₂) :=
 (add_monoid_hom.mk (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) rfl (λ _ _, rfl)).map_sum _ _
 
-@[simp, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
+@[simv, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
   ⇑(∑ d in t, f d) = ∑ d in t, f d :=
-by simp only [← coe_coe, coe_sum, linear_map.coe_fn_sum]
+by simv only [← coe_coe, coe_sum, linear_map.coe_fn_sum]
 
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) (b : M₁) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
-by simp only [coe_sum', finset.sum_apply]
+by simv only [coe_sum', finset.sum_apply]
 
 end add
 
@@ -601,11 +601,11 @@ def comp (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) : M₁ 
 infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _
   (ring_hom.id _) (ring_hom.id _) (ring_hom.id _) _ _ _ _ _ _ _ _ _ _ _ _ ring_hom_comp_triple.ids
 
-@[simp, norm_cast] lemma coe_comp (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
+@[simv, norm_cast] lemma coe_comp (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   (h.comp f : M₁ →ₛₗ[σ₁₃] M₃) = (h : M₂ →ₛₗ[σ₂₃] M₃).comp (f : M₁ →ₛₗ[σ₁₂] M₂) := rfl
 
 include σ₁₃
-@[simp, norm_cast] lemma coe_comp' (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
+@[simv, norm_cast] lemma coe_comp' (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   ⇑(h.comp f) = h ∘ f := rfl
 
 lemma comp_apply (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (g.comp f) x = g (f x) := rfl
@@ -619,20 +619,20 @@ ext $ λ x, rfl
 
 include σ₁₃
 @[simp] theorem comp_zero (g : M₂ →SL[σ₂₃] M₃) : g.comp (0 : M₁ →SL[σ₁₂] M₂) = 0 :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] theorem zero_comp (f : M₁ →SL[σ₁₂] M₂) : (0 : M₂ →SL[σ₂₃] M₃).comp f = 0 :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma comp_add [has_continuous_add M₂] [has_continuous_add M₃]
   (g : M₂ →SL[σ₂₃] M₃) (f₁ f₂ : M₁ →SL[σ₁₂] M₂) :
   g.comp (f₁ + f₂) = g.comp f₁ + g.comp f₂ :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma add_comp [has_continuous_add M₃]
   (g₁ g₂ : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
-by { ext, simp }
+by { ext, simv }
 omit σ₁₃
 
 theorem comp_assoc {R₄ : Type*} [semiring R₄] [module R₄ M₄] {σ₁₄ : R₁ →+* R₄} {σ₂₄ : R₂ →+* R₄}
@@ -708,12 +708,12 @@ protected def prod [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁]
   M₁ →L[R₁] (M₂ × M₃) :=
 ⟨(f₁ : M₁ →ₗ[R₁] M₂).prod f₂, f₁.2.prod_mk f₂.2⟩
 
-@[simp, norm_cast] lemma coe_prod [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁] M₂)
+@[simv, norm_cast] lemma coe_prod [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁] M₂)
   (f₂ : M₁ →L[R₁] M₃) :
   (f₁.prod f₂ : M₁ →ₗ[R₁] M₂ × M₃) = linear_map.prod f₁ f₂ :=
 rfl
 
-@[simp, norm_cast] lemma prod_apply [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁] M₂)
+@[simv, norm_cast] lemma prod_apply [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁] M₂)
   (f₂ : M₁ →L[R₁] M₃) (x : M₁) :
   f₁.prod f₂ x = (f₁ x, f₂ x) :=
 rfl
@@ -733,9 +733,9 @@ end
 @[simp] lemma inl_apply [module R₁ M₂] (x : M₁) : inl R₁ M₁ M₂ x = (x, 0) := rfl
 @[simp] lemma inr_apply [module R₁ M₂] (x : M₂) : inr R₁ M₁ M₂ x = (0, x) := rfl
 
-@[simp, norm_cast] lemma coe_inl [module R₁ M₂] :
+@[simv, norm_cast] lemma coe_inl [module R₁ M₂] :
   (inl R₁ M₁ M₂ : M₁ →ₗ[R₁] M₁ × M₂) = linear_map.inl R₁ M₁ M₂ := rfl
-@[simp, norm_cast] lemma coe_inr [module R₁ M₂] :
+@[simv, norm_cast] lemma coe_inr [module R₁ M₂] :
   (inr R₁ M₁ M₂ : M₂ →ₗ[R₁] M₁ × M₂) = linear_map.inr R₁ M₁ M₂ := rfl
 
 /-- Kernel of a continuous linear map. -/
@@ -804,7 +804,7 @@ def _root_.submodule.subtypeL (p : submodule R₁ M₁) : p →L[R₁] M₁ :=
 { cont := continuous_subtype_val,
   to_linear_map := p.subtype }
 
-@[simp, norm_cast] lemma _root_.submodule.coe_subtypeL (p : submodule R₁ M₁) :
+@[simv, norm_cast] lemma _root_.submodule.coe_subtypeL (p : submodule R₁ M₁) :
   (p.subtypeL : p →ₗ[R₁] M₁) = p.subtype :=
 rfl
 
@@ -812,7 +812,7 @@ rfl
   ⇑p.subtypeL = p.subtype :=
 rfl
 
-@[simp, norm_cast] lemma _root_.submodule.subtypeL_apply (p : submodule R₁ M₁) (x : p) :
+@[simv, norm_cast] lemma _root_.submodule.subtypeL_apply (p : submodule R₁ M₁) (x : p) :
   p.subtypeL x = x :=
 rfl
 
@@ -834,13 +834,13 @@ def snd [module R₁ M₂] : M₁ × M₂ →L[R₁] M₂ :=
 
 variables {R₁ M₁ M₂}
 
-@[simp, norm_cast] lemma coe_fst [module R₁ M₂] : ↑(fst R₁ M₁ M₂) = linear_map.fst R₁ M₁ M₂ := rfl
+@[simv, norm_cast] lemma coe_fst [module R₁ M₂] : ↑(fst R₁ M₁ M₂) = linear_map.fst R₁ M₁ M₂ := rfl
 
-@[simp, norm_cast] lemma coe_fst' [module R₁ M₂] : ⇑(fst R₁ M₁ M₂) = prod.fst := rfl
+@[simv, norm_cast] lemma coe_fst' [module R₁ M₂] : ⇑(fst R₁ M₁ M₂) = prod.fst := rfl
 
-@[simp, norm_cast] lemma coe_snd [module R₁ M₂] : ↑(snd R₁ M₁ M₂) = linear_map.snd R₁ M₁ M₂ := rfl
+@[simv, norm_cast] lemma coe_snd [module R₁ M₂] : ↑(snd R₁ M₁ M₂) = linear_map.snd R₁ M₁ M₂ := rfl
 
-@[simp, norm_cast] lemma coe_snd' [module R₁ M₂] : ⇑(snd R₁ M₁ M₂) = prod.snd := rfl
+@[simv, norm_cast] lemma coe_snd' [module R₁ M₂] : ⇑(snd R₁ M₁ M₂) = prod.snd := rfl
 
 @[simp] lemma fst_prod_snd [module R₁ M₂] : (fst R₁ M₁ M₂).prod (snd R₁ M₁ M₂) = id R₁ (M₁ × M₂) :=
   ext $ λ ⟨x, y⟩, rfl
@@ -858,12 +858,12 @@ def prod_map [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (f₁ : M�
   (M₁ × M₃) →L[R₁] (M₂ × M₄) :=
 (f₁.comp (fst R₁ M₁ M₃)).prod (f₂.comp (snd R₁ M₁ M₃))
 
-@[simp, norm_cast] lemma coe_prod_map [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+@[simv, norm_cast] lemma coe_prod_map [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
   (f₁ : M₁ →L[R₁] M₂) (f₂ : M₃ →L[R₁] M₄) :
   ↑(f₁.prod_map f₂) = ((f₁ : M₁ →ₗ[R₁] M₂).prod_map (f₂ : M₃ →ₗ[R₁] M₄)) :=
 rfl
 
-@[simp, norm_cast] lemma coe_prod_map' [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+@[simv, norm_cast] lemma coe_prod_map' [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
   (f₁ : M₁ →L[R₁] M₂) (f₂ : M₃ →L[R₁] M₄) :
   ⇑(f₁.prod_map f₂) = prod.map f₁ f₂ :=
 rfl
@@ -874,7 +874,7 @@ def coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃] (f₁
   (M₁ × M₂) →L[R₁] M₃ :=
 ⟨linear_map.coprod f₁ f₂, (f₁.cont.comp continuous_fst).add (f₂.cont.comp continuous_snd)⟩
 
-@[norm_cast, simp] lemma coe_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
+@[norm_cast, simv] lemma coe_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
   (f₁ : M₁ →L[R₁] M₃) (f₂ : M₂ →L[R₁] M₃) :
   (f₁.coprod f₂ : (M₁ × M₂) →ₗ[R₁] M₃) = linear_map.coprod f₁ f₂ :=
 rfl
@@ -911,17 +911,17 @@ variables [module R₁ M₂] [topological_space R₁] [has_continuous_smul R₁ 
 
 @[simp]
 lemma smul_right_one_one (c : R₁ →L[R₁] M₂) : smul_right (1 : R₁ →L[R₁] R₁) (c 1) = c :=
-by ext; simp [← continuous_linear_map.map_smul_of_tower]
+by ext; simv [← continuous_linear_map.map_smul_of_tower]
 
 @[simp]
 lemma smul_right_one_eq_iff {f f' : M₂} :
   smul_right (1 : R₁ →L[R₁] R₁) f = smul_right (1 : R₁ →L[R₁] R₁) f' ↔ f = f' :=
-by simp only [ext_ring_iff, smul_right_apply, one_apply, one_smul]
+by simv only [ext_ring_iff, smul_right_apply, one_apply, one_smul]
 
 lemma smul_right_comp [has_continuous_mul R₁] {x : M₂} {c : R₁} :
   (smul_right (1 : R₁ →L[R₁] R₁) x).comp (smul_right (1 : R₁ →L[R₁] R₁) c) =
     smul_right (1 : R₁ →L[R₁] R₁) (c • x) :=
-by { ext, simp [mul_smul] }
+by { ext, simv [mul_smul] }
 
 end semiring
 
@@ -947,7 +947,7 @@ lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
   pi f c i = f i c := rfl
 
 lemma pi_eq_zero (f : Πi, M →L[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
-by { simp only [ext_iff, pi_apply, function.funext_iff], exact forall_swap }
+by { simv only [ext_iff, pi_apply, function.funext_iff], exact forall_swap }
 
 lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := ext $ λ _, rfl
 
@@ -1027,7 +1027,7 @@ variables [topological_add_group M₂]
 instance : has_neg (M →SL[σ₁₂] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply (f : M →SL[σ₁₂] M₂) (x : M) : (-f) x = - (f x) := rfl
-@[simp, norm_cast] lemma coe_neg (f : M →SL[σ₁₂] M₂) : (↑(-f) : M →ₛₗ[σ₁₂] M₂) = -f := rfl
+@[simv, norm_cast] lemma coe_neg (f : M →SL[σ₁₂] M₂) : (↑(-f) : M →ₛₗ[σ₁₂] M₂) = -f := rfl
 @[norm_cast] lemma coe_neg' (f : M →SL[σ₁₂] M₂) : ⇑(-f) = -f := rfl
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
@@ -1041,15 +1041,15 @@ by refine
   sub_eq_add_neg := _,
   nsmul := (•),
   zsmul := (•),
-  zsmul_zero' := λ f, by { ext, simp },
-  zsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
-  zsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
+  zsmul_zero' := λ f, by { ext, simv },
+  zsmul_succ' := λ n f, by { ext, simv [add_smul, add_comm] },
+  zsmul_neg' := λ n f, by { ext, simv [nat.succ_eq_add_one, add_smul] },
   .. continuous_linear_map.add_comm_monoid, .. };
 intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
 lemma sub_apply (f g : M →SL[σ₁₂] M₂) (x : M) : (f - g) x = f x - g x := rfl
-@[simp, norm_cast] lemma coe_sub (f g : M →SL[σ₁₂] M₂) : (↑(f - g) : M →ₛₗ[σ₁₂] M₂) = f - g := rfl
-@[simp, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
+@[simv, norm_cast] lemma coe_sub (f g : M →SL[σ₁₂] M₂) : (↑(f - g) : M →ₛₗ[σ₁₂] M₂) = f - g := rfl
+@[simv, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
 
 end
 
@@ -1063,7 +1063,7 @@ lemma smul_right_one_pow [topological_space R] [topological_ring R] (c : R) (n :
   (smul_right (1 : R →L[R] R) c)^n = smul_right (1 : R →L[R] R) (c^n) :=
 begin
   induction n with n ihn,
-  { ext, simp },
+  { ext, simv },
   { rw [pow_succ, ihn, mul_def, smul_right_comp, smul_eq_mul, pow_succ'] }
 end
 
@@ -1075,7 +1075,7 @@ variables {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
 def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M)
   (h : function.right_inverse f₂ f₁) :
   M →L[R] f₁.ker :=
-(id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simp [h (f₁ x)]
+(id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simv [h (f₁ x)]
 
 @[simp] lemma coe_proj_ker_of_right_inverse_apply [topological_add_group M]
   (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M) (h : function.right_inverse f₂ f₁) (x : M) :
@@ -1085,12 +1085,12 @@ rfl
 @[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
   (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
   f₁.proj_ker_of_right_inverse f₂ h x = x :=
-subtype.ext_iff_val.2 $ by simp
+subtype.ext_iff_val.2 $ by simv
 
 @[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
   (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M) (h : function.right_inverse f₂ f₁) (y : M₂) :
   f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
-subtype.ext_iff_val.2 $ by simp [h y]
+subtype.ext_iff_val.2 $ by simv [h y]
 
 end
 
@@ -1105,7 +1105,7 @@ protected lemma is_open_map_of_ne_zero [topological_space R] [division_ring R]
   [module R M] [has_continuous_smul R M] (f : M →L[R] R) (hf : f ≠ 0) : is_open_map f :=
 let ⟨x, hx⟩ := exists_ne_zero hf in is_open_map.of_sections $ λ y,
     ⟨λ a, y + (a - f y) • (f x)⁻¹ • x, continuous.continuous_at $ by continuity,
-      by simp, λ a, by simp [hx]⟩
+      by simv, λ a, by simv [hx]⟩
 
 end division_monoid
 
@@ -1141,7 +1141,7 @@ include σ₁₃
   [has_continuous_const_smul R₂ M₂] [has_continuous_const_smul R₃ M₃]
   (h : M₂ →SL[σ₂₃] M₃) (c : R₂) (f : M →SL[σ₁₂] M₂) :
   h.comp (c • f) = (σ₂₃ c) • (h.comp f) :=
-by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply,
+by { ext x, simv only [coe_smul', coe_comp', function.comp_app, pi.smul_apply,
                       continuous_linear_map.map_smulₛₗ] }
 omit σ₁₃
 
@@ -1176,7 +1176,7 @@ variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R�
 
 lemma prod_ext_iff {f g : M × N₂ →L[R] N₃} :
   f = g ↔ f.comp (inl _ _ _) = g.comp (inl _ _ _) ∧ f.comp (inr _ _ _) = g.comp (inr _ _ _) :=
-by { simp only [← coe_inj, linear_map.prod_ext_iff], refl }
+by { simv only [← coe_inj, linear_map.prod_ext_iff], refl }
 
 @[ext] lemma prod_ext {f g : M × N₂ →L[R] N₃} (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
   (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) : f = g :=
@@ -1276,7 +1276,7 @@ def restrict_scalars (f : M →L[A] M₂) : M →L[R] M₂ :=
 
 variable {R}
 
-@[simp, norm_cast] lemma coe_restrict_scalars (f : M →L[A] M₂) :
+@[simv, norm_cast] lemma coe_restrict_scalars (f : M →L[A] M₂) :
   (f.restrict_scalars R : M →ₗ[R] M₂) = (f : M →ₗ[A] M₂).restrict_scalars R := rfl
 
 @[simp] lemma coe_restrict_scalars' (f : M →L[A] M₂) : ⇑(f.restrict_scalars R) = f := rfl
@@ -1351,7 +1351,7 @@ theorem coe_apply (e : M₁ ≃SL[σ₁₂] M₂) (b : M₁) : (e : M₁ →SL[�
 
 @[simp] lemma coe_to_linear_equiv (f : M₁ ≃SL[σ₁₂] M₂) : ⇑f.to_linear_equiv = f := rfl
 
-@[simp, norm_cast] lemma coe_coe (e : M₁ ≃SL[σ₁₂] M₂) : ⇑(e : M₁ →SL[σ₁₂] M₂) = e := rfl
+@[simv, norm_cast] lemma coe_coe (e : M₁ ≃SL[σ₁₂] M₂) : ⇑(e : M₁ →SL[σ₁₂] M₂) = e := rfl
 
 lemma to_linear_equiv_injective :
   function.injective (to_linear_equiv : (M₁ ≃SL[σ₁₂] M₂) → (M₁ ≃ₛₗ[σ₁₂] M₂))
@@ -1363,7 +1363,7 @@ to_linear_equiv_injective $ linear_equiv.ext $ congr_fun h
 lemma coe_injective : function.injective (coe : (M₁ ≃SL[σ₁₂] M₂) → (M₁ →SL[σ₁₂] M₂)) :=
 λ e e' h, ext $ funext $ continuous_linear_map.ext_iff.1 h
 
-@[simp, norm_cast] lemma coe_inj {e e' : M₁ ≃SL[σ₁₂] M₂} : (e : M₁ →SL[σ₁₂] M₂) = e' ↔ e = e' :=
+@[simv, norm_cast] lemma coe_inj {e e' : M₁ ≃SL[σ₁₂] M₂} : (e : M₁ →SL[σ₁₂] M₂) = e' ↔ e = e' :=
 coe_injective.eq_iff
 
 /-- A continuous linear equivalence induces a homeomorphism. -/
@@ -1384,7 +1384,7 @@ e.to_homeomorph.is_closed_image
 lemma map_nhds_eq (e : M₁ ≃SL[σ₁₂] M₂) (x : M₁) : map e (𝓝 x) = 𝓝 (e x) :=
 e.to_homeomorph.map_nhds_eq x
 
--- Make some straightforward lemmas available to `simp`.
+-- Make some straightforward lemmas available to `simv`.
 @[simp] lemma map_zero (e : M₁ ≃SL[σ₁₂] M₂) : e (0 : M₁) = 0 := (e : M₁ →SL[σ₁₂] M₂).map_zero
 @[simp] lemma map_add (e : M₁ ≃SL[σ₁₂] M₂) (x y : M₁) : e (x + y) = e x + e y :=
 (e : M₁ →SL[σ₁₂] M₂).map_add x y
@@ -1442,10 +1442,10 @@ variables (R₁ M₁)
   .. linear_equiv.refl R₁ M₁ }
 end
 
-@[simp, norm_cast] lemma coe_refl :
+@[simv, norm_cast] lemma coe_refl :
   ↑(continuous_linear_equiv.refl R₁ M₁) = continuous_linear_map.id R₁ M₁ := rfl
 
-@[simp, norm_cast] lemma coe_refl' : ⇑(continuous_linear_equiv.refl R₁ M₁) = id := rfl
+@[simv, norm_cast] lemma coe_refl' : ⇑(continuous_linear_equiv.refl R₁ M₁) = id := rfl
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
 @[symm] protected def symm (e : M₁ ≃SL[σ₁₂] M₂) : M₂ ≃SL[σ₂₁] M₁ :=
@@ -1496,11 +1496,11 @@ def prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L
   continuous_inv_fun := e.continuous_inv_fun.prod_map e'.continuous_inv_fun,
   .. e.to_linear_equiv.prod e'.to_linear_equiv }
 
-@[simp, norm_cast] lemma prod_apply [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L[R₁] M₂)
+@[simv, norm_cast] lemma prod_apply [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L[R₁] M₂)
   (e' : M₃ ≃L[R₁] M₄) (x) :
   e.prod e' x = (e x.1, e' x.2) := rfl
 
-@[simp, norm_cast] lemma coe_prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L[R₁] M₂)
+@[simv, norm_cast] lemma coe_prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L[R₁] M₂)
   (e' : M₃ ≃L[R₁] M₄) :
   (e.prod e' : (M₁ × M₃) →L[R₁] (M₂ × M₄)) = (e : M₁ →L[R₁] M₂).prod_map (e' : M₃ →L[R₁] M₄) :=
 rfl
@@ -1535,7 +1535,7 @@ e.to_linear_equiv.to_equiv.symm_image_image s
 e.symm.symm_image_image s
 
 include σ₃₂ σ₃₁
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma comp_coe (f : M₁ ≃SL[σ₁₂] M₂) (f' : M₂ ≃SL[σ₂₃] M₃) :
   (f' : M₂ →SL[σ₂₃] M₃).comp (f : M₁ →SL[σ₁₂] M₂) = (f.trans f' : M₁ →SL[σ₁₃] M₃) :=
 rfl
@@ -1659,9 +1659,9 @@ continuous linear maps. See also `continuous_linear_equiv.arrow_congr`. -/
 { to_fun := λ f, (e₄₃ : M₄ →SL[σ₄₃] M₃).comp (f.comp (e₁₂.symm : M₂ →SL[σ₂₁] M₁)),
   inv_fun := λ f, (e₄₃.symm : M₃ →SL[σ₃₄] M₄).comp (f.comp (e₁₂ : M₁ →SL[σ₁₂] M₂)),
   left_inv := λ f, continuous_linear_map.ext $ λ x,
-    by simp only [continuous_linear_map.comp_apply, symm_apply_apply, coe_coe],
+    by simv only [continuous_linear_map.comp_apply, symm_apply_apply, coe_coe],
   right_inv := λ f, continuous_linear_map.ext $ λ x,
-    by simp only [continuous_linear_map.comp_apply, apply_symm_apply, coe_coe] }
+    by simv only [continuous_linear_map.comp_apply, apply_symm_apply, coe_coe] }
 
 end add_comm_monoid
 
@@ -1718,11 +1718,11 @@ variables [topological_add_group M]
 def of_unit (f : (M →L[R] M)ˣ) : (M ≃L[R] M) :=
 { to_linear_equiv :=
   { to_fun    := f.val,
-    map_add'  := by simp,
-    map_smul' := by simp,
+    map_add'  := by simv,
+    map_smul' := by simv,
     inv_fun   := f.inv,
-    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simp},
-    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simp}, },
+    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simv},
+    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simv}, },
   continuous_to_fun  := f.val.continuous,
   continuous_inv_fun := f.inv.continuous }
 
@@ -1730,8 +1730,8 @@ def of_unit (f : (M →L[R] M)ˣ) : (M ≃L[R] M) :=
 def to_unit (f : (M ≃L[R] M)) : (M →L[R] M)ˣ :=
 { val     := f,
   inv     := f.symm,
-  val_inv := by {ext, simp},
-  inv_val := by {ext, simp} }
+  val_inv := by {ext, simv},
+  inv_val := by {ext, simv} }
 
 variables (R M)
 
@@ -1757,12 +1757,12 @@ def units_equiv_aut : Rˣ ≃ (R ≃L[R] R) :=
 { to_fun := λ u, equiv_of_inverse
     (continuous_linear_map.smul_right (1 : R →L[R] R) ↑u)
     (continuous_linear_map.smul_right (1 : R →L[R] R) ↑u⁻¹)
-    (λ x, by simp) (λ x, by simp),
+    (λ x, by simv) (λ x, by simv),
   inv_fun := λ e, ⟨e 1, e.symm 1,
     by rw [← smul_eq_mul, ← map_smul, smul_eq_mul, mul_one, symm_apply_apply],
     by rw [← smul_eq_mul, ← map_smul, smul_eq_mul, mul_one, apply_symm_apply]⟩,
-  left_inv := λ u, units.ext $ by simp,
-  right_inv := λ e, ext₁ $ by simp }
+  left_inv := λ u, units.ext $ by simv,
+  right_inv := λ e, ext₁ $ by simv }
 
 variable {R}
 
@@ -1787,8 +1787,8 @@ linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x
 def equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
   M ≃L[R] M₂ × f₁.ker :=
 equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod f₁.ker.subtypeL)
-  (λ x, by simp)
-  (λ ⟨x, y⟩, by simp [h x])
+  (λ x, by simv)
+  (λ ⟨x, y⟩, by simv [h x])
 
 @[simp] lemma fst_equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) (x : M) :
@@ -1865,7 +1865,7 @@ else 0
 @[simp] lemma inverse_equiv (e : M ≃L[R] M₂) : inverse (e : M →L[R] M₂) = e.symm :=
 begin
   have h : ∃ (e' : M ≃L[R] M₂), (e' : M →L[R] M₂) = ↑e := ⟨e, rfl⟩,
-  simp only [inverse, dif_pos h],
+  simv only [inverse, dif_pos h],
   congr,
   exact_mod_cast (classical.some_spec h)
 end
@@ -1888,7 +1888,7 @@ begin
   suffices :
     ring.inverse ((((continuous_linear_equiv.units_equiv _ _).symm e) : M →L[R] M)) = inverse ↑e,
   { convert this },
-  simp,
+  simv,
   refl,
 end
 
@@ -1902,20 +1902,20 @@ begin
     rw ← he',
     change _ = (ring.inverse ↑(e'.trans e.symm)) ∘L ↑e.symm,
     ext,
-    simp },
+    simv },
   { suffices : ¬is_unit ((e.symm : M₂ →L[R] M).comp f),
-    { simp [this, h₁] },
+    { simv [this, h₁] },
     contrapose! h₁,
     rcases h₁ with ⟨F, hF⟩,
     use (continuous_linear_equiv.units_equiv _ _ F).trans e,
     ext,
-    dsimp, rw [coe_fn_coe_base' F, hF], simp }
+    dsimp, rw [coe_fn_coe_base' F, hF], simv }
 end
 
 lemma ring_inverse_eq_map_inverse : ring.inverse = @inverse R M M _ _ _ _ _ _ _ :=
 begin
   ext,
-  simp [to_ring_inverse (continuous_linear_equiv.refl R M)],
+  simv [to_ring_inverse (continuous_linear_equiv.refl R M)],
 end
 
 end
@@ -1949,10 +1949,10 @@ begin
 end
 
 @[simp] lemma closed_complemented_bot : closed_complemented (⊥ : submodule R M) :=
-⟨0, λ x, by simp only [zero_apply, eq_zero_of_bot_submodule x]⟩
+⟨0, λ x, by simv only [zero_apply, eq_zero_of_bot_submodule x]⟩
 
 @[simp] lemma closed_complemented_top : closed_complemented (⊤ : submodule R M) :=
-⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.ext_iff_val.2 $ by simp⟩
+⟨(id R M).cod_restrict ⊤ (λ x, trivial), λ x, subtype.ext_iff_val.2 $ by simv⟩
 
 end submodule
 

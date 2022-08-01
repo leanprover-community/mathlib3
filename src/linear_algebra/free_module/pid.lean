@@ -205,7 +205,7 @@ begin
   have y'M : y' ∈ M := M.sum_mem (λ i _, M.smul_mem (c i) (b'M i).2),
   have mk_y' : (⟨y', y'M⟩ : M) = ∑ i, c i • b'M i :=
     subtype.ext (show y' = M.subtype _,
-      by { simp only [linear_map.map_sum, linear_map.map_smul], refl }),
+      by { simv only [linear_map.map_sum, linear_map.map_smul], refl }),
   have a_smul_y' : a • y' = y,
   { refine congr_arg coe (show (a • ⟨y', y'M⟩ : M) = ⟨y, N_le_M yN⟩, from _),
     rw [← b'M.sum_repr ⟨y, N_le_M yN⟩, mk_y', finset.smul_sum],
@@ -216,7 +216,7 @@ begin
 
   have ϕy'_eq : ϕ ⟨y', y'M⟩ = 1 := mul_left_cancel₀ a_zero
   (calc a • ϕ ⟨y', y'M⟩ = ϕ ⟨a • y', _⟩ : (ϕ.map_smul a ⟨y', y'M⟩).symm
-                    ... = ϕ ⟨y, N_le_M yN⟩ : by simp only [a_smul_y']
+                    ... = ϕ ⟨y, N_le_M yN⟩ : by simv only [a_smul_y']
                     ... = a : ϕy_eq
                     ... = a * 1 : (mul_one a).symm),
   have ϕy'_ne_zero : ϕ ⟨y', y'M⟩ ≠ 0 := by simpa only [ϕy'_eq] using one_ne_zero,
@@ -227,7 +227,7 @@ begin
   have M'_le_M : M' ≤ M := M.map_subtype_le ϕ.ker,
   have N'_le_M' : N' ≤ M',
   { intros x hx,
-    simp only [mem_map, linear_map.mem_ker] at hx ⊢,
+    simv only [mem_map, linear_map.mem_ker] at hx ⊢,
     obtain ⟨⟨x, xN⟩, hx, rfl⟩ := hx,
     exact ⟨⟨x, N_le_M xN⟩, hx, rfl⟩ },
   have N'_le_N : N' ≤ N := N.map_subtype_le (ϕ.comp (of_le N_le_M)).ker,
@@ -260,7 +260,7 @@ begin
       { refine linear_map.mem_ker.mpr (show ϕ (⟨z, N_le_M zN⟩ - b • ⟨y, N_le_M yN⟩) = 0, from _),
         rw [linear_map.map_sub, linear_map.map_smul, hb, ϕy_eq, smul_eq_mul,
             mul_comm, sub_self] },
-      { simp only [sub_eq_add_neg, neg_smul], refl } } },
+      { simv only [sub_eq_add_neg, neg_smul], refl } } },
   -- And extend a basis for `M'` with `y'`
   intros m' hn'm' bM',
   refine ⟨nat.succ_le_succ hn'm', _, _⟩,
@@ -276,9 +276,9 @@ begin
   intro i,
   rw [basis.coe_mk_fin_cons_of_le, basis.coe_mk_fin_cons_of_le],
   refine fin.cases _ (λ i, _) i,
-  { simp only [fin.cons_zero, fin.cast_le_zero],
+  { simv only [fin.cons_zero, fin.cast_le_zero],
     exact a_smul_y'.symm },
-  { rw fin.cast_le_succ, simp only [fin.cons_succ, coe_of_le, h i] }
+  { rw fin.cast_le_succ, simv only [fin.cons_succ, coe_of_le, h i] }
 end
 
 /-- A submodule of a free `R`-module of finite rank is also a free `R`-module of finite rank,
@@ -461,7 +461,7 @@ begin
   refine ⟨o, n, bO, bN.map (comap_subtype_equiv_of_le N_le_O).symm, (fin.cast_le hno).to_embedding,
           a, λ i, _⟩,
   ext,
-  simp only [snf, basis.map_apply, submodule.comap_subtype_equiv_of_le_symm_apply_coe_coe,
+  simv only [snf, basis.map_apply, submodule.comap_subtype_equiv_of_le_symm_apply_coe_coe,
       submodule.coe_smul_of_tower, rel_embedding.coe_fn_to_embedding]
 end
 
@@ -480,7 +480,7 @@ let ⟨m, n, bM, bN, f, a, snf⟩ := N.smith_normal_form_of_le b ⊤ le_top,
     bM' := bM.map (linear_equiv.of_top _ rfl),
     e := bM'.index_equiv b in
 ⟨n, bM'.reindex e, bN.map (comap_subtype_equiv_of_le le_top), f.trans e.to_embedding, a,
- λ i, by simp only [snf, basis.map_apply, linear_equiv.of_top_apply, submodule.coe_smul_of_tower,
+ λ i, by simv only [snf, basis.map_apply, linear_equiv.of_top_apply, submodule.coe_smul_of_tower,
                     submodule.comap_subtype_equiv_of_le_apply_coe, coe_coe, basis.reindex_apply,
                     equiv.to_embedding_apply, function.embedding.trans_apply,
                     equiv.symm_apply_apply]⟩
@@ -503,7 +503,7 @@ let ⟨n, bS, bI, f, a, snf⟩ := (I.restrict_scalars R).smith_normal_form b in
 have eq : _ := ideal.rank_eq bS hI (bI.map ((restrict_scalars_equiv R S S I).restrict_scalars _)),
 let e : fin n ≃ fin (fintype.card ι) := fintype.equiv_of_card_eq (by rw [eq, fintype.card_fin]) in
 ⟨bS, bI.reindex e, e.symm.to_embedding.trans f, a ∘ e.symm, λ i,
-  by simp only [snf, basis.coe_reindex, function.embedding.trans_apply, equiv.to_embedding_apply]⟩
+  by simv only [snf, basis.coe_reindex, function.embedding.trans_apply, equiv.to_embedding_apply]⟩
 
 /-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
 then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
@@ -523,7 +523,7 @@ let ⟨bS, bI, f, a, snf⟩ := I.smith_normal_form b hI,
       ((fintype.bijective_iff_injective_and_card f).mpr ⟨f.injective, fintype.card_fin _⟩) in
 have fe : ∀ i, f (e.symm i) = i := e.apply_symm_apply,
 ⟨bS, a ∘ e.symm, (bI.reindex e).map ((restrict_scalars_equiv _ _ _ _).restrict_scalars R), λ i,
-  by simp only [snf, fe, basis.map_apply, linear_equiv.restrict_scalars_apply,
+  by simv only [snf, fe, basis.map_apply, linear_equiv.restrict_scalars_apply,
     submodule.restrict_scalars_equiv_apply, basis.coe_reindex]⟩
 
 end smith_normal

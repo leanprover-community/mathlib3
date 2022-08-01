@@ -52,17 +52,17 @@ namespace algebraic_geometry
 
 namespace PresheafedSpace
 
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 @[simp]
 lemma map_id_c_app (F : J ⥤ PresheafedSpace.{v} C) (j) (U) :
   (F.map (𝟙 j)).c.app (op U) =
     (pushforward.id (F.obj j).presheaf).inv.app (op U) ≫
-      (pushforward_eq (by { simp, refl }) (F.obj j).presheaf).hom.app (op U) :=
+      (pushforward_eq (by { simv, refl }) (F.obj j).presheaf).hom.app (op U) :=
 begin
   cases U,
   dsimp,
-  simp [PresheafedSpace.congr_app (F.map_id j)],
+  simv [PresheafedSpace.congr_app (F.map_id j)],
   refl,
 end
 
@@ -76,8 +76,8 @@ lemma map_comp_c_app (F : J ⥤ PresheafedSpace.{v} C) {j₁ j₂ j₃} (f : j�
 begin
   cases U,
   dsimp,
-  simp only [PresheafedSpace.congr_app (F.map_comp f g)],
-  dsimp, simp, dsimp, simp, -- See note [dsimp, simp]
+  simv only [PresheafedSpace.congr_app (F.map_comp f g)],
+  dsimp, simv, dsimp, simv, -- See note [dsimp, simv]
 end
 
 /--
@@ -127,17 +127,17 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace.{v} C) :
     ext U,
     induction U using opposite.rec,
     cases U,
-    dsimp, simp, dsimp, simp,
+    dsimp, simv, dsimp, simv,
   end,
   map_comp' := λ j₁ j₂ j₃ f g,
   begin
     apply (op_equiv _ _).injective,
     ext U,
     dsimp,
-    simp only [map_comp_c_app, id.def, eq_to_hom_op, pushforward_map_app, eq_to_hom_map, assoc,
+    simv only [map_comp_c_app, id.def, eq_to_hom_op, pushforward_map_app, eq_to_hom_map, assoc,
       id_comp, pushforward.comp_inv_app, pushforward_eq_hom_app],
     dsimp,
-    simp only [eq_to_hom_trans, id_comp],
+    simv only [eq_to_hom_trans, id_comp],
     congr' 1,
     -- The key fact is `(F.map f).c.congr`,
     -- which allows us in rewrite in the argument of `(F.map f).c.app`.
@@ -153,7 +153,7 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace.{v} C) :
       exact colimit.w (F ⋙ PresheafedSpace.forget C) g, },
     -- Finally, the original goal is now easy:
     swap 2,
-    { simp, refl, },
+    { simv, refl, },
   end, }
 
 variables [∀ X : Top.{v}, has_limits_of_shape Jᵒᵖ (X.presheaf C)]
@@ -190,14 +190,14 @@ def colimit_cocone (F : J ⥤ PresheafedSpace.{v} C) : cocone F :=
         induction U using opposite.rec,
         cases U,
         dsimp,
-        simp only [PresheafedSpace.id_c_app, eq_to_hom_op, eq_to_hom_map, assoc,
+        simv only [PresheafedSpace.id_c_app, eq_to_hom_op, eq_to_hom_map, assoc,
           pushforward.comp_inv_app],
         rw ← congr_arg nat_trans.app (limit.w (pushforward_diagram_to_colimit F).left_op f.op),
         dsimp,
-        simp only [eq_to_hom_op, eq_to_hom_map, assoc, id_comp, pushforward.comp_inv_app],
+        simv only [eq_to_hom_op, eq_to_hom_map, assoc, id_comp, pushforward.comp_inv_app],
         congr,
         dsimp,
-        simp only [id_comp],
+        simv only [id_comp],
         simpa, }
     end, }, }
 
@@ -222,16 +222,16 @@ begin
   { refine (s.ι.app (unop j)).c.app U ≫ (F.obj (unop j)).presheaf.map (eq_to_hom _),
     dsimp,
     rw ←opens.map_comp_obj,
-    simp, },
+    simv, },
   { rw (PresheafedSpace.congr_app (s.w f.unop).symm U),
     dsimp,
     have w := functor.congr_obj (congr_arg opens.map
       (colimit.ι_desc ((PresheafedSpace.forget C).map_cocone s) (unop j))) (unop U),
-    simp only [opens.map_comp_obj_unop] at w,
+    simv only [opens.map_comp_obj_unop] at w,
     replace w := congr_arg op w,
     have w' := nat_trans.congr (F.map f.unop).c w,
     rw w',
-    dsimp, simp, dsimp, simp, },
+    dsimp, simv, dsimp, simv, },
 end
 
 lemma desc_c_naturality (F : J ⥤ PresheafedSpace.{v} C) (s : cocone F)
@@ -242,17 +242,17 @@ lemma desc_c_naturality (F : J ⥤ PresheafedSpace.{v} C) (s : cocone F)
 begin
   dsimp [desc_c_app],
   ext,
-  simp only [limit.lift_π, nat_trans.naturality, limit.lift_π_assoc, eq_to_hom_map, assoc,
+  simv only [limit.lift_π, nat_trans.naturality, limit.lift_π_assoc, eq_to_hom_map, assoc,
     pushforward_obj_map, nat_trans.naturality_assoc, op_map,
     limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc,
     limit_obj_iso_limit_comp_evaluation_inv_π_app],
   dsimp,
   have w := functor.congr_hom (congr_arg opens.map
     (colimit.ι_desc ((PresheafedSpace.forget C).map_cocone s) (unop j))) (i.unop),
-  simp only [opens.map_comp_map] at w,
+  simv only [opens.map_comp_map] at w,
   replace w := congr_arg quiver.hom.op w,
   rw w,
-  dsimp, simp,
+  dsimp, simv,
 end
 
 /--
@@ -268,7 +268,7 @@ lemma desc_fac  (F : J ⥤ PresheafedSpace.{v} C) (s : cocone F) (j : J) :
   (colimit_cocone F).ι.app j ≫ desc F s = s.ι.app j :=
 begin
   fapply PresheafedSpace.ext,
-  { simp [desc] },
+  { simv [desc] },
   { ext,
     dsimp [desc, desc_c_app],
     simpa }
@@ -292,19 +292,19 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace.{v} C) : is_colimit (co
     { apply category_theory.limits.colimit.hom_ext, intros j,
       apply continuous_map.ext, intros x,
       dsimp,
-      simp only [colimit.ι_desc_apply, map_cocone_ι_app],
+      simv only [colimit.ι_desc_apply, map_cocone_ι_app],
       rw ← w j,
-      simp, },
+      simv, },
     fapply PresheafedSpace.ext, -- could `ext` please not reorder goals?
     { exact t, },
     { ext U j, dsimp [desc, desc_c_app],
-      simp only [limit.lift_π, eq_to_hom_op, eq_to_hom_map, assoc,
+      simv only [limit.lift_π, eq_to_hom_op, eq_to_hom_map, assoc,
         limit_obj_iso_limit_comp_evaluation_inv_π_app],
       rw PresheafedSpace.congr_app (w (unop j)).symm U,
       dsimp,
       have w := congr_arg op (functor.congr_obj (congr_arg opens.map t) (unop U)),
       rw nat_trans.congr (limit.π (pushforward_diagram_to_colimit F).left_op j) w,
-      simp }
+      simv }
   end, }
 
 instance : has_colimits_of_shape J (PresheafedSpace.{v} C) :=
@@ -319,7 +319,7 @@ instance : preserves_colimits_of_shape J (PresheafedSpace.forget C) :=
     apply is_colimit.of_iso_colimit (colimit.is_colimit _),
     fapply cocones.ext,
     { refl, },
-    { intro j, dsimp, simp, }
+    { intro j, dsimp, simv, }
   end }
 
 /--
@@ -343,7 +343,7 @@ instance forget_preserves_colimits [has_limits C] : preserves_colimits (Presheaf
       apply is_colimit.of_iso_colimit (colimit.is_colimit _),
       fapply cocones.ext,
       { refl, },
-      { intro j, dsimp, simp, }
+      { intro j, dsimp, simv, }
     end } }
 
 /--

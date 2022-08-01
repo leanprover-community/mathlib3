@@ -36,7 +36,7 @@ lemma is_Gδ_irrational : is_Gδ {x | irrational x} :=
 lemma dense_irrational : dense {x : ℝ | irrational x} :=
 begin
   refine real.is_topological_basis_Ioo_rat.dense_iff.2 _,
-  simp only [mem_Union, mem_singleton_iff],
+  simv only [mem_Union, mem_singleton_iff],
   rintro _ ⟨a, b, hlt, rfl⟩ hne, rw inter_comm,
   exact exists_irrational_btwn (rat.cast_lt.2 hlt)
 end
@@ -53,10 +53,10 @@ induced_order_topology _ (λ x y, iff.rfl) $ λ x y hlt,
   let ⟨a, ha, hxa, hay⟩ := exists_irrational_btwn hlt in ⟨⟨a, ha⟩, hxa, hay⟩
 
 instance : no_max_order {x // irrational x} :=
-⟨λ ⟨x, hx⟩, ⟨⟨x + (1 : ℕ), hx.add_nat 1⟩, by simp⟩⟩
+⟨λ ⟨x, hx⟩, ⟨⟨x + (1 : ℕ), hx.add_nat 1⟩, by simv⟩⟩
 
 instance : no_min_order {x // irrational x} :=
-⟨λ ⟨x, hx⟩, ⟨⟨x - (1 : ℕ), hx.sub_nat 1⟩, by simp⟩⟩
+⟨λ ⟨x, hx⟩, ⟨⟨x - (1 : ℕ), hx.sub_nat 1⟩, by simv⟩⟩
 
 instance : densely_ordered {x // irrational x} :=
 ⟨λ x y hlt, let ⟨z, hz, hxz, hzy⟩ := exists_irrational_btwn hlt in ⟨⟨z, hz⟩, hxz, hzy⟩⟩
@@ -73,7 +73,7 @@ begin
   refine (ge_mem_nhds ε0).mono (λ δ hδ m, not_lt.1 $ λ hlt, _),
   rw dist_comm at hlt,
   refine hε (ball_subset_ball hδ hlt) ⟨m, _⟩,
-  simp [div_eq_inv_mul]
+  simv [div_eq_inv_mul]
 end
 
 lemma eventually_forall_le_dist_cast_div_of_denom_le (hx : irrational x) (n : ℕ) :

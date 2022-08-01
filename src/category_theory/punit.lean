@@ -59,13 +59,13 @@ def equiv : (discrete punit ⥤ C) ≌ C :=
     apply iso.refl _,
     intros,
     ext ⟨⟨⟩⟩,
-    simp,
+    simv,
   end,
   counit_iso :=
   begin
     refine nat_iso.of_components iso.refl _,
     intros X Y f,
-    dsimp, simp,  -- See note [dsimp, simp].
+    dsimp, simv,  -- See note [dsimp, simv].
   end }
 
 end functor
@@ -87,7 +87,7 @@ begin
     apply subsingleton.intro,
     intros a b,
     rw [this a, this b],
-    simp only [functor.comp_map], congr, },
+    simv only [functor.comp_map], congr, },
   { rintro ⟨⟨p⟩, h⟩,
     haveI := λ x y, (h x y).some,
     refine nonempty.intro (category_theory.equivalence.mk

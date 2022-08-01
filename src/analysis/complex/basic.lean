@@ -51,7 +51,7 @@ instance : normed_field ℂ :=
   .. complex.field, .. complex.normed_add_comm_group }
 
 instance : nontrivially_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp; norm_num⟩ }
+{ non_trivial := ⟨2, by simv; norm_num⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_smul_le := λ r x, begin
@@ -118,24 +118,24 @@ by { rw ← of_real_rat_cast, exact norm_real _ }
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
-by simp [← rat.cast_coe_int] {single_pass := tt}
+by simv [← rat.cast_coe_int] {single_pass := tt}
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by simp [hn]
+by simv [hn]
 
 @[continuity] lemma continuous_abs : continuous abs := continuous_norm
 
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
 
-@[simp, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
+@[simv, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
 subtype.ext $ norm_real r
 
-@[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
-subtype.ext $ by simp
+@[simv, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
+subtype.ext $ by simv
 
-@[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
-subtype.ext $ by simp only [coe_nnnorm, norm_int, int.norm_eq_abs]
+@[simv, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
+subtype.ext $ by simv only [coe_nnnorm, norm_int, int.norm_eq_abs]
 
 lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
   ∥ζ∥₊ = 1 :=
@@ -161,7 +161,7 @@ by simpa [mul_self_abs] using
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [abs_re_le_abs])
+def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simv [abs_re_le_abs])
 
 @[continuity] lemma continuous_re : continuous re := re_clm.continuous
 
@@ -171,13 +171,13 @@ def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [abs_re_l
 
 @[simp] lemma re_clm_norm : ∥re_clm∥ = 1 :=
 le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
-calc 1 = ∥re_clm 1∥ : by simp
-   ... ≤ ∥re_clm∥ : unit_le_op_norm _ _ (by simp)
+calc 1 = ∥re_clm 1∥ : by simv
+   ... ≤ ∥re_clm∥ : unit_le_op_norm _ _ (by simv)
 
 @[simp] lemma re_clm_nnnorm : ∥re_clm∥₊ = 1 := subtype.ext re_clm_norm
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_le_abs])
+def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simv [abs_im_le_abs])
 
 @[continuity] lemma continuous_im : continuous im := im_clm.continuous
 
@@ -187,15 +187,15 @@ def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_l
 
 @[simp] lemma im_clm_norm : ∥im_clm∥ = 1 :=
 le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
-calc 1 = ∥im_clm I∥ : by simp
-   ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
+calc 1 = ∥im_clm I∥ : by simv
+   ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simv)
 
 @[simp] lemma im_clm_nnnorm : ∥im_clm∥₊ = 1 := subtype.ext im_clm_norm
 
 lemma restrict_scalars_one_smul_right' (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
     re_clm.smul_right x + I • im_clm.smul_right x :=
-by { ext ⟨a, b⟩, simp [mk_eq_add_mul_I, add_smul, mul_smul, smul_comm I] }
+by { ext ⟨a, b⟩, simv [mk_eq_add_mul_I, add_smul, mul_smul, smul_comm I] }
 
 lemma restrict_scalars_one_smul_right (x : ℂ) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] ℂ) = x • 1 :=
@@ -268,23 +268,23 @@ noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
   im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
   I := complex.I,
-  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
-  I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
-  re_add_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, complex.re_add_im,
+  I_re_ax := by simv only [add_monoid_hom.coe_mk, complex.I_re],
+  I_mul_I_ax := by simv only [complex.I_mul_I, eq_self_iff_true, or_true],
+  re_add_im_ax := λ z, by simv only [add_monoid_hom.coe_mk, complex.re_add_im,
                                      complex.coe_algebra_map, complex.of_real_eq_coe],
-  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re,
+  of_real_re_ax := λ r, by simv only [add_monoid_hom.coe_mk, complex.of_real_re,
                                       complex.coe_algebra_map, complex.of_real_eq_coe],
-  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im,
+  of_real_im_ax := λ r, by simv only [add_monoid_hom.coe_mk, complex.of_real_im,
                                       complex.coe_algebra_map, complex.of_real_eq_coe],
-  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
-  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
+  mul_re_ax := λ z w, by simv only [complex.mul_re, add_monoid_hom.coe_mk],
+  mul_im_ax := λ z w, by simv only [add_monoid_hom.coe_mk, complex.mul_im],
   conj_re_ax := λ z, rfl,
   conj_im_ax := λ z, rfl,
-  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
-  norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
+  conj_I_ax := by simv only [complex.conj_I, ring_hom.coe_mk],
+  norm_sq_eq_def_ax := λ z, by simv only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
     add_monoid_hom.coe_mk, complex.norm_eq_abs],
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
+  mul_im_I_ax := λ z, by simv only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
+  inv_def_ax := λ z, by simv only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
     complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
 
@@ -299,12 +299,12 @@ variables {α β γ : Type*}
 /-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
 @[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
-{ map_add' := by simp, .. equiv_real_prod }
+{ map_add' := by simv, .. equiv_real_prod }
 
 /-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
 @[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
-{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
+{ map_smul' := by simv [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
 
 /-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
 @[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
@@ -339,8 +339,8 @@ local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
 @[simp] lemma I_to_complex : IC = complex.I := rfl
 @[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-by simp [is_R_or_C.norm_sq, complex.norm_sq]
+by simv [is_R_or_C.norm_sq, complex.norm_sq]
 @[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-by simp [is_R_or_C.abs, complex.abs]
+by simv [is_R_or_C.abs, complex.abs]
 
 end is_R_or_C

@@ -97,7 +97,7 @@ meta def resolve_sum_step : expr → tactic unit
   | `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
   | `(%%tl1 ^ %%n)   := do
       refine ``(nat_degree_pow_le.trans _),
-      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
+      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simv only [n0, zero_mul, zero_le])) _),
       n0 ← get_unused_name "n0" >>= intro,
       refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
       lem1 ← to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff,

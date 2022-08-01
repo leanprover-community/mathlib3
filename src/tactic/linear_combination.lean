@@ -402,7 +402,7 @@ example (x y : ℤ) (h1 : x = -3) (h2 : y = 10) :
   2*x = -6 :=
 begin
   linear_combination 2*h1 with {normalize := ff},
-  simp,
+  simv,
   norm_cast
 end
 

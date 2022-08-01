@@ -29,7 +29,7 @@ def convex_join (s t : set E) : set E := ⋃ (x ∈ s) (y ∈ t), segment 𝕜 x
 variables {𝕜}
 
 lemma mem_convex_join : x ∈ convex_join 𝕜 s t ↔ ∃ (a ∈ s) (b ∈ t), x ∈ segment 𝕜 a b :=
-by simp [convex_join]
+by simv [convex_join]
 
 lemma convex_join_comm (s t : set E) : convex_join 𝕜 s t = convex_join 𝕜 t s :=
 (Union₂_comm _).trans $ by simp_rw [convex_join, segment_symm]
@@ -43,17 +43,17 @@ convex_join_mono hs subset.rfl
 lemma convex_join_mono_right (ht : t₁ ⊆ t₂) : convex_join 𝕜 s t₁ ⊆ convex_join 𝕜 s t₂ :=
 convex_join_mono subset.rfl ht
 
-@[simp] lemma convex_join_empty_left (t : set E) : convex_join 𝕜 ∅ t = ∅ := by simp [convex_join]
-@[simp] lemma convex_join_empty_right (s : set E) : convex_join 𝕜 s ∅ = ∅ := by simp [convex_join]
+@[simp] lemma convex_join_empty_left (t : set E) : convex_join 𝕜 ∅ t = ∅ := by simv [convex_join]
+@[simp] lemma convex_join_empty_right (s : set E) : convex_join 𝕜 s ∅ = ∅ := by simv [convex_join]
 
 @[simp] lemma convex_join_singleton_left (t : set E) (x : E) :
-  convex_join 𝕜 {x} t = ⋃ (y ∈ t), segment 𝕜 x y := by simp [convex_join]
+  convex_join 𝕜 {x} t = ⋃ (y ∈ t), segment 𝕜 x y := by simv [convex_join]
 
 @[simp] lemma convex_join_singleton_right (s : set E) (y : E) :
-  convex_join 𝕜 s {y} = ⋃ (x ∈ s), segment 𝕜 x y := by simp [convex_join]
+  convex_join 𝕜 s {y} = ⋃ (x ∈ s), segment 𝕜 x y := by simv [convex_join]
 
 @[simp] lemma convex_join_singletons (x : E) : convex_join 𝕜 {x} {y} = segment 𝕜 x y :=
-by simp [convex_join]
+by simv [convex_join]
 
 @[simp] lemma convex_join_union_left (s₁ s₂ t : set E) :
   convex_join 𝕜 (s₁ ∪ s₂) t = convex_join 𝕜 s₁ t ∪ convex_join 𝕜 s₂ t :=
@@ -168,7 +168,7 @@ end
 
 lemma convex_join_segments (a b c d : E) :
   convex_join 𝕜 (segment 𝕜 a b) (segment 𝕜 c d) = convex_hull 𝕜 {a, b, c, d} :=
-by simp only [convex_hull_insert, insert_nonempty, singleton_nonempty, convex_hull_pair,
+by simv only [convex_hull_insert, insert_nonempty, singleton_nonempty, convex_hull_pair,
     ←convex_join_assoc, convex_join_singletons]
 
 lemma convex_join_segment_singleton (a b c : E) :
@@ -186,7 +186,7 @@ begin
   simp_rw mem_convex_join,
   rintro x y ⟨xa, hxa, xb, hxb, hx⟩ ⟨ya, hya, yb, hyb, hy⟩,
   refine (segment_subset_convex_join hx hy).trans _,
-  have triv : ({xa, xb, ya, yb} : set E) = {xa, ya, xb, yb} := by simp only [set.insert_comm],
+  have triv : ({xa, xb, ya, yb} : set E) = {xa, ya, xb, yb} := by simv only [set.insert_comm],
   rw [convex_join_segments, triv, ←convex_join_segments],
   exact convex_join_mono (hs hxa hya) (ht hxb hyb),
 end

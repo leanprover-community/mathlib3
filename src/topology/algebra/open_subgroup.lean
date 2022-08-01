@@ -66,9 +66,9 @@ instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_su
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
-@[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
+@[simv, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
+@[simv, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
 
 @[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
@@ -110,12 +110,12 @@ begin
   apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
-    simp only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,
+    simv only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,
     refine mt (λ hu, _) hx,
     convert U.mul_mem (U.inv_mem hux) hu,
-    simp },
+    simv },
   { exact U.is_open.preimage (continuous_mul_right _) },
-  { simp [U.one_mem] }
+  { simv [U.one_mem] }
 end
 
 section
@@ -148,11 +148,11 @@ instance : order_top (open_subgroup G) :=
 { top := ⊤,
   le_top := λ U, set.subset_univ _ }
 
-@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+@[simv, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 
-@[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
+@[simv, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
 
-@[simp, norm_cast, to_additive] lemma coe_subgroup_le :
+@[simv, norm_cast, to_additive] lemma coe_subgroup_le :
 (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 variables {N : Type*} [group N] [topological_space N]
@@ -166,11 +166,11 @@ def comap (f : G →* N)
 { is_open' := H.is_open.preimage hf,
   .. (H : subgroup N).comap f }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
   (H.comap f hf : set G) = f ⁻¹' H := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_comap {H : open_subgroup N} {f : G →* N} {hf : continuous f} {x : G} :
   x ∈ H.comap f hf ↔ f x ∈ H := iff.rfl
 
@@ -190,14 +190,14 @@ variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G] (H 
 lemma is_open_of_mem_nhds {g : G} (hg : (H : set G) ∈ 𝓝 g) :
   is_open (H : set G) :=
 begin
-  simp only [is_open_iff_mem_nhds, set_like.mem_coe] at hg ⊢,
+  simv only [is_open_iff_mem_nhds, set_like.mem_coe] at hg ⊢,
   intros x hx,
   have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 $ x * (x⁻¹ * g)) :=
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
   have := filter.mem_map'.1 (this hg),
   replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_mem_nhds hg),
-  simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
+  simv only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
 end
 
@@ -217,12 +217,12 @@ begin
     nhds_le_of_le h_1_int (is_open_interior) (filter.principal_mono.2 interior_subset),
   rw is_open_iff_nhds,
   intros g hg,
-  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simp),
+  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simv),
   convert filter.map_mono h,
-  simp only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
+  simv only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
   filter.principal_eq_iff_eq],
   ext,
-  simp [H.mul_mem_cancel_left (H.inv_mem hg)],
+  simv [H.mul_mem_cancel_left (H.inv_mem hg)],
 end
 
 @[to_additive]

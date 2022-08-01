@@ -205,7 +205,7 @@ lemma adjoin_inl_union_inr_eq_prod (s) (t) :
     (adjoin R s).prod (adjoin R t) :=
 begin
   apply le_antisymm,
-  { simp only [adjoin_le_iff, set.insert_subset, subalgebra.zero_mem, subalgebra.one_mem,
+  { simv only [adjoin_le_iff, set.insert_subset, subalgebra.zero_mem, subalgebra.one_mem,
       subset_adjoin, -- the rest comes from `squeeze_simp`
       set.union_subset_iff, linear_map.coe_inl, set.mk_preimage_prod_right,
       set.image_subset_iff, set_like.mem_coe, set.mk_preimage_prod_left, linear_map.coe_inr,
@@ -228,13 +228,13 @@ def adjoin_comm_semiring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subalgebra.coe_mul],
+    simv only [subalgebra.coe_mul],
     exact adjoin_induction₂ x.prop y.prop
       hcomm
       (λ _ _, by rw [commutes])
       (λ r x hx, commutes r x) (λ r x hx, (commutes r x).symm)
-      (λ _ _ _ h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
-      (λ _ _ _ h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+      (λ _ _ _ h₁ h₂, by simv only [add_mul, mul_add, h₁, h₂])
+      (λ _ _ _ h₁ h₂, by simv only [add_mul, mul_add, h₁, h₂])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc y₁, ←h₁, mul_assoc x₁])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc x₂, ←h₂, ←mul_assoc x₂, ←h₁, ←mul_assoc])
   end,
@@ -267,7 +267,7 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
+  congr' 1 with z, simv [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
 variable {R}

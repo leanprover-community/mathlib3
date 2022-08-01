@@ -35,8 +35,8 @@ namespace Mon_Module_equivalence_Algebra
 instance (A : Mon_ (Module.{u} R)) : ring A.X :=
 { one := A.one (1 : R),
   mul := λ x y, A.mul (x ⊗ₜ y),
-  one_mul := λ x, by { convert linear_map.congr_fun A.one_mul ((1 : R) ⊗ₜ x), simp, },
-  mul_one := λ x, by { convert linear_map.congr_fun A.mul_one (x ⊗ₜ (1 : R)), simp, },
+  one_mul := λ x, by { convert linear_map.congr_fun A.one_mul ((1 : R) ⊗ₜ x), simv, },
+  mul_one := λ x, by { convert linear_map.congr_fun A.mul_one (x ⊗ₜ (1 : R)), simv, },
   mul_assoc := λ x y z, by convert linear_map.congr_fun A.mul_assoc ((x ⊗ₜ y) ⊗ₜ z),
   left_distrib := λ x y z,
   begin
@@ -66,7 +66,7 @@ instance (A : Mon_ (Module.{u} R)) : algebra R A.X :=
     have h₂ := linear_map.congr_fun A.mul_one (a ⊗ₜ r),
     exact h₁.trans h₂.symm,
   end,
-  smul_def' := λ r a, by { convert (linear_map.congr_fun A.one_mul (r ⊗ₜ a)).symm, simp, },
+  smul_def' := λ r a, by { convert (linear_map.congr_fun A.one_mul (r ⊗ₜ a)).symm, simv, },
   ..A.one }
 
 @[simp] lemma algebra_map (A : Mon_ (Module.{u} R)) (r : R) : algebra_map R A.X r = A.one r := rfl
@@ -116,7 +116,7 @@ def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
     dsimp only [Algebra.id_apply, tensor_product.mk_apply, linear_map.compr₂_apply,
       function.comp_app, Module.monoidal_category.hom_apply,
       Algebra.coe_comp, monoidal_category.associator_hom_apply],
-    simp only [algebra.lmul'_apply, mul_assoc]
+    simv only [algebra.lmul'_apply, mul_assoc]
   end }
 
 /--
@@ -128,9 +128,9 @@ def inverse : Algebra.{u} R ⥤ Mon_ (Module.{u} R) :=
   map := λ A B f,
   { hom := f.to_linear_map,
     one_hom' :=
-      by { ext, dsimp, simp only [ring_hom.map_one, alg_hom.map_one] },
+      by { ext, dsimp, simv only [ring_hom.map_one, alg_hom.map_one] },
     mul_hom' :=
-      by { ext, dsimp, simp only [algebra.lmul'_apply, ring_hom.map_mul, alg_hom.map_mul] } } }.
+      by { ext, dsimp, simv only [algebra.lmul'_apply, ring_hom.map_mul, alg_hom.map_mul] } } }.
 
 end Mon_Module_equivalence_Algebra
 
@@ -147,10 +147,10 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
     (λ A,
     { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
                mul_hom' := by { ext, dsimp at *,
-                                simp only [algebra.lmul'_apply, Mon_.X.ring_mul] } },
+                                simv only [algebra.lmul'_apply, Mon_.X.ring_mul] } },
       inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
                mul_hom' := by { ext, dsimp at *,
-                                simp only [algebra.lmul'_apply, Mon_.X.ring_mul]} } })
+                                simv only [algebra.lmul'_apply, Mon_.X.ring_mul]} } })
     (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=

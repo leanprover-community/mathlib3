@@ -64,7 +64,7 @@ begin
   rintro ⟨x, hx⟩,
   obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
   rw linear_pmap.mk_span_singleton'_apply,
-  simp only [mul_one, algebra.id.smul_eq_mul, submodule.coe_mk],
+  simv only [mul_one, algebra.id.smul_eq_mul, submodule.coe_mk],
   obtain h | h := le_or_lt y 0,
   { exact h.trans (gauge_nonneg _) },
   { rw [gauge_smul_of_nonneg h.le, smul_eq_mul, le_mul_iff_one_le_right h],
@@ -82,9 +82,9 @@ theorem geometric_hahn_banach_open (hs₁ : convex ℝ s) (hs₂ : is_open s) (h
   ∃ (f : E →L[ℝ] ℝ) (u : ℝ), (∀ a ∈ s, f a < u) ∧ ∀ b ∈ t, u ≤ f b :=
 begin
   obtain rfl | ⟨a₀, ha₀⟩ := s.eq_empty_or_nonempty,
-  { exact ⟨0, 0, by simp, λ b hb, le_rfl⟩ },
+  { exact ⟨0, 0, by simv, λ b hb, le_rfl⟩ },
   obtain rfl | ⟨b₀, hb₀⟩ := t.eq_empty_or_nonempty,
-  { exact ⟨0, 1, λ a ha, zero_lt_one, by simp⟩ },
+  { exact ⟨0, 1, λ a ha, zero_lt_one, by simv⟩ },
   let x₀ := b₀ - a₀,
   let C := x₀ +ᵥ (s - t),
   have : (0:E) ∈ C := ⟨a₀ - b₀, sub_mem_sub ha₀ hb₀,
@@ -95,11 +95,11 @@ begin
     rw ←add_zero x₀ at hx₀,
     exact disj.zero_not_mem_sub_set (vadd_mem_vadd_set_iff.1 hx₀) },
   obtain ⟨f, hf₁, hf₂⟩ := separate_convex_open_set ‹0 ∈ C› ‹_› (hs₂.sub_right.vadd _) ‹x₀ ∉ C›,
-  have : f b₀ = f a₀ + 1 := by simp [←hf₁],
+  have : f b₀ = f a₀ + 1 := by simv [←hf₁],
   have forall_le : ∀ (a ∈ s) (b ∈ t), f a ≤ f b,
   { intros a ha b hb,
     have := hf₂ (x₀ + (a - b)) (vadd_mem_vadd_set $ sub_mem_sub ha hb),
-    simp only [f.map_add, f.map_sub, hf₁] at this,
+    simv only [f.map_add, f.map_sub, hf₁] at this,
     linarith },
   refine ⟨f, Inf (f '' t), image_subset_iff.1 (_ : f '' s ⊆ Iio (Inf (f '' t))), λ b hb, _⟩,
   { rw ←interior_Iic,
@@ -125,9 +125,9 @@ theorem geometric_hahn_banach_open_open (hs₁ : convex ℝ s) (hs₂ : is_open 
   ∃ (f : E →L[ℝ] ℝ) (u : ℝ), (∀ a ∈ s, f a < u) ∧ ∀ b ∈ t, u < f b :=
 begin
   obtain (rfl | ⟨a₀, ha₀⟩) := s.eq_empty_or_nonempty,
-  { exact ⟨0, -1, by simp, λ b hb, by norm_num⟩ },
+  { exact ⟨0, -1, by simv, λ b hb, by norm_num⟩ },
   obtain (rfl | ⟨b₀, hb₀⟩) := t.eq_empty_or_nonempty,
-  { exact ⟨0, 1, λ a ha, by norm_num, by simp⟩ },
+  { exact ⟨0, 1, λ a ha, by norm_num, by simv⟩ },
   obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open hs₁ hs₂ ht₁ disj,
   have hf : is_open_map f,
   { refine f.is_open_map_of_ne_zero _,
@@ -147,9 +147,9 @@ theorem geometric_hahn_banach_compact_closed (hs₁ : convex ℝ s) (hs₂ : is_
   ∃ (f : E →L[ℝ] ℝ) (u v : ℝ), (∀ a ∈ s, f a < u) ∧ u < v ∧ ∀ b ∈ t, v < f b :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
-  { exact ⟨0, -2, -1, by simp, by norm_num, λ b hb, by norm_num⟩ },
+  { exact ⟨0, -2, -1, by simv, by norm_num, λ b hb, by norm_num⟩ },
   unfreezingI { obtain rfl | ht := t.eq_empty_or_nonempty },
-  { exact ⟨0, 1, 2, λ a ha, by norm_num, by norm_num, by simp⟩ },
+  { exact ⟨0, 1, 2, λ a ha, by norm_num, by norm_num, by simv⟩ },
   obtain ⟨U, V, hU, hV, hU₁, hV₁, sU, tV, disj'⟩ := disj.exists_open_convexes hs₁ hs₂ ht₁ ht₂,
   obtain ⟨f, u, hf₁, hf₂⟩ := geometric_hahn_banach_open_open hU₁ hU hV₁ hV disj',
   obtain ⟨x, hx₁, hx₂⟩ := hs₂.exists_forall_ge hs f.continuous.continuous_on,

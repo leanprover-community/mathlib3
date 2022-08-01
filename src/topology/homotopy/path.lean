@@ -63,7 +63,7 @@ lemma source (F : homotopy p₀ p₁) (t : I) : F (t, 0) = x₀ :=
 begin
   simp_rw [←p₀.source],
   apply continuous_map.homotopy_rel.eq_fst,
-  simp,
+  simv,
 end
 
 @[simp]
@@ -71,7 +71,7 @@ lemma target (F : homotopy p₀ p₁) (t : I) : F (t, 1) = x₁ :=
 begin
   simp_rw [←p₁.target],
   apply continuous_map.homotopy_rel.eq_snd,
-  simp,
+  simv,
 end
 
 /--
@@ -79,21 +79,21 @@ Evaluating a path homotopy at an intermediate point, giving us a `path`.
 -/
 def eval (F : homotopy p₀ p₁) (t : I) : path x₀ x₁ :=
 { to_fun := F.to_homotopy.curry t,
-  source' := by simp,
-  target' := by simp }
+  source' := by simv,
+  target' := by simv }
 
 @[simp]
 lemma eval_zero (F : homotopy p₀ p₁) : F.eval 0 = p₀ :=
 begin
   ext t,
-  simp [eval],
+  simv [eval],
 end
 
 @[simp]
 lemma eval_one (F : homotopy p₀ p₁) : F.eval 1 = p₁ :=
 begin
   ext t,
-  simp [eval],
+  simv [eval],
 end
 
 end
@@ -178,7 +178,7 @@ def hcomp (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
     rintros x t ht,
     cases ht,
     { rw ht,
-      simp },
+      simv },
     { rw set.mem_singleton_iff at ht,
       rw ht,
       norm_num }
@@ -205,7 +205,7 @@ def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0
   homotopy p (p.reparam f hf hf₀ hf₁) :=
 { to_fun := λ x, p ⟨σ x.1 * x.2 + x.1 * f x.2,
     show (σ x.1 : ℝ) • (x.2 : ℝ) + (x.1 : ℝ) • (f x.2 : ℝ) ∈ I, from convex_Icc _ _ x.2.2 (f x.2).2
-    (by unit_interval) (by unit_interval) (by simp)⟩,
+    (by unit_interval) (by unit_interval) (by simv)⟩,
   map_zero_left' := λ x, by norm_num,
   map_one_left' := λ x, by norm_num,
   prop' := λ t x hx,
@@ -224,14 +224,14 @@ argument.
 @[simps]
 def symm₂ {p q : path x₀ x₁} (F : p.homotopy q) : p.symm.homotopy q.symm :=
 { to_fun := λ x, F ⟨x.1, σ x.2⟩,
-  map_zero_left' := by simp [path.symm],
-  map_one_left' := by simp [path.symm],
+  map_zero_left' := by simv [path.symm],
+  map_one_left' := by simv [path.symm],
   prop' := λ t x hx, begin
     cases hx,
-    { rw hx, simp },
+    { rw hx, simv },
     { rw set.mem_singleton_iff at hx,
       rw hx,
-      simp }
+      simv }
   end }
 
 /--
@@ -242,13 +242,13 @@ Given `F : homotopy p q`, and `f : C(X, Y)`, we can define a homotopy from `p.ma
 def map {p q : path x₀ x₁} (F : p.homotopy q) (f : C(X, Y)) :
   homotopy (p.map f.continuous) (q.map f.continuous) :=
 { to_fun := f ∘ F,
-  map_zero_left' := by simp,
-  map_one_left' := by simp,
+  map_zero_left' := by simv,
+  map_one_left' := by simv,
   prop' := λ t x hx, begin
     cases hx,
-    { simp [hx] },
+    { simv [hx] },
     { rw set.mem_singleton_iff at hx,
-      simp [hx] }
+      simv [hx] }
   end }
 
 end homotopy
@@ -311,8 +311,8 @@ lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
 
 lemma hpath_hext {p₁ : path x₀ x₁} {p₂ : path x₂ x₃} (hp : ∀ t, p₁ t = p₂ t) : ⟦p₁⟧ == ⟦p₂⟧ :=
 begin
-  obtain rfl : x₀ = x₂ := by { convert hp 0; simp, },
-  obtain rfl : x₁ = x₃ := by { convert hp 1; simp, },
+  obtain rfl : x₀ = x₂ := by { convert hp 0; simv, },
+  obtain rfl : x₁ = x₃ := by { convert hp 1; simv, },
   rw heq_iff_eq, congr, ext t, exact hp t,
 end
 

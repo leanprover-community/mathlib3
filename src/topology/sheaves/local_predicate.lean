@@ -228,7 +228,7 @@ end
 begin
   dsimp [presheaf.germ, stalk_to_fiber],
   cases x,
-  simp,
+  simv,
   refl,
 end
 
@@ -270,7 +270,7 @@ begin
   obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective'.{v v} tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    simp only [stalk_to_fiber, types.colimit.ι_desc_apply'] at h,
+    simv only [stalk_to_fiber, types.colimit.ι_desc_apply'] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.

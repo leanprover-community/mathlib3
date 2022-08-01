@@ -37,20 +37,20 @@ instance decidable_mem_center [has_mul M] [decidable_eq M] [fintype M] :
   decidable_pred (∈ center M) :=
 λ _, decidable_of_iff' _ (mem_center_iff M)
 
-@[simp, to_additive zero_mem_add_center]
-lemma one_mem_center [mul_one_class M] : (1 : M) ∈ set.center M := by simp [mem_center_iff]
+@[simv, to_additive zero_mem_add_center]
+lemma one_mem_center [mul_one_class M] : (1 : M) ∈ set.center M := by simv [mem_center_iff]
 
 @[simp]
-lemma zero_mem_center [mul_zero_class M] : (0 : M) ∈ set.center M := by simp [mem_center_iff]
+lemma zero_mem_center [mul_zero_class M] : (0 : M) ∈ set.center M := by simv [mem_center_iff]
 
 variables {M}
 
-@[simp, to_additive add_mem_add_center]
+@[simv, to_additive add_mem_add_center]
 lemma mul_mem_center [semigroup M] {a b : M}
   (ha : a ∈ set.center M) (hb : b ∈ set.center M) : a * b ∈ set.center M :=
 λ g, by rw [mul_assoc, ←hb g, ← mul_assoc, ha g, mul_assoc]
 
-@[simp, to_additive neg_mem_add_center]
+@[simv, to_additive neg_mem_add_center]
 lemma inv_mem_center [group M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
 λ g, by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv]
 
@@ -91,7 +91,7 @@ begin
   exact center_units_subset (inv_mem_center (subset_center_units ha)),
 end
 
-@[simp, to_additive sub_mem_add_center]
+@[simv, to_additive sub_mem_add_center]
 lemma div_mem_center [group M] {a b : M} (ha : a ∈ set.center M) (hb : b ∈ set.center M) :
   a / b ∈ set.center M :=
 begin
@@ -109,7 +109,7 @@ end
 
 variables (M)
 
-@[simp, to_additive add_center_eq_univ]
+@[simv, to_additive add_center_eq_univ]
 lemma center_eq_univ [comm_semigroup M] : center M = set.univ :=
 subset.antisymm (subset_univ _) $ λ x _ y, mul_comm y x
 
@@ -147,7 +147,7 @@ end
 section
 variables (M) [comm_semigroup M]
 
-@[to_additive, simp] lemma center_eq_top : center M = ⊤ :=
+@[to_additive, simv] lemma center_eq_top : center M = ⊤ :=
 set_like.coe_injective (set.center_eq_univ M)
 
 end

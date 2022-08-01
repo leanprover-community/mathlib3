@@ -57,9 +57,9 @@ a.val_lt.le
 | (n+1) := rfl
 
 @[simp] lemma val_one' : (1 : zmod 0).val = 1 := rfl
-@[simp] lemma val_neg' {n : zmod 0} : (-n).val = n.val := by simp [val]
+@[simp] lemma val_neg' {n : zmod 0} : (-n).val = n.val := by simv [val]
 @[simp] lemma val_mul' {m n : zmod 0} : (m * n).val = m.val * n.val :=
-by simp [val, int.nat_abs_mul]
+by simv [val, int.nat_abs_mul]
 
 lemma val_nat_cast {n : ℕ} (a : ℕ) : (a : zmod n).val = a % n :=
 begin
@@ -75,7 +75,7 @@ instance (n : ℕ) : char_p (zmod n) n :=
   begin
     intro k,
     cases n,
-    { simp only [zero_dvd_iff, int.coe_nat_eq_zero], },
+    { simv only [zero_dvd_iff, int.coe_nat_eq_zero], },
     rw [fin.eq_iff_veq],
     show (k : zmod (n+1)).val = (0 : zmod (n+1)).val ↔ _,
     rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
@@ -109,15 +109,15 @@ def cast : Π {n : ℕ}, zmod n → R
 @[priority 900] instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
 
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
-by cases n; simp
+by cases n; simv
 
 variables {S : Type*} [add_group_with_one S]
 
 @[simp] lemma _root_.prod.fst_zmod_cast (a : zmod n) : (a : R × S).fst = a :=
-by cases n; simp
+by cases n; simv
 
 @[simp] lemma _root_.prod.snd_zmod_cast (a : zmod n) : (a : R × S).snd = a :=
-by cases n; simp
+by cases n; simv
 
 end
 
@@ -175,7 +175,7 @@ end
 begin
   cases n,
   { exact congr_arg ((∘) int.cast) zmod.cast_id', },
-  { ext, simp }
+  { ext, simv }
 end
 
 variables {R}
@@ -190,8 +190,8 @@ lemma coe_add_eq_ite {n : ℕ} (a b : zmod n) :
   (↑(a + b) : ℤ) = if (n : ℤ) ≤ a + b then a + b - n else a + b :=
 begin
   cases n,
-  { simp },
-  simp only [coe_coe, fin.coe_add_eq_ite,
+  { simv },
+  simv only [coe_coe, fin.coe_add_eq_ite,
              ← int.coe_nat_add, ← int.coe_nat_succ, int.coe_nat_le],
   split_ifs with h,
   { exact int.coe_nat_sub h },
@@ -218,7 +218,7 @@ lemma cast_add (h : m ∣ n) (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
 begin
   casesI n,
   { apply int.cast_add },
-  simp only [coe_coe],
+  simv only [coe_coe],
   symmetry,
   erw [fin.coe_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
       @char_p.cast_eq_zero_iff R _ m],
@@ -229,7 +229,7 @@ lemma cast_mul (h : m ∣ n) (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
 begin
   casesI n,
   { apply int.cast_mul },
-  simp only [coe_coe],
+  simv only [coe_coe],
   symmetry,
   erw [fin.coe_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
       @char_p.cast_eq_zero_iff R _ m],
@@ -249,30 +249,30 @@ def cast_hom (h : m ∣ n) (R : Type*) [ring R] [char_p R m] : zmod n →+* R :=
 
 @[simp] lemma cast_hom_apply {h : m ∣ n} (i : zmod n) : cast_hom h R i = i := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_sub (h : m ∣ n) (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
 (cast_hom h R).map_sub a b
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_neg (h : m ∣ n) (a : zmod n) : ((-a : zmod n) : R) = -a :=
 (cast_hom h R).map_neg a
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_pow (h : m ∣ n) (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
 (cast_hom h R).map_pow a k
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_nat_cast (h : m ∣ n) (k : ℕ) : ((k : zmod n) : R) = k :=
 map_nat_cast (cast_hom h R) k
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
 (cast_hom h R).map_int_cast k
 
 end char_dvd
 
 section char_eq
-/-! Some specialised simp lemmas which apply when `R` has characteristic `n`. -/
+/-! Some specialised simv lemmas which apply when `R` has characteristic `n`. -/
 variable [char_p R n]
 
 @[simp] lemma cast_one' : ((1 : zmod n) : R) = 1 :=
@@ -290,11 +290,11 @@ cast_sub dvd_rfl a b
 @[simp] lemma cast_pow' (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
 cast_pow dvd_rfl a k
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_nat_cast' (k : ℕ) : ((k : zmod n) : R) = k :=
 cast_nat_cast dvd_rfl k
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma cast_int_cast' (k : ℤ) : ((k : zmod n) : R) = k :=
 cast_int_cast dvd_rfl k
 
@@ -444,7 +444,7 @@ begin
       zmod.nat_cast_self, zero_mul, add_zero, cast_id] }
 end
 
-@[push_cast, simp]
+@[push_cast, simv]
 lemma int_cast_mod (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin
   rw zmod.int_coe_eq_int_coe_iff,
@@ -465,7 +465,7 @@ local attribute [semireducible] int.nonneg
 
 @[simp] lemma nat_cast_to_nat (p : ℕ) :
   ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z
-| (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
+| (n : ℕ) h := by simv only [int.cast_coe_nat, int.to_nat_coe_nat]
 | -[1+n]  h := false.elim h
 
 lemma val_injective (n : ℕ) [fact (0 < n)] :
@@ -533,12 +533,12 @@ begin
 end
 
 @[simp] lemma nat_cast_mod (a : ℕ) (n : ℕ) : ((a % n : ℕ) : zmod n) = a :=
-by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
+by conv {to_rhs, rw ← nat.mod_add_div a n}; simv
 
 lemma eq_iff_modeq_nat (n : ℕ) {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD n] :=
 begin
   cases n,
-  { simp only [nat.modeq, int.coe_nat_inj', nat.mod_zero], },
+  { simv only [nat.modeq, int.coe_nat_inj', nat.mod_zero], },
   { rw [fin.ext_iff, nat.modeq, ← val_nat_cast, ← val_nat_cast], exact iff.rfl, }
 end
 
@@ -561,7 +561,7 @@ lemma val_coe_unit_coprime {n : ℕ} (u : (zmod n)ˣ) :
   nat.coprime (u : zmod n).val n :=
 begin
   cases n,
-  { rcases int.units_eq_one_or u with rfl|rfl; simp },
+  { rcases int.units_eq_one_or u with rfl|rfl; simv },
   apply nat.coprime_of_mul_modeq_one ((u⁻¹ : units (zmod (n+1))) : zmod (n+1)).val,
   have := units.ext_iff.1 (mul_right_inv u),
   rw [units.coe_one] at this,
@@ -599,7 +599,7 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
 { to_fun := λ x, ⟨x, val_coe_unit_coprime x⟩,
   inv_fun := λ x, unit_of_coprime x.1.val x.2,
   left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
-  right_inv := λ ⟨_, _⟩, by simp }
+  right_inv := λ ⟨_, _⟩, by simv }
 
 /-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
   the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic.
@@ -610,7 +610,7 @@ ring.
 def chinese_remainder {m n : ℕ} (h : m.coprime n) :
   zmod (m * n) ≃+* zmod m × zmod n :=
 let to_fun : zmod (m * n) → zmod m × zmod n :=
-  zmod.cast_hom (show m.lcm n ∣ m * n, by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) in
+  zmod.cast_hom (show m.lcm n ∣ m * n, by simv [nat.lcm_dvd_iff]) (zmod m × zmod n) in
 let inv_fun : zmod m × zmod n → zmod (m * n) :=
   λ x, if m * n = 0
     then if m = 1
@@ -621,7 +621,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
   if hmn0 : m * n = 0
     then begin
       rcases h.eq_of_mul_eq_zero hmn0 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
-      simp [inv_fun, to_fun, function.left_inverse, function.right_inverse,
+      simv [inv_fun, to_fun, function.left_inverse, function.right_inverse,
         ring_hom.eq_int_cast, prod.ext_iff]
     end
     else
@@ -640,7 +640,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
             (nat.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.right.trans _⟩,
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] } },
-        exact ⟨left_inv, left_inv.right_inverse_of_card_le (by simp)⟩,
+        exact ⟨left_inv, left_inv.right_inverse_of_card_le (by simv)⟩,
       end,
 { to_fun := to_fun,
   inv_fun := inv_fun,
@@ -655,7 +655,7 @@ instance subsingleton_units : subsingleton ((zmod 2)ˣ) :=
   cases x with x xi hx1 hx2,
   cases y with y yi hy1 hy2,
   revert hx1 hx2 hy1 hy2,
-  fin_cases x; fin_cases y; simp
+  fin_cases x; fin_cases y; simv
 end⟩
 
 lemma le_div_two_iff_lt_neg (n : ℕ) [hn : fact ((n : ℕ) % 2 = 1)]
@@ -689,13 +689,13 @@ lemma neg_one_ne_one {n : ℕ} [fact (2 < n)] :
 char_p.neg_one_ne_one (zmod n) n
 
 lemma neg_eq_self_mod_two (a : zmod 2) : -a = a :=
-by fin_cases a; ext; simp [fin.coe_neg, int.nat_mod]; norm_num
+by fin_cases a; ext; simv [fin.coe_neg, int.nat_mod]; norm_num
 
 @[simp] lemma nat_abs_mod_two (a : ℤ) : (a.nat_abs : zmod 2) = a :=
 begin
   cases a,
-  { simp only [int.nat_abs_of_nat, int.cast_coe_nat, int.of_nat_eq_coe] },
-  { simp only [neg_eq_self_mod_two, nat.cast_succ, int.nat_abs, int.cast_neg_succ_of_nat] }
+  { simv only [int.nat_abs_of_nat, int.cast_coe_nat, int.of_nat_eq_coe] },
+  { simv only [neg_eq_self_mod_two, nat.cast_succ, int.nat_abs, int.cast_neg_succ_of_nat] }
 end
 
 @[simp] lemma val_eq_zero : ∀ {n : ℕ} (a : zmod n), a.val = 0 ↔ a = 0
@@ -767,15 +767,15 @@ begin
 end
 
 @[simp] lemma val_min_abs_zero : ∀ n, (0 : zmod n).val_min_abs = 0
-| 0     := by simp only [val_min_abs_def_zero]
-| (n+1) := by simp only [val_min_abs_def_pos, if_true, int.coe_nat_zero, zero_le, val_zero]
+| 0     := by simv only [val_min_abs_def_zero]
+| (n+1) := by simv only [val_min_abs_def_pos, if_true, int.coe_nat_zero, zero_le, val_zero]
 
 @[simp] lemma val_min_abs_eq_zero {n : ℕ} (x : zmod n) :
   x.val_min_abs = 0 ↔ x = 0 :=
 begin
-  cases n, { simp },
+  cases n, { simv },
   split,
-  { simp only [val_min_abs_def_pos, int.coe_nat_succ],
+  { simv only [val_min_abs_def_pos, int.coe_nat_succ],
     split_ifs with h h; assume h0,
     { apply val_injective, rwa [int.coe_nat_eq_zero] at h0, },
     { apply absurd h0, rw sub_eq_zero, apply ne_of_lt, exact_mod_cast x.val_lt } },
@@ -797,13 +797,13 @@ end
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :
   (-a).val_min_abs.nat_abs = a.val_min_abs.nat_abs :=
 begin
-  cases n, { simp only [int.nat_abs_neg, val_min_abs_def_zero], },
+  cases n, { simv only [int.nat_abs_neg, val_min_abs_def_zero], },
   by_cases ha0 : a = 0, { rw [ha0, neg_zero] },
   by_cases haa : -a = a, { rw [haa] },
   suffices hpa : (n+1 : ℕ) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
   { rw [val_min_abs_def_pos, val_min_abs_def_pos],
     rw ← not_le at hpa,
-    simp only [if_neg ha0, neg_val, hpa, int.coe_nat_sub a.val_le],
+    simv only [if_neg ha0, neg_val, hpa, int.coe_nat_sub a.val_le],
     split_ifs,
     all_goals { rw [← int.nat_abs_neg], congr' 1, ring } },
   suffices : (((n+1 : ℕ) % 2) + 2 * ((n + 1) / 2)) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
@@ -824,7 +824,7 @@ end
 
 lemma val_eq_ite_val_min_abs {n : ℕ} [fact (0 < n)] (a : zmod n) :
   (a.val : ℤ) = a.val_min_abs + if a.val ≤ n / 2 then 0 else n :=
-by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_cancel] }
+by { rw [zmod.val_min_abs_def_pos], split_ifs; simv only [add_zero, sub_add_cancel] }
 
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=
@@ -884,7 +884,7 @@ instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
 
 @[simp] lemma ring_hom_map_cast [ring R] (f : R →+* (zmod n)) (k : zmod n) :
   f k = k :=
-by { cases n; simp }
+by { cases n; simv }
 
 lemma ring_hom_right_inverse [ring R] (f : R →+* (zmod n)) :
   function.right_inverse (coe : zmod n → R) f :=
@@ -913,7 +913,7 @@ def lift : {f : ℤ →+ A // f n = 0} ≃ (zmod n →+ A) :=
   rw ker_int_cast_add_hom,
   split,
   { rintro hf _ ⟨x, rfl⟩,
-    simp only [f.map_zsmul, zsmul_zero, f.mem_ker, hf] },
+    simv only [f.map_zsmul, zsmul_zero, f.mem_ker, hf] },
   { intro h,
     refine h (add_subgroup.mem_zmultiples _) }
 end).trans $ ((int.cast_add_hom (zmod n)).lift_of_right_inverse coe int_cast_zmod_cast)

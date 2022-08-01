@@ -156,7 +156,7 @@ begin
     rw [deriv_family_limit _ l,
       is_normal.bsup.{(max u v) u (max u v)} H (λ a _, deriv_family f a) l.1],
     refine eq_of_forall_ge_iff (λ c, _),
-    simp only [bsup_le_iff, IH] {contextual:=tt} }
+    simv only [bsup_le_iff, IH] {contextual:=tt} }
 end
 
 theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
@@ -246,7 +246,7 @@ end
 
 theorem nfp_bfamily_le_apply (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∃ i hi, nfp_bfamily o f a ≤ f i hi b) ↔ nfp_bfamily o f a ≤ b :=
-by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily ho H, simp only [not_le] }
+by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily ho H, simv only [not_le] }
 
 theorem nfp_bfamily_le_fp (H : ∀ i hi, monotone (f i hi)) {a b} (ab : a ≤ b)
   (h : ∀ i hi, f i hi b ≤ b) : nfp_bfamily o f a ≤ b :=
@@ -423,7 +423,7 @@ theorem deriv_is_normal (f) : is_normal (deriv f) :=
 deriv_family_is_normal _
 
 theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h])
+((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simv [h])
 
 theorem is_normal.deriv_fp {f} (H : is_normal f) : ∀ o, f (deriv f o) = deriv f o :=
 @deriv_family_fp unit (λ _, f) unit.star H
@@ -442,7 +442,7 @@ theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 
 theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h])
+(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simv [h])
 
 end
 

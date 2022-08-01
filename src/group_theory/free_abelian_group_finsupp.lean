@@ -45,16 +45,16 @@ open finsupp free_abelian_group
     (smul_add_hom ℤ (free_abelian_group X)).flip (of x) :=
 begin
   ext,
-  simp only [add_monoid_hom.coe_comp, finsupp.single_add_hom_apply, function.comp_app,
+  simv only [add_monoid_hom.coe_comp, finsupp.single_add_hom_apply, function.comp_app,
     one_smul, to_free_abelian_group, finsupp.lift_add_hom_apply_single]
 end
 
 @[simp] lemma free_abelian_group.to_finsupp_comp_to_free_abelian_group :
   to_finsupp.comp to_free_abelian_group = add_monoid_hom.id (X →₀ ℤ) :=
 begin
-  ext x y, simp only [add_monoid_hom.id_comp],
+  ext x y, simv only [add_monoid_hom.id_comp],
   rw [add_monoid_hom.comp_assoc, finsupp.to_free_abelian_group_comp_single_add_hom],
-  simp only [to_finsupp, add_monoid_hom.coe_comp, finsupp.single_add_hom_apply,
+  simv only [to_finsupp, add_monoid_hom.coe_comp, finsupp.single_add_hom_apply,
     function.comp_app, one_smul, lift.of, add_monoid_hom.flip_apply,
     smul_add_hom_apply, add_monoid_hom.id_apply],
 end
@@ -80,7 +80,7 @@ variable {X}
 
 @[simp] lemma to_finsupp_of (x : X) :
   to_finsupp (of x) = finsupp.single x 1 :=
-by simp only [to_finsupp, lift.of]
+by simv only [to_finsupp, lift.of]
 
 @[simp] lemma to_finsupp_to_free_abelian_group (f : X →₀ ℤ) :
   f.to_free_abelian_group.to_finsupp = f :=
@@ -153,20 +153,20 @@ lemma not_mem_support_iff (x : X) (a : free_abelian_group X) :
 by { rw [support, finsupp.not_mem_support_iff], exact iff.rfl }
 
 @[simp] lemma support_zero : support (0 : free_abelian_group X) = ∅ :=
-by simp only [support, finsupp.support_zero, add_monoid_hom.map_zero]
+by simv only [support, finsupp.support_zero, add_monoid_hom.map_zero]
 
 @[simp] lemma support_of (x : X) : support (of x) = {x} :=
-by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero _ one_ne_zero]
+by simv only [support, to_finsupp_of, finsupp.support_single_ne_zero _ one_ne_zero]
 
 @[simp] lemma support_neg (a : free_abelian_group X) : support (-a) = support a :=
-by simp only [support, add_monoid_hom.map_neg, finsupp.support_neg]
+by simv only [support, add_monoid_hom.map_neg, finsupp.support_neg]
 
 @[simp] lemma support_zsmul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
 begin
   ext x,
-  simp only [mem_support_iff, add_monoid_hom.map_zsmul],
-  simp only [h, zsmul_int_int, false_or, ne.def, mul_eq_zero]
+  simv only [mem_support_iff, add_monoid_hom.map_zsmul],
+  simv only [h, zsmul_int_int, false_or, ne.def, mul_eq_zero]
 end
 
 @[simp] lemma support_nsmul (k : ℕ) (h : k ≠ 0) (a : free_abelian_group X) :
@@ -177,7 +177,7 @@ open_locale classical
 
 lemma support_add (a b : free_abelian_group X) : (support (a + b)) ⊆ a.support ∪ b.support :=
 begin
-  simp only [support, add_monoid_hom.map_add],
+  simv only [support, add_monoid_hom.map_add],
   apply finsupp.support_add
 end
 

@@ -53,9 +53,9 @@ lemma fst_x_pseudo_eq_fst_y : pseudo_equal _ (app biprod.fst x) (app biprod.fst 
 begin
   refine ⟨of ℤ ℚ, (of_hom id), (of_hom id),
     category_struct.id.epi (of ℤ ℚ), _, _⟩,
-  { exact (Module.epi_iff_surjective _).2 (λ a, ⟨(a : ℚ), by simp⟩) },
+  { exact (Module.epi_iff_surjective _).2 (λ a, ⟨(a : ℚ), by simv⟩) },
   { dsimp [x, y],
-    simp }
+    simv }
 end
 
 /-- `biprod.snd ≫ x` is pseudoequal to `biprod.snd y`. -/
@@ -65,7 +65,7 @@ begin
   refine ⟨of ℤ ℚ, (of_hom id), 2 • (of_hom id),
     category_struct.id.epi (of ℤ ℚ), _, _⟩,
   { refine (Module.epi_iff_surjective _).2 (λ a, ⟨(a/2 : ℚ), _⟩),
-    simp only [two_smul, add_apply, of_hom_apply, id_coe, id.def],
+    simv only [two_smul, add_apply, of_hom_apply, id_coe, id.def],
     exact add_halves' (show ℚ, from a) },
   { dsimp [x, y],
     exact concrete_category.hom_ext _ _ (λ a, by simpa) }
@@ -85,14 +85,14 @@ begin
     preadditive.comp_add] at ha,
   let π₁ := (biprod.fst : (of ℤ ℚ) ⊞ (of ℤ ℚ) ⟶ _),
   have ha₁ := congr_arg π₁ ha,
-  simp only [← linear_map.comp_apply, ← comp_def] at ha₁,
-  simp only [biprod.lift_fst, of_hom_apply, id_coe, id.def, preadditive.add_comp, category.assoc,
+  simv only [← linear_map.comp_apply, ← comp_def] at ha₁,
+  simv only [biprod.lift_fst, of_hom_apply, id_coe, id.def, preadditive.add_comp, category.assoc,
     biprod.inl_fst, category.comp_id, biprod.inr_fst, limits.comp_zero, add_zero] at ha₁,
   let π₂ := (biprod.snd : (of ℤ ℚ) ⊞ (of ℤ ℚ) ⟶ _),
   have ha₂ := congr_arg π₂ ha,
-  simp only [← linear_map.comp_apply, ← comp_def] at ha₂,
+  simv only [← linear_map.comp_apply, ← comp_def] at ha₂,
   have : (2 : ℚ →ₗ[ℤ] ℚ) 1 = 1 + 1 := rfl,
-  simp only [ha₁, this, biprod.lift_snd, of_hom_apply, id_coe, id.def, preadditive.add_comp,
+  simv only [ha₁, this, biprod.lift_snd, of_hom_apply, id_coe, id.def, preadditive.add_comp,
     category.assoc, biprod.inl_snd, limits.comp_zero, biprod.inr_snd, category.comp_id, zero_add,
     mul_apply, self_eq_add_left] at ha₂,
   exact @one_ne_zero ℚ _ _ ha₂,

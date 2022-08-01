@@ -33,7 +33,7 @@ by rw [antidiagonal, mem_def, multiset.nat.mem_antidiagonal]
 
 /-- The cardinality of the antidiagonal of `n` is `n + 1`. -/
 @[simp] lemma card_antidiagonal (n : ℕ) : (antidiagonal n).card = n+1 :=
-by simp [antidiagonal]
+by simv [antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0, 0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
@@ -42,7 +42,7 @@ rfl
 lemma antidiagonal_succ (n : ℕ) :
   antidiagonal (n + 1) = cons (0, n + 1) ((antidiagonal n).map
   (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _)))
-  (by simp) :=
+  (by simv) :=
 begin
   apply eq_of_veq,
   rw [cons_val, map_val],
@@ -52,7 +52,7 @@ end
 lemma antidiagonal_succ' (n : ℕ) :
   antidiagonal (n + 1) = cons (n + 1, 0) ((antidiagonal n).map
   (function.embedding.prod_map (function.embedding.refl _) ⟨nat.succ, nat.succ_injective⟩))
-  (by simp) :=
+  (by simv) :=
 begin
   apply eq_of_veq,
   rw [cons_val, map_val],
@@ -64,12 +64,12 @@ lemma antidiagonal_succ_succ' {n : ℕ} :
     cons (0, n + 2)
       (cons (n + 2, 0) ((antidiagonal n).map
         (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ ⟨nat.succ, nat.succ_injective⟩))
-        $ by simp) (by simp) :=
+        $ by simv) (by simv) :=
 by { simp_rw [antidiagonal_succ (n + 1), antidiagonal_succ', finset.map_cons, map_map], refl }
 
 lemma map_swap_antidiagonal {n : ℕ} :
   (antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = antidiagonal n :=
-eq_of_veq $ by simp [antidiagonal, multiset.nat.map_swap_antidiagonal]
+eq_of_veq $ by simv [antidiagonal, multiset.nat.map_swap_antidiagonal]
 
 /-- A point in the antidiagonal is determined by its first co-ordinate. -/
 lemma antidiagonal_congr {n : ℕ} {p q : ℕ × ℕ} (hp : p ∈ antidiagonal n)
@@ -100,11 +100,11 @@ lemma filter_fst_eq_antidiagonal (n m : ℕ) :
   filter (λ x : ℕ × ℕ, x.fst = m) (antidiagonal n) = if m ≤ n then {(m, n - m)} else ∅ :=
 begin
   ext ⟨x, y⟩,
-  simp only [mem_filter, nat.mem_antidiagonal],
+  simv only [mem_filter, nat.mem_antidiagonal],
   split_ifs with h h,
-  { simp [and_comm, eq_tsub_iff_add_eq_of_le h, add_comm] {contextual := tt} },
+  { simv [and_comm, eq_tsub_iff_add_eq_of_le h, add_comm] {contextual := tt} },
   { rw not_le at h,
-    simp only [not_mem_empty, iff_false, not_and],
+    simv only [not_mem_empty, iff_false, not_and],
     exact λ hn, ne_of_lt (lt_of_le_of_lt (le_self_add.trans hn.le) h) }
 end
 
@@ -112,9 +112,9 @@ lemma filter_snd_eq_antidiagonal (n m : ℕ) :
   filter (λ x : ℕ × ℕ, x.snd = m) (antidiagonal n) = if m ≤ n then {(n - m, m)} else ∅ :=
 begin
   have : (λ (x : ℕ × ℕ), x.snd = m) ∘ prod.swap = (λ (x : ℕ × ℕ), x.fst = m),
-  { ext, simp },
+  { ext, simv },
   rw ←map_swap_antidiagonal,
-  simp [map_filter, this, filter_fst_eq_antidiagonal, apply_ite (finset.map _)]
+  simv [map_filter, this, filter_fst_eq_antidiagonal, apply_ite (finset.map _)]
 end
 
 section equiv_prod

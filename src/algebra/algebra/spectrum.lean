@@ -100,7 +100,7 @@ iff.rfl
 
 lemma not_mem_iff {r : R} {a : A} :
   r ∉ σ a ↔ is_unit (↑ₐr - a) :=
-by { apply not_iff_not.mp, simp [set.not_not_mem, mem_iff] }
+by { apply not_iff_not.mp, simv [set.not_not_mem, mem_iff] }
 
 lemma mem_resolvent_set_of_left_right_inverse {r : R} {a b c : A}
   (h₁ : (↑ₐr - a) * b = 1) (h₂ : c * (↑ₐr - a) = 1) :
@@ -129,17 +129,17 @@ lemma units_smul_resolvent {r : Rˣ} {s : R} {a : A} :
 begin
   by_cases h : s ∈ spectrum R a,
   { rw [mem_iff] at h,
-    simp only [resolvent, algebra.algebra_map_eq_smul_one] at *,
+    simv only [resolvent, algebra.algebra_map_eq_smul_one] at *,
     rw [smul_assoc, ←smul_sub],
     have h' : ¬ is_unit (r⁻¹ • (s • 1 - a)),
       from λ hu, h (by simpa only [smul_inv_smul] using is_unit.smul r hu),
-    simp only [ring.inverse_non_unit _ h, ring.inverse_non_unit _ h', smul_zero] },
-  { simp only [resolvent],
+    simv only [ring.inverse_non_unit _ h, ring.inverse_non_unit _ h', smul_zero] },
+  { simv only [resolvent],
     have h' : is_unit (r • (algebra_map R A (r⁻¹ • s)) - a),
       { simpa [algebra.algebra_map_eq_smul_one, smul_assoc] using not_mem_iff.mp h },
     rw [←h'.coe_sub_inv_smul, ←(not_mem_iff.mp h).unit_spec, ring.inverse_unit, ring.inverse_unit,
       h'.coe_inv_sub_inv_smul],
-    simp only [algebra.algebra_map_eq_smul_one, smul_assoc, smul_inv_smul], },
+    simv only [algebra.algebra_map_eq_smul_one, smul_assoc, smul_inv_smul], },
 end
 
 lemma units_smul_resolvent_self {r : Rˣ} {a : A} :
@@ -168,12 +168,12 @@ end
 lemma inv_mem_iff {r : Rˣ} {a : Aˣ} :
   (r : R) ∈ σ (a : A) ↔ (↑r⁻¹ : R) ∈ σ (↑a⁻¹ : A) :=
 begin
-  simp only [mem_iff, not_iff_not, ←mem_resolvent_set_iff],
+  simv only [mem_iff, not_iff_not, ←mem_resolvent_set_iff],
   exact ⟨λ h, inv_mem_resolvent_set h, λ h, by simpa using inv_mem_resolvent_set h⟩,
 end
 
 lemma zero_mem_resolvent_set_of_unit (a : Aˣ) : 0 ∈ resolvent_set R (a : A) :=
-by { rw [mem_resolvent_set_iff, is_unit.sub_iff], simp }
+by { rw [mem_resolvent_set_iff, is_unit.sub_iff], simv }
 
 lemma ne_zero_of_mem_of_unit {a : Aˣ} {r : R} (hr : r ∈ σ (a : A)) : r ≠ 0 :=
 λ hn, (hn ▸ hr) (zero_mem_resolvent_set_of_unit a)
@@ -182,9 +182,9 @@ lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_set_iff],
+  simv only [mem_resolvent_set_iff],
   have h_eq : ↑ₐ(r + s) - (↑ₐs + a) = ↑ₐr - a,
-    { simp, noncomm_ring },
+    { simv, noncomm_ring },
   rw h_eq,
 end
 
@@ -192,8 +192,8 @@ lemma smul_mem_smul_iff {a : A} {s : R} {r : Rˣ} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
-  have h_eq : (r • s) • (1 : A) = r • s • 1, by simp,
+  simv only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
+  have h_eq : (r • s) • (1 : A) = r • s • 1, by simv,
   rw [h_eq, ←smul_sub, is_unit_smul_iff],
 end
 
@@ -203,11 +203,11 @@ theorem unit_smul_eq_smul (a : A) (r : Rˣ) :
   σ (r • a) = r • σ a :=
 begin
   ext,
-  have x_eq : x = r • r⁻¹ • x, by simp,
+  have x_eq : x = r • r⁻¹ • x, by simv,
   nth_rewrite 0 x_eq,
   rw smul_mem_smul_iff,
   split,
-    { exact λ h, ⟨r⁻¹ • x, ⟨h, by simp⟩⟩},
+    { exact λ h, ⟨r⁻¹ • x, ⟨h, by simv⟩⟩},
     { rintros ⟨_, _, x'_eq⟩, simpa [←x'_eq],}
 end
 
@@ -216,18 +216,18 @@ theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : Rˣ} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
-  simp only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
+  simv only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one],
   have coe_smul_eq : ↑r • 1 = r • (1 : A), from rfl,
   rw coe_smul_eq,
-  simp only [is_unit.smul_sub_iff_sub_inv_smul],
+  simv only [is_unit.smul_sub_iff_sub_inv_smul],
   have right_inv_of_swap : ∀ {x y z : A} (h : (1 - x * y) * z = 1),
     (1 - y * x) * (1 + y * z * x) = 1, from λ x y z h,
       calc (1 - y * x) * (1 + y * z * x) = 1 - y * x + y * ((1 - x * y) * z) * x : by noncomm_ring
-      ...                                = 1                                     : by simp [h],
+      ...                                = 1                                     : by simv [h],
   have left_inv_of_swap : ∀ {x y z : A} (h : z * (1 - x * y) = 1),
     (1 + y * z * x) * (1 - y * x) = 1, from λ x y z h,
       calc (1 + y * z * x) * (1 - y * x) = 1 - y * x + y * (z * (1 - x * y)) * x : by noncomm_ring
-      ...                                = 1                                     : by simp [h],
+      ...                                = 1                                     : by simv [h],
   have is_unit_one_sub_mul_of_swap : ∀ {x y : A} (h : is_unit (1 - x * y)),
     is_unit (1 - y * x), from λ x y h, by
       { let h₁ := right_inv_of_swap h.unit.val_inv,
@@ -281,7 +281,7 @@ lemma exists_mem_of_not_is_unit_aeval_prod [is_domain R] {p : R[X]} {a : A} (hp 
 begin
   rw [←multiset.prod_to_list, alg_hom.map_list_prod] at h,
   replace h := mt list.prod_is_unit h,
-  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
+  simv only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
     list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at h,
   rcases h with ⟨r, r_mem, r_nu⟩,
   exact ⟨r, by rwa [mem_iff, ←is_unit.sub_iff], by rwa [←is_root.def, ←mem_roots hp]⟩
@@ -300,7 +300,7 @@ local notation `↑ₐ` := algebra_map 𝕜 A
 /-- Without the assumption `nontrivial A`, then `0 : A` would be invertible. -/
 @[simp] lemma zero_eq [nontrivial A] : σ (0 : A) = {0} :=
 begin
-  refine set.subset.antisymm _ (by simp [algebra.algebra_map_eq_smul_one, mem_iff]),
+  refine set.subset.antisymm _ (by simv [algebra.algebra_map_eq_smul_one, mem_iff]),
   rw [spectrum, set.compl_subset_comm],
   intros k hk,
   rw set.mem_compl_singleton_iff at hk,
@@ -312,16 +312,16 @@ end
 begin
   have coset_eq : left_add_coset k {0} = {k}, by
     { ext, split,
-      { intro hx, simp [left_add_coset] at hx, exact hx, },
-      { intro hx, simp at hx, exact ⟨0, ⟨set.mem_singleton 0, by simp [hx]⟩⟩, }, },
-  calc σ (↑ₐk) = σ (↑ₐk + 0)                  : by simp
+      { intro hx, simv [left_add_coset] at hx, exact hx, },
+      { intro hx, simv at hx, exact ⟨0, ⟨set.mem_singleton 0, by simv [hx]⟩⟩, }, },
+  calc σ (↑ₐk) = σ (↑ₐk + 0)                  : by simv
     ...        = left_add_coset k (σ (0 : A)) : by rw ←left_add_coset_eq
     ...        = left_add_coset k {0}         : by rw zero_eq
     ...        = {k}                          : coset_eq,
 end
 
 @[simp] lemma one_eq [nontrivial A] : σ (1 : A) = {1} :=
-calc σ (1 : A) = σ (↑ₐ1) : by simp [algebra.algebra_map_eq_smul_one]
+calc σ (1 : A) = σ (↑ₐ1) : by simv [algebra.algebra_map_eq_smul_one]
   ...          = {1}     : scalar_eq 1
 
 open_locale pointwise
@@ -367,10 +367,10 @@ theorem subset_polynomial_aeval (a : A) (p : 𝕜[X]) :
 begin
   rintros _ ⟨k, hk, rfl⟩,
   let q := C (eval k p) - p,
-  have hroot : is_root q k, by simp only [eval_C, eval_sub, sub_self, is_root.def],
+  have hroot : is_root q k, by simv only [eval_C, eval_sub, sub_self, is_root.def],
   rw [←mul_div_eq_iff_is_root, ←neg_mul_neg, neg_sub] at hroot,
   have aeval_q_eq : ↑ₐ(eval k p) - aeval a p = aeval a q,
-    by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
+    by simv only [aeval_C, alg_hom.map_sub, sub_left_inj],
   rw [mem_iff, aeval_q_eq, ←hroot, aeval_mul],
   have hcomm := (commute.all (C k - X) (- (q / (X - C k)))).map (aeval a),
   apply mt (λ h, (hcomm.is_unit_mul_iff.mp h).1),
@@ -394,7 +394,7 @@ begin
   /- leading coefficient is a unit so product of linear factors is not a unit;
   apply `exists_mem_of_not_is_unit_aeval_prod`. -/
   have p_a_eq : aeval a (C k - p) = ↑ₐk - aeval a p,
-    by simp only [aeval_C, alg_hom.map_sub, sub_left_inj],
+    by simv only [aeval_C, alg_hom.map_sub, sub_left_inj],
   rw [mem_iff, ←p_a_eq, hprod, aeval_mul,
     ((commute.all _ _).map (aeval a)).is_unit_mul_iff, aeval_C] at hk,
   replace hk := exists_mem_of_not_is_unit_aeval_prod h_ne (not_and.mp hk lead_unit),
@@ -410,7 +410,7 @@ theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a 
 begin
   refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_aeval_of_degree_pos a p),
   { rw eq_C_of_degree_le_zero h,
-    simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
+    simv only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
 end
 
 variable (𝕜)
@@ -423,7 +423,7 @@ lemma nonempty_of_is_alg_closed_of_finite_dimensional [is_alg_closed 𝕜]
   ∃ k : 𝕜, k ∈ σ a :=
 begin
   obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) a,
-  have nu : ¬ is_unit (aeval a p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
+  have nu : ¬ is_unit (aeval a p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simv, },
   rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p)] at nu,
   obtain ⟨k, hk, _⟩ := exists_mem_of_not_is_unit_aeval_prod (monic.ne_zero h_mon) nu,
   exact ⟨k, hk⟩
@@ -459,9 +459,9 @@ local notation `↑ₐ` := algebra_map R A
 lemma apply_mem_spectrum [nontrivial R] (φ : A →ₐ[R] R) (a : A) : φ a ∈ σ a :=
 begin
   have h : ↑ₐ(φ a) - a ∈ φ.to_ring_hom.ker,
-  { simp only [ring_hom.mem_ker, coe_to_ring_hom, commutes, algebra.id.map_eq_id,
+  { simv only [ring_hom.mem_ker, coe_to_ring_hom, commutes, algebra.id.map_eq_id,
                to_ring_hom_eq_coe, ring_hom.id_apply, sub_self, map_sub] },
-  simp only [spectrum.mem_iff, ←mem_nonunits_iff,
+  simv only [spectrum.mem_iff, ←mem_nonunits_iff,
              coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
 end
 

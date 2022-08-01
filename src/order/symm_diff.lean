@@ -62,7 +62,7 @@ lemma symm_diff_eq_xor (p q : Prop) : p ∆ q = xor p q := rfl
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] (a b c d : α)
 
-lemma symm_diff_comm : a ∆ b = b ∆ a := by simp only [(∆), sup_comm]
+lemma symm_diff_comm : a ∆ b = b ∆ a := by simv only [(∆), sup_comm]
 
 instance symm_diff_is_comm : is_commutative α (∆) := ⟨symm_diff_comm⟩
 
@@ -71,7 +71,7 @@ instance symm_diff_is_comm : is_commutative α (∆) := ⟨symm_diff_comm⟩
 @[simp] lemma bot_symm_diff : ⊥ ∆ a = a := by rw [symm_diff_comm, symm_diff_bot]
 
 lemma symm_diff_eq_sup_sdiff_inf : a ∆ b = (a ⊔ b) \ (a ⊓ b) :=
-by simp [sup_sdiff, sdiff_inf, sup_comm, (∆)]
+by simv [sup_sdiff, sdiff_inf, sup_comm, (∆)]
 
 @[simp] lemma sup_sdiff_symm_diff : (a ⊔ b) \ (a ∆ b) = a ⊓ b :=
 sdiff_eq_symm inf_le_sup (by rw symm_diff_eq_sup_sdiff_inf)
@@ -92,7 +92,7 @@ lemma inf_symm_diff_distrib_right : (a ∆ b) ⊓ c = (a ⊓ c) ∆ (b ⊓ c) :=
 by simp_rw [@inf_comm _ _ _ c, inf_symm_diff_distrib_left]
 
 lemma sdiff_symm_diff : c \ (a ∆ b) = (c ⊓ a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
-by simp only [(∆), sdiff_sdiff_sup_sdiff']
+by simv only [(∆), sdiff_sdiff_sup_sdiff']
 
 lemma sdiff_symm_diff' : c \ (a ∆ b) = (c ⊓ a ⊓ b) ⊔ (c \ (a ⊔ b)) :=
 by rw [sdiff_symm_diff, sdiff_sup, sup_comm]
@@ -106,7 +106,7 @@ by rw [symm_diff_def, sup_sdiff, sdiff_idem, sdiff_sdiff_self, bot_sup_eq]
 @[simp] lemma symm_diff_sdiff_right : (a ∆ b) \ b = a \ b :=
 by rw [symm_diff_comm, symm_diff_sdiff_left]
 
-@[simp] lemma sdiff_symm_diff_self : a \ (a ∆ b) = a ⊓ b := by simp [sdiff_symm_diff]
+@[simp] lemma sdiff_symm_diff_self : a \ (a ∆ b) = a ⊓ b := by simv [sdiff_symm_diff]
 
 lemma symm_diff_eq_iff_sdiff_eq {a b c : α} (ha : a ≤ c) :
   a ∆ b = c ↔ c \ a = b :=
@@ -189,8 +189,8 @@ lemma symm_diff_right_comm : a ∆ b ∆ c = a ∆ c ∆ b := by simp_rw [symm_d
 lemma symm_diff_symm_diff_symm_diff_comm : (a ∆ b) ∆ (c ∆ d) = (a ∆ c) ∆ (b ∆ d) :=
 by simp_rw [symm_diff_assoc, symm_diff_left_comm]
 
-@[simp] lemma symm_diff_symm_diff_cancel_left : a ∆ (a ∆ b) = b := by simp [←symm_diff_assoc]
-@[simp] lemma symm_diff_symm_diff_cancel_right : b ∆ a ∆ a = b := by simp [symm_diff_assoc]
+@[simp] lemma symm_diff_symm_diff_cancel_left : a ∆ (a ∆ b) = b := by simv [←symm_diff_assoc]
+@[simp] lemma symm_diff_symm_diff_cancel_right : b ∆ a ∆ a = b := by simv [symm_diff_assoc]
 
 @[simp] lemma symm_diff_symm_diff_self' : a ∆ b ∆ a = b :=
 by rw [symm_diff_comm,symm_diff_symm_diff_cancel_left]
@@ -233,13 +233,13 @@ end generalized_boolean_algebra
 section boolean_algebra
 variables {α : Type*} [boolean_algebra α] (a b c : α)
 
-lemma symm_diff_eq : a ∆ b = (a ⊓ bᶜ) ⊔ (b ⊓ aᶜ) := by simp only [(∆), sdiff_eq]
+lemma symm_diff_eq : a ∆ b = (a ⊓ bᶜ) ⊔ (b ⊓ aᶜ) := by simv only [(∆), sdiff_eq]
 
-@[simp] lemma symm_diff_top : a ∆ ⊤ = aᶜ := by simp [symm_diff_eq]
+@[simp] lemma symm_diff_top : a ∆ ⊤ = aᶜ := by simv [symm_diff_eq]
 @[simp] lemma top_symm_diff : ⊤ ∆ a = aᶜ := by rw [symm_diff_comm, symm_diff_top]
 
 lemma compl_symm_diff : (a ∆ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) :=
-by simp only [←top_sdiff, sdiff_symm_diff, top_inf_eq]
+by simv only [←top_sdiff, sdiff_symm_diff, top_inf_eq]
 
 lemma symm_diff_eq_top_iff : a ∆ b = ⊤ ↔ is_compl a b :=
 by rw [symm_diff_eq_iff_sdiff_eq le_top, top_sdiff, compl_eq_iff_is_compl]
@@ -247,7 +247,7 @@ by rw [symm_diff_eq_iff_sdiff_eq le_top, top_sdiff, compl_eq_iff_is_compl]
 lemma is_compl.symm_diff_eq_top (h : is_compl a b) : a ∆ b = ⊤ := (symm_diff_eq_top_iff a b).2 h
 
 @[simp] lemma compl_symm_diff_self : aᶜ ∆ a = ⊤ :=
-by simp only [symm_diff_eq, compl_compl, inf_idem, compl_sup_eq_top]
+by simv only [symm_diff_eq, compl_compl, inf_idem, compl_sup_eq_top]
 
 @[simp] lemma symm_diff_compl_self : a ∆ aᶜ = ⊤ := by rw [symm_diff_comm, compl_symm_diff_self]
 

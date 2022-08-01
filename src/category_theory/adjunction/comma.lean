@@ -62,7 +62,7 @@ If each structured arrow category on `G` has an initial object, construct a left
 is shown that it is a left adjoint in `adjunction_of_structured_arrow_initials`.
 -/
 def left_adjoint_of_structured_arrow_initials : C ⥤ D :=
-adjunction.left_adjoint_of_equiv (left_adjoint_of_structured_arrow_initials_aux G) (λ _ _, by simp)
+adjunction.left_adjoint_of_equiv (left_adjoint_of_structured_arrow_initials_aux G) (λ _ _, by simv)
 
 /--
 If each structured arrow category on `G` has an initial object, we have a constructed left adjoint
@@ -109,7 +109,7 @@ It is shown that it is a right adjoint in `adjunction_of_structured_arrow_initia
 -/
 def right_adjoint_of_costructured_arrow_terminals : C ⥤ D :=
 adjunction.right_adjoint_of_equiv (right_adjoint_of_costructured_arrow_terminals_aux G)
-  (λ B₁ B₂ A f g, by { rw ←equiv.eq_symm_apply, simp })
+  (λ B₁ B₂ A f g, by { rw ←equiv.eq_symm_apply, simv })
 
 /--
 If each costructured arrow category on `G` has a terminal object, we have a constructed right

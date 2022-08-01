@@ -74,7 +74,7 @@ nat_iso.of_components
     dsimp,
     rw ← functor_to_types.naturality _ _ x f (𝟙 _),
     dsimp,
-    simp,
+    simv,
   end))
 (λ _ _ _, rfl)
 
@@ -105,7 +105,7 @@ def restrict_yoneda_hom_equiv (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ)
     ext,
     dsimp,
     congr' 1,
-    simp,
+    simv,
   end,
   right_inv :=
   begin
@@ -177,7 +177,7 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
   begin
     simp_rw ← m.2,
     dsimp [elements.initial],
-    simp,
+    simv,
   end,
   fac' := by rintros s ⟨⟨⟩⟩, }
 
@@ -225,7 +225,7 @@ let eq := category_of_elements.costructured_arrow_yoneda_equivalence X in
     transitivity colimit.pre ((category_of_elements.π X).left_op ⋙ A) (𝟭 _),
     congr,
     { exact congr_arg functor.op (category_of_elements.from_to_costructured_arrow_eq X) },
-    { ext, simp only [colimit.ι_pre], erw category.comp_id, congr }
+    { ext, simv only [colimit.ι_pre], erw category.comp_id, congr }
   end,
   inv_hom_id' :=
   begin
@@ -233,7 +233,7 @@ let eq := category_of_elements.costructured_arrow_yoneda_equivalence X in
     transitivity colimit.pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A X) (𝟭 _),
     congr,
     { exact category_of_elements.to_from_costructured_arrow_eq X },
-    { ext, simp only [colimit.ι_pre], erw category.comp_id, congr }
+    { ext, simv only [colimit.ι_pre], erw category.comp_id, congr }
   end }
 
 /--
@@ -243,7 +243,7 @@ Verify that `extend_along_yoneda` is indeed the left Kan extension along the yon
 def extend_along_yoneda_iso_Kan : extend_along_yoneda A ≅ (Lan yoneda : (_ ⥤ ℰ) ⥤ _).obj A :=
 nat_iso.of_components (extend_along_yoneda_iso_Kan_app A)
 begin
-  intros X Y f, simp,
+  intros X Y f, simv,
   rw extend_along_yoneda_map,
   erw colimit.pre_pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A Y) (costructured_arrow.map f),
   erw colimit.pre_pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A Y)
@@ -306,7 +306,7 @@ cocone.extend (colimit.cocone _) (extend_along_yoneda_yoneda.hom.app P)
 rfl
 
 /-- An explicit formula for the legs of the cocone `cocone_of_representable`. -/
--- Marking this as a simp lemma seems to make things more awkward.
+-- Marking this as a simv lemma seems to make things more awkward.
 lemma cocone_of_representable_ι_app (P : Cᵒᵖ ⥤ Type u₁) (j : (P.elements)ᵒᵖ):
   (cocone_of_representable P).ι.app j = (yoneda_sections_small _ _).inv j.unop.2 :=
 colimit.ι_desc _ _

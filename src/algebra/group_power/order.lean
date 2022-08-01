@@ -22,7 +22,7 @@ variables [monoid M] [preorder M] [covariant_class M M (*) (≤)]
 @[to_additive nsmul_le_nsmul_of_le_right, mono]
 lemma pow_le_pow_of_le_left' [covariant_class M M (function.swap (*)) (≤)]
   {a b : M} (hab : a ≤ b) : ∀ i : ℕ, a ^ i ≤ b ^ i
-| 0     := by simp
+| 0     := by simv
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul' hab (pow_le_pow_of_le_left' k) }
 
@@ -30,7 +30,7 @@ attribute [mono] nsmul_le_nsmul_of_le_right
 
 @[to_additive nsmul_nonneg]
 theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
-| 0       := by simp
+| 0       := by simv
 | (k + 1) := by { rw pow_succ, exact one_le_mul H (one_le_pow_of_one_le' k) }
 
 @[to_additive nsmul_nonpos]
@@ -99,7 +99,7 @@ lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 
 @[to_additive]
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
-by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
+by simv only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
 
 variables [covariant_class M M (*) (<)] {a : M} {m n : ℕ}
 
@@ -145,7 +145,7 @@ lemma zero_pow_le_one : ∀ n : ℕ, (0 : R) ^ n ≤ 1
 theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
   rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,
-  induction k with k ih, { simp only [pow_one] },
+  induction k with k ih, { simv only [pow_one] },
   let n := k.succ,
   have h1 := add_nonneg (mul_nonneg hx (pow_nonneg hy n)) (mul_nonneg hy (pow_nonneg hx n)),
   have h2 := add_nonneg hx hy,
@@ -216,7 +216,7 @@ lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : 
 (pow_lt_pow_iff_of_lt_one h ha).2 hij
 
 @[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
-| 0     := by simp
+| 0     := by simv
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
 
@@ -375,7 +375,7 @@ theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x �
 abs_le.mp $ abs_le_of_sq_le_sq h hy
 
 lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
-by simp only [le_antisymm_iff, sq_le_sq]
+by simv only [le_antisymm_iff, sq_le_sq]
 
 @[simp] lemma sq_le_one_iff_abs_le_one (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
 by simpa only [one_pow, abs_one] using @sq_le_sq _ _ x 1

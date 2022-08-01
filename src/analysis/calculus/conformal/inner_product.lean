@@ -30,7 +30,7 @@ by rw [conformal_at_iff_is_conformal_map_fderiv, is_conformal_map_iff]
     differential `f'` at that point scales every inner product by a positive scalar. -/
 lemma conformal_at_iff {f : E → F} {x : E} {f' : E →L[ℝ] F} (h : has_fderiv_at f f' x) :
   conformal_at f x ↔ ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪f' u, f' v⟫ = c * ⟪u, v⟫ :=
-by simp only [conformal_at_iff', h.fderiv]
+by simv only [conformal_at_iff', h.fderiv]
 
 /-- The conformal factor of a conformal map at some point `x`. Some authors refer to this function
     as the characteristic function of the conformal map. -/

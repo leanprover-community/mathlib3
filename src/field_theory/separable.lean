@@ -58,7 +58,7 @@ lemma separable_one : (1 : R[X]).separable :=
 is_coprime_one_left
 
 @[nontriviality] lemma separable_of_subsingleton [subsingleton R] (f : R[X]) :
-  f.separable := by simp [separable]
+  f.separable := by simv [separable]
 
 lemma separable_X_add_C (a : R) : (X + C a).separable :=
 by { rw [separable_def, derivative_add, derivative_X, derivative_C, add_zero],
@@ -120,7 +120,7 @@ begin
   obtain ⟨p, rfl⟩ := hq,
   apply is_coprime_self.mp,
   have : is_coprime (q * (q * p)) (q * (q.derivative * p + q.derivative * p + q * p.derivative)),
-  { simp only [← mul_assoc, mul_add],
+  { simv only [← mul_assoc, mul_add],
     convert hp,
     rw [derivative_mul, derivative_mul],
     ring },
@@ -210,8 +210,8 @@ begin
   rw [derivative_sub, derivative_C, sub_zero, derivative_pow X n, derivative_X, mul_one],
   calc  - C ↑u⁻¹ * (X ^ n - C ↑u) + C ↑u⁻¹ * C n' * X * (↑n * X ^ (n - 1))
       = C (↑u⁻¹ * ↑ u) - C ↑u⁻¹ * X^n + C ↑ u ⁻¹ * C (n' * ↑n) * (X * X ^ (n - 1)) :
-    by { simp only [C.map_mul, C_eq_nat_cast], ring }
-  ... = 1 : by simp only [units.inv_mul, hn', C.map_one, mul_one, ← pow_succ,
+    by { simv only [C.map_mul, C_eq_nat_cast], ring }
+  ... = 1 : by simv only [units.inv_mul, hn', C.map_one, mul_one, ← pow_succ,
               nat.sub_add_cancel (show 1 ≤ n, from hpos), sub_add_cancel]
 end
 
@@ -219,7 +219,7 @@ lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : R[X]}
   (hsep : separable p) (x : R) : root_multiplicity x p ≤ 1 :=
 begin
   by_cases hp : p = 0,
-  { simp [hp], },
+  { simv [hp], },
   rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← part_enat.coe_le_coe, part_enat.coe_get,
     nat.cast_one],
   exact multiplicity_le_one_of_separable (not_is_unit_X_sub_C _) hsep

@@ -68,9 +68,9 @@ structure content (G : Type w) [topological_space G] :=
 
 instance : inhabited (content G) :=
 ⟨{ to_fun := λ K, 0,
-  mono' := by simp,
-  sup_disjoint' := by simp,
-  sup_le' := by simp }⟩
+  mono' := by simv,
+  sup_disjoint' := by simv,
+  sup_le' := by simv }⟩
 
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
@@ -84,14 +84,14 @@ variable (μ : content G)
 lemma apply_eq_coe_to_fun (K : compacts G) : μ K = μ.to_fun K := rfl
 
 lemma mono (K₁ K₂ : compacts G) (h : (K₁ : set G) ⊆ K₂) : μ K₁ ≤ μ K₂ :=
-by simp [apply_eq_coe_to_fun, μ.mono' _ _ h]
+by simv [apply_eq_coe_to_fun, μ.mono' _ _ h]
 
 lemma sup_disjoint (K₁ K₂ : compacts G) (h : disjoint (K₁ : set G) K₂) :
   μ (K₁ ⊔ K₂) = μ K₁ + μ K₂ :=
-by simp [apply_eq_coe_to_fun, μ.sup_disjoint' _ _ h]
+by simv [apply_eq_coe_to_fun, μ.sup_disjoint' _ _ h]
 
 lemma sup_le (K₁ K₂ : compacts G) : μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂ :=
-by { simp only [apply_eq_coe_to_fun], norm_cast, exact μ.sup_le' _ _ }
+by { simv only [apply_eq_coe_to_fun], norm_cast, exact μ.sup_le' _ _ }
 
 lemma lt_top (K : compacts G) : μ K < ∞ :=
 ennreal.coe_lt_top
@@ -141,7 +141,7 @@ begin
   cases le_or_lt (μ.inner_content U) ε,
   { exact ⟨⊥, empty_subset _, le_add_left h⟩ },
   have := ennreal.sub_lt_self hU h.ne_bot h'ε,
-  conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
+  conv at this {to_rhs, rw inner_content }, simv only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
   rw [← tsub_le_iff_right], exact le_of_lt h2U
 end
@@ -153,13 +153,13 @@ lemma inner_content_Sup_nat [t2_space G] (U : ℕ → opens G) :
 begin
   have h3 : ∀ (t : finset ℕ) (K : ℕ → compacts G), μ (t.sup K) ≤ t.sum (λ i, μ (K i)),
   { intros t K, refine finset.induction_on t _ _,
-    { simp only [μ.empty, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty], },
+    { simv only [μ.empty, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty], },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
   refine supr₂_le (λ K hK, _),
   obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
-  rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
+  rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simv only [ht])
     with ⟨K', h1K', h2K', h3K'⟩,
   let L : ℕ → compacts G := λ n, ⟨K' n, h1K' n⟩,
   convert le_trans (h3 t L) _,
@@ -181,7 +181,7 @@ lemma inner_content_comap (f : G ≃ₜ G)
   μ.inner_content (opens.comap f.to_continuous_map U) = μ.inner_content U :=
 begin
   refine (compacts.equiv f).surjective.supr_congr _ (λ K, supr_congr_Prop image_subset_iff _),
-  intro hK, simp only [equiv.coe_fn_mk, subtype.mk_eq_mk, ennreal.coe_eq_coe, compacts.equiv],
+  intro hK, simv only [equiv.coe_fn_mk, subtype.mk_eq_mk, ennreal.coe_eq_coe, compacts.equiv],
   apply h,
 end
 
@@ -207,7 +207,7 @@ begin
   refine (μ.le_inner_content _ _ this).trans _,
   refine (rel_supr_sum (μ.inner_content) (μ.inner_content_empty) (≤)
     (μ.inner_content_Sup_nat) _ _).trans _,
-  simp only [μ.is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
+  simv only [μ.is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
 
 lemma inner_content_mono' ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
@@ -317,18 +317,18 @@ begin
   rw μ.outer_measure_caratheodory,
   intro U',
   rw μ.outer_measure_of_is_open ((U' : set G) ∩ U) (is_open.inter U'.prop hU),
-  simp only [inner_content, supr_subtype'], rw [opens.coe_mk],
+  simv only [inner_content, supr_subtype'], rw [opens.coe_mk],
   haveI : nonempty {L : compacts G // (L : set G) ⊆ U' ∩ U} := ⟨⟨⊥, empty_subset _⟩⟩,
   rw [ennreal.supr_add],
-  refine supr_le _, rintro ⟨L, hL⟩, simp only [subset_inter_iff] at hL,
+  refine supr_le _, rintro ⟨L, hL⟩, simv only [subset_inter_iff] at hL,
   have : ↑U' \ U ⊆ U' \ L := diff_subset_diff_right hL.2,
   refine le_trans (add_le_add_left (μ.outer_measure.mono' this) _) _,
   rw μ.outer_measure_of_is_open (↑U' \ L) (is_open.sdiff U'.2 L.2.is_closed),
-  simp only [inner_content, supr_subtype'], rw [opens.coe_mk],
+  simv only [inner_content, supr_subtype'], rw [opens.coe_mk],
   haveI : nonempty {M : compacts G // (M : set G) ⊆ ↑U' \ L} := ⟨⟨⊥, empty_subset _⟩⟩,
-  rw [ennreal.add_supr], refine supr_le _, rintro ⟨M, hM⟩, simp only [subset_diff] at hM,
+  rw [ennreal.add_supr], refine supr_le _, rintro ⟨M, hM⟩, simv only [subset_diff] at hM,
   have : (↑(L ⊔ M) : set G) ⊆ U',
-  { simp only [union_subset_iff, compacts.coe_sup, hM, hL, and_self] },
+  { simv only [union_subset_iff, compacts.coe_sup, hM, hL, and_self] },
   rw μ.outer_measure_of_is_open ↑U' U'.2,
   refine le_trans (ge_of_eq _) (μ.le_inner_content _ _ this),
   exact μ.sup_disjoint _ _ hM.2.symm,
@@ -346,7 +346,7 @@ begin
   haveI : μ.measure.outer_regular,
   { refine ⟨λ A hA r (hr : _ < _), _⟩,
     rw [μ.measure_apply hA, outer_measure_eq_infi] at hr,
-    simp only [infi_lt_iff] at hr,
+    simv only [infi_lt_iff] at hr,
     rcases hr with ⟨U, hUo, hAU, hr⟩,
     rw [← μ.outer_measure_of_is_open U hUo, ← μ.measure_apply hUo.measurable_set] at hr,
     exact ⟨U, hAU, hUo, hr⟩ },
@@ -356,7 +356,7 @@ begin
     exact μ.outer_measure_lt_top_of_is_compact hK },
   refine ⟨λ U hU r hr, _⟩,
   rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU] at hr,
-  simp only [inner_content, lt_supr_iff] at hr,
+  simv only [inner_content, lt_supr_iff] at hr,
   rcases hr with ⟨K, hKU, hr⟩,
   refine ⟨K, hKU, K.2, hr.trans_le _⟩,
   exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _)

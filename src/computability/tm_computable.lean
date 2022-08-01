@@ -208,7 +208,7 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) :
   time := 1,
   outputs_fun := λ _, { steps := 1,
     evals_in_steps := rfl,
-    steps_le_m := by simp only [polynomial.eval_one] } }
+    steps_le_m := by simv only [polynomial.eval_one] } }
 
 instance inhabited_tm2_computable_in_poly_time :
   inhabited (tm2_computable_in_poly_time (default : fin_encoding bool) default id) :=

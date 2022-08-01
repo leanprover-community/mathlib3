@@ -34,22 +34,22 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H'
   has_mul C^∞⟮I, N; I', G⟯ :=
 ⟨λ f g, ⟨f * g, f.smooth.mul g.smooth⟩⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
   [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f * g) = f * g := rfl
 
-@[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
+@[simv, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
   [charted_space H' G] [has_smooth_mul I' G] (f g : C^∞⟮I'', N'; I', G⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (f * g).comp h = (f.comp h) * (g.comp h) :=
-by ext; simp only [cont_mdiff_map.comp_apply, coe_mul, pi.mul_apply]
+by ext; simv only [cont_mdiff_map.comp_apply, coe_mul, pi.mul_apply]
 
 @[to_additive]
 instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   has_one C^∞⟮I, N; I', G⟯ :=
 ⟨cont_mdiff_map.const (1 : G)⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   ⇑(1 : C^∞⟮I, N; I', G⟯) = 1 := rfl
 
@@ -103,12 +103,12 @@ instance group {G : Type*} [group G] [topological_space G]
   div_eq_mul_inv := λ f g, by ext; exact div_eq_mul_inv _ _,
   .. smooth_map.monoid }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_inv {G : Type*} [group G] [topological_space G]
   [charted_space H' G] [lie_group I' G] (f : C^∞⟮I, N; I', G⟯) :
   ⇑f⁻¹ = f⁻¹ := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_div {G : Type*} [group G] [topological_space G]
   [charted_space H' G] [lie_group I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f / g) = f / g :=

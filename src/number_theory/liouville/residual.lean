@@ -22,7 +22,7 @@ lemma set_of_liouville_eq_Inter_Union :
     ⋂ n : ℕ, ⋃ (a b : ℤ) (hb : 1 < b), ball (a / b) (1 / b ^ n) \ {a / b} :=
 begin
   ext x,
-  simp only [mem_Inter, mem_Union, liouville, mem_set_of_eq, exists_prop, mem_diff,
+  simv only [mem_Inter, mem_Union, liouville, mem_set_of_eq, exists_prop, mem_diff,
     mem_singleton_iff, mem_ball, real.dist_eq, and_comm]
 end
 
@@ -42,7 +42,7 @@ begin
   { refine subset_inter (λ x hx, hx.irrational) _,
     rw set_of_liouville_eq_Inter_Union,
     exact Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, diff_subset _ _) },
-  { simp only [inter_Inter, inter_Union, set_of_liouville_eq_Inter_Union],
+  { simv only [inter_Inter, inter_Union, set_of_liouville_eq_Inter_Union],
     refine Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, _),
     rw [inter_comm],
     refine diff_subset_diff subset.rfl (singleton_subset_iff.2 ⟨a / b, _⟩),
@@ -58,7 +58,7 @@ begin
   { exact is_Gδ_Inter (λ n, is_open.is_Gδ $ is_open_Union $ λ a, is_open_Union $
       λ b, is_open_Union $ λ hb, is_open_ball) },
   { rintro _ ⟨r, rfl⟩,
-    simp only [mem_Inter, mem_Union],
+    simv only [mem_Inter, mem_Union],
     refine λ n, ⟨r.num * 2, r.denom * 2, _, _⟩,
     { have := int.coe_nat_le.2 r.pos, rw int.coe_nat_one at this, linarith },
     { convert mem_ball_self _ using 2,

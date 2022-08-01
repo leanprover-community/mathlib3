@@ -56,7 +56,7 @@ variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 /-- A lax monoidal functor is a functor `F : C ⥤ D` between monoidal categories,
 equipped with morphisms `ε : 𝟙 _D ⟶ F.obj (𝟙_ C)` and `μ X Y : F.obj X ⊗ F.obj Y ⟶ F.obj (X ⊗ Y)`,
 satisfying the appropriate coherences. -/
--- The direction of `left_unitality` and `right_unitality` as simp lemmas may look strange:
+-- The direction of `left_unitality` and `right_unitality` as simv lemmas may look strange:
 -- remember the rule of thumb that component indices of natural transformations
 -- "weigh more" than structural maps.
 -- (However by this argument `associativity` is currently stated backwards!)
@@ -85,13 +85,13 @@ structure lax_monoidal_functor extends C ⥤ D :=
   . obviously)
 
 restate_axiom lax_monoidal_functor.μ_natural'
-attribute [simp, reassoc] lax_monoidal_functor.μ_natural
+attribute [simv, reassoc] lax_monoidal_functor.μ_natural
 restate_axiom lax_monoidal_functor.left_unitality'
-attribute [simp] lax_monoidal_functor.left_unitality
+attribute [simv] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'
-attribute [simp] lax_monoidal_functor.right_unitality
+attribute [simv] lax_monoidal_functor.right_unitality
 restate_axiom lax_monoidal_functor.associativity'
-attribute [simp, reassoc] lax_monoidal_functor.associativity
+attribute [simv, reassoc] lax_monoidal_functor.associativity
 
 -- When `rewrite_search` lands, add @[search] attributes to
 -- lax_monoidal_functor.μ_natural lax_monoidal_functor.left_unitality
@@ -100,7 +100,7 @@ attribute [simp, reassoc] lax_monoidal_functor.associativity
 section
 variables {C D}
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma lax_monoidal_functor.left_unitality_inv (F : lax_monoidal_functor C D) (X : C) :
   (λ_ (F.obj X)).inv ≫ (F.ε ⊗ 𝟙 (F.obj X)) ≫ F.μ (𝟙_ C) X = F.map (λ_ X).inv :=
 begin
@@ -108,7 +108,7 @@ begin
     ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma lax_monoidal_functor.right_unitality_inv (F : lax_monoidal_functor C D) (X : C) :
   (ρ_ (F.obj X)).inv ≫ (𝟙 (F.obj X) ⊗ F.ε) ≫ F.μ X (𝟙_ C) = F.map (ρ_ X).inv :=
 begin
@@ -116,7 +116,7 @@ begin
     ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma lax_monoidal_functor.associativity_inv (F : lax_monoidal_functor C D) (X Y Z : C) :
   (𝟙 (F.obj X) ⊗ F.μ Y Z) ≫ F.μ X (Y ⊗ Z) ≫ F.map (α_ X Y Z).inv =
     (α_ (F.obj X) (F.obj Y) (F.obj Z)).inv ≫ (F.μ X Y ⊗ 𝟙 (F.obj Z)) ≫ F.μ (X ⊗ Y) Z :=
@@ -184,22 +184,22 @@ variable (F : monoidal_functor.{v₁ v₂} C D)
 
 lemma map_tensor {X Y X' Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
   F.map (f ⊗ g) = inv (F.μ X X') ≫ ((F.map f) ⊗ (F.map g)) ≫ F.μ Y Y' :=
-by simp
+by simv
 
 lemma map_left_unitor (X : C) :
   F.map (λ_ X).hom = inv (F.μ (𝟙_ C) X) ≫ (inv F.ε ⊗ 𝟙 (F.obj X)) ≫ (λ_ (F.obj X)).hom :=
 begin
-  simp only [lax_monoidal_functor.left_unitality],
-  slice_rhs 2 3 { rw ←comp_tensor_id, simp, },
-  simp,
+  simv only [lax_monoidal_functor.left_unitality],
+  slice_rhs 2 3 { rw ←comp_tensor_id, simv, },
+  simv,
 end
 
 lemma map_right_unitor (X : C) :
   F.map (ρ_ X).hom = inv (F.μ X (𝟙_ C)) ≫ (𝟙 (F.obj X) ⊗ inv F.ε) ≫ (ρ_ (F.obj X)).hom :=
 begin
-  simp only [lax_monoidal_functor.right_unitality],
-  slice_rhs 2 3 { rw ←id_tensor_comp, simp, },
-  simp,
+  simv only [lax_monoidal_functor.right_unitality],
+  slice_rhs 2 3 { rw ←id_tensor_comp, simv, },
+  simv,
 end
 
 /-- The tensorator as a natural isomorphism. -/
@@ -211,13 +211,13 @@ nat_iso.of_components
   (by { intros, apply F.to_lax_monoidal_functor.μ_natural })
 
 @[simp] lemma μ_iso_hom (X Y : C) : (F.μ_iso X Y).hom = F.μ X Y := rfl
-@[simp, reassoc] lemma μ_inv_hom_id (X Y : C) : (F.μ_iso X Y).inv ≫ F.μ X Y = 𝟙 _ :=
+@[simv, reassoc] lemma μ_inv_hom_id (X Y : C) : (F.μ_iso X Y).inv ≫ F.μ X Y = 𝟙 _ :=
 (F.μ_iso X Y).inv_hom_id
 @[simp] lemma μ_hom_inv_id (X Y : C) : F.μ X Y ≫ (F.μ_iso X Y).inv = 𝟙 _ :=
 (F.μ_iso X Y).hom_inv_id
 
 @[simp] lemma ε_iso_hom : F.ε_iso.hom = F.ε := rfl
-@[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
+@[simv, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
 @[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
 
 end
@@ -251,7 +251,7 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
   μ                := λ X Y, G.μ (F.obj X) (F.obj Y) ≫ G.map (F.μ X Y),
   μ_natural'       := λ _ _ _ _ f g,
   begin
-    simp only [functor.comp_map, assoc],
+    simv only [functor.comp_map, assoc],
     rw [←category.assoc, lax_monoidal_functor.μ_natural, category.assoc, ←map_comp, ←map_comp,
         ←lax_monoidal_functor.μ_natural]
   end,
@@ -294,7 +294,7 @@ universes v₀ u₀
 variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
 variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
 
-local attribute [simp] μ_natural associativity left_unitality right_unitality
+local attribute [simv] μ_natural associativity left_unitality right_unitality
 
 /-- The cartesian product of two lax monoidal functors is lax monoidal. -/
 @[simps]
@@ -329,10 +329,10 @@ def prod' : lax_monoidal_functor C (D × E) :=
   (F.prod' G).to_functor = (F.to_functor).prod' (G.to_functor) := rfl
 
 @[simp] lemma prod'_ε : (F.prod' G).ε = (F.ε, G.ε) :=
-by { dsimp [prod'], simp }
+by { dsimp [prod'], simv }
 
 @[simp] lemma prod'_μ (X Y : C) : (F.prod' G).μ X Y = (F.μ X Y, G.μ X Y) :=
-by { dsimp [prod'], simp }
+by { dsimp [prod'], simv }
 
 end lax_monoidal_functor
 

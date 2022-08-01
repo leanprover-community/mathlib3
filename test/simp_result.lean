@@ -129,7 +129,7 @@ begin
   simp_result
   { have mul := S.mul,
     have e' := equiv.arrow_congr e (equiv.arrow_congr e e),
-    have h : mul = e'.symm (e' mul) := by simp,
+    have h : mul = e'.symm (e' mul) := by simv,
     revert h,
     generalize : e' mul = mul',
     intro h,

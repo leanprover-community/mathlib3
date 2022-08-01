@@ -81,14 +81,14 @@ instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_
   cardinal.lift (# (sequence₂ a₀ a₁ a₂ i)) = # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) :=
 begin
   rcases i with (_ | _ | _ | i);
-  simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
+  simv only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
 end
 
 @[simp] lemma sum_card :
   cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
 begin
   rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
-  simp [add_assoc],
+  simv [add_assoc],
 end
 
 end sequence₂
@@ -148,7 +148,7 @@ variables {L} {L' : language.{u' v'}}
 lemma card_eq_card_functions_add_card_relations :
   L.card = cardinal.sum (λ l, (cardinal.lift.{v} (#(L.functions l)))) +
     cardinal.sum (λ l, cardinal.lift.{u} (#(L.relations l))) :=
-by simp [card, symbols]
+by simv [card, symbols]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
@@ -198,10 +198,10 @@ lemma encodable.countable [h : encodable L.symbols] : L.countable :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
 
 @[simp] lemma empty_card : language.empty.card = 0 :=
-by simp [card_eq_card_functions_add_card_relations]
+by simv [card_eq_card_functions_add_card_relations]
 
 instance countable_empty : language.empty.countable :=
-⟨by simp⟩
+⟨by simv⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] : L.countable_functions :=
 ⟨begin
@@ -219,16 +219,16 @@ encodable.countable_functions
 
 @[simp] lemma card_functions_sum (i : ℕ) :
   #((L.sum L').functions i) = (#(L.functions i)).lift + cardinal.lift.{u} (#(L'.functions i)) :=
-by simp [language.sum]
+by simv [language.sum]
 
 @[simp] lemma card_relations_sum (i : ℕ) :
   #((L.sum L').relations i) = (#(L.relations i)).lift + cardinal.lift.{v} (#(L'.relations i)) :=
-by simp [language.sum]
+by simv [language.sum]
 
 @[simp] lemma card_sum :
   (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
 begin
-  simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
+  simv only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
     sum_add_distrib', lift_add, lift_sum, lift_lift],
   rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
     add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
@@ -238,7 +238,7 @@ end
   (language.mk₂ c f₁ f₂ r₁ r₂).card =
     cardinal.lift.{v} (# c) + cardinal.lift.{v} (# f₁) + cardinal.lift.{v} (# f₂)
     + cardinal.lift.{u} (# r₁) + cardinal.lift.{u} (# r₂) :=
-by simp [card_eq_card_functions_add_card_relations, add_assoc]
+by simv [card_eq_card_functions_add_card_relations, add_assoc]
 
 variables (L) (M : Type w)
 
@@ -429,7 +429,7 @@ instance : inhabited (M →[L] M) := ⟨id L M⟩
 /-- Composition of first-order homomorphisms -/
 @[trans] def comp (hnp : N →[L] P) (hmn : M →[L] N) : M →[L] P :=
 { to_fun := hnp ∘ hmn,
-  map_rel' := λ _ _ _ h, by simp [h] }
+  map_rel' := λ _ _ _ h, by simv [h] }
 
 @[simp] lemma comp_apply (g : N →[L] P) (f : M →[L] N) (x : M) :
   g.comp f x = g (f x) := rfl
@@ -454,7 +454,7 @@ instance embedding_like : embedding_like (M ↪[L] N) M N :=
   coe_injective' := λ f g h, begin
     cases f,
     cases g,
-    simp only,
+    simv only,
     ext x,
     exact function.funext_iff.1 h x end }
 
@@ -487,7 +487,7 @@ lemma coe_injective : @function.injective (M ↪[L] N) (M → N) coe_fn
 begin
   cases f,
   cases g,
-  simp only,
+  simv only,
   ext x,
   exact function.funext_iff.1 h x,
 end
@@ -512,7 +512,7 @@ lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.inject
 
 @[simp] lemma of_injective_to_hom [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) :
   (of_injective hf).to_hom = f :=
-by { ext, simp }
+by { ext, simv }
 
 variables (L) (M)
 /-- The identity embedding from a structure to itself -/
@@ -540,7 +540,7 @@ lemma comp_assoc (f : M ↪[L] N) (g : N ↪[L] P) (h : P ↪[L] Q) :
 
 @[simp] lemma comp_to_hom (hnp : N ↪[L] P) (hmn : M ↪[L] N) :
   (hnp.comp hmn).to_hom = hnp.to_hom.comp hmn.to_hom :=
-by { ext, simp only [coe_to_hom, comp_apply, hom.comp_apply] }
+by { ext, simv only [coe_to_hom, comp_apply, hom.comp_apply] }
 
 end embedding
 
@@ -561,7 +561,7 @@ instance : equiv_like (M ≃[L] N) M N :=
   coe_injective' := λ f g h₁ h₂, begin
     cases f,
     cases g,
-    simp only,
+    simv only,
     ext x,
     exact function.funext_iff.1 h₁ x,
   end, }
@@ -573,13 +573,13 @@ instance : strong_hom_class L (M ≃[L] N) M N :=
 /-- The inverse of a first-order equivalence is a first-order equivalence. -/
 @[symm] def symm (f : M ≃[L] N) : N ≃[L] M :=
 { map_fun' := λ n f' x, begin
-    simp only [equiv.to_fun_as_coe],
+    simv only [equiv.to_fun_as_coe],
     rw [equiv.symm_apply_eq],
     refine eq.trans _ (f.map_fun' f' (f.to_equiv.symm ∘ x)).symm,
     rw [← function.comp.assoc, equiv.to_fun_as_coe, equiv.self_comp_symm, function.comp.left_id]
   end,
   map_rel' := λ n r x, begin
-    simp only [equiv.to_fun_as_coe],
+    simv only [equiv.to_fun_as_coe],
     refine (f.map_rel' r (f.to_equiv.symm ∘ x)).symm.trans _,
     rw [← function.comp.assoc, equiv.to_fun_as_coe, equiv.self_comp_symm, function.comp.left_id]
   end,
@@ -751,8 +751,8 @@ variables {L : language} {M : Type*} {N : Type*} [L.Structure M]
 /-- A bijection as a first-order isomorphism with the induced structure on the codomain. -/
 @[simps] def induced_Structure_equiv (e : M ≃ N) :
   @language.equiv L M N _ (induced_Structure e) :=
-{ map_fun' := λ n f x, by simp [← function.comp.assoc e.symm e x],
-  map_rel' := λ n r x, by simp [← function.comp.assoc e.symm e x],
+{ map_fun' := λ n f x, by simv [← function.comp.assoc e.symm e x],
+  map_rel' := λ n r x, by simv [← function.comp.assoc e.symm e x],
   .. e }
 
 end equiv

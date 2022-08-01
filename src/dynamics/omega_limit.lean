@@ -82,7 +82,7 @@ lemma maps_to_omega_limit' {α' β' : Type*} [topological_space β'] {f : filter
   (hgc : continuous gb) :
   maps_to gb (ω f ϕ s) (ω f ϕ' s') :=
 begin
-  simp only [omega_limit_def, mem_Inter, maps_to],
+  simv only [omega_limit_def, mem_Inter, maps_to],
   intros y hy u hu,
   refine map_mem_closure hgc (hy _ (inter_mem hu hg)) (forall_image2_iff.2 $ λ t ht x hx, _),
   calc gb (ϕ t x) = ϕ' t (ga x) : ht.2 hx
@@ -98,7 +98,7 @@ maps_to_omega_limit' _ hs (eventually_of_forall $ λ t x hx, hg t x) hgc
 
 lemma omega_limit_image_eq {α' : Type*} (ϕ : τ → α' → β) (f : filter τ) (g : α → α') :
   ω f ϕ (g '' s) = ω f (λ t x, ϕ t (g x)) s :=
-by simp only [omega_limit, image2_image_right]
+by simv only [omega_limit, image2_image_right]
 
 lemma omega_limit_preimage_subset {α' : Type*} (ϕ : τ → α' → β) (s : set α') (f : filter τ)
   (g : α → α') :
@@ -157,10 +157,10 @@ subset_Inter $ λ i, omega_limit_mono_right _ _ (Inter_subset _ _)
 lemma omega_limit_union : ω f ϕ (s₁ ∪ s₂) = ω f ϕ s₁ ∪ ω f ϕ s₂ :=
 begin
   ext y, split,
-  { simp only [mem_union, mem_omega_limit_iff_frequently, union_inter_distrib_right,
+  { simv only [mem_union, mem_omega_limit_iff_frequently, union_inter_distrib_right,
       union_nonempty, frequently_or_distrib],
     contrapose!,
-    simp only [not_frequently, not_nonempty_iff_eq_empty, ← subset_empty_iff],
+    simv only [not_frequently, not_nonempty_iff_eq_empty, ← subset_empty_iff],
     rintro ⟨⟨n₁, hn₁, h₁⟩, ⟨n₂, hn₂, h₂⟩⟩,
     refine ⟨n₁ ∩ n₂, inter_mem hn₁ hn₂, h₁.mono $ λ t, _, h₂.mono $ λ t, _⟩,
     exacts [subset.trans $ inter_subset_inter_right _ $ preimage_mono $ inter_subset_left _ _,
@@ -237,7 +237,7 @@ begin
     calc k \ n ⊆ ⋃ u ∈ g, j u : hg₃
     ... ⊆ (closure (image2 ϕ w s))ᶜ :
     begin
-      simp only [Union_subset_iff, compl_subset_compl],
+      simv only [Union_subset_iff, compl_subset_compl],
       intros u hu,
       mono* using [w],
       exact Inter_subset_of_subset u (Inter_subset_of_subset hu subset.rfl),
@@ -302,7 +302,7 @@ begin
   { rintro ⟨u₁, hu₁⟩ ⟨u₂, hu₂⟩,
     use ⟨u₁ ∩ u₂, inter_mem hu₁ hu₂⟩, split,
    all_goals { exact closure_mono (image2_subset
-        (inter_subset_inter_left _ (by simp)) subset.rfl) }},
+        (inter_subset_inter_left _ (by simv)) subset.rfl) }},
   { intro u,
     have hn : (image2 ϕ (u ∩ v) s).nonempty, from
       nonempty.image2 (nonempty_of_mem (inter_mem u.prop hv₁)) hs,
@@ -346,7 +346,7 @@ end
 lemma omega_limit_image_subset (t : τ) (ht : tendsto (+ t) f f) :
   ω f ϕ (ϕ t '' s) ⊆ ω f ϕ s :=
 begin
-  simp only [omega_limit_image_eq, ← map_add],
+  simv only [omega_limit_image_eq, ← map_add],
   exact omega_limit_subset_of_tendsto ϕ s ht
 end
 
@@ -369,13 +369,13 @@ open_locale omega_limit
 @[simp] lemma omega_limit_image_eq (hf : ∀ t, tendsto (+ t) f f) (t : τ) :
   ω f ϕ (ϕ t '' s) = ω f ϕ s :=
 subset.antisymm (omega_limit_image_subset _ _ _ _ (hf t)) $
-calc ω f ϕ s = ω f ϕ (ϕ (-t) '' (ϕ t '' s)) : by simp [image_image, ← map_add]
+calc ω f ϕ s = ω f ϕ (ϕ (-t) '' (ϕ t '' s)) : by simv [image_image, ← map_add]
 ... ⊆ ω f ϕ (ϕ t '' s) : omega_limit_image_subset _ _ _ _ (hf _)
 
 lemma omega_limit_omega_limit (hf : ∀ t, tendsto ((+) t) f f) :
   ω f ϕ (ω f ϕ s) ⊆ ω f ϕ s :=
 begin
-  simp only [subset_def, mem_omega_limit_iff_frequently₂, frequently_iff],
+  simv only [subset_def, mem_omega_limit_iff_frequently₂, frequently_iff],
   intros _ h,
   rintro n hn u hu,
   rcases mem_nhds_iff.mp hn with ⟨o, ho₁, ho₂, ho₃⟩,

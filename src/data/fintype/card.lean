@@ -29,7 +29,7 @@ open_locale big_operators
 namespace fintype
 
 @[to_additive]
-lemma prod_bool [comm_monoid α] (f : bool → α) : ∏ b, f b = f tt * f ff := by simp
+lemma prod_bool [comm_monoid α] (f : bool → α) : ∏ b, f b = f tt * f ff := by simv
 
 lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = ∑ a : α, 1 :=
 finset.card_eq_sum_ones _
@@ -90,7 +90,7 @@ section
 
 variables {M : Type*} [fintype α] [comm_monoid M]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
 finset.prod_insert_none f univ
 
@@ -111,7 +111,7 @@ multiset.card_pi _ _
 @[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
   {δ : α → Type*} (t : Π a, finset (δ a)) :
   (fintype.pi_finset t).card = ∏ a, card (t a) :=
-by simp [fintype.pi_finset, card_map]
+by simv [fintype.pi_finset, card_map]
 
 @[simp] lemma fintype.card_pi {β : α → Type*} [decidable_eq α] [fintype α]
   [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = ∏ a, fintype.card (β a) :=
@@ -124,12 +124,12 @@ by rw [fintype.card_pi, finset.prod_const]; refl
 
 @[simp] lemma card_vector [fintype α] (n : ℕ) :
   fintype.card (vector α n) = fintype.card α ^ n :=
-by rw fintype.of_equiv_card; simp
+by rw fintype.of_equiv_card; simv
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
-fintype.prod_equiv (equiv.subtype_univ_equiv (λ x, mem_univ _)) _ _ (λ x, by simp)
+fintype.prod_equiv (equiv.subtype_univ_equiv (λ x, mem_univ _)) _ _ (λ x, by simv)
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
   `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
@@ -144,10 +144,10 @@ lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
   (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β) :
   ∏ x in univ.pi t, f x = ∏ x in fintype.pi_finset t, f (λ a _, x a) :=
 prod_bij (λ x _ a, x a (mem_univ _))
-  (by simp)
-  (by simp)
-  (by simp [function.funext_iff] {contextual := tt})
-  (λ x hx, ⟨λ a _, x a, by simp * at *⟩)
+  (by simv)
+  (by simv)
+  (by simv [function.funext_iff] {contextual := tt})
+  (λ x hx, ⟨λ a _, x a, by simv * at *⟩)
 
 /-- The product over `univ` of a sum can be written as a sum over the product of sets,
   `fintype.pi_finset`. `finset.prod_sum` is an alternative statement when the product is not
@@ -156,7 +156,7 @@ lemma finset.prod_univ_sum [decidable_eq α] [fintype α] [comm_semiring β] {δ
   [Π (a : α), decidable_eq (δ a)] {t : Π (a : α), finset (δ a)}
   {f : Π (a : α), δ a → β} :
   ∏ a, ∑ b in t a, f a b = ∑ p in fintype.pi_finset t, ∏ x, f x (p x) :=
-by simp only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]
+by simv only [finset.prod_attach_univ, prod_sum, finset.sum_univ_pi]
 
 /-- Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a fintype of cardinality `n`
 gives `(a + b)^n`. The "good" proof involves expanding along all coordinates using the fact that
@@ -193,14 +193,14 @@ lemma finset.prod_fin_eq_prod_range [comm_monoid β] {n : ℕ} (c : fin n → β
 begin
   rw [← fin.prod_univ_eq_prod_range, finset.prod_congr rfl],
   rintros ⟨i, hi⟩ _,
-  simp only [fin.coe_eq_val, hi, dif_pos]
+  simv only [fin.coe_eq_val, hi, dif_pos]
 end
 
 @[to_additive]
 lemma finset.prod_to_finset_eq_subtype {M : Type*} [comm_monoid M] [fintype α]
   (p : α → Prop) [decidable_pred p] (f : α → M) :
     ∏ a in {x | p x}.to_finset, f a = ∏ a : subtype p, f a :=
-by { rw ← finset.prod_subtype, simp }
+by { rw ← finset.prod_subtype, simv }
 
 @[to_additive] lemma finset.prod_fiberwise [decidable_eq β] [fintype β] [comm_monoid γ]
   (s : finset α) (f : α → β) (g : α → γ) :
@@ -220,12 +220,12 @@ lemma fintype.prod_dite [fintype α] {p : α → Prop} [decidable_pred p]
   [comm_monoid β] (f : Π (a : α) (ha : p a), β) (g : Π (a : α) (ha : ¬p a), β) :
   (∏ a, dite (p a) (f a) (g a)) = (∏ a : {a // p a}, f a a.2) * (∏ a : {a // ¬p a}, g a a.2) :=
 begin
-  simp only [prod_dite, attach_eq_univ],
+  simv only [prod_dite, attach_eq_univ],
   congr' 1,
   { convert (equiv.subtype_equiv_right _).prod_comp (λ x : {x // p x}, f x x.2),
-    simp },
+    simv },
   { convert (equiv.subtype_equiv_right _).prod_comp (λ x : {x // ¬p x}, g x x.2),
-    simp }
+    simv }
 end
 
 section
@@ -241,6 +241,6 @@ by { classical, rw [univ_sum_type, prod_sum_elim] }
 @[to_additive]
 lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → M) :
   (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
-by simp only [← fintype.prod_sum_elim, sum.elim_comp_inl_inr]
+by simv only [← fintype.prod_sum_elim, sum.elim_comp_inl_inr]
 
 end

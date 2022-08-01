@@ -36,8 +36,8 @@ variables {G : simple_graph α} {H : simple_graph β} {I : simple_graph γ} {a a
 and `(a, b₁)` and `(a, b₂)` if `H` relates `b₁` and `b₂`. -/
 def box_prod (G : simple_graph α) (H : simple_graph β) : simple_graph (α × β) :=
 { adj := λ x y, G.adj x.1 y.1 ∧ x.2 = y.2 ∨ H.adj x.2 y.2 ∧ x.1 = y.1,
-  symm := λ x y, by simp [and_comm, or_comm, eq_comm, adj_comm],
-  loopless := λ x, by simp }
+  symm := λ x y, by simv [and_comm, or_comm, eq_comm, adj_comm],
+  loopless := λ x, by simv }
 
 infix ` □ `:70 := box_prod
 
@@ -57,7 +57,7 @@ variables (G H I)
 
 /-- The box product is associative up to isomorphism. `equiv.prod_assoc` as a graph isomorphism. -/
 @[simps] def box_prod_assoc : (G □ H) □ I ≃g G □ (H □ I) :=
-⟨equiv.prod_assoc _ _ _, λ x y, by simp only [box_prod_adj, equiv.prod_assoc_apply,
+⟨equiv.prod_assoc _ _ _, λ x y, by simv only [box_prod_adj, equiv.prod_assoc_apply,
   or_and_distrib_right, or_assoc, prod.ext_iff, and_assoc, @and.comm (x.1.1 = _)]⟩
 
 /-- The embedding of `G` into `G □ H` given by `b`. -/

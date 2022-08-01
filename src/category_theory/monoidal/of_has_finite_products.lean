@@ -69,12 +69,12 @@ def symmetric_of_has_finite_products [has_terminal C] [has_binary_products C] :
   symmetric_category C :=
 { braiding := λ X Y, limits.prod.braiding X Y,
   braiding_naturality' := λ X X' Y Y' f g,
-    by { dsimp [tensor_hom], simp, },
+    by { dsimp [tensor_hom], simv, },
   hexagon_forward' := λ X Y Z,
-    by { dsimp [monoidal_of_has_finite_products], simp },
+    by { dsimp [monoidal_of_has_finite_products], simv },
   hexagon_reverse' := λ X Y Z,
-    by { dsimp [monoidal_of_has_finite_products], simp },
-  symmetry' := λ X Y, by { dsimp, simp, refl, }, }
+    by { dsimp [monoidal_of_has_finite_products], simv },
+  symmetry' := λ X Y, by { dsimp, simv, refl, }, }
 
 end
 
@@ -96,9 +96,9 @@ lemma left_unitor_inv (X : C) : (λ_ X).inv = prod.lift (terminal.from X) (𝟙 
 lemma right_unitor_hom (X : C) : (ρ_ X).hom = limits.prod.fst := rfl
 @[simp]
 lemma right_unitor_inv (X : C) : (ρ_ X).inv = prod.lift (𝟙 _) (terminal.from X) := rfl
--- We don't mark this as a simp lemma, even though in many particular
+-- We don't mark this as a simv lemma, even though in many particular
 -- categories the right hand side will simplify significantly further.
--- For now, we'll plan to create specialised simp lemmas in each particular category.
+-- For now, we'll plan to create specialised simv lemmas in each particular category.
 lemma associator_hom (X Y Z : C) :
   (α_ X Y Z).hom =
   prod.lift
@@ -138,12 +138,12 @@ def symmetric_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C]
   symmetric_category C :=
 { braiding := limits.coprod.braiding,
   braiding_naturality' := λ X X' Y Y' f g,
-    by { dsimp [tensor_hom], simp, },
+    by { dsimp [tensor_hom], simv, },
   hexagon_forward' := λ X Y Z,
-    by { dsimp [monoidal_of_has_finite_coproducts], simp },
+    by { dsimp [monoidal_of_has_finite_coproducts], simv },
   hexagon_reverse' := λ X Y Z,
-    by { dsimp [monoidal_of_has_finite_coproducts], simp },
-  symmetry' := λ X Y, by { dsimp, simp, refl, }, }
+    by { dsimp [monoidal_of_has_finite_coproducts], simv },
+  symmetry' := λ X Y, by { dsimp, simv, refl, }, }
 
 end
 
@@ -165,9 +165,9 @@ lemma right_unitor_hom (X : C) : (ρ_ X).hom = coprod.desc (𝟙 _) (initial.to 
 lemma left_unitor_inv (X : C) : (λ_ X).inv = limits.coprod.inr := rfl
 @[simp]
 lemma right_unitor_inv (X : C) : (ρ_ X).inv = limits.coprod.inl := rfl
--- We don't mark this as a simp lemma, even though in many particular
+-- We don't mark this as a simv lemma, even though in many particular
 -- categories the right hand side will simplify significantly further.
--- For now, we'll plan to create specialised simp lemmas in each particular category.
+-- For now, we'll plan to create specialised simv lemmas in each particular category.
 lemma associator_hom (X Y Z : C) :
   (α_ X Y Z).hom =
   coprod.desc

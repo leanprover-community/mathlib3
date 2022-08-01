@@ -99,7 +99,7 @@ begin
   rw [linear_independent_iff_injective_total],
   have : finsupp.total ι A R x =
     (mv_polynomial.aeval x).to_linear_map.comp (finsupp.total ι _ R X),
-  { ext, simp },
+  { ext, simv },
   rw this,
   refine hx.comp _,
   rw [← linear_independent_iff_injective_total],
@@ -120,12 +120,12 @@ by simpa using hx.comp _ (range_splitting_injective x)
 
 lemma map {f : A →ₐ[R] A'} (hf_inj : set.inj_on f (adjoin R (range x))) :
   algebraic_independent R (f ∘ x) :=
-have aeval (f ∘ x) = f.comp (aeval x), by ext; simp,
+have aeval (f ∘ x) = f.comp (aeval x), by ext; simv,
 have h : ∀ p : mv_polynomial ι R, aeval x p ∈ (@aeval R _ _ _ _ _ (coe : range x → A)).range,
   { intro p,
     rw [alg_hom.mem_range],
     refine ⟨mv_polynomial.rename (cod_restrict x (range x) (mem_range_self)) p, _⟩,
-    simp [function.comp, aeval_rename] },
+    simv [function.comp, aeval_rename] },
 begin
   intros x y hxy,
   rw [this] at hxy,
@@ -140,7 +140,7 @@ omit hx
 
 lemma of_comp (f : A →ₐ[R] A') (hfv : algebraic_independent R (f ∘ x)) :
   algebraic_independent R x :=
-have aeval (f ∘ x) = f.comp (aeval x), by ext; simp,
+have aeval (f ∘ x) = f.comp (aeval x), by ext; simv,
 by rw [algebraic_independent, this] at hfv; exact hfv.of_comp
 
 end algebraic_independent
@@ -189,7 +189,7 @@ lemma algebraic_independent.restrict_scalars {K : Type*} [comm_ring K] [algebra 
 have (aeval x : mv_polynomial ι K →ₐ[K] A).to_ring_hom.comp
     (mv_polynomial.map (algebra_map R K)) =
     (aeval x : mv_polynomial ι R →ₐ[R] A).to_ring_hom,
-  by { ext; simp [algebra_map_eq_smul_one] },
+  by { ext; simv [algebra_map_eq_smul_one] },
 begin
   show injective (aeval x).to_ring_hom,
   rw [← this],
@@ -205,14 +205,14 @@ begin
     obtain ⟨x, h⟩ := x,
     rw [finset.mem_map] at h,
     obtain ⟨a, ha, rfl⟩ := h,
-    simp only [subtype.coe_prop, embedding.coe_subtype],
+    simv only [subtype.coe_prop, embedding.coe_subtype],
   end⟩,
   convert algebraic_independent.comp li f _,
   rintros ⟨x, hx⟩ ⟨y, hy⟩,
   rw [finset.mem_map] at hx hy,
   obtain ⟨a, ha, rfl⟩ := hx,
   obtain ⟨b, hb, rfl⟩ := hy,
-  simp only [imp_self, subtype.mk_eq_mk],
+  simv only [imp_self, subtype.mk_eq_mk],
 end
 
 /--
@@ -241,7 +241,7 @@ hs
 variables (R A)
 lemma algebraic_independent_empty_iff : algebraic_independent R (λ x, x : (∅ : set A) → A) ↔
   injective (algebra_map R A) :=
-by simp
+by simv
 variables {R A}
 
 lemma algebraic_independent.mono {t s : set A} (h : t ⊆ s)
@@ -266,11 +266,11 @@ theorem algebraic_independent_comp_subtype {s : set ι} :
   algebraic_independent R (x ∘ coe : s → A) ↔
   ∀ p ∈ (mv_polynomial.supported R s), aeval x p = 0 → p = 0 :=
 have (aeval (x ∘ coe : s → A) : _ →ₐ[R] _) =
-  (aeval x).comp (rename coe), by ext; simp,
+  (aeval x).comp (rename coe), by ext; simv,
 have ∀ p : mv_polynomial s R, rename (coe : s → ι) p = 0 ↔ p = 0,
   from (injective_iff_map_eq_zero' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
     (rename_injective _ subtype.val_injective),
-by simp [algebraic_independent_iff, supported_eq_range_rename, *]
+by simv [algebraic_independent_iff, supported_eq_range_rename, *]
 
 theorem algebraic_independent_subtype {s : set A} :
   algebraic_independent R (λ x, x : s → A) ↔
@@ -282,7 +282,7 @@ lemma algebraic_independent_of_finite (s : set A)
   algebraic_independent R (λ x, x : s → A) :=
 algebraic_independent_subtype.2 $
   λ p hp, algebraic_independent_subtype.1 (H _ (mem_supported.1 hp) (finset.finite_to_set _)) _
-    (by simp)
+    (by simv)
 
 theorem algebraic_independent.image_of_comp {ι ι'} (s : set ι) (f : ι → ι') (g : ι' → A)
   (hs : algebraic_independent R (λ x : s, g (f x))) :
@@ -364,7 +364,7 @@ begin
       rcases hx with ⟨y, rfl⟩,
       use y,
       ext,
-      simp } }
+      simv } }
 end
 
 @[simp] lemma algebraic_independent.algebra_map_aeval_equiv (hx : algebraic_independent R x)
@@ -444,7 +444,7 @@ lemma algebraic_independent.aeval_comp_mv_polynomial_option_equiv_polynomial_adj
       mv_polynomial (option ι) R →ₐ[R] A) :=
 begin
   refine mv_polynomial.ring_hom_ext _ _;
-    simp only [ring_hom.comp_apply, ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom,
+    simv only [ring_hom.comp_apply, ring_equiv.to_ring_hom_eq_coe, ring_equiv.coe_to_ring_hom,
         alg_hom.coe_to_ring_hom, alg_hom.coe_to_ring_hom],
   { intro r,
     rw [hx.mv_polynomial_option_equiv_polynomial_adjoin_C,
@@ -479,7 +479,7 @@ begin
     (set.subset_univ _) ((algebraic_independent_empty_iff R A).2 h) with s hs,
   use [s, hs.1],
   intros t ht hr,
-  simp only [subtype.range_coe_subtype, set_of_mem_eq] at *,
+  simv only [subtype.range_coe_subtype, set_of_mem_eq] at *,
   exact eq.symm (hs.2.2.2 t ht hr (set.subset_univ _))
 end
 
@@ -500,7 +500,7 @@ begin
     intros w i' h,
     specialize p w (coe : w → A) i'
       (λ i, ⟨x i, range_subset_iff.mp h i⟩)
-      (by { ext, simp, }),
+      (by { ext, simv, }),
     have q := congr_arg (λ s, (coe : w → A) '' s) p.range_eq,
     dsimp at q,
     rw [←image_univ, image_image] at q,

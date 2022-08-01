@@ -47,34 +47,34 @@ lemma nat.card_eq (α : Type*) :
 begin
   casesI finite_or_infinite α,
   { letI := fintype.of_finite α,
-    simp only [*, nat.card_eq_fintype_card, dif_pos] },
-  { simp [*, not_finite_iff_infinite.mpr h] },
+    simv only [*, nat.card_eq_fintype_card, dif_pos] },
+  { simv [*, not_finite_iff_infinite.mpr h] },
 end
 
 lemma finite.card_pos_iff [finite α] :
   0 < nat.card α ↔ nonempty α :=
 begin
   haveI := fintype.of_finite α,
-  simp only [nat.card_eq_fintype_card],
+  simv only [nat.card_eq_fintype_card],
   exact fintype.card_pos_iff,
 end
 
 namespace finite
 
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
+by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simv [fintype.card_eq] }
 
 lemma card_le_one_iff_subsingleton [finite α] : nat.card α ≤ 1 ↔ subsingleton α :=
-by { haveI := fintype.of_finite α, simp [fintype.card_le_one_iff_subsingleton] }
+by { haveI := fintype.of_finite α, simv [fintype.card_le_one_iff_subsingleton] }
 
 lemma one_lt_card_iff_nontrivial [finite α] : 1 < nat.card α ↔ nontrivial α :=
-by { haveI := fintype.of_finite α, simp [fintype.one_lt_card_iff_nontrivial] }
+by { haveI := fintype.of_finite α, simv [fintype.one_lt_card_iff_nontrivial] }
 
 lemma one_lt_card [finite α] [h : nontrivial α] : 1 < nat.card α :=
 one_lt_card_iff_nontrivial.mpr h
 
 @[simp] lemma card_option [finite α] : nat.card (option α) = nat.card α + 1 :=
-by { haveI := fintype.of_finite α, simp }
+by { haveI := fintype.of_finite α, simv }
 
 lemma card_le_of_injective [finite β] (f : α → β) (hf : function.injective f) :
   nat.card α ≤ nat.card β :=
@@ -90,10 +90,10 @@ by { haveI := fintype.of_finite α, haveI := fintype.of_surjective f hf,
      simpa using fintype.card_le_of_surjective f hf }
 
 lemma card_eq_zero_iff [finite α] : nat.card α = 0 ↔ is_empty α :=
-by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
+by { haveI := fintype.of_finite α, simv [fintype.card_eq_zero_iff] }
 
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
+by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simv }
 
 end finite
 

@@ -439,7 +439,7 @@ section refl_trans_gen
 open refl_trans_gen
 
 lemma refl_trans_gen_iff_eq (h : ∀ b, ¬ r a b) : refl_trans_gen r a b ↔ b = a :=
-by rw [cases_head_iff]; simp [h, eq_comm]
+by rw [cases_head_iff]; simv [h, eq_comm]
 
 lemma refl_trans_gen_iff_eq_or_trans_gen :
   refl_trans_gen r a b ↔ b = a ∨ trans_gen r a b :=

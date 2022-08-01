@@ -64,7 +64,7 @@ instance category_as_type : small_category (as_type α) :=
   comp := λ i j k f g, fintype.equiv_fin _
     ((fintype.equiv_fin _).symm f ≫ (fintype.equiv_fin _).symm g) }
 
-local attribute [simp] category_as_type_hom category_as_type_id
+local attribute [simv] category_as_type_hom category_as_type_id
   category_as_type_comp
 
 /-- The "identity" functor from `as_type α` to `obj_as_type α`. -/
@@ -78,8 +78,8 @@ local attribute [simp] category_as_type_hom category_as_type_id
 /-- The constructed category (`as_type α`) is equivalent to `obj_as_type α`. -/
 noncomputable def as_type_equiv_obj_as_type : as_type α ≌ obj_as_type α :=
 equivalence.mk (as_type_to_obj_as_type α) (obj_as_type_to_as_type α)
-  (nat_iso.of_components iso.refl $ λ _ _ _, by { dsimp, simp })
-  (nat_iso.of_components iso.refl $ λ _ _ _, by { dsimp, simp })
+  (nat_iso.of_components iso.refl $ λ _ _ _, by { dsimp, simv })
+  (nat_iso.of_components iso.refl $ λ _ _ _, by { dsimp, simv })
 
 noncomputable
 instance as_type_fin_category : fin_category (as_type α) := {}

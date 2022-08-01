@@ -85,8 +85,8 @@ but, the real infimum of the empty set in Lean being defined as `0`, it holds un
 begin
   rw gauge_def',
   by_cases (0 : E) ∈ s,
-  { simp only [smul_zero, sep_true, h, cInf_Ioi] },
-  { simp only [smul_zero, sep_false, h, real.Inf_empty] }
+  { simv only [smul_zero, sep_true, h, cInf_Ioi] },
+  { simv only [smul_zero, sep_false, h, real.Inf_empty] }
 end
 
 @[simp] lemma gauge_zero' : gauge (0 : set E) = 0 :=
@@ -94,14 +94,14 @@ begin
   ext,
   rw gauge_def',
   obtain rfl | hx := eq_or_ne x 0,
-  { simp only [cInf_Ioi, mem_zero, pi.zero_apply, eq_self_iff_true, sep_true, smul_zero] },
-  { simp only [mem_zero, pi.zero_apply, inv_eq_zero, smul_eq_zero],
+  { simv only [cInf_Ioi, mem_zero, pi.zero_apply, eq_self_iff_true, sep_true, smul_zero] },
+  { simv only [mem_zero, pi.zero_apply, inv_eq_zero, smul_eq_zero],
     convert real.Inf_empty,
     exact eq_empty_iff_forall_not_mem.2 (λ r hr, hr.2.elim (ne_of_gt hr.1) hx) }
 end
 
 @[simp] lemma gauge_empty : gauge (∅ : set E) = 0 :=
-by { ext, simp only [gauge_def', real.Inf_empty, mem_empty_eq, pi.zero_apply, sep_false] }
+by { ext, simv only [gauge_def', real.Inf_empty, mem_empty_eq, pi.zero_apply, sep_false] }
 
 lemma gauge_of_subset_zero (h : s ⊆ 0) : gauge s = 0 :=
 by { obtain rfl | rfl := subset_singleton_iff_eq.1 h, exacts [gauge_empty, gauge_zero'] }

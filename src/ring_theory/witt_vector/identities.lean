@@ -48,7 +48,7 @@ variables (p R)
 lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
 begin
   induction i with i h,
-  { simp only [one_coeff_zero, ne.def, pow_zero] },
+  { simv only [one_coeff_zero, ne.def, pow_zero] },
   { rw [pow_succ', ← frobenius_verschiebung, coeff_frobenius_char_p,
         verschiebung_coeff_succ, h, one_pow], }
 end
@@ -127,7 +127,7 @@ lemma iterate_verschiebung_coeff (x : 𝕎 R) (n k : ℕ) :
   (verschiebung^[n] x).coeff (k + n) = x.coeff k :=
 begin
   induction n with k ih,
-  { simp },
+  { simv },
   { rw [iterate_succ_apply', nat.add_succ, verschiebung_coeff_succ],
     exact ih }
 end
@@ -136,7 +136,7 @@ lemma iterate_verschiebung_mul_left (x y : 𝕎 R) (i : ℕ) :
   (verschiebung^[i] x) * y = (verschiebung^[i] (x * (frobenius^[i] y))) :=
 begin
   induction i with i ih generalizing y,
-  { simp },
+  { simv },
   { rw [iterate_succ_apply', ← verschiebung_mul_frobenius, ih, iterate_succ_apply'], refl }
 end
 
@@ -167,7 +167,7 @@ lemma iterate_frobenius_coeff (x : 𝕎 R) (i k : ℕ) :
   ((frobenius^[i] x)).coeff k = (x.coeff k)^(p^i) :=
 begin
   induction i with i ih,
-  { simp },
+  { simv },
   { rw [iterate_succ_apply', coeff_frobenius_char_p, ih],
     ring_exp }
 end
@@ -186,7 +186,7 @@ begin
   { convert iterate_verschiebung_coeff _ _ _ using 2,
     rw zero_add },
   { apply mul_coeff_zero },
-  { simp only [iterate_frobenius_coeff] }
+  { simv only [iterate_frobenius_coeff] }
 end
 
 end char_p

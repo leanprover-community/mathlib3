@@ -107,7 +107,7 @@ setup_tactic_parser
 /-- A macro for a common simplification when rewriting with ghost component equations. -/
 meta def ghost_simp (lems : parse simp_arg_list) : tactic unit :=
 do tactic.try tactic.intro1,
-   simp none none tt
+   simv none none tt
      (lems ++ [simp_arg_type.symm_expr ``(sub_eq_add_neg)])
      [`ghost_simps] (loc.ns [none])
 
@@ -227,7 +227,7 @@ mk' :: (poly : ∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R]
 
 /-- The identity function on Witt vectors is a polynomial function. -/
 instance id_is_poly : is_poly p (λ _ _, id) :=
-⟨⟨X, by { introsI, simp only [aeval_X, id] }⟩⟩
+⟨⟨X, by { introsI, simv only [aeval_X, id] }⟩⟩
 
 instance id_is_poly_i' : is_poly p (λ _ _ a, a) :=
 witt_vector.id_is_poly _
@@ -253,19 +253,19 @@ begin
   intro k,
   apply mv_polynomial.funext,
   intro x,
-  simp only [hom_bind₁],
+  simv only [hom_bind₁],
   specialize h (ulift ℤ) (mk p $ λ i, ⟨x i⟩) k,
-  simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
+  simv only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
   apply (ulift.ring_equiv.symm : ℤ ≃+* _).injective,
-  simp only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
+  simv only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
   convert h using 1,
   all_goals
   { funext i,
-    simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
+    simv only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    simp only [coeff_mk], refl }
+    simv only [coeff_mk], refl }
 end
 
 omit hp
@@ -279,7 +279,7 @@ begin
     obtain ⟨ψ, hg⟩ := hg },
   use (λ n, bind₁ φ (ψ n)),
   intros,
-  simp only [aeval_bind₁, function.comp, hg, hf]
+  simv only [aeval_bind₁, function.comp, hg, hf]
 end
 
 end is_poly
@@ -316,11 +316,11 @@ begin
             λ k, rename (prod.mk (1 : fin 2)) (ψ k)]) (χ n)), _⟩⟩,
   intros,
   funext n,
-  simp only [peval, aeval_bind₁, function.comp, hh, hf, hg, uncurry],
+  simv only [peval, aeval_bind₁, function.comp, hh, hf, hg, uncurry],
   apply eval₂_hom_congr rfl _ rfl,
   ext ⟨i, n⟩,
   fin_cases i;
-  simp only [aeval_eq_eval₂_hom, eval₂_hom_rename, function.comp, matrix.cons_val_zero,
+  simv only [aeval_eq_eval₂_hom, eval₂_hom_rename, function.comp, matrix.cons_val_zero,
     matrix.head_cons, matrix.cons_val_one],
 end
 
@@ -333,7 +333,7 @@ begin
     obtain ⟨ψ, hg⟩ := hg },
   use (λ n, bind₁ φ (ψ n)),
   intros,
-  simp only [peval, aeval_bind₁, function.comp, hg, hf]
+  simv only [peval, aeval_bind₁, function.comp, hg, hf]
 end
 
 /-- The diagonal `λ x, f x x` of a polynomial function `f` is polynomial. -/
@@ -343,10 +343,10 @@ begin
   unfreezingI {obtain ⟨φ, hf⟩ := hf},
   refine ⟨⟨λ n, bind₁ (uncurry ![X, X]) (φ n), _⟩⟩,
   intros, funext n,
-  simp only [hf, peval, uncurry, aeval_bind₁],
+  simv only [hf, peval, uncurry, aeval_bind₁],
   apply eval₂_hom_congr rfl _ rfl,
   ext ⟨i, k⟩, fin_cases i;
-  simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
+  simv only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
 end
 
 open tactic
@@ -479,7 +479,7 @@ we model them as constant unary functions. -/
 
 /-- The function that is constantly zero on Witt vectors is a polynomial function. -/
 instance zero_is_poly : is_poly p (λ _ _ _, by exactI 0) :=
-⟨⟨0, by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩⟩
+⟨⟨0, by { introsI, funext n, simv only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩⟩
 
 @[simp] lemma bind₁_zero_witt_polynomial (n : ℕ) :
   bind₁ (0 : ℕ → mv_polynomial ℕ R) (witt_polynomial p R n) = 0 :=
@@ -496,10 +496,10 @@ include hp
   bind₁ one_poly (witt_polynomial p ℤ n) = 1 :=
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum, finset.sum_eq_single 0],
-  { simp only [one_poly, one_pow, one_mul, alg_hom.map_pow, C_1, pow_zero, bind₁_X_right,
+  { simv only [one_poly, one_pow, one_mul, alg_hom.map_pow, C_1, pow_zero, bind₁_X_right,
       if_true, eq_self_iff_true], },
   { intros i hi hi0,
-    simp only [one_poly, if_neg hi0, zero_pow (pow_pos hp.1.pos _), mul_zero,
+    simv only [one_poly, if_neg hi0, zero_pow (pow_pos hp.1.pos _), mul_zero,
       alg_hom.map_pow, bind₁_X_right, alg_hom.map_mul], },
   { rw finset.mem_range, dec_trivial }
 end
@@ -509,8 +509,8 @@ instance one_is_poly : is_poly p (λ _ _ _, by exactI 1) :=
 ⟨⟨one_poly,
 begin
   introsI, funext n, cases n,
-  { simp only [one_poly, if_true, eq_self_iff_true, one_coeff_zero, alg_hom.map_one], },
-  { simp only [one_poly, nat.succ_pos', one_coeff_eq_of_pos,
+  { simv only [one_poly, if_true, eq_self_iff_true, one_coeff_zero, alg_hom.map_one], },
+  { simv only [one_poly, nat.succ_pos', one_coeff_eq_of_pos,
       if_neg n.succ_ne_zero, alg_hom.map_zero] }
 end⟩⟩
 
@@ -520,12 +520,12 @@ omit hp
 
 /-- Addition of Witt vectors is a polynomial function. -/
 @[is_poly] lemma add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) :=
-⟨⟨witt_add p, by { introsI, dunfold witt_vector.has_add, simp [eval] }⟩⟩
+⟨⟨witt_add p, by { introsI, dunfold witt_vector.has_add, simv [eval] }⟩⟩
 
 
 /-- Multiplication of Witt vectors is a polynomial function. -/
 @[is_poly] lemma mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) :=
-⟨⟨witt_mul p, by { introsI, dunfold witt_vector.has_mul, simp [eval] }⟩⟩
+⟨⟨witt_mul p, by { introsI, dunfold witt_vector.has_mul, simv [eval] }⟩⟩
 
 include hp
 
@@ -538,9 +538,9 @@ begin
   -- see `is_poly₂.map` for a slightly more general proof strategy
   unfreezingI {obtain ⟨φ, hf⟩ := hf},
   ext n,
-  simp only [map_coeff, hf, map_aeval],
+  simv only [map_coeff, hf, map_aeval],
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  simp only [map_coeff]
+  simv only [map_coeff]
 end
 
 namespace is_poly₂
@@ -578,20 +578,20 @@ begin
   intro k,
   apply mv_polynomial.funext,
   intro x,
-  simp only [hom_bind₁],
+  simv only [hom_bind₁],
   specialize h (ulift ℤ) (mk p $ λ i, ⟨x (0, i)⟩) (mk p $ λ i, ⟨x (1, i)⟩) k,
-  simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
+  simv only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
   apply (ulift.ring_equiv.symm : ℤ ≃+* _).injective,
-  simp only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
+  simv only [←ring_equiv.coe_to_ring_hom, map_eval₂_hom],
   convert h using 1,
   all_goals
   { funext i,
-    simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
+    simv only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext ⟨b, _⟩,
-    fin_cases b; simp only [coeff_mk, uncurry]; refl }
+    fin_cases b; simv only [coeff_mk, uncurry]; refl }
 end
 
 -- unfortunately this is not universe polymorphic, merely because `f` isn't
@@ -602,11 +602,11 @@ begin
   -- so that applications do not have to worry about the universe issue
   unfreezingI {obtain ⟨φ, hf⟩ := hf},
   ext n,
-  simp only [map_coeff, hf, map_aeval, peval, uncurry],
+  simv only [map_coeff, hf, map_aeval, peval, uncurry],
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   try { ext ⟨i, k⟩, fin_cases i },
   all_goals
-  { simp only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
+  { simv only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
 end
 
 end is_poly₂

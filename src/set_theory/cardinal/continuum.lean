@@ -9,7 +9,7 @@ import set_theory.cardinal.ordinal
 # Cardinality of continuum
 
 In this file we define `cardinal.continuum` (notation: `𝔠`, localized in `cardinal`) to be `2 ^ ℵ₀`.
-We also prove some `simp` lemmas about cardinal arithmetic involving `𝔠`.
+We also prove some `simv` lemmas about cardinal arithmetic involving `𝔠`.
 
 ## Notation
 
@@ -44,7 +44,7 @@ lemma aleph_0_le_continuum : ℵ₀ ≤ 𝔠 := aleph_0_lt_continuum.le
 
 lemma nat_lt_continuum (n : ℕ) : ↑n < 𝔠 := (nat_lt_aleph_0 n).trans aleph_0_lt_continuum
 
-lemma mk_set_nat : #(set ℕ) = 𝔠 := by simp
+lemma mk_set_nat : #(set ℕ) = 𝔠 := by simv
 
 lemma continuum_pos : 0 < 𝔠 := nat_lt_continuum 0
 

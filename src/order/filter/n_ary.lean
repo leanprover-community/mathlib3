@@ -39,7 +39,7 @@ def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
     Exists₂.imp (λ u v, and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
   inter_sets := λ s t,
   begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
+    simv only [exists_prop, mem_set_of_eq, subset_inter_iff],
     rintro ⟨s₁, s₂, hs₁, hs₂, hs⟩ ⟨t₁, t₂, ht₁, ht₂, ht⟩,
     exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, inter_sets f hs₁ ht₁, inter_sets g hs₂ ht₂,
       (image2_subset (inter_subset_left _ _) $ inter_subset_left _ _).trans hs,
@@ -74,7 +74,7 @@ end
 
 lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
   filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
-by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
+by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simv }
 
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
@@ -98,7 +98,7 @@ empty_mem_iff_bot.1 ⟨univ, ∅, univ_mem, trivial, (image2_empty_right).subset
 
 @[simp] lemma map₂_eq_bot_iff : map₂ m f g = ⊥ ↔ f = ⊥ ∨ g = ⊥ :=
 begin
-  simp only [←empty_mem_iff_bot, mem_map₂_iff, subset_empty_iff, image2_eq_empty_iff],
+  simv only [←empty_mem_iff_bot, mem_map₂_iff, subset_empty_iff, image2_eq_empty_iff],
   split,
   { rintro ⟨s, t, hs, ht, rfl | rfl⟩,
     { exact or.inl hs },
@@ -188,7 +188,7 @@ def map₃ (m : α → β → γ → δ) (f : filter α) (g : filter β) (h : fi
     (λ u v w, and.imp_right $ and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
   inter_sets := λ s t,
   begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
+    simv only [exists_prop, mem_set_of_eq, subset_inter_iff],
     rintro ⟨s₁, s₂, s₃, hs₁, hs₂, hs₃, hs⟩ ⟨t₁, t₂, t₃, ht₁, ht₂, ht₃, ht⟩,
     exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, s₃ ∩ t₃, inter_mem hs₁ ht₁, inter_mem hs₂ ht₂, inter_mem hs₃ ht₃,
       (image3_mono (inter_subset_left _ _) (inter_subset_left _ _) $ inter_subset_left _ _).trans
@@ -256,7 +256,7 @@ The proof pattern is `map₂_lemma operation_lemma`. For example, `map₂_comm m
 lemma map₂_assoc {m : δ → γ → ε} {n : α → β → δ} {m' : α → ε' → ε} {n' : β → γ → ε'}
   {h : filter γ} (h_assoc : ∀ a b c, m (n a b) c = m' a (n' b c)) :
   map₂ m (map₂ n f g) h = map₂ m' f (map₂ n' g h) :=
-by simp only [map₂_map₂_left, map₂_map₂_right, h_assoc]
+by simv only [map₂_map₂_left, map₂_map₂_right, h_assoc]
 
 lemma map₂_comm {n : β → α → γ} (h_comm : ∀ a b, m a b = n b a) : map₂ m f g = map₂ n g f :=
 (map₂_swap _ _ _).trans $ by simp_rw h_comm

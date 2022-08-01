@@ -78,7 +78,7 @@ to adding `c` times the `i`-th column to the `j`-th column. -/
 def transvection (c : R) : matrix n n R := 1 + matrix.std_basis_matrix i j c
 
 @[simp] lemma transvection_zero : transvection i j (0 : R) = 1 :=
-by simp [transvection]
+by simv [transvection]
 
 section
 variable [fintype n]
@@ -91,36 +91,36 @@ lemma update_row_eq_transvection (c : R) :
 begin
   ext a b,
   by_cases ha : i = a, by_cases hb : j = b,
-  { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
+  { simv only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
       pi.add_apply, one_apply_eq, pi.smul_apply, mul_one, algebra.id.smul_eq_mul], },
-  { simp only [update_row, transvection, ha, hb, std_basis_matrix.apply_of_ne, function.update_same,
+  { simv only [update_row, transvection, ha, hb, std_basis_matrix.apply_of_ne, function.update_same,
       pi.add_apply, ne.def, not_false_iff, pi.smul_apply, and_false, one_apply_ne,
       algebra.id.smul_eq_mul, mul_zero] },
-  { simp only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
+  { simv only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
 end
 
 lemma transvection_mul_transvection_same (h : i ≠ j) (c d : R) :
   transvection i j c ⬝ transvection i j d = transvection i j (c + d) :=
-by simp [transvection, matrix.add_mul, matrix.mul_add, h, h.symm, add_smul, add_assoc,
+by simv [transvection, matrix.add_mul, matrix.mul_add, h, h.symm, add_smul, add_assoc,
     std_basis_matrix_add]
 
 @[simp] lemma transvection_mul_apply_same (b : n) (c : R) (M : matrix n n R) :
   (transvection i j c ⬝ M) i b = M i b + c * M j b :=
-by simp [transvection, matrix.add_mul]
+by simv [transvection, matrix.add_mul]
 
 @[simp] lemma mul_transvection_apply_same (a : n) (c : R) (M : matrix n n R) :
   (M ⬝ transvection i j c) a j = M a j + c * M a i :=
-by simp [transvection, matrix.mul_add, mul_comm]
+by simv [transvection, matrix.mul_add, mul_comm]
 
 @[simp] lemma transvection_mul_apply_of_ne (a b : n) (ha : a ≠ i) (c : R) (M : matrix n n R) :
   (transvection i j c ⬝ M) a b = M a b :=
-by simp [transvection, matrix.add_mul, ha]
+by simv [transvection, matrix.add_mul, ha]
 
 @[simp] lemma mul_transvection_apply_of_ne (a b : n) (hb : b ≠ j) (c : R) (M : matrix n n R) :
   (M ⬝ transvection i j c) a b = M a b :=
-by simp [transvection, matrix.mul_add, hb]
+by simv [transvection, matrix.mul_add, hb]
 
 @[simp] lemma det_transvection_of_ne (h : i ≠ j) (c : R) : det (transvection i j c) = 1 :=
 by rw [← update_row_eq_transvection i j, det_update_row_add_smul_self _ h, det_one]
@@ -159,8 +159,8 @@ det_transvection_of_ne _ _ t.hij _
   det ((L.map to_matrix).prod) = 1 :=
 begin
   induction L with t L IH,
-  { simp },
-  { simp [IH], }
+  { simv },
+  { simv [IH], }
 end
 
 /-- The inverse of a `transvection_struct`, designed so that `t.inv.to_matrix` is the inverse of
@@ -176,17 +176,17 @@ variable [fintype n]
 
 lemma inv_mul (t : transvection_struct n R) :
   t.inv.to_matrix ⬝ t.to_matrix = 1 :=
-by { rcases t, simp [to_matrix, transvection_mul_transvection_same, t_hij] }
+by { rcases t, simv [to_matrix, transvection_mul_transvection_same, t_hij] }
 
 lemma mul_inv (t : transvection_struct n R) :
   t.to_matrix ⬝ t.inv.to_matrix = 1 :=
-by { rcases t, simp [to_matrix, transvection_mul_transvection_same, t_hij] }
+by { rcases t, simv [to_matrix, transvection_mul_transvection_same, t_hij] }
 
 lemma reverse_inv_prod_mul_prod (L : list (transvection_struct n R)) :
   (L.reverse.map (to_matrix ∘ transvection_struct.inv)).prod ⬝ (L.map to_matrix).prod = 1 :=
 begin
   induction L with t L IH,
-  { simp },
+  { simv },
   { suffices : (L.reverse.map (to_matrix ∘ transvection_struct.inv)).prod ⬝
       (t.inv.to_matrix ⬝ t.to_matrix) ⬝ (L.map to_matrix).prod = 1, by simpa [matrix.mul_assoc],
     simpa [inv_mul] using IH, }
@@ -196,7 +196,7 @@ lemma prod_mul_reverse_inv_prod (L : list (transvection_struct n R)) :
   (L.map to_matrix).prod ⬝ (L.reverse.map (to_matrix ∘ transvection_struct.inv)).prod = 1 :=
 begin
   induction L with t L IH,
-  { simp },
+  { simv },
   { suffices : t.to_matrix ⬝ ((L.map to_matrix).prod ⬝
       (L.reverse.map (to_matrix ∘ transvection_struct.inv)).prod) ⬝ t.inv.to_matrix = 1,
         by simpa [matrix.mul_assoc],
@@ -214,7 +214,7 @@ using the identity on `p`. -/
 def sum_inl (t : transvection_struct n R) : transvection_struct (n ⊕ p) R :=
 { i := inl t.i,
   j := inl t.j,
-  hij := by simp [t.hij],
+  hij := by simv [t.hij],
   c := t.c }
 
 lemma to_matrix_sum_inl (t : transvection_struct n R) :
@@ -224,11 +224,11 @@ begin
   ext a b,
   cases a; cases b,
   { by_cases h : a = b;
-    simp [transvection_struct.sum_inl, transvection, h, std_basis_matrix], },
-  { simp [transvection_struct.sum_inl, transvection] },
-  { simp [transvection_struct.sum_inl, transvection] },
+    simv [transvection_struct.sum_inl, transvection, h, std_basis_matrix], },
+  { simv [transvection_struct.sum_inl, transvection] },
+  { simv [transvection_struct.sum_inl, transvection] },
   { by_cases h : a = b;
-    simp [transvection_struct.sum_inl, transvection, h] },
+    simv [transvection_struct.sum_inl, transvection, h] },
 end
 
 @[simp] lemma sum_inl_to_matrix_prod_mul [fintype n] [fintype p]
@@ -237,8 +237,8 @@ end
   = from_blocks ((L.map to_matrix).prod ⬝ M) 0 0 N :=
 begin
   induction L with t L IH,
-  { simp },
-  { simp [matrix.mul_assoc, IH, to_matrix_sum_inl, from_blocks_multiply], },
+  { simv },
+  { simv [matrix.mul_assoc, IH, to_matrix_sum_inl, from_blocks_multiply], },
 end
 
 @[simp] lemma mul_sum_inl_to_matrix_prod [fintype n] [fintype p]
@@ -247,8 +247,8 @@ end
   = from_blocks (M ⬝ (L.map to_matrix).prod) 0 0 N :=
 begin
   induction L with t L IH generalizing M N,
-  { simp },
-  { simp [IH, to_matrix_sum_inl, from_blocks_multiply], },
+  { simv },
+  { simv [IH, to_matrix_sum_inl, from_blocks_multiply], },
 end
 
 variable {p}
@@ -258,7 +258,7 @@ corresponding `transvection_struct` on `p`. -/
 def reindex_equiv (e : n ≃ p) (t : transvection_struct n R) : transvection_struct p R :=
 { i := e t.i,
   j := e t.j,
-  hij := by simp [t.hij],
+  hij := by simv [t.hij],
   c := t.c }
 
 variables [fintype n] [fintype p]
@@ -268,18 +268,18 @@ lemma to_matrix_reindex_equiv (e : n ≃ p) (t : transvection_struct n R) :
 begin
   cases t,
   ext a b,
-  simp only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
+  simv only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
     minor_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
   by_cases ha : e t_i = a; by_cases hb : e t_j = b; by_cases hab : a = b;
-  simp [ha, hb, hab, ← e.apply_eq_iff_eq_symm_apply, std_basis_matrix]
+  simv [ha, hb, hab, ← e.apply_eq_iff_eq_symm_apply, std_basis_matrix]
 end
 
 lemma to_matrix_reindex_equiv_prod (e : n ≃ p) (L : list (transvection_struct n R)) :
   (L.map (to_matrix ∘ (reindex_equiv e))).prod = reindex_alg_equiv R e (L.map to_matrix).prod :=
 begin
   induction L with t L IH,
-  { simp },
-  { simp only [to_matrix_reindex_equiv, IH, function.comp_app, list.prod_cons, mul_eq_mul,
+  { simv },
+  { simv only [to_matrix_reindex_equiv, IH, function.comp_app, list.prod_cons, mul_eq_mul,
       reindex_alg_equiv_apply, list.map],
     exact (reindex_alg_equiv_mul _ _ _ _).symm }
 end
@@ -326,7 +326,7 @@ lemma list_transvec_col_mul_last_row_drop (i : fin r ⊕ unit) {k : ℕ} (hk : k
   (((list_transvec_col M).drop k).prod ⬝ M) (inr star) i = M (inr star) i :=
 begin
   apply nat.decreasing_induction' _ hk,
-  { simp only [list_transvec_col, list.length_of_fn, matrix.one_mul, list.drop_eq_nil_of_le,
+  { simv only [list_transvec_col, list.length_of_fn, matrix.one_mul, list.drop_eq_nil_of_le,
       list.prod_nil], },
   { assume n hn hk IH,
     have hn' : n < (list_transvec_col M).length, by simpa [list_transvec_col] using hn,
@@ -349,7 +349,7 @@ begin
       by simpa only [if_true, list.drop.equations._eqn_1] using H 0 (zero_le _),
   assume k hk,
   apply nat.decreasing_induction' _ hk,
-  { simp only [list_transvec_col, list.length_of_fn, matrix.one_mul, list.drop_eq_nil_of_le,
+  { simv only [list_transvec_col, list.length_of_fn, matrix.one_mul, list.drop_eq_nil_of_le,
       list.prod_nil],
     rw if_neg,
     simpa only [not_le] using i.2 },
@@ -358,19 +358,19 @@ begin
     let n' : fin r := ⟨n, hn⟩,
     rw ← list.cons_nth_le_drop_succ hn',
     have A : (list_transvec_col M).nth_le n hn' = transvection (inl n') (inr star)
-      (-M (inl n') (inr star) / M (inr star) (inr star)), by simp [list_transvec_col],
-    simp only [matrix.mul_assoc, A, matrix.mul_eq_mul, list.prod_cons],
+      (-M (inl n') (inr star) / M (inr star) (inr star)), by simv [list_transvec_col],
+    simv only [matrix.mul_assoc, A, matrix.mul_eq_mul, list.prod_cons],
     by_cases h : n' = i,
     { have hni : n = i,
-      { cases i, simp only [subtype.mk_eq_mk] at h, simp [h] },
+      { cases i, simv only [subtype.mk_eq_mk] at h, simv [h] },
       rw [h, transvection_mul_apply_same, IH, list_transvec_col_mul_last_row_drop _ _ hn, ← hni],
       field_simp [hM] },
     { have hni : n ≠ i,
       { rintros rfl, cases i, simpa using h },
-      simp only [transvection_mul_apply_of_ne, ne.def, not_false_iff, ne.symm h],
+      simv only [transvection_mul_apply_of_ne, ne.def, not_false_iff, ne.symm h],
       rw IH,
       rcases le_or_lt (n+1) i with hi|hi,
-      { simp only [hi, n.le_succ.trans hi, if_true] },
+      { simv only [hi, n.le_succ.trans hi, if_true] },
       { rw [if_neg, if_neg],
         { simpa only [hni.symm, not_le, or_false] using nat.lt_succ_iff_lt_or_eq.1 hi },
         { simpa only [not_le] using hi } } } }
@@ -381,23 +381,23 @@ lemma mul_list_transvec_row_last_col_take (i : fin r ⊕ unit) {k : ℕ} (hk : k
   (M ⬝ ((list_transvec_row M).take k).prod) i (inr star) = M i (inr star) :=
 begin
   induction k with k IH,
-  { simp only [matrix.mul_one, list.take_zero, list.prod_nil], },
+  { simv only [matrix.mul_one, list.take_zero, list.prod_nil], },
   { have hkr : k < r := hk,
     let k' : fin r := ⟨k, hkr⟩,
     have : (list_transvec_row M).nth k = ↑(transvection (inr unit.star) (inl k')
       (-M (inr unit.star) (inl k') / M (inr unit.star) (inr unit.star))),
-    { simp only [list_transvec_row, list.of_fn_nth_val, hkr, dif_pos, list.nth_of_fn], refl },
-    simp only [list.take_succ, ← matrix.mul_assoc, this, list.prod_append, matrix.mul_one,
+    { simv only [list_transvec_row, list.of_fn_nth_val, hkr, dif_pos, list.nth_of_fn], refl },
+    simv only [list.take_succ, ← matrix.mul_assoc, this, list.prod_append, matrix.mul_one,
       matrix.mul_eq_mul, list.prod_cons, list.prod_nil, option.to_list_some],
     rw [mul_transvection_apply_of_ne, IH hkr.le],
-    simp only [ne.def, not_false_iff], }
+    simv only [ne.def, not_false_iff], }
 end
 
 /-- Multiplying by all the matrices in `list_transvec_row M` does not change the last column. -/
 lemma mul_list_transvec_row_last_col (i : fin r ⊕ unit) :
   (M ⬝ (list_transvec_row M).prod) i (inr star) = M i (inr star) :=
 begin
-  have A : (list_transvec_row M).length = r, by simp [list_transvec_row],
+  have A : (list_transvec_row M).length = r, by simv [list_transvec_row],
   rw [← list.take_length (list_transvec_row M), A],
   simpa using mul_list_transvec_row_last_col_take M i le_rfl,
 end
@@ -409,32 +409,32 @@ lemma mul_list_transvec_row_last_row (hM : M (inr star) (inr star) ≠ 0) (i : f
 begin
   suffices H : ∀ (k : ℕ), k ≤ r → (M ⬝ ((list_transvec_row M).take k).prod) (inr star) (inl i) =
     if k ≤ i then M (inr star) (inl i) else 0,
-  { have A : (list_transvec_row M).length = r, by simp [list_transvec_row],
+  { have A : (list_transvec_row M).length = r, by simv [list_transvec_row],
     rw [← list.take_length (list_transvec_row M), A],
     have : ¬ (r ≤ i), by simpa using i.2,
     simpa only [this, ite_eq_right_iff] using H r le_rfl },
   assume k hk,
   induction k with n IH,
-  { simp only [if_true, matrix.mul_one, list.take_zero, zero_le', list.prod_nil] },
+  { simv only [if_true, matrix.mul_one, list.take_zero, zero_le', list.prod_nil] },
   { have hnr : n < r := hk,
     let n' : fin r := ⟨n, hnr⟩,
     have A : (list_transvec_row M).nth n = ↑(transvection (inr unit.star) (inl n')
       (-M (inr unit.star) (inl n') / M (inr unit.star) (inr unit.star))),
-    { simp only [list_transvec_row, list.of_fn_nth_val, hnr, dif_pos, list.nth_of_fn], refl },
-    simp only [list.take_succ, A, ← matrix.mul_assoc, list.prod_append, matrix.mul_one,
+    { simv only [list_transvec_row, list.of_fn_nth_val, hnr, dif_pos, list.nth_of_fn], refl },
+    simv only [list.take_succ, A, ← matrix.mul_assoc, list.prod_append, matrix.mul_one,
       matrix.mul_eq_mul, list.prod_cons, list.prod_nil, option.to_list_some],
     by_cases h : n' = i,
     { have hni : n = i,
-      { cases i, simp only [subtype.mk_eq_mk] at h, simp only [h, coe_mk] },
-      have : ¬ (n.succ ≤ i), by simp only [← hni, n.lt_succ_self, not_le],
-      simp only [h, mul_transvection_apply_same, list.take, if_false,
+      { cases i, simv only [subtype.mk_eq_mk] at h, simv only [h, coe_mk] },
+      have : ¬ (n.succ ≤ i), by simv only [← hni, n.lt_succ_self, not_le],
+      simv only [h, mul_transvection_apply_same, list.take, if_false,
         mul_list_transvec_row_last_col_take _ _ hnr.le, hni.le, this, if_true, IH hnr.le],
       field_simp [hM] },
     { have hni : n ≠ i,
       { rintros rfl, cases i, simpa using h },
-      simp only [IH hnr.le, ne.def, mul_transvection_apply_of_ne, not_false_iff, ne.symm h],
+      simv only [IH hnr.le, ne.def, mul_transvection_apply_of_ne, not_false_iff, ne.symm h],
       rcases le_or_lt (n+1) i with hi|hi,
-      { simp [hi, n.le_succ.trans hi, if_true], },
+      { simv [hi, n.le_succ.trans hi, if_true], },
       { rw [if_neg, if_neg],
         { simpa only [not_le] using hi },
         { simpa only [hni.symm, not_le, or_false] using nat.lt_succ_iff_lt_or_eq.1 hi } } } }
@@ -447,7 +447,7 @@ lemma list_transvec_col_mul_mul_list_transvec_row_last_col
   ((list_transvec_col M).prod ⬝ M ⬝ (list_transvec_row M).prod) (inr star) (inl i) = 0 :=
 begin
   have : list_transvec_row M = list_transvec_row ((list_transvec_col M).prod ⬝ M),
-    by simp [list_transvec_row, list_transvec_col_mul_last_row],
+    by simv [list_transvec_row, list_transvec_col_mul_last_row],
   rw this,
   apply mul_list_transvec_row_last_row,
   simpa [list_transvec_col_mul_last_row] using hM
@@ -460,7 +460,7 @@ lemma list_transvec_col_mul_mul_list_transvec_row_last_row
   ((list_transvec_col M).prod ⬝ M ⬝ (list_transvec_row M).prod) (inl i) (inr star) = 0 :=
 begin
   have : list_transvec_col M = list_transvec_col (M ⬝ (list_transvec_row M).prod),
-    by simp [list_transvec_col, mul_list_transvec_row_last_col],
+    by simv [list_transvec_col, mul_list_transvec_row_last_col],
   rw [this, matrix.mul_assoc],
   apply list_transvec_col_mul_last_col,
   simpa [mul_list_transvec_row_last_col] using hM
@@ -474,11 +474,11 @@ lemma is_two_block_diagonal_list_transvec_col_mul_mul_list_transvec_row
 begin
   split,
   { ext i j,
-    have : j = star, by simp only [eq_iff_true_of_subsingleton],
-    simp [to_blocks₁₂, this, list_transvec_col_mul_mul_list_transvec_row_last_row M hM] },
+    have : j = star, by simv only [eq_iff_true_of_subsingleton],
+    simv [to_blocks₁₂, this, list_transvec_col_mul_mul_list_transvec_row_last_row M hM] },
   { ext i j,
-    have : i = star, by simp only [eq_iff_true_of_subsingleton],
-    simp [to_blocks₂₁, this, list_transvec_col_mul_mul_list_transvec_row_last_col M hM] },
+    have : i = star, by simv only [eq_iff_true_of_subsingleton],
+    simv [to_blocks₂₁, this, list_transvec_col_mul_mul_list_transvec_row_last_col M hM] },
 end
 
 /-- There exist two lists of `transvection_struct` such that multiplying by them on the left and
@@ -488,14 +488,14 @@ lemma exists_is_two_block_diagonal_of_ne_zero (hM : M (inr star) (inr star) ≠ 
   is_two_block_diagonal ((L.map to_matrix).prod ⬝ M ⬝ (L'.map to_matrix).prod) :=
 begin
   let L : list (transvection_struct (fin r ⊕ unit) 𝕜) :=
-    list.of_fn (λ i : fin r, ⟨inl i, inr star, by simp,
+    list.of_fn (λ i : fin r, ⟨inl i, inr star, by simv,
       -M (inl i) (inr star) / M (inr star) (inr star)⟩),
   let L' : list (transvection_struct (fin r ⊕ unit) 𝕜) :=
-    list.of_fn (λ i : fin r, ⟨inr star, inl i, by simp,
+    list.of_fn (λ i : fin r, ⟨inr star, inl i, by simv,
       -M (inr star) (inl i)  / M (inr star) (inr star)⟩),
   refine ⟨L, L', _⟩,
-  have A : L.map to_matrix = list_transvec_col M, by simp [L, list_transvec_col, (∘)],
-  have B : L'.map to_matrix = list_transvec_row M, by simp [L, list_transvec_row, (∘)],
+  have A : L.map to_matrix = list_transvec_col M, by simv [L, list_transvec_col, (∘)],
+  have B : L'.map to_matrix = list_transvec_row M, by simv [L, list_transvec_row, (∘)],
   rw [A, B],
   exact is_two_block_diagonal_list_transvec_col_mul_mul_list_transvec_row M hM
 end
@@ -515,7 +515,7 @@ begin
   -- last column, we will first put this nonzero coefficient in last position, and then argue as
   -- above.
   push_neg at hM,
-  simp [not_and_distrib, is_two_block_diagonal, to_blocks₁₂, to_blocks₂₁, ←matrix.ext_iff] at H,
+  simv [not_and_distrib, is_two_block_diagonal, to_blocks₁₂, to_blocks₂₁, ←matrix.ext_iff] at H,
   have : ∃ (i : fin r), M (inl i) (inr star) ≠ 0 ∨ M (inr star) (inl i) ≠ 0,
   { cases H,
     { contrapose! H,
@@ -529,15 +529,15 @@ begin
     have hM' : M' (inr star) (inr star) ≠ 0, by simpa [M', hM],
     rcases exists_is_two_block_diagonal_of_ne_zero M' hM' with ⟨L, L', hLL'⟩,
     rw matrix.mul_assoc at hLL',
-    refine ⟨L ++ [⟨inr star, inl i, by simp, 1⟩], L', _⟩,
-    simp only [list.map_append, list.prod_append, matrix.mul_one, to_matrix_mk, list.prod_cons,
+    refine ⟨L ++ [⟨inr star, inl i, by simv, 1⟩], L', _⟩,
+    simv only [list.map_append, list.prod_append, matrix.mul_one, to_matrix_mk, list.prod_cons,
       list.prod_nil, mul_eq_mul, list.map, matrix.mul_assoc (L.map to_matrix).prod],
     exact hLL' },
   { let M' := M ⬝ transvection (inl i) (inr star) 1,
     have hM' : M' (inr star) (inr star) ≠ 0, by simpa [M', hM],
     rcases exists_is_two_block_diagonal_of_ne_zero M' hM' with ⟨L, L', hLL'⟩,
-    refine ⟨L, ⟨inl i, inr star, by simp, 1⟩ :: L', _⟩,
-    simp only [←matrix.mul_assoc, to_matrix_mk, list.prod_cons, mul_eq_mul, list.map],
+    refine ⟨L, ⟨inl i, inr star, by simv, 1⟩ :: L', _⟩,
+    simv only [←matrix.mul_assoc, to_matrix_mk, list.prod_cons, mul_eq_mul, list.map],
     rw [matrix.mul_assoc (L.map to_matrix).prod],
     exact hLL' }
 end
@@ -569,7 +569,7 @@ begin
     { exact hM.2 },
     { ext ⟨⟩ ⟨⟩, rw [hc, to_blocks₂₂, of_apply], refl, } },
   rw this,
-  simp [h₀],
+  simv [h₀],
 end
 
 variables {n p} [fintype n] [fintype p]
@@ -585,12 +585,12 @@ begin
   rcases H with ⟨L₀, L₀', D₀, h₀⟩,
   refine ⟨L₀.map (reindex_equiv e.symm), L₀'.map (reindex_equiv e.symm), D₀ ∘ e, _⟩,
   have : M = reindex_alg_equiv 𝕜 e.symm (reindex_alg_equiv 𝕜 e M),
-    by simp only [equiv.symm_symm, minor_minor, reindex_apply, minor_id_id, equiv.symm_comp_self,
+    by simv only [equiv.symm_symm, minor_minor, reindex_apply, minor_id_id, equiv.symm_comp_self,
       reindex_alg_equiv_apply],
   rw this,
-  simp only [to_matrix_reindex_equiv_prod, list.map_map, reindex_alg_equiv_apply],
-  simp only [← reindex_alg_equiv_apply, ← reindex_alg_equiv_mul, h₀],
-  simp only [equiv.symm_symm, reindex_apply, minor_diagonal_equiv, reindex_alg_equiv_apply],
+  simv only [to_matrix_reindex_equiv_prod, list.map_map, reindex_alg_equiv_apply],
+  simv only [← reindex_alg_equiv_apply, ← reindex_alg_equiv_mul, h₀],
+  simv only [equiv.symm_symm, reindex_apply, minor_diagonal_equiv, reindex_alg_equiv_apply],
 end
 
 /-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type 0`
@@ -611,10 +611,10 @@ begin
     { refine fintype.equiv_of_card_eq _,
       rw hn,
       convert (@fintype.card_sum (fin r) unit _ _).symm,
-      simp },
+      simv },
     apply reindex_exists_list_transvec_mul_mul_list_transvec_eq_diagonal M e,
     apply exists_list_transvec_mul_mul_list_transvec_eq_diagonal_induction
-      (λ N, IH (fin r) N (by simp)) }
+      (λ N, IH (fin r) N (by simv)) }
 end
 
 /-- Any matrix can be reduced to diagonal form by elementary operations. -/
@@ -622,7 +622,7 @@ theorem exists_list_transvec_mul_mul_list_transvec_eq_diagonal
   (M : matrix n n 𝕜) : ∃ (L L' : list (transvection_struct n 𝕜)) (D : n → 𝕜),
   (L.map to_matrix).prod ⬝ M ⬝ (L'.map to_matrix).prod = diagonal D :=
 begin
-  have e : n ≃ fin (fintype.card n) := fintype.equiv_of_card_eq (by simp),
+  have e : n ≃ fin (fintype.card n) := fintype.equiv_of_card_eq (by simv),
   apply reindex_exists_list_transvec_mul_mul_list_transvec_eq_diagonal M e,
   apply exists_list_transvec_mul_mul_list_transvec_eq_diagonal_aux
 end
@@ -662,19 +662,19 @@ lemma diagonal_transvection_induction (P : matrix n n 𝕜 → Prop) (M : matrix
   P M :=
 begin
   rcases exists_list_transvec_mul_diagonal_mul_list_transvec M with ⟨L, L', D, h⟩,
-  have PD : P (diagonal D) := hdiag D (by simp [h]),
+  have PD : P (diagonal D) := hdiag D (by simv [h]),
   suffices H : ∀ (L₁ L₂ : list (transvection_struct n 𝕜)) (E : matrix n n 𝕜),
     P E → P ((L₁.map to_matrix).prod ⬝ E ⬝ (L₂.map to_matrix).prod),
       by { rw h, apply H L L', exact PD },
   assume L₁ L₂ E PE,
   induction L₁ with t L₁ IH,
-  { simp only [matrix.one_mul, list.prod_nil, list.map],
+  { simv only [matrix.one_mul, list.prod_nil, list.map],
     induction L₂ with t L₂ IH generalizing E,
     { simpa },
-    { simp only [←matrix.mul_assoc, list.prod_cons, mul_eq_mul, list.map],
+    { simv only [←matrix.mul_assoc, list.prod_cons, mul_eq_mul, list.map],
       apply IH,
       exact hmul _ _ PE (htransvec _) } },
-  { simp only [matrix.mul_assoc, list.prod_cons, mul_eq_mul, list.map] at ⊢ IH,
+  { simv only [matrix.mul_assoc, list.prod_cons, mul_eq_mul, list.map] at ⊢ IH,
     exact hmul _ _ (htransvec _) IH }
 end
 
@@ -696,9 +696,9 @@ begin
       have detD : det (diagonal D) ≠ 0, by { rw hD, exact hMdet },
       exact ⟨detD, hdiag _ detD⟩ },
     { assume t,
-      exact ⟨by simp, htransvec t⟩ },
+      exact ⟨by simv, htransvec t⟩ },
     { assume A B QA QB,
-      exact ⟨by simp [QA.1, QB.1], hmul A B QA.1 QB.1 QA.2 QB.2⟩ } },
+      exact ⟨by simv [QA.1, QB.1], hmul A B QA.1 QB.1 QA.2 QB.2⟩ } },
   exact this.2
 end
 

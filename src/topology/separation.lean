@@ -165,7 +165,7 @@ lemma t0_space_iff_inseparable (α : Type u) [topological_space α] :
 
 lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
-by simp only [t0_space_iff_inseparable, ne.def, not_imp_not]
+by simv only [t0_space_iff_inseparable, ne.def, not_imp_not]
 
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 t0_space.t0 h
@@ -182,7 +182,7 @@ nhds_injective.eq_iff
 
 lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
-by simp only [t0_space_iff_not_inseparable, xor_iff_not_iff, not_forall, exists_prop,
+by simv only [t0_space_iff_not_inseparable, xor_iff_not_iff, not_forall, exists_prop,
   inseparable_iff_forall_open]
 
 lemma exists_is_open_xor_mem [t0_space α] {x y : α} (h : x ≠ y) :
@@ -276,7 +276,7 @@ embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, a ≠ b → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
-by simp only [t0_space_iff_not_inseparable, inseparable_iff_mem_closure, not_and_distrib]
+by simv only [t0_space_iff_not_inseparable, inseparable_iff_mem_closure, not_and_distrib]
 
 instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β) :=
 ⟨λ x y h, prod.ext (h.map continuous_fst).eq (h.map continuous_snd).eq⟩
@@ -370,26 +370,26 @@ lemma t1_space_tfae (α : Type u) [topological_space α] :
     ∀ ⦃x y : α⦄, x ⤳ y → x = y] :=
 begin
   tfae_have : 1 ↔ 2, from ⟨λ h, h.1, λ h, ⟨h⟩⟩,
-  tfae_have : 2 ↔ 3, by simp only [is_open_compl_iff],
+  tfae_have : 2 ↔ 3, by simv only [is_open_compl_iff],
   tfae_have : 5 ↔ 3,
   { refine forall_swap.trans _,
-    simp only [is_open_iff_mem_nhds, mem_compl_iff, mem_singleton_iff] },
+    simv only [is_open_iff_mem_nhds, mem_compl_iff, mem_singleton_iff] },
   tfae_have : 5 ↔ 6,
-    by simp only [← subset_compl_singleton_iff, exists_mem_subset_iff],
+    by simv only [← subset_compl_singleton_iff, exists_mem_subset_iff],
   tfae_have : 5 ↔ 7,
-    by simp only [(nhds_basis_opens _).mem_iff, subset_compl_singleton_iff, exists_prop, and.assoc,
+    by simv only [(nhds_basis_opens _).mem_iff, subset_compl_singleton_iff, exists_prop, and.assoc,
       and.left_comm],
   tfae_have : 5 ↔ 8,
-    by simp only [← principal_singleton, disjoint_principal_right],
-  tfae_have : 8 ↔ 9, from forall_swap.trans (by simp only [disjoint.comm, ne_comm]),
+    by simv only [← principal_singleton, disjoint_principal_right],
+  tfae_have : 8 ↔ 9, from forall_swap.trans (by simv only [disjoint.comm, ne_comm]),
   tfae_have : 1 → 4,
-  { simp only [continuous_def, cofinite_topology.is_open_iff'],
+  { simv only [continuous_def, cofinite_topology.is_open_iff'],
     rintro H s (rfl|hs),
     exacts [is_open_empty, compl_compl s ▸ (@set.finite.is_closed _ _ H _ hs).is_open_compl] },
   tfae_have : 4 → 2,
     from λ h x, (cofinite_topology.is_closed_iff.2 $ or.inr (finite_singleton _)).preimage h,
   tfae_have : 2 ↔ 10,
-  { simp only [← closure_subset_iff_is_closed, specializes_iff_mem_closure, subset_def,
+  { simv only [← closure_subset_iff_is_closed, specializes_iff_mem_closure, subset_def,
       mem_singleton_iff, eq_comm] },
   tfae_finish
 end
@@ -431,7 +431,7 @@ t1_space_iff_continuous_cofinite_of.mpr continuous_id
 
 lemma t1_space_antitone {α : Type*} : antitone (@t1_space α) :=
 begin
-  simp only [antitone, t1_space_iff_continuous_cofinite_of, continuous_iff_le_induced],
+  simv only [antitone, t1_space_iff_continuous_cofinite_of, continuous_iff_le_induced],
   exact λ t₁ t₂ h, h.trans
 end
 
@@ -446,7 +446,7 @@ eventually_eq.congr_continuous_within_at
 lemma continuous_at_update_of_ne [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {x y : α} {z : β} (hne : y ≠ x) :
   continuous_at (function.update f x z) y ↔ continuous_at f y :=
-by simp only [← continuous_within_at_univ, continuous_within_at_update_of_ne hne]
+by simv only [← continuous_within_at_univ, continuous_within_at_update_of_ne hne]
 
 lemma continuous_on_update_iff [t1_space α] [decidable_eq α] [topological_space β]
   {f : α → β} {s : set α} {x : α} {y : β} :
@@ -498,7 +498,7 @@ is_closed_singleton.closure_eq
 
 lemma set.subsingleton.closure [t1_space α] {s : set α} (hs : s.subsingleton) :
   (closure s).subsingleton :=
-hs.induction_on (by simp) $ λ x, by simp
+hs.induction_on (by simv) $ λ x, by simv
 
 @[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
   (closure s).subsingleton ↔ s.subsingleton :=
@@ -511,7 +511,7 @@ is_closed_map.of_nonempty $ λ s hs h2s, by simp_rw [h2s.image_const, is_closed_
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
   (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
 begin
-  simp only [eq_singleton_iff_unique_mem, mem_Inter],
+  simv only [eq_singleton_iff_unique_mem, mem_Inter],
   refine ⟨λ i hi, mem_of_mem_nhds $ h.mem_of_mem hi, λ y hy, _⟩,
   contrapose! hy,
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
@@ -607,7 +607,7 @@ lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [h
   {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
 begin
   intro hsf,
-  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
+  have A : {x} ⊆ s, by simv only [singleton_subset_iff, mem_of_mem_nhds hs],
   have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
   have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
   have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
@@ -627,7 +627,7 @@ lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology 
   {x : α} (hx : x ∈ s) :
   {x} ∈ 𝓝[s] x :=
 begin
-  have : ({⟨x, hx⟩} : set s) ∈ 𝓝 (⟨x, hx⟩ : s), by simp [nhds_discrete],
+  have : ({⟨x, hx⟩} : set s) ∈ 𝓝 (⟨x, hx⟩ : s), by simv [nhds_discrete],
   simpa only [nhds_within_eq_map_subtype_coe hx, image_singleton]
     using @image_mem_map _ _ _ (coe : s → α) _ this
 end
@@ -691,7 +691,7 @@ begin
   { intro h,
     constructor,
     apply eq_of_nhds_eq_nhds,
-    simp [h, nhds_bot] }
+    simv [h, nhds_bot] }
 end
 
 /-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
@@ -700,7 +700,7 @@ This version does not assume the choice of a topology on either the source `X`
 nor the target `Y` of the inclusion `f`. -/
 lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
   topological_space.induced f ⊥ = ⊥ :=
-eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
+eq_of_nhds_eq_nhds (by simv [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
 
 /-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
 is the discrete topology on `X`. -/
@@ -736,7 +736,7 @@ t2_space.t2 x y h
 lemma t2_space_iff_disjoint_nhds : t2_space α ↔ ∀ x y : α, x ≠ y → disjoint (𝓝 x) (𝓝 y) :=
 begin
   refine (t2_space_iff α).trans (forall₃_congr $ λ x y hne, _),
-  simp only [(nhds_basis_opens x).disjoint_iff (nhds_basis_opens y), exists_prop,
+  simv only [(nhds_basis_opens x).disjoint_iff (nhds_basis_opens y), exists_prop,
     ← exists_and_distrib_left, and.assoc, and_comm, and.left_comm]
 end
 
@@ -746,7 +746,7 @@ end
 /-- A finite set can be separated by open sets. -/
 lemma t2_separation_finset [t2_space α] (s : finset α) :
   ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
-finset.induction_on s (by simp) begin
+finset.induction_on s (by simv) begin
   rintros t s ht ⟨f, hf, hf'⟩,
   have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
   choose u v hu hv htu hxv huv using λ {x} (h : t ≠ x), t2_separation h,
@@ -781,13 +781,13 @@ t1_space_iff_disjoint_pure_nhds.mpr $ λ x y hne, (disjoint_nhds_nhds.2 hne).mon
 
 /-- A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter. -/
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
-by simp only [t2_space_iff_disjoint_nhds, disjoint_iff, ne_bot_iff, ne.def, not_imp_comm]
+by simv only [t2_space_iff_disjoint_nhds, disjoint_iff, ne_bot_iff, ne.def, not_imp_comm]
 
 lemma eq_of_nhds_ne_bot [t2_space α] {x y : α} (h : ne_bot (𝓝 x ⊓ 𝓝 y)) : x = y :=
 t2_iff_nhds.mp ‹_› h
 
 lemma t2_space_iff_nhds : t2_space α ↔ ∀ {x y : α}, x ≠ y → ∃ (U ∈ 𝓝 x) (V ∈ 𝓝 y), disjoint U V :=
-by simp only [t2_space_iff_disjoint_nhds, filter.disjoint_iff]
+by simv only [t2_space_iff_disjoint_nhds, filter.disjoint_iff]
 
 lemma t2_separation_nhds [t2_space α] {x y : α} (h : x ≠ y) :
   ∃ u v, u ∈ 𝓝 x ∧ v ∈ 𝓝 y ∧ disjoint u v :=
@@ -801,10 +801,10 @@ by simpa only [exists_prop, ← exists_and_distrib_left, and_comm, and.assoc, an
 
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ {x y : α} (f : ultrafilter α), ↑f ≤ 𝓝 x → ↑f ≤ 𝓝 y → x = y :=
-t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
+t2_iff_nhds.trans $ by simv only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
 
 lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
-by simp only [t2_space_iff_disjoint_nhds, ← is_open_compl_iff, is_open_iff_mem_nhds, prod.forall,
+by simv only [t2_space_iff_disjoint_nhds, ← is_open_compl_iff, is_open_iff_mem_nhds, prod.forall,
   nhds_prod_eq, compl_diagonal_mem_prod, mem_compl_iff, mem_diagonal_iff]
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
@@ -1059,7 +1059,7 @@ lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : 
 lemma compact_compact_separated [t2_space α] {s t : set α}
   (hs : is_compact s) (ht : is_compact t) (hst : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
+by simv only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal.is_open_compl hst
 
 /-- In a `t2_space`, every compact set is closed. -/
@@ -1071,7 +1071,7 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
 
 @[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
   coclosed_compact α = cocompact α :=
-by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
+by simv [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
 
 @[simp] lemma bornology.relatively_compact_eq_in_compact [t2_space α] :
   bornology.relatively_compact α = bornology.in_compact α :=
@@ -1139,20 +1139,20 @@ begin
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
   { refine ⟨λ _, ∅, λ i, is_compact_empty, λ i, empty_subset _, _⟩,
     simpa only [subset_empty_iff, Union_false, Union_empty] using hsC },
-  simp only [finset.set_bUnion_insert] at hsC,
-  simp only [finset.mem_insert] at hU,
+  simv only [finset.set_bUnion_insert] at hsC,
+  simv only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
   rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
     with ⟨K₁, K₂, h1K₁, h1K₂, h2K₁, h2K₂, hK⟩,
   rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K, h3K⟩,
   refine ⟨update K x K₁, _, _, _⟩,
   { intros i, by_cases hi : i = x,
-    { simp only [update_same, hi, h1K₁] },
-    { rw [← ne.def] at hi, simp only [update_noteq hi, h1K] }},
+    { simv only [update_same, hi, h1K₁] },
+    { rw [← ne.def] at hi, simv only [update_noteq hi, h1K] }},
   { intros i, by_cases hi : i = x,
-    { simp only [update_same, hi, h2K₁] },
-    { rw [← ne.def] at hi, simp only [update_noteq hi, h2K] }},
-  { simp only [set_bUnion_insert_update _ hx, hK, h3K] }
+    { simv only [update_same, hi, h2K₁] },
+    { rw [← ne.def] at hi, simv only [update_noteq hi, h2K] }},
+  { simv only [set_bUnion_insert_update _ hx, hK, h3K] }
 end
 end
 
@@ -1432,7 +1432,7 @@ begin
     refine ⟨range V, _, forall_range_iff.2 $ subtype.forall.2 hd, λ n, _⟩,
     { rw bUnion_range,
       exact λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxu x hx⟩ },
-    { simp only [← supr_eq_Union, supr_and'],
+    { simv only [← supr_eq_Union, supr_and'],
       exact is_closed_bUnion (((finite_le_nat n).preimage_embedding (encodable.encode' _)).subset $
         inter_subset_right _ _) (λ u hu, is_closed_closure) } },
   refine ⟨λ s t hs ht hd, _⟩,
@@ -1445,15 +1445,15 @@ begin
     λ x hx, _, λ x hx, _, _⟩,
   { rcases mem_Union₂.1 (hsU hx) with ⟨u, huU, hxu⟩,
     refine mem_bUnion huU ⟨hxu, _⟩,
-    simp only [mem_Union],
+    simv only [mem_Union],
     rintro ⟨v, hvV, -, hxv⟩,
     exact hVd v hvV ⟨hxv, hx⟩ },
   { rcases mem_Union₂.1 (htV hx) with ⟨v, hvV, hxv⟩,
     refine mem_bUnion hvV ⟨hxv, _⟩,
-    simp only [mem_Union],
+    simv only [mem_Union],
     rintro ⟨u, huU, -, hxu⟩,
     exact hUd u huU ⟨hxu, hx⟩ },
-  { simp only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
+  { simv only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
     rintro a ⟨u, huU, hau, haV⟩ v hvV hav,
     cases le_total (encodable.encode u) (encodable.encode v) with hle hle,
     exacts [⟨u, huU, hle, subset_closure hau⟩, (haV _ hvV hle $ subset_closure hav).elim] }
@@ -1649,9 +1649,9 @@ begin
           inter_eq_self_of_subset_left V_sub] },
     rw f3,
     apply f1.is_open_map v f2 },
-  refine ⟨coe '' V, V_clopen, by simp [Vx, h xt], _⟩,
+  refine ⟨coe '' V, V_clopen, by simv [Vx, h xt], _⟩,
   transitivity s,
-  { simp },
+  { simv },
   assumption
 end
 

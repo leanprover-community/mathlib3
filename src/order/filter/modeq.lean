@@ -19,7 +19,7 @@ namespace nat
 /-- Infinitely many natural numbers are equal to `d` mod `n`. -/
 lemma frequently_modeq {n : ℕ} (h : n ≠ 0) (d : ℕ) : ∃ᶠ m in at_top, m ≡ d [MOD n] :=
 ((tendsto_add_at_top_nat d).comp (tendsto_id.nsmul_at_top h.bot_lt)).frequently $
-  frequently_of_forall $ λ m, by { simp [nat.modeq_iff_dvd, ← sub_sub] }
+  frequently_of_forall $ λ m, by { simv [nat.modeq_iff_dvd, ← sub_sub] }
 
 lemma frequently_mod_eq {d n : ℕ} (h : d < n) : ∃ᶠ m in at_top, m % n = d :=
 by simpa only [nat.modeq, mod_eq_of_lt h] using frequently_modeq h.ne_bot d

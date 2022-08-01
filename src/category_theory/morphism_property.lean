@@ -94,7 +94,7 @@ begin
   let e := pullback_right_pullback_fst_iso Y.hom f g.left ≪≫
     pullback.congr_hom (g.w.trans (category.comp_id _)) rfl,
   have : e.inv ≫ pullback.snd = ((base_change f).map g).left,
-  { apply pullback.hom_ext; dsimp; simp },
+  { apply pullback.hom_ext; dsimp; simv },
   rw [← this, hP'.cancel_left_is_iso],
   apply hP.snd hP',
   exact H
@@ -114,7 +114,7 @@ begin
       ((base_change _).map (over.hom_mk _ e₂.symm : over.mk g ⟶ over.mk g')).left) ≫
       (pullback_symmetry _ _).hom ≫
       ((base_change g').map (over.hom_mk _ e₁.symm : over.mk f ⟶ over.mk f')).left,
-  { apply pullback.hom_ext; dsimp; simp },
+  { apply pullback.hom_ext; dsimp; simv },
   rw this,
   apply hP''; rw hP'.cancel_left_is_iso,
   exacts [hP.base_change_map hP' _ (over.hom_mk _ e₂.symm : over.mk g ⟶ over.mk g') h₂,

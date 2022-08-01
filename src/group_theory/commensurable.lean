@@ -37,7 +37,7 @@ namespace commensurable
 open_locale pointwise
 
 @[refl] protected lemma refl (H : subgroup G) : commensurable H H := by
-simp [commensurable]
+simv [commensurable]
 
 lemma comm {H K : subgroup G} : commensurable H K ↔ commensurable K H := and.comm
 

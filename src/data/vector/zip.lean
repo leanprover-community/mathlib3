@@ -18,7 +18,7 @@ variables {α β γ : Type*} {n : ℕ} (f : α → β → γ)
 
 /-- Apply the function `f : α → β → γ` to each corresponding pair of elements from two vectors. -/
 def zip_with : vector α n → vector β n → vector γ n :=
-λ x y, ⟨list.zip_with f x.1 y.1, by simp⟩
+λ x y, ⟨list.zip_with f x.1 y.1, by simv⟩
 
 @[simp]
 lemma zip_with_to_list (x : vector α n) (y : vector β n) :
@@ -31,14 +31,14 @@ lemma zip_with_nth (x : vector α n) (y : vector β n) (i) :
 begin
   dsimp only [vector.zip_with, vector.nth],
   cases x, cases y,
-  simp only [list.nth_le_zip_with, subtype.coe_mk],
+  simv only [list.nth_le_zip_with, subtype.coe_mk],
   congr,
 end
 
 @[simp]
 lemma zip_with_tail (x : vector α n) (y : vector β n) :
   (vector.zip_with f x y).tail = vector.zip_with f x.tail y.tail :=
-by { ext, simp [nth_tail], }
+by { ext, simv [nth_tail], }
 
 @[to_additive]
 lemma prod_mul_prod_eq_prod_zip_with [comm_monoid α] (x y : vector α n) :

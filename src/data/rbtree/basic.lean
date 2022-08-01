@@ -60,7 +60,7 @@ begin
   { cases hs,
     have h₁ := t_ih_lchild hs_hs₁,
     have h₂ := t_ih_rchild hs_hs₂,
-    cases lo; cases hi; simp [lift] at *,
+    cases lo; cases hi; simv [lift] at *,
     apply trans_of lt h₁ h₂, }
 end
 
@@ -70,7 +70,7 @@ lemma is_searchable_of_is_searchable_of_incomp [is_strict_weak_order α lt] {t} 
 begin
   classical,
   induction t; intros; is_searchable_tactic,
-  { cases lo; simp [lift, *] at *, apply lt_of_lt_of_incomp, assumption, exact ⟨hc.2, hc.1⟩ },
+  { cases lo; simv [lift, *] at *, apply lt_of_lt_of_incomp, assumption, exact ⟨hc.2, hc.1⟩ },
   all_goals { apply t_ih_rchild hc hs_hs₂ }
 end
 
@@ -80,7 +80,7 @@ lemma is_searchable_of_incomp_of_is_searchable [is_strict_weak_order α lt] {t} 
 begin
   classical,
   induction t; intros; is_searchable_tactic,
-  { cases hi; simp [lift, *] at *, apply lt_of_incomp_of_lt, assumption, assumption },
+  { cases hi; simv [lift, *] at *, apply lt_of_incomp_of_lt, assumption, assumption },
   all_goals { apply t_ih_lchild hc hs_hs₁ }
 end
 
@@ -89,7 +89,7 @@ lemma is_searchable_some_low_of_is_searchable_of_lt {t} [is_trans α lt] :
     is_searchable lt t (some lo') hi :=
 begin
   induction t; intros; is_searchable_tactic,
-  { cases hi; simp [lift, *] at *, apply trans_of lt hlt, assumption },
+  { cases hi; simv [lift, *] at *, apply trans_of lt hlt, assumption },
   all_goals { apply t_ih_lchild hlt hs_hs₁ }
 end
 
@@ -97,7 +97,7 @@ lemma is_searchable_none_low_of_is_searchable_some_low {t} :
   ∀ {y hi} (hlt : is_searchable lt t (some y) hi), is_searchable lt t none hi :=
 begin
   induction t; intros; is_searchable_tactic,
-  { simp [lift] },
+  { simv [lift] },
   all_goals { apply t_ih_lchild hlt_hs₁ }
 end
 
@@ -106,7 +106,7 @@ lemma is_searchable_some_high_of_is_searchable_of_lt {t} [is_trans α lt] :
     is_searchable lt t lo (some hi') :=
 begin
   induction t; intros; is_searchable_tactic,
-  { cases lo; simp [lift, *] at *, apply trans_of lt, assumption, assumption},
+  { cases lo; simv [lift, *] at *, apply trans_of lt, assumption, assumption},
   all_goals { apply t_ih_rchild hlt hs_hs₂ }
 end
 
@@ -114,7 +114,7 @@ lemma is_searchable_none_high_of_is_searchable_some_high {t} :
   ∀ {lo y} (hlt : is_searchable lt t lo (some y)), is_searchable lt t lo none :=
 begin
   induction t; intros; is_searchable_tactic,
-  { cases lo; simp [lift] },
+  { cases lo; simv [lift] },
   all_goals { apply t_ih_rchild hlt_hs₂ }
 end
 
@@ -123,10 +123,10 @@ lemma range [is_strict_weak_order α lt] {t : rbnode α} {x} :
 begin
   classical,
   induction t,
-  case leaf { simp [mem] },
+  case leaf { simv [mem] },
   all_goals { -- red_node and black_node are identical
     intros lo hi h₁ h₂, cases h₁,
-    simp only [mem] at h₂,
+    simv only [mem] at h₂,
     have val_hi : lift lt (some t_val) hi, { apply lo_lt_hi, assumption },
     have lo_val : lift lt lo (some t_val), { apply lo_lt_hi, assumption },
     blast_disjs,
@@ -137,21 +137,21 @@ begin
       split,
       show lift lt lo (some x), { assumption },
       show lift lt (some x ) hi,
-      { cases hi with hi; simp [lift] at *,
+      { cases hi with hi; simv [lift] at *,
         apply trans_of lt x_val val_hi } },
 
     { cases h₂,
-      cases lo with lo; cases hi with hi; simp [lift] at *,
-      { apply lt_of_incomp_of_lt _ val_hi, simp [*] },
-      { apply lt_of_lt_of_incomp lo_val, simp [*] },
+      cases lo with lo; cases hi with hi; simv [lift] at *,
+      { apply lt_of_incomp_of_lt _ val_hi, simv [*] },
+      { apply lt_of_lt_of_incomp lo_val, simv [*] },
       split,
-      { apply lt_of_lt_of_incomp lo_val, simp [*] },
-      { apply lt_of_incomp_of_lt _ val_hi, simp [*] } },
+      { apply lt_of_lt_of_incomp lo_val, simv [*] },
+      { apply lt_of_incomp_of_lt _ val_hi, simv [*] } },
 
     { have h₃ : lift lt (some t_val) (some x) ∧ lift lt (some x) hi,
       { apply t_ih_rchild, assumption, assumption },
       cases h₃ with val_x x_hi,
-      cases lo with lo; cases hi with hi; simp [lift] at *,
+      cases lo with lo; cases hi with hi; simv [lift] at *,
       { assumption },
       { apply trans_of lt lo_val val_x },
       split,
@@ -200,11 +200,11 @@ begin
   intros c n' t h,
   induction h,
   case leaf_rb {exact le_refl _},
-  case red_rb { simp [depth],
+  case red_rb { simv [depth],
     have : min (depth min h_l) (depth min h_r) ≥ h_n,
     { apply le_min; assumption },
     apply le_succ_of_le, assumption },
-  case black_rb { simp [depth],
+  case black_rb { simv [depth],
     apply succ_le_succ,
     apply le_min; assumption }
 end
@@ -221,17 +221,17 @@ lemma depth_max' : ∀ {c n} {t : rbnode α}, is_red_black t c n → depth max t
 begin
   intros c n' t h,
   induction h,
-  case leaf_rb { simp [max, depth, upper, nat.mul_zero] },
+  case leaf_rb { simv [max, depth, upper, nat.mul_zero] },
   case red_rb
   { suffices : succ (max (depth max h_l) (depth max h_r)) ≤ 2 * h_n + 1,
-    { simp [depth, upper, *] at * },
+    { simv [depth, upper, *] at * },
     apply succ_le_succ,
     apply max_le; assumption },
   case black_rb
   { have : depth max h_l ≤ 2*h_n + 1, from le_trans h_ih_rb_l (upper_le _ _),
     have : depth max h_r ≤ 2*h_n + 1, from le_trans h_ih_rb_r (upper_le _ _),
     suffices new : max (depth max h_l) (depth max h_r) + 1 ≤ 2 * h_n + 2*1,
-    { simp [depth, upper, succ_eq_add_one, nat.left_distrib, *] at * },
+    { simv [depth, upper, succ_eq_add_one, nat.left_distrib, *] at * },
     apply succ_le_succ, apply max_le; assumption }
 end
 

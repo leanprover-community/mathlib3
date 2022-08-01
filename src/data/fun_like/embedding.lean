@@ -49,7 +49,7 @@ end my_embedding
 ```
 
 This file will then provide a `has_coe_to_fun` instance and various
-extensionality and simp lemmas.
+extensionality and simv lemmas.
 
 ## Embedding classes extending `embedding_like`
 

@@ -99,7 +99,7 @@ lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f : dual �
 begin
   classical,
   by_cases h : x = 0,
-  { simp only [h, hMp, norm_zero] },
+  { simv only [h, hMp, norm_zero] },
   { obtain ⟨f, hf₁, hfx⟩ : ∃ f : E →L[𝕜] 𝕜, ∥f∥ = 1 ∧ f x = ∥x∥ := exists_dual_vector 𝕜 x h,
     calc ∥x∥ = ∥(∥x∥ : 𝕜)∥ : is_R_or_C.norm_coe_norm.symm
     ... = ∥f x∥ : by rw hfx
@@ -108,17 +108,17 @@ begin
 end
 
 lemma eq_zero_of_forall_dual_eq_zero {x : E} (h : ∀ f : dual 𝕜 E, f x = (0 : 𝕜)) : x = 0 :=
-norm_le_zero_iff.mp (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simp [h f]))
+norm_le_zero_iff.mp (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simv [h f]))
 
 lemma eq_zero_iff_forall_dual_eq_zero (x : E) : x = 0 ↔ ∀ g : dual 𝕜 E, g x = 0 :=
-⟨λ hx, by simp [hx], λ h, eq_zero_of_forall_dual_eq_zero 𝕜 h⟩
+⟨λ hx, by simv [hx], λ h, eq_zero_of_forall_dual_eq_zero 𝕜 h⟩
 
 /-- See also `geometric_hahn_banach_point_point`. -/
 lemma eq_iff_forall_dual_eq {x y : E} :
   x = y ↔ ∀ g : dual 𝕜 E, g x = g y :=
 begin
   rw [← sub_eq_zero, eq_zero_iff_forall_dual_eq_zero 𝕜 (x - y)],
-  simp [sub_eq_zero],
+  simv [sub_eq_zero],
 end
 
 /-- The inclusion of a normed space in its double dual is an isometry onto its image.-/
@@ -159,7 +159,7 @@ lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
   dunfold normed_space.polar,
-  simp only [linear_map.polar_eq_Inter, linear_map.flip_apply],
+  simv only [linear_map.polar_eq_Inter, linear_map.flip_apply],
   refine is_closed_bInter (λ z hz, _),
   exact is_closed_Iic.preimage (continuous_linear_map.apply 𝕜 𝕜 z).continuous.norm
 end
@@ -178,7 +178,7 @@ small scalar multiple of `x'` is in `polar 𝕜 s`. -/
 lemma smul_mem_polar {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
   (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : c⁻¹ • x' ∈ polar 𝕜 s :=
 begin
-  by_cases c_zero : c = 0, { simp only [c_zero, inv_zero, zero_smul],
+  by_cases c_zero : c = 0, { simv only [c_zero, inv_zero, zero_smul],
     exact (dual_pairing 𝕜 E).flip.zero_mem_polar _ },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,
   have le : ∀ z, z ∈ s → ∥ c⁻¹ • (x' z) ∥ ≤ ∥ c⁻¹ ∥ * ∥ c ∥,
@@ -186,7 +186,7 @@ begin
     rw eq z,
     apply mul_le_mul (le_of_eq rfl) (hc z hzs) (norm_nonneg _) (norm_nonneg _), },
   have cancel : ∥ c⁻¹ ∥ * ∥ c ∥ = 1,
-  by simp only [c_zero, norm_eq_zero, ne.def, not_false_iff,
+  by simv only [c_zero, norm_eq_zero, ne.def, not_false_iff,
                 inv_mul_cancel, norm_inv],
   rwa cancel at le,
 end
@@ -196,7 +196,7 @@ lemma polar_ball_subset_closed_ball_div {c : 𝕜} (hc : 1 < ∥c∥) {r : ℝ} 
 begin
   intros x' hx',
   rw mem_polar_iff at hx',
-  simp only [polar, mem_set_of_eq, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
+  simv only [polar, mem_set_of_eq, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
   have hcr : 0 < ∥c∥ / r, from div_pos (zero_lt_one.trans hc) hr,
   refine continuous_linear_map.op_norm_le_of_shell hr hcr.le hc (λ x h₁ h₂, _),
   calc ∥x' x∥ ≤ 1 : hx' _ h₂
@@ -223,7 +223,7 @@ lemma polar_closed_ball {𝕜 E : Type*} [is_R_or_C 𝕜] [normed_add_comm_group
 begin
   refine subset.antisymm _ (closed_ball_inv_subset_polar_closed_ball _),
   intros x' h,
-  simp only [mem_closed_ball_zero_iff],
+  simv only [mem_closed_ball_zero_iff],
   refine continuous_linear_map.op_norm_le_of_ball hr (inv_nonneg.mpr hr.le) (λ z hz, _),
   simpa only [one_div] using linear_map.bound_of_ball_bound' hr 1 x'.to_linear_map h z
 end

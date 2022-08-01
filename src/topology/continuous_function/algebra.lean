@@ -46,10 +46,10 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
 
-@[simp, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
+@[simv, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
   (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
 rfl
@@ -57,21 +57,21 @@ rfl
 @[to_additive]
 instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 
-@[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
+@[simv, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
 
 instance [has_nat_cast β] : has_nat_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance [has_int_cast β] : has_int_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_smul ℕ C(α, β) :=
@@ -85,27 +85,27 @@ instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
 
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
-attribute [simp] coe_pow
+-- don't make `coe_nsmul` simv as the linter complains it's redundant WRT `coe_smul`
+attribute [simv] coe_pow
 
 @[to_additive] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
   (f^n).comp g = (f.comp g)^n :=
 rfl
 
--- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
-attribute [simp] pow_comp
+-- don't make `nsmul_comp` simv as the linter complains it's redundant WRT `smul_comp`
+attribute [simv] pow_comp
 
 @[to_additive]
 instance [group β] [topological_group β] : has_inv C(α, β) :=
 { inv := λ f, ⟨f⁻¹, f.continuous.inv⟩ }
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
   ⇑(f⁻¹) = f⁻¹ :=
 rfl
 
-@[simp, to_additive] lemma inv_comp [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
+@[simv, to_additive] lemma inv_comp [group γ] [topological_group γ] (f : C(β, γ)) (g : C(α, β)) :
   (f⁻¹).comp g = (f.comp g)⁻¹ :=
 rfl
 
@@ -113,11 +113,11 @@ rfl
 instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
 { div := λ f g, ⟨f / g, f.continuous.div' g.continuous⟩ }
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
 rfl
 
-@[simp, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
+@[simv, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
   (f g : C(β, γ)) (h : C(α, β)) :
   (f / g).comp h = (f.comp h) / (g.comp h) :=
 rfl
@@ -135,16 +135,16 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
-attribute [simp] coe_zpow
+-- don't make `coe_zsmul` simv as the linter complains it's redundant WRT `coe_smul`
+attribute [simv] coe_zpow
 
 @[to_additive]
 lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g : C(α, β)) :
   (f^z).comp g = (f.comp g)^z :=
 rfl
 
--- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
-attribute [simp] zpow_comp
+-- don't make `zsmul_comp` simv as the linter complains it's redundant WRT `smul_comp`
+attribute [simv] zpow_comp
 
 end continuous_map
 
@@ -260,7 +260,7 @@ def comp_monoid_hom' {α : Type*} {β : Type*} {γ : Type*}
 { to_fun := λ f, f.comp g, map_one' := one_comp g, map_mul' := λ f₁ f₂, mul_comp f₁ f₂ g }
 
 open_locale big_operators
-@[simp, to_additive] lemma coe_prod {α : Type*} {β : Type*} [comm_monoid β]
+@[simv, to_additive] lemma coe_prod {α : Type*} {β : Type*} [comm_monoid β]
   [topological_space α] [topological_space β] [has_continuous_mul β]
   {ι : Type*} (s : finset ι) (f : ι → C(α, β)) :
   ⇑(∏ i in s, f i) = (∏ i in s, (f i : α → β)) :=
@@ -271,7 +271,7 @@ lemma prod_apply {α : Type*} {β : Type*} [comm_monoid β]
   [topological_space α] [topological_space β] [has_continuous_mul β]
   {ι : Type*} (s : finset ι) (f : ι → C(α, β)) (a : α) :
   (∏ i in s, f i) a = (∏ i in s, f i a) :=
-by simp
+by simv
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -466,7 +466,7 @@ instance [locally_compact_space α] [topological_space R] [has_smul R M]
   exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 
-@[simp, to_additive, norm_cast]
+@[simv, to_additive, norm_cast]
 lemma coe_smul [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
@@ -475,7 +475,7 @@ lemma smul_apply [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
 rfl
 
-@[simp, to_additive] lemma smul_comp [has_smul R M] [has_continuous_const_smul R M]
+@[simv, to_additive] lemma smul_comp [has_smul R M] [has_continuous_const_smul R M]
   (r : R) (f : C(β, M)) (g : C(α, β)) :
   (r • f).comp g = r • (f.comp g) :=
 rfl
@@ -661,22 +661,22 @@ begin
     use ((v x) • 1 : C(α, 𝕜)),
     { apply s.smul_mem,
       apply s.one_mem, },
-    { simp [coe_fn_coe_base'] }, },
+    { simv [coe_fn_coe_base'] }, },
   obtain ⟨f, ⟨f, ⟨m, rfl⟩⟩, w⟩ := h n,
   replace w : f x - f y ≠ 0 := sub_ne_zero_of_ne w,
   let a := v x,
   let b := v y,
   let f' := ((b - a) * (f x - f y)⁻¹) • (continuous_map.C (f x) - f) + continuous_map.C a,
   refine ⟨⟨f', _⟩, _, _⟩,
-  { simp only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
+  { simv only [f', set_like.mem_coe, subalgebra.mem_to_submodule],
     -- TODO should there be a tactic for this?
     -- We could add an attribute `@[subobject_mem]`, and a tactic
     -- ``def subobject_mem := `[solve_by_elim with subobject_mem { max_depth := 10 }]``
     solve_by_elim
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
-  { simp [f', coe_fn_coe_base'], },
-  { simp [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
+  { simv [f', coe_fn_coe_base'], },
+  { simv [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
 end
 
 end continuous_map
@@ -692,14 +692,14 @@ begin
   { obtain ⟨x⟩ := n,
     ext f,
     have h : f = algebra_map R C(α, R) (f x),
-    { ext x', simp only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
+    { ext x', simv only [mul_one, algebra.id.smul_eq_mul, algebra_map_apply], congr, },
     rw h,
-    simp only [subalgebra.algebra_map_mem], },
+    simv only [subalgebra.algebra_map_mem], },
   { ext f,
     have h : f = 0,
     { ext x', exact false.elim (n ⟨x'⟩), },
     subst h,
-    simp only [subalgebra.zero_mem], },
+    simv only [subalgebra.zero_mem], },
 end
 
 end algebra_structure

@@ -155,7 +155,7 @@ let s := (xs.map (subtype.val ∘ prod.fst)).sum in
 have ha : 1 ≤ s, from
   (le_trans pos $
     list.length_map (subtype.val ∘ prod.fst) xs ▸
-      (list.length_le_sum_of_one_le _ (λ i, by { simp, intros, assumption }))),
+      (list.length_le_sum_of_one_le _ (λ i, by { simv, intros, assumption }))),
 have 0 ≤ s - 1, from le_tsub_of_add_le_right ha,
 uliftable.adapt_up gen.{0} gen.{u} (choose_nat 0 (s-1) this) $ λ i,
 freq_aux xs i.1 (by rcases i with ⟨i,h₀,h₁⟩; rwa le_tsub_iff_right at h₁; exact ha)

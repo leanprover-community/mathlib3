@@ -79,8 +79,8 @@ def End_monoidal_star_functor : monoidal_functor (End_monoidal (monoidal_single_
   μ := λ X Y, 𝟙 _,
   μ_natural' := λ X Y X' Y' f g, begin
     dsimp,
-    simp only [category.id_comp, category.comp_id],
-    -- Should we provide further simp lemmas so this goal becomes visible?
+    simv only [category.id_comp, category.comp_id],
+    -- Should we provide further simv lemmas so this goal becomes visible?
     exact (tensor_id_comp_id_tensor _ _).symm,
   end, }
 

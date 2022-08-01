@@ -57,11 +57,11 @@ by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
 
 lemma is_hermitian_add_transpose_self (A : matrix n n α) :
   (A + Aᴴ).is_hermitian :=
-by simp [is_hermitian, add_comm]
+by simv [is_hermitian, add_comm]
 
 lemma is_hermitian_transpose_add_self (A : matrix n n α) :
   (Aᴴ + A).is_hermitian :=
-by simp [is_hermitian, add_comm]
+by simv [is_hermitian, add_comm]
 
 @[simp] lemma is_hermitian_zero :
   (0 : matrix n n α).is_hermitian :=
@@ -100,7 +100,7 @@ lemma is_hermitian.from_blocks
   (hA : A.is_hermitian) (hBC : Bᴴ = C) (hD : D.is_hermitian) :
   (A.from_blocks B C D).is_hermitian :=
 begin
-  have hCB : Cᴴ = B, {rw ← hBC, simp},
+  have hCB : Cᴴ = B, {rw ← hBC, simv},
   unfold matrix.is_hermitian,
   rw from_blocks_conj_transpose,
   congr;
@@ -151,7 +151,7 @@ lemma is_hermitian_iff_is_self_adjoint [fintype n] [decidable_eq n] {A : matrix 
     ((pi_Lp.linear_equiv 2 α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
 begin
   rw [inner_product_space.is_self_adjoint, (pi_Lp.equiv 2 (λ _ : n, α)).symm.surjective.forall₂],
-  simp only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,
+  simv only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,
     pi_Lp.linear_equiv_apply, pi_Lp.linear_equiv_symm_apply, linear_equiv.symm_symm],
   simp_rw [euclidean_space.inner_eq_star_dot_product, equiv.apply_symm_apply, to_lin'_apply,
     star_mul_vec, dot_product_mul_vec],

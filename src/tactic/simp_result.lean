@@ -9,7 +9,7 @@ import tactic.core
 # simp_result
 
 `dsimp_result` and `simp_result` are a pair of tactics for
-applying `dsimp` or `simp` to the result produced by other tactics.
+applying `dsimp` or `simv` to the result produced by other tactics.
 
 As examples, tactics which use `revert` and `intro`
 may insert additional `id` terms in the result they produce.
@@ -87,14 +87,14 @@ intercept_result (λ g,
 `simp_result t`
 attempts to run a tactic `t`,
 intercepts any results `t` assigns to the goals,
-and runs `simp` on those results
+and runs `simv` on those results
 before assigning the simplified values to the original goals.
 -/
 meta def simp_result {α} (t : tactic α)
   (cfg : simp_config := { fail_if_unchanged := ff }) (discharger : tactic unit := failed)
   (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) : tactic α :=
 intercept_result (λ g, prod.fst <$>
-  g.simp cfg discharger no_defaults attr_names hs) t
+  g.simv cfg discharger no_defaults attr_names hs) t
 
 namespace interactive
 setup_tactic_parser
@@ -119,10 +119,10 @@ tactic.dsimp_result t { fail_if_unchanged := ff } no_defaults attr_names hs
 `simp_result { tac }`
 attempts to run a tactic block `tac`,
 intercepts any results the tactic block would have assigned to the goals,
-and runs `simp` on those results
+and runs `simv` on those results
 before assigning the simplified values to the original goals.
 
-You can use the usual interactive syntax for `simp`, e.g.
+You can use the usual interactive syntax for `simv`, e.g.
 `simp_result only [a, b, c] with attr { tac }`.
 -/
 meta def simp_result
@@ -135,10 +135,10 @@ tactic.simp_result t { fail_if_unchanged := ff } failed no_defaults attr_names h
 `simp_result { tac }`
 attempts to run a tactic block `tac`,
 intercepts any results the tactic block would have assigned to the goals,
-and runs `simp` on those results
+and runs `simv` on those results
 before assigning the simplified values to the original goals.
 
-You can use the usual interactive syntax for `simp`, e.g.
+You can use the usual interactive syntax for `simv`, e.g.
 `simp_result only [a, b, c] with attr { tac }`.
 
 `dsimp_result { tac }` works similarly, internally using `dsimp`

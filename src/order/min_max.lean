@@ -18,7 +18,7 @@ min, max
 universes u v
 variables {α : Type u} {β : Type v}
 
-attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
+attribute [simv] max_eq_left max_eq_right min_eq_left min_eq_right
 
 section
 variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a b c d : α}
@@ -77,7 +77,7 @@ begin
     refine or.imp (λ h', _) (λ h', _) (le_total a b);
     exact ⟨by simpa [h'] using h, h'⟩ },
   { rintro (⟨rfl, h⟩|⟨rfl, h⟩);
-    simp [h] }
+    simv [h] }
 end
 
 lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b := @min_eq_iff αᵒᵈ _ a b c
@@ -101,7 +101,7 @@ instance min_idem : is_idempotent α min := by apply_instance -- short-circuit t
 lemma min_lt_max : min a b < max a b ↔ a ≠ b := inf_lt_sup
 
 lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
-by simp [lt_max_iff, max_lt_iff, *]
+by simv [lt_max_iff, max_lt_iff, *]
 
 lemma min_lt_min (h₁ : a < c) (h₂ : b < d) : min a b < min c d := @max_lt_max αᵒᵈ _ _ _ _ _ h₁ h₂
 
@@ -116,7 +116,7 @@ right_comm max max_comm max_assoc a b c
 
 lemma monotone_on.map_max (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
   f (max a b) = max (f a) (f b) :=
-by cases le_total a b; simp only [max_eq_right, max_eq_left, hf ha hb, hf hb ha, h]
+by cases le_total a b; simv only [max_eq_right, max_eq_left, hf ha hb, hf hb ha, h]
 
 lemma monotone_on.map_min (hf : monotone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
   f (min a b) = min (f a) (f b) :=
@@ -131,19 +131,19 @@ lemma antitone_on.map_min (hf : antitone_on f s) (ha : a ∈ s) (hb : b ∈ s) :
 hf.dual.map_max ha hb
 
 lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
+by cases le_total a b; simv [h, hf h]
 
 lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
 hf.dual.map_max
 
 lemma antitone.map_max (hf : antitone f) : f (max a b) = min (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
+by cases le_total a b; simv [h, hf h]
 
 lemma antitone.map_min (hf : antitone f) : f (min a b) = max (f a) (f b) :=
 hf.dual.map_max
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
-by cases le_total a b; simp *
+by cases le_total a b; simv *
 
 theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
 @min_choice αᵒᵈ _ a b

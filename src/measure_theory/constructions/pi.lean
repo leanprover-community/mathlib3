@@ -106,7 +106,7 @@ begin
     have : (pi univ (update (λ (i' : ι), Union (t i')) i (⋃ (i' : ℕ), s))) =
       (pi univ (λ k, ⋃ j : ℕ, @update ι (λ i', set (α i')) _ (λ i', t i' j) i s k)),
     { ext, simp_rw [mem_univ_pi], apply forall_congr, intro i',
-      by_cases (i' = i), { subst h, simp }, { rw [← ne.def] at h, simp [h] }},
+      by_cases (i' = i), { subst h, simv }, { rw [← ne.def] at h, simv [h] }},
     rw [this, ← Union_univ_pi],
     apply measurable_set.Union,
     intro n, apply measurable_set_generate_from,
@@ -145,19 +145,19 @@ variables {m : Π i, outer_measure (α i)}
 
 lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
-by simp [hs]
+by simv [hs]
 
 lemma pi_premeasure_pi' {s : Π i, set (α i)} :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 begin
   casesI is_empty_or_nonempty ι,
-  { simp, },
+  { simv, },
   cases (pi univ s).eq_empty_or_nonempty with h h,
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
-    have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
+    have : ∃ i, m i (s i) = 0 := ⟨i, by simv [hi]⟩,
     simpa [h, finset.card_univ, zero_pow (fintype.card_pos_iff.mpr ‹_›),
       @eq_comm _ (0 : ℝ≥0∞), finset.prod_eq_zero_iff] },
-  { simp [h] }
+  { simv [h] }
 end
 
 lemma pi_premeasure_pi_mono {s t : set (Π i, α i)} (h : s ⊆ t) :
@@ -166,7 +166,7 @@ finset.prod_le_prod' (λ i _, (m i).mono' (image_subset _ h))
 
 lemma pi_premeasure_pi_eval {s : set (Π i, α i)} :
   pi_premeasure m (pi univ (λ i, eval i '' s)) = pi_premeasure m s :=
-by simp [pi_premeasure_pi']
+by simv [pi_premeasure_pi']
 
 namespace outer_measure
 
@@ -179,7 +179,7 @@ bounded_by (pi_premeasure m)
 
 lemma pi_pi_le (m : Π i, outer_measure (α i)) (s : Π i, set (α i)) :
   outer_measure.pi m (pi univ s) ≤ ∏ i, m i (s i) :=
-by { cases (pi univ s).eq_empty_or_nonempty with h h, simp [h],
+by { cases (pi univ s).eq_empty_or_nonempty with h h, simv [h],
      exact (bounded_by_le _).trans_eq (pi_premeasure_pi h) }
 
 lemma le_pi {m : Π i, outer_measure (α i)} {n : outer_measure (Π i, α i)} :
@@ -189,7 +189,7 @@ begin
   rw [outer_measure.pi, le_bounded_by'], split,
   { intros h s hs, refine (h _ hs).trans_eq (pi_premeasure_pi hs) },
   { intros h s hs, refine le_trans (n.mono $ subset_pi_eval_image univ s) (h _ _),
-    simp [univ_pi_nonempty_iff, hs] }
+    simv [univ_pi_nonempty_iff, hs] }
 end
 
 end outer_measure
@@ -226,7 +226,7 @@ lemma tprod_tprod (l : list δ) (μ : Π i, measure (π i)) [∀ i, sigma_finite
   (s : Π i, set (π i)) :
   measure.tprod l μ (set.tprod l s) = (l.map (λ i, (μ i) (s i))).prod :=
 begin
-  induction l with i l ih, { simp },
+  induction l with i l ih, { simv },
   rw [tprod_cons, set.tprod, prod_prod, map_cons, prod_cons, ih]
 end
 
@@ -261,7 +261,7 @@ begin
   intro t,
   simp_rw [pi_premeasure],
   refine finset.prod_add_prod_le' (finset.mem_univ i) _ _ _,
-  { simp [image_inter_preimage, image_diff_preimage, measure_inter_add_diff _ hs, le_refl] },
+  { simv [image_inter_preimage, image_diff_preimage, measure_inter_add_diff _ hs, le_refl] },
   { rintro j - hj, apply mono', apply image_subset, apply inter_subset_left },
   { rintro j - hj, apply mono', apply image_subset, apply diff_subset }
 end
@@ -312,7 +312,7 @@ begin
     ... = ∏ i, μ i (to_measurable (μ i) ((hμ i).set (e n i))) :
       pi_pi_aux μ _ (λ i, measurable_set_to_measurable _ _)
     ... = ∏ i, μ i ((hμ i).set (e n i)) :
-      by simp only [measure_to_measurable]
+      by simv only [measure_to_measurable]
     ... < ∞ : ennreal.prod_lt_top (λ i hi, ((hμ i).finite _).ne) },
   { simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, (hμ i).set (x i))),
       Union_univ_pi (λ i, (hμ i).set), (hμ _).spanning, set.pi_univ] }
@@ -397,7 +397,7 @@ begin
   /- Now rewrite it as `set.pi`, and apply `pi_pi` -/
   rw [← univ_pi_update_univ, pi_pi],
   apply finset.prod_eq_zero (finset.mem_univ i),
-  simp [hμt]
+  simv [hμt]
 end
 
 lemma pi_hyperplane (i : ι) [has_no_atoms (μ i)] (x : α i) :
@@ -512,7 +512,7 @@ variable (μ)
 begin
   refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
   have h : has_mul.mul x ⁻¹' (pi univ s) = set.pi univ (λ i, (λ y, x i * y) ⁻¹' s i),
-  { ext, simp },
+  { ext, simv },
   simp_rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), h,
     pi_pi, measure_preimage_mul]
 end
@@ -522,7 +522,7 @@ end
 begin
   refine ⟨(measure.pi_eq (λ s hs, _)).symm⟩,
   have A : has_inv.inv ⁻¹' (pi univ s) = set.pi univ (λ i, has_inv.inv ⁻¹' s i),
-  { ext, simp },
+  { ext, simv },
   simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi_fintype hs), A,
     pi_pi, measure_preimage_inv]
 end
@@ -617,7 +617,7 @@ begin
   refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
   rw [e.map_apply, i.prod_univ_succ_above _, ← pi_pi, ← prod_prod],
   congr' 1 with ⟨x, f⟩,
-  simp [i.forall_iff_succ_above]
+  simv [i.forall_iff_succ_above]
 end
 
 lemma volume_preserving_pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type u)
@@ -634,7 +634,7 @@ begin
   { ext1 s,
     rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
     congr' 1, exact e.to_equiv.image_eq_preimage s },
-  simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
+  simv only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
   exact (e.symm.measurable.measure_preserving _).symm e.symm
 end
 

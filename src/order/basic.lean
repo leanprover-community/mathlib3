@@ -80,7 +80,7 @@ lemma ne.lt_of_le' : b ≠ a → a ≤ b → a < b := flip lt_of_le_of_ne'
 
 end partial_order
 
-attribute [simp] le_refl
+attribute [simv] le_refl
 attribute [ext] has_le
 
 alias le_trans        ← has_le.le.trans
@@ -190,9 +190,9 @@ protected lemma gt.lt [has_lt α] {x y : α} (h : x > y) : y < x := h
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b := h.ge
 
-@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
+@[simv, nolint ge_or_gt] -- see Note [nolint_ge]
 lemma ge_iff_le [has_le α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
-@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
+@[simv, nolint ge_or_gt] -- see Note [nolint_ge]
 lemma gt_iff_lt [has_lt α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a := (le_not_le_of_lt h).right
@@ -349,7 +349,7 @@ lemma preorder.to_has_le_injective {α : Type*} :
   have : A_lt = B_lt,
   { funext a b,
     dsimp [(≤)] at A_lt_iff_le_not_le B_lt_iff_le_not_le h_le,
-    simp [A_lt_iff_le_not_le, B_lt_iff_le_not_le, h_le], },
+    simv [A_lt_iff_le_not_le, B_lt_iff_le_not_le, h_le], },
   congr',
 end
 
@@ -488,7 +488,7 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)]
 
 lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
-by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
+by simv [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
@@ -503,7 +503,7 @@ function.forall_update_iff _ (λ j z, z ≤ y j)
 lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a b : α i} :
   function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
-by simp [update_le_iff] {contextual := tt}
+by simv [update_le_iff] {contextual := tt}
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_order (α i)] :
   partial_order (Π i, α i) :=
@@ -607,10 +607,10 @@ iff.rfl
   (⟨x, hx⟩ : subtype p) < ⟨y, hy⟩ ↔ x < y :=
 iff.rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_le_coe [has_le α] {p : α → Prop} {x y : subtype p} : (x : α) ≤ y ↔ x ≤ y := iff.rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_lt_coe [has_lt α] {p : α → Prop} {x y : subtype p} : (x : α) < y ↔ x < y := iff.rfl
 
 instance [preorder α] (p : α → Prop) : preorder (subtype p) := preorder.lift (coe : subtype p → α)
@@ -758,7 +758,7 @@ by refine_struct
   decidable_eq := punit.decidable_eq,
   decidable_le := λ _ _, decidable.true,
   decidable_lt := λ _ _, decidable.false };
-    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false] <|>
+    intros; trivial <|> simv only [eq_iff_true_of_subsingleton, not_true, and_false] <|>
       exact or.inl trivial
 
 lemma max_eq : max a b = star := rfl

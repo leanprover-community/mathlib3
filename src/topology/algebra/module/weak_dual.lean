@@ -122,7 +122,7 @@ begin
   refine cast (congr_arg _ _) (((coe_fn_continuous B).comp continuous_fst).add
     ((coe_fn_continuous B).comp continuous_snd)),
   ext,
-  simp only [function.comp_app, pi.add_apply, map_add, linear_map.add_apply],
+  simv only [function.comp_app, pi.add_apply, map_add, linear_map.add_apply],
 end
 
 /-- Scalar multiplication by `𝕜` on `weak_bilin B` is continuous. -/
@@ -131,7 +131,7 @@ begin
   refine ⟨continuous_induced_rng.2 _⟩,
   refine cast (congr_arg _ _) (continuous_fst.smul ((coe_fn_continuous B).comp continuous_snd)),
   ext,
-  simp only [function.comp_app, pi.smul_apply, linear_map.map_smulₛₗ, ring_hom.id_apply,
+  simv only [function.comp_app, pi.smul_apply, linear_map.map_smulₛₗ, ring_hom.id_apply,
     linear_map.smul_apply],
 end
 
@@ -152,7 +152,7 @@ instance [has_continuous_add 𝕜] : topological_add_group (weak_bilin B) :=
     refine continuous_induced_rng.2 (continuous_pi_iff.mpr (λ y, _)),
     refine cast (congr_arg _ _) (eval_continuous B (-y)),
     ext,
-    simp only [map_neg, function.comp_app, linear_map.neg_apply],
+    simv only [map_neg, function.comp_app, linear_map.neg_apply],
   end }
 
 end ring

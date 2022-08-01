@@ -43,18 +43,18 @@ lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree_of_comm
 begin
   by_cases hp : p = 0,
   { convert hq,
-    simp [hp, cancel_leads], },
+    simv [hp, cancel_leads], },
   rw [cancel_leads, sub_eq_add_neg, tsub_eq_zero_iff_le.mpr h, pow_zero, mul_one],
   by_cases h0 :
       C p.leading_coeff * q + -(C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p) = 0,
-  { exact (le_of_eq (by simp only [h0, nat_degree_zero])).trans_lt hq },
+  { exact (le_of_eq (by simv only [h0, nat_degree_zero])).trans_lt hq },
   apply lt_of_le_of_ne,
   { compute_degree_le,
     repeat { rwa nat.sub_add_cancel } },
   { contrapose! h0,
     rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, X_pow_mul,
       ← tsub_add_cancel_of_le h, add_comm _ p.nat_degree],
-    simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, add_tsub_cancel_left, coeff_add],
+    simv only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, add_tsub_cancel_left, coeff_add],
     rw [add_comm p.nat_degree, tsub_add_cancel_of_le h, ← leading_coeff, ← leading_coeff, comm,
       add_right_neg] }
 end

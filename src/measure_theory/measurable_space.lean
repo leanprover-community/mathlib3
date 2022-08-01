@@ -93,7 +93,7 @@ protected def comap (f : α → β) (m : measurable_space β) : measurable_space
   measurable_set_compl := assume s ⟨s', h₁, h₂⟩, ⟨s'ᶜ, m.measurable_set_compl _ h₁, h₂ ▸ rfl⟩,
   measurable_set_Union := assume s hs,
     let ⟨s', hs'⟩ := classical.axiom_of_choice hs in
-    ⟨⋃ i, s' i, m.measurable_set_Union _ (λ i, (hs' i).left), by simp [hs'] ⟩ }
+    ⟨⋃ i, s' i, m.measurable_set_Union _ (λ i, (hs' i).left), by simv [hs'] ⟩ }
 
 lemma comap_eq_generate_from (m : measurable_space β) (f : α → β) :
   m.comap f = generate_from {t | ∃ s, measurable_set s ∧ f ⁻¹' s = t} :=
@@ -259,11 +259,11 @@ lemma measurable.measurable_of_countable_ne [measurable_singleton_class α]
 begin
   assume t ht,
   have : g ⁻¹' t = (g ⁻¹' t ∩ {x | f x = g x}ᶜ) ∪ (g ⁻¹' t ∩ {x | f x = g x}),
-    by simp [← inter_union_distrib_left],
+    by simv [← inter_union_distrib_left],
   rw this,
   apply measurable_set.union (h.mono (inter_subset_right _ _)).measurable_set,
   have : g ⁻¹' t ∩ {x : α | f x = g x} = f ⁻¹' t ∩ {x : α | f x = g x},
-    by { ext x, simp {contextual := tt} },
+    by { ext x, simv {contextual := tt} },
   rw this,
   exact (hf ht).inter h.measurable_set.of_compl,
 end
@@ -297,7 +297,7 @@ begin
   by_cases hyf : y ∈ range f,
   { rcases hyf with ⟨y, rfl⟩,
     apply h },
-  { simp only [preimage_singleton_eq_empty.2 hyf, measurable_set.empty] }
+  { simv only [preimage_singleton_eq_empty.2 hyf, measurable_set.empty] }
 end
 
 @[measurability] lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
@@ -322,7 +322,7 @@ lemma measurable_find_greatest {p : α → ℕ → Prop} [∀ x, decidable_pred 
   measurable (λ x, nat.find_greatest (p x) N) :=
 begin
   refine measurable_find_greatest' (λ k hk, _),
-  simp only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
+  simv only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
   repeat { apply_rules [measurable_set.inter, measurable_set.const, measurable_set.Inter,
     measurable_set.Inter_Prop, measurable_set.compl, hN]; try { intros } }
 end
@@ -402,7 +402,7 @@ instance {p : α → Prop} [measurable_singleton_class α] : measurable_singleto
     have : measurable_set {(x : α)} := measurable_set_singleton _,
     convert @measurable_subtype_coe α _ p _ this,
     ext y,
-    simp [subtype.ext_iff],
+    simv [subtype.ext_iff],
   end }
 
 end
@@ -429,7 +429,7 @@ measurable_subtype_coe.comp hf
 @[measurability]
 lemma measurable.subtype_mk {p : β → Prop} {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :
   measurable (λ x, (⟨f x, h x⟩ : subtype p)) :=
-λ t ⟨s, hs⟩, hs.2 ▸ by simp only [← preimage_comp, (∘), subtype.coe_mk, hf hs.1]
+λ t ⟨s, hs⟩, hs.2 ▸ by simv only [← preimage_comp, (∘), subtype.coe_mk, hf hs.1]
 
 lemma measurable_of_measurable_union_cover
   {f : α → β} (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : univ ⊆ s ∪ t)
@@ -559,15 +559,15 @@ begin
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
   have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_prod_mk_right hst,
   have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_prod_mk_left hst,
-  simp * at *
+  simv * at *
 end
 
 lemma measurable_set_prod {s : set α} {t : set β} :
   measurable_set (s ×ˢ t) ↔ (measurable_set s ∧ measurable_set t) ∨ s = ∅ ∨ t = ∅ :=
 begin
   cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
-  { simp [h, prod_eq_empty_iff.mp h] },
-  { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, measurable_set_prod_of_nonempty h] }
+  { simv [h, prod_eq_empty_iff.mp h] },
+  { simv [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, measurable_set_prod_of_nonempty h] }
 end
 
 lemma measurable_set_swap_iff {s : set (α × β)} :
@@ -581,7 +581,7 @@ begin
   intros s hs,
   have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s) ×ˢ ({y} : set β),
   { ext1 ⟨x, y⟩,
-    simp [and_assoc, and.left_comm] },
+    simv [and_assoc, and.left_comm] },
   rw this,
   exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
 end
@@ -612,7 +612,7 @@ begin
   { assume x,
     by_cases H : ∀ (i : ℕ), x ∉ t i,
     { exact ⟨0, or.inr (by simpa only [mem_Inter, compl_Union] using H)⟩ },
-    { simp only [not_forall, not_not_mem] at H,
+    { simv only [not_forall, not_not_mem] at H,
       rcases H with ⟨n, hn⟩,
       exact ⟨n, or.inl hn⟩ } },
   refine ⟨λ x, g (nat.find (P x)) x, measurable.find hg M P, _⟩,
@@ -620,7 +620,7 @@ begin
   have : x ∈ t (nat.find (P x)),
   { have B : x ∈ t (nat.find (P x)) ∪ (⋃ k, t k)ᶜ := nat.find_spec (P x),
     have B' : (∀ (i : ℕ), x ∉ t i) ↔ false,
-    { simp only [iff_false, not_forall, not_not_mem], exact ⟨n, hx⟩ },
+    { simv only [iff_false, not_forall, not_not_mem], exact ⟨n, hx⟩ },
     simpa only [B', mem_union_eq, mem_Inter, or_false, compl_Union, mem_compl_eq] using B },
   congr,
   by_contra h,
@@ -665,7 +665,7 @@ lemma measurable_update (f : Π (a : δ), π a) {a : δ} [decidable_eq δ] : mea
 begin
   apply measurable_pi_lambda,
   intro x, by_cases hx : x = a,
-  { cases hx, convert measurable_id, ext, simp },
+  { cases hx, convert measurable_id, ext, simv },
   simp_rw [update_noteq hx], apply measurable_const,
 end
 
@@ -694,8 +694,8 @@ lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : s.countable) :
   measurable_set (pi s t) ↔ (∀ i ∈ s, measurable_set (t i)) ∨ pi s t = ∅ :=
 begin
   cases (pi s t).eq_empty_or_nonempty with h h,
-  { simp [h] },
-  { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
+  { simv [h] },
+  { simv [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
 section
@@ -707,11 +707,11 @@ lemma measurable_pi_equiv_pi_subtype_prod_symm (p : δ → Prop) [decidable_pred
 begin
   apply measurable_pi_iff.2 (λ j, _),
   by_cases hj : p j,
-  { simp only [hj, dif_pos, equiv.pi_equiv_pi_subtype_prod_symm_apply],
+  { simv only [hj, dif_pos, equiv.pi_equiv_pi_subtype_prod_symm_apply],
     have : measurable (λ (f : (Π (i : {x // p x}), π ↑i)), f ⟨j, hj⟩) :=
       measurable_pi_apply ⟨j, hj⟩,
     exact measurable.comp this measurable_fst },
-  { simp only [hj, equiv.pi_equiv_pi_subtype_prod_symm_apply, dif_neg, not_false_iff],
+  { simv only [hj, equiv.pi_equiv_pi_subtype_prod_symm_apply, dif_neg, not_false_iff],
     have : measurable (λ (f : (Π (i : {x // ¬ p x}), π ↑i)), f ⟨j, hj⟩) :=
       measurable_pi_apply ⟨j, hj⟩,
     exact measurable.comp this measurable_snd }
@@ -724,7 +724,7 @@ begin
   refine measurable_prod.2 _,
   split;
   { apply measurable_pi_iff.2 (λ j, _),
-    simp only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
+    simv only [pi_equiv_pi_subtype_prod_apply, measurable_pi_apply] }
 end
 
 end
@@ -766,7 +766,7 @@ lemma measurable_tprod_elim [decidable_eq δ] : ∀ {l : list δ} {i : δ} (hi :
   measurable (λ (v : tprod π l), v.elim hi)
 | (i :: is) j hj := begin
   by_cases hji : j = i,
-  { subst hji, simp [measurable_fst] },
+  { subst hji, simv [measurable_fst] },
   { rw [funext $ tprod.elim_of_ne _ hji],
     exact (measurable_tprod_elim (hj.resolve_left hji)).comp measurable_snd }
 end
@@ -1121,7 +1121,7 @@ noncomputable def set.image (f : α → β) (s : set α) (hf : injective f)
   measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
     begin
-      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf],
+      rintro t ⟨u, hu, rfl⟩, simv [preimage_preimage, set.image_symm_preimage hf],
       exact measurable_subtype_coe (hfi u hu)
     end }
 
@@ -1147,7 +1147,7 @@ def set.range_inl : (range sum.inl : set (α ⊕ β)) ≃ᵐ α :=
     begin
       refine ⟨_, hs.inl_image, set.ext _⟩,
       rintros ⟨ab, a, rfl⟩,
-      simp [set.range_inl._match_1]
+      simv [set.range_inl._match_1]
     end,
   measurable_inv_fun := measurable.subtype_mk measurable_inl }
 
@@ -1164,7 +1164,7 @@ def set.range_inr : (range sum.inr : set (α ⊕ β)) ≃ᵐ β :=
     begin
       refine ⟨_, measurable_set_inr_image hs, set.ext _⟩,
       rintros ⟨ab, b, rfl⟩,
-      simp [set.range_inr._match_1]
+      simv [set.range_inr._match_1]
     end,
   measurable_inv_fun := measurable.subtype_mk measurable_inr }
 
@@ -1179,7 +1179,7 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
       (range sum.inr ×ˢ (univ : set γ))
       (measurable_set_range_inl.prod measurable_set.univ)
       (measurable_set_range_inr.prod measurable_set.univ)
-      (by { rintro ⟨a|b, c⟩; simp [set.prod_eq] })
+      (by { rintro ⟨a|b, c⟩; simv [set.prod_eq] })
       _
       _,
     { refine (set.prod (range sum.inl) univ).symm.measurable_comp_iff.1 _,
@@ -1256,7 +1256,7 @@ def pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type*) [Π i, measur
 { to_equiv := pi_fin_succ_above_equiv α i,
   measurable_to_fun := (measurable_pi_apply i).prod_mk $ measurable_pi_iff.2 $
     λ j, measurable_pi_apply _,
-  measurable_inv_fun := by simp [measurable_pi_iff, i.forall_iff_succ_above, measurable_fst,
+  measurable_inv_fun := by simv [measurable_pi_iff, i.forall_iff_succ_above, measurable_fst,
     (measurable_pi_apply _).comp measurable_snd]  }
 
 variable (π)

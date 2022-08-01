@@ -144,13 +144,13 @@ h.to_equiv.preimage_image s
 
 protected lemma inducing (h : α ≃ₜ β) : inducing h :=
 inducing_of_inducing_compose h.continuous h.symm.continuous $
-  by simp only [symm_comp_self, inducing_id]
+  by simv only [symm_comp_self, inducing_id]
 
 lemma induced_eq (h : α ≃ₜ β) : topological_space.induced h ‹_› = ‹_› := h.inducing.1.symm
 
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 quotient_map.of_quotient_map_compose h.symm.continuous h.continuous $
-  by simp only [self_comp_symm, quotient_map.id]
+  by simv only [self_comp_symm, quotient_map.id]
 
 lemma coinduced_eq (h : α ≃ₜ β) : topological_space.coinduced h ‹_› = ‹_› :=
 h.quotient_map.2.symm
@@ -161,7 +161,7 @@ protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 /-- Homeomorphism given an embedding. -/
 noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
 { continuous_to_fun := continuous_subtype_mk _ hf.continuous,
-  continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
+  continuous_inv_fun := by simv [hf.continuous_iff, continuous_subtype_coe],
   .. equiv.of_injective f hf.inj }
 
 protected lemma second_countable_topology [topological_space.second_countable_topology β]
@@ -212,7 +212,7 @@ by rw [← preimage_symm, is_open_preimage]
 protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
 
 @[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
-by simp only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
+by simv only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
 
 @[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
 by rw [← preimage_symm, is_closed_preimage]
@@ -249,7 +249,7 @@ lemma _root_.has_compact_mul_support.comp_homeomorph {M} [has_one M] {f : β →
 hf.comp_closed_embedding φ.closed_embedding
 
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
-h.embedding.map_nhds_of_mem _ (by simp)
+h.embedding.map_nhds_of_mem _ (by simv)
 
 lemma symm_map_nhds_eq (h : α ≃ₜ β) (x : α) : map h.symm (𝓝 (h x)) = 𝓝 x :=
 by rw [h.symm.map_nhds_eq, h.symm_apply_apply]
@@ -290,7 +290,7 @@ h.inducing.continuous_at_iff.symm
 
 lemma comp_continuous_at_iff' (h : α ≃ₜ β) (f : β → γ) (x : α) :
   continuous_at (f ∘ h) x ↔ continuous_at f (h x) :=
-h.inducing.continuous_at_iff' (by simp)
+h.inducing.continuous_at_iff' (by simv)
 
 lemma comp_continuous_within_at_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) (x : γ) :
   continuous_within_at f s x ↔ continuous_within_at (h ∘ f) s x :=

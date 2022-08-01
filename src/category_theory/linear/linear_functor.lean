@@ -99,7 +99,7 @@ variables {C D : Type*} [category C] [category D]
 
 instance inverse_linear (e : C ≌ D) [e.functor.additive] [e.functor.linear R] :
   e.inverse.linear R :=
-{ map_smul' := λ X Y r f, by { apply e.functor.map_injective, simp, }, }
+{ map_smul' := λ X Y r f, by { apply e.functor.map_injective, simv, }, }
 
 end equivalence
 

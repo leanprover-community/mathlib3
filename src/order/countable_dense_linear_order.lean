@@ -130,7 +130,7 @@ def defined_at_left [densely_ordered β] [no_min_order β] [no_max_order β] [no
     rw finset.mem_insert at hp hq,
     rcases hp with rfl | pf;
     rcases hq with rfl | qf,
-    { simp only [cmp_self_eq_eq] },
+    { simv only [cmp_self_eq_eq] },
     { rw cmp_eq_cmp_symm, exact a_b _ qf },
     { exact a_b _ pf },
     { exact f.prop _ pf _ qf },

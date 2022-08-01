@@ -61,27 +61,27 @@ by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
 
 @[simp] lemma transpose_dual_tensor_hom (f : module.dual R M) (m : M) :
   dual.transpose (dual_tensor_hom R M M (f ⊗ₜ m)) = dual_tensor_hom R _ _ (dual.eval R M m ⊗ₜ f) :=
-by { ext f' m', simp only [dual.transpose_apply, coe_comp, function.comp_app, dual_tensor_hom_apply,
+by { ext f' m', simv only [dual.transpose_apply, coe_comp, function.comp_app, dual_tensor_hom_apply,
   linear_map.map_smulₛₗ, ring_hom.id_apply, algebra.id.smul_eq_mul, dual.eval_apply, smul_apply],
   exact mul_comm _ _ }
 
 @[simp] lemma dual_tensor_hom_prod_map_zero (f : module.dual R M) (p : P) :
   ((dual_tensor_hom R M P) (f ⊗ₜ[R] p)).prod_map (0 : N →ₗ[R] Q) =
   dual_tensor_hom R (M × N) (P × Q) ((f ∘ₗ fst R M N) ⊗ₜ inl R P Q p) :=
-by {ext; simp only [coe_comp, coe_inl, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
+by {ext; simv only [coe_comp, coe_inl, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
 fst_apply, prod.smul_mk, zero_apply, smul_zero]}
 
 @[simp] lemma zero_prod_map_dual_tensor_hom (g : module.dual R N) (q : Q) :
   (0 : M →ₗ[R] P).prod_map ((dual_tensor_hom R N Q) (g ⊗ₜ[R] q)) =
   dual_tensor_hom R (M × N) (P × Q) ((g ∘ₗ snd R M N) ⊗ₜ inr R P Q q) :=
-by {ext; simp only [coe_comp, coe_inr, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
+by {ext; simv only [coe_comp, coe_inr, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
   snd_apply, prod.smul_mk, zero_apply, smul_zero]}
 
 lemma map_dual_tensor_hom (f : module.dual R M) (p : P) (g : module.dual R N) (q : Q) :
   tensor_product.map (dual_tensor_hom R M P (f ⊗ₜ[R] p)) (dual_tensor_hom R N Q (g ⊗ₜ[R] q)) =
   dual_tensor_hom R (M ⊗[R] N) (P ⊗[R] Q) (dual_distrib R M N (f ⊗ₜ g) ⊗ₜ[R] (p ⊗ₜ[R] q)) :=
 begin
-  ext m n, simp only [compr₂_apply, mk_apply, map_tmul, dual_tensor_hom_apply,
+  ext m n, simv only [compr₂_apply, mk_apply, map_tmul, dual_tensor_hom_apply,
   dual_distrib_apply, ←smul_tmul_smul],
 end
 
@@ -89,7 +89,7 @@ end
   (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =
   g n • dual_tensor_hom R M P (f ⊗ₜ p) :=
 begin
-  ext m, simp only [coe_comp, function.comp_app, dual_tensor_hom_apply, linear_map.map_smul,
+  ext m, simv only [coe_comp, function.comp_app, dual_tensor_hom_apply, linear_map.map_smul,
                     ring_hom.id_apply, smul_apply], rw smul_comm,
 end
 
@@ -102,8 +102,8 @@ theorem to_matrix_dual_tensor_hom
 begin
   ext i' j',
   by_cases hij : (i = i' ∧ j = j');
-  simp [linear_map.to_matrix_apply, finsupp.single_eq_pi_single, hij],
-  rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
+  simv [linear_map.to_matrix_apply, finsupp.single_eq_pi_single, hij],
+  rw [and_iff_not_or_not, not_not] at hij, cases hij; simv [hij],
 end
 
 end comm_semiring
@@ -126,13 +126,13 @@ linear_equiv.of_linear
   (∑ i, (tensor_product.mk R _ N (b.dual_basis i)) ∘ₗ linear_map.applyₗ (b i))
   (begin
     ext f m,
-    simp only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
+    simv only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
       fintype.sum_apply, function.comp_app, basis.coe_dual_basis, coe_comp,
       basis.coord_apply, ← f.map_smul, (dual_tensor_hom R M N).map_sum, ← f.map_sum, b.sum_repr],
   end)
   (begin
     ext f m,
-    simp only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
+    simv only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
       fintype.sum_apply, function.comp_app, basis.coe_dual_basis, coe_comp,
       compr₂_apply, tmul_smul, smul_tmul', ← sum_tmul, basis.sum_dual_apply_smul_coord],
 end)
@@ -201,7 +201,7 @@ begin
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
   ext p f q m,
-  simp only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
+  simv only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
   dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,
   linear_equiv.refl_apply, dual_tensor_hom_equiv_of_basis_symm_cancel_left, left_comm_tmul,
@@ -215,7 +215,7 @@ begin
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
   ext f p q m,
-  simp only [rtensor_hom_equiv_hom_rtensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
+  simv only [rtensor_hom_equiv_hom_rtensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
   dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,
   dual_tensor_hom_equiv_of_basis_symm_cancel_left, linear_equiv.refl_apply, assoc_tmul,
@@ -250,7 +250,7 @@ lemma hom_tensor_hom_equiv_to_linear_map :
   (hom_tensor_hom_equiv R M N P Q).to_linear_map = hom_tensor_hom_map R M N P Q :=
 begin
   ext f g m n,
-  simp only [hom_tensor_hom_equiv, compr₂_apply, mk_apply, linear_equiv.coe_to_linear_map,
+  simv only [hom_tensor_hom_equiv, compr₂_apply, mk_apply, linear_equiv.coe_to_linear_map,
   linear_equiv.trans_apply, lift.equiv_apply, linear_equiv.arrow_congr_apply,
   linear_equiv.refl_symm, linear_equiv.refl_apply, rtensor_hom_equiv_hom_rtensor_apply,
   ltensor_hom_equiv_hom_ltensor_apply, ltensor_hom_to_hom_ltensor_apply,

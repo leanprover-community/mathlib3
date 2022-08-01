@@ -47,7 +47,7 @@ end
 instance can_lift_unit : can_lift unit unit :=
 ⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
 
-/- test whether new instances of `can_lift` are added as simp lemmas -/
+/- test whether new instances of `can_lift` are added as simv lemmas -/
 run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
 
 /- test error messages -/
@@ -103,6 +103,6 @@ end
 
 example (n : ℤ) (hn : 0 ≤ n ↔ true) : true :=
 begin
-  lift n to ℕ using by { simp [hn] } with k, -- the braces are not optional here
+  lift n to ℕ using by { simv [hn] } with k, -- the braces are not optional here
   trivial
 end

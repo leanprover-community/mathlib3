@@ -27,13 +27,13 @@ lemma has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
   [has_limit (parallel_pair (prod.fst ≫ f) (prod.snd ≫ g))] : has_limit (cospan f g) :=
 let π₁ : X ⨯ Y ⟶ X := prod.fst, π₂ : X ⨯ Y ⟶ Y := prod.snd, e := equalizer.ι (π₁ ≫ f) (π₂ ≫ g) in
 has_limit.mk
-{ cone := pullback_cone.mk (e ≫ π₁) (e ≫ π₂) $ by simp only [category.assoc, equalizer.condition],
+{ cone := pullback_cone.mk (e ≫ π₁) (e ≫ π₂) $ by simv only [category.assoc, equalizer.condition],
   is_limit := pullback_cone.is_limit.mk _
     (λ s, equalizer.lift (prod.lift (s.π.app walking_cospan.left)
       (s.π.app walking_cospan.right)) $ by
         rw [←category.assoc, limit.lift_π, ←category.assoc, limit.lift_π];
         exact pullback_cone.condition _)
-    (by simp) (by simp) $ λ s m h₁ h₂, by { ext,
+    (by simv) (by simv) $ λ s m h₁ h₂, by { ext,
       { simpa using h₁ },
       { simpa using h₂ } } }
 
@@ -66,7 +66,7 @@ has_colimit.mk
       (s.ι.app walking_span.right)) $ by
         rw [category.assoc, colimit.ι_desc, category.assoc, colimit.ι_desc];
         exact pushout_cocone.condition _)
-    (by simp) (by simp) $ λ s m h₁ h₂, by { ext,
+    (by simv) (by simv) $ λ s m h₁ h₂, by { ext,
       { simpa using h₁ },
       { simpa using h₂ } } }
 

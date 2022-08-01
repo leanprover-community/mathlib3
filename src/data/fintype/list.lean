@@ -38,7 +38,7 @@ def lists : multiset α → finset (list α) :=
 (λ l l' (h : l ~ l'),
   begin
     ext sl,
-    simp only [mem_permutations, list.mem_to_finset],
+    simv only [mem_permutations, list.mem_to_finset],
     exact ⟨λ hs, hs.trans h, λ hs, hs.trans h.symm⟩
   end)
 
@@ -64,5 +64,5 @@ fintype.subtype ((finset.univ : finset α).powerset.bUnion (λ s, s.val.lists)) 
       simpa [←multiset.coe_nodup, ←hs] using s.nodup },
     { intro hl,
       refine ⟨⟨↑l, hl⟩, _⟩,
-      simp }
+      simv }
   end)

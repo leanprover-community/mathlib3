@@ -105,7 +105,7 @@ begin
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
-  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
+  { simv [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
   rw ← D₁.iterate_sup_le_sup_iff at h₁,
   exact h₁ k l I J,
 end
@@ -133,8 +133,8 @@ lemma derived_series_eq_derived_series_of_ideal_comap (k : ℕ) :
   derived_series R I k = (derived_series_of_ideal R L k I).comap I.incl :=
 begin
   induction k with k ih,
-  { simp only [derived_series_def, comap_incl_self, derived_series_of_ideal_zero], },
-  { simp only [derived_series_def, derived_series_of_ideal_succ] at ⊢ ih, rw ih,
+  { simv only [derived_series_def, comap_incl_self, derived_series_of_ideal_zero], },
+  { simv only [derived_series_def, derived_series_of_ideal_succ] at ⊢ ih, rw ih,
     exact comap_bracket_incl_of_le I
       (derived_series_of_ideal_le_self I k) (derived_series_of_ideal_le_self I k), },
 end
@@ -156,15 +156,15 @@ begin
   rw ← le_bot_iff,
   let D := derived_series_of_ideal R L, change D k I = ⊥ at hI, change D l J = ⊥ at hJ,
   calc D (k + l) (I + J) ≤ (D k I) + (D l J) : derived_series_of_ideal_add_le_add I J k l
-                     ... ≤ ⊥ : by { rw [hI, hJ], simp, },
+                     ... ≤ ⊥ : by { rw [hI, hJ], simv, },
 end
 
 lemma derived_series_map_le (k : ℕ) :
   (derived_series R L' k).map f ≤ derived_series R L k :=
 begin
   induction k with k ih,
-  { simp only [derived_series_def, derived_series_of_ideal_zero, le_top], },
-  { simp only [derived_series_def, derived_series_of_ideal_succ] at ih ⊢,
+  { simv only [derived_series_def, derived_series_of_ideal_zero, le_top], },
+  { simv only [derived_series_def, derived_series_of_ideal_succ] at ih ⊢,
     exact le_trans (map_bracket_le f) (lie_submodule.mono_lie _ _ _ _ ih ih), },
 end
 
@@ -175,7 +175,7 @@ begin
   { change (⊤ : lie_ideal R L').map f = ⊤,
     rw ←f.ideal_range_eq_map,
     exact f.ideal_range_eq_top_of_surjective h, },
-  { simp only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
+  { simv only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
 end
 
 end lie_ideal
@@ -219,7 +219,7 @@ begin
   obtain ⟨k, hk⟩ := id h₁,
   use k,
   rw [← lie_ideal.derived_series_map_eq k h₂, hk],
-  simp only [lie_ideal.map_eq_bot_iff, bot_le],
+  simv only [lie_ideal.map_eq_bot_iff, bot_le],
 end
 
 end function
@@ -336,7 +336,7 @@ begin
   { rw set.ne_empty_iff_nonempty,
     obtain ⟨k, hk⟩ := id hI, use k,
     rw [derived_series_def, lie_ideal.derived_series_eq_bot_iff] at hk, exact hk, },
-  simp [hne],
+  simv [hne],
 end
 
 lemma abelian_of_solvable_ideal_eq_bot_iff (I : lie_ideal R L) [h : is_solvable R I] :

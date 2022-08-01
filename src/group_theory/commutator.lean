@@ -168,7 +168,7 @@ begin
   { rw prod_le_iff, split;
     { rw map_commutator,
       apply commutator_mono;
-      simp [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
+      simv [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
         monoid_hom.fst_comp_inr, monoid_hom.snd_comp_inr ], }, }
 end
 
@@ -197,7 +197,7 @@ begin
       rintros _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
       by_cases h : j = i,
       { subst h, simpa using hx, },
-      { simp [h, one_mem] }, }, },
+      { simv [h, one_mem] }, }, },
 end
 
 end subgroup

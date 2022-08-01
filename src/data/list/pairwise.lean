@@ -65,7 +65,7 @@ lemma pairwise_and_iff : l.pairwise (λ a b, R a b ∧ S a b) ↔ l.pairwise R �
 ⟨λ h, ⟨h.imp (λ a b h, h.1), h.imp (λ a b h, h.2)⟩,
  λ ⟨hR, hS⟩, begin
   clear_, induction hR with a l R1 R2 IH;
-  simp only [pairwise.nil, pairwise_cons] at *,
+  simv only [pairwise.nil, pairwise_cons] at *,
   exact ⟨λ b bl, ⟨R1 b bl, hS.1 b bl⟩, IH hS.2⟩
  end⟩
 
@@ -87,16 +87,16 @@ pairwise.iff_of_mem (λ a b _ _, H a b)
 
 theorem pairwise_of_forall {l : list α} (H : ∀ x y, R x y) : pairwise R l :=
 by induction l; [exact pairwise.nil,
-simp only [*, pairwise_cons, forall_2_true_iff, and_true]]
+simv only [*, pairwise_cons, forall_2_true_iff, and_true]]
 
 theorem pairwise.and_mem {l : list α} :
   pairwise R l ↔ pairwise (λ x y, x ∈ l ∧ y ∈ l ∧ R x y) l :=
-pairwise.iff_of_mem (by simp only [true_and, iff_self, forall_2_true_iff] {contextual := tt})
+pairwise.iff_of_mem (by simv only [true_and, iff_self, forall_2_true_iff] {contextual := tt})
 
 theorem pairwise.imp_mem {l : list α} :
   pairwise R l ↔ pairwise (λ x y, x ∈ l → y ∈ l → R x y) l :=
 pairwise.iff_of_mem
-  (by simp only [forall_prop_of_true, iff_self, forall_2_true_iff] {contextual := tt})
+  (by simv only [forall_prop_of_true, iff_self, forall_2_true_iff] {contextual := tt})
 
 protected lemma pairwise.sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → pairwise R l₂ → pairwise R l₁
 | ._ ._ sublist.slnil h := h
@@ -133,18 +133,18 @@ lemma pairwise.set_pairwise (hl : pairwise R l) (hr : symmetric R) : {x | x ∈ 
 hl.forall hr
 
 theorem pairwise_singleton (R) (a : α) : pairwise R [a] :=
-by simp only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff,
+by simv only [pairwise_cons, mem_singleton, forall_prop_of_false (not_mem_nil _), forall_true_iff,
   pairwise.nil, and_true]
 
 theorem pairwise_pair {a b : α} : pairwise R [a, b] ↔ R a b :=
-by simp only [pairwise_cons, mem_singleton, forall_eq, forall_prop_of_false (not_mem_nil _),
+by simv only [pairwise_cons, mem_singleton, forall_eq, forall_prop_of_false (not_mem_nil _),
   forall_true_iff, pairwise.nil, and_true]
 
 theorem pairwise_append {l₁ l₂ : list α} : pairwise R (l₁++l₂) ↔
   pairwise R l₁ ∧ pairwise R l₂ ∧ ∀ x ∈ l₁, ∀ y ∈ l₂, R x y :=
-by induction l₁ with x l₁ IH; [simp only [list.pairwise.nil, forall_prop_of_false (not_mem_nil _),
+by induction l₁ with x l₁ IH; [simv only [list.pairwise.nil, forall_prop_of_false (not_mem_nil _),
   forall_true_iff, and_true, true_and, nil_append],
-simp only [cons_append, pairwise_cons, forall_mem_append, IH, forall_mem_cons, forall_and_distrib,
+simv only [cons_append, pairwise_cons, forall_mem_append, IH, forall_mem_cons, forall_and_distrib,
   and_assoc, and.left_comm]]
 
 theorem pairwise_append_comm (s : symmetric R) {l₁ l₂ : list α} :
@@ -153,21 +153,21 @@ have ∀ l₁ l₂ : list α,
   (∀ (x : α), x ∈ l₁ → ∀ (y : α), y ∈ l₂ → R x y) →
   (∀ (x : α), x ∈ l₂ → ∀ (y : α), y ∈ l₁ → R x y),
 from λ l₁ l₂ a x xm y ym, s (a y ym x xm),
-by simp only [pairwise_append, and.left_comm]; rw iff.intro (this l₁ l₂) (this l₂ l₁)
+by simv only [pairwise_append, and.left_comm]; rw iff.intro (this l₁ l₂) (this l₂ l₁)
 
 theorem pairwise_middle (s : symmetric R) {a : α} {l₁ l₂ : list α} :
   pairwise R (l₁ ++ a :: l₂) ↔ pairwise R (a :: (l₁++l₂)) :=
 show pairwise R (l₁ ++ ([a] ++ l₂)) ↔ pairwise R ([a] ++ l₁ ++ l₂),
 by rw [← append_assoc, pairwise_append, @pairwise_append _ _ ([a] ++ l₁), pairwise_append_comm s];
-   simp only [mem_append, or_comm]
+   simv only [mem_append, or_comm]
 
 theorem pairwise_map (f : β → α) :
   ∀ {l : list β}, pairwise R (map f l) ↔ pairwise (λ a b : β, R (f a) (f b)) l
-| []     := by simp only [map, pairwise.nil]
+| []     := by simv only [map, pairwise.nil]
 | (b :: l) :=
   have (∀ a b', b' ∈ l → f b' = a → R (f b) a) ↔ ∀ (b' : β), b' ∈ l → R (f b) (f b'), from
-  forall_swap.trans $ forall_congr $ λ a, forall_swap.trans $ by simp only [forall_eq'],
-  by simp only [map, pairwise_cons, mem_map, exists_imp_distrib, and_imp, this, pairwise_map]
+  forall_swap.trans $ forall_congr $ λ a, forall_swap.trans $ by simv only [forall_eq'],
+  by simv only [map, pairwise_cons, mem_map, exists_imp_distrib, and_imp, this, pairwise_map]
 
 lemma pairwise.of_map {S : β → β → Prop} (f : α → β) (H : ∀ a b : α, S (f a) (f b) → R a b)
   (p : pairwise S (map f l)) : pairwise R l :=
@@ -181,13 +181,13 @@ theorem pairwise_filter_map (f : β → option α) {l : list β} :
   pairwise R (filter_map f l) ↔ pairwise (λ a a' : β, ∀ (b ∈ f a) (b' ∈ f a'), R b b') l :=
 let S (a a' : β) := ∀ (b ∈ f a) (b' ∈ f a'), R b b' in
 begin
-  simp only [option.mem_def], induction l with a l IH,
-  { simp only [filter_map, pairwise.nil] },
+  simv only [option.mem_def], induction l with a l IH,
+  { simv only [filter_map, pairwise.nil] },
   cases e : f a with b,
   { rw [filter_map_cons_none _ _ e, IH, pairwise_cons],
-    simp only [e, forall_prop_of_false not_false, forall_3_true_iff, true_and] },
+    simv only [e, forall_prop_of_false not_false, forall_3_true_iff, true_and] },
   rw [filter_map_cons_some _ _ _ e],
-  simp only [pairwise_cons, mem_filter_map, exists_imp_distrib, and_imp, IH, e, forall_eq'],
+  simv only [pairwise_cons, mem_filter_map, exists_imp_distrib, and_imp, IH, e, forall_eq'],
   show (∀ (a' : α) (x : β), x ∈ l → f x = some a' → R b a') ∧ pairwise S l ↔
         (∀ (a' : β), a' ∈ l → ∀ (b' : α), f a' = some b' → R b b') ∧ pairwise S l,
   from and_congr ⟨λ h b mb a ma, h a b mb ma, λ h a b mb ma, h b mb a ma⟩ iff.rfl
@@ -202,7 +202,7 @@ theorem pairwise_filter (p : α → Prop) [decidable_pred p] {l : list α} :
   pairwise R (filter p l) ↔ pairwise (λ x y, p x → p y → R x y) l :=
 begin
   rw [← filter_map_eq_filter, pairwise_filter_map],
-  apply pairwise.iff, intros, simp only [option.mem_def, option.guard_eq_some, and_imp, forall_eq'],
+  apply pairwise.iff, intros, simv only [option.mem_def, option.guard_eq_some, and_imp, forall_eq'],
 end
 
 lemma pairwise.filter (p : α → Prop) [decidable_pred p] : pairwise R l → pairwise R (filter p l) :=
@@ -212,9 +212,9 @@ theorem pairwise_pmap {p : β → Prop} {f : Π b, p b → α} {l : list β} (h 
   pairwise R (l.pmap f h) ↔
     pairwise (λ b₁ b₂, ∀ (h₁ : p b₁) (h₂ : p b₂), R (f b₁ h₁) (f b₂ h₂)) l :=
 begin
-  induction l with a l ihl, { simp },
+  induction l with a l ihl, { simv },
   obtain ⟨ha, hl⟩ : p a ∧ ∀ b, b ∈ l → p b, by simpa using h,
-  simp only [ihl hl, pairwise_cons, bex_imp_distrib, pmap, and.congr_left_iff, mem_pmap],
+  simv only [ihl hl, pairwise_cons, bex_imp_distrib, pmap, and.congr_left_iff, mem_pmap],
   refine λ _, ⟨λ H b hb hpa hpb, H _ _ hb rfl, _⟩,
   rintro H _ b hb rfl,
   exact H b hb _ _
@@ -233,19 +233,19 @@ theorem pairwise_join {L : list (list α)} : pairwise R (join L) ↔
   (∀ l ∈ L, pairwise R l) ∧ pairwise (λ l₁ l₂, ∀ (x ∈ l₁) (y ∈ l₂), R x y) L :=
 begin
   induction L with l L IH,
-  {simp only [join, pairwise.nil, forall_prop_of_false (not_mem_nil _), forall_const, and_self]},
+  {simv only [join, pairwise.nil, forall_prop_of_false (not_mem_nil _), forall_const, and_self]},
   have : (∀ (x : α), x ∈ l → ∀ (y : α) (x_1 : list α), x_1 ∈ L → y ∈ x_1 → R x y) ↔
           ∀ (a' : list α), a' ∈ L → ∀ (x : α), x ∈ l → ∀ (y : α), y ∈ a' → R x y :=
     ⟨λ h a b c d e, h c d e a b, λ h c d e a b, h a b c d e⟩,
-  simp only [join, pairwise_append, IH, mem_join, exists_imp_distrib, and_imp, this,
+  simv only [join, pairwise_append, IH, mem_join, exists_imp_distrib, and_imp, this,
     forall_mem_cons, pairwise_cons],
-  simp only [and_assoc, and_comm, and.left_comm],
+  simv only [and_assoc, and_comm, and.left_comm],
 end
 
 lemma pairwise_bind {R : β → β → Prop} {l : list α} {f : α → list β} :
   list.pairwise R (l.bind f) ↔
     (∀ a ∈ l, pairwise R (f a)) ∧ pairwise (λ a₁ a₂, ∀ (x ∈ f a₁) (y ∈ f a₂), R x y) l :=
-by simp [list.bind, list.pairwise_join, list.mem_map, list.pairwise_map]
+by simv [list.bind, list.pairwise_join, list.mem_map, list.pairwise_map]
 
 @[simp] theorem pairwise_reverse : ∀ {R} {l : list α},
   pairwise R (reverse l) ↔ pairwise (λ x y, R y x) l :=
@@ -261,7 +261,7 @@ lemma pairwise_of_reflexive_on_dupl_of_forall_ne [decidable_eq α] {l : list α}
   (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
 begin
   induction l with hd tl IH,
-  { simp },
+  { simv },
   { rw list.pairwise_cons,
     split,
     { intros x hx,
@@ -297,7 +297,7 @@ by { classical, exact pairwise_of_reflexive_on_dupl_of_forall_ne (λ _ _, hr _) 
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
   pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),
     R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)
-| [] := by simp only [pairwise.nil, true_iff]; exact λ i j h, (nat.not_lt_zero j).elim h
+| [] := by simv only [pairwise.nil, true_iff]; exact λ i j h, (nat.not_lt_zero j).elim h
 | (a :: l) := begin
   rw [pairwise_cons, pairwise_iff_nth_le],
   refine ⟨λ H i j h₁ h₂, _, λ H, ⟨λ a' m, _,
@@ -315,7 +315,7 @@ theorem pairwise.sublists' {R} : ∀ {l : list α}, pairwise R l →
 | _ pairwise.nil := pairwise_singleton _ _
 | _ (@pairwise.cons _ _ a l H₁ H₂) :=
   begin
-    simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map,
+    simv only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map,
       exists_imp_distrib, and_imp],
     refine ⟨H₂.sublists', H₂.sublists'.imp (λ l₁ l₂, lex.cons), _⟩,
     rintro l₁ sl₁ x l₂ sl₂ rfl,
@@ -329,8 +329,8 @@ by { have := (pairwise_reverse.2 H).sublists', rwa [sublists'_reverse, pairwise_
 
 lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
   ∀ (n : ℕ), pairwise r (repeat x n)
-| 0 := by simp
-| (n+1) := by simp [hx, mem_repeat, pairwise_repeat n]
+| 0 := by simv
+| (n+1) := by simv [hx, mem_repeat, pairwise_repeat n]
 
 /-! ### Pairwise filtering -/
 
@@ -399,9 +399,9 @@ theorem forall_mem_pw_filter (neg_trans : ∀ {x y z}, R x z → R x y ∨ R y z
   (a : α) (l : list α) : (∀ b ∈ pw_filter R l, R a b) ↔ (∀ b ∈ l, R a b) :=
 ⟨begin
   induction l with x l IH, { exact λ _ _, false.elim },
-  simp only [forall_mem_cons],
+  simv only [forall_mem_cons],
   by_cases (∀ y ∈ pw_filter R l, R x y); dsimp at h,
-  { simp only [pw_filter_cons_of_pos h, forall_mem_cons, and_imp],
+  { simv only [pw_filter_cons_of_pos h, forall_mem_cons, and_imp],
     exact λ r H, ⟨r, IH H⟩ },
   { rw [pw_filter_cons_of_neg h],
     refine λ H, ⟨_, IH H⟩,

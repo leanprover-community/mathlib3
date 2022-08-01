@@ -14,7 +14,7 @@ A natural transformation `α : nat_trans F G` consists of morphisms `α.app X : 
 and the naturality squares `α.naturality f : F.map f ≫ α.app Y = α.app X ≫ G.map f`,
 where `f : X ⟶ Y`.
 
-Note that we make `nat_trans.naturality` a simp lemma, with the preferred simp normal form
+Note that we make `nat_trans.naturality` a simv lemma, with the preferred simv normal form
 pushing components of natural transformations to the left.
 
 See also `category_theory.functor_category`, where we provide the category structure on
@@ -51,7 +51,7 @@ structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
 restate_axiom nat_trans.naturality'
 -- Rather arbitrarily, we say that the 'simpler' form is
 -- components of natural transfomations moving earlier.
-attribute [simp, reassoc] nat_trans.naturality
+attribute [simv, reassoc] nat_trans.naturality
 
 lemma congr_app {F G : C ⥤ D} {α β : nat_trans F G} (h : α = β) (X : C) : α.app X = β.app X :=
 congr_fun (congr_arg nat_trans.app h) X
@@ -77,7 +77,7 @@ def vcomp (α : nat_trans F G) (β : nat_trans G H) : nat_trans F H :=
 { app := λ X, (α.app X) ≫ (β.app X) }
 
 -- functor_category will rewrite (vcomp α β) to (α ≫ β), so this is not a
--- suitable simp lemma.  We will declare the variant vcomp_app' there.
+-- suitable simv lemma.  We will declare the variant vcomp_app' there.
 lemma vcomp_app (α : nat_trans F G) (β : nat_trans G H) (X : C) :
   (vcomp α β).app X = (α.app X) ≫ (β.app X) := rfl
 
@@ -97,7 +97,7 @@ commutes.
 example {F G : C ⥤ D} (α : nat_trans F G) {X Y U V : C} (f : X ⟶ Y) (g : Y ⟶ U) (h : U ⟶ V) :
   α.app X ≫ G.map f ≫ G.map g ≫ G.map h =
     F.map f ≫ F.map g ≫ F.map h ≫ α.app V :=
-by simp
+by simv
 
 end nat_trans
 

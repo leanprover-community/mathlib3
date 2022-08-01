@@ -88,7 +88,7 @@ match x with
 | from_coset y :=
   begin
     change from_coset _ = from_coset _,
-    simp only [←subtype.val_eq_coe, left_coset_assoc],
+    simv only [←subtype.val_eq_coe, left_coset_assoc],
   end
 | ∞ := rfl
 end
@@ -98,7 +98,7 @@ match x with
 | from_coset y :=
   begin
     change from_coset _ = from_coset _,
-    simp only [←subtype.val_eq_coe, one_left_coset, subtype.ext_iff_val],
+    simv only [←subtype.val_eq_coe, one_left_coset, subtype.ext_iff_val],
   end
 | ∞ := rfl
 end
@@ -119,7 +119,7 @@ lemma from_coset_ne_of_nin_range {b : B} (hb : b ∉ f.range) :
   from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
 begin
   intros r,
-  simp only [subtype.mk_eq_mk] at r,
+  simv only [subtype.mk_eq_mk] at r,
   change b *l f.range = f.range at r,
   nth_rewrite 1 [show (f.range : set B) = 1 *l f.range, from (one_left_coset _).symm] at r,
   rw [left_coset_eq_iff, mul_one] at r,
@@ -166,8 +166,8 @@ def G : B →* SX' :=
     inv_fun := λ x, β⁻¹ • x,
     left_inv := λ x, by { dsimp only, rw [←mul_smul, mul_left_inv, one_smul] },
     right_inv := λ x, by { dsimp only, rw [←mul_smul, mul_right_inv, one_smul] } },
-  map_one' := by { ext, simp [one_smul] },
-  map_mul' := λ b1 b2, by { ext, simp [mul_smul] } }
+  map_one' := by { ext, simv [one_smul] },
+  map_mul' := λ b1 b2, by { ext, simv [mul_smul] } }
 
 local notation `g` := G f
 
@@ -176,8 +176,8 @@ Define `h : B ⟶ S(X')` to be `τ g τ⁻¹`
 -/
 def H : B →* SX':=
 { to_fun := λ β, ((τ).symm.trans (g β)).trans τ,
-  map_one' := by { ext, simp },
-  map_mul' := λ b1 b2, by { ext, simp } }
+  map_one' := by { ext, simv },
+  map_mul' := λ b1 b2, by { ext, simv } }
 
 local notation `h` := H f
 
@@ -195,7 +195,7 @@ lemma g_apply_infinity (x : B) : (g x) ∞ = ∞ := rfl
 
 lemma h_apply_infinity (x : B) (hx : x ∈ f.range) : (h x) ∞ = ∞ :=
 begin
-  simp only [H, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
+  simv only [H, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
   rw [τ_symm_apply_infinity, g_apply_from_coset],
   simpa only [←subtype.val_eq_coe] using τ_apply_from_coset' f x hx,
 end
@@ -203,7 +203,7 @@ end
 lemma h_apply_from_coset (x : B) :
   (h x) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
   from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
-by simp [H, τ_symm_apply_from_coset, g_apply_infinity, τ_apply_infinity]
+by simv [H, τ_symm_apply_from_coset, g_apply_infinity, τ_apply_infinity]
 
 lemma h_apply_from_coset' (x : B) (b : B) (hb : b ∈ f.range):
   (h x) (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) =
@@ -214,12 +214,12 @@ lemma h_apply_from_coset_nin_range (x : B) (hx : x ∈ f.range) (b : B) (hb : b 
   (h x) (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) =
   from_coset ⟨(x * b) *l f.range.carrier, ⟨x * b, rfl⟩⟩ :=
 begin
-  simp only [H, tau, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
+  simv only [H, tau, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
   rw [equiv.symm_swap, @equiv.swap_apply_of_ne_of_ne X' _
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
-    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simp)],
-  simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
-  refine equiv.swap_apply_of_ne_of_ne (from_coset_ne_of_nin_range _ (λ r, hb _)) (by simp),
+    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simv)],
+  simv only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
+  refine equiv.swap_apply_of_ne_of_ne (from_coset_ne_of_nin_range _ (λ r, hb _)) (by simv),
   convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
   rw [←mul_assoc, mul_left_inv, one_mul],
 end
@@ -240,7 +240,7 @@ begin
         simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
     { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], } },
   { have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
+      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simv [H, tau, g_apply_infinity],
     have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
       (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
     exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]) }
@@ -248,7 +248,7 @@ end
 
 lemma comp_eq : f ≫ (show B ⟶ Group.of SX', from g) = f ≫ h :=
 fun_like.ext _ _ $ λ a,
-  by simp only [comp_apply, show h (f a) = _, from (by simp [←agree] : f a ∈ {b | h b = g b})]
+  by simv only [comp_apply, show h (f a) = _, from (by simv [←agree] : f a ∈ {b | h b = g b})]
 
 lemma g_ne_h (x : B) (hx : x ∉ f.range) : g ≠ h :=
 begin
@@ -256,7 +256,7 @@ begin
   replace r := fun_like.congr_fun (fun_like.congr_fun r x)
     ((from_coset ⟨f.range, ⟨1, one_left_coset _⟩⟩)),
   rw [H, g_apply_from_coset, monoid_hom.coe_mk, tau] at r,
-  simp only [monoid_hom.coe_range, subtype.coe_mk, equiv.symm_swap,
+  simv only [monoid_hom.coe_range, subtype.coe_mk, equiv.symm_swap,
     equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app] at r,
   erw [equiv.swap_apply_left, g_apply_infinity, equiv.swap_apply_right] at r,
   exact from_coset_ne_of_nin_range _ hx r,

@@ -186,7 +186,7 @@ begin
     ((cocones.functoriality _ F).map_iso (cofork.iso_cofork_of_π c).symm),
   apply (is_colimit_map_cocone_cofork_equiv F (cofork.condition c)).inv_fun,
   let p : parallel_pair (F.map (f - g)) 0 ≅ parallel_pair (F.map f - F.map g) 0,
-  { exact parallel_pair.ext (iso.refl _) (iso.refl _) (by simp) (by simp) },
+  { exact parallel_pair.ext (iso.refl _) (iso.refl _) (by simv) (by simv) },
   refine is_colimit.of_iso_colimit (is_colimit_cofork_of_cokernel_cofork
     ((is_colimit.precompose_hom_equiv p.symm _).symm iFc)) _,
   convert cofork.iso_cofork_of_π _,

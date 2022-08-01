@@ -84,5 +84,5 @@ lemma simply_connected_iff_paths_homotopic' {Y : Type*} [topological_space Y] :
   (∀ {x y : Y} (p₁ p₂ : path x y), path.homotopic p₁ p₂) :=
 begin
   convert simply_connected_iff_paths_homotopic,
-  simp [path.homotopic.quotient, setoid.eq_top_iff], refl,
+  simv [path.homotopic.quotient, setoid.eq_top_iff], refl,
 end

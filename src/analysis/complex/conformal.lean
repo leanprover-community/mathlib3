@@ -49,14 +49,14 @@ begin
   { simpa [ext_ring_iff] using nonzero },
   refine ⟨∥map 1∥, minor₁, ⟨∥map 1∥⁻¹ • map, _⟩, _⟩,
   { intros x,
-    simp only [linear_map.smul_apply],
+    simv only [linear_map.smul_apply],
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
     rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
-    simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
+    simv only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
     field_simp [minor₁], },
   { ext1,
-    simp [minor₁] },
+    simv [minor₁] },
 end
 
 lemma is_conformal_map_complex_linear_conj
@@ -83,11 +83,11 @@ begin
   -- let rot := c • (a : ℂ) • continuous_linear_map.id ℂ ℂ,
   { refine or.inl ⟨c • (a : ℂ) • continuous_linear_map.id ℂ ℂ, _⟩,
     ext1,
-    simp only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
+    simv only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
       linear_isometry_equiv.coe_to_linear_isometry, rotation_apply, id_apply, smul_eq_mul] },
   { refine or.inr ⟨c • (a : ℂ) • continuous_linear_map.id ℂ ℂ, _⟩,
     ext1,
-    simp only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
+    simv only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
       linear_isometry_equiv.coe_to_linear_isometry, rotation_apply, id_apply, smul_eq_mul,
       comp_apply, linear_isometry_equiv.trans_apply, continuous_linear_equiv.coe_coe,
       conj_cle_apply, conj_lie_apply, conj_conj] },
@@ -105,14 +105,14 @@ begin
   { rintros ⟨⟨map, rfl⟩ | ⟨map, hmap⟩, h₂⟩,
     { refine is_conformal_map_complex_linear _,
       contrapose! h₂ with w,
-      simp [w] },
+      simv [w] },
     { have minor₁ : g = (map.restrict_scalars ℝ) ∘L ↑conj_cle,
       { ext1,
-        simp [hmap] },
+        simv [hmap] },
       rw minor₁ at ⊢ h₂,
       refine is_conformal_map_complex_linear_conj _,
       contrapose! h₂ with w,
-      simp [w] } }
+      simv [w] } }
 end
 
 end conformal_into_complex_plane

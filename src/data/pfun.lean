@@ -66,7 +66,7 @@ instance : inhabited (α →. β) := ⟨λ a, part.none⟩
 def dom (f : α →. β) : set α := {a | (f a).dom}
 
 @[simp] lemma mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
-by simp [dom, part.dom_iff_mem]
+by simv [dom, part.dom_iff_mem]
 
 @[simp] lemma dom_mk (p : α → Prop) (f : Π a, p a → β) : pfun.dom (λ x, ⟨p x, f x⟩) = {x | p x} :=
 rfl
@@ -141,7 +141,7 @@ def restrict (f : α →. β) {p : set α} (H : p ⊆ f.dom) : α →. β :=
 @[simp]
 theorem mem_restrict {f : α →. β} {s : set α} (h : s ⊆ f.dom) (a : α) (b : β) :
   b ∈ f.restrict h a ↔ a ∈ s ∧ b ∈ f a :=
-by simp [restrict]
+by simv [restrict]
 
 /-- Turns a function into a partial function with a prescribed domain. -/
 def res (f : α → β) (s : set α) : α →. β :=
@@ -149,7 +149,7 @@ def res (f : α → β) (s : set α) : α →. β :=
 
 theorem mem_res (f : α → β) (s : set α) (a : α) (b : β) :
   b ∈ res f s a ↔ (a ∈ s ∧ f a = b) :=
-by simp [res, @eq_comm _ b]
+by simv [res, @eq_comm _ b]
 
 theorem res_univ (f : α → β) : pfun.res f set.univ = f :=
 rfl
@@ -158,7 +158,7 @@ theorem dom_iff_graph (f : α →. β) (x : α) : x ∈ f.dom ↔ ∃ y, (x, y) 
 part.dom_iff_mem
 
 theorem lift_graph {f : α → β} {a b} : (a, b) ∈ (f : α →. β).graph ↔ f a = b :=
-show (∃ (h : true), f a = b) ↔ f a = b, by simp
+show (∃ (h : true), f a = b) ↔ f a = b, by simv
 
 /-- The monad `pure` function, the total constant `x` function -/
 protected def pure (x : β) : α →. β := λ _, part.some x
@@ -216,24 +216,24 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
 ⟨λ h, let ⟨h₁, h₂⟩ := part.mem_assert_iff.1 h in
   begin
     rw well_founded.fix_F_eq at h₂,
-    simp at h₂,
+    simv at h₂,
     cases h₂ with h₂ h₃,
-    cases e : (f a).get h₂ with b' a'; simp [e] at h₃,
+    cases e : (f a).get h₂ with b' a'; simv [e] at h₃,
     { subst b', refine or.inl ⟨h₂, e⟩ },
     { exact or.inr ⟨a', ⟨_, e⟩, part.mem_assert _ h₃⟩ }
   end,
 λ h, begin
-  simp [fix],
+  simv [fix],
   rcases h with ⟨h₁, h₂⟩ | ⟨a', h, h₃⟩,
   { refine ⟨⟨_, λ y h', _⟩, _⟩,
     { injection part.mem_unique ⟨h₁, h₂⟩ h' },
-    { rw well_founded.fix_F_eq, simp [h₁, h₂] } },
-  { simp [fix] at h₃, cases h₃ with h₃ h₄,
+    { rw well_founded.fix_F_eq, simv [h₁, h₂] } },
+  { simv [fix] at h₃, cases h₃ with h₃ h₄,
     refine ⟨⟨_, λ y h', _⟩, _⟩,
     { injection part.mem_unique h h' with e,
       exact e ▸ h₃ },
     { cases h with h₁ h₂,
-      rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
+      rw well_founded.fix_F_eq, simv [h₁, h₂, h₄] } }
 end⟩
 
 /-- If advancing one step from `a` leads to `b : β`, then `f.fix a = b` -/
@@ -320,10 +320,10 @@ lemma preimage_union (s t : set β) : f.preimage (s ∪ t) = f.preimage s ∪ f.
 rel.preimage_union _ s t
 
 lemma preimage_univ : f.preimage set.univ = f.dom :=
-by ext; simp [mem_preimage, mem_dom]
+by ext; simv [mem_preimage, mem_dom]
 
 lemma coe_preimage (f : α → β) (s : set β) : (f : α →. β).preimage s = f ⁻¹' s :=
-by ext; simp
+by ext; simv
 
 /-- Core of a set `s : set β` with respect to a partial function `f : α →. β`. Set of all `a : α`
 such that `f a ∈ s`, if `f a` is defined. -/
@@ -345,18 +345,18 @@ rel.core_inter _ s t
 
 lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) :
   x ∈ (res f s).core t ↔ x ∈ s → f x ∈ t :=
-by simp [mem_core, mem_res]
+by simv [mem_core, mem_res]
 
 section
 open_locale classical
 
 lemma core_res (f : α → β) (s : set α) (t : set β) : (res f s).core t = sᶜ ∪ f ⁻¹' t :=
-by { ext, rw mem_core_res, by_cases h : x ∈ s; simp [h] }
+by { ext, rw mem_core_res, by_cases h : x ∈ s; simv [h] }
 
 end
 
 lemma core_restrict (f : α → β) (s : set β) : (f : α →. β).core s = s.preimage f :=
-by ext x; simp [core_def]
+by ext x; simv [core_def]
 
 lemma preimage_subset_core (f : α →. β) (s : set β) : f.preimage s ⊆ f.core s :=
 λ x ⟨y, ys, fxy⟩ y' fxy',
@@ -379,7 +379,7 @@ lemma preimage_as_subtype (f : α →. β) (s : set β) :
   f.as_subtype ⁻¹' s = subtype.val ⁻¹' f.preimage s :=
 begin
   ext x,
-  simp only [set.mem_preimage, set.mem_set_of_eq, pfun.as_subtype, pfun.mem_preimage],
+  simv only [set.mem_preimage, set.mem_set_of_eq, pfun.as_subtype, pfun.mem_preimage],
   show f.fn (x.val) _ ∈ s ↔ ∃ y ∈ s, y ∈ f (x.val),
   exact iff.intro
     (λ h, ⟨_, h, part.get_mem _⟩)
@@ -414,8 +414,8 @@ protected def id (α : Type*) : α →. α := part.some
 def comp (f : β →. γ) (g : α →. β) : α →. γ := λ a, (g a).bind f
 
 @[simp] lemma comp_apply (f : β →. γ) (g : α →. β) (a : α) : f.comp g a = (g a).bind f := rfl
-@[simp] lemma id_comp (f : α →. β) : (pfun.id β).comp f = f := ext $ λ _ _, by simp
-@[simp] lemma comp_id (f : α →. β) : f.comp (pfun.id α) = f := ext $ λ _ _, by simp
+@[simp] lemma id_comp (f : α →. β) : (pfun.id β).comp f = f := ext $ λ _ _, by simv
+@[simp] lemma comp_id (f : α →. β) : f.comp (pfun.id α) = f := ext $ λ _ _, by simv
 
 @[simp] lemma dom_comp (f : β →. γ) (g : α →. β) : (f.comp g).dom = g.preimage f.dom :=
 begin
@@ -448,10 +448,10 @@ end
 
 @[simp] lemma comp_assoc (f : γ →. δ) (g : β →. γ) (h : α →. β) :
   (f.comp g).comp h = f.comp (g.comp h) :=
-ext $ λ _ _, by simp only [comp_apply, part.bind_comp]
+ext $ λ _ _, by simv only [comp_apply, part.bind_comp]
 
--- This can't be `simp`
+-- This can't be `simv`
 lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →. γ) = (g : β →. γ).comp f :=
-ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
+ext $ λ _ _, by simv only [coe_val, comp_apply, part.bind_some]
 
 end pfun

@@ -103,7 +103,7 @@ lemma comp_c {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) :
 variables (C)
 
 section
-local attribute [simp] id comp
+local attribute [simv] id comp
 
 /- The proofs below can be done by `tidy`, but it is too slow,
    and we don't have a tactic caching mechanism. -/
@@ -117,7 +117,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v v u} C) :=
     ext1,
     { rw comp_c,
       erw eq_to_hom_map,
-      simp only [eq_to_hom_refl, assoc, whisker_right_id'],
+      simv only [eq_to_hom_refl, assoc, whisker_right_id'],
       erw [comp_id, comp_id] },
     apply id_comp
   end,
@@ -125,16 +125,16 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v v u} C) :=
     ext1,
     { rw comp_c,
       erw congr_hom (presheaf.id_pushforward _) f.c,
-      simp only [comp_id, functor.id_map, eq_to_hom_refl, assoc, whisker_right_id'],
+      simv only [comp_id, functor.id_map, eq_to_hom_refl, assoc, whisker_right_id'],
       erw eq_to_hom_trans_assoc,
-      simp only [id_comp, eq_to_hom_refl],
+      simv only [id_comp, eq_to_hom_refl],
       erw comp_id },
     apply comp_id
   end,
   assoc' := λ W X Y Z f g h, begin
     ext1,
     repeat {rw comp_c},
-    simp only [eq_to_hom_refl, assoc, functor.map_comp, whisker_right_id'],
+    simv only [eq_to_hom_refl, assoc, functor.map_comp, whisker_right_id'],
     erw comp_id,
     congr,
     refl
@@ -143,7 +143,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v v u} C) :=
 end
 
 variables {C}
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 @[simp] lemma id_base (X : PresheafedSpace.{v v u} C) :
   ((𝟙 X) : X ⟶ X).base = 𝟙 (X : Top.{v}) := rfl
@@ -154,7 +154,7 @@ lemma id_c (X : PresheafedSpace.{v v u} C) :
 @[simp] lemma id_c_app (X : PresheafedSpace.{v v u} C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = X.presheaf.map
     (eq_to_hom (by { induction U using opposite.rec, cases U, refl })) :=
-by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
+by { induction U using opposite.rec, cases U, simv only [id_c], dsimp, simv, }
 
 @[simp] lemma comp_base {X Y Z : PresheafedSpace.{v v u} C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl
@@ -169,12 +169,12 @@ lemma coe_to_fun_eq {X Y : PresheafedSpace.{v v u} C} (f : X ⟶ Y) : (f : X →
 /-- Sometimes rewriting with `comp_c_app` doesn't work because of dependent type issues.
 In that case, `erw comp_c_app_assoc` might make progress.
 The lemma `comp_c_app_assoc` is also better suited for rewrites in the opposite direction. -/
-@[reassoc, simp] lemma comp_c_app {X Y Z : PresheafedSpace.{v v u} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
+@[reassoc, simv] lemma comp_c_app {X Y Z : PresheafedSpace.{v v u} C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) := rfl
 
 lemma congr_app {X Y : PresheafedSpace.{v v u} C} {α β : X ⟶ Y} (h : α = β) (U) :
   α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
-by { subst h, dsimp, simp, }
+by { subst h, dsimp, simv, }
 
 section
 variables (C)
@@ -200,21 +200,21 @@ def iso_of_components (H : X.1 ≅ Y.1) (α : H.hom _* X.2 ≅ Y.2) : X ≅ Y :=
 { hom := { base := H.hom, c := α.inv },
   inv := { base := H.inv,
     c := presheaf.to_pushforward_of_iso H α.hom },
-  hom_inv_id' := by { ext, { simp, erw category.id_comp, simpa }, simp },
+  hom_inv_id' := by { ext, { simv, erw category.id_comp, simpa }, simv },
   inv_hom_id' :=
   begin
     ext x,
     induction x using opposite.rec,
-    simp only [comp_c_app, whisker_right_app, presheaf.to_pushforward_of_iso_app,
+    simv only [comp_c_app, whisker_right_app, presheaf.to_pushforward_of_iso_app,
       nat_trans.comp_app, eq_to_hom_app, id_c_app, category.assoc],
     erw [← α.hom.naturality],
     have := nat_trans.congr_app (α.inv_hom_id) (op x),
     cases x,
     rw nat_trans.comp_app at this,
     convert this,
-    { dsimp, simp },
-    { simp },
-    { simp }
+    { dsimp, simv },
+    { simv },
+    { simv }
   end }
 
 /-- Isomorphic PresheafedSpaces have natural isomorphic presheaves. -/
@@ -226,7 +226,7 @@ def sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
   begin
     ext U,
     have := congr_app H.inv_hom_id U,
-    simp only [comp_c_app, id_c_app,
+    simv only [comp_c_app, id_c_app,
       eq_to_hom_map, eq_to_hom_trans] at this,
     generalize_proofs h at this,
     simpa using congr_arg (λ f, f ≫ eq_to_hom h.symm) this,
@@ -234,7 +234,7 @@ def sheaf_iso_of_iso (H : X ≅ Y) : Y.2 ≅ H.hom.base _* X.2 :=
   inv_hom_id' :=
   begin
     ext U,
-    simp only [presheaf.pushforward_to_of_iso_app, nat_trans.comp_app, category.assoc,
+    simv only [presheaf.pushforward_to_of_iso_app, nat_trans.comp_app, category.assoc,
       nat_trans.id_app, H.hom.c.naturality],
     have := congr_app H.hom_inv_id ((opens.map H.hom.base).op.obj U),
     generalize_proofs h at this,
@@ -251,7 +251,7 @@ is_iso.of_iso (sheaf_iso_of_iso (as_iso f))
 lemma is_iso_of_components (f : X ⟶ Y) [is_iso f.base] [is_iso f.c] : is_iso f :=
 begin
   convert is_iso.of_iso (iso_of_components (as_iso f.base) (as_iso f.c).symm),
-  ext, { simpa }, { simp },
+  ext, { simpa }, { simv },
 end
 
 end iso
@@ -288,23 +288,23 @@ instance of_restrict_mono {U : Top} (X : PresheafedSpace C) (f : U ⟶ X.1)
    ext V,
    { induction V using opposite.rec,
      have hV : (opens.map (X.of_restrict hf).base).obj (hf.is_open_map.functor.obj V) = V,
-     { cases V, simp[opens.map, set.preimage_image_eq _ hf.inj] },
+     { cases V, simv[opens.map, set.preimage_image_eq _ hf.inj] },
      haveI : is_iso (hf.is_open_map.adjunction.counit.app
                (unop (op (hf.is_open_map.functor.obj V)))) :=
        (nat_iso.is_iso_app_of_is_iso (whisker_left
          hf.is_open_map.functor hf.is_open_map.adjunction.counit) V : _),
      have := PresheafedSpace.congr_app eq (op (hf.is_open_map.functor.obj V)),
-     simp only [PresheafedSpace.comp_c_app, PresheafedSpace.of_restrict_c_app, category.assoc,
+     simv only [PresheafedSpace.comp_c_app, PresheafedSpace.of_restrict_c_app, category.assoc,
        cancel_epi] at this,
      have h : _ ≫ _ = _ ≫ _ ≫ _ :=
        congr_arg (λ f, (X.restrict hf).presheaf.map (eq_to_hom hV).op ≫ f) this,
      erw [g₁.c.naturality, g₂.c.naturality_assoc] at h,
-     simp only [presheaf.pushforward_obj_map, eq_to_hom_op,
+     simv only [presheaf.pushforward_obj_map, eq_to_hom_op,
        category.assoc, eq_to_hom_map, eq_to_hom_trans] at h,
      rw ←is_iso.comp_inv_eq at h,
      simpa using h },
    { have := congr_arg PresheafedSpace.hom.base eq,
-     simp only [PresheafedSpace.comp_base, PresheafedSpace.of_restrict_base] at this,
+     simv only [PresheafedSpace.comp_base, PresheafedSpace.of_restrict_base] at this,
      rw cancel_mono at this,
      exact this }
  end
@@ -349,7 +349,7 @@ def restrict_top_iso (X : PresheafedSpace C) :
 { hom := X.of_restrict _,
   inv := X.to_restrict_top,
   hom_inv_id' := ext _ _ (concrete_category.hom_ext _ _ $ λ ⟨x, _⟩, rfl) $
-    by { erw comp_c, rw X.of_restrict_top_c, ext, simp },
+    by { erw comp_c, rw X.of_restrict_top_c, ext, simv },
   inv_hom_id' := ext _ _ rfl $
     by { erw comp_c, rw X.of_restrict_top_c, ext, simpa [-eq_to_hom_refl] } }
 
@@ -380,7 +380,7 @@ namespace category_theory
 
 variables {D : Type u} [category.{v} D]
 
-local attribute [simp] presheaf.pushforward_obj
+local attribute [simv] presheaf.pushforward_obj
 
 namespace functor
 

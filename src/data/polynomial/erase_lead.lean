@@ -36,29 +36,29 @@ section erase_lead
 
 lemma erase_lead_support (f : R[X]) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
-by simp only [erase_lead, support_erase]
+by simv only [erase_lead, support_erase]
 
 lemma erase_lead_coeff (i : ℕ) :
   f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
-by simp only [erase_lead, coeff_erase]
+by simv only [erase_lead, coeff_erase]
 
 @[simp] lemma erase_lead_coeff_nat_degree : f.erase_lead.coeff f.nat_degree = 0 :=
-by simp [erase_lead_coeff]
+by simv [erase_lead_coeff]
 
 lemma erase_lead_coeff_of_ne (i : ℕ) (hi : i ≠ f.nat_degree) :
   f.erase_lead.coeff i = f.coeff i :=
-by simp [erase_lead_coeff, hi]
+by simv [erase_lead_coeff, hi]
 
 @[simp] lemma erase_lead_zero : erase_lead (0 : R[X]) = 0 :=
-by simp only [erase_lead, erase_zero]
+by simv only [erase_lead, erase_zero]
 
 @[simp] lemma erase_lead_add_monomial_nat_degree_leading_coeff (f : R[X]) :
   f.erase_lead + monomial f.nat_degree f.leading_coeff = f :=
 begin
   ext i,
-  simp only [erase_lead_coeff, coeff_monomial, coeff_add, @eq_comm _ _ i],
+  simv only [erase_lead_coeff, coeff_monomial, coeff_add, @eq_comm _ _ i],
   split_ifs with h,
-  { subst i, simp only [leading_coeff, zero_add] },
+  { subst i, simv only [leading_coeff, zero_add] },
   { exact add_zero _ }
 end
 
@@ -117,7 +117,7 @@ erase_lead_card_support fc
   erase_lead (monomial i r) = 0 :=
 begin
   by_cases hr : r = 0,
-  { subst r, simp only [monomial_zero_right, erase_lead_zero] },
+  { subst r, simv only [monomial_zero_right, erase_lead_zero] },
   { rw [erase_lead, nat_degree_monomial, if_neg hr, erase_monomial] }
 end
 
@@ -180,7 +180,7 @@ begin
   by_cases h : f.support.card ≤ 1,
   { right,
     rw ← C_mul_X_pow_eq_self h,
-    simp },
+    simv },
   { left,
     apply erase_lead_nat_degree_lt (lt_of_not_ge h) }
 end
@@ -189,7 +189,7 @@ lemma erase_lead_nat_degree_le (f : R[X]) : (erase_lead f).nat_degree ≤ f.nat_
 begin
   rcases f.erase_lead_nat_degree_lt_or_erase_lead_eq_zero with h | h,
   { exact nat.le_pred_of_lt h },
-  { simp only [h, nat_degree_zero, zero_le] }
+  { simv only [h, nat_degree_zero, zero_le] }
 end
 
 end erase_lead
@@ -246,7 +246,7 @@ lemma mono_map_nat_degree_eq {S F : Type*} [semiring S]
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = fu n) :
   (φ p).nat_degree = fu p.nat_degree :=
 begin
-  refine induction_with_nat_degree_le (λ p, _ = fu _) p.nat_degree (by simp [fu0]) _ _ _ rfl.le,
+  refine induction_with_nat_degree_le (λ p, _ = fu _) p.nat_degree (by simv [fu0]) _ _ _ rfl.le,
   { intros n r r0 np,
     rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
   { intros f g fg gp fk gk,
@@ -266,7 +266,7 @@ lemma map_nat_degree_eq_sub {S F : Type*} [semiring S]
   (φ_k : ∀ f : R[X], f.nat_degree < k → φ f = 0)
   (φ_mon : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n - k) :
   (φ p).nat_degree = p.nat_degree - k :=
-mono_map_nat_degree_eq k (λ j, j - k) (by simp) (λ m n h, (tsub_lt_tsub_iff_right h).mpr) φ_k φ_mon
+mono_map_nat_degree_eq k (λ j, j - k) (by simv) (λ m n h, (tsub_lt_tsub_iff_right h).mpr) φ_k φ_mon
 
 lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
   [add_monoid_hom_class F R[X] S[X]] {φ : F} (p)
@@ -332,7 +332,7 @@ begin
           ←card_support_eq_zero, h],
         exact n.succ_ne_zero } },
     { rw fin.sum_univ_cast_succ,
-      simp only [function.extend_apply fin.cast_succ.injective],
+      simv only [function.extend_apply fin.cast_succ.injective],
       rw [←hf, function.extend_apply', function.extend_apply', erase_lead_add_C_mul_X_pow],
       all_goals { exact H } } },
 end

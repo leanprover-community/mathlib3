@@ -42,22 +42,22 @@ instance decidable_mem_centralizer [has_mul M] [decidable_eq M] [fintype M]
 
 variables (S)
 
-@[simp, to_additive zero_mem_add_centralizer]
+@[simv, to_additive zero_mem_add_centralizer]
 lemma one_mem_centralizer [mul_one_class M] : (1 : M) ∈ centralizer S :=
-by simp [mem_centralizer_iff]
+by simv [mem_centralizer_iff]
 
 @[simp]
 lemma zero_mem_centralizer [mul_zero_class M] : (0 : M) ∈ centralizer S :=
-by simp [mem_centralizer_iff]
+by simv [mem_centralizer_iff]
 
 variables {S} {a b : M}
 
-@[simp, to_additive add_mem_add_centralizer]
+@[simv, to_additive add_mem_add_centralizer]
 lemma mul_mem_centralizer [semigroup M] (ha : a ∈ centralizer S) (hb : b ∈ centralizer S) :
   a * b ∈ centralizer S :=
 λ g hg, by rw [mul_assoc, ←hb g hg, ← mul_assoc, ha g hg, mul_assoc]
 
-@[simp, to_additive neg_mem_add_centralizer]
+@[simv, to_additive neg_mem_add_centralizer]
 lemma inv_mem_centralizer [group M] (ha : a ∈ centralizer S) : a⁻¹ ∈ centralizer S :=
 λ g hg, by rw [mul_inv_eq_iff_eq_mul, mul_assoc, eq_inv_mul_iff_mul_eq, ha g hg]
 
@@ -76,7 +76,7 @@ lemma inv_mem_centralizer₀ [group_with_zero M] (ha : a ∈ centralizer S) : a�
 (eq_or_ne a 0).elim (λ h, by { rw [h, inv_zero], exact zero_mem_centralizer S })
   (λ ha0 c hc, by rw [mul_inv_eq_iff_eq_mul₀ ha0, mul_assoc, eq_inv_mul_iff_mul_eq₀ ha0, ha c hc])
 
-@[simp, to_additive sub_mem_add_centralizer]
+@[simv, to_additive sub_mem_add_centralizer]
 lemma div_mem_centralizer [group M] (ha : a ∈ centralizer S) (hb : b ∈ centralizer S) :
   a / b ∈ centralizer S :=
 begin
@@ -98,13 +98,13 @@ lemma centralizer_subset [has_mul M] (h : S ⊆ T) : centralizer T ⊆ centraliz
 
 variables (M)
 
-@[simp, to_additive add_centralizer_univ]
+@[simv, to_additive add_centralizer_univ]
 lemma centralizer_univ [has_mul M] : centralizer univ = center M :=
 subset.antisymm (λ a ha b, ha b (set.mem_univ b)) (λ a ha b hb, ha b)
 
 variables {M} (S)
 
-@[simp, to_additive add_centralizer_eq_univ]
+@[simv, to_additive add_centralizer_eq_univ]
 lemma centralizer_eq_univ [comm_semigroup M] : centralizer S = univ :=
 subset.antisymm (subset_univ _) $ λ x hx y hy, mul_comm y x
 
@@ -120,7 +120,7 @@ def centralizer : subsemigroup M :=
 { carrier := S.centralizer,
   mul_mem' := λ a b, set.mul_mem_centralizer }
 
-@[simp, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
+@[simv, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
 
 variables {S}
 
@@ -137,7 +137,7 @@ set.centralizer_subset h
 
 variables (M)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma centralizer_univ : centralizer set.univ = center M :=
 set_like.ext' (set.centralizer_univ M)
 

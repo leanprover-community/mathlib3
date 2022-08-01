@@ -176,7 +176,7 @@ lemma surjective_of_right_cancellable_Prop (h : ∀ g₁ g₂ : β → Prop, g�
   surjective f :=
 begin
   specialize h (λ _, true) (λ y, ∃ x, f x = y) (funext $ λ x, _),
-  { simp only [(∘), exists_apply_eq_apply] },
+  { simv only [(∘), exists_apply_eq_apply] },
   { intro y,
     have : true = ∃ x, f x = y, from congr_fun h y,
     rw ← this, exact trivial }
@@ -233,7 +233,7 @@ begin
   have hg : injective g,
   { intros s t h,
     suffices : cast hU (g s).2 = cast hU (g t).2,
-    { simp only [cast_cast, cast_eq] at this, assumption },
+    { simv only [cast_cast, cast_eq] at this, assumption },
     { congr, assumption } },
   exact cantor_injective g hg
 end
@@ -345,7 +345,7 @@ noncomputable def inv_fun (f : α → β) : β → α :=
 λ y, if h : ∃ x, f x = y then h.some else classical.arbitrary α
 
 theorem inv_fun_eq (h : ∃ a, f a = b) : f (inv_fun f b) = b :=
-by simp only [inv_fun, dif_pos h, h.some_spec]
+by simv only [inv_fun, dif_pos h, h.some_spec]
 
 lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = classical.choice ‹_› :=
 dif_neg h
@@ -452,11 +452,11 @@ dif_neg h
 
 lemma forall_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
   (∀ x, p x (update f a b x)) ↔ p a b ∧ ∀ x ≠ a, p x (f x) :=
-by { rw [← and_forall_ne a, update_same], simp { contextual := tt } }
+by { rw [← and_forall_ne a, update_same], simv { contextual := tt } }
 
 lemma exists_update_iff (f : Π a, β a) {a : α} {b : β a} (p : Π a, β a → Prop) :
   (∃ x, p x (update f a b x)) ↔ p a b ∨ ∃ x ≠ a, p x (f x) :=
-by { rw [← not_forall_not, forall_update_iff f (λ a b, ¬p a b)], simp [not_and_distrib] }
+by { rw [← not_forall_not, forall_update_iff f (λ a b, ¬p a b)], simv [not_and_distrib] }
 
 lemma update_eq_iff {a : α} {b : β a} {f g : Π a, β a} :
   update f a b = g ↔ b = g a ∧ ∀ x ≠ a, f x = g x :=
@@ -496,8 +496,8 @@ lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
   f j (update g i v j) = update (λ k, f k (g k)) i (f i v) j :=
 begin
   by_cases h : j = i,
-  { subst j, simp },
-  { simp [h] }
+  { subst j, simv },
+  { simv [h] }
 end
 
 lemma apply_update₂ {ι : Sort*} [decidable_eq ι] {α β γ : ι → Sort*}
@@ -505,8 +505,8 @@ lemma apply_update₂ {ι : Sort*} [decidable_eq ι] {α β γ : ι → Sort*}
   f j (update g i v j) (update h i w j) = update (λ k, f k (g k) (h k)) i (f i v w) j :=
 begin
   by_cases h : j = i,
-  { subst j, simp },
-  { simp [h] }
+  { subst j, simv },
+  { simv [h] }
 end
 
 lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
@@ -517,14 +517,14 @@ theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
   update (update f a v) b w = update (update f b w) a v :=
 begin
-  funext c, simp only [update],
-  by_cases h₁ : c = b; by_cases h₂ : c = a; try {simp [h₁, h₂]},
+  funext c, simv only [update],
+  by_cases h₁ : c = b; by_cases h₂ : c = a; try {simv [h₁, h₂]},
   cases h (h₂.symm.trans h₁),
 end
 
 @[simp] theorem update_idem {α} [decidable_eq α] {β : α → Sort*}
   {a : α} (v w : β a) (f : Πa, β a) : update (update f a v) a w = update f a w :=
-by {funext b, by_cases b = a; simp [update, h]}
+by {funext b, by_cases b = a; simv [update, h]}
 
 end update
 
@@ -551,13 +551,13 @@ by { unfold extend, congr }
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
 begin
-  simp only [extend_def, dif_pos, exists_apply_eq_apply],
+  simv only [extend_def, dif_pos, exists_apply_eq_apply],
   exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
 end
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
-by simp [function.extend_def, hb]
+by simv [function.extend_def, hb]
 
 lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
@@ -574,7 +574,7 @@ begin
   intros g₁ g₂ hg,
   refine funext (λ x, _),
   have H := congr_fun hg (f x),
-  simp only [hf, extend_apply] at H,
+  simv only [hf, extend_apply] at H,
   exact H
 end
 
@@ -594,7 +594,7 @@ lemma bijective.comp_right (hf : bijective f) :
   bijective (λ g : β → γ, g ∘ f) :=
 ⟨hf.surjective.injective_comp_right,
   λ g, ⟨g ∘ surj_inv hf.surjective,
-    by simp only [comp.assoc g _ f, (left_inverse_surj_inv hf).comp_eq_id, comp.right_id]⟩⟩
+    by simv only [comp.assoc g _ f, (left_inverse_surj_inv hf).comp_eq_id, comp.right_id]⟩⟩
 
 end extend
 
@@ -762,7 +762,7 @@ eq_rec_on_bijective h.symm
 lemma cast_bijective {α β : Sort*} (h : α = β) : function.bijective (cast h) :=
 eq_rec_on_bijective h
 
-/-! Note these lemmas apply to `Type*` not `Sort*`, as the latter interferes with `simp`, and
+/-! Note these lemmas apply to `Type*` not `Sort*`, as the latter interferes with `simv`, and
 is trivial anyway.-/
 
 @[simp]

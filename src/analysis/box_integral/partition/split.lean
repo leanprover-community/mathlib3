@@ -58,27 +58,27 @@ mk' I.lower (update I.upper i (min x (I.upper i)))
 begin
   rw [split_lower, coe_mk'],
   ext y,
-  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+  simv only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
     ← pi.le_def, le_update_iff, le_min_iff, and_assoc, and_forall_ne i, mem_def],
   rw [and_comm (y i ≤ x), pi.le_def]
 end
 
-lemma split_lower_le : I.split_lower i x ≤ I := with_bot_coe_subset_iff.1 $ by simp
+lemma split_lower_le : I.split_lower i x ≤ I := with_bot_coe_subset_iff.1 $ by simv
 
 @[simp] lemma split_lower_eq_bot {i x} : I.split_lower i x = ⊥ ↔ x ≤ I.lower i :=
 begin
   rw [split_lower, mk'_eq_bot, exists_update_iff I.upper (λ j y, y ≤ I.lower j)],
-  simp [(I.lower_lt_upper _).not_le]
+  simv [(I.lower_lt_upper _).not_le]
 end
 
 @[simp] lemma split_lower_eq_self : I.split_lower i x = I ↔ I.upper i ≤ x :=
-by simp [split_lower, update_eq_iff]
+by simv [split_lower, update_eq_iff]
 
 lemma split_lower_def [decidable_eq ι] {i x} (h : x ∈ Ioo (I.lower i) (I.upper i))
   (h' : ∀ j, I.lower j < update I.upper i x j :=
     (forall_update_iff I.upper (λ j y, I.lower j < y)).2 ⟨h.1, λ j hne, I.lower_lt_upper _⟩) :
   I.split_lower i x = (⟨I.lower, update I.upper i x, h'⟩ : box ι) :=
-by { simp only [split_lower, mk'_eq_coe, min_eq_left h.2.le], use rfl, congr }
+by { simv only [split_lower, mk'_eq_coe, min_eq_left h.2.le], use rfl, congr }
 
 /-- Given a box `I` and `x ∈ (I.lower i, I.upper i)`, the hyperplane `{y : ι → ℝ | y i = x}` splits
 `I` into two boxes. `box_integral.box.split_upper I i x` is the box `I ∩ {y | x < y i}`
@@ -91,28 +91,28 @@ mk' (update I.lower i (max x (I.lower i))) I.upper
 begin
   rw [split_upper, coe_mk'],
   ext y,
-  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+  simv only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
     forall_update_iff I.lower (λ j z, z < y j), max_lt_iff, and_assoc (x < y i),
     and_forall_ne i, mem_def],
   exact and_comm _ _
 end
 
-lemma split_upper_le : I.split_upper i x ≤ I := with_bot_coe_subset_iff.1 $ by simp
+lemma split_upper_le : I.split_upper i x ≤ I := with_bot_coe_subset_iff.1 $ by simv
 
 @[simp] lemma split_upper_eq_bot {i x} : I.split_upper i x = ⊥ ↔ I.upper i ≤ x :=
 begin
   rw [split_upper, mk'_eq_bot, exists_update_iff I.lower (λ j y, I.upper j ≤ y)],
-  simp [(I.lower_lt_upper _).not_le]
+  simv [(I.lower_lt_upper _).not_le]
 end
 
 @[simp] lemma split_upper_eq_self : I.split_upper i x = I ↔ x ≤ I.lower i :=
-by simp [split_upper, update_eq_iff]
+by simv [split_upper, update_eq_iff]
 
 lemma split_upper_def [decidable_eq ι] {i x} (h : x ∈ Ioo (I.lower i) (I.upper i))
   (h' : ∀ j, update I.lower i x j < I.upper j :=
     (forall_update_iff I.lower (λ j y, y < I.upper j)).2 ⟨h.2, λ j hne, I.lower_lt_upper _⟩) :
   I.split_upper i x = (⟨update I.lower i x, I.upper, h'⟩ : box ι) :=
-by { simp only [split_upper, mk'_eq_coe, max_eq_left h.1.le], refine ⟨_, rfl⟩, congr }
+by { simv only [split_upper, mk'_eq_coe, max_eq_left h.1.le], refine ⟨_, rfl⟩, congr }
 
 lemma disjoint_split_lower_split_upper (I : box ι) (i : ι) (x : ℝ) :
   disjoint (I.split_lower i x) (I.split_upper i x) :=
@@ -141,26 +141,26 @@ One of these boxes can be empty, then this partition is just the single-box part
 def split (I : box ι) (i : ι) (x : ℝ) : prepartition I :=
 of_with_bot {I.split_lower i x, I.split_upper i x}
   begin
-    simp only [finset.mem_insert, finset.mem_singleton],
+    simv only [finset.mem_insert, finset.mem_singleton],
     rintro J (rfl|rfl),
     exacts [box.split_lower_le, box.split_upper_le]
   end
   begin
-    simp only [finset.coe_insert, finset.coe_singleton, true_and, set.mem_singleton_iff,
+    simv only [finset.coe_insert, finset.coe_singleton, true_and, set.mem_singleton_iff,
       pairwise_insert_of_symmetric symmetric_disjoint, pairwise_singleton],
     rintro J rfl -,
     exact I.disjoint_split_lower_split_upper i x
   end
 
 @[simp] lemma mem_split_iff : J ∈ split I i x ↔ ↑J = I.split_lower i x ∨ ↑J = I.split_upper i x :=
-by simp [split]
+by simv [split]
 
 lemma mem_split_iff' : J ∈ split I i x ↔
   (J : set (ι → ℝ)) = I ∩ {y | y i ≤ x} ∨ (J : set (ι → ℝ)) = I ∩ {y | x < y i} :=
-by simp [mem_split_iff, ← box.with_bot_coe_inj]
+by simv [mem_split_iff, ← box.with_bot_coe_inj]
 
 @[simp] lemma Union_split (I : box ι) (i : ι) (x : ℝ) : (split I i x).Union = I :=
-by simp [split, ← inter_union_distrib_left, ← set_of_or, le_or_lt]
+by simv [split, ← inter_union_distrib_left, ← set_of_or, le_or_lt]
 
 lemma is_partition_split (I : box ι) (i : ι) (x : ℝ) : is_partition (split I i x) :=
 is_partition_iff_Union_eq.2 $ Union_split I i x
@@ -194,9 +194,9 @@ lemma coe_eq_of_mem_split_of_lt_mem {y : ι → ℝ} (h₁ : J ∈ split I i x) 
 @[simp] lemma restrict_split (h : I ≤ J) (i : ι) (x : ℝ) : (split J i x).restrict I = split I i x :=
 begin
   refine ((is_partition_split J i x).restrict h).eq_of_boxes_subset _,
-  simp only [finset.subset_iff, mem_boxes, mem_restrict', exists_prop, mem_split_iff'],
+  simv only [finset.subset_iff, mem_boxes, mem_restrict', exists_prop, mem_split_iff'],
   have : ∀ s, (I ∩ s : set (ι → ℝ)) ⊆ J, from λ s, (inter_subset_left _ _).trans h,
-  rintro J₁ ⟨J₂, (H₂|H₂), H₁⟩; [left, right]; simp [H₁, H₂, inter_left_comm ↑I, this],
+  rintro J₁ ⟨J₂, (H₂|H₂), H₁⟩; [left, right]; simv [H₁, H₂, inter_left_comm ↑I, this],
 end
 
 lemma inf_split (π : prepartition I) (i : ι) (x : ℝ) :
@@ -220,7 +220,7 @@ finset.inf_le hp
 
 lemma is_partition_split_many (I : box ι) (s : finset (ι × ℝ)) :
   is_partition (split_many I s) :=
-finset.induction_on s (by simp only [split_many_empty, is_partition_top]) $
+finset.induction_on s (by simv only [split_many_empty, is_partition_top]) $
   λ a s ha hs, by simpa only [split_many_insert, inf_split]
     using hs.bUnion (λ J hJ, is_partition_split _ _ _)
 
@@ -231,7 +231,7 @@ lemma inf_split_many {I : box ι} (π : prepartition I) (s : finset (ι × ℝ))
   π ⊓ split_many I s = π.bUnion (λ J, split_many J s) :=
 begin
   induction s using finset.induction_on with p s hp ihp,
-  { simp },
+  { simv },
   { simp_rw [split_many_insert, ← inf_assoc, ihp, inf_split, bUnion_assoc] }
 end
 
@@ -243,7 +243,7 @@ lemma not_disjoint_imp_le_of_subset_of_mem_split_many {I J Js : box ι} {s : fin
   (H : ∀ i, {(i, J.lower i), (i, J.upper i)} ⊆ s) (HJs : Js ∈ split_many I s)
   (Hn : ¬disjoint (J : with_bot (box ι)) Js) : Js ≤ J :=
 begin
-  simp only [finset.insert_subset, finset.singleton_subset_iff] at H,
+  simv only [finset.insert_subset, finset.singleton_subset_iff] at H,
   rcases box.not_disjoint_coe_iff_nonempty_inter.mp Hn with ⟨x, hx, hxs⟩,
   refine λ y hy i, ⟨_, _⟩,
   { rcases split_many_le_split I (H i).1 HJs with ⟨Jl, Hmem : Jl ∈ split I i (J.lower i), Hle⟩,
@@ -282,7 +282,7 @@ begin
   refine (eventually_not_disjoint_imp_le_of_mem_split_many π.boxes).mono (λ t ht, _),
   refine le_antisymm ((bUnion_le_iff _).2 $ λ J hJ, _) (le_inf (λ J hJ, _) (filter_le _ _)),
   { refine of_with_bot_mono _,
-    simp only [finset.mem_image, exists_prop, mem_boxes, mem_filter],
+    simv only [finset.mem_image, exists_prop, mem_boxes, mem_filter],
     rintro _ ⟨J₁, h₁, rfl⟩ hne,
     refine ⟨_, ⟨J₁, ⟨h₁, subset.trans _ (π.subset_Union hJ)⟩, rfl⟩, le_rfl⟩,
     exact ht I J hJ J₁ h₁ (mt disjoint_iff.1 hne) },
@@ -314,7 +314,7 @@ lemma exists_Union_eq_diff (π : prepartition I) :
 begin
   rcases π.eventually_split_many_inf_eq_filter.exists with ⟨s, hs⟩,
   use (split_many I s).filter (λ J, ¬(J : set (ι → ℝ)) ⊆ π.Union),
-  simp [← hs]
+  simv [← hs]
 end
 
 /-- If `π` is a prepartition of `I`, then `π.compl` is a prepartition of `I`

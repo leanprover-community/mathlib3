@@ -84,7 +84,7 @@ variables {P}
 
 /-- The `vector_span` of a single point is `⊥`. -/
 @[simp] lemma vector_span_singleton (p : P) : vector_span k ({p} : set P) = ⊥ :=
-by simp [vector_span_def]
+by simv [vector_span_def]
 
 /-- The `s -ᵥ s` lies within the `vector_span k s`. -/
 lemma vsub_set_subset_vector_span (s : set P) : s -ᵥ s ⊆ ↑(vector_span k s) :=
@@ -117,7 +117,7 @@ begin
   { contrapose,
     rw [set.not_nonempty_iff_eq_empty, set.not_nonempty_iff_eq_empty],
     intro h,
-    simp [h, span_points] },
+    simv [h, span_points] },
   { exact λ h, h.mono (subset_span_points _ _) }
 end
 
@@ -329,7 +329,7 @@ lemma vsub_right_mem_direction_iff_mem {s : affine_subspace k P} {p : P} (hp : p
   p2 -ᵥ p ∈ s.direction ↔ p2 ∈ s :=
 begin
   rw mem_direction_iff_eq_vsub_right hp,
-  simp
+  simv
 end
 
 /-- Given a point in an affine subspace, a result of subtracting that
@@ -339,7 +339,7 @@ lemma vsub_left_mem_direction_iff_mem {s : affine_subspace k P} {p : P} (hp : p 
   p -ᵥ p2 ∈ s.direction ↔ p2 ∈ s :=
 begin
   rw mem_direction_iff_eq_vsub_left hp,
-  simp
+  simv
 end
 
 /-- Two affine subspaces are equal if they have the same points. -/
@@ -378,18 +378,18 @@ end
 
 instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
 { vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
-  zero_vadd := by simp,
+  zero_vadd := by simv,
   add_vadd := λ a b c, by { ext, apply add_vadd },
   vsub := λ a b, ⟨(a:P) -ᵥ (b:P), (vsub_left_mem_direction_iff_mem a.2 _).mpr b.2 ⟩,
   nonempty := by apply_instance,
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
 
-@[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
+@[simv, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
 rfl
 
-@[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
+@[simv, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
 
@@ -408,7 +408,7 @@ def mk' (p : P) (direction : submodule k V) : affine_subspace k P :=
     rcases hp3 with ⟨v3, hv3, hp3⟩,
     use [c • (v1 - v2) + v3,
          direction.add_mem (direction.smul_mem c (direction.sub_mem hv1 hv2)) hv3],
-    simp [hp1, hp2, hp3, vadd_vadd]
+    simv [hp1, hp2, hp3, vadd_vadd]
   end }
 
 /-- An affine subspace constructed from a point and a direction contains
@@ -638,14 +638,14 @@ begin
   ext x,
   rw [mem_coe, ←vsub_right_mem_direction_iff_mem (mem_affine_span k (set.mem_singleton p)) _,
       direction_affine_span],
-  simp
+  simv
 end
 
 /-- A point is in the affine span of a single point if and only if
 they are equal. -/
 @[simp] lemma mem_affine_span_singleton (p1 p2 : P) :
   p1 ∈ affine_span k ({p2} : set P) ↔ p1 = p2 :=
-by simp [←mem_coe]
+by simv [←mem_coe]
 
 /-- The span of a union of sets is the sup of their spans. -/
 lemma span_union (s t : set P) : affine_span k (s ∪ t) = affine_span k s ⊔ affine_span k t :=
@@ -726,7 +726,7 @@ lemma affine_span_eq_top_iff_vector_span_eq_top_of_nontrivial {s : set P} [nontr
   affine_span k s = ⊤ ↔ vector_span k s = ⊤ :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
-  { simp [hs, subsingleton_iff_bot_eq_top, add_torsor.subsingleton_iff V P, not_subsingleton], },
+  { simv [hs, subsingleton_iff_bot_eq_top, add_torsor.subsingleton_iff V P, not_subsingleton], },
   { rw affine_span_eq_top_iff_vector_span_eq_top_of_nonempty k V P hs, },
 end
 
@@ -768,7 +768,7 @@ lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleto
   (h₂ : affine_span k s = ⊤) : subsingleton P :=
 begin
   obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
-  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simv [hp]), },
   rw [this, ← affine_subspace.ext_iff, affine_subspace.coe_affine_span_singleton,
     affine_subspace.top_coe, eq_comm, ← subsingleton_iff_singleton (mem_univ _)] at h₂,
   exact subsingleton_of_univ_subsingleton h₂,
@@ -778,7 +778,7 @@ lemma eq_univ_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
   (h₂ : affine_span k s = ⊤) : s = (univ : set P) :=
 begin
   obtain ⟨p, hp⟩ := affine_subspace.nonempty_of_affine_span_eq_top k V P h₂,
-  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simp [hp]), },
+  have : s = {p}, { exact subset.antisymm (λ q hq, h₁ hq hp) (by simv [hp]), },
   rw [this, eq_comm, ← subsingleton_iff_singleton (mem_univ p), subsingleton_univ_iff],
   exact subsingleton_of_subsingleton_span_eq_top h₁ h₂,
 end
@@ -792,9 +792,9 @@ begin
   { intro hd,
     rw ←direction_top k V P at hd,
     refine ext_of_direction_eq hd _,
-    simp [h] },
+    simv [h] },
   { rintro rfl,
-    simp }
+    simv }
 end
 
 /-- The inf of two affine subspaces, coerced to a set, is the
@@ -982,7 +982,7 @@ lemma vector_span_eq_span_vsub_set_left_ne {s : set P} {p : P} (hp : p ∈ s) :
 begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_left k hp, ←set.insert_eq_of_mem hp,
                  ←set.insert_diff_singleton, set.image_insert_eq] },
-  simp [submodule.span_insert_eq_span]
+  simv [submodule.span_insert_eq_span]
 end
 
 /-- The `vector_span` is the span of the pairwise subtractions with a
@@ -993,7 +993,7 @@ lemma vector_span_eq_span_vsub_set_right_ne {s : set P} {p : P} (hp : p ∈ s) :
 begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_right k hp, ←set.insert_eq_of_mem hp,
                  ←set.insert_diff_singleton, set.image_insert_eq] },
-  simp [submodule.span_insert_eq_span]
+  simv [submodule.span_insert_eq_span]
 end
 
 /-- The `vector_span` is the span of the pairwise subtractions with a
@@ -1001,7 +1001,7 @@ given point on the right, excluding the subtraction of that point from
 itself. -/
 lemma vector_span_eq_span_vsub_finset_right_ne {s : finset P} {p : P} (hp : p ∈ s) :
   vector_span k (s : set P) = submodule.span k ((s.erase p).image (-ᵥ p)) :=
-by simp [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
+by simv [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
 
 /-- The `vector_span` of the image of a function is the span of the
 pairwise subtractions with a given point on the left, excluding the
@@ -1012,7 +1012,7 @@ begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_left k (set.mem_image_of_mem p hi),
                  ←set.insert_eq_of_mem hi, ←set.insert_diff_singleton, set.image_insert_eq,
                  set.image_insert_eq] },
-  simp [submodule.span_insert_eq_span]
+  simv [submodule.span_insert_eq_span]
 end
 
 /-- The `vector_span` of the image of a function is the span of the
@@ -1024,7 +1024,7 @@ begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_right k (set.mem_image_of_mem p hi),
                  ←set.insert_eq_of_mem hi, ←set.insert_diff_singleton, set.image_insert_eq,
                  set.image_insert_eq] },
-  simp [submodule.span_insert_eq_span]
+  simv [submodule.span_insert_eq_span]
 end
 
 /-- The `vector_span` of an indexed family is the span of the pairwise
@@ -1047,7 +1047,7 @@ lemma vector_span_range_eq_span_range_vsub_left_ne (p : ι → P) (i₀ : ι) :
 begin
   rw [←set.image_univ, vector_span_image_eq_span_vsub_set_left_ne k _ (set.mem_univ i₀)],
   congr' with v,
-  simp only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
+  simv only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
              subtype.coe_mk],
   split,
   { rintros ⟨x, ⟨i₁, ⟨⟨hi₁u, hi₁⟩, rfl⟩⟩, hv⟩,
@@ -1063,7 +1063,7 @@ lemma vector_span_range_eq_span_range_vsub_right_ne (p : ι → P) (i₀ : ι) :
 begin
   rw [←set.image_univ, vector_span_image_eq_span_vsub_set_right_ne k _ (set.mem_univ i₀)],
   congr' with v,
-  simp only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
+  simv only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
              subtype.coe_mk],
   split,
   { rintros ⟨x, ⟨i₁, ⟨⟨hi₁u, hi₁⟩, rfl⟩⟩, hv⟩,
@@ -1099,7 +1099,7 @@ begin
   apply submodule.span_mono,
   rintros v ⟨v', rfl⟩,
   use (v' : V) +ᵥ p,
-  simp
+  simv
 end
 
 variables (k)
@@ -1175,7 +1175,7 @@ begin
   rw [sup_comm, ←set.union_singleton, ←coe_affine_span_singleton k V p2],
   change (s ⊔ affine_span k {p2}).direction = _,
   rw [direction_sup hp1 (mem_affine_span k (set.mem_singleton _)), direction_affine_span],
-  simp
+  simv
 end
 
 /-- Given a point `p1` in an affine subspace `s`, and a point `p2`, a
@@ -1218,7 +1218,7 @@ variables (f : P₁ →ᵃ[k] P₂)
 
 @[simp] lemma affine_map.vector_span_image_eq_submodule_map {s : set P₁} :
   submodule.map f.linear (vector_span k s) = vector_span k (f '' s) :=
-by simp [f.image_vsub_image, vector_span_def]
+by simv [f.image_vsub_image, vector_span_def]
 
 namespace affine_subspace
 
@@ -1229,7 +1229,7 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
     begin
       rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
       use t • (p₁ -ᵥ p₂) +ᵥ p₃,
-      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simp [this], },
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simv [this], },
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 
@@ -1256,14 +1256,14 @@ omit V₃
 
 @[simp] lemma map_direction (s : affine_subspace k P₁) :
   (s.map f).direction = s.direction.map f.linear :=
-by simp [direction_eq_vector_span]
+by simv [direction_eq_vector_span]
 
 lemma map_span (s : set P₁) :
   (affine_span k s).map f = affine_span k (f '' s) :=
 begin
-  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩, { simp, },
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩, { simv, },
   apply ext_of_direction_eq,
-  { simp [direction_affine_span], },
+  { simv [direction_affine_span], },
   { exact ⟨f p, mem_image_of_mem f (subset_affine_span k _ hp),
                 subset_affine_span k _ (mem_image_of_mem f hp)⟩, },
 end
@@ -1292,7 +1292,7 @@ lemma span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
 begin
   refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
   intros h,
-  have : s = e.symm '' (e '' s), { simp [← image_comp], },
+  have : s = e.symm '' (e '' s), { simv [← image_comp], },
   rw this,
   exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
 end

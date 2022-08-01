@@ -43,11 +43,11 @@ fold_cons_left _ _ _ _
 (fold_singleton _ _ _).trans $ lcm_one_right _
 
 @[simp] lemma lcm_add (s₁ s₂ : multiset α) : (s₁ + s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
-eq.trans (by simp [lcm]) (fold_add _ _ _ _ _)
+eq.trans (by simv [lcm]) (fold_add _ _ _ _ _)
 
 lemma lcm_dvd {s : multiset α} {a : α} : s.lcm ∣ a ↔ (∀ b ∈ s, b ∣ a) :=
-multiset.induction_on s (by simp)
-  (by simp [or_imp_distrib, forall_and_distrib, lcm_dvd_iff] {contextual := tt})
+multiset.induction_on s (by simv)
+  (by simv [or_imp_distrib, forall_and_distrib, lcm_dvd_iff] {contextual := tt})
 
 lemma dvd_lcm {s : multiset α} {a : α} (h : a ∈ s) : a ∣ s.lcm :=
 lcm_dvd.1 dvd_rfl _ h
@@ -56,20 +56,20 @@ lemma lcm_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.lcm ∣ s₂
 lcm_dvd.2 $ assume b hb, dvd_lcm (h hb)
 
 @[simp] lemma normalize_lcm (s : multiset α) : normalize (s.lcm) = s.lcm :=
-multiset.induction_on s (by simp) $ λ a s IH, by simp
+multiset.induction_on s (by simv) $ λ a s IH, by simv
 
 @[simp] theorem lcm_eq_zero_iff [nontrivial α] (s : multiset α) : s.lcm = 0 ↔ (0 : α) ∈ s :=
 begin
   induction s using multiset.induction_on with a s ihs,
-  { simp only [lcm_zero, one_ne_zero, not_mem_zero] },
-  { simp only [mem_cons, lcm_cons, lcm_eq_zero_iff, ihs, @eq_comm _ a] },
+  { simv only [lcm_zero, one_ne_zero, not_mem_zero] },
+  { simv only [mem_cons, lcm_cons, lcm_eq_zero_iff, ihs, @eq_comm _ a] },
 end
 
 variables [decidable_eq α]
 
 @[simp] lemma lcm_dedup (s : multiset α) : (dedup s).lcm = s.lcm :=
-multiset.induction_on s (by simp) $ λ a s IH, begin
-  by_cases a ∈ s; simp [IH, h],
+multiset.induction_on s (by simv) $ λ a s IH, begin
+  by_cases a ∈ s; simv [IH, h],
   unfold lcm,
   rw [← cons_erase h, fold_cons_left, ← lcm_assoc, lcm_same],
   apply lcm_eq_of_associated_left (associated_normalize _),
@@ -77,15 +77,15 @@ end
 
 @[simp] lemma lcm_ndunion (s₁ s₂ : multiset α) :
   (ndunion s₁ s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
-by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_add], simp }
+by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_add], simv }
 
 @[simp] lemma lcm_union (s₁ s₂ : multiset α) :
   (s₁ ∪ s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
-by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_add], simp }
+by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_add], simv }
 
 @[simp] lemma lcm_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).lcm = gcd_monoid.lcm a s.lcm :=
-by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_cons], simp }
+by { rw [← lcm_dedup, dedup_ext.2, lcm_dedup, lcm_cons], simv }
 
 end lcm
 
@@ -106,11 +106,11 @@ fold_cons_left _ _ _ _
 (fold_singleton _ _ _).trans $ gcd_zero_right _
 
 @[simp] lemma gcd_add (s₁ s₂ : multiset α) : (s₁ + s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-eq.trans (by simp [gcd]) (fold_add _ _ _ _ _)
+eq.trans (by simv [gcd]) (fold_add _ _ _ _ _)
 
 lemma dvd_gcd {s : multiset α} {a : α} : a ∣ s.gcd ↔ (∀ b ∈ s, a ∣ b) :=
-multiset.induction_on s (by simp)
-  (by simp [or_imp_distrib, forall_and_distrib, dvd_gcd_iff] {contextual := tt})
+multiset.induction_on s (by simv)
+  (by simv [or_imp_distrib, forall_and_distrib, dvd_gcd_iff] {contextual := tt})
 
 lemma gcd_dvd {s : multiset α} {a : α} (h : a ∈ s) : s.gcd ∣ a :=
 dvd_gcd.1 dvd_rfl _ h
@@ -119,7 +119,7 @@ lemma gcd_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.gcd ∣ s₁
 dvd_gcd.2 $ assume b hb, gcd_dvd (h hb)
 
 @[simp] lemma normalize_gcd (s : multiset α) : normalize (s.gcd) = s.gcd :=
-multiset.induction_on s (by simp) $ λ a s IH, by simp
+multiset.induction_on s (by simv) $ λ a s IH, by simv
 
 theorem gcd_eq_zero_iff (s : multiset α) : s.gcd = 0 ↔ ∀ (x : α), x ∈ s → x = 0 :=
 begin
@@ -129,16 +129,16 @@ begin
     rw ← h,
     apply gcd_dvd hx },
   { apply s.induction_on,
-    { simp },
+    { simv },
     intros a s sgcd h,
-    simp [h a (mem_cons_self a s), sgcd (λ x hx, h x (mem_cons_of_mem hx))] }
+    simv [h a (mem_cons_self a s), sgcd (λ x hx, h x (mem_cons_of_mem hx))] }
 end
 
 variables [decidable_eq α]
 
 @[simp] lemma gcd_dedup (s : multiset α) : (dedup s).gcd = s.gcd :=
-multiset.induction_on s (by simp) $ λ a s IH, begin
-  by_cases a ∈ s; simp [IH, h],
+multiset.induction_on s (by simv) $ λ a s IH, begin
+  by_cases a ∈ s; simv [IH, h],
   unfold gcd,
   rw [← cons_erase h, fold_cons_left, ← gcd_assoc, gcd_same],
   apply (associated_normalize _).gcd_eq_left,
@@ -146,15 +146,15 @@ end
 
 @[simp] lemma gcd_ndunion (s₁ s₂ : multiset α) :
   (ndunion s₁ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simv }
 
 @[simp] lemma gcd_union (s₁ s₂ : multiset α) :
   (s₁ ∪ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simv }
 
 @[simp] lemma gcd_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
-by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simv }
 
 end gcd
 

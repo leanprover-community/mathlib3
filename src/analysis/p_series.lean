@@ -44,7 +44,7 @@ variables {M : Type*} [ordered_add_comm_monoid M] {f : ℕ → M}
 lemma le_sum_condensed' (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
   (∑ k in Ico 1 (2 ^ n), f k) ≤ ∑ k in range n, (2 ^ k) • f (2 ^ k) :=
 begin
-  induction n with n ihn, { simp },
+  induction n with n ihn, { simv },
   suffices : (∑ k in Ico (2 ^ n) (2 ^ (n + 1)), f k) ≤ (2 ^ n) • f (2 ^ n),
   { rw [sum_range_succ, ← sum_Ico_consecutive],
     exact add_le_add ihn this,
@@ -52,7 +52,7 @@ begin
   have : ∀ k ∈ Ico (2 ^ n) (2 ^ (n + 1)), f k ≤ f (2 ^ n) :=
     λ k hk, hf (pow_pos zero_lt_two _) (mem_Ico.mp hk).1,
   convert sum_le_sum this,
-  simp [pow_succ, two_mul]
+  simv [pow_succ, two_mul]
 end
 
 lemma le_sum_condensed (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
@@ -65,7 +65,7 @@ end
 lemma sum_condensed_le' (hf : ∀ ⦃m n⦄, 1 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
   (∑ k in range n, (2 ^ k) • f (2 ^ (k + 1))) ≤ ∑ k in Ico 2 (2 ^ n + 1), f k :=
 begin
-  induction n with n ihn, { simp },
+  induction n with n ihn, { simv },
   suffices : (2 ^ n) • f (2 ^ (n + 1)) ≤ ∑ k in Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f k,
   { rw [sum_range_succ, ← sum_Ico_consecutive],
     exact add_le_add ihn this,
@@ -75,14 +75,14 @@ begin
     λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (mem_Ico.mp hk).1)
       (nat.le_of_lt_succ $ (mem_Ico.mp hk).2),
   convert sum_le_sum this,
-  simp [pow_succ, two_mul]
+  simv [pow_succ, two_mul]
 end
 
 lemma sum_condensed_le (hf : ∀ ⦃m n⦄, 1 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
   (∑ k in range (n + 1), (2 ^ k) • f (2 ^ k)) ≤ f 1 + 2 • ∑ k in Ico 2 (2 ^ n + 1), f k :=
 begin
   convert add_le_add_left (nsmul_le_nsmul_of_le_right (sum_condensed_le' hf n) 2) (f 1),
-  simp [sum_range_succ', add_comm, pow_succ, mul_nsmul, sum_nsmul]
+  simv [sum_range_succ', add_comm, pow_succ, mul_nsmul, sum_nsmul]
 end
 
 end finset
@@ -96,7 +96,7 @@ lemma le_tsum_condensed (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) 
 begin
   rw [ennreal.tsum_eq_supr_nat' (nat.tendsto_pow_at_top_at_top_of_one_lt _root_.one_lt_two)],
   refine supr_le (λ n, (finset.le_sum_condensed hf n).trans (add_le_add_left _ _)),
-  simp only [nsmul_eq_mul, nat.cast_pow, nat.cast_two],
+  simv only [nsmul_eq_mul, nat.cast_pow, nat.cast_two],
   apply ennreal.sum_le_tsum
 end
 
@@ -117,7 +117,7 @@ namespace nnreal
 lemma summable_condensed_iff {f : ℕ → ℝ≥0} (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) :
   summable (λ k : ℕ, (2 ^ k) * f (2 ^ k)) ↔ summable f :=
 begin
-  simp only [← ennreal.tsum_coe_ne_top_iff_summable, ne.def, not_iff_not, ennreal.coe_mul,
+  simv only [← ennreal.tsum_coe_ne_top_iff_summable, ne.def, not_iff_not, ennreal.coe_mul,
     ennreal.coe_pow, ennreal.coe_two],
   split; intro h,
   { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
@@ -136,7 +136,7 @@ lemma summable_condensed_iff_of_nonneg {f : ℕ → ℝ} (h_nonneg : ∀ n, 0 �
   summable (λ k : ℕ, (2 ^ k) * f (2 ^ k)) ↔ summable f :=
 begin
   lift f to ℕ → ℝ≥0 using h_nonneg,
-  simp only [nnreal.coe_le_coe] at *,
+  simv only [nnreal.coe_le_coe] at *,
   exact_mod_cast nnreal.summable_condensed_iff h_mono
 end
 
@@ -186,22 +186,22 @@ begin
 end
 
 @[simp] lemma real.summable_nat_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ) ↔ p < -1 :=
-by { rcases neg_surjective p with ⟨p, rfl⟩, simp [rpow_neg] }
+by { rcases neg_surjective p with ⟨p, rfl⟩, simv [rpow_neg] }
 
 /-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
-by simp
+by simv
 
 /-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_pow_inv {p : ℕ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
-by simp only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
+by simv only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
 
 /-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
-by simp
+by simv
 
 /-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=
@@ -222,13 +222,13 @@ begin
 end
 
 @[simp] lemma nnreal.summable_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
-by simp [← nnreal.summable_coe]
+by simv [← nnreal.summable_coe]
 
 @[simp] lemma nnreal.summable_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ≥0) ↔ p < -1 :=
-by simp [← nnreal.summable_coe]
+by simv [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=
-by simp
+by simv
 
 section
 
@@ -240,11 +240,11 @@ lemma sum_Ioc_inv_sq_le_sub {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :
   ∑ i in Ioc k n, ((i ^ 2) ⁻¹ : α) ≤ k ⁻¹ - n ⁻¹ :=
 begin
   refine nat.le_induction _ _ n h,
-  { simp only [Ioc_self, sum_empty, sub_self] },
+  { simv only [Ioc_self, sum_empty, sub_self] },
   assume n hn IH,
   rw [sum_Ioc_succ_top hn],
   apply (add_le_add IH le_rfl).trans,
-  simp only [sub_eq_add_neg, add_assoc, nat.cast_add, nat.cast_one, le_add_neg_iff_add_le,
+  simv only [sub_eq_add_neg, add_assoc, nat.cast_add, nat.cast_one, le_add_neg_iff_add_le,
     add_le_iff_nonpos_right, neg_add_le_iff_le_add, add_zero],
   have A : 0 < (n : α), by simpa using hk.bot_lt.trans_le hn,
   have B : 0 < (n : α) + 1, by linarith,
@@ -261,8 +261,8 @@ calc
 begin
   apply sum_le_sum_of_subset_of_nonneg,
   { assume x hx,
-    simp only [mem_Ioo] at hx,
-    simp only [hx, hx.2.le, mem_Ioc, le_max_iff, or_true, and_self] },
+    simv only [mem_Ioo] at hx,
+    simv only [hx, hx.2.le, mem_Ioc, le_max_iff, or_true, and_self] },
   { assume i hi hident,
     exact inv_nonneg.2 (sq_nonneg _), }
 end
@@ -275,12 +275,12 @@ end
 ... ≤ ((k + 1) ^ 2) ⁻¹ + (k + 1) ⁻¹ :
 begin
   refine add_le_add le_rfl ((sum_Ioc_inv_sq_le_sub _ (le_max_left _ _)).trans _),
-  { simp only [ne.def, nat.succ_ne_zero, not_false_iff] },
-  { simp only [nat.cast_succ, one_div, sub_le_self_iff, inv_nonneg, nat.cast_nonneg] }
+  { simv only [ne.def, nat.succ_ne_zero, not_false_iff] },
+  { simv only [nat.cast_succ, one_div, sub_le_self_iff, inv_nonneg, nat.cast_nonneg] }
 end
 ... ≤ 1 / (k + 1) + 1 / (k + 1) :
 begin
-  have A : (1 : α) ≤ k + 1, by simp only [le_add_iff_nonneg_left, nat.cast_nonneg],
+  have A : (1 : α) ≤ k + 1, by simv only [le_add_iff_nonneg_left, nat.cast_nonneg],
   simp_rw ← one_div,
   apply add_le_add_right,
   refine div_le_div zero_le_one le_rfl (zero_lt_one.trans_le A) _,

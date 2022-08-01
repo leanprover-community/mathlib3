@@ -50,10 +50,10 @@ lemma count_eq_card_fintype (n : ℕ) : count p n = fintype.card {k : ℕ // k <
 by { rw [count_eq_card_filter_range, ←fintype.card_of_finset, ←count_set.fintype], refl, }
 
 lemma count_succ (n : ℕ) : count p (n + 1) = count p n + (if p n then 1 else 0) :=
-by split_ifs; simp [count, list.range_succ, h]
+by split_ifs; simv [count, list.range_succ, h]
 
 @[mono] lemma count_monotone : monotone (count p) :=
-monotone_nat_of_le_succ $ λ n, by by_cases h : p n; simp [count_succ, h]
+monotone_nat_of_le_succ $ λ n, by by_cases h : p n; simv [count_succ, h]
 
 lemma count_add (a b : ℕ) : count p (a + b) = count p a + count (λ k, p (a + k)) b :=
 begin
@@ -69,7 +69,7 @@ end
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=
 by { rw [add_comm, count_add, add_comm], simp_rw [add_comm b] }
 
-lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp [count_succ]
+lemma count_one : count p 1 = if p 0 then 1 else 0 := by simv [count_succ]
 
 lemma count_succ' (n : ℕ) : count p (n + 1) = count (λ k, p (k + 1)) n + if p 0 then 1 else 0 :=
 by rw [count_add', count_one]
@@ -77,13 +77,13 @@ by rw [count_add', count_one]
 variables {p}
 
 @[simp] lemma count_lt_count_succ_iff {n : ℕ} : count p n < count p (n + 1) ↔ p n :=
-by by_cases h : p n; simp [count_succ, h]
+by by_cases h : p n; simv [count_succ, h]
 
 lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
-by by_cases h : p n; simp [h, count_succ]
+by by_cases h : p n; simv [h, count_succ]
 
 lemma count_succ_eq_count_iff {n : ℕ} : count p (n + 1) = count p n ↔ ¬p n :=
-by by_cases h : p n; simp [h, count_succ]
+by by_cases h : p n; simv [h, count_succ]
 
 alias count_succ_eq_succ_count_iff ↔ _ count_succ_eq_succ_count
 alias count_succ_eq_count_iff ↔ _ count_succ_eq_count
@@ -123,7 +123,7 @@ variable [decidable_pred q]
 
 lemma count_mono_left {n : ℕ} (hpq : ∀ k, p k → q k) : count p n ≤ count q n :=
 begin
-  simp only [count_eq_card_filter_range],
+  simv only [count_eq_card_filter_range],
   exact card_le_of_subset ((range n).monotone_filter_right hpq),
 end
 

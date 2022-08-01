@@ -91,7 +91,7 @@ noncomputable def to_right_moves_nim {o : ordinal} : set.Iio o ≃ (nim o).right
 
 lemma move_left_nim {o : ordinal} (i) :
   (nim o).move_left (to_left_moves_nim i) = nim i :=
-by simp
+by simv
 
 @[simp] lemma move_right_nim' {o : ordinal} (i) :
   (nim o).move_right i = nim (to_right_moves_nim.symm i).val :=
@@ -99,7 +99,7 @@ by simp
 
 lemma move_right_nim {o : ordinal} (i) :
   (nim o).move_right (to_right_moves_nim i) = nim i :=
-by simp
+by simv
 
 instance : is_empty (nim 0).left_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
@@ -124,7 +124,7 @@ begin
   rw nim_def,
   refine ⟨_, _, λ i, _, λ j, _⟩,
   any_goals { dsimp, apply equiv.equiv_of_unique },
-  all_goals { simp, exact nim_zero_relabelling }
+  all_goals { simv, exact nim_zero_relabelling }
 end
 
 theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
@@ -159,13 +159,13 @@ lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_l
 ⟨_, typein_lt_self _, move_left_nim' i⟩
 
 lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
-⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
+⟨to_left_moves_nim ⟨o', h⟩, by simv⟩
 
 lemma non_zero_first_wins {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
   rw ←ordinal.pos_iff_ne_zero at ho,
-  exact ⟨(ordinal.principal_seg_out ho).top, by simp⟩
+  exact ⟨(ordinal.principal_seg_out ho).top, by simv⟩
 end
 
 @[simp] lemma add_equiv_zero_iff_eq (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
@@ -294,7 +294,7 @@ begin
 
       -- Thus, the problem is reduced to computing the Grundy value of `nim n + nim k` or
       -- `nim k + nim m`, both of which can be dealt with using an inductive hypothesis.
-      simp only [hk', add_move_left_inl, add_move_left_inr, id],
+      simv only [hk', add_move_left_inl, add_move_left_inr, id],
       rw hn _ hk <|> rw hm _ hk,
 
       -- But of course xor is injective, so if we change one of the arguments, we will not get the
@@ -321,11 +321,11 @@ begin
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨to_left_moves_add (sum.inl i), _⟩,
-      simp only [hi, add_move_left_inl],
+      simv only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨to_left_moves_add (sum.inr i), _⟩,
-      simp only [hi, add_move_left_inr],
+      simv only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 
   -- We are done!
@@ -343,7 +343,7 @@ begin
   rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
   refine equiv.trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
-  simp only [hG, hH]
+  simv only [hG, hH]
 end
 
 end pgame

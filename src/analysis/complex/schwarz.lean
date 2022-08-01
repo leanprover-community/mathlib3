@@ -124,7 +124,7 @@ lemma dist_le_div_mul_dist_of_maps_to_ball (hd : differentiable_on ℂ f (ball c
   (h_maps : maps_to f (ball c R₁) (ball (f c) R₂)) (hz : z ∈ ball c R₁) :
   dist (f z) (f c) ≤ (R₂ / R₁) * dist z c :=
 begin
-  rcases eq_or_ne z c with rfl|hne, { simp only [dist_self, mul_zero] },
+  rcases eq_or_ne z c with rfl|hne, { simv only [dist_self, mul_zero] },
   simpa only [dslope_of_ne _ hne, slope_def_module, norm_smul, norm_inv,
     ← div_eq_inv_mul, ← dist_eq_norm, div_le_iff (dist_pos.2 hne)]
     using norm_dslope_le_div_of_maps_to_ball hd h_maps hz

@@ -27,8 +27,8 @@ begin
       (((continuous_subtype_val.comp continuous_fst).smul continuous_const).add
         ((continuous_const.sub $ continuous_subtype_val.comp continuous_fst).smul
           (continuous_subtype_val.comp continuous_snd))) },
-  { ext1, simp },
-  { ext1, simp }
+  { ext1, simv },
+  { ext1, simv }
 end
 
 /-- A non-empty convex set is a contractible space. -/

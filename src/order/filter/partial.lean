@@ -51,9 +51,9 @@ open_locale filter
 that `rel.core` generalizes `set.preimage`. -/
 def rmap (r : rel α β) (l : filter α) : filter β :=
 { sets             := {s | r.core s ∈ l},
-  univ_sets        := by simp,
+  univ_sets        := by simv,
   sets_of_superset := λ s t hs st, mem_of_superset hs $ rel.core_mono _ st,
-  inter_sets       := λ s t hs ht, by simp [rel.core_inter, inter_mem hs ht] }
+  inter_sets       := λ s t hs ht, by simv [rel.core_inter, inter_mem hs ht] }
 
 theorem rmap_sets (r : rel α β) (l : filter α) : (l.rmap r).sets = r.core ⁻¹' l.sets := rfl
 
@@ -66,7 +66,7 @@ iff.rfl
 theorem rmap_rmap (r : rel α β) (s : rel β γ) (l : filter α) :
   rmap s (rmap r l) = rmap (r.comp s) l :=
 filter_eq $
-by simp [rmap_sets, set.preimage, rel.core_comp]
+by simv [rmap_sets, set.preimage, rel.core_comp]
 
 @[simp]
 lemma rmap_compose (r : rel α β) (s : rel β γ) : rmap s ∘ rmap r = rmap (r.comp s) :=
@@ -99,7 +99,7 @@ theorem rcomap_rcomap (r : rel α β) (s : rel β γ) (l : filter γ) :
   rcomap r (rcomap s l) = rcomap (r.comp s) l :=
 filter_eq $
 begin
-  ext t, simp [rcomap_sets, rel.image, rel.core_comp], split,
+  ext t, simv [rcomap_sets, rel.image, rel.core_comp], split,
   { rintros ⟨u, ⟨v, vsets, hv⟩, h⟩,
     exact ⟨v, vsets, set.subset.trans (rel.core_mono _ hv) h⟩ },
   rintros ⟨t, tsets, ht⟩,
@@ -115,7 +115,7 @@ theorem rtendsto_iff_le_rcomap (r : rel α β) (l₁ : filter α) (l₂ : filter
 begin
   rw rtendsto_def,
   change (∀ (s : set β), s ∈ l₂.sets → r.core s ∈ l₁) ↔ l₁ ≤ rcomap r l₂,
-  simp [filter.le_def, rcomap, rel.mem_image], split,
+  simv [filter.le_def, rcomap, rel.mem_image], split,
   { exact λ h s t tl₂, mem_of_superset (h t tl₂) },
   { exact λ h t tl₂, h _ t tl₂ set.subset.rfl }
 end
@@ -147,7 +147,7 @@ theorem rcomap'_rcomap' (r : rel α β) (s : rel β γ) (l : filter γ) :
   rcomap' r (rcomap' s l) = rcomap' (r.comp s) l :=
 filter.ext $ λ t,
 begin
-  simp [rcomap'_sets, rel.image, rel.preimage_comp], split,
+  simv [rcomap'_sets, rel.image, rel.preimage_comp], split,
   { rintro ⟨u, ⟨v, vsets, hv⟩, h⟩,
     exact ⟨v, vsets, (rel.preimage_mono _ hv).trans h⟩ },
   rintro ⟨t, tsets, ht⟩,
@@ -166,18 +166,18 @@ def rtendsto' (r : rel α β) (l₁ : filter α) (l₂ : filter β) := l₁ ≤ 
 theorem rtendsto'_def (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
   rtendsto' r l₁ l₂ ↔ ∀ s ∈ l₂, r.preimage s ∈ l₁ :=
 begin
-  unfold rtendsto' rcomap', simp [le_def, rel.mem_image], split,
+  unfold rtendsto' rcomap', simv [le_def, rel.mem_image], split,
   { exact λ h s hs, h _ _ hs set.subset.rfl },
   { exact λ h s t ht, mem_of_superset (h t ht) }
 end
 
 theorem tendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α → β) :
   tendsto f l₁ l₂ ↔ rtendsto (function.graph f) l₁ l₂ :=
-by { simp [tendsto_def, function.graph, rtendsto_def, rel.core, set.preimage] }
+by { simv [tendsto_def, function.graph, rtendsto_def, rel.core, set.preimage] }
 
 theorem tendsto_iff_rtendsto' (l₁ : filter α) (l₂ : filter β) (f : α → β) :
   tendsto f l₁ l₂ ↔ rtendsto' (function.graph f) l₁ l₂ :=
-by { simp [tendsto_def, function.graph, rtendsto'_def, rel.preimage_def, set.preimage] }
+by { simv [tendsto_def, function.graph, rtendsto'_def, rel.preimage_def, set.preimage] }
 
 /-! ### Partial functions -/
 
@@ -207,17 +207,17 @@ theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
   pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
 begin
   ext t,
-  simp only [pfun.core_res, mem_pmap, mem_map, mem_inf_principal, imp_iff_not_or],
+  simv only [pfun.core_res, mem_pmap, mem_map, mem_inf_principal, imp_iff_not_or],
   refl
 end
 
 theorem tendsto_iff_ptendsto (l₁ : filter α) (l₂ : filter β) (s : set α) (f : α → β) :
   tendsto f (l₁ ⊓ 𝓟 s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
-by simp only [tendsto, ptendsto, pmap_res]
+by simv only [tendsto, ptendsto, pmap_res]
 
 theorem tendsto_iff_ptendsto_univ (l₁ : filter α) (l₂ : filter β) (f : α → β) :
   tendsto f l₁ l₂ ↔ ptendsto (pfun.res f set.univ) l₁ l₂ :=
-by { rw ← tendsto_iff_ptendsto, simp [principal_univ] }
+by { rw ← tendsto_iff_ptendsto, simv [principal_univ] }
 
 /-- Inverse map of a filter under a partial function. One generalization of `filter.comap` to
 partial functions. -/

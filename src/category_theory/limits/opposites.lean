@@ -378,13 +378,13 @@ cocone.unop ((cocones.precompose (op_cospan f.unop g.unop).hom).obj
 lemma unop_fst {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   c.unop.fst = c.inl.unop :=
 by { change (_ : limits.cone _).π.app _ = _,
-  simp only [pushout_cocone.ι_app_left, pushout_cocone.unop_π_app], tidy }
+  simv only [pushout_cocone.ι_app_left, pushout_cocone.unop_π_app], tidy }
 
 @[simp]
 lemma unop_snd {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   c.unop.snd = c.inr.unop :=
 by { change (_ : limits.cone _).π.app _ = _,
-  simp only [pushout_cocone.unop_π_app, pushout_cocone.ι_app_right], tidy, }
+  simv only [pushout_cocone.unop_π_app, pushout_cocone.ι_app_right], tidy, }
 
 /-- The obvious map `pushout_cocone f.op g.op → pullback_cone f g` -/
 @[simps (lemmas_only)]
@@ -420,7 +420,7 @@ lemma unop_inl {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone 
 begin
   change ((_ : limits.cocone _).ι.app _) = _,
   dsimp only [unop, op_span],
-  simp, dsimp, simp, dsimp, simp
+  simv, dsimp, simv, dsimp, simv
 end
 
 @[simp]
@@ -429,7 +429,7 @@ lemma unop_inr {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone 
 begin
   change ((_ : limits.cocone _).ι.app _) = _,
   apply quiver.hom.op_inj,
-  simp [unop_ι_app], dsimp, simp,
+  simv [unop_ι_app], dsimp, simv,
   apply category.comp_id,
 end
 
@@ -450,11 +450,11 @@ by { change (_ : limits.cocone _).ι.app _ = _, apply category.id_comp, }
 
 /-- If `c` is a pullback cone, then `c.op.unop` is isomorphic to `c`. -/
 def op_unop {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) : c.op.unop ≅ c :=
-pullback_cone.ext (iso.refl _) (by simp) (by simp)
+pullback_cone.ext (iso.refl _) (by simv) (by simv)
 
 /-- If `c` is a pullback cone in `Cᵒᵖ`, then `c.unop.op` is isomorphic to `c`. -/
 def unop_op {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) : c.unop.op ≅ c :=
-pullback_cone.ext (iso.refl _) (by simp) (by simp)
+pullback_cone.ext (iso.refl _) (by simv) (by simv)
 
 end pullback_cone
 
@@ -462,11 +462,11 @@ namespace pushout_cocone
 
 /-- If `c` is a pushout cocone, then `c.op.unop` is isomorphic to `c`. -/
 def op_unop {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) : c.op.unop ≅ c :=
-pushout_cocone.ext (iso.refl _) (by simp) (by simp)
+pushout_cocone.ext (iso.refl _) (by simv) (by simv)
 
 /-- If `c` is a pushout cocone in `Cᵒᵖ`, then `c.unop.op` is isomorphic to `c`. -/
 def unop_op {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) : c.unop.op ≅ c :=
-pushout_cocone.ext (iso.refl _) (by simp) (by simp)
+pushout_cocone.ext (iso.refl _) (by simv) (by simv)
 
 /-- A pushout cone is a colimit cocone if and only if the corresponding pullback cone
 in the opposite category is a limit cone. -/
@@ -534,21 +534,21 @@ def pullback_iso_unop_pushout {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
   ((pushout_cocone.is_colimit_equiv_is_limit_unop _) (colimit.is_colimit (span f.op g.op)))
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pullback_iso_unop_pushout_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pushout f.op g.op] :
   (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
     (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
-(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simp)
+(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simv)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pullback_iso_unop_pushout_inv_snd {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
     (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
-(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simp)
+(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simv)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pullback_iso_unop_pushout_hom_inl {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   pushout.inl ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.fst.op :=
@@ -558,7 +558,7 @@ begin
   rw [← pullback_iso_unop_pushout_inv_fst, iso.hom_inv_id_assoc],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pullback_iso_unop_pushout_hom_inr {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
@@ -580,19 +580,19 @@ def pushout_iso_unop_pullback {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
 is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
   ((pullback_cone.is_limit_equiv_is_colimit_unop _) (limit.is_limit (cospan f.op g.op)))
 .
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pushout_iso_unop_pullback_inl_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] :
   pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
     (pullback.fst : pullback f.op g.op ⟶ _).unop :=
-(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simp)
+(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simv)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pushout_iso_unop_pullback_inr_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] :
   pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =
     (pullback.snd : pullback f.op g.op ⟶ _).unop :=
-(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simp)
+(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simv)
 
 @[simp]
 lemma pushout_iso_unop_pullback_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)

@@ -74,7 +74,7 @@ lemma frequently_measure_inter_ne_zero (hf : conservative f μ) (hs : measurable
   (h0 : μ s ≠ 0) :
   ∃ᶠ m in at_top, μ (s ∩ (f^[m]) ⁻¹' s) ≠ 0 :=
 begin
-  by_contra H, simp only [not_frequently, eventually_at_top, ne.def, not_not] at H,
+  by_contra H, simv only [not_frequently, eventually_at_top, ne.def, not_not] at H,
   rcases H with ⟨N, hN⟩,
   induction N with N ihN,
   { apply h0, simpa using hN 0 le_rfl },
@@ -113,7 +113,7 @@ lemma measure_mem_forall_ge_image_not_mem_eq_zero (hf : conservative f μ) (hs :
 begin
   by_contradiction H,
   have : measurable_set (s ∩ {x | ∀ m ≥ n, f^[m] x ∉ s}),
-  { simp only [set_of_forall, ← compl_set_of],
+  { simv only [set_of_forall, ← compl_set_of],
     exact hs.inter (measurable_set.bInter (to_countable _)
       (λ m _, hf.measurable.iterate m hs.compl)) },
   rcases (hf.exists_gt_measure_inter_ne_zero this H) n with ⟨m, hmn, hm⟩,
@@ -126,10 +126,10 @@ almost every point `x ∈ s` returns back to `s` infinitely many times. -/
 lemma ae_mem_imp_frequently_image_mem (hf : conservative f μ) (hs : measurable_set s) :
   ∀ᵐ x ∂μ, x ∈ s → ∃ᶠ n in at_top, (f^[n] x) ∈ s :=
 begin
-  simp only [frequently_at_top, @forall_swap (_ ∈ s), ae_all_iff],
+  simv only [frequently_at_top, @forall_swap (_ ∈ s), ae_all_iff],
   intro n,
   filter_upwards [measure_zero_iff_ae_nmem.1 (hf.measure_mem_forall_ge_image_not_mem_eq_zero hs n)],
-  simp,
+  simv,
 end
 
 lemma inter_frequently_image_mem_ae_eq (hf : conservative f μ) (hs : measurable_set s) :

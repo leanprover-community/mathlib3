@@ -110,7 +110,7 @@ lemma is_symm.from_blocks
   (hA : A.is_symm) (hBC : Bᵀ = C) (hD : D.is_symm) :
   (A.from_blocks B C D).is_symm :=
 begin
-  have hCB : Cᵀ = B, {rw ← hBC, simp},
+  have hCB : Cᵀ = B, {rw ← hBC, simv},
   unfold matrix.is_symm,
   rw from_blocks_transpose,
   congr;

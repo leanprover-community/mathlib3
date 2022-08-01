@@ -145,16 +145,16 @@ def simps.coe (S : submonoid M) : set M := S
 initialize_simps_projections submonoid (carrier → coe)
 initialize_simps_projections add_submonoid (carrier → coe)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_mk {s : set M} {x : M} (h_one) (h_mul) : x ∈ mk s h_one h_mul ↔ x ∈ s := iff.rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_set_mk {s : set M} (h_one) (h_mul) : (mk s h_one h_mul : set M) = s := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mk_le_mk {s t : set M} (h_one) (h_mul) (h_one') (h_mul') :
   mk s h_one h_mul ≤ mk t h_one' h_mul' ↔ s ⊆ t := iff.rfl
 
@@ -172,7 +172,7 @@ protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 
 variable {S : submonoid M}
 
-@[simp, to_additive] lemma coe_copy {s : set M} (hs : s = S) :
+@[simv, to_additive] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
 
 @[to_additive] lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
@@ -200,18 +200,18 @@ instance : has_top (submonoid M) :=
 instance : has_bot (submonoid M) :=
 ⟨{ carrier := {1},
    one_mem' := set.mem_singleton 1,
-   mul_mem' := λ a b ha hb, by { simp only [set.mem_singleton_iff] at *, rw [ha, hb, mul_one] }}⟩
+   mul_mem' := λ a b ha hb, by { simv only [set.mem_singleton_iff] at *, rw [ha, hb, mul_one] }}⟩
 
 @[to_additive]
 instance : inhabited (submonoid M) := ⟨⊥⟩
 
-@[simp, to_additive] lemma mem_bot {x : M} : x ∈ (⊥ : submonoid M) ↔ x = 1 := set.mem_singleton_iff
+@[simv, to_additive] lemma mem_bot {x : M} : x ∈ (⊥ : submonoid M) ↔ x = 1 := set.mem_singleton_iff
 
-@[simp, to_additive] lemma mem_top (x : M) : x ∈ (⊤ : submonoid M) := set.mem_univ x
+@[simv, to_additive] lemma mem_top (x : M) : x ∈ (⊤ : submonoid M) := set.mem_univ x
 
-@[simp, to_additive] lemma coe_top : ((⊤ : submonoid M) : set M) = set.univ := rfl
+@[simv, to_additive] lemma coe_top : ((⊤ : submonoid M) : set M) = set.univ := rfl
 
-@[simp, to_additive] lemma coe_bot : ((⊥ : submonoid M) : set M) = {1} := rfl
+@[simv, to_additive] lemma coe_bot : ((⊥ : submonoid M) : set M) = {1} := rfl
 
 /-- The inf of two submonoids is their intersection. -/
 @[to_additive "The inf of two `add_submonoid`s is their intersection."]
@@ -222,10 +222,10 @@ instance : has_inf (submonoid M) :=
     mul_mem' := λ _ _ ⟨hx, hx'⟩ ⟨hy, hy'⟩,
       ⟨S₁.mul_mem hx hy, S₂.mul_mem hx' hy'⟩ }⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_inf (p p' : submonoid M) : ((p ⊓ p' : submonoid M) : set M) = p ∩ p' := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 @[to_additive]
@@ -236,7 +236,7 @@ instance : has_Inf (submonoid M) :=
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
     i.mul_mem (by apply set.mem_Inter₂.1 hx i h) (by apply set.mem_Inter₂.1 hy i h) }⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_Inf (S : set (submonoid M)) : ((Inf S : submonoid M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
 @[to_additive]
@@ -244,11 +244,11 @@ lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x �
 
 @[to_additive]
 lemma mem_infi {ι : Sort*} {S : ι → submonoid M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
-by simp only [infi, mem_Inf, set.forall_range_iff]
+by simv only [infi, mem_Inf, set.forall_range_iff]
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_infi {ι : Sort*} {S : ι → submonoid M} : (↑(⨅ i, S i) : set M) = ⋂ i, S i :=
-by simp only [infi, coe_Inf, set.bInter_range]
+by simv only [infi, coe_Inf, set.bInter_range]
 
 /-- Submonoids of a monoid form a complete lattice. -/
 @[to_additive "The `add_submonoid`s of an `add_monoid` form a complete lattice."]
@@ -268,14 +268,14 @@ instance : complete_lattice (submonoid M) :=
     is_glb.of_image (λ S T,
       show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma subsingleton_iff : subsingleton (submonoid M) ↔ subsingleton M :=
 ⟨ λ h, by exactI ⟨λ x y,
     have ∀ i : M, i = 1 := λ i, mem_bot.mp $ subsingleton.elim (⊤ : submonoid M) ⊥ ▸ mem_top i,
     (this x).trans (this y).symm⟩,
-  λ h, by exactI ⟨λ x y, submonoid.ext $ λ i, subsingleton.elim 1 i ▸ by simp [submonoid.one_mem]⟩⟩
+  λ h, by exactI ⟨λ x y, submonoid.ext $ λ i, subsingleton.elim 1 i ▸ by simv [submonoid.one_mem]⟩⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma nontrivial_iff : nontrivial (submonoid M) ↔ nontrivial M :=
 not_iff_not.mp (
   (not_nontrivial_iff_subsingleton.trans subsingleton_iff).trans
@@ -297,7 +297,7 @@ lemma mem_closure {x : M} : x ∈ closure s ↔ ∀ S : submonoid M, s ⊆ S →
 mem_Inf
 
 /-- The submonoid generated by a set includes the set. -/
-@[simp, to_additive "The `add_submonoid` generated by a set includes the set."]
+@[simv, to_additive "The `add_submonoid` generated by a set includes the set."]
 lemma subset_closure : s ⊆ closure s := λ x hx, mem_closure.2 $ λ S hS, hS hx
 
 @[to_additive]
@@ -307,7 +307,7 @@ variable {S}
 open set
 
 /-- A submonoid `S` includes `closure s` if and only if it includes `s`. -/
-@[simp, to_additive "An additive submonoid `S` includes `closure s` if and only if it includes `s`"]
+@[simv, to_additive "An additive submonoid `S` includes `closure s` if and only if it includes `s`"]
 lemma closure_le : closure s ≤ S ↔ s ⊆ S :=
 ⟨subset.trans subset_closure, λ h, Inf_le h⟩
 
@@ -387,13 +387,13 @@ protected def gi : galois_insertion (@closure M _) coe :=
 variable {M}
 
 /-- Closure of a submonoid `S` equals `S`. -/
-@[simp, to_additive "Additive closure of an additive submonoid `S` equals `S`"]
+@[simv, to_additive "Additive closure of an additive submonoid `S` equals `S`"]
 lemma closure_eq : closure (S : set M) = S := (submonoid.gi M).l_u_eq S
 
-@[simp, to_additive] lemma closure_empty : closure (∅ : set M) = ⊥ :=
+@[simv, to_additive] lemma closure_empty : closure (∅ : set M) = ⊥ :=
 (submonoid.gi M).gc.l_bot
 
-@[simp, to_additive] lemma closure_univ : closure (univ : set M) = ⊤ :=
+@[simv, to_additive] lemma closure_univ : closure (univ : set M) = ⊤ :=
 @coe_top M _ ▸ closure_eq ⊤
 
 @[to_additive]
@@ -404,7 +404,7 @@ lemma closure_union (s t : set M) : closure (s ∪ t) = closure s ⊔ closure t 
 lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (submonoid.gi M).gc.l_supr
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma closure_singleton_le_iff_mem (m : M) (p : submonoid M) :
   closure {m} ≤ p ↔ m ∈ p :=
 by rw [closure_le, singleton_subset_iff, set_like.mem_coe]
@@ -414,7 +414,7 @@ lemma mem_supr {ι : Sort*} (p : ι → submonoid M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
 begin
   rw [← closure_singleton_le_iff_mem, le_supr_iff],
-  simp only [closure_singleton_le_iff_mem],
+  simv only [closure_singleton_le_iff_mem],
 end
 
 @[to_additive]
@@ -425,7 +425,7 @@ by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
 @[to_additive]
 lemma disjoint_def {p₁ p₂ : submonoid M} :
   disjoint p₁ p₂ ↔ ∀ {x : M}, x ∈ p₁ → x ∈ p₂ → x = 1 :=
-show (∀ x, x ∈ p₁ ∧ x ∈ p₂ → x ∈ ({1} : set M)) ↔ _, by simp
+show (∀ x, x ∈ p₁ ∧ x ∈ p₂ → x ∈ ({1} : set M)) ↔ _, by simv
 
 @[to_additive]
 lemma disjoint_def' {p₁ p₂ : submonoid M} :
@@ -446,7 +446,7 @@ open submonoid
 def eq_mlocus (f g : M →* N) : submonoid M :=
 { carrier := {x | f x = g x},
   one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
-  mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
+  mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simv [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
 @[to_additive]
@@ -479,7 +479,7 @@ section is_unit
 @[to_additive "The additive submonoid consisting of the additive units of an additive monoid"]
 def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
 { carrier := set_of is_unit,
-  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
+  one_mem' := by simv only [is_unit_one, set.mem_set_of_eq],
   mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
 
 @[to_additive]
@@ -505,15 +505,15 @@ def of_mdense {M N} [monoid M] [monoid N] {s : set M} (f : M → N) (hs : closur
   M →* N :=
 { to_fun := f,
   map_one' := h1,
-  map_mul' := λ x y, dense_induction y hs (λ y hy x, hmul x y hy) (by simp [h1])
-    (λ y₁ y₂ h₁ h₂ x, by simp only [← mul_assoc, h₁, h₂]) x }
+  map_mul' := λ x y, dense_induction y hs (λ y hy x, hmul x y hy) (by simv [h1])
+    (λ y₁ y₂ h₁ h₂ x, by simv only [← mul_assoc, h₁, h₂]) x }
 
 /-- Let `s` be a subset of an additive monoid `M` such that the closure of `s` is the whole monoid.
 Then `add_monoid_hom.of_mdense` defines an additive monoid homomorphism from `M` asking for a proof
 of `f (x + y) = f x + f y` only for `y ∈ s`. -/
 add_decl_doc add_monoid_hom.of_mdense
 
-@[simp, norm_cast, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
+@[simv, norm_cast, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
   ⇑(of_mdense f hs h1 hmul) = f := rfl
 
 end monoid_hom

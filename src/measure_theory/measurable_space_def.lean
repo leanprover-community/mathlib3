@@ -131,7 +131,7 @@ measurable_set.sUnion hs.countable h
 
 lemma measurable_set.Union_Prop {p : Prop} {f : p → set α} (hf : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=
-by { by_cases p; simp [h, hf, measurable_set.empty] }
+by { by_cases p; simv [h, hf, measurable_set.empty] }
 
 lemma measurable_set.Inter [encodable β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋂ b, f b) :=
@@ -175,7 +175,7 @@ measurable_set.sInter hs.countable h
 
 lemma measurable_set.Inter_Prop {p : Prop} {f : p → set α} (hf : ∀ b, measurable_set (f b)) :
   measurable_set (⋂ b, f b) :=
-by { by_cases p; simp [h, hf, measurable_set.univ] }
+by { by_cases p; simv [h, hf, measurable_set.univ] }
 
 @[simp] lemma measurable_set.union {s₁ s₂ : set α} (h₁ : measurable_set s₁)
   (h₂ : measurable_set s₂) :
@@ -211,7 +211,7 @@ by { cases i, exacts [h₂, h₁] }
 disjointed_rec (λ t i ht, measurable_set.diff ht $ h _) (h n)
 
 @[simp] lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
-by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }
+by { by_cases p; simv [h, measurable_set.empty]; apply measurable_set.univ }
 
 /-- Every set has a measurable superset. Declare this as local instance as needed. -/
 lemma nonempty_measurable_superset (s : set α) : nonempty { t // s ⊆ t ∧ measurable_set t} :=
@@ -237,7 +237,7 @@ class measurable_singleton_class (α : Type*) [measurable_space α] : Prop :=
 
 export measurable_singleton_class (measurable_set_singleton)
 
-attribute [simp] measurable_set_singleton
+attribute [simv] measurable_set_singleton
 
 section measurable_singleton_class
 
@@ -395,14 +395,14 @@ lemma measurable_set_bot_iff {s : set α} : @measurable_set α ⊥ s ↔ (s = �
 let b : measurable_space α :=
 { measurable_set'      := λ s, s = ∅ ∨ s = univ,
   measurable_set_empty := or.inl rfl,
-  measurable_set_compl := by simp [or_imp_distrib] {contextual := tt},
+  measurable_set_compl := by simv [or_imp_distrib] {contextual := tt},
   measurable_set_Union := assume f hf, classical.by_cases
     (assume h : ∃i, f i = univ,
       let ⟨i, hi⟩ := h in
       or.inr $ eq_univ_of_univ_subset $ hi ▸ le_supr f i)
     (assume h : ¬ ∃i, f i = univ,
       or.inl $ eq_empty_of_subset_empty $ Union_subset $ assume i,
-        (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
+        (hf i).elim (by simv {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
 have b = ⊥, from bot_unique $ assume s hs,
   hs.elim (λ s, s.symm ▸ @measurable_set_empty _ ⊥) (λ s, s.symm ▸ @measurable_set.univ _ ⊥),
 this ▸ iff.rfl
@@ -415,7 +415,7 @@ iff.rfl
 
 @[simp] theorem measurable_set_Inf {ms : set (measurable_space α)} {s : set α} :
   @measurable_set _ (Inf ms) s ↔ ∀ m ∈ ms, @measurable_set _ m s :=
-show s ∈ (⋂₀ _) ↔ _, by simp
+show s ∈ (⋂₀ _) ↔ _, by simv
 
 @[simp] theorem measurable_set_infi {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (infi m) s ↔ ∀ i, @measurable_set _ (m i) s :=
@@ -430,13 +430,13 @@ theorem measurable_set_Sup {ms : set (measurable_space α)} {s : set α} :
     generate_measurable {s : set α | ∃ m ∈ ms, measurable_set[m] s} s :=
 begin
   change @measurable_set' _ (generate_from $ ⋃₀ _) _ ↔ _,
-  simp [generate_from, ← set_of_exists]
+  simv [generate_from, ← set_of_exists]
 end
 
 theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (supr m) s ↔
     generate_measurable {s : set α | ∃ i, measurable_set[m i] s} s :=
-by simp only [supr, measurable_set_Sup, exists_range_iff]
+by simv only [supr, measurable_set_Sup, exists_range_iff]
 
 end complete_lattice
 

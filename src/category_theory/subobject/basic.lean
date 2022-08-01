@@ -157,7 +157,7 @@ instance arrow_mono {X : C} (Y : subobject X) : mono (Y.arrow) :=
 @[simp]
 lemma arrow_congr {A : C} (X Y : subobject A) (h : X = Y) :
   eq_to_hom (congr_arg (λ X : subobject A, (X : C)) h) ≫ Y.arrow = X.arrow :=
-by { induction h, simp, }
+by { induction h, simv, }
 
 @[simp]
 lemma representative_coe (Y : subobject X) :
@@ -169,17 +169,17 @@ lemma representative_arrow (Y : subobject X) :
   (representative.obj Y).arrow = Y.arrow :=
 rfl
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma underlying_iso_hom_comp_eq_mk {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).hom ≫ f = (mk f).arrow :=
 (iso.eq_inv_comp _).1 (underlying_iso_arrow f).symm
@@ -205,15 +205,15 @@ end
 
 lemma le_of_comm {B : C} {X Y : subobject B} (f : (X : C) ⟶ (Y : C)) (w : f ≫ Y.arrow = X.arrow) :
   X ≤ Y :=
-by convert mk_le_mk_of_comm _ w; simp
+by convert mk_le_mk_of_comm _ w; simv
 
 lemma le_mk_of_comm {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (g : (X : C) ⟶ A)
   (w : g ≫ f = X.arrow) : X ≤ mk f :=
-le_of_comm (g ≫ (underlying_iso f).inv) $ by simp [w]
+le_of_comm (g ≫ (underlying_iso f).inv) $ by simv [w]
 
 lemma mk_le_of_comm {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (g : A ⟶ (X : C))
   (w : g ≫ X.arrow = f) : mk f ≤ X :=
-le_of_comm ((underlying_iso f).hom ≫ g) $ by simp [w]
+le_of_comm ((underlying_iso f).hom ≫ g) $ by simv [w]
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
@@ -225,7 +225,7 @@ le_antisymm (le_of_comm f.hom w) $ le_of_comm f.inv $ f.inv_comp_eq.2 w.symm
     the arrows. -/
 @[ext] lemma eq_mk_of_comm {B A : C} {X : subobject B} (f : A ⟶ B) [mono f] (i : (X : C) ≅ A)
   (w : i.hom ≫ f = X.arrow) : X = mk f :=
-eq_of_comm (i.trans (underlying_iso f).symm) $ by simp [w]
+eq_of_comm (i.trans (underlying_iso f).symm) $ by simv [w]
 
 /-- To show that two subobjects are equal, it suffices to exhibit an isomorphism commuting with
     the arrows. -/
@@ -237,7 +237,7 @@ eq.symm $ eq_mk_of_comm _ i.symm $ by rw [iso.symm_hom, iso.inv_comp_eq, w]
     the arrows. -/
 @[ext] lemma mk_eq_mk_of_comm {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mono g]
   (i : A₁ ≅ A₂) (w : i.hom ≫ g = f) : mk f = mk g :=
-eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
+eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simv [w]
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
 -- We make `X` and `Y` explicit arguments here so that when `of_le` appears in goal statements
@@ -246,7 +246,7 @@ eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
 def of_le {B : C} (X Y : subobject B) (h : X ≤ Y) : (X : C) ⟶ (Y : C) :=
 underlying.map $ h.hom
 
-@[simp, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
+@[simv, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
   of_le X Y h ≫ Y.arrow = X.arrow :=
 underlying_arrow _
 
@@ -262,7 +262,7 @@ end
 lemma of_le_mk_le_mk_of_comm
   {B A₁ A₂ : C} {f₁ : A₁ ⟶ B} {f₂ : A₂ ⟶ B} [mono f₁] [mono f₂] (g : A₁ ⟶ A₂) (w : g ≫ f₂ = f₁) :
   of_le _ _ (mk_le_mk_of_comm g w) = (underlying_iso _).hom ≫ g ≫ (underlying_iso _).inv :=
-by { ext, simp [w], }
+by { ext, simv [w], }
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
 @[derive mono]
@@ -271,7 +271,7 @@ of_le X (mk f) h ≫ (underlying_iso f).hom
 
 @[simp] lemma of_le_mk_comp {B A : C} {X : subobject B} {f : A ⟶ B} [mono f] (h : X ≤ mk f) :
   of_le_mk X f h ≫ f = X.arrow :=
-by simp [of_le_mk]
+by simv [of_le_mk]
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
 @[derive mono]
@@ -280,7 +280,7 @@ def of_mk_le {B A : C} (f : A ⟶ B) [mono f] (X : subobject B) (h : mk f ≤ X)
 
 @[simp] lemma of_mk_le_arrow {B A : C} {f : A ⟶ B} [mono f] {X : subobject B} (h : mk f ≤ X) :
   of_mk_le f X h ≫ X.arrow = f :=
-by simp [of_mk_le]
+by simv [of_mk_le]
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
 @[derive mono]
@@ -290,53 +290,53 @@ def of_mk_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mo
 
 @[simp] lemma of_mk_le_mk_comp {B A₁ A₂ : C} {f : A₁ ⟶ B} {g : A₂ ⟶ B} [mono f] [mono g]
   (h : mk f ≤ mk g) : of_mk_le_mk f g h ≫ g = f :=
-by simp [of_mk_le_mk]
+by simv [of_mk_le_mk]
 
-@[simp, reassoc] lemma of_le_comp_of_le {B : C} (X Y Z : subobject B) (h₁ : X ≤ Y) (h₂ : Y ≤ Z) :
+@[simv, reassoc] lemma of_le_comp_of_le {B : C} (X Y Z : subobject B) (h₁ : X ≤ Y) (h₂ : Y ≤ Z) :
   of_le X Y h₁ ≫ of_le Y Z h₂ = of_le X Z (h₁.trans h₂) :=
-by simp [of_le, ←functor.map_comp underlying]
+by simv [of_le, ←functor.map_comp underlying]
 
-@[simp, reassoc] lemma of_le_comp_of_le_mk {B A : C} (X Y : subobject B) (f : A ⟶ B) [mono f]
+@[simv, reassoc] lemma of_le_comp_of_le_mk {B A : C} (X Y : subobject B) (f : A ⟶ B) [mono f]
   (h₁ : X ≤ Y) (h₂ : Y ≤ mk f) : of_le X Y h₁ ≫ of_le_mk Y f h₂ = of_le_mk X f (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, ←functor.map_comp_assoc underlying]
+by simv [of_mk_le, of_le_mk, of_le, ←functor.map_comp_assoc underlying]
 
-@[simp, reassoc] lemma of_le_mk_comp_of_mk_le {B A : C} (X : subobject B) (f : A ⟶ B) [mono f]
+@[simv, reassoc] lemma of_le_mk_comp_of_mk_le {B A : C} (X : subobject B) (f : A ⟶ B) [mono f]
   (Y : subobject B) (h₁ : X ≤ mk f) (h₂ : mk f ≤ Y) :
   of_le_mk X f h₁ ≫ of_mk_le f Y h₂ = of_le X Y (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, ←functor.map_comp underlying]
+by simv [of_mk_le, of_le_mk, of_le, ←functor.map_comp underlying]
 
-@[simp, reassoc] lemma of_le_mk_comp_of_mk_le_mk {B A₁ A₂ : C} (X : subobject B) (f : A₁ ⟶ B)
+@[simv, reassoc] lemma of_le_mk_comp_of_mk_le_mk {B A₁ A₂ : C} (X : subobject B) (f : A₁ ⟶ B)
   [mono f] (g : A₂ ⟶ B) [mono g] (h₁ : X ≤ mk f) (h₂ : mk f ≤ mk g) :
   of_le_mk X f h₁ ≫ of_mk_le_mk f g h₂ = of_le_mk X g (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
+by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
-@[simp, reassoc] lemma of_mk_le_comp_of_le {B A₁ : C} (f : A₁ ⟶ B) [mono f] (X Y : subobject B)
+@[simv, reassoc] lemma of_mk_le_comp_of_le {B A₁ : C} (f : A₁ ⟶ B) [mono f] (X Y : subobject B)
   (h₁ : mk f ≤ X) (h₂ : X ≤ Y) :
   of_mk_le f X h₁ ≫ of_le X Y h₂ = of_mk_le f Y (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
+by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 
-@[simp, reassoc] lemma of_mk_le_comp_of_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (X : subobject B)
+@[simv, reassoc] lemma of_mk_le_comp_of_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (X : subobject B)
   (g : A₂ ⟶ B) [mono g] (h₁ : mk f ≤ X) (h₂ : X ≤ mk g) :
   of_mk_le f X h₁ ≫ of_le_mk X g h₂ = of_mk_le_mk f g (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
+by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
-@[simp, reassoc] lemma of_mk_le_mk_comp_of_mk_le {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (g : A₂ ⟶ B)
+@[simv, reassoc] lemma of_mk_le_mk_comp_of_mk_le {B A₁ A₂ : C} (f : A₁ ⟶ B) [mono f] (g : A₂ ⟶ B)
   [mono g] (X : subobject B) (h₁ : mk f ≤ mk g) (h₂ : mk g ≤ X) :
   of_mk_le_mk f g h₁ ≫ of_mk_le g X h₂ = of_mk_le f X (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
+by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 
-@[simp, reassoc] lemma of_mk_le_mk_comp_of_mk_le_mk {B A₁ A₂ A₃ : C} (f : A₁ ⟶ B) [mono f]
+@[simv, reassoc] lemma of_mk_le_mk_comp_of_mk_le_mk {B A₁ A₂ A₃ : C} (f : A₁ ⟶ B) [mono f]
   (g : A₂ ⟶ B) [mono g] (h : A₃ ⟶ B) [mono h] (h₁ : mk f ≤ mk g) (h₂ : mk g ≤ mk h) :
   of_mk_le_mk f g h₁ ≫ of_mk_le_mk g h h₂ = of_mk_le_mk f h (h₁.trans h₂) :=
-by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
+by simv [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
 @[simp] lemma of_le_refl {B : C} (X : subobject B) :
   of_le X X le_rfl = 𝟙 _ :=
-by { apply (cancel_mono X.arrow).mp, simp }
+by { apply (cancel_mono X.arrow).mp, simv }
 
 @[simp] lemma of_mk_le_mk_refl {B A₁ : C} (f : A₁ ⟶ B) [mono f] :
   of_mk_le_mk f f le_rfl = 𝟙 _ :=
-by { apply (cancel_mono f).mp, simp }
+by { apply (cancel_mono f).mp, simv }
 
 /-- An equality of subobjects gives an isomorphism of the corresponding objects.
 (One could use `underlying.map_iso (eq_to_iso h))` here, but this is more readable.) -/
@@ -484,7 +484,7 @@ lower_equivalence (mono_over.map_iso e)
 /-- In fact, there's a type level bijection between the subobjects of isomorphic objects,
 which preserves the order. -/
 -- @[simps] here generates a lemma `map_iso_to_order_iso_to_equiv_symm_apply`
--- whose left hand side is not in simp normal form.
+-- whose left hand side is not in simv normal form.
 def map_iso_to_order_iso (e : X ≅ Y) : subobject X ≃o subobject Y :=
 { to_fun := (map e.hom).obj,
   inv_fun := (map e.inv).obj,

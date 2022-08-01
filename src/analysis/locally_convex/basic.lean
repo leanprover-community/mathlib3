@@ -77,7 +77,7 @@ lemma absorbs_Union_finset {ι : Type*} {t : finset ι} {f : ι → set E} :
 begin
   classical,
   induction t using finset.induction_on with i t ht hi,
-  { simp only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
+  { simv only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
       is_empty.forall_iff, implies_true_iff] },
   rw [finset.set_bUnion_insert, absorbs_union, hi],
   split; intro h,
@@ -90,7 +90,7 @@ lemma set.finite.absorbs_Union {ι : Type*} {s : set E} {t : set ι} {f : ι →
   absorbs 𝕜 s (⋃ i ∈ t, f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
 begin
   lift t to finset ι using hi,
-  simp only [finset.mem_coe],
+  simv only [finset.mem_coe],
   exact absorbs_Union_finset,
 end
 
@@ -250,11 +250,11 @@ begin
   split; intro h'; [rw ←inv_mul_cancel_right₀ ha b, rw ←inv_mul_cancel_right₀ hb a];
   { rw [←smul_eq_mul, smul_assoc],
     refine hs.smul_mem _ h',
-    simp [←h, ha] }
+    simv [←h, ha] }
 end
 
 lemma balanced.neg_mem_iff (hs : balanced 𝕜 s) : -x ∈ s ↔ x ∈ s :=
-by convert hs.mem_smul_iff (norm_neg 1); simp only [neg_smul, one_smul]
+by convert hs.mem_smul_iff (norm_neg 1); simv only [neg_smul, one_smul]
 
 lemma absorbs.inter (hs : absorbs 𝕜 s u) (ht : absorbs 𝕜 t u) : absorbs 𝕜 (s ∩ t) u :=
 begin

@@ -52,9 +52,9 @@ theorem factorial_ne_zero (n : ℕ) : n! ≠ 0 := ne_of_gt (factorial_pos _)
 theorem factorial_dvd_factorial {m n} (h : m ≤ n) : m! ∣ n! :=
 begin
   induction n with n IH,
-  { simp [nat.eq_zero_of_le_zero h] },
+  { simv [nat.eq_zero_of_le_zero h] },
   obtain rfl | hl := h.eq_or_lt,
-  { simp },
+  { simv },
   exact (IH (le_of_lt_succ hl)).mul_left _,
 end
 
@@ -65,7 +65,7 @@ theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
 le_of_dvd (factorial_pos _) (factorial_dvd_factorial h)
 
 lemma factorial_mul_pow_le_factorial : ∀ {m n : ℕ}, m! * m.succ ^ n ≤ (m + n)!
-| m 0     := by simp
+| m 0     := by simv
 | m (n+1) :=
 by  rw [← add_assoc, nat.factorial_succ, mul_comm (nat.succ _), pow_succ', ← mul_assoc];
   exact mul_le_mul factorial_mul_pow_le_factorial
@@ -301,7 +301,7 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
 | (succ n) := by rw [succ_desc_factorial_succ, desc_factorial_self, factorial_succ]
 
 @[simp] lemma desc_factorial_eq_zero_iff_lt {n : ℕ} : ∀ {k : ℕ}, n.desc_factorial k = 0 ↔ n < k
-| 0        := by simp only [desc_factorial_zero, nat.one_ne_zero, nat.not_lt_zero]
+| 0        := by simv only [desc_factorial_zero, nat.one_ne_zero, nat.not_lt_zero]
 | (succ k) := begin
   rw [desc_factorial_succ, mul_eq_zero, desc_factorial_eq_zero_iff_lt, lt_succ_iff,
     tsub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],

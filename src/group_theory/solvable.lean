@@ -64,7 +64,7 @@ lemma map_derived_series_le_derived_series (n : ℕ) :
 begin
   induction n with n ih,
   { exact le_top },
-  { simp only [derived_series_succ, map_commutator, commutator_mono, ih] }
+  { simv only [derived_series_succ, map_commutator, commutator_mono, ih] }
 end
 
 variables {f}
@@ -113,7 +113,7 @@ lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :
 
 @[priority 100]
 instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
-is_solvable_of_top_eq_bot G (by ext; simp at *)
+is_solvable_of_top_eq_bot G (by ext; simv at *)
 
 variables {G}
 

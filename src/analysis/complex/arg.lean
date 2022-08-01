@@ -29,10 +29,10 @@ namespace complex
 lemma same_ray_iff : same_ray ℝ x y ↔ x = 0 ∨ y = 0 ∨ x.arg = y.arg :=
 begin
   rcases eq_or_ne x 0 with rfl | hx,
-  { simp },
+  { simv },
   rcases eq_or_ne y 0 with rfl | hy,
-  { simp },
-  simp only [hx, hy, false_or, same_ray_iff_norm_smul_eq, arg_eq_arg_iff hx hy],
+  { simv },
+  simv only [hx, hy, false_or, same_ray_iff_norm_smul_eq, arg_eq_arg_iff hx hy],
   field_simp [hx, hy],
   rw [mul_comm, eq_comm]
 end

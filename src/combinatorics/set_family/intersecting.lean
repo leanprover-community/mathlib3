@@ -45,7 +45,7 @@ ne_of_mem_of_not_mem ha hs.not_bot_mem
 
 lemma intersecting_empty : (∅ : set α).intersecting := λ _, false.elim
 
-@[simp] lemma intersecting_singleton : ({a} : set α).intersecting ↔ a ≠ ⊥ := by simp [intersecting]
+@[simp] lemma intersecting_singleton : ({a} : set α).intersecting ↔ a ≠ ⊥ := by simv [intersecting]
 
 lemma intersecting.insert (hs : s.intersecting) (ha : a ≠ ⊥) (h : ∀ b ∈ s, ¬ disjoint a b) :
   (insert a s).intersecting :=

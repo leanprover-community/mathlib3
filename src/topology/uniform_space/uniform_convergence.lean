@@ -78,7 +78,7 @@ In other words: one knows nothing about the behavior of `x` in this limit beside
 -/
 lemma tendsto_uniformly_on_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} {s : set α} :
   tendsto_uniformly_on F f p s ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ 𝓟 s) (𝓤 β) :=
-forall₂_congr $ λ u u_in, by simp [mem_map, filter.eventually, mem_prod_principal]
+forall₂_congr $ λ u u_in, by simv [mem_map, filter.eventually, mem_prod_principal]
 
 /-- A sequence of functions `Fₙ` converges uniformly to a limiting function `f` with respect to a
 filter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually
@@ -88,7 +88,7 @@ def tendsto_uniformly (F : ι → α → β) (f : α → β) (p : filter ι) :=
 
 lemma tendsto_uniformly_on_iff_tendsto_uniformly_comp_coe :
   tendsto_uniformly_on F f p s ↔ tendsto_uniformly (λ i (x : s), F i x) (f ∘ coe) p :=
-forall₂_congr $ λ V hV, by simp
+forall₂_congr $ λ V hV, by simv
 
 /--
 A sequence of functions `Fₙ` converges uniformly to a limiting function `f` w.r.t.
@@ -97,7 +97,7 @@ In other words: one knows nothing about the behavior of `x` in this limit.
 -/
 lemma tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : filter ι} :
   tendsto_uniformly F f p ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ ⊤) (𝓤 β) :=
-forall₂_congr $ λ u u_in, by simp [mem_map, filter.eventually, mem_prod_top]
+forall₂_congr $ λ u u_in, by simv [mem_map, filter.eventually, mem_prod_top]
 
 /-- Uniform converence implies pointwise convergence. -/
 lemma tendsto_uniformly.tendsto_at (h : tendsto_uniformly F f p) (x : α) :
@@ -106,7 +106,7 @@ uniform.tendsto_nhds_right.mpr $ λ u hu, mem_map.mpr $ by { filter_upwards [h u
 
 lemma tendsto_uniformly_on_univ :
   tendsto_uniformly_on F f p univ ↔ tendsto_uniformly F f p :=
-by simp [tendsto_uniformly_on, tendsto_uniformly]
+by simv [tendsto_uniformly_on, tendsto_uniformly]
 
 lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
@@ -197,7 +197,7 @@ by rw [←principal_univ, ←tendsto_uniformly_on_univ, ←tendsto_prod_principa
 /-- Uniform convergence on the empty set is vacuously true -/
 lemma tendsto_uniformly_on_empty :
   tendsto_uniformly_on F f p ∅ :=
-λ u hu, by simp
+λ u hu, by simv
 
 /-- Uniform convergence on a singleton is equivalent to regular convergence -/
 lemma tendsto_uniformly_on_singleton_iff_tendsto :
@@ -223,13 +223,13 @@ begin
       show (λ q : α × β, (F x q.2, F q.1 q.2)) = prod.map ↿F ↿F ∘ φ, by { ext ; simpa }],
   apply hF.comp (tendsto_inf.mpr ⟨_, _⟩),
   { rw [uniformity_prod, tendsto_inf, tendsto_comap_iff, tendsto_comap_iff,
-      show (λp : (α × β) × α × β, (p.1.1, p.2.1)) ∘ φ = (λa, (x, a)) ∘ prod.fst, by { ext, simp },
-      show (λp : (α × β) × α × β, (p.1.2, p.2.2)) ∘ φ = (λb, (b, b)) ∘ prod.snd, by { ext, simp }],
+      show (λp : (α × β) × α × β, (p.1.1, p.2.1)) ∘ φ = (λa, (x, a)) ∘ prod.fst, by { ext, simv },
+      show (λp : (α × β) × α × β, (p.1.2, p.2.2)) ∘ φ = (λb, (b, b)) ∘ prod.snd, by { ext, simv }],
     exact ⟨tendsto_left_nhds_uniformity.comp tendsto_fst,
            (tendsto_diag_uniformity id ⊤).comp tendsto_top⟩ },
   { rw tendsto_principal,
     apply mem_of_superset (prod_mem_prod hU (mem_top.mpr rfl)) (λ q h, _),
-    simp [h.1, mem_of_mem_nhds hU] }
+    simv [h.1, mem_of_mem_nhds hU] }
 end
 
 lemma uniform_continuous₂.tendsto_uniformly [uniform_space α] [uniform_space γ]
@@ -345,7 +345,7 @@ begin
   rw tendsto_uniformly_on_iff_tendsto at h,
   have : ((λ (q : ι × α), (f q.snd, F q.fst q.snd)) ∘ u)
     = (λ (q : ℕ × α), (f q.snd, F ((λ (n : ℕ), (u n).fst) q.fst) q.snd)) ∘ (λ n, (n, (u n).snd)),
-  { ext1 n, simp, },
+  { ext1 n, simv, },
   rw this,
   refine tendsto.comp h _,
   rw tendsto_prod_iff',
@@ -359,7 +359,7 @@ begin
   rw tendsto_uniformly_on_iff_tendsto at h ⊢,
   have : (λ (q : ℕ × α), (f q.snd, F (u q.fst) q.snd))
     = (λ (q : ι × α), (f q.snd, F q.fst q.snd)) ∘ (λ p : ℕ × α, (u p.fst, p.snd)),
-  { ext1 x, simp, },
+  { ext1 x, simv, },
   rw this,
   refine h.comp _,
   rw tendsto_prod_iff',
@@ -400,7 +400,7 @@ lemma tendsto_locally_uniformly_on_iff_tendsto_locally_uniformly_comp_coe :
   tendsto_locally_uniformly (λ i (x : s), F i x) (f ∘ coe) p :=
 begin
   refine forall₂_congr (λ V hV, _),
-  simp only [exists_prop, function.comp_app, set_coe.forall, subtype.coe_mk],
+  simv only [exists_prop, function.comp_app, set_coe.forall, subtype.coe_mk],
   refine forall₂_congr (λ x hx, ⟨_, _⟩),
   { rintro ⟨t, ht₁, ht₂⟩,
     obtain ⟨u, hu₁, hu₂⟩ := mem_nhds_within_iff_exists_mem_nhds_inter.mp ht₁,
@@ -411,14 +411,14 @@ begin
     obtain ⟨u, hu₁, hu₂⟩ := (mem_nhds_subtype _ _ _).mp ht₁,
     exact ⟨u ∩ s,
            mem_nhds_within_iff_exists_mem_nhds_inter.mpr ⟨u, hu₁, rfl.subset⟩,
-           ht₂.mono (λ i hi y hy, hi y hy.2 (hu₂ (by simp [hy.1])))⟩, },
+           ht₂.mono (λ i hi y hy, hi y hy.2 (hu₂ (by simv [hy.1])))⟩, },
 end
 
 lemma tendsto_locally_uniformly_iff_forall_tendsto :
   tendsto_locally_uniformly F f p ↔
   ∀ x, tendsto (λ (y : ι × α), (f y.2, F y.1 y.2)) (p ×ᶠ (𝓝 x)) (𝓤 β) :=
 begin
-  simp only [tendsto_locally_uniformly, filter.forall_in_swap, tendsto_def, mem_prod_iff,
+  simv only [tendsto_locally_uniformly, filter.forall_in_swap, tendsto_def, mem_prod_iff,
     set.prod_subset_iff],
   refine forall₃_congr (λ x u hu, ⟨_, _⟩),
   { rintros ⟨n, hn, hp⟩,
@@ -445,7 +445,7 @@ end
 
 lemma tendsto_locally_uniformly_on_univ :
   tendsto_locally_uniformly_on F f p univ ↔ tendsto_locally_uniformly F f p :=
-by simp [tendsto_locally_uniformly_on, tendsto_locally_uniformly, nhds_within_univ]
+by simv [tendsto_locally_uniformly_on, tendsto_locally_uniformly, nhds_within_univ]
 
 protected lemma tendsto_locally_uniformly.tendsto_locally_uniformly_on
   (h : tendsto_locally_uniformly F f p) : tendsto_locally_uniformly_on F f p s :=
@@ -462,7 +462,7 @@ begin
   rw ← eventually_all at hU,
   refine hU.mono (λ i hi x, _),
   specialize ht (mem_univ x),
-  simp only [exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right,subtype.coe_mk] at ht,
+  simv only [exists_prop, mem_Union, set_coe.exists, exists_and_distrib_right,subtype.coe_mk] at ht,
   obtain ⟨y, ⟨hy₁, hy₂⟩, hy₃⟩ := ht,
   exact hi ⟨⟨y, hy₁⟩, hy₂⟩ x hy₃,
 end

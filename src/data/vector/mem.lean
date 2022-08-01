@@ -21,7 +21,7 @@ variables {α β : Type*} {n : ℕ} (a a' : α)
 by { rw nth_eq_nth_le,  exact list.nth_le_mem _ _ _ }
 
 lemma mem_iff_nth (v : vector α n) : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
-by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
+by simv only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
   exact ⟨λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length at hi, h⟩,
     λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length, h⟩⟩
 

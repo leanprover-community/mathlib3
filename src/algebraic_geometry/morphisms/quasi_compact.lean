@@ -87,7 +87,7 @@ begin
   refine ⟨λ H U hU, H U U.prop hU.is_compact, _⟩,
   intros H U hU hU',
   obtain ⟨S, hS, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
-  simp only [set.preimage_Union, subtype.val_eq_coe],
+  simv only [set.preimage_Union, subtype.val_eq_coe],
   exact hS.compact_bUnion (λ i _, H i i.prop)
 end
 
@@ -106,9 +106,9 @@ begin
   { convert h₁, rw supr_eq_bot, rintro ⟨_, h⟩, exact h.elim },
   { intros x s h₃ hs h₄,
     have : is_compact (⨆ i : s, (i : opens X.carrier)).1,
-    { refine ((is_compact_open_iff_eq_finset_affine_union _).mpr _).1, exact ⟨s, hs, by simp⟩ },
+    { refine ((is_compact_open_iff_eq_finset_affine_union _).mpr _).1, exact ⟨s, hs, by simv⟩ },
     convert h₂ _ this x h₄,
-    simp only [coe_coe],
+    simv only [coe_coe],
     rw [supr_subtype, sup_comm],
     conv_rhs { rw supr_subtype },
     exact supr_insert }

@@ -41,10 +41,10 @@ begin
   have hpow_le : ∀ {m n : ℕ}, m ≤ n → (2⁻¹ : ℝ≥0∞) ^ n ≤ 2⁻¹ ^ m,
     from λ m n h, ennreal.pow_le_pow_of_le_one (ennreal.inv_le_one.2 ennreal.one_lt_two.le) h,
   have h2pow : ∀ n : ℕ, 2 * (2⁻¹ : ℝ≥0∞) ^ (n + 1) = 2⁻¹ ^ n,
-    by { intro n, simp [pow_succ, ← mul_assoc, ennreal.mul_inv_cancel] },
+    by { intro n, simv [pow_succ, ← mul_assoc, ennreal.mul_inv_cancel] },
   -- Consider an open covering `S : set (set α)`
   refine ⟨λ ι s ho hcov, _⟩,
-  simp only [Union_eq_univ_iff] at hcov,
+  simv only [Union_eq_univ_iff] at hcov,
   -- choose a well founded order on `S`
   letI : linear_order ι := linear_order_of_STO' well_ordering_rel,
   have wf : well_founded ((<) : ι → ι → Prop) := @is_well_order.wf ι well_ordering_rel _,
@@ -68,10 +68,10 @@ begin
         (hlt : ∀ (m < n) (j : ι), x ∉ D' m ‹_› j), ball x (2⁻¹ ^ n)),
   have Dn : ∀ n i, D n i = ⋃ (x : α) (hxs : ind x = i) (hb : ball x (3 * 2⁻¹ ^ n) ⊆ s i)
     (hlt : ∀ (m < n) (j : ι), x ∉ D m j), ball x (2⁻¹ ^ n),
-    from λ n s, by { simp only [D], rw nat.strong_rec_on_beta' },
+    from λ n s, by { simv only [D], rw nat.strong_rec_on_beta' },
   have memD : ∀ {n i y}, y ∈ D n i ↔ ∃ x (hi : ind x = i) (hb : ball x (3 * 2⁻¹ ^ n) ⊆ s i)
     (hlt : ∀ (m < n) (j : ι), x ∉ D m j), edist y x < 2⁻¹ ^ n,
-  { intros n i y, rw [Dn n i], simp only [mem_Union, mem_ball] },
+  { intros n i y, rw [Dn n i], simv only [mem_Union, mem_ball] },
   -- The sets `D n i` cover the whole space. Indeed, for each `x` we can choose `n` such that
   -- `ball x (3 / 2 ^ n) ⊆ s (ind x)`, then either `x ∈ D n i`, or `x ∈ D m i` for some `m < n`.
   have Dcov : ∀ x, ∃ n i, x ∈ D n i,
@@ -143,14 +143,14 @@ begin
         add_le_add (edist_triangle_left _ _ _) (edist_triangle_left _ _ _)
       ... < (2⁻¹ ^ m + 2⁻¹ ^ (n + k + 1)) + (2⁻¹ ^ (n + k + 1) + 2⁻¹ ^ m) :
         by apply_rules [ennreal.add_lt_add]
-      ... = 2 * (2⁻¹ ^ m + 2⁻¹ ^ (n + k + 1)) : by simp only [two_mul, add_comm]
+      ... = 2 * (2⁻¹ ^ m + 2⁻¹ ^ (n + k + 1)) : by simv only [two_mul, add_comm]
       ... ≤ 2 * (2⁻¹ ^ m + 2⁻¹ ^ (m + 1)) :
         ennreal.mul_le_mul le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
       ... = 3 * 2⁻¹ ^ m : by rw [mul_add, h2pow, bit1, add_mul, one_mul] },
     -- Finally, we glue `Hgt` and `Hle`
     have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite :=
       (finite_le_nat _).bUnion' (λ i hi, (Hle i hi).finite.bUnion' (λ _ _, finite_singleton _)),
-    refine this.subset (λ I hI, _), simp only [mem_Union],
+    refine this.subset (λ I hI, _), simv only [mem_Union],
     refine ⟨I.1, _, I.2, hI, prod.mk.eta.symm⟩,
     exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }
 end

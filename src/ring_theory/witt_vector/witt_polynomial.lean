@@ -62,7 +62,7 @@ open finsupp (single)
 
 open_locale big_operators
 
-local attribute [-simp] coe_eval₂_hom
+local attribute [-simv] coe_eval₂_hom
 
 variables (p : ℕ)
 variables (R : Type*) [comm_ring R]
@@ -113,7 +113,7 @@ variables (R)
 @[simp] lemma constant_coeff_witt_polynomial [hp : fact p.prime] (n : ℕ) :
   constant_coeff (witt_polynomial p R n) = 0 :=
 begin
-  simp only [witt_polynomial, ring_hom.map_sum, constant_coeff_monomial],
+  simv only [witt_polynomial, ring_hom.map_sum, constant_coeff_monomial],
   rw [sum_eq_zero],
   rintro i hi,
   rw [if_neg],
@@ -122,15 +122,15 @@ begin
 end
 
 @[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
-by simp only [witt_polynomial, X, sum_singleton, range_one, pow_zero]
+by simv only [witt_polynomial, X, sum_singleton, range_one, pow_zero]
 
 @[simp] lemma witt_polynomial_one : witt_polynomial p R 1 = C ↑p * X 1 + (X 0) ^ p :=
-by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ_comm, range_one,
+by simv only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ_comm, range_one,
     sum_singleton, one_mul, pow_one, C_1, pow_zero]
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
-by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_index]
+by simv [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_index]
 
 /--
 Over the ring `zmod (p^(n+1))`, we produce the `n+1`st Witt polynomial
@@ -139,7 +139,7 @@ by expanding the `n`th Witt polynomial by `p`.
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
 begin
-  simp only [witt_polynomial_eq_sum_C_mul_X_pow],
+  simv only [witt_polynomial_eq_sum_C_mul_X_pow],
   rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul,
       add_zero, alg_hom.map_sum, sum_congr rfl],
   intros k hk,
@@ -163,8 +163,8 @@ begin
     rw [← nat.cast_pow, nat.cast_ne_zero],
     exact pow_ne_zero i hp.1.ne_zero },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, bUnion_singleton_eq_self], },
-  { simp only [this],
+  { simv only [this, bUnion_singleton_eq_self], },
+  { simv only [this],
     intros a b h,
     apply disjoint_singleton_left.mpr,
     rwa mem_singleton, },
@@ -210,10 +210,10 @@ begin
   intros n IH,
   rw [X_in_terms_of_W_eq, mul_comm, ring_hom.map_mul, ring_hom.map_sub, ring_hom.map_sum,
     constant_coeff_C, sum_eq_zero],
-  { simp only [constant_coeff_X, sub_zero, mul_zero] },
+  { simv only [constant_coeff_X, sub_zero, mul_zero] },
   { intros m H,
     rw mem_range at H,
-    simp only [ring_hom.map_mul, ring_hom.map_pow, constant_coeff_C, IH m H],
+    simv only [ring_hom.map_mul, ring_hom.map_pow, constant_coeff_C, IH m H],
     rw [zero_pow, mul_zero],
     apply pow_pos hp.1.pos, }
 end
@@ -236,7 +236,7 @@ begin
       insert_eq],
   swap 3, { apply nonzero_of_invertible },
   work_on_goal 1
-  { simp only [true_and, true_or, eq_self_iff_true,
+  { simv only [true_and, true_or, eq_self_iff_true,
       mem_union, mem_singleton],
     intro i,
     rw [mem_union, mem_union],
@@ -273,10 +273,10 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
   bind₁ (X_in_terms_of_W p R) (W_ R k) = X k :=
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
-  simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
+  simv only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
   rw [sum_range_succ_comm, tsub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
-  simp only [C_pow, bind₁_X_right, sub_add_cancel],
+  simv only [C_pow, bind₁_X_right, sub_add_cancel],
 end
 
 @[simp] lemma bind₁_witt_polynomial_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
@@ -287,12 +287,12 @@ begin
   rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
       alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
-  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, tsub_self, sum_range_succ_comm,
+  by simv only [witt_polynomial_eq_sum_C_mul_X_pow, tsub_self, sum_range_succ_comm,
     pow_one, add_sub_cancel, pow_zero],
   rw [sum_congr rfl, this],
   { -- this is really slow for some reason
     rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
   { intros i h,
     rw mem_range at h,
-    simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, H i h] },
+    simv only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, H i h] },
 end

@@ -71,7 +71,7 @@ create instances for 'containers' such as lists or sets.
 def make_listlike_instance (α : Sort u) [has_variable_names α]
   {β : Sort v} : has_variable_names β :=
 ⟨ (names α).map $ λ n, n.append_suffix "s",
-  by simp [names_nonempty] ⟩
+  by simv [names_nonempty] ⟩
 
 /--
 `@make_inheriting_instance α _ β` creates an instance `has_variable_names β`

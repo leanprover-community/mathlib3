@@ -58,7 +58,7 @@ lemma is_zero_of_subsingleton (V : SemiNormedGroup) [subsingleton V] :
   limits.is_zero V :=
 begin
   refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
-  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, map_zero], },
+  { ext, have : x = 0 := subsingleton.elim _ _, simv only [this, map_zero], },
   { ext, apply subsingleton.elim }
 end
 
@@ -148,7 +148,7 @@ instance of_unique (V : Type u) [seminormed_add_comm_group V] [i : unique V] :
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
 { has_zero := λ X Y, { zero := ⟨0, normed_add_group_hom.norm_noninc.zero⟩, },
   comp_zero' := λ X Y f Z, by { ext, refl, },
-  zero_comp' := λ X Y Z f, by { ext, simp [coe_fn_coe_base'] } }
+  zero_comp' := λ X Y Z f, by { ext, simv [coe_fn_coe_base'] } }
 
 @[simp] lemma zero_apply {V W : SemiNormedGroup₁} (x : V) : (0 : V ⟶ W) x = 0 := rfl
 
@@ -156,7 +156,7 @@ lemma is_zero_of_subsingleton (V : SemiNormedGroup₁) [subsingleton V] :
   limits.is_zero V :=
 begin
   refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
-  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, map_zero],
+  { ext, have : x = 0 := subsingleton.elim _ _, simv only [this, map_zero],
     exact map_zero f.1 },
   { ext, apply subsingleton.elim }
 end

@@ -84,25 +84,25 @@ begin
     rwa [mem_ball, dist_eq_norm, sub_zero] },
   have : ∃ (n : ℕ) x, x ∈ interior (closure (f '' (ball 0 n))) :=
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
-  simp only [mem_interior_iff_mem_nhds, metric.mem_nhds_iff] at this,
+  simv only [mem_interior_iff_mem_nhds, metric.mem_nhds_iff] at this,
   rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
   { refine mul_nonneg (mul_nonneg (mul_nonneg _ (norm_nonneg _)) (by norm_num)) _,
     exacts [inv_nonneg.2 (div_nonneg (le_of_lt εpos) (by norm_num)), n.cast_nonneg] },
   { by_cases hy : y = 0,
-    { use 0, simp [hy] },
+    { use 0, simv [hy] },
     { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydlt, leyd, dinv⟩,
       let δ := ∥d∥ * ∥y∥/4,
       have δpos : 0 < δ :=
         div_pos (mul_pos (norm_pos_iff.2 hd) (norm_pos_iff.2 hy)) (by norm_num),
       have : a + d • y ∈ ball a ε,
-        by simp [dist_eq_norm, lt_of_le_of_lt ydlt.le (half_lt_self εpos)],
+        by simv [dist_eq_norm, lt_of_le_of_lt ydlt.le (half_lt_self εpos)],
       rcases metric.mem_closure_iff.1 (H this) _ δpos with ⟨z₁, z₁im, h₁⟩,
       rcases (mem_image _ _ _).1 z₁im with ⟨x₁, hx₁, xz₁⟩,
       rw ← xz₁ at h₁,
       rw [mem_ball, dist_eq_norm, sub_zero] at hx₁,
-      have : a ∈ ball a ε, by { simp, exact εpos },
+      have : a ∈ ball a ε, by { simv, exact εpos },
       rcases metric.mem_closure_iff.1 (H this) _ δpos with ⟨z₂, z₂im, h₂⟩,
       rcases (mem_image _ _ _).1 z₂im with ⟨x₂, hx₂, xz₂⟩,
       rw ← xz₂ at h₂,
@@ -110,7 +110,7 @@ begin
       let x := x₁ - x₂,
       have I : ∥f x - d • y∥ ≤ 2 * δ := calc
         ∥f x - d • y∥ = ∥f x₁ - (a + d • y) - (f x₂ - a)∥ :
-          by { congr' 1, simp only [x, f.map_sub], abel }
+          by { congr' 1, simv only [x, f.map_sub], abel }
         ... ≤ ∥f x₁ - (a + d • y)∥ + ∥f x₂ - a∥ :
           norm_sub_le _ _
         ... ≤ δ + δ : begin
@@ -129,8 +129,8 @@ begin
             rw inv_nonneg,
             exact norm_nonneg _
           end
-        ... = (∥d∥⁻¹ * ∥d∥) * ∥y∥ /2 : by { simp only [δ], ring }
-        ... = ∥y∥/2 : by { rw [inv_mul_cancel, one_mul],  simp [norm_eq_zero, hd] }
+        ... = (∥d∥⁻¹ * ∥d∥) * ∥y∥ /2 : by { simv only [δ], ring }
+        ... = ∥y∥/2 : by { rw [inv_mul_cancel, one_mul],  simv [norm_eq_zero, hd] }
         ... = (1/2) * ∥y∥ : by ring,
       rw ← dist_eq_norm at J,
       have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
@@ -169,7 +169,7 @@ begin
   have hnle : ∀n:ℕ, ∥(h^[n]) y∥ ≤ (1/2)^n * ∥y∥,
   { assume n,
     induction n with n IH,
-    { simp only [one_div, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
+    { simv only [one_div, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
         pow_zero] },
     { rw [iterate_succ'],
       apply le_trans (hle _) _,
@@ -198,17 +198,17 @@ begin
   have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
-    { simp [f.map_zero] },
+    { simv [f.map_zero] },
     { rw [sum_range_succ, f.map_add, IH, iterate_succ', sub_add] } },
   have : tendsto (λn, ∑ i in finset.range n, u i) at_top (𝓝 x) :=
     su.has_sum.tendsto_sum_nat,
   have L₁ : tendsto (λn, f (∑ i in finset.range n, u i)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
-  simp only [fsumeq] at L₁,
+  simv only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
   { refine tendsto_const_nhds.sub _,
     rw tendsto_iff_norm_tendsto_zero,
-    simp only [sub_zero],
+    simv only [sub_zero],
     refine squeeze_zero (λ_, norm_nonneg _) hnle _,
     rw [← zero_mul ∥y∥],
     refine (tendsto_pow_at_top_nhds_0_of_lt_1 _ _).mul tendsto_const_nhds; norm_num },
@@ -231,7 +231,7 @@ begin
   have : f (x + w) = z, by { rw [f.map_add, wim, fxy, add_sub_cancel'_right] },
   rw ← this,
   have : x + w ∈ ball x ε := calc
-    dist (x+w) x = ∥w∥ : by { rw dist_eq_norm, simp }
+    dist (x+w) x = ∥w∥ : by { rw dist_eq_norm, simv }
     ... ≤ C * ∥z - y∥ : wnorm
     ... < C * (ε/C) : begin
         apply mul_lt_mul_of_pos_left _ Cpos,
@@ -375,7 +375,7 @@ continuous_linear_equiv.of_bijective (f.coprod G.subtypeL)
     { rw submodule.range_subtypeL,
       exact h.disjoint }
   end)
-  (by simp only [range_coprod, h.sup_eq_top, submodule.range_subtypeL])
+  (by simv only [range_coprod, h.sup_eq_top, submodule.range_subtypeL])
 
 lemma range_eq_map_coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}

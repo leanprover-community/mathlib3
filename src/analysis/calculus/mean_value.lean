@@ -95,7 +95,7 @@ begin
   set s := {x | f x ≤ B x} ∩ Icc a b,
   have A : continuous_on (λ x, (f x, B x)) (Icc a b), from hf.prod hB,
   have : is_closed s,
-  { simp only [s, inter_comm],
+  { simv only [s, inter_comm],
     exact A.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
   apply this.Icc_subset_of_forall_exists_gt ha,
   rintros x ⟨hxB : f x ≤ B x, xab⟩ y hy,
@@ -175,7 +175,7 @@ begin
   assume x hx,
   have : continuous_within_at (λ r, B x + r * (x - a)) (Ioi 0) 0,
     from continuous_within_at_const.add (continuous_within_at_id.mul continuous_within_at_const),
-  convert continuous_within_at_const.closure_le _ this (Hr x hx); simp
+  convert continuous_within_at_const.closure_le _ this (Hr x hx); simv
 end
 
 /-- General fencing theorem for continuous functions with an estimate on the derivative.
@@ -363,7 +363,7 @@ begin
   { assume x,
     simpa using (has_deriv_at_const x C).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
   convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ hB bound,
-  simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero]
+  simv only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero]
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
@@ -437,7 +437,7 @@ theorem eq_of_has_deriv_right_eq
   (hi : f a = g a) :
   ∀ y ∈ Icc a b, f y = g y :=
 begin
-  simp only [← @sub_eq_zero _ _ (f _)] at hi ⊢,
+  simv only [← @sub_eq_zero _ _ (f _)] at hi ⊢,
   exact hi ▸ constant_of_has_deriv_right_zero (fcont.sub gcont)
     (λ y hy, by simpa only [sub_self] using (derivf y hy).sub (derivg y hy)),
 end
@@ -497,9 +497,9 @@ begin
   have segm : Icc 0 1 ⊆ g ⁻¹' s,
   { rw [← image_subset_iff, ← segment_eq_image'],
     apply hs.segment_subset xs ys },
-  have : f x = f (g 0), by { simp only [g], rw [zero_smul, add_zero] },
+  have : f x = f (g 0), by { simv only [g], rw [zero_smul, add_zero] },
   rw this,
-  have : f y = f (g 1), by { simp only [g], rw [one_smul, add_sub_cancel'_right] },
+  have : f y = f (g 1), by { simv only [g], rw [one_smul, add_sub_cancel'_right] },
   rw this,
   have D2: ∀ t ∈ Icc (0:ℝ) 1, has_deriv_within_at (f ∘ g) (f' (g t) (y - x)) (Icc 0 1) t,
   { intros t ht,
@@ -601,9 +601,9 @@ begin
   let g := λy, f y - φ y,
   have hg : ∀ x ∈ s, has_fderiv_within_at g (f' x - φ) s x :=
     λ x xs, (hf x xs).sub φ.has_fderiv_within_at,
-  calc ∥f y - f x - φ (y - x)∥ = ∥f y - f x - (φ y - φ x)∥ : by simp
+  calc ∥f y - f x - φ (y - x)∥ = ∥f y - f x - (φ y - φ x)∥ : by simv
   ... = ∥(f y - φ y) - (f x - φ x)∥ : by abel
-  ... = ∥g y - g x∥ : by simp
+  ... = ∥g y - g x∥ : by simv
   ... ≤ C * ∥y - x∥ : convex.norm_image_sub_le_of_norm_has_fderiv_within_le hg bound hs xs ys,
 end
 
@@ -627,7 +627,7 @@ theorem is_const_of_fderiv_within_eq_zero (hs : convex ℝ s) (hf : differentiab
   (hf' : ∀ x ∈ s, fderiv_within 𝕜 f s x = 0) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y :=
 have bound : ∀ x ∈ s, ∥fderiv_within 𝕜 f s x∥ ≤ 0,
-  from λ x hx, by simp only [hf' x hx, norm_zero],
+  from λ x hx, by simv only [hf' x hx, norm_zero],
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
   using hs.norm_image_sub_le_of_norm_fderiv_within_le hf bound hx hy
 
@@ -649,7 +649,7 @@ theorem norm_image_sub_le_of_norm_has_deriv_within_le {C : ℝ}
   (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
   (hs : convex ℝ s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 convex.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
-(λ x hx, le_trans (by simp) (bound x hx)) hs xs ys
+(λ x hx, le_trans (by simv) (bound x hx)) hs xs ys
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
 bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
@@ -658,7 +658,7 @@ theorem lipschitz_on_with_of_nnnorm_has_deriv_within_le {C : ℝ≥0} (hs : conv
   (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥₊ ≤ C) :
   lipschitz_on_with C f s :=
 convex.lipschitz_on_with_of_nnnorm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
-(λ x hx, le_trans (by simp) (bound x hx)) hs
+(λ x hx, le_trans (by simv) (bound x hx)) hs
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function within
 this set is bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv_within` -/
@@ -705,7 +705,7 @@ then it is a constant function. -/
 theorem _root_.is_const_of_deriv_eq_zero (hf : differentiable 𝕜 f) (hf' : ∀ x, deriv f x = 0)
   (x y : 𝕜) :
   f x = f y :=
-is_const_of_fderiv_eq_zero hf (λ z, by { ext, simp [← deriv_fderiv, hf'] }) _ _
+is_const_of_fderiv_eq_zero hf (λ z, by { ext, simv [← deriv_fderiv, hf'] }) _ _
 
 end convex
 
@@ -729,7 +729,7 @@ lemma exists_ratio_has_deriv_at_eq_ratio_slope :
 begin
   let h := λ x, (g b - g a) * f x - (f b - f a) * g x,
   have hI : h a = h b,
-  { simp only [h], ring },
+  { simv only [h], ring },
   let h' := λ x, (g b - g a) * f' x - (f b - f a) * g' x,
   have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
     from λ x hx, ((hff' x hx).const_mul (g b - g a)).sub ((hgg' x hx).const_mul (f b - f a)),
@@ -777,7 +777,7 @@ begin
   rcases exists_ratio_has_deriv_at_eq_ratio_slope f f' hab hfc hff'
     id 1 continuous_id.continuous_on (λ x hx, has_deriv_at_id x) with ⟨c, cmem, hc⟩,
   use [c, cmem],
-  simp only [_root_.id, pi.one_apply, mul_one] at hc,
+  simv only [_root_.id, pi.one_apply, mul_one] at hc,
   rw [← hc, mul_div_cancel_left],
   exact ne_of_gt (sub_pos.2 hab)
 end
@@ -1079,7 +1079,7 @@ begin
         apply ne_of_gt,
         exact hf'_mono ⟨hxw, hwy⟩ ⟨hxw.trans hz.1, hz.2⟩ hz.1, } },
     refine ⟨b, ⟨hxw.trans hwb, hby⟩, _⟩,
-    simp only [div_lt_iff, hxy, hxw, hwy, sub_pos] at ⊢ ha hb,
+    simv only [div_lt_iff, hxy, hxw, hwy, sub_pos] at ⊢ ha hb,
     have : deriv f a * (w - x) < deriv f b * (w - x),
     { apply mul_lt_mul _ le_rfl (sub_pos.2 hxw) _,
       { exact hf'_mono ⟨hxa, haw.trans hwy⟩ ⟨hxw.trans hwb, hby⟩ (haw.trans hwb) },
@@ -1129,7 +1129,7 @@ begin
         apply ne_of_gt,
         exact hf'_mono ⟨hxw, hwy⟩ ⟨hxw.trans hz.1, hz.2⟩ hz.1, } },
     refine ⟨a, ⟨hxa, haw.trans hwy⟩, _⟩,
-    simp only [lt_div_iff, hxy, hxw, hwy, sub_pos] at ⊢ ha hb,
+    simv only [lt_div_iff, hxy, hxw, hwy, sub_pos] at ⊢ ha hb,
     have : deriv f a * (y - w) < deriv f b * (y - w),
     { apply mul_lt_mul _ le_rfl (sub_pos.2 hwy) _,
       { exact hf'_mono ⟨hxa, haw.trans hwy⟩ ⟨hxw.trans hwb, hby⟩ (haw.trans hwb) },
@@ -1330,7 +1330,7 @@ begin
   set g : ℝ → E := λ t, x + t • (y - x),
   have hseg : ∀ t ∈ Icc (0:ℝ) 1, g t ∈ segment ℝ x y,
   { rw segment_eq_image',
-    simp only [mem_image, and_imp, add_right_inj],
+    simv only [mem_image, and_imp, add_right_inj],
     intros t ht, exact ⟨t, ht, rfl⟩ },
   have hseg' : Icc 0 1 ⊆ g ⁻¹' s,
   { rw ← image_subset_iff, unfold image, change ∀ _, _,
@@ -1352,7 +1352,7 @@ begin
 -- reinterpret on domain
   rcases hMVT with ⟨t, Ht, hMVT'⟩,
   use g t, refine ⟨hseg t $ hIccIoo Ht, _⟩,
-  simp [g, hMVT'],
+  simv [g, hMVT'],
 end
 
 

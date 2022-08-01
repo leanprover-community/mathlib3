@@ -56,11 +56,11 @@ begin
   have d_split : ∀s t, measurable_set s → measurable_set t →
     d s = d (s \ t) + d (s ∩ t),
   { assume s t hs ht,
-    simp only [d],
+    simv only [d],
     rw [← measure_inter_add_diff s ht, ← measure_inter_add_diff s ht,
       ennreal.to_nnreal_add (hμ _) (hμ _), ennreal.to_nnreal_add (hν _) (hν _),
       nnreal.coe_add, nnreal.coe_add],
-    simp only [sub_eq_add_neg, neg_add],
+    simv only [sub_eq_add_neg, neg_add],
     ac_refl },
 
   have d_Union : ∀(s : ℕ → set α), monotone s →
@@ -105,7 +105,7 @@ begin
 
   have hf : ∀n m, measurable_set (f n m),
   { assume n m,
-    simp only [f, finset.inf_eq_infi],
+    simv only [f, finset.inf_eq_infi],
     exact measurable_set.bInter (to_countable _) (assume i _, he₁ _) },
 
   have f_subset_f : ∀{a b c d}, a ≤ b → c ≤ d → f a d ⊆ f b c,
@@ -117,7 +117,7 @@ begin
   have f_succ : ∀n m, n ≤ m → f n (m + 1) = f n m ∩ e (m + 1),
   { assume n m hnm,
     have : n ≤ m + 1 := le_of_lt (nat.succ_le_succ hnm),
-    simp only [f],
+    simv only [f],
     rw [nat.Ico_succ_right_eq_insert_Ico this, finset.inf_insert, set.inter_comm],
     refl },
 
@@ -125,7 +125,7 @@ begin
   { assume n m h,
     refine nat.le_induction _ _ n h,
     { have := he₂ m,
-      simp only [f],
+      simv only [f],
       rw [nat.Ico_succ_singleton, finset.inf_singleton],
       exact aux this },
     { assume n (hmn : m ≤ n) ih,
@@ -134,11 +134,11 @@ begin
             γ + (γ - 2 * (1 / 2)^m + ((1 / 2) ^ n - (1/2)^(n+1))) :
           begin
             refine add_le_add_left (add_le_add_left _ _) γ,
-            simp only [pow_add, pow_one, le_sub_iff_add_le],
+            simv only [pow_add, pow_one, le_sub_iff_add_le],
             linarith
           end
           ... = (γ - (1 / 2)^(n+1)) + (γ - 2 * (1 / 2)^m + (1 / 2)^n) :
-            by simp only [sub_eq_add_neg]; ac_refl
+            by simv only [sub_eq_add_neg]; ac_refl
           ... ≤ d (e (n + 1)) + d (f m n) : add_le_add (le_of_lt $ he₂ _) ih
           ... ≤ d (e (n + 1)) + d (f m n \ e (n + 1)) + d (f m (n + 1)) :
             by rw [f_succ _ _ hmn, d_split (f m n) (e (n + 1)) (hf _ _) (he₁ _), add_assoc]

@@ -51,7 +51,7 @@ end prime
 
 lemma exists_associated_mem_of_dvd_prod [cancel_comm_monoid_with_zero α] {p : α}
   (hp : prime p) {s : multiset α} : (∀ r ∈ s, prime r) → p ∣ s.prod → ∃ q ∈ s, p ~ᵤ q :=
-multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
+multiset.induction_on s (by simv [mt is_unit_iff_dvd_one.2 hp.not_unit])
   (λ a s ih hs hps, begin
     rw [multiset.prod_cons] at hps,
     cases hp.dvd_or_dvd hps with h h,
@@ -68,7 +68,7 @@ lemma multiset.prod_primes_dvd
   s.prod ∣ n :=
 begin
   induction s using multiset.induction_on with a s induct n primes divs generalizing n,
-  { simp only [multiset.prod_zero, one_dvd] },
+  { simv only [multiset.prod_zero, one_dvd] },
   { rw multiset.prod_cons,
     obtain ⟨k, rfl⟩ : a ∣ n := div a (multiset.mem_cons_self a s),
     apply mul_dvd_mul_left a,
@@ -96,7 +96,7 @@ begin
   exact multiset.prod_primes_dvd n
     (by simpa only [multiset.map_id', finset.mem_def] using h)
     (by simpa only [multiset.map_id', finset.mem_def] using div)
-    (by simp only [multiset.map_id', associated_eq_eq, multiset.countp_eq_card_filter,
+    (by simv only [multiset.map_id', associated_eq_eq, multiset.countp_eq_card_filter,
         ←multiset.count_eq_card_filter_eq, ←multiset.nodup_iff_count_le_one, s.nodup]),
 end
 
@@ -107,7 +107,7 @@ section comm_monoid
 variables [comm_monoid α]
 
 theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
-multiset.induction_on p (by simp) $ λ a s ih, by simp [ih, associates.mk_mul_mk]
+multiset.induction_on p (by simv) $ λ a s ih, by simv [ih, associates.mk_mul_mk]
 
 theorem finset_prod_mk {p : finset β} {f : β → α} :
   ∏ i in p, associates.mk (f i) = associates.mk (∏ i in p, f i) :=
@@ -115,13 +115,13 @@ by rw [finset.prod_eq_multiset_prod, ← multiset.map_map, prod_mk, ← finset.p
 
 theorem rel_associated_iff_map_eq_map {p q : multiset α} :
   multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=
-by { rw [← multiset.rel_eq, multiset.rel_map], simp only [mk_eq_mk_iff_associated] }
+by { rw [← multiset.rel_eq, multiset.rel_map], simv only [mk_eq_mk_iff_associated] }
 
 theorem prod_eq_one_iff {p : multiset (associates α)} :
   p.prod = 1 ↔ (∀a ∈ p, (a:associates α) = 1) :=
 multiset.induction_on p
-  (by simp)
-  (by simp [mul_eq_one_iff, or_imp_distrib, forall_and_distrib] {contextual := tt})
+  (by simv)
+  (by simv [mul_eq_one_iff, or_imp_distrib, forall_and_distrib] {contextual := tt})
 
 theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤ q.prod :=
 begin

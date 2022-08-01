@@ -24,6 +24,6 @@ lemma eq_one_iff_odd {n : ℕ} : (n : zmod 2) = 1 ↔ odd n :=
 by { rw [← @nat.cast_one (zmod 2), zmod.eq_iff_modeq_nat, nat.odd_iff, nat.modeq], norm_num }
 
 lemma ne_zero_iff_odd {n : ℕ} : (n : zmod 2) ≠ 0 ↔ odd n :=
-by split; { contrapose, simp [eq_zero_iff_even], }
+by split; { contrapose, simv [eq_zero_iff_even], }
 
 end zmod

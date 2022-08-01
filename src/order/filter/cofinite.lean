@@ -30,11 +30,11 @@ namespace filter
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
 { sets             := {s | sᶜ.finite},
-  univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
+  univ_sets        := by simv only [compl_univ, finite_empty, mem_set_of_eq],
   sets_of_superset := assume s t (hs : sᶜ.finite) (st: s ⊆ t),
     hs.subset $ compl_subset_compl.2 st,
   inter_sets       := assume s t (hs : sᶜ.finite) (ht : tᶜ.finite),
-    by simp only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
+    by simv only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
 
 @[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ sᶜ.finite := iff.rfl
 
@@ -49,7 +49,7 @@ has_basis_cofinite.ne_bot_iff.2 $ λ s hs, hs.infinite_compl.nonempty
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
-by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
+by simv only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
 
 lemma _root_.set.finite.compl_mem_cofinite {s : set α} (hs : s.finite) : sᶜ ∈ (@cofinite α) :=
@@ -91,13 +91,13 @@ le_cofinite_iff_eventually_ne.mpr $ λ x,
 
 /-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
 lemma coprod_cofinite : (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
-filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl,
+filter.coext $ λ s, by simv only [compl_mem_coprod, mem_cofinite, compl_compl,
   finite_image_fst_and_snd_iff]
 
 /-- Finite product of finite sets is finite -/
 lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
   filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
-filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl,
+filter.coext $ λ s, by simv only [compl_mem_Coprod, mem_cofinite, compl_compl,
   forall_finite_image_eval_iff]
 
 end filter
@@ -124,7 +124,7 @@ begin
   rcases em (∃ y ∈ s, ∃ x, f y < x) with ⟨y, hys, x, hx⟩|not_all_top,
   { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
     have : {y | ¬x ≤ f y}.finite := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
-    simp only [not_le] at this,
+    simv only [not_le] at this,
     obtain ⟨a₀, ⟨ha₀ : f a₀ < x, ha₀s⟩, others_bigger⟩ :=
       exists_min_image _ f (this.inter_of_left s) ⟨y, hx, hys⟩,
     refine ⟨a₀, ha₀s, λ a has, (lt_or_le (f a) x).elim _ (le_trans ha₀.le)⟩,

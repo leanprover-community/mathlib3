@@ -53,10 +53,10 @@ lemma r.is_equiv : is_equiv _ (r S M) :=
 { refl := λ ⟨m, s⟩, ⟨1, by rw [one_smul]⟩,
   trans := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m3, s3⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, begin
     use u1 * u2 * s2,
-    -- Put everything in the same shape, sorting the terms using `simp`
+    -- Put everything in the same shape, sorting the terms using `simv`
     have hu1' := congr_arg ((•) (u2 * s3)) hu1,
     have hu2' := congr_arg ((•) (u1 * s1)) hu2,
-    simp only [← mul_smul, smul_assoc, mul_assoc, mul_comm, mul_left_comm] at ⊢ hu1' hu2',
+    simv only [← mul_smul, smul_assoc, mul_assoc, mul_comm, mul_left_comm] at ⊢ hu1' hu2',
     rw [hu2', hu1']
   end,
   symm := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, ⟨u, hu.symm⟩ }
@@ -126,10 +126,10 @@ mk_eq.mpr ⟨1, by rw [one_smul, smul_zero, smul_zero, one_smul]⟩
 instance : has_add (localized_module S M) :=
 { add := λ p1 p2, lift_on₂ p1 p2 (λ x y, mk (y.2 • x.1 + x.2 • y.1) (x.2 * y.2)) $
     λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m1', s1'⟩ ⟨m2', s2'⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, mk_eq.mpr ⟨u1 * u2, begin
-      -- Put everything in the same shape, sorting the terms using `simp`
+      -- Put everything in the same shape, sorting the terms using `simv`
       have hu1' := congr_arg ((•) (u2 * s2 * s2')) hu1,
       have hu2' := congr_arg ((•) (u1 * s1 * s1')) hu2,
-      simp only [smul_add, ← mul_smul, smul_assoc, mul_assoc, mul_comm, mul_left_comm]
+      simv only [smul_add, ← mul_smul, smul_assoc, mul_assoc, mul_comm, mul_left_comm]
         at ⊢ hu1' hu2',
       rw [hu1', hu2']
     end⟩ }
@@ -144,7 +144,7 @@ begin
   induction x using localized_module.induction_on with mx sx,
   induction y using localized_module.induction_on with my sy,
   induction z using localized_module.induction_on with mz sz,
-  simp only [mk_add_mk, smul_add],
+  simv only [mk_add_mk, smul_add],
   refine mk_eq.mpr ⟨1, _⟩,
   rw [one_smul, one_smul],
   congr' 1,
@@ -190,17 +190,17 @@ instance : has_smul (localization S) (localized_module S M) :=
       rintros ⟨m1, t1⟩ ⟨m2, t2⟩ ⟨u, h⟩,
       refine mk_eq.mpr ⟨u, _⟩,
       have h' := congr_arg ((•) (s • r)) h,
-      simp only [← mul_smul, smul_assoc, mul_comm, mul_left_comm, submonoid.smul_def,
+      simv only [← mul_smul, smul_assoc, mul_comm, mul_left_comm, submonoid.smul_def,
         submonoid.coe_mul] at ⊢ h',
       rw h',
     end) begin
       induction x using localized_module.induction_on with m t,
       rintros r r' s s' h,
-      simp only [lift_on_mk, lift_on_mk, mk_eq],
+      simv only [lift_on_mk, lift_on_mk, mk_eq],
       obtain ⟨u, eq1⟩ := localization.r_iff_exists.mp h,
       use u,
       have eq1' := congr_arg (• (t • m)) eq1,
-      simp only [← mul_smul, smul_assoc, submonoid.smul_def, submonoid.coe_mul] at ⊢ eq1',
+      simv only [← mul_smul, smul_assoc, submonoid.smul_def, submonoid.coe_mul] at ⊢ eq1',
       ring_nf at ⊢ eq1',
       rw eq1'
     end }
@@ -239,7 +239,7 @@ begin
   induction z using localized_module.induction_on with n t,
   rw [mk_smul_mk, mk_smul_mk, mk_add_mk, mk_smul_mk, mk_add_mk, mk_eq],
   use 1,
-  simp only [one_smul, smul_add, ← mul_smul, submonoid.smul_def, submonoid.coe_mul],
+  simv only [one_smul, smul_add, ← mul_smul, submonoid.smul_def, submonoid.coe_mul],
   ring_nf
 end
 
@@ -260,7 +260,7 @@ begin
   rcases ⟨datax, datay⟩ with ⟨⟨r, s⟩, ⟨r', s'⟩⟩,
   rw [localization.add_mk, mk_smul_mk, mk_smul_mk, mk_smul_mk, mk_add_mk, mk_eq],
   use 1,
-  simp only [one_smul, add_smul, smul_add, ← mul_smul, submonoid.smul_def, submonoid.coe_mul,
+  simv only [one_smul, add_smul, smul_add, ← mul_smul, submonoid.smul_def, submonoid.coe_mul,
     submonoid.coe_one],
   rw add_comm, -- Commutativity of addition in the module is not applied by `ring`.
   ring_nf,

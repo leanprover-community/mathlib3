@@ -125,7 +125,7 @@ from a pair of isometries between the left and right parts. -/
 def isometry.pi [fintype ι] {Q : Π i, quadratic_form R (Mᵢ i)} {Q' : Π i, quadratic_form R (Nᵢ i)}
   (e : Π i, (Q i).isometry (Q' i)) : (pi Q).isometry (pi Q') :=
 { map_app' := λ x, by
-    simp only [pi_apply, linear_equiv.Pi_congr_right_apply, linear_equiv.to_fun_eq_coe,
+    simv only [pi_apply, linear_equiv.Pi_congr_right_apply, linear_equiv.to_fun_eq_coe,
                isometry.coe_to_linear_equiv, isometry.map_app],
   to_linear_equiv := linear_equiv.Pi_congr_right (λ i, (e i : Mᵢ i ≃ₗ[R] Nᵢ i))}
 

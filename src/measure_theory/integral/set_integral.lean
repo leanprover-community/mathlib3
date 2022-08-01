@@ -76,7 +76,7 @@ by rw measure.restrict_congr_set hst
 lemma integral_union_ae (hst : ae_disjoint μ s t) (ht : null_measurable_set t μ)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-by simp only [integrable_on, measure.restrict_union₀ hst ht, integral_add_measure hfs hft]
+by simv only [integrable_on, measure.restrict_union₀ hst ht, integral_add_measure hfs hft]
 
 lemma integral_union (hst : disjoint s t) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
@@ -97,12 +97,12 @@ lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
   ∫ x in (⋃ i ∈ t, s i), f x ∂ μ = ∑ i in t, ∫ x in s i, f x ∂ μ :=
 begin
   induction t using finset.induction_on with a t hat IH hs h's,
-  { simp },
-  { simp only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_insert,
+  { simv },
+  { simv only [finset.coe_insert, finset.forall_mem_insert, set.pairwise_insert,
       finset.set_bUnion_insert] at hs hf h's ⊢,
     rw [integral_union _ _ hf.1 (integrable_on_finset_Union.2 hf.2)],
     { rw [finset.sum_insert hat, IH hs.2 h's.1 hf.2] },
-    { simp only [disjoint_Union_right],
+    { simv only [disjoint_Union_right],
       exact (λ i hi, (h's.2 i hi (ne_of_mem_of_not_mem hi hat).symm).1) },
     { exact finset.measurable_set_bUnion _ hs.2 } }
 end
@@ -113,8 +113,8 @@ lemma integral_fintype_Union {ι : Type*} [fintype ι] {s : ι → set α}
   ∫ x in (⋃ i, s i), f x ∂ μ = ∑ i, ∫ x in s i, f x ∂ μ :=
 begin
   convert integral_finset_bUnion finset.univ (λ i hi, hs i) _ (λ i _, hf i),
-  { simp },
-  { simp [pairwise_univ, h's] }
+  { simv },
+  { simv [pairwise_univ, h's] }
 end
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
@@ -139,7 +139,7 @@ begin
   ... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
     congr_arg2 (+) (integral_congr_ae (indicator_ae_eq_restrict hs))
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
-  ... = ∫ x in s, f x ∂μ : by simp
+  ... = ∫ x in s, f x ∂μ : by simv
 end
 
 lemma set_integral_indicator (ht : measurable_set t) :
@@ -151,11 +151,11 @@ lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_sp
   ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
 calc
 ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
-    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [norm_one]
+    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simv only [norm_one]
 ... = ∫⁻ x in s, 1 ∂μ :
 begin
   rw of_real_integral_norm_eq_lintegral_nnnorm (integrable_on_const.2 (or.inr hs.lt_top)),
-  simp only [nnnorm_one, ennreal.coe_one],
+  simv only [nnnorm_one, ennreal.coe_one],
 end
 ... = μ s : set_lintegral_one _
 
@@ -200,7 +200,7 @@ lemma has_sum_integral_Union_ae {ι : Type*} [encodable ι] {s : ι → set α} 
   (hfi : integrable_on f (⋃ i, s i) μ) :
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 begin
-  simp only [integrable_on, measure.restrict_Union_ae hd hm] at hfi ⊢,
+  simv only [integrable_on, measure.restrict_Union_ae hd hm] at hfi ⊢,
   exact has_sum_integral_measure hfi
 end
 
@@ -278,7 +278,7 @@ begin
   linarith,
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
-by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simp, }
+by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simv, }
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
@@ -435,7 +435,7 @@ set_integral_mono_ae_restrict hf hg (ae_restrict_of_ae h)
 lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x) :
   ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 set_integral_mono_ae_restrict hf hg
-  (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
+  (by simv [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
 
 include hf hg  -- why do I need this include, but we don't need it in other lemmas?
 lemma set_integral_mono_on_ae (hs : measurable_set s) (h : ∀ᵐ x ∂μ, x ∈ s → f x ≤ g x) :
@@ -661,7 +661,7 @@ begin
     eventually_small_sets_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
   filter_upwards [hμ.eventually, (hμ.integrable_at_filter_of_tendsto_ae hfm h).eventually,
     hfm.eventually, this],
-  simp only [mem_closed_ball, dist_eq_norm],
+  simv only [mem_closed_ball, dist_eq_norm],
   intros s hμs h_integrable hfm h_norm,
   rw [← set_integral_const, ← integral_sub h_integrable (integrable_on_const.2 $ or.inr hμs),
     real.norm_eq_abs, abs_of_nonneg ennreal.to_real_nonneg],
@@ -776,7 +776,7 @@ begin
     congr' 1 with a,
     rw set.indicator_comp_of_zero L.map_zero },
   { intros f g H f_int g_int hf hg,
-    simp [L.map_add, integral_add f_int g_int,
+    simv [L.map_add, integral_add f_int g_int,
       integral_add (L.integrable_comp f_int) (L.integrable_comp g_int), hf, hg] },
   { exact is_closed_eq L.continuous_integral_comp_L1 (L.continuous.comp continuous_integral) },
   { intros f g hfg f_int hf,
@@ -798,7 +798,7 @@ begin
   { exact integral_comp_comm L h },
   have : ¬ (integrable (L ∘ φ) μ),
     by rwa lipschitz_with.integrable_comp_iff_of_antilipschitz L.lipschitz hL (L.map_zero),
-  simp [integral_undef, h, this]
+  simv [integral_undef, h, this]
 end
 
 lemma integral_comp_L1_comm (L : E →L[𝕜] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
@@ -870,7 +870,7 @@ begin
   by_cases hf : integrable f μ,
   { exact ((1 : 𝕜 →L[𝕜] 𝕜).smul_right c).integral_comp_comm hf },
   { by_cases hc : c = 0,
-    { simp only [hc, integral_zero, smul_zero] },
+    { simv only [hc, integral_zero, smul_zero] },
     rw [integral_undef hf, integral_undef, zero_smul],
     simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
@@ -904,7 +904,7 @@ begin
   { assume c s s_meas hs,
     rw integral_indicator s_meas,
     simp_rw [← indicator_smul_apply, integral_indicator s_meas],
-    simp only [s_meas, integral_const, measure.restrict_apply', univ_inter, with_density_apply],
+    simv only [s_meas, integral_const, measure.restrict_apply', univ_inter, with_density_apply],
     rw [lintegral_coe_eq_integral, ennreal.to_real_of_real, ← integral_smul_const],
     { refl },
     { exact integral_nonneg (λ x, nnreal.coe_nonneg _) },
@@ -913,7 +913,7 @@ begin
       rw has_finite_integral,
       convert hs,
       ext1 x,
-      simp only [nnreal.nnnorm_eq] } },
+      simv only [nnreal.nnnorm_eq] } },
   { assume u u' h_disj u_int u'_int h h',
     change ∫ (a : α), (u a + u' a) ∂μ.with_density (λ (x : α), ↑(f x)) =
       ∫ (a : α), f a • (u a + u' a) ∂μ,
@@ -929,7 +929,7 @@ begin
         continuous_integral.comp (with_density_smul_li μ f_meas).continuous,
       convert this,
       ext1 u,
-      simp only [function.comp_app, with_density_smul_li_apply],
+      simv only [function.comp_app, with_density_smul_li_apply],
       exact integral_congr_ae (mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp.symm },
     exact is_closed_eq C1 C2 },
   { assume u v huv u_int hu,
@@ -937,7 +937,7 @@ begin
     apply integral_congr_ae,
     filter_upwards [(ae_with_density_iff f_meas.coe_nnreal_ennreal).1 huv] with x hx,
     rcases eq_or_ne (f x) 0 with h'x|h'x,
-    { simp only [h'x, zero_smul]},
+    { simv only [h'x, zero_smul]},
     { rw [hx _],
       simpa only [ne.def, ennreal.coe_eq_zero] using h'x } }
 end
@@ -987,7 +987,7 @@ begin
   convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
               ≤ lintegral μ (thickened_indicator_aux δ E),
   { rw [lintegral_indicator _ E_mble],
-    simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
+    simv only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
   { apply lintegral_mono,
     apply indicator_le_thickened_indicator_aux, },
 end
@@ -998,7 +998,7 @@ lemma measure_le_lintegral_thickened_indicator
 begin
   convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
   dsimp,
-  simp only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
+  simv only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
 end
 
 end thickened_indicator
@@ -1013,13 +1013,13 @@ lemma integrable.simple_func_mul (g : simple_func β ℝ) (hf : integrable f μ)
 begin
   refine simple_func.induction (λ c s hs, _) (λ g₁ g₂ h_disj h_int₁ h_int₂,
     (h_int₁.add h_int₂).congr (by rw [simple_func.coe_add, add_mul])) g,
-  simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
+  simv only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
     simple_func.coe_zero, set.piecewise_eq_indicator],
   have : set.indicator s (function.const β c) * f = s.indicator (c • f),
   { ext1 x,
     by_cases hx : x ∈ s,
-    { simp only [hx, pi.mul_apply, set.indicator_of_mem, pi.smul_apply, algebra.id.smul_eq_mul] },
-    { simp only [hx, pi.mul_apply, set.indicator_of_not_mem, not_false_iff, zero_mul], }, },
+    { simv only [hx, pi.mul_apply, set.indicator_of_mem, pi.smul_apply, algebra.id.smul_eq_mul] },
+    { simv only [hx, pi.mul_apply, set.indicator_of_not_mem, not_false_iff, zero_mul], }, },
   rw [this, integrable_indicator_iff hs],
   exact (hf.smul c).integrable_on,
 end

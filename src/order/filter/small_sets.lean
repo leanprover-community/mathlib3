@@ -111,8 +111,8 @@ end
 calc _ ↔ ∃ s ∈ l, ∀ᶠ x in l', x ∈ s → p x :
   eventually_small_sets' $ λ s t hst ht, ht.mono $ λ x hx hs, hx (hst hs)
 ... ↔ ∃ (s ∈ l) (t ∈ l'), ∀ x, x ∈ t → x ∈ s → p x :
-  by simp only [eventually_iff_exists_mem]
-... ↔ ∀ᶠ x in l ⊓ l', p x : by simp only [eventually_inf, and_comm, mem_inter_iff, ← and_imp]
+  by simv only [eventually_iff_exists_mem]
+... ↔ ∀ᶠ x in l ⊓ l', p x : by simv only [eventually_inf, and_comm, mem_inter_iff, ← and_imp]
 
 @[simp] lemma eventually_small_sets_forall {p : α → Prop} :
   (∀ᶠ s in l.small_sets, ∀ x ∈ s, p x) ↔ ∀ᶠ x in l, p x :=

@@ -76,19 +76,19 @@ theorem ae_eventually_measure_pos [second_countable_topology α] :
   ∀ᵐ x ∂μ, ∀ᶠ a in v.filter_at x, 0 < μ a :=
 begin
   set s := {x | ¬ (∀ᶠ a in v.filter_at x, 0 < μ a)} with hs,
-  simp only [not_lt, not_eventually, nonpos_iff_eq_zero] at hs,
+  simv only [not_lt, not_eventually, nonpos_iff_eq_zero] at hs,
   change μ s = 0,
   let f : α → set (set α) := λ x, {a | μ a = 0},
   have h : v.fine_subfamily_on f s,
   { assume x hx ε εpos,
     rw hs at hx,
-    simp only [frequently_filter_at_iff, exists_prop, gt_iff_lt, mem_set_of_eq] at hx,
+    simv only [frequently_filter_at_iff, exists_prop, gt_iff_lt, mem_set_of_eq] at hx,
     rcases hx ε εpos with ⟨a, a_sets, ax, μa⟩,
     exact ⟨a, ⟨a_sets, μa⟩, ax⟩ },
   refine le_antisymm _ bot_le,
   calc μ s ≤ ∑' (x : h.index), μ (h.covering x) : h.measure_le_tsum
   ... = ∑' (x : h.index), 0 : by { congr, ext1 x, exact h.covering_mem x.2 }
-  ... = 0 : by simp only [tsum_zero, add_zero]
+  ... = 0 : by simv only [tsum_zero, add_zero]
 end
 
 /-- For every point `x`, sufficiently small sets in a Vitali family around `x` have finite measure.
@@ -153,7 +153,7 @@ begin
     ... ≤ μ (s ∩ o) + μ (oᶜ) : measure_union_le _ _
     ... = μ (s ∩ o) : by rw [μo, add_zero]
     ... = ε⁻¹ * (ε • μ) (s ∩ o) : begin
-      simp only [coe_nnreal_smul_apply, ← mul_assoc, mul_comm _ (ε : ℝ≥0∞)],
+      simv only [coe_nnreal_smul_apply, ← mul_assoc, mul_comm _ (ε : ℝ≥0∞)],
       rw [ennreal.mul_inv_cancel (ennreal.coe_pos.2 εpos).ne' ennreal.coe_ne_top, one_mul],
     end
     ... ≤ ε⁻¹ * ρ (s ∩ o) : begin
@@ -161,7 +161,7 @@ begin
       refine v.measure_le_of_frequently_le ρ ((measure.absolutely_continuous.refl μ).smul ε) _ _,
       assume x hx,
       rw hs at hx,
-      simp only [mem_inter_eq, not_lt, not_eventually, mem_set_of_eq] at hx,
+      simv only [mem_inter_eq, not_lt, not_eventually, mem_set_of_eq] at hx,
       exact hx.1
     end
     ... ≤ ε⁻¹ * ρ o : ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_right _ _))
@@ -227,13 +227,13 @@ begin
     lift c to ℝ≥0 using I c hc,
     lift d to ℝ≥0 using I d hd,
     apply v.null_of_frequently_le_of_frequently_ge hρ (ennreal.coe_lt_coe.1 hcd),
-    { simp only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
+    { simv only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
         mem_set_of_eq, mem_compl_eq, not_forall],
       assume x h1x h2x,
       apply h1x.mono (λ a ha, _),
       refine (ennreal.div_le_iff_le_mul _ (or.inr (bot_le.trans_lt ha).ne')).1 ha.le,
-      simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
-    { simp only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
+      simv only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
+    { simv only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
         mem_set_of_eq, mem_compl_eq, not_forall],
       assume x h1x h2x,
       apply h2x.mono (λ a ha, _),
@@ -307,7 +307,7 @@ begin
   { have A : (to_measurable μ sᶜ ∪ (⋃ n, to_measurable (ρ + μ) (u n))) ∩
       (to_measurable μ sᶜ ∪ (⋃ n, to_measurable (ρ + μ) (w n))) ⊆
       to_measurable μ sᶜ ∪ (⋃ m n, (to_measurable (ρ + μ) (u m)) ∩ (to_measurable (ρ + μ) (w n))),
-    { simp only [inter_distrib_left, inter_distrib_right, true_and, subset_union_left,
+    { simv only [inter_distrib_left, inter_distrib_right, true_and, subset_union_left,
         union_subset_iff, inter_self],
       refine ⟨_, _, _⟩,
       { exact (inter_subset_left _ _).trans (subset_union_left _ _) },
@@ -323,7 +323,7 @@ begin
       by { have : μ sᶜ = 0 := v.ae_tendsto_div hρ, rw [measure_to_measurable, this, zero_add] }
     ... ≤ ∑' m n, μ ((to_measurable (ρ + μ) (u m)) ∩ (to_measurable (ρ + μ) (w n))) :
       (measure_Union_le _).trans (ennreal.tsum_le_tsum (λ m, measure_Union_le _))
-    ... = 0 : by simp only [H, tsum_zero] },
+    ... = 0 : by simv only [H, tsum_zero] },
   -- now starts the nontrivial part of the argument. We fix `m` and `n`, and show that the
   -- measurable supersets of `u m` and `w n` have zero measure intersection by using the lemmas
   -- `measure_to_measurable_add_inter_left` (to reduce to `u m` or `w n` instead of the measurable
@@ -349,10 +349,10 @@ begin
         apply I.frequently.mono (λ a ha, _),
         rw [coe_nnreal_smul_apply],
         refine (ennreal.div_le_iff_le_mul _ (or.inr (bot_le.trans_lt ha).ne')).1 ha.le,
-        simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff]
+        simv only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff]
       end
     ... = p * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) :
-       by simp only [coe_nnreal_smul_apply,
+       by simv only [coe_nnreal_smul_apply,
           (measure_to_measurable_add_inter_right (measurable_set_to_measurable _ _) I)],
   have B : (q : ℝ≥0∞) * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n))
               ≤ ρ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) := calc
@@ -385,7 +385,7 @@ begin
   ... < q * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) : begin
     apply (ennreal.mul_lt_mul_right h _).2 (ennreal.coe_lt_coe.2 hpq),
     suffices H : (ρ + μ) (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) ≠ ∞,
-    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at H,
+    { simv only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at H,
       exact H.2 },
     apply (lt_of_le_of_lt (measure_mono (inter_subset_left _ _)) _).ne,
     rw measure_to_measurable,
@@ -438,7 +438,7 @@ begin
   apply I.frequently.mono (λ a ha, _),
   rw [coe_nnreal_smul_apply],
   refine (ennreal.div_le_iff_le_mul _ (or.inr (bot_le.trans_lt ha).ne')).1 ha.le,
-  simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff]
+  simv only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff]
 end
 
 /-- If, for all `x` in a set `s`, one has frequently `q < ρ a / μ a`, then `q * μ s ≤ ρ s`, as
@@ -483,13 +483,13 @@ begin
     { apply v.mul_measure_le_of_subset_lt_lim_ratio_meas hρ,
       assume y hy,
       have : v.lim_ratio_meas hρ y = ∞ := hy.1,
-      simp only [this, ennreal.coe_lt_top, mem_set_of_eq], },
-    { simp only [(zero_lt_one.trans_le hq).ne', true_or, ennreal.coe_eq_zero, ne.def,
+      simv only [this, ennreal.coe_lt_top, mem_set_of_eq], },
+    { simv only [(zero_lt_one.trans_le hq).ne', true_or, ennreal.coe_eq_zero, ne.def,
         not_false_iff] } },
   have B : tendsto (λ (q : ℝ≥0), (q : ℝ≥0∞)⁻¹ * ρ s) at_top (𝓝 (∞⁻¹ * ρ s)),
   { apply ennreal.tendsto.mul_const _ (or.inr ρs),
     exact ennreal.tendsto_inv_iff.2 (ennreal.tendsto_coe_nhds_top.2 tendsto_id) },
-  simp only [zero_mul, ennreal.inv_top] at B,
+  simv only [zero_mul, ennreal.inv_top] at B,
   apply ge_of_tendsto B,
   exact eventually_at_top.2 ⟨1, A⟩,
 end
@@ -508,12 +508,12 @@ begin
     apply v.measure_le_mul_of_subset_lim_ratio_meas_lt hρ,
     assume y hy,
     have : v.lim_ratio_meas hρ y = 0 := hy.1,
-    simp only [this, mem_set_of_eq, hq, ennreal.coe_pos], },
+    simv only [this, mem_set_of_eq, hq, ennreal.coe_pos], },
   have B : tendsto (λ (q : ℝ≥0), (q : ℝ≥0∞) * μ s) (𝓝[>] (0 : ℝ≥0)) (𝓝 ((0 : ℝ≥0) * μ s)),
   { apply ennreal.tendsto.mul_const _ (or.inr μs),
     rw ennreal.tendsto_coe,
     exact nhds_within_le_nhds },
-  simp only [zero_mul, ennreal.coe_zero] at B,
+  simv only [zero_mul, ennreal.coe_zero] at B,
   apply ge_of_tendsto B,
   filter_upwards [self_mem_nhds_within] using A,
 end
@@ -537,7 +537,7 @@ begin
   have A : ν (s ∩ f ⁻¹' ({0})) ≤ ((t : ℝ≥0∞)^2 • ρ) (s ∩ f⁻¹' {0}),
   { apply le_trans _ (zero_le _),
     have M : measurable_set (s ∩ f ⁻¹' ({0})) := hs.inter (f_meas (measurable_set_singleton _)),
-    simp only [ν, f, nonpos_iff_eq_zero, M, with_density_apply, lintegral_eq_zero_iff f_meas],
+    simv only [ν, f, nonpos_iff_eq_zero, M, with_density_apply, lintegral_eq_zero_iff f_meas],
     apply (ae_restrict_iff' M).2,
     exact eventually_of_forall (λ x hx, hx.2) },
   have B : ν (s ∩ f ⁻¹' ({∞})) ≤ ((t : ℝ≥0∞)^2 • ρ) (s ∩ f⁻¹' {∞}),
@@ -550,13 +550,13 @@ begin
   { assume n,
     let I := Ico ((t : ℝ≥0∞)^n) (t^(n+1)),
     have M : measurable_set (s ∩ f ⁻¹' I) := hs.inter (f_meas measurable_set_Ico),
-    simp only [f, M, with_density_apply, coe_nnreal_smul_apply],
+    simv only [f, M, with_density_apply, coe_nnreal_smul_apply],
     calc
     ∫⁻ x in s ∩ f⁻¹' I, f x ∂μ
         ≤ ∫⁻ x in s ∩ f⁻¹' I, t^(n+1) ∂μ :
           lintegral_mono_ae ((ae_restrict_iff' M).2 (eventually_of_forall (λ x hx, hx.2.2.le)))
     ... = t^(n+1) * μ (s ∩ f⁻¹' I) :
-          by simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
+          by simv only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
     ... = t^(2 : ℤ) * (t^(n-1) * μ (s ∩ f⁻¹' I)) : begin
         rw [← mul_assoc, ← ennreal.zpow_add t_ne_zero ennreal.coe_ne_top],
         congr' 2,
@@ -612,7 +612,7 @@ begin
   { assume n,
     let I := Ico ((t : ℝ≥0∞)^n) (t^(n+1)),
     have M : measurable_set (s ∩ f ⁻¹' I) := hs.inter (f_meas measurable_set_Ico),
-    simp only [f, M, with_density_apply, coe_nnreal_smul_apply],
+    simv only [f, M, with_density_apply, coe_nnreal_smul_apply],
     calc ρ (s ∩ f ⁻¹' I) ≤ t^ (n+1) * μ (s ∩ f ⁻¹' I) : begin
         rw ← ennreal.coe_zpow t_ne_zero',
         apply v.measure_le_mul_of_subset_lim_ratio_meas_lt hρ,
@@ -621,7 +621,7 @@ begin
         rw ennreal.coe_zpow t_ne_zero',
       end
     ... = ∫⁻ x in s ∩ f⁻¹' I, t^(n+1) ∂μ :
-      by simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
+      by simv only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
     ... ≤ ∫⁻ x in s ∩ f⁻¹' I, t * f x ∂μ : begin
         apply lintegral_mono_ae ((ae_restrict_iff' M).2 (eventually_of_forall (λ x hx, _))),
         rw [add_comm, ennreal.zpow_add t_ne_zero ennreal.coe_ne_top, zpow_one],
@@ -644,18 +644,18 @@ begin
   { have : tendsto (λ (t : ℝ≥0), (t^2 * ρ s : ℝ≥0∞)) (𝓝[>] 1) (𝓝 ((1 : ℝ≥0)^2 * ρ s)),
     { refine ennreal.tendsto.mul _ _ tendsto_const_nhds _,
       { exact ennreal.tendsto.pow (ennreal.tendsto_coe.2 nhds_within_le_nhds) },
-      { simp only [one_pow, ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero] },
-      { simp only [one_pow, ennreal.coe_one, ne.def, or_true, ennreal.one_ne_top,
+      { simv only [one_pow, ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero] },
+      { simv only [one_pow, ennreal.coe_one, ne.def, or_true, ennreal.one_ne_top,
                    not_false_iff] } },
-    simp only [one_pow, one_mul, ennreal.coe_one] at this,
+    simv only [one_pow, one_mul, ennreal.coe_one] at this,
     refine ge_of_tendsto this _,
     filter_upwards [self_mem_nhds_within] with _ ht,
     exact v.with_density_le_mul hρ hs ht, },
   { have : tendsto (λ (t : ℝ≥0), (t : ℝ≥0∞) * μ.with_density (v.lim_ratio_meas hρ) s) (𝓝[>] 1)
             (𝓝 ((1 : ℝ≥0) * μ.with_density (v.lim_ratio_meas hρ) s)),
     { refine ennreal.tendsto.mul_const (ennreal.tendsto_coe.2 nhds_within_le_nhds) _,
-      simp only [ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero], },
-    simp only [one_mul, ennreal.coe_one] at this,
+      simv only [ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero], },
+    simv only [one_mul, ennreal.coe_one] at this,
     refine ge_of_tendsto this _,
     filter_upwards [self_mem_nhds_within] with _ ht,
     exact v.le_mul_with_density hρ hs ht }
@@ -702,8 +702,8 @@ begin
   convert Ax.add Cx,
   { ext1 a,
     conv_lhs { rw [eq_add] },
-    simp only [pi.add_apply, coe_add, ennreal.add_div] },
-  { simp only [Bx, zero_add] }
+    simv only [pi.add_apply, coe_add, ennreal.add_div] },
+  { simv only [Bx, zero_add] }
 end
 
 /-- Given a measurable set `s`, then `μ (s ∩ a) / μ a` converges when `a` shrinks to a typical
@@ -736,7 +736,7 @@ begin
   have B : ∀ᵐ x ∂(μ.restrict s), t.indicator 1 x = (1 : ℝ≥0∞),
   { refine ae_restrict_of_ae_restrict_of_subset (subset_to_measurable μ s) _,
     filter_upwards [ae_restrict_mem (measurable_set_to_measurable μ s)] with _ hx,
-    simp only [hx, pi.one_apply, indicator_of_mem] },
+    simv only [hx, pi.one_apply, indicator_of_mem] },
   filter_upwards [A, B] with x hx h'x,
   rw [h'x] at hx,
   apply hx.congr' _,

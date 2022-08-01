@@ -229,7 +229,7 @@ def preserves_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e
       have := (is_limit_of_preserves F (t.whisker_equivalence e)).whisker_equivalence e.symm,
       apply ((is_limit.postcompose_hom_equiv equ _).symm this).of_iso_limit,
       refine cones.ext (iso.refl _) (λ j, _),
-      { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
+      { dsimp, simv [←functor.map_comp] }, -- See library note [dsimp, simv].
     end } }
 
 /--
@@ -289,7 +289,7 @@ def preserves_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] 
       have := (is_colimit_of_preserves F (t.whisker_equivalence e)).whisker_equivalence e.symm,
       apply ((is_colimit.precompose_inv_equiv equ _).symm this).of_iso_colimit,
       refine cocones.ext (iso.refl _) (λ j, _),
-      { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
+      { dsimp, simv [←functor.map_comp] }, -- See library note [dsimp, simv].
     end } }
 
 /--

@@ -158,9 +158,9 @@ begin
   rcases b with ⟨b, b2⟩,
   cases b,
   { rcases mem_zmod_2 b2 with rfl | rfl,
-    { simp [ha] },
+    { simv [ha] },
     { simpa only } },
-  { simp [(a + b).succ_ne_zero] }
+  { simv [(a + b).succ_ne_zero] }
 end
 
 lemma mul_L {a b : ℕ × zmod 2} (ha : a ≠ (0, 1)) (hb : b ≠ (0, 1)) :
@@ -171,18 +171,18 @@ begin
   cases b,
   { rcases mem_zmod_2 b2 with rfl | rfl;
     rcases mem_zmod_2 a2 with rfl | rfl;
-    -- while this looks like a non-terminal `simp`, it (almost) isn't: there is only one goal where
+    -- while this looks like a non-terminal `simv`, it (almost) isn't: there is only one goal where
     -- it does not finish the proof and on that goal it asks to prove `false`
-    simp,
+    simv,
     exact hb rfl },
   cases a,
   { rcases mem_zmod_2 b2 with rfl | rfl;
     rcases mem_zmod_2 a2 with rfl | rfl;
-    -- while this looks like a non-terminal `simp`, it (almost) isn't: there is only one goal where
+    -- while this looks like a non-terminal `simv`, it (almost) isn't: there is only one goal where
     -- it does not finish the proof and on that goal it asks to prove `false`
-    simp,
+    simv,
     exact ha rfl },
-  { simp [mul_ne_zero _ _, nat.succ_ne_zero _] }
+  { simv [mul_ne_zero _ _, nat.succ_ne_zero _] }
 end
 
 /-- The subsemiring corresponding to the elements of `L`, used to transfer instances. -/
@@ -258,7 +258,7 @@ The elements `(1,0)` and `(1,1)` of `L` are different, but their doubles coincid
 -/
 example : ∃ a b : L, a ≠ b ∧ 2 * a = 2 * b :=
 begin
-  refine ⟨⟨(1,0), by simp⟩, 1, λ (h : (⟨(1, 0), _⟩ : L) = ⟨⟨1, 1⟩, _⟩), _, rfl⟩,
+  refine ⟨⟨(1,0), by simv⟩, 1, λ (h : (⟨(1, 0), _⟩ : L) = ⟨⟨1, 1⟩, _⟩), _, rfl⟩,
   obtain (F : (0 : zmod 2) = 1) := congr_arg (λ j : L, j.1.2) h,
   cases F,
 end

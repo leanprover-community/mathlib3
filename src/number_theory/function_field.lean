@@ -67,14 +67,14 @@ begin
     congr,
     refine congr_fun _ c,
     refine is_localization.ext (non_zero_divisors (Fq[X])) _ _ _ _ _ _ _;
-      intros; simp only [alg_equiv.map_one, ring_hom.map_one, alg_equiv.map_mul, ring_hom.map_mul,
+      intros; simv only [alg_equiv.map_one, ring_hom.map_one, alg_equiv.map_mul, ring_hom.map_mul,
                          alg_equiv.commutes, ← is_scalar_tower.algebra_map_apply], },
   split; intro h; resetI,
   { let b := finite_dimensional.fin_basis (ratfunc Fq) F,
     exact finite_dimensional.of_fintype_basis (b.map_coeffs e this) },
   { let b := finite_dimensional.fin_basis Fqt F,
     refine finite_dimensional.of_fintype_basis (b.map_coeffs e.symm _),
-    intros c x, convert (this (e.symm c) x).symm, simp only [e.apply_symm_apply] },
+    intros c x, convert (this (e.symm c) x).symm, simv only [e.apply_symm_apply] },
 end
 
 lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F]

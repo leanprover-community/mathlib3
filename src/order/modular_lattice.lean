@@ -215,9 +215,9 @@ theorem well_founded_lt_exact_sequence
 subrelation.wf
   (λ A B hAB, show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
     begin
-      simp only [prod.lex_def, lt_iff_le_not_le, ← gci.l_le_l_iff,
+      simv only [prod.lex_def, lt_iff_le_not_le, ← gci.l_le_l_iff,
         ← gi.u_le_u_iff, hf, hg, le_antisymm_iff],
-      simp only [gci.l_le_l_iff, gi.u_le_u_iff, ← lt_iff_le_not_le, ← le_antisymm_iff],
+      simv only [gci.l_le_l_iff, gi.u_le_u_iff, ← lt_iff_le_not_le, ← le_antisymm_iff],
       cases lt_or_eq_of_le (inf_le_inf_right K (le_of_lt hAB)) with h h,
       { exact or.inl h },
       { exact or.inr ⟨h, sup_lt_sup_of_lt_of_inf_le_inf hAB (le_of_eq h.symm)⟩ }
@@ -247,7 +247,7 @@ def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a
   right_inv := λ x, subtype.ext (by { change a ⊓ ↑x ⊔ b = ↑x,
     rw [inf_comm, inf_sup_assoc_of_le _ x.prop.1, inf_eq_left.2 x.prop.2] }),
   map_rel_iff' := λ x y, begin
-    simp only [subtype.mk_le_mk, equiv.coe_fn_mk, and_true, le_sup_right],
+    simv only [subtype.mk_le_mk, equiv.coe_fn_mk, and_true, le_sup_right],
     rw [← subtype.coe_le_coe],
     refine ⟨λ h, _, λ h, sup_le_sup_right h _⟩,
     rw [← sup_eq_right.2 x.prop.1, inf_sup_assoc_of_le _ x.prop.2, sup_comm,

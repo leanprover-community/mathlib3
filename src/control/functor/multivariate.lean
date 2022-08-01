@@ -111,19 +111,19 @@ begin
   split; rintro ⟨u,h₂⟩; [ use f <$$> u, use g <$$> u ],
   { apply (h₁ u).mp h₂ },
   { apply (h₁ _).mpr _,
-    simp only [mvfunctor.map_map,h₀,is_lawful_mvfunctor.id_map,h₂] },
+    simv only [mvfunctor.map_map,h₀,is_lawful_mvfunctor.id_map,h₂] },
 end
 variables {F}
 
 lemma liftp_def (x : F α) : liftp' p x ↔ ∃ u : F (subtype_ p), subtype_val p <$$> u = x :=
-exists_iff_exists_of_mono F _ _ (to_subtype_of_subtype p) (by simp [mvfunctor.map_map])
+exists_iff_exists_of_mono F _ _ (to_subtype_of_subtype p) (by simv [mvfunctor.map_map])
 
 lemma liftr_def (x y : F α) :
   liftr' r x y ↔
   ∃ u : F (subtype_ r), (typevec.prod.fst ⊚ subtype_val r) <$$> u = x ∧
                         (typevec.prod.snd ⊚ subtype_val r) <$$> u = y :=
 exists_iff_exists_of_mono _ _ _ (to_subtype'_of_subtype' r)
-  (by simp only [map_map, comp_assoc, subtype_val_to_subtype']; simp [comp])
+  (by simv only [map_map, comp_assoc, subtype_val_to_subtype']; simv [comp])
 
 end liftp'
 
@@ -148,12 +148,12 @@ variables (pp : β → Prop)
 
 private def f : Π (n α), (λ (i : fin2 (n + 1)), {p_1 // of_repeat (pred_last' α pp i p_1)}) ⟹
     λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i // pred_last α pp p_1}
-| _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [pred_last]; erw const_iff_true) x.property ⟩
+| _ α (fin2.fs i) x := ⟨ x.val, cast (by simv only [pred_last]; erw const_iff_true) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
 private def g : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i // pred_last α pp p_1}) ⟹
     (λ (i : fin2 (n + 1)), {p_1 // of_repeat (pred_last' α pp i p_1)})
-| _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [pred_last]; erw const_iff_true) x.property ⟩
+| _ α (fin2.fs i) x := ⟨ x.val, cast (by simv only [pred_last]; erw const_iff_true) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
 lemma liftp_last_pred_iff {β} (p : β → Prop) (x : F (α ::: β)) :
@@ -174,14 +174,14 @@ private def f :
     (λ (i : fin2 (n + 1)),
       {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
     λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}
-| _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
+| _ α (fin2.fs i) x := ⟨ x.val, cast (by simv only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
 private def g :
   Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
     (λ (i : fin2 (n + 1)),
       {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.1 p_1.2))})
-| _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
+| _ α (fin2.fs i) x := ⟨ x.val, cast (by simv only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
 lemma liftr_last_rel_iff  (x y : F (α ::: β)) :

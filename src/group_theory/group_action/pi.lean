@@ -31,7 +31,7 @@ instance has_smul' {g : I → Type*} [Π i, has_smul (f i) (g i)] :
   has_smul (Π i, f i) (Π i : I, g i) :=
 ⟨λ s x, λ i, (s i) • (x i)⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma smul_apply' {g : I → Type*} [∀ i, has_smul (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl

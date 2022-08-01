@@ -46,7 +46,7 @@ coe_nodup.2 $ list.nat.nodup_antidiagonal n
 
 @[simp] lemma antidiagonal_succ {n : ℕ} :
   antidiagonal (n + 1) = (0, n + 1) ::ₘ ((antidiagonal n).map (prod.map nat.succ id)) :=
-by simp only [antidiagonal, list.nat.antidiagonal_succ, coe_map, cons_coe]
+by simv only [antidiagonal, list.nat.antidiagonal_succ, coe_map, cons_coe]
 
 lemma antidiagonal_succ' {n : ℕ} :
   antidiagonal (n + 1) = (n + 1, 0) ::ₘ ((antidiagonal n).map (prod.map id nat.succ)) :=

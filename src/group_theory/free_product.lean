@@ -115,16 +115,16 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
       simp_rw [con.rel_eq_coe, con.ker_rel],
       rintros _ _ (i | ⟨i, x, y⟩),
       { change free_monoid.lift _ (free_monoid.of _) = free_monoid.lift _ 1,
-        simp only [monoid_hom.map_one, free_monoid.lift_eval_of], },
+        simv only [monoid_hom.map_one, free_monoid.lift_eval_of], },
       { change free_monoid.lift _ (free_monoid.of _ * free_monoid.of _) =
           free_monoid.lift _ (free_monoid.of _),
-        simp only [monoid_hom.map_mul, free_monoid.lift_eval_of], }
+        simv only [monoid_hom.map_mul, free_monoid.lift_eval_of], }
     end,
   inv_fun := λ f i, f.comp of,
   left_inv := by { intro fi, ext i x,
     rw [monoid_hom.comp_apply, of_apply, con.lift_mk', free_monoid.lift_eval_of], },
   right_inv := by { intro f, ext i x,
-    simp only [monoid_hom.comp_apply, of_apply, con.lift_mk', free_monoid.lift_eval_of], } }
+    simv only [monoid_hom.comp_apply, of_apply, con.lift_mk', free_monoid.lift_eval_of], } }
 
 @[simp] lemma lift_of {N} [monoid N] (fi : Π i, M i →* N) {i} (m : M i) :
   lift fi (of m) = fi i m :=
@@ -143,12 +143,12 @@ begin
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
   ext,
-  simp [monoid_hom.cod_restrict],
+  simv [monoid_hom.cod_restrict],
 end
 
 lemma of_left_inverse [decidable_eq ι] (i : ι) :
   function.left_inverse (lift $ pi.mul_single i (monoid_hom.id (M i))) of :=
-λ x, by simp only [lift_of, pi.mul_single_eq_same, monoid_hom.id_apply]
+λ x, by simv only [lift_of, pi.mul_single_eq_same, monoid_hom.id_apply]
 
 lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
 by { classical, exact (of_left_inverse i).injective }
@@ -159,8 +159,8 @@ begin
   rintros _ ⟨x, rfl⟩,
   induction x using free_product.induction_on with i x x y hx hy,
   { exact s.one_mem, },
-  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
-  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
+  { simv only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simv only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
 end
 
 lemma mrange_eq_supr {N} [monoid N] (f : Π i, M i →* N) :
@@ -169,7 +169,7 @@ begin
   apply le_antisymm (lift_mrange_le f (λ i, le_supr _ i)),
   apply supr_le _,
   rintros i _ ⟨x, rfl⟩,
-  exact ⟨of x, by simp only [lift_of]⟩
+  exact ⟨of x, by simv only [lift_of]⟩
 end
 
 section group
@@ -203,8 +203,8 @@ begin
   rintros _ ⟨x, rfl⟩,
   induction x using free_product.induction_on with i x x y hx hy,
   { exact s.one_mem, },
-  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
-  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
+  { simv only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simv only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
 end
 
 lemma range_eq_supr {N} [group N] (f : Π i, G i →* N) :
@@ -213,7 +213,7 @@ begin
   apply le_antisymm (lift_range_le _ f (λ i, le_supr _ i)),
   apply supr_le _,
   rintros i _ ⟨x, rfl⟩,
-  exact ⟨of x, by simp only [lift_of]⟩
+  exact ⟨of x, by simv only [lift_of]⟩
 end
 
 end group
@@ -237,7 +237,7 @@ def fst_idx (w : word M) : option ι := w.to_list.head'.map sigma.fst
 
 lemma fst_idx_ne_iff {w : word M} {i} :
   fst_idx w ≠ some i ↔ ∀ l ∈ w.to_list.head', i ≠ sigma.fst l :=
-not_iff_not.mp $ by simp [fst_idx]
+not_iff_not.mp $ by simv [fst_idx]
 
 variable (M)
 
@@ -284,9 +284,9 @@ begin
   rintros ⟨m, w, h⟩ ⟨m', w', h'⟩ he,
   by_cases hm : m = 1;
   by_cases hm' : m' = 1,
-  { simp only [rcons, dif_pos hm, dif_pos hm'] at he, cc, },
-  { exfalso, simp only [rcons, dif_pos hm, dif_neg hm'] at he, rw he at h, exact h rfl },
-  { exfalso, simp only [rcons, dif_pos hm', dif_neg hm] at he, rw ←he at h', exact h' rfl, },
+  { simv only [rcons, dif_pos hm, dif_pos hm'] at he, cc, },
+  { exfalso, simv only [rcons, dif_pos hm, dif_neg hm'] at he, rw he at h, exact h rfl },
+  { exfalso, simv only [rcons, dif_pos hm', dif_neg hm] at he, rw ←he at h', exact h' rfl, },
   { have : m = m' ∧ w.to_list = w'.to_list,
     { simpa only [rcons, dif_neg hm, dif_neg hm', true_and, eq_self_iff_true, subtype.mk_eq_mk,
       heq_iff_eq, ←subtype.ext_iff_val] using he },
@@ -325,7 +325,7 @@ lemma equiv_pair_eq_of_fst_idx_ne {i} {w : word M} (h : fst_idx w ≠ some i) :
 instance summand_action (i) : mul_action (M i) (word M) :=
 { smul     := λ m w, rcons { head := m * (equiv_pair i w).head, ..equiv_pair i w },
   one_smul := λ w, by { simp_rw [one_mul], apply (equiv_pair i).symm_apply_eq.mpr, ext; refl },
-  mul_smul := λ m m' w, by simp only [mul_assoc, ←equiv_pair_symm, equiv.apply_symm_apply], }
+  mul_smul := λ m m' w, by simv only [mul_assoc, ←equiv_pair_symm, equiv.apply_symm_apply], }
 
 instance : mul_action (free_product M) (word M) :=
 mul_action.of_End_hom (lift (λ i, mul_action.to_End_hom))
@@ -335,7 +335,7 @@ lemma of_smul_def (i) (w : word M) (m : M i) :
 
 lemma cons_eq_smul {i} {m : M i} {ls h1 h2} :
   word.mk (⟨i, m⟩ :: ls) h1 h2 = of m • mk_aux ls h1 h2 :=
-by rw [cons_eq_rcons, of_smul_def, equiv_pair_eq_of_fst_idx_ne _]; simp only [mul_one]
+by rw [cons_eq_rcons, of_smul_def, equiv_pair_eq_of_fst_idx_ne _]; simv only [mul_one]
 
 lemma smul_induction {C : word M → Prop}
   (h_empty : C empty)
@@ -441,7 +441,7 @@ def to_word {i j} (w : neword M i j) : word M :=
       exact w_hne1,
       exfalso, apply H, },
     { intros l h,
-      simp only [to_list, list.mem_append] at h,
+      simv only [to_list, list.mem_append] at h,
       cases h,
       { exact w_ih_w₁ _ h, },
       { exact w_ih_w₂ _ h, }, },
@@ -469,7 +469,7 @@ begin
   { rw list.forall_mem_cons at hnot1,
     cases l with y l,
     { refine ⟨x.1, x.1, singleton x.2 hnot1.1, _ ⟩,
-      simp [to_word], },
+      simv [to_word], },
     { rw list.chain'_cons at hchain,
       specialize hi hnot1.2 hchain.2 (by rintros ⟨rfl⟩),
       obtain ⟨i, j, w', hw' : w'.to_list = y :: l⟩ := hi,
@@ -491,7 +491,7 @@ lemma singleton_last {i} (x : M i) (hne_one : x ≠ 1) :
 
 @[simp] lemma prod_singleton {i} (x : M i) (hne_one : x ≠ 1) :
   (singleton x hne_one).prod = of x :=
-by simp [to_word, prod, word.prod]
+by simv [to_word, prod, word.prod]
 
 @[simp]
 lemma append_head {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
@@ -504,7 +504,7 @@ lemma append_last {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword
 @[simp]
 lemma append_prod {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
   (append w₁ hne w₂).prod = w₁.prod * w₂.prod :=
-by simp [to_word, prod, word.prod]
+by simv [to_word, prod, word.prod]
 
 /-- One can replace the first letter in a non-empty reduced word by an element of the same
 group -/
@@ -533,9 +533,9 @@ lemma mul_head_prod {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.hea
 begin
   unfold mul_head,
   induction w,
-  { simp [mul_head, replace_head], },
+  { simv [mul_head, replace_head], },
   { specialize w_ih_w₁ _ hnotone, clear w_ih_w₂,
-    simp [replace_head, ← mul_assoc] at *,
+    simv [replace_head, ← mul_assoc] at *,
     congr' 1, }
 end
 
@@ -550,15 +550,15 @@ def inv : Π {i j} (w : neword G i j), neword G j i
 
 @[simp]
 lemma inv_prod {i j} (w : neword G i j) : w.inv.prod = w.prod⁻¹ :=
-by induction w; simp [inv, *]
+by induction w; simv [inv, *]
 
 @[simp]
 lemma inv_head {i j} (w : neword G i j) : w.inv.head = w.last⁻¹ :=
-by induction w; simp [inv, *]
+by induction w; simv [inv, *]
 
 @[simp]
 lemma inv_last {i j} (w : neword G i j) : w.inv.last = w.head⁻¹ :=
-by induction w; simp [inv, *]
+by induction w; simv [inv, *]
 
 end group
 
@@ -593,7 +593,7 @@ begin
   induction w with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂ generalizing m; clear i' j',
   { simpa using hpp _ _ hm _ hne_one, },
   { calc lift f (neword.append w₁ hne w₂).prod • X m
-        = lift f w₁.prod • lift f w₂.prod • X m : by simp [mul_action.mul_smul]
+        = lift f w₁.prod • lift f w₂.prod • X m : by simv [mul_action.mul_smul]
     ... ⊆ lift f w₁.prod • X k : set_smul_subset_set_smul_iff.mpr (hIw₂ hm)
     ... ⊆ X i : hIw₁ hne },
 end
@@ -629,7 +629,7 @@ begin
     (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)),
   have hw' : lift f w'.prod ≠ 1 :=
     lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w',
-  intros heq1, apply hw', simp [w', heq1]
+  intros heq1, apply hw', simv [w', heq1]
 end
 
 include hcard
@@ -660,7 +660,7 @@ begin
         hl (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)) ,
       have hw' : lift f w'.prod ≠ 1 :=
         lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w',
-      intros heq1, apply hw', simp [w', heq1], }, }
+      intros heq1, apply hw', simv [w', heq1], }, }
 end
 
 lemma empty_of_word_prod_eq_one {w : word H} (h : lift f w.prod = 1) :
@@ -712,8 +712,8 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
       (is_free_group.lift (λ (x : is_free_group.generators (G i)),
         free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
         : G i →* (free_group (Σ i, is_free_group.generators (G i))))))
-    (by {ext, simp, })
-   (by {ext, simp, }) }
+    (by {ext, simv, })
+   (by {ext, simv, }) }
 
 /-- A free group is a free product of copies of the free_group over one generator. -/
 
@@ -767,7 +767,7 @@ begin
   have : free_group.lift a =
     (free_product.lift (λ i, free_group.lift (λ _, a i))).comp
     (((@free_group_equiv_free_product ι)).to_monoid_hom),
-  { ext i, simp, },
+  { ext i, simv, },
   rw this, clear this,
   refine function.injective.comp _ (mul_equiv.injective _),
 
@@ -784,17 +784,17 @@ begin
   show _ ∨ ∃ i, 3 ≤ # (H i),
   { inhabit ι,
     right, use arbitrary ι,
-    simp only [H],
+    simv only [H],
     rw [free_group.free_group_unit_equiv_int.cardinal_eq, cardinal.mk_denumerable],
     apply le_of_lt,
-    simp },
+    simv },
 
   show ∀ i, (X' i).nonempty,
   { exact (λ i, set.nonempty.inl (hXnonempty i)), },
 
   show pairwise (λ i j, disjoint (X' i) (X' j)),
   { intros i j hij,
-    simp only [X'],
+    simv only [X'],
     apply disjoint.union_left; apply disjoint.union_right,
     { exact hXdisj i j hij, },
     { exact hXYdisj i j, },
@@ -807,10 +807,10 @@ begin
     refine free_group.free_group_unit_equiv_int.forall_congr_left'.mpr _,
     intros n hne1,
     change free_group.lift (λ _, a i) (free_group.of () ^ n) • X' j ⊆ X' i,
-    simp only [map_zpow, free_group.lift.of],
+    simv only [map_zpow, free_group.lift.of],
     change a i ^ n • X' j ⊆ X' i,
     have hnne0 : n ≠ 0, { rintro rfl, apply hne1, simpa, }, clear hne1,
-    simp only [X'],
+    simv only [X'],
 
     -- Positive and negative powers separately
     cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,

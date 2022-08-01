@@ -61,14 +61,14 @@ begin
   { have : a ∈ l₂ := p.subset (mem_cons_self _ _),
     rcases mem_split this with ⟨u₂, v₂, rfl⟩,
     have p' := (perm_cons a).1 (p.trans perm_middle),
-    obtain rfl := IH p' (s₂.sublist $ by simp),
+    obtain rfl := IH p' (s₂.sublist $ by simv),
     change a::u₂ ++ v₂ = u₂ ++ ([a] ++ v₂), rw ← append_assoc, congr,
     have : ∀ (x : α) (h : x ∈ u₂), x = a := λ x m,
       antisymm ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))
-        (h₁ _ (by simp [m])),
+        (h₁ _ (by simv [m])),
     rw [(@eq_repeat _ a (length u₂ + 1) (a::u₂)).2,
         (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
-    split; simp [iff_true_intro this, or_comm] }
+    split; simv [iff_true_intro this, or_comm] }
 end
 
 theorem sublist_of_subperm_of_sorted [is_antisymm α r]
@@ -127,13 +127,13 @@ section insertion_sort
 
 theorem ordered_insert_length : Π (L : list α) (a : α), (L.ordered_insert r a).length = L.length + 1
 | [] a := rfl
-| (hd :: tl) a := by { dsimp [ordered_insert], split_ifs; simp [ordered_insert_length], }
+| (hd :: tl) a := by { dsimp [ordered_insert], split_ifs; simv [ordered_insert_length], }
 
 /-- An alternative definition of `ordered_insert` using `take_while` and `drop_while`. -/
 lemma ordered_insert_eq_take_drop (a : α) : ∀ l : list α,
   l.ordered_insert r a = l.take_while (λ b, ¬(a ≼ b)) ++ (a :: l.drop_while (λ b, ¬(a ≼ b)))
 | [] := rfl
-| (b :: l) := by { dsimp only [ordered_insert], split_ifs; simp [take_while, drop_while, *] }
+| (b :: l) := by { dsimp only [ordered_insert], split_ifs; simv [take_while, drop_while, *] }
 
 lemma insertion_sort_cons_eq_take_drop (a : α) (l : list α) :
   insertion_sort r (a :: l) = (insertion_sort r l).take_while (λ b, ¬(a ≼ b)) ++
@@ -145,7 +145,7 @@ open perm
 
 theorem perm_ordered_insert (a) : ∀ l : list α, ordered_insert r a l ~ a :: l
 | []       := perm.refl _
-| (b :: l) := by by_cases a ≼ b; [simp [ordered_insert, h],
+| (b :: l) := by by_cases a ≼ b; [simv [ordered_insert, h],
   simpa [ordered_insert, h] using
     ((perm_ordered_insert l).cons _).trans (perm.swap _ _ _)]
 
@@ -153,7 +153,7 @@ theorem ordered_insert_count [decidable_eq α] (L : list α) (a b : α) :
   count a (L.ordered_insert r b) = count a L + if (a = b) then 1 else 0 :=
 begin
   rw [(L.perm_ordered_insert r b).count_eq, count_cons],
-  split_ifs; simp only [nat.succ_eq_add_one, add_zero],
+  split_ifs; simv only [nat.succ_eq_add_one, add_zero],
 end
 
 theorem perm_insertion_sort : ∀ l : list α, insertion_sort r l ~ l
@@ -276,16 +276,16 @@ begin
   suffices : ∀ (L : list α) h1, @@and.rec
     (λ a a (_ : length l₁ < length l + 1 + 1 ∧
       length l₂ < length l + 1 + 1), L) h1 h1 = L,
-  { simp [merge_sort, h], apply this },
+  { simv [merge_sort, h], apply this },
   intros, cases h1, refl
 end
 
 section correctness
 
 theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
-| []       []        := by simp [merge]
-| []       (b :: l') := by simp [merge]
-| (a :: l) []        := by simp [merge]
+| []       []        := by simv [merge]
+| []       (b :: l') := by simv [merge]
+| (a :: l) []        := by simv [merge]
 | (a :: l) (b :: l') := begin
   by_cases a ≼ b,
   { simpa [merge, h] using perm_merge _ _ },
@@ -294,8 +294,8 @@ theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
 end
 
 theorem perm_merge_sort : ∀ l : list α, merge_sort r l ~ l
-| []        := by simp [merge_sort]
-| [a]       := by simp [merge_sort]
+| []        := by simv [merge_sort]
+| [a]       := by simv [merge_sort]
 | (a::b::l) := begin
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
@@ -314,7 +314,7 @@ section total_and_transitive
 variables {r} [is_total α r] [is_trans α r]
 
 theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
-| []       []        h₁ h₂ := by simp [merge]
+| []       []        h₁ h₂ := by simv [merge]
 | []       (b :: l') h₁ h₂ := by simpa [merge] using h₂
 | (a :: l) []        h₁ h₂ := by simpa [merge] using h₁
 | (a :: l) (b :: l') h₁ h₂ := begin
@@ -341,8 +341,8 @@ end
 variable (r)
 
 theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
-| []        := by simp [merge_sort]
-| [a]       := by simp [merge_sort]
+| []        := by simv [merge_sort]
+| [a]       := by simv [merge_sort]
 | (a::b::l) := begin
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,

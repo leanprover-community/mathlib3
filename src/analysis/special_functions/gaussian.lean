@@ -61,7 +61,7 @@ begin
   refine ⟨_, integrable_on_rpow_mul_exp_neg_mul_sq hb hs⟩,
   rw ← (measure.measure_preserving_neg (volume : measure ℝ)).integrable_on_comp_preimage
     ((homeomorph.neg ℝ).to_measurable_equiv.measurable_embedding),
-  simp only [function.comp, neg_sq, neg_preimage, preimage_neg_Iio, neg_neg, neg_zero],
+  simv only [function.comp, neg_sq, neg_preimage, preimage_neg_Iio, neg_neg, neg_zero],
   apply integrable.mono' (integrable_on_rpow_mul_exp_neg_mul_sq hb hs),
   { apply measurable.ae_strongly_measurable,
     exact (measurable_id'.neg.pow measurable_const).mul
@@ -79,7 +79,7 @@ lemma integrable_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
 begin
   have A : (-1 : ℝ) < 0, by norm_num,
   convert integrable_rpow_mul_exp_neg_mul_sq hb A,
-  simp,
+  simv,
 end
 
 lemma integrable_exp_neg_mul_sq_iff {b : ℝ} :
@@ -89,7 +89,7 @@ begin
   by_contra' hb,
   have : ∫⁻ x:ℝ, 1 ≤ ∫⁻ x:ℝ, ∥exp (-b * x^2)∥₊,
   { apply lintegral_mono (λ x, _),
-    simp only [neg_mul, ennreal.one_le_coe_iff, ← to_nnreal_one, to_nnreal_le_iff_le_coe,
+    simv only [neg_mul, ennreal.one_le_coe_iff, ← to_nnreal_one, to_nnreal_le_iff_le_coe,
       real.norm_of_nonneg (exp_pos _).le, coe_nnnorm, one_le_exp_iff, right.nonneg_neg_iff],
     exact mul_nonpos_of_nonpos_of_nonneg hb (sq_nonneg _) },
   simpa using this.trans_lt h.2,
@@ -100,7 +100,7 @@ lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
 begin
   have A : (-1 : ℝ) < 1, by norm_num,
   convert integrable_rpow_mul_exp_neg_mul_sq hb A,
-  simp,
+  simv,
 end
 
 lemma integral_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
@@ -145,7 +145,7 @@ begin
       = ∫ p : ℝ × ℝ, exp (-b * p.1 ^ 2) * exp (-b * p.2 ^ 2) :
     by { rw [pow_two, ← integral_prod_mul], refl }
   ... = ∫ p : ℝ × ℝ, real.exp (- b * (p.1 ^ 2 + p.2^2)) :
-    by { congr, ext p, simp only [← real.exp_add, neg_add_rev, real.exp_eq_exp], ring }
+    by { congr, ext p, simv only [← real.exp_add, neg_add_rev, real.exp_eq_exp], ring }
   ... = ∫ p in polar_coord.target, p.1 * exp (- b * ((p.1 * cos p.2) ^ 2 + (p.1 * sin p.2)^2)) :
     (integral_comp_polar_coord_symm (λ p, exp (- b * (p.1^2 + p.2^2)))).symm
   ... = (∫ r in Ioi (0 : ℝ), r * exp (-b * r^2)) * (∫ θ in Ioo (-π) π, 1) :
@@ -160,7 +160,7 @@ begin
   ... = π / b :
     begin
       have : 0 ≤ π + π, by linarith [real.pi_pos],
-      simp only [integral_const, measure.restrict_apply', measurable_set_Ioo, univ_inter, this,
+      simv only [integral_const, measure.restrict_apply', measurable_set_Ioo, univ_inter, this,
           sub_neg_eq_add, algebra.id.smul_eq_mul, mul_one, volume_Ioo, two_mul,
           ennreal.to_real_of_real, integral_mul_exp_neg_mul_sq hb, one_mul],
       field_simp [hb.ne'],

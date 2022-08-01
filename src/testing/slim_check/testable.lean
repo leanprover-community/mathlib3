@@ -327,7 +327,7 @@ Problem found!
 x := 3
 ```
  -/
-@[simp, nolint unused_arguments]
+@[simv, nolint unused_arguments]
 def named_binder (n : string) (p : Prop) : Prop := p
 
 /-- Is the given test result a failure? -/
@@ -427,14 +427,14 @@ instance test_forall_in_list
                                        right, apply h' })
                                  rs
                                  (combine (psum.inr
-                                  $ by { intros j h, simp only [ball_cons, named_binder],
+                                  $ by { intros j h, simv only [ball_cons, named_binder],
                                          split ; assumption, } ) hp)
       | gave_up n := do
          rs ← @testable.run _ (test_forall_in_list xs) cfg min,
          match rs with
          | (success _) := return $ gave_up n
          | (failure Hce xs n) := return $ failure
-                      (by { simp only [ball_cons, named_binder],
+                      (by { simv only [ball_cons, named_binder],
                             apply not_and_of_not_right _ Hce, }) xs n
          | (gave_up n') := return $ gave_up (n + n')
          end

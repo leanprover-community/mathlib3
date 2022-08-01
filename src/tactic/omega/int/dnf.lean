@@ -29,9 +29,9 @@ lemma push_neg_equiv :
   ∀ {p : preform}, preform.equiv (push_neg p) (¬* p) :=
 begin
   preform.induce `[intros v; try {refl}],
-  { simp only [not_not, push_neg, preform.holds] },
-  { simp only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
-  { simp only [preform.holds, push_neg, not_and_distrib, ihp v, ihq v] }
+  { simv only [not_not, push_neg, preform.holds] },
+  { simv only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
+  { simv only [preform.holds, push_neg, not_and_distrib, ihp v, ihq v] }
 end
 
 /-- NNF transformation -/
@@ -76,7 +76,7 @@ end
 
 lemma nnf_equiv : ∀ {p : preform}, preform.equiv (nnf p) p :=
 begin
-  preform.induce `[intros v; try {refl}; simp only [nnf]],
+  preform.induce `[intros v; try {refl}; simv only [nnf]],
   { rw push_neg_equiv,
     apply not_iff_not_of_iff, apply ih },
   { apply pred_mono_2' (ihp v) (ihq v) },
@@ -93,7 +93,7 @@ end
 
 lemma neg_free_neg_elim : ∀ p : preform, is_nnf p → neg_free (neg_elim p) :=
 begin
-  preform.induce `[intro h1, try {simp only [neg_free, neg_elim]}, try {trivial}],
+  preform.induce `[intro h1, try {simv only [neg_free, neg_elim]}, try {trivial}],
   { cases p; try {cases h1}; try {trivial}, constructor; trivial },
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption },
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption }
@@ -111,17 +111,17 @@ lemma implies_neg_elim : ∀ {p : preform}, preform.implies p (neg_elim p) :=
 begin
   preform.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
-    { simp only [le_and_le_iff_eq.symm,
+    { simv only [le_and_le_iff_eq.symm,
         not_and_distrib, not_le,
         preterm.val, preform.holds] at h,
-      simp only [int.add_one_le_iff, preterm.add_one,
+      simv only [int.add_one_le_iff, preterm.add_one,
         preterm.val, preform.holds, neg_elim],
       rw or_comm, assumption },
-    { simp only [not_le, int.add_one_le_iff,
+    { simv only [not_le, int.add_one_le_iff,
         preterm.add_one, not_le, preterm.val,
         preform.holds, neg_elim] at *,
       assumption} },
-  { simp only [neg_elim], cases h; [{left, apply ihp},
+  { simv only [neg_elim], cases h; [{left, apply ihp},
     {right, apply ihq}]; assumption },
   { apply and.imp (ihp _) (ihq _) h }
 end
@@ -144,16 +144,16 @@ lemma exists_clause_holds {v : nat → int} :
 begin
   preform.induce `[intros h1 h2],
   { apply list.exists_mem_cons_of, constructor,
-    { simp only [preterm.val, preform.holds] at h2,
+    { simv only [preterm.val, preform.holds] at h2,
       rw [list.forall_mem_singleton],
-      simp only [h2, omega.int.val_canonize,
+      simv only [h2, omega.int.val_canonize,
         omega.term.val_sub, sub_self] },
     { apply list.forall_mem_nil } },
   { apply list.exists_mem_cons_of, constructor,
     { apply list.forall_mem_nil },
-    { simp only [preterm.val, preform.holds] at h2 ,
+    { simv only [preterm.val, preform.holds] at h2 ,
       rw [list.forall_mem_singleton],
-      simp only [val_canonize,
+      simv only [val_canonize,
         preterm.val, term.val_sub],
       rw [le_sub, sub_zero], assumption } },
   { cases h1 },
@@ -166,7 +166,7 @@ begin
   { rcases (ihp h1.left h2.left) with ⟨cp, hp1, hp2⟩,
     rcases (ihq h1.right h2.right) with ⟨cq, hq1, hq2⟩,
     refine ⟨clause.append cp cq, ⟨_, clause.holds_append hp2 hq2⟩⟩,
-    simp only [dnf_core, list.mem_map],
+    simv only [dnf_core, list.mem_map],
     refine ⟨(cp,cq),⟨_,rfl⟩⟩,
     rw list.mem_product,
     constructor; assumption }

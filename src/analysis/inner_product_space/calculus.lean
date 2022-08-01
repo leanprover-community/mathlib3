@@ -128,7 +128,7 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
 
 lemma cont_diff_norm_sq : cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
 begin
-  simp only [sq, ← inner_self_eq_norm_mul_norm],
+  simv only [sq, ← inner_self_eq_norm_mul_norm],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).cont_diff.comp (cont_diff_id.inner cont_diff_id)
 end
 
@@ -155,7 +155,7 @@ lemma cont_diff_at.norm (hf : cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
 lemma cont_diff_at.dist (hf : cont_diff_at ℝ n f x) (hg : cont_diff_at ℝ n g x)
   (hne : f x ≠ g x) :
   cont_diff_at ℝ n (λ y, dist (f y) (g y)) x :=
-by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+by { simv only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma cont_diff_within_at.norm (hf : cont_diff_within_at ℝ n f s x) (h0 : f x ≠ 0) :
   cont_diff_within_at ℝ n (λ y, ∥f y∥) s x :=
@@ -164,7 +164,7 @@ lemma cont_diff_within_at.norm (hf : cont_diff_within_at ℝ n f s x) (h0 : f x 
 lemma cont_diff_within_at.dist (hf : cont_diff_within_at ℝ n f s x)
   (hg : cont_diff_within_at ℝ n g s x) (hne : f x ≠ g x) :
   cont_diff_within_at ℝ n (λ y, dist (f y) (g y)) s x :=
-by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+by { simv only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma cont_diff_on.norm_sq (hf : cont_diff_on ℝ n f s) :
   cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
@@ -193,10 +193,10 @@ omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
   has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (innerSL x)) x :=
 begin
-  simp only [sq, ← inner_self_eq_norm_mul_norm],
+  simv only [sq, ← inner_self_eq_norm_mul_norm],
   convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),
   ext y,
-  simp [bit0, real_inner_comm],
+  simv [bit0, real_inner_comm],
 end
 include 𝕜
 
@@ -211,7 +211,7 @@ lemma differentiable_at.norm (hf : differentiable_at ℝ f x) (h0 : f x ≠ 0) :
 lemma differentiable_at.dist (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x)
   (hne : f x ≠ g x) :
   differentiable_at ℝ (λ y, dist (f y) (g y)) x :=
-by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+by { simv only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable.norm_sq (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
 λ x, (hf x).norm_sq
@@ -236,7 +236,7 @@ lemma differentiable_within_at.norm (hf : differentiable_within_at ℝ f s x) (h
 lemma differentiable_within_at.dist (hf : differentiable_within_at ℝ f s x)
   (hg : differentiable_within_at ℝ g s x) (hne : f x ≠ g x) :
   differentiable_within_at ℝ (λ y, dist (f y) (g y)) s x :=
-by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
+by { simv only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable_on.norm_sq (hf : differentiable_on ℝ f s) :
   differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=

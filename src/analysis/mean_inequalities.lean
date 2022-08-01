@@ -113,15 +113,15 @@ begin
     { rw hzi, exact zero_rpow hwi } },
   -- If all numbers `z i` with non-zero weight are positive, then we apply Jensen's inequality
   -- for `exp` and numbers `log (z i)` with weights `w i`.
-  { simp only [not_exists, not_and, ne.def, not_not] at A,
+  { simv only [not_exists, not_and, ne.def, not_not] at A,
     have := convex_on_exp.map_sum_le hw hw' (λ i _, set.mem_univ $ log (z i)),
-    simp only [exp_sum, (∘), smul_eq_mul, mul_comm (w _) (log _)] at this,
+    simv only [exp_sum, (∘), smul_eq_mul, mul_comm (w _) (log _)] at this,
     convert this using 1; [apply prod_congr rfl, apply sum_congr rfl]; intros i hi,
     { cases eq_or_lt_of_le (hz i hi) with hz hz,
-      { simp [A i hi hz.symm] },
+      { simv [A i hi hz.symm] },
       { exact rpow_def_of_pos hz _ } },
     { cases eq_or_lt_of_le (hz i hi) with hz hz,
-      { simp [A i hi hz.symm] },
+      { simv [A i hi hz.symm] },
       { rw [exp_log hz] } } }
 end
 
@@ -273,12 +273,12 @@ begin
   by_cases h : a = ⊤ ∨ b = ⊤,
   { refine le_trans le_top (le_of_eq _),
     repeat { rw div_eq_mul_inv },
-    cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
+    cases h; rw h; simv [h, hpq.pos, hpq.symm.pos], },
   push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
   rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
     coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
-    ennreal.of_real, ←@coe_div (real.to_nnreal p) _ (by simp [hpq.pos]),
-    ←@coe_div (real.to_nnreal q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+    ennreal.of_real, ←@coe_div (real.to_nnreal p) _ (by simv [hpq.pos]),
+    ←@coe_div (real.to_nnreal q) _ (by simv [hpq.symm.pos]), ←coe_add, coe_le_coe],
   exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
 end
 
@@ -314,7 +314,7 @@ private lemma inner_le_Lp_mul_Lp_of_norm_eq_zero (f g : ι → ℝ≥0) {p q : �
   (hpq : p.is_conjugate_exponent q) (hf : ∑ i in s, (f i) ^ p = 0) :
   ∑ i in s, f i * g i ≤ (∑ i in s, (f i) ^ p) ^ (1 / p) * (∑ i in s, (g i) ^ q) ^ (1 / q) :=
 begin
-  simp only [hf, hpq.ne_zero, one_div, sum_eq_zero_iff, zero_rpow, zero_mul, inv_eq_zero,
+  simv only [hf, hpq.ne_zero, one_div, sum_eq_zero_iff, zero_rpow, zero_mul, inv_eq_zero,
     ne.def, not_false_iff, le_zero_iff, mul_eq_zero],
   intros i his,
   left,
@@ -413,7 +413,7 @@ theorem rpow_sum_le_const_mul_sum_rpow (f : ι → ℝ≥0) {p : ℝ} (hp : 1 �
   (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, (f i) ^ p :=
 begin
   cases eq_or_lt_of_le hp with hp hp,
-  { simp [← hp] },
+  { simv [← hp] },
   let q : ℝ := p / (p - 1),
   have hpq : p.is_conjugate_exponent q,
   { rw real.is_conjugate_exponent_iff hp },
@@ -435,12 +435,12 @@ begin
   split,
   { use λ i, ((f i) ^ p / f i / (∑ i in s, (f i) ^ p) ^ (1 / q)),
     by_cases hf : ∑ i in s, (f i)^p = 0,
-    { simp [hf, hpq.ne_zero, hpq.symm.ne_zero] },
-    { have A : p + q - q ≠ 0, by simp [hpq.ne_zero],
+    { simv [hf, hpq.ne_zero, hpq.symm.ne_zero] },
+    { have A : p + q - q ≠ 0, by simv [hpq.ne_zero],
       have B : ∀ y : ℝ≥0, y * y^p / y = y^p,
       { refine λ y, mul_div_cancel_left_of_imp (λ h, _),
         simpa [h, hpq.ne_zero] },
-      simp only [set.mem_set_of_eq, div_rpow, ← sum_div, ← rpow_mul,
+      simv only [set.mem_set_of_eq, div_rpow, ← sum_div, ← rpow_mul,
         div_mul_cancel _ hpq.symm.ne_zero, rpow_one, div_le_iff hf, one_mul, hpq.mul_eq_add,
         ← rpow_sub' _ A, _root_.add_sub_cancel, le_refl, true_and, ← mul_div_assoc, B],
       rw [div_eq_iff, ← rpow_add hf, hpq.inv_add_inv_conj, rpow_one],
@@ -458,10 +458,10 @@ theorem Lp_add_le (f g : ι → ℝ≥0) {p : ℝ} (hp : 1 ≤ p) :
     (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
 begin
   -- The result is trivial when `p = 1`, so we can assume `1 < p`.
-  rcases eq_or_lt_of_le hp with rfl|hp, { simp [finset.sum_add_distrib] },
+  rcases eq_or_lt_of_le hp with rfl|hp, { simv [finset.sum_add_distrib] },
   have hpq := real.is_conjugate_exponent_conjugate_exponent hp,
   have := is_greatest_Lp s (f + g) hpq,
-  simp only [pi.add_apply, add_mul, sum_add_distrib] at this,
+  simv only [pi.add_apply, add_mul, sum_add_distrib] at this,
   rcases this.1 with ⟨φ, hφ, H⟩,
   rw ← H,
   exact add_le_add ((is_greatest_Lp s f hpq).2 ⟨φ, hφ, rfl⟩)
@@ -539,7 +539,7 @@ begin
     (λ i, ⟨_, abs_nonneg (g i)⟩) hpq),
   push_cast at this,
   refine le_trans (sum_le_sum $ λ i hi, _) this,
-  simp only [← abs_mul, le_abs_self]
+  simv only [← abs_mul, le_abs_self]
 end
 
 /-- For `1 ≤ p`, the `p`-th power of the sum of `f i` is bounded above by a constant times the
@@ -563,7 +563,7 @@ begin
     (λ i, ⟨_, abs_nonneg (g i)⟩) hp),
   push_cast at this,
   refine le_trans (rpow_le_rpow _ (sum_le_sum $ λ i hi, _) _) this;
-    simp [sum_nonneg, rpow_nonneg_of_nonneg, abs_nonneg, le_trans zero_le_one hp, abs_add,
+    simv [sum_nonneg, rpow_nonneg_of_nonneg, abs_nonneg, le_trans zero_le_one hp, abs_add,
       rpow_le_rpow]
 end
 
@@ -576,7 +576,7 @@ theorem inner_le_Lp_mul_Lq_of_nonneg (hpq : is_conjugate_exponent p q)
   (hf : ∀ i ∈ s, 0 ≤ f i) (hg : ∀ i ∈ s, 0 ≤ g i) :
   ∑ i in s, f i * g i ≤ (∑ i in s, (f i)^p) ^ (1 / p) * (∑ i in s, (g i)^q) ^ (1 / q) :=
 by convert inner_le_Lp_mul_Lq s f g hpq using 3; apply sum_congr rfl; intros i hi;
-  simp only [abs_of_nonneg, hf i hi, hg i hi]
+  simv only [abs_of_nonneg, hf i hi, hg i hi]
 
 /-- Hölder inequality: the scalar product of two functions is bounded by the product of their
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. A version for `ℝ`-valued functions.
@@ -629,7 +629,7 @@ functions. -/
 theorem rpow_sum_le_const_mul_sum_rpow_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) :
   (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, f i ^ p :=
 by convert rpow_sum_le_const_mul_sum_rpow s f hp using 2; apply sum_congr rfl; intros i hi;
-  simp only [abs_of_nonneg, hf i hi]
+  simv only [abs_of_nonneg, hf i hi]
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
 to the sum of the `L_p`-seminorms of the summands. A version for `ℝ`-valued nonnegative
@@ -638,7 +638,7 @@ theorem Lp_add_le_of_nonneg (hp : 1 ≤ p) (hf : ∀ i ∈ s, 0 ≤ f i) (hg : �
   (∑ i in s, (f i + g i) ^ p) ^ (1 / p) ≤
     (∑ i in s, (f i) ^ p) ^ (1 / p) + (∑ i in s, (g i) ^ p) ^ (1 / p) :=
 by convert Lp_add_le s f g hp using 2 ; [skip, congr' 1, congr' 1];
-  apply sum_congr rfl; intros i hi; simp only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
+  apply sum_congr rfl; intros i hi; simv only [abs_of_nonneg, hf i hi, hg i hi, add_nonneg]
 
 /-- Minkowski inequality: the `L_p` seminorm of the infinite sum of two vectors is less than or
 equal to the infinite sum of the `L_p`-seminorms of the summands, if these infinite sums both
@@ -701,23 +701,23 @@ begin
   { replace H : (∀ i ∈ s, f i = 0) ∨ (∀ i ∈ s, g i = 0),
       by simpa [ennreal.rpow_eq_zero_iff, hpq.pos, hpq.symm.pos, asymm hpq.pos, asymm hpq.symm.pos,
                 sum_eq_zero_iff_of_nonneg] using H,
-    have : ∀ i ∈ s, f i * g i = 0 := λ i hi, by cases H; simp [H i hi],
+    have : ∀ i ∈ s, f i * g i = 0 := λ i hi, by cases H; simv [H i hi],
     have : (∑ i in s, f i * g i) = (∑ i in s, 0) := sum_congr rfl this,
-    simp [this] },
+    simv [this] },
   push_neg at H,
   by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^q) ^ (1/q) = ⊤,
-  { cases H'; simp [H', -one_div, H] },
+  { cases H'; simv [H', -one_div, H] },
   replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
     by simpa [ennreal.rpow_eq_top_iff, asymm hpq.pos, asymm hpq.symm.pos, hpq.pos, hpq.symm.pos,
               ennreal.sum_eq_top_iff, not_or_distrib] using H',
   have := ennreal.coe_le_coe.2 (@nnreal.inner_le_Lp_mul_Lq _ s (λ i, ennreal.to_nnreal (f i))
               (λ i, ennreal.to_nnreal (g i)) _ _ hpq),
-  simp [← ennreal.coe_rpow_of_nonneg, le_of_lt (hpq.pos), le_of_lt (hpq.one_div_pos),
+  simv [← ennreal.coe_rpow_of_nonneg, le_of_lt (hpq.pos), le_of_lt (hpq.one_div_pos),
              le_of_lt (hpq.symm.pos), le_of_lt (hpq.symm.one_div_pos)] at this,
   convert this using 1;
   [skip, congr' 2];
-  [skip, skip, simp, skip, simp];
-  { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
+  [skip, skip, simv, skip, simv];
+  { apply finset.sum_congr rfl (λ i hi, _), simv [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
     with_top.coe_mul.symm] },
 end
 
@@ -728,7 +728,7 @@ theorem rpow_sum_le_const_mul_sum_rpow (hp : 1 ≤ p) :
   (∑ i in s, f i) ^ p ≤ (card s) ^ (p - 1) * ∑ i in s, (f i) ^ p :=
 begin
   cases eq_or_lt_of_le hp with hp hp,
-  { simp [← hp] },
+  { simv [← hp] },
   let q : ℝ := p / (p - 1),
   have hpq : p.is_conjugate_exponent q,
   { rw real.is_conjugate_exponent_iff hp },
@@ -748,7 +748,7 @@ theorem Lp_add_le (hp : 1 ≤ p) :
   (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑ i in s, (f i)^p) ^ (1/p) + (∑ i in s, (g i)^p) ^ (1/p) :=
 begin
   by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^p) ^ (1/p) = ⊤,
-  { cases H'; simp [H', -one_div] },
+  { cases H'; simv [H', -one_div] },
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
   replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
     by simpa [ennreal.rpow_eq_top_iff, asymm pos, pos, ennreal.sum_eq_top_iff,
@@ -758,7 +758,7 @@ begin
   push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (pos), le_of_lt (one_div_pos.2 pos)] at this,
   convert this using 2;
   [skip, congr' 1, congr' 1];
-  { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
+  { apply finset.sum_congr rfl (λ i hi, _), simv [H'.1 i hi, H'.2 i hi] }
 end
 
 end ennreal

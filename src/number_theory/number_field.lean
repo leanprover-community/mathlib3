@@ -77,10 +77,10 @@ For now, this is not an instance by default as it creates an equal-but-not-defeq
 will likely change in Lean 4. -/
 def ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_hom.to_algebra
 { to_fun := λ k, ⟨algebra_map K L k, is_integral.algebra_map k.2⟩,
-  map_zero' := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_zero, map_zero],
-  map_one'  := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_one, map_one],
-  map_add' := λ x y, subtype.ext $ by simp only [map_add, subalgebra.coe_add, subtype.coe_mk],
-  map_mul' := λ x y, subtype.ext $ by simp only [subalgebra.coe_mul, map_mul, subtype.coe_mk] }
+  map_zero' := subtype.ext $ by simv only [subtype.coe_mk, subalgebra.coe_zero, map_zero],
+  map_one'  := subtype.ext $ by simv only [subtype.coe_mk, subalgebra.coe_one, map_one],
+  map_add' := λ x y, subtype.ext $ by simv only [map_add, subalgebra.coe_add, subtype.coe_mk],
+  map_mul' := λ x y, subtype.ext $ by simv only [subalgebra.coe_mul, map_mul, subtype.coe_mk] }
 
 namespace ring_of_integers
 
@@ -196,7 +196,7 @@ begin
     { let ψ := ring_hom.equiv_rat_alg_hom φ,
       show (aeval (ψ x)) (minpoly ℚ x) = 0,
       rw aeval_alg_hom_apply ψ x (minpoly ℚ x),
-      simp only [minpoly.aeval, map_zero], },
+      simv only [minpoly.aeval, map_zero], },
     exact minpoly.ne_zero hx, },
   { intro ha,
     let Qx := adjoin_root (minpoly ℚ x),

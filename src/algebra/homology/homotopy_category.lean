@@ -81,7 +81,7 @@ def homotopy_out_map {C D : homological_complex V c} (f : C ⟶ D) :
   homotopy ((quotient V c).map f).out f :=
 begin
   apply homotopy_of_eq,
-  simp,
+  simv,
 end
 
 @[simp] lemma quotient_map_out_comp_out {C D E : homotopy_category V c} (f : C ⟶ D) (g : D ⟶ E) :
@@ -110,8 +110,8 @@ def homotopy_equiv_of_iso
   homotopy_equiv C D :=
 { hom := quot.out i.hom,
   inv := quot.out i.inv,
-  homotopy_hom_inv_id := homotopy_of_eq _ _ (by { simp, refl, }),
-  homotopy_inv_hom_id := homotopy_of_eq _ _ (by { simp, refl, }), }
+  homotopy_hom_inv_id := homotopy_of_eq _ _ (by { simv, refl, }),
+  homotopy_inv_hom_id := homotopy_of_eq _ _ (by { simv, refl, }), }
 
 variables (V c) [has_equalizers V] [has_images V] [has_image_maps V]
   [has_cokernels V]
@@ -182,11 +182,11 @@ def nat_trans.map_homotopy_category {F G : V ⥤ W} [F.additive] [G.additive]
   naturality' := λ C D f,
   begin
     dsimp,
-    simp only [←functor.map_comp],
+    simv only [←functor.map_comp],
     congr' 1,
     ext,
     dsimp,
-    simp,
+    simv,
   end }
 
 @[simp] lemma nat_trans.map_homotopy_category_id (c : complex_shape ι) (F : V ⥤ W) [F.additive] :

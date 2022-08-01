@@ -16,7 +16,7 @@ meta def squeeze_simp_test
   (_ : parse (tk "=")) (l : parse simp_arg_list) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    squeeze_simp_core slow_and_accurate.is_some no_dflt hs
-     (λ l_no_dft l_args, simp use_iota_eqn none l_no_dft l_args attr_names locat cfg')
+     (λ l_no_dft l_args, simv use_iota_eqn none l_no_dft l_args attr_names locat cfg')
      (λ a, guard (a.map to_string = l.map to_string) <|> fail!"{a.map to_string} expected.")
 end interactive
 end tactic
@@ -51,7 +51,7 @@ section namespacing2
 
 open nat
 
-local attribute [simp] nat.mul_succ
+local attribute [simv] nat.mul_succ
 
 -- Test that we strip superflous prefixes from `squeeze_simp` output, if needed.
 example (n m : ℕ) : n * m.succ = n*m + n :=

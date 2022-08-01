@@ -108,7 +108,7 @@ begin
                   zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
-  simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul,
+  simv [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul,
     λ n, show @coe ℕ ℝ ⟨_⟩ n = ⟨n⟩, from rfl];
   apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
@@ -177,9 +177,9 @@ lt_cauchy
 
 lemma mk_zero : mk 0 = 0 := by rw ← of_cauchy_zero; refl
 lemma mk_one : mk 1 = 1 := by rw ← of_cauchy_one; refl
-lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, ←of_cauchy_add]
-lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, ←of_cauchy_mul]
-lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, ←of_cauchy_neg]
+lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simv [mk, ←of_cauchy_add]
+lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simv [mk, ←of_cauchy_mul]
+lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simv [mk, ←of_cauchy_neg]
 
 @[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
 by rw [← mk_zero, mk_lt]; exact iff_of_eq (congr_arg pos (sub_zero f))
@@ -189,7 +189,7 @@ instance : has_le ℝ := ⟨le⟩
 private lemma le_def {x y : ℝ} : x ≤ y ↔ x < y ∨ x = y := show le _ _ ↔ _, by rw le
 
 @[simp] theorem mk_le {f g : cau_seq ℚ abs} : mk f ≤ mk g ↔ f ≤ g :=
-by simp [le_def, mk_eq]; refl
+by simv [le_def, mk_eq]; refl
 
 @[elab_as_eliminator]
 protected lemma ind_mk {C : real → Prop} (x : real) (h : ∀ y, C (mk y)) : C x :=
@@ -204,7 +204,7 @@ begin
   induction a using real.ind_mk,
   induction b using real.ind_mk,
   induction c using real.ind_mk,
-  simp only [mk_lt, ← mk_add],
+  simv only [mk_lt, ← mk_add],
   show pos _ ↔ pos _, rw add_sub_add_left_eq_sub
 end
 
@@ -229,7 +229,7 @@ begin
 end
 
 protected theorem zero_lt_one : (0 : ℝ) < 1 :=
-by convert rat_cast_lt.2 zero_lt_one; simp [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
+by convert rat_cast_lt.2 zero_lt_one; simv [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
 
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
 begin
@@ -241,9 +241,9 @@ end
 instance : ordered_comm_ring ℝ :=
 { add_le_add_left :=
   begin
-    simp only [le_iff_eq_or_lt],
+    simv only [le_iff_eq_or_lt],
     rintros a b ⟨rfl, h⟩,
-    { simp },
+    { simv },
     { exact λ c, or.inr ((add_lt_add_iff_left c).2 ‹_›) }
   end,
   zero_le_one := le_of_lt real.zero_lt_one,
@@ -284,10 +284,10 @@ noncomputable instance : linear_ordered_field ℝ :=
   mul_inv_cancel := begin
     rintros ⟨a⟩ h,
     rw mul_comm,
-    simp only [←of_cauchy_inv, ←of_cauchy_mul, ← of_cauchy_one, ← of_cauchy_zero, ne.def] at *,
+    simv only [←of_cauchy_inv, ←of_cauchy_mul, ← of_cauchy_one, ← of_cauchy_zero, ne.def] at *,
     exact cau_seq.completion.inv_mul_cancel h,
   end,
-  inv_zero := by simp [← of_cauchy_zero, ←of_cauchy_inv],
+  inv_zero := by simv [← of_cauchy_zero, ←of_cauchy_inv],
   rat_cast := coe,
   rat_cast_mk  := λ n d hd h2,
     by rw [←of_cauchy_rat_cast, rat.cast_mk', of_cauchy_mul, of_cauchy_inv, of_cauchy_nat_cast,
@@ -340,7 +340,7 @@ theorem mk_le_of_forall_le {f : cau_seq ℚ abs} {x : ℝ}
 begin
   cases h with i H,
   rw [← neg_le_neg_iff, ← mk_neg],
-  exact le_mk_of_forall_le ⟨i, λ j ij, by simp [H _ ij]⟩
+  exact le_mk_of_forall_le ⟨i, λ j ij, by simv [H _ ij]⟩
 end
 
 theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
@@ -402,7 +402,7 @@ begin
   have hf₂ : ∀ (n > 0) (y ∈ S), (y - (n:ℕ)⁻¹ : ℝ) < (f n / n:ℚ),
   { intros n n0 y yS,
     have := (int.sub_one_lt_floor _).trans_le (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, int.floor_le _⟩),
-    simp [-sub_eq_add_neg],
+    simv [-sub_eq_add_neg],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
   have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
@@ -442,7 +442,7 @@ lemma Sup_def (S : set ℝ) :
     then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
 
 protected theorem is_lub_Sup (S : set ℝ) (h₁ : S.nonempty) (h₂ : bdd_above S) : is_lub S (Sup S) :=
-by { simp only [Sup_def, dif_pos (and.intro h₁ h₂)], apply classical.some_spec }
+by { simv only [Sup_def, dif_pos (and.intro h₁ h₂)], apply classical.some_spec }
 
 noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup (-S)⟩
 
@@ -492,7 +492,7 @@ begin
     exact sub_lt_iff_lt_add.mp (lt_cSup_of_lt h x_in hx) }
 end
 
-@[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+@[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simv
 
 lemma csupr_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
 begin
@@ -519,7 +519,7 @@ theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
 real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
 @[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
-by simp [Inf_def, Sup_empty]
+by simv [Inf_def, Sup_empty]
 
 lemma cinfi_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨅ i, f i) = 0 :=
 by rw [infi_of_empty', Inf_empty]

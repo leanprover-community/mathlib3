@@ -48,19 +48,19 @@ setup_tactic_parser
 meta def init_ring (assert : parse (tk "using" *> parser.pexpr)?) : tactic unit := do
 `[rw ext_iff,
   intros i,
-  simp only [init, select, coeff_mk],
+  simv only [init, select, coeff_mk],
   split_ifs with hi; try {refl}],
 match assert with
 | none := skip
 | some e := do
-  `[simp only [add_coeff, mul_coeff, neg_coeff, sub_coeff, nsmul_coeff, zsmul_coeff, pow_coeff],
+  `[simv only [add_coeff, mul_coeff, neg_coeff, sub_coeff, nsmul_coeff, zsmul_coeff, pow_coeff],
     apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
     rintro ⟨b, k⟩ h -],
   tactic.replace `h ```(%%e p _ h),
-  `[simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
+  `[simv only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
     have hk : k < n, by linarith,
     fin_cases b;
-    simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk,
+    simv only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk,
       matrix.cons_val_one, coeff_mk, hk, if_true]]
 end
 
@@ -113,12 +113,12 @@ lemma select_add_select_not :
 begin
   ghost_calc _,
   intro n,
-  simp only [ring_hom.map_add],
+  simv only [ring_hom.map_add],
   suffices : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) +
              (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
   { apply_fun (aeval x.coeff) at this,
     simpa only [alg_hom.map_add, aeval_bind₁, ← coeff_select] },
-  simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
+  simv only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
     alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
   apply finset.sum_congr rfl,
   refine λ m hm, mul_eq_mul_left_iff.mpr (or.inl _),
@@ -166,7 +166,7 @@ include hp
 
 @[simp] lemma init_add_tail (x : 𝕎 R) (n : ℕ) :
   init n x + tail n x = x :=
-by simp only [init, tail, ← not_lt, select_add_select_not]
+by simv only [init, tail, ← not_lt, select_add_select_not]
 
 end
 

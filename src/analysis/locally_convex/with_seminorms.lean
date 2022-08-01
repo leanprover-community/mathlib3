@@ -58,7 +58,7 @@ variables (p : seminorm_family 𝕜 E ι)
 
 lemma basis_sets_iff {U : set E} :
   U ∈ p.basis_sets ↔ ∃ (i : finset ι) r (hr : 0 < r), U = ball (i.sup p) 0 r :=
-by simp only [basis_sets, mem_Union, mem_singleton_iff]
+by simv only [basis_sets, mem_Union, mem_singleton_iff]
 
 lemma basis_sets_mem (i : finset ι) {r : ℝ} (hr : 0 < r) :
   (i.sup p).ball 0 r ∈ p.basis_sets :=
@@ -161,7 +161,7 @@ begin
     use (s.sup p).ball 0 (r / ∥x∥),
     exact ⟨p.basis_sets_mem s (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
   refine ⟨(s.sup p).ball 0 r, p.basis_sets_mem s hr, _⟩,
-  simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, map_zero,
+  simv only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, map_zero,
     implies_true_iff, preimage_const_of_mem, zero_smul],
 end
 
@@ -210,7 +210,7 @@ def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E
 lemma is_bounded_const (ι' : Type*) [nonempty ι']
   {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
   is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
-by simp only [is_bounded, forall_const]
+by simv only [is_bounded, forall_const]
 
 lemma const_is_bounded (ι : Type*) [nonempty ι]
   {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
@@ -220,7 +220,7 @@ begin
   { rcases h i with ⟨s, C, hC, h⟩,
     exact ⟨C, hC, le_trans h (smul_le_smul (finset.sup_le (λ _ _, le_rfl)) le_rfl)⟩ },
   use [{classical.arbitrary ι}],
-  simp only [h, finset.sup_singleton],
+  simv only [h, finset.sup_singleton],
 end
 
 lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
@@ -349,7 +349,7 @@ begin
   rw (hp.has_basis).is_vonN_bounded_basis_iff,
   split,
   { intros h I,
-    simp only [id.def] at h,
+    simv only [id.def] at h,
     specialize h ((I.sup p).ball 0 1) (p.basis_sets_mem I zero_lt_one),
     rcases h with ⟨r, hr, h⟩,
     cases normed_field.exists_lt_norm 𝕜 r with a ha,
@@ -383,9 +383,9 @@ begin
     by { rcases hI.bex with ⟨i, hi⟩, exact lt_of_lt_of_le (hr i) (finset.le_sup' r hi) },
     refine ⟨I.sup' hI r, h', λ x hx, finset_sup_apply_lt h' (λ i hi, _)⟩,
     refine lt_of_lt_of_le (h i x hx) _,
-    simp only [finset.le_sup'_iff, exists_prop],
+    simv only [finset.le_sup'_iff, exists_prop],
     exact ⟨i, hi, (eq.refl _).le⟩ },
-  simp only [finset.not_nonempty_iff_eq_empty.mp hI, finset.sup_empty, coe_bot, pi.zero_apply,
+  simv only [finset.not_nonempty_iff_eq_empty.mp hI, finset.sup_empty, coe_bot, pi.zero_apply,
     exists_prop],
   exact ⟨1, zero_lt_one, λ _ _, zero_lt_one⟩,
 end

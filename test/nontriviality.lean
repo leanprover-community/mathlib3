@@ -49,7 +49,7 @@ begin
   dec_trivial
 end
 
-/-! Test using `@[nontriviality]` lemmas in `nontriviality and custom `simp` lemmas -/
+/-! Test using `@[nontriviality]` lemmas in `nontriviality and custom `simv` lemmas -/
 
 def empty_or_univ {α : Type*} (s : set α) : Prop := s = ∅ ∨ s = set.univ
 

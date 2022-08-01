@@ -49,7 +49,7 @@ lemma dart_fst_fiber [decidable_eq V] (v : V) :
   univ.filter (λ d : G.dart, d.fst = v) = univ.image (G.dart_of_neighbor_set v) :=
 begin
   ext d,
-  simp only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
+  simv only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
   split,
   { rintro rfl,
     exact ⟨_, d.is_adj, by ext; refl⟩, },
@@ -65,8 +65,8 @@ by simpa only [dart_fst_fiber, finset.card_univ, card_neighbor_set_eq_degree]
 lemma dart_card_eq_sum_degrees : fintype.card G.dart = ∑ v, G.degree v :=
 begin
   haveI := classical.dec_eq V,
-  simp only [←card_univ, ←dart_fst_fiber_card_eq_degree],
-  exact card_eq_sum_card_fiberwise (by simp),
+  simv only [←card_univ, ←dart_fst_fiber_card_eq_degree],
+  exact card_eq_sum_card_fiberwise (by simv),
 end
 
 variables {G} [decidable_eq V]
@@ -112,16 +112,16 @@ theorem even_card_odd_degree_vertices [fintype V] [decidable_rel G.adj] :
 begin
   classical,
   have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
-  simp only [zmod.nat_cast_self, zero_mul, nat.cast_mul] at h,
+  simv only [zmod.nat_cast_self, zero_mul, nat.cast_mul] at h,
   rw [nat.cast_sum, ←sum_filter_ne_zero] at h,
   rw @sum_congr _ _ _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
-  { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
+  { simv only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
     rw ←zmod.eq_zero_iff_even,
     convert h,
     ext v,
     rw ←zmod.ne_zero_iff_odd, },
   { intros v,
-    simp only [true_and, mem_filter, mem_univ, ne.def],
+    simv only [true_and, mem_filter, mem_univ, ne.def],
     rw [zmod.eq_zero_iff_even, zmod.eq_one_iff_odd, nat.odd_iff_not_even, imp_self],
     trivial }
 end
@@ -134,14 +134,14 @@ begin
   have hk : 0 < k,
   { have hh : (filter (λ (v : V), odd (G.degree v)) univ).nonempty,
     { use v,
-      simp only [true_and, mem_filter, mem_univ],
+      simv only [true_and, mem_filter, mem_univ],
       use h, },
     rwa [←card_pos, hg, ← two_mul, zero_lt_mul_left] at hh,
     exact zero_lt_two, },
   have hc : (λ (w : V), w ≠ v ∧ odd (G.degree w)) = (λ (w : V), odd (G.degree w) ∧ w ≠ v),
   { ext w,
     rw and_comm, },
-  simp only [hc, filter_congr_decidable],
+  simv only [hc, filter_congr_decidable],
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { refine ⟨k - 1, tsub_eq_of_eq_add $ hg.trans _⟩,
     rw [add_assoc, one_add_one_eq_two, ←nat.mul_succ, ← two_mul],
@@ -160,7 +160,7 @@ begin
   { rw hg,
     apply nat.succ_pos, },
   rcases card_pos.mp hg' with ⟨w, hw⟩,
-  simp only [true_and, mem_filter, mem_univ, ne.def] at hw,
+  simv only [true_and, mem_filter, mem_univ, ne.def] at hw,
   exact ⟨w, hw⟩,
 end
 

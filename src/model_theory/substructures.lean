@@ -163,21 +163,21 @@ instance : has_Inf (L.substructure M) :=
           rintro _ ⟨t, rfl⟩,
           by_cases h : t ∈ s,
           { simpa [h] using t.fun_mem f },
-          { simp [h] }
+          { simv [h] }
         end }⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Inf (S : set (L.substructure M)) :
   ((Inf S : L.substructure M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (L.substructure M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 lemma mem_infi {ι : Sort*} {S : ι → L.substructure M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
-by simp only [infi, mem_Inf, set.forall_range_iff]
+by simv only [infi, mem_Inf, set.forall_range_iff]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → L.substructure M} : (↑(⨅ i, S i) : set M) = ⋂ i, S i :=
-by simp only [infi, coe_Inf, set.bInter_range]
+by simv only [infi, coe_Inf, set.bInter_range]
 
 /-- Substructures of a structure form a complete lattice. -/
 instance : complete_lattice (L.substructure M) :=
@@ -239,9 +239,9 @@ begin
     refine closure_eq_of_le (λ x hx, ⟨var ⟨x, hx⟩, rfl⟩) (le_Inf (λ S' hS', _)),
     { rintro _ ⟨t, rfl⟩,
       exact t.realize_mem _ (λ i, hS' i.2) } },
-  { simp only [mem_range] at *,
+  { simv only [mem_range] at *,
     refine ⟨func f (λ i, (classical.some (hx i))), _⟩,
-    simp only [term.realize, λ i, classical.some_spec (hx i)] }
+    simv only [term.realize, λ i, classical.some_spec (hx i)] }
 end
 
 instance small_closure [small.{u} s] :
@@ -353,7 +353,7 @@ rfl
 
 @[simp]
 lemma comap_id (S : L.substructure P) : S.comap (hom.id _ _) = S :=
-ext (by simp)
+ext (by simv)
 
 /-- The image of a substructure along a homomorphism is a substructure. -/
 @[simps] def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
@@ -362,7 +362,7 @@ ext (by simp)
     ⟨fun_map f (λ i, classical.some (hx i)),
      S.fun_mem f _ (λ i, (classical.some_spec (hx i)).1),
      begin
-       simp only [hom.map_fun, set_like.mem_coe],
+       simv only [hom.map_fun, set_like.mem_coe],
        exact congr rfl (funext (λ i, (classical.some_spec (hx i)).2)),
      end⟩ }
 
@@ -455,7 +455,7 @@ include hf
 /-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
 def gci_map_comap : galois_coinsertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_coinsertion
-  (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
+  (λ S x, by simv [mem_comap, mem_map, hf.eq_iff])
 
 lemma comap_map_eq_of_injective (S : L.substructure M) : (S.map f).comap f = S :=
 (gci_map_comap hf).u_l_eq _
@@ -497,7 +497,7 @@ include hf
 /-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
 def gi_map_comap : galois_insertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_insertion
-  (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)
+  (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simv [hy, h]⟩)
 
 lemma map_comap_eq_of_surjective (S : L.substructure N) : (S.comap f).map f = S :=
 (gi_map_comap hf).l_u_eq _
@@ -548,7 +548,7 @@ def subtype (S : L.substructure M) : S ↪[L] M :=
 def top_equiv : (⊤ : L.substructure M) ≃[L] M  :=
 { to_fun := subtype ⊤,
   inv_fun := λ m, ⟨m, mem_top m⟩,
-  left_inv := λ m, by simp,
+  left_inv := λ m, by simv,
   right_inv := λ m, rfl }
 
 @[simp] lemma coe_top_equiv : ⇑(top_equiv : (⊤ : L.substructure M) ≃[L] M) = coe := rfl
@@ -577,11 +577,11 @@ def substructure_reduct : L'.substructure M ↪o L.substructure M :=
 { to_fun := λ S, { carrier := S,
     fun_mem := λ n f x hx, begin
       have h := S.fun_mem (φ.on_function f) x hx,
-      simp only [is_expansion_on.map_on_function, substructure.mem_carrier] at h,
+      simv only [is_expansion_on.map_on_function, substructure.mem_carrier] at h,
       exact h,
     end },
   inj' := λ S T h, begin
-    simp only [set_like.coe_set_eq] at h,
+    simv only [set_like.coe_set_eq] at h,
     exact h,
   end,
   map_rel_iff' := λ S T, iff.rfl }
@@ -615,12 +615,12 @@ variables {A : set M} {s : set M} (h : A ⊆ S)
 
 @[simp] lemma reduct_with_constants :
   (L.Lhom_with_constants A).substructure_reduct (S.with_constants h) = S :=
-by { ext, simp }
+by { ext, simv }
 
 lemma subset_closure_with_constants : A ⊆ (closure (L[[A]]) s) :=
 begin
   intros a ha,
-  simp only [set_like.mem_coe],
+  simv only [set_like.mem_coe],
   let a' : (L[[A]]).constants := sum.inr ⟨a, ha⟩,
   exact constants_mem a',
 end
@@ -630,7 +630,7 @@ lemma closure_with_constants_eq : (closure (L[[A]]) s) = (closure L (A ∪ s)).w
 begin
   refine closure_eq_of_le ((A.subset_union_right s).trans subset_closure) _,
   rw ← ((L.Lhom_with_constants A).substructure_reduct).le_iff_le,
-  simp only [subset_closure, reduct_with_constants, closure_le, Lhom.coe_substructure_reduct,
+  simv only [subset_closure, reduct_with_constants, closure_le, Lhom.coe_substructure_reduct,
     set.union_subset_iff, and_true],
   { exact subset_closure_with_constants },
   { apply_instance },
@@ -676,7 +676,7 @@ iff.rfl
 
 lemma range_eq_map
   (f : M →[L] N) : f.range = map f ⊤ :=
-by { ext, simp }
+by { ext, simv }
 
 theorem mem_range_self
   (f : M →[L] N) (x : M) : f x ∈ f.range := ⟨x, rfl⟩
@@ -709,7 +709,7 @@ def eq_locus (f g : M →[L] N) : substructure L M :=
 { carrier := {x : M | f x = g x},
   fun_mem := λ n fn x hx, by
   { have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
-    simp [h], } }
+    simv [h], } }
 
 /-- If two `L.hom`s are equal on a set, then they are equal on its substructure closure. -/
 lemma eq_on_closure {f g : M →[L] N} {s : set M} (h : set.eq_on f g s) :
@@ -746,7 +746,7 @@ def cod_restrict (p : L.substructure N) (f : M ↪[L] N) (h : ∀c, f c ∈ p) :
   inj' := λ a b ab, f.injective (subtype.mk_eq_mk.1 ab),
   map_fun' := λ n F x, (f.to_hom.cod_restrict p h).map_fun' F x,
   map_rel' := λ n r x, begin
-    simp only,
+    simv only,
     rw [← p.subtype.map_rel, function.comp.assoc],
     change rel_map r ((hom.comp p.subtype.to_hom (f.to_hom.cod_restrict p h)) ∘ x) ↔ _,
     rw [hom.subtype_comp_cod_restrict, ← f.map_rel],
@@ -798,7 +798,7 @@ lemma to_hom_range (f : M ≃[L] N) :
   f.to_hom.range = ⊤ :=
 begin
   ext n,
-  simp only [hom.mem_range, coe_to_hom, substructure.mem_top, iff_true],
+  simv only [hom.mem_range, coe_to_hom, substructure.mem_top, iff_true],
   exact ⟨f.symm n, apply_symm_apply _ _⟩
 end
 
@@ -816,7 +816,7 @@ S.subtype.cod_restrict _ (λ x, h x.2)
 lemma range_subtype (S : L.substructure M) : S.subtype.to_hom.range = S :=
 begin
   ext x,
-  simp only [hom.mem_range, embedding.coe_to_hom, coe_subtype],
+  simv only [hom.mem_range, embedding.coe_to_hom, coe_subtype],
   refine ⟨_, λ h, ⟨⟨x, h⟩, rfl⟩⟩,
   rintros ⟨⟨y, hy⟩, rfl⟩,
   exact hy,

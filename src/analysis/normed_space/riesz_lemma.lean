@@ -45,14 +45,14 @@ begin
     from lt_of_le_of_ne metric.inf_dist_nonneg (λ heq, hx
     ((hFc.mem_iff_inf_dist_zero hFn).2 heq.symm)),
   let r' := max r 2⁻¹,
-  have hr' : r' < 1, by { simp [r', hr], norm_num },
+  have hr' : r' < 1, by { simv [r', hr], norm_num },
   have hlt : 0 < r' := lt_of_lt_of_le (by norm_num) (le_max_right r 2⁻¹),
   have hdlt : d < d / r', from (lt_div_iff hlt).mpr ((mul_lt_iff_lt_one_right hdp).2 hr'),
   obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < d / r' := (metric.inf_dist_lt_iff hFn).mp hdlt,
   have x_ne_y₀ : x - y₀ ∉ F,
   { by_contradiction h,
     have : (x - y₀) + y₀ ∈ F, from F.add_mem h hy₀F,
-    simp only [neg_add_cancel_right, sub_eq_add_neg] at this,
+    simv only [neg_add_cancel_right, sub_eq_add_neg] at this,
     exact hx this },
   refine ⟨x - y₀, x_ne_y₀, λy hy, le_of_lt _⟩,
   have hy₀y : y₀ + y ∈ F, from F.add_mem hy₀F hy,
@@ -87,15 +87,15 @@ begin
       rescale_to_shell hc Rpos x0,
   refine ⟨d • x, dxlt.le, λ y hy, _⟩,
   set y' := d⁻¹ • y with hy',
-  have y'F : y' ∈ F, by simp [hy', submodule.smul_mem _ _ hy],
-  have yy' : y = d • y', by simp [hy', smul_smul, mul_inv_cancel d0],
+  have y'F : y' ∈ F, by simv [hy', submodule.smul_mem _ _ hy],
+  have yy' : y = d • y', by simv [hy', smul_smul, mul_inv_cancel d0],
   calc 1 = (∥c∥/R) * (R/∥c∥) : by field_simp [Rpos.ne', (zero_lt_one.trans hc).ne']
   ... ≤ (∥c∥/R) * (∥d • x∥) :
     mul_le_mul_of_nonneg_left ledx (div_nonneg (norm_nonneg _) Rpos.le)
-  ... = ∥d∥ * (∥c∥/R * ∥x∥) : by { simp [norm_smul], ring }
+  ... = ∥d∥ * (∥c∥/R * ∥x∥) : by { simv [norm_smul], ring }
   ... ≤ ∥d∥ * ∥x - y'∥ :
-    mul_le_mul_of_nonneg_left (hx y' (by simp [hy', submodule.smul_mem _ _ hy])) (norm_nonneg _)
-  ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
+    mul_le_mul_of_nonneg_left (hx y' (by simv [hy', submodule.smul_mem _ _ hy])) (norm_nonneg _)
+  ... = ∥d • x - y∥ : by simv [yy', ← smul_sub, norm_smul],
 end
 
 lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s) :

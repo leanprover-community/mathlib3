@@ -274,7 +274,7 @@ begin
       ext x, dsimp [locally_constant.of_clopen],
       rw if_neg, { refl },
       refine mt (λ α, hVU α) _,
-      simp only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_eq], },
+      simv only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_eq], },
     apply_fun (λ e, (e y).down) at H,
     dsimp [locally_constant.of_clopen] at H,
     rw if_pos hyV at H,

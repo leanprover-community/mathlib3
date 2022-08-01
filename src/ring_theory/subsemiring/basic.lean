@@ -34,7 +34,7 @@ class add_submonoid_with_one_class (S : Type*) (R : out_param $ Type*)
 variables {S R : Type*} [add_monoid_with_one R] [set_like S R] (s : S)
 
 lemma nat_cast_mem [add_submonoid_with_one_class S R] (n : ℕ) : (n : R) ∈ s :=
-by induction n; simp [zero_mem, add_mem, one_mem, *]
+by induction n; simv [zero_mem, add_mem, one_mem, *]
 
 @[priority 74]
 instance add_submonoid_with_one_class.to_add_monoid_with_one [add_submonoid_with_one_class S R] :
@@ -100,13 +100,13 @@ instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : s
 subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl)
 
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+@[simv, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
   (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
 begin
   induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
+  { simv, },
+  { simv [pow_succ, ih], },
 end
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
@@ -292,14 +292,14 @@ instance to_non_assoc_semiring : non_assoc_semiring s :=
   right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
   nat_cast := λ n, ⟨n, coe_nat_mem s n⟩,
-  nat_cast_zero := by simp [nat.cast]; refl,
-  nat_cast_succ := λ _, by simp [nat.cast]; refl,
+  nat_cast_zero := by simv [nat.cast]; refl,
+  nat_cast_succ := λ _, by simv [nat.cast]; refl,
   .. s.to_submonoid.to_mul_one_class, .. s.to_add_submonoid.to_add_comm_monoid }
 
-@[simp, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
-@[simp, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
-@[simp, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
+@[simv, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
+@[simv, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
+@[simv, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
 
 instance nontrivial [nontrivial R] : nontrivial s :=
 nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
@@ -316,12 +316,12 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
 { ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
 
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
+@[simv, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
 begin
   induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
+  { simv, },
+  { simv [pow_succ, ih], },
 end
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
@@ -435,7 +435,7 @@ def srange : subsemiring S :=
 iff.rfl
 
 lemma srange_eq_map (f : R →+* S) : f.srange = (⊤ : subsemiring R).map f :=
-by { ext, simp }
+by { ext, simv }
 
 lemma mem_srange_self (f : R →+* S) (x : R) : f x ∈ f.srange :=
 mem_srange.mpr ⟨x, rfl⟩
@@ -474,10 +474,10 @@ instance : has_inf (subsemiring R) :=
 @[simp] lemma mem_inf {p p' : subsemiring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (subsemiring R) :=
-⟨λ s, subsemiring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subsemiring.to_submonoid t) (by simp)
-  (⨅ t ∈ s, subsemiring.to_add_submonoid t) (by simp)⟩
+⟨λ s, subsemiring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subsemiring.to_submonoid t) (by simv)
+  (⨅ t ∈ s, subsemiring.to_add_submonoid t) (by simv)⟩
 
-@[simp, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
+@[simv, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
   ((Inf S : subsemiring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
@@ -547,7 +547,7 @@ def centralizer {R} [semiring R] (s : set R) : subsemiring R :=
   add_mem' := λ x y hx hy, set.add_mem_centralizer hx hy,
   ..submonoid.centralizer s }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_centralizer {R} [semiring R] (s : set R) : (centralizer s : set R) = s.centralizer := rfl
 
 lemma centralizer_to_submonoid {R} [semiring R] (s : set R) :
@@ -647,7 +647,7 @@ le_antisymm
 of a multiplicative submonoid `M`. -/
 lemma coe_closure_eq (s : set R) :
   (closure s : set R) = add_submonoid.closure (submonoid.closure s : set R) :=
-by simp [← submonoid.subsemiring_closure_to_add_submonoid, submonoid.subsemiring_closure_eq_closure]
+by simv [← submonoid.subsemiring_closure_to_add_submonoid, submonoid.subsemiring_closure_eq_closure]
 
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_submonoid.closure (submonoid.closure s : set R) :=
@@ -783,11 +783,11 @@ lemma prod_mono_left (t : subsemiring S) : monotone (λ s : subsemiring R, s.pro
 
 lemma prod_top (s : subsemiring R) :
   s.prod (⊤ : subsemiring S) = s.comap (ring_hom.fst R S) :=
-ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
+ext $ λ x, by simv [mem_prod, monoid_hom.coe_fst]
 
 lemma top_prod (s : subsemiring S) :
   (⊤ : subsemiring R).prod s = s.comap (ring_hom.snd R S) :=
-ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
+ext $ λ x, by simv [mem_prod, monoid_hom.coe_snd]
 
 @[simp]
 lemma top_prod_top : (⊤ : subsemiring R).prod (⊤ : subsemiring S) = ⊤ :=
@@ -811,19 +811,19 @@ end
 
 lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subsemiring R} (hS : directed (≤) S) :
   ((⨆ i, S i : subsemiring R) : set R) = ⋃ i, ↑(S i) :=
-set.ext $ λ x, by simp [mem_supr_of_directed hS]
+set.ext $ λ x, by simv [mem_supr_of_directed hS]
 
 lemma mem_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : R} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
   haveI : nonempty S := Sne.to_subtype,
-  simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
+  simv only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 lemma coe_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
   (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
-set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
+set.ext $ λ x, by simv [mem_Sup_of_directed_on Sne hS]
 
 end subsemiring
 
@@ -1052,14 +1052,14 @@ def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s),
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subsemiring.coe_mul],
+    simv only [subsemiring.coe_mul],
     refine closure_induction₂ x.prop y.prop hcomm
-    (λ x, by simp only [zero_mul, mul_zero])
-    (λ x, by simp only [zero_mul, mul_zero])
-    (λ x, by simp only [one_mul, mul_one])
-    (λ x, by simp only [one_mul, mul_one])
-    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
-    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x, by simv only [zero_mul, mul_zero])
+    (λ x, by simv only [zero_mul, mul_zero])
+    (λ x, by simv only [one_mul, mul_one])
+    (λ x, by simv only [one_mul, mul_one])
+    (λ x y z h₁ h₂, by simv only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by simv only [add_mul, mul_add, h₁, h₂])
     (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
     (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
   end,

@@ -63,7 +63,7 @@ lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : R[X]}
   (hp : 0 < p.degree) : fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
-    (by simp [finset.ext_iff, mem_roots_sub_C hp])
+    (by simv [finset.ext_iff, mem_roots_sub_C hp])
     ... ≤ (p - C a).roots.card : multiset.to_finset_card_le _
     ... ≤ _ : card_roots_sub_C' hp)
 
@@ -73,7 +73,7 @@ lemma exists_root_sum_quadratic [fintype R] {f g : R[X]} (hf2 : degree f = 2)
 by letI := classical.dec_eq R; exact
 suffices ¬ disjoint (univ.image (λ x : R, eval x f)) (univ.image (λ x : R, eval x (-g))),
 begin
-  simp only [disjoint_left, mem_image] at this,
+  simv only [disjoint_left, mem_image] at this,
   push_neg at this,
   rcases this with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
   exact ⟨a, b, by rw [ha, ← hb, eval_neg, neg_add_self]⟩
@@ -88,10 +88,10 @@ calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-
     add_lt_add_of_lt_of_le
       (lt_of_le_of_ne
         (card_image_polynomial_eval (by rw hf2; exact dec_trivial))
-        (mt (congr_arg (%2)) (by simp [nat_degree_eq_of_degree_eq_some hf2, hR])))
+        (mt (congr_arg (%2)) (by simv [nat_degree_eq_of_degree_eq_some hf2, hR])))
       (card_image_polynomial_eval (by rw [degree_neg, hg2]; exact dec_trivial))
 ... = 2 * (univ.image (λ x : R, eval x f) ∪ univ.image (λ x : R, eval x (-g))).card :
-  by rw [card_disjoint_union hd]; simp [nat_degree_eq_of_degree_eq_some hf2,
+  by rw [card_disjoint_union hd]; simv [nat_degree_eq_of_degree_eq_some hf2,
     nat_degree_eq_of_degree_eq_some hg2, bit0, mul_add]
 
 end polynomial
@@ -101,10 +101,10 @@ lemma prod_univ_units_id_eq_neg_one [comm_ring K] [is_domain K] [fintype Kˣ] :
 begin
   classical,
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
-  from prod_involution (λ x _, x⁻¹) (by simp)
-    (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
-    (by simp),
+  from prod_involution (λ x _, x⁻¹) (by simv)
+    (λ a, by simv [units.inv_eq_self_iff] {contextual := tt})
+    (λ a, by simv [@inv_eq_iff_inv_eq _ _ a, eq_comm])
+    (by simv),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
 end
@@ -128,8 +128,8 @@ end
 lemma pow_card_pow (n : ℕ) (a : K) : a ^ q ^ n = a :=
 begin
   induction n with n ih,
-  { simp, },
-  { simp [pow_succ, pow_mul, ih, pow_card], },
+  { simv, },
+  { simv [pow_succ, pow_mul, ih, pow_card], },
 end
 
 end
@@ -158,7 +158,7 @@ let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
 begin
   rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
   rcases card K p with ⟨n, hp, hn⟩,
-  simp only [char_p.cast_eq_zero_iff K p, hn],
+  simv only [char_p.cast_eq_zero_iff K p, hn],
   conv { congr, rw [← pow_one p] },
   exact pow_dvd_pow _ n.2,
 end
@@ -190,7 +190,7 @@ begin
   calc ∑ x : Kˣ, φ x = if φ = 1 then fintype.card Kˣ else 0 : sum_hom_units φ
                       ... = if (q - 1) ∣ i then -1 else 0 : _,
   suffices : (q - 1) ∣ i ↔ φ = 1,
-  { simp only [this],
+  { simv only [this],
     split_ifs with h h, swap, refl,
     rw [fintype.card_units, nat.cast_sub, cast_card_eq_zero, nat.cast_one, zero_sub],
     show 1 ≤ q, from fintype.card_pos_iff.mpr ⟨0⟩ },
@@ -206,13 +206,13 @@ lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
   ∑ x : K, x ^ i = 0 :=
 begin
   by_cases hi : i = 0,
-  { simp only [hi, nsmul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
+  { simv only [hi, nsmul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
   classical,
   have hiq : ¬ (q - 1) ∣ i, { contrapose! h,  exact nat.le_of_dvd (nat.pos_of_ne_zero hi) h },
   let φ : Kˣ ↪ K := ⟨coe, units.ext⟩,
   have : univ.map φ = univ \ {0},
   { ext x,
-    simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
+    simv only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
                mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
   calc ∑ x : K, x ^ i = ∑ x in univ \ {(0 : K)}, x ^ i :
     by rw [← sum_sdiff ({0} : finset K).subset_univ, sum_singleton,
@@ -282,7 +282,7 @@ instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) 
   begin
     classical,
     transitivity algebra.adjoin F ((roots (X^q - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
+    { simv only [polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 
@@ -294,7 +294,7 @@ theorem frobenius_pow {p : ℕ} [fact p.prime] [char_p K p] {n : ℕ} (hcard : q
   (frobenius K p) ^ n = 1 :=
 begin
   ext, conv_rhs { rw [ring_hom.one_def, ring_hom.id_apply, ← pow_card x, hcard], }, clear hcard,
-  induction n, {simp},
+  induction n, {simv},
   rw [pow_succ, pow_succ', pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
 end
 
@@ -321,7 +321,7 @@ lemma sq_add_sq (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
   cases hp.1.eq_two_or_odd with hp2 hp_odd,
-  { substI p, change fin 2 at x, fin_cases x, { use 0, simp }, { use [0, 1], simp } },
+  { substI p, change fin 2 at x, fin_cases x, { use 0, simv }, { use [0, 1], simv } },
   let f : (zmod p)[X] := X^2,
   let g : (zmod p)[X] := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
@@ -360,7 +360,7 @@ by rw [← card_units_eq_totient, pow_card_eq_one]
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
-  cases n, {simp},
+  cases n, {simv},
   rw ← zmod.eq_iff_modeq_nat,
   let x' : units (zmod (n+1)) := zmod.unit_of_coprime _ h,
   have := zmod.pow_totient x',
@@ -395,8 +395,8 @@ by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 @[simp] lemma pow_card_pow {n p : ℕ} [fact p.prime] (x : zmod p) : x ^ p ^ n = x :=
 begin
   induction n with n ih,
-  { simp, },
-  { simp [pow_succ, pow_mul, ih, pow_card], },
+  { simv, },
+  { simv [pow_succ, pow_mul, ih, pow_card], },
 end
 
 @[simp] lemma frobenius_zmod (p : ℕ) [fact p.prime] :
@@ -458,7 +458,7 @@ begin
   split,
   { intro hF,
     rw hF,
-    simp only [nat.bit0_mod_two, zero_pow', ne.def, pnat.ne_zero, not_false_iff, nat.zero_mod], },
+    simv only [nat.bit0_mod_two, zero_pow', ne.def, pnat.ne_zero, not_false_iff, nat.zero_mod], },
   { rw [← nat.even_iff, nat.even_pow],
     rintros ⟨hev, hnz⟩,
     rw [nat.even_iff, nat.mod_mod] at hev,
@@ -511,14 +511,14 @@ end
 lemma is_square_iff (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
 begin
-  apply (iff_congr _ (by simp [units.ext_iff])).mp
+  apply (iff_congr _ (by simv [units.ext_iff])).mp
         (finite_field.unit_is_square_iff hF (units.mk0 a ha)),
-  simp only [is_square, units.ext_iff, units.coe_mk0, units.coe_mul],
+  simv only [is_square, units.ext_iff, units.coe_mk0, units.coe_mul],
   split,
   { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
-    refine ⟨units.mk0 y hy, _⟩, simp, }
+    refine ⟨units.mk0 y hy, _⟩, simv, }
 end
 
 /-- In a finite field of odd characteristic, not every element is a square. -/
@@ -527,16 +527,16 @@ begin
   -- idea: the squaring map on `F` is not injetive, hence not surjective
   let sq : F → F := λ x, x ^ 2,
   have h : ¬ function.injective sq,
-  { simp only [function.injective, not_forall, exists_prop],
+  { simv only [function.injective, not_forall, exists_prop],
     use [-1, 1],
     split,
-    { simp only [sq, one_pow, neg_one_sq], },
+    { simv only [sq, one_pow, neg_one_sq], },
     { exact ring.neg_one_ne_one_of_char_ne_two hF, }, },
   have h₁ := mt (fintype.injective_iff_surjective.mpr) h, -- sq not surjective
   push_neg at h₁,
   cases h₁ with a h₁,
   use a,
-  simp only [is_square, sq, not_exists, ne.def] at h₁ ⊢,
+  simv only [is_square, sq, not_exists, ne.def] at h₁ ⊢,
   intros b hb,
   rw ← pow_two at hb,
   exact h₁ b hb.symm,

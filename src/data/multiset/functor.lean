@@ -23,7 +23,7 @@ instance : functor multiset :=
 @[simp] lemma fmap_def {α' β'} {s : multiset α'} (f : α' → β') : f <$> s = s.map f := rfl
 
 instance : is_lawful_functor multiset :=
-by refine { .. }; intros; simp
+by refine { .. }; intros; simv
 
 open is_lawful_traversable is_comm_applicative
 
@@ -46,8 +46,8 @@ begin
       (λa b l, ↑(a :: b :: l)) <$> f p_x <*> f p_y,
     { rw [is_comm_applicative.commutative_map],
       congr, funext a b l, simpa [flip] using perm.swap b a l },
-    simp [(∘), this] with functor_norm },
-  case perm.trans { simp [*] }
+    simv [(∘), this] with functor_norm },
+  case perm.trans { simv [*] }
 end
 
 instance : monad multiset :=
@@ -59,8 +59,8 @@ instance : monad multiset :=
 @[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
 
 instance : is_lawful_monad multiset :=
-{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih, by simp,
-  pure_bind := λ α β x f, by simp [pure],
+{ bind_pure_comp_eq_map := λ α β f s, multiset.induction_on s rfl $ λ a s ih, by simv,
+  pure_bind := λ α β x f, by simv [pure],
   bind_assoc := @bind_assoc }
 
 open functor
@@ -75,11 +75,11 @@ quotient.lift_mk _ _ _
 @[simp]
 lemma map_comp_coe {α β} (h : α → β) :
   functor.map h ∘ coe = (coe ∘ functor.map h : list α → multiset β) :=
-by funext; simp [functor.map]
+by funext; simv [functor.map]
 
 lemma id_traverse {α : Type*} (x : multiset α) :
   traverse id.mk x = x :=
-quotient.induction_on x begin intro, simp [traverse], refl end
+quotient.induction_on x begin intro, simv [traverse], refl end
 
 lemma comp_traverse {G H : Type* → Type*}
                [applicative G] [applicative H]
@@ -90,8 +90,8 @@ lemma comp_traverse {G H : Type* → Type*}
   comp.mk (functor.map (traverse h) (traverse g x)) :=
 quotient.induction_on x
 (by intro;
-    simp [traverse,comp_traverse] with functor_norm;
-    simp [(<$>),(∘)] with functor_norm)
+    simv [traverse,comp_traverse] with functor_norm;
+    simv [(<$>),(∘)] with functor_norm)
 
 lemma map_traverse {G : Type* → Type*}
                [applicative G] [is_comm_applicative G]
@@ -101,7 +101,7 @@ lemma map_traverse {G : Type* → Type*}
   functor.map (functor.map h) (traverse g x) =
   traverse (functor.map h ∘ g) x :=
 quotient.induction_on x
-(by intro; simp [traverse] with functor_norm;
+(by intro; simv [traverse] with functor_norm;
     rw [is_lawful_functor.comp_map, map_traverse])
 
 lemma traverse_map {G : Type* → Type*}
@@ -112,7 +112,7 @@ lemma traverse_map {G : Type* → Type*}
   traverse h (map g x) =
   traverse (h ∘ g) x :=
 quotient.induction_on x
-(by intro; simp [traverse];
+(by intro; simv [traverse];
     rw [← traversable.traverse_map h g];
     [ refl, apply_instance ])
 
@@ -123,6 +123,6 @@ lemma naturality {G H : Type* → Type*}
                 {α β : Type*} (f : α → G β) (x : multiset α) :
   eta (traverse f x) = traverse (@eta _ ∘ f) x :=
 quotient.induction_on x
-(by intro; simp [traverse,is_lawful_traversable.naturality] with functor_norm)
+(by intro; simv [traverse,is_lawful_traversable.naturality] with functor_norm)
 
 end multiset

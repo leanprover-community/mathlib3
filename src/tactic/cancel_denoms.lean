@@ -43,12 +43,12 @@ lemma cancel_factors_eq_div {α} [field α] {n e e' : α} (h : n*e = e') (h2 : n
 eq_div_of_mul_eq h2 $ by rwa mul_comm at h
 
 lemma add_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
-      n * (e1 + e2) = t1 + t2 := by simp [left_distrib, *]
+      n * (e1 + e2) = t1 + t2 := by simv [left_distrib, *]
 
 lemma sub_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
-      n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *, sub_eq_add_neg]
+      n * (e1 - e2) = t1 - t2 := by simv [left_distrib, *, sub_eq_add_neg]
 
-lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simp *
+lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simv *
 
 lemma cancel_factors_lt {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
   (hb : bd*b = b') (had : 0 < ad) (hbd : 0 < bd) (hgcd : 0 < gcd) :
@@ -76,7 +76,7 @@ begin
   ext, split,
   { rintro rfl, refl },
   { intro h,
-    simp only [←mul_assoc] at h,
+    simv only [←mul_assoc] at h,
     refine mul_left_cancel₀ (mul_ne_zero _ _) h,
     apply mul_ne_zero, apply div_ne_zero,
     all_goals {apply ne_of_gt; assumption <|> exact zero_lt_one}}

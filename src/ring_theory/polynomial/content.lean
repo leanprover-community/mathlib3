@@ -81,9 +81,9 @@ end
 begin
   rw content,
   by_cases h0 : r = 0,
-  { simp [h0] },
+  { simv [h0] },
   have h : (C r).support = {0} := support_monomial _ h0,
-  simp [h],
+  simv [h],
 end
 
 @[simp] lemma content_zero : content (0 : R[X]) = 0 :=
@@ -98,30 +98,30 @@ begin
   refine congr rfl _,
   have h : (X * p).support = p.support.map ⟨nat.succ, nat.succ_injective⟩,
   { ext a,
-    simp only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def,
+    simv only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def,
       mem_support_iff],
     cases a,
-    { simp [coeff_X_mul_zero, nat.succ_ne_zero] },
+    { simv [coeff_X_mul_zero, nat.succ_ne_zero] },
     rw [mul_comm, coeff_mul_X],
     split,
     { intro h,
       use a,
-      simp [h] },
+      simv [h] },
     { rintros ⟨b, ⟨h1, h2⟩⟩,
       rw ← nat.succ_injective h2,
       apply h1 } },
   rw h,
-  simp only [finset.map_val, function.comp_app, function.embedding.coe_fn_mk, multiset.map_map],
+  simv only [finset.map_val, function.comp_app, function.embedding.coe_fn_mk, multiset.map_map],
   refine congr (congr rfl _) rfl,
   ext a,
   rw mul_comm,
-  simp [coeff_mul_X],
+  simv [coeff_mul_X],
 end
 
 @[simp] lemma content_X_pow {k : ℕ} : content ((X : R[X]) ^ k) = 1 :=
 begin
   induction k with k hi,
-  { simp },
+  { simv },
   rw [pow_succ, content_X_mul, hi]
 end
 
@@ -130,9 +130,9 @@ by { rw [← mul_one X, content_X_mul, content_one] }
 
 lemma content_C_mul (r : R) (p : R[X]) : (C r * p).content = normalize r * p.content :=
 begin
-  by_cases h0 : r = 0, { simp [h0] },
+  by_cases h0 : r = 0, { simv [h0] },
   rw content, rw content, rw ← finset.gcd_mul_left,
-  refine congr (congr rfl _) _; ext; simp [h0, mem_support_iff]
+  refine congr (congr rfl _) _; ext; simv [h0, mem_support_iff]
 end
 
 @[simp] lemma content_monomial {r : R} {k : ℕ} : content (monomial k r) = normalize r :=
@@ -147,9 +147,9 @@ begin
     { rw [h n h0, coeff_zero], },
     { rw mem_support_iff at h0,
       push_neg at h0,
-      simp [h0] } },
+      simv [h0] } },
   { intros x h0,
-    simp [h] }
+    simv [h] }
 end
 
 @[simp] lemma normalize_content {p : R[X]} : normalize p.content = p.content :=
@@ -164,7 +164,7 @@ begin
     apply content_dvd_coeff _ },
   { apply finset.gcd_mono,
     intro i,
-    simp only [nat.lt_succ_iff, mem_support_iff, ne.def, finset.mem_range],
+    simv only [nat.lt_succ_iff, mem_support_iff, ne.def, finset.mem_range],
     contrapose!,
     intro h1,
     apply coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le h h1), }
@@ -178,7 +178,7 @@ lemma content_eq_gcd_leading_coeff_content_erase_lead (p : R[X]) :
   p.content = gcd_monoid.gcd p.leading_coeff (erase_lead p).content :=
 begin
   by_cases h : p = 0,
-  { simp [h] },
+  { simv [h] },
   rw [← leading_coeff_eq_zero, leading_coeff, ← ne.def, ← mem_support_iff] at h,
   rw [content, ← finset.insert_erase h, finset.gcd_insert, leading_coeff, content,
     erase_lead_support],
@@ -224,7 +224,7 @@ if p = 0 then 1 else classical.some (C_content_dvd p)
 
 lemma eq_C_content_mul_prim_part (p : R[X]) : p = C p.content * p.prim_part :=
 begin
-  by_cases h : p = 0, { simp [h] },
+  by_cases h : p = 0, { simv [h] },
   rw [prim_part, if_neg h, ← classical.some_spec (C_content_dvd p)],
 end
 
@@ -233,7 +233,7 @@ lemma prim_part_zero : prim_part (0 : R[X]) = 1 := if_pos rfl
 
 lemma is_primitive_prim_part (p : R[X]) : p.prim_part.is_primitive :=
 begin
-  by_cases h : p = 0, { simp [h] },
+  by_cases h : p = 0, { simv [h] },
   rw ← content_eq_zero_iff at h,
   rw is_primitive_iff_content_eq_one,
   apply mul_left_cancel₀ h,
@@ -248,7 +248,7 @@ lemma prim_part_ne_zero (p : R[X]) : p.prim_part ≠ 0 := p.is_primitive_prim_pa
 lemma nat_degree_prim_part (p : R[X]) : p.prim_part.nat_degree = p.nat_degree :=
 begin
   by_cases h : C p.content = 0,
-  { rw [C_eq_zero, content_eq_zero_iff] at h, simp [h] },
+  { rw [C_eq_zero, content_eq_zero_iff] at h, simv [h] },
   conv_rhs { rw [p.eq_C_content_mul_prim_part,
     nat_degree_mul h p.prim_part_ne_zero, nat_degree_C, zero_add] },
 end
@@ -260,7 +260,7 @@ by rw [← one_mul p.prim_part, ← C_1, ← hp.content_eq_one, ← p.eq_C_conte
 lemma is_unit_prim_part_C (r : R) : is_unit (C r).prim_part :=
 begin
   by_cases h0 : r = 0,
-  { simp [h0] },
+  { simv [h0] },
   unfold is_unit,
   refine ⟨⟨C ↑(norm_unit r)⁻¹, C ↑(norm_unit r),
     by rw [← ring_hom.map_mul, units.inv_mul, C_1],
@@ -268,7 +268,7 @@ begin
   rw [← normalize_eq_zero, ← C_eq_zero] at h0,
   apply mul_left_cancel₀ h0,
   conv_rhs { rw [← content_C, ← (C r).eq_C_content_mul_prim_part], },
-  simp only [units.coe_mk, normalize_apply, ring_hom.map_mul],
+  simv only [units.coe_mk, normalize_apply, ring_hom.map_mul],
   rw [mul_assoc, ← ring_hom.map_mul, units.mul_inv, C_1, mul_one],
 end
 
@@ -336,10 +336,10 @@ begin
   induction n with n ih,
   { intros p q hpq,
     rw [with_bot.coe_zero, nat.with_bot.lt_zero_iff, degree_eq_bot, mul_eq_zero] at hpq,
-    rcases hpq with rfl | rfl; simp },
+    rcases hpq with rfl | rfl; simv },
   intros p q hpq,
-  by_cases p0 : p = 0, { simp [p0] },
-  by_cases q0 : q = 0, { simp [q0] },
+  by_cases p0 : p = 0, { simv [p0] },
+  by_cases q0 : q = 0, { simv [q0] },
   rw [degree_eq_nat_degree (mul_ne_zero p0 q0), with_bot.coe_lt_coe, nat.lt_succ_iff_lt_or_eq,
     ← with_bot.coe_lt_coe, ← degree_eq_nat_degree (mul_ne_zero p0 q0), nat_degree_mul p0 q0] at hpq,
   rcases hpq with hlt | heq, { apply ih _ _ hlt },
@@ -416,7 +416,7 @@ begin
   by_contra' con,
   rcases nat.find_spec con with ⟨s, sdeg, ⟨ps, qs⟩, rs⟩,
   have s0 : s ≠ 0,
-  { contrapose! rs, simp [rs] },
+  { contrapose! rs, simv [rs] },
   have hs := nat.find_min' h ⟨_, s.nat_degree_prim_part, s.is_primitive_prim_part,
               (hp.dvd_prim_part_iff_dvd s0).2 ps, (hq.dvd_prim_part_iff_dvd s0).2 qs⟩,
   rw ← rdeg at hs,
@@ -460,10 +460,10 @@ normalized_gcd_monoid_of_exists_lcm $ λ p q, begin
     with ⟨r, rprim, hr⟩,
   refine ⟨C (lcm p.content q.content) * r, λ s, _⟩,
   by_cases hs : s = 0,
-  { simp [hs] },
+  { simv [hs] },
   by_cases hpq : C (lcm p.content q.content) = 0,
   { rw [C_eq_zero, lcm_eq_zero_iff, content_eq_zero_iff, content_eq_zero_iff] at hpq,
-    rcases hpq with hpq | hpq; simp [hpq, hs] },
+    rcases hpq with hpq | hpq; simv [hpq, hs] },
   iterate 3 { rw dvd_iff_content_dvd_content_and_prim_part_dvd_prim_part hs },
   rw [content_mul, rprim.content_eq_one, mul_one, content_C, normalize_lcm, lcm_dvd_iff,
     prim_part_mul (mul_ne_zero hpq rprim.ne_zero), rprim.prim_part_eq,

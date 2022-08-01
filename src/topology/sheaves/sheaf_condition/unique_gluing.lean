@@ -157,7 +157,7 @@ begin
     λ x : s.X, Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) (h_compatible x),
   refine ⟨m, _, _⟩,
   { ext ⟨i⟩ x,
-    simp [res],
+    simv [res],
     exact m_spec x i, },
   { intros l hl,
     ext x,

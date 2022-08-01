@@ -44,7 +44,7 @@ instance : second_countable_topology ereal :=
   refine ⟨⋃ (q : ℚ), {{a : ereal | a < (q : ℝ)}, {a : ereal | ((q : ℝ) : ereal) < a}},
     countable_Union (λ a, (countable_singleton _).insert _), _⟩,
   refine le_antisymm
-    (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt}) _,
+    (le_generate_from $ by simv [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt}) _,
   apply le_generate_from (λ s h, _),
   rcases h with ⟨a, hs | hs⟩;
   [ rw show s = ⋃q∈{q:ℚ | a < (q : ℝ)}, {b | ((q : ℝ) : ereal) < b},
@@ -54,7 +54,7 @@ instance : second_countable_topology ereal :=
   { apply is_open_Union, intro q,
     apply is_open_Union, intro hq,
     apply generate_open.basic,
-    exact mem_Union.2 ⟨q, by simp⟩ },
+    exact mem_Union.2 ⟨q, by simv⟩ },
 end⟩
 
 
@@ -69,21 +69,21 @@ lemma embedding_coe : embedding (coe : ℝ → ereal) :=
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : ℝ | a < ↑b},
     { induction a using ereal.rec,
-      { simp only [is_open_univ, bot_lt_coe, set_of_true] },
-      { simp only [ereal.coe_lt_coe_iff], exact is_open_Ioi },
-      { simp only [set_of_false, is_open_empty, not_top_lt] } },
+      { simv only [is_open_univ, bot_lt_coe, set_of_true] },
+      { simv only [ereal.coe_lt_coe_iff], exact is_open_Ioi },
+      { simv only [set_of_false, is_open_empty, not_top_lt] } },
     show is_open {b : ℝ | ↑b < a},
     { induction a using ereal.rec,
-      { simp only [not_lt_bot, set_of_false, is_open_empty] },
-      { simp only [ereal.coe_lt_coe_iff], exact is_open_Iio },
-      { simp only [is_open_univ, coe_lt_top, set_of_true] } } },
+      { simv only [not_lt_bot, set_of_false, is_open_empty] },
+      { simv only [ereal.coe_lt_coe_iff], exact is_open_Iio },
+      { simv only [is_open_univ, coe_lt_top, set_of_true] } } },
   { rw [@order_topology.topology_eq_generate_intervals ℝ _],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
-    exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
-    exact ⟨Iio a, is_open_Iio, by simp [Iio]⟩ }
+    exact ⟨Ioi a, is_open_Ioi, by simv [Ioi]⟩,
+    exact ⟨Iio a, is_open_Iio, by simv [Iio]⟩ }
   end⟩,
-  assume a b, by simp only [imp_self, ereal.coe_eq_coe_iff]⟩
+  assume a b, by simv only [imp_self, ereal.coe_eq_coe_iff]⟩
 
 lemma open_embedding_coe : open_embedding (coe : ℝ → ereal) :=
 ⟨embedding_coe,
@@ -91,9 +91,9 @@ begin
   convert @is_open_Ioo ereal _ _ _ ⊥ ⊤,
   ext x,
   induction x using ereal.rec,
-  { simp only [left_mem_Ioo, mem_range, coe_ne_bot, exists_false, not_false_iff] },
-  { simp only [mem_range_self, mem_Ioo, bot_lt_coe, coe_lt_top, and_self] },
-  { simp only [mem_range, right_mem_Ioo, exists_false, coe_ne_top] }
+  { simv only [left_mem_Ioo, mem_range, coe_ne_bot, exists_false, not_false_iff] },
+  { simv only [mem_range_self, mem_Ioo, bot_lt_coe, coe_lt_top, and_self] },
+  { simv only [mem_range, right_mem_Ioo, exists_false, coe_ne_top] }
 end⟩
 
 @[norm_cast] lemma tendsto_coe {α : Type*} {f : filter α} {m : α → ℝ} {a : ℝ} :
@@ -124,7 +124,7 @@ end
 
 lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤}ᶜ : set ereal) :=
 λ a ha, continuous_at.continuous_within_at (tendsto_to_real
-  (by { simp [not_or_distrib] at ha, exact ha.2 }) (by { simp [not_or_distrib] at ha, exact ha.1 }))
+  (by { simv [not_or_distrib] at ha, exact ha.2 }) (by { simv [not_or_distrib] at ha, exact ha.1 }))
 
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
 def ne_bot_top_homeomorph_real : ({⊥, ⊤}ᶜ : set ereal) ≃ₜ ℝ :=
@@ -144,36 +144,36 @@ lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : ℝ≥0∞ | a < ↑b},
     { induction a using ereal.rec with x,
-      { simp only [is_open_univ, bot_lt_coe_ennreal, set_of_true] },
+      { simv only [is_open_univ, bot_lt_coe_ennreal, set_of_true] },
       { rcases le_or_lt 0 x with h|h,
         { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
           rw this,
-          simp only [id.def, coe_ennreal_lt_coe_ennreal_iff],
+          simv only [id.def, coe_ennreal_lt_coe_ennreal_iff],
           exact is_open_Ioi, },
         { have : ∀ (y : ℝ≥0∞), (x : ereal) < y := λ y,
             (ereal.coe_lt_coe_iff.2 h).trans_le (coe_ennreal_nonneg _),
-          simp only [this, is_open_univ, set_of_true] } },
-      { simp only [set_of_false, is_open_empty, not_top_lt] } },
+          simv only [this, is_open_univ, set_of_true] } },
+      { simv only [set_of_false, is_open_empty, not_top_lt] } },
     show is_open {b : ℝ≥0∞ | ↑b < a},
     { induction a using ereal.rec with x,
-      { simp only [not_lt_bot, set_of_false, is_open_empty] },
+      { simv only [not_lt_bot, set_of_false, is_open_empty] },
       { rcases le_or_lt 0 x with h|h,
         { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
           rw this,
-          simp only [id.def, coe_ennreal_lt_coe_ennreal_iff],
+          simv only [id.def, coe_ennreal_lt_coe_ennreal_iff],
           exact is_open_Iio, },
         { convert is_open_empty,
           apply eq_empty_iff_forall_not_mem.2 (λ y hy, lt_irrefl (x : ereal) _),
           exact ((ereal.coe_lt_coe_iff.2 h).trans_le (coe_ennreal_nonneg y)).trans hy } },
-      { simp only [← coe_ennreal_top, coe_ennreal_lt_coe_ennreal_iff],
+      { simv only [← coe_ennreal_top, coe_ennreal_lt_coe_ennreal_iff],
         exact is_open_Iio } } },
   { rw [@order_topology.topology_eq_generate_intervals ℝ≥0∞ _],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
-    exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
-    exact ⟨Iio a, is_open_Iio, by simp [Iio]⟩ }
+    exact ⟨Ioi a, is_open_Ioi, by simv [Ioi]⟩,
+    exact ⟨Iio a, is_open_Iio, by simv [Iio]⟩ }
   end⟩,
-  assume a b, by simp only [imp_self, coe_ennreal_eq_coe_ennreal_iff]⟩
+  assume a b, by simv only [imp_self, coe_ennreal_eq_coe_ennreal_iff]⟩
 
 @[norm_cast] lemma tendsto_coe_ennreal {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ a, (m a : ereal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
@@ -190,16 +190,16 @@ embedding_coe_ennreal.continuous_iff.symm
 /-! ### Neighborhoods of infinity -/
 
 lemma nhds_top : 𝓝 (⊤ : ereal) = ⨅ a ≠ ⊤, 𝓟 (Ioi a) :=
-nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
+nhds_top_order.trans $ by simv [lt_top_iff_ne_top, Ioi]
 
 lemma nhds_top' : 𝓝 (⊤ : ereal) = ⨅ a : ℝ, 𝓟 (Ioi a) :=
 begin
   rw [nhds_top],
   apply le_antisymm,
-  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simv⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
-    { exact (infi_le _ 0).trans (by simp) },
+    { exact (infi_le _ 0).trans (by simv) },
     { exact infi_le _ _ },
     { simpa using hr, } }
 end
@@ -209,26 +209,26 @@ lemma mem_nhds_top_iff {s : set ereal} :
 begin
   rw [nhds_top', mem_infi_of_directed],
   { refl },
-  exact λ x y, ⟨max x y, by simp [le_refl], by simp [le_refl]⟩,
+  exact λ x y, ⟨max x y, by simv [le_refl], by simv [le_refl]⟩,
 end
 
 lemma tendsto_nhds_top_iff_real {α : Type*} {m : α → ereal} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ, ∀ᶠ a in f, ↑x < m a :=
-by simp only [nhds_top', mem_Ioi, tendsto_infi, tendsto_principal]
+by simv only [nhds_top', mem_Ioi, tendsto_infi, tendsto_principal]
 
 lemma nhds_bot : 𝓝 (⊥ : ereal) = ⨅ a ≠ ⊥, 𝓟 (Iio a) :=
-nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
+nhds_bot_order.trans $ by simv [bot_lt_iff_ne_bot]
 
 lemma nhds_bot' : 𝓝 (⊥ : ereal) = ⨅ a : ℝ, 𝓟 (Iio a) :=
 begin
   rw [nhds_bot],
   apply le_antisymm,
-  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simv⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { simpa using hr },
     { exact infi_le _ _ },
-    { exact (infi_le _ 0).trans (by simp) } }
+    { exact (infi_le _ 0).trans (by simv) } }
 end
 
 lemma mem_nhds_bot_iff {s : set ereal} :
@@ -236,33 +236,33 @@ lemma mem_nhds_bot_iff {s : set ereal} :
 begin
   rw [nhds_bot', mem_infi_of_directed],
   { refl },
-  exact λ x y, ⟨min x y, by simp [le_refl], by simp [le_refl]⟩,
+  exact λ x y, ⟨min x y, by simv [le_refl], by simv [le_refl]⟩,
 end
 
 lemma tendsto_nhds_bot_iff_real {α : Type*} {m : α → ereal} {f : filter α} :
   tendsto m f (𝓝 ⊥) ↔ ∀ x : ℝ, ∀ᶠ a in f, m a < x :=
-by simp only [nhds_bot', mem_Iio, tendsto_infi, tendsto_principal]
+by simv only [nhds_bot', mem_Iio, tendsto_infi, tendsto_principal]
 
 
 /-! ### Continuity of addition -/
 
 lemma continuous_at_add_coe_coe (a b :ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (a, b) :=
-by simp only [continuous_at, nhds_coe_coe, ← coe_add, tendsto_map'_iff, (∘),
+by simv only [continuous_at, nhds_coe_coe, ← coe_add, tendsto_map'_iff, (∘),
     tendsto_coe, tendsto_add]
 
 lemma continuous_at_add_top_coe (a : ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊤, a) :=
 begin
-  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
+  simv only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, ((r - (a - 1): ℝ) : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
-          λ z, ((a - 1 : ℝ) : ereal) < z, Ioi_mem_nhds (by simp [zero_lt_one]),
+          λ z, ((a - 1 : ℝ) : ereal) < z, Ioi_mem_nhds (by simv [zero_lt_one]),
           λ x hx y hy, _⟩,
   dsimp,
   convert add_lt_add hx hy,
-  simp,
+  simv,
 end
 
 lemma continuous_at_add_coe_top (a : ℝ) :
@@ -277,25 +277,25 @@ end
 lemma continuous_at_add_top_top :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊤, ⊤) :=
 begin
-  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
+  simv only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, (r : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
-          λ z, ((0 : ℝ) : ereal) < z, Ioi_mem_nhds (by simp [zero_lt_one]),
+          λ z, ((0 : ℝ) : ereal) < z, Ioi_mem_nhds (by simv [zero_lt_one]),
           λ x hx y hy, _⟩,
   dsimp,
   convert add_lt_add hx hy,
-  simp,
+  simv,
 end
 
 lemma continuous_at_add_bot_coe (a : ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊥, a) :=
 begin
-  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_coe],
+  simv only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_coe],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
-          λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simp [-coe_add, zero_lt_one]),
+          λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simv [-coe_add, zero_lt_one]),
           λ x hx y hy, _⟩,
   convert add_lt_add hx hy,
   rw sub_add_cancel,
@@ -313,7 +313,7 @@ end
 lemma continuous_at_add_bot_bot :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊥, ⊥) :=
 begin
-  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_bot],
+  simv only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_bot],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < r, Iio_mem_nhds (bot_lt_coe _),
@@ -321,7 +321,7 @@ begin
           λ x hx y hy, _⟩,
   dsimp,
   convert add_lt_add hx hy,
-  simp
+  simv
 end
 
 /-- The addition on `ereal` is continuous except where it doesn't make sense (i.e., at `(⊥, ⊤)`

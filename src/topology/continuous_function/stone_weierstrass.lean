@@ -60,7 +60,7 @@ lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : p
     polynomial.aeval f g :=
 begin
   ext,
-  simp only [continuous_map.coe_comp, function.comp_app,
+  simv only [continuous_map.coe_comp, function.comp_app,
     continuous_map.attach_bound_apply_coe,
     polynomial.to_continuous_map_on_apply,
     polynomial.aeval_subalgebra_coe,
@@ -101,7 +101,7 @@ begin
     .frequently_map _ _ frequently_mem_polynomials,
   -- but need to show that those pullbacks are actually in `A`.
   rintros _ ⟨g, ⟨-,rfl⟩⟩,
-  simp only [set_like.mem_coe, alg_hom.coe_to_ring_hom, comp_right_continuous_map_apply,
+  simv only [set_like.mem_coe, alg_hom.coe_to_ring_hom, comp_right_continuous_map_apply,
     polynomial.to_continuous_map_on_alg_hom_apply],
   apply polynomial_comp_attach_bound_mem,
 end
@@ -173,7 +173,7 @@ begin
   rintros f -,
   refine filter.frequently.mem_closure
     ((filter.has_basis.frequently_iff metric.nhds_basis_ball).mpr (λ ε pos, _)),
-  simp only [exists_prop, metric.mem_ball],
+  simv only [exists_prop, metric.mem_ball],
 
   -- It will be helpful to assume `X` is nonempty later,
   -- so we get that out of the way here.
@@ -230,10 +230,10 @@ begin
   { intros x z,
     obtain ⟨y, ym, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
     dsimp [h],
-    simp only [coe_fn_coe_base', subtype.coe_mk, sup'_coe, finset.sup'_apply, finset.lt_sup'_iff],
+    simv only [coe_fn_coe_base', subtype.coe_mk, sup'_coe, finset.sup'_apply, finset.lt_sup'_iff],
     exact ⟨y, ym, zm⟩ },
   have h_eq : ∀ x, h x x = f x,
-  { intro x, simp only [coe_fn_coe_base'] at w₁, simp [coe_fn_coe_base', w₁], },
+  { intro x, simv only [coe_fn_coe_base'] at w₁, simv [coe_fn_coe_base', w₁], },
 
   -- For each `x`, we define `W x` to be `{z | h x z < f z + ε}`,
   let W : Π x, set X := λ x, {z | h x z < f z + ε},
@@ -266,16 +266,16 @@ begin
   intro z,
 
   -- We rewrite into this particular form,
-  -- so that simp lemmas about inequalities involving `finset.inf'` can fire.
+  -- so that simv lemmas about inequalities involving `finset.inf'` can fire.
   rw [(show ∀ a b ε : ℝ, dist a b < ε ↔ a < b + ε ∧ b - ε < a,
-    by { intros, simp only [← metric.mem_ball, real.ball_eq_Ioo, set.mem_Ioo, and_comm], })],
+    by { intros, simv only [← metric.mem_ball, real.ball_eq_Ioo, set.mem_Ioo, and_comm], })],
 
   fsplit,
   { dsimp [k],
-    simp only [finset.inf'_lt_iff, continuous_map.inf'_apply],
+    simv only [finset.inf'_lt_iff, continuous_map.inf'_apply],
     exact set.exists_set_mem_of_union_eq_top _ _ xs_w z, },
   { dsimp [k],
-    simp only [finset.lt_inf'_iff, continuous_map.inf'_apply],
+    simv only [finset.lt_inf'_iff, continuous_map.inf'_apply],
     intros x xm,
     apply lt_h, },
 end
@@ -302,7 +302,7 @@ begin
     (λ f fm g gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
-  { simp, },
+  { simv, },
 end
 
 /--
@@ -317,7 +317,7 @@ theorem continuous_map_mem_subalgebra_closure_of_separates_points
   f ∈ A.topological_closure :=
 begin
   rw subalgebra_topological_closure_eq_top_of_separates_points A w,
-  simp,
+  simv,
 end
 
 /--
@@ -396,7 +396,7 @@ begin
   { refine A.sub_mem hfA _,
     convert A.smul_mem A.one_mem (f x₂),
     ext1,
-    simp },
+    simv },
   -- Consider now the function `λ x, |f x - f x₂| ^ 2`
   refine ⟨_, ⟨(⟨is_R_or_C.norm_sq, continuous_norm_sq⟩ : C(𝕜, ℝ)).comp F, _, rfl⟩, _⟩,
   { -- This is also an element of the subalgebra, and takes only real values
@@ -455,7 +455,7 @@ begin
   -- And this, of course, is just `f`
   ext,
   apply eq.symm,
-  simp [I, mul_comm is_R_or_C.I _],
+  simv [I, mul_comm is_R_or_C.I _],
 end
 
 end is_R_or_C

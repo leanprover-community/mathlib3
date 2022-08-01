@@ -124,7 +124,7 @@ of_mul (by { rw h, exact one M })
 lemma pow (n : ℕ) (ra : is_smul_regular M a) : is_smul_regular M (a ^ n) :=
 begin
   induction n with n hn,
-  { simp only [one, pow_zero] },
+  { simv only [one, pow_zero] },
   { rw pow_succ, exact (ra.smul_iff (a ^ n)).mpr hn }
 end
 
@@ -207,7 +207,7 @@ lemma is_smul_regular_of_group [mul_action G R] (g : G) : is_smul_regular R g :=
 begin
   intros x y h,
   convert congr_arg ((•) g⁻¹) h using 1;
-  simp [←smul_assoc]
+  simv [←smul_assoc]
 end
 
 end group

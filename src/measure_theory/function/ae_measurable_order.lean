@@ -44,7 +44,7 @@ begin
       exact ⟨u, v, hu, hv, h'u, h'v, λ ps qs pq, hμ⟩ },
     { refine ⟨univ, univ, measurable_set.univ, measurable_set.univ, subset_univ _, subset_univ _,
         λ ps qs pq, _⟩,
-      simp only [not_and] at H,
+      simv only [not_and] at H,
       exact (H ps qs pq).elim } },
   choose! u v huv using h',
   let u' : β → set α := λ p, ⋂ (q ∈ s ∩ Ioi p), u p q,
@@ -70,20 +70,20 @@ begin
     end
     ... = ∑' (p : s) (q : s ∩ Ioi p), (0 : ℝ≥0∞) :
       by { congr, ext1 p, congr, ext1 q, exact (huv p q).2.2.2.2 p.2 q.2.1 q.2.2 }
-    ... = 0 : by simp only [tsum_zero],
+    ... = 0 : by simv only [tsum_zero],
   have ff' : ∀ᵐ x ∂μ, f x = f' x,
   { have : ∀ᵐ x ∂μ, x ∉ t,
     { have : μ t = 0 := le_antisymm μt bot_le,
       change μ _ = 0,
       convert this,
       ext y,
-      simp only [not_exists, exists_prop, mem_set_of_eq, mem_compl_eq, not_not_mem] },
+      simv only [not_exists, exists_prop, mem_set_of_eq, mem_compl_eq, not_not_mem] },
     filter_upwards [this] with x hx,
     apply (infi_eq_of_forall_ge_of_forall_gt_exists_lt _ _).symm,
     { assume i,
       by_cases H : x ∈ u' i,
-      swap, { simp only [H, le_top, not_false_iff, piecewise_eq_of_not_mem] },
-      simp only [H, piecewise_eq_of_mem],
+      swap, { simv only [H, le_top, not_false_iff, piecewise_eq_of_not_mem] },
+      simv only [H, piecewise_eq_of_mem],
       contrapose! hx,
       obtain ⟨r, ⟨xr, rq⟩, rs⟩ : ∃ r, r ∈ Ioo (i : β) (f x) ∩ s :=
         dense_iff_inter_open.1 s_dense (Ioo i (f x)) is_open_Ioo (nonempty_Ioo.2 hx),
@@ -96,7 +96,7 @@ begin
         dense_iff_inter_open.1 s_dense (Ioo (f x) q) is_open_Ioo (nonempty_Ioo.2 hq),
       refine ⟨⟨r, rs⟩, _⟩,
       have A : x ∈ u' r := mem_bInter (λ i hi, (huv r i).2.2.1 xr),
-      simp only [A, rq, piecewise_eq_of_mem, subtype.coe_mk] } },
+      simv only [A, rq, piecewise_eq_of_mem, subtype.coe_mk] } },
   exact ⟨f', f'_meas, ff'⟩,
 end
 

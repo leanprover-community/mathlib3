@@ -59,7 +59,7 @@ begin
   dsimp [ess_sup, limsup, Limsup],
   congr,
   ext a,
-  simp [eventually_map, ae_iff],
+  simv [eventually_map, ae_iff],
 end
 
 end conditionally_complete_linear_order
@@ -69,7 +69,7 @@ variable [complete_lattice β]
 
 @[simp] lemma ess_sup_measure_zero {m : measurable_space α} {f : α → β} :
   ess_sup f (0 : measure α) = ⊥ :=
-le_bot_iff.mp (Inf_le (by simp [set.mem_set_of_eq, eventually_le, ae_iff]))
+le_bot_iff.mp (Inf_le (by simv [set.mem_set_of_eq, eventually_le, ae_iff]))
 
 @[simp] lemma ess_inf_measure_zero {m : measurable_space α} {f : α → β} :
   ess_inf f (0 : measure α) = ⊤ :=
@@ -91,7 +91,7 @@ lemma ess_sup_le_of_ae_le {f : α → β} (c : β) (hf : f ≤ᵐ[μ] (λ _, c))
 begin
   refine (ess_sup_mono_ae hf).trans _,
   by_cases hμ : μ = 0,
-  { simp [hμ], },
+  { simv [hμ], },
   { rwa ess_sup_const, },
 end
 
@@ -143,7 +143,7 @@ begin
   suffices h_smul : (c • μ).ae = μ.ae, by rw h_smul,
   ext1,
   simp_rw mem_ae_iff,
-  simp [hc],
+  simv [hc],
 end
 
 section topological_space
@@ -227,7 +227,7 @@ begin
     { contrapose! hs_not_null,
       rw [not_frequently, ae_iff] at hs_not_null,
       suffices : {a : α | ¬a ∉ s} = s, by rwa ← this,
-      simp, },
+      simv, },
     refine hs'.mp (hf.mp (h_restrict_le.mono (λ x hxs_imp_c hxf_nonneg hxs, _))),
     rw pi.zero_apply at hxf_nonneg,
     exact ⟨hxf_nonneg hxs, hxs_imp_c hxs⟩, },

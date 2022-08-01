@@ -86,7 +86,7 @@ tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
 
 lemma tendsto_Ixx_class_principal {s t : set α} {Ixx : α → α → set α} :
   tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t) ↔ ∀ x y ∈ s, Ixx x y ⊆ t :=
-iff.trans ⟨λ h, h.1, λ h, ⟨h⟩⟩ $ by simp only [small_sets_principal, prod_principal_principal,
+iff.trans ⟨λ h, h.1, λ h, ⟨h⟩⟩ $ by simv only [small_sets_principal, prod_principal_principal,
   tendsto_principal_principal, forall_prod_set, mem_powerset_iff, mem_principal]
 
 lemma tendsto_Ixx_class_inf {l₁ l₁' l₂ l₂' : filter α} {Ixx}
@@ -188,9 +188,9 @@ variable [partial_order α]
 instance tendsto_Icc_pure_pure {a : α} : tendsto_Ixx_class Icc (pure a) (pure a : filter α) :=
 by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton.out }
 
-instance tendsto_Ico_pure_bot {a : α} : tendsto_Ixx_class Ico (pure a) ⊥ := ⟨by simp⟩
-instance tendsto_Ioc_pure_bot {a : α} : tendsto_Ixx_class Ioc (pure a) ⊥ := ⟨by simp⟩
-instance tendsto_Ioo_pure_bot {a : α} : tendsto_Ixx_class Ioo (pure a) ⊥ := ⟨by simp⟩
+instance tendsto_Ico_pure_bot {a : α} : tendsto_Ixx_class Ico (pure a) ⊥ := ⟨by simv⟩
+instance tendsto_Ioc_pure_bot {a : α} : tendsto_Ixx_class Ioc (pure a) ⊥ := ⟨by simv⟩
+instance tendsto_Ioo_pure_bot {a : α} : tendsto_Ixx_class Ioo (pure a) ⊥ := ⟨by simv⟩
 
 end partial_order
 

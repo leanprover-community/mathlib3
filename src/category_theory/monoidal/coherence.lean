@@ -171,11 +171,11 @@ example {W X Y Z : C} (f : W ⟶ (X ⊗ Y) ⊗ Z) : W ⟶ X ⊗ (Y ⊗ Z) := f �
 
 @[simp] lemma monoidal_comp_refl {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   f ⊗≫ g = f ≫ g :=
-by { dsimp [monoidal_comp], simp, }
+by { dsimp [monoidal_comp], simv, }
 
 example {U V W X Y : C} (f : U ⟶ V ⊗ (W ⊗ X)) (g : (V ⊗ W) ⊗ X ⟶ Y) :
   f ⊗≫ g = f ≫ (α_ _ _ _).inv ≫ g :=
-by simp [monoidal_comp]
+by simv [monoidal_comp]
 
 end category_theory.monoidal_category
 
@@ -229,12 +229,12 @@ by pure_coherence
 namespace coherence
 
 /--
-Auxiliary simp lemma for the `coherence` tactic:
+Auxiliary simv lemma for the `coherence` tactic:
 this moves brackets to the left in order to expose a maximal prefix
 built out of unitors and associators.
 -/
 -- We have unused typeclass arguments here.
--- They are intentional, to ensure that `simp only [assoc_lift_hom]` only left associates
+-- They are intentional, to ensure that `simv only [assoc_lift_hom]` only left associates
 -- monoidal structural morphisms.
 @[nolint unused_arguments]
 lemma assoc_lift_hom {W X Y Z : C} [lift_obj W] [lift_obj X] [lift_obj Y]
@@ -252,9 +252,9 @@ which are "liftable" (i.e. expressible as compositions of unitors and associator
 meta def liftable_prefixes : tactic unit :=
 do
   o ← get_options, set_options $ o.set_nat `class.instance_max_depth 128,
-  try `[simp only [monoidal_comp, category_theory.category.assoc]] >>
+  try `[simv only [monoidal_comp, category_theory.category.assoc]] >>
     `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
-    try `[simp only [tactic.coherence.assoc_lift_hom, tactic.bicategory.coherence.assoc_lift_hom₂]]
+    try `[simv only [tactic.coherence.assoc_lift_hom, tactic.bicategory.coherence.assoc_lift_hom₂]]
 
 example {W X Y Z : C} (f : Y ⟶ Z) (g) (w : false) : (λ_ _).hom ≫ f = g :=
 begin
@@ -318,9 +318,9 @@ using e.g. `set_option class.instance_max_depth 500`.)
 -/
 meta def coherence : tactic unit :=
 do
-  try `[simp only [bicategorical_comp]],
-  try `[simp only [monoidal_comp]],
-  -- TODO: put similar normalization simp lemmas for monoidal categories
+  try `[simv only [bicategorical_comp]],
+  try `[simv only [monoidal_comp]],
+  -- TODO: put similar normalization simv lemmas for monoidal categories
   try bicategory.whisker_simps,
   coherence_loop
 

@@ -11,9 +11,9 @@ import tactic.fin_cases
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
   fin_cases *,
-  simp, assumption,
-  simp, assumption,
-  simp, assumption,
+  simv, assumption,
+  simv, assumption,
+  simv, assumption,
 end
 
 example (f : ℕ → Prop) (p : fin 0) : f p.val :=
@@ -38,14 +38,14 @@ open finset
 example (x : ℕ) (h : x ∈ Ico 2 5) : x = 2 ∨ x = 3 ∨ x = 4 :=
 begin
   fin_cases h,
-  all_goals { simp }
+  all_goals { simv }
 end
 
 open nat
 example (x : ℕ) (h : x ∈ [2,3,5,7]) : x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 7 :=
 begin
   fin_cases h,
-  all_goals { simp }
+  all_goals { simv }
 end
 
 example (x : ℕ) (h : x ∈ [2,3,5,7]) : true :=
@@ -57,16 +57,16 @@ end
 example (x : list ℕ) (h : x ∈ [[1],[2]]) : x.length = 1 :=
 begin
   fin_cases h with [[1],[1+1]],
-  simp,
+  simv,
   guard_target (list.length [1 + 1] = 1),
-  simp
+  simv
 end
 
  -- testing that `with` arguments are elaborated with respect to the expected type:
 example (x : ℤ) (h : x ∈ ([2,3] : list ℤ)) : x = 2 ∨ x = 3 :=
 begin
   fin_cases h with [2,3],
-  all_goals { simp }
+  all_goals { simv }
 end
 
 
@@ -79,7 +79,7 @@ end
 open equiv.perm
 example (x : (Σ (a : fin 4), fin 4)) (h : x ∈ fin_pairs_lt 4) : x.1.val < 4 :=
 begin
-  fin_cases h; simp,
+  fin_cases h; simv,
   any_goals { exact dec_trivial },
 end
 

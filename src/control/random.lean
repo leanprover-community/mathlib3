@@ -269,7 +269,7 @@ def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 lemma bool_of_nat_mem_Icc_of_mem_Icc_to_nat (x y : bool) (n : ℕ) :
   n ∈ (x.to_nat .. y.to_nat) → bool.of_nat n ∈ (x .. y) :=
 begin
-  simp only [and_imp, set.mem_Icc], intros h₀ h₁,
+  simv only [and_imp, set.mem_Icc], intros h₀ h₁,
   split;
     [ have h₂ := bool.of_nat_le_of_nat h₀, have h₂ := bool.of_nat_le_of_nat h₁ ];
     rw bool.of_nat_to_nat at h₂; exact h₂,
@@ -294,7 +294,7 @@ bitvec.of_fin <$> rand.random (fin $ 2^n)
 def bitvec.random_r {n : ℕ} (x y : bitvec n) (h : x ≤ y) : rand_g g (x .. y) :=
 have h' : ∀ (a : fin (2 ^ n)), a ∈ (x.to_fin .. y.to_fin) → bitvec.of_fin a ∈ (x .. y),
 begin
-  simp only [and_imp, set.mem_Icc], intros z h₀ h₁,
+  simv only [and_imp, set.mem_Icc], intros z h₀ h₁,
   replace h₀ := bitvec.of_fin_le_of_fin_of_le h₀,
   replace h₁ := bitvec.of_fin_le_of_fin_of_le h₁,
   rw bitvec.of_fin_to_fin at h₀ h₁, split; assumption,

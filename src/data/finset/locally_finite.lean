@@ -69,10 +69,10 @@ eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx
 @[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ := Ioc_eq_empty h.not_lt
 @[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ := Ioo_eq_empty h.not_lt
 
-@[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simp only [mem_Icc, true_and, le_rfl]
-@[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simp only [mem_Ico, true_and, le_refl]
-@[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b := by simp only [mem_Icc, and_true, le_rfl]
-@[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp only [mem_Ioc, and_true, le_rfl]
+@[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simv only [mem_Icc, true_and, le_rfl]
+@[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simv only [mem_Ico, true_and, le_refl]
+@[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b := by simv only [mem_Icc, and_true, le_rfl]
+@[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simv only [mem_Ioc, and_true, le_rfl]
 
 @[simp] lemma left_not_mem_Ioc : a ∉ Ioc a b := λ h, lt_irrefl _ (mem_Ioc.1 h).1
 @[simp] lemma left_not_mem_Ioo : a ∉ Ioo a b := λ h, lt_irrefl _ (mem_Ioo.1 h).1
@@ -195,16 +195,16 @@ end
 variables (a b) [fintype α]
 
 lemma filter_lt_lt_eq_Ioo [decidable_pred (λ j, a < j ∧ j < b)] :
-  univ.filter (λ j, a < j ∧ j < b) = Ioo a b := by { ext, simp }
+  univ.filter (λ j, a < j ∧ j < b) = Ioo a b := by { ext, simv }
 
 lemma filter_lt_le_eq_Ioc [decidable_pred (λ j, a < j ∧ j ≤ b)] :
-  univ.filter (λ j, a < j ∧ j ≤ b) = Ioc a b := by { ext, simp }
+  univ.filter (λ j, a < j ∧ j ≤ b) = Ioc a b := by { ext, simv }
 
 lemma filter_le_lt_eq_Ico [decidable_pred (λ j, a ≤ j ∧ j < b)] :
-  univ.filter (λ j, a ≤ j ∧ j < b) = Ico a b := by { ext, simp }
+  univ.filter (λ j, a ≤ j ∧ j < b) = Ico a b := by { ext, simv }
 
 lemma filter_le_le_eq_Icc [decidable_pred (λ j, a ≤ j ∧ j ≤ b)] :
-  univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simp }
+  univ.filter (λ j, a ≤ j ∧ j ≤ b) = Icc a b := by { ext, simv }
 
 end filter
 
@@ -243,8 +243,8 @@ let ⟨a, ha⟩ := hs in (Ici a).finite_to_set.subset $ λ x hx, mem_Ici.2 $ ha 
 
 variables [fintype α]
 
-lemma filter_lt_eq_Ioi [decidable_pred ((<) a)] : univ.filter ((<) a) = Ioi a := by { ext, simp }
-lemma filter_le_eq_Ici [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici a := by { ext, simp }
+lemma filter_lt_eq_Ioi [decidable_pred ((<) a)] : univ.filter ((<) a) = Ioi a := by { ext, simv }
+lemma filter_le_eq_Ici [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici a := by { ext, simv }
 
 end locally_finite_order_top
 
@@ -257,8 +257,8 @@ lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.d
 
 variables [fintype α]
 
-lemma filter_gt_eq_Iio [decidable_pred (< a)] : univ.filter (< a) = Iio a := by { ext, simp }
-lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a := by { ext, simp }
+lemma filter_gt_eq_Iio [decidable_pred (< a)] : univ.filter (< a) = Iio a := by { ext, simv }
+lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a := by { ext, simv }
 
 end locally_finite_order_bot
 
@@ -280,11 +280,11 @@ by rw [←coe_eq_singleton, coe_Icc, set.Icc_eq_singleton_iff]
 section decidable_eq
 variables [decidable_eq α]
 
-@[simp] lemma Icc_erase_left (a b : α) : (Icc a b).erase a = Ioc a b := by simp [←coe_inj]
-@[simp] lemma Icc_erase_right (a b : α) : (Icc a b).erase b = Ico a b := by simp [←coe_inj]
-@[simp] lemma Ico_erase_left (a b : α) : (Ico a b).erase a = Ioo a b := by simp [←coe_inj]
-@[simp] lemma Ioc_erase_right (a b : α) : (Ioc a b).erase b = Ioo a b := by simp [←coe_inj]
-@[simp] lemma Icc_diff_both (a b : α) : Icc a b \ {a, b} = Ioo a b := by simp [←coe_inj]
+@[simp] lemma Icc_erase_left (a b : α) : (Icc a b).erase a = Ioc a b := by simv [←coe_inj]
+@[simp] lemma Icc_erase_right (a b : α) : (Icc a b).erase b = Ico a b := by simv [←coe_inj]
+@[simp] lemma Ico_erase_left (a b : α) : (Ico a b).erase a = Ioo a b := by simv [←coe_inj]
+@[simp] lemma Ioc_erase_right (a b : α) : (Ioc a b).erase b = Ioo a b := by simv [←coe_inj]
+@[simp] lemma Icc_diff_both (a b : α) : Icc a b \ {a, b} = Ioo a b := by simv [←coe_inj]
 
 @[simp] lemma Ico_insert_right (h : a ≤ b) : insert b (Ico a b) = Icc a b :=
 by rw [←coe_inj, coe_insert, coe_Icc, coe_Ico, set.insert_eq, set.union_comm, set.Ico_union_right h]
@@ -298,11 +298,11 @@ by rw [←coe_inj, coe_insert, coe_Ioo, coe_Ico, set.insert_eq, set.union_comm, 
 @[simp] lemma Ioo_insert_right (h : a < b) : insert b (Ioo a b) = Ioc a b :=
 by rw [←coe_inj, coe_insert, coe_Ioo, coe_Ioc, set.insert_eq, set.union_comm, set.Ioo_union_right h]
 
-@[simp] lemma Icc_diff_Ico_self (h : a ≤ b) : Icc a b \ Ico a b = {b} := by simp [←coe_inj, h]
-@[simp] lemma Icc_diff_Ioc_self (h : a ≤ b) : Icc a b \ Ioc a b = {a} := by simp [←coe_inj, h]
-@[simp] lemma Icc_diff_Ioo_self (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} := by simp [←coe_inj, h]
-@[simp] lemma Ico_diff_Ioo_self (h : a < b) : Ico a b \ Ioo a b = {a} := by simp [←coe_inj, h]
-@[simp] lemma Ioc_diff_Ioo_self (h : a < b) : Ioc a b \ Ioo a b = {b} := by simp [←coe_inj, h]
+@[simp] lemma Icc_diff_Ico_self (h : a ≤ b) : Icc a b \ Ico a b = {b} := by simv [←coe_inj, h]
+@[simp] lemma Icc_diff_Ioc_self (h : a ≤ b) : Icc a b \ Ioc a b = {a} := by simv [←coe_inj, h]
+@[simp] lemma Icc_diff_Ioo_self (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} := by simv [←coe_inj, h]
+@[simp] lemma Ico_diff_Ioo_self (h : a < b) : Ico a b \ Ioo a b = {a} := by simv [←coe_inj, h]
+@[simp] lemma Ioc_diff_Ioo_self (h : a < b) : Ioc a b \ Ioo a b = {b} := by simv [←coe_inj, h]
 
 @[simp] lemma Ico_inter_Ico_consecutive (a b c : α) : Ico a b ∩ Ico b c = ∅ :=
 begin
@@ -460,7 +460,7 @@ variables [fintype α] [locally_finite_order_top α] [locally_finite_order_bot �
 
 lemma Ioi_disj_union_Iio (a : α) :
   (Ioi a).disj_union (Iio a) (disjoint_left.1 $ disjoint_Ioi_Iio a) = ({a} : finset α)ᶜ :=
-by { ext, simp [eq_comm] }
+by { ext, simv [eq_comm] }
 
 end linear_order
 
@@ -547,7 +547,7 @@ begin
   simp_rw [←Ioi_disj_union_Iio, prod_disj_union, prod_mul_distrib],
   congr' 1,
   rw [prod_sigma', prod_sigma'],
-  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp,
+  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simv,
 end
 
 end finset

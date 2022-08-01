@@ -79,7 +79,7 @@ begin
   { have A : ∀ q, 0 ≤ dist (Φ p) (Φ q) + dist (Ψ p) (Ψ q) :=
       λq, by rw ← add_zero (0 : ℝ); exact add_le_add dist_nonneg dist_nonneg,
     refine le_antisymm _ (le_cinfi A),
-    have : 0 = dist (Φ p) (Φ p) + dist (Ψ p) (Ψ p), by simp,
+    have : 0 = dist (Φ p) (Φ p) + dist (Ψ p) (Ψ p), by simv,
     rw this,
     exact cinfi_le ⟨0, forall_range_iff.2 A⟩ p },
   rw [glue_dist, this, zero_add]
@@ -262,10 +262,10 @@ def sum.dist : X ⊕ Y → X ⊕ Y → ℝ
 
 lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} (x : X) (y : Y) :
   sum.dist p q = glue_dist (λ _ : unit, nonempty.some ⟨x⟩) (λ _ : unit, nonempty.some ⟨y⟩) 1 p q :=
-by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
+by cases p; cases q; refl <|> simv [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=
-by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
+by cases x; cases y; simv only [sum.dist, dist_comm, add_comm, add_left_comm]
 
 lemma sum.one_dist_le {x : X} {y : Y} : 1 ≤ sum.dist (inl x) (inr y) :=
 le_trans (le_add_of_nonneg_right dist_nonneg) $
@@ -297,37 +297,37 @@ follow from our choice of the distance. The harder work is to show that the unif
 defined by the distance coincides with the disjoint union uniform structure. -/
 def metric_space_sum : metric_space (X ⊕ Y) :=
 { dist               := sum.dist,
-  dist_self          := λx, by cases x; simp only [sum.dist, dist_self],
+  dist_self          := λx, by cases x; simv only [sum.dist, dist_self],
   dist_comm          := sum.dist_comm,
   dist_triangle      := λ p q r,
   begin
     cases p; cases q; cases r,
     { exact dist_triangle _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist p r],
+    { simv only [dist, sum.dist_eq_glue_dist p r],
       exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist p q],
+    { simv only [dist, sum.dist_eq_glue_dist p q],
       exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist p q],
+    { simv only [dist, sum.dist_eq_glue_dist p q],
       exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist q p],
+    { simv only [dist, sum.dist_eq_glue_dist q p],
       exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist q p],
+    { simv only [dist, sum.dist_eq_glue_dist q p],
       exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist r p],
+    { simv only [dist, sum.dist_eq_glue_dist r p],
       exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
     { exact dist_triangle _ _ _ },
   end,
   eq_of_dist_eq_zero := λ p q,
   begin
     cases p; cases q,
-    { simp only [sum.dist, dist_eq_zero, imp_self] },
+    { simv only [sum.dist, dist_eq_zero, imp_self] },
     { assume h,
-      simp only [dist, sum.dist_eq_glue_dist p q] at h,
+      simv only [dist, sum.dist_eq_glue_dist p q] at h,
       exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
     { assume h,
-      simp only [dist, sum.dist_eq_glue_dist q p] at h,
+      simv only [dist, sum.dist_eq_glue_dist q p] at h,
       exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
-    { simp only [sum.dist, dist_eq_zero, imp_self] },
+    { simv only [sum.dist, dist_eq_zero, imp_self] },
   end,
   to_uniform_space   := sum.uniform_space,
   uniformity_dist    := uniformity_dist_of_mem_uniformity _ _ sum.mem_uniformity }
@@ -379,11 +379,11 @@ local attribute [instance] sigma.has_dist
 
 @[simp] lemma dist_same (i : ι) (x : E i) (y : E i) :
   dist (⟨i, x⟩ : Σ j, E j) ⟨i, y⟩ = dist x y :=
-by simp [has_dist.dist, sigma.dist]
+by simv [has_dist.dist, sigma.dist]
 
 @[simp] lemma dist_ne {i j : ι} (h : i ≠ j) (x : E i) (y : E j) :
   dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ = dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨y⟩) y :=
-by simp [has_dist.dist, sigma.dist, h]
+by simv [has_dist.dist, sigma.dist, h]
 
 lemma one_le_dist_of_ne {i j : ι} (h : i ≠ j) (x : E i) (y : E j) :
   1 ≤ dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ :=
@@ -407,26 +407,26 @@ begin
   rcases eq_or_ne i k with rfl|hik,
   { rcases eq_or_ne i j with rfl|hij,
     { simpa using dist_triangle x y z },
-    { simp only [hij, hij.symm, sigma.dist_same, sigma.dist_ne, ne.def, not_false_iff],
+    { simv only [hij, hij.symm, sigma.dist_same, sigma.dist_ne, ne.def, not_false_iff],
       calc dist x z ≤ dist x (nonempty.some ⟨x⟩) + 0 + 0 + (0 + 0 + dist (nonempty.some ⟨z⟩) z) :
         by simpa only [zero_add, add_zero] using dist_triangle _ _ _
       ... ≤ _ : by apply_rules [add_le_add, le_rfl, dist_nonneg, zero_le_one] } },
   { rcases eq_or_ne i j with rfl|hij,
-    { simp only [hik, sigma.dist_ne, ne.def, not_false_iff, sigma.dist_same],
+    { simv only [hik, sigma.dist_ne, ne.def, not_false_iff, sigma.dist_same],
       calc dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨z⟩) z ≤
         (dist x y + dist y (nonempty.some ⟨y⟩) + 1 + dist (nonempty.some ⟨z⟩) z) :
           by apply_rules [add_le_add, le_rfl, dist_triangle]
       ... = _ : by abel },
     { rcases eq_or_ne j k with rfl|hjk,
-      { simp only [hij, sigma.dist_ne, ne.def, not_false_iff, sigma.dist_same],
+      { simv only [hij, sigma.dist_ne, ne.def, not_false_iff, sigma.dist_same],
         calc dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨z⟩) z ≤
           dist x (nonempty.some ⟨x⟩) + 1 + (dist (nonempty.some ⟨z⟩) y + dist y z) :
             by apply_rules [add_le_add, le_rfl, dist_triangle]
         ... = _ : by abel },
-      { simp only [hik, hij, hjk, sigma.dist_ne, ne.def, not_false_iff],
+      { simv only [hik, hij, hjk, sigma.dist_ne, ne.def, not_false_iff],
         calc dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨z⟩) z
           = dist x (nonempty.some ⟨x⟩) + 1 + 0 + (0 + 0 + dist (nonempty.some ⟨z⟩) z) :
-            by simp only [add_zero, zero_add]
+            by simv only [add_zero, zero_add]
         ... ≤ _ :
           by apply_rules [add_le_add, zero_le_one, dist_nonneg, le_rfl] } } }
 end
@@ -441,7 +441,7 @@ begin
     refine ⟨min ε 1, lt_min εpos zero_lt_one, _⟩,
     rintros ⟨j, y⟩ hy,
     rcases eq_or_ne i j with rfl|hij,
-    { simp only [sigma.dist_same, lt_min_iff] at hy,
+    { simv only [sigma.dist_same, lt_min_iff] at hy,
       exact hε (mem_ball'.2 hy.1) },
     { apply (lt_irrefl (1 : ℝ) _).elim,
       calc 1 ≤ sigma.dist ⟨i, x⟩ ⟨j, y⟩ : sigma.one_le_dist_of_ne hij _ _
@@ -466,14 +466,14 @@ protected def metric_space : metric_space (Σ i, E i) :=
 begin
   refine metric_space.of_metrizable sigma.dist _ _ sigma.dist_triangle
     sigma.is_open_iff _,
-  { rintros ⟨i, x⟩, simp [sigma.dist] },
+  { rintros ⟨i, x⟩, simv [sigma.dist] },
   { rintros ⟨i, x⟩ ⟨j, y⟩,
     rcases eq_or_ne i j with rfl|h,
-    { simp [sigma.dist, dist_comm] },
-    { simp only [sigma.dist, dist_comm, h, h.symm, not_false_iff, dif_neg], abel } },
+    { simv [sigma.dist, dist_comm] },
+    { simv only [sigma.dist, dist_comm, h, h.symm, not_false_iff, dif_neg], abel } },
   { rintros ⟨i, x⟩ ⟨j, y⟩,
     rcases eq_or_ne i j with rfl|hij,
-    { simp [sigma.dist] },
+    { simv [sigma.dist] },
     { assume h,
       apply (lt_irrefl (1 : ℝ) _).elim,
       calc 1 ≤ sigma.dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ : sigma.one_le_dist_of_ne hij _ _
@@ -487,7 +487,7 @@ open filter
 
 /-- The injection of a space in a disjoint union is an isometry -/
 lemma isometry_mk (i : ι) : isometry (sigma.mk i : E i → Σ k, E k) :=
-isometry.of_dist_eq (λ x y, by simp)
+isometry.of_dist_eq (λ x y, by simv)
 
 /-- A disjoint union of complete metric spaces is complete. -/
 protected lemma complete_space [∀ i, complete_space (E i)] : complete_space (Σ i, E i) :=
@@ -496,13 +496,13 @@ begin
   set U := {p : (Σ k, E k) × (Σ k, E k) | dist p.1 p.2 < 1},
   have hc : ∀ i, is_complete (s i),
   { intro i,
-    simp only [s, ← range_sigma_mk],
+    simv only [s, ← range_sigma_mk],
     exact (isometry_mk i).uniform_inducing.is_complete_range },
   have hd : ∀ i j (x ∈ s i) (y ∈ s j), (x, y) ∈ U → i = j,
     from λ i j x hx y hy hxy, (eq.symm hx).trans ((fst_eq_of_dist_lt_one _ _ hxy).trans hy),
   refine complete_space_of_is_complete_univ _,
   convert is_complete_Union_separated hc (dist_mem_uniformity zero_lt_one) hd,
-  simp [s, ← preimage_Union]
+  simv [s, ← preimage_Union]
 end
 
 end sigma
@@ -522,7 +522,7 @@ def glue_premetric (hΦ : isometry Φ) (hΨ : isometry Ψ) : pseudo_metric_space
 { dist          := glue_dist Φ Ψ 0,
   dist_self     := glue_dist_self Φ Ψ 0,
   dist_comm     := glue_dist_comm Φ Ψ 0,
-  dist_triangle := glue_dist_triangle Φ Ψ 0 $ λp q, by rw [hΦ.dist_eq, hΨ.dist_eq]; simp }
+  dist_triangle := glue_dist_triangle Φ Ψ 0 $ λp q, by rw [hΦ.dist_eq, hΨ.dist_eq]; simv }
 
 /-- Given two isometric embeddings `Φ : Z → X` and `Ψ : Z → Y`, we define a
 space  `glue_space hΦ hΨ` by identifying in `X ⊕ Y` the points `Φ x` and `Ψ x`. -/
@@ -554,7 +554,7 @@ lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
 begin
   letI : pseudo_metric_space (X ⊕ Y) := glue_premetric hΦ hΨ,
   funext,
-  simp only [comp, to_glue_l, to_glue_r, quotient.eq],
+  simv only [comp, to_glue_l, to_glue_r, quotient.eq],
   exact glue_dist_glued_points Φ Ψ 0 x
 end
 
@@ -592,14 +592,14 @@ lemma inductive_limit_dist_eq_dist (I : ∀ n, isometry (f n))
 begin
   induction m with m hm,
   { assume hx hy,
-    have A : max x.1 y.1 = 0, { rw [nonpos_iff_eq_zero.1 hx, nonpos_iff_eq_zero.1 hy], simp },
+    have A : max x.1 y.1 = 0, { rw [nonpos_iff_eq_zero.1 hx, nonpos_iff_eq_zero.1 hy], simv },
     unfold inductive_limit_dist,
-    congr; simp only [A] },
+    congr; simv only [A] },
   { assume hx hy,
     by_cases h : max x.1 y.1 = m.succ,
     { unfold inductive_limit_dist,
-      congr; simp only [h] },
-    { have : max x.1 y.1 ≤ succ m := by simp [hx, hy],
+      congr; simv only [h] },
+    { have : max x.1 y.1 ≤ succ m := by simv [hx, hy],
       have : max x.1 y.1 ≤ m := by simpa [h] using of_le_succ this,
       have xm : x.1 ≤ m := le_trans (le_max_left _ _) this,
       have ym : y.1 ≤ m := le_trans (le_max_right _ _) this,
@@ -611,7 +611,7 @@ end
 def inductive_premetric (I : ∀ n, isometry (f n)) :
   pseudo_metric_space (Σ n, X n) :=
 { dist          := inductive_limit_dist f,
-  dist_self     := λx, by simp [dist, inductive_limit_dist],
+  dist_self     := λx, by simv [dist, inductive_limit_dist],
   dist_comm     := λx y, begin
     let m := max x.1 y.1,
     have hx : x.1 ≤ m := le_max_left _ _,
@@ -668,7 +668,7 @@ lemma to_inductive_limit_commute (I : ∀ n, isometry (f n)) (n : ℕ) :
   (to_inductive_limit I n.succ) ∘ (f n) = to_inductive_limit I n :=
 begin
   funext,
-  simp only [comp, to_inductive_limit, quotient.eq],
+  simv only [comp, to_inductive_limit, quotient.eq],
   show inductive_limit_dist f ⟨n.succ, f n x⟩ ⟨n, x⟩ = 0,
   { rw [inductive_limit_dist_eq_dist I ⟨n.succ, f n x⟩ ⟨n, x⟩ n.succ,
         le_rec_on_self, le_rec_on_succ, le_rec_on_self, dist_self],

@@ -62,12 +62,12 @@ The simplifier is set up to prove automatically that some functions are differen
 differentiable at a point (but not differentiable on a set or within a set at a point, as checking
 automatically that the good domains are mapped one to the other when using composition is not
 something the simplifier can easily do). This means that one can write
-`example (x : ℝ) : differentiable ℝ (λ x, sin (exp (3 + x^2)) - 5 * cos x) := by simp`.
+`example (x : ℝ) : differentiable ℝ (λ x, sin (exp (3 + x^2)) - 5 * cos x) := by simv`.
 If there are divisions, one needs to supply to the simplifier proofs that the denominators do
 not vanish, as in
 ```lean
 example (x : ℝ) (h : 1 + sin x ≠ 0) : differentiable_at ℝ (λ x, exp x / (1 + sin x)) x :=
-by simp [h]
+by simv [h]
 ```
 Of course, these examples only work once `exp`, `cos` and `sin` have been shown to be
 differentiable, in `analysis.special_functions.trigonometric`.
@@ -96,10 +96,10 @@ for `univ`. This uniqueness only holds when the field is non-discrete, which we 
 beginning: otherwise, a derivative can be defined, but it has no interesting properties whatsoever.
 
 To make sure that the simplifier can prove automatically that functions are differentiable, we tag
-many lemmas with the `simp` attribute, for instance those saying that the sum of differentiable
+many lemmas with the `simv` attribute, for instance those saying that the sum of differentiable
 functions is differentiable, as well as their product, their cartesian product, and so on. A notable
-exception is the chain rule: we do not mark as a simp lemma the fact that, if `f` and `g` are
-differentiable, then their composition also is: `simp` would always be able to match this lemma,
+exception is the chain rule: we do not mark as a simv lemma the fact that, if `f` and `g` are
+differentiable, then their composition also is: `simv` would always be able to match this lemma,
 by taking `f` or `g` to be the identity. Instead, for every reasonable function (say, `exp`),
 we add a lemma that if `f` is differentiable then so is `(λ x, exp (f x))`. This means adding
 some boilerplate lemmas, but these can also be useful in their own right.
@@ -193,11 +193,11 @@ variables {L L₁ L₂ : filter E}
 lemma fderiv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : fderiv_within 𝕜 f s x = 0 :=
 have ¬ ∃ f', has_fderiv_within_at f f' s x, from h,
-by simp [fderiv_within, this]
+by simv [fderiv_within, this]
 
 lemma fderiv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : fderiv 𝕜 f x = 0 :=
 have ¬ ∃ f', has_fderiv_at f f' x, from h,
-by simp [fderiv, this]
+by simv [fderiv, this]
 
 section derivative_uniqueness
 /- In this section, we discuss the uniqueness of the derivative.
@@ -238,7 +238,7 @@ begin
     L1.add L2,
   have : (λn, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
           = (λn, c n • (f (x + d n) - f x)),
-    by { ext n, simp [smul_add, smul_sub] },
+    by { ext n, simv [smul_add, smul_sub] },
   rwa [this, zero_add] at L3
 end
 
@@ -268,7 +268,7 @@ theorem has_fderiv_at_filter_iff_tendsto :
   has_fderiv_at_filter f f' x L ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (𝓝 0) :=
 have h : ∀ x', ∥x' - x∥ = 0 → ∥f x' - f x - f' (x' - x)∥ = 0, from λ x' hx',
-  by { rw [sub_eq_zero.1 (norm_eq_zero.1 hx')], simp },
+  by { rw [sub_eq_zero.1 (norm_eq_zero.1 hx')], simv },
 begin
   unfold has_fderiv_at_filter,
   rw [←is_o_norm_left, ←is_o_norm_right, is_o_iff_tendsto h],
@@ -287,7 +287,7 @@ theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
   (λ h : E, f (x + h) - f x - f' h) =o[𝓝 0] (λh, h) :=
 begin
   rw [has_fderiv_at, has_fderiv_at_filter, ← map_add_left_nhds_zero x, is_o_map],
-  simp [(∘)]
+  simv [(∘)]
 end
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
@@ -344,7 +344,7 @@ lemma has_fderiv_at.differentiable_at (h : has_fderiv_at f f' x) : differentiabl
 
 @[simp] lemma has_fderiv_within_at_univ :
   has_fderiv_within_at f f' univ x ↔ has_fderiv_at f f' x :=
-by { simp only [has_fderiv_within_at, nhds_within_univ], refl }
+by { simv only [has_fderiv_within_at, nhds_within_univ], refl }
 
 lemma has_strict_fderiv_at.is_O_sub (hf : has_strict_fderiv_at f f' x) :
   (λ p : E × E, f p.1 - f p.2) =O[𝓝 (x, x)] (λ p : E × E, p.1 - p.2) :=
@@ -371,7 +371,7 @@ lemma has_strict_fderiv_at.exists_lipschitz_on_with_of_nnnorm_lt (hf : has_stric
   (K : ℝ≥0) (hK : ∥f'∥₊ < K) : ∃ s ∈ 𝓝 x, lipschitz_on_with K f s :=
 begin
   have := hf.add_is_O_with (f'.is_O_with_comp _ _) hK,
-  simp only [sub_add_cancel, is_O_with] at this,
+  simv only [sub_add_cancel, is_O_with] at this,
   rcases exists_nhds_square this with ⟨U, Uo, xU, hU⟩,
   exact ⟨U, Uo.mem_nhds xU, lipschitz_on_with_iff_norm_sub_le.2 $
     λ x hx y hy, hU (mk_mem_prod hx hy)⟩
@@ -406,17 +406,17 @@ end
 
 lemma has_fderiv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
-by simp [has_fderiv_within_at, nhds_within_restrict'' s h]
+by simv [has_fderiv_within_at, nhds_within_restrict'' s h]
 
 lemma has_fderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
-by simp [has_fderiv_within_at, nhds_within_restrict' s h]
+by simv [has_fderiv_within_at, nhds_within_restrict' s h]
 
 lemma has_fderiv_within_at.union (hs : has_fderiv_within_at f f' s x)
   (ht : has_fderiv_within_at f f' t x) :
   has_fderiv_within_at f f' (s ∪ t) x :=
 begin
-  simp only [has_fderiv_within_at, nhds_within_union],
+  simv only [has_fderiv_within_at, nhds_within_union],
   exact hs.sup ht,
 end
 
@@ -485,8 +485,8 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot_iff, ne.def, not_not] at h,
-  simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
+  simv only [mem_closure_iff_nhds_within_ne_bot, ne_bot_iff, ne.def, not_not] at h,
+  simv [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 
 lemma differentiable_within_at.mono (h : differentiable_within_at 𝕜 f t x) (st : s ⊆ t) :
@@ -498,16 +498,16 @@ end
 
 lemma differentiable_within_at_univ :
   differentiable_within_at 𝕜 f univ x ↔ differentiable_at 𝕜 f x :=
-by simp only [differentiable_within_at, has_fderiv_within_at_univ, differentiable_at]
+by simv only [differentiable_within_at, has_fderiv_within_at_univ, differentiable_at]
 
 lemma differentiable_within_at_inter (ht : t ∈ 𝓝 x) :
   differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
-by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
+by simv only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
     nhds_within_restrict' s ht]
 
 lemma differentiable_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
-by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
+by simv only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
     nhds_within_restrict'' s ht]
 
 lemma differentiable_within_at.antimono (h : differentiable_within_at 𝕜 f s x) (hst : s ⊆ t)
@@ -546,7 +546,7 @@ lemma differentiable_on.mono (h : differentiable_on 𝕜 f t) (st : s ⊆ t) :
 
 lemma differentiable_on_univ :
   differentiable_on 𝕜 f univ ↔ differentiable 𝕜 f :=
-by { simp [differentiable_on, differentiable_within_at_univ], refl }
+by { simv [differentiable_on, differentiable_within_at_univ], refl }
 
 lemma differentiable.differentiable_on (h : differentiable 𝕜 f) : differentiable_on 𝕜 f s :=
 (differentiable_on_univ.2 h).mono (subset_univ _)
@@ -597,7 +597,7 @@ end
 lemma fderiv_within_of_mem_nhds (h : s ∈ 𝓝 x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
 begin
-  have : s = univ ∩ s, by simp only [univ_inter],
+  have : s = univ ∩ s, by simv only [univ_inter],
   rw [this, ← fderiv_within_univ],
   exact fderiv_within_inter h (unique_diff_on_univ _ (mem_univ _))
 end
@@ -616,13 +616,13 @@ end
 lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
   fderiv 𝕜 f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s) ∨
     (¬differentiable_at 𝕜 f x ∧ (0 : E →L[𝕜] F) ∈ s) :=
-by by_cases hx : differentiable_at 𝕜 f x; simp [fderiv_zero_of_not_differentiable_at, *]
+by by_cases hx : differentiable_at 𝕜 f x; simv [fderiv_zero_of_not_differentiable_at, *]
 
 lemma fderiv_within_mem_iff {f : E → F} {t : set E} {s : set (E →L[𝕜] F)} {x : E} :
   fderiv_within 𝕜 f t x ∈ s ↔ (differentiable_within_at 𝕜 f t x ∧ fderiv_within 𝕜 f t x ∈ s) ∨
     (¬differentiable_within_at 𝕜 f t x ∧ (0 : E →L[𝕜] F) ∈ s) :=
 by by_cases hx : differentiable_within_at 𝕜 f t x;
-  simp [fderiv_within_zero_of_not_differentiable_within_at, *]
+  simv [fderiv_within_zero_of_not_differentiable_within_at, *]
 
 end fderiv_properties
 
@@ -638,7 +638,7 @@ begin
     rw ← sub_self x, exact tendsto_id.sub tendsto_const_nhds },
   have := tendsto.add this tendsto_const_nhds,
   rw zero_add (f x) at this,
-  exact this.congr (by simp)
+  exact this.congr (by simv)
 end
 
 theorem has_fderiv_within_at.continuous_within_at
@@ -691,7 +691,7 @@ theorem filter.eventually_eq.has_strict_fderiv_at_iff
 begin
   refine is_o_congr ((h.prod_mk_nhds h).mono _) (eventually_of_forall $ λ _, rfl),
   rintros p ⟨hp₁, hp₂⟩,
-  simp only [*]
+  simv only [*]
 end
 
 theorem has_strict_fderiv_at.congr_of_eventually_eq (h : has_strict_fderiv_at f f' x)
@@ -701,7 +701,7 @@ theorem has_strict_fderiv_at.congr_of_eventually_eq (h : has_strict_fderiv_at f 
 theorem filter.eventually_eq.has_fderiv_at_filter_iff
   (h₀ : f₀ =ᶠ[L] f₁) (hx : f₀ x = f₁ x) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=
-is_o_congr (h₀.mono $ λ y hy, by simp only [hy, h₁, hx]) (eventually_of_forall $ λ _, rfl)
+is_o_congr (h₀.mono $ λ y hy, by simv only [hy, h₁, hx]) (eventually_of_forall $ λ _, rfl)
 
 lemma has_fderiv_at_filter.congr_of_eventually_eq (h : has_fderiv_at_filter f f' x L)
   (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
@@ -833,11 +833,11 @@ section id
 
 theorem has_strict_fderiv_at_id (x : E) :
   has_strict_fderiv_at id (id 𝕜 E) x :=
-(is_o_zero _ _).congr_left $ by simp
+(is_o_zero _ _).congr_left $ by simv
 
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) :
   has_fderiv_at_filter id (id 𝕜 E) x L :=
-(is_o_zero _ _).congr_left $ by simp
+(is_o_zero _ _).congr_left $ by simv
 
 theorem has_fderiv_within_at_id (x : E) (s : set E) :
   has_fderiv_within_at id (id 𝕜 E) s x :=
@@ -888,11 +888,11 @@ section const
 
 theorem has_strict_fderiv_at_const (c : F) (x : E) :
   has_strict_fderiv_at (λ _, c) (0 : E →L[𝕜] F) x :=
-(is_o_zero _ _).congr_left $ λ _, by simp only [zero_apply, sub_self]
+(is_o_zero _ _).congr_left $ λ _, by simv only [zero_apply, sub_self]
 
 theorem has_fderiv_at_filter_const (c : F) (x : E) (L : filter E) :
   has_fderiv_at_filter (λ x, c) (0 : E →L[𝕜] F) x L :=
-(is_o_zero _ _).congr_left $ λ _, by simp only [zero_apply, sub_self]
+(is_o_zero _ _).congr_left $ λ _, by simv only [zero_apply, sub_self]
 
 theorem has_fderiv_within_at_const (c : F) (x : E) (s : set E) :
   has_fderiv_within_at (λ x, c) (0 : E →L[𝕜] F) s x :=
@@ -929,7 +929,7 @@ lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 
 lemma has_fderiv_within_at_singleton (f : E → F) (x : E) :
   has_fderiv_within_at f (0 : E →L[𝕜] F) {x} x :=
-by simp only [has_fderiv_within_at, nhds_within_singleton, has_fderiv_at_filter, is_o_pure,
+by simv only [has_fderiv_within_at, nhds_within_singleton, has_fderiv_at_filter, is_o_pure,
   continuous_linear_map.zero_apply, sub_self]
 
 lemma has_fderiv_at_of_subsingleton [h : subsingleton E] (f : E → F) (x : E) :
@@ -959,11 +959,11 @@ predicate `is_bounded_linear_map`). We give statements for both versions. -/
 
 protected theorem continuous_linear_map.has_strict_fderiv_at {x : E} :
   has_strict_fderiv_at e e x :=
-(is_o_zero _ _).congr_left $ λ x, by simp only [e.map_sub, sub_self]
+(is_o_zero _ _).congr_left $ λ x, by simv only [e.map_sub, sub_self]
 
 protected lemma continuous_linear_map.has_fderiv_at_filter :
   has_fderiv_at_filter e e x L :=
-(is_o_zero _ _).congr_left $ λ x, by simp only [e.map_sub, sub_self]
+(is_o_zero _ _).congr_left $ λ x, by simv only [e.map_sub, sub_self]
 
 protected lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
 e.has_fderiv_at_filter
@@ -1049,7 +1049,7 @@ theorem has_fderiv_at_filter.comp {g : F → G} {g' : F →L[𝕜] G} {L' : filt
   has_fderiv_at_filter (g ∘ f) (g'.comp f') x L :=
 let eq₁ := (g'.is_O_comp _ _).trans_is_o hf in
 let eq₂ := (hg.comp_tendsto hL).trans_is_O hf.is_O_sub in
-by { refine eq₂.triangle (eq₁.congr_left (λ x', _)), simp }
+by { refine eq₂.triangle (eq₁.congr_left (λ x', _)), simv }
 
 /- A readable version of the previous theorem,
    a general form of the chain rule. -/
@@ -1065,7 +1065,7 @@ begin
   ... =O[L] (λ x', x' - x) : hf.is_O_sub,
   refine this.triangle _,
   calc (λ x' : E, g' (f x' - f x) - g'.comp f' (x' - x))
-      =ᶠ[L] λ x', g' (f x' - f x - f' (x' - x)) : eventually_of_forall (λ x', by simp)
+      =ᶠ[L] λ x', g' (f x' - f x - f' (x' - x)) : eventually_of_forall (λ x', by simv)
   ... =O[L] λ x', f x' - f x - f' (x' - x)      : g'.is_O_comp _ _
   ... =o[L] λ x', x' - x                        : hf
 end
@@ -1523,12 +1523,12 @@ section add
 theorem has_strict_fderiv_at.add (hf : has_strict_fderiv_at f f' x)
   (hg : has_strict_fderiv_at g g' x) :
   has_strict_fderiv_at (λ y, f y + g y) (f' + g') x :=
-(hf.add hg).congr_left $ λ y, by simp; abel
+(hf.add hg).congr_left $ λ y, by simv; abel
 
 theorem has_fderiv_at_filter.add
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
   has_fderiv_at_filter (λ y, f y + g y) (f' + g') x L :=
-(hf.add hg).congr_left $ λ _, by simp; abel
+(hf.add hg).congr_left $ λ _, by simv; abel
 
 theorem has_fderiv_within_at.add
   (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at g g' s x) :
@@ -1632,7 +1632,7 @@ else by { rw [fderiv_within_zero_of_not_differentiable_within_at hf,
   fderiv_within_zero_of_not_differentiable_within_at], simpa }
 
 lemma fderiv_add_const (c : F) : fderiv 𝕜 (λy, f y + c) x = fderiv 𝕜 f x :=
-by simp only [← fderiv_within_univ, fderiv_within_add_const unique_diff_within_at_univ]
+by simv only [← fderiv_within_univ, fderiv_within_add_const unique_diff_within_at_univ]
 
 theorem has_strict_fderiv_at.const_add (hf : has_strict_fderiv_at f f' x) (c : F) :
   has_strict_fderiv_at (λ y, c + f y) f' x :=
@@ -1692,7 +1692,7 @@ lemma fderiv_within_const_add (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
 by simpa only [add_comm] using fderiv_within_add_const hxs c
 
 lemma fderiv_const_add (c : F) : fderiv 𝕜 (λy, c + f y) x = fderiv 𝕜 f x :=
-by simp only [add_comm c, fderiv_add_const]
+by simv only [add_comm c, fderiv_add_const]
 
 end add
 
@@ -1708,7 +1708,7 @@ theorem has_strict_fderiv_at.sum (h : ∀ i ∈ u, has_strict_fderiv_at (A i) (A
 begin
   dsimp [has_strict_fderiv_at] at *,
   convert is_o.sum h,
-  simp [finset.sum_sub_distrib, continuous_linear_map.sum_apply]
+  simv [finset.sum_sub_distrib, continuous_linear_map.sum_apply]
 end
 
 theorem has_fderiv_at_filter.sum (h : ∀ i ∈ u, has_fderiv_at_filter (A i) (A' i) x L) :
@@ -1716,7 +1716,7 @@ theorem has_fderiv_at_filter.sum (h : ∀ i ∈ u, has_fderiv_at_filter (A i) (A
 begin
   dsimp [has_fderiv_at_filter] at *,
   convert is_o.sum h,
-  simp [continuous_linear_map.sum_apply]
+  simv [continuous_linear_map.sum_apply]
 end
 
 theorem has_fderiv_within_at.sum (h : ∀ i ∈ u, has_fderiv_within_at (A i) (A' i) s x) :
@@ -1779,7 +1779,7 @@ variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_add_comm_g
   has_strict_fderiv_at Φ Φ' x ↔
     ∀ i, has_strict_fderiv_at (λ x, Φ x i) ((proj i).comp Φ') x :=
 begin
-  simp only [has_strict_fderiv_at, continuous_linear_map.coe_pi],
+  simv only [has_strict_fderiv_at, continuous_linear_map.coe_pi],
   exact is_o_pi
 end
 
@@ -1792,7 +1792,7 @@ has_strict_fderiv_at_pi'
   has_fderiv_at_filter Φ Φ' x L ↔
     ∀ i, has_fderiv_at_filter (λ x, Φ x i) ((proj i).comp Φ') x L :=
 begin
-  simp only [has_fderiv_at_filter, continuous_linear_map.coe_pi],
+  simv only [has_fderiv_at_filter, continuous_linear_map.coe_pi],
   exact is_o_pi
 end
 
@@ -1841,7 +1841,7 @@ lemma differentiable_pi :
   differentiable 𝕜 Φ ↔ ∀ i, differentiable 𝕜 (λ x, Φ x i) :=
 ⟨λ h i x, differentiable_at_pi.1 (h x) i, λ h x, differentiable_at_pi.2 (λ i, h i x)⟩
 
--- TODO: find out which version (`φ` or `Φ`) works better with `rw`/`simp`
+-- TODO: find out which version (`φ` or `Φ`) works better with `rw`/`simv`
 lemma fderiv_within_pi (h : ∀ i, differentiable_within_at 𝕜 (φ i) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (λ x i, φ i x) s x = pi (λ i, fderiv_within 𝕜 (φ i) s x) :=
@@ -1911,7 +1911,7 @@ else by { rw [fderiv_within_zero_of_not_differentiable_within_at h,
   fderiv_within_zero_of_not_differentiable_within_at, neg_zero], simpa }
 
 @[simp] lemma fderiv_neg : fderiv 𝕜 (λy, -f y) x = - fderiv 𝕜 f x :=
-by simp only [← fderiv_within_univ, fderiv_within_neg unique_diff_within_at_univ]
+by simv only [← fderiv_within_univ, fderiv_within_neg unique_diff_within_at_univ]
 
 end neg
 
@@ -1995,7 +1995,7 @@ lemma differentiable_within_at.sub_const
 
 @[simp] lemma differentiable_within_at_sub_const_iff (c : F) :
   differentiable_within_at 𝕜 (λ y, f y - c) s x ↔ differentiable_within_at 𝕜 f s x :=
-by simp only [sub_eq_add_neg, differentiable_within_at_add_const_iff]
+by simv only [sub_eq_add_neg, differentiable_within_at_add_const_iff]
 
 lemma differentiable_at.sub_const (hf : differentiable_at 𝕜 f x) (c : F) :
   differentiable_at 𝕜 (λ y, f y - c) x :=
@@ -2003,7 +2003,7 @@ lemma differentiable_at.sub_const (hf : differentiable_at 𝕜 f x) (c : F) :
 
 @[simp] lemma differentiable_at_sub_const_iff (c : F) :
   differentiable_at 𝕜 (λ y, f y - c) x ↔ differentiable_at 𝕜 f x :=
-by simp only [sub_eq_add_neg, differentiable_at_add_const_iff]
+by simv only [sub_eq_add_neg, differentiable_at_add_const_iff]
 
 lemma differentiable_on.sub_const (hf : differentiable_on 𝕜 f s) (c : F) :
   differentiable_on 𝕜 (λy, f y - c) s :=
@@ -2011,7 +2011,7 @@ lemma differentiable_on.sub_const (hf : differentiable_on 𝕜 f s) (c : F) :
 
 @[simp] lemma differentiable_on_sub_const_iff (c : F) :
   differentiable_on 𝕜 (λ y, f y - c) s ↔ differentiable_on 𝕜 f s :=
-by simp only [sub_eq_add_neg, differentiable_on_add_const_iff]
+by simv only [sub_eq_add_neg, differentiable_on_add_const_iff]
 
 lemma differentiable.sub_const (hf : differentiable 𝕜 f) (c : F) :
   differentiable 𝕜 (λy, f y - c) :=
@@ -2019,14 +2019,14 @@ lemma differentiable.sub_const (hf : differentiable 𝕜 f) (c : F) :
 
 @[simp] lemma differentiable_sub_const_iff (c : F) :
   differentiable 𝕜 (λ y, f y - c) ↔ differentiable 𝕜 f :=
-by simp only [sub_eq_add_neg, differentiable_add_const_iff]
+by simv only [sub_eq_add_neg, differentiable_add_const_iff]
 
 lemma fderiv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   fderiv_within 𝕜 (λy, f y - c) s x = fderiv_within 𝕜 f s x :=
-by simp only [sub_eq_add_neg, fderiv_within_add_const hxs]
+by simv only [sub_eq_add_neg, fderiv_within_add_const hxs]
 
 lemma fderiv_sub_const (c : F) : fderiv 𝕜 (λy, f y - c) x = fderiv 𝕜 f x :=
-by simp only [sub_eq_add_neg, fderiv_add_const]
+by simv only [sub_eq_add_neg, fderiv_add_const]
 
 theorem has_strict_fderiv_at.const_sub
   (hf : has_strict_fderiv_at f f' x) (c : F) :
@@ -2055,7 +2055,7 @@ lemma differentiable_within_at.const_sub
 
 @[simp] lemma differentiable_within_at_const_sub_iff (c : F) :
   differentiable_within_at 𝕜 (λ y, c - f y) s x ↔ differentiable_within_at 𝕜 f s x :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma differentiable_at.const_sub
   (hf : differentiable_at 𝕜 f x) (c : F) :
@@ -2064,7 +2064,7 @@ lemma differentiable_at.const_sub
 
 @[simp] lemma differentiable_at_const_sub_iff (c : F) :
   differentiable_at 𝕜 (λ y, c - f y) x ↔ differentiable_at 𝕜 f x :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma differentiable_on.const_sub (hf : differentiable_on 𝕜 f s) (c : F) :
   differentiable_on 𝕜 (λy, c - f y) s :=
@@ -2072,7 +2072,7 @@ lemma differentiable_on.const_sub (hf : differentiable_on 𝕜 f s) (c : F) :
 
 @[simp] lemma differentiable_on_const_sub_iff (c : F) :
   differentiable_on 𝕜 (λ y, c - f y) s ↔ differentiable_on 𝕜 f s :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma differentiable.const_sub (hf : differentiable 𝕜 f) (c : F) :
   differentiable 𝕜 (λy, c - f y) :=
@@ -2080,14 +2080,14 @@ lemma differentiable.const_sub (hf : differentiable 𝕜 f) (c : F) :
 
 @[simp] lemma differentiable_const_sub_iff (c : F) :
   differentiable 𝕜 (λ y, c - f y) ↔ differentiable 𝕜 f :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma fderiv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
   fderiv_within 𝕜 (λy, c - f y) s x = -fderiv_within 𝕜 f s x :=
-by simp only [sub_eq_add_neg, fderiv_within_const_add, fderiv_within_neg, hxs]
+by simv only [sub_eq_add_neg, fderiv_within_const_add, fderiv_within_neg, hxs]
 
 lemma fderiv_const_sub (c : F) : fderiv 𝕜 (λy, c - f y) x = -fderiv 𝕜 f x :=
-by simp only [← fderiv_within_univ, fderiv_within_const_sub unique_diff_within_at_univ]
+by simv only [← fderiv_within_univ, fderiv_within_const_sub unique_diff_within_at_univ]
 
 end sub
 
@@ -2105,15 +2105,15 @@ begin
   set T := (E × F) × (E × F),
   have : (λ q : T, b (q.1 - q.2)) =o[𝓝 (p, p)] (λ q : T, ∥q.1 - q.2∥ * 1),
   { refine (h.is_O'.comp_tendsto le_top).trans_is_o _,
-    simp only [(∘)],
+    simv only [(∘)],
     refine (is_O_refl (λ q : T, ∥q.1 - q.2∥) _).mul_is_o (is_o.norm_left $ (is_o_one_iff _).2 _),
     rw [← sub_self p],
     exact continuous_at_fst.sub continuous_at_snd },
-  simp only [mul_one, is_o_norm_right] at this,
+  simv only [mul_one, is_o_norm_right] at this,
   refine (is_o.congr_of_sub _).1 this, clear this,
   convert_to (λ q : T, h.deriv (p - q.2) (q.1 - q.2)) =o[𝓝 (p, p)] (λ q : T, q.1 - q.2),
   { ext ⟨⟨x₁, y₁⟩, ⟨x₂, y₂⟩⟩, rcases p with ⟨x, y⟩,
-    simp only [is_bounded_bilinear_map_deriv_coe, prod.mk_sub_mk, h.map_sub_left, h.map_sub_right],
+    simv only [is_bounded_bilinear_map_deriv_coe, prod.mk_sub_mk, h.map_sub_left, h.map_sub_right],
     abel },
   have : (λ q : T, p - q.2) =o[𝓝 (p, p)] (λ q, (1:ℝ)),
     from (is_o_one_iff _).2 (sub_self p ▸ tendsto_const_nhds.sub continuous_at_snd),
@@ -2414,8 +2414,8 @@ lemma differentiable_on.mul (ha : differentiable_on 𝕜 a s) (hb : differentiab
 
 lemma differentiable_within_at.pow (ha : differentiable_within_at 𝕜 a s x) :
   ∀ n : ℕ, differentiable_within_at 𝕜 (λ x, a x ^ n) s x
-| 0 := by simp only [pow_zero, differentiable_within_at_const]
-| (n + 1) := by simp only [pow_succ, differentiable_within_at.pow n, ha.mul]
+| 0 := by simv only [pow_zero, differentiable_within_at_const]
+| (n + 1) := by simv only [pow_succ, differentiable_within_at.pow n, ha.mul]
 
 @[simp] lemma differentiable_at.pow (ha : differentiable_at 𝕜 a x) (n : ℕ) :
   differentiable_at 𝕜 (λ x, a x ^ n) x :=
@@ -2562,17 +2562,17 @@ lemma has_fderiv_at_ring_inverse (x : Rˣ) :
 begin
   have h_is_o : (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =o[𝓝 0] (λ (t : R), t),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
-    simp only [norm_pow, norm_norm],
+    simv only [norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
     convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
-    ext, simp },
+    ext, simv },
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
-  simp only [has_fderiv_at, has_fderiv_at_filter],
+  simv only [has_fderiv_at, has_fderiv_at_filter],
   convert h_is_o.comp_tendsto h_lim,
   ext y,
-  simp only [coe_comp', function.comp_app, lmul_left_right_apply, neg_apply, inverse_unit x,
+  simv only [coe_comp', function.comp_app, lmul_left_right_apply, neg_apply, inverse_unit x,
     units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
@@ -2639,7 +2639,7 @@ lemma comp_differentiable_on_iff {f : G → E} {s : set G} :
   differentiable_on 𝕜 (iso ∘ f) s ↔ differentiable_on 𝕜 f s :=
 begin
   rw [differentiable_on, differentiable_on],
-  simp only [iso.comp_differentiable_within_at_iff],
+  simv only [iso.comp_differentiable_within_at_iff],
 end
 
 lemma comp_differentiable_iff {f : G → E} :
@@ -2805,16 +2805,16 @@ begin
   have : (λ p : F × F, g p.1 - g p.2 - f'.symm (p.1 - p.2)) =O[𝓝 (a, a)]
     (λ p : F × F, f' (g p.1 - g p.2) - (p.1 - p.2)),
   { refine ((f'.symm : F →L[𝕜] E).is_O_comp _ _).congr (λ x, _) (λ _, rfl),
-    simp },
+    simv },
   refine this.trans_is_o _, clear this,
   refine ((hf.comp_tendsto hg).symm.congr' (hfg.mono _)
     (eventually_of_forall $ λ _, rfl)).trans_is_O _,
   { rintros p ⟨hp1, hp2⟩,
-    simp [hp1, hp2] },
+    simv [hp1, hp2] },
   { refine (hf.is_O_sub_rev.comp_tendsto hg).congr'
       (eventually_of_forall $ λ _, rfl) (hfg.mono _),
     rintros p ⟨hp1, hp2⟩,
-    simp only [(∘), hp1, hp2] }
+    simv only [(∘), hp1, hp2] }
 end
 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
@@ -2829,16 +2829,16 @@ theorem has_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[𝕜] F} 
 begin
   have : (λ x : F, g x - g a - f'.symm (x - a)) =O[𝓝 a] (λ x : F, f' (g x - g a) - (x - a)),
   { refine ((f'.symm : F →L[𝕜] E).is_O_comp _ _).congr (λ x, _) (λ _, rfl),
-    simp },
+    simv },
   refine this.trans_is_o _, clear this,
   refine ((hf.comp_tendsto hg).symm.congr' (hfg.mono _)
     (eventually_of_forall $ λ _, rfl)).trans_is_O _,
   { rintros p hp,
-    simp [hp, hfg.self_of_nhds] },
+    simv [hp, hfg.self_of_nhds] },
   { refine ((hf.is_O_sub_rev f'.antilipschitz).comp_tendsto hg).congr'
       (eventually_of_forall $ λ _, rfl) (hfg.mono _),
     rintros p hp,
-    simp only [(∘), hp, hfg.self_of_nhds] }
+    simv only [(∘), hp, hfg.self_of_nhds] }
 end
 
 /-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
@@ -2898,7 +2898,7 @@ begin
   symmetry,
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto_congr (λ x', _),
   have : ∥x' - x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
-  simp [norm_smul, abs_of_nonneg this]
+  simv [norm_smul, abs_of_nonneg this]
 end
 
 lemma has_fderiv_at.lim_real (hf : has_fderiv_at f f' x) (v : E) :
@@ -2926,7 +2926,7 @@ begin
   rintros v ⟨c, d, dtop, clim, cdlim⟩,
   refine ⟨c, (λn, f (x + d n) - f x), mem_of_superset dtop _, clim,
     h.lim at_top dtop clim cdlim⟩,
-  simp [-mem_image, mem_image_of_mem] {contextual := tt}
+  simv [-mem_image, mem_image_of_mem] {contextual := tt}
 end
 
 /-- If a set has the unique differentiability property at a point x, then the image of this set

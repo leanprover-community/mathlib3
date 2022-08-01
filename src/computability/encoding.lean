@@ -197,9 +197,9 @@ lemma encoding.card_le_card_list {α : Type u} (e : encoding.{u v} α) :
 lemma encoding.card_le_aleph_0 {α : Type u} (e : encoding.{u v} α) [encodable e.Γ] : #α ≤ ℵ₀ :=
 begin
   refine cardinal.lift_le.1 (e.card_le_card_list.trans _),
-  simp only [cardinal.lift_aleph_0, cardinal.lift_le_aleph_0],
+  simv only [cardinal.lift_aleph_0, cardinal.lift_le_aleph_0],
   casesI is_empty_or_nonempty e.Γ with h h,
-  { simp only [cardinal.mk_le_aleph_0] },
+  { simv only [cardinal.mk_le_aleph_0] },
   { rw cardinal.mk_list_eq_aleph_0 }
 end
 

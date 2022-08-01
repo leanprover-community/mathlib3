@@ -80,7 +80,7 @@ lemma infi_apply {ι : Sort*} [complete_lattice β] (f : ι → α →o β) (x :
   (⨅ i, f i) x = ⨅ i, f i x :=
 (Inf_apply _ _).trans infi_range
 
-@[simp, norm_cast] lemma coe_infi {ι : Sort*} [complete_lattice β] (f : ι → α →o β) :
+@[simv, norm_cast] lemma coe_infi {ι : Sort*} [complete_lattice β] (f : ι → α →o β) :
   ((⨅ i, f i : α →o β) : α → β) = ⨅ i, f i :=
 funext $ λ x, (infi_apply f x).trans (@_root_.infi_apply _ _ _ _ (λ i, f i) _).symm
 
@@ -94,7 +94,7 @@ lemma supr_apply {ι : Sort*} [complete_lattice β] (f : ι → α →o β) (x :
   (⨆ i, f i) x = ⨆ i, f i x :=
 (Sup_apply _ _).trans supr_range
 
-@[simp, norm_cast] lemma coe_supr {ι : Sort*} [complete_lattice β] (f : ι → α →o β) :
+@[simv, norm_cast] lemma coe_supr {ι : Sort*} [complete_lattice β] (f : ι → α →o β) :
   ((⨆ i, f i : α →o β) : α → β) = ⨆ i, f i :=
 funext $ λ x, (supr_apply f x).trans (@_root_.supr_apply _ _ _ _ (λ i, f i) _).symm
 

@@ -114,7 +114,7 @@ begin
   rw [← integral_sum_inf_partition f vol π₁ h₂,
     ← integral_sum_inf_partition f vol π₂ h₁, integral_sum, integral_sum,
     finset.sum_sub_distrib],
-  simp only [inf_prepartition_to_prepartition, _root_.inf_comm]
+  simv only [inf_prepartition_to_prepartition, _root_.inf_comm]
 end
 
 @[simp] lemma integral_sum_disj_union (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
@@ -130,17 +130,17 @@ end
 @[simp] lemma integral_sum_add (f g : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) :
   integral_sum (f + g) vol π = integral_sum f vol π + integral_sum g vol π :=
-by simp only [integral_sum, pi.add_apply, (vol _).map_add, finset.sum_add_distrib]
+by simv only [integral_sum, pi.add_apply, (vol _).map_add, finset.sum_add_distrib]
 
 @[simp] lemma integral_sum_neg (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) :
   integral_sum (-f) vol π = -integral_sum f vol π :=
-by simp only [integral_sum, pi.neg_apply, (vol _).map_neg, finset.sum_neg_distrib]
+by simv only [integral_sum, pi.neg_apply, (vol _).map_neg, finset.sum_neg_distrib]
 
 @[simp] lemma integral_sum_smul (c : ℝ) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) :
   integral_sum (c • f) vol π = c • integral_sum f vol π :=
-by simp only [integral_sum, finset.smul_sum, pi.smul_apply, continuous_linear_map.map_smul]
+by simv only [integral_sum, finset.smul_sum, pi.smul_apply, continuous_linear_map.map_smul]
 
 variables [fintype ι]
 
@@ -177,7 +177,7 @@ lemma has_integral_iff : has_integral I l f vol y ↔
   ∀ ε > (0 : ℝ), ∃ r : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (r c)) ∧
     ∀ c π, l.mem_base_set I c (r c) π → is_partition π → dist (integral_sum f vol π) y ≤ ε :=
 ((l.has_basis_to_filter_Union_top I).tendsto_iff nhds_basis_closed_ball).trans $
-  by simp [@forall_swap ℝ≥0 (tagged_prepartition I)]
+  by simv [@forall_swap ℝ≥0 (tagged_prepartition I)]
 
 /-- Quite often it is more natural to prove an estimate of the form `a * ε`, not `ε` in the RHS of
 `box_integral.has_integral_iff`, so we provide this auxiliary lemma.  -/
@@ -206,7 +206,7 @@ begin
   rw [integrable_iff_cauchy, cauchy_map_iff',
     (l.has_basis_to_filter_Union_top _).prod_self.tendsto_iff uniformity_basis_dist_le],
   refine forall₂_congr (λ ε ε0, exists_congr $ λ r, _),
-  simp only [exists_prop, prod.forall, set.mem_Union, exists_imp_distrib,
+  simv only [exists_prop, prod.forall, set.mem_Union, exists_imp_distrib,
     prod_mk_mem_set_prod_eq, and_imp, mem_inter_eq, mem_set_of_eq],
   exact and_congr iff.rfl ⟨λ H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂, H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂,
     λ H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂, H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂⟩
@@ -293,8 +293,8 @@ lemma has_integral_sum {α : Type*} {s : finset α} {f : α → ℝⁿ → E} {g
   (h : ∀ i ∈ s, has_integral I l (f i) vol (g i)) :
   has_integral I l (λ x, ∑ i in s, f i x) vol (∑ i in s, g i) :=
 begin
-  induction s using finset.induction_on with a s ha ihs, { simp [has_integral_zero] },
-  simp only [finset.sum_insert ha], rw finset.forall_mem_insert at h,
+  induction s using finset.induction_on with a s ha ihs, { simv [has_integral_zero] },
+  simv only [finset.sum_insert ha], rw finset.forall_mem_insert at h,
   exact h.1.add (ihs h.2)
 end
 
@@ -309,11 +309,11 @@ lemma integrable.smul (hf : integrable I l f vol) (c : ℝ) :
 
 lemma integrable.of_smul {c : ℝ} (hf : integrable I l (c • f) vol) (hc : c ≠ 0) :
   integrable I l f vol :=
-by { convert hf.smul c⁻¹, ext x, simp only [pi.smul_apply, inv_smul_smul₀ hc] }
+by { convert hf.smul c⁻¹, ext x, simv only [pi.smul_apply, inv_smul_smul₀ hc] }
 
 @[simp] lemma integral_smul (c : ℝ) : integral I l (λ x, c • f x) vol = c • integral I l f vol :=
 begin
-  rcases eq_or_ne c 0 with rfl | hc, { simp only [zero_smul, integral_zero] },
+  rcases eq_or_ne c 0 with rfl | hc, { simv only [zero_smul, integral_zero] },
   by_cases hf : integrable I l f vol,
   { exact (hf.has_integral.smul c).integral_eq },
   { have : ¬integrable I l (λ x, c • f x) vol, from mt (λ h, h.of_smul hc) hf,
@@ -345,7 +345,7 @@ begin
   by_cases hfi : integrable.{u v v} I l f μ.to_box_additive.to_smul,
   { refine le_of_tendsto_of_tendsto' hfi.has_integral.norm hg.has_integral (λ π, _),
     refine norm_sum_le_of_le _ (λ J hJ, _),
-    simp only [box_additive_map.to_smul_apply, norm_smul, smul_eq_mul, real.norm_eq_abs,
+    simv only [box_additive_map.to_smul_apply, norm_smul, smul_eq_mul, real.norm_eq_abs,
       μ.to_box_additive_apply, abs_of_nonneg ennreal.to_real_nonneg],
     exact mul_le_mul_of_nonneg_left (hle _ $ π.tag_mem_Icc _) ennreal.to_real_nonneg },
   { rw [integral, dif_neg hfi, norm_zero],
@@ -593,7 +593,7 @@ lemma tendsto_integral_sum_sum_integral (h : integrable I l f vol) (π₀ : prep
 begin
   refine ((l.has_basis_to_filter_Union I π₀).tendsto_iff nhds_basis_closed_ball).2 (λ ε ε0, _),
   refine ⟨h.convergence_r ε, h.convergence_r_cond ε, _⟩,
-  simp only [mem_inter_eq, set.mem_Union, mem_set_of_eq],
+  simv only [mem_inter_eq, set.mem_Union, mem_set_of_eq],
   rintro π ⟨c, hc, hU⟩,
   exact h.dist_integral_sum_sum_integral_le_of_mem_base_set_of_Union_eq ε0 hc hU
 end
@@ -649,7 +649,7 @@ begin
   rcases exists_pos_mul_lt ε0 (μ.to_box_additive I) with ⟨ε', ε0', hε⟩,
   rcases huc ε' ε0' with ⟨δ, δ0 : 0 < δ, Hδ⟩,
   refine ⟨λ _ _, ⟨δ / 2, half_pos δ0⟩, λ _ _ _, rfl, λ c₁ c₂ π₁ π₂ h₁ h₁p h₂ h₂p, _⟩,
-  simp only [dist_eq_norm, integral_sum_sub_partitions _ _ h₁p h₂p,
+  simv only [dist_eq_norm, integral_sum_sub_partitions _ _ h₁p h₂p,
     box_additive_map.to_smul_apply, ← smul_sub],
   have : ∀ J ∈ π₁.to_prepartition ⊓ π₂.to_prepartition,
     ∥μ.to_box_additive J • (f ((π₁.inf_prepartition π₂.to_prepartition).tag J) -
@@ -698,23 +698,23 @@ begin
   `J` in the `δ`-neighborhood of `x`. -/
   refine ((l.has_basis_to_filter_Union_top _).tendsto_iff metric.nhds_basis_closed_ball).2 _,
   intros ε ε0,
-  simp only [subtype.exists'] at H₁ H₂,
+  simv only [subtype.exists'] at H₁ H₂,
   choose! δ₁ Hδ₁ using H₁,
   choose! δ₂ Hδ₂ using H₂,
   have ε0' := half_pos ε0, have H0 : 0 < (2 ^ fintype.card ι : ℝ), from pow_pos zero_lt_two _,
   rcases hs.exists_pos_forall_sum_le (div_pos ε0' H0) with ⟨εs, hεs0, hεs⟩,
-  simp only [le_div_iff' H0, mul_sum] at hεs,
+  simv only [le_div_iff' H0, mul_sum] at hεs,
   rcases exists_pos_mul_lt ε0' (B I) with ⟨ε', ε'0, hεI⟩,
   set δ : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ) := λ c x, if x ∈ s then δ₁ c x (εs x) else (δ₂ c) x ε',
   refine ⟨δ, λ c, l.r_cond_of_bRiemann_eq_ff hl, _⟩,
-  simp only [set.mem_Union, mem_inter_eq, mem_set_of_eq],
+  simv only [set.mem_Union, mem_inter_eq, mem_set_of_eq],
   rintro π ⟨c, hπδ, hπp⟩,
   /- Now we split the sum into two parts based on whether `π.tag J` belongs to `s` or not. -/
   rw [← g.sum_partition_boxes le_rfl hπp, mem_closed_ball, integral_sum,
     ← sum_filter_add_sum_filter_not π.boxes (λ J, π.tag J ∈ s),
     ← sum_filter_add_sum_filter_not π.boxes (λ J, π.tag J ∈ s), ← add_halves ε],
   refine dist_add_add_le_of_le _ _,
-  { unfreezingI { rcases s.eq_empty_or_nonempty with rfl|hsne }, { simp [ε0'.le] },
+  { unfreezingI { rcases s.eq_empty_or_nonempty with rfl|hsne }, { simv [ε0'.le] },
     /- For the boxes such that `π.tag J ∈ s`, we use the fact that at most `2 ^ #ι` boxes have the
     same tag. -/
     specialize hlH hsne,

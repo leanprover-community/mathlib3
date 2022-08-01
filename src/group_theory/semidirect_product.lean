@@ -51,13 +51,13 @@ private def mul_aux (a b : N ⋊[φ] G) : N ⋊[φ] G := ⟨a.1 * φ a.2 b.1, a.
 private def inv_aux (a : N ⋊[φ] G) : N ⋊[φ] G := let i := a.2⁻¹ in ⟨φ i a.1⁻¹, i⟩
 private lemma mul_assoc_aux (a b c : N ⋊[φ] G) :
   mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
-by simp [mul_aux, mul_assoc, mul_equiv.map_mul]
+by simv [mul_aux, mul_assoc, mul_equiv.map_mul]
 private lemma mul_one_aux (a : N ⋊[φ] G) : mul_aux a one_aux = a :=
-by cases a; simp [mul_aux, one_aux]
+by cases a; simv [mul_aux, one_aux]
 private lemma one_mul_aux (a : N ⋊[φ] G) : mul_aux one_aux a = a :=
-by cases a; simp [mul_aux, one_aux]
+by cases a; simv [mul_aux, one_aux]
 private lemma mul_left_inv_aux (a : N ⋊[φ] G) : mul_aux (inv_aux a) a = one_aux :=
-by simp only [mul_aux, inv_aux, one_aux, ← mul_equiv.map_mul, mul_left_inv]; simp
+by simv only [mul_aux, inv_aux, one_aux, ← mul_equiv.map_mul, mul_left_inv]; simv
 
 instance : group (N ⋊[φ] G) :=
 { one := one_aux,
@@ -81,7 +81,7 @@ instance : inhabited (N ⋊[φ] G) := ⟨1⟩
 def inl : N →* N ⋊[φ] G :=
 { to_fun := λ n, ⟨n, 1⟩,
   map_one' := rfl,
-  map_mul' := by intros; ext; simp }
+  map_mul' := by intros; ext; simv }
 
 @[simp] lemma left_inl (n : N) : (inl n : N ⋊[φ] G).left = n := rfl
 @[simp] lemma right_inl (n : N) : (inl n : N ⋊[φ] G).right = 1 := rfl
@@ -96,7 +96,7 @@ inl_injective.eq_iff
 def inr : G →* N ⋊[φ] G :=
 { to_fun := λ g, ⟨1, g⟩,
   map_one' := rfl,
-  map_mul' := by intros; ext; simp }
+  map_mul' := by intros; ext; simv }
 
 @[simp] lemma left_inr (g : G) : (inr g : N ⋊[φ] G).left = 1 := rfl
 @[simp] lemma right_inr (g : G) : (inr g : N ⋊[φ] G).right = g := rfl
@@ -108,17 +108,17 @@ function.injective_iff_has_left_inverse.2 ⟨right, right_inr⟩
 inr_injective.eq_iff
 
 lemma inl_aut (g : G) (n : N) : (inl (φ g n) : N ⋊[φ] G) = inr g * inl n * inr g⁻¹ :=
-by ext; simp
+by ext; simv
 
 lemma inl_aut_inv (g : G) (n : N) : (inl ((φ g)⁻¹ n) : N ⋊[φ] G) = inr g⁻¹ * inl n * inr g :=
 by rw [← monoid_hom.map_inv, inl_aut, inv_inv]
 
 @[simp] lemma mk_eq_inl_mul_inr (g : G) (n : N) : (⟨n, g⟩ : N ⋊[φ] G) = inl n * inr g :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma inl_left_mul_inr_right (x : N ⋊[φ] G) : inl x.left * inr x.right = x :=
 
-by ext; simp
+by ext; simv
 
 /-- The canonical projection map `N ⋊[φ] G →* G`, as a group hom. -/
 def right_hom : N ⋊[φ] G →* G :=
@@ -129,24 +129,24 @@ def right_hom : N ⋊[φ] G →* G :=
 @[simp] lemma right_hom_eq_right : (right_hom :  N ⋊[φ] G → G) = right := rfl
 
 @[simp] lemma right_hom_comp_inl : (right_hom : N ⋊[φ] G →* G).comp inl = 1 :=
-by ext; simp [right_hom]
+by ext; simv [right_hom]
 
 @[simp] lemma right_hom_comp_inr : (right_hom : N ⋊[φ] G →* G).comp inr = monoid_hom.id _ :=
-by ext; simp [right_hom]
+by ext; simv [right_hom]
 
 @[simp] lemma right_hom_inl (n : N) : right_hom (inl n : N ⋊[φ] G) = 1 :=
-by simp [right_hom]
+by simv [right_hom]
 
 @[simp] lemma right_hom_inr (g : G) : right_hom (inr g : N ⋊[φ] G) = g :=
-by simp [right_hom]
+by simv [right_hom]
 
 lemma right_hom_surjective : function.surjective (right_hom : N ⋊[φ] G → G) :=
 function.surjective_iff_has_right_inverse.2 ⟨inr, right_hom_inr⟩
 
 lemma range_inl_eq_ker_right_hom : (inl : N →* N ⋊[φ] G).range = right_hom.ker :=
 le_antisymm
-  (λ _, by simp [monoid_hom.mem_ker, eq_comm] {contextual := tt})
-  (λ x hx, ⟨x.left, by ext; simp [*, monoid_hom.mem_ker] at *⟩)
+  (λ _, by simv [monoid_hom.mem_ker, eq_comm] {contextual := tt})
+  (λ x hx, ⟨x.left, by ext; simv [*, monoid_hom.mem_ker] at *⟩)
 
 section lift
 variables (f₁ : N →* H) (f₂ : G →* H)
@@ -157,24 +157,24 @@ def lift (f₁ : N →* H) (f₂ : G →* H)
   (h : ∀ g, f₁.comp (φ g).to_monoid_hom = (mul_aut.conj (f₂ g)).to_monoid_hom.comp f₁) :
   N ⋊[φ] G →* H :=
 { to_fun := λ a, f₁ a.1 * f₂ a.2,
-  map_one' := by simp,
+  map_one' := by simv,
   map_mul' := λ a b, begin
     have := λ n g, monoid_hom.ext_iff.1 (h n) g,
-    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom] at this,
-    simp [this, mul_assoc]
+    simv only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom] at this,
+    simv [this, mul_assoc]
   end }
 
-@[simp] lemma lift_inl (n : N) : lift f₁ f₂ h (inl n) = f₁ n := by simp [lift]
-@[simp] lemma lift_comp_inl : (lift f₁ f₂ h).comp inl = f₁ := by ext; simp
+@[simp] lemma lift_inl (n : N) : lift f₁ f₂ h (inl n) = f₁ n := by simv [lift]
+@[simp] lemma lift_comp_inl : (lift f₁ f₂ h).comp inl = f₁ := by ext; simv
 
-@[simp] lemma lift_inr (g : G) : lift f₁ f₂ h (inr g) = f₂ g := by simp [lift]
-@[simp] lemma lift_comp_inr : (lift f₁ f₂ h).comp inr = f₂ := by ext; simp
+@[simp] lemma lift_inr (g : G) : lift f₁ f₂ h (inr g) = f₂ g := by simv [lift]
+@[simp] lemma lift_comp_inr : (lift f₁ f₂ h).comp inr = f₂ := by ext; simv
 
 lemma lift_unique (F : N ⋊[φ] G →* H) :
-  F = lift (F.comp inl) (F.comp inr) (λ _, by ext; simp [inl_aut]) :=
+  F = lift (F.comp inl) (F.comp inr) (λ _, by ext; simv [inl_aut]) :=
 begin
   ext,
-  simp only [lift, monoid_hom.comp_apply, monoid_hom.coe_mk],
+  simv only [lift, monoid_hom.comp_apply, monoid_hom.coe_mk],
   rw [← F.map_mul, inl_left_mul_inr_right],
 end
 
@@ -182,7 +182,7 @@ end
   with both `inl` and `inr` -/
 lemma hom_ext {f g : (N ⋊[φ] G) →* H} (hl : f.comp inl = g.comp inl)
   (hr : f.comp inr = g.comp inr) : f = g :=
-by { rw [lift_unique f, lift_unique g], simp only * }
+by { rw [lift_unique f, lift_unique g], simv only * }
 
 end lift
 
@@ -196,10 +196,10 @@ def map (f₁ : N →* N₁) (f₂ : G →* G₁)
   (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁) :
   N ⋊[φ] G →* N₁ ⋊[φ₁] G₁ :=
 { to_fun := λ x, ⟨f₁ x.1, f₂ x.2⟩,
-  map_one' := by simp,
+  map_one' := by simv,
   map_mul' := λ x y, begin
     replace h := monoid_hom.ext_iff.1 (h x.right) y.left,
-    ext; simp * at *,
+    ext; simv * at *,
   end }
 
 variables (f₁ : N →* N₁) (f₂ : G →* G₁)
@@ -212,16 +212,16 @@ variables (f₁ : N →* N₁) (f₂ : G →* G₁)
 @[simp] lemma right_hom_comp_map : right_hom.comp (map f₁ f₂ h) = f₂.comp right_hom := rfl
 
 @[simp] lemma map_inl (n : N) : map f₁ f₂ h (inl n) = inl (f₁ n) :=
-by simp [map]
+by simv [map]
 
 @[simp] lemma map_comp_inl : (map f₁ f₂ h).comp inl = inl.comp f₁ :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma map_inr (g : G) : map f₁ f₂ h (inr g) = inr (f₂ g) :=
-by simp [map]
+by simv [map]
 
 @[simp] lemma map_comp_inr : (map f₁ f₂ h).comp inr = inr.comp f₂ :=
-by ext; simp [map]
+by ext; simv [map]
 
 end map
 

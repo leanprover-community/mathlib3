@@ -41,7 +41,7 @@ local attribute [instance] subset_has_Sup
 
 lemma subset_Sup_of_within [inhabited s] {t : set s} (h : Sup (coe '' t : set α) ∈ s) :
   Sup (coe '' t : set α) = (@Sup s _ t : α) :=
-by simp [dif_pos h]
+by simv [dif_pos h]
 
 end has_Sup
 
@@ -62,7 +62,7 @@ local attribute [instance] subset_has_Inf
 
 lemma subset_Inf_of_within [inhabited s] {t : set s} (h : Inf (coe '' t : set α) ∈ s) :
   Inf (coe '' t : set α) = (@Inf s _ t : α) :=
-by simp [dif_pos h]
+by simv [dif_pos h]
 
 end has_Inf
 

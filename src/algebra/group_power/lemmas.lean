@@ -29,9 +29,9 @@ section monoid
 @[simp] theorem nsmul_one [add_monoid_with_one A] : ∀ n : ℕ, n • (1 : A) = n :=
 begin
   refine eq_nat_cast' (⟨_, _, _⟩ : ℕ →+ A) _,
-  { show 0 • (1 : A) = 0, simp [zero_nsmul] },
-  { show ∀ x y : ℕ, (x + y) • (1 : A) = x • 1 + y • 1, simp [add_nsmul] },
-  { show 1 • (1 : A) = 1, simp }
+  { show 0 • (1 : A) = 0, simv [zero_nsmul] },
+  { show ∀ x y : ℕ, (x + y) • (1 : A) = x • 1 + y • 1, simv [add_nsmul] },
+  { show 1 • (1 : A) = 1, simv }
 end
 
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
@@ -46,7 +46,7 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
 @invertible_unique M _ (m ^ n) (m ^ n) _ (invertible_pow m n) rfl
 
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
-λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+λ ⟨u, hu⟩, ⟨u ^ n, by simv *⟩
 
 @[simp] lemma is_unit_pow_succ_iff {m : M} {n : ℕ} :
   is_unit (m ^ (n + 1)) ↔ is_unit m :=
@@ -86,7 +86,7 @@ lemma smul_pow [mul_action M N] [is_scalar_tower M N N] [smul_comm_class M N N]
   (k • x) ^ p = k ^ p • x ^ p :=
 begin
   induction p with p IH,
-  { simp },
+  { simv },
   { rw [pow_succ', IH, smul_mul_smul, ←pow_succ', ←pow_succ'] }
 end
 
@@ -100,7 +100,7 @@ end
 
 end monoid
 
-lemma zsmul_one [add_group_with_one A] (n : ℤ) : n • (1 : A) = n := by cases n; simp
+lemma zsmul_one [add_group_with_one A] (n : ℤ) : n • (1 : A) = n := by cases n; simv
 
 section division_monoid
 variables [division_monoid α]
@@ -120,8 +120,8 @@ variables [division_monoid α]
 by rw [mul_comm, zpow_mul]
 
 @[to_additive bit0_zsmul] lemma zpow_bit0 (a : α) : ∀ n : ℤ, a ^ bit0 n = a ^ n * a ^ n
-| (n : ℕ) := by simp only [zpow_coe_nat, ←int.coe_nat_bit0, pow_bit0]
-| -[1+n]  := by { simp [←mul_inv_rev, ←pow_bit0], rw [neg_succ_of_nat_eq, bit0_neg, zpow_neg],
+| (n : ℕ) := by simv only [zpow_coe_nat, ←int.coe_nat_bit0, pow_bit0]
+| -[1+n]  := by { simv [←mul_inv_rev, ←pow_bit0], rw [neg_succ_of_nat_eq, bit0_neg, zpow_neg],
   norm_cast }
 
 @[to_additive bit0_zsmul'] lemma zpow_bit0' (a : α) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
@@ -137,7 +137,7 @@ variables [group G]
 
 @[to_additive add_one_zsmul]
 lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (n : ℕ) := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| (n : ℕ) := by simv only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
 | -[1+ 0] := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, mul_left_inv]
 | -[1+ n+1] := begin
   rw [zpow_neg_succ_of_nat, pow_succ, mul_inv_rev, inv_mul_cancel_right],
@@ -154,8 +154,8 @@ calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
 lemma zpow_add (a : G) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
 begin
   induction n using int.induction_on with n ihn n ihn,
-  case hz : { simp },
-  { simp only [← add_assoc, zpow_add_one, ihn, mul_assoc] },
+  case hz : { simv },
+  { simv only [← add_assoc, zpow_add_one, ihn, mul_assoc] },
   { rw [zpow_sub_one, ← mul_assoc, ← ihn, ← zpow_sub_one, add_sub_assoc] }
 end
 
@@ -207,14 +207,14 @@ lemma zpow_strict_mono_right (ha : 1 < a) : strict_mono (λ n : ℤ, a ^ n) :=
 λ m n h,
   calc a ^ m = a ^ m * 1 : (mul_one _).symm
     ... < a ^ m * a ^ (n - m) : mul_lt_mul_left' (one_lt_zpow' ha $ sub_pos_of_lt h) _
-    ... = a ^ n : by { rw ←zpow_add, simp }
+    ... = a ^ n : by { rw ←zpow_add, simv }
 
 @[to_additive zsmul_mono_left]
 lemma zpow_mono_right (ha : 1 ≤ a) : monotone (λ n : ℤ, a ^ n) :=
 λ m n h,
   calc a ^ m = a ^ m * 1 : (mul_one _).symm
     ... ≤ a ^ m * a ^ (n - m) : mul_le_mul_left' (one_le_zpow ha $ sub_nonneg_of_le h) _
-    ... = a ^ n : by { rw ←zpow_add, simp }
+    ... = a ^ n : by { rw ←zpow_add, simv }
 
 @[to_additive]
 lemma zpow_le_zpow (ha : 1 ≤ a) (h : m ≤ n) : a ^ m ≤ a ^ n := zpow_mono_right ha h
@@ -297,7 +297,7 @@ lemma abs_zsmul (n : ℤ) (a : α) : |n • a| = |n| • |a| :=
 begin
   obtain n0 | n0 := le_total 0 n,
   { lift n to ℕ using n0,
-    simp only [abs_nsmul, coe_nat_abs, coe_nat_zsmul] },
+    simv only [abs_nsmul, coe_nat_abs, coe_nat_zsmul] },
   { lift (- n) to ℕ using neg_nonneg.2 n0 with m h,
     rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, coe_nat_abs,
       coe_nat_zsmul],
@@ -307,13 +307,13 @@ end
 lemma abs_add_eq_add_abs_le (hle : a ≤ b) : |a + b| = |a| + |b| ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0 :=
 begin
   obtain a0 | a0 := le_or_lt 0 a; obtain b0 | b0 := le_or_lt 0 b,
-  { simp [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
+  { simv [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
   { exact (lt_irrefl (0 : α) $ a0.trans_lt $ hle.trans_lt b0).elim },
-  any_goals { simp [a0.le, b0.le, abs_of_nonpos, add_nonpos, add_comm] },
+  any_goals { simv [a0.le, b0.le, abs_of_nonpos, add_nonpos, add_comm] },
   have : (|a + b| = -a + b ↔ b ≤ 0) ↔ (|a + b| =
     |a| + |b| ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0),
-  { simp [a0, a0.le, a0.not_le, b0, abs_of_neg, abs_of_nonneg] },
-  refine this.mp ⟨λ h, _, λ h, by simp only [le_antisymm h b0, abs_of_neg a0, add_zero]⟩,
+  { simv [a0, a0.le, a0.not_le, b0, abs_of_neg, abs_of_nonneg] },
+  refine this.mp ⟨λ h, _, λ h, by simv only [le_antisymm h b0, abs_of_neg a0, add_zero]⟩,
   obtain ab | ab := le_or_lt (a + b) 0,
   { refine le_of_eq (eq_zero_of_neg_eq _),
     rwa [abs_of_nonpos ab, neg_add_rev, add_comm, add_right_inj] at h },
@@ -358,14 +358,14 @@ instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
   end⟩
 
-@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simv, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero], exact nat.cast_one },
   { rw [pow_succ', pow_succ', nat.cast_mul, ih] }
 end
 
-@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[simv, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -388,7 +388,7 @@ by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 @[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
 | (n : ℕ) := by rw [coe_nat_zsmul, nsmul_eq_mul, int.cast_coe_nat]
-| -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
+| -[1+ n] := by simv [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
 by rw [zsmul_eq_mul, (n.cast_commute a).eq]
@@ -409,11 +409,11 @@ instance non_unital_non_assoc_ring.int_is_scalar_tower [non_unital_non_assoc_rin
   | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, neg_mul, smul_mul_assoc]
   end⟩
 
-lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
+lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simv
 
-lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simp
+lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simv
 
-@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[simv, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero, int.cast_one] },
@@ -421,7 +421,7 @@ begin
 end
 
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
-by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
+by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simv [sq]
 
 section ordered_semiring
 variables [ordered_semiring R] {a : R}
@@ -431,23 +431,23 @@ additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
 theorem one_add_mul_le_pow' (Hsq : 0 ≤ a * a) (Hsq' : 0 ≤ (1 + a) * (1 + a))
   (H : 0 ≤ 2 + a) :
   ∀ (n : ℕ), 1 + (n : R) * a ≤ (1 + a) ^ n
-| 0     := by simp
-| 1     := by simp
+| 0     := by simv
+| 1     := by simv
 | (n+2) :=
 have 0 ≤ (n : R) * (a * a * (2 + a)) + a * a,
   from add_nonneg (mul_nonneg n.cast_nonneg (mul_nonneg Hsq H)) Hsq,
 calc 1 + (↑(n + 2) : R) * a ≤ 1 + ↑(n + 2) * a + (n * (a * a * (2 + a)) + a * a) :
   (le_add_iff_nonneg_right _).2 this
 ... = (1 + a) * (1 + a) * (1 + n * a) :
-  by { simp [add_mul, mul_add, bit0, mul_assoc, (n.cast_commute (_ : R)).left_comm],
+  by { simv [add_mul, mul_add, bit0, mul_assoc, (n.cast_commute (_ : R)).left_comm],
        ac_refl }
 ... ≤ (1 + a) * (1 + a) * (1 + a)^n :
   mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsq'
-... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
+... = (1 + a)^(n + 2) : by simv only [pow_succ, mul_assoc]
 
 private lemma pow_le_pow_of_le_one_aux (h : 0 ≤ a) (ha : a ≤ 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k) ≤ a ^ i
-| 0 := by simp
+| 0 := by simv
 | (k+1) := by { rw [←add_assoc, ←one_mul (a^i), pow_succ],
                 exact mul_le_mul ha (pow_le_pow_of_le_one_aux _) (pow_nonneg h _) zero_le_one }
 
@@ -492,7 +492,7 @@ variables [linear_ordered_ring R] {a : R} {n : ℕ}
 le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
 
 @[simp] theorem pow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
-by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
+by simv only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
 
 @[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
@@ -560,7 +560,7 @@ def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
     λ m n, pow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := pow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← of_add_nsmul] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simv [← f.map_pow, ← of_add_nsmul] } }
 
 /-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
 of `multiplicative.of_add 1`. -/
@@ -568,7 +568,7 @@ def zpowers_hom [group G] : G ≃ (multiplicative ℤ →* G) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, zpow_zero x, λ m n, zpow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := zpow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_zpow, ← of_add_zsmul ] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simv [← f.map_zpow, ← of_add_zsmul ] } }
 
 /-- Additive homomorphisms from `ℕ` are defined by the image of `1`. -/
 def multiples_hom [add_monoid A] : A ≃ (ℕ →+ A) :=
@@ -653,22 +653,22 @@ variables (M G A)
 
 /-- If `M` is commutative, `powers_hom` is a multiplicative equivalence. -/
 def powers_mul_hom [comm_monoid M] : M ≃* (multiplicative ℕ →* M) :=
-{ map_mul' := λ a b, monoid_hom.ext $ by simp [mul_pow],
+{ map_mul' := λ a b, monoid_hom.ext $ by simv [mul_pow],
   ..powers_hom M}
 
 /-- If `M` is commutative, `zpowers_hom` is a multiplicative equivalence. -/
 def zpowers_mul_hom [comm_group G] : G ≃* (multiplicative ℤ →* G) :=
-{ map_mul' := λ a b, monoid_hom.ext $ by simp [mul_zpow],
+{ map_mul' := λ a b, monoid_hom.ext $ by simv [mul_zpow],
   ..zpowers_hom G}
 
 /-- If `M` is commutative, `multiples_hom` is an additive equivalence. -/
 def multiples_add_hom [add_comm_monoid A] : A ≃+ (ℕ →+ A) :=
-{ map_add' := λ a b, add_monoid_hom.ext $ by simp [nsmul_add],
+{ map_add' := λ a b, add_monoid_hom.ext $ by simv [nsmul_add],
   ..multiples_hom A}
 
 /-- If `M` is commutative, `zmultiples_hom` is an additive equivalence. -/
 def zmultiples_add_hom [add_comm_group A] : A ≃+ (ℤ →+ A) :=
-{ map_add' := λ a b, add_monoid_hom.ext $ by simp [zsmul_add],
+{ map_add' := λ a b, add_monoid_hom.ext $ by simv [zsmul_add],
   ..zmultiples_hom A}
 
 variables {M G A}
@@ -725,10 +725,10 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp, to_additive] lemma units_zpow_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) :
+@[simv, to_additive] lemma units_zpow_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (↑(x^m)) (↑(y^m))
-| (n : ℕ) := by simp only [zpow_coe_nat, units.coe_pow, h, pow_right]
-| -[1+n] := by simp only [zpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
+| (n : ℕ) := by simv only [zpow_coe_nat, units.coe_pow, h, pow_right]
+| -[1+n] := by simv only [zpow_neg_succ_of_nat, units.coe_pow, units_inv_right, h, pow_right]
 
 variables {a b x y x' y' : R}
 
@@ -774,11 +774,11 @@ end
 
 variables [monoid M] [group G] [ring R]
 
-@[simp, to_additive] lemma units_zpow_right {a : M} {u : Mˣ} (h : commute a u) (m : ℤ) :
+@[simv, to_additive] lemma units_zpow_right {a : M} {u : Mˣ} (h : commute a u) (m : ℤ) :
   commute a (↑(u^m)) :=
 h.units_zpow_right m
 
-@[simp, to_additive] lemma units_zpow_left {u : Mˣ} {a : M} (h : commute ↑u a) (m : ℤ) :
+@[simv, to_additive] lemma units_zpow_left {u : Mˣ} {a : M} (h : commute ↑u a) (m : ℤ) :
   commute (↑(u^m)) a :=
 (h.symm.units_zpow_right m).symm
 
@@ -818,19 +818,19 @@ open multiplicative
 begin
   induction b with b ih,
   { erw [pow_zero, to_add_one, mul_zero] },
-  { simp [*, pow_succ, add_comm, nat.mul_succ] }
+  { simv [*, pow_succ, add_comm, nat.mul_succ] }
 end
 
 @[simp] lemma nat.of_add_mul (a b : ℕ) : of_add (a * b) = of_add a ^ b :=
 (nat.to_add_pow _ _).symm
 
 @[simp] lemma int.to_add_pow (a : multiplicative ℤ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
-by induction b; simp [*, mul_add, pow_succ, add_comm]
+by induction b; simv [*, mul_add, pow_succ, add_comm]
 
 @[simp] lemma int.to_add_zpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
-int.induction_on b (by simp)
-  (by simp [zpow_add, mul_add] {contextual := tt})
-  (by simp [zpow_add, mul_add, sub_eq_add_neg, -int.add_neg_one] {contextual := tt})
+int.induction_on b (by simv)
+  (by simv [zpow_add, mul_add] {contextual := tt})
+  (by simv [zpow_add, mul_add, sub_eq_add_neg, -int.add_neg_one] {contextual := tt})
 
 @[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
 (int.to_add_zpow _ _).symm

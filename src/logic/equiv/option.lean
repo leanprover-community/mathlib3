@@ -65,11 +65,11 @@ if h : (e (some x)).is_some
 
 private lemma remove_none_aux_some {x : α} (h : ∃ x', e (some x) = some x') :
   some (remove_none_aux e x) = e (some x) :=
-by simp [remove_none_aux, option.is_some_iff_exists.mpr h]
+by simv [remove_none_aux, option.is_some_iff_exists.mpr h]
 
 private lemma remove_none_aux_none {x : α} (h : e (some x) = none) :
   some (remove_none_aux e x) = e none :=
-by simp [remove_none_aux, option.not_is_some_iff_eq_none.mpr h]
+by simv [remove_none_aux, option.not_is_some_iff_eq_none.mpr h]
 
 private lemma remove_none_aux_inv (x : α) : remove_none_aux e.symm (remove_none_aux e x) = x :=
 option.some_injective _ begin
@@ -82,7 +82,7 @@ option.some_injective _ begin
     simpa using h1, },
   { rw remove_none_aux_some _ ⟨_, h1⟩,
     rw remove_none_aux_some _ ⟨_, h2⟩,
-    simp },
+    simv },
 end
 
 /-- Given an equivalence between two `option` types, eliminate `none` from that equivalence by
@@ -114,13 +114,13 @@ begin
   { rw remove_none_some _ ⟨a, h⟩,
     have := (congr_arg e.symm h),
     rw [symm_apply_apply] at this,
-    simp only [false_iff, apply_eq_iff_eq],
-    simp [this] }
+    simv only [false_iff, apply_eq_iff_eq],
+    simv [this] }
 end
 
 @[simp]
 lemma remove_none_option_congr (e : α ≃ β) : remove_none e.option_congr = e :=
-equiv.ext $ λ x, option.some_injective _ $ remove_none_some _ ⟨e x, by simp [equiv_functor.map]⟩
+equiv.ext $ λ x, option.some_injective _ $ remove_none_some _ ⟨e x, by simv [equiv_functor.map]⟩
 
 end remove_none
 

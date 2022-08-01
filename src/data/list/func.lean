@@ -85,9 +85,9 @@ def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list 
 lemma length_set : ∀ {m : ℕ} {as : list α},
   (as {m ↦ a}).length = max as.length (m+1)
 | 0 []          := rfl
-| 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
-| (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
-| (m+1) (a::as) := by simp only [set, nat.max_succ_succ, length, @length_set m]
+| 0 (a::as)     := by {rw max_eq_left, refl, simv [nat.le_add_right]}
+| (m+1) []      := by simv only [set, nat.zero_max, length, @length_set m]
+| (m+1) (a::as) := by simv only [set, nat.max_succ_succ, length, @length_set m]
 
 @[simp] lemma get_nil {k : ℕ} : (get k [] : α) = default :=
 by {cases k; refl}
@@ -106,7 +106,7 @@ lemma get_eq_default_of_le :
 @[simp] lemma get_set {a : α} :
   ∀ {k : ℕ} {as : list α}, get k (as {k ↦ a}) = a
 | 0 as     := by {cases as; refl, }
-| (k+1) as := by {cases as; simp [get_set]}
+| (k+1) as := by {cases as; simv [get_set]}
 
 lemma eq_get_of_mem {a : α} :
   ∀ {as : list α}, a ∈ as → ∃ n : nat, ∀ d : α, a = (get n as)
@@ -147,18 +147,18 @@ lemma get_set_eq_of_ne {a : α} :
   m ≠ k → get m (as {k ↦ a}) = get m as
 | as 0 m h1 :=
   by { cases m, contradiction, cases as;
-       simp only [set, get, get_nil] }
+       simv only [set, get, get_nil] }
 | as (k+1) m h1 :=
   begin
     cases as; cases m,
-    simp only [set, get],
+    simv only [set, get],
     { have h3 : get m (nil {k ↦ a}) = default,
       { rw [get_set_eq_of_ne k m, get_nil],
-        intro hc, apply h1, simp [hc] },
+        intro hc, apply h1, simv [hc] },
       apply h3 },
-    simp only [set, get],
+    simv only [set, get],
     { apply get_set_eq_of_ne k m,
-      intro hc, apply h1, simp [hc], }
+      intro hc, apply h1, simv [hc], }
   end
 
 lemma get_map {f : α → β} : ∀ {n : ℕ} {as : list α}, n < as.length →
@@ -236,7 +236,7 @@ namespace func
 by {unfold neg, rw (@get_map' α α ⟨0⟩), apply neg_zero}
 
 @[simp] lemma length_neg [has_neg α] (as : list α) : (neg as).length = as.length :=
-by simp only [neg, length_map]
+by simv only [neg, length_map]
 
 variables [inhabited α] [inhabited β]
 
@@ -245,49 +245,49 @@ variables [inhabited α] [inhabited β]
 lemma nil_pointwise {f : α → β → γ} : ∀ bs : list β, pointwise f [] bs = bs.map (f default)
 | []      := rfl
 | (b::bs) :=
-  by simp only [nil_pointwise bs, pointwise,
+  by simv only [nil_pointwise bs, pointwise,
      eq_self_iff_true, and_self, map]
 
 lemma pointwise_nil {f : α → β → γ} :
   ∀ as : list α, pointwise f as [] = as.map (λ a, f a default)
 | []      := rfl
 | (a::as) :=
-  by simp only [pointwise_nil as, pointwise,
+  by simv only [pointwise_nil as, pointwise,
      eq_self_iff_true, and_self, list.map]
 
 lemma get_pointwise [inhabited γ] {f : α → β → γ} (h1 : f default default = default) :
   ∀ (k : nat) (as : list α) (bs : list β),
   get k (pointwise f as bs) = f (get k as) (get k bs)
-| k [] [] := by simp only [h1, get_nil, pointwise, get]
+| k [] [] := by simv only [h1, get_nil, pointwise, get]
 | 0 [] (b::bs) :=
-  by simp only [get_pointwise, get_nil,
+  by simv only [get_pointwise, get_nil,
       pointwise, get, nat.nat_zero_eq_zero, map]
 | (k+1) [] (b::bs) :=
   by { have : get k (map (f default) bs) = f default (get k bs),
        { simpa [nil_pointwise, get_nil] using (get_pointwise k [] bs) },
        simpa [get, get_nil, pointwise, map] }
 | 0 (a::as) [] :=
-  by simp only [get_pointwise, get_nil,
+  by simv only [get_pointwise, get_nil,
      pointwise, get, nat.nat_zero_eq_zero, map]
 | (k+1) (a::as) [] :=
   by simpa [get, get_nil, pointwise, map, pointwise_nil, get_nil]
      using get_pointwise k as []
-| 0 (a::as) (b::bs) := by simp only [pointwise, get]
+| 0 (a::as) (b::bs) := by simv only [pointwise, get]
 | (k+1) (a::as) (b::bs) :=
-  by simp only [pointwise, get, get_pointwise k]
+  by simv only [pointwise, get, get_pointwise k]
 
 lemma length_pointwise {f : α → β → γ} :
   ∀ {as : list α} {bs : list β},
   (pointwise f as bs).length = max as.length bs.length
 | []      []      := rfl
 | []      (b::bs) :=
-  by simp only [pointwise, length, length_map,
+  by simv only [pointwise, length, length_map,
      max_eq_right (nat.zero_le (length bs + 1))]
 | (a::as) []      :=
-  by simp only [pointwise, length, length_map,
+  by simv only [pointwise, length, length_map,
      max_eq_left (nat.zero_le (length as + 1))]
 | (a::as) (b::bs) :=
-  by simp only [pointwise, length,
+  by simv only [pointwise, length,
      nat.max_succ_succ, @length_pointwise as bs]
 
 end func

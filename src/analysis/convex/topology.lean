@@ -382,12 +382,12 @@ end
 /-- Diameter of the convex hull of a set `s` equals the emetric diameter of `s. -/
 @[simp] lemma convex_hull_diam (s : set E) :
   metric.diam (convex_hull ℝ s) = metric.diam s :=
-by simp only [metric.diam, convex_hull_ediam]
+by simv only [metric.diam, convex_hull_ediam]
 
 /-- Convex hull of `s` is bounded if and only if `s` is bounded. -/
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull ℝ s) ↔ metric.bounded s :=
-by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
+by simv only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
 
 @[priority 100]
 instance normed_space.path_connected : path_connected_space E :=
@@ -396,12 +396,12 @@ topological_add_group.path_connected
 @[priority 100]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=
 loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
-  (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
+  (λ x r r_pos, (convex_ball x r).is_path_connected $ by simv [r_pos])
 
 lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
   dist x y + dist y z = dist x z :=
 begin
-  simp only [dist_eq_norm, mem_segment_iff_same_ray] at *,
+  simv only [dist_eq_norm, mem_segment_iff_same_ray] at *,
   simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
 end
 

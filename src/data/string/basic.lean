@@ -41,7 +41,7 @@ by apply_instance -- short-circuit type class inference
   begin
     intros,
     induction s₁ with a s₁ IH generalizing p₁ p₂ s₂;
-      cases s₂ with b s₂; rw ltb; simp [iterator.has_next],
+      cases s₂ with b s₂; rw ltb; simv [iterator.has_next],
     { refl, },
     { exact iff_of_true rfl list.lex.nil },
     { exact iff_of_false bool.ff_ne_tt (not_lt_of_lt list.lex.nil) },
@@ -49,7 +49,7 @@ by apply_instance -- short-circuit type class inference
         iterator.curr, iterator.next],
       split_ifs,
       { subst b, exact IH.trans list.lex.cons_iff.symm },
-      { simp, refine ⟨list.lex.rel, λ e, _⟩,
+      { simv, refine ⟨list.lex.rel, λ e, _⟩,
         cases e, {cases h rfl}, assumption } }
   end
 
@@ -87,7 +87,7 @@ begin
   { rcases hs : "" with ⟨_ | ⟨hd, tl⟩⟩,
     { rw hs at hn,
       conv_rhs { rw ←hn },
-      simp only [popn, mk_iterator, iterator.nextn, iterator.next] },
+      simv only [popn, mk_iterator, iterator.nextn, iterator.next] },
     { simpa only [←to_list_inj] using hs } }
 end
 
@@ -97,10 +97,10 @@ instance : linear_order string :=
   decidable_le := string.decidable_le,
   decidable_eq := by apply_instance,
   le_refl := λ a, le_iff_to_list_le.2 le_rfl,
-  le_trans := λ a b c, by { simp only [le_iff_to_list_le], exact λ h₁ h₂, h₁.trans h₂ },
-  le_total := λ a b, by { simp only [le_iff_to_list_le], exact le_total _ _ },
-  le_antisymm := λ a b, by { simp only [le_iff_to_list_le, ← to_list_inj], apply le_antisymm },
-  lt_iff_le_not_le := λ a b, by simp only [le_iff_to_list_le, lt_iff_to_list_lt, lt_iff_le_not_le] }
+  le_trans := λ a b c, by { simv only [le_iff_to_list_le], exact λ h₁ h₂, h₁.trans h₂ },
+  le_total := λ a b, by { simv only [le_iff_to_list_le], exact le_total _ _ },
+  le_antisymm := λ a b, by { simv only [le_iff_to_list_le, ← to_list_inj], apply le_antisymm },
+  lt_iff_le_not_le := λ a b, by simv only [le_iff_to_list_le, lt_iff_to_list_lt, lt_iff_le_not_le] }
 
 end string
 

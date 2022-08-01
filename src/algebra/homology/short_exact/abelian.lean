@@ -34,7 +34,7 @@ begin
   resetI,
   refine @abelian.is_iso_of_is_iso_of_is_iso_of_is_iso_of_is_iso 𝒜 _ _ 0 _ _ _ 0 _ _ _
     0 f g 0 f' g' 0 i₁ i₂ i₃ _ comm₁ comm₂ 0 0 0 0 0 _ _ _ _ _ _ _ _ _ _ _;
-  try { simp };
+  try { simv };
   try { apply exact_zero_left_of_mono };
   try { assumption };
   rwa ← epi_iff_exact_zero_right,
@@ -83,8 +83,8 @@ def left_split.splitting {f : A ⟶ B} {g : B ⟶ C} (h : left_split f g) : spli
 splitting.mk' h.short_exact (biprod.lift h.left_split.some g)
 (by { ext,
   { simpa only [biprod.inl_fst, biprod.lift_fst, category.assoc] using h.left_split.some_spec },
-  { simp only [biprod.inl_snd, biprod.lift_snd, category.assoc, h.exact.w], } })
-(by { simp only [biprod.lift_snd], })
+  { simv only [biprod.inl_snd, biprod.lift_snd, category.assoc, h.exact.w], } })
+(by { simv only [biprod.lift_snd], })
 
 /-- A short exact sequence that is right split admits a splitting. -/
 def right_split.splitting {f : A ⟶ B} {g : B ⟶ C} (h : right_split f g) : splitting f g :=

@@ -8,7 +8,7 @@ import data.fin.vec_notation
 /-!
 # Monotone finite sequences
 
-In this file we prove `simp` lemmas that allow to simplify propositions like `monotone ![a, b, c]`.
+In this file we prove `simv` lemmas that allow to simplify propositions like `monotone ![a, b, c]`.
 -/
 
 open set fin matrix function
@@ -16,7 +16,7 @@ variables {α : Type*}
 
 lemma lift_fun_vec_cons {n : ℕ} (r : α → α → Prop) [is_trans α r] {f : fin (n + 1) → α} {a : α} :
   ((<) ⇒ r) (vec_cons a f) (vec_cons a f) ↔ r a (f 0) ∧ ((<) ⇒ r) f f :=
-by simp only [lift_fun_iff_succ r, forall_fin_succ, cons_val_succ, cons_val_zero, ← succ_cast_succ,
+by simv only [lift_fun_iff_succ r, forall_fin_succ, cons_val_succ, cons_val_zero, ← succ_cast_succ,
   cast_succ_zero]
 
 variables [preorder α] {n : ℕ} {f : fin (n + 1) → α} {a : α}
@@ -49,4 +49,4 @@ lemma antitone.vec_cons (hf : antitone f) (ha : f 0 ≤ a) :
   antitone (vec_cons a f) :=
 antitone_vec_cons.2 ⟨ha, hf⟩
 
-example : monotone ![1, 2, 2, 3] := by simp [subsingleton.monotone]
+example : monotone ![1, 2, 2, 3] := by simv [subsingleton.monotone]

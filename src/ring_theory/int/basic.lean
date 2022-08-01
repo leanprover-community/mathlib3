@@ -35,11 +35,11 @@ instance : wf_dvd_monoid ℕ :=
     (with_top.well_founded_lt nat.lt_wf),
   intros a b h,
   cases a,
-  { exfalso, revert h, simp [dvd_not_unit] },
+  { exfalso, revert h, simv [dvd_not_unit] },
   cases b,
   { simpa [succ_ne_zero] using with_top.coe_lt_top (a + 1) },
   cases dvd_and_not_dvd_iff.2 h with h1 h2,
-  simp only [succ_ne_zero, with_top.coe_lt_coe, if_false],
+  simv only [succ_ne_zero, with_top.coe_lt_coe, if_false],
   apply lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h1) (λ con, h2 _),
   rw con,
 end⟩
@@ -80,7 +80,7 @@ instance : normalization_monoid ℤ :=
   norm_unit_mul  := assume a b hna hnb,
   begin
     cases hna.lt_or_lt with ha ha; cases hnb.lt_or_lt with hb hb;
-      simp [mul_nonneg_iff, ha.le, ha.not_le, hb.le, hb.not_le]
+      simv [mul_nonneg_iff, ha.le, ha.not_le, hb.le, hb.not_le]
   end,
   norm_unit_coe_units := assume u, (units_eq_one_or u).elim
     (assume eq, eq.symm ▸ if_pos zero_le_one)
@@ -99,8 +99,8 @@ normalize_of_nonneg (coe_nat_le_coe_nat_of_le $ nat.zero_le n)
 theorem coe_nat_abs_eq_normalize (z : ℤ) : (z.nat_abs : ℤ) = normalize z :=
 begin
   by_cases 0 ≤ z,
-  { simp [nat_abs_of_nonneg h, normalize_of_nonneg h] },
-  { simp [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
+  { simv [nat_abs_of_nonneg h, normalize_of_nonneg h] },
+  { simv [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
 end
 
 lemma nonneg_of_normalize_eq_self {z : ℤ} (hz : normalize z = z) : 0 ≤ z :=
@@ -149,7 +149,7 @@ begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
   { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
-    simp only [neg_mul, one_mul] }
+    simv only [neg_mul, one_mul] }
 end
 
 lemma gcd_eq_nat_abs {a b : ℤ} : int.gcd a b = nat.gcd a.nat_abs b.nat_abs := rfl
@@ -183,7 +183,7 @@ begin
   obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
   use d,
   rw ← hu,
-  cases int.units_eq_one_or u with hu' hu'; { rw hu', simp }
+  cases int.units_eq_one_or u with hu' hu'; { rw hu', simv }
 end
 
 lemma sq_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
@@ -265,7 +265,7 @@ open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : normalized_factors n = n.factors :=
 begin
-  cases n, { simp },
+  cases n, { simv },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_normalized_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors n.succ_ne_zero],
@@ -291,7 +291,7 @@ end
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-by simp only [finite_def, ← int.nat_abs_dvd_iff_dvd, int.nat_abs_pow]
+by simv only [finite_def, ← int.nat_abs_dvd_iff_dvd, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
 by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero, int.nat_abs_ne_zero]

@@ -49,13 +49,13 @@ begin
       a 2 * b 0 - a 0 * b 2,
       a 0 * b 1 - a 1 * b 0]),
   { intros,
-    simp [vec3_add (_ : R), add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg] },
+    simv [vec3_add (_ : R), add_comm, add_assoc, add_left_comm, add_mul, sub_eq_add_neg] },
   { intros,
-    simp [smul_vec3 (_ : R) (_ : R), mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
+    simv [smul_vec3 (_ : R) (_ : R), mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
-    simp [vec3_add (_ : R), add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg] },
+    simv [vec3_add (_ : R), add_comm, add_assoc, add_left_comm, mul_add, sub_eq_add_neg] },
   { intros,
-    simp [smul_vec3 (_ : R) (_ : R), mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
+    simv [smul_vec3 (_ : R) (_ : R), mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
 end
 
 localized "infixl ` ×₃ `: 74 := cross_product" in matrix
@@ -70,7 +70,7 @@ section products_properties
 
 @[simp] lemma cross_anticomm (v w : fin 3 → R) :
   - (v ×₃ w) = w ×₃ v :=
-by simp [cross_apply, mul_comm]
+by simv [cross_apply, mul_comm]
 alias cross_anticomm ← neg_cross
 
 @[simp] lemma cross_anticomm' (v w : fin 3 → R) :
@@ -79,12 +79,12 @@ by rw [add_eq_zero_iff_eq_neg, cross_anticomm]
 
 @[simp] lemma cross_self (v : fin 3 → R) :
   v ×₃ v = 0 :=
-by simp [cross_apply, mul_comm]
+by simv [cross_apply, mul_comm]
 
 /-- The cross product of two vectors is perpendicular to the first vector. -/
 @[simp] lemma dot_self_cross (v w : fin 3 → R) :
   v ⬝ᵥ (v ×₃ w) = 0 :=
-by simp [cross_apply, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
+by simv [cross_apply, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 
 /-- The cross product of two vectors is perpendicular to the second vector. -/
 @[simp] lemma dot_cross_self (v w : fin 3 → R) :
@@ -95,7 +95,7 @@ by rw [← cross_anticomm, matrix.dot_product_neg, dot_self_cross, neg_zero]
 lemma triple_product_permutation (u v w : fin 3 → R) :
   u ⬝ᵥ (v ×₃ w) = v ⬝ᵥ (w ×₃ u) :=
 begin
-  simp only [cross_apply, vec3_dot_product,
+  simv only [cross_apply, vec3_dot_product,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_append, matrix.cons_val_one,
     matrix.cons_vec_alt0, matrix.cons_append, matrix.cons_val_zero],
   ring,
@@ -106,7 +106,7 @@ end
 theorem triple_product_eq_det (u v w : fin 3 → R) :
   u ⬝ᵥ (v ×₃ w) = matrix.det ![u, v, w] :=
 begin
-  simp only [vec3_dot_product, cross_apply, matrix.det_fin_three,
+  simv only [vec3_dot_product, cross_apply, matrix.det_fin_three,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_alt0, matrix.cons_vec_alt0,
     matrix.vec_head_vec_alt0, fin.fin_append_apply_zero, matrix.empty_append, matrix.cons_append,
     matrix.cons_val', matrix.cons_val_one, matrix.cons_val_zero],
@@ -117,7 +117,7 @@ end
 theorem cross_dot_cross (u v w x : fin 3 → R) :
   (u ×₃ v) ⬝ᵥ (w ×₃ x) = (u ⬝ᵥ w) * (v ⬝ᵥ x) - (u ⬝ᵥ x) * (v ⬝ᵥ w) :=
 begin
-  simp only [vec3_dot_product, cross_apply, cons_append, cons_vec_bit0_eq_alt0,
+  simv only [vec3_dot_product, cross_apply, cons_append, cons_vec_bit0_eq_alt0,
     cons_val_one, cons_vec_alt0, linear_map.mk₂_apply, cons_val_zero, head_cons, empty_append],
   ring_nf,
 end

@@ -45,7 +45,7 @@ le_antisymm h $ f.le_of_le g hne h
 
 instance ne_bot (f : ultrafilter α) : ne_bot (f : filter α) := f.ne_bot'
 
-@[simp, norm_cast] lemma mem_coe : s ∈ (f : filter α) ↔ s ∈ f := iff.rfl
+@[simv, norm_cast] lemma mem_coe : s ∈ (f : filter α) ↔ s ∈ f := iff.rfl
 
 lemma coe_injective : injective (coe : ultrafilter α → filter α)
 | ⟨f, h₁, h₂⟩ ⟨g, h₃, h₄⟩ rfl := by congr
@@ -53,10 +53,10 @@ lemma coe_injective : injective (coe : ultrafilter α → filter α)
 lemma eq_of_le {f g : ultrafilter α} (h : (f : filter α) ≤ g) : f = g :=
 coe_injective (g.unique h)
 
-@[simp, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
+@[simv, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
 ⟨λ h, eq_of_le h, λ h, h ▸ le_rfl⟩
 
-@[simp, norm_cast] lemma coe_inj : (f : filter α) = g ↔ f = g := coe_injective.eq_iff
+@[simv, norm_cast] lemma coe_inj : (f : filter α) = g ↔ f = g := coe_injective.eq_iff
 
 @[ext] lemma ext ⦃f g : ultrafilter α⦄ (h : ∀ s, s ∈ f ↔ s ∈ g) : f = g :=
 coe_injective $ filter.ext h
@@ -108,21 +108,21 @@ lemma union_mem_iff : s ∪ t ∈ f ↔ s ∈ f ∨ t ∈ f := eventually_or
 lemma eventually_not : (∀ᶠ x in f, ¬p x) ↔ ¬∀ᶠ x in f, p x := compl_mem_iff_not_mem
 
 lemma eventually_imp : (∀ᶠ x in f, p x → q x) ↔ (∀ᶠ x in f, p x) → ∀ᶠ x in f, q x :=
-by simp only [imp_iff_not_or, eventually_or, eventually_not]
+by simv only [imp_iff_not_or, eventually_or, eventually_not]
 
 lemma finite_sUnion_mem_iff {s : set (set α)} (hs : s.finite) : ⋃₀ s ∈ f ↔ ∃t∈s, t ∈ f :=
-finite.induction_on hs (by simp) $ λ a s ha hs his,
-  by simp [union_mem_iff, his, or_and_distrib_right, exists_or_distrib]
+finite.induction_on hs (by simv) $ λ a s ha hs his,
+  by simv [union_mem_iff, his, or_and_distrib_right, exists_or_distrib]
 
 lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : is.finite) :
   (⋃i∈is, s i) ∈ f ↔ ∃i∈is, s i ∈ f :=
-by simp only [← sUnion_image, finite_sUnion_mem_iff (his.image s), bex_image_iff]
+by simv only [← sUnion_image, finite_sUnion_mem_iff (his.image s), bex_image_iff]
 
 /-- Pushforward for ultrafilters. -/
 def map (m : α → β) (f : ultrafilter α) : ultrafilter β :=
 of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 
-@[simp, norm_cast] lemma coe_map (m : α → β) (f : ultrafilter α) :
+@[simv, norm_cast] lemma coe_map (m : α → β) (f : ultrafilter α) :
   (map m f : filter β) = filter.map m ↑f := rfl
 
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
@@ -142,14 +142,14 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
 { to_filter := comap m u,
   ne_bot' := u.ne_bot'.comap_of_range_mem large,
   le_of_le := λ g hg hgu, by { resetI,
-    simp only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
+    simv only [← u.unique (map_le_iff_le_comap.2 hgu), comap_map inj, le_rfl] } }
 
 @[simp] lemma mem_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   (large : set.range m ∈ u) {s : set α} :
   s ∈ u.comap inj large ↔ m '' s ∈ u :=
 mem_comap_iff inj large
 
-@[simp, norm_cast] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+@[simv, norm_cast] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
 
 @[simp] lemma comap_id (f : ultrafilter α) (h₀ : injective (id : α → α) := injective_id)
@@ -166,7 +166,7 @@ coe_injective comap_comap
 
 /-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
-⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
+⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simv⟩
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 @[simp] lemma coe_pure (a : α) : ↑(pure a : ultrafilter α) = (pure a : filter α) := rfl
@@ -200,7 +200,7 @@ lemma eq_pure_of_fintype [fintype α] (f : ultrafilter α) : ∃ a, (f : filter 
 defined in terms of map and join.-/
 def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 of_compl_not_mem_iff (bind ↑f (λ x, ↑(m x))) $ λ s,
-  by simp only [mem_bind', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
+  by simv only [mem_bind', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
 
 instance has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
 instance functor : functor ultrafilter := { map := @ultrafilter.map }
@@ -269,7 +269,7 @@ begin
   intros T hT,
   rcases mem_generate_iff.mp hT with ⟨A, h1, h2, h3⟩,
   let B := set.finite.to_finset h2,
-  rw (show A = ↑B, by simp) at *,
+  rw (show A = ↑B, by simv) at *,
   rcases cond B h1 with ⟨x, hx⟩,
   exact ⟨x, h3 hx⟩,
 end
@@ -298,7 +298,7 @@ lemma le_iff_ultrafilter {f₁ f₂ : filter α} : f₁ ≤ f₂ ↔ ∀ g : ult
 /-- A filter equals the intersection of all the ultrafilters which contain it. -/
 lemma supr_ultrafilter_le_eq (f : filter α) :
   (⨆ (g : ultrafilter α) (hg : ↑g ≤ f), (g : filter α)) = f :=
-eq_of_forall_ge_iff $ λ f', by simp only [supr_le_iff, ← le_iff_ultrafilter]
+eq_of_forall_ge_iff $ λ f', by simv only [supr_le_iff, ← le_iff_ultrafilter]
 
 /-- The `tendsto` relation can be checked on ultrafilters. -/
 lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter β) :

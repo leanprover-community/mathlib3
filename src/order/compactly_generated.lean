@@ -87,7 +87,7 @@ begin
       exact finset.le_sup (finset.mem_image_of_mem f $ finset.mem_univ ⟨b, hb⟩) } },
   { intros H s hs,
     obtain ⟨t, ht⟩ := H s coe (by { delta supr, rwa subtype.range_coe }),
-    refine ⟨t.image coe, by simp, ht.trans _⟩,
+    refine ⟨t.image coe, by simv, ht.trans _⟩,
     rw finset.sup_le_iff,
     exact λ x hx, @finset.le_sup _ _ _ _ _ id _ (finset.mem_image_of_mem coe hx) }
 end
@@ -116,9 +116,9 @@ begin
       split,
       { use c ∪ d,
         split,
-        { simp only [hc.left, hd.left, set.union_subset_iff, finset.coe_union, and_self], },
-        { simp only [hc.right, hd.right, finset.sup_union], }, },
-      simp only [and_self, le_sup_left, le_sup_right], },
+        { simv only [hc.left, hd.left, set.union_subset_iff, finset.coe_union, and_self], },
+        { simv only [hc.right, hd.right, finset.sup_union], }, },
+      simv only [and_self, le_sup_left, le_sup_right], },
     have sup_S : Sup s ≤ Sup S,
     { apply Sup_le_Sup,
       intros x hx, use {x},
@@ -127,7 +127,7 @@ begin
     have Sne : S.nonempty,
     { suffices : ⊥ ∈ S, from set.nonempty_of_mem this,
       use ∅,
-      simp only [set.empty_subset, finset.coe_empty, finset.sup_empty,
+      simv only [set.empty_subset, finset.coe_empty, finset.sup_empty,
         eq_self_iff_true, and_self], },
     -- Now apply the defn of compact and finish.
     obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans hsup sup_S),
@@ -188,14 +188,14 @@ lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → 
 begin
   intros s,
   let p : set α := { x | ∃ (t : finset α), ↑t ⊆ s ∧ t.sup id = x },
-  have hp : p.nonempty, { use [⊥, ∅], simp, },
+  have hp : p.nonempty, { use [⊥, ∅], simv, },
   obtain ⟨m, ⟨t, ⟨ht₁, ht₂⟩⟩, hm⟩ := well_founded.well_founded_iff_has_max'.mp h p hp,
-  use t, simp only [ht₁, ht₂, true_and], apply le_antisymm,
+  use t, simv only [ht₁, ht₂, true_and], apply le_antisymm,
   { apply Sup_le, intros y hy, classical,
     have hy' : (insert y t).sup id ∈ p,
-    { use insert y t, simp, rw set.insert_subset, exact ⟨hy, ht₁⟩, },
+    { use insert y t, simv, rw set.insert_subset, exact ⟨hy, ht₁⟩, },
     have hm' : m ≤ (insert y t).sup id, { rw ← ht₂, exact finset.sup_mono (t.subset_insert y), },
-    rw ← hm _ hy' hm', simp, },
+    rw ← hm _ hy' hm', simv, },
   { rw [← ht₂, finset.sup_id_eq_Sup], exact Sup_le_Sup ht₁, },
 end
 
@@ -205,7 +205,7 @@ begin
   intros s hne hsc, obtain ⟨t, ht₁, ht₂⟩ := h s, clear h,
   cases t.eq_empty_or_nonempty with h h,
   { subst h, rw finset.sup_empty at ht₂, rw ht₂,
-    simp [eq_singleton_bot_of_Sup_eq_bot_of_nonempty ht₂ hne], },
+    simv [eq_singleton_bot_of_Sup_eq_bot_of_nonempty ht₂ hne], },
   { rw ht₂, exact t.sup_closed_of_sup_closed h ht₁ hsc, },
 end
 
@@ -215,7 +215,7 @@ begin
   refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
-    have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
+    have h' : Sup (set.range a) < a (n+1), { change _ > _, simv [← hn, a.map_rel_iff], },
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
@@ -232,7 +232,7 @@ begin
   { obtain ⟨t, ⟨hts, htsup⟩⟩ := h (Sup s) s (by refl),
     have : Sup s = t.sup id,
     { suffices : t.sup id ≤ Sup s, by { apply le_antisymm; assumption },
-      simp only [id.def, finset.sup_le_iff],
+      simv only [id.def, finset.sup_le_iff],
       intros x hx,
       exact le_Sup (hts hx) },
     use [t, hts, this] },
@@ -282,7 +282,7 @@ begin
     exact ⟨x, hx₁, by simpa [not_or_distrib] using hx₂⟩, },
   obtain ⟨x, hx₀, hx₁, hx₂⟩ := contra,
   replace hs : x ⊓ Sup s = ⊥,
-  { have := hs.mono (by simp [ht₁, hx₀, -set.union_singleton] : ↑t ∪ {x} ≤ s) (by simp : x ∈ _),
+  { have := hs.mono (by simv [ht₁, hx₀, -set.union_singleton] : ↑t ∪ {x} ≤ s) (by simv : x ∈ _),
     simpa [disjoint, hx₂, ← t.sup_id_eq_Sup, ← ht₂] using this, },
   apply hx₁,
   rw [← hs, eq_comm, inf_eq_left],
@@ -341,7 +341,7 @@ le_antisymm (begin
     rcases hc s hs h hcinf.2 with ⟨d, ds, cd⟩,
     exact (le_inf hcinf.1 cd).trans (le_supr₂ d ds) },
   { rw set.not_nonempty_iff_eq_empty at hs,
-    simp [hs] }
+    simv [hs] }
 end) supr_inf_le_inf_Sup
 
 /-- This property is equivalent to `α` being upper continuous. -/
@@ -415,7 +415,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   is_coatomic (set.Iic k) :=
 ⟨λ ⟨b, hbk⟩, begin
   by_cases htriv : b = k,
-  { left, ext, simp only [htriv, set.Iic.coe_top, subtype.coe_mk], },
+  { left, ext, simv only [htriv, set.Iic.coe_top, subtype.coe_mk], },
   right,
   obtain ⟨a, a₀, ba, h⟩ := zorn_nonempty_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv),
   { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
@@ -424,7 +424,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   { intros S SC cC I IS,
     by_cases hS : S.nonempty,
     { exact ⟨Sup S, h.directed_Sup_lt_of_lt hS cC.directed_on SC, λ _, le_Sup⟩, },
-    exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
+    exact ⟨b, lt_of_le_of_ne hbk htriv, by simv only [set.not_nonempty_iff_eq_empty.mp hS,
       set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
 end⟩
 
@@ -451,7 +451,7 @@ instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
     obtain con | ⟨a, ha, hac⟩ := eq_bot_or_exists_atom_le (⟨c, le_refl c⟩ : set.Iic c),
     { exfalso,
       apply hcbot,
-      simp only [subtype.ext_iff, set.Iic.coe_bot, subtype.coe_mk] at con,
+      simv only [subtype.ext_iff, set.Iic.coe_bot, subtype.coe_mk] at con,
       exact con },
     rw [← subtype.coe_le_coe, subtype.coe_mk] at hac,
     exact ⟨a, ha.of_is_atom_coe_Iic, hac.trans hcb⟩ },
@@ -490,10 +490,10 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
     { exact set.mem_union_right _ (set.mem_singleton _) },
     { rw [set.mem_union, set.mem_singleton_iff] at hx,
       by_cases xa : x = a,
-      { simp only [xa, set.mem_singleton, set.insert_diff_of_mem, set.union_singleton],
+      { simv only [xa, set.mem_singleton, set.insert_diff_of_mem, set.union_singleton],
         exact con.mono_right (le_trans (Sup_le_Sup (set.diff_subset s {a})) le_sup_right) },
       { have h : (s ∪ {a}) \ {x} = (s \ {x}) ∪ {a},
-        { simp only [set.union_singleton],
+        { simv only [set.union_singleton],
           rw set.insert_diff_of_not_mem,
           rw set.mem_singleton_iff,
           exact ne.symm xa },

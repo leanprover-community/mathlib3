@@ -39,7 +39,7 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 
 lemma mk_mem_product (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s.product t := mem_product.2 ⟨ha, hb⟩
 
-@[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
+@[simv, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
   (s.product t : set (α × β)) = (s : set α) ×ˢ (t : set β) :=
 set.ext $ λ x, finset.mem_product
 
@@ -58,12 +58,12 @@ product_subset_product (subset.refl _) ht
 
 lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
-ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
+ext $ λ ⟨x, y⟩, by simv only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
 lemma product_eq_bUnion_right [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s.product t = t.bUnion (λ b, s.image $ λ a, (a, b)) :=
-ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
+ext $ λ ⟨x, y⟩, by simv only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
 /-- See also `finset.sup_product_left`. -/
@@ -76,7 +76,7 @@ multiset.card_product _ _
 
 lemma filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
   (s.product t).filter (λ (x : α × β), p x.1 ∧ q x.2) = (s.filter p).product (t.filter q) :=
-by { ext ⟨a, b⟩, simp only [mem_filter, mem_product],
+by { ext ⟨a, b⟩, simv only [mem_filter, mem_product],
      exact and_and_and_comm (a ∈ s) (b ∈ t) (p a) (q b) }
 
 lemma filter_product_card (s : finset α) (t : finset β)
@@ -86,12 +86,12 @@ lemma filter_product_card (s : finset α) (t : finset β)
 begin
   classical,
   rw [← card_product, ← card_product, ← filter_product, ← filter_product, ← card_union_eq],
-  { apply congr_arg, ext ⟨a, b⟩, simp only [filter_union_right, mem_filter, mem_product],
+  { apply congr_arg, ext ⟨a, b⟩, simv only [filter_union_right, mem_filter, mem_product],
     split; intros h; use h.1,
-    simp only [function.comp_app, and_self, h.2, em (q b)],
-    cases h.2; { try { simp at h_1 }, simp [h_1] } },
+    simv only [function.comp_app, and_self, h.2, em (q b)],
+    cases h.2; { try { simv at h_1 }, simv [h_1] } },
   { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter,
-    simp only [and_imp, mem_filter, not_and, not_not, function.comp_app, iff_false, mem_product,
+    simv only [and_imp, mem_filter, not_and, not_not, function.comp_app, iff_false, mem_product,
      not_mem_empty], intros, assumption }
 end
 
@@ -118,23 +118,23 @@ by rw [←not_nonempty_iff_eq_empty, nonempty_product, not_and_distrib, not_none
 
 @[simp] lemma singleton_product {a : α} :
   ({a} : finset α).product t = t.map ⟨prod.mk a, prod.mk.inj_left _⟩ :=
-by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+by { ext ⟨x, y⟩, simv [and.left_comm, eq_comm] }
 
 @[simp] lemma product_singleton {b : β} :
   s.product {b} = s.map ⟨λ i, (i, b), prod.mk.inj_right _⟩ :=
-by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+by { ext ⟨x, y⟩, simv [and.left_comm, eq_comm] }
 
 lemma singleton_product_singleton {a : α} {b : β} :
   ({a} : finset α).product ({b} : finset β) = {(a, b)} :=
-by simp only [product_singleton, function.embedding.coe_fn_mk, map_singleton]
+by simv only [product_singleton, function.embedding.coe_fn_mk, map_singleton]
 
 @[simp] lemma union_product [decidable_eq α] [decidable_eq β] :
   (s ∪ s').product t = s.product t ∪ s'.product t :=
-by { ext ⟨x, y⟩, simp only [or_and_distrib_right, mem_union, mem_product] }
+by { ext ⟨x, y⟩, simv only [or_and_distrib_right, mem_union, mem_product] }
 
 @[simp] lemma product_union [decidable_eq α] [decidable_eq β] :
   s.product (t ∪ t') = s.product t ∪ s.product t' :=
-by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
+by { ext ⟨x, y⟩, simv only [and_or_distrib_left, mem_union, mem_product] }
 
 end prod
 
@@ -150,12 +150,12 @@ for `a, b ∈ s`. -/
 def off_diag := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
 
 @[simp] lemma mem_diag (x : α × α) : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
-by { simp only [diag, mem_filter, mem_product], split; intros h;
-     simp only [h, and_true, eq_self_iff_true, and_self], rw ←h.2, exact h.1 }
+by { simv only [diag, mem_filter, mem_product], split; intros h;
+     simv only [h, and_true, eq_self_iff_true, and_self], rw ←h.2, exact h.1 }
 
 @[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
-by { simp only [off_diag, mem_filter, mem_product], split; intros h;
-     simp only [h, ne.def, not_false_iff, and_self] }
+by { simv only [off_diag, mem_filter, mem_product], split; intros h;
+     simv only [h, ne.def, not_false_iff, and_self] }
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
@@ -169,7 +169,7 @@ end
 @[simp] lemma off_diag_card : (off_diag s).card = s.card * s.card - s.card :=
 begin
   suffices : (diag s).card + (off_diag s).card = s.card * s.card,
-  { nth_rewrite 2 ← s.diag_card, simp only [diag_card] at *, rw tsub_eq_of_eq_add_rev, rw this },
+  { nth_rewrite 2 ← s.diag_card, simv only [diag_card] at *, rw tsub_eq_of_eq_add_rev, rw this },
   rw ← card_product,
   apply filter_card_add_filter_neg_card_eq_card,
 end
@@ -191,7 +191,7 @@ lemma product_sdiff_off_diag : s.product s \ s.off_diag = s.diag :=
 by rw [←diag_union_off_diag, union_sdiff_self, sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _)]
 
 lemma diag_union : (s ∪ t).diag = s.diag ∪ t.diag :=
-by { ext ⟨i, j⟩, simp only [mem_diag, mem_union, or_and_distrib_right] }
+by { ext ⟨i, j⟩, simv only [mem_diag, mem_union, or_and_distrib_right] }
 
 variables {s t}
 
@@ -201,7 +201,7 @@ begin
   rw [off_diag, union_product, product_union, product_union, union_comm _ (t.product t),
     union_assoc, union_left_comm (s.product t), ←union_assoc, filter_union, filter_union, ←off_diag,
     ←off_diag, filter_true_of_mem, ←union_assoc],
-  simp only [mem_union, mem_product, ne.def, prod.forall],
+  simv only [mem_union, mem_product, ne.def, prod.forall],
   rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩),
   { exact h.forall_ne_finset hi hj },
   { exact h.symm.forall_ne_finset hi hj },
@@ -210,7 +210,7 @@ end
 variables (a : α)
 
 @[simp] lemma off_diag_singleton : ({a} : finset α).off_diag = ∅ :=
-by simp [←finset.card_eq_zero]
+by simv [←finset.card_eq_zero]
 
 lemma diag_singleton : ({a} : finset α).diag = {(a, a)} :=
 by rw [←product_sdiff_off_diag, off_diag_singleton, sdiff_empty, singleton_product_singleton]

@@ -86,19 +86,19 @@ noncomputable def trace : S →ₗ[R] R :=
 
 variables {S}
 
--- Not a `simp` lemma since there are more interesting ways to rewrite `trace R S x`,
+-- Not a `simv` lemma since there are more interesting ways to rewrite `trace R S x`,
 -- for example `trace_trace`
 lemma trace_apply (x) : trace R S x = linear_map.trace R S (lmul R S x) := rfl
 
 lemma trace_eq_zero_of_not_exists_basis
   (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) : trace R S = 0 :=
-by { ext s, simp [trace_apply, linear_map.trace, h] }
+by { ext s, simv [trace_apply, linear_map.trace, h] }
 
 include b
 
 variables {R}
 
--- Can't be a `simp` lemma because it depends on a choice of basis
+-- Can't be a `simv` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
   trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
 by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
@@ -111,7 +111,7 @@ begin
   rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
-  simp,
+  simv,
 end
 omit b
 
@@ -124,7 +124,7 @@ lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = finrank K L �
 begin
   by_cases H : ∃ (s : finset L), nonempty (basis s K L),
   { rw [trace_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
-  { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
+  { simv [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
 lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
@@ -138,7 +138,7 @@ begin
       matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
-  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply, matrix.diag,
+  simv only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply, matrix.diag,
       -- The unifier is not smart enough to apply this one by itself:
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
@@ -243,13 +243,13 @@ lemma trace_gen_eq_sum_roots (x : L)
 begin
   have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : is_integral K x, swap,
-  { simp [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
+  { simv [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
   have hx' : is_integral K (adjoin_simple.gen K x),
   { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
     apply_instance },
   rw [← adjoin.power_basis_gen hx, (adjoin.power_basis hx).trace_gen_eq_sum_roots];
     rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
-    try { simp only [adjoin_simple.algebra_map_gen _ _] },
+    try { simv only [adjoin_simple.algebra_map_gen _ _] },
   exact hf
 end
 
@@ -339,10 +339,10 @@ begin
       ← finset.univ_sigma_univ, finset.sum_sigma, ← finset.sum_nsmul],
   refine finset.sum_congr rfl (λ σ _, _),
   { letI : algebra L E := σ.to_ring_hom.to_algebra,
-    simp only [finset.sum_const, finset.card_univ],
+    simv only [finset.sum_const, finset.card_univ],
     rw alg_hom.card L F E },
   { intros σ,
-    simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
+    simv only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
          is_scalar_tower.coe_to_alg_hom'] }
 end
 
@@ -365,10 +365,10 @@ begin
   rw map_sum (algebra_map L (algebraic_closure L)),
   rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
   { rw ←trace_eq_sum_embeddings (algebraic_closure L),
-    { simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    { simv only [algebra_map_eq_smul_one, smul_one_smul] },
     { exact is_galois.to_is_separable } },
   { intro σ,
-    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+    simv only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
                alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
                ring_hom.id_apply] },
 end
@@ -395,7 +395,7 @@ rfl
 
 lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
   trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
-by {ext x y, simp}
+by {ext x y, simv}
 
 variables {A}
 
@@ -410,11 +410,11 @@ begin
   rw [matrix.mul_apply, sum_mul],
   congr, ext y,
   rw [map_apply, trace_form_apply, mul_comm (b y), ← smul_def],
-  simp only [id.smul_eq_mul, ring_hom.id_apply, map_apply, transpose_apply, linear_map.map_smulₛₗ,
+  simv only [id.smul_eq_mul, ring_hom.id_apply, map_apply, transpose_apply, linear_map.map_smulₛₗ,
     trace_form_apply, algebra.smul_mul_assoc],
   rw [mul_comm (b x), ← smul_def],
   ring_nf,
-  simp [mul_comm],
+  simv [mul_comm],
 end
 
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
@@ -439,7 +439,7 @@ begin
   ext i,
   rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
     matrix.mul_apply, trace_matrix_def],
-  simp only [col_apply, trace_form_apply],
+  simv only [col_apply, trace_form_apply],
   conv_lhs
   { congr, skip, funext,
     rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, of_apply, ← linear_map.map_smul] },
@@ -473,7 +473,7 @@ variable {A}
 lemma embeddings_matrix_reindex_eq_vandermonde (pb : power_basis A B)
   (e : fin pb.dim ≃ (B →ₐ[A] C)) :
   embeddings_matrix_reindex A C pb.basis e = (vandermonde (λ i, e i pb.gen))ᵀ :=
-by { ext i j, simp [embeddings_matrix_reindex, embeddings_matrix] }
+by { ext i j, simv [embeddings_matrix_reindex, embeddings_matrix] }
 
 section field
 
@@ -485,7 +485,7 @@ variables (b : κ → L) (pb : power_basis K L)
 lemma trace_matrix_eq_embeddings_matrix_mul_trans :
   (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix K E b) ⬝ (embeddings_matrix K E b)ᵀ :=
-by { ext i j, simp [trace_eq_sum_embeddings, embeddings_matrix, matrix.mul_apply] }
+by { ext i j, simv [trace_eq_sum_embeddings, embeddings_matrix, matrix.mul_apply] }
 
 lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
   (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
@@ -513,7 +513,7 @@ begin
       trace_matrix_eq_embeddings_matrix_reindex_mul_trans K _ _ e,
       embeddings_matrix_reindex_eq_vandermonde, det_mul, det_transpose],
   refine mt mul_self_eq_zero.mp _,
-  { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
+  { simv only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
     intros i _ j hij h,
     exact (finset.mem_Ioi.mp hij).ne' (e.injective $ pb.alg_hom_ext h) },
   { rw [alg_hom.card, pb.finrank] }
@@ -535,8 +535,8 @@ begin
         ((b.to_matrix pb.basis)ᵀ ⬝ b.to_matrix pb.basis).det
         = (pb.basis.to_matrix b ⬝ (b.to_matrix pb.basis ⬝ pb.basis.to_matrix b)ᵀ ⬝
           b.to_matrix pb.basis).det
-        : by simp only [← det_mul, matrix.mul_assoc, matrix.transpose_mul]
-    ... = 1 : by simp only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
+        : by simv only [← det_mul, matrix.mul_assoc, matrix.transpose_mul]
+    ... = 1 : by simv only [basis.to_matrix_mul_to_matrix_flip, matrix.transpose_one,
                             matrix.mul_one, matrix.det_one] },
   simpa only [trace_matrix_of_basis] using det_trace_matrix_ne_zero' pb
 end

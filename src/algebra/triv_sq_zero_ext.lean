@@ -308,8 +308,8 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : mul_one_class (tsz
 
 instance [add_monoid_with_one R] [add_monoid M] : add_monoid_with_one (tsze R M) :=
 { nat_cast := λ n, (n, 0),
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  nat_cast_zero := by simv [nat.cast],
+  nat_cast_succ := λ _, by ext; simv [nat.cast],
   .. triv_sq_zero_ext.add_monoid,
   .. triv_sq_zero_ext.has_one }
 
@@ -412,7 +412,7 @@ alg_hom.of_linear_map
   (show algebra_map R _ 1 + f (0 : M) = 1, by rw [map_zero, map_one, add_zero])
   (triv_sq_zero_ext.ind $ λ r₁ m₁, triv_sq_zero_ext.ind $ λ r₂ m₂, begin
     dsimp,
-    simp only [add_zero, zero_add, add_mul, mul_add, smul_mul_smul, hf, smul_zero],
+    simv only [add_zero, zero_add, add_mul, mul_add, smul_mul_smul, hf, smul_zero],
     rw [←ring_hom.map_mul, linear_map.map_add, ←algebra.commutes _ (f _), ←algebra.smul_def,
         ←algebra.smul_def, add_right_comm, add_assoc, linear_map.map_smul, linear_map.map_smul],
   end)

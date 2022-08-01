@@ -64,7 +64,7 @@ lemma cont_diff_on_log {n : with_top ℕ} : cont_diff_on ℝ n log {0}ᶜ :=
 begin
   suffices : cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
   refine (cont_diff_on_top_iff_deriv_of_open is_open_compl_singleton).2 _,
-  simp [differentiable_on_log, cont_diff_on_inv]
+  simv [differentiable_on_log, cont_diff_on_inv]
 end
 
 lemma cont_diff_at_log {n : with_top ℕ} : cont_diff_at ℝ n log x ↔ x ≠ 0 :=
@@ -183,7 +183,7 @@ lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
 begin
   have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[≠] 0) (𝓝 t),
   { simpa [has_deriv_at_iff_tendsto_slope, slope_fun_def] using
-      (((has_deriv_at_id (0 : ℝ)).const_mul t).const_add 1).log (by simp) },
+      (((has_deriv_at_id (0 : ℝ)).const_mul t).const_add 1).log (by simv) },
   have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[≠] 0) :=
     tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
   simpa only [(∘), inv_inv] using h₁.comp h₂
@@ -220,7 +220,7 @@ begin
         have : |y| ≤ |x| := abs_le.2 hy,
         have : 0 < 1 - |x|, by linarith,
         have : 1 - |x| ≤ |1 - y| := le_trans (by linarith [hy.2]) (le_abs_self _),
-        simp only [← pow_abs, abs_div, abs_neg],
+        simv only [← pow_abs, abs_div, abs_neg],
         apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left]
       end },
   -- third step: apply the mean value inequality
@@ -228,10 +228,10 @@ begin
   { have : ∀ y ∈ Icc (- |x|) (|x|), differentiable_at ℝ F y,
     { assume y hy,
       have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
-      simp [F, this] },
+      simv [F, this] },
     apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
-    { simp },
-    { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
+    { simv },
+    { simv [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
   -- fourth step: conclude by massaging the inequality of the third step
   simpa [F, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using C
 end
@@ -243,11 +243,11 @@ begin
   rw summable.has_sum_iff_tendsto_nat,
   show tendsto (λ (n : ℕ), ∑ (i : ℕ) in range n, x ^ (i + 1) / (i + 1)) at_top (𝓝 (-log (1 - x))),
   { rw [tendsto_iff_norm_tendsto_zero],
-    simp only [norm_eq_abs, sub_neg_eq_add],
+    simv only [norm_eq_abs, sub_neg_eq_add],
     refine squeeze_zero (λ n, abs_nonneg _) (abs_log_sub_add_sum_range_le h) _,
     suffices : tendsto (λ (t : ℕ), |x| ^ (t + 1) / (1 - |x|)) at_top
       (𝓝 (|x| * 0 / (1 - |x|))), by simpa,
-    simp only [pow_succ],
+    simv only [pow_succ],
     refine (tendsto_const_nhds.mul _).div_const,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),

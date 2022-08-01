@@ -46,7 +46,7 @@ def trace_aux :
   (M →ₗ[R] M) →ₗ[R] R :=
 (matrix.trace_linear_map ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
 
--- Can't be `simp` because it would cause a loop.
+-- Can't be `simv` because it would cause a loop.
 lemma trace_aux_def (b : basis ι R M) (f : M →ₗ[R] M) :
   trace_aux R b f = matrix.trace (linear_map.to_matrix b b f) :=
 rfl
@@ -104,7 +104,7 @@ else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 @[simp]
 theorem trace_conj (g : M →ₗ[R] M) (f : (M →ₗ[R] M)ˣ) :
   trace R M (↑f * g * ↑f⁻¹) = trace R M g :=
-by { rw trace_mul_comm, simp }
+by { rw trace_mul_comm, simv }
 
 end
 
@@ -122,12 +122,12 @@ begin
   classical,
   apply basis.ext (basis.tensor_product (basis.dual_basis b) b),
   rintros ⟨i, j⟩,
-  simp only [function.comp_app, basis.tensor_product_apply, basis.coe_dual_basis, coe_comp],
+  simv only [function.comp_app, basis.tensor_product_apply, basis.coe_dual_basis, coe_comp],
   rw [trace_eq_matrix_trace R b, to_matrix_dual_tensor_hom],
   by_cases hij : i = j,
-  { rw [hij], simp },
+  { rw [hij], simv },
   rw matrix.std_basis_matrix.trace_zero j i (1:R) hij,
-  simp [finsupp.single_eq_pi_single, hij],
+  simv [finsupp.single_eq_pi_single, hij],
 end
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
@@ -135,7 +135,7 @@ end
 lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
   (linear_map.trace R M) =
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
-by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis b]
+by simv [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis b]
 
 variables (R M N)
 variables [module.free R M] [module.finite R M] [module.free R N] [module.finite R N] [nontrivial R]
@@ -164,7 +164,7 @@ trace_eq_contract_of_basis' (module.free.choose_basis R M)
 begin
   have b := module.free.choose_basis R M,
   rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
-  simp,
+  simv,
 end
 
 /-- The trace of the identity endomorphism is the dimension of the free module -/
@@ -176,7 +176,7 @@ begin
   let e := dual_tensor_hom_equiv R M M,
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
-  ext f m, simp [e],
+  ext f m, simv [e],
 end
 
 theorem trace_prod_map :
@@ -187,13 +187,13 @@ begin
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
   ext,
-  { simp only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
+  { simv only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
   to_fun_eq_coe, tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp,
   linear_equiv.coe_to_linear_map, coe_inl, function.comp_app, linear_equiv.prod_apply,
   dual_tensor_hom_equiv_of_basis_apply, map_zero, prod_map_apply, coprod_apply, id_coe, id.def,
   add_zero, prod_map_linear_apply, dual_tensor_hom_prod_map_zero, trace_eq_contract_apply,
   contract_left_apply, fst_apply] },
-  { simp only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
+  { simv only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
   to_fun_eq_coe, tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp,
   linear_equiv.coe_to_linear_map, coe_inr, function.comp_app, linear_equiv.prod_apply,
   dual_tensor_hom_equiv_of_basis_apply, map_zero, prod_map_apply, coprod_apply, id_coe, id.def,
@@ -207,7 +207,7 @@ theorem trace_prod_map' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
   trace R (M × N) (prod_map f g) = trace R M f + trace R N g :=
 begin
   have h := ext_iff.1 (trace_prod_map R M N) (f, g),
-  simp only [coe_comp, function.comp_app, prod_map_apply, coprod_apply, id_coe, id.def,
+  simv only [coe_comp, function.comp_app, prod_map_apply, coprod_apply, id_coe, id.def,
   prod_map_linear_apply] at h, exact h,
 end
 
@@ -223,7 +223,7 @@ begin
     (show surjective (dual_tensor_hom R M M), from (dual_tensor_hom_equiv R M M).surjective)
     (show surjective (dual_tensor_hom R N N), from (dual_tensor_hom_equiv R N N).surjective)).1,
   ext f m g n,
-  simp only [algebra_tensor_module.curry_apply, to_fun_eq_coe, tensor_product.curry_apply,
+  simv only [algebra_tensor_module.curry_apply, to_fun_eq_coe, tensor_product.curry_apply,
   coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, map_bilinear_apply,
   trace_eq_contract_apply, contract_left_apply, lsmul_apply, algebra.id.smul_eq_mul,
   map_dual_tensor_hom, dual_distrib_apply],
@@ -236,7 +236,7 @@ begin
     (show surjective (dual_tensor_hom R N M), from (dual_tensor_hom_equiv R N M).surjective)
     (show surjective (dual_tensor_hom R M N), from (dual_tensor_hom_equiv R M N).surjective)).1,
   ext g m f n,
-  simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
+  simv only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
       linear_equiv.coe_to_linear_map, tensor_product.curry_apply, coe_restrict_scalars_eq_coe,
       compl₁₂_apply, compr₂_apply, flip_apply, llcomp_apply', comp_dual_tensor_hom, map_smul,
       trace_eq_contract_apply, contract_left_apply, smul_eq_mul, mul_comm],
@@ -252,7 +252,7 @@ theorem trace_tensor_product' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
   trace R (M ⊗ N) (map f g) = trace R M f * trace R N g :=
 begin
   have h := ext_iff.1 (ext_iff.1 (trace_tensor_product R M N) f) g,
-  simp only [compr₂_apply, map_bilinear_apply, compl₁₂_apply, lsmul_apply,
+  simv only [compr₂_apply, map_bilinear_apply, compl₁₂_apply, lsmul_apply,
     algebra.id.smul_eq_mul] at h, exact h,
 end
 
@@ -260,7 +260,7 @@ theorem trace_comp_comm' (f : M →ₗ[R] N) (g : N →ₗ[R] M) :
   trace R M (g ∘ₗ f) = trace R N (f ∘ₗ g) :=
 begin
   have h := ext_iff.1 (ext_iff.1 (trace_comp_comm R M N) g) f,
-  simp only [llcomp_apply', compr₂_apply, flip_apply] at h,
+  simv only [llcomp_apply', compr₂_apply, flip_apply] at h,
   exact h,
 end
 

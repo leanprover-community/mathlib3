@@ -76,18 +76,18 @@ open_locale list.func -- get notation for list.func.set
 @[simp] lemma val_canonize {v : nat → int} :
   ∀ {t : preterm}, (canonize t).val v = t.val v
 | (& i) :=
-  by simp only [preterm.val, add_zero, term.val, canonize, coeffs.val_nil]
+  by simv only [preterm.val, add_zero, term.val, canonize, coeffs.val_nil]
 | (i ** n)   :=
   begin
-    simp only [coeffs.val_set, canonize,
+    simv only [coeffs.val_set, canonize,
       preterm.val, zero_add, term.val],
     split_ifs with h1 h2,
-    { simp only [one_mul, h1] },
-    { simp only [neg_mul, one_mul, h2] },
+    { simv only [one_mul, h1] },
+    { simv only [neg_mul, one_mul, h2] },
     { rw mul_comm }
   end
 | (t +* s) :=
-  by simp only [canonize, val_canonize,
+  by simv only [canonize, val_canonize,
      term.val_add, preterm.val]
 
 end int

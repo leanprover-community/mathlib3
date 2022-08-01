@@ -82,7 +82,7 @@ begin
   have A : ∀ (a : E), a ∈ t → (∀ x, ⟪a, s x⟫ = (0 : 𝕜)) → a = 0,
   { assume a hat ha,
     contrapose! ha,
-    have a_pos : 0 < ∥a∥, by simp only [ha, norm_pos_iff, ne.def, not_false_iff],
+    have a_pos : 0 < ∥a∥, by simv only [ha, norm_pos_iff, ne.def, not_false_iff],
     have a_mem : a ∈ closure d := hd hat,
     obtain ⟨x, hx⟩ : ∃ (x : d), dist a x < ∥a∥ / 2,
     { rcases metric.mem_closure_iff.1 a_mem (∥a∥/2) (half_pos a_pos) with ⟨x, h'x, hx⟩,
@@ -94,7 +94,7 @@ begin
       linarith },
     assume h,
     apply lt_irrefl (∥s x x∥),
-    calc ∥s x x∥ = ∥s x (x - a)∥ : by simp only [h, sub_zero, continuous_linear_map.map_sub]
+    calc ∥s x x∥ = ∥s x (x - a)∥ : by simv only [h, sub_zero, continuous_linear_map.map_sub]
     ... ≤ 1 * ∥(x : E) - a∥ : continuous_linear_map.le_of_op_norm_le _ (hs x).1 _
     ... < ∥a∥ / 2 : by { rw [one_mul], rwa dist_eq_norm' at hx }
     ... < ∥(x : E)∥ : I
@@ -139,7 +139,7 @@ begin
   { have : {a : α | f a < c} = ∅,
     { apply set.eq_empty_iff_forall_not_mem.2 (λ x hx, _),
       exact (lt_irrefl _ (lt_of_lt_of_le hx (h (f x)))).elim },
-    simp [this] },
+    simv [this] },
   by_cases H : ¬ (is_lub (set.Iio c) c),
   { have : c ∈ upper_bounds (set.Iio c) := λ y hy, le_of_lt hy,
     obtain ⟨b, b_up, bc⟩ : ∃ (b : β), b ∈ upper_bounds (set.Iio c) ∧ b < c,
@@ -181,7 +181,7 @@ begin
       (measure_mono (set.inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top μ p),
     have A : ∫⁻ x in s, g x ∂μ + ε * μ s ≤ ∫⁻ x in s, g x ∂μ + 0 := calc
       ∫⁻ x in s, g x ∂μ + ε * μ s = ∫⁻ x in s, g x ∂μ + ∫⁻ x in s, ε ∂μ :
-        by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
+        by simv only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
       ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add_right _ measurable_const).symm
       ... ≤ ∫⁻ x in s, f x ∂μ : set_lintegral_mono (hg.add measurable_const) hf (λ x hx, hx.1.1)
       ... ≤ ∫⁻ x in s, g x ∂μ + 0 : by { rw [add_zero], exact h s s_meas s_lt_top },
@@ -190,8 +190,8 @@ begin
       calc ∫⁻ x in s, g x ∂μ ≤ ∫⁻ x in s, N ∂μ :
         set_lintegral_mono hg measurable_const (λ x hx, hx.1.2)
       ... = N * μ s :
-        by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
-      ... < ∞ : by simp only [lt_top_iff_ne_top, s_lt_top.ne, and_false,
+        by simv only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
+      ... < ∞ : by simv only [lt_top_iff_ne_top, s_lt_top.ne, and_false,
         ennreal.coe_ne_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, false_and, or_self] },
     have : (ε : ℝ≥0∞) * μ s ≤ 0 := ennreal.le_of_add_le_add_left B A,
     simpa only [ennreal.coe_eq_zero, nonpos_iff_eq_zero, mul_eq_zero, εpos.ne', false_or] },
@@ -201,15 +201,15 @@ begin
   have μs : ∀ n, μ (s n) = 0 := λ n, A _ _ _ (u_pos n),
   have B : {x | f x ≤ g x}ᶜ ⊆ ⋃ n, s n,
   { assume x hx,
-    simp at hx,
+    simv at hx,
     have L1 : ∀ᶠ n in at_top, g x + u n ≤ f x,
     { have : tendsto (λ n, g x + u n) at_top (𝓝 (g x + (0 : ℝ≥0))) :=
         tendsto_const_nhds.add (ennreal.tendsto_coe.2 u_lim),
-      simp at this,
+      simv at this,
       exact eventually_le_of_tendsto_lt hx this },
     have L2 : ∀ᶠ (n : ℕ) in (at_top : filter ℕ), g x ≤ (n : ℝ≥0),
     { have : tendsto (λ (n : ℕ), ((n : ℝ≥0) : ℝ≥0∞)) at_top (𝓝 ∞),
-      { simp only [ennreal.coe_nat],
+      { simv only [ennreal.coe_nat],
         exact ennreal.tendsto_nat_nhds_top },
       exact eventually_ge_of_tendsto_gt (hx.trans_le le_top) this },
     apply set.mem_Union.2,
@@ -217,7 +217,7 @@ begin
   refine le_antisymm _ bot_le,
   calc μ {x : α | (λ (x : α), f x ≤ g x) x}ᶜ ≤ μ (⋃ n, s n) : measure_mono B
   ... ≤ ∑' n, μ (s n) : measure_Union_le _
-  ... = 0 : by simp only [μs, tsum_zero]
+  ... = 0 : by simv only [μs, tsum_zero]
 end
 
 lemma ae_eq_of_forall_set_lintegral_eq_of_sigma_finite [sigma_finite μ]

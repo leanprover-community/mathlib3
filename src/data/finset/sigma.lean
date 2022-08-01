@@ -40,22 +40,22 @@ variables {s s₁ s₂ t t₁ t₂}
 
 @[simp] lemma mem_sigma {a : Σ i, α i} : a ∈ s.sigma t ↔ a.1 ∈ s ∧ a.2 ∈ t a.1 := mem_sigma
 
-@[simp, norm_cast] lemma coe_sigma (s : finset ι) (t : Π i, finset (α i)) :
+@[simv, norm_cast] lemma coe_sigma (s : finset ι) (t : Π i, finset (α i)) :
   (s.sigma t : set (Σ i, α i)) = (s : set ι).sigma (λ i, t i) :=
 set.ext $ λ _, mem_sigma
 
 @[simp] lemma sigma_nonempty : (s.sigma t).nonempty ↔ ∃ i ∈ s, (t i).nonempty :=
-by simp [finset.nonempty]
+by simv [finset.nonempty]
 
 @[simp] lemma sigma_eq_empty : s.sigma t = ∅ ↔ ∀ i ∈ s, t i = ∅ :=
-by simp only [← not_nonempty_iff_eq_empty, sigma_nonempty, not_exists]
+by simv only [← not_nonempty_iff_eq_empty, sigma_nonempty, not_exists]
 
 @[mono] lemma sigma_mono (hs : s₁ ⊆ s₂) (ht : ∀ i, t₁ i ⊆ t₂ i) : s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
 λ ⟨i, a⟩ h, let ⟨hi, ha⟩ := mem_sigma.1 h in mem_sigma.2 ⟨hs hi, ht i ha⟩
 
 lemma sigma_eq_bUnion [decidable_eq (Σ i, α i)] (s : finset ι) (t : Π i, finset (α i)) :
   s.sigma t = s.bUnion (λ i, (t i).map $ embedding.sigma_mk i) :=
-by { ext ⟨x, y⟩, simp [and.left_comm] }
+by { ext ⟨x, y⟩, simv [and.left_comm] }
 
 variables (s t) (f : (Σ i, α i) → β)
 
@@ -95,7 +95,7 @@ begin
       exact ⟨rfl, rfl, hx⟩ },
     { rintro ⟨⟨⟩, ⟨⟩, hx⟩,
       rw [sigma_lift, dif_pos rfl, mem_map],
-      exact ⟨_, hx, by simp [sigma.ext_iff]⟩ } },
+      exact ⟨_, hx, by simv [sigma.ext_iff]⟩ } },
   { rw [sigma_lift, dif_neg h],
     refine iff_of_false (not_mem_empty _) _,
     rintro ⟨⟨⟩, ⟨⟩, _⟩,

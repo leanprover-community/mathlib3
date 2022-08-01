@@ -85,7 +85,7 @@ begin
     right_inv := λ x, _,
     .. to_lin b b A };
   rw ← linear_map.comp_apply;
-  simp only [← matrix.to_lin_mul b b b,
+  simv only [← matrix.to_lin_mul b b b,
              matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
              to_lin_one, linear_map.id_apply]
 end
@@ -178,7 +178,7 @@ theorem nondegenerate_iff_det_ne_zero {A : Type*} [decidable_eq n] [comm_ring A]
   nondegenerate M ↔ M.det ≠ 0 :=
 begin
   refine iff.trans _ (not_iff_not.mpr exists_vec_mul_eq_zero_iff),
-  simp only [not_exists],
+  simv only [not_exists],
   split,
   { intros hM v hv hMv,
     obtain ⟨w, hwMv⟩ := hM.exists_not_ortho_of_ne_zero hv,

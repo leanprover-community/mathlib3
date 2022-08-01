@@ -48,8 +48,8 @@ def fintype.group_with_zero_of_cancel (M : Type*) [cancel_monoid_with_zero M] [d
   [fintype M] [nontrivial M] : group_with_zero M :=
 { inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective_of_fintype₀ h) 1,
   mul_inv_cancel := λ a ha,
-    by { simp [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
-  inv_zero := by { simp [has_inv.inv, dif_pos rfl] },
+    by { simv [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
+  inv_zero := by { simv [has_inv.inv, dif_pos rfl] },
   ..‹nontrivial M›,
   ..‹cancel_monoid_with_zero M› }
 
@@ -123,8 +123,8 @@ instance subgroup_units_cyclic : is_cyclic S :=
 begin
   refine is_cyclic_of_subgroup_is_domain ⟨(coe : S → R), _, _⟩
     (units.ext.comp subtype.val_injective),
-  { simp },
-  { intros, simp },
+  { simv },
+  { intros, simv },
 end
 
 end
@@ -136,11 +136,11 @@ begin
   rcases hx with ⟨x, rfl⟩,
   rcases hy with ⟨y, rfl⟩,
   refine card_congr (λ g _, g * x⁻¹ * y) _ _ (λ g hg, ⟨g * y⁻¹ * x, _⟩),
-  { simp only [mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
+  { simv only [mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
       eq_self_iff_true, monoid_hom.map_mul_inv, and_self, forall_true_iff] {contextual := tt} },
-  { simp only [mul_left_inj, imp_self, forall_2_true_iff], },
-  { simp only [true_and, mem_filter, mem_univ] at hg,
-    simp only [hg, mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
+  { simv only [mul_left_inj, imp_self, forall_2_true_iff], },
+  { simv only [true_and, mem_filter, mem_univ] at hg,
+    simv only [hg, mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
       eq_self_iff_true, exists_prop_of_true, monoid_hom.map_mul_inv, and_self,
       mul_inv_cancel_right, inv_mul_cancel_right], }
 end
@@ -171,7 +171,7 @@ begin
   ... = ∑ u : Rˣ in univ.image f.to_hom_units, c • u :
     sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
   ... = ∑ b : monoid_hom.range f.to_hom_units, c • ↑b : finset.sum_subtype _
-      (by simp ) _
+      (by simv ) _
   ... = c • ∑ b : monoid_hom.range f.to_hom_units, (b : R) : smul_sum.symm
   ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
   ... = 0 : smul_zero _,
@@ -185,8 +185,8 @@ begin
   calc ∑ b : monoid_hom.range f.to_hom_units, (b : R)
       = ∑ n in range (order_of x), x ^ n :
     eq.symm $ sum_bij (λ n _, x ^ n)
-      (by simp only [mem_univ, forall_true_iff])
-      (by simp only [implies_true_iff, eq_self_iff_true, subgroup.coe_pow, units.coe_pow, coe_coe])
+      (by simv only [mem_univ, forall_true_iff])
+      (by simv only [implies_true_iff, eq_self_iff_true, subgroup.coe_pow, units.coe_pow, coe_coe])
       (λ m n hm hn, pow_injective_of_lt_order_of _
         (by simpa only [mem_range] using hm)
         (by simpa only [mem_range] using hn))
@@ -195,7 +195,7 @@ begin
   ... = 0 : _,
   rw [← mul_left_inj' hx1, zero_mul, geom_sum_mul, coe_coe],
   norm_cast,
-  simp [pow_order_of_eq_one],
+  simv [pow_order_of_eq_one],
 end
 
 /-- In an integral domain, a sum indexed by a homomorphism from a finite group is zero,
@@ -205,7 +205,7 @@ lemma sum_hom_units (f : G →* R) [decidable (f = 1)] :
   ∑ g : G, f g = if f = 1 then fintype.card G else 0 :=
 begin
   split_ifs with h h,
-  { simp [h, card_univ] },
+  { simv [h, card_univ] },
   { exact sum_hom_units_eq_zero f h }
 end
 

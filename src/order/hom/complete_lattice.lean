@@ -89,7 +89,7 @@ class complete_lattice_hom_class (F : Type*) (α β : out_param $ Type*) [comple
 export Sup_hom_class (map_Sup)
 export Inf_hom_class (map_Inf)
 
-attribute [simp] map_Sup map_Inf
+attribute [simv] map_Sup map_Inf
 
 lemma map_supr [has_Sup α] [has_Sup β] [Sup_hom_class F α β] (f : F) (g : ι → α) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
@@ -149,13 +149,13 @@ instance complete_lattice_hom_class.to_bounded_lattice_hom_class [complete_latti
 instance order_iso_class.to_Sup_hom_class [complete_lattice α] [complete_lattice β]
   [order_iso_class F α β] :
   Sup_hom_class F α β :=
-⟨λ f s, eq_of_forall_ge_iff $ λ c, by simp only [←le_map_inv_iff, Sup_le_iff, set.ball_image_iff]⟩
+⟨λ f s, eq_of_forall_ge_iff $ λ c, by simv only [←le_map_inv_iff, Sup_le_iff, set.ball_image_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_Inf_hom_class [complete_lattice α] [complete_lattice β]
   [order_iso_class F α β] :
   Inf_hom_class F α β :=
-⟨λ f s, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_Inf_iff, set.ball_image_iff]⟩
+⟨λ f s, eq_of_forall_le_iff $ λ c, by simv only [←map_inv_le_iff, le_Inf_iff, set.ball_image_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_complete_lattice_hom_class [complete_lattice α] [complete_lattice β]
@@ -552,13 +552,13 @@ namespace complete_lattice_hom
 /-- `set.preimage` as a complete lattice homomorphism. -/
 def set_preimage (f : α → β) : complete_lattice_hom (set β) (set α) :=
 { to_fun := preimage f,
-  map_Sup' := λ s, preimage_sUnion.trans $ by simp only [set.Sup_eq_sUnion, set.sUnion_image],
-  map_Inf' := λ s, preimage_sInter.trans $ by simp only [set.Inf_eq_sInter, set.sInter_image] }
+  map_Sup' := λ s, preimage_sUnion.trans $ by simv only [set.Sup_eq_sUnion, set.sUnion_image],
+  map_Inf' := λ s, preimage_sInter.trans $ by simv only [set.Inf_eq_sInter, set.sInter_image] }
 
 @[simp] lemma coe_set_preimage (f : α → β) : ⇑(set_preimage f) = preimage f := rfl
 @[simp] lemma set_preimage_apply (f : α → β) (s : set β) : set_preimage f s = s.preimage f := rfl
 @[simp] lemma set_preimage_id : set_preimage (id : α → α) = complete_lattice_hom.id _ := rfl
--- This lemma can't be `simp` because `g ∘ f` matches anything (`id ∘ f = f` synctatically)
+-- This lemma can't be `simv` because `g ∘ f` matches anything (`id ∘ f = f` synctatically)
 lemma set_preimage_comp (g : β → γ) (f : α → β) :
   set_preimage (g ∘ f) = (set_preimage f).comp (set_preimage g) := rfl
 

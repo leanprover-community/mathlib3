@@ -171,7 +171,7 @@ lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_
 
 end rat
 
-local attribute [simp]
+local attribute [simv]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel
 
@@ -197,7 +197,7 @@ lemma neg_div (a b : K) : (-b) / a = - (b / a) :=
 by rw [neg_eq_neg_one_mul, mul_div_assoc, ← neg_eq_neg_one_mul]
 
 @[field_simps] lemma neg_div' (a b : K) : - (b / a) = (-b) / a :=
-by simp [neg_div]
+by simv [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
@@ -268,12 +268,12 @@ variable [field K]
 instance field.to_semifield : semifield K :=
 { .. ‹field K›, .. (infer_instance : semiring K) }
 
-local attribute [simp] mul_assoc mul_comm mul_left_comm
+local attribute [simv] mul_assoc mul_comm mul_left_comm
 
 @[field_simps] lemma div_sub_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) - (c / d) = ((a * d) - (b * c)) / (b * d) :=
 begin
-  simp [sub_eq_add_neg],
+  simv [sub_eq_add_neg],
   rw [neg_eq_neg_one_mul, ← mul_div_assoc, div_add_div _ _ hb hd,
       ← mul_assoc, mul_comm b, mul_assoc, ← neg_eq_neg_one_mul]
 end

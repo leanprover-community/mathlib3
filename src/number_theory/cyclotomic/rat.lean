@@ -92,7 +92,7 @@ begin
   replace H := subalgebra.smul_mem _ H u.inv,
   rw [← smul_assoc, ← smul_mul_assoc, units.inv_eq_coe_inv, coe_coe, zsmul_eq_mul,
     ← int.cast_mul, units.inv_mul, int.cast_one, one_mul,
-    show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simp [smul_def]] at H,
+    show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simv [smul_def]] at H,
   unfreezingI { cases k },
   { haveI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
     have : x ∈ (⊥ : subalgebra ℚ K),
@@ -109,14 +109,14 @@ begin
         (cyclotomic.irreducible_rat (p ^ _).pos),
       rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
       rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
-        show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
+        show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simv, ← map_comp] at h₂,
       haveI : char_zero ℚ := ordered_semiring.to_char_zero,
       rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
         ((algebra_map ℤ ℚ).injective_int) h₂],
       exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
     refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
       (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
-    simp only [set.singleton_subset_iff, set_like.mem_coe],
+    simv only [set.singleton_subset_iff, set_like.mem_coe],
     exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) }
 end
 
@@ -146,9 +146,9 @@ begin
   { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,
     convert adjoin_mono _ y.2,
-    { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
+    { simv only [eq_iff_true_of_subsingleton] },
+    { simv only [eq_iff_true_of_subsingleton] },
+    { simv only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
       exact hζ.pow_eq_one } },
   { haveI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
     { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,

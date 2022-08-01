@@ -39,7 +39,7 @@ class normed_star_group (E : Type*) [seminormed_add_comm_group E] [star_add_mono
 (norm_star : ∀ x : E, ∥x⋆∥ = ∥x∥)
 
 export normed_star_group (norm_star)
-attribute [simp] norm_star
+attribute [simv] norm_star
 
 variables {𝕜 E α : Type*}
 
@@ -75,7 +75,7 @@ class cstar_ring (E : Type*) [non_unital_normed_ring E] [star_ring E] : Prop :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
 instance : cstar_ring ℝ :=
-{ norm_star_mul_self := λ x, by simp only [star, id.def, norm_mul] }
+{ norm_star_mul_self := λ x, by simv only [star, id.def, norm_mul] }
 
 namespace cstar_ring
 section non_unital
@@ -88,7 +88,7 @@ instance to_normed_star_group : normed_star_group E :=
 ⟨begin
   intro x,
   by_cases htriv : x = 0,
-  { simp only [htriv, star_zero] },
+  { simv only [htriv, star_zero] },
   { have hnt : 0 < ∥x∥ := norm_pos_iff.mpr htriv,
     have hnt_star : 0 < ∥x⋆∥ :=
       norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_equiv).mpr htriv),
@@ -102,7 +102,7 @@ instance to_normed_star_group : normed_star_group E :=
 end⟩
 
 lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
-by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
+by { nth_rewrite 0 [←star_star x], simv only [norm_star_mul_self, norm_star] }
 
 lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
@@ -151,7 +151,7 @@ lemma norm_mem_unitary_mul {U : E} (A : E) (hU : U ∈ unitary E) : ∥U * A∥ 
 norm_coe_unitary_mul ⟨U, hU⟩ A
 
 @[simp] lemma norm_mul_coe_unitary (A : E) (U : unitary E) : ∥A * U∥ = ∥A∥ :=
-calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simp only [star_star, star_mul]
+calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simv only [star_star, star_mul]
   ...  = ∥(U : E)⋆ * A⋆∥    : by rw [norm_star]
   ...  = ∥A⋆∥               : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
   ...  = ∥A∥                : norm_star _
@@ -166,7 +166,7 @@ lemma nnnorm_pow_two_pow_of_self_adjoint [normed_ring E] [star_ring E] [cstar_ri
   {x : E} (hx : x ∈ self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
 begin
   induction n with k hk,
-  { simp only [pow_zero, pow_one] },
+  { simv only [pow_zero, pow_one] },
   { rw [pow_succ, pow_mul', sq],
     nth_rewrite 0 ←(self_adjoint.mem_iff.mp hx),
     rw [←star_pow, cstar_ring.nnnorm_star_mul_self, ←sq, hk, pow_mul'] },

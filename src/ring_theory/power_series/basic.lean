@@ -158,8 +158,8 @@ lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
 
 instance : add_monoid_with_one (mv_power_series σ R) :=
 { nat_cast := λ n, monomial R 0 n,
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := by simp [nat.cast, monomial_zero_one],
+  nat_cast_zero := by simv [nat.cast],
+  nat_cast_succ := by simv [nat.cast, monomial_zero_one],
   one := 1, .. mv_power_series.add_monoid }
 
 instance : has_mul (mv_power_series σ R) :=
@@ -169,10 +169,10 @@ lemma coeff_mul : coeff R n (φ * ψ) =
   ∑ p in finsupp.antidiagonal n, coeff R p.1 φ * coeff R p.2 ψ := rfl
 
 protected lemma zero_mul : (0 : mv_power_series σ R) * φ = 0 :=
-ext $ λ n, by simp [coeff_mul]
+ext $ λ n, by simv [coeff_mul]
 
 protected lemma mul_zero : φ * 0 = 0 :=
-ext $ λ n, by simp [coeff_mul]
+ext $ λ n, by simv [coeff_mul]
 
 lemma coeff_monomial_mul (a : R) :
   coeff R m (monomial R n a * φ) = if n ≤ m then a * coeff R (m - n) φ else 0 :=
@@ -182,7 +182,7 @@ begin
     λ p _ hp, eq_of_coeff_monomial_ne_zero (left_ne_zero_of_mul hp),
   rw [coeff_mul, ← finset.sum_filter_of_ne this, antidiagonal_filter_fst_eq,
     finset.sum_ite_index],
-  simp only [finset.sum_singleton, coeff_monomial_same, finset.sum_empty]
+  simv only [finset.sum_singleton, coeff_monomial_same, finset.sum_empty]
 end
 
 lemma coeff_mul_monomial (a : R) :
@@ -193,7 +193,7 @@ begin
     λ p _ hp, eq_of_coeff_monomial_ne_zero (right_ne_zero_of_mul hp),
   rw [coeff_mul, ← finset.sum_filter_of_ne this, antidiagonal_filter_snd_eq,
     finset.sum_ite_index],
-  simp only [finset.sum_singleton, coeff_monomial_same, finset.sum_empty]
+  simv only [finset.sum_singleton, coeff_monomial_same, finset.sum_empty]
 end
 
 lemma coeff_add_monomial_mul (a : R) :
@@ -218,28 +218,28 @@ ext $ λ n, by simpa using coeff_add_mul_monomial n 0 φ 1
 
 protected lemma mul_add (φ₁ φ₂ φ₃ : mv_power_series σ R) :
   φ₁ * (φ₂ + φ₃) = φ₁ * φ₂ + φ₁ * φ₃ :=
-ext $ λ n, by simp only [coeff_mul, mul_add, finset.sum_add_distrib, linear_map.map_add]
+ext $ λ n, by simv only [coeff_mul, mul_add, finset.sum_add_distrib, linear_map.map_add]
 
 protected lemma add_mul (φ₁ φ₂ φ₃ : mv_power_series σ R) :
   (φ₁ + φ₂) * φ₃ = φ₁ * φ₃ + φ₂ * φ₃ :=
-ext $ λ n, by simp only [coeff_mul, add_mul, finset.sum_add_distrib, linear_map.map_add]
+ext $ λ n, by simv only [coeff_mul, add_mul, finset.sum_add_distrib, linear_map.map_add]
 
 protected lemma mul_assoc (φ₁ φ₂ φ₃ : mv_power_series σ R) :
   (φ₁ * φ₂) * φ₃ = φ₁ * (φ₂ * φ₃) :=
 begin
   ext1 n,
-  simp only [coeff_mul, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
+  simv only [coeff_mul, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
   refine finset.sum_bij (λ p _, ⟨(p.2.1, p.2.2 + p.1.2), (p.2.2, p.1.2)⟩) _ _ _ _;
-    simp only [mem_antidiagonal, finset.mem_sigma, heq_iff_eq, prod.mk.inj_iff, and_imp,
+    simv only [mem_antidiagonal, finset.mem_sigma, heq_iff_eq, prod.mk.inj_iff, and_imp,
       exists_prop],
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩, dsimp only, rintro rfl rfl,
-    simp [add_assoc] },
+    simv [add_assoc] },
   { rintros ⟨⟨a, b⟩, ⟨c, d⟩⟩, dsimp only, rintro rfl rfl,
     apply mul_assoc },
   { rintros ⟨⟨a, b⟩, ⟨c, d⟩⟩ ⟨⟨i, j⟩, ⟨k, l⟩⟩, dsimp only, rintro rfl rfl - rfl rfl - rfl rfl,
     refl },
   { rintro ⟨⟨i, j⟩, ⟨k, l⟩⟩, dsimp only, rintro rfl rfl,
-    refine ⟨⟨(i + k, l), (i, k)⟩, _, _⟩; simp [add_assoc] }
+    refine ⟨⟨(i + k, l), (i, k)⟩, _, _⟩; simv [add_assoc] }
 end
 
 instance : semiring (mv_power_series σ R) :=
@@ -276,7 +276,7 @@ lemma monomial_mul_monomial (m n : σ →₀ ℕ) (a b : R) :
   monomial R m a * monomial R n b = monomial R (m + n) (a * b) :=
 begin
   ext k,
-  simp only [coeff_mul_monomial, coeff_monomial],
+  simv only [coeff_mul_monomial, coeff_monomial],
   split_ifs with h₁ h₂ h₃ h₃ h₂; try { refl },
   { rw [← h₂, tsub_add_cancel_of_le h₁] at h₃, exact (h₃ rfl).elim },
   { rw [h₃, add_tsub_cancel_right] at h₂, exact (h₂ rfl).elim },
@@ -315,7 +315,7 @@ coeff_monomial _ _ _
 
 lemma coeff_index_single_X [decidable_eq σ] (s t : σ) :
   coeff R (single t 1) (X s : mv_power_series σ R) = if t = s then 1 else 0 :=
-by simp only [coeff_X, single_left_inj one_ne_zero]
+by simv only [coeff_X, single_left_inj one_ne_zero]
 
 @[simp] lemma coeff_index_single_self_X (s : σ) :
   coeff R (single s 1) (X s : mv_power_series σ R) = 1 :=
@@ -350,14 +350,14 @@ lemma coeff_zero_mul_X (φ : mv_power_series σ R) (s : σ) :
   coeff R (0 : σ →₀ ℕ) (φ * X s) = 0 :=
 begin
   have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
-  simp only [X, coeff_mul_monomial, if_neg this]
+  simv only [X, coeff_mul_monomial, if_neg this]
 end
 
 lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
  coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
 begin
   have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
-  simp only [X, coeff_monomial_mul, if_neg this]
+  simv only [X, coeff_monomial_mul, if_neg this]
 end
 
 variables (σ) (R)
@@ -366,7 +366,7 @@ variables (σ) (R)
 def constant_coeff : (mv_power_series σ R) →+* R :=
 { to_fun := coeff R (0 : σ →₀ ℕ),
   map_one' := coeff_zero_one,
-  map_mul' := λ φ ψ, by simp [coeff_mul, support_single_ne_zero],
+  map_mul' := λ φ ψ, by simv [coeff_mul, support_single_ne_zero],
   map_zero' := linear_map.map_zero _,
   .. coeff R (0 : σ →₀ ℕ) }
 
@@ -399,7 +399,7 @@ rfl
 
 lemma smul_eq_C_mul (f : mv_power_series σ R) (a : R) :
   a • f = C σ R a * f :=
-by { ext, simp }
+by { ext, simv }
 
 lemma X_inj [nontrivial R] {s t : σ} : (X s : mv_power_series σ R) = X t ↔ s = t :=
 ⟨begin
@@ -423,9 +423,9 @@ def map : mv_power_series σ R →+* mv_power_series σ S :=
 { to_fun := λ φ n, f $ coeff R n φ,
   map_zero' := ext $ λ n, f.map_zero,
   map_one' := ext $ λ n, show f ((coeff R n) 1) = (coeff S n) 1,
-    by { rw [coeff_one, coeff_one], split_ifs; simp [f.map_one, f.map_zero] },
+    by { rw [coeff_one, coeff_one], split_ifs; simv [f.map_one, f.map_zero] },
   map_add' := λ φ ψ, ext $ λ n,
-    show f ((coeff R n) (φ + ψ)) = f ((coeff R n) φ) + f ((coeff R n) ψ), by simp,
+    show f ((coeff R n) (φ + ψ)) = f ((coeff R n) φ) + f ((coeff R n) ψ), by simv,
   map_mul' := λ φ ψ, ext $ λ n, show f _ = _,
   begin
     rw [coeff_mul, f.map_sum, coeff_mul, finset.sum_congr rfl],
@@ -446,12 +446,12 @@ lemma map_comp : map σ (g.comp f) = (map σ g).comp (map σ f) := rfl
 
 @[simp] lemma map_monomial (n : σ →₀ ℕ) (a : R) :
   map σ f (monomial R n a) = monomial S n (f a) :=
-by { ext m, simp [coeff_monomial, apply_ite f] }
+by { ext m, simv [coeff_monomial, apply_ite f] }
 
 @[simp] lemma map_C (a : R) : map σ f (C σ R a) = C σ S (f a) :=
 map_monomial _ _ _
 
-@[simp] lemma map_X (s : σ) : map σ f (X s) = X s := by simp [mv_power_series.X]
+@[simp] lemma map_X (s : σ) : map σ f (X s) = X s := by simv [mv_power_series.X]
 
 end map
 
@@ -459,8 +459,8 @@ section algebra
 variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 
 instance : algebra R (mv_power_series σ A) :=
-{ commutes' := λ a φ, by { ext n, simp [algebra.commutes] },
-  smul_def' := λ a σ, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
+{ commutes' := λ a φ, by { ext n, simv [algebra.commutes] },
+  smul_def' := λ a σ, by { ext n, simv [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
   .. mv_power_series.module }
 
@@ -470,7 +470,7 @@ theorem algebra_map_apply {r : R} :
   algebra_map R (mv_power_series σ A) r = C σ A (algebra_map R A r) :=
 begin
   change (mv_power_series.map σ (algebra_map R A)).comp (C σ R) r = _,
-  simp,
+  simv,
 end
 
 instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_series σ R)) :=
@@ -478,11 +478,11 @@ instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_serie
   rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
   refine ⟨X default, _⟩,
-  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
+  simv only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
   intros x,
   rw [ext_iff, not_forall],
   refine ⟨finsupp.single default 1, _⟩,
-  simp [algebra_map_apply, coeff_C],
+  simv [algebra_map_apply, coeff_C],
 end⟩⟩
 
 end algebra
@@ -496,28 +496,28 @@ def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
 
 lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
   (trunc_fun n φ).coeff m = if m < n then coeff R m φ else 0 :=
-by simp [trunc_fun, mv_polynomial.coeff_sum]
+by simv [trunc_fun, mv_polynomial.coeff_sum]
 
 variable (R)
 
 /-- The `n`th truncation of a multivariate formal power series to a multivariate polynomial -/
 def trunc : mv_power_series σ R →+ mv_polynomial σ R :=
 { to_fun := trunc_fun n,
-  map_zero' := by { ext, simp [coeff_trunc_fun] },
-  map_add' := by { intros, ext, simp [coeff_trunc_fun, ite_add], split_ifs; refl } }
+  map_zero' := by { ext, simv [coeff_trunc_fun] },
+  map_add' := by { intros, ext, simv [coeff_trunc_fun, ite_add], split_ifs; refl } }
 
 variable {R}
 
 lemma coeff_trunc (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
   (trunc R n φ).coeff m = if m < n then coeff R m φ else 0 :=
-by simp [trunc, coeff_trunc_fun]
+by simv [trunc, coeff_trunc_fun]
 
 @[simp] lemma trunc_one (hnn : n ≠ 0) : trunc R n 1 = 1 :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
   split_ifs with H H' H',
-  { subst m, simp },
+  { subst m, simv },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
     rintro rfl, apply H, exact ne.bot_lt hnn, }
@@ -527,7 +527,7 @@ end
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_C, mv_polynomial.coeff_C],
-  split_ifs with H; refl <|> try {simp * at *},
+  split_ifs with H; refl <|> try {simv * at *},
   exfalso, apply H, subst m, exact ne.bot_lt hnn,
 end
 
@@ -553,7 +553,7 @@ begin
       { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
-          ext t, simp only [add_tsub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
+          ext t, simv only [add_tsub_cancel_left, finsupp.add_apply, finsupp.tsub_apply] },
         { exact zero_mul _ } },
       { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
@@ -565,7 +565,7 @@ begin
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
         { subst t, simpa using tsub_add_cancel_of_le H },
-        { simp [finsupp.single_apply, hst] } } } }
+        { simv [finsupp.single_apply, hst] } } } }
 end
 
 lemma X_dvd_iff {s : σ} {φ : mv_power_series σ R} :
@@ -624,7 +624,7 @@ by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 
 lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : Rˣ) (h : constant_coeff σ R φ = u) :
   φ * inv_of_unit φ u = 1 :=
-ext $ λ n, if H : n = 0 then by { rw H, simp [coeff_mul, support_single_ne_zero, h], }
+ext $ λ n, if H : n = 0 then by { rw H, simv [coeff_mul, support_single_ne_zero, h], }
 else
 begin
   have : ((0 : σ →₀ ℕ), n) ∈ n.antidiagonal,
@@ -644,7 +644,7 @@ begin
   split,
   { intro s, exact nat.zero_le _ },
   { intro H, apply h₁,
-    suffices : i = 0, {simp [this]},
+    suffices : i = 0, {simv [this]},
     ext1 s, exact nat.eq_zero_of_le_zero (H s) }
 end
 
@@ -710,12 +710,12 @@ lemma inv_eq_zero {φ : mv_power_series σ k} :
   φ⁻¹ = 0 ↔ constant_coeff σ k φ = 0 :=
 ⟨λ h, by simpa using congr_arg (constant_coeff σ k) h,
  λ h, ext $ λ n, by { rw coeff_inv, split_ifs;
-  simp only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
+  simv only [h, mv_power_series.coeff_zero, zero_mul, inv_zero, neg_zero] }⟩
 
 @[simp] lemma zero_inv : (0 : mv_power_series σ k)⁻¹ = 0 :=
 by rw [inv_eq_zero, constant_coeff_zero]
 
-@[simp, priority 1100]
+@[simv, priority 1100]
 lemma inv_of_unit_eq (φ : mv_power_series σ k) (h : constant_coeff σ k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ := rfl
 
@@ -738,8 +738,8 @@ by rw [mul_comm, φ.mul_inv_cancel h]
 protected lemma eq_mul_inv_iff_mul_eq {φ₁ φ₂ φ₃ : mv_power_series σ k}
   (h : constant_coeff σ k φ₃ ≠ 0) :
   φ₁ = φ₂ * φ₃⁻¹ ↔ φ₁ * φ₃ = φ₂ :=
-⟨λ k, by simp [k, mul_assoc, mv_power_series.inv_mul_cancel _ h],
- λ k, by simp [← k, mul_assoc, mv_power_series.mul_inv_cancel _ h]⟩
+⟨λ k, by simv [k, mul_assoc, mv_power_series.inv_mul_cancel _ h],
+ λ k, by simv [← k, mul_assoc, mv_power_series.mul_inv_cancel _ h]⟩
 
 protected lemma eq_inv_iff_mul_eq_one {φ ψ : mv_power_series σ k} (h : constant_coeff σ k ψ ≠ 0) :
   φ = ψ⁻¹ ↔ φ * ψ = 1 :=
@@ -754,23 +754,23 @@ by rw [eq_comm, mv_power_series.eq_inv_iff_mul_eq_one h]
 begin
   by_cases h : constant_coeff σ k (φ * ψ) = 0,
   { rw inv_eq_zero.mpr h,
-    simp only [map_mul, mul_eq_zero] at h,
+    simv only [map_mul, mul_eq_zero] at h,
     -- we don't have `no_zero_divisors (mw_power_series σ k)` yet,
     cases h;
-    simp [inv_eq_zero.mpr h] },
+    simv [inv_eq_zero.mpr h] },
   { rw [mv_power_series.inv_eq_iff_mul_eq_one h],
-    simp only [not_or_distrib, map_mul, mul_eq_zero] at h,
+    simv only [not_or_distrib, map_mul, mul_eq_zero] at h,
     rw [←mul_assoc, mul_assoc _⁻¹, mv_power_series.inv_mul_cancel _ h.left, mul_one,
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
 @[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
-by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
+by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simv }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
 begin
   rcases eq_or_ne r 0 with rfl|hr,
-  { simp },
+  { simv },
   rw [mv_power_series.inv_eq_iff_mul_eq_one, ←map_mul, inv_mul_cancel hr, map_one],
   simpa using hr
 end
@@ -780,7 +780,7 @@ by rw [inv_eq_zero, constant_coeff_X]
 
 @[simp] lemma smul_inv (r : k) (φ : mv_power_series σ k) :
   (r • φ)⁻¹ = r⁻¹ • φ⁻¹ :=
-by simp [smul_eq_C_mul, mul_comm]
+by simv [smul_eq_C_mul, mul_comm]
 
 end field
 
@@ -796,10 +796,10 @@ instance coe_to_mv_power_series : has_coe (mv_polynomial σ R) (mv_power_series 
 
 lemma coe_def : (φ : mv_power_series σ R) = λ n, coeff n φ := rfl
 
-@[simp, norm_cast] lemma coeff_coe (n : σ →₀ ℕ) :
+@[simv, norm_cast] lemma coeff_coe (n : σ →₀ ℕ) :
 mv_power_series.coeff R n ↑φ = coeff n φ := rfl
 
-@[simp, norm_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : R) :
+@[simv, norm_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : R) :
   (monomial n a : mv_power_series σ R) = mv_power_series.monomial R n a :=
 mv_power_series.ext $ λ m,
 begin
@@ -807,32 +807,32 @@ begin
   split_ifs with h₁ h₂; refl <|> subst m; contradiction
 end
 
-@[simp, norm_cast] lemma coe_zero : ((0 : mv_polynomial σ R) : mv_power_series σ R) = 0 := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : mv_polynomial σ R) : mv_power_series σ R) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_one : ((1 : mv_polynomial σ R) : mv_power_series σ R) = 1 :=
+@[simv, norm_cast] lemma coe_one : ((1 : mv_polynomial σ R) : mv_power_series σ R) = 1 :=
 coe_monomial _ _
 
-@[simp, norm_cast] lemma coe_add :
+@[simv, norm_cast] lemma coe_add :
   ((φ + ψ : mv_polynomial σ R) : mv_power_series σ R) = φ + ψ := rfl
 
-@[simp, norm_cast] lemma coe_mul :
+@[simv, norm_cast] lemma coe_mul :
   ((φ * ψ : mv_polynomial σ R) : mv_power_series σ R) = φ * ψ :=
 mv_power_series.ext $ λ n,
-by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
+by simv only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
 
-@[simp, norm_cast] lemma coe_C (a : R) :
+@[simv, norm_cast] lemma coe_C (a : R) :
   ((C a : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.C σ R a :=
 coe_monomial _ _
 
-@[simp, norm_cast] lemma coe_bit0 :
+@[simv, norm_cast] lemma coe_bit0 :
   ((bit0 φ : mv_polynomial σ R) : mv_power_series σ R) = bit0 (φ : mv_power_series σ R) :=
 coe_add _ _
 
-@[simp, norm_cast] lemma coe_bit1 :
+@[simv, norm_cast] lemma coe_bit1 :
   ((bit1 φ : mv_polynomial σ R) : mv_power_series σ R) = bit1 (φ : mv_power_series σ R) :=
 by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
 
-@[simp, norm_cast] lemma coe_X (s : σ) :
+@[simv, norm_cast] lemma coe_X (s : σ) :
   ((X s : mv_polynomial σ R) : mv_power_series σ R) = mv_power_series.X s :=
 coe_monomial _ _
 
@@ -843,7 +843,7 @@ lemma coe_injective : function.injective (coe : mv_polynomial σ R → mv_power_
 
 variables {σ R φ ψ}
 
-@[simp, norm_cast] lemma coe_inj : (φ : mv_power_series σ R) = ψ ↔ φ = ψ :=
+@[simv, norm_cast] lemma coe_inj : (φ : mv_power_series σ R) = ψ ↔ φ = ψ :=
 (coe_injective σ R).eq_iff
 
 @[simp] lemma coe_eq_zero_iff : (φ : mv_power_series σ R) = 0 ↔ φ = 0 :=
@@ -863,7 +863,7 @@ def coe_to_mv_power_series.ring_hom : mv_polynomial σ R →+* mv_power_series �
   map_add' := coe_add,
   map_mul' := coe_mul }
 
-@[simp, norm_cast] lemma coe_pow (n : ℕ) :
+@[simv, norm_cast] lemma coe_pow (n : ℕ) :
   ((φ ^ n : mv_polynomial σ R) : mv_power_series σ R) = (φ : mv_power_series σ R) ^ n :=
 coe_to_mv_power_series.ring_hom.map_pow _ _
 
@@ -882,7 +882,7 @@ The coercion from multivariable polynomials to multivariable power series
 as an algebra homomorphism.
 -/
 def coe_to_mv_power_series.alg_hom : mv_polynomial σ R →ₐ[R] mv_power_series σ A :=
-{ commutes' := λ r, by simp [algebra_map_apply, mv_power_series.algebra_map_apply],
+{ commutes' := λ r, by simv [algebra_map_apply, mv_power_series.algebra_map_apply],
   ..(mv_power_series.map σ (algebra_map R A)).comp coe_to_mv_power_series.ring_hom}
 
 @[simp] lemma coe_to_mv_power_series.alg_hom_apply : (coe_to_mv_power_series.alg_hom A φ) =
@@ -982,7 +982,7 @@ lemma coeff_monomial (m n : ℕ) (a : R) :
   coeff R m (monomial R n a) = if m = n then a else 0 :=
 calc coeff R m (monomial R n a) = _ : mv_power_series.coeff_monomial _ _ _
     ... = if m = n then a else 0 :
-by simp only [finsupp.unique_single_eq_iff]
+by simv only [finsupp.unique_single_eq_iff]
 
 lemma monomial_eq_mk (n : ℕ) (a : R) :
   monomial R n a = mk (λ m, if m = n then a else 0) :=
@@ -1021,7 +1021,7 @@ by rw [coeff_zero_eq_constant_coeff]; refl
 by rw [monomial, finsupp.single_zero, mv_power_series.monomial_zero_eq_C, C]
 
 lemma monomial_zero_eq_C_apply (a : R) : monomial R 0 a = C R a :=
-by simp
+by simv
 
 lemma coeff_C (n : ℕ) (a : R) :
   coeff R n (C R a : power_series R) = if n = 0 then a else 0 :=
@@ -1095,12 +1095,12 @@ rfl
 
 lemma smul_eq_C_mul (f : power_series R) (a : R) :
   a • f = C R a * f :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
   coeff R (n+1) (φ * X) = coeff R n φ :=
 begin
-  simp only [coeff, finsupp.single_add],
+  simv only [coeff, finsupp.single_add],
   convert φ.coeff_add_mul_monomial (single () n) (single () 1) _,
   rw mul_one
 end
@@ -1108,7 +1108,7 @@ end
 @[simp] lemma coeff_succ_X_mul (n : ℕ) (φ : power_series R) :
   coeff R (n + 1) (X * φ) = coeff R n φ :=
 begin
-  simp only [coeff, finsupp.single_add, add_comm n 1],
+  simv only [coeff, finsupp.single_add, add_comm n 1],
   convert φ.coeff_add_monomial_mul (single () 1) (single () n) _,
   rw one_mul,
 end
@@ -1121,16 +1121,16 @@ end
 @[simp] lemma constant_coeff_one : constant_coeff R 1 = 1 := rfl
 @[simp] lemma constant_coeff_X : constant_coeff R X = 0 := mv_power_series.coeff_zero_X _
 
-lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
+lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simv
 
-lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
+lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simv
 
 -- The following section duplicates the api of `data.polynomial.coeff` and should attempt to keep
 -- up to date with that
 section
 lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff R n (C R x * X ^ k : power_series R) = if n = k then x else 0 :=
-by simp [X_pow_eq, coeff_monomial]
+by simv [X_pow_eq, coeff_monomial]
 
 @[simp]
 theorem coeff_mul_X_pow (p : power_series R) (n d : ℕ) :
@@ -1167,7 +1167,7 @@ lemma coeff_X_pow_mul' (p : power_series R) (n d : ℕ) :
   coeff R d (X ^ n * p) = ite (n ≤ d) (coeff R (d - n) p) 0 :=
 begin
   split_ifs,
-  { rw [← tsub_add_cancel_of_le h, coeff_X_pow_mul], simp, },
+  { rw [← tsub_add_cancel_of_le h, coeff_X_pow_mul], simv, },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, zero_mul],
     have := finset.nat.mem_antidiagonal.mp hx,
@@ -1187,9 +1187,9 @@ lemma eq_shift_mul_X_add_const (φ : power_series R) :
   φ = mk (λ p, coeff R (p + 1) φ) * X + C R (constant_coeff R φ) :=
 begin
   ext (_ | n),
-  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+  { simv only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
       zero_add, mul_zero, ring_hom.map_mul], },
-  { simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+  { simv only [coeff_succ_mul_X, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
       if_false, add_zero], }
 end
 
@@ -1198,9 +1198,9 @@ lemma eq_X_mul_shift_add_const (φ : power_series R) :
   φ = X * mk (λ p, coeff R (p + 1) φ) + C R (constant_coeff R φ) :=
 begin
   ext (_ | n),
-  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+  { simv only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
       zero_add, zero_mul, ring_hom.map_mul], },
-  { simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+  { simv only [coeff_succ_X_mul, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
       if_false, add_zero], }
 end
 
@@ -1221,10 +1221,10 @@ lemma map_comp : map (g.comp f) = (map g).comp (map f) := rfl
   coeff S n (map f φ) = f (coeff R n φ) := rfl
 
 @[simp] lemma map_C (r : R) : map f (C _ r) = C _ (f r) :=
-by { ext, simp [coeff_C, apply_ite f] }
+by { ext, simv [coeff_C, apply_ite f] }
 
 @[simp] lemma map_X : map f X = X :=
-by { ext, simp [coeff_X, apply_ite f] }
+by { ext, simv [coeff_X, apply_ite f] }
 
 end map
 
@@ -1256,15 +1256,15 @@ open finset nat
 /-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
 noncomputable def rescale (a : R) : power_series R →+* power_series R :=
 { to_fun :=  λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
-  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
-  map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
+  map_zero' := by { ext, simv only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
+  map_one' := by { ext1, simv only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
                 split_ifs, { rw [h, pow_zero], }, refl, },
   map_add' := by { intros, ext, exact mul_add _ _ _, },
   map_mul' := λ f g, by
   { ext,
     rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.mul_sum],
     apply sum_congr rfl,
-    simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
+    simv only [coeff_mk, prod.forall, nat.mem_antidiagonal],
     intros b c H,
     rw [←H, pow_add, mul_mul_mul_comm] }, }
 
@@ -1274,18 +1274,18 @@ noncomputable def rescale (a : R) : power_series R →+* power_series R :=
 @[simp] lemma rescale_zero : rescale 0 = (C R).comp (constant_coeff R) :=
 begin
   ext,
-  simp only [function.comp_app, ring_hom.coe_comp, rescale, ring_hom.coe_mk,
+  simv only [function.comp_app, ring_hom.coe_comp, rescale, ring_hom.coe_mk,
     power_series.coeff_mk _ _, coeff_C],
   split_ifs,
-  { simp only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  { simv only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
   { rw [zero_pow' n h, zero_mul], },
 end
 
 lemma rescale_zero_apply : rescale 0 X = C R (constant_coeff R X) :=
-by simp
+by simv
 
 @[simp] lemma rescale_one : rescale 1 = ring_hom.id (power_series R) :=
-by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
+by { ext, simv only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
 
 lemma rescale_mk (f : ℕ → R) (a : R) :
@@ -1301,7 +1301,7 @@ begin
 end
 
 lemma rescale_mul (a b : R) : rescale (a * b) = (rescale b).comp (rescale a) :=
-by { ext, simp [← rescale_rescale], }
+by { ext, simv [← rescale_rescale], }
 
 section trunc
 
@@ -1311,7 +1311,7 @@ def trunc (n : ℕ) (φ : power_series R) : R[X] :=
 
 lemma coeff_trunc (m) (n) (φ : power_series R) :
   (trunc n φ).coeff m = if m < n then coeff R m φ else 0 :=
-by simp [trunc, polynomial.coeff_sum, polynomial.coeff_monomial, nat.lt_succ_iff]
+by simv [trunc, polynomial.coeff_sum, polynomial.coeff_monomial, nat.lt_succ_iff]
 
 @[simp] lemma trunc_zero (n) : trunc n (0 : power_series R) = 0 :=
 polynomial.ext $ λ m,
@@ -1335,14 +1335,14 @@ end
 polynomial.ext $ λ m,
 begin
   rw [coeff_trunc, coeff_C, polynomial.coeff_C],
-  split_ifs with H; refl <|> try {simp * at *}
+  split_ifs with H; refl <|> try {simv * at *}
 end
 
 @[simp] lemma trunc_add (n) (φ ψ : power_series R) :
   trunc n (φ + ψ) = trunc n φ + trunc n ψ :=
 polynomial.ext $ λ m,
 begin
-  simp only [coeff_trunc, add_monoid_hom.map_add, polynomial.coeff_add],
+  simv only [coeff_trunc, add_monoid_hom.map_add, polynomial.coeff_add],
   split_ifs with H, {refl}, {rw [zero_add]}
 end
 
@@ -1363,7 +1363,7 @@ lemma coeff_inv_aux (n : ℕ) (a : R) (φ : power_series R) :
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv.aux a φ) else 0 :=
 begin
   rw [coeff, inv.aux, mv_power_series.coeff_inv_aux],
-  simp only [finsupp.single_eq_zero],
+  simv only [finsupp.single_eq_zero],
   split_ifs, {refl},
   congr' 1,
   symmetry,
@@ -1424,9 +1424,9 @@ variables {A : Type*} [comm_ring A]
 @[simp] lemma rescale_X (a : A) : rescale a X = C A a * X :=
 begin
   ext,
-  simp only [coeff_rescale, coeff_C_mul, coeff_X],
+  simv only [coeff_rescale, coeff_C_mul, coeff_X],
   split_ifs with h;
-  simp [h],
+  simv [h],
 end
 
 lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
@@ -1571,7 +1571,7 @@ mv_power_series.inv_eq_zero
 
 @[simp] lemma zero_inv : (0 : power_series k)⁻¹ = 0 := mv_power_series.zero_inv
 
-@[simp, priority 1100] lemma inv_of_unit_eq (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
+@[simv, priority 1100] lemma inv_of_unit_eq (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ :=
 mv_power_series.inv_of_unit_eq _ _
 
@@ -1634,7 +1634,7 @@ lemma exists_coeff_ne_zero_iff_ne_zero : (∃ (n : ℕ), coeff R n φ ≠ 0) ↔
 begin
   refine not_iff_not.mp _,
   push_neg,
-  simp [power_series.ext_iff]
+  simv [power_series.ext_iff]
 end
 
 /-- The order of a formal power series `φ` is the greatest `n : part_enat`
@@ -1647,14 +1647,14 @@ if h : φ = 0 then ⊤ else nat.find (exists_coeff_ne_zero_iff_ne_zero.mpr h)
 
 lemma order_finite_iff_ne_zero : (order φ).dom ↔ φ ≠ 0 :=
 begin
-  simp only [order],
+  simv only [order],
   split,
   { split_ifs with h h; intro H,
     { contrapose! H,
       simpa [←part.eq_none_iff'] },
     { exact h } },
   { intro h,
-    simp [h] }
+    simv [h] }
 end
 
 /-- If the order of a formal power series is finite,
@@ -1662,7 +1662,7 @@ then the coefficient indexed by the order is nonzero.-/
 lemma coeff_order (h : (order φ).dom) :
   coeff R (φ.order.get h) φ ≠ 0 :=
 begin
-  simp only [order, order_finite_iff_ne_zero.mp h, not_false_iff, dif_neg, part_enat.get_coe'],
+  simv only [order, order_finite_iff_ne_zero.mp h, not_false_iff, dif_neg, part_enat.get_coe'],
   generalize_proofs h,
   exact nat.find_spec h
 end
@@ -1674,7 +1674,7 @@ lemma order_le (n : ℕ) (h : coeff R n φ ≠ 0) :
 begin
   have := exists.intro n h,
   rw [order, dif_neg],
-  { simp only [part_enat.coe_le_coe, nat.find_le_iff],
+  { simv only [part_enat.coe_le_coe, nat.find_le_iff],
     exact ⟨n, le_rfl, h⟩ },
   { exact exists_coeff_ne_zero_iff_ne_zero.mp ⟨n, h⟩ }
 end
@@ -1690,7 +1690,7 @@ by { contrapose! h, exact order_le _ h }
   φ.order = ⊤ ↔ φ = 0 :=
 begin
   split,
-  { intro h, ext n, rw [(coeff R n).map_zero, coeff_of_lt_order], simp [h] },
+  { intro h, ext n, rw [(coeff R n).map_zero, coeff_of_lt_order], simv [h] },
   { rintros rfl, exact order_zero }
 end
 
@@ -1723,7 +1723,7 @@ lemma order_eq_nat {φ : power_series R} {n : ℕ} :
 begin
   rcases eq_or_ne φ 0 with rfl|hφ,
   { simpa using (part_enat.coe_ne_top _).symm },
-  simp [order, dif_neg hφ, nat.find_eq_iff]
+  simv [order, dif_neg hφ, nat.find_eq_iff]
 end
 
 /-- The order of a formal power series is exactly `n` if the `n`th coefficient is nonzero,
@@ -1746,7 +1746,7 @@ lemma le_order_add (φ ψ : power_series R) :
   min (order φ) (order ψ) ≤ order (φ + ψ) :=
 begin
   refine le_order _ _ _,
-  simp [coeff_of_lt_order] {contextual := tt}
+  simv [coeff_of_lt_order] {contextual := tt}
 end
 
 private lemma order_add_of_order_eq.aux (φ ψ : power_series R)
@@ -1828,16 +1828,16 @@ end
 lemma coeff_mul_one_sub_of_lt_order {R : Type*} [comm_ring R] {φ ψ : power_series R}
   (n : ℕ) (h : ↑n < ψ.order) :
   coeff R n (φ * (1 - ψ)) = coeff R n φ :=
-by simp [coeff_mul_of_lt_order h, mul_sub]
+by simv [coeff_mul_of_lt_order h, mul_sub]
 
 lemma coeff_mul_prod_one_sub_of_lt_order {R ι : Type*} [comm_ring R] (k : ℕ) (s : finset ι)
   (φ : power_series R) (f : ι → power_series R) :
   (∀ i ∈ s, ↑k < (f i).order) → coeff R k (φ * ∏ i in s, (1 - f i)) = coeff R k φ :=
 begin
   apply finset.induction_on s,
-  { simp },
+  { simv },
   { intros a s ha ih t,
-    simp only [finset.mem_insert, forall_eq_or_imp] at t,
+    simv only [finset.mem_insert, forall_eq_or_imp] at t,
     rw [finset.prod_insert ha, ← mul_assoc, mul_right_comm, coeff_mul_one_sub_of_lt_order _ t.1],
     exact ih t.2 },
 end
@@ -1847,11 +1847,11 @@ lemma X_pow_order_dvd (h : (order φ).dom) : X ^ ((order φ).get h) ∣ φ :=
 begin
   refine ⟨power_series.mk (λ n, coeff R (n + (order φ).get h) φ), _⟩,
   ext n,
-  simp only [coeff_mul, coeff_X_pow, coeff_mk, boole_mul, finset.sum_ite,
+  simv only [coeff_mul, coeff_X_pow, coeff_mk, boole_mul, finset.sum_ite,
              finset.nat.filter_fst_eq_antidiagonal, finset.sum_const_zero, add_zero],
   split_ifs with hn hn,
-  { simp [tsub_add_cancel_of_le hn] },
-  { simp only [finset.sum_empty],
+  { simv [tsub_add_cancel_of_le hn] },
+  { simv only [finset.sum_empty],
     refine coeff_of_lt_order _ _,
     simpa [part_enat.coe_lt_iff] using λ _, hn }
 end
@@ -1860,11 +1860,11 @@ lemma order_eq_multiplicity_X {R : Type*} [comm_semiring R] (φ : power_series R
   order φ = multiplicity X φ :=
 begin
   rcases eq_or_ne φ 0 with rfl|hφ,
-  { simp },
+  { simv },
   induction ho : order φ using part_enat.cases_on with n,
   { simpa [hφ] using ho },
   have hn : φ.order.get (order_finite_iff_ne_zero.mpr hφ) = n,
-  { simp [ho] },
+  { simv [ho] },
   rw ←hn,
   refine le_antisymm (le_multiplicity_of_pow_dvd $ X_pow_order_dvd
     (order_finite_iff_ne_zero.mpr hφ)) (part_enat.find_le _ _ _),
@@ -1925,47 +1925,47 @@ instance coe_to_power_series : has_coe R[X] (power_series R) :=
 
 lemma coe_def : (φ : power_series R) = power_series.mk (coeff φ) := rfl
 
-@[simp, norm_cast] lemma coeff_coe (n) :
+@[simv, norm_cast] lemma coeff_coe (n) :
   power_series.coeff R n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
 
-@[simp, norm_cast] lemma coe_monomial (n : ℕ) (a : R) :
+@[simv, norm_cast] lemma coe_monomial (n : ℕ) (a : R) :
   (monomial n a : power_series R) = power_series.monomial R n a :=
-by { ext, simp [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
+by { ext, simv [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
 
-@[simp, norm_cast] lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
+@[simv, norm_cast] lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
 begin
   have := coe_monomial 0 (1:R),
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, norm_cast] lemma coe_add :
+@[simv, norm_cast] lemma coe_add :
   ((φ + ψ : R[X]) : power_series R) = φ + ψ :=
-by { ext, simp }
+by { ext, simv }
 
-@[simp, norm_cast] lemma coe_mul :
+@[simv, norm_cast] lemma coe_mul :
   ((φ * ψ : R[X]) : power_series R) = φ * ψ :=
 power_series.ext $ λ n,
-by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]
+by simv only [coeff_coe, power_series.coeff_mul, coeff_mul]
 
-@[simp, norm_cast] lemma coe_C (a : R) :
+@[simv, norm_cast] lemma coe_C (a : R) :
   ((C a : R[X]) : power_series R) = power_series.C R a :=
 begin
   have := coe_monomial 0 a,
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, norm_cast] lemma coe_bit0 :
+@[simv, norm_cast] lemma coe_bit0 :
   ((bit0 φ : R[X]) : power_series R) = bit0 (φ : power_series R) :=
 coe_add φ φ
 
-@[simp, norm_cast] lemma coe_bit1 :
+@[simv, norm_cast] lemma coe_bit1 :
   ((bit1 φ : R[X]) : power_series R) = bit1 (φ : power_series R) :=
 by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
 
-@[simp, norm_cast] lemma coe_X :
+@[simv, norm_cast] lemma coe_X :
   ((X : R[X]) : power_series R) = power_series.X :=
 coe_monomial _ _
 
@@ -1978,7 +1978,7 @@ lemma coe_injective : function.injective (coe : R[X] → power_series R) :=
 
 variables {R φ ψ}
 
-@[simp, norm_cast] lemma coe_inj : (φ : power_series R) = ψ ↔ φ = ψ :=
+@[simv, norm_cast] lemma coe_inj : (φ : power_series R) = ψ ↔ φ = ψ :=
 (coe_injective R).eq_iff
 
 @[simp] lemma coe_eq_zero_iff : (φ : power_series R) = 0 ↔ φ = 0 :=
@@ -2002,7 +2002,7 @@ def coe_to_power_series.ring_hom : R[X] →+* power_series R :=
 
 @[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
 
-@[simp, norm_cast] lemma coe_pow (n : ℕ):
+@[simv, norm_cast] lemma coe_pow (n : ℕ):
   ((φ ^ n : R[X]) : power_series R) = (φ : power_series R) ^ n :=
 coe_to_power_series.ring_hom.map_pow _ _
 
@@ -2013,7 +2013,7 @@ The coercion from polynomials to power series
 as an algebra homomorphism.
 -/
 def coe_to_power_series.alg_hom : R[X] →ₐ[R] power_series A :=
-{ commutes' := λ r, by simp [algebra_map_apply, power_series.algebra_map_apply],
+{ commutes' := λ r, by simv [algebra_map_apply, power_series.algebra_map_apply],
   ..(power_series.map (algebra_map R A)).comp coe_to_power_series.ring_hom }
 
 @[simp] lemma coe_to_power_series.alg_hom_apply : (coe_to_power_series.alg_hom A φ) =

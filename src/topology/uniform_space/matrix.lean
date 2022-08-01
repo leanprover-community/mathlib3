@@ -29,7 +29,7 @@ end
 
 lemma uniform_continuous {β : Type*} [uniform_space β] {f : β → matrix m n 𝕜} :
   uniform_continuous f ↔ ∀ i j, uniform_continuous (λ x, f x i j) :=
-by simp only [uniform_continuous, matrix.uniformity, filter.tendsto_infi, filter.tendsto_comap_iff]
+by simv only [uniform_continuous, matrix.uniformity, filter.tendsto_infi, filter.tendsto_comap_iff]
 
 instance [complete_space 𝕜] : complete_space (matrix m n 𝕜) :=
 (by apply_instance : complete_space (m → n → 𝕜))

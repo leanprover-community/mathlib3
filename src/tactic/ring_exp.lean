@@ -58,7 +58,7 @@ There are some details we glossed over which make the plan more complicated:
   This is accomplished by the `in_exponent` function and is relatively painless since
   we work in a `reader` monad.
 - The normalized form of an expression is the one that is useful for the tactic,
-  but not as nice to read. To remedy this, the user-facing normalization calls `ex.simp`.
+  but not as nice to read. To remedy this, the user-facing normalization calls `ex.simv`.
 
 ## Caveats and future work
 
@@ -568,7 +568,7 @@ meta def ex_exp (p : ex base) (ps : ex prod) : ring_exp_m (ex exp) := do
     [p.info, ps.info],
   pure (ex.exp ⟨pps_o, pps_p, pps_pf⟩ (p.set_info none none) (ps.set_info none none))
 
-lemma base_to_exp_pf {p p' : α} : p = p' → p = p' ^ 1 := by simp
+lemma base_to_exp_pf {p p' : α} : p = p' → p = p' ^ 1 := by simv
 
 /-- Conversion from `ex base` to `ex exp`. -/
 meta def base_to_exp (p : ex base) : ring_exp_m (ex exp) := do
@@ -577,7 +577,7 @@ meta def base_to_exp (p : ex base) : ring_exp_m (ex exp) := do
   pf ← mk_proof ``base_to_exp_pf [p.orig, p.pretty] [p.info],
   pure $ ps.set_info p.orig pf
 
-lemma exp_to_prod_pf {p p' : α} : p = p' → p = p' * 1 := by simp
+lemma exp_to_prod_pf {p p' : α} : p = p' → p = p' * 1 := by simv
 
 /-- Conversion from `ex exp` to `ex prod`. -/
 meta def exp_to_prod (p : ex exp) : ring_exp_m (ex prod) := do
@@ -586,7 +586,7 @@ meta def exp_to_prod (p : ex exp) : ring_exp_m (ex prod) := do
   pf ← mk_proof ``exp_to_prod_pf [p.orig, p.pretty] [p.info],
   pure $ ps.set_info p.orig pf
 
-lemma prod_to_sum_pf {p p' : α} : p = p' → p = p' + 0 := by simp
+lemma prod_to_sum_pf {p p' : α} : p = p' → p = p' + 0 := by simv
 
 /-- Conversion from `ex prod` to `ex sum`. -/
 meta def prod_to_sum (p : ex prod) : ring_exp_m (ex sum) := do
@@ -595,7 +595,7 @@ meta def prod_to_sum (p : ex prod) : ring_exp_m (ex sum) := do
   pf ← mk_proof ``prod_to_sum_pf [p.orig, p.pretty] [p.info],
   pure $ ps.set_info p.orig pf
 
-lemma atom_to_sum_pf (p : α) : p = p ^ 1 * 1 + 0 := by simp
+lemma atom_to_sum_pf (p : α) : p = p ^ 1 * 1 + 0 := by simv
 /--
 A more efficient conversion from `atom` to `ex sum`.
 
@@ -849,7 +849,7 @@ lemma mul_pf_prod_c {pps p ps qs pqs : α} :
 lemma mul_pp_pf_overlap {pps p_b ps qqs qs psqs : α} {p_e q_e : ℕ} :
   pps = p_b ^ p_e * ps → qqs = p_b ^ q_e * qs →
   p_b ^ (p_e + q_e) * (ps * qs) = psqs → pps * qqs = psqs
-:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, pow_add, ps_pf, qs_pf]; ac_refl
+:= λ ps_pf qs_pf psqs_pf, by simv [symm psqs_pf, pow_add, ps_pf, qs_pf]; ac_refl
 
 lemma mul_pp_pf_prod_lt {pps p ps qqs pqs : α} :
   pps = p * ps → ps * qqs = pqs → pps * qqs = p * pqs := by cc
@@ -1028,7 +1028,7 @@ lemma pow_pf_c_c {ps ps' pq : α} {qs qs' : ℕ} :
 
 lemma pow_pp_pf_c {ps ps' pqs : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps' ^ qs' = pqs → ps ^ qs = pqs * 1 :=
-by simp; cc
+by simv; cc
 
 lemma pow_pp_pf_prod {pps p ps pqs psqs : α} {qs : ℕ} : pps = p * ps →
   p ^ qs = pqs → ps ^ qs = psqs → pps ^ qs = pqs * psqs :=
@@ -1177,15 +1177,15 @@ meta def pow : ex sum → ex sum → ring_exp_m (ex sum)
   pure $ psqqs.set_info psqqs_o pf
  end exponentiation
 
-lemma simple_pf_sum_zero {p p' : α} : p = p' → p + 0 = p' := by simp
+lemma simple_pf_sum_zero {p p' : α} : p = p' → p + 0 = p' := by simv
 
-lemma simple_pf_prod_one {p p' : α} : p = p' → p * 1 = p' := by simp
+lemma simple_pf_prod_one {p p' : α} : p = p' → p * 1 = p' := by simv
 
-lemma simple_pf_prod_neg_one {α} [ring α] {p p' : α} : p = p' → p * -1 = - p' := by simp
+lemma simple_pf_prod_neg_one {α} [ring α] {p p' : α} : p = p' → p * -1 = - p' := by simv
 
-lemma simple_pf_var_one (p : α) : p ^ 1 = p := by simp
+lemma simple_pf_var_one (p : α) : p ^ 1 = p := by simv
 
-lemma simple_pf_exp_one {p p' : α} : p = p' → p ^ 1 = p' := by simp
+lemma simple_pf_exp_one {p p' : α} : p = p' → p ^ 1 = p' := by simv
 
 /--
 Give a simpler, more human-readable representation of the normalized expression.
@@ -1287,7 +1287,7 @@ match ps.to_rat with
   atom_to_sum a
 end
 
-lemma negate_pf {α} [ring α] {ps ps' : α} : (-1) * ps = ps' → -ps = ps' := by simp
+lemma negate_pf {α} [ring α] {ps ps' : α} : (-1) * ps = ps' → -ps = ps' := by simv
 
 /--
 Negate an expression by multiplying with `-1`.

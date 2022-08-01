@@ -51,7 +51,7 @@ variables {T : monad C}
 (h' : (T : C ⥤ C).map f ≫ B.a = A.a ≫ f . obviously)
 
 restate_axiom hom.h'
-attribute [simp, reassoc] hom.h
+attribute [simv, reassoc] hom.h
 
 namespace hom
 
@@ -95,7 +95,7 @@ def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : (T : C ⥤ C).map h.hom ≫ 
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
-    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←functor.map_comp_assoc], simp } } }
+    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←functor.map_comp_assoc], simv } } }
 
 end algebra
 
@@ -130,8 +130,8 @@ adjunction.mk_of_hom_equiv
   { to_fun := λ f, T.η.app X ≫ f.f,
     inv_fun := λ f,
     { f := T.map f ≫ Y.a,
-      h' := by { dsimp, simp [←Y.assoc, ←T.μ.naturality_assoc] } },
-    left_inv := λ f, by { ext, dsimp, simp },
+      h' := by { dsimp, simv [←Y.assoc, ←T.μ.naturality_assoc] } },
+    left_inv := λ f, by { ext, dsimp, simv },
     right_inv := λ f,
     begin
       dsimp only [forget_obj, monad_to_functor_eq_coe],
@@ -144,7 +144,7 @@ Given an algebra morphism whose carrier part is an isomorphism, we get an algebr
 -/
 lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simv } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms T.forget :=
 { reflects := λ A B, algebra_iso_of_iso T }
@@ -175,8 +175,8 @@ def algebra_functor_of_monad_hom {T₁ T₂ : monad C} (h : T₂ ⟶ T₁) :
 { obj := λ A,
   { A := A.A,
     a := h.app A.A ≫ A.a,
-    unit' := by { dsimp, simp [A.unit] },
-    assoc' := by { dsimp, simp [A.assoc] } },
+    unit' := by { dsimp, simv [A.unit] },
+    assoc' := by { dsimp, simv [A.assoc] } },
   map := λ A₁ A₂ f,
   { f := f.f } }
 
@@ -187,8 +187,8 @@ The identity monad morphism induces the identity functor from the category of al
 def algebra_functor_of_monad_hom_id {T₁ : monad C} :
   algebra_functor_of_monad_hom (𝟙 T₁) ≅ 𝟭 _ :=
 nat_iso.of_components
-  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp, }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simv, }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 A composition of monad morphisms gives the composition of corresponding functors.
@@ -198,8 +198,8 @@ def algebra_functor_of_monad_hom_comp {T₁ T₂ T₃ : monad C} (f : T₁ ⟶ T
   algebra_functor_of_monad_hom (f ≫ g) ≅
     algebra_functor_of_monad_hom g ⋙ algebra_functor_of_monad_hom f :=
 nat_iso.of_components
-  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simv }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 If `f` and `g` are two equal morphisms of monads, then the functors of algebras induced by them
@@ -211,8 +211,8 @@ lemmas about.
 def algebra_functor_of_monad_hom_eq {T₁ T₂ : monad C} {f g : T₁ ⟶ T₂} (h : f = g) :
   algebra_functor_of_monad_hom f ≅ algebra_functor_of_monad_hom g :=
 nat_iso.of_components
-  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp [h] }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simv [h] }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 Isomorphic monads give equivalent categories of algebras. Furthermore, they are equivalent as
@@ -225,11 +225,11 @@ def algebra_equiv_of_iso_monads {T₁ T₂ : monad C} (h : T₁ ≅ T₂) :
   inverse := algebra_functor_of_monad_hom h.hom,
   unit_iso :=
     algebra_functor_of_monad_hom_id.symm ≪≫
-    algebra_functor_of_monad_hom_eq (by simp) ≪≫
+    algebra_functor_of_monad_hom_eq (by simv) ≪≫
     algebra_functor_of_monad_hom_comp _ _,
   counit_iso :=
     (algebra_functor_of_monad_hom_comp _ _).symm ≪≫
-    algebra_functor_of_monad_hom_eq (by simp) ≪≫
+    algebra_functor_of_monad_hom_eq (by simv) ≪≫
     algebra_functor_of_monad_hom_id }
 
 @[simp] lemma algebra_equiv_of_iso_monads_comp_forget {T₁ T₂ : monad C} (h : T₁ ⟶ T₂) :
@@ -261,7 +261,7 @@ variables {G : comonad C}
 (h' : A.a ≫ (G : C ⥤ C).map f = f ≫ B.a . obviously)
 
 restate_axiom hom.h'
-attribute [simp, reassoc] hom.h
+attribute [simv, reassoc] hom.h
 
 namespace hom
 
@@ -303,7 +303,7 @@ def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ (G : C ⥤ C).map 
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
-    h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←functor.map_comp], simp } } }
+    h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←functor.map_comp], simv } } }
 
 end coalgebra
 
@@ -338,7 +338,7 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f,
     { f := X.a ≫ G.map f,
-      h' := by { dsimp, simp [←coalgebra.coassoc_assoc] } },
+      h' := by { dsimp, simv [←coalgebra.coassoc_assoc] } },
     inv_fun := λ g, g.f ≫ G.ε.app Y,
     left_inv := λ f,
       by { dsimp, rw [category.assoc, G.ε.naturality, functor.id_map, X.counit_assoc] },
@@ -354,7 +354,7 @@ Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalge
 -/
 lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], simv } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms G.forget :=
 { reflects := λ A B, coalgebra_iso_of_iso G }

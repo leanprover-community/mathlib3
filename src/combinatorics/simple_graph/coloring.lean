@@ -184,11 +184,11 @@ G.recolor_of_embedding $ (function.embedding.nonempty_of_card_le hn).some
 variables {G}
 
 lemma colorable.mono {n m : ℕ} (h : n ≤ m) (hc : G.colorable n) : G.colorable m :=
-⟨G.recolor_of_card_le (by simp [h]) hc.some⟩
+⟨G.recolor_of_card_le (by simv [h]) hc.some⟩
 
 lemma coloring.to_colorable [fintype α] (C : G.coloring α) :
   G.colorable (fintype.card α) :=
-⟨G.recolor_of_card_le (by simp) C⟩
+⟨G.recolor_of_card_le (by simv) C⟩
 
 lemma colorable_of_fintype (G : simple_graph V) [fintype V] :
   G.colorable (fintype.card V) :=
@@ -205,14 +205,14 @@ end
 
 lemma colorable.of_embedding {V' : Type*} {G' : simple_graph V'}
   (f : G ↪g G') {n : ℕ} (h : G'.colorable n) : G.colorable n :=
-⟨(h.to_coloring (by simp)).comp f⟩
+⟨(h.to_coloring (by simv)).comp f⟩
 
 lemma colorable_iff_exists_bdd_nat_coloring (n : ℕ) :
   G.colorable n ↔ ∃ (C : G.coloring ℕ), ∀ v, C v < n :=
 begin
   split,
   { rintro hc,
-    have C : G.coloring (fin n) := hc.to_coloring (by simp),
+    have C : G.coloring (fin n) := hc.to_coloring (by simv),
     let f := embedding.complete_graph (fin.coe_embedding n).to_embedding,
     use f.to_hom.comp C,
     intro v,
@@ -222,7 +222,7 @@ begin
     refine ⟨coloring.mk _ _⟩,
     { exact λ v, ⟨C v, Cf v⟩, },
     { rintro v w hvw,
-      simp only [subtype.mk_eq_mk, ne.def],
+      simv only [subtype.mk_eq_mk, ne.def],
       exact C.valid hvw, } }
 end
 
@@ -268,7 +268,7 @@ begin
   refine coloring.mk (λ _, 0) _,
   intros v w,
   rw subsingleton.elim v w,
-  simp,
+  simv,
 end
 
 lemma chromatic_number_eq_zero_of_isempty (G : simple_graph V) [is_empty V] :
@@ -293,7 +293,7 @@ begin
   apply le_cInf (colorable_set_nonempty_of_colorable hc),
   intros m hm,
   by_contra h',
-  simp only [not_le, nat.lt_one_iff] at h',
+  simv only [not_le, nat.lt_one_iff] at h',
   subst h',
   obtain ⟨i, hi⟩ := hm.some (classical.arbitrary V),
   exact nat.not_lt_zero _ hi,
@@ -380,7 +380,7 @@ begin
   replace hc := pos_iff_ne_zero.mpr hc,
   apply nat.not_succ_le_self n,
   convert_to (⊤ : simple_graph {m | m < n + 1}).chromatic_number ≤ _,
-  { simp, },
+  { simv, },
   refine (colorable_of_chromatic_number_pos hc).chromatic_number_mono_of_embedding _,
   apply embedding.complete_graph,
   exact (function.embedding.subtype _).trans (infinite.nat_embedding V),
@@ -392,7 +392,7 @@ def complete_bipartite_graph.bicoloring (V W : Type*) :
   (complete_bipartite_graph V W).coloring bool :=
 coloring.mk (λ v, v.is_right) begin
   intros v w,
-  cases v; cases w; simp,
+  cases v; cases w; simv,
 end
 
 lemma complete_bipartite_graph.chromatic_number {V W : Type*} [nonempty V] [nonempty W] :
@@ -402,7 +402,7 @@ begin
   intros C b,
   have v := classical.arbitrary V,
   have w := classical.arbitrary W,
-  have h : (complete_bipartite_graph V W).adj (sum.inl v) (sum.inr w) := by simp,
+  have h : (complete_bipartite_graph V W).adj (sum.inl v) (sum.inr w) := by simv,
   have hn := C.valid h,
   by_cases he : C (sum.inl v) = b,
   { exact ⟨_, he⟩ },
@@ -410,7 +410,7 @@ begin
     { exact ⟨_, he'⟩ },
     { exfalso,
       cases b;
-      simp only [eq_tt_eq_not_eq_ff, eq_ff_eq_not_eq_tt] at he he';
+      simv only [eq_tt_eq_not_eq_ff, eq_ff_eq_not_eq_tt] at he he';
       rw [he, he'] at hn;
       contradiction }, },
 end
@@ -425,7 +425,7 @@ begin
   have f : G.induce ↑s ↪g G := embedding.induce ↑s,
   rw h at f,
   convert fintype.card_le_of_injective _ (C.comp f.to_hom).injective_of_top_hom using 1,
-  simp,
+  simv,
 end
 
 lemma is_clique.card_le_of_colorable {s : finset V} (h : G.is_clique s)
@@ -433,7 +433,7 @@ lemma is_clique.card_le_of_colorable {s : finset V} (h : G.is_clique s)
   s.card ≤ n :=
 begin
   convert h.card_le_of_coloring hc.some,
-  simp,
+  simv,
 end
 
 -- TODO eliminate `fintype V` constraint once chromatic numbers are refactored.
@@ -446,7 +446,7 @@ protected
 lemma colorable.clique_free {n m : ℕ} (hc : G.colorable n) (hm : n < m) : G.clique_free m :=
 begin
   by_contra h,
-  simp only [clique_free, is_n_clique_iff, not_forall, not_not] at h,
+  simv only [clique_free, is_n_clique_iff, not_forall, not_not] at h,
   obtain ⟨s, h, rfl⟩ := h,
   exact nat.lt_le_antisymm hm (h.card_le_of_colorable hc),
 end

@@ -23,7 +23,7 @@ variables (α : Type*)
 `dlist.of_list` and `dlist.to_list`. -/
 def list_equiv_dlist : list α ≃ dlist α :=
 by refine { to_fun := dlist.of_list, inv_fun := dlist.to_list, .. };
-   simp [function.right_inverse,left_inverse,to_list_of_list,of_list_to_list]
+   simv [function.right_inverse,left_inverse,to_list_of_list,of_list_to_list]
 
 instance : traversable dlist := equiv.traversable list_equiv_dlist
 

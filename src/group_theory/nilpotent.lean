@@ -89,7 +89,7 @@ quotient group `G/H`.)
 -/
 def upper_central_series_step : subgroup G :=
 { carrier := {x : G | ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ H},
-  one_mem' := λ y, by simp [subgroup.one_mem],
+  one_mem' := λ y, by simv [subgroup.one_mem],
   mul_mem' := λ a b ha hb y, begin
     convert subgroup.mul_mem _ (ha (b * y * b⁻¹)) (hb y) using 1,
     group,
@@ -143,7 +143,7 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 @[simp] lemma upper_central_series_one : upper_central_series G 1 = center G :=
 begin
   ext,
-  simp only [upper_central_series, upper_central_series_aux, upper_central_series_step, center,
+  simv only [upper_central_series, upper_central_series_aux, upper_central_series_step, center,
     set.center, mem_mk, mem_bot, set.mem_set_of_eq],
   exact forall_congr (λ y, by rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm]),
 end
@@ -296,7 +296,7 @@ lemma lower_central_series_antitone :
   antitone (lower_central_series G) :=
 begin
   refine antitone_nat_of_succ_le (λ n x hx, _),
-  simp only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
+  simv only [mem_lower_central_series_succ_iff, exists_prop, mem_top, exists_true_left, true_and]
     at hx,
   refine closure_induction hx _ (subgroup.one_mem _) (@subgroup.mul_mem _ _ _)
     (@subgroup.inv_mem _ _ _),
@@ -437,11 +437,11 @@ lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
   (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=
 begin
   induction n with d hd,
-  { simp },
+  { simv },
   { rw [lower_central_series_succ, lower_central_series_succ, monoid_hom.map_closure],
     apply subgroup.closure_mono,
     rintros x1 ⟨x2, ⟨x3, hx3, x4, hx4, rfl⟩, rfl⟩,
-    exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
+    exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simv⟩ }
 end
 
 /-- A subgroup of a nilpotent group is nilpotent -/
@@ -452,7 +452,7 @@ begin
   rcases hG with ⟨n, hG⟩,
   use n,
   have := lower_central_series_map_subtype_le H n,
-  simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
+  simv only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
   exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
 end
 
@@ -464,7 +464,7 @@ begin
   apply nat.find_mono,
   intros n hG,
   have := lower_central_series_map_subtype_le H n,
-  simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
+  simv only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
   exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
 end
 
@@ -476,7 +476,7 @@ lemma upper_central_series.map {H : Type*} [group H] {f : G →* H} (h : functio
   (n : ℕ) : subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
 begin
   induction n with d hd,
-  { simp },
+  { simv },
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
     rcases h y' with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }
@@ -486,14 +486,14 @@ lemma lower_central_series.map {H : Type*} [group H] (f : G →* H) (n : ℕ) :
   subgroup.map f (lower_central_series G n) ≤ lower_central_series H n :=
 begin
   induction n with d hd,
-  { simp [nat.nat_zero_eq_zero] },
+  { simv [nat.nat_zero_eq_zero] },
   { rintros a ⟨x, hx : x ∈ lower_central_series G d.succ, rfl⟩,
-    refine closure_induction hx _ (by simp [f.map_one, subgroup.one_mem _])
-      (λ y z hy hz, by simp [monoid_hom.map_mul, subgroup.mul_mem _ hy hz])
-      (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
+    refine closure_induction hx _ (by simv [f.map_one, subgroup.one_mem _])
+      (λ y z hy hz, by simv [monoid_hom.map_mul, subgroup.mul_mem _ hy hz])
+      (λ y hy, by simv [f.map_inv, subgroup.inv_mem _ hy]),
     rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
     apply mem_closure.mpr,
-    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp [commutator_element_def]⟩ }
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simv [commutator_element_def]⟩ }
 end
 
 lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n ≤ center G) :
@@ -527,7 +527,7 @@ begin
   refine lower_central_series_succ_eq_bot (le_trans ((map_eq_bot_iff _).mp _) hf1),
   apply eq_bot_iff.mpr,
   apply (le_trans (lower_central_series.map f _)),
-  simp only [lower_central_series_nilpotency_class, le_bot_iff],
+  simv only [lower_central_series_nilpotency_class, le_bot_iff],
 end
 
 /-- The range of a surjective homomorphism from a nilpotent group is nilpotent -/
@@ -583,7 +583,7 @@ lemma comap_upper_central_series_quotient_center (n : ℕ) :
   comap (mk' (center G)) (upper_central_series (G ⧸ center G) n) = upper_central_series G n.succ :=
 begin
   induction n with n ih,
-  { simp, },
+  { simv, },
   { let Hn := upper_central_series (G ⧸ center G) n,
     calc comap (mk' (center G)) (upper_central_series_step Hn)
         = comap (mk' (center G)) (comap (mk' Hn) (center ((G ⧸ center G) ⧸ Hn))) :
@@ -598,7 +598,7 @@ end
 
 lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
   group.nilpotency_class G = 0 ↔ subsingleton G :=
-by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
+by simv [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
 
 /-- Quotienting the `center G` reduces the nilpotency class by 1 -/
 lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
@@ -606,7 +606,7 @@ lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
 begin
   generalize hn : group.nilpotency_class G = n,
   rcases n with rfl | n,
-  { simp [nilpotency_class_zero_iff_subsingleton] at *,
+  { simv [nilpotency_class_zero_iff_subsingleton] at *,
     haveI := hn,
     apply_instance, },
   { suffices : group.nilpotency_class (G ⧸ center G) = n, by simpa,
@@ -631,7 +631,7 @@ begin
   { exfalso,
     rw nilpotency_class_zero_iff_subsingleton at h, resetI,
     apply (false_of_nontrivial_of_subsingleton G), },
-  { simp }
+  { simv }
 end
 
 /-- If the quotient by `center G` is nilpotent, then so is G. -/
@@ -639,7 +639,7 @@ lemma of_quotient_center_nilpotent (h : is_nilpotent (G ⧸ center G)) : is_nilp
 begin
   obtain ⟨n, hn⟩ := h.nilpotent,
   use n.succ,
-  simp [← comap_upper_central_series_quotient_center, hn],
+  simv [← comap_upper_central_series_quotient_center, hn],
 end
 
 /-- A custom induction principle for nilpotent groups. The base case is a trivial group
@@ -658,13 +658,13 @@ begin
   { haveI := nilpotency_class_zero_iff_subsingleton.mp h,
     exact hbase _, },
   { have hn : group.nilpotency_class (G ⧸ center G) = n :=
-      by simp [nilpotency_class_quotient_center, h],
+      by simv [nilpotency_class_quotient_center, h],
     exact hstep _ (ih _ hn), },
 end
 
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
-by { induction n with i ih, { simp }, { apply commutator_mono ih, simp } }
+by { induction n with i ih, { simv }, { apply commutator_mono ih, simv } }
 
 /-- Abelian groups are nilpotent -/
 @[priority 100]
@@ -701,12 +701,12 @@ lemma lower_central_series_prod (n : ℕ):
   lower_central_series (G₁ × G₂) n = (lower_central_series G₁ n).prod (lower_central_series G₂ n) :=
 begin
   induction n with n ih,
-  { simp, },
+  { simv, },
   { calc lower_central_series (G₁ × G₂) n.succ
         = ⁅lower_central_series (G₁ × G₂) n, ⊤⁆  : rfl
     ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), ⊤⁆ : by rw ih
     ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), (⊤ : subgroup G₁).prod ⊤⁆ :
-      by simp
+      by simv
     ... = ⁅lower_central_series G₁ n, (⊤ : subgroup G₁)⁆.prod ⁅lower_central_series G₂ n, ⊤⁆ :
       commutator_prod_prod _ _ _ _
     ... = (lower_central_series G₁ n.succ).prod (lower_central_series G₂ n.succ) : rfl }
@@ -728,7 +728,7 @@ lemma nilpotency_class_prod [is_nilpotent G₁] [is_nilpotent G₂] :
   group.nilpotency_class (G₁ × G₂) = max (group.nilpotency_class G₁) (group.nilpotency_class G₂) :=
 begin
   refine eq_of_forall_ge_iff (λ k, _),
-  simp only [max_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
+  simv only [max_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
     lower_central_series_prod, prod_eq_bot_iff ],
 end
 
@@ -745,11 +745,11 @@ lemma lower_central_series_pi_le (n : ℕ):
 begin
   let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
   induction n with n ih,
-  { simp [pi_top] },
+  { simv [pi_top] },
   { calc lower_central_series (Π i, Gs i) n.succ
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆           : rfl
     ... ≤ ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆    : commutator_mono ih (le_refl _)
-    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
+    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simv [pi, pi_top]
     ... ≤ pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)    : commutator_pi_pi_le _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)      : rfl }
 end
@@ -781,11 +781,11 @@ lemma lower_central_series_pi_of_fintype (n : ℕ):
 begin
   let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
   induction n with n ih,
-  { simp [pi_top] },
+  { simv [pi_top] },
   { calc lower_central_series (Π i, Gs i) n.succ
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆          : rfl
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆   : by rw ih
-    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
+    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simv [pi, pi_top]
     ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_fintype _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)     : rfl }
 end
@@ -809,7 +809,7 @@ lemma nilpotency_class_pi [∀ i, is_nilpotent (Gs i)] :
 begin
   apply eq_of_forall_ge_iff,
   intros k,
-  simp only [finset.sup_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
+  simv only [finset.sup_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
     lower_central_series_pi_of_fintype, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
 end
 

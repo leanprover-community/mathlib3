@@ -125,10 +125,10 @@ def rmatch : regular_expression α → list α → bool
 | P (a::as) := rmatch (P.deriv a) as
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
-by induction x; simp [rmatch, match_epsilon, *]
+by induction x; simv [rmatch, match_epsilon, *]
 
 lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
-by induction x; simp [rmatch, match_epsilon, *]
+by induction x; simv [rmatch, match_epsilon, *]
 
 lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
 begin
@@ -150,7 +150,7 @@ lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
   induction x with _ _ ih generalizing P Q,
-  { simp only [rmatch, match_epsilon, bor_coe_iff] },
+  { simv only [rmatch, match_epsilon, bor_coe_iff] },
   { repeat {rw rmatch},
     rw deriv,
     exact ih _ _ }
@@ -171,7 +171,7 @@ begin
       subst ht,
       subst hu,
       repeat {rw rmatch at h₂},
-      simp [h₂] } },
+      simv [h₂] } },
   { rw [rmatch, deriv],
     split_ifs with hepsilon,
     { rw [add_rmatch_iff, ih],
@@ -186,7 +186,7 @@ begin
           rw ←h at hQ,
           exact hQ },
         { left,
-          simp only [list.cons_append] at h,
+          simv only [list.cons_append] at h,
           refine ⟨ t, u, h.2, _, hQ ⟩,
           rw rmatch at hP,
           convert hP,
@@ -197,7 +197,7 @@ begin
       { exact ⟨ a :: t, u, by tauto ⟩ },
       { cases t with b t,
         { contradiction },
-        { simp only [list.cons_append] at h,
+        { simv only [list.cons_append] at h,
           refine ⟨ t, u, h.2, _, hQ ⟩,
           rw rmatch at hP,
           convert hP,
@@ -211,7 +211,7 @@ begin
   have A : ∀ (m n : ℕ), n < m + n + 1,
   { assume m n,
     convert add_lt_add_of_le_of_lt (add_le_add (zero_le m) (le_refl n)) zero_lt_one,
-    simp },
+    simv },
   have IH := λ t (h : list.length t < list.length x), star_rmatch_iff t,
   clear star_rmatch_iff,
   split,
@@ -229,7 +229,7 @@ begin
       rcases hu with ⟨ S', hsum, helem ⟩,
       use (a :: t) :: S',
       split,
-      { simp [hs, hsum] },
+      { simv [hs, hsum] },
       { intros t' ht',
         cases ht' with ht' ht',
         { rw ht',
@@ -242,18 +242,18 @@ begin
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,
-        { simp only [forall_eq_or_imp, list.mem_cons_iff] at helem,
-          simp only [eq_self_iff_true, not_true, ne.def, false_and] at helem,
+        { simv only [forall_eq_or_imp, list.mem_cons_iff] at helem,
+          simv only [eq_self_iff_true, not_true, ne.def, false_and] at helem,
           cases helem },
-        simp only [list.join, list.cons_append] at hsum,
+        simv only [list.join, list.cons_append] at hsum,
         refine ⟨ t, U.join, hsum.2, _, _ ⟩,
-        { specialize helem (b :: t) (by simp),
+        { specialize helem (b :: t) (by simv),
           rw rmatch at helem,
           convert helem.2,
           exact hsum.1 },
         { have hwf : U.join.length < (list.cons a x).length,
           { rw [hsum.1, hsum.2],
-            simp only [list.length_append, list.length_join, list.length],
+            simv only [list.length_append, list.length_join, list.length],
             apply A },
           rw IH _ hwf,
           refine ⟨ U, rfl, λ t h, helem t _ ⟩,
@@ -287,7 +287,7 @@ begin
   { rw [add_rmatch_iff, ih₁, ih₂],
     refl },
   case comp : P Q ih₁ ih₂
-  { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
+  { simv only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
       set.image_prod],
     split,
     { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
@@ -359,8 +359,8 @@ omit dec
 | 0 := (map_zero _).symm
 | 1 := (map_one _).symm
 | (char a) := by { rw eq_comm, exact image_singleton }
-| (R + S) := by simp only [matches_map, map, matches_add, map_add]
-| (R * S) := by simp only [matches_map, map, matches_mul, map_mul]
+| (R + S) := by simv only [matches_map, map, matches_add, map_add]
+| (R * S) := by simv only [matches_map, map, matches_mul, map_mul]
 | (star R) := begin
     simp_rw [map, matches, matches_map],
     rw [language.star_eq_supr_pow, language.star_eq_supr_pow],

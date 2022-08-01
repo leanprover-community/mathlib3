@@ -67,17 +67,17 @@ def mk_sol (init : fin E.order → α) : ℕ → α
       rw [add_comm, ← add_tsub_assoc_of_le (not_lt.mp h), tsub_lt_iff_left],
       { exact add_lt_add_right k.is_lt n },
       { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h),
-        simp only [zero_add] }
+        simv only [zero_add] }
     end,
     E.coeffs k * mk_sol (n - E.order + k)
 
 /-- `E.mk_sol` indeed gives solutions to `E`. -/
 lemma is_sol_mk_sol (init : fin E.order → α) : E.is_solution (E.mk_sol init) :=
-  λ n, by rw mk_sol; simp
+  λ n, by rw mk_sol; simv
 
 /-- `E.mk_sol init`'s first `E.order` terms are `init`. -/
 lemma mk_sol_eq_init (init : fin E.order → α) : ∀ n : fin E.order, E.mk_sol init n = init n :=
-  λ n, by { rw mk_sol, simp only [n.is_lt, dif_pos, fin.mk_coe, fin.eta] }
+  λ n, by { rw mk_sol, simv only [n.is_lt, dif_pos, fin.mk_coe, fin.eta] }
 
 /-- If `u` is a solution to `E` and `init` designates its first `E.order` values,
   then `∀ n, u n = E.mk_sol init n`. -/
@@ -85,17 +85,17 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
   (h : E.is_solution u) (heq : ∀ n : fin E.order, u n = init n) :
   ∀ n, u n = E.mk_sol init n
 | n := if h' : n < E.order
-  then by rw mk_sol; simp only [h', dif_pos]; exact_mod_cast heq ⟨n, h'⟩
+  then by rw mk_sol; simv only [h', dif_pos]; exact_mod_cast heq ⟨n, h'⟩
   else begin
     rw [mk_sol, ← tsub_add_cancel_of_le (le_of_not_lt h'), h (n-E.order)],
-    simp [h'],
+    simv [h'],
     congr' with k,
     exact have wf : n - E.order + k < n :=
       begin
         rw [add_comm, ← add_tsub_assoc_of_le (not_lt.mp h'), tsub_lt_iff_left],
         { exact add_lt_add_right k.is_lt n },
         { convert add_le_add (zero_le (k : ℕ)) (not_lt.mp h'),
-          simp only [zero_add] }
+          simv only [zero_add] }
       end,
       by rw eq_mk_of_is_sol_of_eq_init
   end
@@ -110,9 +110,9 @@ lemma eq_mk_of_is_sol_of_eq_init' {u : ℕ → α} {init : fin E.order → α}
 /-- The space of solutions of `E`, as a `submodule` over `α` of the module `ℕ → α`. -/
 def sol_space : submodule α (ℕ → α) :=
 { carrier := {u | E.is_solution u},
-  zero_mem' := λ n, by simp,
-  add_mem' := λ u v hu hv n, by simp [mul_add, sum_add_distrib, hu n, hv n],
-  smul_mem' := λ a u hu n, by simp [hu n, mul_sum]; congr'; ext; ac_refl }
+  zero_mem' := λ n, by simv,
+  add_mem' := λ u v hu hv n, by simv [mul_add, sum_add_distrib, hu n, hv n],
+  smul_mem' := λ a u hu n, by simv [hu n, mul_sum]; congr'; ext; ac_refl }
 
 /-- Defining property of the solution space : `u` is a solution
   iff it belongs to the solution space. -/
@@ -124,8 +124,8 @@ lemma is_sol_iff_mem_sol_space (u : ℕ → α) : E.is_solution u ↔ u ∈ E.so
 def to_init :
   E.sol_space ≃ₗ[α] (fin E.order → α) :=
 { to_fun := λ u x, (u : ℕ → α) x,
-  map_add' := λ u v, by { ext, simp },
-  map_smul' := λ a u, by { ext, simp },
+  map_add' := λ u v, by { ext, simv },
+  map_smul' := λ a u, by { ext, simv },
   inv_fun := λ u, ⟨E.mk_sol u, E.is_sol_mk_sol u⟩,
   left_inv := λ u, by ext n; symmetry; apply E.eq_mk_of_is_sol_of_eq_init u.2; intros k; refl,
   right_inv := λ u, function.funext_iff.mpr (λ n, E.mk_sol_eq_init u n) }
@@ -156,12 +156,12 @@ def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
   map_add' := λ x y,
     begin
       ext i,
-      split_ifs ; simp [h, mul_add, sum_add_distrib],
+      split_ifs ; simv [h, mul_add, sum_add_distrib],
     end,
   map_smul' := λ x y,
     begin
       ext i,
-      split_ifs ; simp [h, mul_sum],
+      split_ifs ; simv [h, mul_sum],
       exact sum_congr rfl (λ x _, by ac_refl),
     end }
 
@@ -191,13 +191,13 @@ def char_poly : α[X] :=
 lemma geom_sol_iff_root_char_poly (q : α) : E.is_solution (λ n, q^n) ↔ E.char_poly.is_root q :=
 begin
   rw [char_poly, polynomial.is_root.def, polynomial.eval],
-  simp only [polynomial.eval₂_finset_sum, one_mul,
+  simv only [polynomial.eval₂_finset_sum, one_mul,
               ring_hom.id_apply, polynomial.eval₂_monomial, polynomial.eval₂_sub],
   split,
   { intro h,
     simpa [sub_eq_zero] using h 0 },
   { intros h n,
-    simp only [pow_add, sub_eq_zero.mp h, mul_sum],
+    simv only [pow_add, sub_eq_zero.mp h, mul_sum],
     exact sum_congr rfl (λ _ _, by ring) }
 end
 

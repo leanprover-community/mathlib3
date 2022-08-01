@@ -111,10 +111,10 @@ end
 
 lemma move_left_smaller {b : board} {m : ℤ × ℤ} (h : m ∈ left b) :
   finset.card (move_left b m) / 2 < finset.card b / 2 :=
-by simp [←move_left_card h, lt_add_one]
+by simv [←move_left_card h, lt_add_one]
 lemma move_right_smaller {b : board} {m : ℤ × ℤ} (h : m ∈ right b) :
   finset.card (move_right b m) / 2 < finset.card b / 2 :=
-by simp [←move_right_card h, lt_add_one]
+by simv [←move_right_card h, lt_add_one]
 
 /-- The instance describing allowed moves on a Domineering board. -/
 instance state : state board :=
@@ -123,13 +123,13 @@ instance state : state board :=
   R := λ s, (right s).image (move_right s),
   left_bound := λ s t m,
   begin
-    simp only [finset.mem_image, prod.exists] at m,
+    simv only [finset.mem_image, prod.exists] at m,
     rcases m with ⟨_, _, ⟨h, rfl⟩⟩,
     exact move_left_smaller h
   end,
   right_bound := λ s t m,
   begin
-    simp only [finset.mem_image, prod.exists] at m,
+    simv only [finset.mem_image, prod.exists] at m,
     rcases m with ⟨_, _, ⟨h, rfl⟩⟩,
     exact move_right_smaller h
   end, }

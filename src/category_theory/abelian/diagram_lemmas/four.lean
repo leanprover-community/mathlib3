@@ -131,7 +131,7 @@ preadditive.epi_of_cancel_zero _ $ λ R r hβr,
                  ... = 0           : has_zero_morphisms.comp_zero _ _,
   let y : R ⟶ pushout r g' := pushout.inl, z : C' ⟶ pushout r g' := pushout.inr in
   have mono y, from mono_inl_of_factor_thru_epi_mono_factorization r g' (cokernel.π f')
-    (cokernel.desc f' g' hf'g'.w) (by simp) (cokernel.desc f' r hf'r) (by simp) _
+    (cokernel.desc f' g' hf'g'.w) (by simv) (cokernel.desc f' r hf'r) (by simv) _
     (colimit.is_colimit _),
   have hz : g ≫ γ ≫ z = 0, from
     calc g ≫ γ ≫ z = β ≫ g' ≫ z : by rw ←reassoc_of comm₂
@@ -141,7 +141,7 @@ preadditive.epi_of_cancel_zero _ $ λ R r hβr,
   let v : pushout r g' ⟶ pushout (γ ≫ z) (h ≫ δ) := pushout.inl,
       w : D' ⟶ pushout (γ ≫ z) (h ≫ δ) := pushout.inr in
   have mono v, from mono_inl_of_factor_thru_epi_mono_factorization _ _ (cokernel.π g)
-    (cokernel.desc g h hgh.w ≫ δ) (by simp) (cokernel.desc _ _ hz) (by simp) _
+    (cokernel.desc g h hgh.w ≫ δ) (by simv) (cokernel.desc _ _ hz) (by simv) _
     (colimit.is_colimit _),
   have hzv : z ≫ v = h' ≫ w, from (cancel_epi γ).1 $
     calc γ ≫ z ≫ v = h ≫ δ ≫ w  : by rw [←category.assoc, pushout.condition, category.assoc]

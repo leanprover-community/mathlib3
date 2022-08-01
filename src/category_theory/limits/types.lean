@@ -74,7 +74,7 @@ lemma is_limit_equiv_sections_symm_apply
   c.π.app j ((is_limit_equiv_sections t).symm x) = (x : Π j, F.obj j) j :=
 begin
   equiv_rw (is_limit_equiv_sections t).symm at x,
-  simp,
+  simv,
 end
 
 /--
@@ -113,13 +113,13 @@ def limit.mk (F : J ⥤ Type (max v u)) (x : Π j, F.obj j)
 @[simp]
 lemma limit.π_mk (F : J ⥤ Type (max v u)) (x : Π j, F.obj j)
   (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) : limit.π F j (limit.mk F x h) = x j :=
-by { dsimp [limit.mk], simp, }
+by { dsimp [limit.mk], simv, }
 
 @[simp]
 lemma limit.π_mk' (F : J ⥤ Type v) (x : Π j, F.obj j)
   (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
   limit.π F j (limit.mk.{v v} F x h) = x j :=
-by { dsimp [limit.mk], simp, }
+by { dsimp [limit.mk], simv, }
 
 -- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
 @[ext]
@@ -128,7 +128,7 @@ lemma limit_ext (F : J ⥤ Type (max v u)) (x y : limit F) (w : ∀ j, limit.π 
 begin
   apply (limit_equiv_sections F).injective,
   ext j,
-  simp [w j],
+  simv [w j],
 end
 
 @[ext]
@@ -137,7 +137,7 @@ lemma limit_ext' (F : J ⥤ Type v) (x y : limit F) (w : ∀ j, limit.π F j x =
 begin
   apply (limit_equiv_sections.{v v} F).injective,
   ext j,
-  simp [w j],
+  simv [w j],
 end
 
 lemma limit_ext_iff (F : J ⥤ Type (max v u)) (x y : limit F) :
@@ -247,7 +247,7 @@ lemma colimit_equiv_quot_apply (F : J ⥤ Type (max v u)) (j : J) (x : F.obj j) 
   (colimit_equiv_quot F) (colimit.ι F j x) = quot.mk _ ⟨j, x⟩ :=
 begin
   apply (colimit_equiv_quot F).symm.injective,
-  simp,
+  simv,
 end
 
 @[simp]
@@ -285,7 +285,7 @@ lemma colimit_sound
   (f : j ⟶ j') (w : F.map f x = x') : colimit.ι F j x = colimit.ι F j' x' :=
 begin
   rw [←w],
-  simp,
+  simv,
 end
 
 lemma colimit_sound'
@@ -377,7 +377,7 @@ begin
       intro x,
       rcases hsurj x with ⟨i, xi, rfl⟩,
       use colimit.ι F i xi,
-      simp } },
+      simv } },
   { intro j, apply colimit.ι_desc }
 end
 
@@ -391,13 +391,13 @@ protected lemma rel_equiv : equivalence (filtered_colimit.rel F) :=
        ⟨m, n, hn⟩ := is_filtered_or_empty.cocone_maps (g ≫ fl) (f' ≫ gl) in
    ⟨m, f ≫ fl ≫ n, g' ≫ gl ≫ n, calc
       F.map (f ≫ fl ≫ n) x.2
-          = F.map (fl ≫ n) (F.map f x.2)  : by simp
+          = F.map (fl ≫ n) (F.map f x.2)  : by simv
       ... = F.map (fl ≫ n) (F.map g y.2)  : by rw h
-      ... = F.map ((g ≫ fl) ≫ n) y.2      : by simp
+      ... = F.map ((g ≫ fl) ≫ n) y.2      : by simv
       ... = F.map ((f' ≫ gl) ≫ n) y.2     : by rw hn
-      ... = F.map (gl ≫ n) (F.map f' y.2) : by simp
+      ... = F.map (gl ≫ n) (F.map f' y.2) : by simv
       ... = F.map (gl ≫ n) (F.map g' z.2) : by rw h'
-      ... = F.map (g' ≫ gl ≫ n) z.2       : by simp⟩⟩
+      ... = F.map (g' ≫ gl ≫ n) z.2       : by simv⟩⟩
 
 protected lemma rel_eq_eqv_gen_quot_rel :
   filtered_colimit.rel F = eqv_gen (quot.rel F) :=
@@ -486,7 +486,7 @@ instance : has_image_maps (Type u) :=
       begin
         have p := st.w,
         replace p := congr_fun p (classical.some x.2),
-        simp only [functor.id_map, types_comp_apply, subtype.val_eq_coe] at p,
+        simv only [functor.id_map, types_comp_apply, subtype.val_eq_coe] at p,
         erw [p, classical.some_spec x.2],
       end⟩⟩) rfl }
 

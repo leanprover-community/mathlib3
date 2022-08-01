@@ -142,7 +142,7 @@ dfinsupp.lift_add_hom_apply_single φ i x
 
 theorem to_add_monoid.unique (f : ⨁ i, β i) :
   ψ f = to_add_monoid (λ i, ψ.comp (of β i)) f :=
-by {congr, ext, simp [to_add_monoid, of]}
+by {congr, ext, simv [to_add_monoid, of]}
 
 end to_add_monoid
 

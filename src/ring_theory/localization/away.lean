@@ -79,7 +79,7 @@ def map (f : R →+* P) (r : R) [is_localization.away r S]
   [is_localization.away (f r) Q] : S →+* Q :=
 is_localization.map Q f
   (show submonoid.powers r ≤ (submonoid.powers (f r)).comap f,
-    by { rintros x ⟨n, rfl⟩, use n, simp })
+    by { rintros x ⟨n, rfl⟩, use n, simv })
 
 end away
 
@@ -105,7 +105,7 @@ begin
     use x * u.inv,
     dsimp only [algebra.of_id, ring_hom.to_fun_eq_coe, alg_hom.coe_mk],
     rw [ring_hom.map_mul, ← eq, ← hu, mul_assoc, ← ring_hom.map_mul],
-    simp }
+    simv }
 end
 
 /-- The localization away from a unit is isomorphic to the ring -/
@@ -117,7 +117,7 @@ begin
   obtain ⟨u, hu⟩ := e,
   rw is_unit_iff_exists_inv,
   use u.inv ^ n,
-  simp[← hxn, ← hu, ← mul_pow]
+  simv[← hxn, ← hu, ← mul_pow]
 end
 
 /-- The localization at one is isomorphic to the ring. -/
@@ -129,7 +129,7 @@ lemma away_of_is_unit_of_bijective {R : Type*} (S : Type*) [comm_ring R] [comm_r
   [algebra R S] {r : R} (hr : is_unit r) (H : function.bijective (algebra_map R S)) :
   is_localization.away r S :=
 { map_units := by { rintros ⟨_, n, rfl⟩, exact (algebra_map R S).is_unit_map (hr.pow _) },
-  surj := λ z, by { obtain ⟨z', rfl⟩ := H.2 z, exact ⟨⟨z', 1⟩, by simp⟩ },
+  surj := λ z, by { obtain ⟨z', rfl⟩ := H.2 z, exact ⟨⟨z', 1⟩, by simv⟩ },
   eq_iff_exists := λ x y, begin
     erw H.1.eq_iff,
     split,

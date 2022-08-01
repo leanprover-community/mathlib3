@@ -40,7 +40,7 @@ begin
   suffices : ∀ i, i ∈ finset.range k → (1 : ℚ) + 1 / ↑(if i < k then m i else nm) = 1 + 1 / m i,
   from finset.prod_congr rfl this,
   intros i hi,
-  simp [finset.mem_range.mp hi]
+  simv [finset.mem_range.mp hi]
 end
 
 theorem imo2013_q1 (n : ℕ+) (k : ℕ) :
@@ -48,7 +48,7 @@ theorem imo2013_q1 (n : ℕ+) (k : ℕ) :
 begin
   revert n,
   induction k with pk hpk,
-  { intro n, use (λ_, 1), simp }, -- For the base case, any m works.
+  { intro n, use (λ_, 1), simv }, -- For the base case, any m works.
 
   intro n,
   obtain ⟨t, ht : ↑n = t + t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
@@ -64,7 +64,7 @@ begin
     use m,
 
     have hmpk : (m pk : ℚ) = 2 * t + 2^pk.succ,
-    { have : m pk = ⟨2 * t + 2^pk.succ, _⟩ := if_neg (irrefl pk), simp [this] },
+    { have : m pk = ⟨2 * t + 2^pk.succ, _⟩ := if_neg (irrefl pk), simv [this] },
 
     have denom_ne_zero : (2 * (t:ℚ) + 2^pk.succ) ≠ 0,
     { norm_cast, exact (ne_of_gt $ arith_lemma pk t) },
@@ -86,7 +86,7 @@ begin
     use m,
 
     have hmpk : (m pk : ℚ) = 2 * t + 1,
-    { have : m pk = ⟨2 * t + 1, _⟩ := if_neg (irrefl pk), simp [this] },
+    { have : m pk = ⟨2 * t + 1, _⟩ := if_neg (irrefl pk), simv [this] },
 
     have denom_ne_zero : (2 * (t : ℚ) + 1) ≠ 0 := by { norm_cast, apply (2 * t).succ_ne_zero },
 

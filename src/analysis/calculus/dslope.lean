@@ -38,7 +38,7 @@ lemma continuous_linear_map.dslope_comp {F : Type*} [normed_add_comm_group F] [n
   dslope (f ∘ g) a b = f (dslope g a b) :=
 begin
   rcases eq_or_ne b a with rfl|hne,
-  { simp only [dslope_same],
+  { simv only [dslope_same],
     exact (f.has_fderiv_at.comp_has_deriv_at b (H rfl).has_deriv_at).deriv },
   { simpa only [dslope_of_ne _ hne] using f.to_linear_map.slope_comp g a b }
 end
@@ -53,7 +53,7 @@ lemma dslope_eventually_eq_slope_punctured_nhds (f : 𝕜 → E) : dslope f a =�
 (eq_on_dslope_slope f a).eventually_eq_of_mem self_mem_nhds_within
 
 @[simp] lemma sub_smul_dslope (f : 𝕜 → E) (a b : 𝕜) : (b - a) • dslope f a b = f b - f a :=
-by rcases eq_or_ne b a with rfl | hne; simp [dslope_of_ne, *]
+by rcases eq_or_ne b a with rfl | hne; simv [dslope_of_ne, *]
 
 lemma dslope_sub_smul_of_ne (f : 𝕜 → E) (h : b ≠ a) : dslope (λ x, (x - a) • f x) a b = f b :=
 by rw [dslope_of_ne _ h, slope_sub_smul _ h.symm]
@@ -66,7 +66,7 @@ lemma dslope_sub_smul [decidable_eq 𝕜] (f : 𝕜 → E) (a : 𝕜) :
 eq_update_iff.2 ⟨dslope_same _ _, eq_on_dslope_sub_smul f a⟩
 
 @[simp] lemma continuous_at_dslope_same : continuous_at (dslope f a) a ↔ differentiable_at 𝕜 f a :=
-by simp only [dslope, continuous_at_update_same, ← has_deriv_at_deriv_iff,
+by simv only [dslope, continuous_at_update_same, ← has_deriv_at_deriv_iff,
   has_deriv_at_iff_tendsto_slope]
 
 lemma continuous_within_at.of_dslope (h : continuous_within_at (dslope f a) s b) :
@@ -86,13 +86,13 @@ lemma continuous_within_at_dslope_of_ne (h : b ≠ a) :
   continuous_within_at (dslope f a) s b ↔ continuous_within_at f s b :=
 begin
   refine ⟨continuous_within_at.of_dslope, λ hc, _⟩,
-  simp only [dslope, continuous_within_at_update_of_ne h],
+  simv only [dslope, continuous_within_at_update_of_ne h],
   exact ((continuous_within_at_id.sub continuous_within_at_const).inv₀
       (sub_ne_zero.2 h)).smul (hc.sub continuous_within_at_const)
 end
 
 lemma continuous_at_dslope_of_ne (h : b ≠ a) : continuous_at (dslope f a) b ↔ continuous_at f b :=
-by simp only [← continuous_within_at_univ, continuous_within_at_dslope_of_ne h]
+by simv only [← continuous_within_at_univ, continuous_within_at_dslope_of_ne h]
 
 lemma continuous_on_dslope (h : s ∈ 𝓝 a) :
   continuous_on (dslope f a) s ↔ continuous_on f s ∧ differentiable_at 𝕜 f a :=
@@ -134,5 +134,5 @@ forall_congr $ λ x, forall_congr $ λ hx, differentiable_within_at_dslope_of_ne
 
 lemma differentiable_at_dslope_of_ne (h : b ≠ a) :
   differentiable_at 𝕜 (dslope f a) b ↔ differentiable_at 𝕜 f b :=
-by simp only [← differentiable_within_at_univ,
+by simv only [← differentiable_within_at_univ,
   differentiable_within_at_dslope_of_ne h]

@@ -35,7 +35,7 @@ Each of these has a dual.
 
 ## Implementation notes
 As with the other special shapes in the limits library, all the definitions here are given as
-`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+`abbreviation`s of the general statements for limits, so all the `simv` lemmas and theorems about
 general limits can be used.
 
 ## References
@@ -152,7 +152,7 @@ def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair ⥤ C :=
   | _, _, right := g
   end,
   -- `tidy` can cope with this, but it's too slow:
-  map_comp' := begin rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩⟨⟩; { unfold_aux, simp; refl }, end, }.
+  map_comp' := begin rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩⟨⟩; { unfold_aux, simv; refl }, end, }.
 
 @[simp] lemma parallel_pair_obj_zero (f g : X ⟶ Y) : (parallel_pair f g).obj zero = X := rfl
 @[simp] lemma parallel_pair_obj_one (f g : X ⟶ Y) : (parallel_pair f g).obj one = Y := rfl
@@ -182,7 +182,7 @@ def parallel_pair_hom {X' Y' : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y') (p : X ⟶
   | one := q
   end,
   naturality' := begin
-    rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩; { unfold_aux, simp [wf, wg], },
+    rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩; { unfold_aux, simv [wf, wg], },
   end }
 
 @[simp] lemma parallel_pair_hom_app_zero
@@ -204,14 +204,14 @@ def parallel_pair.ext {F G : walking_parallel_pair ⥤ C}
   (right : F.map right ≫ one.hom = zero.hom ≫ G.map right) : F ≅ G :=
 nat_iso.of_components
   (by { rintro ⟨j⟩, exacts [zero, one] })
-  (by { rintro ⟨j₁⟩ ⟨j₂⟩ ⟨f⟩; simp [left, right], })
+  (by { rintro ⟨j₁⟩ ⟨j₂⟩ ⟨f⟩; simv [left, right], })
 
 /-- Construct a natural isomorphism between `parallel_pair f g` and `parallel_pair f' g'` given
 equalities `f = f'` and `g = g'`. -/
 @[simps]
 def parallel_pair.eq_of_hom_eq {f g f' g' : X ⟶ Y} (hf : f = f') (hg : g = g') :
   parallel_pair f g ≅ parallel_pair f' g' :=
-parallel_pair.ext (iso.refl _) (iso.refl _) (by simp [hf]) (by simp [hg])
+parallel_pair.ext (iso.refl _) (iso.refl _) (by simv [hf]) (by simv [hg])
 
 /-- A fork on `f` and `g` is just a `cone (parallel_pair f g)`. -/
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
@@ -256,10 +256,10 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
   { app := λ X, begin cases X, exact ι, exact ι ≫ f, end,
     naturality' := λ X Y f,
     begin
-      cases X; cases Y; cases f; dsimp; simp,
-      { dsimp, simp, }, -- See note [dsimp, simp].
+      cases X; cases Y; cases f; dsimp; simv,
+      { dsimp, simv, }, -- See note [dsimp, simv].
       { exact w },
-      { dsimp, simp, },
+      { dsimp, simv, },
     end } }
 
 /-- A cofork on `f g : X ⟶ Y` is determined by the morphism `π : Y ⟶ P` satisfying
@@ -269,18 +269,18 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
 { X := P,
   ι :=
   { app := λ X, walking_parallel_pair.cases_on X (f ≫ π) π,
-    naturality' := λ i j f, by { cases f; dsimp; simp [w] } } } -- See note [dsimp, simp]
+    naturality' := λ i j f, by { cases f; dsimp; simv [w] } } } -- See note [dsimp, simv]
 
 @[simp] lemma fork.ι_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).ι = ι := rfl
 @[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
   (cofork.of_π π w).π = π := rfl
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma fork.condition (t : fork f g) : t.ι ≫ f = t.ι ≫ g :=
 by rw [←t.app_one_eq_ι_comp_left, ←t.app_one_eq_ι_comp_right]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma cofork.condition (t : cofork f g) : f ≫ t.π = g ≫ t.π :=
 by rw [←t.app_zero_eq_comp_π_left, ←t.app_zero_eq_comp_π_right]
 
@@ -296,7 +296,7 @@ lemma fork.equalizer_ext (s : fork f g) {W : C} {k l : W ⟶ s.X} (h : k ≫ s.�
 lemma cofork.coequalizer_ext (s : cofork f g) {W : C} {k l : s.X ⟶ W}
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : ∀ (j : walking_parallel_pair),
     s.ι.app j ≫ k = s.ι.app j ≫ l
-| zero := by simp only [s.app_zero_eq_comp_π_left, category.assoc, h]
+| zero := by simv only [s.app_zero_eq_comp_π_left, category.assoc, h]
 | one := h
 
 lemma fork.is_limit.hom_ext {s : fork f g} (hs : is_limit s) {W : C} {k l : W ⟶ s.X}
@@ -307,11 +307,11 @@ lemma cofork.is_colimit.hom_ext {s : cofork f g} (hs : is_colimit s) {W : C} {k 
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : k = l :=
 hs.hom_ext $ cofork.coequalizer_ext _ h
 
-@[simp, reassoc] lemma fork.is_limit.lift_ι {s t : fork f g} (hs : is_limit s) :
+@[simv, reassoc] lemma fork.is_limit.lift_ι {s t : fork f g} (hs : is_limit s) :
   hs.lift t ≫ s.ι = t.ι :=
 hs.fac _ _
 
-@[simp, reassoc] lemma cofork.is_colimit.π_desc {s t : cofork f g} (hs : is_colimit s) :
+@[simv, reassoc] lemma cofork.is_colimit.π_desc {s t : cofork f g} (hs : is_colimit s) :
   s.π ≫ hs.desc t = t.π :=
 hs.fac _ _
 
@@ -403,7 +403,7 @@ This is a special case of `is_limit.hom_iso'`, often useful to construct adjunct
 @[simps]
 def fork.is_limit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : fork f g} (ht : is_limit t) (Z : C) :
   (Z ⟶ t.X) ≃ {h : Z ⟶ X // h ≫ f = h ≫ g} :=
-{ to_fun := λ k, ⟨k ≫ t.ι, by simp only [category.assoc, t.condition]⟩,
+{ to_fun := λ k, ⟨k ≫ t.ι, by simv only [category.assoc, t.condition]⟩,
   inv_fun := λ h, (fork.is_limit.lift' ht _ h.prop).1,
   left_inv := λ k, fork.is_limit.hom_ext ht (fork.is_limit.lift' _ _ _).prop,
   right_inv := λ h, subtype.ext (fork.is_limit.lift' ht _ _).prop }
@@ -423,7 +423,7 @@ This is a special case of `is_colimit.hom_iso'`, often useful to construct adjun
 @[simps]
 def cofork.is_colimit.hom_iso {X Y : C} {f g : X ⟶ Y} {t : cofork f g} (ht : is_colimit t) (Z : C) :
   (t.X ⟶ Z) ≃ {h : Y ⟶ Z // f ≫ h = g ≫ h} :=
-{ to_fun := λ k, ⟨t.π ≫ k, by simp only [←category.assoc, t.condition]⟩,
+{ to_fun := λ k, ⟨t.π ≫ k, by simv only [←category.assoc, t.condition]⟩,
   inv_fun := λ h, (cofork.is_colimit.desc' ht _ h.prop).1,
   left_inv := λ k, cofork.is_colimit.hom_ext ht (cofork.is_colimit.desc' _ _ _).prop,
   right_inv := λ h, subtype.ext (cofork.is_colimit.desc' ht _ _).prop }
@@ -447,7 +447,7 @@ def cone.of_fork
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
-    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
+    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simv } } }
 
 /-- This is a helper construction that can be useful when verifying that a category has all
     coequalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as
@@ -462,7 +462,7 @@ def cocone.of_cofork
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
-    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
+    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simv } } }
 
 @[simp] lemma cone.of_fork_π
   {F : walking_parallel_pair ⥤ C} (t : fork (F.map left) (F.map right)) (j) :
@@ -509,7 +509,7 @@ def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s �
   begin
     rintro ⟨_|_⟩,
     { exact w },
-    { simp only [fork.app_one_eq_ι_comp_left, reassoc_of w] },
+    { simv only [fork.app_one_eq_ι_comp_left, reassoc_of w] },
   end }
 
 /--
@@ -524,7 +524,7 @@ def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : i.hom ≫ t.ι = s.ι) : s 
 
 /-- Every fork is isomorphic to one of the form `fork.of_ι _ _`. -/
 def fork.iso_fork_of_ι (c : fork f g) : c ≅ fork.of_ι c.ι c.condition :=
-fork.ext (by simp only [fork.of_ι_X, functor.const_obj_obj]) (by simp)
+fork.ext (by simv only [fork.of_ι_X, functor.const_obj_obj]) (by simv)
 
 /--
 Helper function for constructing morphisms between coequalizer coforks.
@@ -535,14 +535,14 @@ def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) :
   w' :=
   begin
     rintro ⟨_|_⟩,
-    { simp [cofork.app_zero_eq_comp_π_left, w] },
+    { simv [cofork.app_zero_eq_comp_π_left, w] },
     { exact w }
   end }
 
-@[simp, reassoc] lemma fork.hom_comp_ι {s t : fork f g} (f : s ⟶ t) : f.hom ≫ t.ι = s.ι :=
+@[simv, reassoc] lemma fork.hom_comp_ι {s t : fork f g} (f : s ⟶ t) : f.hom ≫ t.ι = s.ι :=
 by tidy
 
-@[simp, reassoc] lemma fork.π_comp_hom {s t : cofork f g} (f : s ⟶ t) : s.π ≫ f.hom = t.π :=
+@[simv, reassoc] lemma fork.π_comp_hom {s t : cofork f g} (f : s ⟶ t) : s.π ≫ f.hom = t.π :=
 by tidy
 
 /--
@@ -557,7 +557,7 @@ def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) 
 
 /-- Every cofork is isomorphic to one of the form `cofork.of_π _ _`. -/
 def cofork.iso_cofork_of_π (c : cofork f g) : c ≅ cofork.of_π c.π c.condition :=
-cofork.ext (by simp only [cofork.of_π_X, functor.const_obj_obj]) (by dsimp; simp)
+cofork.ext (by simv only [cofork.of_π_X, functor.const_obj_obj]) (by dsimp; simv)
 
 variables (f g)
 
@@ -604,7 +604,7 @@ variables {f g}
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma equalizer.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
   equalizer.lift k h ≫ equalizer.ι f g = k :=
 limit.lift_π _ _
@@ -699,8 +699,8 @@ as_iso (equalizer.ι f f)
 rfl
 
 @[simp] lemma equalizer.iso_source_of_self_inv :
-  (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
-by { ext, simp [equalizer.iso_source_of_self], }
+  (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simv) :=
+by { ext, simv [equalizer.iso_source_of_self], }
 
 section
 /--
@@ -746,7 +746,7 @@ variables {f g}
 abbreviation coequalizer.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) : coequalizer f g ⟶ W :=
 colimit.desc (parallel_pair f g) (cofork.of_π k h)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma coequalizer.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
   coequalizer.π f g ≫ coequalizer.desc k h = k :=
 colimit.ι_desc _ _
@@ -839,8 +839,8 @@ def coequalizer.iso_target_of_self : coequalizer f f ≅ Y :=
 (as_iso (coequalizer.π f f)).symm
 
 @[simp] lemma coequalizer.iso_target_of_self_hom :
-  (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
-by { ext, simp [coequalizer.iso_target_of_self], }
+  (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simv) :=
+by { ext, simv [coequalizer.iso_target_of_self], }
 
 @[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
@@ -857,36 +857,36 @@ This is an isomorphism iff `G` preserves the equalizer of `f,g`; see
 -/
 def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
   G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
-equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalizer.condition])
+equalizer.lift (G.map (equalizer.ι _ _)) (by simv only [←G.map_comp, equalizer.condition])
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma equalizer_comparison_comp_π [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
   equalizer_comparison f g G ≫ equalizer.ι (G.map f) (G.map g) = G.map (equalizer.ι f g) :=
 equalizer.lift_ι _ _
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma map_lift_equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   {Z : C} {h : Z ⟶ X} (w : h ≫ f = h ≫ g) :
     G.map (equalizer.lift h w) ≫ equalizer_comparison f g G =
-      equalizer.lift (G.map h) (by simp only [←G.map_comp, w]) :=
-by { ext, simp [← G.map_comp] }
+      equalizer.lift (G.map h) (by simv only [←G.map_comp, w]) :=
+by { ext, simv [← G.map_comp] }
 
 /-- The comparison morphism for the coequalizer of `f,g`. -/
 def coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
   coequalizer (G.map f) (G.map g) ⟶ G.obj (coequalizer f g) :=
-coequalizer.desc (G.map (coequalizer.π _ _)) (by simp only [←G.map_comp, coequalizer.condition])
+coequalizer.desc (G.map (coequalizer.π _ _)) (by simv only [←G.map_comp, coequalizer.condition])
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_comp_coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
   coequalizer.π _ _ ≫ coequalizer_comparison f g G = G.map (coequalizer.π _ _) :=
 coequalizer.π_desc _ _
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma coequalizer_comparison_map_desc [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)]
   {Z : C} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h) :
   coequalizer_comparison f g G ≫ G.map (coequalizer.desc h w) =
-    coequalizer.desc (G.map h) (by simp only [←G.map_comp, w]) :=
-by { ext, simp [← G.map_comp] }
+    coequalizer.desc (G.map h) (by simv only [←G.map_comp, w]) :=
+by { ext, simv [← G.map_comp] }
 
 end comparison
 
@@ -919,7 +919,7 @@ Here we build the cone, and show in `split_mono_equalizes` that it is a limit co
 -/
 @[simps {rhs_md := semireducible}]
 def cone_of_split_mono : fork (𝟙 Y) (retraction f ≫ f) :=
-fork.of_ι f (by simp)
+fork.of_ι f (by simv)
 
 @[simp] lemma cone_of_split_mono_ι : (cone_of_split_mono f).ι = f := rfl
 
@@ -930,7 +930,7 @@ def split_mono_equalizes {X Y : C} (f : X ⟶ Y) [split_mono f] : is_limit (cone
 fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ retraction f,
  by { dsimp, rw [category.assoc, ←s.condition], apply category.comp_id },
- λ m hm, by simp [←hm]⟩
+ λ m hm, by simv [←hm]⟩
 
 end
 
@@ -947,9 +947,9 @@ variables {C f g}
 
 /-- The fork obtained by postcomposing an equalizer fork with a monomorphism is an equalizer. -/
 def is_equalizer_comp_mono {c : fork f g} (i : is_limit c) {Z : C} (h : Y ⟶ Z) [hm : mono h] :
-  is_limit (fork.of_ι c.ι (by simp [reassoc_of c.condition]) : fork (f ≫ h) (g ≫ h)) :=
+  is_limit (fork.of_ι c.ι (by simv [reassoc_of c.condition]) : fork (f ≫ h) (g ≫ h)) :=
 fork.is_limit.mk' _ $ λ s,
-  let s' : fork f g := fork.of_ι s.ι (by apply hm.right_cancellation; simp [s.condition]) in
+  let s' : fork f g := fork.of_ι s.ι (by apply hm.right_cancellation; simv [s.condition]) in
   let l := fork.is_limit.lift' i s'.ι s'.condition in
   ⟨l.1, l.2, λ m hm, by apply fork.is_limit.hom_ext i; rw fork.ι_of_ι at hm; rw hm; exact l.2.symm⟩
 
@@ -964,7 +964,7 @@ lemma has_equalizer_comp_mono [has_equalizer f g] {Z : C} (h : Y ⟶ Z) [mono h]
 @[simps]
 def split_mono_of_idempotent_of_is_limit_fork {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
   {c : fork (𝟙 X) f} (i : is_limit c) : split_mono c.ι :=
-{ retraction := i.lift (fork.of_ι f (by simp [hf])),
+{ retraction := i.lift (fork.of_ι f (by simv [hf])),
   id' :=
   begin
     letI := mono_of_is_limit_fork i,
@@ -987,7 +987,7 @@ Here we build the cocone, and show in `split_epi_coequalizes` that it is a colim
 -/
 @[simps {rhs_md := semireducible}]
 def cocone_of_split_epi : cofork (𝟙 X) (f ≫ section_ f) :=
-cofork.of_π f (by simp)
+cofork.of_π f (by simv)
 
 @[simp] lemma cocone_of_split_epi_π : (cocone_of_split_epi f).π = f := rfl
 
@@ -999,7 +999,7 @@ def split_epi_coequalizes {X Y : C} (f : X ⟶ Y) [split_epi f] :
 cofork.is_colimit.mk' _ $ λ s,
 ⟨section_ f ≫ s.π,
  by { dsimp, rw [← category.assoc, ← s.condition, category.id_comp] },
- λ m hm, by simp [← hm]⟩
+ λ m hm, by simv [← hm]⟩
 
 end
 
@@ -1017,7 +1017,7 @@ variables {C f g}
 /-- The cofork obtained by precomposing a coequalizer cofork with an epimorphism is
 a coequalizer. -/
 def is_coequalizer_epi_comp {c : cofork f g} (i : is_colimit c) {W : C} (h : W ⟶ X) [hm : epi h] :
-  is_colimit (cofork.of_π c.π (by simp) : cofork (h ≫ f) (h ≫ g)) :=
+  is_colimit (cofork.of_π c.π (by simv) : cofork (h ≫ f) (h ≫ g)) :=
 cofork.is_colimit.mk' _ $ λ s,
   let s' : cofork f g := cofork.of_π s.π
     (by apply hm.left_cancellation; simp_rw [←category.assoc, s.condition]) in
@@ -1035,7 +1035,7 @@ variables (C f g)
 @[simps]
 def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
   {c : cofork (𝟙 X) f} (i : is_colimit c) : split_epi c.π :=
-{ section_ := i.desc (cofork.of_π f (by simp [hf])),
+{ section_ := i.desc (cofork.of_π f (by simv [hf])),
   id' :=
   begin
     letI := epi_of_is_colimit_cofork i,

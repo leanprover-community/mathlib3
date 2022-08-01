@@ -91,7 +91,7 @@ le_of_not_lt $ mt mem_resolvent_of_norm_lt hk
 
 lemma subset_closed_ball_norm [norm_one_class A] (a : A) :
   σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥) :=
-λ k hk, by simp [norm_le_norm_of_mem hk]
+λ k hk, by simv [norm_le_norm_of_mem hk]
 
 lemma is_bounded [norm_one_class A] (a : A) : metric.bounded (σ a) :=
 (metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥, subset_closed_ball_norm a⟩
@@ -153,7 +153,7 @@ begin
   obtain ⟨c, c_pos, hc⟩ := (@normed_ring.inverse_one_sub_norm A _ _).exists_pos,
   rw [is_O_with_iff, eventually_iff, metric.mem_nhds_iff] at hc,
   rcases hc with ⟨δ, δ_pos, hδ⟩,
-  simp only [cstar_ring.norm_one, mul_one] at hδ,
+  simv only [cstar_ring.norm_one, mul_one] at hδ,
   intros ε hε,
   have ha₁ : 0 < ∥a∥ + 1 := lt_of_le_of_lt (norm_nonneg a) (lt_add_one _),
   have min_pos : 0 < min (δ * (∥a∥ + 1)⁻¹) (ε * c⁻¹),
@@ -199,11 +199,11 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
     refine le_of_forall_nnreal_lt (λ r hr, le_radius_of_bound_nnreal _ (max 1 ∥(1 : A)∥₊) (λ n, _)),
     rw [←norm_to_nnreal, norm_mk_pi_field, norm_to_nnreal],
     cases n,
-    { simp only [le_refl, mul_one, or_true, le_max_iff, pow_zero] },
+    { simv only [le_refl, mul_one, or_true, le_max_iff, pow_zero] },
     { refine le_trans (le_trans (mul_le_mul_right' (nnnorm_pow_le' a n.succ_pos) (r ^ n.succ)) _)
         (le_max_left _ _),
       { by_cases ∥a∥₊ = 0,
-        { simp only [h, zero_mul, zero_le', pow_succ], },
+        { simv only [h, zero_mul, zero_le', pow_succ], },
         { rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
           simpa only [←mul_pow, mul_comm] using pow_le_one' hr.le n.succ } } }
   end,
@@ -212,7 +212,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
   begin
     have norm_lt : ∥y • a∥ < 1,
     { by_cases h : ∥a∥₊ = 0,
-      { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
+      { simv only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
       { have nnnorm_lt : ∥y∥₊ < ∥a∥₊⁻¹,
           by simpa only [←coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
         rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
@@ -226,7 +226,7 @@ lemma is_unit_one_sub_smul_of_lt_inv_radius {a : A} {z : 𝕜} (h : ↑∥z∥�
   is_unit (1 - z • a) :=
 begin
   by_cases hz : z = 0,
-  { simp only [hz, is_unit_one, sub_zero, zero_smul] },
+  { simv only [hz, is_unit_one, sub_zero, zero_smul] },
   { let u := units.mk0 z hz,
     suffices hu : is_unit (u⁻¹ • 1 - a),
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
@@ -272,7 +272,7 @@ begin
     λ n, continuous_multilinear_map.mk_pi_field ℂ (fin n) (a ^ n),
   suffices h : (r : ℝ≥0∞) ≤ p.radius,
   { convert h,
-    simp only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
+    simv only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
     refine congr_arg _ (funext (λ n, congr_arg _ _)),
     rw [norm_to_nnreal, ennreal.coe_rpow_def (∥a ^ n∥₊) (1 / n : ℝ), if_neg],
     exact λ ha, by linarith [ha.2, (one_div_nonneg.mpr n.cast_nonneg : 0 ≤ (1 / n : ℝ))], },
@@ -288,7 +288,7 @@ begin
   refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
   { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
     refine le_trans _ (le_supr _ 0),
-    simp only [nat.cast_succ],
+    simv only [nat.cast_succ],
     exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
 end
@@ -395,7 +395,7 @@ begin
   have h₃ : exp 𝕜 (a - ↑ₐz) = 1 + (a - ↑ₐz) * b,
   { rw exp_eq_tsum,
     convert tsum_eq_zero_add (exp_series_summable' (a - ↑ₐz)),
-    simp only [nat.factorial_zero, nat.cast_one, inv_one, pow_zero, one_smul],
+    simv only [nat.factorial_zero, nat.cast_one, inv_one, pow_zero, one_smul],
     exact h₀.symm },
   rw [spectrum.mem_iff, is_unit.sub_iff, ←one_mul (↑ₐ(exp 𝕜 z)), hexpmul, ←_root_.sub_mul,
     commute.is_unit_mul_iff (algebra.commutes (exp 𝕜 z) (exp 𝕜 (a - ↑ₐz) - 1)).symm,

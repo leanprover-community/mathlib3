@@ -110,7 +110,7 @@ def approximates_linear_on (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : 
 
 @[simp] lemma approximates_linear_on_empty (f : E → F) (f' : E →L[𝕜] F) (c : ℝ≥0) :
   approximates_linear_on f f' ∅ c :=
-by simp [approximates_linear_on]
+by simv [approximates_linear_on]
 
 namespace approximates_linear_on
 
@@ -136,8 +136,8 @@ lemma approximates_linear_on_iff_lipschitz_on_with
   approximates_linear_on f f' s c ↔ lipschitz_on_with c (f - f') s :=
 begin
   have : ∀ x y, f x - f y - f' (x - y) = (f - f') x - (f - f') y,
-  { assume x y, simp only [map_sub, pi.sub_apply], abel },
-  simp only [this, lipschitz_on_with_iff_norm_sub_le, approximates_linear_on],
+  { assume x y, simv only [map_sub, pi.sub_apply], abel },
+  simv only [this, lipschitz_on_with_iff_norm_sub_le, approximates_linear_on],
 end
 
 alias approximates_linear_on_iff_lipschitz_on_with ↔
@@ -188,10 +188,10 @@ theorem surj_on_closed_ball_of_nonlinear_right_inverse
 begin
   assume y hy,
   cases le_or_lt (f'symm.nnnorm : ℝ) ⁻¹ c with hc hc,
-  { refine ⟨b, by simp [ε0], _⟩,
+  { refine ⟨b, by simv [ε0], _⟩,
     have : dist y (f b) ≤ 0 :=
       (mem_closed_ball.1 hy).trans (mul_nonpos_of_nonpos_of_nonneg (by linarith) ε0),
-    simp only [dist_le_zero] at this,
+    simv only [dist_le_zero] at this,
     rw this },
   have If' : (0 : ℝ) < f'symm.nnnorm,
     by { rw [← inv_pos], exact (nnreal.coe_nonneg _).trans_lt hc },
@@ -213,7 +213,7 @@ begin
   -/
   set g := λ x, x + f'symm (y - f x) with hg,
   set u := λ (n : ℕ), g ^[n] b with hu,
-  have usucc : ∀ n, u (n + 1) = g (u n), by simp [hu, ← iterate_succ_apply' g _ b],
+  have usucc : ∀ n, u (n + 1) = g (u n), by simv [hu, ← iterate_succ_apply' g _ b],
   -- First bound: if `f z` is close to `y`, then `g z` is close to `z` (i.e., almost a fixed point).
   have A : ∀ z, dist (g z) z ≤ f'symm.nnnorm * dist (f z) y,
   { assume z,
@@ -229,7 +229,7 @@ begin
     calc dist (f (g z)) y = ∥f (z + v) - y∥ : by rw [dist_eq_norm]
     ... = ∥f (z + v) - f  z - f' v + f' v - (y - f z)∥ : by { congr' 1, abel }
     ... = ∥f (z + v) - f z - f' ((z + v) - z)∥ :
-      by simp only [continuous_linear_map.nonlinear_right_inverse.right_inv,
+      by simv only [continuous_linear_map.nonlinear_right_inverse.right_inv,
                     add_sub_cancel', sub_add_cancel]
     ... ≤ c * ∥(z + v) - z∥ : hf _ (hε hgz) _ (hε hz)
     ... ≤ c * (f'symm.nnnorm * dist (f z) y) : begin
@@ -266,7 +266,7 @@ begin
     ∧ dist (u n) b ≤ f'symm.nnnorm * (1 - (c * f'symm.nnnorm)^n) / (1 - c * f'symm.nnnorm)
       * dist (f b) y,
   { assume n,
-    induction n with n IH, { simp [hu, le_refl] },
+    induction n with n IH, { simv [hu, le_refl] },
     rw usucc,
     have Ign : dist (g (u n)) b ≤
       f'symm.nnnorm * (1 - (c * f'symm.nnnorm)^n.succ) / (1 - c * f'symm.nnnorm) * dist (f b) y :=
@@ -302,7 +302,7 @@ begin
   -- It remains to check that `f x = y`. This follows from continuity of `f` on `closed_ball b ε`
   -- and from the fact that `f uₙ` is converging to `y` by construction.
   have hx' : tendsto u at_top (𝓝[closed_ball b ε] x),
-  { simp only [nhds_within, tendsto_inf, hx, true_and, ge_iff_le, tendsto_principal],
+  { simv only [nhds_within, tendsto_inf, hx, true_and, ge_iff_le, tendsto_principal],
     exact eventually_of_forall (λ n, C n _ (D n).2) },
   have T1 : tendsto (λ n, f (u n)) at_top (𝓝 (f x)) :=
     (hf.continuous_on.mono hε x xmem).tendsto.comp hx',
@@ -318,7 +318,7 @@ lemma open_image (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_r
   (hs : is_open s) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) : is_open (f '' s) :=
 begin
   cases hc with hE hc, { resetI, apply is_open_discrete },
-  simp only [is_open_iff_mem_nhds, nhds_basis_closed_ball.mem_iff, ball_image_iff] at hs ⊢,
+  simv only [is_open_iff_mem_nhds, nhds_basis_closed_ball.mem_iff, ball_image_iff] at hs ⊢,
   intros x hx,
   rcases hs x hx with ⟨ε, ε0, hε⟩,
   refine ⟨(f'symm.nnnorm⁻¹ - c) * ε, mul_pos (sub_pos.2 hc) ε0, _⟩,
@@ -366,7 +366,7 @@ begin
   { haveI : subsingleton s := ⟨λ x y, subtype.eq $ @subsingleton.elim _ hE _ _⟩,
     exact antilipschitz_with.of_subsingleton },
   convert (f'.antilipschitz.restrict s).add_lipschitz_with hf.lipschitz_sub hc,
-  simp [restrict]
+  simv [restrict]
 end
 
 protected lemma injective (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
@@ -434,7 +434,7 @@ begin
   ... = N * ∥A y' - A x' - f' (y' - x')∥ :
     begin
       congr' 2,
-      simp only [continuous_linear_equiv.apply_symm_apply, continuous_linear_equiv.map_sub],
+      simv only [continuous_linear_equiv.apply_symm_apply, continuous_linear_equiv.map_sub],
       abel,
     end
   ... ≤ N * (c * ∥y' - x'∥) :
@@ -446,7 +446,7 @@ begin
       exact (hf.antilipschitz hc).le_mul_dist ⟨y', y's⟩ ⟨x', x's⟩,
     end
   ... = (N * (N⁻¹ - c)⁻¹ * c : ℝ≥0) * ∥A x' - A y'∥ :
-    by { simp only [norm_sub_rev, nonneg.coe_mul], ring }
+    by { simv only [norm_sub_rev, nonneg.coe_mul], ring }
 end
 
 include cs
@@ -500,7 +500,7 @@ begin
     rw lipschitz_on_univ,
     convert hu,
     ext x,
-    simp only [add_sub_cancel', continuous_linear_equiv.coe_coe, pi.sub_apply] },
+    simv only [add_sub_cancel', continuous_linear_equiv.coe_coe, pi.sub_apply] },
   haveI : finite_dimensional ℝ E := f'.symm.to_linear_equiv.finite_dimensional,
   exact ⟨hg.to_homeomorph g hc, fg⟩,
 end
@@ -546,7 +546,7 @@ lemma approximates_deriv_on_nhds {f : E → F} {f' : E →L[𝕜] F} {a : E}
 begin
   cases hc with hE hc,
   { refine ⟨univ, is_open.mem_nhds is_open_univ trivial, λ x hx y hy, _⟩,
-    simp [@subsingleton.elim E hE x y] },
+    simv [@subsingleton.elim E hE x y] },
   have := hf.def hc,
   rw [nhds_prod_eq, filter.eventually, mem_prod_same_iff] at this,
   rcases this with ⟨s, has, hs⟩,
@@ -561,11 +561,11 @@ begin
   let f'symm := f'.nonlinear_right_inverse_of_surjective h,
   set c : ℝ≥0 := f'symm.nnnorm⁻¹ / 2 with hc,
   have f'symm_pos : 0 < f'symm.nnnorm := f'.nonlinear_right_inverse_of_surjective_nnnorm_pos h,
-  have cpos : 0 < c, by simp [hc, nnreal.half_pos, nnreal.inv_pos, f'symm_pos],
+  have cpos : 0 < c, by simv [hc, nnreal.half_pos, nnreal.inv_pos, f'symm_pos],
   obtain ⟨s, s_nhds, hs⟩ : ∃ s ∈ 𝓝 a, approximates_linear_on f f' s c :=
     hf.approximates_deriv_on_nhds (or.inr cpos),
   apply hs.map_nhds_eq f'symm s_nhds (or.inr (nnreal.half_lt_self _)),
-  simp [ne_of_gt f'symm_pos],
+  simv [ne_of_gt f'symm_pos],
 end
 
 variables [cs : complete_space E] {f : E → F} {f' : E ≃L[𝕜] F} {a : E}

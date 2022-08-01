@@ -20,15 +20,15 @@ namespace int
 variables {m n : ℤ}
 
 @[simp] theorem mod_two_ne_one : ¬ n % 2 = 1 ↔ n % 2 = 0 :=
-by cases mod_two_eq_zero_or_one n with h h; simp [h]
+by cases mod_two_eq_zero_or_one n with h h; simv [h]
 
-local attribute [simp] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal form
+local attribute [simv] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal form
 theorem mod_two_ne_zero : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
-by cases mod_two_eq_zero_or_one n with h h; simp [h]
+by cases mod_two_eq_zero_or_one n with h h; simv [h]
 
 theorem even_iff : even n ↔ n % 2 = 0 :=
-⟨λ ⟨m, hm⟩, by simp [← two_mul, hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans
-  (by simp [← two_mul, h])⟩⟩
+⟨λ ⟨m, hm⟩, by simv [← two_mul, hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans
+  (by simv [← two_mul, h])⟩⟩
 
 theorem odd_iff : odd n ↔ n % 2 = 1 :=
 ⟨λ ⟨m, hm⟩, by { rw [hm, add_mod], norm_num },
@@ -47,7 +47,7 @@ by rw [not_odd_iff, even_iff]
 by rw [not_even_iff, odd_iff]
 
 lemma is_compl_even_odd : is_compl {n : ℤ | even n} {n | odd n} :=
-by simp [← set.compl_set_of, is_compl_compl]
+by simv [← set.compl_set_of, is_compl_compl]
 
 lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
 or.imp_right odd_iff_not_even.2 $ em $ even n
@@ -68,7 +68,7 @@ begin
   use k,
   { simpa only [← two_mul, xor, true_and, eq_self_iff_true, not_true, or_false, and_false]
       using (succ_ne_self (2*k)).symm },
-  { simp only [xor, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
+  { simv only [xor, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
                one_ne_zero, and_self] },
 end
 
@@ -84,35 +84,35 @@ by rw even_iff; norm_num
 @[parity_simps] theorem even_add : even (m + n) ↔ (even m ↔ even n) :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
    cases mod_two_eq_zero_or_one n with h₂ h₂;
-   simp [even_iff, h₁, h₂, int.add_mod];
+   simv [even_iff, h₁, h₂, int.add_mod];
    norm_num
 
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
 @[simp] theorem not_even_bit1 (n : ℤ) : ¬ even (bit1 n) :=
-by simp [bit1] with parity_simps
+by simv [bit1] with parity_simps
 
 lemma two_not_dvd_two_mul_add_one (n : ℤ) : ¬(2 ∣ 2 * n + 1) :=
-by { simp [add_mod], refl }
+by { simv [add_mod], refl }
 
 @[parity_simps] theorem even_sub : even (m - n) ↔ (even m ↔ even n) :=
-by simp [sub_eq_add_neg] with parity_simps
+by simv [sub_eq_add_neg] with parity_simps
 
 theorem even_sub' : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
 @[parity_simps] theorem even_add_one : even (n + 1) ↔ ¬ even n :=
-by simp [even_add]
+by simv [even_add]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
    cases mod_two_eq_zero_or_one n with h₂ h₂;
-   simp [even_iff, h₁, h₂, int.mul_mod];
+   simv [even_iff, h₁, h₂, int.mul_mod];
    norm_num
 
 theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
-by simp [not_or_distrib] with parity_simps
+by simv [not_or_distrib] with parity_simps
 
 theorem odd.of_mul_left (h : odd (m * n)) : odd m :=
 (odd_mul.mp h).1
@@ -121,7 +121,7 @@ theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
 (odd_mul.mp h).2
 
 @[parity_simps] theorem even_pow {n : ℕ} : even (m ^ n) ↔ even m ∧ n ≠ 0 :=
-by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
+by { induction n with n ih; simv [*, even_mul, pow_succ], tauto }
 
 theorem even_pow' {n : ℕ} (h : n ≠ 0) : even (m ^ n) ↔ even m :=
 even_pow.trans $ and_iff_left h
@@ -145,17 +145,17 @@ lemma even_mul_succ_self (n : ℤ) : even (n * (n + 1)) :=
 begin
   rw even_mul,
   convert n.even_or_odd,
-  simp with parity_simps
+  simv with parity_simps
 end
 
-@[simp, norm_cast] theorem even_coe_nat (n : ℕ) : even (n : ℤ) ↔ even n :=
+@[simv, norm_cast] theorem even_coe_nat (n : ℕ) : even (n : ℤ) ↔ even n :=
 by rw_mod_cast [even_iff, nat.even_iff]
 
-@[simp, norm_cast] theorem odd_coe_nat (n : ℕ) : odd (n : ℤ) ↔ odd n :=
+@[simv, norm_cast] theorem odd_coe_nat (n : ℕ) : odd (n : ℤ) ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
 
 @[simp] theorem nat_abs_even : even n.nat_abs ↔ even n :=
-by simp [even_iff_two_dvd, dvd_nat_abs, coe_nat_dvd_left.symm]
+by simv [even_iff_two_dvd, dvd_nat_abs, coe_nat_dvd_left.symm]
 
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
@@ -206,9 +206,9 @@ eq_sub_of_add_eq (two_mul_div_two_add_one_of_odd h)
 -- Here are examples of how `parity_simps` can be used with `int`.
 
 example (m n : ℤ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=
-by simp [*, (dec_trivial : ¬ 2 = 0)] with parity_simps
+by simv [*, (dec_trivial : ¬ 2 = 0)] with parity_simps
 
 example : ¬ even (25394535 : ℤ) :=
-by simp
+by simv
 
 end int

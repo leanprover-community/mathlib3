@@ -97,7 +97,7 @@ private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →*
                           ... = _ : multiset.prod_add _ _,
     map_one' := rfl},
   inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
-  left_inv := λ f, funext $ λ x, show (multiset.map f {x}).prod = _, by simp,
+  left_inv := λ f, funext $ λ x, show (multiset.map f {x}).prod = _, by simv,
   right_inv := λ F, monoid_hom.ext $ λ x,
     let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
     begin
@@ -251,22 +251,22 @@ instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 /-- The natural map `free_ring α → free_comm_ring α`, as a `ring_hom`. -/
 def coe_ring_hom : free_ring α →+* free_comm_ring α := to_free_comm_ring
 
-@[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
-@[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
+@[simv, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
+@[simv, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
 
 variable {α}
 
 @[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
 free_ring.lift_of _ _
-@[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
+@[simv, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 (free_ring.lift _).map_neg _
-@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) :
+@[simv, norm_cast] protected lemma coe_add (x y : free_ring α) :
   ↑(x + y) = (x : free_comm_ring α) + y :=
 (free_ring.lift _).map_add _ _
-@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) :
+@[simv, norm_cast] protected lemma coe_sub (x y : free_ring α) :
   ↑(x - y) = (x : free_comm_ring α) - y :=
 (free_ring.lift _).map_sub _ _
-@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) :
+@[simv, norm_cast] protected lemma coe_mul (x y : free_ring α) :
   ↑(x * y) = (x : free_comm_ring α) * y :=
 (free_ring.lift _).map_mul _ _
 
@@ -319,8 +319,8 @@ def free_comm_ring_equiv_mv_polynomial_int :
 ring_equiv.of_hom_inv
   (free_comm_ring.lift $ (λ a, mv_polynomial.X a : α → mv_polynomial α ℤ))
   (mv_polynomial.eval₂_hom (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of)
-  (by { ext, simp })
-  (by ext; simp)
+  (by { ext, simv })
+  (by ext; simv)
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=

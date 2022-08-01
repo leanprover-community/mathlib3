@@ -31,7 +31,7 @@ subsingleton.measurable.ae_measurable
 lemma ae_measurable_of_subsingleton_codomain [subsingleton β] : ae_measurable f μ :=
 (measurable_of_subsingleton_codomain f).ae_measurable
 
-@[simp, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
+@[simv, measurability] lemma ae_measurable_zero_measure : ae_measurable f (0 : measure α) :=
 begin
   nontriviality α, inhabit α,
   exact ⟨λ x, f default, measurable_const, rfl⟩
@@ -71,13 +71,13 @@ begin
   { intros i x hx, contrapose! hx, exact subset_to_measurable _ _ hx },
   set g : α → β := (⋂ i, s i).piecewise (const α default) f,
   refine ⟨g, measurable_of_restrict_of_restrict_compl hsm _ _, ae_sum_iff.mpr $ λ i, _⟩,
-  { rw [restrict_piecewise], simp only [set.restrict, const], exact measurable_const },
+  { rw [restrict_piecewise], simv only [set.restrict, const], exact measurable_const },
   { rw [restrict_piecewise_compl, compl_Inter],
     intros t ht,
     refine ⟨⋃ i, ((h i).mk f ⁻¹' t) ∩ (s i)ᶜ, measurable_set.Union $
       λ i, (measurable_mk _ ht).inter (measurable_set_to_measurable _ _).compl, _⟩,
     ext ⟨x, hx⟩,
-    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_eq,
+    simv only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_eq,
       mem_compl_iff] at hx ⊢,
     split,
     { rintro ⟨i, hxt, hxs⟩, rwa hs _ _ hxs },
@@ -112,7 +112,7 @@ protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurab
 @[simp] lemma _root_.ae_measurable_union_iff {s t : set α} :
   ae_measurable f (μ.restrict (s ∪ t)) ↔
     ae_measurable f (μ.restrict s) ∧ ae_measurable f (μ.restrict t) :=
-by simp only [union_eq_Union, ae_measurable_Union_iff, bool.forall_bool, cond, and.comm]
+by simv only [union_eq_Union, ae_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
 @[measurability]
 lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
@@ -145,7 +145,7 @@ begin
   have B : map (g ∘ f) μ = map (g' ∘ f) μ,
   { apply measure_theory.measure.map_congr,
     exact ae_of_ae_map hf hg.ae_eq_mk },
-  simp only [A, B, hs, hg.measurable_mk.ae_measurable.comp_ae_measurable hf, hg.measurable_mk,
+  simv only [A, B, hs, hg.measurable_mk.ae_measurable.comp_ae_measurable hf, hg.measurable_mk,
     hg.measurable_mk hs, hf, map_apply, map_apply_of_ae_measurable],
   refl,
 end
@@ -168,20 +168,20 @@ begin
   { rintros _ ⟨x, rfl⟩,
     by_cases hx : x ∈ s,
     { simpa [g, hx] using h₀.some_mem },
-    { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
+    { simv only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
-      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+      simv only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
         {contextual := tt} } },
   { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
     { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
       exact H.ae_eq_mk.and ht },
     filter_upwards [compl_mem_ae_iff.2 A] with x hx,
     rw mem_compl_iff at hx,
-    simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
+    simv only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
     contrapose! hx,
     apply subset_to_measurable,
-    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+    simv only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
 end
 
 lemma exists_measurable_nonneg {β} [preorder β] [has_zero β] {mβ : measurable_space β} {f : α → β}
@@ -241,7 +241,7 @@ lemma ae_measurable_restrict_iff_comap_subtype {s : set α} (hs : measurable_set
   ae_measurable f (μ.restrict s) ↔ ae_measurable (f ∘ coe : s → β) (comap coe μ) :=
 by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_measurable_map_iff]
 
-@[simp, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
+@[simv, to_additive] lemma ae_measurable_one [has_one β] : ae_measurable (λ a : α, (1 : β)) μ :=
 measurable_one.ae_measurable
 
 @[simp] lemma ae_measurable_smul_measure_iff {c : ℝ≥0∞} (hc : c ≠ 0) :
@@ -285,7 +285,7 @@ begin
   cases lt_or_le x (u n),
   { exact g_meas (u n) h, },
   { rw Ioc_eq_empty (not_lt.mpr h),
-    simp only [measure.restrict_empty],
+    simv only [measure.restrict_empty],
     exact ae_measurable_zero_measure, },
 end
 
@@ -325,7 +325,7 @@ calc
 begin
   apply congr_arg,
   ext1 t ht,
-  simp only [ht, measure.restrict_apply],
+  simv only [ht, measure.restrict_apply],
   apply measure_congr,
   apply (eventually_eq.refl _ _).inter (hf.ae_eq_mk.symm.preimage s)
 end

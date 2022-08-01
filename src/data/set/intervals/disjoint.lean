@@ -46,16 +46,16 @@ disjoint.comm.trans Ici_disjoint_Iic
 @[simp] lemma Union_Ici : (⋃ a : α, Ici a) = univ := Union_eq_univ_iff.2 $ λ x, ⟨x, left_mem_Ici⟩
 
 @[simp] lemma Union_Icc_right (a : α) : (⋃ b, Icc a b) = Ici a :=
-by simp only [← Ici_inter_Iic, ← inter_Union, Union_Iic, inter_univ]
+by simv only [← Ici_inter_Iic, ← inter_Union, Union_Iic, inter_univ]
 
 @[simp] lemma Union_Ioc_right (a : α) : (⋃ b, Ioc a b) = Ioi a :=
-by simp only [← Ioi_inter_Iic, ← inter_Union, Union_Iic, inter_univ]
+by simv only [← Ioi_inter_Iic, ← inter_Union, Union_Iic, inter_univ]
 
 @[simp] lemma Union_Icc_left (b : α) : (⋃ a, Icc a b) = Iic b :=
-by simp only [← Ici_inter_Iic, ← Union_inter, Union_Ici, univ_inter]
+by simv only [← Ici_inter_Iic, ← Union_inter, Union_Ici, univ_inter]
 
 @[simp] lemma Union_Ico_left (b : α) : (⋃ a, Ico a b) = Iio b :=
-by simp only [← Ici_inter_Iio, ← Union_inter, Union_Ici, univ_inter]
+by simv only [← Ici_inter_Iio, ← Union_inter, Union_Ici, univ_inter]
 
 @[simp] lemma Union_Iio [no_max_order α] : (⋃ a : α, Iio a) = univ :=
 Union_eq_univ_iff.2 exists_gt
@@ -64,16 +64,16 @@ Union_eq_univ_iff.2 exists_gt
 Union_eq_univ_iff.2 exists_lt
 
 @[simp] lemma Union_Ico_right [no_max_order α] (a : α) : (⋃ b, Ico a b) = Ici a :=
-by simp only [← Ici_inter_Iio, ← inter_Union, Union_Iio, inter_univ]
+by simv only [← Ici_inter_Iio, ← inter_Union, Union_Iio, inter_univ]
 
 @[simp] lemma Union_Ioo_right [no_max_order α] (a : α) : (⋃ b, Ioo a b) = Ioi a :=
-by simp only [← Ioi_inter_Iio, ← inter_Union, Union_Iio, inter_univ]
+by simv only [← Ioi_inter_Iio, ← inter_Union, Union_Iio, inter_univ]
 
 @[simp] lemma Union_Ioc_left [no_min_order α] (b : α) : (⋃ a, Ioc a b) = Iic b :=
-by simp only [← Ioi_inter_Iic, ← Union_inter, Union_Ioi, univ_inter]
+by simv only [← Ioi_inter_Iic, ← Union_inter, Union_Ioi, univ_inter]
 
 @[simp] lemma Union_Ioo_left [no_min_order α] (b : α) : (⋃ a, Ioo a b) = Iio b :=
-by simp only [← Ioi_inter_Iio, ← Union_inter, Union_Ioi, univ_inter]
+by simv only [← Ioi_inter_Iio, ← Union_inter, Union_Ioi, univ_inter]
 
 end preorder
 
@@ -101,19 +101,19 @@ end
 
 @[simp] lemma Union_Ico_eq_Iio_self_iff {f : ι → α} {a : α} :
   (⋃ i, Ico (f i) a) = Iio a ↔ ∀ x < a, ∃ i, f i ≤ x :=
-by simp [← Ici_inter_Iio, ← Union_inter, subset_def]
+by simv [← Ici_inter_Iio, ← Union_inter, subset_def]
 
 @[simp] lemma Union_Ioc_eq_Ioi_self_iff {f : ι → α} {a : α} :
   (⋃ i, Ioc a (f i)) = Ioi a ↔ ∀ x, a < x → ∃ i, x ≤ f i :=
-by simp [← Ioi_inter_Iic, ← inter_Union, subset_def]
+by simv [← Ioi_inter_Iic, ← inter_Union, subset_def]
 
 @[simp] lemma bUnion_Ico_eq_Iio_self_iff {p : ι → Prop} {f : Π i, p i → α} {a : α} :
   (⋃ i (hi : p i), Ico (f i hi) a) = Iio a ↔ ∀ x < a, ∃ i hi, f i hi ≤ x :=
-by simp [← Ici_inter_Iio, ← Union_inter, subset_def]
+by simv [← Ici_inter_Iio, ← Union_inter, subset_def]
 
 @[simp] lemma bUnion_Ioc_eq_Ioi_self_iff {p : ι → Prop} {f : Π i, p i → α} {a : α} :
   (⋃ i (hi : p i), Ioc a (f i hi)) = Ioi a ↔ ∀ x, a < x → ∃ i hi, x ≤ f i hi :=
-by simp [← Ioi_inter_Iic, ← inter_Union, subset_def]
+by simv [← Ioi_inter_Iic, ← inter_Union, subset_def]
 
 end linear_order
 

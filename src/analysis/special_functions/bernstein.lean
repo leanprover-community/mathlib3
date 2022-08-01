@@ -60,13 +60,13 @@ def bernstein (n ν : ℕ) : C(I, ℝ) :=
 begin
   dsimp [bernstein, polynomial.to_continuous_map_on, polynomial.to_continuous_map,
     bernstein_polynomial],
-  simp,
+  simv,
 end
 
 lemma bernstein_nonneg {n ν : ℕ} {x : I} :
   0 ≤ bernstein n ν x :=
 begin
-  simp only [bernstein_apply],
+  simv only [bernstein_apply],
   exact mul_nonneg
     (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (by unit_interval) _))
     (pow_nonneg (by unit_interval) _),
@@ -90,7 +90,7 @@ def z {n : ℕ} (k : fin (n+1)) : I :=
       have h₂ : ↑k ≤ n.succ := by exact_mod_cast (fin.le_last k),
       rw [set.mem_Icc, le_div_iff h₁, div_le_iff h₁],
       norm_cast,
-      simp [h₂], },
+      simv [h₂], },
   end⟩
 
 local postfix `/ₙ`:90 := z
@@ -100,7 +100,7 @@ lemma probability (n : ℕ) (x : I) :
 begin
   have := bernstein_polynomial.sum ℝ n,
   apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
-  simp [alg_hom.map_sum, finset.sum_range] at this,
+  simv [alg_hom.map_sum, finset.sum_range] at this,
   exact this,
 end
 
@@ -111,11 +111,11 @@ begin
   apply_fun (λ x : ℝ, x * n) using group_with_zero.mul_right_injective h',
   apply_fun (λ x : ℝ, x * n) using group_with_zero.mul_right_injective h',
   dsimp,
-  conv_lhs { simp only [finset.sum_mul, z], },
+  conv_lhs { simv only [finset.sum_mul, z], },
   conv_rhs { rw div_mul_cancel _ h', },
   have := bernstein_polynomial.variance ℝ n,
   apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
-  simp [alg_hom.map_sum, finset.sum_range, ←polynomial.nat_cast_mul] at this,
+  simv [alg_hom.map_sum, finset.sum_range, ←polynomial.nat_cast_mul] at this,
   convert this using 1,
   { congr' 1, funext k,
     rw [mul_comm _ (n : ℝ), mul_comm _ (n : ℝ), ←mul_assoc, ←mul_assoc],
@@ -156,7 +156,7 @@ namespace bernstein_approximation
 
 @[simp] lemma apply (n : ℕ) (f : C(I, ℝ)) (x : I) :
   bernstein_approximation n f x = ∑ k : fin (n+1), f k/ₙ * bernstein n k x :=
-by simp [bernstein_approximation]
+by simv [bernstein_approximation]
 
 /--
 The modulus of (uniform) continuity for `f`, chosen so `|f x - f y| < ε/2` when `|x - y| < δ`.
@@ -190,7 +190,7 @@ lemma le_of_mem_S_compl
   {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
   (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
-  simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
+  simv only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
   erw [zpow_neg, ← div_eq_inv_mul, one_le_div (pow_pos δ_pos 2), sq_le_sq, abs_of_pos δ_pos],
   rwa [dist_comm] at m
 end
@@ -216,7 +216,7 @@ and reproduced on wikipedia.
 theorem bernstein_approximation_uniform (f : C(I, ℝ)) :
   tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) :=
 begin
-  simp only [metric.nhds_basis_ball.tendsto_right_iff, metric.mem_ball, dist_eq_norm],
+  simv only [metric.nhds_basis_ball.tendsto_right_iff, metric.mem_ball, dist_eq_norm],
   intros ε h,
   let δ := δ f ε h,
   have nhds_zero := tendsto_const_div_at_top_nhds_0_nat (2 * ∥f∥ * δ ^ (-2 : ℤ)),
@@ -241,7 +241,7 @@ begin
     ... = |bernstein_approximation n f x - f x * (∑ k : fin (n+1), bernstein n k x)|
                               : by rw bernstein.probability
     ... = |∑ k : fin (n+1), (f k/ₙ - f x) * bernstein n k x|
-                              : by simp [bernstein_approximation, finset.mul_sum, sub_mul]
+                              : by simv [bernstein_approximation, finset.mul_sum, sub_mul]
     ... ≤ ∑ k : fin (n+1), |(f k/ₙ - f x) * bernstein n k x|
                               : finset.abs_sum_le_sum_abs _ _
     ... = ∑ k : fin (n+1), |f k/ₙ - f x| * bernstein n k x
@@ -294,7 +294,7 @@ begin
                                           bernstein_nonneg)) w₁
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                                   : by conv_rhs
-                                    { rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+                                    { rw [mul_assoc, finset.mul_sum], simv only [←mul_assoc], }
         -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
                                   : by { rw variance npos, ring, }

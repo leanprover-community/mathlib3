@@ -95,7 +95,7 @@ theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 (monoid_hom.map_prod
   ((polynomial.aeval x).to_ring_hom.to_monoid_hom : R[X] →* R) _ _).trans $
   finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
-  by simp
+  by simv
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=

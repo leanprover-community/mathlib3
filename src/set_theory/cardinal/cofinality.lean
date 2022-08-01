@@ -231,7 +231,7 @@ begin
   { rcases cof_eq r with ⟨S, H, e'⟩,
     have : #(ulift.down ⁻¹' S) ≤ (#S).lift :=
      ⟨⟨λ ⟨⟨x⟩, h⟩, ⟨⟨x, h⟩⟩,
-       λ ⟨⟨x⟩, h₁⟩ ⟨⟨y⟩, h₂⟩ e, by simp at e; congr; injections⟩⟩,
+       λ ⟨⟨x⟩, h₁⟩ ⟨⟨y⟩, h₂⟩ e, by simv at e; congr; injections⟩⟩,
     rw e' at this,
     unfreezingI { refine (cof_type_le _).trans this },
     exact λ ⟨a⟩, let ⟨b, bs, br⟩ := H a in ⟨⟨b⟩, bs, br⟩ }
@@ -393,7 +393,7 @@ bsup_lt_ord_lift (by rwa (o.card).lift_id)
   let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
   ⟨λ a, let ⟨b, h, _⟩ := hl a in
     (mk_eq_zero_iff.1 (e.trans z)).elim' ⟨_, h⟩⟩,
-λ e, by simp [e]⟩
+λ e, by simv [e]⟩
 
 theorem cof_ne_zero {o} : cof o ≠ 0 ↔ o ≠ 0 := cof_eq_zero.not
 
@@ -404,8 +404,8 @@ begin
     change cof (type _) ≤ _,
     rw [← (_ : #_ = 1)], apply cof_type_le,
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
-      rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
-    { rw [cardinal.mk_fintype, set.card_singleton], simp } },
+      rcases a with a|⟨⟨⟨⟩⟩⟩; simv [empty_relation] },
+    { rw [cardinal.mk_fintype, set.card_singleton], simv } },
   { rw [← cardinal.succ_zero, succ_le_iff],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
@@ -421,7 +421,7 @@ end
       (λ x y, _)) (λ x, _)⟩⟩,
   { apply sum.rec; [exact subtype.val, exact λ _, a] },
   { rcases x with x|⟨⟨⟨⟩⟩⟩; rcases y with y|⟨⟨⟨⟩⟩⟩;
-      simp [subrel, order.preimage, empty_relation],
+      simv [subrel, order.preimage, empty_relation],
     exact x.2 },
   { suffices : r x a ∨ ∃ (b : punit), ↑a = x, {simpa},
     rcases trichotomous_of r x a with h|h|h,
@@ -432,7 +432,7 @@ end
       refine congr_arg subtype.val (_ : a = ⟨a', aS⟩),
       haveI := le_one_iff_subsingleton.1 (le_of_eq e),
       apply subsingleton.elim } }
-end, λ ⟨a, e⟩, by simp [e]⟩
+end, λ ⟨a, e⟩, by simv [e]⟩
 
 /-- A fundamental sequence for `a` is an increasing sequence of length `o = cof a` that converges at
     `a`. We provide `o` explicitly in order to avoid type rewrites. -/
@@ -588,14 +588,14 @@ end
 theorem aleph_0_le_cof {o} : ℵ₀ ≤ cof o ↔ is_limit o :=
 begin
   rcases zero_or_succ_or_limit o with rfl|⟨o,rfl⟩|l,
-  { simp [not_zero_is_limit, cardinal.aleph_0_ne_zero] },
-  { simp [not_succ_is_limit, cardinal.one_lt_aleph_0] },
-  { simp [l], refine le_of_not_lt (λ h, _),
+  { simv [not_zero_is_limit, cardinal.aleph_0_ne_zero] },
+  { simv [not_succ_is_limit, cardinal.one_lt_aleph_0] },
+  { simv [l], refine le_of_not_lt (λ h, _),
     cases cardinal.lt_aleph_0.1 h with n e,
     have := cof_cof o,
     rw [e, ord_nat] at this,
     cases n,
-    { simp at e, simpa [e, not_zero_is_limit] using l },
+    { simv at e, simpa [e, not_zero_is_limit] using l },
     { rw [nat_cast_succ, cof_succ] at this,
       rw [← this, cof_eq_one_iff_is_succ] at e,
       rcases e with ⟨a, rfl⟩,
@@ -636,7 +636,7 @@ le_antisymm (cof_le_card _) begin
   let o := succ (sup.{u u} g),
   rcases H o with ⟨b, h, l⟩,
   refine l (lt_succ_iff.2 _),
-  rw ← show g (f.symm ⟨b, h⟩) = b, by dsimp [g]; simp,
+  rw ← show g (f.symm ⟨b, h⟩) = b, by dsimp [g]; simv,
   apply le_sup
 end
 
@@ -701,7 +701,7 @@ begin
   { rintro x ⟨hx, hx'⟩, exact hx },
   { refine ha.trans (ge_of_eq $ quotient.sound ⟨equiv.trans _
       (equiv.subtype_subtype_equiv_subtype_exists _ _).symm⟩),
-    simp only [coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
+    simv only [coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
   rintro x ⟨hx, hx'⟩, exact hx'
 end
 
@@ -803,7 +803,7 @@ theorem mk_subset_mk_lt_cof {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) :
 begin
   rcases eq_or_ne (#α) 0 with ha | ha,
   { rw ha,
-    simp [λ s, (cardinal.zero_le s).not_lt] },
+    simv [λ s, (cardinal.zero_le s).not_lt] },
   have h' : is_strong_limit (#α) := ⟨ha, h⟩,
   rcases ord_eq α with ⟨r, wo, hr⟩,
   haveI := wo,
@@ -839,11 +839,11 @@ theorem is_regular_cof {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨aleph_0_le_cof.2 h, (cof_cof o).ge⟩
 
 theorem is_regular_aleph_0 : is_regular ℵ₀ :=
-⟨le_rfl, by simp⟩
+⟨le_rfl, by simv⟩
 
 theorem is_regular_succ {c : cardinal.{u}} (h : ℵ₀ ≤ c) : is_regular (succ c) :=
 ⟨h.trans (le_succ c), succ_le_of_lt begin
-  cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
+  cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simv at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (h.trans (le_succ _)),
   rw [← αe, re] at this ⊢,
@@ -852,7 +852,7 @@ theorem is_regular_succ {c : cardinal.{u}} (h : ℵ₀ ≤ c) : is_regular (succ
   apply lt_imp_lt_of_le_imp_le (λ h, mul_le_mul_right' h c),
   rw [mul_eq_self h, ← succ_le_iff, ← αe, ← sum_const'],
   refine le_trans _ (sum_le_sum (λ x, card (typein r x)) _ (λ i, _)),
-  { simp only [← card_typein, ← mk_sigma],
+  { simv only [← card_typein, ← mk_sigma],
     exact ⟨embedding.of_surjective (λ x, x.2.1)
       (λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩)⟩ },
   { rw [← lt_succ_iff, ← lt_ord, ← αe, re],
@@ -910,11 +910,11 @@ begin
     rw w,
     exact infinite_univ, },
   by_contradiction h,
-  simp only [not_le] at h,
+  simv only [not_le] at h,
   let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
-  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
-  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
-    simp at m,
+  let u' : β → range f := λ b, ⟨f (u b).some, by simv⟩,
+  have v' : ∀ a, u' ⁻¹' {⟨f a, by simv⟩} ≤ f a, begin rintros a p m,
+    simv at m,
     rw ←m,
     apply (λ b, (u b).some_spec),
   end,
@@ -1047,7 +1047,7 @@ theorem is_inaccessible.mk {c} (h₁ : ℵ₀ < c) (h₂ : c ≤ c.ord.cof) (h�
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
 is_inaccessible.mk
   (by simpa using lift_lt_univ' ℵ₀)
-  (by simp)
+  (by simv)
   (λ c h, begin
     rcases lt_univ'.1 h with ⟨c, rfl⟩,
     rw ← lift_two_power.{u (max (u+1) v)},
@@ -1061,7 +1061,7 @@ quotient.induction_on c $ λ α h, begin
   rw [mk_def, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   have := sum_lt_prod (λ a:S, #{x // r x a}) (λ _, #α) (λ i, _),
-  { simp only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
+  { simv only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
     refine lt_of_le_of_lt _ this,
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },

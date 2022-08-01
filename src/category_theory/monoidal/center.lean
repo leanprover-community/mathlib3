@@ -56,9 +56,9 @@ structure half_braiding (X : C) :=
 (naturality' : ∀ {U U'} (f : U ⟶ U'), (𝟙 X ⊗ f) ≫ (β U').hom = (β U).hom ≫ (f ⊗ 𝟙 X) . obviously)
 
 restate_axiom half_braiding.monoidal'
-attribute [reassoc, simp] half_braiding.monoidal -- the reassoc lemma is redundant as a simp lemma
+attribute [reassoc, simv] half_braiding.monoidal -- the reassoc lemma is redundant as a simv lemma
 restate_axiom half_braiding.naturality'
-attribute [simp, reassoc] half_braiding.naturality
+attribute [simv, reassoc] half_braiding.naturality
 
 variables (C)
 /--
@@ -79,7 +79,7 @@ structure hom (X Y : center C) :=
 (comm' : ∀ U, (f ⊗ 𝟙 U) ≫ (Y.2.β U).hom = (X.2.β U).hom ≫ (𝟙 U ⊗ f) . obviously)
 
 restate_axiom hom.comm'
-attribute [simp, reassoc] hom.comm
+attribute [simv, reassoc] hom.comm
 
 instance : category (center C) :=
 { hom := hom,
@@ -100,7 +100,7 @@ a morphism whose underlying morphism is an isomorphism.
 @[simps]
 def iso_mk {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : X ≅ Y :=
 { hom := f,
-  inv := ⟨inv f.f, λ U, by simp [←cancel_epi (f.f ⊗ 𝟙 U), ←comp_tensor_id_assoc, ←id_tensor_comp]⟩ }
+  inv := ⟨inv f.f, λ U, by simv [←cancel_epi (f.f ⊗ 𝟙 U), ←comp_tensor_id_assoc, ←id_tensor_comp]⟩ }
 
 instance is_iso_of_f_is_iso {X Y : center C} (f : X ⟶ Y) [is_iso f.f] : is_iso f :=
 begin
@@ -117,7 +117,7 @@ def tensor_obj (X Y : center C) : center C :=
     monoidal' := λ U U',
     begin
       dsimp,
-      simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
+      simv only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
       -- On the RHS, we'd like to commute `((X.snd.β U).hom ⊗ 𝟙 Y.fst) ⊗ 𝟙 U'`
       -- and `𝟙 U ⊗ 𝟙 X.fst ⊗ (Y.snd.β U').hom` past each other,
       -- but there are some associators we need to get out of the way first.
@@ -165,7 +165,7 @@ def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ �
 def tensor_unit : center C :=
 ⟨𝟙_ C,
   { β := λ U, (λ_ U) ≪≫ (ρ_ U).symm,
-    monoidal' := λ U U', by simp,
+    monoidal' := λ U U', by simv,
     naturality' := λ U U' f, begin
       dsimp,
       rw [left_unitor_naturality_assoc, right_unitor_inv_naturality, category.assoc],
@@ -175,7 +175,7 @@ def tensor_unit : center C :=
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
 iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
   dsimp,
-  simp only [comp_tensor_id, id_tensor_comp, ←tensor_id, associator_conjugation],
+  simv only [comp_tensor_id, id_tensor_comp, ←tensor_id, associator_conjugation],
   coherence,
 end⟩
 
@@ -183,7 +183,7 @@ end⟩
 def left_unitor (X : center C) : tensor_obj tensor_unit X ≅ X :=
 iso_mk ⟨(λ_ X.1).hom, λ U, begin
   dsimp,
-  simp only [category.comp_id, category.assoc, tensor_inv_hom_id, comp_tensor_id,
+  simv only [category.comp_id, category.assoc, tensor_inv_hom_id, comp_tensor_id,
     tensor_id_comp_id_tensor, triangle_assoc_comp_right_inv],
   rw [←left_unitor_tensor, left_unitor_naturality, left_unitor_tensor'_assoc],
 end⟩
@@ -192,16 +192,16 @@ end⟩
 def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
 iso_mk ⟨(ρ_ X.1).hom, λ U, begin
   dsimp,
-  simp only [tensor_id_comp_id_tensor_assoc, triangle_assoc, id_tensor_comp, category.assoc],
+  simv only [tensor_id_comp_id_tensor_assoc, triangle_assoc, id_tensor_comp, category.assoc],
   rw [←tensor_id_comp_id_tensor_assoc (ρ_ U).inv, cancel_epi, ←right_unitor_tensor_inv_assoc,
     ←right_unitor_inv_naturality_assoc],
-  simp,
+  simv,
 end⟩
 
 section
-local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality
+local attribute [simv] associator_naturality left_unitor_naturality right_unitor_naturality
   pentagon
-local attribute [simp] center.associator center.left_unitor center.right_unitor
+local attribute [simv] center.associator center.left_unitor center.right_unitor
 
 instance : monoidal_category (center C) :=
 { tensor_obj := λ X Y, tensor_obj X Y,
@@ -265,10 +265,10 @@ end
 def braiding (X Y : center C) : X ⊗ Y ≅ Y ⊗ X :=
 iso_mk ⟨(X.2.β Y.1).hom, λ U, begin
   dsimp,
-  simp only [category.assoc],
+  simv only [category.assoc],
   rw [←is_iso.inv_comp_eq, is_iso.iso.inv_hom, ←half_braiding.monoidal_assoc,
     ←half_braiding.naturality_assoc, half_braiding.monoidal],
-  simp,
+  simv,
 end⟩
 
 instance braided_category_center : braided_category (center C) :=

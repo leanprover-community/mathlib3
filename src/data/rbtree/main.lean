@@ -16,7 +16,7 @@ lemma is_searchable_of_well_formed {t : rbnode α} [is_strict_weak_order α lt] 
   t.well_formed lt → is_searchable lt t none none :=
 begin
   intro h, induction h,
-  { constructor, simp [lift] },
+  { constructor, simv [lift] },
   { subst h_n', apply is_searchable_insert, assumption }
 end
 
@@ -36,27 +36,27 @@ variables {α : Type u} {lt : α → α → Prop}
 
 lemma balanced (t : rbtree α lt) : t.depth max ≤ 2 * t.depth min + 1 :=
 begin
-  cases t with n p, simp only [depth],
+  cases t with n p, simv only [depth],
   have := rbnode.is_red_black_of_well_formed p,
   cases this with _ this, cases this with _ this,
   apply rbnode.balanced, assumption
 end
 
 lemma not_mem_mk_rbtree : ∀ (a : α), a ∉ mk_rbtree α lt :=
-by simp [has_mem.mem, rbtree.mem, rbnode.mem, mk_rbtree]
+by simv [has_mem.mem, rbtree.mem, rbnode.mem, mk_rbtree]
 
 lemma not_mem_of_empty {t : rbtree α lt} (a : α) : t.empty = tt → a ∉ t :=
-by cases t with n p; cases n; simp [empty, has_mem.mem, rbtree.mem, rbnode.mem, false_implies_iff]
+by cases t with n p; cases n; simv [empty, has_mem.mem, rbtree.mem, rbnode.mem, false_implies_iff]
 
 lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {t : rbtree α lt} {a b : α} :
   a ∈ t → a ≈[lt] b → b ∈ t :=
 begin
-  cases t with n p; simp [has_mem.mem, rbtree.mem]; clear p; induction n;
-    simp only [rbnode.mem, strict_weak_order.equiv, false_implies_iff]; intros h₁ h₂; blast_disjs,
+  cases t with n p; simv [has_mem.mem, rbtree.mem]; clear p; induction n;
+    simv only [rbnode.mem, strict_weak_order.equiv, false_implies_iff]; intros h₁ h₂; blast_disjs,
   iterate 2
-  { { have : rbnode.mem lt b n_lchild := n_ih_lchild h₁ h₂, simp [this] },
-    { simp [incomp_trans_of lt h₂.swap h₁] },
-    { have : rbnode.mem lt b n_rchild := n_ih_rchild h₁ h₂, simp [this] } }
+  { { have : rbnode.mem lt b n_lchild := n_ih_lchild h₁ h₂, simv [this] },
+    { simv [incomp_trans_of lt h₂.swap h₁] },
+    { have : rbnode.mem lt b n_rchild := n_ih_rchild h₁ h₂, simv [this] } }
 end
 
 section dec
@@ -65,7 +65,7 @@ variables [decidable_rel lt]
 
 lemma insert_ne_mk_rbtree (t : rbtree α lt) (a : α) : t.insert a ≠ mk_rbtree α lt :=
 begin
-  cases t with n p, simp [insert, mk_rbtree], intro h, injection h with h',
+  cases t with n p, simv [insert, mk_rbtree], intro h, injection h with h',
   apply rbnode.insert_ne_leaf lt n a h'
 end
 
@@ -77,7 +77,7 @@ lemma find_correct_of_total [is_strict_total_order α lt] (a : α) (t : rbtree �
   a ∈ t ↔ t.find a = some a :=
 iff.intro
   (λ h, match iff.mp (find_correct a t) h with
-        | ⟨b, heq, heqv⟩ := by simp [heq, (eq_of_eqv_lt heqv).symm]
+        | ⟨b, heq, heqv⟩ := by simv [heq, (eq_of_eqv_lt heqv).symm]
         end)
   (λ h, iff.mpr (find_correct a t) ⟨a, ⟨h, refl a⟩⟩)
 
@@ -157,11 +157,11 @@ lemma contains_correct [is_strict_weak_order α lt] (a : α) (t : rbtree α lt) 
   a ∈ t ↔ (t.contains a = tt) :=
 begin
   have h := find_correct a t,
-  simp [h, contains], apply iff.intro,
-  { intro h', cases h' with _ h', cases h', simp [*], simp [option.is_some] },
+  simv [h, contains], apply iff.intro,
+  { intro h', cases h' with _ h', cases h', simv [*], simv [option.is_some] },
   { intro h',
-    cases heq : find t a with v, simp [heq, option.is_some] at h', contradiction,
-    existsi v, simp, apply eqv_of_find_some heq }
+    cases heq : find t a with v, simv [heq, option.is_some] at h', contradiction,
+    existsi v, simv, apply eqv_of_find_some heq }
 end
 
 lemma mem_insert_of_incomp {a b : α} (t : rbtree α lt) : (¬ lt a b ∧ ¬ lt b a) → a ∈ t.insert b :=
@@ -187,7 +187,7 @@ equiv_or_mem_of_mem_insert
 
 lemma eq_or_mem_of_mem_ins [is_strict_total_order α lt] {a b : α} {t : rbtree α lt} :
   a ∈ t.insert b → a = b ∨ a ∈ t :=
-λ h, suffices a ≈[lt] b ∨ a ∈ t, by simp [eqv_lt_iff_eq] at this; assumption,
+λ h, suffices a ≈[lt] b ∨ a ∈ t, by simv [eqv_lt_iff_eq] at this; assumption,
   incomp_or_mem_of_mem_ins h
 
 end dec

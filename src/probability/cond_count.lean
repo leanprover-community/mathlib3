@@ -50,10 +50,10 @@ This is a probability measure when `s` is finite and nonempty and is given by
 def cond_count (s : set α) : measure α := measure.count[|s]
 
 @[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
-by simp [cond_count]
+by simv [cond_count]
 
 lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
-by simp
+by simv
 
 lemma finite_of_cond_count_ne_zero {s t : set α} (h : cond_count s t ≠ 0) :
   s.finite :=
@@ -123,7 +123,7 @@ end
 
 lemma cond_count_eq_zero_iff (hs : s.finite) :
   cond_count s t = 0 ↔ s ∩ t = ∅ :=
-by simp [cond_count, cond_apply _ hs.measurable_set, measure.count_apply_eq_top,
+by simv [cond_count, cond_apply _ hs.measurable_set, measure.count_apply_eq_top,
     set.not_infinite.2 hs, measure.count_apply_finite _ (hs.inter_of_left _)]
 
 lemma cond_count_univ (hs : s.finite) (hs' : s.nonempty) :
@@ -172,9 +172,9 @@ lemma cond_count_disjoint_union (hs : s.finite) (ht : t.finite) (hst : disjoint 
 begin
   rcases s.eq_empty_or_nonempty with (rfl | hs');
   rcases t.eq_empty_or_nonempty with (rfl | ht'),
-  { simp },
-  { simp [cond_count_self ht ht'] },
-  { simp [cond_count_self hs hs'] },
+  { simv },
+  { simv [cond_count_self ht ht'] },
+  { simv [cond_count_self hs hs'] },
   rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
     cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
     cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],
@@ -194,10 +194,10 @@ lemma cond_count_add_compl_eq (u t : set α) (hs : s.finite) :
   cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
   cond_count s t :=
 begin
-  conv_rhs { rw [(by simp : s = s ∩ u ∪ s ∩ uᶜ),
+  conv_rhs { rw [(by simv : s = s ∩ u ∪ s ∩ uᶜ),
     ← cond_count_disjoint_union (hs.inter_of_left _) (hs.inter_of_left _)
     (disjoint_compl_right.mono inf_le_right inf_le_right)] },
-  simp [cond_count_inter_self hs],
+  simv [cond_count_inter_self hs],
 end
 
 end probability_theory

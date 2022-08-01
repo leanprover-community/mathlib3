@@ -32,8 +32,8 @@ def enumerate : set α → ℕ → option α
 | s (n + 1) := do a ← sel s, enumerate (s \ {a}) n
 
 lemma enumerate_eq_none_of_sel {s : set α} (h : sel s = none) : ∀ {n}, enumerate s n = none
-| 0       := by simp [h, enumerate]; refl
-| (n + 1) := by simp [h, enumerate]; refl
+| 0       := by simv [h, enumerate]; refl
+| (n + 1) := by simv [h, enumerate]; refl
 
 lemma enumerate_eq_none : ∀ {s n₁ n₂}, enumerate s n₁ = none → n₁ ≤ n₂ → enumerate s n₂ = none
 | s 0       m := λ h _, enumerate_eq_none_of_sel h
@@ -46,7 +46,7 @@ lemma enumerate_eq_none : ∀ {s n₁ n₂}, enumerate s n₁ = none → n₁ �
       { have : n + 1 = 0, from nat.eq_zero_of_le_zero hm,
         contradiction },
       case nat.succ : m'
-      { simp [hs, enumerate] at h ⊢,
+      { simv [hs, enumerate] at h ⊢,
         have hm : n ≤ m', from nat.le_of_succ_le_succ hm,
         exact enumerate_eq_none h hm } }
   end
@@ -57,9 +57,9 @@ lemma enumerate_mem (h_sel : ∀ s a, sel s = some a → a ∈ s) :
 | s (n+1) a :=
   begin
     cases h : sel s,
-    case none { simp [enumerate_eq_none_of_sel, h] },
+    case none { simv [enumerate_eq_none_of_sel, h] },
     case some : a'
-    { simp [enumerate, h],
+    { simv [enumerate, h],
       exact λ h' : enumerate _ (s \ {a'}) n = some a,
         have a ∈ s \ {a'}, from enumerate_mem h',
         this.left }
@@ -75,10 +75,10 @@ begin
     { cases m,
       case nat.zero { refl },
       case nat.succ : m
-      { have : enumerate sel (s \ {a}) m = some a, { simp [enumerate, *] at * },
+      { have : enumerate sel (s \ {a}) m = some a, { simv [enumerate, *] at * },
         have : a ∈ s \ {a}, from enumerate_mem _ h_sel this,
         by simpa } },
-    case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, add_comm, *] at *; tauto } }
+    case nat.succ { cases h : sel s; simv [enumerate, nat.add_succ, add_comm, *] at *; tauto } }
 end
 
 end enumerate

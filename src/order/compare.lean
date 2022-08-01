@@ -31,7 +31,7 @@ else ordering.gt
 lemma cmp_le_swap {α} [has_le α] [is_total α (≤)] [@decidable_rel α (≤)] (x y : α) :
   (cmp_le x y).swap = cmp_le y x :=
 begin
-  by_cases xy : x ≤ y; by_cases yx : y ≤ x; simp [cmp_le, *, ordering.swap],
+  by_cases xy : x ≤ y; by_cases yx : y ≤ x; simv [cmp_le, *, ordering.swap],
   cases not_or xy yx (total_of _ _ _)
 end
 
@@ -39,7 +39,7 @@ lemma cmp_le_eq_cmp {α} [preorder α] [is_total α (≤)]
   [@decidable_rel α (≤)] [@decidable_rel α (<)] (x y : α) : cmp_le x y = cmp x y :=
 begin
   by_cases xy : x ≤ y; by_cases yx : y ≤ x;
-    simp [cmp_le, lt_iff_le_not_le, *, cmp, cmp_using],
+    simv [cmp_le, lt_iff_le_not_le, *, cmp, cmp_using],
   cases not_or xy yx (total_of _ _ _)
 end
 
@@ -134,7 +134,7 @@ by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
 lemma cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=
-by obtain h | h | h := lt_trichotomy a b; simp [cmp, cmp_using, h, h.not_lt]
+by obtain h | h | h := lt_trichotomy a b; simv [cmp, cmp_using, h, h.not_lt]
 
 lemma ordering.compares.cmp_eq [linear_order α] {a b : α} {o : ordering} (h : o.compares a b) :
   cmp a b = o :=
@@ -143,7 +143,7 @@ lemma ordering.compares.cmp_eq [linear_order α] {a b : α} {o : ordering} (h : 
 @[simp] lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
 begin
   unfold cmp cmp_using,
-  by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, ordering.swap],
+  by_cases a < b; by_cases h₂ : b < a; simv [h, h₂, ordering.swap],
   exact lt_asymm h h₂
 end
 

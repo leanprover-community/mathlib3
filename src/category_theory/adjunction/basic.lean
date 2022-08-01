@@ -93,38 +93,38 @@ namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
+attribute [simv, priority 10] hom_equiv_unit hom_equiv_counit
 
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
 
-lemma hom_equiv_id (X : C) : adj.hom_equiv X _ (𝟙 _) = adj.unit.app X := by simp
+lemma hom_equiv_id (X : C) : adj.hom_equiv X _ (𝟙 _) = adj.unit.app X := by simv
 
-lemma hom_equiv_symm_id (X : D) : (adj.hom_equiv _ X).symm (𝟙 _) = adj.counit.app X := by simp
+lemma hom_equiv_symm_id (X : D) : (adj.hom_equiv _ X).symm (𝟙 _) = adj.counit.app X := by simv
 
-@[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
+@[simv, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
 
 @[simp] lemma hom_equiv_naturality_left (f : X' ⟶ X) (g : F.obj X ⟶ Y) :
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
-by rw [← equiv.eq_symm_apply]; simp [-hom_equiv_unit]
+by rw [← equiv.eq_symm_apply]; simv [-hom_equiv_unit]
 
-@[simp, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
+@[simv, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y') (f ≫ g) = (adj.hom_equiv X Y) f ≫ G.map g :=
 by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 
 @[simp] lemma hom_equiv_naturality_right_symm (f : X ⟶ G.obj Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y').symm (f ≫ G.map g) = (adj.hom_equiv X Y).symm f ≫ g :=
-by rw [equiv.symm_apply_eq]; simp [-hom_equiv_counit]
+by rw [equiv.symm_apply_eq]; simv [-hom_equiv_counit]
 
 @[simp] lemma left_triangle :
   (whisker_right adj.unit F) ≫ (whisker_left F adj.counit) = nat_trans.id _ :=
 begin
   ext, dsimp,
   erw [← adj.hom_equiv_counit, equiv.symm_apply_eq, adj.hom_equiv_unit],
-  simp
+  simv
 end
 
 @[simp] lemma right_triangle :
@@ -132,32 +132,32 @@ end
 begin
   ext, dsimp,
   erw [← adj.hom_equiv_unit, ← equiv.eq_symm_apply, adj.hom_equiv_counit],
-  simp
+  simv
 end
 
-@[simp, reassoc] lemma left_triangle_components :
+@[simv, reassoc] lemma left_triangle_components :
   F.map (adj.unit.app X) ≫ adj.counit.app (F.obj X) = 𝟙 (F.obj X) :=
 congr_arg (λ (t : nat_trans _ (𝟭 C ⋙ F)), t.app X) adj.left_triangle
 
-@[simp, reassoc] lemma right_triangle_components {Y : D} :
+@[simv, reassoc] lemma right_triangle_components {Y : D} :
   adj.unit.app (G.obj Y) ≫ G.map (adj.counit.app Y) = 𝟙 (G.obj Y) :=
 congr_arg (λ (t : nat_trans _ (G ⋙ 𝟭 C)), t.app Y) adj.right_triangle
 
-@[simp, reassoc] lemma counit_naturality {X Y : D} (f : X ⟶ Y) :
+@[simv, reassoc] lemma counit_naturality {X Y : D} (f : X ⟶ Y) :
   F.map (G.map f) ≫ (adj.counit).app Y = (adj.counit).app X ≫ f :=
 adj.counit.naturality f
 
-@[simp, reassoc] lemma unit_naturality {X Y : C} (f : X ⟶ Y) :
+@[simv, reassoc] lemma unit_naturality {X Y : C} (f : X ⟶ Y) :
   (adj.unit).app X ≫ G.map (F.map f) = f ≫ (adj.unit).app Y :=
 (adj.unit.naturality f).symm
 
 lemma hom_equiv_apply_eq {A : C} {B : D} (f : F.obj A ⟶ B) (g : A ⟶ G.obj B) :
   adj.hom_equiv A B f = g ↔ f = (adj.hom_equiv A B).symm g :=
-⟨λ h, by {cases h, simp}, λ h, by {cases h, simp}⟩
+⟨λ h, by {cases h, simv}, λ h, by {cases h, simv}⟩
 
 lemma eq_hom_equiv_apply {A : C} {B : D} (f : F.obj A ⟶ B) (g : A ⟶ G.obj B) :
   g = adj.hom_equiv A B f ↔ (adj.hom_equiv A B).symm g = f :=
-⟨λ h, by {cases h, simp}, λ h, by {cases h, simp}⟩
+⟨λ h, by {cases h, simv}, λ h, by {cases h, simv}⟩
 
 end
 
@@ -182,17 +182,17 @@ namespace core_hom_equiv
 
 restate_axiom hom_equiv_naturality_left_symm'
 restate_axiom hom_equiv_naturality_right'
-attribute [simp, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
+attribute [simv, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : core_hom_equiv F G) {X' X : C} {Y Y' : D}
 
 @[simp] lemma hom_equiv_naturality_left (f : X' ⟶ X) (g : F.obj X ⟶ Y) :
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
-by rw [← equiv.eq_symm_apply]; simp
+by rw [← equiv.eq_symm_apply]; simv
 
 @[simp] lemma hom_equiv_naturality_right_symm (f : X ⟶ G.obj Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y').symm (f ≫ G.map g) = (adj.hom_equiv X Y).symm f ≫ g :=
-by rw [equiv.symm_apply_eq]; simp
+by rw [equiv.symm_apply_eq]; simv
 
 end core_hom_equiv
 
@@ -214,7 +214,7 @@ namespace core_unit_counit
 
 restate_axiom left_triangle'
 restate_axiom right_triangle'
-attribute [simp] left_triangle right_triangle
+attribute [simv] left_triangle right_triangle
 
 end core_unit_counit
 
@@ -230,7 +230,7 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
     begin
       intros,
       erw [← adj.hom_equiv_naturality_left, ← adj.hom_equiv_naturality_right],
-      dsimp, simp -- See note [dsimp, simp].
+      dsimp, simv -- See note [dsimp, simv].
     end },
   counit :=
   { app := λ Y, (adj.hom_equiv _ _).inv_fun (𝟙 (G.obj Y)),
@@ -238,10 +238,10 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
     begin
       intros,
       erw [← adj.hom_equiv_naturality_left_symm, ← adj.hom_equiv_naturality_right_symm],
-      dsimp, simp
+      dsimp, simv
     end },
-  hom_equiv_unit' := λ X Y f, by erw [← adj.hom_equiv_naturality_right]; simp,
-  hom_equiv_counit' := λ X Y f, by erw [← adj.hom_equiv_naturality_left_symm]; simp,
+  hom_equiv_unit' := λ X Y f, by erw [← adj.hom_equiv_naturality_right]; simv,
+  hom_equiv_counit' := λ X Y f, by erw [← adj.hom_equiv_naturality_left_symm]; simv,
   .. adj }
 
 /-- Construct an adjunction between functors `F` and `G` given a unit and counit for the adjunction
@@ -257,7 +257,7 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
       convert id_comp f,
       have t := congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle,
       dsimp at t,
-      simp only [id_comp] at t,
+      simv only [id_comp] at t,
       exact t,
     end,
     right_inv := λ g, begin
@@ -266,7 +266,7 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
       convert comp_id g,
       have t := congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle,
       dsimp at t,
-      simp only [id_comp] at t,
+      simv only [id_comp] at t,
       exact t,
   end },
   .. adj }
@@ -287,8 +287,8 @@ def equiv_homset_left_of_nat_iso
   (F.obj X ⟶ Y) ≃ (F'.obj X ⟶ Y) :=
 { to_fun := λ f, iso.inv.app _ ≫ f,
   inv_fun := λ g, iso.hom.app _ ≫ g,
-  left_inv := λ f, by simp,
-  right_inv := λ g, by simp }
+  left_inv := λ f, by simv,
+  right_inv := λ g, by simv }
 
 /-- If G and H are naturally isomorphic functors, establish an equivalence of hom-sets. -/
 @[simps]
@@ -297,8 +297,8 @@ def equiv_homset_right_of_nat_iso
   (X ⟶ G.obj Y) ≃ (X ⟶ G'.obj Y) :=
 { to_fun := λ f, f ≫ iso.hom.app _,
   inv_fun := λ g, g ≫ iso.inv.app _,
-  left_inv := λ f, by simp,
-  right_inv := λ g, by simp }
+  left_inv := λ f, by simv,
+  right_inv := λ g, by simv }
 
 /-- Transport an adjunction along an natural isomorphism on the left. -/
 def of_nat_iso_left
@@ -366,7 +366,7 @@ variables (he : ∀ X Y Y' g h, e X Y' (h ≫ g) = e X Y h ≫ G.map g)
 include he
 
 private lemma he' {X Y Y'} (f g) : (e X Y').symm (f ≫ G.map g) = (e X Y).symm f ≫ g :=
-by intros; rw [equiv.symm_apply_eq, he]; simp
+by intros; rw [equiv.symm_apply_eq, he]; simv
 
 /-- Construct a left adjoint functor to `G`, given the functor's value on objects `F_obj` and
 a bijection `e` between `F_obj X ⟶ Y` and `X ⟶ G.obj Y` satisfying a naturality law
@@ -379,7 +379,7 @@ def left_adjoint_of_equiv : C ⥤ D :=
   map_comp' := λ X X' X'' f f', begin
     rw [equiv.symm_apply_eq, he, equiv.apply_symm_apply],
     conv { to_rhs, rw [assoc, ←he, id_comp, equiv.apply_symm_apply] },
-    simp
+    simv
   end }
 
 /-- Show that the functor given by `left_adjoint_of_equiv` is indeed left adjoint to `G`. Dual
@@ -392,7 +392,7 @@ mk_of_hom_equiv
   begin
     intros,
     erw [← he' e he, ← equiv.apply_eq_iff_eq],
-    simp [(he _ _ _ _ _).symm]
+    simv [(he _ _ _ _ _).symm]
   end }
 
 end construct_left
@@ -405,7 +405,7 @@ variables (he : ∀ X' X Y f g, e X' Y (F.map f ≫ g) = f ≫ e X Y g)
 include he
 
 private lemma he' {X' X Y} (f g) : F.map f ≫ (e X Y).symm g = (e X' Y).symm (f ≫ g) :=
-by intros; rw [equiv.eq_symm_apply, he]; simp
+by intros; rw [equiv.eq_symm_apply, he]; simv
 
 /-- Construct a right adjoint functor to `F`, given the functor's value on objects `G_obj` and
 a bijection `e` between `F.obj X ⟶ Y` and `X ⟶ G_obj Y` satisfying a naturality law
@@ -418,7 +418,7 @@ def right_adjoint_of_equiv : D ⥤ C :=
   map_comp' := λ Y Y' Y'' g g', begin
     rw [← equiv.eq_symm_apply, ← he' e he, equiv.symm_apply_apply],
     conv { to_rhs, rw [← assoc, he' e he, comp_id, equiv.symm_apply_apply] },
-    simp
+    simv
   end }
 
 /-- Show that the functor given by `right_adjoint_of_equiv` is indeed right adjoint to `F`. Dual
@@ -427,7 +427,7 @@ to `adjunction_of_equiv_left`. -/
 def adjunction_of_equiv_right : F ⊣ right_adjoint_of_equiv e he :=
 mk_of_hom_equiv
 { hom_equiv := e,
-  hom_equiv_naturality_left_symm' := by intros; rw [equiv.symm_apply_eq, he]; simp,
+  hom_equiv_naturality_left_symm' := by intros; rw [equiv.symm_apply_eq, he]; simv,
   hom_equiv_naturality_right' :=
   begin
     intros X Y Y' g h,
@@ -446,8 +446,8 @@ def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_i
   C ≌ D :=
 { functor := F,
   inverse := G,
-  unit_iso := nat_iso.of_components (λ X, as_iso (adj.unit.app X)) (by simp),
-  counit_iso := nat_iso.of_components (λ Y, as_iso (adj.counit.app Y)) (by simp) }
+  unit_iso := nat_iso.of_components (λ X, as_iso (adj.unit.app X)) (by simv),
+  counit_iso := nat_iso.of_components (λ Y, as_iso (adj.counit.app Y)) (by simv) }
 
 /--
 If the unit and counit for the adjunction corresponding to a right adjoint functor are (pointwise)
@@ -471,8 +471,8 @@ namespace equivalence
 simply use `e.symm.to_adjunction`. -/
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
-  by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
-  by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp _, }⟩
+  by { ext, dsimp, simv only [id_comp], exact e.functor_unit_comp _, },
+  by { ext, dsimp, simv only [id_comp], exact e.unit_inverse_comp _, }⟩
 
 @[simp] lemma as_equivalence_to_adjunction_unit {e : C ≌ D} :
   e.functor.as_equivalence.to_adjunction.unit = e.unit :=

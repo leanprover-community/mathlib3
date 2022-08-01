@@ -39,6 +39,6 @@ begin
   intro n,
   simpa using imo1977_q6_nat (λ m, if 0 < m then f m.to_pnat' else 0) _ n,
   { intro x, cases x,
-    { simp },
+    { simv },
     { simpa using h _ } }
 end

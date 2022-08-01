@@ -165,11 +165,11 @@ variables [is_lawful_functor F] [is_lawful_functor G]
 variables {α β γ : Type v}
 
 protected lemma id_map : ∀ (x : comp F G α), comp.map id x = x
-| (comp.mk x) := by simp [comp.map, functor.map_id]
+| (comp.mk x) := by simv [comp.map, functor.map_id]
 
 protected lemma comp_map (g' : α → β) (h : β → γ) : ∀ (x : comp F G α),
            comp.map (h ∘ g') x = comp.map h (comp.map g' x)
-| (comp.mk x) := by simp [comp.map, functor.map_comp_map g' h] with functor_norm
+| (comp.mk x) := by simv [comp.map, functor.map_comp_map g' h] with functor_norm
 
 instance : is_lawful_functor (comp F G) :=
 { id_map := @comp.id_map F G _ _ _ _,

@@ -64,12 +64,12 @@ lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field �
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 h₁.eq_or_lt.elim
   (assume : 0 = r,
-    (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
+    (tendsto_add_at_top_iff_nat 1).mp $ by simv [pow_succ, ← this, tendsto_const_nhds])
   (assume : 0 < r,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp
         (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv this h₂),
-    this.congr (λ n, by simp))
+    this.congr (λ n, by simv))
 
 lemma tendsto_pow_at_top_nhds_within_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 < r) (h₂ : r < 1) :
@@ -88,26 +88,26 @@ lemma geom_lt {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) {n : ℕ} (hn : 0 < n)
   c ^ n * u 0 < u n :=
 begin
   refine (monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn _ _ h,
-  { simp },
-  { simp [pow_succ, mul_assoc, le_refl] }
+  { simv },
+  { simv [pow_succ, mul_assoc, le_refl] }
 end
 
 lemma geom_le {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < n, c * u k ≤ u (k + 1)) :
   c ^ n * u 0 ≤ u n :=
-by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ _ h; simp [pow_succ, mul_assoc, le_refl]
+by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ _ h; simv [pow_succ, mul_assoc, le_refl]
 
 lemma lt_geom {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) {n : ℕ} (hn : 0 < n)
   (h : ∀ k < n, u (k + 1) < c * u k) :
   u n < c ^ n * u 0 :=
 begin
   refine (monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_lt_of_le hn _ h _,
-  { simp },
-  { simp [pow_succ, mul_assoc, le_refl] }
+  { simv },
+  { simv [pow_succ, mul_assoc, le_refl] }
 end
 
 lemma le_geom {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < n, u (k + 1) ≤ c * u k) :
   u n ≤ (c ^ n) * u 0 :=
-by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ h _; simp [pow_succ, mul_assoc, le_refl]
+by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ h _; simv [pow_succ, mul_assoc, le_refl]
 
 /-- If a sequence `v` of real numbers satisfies `k * v n ≤ v (n+1)` with `1 < k`,
 then it goes to +∞. -/
@@ -118,7 +118,7 @@ tendsto_at_top_mono (λ n, geom_le (zero_le_one.trans hc.le) n (λ k hk, hu k)) 
 
 lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ≥0} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
-nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
+nnreal.tendsto_coe.1 $ by simv only [nnreal.coe_pow, nnreal.coe_zero,
   tendsto_pow_at_top_nhds_0_of_lt_1 r.coe_nonneg hr]
 
 lemma ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ≥0∞} (hr : r < 1) :
@@ -139,7 +139,7 @@ have r ≠ 1, from ne_of_lt h₂,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
-  by simp [neg_inv, geom_sum_eq, div_eq_mul_inv, *] at *
+  by simv [neg_inv, geom_sum_eq, div_eq_mul_inv, *] at *
 
 lemma summable_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, has_sum_geometric_of_lt_1 h₁ h₂⟩
@@ -177,11 +177,11 @@ lemma tsum_geometric_inv_two_ge (n : ℕ) :
 begin
   have A : summable (λ (i : ℕ), ite (n ≤ i) ((2⁻¹ : ℝ) ^ i) 0),
   { apply summable_of_nonneg_of_le _ _ summable_geometric_two;
-    { intro i, by_cases hi : n ≤ i; simp [hi] } },
+    { intro i, by_cases hi : n ≤ i; simv [hi] } },
   have B : (finset.range n).sum (λ (i : ℕ), ite (n ≤ i) ((2⁻¹ : ℝ)^i) 0) = 0 :=
     finset.sum_eq_zero (λ i hi, ite_eq_right_iff.2 $ λ h,
       (lt_irrefl _ ((finset.mem_range.1 hi).trans_le h)).elim),
-  simp only [← sum_add_tsum_nat_add n A, B, if_true, zero_add, zero_le',
+  simv only [← sum_add_tsum_nat_add n A, B, if_true, zero_add, zero_le',
     le_add_iff_nonneg_left, pow_add, tsum_mul_right, tsum_geometric_inv_two],
 end
 
@@ -189,7 +189,7 @@ lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
   convert has_sum.mul_left (a / 2) (has_sum_geometric_of_lt_1
     (le_of_lt one_half_pos) one_half_lt_one),
-  { funext n, simp, refl, },
+  { funext n, simv, refl, },
   { norm_num }
 end
 
@@ -266,7 +266,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
-  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, div_eq_mul_inv, mul_assoc]
+  simv only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, div_eq_mul_inv, mul_assoc]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
@@ -287,9 +287,9 @@ include hC hu
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
 begin
-  simp only [div_eq_mul_inv, ennreal.inv_pow] at hu,
+  simv only [div_eq_mul_inv, ennreal.inv_pow] at hu,
   refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
-  simp [ennreal.one_lt_two]
+  simv [ennreal.one_lt_two]
 end
 
 omit hC
@@ -300,7 +300,7 @@ include ha
 lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
-  simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
+  simv only [div_eq_mul_inv, ennreal.inv_pow] at *,
   rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
   rw [ennreal.one_sub_inv_two, inv_inv]
@@ -324,7 +324,7 @@ include hr hu
 lemma aux_has_sum_of_le_geometric : has_sum (λ n : ℕ, C * r^n) (C / (1 - r)) :=
 begin
   rcases sign_cases_of_C_mul_pow_nonneg (λ n, dist_nonneg.trans (hu n)) with rfl | ⟨C₀, r₀⟩,
-  { simp [has_sum_zero] },
+  { simv [has_sum_zero] },
   { refine has_sum.mul_left C _,
     simpa using has_sum_geometric_of_lt_1 r₀ hr }
 end
@@ -350,7 +350,7 @@ lemma dist_le_of_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top (𝓝 a
 begin
   have := aux_has_sum_of_le_geometric hr hu,
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu ⟨_, this⟩ ha n,
-  simp only [pow_add, mul_left_comm C, mul_div_right_comm],
+  simv only [pow_add, mul_left_comm C, mul_div_right_comm],
   rw [mul_comm],
   exact (this.mul_left _).tsum_eq.symm
 end
@@ -377,7 +377,7 @@ lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (�
   dist (f n) a ≤ C / 2^n :=
 begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
-  simp only [add_comm n, pow_add, ← div_div],
+  simv only [add_comm n, pow_add, ← div_div],
   symmetry,
   exact ((has_sum_geometric_two' C).div_const _).tsum_eq
 end
@@ -500,7 +500,7 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div,
       prod_nat_cast, nat.cast_succ, ← prod_inv_distrib, ← prod_mul_distrib,
       finset.prod_range_succ'],
-    simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
+    simv only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
       intros x hx; rw finset.mem_range at hx,
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
@@ -515,7 +515,7 @@ section
 
 lemma tendsto_nat_floor_at_top {α : Type*} [linear_ordered_semiring α] [floor_semiring α] :
   tendsto (λ (x : α), ⌊x⌋₊) at_top at_top :=
-nat.floor_mono.tendsto_at_top_at_top (λ x, ⟨max 0 (x + 1), by simp [nat.le_floor_iff]⟩)
+nat.floor_mono.tendsto_at_top_at_top (λ x, ⟨max 0 (x + 1), by simv [nat.le_floor_iff]⟩)
 
 variables {R : Type*} [topological_space R] [linear_ordered_field R] [order_topology R]
 [floor_ring R]
@@ -528,13 +528,13 @@ begin
   rw sub_zero at A,
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' A tendsto_const_nhds,
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
-    simp only [le_div_iff (zero_lt_one.trans_le hx), sub_mul,
+    simv only [le_div_iff (zero_lt_one.trans_le hx), sub_mul,
       inv_mul_cancel (zero_lt_one.trans_le hx).ne'],
     have := nat.lt_floor_add_one (a * x),
     linarith },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     rw div_le_iff (zero_lt_one.trans_le hx),
-    simp [nat.floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
+    simv [nat.floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
 end
 
 lemma tendsto_nat_floor_div_at_top :
@@ -552,7 +552,7 @@ begin
     rw le_div_iff (zero_lt_one.trans_le hx),
     exact nat.le_ceil _ },
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
-    simp [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
+    simv [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
       (nat.ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
 end
 

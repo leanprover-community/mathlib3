@@ -173,17 +173,17 @@ begin
       exact ⟨trivial, lt_or_le p.2 _⟩ },
     refine continuous_within_at.mono _ this,
     refine continuous_within_at.union _ _,
-    { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
+    { simv only [continuous_within_at, fract_coe, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
       have : (uncurry f) (s, 0) = (uncurry f) (s, (1 : α)),
-        by simp [uncurry, hf],
+        by simv [uncurry, hf],
       rw this,
       refine (h _ ⟨⟨⟩, by exact_mod_cast right_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ],
       rw nhds_within_Icc_eq_nhds_within_Iic (@zero_lt_one α _ _),
       exact tendsto_id.prod_map
         (tendsto_nhds_within_mono_right Iio_subset_Iic_self $ tendsto_fract_left _) },
-    { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
+    { simv only [continuous_within_at, fract_coe, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
       refine (h _ ⟨⟨⟩, by exact_mod_cast left_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ,
@@ -192,7 +192,7 @@ begin
   { have : t ∈ Ioo (floor t : α) ((floor t : α) + 1),
       from ⟨lt_of_le_of_ne (floor_le t) (ne.symm ht), lt_floor_add_one _⟩,
     apply (h ((prod.map _ fract) _) ⟨trivial, ⟨fract_nonneg _, (fract_lt_one _).le⟩⟩).tendsto.comp,
-    simp only [nhds_prod_eq, nhds_within_prod_eq, nhds_within_univ, id.def, prod.map_mk],
+    simv only [nhds_prod_eq, nhds_within_prod_eq, nhds_within_univ, id.def, prod.map_mk],
     exact continuous_at_id.tendsto.prod_map
             (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
               (((continuous_on_fract _ _ (Ioo_subset_Ico_self this)).mono

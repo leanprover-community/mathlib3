@@ -24,7 +24,7 @@ would be the degree `i+n`-th term of `C`.
 
 ## Implementation Notes
 
-Many of the definitions in this file are marked as an `abbreviation` so that the simp lemmas in
+Many of the definitions in this file are marked as an `abbreviation` so that the simv lemmas in
 `category_theory/monoidal/End` can apply.
 
 -/
@@ -44,13 +44,13 @@ variables {A C}
 
 variables [add_monoid A] (F : monoidal_functor (discrete A) (C ⥤ C))
 
- @[simp, reassoc] lemma eq_to_hom_μ_app {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+ @[simv, reassoc] lemma eq_to_hom_μ_app {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
    eq_to_hom (by rw [h₁, h₂] : (F.obj ⟨i⟩ ⊗ F.obj ⟨j⟩).obj X =
        (F.obj ⟨i'⟩ ⊗ F.obj ⟨j'⟩).obj X) ≫ (F.μ ⟨i'⟩ ⟨j'⟩).app X =
      (F.μ ⟨i⟩ ⟨j⟩).app X ≫ eq_to_hom (by rw [h₁, h₂]) :=
  by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
 
- @[simp, reassoc] lemma μ_inv_app_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
+ @[simv, reassoc] lemma μ_inv_app_eq_to_hom {i j i' j' : A} (h₁ : i = i') (h₂ : j = j') (X : C) :
    inv ((F.μ ⟨i⟩ ⟨j⟩).app X) ≫ eq_to_hom (by rw [h₁, h₂]) =
      eq_to_hom (by rw [h₁, h₂]) ≫ inv ((F.μ ⟨i'⟩ ⟨j'⟩).app X) :=
  by { cases h₁, cases h₂, rw [eq_to_hom_refl, eq_to_hom_refl, category.id_comp, category.comp_id] }
@@ -94,7 +94,7 @@ structure shift_mk_core :=
     eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
 section
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
 
 /-- Constructs a `has_shift C A` instance from `shift_mk_core`. -/
@@ -103,13 +103,13 @@ def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
 ⟨{ ε := h.ε.hom,
    μ := λ m n, (h.μ m.as n.as).hom,
    μ_natural' := by { rintros ⟨X⟩ ⟨Y⟩ ⟨X'⟩ ⟨Y'⟩ ⟨⟨⟨rfl⟩⟩⟩ ⟨⟨⟨rfl⟩⟩⟩, ext,
-     dsimp, simp, dsimp, simp },
+     dsimp, simv, dsimp, simv },
    associativity' := by { introv, ext, dsimp, simpa using h.associativity _ _ _ _, },
    left_unitality' :=
-    by { rintro ⟨X⟩, ext, dsimp, rw [category.id_comp, ← category.assoc, h.left_unitality], simp },
+    by { rintro ⟨X⟩, ext, dsimp, rw [category.id_comp, ← category.assoc, h.left_unitality], simv },
    right_unitality' :=
     by { rintro ⟨X⟩, ext, dsimp, rw [functor.map_id, category.comp_id,
-      ← category.assoc, h.right_unitality], simp },
+      ← category.assoc, h.right_unitality], simv },
  ..(discrete.functor h.F) }⟩
 
 end
@@ -273,11 +273,11 @@ local attribute [reducible] discrete.add_monoidal
 lemma shift_shift_neg_hom_shift (n : A) (X : C) :
   (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
 begin
-  -- This is just `simp, simp [eq_to_hom_map]`.
-  simp only [iso.app_hom, unit_of_tensor_iso_unit_hom_app, eq_to_iso.hom, functor.map_comp,
+  -- This is just `simv, simv [eq_to_hom_map]`.
+  simv only [iso.app_hom, unit_of_tensor_iso_unit_hom_app, eq_to_iso.hom, functor.map_comp,
     obj_μ_app, eq_to_iso.inv, obj_ε_inv_app, μ_naturalityₗ_assoc, category.assoc,
     μ_inv_hom_app_assoc, ε_inv_app_obj, μ_naturalityᵣ_assoc],
-  simp only [eq_to_hom_map, eq_to_hom_app, eq_to_hom_trans],
+  simv only [eq_to_hom_map, eq_to_hom_app, eq_to_hom_trans],
 end
 
 end
@@ -332,12 +332,12 @@ variables {X Y}
 lemma shift_comm' (i j : A) :
   f⟦i⟧'⟦j⟧' = (shift_comm _ _ _).hom ≫ f⟦j⟧'⟦i⟧' ≫ (shift_comm _ _ _).hom :=
 begin
-  -- This is just `simp, simp [eq_to_hom_map]`.
-  simp only [shift_comm, iso.trans_hom, iso.symm_hom, iso.app_inv, iso.symm_inv,
+  -- This is just `simv, simv [eq_to_hom_map]`.
+  simv only [shift_comm, iso.trans_hom, iso.symm_hom, iso.app_inv, iso.symm_inv,
     monoidal_functor.μ_iso_hom, iso.app_hom, functor.map_iso_hom, eq_to_iso.hom, μ_naturality_assoc,
     nat_trans.naturality_assoc, nat_trans.naturality, functor.comp_map, category.assoc,
     μ_inv_hom_app_assoc],
-  simp only [eq_to_hom_map, eq_to_hom_app, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
+  simv only [eq_to_hom_map, eq_to_hom_app, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
     μ_hom_inv_app_assoc],
 end
 
@@ -376,48 +376,48 @@ has_shift_mk C A
      ... ≅ s (a + b) ⋙ F                                : (i (a + b)).symm),
   associativity := begin
     intros, apply F.map_injective, dsimp,
-    simp only [category.comp_id, category.id_comp, category.assoc,
+    simv only [category.comp_id, category.id_comp, category.assoc,
       category_theory.functor.map_comp, functor.image_preimage,
        eq_to_hom_map, iso.inv_hom_id_app_assoc],
     erw (i m₃).hom.naturality_assoc,
     congr' 1,
     dsimp,
-    simp only [eq_to_iso.inv, eq_to_hom_app, eq_to_hom_map, obj_μ_app, μ_naturality_assoc,
+    simv only [eq_to_iso.inv, eq_to_hom_app, eq_to_hom_map, obj_μ_app, μ_naturality_assoc,
       category.assoc, category_theory.functor.map_comp, functor.image_preimage],
     congr' 3,
     dsimp,
-    simp only [←(shift_functor D m₃).map_comp_assoc, iso.inv_hom_id_app],
+    simv only [←(shift_functor D m₃).map_comp_assoc, iso.inv_hom_id_app],
     erw [(shift_functor D m₃).map_id, category.id_comp],
     erw [((shift_monoidal_functor D A).μ_iso ⟨m₁ + m₂⟩ ⟨m₃⟩).inv_hom_id_app_assoc],
     congr' 1,
     have := dcongr_arg (λ a, (i a).inv.app X) (add_assoc m₁ m₂ m₃),
     dsimp at this,
-    simp [this],
+    simv [this],
   end,
   left_unitality := begin
     intros, apply F.map_injective, dsimp,
-    simp only [category.comp_id, category.id_comp, category.assoc, category_theory.functor.map_comp,
+    simv only [category.comp_id, category.id_comp, category.assoc, category_theory.functor.map_comp,
       eq_to_hom_app, eq_to_hom_map, functor.image_preimage],
     erw (i n).hom.naturality_assoc,
     dsimp,
-    simp only [eq_to_iso.inv, eq_to_hom_app, category.assoc, category_theory.functor.map_comp,
+    simv only [eq_to_iso.inv, eq_to_hom_app, category.assoc, category_theory.functor.map_comp,
       eq_to_hom_map, obj_ε_app, functor.image_preimage],
-    simp only [←(shift_functor D n).map_comp_assoc, iso.inv_hom_id_app],
+    simv only [←(shift_functor D n).map_comp_assoc, iso.inv_hom_id_app],
     dsimp,
-    simp only [category.id_comp, μ_inv_hom_app_assoc, category_theory.functor.map_id],
+    simv only [category.id_comp, μ_inv_hom_app_assoc, category_theory.functor.map_id],
     have := dcongr_arg (λ a, (i a).inv.app X) (zero_add n),
     dsimp at this,
-    simp [this],
+    simv [this],
   end,
   right_unitality := begin
     intros, apply F.map_injective, dsimp,
-    simp only [category.comp_id, category.id_comp, category.assoc,
+    simv only [category.comp_id, category.id_comp, category.assoc,
       iso.inv_hom_id_app_assoc, eq_to_iso.inv, eq_to_hom_app, eq_to_hom_map,
       category_theory.functor.map_comp, functor.image_preimage,
       obj_zero_map_μ_app, ε_hom_inv_app_assoc],
     have := dcongr_arg (λ a, (i a).inv.app X) (add_zero n),
     dsimp at this,
-    simp [this],
+    simv [this],
   end, }
 
 end

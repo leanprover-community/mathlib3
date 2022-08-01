@@ -69,8 +69,8 @@ instance : inhabited (valuation_subring K) := ⟨⊤⟩
 instance : valuation_ring A :=
 { cond := λ a b,
   begin
-    by_cases (b : K) = 0, { use 0, left, ext, simp [h] },
-    by_cases (a : K) = 0, { use 0, right, ext, simp [h] },
+    by_cases (b : K) = 0, { use 0, left, ext, simv [h] },
+    by_cases (a : K) = 0, { use 0, right, ext, simv [h] },
     cases A.mem_or_inv_mem (a/b) with hh hh,
     { use ⟨a/b, hh⟩, right, ext, field_simp, ring },
     { rw (show (a/b : K)⁻¹ = b/a, by field_simp) at hh,
@@ -87,9 +87,9 @@ instance : is_fraction_ring A K :=
 { map_units := λ ⟨y, hy⟩,
     (units.mk0 (y : K) (λ c, non_zero_divisors.ne_zero hy $ subtype.ext c)).is_unit,
   surj := λ z, begin
-    by_cases z = 0, { use (0, 1), simp [h] },
+    by_cases z = 0, { use (0, 1), simv [h] },
     cases A.mem_or_inv_mem z with hh hh,
-    { use (⟨z, hh⟩, 1), simp },
+    { use (⟨z, hh⟩, 1), simv },
     { refine ⟨⟨1, ⟨⟨_, hh⟩, _⟩⟩, mul_inv_cancel h⟩,
       exact mem_non_zero_divisors_iff_ne_zero.2 (λ c, h (inv_eq_zero.mp (congr_arg coe c))) },
   end,
@@ -123,7 +123,7 @@ lemma valuation_le_iff (x y : K) : A.valuation x ≤ A.valuation y ↔
 lemma valuation_surjective : function.surjective A.valuation := surjective_quot_mk _
 
 lemma valuation_unit (a : Aˣ) : A.valuation a = 1 :=
-by { rw [← A.valuation.map_one, valuation_eq_iff], use a, simp }
+by { rw [← A.valuation.map_one, valuation_eq_iff], use a, simv }
 
 lemma valuation_eq_one_iff (a : A) : is_unit a ↔ A.valuation a = 1 :=
 ⟨ λ h, A.valuation_unit h.unit,
@@ -280,7 +280,7 @@ def prime_spectrum_equiv :
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
   inv_fun := λ S, ⟨ideal_of_le _ S S.2, infer_instance⟩,
   left_inv := λ P, by { ext1, simpa },
-  right_inv := λ S, by { ext1, simp } }
+  right_inv := λ S, by { ext1, simv } }
 
 /-- An ordered variant of `prime_spectrum_equiv`. -/
 @[simps]
@@ -375,7 +375,7 @@ lemma unit_group_injective : function.injective (unit_group : valuation_subring 
     ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_eq_one],
   rw set_like.ext_iff at h,
   intros x,
-  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
+  by_cases hx : x = 0, { simv only [hx, valuation.map_zero, zero_ne_one] },
   exact h (units.mk0 x hx)
 end
 
@@ -409,9 +409,9 @@ begin
   split,
   { intros h x hx,
     rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
-    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    by_cases h_1 : x = 0, { simv only [h_1, zero_mem] },
     by_cases h_2 : 1 + x = 0,
-      { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
+      { simv only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
     cases hx,
     { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
       simpa using B.add_mem _ _
@@ -460,7 +460,7 @@ lemma nonunits_le_nonunits {A B : valuation_subring K} :
 begin
   split,
   { intros h x hx,
-    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    by_cases h_1 : x = 0, { simv only [h_1, zero_mem] },
     rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1] at hx ⊢,
     by_contra h_2, from hx (h h_2) },
   { intros h x hx,
@@ -503,7 +503,7 @@ theorem mem_nonunits_iff_exists_mem_maximal_ideal {a : K} :
 theorem image_maximal_ideal : (coe : A → K) '' local_ring.maximal_ideal A = A.nonunits :=
 begin
   ext a,
-  simp only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
+  simv only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
   erw subtype.exists,
   simp_rw [subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
 end

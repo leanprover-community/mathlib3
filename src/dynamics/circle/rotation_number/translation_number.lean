@@ -160,7 +160,7 @@ instance : monoid circle_deg1_lift :=
 { mul := λ f g,
   { to_fun := f ∘ g,
     monotone' := f.monotone.comp g.monotone,
-    map_add_one' := λ x, by simp [map_add_one] },
+    map_add_one' := λ x, by simv [map_add_one] },
   one := ⟨id, monotone_id, λ _, rfl⟩,
   mul_one := λ f, coe_inj $ function.comp.right_id f,
   one_mul := λ f, coe_inj $ function.comp.left_id f,
@@ -177,15 +177,15 @@ lemma mul_apply (x) : (f * g) x = f (g x) := rfl
 instance units_has_coe_to_fun : has_coe_to_fun (circle_deg1_liftˣ) (λ _, ℝ → ℝ) :=
 ⟨λ f, ⇑(f : circle_deg1_lift)⟩
 
-@[simp, norm_cast] lemma units_coe (f : circle_deg1_liftˣ) : ⇑(f : circle_deg1_lift) = f := rfl
+@[simv, norm_cast] lemma units_coe (f : circle_deg1_liftˣ) : ⇑(f : circle_deg1_lift) = f := rfl
 
 @[simp] lemma units_inv_apply_apply (f : circle_deg1_liftˣ) (x : ℝ) :
   (f⁻¹ : circle_deg1_liftˣ) (f x) = x :=
-by simp only [← units_coe, ← mul_apply, f.inv_mul, coe_one, id]
+by simv only [← units_coe, ← mul_apply, f.inv_mul, coe_one, id]
 
 @[simp] lemma units_apply_inv_apply (f : circle_deg1_liftˣ) (x : ℝ) :
   f ((f⁻¹ : circle_deg1_liftˣ) x) = x :=
-by simp only [← units_coe, ← mul_apply, f.mul_inv, coe_one, id]
+by simv only [← units_coe, ← mul_apply, f.mul_inv, coe_one, id]
 
 /-- If a lift of a circle map is bijective, then it is an order automorphism of the line. -/
 def to_order_iso : circle_deg1_liftˣ →* ℝ ≃o ℝ :=
@@ -211,15 +211,15 @@ lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :
   { val := f,
     inv := { to_fun := (equiv.of_bijective f h).symm,
              monotone' := λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
-               (by simp only [equiv.of_bijective_apply_symm_apply f h, hxy]),
+               (by simv only [equiv.of_bijective_apply_symm_apply f h, hxy]),
              map_add_one' := λ x, h.1 $
-               by simp only [equiv.of_bijective_apply_symm_apply f, f.map_add_one] },
+               by simv only [equiv.of_bijective_apply_symm_apply f, f.map_add_one] },
     val_inv := ext $ equiv.of_bijective_apply_symm_apply f h,
     inv_val := ext $ equiv.of_bijective_symm_apply_apply f h }⟩
 
 lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
 | 0 := rfl
-| (n+1) := by {ext x, simp [coe_pow n, pow_succ'] }
+| (n+1) := by {ext x, simv [coe_pow n, pow_succ'] }
 
 lemma semiconj_by_iff_semiconj {f g₁ g₂ : circle_deg1_lift} :
   semiconj_by f g₁ g₂ ↔ semiconj f g₁ g₂ :=
@@ -249,7 +249,7 @@ lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻
 
 @[simp] lemma translate_zpow (x : ℝ) (n : ℤ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-by simp only [← zsmul_eq_mul, of_add_zsmul, monoid_hom.map_zpow]
+by simv only [← zsmul_eq_mul, of_add_zsmul, monoid_hom.map_zpow]
 
 @[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
@@ -265,14 +265,14 @@ by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 In this section we prove that `f` commutes with translations by an integer number.
 First we formulate these statements (for a natural or an integer number,
 addition on the left or on the right, addition or subtraction) using `function.commute`,
-then reformulate as `simp` lemmas `map_int_add` etc.
+then reformulate as `simv` lemmas `map_int_add` etc.
 -/
 
 lemma commute_nat_add (n : ℕ) : function.commute f ((+) n) :=
 by simpa only [nsmul_one, add_left_iterate] using function.commute.iterate_right f.map_one_add n
 
 lemma commute_add_nat (n : ℕ) : function.commute f (λ x, x + n) :=
-by simp only [add_comm _ (n:ℝ), f.commute_nat_add n]
+by simv only [add_comm _ (n:ℝ), f.commute_nat_add n]
 
 lemma commute_sub_nat (n : ℕ) : function.commute f (λ x, x - n) :=
 by simpa only [sub_eq_add_neg] using
@@ -323,7 +323,7 @@ noncomputable instance : lattice circle_deg1_lift :=
 { sup := λ f g,
   { to_fun := λ x, max (f x) (g x),
     monotone' := λ x y h, max_le_max (f.mono h) (g.mono h), -- TODO: generalize to `monotone.max`
-    map_add_one' := λ x, by simp [max_add_add_right] },
+    map_add_one' := λ x, by simv [max_add_add_right] },
   le := λ f g, ∀ x, f x ≤ g x,
   le_refl := λ f x, le_refl (f x),
   le_trans := λ f₁ f₂ f₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
@@ -334,7 +334,7 @@ noncomputable instance : lattice circle_deg1_lift :=
   inf := λ f g,
   { to_fun := λ x, min (f x) (g x),
     monotone' := λ x y h, min_le_min (f.mono h) (g.mono h),
-    map_add_one' := λ x, by simp [min_add_add_right] },
+    map_add_one' := λ x, by simv [min_add_add_right] },
   inf_le_left := λ f g x, min_le_left (f x) (g x),
   inf_le_right := λ f g x, min_le_right (f x) (g x),
   le_inf := λ f₁ f₂ f₃ h₂ h₃ x, le_min (h₂ x) (h₃ x) }
@@ -350,7 +350,7 @@ lemma iterate_mono {f g : circle_deg1_lift} (h : f ≤ g) (n : ℕ) : f^[n] ≤ 
 iterate_monotone n h
 
 lemma pow_mono {f g : circle_deg1_lift} (h : f ≤ g) (n : ℕ) : f^n ≤ g^n :=
-λ x, by simp only [coe_pow, iterate_mono h n x]
+λ x, by simv only [coe_pow, iterate_mono h n x]
 
 lemma pow_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^n) :=
 λ f g h, pow_mono h n
@@ -413,7 +413,7 @@ lemma dist_map_zero_lt_of_semiconj {f g₁ g₂ : circle_deg1_lift} (h : functio
   dist (g₁ 0) (g₂ 0) < 2 :=
 calc dist (g₁ 0) (g₂ 0) ≤ dist (g₁ 0) (f (g₁ 0) - f 0) + dist _ (g₂ 0) : dist_triangle _ _ _
 ... = dist (f 0 + g₁ 0) (f (g₁ 0)) + dist (g₂ 0 + f 0) (g₂ (f 0)) :
-  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_eq_add_sub, abs_sub_comm
+  by simv only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_eq_add_sub, abs_sub_comm
     (g₂ (f 0))]
 ... < 2 : add_lt_add (f.dist_map_map_zero_lt g₁) (g₂.dist_map_map_zero_lt f)
 
@@ -489,7 +489,7 @@ lemma mul_floor_map_zero_le_floor_iterate_zero (n : ℕ) : ↑n * ⌊f 0⌋ ≤ 
 begin
   rw [le_floor, int.cast_mul, int.cast_coe_nat, ← zero_add ((n : ℝ) * _)],
   apply le_iterate_of_add_int_le_map,
-  simp [floor_le]
+  simv [floor_le]
 end
 
 /-!
@@ -529,7 +529,7 @@ lemma translation_number_eq_of_tendsto₀' {τ' : ℝ}
   τ f = τ' :=
 f.translation_number_eq_of_tendsto₀ $ (tendsto_add_at_top_iff_nat 1).1 (by exact_mod_cast h)
 
-lemma transnum_aux_seq_zero : f.transnum_aux_seq 0 = f 0 := by simp [transnum_aux_seq]
+lemma transnum_aux_seq_zero : f.transnum_aux_seq 0 = f 0 := by simv [transnum_aux_seq]
 
 lemma transnum_aux_seq_dist_lt (n : ℕ) :
   dist (f.transnum_aux_seq n) (f.transnum_aux_seq (n+1)) < (1 / 2) / (2^n) :=
@@ -572,7 +572,7 @@ eq.symm $ g.translation_number_eq_of_tendsto_aux $
   f.tendsto_translation_number_of_dist_bounded_aux _ C H
 
 @[simp] lemma translation_number_one : τ 1 = 0 :=
-translation_number_eq_of_tendsto₀ _ $ by simp [tendsto_const_nhds]
+translation_number_eq_of_tendsto₀ _ $ by simv [tendsto_const_nhds]
 
 lemma translation_number_eq_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (H : semiconj_by f g₁ g₂) :
   τ g₁ = τ g₂ :=
@@ -600,18 +600,18 @@ end
 @[simp] lemma translation_number_units_inv (f : circle_deg1_liftˣ) :
   τ ↑(f⁻¹) = -τ f :=
 eq_neg_iff_add_eq_zero.2 $
-  by simp [← translation_number_mul_of_commute (commute.refl _).units_inv_left]
+  by simv [← translation_number_mul_of_commute (commute.refl _).units_inv_left]
 
 @[simp] lemma translation_number_pow :
   ∀ n : ℕ, τ (f^n) = n * τ f
-| 0 := by simp
+| 0 := by simv
 | (n+1) := by rw [pow_succ', translation_number_mul_of_commute (commute.pow_self f n),
   translation_number_pow n, nat.cast_add_one, add_mul, one_mul]
 
 @[simp] lemma translation_number_zpow (f : circle_deg1_liftˣ) :
   ∀ n : ℤ, τ (f ^ n : units _) = n * τ f
-| (n : ℕ) := by simp [translation_number_pow f n]
-| -[1+n] := by { simp,  ring }
+| (n : ℕ) := by simv [translation_number_pow f n]
+| -[1+n] := by { simv,  ring }
 
 @[simp] lemma translation_number_conj_eq (f : circle_deg1_liftˣ) (g : circle_deg1_lift) :
   τ (↑f * g * ↑(f⁻¹)) = τ g :=
@@ -649,7 +649,7 @@ begin
   rw [← translation_number_conj_eq' (translate $ multiplicative.of_add x)],
   convert tendsto_translation_number₀ _,
   ext n,
-  simp [sub_eq_neg_add, units.conj_pow']
+  simv [sub_eq_neg_add, units.conj_pow']
 end
 
 lemma tendsto_translation_number' (x : ℝ) :
@@ -663,7 +663,7 @@ lemma translation_number_mono : monotone τ :=
 lemma translation_number_translate (x : ℝ) :
   τ (translate $ multiplicative.of_add x) = x :=
 translation_number_eq_of_tendsto₀' _ $
-  by simp [nat.cast_add_one_ne_zero, mul_div_cancel_left, tendsto_const_nhds]
+  by simv [nat.cast_add_one_ne_zero, mul_div_cancel_left, tendsto_const_nhds]
 
 lemma translation_number_le_of_le_add {z : ℝ} (hz : ∀ x, f x ≤ x + z) : τ f ≤ z :=
 translation_number_translate z ▸ translation_number_mono
@@ -684,7 +684,7 @@ lemma translation_number_le_of_le_add_nat {x : ℝ} {m : ℕ} (h : f x ≤ x + m
 lemma le_translation_number_of_add_int_le {x : ℝ} {m : ℤ} (h : x + m ≤ f x) : ↑m ≤ τ f :=
 ge_of_tendsto' (f.tendsto_translation_number' x) $ λ n,
 (le_div_iff (n.cast_add_one_pos : (0 : ℝ) < _)).mpr $ le_sub_iff_add_le'.2 $
-by simp only [coe_pow, mul_comm (m:ℝ), ← nat.cast_add_one, f.le_iterate_of_add_int_le_map h]
+by simv only [coe_pow, mul_comm (m:ℝ), ← nat.cast_add_one, f.le_iterate_of_add_int_le_map h]
 
 lemma le_translation_number_of_add_nat_le {x : ℝ} {m : ℕ} (h : x + m ≤ f x) : ↑m ≤ τ f :=
 @le_translation_number_of_add_int_le f x m h
@@ -752,7 +752,7 @@ begin
       (hf.sub continuous_id).continuous_on,
   refine lt_of_le_of_lt _ (sub_lt_iff_lt_add'.2 $ hz x),
   apply translation_number_le_of_le_add,
-  simp only [← sub_le_iff_le_add'],
+  simv only [← sub_le_iff_le_add'],
   exact f.forall_map_sub_of_Icc (λ a, a ≤ f x - x) hx
 end
 
@@ -764,7 +764,7 @@ begin
       (hf.sub continuous_id).continuous_on,
   refine lt_of_lt_of_le (lt_sub_iff_add_lt'.2 $ hz x) _,
   apply le_translation_number_of_add_le,
-  simp only [← le_sub_iff_add_le'],
+  simv only [← le_sub_iff_add_le'],
   exact f.forall_map_sub_of_Icc _ hx
 end
 
@@ -828,20 +828,20 @@ begin
       by rw [h, map_add_one]
     ... ≤ x + τ (f₂ g) + τ (f₂ g⁻¹) + 1 + 1 :
       by { mono, exact (map_lt_add_translation_number_add_one _ _).le }
-    ... = x + 2 : by simp [this, bit0, add_assoc] },
+    ... = x + 2 : by simv [this, bit0, add_assoc] },
   -- We have a theorem about actions by `order_iso`, so we introduce auxiliary maps
   -- to `ℝ ≃o ℝ`.
   set F₁ := to_order_iso.comp f₁.to_hom_units,
   set F₂ := to_order_iso.comp f₂.to_hom_units,
   have hF₁ : ∀ g, ⇑(F₁ g) = f₁ g := λ _, rfl,
   have hF₂ : ∀ g, ⇑(F₂ g) = f₂ g := λ _, rfl,
-  simp only [← hF₁, ← hF₂],
+  simv only [← hF₁, ← hF₂],
   -- Now we apply `cSup_div_semiconj` and go back to `f₁` and `f₂`.
   refine ⟨⟨_, λ x y hxy, _, λ x, _⟩, cSup_div_semiconj F₂ F₁ (λ x, _)⟩;
-    simp only [hF₁, hF₂, ← monoid_hom.map_inv, coe_mk],
+    simv only [hF₁, hF₂, ← monoid_hom.map_inv, coe_mk],
   { refine csupr_mono (this y) (λ g, _),
     exact mono _ (mono _ hxy) },
-  { simp only [map_add_one],
+  { simv only [map_add_one],
     exact (monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const)
       (monotone_id.add_const (1 : ℝ)) (this x)).symm },
   { exact this x }
@@ -856,7 +856,7 @@ lemma units_semiconj_of_translation_number_eq {f₁ f₂ : circle_deg1_liftˣ}
 begin
   have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (zpowers_hom _ f₁) n) =
     τ ((units.coe_hom _).comp (zpowers_hom _ f₂) n),
-  { intro n, simp [h] },
+  { intro n, simv [h] },
   exact (semiconj_of_group_action_of_forall_translation_number_eq _ _ this).imp
     (λ F hF, hF (multiplicative.of_add 1))
 end

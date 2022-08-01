@@ -83,12 +83,12 @@ instance : functor foo :=
 @[simp]
 lemma foo.map_mk {α β : Type} (f : α → β) (x : bool × α) :
   (f <$> quot.mk _ x : foo β) = quot.mk _ (f <$> x) :=
-by simp [(<$>),foo.map]
+by simv [(<$>),foo.map]
 
 noncomputable instance qpf.foo : qpf foo :=
 @qpf.quotient_qpf (prod bool) _ ex.prod.qpf foo _ (λ α, quot.mk _) (λ α, quot.out)
-  (by simp)
-  (by intros; simp)
+  (by simv)
+  (by intros; simv)
 
 /-- constructor for `foo` -/
 def foo.mk {α} (b : bool) (x : α) : foo α := quot.mk _ (b, x)
@@ -96,12 +96,12 @@ def foo.mk {α} (b : bool) (x : α) : foo α := quot.mk _ (b, x)
 @[simp]
 lemma foo.map_mk' {α β : Type} (f : α → β) (b : bool) (x : α) :
   f <$> foo.mk b x = foo.mk b (f x) :=
-by simp only [foo.mk, foo.map_mk]; refl
+by simv only [foo.mk, foo.map_mk]; refl
 
 @[simp]
 lemma foo.map_tt {α : Type} (x y : α) :
   foo.mk tt x = foo.mk tt y ↔ x = y :=
-by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
+by simv [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
    rw (equivalence_foo.R _).eqv_gen_iff at h;
    exact h.2 rfl
 
@@ -109,28 +109,28 @@ by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
 one value of type `α`, then the support of `foo.mk ff x` is empty -/
 lemma supp_mk_ff₀ {α} (x y : α) (h : ¬ x = y) : functor.supp (foo.mk ff x) = {} :=
 begin
-  dsimp [functor.supp], ext z, simp, -- split; intro h,
+  dsimp [functor.supp], ext z, simv, -- split; intro h,
   classical, by_cases x = z,
   { use (λ a, ¬ z = a), subst z,
     dsimp [functor.liftp],
-    simp, refine ⟨foo.mk ff ⟨y,h⟩,_⟩,
-    simp, apply quot.sound, simp [foo.R] },
+    simv, refine ⟨foo.mk ff ⟨y,h⟩,_⟩,
+    simv, apply quot.sound, simv [foo.R] },
   { use (λ a, x = a),
     dsimp [functor.liftp],
-    simp [h], use foo.mk ff ⟨x,rfl⟩,
-    simp }
+    simv [h], use foo.mk ff ⟨x,rfl⟩,
+    simv }
 end
 
 /-- consequence of original definition of `supp`. If there exists only
 one value of type `α`, then the support of `foo.mk ff x` contains that value -/
 lemma supp_mk_ff₁ {α} (x : α) (h : ∀ z, x = z) : functor.supp (foo.mk ff x) = {x} :=
 begin
-  dsimp [functor.supp], ext y, simp, split; intro h',
+  dsimp [functor.supp], ext y, simv, split; intro h',
   { apply @h' (= x), dsimp [functor.liftp],
     use foo.mk ff ⟨x,rfl⟩, refl },
-  { introv hp, simp [functor.liftp] at hp,
+  { introv hp, simv [functor.liftp] at hp,
     rcases hp with ⟨⟨z,z',hz⟩,hp⟩,
-    simp at hp, convert hz,
+    simv at hp, convert hz,
     rw [h'], apply h },
 end
 
@@ -139,11 +139,11 @@ Such a QPF is not uniform
 -/
 lemma foo_not_uniform : ¬ @qpf.is_uniform foo _ qpf.foo :=
 begin
-  simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, not_forall, not_imp],
+  simv only [qpf.is_uniform, foo, qpf.foo, set.image_univ, not_forall, not_imp],
   existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
-  { apply quot.sound, simp [foo.R, qpf.abs, prod.qpf._match_1] },
-  { simp! only [set.range, set.ext_iff],
-    simp only [not_exists, false_iff, bool.forall_bool, eq_self_iff_true, exists_false, not_true,
+  { apply quot.sound, simv [foo.R, qpf.abs, prod.qpf._match_1] },
+  { simv! only [set.range, set.ext_iff],
+    simv only [not_exists, false_iff, bool.forall_bool, eq_self_iff_true, exists_false, not_true,
       and_self, set.mem_set_of_eq, iff_false],
     exact λ h, h () }
 end
@@ -151,12 +151,12 @@ end
 /-- intuitive consequence of original definition of `supp`. -/
 lemma supp_mk_tt {α} (x : α) : functor.supp (foo.mk tt x) = {x} :=
 begin
-  dsimp [functor.supp], ext y, simp, split; intro h',
+  dsimp [functor.supp], ext y, simv, split; intro h',
   { apply @h' (= x), dsimp [functor.liftp],
     use foo.mk tt ⟨x,rfl⟩, refl },
-  { introv hp, simp [functor.liftp] at hp,
+  { introv hp, simv [functor.liftp] at hp,
     rcases hp with ⟨⟨z,z',hz⟩,hp⟩,
-    simp at hp, replace hp := quot.exact _ hp,
+    simv at hp, replace hp := quot.exact _ hp,
     rw (equivalence_foo.R _).eqv_gen_iff at hp,
     rcases hp with ⟨⟨⟩,hp⟩, subst y,
     replace hp := hp rfl, cases hp,
@@ -166,24 +166,24 @@ end
 /-- simple consequence of the definition of `supp` from the QBNF paper -/
 lemma supp_mk_ff' {α} (x : α) : qpf.supp' (foo.mk ff x) = {} :=
 begin
-  dsimp [qpf.supp'], ext, simp, dsimp [qpf.box],
-  use ∅, simp [foo.mk], intros, apply quot.sound,
+  dsimp [qpf.supp'], ext, simv, dsimp [qpf.box],
+  use ∅, simv [foo.mk], intros, apply quot.sound,
   dsimp [foo.R], split, refl, rintro ⟨ ⟩
 end
 
 /-- simple consequence of the definition of `supp` from the QBNF paper -/
 lemma supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
 begin
-  dsimp [qpf.supp'], ext, simp, dsimp [qpf.box], split; intro h,
+  dsimp [qpf.supp'], ext, simv, dsimp [qpf.box], split; intro h,
   { specialize h {x} _,
-    { clear h, introv hfg, simp, rw hfg, simp },
-    { simp at h, assumption }, },
+    { clear h, introv hfg, simv, rw hfg, simv },
+    { simv at h, assumption }, },
   { introv hfg, subst x_1, classical,
     let f : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr tt,
     let g : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr ff,
     specialize hfg _ f g _,
-    { intros, simp [*,f,g,if_pos] },
-    { simp [f,g] at hfg, split_ifs at hfg,
+    { intros, simv [*,f,g,if_pos] },
+    { simv [f,g] at hfg, split_ifs at hfg,
       assumption, cases hfg } }
 end
 end ex

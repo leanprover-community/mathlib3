@@ -127,7 +127,7 @@ lemma approx_of_mem_C (c : CU X) (n : ℕ) {x : X} (hx : x ∈ c.C) :
 begin
   induction n with n ihn generalizing c,
   { exact indicator_of_not_mem (λ hU, hU $ c.subset hx) _ },
-  { simp only [approx],
+  { simv only [approx],
     rw [ihn, ihn, midpoint_self],
     exacts [c.subset_right_C hx, hx] }
 end
@@ -137,7 +137,7 @@ lemma approx_of_nmem_U (c : CU X) (n : ℕ) {x : X} (hx : x ∉ c.U) :
 begin
   induction n with n ihn generalizing c,
   { exact indicator_of_mem hx _ },
-  { simp only [approx],
+  { simv only [approx],
     rw [ihn, ihn, midpoint_self],
     exacts [hx, λ hU, hx $ c.left_U_subset hU] }
 end
@@ -147,7 +147,7 @@ lemma approx_nonneg (c : CU X) (n : ℕ) (x : X) :
 begin
   induction n with n ihn generalizing c,
   { exact indicator_nonneg (λ _ _, zero_le_one) _ },
-  { simp only [approx, midpoint_eq_smul_add, inv_of_eq_inv],
+  { simv only [approx, midpoint_eq_smul_add, inv_of_eq_inv],
     refine mul_nonneg (inv_nonneg.2 zero_le_two) (add_nonneg _ _); apply ihn }
 end
 
@@ -156,7 +156,7 @@ lemma approx_le_one (c : CU X) (n : ℕ) (x : X) :
 begin
   induction n with n ihn generalizing c,
   { exact indicator_apply_le' (λ _, le_rfl) (λ _, zero_le_one) },
-  { simp only [approx, midpoint_eq_smul_add, inv_of_eq_inv, smul_eq_mul, ← div_eq_inv_mul],
+  { simv only [approx, midpoint_eq_smul_add, inv_of_eq_inv, smul_eq_mul, ← div_eq_inv_mul],
     refine iff.mpr (div_le_one zero_lt_two) (add_le_add _ _); apply ihn }
 end
 
@@ -179,7 +179,7 @@ begin
   induction n with n ihn generalizing c,
   { exact ⟨le_rfl, indicator_le_indicator_of_subset (compl_subset_compl.2 c.left_U_subset)
       (λ _, zero_le_one) _⟩ },
-  { simp only [approx, mem_Icc],
+  { simv only [approx, mem_Icc],
     refine ⟨midpoint_le_midpoint _ (ihn _).1, midpoint_le_midpoint (ihn _).2 _⟩;
       apply approx_le_approx_of_U_sub_C,
     exacts [subset_closure, subset_closure] }
@@ -189,7 +189,7 @@ lemma approx_le_succ (c : CU X) (n : ℕ) (x : X) :
   c.approx n x ≤ c.approx (n + 1) x :=
 begin
   induction n with n ihn generalizing c,
-  { simp only [approx, right_U, right_le_midpoint],
+  { simv only [approx, right_U, right_le_midpoint],
     exact (approx_mem_Icc_right_left c 0 x).2 },
   { rw [approx, approx],
     exact midpoint_le_midpoint (ihn _) (ihn _) }
@@ -210,16 +210,16 @@ lemma tendsto_approx_at_top (c : CU X) (x : X) :
 tendsto_at_top_csupr (c.approx_mono x) ⟨1, λ x ⟨n, hn⟩, hn ▸ c.approx_le_one _ _⟩
 
 lemma lim_of_mem_C (c : CU X) (x : X) (h : x ∈ c.C) : c.lim x = 0 :=
-by simp only [CU.lim, approx_of_mem_C, h, csupr_const]
+by simv only [CU.lim, approx_of_mem_C, h, csupr_const]
 
 lemma lim_of_nmem_U (c : CU X) (x : X) (h : x ∉ c.U) : c.lim x = 1 :=
-by simp only [CU.lim, approx_of_nmem_U c _ h, csupr_const]
+by simv only [CU.lim, approx_of_nmem_U c _ h, csupr_const]
 
 lemma lim_eq_midpoint (c : CU X) (x : X) :
   c.lim x = midpoint ℝ (c.left.lim x) (c.right.lim x) :=
 begin
   refine tendsto_nhds_unique (c.tendsto_approx_at_top x) ((tendsto_add_at_top_iff_nat 1).1 _),
-  simp only [approx],
+  simv only [approx],
   exact (c.left.tendsto_approx_at_top x).midpoint (c.right.tendsto_approx_at_top x)
 end
 
@@ -241,7 +241,7 @@ begin
   obtain ⟨h0, h1234, h1⟩ : 0 < (2⁻¹ : ℝ) ∧ (2⁻¹ : ℝ) < 3 / 4 ∧ (3 / 4 : ℝ) < 1 := by norm_num,
   refine continuous_iff_continuous_at.2
     (λ x, (metric.nhds_basis_closed_ball_pow (h0.trans h1234) h1).tendsto_right_iff.2 $ λ n _, _),
-  simp only [metric.mem_closed_ball],
+  simv only [metric.mem_closed_ball],
   induction n with n ihn generalizing c,
   { refine eventually_of_forall (λ y, _),
     rw pow_zero,
@@ -259,7 +259,7 @@ begin
         ihn c.left.right, ihn c.right] with y hyl hydl hydr,
       replace hxl : x ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hxl,
       replace hyl : y ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hyl,
-      simp only [pow_succ, c.lim_eq_midpoint, c.left.lim_eq_midpoint,
+      simv only [pow_succ, c.lim_eq_midpoint, c.left.lim_eq_midpoint,
         c.left.left.lim_of_nmem_U _ hxl, c.left.left.lim_of_nmem_U _ hyl],
       refine (dist_midpoint_midpoint_le _ _ _ _).trans _,
       refine (div_le_div_of_le_of_nonneg (add_le_add_right (dist_midpoint_midpoint_le _ _ _ _) _)

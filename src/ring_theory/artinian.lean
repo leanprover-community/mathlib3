@@ -105,8 +105,8 @@ theorem is_artinian_of_range_eq_ker
   (submodule.map g)
   (submodule.gci_map_comap hf)
   (submodule.gi_map_comap hg)
-  (by simp [submodule.map_comap_eq, inf_comm])
-  (by simp [submodule.comap_map_eq, h])⟩
+  (by simv [submodule.map_comap_eq, inf_comm])
+  (by simv [submodule.comap_map_eq, h])⟩
 
 instance is_artinian_prod [is_artinian R M]
   [is_artinian R P] : is_artinian R (M × P) :=
@@ -174,14 +174,14 @@ begin
     rw [span_le_span_iff hs (this b) (this a),
       set.image_subset_image_iff (subtype.coe_injective.comp f.injective),
       set.subset_def],
-    simp only [set.mem_set_of_eq],
+    simv only [set.mem_set_of_eq],
     exact ⟨λ hab x, le_trans hab, λ h, (h _ le_rfl)⟩ },
   exact ⟨⟨λ n, span R ((coe ∘ f) '' {m | n ≤ m}),
-      λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
+      λ x y, by simv [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
     begin
       intros a b,
       conv_rhs { rw [gt, lt_iff_le_not_le, this, this, ← lt_iff_le_not_le] },
-      simp
+      simv
     end⟩
 end
 
@@ -230,9 +230,9 @@ begin
   use x - (f ^ (n+1)) y,
   split,
   { rw [linear_map.mem_ker, linear_map.map_sub, ← hy, sub_eq_zero, pow_add],
-    simp [iterate_add_apply], },
+    simv [iterate_add_apply], },
   { use (f^ (n+1)) y,
-    simp }
+    simv }
 end
 
 /-- Any injective endomorphism of an Artinian module is surjective. -/
@@ -342,10 +342,10 @@ begin
     { exact λ f, ⟨∑ i in s.attach, f i • i.1, N.sum_mem (λ c _, N.smul_mem _ $ this _ c.2)⟩ },
     { intros f g, apply subtype.eq,
       change ∑ i in s.attach, (f i + g i) • _ = _,
-      simp only [add_smul, finset.sum_add_distrib], refl },
+      simv only [add_smul, finset.sum_add_distrib], refl },
     { intros c f, apply subtype.eq,
       change ∑ i in s.attach, (c • f i) • _ = _,
-      simp only [smul_eq_mul, mul_smul],
+      simv only [smul_eq_mul, mul_smul],
       exact finset.smul_sum.symm } },
   rintro ⟨n, hn⟩, change n ∈ N at hn,
   rw [← hs, ← set.image_id ↑s, finsupp.mem_span_image_iff_total] at hn,
@@ -422,7 +422,7 @@ begin
     calc ideal.span {x} * Jac ^ (n + 1) = ideal.span {x} * Jac * Jac ^ n :
       by rw [pow_succ, ← mul_assoc]
     ... ≤ J * Jac ^ n : mul_le_mul (by rwa mul_comm) le_rfl
-    ... = ⊥ : by simp [J],
+    ... = ⊥ : by simv [J],
   refine hxJ (mem_annihilator.2 (λ y hy, (mem_bot R).1 _)),
   refine this (mul_mem_mul (mem_span_singleton_self x) _),
   rwa [← hn (n + 1) (nat.le_succ _)]

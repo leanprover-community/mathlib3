@@ -86,18 +86,18 @@ lemma der_of_der_append_repeat_U_even {z : miustr} {m : ℕ} (h : derivable (z +
 begin
   induction m with k hk,
   { revert h,
-    simp only [list.repeat, zero_mul, append_nil, imp_self], },
+    simv only [list.repeat, zero_mul, append_nil, imp_self], },
   { apply hk,
-    simp only [succ_mul, repeat_add] at h,
+    simv only [succ_mul, repeat_add] at h,
     change repeat U 2 with [U,U] at h,
     rw ←(append_nil (z ++ repeat U (k*2) )),
     apply derivable.r4,
-    simp only [append_nil, append_assoc,h], },
+    simv only [append_nil, append_assoc,h], },
 end
 
 /-!
-In fine-tuning my application of `simp`, I issued the following commend to determine which lemmas
-`simp` uses.
+In fine-tuning my application of `simv`, I issued the following commend to determine which lemmas
+`simv` uses.
 
 `set_option trace.simplify.rewrite true`
 -/
@@ -112,18 +112,18 @@ lemma der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append (c k : ℕ)
 begin
   revert xs,
   induction k with a ha,
-  { simp only [list.repeat, mul_zero, add_zero, append_nil, forall_true_iff, imp_self],},
+  { simv only [list.repeat, mul_zero, add_zero, append_nil, forall_true_iff, imp_self],},
   { intro xs,
     specialize ha (U::xs),
     intro h₂,
-    simp only [succ_eq_add_one, repeat_add], -- We massage the goal
+    simv only [succ_eq_add_one, repeat_add], -- We massage the goal
     rw [←append_assoc, ←cons_append],        -- into a form amenable
     change repeat U 1 with [U],             -- to the application of
     rw [append_assoc, singleton_append],     -- ha.
     apply ha,
     apply derivable.r3,
     change [I,I,I] with repeat I 3,
-    simp only [cons_append, ←repeat_add],
+    simv only [cons_append, ←repeat_add],
     convert h₂, },
 end
 
@@ -140,7 +140,7 @@ For every `a`, the number `a + a % 2` is even.
 -/
 lemma add_mod2 (a : ℕ) : ∃ t, a + a % 2 = t*2 :=
 begin
-  simp only [mul_comm _ 2], -- write `t*2` as `2*t`
+  simv only [mul_comm _ 2], -- write `t*2` as `2*t`
   apply dvd_of_mod_eq_zero, -- it suffices to prove `(a + a % 2) % 2 = 0`
   rw [add_mod, mod_mod, ←two_mul, mul_mod_right],
 end
@@ -195,7 +195,7 @@ begin
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_repeat m, append_nil,list.repeat, h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { simv only [der_cons_repeat m, append_nil,list.repeat, h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
     { rw [h_one, ←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw repeat_pow_minus_append,
@@ -219,7 +219,7 @@ begin
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_repeat m, append_nil, list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { simv only [der_cons_repeat m, append_nil, list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
     { rw [h_one, ←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw repeat_pow_minus_append,
@@ -261,8 +261,8 @@ begin
     { rw [count_cons, if_pos (rfl), length, succ_eq_add_one, succ_inj'], -- case `x = I`
       apply hxs,
       { simpa only [count], },
-      { simp only [mem_cons_iff,false_or] at hm, exact hm, }, },
-    { exfalso, simp only [count, countp_cons_of_pos] at hu,  -- case `x = U` gives a contradiction.
+      { simv only [mem_cons_iff,false_or] at hm, exact hm, }, },
+    { exfalso, simv only [count, countp_cons_of_pos] at hu,  -- case `x = U` gives a contradiction.
       exact succ_ne_zero _ hu, }, },
 end
 
@@ -273,7 +273,7 @@ lemma base_case_suf (en : miustr) (h : decstr en) (hu : count U en = 0) : deriva
 begin
   rcases h with ⟨⟨mhead, nmtail⟩, hi ⟩,
   have : en ≠ nil,
-  { intro k, simp only [k, count, countp, if_false, zero_mod, zero_ne_one, false_or] at hi,
+  { intro k, simv only [k, count, countp, if_false, zero_mod, zero_ne_one, false_or] at hi,
     contradiction, },
   rcases (exists_cons_of_ne_nil this) with ⟨y,ys,rfl⟩,
   rw head at mhead,
@@ -282,7 +282,7 @@ begin
   { rcases this with ⟨c, hysr, hc⟩,
     rw ←hysr,
     exact der_repeat_I_of_mod3 c hc, },
-  { simp only [count] at *,
+  { simv only [count] at *,
     use (count I ys),
     refine and.intro _ hi,
     apply repeat_count_eq_of_count_eq_length,
@@ -297,10 +297,10 @@ lemma mem_of_count_U_eq_succ {xs : miustr} {k : ℕ} (h : count U xs = succ k) :
 begin
   induction xs with z zs hzs,
   { exfalso, rw count at h, contradiction, },
-  { simp only [mem_cons_iff],
+  { simv only [mem_cons_iff],
     cases z,
     repeat -- cases `z = M` and `z=I`
-    { right, apply hzs, simp only [count, countp, if_false] at h, rw ←h, refl, },
+    { right, apply hzs, simv only [count, countp, if_false] at h, rw ←h, refl, },
     { left, refl, }, }, -- case `z = U`
 end
 
@@ -317,21 +317,21 @@ lemma ind_hyp_suf (k : ℕ) (ys : miustr) (hu : count U ys = succ k) (hdec : dec
 begin
   rcases hdec with ⟨⟨mhead,nmtail⟩, hic⟩,
   have : ys ≠ nil,
-  { intro k, simp only [k ,count, countp, zero_mod, false_or, zero_ne_one] at hic, contradiction, },
+  { intro k, simv only [k ,count, countp, zero_mod, false_or, zero_ne_one] at hic, contradiction, },
   rcases (exists_cons_of_ne_nil this) with ⟨z,zs,rfl⟩,
   rw head at mhead,
   rw mhead at *,
-  simp only [count, countp, cons_append, if_false, countp_append] at *,
+  simv only [count, countp, cons_append, if_false, countp_append] at *,
   rcases (eq_append_cons_U_of_count_U_pos hu) with ⟨as,bs,hab⟩,
   rw hab at *,
-  simp only [countp, cons_append, if_pos, if_false, countp_append] at *,
+  simv only [countp, cons_append, if_pos, if_false, countp_append] at *,
   use [as,bs],
   apply and.intro rfl (and.intro (succ.inj hu) _),
   split,
   { apply and.intro rfl,
-    simp only [tail, mem_append, mem_cons_iff, false_or, not_mem_nil, or_false] at *,
+    simv only [tail, mem_append, mem_cons_iff, false_or, not_mem_nil, or_false] at *,
     exact nmtail, },
-  { simp only [count, countp, cons_append, if_false, countp_append, if_pos],
+  { simv only [count, countp, cons_append, if_false, countp_append, if_pos],
     rw [add_right_comm, add_mod_right], exact hic, },
 end
 

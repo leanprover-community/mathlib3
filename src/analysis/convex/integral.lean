@@ -59,7 +59,7 @@ begin
     (hgm.is_separable_range.mono (inter_subset_left _ _)).separable_space,
   obtain ⟨y₀, h₀⟩ : (range g ∩ s).nonempty,
   { rcases (hf.and hfg).exists with ⟨x₀, h₀⟩,
-    exact ⟨f x₀, by simp only [h₀.2, mem_range_self], h₀.1⟩ },
+    exact ⟨f x₀, by simv only [h₀.2, mem_range_self], h₀.1⟩ },
   rw [integral_congr_ae hfg], rw [integrable_congr hfg] at hfi,
   have hg : ∀ᵐ x ∂μ, g x ∈ closure (range g ∩ s),
   { filter_upwards [hfg.rw (λ x y, y ∈ s) hf] with x hx,
@@ -73,7 +73,7 @@ begin
   { rw [← ennreal.to_real_sum, (G n).sum_range_measure_preimage_singleton, measure_univ,
       ennreal.one_to_real],
     exact λ _ _, measure_ne_top _ _ },
-  { simp only [simple_func.mem_range, forall_range_iff],
+  { simv only [simple_func.mem_range, forall_range_iff],
     assume x,
     apply inter_subset_right (range g),
     exact simple_func.approx_on_mem hgm.measurable _ _ _ },
@@ -235,7 +235,7 @@ lemma ae_eq_const_or_exists_average_ne_compl [is_finite_measure μ] (hfi : integ
 begin
   refine or_iff_not_imp_right.mpr (λ H, _), push_neg at H,
   refine hfi.ae_eq_of_forall_set_integral_eq _ _ (integrable_const _) (λ t ht ht', _), clear ht',
-  simp only [const_apply, set_integral_const],
+  simv only [const_apply, set_integral_const],
   by_cases h₀ : μ t = 0,
   { rw [restrict_eq_zero.2 h₀, integral_zero_measure, h₀, ennreal.zero_to_real, zero_smul] },
   by_cases h₀' : μ tᶜ = 0,
@@ -294,7 +294,7 @@ begin
   rintro ⟨t, hm, h₀, h₀', hne⟩,
   rcases average_mem_open_segment_compl_self hm.null_measurable_set h₀ h₀' (hfi.prod_mk hgi)
     with ⟨a, b, ha, hb, hab, h_avg⟩,
-  simp only [average_pair hfi hgi, average_pair hfi.integrable_on hgi.integrable_on, prod.smul_mk,
+  simv only [average_pair hfi hgi, average_pair hfi.integrable_on hgi.integrable_on, prod.smul_mk,
     prod.mk_add_mk, prod.mk.inj_iff, (∘)] at h_avg,
   rw [← h_avg.1, ← h_avg.2],
   calc g (a • ⨍ x in t, f x ∂μ + b • ⨍ x in tᶜ, f x ∂μ)
@@ -324,11 +324,11 @@ lemma ae_eq_const_or_norm_average_lt_of_norm_le_const [strict_convex_space ℝ E
 begin
   cases le_or_lt C 0 with hC0 hC0,
   { have : f =ᵐ[μ] 0, from h_le.mono (λ x hx, norm_le_zero_iff.1 (hx.trans hC0)),
-    simp only [average_congr this, pi.zero_apply, average_zero],
+    simv only [average_congr this, pi.zero_apply, average_zero],
     exact or.inl this },
   by_cases hfi : integrable f μ, swap,
-    by simp [average_def', integral_undef hfi, hC0, ennreal.to_real_pos_iff],
-  cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simp [average_def', hμt, hC0] },
+    by simv [average_def', integral_undef hfi, hC0, ennreal.to_real_pos_iff],
+  cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simv [average_def', hμt, hC0] },
   haveI : is_finite_measure μ := ⟨hμt⟩,
   replace h_le : ∀ᵐ x ∂μ, f x ∈ closed_ball (0 : E) C, by simpa only [mem_closed_ball_zero_iff],
   simpa only [interior_closed_ball _ hC0.ne', mem_ball_zero_iff]
@@ -343,9 +343,9 @@ lemma ae_eq_const_or_norm_integral_lt_of_norm_le_const [strict_convex_space ℝ 
   [is_finite_measure μ] (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * C :=
 begin
-  cases eq_or_ne μ 0 with h₀ h₀, { left, simp [h₀] },
+  cases eq_or_ne μ 0 with h₀ h₀, { left, simv [h₀] },
   have hμ : 0 < (μ univ).to_real,
-    by simp [ennreal.to_real_pos_iff, pos_iff_ne_zero, h₀, measure_lt_top],
+    by simv [ennreal.to_real_pos_iff, pos_iff_ne_zero, h₀, measure_lt_top],
   refine (ae_eq_const_or_norm_average_lt_of_norm_le_const h_le).imp_right (λ H, _),
   rwa [average_def', norm_smul, norm_inv, real.norm_eq_abs, abs_of_pos hμ,
     ← div_eq_inv_mul, div_lt_iff' hμ] at H

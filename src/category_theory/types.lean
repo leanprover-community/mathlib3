@@ -71,7 +71,7 @@ variables (α β γ : Type u) (f : α → β) (g : β → γ)
 
 example : α → γ := ↾f ≫ ↾g
 example [is_iso ↾f] : mono ↾f := by apply_instance
-example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simp
+example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simv
 end
 
 namespace functor
@@ -94,10 +94,10 @@ variables (σ : F ⟶ G) (τ : G ⟶ H)
 
 @[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) :
   (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
-by simp [types_comp]
+by simv [types_comp]
 
 @[simp] lemma map_id_apply (a : F.obj X) : (F.map (𝟙 X)) a = a :=
-by simp [types_id]
+by simv [types_id]
 
 lemma naturality (f : X ⟶ Y) (x : F.obj X) : σ.app Y ((F.map f) x) = (G.map f) (σ.app X x) :=
 congr_fun (σ.naturality f) x

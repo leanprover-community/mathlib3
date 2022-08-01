@@ -226,7 +226,7 @@ if h : n ≤ 1
     let m := n / 2 in
     have h₀ : m ≤ k, from le_trans (le_of_lt this) hn,
     have h₃ : 0 < m,
-      by simp only [m, lt_iff_add_one_le, zero_add]; rw [nat.le_div_iff_mul_le]; linarith,
+      by simv only [m, lt_iff_add_one_le, zero_add]; rw [nat.le_div_iff_mul_le]; linarith,
     have h₁ : k - m < k,
       from nat.sub_lt (lt_of_lt_of_le h₂ hn) h₃,
     nat.shrink' m h₀ (⟨k - m, h₁⟩ :: ls)
@@ -292,7 +292,7 @@ sampleable.lift ℕ fin.of_nat subtype.val $
 
 instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,
-by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, tsub_zero, succ_sub_succ_eq_sub]
+by unfold_wf; simv only [pnat.nat_pred, succ_pnat, pnat.mk_coe, tsub_zero, succ_sub_succ_eq_sub]
 
 /-- Redefine `sizeof` for `int` to make it easier to use with `nat` -/
 def int.has_sizeof : has_sizeof ℤ := ⟨ int.nat_abs ⟩
@@ -415,8 +415,8 @@ begin
   have : sizeof xs < sizeof (x :: xs),
   { unfold_wf },
   cases k,
-  { simp only [this, list.drop] },
-  { simp only [list.drop],
+  { simv only [this, list.drop] },
+  { simv only [list.drop],
     transitivity,
     { solve_by_elim [xs_ih, lt_of_succ_lt_succ hk', zero_lt_succ] },
     { assumption } }
@@ -436,7 +436,7 @@ begin
   induction xs,
   { apply h },
   { unfold_wf,
-    simp only [list.sizeof, add_lt_add_iff_left],
+    simv only [list.sizeof, add_lt_add_iff_left],
     exact xs_ih }
 end
 
@@ -464,13 +464,13 @@ def list.shrink_removes (k : ℕ) (hk : 0 < k) : Π (xs : list α) n,
     match list.split_at k xs, rfl : Π ys, ys = list.split_at k xs → _ with
     |  ⟨xs₁,xs₂⟩, h :=
       have h₄ : xs₁ = xs.take k,
-        by simp only [list.split_at_eq_take_drop, prod.mk.inj_iff] at h; tauto,
+        by simv only [list.split_at_eq_take_drop, prod.mk.inj_iff] at h; tauto,
       have h₃ : xs₂ = xs.drop k,
-        by simp only [list.split_at_eq_take_drop, prod.mk.inj_iff] at h; tauto,
+        by simv only [list.split_at_eq_take_drop, prod.mk.inj_iff] at h; tauto,
       have sizeof xs₂ < sizeof xs,
         by rw h₃; solve_by_elim [list.sizeof_drop_lt_sizeof_of_lt_length],
       have h₁ : n - k = xs₂.length,
-        by simp only [h₃, ←hn, list.length_drop],
+        by simv only [h₃, ←hn, list.length_drop],
       have h₅ : ∀ (a : list α), sizeof_lt a xs₂ → sizeof_lt (xs₁ ++ a) xs,
         by intros a h; rw [← list.take_append_drop k xs, ← h₃, ← h₄];
           solve_by_elim [list.sizeof_append_lt_left],
@@ -716,22 +716,22 @@ Specializations of `le.sampleable` and `ge.sampleable` for `ℤ` to help instanc
 -/
 
 instance int_le.sampleable {y : ℤ} : slim_check.sampleable { x : ℤ // x ≤ y } :=
-sampleable.lift ℕ (λ n, ⟨y - n, int.sub_left_le_of_le_add $ by simp⟩) (λ ⟨i, h⟩, (y - i).nat_abs)
-  (λ n, by unfold_wf; simp [int_le.sampleable._match_1]; ring)
+sampleable.lift ℕ (λ n, ⟨y - n, int.sub_left_le_of_le_add $ by simv⟩) (λ ⟨i, h⟩, (y - i).nat_abs)
+  (λ n, by unfold_wf; simv [int_le.sampleable._match_1]; ring)
 
 instance int_ge.sampleable {x : ℤ} : slim_check.sampleable { y : ℤ // x ≤ y } :=
-sampleable.lift ℕ (λ n, ⟨x + n, by simp⟩) (λ ⟨i, h⟩, (i - x).nat_abs)
-  (λ n, by unfold_wf; simp [int_ge.sampleable._match_1]; ring)
+sampleable.lift ℕ (λ n, ⟨x + n, by simv⟩) (λ ⟨i, h⟩, (i - x).nat_abs)
+  (λ n, by unfold_wf; simv [int_ge.sampleable._match_1]; ring)
 
 instance int_lt.sampleable {y} : slim_check.sampleable { x : ℤ // x < y } :=
 sampleable.lift ℕ (λ n, ⟨y - (n+1), int.sub_left_lt_of_lt_add $
     by linarith [int.coe_nat_nonneg n]⟩)
   (λ ⟨i, h⟩, (y - i - 1).nat_abs)
-  (λ n, by unfold_wf; simp [int_lt.sampleable._match_1]; ring)
+  (λ n, by unfold_wf; simv [int_lt.sampleable._match_1]; ring)
 
 instance int_gt.sampleable {x} : slim_check.sampleable { y : ℤ // x < y } :=
 sampleable.lift ℕ (λ n, ⟨x + (n+1), by linarith⟩) (λ ⟨i, h⟩, (i - x - 1).nat_abs)
-  (λ n, by unfold_wf; simp [int_gt.sampleable._match_1]; ring)
+  (λ n, by unfold_wf; simv [int_gt.sampleable._match_1]; ring)
 
 /-! ### Subtypes of any `list` -/
 

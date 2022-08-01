@@ -92,7 +92,7 @@ have h0 : (0:F) ∈ closure S, from ring_closure_subset $
     intros a b ha hb,
     rcases (id ha) with ⟨p, hp, q, hq, rfl⟩,
     rcases (id hb) with ⟨r, hr, s, hs, rfl⟩,
-    classical, by_cases hq0 : q = 0, by simp [hb, hq0], by_cases hs0 : s = 0, by simp [ha, hs0],
+    classical, by_cases hq0 : q = 0, by simv [hb, hq0], by_cases hs0 : s = 0, by simv [ha, hs0],
     exact ⟨p * s + q * r, is_add_submonoid.add_mem
       ring.closure.is_subring.to_is_add_subgroup.to_is_add_submonoid
       (ring.closure.is_subring.to_is_submonoid.mul_mem hp hs)

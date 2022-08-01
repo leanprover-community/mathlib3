@@ -116,7 +116,7 @@ instance : has_Inf (setoid α) :=
 /-- The underlying binary operation of the infimum of a set of equivalence relations
     is the infimum of the set's image under the map to the underlying binary operation. -/
 theorem Inf_def {s : set (setoid α)} : (Inf s).rel = Inf (rel '' s) :=
-by { ext, simp only [Inf_image, infi_apply, infi_Prop_eq], refl }
+by { ext, simv only [Inf_image, infi_apply, infi_Prop_eq], refl }
 
 instance : partial_order (setoid α) :=
 { le := (≤),
@@ -147,7 +147,7 @@ lemma top_def : (⊤ : setoid α).rel = ⊤ := rfl
 lemma bot_def : (⊥ : setoid α).rel = (=) := rfl
 
 lemma eq_top_iff {s : setoid α} : s = (⊤ : setoid α) ↔ ∀ x y : α, s.rel x y :=
-by simp [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
+by simv [eq_top_iff, setoid.le_def, setoid.top_def, pi.top_apply]
 
 /-- The inductively defined equivalence closure of a binary relation r is the infimum
     of the set of all equivalence relations containing r. -/
@@ -165,7 +165,7 @@ lemma sup_eq_eqv_gen (r s : setoid α) :
 begin
   rw eqv_gen_eq,
   apply congr_arg Inf,
-  simp only [le_def, or_imp_distrib, ← forall_and_distrib]
+  simv only [le_def, or_imp_distrib, ← forall_and_distrib]
 end
 
 /-- The supremum of 2 equivalence relations r and s is the equivalence closure of the
@@ -180,7 +180,7 @@ lemma Sup_eq_eqv_gen (S : set (setoid α)) :
 begin
   rw eqv_gen_eq,
   apply congr_arg Inf,
-  simp only [upper_bounds, le_def, and_imp, exists_imp_distrib],
+  simv only [upper_bounds, le_def, and_imp, exists_imp_distrib],
   ext,
   exact ⟨λ H x y r hr, H hr, λ H r hr x y, H r hr⟩
 end
@@ -191,7 +191,7 @@ lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) :=
 begin
   rw [Sup_eq_eqv_gen, Sup_image],
   congr' with x y,
-  simp only [supr_apply, supr_Prop_eq, exists_prop]
+  simv only [supr_apply, supr_Prop_eq, exists_prop]
 end
 
 /-- The equivalence closure of an equivalence relation r is r. -/
@@ -238,7 +238,7 @@ iff.rfl
 `quotient r → β`. -/
 def lift_equiv (r : setoid α) : {f : α → β // r ≤ ker f} ≃ (quotient r → β) :=
 { to_fun := λ f, quotient.lift (f : α → β) f.2,
-  inv_fun := λ f, ⟨f ∘ quotient.mk, λ x y h, by simp [ker_def, quotient.sound h]⟩,
+  inv_fun := λ f, ⟨f ∘ quotient.mk, λ x y h, by simv [ker_def, quotient.sound h]⟩,
   left_inv := λ ⟨f, hf⟩, subtype.eq $ funext $ λ x, rfl,
   right_inv := λ f, funext $ λ x, quotient.induction_on' x $ λ x, rfl }
 
@@ -380,7 +380,7 @@ end setoid
 lemma quotient.subsingleton_iff  {s : setoid α} :
   subsingleton (quotient s) ↔ s = ⊤ :=
 begin
-  simp only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
+  simv only [subsingleton_iff, eq_top_iff, setoid.le_def, setoid.top_def,
     pi.top_apply, forall_const],
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quotient_mk _).forall.trans (forall_congr $ λ b, _),
@@ -389,9 +389,9 @@ end
 
 lemma quot.subsingleton_iff (r : α → α → Prop) : subsingleton (quot r) ↔ eqv_gen r = ⊤ :=
 begin
-  simp only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, pi.top_apply, forall_const],
+  simv only [subsingleton_iff, _root_.eq_top_iff, pi.le_def, pi.top_apply, forall_const],
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ a, _),
   refine (surjective_quot_mk _).forall.trans (forall_congr $ λ b, _),
   rw quot.eq,
-  simp only [forall_const, le_Prop_eq],
+  simv only [forall_const, le_Prop_eq],
 end

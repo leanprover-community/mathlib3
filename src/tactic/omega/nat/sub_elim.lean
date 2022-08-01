@@ -42,23 +42,23 @@ lemma val_sub_subst {k : nat} {x y : preterm} {v : nat → nat} :
 | (m ** n) h1 :=
   begin
     have h2 : n ≠ k := ne_of_lt h1,
-    simp only [sub_subst, preterm.val],
+    simv only [sub_subst, preterm.val],
     rw update_eq_of_ne _ h2,
  end
 | (t +* s) h1 :=
   begin
-    simp only [sub_subst, val_add], apply fun_mono_2;
+    simv only [sub_subst, val_add], apply fun_mono_2;
     apply val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (t -* s) h1 :=
   begin
-    simp only [sub_subst, val_sub],
+    simv only [sub_subst, val_sub],
     by_cases h2 : t = x ∧ s = y,
-    { rw if_pos h2, simp only [val_var, one_mul],
+    { rw if_pos h2, simv only [val_var, one_mul],
       rw [update_eq, h2.left, h2.right] },
     { rw if_neg h2,
-      simp only [val_sub, sub_subst],
+      simv only [val_sub, sub_subst],
       apply fun_mono_2;
       apply val_sub_subst (le_trans _ h1),
       apply le_max_left, apply le_max_right, }
@@ -95,7 +95,7 @@ lemma holds_is_diff {t s : preterm} {k : nat} {v : nat → nat} :
   v k = t.val v - s.val v → (is_diff t s k).holds v :=
 begin
   intro h1,
-  simp only [preform.holds, is_diff, if_pos (eq.refl 1),
+  simv only [preform.holds, is_diff, if_pos (eq.refl 1),
     preterm.val_add, preterm.val_var, preterm.val_const],
   cases le_total (t.val v) (s.val v) with h2 h2,
   { right, refine ⟨h2, _⟩,
@@ -121,14 +121,14 @@ lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
     (update k (x.val v - y.val v) v) ↔ (p.holds v))
 | (t =* s) h1 :=
   begin
-    simp only [preform.holds, preform.sub_subst],
+    simv only [preform.holds, preform.sub_subst],
     apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (t ≤* s) h1 :=
   begin
-    simp only [preform.holds, preform.sub_subst],
+    simv only [preform.holds, preform.sub_subst],
     apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
@@ -137,14 +137,14 @@ lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
   by { apply not_iff_not_of_iff, apply sub_subst_equiv p h1 }
 | (p ∨* q) h1 :=
   begin
-    simp only [preform.holds, preform.sub_subst],
+    simv only [preform.holds, preform.sub_subst],
     apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (p ∧* q) h1 :=
   begin
-    simp only [preform.holds, preform.sub_subst],
+    simv only [preform.holds, preform.sub_subst],
     apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
@@ -153,7 +153,7 @@ lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
 lemma sat_sub_elim {t s : preterm} {p : preform} :
   p.sat → (sub_elim t s p).sat :=
 begin
-  intro h1, simp only [sub_elim, sub_elim_core],
+  intro h1, simv only [sub_elim, sub_elim_core],
   cases h1 with v h1,
   refine ⟨update (sub_fresh_index t s p) (t.val v - s.val v) v, _⟩,
   constructor,

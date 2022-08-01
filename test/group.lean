@@ -56,7 +56,7 @@ begin
 end
 
 -- The next example can be expand to require an arbitrarily high number of alternation
--- between simp and ring
+-- between simv and ring
 
 example (n m : ℤ) (a b : G) : a^n*b^n*a^n*a^n*a^-n*a^-n*b^-n*a^-n = 1 :=
 by group

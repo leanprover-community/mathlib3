@@ -176,8 +176,8 @@ instance monoid.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
 ⟨measurable_from_prod_encodable $ λ n, begin
   induction n with n ih,
-  { simp only [pow_zero, ←pi.one_def, measurable_one] },
-  { simp only [pow_succ], exact measurable_id.mul ih }
+  { simv only [pow_zero, ←pi.one_def, measurable_one] },
+  { simv only [pow_succ], exact measurable_id.mul ih }
 end⟩
 
 section pow
@@ -342,7 +342,7 @@ lemma measurable_set_eq_fun_of_encodable {m : measurable_space α} {E} [measurab
   measurable_set {x | f x = g x} :=
 begin
   have : {x | f x = g x} = ⋃ j, {x | f x = j} ∩ {x | g x = j},
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_eq_right'], },
+  { ext1 x, simv only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_eq_right'], },
   rw this,
   refine measurable_set.Union (λ j, measurable_set.inter _ _),
   { exact hf (measurable_set_singleton j), },
@@ -397,11 +397,11 @@ measurable_inv.comp_ae_measurable hf
 
 attribute [measurability] measurable.neg ae_measurable.neg
 
-@[simp, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
+@[simv, to_additive] lemma measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} : measurable (λ x, (f x)⁻¹) ↔ measurable f :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
-@[simp, to_additive] lemma ae_measurable_inv_iff {G : Type*} [group G] [measurable_space G]
+@[simv, to_additive] lemma ae_measurable_inv_iff {G : Type*} [group G] [measurable_space G]
   [has_measurable_inv G] {f : α → G} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
 ⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
@@ -443,7 +443,7 @@ end⟩
 instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
   [div_inv_monoid G] [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_div₂ G :=
-⟨by { simp only [div_eq_mul_inv], exact measurable_fst.mul measurable_snd.inv }⟩
+⟨by { simv only [div_eq_mul_inv], exact measurable_fst.mul measurable_snd.inv }⟩
 
 /-- We say that the action of `M` on `α` `has_measurable_vadd` if for each `c` the map `x ↦ c +ᵥ x`
 is a measurable function and for each `x` the map `c ↦ c +ᵥ x` is a measurable function. -/
@@ -577,8 +577,8 @@ instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measu
   { apply this.comp measurable_swap, },
   refine measurable_from_prod_encodable (λ n, _),
   induction n with n ih,
-  { simp only [zero_smul, ←pi.zero_def, measurable_zero] },
-  { simp only [succ_nsmul], exact measurable_id.add ih }
+  { simv only [zero_smul, ←pi.zero_def, measurable_zero] },
+  { simv only [succ_nsmul], exact measurable_id.add ih }
 end⟩
 
 /-- `sub_neg_monoid.has_smul_int` is measurable. -/
@@ -589,8 +589,8 @@ instance sub_neg_monoid.has_measurable_smul_int₂ (M : Type*) [sub_neg_monoid M
   { apply this.comp measurable_swap, },
   refine measurable_from_prod_encodable (λ n, _),
   induction n with n n ih,
-  { simp only [of_nat_zsmul], exact measurable_const_smul _, },
-  { simp only [zsmul_neg_succ_of_nat], exact (measurable_const_smul _).neg }
+  { simv only [of_nat_zsmul], exact measurable_const_smul _, },
+  { simv only [zsmul_neg_succ_of_nat], exact (measurable_const_smul _).neg }
 end⟩
 
 end smul

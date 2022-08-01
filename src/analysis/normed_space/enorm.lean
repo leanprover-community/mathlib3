@@ -58,19 +58,19 @@ coe_fn_injective $ funext h
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
+@[simv, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = ∥c∥₊ * e x :=
 le_antisymm (e.map_smul_le' c x) $
 begin
-  by_cases hc : c = 0, { simp [hc] },
+  by_cases hc : c = 0, { simv [hc] },
   calc (∥c∥₊ : ℝ≥0∞) * e x = ∥c∥₊ * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ ∥c∥₊ * (∥c⁻¹∥₊ * e (c • x)) : _
   ... = e (c • x) : _,
   { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
   { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
-     ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
+     ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simv [hc] }
 end
 
 @[simp] lemma map_zero : e 0 = 0 :=
@@ -81,7 +81,7 @@ by { rw [← zero_smul 𝕜 (0:V), e.map_smul], norm_num }
 
 @[simp] lemma map_neg (x : V) : e (-x) = e x :=
 calc e (-x) = ∥(-1 : 𝕜)∥₊ * e x : by rw [← map_smul, neg_one_smul]
-        ... = e x               : by simp
+        ... = e x               : by simv
 
 lemma map_sub_rev (x y : V) : e (x - y) = e (y - x) :=
 by rw [← neg_sub, e.map_neg]
@@ -102,20 +102,20 @@ instance : partial_order (enorm 𝕜 V) :=
 /-- The `enorm` sending each non-zero vector to infinity. -/
 noncomputable instance : has_top (enorm 𝕜 V) :=
 ⟨{ to_fun := λ x, if x = 0 then 0 else ⊤,
-   eq_zero' := λ x, by { split_ifs; simp [*] },
+   eq_zero' := λ x, by { split_ifs; simv [*] },
    map_add_le' := λ x y,
      begin
-       split_ifs with hxy hx hy hy hx hy hy; try { simp [*] },
+       split_ifs with hxy hx hy hy hx hy hy; try { simv [*] },
        simpa [hx, hy] using hxy
      end,
    map_smul_le' := λ c x,
      begin
-       split_ifs with hcx hx hx; simp only [smul_eq_zero, not_or_distrib] at hcx,
-       { simp only [mul_zero, le_refl] },
+       split_ifs with hcx hx hx; simv only [smul_eq_zero, not_or_distrib] at hcx,
+       { simv only [mul_zero, le_refl] },
        { have : c = 0, by tauto,
-         simp [this] },
+         simv [this] },
        { tauto },
-       { simp [hcx.1] }
+       { simv [hcx.1] }
      end }⟩
 
 noncomputable instance : inhabited (enorm 𝕜 V) := ⟨⊤⟩
@@ -124,7 +124,7 @@ lemma top_map {x : V} (hx : x ≠ 0) : (⊤ : enorm 𝕜 V) x = ⊤ := if_neg hx
 
 noncomputable instance : order_top (enorm 𝕜 V) :=
 { top := ⊤,
-  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h] }
+  le_top := λ e x, if h : x = 0 then by simv [h] else by simv [top_map h] }
 
 noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 { le := (≤),
@@ -135,13 +135,13 @@ noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
     map_add_le' := λ x y, max_le
       (le_trans (e₁.map_add_le _ _) $ add_le_add (le_max_left _ _) (le_max_left _ _))
       (le_trans (e₂.map_add_le _ _) $ add_le_add (le_max_right _ _) (le_max_right _ _)),
-    map_smul_le' := λ c x, le_of_eq $ by simp only [map_smul, ennreal.mul_max] },
+    map_smul_le' := λ c x, le_of_eq $ by simv only [map_smul, ennreal.mul_max] },
   le_sup_left := λ e₁ e₂ x, le_max_left _ _,
   le_sup_right := λ e₁ e₂ x, le_max_right _ _,
   sup_le := λ e₁ e₂ e₃ h₁ h₂ x, max_le (h₁ x) (h₂ x),
   .. enorm.partial_order }
 
-@[simp, norm_cast] lemma coe_max (e₁ e₂ : enorm 𝕜 V) : ⇑(e₁ ⊔ e₂) = λ x, max (e₁ x) (e₂ x) := rfl
+@[simv, norm_cast] lemma coe_max (e₁ e₂ : enorm 𝕜 V) : ⇑(e₁ ⊔ e₂) = λ x, max (e₁ x) (e₂ x) := rfl
 
 @[norm_cast]
 lemma max_map (e₁ e₂ : enorm 𝕜 V) (x : V) : (e₁ ⊔ e₂) x = max (e₁ x) (e₂ x) := rfl
@@ -149,8 +149,8 @@ lemma max_map (e₁ e₂ : enorm 𝕜 V) (x : V) : (e₁ ⊔ e₂) x = max (e₁
 /-- Structure of an `emetric_space` defined by an extended norm. -/
 @[reducible] def emetric_space : emetric_space V :=
 { edist := λ x y, e (x - y),
-  edist_self := λ x, by simp,
-  eq_of_edist_eq_zero := λ x y, by simp [sub_eq_zero],
+  edist_self := λ x, by simv,
+  eq_of_edist_eq_zero := λ x y, by simv [sub_eq_zero],
   edist_comm := e.map_sub_rev,
   edist_triangle := λ x y z,
     calc e (x - z) = e ((x - y) + (y - z)) : by rw [sub_add_sub_cancel]
@@ -159,7 +159,7 @@ lemma max_map (e₁ e₂ : enorm 𝕜 V) (x : V) : (e₁ ⊔ e₂) x = max (e₁
 /-- The subspace of vectors with finite enorm. -/
 def finite_subspace : subspace 𝕜 V :=
 { carrier   := {x | e x < ⊤},
-  zero_mem' := by simp,
+  zero_mem' := by simv,
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
   smul_mem' := λ c x (hx : _ < _),
     calc e (c • x) = ∥c∥₊ * e x : e.map_smul c x
@@ -189,6 +189,6 @@ lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 
 /-- Normed space instance on `e.finite_subspace`. -/
 instance : normed_space 𝕜 e.finite_subspace :=
-{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ennreal.to_real_mul] }
+{ norm_smul_le := λ c x, le_of_eq $ by simv [finite_norm_eq, ennreal.to_real_mul] }
 
 end enorm

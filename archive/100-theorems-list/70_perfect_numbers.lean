@@ -27,14 +27,14 @@ https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
 -/
 
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
-by simp [← even_iff_two_dvd, ← nat.even_add_one] with parity_simps
+by simv [← even_iff_two_dvd, ← nat.even_add_one] with parity_simps
 
 namespace nat
 open arithmetic_function finset
 open_locale arithmetic_function
 
 lemma sigma_two_pow_eq_mersenne_succ (k : ℕ) : σ 1 (2 ^ k) = mersenne (k + 1) :=
-by simp [sigma_one_apply, mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
+by simv [sigma_one_apply, mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
 
 /-- Euclid's theorem that Mersenne primes induce perfect numbers -/
 theorem perfect_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
@@ -44,7 +44,7 @@ begin
     is_multiplicative_sigma.map_mul_of_coprime
         (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)),
     sigma_two_pow_eq_mersenne_succ],
-  { simp [pr, nat.prime_two, sigma_one_apply] },
+  { simv [pr, nat.prime_two, sigma_one_apply] },
   { apply mul_pos (pow_pos _ k) (mersenne_pos (nat.succ_pos k)),
     norm_num }
 end
@@ -58,7 +58,7 @@ end
 
 theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   even ((2 ^ k) * mersenne (k + 1)) :=
-by simp [ne_zero_of_prime_mersenne k pr] with parity_simps
+by simv [ne_zero_of_prime_mersenne k pr] with parity_simps
 
 lemma eq_two_pow_mul_odd {n : ℕ} (hpos : 0 < n) :
   ∃ (k m : ℕ), n = 2 ^ k * m ∧ ¬ even m :=
@@ -97,7 +97,7 @@ begin
   cases sum_proper_divisors_dvd (by { rw hj, apply dvd.intro_left (mersenne (k + 1)) rfl }),
   { have j1 : j = 1 := eq.trans hj.symm h_1,
     rw [j1, mul_one, sum_proper_divisors_eq_one_iff_prime] at h_1,
-    simp [h_1, j1] },
+    simv [h_1, j1] },
   { have jcon := eq.trans hj.symm h_1,
     rw [← one_mul j, ← mul_assoc, mul_one] at jcon,
     have jcon2 := mul_right_cancel₀ _ jcon,
@@ -111,7 +111,7 @@ begin
       rw [mersenne, ← nat.pred_eq_sub_one, lt_pred_iff, ← pow_one (nat.succ 1)],
       apply pow_lt_pow (nat.lt_succ_self 1) (nat.succ_lt_succ (nat.succ_pos k)) },
     contrapose! hm,
-    simp [hm] }
+    simv [hm] }
 end
 
 /-- The Euclid-Euler theorem characterizing even perfect numbers -/

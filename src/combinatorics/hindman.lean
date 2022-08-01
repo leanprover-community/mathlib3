@@ -61,7 +61,7 @@ lemma ultrafilter.eventually_mul {M} [has_mul M] (U V : ultrafilter M) (p : M �
 structure on `M`."]
 def ultrafilter.semigroup {M} [semigroup M] : semigroup (ultrafilter M) :=
 { mul_assoc := λ U V W, ultrafilter.coe_inj.mp $ filter.ext' $ λ p,
-    by simp only [ultrafilter.eventually_mul, mul_assoc]
+    by simv only [ultrafilter.eventually_mul, mul_assoc]
   ..ultrafilter.has_mul }
 
 local attribute [instance] ultrafilter.semigroup ultrafilter.add_semigroup

@@ -60,7 +60,7 @@ instance : algebra R (⨁ i, A i) :=
   map_add' := add_monoid_hom.map_add _,
   map_one' := (direct_sum.of A 0).congr_arg galgebra.map_one,
   map_mul' := λ a b, begin
-    simp only [add_monoid_hom.comp_apply],
+    simv only [add_monoid_hom.comp_apply],
     rw of_mul_of,
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.map_mul a b),
   end,

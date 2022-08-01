@@ -137,7 +137,7 @@ lemma le_radius_of_summable_nnnorm (h : summable (λ n, ∥p n∥₊ * r ^ n)) :
 p.le_radius_of_bound_nnreal (∑' n, ∥p n∥₊ * r ^ n) $ λ n, le_tsum' h _
 
 lemma le_radius_of_summable (h : summable (λ n, ∥p n∥ * r ^ n)) : ↑r ≤ p.radius :=
-p.le_radius_of_summable_nnnorm $ by { simp only [← coe_nnnorm] at h, exact_mod_cast h }
+p.le_radius_of_summable_nnnorm $ by { simv only [← coe_nnnorm] at h, exact_mod_cast h }
 
 lemma radius_eq_top_of_forall_nnreal_is_O
   (h : ∀ r : ℝ≥0, (λ n, ∥p n∥ * r^n) =O[at_top] (λ n, (1 : ℝ))) : p.radius = ∞ :=
@@ -145,7 +145,7 @@ ennreal.eq_top_of_forall_nnreal_le $ λ r, p.le_radius_of_is_O (h r)
 
 lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_forall_nnreal_is_O $
-  λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
+  λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simv [hn]) eventually_eq.rfl
 
 lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2
@@ -157,7 +157,7 @@ lemma is_o_of_lt_radius (h : ↑r < p.radius) :
   ∃ a ∈ Ioo (0 : ℝ) 1, (λ n, ∥p n∥ * r ^ n) =o[at_top] (pow a) :=
 begin
   rw (tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 1 4,
-  simp only [radius, lt_supr_iff] at h,
+  simv only [radius, lt_supr_iff] at h,
   rcases h with ⟨t, C, hC, rt⟩,
   rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at rt,
   have : 0 < (t : ℝ), from r.coe_nonneg.trans_lt rt,
@@ -248,7 +248,7 @@ begin
   rw mem_emetric_ball_zero_iff at hx,
   refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ n, ((p n).le_op_norm _).trans_eq _)
     (p.summable_norm_mul_pow hx),
-  simp
+  simv
 end
 
 lemma summable_nnnorm_mul_pow (p : formal_multilinear_series 𝕜 E F)
@@ -285,9 +285,9 @@ lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 <
   ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ n, ∥p n∥ ≤ C * r ^ n :=
 begin
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨r, r0, rlt⟩,
-  have rpos : 0 < (r : ℝ), by simp [ennreal.coe_pos.1 r0],
+  have rpos : 0 < (r : ℝ), by simv [ennreal.coe_pos.1 r0],
   rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
-  refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
+  refine ⟨C, r ⁻¹, Cpos, by simv [rpos], λ n, _⟩,
   convert hCp n,
   exact inv_pow _ _,
 end
@@ -305,7 +305,7 @@ begin
 end
 
 @[simp] lemma radius_neg (p : formal_multilinear_series 𝕜 E F) : (-p).radius = p.radius :=
-by simp [radius]
+by simv [radius]
 
 protected lemma has_sum [complete_space F]
   (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
@@ -463,7 +463,7 @@ lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf 
   (v : fin 0 → E) : pf 0 v = f x :=
 begin
   have v_eq : v = (λ i, 0) := subsingleton.elim _ _,
-  have zero_mem : (0 : E) ∈ emetric.ball (0 : E) r, by simp [hf.r_pos],
+  have zero_mem : (0 : E) ∈ emetric.ball (0 : E) r, by simv [hf.r_pos],
   have : ∀ i ≠ 0, pf i (λ j, 0) = 0,
   { assume i hi,
     have : 0 < i := pos_iff_ne_zero.2 hi,
@@ -576,11 +576,11 @@ lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
 begin
   lift r' to ℝ≥0 using ne_top_of_lt hr,
   rcases (zero_le r').eq_or_lt with rfl|hr'0,
-  { simp only [is_O_bot, emetric.ball_zero, principal_empty, ennreal.coe_zero] },
+  { simv only [is_O_bot, emetric.ball_zero, principal_empty, ennreal.coe_zero] },
   obtain ⟨a, ha, C, hC : 0 < C, hp⟩ :
     ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ (n : ℕ), ∥p n∥ * ↑r' ^ n ≤ C * a ^ n,
     from p.norm_mul_pow_le_mul_pow_of_lt_radius (hr.trans_le hf.r_le),
-  simp only [← le_div_iff (pow_pos (nnreal.coe_pos.2 hr'0) _)] at hp,
+  simv only [← le_div_iff (pow_pos (nnreal.coe_pos.2 hr'0) _)] at hp,
   set L : E × E → ℝ := λ y,
     (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * (a / (1 - a) ^ 2 + 2 / (1 - a)),
   have hL : ∀ y ∈ emetric.ball (x, x) r',
@@ -610,11 +610,11 @@ begin
         hy'.le, norm_nonneg, pow_nonneg, div_nonneg, mul_nonneg, nat.cast_nonneg,
         hC.le, r'.coe_nonneg, ha.1.le]
     ... = B n :
-      by { field_simp [B, pow_succ, hr'0.ne'], simp only [mul_assoc, mul_comm, mul_left_comm] },
+      by { field_simp [B, pow_succ, hr'0.ne'], simv only [mul_assoc, mul_comm, mul_left_comm] },
     have hBL : has_sum B (L y),
     { apply has_sum.mul_left,
-      simp only [add_mul],
-      have : ∥a∥ < 1, by simp only [real.norm_eq_abs, abs_of_pos ha.1, ha.2],
+      simv only [add_mul],
+      have : ∥a∥ < 1, by simv only [real.norm_eq_abs, abs_of_pos ha.1, ha.2],
       convert (has_sum_coe_mul_geometric_of_norm_lt_1 this).add
         ((has_sum_geometric_of_norm_lt_1 this).mul_left 2) },
     exact hA.norm_le_of_bounded hBL hAB },
@@ -694,8 +694,8 @@ lemma has_fpower_series_on_ball.tendsto_uniformly_on' {r' : ℝ≥0}
   tendsto_uniformly_on (λ n y, p.partial_sum n (y - x)) f at_top (metric.ball (x : E) r') :=
 begin
   convert (hf.tendsto_uniformly_on h).comp (λ y, y - x),
-  { simp [(∘)] },
-  { ext z, simp [dist_eq_norm] }
+  { simv [(∘)] },
+  { ext z, simv [dist_eq_norm] }
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the locally uniform limit of
@@ -708,8 +708,8 @@ begin
   have A : continuous_on (λ (y : E), y - x) (emetric.ball (x : E) r) :=
     (continuous_id.sub continuous_const).continuous_on,
   convert (hf.tendsto_locally_uniformly_on).comp (λ (y : E), y - x) _ A,
-  { ext z, simp },
-  { assume z, simp [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] }
+  { ext z, simv },
+  { assume z, simv [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] }
 end
 
 /-- If a function admits a power series expansion on a disk, then it is continuous there. -/
@@ -747,7 +747,7 @@ protected lemma formal_multilinear_series.continuous_on [complete_space F] :
   continuous_on p.sum (emetric.ball 0 p.radius) :=
 begin
   cases (zero_le p.radius).eq_or_lt with h h,
-  { simp [← h, continuous_on_empty] },
+  { simv [← h, continuous_on_empty] },
   { exact (p.has_fpower_series_on_ball h).continuous_on }
 end
 
@@ -795,7 +795,7 @@ begin
                        : by simpa only [norm_pow, norm_norm]
                            using ht (k • y) (δε (mem_ball_zero_iff.mpr h₁))
       ...              = ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-                       : by { simp only [norm_smul, mul_pow], rw pow_succ, ring },
+                       : by { simv only [norm_smul, mul_pow], rw pow_succ, ring },
     have h₃ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε, from inv_mul_cancel_right₀ h₀.ne.symm ε ▸
       mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_right _ _)) h₀,
     calc ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
@@ -805,7 +805,7 @@ begin
     ...              ≤ ∥(k⁻¹) ^ n.succ∥ * (∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))))
         : mul_le_mul_of_nonneg_left h₂ (norm_nonneg _)
     ...              = ∥(k⁻¹ * k) ^ n.succ∥ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-        : by { rw ←mul_assoc, simp [norm_mul, mul_pow] }
+        : by { rw ←mul_assoc, simv [norm_mul, mul_pow] }
     ...              ≤ 0 + ε
         : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₃.le }, },
 end
@@ -821,17 +821,17 @@ begin
   { funext z,
     refine finset.sum_eq_single _ (λ b hb hnb, _) (λ hn, _),
     { have := finset.mem_range_succ_iff.mp hb,
-      simp only [hk b (this.lt_of_ne hnb), pi.zero_apply, zero_apply] },
+      simv only [hk b (this.lt_of_ne hnb), pi.zero_apply, zero_apply] },
     { exact false.elim (hn (finset.mem_range.mpr (lt_add_one k))) } },
   replace h := h.is_O_sub_partial_sum_pow k.succ,
-  simp only [psum_eq, zero_sub, pi.zero_apply, asymptotics.is_O_neg_left] at h,
+  simv only [psum_eq, zero_sub, pi.zero_apply, asymptotics.is_O_neg_left] at h,
   exact h.continuous_multilinear_map_apply_eq_zero,
 end
 
 /-- A one-dimensional formal multilinear series representing the zero function is zero. -/
 lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
   (h : has_fpower_series_at 0 p x) : p = 0 :=
-by { ext n x, rw ←mk_pi_field_apply_one_eq_self (p n), simp [h.apply_eq_zero n 1] }
+by { ext n x, rw ←mk_pi_field_apply_one_eq_self (p n), simv [h.apply_eq_zero n 1] }
 
 /-- One-dimensional formal multilinear series representing the same function are equal. -/
 theorem has_fpower_series_at.eq_formal_multilinear_series
@@ -915,12 +915,12 @@ continuous_multilinear_map.curry_fin_finset_apply_const _ _ _ _ _
 @[simp] lemma norm_change_origin_series_term (k l : ℕ) (s : finset (fin (k + l)))
   (hs : s.card = l) :
   ∥p.change_origin_series_term k l s hs∥ = ∥p (k + l)∥ :=
-by simp only [change_origin_series_term, linear_isometry_equiv.norm_map]
+by simv only [change_origin_series_term, linear_isometry_equiv.norm_map]
 
 @[simp] lemma nnnorm_change_origin_series_term (k l : ℕ) (s : finset (fin (k + l)))
   (hs : s.card = l) :
   ∥p.change_origin_series_term k l s hs∥₊ = ∥p (k + l)∥₊ :=
-by simp only [change_origin_series_term, linear_isometry_equiv.nnnorm_map]
+by simv only [change_origin_series_term, linear_isometry_equiv.nnnorm_map]
 
 lemma nnnorm_change_origin_series_term_apply_le (k l : ℕ) (s : finset (fin (k + l)))
   (hs : s.card = l) (x y : E) :
@@ -943,7 +943,7 @@ def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]�
 lemma nnnorm_change_origin_series_le_tsum (k l : ℕ) :
   ∥p.change_origin_series k l∥₊ ≤
     ∑' (x : {s : finset (fin (k + l)) // s.card = l}), ∥p (k + l)∥₊ :=
-(nnnorm_sum_le _ _).trans_eq $ by simp only [tsum_fintype, nnnorm_change_origin_series_term]
+(nnnorm_sum_le _ _).trans_eq $ by simv only [tsum_fintype, nnnorm_change_origin_series_term]
 
 lemma nnnorm_change_origin_series_apply_le_tsum (k l : ℕ) (x : E) :
   ∥p.change_origin_series k l (λ _, x)∥₊ ≤
@@ -984,15 +984,15 @@ with non-definitional equalities. -/
       suffices : ∀ k' l', k' = k → l' = l → ∀ (hkl : k + l = k' + l') hs',
         (⟨k', l', ⟨finset.map (fin.cast hkl).to_equiv.to_embedding s, hs'⟩⟩ :
           (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l})) = ⟨k, l, ⟨s, hs⟩⟩,
-      { apply this; simp only [hs, add_tsub_cancel_right] },
+      { apply this; simv only [hs, add_tsub_cancel_right] },
       rintro _ _ rfl rfl hkl hs',
-      simp only [equiv.refl_to_embedding, fin.cast_refl, finset.map_refl, eq_self_iff_true,
+      simv only [equiv.refl_to_embedding, fin.cast_refl, finset.map_refl, eq_self_iff_true,
         order_iso.refl_to_equiv, and_self, heq_iff_eq]
     end,
   right_inv :=
     begin
       rintro ⟨n, s⟩,
-      simp [tsub_add_cancel_of_le (card_finset_fin_le s), fin.cast_to_equiv]
+      simv [tsub_add_cancel_of_le (card_finset_fin_le s), fin.cast_to_equiv]
     end }
 
 lemma change_origin_series_summable_aux₁ {r r' : ℝ≥0} (hr : (r + r' : ℝ≥0∞) < p.radius) :
@@ -1006,13 +1006,13 @@ begin
     (λ s : finset (fin n), ∥p (n - s.card + s.card)∥₊ * r ^ s.card * r' ^ (n - s.card))
     (∥p n∥₊ * (r + r') ^ n),
   { intro n,
-    -- TODO: why `simp only [tsub_add_cancel_of_le (card_finset_fin_le _)]` fails?
+    -- TODO: why `simv only [tsub_add_cancel_of_le (card_finset_fin_le _)]` fails?
     convert_to has_sum (λ s : finset (fin n), ∥p n∥₊ * (r ^ s.card * r' ^ (n - s.card))) _,
     { ext1 s, rw [tsub_add_cancel_of_le (card_finset_fin_le _), mul_assoc] },
     rw ← fin.sum_pow_mul_eq_add_pow,
     exact (has_sum_fintype _).mul_left _ },
   refine nnreal.summable_sigma.2 ⟨λ n, (this n).summable, _⟩,
-  simp only [(this _).tsum_eq],
+  simv only [(this _).tsum_eq],
   exact p.summable_nnnorm_mul_pow hr
 end
 
@@ -1030,7 +1030,7 @@ lemma change_origin_series_summable_aux₃ {r : ℝ≥0} (hr : ↑r < p.radius) 
 begin
   refine nnreal.summable_of_le (λ n, _)
     (nnreal.summable_sigma.1 $ p.change_origin_series_summable_aux₂ hr k).2,
-  simp only [nnreal.tsum_mul_right],
+  simv only [nnreal.tsum_mul_right],
   exact mul_le_mul' (p.nnnorm_change_origin_series_le_tsum _ _) le_rfl
 end
 
@@ -1103,12 +1103,12 @@ begin
       have := (p.has_fpower_series_on_ball_change_origin k radius_pos).has_sum x_mem_ball,
       rw zero_add at this,
       refine has_sum.sigma_of_has_sum this (λ l, _) _,
-      { simp only [change_origin_series, continuous_multilinear_map.sum_apply],
+      { simv only [change_origin_series, continuous_multilinear_map.sum_apply],
         apply has_sum_fintype },
       { refine summable_of_nnnorm_bounded _ (p.change_origin_series_summable_aux₂
           (mem_emetric_ball_zero_iff.1 x_mem_ball) k) (λ s, _),
         refine (continuous_multilinear_map.le_op_nnnorm _ _).trans_eq _,
-        simp } } },
+        simv } } },
   refine hf.unique (change_origin_index_equiv.symm.has_sum_iff.1 _),
   refine has_sum.sigma_of_has_sum (p.has_sum x_add_y_mem_ball) (λ n, _)
     (change_origin_index_equiv.symm.summable_iff.2 hsf),
@@ -1120,7 +1120,7 @@ begin
   rw continuous_multilinear_map.curry_fin_finset_apply_const,
   have : ∀ m (hm : n = m), p n (s.piecewise (λ _, x) (λ _, y)) =
     p m ((s.map (fin.cast hm).to_equiv.to_embedding).piecewise (λ _, x) (λ _, y)),
-  { rintro m rfl, simp },
+  { rintro m rfl, simv },
   apply this
 end
 
@@ -1141,7 +1141,7 @@ theorem has_fpower_series_on_ball.change_origin
     apply le_trans _ p.change_origin_radius,
     exact tsub_le_tsub hf.r_le le_rfl
   end,
-  r_pos := by simp [h],
+  r_pos := by simv [h],
   has_sum := λ z hz, begin
     convert (p.change_origin y).has_sum _,
     { rw [mem_emetric_ball_zero_iff, lt_tsub_iff_right, add_comm] at hz,

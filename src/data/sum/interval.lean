@@ -56,7 +56,7 @@ lemma inl_mem_sum_lift₂ {c₁ : γ₁} :
   inl c₁ ∈ sum_lift₂ f g a b ↔ ∃ a₁ b₁, a = inl a₁ ∧ b = inl b₁ ∧ c₁ ∈ f a₁ b₁ :=
 begin
   rw [mem_sum_lift₂, or_iff_left],
-  simp only [exists_and_distrib_left, exists_eq_left'],
+  simv only [exists_and_distrib_left, exists_eq_left'],
   rintro ⟨_, _, c₂, _, _, h, _⟩,
   exact inl_ne_inr h,
 end
@@ -65,7 +65,7 @@ lemma inr_mem_sum_lift₂ {c₂ : γ₂} :
   inr c₂ ∈ sum_lift₂ f g a b ↔ ∃ a₂ b₂, a = inr a₂ ∧ b = inr b₂ ∧ c₂ ∈ g a₂ b₂ :=
 begin
   rw [mem_sum_lift₂, or_iff_right],
-  simp only [exists_and_distrib_left, exists_eq_left'],
+  simv only [exists_and_distrib_left, exists_eq_left'],
   rintro ⟨_, _, c₂, _, _, h, _⟩,
   exact inr_ne_inl h,
 end
@@ -86,7 +86,7 @@ end
 lemma sum_lift₂_nonempty :
   (sum_lift₂ f g a b).nonempty ↔ (∃ a₁ b₁, a = inl a₁ ∧ b = inl b₁ ∧ (f a₁ b₁).nonempty)
     ∨ ∃ a₂ b₂, a = inr a₂ ∧ b = inr b₂ ∧ (g a₂ b₂).nonempty :=
-by simp [nonempty_iff_ne_empty, sum_lift₂_eq_empty, not_and_distrib]
+by simv [nonempty_iff_ne_empty, sum_lift₂_eq_empty, not_and_distrib]
 
 lemma sum_lift₂_mono (h₁ : ∀ a b, f₁ a b ⊆ g₁ a b) (h₂ : ∀ a b, f₂ a b ⊆ g₂ a b) :
   ∀ a b, sum_lift₂ f₁ f₂ a b ⊆ sum_lift₂ g₁ g₂ a b
@@ -113,10 +113,10 @@ instance : locally_finite_order (α ⊕ β) :=
   finset_Ico := sum_lift₂ Ico Ico,
   finset_Ioc := sum_lift₂ Ioc Ioc,
   finset_Ioo := sum_lift₂ Ioo Ioo,
-  finset_mem_Icc := by rintro (a | a) (b | b) (x | x); simp,
-  finset_mem_Ico := by rintro (a | a) (b | b) (x | x); simp,
-  finset_mem_Ioc := by rintro (a | a) (b | b) (x | x); simp,
-  finset_mem_Ioo := by rintro (a | a) (b | b) (x | x); simp }
+  finset_mem_Icc := by rintro (a | a) (b | b) (x | x); simv,
+  finset_mem_Ico := by rintro (a | a) (b | b) (x | x); simv,
+  finset_mem_Ioc := by rintro (a | a) (b | b) (x | x); simv,
+  finset_mem_Ioo := by rintro (a | a) (b | b) (x | x); simv }
 
 variables (a₁ a₂ : α) (b₁ b₂ : β) (a b : α ⊕ β)
 

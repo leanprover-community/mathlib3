@@ -49,7 +49,7 @@ begin
   intro x,
   simp_rw [circle_transform_deriv, this],
   congr' 2,
-  simp [this],
+  simv [this],
 end
 
 lemma circle_transform_deriv_eq (f : ℂ → E) :
@@ -69,7 +69,7 @@ lemma integral_circle_transform [complete_space E] (f : ℂ → E) :
   (2 * ↑π * I)⁻¹ • ∮ z in C(z, R), (z - w)⁻¹ • f z :=
 begin
   simp_rw [circle_transform, circle_integral, deriv_circle_map, circle_map],
-  simp,
+  simv,
 end
 
 lemma continuous_circle_transform {R : ℝ} (hR : 0 < R) {f : ℂ → E} {z w : ℂ}
@@ -104,9 +104,9 @@ begin
   apply_rules [continuous_on.pow, continuous_on.div, continuous_on_const],
   refine ((continuous_circle_map z R).continuous_on.comp continuous_on_snd (λ _, and.right)).sub
     (continuous_on_id.comp continuous_on_fst (λ _, and.left)),
-  simp only [mem_prod, ne.def, and_imp, prod.forall],
+  simv only [mem_prod, ne.def, and_imp, prod.forall],
   intros a b ha hb,
-  have ha2 : a ∈ ball z R, by {simp at *, linarith,},
+  have ha2 : a ∈ ball z R, by {simv at *, linarith,},
   exact (sub_ne_zero.2 (circle_map_ne_mem_ball ha2 b)),
 end
 
@@ -116,14 +116,14 @@ lemma continuous_on_abs_circle_transform_bounding_function {R r : ℝ} (hr : r <
 begin
   have : continuous_on (circle_transform_bounding_function R z) (closed_ball z r ×ˢ (⊤ : set ℝ)),
   { apply_rules [continuous_on.smul, continuous_on_const],
-    simp only [deriv_circle_map],
+    simv only [deriv_circle_map],
     have c := (continuous_circle_map 0 R).continuous_on,
     apply_rules [continuous_on.mul, c.comp continuous_on_snd (λ _, and.right), continuous_on_const],
     simp_rw ←inv_pow,
     apply continuous_on_prod_circle_transform_function hr, },
   refine continuous_abs.continuous_on.comp this _,
   show maps_to _ _ (⊤ : set ℂ),
-  simp [maps_to],
+  simv [maps_to],
 end
 
 lemma abs_circle_transform_bounding_function_le {R r : ℝ} (hr : r < R) (hr' : 0 ≤ r) (z : ℂ) :
@@ -135,7 +135,7 @@ begin
   have comp : is_compact (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
   have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
-  simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simp, tauto })),
+  simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simv, tauto })),
 end
 
 /-- The derivative of a `circle_transform` is locally bounded. -/
@@ -160,11 +160,11 @@ begin
   obtain ⟨y1, hy1, hfun⟩ := periodic.exists_mem_Ico₀
     (circle_transform_deriv_periodic R z v f) real.two_pi_pos y,
   have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
-    simp [interval_of_le real.two_pi_pos.le]},
+    simv [interval_of_le real.two_pi_pos.le]},
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
    (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1)) (abs_nonneg _) (abs_nonneg _),
    simp_rw hfun,
-  simp only [circle_transform_bounding_function, circle_transform_deriv, V, norm_eq_abs,
+  simv only [circle_transform_bounding_function, circle_transform_deriv, V, norm_eq_abs,
     algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
     ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,
     mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod, mem_closed_ball, and_imp,

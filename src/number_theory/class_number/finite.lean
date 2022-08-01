@@ -65,8 +65,8 @@ begin
     apply (injective_iff_map_eq_zero (algebra.left_mul_matrix bS)).mp
       (algebra.left_mul_matrix_injective bS),
     ext j k,
-    simp [h, dmatrix.zero_apply] },
-  simp only [norm_bound, algebra.smul_def, eq_nat_cast],
+    simv [h, dmatrix.zero_apply] },
+  simv only [norm_bound, algebra.smul_def, eq_nat_cast],
   refine mul_pos (int.coe_nat_pos.mpr (nat.factorial_pos _)) _,
   refine pow_pos (mul_pos (int.coe_nat_pos.mpr (fintype.card_pos_iff.mpr ⟨i⟩)) _) _,
   refine lt_of_lt_of_le (abv.pos hijk) (finset.le_max' _ _ _),
@@ -80,7 +80,7 @@ lemma norm_le (a : S) {y : ℤ} (hy : ∀ k, abv (bS.repr a k) ≤ y) :
 begin
   conv_lhs { rw ← bS.sum_repr a },
   rw [algebra.norm_apply, ← linear_map.det_to_matrix bS],
-  simp only [algebra.norm_apply, alg_hom.map_sum, alg_hom.map_smul, linear_equiv.map_sum,
+  simv only [algebra.norm_apply, alg_hom.map_sum, alg_hom.map_smul, linear_equiv.map_sum,
       linear_equiv.map_smul, algebra.to_matrix_lmul_eq, norm_bound, smul_mul_assoc, ← mul_pow],
   convert matrix.det_sum_smul_le finset.univ _ hy using 3,
   { rw [finset.card_univ, smul_mul_assoc, mul_comm] },
@@ -105,12 +105,12 @@ begin
   have : (y' : T) < y,
   { rw [y'_def, ← finset.max'_image (show monotone (coe : ℤ → T), from λ x y h, int.cast_le.mpr h)],
     apply (finset.max'_lt_iff _ (him.image _)).mpr,
-    simp only [finset.mem_image, exists_prop],
+    simv only [finset.mem_image, exists_prop],
     rintros _ ⟨x, ⟨k, -, rfl⟩, rfl⟩,
     exact hy k },
   have y'_nonneg : 0 ≤ y' := le_trans (abv.nonneg _) (hy' i),
   apply (int.cast_le.mpr (norm_le abv bS a hy')).trans_lt,
-  simp only [int.cast_mul, int.cast_pow],
+  simv only [int.cast_mul, int.cast_pow],
   apply mul_lt_mul' le_rfl,
   { exact pow_lt_pow_of_lt_left this
       (int.cast_nonneg.mpr y'_nonneg)
@@ -176,7 +176,7 @@ finset.not_mem_erase _ _
   x ∈ finset_approx bS adm ↔
   ∃ i j, i ≠ j ∧ distinct_elems bS adm i - distinct_elems bS adm j = x :=
 begin
-  simp only [finset_approx, finset.mem_erase, finset.mem_image],
+  simv only [finset_approx, finset.mem_erase, finset.mem_image],
   split,
   { rintros ⟨hx, ⟨i, j⟩, _, rfl⟩,
     refine ⟨i, j, _, rfl⟩,
@@ -225,7 +225,7 @@ begin
   have μ_mul_a_eq : ∀ j, μ j • a = b • ∑ i, qs j i • bS i + ∑ i, rs j i • bS i,
   { intro j,
     rw ← bS.sum_repr a,
-    simp only [finset.smul_sum, ← finset.sum_add_distrib],
+    simv only [finset.smul_sum, ← finset.sum_add_distrib],
     refine finset.sum_congr rfl (λ i _, _),
     rw [← s_eq, ← mul_smul, μ_eq, add_smul, mul_smul] },
 
@@ -237,7 +237,7 @@ begin
   refine ⟨q, r, (mem_finset_approx bS adm).mpr _, _⟩,
   { exact ⟨k, j, j_ne_k.symm, rfl⟩ },
   have : r • a - b • q = (∑ (x : ι), (rs k x • bS x - rs j x • bS x)),
-  { simp only [r_eq, sub_smul, μ_mul_a_eq, q_eq, finset.smul_sum, ← finset.sum_add_distrib,
+  { simv only [r_eq, sub_smul, μ_mul_a_eq, q_eq, finset.smul_sum, ← finset.sum_add_distrib,
                ← finset.sum_sub_distrib, smul_sub],
     refine finset.sum_congr rfl (λ x _, _),
     ring },
@@ -280,7 +280,7 @@ end real
 lemma prod_finset_approx_ne_zero : algebra_map R S (∏ m in finset_approx bS adm, m) ≠ 0 :=
 begin
   refine mt ((injective_iff_map_eq_zero _).mp bS.algebra_map_injective _) _,
-  simp only [finset.prod_eq_zero_iff, not_exists],
+  simv only [finset.prod_eq_zero_iff, not_exists],
   rintros x hx rfl,
   exact finset_approx.zero_not_mem bS adm hx
 end
@@ -323,7 +323,7 @@ begin
   rw ideal.mem_span_singleton at ⊢ hr',
   obtain ⟨q, r, r_mem, lt⟩ := exists_mem_finset_approx' L bS adm h a b_ne_zero,
   apply @dvd_of_mul_left_dvd _ _ q,
-  simp only [algebra.smul_def] at lt,
+  simv only [algebra.smul_def] at lt,
   rw ← sub_eq_zero.mp (b_min _ (I.1.sub_mem (I.1.mul_mem_left _ ha) (I.1.mul_mem_left _ b_mem)) lt),
   refine mul_dvd_mul_right (dvd_trans (ring_hom.map_dvd _ _) hr') _,
   exact multiset.dvd_prod (multiset.mem_map.mpr ⟨_, r_mem, rfl⟩)
@@ -397,7 +397,7 @@ begin
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },
   { refine (basis.linear_independent _).restrict_scalars _,
-    simp only [algebra.smul_def, mul_one],
+    simv only [algebra.smul_def, mul_one],
     apply is_fraction_ring.injective }
 end
 

@@ -34,14 +34,14 @@ begin
   { apply list.exists_mem_cons_of,
     constructor, rw list.forall_mem_singleton,
     cases h0 with ht hs,
-    simp only [val_canonize ht, val_canonize hs,
+    simv only [val_canonize ht, val_canonize hs,
       term.val_sub, preform.holds, sub_eq_add_neg] at *,
     rw [h2, add_neg_self], apply list.forall_mem_nil },
   { apply list.exists_mem_cons_of,
     constructor,
     apply list.forall_mem_nil,
     rw list.forall_mem_singleton,
-    simp only [val_canonize (h0.left), val_canonize (h0.right),
+    simv only [val_canonize (h0.left), val_canonize (h0.right),
       term.val_sub, preform.holds, sub_eq_add_neg] at *,
     rw [←sub_eq_add_neg, le_sub, sub_zero, int.coe_nat_le],
     assumption },
@@ -55,7 +55,7 @@ begin
   { rcases (ihp h1.left h0.left h2.left) with ⟨cp, hp1, hp2⟩,
     rcases (ihq h1.right h0.right h2.right) with ⟨cq, hq1, hq2⟩,
     refine ⟨clause.append cp cq, ⟨_, clause.holds_append hp2 hq2⟩⟩,
-    simp only [dnf_core, list.mem_map],
+    simv only [dnf_core, list.mem_map],
     refine ⟨(cp,cq),⟨_,rfl⟩⟩,
     rw list.mem_product,
     constructor; assumption }
@@ -105,10 +105,10 @@ lemma holds_nonneg_consts_core {v : nat → int} (h1 : ∀ x, 0 ≤ v x) :
 | k (ff::bs) := holds_nonneg_consts_core (k+1) bs
 | k (tt::bs) :=
   begin
-    simp only [nonneg_consts_core],
+    simv only [nonneg_consts_core],
     rw list.forall_mem_cons,
     constructor,
-    { simp only [term.val, one_mul, zero_add, coeffs.val_set],
+    { simv only [term.val, one_mul, zero_add, coeffs.val_set],
       apply h1 },
     { apply holds_nonneg_consts_core (k+1) bs }
   end
@@ -126,10 +126,10 @@ begin
   rcases (exists_clause_holds_core h1 h2 h3) with ⟨c,h4,h5⟩,
   existsi (nonnegate c),
   have h6 : nonnegate c ∈ dnf p,
-  { simp only [dnf], rw list.mem_map,
+  { simv only [dnf], rw list.mem_map,
     refine ⟨c,h4,rfl⟩ },
   refine ⟨h6,_⟩, cases c with eqs les,
-  simp only [nonnegate, clause.holds],
+  simv only [nonnegate, clause.holds],
   constructor, apply h5.left,
   rw list.forall_mem_append,
   apply and.intro (holds_nonneg_consts _) h5.right,

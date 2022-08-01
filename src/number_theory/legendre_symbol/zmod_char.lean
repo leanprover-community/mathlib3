@@ -56,7 +56,7 @@ by exact_mod_cast χ₄_int_eq_if_mod_four n
 lemma χ₄_eq_neg_one_pow {n : ℕ} (hn : n % 2 = 1) : χ₄ n = (-1)^(n / 2) :=
 begin
   rw χ₄_nat_eq_if_mod_four,
-  simp only [hn, nat.one_ne_zero, if_false],
+  simv only [hn, nat.one_ne_zero, if_false],
   nth_rewrite 0 ← nat.div_add_mod n 4,
   nth_rewrite 0 (by norm_num : 4 = 2 * 2),
   rw [mul_assoc, add_comm, nat.add_mul_div_left _ _ (by norm_num : 0 < 2),

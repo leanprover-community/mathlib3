@@ -121,7 +121,7 @@ ring_hom.to_algebra $ by { change CommRing.of R ⟶ _, apply structure_sheaf.to_
   generic_point (Scheme.Spec.obj $ op R).carrier = (⟨0, ideal.bot_prime⟩ : prime_spectrum R) :=
 begin
   apply (generic_point_spec (Scheme.Spec.obj $ op R).carrier).eq,
-  simp [is_generic_point_def, ← prime_spectrum.zero_locus_vanishing_ideal_eq_closure]
+  simv [is_generic_point_def, ← prime_spectrum.zero_locus_vanishing_ideal_eq_closure]
 end
 
 instance function_field_is_fraction_ring_of_affine (R : CommRing.{u}) [is_domain R] :

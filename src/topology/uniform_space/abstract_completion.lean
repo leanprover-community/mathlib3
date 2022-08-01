@@ -174,7 +174,7 @@ pkg.funext (pkg.continuous_map _ _) hg.continuous $
 begin
   intro a,
   change pkg.extend (ι' ∘ f) _ = _,
-  simp only [(∘), h],
+  simv only [(∘), h],
   rw [pkg.extend_coe (hg.comp pkg.uniform_continuous_coe)]
 end
 

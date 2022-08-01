@@ -58,7 +58,7 @@ lemma disc_eq_region_between :
   disc r = region_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r) :=
 begin
   ext p,
-  simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
+  simv only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
   { cases abs_lt_of_sq_lt_sq' (lt_of_add_lt_of_nonneg_left h (sq_nonneg p.2)) r.2,
@@ -86,9 +86,9 @@ begin
     ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :
           volume_region_between_eq_integral
             h.neg h measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
-    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, 2 * f x) : by simp [two_mul, integral_of_le]
+    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, 2 * f x) : by simv [two_mul, integral_of_le]
     ... = nnreal.pi * r ^ 2 : by rw_mod_cast [this, ← ennreal.coe_nnreal_eq], },
-  obtain ⟨hle, (heq | hlt)⟩ := ⟨nnreal.coe_nonneg r, hle.eq_or_lt⟩, { simp [← heq] },
+  obtain ⟨hle, (heq | hlt)⟩ := ⟨nnreal.coe_nonneg r, hle.eq_or_lt⟩, { simv [← heq] },
   have hderiv : ∀ x ∈ Ioo (-r:ℝ) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,
     convert ((has_deriv_at_const x ((r:ℝ)^2)).mul ((has_deriv_at_arcsin _ _).comp x
@@ -102,7 +102,7 @@ begin
       rw [h, mul_left_comm, ← sq, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
     { suffices : -(1:ℝ) < r⁻¹ * x, by exact this.ne',
-      calc -(1:ℝ) = r⁻¹ * -r : by simp [hlt.ne']
+      calc -(1:ℝ) = r⁻¹ * -r : by simv [hlt.ne']
               ... < r⁻¹ * x : by nlinarith [inv_pos.mpr hlt] },
     { suffices : (r:ℝ)⁻¹ * x < 1, by exact this.ne,
       calc (r:ℝ)⁻¹ * x < r⁻¹ * r : by nlinarith [inv_pos.mpr hlt]

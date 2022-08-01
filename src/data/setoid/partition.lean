@@ -92,7 +92,7 @@ lemma rel_iff_exists_classes (r : setoid α) {x y} :
 /-- Two equivalence relations are equal iff their equivalence classes are equal. -/
 lemma classes_inj {r₁ r₂ : setoid α} :
   r₁ = r₂ ↔ r₁.classes = r₂.classes :=
-⟨λ h, h ▸ rfl, λ h, ext' $ λ a b, by simp only [rel_iff_exists_classes, exists_prop, h] ⟩
+⟨λ h, h ▸ rfl, λ h, ext' $ λ a b, by simv only [rel_iff_exists_classes, exists_prop, h] ⟩
 
 /-- The empty set is not an equivalence class. -/
 lemma empty_not_mem_classes {r : setoid α} : ∅ ∉ r.classes :=
@@ -182,7 +182,7 @@ eqv_classes_disjoint hc.2
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
-  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simp only [exists_unique_iff_exists] at ht, tauto }⟩
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simv only [exists_unique_iff_exists] at ht, tauto }⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
@@ -296,14 +296,14 @@ instance [unique ι] [inhabited α] :
    index := default,
    mem_index := set.mem_univ }⟩
 
-attribute [simp] some_mem mem_index
+attribute [simv] some_mem mem_index
 
 include hs
 
 lemma exists_mem (x : α) : ∃ i, x ∈ s i := ⟨hs.index x, hs.mem_index x⟩
 
 lemma Union : (⋃ i, s i) = univ :=
-by { ext x, simp [hs.exists_mem x] }
+by { ext x, simv [hs.exists_mem x] }
 
 lemma disjoint : ∀ {i j}, i ≠ j → disjoint (s i) (s j) :=
 λ i j h x ⟨hxi, hxj⟩, h (hs.eq_of_mem hxi hxj)
@@ -378,7 +378,7 @@ set.ext $ λ y, eq_comm.trans hs.mem_iff_index_eq.symm
 lemma proj_fiber (x : hs.quotient) : hs.proj ⁻¹' {x} = s (hs.equiv_quotient.symm x) :=
 quotient.induction_on' x $ λ x, begin
   ext y,
-  simp only [set.mem_preimage, set.mem_singleton_iff, hs.mem_iff_index_eq],
+  simv only [set.mem_preimage, set.mem_singleton_iff, hs.mem_iff_index_eq],
   exact quotient.eq',
 end
 

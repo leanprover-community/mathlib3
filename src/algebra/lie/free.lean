@@ -187,17 +187,17 @@ lemma lift_aux_spec (f : X → L) (a b : lib R X) (h : free_lie_algebra.rel R X 
 begin
   induction h,
   case rel.lie_self : a'
-  { simp only [lift_aux_map_mul, non_unital_alg_hom.map_zero, lie_self], },
+  { simv only [lift_aux_map_mul, non_unital_alg_hom.map_zero, lie_self], },
   case rel.leibniz_lie : a' b' c'
-  { simp only [lift_aux_map_mul, lift_aux_map_add, sub_add_cancel, lie_lie], },
+  { simv only [lift_aux_map_mul, lift_aux_map_add, sub_add_cancel, lie_lie], },
   case rel.smul : t a' b' h₁ h₂
-  { simp only [lift_aux_map_smul, h₂], },
+  { simv only [lift_aux_map_smul, h₂], },
   case rel.add_right : a' b' c' h₁ h₂
-  { simp only [lift_aux_map_add, h₂], },
+  { simv only [lift_aux_map_add, h₂], },
   case rel.mul_left : a' b' c' h₁ h₂
-  { simp only [lift_aux_map_mul, h₂], },
+  { simv only [lift_aux_map_mul, h₂], },
   case rel.mul_right : a' b' c' h₁ h₂
-  { simp only [lift_aux_map_mul, h₂], },
+  { simv only [lift_aux_map_mul, h₂], },
 end
 
 /-- The quotient map as a `non_unital_alg_hom`. -/
@@ -217,7 +217,7 @@ def lift : (X → L) ≃ (free_lie_algebra R X →ₗ⁅R⁆ L) :=
       map_smul' := by { rintros t ⟨a⟩, rw ← lift_aux_map_smul, refl, },
       map_lie'  := by { rintros ⟨a⟩ ⟨b⟩, rw ← lift_aux_map_mul, refl, }, },
   inv_fun   := λ F, F ∘ (of R),
-  left_inv  := λ f, by { ext x, simp only [lift_aux, of, quot.lift_on_mk, lie_hom.coe_mk,
+  left_inv  := λ f, by { ext x, simv only [lift_aux, of, quot.lift_on_mk, lie_hom.coe_mk,
     function.comp_app, lib.lift_of_apply], },
   right_inv := λ F,
     begin
@@ -248,7 +248,7 @@ by { rw ← lift_symm_apply, exact (lift R).apply_symm_apply F, }
 
 @[ext] lemma hom_ext {F₁ F₂ : free_lie_algebra R X →ₗ⁅R⁆ L} (h : ∀ x, F₁ (of R x) = F₂ (of R x)) :
   F₁ = F₂ :=
-have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simp [h], },
+have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simv [h], },
 (lift R).symm.injective h'
 
 variables (R X)
@@ -260,7 +260,7 @@ algebra. -/
 alg_equiv.of_alg_hom
   (universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R)
   (free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R))
-  (by { ext, simp, })
-  (by { ext, simp, })
+  (by { ext, simv, })
+  (by { ext, simv, })
 
 end free_lie_algebra

@@ -38,7 +38,7 @@ theorem exists_extension_norm_eq (p : subspace ℝ E) (f : p →L[ℝ] ℝ) :
   ∃ g : E →L[ℝ] ℝ, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
   rcases exists_extension_of_le_sublinear ⟨p, f⟩ (λ x, ∥f∥ * ∥x∥)
-    (λ c hc x, by simp only [norm_smul c x, real.norm_eq_abs, abs_of_pos hc, mul_left_comm])
+    (λ c hc x, by simv only [norm_smul c x, real.norm_eq_abs, abs_of_pos hc, mul_left_comm])
     (λ x y, _) (λ x, le_trans (le_abs_self _) (f.le_op_norm _))
     with ⟨g, g_eq, g_le⟩,
   set g' := g.mk_continuous (∥f∥)
@@ -49,7 +49,7 @@ begin
       dsimp at g_eq,
       rw ← g_eq,
       apply g'.le_op_norm } },
-  { simp only [← mul_add],
+  { simv only [← mul_add],
     exact mul_le_mul_of_nonneg_left (norm_add_le x y) (norm_nonneg f) }
 end
 
@@ -83,10 +83,10 @@ begin
       by refl,
     rw this,
     apply ext,
-    { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
+    { simv only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
         zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg,
         of_real_neg, mul_re, mul_zero, sub_neg_eq_add, continuous_linear_map.map_smul] },
-    { simp only [algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add, zero_sub, I_im',
+    { simv only [algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add, zero_sub, I_im',
         zero_mul, of_real_re, mul_neg, mul_im, zero_add, of_real_neg, mul_re,
         sub_neg_eq_add, continuous_linear_map.map_smul] } },
   -- And we derive the equality of the norms by bounding on both sides.
@@ -122,7 +122,7 @@ begin
   { rw [hg.2, coord_norm'] },
   { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
     ... = ((∥x∥ : 𝕜) • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
-    ... = ∥x∥ : by simp }
+    ... = ∥x∥ : by simv }
 end
 
 /-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing
@@ -134,7 +134,7 @@ begin
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
     obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = ∥y∥ := exists_dual_vector 𝕜 y hy,
     refine ⟨g, hg.left, _⟩,
-    simp [hx] },
+    simv [hx] },
   { exact exists_dual_vector 𝕜 x hx }
 end
 
@@ -145,9 +145,9 @@ theorem exists_dual_vector'' (x : E) :
   ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
-  { refine ⟨0, by simp, _⟩,
+  { refine ⟨0, by simv, _⟩,
     symmetry,
-    simp [hx], },
+    simv [hx], },
   { rcases exists_dual_vector 𝕜 x hx with ⟨g, g_norm, g_eq⟩,
     exact ⟨g, g_norm.le, g_eq⟩ }
 end

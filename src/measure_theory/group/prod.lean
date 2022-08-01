@@ -80,7 +80,7 @@ lemma measurable_measure_mul_right (hE : measurable_set E) :
 begin
   suffices : measurable (λ y,
     μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, ((1 : G), z.1 * z.2)) ⁻¹' ((univ : set G) ×ˢ E)))),
-  { convert this, ext1 x, congr' 1 with y : 1, simp },
+  { convert this, ext1 x, congr' 1 with y : 1, simv },
   apply measurable_measure_prod_mk_right,
   exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)
 end
@@ -125,7 +125,7 @@ lemma map_prod_mul_inv_eq [is_mul_left_invariant ν] :
 begin
   suffices : map ((λ z : G × G, (z.2, z.2⁻¹ * z.1)) ∘ (λ z : G × G, (z.2, z.2 * z.1))) (μ.prod ν) =
     μ.prod ν,
-  { convert this, ext1 ⟨x, y⟩, simp },
+  { convert this, ext1 ⟨x, y⟩, simv },
   simp_rw [← map_map (measurable_snd.prod_mk (measurable_snd.inv.mul measurable_fst))
     (measurable_snd.prod_mk (measurable_snd.mul measurable_fst)), map_prod_mul_eq_swap μ ν,
     map_prod_inv_mul_eq_swap ν μ]
@@ -184,7 +184,7 @@ lemma measure_mul_right_null (y : G) :
   μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
 calc μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ ((λ x, y⁻¹ * x) ⁻¹' E⁻¹)⁻¹ = 0 :
   by simp_rw [← inv_preimage, preimage_preimage, mul_inv_rev, inv_inv]
-... ↔ μ E = 0 : by simp only [measure_inv_null μ, measure_preimage_mul]
+... ↔ μ E = 0 : by simv only [measure_inv_null μ, measure_preimage_mul]
 
 @[to_additive]
 lemma measure_mul_right_ne_zero
@@ -272,7 +272,7 @@ lemma ae_measure_preimage_mul_right_lt_top [is_mul_left_invariant ν]
 begin
   refine ae_of_forall_measure_lt_top_ae_restrict' ν.inv _ _,
   intros A hA h2A h3A,
-  simp only [ν.inv_apply] at h3A,
+  simv only [ν.inv_apply] at h3A,
   apply ae_lt_top (measurable_measure_mul_right ν Em),
   have h1 := measure_mul_lintegral_eq μ ν Em (A⁻¹.indicator 1) (measurable_one.indicator hA.inv),
   rw [lintegral_indicator _ hA.inv] at h1,

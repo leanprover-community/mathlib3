@@ -27,7 +27,7 @@ section ext
 variables {M N : dmatrix m n α}
 
 theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
-⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
+⟨λ h, funext $ λ i, funext $ h i, λ h, by simv [h]⟩
 
 @[ext] theorem ext : (∀ i j, M i j = N i j) → M = N :=
 ext_iff.mp
@@ -47,7 +47,7 @@ rfl
 lemma map_map {M : dmatrix m n α} {β : m → n → Type w} {γ : m → n → Type z}
   {f : Π ⦃i j⦄, α i j → β i j} {g : Π ⦃i j⦄, β i j → γ i j} :
   (M.map f).map g = M.map (λ i j x, g (f x)) :=
-by { ext, simp, }
+by { ext, simv, }
 
 /-- The transpose of a dmatrix. -/
 def transpose (M : dmatrix m n α) : dmatrix n m (λ j i, α i j)
@@ -92,17 +92,17 @@ rfl
 @[simp] lemma map_zero [∀ i j, has_zero (α i j)] {β : m → n → Type w} [∀ i j, has_zero (β i j)]
   {f : Π ⦃i j⦄, α i j → β i j} (h : ∀ i j, f (0 : α i j) = 0) :
   (0 : dmatrix m n α).map f = 0 :=
-by { ext, simp [h], }
+by { ext, simv [h], }
 
 lemma map_add [∀ i j, add_monoid (α i j)] {β : m → n → Type w} [∀ i j, add_monoid (β i j)]
   (f : Π ⦃i j⦄, α i j →+ β i j) (M N : dmatrix m n α) :
   (M + N).map (λ i j, @f i j) = M.map (λ i j, @f i j) + N.map (λ i j, @f i j) :=
-by { ext, simp, }
+by { ext, simv, }
 
 lemma map_sub [∀ i j, add_group (α i j)] {β : m → n → Type w} [∀ i j, add_group (β i j)]
   (f : Π ⦃i j⦄, α i j →+ β i j) (M N : dmatrix m n α) :
   (M - N).map (λ i j, @f i j) = M.map (λ i j, @f i j) - N.map (λ i j, @f i j) :=
-by { ext, simp }
+by { ext, simv }
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_empty_left [is_empty m] : subsingleton (dmatrix m n α) :=
@@ -121,7 +121,7 @@ def add_monoid_hom.map_dmatrix
   (f : Π ⦃i j⦄, α i j →+ β i j) :
   dmatrix m n α →+ dmatrix m n β :=
 { to_fun := λ M, M.map (λ i j, @f i j),
-  map_zero' := by simp,
+  map_zero' := by simv,
   map_add' := dmatrix.map_add f, }
 
 @[simp] lemma add_monoid_hom.map_dmatrix_apply

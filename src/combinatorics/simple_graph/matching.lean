@@ -58,7 +58,7 @@ noncomputable def is_matching.to_edge {M : subgraph G} (h : M.is_matching)
 lemma is_matching.to_edge_eq_of_adj {M : subgraph G} (h : M.is_matching) {v w : V}
   (hv : v ∈ M.verts) (hvw : M.adj v w) : h.to_edge ⟨v, hv⟩ = ⟨⟦(v, w)⟧, hvw⟩ :=
 begin
-  simp only [is_matching.to_edge, subtype.mk_eq_mk],
+  simv only [is_matching.to_edge, subtype.mk_eq_mk],
   congr,
   exact ((h (M.edge_vert hvw)).some_spec.2 w hvw).symm,
 end
@@ -101,7 +101,7 @@ begin
   rw is_matching_iff_forall_degree at h,
   use M.coe.edge_finset.card,
   rw [← two_mul, ← M.coe.sum_degrees_eq_twice_card_edges],
-  simp [h, finset.card_univ],
+  simv [h, finset.card_univ],
 end
 
 lemma is_perfect_matching_iff : M.is_perfect_matching ↔ ∀ v, ∃! w, M.adj v w :=
@@ -115,7 +115,7 @@ end
 
 lemma is_perfect_matching_iff_forall_degree {M : subgraph G} [Π v, fintype (M.neighbor_set v)] :
   M.is_perfect_matching ↔ ∀ v, M.degree v = 1 :=
-by simp [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
+by simv [degree_eq_one_iff_unique_adj, is_perfect_matching_iff]
 
 lemma is_perfect_matching.even_card {M : subgraph G} [fintype V] (h : M.is_perfect_matching) :
   even (fintype.card V) :=

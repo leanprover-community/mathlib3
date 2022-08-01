@@ -60,18 +60,18 @@ begin
   apply_fun (polynomial.map (eval r)) at h,
   rw [polynomial.map_prod, polynomial.map_sum] at h,
   convert h,
-  simp only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
+  simv only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
   funext,
-  simp only [function.funext_iff, esymm, polynomial.map_C, polynomial.map_sum, map_sum,
+  simv only [function.funext_iff, esymm, polynomial.map_C, polynomial.map_sum, map_sum,
     polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
   congr,
   funext,
-  simp only [eval_prod, eval_X, map_prod],
+  simv only [eval_prod, eval_X, map_prod],
 end
 
 lemma esymm_to_sum (r : σ → R) (j : ℕ) : polynomial.C (eval r (esymm σ R j)) =
   ∑ t in powerset_len j (univ : finset σ), ∏ i in t, polynomial.C (r i) :=
-by simp only [esymm, eval_sum, eval_prod, eval_X, map_sum, map_prod]
+by simv only [esymm, eval_sum, eval_prod, eval_X, map_sum, map_prod]
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + r i`,
 The `k`th coefficient is `∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i`,
@@ -96,7 +96,7 @@ begin
     have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
     rwa add_comm,
   end,
-  simp only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
+  simv only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
     sum_singleton, esymm, eval_sum, eval_prod, eval_X, add_zero, sum_const_zero],
 end
 

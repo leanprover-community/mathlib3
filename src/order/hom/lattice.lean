@@ -120,7 +120,7 @@ class bounded_lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice
 export sup_hom_class (map_sup)
 export inf_hom_class (map_inf)
 
-attribute [simp] map_top map_bot map_sup map_inf
+attribute [simv] map_top map_bot map_sup map_inf
 
 @[priority 100] -- See note [lower instance priority]
 instance sup_hom_class.to_order_hom_class [semilattice_sup α] [semilattice_sup β]
@@ -172,13 +172,13 @@ instance bounded_lattice_hom_class.to_bounded_order_hom_class [lattice α] [latt
 instance order_iso_class.to_sup_hom_class [semilattice_sup α] [semilattice_sup β]
   [order_iso_class F α β] :
   sup_hom_class F α β :=
-⟨λ f a b, eq_of_forall_ge_iff $ λ c, by simp only [←le_map_inv_iff, sup_le_iff]⟩
+⟨λ f a b, eq_of_forall_ge_iff $ λ c, by simv only [←le_map_inv_iff, sup_le_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_inf_hom_class [semilattice_inf α] [semilattice_inf β]
   [order_iso_class F α β] :
   inf_hom_class F α β :=
-⟨λ f a b, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_inf_iff]⟩
+⟨λ f a b, eq_of_forall_le_iff $ λ c, by simv only [←map_inv_le_iff, le_inf_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_sup_bot_hom_class [semilattice_sup α] [order_bot α] [semilattice_sup β]

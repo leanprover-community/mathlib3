@@ -147,7 +147,7 @@ begin
   rcases hy.exists_pos hy₀ hz₀ with ⟨ry, rz₂, hry, hrz₂, Hy⟩,
   refine or.inr (or.inr ⟨rx * ry, ry * rz₁ + rx * rz₂, mul_pos hrx hry, _, _⟩),
   { apply_rules [add_pos, mul_pos] },
-  { simp only [mul_smul, smul_add, add_smul, ← Hx, ← Hy],
+  { simv only [mul_smul, smul_add, add_smul, ← Hx, ← Hy],
     rw smul_comm }
 end
 
@@ -300,7 +300,7 @@ variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [modu
 
 /-- `same_ray.neg` as an `iff`. -/
 @[simp] lemma same_ray_neg_iff : same_ray R (-x) (-y) ↔ same_ray R x y :=
-by simp only [same_ray, neg_eq_zero, smul_neg, neg_inj]
+by simv only [same_ray, neg_eq_zero, smul_neg, neg_inj]
 
 alias same_ray_neg_iff ↔ same_ray.of_neg same_ray.neg
 
@@ -334,7 +334,7 @@ namespace ray_vector
 instance {R : Type*} : has_neg (ray_vector R M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
 
 /-- Negating a nonzero vector commutes with coercion to the underlying module. -/
-@[simp, norm_cast] lemma coe_neg {R : Type*} (v : ray_vector R M) : ↑(-v) = -(v : M) := rfl
+@[simv, norm_cast] lemma coe_neg {R : Type*} (v : ray_vector R M) : ↑(-v) = -(v : M) := rfl
 
 /-- Negating a nonzero vector twice produces the original vector. -/
 instance {R : Type*} : has_involutive_neg (ray_vector R M) :=
@@ -380,7 +380,7 @@ end
 lemma neg_units_smul (u : Rˣ) (v : module.ray R M) : (-u) • v = - (u • v) :=
 begin
   induction v using module.ray.ind,
-  simp only [smul_ray_of_ne_zero, units.smul_def, units.coe_neg, neg_smul, neg_ray_of_ne_zero]
+  simv only [smul_ray_of_ne_zero, units.smul_def, units.coe_neg, neg_smul, neg_ray_of_ne_zero]
 end
 
 /-- Scaling by a negative unit is negation. -/
@@ -427,7 +427,7 @@ variables [no_zero_smul_divisors R M]
 is positive. -/
 lemma same_ray_smul_right_iff_of_ne {v : M} (hv : v ≠ 0) {r : R} (hr : r ≠ 0) :
   same_ray R v (r • v) ↔ 0 < r :=
-by simp only [same_ray_smul_right_iff, hv, or_false, hr.symm.le_iff_lt]
+by simv only [same_ray_smul_right_iff, hv, or_false, hr.symm.le_iff_lt]
 
 @[simp] lemma same_ray_smul_left_iff {v : M} {r : R} : same_ray R (r • v) v ↔ 0 ≤ r ∨ v = 0 :=
 same_ray_comm.trans same_ray_smul_right_iff
@@ -444,7 +444,7 @@ by rw [← same_ray_neg_iff, neg_neg, ← neg_smul, same_ray_smul_right_iff, neg
 
 lemma same_ray_neg_smul_right_iff_of_ne {v : M} {r : R} (hv : v ≠ 0) (hr : r ≠ 0) :
   same_ray R (-v) (r • v) ↔ r < 0 :=
-by simp only [same_ray_neg_smul_right_iff, hv, or_false, hr.le_iff_lt]
+by simv only [same_ray_neg_smul_right_iff, hv, or_false, hr.le_iff_lt]
 
 @[simp] lemma same_ray_neg_smul_left_iff {v : M} {r : R} :
   same_ray R (r • v) (-v) ↔ r ≤ 0 ∨ v = 0 :=
@@ -458,7 +458,7 @@ same_ray_comm.trans $ same_ray_neg_smul_right_iff_of_ne hv hr
   u • v = v ↔ (0 : R) < u :=
 begin
   induction v using module.ray.ind with v hv,
-  simp only [smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
+  simv only [smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
     same_ray_smul_left_iff_of_ne hv u.ne_zero]
 end
 
@@ -505,8 +505,8 @@ lemma exists_eq_smul_add (h : same_ray R v₁ v₂) :
   ∃ a b : R, 0 ≤ a ∧ 0 ≤ b ∧ a + b = 1 ∧ v₁ = a • (v₁ + v₂) ∧ v₂ = b • (v₁ + v₂) :=
 begin
   rcases h with rfl|rfl|⟨r₁, r₂, h₁, h₂, H⟩,
-  { use [0, 1], simp },
-  { use [1, 0], simp },
+  { use [0, 1], simv },
+  { use [1, 0], simv },
   { have h₁₂ : 0 < r₁ + r₂, from add_pos h₁ h₂,
     refine ⟨r₂ / (r₁ + r₂), r₁ / (r₁ + r₂), div_nonneg h₂.le h₁₂.le, div_nonneg h₁.le h₁₂.le,
       _, _, _⟩,

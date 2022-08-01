@@ -87,11 +87,11 @@ def mul_equiv (e : α ≃ β) [has_mul β] :
 begin
   introsI,
   exact
-  { map_mul' := λ x y, by { apply e.symm.injective, simp, refl, },
+  { map_mul' := λ x y, by { apply e.symm.injective, simv, refl, },
     ..e }
 end
 
-@[simp, to_additive] lemma mul_equiv_apply (e : α ≃ β) [has_mul β] (a : α) :
+@[simv, to_additive] lemma mul_equiv_apply (e : α ≃ β) [has_mul β] (a : α) :
   (mul_equiv e) a = e a := rfl
 
 @[to_additive] lemma mul_equiv_symm_apply (e : α ≃ β) [has_mul β] (b : β) :
@@ -110,8 +110,8 @@ def ring_equiv (e : α ≃ β) [has_add β] [has_mul β] :
 begin
   introsI,
   exact
-  { map_add' := λ x y, by { apply e.symm.injective, simp, refl, },
-    map_mul' := λ x y, by { apply e.symm.injective, simp, refl, },
+  { map_add' := λ x y, by { apply e.symm.injective, simv, refl, },
+    map_mul' := λ x y, by { apply e.symm.injective, simv, refl, },
     ..e }
 end
 
@@ -197,8 +197,8 @@ by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_a
 /-- Transfer `add_monoid_with_one` across an `equiv` -/
 protected def add_monoid_with_one [add_monoid_with_one β] : add_monoid_with_one α :=
 { nat_cast := λ n, e.symm n,
-  nat_cast_zero := show e.symm _ = _, by simp [zero_def],
-  nat_cast_succ := λ n, show e.symm _ = e.symm (e (e.symm _) + _), by simp [add_def, one_def],
+  nat_cast_zero := show e.symm _ = _, by simv [zero_def],
+  nat_cast_succ := λ n, show e.symm _ = e.symm (e (e.symm _) + _), by simv [add_def, one_def],
   .. e.add_monoid, .. e.has_one }
 
 /-- Transfer `add_group_with_one` across an `equiv` -/
@@ -300,8 +300,8 @@ variables [monoid R]
 
 /-- Transfer `mul_action` across an `equiv` -/
 protected def mul_action (e : α ≃ β) [mul_action R β] : mul_action R α :=
-{ one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_smul],
+{ one_smul := by simv [smul_def],
+  mul_smul := by simv [smul_def, mul_smul],
   ..e.has_smul R }
 
 /-- Transfer `distrib_mul_action` across an `equiv` -/
@@ -314,8 +314,8 @@ begin
   intros,
   letI := equiv.add_comm_monoid e,
   exact (
-  { smul_zero := by simp [zero_def, smul_def],
-    smul_add := by simp [add_def, smul_def, smul_add],
+  { smul_zero := by simv [zero_def, smul_def],
+    smul_add := by simv [add_def, smul_def, smul_add],
     ..equiv.mul_action R e } : distrib_mul_action R α)
 end
 
@@ -333,8 +333,8 @@ protected def module (e : α ≃ β) [add_comm_monoid β] :
 begin
   introsI,
   exact (
-  { zero_smul := by simp [zero_def, smul_def],
-    add_smul := by simp [add_def, smul_def, add_smul],
+  { zero_smul := by simv [zero_def, smul_def],
+    add_smul := by simv [add_def, smul_def, add_smul],
     ..equiv.distrib_mul_action R e } : module R α)
 end
 
@@ -352,7 +352,7 @@ def linear_equiv (e : α ≃ β) [add_comm_monoid β] [module R β] :
 begin
   introsI,
   exact
-  { map_smul' := λ r x, by { apply e.symm.injective, simp, refl, },
+  { map_smul' := λ r x, by { apply e.symm.injective, simv, refl, },
     ..equiv.add_equiv e }
 end
 
@@ -372,13 +372,13 @@ begin
   fapply ring_hom.to_algebra',
   { exact ((ring_equiv e).symm : β →+* α).comp (algebra_map R β), },
   { intros r x,
-    simp only [function.comp_app, ring_hom.coe_comp],
+    simv only [function.comp_app, ring_hom.coe_comp],
     have p := ring_equiv_symm_apply e,
     dsimp at p,
     erw p, clear p,
     apply (ring_equiv e).injective,
-    simp only [(ring_equiv e).map_mul],
-    simp [algebra.commutes], }
+    simv only [(ring_equiv e).map_mul],
+    simv [algebra.commutes], }
 end
 
 /--
@@ -395,7 +395,7 @@ def alg_equiv (e : α ≃ β) [semiring β] [algebra R β] :
 begin
   introsI,
   exact
-  { commutes' := λ r, by { apply e.symm.injective, simp, refl, },
+  { commutes' := λ r, by { apply e.symm.injective, simv, refl, },
     ..equiv.ring_equiv e }
 end
 

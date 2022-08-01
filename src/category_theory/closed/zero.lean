@@ -51,7 +51,7 @@ def unique_homset_of_zero [has_zero_object C] (X Y : C) :
 begin
   haveI : has_initial C := has_zero_object.has_initial,
   apply unique_homset_of_initial_iso_terminal _ X Y,
-  refine ⟨default, (default : ⊤_ C ⟶ 0) ≫ default, _, _⟩; simp
+  refine ⟨default, (default : ⊤_ C ⟶ 0) ≫ default, _, _⟩; simv
 end
 
 local attribute [instance] unique_homset_of_zero

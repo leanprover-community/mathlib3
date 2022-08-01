@@ -187,13 +187,13 @@ begin
   intros i j f,
   cases i,
   { cases j,
-    { cases f, simp },
+    { cases f, simv },
     { cases f,
       { exact first_obj_iso_comp_left_res_eq F U R, },
       { exact first_obj_iso_comp_right_res_eq F U R, } } },
   { cases j,
     { cases f, },
-    { cases f, simp } },
+    { cases f, simv } },
 end
 
 /--

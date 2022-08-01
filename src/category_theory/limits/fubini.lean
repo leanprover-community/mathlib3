@@ -25,7 +25,7 @@ provided by suitable `has_limit` classes.
 
 We construct
 `limit_uncurry_iso_limit_comp_lim F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`
-and give simp lemmas characterising it.
+and give simv lemmas characterising it.
 For convenience, we also provide
 `limit_iso_limit_curry_comp_lim G : limit G ≅ limit ((curry.obj G) ⋙ lim)`
 in terms of the uncurried functor.
@@ -88,21 +88,21 @@ def cone_of_cone_uncurry
       { app := λ k, c.π.app (j, k),
         naturality' := λ k k' f,
         begin
-          dsimp, simp only [category.id_comp],
+          dsimp, simv only [category.id_comp],
           have := @nat_trans.naturality _ _ _ _ _ _ c.π (j, k) (j, k') (𝟙 j, f),
           dsimp at this,
-          simp only [category.id_comp, category_theory.functor.map_id, nat_trans.id_app] at this,
+          simv only [category.id_comp, category_theory.functor.map_id, nat_trans.id_app] at this,
           exact this,
         end } },
     naturality' := λ j j' f, (Q j').hom_ext
     begin
       dsimp,
       intro k,
-      simp only [limits.cone_morphism.w, limits.cones.postcompose_obj_π, limits.is_limit.fac_assoc,
+      simv only [limits.cone_morphism.w, limits.cones.postcompose_obj_π, limits.is_limit.fac_assoc,
         limits.is_limit.fac, nat_trans.comp_app, category.id_comp, category.assoc],
       have := @nat_trans.naturality _ _ _ _ _ _ c.π (j, k) (j', k) (f, 𝟙 k),
       dsimp at this,
-      simp only [category.id_comp, category.comp_id,
+      simv only [category.id_comp, category.comp_id,
         category_theory.functor.map_id, nat_trans.id_app] at this,
       exact this,
     end, } }.
@@ -120,28 +120,28 @@ def cone_of_cone_uncurry_is_limit
     { app := λ p, s.π.app p.1 ≫ (D.obj p.1).π.app p.2,
       naturality' := λ p p' f,
       begin
-        dsimp, simp only [category.id_comp, category.assoc],
+        dsimp, simv only [category.id_comp, category.assoc],
         rcases p with ⟨j, k⟩,
         rcases p' with ⟨j', k'⟩,
         rcases f with ⟨fj, fk⟩,
         dsimp,
         slice_rhs 3 4 { rw ←nat_trans.naturality, },
         slice_rhs 2 3 { rw ←(D.obj j).π.naturality, },
-        simp only [functor.const_obj_map, category.id_comp, category.assoc],
+        simv only [functor.const_obj_map, category.id_comp, category.assoc],
         have w := (D.map fj).w k',
         dsimp at w,
         rw ←w,
         have n := s.π.naturality fj,
         dsimp at n,
-        simp only [category.id_comp] at n,
+        simv only [category.id_comp] at n,
         rw n,
-        simp,
+        simv,
       end, } },
   fac' := λ s j,
   begin
     apply (Q j).hom_ext,
     intro k,
-    simp,
+    simv,
   end,
   uniq' := λ s m w,
   begin
@@ -149,7 +149,7 @@ def cone_of_cone_uncurry_is_limit
     rintro ⟨j, k⟩,
     dsimp,
     rw [←w j],
-    simp,
+    simv,
   end, }
 
 section
@@ -194,21 +194,21 @@ begin
   exact is_limit.cone_point_unique_up_to_iso Q' Q'',
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_uncurry_iso_limit_comp_lim_hom_π_π {j} {k} :
   (limit_uncurry_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 begin
   dsimp [limit_uncurry_iso_limit_comp_lim, is_limit.cone_point_unique_up_to_iso,
     is_limit.unique_up_to_iso],
-  simp,
+  simv,
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_uncurry_iso_limit_comp_lim_inv_π {j} {k} :
   (limit_uncurry_iso_limit_comp_lim F).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
   rw [←cancel_epi (limit_uncurry_iso_limit_comp_lim F).hom],
-  simp,
+  simv,
 end
 end
 
@@ -227,17 +227,17 @@ def limit_flip_comp_lim_iso_limit_comp_lim : limit (F.flip ⋙ lim) ≅ limit (F
     (nat_iso.of_components (λ _, by refl) (by tidy))) ≪≫
   limit_uncurry_iso_limit_comp_lim _
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_flip_comp_lim_iso_limit_comp_lim_hom_π_π (j) (k) :
   (limit_flip_comp_lim_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k =
   limit.π _ k ≫ limit.π _ j :=
-by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simp, dsimp, simp, } -- See note [dsimp, simp]
+by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simv, dsimp, simv, } -- See note [dsimp, simv]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_flip_comp_lim_iso_limit_comp_lim_inv_π_π (k) (j) :
   (limit_flip_comp_lim_iso_limit_comp_lim F).inv ≫ limit.π _ k ≫ limit.π _ j =
   limit.π _ j ≫ limit.π _ k :=
-by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simp, dsimp, simp, dsimp, simp, }
+by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simv, dsimp, simv, dsimp, simv, }
 
 end
 
@@ -264,18 +264,18 @@ begin
   exact limit_uncurry_iso_limit_comp_lim ((@curry J _ K _ C _).obj G),
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
-by simp [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
+by simv [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
   is_limit.unique_up_to_iso]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma limit_iso_limit_curry_comp_lim_inv_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
   rw [←cancel_epi (limit_iso_limit_curry_comp_lim G).hom],
-  simp,
+  simv,
 end
 end
 
@@ -304,10 +304,10 @@ lemma limit_curry_swap_comp_lim_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
    limit.π _ k ≫ limit.π _ j :=
 begin
   dsimp [limit_curry_swap_comp_lim_iso_limit_curry_comp_lim],
-  simp only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_hom_π,
+  simv only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_hom_π,
     iso.refl_inv, limit_iso_limit_curry_comp_lim_hom_π_π, eq_to_iso_refl, category.assoc],
-  erw [nat_trans.id_app], -- Why can't `simp` do this`?
-  dsimp, simp,
+  erw [nat_trans.id_app], -- Why can't `simv` do this`?
+  dsimp, simv,
 end
 
 @[simp]
@@ -316,10 +316,10 @@ lemma limit_curry_swap_comp_lim_iso_limit_curry_comp_lim_inv_π_π {j} {k} :
    limit.π _ j ≫ limit.π _ k :=
 begin
   dsimp [limit_curry_swap_comp_lim_iso_limit_curry_comp_lim],
-  simp only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_inv_π,
+  simv only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_inv_π,
     iso.refl_inv, limit_iso_limit_curry_comp_lim_hom_π_π, eq_to_iso_refl, category.assoc],
-  erw [nat_trans.id_app], -- Why can't `simp` do this`?
-  dsimp, simp,
+  erw [nat_trans.id_app], -- Why can't `simv` do this`?
+  dsimp, simv,
 end
 
 end

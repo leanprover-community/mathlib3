@@ -65,7 +65,7 @@ begin
   { induction f with Y' Z' g e ih,
     { erw [F.map_id, G.map_id, category.id_comp, eq_to_hom_trans, eq_to_hom_refl], },
     { erw [F.map_comp g e.to_path, G.map_comp g e.to_path, ih, h],
-      simp only [category.id_comp, eq_to_hom_refl, eq_to_hom_trans_assoc, category.assoc], }, },
+      simv only [category.id_comp, eq_to_hom_refl, eq_to_hom_trans_assoc, category.assoc], }, },
   { intro X, rw h_obj, }
 end
 
@@ -102,8 +102,8 @@ lemma compose_path_comp {X Y Z : C} (f : path X Y) (g : path Y Z) :
   compose_path (f.comp g) = compose_path f ≫ compose_path g :=
 begin
   induction g with Y' Z' g e ih,
-  { simp, },
-  { simp [ih], },
+  { simv, },
+  { simv [ih], },
 end
 
 @[simp]
@@ -137,8 +137,8 @@ def paths_hom_rel : hom_rel (paths C) :=
 def to_quotient_paths : C ⥤ quotient (paths_hom_rel C) :=
 { obj := λ X, quotient.mk X,
   map := λ X Y f, quot.mk _ f.to_path,
-  map_id' := λ X, quot.sound (quotient.comp_closure.of _ _ _ (by simp)),
-  map_comp' := λ X Y Z f g, quot.sound (quotient.comp_closure.of _ _ _ (by simp)), }
+  map_id' := λ X, quot.sound (quotient.comp_closure.of _ _ _ (by simv)),
+  map_comp' := λ X Y Z f g, quot.sound (quotient.comp_closure.of _ _ _ (by simv)), }
 
 /-- The functor from the canonical quotient of a path category of a category
 to the original category. -/
@@ -156,13 +156,13 @@ def quotient_paths_equiv : quotient (paths_hom_rel C) ≌ C :=
     cases X, cases Y,
     induction f,
     dsimp,
-    simp only [category.comp_id, category.id_comp],
+    simv only [category.comp_id, category.id_comp],
     apply quot.sound,
     apply quotient.comp_closure.of,
-    simp [paths_hom_rel],
+    simv [paths_hom_rel],
   end,
   counit_iso := nat_iso.of_components (λ X, iso.refl _) (by tidy),
-  functor_unit_iso_comp' := by { intros, cases X, dsimp, simp, refl, }, }
+  functor_unit_iso_comp' := by { intros, cases X, dsimp, simv, refl, }, }
 
 end
 

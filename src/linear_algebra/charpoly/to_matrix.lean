@@ -60,12 +60,12 @@ begin
     by rw [basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix]
   ... = (scalar ι' X - C.map_matrix (φ₁ P ⬝ φ₂ A' ⬝ φ₃ Q)).det :
     by rw [reindex_linear_equiv_mul, reindex_linear_equiv_mul]
-  ... = (scalar ι' X - (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simp
+  ... = (scalar ι' X - (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simv
   ... = (scalar ι' X ⬝ C.map_matrix (φ₁ P) ⬝ (C.map_matrix (φ₃ Q)) -
     (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det :
       by { rw [matrix.mul_assoc ((scalar ι') X), hPQ, matrix.mul_one] }
   ... = (C.map_matrix (φ₁ P) ⬝ scalar ι' X ⬝ (C.map_matrix (φ₃ Q)) -
-    (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simp
+    (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simv
   ... = (C.map_matrix (φ₁ P) ⬝ (scalar ι' X - C.map_matrix A') ⬝ C.map_matrix (φ₃ Q)).det :
     by rw [← matrix.sub_mul, ← matrix.mul_sub]
   ... = (C.map_matrix (φ₁ P)).det * (scalar ι' X - C.map_matrix A').det *

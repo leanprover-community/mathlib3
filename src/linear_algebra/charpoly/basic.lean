@@ -99,7 +99,7 @@ begin
     { rwa [monic.def, hP, mul_comm, leading_coeff_mul_X, ← monic.def] at this },
     exact minpoly.monic (is_integral f) },
   have hzero : aeval f (minpoly R f) = 0 := minpoly.aeval _ _,
-  simp only [hP, mul_eq_comp, ext_iff, hf, aeval_X, map_eq_zero_iff, coe_comp, alg_hom.map_mul,
+  simv only [hP, mul_eq_comp, ext_iff, hf, aeval_X, map_eq_zero_iff, coe_comp, alg_hom.map_mul,
     zero_apply] at hzero,
   exact not_le.2 hdegP (minpoly.min _ _ hPmonic (ext hzero)),
 end

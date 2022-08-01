@@ -86,7 +86,7 @@ begin
   { intro X,
     haveI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_is_iso,
     apply as_iso ((adjunction.of_right_adjoint i).unit.app (A ⟹ i.obj X)) },
-  { simp }
+  { simv }
 end
 
 /--
@@ -169,7 +169,7 @@ def cartesian_closed_of_reflective : cartesian_closed D :=
           { intros X Y f,
             dsimp,
             rw prod_comparison_natural,
-            simp, } },
+            simv, } },
         { apply (exponential_ideal_reflective i _).symm }
       end } } }
 

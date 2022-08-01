@@ -81,14 +81,14 @@ category.assoc _ _ _
 
 @[simp] lemma prev_d_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (j : ι) :
   prev_d j (λ i j, f i j ≫ g.f j) = prev_d j f ≫ g.f j :=
-by { dsimp [prev_d], simp only [category.assoc, g.comm] }
+by { dsimp [prev_d], simv only [category.assoc, g.comm] }
 
 lemma d_next_nat (C D : chain_complex V ℕ) (i : ℕ) (f : Π i j, C.X i ⟶ D.X j) :
   d_next i f = C.d i (i-1) ≫ f (i-1) i :=
 begin
   dsimp [d_next],
   cases i,
-  { simp only [shape, chain_complex.next_nat_zero, complex_shape.down_rel,
+  { simv only [shape, chain_complex.next_nat_zero, complex_shape.down_rel,
       nat.one_ne_zero, not_false_iff, zero_comp], },
   { dsimp only [nat.succ_eq_add_one],
     have : (complex_shape.down ℕ).next (i + 1) = i + 1 - 1,
@@ -101,7 +101,7 @@ lemma prev_d_nat (C D : cochain_complex V ℕ) (i : ℕ) (f : Π i j, C.X i ⟶ 
 begin
   dsimp [prev_d],
   cases i,
-  { simp only [shape, cochain_complex.prev_nat_zero, complex_shape.up_rel,
+  { simv only [shape, cochain_complex.prev_nat_zero, complex_shape.up_rel,
       nat.one_ne_zero, not_false_iff, comp_zero]},
   { dsimp only [nat.succ_eq_add_one],
     have : (complex_shape.up ℕ).prev (i + 1) = i + 1 - 1,
@@ -131,7 +131,7 @@ def equiv_sub_zero : homotopy f g ≃ homotopy (f - g) 0 :=
 { to_fun := λ h,
   { hom := λ i j, h.hom i j,
     zero' := λ i j w, h.zero _ _ w,
-    comm := λ i, by simp [h.comm] },
+    comm := λ i, by simv [h.comm] },
   inv_fun := λ h,
   { hom := λ i j, h.hom i j,
     zero' := λ i j w, h.zero _ _ w,
@@ -144,7 +144,7 @@ def equiv_sub_zero : homotopy f g ≃ homotopy (f - g) 0 :=
 def of_eq (h : f = g) : homotopy f g :=
 { hom := 0,
   zero' := λ _ _ _, rfl,
-  comm := λ _, by simp only [add_monoid_hom.map_zero, zero_add, h] }
+  comm := λ _, by simv only [add_monoid_hom.map_zero, zero_add, h] }
 
 /-- Every chain map is homotopic to itself. -/
 @[simps, refl]
@@ -174,7 +174,7 @@ def add {f₁ g₁ f₂ g₂ : C ⟶ D}
   zero' := λ i j hij, by
     rw [pi.add_apply, pi.add_apply, h₁.zero' i j hij, h₂.zero' i j hij, add_zero],
   comm := λ i, by
-    { simp only [homological_complex.add_f_apply, h₁.comm, h₂.comm,
+    { simv only [homological_complex.add_f_apply, h₁.comm, h₂.comm,
         add_monoid_hom.map_add],
       abel, }, }
 
@@ -183,7 +183,7 @@ def add {f₁ g₁ f₂ g₂ : C ⟶ D}
 def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e ≫ g) (f ≫ g) :=
 { hom := λ i j, h.hom i j ≫ g.f j,
   zero' := λ i j w, by rw [h.zero i j w, zero_comp],
-  comm := λ i, by simp only [h.comm i, d_next_comp_right, preadditive.add_comp,
+  comm := λ i, by simv only [h.comm i, d_next_comp_right, preadditive.add_comp,
     prev_d_comp_right, comp_f], }
 
 /-- homotopy is closed under composition (on the left) -/
@@ -191,7 +191,7 @@ def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e �
 def comp_left {f g : D ⟶ E} (h : homotopy f g) (e : C ⟶ D) : homotopy (e ≫ f) (e ≫ g) :=
 { hom := λ i j, e.f i ≫ h.hom i j,
   zero' := λ i j w, by rw [h.zero i j w, comp_zero],
-  comm := λ i, by simp only [h.comm i, d_next_comp_left, preadditive.comp_add,
+  comm := λ i, by simv only [h.comm i, d_next_comp_left, preadditive.comp_add,
     prev_d_comp_left, comp_f], }
 
 /-- homotopy is closed under composition -/
@@ -226,9 +226,9 @@ def null_homotopic_map (hom : Π i j, C.X i ⟶ D.X j) : C ⟶ D :=
   comm'  := λ i j hij,
   begin
     have eq1 : prev_d i hom ≫ D.d i j = 0,
-    { simp only [prev_d, add_monoid_hom.mk'_apply, category.assoc, d_comp_d, comp_zero], },
+    { simv only [prev_d, add_monoid_hom.mk'_apply, category.assoc, d_comp_d, comp_zero], },
     have eq2 : C.d i j ≫ d_next j hom = 0,
-    { simp only [d_next, add_monoid_hom.mk'_apply, d_comp_d_assoc, zero_comp], },
+    { simv only [d_next, add_monoid_hom.mk'_apply, d_comp_d_assoc, zero_comp], },
     rw [d_next_eq hom hij, prev_d_eq hom hij, preadditive.comp_add, preadditive.add_comp,
       eq1, eq2, add_zero, zero_add, category.assoc],
   end }
@@ -245,7 +245,7 @@ null_homotopic_map hom ≫ g = null_homotopic_map (λ i j, hom i j ≫ g.f j) :=
 begin
   ext n,
   dsimp [null_homotopic_map, from_next, to_prev, add_monoid_hom.mk'_apply],
-  simp only [preadditive.add_comp, category.assoc, g.comm],
+  simv only [preadditive.add_comp, category.assoc, g.comm],
 end
 
 /-- Compatibility of `null_homotopic_map'` with the postcomposition by a morphism
@@ -269,7 +269,7 @@ f ≫ null_homotopic_map hom = null_homotopic_map (λ i j, f.f i ≫ hom i j) :=
 begin
   ext n,
   dsimp [null_homotopic_map, from_next, to_prev, add_monoid_hom.mk'_apply],
-  simp only [preadditive.comp_add, category.assoc, f.comm_assoc],
+  simv only [preadditive.comp_add, category.assoc, f.comm_assoc],
 end
 
 /-- Compatibility of `null_homotopic_map'` with the precomposition by a morphism
@@ -294,7 +294,7 @@ lemma map_null_homotopic_map {W : Type*} [category W] [preadditive W]
 begin
   ext i,
   dsimp [null_homotopic_map, d_next, prev_d],
-  simp only [G.map_comp, functor.map_add],
+  simv only [G.map_comp, functor.map_add],
 end
 
 /-- Compatibility of `null_homotopic_map'` with the application of additive functors -/
@@ -349,7 +349,7 @@ lemma null_homotopic_map'_f {k₂ k₁ k₀  : ι} (r₂₁ : c.rel k₂ k₁) (
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ + h k₁ k₂ r₂₁ ≫ D.d k₂ k₁ :=
 begin
-  simp only [← null_homotopic_map'],
+  simv only [← null_homotopic_map'],
   rw null_homotopic_map_f r₂₁ r₁₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
@@ -373,7 +373,7 @@ lemma null_homotopic_map'_f_of_not_rel_left {k₁ k₀ : ι} (r₁₀ : c.rel k�
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₀ = h k₀ k₁ r₁₀ ≫ D.d k₁ k₀ :=
 begin
-  simp only [← null_homotopic_map'],
+  simv only [← null_homotopic_map'],
   rw null_homotopic_map_f_of_not_rel_left r₁₀ hk₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
@@ -397,7 +397,7 @@ lemma null_homotopic_map'_f_of_not_rel_right {k₁ k₀ : ι} (r₁₀ : c.rel k
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ :=
 begin
-  simp only [← null_homotopic_map'],
+  simv only [← null_homotopic_map'],
   rw null_homotopic_map_f_of_not_rel_right r₁₀ hk₁ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
   dsimp,
   split_ifs,
@@ -420,7 +420,7 @@ lemma null_homotopic_map'_f_eq_zero {k₀ : ι}
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₀ = 0 :=
 begin
-  simp only [← null_homotopic_map'],
+  simv only [← null_homotopic_map'],
   exact null_homotopic_map_f_eq_zero hk₀ hk₀'
     (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
 end
@@ -490,7 +490,7 @@ At this stage, we don't check the homotopy condition in degree 0,
 because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
 which we do in `mk_inductive_aux₂`.
 -/
-@[simp, nolint unused_arguments]
+@[simv, nolint unused_arguments]
 def mk_inductive_aux₁ :
   Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
     e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)
@@ -516,7 +516,7 @@ def mk_inductive_aux₂ :
 lemma mk_inductive_aux₃ (i j : ℕ) (h : i+1 = j) :
   (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso h).hom
     = (P.X_next_iso h).inv ≫ (mk_inductive_aux₂ e zero comm_zero one comm_one succ j).1 :=
-by subst j; rcases i with (_|_|i); { dsimp, simp, }
+by subst j; rcases i with (_|_|i); { dsimp, simv, }
 
 /--
 A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed chain complexes,
@@ -535,17 +535,17 @@ def mk_inductive : homotopy e 0 :=
     0,
   zero' := λ i j w, by rwa dif_neg,
   comm := λ i, begin
-    dsimp, simp only [add_zero],
+    dsimp, simv only [add_zero],
     convert (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.2,
     { cases i,
       { dsimp [from_next], rw dif_neg,
-        simp only [chain_complex.next_nat_zero, nat.one_ne_zero, not_false_iff], },
-      { dsimp [from_next], rw dif_pos, swap, { simp only [chain_complex.next_nat_succ] },
+        simv only [chain_complex.next_nat_zero, nat.one_ne_zero, not_false_iff], },
+      { dsimp [from_next], rw dif_pos, swap, { simv only [chain_complex.next_nat_succ] },
         have aux : (complex_shape.down ℕ).next i.succ = i := chain_complex.next_nat_succ i,
         rw mk_inductive_aux₃ e zero comm_zero one comm_one succ
           ((complex_shape.down ℕ).next i.succ) (i+1) (by rw aux),
         dsimp [X_next_iso], erw category.id_comp, } },
-    { dsimp [to_prev], rw dif_pos, swap, { simp only [chain_complex.prev] },
+    { dsimp [to_prev], rw dif_pos, swap, { simv only [chain_complex.prev] },
       dsimp [X_prev_iso], erw category.comp_id, },
   end, }
 
@@ -610,7 +610,7 @@ At this stage, we don't check the homotopy condition in degree 0,
 because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
 which we do in `mk_inductive_aux₂`.
 -/
-@[simp, nolint unused_arguments]
+@[simv, nolint unused_arguments]
 def mk_coinductive_aux₁ :
   Π n, Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
     e.f (n+1) = f ≫ Q.d n (n+1) + P.d (n+1) (n+2) ≫ f'
@@ -637,7 +637,7 @@ def mk_coinductive_aux₂ :
 lemma mk_coinductive_aux₃ (i j : ℕ) (h : i + 1 = j) :
   (P.X_next_iso h).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1
     = (mk_coinductive_aux₂ e zero comm_zero one comm_one succ j).1 ≫ (Q.X_prev_iso h).hom :=
-by subst j; rcases i with (_|_|i); { dsimp, simp, }
+by subst j; rcases i with (_|_|i); { dsimp, simv, }
 
 /--
 A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed cochain complexes,
@@ -661,13 +661,13 @@ def mk_coinductive : homotopy e 0 :=
     convert (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.2 using 2,
     { cases i,
       { dsimp [to_prev], rw dif_neg,
-        simp only [cochain_complex.prev_nat_zero, nat.one_ne_zero, not_false_iff], },
-      { dsimp [to_prev], rw dif_pos, swap, { simp only [cochain_complex.prev_nat_succ] },
+        simv only [cochain_complex.prev_nat_zero, nat.one_ne_zero, not_false_iff], },
+      { dsimp [to_prev], rw dif_pos, swap, { simv only [cochain_complex.prev_nat_succ] },
         have aux : (complex_shape.up ℕ).prev i.succ = i := cochain_complex.prev_nat_succ i,
         rw mk_coinductive_aux₃ e zero comm_zero one comm_one succ
           ((complex_shape.up ℕ).prev i.succ) (i+1) (by rw aux),
         dsimp [X_prev_iso], erw category.comp_id, } },
-    { dsimp [from_next], rw dif_pos, swap, { simp only [cochain_complex.next] },
+    { dsimp [from_next], rw dif_pos, swap, { simv only [cochain_complex.next] },
       dsimp [X_next_iso], erw category.id_comp, },
   end }
 
@@ -696,8 +696,8 @@ namespace homotopy_equiv
 @[refl] def refl (C : homological_complex V c) : homotopy_equiv C C :=
 { hom := 𝟙 C,
   inv := 𝟙 C,
-  homotopy_hom_inv_id := by simp,
-  homotopy_inv_hom_id := by simp, }
+  homotopy_hom_inv_id := by simv,
+  homotopy_inv_hom_id := by simv, }
 
 instance : inhabited (homotopy_equiv C C) := ⟨refl C⟩
 
@@ -734,15 +734,15 @@ begin
   dsimp [homology_functor],
   apply eq_of_sub_eq_zero,
   ext,
-  simp only [homology.π_map, comp_zero, preadditive.comp_sub],
+  simv only [homology.π_map, comp_zero, preadditive.comp_sub],
   dsimp [kernel_subobject_map],
   simp_rw [h.comm i],
-  simp only [zero_add, zero_comp, d_next_eq_d_from_from_next, kernel_subobject_arrow_comp_assoc,
+  simv only [zero_add, zero_comp, d_next_eq_d_from_from_next, kernel_subobject_arrow_comp_assoc,
     preadditive.comp_add],
   rw [←preadditive.sub_comp],
-  simp only [category_theory.subobject.factor_thru_add_sub_factor_thru_right],
+  simv only [category_theory.subobject.factor_thru_add_sub_factor_thru_right],
   erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
-  { simp, },
+  { simv, },
   { rw [prev_d_eq_to_prev_d_to, ←category.assoc],
     apply image_subobject_factors_comp_self, },
 end
@@ -776,7 +776,7 @@ def functor.map_homotopy (F : V ⥤ W) [F.additive] {f g : C ⟶ D} (h : homotop
   comm := λ i, begin
     dsimp [d_next, prev_d] at *,
     rw h.comm i,
-    simp only [F.map_add, ← F.map_comp],
+    simv only [F.map_add, ← F.map_comp],
     refl
   end, }
 

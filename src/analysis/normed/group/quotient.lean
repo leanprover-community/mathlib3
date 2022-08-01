@@ -114,12 +114,12 @@ end
 lemma quotient_norm_neg {S : add_subgroup M} (x : M ⧸ S) : ∥-x∥ = ∥x∥ :=
 begin
   suffices : norm '' {m | mk' S m = x} = norm '' {m | mk' S m = -x},
-    by simp only [this, norm],
+    by simv only [this, norm],
   ext r,
   split,
   { rintros ⟨m, rfl : mk' S m = x, rfl⟩,
     rw ← norm_neg,
-    exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
+    exact ⟨-m, by simv only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
     exact ⟨-m, by simpa [eq_comm] using eq_neg_iff_eq_neg.mp ((mk'_apply _ _).symm.trans hm)⟩ }
 end
@@ -154,7 +154,7 @@ begin
   split,
   { rintros ⟨y, h, rfl⟩,
     use [y - m, h],
-    simp },
+    simv },
   { rintros ⟨y, h, rfl⟩,
     use m + y,
     simpa using h },
@@ -183,14 +183,14 @@ begin
   rw [← this.le_iff_eq, quotient_norm_mk_eq, real.Inf_le_iff],
   simp_rw [zero_add],
   { calc (∀ ε > (0 : ℝ), ∃ r ∈ (λ x, ∥m + x∥) '' (S : set M), r < ε) ↔
-        (∀ ε > 0, (∃ x ∈ S, ∥m + x∥ < ε)) : by simp [set.bex_image_iff]
+        (∀ ε > 0, (∃ x ∈ S, ∥m + x∥ < ε)) : by simv [set.bex_image_iff]
      ... ↔ ∀ ε > 0, (∃ x ∈ S, ∥m + -x∥ < ε) : _
-     ... ↔ ∀ ε > 0, (∃ x ∈ S, x ∈ metric.ball m ε) : by simp [dist_eq_norm, ← sub_eq_add_neg,
+     ... ↔ ∀ ε > 0, (∃ x ∈ S, x ∈ metric.ball m ε) : by simv [dist_eq_norm, ← sub_eq_add_neg,
                                                               norm_sub_rev]
-     ... ↔ m ∈ closure ↑S : by simp [metric.mem_closure_iff, dist_comm],
+     ... ↔ m ∈ closure ↑S : by simv [metric.mem_closure_iff, dist_comm],
     refine forall₂_congr (λ ε ε_pos, _),
     rw [← S.exists_neg_mem_iff_exists_mem],
-    simp },
+    simv },
   { use 0,
     rintro _ ⟨x, x_in, rfl⟩,
     apply norm_nonneg },
@@ -284,7 +284,7 @@ noncomputable
 instance add_subgroup.seminormed_add_comm_group_quotient (S : add_subgroup M) :
   seminormed_add_comm_group (M ⧸ S) :=
 { dist               := λ x y, ∥x - y∥,
-  dist_self          := λ x, by simp only [norm_mk_zero, sub_self],
+  dist_self          := λ x, by simv only [norm_mk_zero, sub_self],
   dist_comm          := quotient_norm_sub_rev,
   dist_triangle      := λ x y z,
   begin
@@ -312,7 +312,7 @@ instance add_subgroup.seminormed_add_comm_group_quotient (S : add_subgroup M) :
     refine ⟨min ε η, lt_min ε_pos η_pos, _, _⟩,
     { suffices : ∀ (a b : M ⧸ S), ∥a - b∥ < ε → ∥a - b∥ < η → ∥a - b∥ < ε, by simpa,
       exact λ a b h h', h },
-    { simp }
+    { simv }
   end }
 
 -- This is a sanity check left here on purpose to ensure that potential refactors won't destroy
@@ -365,7 +365,7 @@ quotient_add_group.ker_mk  _
 
 /-- The operator norm of the projection is at most `1`. -/
 lemma norm_normed_mk_le (S : add_subgroup M) : ∥S.normed_mk∥ ≤ 1 :=
-normed_add_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simp [quotient_norm_mk_le'])
+normed_add_group_hom.op_norm_le_bound _ zero_le_one (λ m, by simv [quotient_norm_mk_le'])
 
 /-- The operator norm of the projection is `1` if the subspace is not dense. -/
 lemma norm_normed_mk (S : add_subgroup M) (h : (S.topological_closure : set M) ≠ univ) :
@@ -393,7 +393,7 @@ begin
     replace hnorm := le_antisymm hnorm (norm_nonneg _),
     simpa [hnorm] using hy },
   replace hlt := (div_lt_div_right (lt_of_le_of_ne (norm_nonneg m) hm0.symm)).2 hlt,
-  simp only [hm0, div_self, ne.def, not_false_iff] at hlt,
+  simv only [hm0, div_self, ne.def, not_false_iff] at hlt,
   have hrw₁ : ∥y∥ * (1 + min ε (1 / 2) / (1 - min ε (1 / 2))) / ∥m∥ =
     (∥y∥ / ∥m∥) * (1 + min ε (1 / 2) / (1 - min ε (1 / 2))) := by ring,
   rw [hrw₁] at hlt,
@@ -415,7 +415,7 @@ begin
   { rw [S.ker_normed_mk],
     exact set.mem_of_eq_of_mem h trivial },
   rw [ker_normed_mk] at hker,
-  simp only [(quotient_norm_eq_zero_iff S x).mpr hker, normed_mk.apply, zero_mul],
+  simv only [(quotient_norm_eq_zero_iff S x).mpr hker, normed_mk.apply, zero_mul],
 end
 
 end add_subgroup
@@ -487,7 +487,7 @@ begin
   { use 0,
     rintros _ ⟨m', hm', rfl⟩,
     apply norm_nonneg },
-  { exact ⟨0, f.ker.zero_mem, by simp⟩ }
+  { exact ⟨0, f.ker.zero_mem, by simv⟩ }
 end
 
 lemma lift_norm_le {N : Type*} [seminormed_add_comm_group N] (S : add_subgroup M)
@@ -498,7 +498,7 @@ begin
   apply op_norm_le_bound _ c.coe_nonneg,
   intros x,
   by_cases hc : c = 0,
-  { simp only [hc, nnreal.coe_zero, zero_mul] at fb ⊢,
+  { simv only [hc, nnreal.coe_zero, zero_mul] at fb ⊢,
     obtain ⟨x, rfl⟩ := surjective_quot_mk _ x,
     show ∥f x∥ ≤ 0,
     calc ∥f x∥ ≤ 0 * ∥x∥ : f.le_of_op_norm_le fb x

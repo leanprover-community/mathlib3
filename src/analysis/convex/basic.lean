@@ -61,12 +61,12 @@ localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
 
 lemma segment_eq_image₂ (x y : E) :
   [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+by simv only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
 
 lemma open_segment_eq_image₂ (x y : E) :
   open_segment 𝕜 x y =
     (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+by simv only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
 
 lemma segment_symm (x y : E) : [x -[𝕜] y] = [y -[𝕜] x] :=
 set.ext $ λ z,
@@ -119,7 +119,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
 lemma insert_endpoints_open_segment (x y : E) :
   insert x (insert y (open_segment 𝕜 x y)) = [x -[𝕜] y] :=
 begin
-  simp only [subset_antisymm_iff, insert_subset, left_mem_segment, right_mem_segment,
+  simv only [subset_antisymm_iff, insert_subset, left_mem_segment, right_mem_segment,
     open_segment_subset_segment, true_and],
   rintro z ⟨a, b, ha, hb, hab, rfl⟩,
   refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ _),
@@ -143,7 +143,7 @@ end
 
 lemma open_segment_subset_iff_segment_subset (hx : x ∈ s) (hy : y ∈ s) :
   open_segment 𝕜 x y ⊆ s ↔ [x -[𝕜] y] ⊆ s :=
-by simp only [← insert_endpoints_open_segment, insert_subset, *, true_and]
+by simv only [← insert_endpoints_open_segment, insert_subset, *, true_and]
 
 end module
 end ordered_semiring
@@ -174,23 +174,23 @@ end densely_ordered
 lemma segment_eq_image (x y : E) : [x -[𝕜] y] = (λ θ : 𝕜, (1 - θ) • x + θ • y) '' Icc (0 : 𝕜) 1 :=
 set.ext $ λ z,
   ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
-    ⟨b, ⟨hb, hab ▸ le_add_of_nonneg_left ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
+    ⟨b, ⟨hb, hab ▸ le_add_of_nonneg_left ha⟩, hab ▸ hz ▸ by simv only [add_sub_cancel]⟩,
     λ ⟨θ, ⟨hθ₀, hθ₁⟩, hz⟩, ⟨1-θ, θ, sub_nonneg.2 hθ₁, hθ₀, sub_add_cancel _ _, hz⟩⟩
 
 lemma open_segment_eq_image (x y : E) :
   open_segment 𝕜 x y = (λ (θ : 𝕜), (1 - θ) • x + θ • y) '' Ioo (0 : 𝕜) 1 :=
 set.ext $ λ z,
   ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
-    ⟨b, ⟨hb, hab ▸ lt_add_of_pos_left _ ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
+    ⟨b, ⟨hb, hab ▸ lt_add_of_pos_left _ ha⟩, hab ▸ hz ▸ by simv only [add_sub_cancel]⟩,
     λ ⟨θ, ⟨hθ₀, hθ₁⟩, hz⟩, ⟨1 - θ, θ, sub_pos.2 hθ₁, hθ₀, sub_add_cancel _ _, hz⟩⟩
 
 lemma segment_eq_image' (x y : E) :
   [x -[𝕜] y] = (λ (θ : 𝕜), x + θ • (y - x)) '' Icc (0 : 𝕜) 1 :=
-by { convert segment_eq_image 𝕜 x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
+by { convert segment_eq_image 𝕜 x y, ext θ, simv only [smul_sub, sub_smul, one_smul], abel }
 
 lemma open_segment_eq_image' (x y : E) :
   open_segment 𝕜 x y = (λ (θ : 𝕜), x + θ • (y - x)) '' Ioo (0 : 𝕜) 1 :=
-by { convert open_segment_eq_image 𝕜 x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
+by { convert open_segment_eq_image 𝕜 x y, ext θ, simv only [smul_sub, sub_smul, one_smul], abel }
 
 lemma segment_eq_image_line_map (x y : E) :
   [x -[𝕜] y] = affine_map.line_map x y '' Icc (0 : 𝕜) 1 :=
@@ -212,7 +212,7 @@ lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b -[𝕜] a + c] �
 begin
   rw [segment_eq_image', segment_eq_image'],
   refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
+  simv only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
 end
 
 @[simp] lemma mem_open_segment_translate (a : E) {x b c : E} :
@@ -220,7 +220,7 @@ end
 begin
   rw [open_segment_eq_image', open_segment_eq_image'],
   refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
+  simv only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
 end
 
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b -[𝕜] a + c] = [b -[𝕜] c] :=
@@ -317,7 +317,7 @@ begin
   split,
   { rintro ⟨a, b, ha, hb, hab, rfl⟩,
     use [a, b, ha, hb],
-    simp * },
+    simv * },
   { rintro ⟨a, b, ha, hb, hab, rfl⟩,
     refine ⟨a / (a + b), b / (a + b), div_nonneg ha hab.le, div_nonneg hb hab.le, _, rfl⟩,
     rw [← add_div, div_self hab.ne'] }
@@ -935,7 +935,7 @@ an affine combination of the images.
 lemma convex.combo_affine_apply {a b : 𝕜} {x y : E} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
   f (a • x + b • y) = a • f x + b • f y :=
 begin
-  simp only [convex.combo_eq_vadd h, ← vsub_eq_sub],
+  simv only [convex.combo_eq_vadd h, ← vsub_eq_sub],
   exact f.apply_line_map _ _ _,
 end
 
@@ -976,7 +976,7 @@ lemma convex_iff_div :
   convex 𝕜 s ↔ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄,
     0 ≤ a → 0 ≤ b → 0 < a + b → (a / (a + b)) • x + (b / (a + b)) • y ∈ s :=
 begin
-  simp only [convex_iff_segment_subset, subset_def, mem_segment_iff_div],
+  simv only [convex_iff_segment_subset, subset_def, mem_segment_iff_div],
   refine forall₄_congr (λ x y hx hy, ⟨λ H a b ha hb hab, H _ ⟨a, b, ha, hb, hab, rfl⟩, _⟩),
   rintro H _ ⟨a, b, ha, hb, hab, rfl⟩,
   exact H ha hb hab
@@ -1007,7 +1007,7 @@ begin
     have hpq := add_pos hp' hq',
     exact mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ (div_pos hp' hpq).le (div_pos hq' hpq).le
       (by rw [←div_self hpq.ne', add_div] : p / (p + q) + q / (p + q) = 1),
-      by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩ }
+      by simv only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩ }
 end
 
 end add_comm_group
@@ -1075,7 +1075,7 @@ def std_simplex : set (ι → 𝕜) :=
 
 lemma std_simplex_eq_inter :
   std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
-by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
+by { ext f, simv only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
 
 lemma convex_std_simplex : convex 𝕜 (std_simplex 𝕜 ι) :=
 begin
@@ -1089,6 +1089,6 @@ end
 variable {ι}
 
 lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:𝕜) 0) ∈ std_simplex 𝕜 ι :=
-⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
+⟨λ j, by simv only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)]⟩
 
 end simplex

@@ -139,7 +139,7 @@ def so [fintype n] : lie_subalgebra R (matrix n n R) :=
 @[simp] lemma mem_so [fintype n] (A : matrix n n R) : A ∈ so n R ↔ Aᵀ = -A :=
 begin
   erw mem_skew_adjoint_matrices_submodule,
-  simp only [matrix.is_skew_adjoint, matrix.is_adjoint_pair, matrix.mul_one, matrix.one_mul],
+  simv only [matrix.is_skew_adjoint, matrix.is_adjoint_pair, matrix.mul_one, matrix.one_mul],
 end
 
 /-- The indefinite diagonal matrix with `p` 1s and `q` -1s. -/
@@ -162,13 +162,13 @@ lemma Pso_inv {i : R} (hi : i*i = -1) : (Pso p q R i) * (Pso p q R (-i)) = 1 :=
 begin
   ext x y, rcases x; rcases y,
   { -- x y : p
-    by_cases h : x = y; simp [Pso, indefinite_diagonal, h], },
+    by_cases h : x = y; simv [Pso, indefinite_diagonal, h], },
   { -- x : p, y : q
-    simp [Pso, indefinite_diagonal], },
+    simv [Pso, indefinite_diagonal], },
   { -- x : q, y : p
-    simp [Pso, indefinite_diagonal], },
+    simv [Pso, indefinite_diagonal], },
   { -- x y : q
-    by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
+    by_cases h : x = y; simv [Pso, indefinite_diagonal, h, hi], },
 end
 
 /-- There is a constructive inverse of `Pso p q R i`. -/
@@ -180,13 +180,13 @@ lemma indefinite_diagonal_transform {i : R} (hi : i*i = -1) :
 begin
   ext x y, rcases x; rcases y,
   { -- x y : p
-    by_cases h : x = y; simp [Pso, indefinite_diagonal, h], },
+    by_cases h : x = y; simv [Pso, indefinite_diagonal, h], },
   { -- x : p, y : q
-    simp [Pso, indefinite_diagonal], },
+    simv [Pso, indefinite_diagonal], },
   { -- x : q, y : p
-    simp [Pso, indefinite_diagonal], },
+    simv [Pso, indefinite_diagonal], },
   { -- x y : q
-    by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
+    by_cases h : x = y; simv [Pso, indefinite_diagonal, h, hi], },
 end
 
 /-- An equivalence between the indefinite and definite orthogonal Lie algebras, over a ring
@@ -240,9 +240,9 @@ end
 lemma JD_transform [fintype l] : (PD l R)ᵀ ⬝ (JD l R) ⬝ (PD l R) = (2 : R) • (S l R) :=
 begin
   have h : (PD l R)ᵀ ⬝ (JD l R) = matrix.from_blocks 1 1 1 (-1) := by
-  { simp [PD, JD, matrix.from_blocks_transpose, matrix.from_blocks_multiply], },
+  { simv [PD, JD, matrix.from_blocks_transpose, matrix.from_blocks_multiply], },
   erw [h, S_as_blocks, matrix.from_blocks_multiply, matrix.from_blocks_smul],
-  congr; simp [two_smul],
+  congr; simv [two_smul],
 end
 
 lemma PD_inv [fintype l] [invertible (2 : R)] : (PD l R) * (⅟(2 : R) • (PD l R)ᵀ) = 1 :=
@@ -251,7 +251,7 @@ begin
     rw [← smul_add, ← (two_smul R _), smul_smul, inv_of_mul_self, one_smul],
   erw [matrix.from_blocks_transpose, matrix.from_blocks_smul, matrix.mul_eq_mul,
     matrix.from_blocks_multiply],
-  simp [h],
+  simv [h],
 end
 
 instance invertible_PD [fintype l] [invertible (2 : R)] : invertible (PD l R) :=
@@ -311,7 +311,7 @@ variable [fintype l]
 lemma PB_inv [invertible (2 : R)] : PB l R * matrix.from_blocks 1 0 0 (⅟(PD l R)) = 1 :=
 begin
   rw [PB, matrix.mul_eq_mul, matrix.from_blocks_multiply, matrix.mul_inv_of_self],
-  simp only [matrix.mul_zero, matrix.mul_one, matrix.zero_mul, zero_add, add_zero,
+  simv only [matrix.mul_zero, matrix.mul_one, matrix.zero_mul, zero_add, add_zero,
     matrix.from_blocks_one]
 end
 
@@ -319,7 +319,7 @@ instance invertible_PB [invertible (2 : R)] : invertible (PB l R) :=
 invertible_of_right_inverse _ _ (PB_inv l R)
 
 lemma JB_transform : (PB l R)ᵀ ⬝ (JB l R) ⬝ (PB l R) = (2 : R) • matrix.from_blocks 1 0 0 (S l R) :=
-by simp [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_multiply,
+by simv [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_multiply,
          matrix.from_blocks_smul]
 
 lemma indefinite_diagonal_assoc :
@@ -330,7 +330,7 @@ begin
   ext i j,
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
-  simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_inl_inl,
+  simv only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_inl_inl,
     matrix.reindex_lie_equiv_apply, matrix.minor_apply, equiv.symm_symm, matrix.reindex_apply,
     sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
     dmatrix.zero_apply, equiv.sum_assoc_apply_inl_inr, if_false, matrix.from_blocks_apply₁₂,

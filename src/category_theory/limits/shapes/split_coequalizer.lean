@@ -67,7 +67,7 @@ instance {X : C} : inhabited (is_split_coequalizer (𝟙 X) (𝟙 X) (𝟙 X)) :
 
 open is_split_coequalizer
 attribute [reassoc] condition
-attribute [simp, reassoc] right_section_π left_section_bottom left_section_top
+attribute [simv, reassoc] right_section_π left_section_bottom left_section_top
 
 variables {f g}
 
@@ -105,7 +105,7 @@ def is_split_coequalizer.is_coequalizer
 cofork.is_colimit.mk' _ $ λ s,
 ⟨t.right_section ≫ s.π,
  by { dsimp, rw [← t.left_section_top_assoc, s.condition, t.left_section_bottom_assoc] },
- λ m hm, by { simp [←hm] }⟩
+ λ m hm, by { simv [←hm] }⟩
 
 end
 

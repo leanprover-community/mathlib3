@@ -110,7 +110,7 @@ instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
    π :=
    { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
-@[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
+@[simv, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
 by { rw ← c.π.naturality f, apply id_comp }
 
@@ -130,7 +130,7 @@ instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
    ι :=
   { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
-@[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
+@[simv, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
 by { rw c.ι.naturality f, apply comp_id }
 
@@ -200,7 +200,7 @@ commutes with the cone legs. -/
 (w'  : ∀ j : J, hom ≫ B.π.app j = A.π.app j . obviously)
 
 restate_axiom cone_morphism.w'
-attribute [simp, reassoc] cone_morphism.w
+attribute [simv, reassoc] cone_morphism.w
 
 instance inhabited_cone_morphism (A : cone F) : inhabited (cone_morphism A A) :=
 ⟨{ hom := 𝟙 _ }⟩
@@ -279,7 +279,7 @@ def whiskering_equivalence (e : K ≌ J) :
   counit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _)
   (begin
     intro k,
-    dsimp, -- See library note [dsimp, simp]
+    dsimp, -- See library note [dsimp, simv]
     simpa [e.counit_app_functor] using s.w (e.unit_inv.app k),
   end)) (by tidy), }
 
@@ -309,7 +309,7 @@ variables (G : C ⥤ D)
     π := { app := λ j, G.map (A.π.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ X Y f,
   { hom := G.map f.hom,
-    w' := λ j, by simp [-cone_morphism.w, ←f.w j] } }
+    w' := λ j, by simv [-cone_morphism.w, ←f.w j] } }
 
 instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
 { preimage := λ X Y t,
@@ -362,7 +362,7 @@ instance inhabited_cocone_morphism (A : cocone F) : inhabited (cocone_morphism A
 ⟨{ hom := 𝟙 _ }⟩
 
 restate_axiom cocone_morphism.w'
-attribute [simp, reassoc] cocone_morphism.w
+attribute [simv, reassoc] cocone_morphism.w
 
 @[simps] instance cocone.category : category (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
@@ -492,14 +492,14 @@ let f : (F ⋙ e.functor) ⋙ e.inverse ≅ F :=
   counit_iso := nat_iso.of_components (λ c, cocones.ext (e.counit_iso.app _)
   begin
     -- Unfortunately this doesn't work by `tidy`.
-    -- In this configuration `simp` reaches a dead-end and needs help.
+    -- In this configuration `simv` reaches a dead-end and needs help.
     intros j,
     dsimp,
-    simp only [←equivalence.counit_inv_app_functor, iso.inv_hom_id_app, map_comp,
+    simv only [←equivalence.counit_inv_app_functor, iso.inv_hom_id_app, map_comp,
       equivalence.fun_inv_map, assoc, id_comp, iso.inv_hom_id_app_assoc],
-    dsimp, simp, -- See note [dsimp, simp].
+    dsimp, simv, -- See note [dsimp, simv].
   end)
-  (λ c c' f, by { ext, dsimp, simp, dsimp, simp, }), }
+  (λ c c' f, by { ext, dsimp, simv, dsimp, simv, }), }
 
 /--
 If `F` reflects isomorphisms, then `cocones.functoriality F` reflects isomorphisms
@@ -705,18 +705,18 @@ def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
   { obj := λ c, op (cocone.op c),
     map := λ X Y f, quiver.hom.op
     { hom := f.hom.op,
-      w' := λ j, by { apply quiver.hom.unop_inj, dsimp, simp, }, } },
+      w' := λ j, by { apply quiver.hom.unop_inj, dsimp, simv, }, } },
   inverse :=
   { obj := λ c, cone.unop (unop c),
     map := λ X Y f,
     { hom := f.unop.hom.unop,
-      w' := λ j, by { apply quiver.hom.op_inj, dsimp, simp, }, } },
+      w' := λ j, by { apply quiver.hom.op_inj, dsimp, simv, }, } },
   unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c,
     by { induction c using opposite.rec,
          dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
-    (λ X Y f, quiver.hom.unop_inj (cone_morphism.ext _ _ (by { dsimp, simp }))),
-  functor_unit_iso_comp' := λ c, begin apply quiver.hom.unop_inj, ext, dsimp, simp, end }
+    (λ X Y f, quiver.hom.unop_inj (cone_morphism.ext _ _ (by { dsimp, simv }))),
+  functor_unit_iso_comp' := λ c, begin apply quiver.hom.unop_inj, ext, dsimp, simv, end }
 
 attribute [simps] cocone_equivalence_op_cone_op
 
@@ -741,7 +741,7 @@ def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
 
 /-- Change a cone on `F.left_op : Jᵒᵖ ⥤ C` to a cocone on `F : J ⥤ Cᵒᵖ`. -/
 /- When trying use `@[simps]` to generate the `ι_app` field of this definition, `@[simps]` tries to
-  reduce the RHS using `expr.dsimp` and `expr.simp`, but for some reason the expression is not
+  reduce the RHS using `expr.dsimp` and `expr.simv`, but for some reason the expression is not
   being simplified properly. -/
 @[simps X]
 def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
@@ -750,7 +750,7 @@ def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 
 @[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
   (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=
-by { dsimp only [cocone_of_cone_left_op], simp }
+by { dsimp only [cocone_of_cone_left_op], simv }
 
 /-- Change a cocone on `F : J ⥤ Cᵒᵖ` to a cone on `F.left_op : Jᵒᵖ ⥤ C`. -/
 @[simps {rhs_md := semireducible, simp_rhs := tt}]

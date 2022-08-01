@@ -182,7 +182,7 @@ theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] :
 
 theorem is_order_connected.neg_trans {r : α → α → Prop} [is_order_connected α r]
   {a b c} (h₁ : ¬ r a b) (h₂ : ¬ r b c) : ¬ r a c :=
-mt (is_order_connected.conn a b c) $ by simp [h₁, h₂]
+mt (is_order_connected.conn a b c) $ by simv [h₁, h₂]
 
 theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
   [is_order_connected α r] : is_strict_weak_order α r :=
@@ -409,7 +409,7 @@ def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s
 def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+by simv only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by rw [not_iff_comm, not_bounded_iff]

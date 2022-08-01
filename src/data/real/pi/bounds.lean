@@ -37,7 +37,7 @@ begin
     { apply div_pos pi_pos, apply pow_pos, norm_num },
     { rw div_le_iff',
       { refine le_trans pi_le_four _,
-        simp only [show ((4 : ℝ) = 2 ^ 2), by norm_num, mul_one],
+        simv only [show ((4 : ℝ) = 2 ^ 2), by norm_num, mul_one],
         apply pow_le_pow, norm_num, apply le_add_of_nonneg_left, apply nat.zero_le },
       { apply pow_pos, norm_num } },
     apply add_le_add_left, rw div_le_div_right,
@@ -91,7 +91,7 @@ do let n := l.length,
     let a := r.num.to_nat, let b := r.denom,
     (() <$ tactic.apply `(@sqrt_two_add_series_step_up %%(reflect a) %%(reflect b)));
     [tactic.skip, `[norm_num1], `[norm_num1], `[norm_num1]]),
-  `[simp only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
+  `[simv only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
   `[norm_num1]
 
 /-- From a lower bound on `sqrt_two_add_series 0 n = 2 cos (π / 2 ^ (n+1))` of the form
@@ -130,7 +130,7 @@ do let n := l.length,
     let a := r.num.to_nat, let b := r.denom,
     (() <$ tactic.apply `(@sqrt_two_add_series_step_down %%(reflect a) %%(reflect b)));
     [pure (), `[norm_num1], `[norm_num1], `[norm_num1]]),
-  `[simp only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
+  `[simv only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
   `[norm_num]
 
 lemma pi_gt_three : 3 < π := by pi_lower_bound [23/16]

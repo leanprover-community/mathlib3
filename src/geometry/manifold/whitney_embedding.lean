@@ -53,14 +53,14 @@ def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, ι → (E × ℝ)), ι → (E
   cont_mdiff_to_fun := cont_mdiff_pi_space.2 $ λ i,
     ((f i).smooth_smul cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
 
-local attribute [simp] lemma embedding_pi_tangent_coe :
+local attribute [simv] lemma embedding_pi_tangent_coe :
   ⇑f.embedding_pi_tangent = λ x i, (f i x • ext_chart_at I (f.c i) x, f i x) :=
 rfl
 
 lemma embedding_pi_tangent_inj_on : inj_on f.embedding_pi_tangent s :=
 begin
   intros x hx y hy h,
-  simp only [embedding_pi_tangent_coe, funext_iff] at h,
+  simv only [embedding_pi_tangent_coe, funext_iff] at h,
   obtain ⟨h₁, h₂⟩ := prod.mk.inj_iff.1 (h (f.ind x hx)),
   rw [f.apply_ind x hx] at h₂,
   rw [← h₂, f.apply_ind x hx, one_smul, one_smul] at h₁,
@@ -85,7 +85,7 @@ begin
   convert has_mfderiv_at_unique this _,
   refine (has_mfderiv_at_ext_chart_at I (f.mem_chart_at_ind_source x hx)).congr_of_eventually_eq _,
   refine (f.eventually_eq_one x hx).mono (λ y hy, _),
-  simp only [embedding_pi_tangent_coe, continuous_linear_map.coe_comp', (∘),
+  simv only [embedding_pi_tangent_coe, continuous_linear_map.coe_comp', (∘),
     continuous_linear_map.coe_fst', continuous_linear_map.proj_apply],
   rw [hy, pi.one_apply, one_smul]
 end

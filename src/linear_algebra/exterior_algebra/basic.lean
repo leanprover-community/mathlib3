@@ -85,7 +85,7 @@ from `exterior_algebra R M` to `A`.
 -/
 @[simps symm_apply]
 def lift : {f : M →ₗ[R] A // ∀ m, f m * f m = 0} ≃ (exterior_algebra R M →ₐ[R] A) :=
-equiv.trans (equiv.subtype_equiv (equiv.refl _) $ by simp) $ clifford_algebra.lift _
+equiv.trans (equiv.subtype_equiv (equiv.refl _) $ by simv) $ clifford_algebra.lift _
 
 @[simp]
 theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) :
@@ -130,13 +130,13 @@ clifford_algebra.induction h_grade0 h_grade1 h_mul h_add a
 
 /-- The left-inverse of `algebra_map`. -/
 def algebra_map_inv : exterior_algebra R M →ₐ[R] R :=
-exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simp⟩
+exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simv⟩
 
 variables (M)
 
 lemma algebra_map_left_inverse :
   function.left_inverse algebra_map_inv (algebra_map R $ exterior_algebra R M) :=
-λ x, by simp [algebra_map_inv]
+λ x, by simv [algebra_map_inv]
 
 @[simp] lemma algebra_map_inj (x y : R) :
   algebra_map R (exterior_algebra R M) x = algebra_map R (exterior_algebra R M) y ↔ x = y :=
@@ -168,7 +168,7 @@ def ι_inv : exterior_algebra R M →ₗ[R] M :=
 (triv_sq_zero_ext.snd_hom R M).comp to_triv_sq_zero_ext.to_linear_map
 
 lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → exterior_algebra R M) :=
-λ x, by simp [ι_inv]
+λ x, by simv [ι_inv]
 
 variables (R)
 
@@ -208,7 +208,7 @@ end
 
 @[simp]
 lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
-calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
+calc _ = ι R (x + y) * ι R (x + y) : by simv [mul_add, add_mul]
    ... = _ : ι_sq_zero _
 
 lemma ι_mul_prod_list {n : ℕ} (f : fin n → M) (i : fin n) :
@@ -220,7 +220,7 @@ begin
     by_cases h : i = 0,
     { rw [h, ι_sq_zero, zero_mul], },
     { replace hn := congr_arg ((*) $ ι R $ f 0) (hn (λ i, f $ fin.succ i) (i.pred h)),
-      simp only at hn,
+      simv only at hn,
       rw [fin.succ_pred, ←mul_assoc, mul_zero] at hn,
       refine (eq_zero_iff_eq_zero_of_add_eq_zero _).mp hn,
       rw [← add_mul, ι_add_mul_swap, zero_mul], } }
@@ -251,7 +251,7 @@ in
         refine hn (λ i, f $ fin.succ i)
           (x.pred hx) (y.pred (ne_of_lt $ lt_of_le_of_lt x.zero_le h).symm)
           (fin.pred_lt_pred_iff.mpr h) _,
-        simp only [fin.succ_pred],
+        simv only [fin.succ_pred],
         exact hfxy, } }
   end,
   to_fun := F, ..F}
@@ -286,6 +286,6 @@ def to_exterior : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
 tensor_algebra.lift R (exterior_algebra.ι R : M →ₗ[R] exterior_algebra R M)
 
 @[simp] lemma to_exterior_ι (m : M) : (tensor_algebra.ι R m).to_exterior = exterior_algebra.ι R m :=
-by simp [to_exterior]
+by simv [to_exterior]
 
 end tensor_algebra

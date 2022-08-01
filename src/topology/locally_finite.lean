@@ -70,7 +70,7 @@ begin
       ((hf.eventually_finite x).and (hg.eventually_finite x))).exists,
   refine ⟨s, hsx, _⟩,
   convert (hsf.image sum.inl).union (hsg.image sum.inr) using 1,
-  ext (i|j); simp
+  ext (i|j); simv
 end
 
 protected lemma closure (hf : locally_finite f) : locally_finite (λ i, closure (f i)) :=
@@ -85,14 +85,14 @@ end
 lemma is_closed_Union (hf : locally_finite f) (hc : ∀i, is_closed (f i)) :
   is_closed (⋃i, f i) :=
 begin
-  simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
+  simv only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
   intros a ha,
   replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (hc i).is_open_compl.mem_nhds (ha i),
   rcases hf a with ⟨t, h_nhds, h_fin⟩,
   have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
     from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
   filter_upwards [this],
-  simp only [mem_inter_eq, mem_Inter],
+  simv only [mem_inter_eq, mem_Inter],
   rintros b ⟨hbt, hn⟩ i hfb,
   exact hn i ⟨b, hfb, hbt⟩ hfb,
 end

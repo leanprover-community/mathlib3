@@ -67,7 +67,7 @@ begin
   { rw is_unit_iff,
     exact (one_lt_aleph_0.trans_le ha).ne' },
   cases eq_or_ne (b * c) 0 with hz hz,
-  { rcases mul_eq_zero.mp hz with rfl | rfl; simp },
+  { rcases mul_eq_zero.mp hz with rfl | rfl; simv },
   wlog h : c ≤ b,
   left,
   have habc := le_of_dvd hz hbc,
@@ -82,29 +82,29 @@ begin
     using h a ℵ₀
 end
 
-@[simp, norm_cast] lemma nat_coe_dvd_iff : (n : cardinal) ∣ m ↔ n ∣ m :=
+@[simv, norm_cast] lemma nat_coe_dvd_iff : (n : cardinal) ∣ m ↔ n ∣ m :=
 begin
   refine ⟨_, λ ⟨h, ht⟩, ⟨h, by exact_mod_cast ht⟩⟩,
   rintro ⟨k, hk⟩,
   have : ↑m < ℵ₀ := nat_lt_aleph_0 m,
   rw [hk, mul_lt_aleph_0_iff] at this,
   rcases this with h | h | ⟨-, hk'⟩,
-  iterate 2 { simp only [h, mul_zero,  zero_mul, nat.cast_eq_zero] at hk, simp [hk] },
+  iterate 2 { simv only [h, mul_zero,  zero_mul, nat.cast_eq_zero] at hk, simv [hk] },
   lift k to ℕ using hk',
   exact ⟨k, by exact_mod_cast hk⟩
 end
 
 @[simp] lemma nat_is_prime_iff : prime (n : cardinal) ↔ n.prime :=
 begin
-  simp only [prime, nat.prime_iff],
-  refine and_congr (by simp) (and_congr _ ⟨λ h b c hbc, _, λ h b c hbc, _⟩),
-  { simp only [is_unit_iff, nat.is_unit_iff],
+  simv only [prime, nat.prime_iff],
+  refine and_congr (by simv) (and_congr _ ⟨λ h b c hbc, _, λ h b c hbc, _⟩),
+  { simv only [is_unit_iff, nat.is_unit_iff],
     exact_mod_cast iff.rfl },
   { exact_mod_cast h b c (by exact_mod_cast hbc) },
   cases lt_or_le (b * c) ℵ₀ with h' h',
   { rcases mul_lt_aleph_0_iff.mp h' with rfl | rfl | ⟨hb, hc⟩,
-    { simp },
-    { simp },
+    { simv },
+    { simv },
     lift b to ℕ using hb,
     lift c to ℕ using hc,
     exact_mod_cast h b c (by exact_mod_cast hbc) },
@@ -120,18 +120,18 @@ end
 lemma is_prime_iff {a : cardinal} : prime a ↔ ℵ₀ ≤ a ∨ ∃ p : ℕ, a = p ∧ p.prime :=
 begin
   cases le_or_lt ℵ₀ a with h h,
-  { simp [h] },
+  { simv [h] },
   lift a to ℕ using id h,
-  simp [not_le.mpr h]
+  simv [not_le.mpr h]
 end
 
 lemma is_prime_pow_iff {a : cardinal} :
   is_prime_pow a ↔ ℵ₀ ≤ a ∨ ∃ n : ℕ, a = n ∧ is_prime_pow n :=
 begin
   by_cases h : ℵ₀ ≤ a,
-  { simp [h, (prime_of_aleph_0_le h).is_prime_pow] },
+  { simv [h, (prime_of_aleph_0_le h).is_prime_pow] },
   lift a to ℕ using not_le.mp h,
-  simp only [h, nat.cast_inj, exists_eq_left', false_or, is_prime_pow_nat_iff],
+  simv only [h, nat.cast_inj, exists_eq_left', false_or, is_prime_pow_nat_iff],
   rw is_prime_pow_def,
   refine ⟨_, λ ⟨p, k, hp, hk, h⟩, ⟨p, k, nat_is_prime_iff.2 hp, by exact_mod_cast and.intro hk h⟩⟩,
   rintro ⟨p, k, hp, hk, hpk⟩,

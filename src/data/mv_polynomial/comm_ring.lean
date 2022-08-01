@@ -88,10 +88,10 @@ section vars
 variables (p q)
 
 @[simp] lemma vars_neg : (-p).vars = p.vars :=
-by simp [vars, degrees_neg]
+by simv [vars, degrees_neg]
 
 lemma vars_sub_subset : (p - q).vars ⊆ p.vars ∪ q.vars :=
-by convert vars_add_subset p (-q) using 2; simp [sub_eq_add_neg]
+by convert vars_add_subset p (-q) using 2; simv [sub_eq_add_neg]
 
 variables {p q}
 
@@ -100,7 +100,7 @@ lemma vars_sub_of_disjoint (hpq : disjoint p.vars q.vars) : (p - q).vars = p.var
 begin
   rw ←vars_neg q at hpq,
   convert vars_add_of_disjoint hpq using 2;
-    simp [sub_eq_add_neg]
+    simv [sub_eq_add_neg]
 end
 
 end vars
@@ -134,7 +134,7 @@ def hom_equiv : (mv_polynomial σ ℤ →+* S) ≃ (σ → S) :=
 { to_fun := λ f, ⇑f ∘ X,
   inv_fun := λ f, eval₂_hom (int.cast_ring_hom S) f,
   left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
-  right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
+  right_inv := λ f, funext $ λ x, by simv only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
 
@@ -148,9 +148,9 @@ begin
   rw degree_of_lt_iff h,
   intros m hm,
   by_contra hc,
-  simp only [not_lt] at hc,
+  simv only [not_lt] at hc,
   have h := support_sub σ f g hm,
-  simp only [mem_support_iff, ne.def, coeff_sub, sub_eq_zero] at hm,
+  simv only [mem_support_iff, ne.def, coeff_sub, sub_eq_zero] at hm,
   cases (finset.mem_union).1 h with cf cg,
   { exact hm (hf m cf hc), },
   { exact hm (hg m cg hc), },
@@ -162,7 +162,7 @@ section total_degree
 
 @[simp] lemma total_degree_neg (a : mv_polynomial σ R) :
   (-a).total_degree = a.total_degree :=
-by simp only [total_degree, support_neg]
+by simv only [total_degree, support_neg]
 
 lemma total_degree_sub (a b : mv_polynomial σ R) :
   (a - b).total_degree ≤ max a.total_degree b.total_degree :=

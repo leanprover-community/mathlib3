@@ -100,7 +100,7 @@ P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
 
 /-- A sylow subgroup of G is also a sylow subgroup of a subgroup of G. -/
 def subtype (h : ↑P ≤ N) : sylow p N :=
-P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+P.comap_of_injective N.subtype subtype.coe_injective (by simv [h])
 
 @[simp] lemma coe_subtype (h : ↑P ≤ N) : ↑(P.subtype h) = subgroup.comap N.subtype ↑P := rfl
 
@@ -147,7 +147,7 @@ noncomputable def sylow.fintype_of_ker_is_p_group {H : Type*} [group H]
 let h_exists := λ P : sylow p H, P.exists_comap_eq_of_ker_is_p_group hf,
   g : sylow p H → sylow p G := λ P, classical.some (h_exists P),
   hg : ∀ P : sylow p H, (g P).1.comap f = P := λ P, classical.some_spec (h_exists P) in
-fintype.of_injective g (λ P Q h, sylow.ext (by simp only [←hg, h]))
+fintype.of_injective g (λ P Q h, sylow.ext (by simv only [←hg, h]))
 
 /-- If `f : H →* G` is injective, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
 noncomputable def sylow.fintype_of_injective {H : Type*} [group H]
@@ -201,7 +201,7 @@ end
 
 lemma sylow.smul_eq_of_normal {g : G} {P : sylow p G} [h : (P : subgroup G).normal] :
   g • P = P :=
-by simp only [sylow.smul_eq_iff_mem_normalizer, normalizer_eq_top.mpr h, mem_top]
+by simv only [sylow.smul_eq_iff_mem_normalizer, normalizer_eq_top.mpr h, mem_top]
 
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
   P ∈ fixed_points H (sylow p G) ↔ H ≤ (P : subgroup G).normalizer :=
@@ -252,7 +252,7 @@ begin
   ... ↔ Q.1 = P.1 : ⟨P.3 Q.2, ge_of_eq⟩
   ... ↔ Q ∈ {P} : sylow.ext_iff.symm.trans set.mem_singleton_iff.symm),
   haveI : fintype (fixed_points P.1 (sylow p G)), { rw this, apply_instance },
-  have : card (fixed_points P.1 (sylow p G)) = 1, { simp [this] },
+  have : card (fixed_points P.1 (sylow p G)) = 1, { simv [this] },
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
 
@@ -393,7 +393,7 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
-  (by { intros, rw setoid_has_equiv, simp only [left_rel_apply], refl })
+  (by { intros, rw setoid_has_equiv, simv only [left_rel_apply], refl })
 
 /-- If `H` is a `p`-subgroup of `G`, then the index of `H` inside its normalizer is congruent
   mod `p` to the index of `H`.  -/
@@ -488,7 +488,7 @@ begin
 end,
 begin
   assume y hy,
-  simp only [exists_prop, subgroup.coe_subtype, mk'_apply, subgroup.mem_map, subgroup.mem_comap],
+  simv only [exists_prop, subgroup.coe_subtype, mk'_apply, subgroup.mem_map, subgroup.mem_comap],
   refine ⟨⟨y, le_normalizer hy⟩, ⟨0, _⟩, rfl⟩,
   rw [zpow_zero, eq_comm, quotient_group.eq_one_iff],
   simpa using hy
@@ -511,13 +511,13 @@ theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ
       have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [tsub_add_cancel_of_le h0m.nat_succ_le],
       let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
       ⟨K', by rw [hK'.1, tsub_add_cancel_of_le h0m.nat_succ_le], le_trans hK.2 hK'.2⟩)
-    (λ hnm : n = m, ⟨H, by simp [hH, hnm]⟩)
+    (λ hnm : n = m, ⟨H, by simv [hH, hnm]⟩)
 
 /-- A generalisation of **Sylow's first theorem**. If `p ^ n` divides
   the cardinality of `G`, then there is a subgroup of cardinality `p ^ n` -/
 theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [fact p.prime]
   (hdvd : p ^ n ∣ card G) : ∃ K : subgroup G, fintype.card K = p ^ n :=
-let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
+let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simv) n.zero_le in
 ⟨K, hK.1⟩
 
 lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
@@ -616,7 +616,7 @@ normalizer_eq_top.mp begin
     exfalso,
     apply hK.1,
     calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }
-    ... = (map K.subtype (↑P' : subgroup K)).normalizer ⊔ K : by simp [map_comap_eq_self, hPK]
+    ... = (map K.subtype (↑P' : subgroup K)).normalizer ⊔ K : by simv [map_comap_eq_self, hPK]
     ... = ⊤ : normalizer_sup_eq_top P' },
 end
 

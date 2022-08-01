@@ -114,7 +114,7 @@ end
 attribute [nolint dangerous_instance] semilinear_map_class.to_add_hom_class
 
 export semilinear_map_class (map_smulₛₗ)
-attribute [simp] map_smulₛₗ
+attribute [simv] map_smulₛₗ
 
 /-- `linear_map_class F R M M₂` asserts `F` is a type of bundled `R`-linear maps `M → M₂`.
 
@@ -136,7 +136,7 @@ variables {σ : R →+* S}
 @[priority 100, nolint dangerous_instance] -- `σ` is an `out_param` so it's not dangerous
 instance [semilinear_map_class F σ M M₃] : add_monoid_hom_class F M M₃ :=
 { coe := λ f, (f : M → M₃),
-  map_zero := λ f, show f 0 = 0, by { rw [← zero_smul R (0 : M), map_smulₛₗ], simp },
+  map_zero := λ f, show f 0 = 0, by { rw [← zero_smul R (0 : M), map_smulₛₗ], simv },
   .. semilinear_map_class.to_add_hom_class F σ M M₃ }
 
 @[priority 100, nolint dangerous_instance] -- `R` is an `out_param` so it's not dangerous
@@ -150,7 +150,7 @@ include i
 
 lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
   c • f x = f (σ' c • x) :=
-by simp
+by simv
 
 end semilinear_map_class
 
@@ -209,7 +209,7 @@ def id : M →ₗ[R] M :=
 lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
 
-@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
+@[simv, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
 
 end
 
@@ -244,16 +244,16 @@ variables (fₗ gₗ f g)
 
 protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
 protected lemma map_zero : f 0 = 0 := map_zero f
--- TODO: `simp` isn't picking up `map_smulₛₗ` for `linear_map`s without specifying `map_smulₛₗ f`
+-- TODO: `simv` isn't picking up `map_smulₛₗ` for `linear_map`s without specifying `map_smulₛₗ f`
 @[simp] protected lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := map_smulₛₗ f c x
 protected lemma map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x := map_smul fₗ c x
 protected lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) :
   c • f x = f (σ' c • x) :=
-by simp
+by simv
 
 -- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
-⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+⟨λ w, by { apply h, simv [w], }, λ w, by { subst w, simv, }⟩
 
 section pointwise
 open_locale pointwise
@@ -276,11 +276,11 @@ begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ys, hy⟩,
     refine ⟨(hc.unit.inv : R) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ h, ← map_mul,
+    { simv only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ h, ← map_mul,
         is_unit.coe_inv_mul, one_smul, map_one, ys] },
-    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
+    { simv only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
   { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
+    refine ⟨h y, hy, by simv only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
 
 variables (R M₂)
@@ -314,7 +314,7 @@ instance is_scalar_tower.compatible_smul
   [has_smul R M₂] [module S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
 ⟨λ fₗ c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (fₗ x), map_smul]⟩
 
-@[simp, priority 900]
+@[simv, priority 900]
 lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M]
   [module S M] [has_smul R M₂] [module S M₂]
   [compatible_smul M M₂ R S] (fₗ : M →ₗ[S] M₂) (c : R) (x : M) :
@@ -402,7 +402,7 @@ include module_M₁ module_M₂ module_M₃
 /-- Composition of two linear maps is a linear map -/
 def comp : M₁ →ₛₗ[σ₁₃] M₃ :=
 { to_fun := f ∘ g,
-  map_add' := by simp only [map_add, forall_const, eq_self_iff_true, comp_app],
+  map_add' := by simv only [map_add, forall_const, eq_self_iff_true, comp_app],
   map_smul' := λ r x, by rw [comp_app, map_smulₛₗ, map_smulₛₗ, ring_hom_comp_triple.comp_apply] }
 omit module_M₁ module_M₂ module_M₃
 
@@ -414,7 +414,7 @@ lemma comp_apply (x : M₁) : f.comp g x = f (g x) := rfl
 omit σ₁₃
 
 include σ₁₃
-@[simp, norm_cast] lemma coe_comp : (f.comp g : M₁ → M₃) = f ∘ g := rfl
+@[simv, norm_cast] lemma coe_comp : (f.comp g : M₁ → M₃) = f ∘ g := rfl
 omit σ₁₃
 
 @[simp] theorem comp_id : f.comp id = f :=
@@ -445,8 +445,8 @@ def inverse [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R} [rin
   M₂ →ₛₗ[σ'] M :=
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
   { to_fun := g,
-    map_add' := λ x y, by { rw [← h₁ (g (x + y)), ← h₁ (g x + g y)]; simp [h₂] },
-    map_smul' := λ a b, by { rw [← h₁ (g (a • b)), ← h₁ ((σ' a) • g b)], simp [h₂] } }
+    map_add' := λ x y, by { rw [← h₁ (g (x + y)), ← h₁ (g x + g y)]; simv [h₂] },
+    map_smul' := λ a b, by { rw [← h₁ (g (a • b)), ← h₁ ((σ' a) • g b)], simv [h₂] } }
 
 end add_comm_monoid
 
@@ -464,9 +464,9 @@ instance compatible_smul.int_module
   {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
 ⟨λ fₗ c x, begin
   induction c using int.induction_on,
-  case hz : { simp },
-  case hp : n ih { simp [add_smul, ih] },
-  case hn : n ih { simp [sub_smul, ih] }
+  case hz : { simv },
+  case hp : n ih { simv [add_smul, ih] },
+  case hn : n ih { simv [sub_smul, ih] }
 end⟩
 
 instance compatible_smul.units {R S : Type*}
@@ -505,7 +505,7 @@ instance : has_coe (M →+[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
   f.to_linear_map = ↑f :=
 rfl
 
-@[simp, norm_cast] lemma coe_to_linear_map (f : M →+[R] M₂) :
+@[simv, norm_cast] lemma coe_to_linear_map (f : M →+[R] M₂) :
   ((f : M →ₗ[R] M₂) : M → M₂) = f :=
 rfl
 
@@ -535,7 +535,7 @@ lemma is_linear_map_smul {R M : Type*} [comm_semiring R] [add_comm_monoid M] [mo
 begin
   refine is_linear_map.mk (smul_add c) _,
   intros _ _,
-  simp only [smul_smul, mul_comm]
+  simv only [smul_smul, mul_comm]
 end
 
 lemma is_linear_map_smul' {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] (a : M) :
@@ -626,8 +626,8 @@ variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
 
 instance : has_smul S (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ a f, { to_fun := a • f,
-          map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
-          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
+          map_add' := λ x y, by simv only [pi.smul_apply, f.map_add, smul_add],
+          map_smul' := λ c x, by simv [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
 
 @[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
 
@@ -659,7 +659,7 @@ variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : 
 
 /-- The constant 0 map is linear. -/
 instance : has_zero (M →ₛₗ[σ₁₂] M₂) :=
-⟨{ to_fun := 0, map_add' := by simp, map_smul' := by simp }⟩
+⟨{ to_fun := 0, map_add' := by simv, map_smul' := by simv }⟩
 
 @[simp] lemma zero_apply (x : M) : (0 : M →ₛₗ[σ₁₂] M₂) x = 0 := rfl
 
@@ -676,8 +676,8 @@ instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
 ⟨λ f g, { to_fun := f + g,
-          map_add' := by simp [add_comm, add_left_comm],
-          map_smul' := by simp [smul_add] }⟩
+          map_add' := by simv [add_comm, add_left_comm],
+          map_smul' := by simv [smul_add] }⟩
 
 @[simp] lemma add_apply (f g : M →ₛₗ[σ₁₂] M₂) (x : M) : (f + g) x = f x + g x := rfl
 
@@ -694,7 +694,7 @@ fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₛₗ[σ₁₂] N₂) :=
-⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp }⟩
+⟨λ f, { to_fun := -f, map_add' := by simv [add_comm], map_smul' := by simv }⟩
 
 @[simp] lemma neg_apply (f : M →ₛₗ[σ₁₂] N₂) (x : M) : (- f) x = - f x := rfl
 
@@ -708,8 +708,8 @@ omit σ₁₃
 /-- The negation of a linear map is linear. -/
 instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
-          map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],
-          map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub] }⟩
+          map_add' := λ x y, by simv only [pi.sub_apply, map_add, add_sub_add_comm],
+          map_smul' := λ r x, by simv [pi.sub_apply, map_smul, smul_sub] }⟩
 
 @[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₂] N₂) (x : M) : (f - g) x = f x - g x := rfl
 

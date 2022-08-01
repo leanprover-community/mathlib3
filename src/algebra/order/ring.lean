@@ -185,8 +185,8 @@ lemma mul_lt_of_lt_one_right (ha : 0 < a) (hb : b < 1) : a * b < a :=
 protected lemma decidable.mul_le_mul_of_nonneg_left [@decidable_rel α (≤)]
   (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b :=
 begin
-  by_cases ba : b ≤ a, { simp [ba.antisymm h₁] },
-  by_cases c0 : c ≤ 0, { simp [c0.antisymm h₂] },
+  by_cases ba : b ≤ a, { simv [ba.antisymm h₁] },
+  by_cases c0 : c ≤ 0, { simv [c0.antisymm h₂] },
   exact (mul_lt_mul_of_pos_left (h₁.lt_of_not_le ba) (h₂.lt_of_not_le c0)).le,
 end
 
@@ -197,8 +197,8 @@ by classical; exact decidable.mul_le_mul_of_nonneg_left
 protected lemma decidable.mul_le_mul_of_nonneg_right [@decidable_rel α (≤)]
   (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a * c ≤ b * c :=
 begin
-  by_cases ba : b ≤ a, { simp [ba.antisymm h₁] },
-  by_cases c0 : c ≤ 0, { simp [c0.antisymm h₂] },
+  by_cases ba : b ≤ a, { simv [ba.antisymm h₁] },
+  by_cases c0 : c ≤ 0, { simv [c0.antisymm h₂] },
   exact (mul_lt_mul_of_pos_right (h₁.lt_of_not_le ba) (h₂.lt_of_not_le c0)).le,
 end
 
@@ -395,7 +395,7 @@ def function.injective.ordered_semiring {β : Type*}
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) :
   ordered_semiring β :=
-{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one, zero_le_one],
+{ zero_le_one := show f 0 ≤ f 1, by simv only [zero, one, zero_le_one],
   mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
     begin
       rw [mul, mul],
@@ -635,7 +635,7 @@ lemma nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg (hab : 0 ≤ a * b) 
 begin
   haveI := @linear_order.decidable_le α _,
   refine decidable.or_iff_not_and_not.2 _,
-  simp only [not_and, not_le], intros ab nab, apply not_lt_of_le hab _,
+  simv only [not_and, not_le], intros ab nab, apply not_lt_of_le hab _,
   rcases lt_trichotomy 0 a with (ha|rfl|ha),
   exacts [mul_neg_of_pos_of_neg ha (ab ha.le), ((ab le_rfl).asymm (nab le_rfl)).elim,
     mul_neg_of_neg_of_pos ha (nab ha.le)]
@@ -698,16 +698,16 @@ by haveI := @linear_order.decidable_le α _; exact
  λ h', mul_lt_mul_of_pos_right h' h⟩
 
 @[simp] lemma zero_le_mul_left (h : 0 < c) : 0 ≤ c * b ↔ 0 ≤ b :=
-by { convert mul_le_mul_left h, simp }
+by { convert mul_le_mul_left h, simv }
 
 @[simp] lemma zero_le_mul_right (h : 0 < c) : 0 ≤ b * c ↔ 0 ≤ b :=
-by { convert mul_le_mul_right h, simp }
+by { convert mul_le_mul_right h, simv }
 
 @[simp] lemma zero_lt_mul_left (h : 0 < c) : 0 < c * b ↔ 0 < b :=
-by { convert mul_lt_mul_left h, simp }
+by { convert mul_lt_mul_left h, simv }
 
 @[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
-by { convert mul_lt_mul_right h, simp }
+by { convert mul_lt_mul_right h, simv }
 
 lemma add_le_mul_of_left_le_right (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
 have 0 < b, from
@@ -932,8 +932,8 @@ variables [ordered_ring α] {a b c : α}
 protected lemma decidable.ordered_ring.mul_nonneg [@decidable_rel α (≤)]
   {a b : α} (h₁ : 0 ≤ a) (h₂ : 0 ≤ b) : 0 ≤ a * b :=
 begin
-  by_cases ha : a ≤ 0, { simp [le_antisymm ha h₁] },
-  by_cases hb : b ≤ 0, { simp [le_antisymm hb h₂] },
+  by_cases ha : a ≤ 0, { simv [le_antisymm ha h₁] },
+  by_cases hb : b ≤ 0, { simv [le_antisymm hb h₂] },
   exact (le_not_le_of_lt (ordered_ring.mul_pos a b (h₁.lt_of_not_le ha) (h₂.lt_of_not_le hb))).1,
 end
 
@@ -1049,7 +1049,7 @@ def function.injective.ordered_ring {β : Type*}
   ..hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 lemma le_iff_exists_nonneg_add (a b : α) : a ≤ b ↔ ∃ c ≥ 0, b = a + c :=
-⟨λ h, ⟨b - a, sub_nonneg.mpr h, by simp⟩,
+⟨λ h, ⟨b - a, sub_nonneg.mpr h, by simv⟩,
   λ ⟨c, hc, h⟩, by { rw [h, le_add_iff_nonneg_right], exact hc }⟩
 
 end ordered_ring
@@ -1155,7 +1155,7 @@ begin
   haveI := @linear_order.decidable_le α _,
   rw [abs_eq (decidable.mul_nonneg (abs_nonneg a) (abs_nonneg b))],
   cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
-    simp only [abs_of_nonpos, abs_of_nonneg, true_or, or_true, eq_self_iff_true,
+    simv only [abs_of_nonpos, abs_of_nonneg, true_or, or_true, eq_self_iff_true,
       neg_mul, mul_neg, neg_neg, *]
 end
 
@@ -1193,10 +1193,10 @@ lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
 abs_mul_self a ▸ abs_nonneg _
 
 @[simp] lemma neg_le_self_iff : -a ≤ a ↔ 0 ≤ a :=
-by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
+by simv [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
 
 @[simp] lemma neg_lt_self_iff : -a < a ↔ 0 < a :=
-by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
+by simv [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
 
 @[simp] lemma le_neg_self_iff : a ≤ -a ↔ a ≤ 0 :=
 calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg
@@ -1208,9 +1208,9 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 ... ↔ 0 < -a : neg_lt_self_iff
 ... ↔ a < 0 : neg_pos
 
-@[simp] lemma abs_eq_self : |a| = a ↔ 0 ≤ a := by simp [abs_eq_max_neg]
+@[simp] lemma abs_eq_self : |a| = a ↔ 0 ≤ a := by simv [abs_eq_max_neg]
 
-@[simp] lemma abs_eq_neg_self : |a| = -a ↔ a ≤ 0 := by simp [abs_eq_max_neg]
+@[simp] lemma abs_eq_neg_self : |a| = -a ↔ a ≤ 0 := by simv [abs_eq_max_neg]
 
 /-- For an element `a` of a linear ordered ring, either `abs a = a` and `0 ≤ a`,
     or `abs a = -a` and `a < 0`.
@@ -1230,7 +1230,7 @@ end
 begin
   symmetry,
   rcases le_total 0 a with ha|ha;
-  simp [ha],
+  simv [ha],
 end
 
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
@@ -1381,7 +1381,7 @@ max_le
 lemma abs_sub_sq (a b : α) : |a - b| * |a - b| = a * a + b * b - (1 + 1) * a * b :=
 begin
   rw abs_mul_abs_self,
-  simp only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
+  simv only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
     mul_one, mul_neg, neg_add_rev, neg_neg],
 end
 
@@ -1390,13 +1390,13 @@ section
 variables [ring α] [linear_order α] {a b : α}
 
 @[simp] lemma abs_dvd (a b : α) : |a| ∣ b ↔ a ∣ b :=
-by { cases abs_choice a with h h; simp only [h, neg_dvd] }
+by { cases abs_choice a with h h; simv only [h, neg_dvd] }
 
 lemma abs_dvd_self (a : α) : |a| ∣ a :=
 (abs_dvd a a).mpr (dvd_refl a)
 
 @[simp] lemma dvd_abs (a b : α) : a ∣ |b| ↔ a ∣ b :=
-by { cases abs_choice b with h h; simp only [h, dvd_neg] }
+by { cases abs_choice b with h h; simv only [h, dvd_neg] }
 
 lemma self_dvd_abs (a : α) : a ∣ |a| :=
 (dvd_abs a a).mpr (dvd_refl a)
@@ -1465,11 +1465,11 @@ open ring
 designating a positive cone in an existing `ring`. -/
 def mk_of_positive_cone {α : Type*} [ring α] (C : positive_cone α) :
   ordered_ring α :=
-{ zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simp, },
+{ zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simv, },
   mul_pos := λ x y xp yp, begin
     change C.pos (x*y - 0),
-    convert C.mul_pos x y (by { convert xp, simp, }) (by { convert yp, simp, }),
-    simp,
+    convert C.mul_pos x y (by { convert xp, simv, }) (by { convert yp, simv, }),
+    simv,
   end,
   ..‹ring α›,
   ..ordered_add_comm_group.mk_of_positive_cone C.to_positive_cone }
@@ -1523,7 +1523,7 @@ end
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
 @[simp] lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
-by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+by simv only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 
 end canonically_ordered_comm_semiring
@@ -1545,7 +1545,7 @@ begin
 end
 
 protected lemma tsub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
-by { simp only [mul_comm _ c] at *, exact h.mul_tsub }
+by { simv only [mul_comm _ c] at *, exact h.mul_tsub }
 
 end add_le_cancellable
 
@@ -1585,10 +1585,10 @@ lemma mul_def {a b : with_top α} :
   a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
 
 @[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
-by cases a; simp [mul_def, h]; refl
+by cases a; simv [mul_def, h]; refl
 
 @[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=
-by cases a; simp [mul_def, h]; refl
+by cases a; simv [mul_def, h]; refl
 
 @[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
 top_mul top_ne_zero
@@ -1600,31 +1600,31 @@ section mul_zero_class
 variables [mul_zero_class α]
 
 @[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
-decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-by { simp [*, mul_def], refl }
+decidable.by_cases (assume : a = 0, by simv [this]) $ assume ha,
+decidable.by_cases (assume : b = 0, by simv [this]) $ assume hb,
+by { simv [*, mul_def], refl }
 
 lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λa:α, ↑(a * b))
 | none     := show (if (⊤:with_top α) = 0 ∨ (b:with_top α) = 0 then 0 else ⊤ : with_top α) = ⊤,
-    by simp [hb]
+    by simv [hb]
 | (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul.symm
 
 @[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
 begin
-  cases a; cases b; simp only [none_eq_top, some_eq_coe],
-  { simp [← coe_mul] },
+  cases a; cases b; simv only [none_eq_top, some_eq_coe],
+  { simv [← coe_mul] },
   { suffices : ⊤ * (b : with_top α) = ⊤ ↔ b ≠ 0, by simpa,
-    by_cases hb : b = 0; simp [hb] },
+    by_cases hb : b = 0; simv [hb] },
   { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
-    by_cases ha : a = 0; simp [ha] },
-  { simp [← coe_mul] }
+    by_cases ha : a = 0; simv [ha] },
+  { simv [← coe_mul] }
 end
 
 lemma mul_lt_top [preorder α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
 begin
   lift a to α using ha,
   lift b to α using hb,
-  simp only [← coe_mul, coe_lt_top]
+  simv only [← coe_mul, coe_lt_top]
 end
 
 @[simp] lemma untop'_zero_mul (a b : with_top α) : (a * b).untop' 0 = a.untop' 0 * b.untop' 0 :=
@@ -1644,12 +1644,12 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   one := 1,
   zero := 0,
   one_mul := λ a, match a with
-  | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
-  | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
+  | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simv [-with_top.coe_one]
+  | (some a) := show ((1:α) : with_top α) * a = a, by simv [coe_mul.symm, -with_top.coe_one]
   end,
   mul_one := λ a, match a with
-  | none     := show ⊤ * ((1:α) : with_top α) = ⊤, by simp [-with_top.coe_one]
-  | (some a) := show ↑a * ((1:α) : with_top α) = a, by simp [coe_mul.symm, -with_top.coe_one]
+  | none     := show ⊤ * ((1:α) : with_top α) = ⊤, by simv [-with_top.coe_one]
+  | (some a) := show ↑a * ((1:α) : with_top α) = a, by simv [coe_mul.symm, -with_top.coe_one]
   end,
   .. with_top.mul_zero_class }
 
@@ -1663,19 +1663,19 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
     begin
       have : ∀ z, map f z = 0 ↔ z = 0,
         from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top_map.map_zero,
-      rcases eq_or_ne x 0 with rfl|hx, { simp },
-      rcases eq_or_ne y 0 with rfl|hy, { simp },
-      induction x using with_top.rec_top_coe, { simp [hy, this] },
+      rcases eq_or_ne x 0 with rfl|hx, { simv },
+      rcases eq_or_ne y 0 with rfl|hy, { simv },
+      induction x using with_top.rec_top_coe, { simv [hy, this] },
       induction y using with_top.rec_top_coe,
       { have : (f x : with_top S) ≠ 0, by simpa [hf.eq_iff' (map_zero f)] using hx,
-        simp [hx, this] },
-      simp [← coe_mul]
+        simv [hx, this] },
+      simv [← coe_mul]
     end,
   .. f.to_zero_hom.with_top_map, .. f.to_monoid_hom.to_one_hom.with_top_map }
 
 instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_top α) :=
 ⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
-  simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
+  simv [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
 
 instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (with_top α) :=
 { mul := (*),
@@ -1683,14 +1683,14 @@ instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (w
   mul_assoc := λ a b c, begin
     cases a,
     { by_cases hb : b = 0; by_cases hc : c = 0;
-        simp [*, none_eq_top] },
+        simv [*, none_eq_top] },
     cases b,
     { by_cases ha : a = 0; by_cases hc : c = 0;
-        simp [*, none_eq_top, some_eq_coe] },
+        simv [*, none_eq_top, some_eq_coe] },
     cases c,
     { by_cases ha : a = 0; by_cases hb : b = 0;
-        simp [*, none_eq_top, some_eq_coe] },
-    simp [some_eq_coe, coe_mul.symm, mul_assoc]
+        simv [*, none_eq_top, some_eq_coe] },
+    simv [some_eq_coe, coe_mul.symm, mul_assoc]
   end,
   .. with_top.mul_zero_class }
 
@@ -1702,9 +1702,9 @@ instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
 { mul := (*),
   zero := 0,
   mul_comm := λ a b, begin
-    by_cases ha : a = 0, { simp [ha] },
-    by_cases hb : b = 0, { simp [hb] },
-    simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
+    by_cases ha : a = 0, { simv [ha] },
+    by_cases hb : b = 0, { simv [hb] },
+    simv [ha, hb, mul_def, option.bind_comm a b, mul_comm]
   end,
   .. with_top.monoid_with_zero }
 
@@ -1714,10 +1714,10 @@ private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
   cases c,
   { show (a + b) * ⊤ = a * ⊤ + b * ⊤,
-    by_cases ha : a = 0; simp [ha] },
+    by_cases ha : a = 0; simv [ha] },
   { show (a + b) * c = a * c + b * c,
-    by_cases hc : c = 0, { simp [hc] },
-    simp [mul_coe hc], cases a; cases b,
+    by_cases hc : c = 0, { simv [hc] },
+    simv [mul_coe hc], cases a; cases b,
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
@@ -1777,9 +1777,9 @@ section mul_zero_class
 variables [mul_zero_class α]
 
 @[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_bot α) = a * b :=
-decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-by { simp [*, mul_def], refl }
+decidable.by_cases (assume : a = 0, by simv [this]) $ assume ha,
+decidable.by_cases (assume : b = 0, by simv [this]) $ assume hb,
+by { simv [*, mul_def], refl }
 
 lemma mul_coe {b : α} (hb : b ≠ 0) {a : with_bot α} : a * b = a.bind (λa:α, ↑(a * b)) :=
 with_top.mul_coe hb
@@ -1791,7 +1791,7 @@ lemma bot_lt_mul [preorder α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b)
 begin
   lift a to α using ne_bot_of_gt ha,
   lift b to α using ne_bot_of_gt hb,
-  simp only [← coe_mul, bot_lt_coe],
+  simv only [← coe_mul, bot_lt_coe],
 end
 
 end mul_zero_class

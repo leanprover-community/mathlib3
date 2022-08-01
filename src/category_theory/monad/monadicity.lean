@@ -211,7 +211,7 @@ begin
   apply coequalizer.hom_ext,
   change coequalizer.π _ _ ≫ coequalizer.desc ((adj .hom_equiv _ B).symm (𝟙 _)) _ =
          coequalizer.π _ _ ≫ coequalizer.desc _ _,
-  simp,
+  simv,
 end
 
 end

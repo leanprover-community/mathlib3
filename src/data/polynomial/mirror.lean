@@ -35,7 +35,7 @@ variables {R : Type*} [semiring R] (p q : R[X])
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
 
-@[simp] lemma mirror_zero : (0 : R[X]).mirror = 0 := by simp [mirror]
+@[simp] lemma mirror_zero : (0 : R[X]).mirror = 0 := by simv [mirror]
 
 lemma mirror_monomial (n : ℕ) (a : R) : (monomial n a).mirror = (monomial n a) :=
 begin

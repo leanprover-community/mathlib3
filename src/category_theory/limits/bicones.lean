@@ -43,7 +43,7 @@ instance : inhabited (bicone J) := ⟨bicone.left⟩
 
 instance fin_bicone [fintype J] : fintype (bicone J) :=
 { elems := [bicone.left, bicone.right].to_finset ∪ finset.image bicone.diagram (fintype.elems J),
-  complete := λ j, by { cases j; simp, exact fintype.complete j, }, }
+  complete := λ j, by { cases j; simv, exact fintype.complete j, }, }
 
 variables [category.{v₁} J]
 
@@ -58,7 +58,7 @@ inductive bicone_hom : bicone J → bicone J → Type (max u₁ v₁)
 instance : inhabited (bicone_hom J bicone.left bicone.left) := ⟨bicone_hom.left_id⟩
 
 instance bicone_hom.decidable_eq {j k : bicone J} : decidable_eq (bicone_hom J j k) :=
-λ f g, by { cases f; cases g; simp; apply_instance }
+λ f g, by { cases f; cases g; simv; apply_instance }
 
 @[simps]
 instance bicone_category_struct : category_struct (bicone J) :=
@@ -72,9 +72,9 @@ instance bicone_category_struct : category_struct (bicone J) :=
     cases g, exact bicone_hom.diagram (f_f ≫ g_f) } }
 
 instance bicone_category : category (bicone J) :=
-{ id_comp' := λ X Y f, by { cases f; simp },
-  comp_id' := λ X Y f, by { cases f; simp },
-  assoc' := λ W X Y Z f g h, by { cases f; cases g; cases h; simp } }
+{ id_comp' := λ X Y f, by { cases f; simv },
+  comp_id' := λ X Y f, by { cases f; simv },
+  assoc' := λ W X Y Z f g h, by { cases f; cases g; cases h; simv } }
 
 end bicone
 section small_category
@@ -91,7 +91,7 @@ Given a diagram `F : J ⥤ C` and two `cone F`s, we can join them into a diagram
     exact c₁.π.app f_1,
     exact c₂.π.app f_1,
     exact F.map f_f, },
-  map_id' := λ X, by { cases X; simp },
+  map_id' := λ X, by { cases X; simv },
   map_comp' := λ X Y Z f g, by
   { cases f,
     exact (category.id_comp _).symm,
@@ -103,17 +103,17 @@ Given a diagram `F : J ⥤ C` and two `cone F`s, we can join them into a diagram
 instance fin_bicone_hom [fin_category J] (j k : bicone J) : fintype (j ⟶ k) :=
 begin
   cases j; cases k,
-  exact { elems := {bicone_hom.left_id}, complete := λ f, by { cases f, simp } },
+  exact { elems := {bicone_hom.left_id}, complete := λ f, by { cases f, simv } },
   exact { elems := ∅, complete := λ f, by { cases f } },
-  exact { elems := {bicone_hom.left k}, complete := λ f, by { cases f, simp } },
+  exact { elems := {bicone_hom.left k}, complete := λ f, by { cases f, simv } },
   exact { elems := ∅, complete := λ f, by { cases f } },
-  exact { elems := {bicone_hom.right_id}, complete := λ f, by { cases f, simp } },
-  exact { elems := {bicone_hom.right k}, complete := λ f, by { cases f, simp } },
+  exact { elems := {bicone_hom.right_id}, complete := λ f, by { cases f, simv } },
+  exact { elems := {bicone_hom.right k}, complete := λ f, by { cases f, simv } },
   exact { elems := ∅, complete := λ f, by { cases f } },
   exact { elems := ∅, complete := λ f, by { cases f } },
   exact { elems := finset.image (bicone_hom.diagram) (fintype.elems (j ⟶ k)),
           complete := λ f, by
-            { cases f, simp only [finset.mem_image], use f_f, simpa using fintype.complete _, } },
+            { cases f, simv only [finset.mem_image], use f_f, simpa using fintype.complete _, } },
 end
 
 instance bicone_small_category : small_category (bicone J) :=

@@ -72,11 +72,11 @@ begin
   induction h,
   { left, apply mod_def, },
   any_goals {apply mod3_eq_1_or_mod3_eq_2 h_ih},
-  { left, simp only [count_append], refl, },
-  { right, simp only [count, countp, count_append, if_false,two_mul], },
-  { left, simp only [count, count_append, countp, if_false, if_pos],
+  { left, simv only [count_append], refl, },
+  { right, simv only [count, countp, count_append, if_false,two_mul], },
+  { left, simv only [count, count_append, countp, if_false, if_pos],
     rw [add_right_comm, add_mod_right], },
-  { left, simp only [count ,countp, countp_append, if_false, add_zero], },
+  { left, simv only [count ,countp, countp_append, if_false, add_zero], },
 end
 
 /--
@@ -130,7 +130,7 @@ begin
   { rwa [head_append] at *; exact this, },
   { change [I,U] with [I] ++ [U],
     rw [←append_assoc, tail_append_singleton_of_ne_nil],
-    { simp only [mem_append, nmtail, false_or, mem_singleton, not_false_iff], },
+    { simv only [mem_append, nmtail, false_or, mem_singleton, not_false_iff], },
     { exact append_ne_nil_of_ne_nil_left _ _ this, }, },
 end
 
@@ -153,10 +153,10 @@ begin
   have k : as ≠ nil ,
   { intro h, rw h at mhead, rw [nil_append] at mhead, contradiction, },
   split,
-  { revert mhead, simp only [append_assoc,head_append _ k], exact id, },
+  { revert mhead, simv only [append_assoc,head_append _ k], exact id, },
   { contrapose! nmtail,
     rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-    simp only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
+    simv only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
     exact nmtail, },
 end
 
@@ -171,10 +171,10 @@ begin
   have k : as ≠ nil ,
   { intro h, rw h at mhead, rw [nil_append] at mhead, contradiction, },
   split,
-  { revert mhead, simp only [append_assoc,head_append _ k], exact id, },
+  { revert mhead, simv only [append_assoc,head_append _ k], exact id, },
   { contrapose! nmtail,
     rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-    simp only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
+    simv only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
     exact nmtail, },
 end
 

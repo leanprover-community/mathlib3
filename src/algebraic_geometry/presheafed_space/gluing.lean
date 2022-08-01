@@ -131,7 +131,7 @@ begin
 end
 
 /-- The red and the blue arrows in ![this diagram](https://i.imgur.com/0GiBUh6.png) commute. -/
-@[simp, reassoc]
+@[simv, reassoc]
 lemma f_inv_app_f_app (i j k : D.J)  (U : (opens (D.V (i, j)).carrier)) :
   (D.f_open i j).inv_app U ≫ (D.f i k).c.app _ =
     (π₁ i, j, k).c.app (op U) ≫ (π₂⁻¹ i, j, k) (unop _) ≫ (D.V _).presheaf.map (eq_to_hom
@@ -187,7 +187,7 @@ begin
 end
 
 /-- The red and the blue arrows in ![this diagram](https://i.imgur.com/q6X1GJ9.png) commute. -/
-@[simp, reassoc]
+@[simv, reassoc]
 lemma snd_inv_app_t_app (i j k : D.J) (U : opens (pullback (D.f i j) (D.f i k)).carrier) :
   (π₂⁻¹ i, j, k) U ≫ (D.t k i).c.app _ = (D.t' k i j).c.app _ ≫ (π₁⁻¹ k, j, i) (unop _) ≫
     (D.V (k, i)).presheaf.map (eq_to_hom (D.snd_inv_app_t_app' i j k U).some.symm) :=
@@ -195,7 +195,7 @@ begin
   have e := (D.snd_inv_app_t_app' i j k U).some_spec,
   reassoc! e,
   rw ← e,
-  simp [eq_to_hom_map],
+  simv [eq_to_hom_map],
 end
 
 variable [has_limits C]
@@ -217,7 +217,7 @@ begin
   rw ← set.image_comp,
   change (D.t i j ≫ D.t j i).base '' _ = _,
   rw 𝖣 .t_inv,
-  { simp },
+  { simv },
   { change function.bijective (Top.homeo_of_iso (as_iso _)),
     exact homeomorph.bijective _,
     apply_instance },
@@ -353,9 +353,9 @@ begin
   dsimp [opens_image_preimage_map],
   rw [congr_app (D.t_id _), id_c_app, ← functor.map_comp],
   erw [is_open_immersion.inv_naturality_assoc, is_open_immersion.app_inv_app'_assoc],
-  simp only [eq_to_hom_op, eq_to_hom_trans, eq_to_hom_map (functor.op _), ← functor.map_comp],
+  simv only [eq_to_hom_op, eq_to_hom_trans, eq_to_hom_map (functor.op _), ← functor.map_comp],
   rw set.range_iff_surjective.mpr _,
-  { simp },
+  { simv },
   { rw ← Top.epi_iff_surjective,
     apply_instance }
 end

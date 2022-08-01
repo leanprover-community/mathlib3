@@ -85,7 +85,7 @@ begin
   { have : filter.tendsto (λ x : ℝ≥0, ∥bit0 (∥c∥)∥₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
     { have : filter.tendsto (λ x : ℝ≥0, 2 * x) (𝓝 0) (𝓝 (2 * 0)) := filter.tendsto_id.const_mul 2,
       convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto.comp this).const_mul _,
-      simp [hp₀''.ne'] },
+      simv [hp₀''.ne'] },
     let ε' : ℝ≥0 := ⟨ε, hε.le⟩,
     have hε' : 0 < ε' := by exact_mod_cast hε,
     obtain ⟨δ, hδ, hδε'⟩ :=
@@ -130,10 +130,10 @@ begin
         have h₀ : g x * ∥c∥ + ∥c∥ ≤ 2 * ∥c∥,
         { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
         have h₁ : (2:ℝ) * ∥c∥ = bit0 (∥c∥) := by simpa using add_mul (1:ℝ) 1 (∥c∥),
-        simp [hFu, norm_smul, h₀, ← h₁, g_norm x] },
-      { simp [hgF hF, Fs hF] } },
+        simv [hFu, norm_smul, h₀, ← h₁, g_norm x] },
+      { simv [hgF hF, Fs hF] } },
     { have : x ∉ s := λ h, hu (su h),
-      simp [hgu hu, this] } },
+      simv [hgu hu, this] } },
   -- The rest is basically just `ennreal`-arithmetic
   have gc_snorm : snorm ((λ x, g x • c) - s.indicator (λ x, c)) p μ
     ≤ (↑(∥bit0 (∥c∥)∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
@@ -158,7 +158,7 @@ begin
     intros x,
     have h₀ : g x * ∥c∥ ≤ ∥c∥,
     { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
-    simp [norm_smul, g_norm x, h₀] },
+    simv [norm_smul, g_norm x, h₀] },
 end
 
 end measure_theory.Lp
@@ -174,7 +174,7 @@ begin
   rw dense_range_iff_closure_range,
   suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
-  simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp],
+  simv [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp],
 end
 
 end bounded_continuous_function
@@ -188,7 +188,7 @@ begin
   rw dense_range_iff_closure_range,
   suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
-  simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
+  simv [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
 end
 
 end continuous_map

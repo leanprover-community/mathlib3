@@ -72,19 +72,19 @@ begin
   -- Apply definition to `range u`, then turn existence quantifiers into functions using `choose`
   have := paracompact_space.locally_finite_refinement (range u) coe
     (set_coe.forall.2 $ forall_range_iff.2 uo) (by rwa [← sUnion_range, subtype.range_coe]),
-  simp only [set_coe.exists, subtype.coe_mk, exists_range_iff', Union_eq_univ_iff,
+  simv only [set_coe.exists, subtype.coe_mk, exists_range_iff', Union_eq_univ_iff,
     exists_prop] at this,
   choose α t hto hXt htf ind hind, choose t_inv ht_inv using hXt, choose U hxU hU using htf,
   -- Send each `i` to the union of `t a` over `a ∈ ind ⁻¹' {i}`
   refine ⟨λ i, ⋃ (a : α) (ha : ind a = i), t a, _, _, _, _⟩,
   { exact λ a, is_open_Union (λ a, is_open_Union $ λ ha, hto a) },
-  { simp only [eq_univ_iff_forall, mem_Union],
+  { simv only [eq_univ_iff_forall, mem_Union],
     exact λ x, ⟨ind (t_inv x), _, rfl, ht_inv _⟩ },
   { refine λ x, ⟨U x, hxU x, ((hU x).image ind).subset _⟩,
-    simp only [subset_def, mem_Union, mem_set_of_eq, set.nonempty, mem_inter_eq],
+    simv only [subset_def, mem_Union, mem_set_of_eq, set.nonempty, mem_inter_eq],
     rintro i ⟨y, ⟨a, rfl, hya⟩, hyU⟩,
     exact mem_image_of_mem _ ⟨y, hya, hyU⟩ },
-  { simp only [subset_def, mem_Union],
+  { simv only [subset_def, mem_Union],
     rintro i x ⟨a, rfl, hxa⟩,
     exact hind _ hxa }
 end
@@ -98,7 +98,7 @@ begin
   rcases precise_refinement (option.elim sᶜ u)
     (option.forall.2 ⟨is_open_compl_iff.2 hs, uo⟩) _ with ⟨v, vo, vc, vf, vu⟩,
   refine ⟨v ∘ some, λ i, vo _, _, vf.comp_injective (option.some_injective _), λ i, vu _⟩,
-  { simp only [Union_option, ← compl_subset_iff_union] at vc,
+  { simv only [Union_option, ← compl_subset_iff_union] at vc,
     exact subset.trans (subset_compl_comm.1 $ vu option.none) vc },
   { simpa only [Union_option, option.elim, ← compl_subset_iff_union, compl_compl] }
 end
@@ -110,7 +110,7 @@ begin
   -- the proof is trivial: we choose a finite subcover using compactness, and use it
   refine ⟨λ ι s ho hu, _⟩,
   rcases compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
-  have := hT, simp only [subset_def, mem_Union] at this,
+  have := hT, simv only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
   refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_finite _, λ t, ⟨t, subset.rfl⟩⟩,
   simpa only [Union_coe_set, ← univ_subset_iff]
@@ -178,7 +178,7 @@ begin
     have : (⋃ k ≤ K'.find x + 2, (range $ sigma.mk k) : set (Σ n, T' n)).finite,
       from (finite_le_nat _).bUnion (λ k hk, finite_range _),
     apply this.subset, rintro ⟨k, c, hc⟩,
-    simp only [mem_Union, mem_set_of_eq, mem_image_eq, subtype.coe_mk],
+    simv only [mem_Union, mem_set_of_eq, mem_image_eq, subtype.coe_mk],
     rintro ⟨x, hxB : x ∈ B c (r k c), hxK⟩,
     refine ⟨k, _, ⟨c, hc⟩, rfl⟩,
     have := (mem_compl_iff _ _).1 (hr k c hxB),

@@ -43,7 +43,7 @@ def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair
       naturality' := by rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟨⟩⟩⟩; refl, }},
   is_limit :=
   { lift := λ s, add_monoid_hom.prod (s.π.app ⟨walking_pair.left⟩) (s.π.app ⟨walking_pair.right⟩),
-    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp, } },
+    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simv, } },
     uniq' := λ s m w, begin
       ext; [rw ← w ⟨walking_pair.left⟩, rw ← w ⟨walking_pair.right⟩]; refl,
     end, } }
@@ -64,11 +64,11 @@ is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit G H)
   (binary_product_limit_cone G H).is_limit
 
-@[simp, elementwise] lemma biprod_iso_prod_inv_comp_fst (G H : AddCommGroup.{u}) :
+@[simv, elementwise] lemma biprod_iso_prod_inv_comp_fst (G H : AddCommGroup.{u}) :
   (biprod_iso_prod G H).inv ≫ biprod.fst = add_monoid_hom.fst G H :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.left)
 
-@[simp, elementwise] lemma biprod_iso_prod_inv_comp_snd (G H : AddCommGroup.{u}) :
+@[simv, elementwise] lemma biprod_iso_prod_inv_comp_snd (G H : AddCommGroup.{u}) :
   (biprod_iso_prod G H).inv ≫ biprod.snd = add_monoid_hom.snd G H :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.right)
 
@@ -83,8 +83,8 @@ to the cartesian product of those groups.
 def lift (s : fan f) :
   s.X ⟶ AddCommGroup.of (Π j,f j) :=
 { to_fun := λ x j, s.π.app ⟨j⟩ x,
-  map_zero' := by { ext, simp },
-  map_add' := λ x y, by { ext, simp }, }
+  map_zero' := by { ext, simv },
+  map_add' := λ x y, by { ext, simv }, }
 
 /--
 Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π j, F.obj j)`.
@@ -95,12 +95,12 @@ Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π
     π := discrete.nat_trans (λ j, pi.eval_add_monoid_hom (λ j, f j) j.as), },
   is_limit :=
   { lift := lift f,
-    fac' := λ s j, by { cases j, ext, simp, },
+    fac' := λ s j, by { cases j, ext, simv, },
     uniq' := λ s m w,
     begin
       ext x j,
       dsimp only [has_limit.lift],
-      simp only [add_monoid_hom.coe_mk],
+      simv only [add_monoid_hom.coe_mk],
       exact congr_arg (λ g : s.X ⟶ f j, (g : s.X → f j) x) (w ⟨j⟩),
     end, }, }
 
@@ -121,7 +121,7 @@ is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π (f : J → AddCommGroup.{u}) (j : J) :
+@[simv, elementwise] lemma biproduct_iso_pi_inv_comp_π (f : J → AddCommGroup.{u}) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, f j) j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)
 

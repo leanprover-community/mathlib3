@@ -87,7 +87,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
               begin
                 apply finset.prod_union,
                 have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
-                { simp only [finset.disjoint_left, and_imp, finset.mem_Ico, not_lt,
+                { simv only [finset.disjoint_left, and_imp, finset.mem_Ico, not_lt,
                     finset.mem_range],
                   intros _ pr _, exact pr, },
                 exact finset.disjoint_filter_filter disj,
@@ -103,7 +103,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                   { intros a, rw finset.mem_filter,
                     intros pr,
                     rcases pr with ⟨ size, is_prime ⟩,
-                    simp only [finset.mem_Ico] at size,
+                    simv only [finset.mem_Ico] at size,
                     rcases size with ⟨ a_big , a_small ⟩,
                     exact dvd_choose_of_middling_prime a is_prime m a_big
                       (nat.lt_succ_iff.mp a_small), }, },

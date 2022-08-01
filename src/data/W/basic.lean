@@ -96,11 +96,11 @@ lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
       (λ n ih, ⟨a, λ _, ih⟩)) _,
   intros n m h,
   induction n with n ih generalizing m h,
-  { cases m with m; simp * at * },
+  { cases m with m; simv * at * },
   { cases m with m,
-    { simp * at * },
+    { simv * at * },
     { refine congr_arg nat.succ (ih _),
-      simp [function.funext_iff, *] at * } }
+      simv [function.funext_iff, *] at * } }
 end⟩
 
 variables [Π a : α, fintype (β a)]

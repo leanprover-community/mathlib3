@@ -38,7 +38,7 @@ lemma add_subgroup.cyclic_of_min {H : add_subgroup G} {a : G}
   (ha : is_least {g : G | g ∈ H ∧ 0 < g} a) : H = add_subgroup.closure {a} :=
 begin
   obtain ⟨⟨a_in, a_pos⟩, a_min⟩ := ha,
-  refine le_antisymm _ (H.closure_le.mpr $ by simp [a_in]),
+  refine le_antisymm _ (H.closure_le.mpr $ by simv [a_in]),
   intros g g_in,
   obtain ⟨k, ⟨nonneg, lt⟩, _⟩ : ∃! k, 0 ≤ g - k • a ∧ g - k • a < a :=
     exists_unique_zsmul_near_of_pos' a_pos g,
@@ -50,7 +50,7 @@ begin
       { exact lt_of_le_of_ne nonneg (ne.symm h) } },
     have h' : ¬ (a ≤ g - k • a) := not_le.mpr lt,
     contradiction },
-  simp [sub_eq_zero.mp h_zero, add_subgroup.mem_closure_singleton],
+  simv [sub_eq_zero.mp h_zero, add_subgroup.mem_closure_singleton],
 end
 
 /-- Every subgroup of `ℤ` is cyclic. -/

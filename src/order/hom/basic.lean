@@ -103,7 +103,7 @@ class order_iso_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le 
 
 export order_iso_class (map_le_map_iff)
 
-attribute [simp] map_le_map_iff
+attribute [simv] map_le_map_iff
 
 instance [has_le α] [has_le β] [order_iso_class F α β] : has_coe_t F (α ≃o β) :=
 ⟨λ f, ⟨f, λ _ _, map_le_map_iff f⟩⟩
@@ -199,7 +199,7 @@ instance {β : Type*} [partial_order β] : partial_order (α →o β) :=
 
 lemma le_def {f g : α →o β} : f ≤ g ↔ ∀ x, f x ≤ g x := iff.rfl
 
-@[simp, norm_cast] lemma coe_le_coe {f g : α →o β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simv, norm_cast] lemma coe_le_coe {f g : α →o β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
 
 @[simp] lemma mk_le_mk {f g : α → β} {hf hg} : mk f hf ≤ mk g hg ↔ f ≤ g := iff.rfl
 
@@ -214,7 +214,7 @@ def curry : (α × β →o γ) ≃o (α →o β →o γ) :=
   inv_fun := λ f, ⟨function.uncurry (λ x, f x), λ x y h, (f.mono h.1 x.2).trans $ (f y.1).mono h.2⟩,
   left_inv := λ f, by { ext ⟨x, y⟩, refl },
   right_inv := λ f, by { ext x y, refl },
-  map_rel_iff' := λ f g, by simp [le_def] }
+  map_rel_iff' := λ f g, by simv [le_def] }
 
 @[simp] lemma curry_apply (f : α × β →o γ) (x : α) (y : β) : curry f x y = f (x, y) := rfl
 
@@ -381,7 +381,7 @@ end order_hom
 def rel_embedding.order_embedding_of_lt_embedding [partial_order α] [partial_order β]
   (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
   α ↪o β :=
-{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective.eq_iff] }, .. f }
+{ map_rel_iff' := by { intros, simv [le_iff_lt_or_eq,f.map_rel_iff, f.injective.eq_iff] }, .. f }
 
 @[simp]
 lemma rel_embedding.order_embedding_of_lt_embedding_apply [partial_order α] [partial_order β]
@@ -394,7 +394,7 @@ variables [preorder α] [preorder β] (f : α ↪o β)
 
 /-- `<` is preserved by order embeddings of preorders. -/
 def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
-{ map_rel_iff' := by intros; simp [lt_iff_le_not_le, f.map_rel_iff], .. f }
+{ map_rel_iff' := by intros; simv [lt_iff_le_not_le, f.map_rel_iff], .. f }
 
 @[simp] lemma lt_embedding_apply (x : α) : f.lt_embedding x = f x := rfl
 
@@ -648,7 +648,7 @@ def to_rel_iso_lt (e : α ≃o β) : ((<) : α → α → Prop) ≃r ((<) : β �
 /-- Converts a `rel_iso (<) (<)` into an `order_iso`. -/
 def of_rel_iso_lt {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : α ≃o β :=
-⟨e.to_equiv, λ x y, by simp [le_iff_eq_or_lt, e.map_rel_iff]⟩
+⟨e.to_equiv, λ x y, by simv [le_iff_eq_or_lt, e.map_rel_iff]⟩
 
 @[simp] lemma of_rel_iso_lt_apply {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) (x : α) : of_rel_iso_lt e x = e x := rfl
@@ -659,11 +659,11 @@ def of_rel_iso_lt {α β} [partial_order α] [partial_order β]
 
 @[simp] lemma of_rel_iso_lt_to_rel_iso_lt {α β} [partial_order α] [partial_order β] (e : α ≃o β) :
   of_rel_iso_lt (to_rel_iso_lt e) = e :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma to_rel_iso_lt_of_rel_iso_lt {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : to_rel_iso_lt (of_rel_iso_lt e) = e :=
-by { ext, simp }
+by { ext, simv }
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
@@ -704,7 +704,7 @@ def set.univ : (set.univ : set α) ≃o α :=
 @[simps to_equiv apply] def fun_unique (α β : Type*) [unique α] [preorder β] :
   (α → β) ≃o β :=
 { to_equiv := equiv.fun_unique α β,
-  map_rel_iff' := λ f g, by simp [pi.le_def, unique.forall_iff] }
+  map_rel_iff' := λ f g, by simv [pi.le_def, unique.forall_iff] }
 
 @[simp] lemma fun_unique_symm_apply {α β : Type*} [unique α] [preorder β] :
   ((fun_unique α β).symm : β → α → β) = function.const α := rfl

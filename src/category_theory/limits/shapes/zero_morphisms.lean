@@ -149,10 +149,10 @@ lemma iff_id_eq_zero (X : C) : is_zero X ↔ (𝟙 X = 0) :=
   λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←comp_id f, ←comp_id default, h, comp_zero, comp_zero], }⟩⟩⟩⟩
 
 lemma of_mono_zero (X Y : C) [mono (0 : X ⟶ Y)] : is_zero X :=
-(iff_id_eq_zero X).mpr ((cancel_mono (0 : X ⟶ Y)).1 (by simp))
+(iff_id_eq_zero X).mpr ((cancel_mono (0 : X ⟶ Y)).1 (by simv))
 
 lemma of_epi_zero (X Y : C) [epi (0 : X ⟶ Y)] : is_zero Y :=
-(iff_id_eq_zero Y).mpr ((cancel_epi (0 : X ⟶ Y)).1 (by simp))
+(iff_id_eq_zero Y).mpr ((cancel_epi (0 : X ⟶ Y)).1 (by simv))
 
 lemma of_mono_eq_zero {X Y : C} (f : X ⟶ Y) [mono f] (h : f = 0) : is_zero X :=
 by { unfreezingI { subst h, }, apply of_mono_zero X Y, }
@@ -165,7 +165,7 @@ begin
   rw iff_id_eq_zero,
   split,
   { intro h, rw [←category.id_comp f, h, zero_comp], },
-  { intro h, rw [←split_mono.id f], simp [h], },
+  { intro h, rw [←split_mono.id f], simv [h], },
 end
 
 lemma iff_split_epi_eq_zero {X Y : C} (f : X ⟶ Y) [split_epi f] : is_zero Y ↔ f = 0 :=
@@ -173,7 +173,7 @@ begin
   rw iff_id_eq_zero,
   split,
   { intro h, rw [←category.comp_id f, h, comp_zero], },
-  { intro h, rw [←split_epi.id f], simp [h], },
+  { intro h, rw [←split_epi.id f], simv [h], },
 end
 
 lemma of_mono {X Y : C} (f : X ⟶ Y) [mono f] (i : is_zero Y) : is_zero X :=
@@ -288,13 +288,13 @@ lemma id_zero : 𝟙 (0 : C) = (0 : 0 ⟶ 0) :=
 by ext
 
 /--  An arrow ending in the zero object is zero -/
--- This can't be a `simp` lemma because the left hand side would be a metavariable.
+-- This can't be a `simv` lemma because the left hand side would be a metavariable.
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
 by ext
 
 lemma zero_of_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : Y ≅ 0) : f = 0 :=
 begin
-  have h : f = f ≫ i.hom ≫ 𝟙 0 ≫ i.inv := by simp only [iso.hom_inv_id, id_comp, comp_id],
+  have h : f = f ≫ i.hom ≫ 𝟙 0 ≫ i.inv := by simv only [iso.hom_inv_id, id_comp, comp_id],
   simpa using h,
 end
 
@@ -304,7 +304,7 @@ by ext
 
 lemma zero_of_source_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) : f = 0 :=
 begin
-  have h : f = i.hom ≫ 𝟙 0 ≫ i.inv ≫ f := by simp only [iso.hom_inv_id_assoc, id_comp, comp_id],
+  have h : f = i.hom ≫ 𝟙 0 ≫ i.inv ≫ f := by simv only [iso.hom_inv_id_assoc, id_comp, comp_id],
   simpa using h,
 end
 
@@ -343,14 +343,14 @@ lemma id_zero_equiv_iso_zero_apply_inv (X : C) (h : 𝟙 X = 0) :
 def iso_zero_of_mono_zero {X Y : C} (h : mono (0 : X ⟶ Y)) : X ≅ 0 :=
 { hom := 0,
   inv := 0,
-  hom_inv_id' := (cancel_mono (0 : X ⟶ Y)).mp (by simp) }
+  hom_inv_id' := (cancel_mono (0 : X ⟶ Y)).mp (by simv) }
 
 /-- If `0 : X ⟶ Y` is an epimorphism, then `Y ≅ 0`. -/
 @[simps]
 def iso_zero_of_epi_zero {X Y : C} (h : epi (0 : X ⟶ Y)) : Y ≅ 0 :=
 { hom := 0,
   inv := 0,
-  hom_inv_id' := (cancel_epi (0 : X ⟶ Y)).mp (by simp) }
+  hom_inv_id' := (cancel_epi (0 : X ⟶ Y)).mp (by simv) }
 
 /-- If a monomorphism out of `X` is zero, then `X ≅ 0`. -/
 def iso_zero_of_mono_eq_zero {X Y : C} {f : X ⟶ Y} [mono f] (h : f = 0) : X ≅ 0 :=
@@ -370,9 +370,9 @@ def iso_of_is_isomorphic_zero {X : C} (P : is_isomorphic X 0) : X ≅ 0 :=
     casesI P,
     rw ←P.hom_inv_id,
     rw ←category.id_comp P.inv,
-    simp,
+    simv,
   end,
-  inv_hom_id' := by simp, }
+  inv_hom_id' := by simv, }
 
 end
 
@@ -386,7 +386,7 @@ the identities on both `X` and `Y` are zero.
 @[simps]
 def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
 { to_fun := by { introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y),
-    rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp },
+    rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simv },
   inv_fun := λ h, ⟨⟨(0 : Y ⟶ X), by tidy⟩⟩,
   left_inv := by tidy,
   right_inv := by tidy, }
@@ -464,11 +464,11 @@ variable [has_zero_morphisms C]
 
 lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
   [epi (factor_thru_image f)] (h : f ≫ g = 0) : image.ι f ≫ g = 0 :=
-zero_of_epi_comp (factor_thru_image f) $ by simp [h]
+zero_of_epi_comp (factor_thru_image f) $ by simv [h]
 
 lemma comp_factor_thru_image_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image g]
   (h : f ≫ g = 0) : f ≫ factor_thru_image g = 0 :=
-zero_of_comp_mono (image.ι g) $ by simp [h]
+zero_of_comp_mono (image.ι g) $ by simv [h]
 
 variables [has_zero_object C]
 open_locale zero_object
@@ -503,7 +503,7 @@ image.eq_to_iso h ≪≫ image_zero
 lemma image.ι_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image.ι (0 : X ⟶ Y) = 0 :=
 begin
   rw ←image.lift_fac (mono_factorisation_zero X Y),
-  simp,
+  simv,
 end
 
 /--
@@ -514,7 +514,7 @@ because `f = g` only implies `image f ≅ image g`.
 @[simp]
 lemma image.ι_zero' [has_equalizers C] {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] :
   image.ι f = 0 :=
-by { rw image.eq_fac h, simp }
+by { rw image.eq_fac h, simv }
 
 end image
 

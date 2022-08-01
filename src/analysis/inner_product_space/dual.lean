@@ -73,7 +73,7 @@ begin
   apply (to_dual_map 𝕜 E).map_eq_iff.mp,
   refine (function.injective.eq_iff continuous_linear_map.coe_injective).mp (basis.ext b _),
   intro i,
-  simp only [to_dual_map_apply, continuous_linear_map.coe_coe],
+  simv only [to_dual_map_apply, continuous_linear_map.coe_coe],
   rw [←inner_conj_sym],
   nth_rewrite_rhs 0 [←inner_conj_sym],
   exact congr_arg conj (h i)
@@ -106,7 +106,7 @@ begin
       rw [←coe_zero] at h',
       apply coe_injective,
       exact h' },
-    exact ⟨0, by simp [hℓ]⟩ },
+    exact ⟨0, by simv [hℓ]⟩ },
   { rw [← submodule.orthogonal_eq_bot_iff] at htriv,
     change Yᗮ ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
@@ -121,11 +121,11 @@ begin
     { have h₃ := calc
         0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫       : by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
          ... = ⟪z, (ℓ z) • x⟫ - ⟪z, (ℓ x) • z⟫  : by rw [inner_sub_right]
-         ... = (ℓ z) * ⟪z, x⟫ - (ℓ x) * ⟪z, z⟫  : by simp [inner_smul_right],
+         ... = (ℓ z) * ⟪z, x⟫ - (ℓ x) * ⟪z, z⟫  : by simv [inner_smul_right],
       exact sub_eq_zero.mp (eq.symm h₃) },
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
-            : by simp [inner_smul_left, ring_hom.map_div, conj_conj]
+            : by simv [inner_smul_left, ring_hom.map_div, conj_conj]
                             ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
             : by rw [←div_mul_eq_mul_div]
                             ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
@@ -148,7 +148,7 @@ variables {𝕜} {E}
   ⟪(to_dual 𝕜 E).symm y, x⟫ = y x :=
 begin
   rw ← to_dual_apply,
-  simp only [linear_isometry_equiv.apply_symm_apply],
+  simv only [linear_isometry_equiv.apply_symm_apply],
 end
 
 variables {E 𝕜}
@@ -167,7 +167,7 @@ variables (B : E →L⋆[𝕜] E →L[𝕜] 𝕜)
 
 @[simp]
 lemma continuous_linear_map_of_bilin_apply (v w : E) : ⟪(B♯ v), w⟫ = B v w :=
-by simp [continuous_linear_map_of_bilin]
+by simv [continuous_linear_map_of_bilin]
 
 lemma unique_continuous_linear_map_of_bilin {v f : E}
   (is_lax_milgram : (∀ w, ⟪f, w⟫ = B v w)) :

@@ -38,7 +38,7 @@ lemma is_equivalent_at_top_lead :
   (λ x, eval x P) ~[at_top] (λ x, P.leading_coeff * x ^ P.nat_degree) :=
 begin
   by_cases h : P = 0,
-  { simp [h] },
+  { simv [h] },
   { conv_rhs
     { funext,
       rw [polynomial.eval_eq_sum_range, sum_range_succ] },
@@ -65,7 +65,7 @@ end
 
 lemma tendsto_at_bot_iff_leading_coeff_nonpos :
   tendsto (λ x, eval x P) at_top at_bot ↔ 0 < P.degree ∧ P.leading_coeff ≤ 0 :=
-by simp only [← tendsto_neg_at_top_iff, ← eval_neg, tendsto_at_top_iff_leading_coeff_nonneg,
+by simv only [← tendsto_neg_at_top_iff, ← eval_neg, tendsto_at_top_iff_leading_coeff_nonneg,
   degree_neg, leading_coeff_neg, neg_nonneg]
 
 lemma tendsto_at_bot_of_leading_coeff_nonpos (hdeg : 0 < P.degree) (hnps : P.leading_coeff ≤ 0) :
@@ -101,13 +101,13 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { have := P.is_equivalent_at_top_lead.tendsto_nhds h,
     by_cases hP : P.leading_coeff = 0,
-    { simp only [hP, zero_mul, tendsto_const_nhds_iff] at this,
-      refine ⟨trans hP this, by simp [leading_coeff_eq_zero.1 hP]⟩ },
+    { simv only [hP, zero_mul, tendsto_const_nhds_iff] at this,
+      refine ⟨trans hP this, by simv [leading_coeff_eq_zero.1 hP]⟩ },
     { rw [tendsto_const_mul_pow_nhds_iff hP, nat_degree_eq_zero_iff_degree_le_zero] at this,
       exact this.symm } },
   { refine P.is_equivalent_at_top_lead.symm.tendsto_nhds _,
     have : P.nat_degree = 0 := nat_degree_eq_zero_iff_degree_le_zero.2 h.2,
-    simp only [h.1, this, pow_zero, mul_one],
+    simv only [h.1, this, pow_zero, mul_one],
     exact tendsto_const_nhds }
 end
 
@@ -120,20 +120,20 @@ lemma is_equivalent_at_top_div :
     λ x, P.leading_coeff/Q.leading_coeff * x^(P.nat_degree - Q.nat_degree : ℤ) :=
 begin
   by_cases hP : P = 0,
-  { simp [hP] },
+  { simv [hP] },
   by_cases hQ : Q = 0,
-  { simp [hQ] },
+  { simv [hQ] },
   refine (P.is_equivalent_at_top_lead.symm.div
           Q.is_equivalent_at_top_lead.symm).symm.trans
          (eventually_eq.is_equivalent ((eventually_gt_at_top 0).mono $ λ x hx, _)),
-  simp [← div_mul_div_comm, hP, hQ, zpow_sub₀ hx.ne.symm]
+  simv [← div_mul_div_comm, hP, hQ, zpow_sub₀ hx.ne.symm]
 end
 
 lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top (𝓝 0) :=
 begin
   by_cases hP : P = 0,
-  { simp [hP, tendsto_const_nhds] },
+  { simv [hP, tendsto_const_nhds] },
   rw ←  nat_degree_lt_nat_degree_iff hP at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
   rw ← mul_zero,
@@ -146,7 +146,7 @@ lemma div_tendsto_zero_iff_degree_lt (hQ : Q ≠ 0) :
 begin
   refine ⟨λ h, _, div_tendsto_zero_of_degree_lt P Q⟩,
   by_cases hPQ : P.leading_coeff / Q.leading_coeff = 0,
-  { simp only [div_eq_mul_inv, inv_eq_zero, mul_eq_zero] at hPQ,
+  { simv only [div_eq_mul_inv, inv_eq_zero, mul_eq_zero] at hPQ,
     cases hPQ with hP0 hQ0,
     { rw [leading_coeff_eq_zero.1 hP0, degree_zero],
       exact bot_lt_iff_ne_bot.2 (λ hQ', hQ (degree_eq_bot.1 hQ')) },
@@ -163,15 +163,15 @@ lemma div_tendsto_leading_coeff_div_of_degree_eq (hdeg : P.degree = Q.degree) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top (𝓝 $ P.leading_coeff / Q.leading_coeff) :=
 begin
   refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
-  rw show (P.nat_degree : ℤ) = Q.nat_degree, by simp [hdeg, nat_degree],
-  simp [tendsto_const_nhds]
+  rw show (P.nat_degree : ℤ) = Q.nat_degree, by simv [hdeg, nat_degree],
+  simv [tendsto_const_nhds]
 end
 
 lemma div_tendsto_at_top_of_degree_gt' (hdeg : Q.degree < P.degree)
   (hpos : 0 < P.leading_coeff/Q.leading_coeff) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top at_top :=
 begin
-  have hQ : Q ≠ 0 := λ h, by {simp only [h, div_zero, leading_coeff_zero] at hpos, linarith},
+  have hQ : Q ≠ 0 := λ h, by {simv only [h, div_zero, leading_coeff_zero] at hpos, linarith},
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_at_top _,
   apply tendsto.const_mul_at_top hpos,
@@ -192,7 +192,7 @@ lemma div_tendsto_at_bot_of_degree_gt' (hdeg : Q.degree < P.degree)
   (hneg : P.leading_coeff/Q.leading_coeff < 0) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top at_bot :=
 begin
-  have hQ : Q ≠ 0 := λ h, by {simp only [h, div_zero, leading_coeff_zero] at hneg, linarith},
+  have hQ : Q ≠ 0 := λ h, by {simv only [h, div_zero, leading_coeff_zero] at hneg, linarith},
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_at_bot _,
   apply tendsto.neg_const_mul_at_top hneg,

@@ -95,9 +95,9 @@ def free : Type u ⥤ Algebra.{u} R :=
     is_ring := algebra.semiring_to_ring R },
   map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f,
   -- obviously can fill the next two goals, but it is slow
-  map_id' := by { intros X, ext1, simp only [free_algebra.ι_comp_lift], refl },
-  map_comp' := by { intros, ext1, simp only [free_algebra.ι_comp_lift], ext1,
-    simp only [free_algebra.lift_ι_apply, category_theory.coe_comp, function.comp_app,
+  map_id' := by { intros X, ext1, simv only [free_algebra.ι_comp_lift], refl },
+  map_comp' := by { intros, ext1, simv only [free_algebra.ι_comp_lift], ext1,
+    simv only [free_algebra.lift_ι_apply, category_theory.coe_comp, function.comp_app,
       types_comp_apply] } }
 
 /-- The free/forget adjunction for `R`-algebras. -/
@@ -106,10 +106,10 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X A, (free_algebra.lift _).symm,
   -- Relying on `obviously` to fill out these proofs is very slow :(
   hom_equiv_naturality_left_symm' := by { intros, ext,
-    simp only [free_map, equiv.symm_symm, free_algebra.lift_ι_apply, category_theory.coe_comp,
+    simv only [free_map, equiv.symm_symm, free_algebra.lift_ι_apply, category_theory.coe_comp,
       function.comp_app, types_comp_apply] },
   hom_equiv_naturality_right' := by { intros, ext,
-    simp only [forget_map_eq_coe, category_theory.coe_comp, function.comp_app,
+    simv only [forget_map_eq_coe, category_theory.coe_comp, function.comp_app,
       free_algebra.lift_symm_apply, types_comp_apply] } }
 
 instance : is_right_adjoint (forget (Algebra.{u} R)) := ⟨_, adj R⟩

@@ -35,11 +35,11 @@ def xgcd_aux : ℕ → ℤ → ℤ → ℕ → ℤ → ℤ → ℕ × ℤ × ℤ
   let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
 
 @[simp] theorem xgcd_zero_left {s t r' s' t'} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
-by simp [xgcd_aux]
+by simv [xgcd_aux]
 
 theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
-by cases r; [exact absurd h (lt_irrefl _), {simp only [xgcd_aux], refl}]
+by cases r; [exact absurd h (lt_irrefl _), {simv only [xgcd_aux], refl}]
 
 /-- Use the extended GCD algorithm to generate the `a` and `b` values
   satisfying `gcd x y = x * a + y * b`. -/
@@ -62,7 +62,7 @@ begin
   unfold gcd_a xgcd,
   induction s,
   { exact absurd rfl h, },
-  { simp [xgcd_aux], }
+  { simv [xgcd_aux], }
 end
 
 @[simp] theorem gcd_b_zero_right {s : ℕ} (h : s ≠ 0) : gcd_b s 0 = 0 :=
@@ -70,12 +70,12 @@ begin
   unfold gcd_b xgcd,
   induction s,
   { exact absurd rfl h, },
-  { simp [xgcd_aux], }
+  { simv [xgcd_aux], }
 end
 
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
-gcd.induction x y (by simp) (λ x y h IH s t s' t', by simp [xgcd_aux_rec, h, IH]; rw ← gcd_rec)
+gcd.induction x y (by simv) (λ x y h IH s t s' t', by simv [xgcd_aux_rec, h, IH]; rw ← gcd_rec)
 
 theorem xgcd_aux_val (x y) : xgcd_aux x 1 0 y 0 1 = (gcd x y, xgcd x y) :=
 by rw [xgcd, ← xgcd_aux_fst x y 1 0 0 1]; cases xgcd_aux x 1 0 y 0 1; refl
@@ -91,18 +91,18 @@ private def P : ℕ × ℤ × ℤ → Prop
 
 theorem xgcd_aux_P {r r'} : ∀ {s t s' t'}, P (r, s, t) → P (r', s', t') →
   P (xgcd_aux r s t r' s' t') :=
-gcd.induction r r' (by simp) $ λ a b h IH s t s' t' p p', begin
+gcd.induction r r' (by simv) $ λ a b h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
   rw [int.mod_def], generalize : (b / a : ℤ) = k,
   rw [p, p'],
-  simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add, mul_assoc]
+  simv [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add, mul_assoc]
 end
 
 /-- **Bézout's lemma**: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
 `b = gcd_b x y` are computed by the extended Euclidean algorithm.
 -/
 theorem gcd_eq_gcd_ab : (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y :=
-by have := @xgcd_aux_P x y x y 1 0 0 1 (by simp [P]) (by simp [P]);
+by have := @xgcd_aux_P x y x y 1 0 0 1 (by simv [P]) (by simv [P]);
    rwa [xgcd_aux_val, xgcd_val] at this
 end
 
@@ -151,7 +151,7 @@ theorem gcd_eq_gcd_ab : ∀ x y : ℤ, (gcd x y : ℤ) = x * gcd_a x y + y * gcd
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin
   cases (nat.eq_zero_or_pos (nat_abs b)),
-  {rw eq_zero_of_nat_abs_eq_zero h, simp [int.div_zero]},
+  {rw eq_zero_of_nat_abs_eq_zero h, simv [int.div_zero]},
   calc
   nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
     ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h
@@ -208,11 +208,11 @@ theorem gcd_comm (i j : ℤ) : gcd i j = gcd j i := nat.gcd_comm _ _
 
 theorem gcd_assoc (i j k : ℤ) : gcd (gcd i j) k = gcd i (gcd j k) := nat.gcd_assoc _ _ _
 
-@[simp] theorem gcd_self (i : ℤ) : gcd i i = nat_abs i := by simp [gcd]
+@[simp] theorem gcd_self (i : ℤ) : gcd i i = nat_abs i := by simv [gcd]
 
-@[simp] theorem gcd_zero_left (i : ℤ) : gcd 0 i = nat_abs i := by simp [gcd]
+@[simp] theorem gcd_zero_left (i : ℤ) : gcd 0 i = nat_abs i := by simv [gcd]
 
-@[simp] theorem gcd_zero_right (i : ℤ) : gcd i 0 = nat_abs i := by simp [gcd]
+@[simp] theorem gcd_zero_right (i : ℤ) : gcd i 0 = nat_abs i := by simv [gcd]
 
 @[simp] theorem gcd_one_left (i : ℤ) : gcd 1 i = 1 := nat.gcd_one_left _
 
@@ -330,8 +330,8 @@ Compare with `is_coprime.dvd_of_dvd_mul_left` and
 lemma dvd_of_dvd_mul_left_of_gcd_one {a b c : ℤ} (habc : a ∣ b * c) (hab : gcd a c = 1) : a ∣ b :=
 begin
   have := gcd_eq_gcd_ab a c,
-  simp only [hab, int.coe_nat_zero, int.coe_nat_succ, zero_add] at this,
-  have : b * a * gcd_a a c + b * c * gcd_b a c = b, { simp [mul_assoc, ←mul_add, ←this] },
+  simv only [hab, int.coe_nat_zero, int.coe_nat_succ, zero_add] at this,
+  have : b * a * gcd_a a c + b * c * gcd_b a c = b, { simv [mul_assoc, ←mul_add, ←this] },
   rw ←this,
   exact dvd_add (dvd_mul_of_dvd_left (dvd_mul_left a b) _) (dvd_mul_of_dvd_left habc _),
 end
@@ -350,7 +350,7 @@ begin
   simp_rw ←gcd_dvd_iff,
   split,
   { simpa [and_true, dvd_refl, set.mem_set_of_eq] using gcd_pos_of_non_zero_left b ha },
-  { simp only [lower_bounds, and_imp, set.mem_set_of_eq],
+  { simv only [lower_bounds, and_imp, set.mem_set_of_eq],
     exact λ n hn_pos hn, nat.le_of_dvd hn_pos hn },
 end
 
@@ -396,12 +396,12 @@ end int
 lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1) (hn : x ^ n = 1) :
   x ^ m.gcd n = 1 :=
 begin
-  cases m, { simp only [hn, nat.gcd_zero_left] },
+  cases m, { simv only [hn, nat.gcd_zero_left] },
   obtain ⟨x, rfl⟩ : is_unit x,
   { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
-  simp only [← units.coe_pow] at *,
+  simv only [← units.coe_pow] at *,
   rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
-  simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
+  simv only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
 end
 
 lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)

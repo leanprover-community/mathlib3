@@ -84,7 +84,7 @@ def simps.coe_inv (u : αˣ) : α := ↑(u⁻¹)
 initialize_simps_projections units (val → coe as_prefix, inv → coe_inv as_prefix)
 initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg as_prefix)
 
-@[simp, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
+@[simv, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
 
 @[ext, to_additive] theorem ext :
   function.injective (coe : αˣ → α)
@@ -101,7 +101,7 @@ initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg a
 @[to_additive] instance [decidable_eq α] : decidable_eq αˣ :=
 λ a b, decidable_of_iff' _ ext_iff
 
-@[simp, to_additive] theorem mk_coe (u : αˣ) (y h₁ h₂) :
+@[simv, to_additive] theorem mk_coe (u : αˣ) (y h₁ h₂) :
   mk (u : α) y h₁ h₂ = u :=
 ext rfl
 
@@ -143,41 +143,41 @@ instance : group αˣ :=
 
 variables (a b c : αˣ) {u : αˣ}
 
-@[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+@[simv, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
 
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
+@[simv, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
 
-@[simp, norm_cast, to_additive] lemma coe_eq_one {a : αˣ} : (a : α) = 1 ↔ a = 1 :=
+@[simv, norm_cast, to_additive] lemma coe_eq_one {a : αˣ} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]
 
-@[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
+@[simv, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 
-@[simp, to_additive] lemma val_eq_coe : a.val = (↑a : α) := rfl
+@[simv, to_additive] lemma val_eq_coe : a.val = (↑a : α) := rfl
 
-@[simp, to_additive] lemma inv_eq_coe_inv : a.inv = ((a⁻¹ : αˣ) : α) := rfl
+@[simv, to_additive] lemma inv_eq_coe_inv : a.inv = ((a⁻¹ : αˣ) : α) := rfl
 
-@[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
-@[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
+@[simv, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
+@[simv, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
 @[to_additive] lemma inv_mul_of_eq {a : α} (h : ↑u = a) : ↑u⁻¹ * a = 1 := by rw [←h, u.inv_mul]
 @[to_additive] lemma mul_inv_of_eq {a : α} (h : ↑u = a) : a * ↑u⁻¹ = 1 := by rw [←h, u.mul_inv]
 
-@[simp, to_additive] lemma mul_inv_cancel_left (a : αˣ) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
+@[simv, to_additive] lemma mul_inv_cancel_left (a : αˣ) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_inv, one_mul]
 
-@[simp, to_additive] lemma inv_mul_cancel_left (a : αˣ) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
+@[simv, to_additive] lemma inv_mul_cancel_left (a : αˣ) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
 by rw [← mul_assoc, inv_mul, one_mul]
 
-@[simp, to_additive] lemma mul_inv_cancel_right (a : α) (b : αˣ) : a * b * ↑b⁻¹ = a :=
+@[simv, to_additive] lemma mul_inv_cancel_right (a : α) (b : αˣ) : a * b * ↑b⁻¹ = a :=
 by rw [mul_assoc, mul_inv, mul_one]
 
-@[simp, to_additive] lemma inv_mul_cancel_right (a : α) (b : αˣ) : a * ↑b⁻¹ * b = a :=
+@[simv, to_additive] lemma inv_mul_cancel_right (a : α) (b : αˣ) : a * ↑b⁻¹ * b = a :=
 by rw [mul_assoc, inv_mul, mul_one]
 
-@[simp, to_additive] theorem mul_right_inj (a : αˣ) {b c : α} : (a:α) * b = a * c ↔ b = c :=
+@[simv, to_additive] theorem mul_right_inj (a : αˣ) {b c : α} : (a:α) * b = a * c ↔ b = c :=
 ⟨λ h, by simpa only [inv_mul_cancel_left] using congr_arg ((*) ↑(a⁻¹ : αˣ)) h, congr_arg _⟩
 
-@[simp, to_additive] theorem mul_left_inj (a : αˣ) {b c : α} : b * a = c * a ↔ b = c :=
+@[simv, to_additive] theorem mul_left_inj (a : αˣ) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨λ h, by simpa only [mul_inv_cancel_right] using congr_arg (* ↑(a⁻¹ : αˣ)) h, congr_arg _⟩
 
 @[to_additive] theorem eq_mul_inv_iff_mul_eq {a b : α} : a = b * ↑c⁻¹ ↔ a * c = b :=
@@ -206,10 +206,10 @@ calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
 @[to_additive] protected lemma eq_inv_of_mul_eq_one_right {a : α} (h : a * u = 1) : a = ↑u⁻¹ :=
 (units.inv_eq_of_mul_eq_one_left h).symm
 
-@[simp, to_additive] lemma mul_inv_eq_one {a : α} : a * ↑u⁻¹ = 1 ↔ a = u :=
+@[simv, to_additive] lemma mul_inv_eq_one {a : α} : a * ↑u⁻¹ = 1 ↔ a = u :=
 ⟨inv_inv u ▸ units.eq_inv_of_mul_eq_one_right, λ h, mul_inv_of_eq h.symm⟩
 
-@[simp, to_additive] lemma inv_mul_eq_one {a : α} : ↑u⁻¹ * a = 1 ↔ ↑u = a :=
+@[simv, to_additive] lemma inv_mul_eq_one {a : α} : ↑u⁻¹ * a = 1 ↔ ↑u = a :=
 ⟨inv_inv u ▸ units.inv_eq_of_mul_eq_one_right, inv_mul_of_eq⟩
 
 @[to_additive] lemma mul_eq_one_iff_eq_inv {a : α} : a * u = 1 ↔ a = ↑u⁻¹ :=
@@ -230,7 +230,7 @@ def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) :
   αˣ :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
 
-@[simp, to_additive] lemma units.coe_mk_of_mul_eq_one [comm_monoid α] {a b : α} (h : a * b = 1) :
+@[simv, to_additive] lemma units.coe_mk_of_mul_eq_one [comm_monoid α] {a b : α} (h : a * b = 1) :
   (units.mk_of_mul_eq_one a b h : α) = a := rfl
 
 section monoid
@@ -262,7 +262,7 @@ mul_assoc _ _ _
 units.mul_left_inj _
 
 theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
-by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
+by simv only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 
 theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
 u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
@@ -325,10 +325,10 @@ attribute [nontriviality] is_add_unit_of_subsingleton
 { default := 1,
   uniq := λ a, units.coe_eq_one.mp $ subsingleton.elim (a : M) 1 }
 
-@[simp, to_additive is_add_unit_add_unit]
+@[simv, to_additive is_add_unit_add_unit]
 protected lemma units.is_unit [monoid M] (u : Mˣ) : is_unit (u : M) := ⟨u, rfl⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 
 @[to_additive] theorem is_unit_of_mul_eq_one [comm_monoid M]
@@ -350,14 +350,14 @@ by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
 
 @[to_additive] theorem is_unit_iff_exists_inv' [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, b * a = 1 :=
-by simp [is_unit_iff_exists_inv, mul_comm]
+by simv [is_unit_iff_exists_inv, mul_comm]
 
 @[to_additive]
 lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
 by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
 
 /-- Multiplication by a `u : Mˣ` on the right doesn't affect `is_unit`. -/
-@[simp, to_additive "Addition of a `u : add_units M` on the right doesn't
+@[simv, to_additive "Addition of a `u : add_units M` on the right doesn't
 affect `is_add_unit`."]
 theorem units.is_unit_mul_units [monoid M] (a : M) (u : Mˣ) :
   is_unit (a * u) ↔ is_unit a :=
@@ -368,7 +368,7 @@ iff.intro
   (λ v, v.mul u.is_unit)
 
 /-- Multiplication by a `u : Mˣ` on the left doesn't affect `is_unit`. -/
-@[simp, to_additive "Addition of a `u : add_units M` on the left doesn't affect `is_add_unit`."]
+@[simv, to_additive "Addition of a `u : add_units M` on the left doesn't affect `is_add_unit`."]
 theorem units.is_unit_units_mul {M : Type*} [monoid M] (u : Mˣ) (a : M) :
   is_unit (↑u * a) ↔ is_unit a :=
 iff.intro
@@ -387,7 +387,7 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
@@ -400,25 +400,25 @@ an additive monoid which is an additive unit. When `α` is a `subtraction_monoid
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin
   convert units.mul_inv _,
-  simp [h.unit_spec]
+  simv [h.unit_spec]
 end
 
 /-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/

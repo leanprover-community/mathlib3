@@ -103,9 +103,9 @@ by tidy
 rfl
 
 @[simp] lemma map_id_obj_unop (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).obj (unop U) = unop U :=
-by simp
+by simv
 @[simp] lemma op_map_id_obj (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).op.obj U = U :=
-by simp
+by simv
 
 /-- `opens.map f` and `open_nhds.map f` form a commuting square (up to natural isomorphism)
 with the inclusion functors into `opens X`. -/

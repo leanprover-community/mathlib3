@@ -69,7 +69,7 @@ lemma inc_matrix_apply_mul_inc_matrix_apply :
   G.inc_matrix R a e * G.inc_matrix R b e = (G.incidence_set a ∩ G.incidence_set b).indicator 1 e :=
 begin
   classical,
-  simp only [inc_matrix, set.indicator_apply, ←ite_and_mul_zero,
+  simv only [inc_matrix, set.indicator_apply, ←ite_and_mul_zero,
     pi.one_apply, mul_one, set.mem_inter_eq],
 end
 
@@ -92,7 +92,7 @@ variables [nontrivial R]
 
 lemma inc_matrix_apply_eq_zero_iff : G.inc_matrix R a e = 0 ↔ e ∉ G.incidence_set a :=
 begin
-  simp only [inc_matrix_apply, set.indicator_apply_eq_zero, pi.one_apply, one_ne_zero],
+  simv only [inc_matrix_apply, set.indicator_apply_eq_zero, pi.one_apply, one_ne_zero],
   exact iff.rfl,
 end
 
@@ -106,13 +106,13 @@ variables [fintype α] [non_assoc_semiring R] {a b : α} {e : sym2 α}
 
 lemma sum_inc_matrix_apply [decidable_eq α] [decidable_rel G.adj] :
   ∑ e, G.inc_matrix R a e = G.degree a :=
-by simp [inc_matrix_apply', sum_boole, set.filter_mem_univ_eq_to_finset]
+by simv [inc_matrix_apply', sum_boole, set.filter_mem_univ_eq_to_finset]
 
 lemma inc_matrix_mul_transpose_diag [decidable_eq α] [decidable_rel G.adj] :
   (G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ) a a = G.degree a :=
 begin
   rw ←sum_inc_matrix_apply,
-  simp [matrix.mul_apply, inc_matrix_apply', ←ite_and_mul_zero],
+  simv [matrix.mul_apply, inc_matrix_apply', ←ite_and_mul_zero],
 end
 
 lemma sum_inc_matrix_apply_of_mem_edge_set : e ∈ G.edge_set → ∑ a, G.inc_matrix R a e = 2 :=
@@ -122,10 +122,10 @@ begin
   intros a b h,
   rw mem_edge_set at h,
   rw [←nat.cast_two, ←card_doubleton h.ne],
-  simp only [inc_matrix_apply', sum_boole, mk_mem_incidence_set_iff, h, true_and],
+  simv only [inc_matrix_apply', sum_boole, mk_mem_incidence_set_iff, h, true_and],
   congr' 2,
   ext e,
-  simp only [mem_filter, mem_univ, true_and, mem_insert, mem_singleton],
+  simv only [mem_filter, mem_univ, true_and, mem_insert, mem_singleton],
 end
 
 lemma sum_inc_matrix_apply_of_not_mem_edge_set (h : e ∉ G.edge_set) : ∑ a, G.inc_matrix R a e = 0 :=
@@ -135,21 +135,21 @@ lemma inc_matrix_transpose_mul_diag [decidable_rel G.adj] :
   ((G.inc_matrix R)ᵀ ⬝ G.inc_matrix R) e e = if e ∈ G.edge_set then 2 else 0 :=
 begin
   classical,
-  simp only [matrix.mul_apply, inc_matrix_apply', transpose_apply, ←ite_and_mul_zero,
+  simv only [matrix.mul_apply, inc_matrix_apply', transpose_apply, ←ite_and_mul_zero,
     one_mul, sum_boole, and_self],
   split_ifs with h,
   { revert h,
     refine e.ind _,
     intros v w h,
     rw [←nat.cast_two, ←card_doubleton (G.ne_of_adj h)],
-    simp [mk_mem_incidence_set_iff, G.mem_edge_set.mp h],
+    simv [mk_mem_incidence_set_iff, G.mem_edge_set.mp h],
     congr' 2,
     ext u,
-    simp, },
+    simv, },
   { revert h,
     refine e.ind _,
     intros v w h,
-    simp [mk_mem_incidence_set_iff, G.mem_edge_set.not.mp h], },
+    simv [mk_mem_incidence_set_iff, G.mem_edge_set.not.mp h], },
 end
 
 end non_assoc_semiring
@@ -178,7 +178,7 @@ begin
   { subst b,
     convert G.inc_matrix_mul_transpose_diag },
   { exact G.inc_matrix_mul_transpose_apply_of_adj h' },
-  { simp only [matrix.mul_apply, matrix.transpose_apply,
+  { simv only [matrix.mul_apply, matrix.transpose_apply,
     G.inc_matrix_apply_mul_inc_matrix_apply_of_not_adj h h', sum_const_zero] }
 end
 

@@ -42,7 +42,7 @@ def sections_submodule (F : J ⥤ Module.{max v w} R) :
 { carrier := (F ⋙ forget (Module R)).sections,
   smul_mem' := λ r s sh j j' f,
   begin
-    simp only [forget_map_eq_coe, functor.comp_map, pi.smul_apply, linear_map.map_smul],
+    simv only [forget_map_eq_coe, functor.comp_map, pi.smul_apply, linear_map.map_smul],
     dsimp [functor.sections] at sh,
     rw sh f,
   end,
@@ -96,7 +96,7 @@ by refine is_limit.of_faithful
       (λ s, ⟨_, _, _⟩) (λ s, rfl);
     intros;
     ext j;
-    simp only [subtype.coe_mk, functor.map_cone_π_app, forget_map_eq_coe,
+    simv only [subtype.coe_mk, functor.map_cone_π_app, forget_map_eq_coe,
          linear_map.map_add, linear_map.map_smul];
     refl
 
@@ -201,7 +201,7 @@ def direct_limit_is_colimit [nonempty ι] [is_directed ι (≤)] :
     { funext i, rw ← h, refl },
     apply linear_map.ext,
     intro x,
-    simp only [this],
+    simv only [this],
     apply module.direct_limit.lift_unique
   end }
 

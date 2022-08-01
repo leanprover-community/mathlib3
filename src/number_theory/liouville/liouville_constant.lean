@@ -160,7 +160,7 @@ begin
       rw [add_mul, one_mul, nat.factorial_succ,
         show k.succ * k! - k! = (k.succ - 1) * k!, by rw [tsub_mul, one_mul],
         nat.succ_sub_one, add_mul, one_mul, pow_add],
-      simp [mul_assoc] },
+      simv [mul_assoc] },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end

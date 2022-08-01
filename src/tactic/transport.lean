@@ -75,7 +75,7 @@ do
       -- The goal probably has messy expressions produced by `equiv_rw` acting on early data fields,
       -- so we clean up a little.
       try unfold_projs_target,
-      `[simp only with transport_simps],
+      `[simv only with transport_simps],
       -- If the field is an equation in `β`, try to use injectivity of the equivalence
       -- to turn it into an equation in `α`.
       -- (If the left hand side of the equation involved an operation we've already transported,
@@ -105,7 +105,7 @@ You can specify the object to transport using `transport s using e`.
 rewriting them using `equiv_rw e` and defining a new structure using these rewritten fields.
 
 If it fails to fill in all the new fields, `transport` will produce new subgoals.
-It's probably best to think about which missing `simp` lemmas would have allowed `transport`
+It's probably best to think about which missing `simv` lemmas would have allowed `transport`
 to finish, rather than solving these goals by hand.
 (This may require looking at the implementation of `tranport` to understand its algorithm;
 there are several examples of "transport-by-hand" at the end of `test/equiv_rw.lean`,

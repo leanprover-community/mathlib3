@@ -22,7 +22,7 @@ namespace ideal
 /-- `I × J` as an ideal of `R × S`. -/
 def prod : ideal (R × S) :=
 { carrier := { x | x.fst ∈ I ∧ x.snd ∈ J },
-  zero_mem' := by simp,
+  zero_mem' := by simv,
   add_mem' :=
   begin
     rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨ha₁, ha₂⟩ ⟨hb₁, hb₂⟩,
@@ -35,7 +35,7 @@ def prod : ideal (R × S) :=
   end }
 
 @[simp] lemma mem_prod {r : R} {s : S} : (⟨r, s⟩ : R × S) ∈ prod I J ↔ r ∈ I ∧ s ∈ J := iff.rfl
-@[simp] lemma prod_top_top : prod (⊤ : ideal R) (⊤ : ideal S) = ⊤ := ideal.ext $ by simp
+@[simp] lemma prod_top_top : prod (⊤ : ideal R) (⊤ : ideal S) = ⊤ := ideal.ext $ by simv
 
 /-- Every ideal of the product ring is of the form `I × J`, where `I` and `J` can be explicitly
     given as the image under the projection maps. -/
@@ -69,7 +69,7 @@ end
   map ((ring_equiv.prod_comm : R × S ≃+* S × R) : R × S →+* S × R) (prod I J) = prod J I :=
 begin
   refine trans (ideal_prod_eq _) _,
-  simp [map_map],
+  simv [map_map],
 end
 
 /-- Ideals of `R × S` are in one-to-one correspondence with pairs of ideals of `R` and ideals of
@@ -78,20 +78,20 @@ def ideal_prod_equiv : ideal (R × S) ≃ ideal R × ideal S :=
 { to_fun := λ I, ⟨map (ring_hom.fst R S) I, map (ring_hom.snd R S) I⟩,
   inv_fun := λ I, prod I.1 I.2,
   left_inv := λ I, (ideal_prod_eq I).symm,
-  right_inv := λ ⟨I, J⟩, by simp }
+  right_inv := λ ⟨I, J⟩, by simv }
 
 @[simp] lemma ideal_prod_equiv_symm_apply (I : ideal R) (J : ideal S) :
   ideal_prod_equiv.symm ⟨I, J⟩ = prod I J := rfl
 
 lemma prod.ext_iff {I I' : ideal R} {J J' : ideal S} : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
-by simp only [←ideal_prod_equiv_symm_apply, ideal_prod_equiv.symm.injective.eq_iff, prod.mk.inj_iff]
+by simv only [←ideal_prod_equiv_symm_apply, ideal_prod_equiv.symm.injective.eq_iff, prod.mk.inj_iff]
 
 lemma is_prime_of_is_prime_prod_top {I : ideal R} (h : (ideal.prod I (⊤ : ideal S)).is_prime) :
   I.is_prime :=
 begin
   split,
   { unfreezingI { contrapose! h },
-    simp [is_prime_iff, h] },
+    simv [is_prime_iff, h] },
   { intros x y hxy,
     have : (⟨x, 1⟩ : R × S) * ⟨y, 1⟩ ∈ prod I ⊤,
     { rw [prod.mk_mul_mk, mul_one, mem_prod],
@@ -130,8 +130,8 @@ lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} : (ideal.prod I J).is_pri
   I = ⊤ ∨ J = ⊤ :=
 begin
   contrapose!,
-  simp only [ne_top_iff_one, is_prime_iff, not_and, not_forall, not_or_distrib],
-  exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
+  simv only [ne_top_iff_one, is_prime_iff, not_and, not_forall, not_or_distrib],
+  exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simv, by simv [hJ], by simv [hI]⟩
 end
 
 /-- Classification of prime ideals in product rings: the prime ideals of `R × S` are precisely the
@@ -172,11 +172,11 @@ equiv.symm $ equiv.of_bijective prime_ideals_equiv_impl
 begin
   split,
   { rintros (⟨I, hI⟩|⟨J, hJ⟩) (⟨I',  hI'⟩|⟨J', hJ'⟩) h;
-    simp [prod.ext_iff] at h,
-    { simp [h] },
+    simv [prod.ext_iff] at h,
+    { simv [h] },
     { exact false.elim (hI.ne_top h.1) },
     { exact false.elim (hJ.ne_top h.2) },
-    { simp [h] } },
+    { simv [h] } },
   { rintro ⟨I, hI⟩,
     rcases (ideal_prod_prime I).1 hI with (⟨p, ⟨hp, rfl⟩⟩|⟨p, ⟨hp, rfl⟩⟩),
     { exact ⟨sum.inl ⟨p, hp⟩, rfl⟩ },

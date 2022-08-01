@@ -45,7 +45,7 @@ pointwise scaling and repeated pointwise addition. See note [pointwise nat actio
 We put all instances in the locale `pointwise`, so that these instances are not available by
 default. Note that we do not mark them as reducible (as argued by note [reducible non-instances])
 since we expect the locale to be open whenever the instances are actually used (and making the
-instances reducible changes the behavior of `simp`.
+instances reducible changes the behavior of `simv`.
 
 ## Tags
 
@@ -71,16 +71,16 @@ protected def has_one : has_one (filter α) := ⟨pure 1⟩
 
 localized "attribute [instance] filter.has_one filter.has_zero" in pointwise
 
-@[simp, to_additive] lemma mem_one : s ∈ (1 : filter α) ↔ (1 : α) ∈ s := mem_pure
+@[simv, to_additive] lemma mem_one : s ∈ (1 : filter α) ↔ (1 : α) ∈ s := mem_pure
 @[to_additive] lemma one_mem_one : (1 : set α) ∈ (1 : filter α) := mem_pure.2 one_mem_one
-@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := rfl
-@[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := principal_singleton _
+@[simv, to_additive] lemma pure_one : pure 1 = (1 : filter α) := rfl
+@[simv, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := principal_singleton _
 @[to_additive] lemma one_ne_bot : (1 : filter α).ne_bot := filter.pure_ne_bot
-@[simp, to_additive] protected lemma map_one' (f : α → β) : (1 : filter α).map f = pure (f 1) := rfl
-@[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_pure_iff
+@[simv, to_additive] protected lemma map_one' (f : α → β) : (1 : filter α).map f = pure (f 1) := rfl
+@[simv, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_pure_iff
 @[to_additive] protected lemma ne_bot.le_one_iff (h : f.ne_bot) : f ≤ 1 ↔ f = 1 := h.le_pure_iff
-@[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 := eventually_pure
-@[simp, to_additive] lemma tendsto_one {a : filter β} {f : β → α} :
+@[simv, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 := eventually_pure
+@[simv, to_additive] lemma tendsto_one {a : filter β} {f : β → α} :
    tendsto f a 1 ↔ ∀ᶠ x in a, f x = 1 :=
 tendsto_pure
 
@@ -88,12 +88,12 @@ tendsto_pure
 @[to_additive "`pure` as a `zero_hom`."]
 def pure_one_hom : one_hom α (filter α) := ⟨pure, pure_one⟩
 
-@[simp, to_additive] lemma coe_pure_one_hom : (pure_one_hom : α → filter α) = pure := rfl
-@[simp, to_additive] lemma pure_one_hom_apply (a : α) : pure_one_hom a = pure a := rfl
+@[simv, to_additive] lemma coe_pure_one_hom : (pure_one_hom : α → filter α) = pure := rfl
+@[simv, to_additive] lemma pure_one_hom_apply (a : α) : pure_one_hom a = pure a := rfl
 
 variables [has_one β]
 
-@[simp, to_additive]
+@[simv, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=
 by rw [filter.map_one', map_one, pure_one]
 
@@ -108,12 +108,12 @@ variables [has_inv α] {f g : filter α} {s : set α} {a : α}
 @[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
 instance : has_inv (filter α) := ⟨map has_inv.inv⟩
 
-@[simp, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
+@[simv, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
 @[to_additive] lemma mem_inv : s ∈ f⁻¹ ↔ has_inv.inv ⁻¹' s ∈ f := iff.rfl
 @[to_additive] protected lemma inv_le_inv (hf : f ≤ g) : f⁻¹ ≤ g⁻¹ := map_mono hf
-@[simp, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
-@[simp, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
-@[simp, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
+@[simv, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
+@[simv, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
+@[simv, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
 @[to_additive] lemma ne_bot.inv : f.ne_bot → f⁻¹.ne_bot := λ h, h.map _
 
 end has_inv
@@ -145,20 +145,20 @@ way to `set.image2 (*) t₁ t₂ ⊆ s`. -/
 
 localized "attribute [instance] filter.has_mul filter.has_add" in pointwise
 
-@[simp, to_additive] lemma map₂_mul : map₂ (*) f g = f * g := rfl
+@[simv, to_additive] lemma map₂_mul : map₂ (*) f g = f * g := rfl
 @[to_additive] lemma mem_mul : s ∈ f * g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s := iff.rfl
 @[to_additive] lemma mul_mem_mul : s ∈ f → t ∈ g → s * t ∈ f * g := image2_mem_map₂
-@[simp, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
-@[simp, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma mul_eq_bot_iff : f * g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
-@[simp, to_additive] lemma mul_ne_bot_iff : (f * g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
+@[simv, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
+@[simv, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
+@[simv, to_additive] lemma mul_eq_bot_iff : f * g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
+@[simv, to_additive] lemma mul_ne_bot_iff : (f * g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.mul : ne_bot f → ne_bot g → ne_bot (f * g) := ne_bot.map₂
 @[to_additive] lemma ne_bot.of_mul_left : (f * g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
 @[to_additive] lemma ne_bot.of_mul_right : (f * g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
-@[simp, to_additive] lemma pure_mul : pure a * g = g.map ((*) a)  := map₂_pure_left
-@[simp, to_additive] lemma mul_pure : f * pure b = f.map (* b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_mul_pure : (pure a : filter α) * pure b = pure (a * b) := map₂_pure
-@[simp, to_additive] lemma le_mul_iff : h ≤ f * g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s * t ∈ h :=
+@[simv, to_additive] lemma pure_mul : pure a * g = g.map ((*) a)  := map₂_pure_left
+@[simv, to_additive] lemma mul_pure : f * pure b = f.map (* b)  := map₂_pure_right
+@[simv, to_additive] lemma pure_mul_pure : (pure a : filter α) * pure b = pure (a * b) := map₂_pure
+@[simv, to_additive] lemma le_mul_iff : h ≤ f * g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s * t ∈ h :=
 le_map₂_iff
 
 @[to_additive] instance covariant_mul : covariant_class (filter α) (filter α) (*) (≤) :=
@@ -175,8 +175,8 @@ map_map₂_distrib $ map_mul m
 @[to_additive "The singleton operation as an `add_hom`."]
 def pure_mul_hom : α →ₙ* filter α := ⟨pure, λ a b, pure_mul_pure.symm⟩
 
-@[simp, to_additive] lemma coe_pure_mul_hom : (pure_mul_hom : α → filter α) = pure := rfl
-@[simp, to_additive] lemma pure_mul_hom_apply (a : α) : pure_mul_hom a = pure a := rfl
+@[simv, to_additive] lemma coe_pure_mul_hom : (pure_mul_hom : α → filter α) = pure := rfl
+@[simv, to_additive] lemma pure_mul_hom_apply (a : α) : pure_mul_hom a = pure a := rfl
 
 end has_mul
 
@@ -194,23 +194,23 @@ way to `set.image2 (/) t₁ t₂ ⊆ s`. -/
 
 localized "attribute [instance] filter.has_div filter.has_sub" in pointwise
 
-@[simp, to_additive] lemma map₂_div : map₂ (/) f g = f / g := rfl
+@[simv, to_additive] lemma map₂_div : map₂ (/) f g = f / g := rfl
 @[to_additive] lemma mem_div : s ∈ f / g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ / t₂ ⊆ s := iff.rfl
 @[to_additive] lemma div_mem_div : s ∈ f → t ∈ g → s / t ∈ f / g := image2_mem_map₂
-@[simp, to_additive] lemma bot_div : ⊥ / g = ⊥ := map₂_bot_left
-@[simp, to_additive] lemma div_bot : f / ⊥ = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma div_eq_bot_iff : f / g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
-@[simp, to_additive] lemma div_ne_bot_iff : (f / g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
+@[simv, to_additive] lemma bot_div : ⊥ / g = ⊥ := map₂_bot_left
+@[simv, to_additive] lemma div_bot : f / ⊥ = ⊥ := map₂_bot_right
+@[simv, to_additive] lemma div_eq_bot_iff : f / g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
+@[simv, to_additive] lemma div_ne_bot_iff : (f / g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.div : ne_bot f → ne_bot g → ne_bot (f / g) := ne_bot.map₂
 @[to_additive] lemma ne_bot.of_div_left : (f / g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
 @[to_additive] lemma ne_bot.of_div_right : (f / g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
-@[simp, to_additive] lemma pure_div : pure a / g = g.map ((/) a)  := map₂_pure_left
-@[simp, to_additive] lemma div_pure : f / pure b = f.map (/ b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_div_pure : (pure a : filter α) / pure b = pure (a / b) := map₂_pure
+@[simv, to_additive] lemma pure_div : pure a / g = g.map ((/) a)  := map₂_pure_left
+@[simv, to_additive] lemma div_pure : f / pure b = f.map (/ b)  := map₂_pure_right
+@[simv, to_additive] lemma pure_div_pure : (pure a : filter α) / pure b = pure (a / b) := map₂_pure
 @[to_additive] protected lemma div_le_div : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ / g₁ ≤ f₂ / g₂ := map₂_mono
 @[to_additive] protected lemma div_le_div_left : g₁ ≤ g₂ → f / g₁ ≤ f / g₂ := map₂_mono_left
 @[to_additive] protected lemma div_le_div_right : f₁ ≤ f₂ → f₁ / g ≤ f₂ / g := map₂_mono_right
-@[simp, to_additive] protected lemma le_div_iff :
+@[simv, to_additive] protected lemma le_div_iff :
   h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
 le_map₂_iff
 
@@ -266,8 +266,8 @@ variables [mul_one_class α] [mul_one_class β]
 protected def mul_one_class : mul_one_class (filter α) :=
 { one := 1,
   mul := (*),
-  one_mul := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_left, one_mul, map_id'],
-  mul_one := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_right, mul_one, map_id'] }
+  one_mul := λ f, by simv only [←pure_one, ←map₂_mul, map₂_pure_left, one_mul, map_id'],
+  mul_one := λ f, by simv only [←pure_one, ←map₂_mul, map₂_pure_right, mul_one, map_id'] }
 
 localized "attribute [instance] filter.semigroup filter.add_semigroup filter.comm_semigroup
   filter.add_comm_semigroup filter.mul_one_class filter.add_zero_class" in pointwise
@@ -298,8 +298,8 @@ lemma tendsto.mul_mul [mul_hom_class F α β] (m : F) {f₁ g₁ : filter α} {f
 @[to_additive "`pure` as an `add_monoid_hom`."]
 def pure_monoid_hom : α →* filter α := { ..pure_mul_hom, ..pure_one_hom }
 
-@[simp, to_additive] lemma coe_pure_monoid_hom : (pure_monoid_hom : α → filter α) = pure := rfl
-@[simp, to_additive] lemma pure_monoid_hom_apply (a : α) : pure_monoid_hom a = pure a := rfl
+@[simv, to_additive] lemma coe_pure_monoid_hom : (pure_monoid_hom : α → filter α) = pure := rfl
+@[simv, to_additive] lemma pure_monoid_hom_apply (a : α) : pure_monoid_hom a = pure a := rfl
 
 end mul_one_class
 
@@ -317,13 +317,13 @@ localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 | 0 := by { rw pow_zero, exact one_mem_one }
 | (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
 
-@[simp, to_additive nsmul_bot] lemma bot_pow {n : ℕ} (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
+@[simv, to_additive nsmul_bot] lemma bot_pow {n : ℕ} (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
 
 @[to_additive] lemma mul_top_of_one_le (hf : 1 ≤ f) : f * ⊤ = ⊤ :=
 begin
   refine top_le_iff.1 (λ s, _),
-  simp only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
+  simv only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
   rintro ⟨t, ht, hs⟩,
   rwa [mul_univ_of_one_mem (mem_one.1 $ hf ht), univ_subset_iff] at hs,
 end
@@ -331,12 +331,12 @@ end
 @[to_additive] lemma top_mul_of_one_le (hf : 1 ≤ f) : ⊤ * f = ⊤ :=
 begin
   refine top_le_iff.1 (λ s, _),
-  simp only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
+  simv only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
   rintro ⟨t, ht, hs⟩,
   rwa [univ_mul_of_one_mem (mem_one.1 $ hf ht), univ_subset_iff] at hs,
 end
 
-@[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ := mul_top_of_one_le le_top
+@[simv, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ := mul_top_of_one_le le_top
 
 --TODO: `to_additive` trips up on the `1 : ℕ` used in the pattern-matching.
 lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (⊤ : filter α) = ⊤
@@ -453,7 +453,7 @@ variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {f 
 
 /-! Note that `filter α` is not a group because `f / f ≠ 1` in general -/
 
-@[simp, to_additive] protected lemma one_le_div_iff : 1 ≤ f / g ↔ ¬ disjoint f g :=
+@[simv, to_additive] protected lemma one_le_div_iff : 1 ≤ f / g ↔ ¬ disjoint f g :=
 begin
   refine ⟨λ h hfg, _, _⟩,
   { obtain ⟨s, hs, t, ht, hst⟩ := hfg (mem_bot : ∅ ∈ ⊥),
@@ -476,7 +476,7 @@ end
 @[to_additive] lemma is_unit_pure (a : α) : is_unit (pure a : filter α) := (group.is_unit a).filter
 
 @[simp] lemma is_unit_iff_singleton : is_unit f ↔ ∃ a, f = pure a :=
-by simp only [is_unit_iff, group.is_unit, and_true]
+by simv only [is_unit_iff, group.is_unit, and_true]
 
 include β
 
@@ -525,24 +525,24 @@ way to `set.image2 (•) t₁ t₂ ⊆ s`. -/
 
 localized "attribute [instance] filter.has_smul filter.has_vadd" in pointwise
 
-@[simp, to_additive] lemma map₂_smul : map₂ (•) f g = f • g := rfl
+@[simv, to_additive] lemma map₂_smul : map₂ (•) f g = f • g := rfl
 @[to_additive] lemma mem_smul : t ∈ f • g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ • t₂ ⊆ t := iff.rfl
 @[to_additive] lemma smul_mem_smul : s ∈ f → t ∈ g → s • t ∈ f • g :=  image2_mem_map₂
-@[simp, to_additive] lemma bot_smul : (⊥ : filter α) • g = ⊥ := map₂_bot_left
-@[simp, to_additive] lemma smul_bot : f • (⊥ : filter β) = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma smul_eq_bot_iff : f • g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
-@[simp, to_additive] lemma smul_ne_bot_iff : (f • g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
+@[simv, to_additive] lemma bot_smul : (⊥ : filter α) • g = ⊥ := map₂_bot_left
+@[simv, to_additive] lemma smul_bot : f • (⊥ : filter β) = ⊥ := map₂_bot_right
+@[simv, to_additive] lemma smul_eq_bot_iff : f • g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
+@[simv, to_additive] lemma smul_ne_bot_iff : (f • g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.smul : ne_bot f → ne_bot g → ne_bot (f • g) := ne_bot.map₂
 @[to_additive] lemma ne_bot.of_smul_left : (f • g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
 @[to_additive] lemma ne_bot.of_smul_right : (f • g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
-@[simp, to_additive] lemma pure_smul : (pure a : filter α) • g = g.map ((•) a)  := map₂_pure_left
-@[simp, to_additive] lemma smul_pure : f • pure b = f.map (• b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_smul_pure :
+@[simv, to_additive] lemma pure_smul : (pure a : filter α) • g = g.map ((•) a)  := map₂_pure_left
+@[simv, to_additive] lemma smul_pure : f • pure b = f.map (• b)  := map₂_pure_right
+@[simv, to_additive] lemma pure_smul_pure :
   (pure a : filter α) • (pure b : filter β) = pure (a • b) := map₂_pure
 @[to_additive] lemma smul_le_smul : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ • g₁ ≤ f₂ • g₂ := map₂_mono
 @[to_additive] lemma smul_le_smul_left : g₁ ≤ g₂ → f • g₁ ≤ f • g₂ := map₂_mono_left
 @[to_additive] lemma smul_le_smul_right : f₁ ≤ f₂ → f₁ • g ≤ f₂ • g := map₂_mono_right
-@[simp, to_additive] lemma le_smul_iff : h ≤ f • g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s • t ∈ h :=
+@[simv, to_additive] lemma le_smul_iff : h ≤ f • g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s • t ∈ h :=
 le_map₂_iff
 
 @[to_additive] instance covariant_smul : covariant_class (filter α) (filter β) (•) (≤) :=
@@ -597,13 +597,13 @@ protected def has_smul_filter : has_smul α (filter β) := ⟨λ a, map ((•) a
 
 localized "attribute [instance] filter.has_smul_filter filter.has_vadd_filter" in pointwise
 
-@[simp, to_additive] lemma map_smul : map (λ b, a • b) f = a • f := rfl
+@[simv, to_additive] lemma map_smul : map (λ b, a • b) f = a • f := rfl
 @[to_additive] lemma mem_smul_filter : s ∈ a • f ↔ (•) a ⁻¹' s ∈ f := iff.rfl
 
 @[to_additive] lemma smul_set_mem_smul_filter : s ∈ f → a • s ∈ a • f := image_mem_map
-@[simp, to_additive] lemma smul_filter_bot : a • (⊥ : filter β) = ⊥ := map_bot
-@[simp, to_additive] lemma smul_filter_eq_bot_iff : a • f = ⊥ ↔ f = ⊥ := map_eq_bot_iff
-@[simp, to_additive] lemma smul_filter_ne_bot_iff : (a • f).ne_bot ↔ f.ne_bot := map_ne_bot_iff _
+@[simv, to_additive] lemma smul_filter_bot : a • (⊥ : filter β) = ⊥ := map_bot
+@[simv, to_additive] lemma smul_filter_eq_bot_iff : a • f = ⊥ ↔ f = ⊥ := map_eq_bot_iff
+@[simv, to_additive] lemma smul_filter_ne_bot_iff : (a • f).ne_bot ↔ f.ne_bot := map_ne_bot_iff _
 @[to_additive] lemma ne_bot.smul_filter : f.ne_bot → (a • f).ne_bot := λ h, h.map _
 @[to_additive] lemma ne_bot.of_smul_filter : (a • f).ne_bot → f.ne_bot := ne_bot.of_map
 @[to_additive] lemma smul_filter_le_smul_filter (hf : f₁ ≤ f₂) : a • f₁ ≤ a • f₂ :=
@@ -639,7 +639,7 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
 instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower α β (filter γ) :=
-⟨λ a b f, by simp only [←map_smul, map_map, smul_assoc]⟩
+⟨λ a b f, by simv only [←map_smul, map_map, smul_assoc]⟩
 
 instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
@@ -668,8 +668,8 @@ protected def mul_action [monoid α] [mul_action α β] : mul_action (filter α)
 @[to_additive "An additive action of an additive monoid on a type `β` gives an additive action on
 `filter β`."]
 protected def mul_action_filter [monoid α] [mul_action α β] : mul_action α (filter β) :=
-{ mul_smul := λ a b f, by simp only [←map_smul, map_map, function.comp, ←mul_smul],
-  one_smul := λ f, by simp only [←map_smul, one_smul, map_id'] }
+{ mul_smul := λ a b f, by simv only [←map_smul, map_map, function.comp, ←mul_smul],
+  one_smul := λ f, by simv only [←map_smul, one_smul, map_id'] }
 
 localized "attribute [instance] filter.mul_action filter.add_action filter.mul_action_filter
   filter.add_action_filter" in pointwise

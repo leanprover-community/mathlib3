@@ -126,12 +126,12 @@ set.mem_singleton a
 ext_s.trans set.singleton_eq_singleton_iff
 
 instance : is_lawful_monad semiquot :=
-{ pure_bind  := λ α β x f, ext.2 $ by simp,
-  bind_assoc := λ α β γ s f g, ext.2 $ by simp; exact
+{ pure_bind  := λ α β x f, ext.2 $ by simv,
+  bind_assoc := λ α β γ s f g, ext.2 $ by simv; exact
     λ c, ⟨λ ⟨b, ⟨a, as, bf⟩, cg⟩, ⟨a, as, b, bf, cg⟩,
           λ ⟨a, as, b, bf, cg⟩, ⟨b, ⟨a, as, bf⟩, cg⟩⟩,
-  id_map     := λ α q, ext.2 $ by simp,
-  bind_pure_comp_eq_map := λ α β f s, ext.2 $ by simp [eq_comm] }
+  id_map     := λ α q, ext.2 $ by simv,
+  bind_pure_comp_eq_map := λ α β f s, ext.2 $ by simv [eq_comm] }
 
 instance : has_le (semiquot α) := ⟨λ s t, s.s ⊆ t.s⟩
 
@@ -162,7 +162,7 @@ let ⟨a, h⟩ := exists_mem q in
 by unfold get; rw lift_on_of_mem q _ _ a h; exact h
 
 theorem eq_pure {q : semiquot α} (p) : q = pure (get q p) :=
-ext.2 $ λ a, by simp; exact
+ext.2 $ λ a, by simv; exact
 ⟨λ h, p _ h _ (get_mem _), λ e, e.symm ▸ get_mem _⟩
 
 @[simp] theorem pure_is_pure (a : α) : is_pure (pure a)
@@ -176,7 +176,7 @@ theorem is_pure.mono {s t : semiquot α}
 | a as b bs := h _ (st as) _ (st bs)
 
 theorem is_pure.min {s t : semiquot α} (h : is_pure t) : s ≤ t ↔ s = t :=
-⟨λ st, le_antisymm st $ by rw [eq_pure h, eq_pure (h.mono st)]; simp;
+⟨λ st, le_antisymm st $ by rw [eq_pure h, eq_pure (h.mono st)]; simv;
    exact h _ (get_mem _) _ (st $ get_mem _),
  le_of_eq⟩
 
@@ -193,7 +193,7 @@ instance [inhabited α] : inhabited (semiquot α) := ⟨univ⟩
 @set.mem_univ α
 
 @[congr] theorem univ_unique (I J : inhabited α) : @univ _ I = @univ _ J :=
-ext.2 $ by simp
+ext.2 $ by simv
 
 @[simp] theorem is_pure_univ [inhabited α] : @is_pure α univ ↔ subsingleton α :=
 ⟨λ h, ⟨λ a b, h a trivial b trivial⟩, λ ⟨h⟩ a _ b _, h a b⟩

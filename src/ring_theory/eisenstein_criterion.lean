@@ -24,7 +24,7 @@ lemma map_eq_C_mul_X_pow_of_forall_coeff_mem {f : R[X]} {P : ideal R}
   (hfP : ∀ (n : ℕ), ↑n < f.degree → f.coeff n ∈ P) :
   map (mk P) f = C ((mk P) f.leading_coeff) * X ^ f.nat_degree :=
 polynomial.ext (λ n, begin
-  by_cases hf0 : f = 0, { simp [hf0], },
+  by_cases hf0 : f = 0, { simv [hf0], },
   rcases lt_trichotomy ↑n (degree f) with h | h | h,
   { erw [coeff_map, eq_zero_iff_mem.2 (hfP n h), coeff_C_mul, coeff_X_pow, if_neg, mul_zero],
     rintro rfl, exact not_lt_of_ge degree_le_nat_degree h },
@@ -76,12 +76,12 @@ theorem irreducible_of_eisenstein_criterion {f : R[X]} {P : ideal R} (hP : P.is_
   (hfP : ∀ n : ℕ, ↑n < degree f → f.coeff n ∈ P)
   (hfd0 : 0 < degree f) (h0 : f.coeff 0 ∉ P^2)
   (hu : f.is_primitive) : irreducible f :=
-have hf0 : f ≠ 0, from λ _, by simp only [*, not_true, submodule.zero_mem, coeff_zero] at *,
+have hf0 : f ≠ 0, from λ _, by simv only [*, not_true, submodule.zero_mem, coeff_zero] at *,
 have hf : f.map (mk P) = C (mk P (leading_coeff f)) * X ^ nat_degree f,
   from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP,
 have hfd0 : 0 < f.nat_degree, from with_bot.coe_lt_coe.1
   (lt_of_lt_of_le hfd0 degree_le_nat_degree),
-⟨mt degree_eq_zero_of_is_unit (λ h, by simp only [*, lt_irrefl] at *),
+⟨mt degree_eq_zero_of_is_unit (λ h, by simv only [*, lt_irrefl] at *),
 begin
   rintros p q rfl,
   rw [polynomial.map_mul] at hf,
@@ -97,8 +97,8 @@ begin
       (eval_zero_mem_ideal_of_eq_mul_X_pow hq hn0) },
   have hpql0 : (mk P) (p * q).leading_coeff ≠ 0,
   { rwa [ne.def, eq_zero_iff_mem] },
-  have hp0 : p ≠ 0, from λ h, by simp only [*, zero_mul, eq_self_iff_true, not_true, ne.def] at *,
-  have hq0 : q ≠ 0, from λ h, by simp only [*, eq_self_iff_true, not_true, ne.def, mul_zero] at *,
+  have hp0 : p ≠ 0, from λ h, by simv only [*, zero_mul, eq_self_iff_true, not_true, ne.def] at *,
+  have hq0 : q ≠ 0, from λ h, by simv only [*, eq_self_iff_true, not_true, ne.def, mul_zero] at *,
   have hbc0 : degree b = 0 ∧ degree c = 0,
   { apply_fun degree at hbc,
     rwa [degree_C hpql0, degree_mul, eq_comm, nat.with_bot.add_eq_zero_iff] at hbc },

@@ -187,7 +187,7 @@ def is_sheaf.amalgamate {A : Type u₂} [category.{max v₁ u₁} A]
 (hP _ _ S.condition).amalgamate (λ Y f hf, x ⟨Y,f,hf⟩) $
   λ Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ w, hx ⟨Y₁, Y₂, Z, g₁, g₂, f₁, f₂, h₁, h₂, w⟩
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma is_sheaf.amalgamate_map {A : Type u₂} [category.{max v₁ u₁} A]
   {E : A} {X : C} {P : Cᵒᵖ ⥤ A} (hP : presheaf.is_sheaf J P) (S : J.cover X)
   (x : Π (I : S.arrow), E ⟶ P.obj (op I.Y))
@@ -393,7 +393,7 @@ begin
       symmetry,
       erw is_iso.inv_comp_eq,
       change _ = limit.lift _ _ ≫ _,
-      simp } }
+      simv } }
 end
 
 end multiequalizer_conditions
@@ -438,10 +438,10 @@ lemma w : fork_map R P ≫ first_map R P = fork_map R P ≫ second_map R P :=
 begin
   apply limit.hom_ext,
   rintro ⟨⟨Y, f, hf⟩, ⟨Z, g, hg⟩⟩,
-  simp only [first_map, second_map, fork_map, limit.lift_π, limit.lift_π_assoc, assoc,
+  simv only [first_map, second_map, fork_map, limit.lift_π, limit.lift_π_assoc, assoc,
     fan.mk_π_app, subtype.coe_mk, subtype.val_eq_coe],
   rw [← P.map_comp, ← op_comp, pullback.condition],
-  simp,
+  simv,
 end
 
 /--
@@ -466,17 +466,17 @@ begin
     { rintro _ _ (_ | _),
       { ext : 1,
         dsimp [equalizer.presieve.first_map, first_map],
-        simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
+        simv only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
         erw pi_comparison_comp_π_assoc },
       { ext : 1,
         dsimp [equalizer.presieve.second_map, second_map],
-        simp only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
+        simv only [limit.lift_π, map_lift_pi_comparison, assoc, fan.mk_π_app, functor.map_comp],
         erw pi_comparison_comp_π_assoc },
       { dsimp,
-        simp } } },
+        simv } } },
   { refine fork.ext (iso.refl _) _,
     dsimp [equalizer.fork_map, fork_map],
-    simp [fork.ι] }
+    simv [fork.ι] }
 end
 
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/

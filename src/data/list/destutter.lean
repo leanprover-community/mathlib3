@@ -47,12 +47,12 @@ by rw [destutter', if_neg h]
 variables (R)
 
 @[simp] lemma destutter'_singleton : [b].destutter' R a = if R a b then [a, b] else [a] :=
-by split_ifs; simp! [h]
+by split_ifs; simv! [h]
 
 lemma destutter'_sublist (a) : l.destutter' R a <+ a :: l :=
 begin
   induction l with b l hl generalizing a,
-  { simp },
+  { simv },
   rw destutter',
   split_ifs,
   { exact sublist.cons2 _ _ _ (hl b) },
@@ -62,10 +62,10 @@ end
 lemma mem_destutter' (a) : a ∈ l.destutter' R a :=
 begin
   induction l with b l hl,
-  { simp },
+  { simv },
   rw destutter',
   split_ifs,
-  { simp },
+  { simv },
   { assumption }
 end
 
@@ -83,7 +83,7 @@ end
 lemma destutter'_is_chain' (a) : (l.destutter' R a).chain' R :=
 begin
   induction l with b l hl generalizing a,
-  { simp },
+  { simv },
   rw destutter',
   split_ifs,
   { exact destutter'_is_chain R l h },
@@ -93,7 +93,7 @@ end
 lemma destutter'_of_chain (h : l.chain R a) : l.destutter' R a = a :: l :=
 begin
   induction l with b l hb generalizing a,
-  { simp },
+  { simv },
   obtain ⟨h, hc⟩ := chain_cons.mp h,
   rw [l.destutter'_cons_pos h, hb hc]
 end
@@ -129,7 +129,7 @@ lemma destutter_of_chain' : ∀ (l : list α), l.chain' R → l.destutter R = l
 | (a :: l) h := l.destutter'_of_chain _ h
 
 @[simp] lemma destutter_eq_self_iff : ∀ (l : list α), l.destutter R = l ↔ l.chain' R
-| [] := by simp
+| [] := by simv
 | (a :: l) := l.destutter'_eq_self_iff R a
 
 lemma destutter_idem : (l.destutter R).destutter R = l.destutter R :=

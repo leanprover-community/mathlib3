@@ -344,13 +344,13 @@ If the declaration to be transported has attributes which need to be
 copied to the additive version, then `to_additive` should come last:
 
 ```
-@[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
+@[simv, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
 ```
 
 The following attributes are supported and should be applied correctly by `to_additive` to
 the new additivized declaration, if they were present on the original one:
 ```
-reducible, _refl_lemma, simp, norm_cast, instance, refl, symm, trans, elab_as_eliminator, no_rsimp,
+reducible, _refl_lemma, simv, norm_cast, instance, refl, symm, trans, elab_as_eliminator, no_rsimp,
 continuity, ext, ematch, measurability, alias, _ext_core, _ext_lemma_core, nolint
 ```
 
@@ -542,7 +542,7 @@ protected meta def attr : user_attribute unit value_type :=
     then proceed_fields env src tgt prio
     else do
       transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
-        [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
+        [`reducible, `_refl_lemma, `simv, `norm_cast, `instance, `refl, `symm, `trans,
           `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
           `_ext_core, `_ext_lemma_core, `nolint, `protected],
       mwhen (has_attribute' `simps src)

@@ -28,7 +28,7 @@ instance has_smul_left [has_smul R M] :
   has_smul (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma smul_def [has_smul R M] (s : ulift R) (x : M) : s • x = s.down • x := rfl
 
 instance is_scalar_tower [has_smul R M] [has_smul M N] [has_smul R N]
@@ -68,8 +68,8 @@ instance distrib_mul_action [monoid R] [add_monoid M] [distrib_mul_action R M] :
 
 instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (ulift M) :=
-{ smul_zero := λ c, by { ext, simp [smul_zero], },
-  smul_add := λ c f g, by { ext, simp [smul_add], },
+{ smul_zero := λ c, by { ext, simv [smul_zero], },
+  smul_add := λ c f g, by { ext, simv [smul_add], },
   ..ulift.mul_action' }
 
 instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R M] :
@@ -79,8 +79,8 @@ instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R 
 
 instance mul_distrib_mul_action' [monoid R] [monoid M] [mul_distrib_mul_action R M] :
   mul_distrib_mul_action R (ulift M) :=
-{ smul_one := λ _, by { ext, simp [smul_one], },
-  smul_mul := λ c f g, by { ext, simp [smul_mul'], },
+{ smul_one := λ _, by { ext, simv [smul_one], },
+  smul_mul := λ c f g, by { ext, simv [smul_mul'], },
   ..ulift.mul_action' }
 
 instance smul_with_zero [has_zero R] [has_zero M] [smul_with_zero R M] :

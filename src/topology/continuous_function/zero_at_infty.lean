@@ -91,7 +91,7 @@ ext $ is_empty.elim ‹_›
 infinity. -/
 @[simps]
 def continuous_map.lift_zero_at_infty [compact_space α] : C(α, β) ≃ C₀(α, β) :=
-{ to_fun := λ f, { to_fun := f, continuous_to_fun := f.continuous, zero_at_infty' := by simp },
+{ to_fun := λ f, { to_fun := f, continuous_to_fun := f.continuous, zero_at_infty' := by simv },
   inv_fun := λ f, f,
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
@@ -104,7 +104,7 @@ def zero_at_infty_continuous_map_class.of_compact {G : Type*} [continuous_map_cl
 { coe := λ g, g,
   coe_injective' := λ f g h, fun_like.coe_fn_eq.mp h,
   map_continuous := map_continuous,
-  zero_at_infty := by simp }
+  zero_at_infty := by simv }
 
 end basics
 
@@ -260,7 +260,7 @@ instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topologica
 { smul_assoc := λ r f g,
   begin
     ext,
-    simp only [smul_eq_mul, coe_mul, coe_smul, pi.mul_apply, pi.smul_apply],
+    simv only [smul_eq_mul, coe_mul, coe_smul, pi.mul_apply, pi.smul_apply],
     rw [←smul_eq_mul, ←smul_eq_mul, smul_assoc],
   end }
 
@@ -270,7 +270,7 @@ instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topologica
 { smul_comm := λ r f g,
   begin
     ext,
-    simp only [smul_eq_mul, coe_smul, coe_mul, pi.smul_apply, pi.mul_apply],
+    simv only [smul_eq_mul, coe_smul, coe_mul, pi.smul_apply, pi.mul_apply],
     rw [←smul_eq_mul, ←smul_eq_mul, smul_comm],
   end }
 

@@ -6,7 +6,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 import algebra.group.to_additive
 import tactic.lint.frontend
 import tactic.lint.misc
-import tactic.lint.simp
+import tactic.lint.simv
 import tactic.lint.type_classes
 
 /-!
@@ -50,10 +50,10 @@ The following linters are run by default:
 12. `has_coe_variable` tests that there are no instances of type `has_coe α t` for a variable `α`.
 13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to
     `nonempty`.
-14. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
+14. `simp_nf` checks that the left-hand side of simv lemmas is in simv-normal form.
 15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of
-    simp lemmas.
-16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
+    simv lemmas.
+16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simv.
 17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a
     proposition but not in the statement, and could be removed using `classical`.
     Theorems in the `decidable` namespace are exempt.

@@ -99,7 +99,7 @@ begin
   rcases c1 with ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩,
   rcases c2 with ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,
   dsimp only [subtype.coe_mk] at *,
-  simp only,
+  simv only,
   exact ⟨hdeg, by subst hdeg; subst hnum, by subst hdeg; subst hdenom⟩,
 end
 
@@ -172,7 +172,7 @@ instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
     @graded_monoid.gmonoid.gnpow _ (λ i, ↥(𝒜 i)) _ _ n _ c.denom,
     begin
       cases n,
-      { simp only [graded_monoid.gmonoid.gnpow, subtype.coe_mk, pow_zero],
+      { simv only [graded_monoid.gmonoid.gnpow, subtype.coe_mk, pow_zero],
         exact λ r, (infer_instance : x.is_prime).ne_top $ (ideal.eq_top_iff_one _).mpr r, },
       { exact λ r, c.denom_not_mem $
           ((infer_instance : x.is_prime).pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r }
@@ -243,7 +243,7 @@ instance has_pow : has_pow (homogeneous_localization 𝒜 x) ℕ :=
 { pow := λ z n, (quotient.map' (^ n)
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
-      simp only [num_pow, denom_pow],
+      simv only [num_pow, denom_pow],
       convert congr_arg (λ z, z ^ n) h;
       erw localization.mk_pow;
       refl,
@@ -257,7 +257,7 @@ instance : has_smul α (homogeneous_localization 𝒜 x) :=
 { smul := λ m, quotient.map' ((•) m)
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
-      simp only [num_smul, denom_smul],
+      simv only [num_smul, denom_smul],
       convert congr_arg (λ z : at x, m • z) h;
       rw localization.smul_mk;
       refl,
@@ -268,7 +268,7 @@ instance : has_smul α (homogeneous_localization 𝒜 x) :=
 begin
   induction y using quotient.induction_on,
   unfold homogeneous_localization.val has_smul.smul,
-  simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
+  simv only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = n • localization.mk _ _,
   dsimp only,
   rw localization.smul_mk,
@@ -281,7 +281,7 @@ instance : has_neg (homogeneous_localization 𝒜 x) :=
 { neg := quotient.map' has_neg.neg
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
-      simp only [num_neg, denom_neg, ←localization.neg_mk],
+      simv only [num_neg, denom_neg, ←localization.neg_mk],
       exact congr_arg (λ c, -c) h
     end) }
 
@@ -289,7 +289,7 @@ instance : has_add (homogeneous_localization 𝒜 x) :=
 { add := quotient.map₂' (+) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
     c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
     change localization.mk _ _ = localization.mk _ _,
-    simp only [num_add, denom_add, ←localization.add_mk],
+    simv only [num_add, denom_add, ←localization.add_mk],
     convert congr_arg2 (+) h h';
     erw [localization.add_mk];
     refl
@@ -302,7 +302,7 @@ instance : has_mul (homogeneous_localization 𝒜 x) :=
 { mul := quotient.map₂' (*) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
     c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
     change localization.mk _ _ = localization.mk _ _,
-    simp only [num_mul, denom_mul],
+    simv only [num_mul, denom_mul],
     convert congr_arg2 (*) h h';
     erw [localization.mk_mul];
     refl,
@@ -333,7 +333,7 @@ begin
   induction y1 using quotient.induction_on,
   induction y2 using quotient.induction_on,
   unfold homogeneous_localization.val has_add.add,
-  simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
+  simv only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = localization.mk _ _ + localization.mk _ _,
   dsimp only,
   rw [localization.add_mk],
@@ -346,7 +346,7 @@ begin
   induction y1 using quotient.induction_on,
   induction y2 using quotient.induction_on,
   unfold homogeneous_localization.val has_mul.mul,
-  simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
+  simv only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = localization.mk _ _ * localization.mk _ _,
   dsimp only,
   rw [localization.mk_mul],
@@ -358,7 +358,7 @@ end
 begin
   induction y using quotient.induction_on,
   unfold homogeneous_localization.val has_neg.neg,
-  simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
+  simv only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = - localization.mk _ _,
   dsimp only,
   rw [localization.neg_mk],
@@ -374,7 +374,7 @@ by rw [show y1 - y2 = y1 + (-y2), from rfl, add_val, neg_val]; refl
 begin
   induction y using quotient.induction_on,
   unfold homogeneous_localization.val has_pow.pow,
-  simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
+  simv only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = (localization.mk _ _) ^ n,
   rw localization.mk_pow,
   dsimp only,
@@ -385,10 +385,10 @@ instance : has_nat_cast (homogeneous_localization 𝒜 x) := ⟨nat.unary_cast�
 instance : has_int_cast (homogeneous_localization 𝒜 x) := ⟨int.cast_def⟩
 
 @[simp] lemma nat_cast_val (n : ℕ) : (n : homogeneous_localization 𝒜 x).val = n :=
-show val (nat.unary_cast n) = _, by induction n; simp [nat.unary_cast, zero_val, one_val, *]
+show val (nat.unary_cast n) = _, by induction n; simv [nat.unary_cast, zero_val, one_val, *]
 
 @[simp] lemma int_cast_val (n : ℤ) : (n : homogeneous_localization 𝒜 x).val = n :=
-show val (int.cast_def n) = _, by cases n; simp [int.cast_def, zero_val, one_val, *]
+show val (int.cast_def n) = _, by cases n; simv [int.cast_def, zero_val, one_val, *]
 
 instance : comm_ring (homogeneous_localization 𝒜 x) :=
 (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
@@ -432,7 +432,7 @@ begin
   apply_fun homogeneous_localization.val at this,
   rw ← this,
   unfold homogeneous_localization.val,
-  simp only [quotient.lift_on'_mk'],
+  simv only [quotient.lift_on'_mk'],
   refl,
 end
 
@@ -462,9 +462,9 @@ lemma is_unit_iff_is_unit_val (f : homogeneous_localization 𝒜 x) :
     show (1 : at x) = localization.mk 1 1, by erw localization.mk_self 1,
     localization.mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨c, hc⟩, eq1⟩,
-  simp only [← subtype.val_eq_coe] at eq1,
+  simv only [← subtype.val_eq_coe] at eq1,
   change a * f.num * 1 * c = _ at eq1,
-  simp only [one_mul, mul_one] at eq1,
+  simv only [one_mul, mul_one] at eq1,
   have mem1 : a * f.num * c ∈ x.prime_compl :=
     eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto)(by tauto),
   have mem2 : f.num ∉ x,
@@ -472,12 +472,12 @@ lemma is_unit_iff_is_unit_val (f : homogeneous_localization 𝒜 x) :
     erw [not_not],
     exact ideal.mul_mem_right _ _ (ideal.mul_mem_left _ _ mem1), },
   refine ⟨⟨f, quotient.mk' ⟨f.deg, ⟨f.denom, f.denom_mem⟩, ⟨f.num, f.num_mem⟩, mem2⟩, _, _⟩, rfl⟩;
-  simp only [ext_iff_val, mul_val, val_mk', ← subtype.val_eq_coe, f.eq_num_div_denom,
+  simv only [ext_iff_val, mul_val, val_mk', ← subtype.val_eq_coe, f.eq_num_div_denom,
     localization.mk_mul, one_val];
   convert localization.mk_self _;
   simpa only [mul_comm]
 end, λ ⟨⟨_, b, eq1, eq2⟩, rfl⟩, begin
-  simp only [ext_iff_val, mul_val, one_val] at eq1 eq2,
+  simv only [ext_iff_val, mul_val, one_val] at eq1 eq2,
   exact ⟨⟨f.val, b.val, eq1, eq2⟩, rfl⟩
 end⟩
 
@@ -486,18 +486,18 @@ instance : nontrivial (homogeneous_localization 𝒜 x) :=
 
 instance : local_ring (homogeneous_localization 𝒜 x) :=
 local_ring.of_is_unit_or_is_unit_one_sub_self $ λ a, begin
-  simp only [← is_unit_iff_is_unit_val, sub_val, one_val],
+  simv only [← is_unit_iff_is_unit_val, sub_val, one_val],
   induction a using quotient.induction_on',
-  simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
+  simv only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
   by_cases mem1 : a.num.1 ∈ x,
   { right,
     have : a.denom.1 - a.num.1 ∈ x.prime_compl := λ h, a.denom_not_mem
       ((sub_add_cancel a.denom.val a.num.val) ▸ ideal.add_mem _ h mem1 : a.denom.1 ∈ x),
     apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
-    simp only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
+    simv only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
       submonoid.coe_mul],
     convert localization.mk_self _,
-    simp only [← subtype.val_eq_coe, submonoid.coe_mul],
+    simv only [← subtype.val_eq_coe, submonoid.coe_mul],
     ring, },
   { left,
     change _ ∈ x.prime_compl at mem1,

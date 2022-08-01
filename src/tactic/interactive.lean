@@ -94,11 +94,11 @@ and does not require that the goal be solved at the end
 Typically usage might look like:
 ````
 intros,
-simp,
+simv,
 apply lemma_1,
 work_on_goal 3
 { dsimp,
-  simp },
+  simv },
 refl
 ````
 
@@ -743,7 +743,7 @@ add_tactic_doc
 This includes the induction hypothesis when using the equation compiler and
 `_let_match` and `_fun_match`.
 
-It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
+It is useful when using a tactic such as `finish`, `simv *` or `subst` that may use these
 auxiliary declarations, and produce an error saying the recursion is not well founded.
 
 ```lean

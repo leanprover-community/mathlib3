@@ -385,7 +385,7 @@ begin
   rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, mk'_add_eq_iff_add_mul_eq_mul,
     mul_comm (_ * _), ←mul_assoc, add_comm, ←map_mul, mul_mk'_eq_mk'_of_mul,
     mk'_add_eq_iff_add_mul_eq_mul],
-  simp only [map_add, submonoid.coe_mul, map_mul],
+  simv only [map_add, submonoid.coe_mul, map_mul],
   ring
 end
 
@@ -396,7 +396,7 @@ begin
   rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.restrict M) h y),
     mul_assoc, ←mul_add, units.inv_mul_eq_iff_eq_mul, units.inv_mul_cancel_left,
     is_unit.coe_lift_right],
-  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.restrict_apply, ring_hom.coe_monoid_hom]
+  simv only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.restrict_apply, ring_hom.coe_monoid_hom]
 end
 
 lemma lift_spec_mul_add {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) (z w w' v) :
@@ -423,7 +423,7 @@ noncomputable def lift {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) : S →+*
     show g _ * g _ * g _ + g _ * g _ * g _ = g _ * g _ * g _,
     simp_rw [←map_mul g, ←map_add g],
     apply @eq_of_eq _ _ _ S _ _ _ _ _ g hg,
-    simp only [sec_spec', to_localization_map_sec, map_add, map_mul],
+    simv only [sec_spec', to_localization_map_sec, map_add, map_mul],
     ring
   end,
   .. @submonoid.localization_with_zero_map.lift _ _ _ _ _ _ _
@@ -634,7 +634,7 @@ begin
   { intro y,
     obtain ⟨⟨x, s⟩, e⟩ := is_localization.surj M (h.symm y),
     apply_fun h at e,
-    simp only [h.map_mul, h.apply_symm_apply, h.commutes] at e,
+    simv only [h.map_mul, h.apply_symm_apply, h.commutes] at e,
     exact ⟨⟨x, s⟩, e⟩ },
   { intros x y,
     rw [← h.symm.to_equiv.injective.eq_iff, ← is_localization.eq_iff_exists M S,
@@ -676,7 +676,7 @@ begin
       is_localization.eq_iff_exists M S],
     simp_rw ← h.to_equiv.apply_eq_iff_eq,
     change (∃ (c : M), h (h.symm x * c) = h (h.symm y * c)) ↔ _,
-    simp only [ring_equiv.apply_symm_apply, ring_equiv.map_mul],
+    simv only [ring_equiv.apply_symm_apply, ring_equiv.map_mul],
     exact ⟨λ ⟨c, e⟩, ⟨⟨_, _, c.prop, rfl⟩, e⟩, λ ⟨⟨_, c, h, e₁⟩, e₂⟩, ⟨⟨_, h⟩, e₁.symm ▸ e₂⟩⟩ }
 end
 
@@ -691,7 +691,7 @@ begin
   { erw [submonoid.map_equiv_eq_comap_symm, submonoid.comap_map_eq_of_injective],
     exact h.to_equiv.injective },
   rw [ring_hom.algebra_map_to_algebra, ring_hom.comp_assoc],
-  simp only [ring_hom.comp_id, ring_equiv.symm_symm, ring_equiv.symm_to_ring_hom_comp_to_ring_hom],
+  simv only [ring_hom.comp_id, ring_equiv.symm_symm, ring_equiv.symm_to_ring_hom_comp_to_ring_hom],
   apply algebra.algebra_ext,
   intro r,
   rw ring_hom.algebra_map_to_algebra
@@ -763,15 +763,15 @@ lemma add_mk_self (a b c) : (mk a b : localization M) + mk c b = mk (a + c) b :=
 begin
   rw [add_mk, mk_eq_mk_iff, r_eq_r'],
   refine (r' M).symm ⟨1, _⟩,
-  simp only [submonoid.coe_one, submonoid.coe_mul],
+  simv only [submonoid.coe_one, submonoid.coe_mul],
   ring
 end
 
 private meta def tac := `[
 { intros,
-  simp only [add_mk, localization.mk_mul, ← localization.mk_zero 1],
+  simv only [add_mk, localization.mk_mul, ← localization.mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
-  simp only [submonoid.coe_mul],
+  simv only [submonoid.coe_mul],
   ring }]
 
 instance : comm_semiring (localization M) :=
@@ -782,9 +782,9 @@ instance : comm_semiring (localization M) :=
   npow := localization.npow _,
   nsmul := (•),
   nsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
+    (λ x, by simv only [smul_mk, zero_nsmul, mk_zero]),
   nsmul_succ' := λ n x, localization.induction_on x
-    (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
+    (λ x, by simv only [smul_mk, succ_nsmul, add_mk_self]),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
   add_zero       := λ y, localization.induction_on y (by tac),
@@ -815,10 +815,10 @@ lemma mk_multiset_sum (l : multiset R) (b : M) :
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
-{ smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
+{ smul_zero := λ s, by simv only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
   smul_add := λ s x y, localization.induction_on₂ x y $
     prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
-      by simp only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
+      by simv only [localization.smul_mk, localization.add_mk, smul_add, mul_comm _ (s • _),
                     mul_comm _ r₁, mul_comm _ r₂, smul_mul_assoc] }
 
 instance {S : Type*} [semiring S] [mul_semiring_action S R] [is_scalar_tower S R R] :
@@ -828,9 +828,9 @@ instance {S : Type*} [semiring S] [mul_semiring_action S R] [is_scalar_tower S R
 instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
   module S (localization M) :=
 { zero_smul := localization.ind $ prod.rec $
-    by { intros, simp only [localization.smul_mk, zero_smul, mk_zero] },
+    by { intros, simv only [localization.smul_mk, zero_smul, mk_zero] },
   add_smul := λ s₁ s₂, localization.ind $ prod.rec $
-    by { intros, simp only [localization.smul_mk, add_smul, add_mk_self] },
+    by { intros, simv only [localization.smul_mk, add_smul, add_mk_self] },
   ..localization.distrib_mul_action }
 
 instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M) :=
@@ -839,17 +839,17 @@ instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M
   { to_fun := (monoid_of M).to_map,
     map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
     map_add' := λ x y,
-      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
+      by simv only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
     .. localization.monoid_of M } (algebra_map S R),
   smul_def' := λ s, localization.ind $ prod.rec $ begin
     intros r x,
     dsimp,
-    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, algebra.smul_def],
+    simv only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, algebra.smul_def],
   end,
   commutes' := λ s, localization.ind $ prod.rec $ begin
     intros r x,
     dsimp,
-    simp only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, mul_one,
+    simv only [←mk_one_eq_monoid_of_mk, mk_mul, localization.smul_mk, one_mul, mul_one,
                algebra.commutes],
   end }
 
@@ -947,9 +947,9 @@ by { unfold has_neg.neg localization.neg, apply lift_on_mk }
 instance : comm_ring (localization M) :=
 { zsmul := (•),
   zsmul_zero' := λ x, localization.induction_on x
-    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+    (λ x, by simv only [smul_mk, zero_zsmul, mk_zero]),
   zsmul_succ' := λ n x, localization.induction_on x
-    (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
+    (λ x, by simv [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
   zsmul_neg' := λ n x, localization.induction_on x
     (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
   neg            := has_neg.neg,
@@ -958,9 +958,9 @@ instance : comm_ring (localization M) :=
   add_left_neg   := λ y, by exact localization.induction_on y
   begin
     intros,
-    simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
+    simv only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
     refine mk_eq_mk_iff.mpr (r_of_eq _),
-    simp only [submonoid.coe_mul],
+    simv only [submonoid.coe_mul],
     ring
   end,
    .. localization.comm_semiring }

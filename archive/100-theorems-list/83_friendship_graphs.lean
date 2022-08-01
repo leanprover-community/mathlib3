@@ -76,7 +76,7 @@ theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
   rw [sq, ← nat.cast_one, ← hG hvw],
-  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter,
+  simv [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter,
     and_comm, ← neighbor_finset_def],
 end
 
@@ -108,8 +108,8 @@ begin
       ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
       ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.symm h))],
   conv_lhs {rw ← transpose_adj_matrix},
-  simp only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
-  simp only [← mul_eq_mul, mul_assoc],
+  simv only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
+  simv only [← mul_eq_mul, mul_assoc],
 end
 
 /-- Let `A` be the adjacency matrix of a graph `G`.
@@ -120,14 +120,14 @@ theorem adj_matrix_sq_of_regular (hd : G.is_regular_of_degree d) :
   ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
   ext v w, by_cases h : v = w,
-  { rw [h, sq, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
+  { rw [h, sq, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simv, },
   { rw [adj_matrix_sq_of_ne R hG h, if_neg h], },
 end
 
 lemma adj_matrix_sq_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1)
   (hd : G.is_regular_of_degree d) :
   (G.adj_matrix (zmod p)) ^ 2 = λ _ _, 1 :=
-by simp [adj_matrix_sq_of_regular hG hd, dmod]
+by simv [adj_matrix_sq_of_regular hG hd, dmod]
 
 section nonempty
 
@@ -178,12 +178,12 @@ begin
   have v := classical.arbitrary V,
   transitivity ((G.adj_matrix ℕ) ^ 2).mul_vec (λ _, 1) v,
   { rw [adj_matrix_sq_of_regular hG hd, mul_vec, dot_product, ← insert_erase (mem_univ v)],
-    simp only [sum_insert, mul_one, if_true, nat.cast_id, eq_self_iff_true,
+    simv only [sum_insert, mul_one, if_true, nat.cast_id, eq_self_iff_true,
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
     rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], { refl },
-    intros x hx, simp [(ne_of_mem_erase hx).symm], },
+    intros x hx, simv [(ne_of_mem_erase hx).symm], },
   { rw [sq, mul_eq_mul, ← mul_vec_mul_vec],
-    simp [adj_matrix_mul_vec_const_apply_of_regular hd, neighbor_finset,
+    simv [adj_matrix_mul_vec_const_apply_of_regular hd, neighbor_finset,
           card_neighbor_set_eq_degree, hd v], }
 end
 
@@ -194,9 +194,9 @@ lemma card_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regul
 begin
   have hpos : 0 < fintype.card V := fintype.card_pos_iff.mpr infer_instance,
   rw [← nat.succ_pred_eq_of_pos hpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],
-  simp only [add_left_eq_self, nat.cast_add, nat.cast_one],
+  simv only [add_left_eq_self, nat.cast_add, nat.cast_one],
   have h := congr_arg (λ n, (↑n : zmod p)) (card_of_regular hG hd),
-  revert h, simp [dmod],
+  revert h, simv [dmod],
 end
 
 end nonempty
@@ -205,7 +205,7 @@ omit hG
 
 lemma adj_matrix_sq_mul_const_one_of_regular (hd : G.is_regular_of_degree d) :
   (G.adj_matrix R) * (λ _ _, 1) = λ _ _, d :=
-by { ext x, simp [← hd x, degree] }
+by { ext x, simv [← hd x, degree] }
 
 lemma adj_matrix_mul_const_one_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1)
   (hd : G.is_regular_of_degree d) :
@@ -245,7 +245,7 @@ begin
   have hp2 : 2 ≤ p := (fact.out p.prime).two_le,
   have dmod : (d : zmod p) = 1,
   { rw [← nat.succ_pred_eq_of_pos dpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],
-    simp only [add_left_eq_self, nat.cast_add, nat.cast_one],
+    simv only [add_left_eq_self, nat.cast_add, nat.cast_one],
     exact p_dvd_d_pred, },
   have Vmod := card_mod_p_of_regular hG dmod hd,
   -- now we reduce to a trace calculation
@@ -256,7 +256,7 @@ begin
   -- but the trace is 1 mod p when computed the other way
   rw adj_matrix_pow_mod_p_of_regular hG dmod hd hp2,
   dunfold fintype.card at Vmod,
-  simp only [matrix.trace, matrix.diag, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
+  simv only [matrix.trace, matrix.diag, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
   rw [Vmod, ← nat.cast_one, zmod.nat_coe_zmod_eq_zero_iff_dvd, nat.dvd_one,
     nat.min_fac_eq_one_iff],
   linarith,

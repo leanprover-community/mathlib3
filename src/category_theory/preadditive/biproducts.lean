@@ -60,15 +60,15 @@ lemma is_iso_left_of_is_iso_biprod_map
   ⟨begin
     have t := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.hom_inv_id (biprod.map f g)),
-    simp only [category.id_comp, category.assoc, biprod.inl_map_assoc] at t,
-    simp [t],
+    simv only [category.id_comp, category.assoc, biprod.inl_map_assoc] at t,
+    simv [t],
   end,
   begin
     have t := congr_arg (λ p : Y ⊞ Z ⟶ Y ⊞ Z, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.inv_hom_id (biprod.map f g)),
-    simp only [category.id_comp, category.assoc, biprod.map_fst] at t,
-    simp only [category.assoc],
-    simp [t],
+    simv only [category.id_comp, category.assoc, biprod.map_fst] at t,
+    simv only [category.assoc],
+    simv [t],
   end⟩⟩⟩
 
 /--
@@ -109,32 +109,32 @@ biprod.snd ≫ f₂₂ ≫ biprod.inr
 lemma biprod.inl_of_components :
   biprod.inl ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ =
     f₁₁ ≫ biprod.inl + f₁₂ ≫ biprod.inr :=
-by simp [biprod.of_components]
+by simv [biprod.of_components]
 
 @[simp]
 lemma biprod.inr_of_components :
   biprod.inr ≫ biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ =
     f₂₁ ≫ biprod.inl + f₂₂ ≫ biprod.inr :=
-by simp [biprod.of_components]
+by simv [biprod.of_components]
 
 @[simp]
 lemma biprod.of_components_fst :
   biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.fst =
     biprod.fst ≫ f₁₁ + biprod.snd ≫ f₂₁ :=
-by simp [biprod.of_components]
+by simv [biprod.of_components]
 
 @[simp]
 lemma biprod.of_components_snd :
   biprod.of_components f₁₁ f₁₂ f₂₁ f₂₂ ≫ biprod.snd =
     biprod.fst ≫ f₁₂ + biprod.snd ≫ f₂₂ :=
-by simp [biprod.of_components]
+by simv [biprod.of_components]
 
 @[simp]
 lemma biprod.of_components_eq (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) :
   biprod.of_components (biprod.inl ≫ f ≫ biprod.fst) (biprod.inl ≫ f ≫ biprod.snd)
     (biprod.inr ≫ f ≫ biprod.fst) (biprod.inr ≫ f ≫ biprod.snd) = f :=
 begin
-  ext; simp,
+  ext; simv,
 end
 
 @[simp]
@@ -148,7 +148,7 @@ lemma biprod.of_components_comp {X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C}
 begin
   dsimp [biprod.of_components],
   apply biprod.hom_ext; apply biprod.hom_ext';
-  simp only [add_comp, comp_add, add_comp_assoc, add_zero, zero_add,
+  simv only [add_comp, comp_add, add_comp_assoc, add_zero, zero_add,
     biprod.inl_fst, biprod.inl_snd, biprod.inr_fst, biprod.inr_snd,
     biprod.inl_fst_assoc, biprod.inl_snd_assoc, biprod.inr_fst_assoc, biprod.inr_snd_assoc,
     comp_zero, zero_comp,
@@ -195,7 +195,7 @@ def biprod.gaussian' [is_iso f₁₁] :
 ⟨biprod.unipotent_lower (-(f₂₁ ≫ inv f₁₁)),
  biprod.unipotent_upper (-(inv f₁₁ ≫ f₁₂)),
  f₂₂ - f₂₁ ≫ (inv f₁₁) ≫ f₁₂,
- by ext; simp; abel⟩
+ by ext; simv; abel⟩
 
 /--
 If `f` is a morphism `X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
@@ -236,7 +236,7 @@ begin
        (biprod.inl ≫ f.hom ≫ biprod.snd)
        (biprod.inr ≫ f.hom ≫ biprod.fst)
        (biprod.inr ≫ f.hom ≫ biprod.snd)) :=
-  by { simp only [biprod.of_components_eq], apply_instance, },
+  by { simv only [biprod.of_components_eq], apply_instance, },
   exact biprod.iso_elim'
     (biprod.inl ≫ f.hom ≫ biprod.fst)
     (biprod.inl ≫ f.hom ≫ biprod.snd)
@@ -251,17 +251,17 @@ begin
   by_contra' h,
   rcases h with ⟨nz, a₁, a₂⟩,
   set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
-  have h₁ : x = 𝟙 W, by simp [x],
+  have h₁ : x = 𝟙 W, by simv [x],
   have h₀ : x = 0,
   { dsimp [x],
     rw [←category.id_comp (inv f), category.assoc, ←biprod.total],
     conv_lhs { slice 2 3, rw [comp_add], },
-    simp only [category.assoc],
+    simv only [category.assoc],
     rw [comp_add_assoc, add_comp],
     conv_lhs { congr, skip, slice 1 3, rw a₂, },
-    simp only [zero_comp, add_zero],
+    simv only [zero_comp, add_zero],
     conv_lhs { slice 1 3, rw a₁, },
-    simp only [zero_comp], },
+    simv only [zero_comp], },
   exact nz (h₁.symm.trans h₀),
 end
 
@@ -277,13 +277,13 @@ lemma biproduct.column_nonzero_of_iso'
 begin
   intro z,
   set x := biproduct.ι S s ≫ f ≫ inv f ≫ biproduct.π S s,
-  have h₁ : x = 𝟙 (S s), by simp [x],
+  have h₁ : x = 𝟙 (S s), by simv [x],
   have h₀ : x = 0,
   { dsimp [x],
     rw [←category.id_comp (inv f), category.assoc, ←biproduct.total],
-    simp only [comp_sum_assoc],
-    conv_lhs { congr, apply_congr, skip, simp only [reassoc_of z], },
-    simp, },
+    simv only [comp_sum_assoc],
+    conv_lhs { congr, apply_congr, skip, simv only [reassoc_of z], },
+    simv, },
   exact h₁.symm.trans h₀,
 end
 
@@ -302,7 +302,7 @@ begin
   apply trunc_sigma_of_exists,
   have t := biproduct.column_nonzero_of_iso'.{v} s f,
   by_contradiction h,
-  simp only [not_exists_not] at h,
+  simv only [not_exists_not] at h,
   exact nz (t h)
 end
 

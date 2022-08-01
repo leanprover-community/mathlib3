@@ -183,7 +183,7 @@ example {f' : a ⟶ d } {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f' ⟶ (
 
 @[simp] lemma bicategorical_comp_refl {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h) :
   η ⊗≫ θ = η ≫ θ :=
-by { dsimp [bicategorical_comp], simp, }
+by { dsimp [bicategorical_comp], simv, }
 
 end category_theory.bicategory
 
@@ -209,7 +209,7 @@ namespace bicategory
 
 /-- Simp lemmas for rewriting a 2-morphism into a normal form. -/
 meta def whisker_simps : tactic unit :=
-`[simp only [
+`[simv only [
     category_theory.category.assoc,
     category_theory.bicategory.comp_whisker_left,
     category_theory.bicategory.id_whisker_left,
@@ -224,12 +224,12 @@ meta def whisker_simps : tactic unit :=
 namespace coherence
 
 /--
-Auxiliary simp lemma for the `coherence` tactic:
+Auxiliary simv lemma for the `coherence` tactic:
 this move brackets to the left in order to expose a maximal prefix
 built out of unitors and associators.
 -/
 -- We have unused typeclass arguments here.
--- They are intentional, to ensure that `simp only [assoc_lift_hom₂]` only left associates
+-- They are intentional, to ensure that `simv only [assoc_lift_hom₂]` only left associates
 -- bicategorical structural morphisms.
 @[nolint unused_arguments]
 lemma assoc_lift_hom₂ {f g h i : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h]

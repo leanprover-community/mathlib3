@@ -59,10 +59,10 @@ constants f g : ℕ → ℕ → ℕ → ℕ
 lemma test_pathfinding : f 0 0 0 = g 0 0 0 := by rewrite_search
 
 constant h : ℕ → ℕ
-@[rewrite,simp] axiom a1 : h 0 = h 1
-@[rewrite,simp] axiom a2 : h 1 = h 2
-@[rewrite,simp] axiom a3 : h 2 = h 3
-@[rewrite,simp] axiom a4 : h 3 = h 4
+@[rewrite,simv] axiom a1 : h 0 = h 1
+@[rewrite,simv] axiom a2 : h 1 = h 2
+@[rewrite,simv] axiom a3 : h 2 = h 3
+@[rewrite,simv] axiom a4 : h 3 = h 4
 
 lemma test_linear_path : h 0 = h 4 := by rewrite_search
 

@@ -24,7 +24,7 @@ open function (hiding comp)
 open functor
 
 attribute [functor_norm] is_lawful_traversable.naturality
-attribute [simp] is_lawful_traversable.id_traverse
+attribute [simv] is_lawful_traversable.id_traverse
 
 namespace traversable
 
@@ -44,7 +44,7 @@ to `F`, defined by `pure : Π {α}, α → F α`. -/
 def pure_transformation : applicative_transformation id F :=
 { app := @pure F _,
   preserves_pure' := λ α x, rfl,
-  preserves_seq' := λ α β f x, by { simp only [map_pure, seq_pure], refl } }
+  preserves_seq' := λ α β f x, by { simv only [map_pure, seq_pure], refl } }
 
 @[simp] theorem pure_transformation_apply {α} (x : id α) : pure_transformation F x = pure x := rfl
 
@@ -74,15 +74,15 @@ by have : traverse pure x = pure (traverse id.mk x) :=
    rwa id_traverse at this
 
 lemma id_sequence (x : t α) : sequence (id.mk <$> x) = id.mk x :=
-by simp [sequence, traverse_map, id_traverse]; refl
+by simv [sequence, traverse_map, id_traverse]; refl
 
 lemma comp_sequence (x : t (F (G α))) :
   sequence (comp.mk <$> x) = comp.mk (sequence <$> sequence x) :=
-by simp [sequence, traverse_map]; rw ← comp_traverse; simp [map_id]
+by simv [sequence, traverse_map]; rw ← comp_traverse; simv [map_id]
 
 lemma naturality' (η : applicative_transformation F G) (x : t (F α)) :
   η (sequence x) = sequence (@η _ <$> x) :=
-by simp [sequence, naturality, traverse_map]
+by simv [sequence, naturality, traverse_map]
 
 @[functor_norm]
 lemma traverse_id : traverse id.mk = (id.mk : t α → id (t α)) :=

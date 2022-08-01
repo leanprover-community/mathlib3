@@ -38,16 +38,16 @@ theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
 by rw [Ico, tsub_zero, range_eq_range']
 
 @[simp] theorem length (n m : ℕ) : length (Ico n m) = m - n :=
-by { dsimp [Ico], simp only [length_range'] }
+by { dsimp [Ico], simv only [length_range'] }
 
 theorem pairwise_lt (n m : ℕ) : pairwise (<) (Ico n m) :=
-by { dsimp [Ico], simp only [pairwise_lt_range'] }
+by { dsimp [Ico], simv only [pairwise_lt_range'] }
 
 theorem nodup (n m : ℕ) : nodup (Ico n m) :=
-by { dsimp [Ico], simp only [nodup_range'] }
+by { dsimp [Ico], simv only [nodup_range'] }
 
 @[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
-suffices n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m, by simp [Ico, this],
+suffices n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m, by simv [Ico, this],
 begin
   cases le_total n m with hnm hmn,
   { rw [add_tsub_cancel_of_le hnm] },
@@ -58,7 +58,7 @@ begin
 end
 
 theorem eq_nil_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = [] :=
-by simp [Ico, tsub_eq_zero_iff_le.mpr h]
+by simv [Ico, tsub_eq_zero_iff_le.mpr h]
 
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', add_tsub_add_eq_tsub_right, add_comm n k]
@@ -85,7 +85,7 @@ end
 begin
   apply eq_nil_iff_forall_not_mem.2,
   intro a,
-  simp only [and_imp, not_and, not_lt, list.mem_inter, list.Ico.mem],
+  simv only [and_imp, not_and, not_lt, list.mem_inter, list.Ico.mem],
   intros h₁ h₂ h₃,
   exfalso,
   exact not_lt_of_ge h₃ h₂
@@ -95,7 +95,7 @@ end
 (bag_inter_nil_iff_inter_nil _ _).2 (inter_consecutive n m l)
 
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = [n] :=
-by { dsimp [Ico], simp [add_tsub_cancel_left] }
+by { dsimp [Ico], simv [add_tsub_cancel_left] }
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = Ico n m ++ [m] :=
 by { rwa [← succ_singleton, append_consecutive], exact nat.le_succ _ }
@@ -104,7 +104,7 @@ theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
 by { rw [← append_consecutive (nat.le_succ n) h, succ_singleton], refl }
 
 @[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = [m - 1] :=
-by { dsimp [Ico], rw tsub_tsub_cancel_of_le (succ_le_of_lt h), simp }
+by { dsimp [Ico], rw tsub_tsub_cancel_of_le (succ_le_of_lt h), simv }
 
 theorem chain'_succ (n m : ℕ) : chain' (λa b, b = succ a) (Ico n m) :=
 begin
@@ -114,7 +114,7 @@ begin
 end
 
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
-by simp
+by simv
 
 lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
 filter_eq_self.2 $ assume k hk, lt_of_lt_of_le (mem.1 hk).2 hml
@@ -161,7 +161,7 @@ end
 lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
 begin
   have r : min m (n + 1) = n + 1 := (@inf_eq_right _ _ m (n + 1)).mpr hnm,
-  simp [filter_lt n m (n + 1), r],
+  simv [filter_lt n m (n + 1), r],
 end
 
 @[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
@@ -183,7 +183,7 @@ begin
   { right,
     by_cases h₂ : n ∈ Ico a b,
     { right, exact h₂ },
-    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
+    { left,  simv only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
 end
 
 end Ico

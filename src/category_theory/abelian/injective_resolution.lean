@@ -55,12 +55,12 @@ def desc_f_one {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.cocomplex.X 1 ⟶ I.cocomplex.X 1 :=
 exact.desc (desc_f_zero f I J ≫ I.cocomplex.d 0 1) (J.ι.f 0) (J.cocomplex.d 0 1)
-  (abelian.exact.op _ _ J.exact₀) (by simp [←category.assoc, desc_f_zero])
+  (abelian.exact.op _ _ J.exact₀) (by simv [←category.assoc, desc_f_zero])
 
 @[simp] lemma desc_f_one_zero_comm {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.cocomplex.d 0 1 ≫ desc_f_one f I J = desc_f_zero f I J ≫ I.cocomplex.d 0 1 :=
-by simp [desc_f_zero, desc_f_one]
+by simv [desc_f_zero, desc_f_one]
 
 /-- Auxiliary construction for `desc`. -/
 def desc_f_succ {Y Z : C}
@@ -73,7 +73,7 @@ def desc_f_succ {Y Z : C}
   (g' ≫ I.cocomplex.d (n+1) (n+2))
   (J.cocomplex.d n (n+1))
   (J.cocomplex.d (n+1) (n+2)) (abelian.exact.op _ _ (J.exact _))
-  (by simp [←category.assoc, w]), (by simp)⟩
+  (by simv [←category.assoc, w]), (by simv)⟩
 
 /-- A morphism in `C` descends to a chain map between injective resolutions. -/
 def desc {Y Z : C}
@@ -84,14 +84,14 @@ cochain_complex.mk_hom _ _ (desc_f_zero f _ _) (desc_f_one f _ _)
   (λ n ⟨g, g', w⟩, ⟨(desc_f_succ I J n g g' w.symm).1, (desc_f_succ I J n g g' w.symm).2.symm⟩)
 
 /-- The resolution maps intertwine the descent of a morphism and that morphism. -/
-@[simp, reassoc]
+@[simv, reassoc]
 lemma desc_commutes {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.ι ≫ desc f I J = (cochain_complex.single₀ C).map f ≫ I.ι :=
 begin
   ext n,
   rcases n with (_|_|n);
-  { dsimp [desc, desc_f_one, desc_f_zero], simp, },
+  { dsimp [desc, desc_f_one, desc_f_zero], simv, },
 end
 
 -- Now that we've checked this property of the descent,
@@ -111,7 +111,7 @@ def desc_homotopy_zero_one {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveR
   (comm : I.ι ≫ f = (0 : _ ⟶ J.cocomplex)) : I.cocomplex.X 2 ⟶ J.cocomplex.X 1 :=
 exact.desc (f.f 1 - desc_homotopy_zero_zero f comm ≫ J.cocomplex.d 0 1)
   (I.cocomplex.d 0 1) (I.cocomplex.d 1 2) (abelian.exact.op _ _ (I.exact _))
-  (by simp [desc_homotopy_zero_zero, ←category.assoc])
+  (by simv [desc_homotopy_zero_zero, ←category.assoc])
 
 /-- An auxiliary definition for `desc_homotopy_zero`. -/
 def desc_homotopy_zero_succ {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
@@ -122,19 +122,19 @@ def desc_homotopy_zero_succ {Y Z : C} {I : InjectiveResolution Y} {J : Injective
   I.cocomplex.X (n + 3) ⟶ J.cocomplex.X (n + 2) :=
 exact.desc (f.f (n+2) - g' ≫ J.cocomplex.d _ _) (I.cocomplex.d (n+1) (n+2))
   (I.cocomplex.d (n+2) (n+3)) (abelian.exact.op _ _ (I.exact _))
-  (by simp [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp,
+  (by simv [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp,
         show I.cocomplex.d (n+1) (n+2) ≫ g' = f.f (n + 1) - g ≫ J.cocomplex.d n (n+1),
-        by {rw w, simp only [add_sub_cancel] } ])
+        by {rw w, simv only [add_sub_cancel] } ])
 
 /-- Any descent of the zero morphism is homotopic to zero. -/
 def desc_homotopy_zero {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
   (f : I.cocomplex ⟶ J.cocomplex)
   (comm : I.ι ≫ f = 0) :
   homotopy f 0 :=
-homotopy.mk_coinductive _ (desc_homotopy_zero_zero f comm) (by simp [desc_homotopy_zero_zero])
-  (desc_homotopy_zero_one f comm) (by simp [desc_homotopy_zero_one])
-  (λ n ⟨g, g', w⟩, ⟨desc_homotopy_zero_succ f n g g' (by simp only [w, add_comm]),
-    by simp [desc_homotopy_zero_succ, w]⟩)
+homotopy.mk_coinductive _ (desc_homotopy_zero_zero f comm) (by simv [desc_homotopy_zero_zero])
+  (desc_homotopy_zero_one f comm) (by simv [desc_homotopy_zero_one])
+  (λ n ⟨g, g', w⟩, ⟨desc_homotopy_zero_succ f n g g' (by simv only [w, add_comm]),
+    by simv [desc_homotopy_zero_succ, w]⟩)
 
 /-- Two descents of the same morphism are homotopic. -/
 def desc_homotopy {Y Z : C} (f : Y ⟶ Z) {I : InjectiveResolution Y} {J : InjectiveResolution Z}
@@ -142,18 +142,18 @@ def desc_homotopy {Y Z : C} (f : Y ⟶ Z) {I : InjectiveResolution Y} {J : Injec
   (g_comm : I.ι ≫ g = (cochain_complex.single₀ C).map f ≫ J.ι)
   (h_comm : I.ι ≫ h = (cochain_complex.single₀ C).map f ≫ J.ι) :
   homotopy g h :=
-homotopy.equiv_sub_zero.inv_fun (desc_homotopy_zero _ (by simp [g_comm, h_comm]))
+homotopy.equiv_sub_zero.inv_fun (desc_homotopy_zero _ (by simv [g_comm, h_comm]))
 
 /-- The descent of the identity morphism is homotopic to the identity cochain map. -/
 def desc_id_homotopy (X : C) (I : InjectiveResolution X) :
   homotopy (desc (𝟙 X) I I) (𝟙 I.cocomplex) :=
-by apply desc_homotopy (𝟙 X); simp
+by apply desc_homotopy (𝟙 X); simv
 
 /-- The descent of a composition is homotopic to the composition of the descents. -/
 def desc_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   (I : InjectiveResolution X) (J : InjectiveResolution Y) (K : InjectiveResolution Z) :
   homotopy (desc (f ≫ g) K I) (desc f J I ≫ desc g K J)  :=
-by apply desc_homotopy (f ≫ g); simp
+by apply desc_homotopy (f ≫ g); simv
 
 -- We don't care about the actual definitions of these homotopies.
 attribute [irreducible] desc_homotopy_zero desc_homotopy desc_id_homotopy desc_comp_homotopy
@@ -168,13 +168,13 @@ def homotopy_equiv {X : C} (I J : InjectiveResolution X) :
   homotopy_inv_hom_id := (desc_comp_homotopy (𝟙 X) (𝟙 X) J I J).symm.trans $
     by simpa [category.id_comp] using desc_id_homotopy _ _ }
 
-@[simp, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
+@[simv, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
   I.ι ≫ (homotopy_equiv I J).hom = J.ι :=
-by simp [homotopy_equiv]
+by simv [homotopy_equiv]
 
-@[simp, reassoc] lemma homotopy_equiv_inv_ι {X : C} (I J : InjectiveResolution X) :
+@[simv, reassoc] lemma homotopy_equiv_inv_ι {X : C} (I J : InjectiveResolution X) :
   J.ι ≫ (homotopy_equiv I J).inv = I.ι :=
-by simp [homotopy_equiv]
+by simv [homotopy_equiv]
 
 end abelian
 
@@ -229,7 +229,7 @@ variables [abelian C] [enough_injectives C]
 
 lemma exact_f_d {X Y : C} (f : X ⟶ Y) : exact f (d f) :=
 (abelian.exact_iff _ _).2 $
-  ⟨by simp, zero_of_comp_mono (ι _) $ by rw [category.assoc, kernel.condition]⟩
+  ⟨by simv, zero_of_comp_mono (ι _) $ by rw [category.assoc, kernel.condition]⟩
 
 end
 
@@ -259,12 +259,12 @@ In any abelian category with enough injectives,
 @[irreducible] def of (Z : C) : InjectiveResolution Z :=
 { cocomplex := of_cocomplex Z,
   ι := cochain_complex.mk_hom _ _ (injective.ι Z) 0
-    (by { simp only [of_cocomplex_d, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
+    (by { simv only [of_cocomplex_d, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
       dite_eq_ite, if_true, comp_zero],
       exact (exact_f_d (injective.ι Z)).w, } ) (λ n _, ⟨0, by ext⟩),
   injective := by { rintros (_|_|_|n); { apply injective.injective_under, } },
   exact₀ := by simpa using exact_f_d (injective.ι Z),
-  exact := by { rintros (_|n); { simp, apply exact_f_d } },
+  exact := by { rintros (_|n); { simv, apply exact_f_d } },
   mono := injective.ι_mono Z }
 
 @[priority 100]

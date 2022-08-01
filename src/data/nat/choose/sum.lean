@@ -123,19 +123,19 @@ end
 lemma four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) :
   4 ^ n ≤ (2 * n + 1) * choose (2 * n) n :=
 calc 4 ^ n = (1 + 1) ^ (2 * n) : by norm_num [pow_mul]
-...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow]
+...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simv [add_pow]
 ...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) :
   sum_le_sum (λ i hi, choose_le_middle i (2 * n))
-...        = (2 * n + 1) * choose (2 * n) n : by simp
+...        = (2 * n + 1) * choose (2 * n) n : by simv
 
 end nat
 
 theorem int.alternating_sum_range_choose {n : ℕ} :
   ∑ m in range (n + 1), ((-1) ^ m * ↑(choose n m) : ℤ) = if n = 0 then 1 else 0 :=
 begin
-  cases n, { simp },
+  cases n, { simv },
   have h := add_pow (-1 : ℤ) 1 n.succ,
-  simp only [one_pow, mul_one, add_left_neg] at h,
+  simv only [one_pow, mul_one, add_left_neg] at h,
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end
 
@@ -164,7 +164,7 @@ theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset
   ∑ m in x.powerset, (-1 : ℤ) ^ m.card = if x = ∅ then 1 else 0 :=
 begin
   rw sum_powerset_apply_card,
-  simp only [nsmul_eq_mul', ← card_eq_zero, int.alternating_sum_range_choose]
+  simv only [nsmul_eq_mul', ← card_eq_zero, int.alternating_sum_range_choose]
 end
 
 theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} {x : finset α}

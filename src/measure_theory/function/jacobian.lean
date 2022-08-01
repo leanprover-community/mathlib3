@@ -121,7 +121,7 @@ begin
   -- exclude the trivial case where `s` is empty
   rcases eq_empty_or_nonempty s with rfl|hs,
   { refine ⟨λ n, ∅, λ n, 0, _, _, _, _⟩;
-    simp },
+    simv },
   -- we will use countably many linear maps. Select these from all the derivatives since the
   -- space of linear maps is second-countable
   obtain ⟨T, T_count, hT⟩ : ∃ T : set s, T.countable ∧
@@ -157,7 +157,7 @@ begin
         = ∥(f y - f x - (f' x) (y - x)) + (f' x - f' z) (y - x)∥ :
       begin
         congr' 1,
-        simp only [continuous_linear_map.coe_sub', map_sub, pi.sub_apply],
+        simv only [continuous_linear_map.coe_sub', map_sub, pi.sub_apply],
         abel,
       end
     ... ≤ ∥f y - f x - (f' x) (y - x)∥ + ∥(f' x - f' z) (y - x)∥ : norm_add_le _ _
@@ -232,14 +232,14 @@ begin
   -- by density, it also belongs to a ball `closed_ball (d p) (u n / 3)`.
   obtain ⟨p, hp⟩ : ∃ (p : ℕ), x ∈ closed_ball (d p) (u n / 3),
   { have : set.nonempty (ball x (u n / 3)),
-    { simp only [nonempty_ball], linarith [u_pos n] },
+    { simv only [nonempty_ball], linarith [u_pos n] },
     obtain ⟨p, hp⟩ : ∃ (p : ℕ), d p ∈ ball x (u n / 3) := hd.exists_mem_open is_open_ball this,
     exact ⟨p, (mem_ball'.1 hp).le⟩ },
   -- choose `q` for which `t q = K n z p`.
   obtain ⟨q, hq⟩ : ∃ q, F q = (n, z, p) := hF _,
   -- then `x` belongs to `t q`.
   apply mem_Union.2 ⟨q, _⟩,
-  simp only [hq, subset_closure hnz, hp, mem_inter_eq, and_self],
+  simv only [hq, subset_closure hnz, hp, mem_inter_eq, and_self],
 end
 
 variables [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
@@ -326,7 +326,7 @@ begin
             ≤ δ * ∥z - x∥ : hf _ zs _ xs
         ... ≤ ε * r :
           mul_le_mul (le_of_lt hδ) (mem_closed_ball_iff_norm.1 zr) (norm_nonneg _) εpos.le },
-      { simp only [map_sub, pi.sub_apply],
+      { simv only [map_sub, pi.sub_apply],
         abel } },
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
       = {f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε),
@@ -338,12 +338,12 @@ begin
     calc μ (f '' (s ∩ closed_ball x r))
         ≤ μ ({f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε)) : measure_mono K
     ... = ennreal.of_real (r ^ finrank ℝ E) * μ (A '' closed_ball 0 1 + closed_ball 0 ε) :
-      by simp only [abs_of_nonneg r0, add_haar_smul, image_add_left, abs_pow, singleton_add,
+      by simv only [abs_of_nonneg r0, add_haar_smul, image_add_left, abs_pow, singleton_add,
                     measure_preimage_add]
     ... ≤ ennreal.of_real (r ^ finrank ℝ E) * (m * μ (closed_ball 0 1)) :
       by { rw add_comm, exact ennreal.mul_le_mul le_rfl hε.le }
     ... = m * μ (closed_ball x r) :
-      by { simp only [add_haar_closed_ball' _ _ r0], ring } },
+      by { simv only [add_haar_closed_ball' _ _ r0], ring } },
   -- covering `s` by closed balls with total measure very close to `μ s`, one deduces that the
   -- measure of `f '' s` is at most `m * (μ s + a)` for any positive `a`.
   have J : ∀ᶠ a in 𝓝[>] (0 : ℝ≥0∞), μ (f '' s) ≤ m * (μ s + a),
@@ -353,7 +353,7 @@ begin
       ∧ (∀ (x : E), x ∈ t → 0 < r x) ∧ (s ⊆ ⋃ (x ∈ t), closed_ball x (r x))
       ∧ ∑' (x : ↥t), μ (closed_ball ↑x (r ↑x)) ≤ μ s + a :=
         besicovitch.exists_closed_ball_covering_tsum_measure_le μ ha.ne' (λ x, Ioi 0) s
-        (λ x xs δ δpos, ⟨δ/2, by simp [half_pos δpos, half_lt_self δpos]⟩),
+        (λ x xs δ δpos, ⟨δ/2, by simv [half_pos δpos, half_lt_self δpos]⟩),
     haveI : encodable t := t_count.to_encodable,
     calc μ (f '' s)
         ≤ μ (⋃ (x : t), f '' (s ∩ closed_ball x (r x))) :
@@ -372,7 +372,7 @@ begin
   have L : tendsto (λ a, (m : ℝ≥0∞) * (μ s + a)) (𝓝[>] 0) (𝓝 (m * (μ s + 0))),
   { apply tendsto.mono_left _ nhds_within_le_nhds,
     apply ennreal.tendsto.const_mul (tendsto_const_nhds.add tendsto_id),
-    simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
+    simv only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
   rw add_zero at L,
   exact ge_of_tendsto L J,
 end
@@ -391,14 +391,14 @@ begin
   -- exclude first the trivial case where `m = 0`.
   rcases eq_or_lt_of_le (zero_le m) with rfl|mpos,
   { apply eventually_of_forall,
-    simp only [forall_const, zero_mul, implies_true_iff, zero_le, ennreal.coe_zero] },
+    simv only [forall_const, zero_mul, implies_true_iff, zero_le, ennreal.coe_zero] },
   have hA : A.det ≠ 0,
   { assume h, simpa only [h, ennreal.not_lt_zero, ennreal.of_real_zero, abs_zero] using hm },
   -- let `B` be the continuous linear equiv version of `A`.
   let B := A.to_continuous_linear_equiv_of_det_ne_zero hA,
   -- the determinant of `B.symm` is bounded by `m⁻¹`
   have I : ennreal.of_real (|(B.symm : E →L[ℝ] E).det|) < (m⁻¹ : ℝ≥0),
-  { simp only [ennreal.of_real, abs_inv, real.to_nnreal_inv, continuous_linear_equiv.det_coe_symm,
+  { simv only [ennreal.of_real, abs_inv, real.to_nnreal_inv, continuous_linear_equiv.det_coe_symm,
       continuous_linear_map.coe_to_continuous_linear_equiv_of_det_ne_zero, ennreal.coe_lt_coe]
       at ⊢ hm,
     exact nnreal.inv_lt_inv mpos.ne' hm },
@@ -413,8 +413,8 @@ begin
   -- record smallness conditions for `δ` that will be needed to apply `hδ₀` below.
   have L1 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0), subsingleton E ∨ δ < ∥(B.symm : E →L[ℝ] E)∥₊⁻¹,
   { by_cases (subsingleton E),
-    { simp only [h, true_or, eventually_const] },
-    simp only [h, false_or],
+    { simv only [h, true_or, eventually_const] },
+    simv only [h, false_or],
     apply Iio_mem_nhds,
     simpa only [h, false_or, nnreal.inv_pos] using B.subsingleton_or_nnnorm_symm_pos },
   have L2 : ∀ᶠ δ in 𝓝 (0 : ℝ≥0),
@@ -426,7 +426,7 @@ begin
       refine tendsto.mul (tendsto_const_nhds.mul _) tendsto_id,
       refine (tendsto.sub tendsto_const_nhds tendsto_id).inv₀ _,
       simpa only [tsub_zero, inv_eq_zero, ne.def] using H },
-    simp only [mul_zero] at this,
+    simv only [mul_zero] at this,
     exact (tendsto_order.1 this).2 δ₀ δ₀pos },
   -- let `δ` be small enough, and `f` approximated by `B` up to `δ`.
   filter_upwards [L1, L2],
@@ -441,7 +441,7 @@ begin
          mul_comm, ← ennreal.coe_inv (mpos.ne')],
     { apply or.inl,
       simpa only [ennreal.coe_eq_zero, ne.def] using mpos.ne'},
-    { simp only [ennreal.coe_ne_top, true_or, ne.def, not_false_iff] } },
+    { simv only [ennreal.coe_ne_top, true_or, ne.def, not_false_iff] } },
   -- as `f⁻¹` is well approximated by `B⁻¹`, the conclusion follows from `hδ₀`
   -- and our choice of `δ`.
   exact hδ₀ _ _ ((hf'.to_inv h1δ).mono_num h2δ.le),
@@ -471,7 +471,7 @@ begin
   { have : tendsto (λ (ε : ℝ), ((δ : ℝ) + ε) * (∥z∥ + ε) + ∥(f' x - A)∥ * ε) (𝓝[>] 0)
       (𝓝 ((δ + 0) * (∥z∥ + 0) + ∥(f' x - A)∥ * 0)) :=
         tendsto.mono_left (continuous.tendsto (by continuity) 0) nhds_within_le_nhds,
-    simp only [add_zero, mul_zero] at this,
+    simv only [add_zero, mul_zero] at this,
     apply le_of_tendsto_of_tendsto tendsto_const_nhds this,
     filter_upwards [self_mem_nhds_within],
     exact H },
@@ -494,24 +494,24 @@ begin
     {x} + r • closed_ball z ε ⊆ ball x ρ ∧ 0 < r := (B₁.and (B₂.and self_mem_nhds_within)).exists,
   -- write `y = x + r a` with `a ∈ closed_ball z ε`.
   obtain ⟨a, az, ya⟩ : ∃ a, a ∈ closed_ball z ε ∧ y = x + r • a,
-  { simp only [mem_smul_set, image_add_left, mem_preimage, singleton_add] at hy,
+  { simv only [mem_smul_set, image_add_left, mem_preimage, singleton_add] at hy,
     rcases hy with ⟨a, az, ha⟩,
-    exact ⟨a, az, by simp only [ha, add_neg_cancel_left]⟩ },
+    exact ⟨a, az, by simv only [ha, add_neg_cancel_left]⟩ },
   have norm_a : ∥a∥ ≤ ∥z∥ + ε := calc
-    ∥a∥ = ∥z + (a - z)∥ : by simp only [add_sub_cancel'_right]
+    ∥a∥ = ∥z + (a - z)∥ : by simv only [add_sub_cancel'_right]
     ... ≤ ∥z∥ + ∥a - z∥ : norm_add_le _ _
     ... ≤ ∥z∥ + ε : add_le_add_left (mem_closed_ball_iff_norm.1 az) _,
   -- use the approximation properties to control `(f' x - A) a`, and then `(f' x - A) z` as `z` is
   -- close to `a`.
   have I : r * ∥(f' x - A) a∥ ≤ r * (δ + ε) * (∥z∥ + ε) := calc
     r * ∥(f' x - A) a∥ = ∥(f' x - A) (r • a)∥ :
-      by simp only [continuous_linear_map.map_smul, norm_smul, real.norm_eq_abs,
+      by simv only [continuous_linear_map.map_smul, norm_smul, real.norm_eq_abs,
                     abs_of_nonneg rpos.le]
     ... = ∥(f y - f x - A (y - x)) -
             (f y - f x - (f' x) (y - x))∥ :
       begin
         congr' 1,
-        simp only [ya, add_sub_cancel', sub_sub_sub_cancel_left, continuous_linear_map.coe_sub',
+        simv only [ya, add_sub_cancel', sub_sub_sub_cancel_left, continuous_linear_map.coe_sub',
           eq_self_iff_true, sub_left_inj, pi.sub_apply, continuous_linear_map.map_smul, smul_sub],
       end
     ... ≤ ∥f y - f x - A (y - x)∥ +
@@ -519,7 +519,7 @@ begin
     ... ≤ δ * ∥y - x∥ + ε * ∥y - x∥ :
       add_le_add (hf _ ys _ xs) (hρ ⟨rρ hy, ys⟩)
     ... = r * (δ + ε) * ∥a∥ :
-      by { simp only [ya, add_sub_cancel', norm_smul, real.norm_eq_abs, abs_of_nonneg rpos.le],
+      by { simv only [ya, add_sub_cancel', norm_smul, real.norm_eq_abs, abs_of_nonneg rpos.le],
            ring }
     ... ≤ r * (δ + ε) * (∥z∥ + ε) :
       mul_le_mul_of_nonneg_left norm_a (mul_nonneg rpos.le (add_nonneg δ.2 εpos.le)),
@@ -527,7 +527,7 @@ begin
     ∥(f' x - A) z∥ = ∥(f' x - A) a + (f' x - A) (z - a)∥ :
       begin
         congr' 1,
-        simp only [continuous_linear_map.coe_sub', map_sub, pi.sub_apply],
+        simv only [continuous_linear_map.coe_sub', map_sub, pi.sub_apply],
         abel
       end
     ... ≤ ∥(f' x - A) a∥ + ∥(f' x - A) (z - a)∥ : norm_add_le _ _
@@ -561,7 +561,7 @@ begin
   { assume A,
     let m : ℝ≥0 := real.to_nnreal ((|A.det|)) + 1,
     have I : ennreal.of_real (|A.det|) < m,
-      by simp only [ennreal.of_real, m, lt_add_iff_pos_right, zero_lt_one, ennreal.coe_lt_coe],
+      by simv only [ennreal.of_real, m, lt_add_iff_pos_right, zero_lt_one, ennreal.coe_lt_coe],
     rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists
       with ⟨δ, h, h'⟩,
     exact ⟨δ, h', λ t ht, h t f ht⟩ },
@@ -591,7 +591,7 @@ begin
       refine ennreal.tsum_le_tsum (λ n, ennreal.mul_le_mul le_rfl _),
       exact le_trans (measure_mono (inter_subset_left _ _)) (le_of_eq hs),
     end
-  ... = 0 : by simp only [tsum_zero, mul_zero]
+  ... = 0 : by simv only [tsum_zero, mul_zero]
 end
 
 /-- A version of Sard lemma in fixed dimension: given a differentiable function from `E` to `E` and
@@ -603,13 +603,13 @@ lemma add_haar_image_eq_zero_of_det_fderiv_within_eq_zero_aux
   (h'f' : ∀ x ∈ s, (f' x).det = 0) :
   μ (f '' s) ≤ ε * μ (closed_ball 0 R) :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|h's, { simp only [measure_empty, zero_le, image_empty] },
+  rcases eq_empty_or_nonempty s with rfl|h's, { simv only [measure_empty, zero_le, image_empty] },
   have : ∀ (A : E →L[ℝ] E), ∃ (δ : ℝ≥0), 0 < δ ∧ ∀ (t : set E)
     (hf : approximates_linear_on f A t δ), μ (f '' t) ≤ (real.to_nnreal (|A.det|) + ε : ℝ≥0) * μ t,
   { assume A,
     let m : ℝ≥0 := real.to_nnreal (|A.det|) + ε,
     have I : ennreal.of_real (|A.det|) < m,
-      by simp only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
+      by simv only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
     rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists
       with ⟨δ, h, h'⟩,
     exact ⟨δ, h', λ t ht, h t f ht⟩ },
@@ -638,7 +638,7 @@ begin
     begin
       congr' with n,
       rcases Af' h's n with ⟨y, ys, hy⟩,
-      simp only [hy, h'f' y ys, real.to_nnreal_zero, abs_zero, zero_add]
+      simv only [hy, h'f' y ys, real.to_nnreal_zero, abs_zero, zero_add]
     end
   ... ≤ ε * ∑' n, μ (closed_ball 0 R ∩ t n) :
     begin
@@ -672,7 +672,7 @@ begin
     rw ← Union_inter_closed_ball_nat s 0,
     calc μ (f '' ⋃ (n : ℕ), s ∩ closed_ball 0 n) ≤ ∑' (n : ℕ), μ (f '' (s ∩ closed_ball 0 n)) :
       by { rw image_Union, exact measure_Union_le _ }
-    ... ≤ 0 : by simp only [H, tsum_zero, nonpos_iff_eq_zero] },
+    ... ≤ 0 : by simv only [H, tsum_zero, nonpos_iff_eq_zero] },
   assume R,
   have A : ∀ (ε : ℝ≥0) (εpos : 0 < ε), μ (f '' (s ∩ closed_ball 0 R)) ≤ ε * μ (closed_ball 0 R) :=
     λ ε εpos, add_haar_image_eq_zero_of_det_fderiv_within_eq_zero_aux μ
@@ -683,7 +683,7 @@ begin
       (𝓝 0) (𝓝 (((0 : ℝ≥0) : ℝ≥0∞) * μ (closed_ball 0 R))) :=
         ennreal.tendsto.mul_const (ennreal.tendsto_coe.2 tendsto_id)
           (or.inr ((measure_closed_ball_lt_top).ne)),
-    simp only [zero_mul, ennreal.coe_zero] at this,
+    simv only [zero_mul, ennreal.coe_zero] at this,
     exact tendsto.mono_left this nhds_within_le_nhds },
   apply le_antisymm _ (zero_le _),
   apply ge_of_tendsto B,
@@ -819,7 +819,7 @@ begin
   { assume A,
     let m : ℝ≥0 := real.to_nnreal (|A.det|) + ε,
     have I : ennreal.of_real (|A.det|) < m,
-      by simp only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
+      by simv only [ennreal.of_real, m, lt_add_iff_pos_right, εpos, ennreal.coe_lt_coe],
     rcases ((add_haar_image_le_mul_of_det_lt μ A I).and self_mem_nhds_within).exists
       with ⟨δ, h, δpos⟩,
     obtain ⟨δ', δ'pos, hδ'⟩ :
@@ -832,7 +832,7 @@ begin
       apply (hδ' B _).le,
       rw dist_eq_norm,
       calc ∥B - A∥ ≤ (min δ δ'' : ℝ≥0) : hB
-      ... ≤ δ'' : by simp only [le_refl, nnreal.coe_min, min_le_iff, or_true]
+      ... ≤ δ'' : by simv only [le_refl, nnreal.coe_min, min_le_iff, or_true]
       ... < δ' : half_lt_self δ'pos },
     { assume t g htg,
       exact h t g (htg.mono_num (min_le_left _ _)) } },
@@ -858,7 +858,7 @@ begin
       exact ht n,
     end
   ... = ∑' n, ∫⁻ x in s ∩ t n, ennreal.of_real (|(A n).det|) + ε ∂μ :
-    by simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
+    by simv only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter]
   ... ≤ ∑' n, ∫⁻ x in s ∩ t n, ennreal.of_real (|(f' x).det|) + 2 * ε ∂μ :
     begin
       apply ennreal.tsum_le_tsum (λ n, _),
@@ -874,7 +874,7 @@ begin
           ≤ ennreal.of_real (|(f' x).det| + ε) + ε :
         add_le_add (ennreal.of_real_le_of_real I) le_rfl
       ... = ennreal.of_real (|(f' x).det|) + 2 * ε :
-        by simp only [ennreal.of_real_add, abs_nonneg, two_mul, add_assoc, nnreal.zero_le_coe,
+        by simv only [ennreal.of_real_add, abs_nonneg, two_mul, add_assoc, nnreal.zero_le_coe,
                       ennreal.of_real_coe_nnreal],
     end
   ... = ∫⁻ x in ⋃ n, s ∩ t n, ennreal.of_real (|(f' x).det|) + 2 * ε ∂μ :
@@ -891,7 +891,7 @@ begin
       rw ← this,
     end
   ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :
-    by simp only [lintegral_add_right' _ ae_measurable_const, set_lintegral_const]
+    by simv only [lintegral_add_right' _ ae_measurable_const, set_lintegral_const]
 end
 
 lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
@@ -906,7 +906,7 @@ begin
     refine ennreal.tendsto.mul_const _ (or.inr h's),
     exact ennreal.tendsto.const_mul (ennreal.tendsto_coe.2 tendsto_id)
       (or.inr ennreal.coe_ne_top) },
-  simp only [add_zero, zero_mul, mul_zero, ennreal.coe_zero] at this,
+  simv only [add_zero, zero_mul, mul_zero, ennreal.coe_zero] at this,
   apply ge_of_tendsto this,
   filter_upwards [self_mem_nhds_within],
   rintros ε (εpos : 0 < ε),
@@ -974,27 +974,27 @@ begin
       exact hB.trans_lt (half_lt_self δ'pos) },
     rcases eq_or_ne A.det 0 with hA|hA,
     { refine ⟨δ'', half_pos δ'pos, I'', _⟩,
-      simp only [hA, forall_const, zero_mul, ennreal.of_real_zero, implies_true_iff, zero_le,
+      simv only [hA, forall_const, zero_mul, ennreal.of_real_zero, implies_true_iff, zero_le,
         abs_zero] },
     let m : ℝ≥0 := real.to_nnreal (|A.det|) - ε,
     have I : (m : ℝ≥0∞) < ennreal.of_real (|A.det|),
-    { simp only [ennreal.of_real, with_top.coe_sub],
+    { simv only [ennreal.of_real, with_top.coe_sub],
       apply ennreal.sub_lt_self ennreal.coe_ne_top,
       { simpa only [abs_nonpos_iff, real.to_nnreal_eq_zero, ennreal.coe_eq_zero, ne.def] using hA },
-      { simp only [εpos.ne', ennreal.coe_eq_zero, ne.def, not_false_iff] } },
+      { simv only [εpos.ne', ennreal.coe_eq_zero, ne.def, not_false_iff] } },
     rcases ((mul_le_add_haar_image_of_lt_det μ A I).and self_mem_nhds_within).exists
       with ⟨δ, h, δpos⟩,
     refine ⟨min δ δ'', lt_min δpos (half_pos δ'pos), _, _⟩,
     { assume B hB,
       apply I'' _ (hB.trans _),
-      simp only [le_refl, nnreal.coe_min, min_le_iff, or_true] },
+      simv only [le_refl, nnreal.coe_min, min_le_iff, or_true] },
     { assume t g htg,
       rcases eq_or_ne (μ t) ∞ with ht|ht,
-      { simp only [ht, εpos.ne', with_top.mul_top, ennreal.coe_eq_zero, le_top, ne.def,
+      { simv only [ht, εpos.ne', with_top.mul_top, ennreal.coe_eq_zero, le_top, ne.def,
                    not_false_iff, ennreal.add_top] },
       have := h t g (htg.mono_num (min_le_left _ _)),
       rwa [with_top.coe_sub, ennreal.sub_mul, tsub_le_iff_right] at this,
-      simp only [ht, implies_true_iff, ne.def, not_false_iff] } },
+      simv only [ht, implies_true_iff, ne.def, not_false_iff] } },
   choose δ hδ using this,
   obtain ⟨t, A, t_disj, t_meas, t_cover, ht, -⟩ : ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] E)),
     pairwise (disjoint on t) ∧ (∀ (n : ℕ), measurable_set (t n)) ∧ (s ⊆ ⋃ (n : ℕ), t n)
@@ -1027,11 +1027,11 @@ begin
       calc ennreal.of_real (|(f' x).det|) ≤ ennreal.of_real (|(A n).det| + ε) :
         ennreal.of_real_le_of_real I
       ... = ennreal.of_real (|(A n).det|) + ε :
-        by simp only [ennreal.of_real_add, abs_nonneg, nnreal.zero_le_coe,
+        by simv only [ennreal.of_real_add, abs_nonneg, nnreal.zero_le_coe,
                       ennreal.of_real_coe_nnreal]
     end
   ... = ∑' n, (ennreal.of_real (|(A n).det|) * μ (s ∩ t n) + ε * μ (s ∩ t n)) :
-    by simp only [set_lintegral_const, lintegral_add_right _ measurable_const]
+    by simv only [set_lintegral_const, lintegral_add_right _ measurable_const]
   ... ≤ ∑' n, ((μ (f '' (s ∩ t n)) + ε * μ (s ∩ t n)) + ε * μ (s ∩ t n)) :
     begin
       refine ennreal.tsum_le_tsum (λ n, add_le_add_right _ _),
@@ -1069,7 +1069,7 @@ begin
     refine ennreal.tendsto.mul_const _ (or.inr h's),
     exact ennreal.tendsto.const_mul (ennreal.tendsto_coe.2 tendsto_id)
       (or.inr ennreal.coe_ne_top) },
-  simp only [add_zero, zero_mul, mul_zero, ennreal.coe_zero] at this,
+  simv only [add_zero, zero_mul, mul_zero, ennreal.coe_zero] at this,
   apply ge_of_tendsto this,
   filter_upwards [self_mem_nhds_within],
   rintros ε (εpos : 0 < ε),
@@ -1197,11 +1197,11 @@ begin
   rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
       (measurable_embedding_of_fderiv_within hs hf' hf).lintegral_map],
   have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
-  simp only [this],
+  simv only [this],
   rw [← (measurable_embedding.subtype_coe hs).lintegral_map, map_comap_subtype_coe hs,
       set_lintegral_with_density_eq_set_lintegral_mul_non_measurable₀ _ _ _ hs],
   { refl },
-  { simp only [eventually_true, ennreal.of_real_lt_top] },
+  { simv only [eventually_true, ennreal.of_real_lt_top] },
   { exact ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
 end
 
@@ -1217,7 +1217,7 @@ begin
       (measurable_embedding_of_fderiv_within hs hf' hf).integrable_map_iff],
   change (integrable ((g ∘ f) ∘ (coe : s → E)) _) ↔ _,
   rw [← (measurable_embedding.subtype_coe hs).integrable_map_iff, map_comap_subtype_coe hs],
-  simp only [ennreal.of_real],
+  simv only [ennreal.of_real],
   rw [restrict_with_density hs, integrable_with_density_iff_integrable_coe_smul₀, integrable_on],
   { congr' 2 with x,
     rw real.coe_to_nnreal,
@@ -1235,7 +1235,7 @@ begin
   rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
       (measurable_embedding_of_fderiv_within hs hf' hf).integral_map],
   have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
-  simp only [this, ennreal.of_real],
+  simv only [this, ennreal.of_real],
   rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
       set_integral_with_density_eq_set_integral_smul₀
         (ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf') _ hs],

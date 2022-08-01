@@ -34,7 +34,7 @@ include hx hy hσ
 theorem IMO_1975_Q1 :
   ∑ i in finset.Icc 1 n, (x i - y i) ^ 2 ≤ ∑ i in finset.Icc 1 n, (x i - y (σ i)) ^ 2 :=
 begin
-  simp only [sub_sq, finset.sum_add_distrib, finset.sum_sub_distrib],
+  simv only [sub_sq, finset.sum_add_distrib, finset.sum_sub_distrib],
   -- a finite sum is invariant if we permute the order of summation
   have hσy : ∑ (i : ℕ) in finset.Icc 1 n, y i ^ 2 = ∑ (i : ℕ) in finset.Icc 1 n, y (σ i) ^ 2,
   { rw ← equiv.perm.sum_comp σ (finset.Icc 1 n) _ hσ },

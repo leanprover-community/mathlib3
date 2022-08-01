@@ -80,11 +80,11 @@ instance : semiring (language α) :=
   zero_mul := λ _, image2_empty_left,
   mul_zero := λ _, image2_empty_right,
   one := 1,
-  one_mul := λ l, by simp [mul_def, one_def],
-  mul_one := λ l, by simp [mul_def, one_def],
+  one_mul := λ l, by simv [mul_def, one_def],
+  mul_one := λ l, by simv [mul_def, one_def],
   nat_cast := λ n, if n = 0 then 0 else 1,
   nat_cast_zero := rfl,
-  nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def, zero_def],
+  nat_cast_succ := λ n, by cases n; simv [nat.cast, add_def, zero_def],
   left_distrib := λ _ _ _, image2_union_right,
   right_distrib := λ _ _ _, image2_union_left }
 
@@ -98,9 +98,9 @@ def map (f : α → β) : language α →+* language β :=
   map_add' := image_union _,
   map_mul' := λ _ _, image_image2_distrib $ map_append _ }
 
-@[simp] lemma map_id (l : language α) : map id l = l := by simp [map]
+@[simp] lemma map_id (l : language α) : map id l = l := by simv [map]
 @[simp] lemma map_map (g : β → γ) (f : α → β) (l : language α) : map g (map f l) = map (g ∘ f) l :=
-by simp [map, image_image]
+by simv [map, image_image]
 
 lemma star_def_nonempty (l : language α) :
   l.star = {x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=
@@ -108,7 +108,7 @@ begin
   ext x,
   split,
   { rintro ⟨S, rfl, h⟩,
-    refine ⟨S.filter (λ l, ¬list.empty l), by simp, λ y hy, _⟩,
+    refine ⟨S.filter (λ l, ¬list.empty l), by simv, λ y hy, _⟩,
     rw [mem_filter, empty_iff_eq_nil] at hy,
     exact ⟨h y hy.1, hy.2⟩ },
   { rintro ⟨S, hx, h⟩,
@@ -120,7 +120,7 @@ lemma le_iff (l m : language α) : l ≤ m ↔ l + m = m := sup_eq_right.symm
 lemma le_mul_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ ≤ m₂ → l₁ * l₂ ≤ m₁ * m₂ :=
 begin
   intros h₁ h₂ x hx,
-  simp only [mul_def, exists_and_distrib_left, mem_image2, image_prod] at hx ⊢,
+  simv only [mul_def, exists_and_distrib_left, mem_image2, image_prod] at hx ⊢,
   tauto
 end
 
@@ -148,11 +148,11 @@ lemma mem_pow {l : language α} {x : list α} {n : ℕ} :
   x ∈ l ^ n ↔ ∃ S : list (list α), x = S.join ∧ S.length = n ∧ ∀ y ∈ S, y ∈ l :=
 begin
   induction n with n ihn generalizing x,
-  { simp only [mem_one, pow_zero, length_eq_zero],
+  { simv only [mem_one, pow_zero, length_eq_zero],
     split,
     { rintro rfl, exact ⟨[], rfl, rfl, λ y h, h.elim⟩ },
     { rintro ⟨_, rfl, rfl, _⟩, refl } },
-  { simp only [pow_succ, mem_mul, ihn],
+  { simv only [pow_succ, mem_mul, ihn],
     split,
     { rintro ⟨a, b, ha, ⟨S, rfl, rfl, hS⟩, rfl⟩,
       exact ⟨a :: S, rfl, rfl, forall_mem_cons.2 ⟨ha, hS⟩⟩ },
@@ -164,7 +164,7 @@ end
 lemma star_eq_supr_pow (l : language α) : l.star = ⨆ i : ℕ, l ^ i :=
 begin
   ext x,
-  simp only [mem_star, mem_supr, mem_pow],
+  simv only [mem_star, mem_supr, mem_pow],
   split,
   { rintro ⟨S, rfl, hS⟩, exact ⟨_, S, rfl, rfl, hS⟩ },
   { rintro ⟨_, S, rfl, rfl, hS⟩, exact ⟨S, rfl, hS⟩ }
@@ -178,11 +178,11 @@ begin
 end
 
 lemma mul_self_star_comm (l : language α) : l.star * l = l * l.star :=
-by simp only [star_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
+by simv only [star_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
 
 @[simp] lemma one_add_self_mul_star_eq_star (l : language α) : 1 + l * l.star = l.star :=
 begin
-  simp only [star_eq_supr_pow, mul_supr, ← pow_succ, ← pow_zero l],
+  simv only [star_eq_supr_pow, mul_supr, ← pow_succ, ← pow_zero l],
   exact sup_supr_nat_succ _
 end
 
@@ -196,7 +196,7 @@ begin
   refine supr_le _,
   intro n,
   induction n with n ih,
-  { simp },
+  { simv },
   rw [pow_succ', mul_assoc (l^n) l m],
   exact le_trans (le_mul_congr le_rfl h) ih,
 end
@@ -208,7 +208,7 @@ begin
   refine supr_le _,
   intro n,
   induction n with n ih,
-  { simp },
+  { simv },
   rw [pow_succ, ←mul_assoc m l (l^n)],
   exact le_trans (le_mul_congr h le_rfl) ih
 end

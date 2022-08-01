@@ -163,9 +163,9 @@ begin
   cases x with a f, cases y with b g,
   intro h, induction h,
   case qpf.Wequiv.ind : a f f' h ih
-    { simp only [recF_eq', pfunctor.map_eq, function.comp, ih] },
+    { simv only [recF_eq', pfunctor.map_eq, function.comp, ih] },
   case qpf.Wequiv.abs : a f a' f' h
-    { simp only [recF_eq', abs_map, h] },
+    { simv only [recF_eq', abs_map, h] },
   case qpf.Wequiv.trans : x y z e₁ e₂ ih₁ ih₂
     { exact eq.trans ih₁ ih₂ }
 end
@@ -248,7 +248,7 @@ have fix.mk (abs ⟨a, λ x, ⟦f x⟧⟩) = ⟦Wrepr ⟨a, f⟩⟧,
   begin
     apply quot.sound, apply Wequiv.abs',
     rw [pfunctor.W.dest_mk, abs_map, abs_repr, ←abs_map, pfunctor.map_eq],
-    conv { to_rhs, simp only [Wrepr, recF_eq, pfunctor.W.dest_mk, abs_repr] },
+    conv { to_rhs, simv only [Wrepr, recF_eq, pfunctor.W.dest_mk, abs_repr] },
     reflexivity
   end,
 by { rw this, apply quot.sound, apply Wrepr_equiv }
@@ -502,7 +502,7 @@ def comp : qpf (functor.comp F₂ F₁) :=
       congr,
       rw pfunctor.map_eq,
       dsimp [function.comp],
-      simp [abs_map],
+      simv [abs_map],
       split,
       reflexivity,
       ext x,
@@ -658,11 +658,11 @@ begin
     dsimp only [supp_preservation,supp] at h,
     rwa [liftp_iff_of_is_uniform,supp_eq_of_is_uniform,pfunctor.liftp_iff'];
       try { assumption },
-    { simp only [image_univ, mem_range, exists_imp_distrib],
+    { simv only [image_univ, mem_range, exists_imp_distrib],
       split; intros; subst_vars; solve_by_elim } },
   { rintros α ⟨a,f⟩,
-    simp only [liftp_preservation] at h,
-    simp only [supp,h] }
+    simv only [liftp_preservation] at h,
+    simv only [supp,h] }
 end
 
 theorem liftp_preservation_iff_uniform :

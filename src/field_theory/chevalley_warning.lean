@@ -50,7 +50,7 @@ lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomi
 begin
   haveI : decidable_eq K := classical.dec_eq K,
   calc (∑ x, eval x f)
-        = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simp only [eval_eq']
+        = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simv only [eval_eq']
     ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
     ... = 0 : sum_eq_zero _,
   intros d hd,
@@ -101,7 +101,7 @@ begin
   have hq : 0 < q - 1, { rw [← fintype.card_units, fintype.card_pos_iff], exact ⟨1⟩ },
   let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
-  { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
+  { intros x, simv only [S, true_and, sep_def, mem_filter, mem_univ], },
   /- The polynomial `F = ∏ i in s, (1 - (f i)^(q - 1))` has the nice property
   that it takes the value `1` on elements of `{x : σ → K // ∀ i ∈ s, (f i).eval x = 0}`
   while it is `0` outside that locus.
@@ -112,7 +112,7 @@ begin
   { intro x,
     calc eval x F = ∏ i in s, eval x (1 - f i ^ (q - 1)) : eval_prod s _ x
               ... = if x ∈ S then 1 else 0 : _,
-    simp only [(eval x).map_sub, (eval x).map_pow, (eval x).map_one],
+    simv only [(eval x).map_sub, (eval x).map_pow, (eval x).map_one],
     split_ifs with hx hx,
     { apply finset.prod_eq_one,
       intros i hi,
@@ -143,7 +143,7 @@ begin
   calc (1 - f i ^ (q - 1)).total_degree
         ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree :
         total_degree_sub _ _
-    ... ≤ (f i ^ (q - 1)).total_degree : by simp only [max_eq_right, nat.zero_le, total_degree_one]
+    ... ≤ (f i ^ (q - 1)).total_degree : by simv only [max_eq_right, nat.zero_le, total_degree_one]
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
@@ -161,7 +161,7 @@ begin
   have : ∑ i : unit, (F i).total_degree < fintype.card σ,
   { simpa only [fintype.univ_punit, sum_singleton] using h, },
   have key := char_dvd_card_solutions_family p this,
-  simp only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
+  simv only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
   convert key,
 end
 

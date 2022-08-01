@@ -35,7 +35,7 @@ variables {R}
 
 instance span_pair_is_principal [is_bezout R] (x y : R) :
   (ideal.span {x, y} : ideal R).is_principal :=
-by { classical, exact is_principal_of_fg (ideal.span {x, y}) ⟨{x, y}, by simp⟩ }
+by { classical, exact is_principal_of_fg (ideal.span {x, y}) ⟨{x, y}, by simv⟩ }
 
 lemma iff_span_pair_is_principal :
   is_bezout R ↔ (∀ x y : R, (ideal.span {x, y} : ideal R).is_principal) :=
@@ -63,10 +63,10 @@ lemma span_gcd (x y : R) : (ideal.span {gcd x y} : ideal R) = ideal.span {x, y} 
 ideal.span_singleton_generator _
 
 lemma gcd_dvd_left (x y : R) : gcd x y ∣ x :=
-(submodule.is_principal.mem_iff_generator_dvd _).mp (ideal.subset_span (by simp))
+(submodule.is_principal.mem_iff_generator_dvd _).mp (ideal.subset_span (by simv))
 
 lemma gcd_dvd_right (x y : R) : gcd x y ∣ y :=
-(submodule.is_principal.mem_iff_generator_dvd _).mp (ideal.subset_span (by simp))
+(submodule.is_principal.mem_iff_generator_dvd _).mp (ideal.subset_span (by simv))
 
 lemma dvd_gcd {x y z : R} (hx : z ∣ x) (hy : z ∣ y) : z ∣ gcd x y :=
 begin
@@ -76,7 +76,7 @@ begin
 end
 
 lemma gcd_eq_sum (x y : R) : ∃ a b : R, a * x + b * y = gcd x y :=
-ideal.mem_span_pair.mp (by { rw ← span_gcd, apply ideal.subset_span, simp })
+ideal.mem_span_pair.mp (by { rw ← span_gcd, apply ideal.subset_span, simv })
 
 variable (R)
 

@@ -47,7 +47,7 @@ end my_hom
 ```
 
 This file will then provide a `has_coe_to_fun` instance and various
-extensionality and simp lemmas.
+extensionality and simv lemmas.
 
 ## Morphism classes extending `fun_like`
 
@@ -150,7 +150,7 @@ instance : has_coe_to_fun F (λ _, Π a : α, β a) := { coe := fun_like.coe }
 theorem coe_injective : function.injective (coe_fn : F → Π a : α, β a) :=
 fun_like.coe_injective'
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem coe_fn_eq {f g : F} : (f : Π a : α, β a) = (g : Π a : α, β a) ↔ f = g :=
 ⟨λ h, @coe_injective _ _ _ i _ _ h, λ h, by cases h; refl⟩
 

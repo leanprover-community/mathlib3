@@ -28,7 +28,7 @@ namespace int
 
 lemma sq_add_sq_of_two_mul_sq_add_sq {m x y : ℤ} (h : 2 * m = x^2 + y^2) :
   m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
-have even (x^2 + y^2), by simp [h.symm, even_mul],
+have even (x^2 + y^2), by simv [h.symm, even_mul],
 have hxaddy : even (x + y), by simpa [sq] with parity_simps,
 have hxsuby : even (x - y), by simpa [sq] with parity_simps,
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
@@ -37,7 +37,7 @@ calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
   by { rw even_iff_two_dvd at hxsuby hxaddy,
     rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy] }
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
-  by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
+  by simv [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
 lemma exists_sq_add_sq_add_one_eq_k (p : ℕ) [hp : fact p.prime] :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
@@ -87,7 +87,7 @@ let f : fin 4 → ℤ :=
   vector.nth (a ::ᵥ b ::ᵥ c ::ᵥ d ::ᵥ vector.nil) in
 let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m,
   ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
-  ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
+  ← int.cast_mul, ← h]; simv only [int.cast_add, int.cast_pow]; refl) in
 let σ := swap i 0 in
 have h01 : 2 ∣ f (σ 0) ^ 2 + f (σ 1) ^ 2,
   from (char_p.int_cast_eq_zero_iff (zmod 2) 2 _).1 $ by simpa [σ] using hσ.1,
@@ -121,20 +121,20 @@ have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,
     let ⟨k, hk⟩ := nat.dvd_iff_mod_eq_zero.2 hm2 in
-    have hk0 : 0 < k, from nat.pos_of_ne_zero $ λ _, by { simp [*, lt_irrefl] at * },
+    have hk0 : 0 < k, from nat.pos_of_ne_zero $ λ _, by { simv [*, lt_irrefl] at * },
     have hkm : k < m, { rw [hk, two_mul], exact (lt_add_iff_pos_left _).2 hk0 },
     false.elim $ nat.find_min hm hkm ⟨lt_trans hkm hmp, hk0,
       sum_four_squares_of_two_mul_sum_four_squares
         (show a^2 + b^2 + c^2 + d^2 = 2 * (k * p),
           by { rw [habcd, hk, int.coe_nat_mul, mul_assoc], norm_num })⟩)
   (λ hm2 : m % 2 = 1,
-    if hm1 : m = 1 then ⟨a, b, c, d, by simp only [hm1, habcd, int.coe_nat_one, one_mul]⟩
+    if hm1 : m = 1 then ⟨a, b, c, d, by simv only [hm1, habcd, int.coe_nat_one, one_mul]⟩
     else
       let w := (a : zmod m).val_min_abs, x := (b : zmod m).val_min_abs,
           y := (c : zmod m).val_min_abs, z := (d : zmod m).val_min_abs in
       have hnat_abs : w^2 + x^2 + y^2 + z^2 =
           (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs ^2 + z.nat_abs ^ 2 : ℕ),
-        by simp [sq],
+        by simv [sq],
       have hwxyzlt : w^2 + x^2 + y^2 + z^2 < m^2,
         from calc w^2 + x^2 + y^2 + z^2
             = (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs ^2 + z.nat_abs ^ 2 : ℕ) : hnat_abs
@@ -144,16 +144,16 @@ m.mod_two_eq_zero_or_one.elim
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
-        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [sq, bit0, bit1, mul_add, add_mul, add_assoc]
+        ... = 4 * (m / 2 : ℕ) ^ 2 : by simv [sq, bit0, bit1, mul_add, add_mul, add_assoc]
         ... < 4 * (m / 2 : ℕ) ^ 2 + ((4 * (m / 2) : ℕ) * (m % 2 : ℕ) + (m % 2 : ℕ)^2) :
           (lt_add_iff_pos_right _).2 (by { rw [hm2, int.coe_nat_one, one_pow, mul_one],
             exact add_pos_of_nonneg_of_pos (int.coe_nat_nonneg _) zero_lt_one })
         ... = m ^ 2 : by { conv_rhs {rw [← nat.mod_add_div m 2]},
-          simp [-nat.mod_add_div, mul_add, add_mul, bit0, bit1, mul_comm, mul_assoc, mul_left_comm,
+          simv [-nat.mod_add_div, mul_add, add_mul, bit0, bit1, mul_comm, mul_assoc, mul_left_comm,
             pow_add, add_comm, add_left_comm] },
       have hwxyzabcd : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) =
           ((a^2 + b^2 + c^2 + d^2 : ℤ) : zmod m),
-        by simp [w, x, y, z, sq],
+        by simv [w, x, y, z, sq],
       have hwxyz0 : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) = 0,
         by rw [hwxyzabcd, habcd, int.cast_mul, cast_coe_nat, zmod.nat_cast_self, zero_mul],
       let ⟨n, hn⟩ := ((char_p.int_cast_eq_zero_iff _ m _).1 hwxyz0) in
@@ -172,13 +172,13 @@ m.mod_two_eq_zero_or_one.elim
         (hp.1.eq_one_or_self_of_dvd _ hmdvdp).elim hm1
         (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { rw [← hwxyz0], simp, ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { rw [← hwxyz0], simv, ring },
       have haxbwczdy : ((m : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simv [sub_eq_add_neg], ring },
       have haybzcwdx : ((m : ℕ) : ℤ) ∣ a * y + b * z - c * w - d * x,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simv [sub_eq_add_neg], ring },
       have hazbycxdw : ((m : ℕ) : ℤ) ∣ a * z - b * y + c * x - d * w,
-        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
+        from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simv [sub_eq_add_neg], ring },
       let ⟨s, hs⟩ := hawbxcydz, ⟨t, ht⟩ := haxbwczdy, ⟨u, hu⟩ := haybzcwdx, ⟨v, hv⟩ := hazbycxdw in
       have hn_nonneg : 0 ≤ n,
         from nonneg_of_mul_nonneg_right
@@ -193,9 +193,9 @@ m.mod_two_eq_zero_or_one.elim
             (int.coe_nat_ne_zero_iff_pos.2 hm0.1))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :
-            by { simp [mul_pow], ring }
+            by { simv [mul_pow], ring }
           ... = (w^2 + x^2 + y^2 + z^2) * (a^2 + b^2 + c^2 + d^2) :
-            by { simp only [hs.symm, ht.symm, hu.symm, hv.symm], ring }
+            by { simv only [hs.symm, ht.symm, hu.symm, hv.symm], ring }
           ... = _ : by { rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg], dsimp [m], ring },
       false.elim $ nat.find_min hm hnm ⟨lt_trans hnm hmp, hn0, s, t, u, v, hstuv⟩)
 
@@ -215,7 +215,7 @@ let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
  (a * z + b * y - c * x + d * w).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp [sum_four_sq_mul_sum_four_sq],
+    simv [sum_four_sq_mul_sum_four_sq],
   end⟩
 
 end nat

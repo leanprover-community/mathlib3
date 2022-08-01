@@ -38,7 +38,7 @@ namespace is_fixed_pt
 instance [h : decidable_eq α] {f : α → α} {x : α} : decidable (is_fixed_pt f x) :=
 h (f x) x
 
-/-- If `x` is a fixed point of `f`, then `f x = x`. This is useful, e.g., for `rw` or `simp`.-/
+/-- If `x` is a fixed point of `f`, then `f x = x`. This is useful, e.g., for `rw` or `simv`.-/
 protected lemma eq (hf : is_fixed_pt f x) : f x = x := hf
 
 /-- If `x` is a fixed point of `f` and `g`, then it is a fixed point of `f ∘ g`. -/

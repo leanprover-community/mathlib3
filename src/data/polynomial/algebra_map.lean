@@ -95,12 +95,12 @@ instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   refine ⟨X, _⟩,
-  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top,
+  simv only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top,
     algebra_map_apply, not_forall],
   intro x,
   rw [ext_iff, not_forall],
   refine ⟨1, _⟩,
-  simp [coeff_C],
+  simv [coeff_C],
 end⟩⟩
 
 @[simp]
@@ -110,7 +110,7 @@ lemma alg_hom_eval₂_algebra_map
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
   dsimp [eval₂, sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
+  simv only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
     alg_hom.commutes],
 end
 
@@ -121,11 +121,11 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebr
 begin
   conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
   dsimp [eval₂, sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
-  simp [polynomial.C_eq_algebra_map],
+  simv only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
+  simv [polynomial.C_eq_algebra_map],
 end
 
--- these used to be about `algebra_map ℤ R`, but now the simp-normal form is `int.cast_ring_hom R`.
+-- these used to be about `algebra_map ℤ R`, but now the simv-normal form is `int.cast_ring_hom R`.
 @[simp]
 lemma ring_hom_eval₂_cast_int_ring_hom {R S : Type*} [ring R] [ring S]
   (p : ℤ[X]) (f : R →+* S) (r : R) :
@@ -160,7 +160,7 @@ variables {R A}
 begin
   refine top_unique (λ p hp, _),
   set S := algebra.adjoin R ({X} : set R[X]),
-  rw [← sum_monomial_eq p], simp only [monomial_eq_smul_X, sum],
+  rw [← sum_monomial_eq p], simv only [monomial_eq_smul_X, sum],
   exact S.sum_mem (λ n hn, S.smul_mem (S.pow_mem (algebra.subset_adjoin rfl) _) _)
 end
 
@@ -210,7 +210,7 @@ eval₂_comp (algebra_map R A)
 by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
 
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
-alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
+alg_hom_ext $ by simv only [aeval_X, alg_hom.comp_apply]
 
 @[simp] theorem aeval_X_left : aeval (X : R[X]) = alg_hom.id R R[X] :=
 alg_hom_ext $ aeval_X X
@@ -247,11 +247,11 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 (aeval_alg_hom_apply s.val f g).symm
 
 lemma coeff_zero_eq_aeval_zero (p : R[X]) : p.coeff 0 = aeval 0 p :=
-by simp [coeff_zero_eq_eval_zero]
+by simv [coeff_zero_eq_eval_zero]
 
 lemma coeff_zero_eq_aeval_zero' (p : R[X]) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
-by simp [aeval_def]
+by simv [aeval_def]
 
 variable (R)
 
@@ -293,7 +293,7 @@ variables [algebra S R] [algebra S A'] [algebra S B']
 /-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
   than `R`. -/
 def aeval_tower (f : R →ₐ[S] A') (x : A') : R[X] →ₐ[S] A' :=
-{ commutes' := λ r, by simp [algebra_map_apply],
+{ commutes' := λ r, by simv [algebra_map_apply],
   ..eval₂_ring_hom ↑f x }
 
 variables (g : R →ₐ[S] A') (y : A')
@@ -321,10 +321,10 @@ aeval_tower_algebra_map _ _ _
 alg_hom.coe_ring_hom_injective $ aeval_tower_comp_algebra_map _ _
 
 @[simp] lemma aeval_tower_id : aeval_tower (alg_hom.id S S) = aeval :=
-by { ext, simp only [eval_X, aeval_tower_X, coe_aeval_eq_eval], }
+by { ext, simv only [eval_X, aeval_tower_X, coe_aeval_eq_eval], }
 
 @[simp] lemma aeval_tower_of_id : aeval_tower (algebra.of_id S A') = aeval :=
-by { ext, simp only [aeval_X, aeval_tower_X], }
+by { ext, simv only [aeval_X, aeval_tower_X], }
 
 end aeval_tower
 
@@ -347,7 +347,7 @@ begin
     exact dvd_terms j (finset.ne_of_mem_erase hj) },
   { convert dvd_zero p,
     rw not_mem_support_iff at hi,
-    simp [hi] }
+    simv [hi] }
 end
 
 lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : S[X]} (i : ℕ)
@@ -371,7 +371,7 @@ This is the key step in our proof of the Cayley-Hamilton theorem.
 lemma eval_mul_X_sub_C {p : R[X]} (r : R) :
   (p * (X - C r)).eval r = 0 :=
 begin
-  simp only [eval, eval₂, ring_hom.id_apply],
+  simv only [eval, eval₂, ring_hom.id_apply],
   have bound := calc
     (p * (X - C r)).nat_degree
          ≤ p.nat_degree + (X - C r).nat_degree : nat_degree_mul_le
@@ -379,12 +379,12 @@ begin
      ... < p.nat_degree + 2 : lt_add_one _,
   rw sum_over_range' _ _ (p.nat_degree + 2) bound,
   swap,
-  { simp, },
+  { simv, },
   rw sum_range_succ',
   conv_lhs
   { congr, apply_congr, skip,
     rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ], },
-  simp [sum_range_sub', coeff_monomial],
+  simv [sum_range_sub', coeff_monomial],
 end
 
 theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=

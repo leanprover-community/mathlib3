@@ -35,18 +35,18 @@ constructed inverse. When a better inverse is known, use `equiv.of_left_inverse'
 `equiv.of_left_inverse` instead. This is the computable version of `equiv.of_injective`.
 -/
 def function.embedding.to_equiv_range : α ≃ set.range f :=
-⟨λ a, ⟨f a, set.mem_range_self a⟩, f.inv_of_mem_range, λ _, by simp, λ _, by simp⟩
+⟨λ a, ⟨f a, set.mem_range_self a⟩, f.inv_of_mem_range, λ _, by simv, λ _, by simv⟩
 
 @[simp] lemma function.embedding.to_equiv_range_apply (a : α) :
   f.to_equiv_range a = ⟨f a, set.mem_range_self a⟩ := rfl
 
 @[simp] lemma function.embedding.to_equiv_range_symm_apply_self (a : α) :
   f.to_equiv_range.symm ⟨f a, set.mem_range_self a⟩ = a :=
-by simp [equiv.symm_apply_eq]
+by simv [equiv.symm_apply_eq]
 
 lemma function.embedding.to_equiv_range_eq_of_injective :
   f.to_equiv_range = equiv.of_injective f f.injective :=
-by { ext, simp }
+by { ext, simv }
 
 /--
 Extend the domain of `e : equiv.perm α`, mapping it through `f : α ↪ β`.
@@ -76,7 +76,7 @@ by rwa [equiv.perm.via_fintype_embedding, equiv.perm.extend_domain_apply_not_sub
 
 @[simp] lemma equiv.perm.via_fintype_embedding_sign [decidable_eq α] [fintype β] :
   equiv.perm.sign (e.via_fintype_embedding f) = equiv.perm.sign e :=
-by simp [equiv.perm.via_fintype_embedding]
+by simv [equiv.perm.via_fintype_embedding]
 
 namespace equiv
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
@@ -99,7 +99,7 @@ subtype_congr e e.to_compl
 lemma extend_subtype_apply_of_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
   e.extend_subtype x = e ⟨x, hx⟩ :=
 by { dunfold extend_subtype,
-     simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
+     simv only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
      rw [sum_compl_apply_symm_of_pos _ _ hx, sum.map_inl, sum_compl_apply_inl] }
 
 lemma extend_subtype_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
@@ -110,7 +110,7 @@ by { convert (e ⟨x, hx⟩).2,
 lemma extend_subtype_apply_of_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
   e.extend_subtype x = e.to_compl ⟨x, hx⟩ :=
 by { dunfold extend_subtype,
-     simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
+     simv only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
      rw [sum_compl_apply_symm_of_neg _ _ hx, sum.map_inr, sum_compl_apply_inr] }
 
 lemma extend_subtype_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :

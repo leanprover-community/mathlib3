@@ -42,7 +42,7 @@ theorem many_one_reducible.mk {α β} [primcodable α] [primcodable β] {f : α 
 
 @[refl]
 theorem many_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
-  p ≤₀ p := ⟨id, computable.id, by simp⟩
+  p ≤₀ p := ⟨id, computable.id, by simv⟩
 
 @[trans]
 theorem many_one_reducible.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
@@ -72,7 +72,7 @@ theorem one_one_reducible.mk {α β} [primcodable α] [primcodable β] {f : α �
 
 @[refl]
 theorem one_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
-  p ≤₁ p := ⟨id, computable.id, injective_id, by simp⟩
+  p ≤₁ p := ⟨id, computable.id, injective_id, by simv⟩
 
 @[trans]
 theorem one_one_reducible.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
@@ -92,7 +92,7 @@ one_one_reducible.mk _ h e.injective
 theorem one_one_reducible.of_equiv_symm {α β} [primcodable α] [primcodable β]
     {e : α ≃ β} (q : β → Prop) (h : computable e.symm) :
   q ≤₁ (q ∘ e) :=
-by convert one_one_reducible.of_equiv _ h; funext; simp
+by convert one_one_reducible.of_equiv _ h; funext; simv
 
 theorem reflexive_one_one_reducible {α} [primcodable α] :
   reflexive (@one_one_reducible α α _ _) :=
@@ -282,7 +282,7 @@ lemma to_nat_many_one_reducible {p : set α} : to_nat p ≤₀ p :=
 
 @[simp]
 lemma many_one_reducible_to_nat {p : set α} : p ≤₀ to_nat p :=
-⟨encodable.encode, computable.encode, by simp [to_nat, set_of]⟩
+⟨encodable.encode, computable.encode, by simv [to_nat, set_of]⟩
 
 @[simp]
 lemma many_one_reducible_to_nat_to_nat {p : set α} {q : set β} :
@@ -292,12 +292,12 @@ lemma many_one_reducible_to_nat_to_nat {p : set α} {q : set β} :
 
 @[simp]
 lemma to_nat_many_one_equiv {p : set α} : many_one_equiv (to_nat p) p :=
-by simp [many_one_equiv]
+by simv [many_one_equiv]
 
 @[simp]
 lemma many_one_equiv_to_nat (p : set α) (q : set β) :
   many_one_equiv (to_nat p) (to_nat q) ↔ many_one_equiv p q :=
-by simp [many_one_equiv]
+by simv [many_one_equiv]
 
 /-- A many-one degree is an equivalence class of sets up to many-one equivalence. -/
 def many_one_degree : Type :=
@@ -331,7 +331,7 @@ rfl
 /--
 Lifts a binary function on sets of natural numbers to many-one degrees.
 -/
-@[elab_as_eliminator, reducible, simp]
+@[elab_as_eliminator, reducible, simv]
 protected def lift_on₂ {φ} (d₁ d₂ : many_one_degree) (f : set ℕ → set ℕ → φ)
     (h : ∀ p₁ p₂ q₁ q₂, many_one_equiv p₁ p₂ → many_one_equiv q₁ q₂ → f p₁ q₁ = f p₂ q₂) :
   φ :=
@@ -351,7 +351,7 @@ protected lemma lift_on₂_eq {φ} (p q : set ℕ) (f : set ℕ → set ℕ → 
 rfl
 
 @[simp] lemma of_eq_of {p : α → Prop} {q : β → Prop} : of p = of q ↔ many_one_equiv p q :=
-by simp [of, quotient.eq']
+by simv [of, quotient.eq']
 
 instance : inhabited many_one_degree := ⟨of (∅ : set ℕ)⟩
 
@@ -367,14 +367,14 @@ instance : has_le many_one_degree :=
 many_one_reducible_to_nat_to_nat
 
 private lemma le_refl (d : many_one_degree) : d ≤ d :=
-by induction d using many_one_degree.ind_on; simp
+by induction d using many_one_degree.ind_on; simv
 
 private lemma le_antisymm {d₁ d₂ : many_one_degree} : d₁ ≤ d₂ → d₂ ≤ d₁ → d₁ = d₂ :=
 begin
   induction d₁ using many_one_degree.ind_on,
   induction d₂ using many_one_degree.ind_on,
   intros hp hq,
-  simp only [*, many_one_equiv, of_le_of, of_eq_of, true_and] at *
+  simv only [*, many_one_equiv, of_le_of, of_eq_of, true_and] at *
 end
 
 private lemma le_trans {d₁ d₂ d₃ : many_one_degree} :

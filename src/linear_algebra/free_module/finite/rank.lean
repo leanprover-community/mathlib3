@@ -51,7 +51,7 @@ lemma finrank_eq_card_choose_basis_index : finrank R M = @card (choose_basis_ind
   (@choose_basis_index.fintype R M _ _ _ _ (nontrivial_of_invariant_basis_number R) _) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp [finrank, rank_eq_card_choose_basis_index]
+  simv [finrank, rank_eq_card_choose_basis_index]
 end
 
 /-- The finrank of `(ι →₀ R)` is `fintype.card ι`. -/
@@ -60,7 +60,7 @@ by { rw [finrank, rank_finsupp, ← mk_to_nat_eq_card, to_nat_lift] }
 
 /-- The finrank of `(ι → R)` is `fintype.card ι`. -/
 lemma finrank_pi {ι : Type v} [fintype ι] : finrank R (ι → R) = card ι :=
-by simp [finrank]
+by simv [finrank]
 
 /-- The finrank of the direct sum is the sum of the finranks. -/
 @[simp] lemma finrank_direct_sum  {ι : Type v} [fintype ι] (M : ι → Type w)
@@ -68,13 +68,13 @@ by simp [finrank]
   [Π (i : ι), module.finite R (M i)] : finrank R (⨁ i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_direct_sum,
+  simv only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_direct_sum,
     ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 
 /-- The finrank of `M × N` is `(finrank R M) + (finrank R N)`. -/
 @[simp] lemma finrank_prod : finrank R (M × N) = (finrank R M) + (finrank R N) :=
-by { simp [finrank, rank_lt_aleph_0 R M, rank_lt_aleph_0 R N] }
+by { simv [finrank, rank_lt_aleph_0 R M, rank_lt_aleph_0 R N] }
 
 /-- The finrank of a finite product is the sum of the finranks. -/
 --TODO: this should follow from `linear_equiv.finrank_eq`, that is over a field.
@@ -83,7 +83,7 @@ lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
   [Π (i : ι), module.finite R (M i)] : finrank R (Π i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_fintype,
+  simv only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_fintype,
     ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 
@@ -91,7 +91,7 @@ end
   `(fintype.card m) * (fintype.card n)`. -/
 lemma finrank_matrix (m n : Type v) [fintype m] [fintype n] :
   finrank R (matrix m n R) = (card m) * (card n) :=
-by { simp [finrank] }
+by { simv [finrank] }
 
 end ring
 
@@ -118,7 +118,7 @@ end
 @[simp] lemma finrank_tensor_product (M : Type v) (N : Type w) [add_comm_group M] [module R M]
   [module.free R M] [add_comm_group N] [module R N] [module.free R N] :
 finrank R (M ⊗[R] N) = (finrank R M) * (finrank R N) :=
-by { simp [finrank] }
+by { simv [finrank] }
 
 end comm_ring
 

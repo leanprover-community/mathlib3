@@ -29,7 +29,7 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 - `nat.fib_succ_eq_succ_sum`: shows that `F₀ + F₁ + ⋯ + Fₙ = Fₙ₊₂ - 1`.
 - `nat.fib_two_mul` and `nat.fib_two_mul_add_one` are the basis for an efficient algorithm to
   compute `fib` (see `nat.fast_fib`). There are `bit0`/`bit1` variants of these can be used to
-  simplify `fib` expressions: `simp only [nat.fib_bit0, nat.fib_bit1, nat.fib_bit0_succ,
+  simplify `fib` expressions: `simv only [nat.fib_bit0, nat.fib_bit1, nat.fib_bit0_succ,
   nat.fib_bit1_succ, nat.fib_one, nat.fib_two]`.
 
 ## Implementation Notes
@@ -61,9 +61,9 @@ def fib (n : ℕ) : ℕ := ((λ p : ℕ × ℕ, (p.snd, p.fst + p.snd))^[n] (0, 
 
 /-- Shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.` -/
 lemma fib_add_two {n : ℕ} : fib (n + 2) = fib n + fib (n + 1) :=
-by simp only [fib, function.iterate_succ']
+by simv only [fib, function.iterate_succ']
 
-lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simp [fib_add_two] }
+lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simv [fib_add_two] }
 
 @[mono] lemma fib_mono : monotone fib :=
 monotone_nat_of_le_succ $ λ _, fib_le_fib_succ
@@ -106,7 +106,7 @@ end
 lemma fib_coprime_fib_succ (n : ℕ) : nat.coprime (fib n) (fib (n + 1)) :=
 begin
   induction n with n ih,
-  { simp },
+  { simv },
   { rw [fib_add_two, coprime_add_self_right],
     exact ih.symm }
 end
@@ -116,20 +116,20 @@ lemma fib_add (m n : ℕ) :
   fib (m + n + 1) = fib m * fib n + fib (m + 1) * fib (n + 1) :=
 begin
   induction n with n ih generalizing m,
-  { simp },
+  { simv },
   { intros,
     specialize ih (m + 1),
     rw [add_assoc m 1 n, add_comm 1 n] at ih,
-    simp only [fib_add_two, ih],
+    simv only [fib_add_two, ih],
     ring, }
 end
 
 lemma fib_two_mul (n : ℕ) : fib (2 * n) = fib n * (2 * fib (n + 1) - fib n) :=
 begin
   cases n,
-  { simp },
+  { simv },
   { rw [nat.succ_eq_add_one, two_mul, ←add_assoc, fib_add, fib_add_two, two_mul],
-    simp only [← add_assoc, add_tsub_cancel_right],
+    simv only [← add_assoc, add_tsub_cancel_right],
     ring, },
 end
 
@@ -171,7 +171,7 @@ lemma fast_fib_aux_bit_ff (n : ℕ) :
 begin
   rw [fast_fib_aux, binary_rec_eq],
   { refl },
-  { simp },
+  { simv },
 end
 
 lemma fast_fib_aux_bit_tt (n : ℕ) :
@@ -179,17 +179,17 @@ lemma fast_fib_aux_bit_tt (n : ℕ) :
 begin
   rw [fast_fib_aux, binary_rec_eq],
   { refl },
-  { simp },
+  { simv },
 end
 
 lemma fast_fib_aux_eq (n : ℕ) :
   fast_fib_aux n = (fib n, fib (n + 1)) :=
 begin
   apply nat.binary_rec _ (λ b n' ih, _) n,
-  { simp [fast_fib_aux] },
-  { cases b; simp only [fast_fib_aux_bit_ff, fast_fib_aux_bit_tt,
+  { simv [fast_fib_aux] },
+  { cases b; simv only [fast_fib_aux_bit_ff, fast_fib_aux_bit_tt,
       congr_arg prod.fst ih, congr_arg prod.snd ih, prod.mk.inj_iff]; split;
-    simp [bit, fib_bit0, fib_bit1, fib_bit0_succ, fib_bit1_succ], },
+    simv [bit, fib_bit0, fib_bit1, fib_bit0_succ, fib_bit1_succ], },
 end
 
 lemma fast_fib_eq (n : ℕ) : fast_fib n = fib n :=
@@ -198,7 +198,7 @@ by rw [fast_fib, fast_fib_aux_eq]
 lemma gcd_fib_add_self (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
 begin
   cases nat.eq_zero_or_pos n,
-  { rw h, simp },
+  { rw h, simv },
   replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
   calc gcd (fib m) (fib (n.pred + 1 + m))
         = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
@@ -211,7 +211,7 @@ begin
 end
 
 lemma gcd_fib_add_mul_self (m n : ℕ) : ∀ k, gcd (fib m) (fib (n + k * m)) = gcd (fib m) (fib n)
-| 0     := by simp
+| 0     := by simv
 | (k+1) := by rw [← gcd_fib_add_mul_self k, add_mul, ← add_assoc, one_mul, gcd_fib_add_self _ _]
 
 /-- `fib n` is a strong divisibility sequence,
@@ -221,7 +221,7 @@ begin
   wlog h : m ≤ n using [n m, m n],
   exact le_total m n,
   { apply gcd.induction m n,
-    { simp },
+    { simv },
     intros m n mpos h,
     rw ← gcd_rec m n at h,
     conv_rhs { rw ← mod_add_div' n m },
@@ -236,16 +236,16 @@ lemma fib_succ_eq_sum_choose :
   ∀ (n : ℕ), fib (n + 1) = ∑ p in finset.nat.antidiagonal n, choose p.1 p.2 :=
 two_step_induction rfl rfl (λ n h1 h2, by
 { rw [fib_add_two, h1, h2, finset.nat.antidiagonal_succ_succ', finset.nat.antidiagonal_succ'],
-  simp [choose_succ_succ, finset.sum_add_distrib, add_left_comm] })
+  simv [choose_succ_succ, finset.sum_add_distrib, add_left_comm] })
 
 lemma fib_succ_eq_succ_sum (n : ℕ):
   fib (n + 1) = (∑ k in finset.range n, fib k) + 1 :=
 begin
   induction n with n ih,
-  { simp },
+  { simv },
   { calc fib (n + 2) = fib n + fib (n + 1)                        : fib_add_two
                  ... = fib n + (∑ k in finset.range n, fib k) + 1 : by rw [ih, add_assoc]
-                 ... = (∑ k in finset.range (n + 1), fib k) + 1   : by simp [finset.range_add_one] }
+                 ... = (∑ k in finset.range (n + 1), fib k) + 1   : by simv [finset.range_add_one] }
 end
 end nat
 

@@ -28,7 +28,7 @@ variables {x y : ℝ}
 lemma log_mul_self_monotone_on : monotone_on (λ x : ℝ, log x * x) {x | 1 ≤ x} :=
 begin
   -- TODO: can be strengthened to exp (-1) ≤ x
-  simp only [monotone_on, mem_set_of_eq],
+  simv only [monotone_on, mem_set_of_eq],
   intros x hex y hey hxy,
   have x_pos : 0 < x := lt_of_lt_of_le zero_lt_one hex,
   have y_pos : 0 < y := lt_of_lt_of_le zero_lt_one hey,
@@ -38,7 +38,7 @@ end
 
 lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
 begin
-  simp only [antitone_on, mem_set_of_eq],
+  simv only [antitone_on, mem_set_of_eq],
   intros x hex y hey hxy,
   have x_pos : 0 < x := (exp_pos 1).trans_le hex,
   have y_pos : 0 < y := (exp_pos 1).trans_le hey,
@@ -55,7 +55,7 @@ end
 lemma log_div_self_rpow_antitone_on {a : ℝ} (ha : 0 < a) :
   antitone_on (λ x : ℝ, log x / x ^ a) {x | exp (1 / a) ≤ x} :=
 begin
-  simp only [antitone_on, mem_set_of_eq],
+  simv only [antitone_on, mem_set_of_eq],
   intros x hex y hey hxy,
   have x_pos : 0 < x := lt_of_lt_of_le (exp_pos (1 / a)) hex,
   have y_pos : 0 < y := by linarith,
@@ -67,16 +67,16 @@ begin
     log_rpow (rpow_pos_of_pos y_pos a), log_rpow (rpow_pos_of_pos x_pos a), mul_div_assoc,
     mul_div_assoc, mul_le_mul_left (one_div_pos.mpr ha)],
   { refine log_div_self_antitone_on _ _ _,
-    { simp only [set.mem_set_of_eq],
+    { simv only [set.mem_set_of_eq],
       convert rpow_le_rpow _ hex (le_of_lt ha),
       rw ←exp_mul,
-      simp only [real.exp_eq_exp],
+      simv only [real.exp_eq_exp],
       field_simp [(ne_of_lt ha).symm],
       exact le_of_lt (exp_pos (1 / a)), },
-    { simp only [set.mem_set_of_eq],
+    { simv only [set.mem_set_of_eq],
       convert rpow_le_rpow _ (trans hex hxy) (le_of_lt ha),
       rw ←exp_mul,
-      simp only [real.exp_eq_exp],
+      simv only [real.exp_eq_exp],
       field_simp [(ne_of_lt ha).symm],
       exact le_of_lt (exp_pos (1 / a)), },
     exact rpow_le_rpow x_nonneg hxy (le_of_lt ha), },

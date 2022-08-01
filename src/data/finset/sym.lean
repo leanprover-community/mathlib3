@@ -150,7 +150,7 @@ eq_univ_iff_forall.2 $ λ s, mem_sym_iff.2 $ λ a _, mem_univ _
 λ m hm, mem_sym_iff.2 $ λ a ha, h $ mem_sym_iff.1 hm _ ha
 
 @[simp] lemma sym_inter (s t : finset α) (n : ℕ) : (s ∩ t).sym n = s.sym n ∩ t.sym n :=
-by { ext m, simp only [mem_inter, mem_sym_iff, imp_and_distrib, forall_and_distrib] }
+by { ext m, simv only [mem_inter, mem_sym_iff, imp_and_distrib, forall_and_distrib] }
 
 @[simp] lemma sym_union (s t : finset α) (n : ℕ) : s.sym n ∪ t.sym n ⊆ (s ∪ t).sym n :=
 union_subset (sym_mono (subset_union_left s t) n) (sym_mono (subset_union_right s t) n)

@@ -56,7 +56,7 @@ power_series.mk (λ n, x.coeff (x.order + n))
 power_series.coeff_mk _ _
 
 @[simp] lemma power_series_part_zero : power_series_part (0 : laurent_series R) = 0 :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] lemma power_series_part_eq_zero (x : laurent_series R) :
   x.power_series_part = 0 ↔ x = 0 :=
@@ -66,9 +66,9 @@ begin
     intro h,
     rw [power_series.ext_iff, not_forall],
     refine ⟨0, _⟩,
-    simp [coeff_order_ne_zero h] },
+    simv [coeff_order_ne_zero h] },
   { rintro rfl,
-    simp }
+    simv }
 end
 
 @[simp] lemma single_order_mul_power_series_part (x : laurent_series R) :
@@ -84,7 +84,7 @@ begin
     { contrapose! h,
       exact order_le_of_coeff_ne_zero h.symm },
     { contrapose! h,
-      simp only [set.mem_range, rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk] at h,
+      simv only [set.mem_range, rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk] at h,
       obtain ⟨m, hm⟩ := h,
       rw [← sub_nonneg, ← hm],
       exact int.zero_le_of_nat _ } }
@@ -112,19 +112,19 @@ rfl
   is_localization (submonoid.powers (power_series.X : power_series R)) (laurent_series R) :=
 { map_units := (begin rintro ⟨_, n, rfl⟩,
     refine ⟨⟨single (n : ℤ) 1, single (-n : ℤ) 1, _, _⟩, _⟩,
-    { simp only [single_mul_single, mul_one, add_right_neg],
+    { simv only [single_mul_single, mul_one, add_right_neg],
       refl },
-    { simp only [single_mul_single, mul_one, add_left_neg],
+    { simv only [single_mul_single, mul_one, add_left_neg],
       refl },
-    { simp } end),
+    { simv } end),
  surj := (begin intro z,
     by_cases h : 0 ≤ z.order,
     { refine ⟨⟨power_series.X ^ (int.nat_abs z.order) * power_series_part z, 1⟩, _⟩,
-      simp only [ring_hom.map_one, mul_one, ring_hom.map_mul, coe_algebra_map,
+      simv only [ring_hom.map_one, mul_one, ring_hom.map_mul, coe_algebra_map,
         of_power_series_X_pow, submonoid.coe_one],
       rw [int.nat_abs_of_nonneg h, ← coe_power_series, single_order_mul_power_series_part] },
     { refine ⟨⟨power_series_part z, power_series.X ^ (int.nat_abs z.order), ⟨_, rfl⟩⟩, _⟩,
-      simp only [coe_algebra_map, of_power_series_power_series_part],
+      simv only [coe_algebra_map, of_power_series_power_series_part],
       rw [mul_comm _ z],
       refine congr rfl _,
       rw [subtype.coe_mk, of_power_series_X_pow, int.of_nat_nat_abs_of_nonpos],
@@ -158,22 +158,22 @@ open laurent_series
 
 variables {R' : Type*} [semiring R] [ring R'] (f g : power_series R) (f' g' : power_series R')
 
-@[simp, norm_cast] lemma coe_zero : ((0 : power_series R) : laurent_series R) = 0 :=
+@[simv, norm_cast] lemma coe_zero : ((0 : power_series R) : laurent_series R) = 0 :=
 (of_power_series ℤ R).map_zero
 
-@[simp, norm_cast] lemma coe_one : ((1 : power_series R) : laurent_series R) = 1 :=
+@[simv, norm_cast] lemma coe_one : ((1 : power_series R) : laurent_series R) = 1 :=
 (of_power_series ℤ R).map_one
 
-@[simp, norm_cast] lemma coe_add : ((f + g : power_series R) : laurent_series R) = f + g :=
+@[simv, norm_cast] lemma coe_add : ((f + g : power_series R) : laurent_series R) = f + g :=
 (of_power_series ℤ R).map_add _ _
 
-@[simp, norm_cast] lemma coe_sub : ((f' - g' : power_series R') : laurent_series R') = f' - g' :=
+@[simv, norm_cast] lemma coe_sub : ((f' - g' : power_series R') : laurent_series R') = f' - g' :=
 (of_power_series ℤ R').map_sub _ _
 
-@[simp, norm_cast] lemma coe_neg : ((-f' : power_series R') : laurent_series R') = -f' :=
+@[simv, norm_cast] lemma coe_neg : ((-f' : power_series R') : laurent_series R') = -f' :=
 (of_power_series ℤ R').map_neg _
 
-@[simp, norm_cast] lemma coe_mul : ((f * g : power_series R) : laurent_series R) = f * g :=
+@[simv, norm_cast] lemma coe_mul : ((f * g : power_series R) : laurent_series R) = f * g :=
 (of_power_series ℤ R).map_mul _ _
 
 lemma coeff_coe (i : ℤ) :
@@ -185,31 +185,31 @@ begin
         if_neg (int.coe_nat_nonneg _).not_lt] },
   { rw [coe_power_series, of_power_series_apply, emb_domain_notin_image_support,
         if_pos (int.neg_succ_lt_zero _)],
-    simp only [not_exists, rel_embedding.coe_fn_mk, set.mem_image, not_and,
+    simv only [not_exists, rel_embedding.coe_fn_mk, set.mem_image, not_and,
                function.embedding.coe_fn_mk, ne.def, to_power_series_symm_apply_coeff, mem_support,
                int.coe_nat_eq, implies_true_iff, not_false_iff] }
 end
 
-@[simp, norm_cast] lemma coe_C (r : R) : ((C R r : power_series R) : laurent_series R) =
+@[simv, norm_cast] lemma coe_C (r : R) : ((C R r : power_series R) : laurent_series R) =
   hahn_series.C r :=
 of_power_series_C _
 
 @[simp] lemma coe_X : ((X : power_series R) : laurent_series R) = single 1 1 :=
 of_power_series_X
 
-@[simp, norm_cast] lemma coe_smul {S : Type*} [semiring S] [module R S]
+@[simv, norm_cast] lemma coe_smul {S : Type*} [semiring S] [module R S]
   (r : R) (x : power_series S) : ((r • x : power_series S) : laurent_series S) = r • x :=
-by { ext, simp [coeff_coe, coeff_smul, smul_ite] }
+by { ext, simv [coeff_coe, coeff_smul, smul_ite] }
 
-@[simp, norm_cast] lemma coe_bit0 :
+@[simv, norm_cast] lemma coe_bit0 :
   ((bit0 f : power_series R) : laurent_series R) = bit0 f :=
 (of_power_series ℤ R).map_bit0 _
 
-@[simp, norm_cast] lemma coe_bit1 :
+@[simv, norm_cast] lemma coe_bit1 :
   ((bit1 f : power_series R) : laurent_series R) = bit1 f :=
 (of_power_series ℤ R).map_bit1 _
 
-@[simp, norm_cast] lemma coe_pow (n : ℕ) :
+@[simv, norm_cast] lemma coe_pow (n : ℕ) :
   ((f ^ n : power_series R) : laurent_series R) = f ^ n :=
 (of_power_series ℤ R).map_pow _ _
 

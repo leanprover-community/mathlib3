@@ -82,7 +82,7 @@ instance comma_morphism.inhabited [inhabited (comma L R)] :
 ⟨⟨𝟙 _, 𝟙 _⟩⟩
 
 restate_axiom comma_morphism.w'
-attribute [simp, reassoc] comma_morphism.w
+attribute [simv, reassoc] comma_morphism.w
 
 instance comma_category : category (comma L R) :=
 { hom := comma_morphism,
@@ -149,7 +149,7 @@ def iso_mk {X Y : comma L₁ R₁} (l : X.left ≅ Y.left) (r : X.right ≅ Y.ri
     right := r.inv,
     w' := begin
       rw [←L₁.map_iso_inv l, iso.inv_comp_eq, L₁.map_iso_hom, reassoc_of h, ← R₁.map_comp],
-      simp
+      simv
     end, } }
 
 /-- A natural transformation `L₁ ⟶ L₂` induces a functor `comma L₂ R ⥤ comma L₁ R`. -/
@@ -227,13 +227,13 @@ variables {C : Type u₄} [category.{v₄} C] {D : Type u₅} [category.{v₅} D
 /-- The functor `(F ⋙ L, R) ⥤ (L, R)` -/
 @[simps] def pre_right (L : A ⥤ T) (F: C ⥤ B) (R : B ⥤ T) : comma L (F ⋙ R) ⥤ comma L R :=
 { obj := λ X, { left := X.left, right := F.obj X.right, hom := X.hom },
-  map := λ X Y f, { left := f.left, right := F.map f.right, w' := by simp } }
+  map := λ X Y f, { left := f.left, right := F.map f.right, w' := by simv } }
 
 /-- The functor `(L, R) ⥤ (L ⋙ F, R ⋙ F)` -/
 @[simps] def post (L : A ⥤ T) (R : B ⥤ T) (F: T ⥤ C) : comma L R ⥤ comma (L ⋙ F) (R ⋙ F) :=
 { obj := λ X, { left := X.left, right := X.right, hom := F.map X.hom },
   map := λ X Y f, { left := f.left, right := f.right, w' :=
-    by { simp only [functor.comp_map, ←F.map_comp, f.w] } } }
+    by { simv only [functor.comp_map, ←F.map_comp, f.w] } } }
 
 end
 end comma

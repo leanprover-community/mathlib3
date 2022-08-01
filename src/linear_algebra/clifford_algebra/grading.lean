@@ -57,8 +57,8 @@ begin
   obtain ⟨x, y, hx, hy, rfl⟩ := hz,
   obtain ⟨xi, hx'⟩ := set.mem_Union.mp hx,
   obtain ⟨yi, hy'⟩ := set.mem_Union.mp hy,
-  refine set.mem_Union.mpr ⟨⟨xi + yi, by simp only [nat.cast_add, xi.prop, yi.prop]⟩, _⟩,
-  simp only [subtype.coe_mk, nat.cast_add, pow_add],
+  refine set.mem_Union.mpr ⟨⟨xi + yi, by simv only [nat.cast_add, xi.prop, yi.prop]⟩, _⟩,
+  simv only [subtype.coe_mk, nat.cast_add, pow_add],
   exact submodule.mul_mem_mul hx' hy',
 end
 

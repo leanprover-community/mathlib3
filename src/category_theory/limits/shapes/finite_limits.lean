@@ -116,7 +116,7 @@ open walking_parallel_pair walking_parallel_pair_hom
 
 instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
 { elems := [walking_parallel_pair.zero, walking_parallel_pair.one].to_finset,
-  complete := λ x, by { cases x; simp } }
+  complete := λ x, by { cases x; simv } }
 
 local attribute [tidy] tactic.case_bash
 
@@ -235,7 +235,7 @@ lemma has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] :
 
 instance fintype_walking_pair : fintype walking_pair :=
 { elems := {walking_pair.left, walking_pair.right},
-  complete := λ x, by { cases x; simp } }
+  complete := λ x, by { cases x; simv } }
 
 /-- Pullbacks are finite limits, so if `C` has all finite limits, it also has all pullbacks -/
 example [has_finite_wide_pullbacks C] : has_pullbacks C := by apply_instance

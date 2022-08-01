@@ -25,7 +25,7 @@ lemma filter.is_bounded_under.is_o_sub_self_inv {𝕜 E : Type*} [normed_field �
   f =o[𝓝[≠] a] (λ x, (x - a)⁻¹) :=
 begin
   refine (h.is_O_const (@one_ne_zero ℝ _ _)).trans_is_o (is_o_const_left.2 $ or.inr _),
-  simp only [(∘), norm_inv],
+  simv only [(∘), norm_inv],
   exact (tendsto_norm_sub_self_punctured_nhds a).inv_tendsto_zero
 end
 
@@ -39,21 +39,21 @@ lemma pow_div_pow_eventually_eq_at_top {p q : ℕ} :
   (λ x : 𝕜, x^p / x^q) =ᶠ[at_top] (λ x, x^((p : ℤ) -q)) :=
 begin
   apply ((eventually_gt_at_top (0 : 𝕜)).mono (λ x hx, _)),
-  simp [zpow_sub₀ hx.ne'],
+  simv [zpow_sub₀ hx.ne'],
 end
 
 lemma pow_div_pow_eventually_eq_at_bot {p q : ℕ} :
   (λ x : 𝕜, x^p / x^q) =ᶠ[at_bot] (λ x, x^((p : ℤ) -q)) :=
 begin
   apply ((eventually_lt_at_bot (0 : 𝕜)).mono (λ x hx, _)),
-  simp [zpow_sub₀ hx.ne],
+  simv [zpow_sub₀ hx.ne],
 end
 
 lemma tendsto_zpow_at_top_at_top {n : ℤ}
   (hn : 0 < n) : tendsto (λ x : 𝕜, x^n) at_top at_top :=
 begin
   lift n to ℕ using hn.le,
-  simp only [zpow_coe_nat],
+  simv only [zpow_coe_nat],
   exact tendsto_pow_at_top (nat.cast_pos.mp hn).ne'
 end
 
@@ -140,7 +140,7 @@ begin
       rw ← mul_sum,
       exact add_le_add hn (mul_le_mul_of_nonneg_left le_rfl (half_pos εpos).le),
     end
-  ... = ε * ∥(∑ i in range n, g i)∥ : by { simp [B], ring }
+  ... = ε * ∥(∑ i in range n, g i)∥ : by { simv [B], ring }
 end
 
 lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_add_comm_group α]
@@ -148,7 +148,7 @@ lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_add_comm_g
   (λ n, ∑ i in range n, f i) =o[at_top] (λ n, (n : ℝ)) :=
 begin
   have := ((is_o_one_iff ℝ).2 h).sum_range (λ i, zero_le_one),
-  simp only [sum_const, card_range, nat.smul_one_eq_coe] at this,
+  simv only [sum_const, card_range, nat.smul_one_eq_coe] at this,
   exact this tendsto_coe_nat_at_top_at_top
 end
 
@@ -162,7 +162,7 @@ begin
   apply ((is_O_refl (λ (n : ℕ), (n : ℝ) ⁻¹) at_top).smul_is_o this).congr' _ _,
   { filter_upwards [Ici_mem_at_top 1] with n npos,
     have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
-    simp only [smul_sub, sum_sub_distrib, sum_const, card_range, sub_right_inj],
+    simv only [smul_sub, sum_sub_distrib, sum_const, card_range, sub_right_inj],
     rw [nsmul_eq_smul_cast ℝ, smul_smul, inv_mul_cancel nposℝ.ne', one_smul] },
   { filter_upwards [Ici_mem_at_top 1] with n npos,
     have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,

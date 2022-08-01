@@ -35,7 +35,7 @@ Further, we simplify the type using `concrete_category.coe_id : ((𝟙 X) : X �
 replacing morphism composition with function composition.
 
 The name of the produced lemma can be specified with `@[elementwise other_lemma_name]`.
-If `simp` is added first, the generated lemma will also have the `simp` attribute.
+If `simv` is added first, the generated lemma will also have the `simv` attribute.
 
 ## Implementation
 
@@ -131,7 +131,7 @@ do d ← get_decl n,
    (t'',pr',l') ← prove_elementwise c,
    let params := l'.to_list ++ d.univ_params,
    add_decl $ declaration.thm n' params t'' (pure pr'),
-   copy_attribute `simp n n'
+   copy_attribute `simv n n'
 
 /--
 The `elementwise` attribute can be applied to a lemma
@@ -158,7 +158,7 @@ replacing morphism composition with function composition.
 The `[concrete_category C]` argument will be omitted if it is possible to synthesize an instance.
 
 The name of the produced lemma can be specified with `@[elementwise other_lemma_name]`.
-If `simp` is added first, the generated lemma will also have the `simp` attribute.
+If `simv` is added first, the generated lemma will also have the `simv` attribute.
 -/
 @[user_attribute]
 meta def elementwise_attr : user_attribute unit (option name) :=

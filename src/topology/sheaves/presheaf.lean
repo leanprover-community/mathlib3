@@ -74,7 +74,7 @@ by rw h
   {X Y : Top.{w}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
   (pushforward_eq h ℱ).hom.app U =
     ℱ.map (begin dsimp [functor.op], apply quiver.hom.op, apply eq_to_hom, rw h, end) :=
-by simp [pushforward_eq]
+by simv [pushforward_eq]
 
 lemma pushforward_eq'_hom_app
   {X Y : Top.{w}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
@@ -86,7 +86,7 @@ lemma pushforward_eq_rfl {X Y : Top.{w}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) 
   (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
 begin
   dsimp [pushforward_eq],
-  simp,
+  simv,
 end
 
 lemma pushforward_eq_eq {X Y : Top.{w}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : X.presheaf C) :
@@ -106,15 +106,15 @@ by { unfold pushforward_obj, rw opens.map_id_eq, erw functor.id_comp }
 
 @[simp] lemma id_hom_app' (U) (p) :
   (id ℱ).hom.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
-by { dsimp [id], simp, }
+by { dsimp [id], simv, }
 
 local attribute [tidy] tactic.op_induction'
 
-@[simp, priority 990] lemma id_hom_app (U) :
+@[simv, priority 990] lemma id_hom_app (U) :
   (id ℱ).hom.app U = ℱ.map (eq_to_hom (opens.op_map_id_obj U)) := by tidy
 
 @[simp] lemma id_inv_app' (U) (p) : (id ℱ).inv.app (op ⟨U, p⟩) = ℱ.map (𝟙 (op ⟨U, p⟩)) :=
-by { dsimp [id], simp, }
+by { dsimp [id], simv, }
 
 /-- The natural isomorphism between
 the pushforward of a presheaf along the composition of two continuous maps and
@@ -180,7 +180,7 @@ begin
       change op (unop _) ⟶ op (⟨_, H⟩ : opens _),
       refine (hom_of_le _).op,
       exact (set.image_subset f s.X.hom.unop.le).trans (set.image_preimage.l_u_le ↑(unop s.X.left)),
-      simp
+      simv
     end },
   exact is_colimit.cocone_point_unique_up_to_iso
     (colimit.is_colimit _)
@@ -194,19 +194,19 @@ variables {X Y : Top.{v}} (ℱ : Y.presheaf C)
 def id : pullback_obj (𝟙 _) ℱ ≅ ℱ :=
 nat_iso.of_components
   (λ U, pullback_obj_obj_of_image_open (𝟙 _) ℱ (unop U) (by simpa using U.unop.2) ≪≫
-    ℱ.map_iso (eq_to_iso (by simp)))
+    ℱ.map_iso (eq_to_iso (by simv)))
   (λ U V i,
   begin
-      ext, simp,
+      ext, simv,
       erw colimit.pre_desc_assoc,
       erw colimit.ι_desc_assoc,
       erw colimit.ι_desc_assoc,
-      dsimp, simp only [←ℱ.map_comp], congr
+      dsimp, simv only [←ℱ.map_comp], congr
   end)
 
 lemma id_inv_app (U : opens Y) :
   (id ℱ).inv.app (op U) = colimit.ι (Lan.diagram (opens.map (𝟙 Y)).op ℱ (op U))
-    (@costructured_arrow.mk _ _ _ _ _ (op U) _ (eq_to_hom (by simp))) :=
+    (@costructured_arrow.mk _ _ _ _ _ (op U) _ (eq_to_hom (by simv))) :=
 begin
   rw [← category.id_comp ((id ℱ).inv.app (op U)), ← nat_iso.app_inv, iso.comp_inv_eq],
   dsimp [id],
@@ -262,11 +262,11 @@ def to_pushforward_of_iso {X Y : Top} (H : X ≅ Y) {ℱ : X.presheaf C} {𝒢 :
 lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C} {𝒢 : Y.presheaf C}
   (H₂ : H₁.hom _* ℱ ⟶ 𝒢) (U : (opens X)ᵒᵖ) :
 (to_pushforward_of_iso H₁ H₂).app U =
-  ℱ.map (eq_to_hom (by simp [opens.map, set.preimage_preimage])) ≫
+  ℱ.map (eq_to_hom (by simv [opens.map, set.preimage_preimage])) ≫
   H₂.app (op ((opens.map H₁.inv).obj (unop U))) :=
 begin
   delta to_pushforward_of_iso,
-  simp only [equiv.to_fun_as_coe, nat_trans.comp_app, equivalence.equivalence_mk'_unit,
+  simv only [equiv.to_fun_as_coe, nat_trans.comp_app, equivalence.equivalence_mk'_unit,
     eq_to_hom_map, eq_to_hom_op, eq_to_hom_trans, presheaf_equiv_of_iso_unit_iso_hom_app_app,
     equivalence.to_adjunction, equivalence.equivalence_mk'_counit,
     presheaf_equiv_of_iso_inverse_map_app, adjunction.mk_of_unit_counit_hom_equiv_apply],
@@ -286,7 +286,7 @@ lemma pushforward_to_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : Y.presheaf C
   (H₂ : ℱ ⟶ H₁.hom _* 𝒢) (U : (opens X)ᵒᵖ) :
 (pushforward_to_of_iso H₁ H₂).app U =
   H₂.app (op ((opens.map H₁.inv).obj (unop U))) ≫
-  𝒢.map (eq_to_hom (by simp [opens.map, set.preimage_preimage])) :=
+  𝒢.map (eq_to_hom (by simv [opens.map, set.preimage_preimage])) :=
 by simpa [pushforward_to_of_iso, equivalence.to_adjunction]
 
 end iso

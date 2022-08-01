@@ -318,8 +318,8 @@ lemma list.dprod_index_eq_map_sum (l : list α) (fι : α → ι) :
 begin
   dunfold list.dprod_index,
   induction l,
-  { simp, },
-  { simp [l_ih], },
+  { simv, },
+  { simv [l_ih], },
 end
 
 /-- A dependent product for graded monoids represented by the indexed family of types `A i`.
@@ -343,8 +343,8 @@ lemma graded_monoid.mk_list_dprod (l : list α) (fι : α → ι) (fA : Π a, A 
   graded_monoid.mk _ (l.dprod fι fA) = (l.map (λ a, graded_monoid.mk (fι a) (fA a))).prod :=
 begin
   induction l,
-  { simp, refl  },
-  { simp [←l_ih, graded_monoid.mk_mul_mk, list.prod_cons],
+  { simv, refl  },
+  { simv [←l_ih, graded_monoid.mk_mul_mk, list.prod_cons],
     refl, },
 end
 

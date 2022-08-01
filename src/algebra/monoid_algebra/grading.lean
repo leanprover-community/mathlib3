@@ -100,7 +100,7 @@ instance grade_by.graded_monoid [add_monoid M] [add_monoid ι] [comm_semiring R]
   end,
   mul_mem := λ i j a b ha hb c hc, begin
     set h := support_mul a b hc,
-    simp only [finset.mem_bUnion] at h,
+    simv only [finset.mem_bUnion] at h,
     rcases h with ⟨ma, ⟨hma, ⟨mb, ⟨hmb, hmc⟩⟩⟩⟩,
     rw [← ha ma hma, ← hb mb hmb, finset.mem_singleton.mp hmc],
     apply add_monoid_hom.map_add
@@ -119,7 +119,7 @@ add_monoid_algebra.lift R M _
 { to_fun := λ m, direct_sum.of (λ i : ι, grade_by R f i) (f m.to_add)
     ⟨finsupp.single m.to_add 1, single_mem_grade_by _ _ _⟩,
   map_one' := direct_sum.of_eq_of_graded_monoid_eq (by congr' 2; try {ext};
-    simp only [submodule.mem_to_add_submonoid, to_add_one, add_monoid_hom.map_zero]),
+    simv only [submodule.mem_to_add_submonoid, to_add_one, add_monoid_hom.map_zero]),
   map_mul' := λ i j, begin
     symmetry,
     convert direct_sum.of_mul_of _ _,
@@ -127,7 +127,7 @@ add_monoid_algebra.lift R M _
     congr' 2,
     { rw [to_add_mul, add_monoid_hom.map_add] },
     { ext,
-      simp only [submodule.mem_to_add_submonoid, add_monoid_hom.map_add, to_add_mul] },
+      simv only [submodule.mem_to_add_submonoid, add_monoid_hom.map_add, to_add_mul] },
     { exact eq.trans (by rw [one_mul, to_add_mul]) single_mul_single.symm }
   end }
 
@@ -164,7 +164,7 @@ begin
     { rwa [finsupp.support_single_ne_zero _ hb, finset.coe_singleton,
         set.singleton_subset_iff] at h1 },
     subst this,
-    simp only [alg_hom.map_add, submodule.coe_mk, decompose_aux_single f m],
+    simv only [alg_hom.map_add, submodule.coe_mk, decompose_aux_single f m],
     let ih' := ih h2,
     dsimp at ih',
     rw [ih', ← add_monoid_hom.map_add],

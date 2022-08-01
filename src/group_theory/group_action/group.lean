@@ -26,10 +26,10 @@ instance right_cancel_monoid.to_has_faithful_smul [right_cancel_monoid α] :
 section group
 variables [group α] [mul_action α β]
 
-@[simp, to_additive] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+@[simv, to_additive] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 by rw [smul_smul, mul_left_inv, one_smul]
 
-@[simp, to_additive] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+@[simv, to_additive] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
 by rw [smul_smul, mul_right_inv, one_smul]
 
 /-- Given an action of a group `α` on `β`, each `g : α` defines a permutation of `β`. -/
@@ -92,7 +92,7 @@ by rw [inv_eq_iff_mul_eq_one, smul_mul_smul, mul_right_inv, mul_right_inv, one_s
 lemma smul_zpow [group β] [smul_comm_class α β β] [is_scalar_tower α β β]
   (c : α) (x : β) (p : ℤ) :
   (c • x) ^ p = c ^ p • x ^ p :=
-by { cases p; simp [smul_pow, smul_inv] }
+by { cases p; simv [smul_pow, smul_inv] }
 
 @[simp] lemma commute.smul_right_iff [has_mul β] [smul_comm_class α β β] [is_scalar_tower α β β]
   {a b : β} (r : α) :
@@ -113,7 +113,7 @@ by rw [commute.symm_iff, commute.smul_right_iff, commute.symm_iff]
 @[to_additive] lemma smul_left_cancel (g : α) {x y : β} (h : g • x = g • y) : x = y :=
 mul_action.injective g h
 
-@[simp, to_additive] lemma smul_left_cancel_iff (g : α) {x y : β} : g • x = g • y ↔ x = y :=
+@[simv, to_additive] lemma smul_left_cancel_iff (g : α) {x y : β} : g • x = g • y ↔ x = y :=
 (mul_action.injective g).eq_iff
 
 @[to_additive] lemma smul_eq_iff_eq_inv_smul (g : α) {x y : β} :
@@ -242,8 +242,8 @@ section arrow
 `(g +ᵥ F) a = F (g⁻¹ +ᵥ a)`", simps]
 def arrow_action {G A B : Type*} [division_monoid G] [mul_action G A] : mul_action G (A → B) :=
 { smul := λ g F a, F (g⁻¹ • a),
-  one_smul := by { intro, simp only [inv_one, one_smul] },
-  mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }
+  one_smul := by { intro, simv only [inv_one, one_smul] },
+  mul_smul := by { intros, simv only [mul_smul, mul_inv_rev] } }
 
 local attribute [instance] arrow_action
 

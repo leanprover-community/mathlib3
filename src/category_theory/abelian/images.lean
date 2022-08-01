@@ -47,7 +47,7 @@ protected abbreviation factor_thru_image : P ⟶ abelian.image f :=
 kernel.lift (cokernel.π f) f $ cokernel.condition f
 
 /-- `f` factors through its image via the canonical morphism `p`. -/
-@[simp, reassoc] protected lemma image.fac :
+@[simv, reassoc] protected lemma image.fac :
   abelian.factor_thru_image f ≫ image.ι f = f :=
 kernel.lift_ι _ _ _
 
@@ -88,21 +88,21 @@ in which this is always an isomorphism, is abelian.
 See <https://stacks.math.columbia.edu/tag/0107>
 -/
 def coimage_image_comparison : abelian.coimage f ⟶ abelian.image f :=
-cokernel.desc (kernel.ι f) (kernel.lift (cokernel.π f) f (by simp)) $ (by { ext, simp, })
+cokernel.desc (kernel.ι f) (kernel.lift (cokernel.π f) f (by simv)) $ (by { ext, simv, })
 
 /--
 An alternative formulation of the canonical map from the abelian coimage to the abelian image.
 -/
 def coimage_image_comparison' : abelian.coimage f ⟶ abelian.image f :=
-kernel.lift (cokernel.π f) (cokernel.desc (kernel.ι f) f (by simp)) (by { ext, simp, })
+kernel.lift (cokernel.π f) (cokernel.desc (kernel.ι f) f (by simv)) (by { ext, simv, })
 
 lemma coimage_image_comparison_eq_coimage_image_comparison' :
   coimage_image_comparison f = coimage_image_comparison' f :=
-by { ext, simp [coimage_image_comparison, coimage_image_comparison'], }
+by { ext, simv [coimage_image_comparison, coimage_image_comparison'], }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma coimage_image_factorisation :
   coimage.π f ≫ coimage_image_comparison f ≫ image.ι f = f :=
-by simp [coimage_image_comparison]
+by simv [coimage_image_comparison]
 
 end category_theory.abelian

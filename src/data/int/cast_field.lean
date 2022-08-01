@@ -28,7 +28,7 @@ Auxiliary lemma for norm_cast to move the cast `-↑n` upwards to `↑-↑n`.
 `R = ℤ` and cause nontermination.)
 -/
 @[norm_cast]
-lemma cast_neg_nat_cast {R} [field R] (n : ℕ) : ((-n : ℤ) : R) = -n := by simp
+lemma cast_neg_nat_cast {R} [field R] (n : ℕ) : ((-n : ℤ) : R) = -n := by simv
 
 @[simp] theorem cast_div [field α] {m n : ℤ} (n_dvd : n ∣ m) (n_nonzero : (n : α) ≠ 0) :
   ((m / n : ℤ) : α) = m / n :=

@@ -199,7 +199,7 @@ lemma succ_le_succ_iff_of_not_is_max (ha : ¬ is_max a) (hb : ¬ is_max b) :
   succ a ≤ succ b ↔ a ≤ b :=
 by rw [succ_le_iff_of_not_is_max ha, lt_succ_iff_of_not_is_max hb]
 
-@[simp, mono] lemma succ_le_succ (h : a ≤ b) : succ a ≤ succ b :=
+@[simv, mono] lemma succ_le_succ (h : a ≤ b) : succ a ≤ succ b :=
 begin
   by_cases hb : is_max b,
   { by_cases hba : b ≤ a,
@@ -212,7 +212,7 @@ lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 
 lemma le_succ_iterate (k : ℕ) (x : α) : x ≤ (succ^[k] x) :=
 begin
-  conv_lhs { rw (by simp only [function.iterate_id, id.def] : x = (id^[k] x)) },
+  conv_lhs { rw (by simv only [function.iterate_id, id.def] : x = (id^[k] x)) },
   exact monotone.le_iterate_of_le succ_mono le_succ k x,
 end
 
@@ -241,8 +241,8 @@ lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
 @[simp] lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
 @[simp] lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
-lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b := by simp
-lemma succ_lt_succ_iff : succ a < succ b ↔ a < b := by simp
+lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b := by simv
+lemma succ_lt_succ_iff : succ a < succ b ↔ a < b := by simv
 
 alias succ_le_succ_iff ↔ le_of_succ_le_succ _
 alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
@@ -437,13 +437,13 @@ lemma pred_lt_iff_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a ≤ b :=
 lemma le_pred_iff_of_not_is_min (ha : ¬ is_min a) : b ≤ pred a ↔ b < a :=
 ⟨λ h, h.trans_lt $ pred_lt_of_not_is_min ha, le_pred_of_lt⟩
 
-@[simp, mono] lemma pred_le_pred {a b : α} (h : a ≤ b) : pred a ≤ pred b := succ_le_succ h.dual
+@[simv, mono] lemma pred_le_pred {a b : α} (h : a ≤ b) : pred a ≤ pred b := succ_le_succ h.dual
 
 lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 
 lemma pred_iterate_le (k : ℕ) (x : α) : (pred^[k] x) ≤ x :=
 begin
-  conv_rhs { rw (by simp only [function.iterate_id, id.def] : x = (id^[k] x)) },
+  conv_rhs { rw (by simv only [function.iterate_id, id.def] : x = (id^[k] x)) },
   exact monotone.iterate_le_of_le pred_mono pred_le k x,
 end
 
@@ -472,8 +472,8 @@ lemma pred_lt (a : α) : pred a < a := pred_lt_of_not_is_min $ not_is_min a
 @[simp] lemma pred_lt_iff : pred a < b ↔ a ≤ b := pred_lt_iff_of_not_is_min $ not_is_min a
 @[simp] lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is_min b
 
-lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b := by simp
-lemma pred_lt_pred_iff : pred a < pred b ↔ a < b := by simp
+lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b := by simv
+lemma pred_lt_pred_iff : pred a < pred b ↔ a < b := by simv
 
 alias pred_le_pred_iff ↔ le_of_pred_le_pred _
 alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
@@ -535,7 +535,7 @@ lemma Ici_pred (a : α) : Ici (pred a) = insert (pred a) (Ici a) := ext $ λ _, 
 lemma Ioi_pred_eq_insert_of_not_is_min (ha : ¬ is_min a) :
   Ioi (pred a) = insert a (Ioi a) :=
 begin
-  ext x, simp only [insert, mem_set_of, @eq_comm _ x a],
+  ext x, simv only [insert, mem_set_of, @eq_comm _ x a],
   exact pred_lt_iff_eq_or_lt_of_not_is_min ha
 end
 

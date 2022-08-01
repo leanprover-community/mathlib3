@@ -60,7 +60,7 @@ begin
   convert (has_fpower_series_at_exp_zero_of_radius_pos h).has_strict_fderiv_at,
   ext x,
   change x = exp_series 𝕂 𝔸 1 (λ _, x),
-  simp [exp_series_apply_eq]
+  simv [exp_series_apply_eq]
 end
 
 /-- The exponential in a Banach-algebra `𝔸` over a normed field `𝕂` has Fréchet-derivative

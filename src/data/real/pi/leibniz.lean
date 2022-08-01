@@ -47,12 +47,12 @@ begin
   { convert (((tendsto_rpow_div_mul_add (-1) 2 1 two_ne_zero.symm).neg.const_add 1).add
       tendsto_inv_at_top_zero).comp tendsto_coe_nat_at_top_at_top,
     { ext k,
-      simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
+      simv only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
          @div_mul_cancel _ _ (2*(k:ℝ)+1) _
-            (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff] }), rpow_neg_one k,
+            (by { norm_cast, simv only [nat.succ_ne_zero, not_false_iff] }), rpow_neg_one k,
           sub_eq_add_neg] },
-    { simp only [add_zero, add_right_neg] } },
+    { simv only [add_zero, add_right_neg] } },
   -- (2) We convert the limit in our goal to an inequality
   refine squeeze_zero_norm _ H,
   intro k,
@@ -64,11 +64,11 @@ begin
   suffices f_bound : |f 1 - f 0| ≤ (1:ℝ) - U + U ^ (2 * (k:ℝ) + 1),
   { rw ← norm_neg,
     convert f_bound,
-    simp only [f], simp [b] },
+    simv only [f], simv [b] },
   -- We show that `U` is indeed in [0,1]
   have hU1 : (U:ℝ) ≤ 1,
   { by_cases hk : k = 0,
-    { simp [u, U, hk] },
+    { simv [u, U, hk] },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
           (neg_neg_iff_pos.mpr zero_lt_one) (by { norm_cast, exact nat.succ_pos' }))) } },
@@ -82,9 +82,9 @@ begin
       convert has_deriv_at.const_mul ((-1:ℝ)^i / (2*i+1)) (@has_deriv_at.pow _ _ _ _ _ (2*i+1)
         (has_deriv_at_id x)),
       { ext y,
-        simp only [b, id.def],
+        simv only [b, id.def],
         ring },
-      { simp only [nat.add_succ_sub_one, add_zero, mul_one, id.def, nat.cast_bit0, nat.cast_add,
+      { simv only [nat.add_succ_sub_one, add_zero, mul_one, id.def, nat.cast_bit0, nat.cast_add,
                   nat.cast_one, nat.cast_mul],
         rw [← mul_assoc, @div_mul_cancel _ _ (2*(i:ℝ)+1) _ (by { norm_cast, linarith }),
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
@@ -92,7 +92,7 @@ begin
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
     have g_sum :=
       @geom_sum_eq _ _ (-x^2) ((neg_nonpos.mpr (sq_nonneg x)).trans_lt zero_lt_one).ne k,
-    simp only [f'] at g_sum ⊢,
+    simv only [f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
   have hderiv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=

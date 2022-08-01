@@ -34,7 +34,7 @@ lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
   ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
 begin
   apply finset.induction,
-  { simp },
+  { simv },
   { assume a s has H,
     rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
 end
@@ -62,17 +62,17 @@ variables [non_assoc_semiring β]
 
 lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
-by simp
+by simv
 
 lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
-by simp
+by simv
 
 end semiring
 
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
-by simp only [div_eq_mul_inv, sum_mul]
+by simv only [div_eq_mul_inv, sum_mul]
 
 section comm_semiring
 variables [comm_semiring β]
@@ -89,7 +89,7 @@ begin
   { have h₁ : ∀x ∈ t a, ∀y ∈ t a, ∀h : x ≠ y,
         disjoint (image (pi.cons s a x) (pi s t)) (image (pi.cons s a y) (pi s t)),
     { assume x hx y hy h,
-      simp only [disjoint_iff_ne, mem_image],
+      simv only [disjoint_iff_ne, mem_image],
       rintros _ ⟨p₂, hp, eq₂⟩ _ ⟨p₃, hp₃, eq₃⟩ eq,
       have : pi.cons s a x p₂ a (mem_insert_self _ _) = pi.cons s a y p₃ a (mem_insert_self _ _),
       { rw [eq₂, eq₃, eq] },
@@ -102,11 +102,11 @@ begin
     rw [sum_image h₂, mul_sum],
     refine sum_congr rfl (λ g _, _),
     rw [attach_insert, prod_insert, prod_image],
-    { simp only [pi.cons_same],
+    { simv only [pi.cons_same],
       congr' with ⟨v, hv⟩, congr',
       exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
-    { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
+    { simv only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
 
 open_locale classical
@@ -117,12 +117,12 @@ open_locale classical
 lemma prod_add (f g : α → β) (s : finset α) :
   ∏ a in s, (f a + g a) = ∑ t in s.powerset, ((∏ a in t, f a) * (∏ a in (s \ t), g a)) :=
 calc ∏ a in s, (f a + g a)
-    = ∏ a in s, ∑ p in ({true, false} : finset Prop), if p then f a else g a : by simp
+    = ∏ a in s, ∑ p in ({true, false} : finset Prop), if p then f a else g a : by simv
 ... = ∑ p in (s.pi (λ _, {true, false}) : finset (Π a ∈ s, Prop)),
         ∏ a in s.attach, if p a.1 a.2 then f a.1 else g a.1 : prod_sum
 ... = ∑ t in s.powerset, (∏ a in t, f a) * (∏ a in (s \ t), g a) : begin
   refine eq.symm (sum_bij (λ t _ a _, a ∈ t) _ _ _ _),
-  { simp [subset_iff]; tauto },
+  { simv [subset_iff]; tauto },
   { intros t ht,
     erw [prod_ite (λ a : {a // a ∈ s}, f a.1) (λ a : {a // a ∈ s}, g a.1)],
     refine congr_arg2 _
@@ -131,21 +131,21 @@ calc ∏ a in s, (f a + g a)
         (λ b hb, ⟨b, by cases b;
           simpa only [true_and, exists_prop, mem_filter, and_true, mem_attach, eq_self_iff_true,
             subtype.coe_mk] using hb⟩))
-      (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simp * at *⟩)
+      (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simv * at *⟩)
         _ _ _
         (λ b hb, ⟨b, by cases b; begin
-          simp only [true_and, mem_filter, mem_attach, subtype.coe_mk] at hb,
+          simv only [true_and, mem_filter, mem_attach, subtype.coe_mk] at hb,
           simpa only [true_and, exists_prop, and_true, mem_sdiff, eq_self_iff_true, subtype.coe_mk,
             b_property],
         end⟩));
-    intros; simp * at *; simp * at * },
+    intros; simv * at *; simv * at * },
   { assume a₁ a₂ h₁ h₂ H,
     ext x,
-    simp only [function.funext_iff, subset_iff, mem_powerset, eq_iff_iff] at h₁ h₂ H,
+    simv only [function.funext_iff, subset_iff, mem_powerset, eq_iff_iff] at h₁ h₂ H,
     exact ⟨λ hx, (H x (h₁ hx)).1 hx, λ hx, (H x (h₂ hx)).2 hx⟩ },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
-      by simp, by funext; intros; simp *⟩ }
+      by simv, by funext; intros; simv *⟩ }
 end
 
 /-- `∏ i, (f i + g i) = (∏ i, f i) + ∑ i, g i * (∏ j < i, f j + g j) * (∏ j > i, f j)`. -/
@@ -154,7 +154,7 @@ lemma prod_add_ordered {ι R : Type*} [comm_semiring R] [linear_order ι] (s : f
   (∏ i in s, (f i + g i)) = (∏ i in s, f i) +
     ∑ i in s, g i * (∏ j in s.filter (< i), (f j + g j)) * ∏ j in s.filter (λ j, i < j), f j :=
 begin
-  refine finset.induction_on_max s (by simp) _,
+  refine finset.induction_on_max s (by simv) _,
   clear s, intros a s ha ihs,
   have ha' : a ∉ s, from λ ha', (ha a ha').false,
   rw [prod_insert ha', prod_insert ha', sum_insert ha', filter_insert, if_neg (lt_irrefl a),
@@ -174,16 +174,16 @@ lemma prod_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finse
   (∏ i in s, (f i - g i)) = (∏ i in s, f i) -
     ∑ i in s, g i * (∏ j in s.filter (< i), (f j - g j)) * ∏ j in s.filter (λ j, i < j), f j :=
 begin
-  simp only [sub_eq_add_neg],
+  simv only [sub_eq_add_neg],
   convert prod_add_ordered s f (λ i, -g i),
-  simp,
+  simv,
 end
 
 /-- `∏ i, (1 - f i) = 1 - ∑ i, f i * (∏ j < i, 1 - f j)`. This formula is useful in construction of
 a partition of unity from a collection of “bump” functions.  -/
 lemma prod_one_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f : ι → R) :
   (∏ i in s, (1 - f i)) = 1 - ∑ i in s, f i * ∏ j in s.filter (< i), (1 - f j) :=
-by { rw prod_sub_ordered, simp }
+by { rw prod_sub_ordered, simv }
 
 /--  Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a `finset`
 gives `(a + b)^s.card`.-/
@@ -218,7 +218,7 @@ begin
   cases le_or_lt k n with hkn hnk,
   { exact prod_congr rfl (λ i hi, (nat.cast_sub $ (mem_range.1 hi).le.trans hkn).symm) },
   { rw ← mem_range at hnk,
-    rw [prod_eq_zero hnk, prod_eq_zero hnk]; simp }
+    rw [prod_eq_zero hnk, prod_eq_zero hnk]; simv }
 end
 
 end comm_ring
@@ -265,6 +265,6 @@ lemma sum_range_succ_mul_sum_range_succ [non_unital_non_assoc_semiring β] (n k 
     f n * (∑ i in range k, g i) +
     (∑ i in range n, f i) * g k +
     f n * g k :=
-by simp only [add_mul, mul_add, add_assoc, sum_range_succ]
+by simv only [add_mul, mul_add, add_assoc, sum_range_succ]
 
 end finset

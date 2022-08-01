@@ -81,21 +81,21 @@ begin
           (s.ι.naturality limits.walking_span.hom.fst).symm }, ..s.inr },
   /- The factor map is a ⊗ b ↦ f(a) * g(b). -/
   use alg_hom.to_ring_hom (algebra.tensor_product.product_map f' g'),
-  simp only [pushout_cocone_inl, pushout_cocone_inr],
+  simv only [pushout_cocone_inl, pushout_cocone_inr],
   split, { ext x, exact algebra.tensor_product.product_map_left_apply  _ _ x, },
   split, { ext x, exact algebra.tensor_product.product_map_right_apply _ _ x, },
   intros h eq1 eq2,
   let h' : (A ⊗[R] B) →ₐ[R] s.X :=
     { commutes' := λ r, by
     { change h ((f r) ⊗ₜ[R] 1) = s.inl (f r),
-      rw ← eq1, simp }, ..h },
+      rw ← eq1, simv }, ..h },
   suffices : h' = algebra.tensor_product.product_map f' g',
   { ext x,
     change h' x = algebra.tensor_product.product_map f' g' x,
     rw this },
   apply algebra.tensor_product.ext,
   intros a b,
-  simp [← eq1, ← eq2, ← h.map_mul],
+  simv [← eq1, ← eq2, ← h.map_mul],
 end)
 
 end pushout

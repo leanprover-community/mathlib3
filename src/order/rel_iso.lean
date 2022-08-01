@@ -232,7 +232,7 @@ theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x := fun_like.ext_if
 
 /-- Composition of two relation embeddings is a relation embedding. -/
 @[trans] protected def trans (f : r ↪r s) (g : s ↪r t) : r ↪r t :=
-⟨f.1.trans g.1, λ a b, by simp [f.map_rel_iff, g.map_rel_iff]⟩
+⟨f.1.trans g.1, λ a b, by simv [f.map_rel_iff, g.map_rel_iff]⟩
 
 instance (r : α → α → Prop) : inhabited (r ↪r r) := ⟨rel_embedding.refl _⟩
 
@@ -484,7 +484,7 @@ def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   sum.lex r₁ r₂ ≃r sum.lex s₁ s₂ :=
 ⟨equiv.sum_congr e₁.to_equiv e₂.to_equiv, λ a b,
  by cases e₁ with f hf; cases e₂ with g hg;
-    cases a; cases b; simp [hf, hg]⟩
+    cases a; cases b; simv [hf, hg]⟩
 
 /--
 Given relation isomorphisms `r₁ ≃r s₁` and `r₂ ≃r s₂`, construct a relation isomorphism for the
@@ -494,7 +494,7 @@ def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @rel_iso α₁ β₁ r₁ s₁) (e₂ : @rel_iso α₂ β₂ r₂ s₂) :
   prod.lex r₁ r₂ ≃r prod.lex s₁ s₂ :=
 ⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,
-  λ a b, by simp [prod.lex_def, e₁.map_rel_iff, e₂.map_rel_iff]⟩
+  λ a b, by simv [prod.lex_def, e₁.map_rel_iff, e₂.map_rel_iff]⟩
 
 instance : group (r ≃r r) :=
 { one := rel_iso.refl r,
@@ -523,13 +523,13 @@ def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_em
 def rel_iso_of_unique_of_irrefl (r : α → α → Prop) (s : β → β → Prop)
   [is_irrefl α r] [is_irrefl β s] [unique α] [unique β] : r ≃r s :=
 ⟨equiv.equiv_of_unique α β,
-  λ x y, by simp [not_rel_of_subsingleton r, not_rel_of_subsingleton s]⟩
+  λ x y, by simv [not_rel_of_subsingleton r, not_rel_of_subsingleton s]⟩
 
 /-- Two reflexive relations on a unique type are isomorphic. -/
 def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
   [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
 ⟨equiv.equiv_of_unique α β,
-  λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
+  λ x y, by simv [rel_of_subsingleton r, rel_of_subsingleton s]⟩
 
 end rel_iso
 

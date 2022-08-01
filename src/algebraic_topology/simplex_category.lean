@@ -157,7 +157,7 @@ lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
 begin
   ext k,
   dsimp [δ, fin.succ_above],
-  simp only [order_embedding.to_order_hom_coe,
+  simv only [order_embedding.to_order_hom_coe,
     order_embedding.coe_of_strict_mono,
     function.comp_app,
     simplex_category.hom.to_order_hom_mk,
@@ -165,7 +165,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  split_ifs; { simp at *; linarith },
+  split_ifs; { simv at *; linarith },
 end
 
 /-- The special case of the first simplicial identity -/
@@ -181,15 +181,15 @@ begin
     (ite (k < i) (k:ℕ) (k + 1) - 1) (ite (k < i) k (k + 1)) =
       ite ((if h : (j:ℕ) < k
         then k.pred (by { rintro rfl, exact nat.not_lt_zero _ h })
-        else k.cast_lt (by { cases j, cases k, simp only [len_mk], linarith })).cast_succ < i)
+        else k.cast_lt (by { cases j, cases k, simv only [len_mk], linarith })).cast_succ < i)
           (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
   { dsimp [δ, σ, fin.succ_above, fin.pred_above],
-    simp [fin.pred_above] with push_cast,
+    simv [fin.pred_above] with push_cast,
     convert rfl },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
+  simv only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
   dsimp,
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
@@ -199,7 +199,7 @@ begin
   swap 7,
   { have : k ≤ i := nat.le_of_pred_lt ‹_›, linarith, },
   -- Hope for the best from `linarith`:
-  all_goals { try { refl <|> simp at * }; linarith, },
+  all_goals { try { refl <|> simv at * }; linarith, },
 end
 
 /-- The first part of the third simplicial identity -/
@@ -213,7 +213,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   dsimp,
-  split_ifs; { simp at *; linarith, },
+  split_ifs; { simv at *; linarith, },
 end
 
 /-- The second part of the third simplicial identity -/
@@ -224,8 +224,8 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   dsimp [δ, σ, fin.succ_above, fin.pred_above],
-  simp [fin.pred_above] with push_cast,
-  split_ifs; { simp at *; linarith, },
+  simv [fin.pred_above] with push_cast,
+  split_ifs; { simv at *; linarith, },
 end
 
 /-- The fourth simplicial identity -/
@@ -237,7 +237,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
+  simv only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
   suffices : ite (_ < ite (k < i + 1) _ _) _ _ =
     ite _ (ite (j < k) (k - 1) k) (ite (j < k) (k - 1) k + 1),
   { simpa [apply_dite fin.cast_succ, fin.pred_above] with push_cast, },
@@ -245,28 +245,28 @@ begin
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with three of them by hand.
   swap 2,
-  { simp only [subtype.mk_lt_mk] at h_1,
-    simp only [not_lt] at h_2,
-    simp only [self_eq_add_right, one_ne_zero],
+  { simv only [subtype.mk_lt_mk] at h_1,
+    simv only [not_lt] at h_2,
+    simv only [self_eq_add_right, one_ne_zero],
     exact lt_irrefl (k - 1) (lt_of_lt_of_le
       (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
       (le_trans (nat.le_of_lt_succ h) h_2)) },
   swap 4,
-  { simp only [subtype.mk_lt_mk] at h_1,
-    simp only [not_lt] at h,
-    simp only [nat.add_succ_sub_one, add_zero],
+  { simv only [subtype.mk_lt_mk] at h_1,
+    simv only [not_lt] at h,
+    simv only [nat.add_succ_sub_one, add_zero],
     exfalso,
     exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
   swap 4,
-  { simp only [subtype.mk_lt_mk] at h_1,
-    simp only [not_lt] at h_3,
-    simp only [nat.add_succ_sub_one, add_zero],
+  { simv only [subtype.mk_lt_mk] at h_1,
+    simv only [not_lt] at h_3,
+    simv only [nat.add_succ_sub_one, add_zero],
     exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
   -- Hope for the best from `linarith`:
-  all_goals { simp at h_1 h_2 ⊢; linarith, },
+  all_goals { simv at h_1 h_2 ⊢; linarith, },
 end
 
-local attribute [simp] fin.pred_mk
+local attribute [simv] fin.pred_mk
 
 /-- The fifth simplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
@@ -277,31 +277,31 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk] at H,
-  -- At this point `simp with push_cast` makes good progress, but neither `simp?` nor `squeeze_simp`
+  simv only [subtype.mk_le_mk] at H,
+  -- At this point `simv with push_cast` makes good progress, but neither `simv?` nor `squeeze_simp`
   -- return usable sets of lemmas.
-  -- To avoid using a non-terminal simp, we make a `suffices` statement indicating the shape
+  -- To avoid using a non-terminal simv, we make a `suffices` statement indicating the shape
   -- of the goal we're looking for, and then use `simpa with push_cast`.
-  -- I'm not sure this is actually much more robust that a non-terminal simp.
+  -- I'm not sure this is actually much more robust that a non-terminal simv.
   suffices : ite (_ < dite (i < k) _ _) _ _ =
     ite (_ < dite (j + 1 < k) _ _) _ _,
   { simpa [fin.pred_above] with push_cast, },
   split_ifs,
   -- `split_ifs` created 12 goals.
-  -- Most of them are dealt with `by simp at *; linarith`,
+  -- Most of them are dealt with `by simv at *; linarith`,
   -- but we pull out two harder ones to do by hand.
   swap 3,
-  { simp only [not_lt] at h_2,
+  { simv only [not_lt] at h_2,
     exact false.elim
     (lt_irrefl (k - 1)
       (lt_of_lt_of_le (nat.pred_lt (id (ne_of_lt (lt_of_le_of_lt (zero_le i) h)).symm))
         (le_trans h_2 (nat.succ_le_of_lt h_1)))) },
   swap 3,
-  { simp only [subtype.mk_lt_mk, not_lt] at h_1,
+  { simv only [subtype.mk_lt_mk, not_lt] at h_1,
     exact false.elim
     (lt_irrefl j (lt_of_lt_of_le (nat.pred_lt_pred (nat.succ_ne_zero j) h_2) h_1)) },
   -- Deal with the rest automatically.
-  all_goals { simp at *; linarith, },
+  all_goals { simv at *; linarith, },
 end
 
 end generators
@@ -315,8 +315,8 @@ def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{v} :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
     ⟨λ i, ulift.up (f.to_order_hom i.down), λ i j h, f.to_order_hom.monotone h⟩,
-  map_id' := λ a, by { ext, simp, },
-  map_comp' := λ a b c f g, by { ext, simp, }, }
+  map_id' := λ a, by { ext, simv, },
+  map_comp' := λ a b c f g, by { ext, simv, }, }
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
@@ -332,7 +332,7 @@ namespace skeletal_functor
 
 instance : full skeletal_functor.{v} :=
 { preimage := λ a b f, simplex_category.hom.mk ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
-  witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, ext1, cases x, simp, } }
+  witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, ext1, cases x, simv, } }
 
 instance : faithful skeletal_functor.{v} :=
 { map_injective' := λ m n f g h,
@@ -386,7 +386,7 @@ def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
 
 namespace truncated
 
-instance {n} : inhabited (truncated n) := ⟨⟨[0],by simp⟩⟩
+instance {n} : inhabited (truncated n) := ⟨⟨[0],by simv⟩⟩
 
 /--
 The fully faithful inclusion of the truncated simplex category into the usual
@@ -456,7 +456,7 @@ begin
     have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
     { dsimp,
       ext,
-      simp [le_iff_lt_or_eq, h_ab x_1] },
+      simv [le_iff_lt_or_eq, h_ab x_1] },
     -- We now just have to show the two auxiliary functions are not equal.
     rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
     apply_fun (λ e, e.to_order_hom x) at eq_chi_i,
@@ -501,11 +501,11 @@ instance {n : ℕ} {i : fin (n+1)} : epi (σ i) :=
 begin
   rw epi_iff_surjective,
   intro b,
-  simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
+  simv only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
   by_cases b ≤ i,
   { use b,
     rw fin.pred_above_below i b (by simpa only [fin.coe_eq_cast_succ] using h),
-    simp only [fin.coe_eq_cast_succ, fin.cast_pred_cast_succ], },
+    simv only [fin.coe_eq_cast_succ, fin.cast_pred_cast_succ], },
   { use b.succ,
     rw [fin.pred_above_above i b.succ _, fin.pred_succ],
     rw not_le at h,
@@ -576,7 +576,7 @@ lemma eq_σ_comp_of_not_injective' {n : ℕ} {Δ' : simplex_category} (θ : mk (
 begin
   use δ i.succ ≫ θ,
   ext1, ext1, ext1 x,
-  simp only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe,
+  simv only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe,
     hom.comp, small_category_comp, σ, mk_hom, order_hom.coe_fun_mk],
   by_cases h' : x ≤ i.cast_succ,
   { rw fin.pred_above_below i x h',
@@ -584,13 +584,13 @@ begin
     erw fin.succ_above_below i.succ x.cast_pred _, swap,
     { rwa [eq, ← fin.le_cast_succ_iff], },
     rw eq, },
-  { simp only [not_le] at h',
+  { simv only [not_le] at h',
     let y := x.pred begin
       intro h,
       rw h at h',
       simpa only [fin.lt_iff_coe_lt_coe, nat.not_lt_zero, fin.coe_zero] using h',
     end,
-    simp only [show x = y.succ, by rw fin.succ_pred] at h' ⊢,
+    simv only [show x = y.succ, by rw fin.succ_pred] at h' ⊢,
     rw [fin.pred_above_above i y.succ h', fin.pred_succ],
     by_cases h'' : y = i,
     { rw h'',
@@ -598,7 +598,7 @@ begin
       erw fin.succ_above_below i.succ _,
       exact fin.lt_succ, },
     { erw fin.succ_above_above i.succ _,
-      simp only [fin.lt_iff_coe_lt_coe, fin.le_iff_coe_le_coe, fin.coe_succ,
+      simv only [fin.lt_iff_coe_lt_coe, fin.le_iff_coe_le_coe, fin.coe_succ,
         fin.coe_cast_succ, nat.lt_succ_iff, fin.ext_iff] at h' h'' ⊢,
       cases nat.le.dest h' with c hc,
       cases c,
@@ -607,7 +607,7 @@ begin
         rw [hc] at h'',
         exact h'' rfl, },
       { rw ← hc,
-        simp only [add_le_add_iff_left, nat.succ_eq_add_one,
+        simv only [add_le_add_iff_left, nat.succ_eq_add_one,
           le_add_iff_nonneg_left, zero_le], }, }, }
 end
 
@@ -615,7 +615,7 @@ lemma eq_σ_comp_of_not_injective {n : ℕ} {Δ' : simplex_category} (θ : mk (n
   (hθ : ¬function.injective θ.to_order_hom) :
   ∃ (i : fin (n+1)) (θ' : mk n ⟶ Δ'), θ = σ i ≫ θ' :=
 begin
-  simp only [function.injective, exists_prop, not_forall] at hθ,
+  simv only [function.injective, exists_prop, not_forall] at hθ,
   -- as θ is not injective, there exists `x<y` such that `θ x = θ y`
   -- and then, `θ x = θ (x+1)`
   have hθ₂ : ∃ (x y : fin (n+2)), (hom.to_order_hom θ) x = (hom.to_order_hom θ) y ∧ x<y,
@@ -630,7 +630,7 @@ begin
   rcases hθ₂ with ⟨x, y, ⟨h₁, h₂⟩⟩,
   let z := x.cast_pred,
   use z,
-  simp only [← (show z.cast_succ = x,
+  simv only [← (show z.cast_succ = x,
     by exact fin.cast_succ_cast_pred (lt_of_lt_of_le h₂ (fin.le_last y)))] at h₁ h₂,
   apply eq_σ_comp_of_not_injective',
   rw fin.cast_succ_lt_iff_succ_le at h₂,
@@ -647,20 +647,20 @@ begin
   by_cases i < fin.last (n+1),
   { use θ ≫ σ (fin.cast_pred i),
     ext1, ext1, ext1 x,
-    simp only [hom.to_order_hom_mk, function.comp_app,
+    simv only [hom.to_order_hom_mk, function.comp_app,
       order_hom.comp_coe, hom.comp, small_category_comp],
     by_cases h' : θ.to_order_hom x ≤ i,
-    { simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
+    { simv only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
       rw fin.pred_above_below (fin.cast_pred i) (θ.to_order_hom x)
         (by simpa [fin.cast_succ_cast_pred h] using h'),
       erw fin.succ_above_below i, swap,
-      { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ],
+      { simv only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ],
         exact lt_of_le_of_lt (fin.coe_cast_pred_le_self _)
           (fin.lt_iff_coe_lt_coe.mp ((ne.le_iff_lt (hi x)).mp h')), },
       rw fin.cast_succ_cast_pred,
       apply lt_of_le_of_lt h' h, },
-    { simp only [not_le] at h',
-      simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk,
+    { simv only [not_le] at h',
+      simv only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk,
         fin.pred_above_above (fin.cast_pred i) (θ.to_order_hom x)
         (by simpa only [fin.cast_succ_cast_pred h] using h')],
       erw [fin.succ_above_above i _, fin.succ_pred],
@@ -669,7 +669,7 @@ begin
   { obtain rfl := le_antisymm (fin.le_last i) (not_lt.mp h),
     use θ ≫ σ (fin.last _),
     ext1, ext1, ext1 x,
-    simp only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe, hom.comp,
+    simv only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe, hom.comp,
       small_category_comp, σ, δ, mk_hom, order_hom.coe_fun_mk,
       order_embedding.to_order_hom_coe, fin.pred_above_last, fin.succ_above_last,
       fin.cast_succ_cast_pred ((ne.le_iff_lt (hi x)).mp (fin.le_last _))], },

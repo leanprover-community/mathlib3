@@ -45,18 +45,18 @@ by { rw [add_comm a b, add_comm a c], exact rel.add_left h }
 
 theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) :
   rel r (-a) (-b) :=
-by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
+by simv only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
 
 theorem rel.sub_left {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r a b) :
   rel r (a - c) (b - c) :=
-by simp only [sub_eq_add_neg, h.add_left]
+by simv only [sub_eq_add_neg, h.add_left]
 
 theorem rel.sub_right {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) :
   rel r (a - b) (a - c) :=
-by simp only [sub_eq_add_neg, h.neg.add_right]
+by simv only [sub_eq_add_neg, h.neg.add_right]
 
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
-by simp only [algebra.smul_def, rel.mul_right h]
+by simv only [algebra.smul_def, rel.mul_right h]
 
 end ring_quot
 
@@ -128,39 +128,39 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   zero          := 0,
   one           := 1,
   nat_cast      := nat_cast r,
-  nat_cast_zero := by simp [nat.cast, nat_cast, ← zero_quot],
-  nat_cast_succ := by simp [nat.cast, nat_cast, ← one_quot, add_quot],
-  add_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [add_quot, add_assoc] },
-  zero_add      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot] },
-  add_zero      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot], },
-  zero_mul      := by { rintros ⟨⟨⟩⟩, simp [mul_quot, ← zero_quot], },
-  mul_zero      := by { rintros ⟨⟨⟩⟩, simp [mul_quot, ← zero_quot], },
-  add_comm      := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [add_quot, add_comm], },
-  mul_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, mul_assoc] },
-  one_mul       := by { rintros ⟨⟨⟩⟩, simp [mul_quot, ← one_quot] },
-  mul_one       := by { rintros ⟨⟨⟩⟩, simp [mul_quot, ← one_quot] },
-  left_distrib  := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, add_quot, left_distrib] },
-  right_distrib := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, add_quot, right_distrib] },
+  nat_cast_zero := by simv [nat.cast, nat_cast, ← zero_quot],
+  nat_cast_succ := by simv [nat.cast, nat_cast, ← one_quot, add_quot],
+  add_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [add_quot, add_assoc] },
+  zero_add      := by { rintros ⟨⟨⟩⟩, simv [add_quot, ← zero_quot] },
+  add_zero      := by { rintros ⟨⟨⟩⟩, simv [add_quot, ← zero_quot], },
+  zero_mul      := by { rintros ⟨⟨⟩⟩, simv [mul_quot, ← zero_quot], },
+  mul_zero      := by { rintros ⟨⟨⟩⟩, simv [mul_quot, ← zero_quot], },
+  add_comm      := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [add_quot, add_comm], },
+  mul_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [mul_quot, mul_assoc] },
+  one_mul       := by { rintros ⟨⟨⟩⟩, simv [mul_quot, ← one_quot] },
+  mul_one       := by { rintros ⟨⟨⟩⟩, simv [mul_quot, ← one_quot] },
+  left_distrib  := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [mul_quot, add_quot, left_distrib] },
+  right_distrib := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [mul_quot, add_quot, right_distrib] },
   npow          := λ n x, x ^ n,
-  npow_zero'    := by { rintros ⟨⟨⟩⟩, simp [pow_quot, ← one_quot] },
-  npow_succ'    := by { rintros n ⟨⟨⟩⟩, simp [pow_quot, mul_quot, pow_succ] },
+  npow_zero'    := by { rintros ⟨⟨⟩⟩, simv [pow_quot, ← one_quot] },
+  npow_succ'    := by { rintros n ⟨⟨⟩⟩, simv [pow_quot, mul_quot, pow_succ] },
   nsmul         := (•),
-  nsmul_zero'   := by { rintros ⟨⟨⟩⟩, simp [smul_quot, ← zero_quot] },
-  nsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, add_quot, add_mul, add_comm] } }
+  nsmul_zero'   := by { rintros ⟨⟨⟩⟩, simv [smul_quot, ← zero_quot] },
+  nsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simv [smul_quot, add_quot, add_mul, add_comm] } }
 
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
 { neg           := has_neg.neg,
-  add_left_neg  := by { rintros ⟨⟨⟩⟩, simp [neg_quot, add_quot, ← zero_quot], },
+  add_left_neg  := by { rintros ⟨⟨⟩⟩, simv [neg_quot, add_quot, ← zero_quot], },
   sub            := has_sub.sub,
-  sub_eq_add_neg := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [neg_quot, sub_quot, add_quot, sub_eq_add_neg] },
+  sub_eq_add_neg := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [neg_quot, sub_quot, add_quot, sub_eq_add_neg] },
   zsmul          := (•),
-  zsmul_zero'   := by { rintros ⟨⟨⟩⟩, simp [smul_quot, ← zero_quot] },
-  zsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, add_quot, add_mul, add_comm] },
-  zsmul_neg'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, neg_quot, add_mul] },
+  zsmul_zero'   := by { rintros ⟨⟨⟩⟩, simv [smul_quot, ← zero_quot] },
+  zsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simv [smul_quot, add_quot, add_mul, add_comm] },
+  zsmul_neg'   := by { rintros n ⟨⟨⟩⟩, simv [smul_quot, neg_quot, add_mul] },
   .. (ring_quot.semiring r) }
 
 instance {R : Type u₁} [comm_semiring R] (r : R → R → Prop) : comm_semiring (ring_quot r) :=
-{ mul_comm := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, mul_comm], }
+{ mul_comm := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [mul_quot, mul_comm], }
   .. (ring_quot.semiring r) }
 
 instance {R : Type u₁} [comm_ring R] (r : R → R → Prop) : comm_ring (ring_quot r) :=
@@ -172,29 +172,29 @@ instance (r : R → R → Prop) : inhabited (ring_quot r) := ⟨0⟩
 instance [algebra S R] (r : R → R → Prop) : algebra S (ring_quot r) :=
 { smul      := (•),
   to_fun    := λ r, ⟨quot.mk _ (algebra_map S R r)⟩,
-  map_one'  := by simp [← one_quot],
-  map_mul'  := by simp [mul_quot],
-  map_zero' := by simp [← zero_quot],
-  map_add'  := by simp [add_quot],
-  commutes' := λ r, by { rintro ⟨⟨a⟩⟩, simp [algebra.commutes, mul_quot] },
-  smul_def' := λ r, by { rintro ⟨⟨a⟩⟩, simp [smul_quot, algebra.smul_def, mul_quot], }, }
+  map_one'  := by simv [← one_quot],
+  map_mul'  := by simv [mul_quot],
+  map_zero' := by simv [← zero_quot],
+  map_add'  := by simv [add_quot],
+  commutes' := λ r, by { rintro ⟨⟨a⟩⟩, simv [algebra.commutes, mul_quot] },
+  smul_def' := λ r, by { rintro ⟨⟨a⟩⟩, simv [smul_quot, algebra.smul_def, mul_quot], }, }
 
 /--
 The quotient map from a ring to its quotient, as a homomorphism of rings.
 -/
 def mk_ring_hom (r : R → R → Prop) : R →+* ring_quot r :=
 { to_fun := λ x, ⟨quot.mk _ x⟩,
-  map_one'  := by simp [← one_quot],
-  map_mul'  := by simp [mul_quot],
-  map_zero' := by simp [← zero_quot],
-  map_add'  := by simp [add_quot], }
+  map_one'  := by simv [← one_quot],
+  map_mul'  := by simv [mul_quot],
+  map_zero' := by simv [← zero_quot],
+  map_add'  := by simv [add_quot], }
 
 lemma mk_ring_hom_rel {r : R → R → Prop} {x y : R} (w : r x y) :
   mk_ring_hom r x = mk_ring_hom r y :=
-by simp [mk_ring_hom, quot.sound (rel.of w)]
+by simv [mk_ring_hom, quot.sound (rel.of w)]
 
 lemma mk_ring_hom_surjective (r : R → R → Prop) : function.surjective (mk_ring_hom r) :=
-by { dsimp [mk_ring_hom], rintro ⟨⟨⟩⟩, simp, }
+by { dsimp [mk_ring_hom], rintro ⟨⟨⟩⟩, simv, }
 
 @[ext]
 lemma ring_quot_ext {T : Type u₄} [semiring T] {r : R → R → Prop} (f g : ring_quot r →+* T)
@@ -219,17 +219,17 @@ def lift {r : R → R → Prop} :
       rintros _ _ r,
       induction r,
       case of : _ _ r { exact f'.prop r, },
-      case add_left : _ _ _ _ r' { simp [r'], },
-      case mul_left : _ _ _ _ r' { simp [r'], },
-      case mul_right : _ _ _ _ r' { simp [r'], },
+      case add_left : _ _ _ _ r' { simv [r'], },
+      case mul_left : _ _ _ _ r' { simv [r'], },
+      case mul_right : _ _ _ _ r' { simv [r'], },
     end x.to_quot,
-    map_zero' := by simp [← zero_quot, f.map_zero],
-    map_add' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simp [add_quot, f.map_add x y], },
-    map_one' := by simp [← one_quot, f.map_one],
-    map_mul' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simp [mul_quot, f.map_mul x y] }, },
+    map_zero' := by simv [← zero_quot, f.map_zero],
+    map_add' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simv [add_quot, f.map_add x y], },
+    map_one' := by simv [← one_quot, f.map_one],
+    map_mul' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simv [mul_quot, f.map_mul x y] }, },
   inv_fun := λ F, ⟨F.comp (mk_ring_hom r), λ x y h, by { dsimp, rw mk_ring_hom_rel h, }⟩,
-  left_inv := λ f, by { ext, simp, refl },
-  right_inv := λ F, by { ext, simp, refl } }
+  left_inv := λ f, by { ext, simv, refl },
+  right_inv := λ F, by { ext, simv, refl } }
 
 @[simp]
 lemma lift_mk_ring_hom_apply (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y) (x) :
@@ -239,7 +239,7 @@ rfl
 -- note this is essentially `lift.symm_apply_eq.mp h`
 lemma lift_unique (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y)
   (g : ring_quot r →+* T) (h : g.comp (mk_ring_hom r) = f) : g = lift ⟨f, w⟩ :=
-by { ext, simp [h], }
+by { ext, simv [h], }
 
 lemma eq_lift_comp_mk_ring_hom {r : R → R → Prop} (f : ring_quot r →+* T) :
   f = lift ⟨f.comp (mk_ring_hom r), λ x y h, by { dsimp, rw mk_ring_hom_rel h, }⟩ :=
@@ -273,9 +273,9 @@ begin
     symmetry' at su,
     rw ←sub_eq_iff_eq_add at su,
     rw [ ← su, ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
-  { simp, },
-  { intros a b ha hb, simp [ha, hb], },
-  { intros a x hx, simp [hx], },
+  { simv, },
+  { intros a b ha hb, simv [ha, hb], },
+  { intros a x hx, simv [hx], },
 end
 
 @[simp] lemma ideal_quotient_to_ring_quot_apply (r : B → B → Prop) (x : B) :
@@ -318,9 +318,9 @@ def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop)
   (hr : ∀ a b, r a b → r (star a) (star b)) :
   star_ring (ring_quot r) :=
 { star := star' r hr,
-  star_involutive := by { rintros ⟨⟨⟩⟩, simp [star'_quot], },
-  star_mul := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [star'_quot, mul_quot, star_mul], },
-  star_add := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [star'_quot, add_quot, star_add], } }
+  star_involutive := by { rintros ⟨⟨⟩⟩, simv [star'_quot], },
+  star_mul := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [star'_quot, mul_quot, star_mul], },
+  star_add := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simv [star'_quot, add_quot, star_add], } }
 
 end star_ring
 
@@ -341,7 +341,7 @@ rfl
 
 lemma mk_alg_hom_rel {s : A → A → Prop} {x y : A} (w : s x y) :
   mk_alg_hom S s x = mk_alg_hom S s y :=
-by simp [mk_alg_hom, mk_ring_hom, quot.sound (rel.of w)]
+by simv [mk_alg_hom, mk_ring_hom, quot.sound (rel.of w)]
 
 lemma mk_alg_hom_surjective (s : A → A → Prop) : function.surjective (mk_alg_hom S s) :=
 by { dsimp [mk_alg_hom], rintro ⟨⟨a⟩⟩, use a, refl, }
@@ -369,18 +369,18 @@ def lift_alg_hom {s : A → A → Prop} :
       rintros _ _ r,
       induction r,
       case of : _ _ r { exact f'.prop r, },
-      case add_left : _ _ _ _ r' { simp [r'], },
-      case mul_left : _ _ _ _ r' { simp [r'], },
-      case mul_right : _ _ _ _ r' { simp [r'], },
+      case add_left : _ _ _ _ r' { simv [r'], },
+      case mul_left : _ _ _ _ r' { simv [r'], },
+      case mul_right : _ _ _ _ r' { simv [r'], },
     end x.to_quot,
-    map_zero' := by simp [← zero_quot, f.map_zero],
-    map_add' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simp [add_quot, f.map_add x y] },
-    map_one' := by simp [← one_quot, f.map_one],
-    map_mul' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simp [mul_quot, f.map_mul x y], },
-    commutes' := by { rintros x, simp [← one_quot, smul_quot, algebra.algebra_map_eq_smul_one] } },
+    map_zero' := by simv [← zero_quot, f.map_zero],
+    map_add' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simv [add_quot, f.map_add x y] },
+    map_one' := by simv [← one_quot, f.map_one],
+    map_mul' := by { rintros ⟨⟨x⟩⟩ ⟨⟨y⟩⟩, simv [mul_quot, f.map_mul x y], },
+    commutes' := by { rintros x, simv [← one_quot, smul_quot, algebra.algebra_map_eq_smul_one] } },
   inv_fun := λ F, ⟨F.comp (mk_alg_hom S s), λ _ _ h, by { dsimp, erw mk_alg_hom_rel S h }⟩,
-  left_inv := λ f, by { ext, simp, refl },
-  right_inv := λ F, by { ext, simp, refl } }
+  left_inv := λ f, by { ext, simv, refl },
+  right_inv := λ F, by { ext, simv, refl } }
 
 @[simp]
 lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop}
@@ -391,7 +391,7 @@ rfl
 -- note this is essentially `(lift_alg_hom S).symm_apply_eq.mp h`
 lemma lift_alg_hom_unique (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y)
   (g : ring_quot s →ₐ[S] B) (h : g.comp (mk_alg_hom S s) = f) : g = lift_alg_hom S ⟨f, w⟩ :=
-by { ext, simp [h], }
+by { ext, simv [h], }
 
 lemma eq_lift_alg_hom_comp_mk_alg_hom {s : A → A → Prop} (f : ring_quot s →ₐ[S] B) :
   f = lift_alg_hom S ⟨f.comp (mk_alg_hom S s), λ x y h, by { dsimp, erw mk_alg_hom_rel S h, }⟩ :=

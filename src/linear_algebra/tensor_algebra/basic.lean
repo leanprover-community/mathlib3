@@ -85,7 +85,7 @@ of `f` to a morphism of `R`-algebras `tensor_algebra R M → A`.
 @[simps symm_apply]
 def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_algebra R M →ₐ[R] A) :=
 { to_fun := ring_quot.lift_alg_hom R ∘ λ f,
-    ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simp [algebra.smul_def]⟩,
+    ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simv [algebra.smul_def]⟩,
   inv_fun := λ F, F.to_linear_map.comp (ι R),
   left_inv := λ f, linear_map.ext $ λ x,
     (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply f x),
@@ -149,7 +149,7 @@ begin
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (tensor_algebra R M) = s.val.comp (lift R of),
   { ext,
-    simp [of], },
+    simv [of], },
   -- finding a proof is finding an element of the subalgebra
   convert subtype.prop (lift R of a),
   exact alg_hom.congr_fun of_id a,
@@ -163,7 +163,7 @@ variables (M)
 
 lemma algebra_map_left_inverse :
   function.left_inverse algebra_map_inv (algebra_map R $ tensor_algebra R M) :=
-λ x, by simp [algebra_map_inv]
+λ x, by simv [algebra_map_inv]
 
 @[simp] lemma algebra_map_inj (x y : R) :
   algebra_map R (tensor_algebra R M) x = algebra_map R (tensor_algebra R M) y ↔ x = y :=
@@ -194,7 +194,7 @@ def ι_inv : tensor_algebra R M →ₗ[R] M :=
 (triv_sq_zero_ext.snd_hom R M).comp to_triv_sq_zero_ext.to_linear_map
 
 lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
-λ x, by simp [ι_inv]
+λ x, by simv [ι_inv]
 
 variables (R)
 
@@ -257,6 +257,6 @@ def to_tensor : free_algebra R M →ₐ[R] tensor_algebra R M :=
 free_algebra.lift R (tensor_algebra.ι R)
 
 @[simp] lemma to_tensor_ι (m : M) : (free_algebra.ι R m).to_tensor = tensor_algebra.ι R m :=
-by simp [to_tensor]
+by simv [to_tensor]
 
 end free_algebra

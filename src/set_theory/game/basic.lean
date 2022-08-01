@@ -72,11 +72,11 @@ quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
 local infix ` ⧏ `:50 := lf
 
-/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simv-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
-/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simv-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact not_lf }
 
@@ -298,18 +298,18 @@ begin
     solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { change ⟦-xR i * y + (-x) * yL j - (-xR i) * yL j⟧ = ⟦-(xR i * y + x * yL j - xR i * yL j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel },
+      simv only [quot_add, quot_sub, quot_neg_mul],
+      simv, abel },
     { change ⟦-xL i * y + (-x) * yR j - (-xL i) * yR j⟧ = ⟦-(xL i * y + x * yR j - xL i * yR j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel } },
+      simv only [quot_add, quot_sub, quot_neg_mul],
+      simv, abel } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { change ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧ = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel },
+      simv only [quot_add, quot_sub, quot_neg_mul],
+      simv, abel },
     { change ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧ = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel } },
+      simv only [quot_add, quot_sub, quot_neg_mul],
+      simv, abel } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -340,29 +340,29 @@ begin
   { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)⟧
              = ⟦xL i * y + x * yL j - xL i * yL j + x * z⟧,
-      simp [quot_left_distrib], abel },
+      simv [quot_left_distrib], abel },
     { change ⟦xL i * (y + z) + x * (y + zL k) - xL i * (y + zL k)⟧
              = ⟦x * y + (xL i * z + x * zL k - xL i * zL k)⟧,
-      simp [quot_left_distrib], abel },
+      simv [quot_left_distrib], abel },
     { change ⟦xR i * (y + z) + x * (yR j + z) - xR i * (yR j + z)⟧
              = ⟦xR i * y + x * yR j - xR i * yR j + x * z⟧,
-      simp [quot_left_distrib], abel },
+      simv [quot_left_distrib], abel },
     { change ⟦xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)⟧
              = ⟦x * y + (xR i * z + x * zR k - xR i * zR k)⟧,
-      simp [quot_left_distrib], abel } },
+      simv [quot_left_distrib], abel } },
   { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)⟧
              = ⟦xL i * y + x * yR j - xL i * yR j + x * z⟧,
-      simp [quot_left_distrib], abel },
+      simv [quot_left_distrib], abel },
     { change ⟦xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)⟧
              = ⟦x * y + (xL i * z + x * zR k - xL i * zR k)⟧,
-      simp [quot_left_distrib], abel },
+      simv [quot_left_distrib], abel },
     { change ⟦xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)⟧
              = ⟦xR i * y + x * yL j - xR i * yL j + x * z⟧,
-      simp [quot_left_distrib], abel },
+      simv [quot_left_distrib], abel },
     { change ⟦xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)⟧
              = ⟦x * y + (xR i * z + x * zL k - xR i * zL k)⟧,
-      simp [quot_left_distrib], abel } }
+      simv [quot_left_distrib], abel } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -374,7 +374,7 @@ quotient.exact $ quot_left_distrib _ _ _
 by { change  ⟦x * (y + -z)⟧ = ⟦x * y⟧ + -⟦x * z⟧, rw [quot_left_distrib, quot_mul_neg] }
 
 @[simp] theorem quot_right_distrib (x y z : pgame) : ⟦(x + y) * z⟧ = ⟦x * z⟧ + ⟦y * z⟧ :=
-by simp only [quot_mul_comm, quot_left_distrib]
+by simv only [quot_mul_comm, quot_left_distrib]
 
 /-- `(x + y) * z` is equivalent to `x * z + y * z.`-/
 theorem right_distrib_equiv (x y z : pgame) : (x + y) * z ≈ x * z + y * z :=
@@ -397,9 +397,9 @@ begin
     { exact λ i, rfl } },
   all_goals { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) },
   { change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
-    simp [quot_mul_one] },
+    simv [quot_mul_one] },
   { change ⟦xR i * 1 + x * 0 - xR i * 0⟧ = ⟦xR i⟧,
-    simp [quot_mul_one] }
+    simv [quot_mul_one] }
 end
 
 /-- `x * 1` is equivalent to `x`. -/
@@ -437,43 +437,43 @@ begin
                - (xL i * y + x * yL j - xL i * yL j) * zL k⟧
              = ⟦xL i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
                - xL i * (yL j * z + y * zL k - yL j * zL k)⟧,
-      simp [quot_mul_assoc], abel },
+      simv [quot_mul_assoc], abel },
     { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zL k
                - (xR i * y + x * yR j - xR i * yR j) * zL k⟧
              = ⟦xR i * (y * z) + x * (yR j * z + y * zL k - yR j * zL k)
                - xR i * (yR j * z + y * zL k - yR j * zL k)⟧,
-      simp [quot_mul_assoc], abel },
+      simv [quot_mul_assoc], abel },
     { change ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zR k
                - (xL i * y + x * yR j - xL i * yR j) * zR k⟧
              = ⟦xL i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
                - xL i * (yR j * z + y * zR k - yR j * zR k)⟧,
-      simp [quot_mul_assoc], abel },
+      simv [quot_mul_assoc], abel },
     { change ⟦(xR i * y + x * yL j - xR i * yL j) * z + (x * y) * zR k
                - (xR i * y + x * yL j - xR i * yL j) * zR k⟧
              = ⟦xR i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
                - xR i * (yL j * z + y * zR k - yL j * zR k)⟧,
-      simp [quot_mul_assoc], abel } },
+      simv [quot_mul_assoc], abel } },
   { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
     { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zR k
                - (xL i * y + x * yL j - xL i * yL j) * zR k⟧
              = ⟦xL i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
                - xL i * (yL j * z + y * zR k - yL j * zR k)⟧,
-      simp [quot_mul_assoc], abel },
+      simv [quot_mul_assoc], abel },
     { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
                - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
              = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
                - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
-      simp [quot_mul_assoc], abel },
+      simv [quot_mul_assoc], abel },
     { change ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zL k
                - (xL i * y + x * yR j - xL i * yR j) * zL k⟧
              = ⟦xL i * (y * z) + x * (yR j * z + y * zL k - yR j * zL k)
                - xL i * (yR j * z + y * zL k - yR j * zL k)⟧,
-      simp [quot_mul_assoc], abel },
+      simv [quot_mul_assoc], abel },
     { change ⟦(xR i * y + x * yL j - xR i * yL j) * z + (x * y) * zL k
                - (xR i * y + x * yL j - xR i * yL j) * zL k⟧
              = ⟦xR i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
                - xR i * (yL j * z + y * zL k - yL j * zL k)⟧,
-      simp [quot_mul_assoc], abel } }
+      simv [quot_mul_assoc], abel } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -546,7 +546,7 @@ begin
     apply_instance },
   { apply equiv.equiv_pempty (inv_ty _ _ _),
     apply_instance },
-  { simp },
+  { simv },
   { dsimp,
     apply_instance }
 end
@@ -562,7 +562,7 @@ begin
   refine ⟨_, _, λ i, _, is_empty.elim _⟩; dsimp,
   { apply equiv.equiv_punit },
   { apply equiv.equiv_of_is_empty },
-  { simp },
+  { simv },
   { apply_instance }
 end
 

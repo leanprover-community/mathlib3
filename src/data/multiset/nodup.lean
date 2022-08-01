@@ -77,7 +77,7 @@ theorem disjoint_of_nodup_add {s t : multiset α} (d : nodup (s + t)) : disjoint
 (nodup_add.1 d).2.2
 
 lemma nodup.add_iff (d₁ : nodup s) (d₂ : nodup t) : nodup (s + t) ↔ disjoint s t :=
-by simp [nodup_add, d₁, d₂]
+by simv [nodup_add, d₁, d₂]
 
 lemma nodup.of_map (f : α → β) : nodup (map f s) → nodup s :=
 quot.induction_on s $ λ l, nodup.of_map f
@@ -124,7 +124,7 @@ lemma nodup.not_mem_erase [decidable_eq α] {a : α} {s} (h : nodup s) : a ∉ s
 λ ha, (h.mem_erase_iff.1 ha).1 rfl
 
 protected lemma nodup.product {t : multiset β} : nodup s → nodup t → nodup (product s t) :=
-quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [d₁.product d₂]
+quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simv [d₁.product d₂]
 
 protected lemma nodup.sigma {σ : α → Type*} {t : Π a, multiset (σ a)} :
   nodup s → (∀ a, nodup (t a)) → nodup (s.sigma t) :=
@@ -156,7 +156,7 @@ nodup_of_le $ inter_le_right _ _
 @[simp] theorem nodup_powerset {s : multiset α} : nodup (powerset s) ↔ nodup s :=
 ⟨λ h, (nodup_of_le (map_single_le_powerset _) h).of_map _,
   quotient.induction_on s $ λ l h,
-  by simp; refine (nodup_sublists'.2 h).map_on _ ; exact
+  by simv; refine (nodup_sublists'.2 h).map_on _ ; exact
   λ x sx y sy e,
     (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
@@ -173,7 +173,7 @@ have h₁ : ∀a, ∃l:list β, t a = l, from
 let ⟨t', h'⟩ := classical.axiom_of_choice h₁ in
 have t = λa, t' a, from funext h',
 have hd : symmetric (λa b, list.disjoint (t' a) (t' b)), from assume a b h, h.symm,
-quot.induction_on s $ by simp [this, list.nodup_bind, pairwise_coe_iff_pairwise hd]
+quot.induction_on s $ by simv [this, list.nodup_bind, pairwise_coe_iff_pairwise hd]
 
 lemma nodup.ext {s t : multiset α} : nodup s → nodup t → (s = t ↔ ∀ a, a ∈ s ↔ a ∈ t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, quotient.eq.trans $ perm_ext d₁ d₂
@@ -201,7 +201,7 @@ have t = s.attach.map (λ x, i x.1 x.2),
   from (ht.ext $ (nodup_attach.2 hs).map $
       show injective (λ x : {x // x ∈ s}, i x.1 x.2), from λ x y hxy,
         subtype.eq $ i_inj x.1 y.1 x.2 y.2 hxy).2
-    (λ x, by simp only [mem_map, true_and, subtype.exists, eq_comm, mem_attach];
+    (λ x, by simv only [mem_map, true_and, subtype.exists, eq_comm, mem_attach];
       exact ⟨i_surj _, λ ⟨y, hy⟩, hy.snd.symm ▸ hi _ _⟩),
 calc s.map f = s.pmap  (λ x _, f x) (λ _, id) : by rw [pmap_eq_map]
 ... = s.attach.map (λ x, f x.1) : by rw [pmap_eq_map_attach]

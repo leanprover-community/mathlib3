@@ -151,8 +151,8 @@ lemma measurable_measure_prod_mk_left_finite [is_finite_measure ν] {s : set (α
   (hs : measurable_set s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
 begin
   refine induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ hs,
-  { simp [measurable_zero, const_def] },
-  { rintro _ ⟨s, t, hs, ht, rfl⟩, simp only [mk_preimage_prod_right_eq_if, measure_if],
+  { simv [measurable_zero, const_def] },
+  { rintro _ ⟨s, t, hs, ht, rfl⟩, simv only [mk_preimage_prod_right_eq_if, measure_if],
     exact measurable_const.indicator hs },
   { intros t ht h2t,
     simp_rw [preimage_compl, measure_compl (measurable_prod_mk_left ht) (measure_ne_top ν _)],
@@ -170,7 +170,7 @@ lemma measurable_measure_prod_mk_left [sigma_finite ν] {s : set (α × β)}
   (hs : measurable_set s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
 begin
   have : ∀ x, measurable_set (prod.mk x ⁻¹' s) := λ x, measurable_prod_mk_left hs,
-  simp only [← @supr_restrict_spanning_sets _ _ ν, this],
+  simv only [← @supr_restrict_spanning_sets _ _ ν, this],
   apply measurable_supr, intro i,
   haveI := fact.mk (measure_spanning_sets_lt_top ν i),
   exact measurable_measure_prod_mk_left_finite hs
@@ -204,7 +204,7 @@ lemma measurable.lintegral_prod_right' [sigma_finite ν] :
 begin
   have m := @measurable_prod_mk_left,
   refine measurable.ennreal_induction _ _ _,
-  { intros c s hs, simp only [← indicator_comp_right],
+  { intros c s hs, simv only [← indicator_comp_right],
     suffices : measurable (λ x, c * ν (prod.mk x ⁻¹' s)),
     { simpa [lintegral_indicator _ (m hs)] },
     exact (measurable_measure_prod_mk_left hs).const_mul _ },
@@ -256,7 +256,7 @@ begin
   haveI : separable_space (range (uncurry f) ∪ {0} : set E) :=
     hf.separable_space_range_union_singleton,
   let s : ℕ → simple_func (α × β) E := simple_func.approx_on _ hf.measurable
-    (range (uncurry f) ∪ {0}) 0 (by simp),
+    (range (uncurry f) ∪ {0}) 0 (by simv),
   let s' : ℕ → α → simple_func β E := λ n x, (s n).comp (prod.mk x) measurable_prod_mk_left,
   let f' : ℕ → α → E := λ n, {x | integrable (f x) ν}.indicator
     (λ x, (s' n x).integral ν),
@@ -265,10 +265,10 @@ begin
     have : ∀ x, (s' n x).range.filter (λ x, x ≠ 0) ⊆ (s n).range,
     { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
-    simp only [simple_func.integral_eq_sum_of_subset (this _)],
+    simv only [simple_func.integral_eq_sum_of_subset (this _)],
     refine finset.strongly_measurable_sum _ (λ x _, _),
     refine (measurable.ennreal_to_real _).strongly_measurable.smul_const _,
-    simp only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
+    simv only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
     apply measurable_measure_prod_mk_left,
     exact (s n).measurable_set_fiber x },
   have h2f' : tendsto f' at_top (𝓝 (λ (x : α), ∫ (y : β), f x y ∂ν)),
@@ -278,14 +278,14 @@ begin
       { intro n, apply (hfx.norm.add hfx.norm).mono' (s' n x).ae_strongly_measurable,
         apply eventually_of_forall, intro y,
         simp_rw [s', simple_func.coe_comp], exact simple_func.norm_approx_on_zero_le _ _ (x, y) n },
-      simp only [f', hfx, simple_func.integral_eq_integral _ (this _), indicator_of_mem,
+      simv only [f', hfx, simple_func.integral_eq_integral _ (this _), indicator_of_mem,
         mem_set_of_eq],
       refine tendsto_integral_of_dominated_convergence (λ y, ∥f x y∥ + ∥f x y∥)
         (λ n, (s' n x).ae_strongly_measurable) (hfx.norm.add hfx.norm) _ _,
       { exact λ n, eventually_of_forall (λ y, simple_func.norm_approx_on_zero_le _ _ (x, y) n) },
       { refine eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ _),
         apply subset_closure,
-        simp [-uncurry_apply_pair], } },
+        simv [-uncurry_apply_pair], } },
     { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, } },
   exact strongly_measurable_of_tendsto _ hf' h2f'
 end
@@ -376,7 +376,7 @@ begin
   rintros U U_open ⟨⟨x, y⟩, hxy⟩,
   rcases is_open_prod_iff.1 U_open x y hxy with ⟨u, v, u_open, v_open, xu, yv, huv⟩,
   refine ne_of_gt (lt_of_lt_of_le _ (measure_mono huv)),
-  simp only [prod_prod, canonically_ordered_comm_semiring.mul_pos],
+  simv only [prod_prod, canonically_ordered_comm_semiring.mul_pos],
   split,
   { exact u_open.measure_pos μ ⟨x, xu⟩ },
   { exact v_open.measure_pos ν ⟨y, yv⟩ }
@@ -405,7 +405,7 @@ begin
   set L := (prod.fst '' K) ×ˢ (prod.snd '' K) with hL,
   have : K ⊆ L,
   { rintros ⟨x, y⟩ hxy,
-    simp only [prod_mk_mem_set_prod_eq, mem_image, prod.exists, exists_and_distrib_right,
+    simv only [prod_mk_mem_set_prod_eq, mem_image, prod.exists, exists_and_distrib_right,
       exists_eq_right],
     exact ⟨⟨y, hxy⟩, ⟨x, hxy⟩⟩ },
   apply lt_of_le_of_lt (measure_mono this),
@@ -427,7 +427,7 @@ begin
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
   convert h2s.lt_top using 1, simp_rw [prod_apply hs], apply lintegral_congr_ae,
   refine (ae_measure_lt_top hs h2s).mp _, apply eventually_of_forall, intros x hx,
-  rw [lt_top_iff_ne_top] at hx, simp [of_real_to_real, hx],
+  rw [lt_top_iff_ne_top] at hx, simv [of_real_to_real, hx],
 end
 
 /-- Note: the assumption `hs` cannot be dropped. For a counterexample, see
@@ -518,7 +518,7 @@ end
 lemma prod_apply_symm {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ y, μ ((λ x, (x, y)) ⁻¹' s) ∂ν :=
 by { rw [← prod_swap, map_apply measurable_swap hs],
-     simp only [prod_apply (measurable_swap hs)], refl }
+     simv only [prod_apply (measurable_swap hs)], refl }
 
 lemma prod_assoc_prod [sigma_finite τ] :
   map measurable_equiv.prod_assoc ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
@@ -590,7 +590,7 @@ by { refine prod_eq (λ s t hs ht, _), simp_rw [add_apply, prod_prod, right_dist
 by { rw measure.prod, exact bind_zero_left _ }
 
 @[simp] lemma prod_zero (μ : measure α) : μ.prod (0 : measure β) = 0 :=
-by simp [measure.prod]
+by simv [measure.prod]
 
 lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
   {μa : measure α} {μc : measure γ} (hfa : sigma_finite (map f μa))
@@ -623,7 +623,7 @@ begin
   to deduce `sigma_finite μc`. -/
   rcases eq_or_ne μa 0 with (rfl|ha),
   { rw [← hf.map_eq, zero_prod, measure.map_zero, zero_prod],
-    exact ⟨this, by simp only [measure.map_zero]⟩ },
+    exact ⟨this, by simv only [measure.map_zero]⟩ },
   haveI : sigma_finite μc,
   { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
     exact sigma_finite.of_map _ hgm.of_uncurry_left.ae_measurable (by rwa hx) },
@@ -633,10 +633,10 @@ begin
   refine (prod_apply (this $ hs.prod ht)).trans _,
   have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' s ×ˢ t) = indicator (f ⁻¹' s) (λ y, μd t) x,
   { refine hg.mono (λ x hx, _), unfreezingI { subst hx },
-    simp only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
+    simv only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
     split_ifs,
     exacts [(map_apply hgm.of_uncurry_left ht).symm, measure_empty] },
-  simp only [preimage_preimage],
+  simv only [preimage_preimage],
   rw [lintegral_congr_ae this, lintegral_indicator _ (hf.1 hs),
     set_lintegral_const, hf.measure_preimage hs, mul_comm]
 end
@@ -749,17 +749,17 @@ lemma lintegral_prod_of_measurable :
 begin
   have m := @measurable_prod_mk_left,
   refine measurable.ennreal_induction _ _ _,
-  { intros c s hs, simp only [← indicator_comp_right],
-    simp [lintegral_indicator, m hs, hs, lintegral_const_mul, measurable_measure_prod_mk_left hs,
+  { intros c s hs, simv only [← indicator_comp_right],
+    simv [lintegral_indicator, m hs, hs, lintegral_const_mul, measurable_measure_prod_mk_left hs,
       prod_apply] },
   { rintro f g - hf hg h2f h2g,
-    simp [lintegral_add_left, measurable.lintegral_prod_right', hf.comp m, hf, h2f, h2g] },
+    simv [lintegral_add_left, measurable.lintegral_prod_right', hf.comp m, hf, h2f, h2g] },
   { intros f hf h2f h3f,
     have kf : ∀ x n, measurable (λ y, f n (x, y)) := λ x n, (hf n).comp m,
     have k2f : ∀ x, monotone (λ n y, f n (x, y)) := λ x i j hij y, h2f hij (x, y),
     have lf : ∀ n, measurable (λ x, ∫⁻ y, f n (x, y) ∂ν) := λ n, (hf n).lintegral_prod_right',
     have l2f : monotone (λ n x, ∫⁻ y, f n (x, y) ∂ν) := λ i j hij x, lintegral_mono (k2f x hij),
-    simp only [lintegral_supr hf h2f, lintegral_supr (kf _), k2f, lintegral_supr lf l2f, h3f] },
+    simv only [lintegral_supr hf h2f, lintegral_supr (kf _), k2f, lintegral_supr lf l2f, h3f] },
 end
 
 /-- **Tonelli's Theorem**: For `ℝ≥0∞`-valued almost everywhere measurable functions on `α × β`,
@@ -811,7 +811,7 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞
 lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_prod _ (hf.fst.mul hg.snd), lintegral_lintegral_mul hf hg]
+by simv [lintegral_prod _ (hf.fst.mul hg.snd), lintegral_lintegral_mul hf hg]
 
 /-! ### Integrability on a product -/
 section
@@ -829,7 +829,7 @@ lemma has_finite_integral_prod_iff ⦃f : α × β → E⦄ (h1f : strongly_meas
   has_finite_integral f (μ.prod ν) ↔ (∀ᵐ x ∂ μ, has_finite_integral (λ y, f (x, y)) ν) ∧
     has_finite_integral (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
 begin
-  simp only [has_finite_integral, lintegral_prod_of_measurable _ h1f.ennnorm],
+  simv only [has_finite_integral, lintegral_prod_of_measurable _ h1f.ennnorm],
   have : ∀ x, ∀ᵐ y ∂ν, 0 ≤ ∥f (x, y)∥ := λ x, eventually_of_forall (λ y, norm_nonneg _),
   simp_rw [integral_eq_lintegral_of_nonneg_ae (this _)
     (h1f.norm.comp_measurable measurable_prod_mk_left).ae_strongly_measurable,
@@ -866,7 +866,7 @@ end
 lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : ae_strongly_measurable f (μ.prod ν)) :
   integrable f (μ.prod ν) ↔
     (∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν) ∧ integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
-by simp [integrable, h1f, has_finite_integral_prod_iff', h1f.norm.integral_prod_right',
+by simv [integrable, h1f, has_finite_integral_prod_iff', h1f.norm.integral_prod_right',
          h1f.prod_mk_left]
 
 /-- A binary function is integrable if the function `x ↦ f (x, y)` is integrable for almost every
@@ -942,7 +942,7 @@ lemma integral_fn_integral_add ⦃f g : α × β → E⦄ (F : E → E')
 begin
   refine integral_congr_ae _,
   filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
-  simp [integral_add h2f h2g],
+  simv [integral_add h2f h2g],
 end
 
 /-- Integrals commute with subtraction inside another integral.
@@ -953,7 +953,7 @@ lemma integral_fn_integral_sub ⦃f g : α × β → E⦄ (F : E → E')
 begin
   refine integral_congr_ae _,
   filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
-  simp [integral_sub h2f h2g],
+  simv [integral_sub h2f h2g],
 end
 
 /-- Integrals commute with subtraction inside a lower Lebesgue integral.
@@ -964,7 +964,7 @@ lemma lintegral_fn_integral_sub ⦃f g : α × β → E⦄
 begin
   refine lintegral_congr_ae _,
   filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
-  simp [integral_sub h2f h2g],
+  simv [integral_sub h2f h2g],
 end
 
 /-- Double integrals commute with addition. -/
@@ -1070,7 +1070,7 @@ lemma set_integral_prod (f : α × β → E) {s : set α} {t : set β}
   (hf : integrable_on f (s ×ˢ t) (μ.prod ν)) :
   ∫ z in s ×ˢ t, f z ∂(μ.prod ν) = ∫ x in s, ∫ y in t, f (x, y) ∂ν ∂μ :=
 begin
-  simp only [← measure.prod_restrict s t, integrable_on] at hf ⊢,
+  simv only [← measure.prod_restrict s t, integrable_on] at hf ⊢,
   exact integral_prod f hf
 end
 
@@ -1084,11 +1084,11 @@ begin
   { contrapose! h,
     exact integrable_prod_mul h.1 h.2 },
   cases H;
-  simp [integral_undef h, integral_undef H],
+  simv [integral_undef h, integral_undef H],
 end
 
 lemma set_integral_prod_mul (f : α → ℝ) (g : β → ℝ) (s : set α) (t : set β) :
   ∫ z in s ×ˢ t, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x in s, f x ∂μ) * (∫ y in t, g y ∂ν) :=
-by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
+by simv only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
 
 end measure_theory

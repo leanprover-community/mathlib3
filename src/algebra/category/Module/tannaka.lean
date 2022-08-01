@@ -28,14 +28,14 @@ def ring_equiv_End_forget₂ (R : Type u) [ring R] :
   { app := λ M, by apply distrib_mul_action.to_add_monoid_hom M r,
     naturality' := λ M N f, by { ext, exact (f.map_smul _ _).symm, }, },
   inv_fun := λ φ, φ.app (Module.of R R) (1 : R),
-  left_inv := by { intros r, simp, },
+  left_inv := by { intros r, simv, },
   right_inv := begin
     intros φ, ext M x,
-    simp only [distrib_mul_action.to_add_monoid_hom_apply],
+    simv only [distrib_mul_action.to_add_monoid_hom_apply],
     have w := add_monoid_hom.congr_fun
       (φ.naturality (Module.as_hom_right (linear_map.to_span_singleton R M x))) (1 : R),
     convert w.symm,
     exact (one_smul _ _).symm,
   end,
-  map_add' := by { intros, ext, simp [add_smul], },
+  map_add' := by { intros, ext, simv [add_smul], },
   map_mul' := by { intros, ext, simpa using mul_smul _ _ _, }, }

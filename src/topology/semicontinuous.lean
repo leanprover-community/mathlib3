@@ -120,7 +120,7 @@ lemma lower_semicontinuous_within_at.mono (h : lower_semicontinuous_within_at f 
 
 lemma lower_semicontinuous_within_at_univ_iff :
   lower_semicontinuous_within_at f univ x ↔ lower_semicontinuous_at f x :=
-by simp [lower_semicontinuous_within_at, lower_semicontinuous_at, nhds_within_univ]
+by simv [lower_semicontinuous_within_at, lower_semicontinuous_at, nhds_within_univ]
 
 lemma lower_semicontinuous_at.lower_semicontinuous_within_at
   (s : set α) (h : lower_semicontinuous_at f x) : lower_semicontinuous_within_at f s x :=
@@ -137,7 +137,7 @@ lemma lower_semicontinuous_on.mono (h : lower_semicontinuous_on f s) (hst : t �
 
 lemma lower_semicontinuous_on_univ_iff :
   lower_semicontinuous_on f univ ↔ lower_semicontinuous f :=
-by simp [lower_semicontinuous_on, lower_semicontinuous, lower_semicontinuous_within_at_univ_iff]
+by simv [lower_semicontinuous_on, lower_semicontinuous, lower_semicontinuous_within_at_univ_iff]
 
 lemma lower_semicontinuous.lower_semicontinuous_at
   (h : lower_semicontinuous f) (x : α) : lower_semicontinuous_at f x :=
@@ -178,12 +178,12 @@ lemma is_open.lower_semicontinuous_indicator (hs : is_open s) (hy : 0 ≤ y) :
   lower_semicontinuous (indicator s (λ x, y)) :=
 begin
   assume x z hz,
-  by_cases h : x ∈ s; simp [h] at hz,
+  by_cases h : x ∈ s; simv [h] at hz,
   { filter_upwards [hs.mem_nhds h],
-    simp [hz] { contextual := tt} },
+    simv [hz] { contextual := tt} },
   { apply filter.eventually_of_forall (λ x', _),
     by_cases h' : x' ∈ s;
-    simp [h', hz.trans_le hy, hz] }
+    simv [h', hz.trans_le hy, hz] }
 end
 
 lemma is_open.lower_semicontinuous_on_indicator (hs : is_open s) (hy : 0 ≤ y) :
@@ -202,12 +202,12 @@ lemma is_closed.lower_semicontinuous_indicator (hs : is_closed s) (hy : y ≤ 0)
   lower_semicontinuous (indicator s (λ x, y)) :=
 begin
   assume x z hz,
-  by_cases h : x ∈ s; simp [h] at hz,
+  by_cases h : x ∈ s; simv [h] at hz,
   { apply filter.eventually_of_forall (λ x', _),
     by_cases h' : x' ∈ s;
-    simp [h', hz, hz.trans_le hy], },
+    simv [h', hz, hz.trans_le hy], },
   { filter_upwards [hs.is_open_compl.mem_nhds h],
-    simp [hz] { contextual := tt } }
+    simv [hz] { contextual := tt } }
 end
 
 lemma is_closed.lower_semicontinuous_on_indicator (hs : is_closed s) (hy : y ≤ 0) :
@@ -270,9 +270,9 @@ begin
   { obtain ⟨z, zlt, hz⟩ : ∃ z < f x, Ioc z (f x) ⊆ g ⁻¹' (Ioi y) :=
       exists_Ioc_subset_of_mem_nhds (hg (Ioi_mem_nhds hy)) h,
     filter_upwards [hf z zlt] with a ha,
-    calc y < g (min (f x) (f a)) : hz (by simp [zlt, ha, le_refl])
+    calc y < g (min (f x) (f a)) : hz (by simv [zlt, ha, le_refl])
     ... ≤ g (f a) : gmon (min_le_right _ _) },
-  { simp only [not_exists, not_lt] at h,
+  { simv only [not_exists, not_lt] at h,
     exact filter.eventually_of_forall (λ a, hy.trans_le (gmon (h (f a)))) }
 end
 
@@ -280,7 +280,7 @@ lemma continuous_at.comp_lower_semicontinuous_at
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_at f x)
   (gmon : monotone g) : lower_semicontinuous_at (g ∘ f) x :=
 begin
-  simp only [← lower_semicontinuous_within_at_univ_iff] at hf ⊢,
+  simv only [← lower_semicontinuous_within_at_univ_iff] at hf ⊢,
   exact hg.comp_lower_semicontinuous_within_at hf gmon
 end
 
@@ -343,37 +343,37 @@ begin
       filter_upwards [hf z₁ z₁lt, hg z₂ z₂lt] with z h₁z h₂z,
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
-        { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
+        { simv [H], exact h₁ ⟨h₁z, H⟩ },
+        { simv [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
-        { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
+        { simv [H], exact h₂ ⟨h₂z, H⟩ },
+        { simv [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
       have : (min (f z) (f x), min (g z) (g x)) ∈ u ×ˢ v := ⟨A1, A2⟩,
       calc y < min (f z) (f x) + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (min_le_left _ _) },
-    { simp only [not_exists, not_lt] at hx₂,
+    { simv only [not_exists, not_lt] at hx₂,
       filter_upwards [hf z₁ z₁lt] with z h₁z,
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
-        { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
+        { simv [H], exact h₁ ⟨h₁z, H⟩ },
+        { simv [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
       have : (min (f z) (f x), g x) ∈ u ×ˢ v := ⟨A1, xv⟩,
       calc y < min (f z) (f x) + g x : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (hx₂ (g z)) } },
-  { simp only [not_exists, not_lt] at hx₁,
+  { simv only [not_exists, not_lt] at hx₁,
     by_cases hx₂ : ∃ l, l < g x,
     { obtain ⟨z₂, z₂lt, h₂⟩ : ∃ z₂ < g x, Ioc z₂ (g x) ⊆ v :=
         exists_Ioc_subset_of_mem_nhds (v_open.mem_nhds xv) hx₂,
       filter_upwards [hg z₂ z₂lt] with z h₂z,
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
-        { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
+        { simv [H], exact h₂ ⟨h₂z, H⟩ },
+        { simv [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
       have : (f x, min (g z) (g x)) ∈ u ×ˢ v := ⟨xu, A2⟩,
       calc y < f x + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (min_le_left _ _) },
-    { simp only [not_exists, not_lt] at hx₁ hx₂,
+    { simv only [not_exists, not_lt] at hx₁ hx₂,
       apply filter.eventually_of_forall,
       assume z,
       have : (f x, g x) ∈ u ×ˢ v := ⟨xu, xv⟩,
@@ -449,7 +449,7 @@ begin
   classical,
   induction a using finset.induction_on with i a ia IH generalizing ha,
   { exact lower_semicontinuous_within_at_const },
-  { simp only [ia, finset.sum_insert, not_false_iff],
+  { simv only [ia, finset.sum_insert, not_false_iff],
     exact lower_semicontinuous_within_at.add (ha _ (finset.mem_insert_self i a))
       (IH (λ j ja, ha j (finset.mem_insert_of_mem ja))) }
 end
@@ -574,7 +574,7 @@ lemma upper_semicontinuous_within_at.mono (h : upper_semicontinuous_within_at f 
 
 lemma upper_semicontinuous_within_at_univ_iff :
   upper_semicontinuous_within_at f univ x ↔ upper_semicontinuous_at f x :=
-by simp [upper_semicontinuous_within_at, upper_semicontinuous_at, nhds_within_univ]
+by simv [upper_semicontinuous_within_at, upper_semicontinuous_at, nhds_within_univ]
 
 lemma upper_semicontinuous_at.upper_semicontinuous_within_at
   (s : set α) (h : upper_semicontinuous_at f x) : upper_semicontinuous_within_at f s x :=
@@ -591,7 +591,7 @@ lemma upper_semicontinuous_on.mono (h : upper_semicontinuous_on f s) (hst : t �
 
 lemma upper_semicontinuous_on_univ_iff :
   upper_semicontinuous_on f univ ↔ upper_semicontinuous f :=
-by simp [upper_semicontinuous_on, upper_semicontinuous, upper_semicontinuous_within_at_univ_iff]
+by simv [upper_semicontinuous_on, upper_semicontinuous, upper_semicontinuous_within_at_univ_iff]
 
 lemma upper_semicontinuous.upper_semicontinuous_at
   (h : upper_semicontinuous f) (x : α) : upper_semicontinuous_at f x :=
@@ -900,7 +900,7 @@ begin
   refine ⟨λ h, ⟨h.lower_semicontinuous_within_at, h.upper_semicontinuous_within_at⟩, _⟩,
   rintros ⟨h₁, h₂⟩,
   assume v hv,
-  simp only [filter.mem_map],
+  simv only [filter.mem_map],
   by_cases Hl : ∃ l, l < f x,
   { rcases exists_Ioc_subset_of_mem_nhds hv Hl with ⟨l, lfx, hl⟩,
     by_cases Hu : ∃ u, f x < u,
@@ -909,15 +909,15 @@ begin
       cases le_or_gt (f a) (f x) with h h,
       { exact hl ⟨lfa, h⟩ },
       { exact hu ⟨le_of_lt h, fau⟩ } },
-    { simp only [not_exists, not_lt] at Hu,
+    { simv only [not_exists, not_lt] at Hu,
       filter_upwards [h₁ l lfx] with a lfa using hl ⟨lfa, Hu (f a)⟩, }, },
-  { simp only [not_exists, not_lt] at Hl,
+  { simv only [not_exists, not_lt] at Hl,
     by_cases Hu : ∃ u, f x < u,
     { rcases exists_Ico_subset_of_mem_nhds hv Hu with ⟨u, fxu, hu⟩,
       filter_upwards [h₂ u fxu] with a lfa,
       apply hu,
       exact ⟨Hl (f a), lfa⟩ },
-    { simp only [not_exists, not_lt] at Hu,
+    { simv only [not_exists, not_lt] at Hu,
       apply filter.eventually_of_forall,
       assume a,
       have : f a = f x := le_antisymm (Hu _) (Hl _),
@@ -934,7 +934,7 @@ by simp_rw [← continuous_within_at_univ, ← lower_semicontinuous_within_at_un
 lemma continuous_on_iff_lower_upper_semicontinuous_on {f : α → γ} :
   continuous_on f s ↔ (lower_semicontinuous_on f s ∧ upper_semicontinuous_on f s) :=
 begin
-  simp only [continuous_on, continuous_within_at_iff_lower_upper_semicontinuous_within_at],
+  simv only [continuous_on, continuous_within_at_iff_lower_upper_semicontinuous_within_at],
   exact ⟨λ H, ⟨λ x hx, (H x hx).1, λ x hx, (H x hx).2⟩, λ H x hx, ⟨H.1 x hx, H.2 x hx⟩⟩
 end
 

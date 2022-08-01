@@ -152,7 +152,7 @@ lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
 
 /-- The real exponential function tends to `1` at `0`. -/
 lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
-by { convert continuous_exp.tendsto 0, simp }
+by { convert continuous_exp.tendsto 0, simv }
 
 lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
 (tendsto_exp_neg_at_top_nhds_0.comp tendsto_neg_at_bot_at_top).congr $
@@ -178,7 +178,7 @@ begin
   obtain ⟨N, hN⟩ : ∃ N, ∀ k ≥ N, (↑k ^ n : ℝ) / exp 1 ^ k < (exp 1 * C)⁻¹ :=
     eventually_at_top.1 ((tendsto_pow_const_div_const_pow_of_one_lt n
       (one_lt_exp_iff.2 zero_lt_one)).eventually (gt_mem_nhds this)),
-  simp only [← exp_nat_mul, mul_one, div_lt_iff, exp_pos, ← div_eq_inv_mul] at hN,
+  simv only [← exp_nat_mul, mul_one, div_lt_iff, exp_pos, ← div_eq_inv_mul] at hN,
   refine ⟨N, trivial, λ x hx, _⟩, rw set.mem_Ioi at hx,
   have hx₀ : 0 < x, from N.cast_nonneg.trans_lt hx,
   rw [set.mem_Ici, le_div_iff (pow_pos hx₀ _), ← le_div_iff' hC₀],
@@ -200,9 +200,9 @@ lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) :
   tendsto (λ x, (b * exp x + c) / x ^ n) at_top at_top :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
-  { simp only [pow_zero, div_one],
+  { simv only [pow_zero, div_one],
     exact (tendsto_exp_at_top.const_mul_at_top hb).at_top_add tendsto_const_nhds },
-  simp only [add_div, mul_div_assoc],
+  simv only [add_div, mul_div_assoc],
   exact ((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
     (tendsto_const_nhds.div_at_top (tendsto_pow_at_top hn))
 end
@@ -230,8 +230,8 @@ end
 def exp_order_iso : ℝ ≃o Ioi (0 : ℝ) :=
 strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
   (continuous_subtype_mk _ continuous_exp).surjective
-    (by simp only [tendsto_Ioi_at_top, subtype.coe_mk, tendsto_exp_at_top])
-    (by simp [tendsto_exp_at_bot_nhds_within])
+    (by simv only [tendsto_Ioi_at_top, subtype.coe_mk, tendsto_exp_at_top])
+    (by simv [tendsto_exp_at_bot_nhds_within])
 
 @[simp] lemma coe_exp_order_iso_apply (x : ℝ) : (exp_order_iso x : ℝ) = exp x := rfl
 
@@ -265,7 +265,7 @@ lemma tendsto_comp_exp_at_bot {f : ℝ → α} :
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
 @[simp] lemma comap_exp_nhds_zero : comap exp (𝓝 0) = at_bot :=
-(comap_nhds_within_range exp 0).symm.trans $ by simp
+(comap_nhds_within_range exp 0).symm.trans $ by simv
 
 @[simp] lemma tendsto_exp_comp_nhds_zero {f : α → ℝ} :
   tendsto (λ x, exp (f x)) l (𝓝 0) ↔ tendsto f l at_bot :=
@@ -278,39 +278,39 @@ by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
 @[simp] lemma is_O_exp_comp_exp_comp {f g : α → ℝ} :
   (λ x, exp (f x)) =O[l] (λ x, exp (g x)) ↔ is_bounded_under (≤) l (f - g) :=
 iff.trans (is_O_iff_is_bounded_under_le_div $ eventually_of_forall $ λ x, exp_ne_zero _) $
-  by simp only [norm_eq_abs, abs_exp, ← exp_sub, is_bounded_under_le_exp_comp, pi.sub_def]
+  by simv only [norm_eq_abs, abs_exp, ← exp_sub, is_bounded_under_le_exp_comp, pi.sub_def]
 
 @[simp] lemma is_Theta_exp_comp_exp_comp {f g : α → ℝ} :
   (λ x, exp (f x)) =Θ[l] (λ x, exp (g x)) ↔ is_bounded_under (≤) l (λ x, |f x - g x|) :=
-by simp only [is_bounded_under_le_abs, ← is_bounded_under_le_neg, neg_sub, is_Theta,
+by simv only [is_bounded_under_le_abs, ← is_bounded_under_le_neg, neg_sub, is_Theta,
   is_O_exp_comp_exp_comp, pi.sub_def]
 
 @[simp] lemma is_o_exp_comp_exp_comp {f g : α → ℝ} :
   (λ x, exp (f x)) =o[l] (λ x, exp (g x)) ↔ tendsto (λ x, g x - f x) l at_top :=
-by simp only [is_o_iff_tendsto, exp_ne_zero, ← exp_sub, ← tendsto_neg_at_top_iff, false_implies_iff,
+by simv only [is_o_iff_tendsto, exp_ne_zero, ← exp_sub, ← tendsto_neg_at_top_iff, false_implies_iff,
   implies_true_iff, tendsto_exp_comp_nhds_zero, neg_sub]
 
 @[simp] lemma is_o_one_exp_comp {f : α → ℝ} :
   (λ x, 1 : α → ℝ) =o[l] (λ x, exp (f x)) ↔ tendsto f l at_top :=
-by simp only [← exp_zero, is_o_exp_comp_exp_comp, sub_zero]
+by simv only [← exp_zero, is_o_exp_comp_exp_comp, sub_zero]
 
 /-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
 from below under `f`. -/
 @[simp] lemma is_O_one_exp_comp {f : α → ℝ} :
   (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x)) ↔ is_bounded_under (≥) l f :=
-by simp only [← exp_zero, is_O_exp_comp_exp_comp, pi.sub_def, zero_sub, is_bounded_under_le_neg]
+by simv only [← exp_zero, is_O_exp_comp_exp_comp, pi.sub_def, zero_sub, is_bounded_under_le_neg]
 
 /-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
 from below under `f`. -/
 lemma is_O_exp_comp_one {f : α → ℝ} :
   (λ x, exp (f x)) =O[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l f :=
-by simp only [is_O_one_iff, norm_eq_abs, abs_exp, is_bounded_under_le_exp_comp]
+by simv only [is_O_one_iff, norm_eq_abs, abs_exp, is_bounded_under_le_exp_comp]
 
 /-- `real.exp (f x)` is bounded away from zero and infinity along a filter `l` if and only if
 `|f x|` is bounded from above along this filter. -/
 @[simp] lemma is_Theta_exp_comp_one {f : α → ℝ} :
   (λ x, exp (f x)) =Θ[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l (λ x, |f x|) :=
-by simp only [← exp_zero, is_Theta_exp_comp_exp_comp, sub_zero]
+by simv only [← exp_zero, is_Theta_exp_comp_exp_comp, sub_zero]
 
 end real
 
@@ -318,17 +318,17 @@ namespace complex
 
 lemma comap_exp_comap_abs_at_top : comap exp (comap abs at_top) = comap re at_top :=
 calc comap exp (comap abs at_top) = comap re (comap real.exp at_top) :
-  by simp only [comap_comap, (∘), abs_exp]
+  by simv only [comap_comap, (∘), abs_exp]
 ... = comap re at_top : by rw [real.comap_exp_at_top]
 
 lemma comap_exp_nhds_zero : comap exp (𝓝 0) = comap re at_bot :=
 calc comap exp (𝓝 0) = comap re (comap real.exp (𝓝 0)) :
-  by simp only [comap_comap, ← comap_abs_nhds_zero, (∘), abs_exp]
+  by simv only [comap_comap, ← comap_abs_nhds_zero, (∘), abs_exp]
 ... = comap re at_bot : by rw [real.comap_exp_nhds_zero]
 
 lemma comap_exp_nhds_within_zero : comap exp (𝓝[≠] 0) = comap re at_bot :=
 have exp ⁻¹' {0}ᶜ = univ, from eq_univ_of_forall exp_ne_zero,
-by simp [nhds_within, comap_exp_nhds_zero, this]
+by simv [nhds_within, comap_exp_nhds_zero, this]
 
 lemma tendsto_exp_nhds_zero_iff {α : Type*} {l : filter α} {f : α → ℂ} :
   tendsto (λ x, exp (f x)) l (𝓝 0) ↔ tendsto (λ x, re (f x)) l at_bot :=

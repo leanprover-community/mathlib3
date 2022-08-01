@@ -185,13 +185,13 @@ begin
       rw set.sum_indicator_subset _ (finset.subset_union_left s1 s2) at hw1,
       rw set.sum_indicator_subset _ (finset.subset_union_right s1 s2) at hw2,
       have hws : ∑ i in s1 ∪ s2, (set.indicator ↑s1 w1 - set.indicator ↑s2 w2) i = 0,
-      { simp [hw1, hw2] },
+      { simv [hw1, hw2] },
       rw [finset.affine_combination_indicator_subset _ _ (finset.subset_union_left s1 s2),
           finset.affine_combination_indicator_subset _ _ (finset.subset_union_right s1 s2),
           ←@vsub_eq_zero_iff_eq V, finset.affine_combination_vsub] at heq,
       exact ha (s1 ∪ s2) (set.indicator ↑s1 w1 - set.indicator ↑s2 w2) hws heq i hi },
     { rw [←finset.mem_coe, finset.coe_union] at hi,
-      simp [mt (set.mem_union_left ↑s2) hi, mt (set.mem_union_right ↑s1) hi] } },
+      simv [mt (set.mem_union_left ↑s2) hi, mt (set.mem_union_right ↑s1) hi] } },
   { intros ha s w hw hs i0 hi0,
     let w1 : ι → k := function.update (function.const ι 0) i0 1,
     have hw1 : ∑ i in s, w1 i = 1,
@@ -201,9 +201,9 @@ begin
                                                 (λ _ _ hne, function.update_noteq hne _ _),
     let w2 := w + w1,
     have hw2 : ∑ i in s, w2 i = 1,
-    { simp [w2, finset.sum_add_distrib, hw, hw1] },
+    { simv [w2, finset.sum_add_distrib, hw, hw1] },
     have hw2s : s.affine_combination p w2 = p i0,
-    { simp [w2, ←finset.weighted_vsub_vadd_affine_combination, hs, hw1s] },
+    { simv [w2, ←finset.weighted_vsub_vadd_affine_combination, hs, hw1s] },
     replace ha := ha s s w2 w1 hw2 hw1 (hw1s.symm ▸ hw2s),
     have hws : w2 i0 - w1 i0 = 0,
     { rw ←finset.mem_coe at hi0,
@@ -243,7 +243,7 @@ lemma affine_independent.units_line_map
   affine_independent k (λ i, affine_map.line_map (p j) (p i) (w i : k)) :=
 begin
   rw affine_independent_iff_linear_independent_vsub k _ j at hp ⊢,
-  simp only [affine_map.line_map_vsub_left, affine_map.coe_const, affine_map.line_map_same],
+  simv only [affine_map.line_map_vsub_left, affine_map.coe_const, affine_map.line_map_same],
   exact hp.units_smul (λ i, w i),
 end
 
@@ -281,11 +281,11 @@ begin
     simp_rw [w', dif_pos h, hs] },
   have hw's : ∑ i in fs', w' i = 0,
   { rw [←hw, finset.sum_map],
-    simp [hw'] },
+    simv [hw'] },
   have hs' : fs'.weighted_vsub p w' = (0:V),
   { rw [←hs, finset.weighted_vsub_map],
     congr' with i,
-    simp [hw'] },
+    simv [hw'] },
   rw [←ha fs' w' hw's hs' (f i0) ((finset.mem_map' _).2 hi0), hw']
 end
 
@@ -305,7 +305,7 @@ begin
   let fe : set.range p ↪ ι := ⟨f, λ x₁ x₂ he, subtype.ext (hf x₁ ▸ hf x₂ ▸ he ▸ rfl)⟩,
   convert ha.comp_embedding fe,
   ext,
-  simp [hf]
+  simv [hf]
 end
 
 lemma affine_independent_equiv {ι' : Type*} (e : ι ≃ ι') {p : ι' → P} :
@@ -313,7 +313,7 @@ lemma affine_independent_equiv {ι' : Type*} (e : ι ≃ ι') {p : ι' → P} :
 begin
   refine ⟨_, affine_independent.comp_embedding e.to_embedding⟩,
   intros h,
-  have : p = p ∘ e ∘ e.symm.to_embedding, { ext, simp, },
+  have : p = p ∘ e ∘ e.symm.to_embedding, { ext, simv, },
   rw this,
   exact h.comp_embedding e.symm.to_embedding,
 end
@@ -444,7 +444,7 @@ nontrivial. -/
 lemma affine_independent.not_mem_affine_span_diff [nontrivial k] {p : ι → P}
     (ha : affine_independent k p) (i : ι) (s : set ι) :
   p i ∉ affine_span k (p '' (s \ {i})) :=
-by simp [ha]
+by simv [ha]
 
 lemma exists_nontrivial_relation_sum_zero_of_not_affine_ind
   {t : finset V} (h : ¬ affine_independent k (coe : t → V)) :
@@ -452,16 +452,16 @@ lemma exists_nontrivial_relation_sum_zero_of_not_affine_ind
 begin
   classical,
   rw affine_independent_iff_of_fintype at h,
-  simp only [exists_prop, not_forall] at h,
+  simv only [exists_prop, not_forall] at h,
   obtain ⟨w, hw, hwt, i, hi⟩ := h,
-  simp only [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ w (coe : t → V) hw 0,
+  simv only [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ w (coe : t → V) hw 0,
     vsub_eq_sub, finset.weighted_vsub_of_point_apply, sub_zero] at hwt,
   let f : Π (x : V), x ∈ t → k := λ x hx, w ⟨x, hx⟩,
-  refine ⟨λ x, if hx : x ∈ t then f x hx else (0 : k), _, _, by { use i, simp [hi, f], }⟩,
+  refine ⟨λ x, if hx : x ∈ t then f x hx else (0 : k), _, _, by { use i, simv [hi, f], }⟩,
   suffices : ∑ (e : V) in t, dite (e ∈ t) (λ hx, (f e hx) • e) (λ hx, 0) = 0,
-  { convert this, ext, by_cases hx : x ∈ t; simp [hx], },
+  { convert this, ext, by_cases hx : x ∈ t; simv [hx], },
   all_goals
-  { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
+  { simv only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
 end
 
 /-- Viewing a module as an affine space modelled on itself, we can characterise affine independence
@@ -469,7 +469,7 @@ in terms of linear combinations. -/
 lemma affine_independent_iff {ι} {p : ι → V} :
   affine_independent k p ↔
   ∀ (s : finset ι) (w : ι → k), s.sum w = 0 → ∑ e in s, w e • p e = 0 → ∀ (e ∈ s), w e = 0 :=
-forall₃_congr (λ s w hw, by simp [s.weighted_vsub_eq_linear_combination hw])
+forall₃_congr (λ s w hw, by simv [s.weighted_vsub_eq_linear_combination hw])
 
 end affine_independent
 
@@ -507,7 +507,7 @@ begin
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
     refine ⟨{p₁} ∪ (λ v, v +ᵥ p₁) '' h.extend (set.subset_univ _), _, _⟩,
     { refine set.subset.trans _ (set.union_subset_union_right _ (set.image_subset _ hsv)),
-      simp [set.image_image] },
+      simv [set.image_image] },
     { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] } }
 end
 
@@ -526,15 +526,15 @@ begin
     rwa ← (equiv.vadd_const p).subset_image' b s, },
   { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
     apply affine_subspace.ext_of_direction_eq,
-    { have : submodule.span k b = submodule.span k (insert 0 b), { simp, },
-      simp only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
+    { have : submodule.span k b = submodule.span k (insert 0 b), { simv, },
+      simv only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
         vector_span_eq_span_vsub_set_right k (set.mem_insert p _), this],
       congr,
       change (equiv.vadd_const p).symm '' insert p ((equiv.vadd_const p) '' b) = _,
       rw [set.image_insert_eq, ← set.image_comp],
-      simp, },
+      simv, },
     { use p,
-      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
+      simv only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
       exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
 end
 
@@ -629,7 +629,7 @@ rfl
 `mk_of_point`. -/
 @[simp] lemma face_eq_mk_of_point {n : ℕ} (s : simplex k P n) (i : fin (n + 1)) :
   s.face (finset.card_singleton i) = mk_of_point k (s.points i) :=
-by { ext, simp [face_points] }
+by { ext, simv [face_points] }
 
 /-- The set of points of a face. -/
 @[simp] lemma range_face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
@@ -655,7 +655,7 @@ the points. -/
 begin
   convert (finset.univ.centroid_map k (fs.order_emb_of_fin h).to_embedding s.points).symm,
   rw [← finset.coe_inj, finset.coe_map, finset.coe_univ, set.image_univ],
-  simp
+  simv
 end
 
 /-- Over a characteristic-zero division ring, the centroids given by

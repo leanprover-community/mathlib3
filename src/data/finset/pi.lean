@@ -88,7 +88,7 @@ lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :
 begin
   rw eq_singleton_iff_unique_mem,
   split,
-  { simp },
+  { simv },
   intros a ha,
   ext i hi,
   rw [mem_pi] at ha,

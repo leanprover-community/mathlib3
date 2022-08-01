@@ -124,7 +124,7 @@ variables (b : basis ι R M) (h : function.bijective (algebra_map R A))
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module. -/
 @[simps]
 noncomputable def basis.algebra_map_coeffs : basis ι A M :=
-b.map_coeffs (ring_equiv.of_bijective _ h) (λ c x, by simp)
+b.map_coeffs (ring_equiv.of_bijective _ h) (λ c x, by simv)
 
 lemma basis.algebra_map_coeffs_apply (i : ι) : b.algebra_map_coeffs A h i = b i :=
 b.map_coeffs_apply _ _ _
@@ -171,7 +171,7 @@ basis.of_repr ((c.repr.restrict_scalars R) ≪≫ₗ
 @[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) (x ij):
   (b.smul c).repr x ij = b.repr (c.repr x ij.2) ij.1 :=
-by simp [basis.smul]
+by simv [basis.smul]
 
 theorem basis.smul_repr_mk {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) (x i j):
@@ -189,8 +189,8 @@ begin
       finsupp.single_apply],
   dsimp only,
   split_ifs with hi,
-  { simp [hi, finsupp.single_apply] },
-  { simp [hi] },
+  { simv [hi, finsupp.single_apply] },
+  { simv [hi] },
 end
 
 end semiring

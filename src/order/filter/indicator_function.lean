@@ -27,8 +27,8 @@ variables [has_zero M] {s t : set α} {f g : α → M} {a : α} {l : filter α}
 lemma indicator_eventually_eq (hf : f =ᶠ[l ⊓ 𝓟 s] g) (hs : s =ᶠ[l] t) :
   indicator s f =ᶠ[l] indicator t g :=
 (eventually_inf_principal.1 hf).mp $ hs.mem_iff.mono $ λ x hst hfg,
-by_cases (λ hxs : x ∈ s, by simp only [*, hst.1 hxs, indicator_of_mem])
-  (λ hxs, by simp only [indicator_of_not_mem hxs, indicator_of_not_mem (mt hst.2 hxs)])
+by_cases (λ hxs : x ∈ s, by simv only [*, hst.1 hxs, indicator_of_mem])
+  (λ hxs, by simv only [indicator_of_not_mem hxs, indicator_of_not_mem (mt hst.2 hxs)])
 
 end has_zero
 
@@ -60,7 +60,7 @@ begin
     refine tendsto_pure.2 ((eventually_ge_at_top i).mono $ assume n hn, _),
     rw [indicator_of_mem (hs hn hi) _, indicator_of_mem ((subset_Union _ _) hi) _] },
   { rw [not_exists] at h,
-    simp only [indicator_of_not_mem (h _)],
+    simv only [indicator_of_not_mem (h _)],
     convert tendsto_const_pure,
     apply indicator_of_not_mem, simpa only [not_exists, mem_Union] }
 end
@@ -73,10 +73,10 @@ begin
   { rcases h with ⟨i, hi⟩,
     refine tendsto_pure.2 ((eventually_ge_at_top i).mono $ assume n hn, _),
     rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
-    { simp only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
+    { simv only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
     { assume h, have := hs hn h, contradiction } },
   { push_neg at h,
-    simp only [indicator_of_mem, h, (mem_Inter.2 h), tendsto_const_pure] }
+    simv only [indicator_of_mem, h, (mem_Inter.2 h), tendsto_const_pure] }
 end
 
 lemma tendsto_indicator_bUnion_finset {ι} [has_zero β] (s : ι → set α) (f : α → β) (a : α) :

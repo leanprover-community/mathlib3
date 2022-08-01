@@ -8,7 +8,7 @@ it too easily becomes a grab bag of forgotten arcana.
 
 Tactics should have their own file in the `test/` directory.
 
-Examples verifying correct behaviour of simp sets or instances
+Examples verifying correct behaviour of simv sets or instances
 belong in `src/` near the definitions.
 
 TODO: remove or move the remaining content of this file.
@@ -35,16 +35,16 @@ end
 
 example (x y z : ℕ) (h'' : true) (h : 0 + y = x) (h' : 0 + y = z) : x = z + 0 :=
 begin
-  simp at *,
+  simv at *,
 --  trace_state,
   rw [←h, ←h']
 end
 
 example (x y z : ℕ) (h'' : true) (h : 0 + y = x) (h' : 0 + y = z) : x = z + 0 :=
 begin
-  simp at *,
-  simp [h] at h',
-  simp [*]
+  simv at *,
+  simv [h] at h',
+  simv [*]
 end
 
 def my_id (x : α) := x
@@ -53,7 +53,7 @@ def my_id_def (x : α) : my_id x = x := rfl
 
 example (x y z : ℕ) (h'' : true) (h : 0 + my_id y = x) (h' : 0 + y = z) : x = z + 0 :=
 begin
-  simp [my_id_def] at *, simp [h] at h', simp [*]
+  simv [my_id_def] at *, simv [h] at h', simv [*]
 end
 
 @[simp] theorem mem_set_of {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
@@ -76,20 +76,20 @@ end
 /- tests of has_sep on finset -/
 
 example {α} (s : finset α) (p : α → Prop) [decidable_pred p] : {x ∈ s | p x} = s.filter p :=
-by simp
+by simv
 
 example {α} (s : finset α) (p : α → Prop) [decidable_pred p] :
   {x ∈ s | p x} = @finset.filter α p (λ _, classical.prop_decidable _) s :=
-by simp
+by simv
 
 section
 open_locale classical
 
 example {α} (s : finset α) (p : α → Prop) : {x ∈ s | p x} = s.filter p :=
-by simp
+by simv
 
 example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
   {x ∈ finset.range n | x < m } ∪ {x ∈ finset.range n | x < k } :=
-by simp [finset.filter_or]
+by simv [finset.filter_or]
 
 end

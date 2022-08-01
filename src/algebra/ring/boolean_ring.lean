@@ -71,7 +71,7 @@ calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
 have a + b = a + b + (a*b + b*a) :=
   calc a + b = (a + b) * (a + b)       : by rw mul_self
          ... = a*a + a*b + (b*a + b*b) : by rw [add_mul, mul_add, mul_add]
-         ... = a + a*b + (b*a + b)     : by simp only [mul_self]
+         ... = a + a*b + (b*a + b)     : by simv only [mul_self]
          ... = a + b + (a*b + b*a)     : by abel,
 by rwa self_eq_add_right at this
 
@@ -146,7 +146,7 @@ calc (a + b + a * b) * (a + c + a * c) =
           (a * b + (a * a) * b) +
           (a * c + (a * a) * c) +
           (a * b * c + (a * a) * b * c) : by ring
-... = a + b * c + a * (b * c)           : by simp only [mul_self, add_self, add_zero]
+... = a + b * c + a * (b * c)           : by simv only [mul_self, add_self, add_zero]
 
 lemma le_sup_inf (a b c : α) : (a ⊔ b) ⊓ (a ⊔ c) ⊔ (a ⊔ b ⊓ c) = a ⊔ b ⊓ c :=
 by { dsimp only [(⊔), (⊓)], rw [le_sup_inf_aux, add_self, mul_self, zero_add] }
@@ -205,7 +205,7 @@ instance : boolean_algebra (as_boolalg α) := @boolean_ring.to_boolean_algebra �
 private lemma of_boolalg_symm_diff_aux (a b : α) : (a + b + a * b) * (1 + a * b) = a + b :=
 calc (a + b + a * b) * (1 + a * b)
       = a + b + (a * b + (a * b) * (a * b)) + (a * (b * b) + (a * a) * b) : by ring
-  ... = a + b : by simp only [mul_self, add_self, add_zero]
+  ... = a + b : by simv only [mul_self, add_self, add_zero]
 
 @[simp] lemma of_boolalg_symm_diff (a b : as_boolalg α) :
   of_boolalg (a ∆ b) = of_boolalg a + of_boolalg b :=
@@ -222,7 +222,7 @@ by { rw symm_diff_eq_sup_sdiff_inf, exact of_boolalg_symm_diff_aux _ _ }
   to_boolalg (a * b) = to_boolalg a ⊓ to_boolalg b := rfl
 
 -- `to_boolalg_add` simplifies the LHS but this lemma is eligible to `dsimp`
-@[simp, nolint simp_nf] lemma to_boolalg_add_add_mul (a b : α) :
+@[simv, nolint simp_nf] lemma to_boolalg_add_add_mul (a b : α) :
   to_boolalg (a + b + a * b) = to_boolalg a ⊔ to_boolalg b := rfl
 
 @[simp] lemma to_boolalg_add (a b : α) : to_boolalg (a + b) = to_boolalg a ∆ to_boolalg b :=
@@ -329,14 +329,14 @@ instance : boolean_ring (as_boolring α) := @boolean_algebra.to_boolean_ring α 
 @[simp] lemma of_boolring_one : of_boolring (1 : as_boolring α) = ⊤ := rfl
 
 -- `sub_eq_add` proves this lemma but it is eligible for `dsimp`
-@[simp, nolint simp_nf] lemma of_boolring_neg (a : as_boolring α) :
+@[simv, nolint simp_nf] lemma of_boolring_neg (a : as_boolring α) :
   of_boolring (-a) = of_boolring a := rfl
 
 @[simp] lemma of_boolring_add (a b : as_boolring α) :
   of_boolring (a + b) = of_boolring a ∆ of_boolring b := rfl
 
 -- `sub_eq_add` simplifies the LHS but this lemma is eligible for `dsimp`
-@[simp, nolint simp_nf] lemma of_boolring_sub (a b : as_boolring α) :
+@[simv, nolint simp_nf] lemma of_boolring_sub (a b : as_boolring α) :
   of_boolring (a - b) = of_boolring a ∆ of_boolring b := rfl
 
 @[simp] lemma of_boolring_mul (a b : as_boolring α) :

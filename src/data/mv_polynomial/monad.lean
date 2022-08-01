@@ -114,11 +114,11 @@ lemma eval₂_hom_C_id_eq_join₁ (φ : mv_polynomial (mv_polynomial σ R) R) :
 
 end
 
--- In this file, we don't want to use these simp lemmas,
+-- In this file, we don't want to use these simv lemmas,
 -- because we first need to show how these new definitions interact
--- and the proofs fall back on unfolding the definitions and call simp afterwards
+-- and the proofs fall back on unfolding the definitions and call simv afterwards
 
-local attribute [-simp] aeval_eq_bind₁ eval₂_hom_C_eq_bind₁ eval₂_hom_eq_bind₂
+local attribute [-simv] aeval_eq_bind₁ eval₂_hom_C_eq_bind₁ eval₂_hom_eq_bind₂
                         aeval_id_eq_join₁ eval₂_hom_id_X_eq_join₂
 
 @[simp]
@@ -131,7 +131,7 @@ eval₂_hom_X' f X i
 
 @[simp]
 lemma bind₁_X_left : bind₁ (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
-by { ext1 i, simp }
+by { ext1 i, simv }
 
 lemma aeval_X_left : aeval (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
 by rw [aeval_eq_bind₁, bind₁_X_left]
@@ -143,7 +143,7 @@ variable (f : σ → mv_polynomial τ R)
 
 @[simp]
 lemma bind₁_C_right (f : σ → mv_polynomial τ R) (x) : bind₁ f (C x) = C x :=
-by simp [bind₁, algebra_map_eq]
+by simv [bind₁, algebra_map_eq]
 
 @[simp]
 lemma bind₂_C_right (f : R →+* mv_polynomial σ S) (r : R) : bind₂ f (C r) = f r :=
@@ -151,7 +151,7 @@ eval₂_hom_C f X r
 
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
-by { ext : 2; simp }
+by { ext : 2; simv }
 
 @[simp]
 lemma bind₂_comp_C (f : R →+* mv_polynomial σ S) :
@@ -161,7 +161,7 @@ ring_hom.ext $ bind₂_C_right _
 @[simp]
 lemma join₂_map (f : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
   join₂ (map f φ) = bind₂ f φ :=
-by simp only [join₂, bind₂, eval₂_hom_map_hom, ring_hom.id_comp]
+by simv only [join₂, bind₂, eval₂_hom_map_hom, ring_hom.id_comp]
 
 @[simp]
 lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
@@ -186,7 +186,7 @@ lemma bind₂_id : bind₂ (ring_hom.id (mv_polynomial σ R)) = join₂ := rfl
 lemma bind₁_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R)
   (φ : mv_polynomial σ R) :
   (bind₁ g) (bind₁ f φ) = bind₁ (λ i, bind₁ g (f i)) φ :=
-by simp [bind₁, ← comp_aeval]
+by simv [bind₁, ← comp_aeval]
 
 lemma bind₁_comp_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R) :
   (bind₁ g).comp (bind₁ f) = bind₁ (λ i, bind₁ g (f i)) :=
@@ -194,7 +194,7 @@ by { ext1, apply bind₁_bind₁ }
 
 lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) :
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
-by { ext : 2; simp }
+by { ext : 2; simv }
 
 lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T)
   (φ : mv_polynomial σ R) :
@@ -203,7 +203,7 @@ ring_hom.congr_fun (bind₂_comp_bind₂ f g) φ
 
 lemma rename_comp_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → υ) :
   (rename g).comp (bind₁ f) = bind₁ (λ i, rename g $ f i) :=
-by { ext1 i, simp }
+by { ext1 i, simv }
 
 lemma rename_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → υ) (φ : mv_polynomial σ R) :
   rename g (bind₁ f φ) = bind₁ (λ i, rename g $ f i) φ :=
@@ -212,14 +212,14 @@ alg_hom.congr_fun (rename_comp_bind₁ f g) φ
 lemma map_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* T) (φ : mv_polynomial σ R) :
   map g (bind₂ f φ) = bind₂ ((map g).comp f) φ :=
 begin
-  simp only [bind₂, eval₂_comp_right, coe_eval₂_hom, eval₂_map],
+  simv only [bind₂, eval₂_comp_right, coe_eval₂_hom, eval₂_map],
   congr' 1 with : 1,
-  simp only [function.comp_app, map_X]
+  simv only [function.comp_app, map_X]
 end
 
 lemma bind₁_comp_rename {υ : Type*} (f : τ → mv_polynomial υ R) (g : σ → τ) :
   (bind₁ f).comp (rename g) = bind₁ (f ∘ g) :=
-by { ext1 i, simp }
+by { ext1 i, simv }
 
 lemma bind₁_rename {υ : Type*} (f : τ → mv_polynomial υ R) (g : σ → τ) (φ : mv_polynomial σ R) :
   bind₁ f (rename g φ) = bind₁ (f ∘ g) φ :=
@@ -227,7 +227,7 @@ alg_hom.congr_fun (bind₁_comp_rename f g) φ
 
 lemma bind₂_map (f : S →+* mv_polynomial σ T) (g : R →+* S) (φ : mv_polynomial σ R) :
   bind₂ f (map g φ) = bind₂ (f.comp g) φ :=
-by simp [bind₂]
+by simv [bind₂]
 
 @[simp]
 lemma map_comp_C (f : R →+* S) : (map f).comp (C : R →+* mv_polynomial σ R) = C.comp f :=
@@ -262,7 +262,7 @@ by { ext1, apply aeval_bind₁ }
 
 lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) :
   (eval₂_hom f g).comp (bind₂ h) = eval₂_hom ((eval₂_hom f g).comp h) g :=
-by { ext : 2; simp }
+by { ext : 2; simv }
 
 lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S)
   (φ : mv_polynomial σ R) :
@@ -277,12 +277,12 @@ lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bin
 
 lemma bind₁_monomial (f : σ → mv_polynomial τ R) (d : σ →₀ ℕ) (r : R) :
   bind₁ f (monomial d r) = C r * ∏ i in d.support, f i ^ d i :=
-by simp only [monomial_eq, alg_hom.map_mul, bind₁_C_right, finsupp.prod,
+by simv only [monomial_eq, alg_hom.map_mul, bind₁_C_right, finsupp.prod,
   alg_hom.map_prod, alg_hom.map_pow, bind₁_X_right]
 
 lemma bind₂_monomial (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) (r : R) :
   bind₂ f (monomial d r) = f r * monomial d 1 :=
-by simp only [monomial_eq, ring_hom.map_mul, bind₂_C_right, finsupp.prod,
+by simv only [monomial_eq, ring_hom.map_mul, bind₂_C_right, finsupp.prod,
   ring_hom.map_prod, ring_hom.map_pow, bind₂_X_right, C_1, one_mul]
 
 @[simp]
@@ -296,12 +296,12 @@ instance monad : monad (λ σ, mv_polynomial σ R) :=
   bind := λ _ _ p f, bind₁ f p }
 
 instance is_lawful_functor : is_lawful_functor (λ σ, mv_polynomial σ R) :=
-{ id_map := by intros; simp [(<$>)],
-  comp_map := by intros; simp [(<$>)] }
+{ id_map := by intros; simv [(<$>)],
+  comp_map := by intros; simv [(<$>)] }
 
 instance is_lawful_monad : is_lawful_monad (λ σ, mv_polynomial σ R) :=
-{ pure_bind := by intros; simp [pure, bind],
-  bind_assoc := by intros; simp [bind, ← bind₁_comp_bind₁] }
+{ pure_bind := by intros; simv [pure, bind],
+  bind_assoc := by intros; simv [bind, ← bind₁_comp_bind₁] }
 
 /-
 Possible TODO for the future:

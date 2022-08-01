@@ -46,7 +46,7 @@ lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
   refine lp.norm_le_of_forall_le dist_nonneg (λn, _),
-  simp only [lp.coe_fn_sub, pi.sub_apply, embedding_of_subset_coe, real.dist_eq],
+  simv only [lp.coe_fn_sub, pi.sub_apply, embedding_of_subset_coe, real.dist_eq],
   convert abs_dist_sub_le a b (x n) using 2,
   ring
 end
@@ -60,10 +60,10 @@ begin
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
+    by { simv only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
-    ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
+    ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simv [dist_comm], ring }
     ...    ≤ 2 * dist a (x n) + |dist b (x n) - dist a (x n)| :
       by apply_rules [add_le_add_left, le_abs_self]
     ...    ≤ 2 * (e/2) + |embedding_of_subset x b n - embedding_of_subset x a n| :

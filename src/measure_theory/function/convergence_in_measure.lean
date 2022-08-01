@@ -104,7 +104,7 @@ lemma tendsto_in_measure_of_tendsto_ae_of_strongly_measurable [is_finite_measure
 begin
   refine λ ε hε, ennreal.tendsto_at_top_zero.mpr (λ δ hδ, _),
   by_cases hδi : δ = ∞,
-  { simp only [hδi, implies_true_iff, le_top, exists_const], },
+  { simv only [hδi, implies_true_iff, le_top, exists_const], },
   lift δ to ℝ≥0 using hδi,
   rw [gt_iff_lt, ennreal.coe_pos, ← nnreal.coe_pos] at hδ,
   obtain ⟨t, htm, ht, hunif⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg hδ,
@@ -141,7 +141,7 @@ namespace exists_seq_tendsto_ae
 lemma exists_nat_measure_lt_two_inv (hfg : tendsto_in_measure μ f at_top g) (n : ℕ) :
   ∃ N, ∀ m ≥ N, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n :=
 begin
-  specialize hfg (2⁻¹ ^ n) (by simp only [zero_lt_bit0, pow_pos, zero_lt_one, inv_pos]),
+  specialize hfg (2⁻¹ ^ n) (by simv only [zero_lt_bit0, pow_pos, zero_lt_one, inv_pos]),
   rw ennreal.tendsto_at_top_zero at hfg,
   exact hfg (2⁻¹ ^ n) (pos_iff_ne_zero.mpr (λ h_zero, by simpa using pow_eq_zero h_zero))
 end
@@ -211,12 +211,12 @@ begin
   set s := filter.at_top.limsup S with hs,
   have hμs : μ s = 0,
   { refine measure_limsup_eq_zero (ne_of_lt $ lt_of_le_of_lt (ennreal.tsum_le_tsum hμS_le) _),
-    simp only [ennreal.tsum_geometric, ennreal.one_sub_inv_two, inv_inv],
+    simv only [ennreal.tsum_geometric, ennreal.one_sub_inv_two, inv_inv],
     dec_trivial },
   have h_tendsto : ∀ x ∈ sᶜ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)),
   { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
     rw [hs, limsup_eq_infi_supr_of_nat] at hx,
-    simp only [set.supr_eq_Union, set.infi_eq_Inter, set.compl_Inter, set.compl_Union,
+    simv only [set.supr_eq_Union, set.infi_eq_Inter, set.compl_Inter, set.compl_Union,
       set.mem_Union, set.mem_Inter, set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx,
     obtain ⟨N, hNx⟩ := hx,
     obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
@@ -289,7 +289,7 @@ begin
   intros ε hε,
   replace hfg := ennreal.tendsto.const_mul (tendsto.ennrpow_const p.to_real hfg)
     (or.inr $ @ennreal.of_real_ne_top (1 / ε ^ (p.to_real))),
-  simp only [mul_zero, ennreal.zero_rpow_of_pos (ennreal.to_real_pos hp_ne_zero hp_ne_top)] at hfg,
+  simv only [mul_zero, ennreal.zero_rpow_of_pos (ennreal.to_real_pos hp_ne_zero hp_ne_top)] at hfg,
   rw ennreal.tendsto_nhds_zero at hfg ⊢,
   intros δ hδ,
   refine (hfg δ hδ).mono (λ n hn, _),
@@ -331,20 +331,20 @@ lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_add_comm_group E] {f :
   tendsto_in_measure μ f l g :=
 begin
   intros δ hδ,
-  simp only [snorm_exponent_top, snorm_ess_sup] at hfg,
+  simv only [snorm_exponent_top, snorm_ess_sup] at hfg,
   rw ennreal.tendsto_nhds_zero at hfg ⊢,
   intros ε hε,
   specialize hfg ((ennreal.of_real δ) / 2) (ennreal.div_pos_iff.2
     ⟨(ennreal.of_real_pos.2 hδ).ne.symm, ennreal.two_ne_top⟩),
   refine hfg.mono (λ n hn, _),
-  simp only [true_and, gt_iff_lt, ge_iff_le, zero_tsub, zero_le, zero_add, set.mem_Icc,
+  simv only [true_and, gt_iff_lt, ge_iff_le, zero_tsub, zero_le, zero_add, set.mem_Icc,
     pi.sub_apply] at *,
   have : ess_sup (λ (x : α), (∥f n x - g x∥₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
     lt_of_le_of_lt hn (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
       ennreal.of_real_lt_top.ne),
   refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,
   congr' with x,
-  simp only [ennreal.of_real_le_iff_le_to_real ennreal.coe_lt_top.ne, ennreal.coe_to_real,
+  simv only [ennreal.of_real_le_iff_le_to_real ennreal.coe_lt_top.ne, ennreal.coe_to_real,
     not_lt, coe_nnnorm, set.mem_set_of_eq, set.mem_compl_eq],
   rw ← dist_eq_norm (f n x) (g x),
   refl

@@ -78,11 +78,11 @@ begin
   { ext, }
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma p_comp {P Q : karoubi C} (f : hom P Q) : P.p ≫ f.f = f.f :=
 by rw [f.comm, ← assoc, P.idem]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma comp_p {P Q : karoubi C} (f : hom P Q) : f.f ≫ Q.p = f.f :=
 by rw [f.comm, assoc, assoc, Q.idem]
 
@@ -119,7 +119,7 @@ lemma coe_p (X : C) : (X : karoubi C).p = 𝟙 X := by refl
 @[simp]
 lemma eq_to_hom_f {P Q : karoubi C} (h : P = Q) :
   karoubi.hom.f (eq_to_hom h) = P.p ≫ eq_to_hom (congr_arg karoubi.X h) :=
-by { subst h, simp only [eq_to_hom_refl, karoubi.id_eq, comp_id], }
+by { subst h, simv only [eq_to_hom_refl, karoubi.id_eq, comp_id], }
 
 end karoubi
 
@@ -128,7 +128,7 @@ formal direct factor of `X` given by `𝟙 X`. -/
 @[simps]
 def to_karoubi : C ⥤ karoubi C :=
 { obj := λ X, ⟨X, 𝟙 X, by rw comp_id⟩,
-  map := λ X Y f, ⟨f, by simp only [comp_id, id_comp]⟩ }
+  map := λ X Y f, ⟨f, by simv only [comp_id, id_comp]⟩ }
 
 instance : full (to_karoubi C) :=
 { preimage := λ X Y f, f.f, }
@@ -144,10 +144,10 @@ instance [preadditive C] {P Q : karoubi C} : add_comm_group (P ⟶ Q) :=
     congr',
     exacts [f.comm, g.comm],
   end⟩,
-  zero := ⟨0, by simp only [comp_zero, zero_comp]⟩,
-  zero_add := λ f, by { ext, simp only [zero_add], },
-  add_zero := λ f, by { ext, simp only [add_zero], },
-  add_assoc := λ f g h', by simp only [add_assoc],
+  zero := ⟨0, by simv only [comp_zero, zero_comp]⟩,
+  zero_add := λ f, by { ext, simv only [zero_add], },
+  add_zero := λ f, by { ext, simv only [add_zero], },
+  add_assoc := λ f g h', by simv only [add_assoc],
   add_comm := λ f g, by { ext, apply_rules [add_comm], },
   neg := λ f, ⟨-f.f, by simpa only [neg_comp, comp_neg, neg_inj] using f.comm⟩,
   add_left_neg := λ f, by { ext, apply_rules [add_left_neg], }, }
@@ -174,9 +174,9 @@ end karoubi
 instance [preadditive C] : preadditive (karoubi C) :=
 { hom_group := λ P Q, by apply_instance,
   add_comp' := λ P Q R f g h,
-    by { ext, simp only [add_comp, quiver.hom.add_comm_group_add_f, karoubi.comp], },
+    by { ext, simv only [add_comp, quiver.hom.add_comm_group_add_f, karoubi.comp], },
   comp_add' := λ P Q R f g h,
-    by { ext, simp only [comp_add, quiver.hom.add_comm_group_add_f, karoubi.comp], }, }
+    by { ext, simv only [comp_add, quiver.hom.add_comm_group_add_f, karoubi.comp], }, }
 
 instance [preadditive C] : functor.additive (to_karoubi C) := { }
 
@@ -189,7 +189,7 @@ begin
   refine ⟨_⟩,
   intros P p hp,
   have hp' := hom_ext.mp hp,
-  simp only [comp] at hp',
+  simv only [comp] at hp',
   use ⟨P.X, p.f, hp'⟩,
   use ⟨p.f, by rw [comp_p p, hp']⟩,
   use ⟨p.f, by rw [hp', p_comp p]⟩,
@@ -228,11 +228,11 @@ def decomp_id_p (P : karoubi C) : (P.X : karoubi C) ⟶ P :=
 is actually a direct factor in the category `karoubi C`. -/
 lemma decomp_id (P : karoubi C) :
   𝟙 P = (decomp_id_i P) ≫ (decomp_id_p P) :=
-by { ext, simp only [comp, id_eq, P.idem, decomp_id_i, decomp_id_p], }
+by { ext, simv only [comp, id_eq, P.idem, decomp_id_i, decomp_id_p], }
 
 lemma decomp_p (P : karoubi C) :
   (to_karoubi C).map P.p = (decomp_id_p P) ≫ (decomp_id_i P) :=
-by { ext, simp only [comp, decomp_id_p_f, decomp_id_i_f, P.idem, to_karoubi_map_f], }
+by { ext, simv only [comp, decomp_id_p_f, decomp_id_i_f, P.idem, to_karoubi_map_f], }
 
 lemma decomp_id_i_to_karoubi (X : C) : decomp_id_i ((to_karoubi C).obj X) = 𝟙 _ :=
 by { ext, refl, }
@@ -242,11 +242,11 @@ by { ext, refl, }
 
 lemma decomp_id_i_naturality {P Q : karoubi C} (f : P ⟶ Q) : f ≫ decomp_id_i _ =
   decomp_id_i _ ≫ ⟨f.f, by erw [comp_id, id_comp]⟩ :=
-by { ext, simp only [comp, decomp_id_i_f, karoubi.comp_p, karoubi.p_comp], }
+by { ext, simv only [comp, decomp_id_i_f, karoubi.comp_p, karoubi.p_comp], }
 
 lemma decomp_id_p_naturality {P Q : karoubi C} (f : P ⟶ Q) : decomp_id_p P ≫ f =
   (⟨f.f, by erw [comp_id, id_comp]⟩ : (P.X : karoubi C) ⟶ Q.X) ≫ decomp_id_p Q :=
-by { ext, simp only [comp, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
+by { ext, simv only [comp, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
 
 end karoubi
 

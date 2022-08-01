@@ -37,7 +37,7 @@ lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → E} :
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
   rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
-  { simp only [ball_zero_eq, set.mem_set_of_eq] },
+  { simv only [ball_zero_eq, set.mem_set_of_eq] },
   { rintros s t hst ⟨s', hs'⟩,
     exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
 end
@@ -54,7 +54,7 @@ begin
   refine ⟨s ∪ h.to_finset, λ t ht, _⟩,
   have : ∀ i ∈ t, ∥f i∥ ≤ g i,
   { intros i hi,
-    simp only [disjoint_left, mem_union, not_or_distrib, h.mem_to_finset, set.mem_compl_iff,
+    simv only [disjoint_left, mem_union, not_or_distrib, h.mem_to_finset, set.mem_compl_iff,
       not_not] at ht,
     exact (ht hi).2 },
   calc ∥∑ i in t, f i∥ ≤ ∑ i in t, g i    : norm_sum_le_of_le _ this
@@ -140,7 +140,7 @@ lemma tsum_of_nnnorm_bounded {f : ι → E} {g : ι → ℝ≥0} {a : ℝ≥0} (
   (h : ∀ i, ∥f i∥₊ ≤ g i) :
   ∥∑' i : ι, f i∥₊ ≤ a :=
 begin
-  simp only [← nnreal.coe_le_coe, ← nnreal.has_sum_coe, coe_nnnorm] at *,
+  simv only [← nnreal.coe_le_coe, ← nnreal.has_sum_coe, coe_nnnorm] at *,
   exact tsum_of_norm_bounded hg h
 end
 

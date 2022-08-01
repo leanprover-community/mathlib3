@@ -55,7 +55,7 @@ variables (D : J ⥤ algebra T) (c : cone (D ⋙ T.forget)) (t : is_limit c)
   begin
     rw [category.assoc, t.fac, new_cone_π_app, ←T.η.naturality_assoc, functor.id_map,
       (D.obj j).unit],
-    dsimp, simp -- See library note [dsimp, simp]
+    dsimp, simv -- See library note [dsimp, simv]
   end,
   assoc' := t.hom_ext $ λ j,
   begin
@@ -69,7 +69,7 @@ variables (D : J ⥤ algebra T) (c : cone (D ⋙ T.forget)) (t : is_limit c)
 @[simps] def lifted_cone : cone D :=
 { X := cone_point D c t,
   π := { app := λ j, { f := c.π.app j },
-         naturality' := λ X Y f, by { ext1, dsimp, erw c.w f, simp } } }
+         naturality' := λ X Y f, by { ext1, dsimp, erw c.w f, simv } } }
 
 /-- (Impl) Prove that the lifted cone is limiting. -/
 @[simps]
@@ -177,7 +177,7 @@ algebra T :=
     intro j,
     rw [(show c.ι.app j ≫ T.η.app c.X ≫ _ = T.η.app (D.obj j).A ≫ _ ≫ _,
                   from T.η.naturality_assoc _ _), commuting, algebra.unit_assoc (D.obj j)],
-    dsimp, simp -- See library note [dsimp, simp]
+    dsimp, simv -- See library note [dsimp, simv]
   end,
   assoc' :=
   begin

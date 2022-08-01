@@ -6,7 +6,7 @@ Authors: Keeley Hoek, Scott Morrison
 import tactic.core
 
 /-!
-## #simp
+## #simv
 A user command to run the simplifier.
 -/
 
@@ -50,17 +50,17 @@ setup_tactic_parser
 declare_trace silence_simp_if_true
 
 /--
-The basic usage is `#simp e`, where `e` is an expression,
+The basic usage is `#simv e`, where `e` is an expression,
 which will print the simplified form of `e`.
 
-You can specify additional simp lemmas as usual for example using
-`#simp [f, g] : e`, or `#simp with attr : e`.
+You can specify additional simv lemmas as usual for example using
+`#simv [f, g] : e`, or `#simv with attr : e`.
 (The colon is optional, but helpful for the parser.)
 
-`#simp` understands local variables, so you can use them to
+`#simv` understands local variables, so you can use them to
 introduce parameters.
 -/
-@[user_command] meta def simp_cmd (_ : parse $ tk "#simp") : lean.parser unit :=
+@[user_command] meta def simp_cmd (_ : parse $ tk "#simv") : lean.parser unit :=
 do
   no_dflt ← only_flag,
   hs ← simp_arg_list,
@@ -68,10 +68,10 @@ do
   o ← optional (tk ":"),
   e ← types.texpr,
 
-  /- Retrieve the `pexpr`s parsed as part of the simp args, and collate them into a big list. -/
+  /- Retrieve the `pexpr`s parsed as part of the simv args, and collate them into a big list. -/
   let hs_es := list.join $ hs.map $ option.to_list ∘ simp_arg_type.to_pexpr,
 
-  /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
+  /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simv`
      may be safely called with expected behaviour given the `variables` in the environment. -/
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
@@ -86,27 +86,27 @@ do
 
        We would prefer to just elaborate the `pexpr`s encoded in the `simp_arg_list` against the
        tactic state we have created (as we could with `e` above), but the simplifier expects
-       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simp` do the
+       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simv` do the
        elaboration when the time comes.
 
        You might think that we could just examine each of these `pexpr`s, call `to_expr` on them,
        and then call `to_pexpr` afterward and save the results over the original `pexprs`. Due to
-       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simp`
+       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simv`
        framework is not robust enough to handle this method. When pieces of expressions like
        annotation macros are injected, the direct patten matches in the `simp_lemmas.*` codebase
        fail, and the lemmas we want don't get added.
        -/
     let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
 
-    /- Finally, call `expr.simp` with `e` and return the result. -/
-    prod.fst <$> e.simp {} failed no_dflt attr_names hs } ts,
+    /- Finally, call `expr.simv` with `e` and return the result. -/
+    prod.fst <$> e.simv {} failed no_dflt attr_names hs } ts,
 
   /- Trace the result. -/
   when (¬ is_trace_enabled_for `silence_simp_if_true ∨ simp_result ≠ expr.const `true [])
     (trace simp_result)
 
 add_tactic_doc
-{ name                     := "#simp",
+{ name                     := "#simv",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.simp_cmd],
   tags                     := ["simplification"] }

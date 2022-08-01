@@ -65,7 +65,7 @@ lemma well_founded_on_iff {s : set α} {r : α → α → Prop} :
   s.well_founded_on r ↔ well_founded (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
 begin
   have f : rel_embedding (λ (a : s) (b : s), r a b) (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
-    ⟨⟨coe, subtype.coe_injective⟩, λ a b, by simp⟩,
+    ⟨⟨coe, subtype.coe_injective⟩, λ a b, by simv⟩,
   refine ⟨λ h, _, f.well_founded⟩,
   rw well_founded.well_founded_iff_has_min,
   intros t ht,
@@ -99,7 +99,7 @@ begin
   rw [well_founded_on_iff, rel_embedding.well_founded_iff_no_descending_seq],
   refine ⟨λ h f con, begin
       refine h.elim' ⟨⟨f, f.injective⟩, λ a b, _⟩,
-       simp only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
+       simv only [con (mem_range_self a), con (mem_range_self b), and_true, gt_iff_lt,
         function.embedding.coe_fn_mk, f.map_rel_iff]
     end, λ h, ⟨λ con, _⟩⟩,
   rcases con with ⟨f, hf⟩,
@@ -121,7 +121,7 @@ def is_wf (s : set α) : Prop := well_founded_on s (<)
 @[simp] lemma is_wf_empty : is_wf (∅ : set α) := well_founded_of_empty _
 
 lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
-by simp [is_wf, well_founded_on_iff]
+by simv [is_wf, well_founded_on_iff]
 
 variables {s t : set α}
 
@@ -167,11 +167,11 @@ begin
   { apply hs ((nat.order_embedding_of_set (f ⁻¹' s)).dual.trans f),
     change range (function.comp f (nat.order_embedding_of_set (f ⁻¹' s))) ⊆ s,
     rw [range_comp, image_subset_iff],
-      simp },
+      simv },
   { apply ht ((nat.order_embedding_of_set (f ⁻¹' t)).dual.trans f),
     change range (function.comp f (nat.order_embedding_of_set (f ⁻¹' t))) ⊆ t,
     rw [range_comp, image_subset_iff],
-      simp }
+      simv }
 end
 end partial_order
 
@@ -347,15 +347,15 @@ begin
   { rw [range_comp, image_subset_iff],
     refine subset.trans hf _,
     rintros ⟨x1, x2⟩ hx,
-    simp only [mem_preimage, hx.1] },
+    simv only [mem_preimage, hx.1] },
   obtain ⟨g2, h2⟩ := ht (prod.snd ∘ f ∘ g1) _,
   refine ⟨g2.trans g1, λ m n mn, _⟩,
   swap,
   { rw [range_comp, image_subset_iff],
     refine subset.trans (range_comp_subset_range _ _) (subset.trans hf _),
     rintros ⟨x1, x2⟩ hx,
-    simp only [mem_preimage, hx.2] },
-  simp only [rel_embedding.coe_trans, function.comp_app],
+    simv only [mem_preimage, hx.2] },
+  simv only [rel_embedding.coe_trans, function.comp_app],
   exact ⟨h1 (g2.le_iff_le.2 mn), h2 mn⟩,
 end
 
@@ -386,12 +386,12 @@ begin
     { rw [function.comp.assoc, ← rel_embedding.coe_trans] at hg,
       exact ⟨_, hg⟩ },
     rw [range_comp, image_subset_iff],
-    simp },
+    simv },
   { obtain ⟨g, hg⟩ := ht (f ∘ (nat.order_embedding_of_set (f ⁻¹' t))) _,
     { rw [function.comp.assoc, ← rel_embedding.coe_trans] at hg,
       exact ⟨_, hg⟩ },
     rw [range_comp, image_subset_iff],
-    simp }
+    simv }
 end
 
 end partial_order
@@ -562,7 +562,7 @@ lemma iff_forall_not_is_bad_seq (r : α → α → Prop) (s : set α) :
 begin
   rw [set.partially_well_ordered_on],
   apply forall_congr (λ f, _),
-  simp [is_bad_seq]
+  simv [is_bad_seq]
 end
 
 /-- This indicates that every bad sequence `g` that agrees with `f` on the first `n`
@@ -645,11 +645,11 @@ begin
   have hnil : ∀ n, f n ≠ list.nil :=
     λ n con, (hf1).2 n n.succ n.lt_succ_self (con.symm ▸ list.sublist_forall₂.nil),
   obtain ⟨g, hg⟩ := h.exists_monotone_subseq (list.head ∘ f) _,
-  swap, { simp only [set.range_subset_iff, function.comp_apply],
+  swap, { simv only [set.range_subset_iff, function.comp_apply],
     exact λ n, hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },
   have hf' := hf2 (g 0) (λ n, if n < g 0 then f n else list.tail (f (g (n - g 0))))
     (λ m hm, (if_pos hm).symm) _,
-  swap, { simp only [if_neg (lt_irrefl (g 0)), tsub_self],
+  swap, { simv only [if_neg (lt_irrefl (g 0)), tsub_self],
     rw [list.length_tail, ← nat.pred_eq_sub_one],
     exact nat.pred_lt (λ con, hnil _ (list.length_eq_zero.1 con)) },
   rw [is_bad_seq] at hf',
@@ -708,7 +708,7 @@ def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
 
 namespace mul_antidiagonal
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_mul_antidiagonal [monoid α] {s t : set α} {a : α} {x : α × α} :
   x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
 
@@ -813,10 +813,10 @@ noncomputable def mul_antidiagonal : finset (α × α) :=
 
 variables {hs} {ht} {u : set α} {hu : u.is_pwo} {a} {x : α × α}
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_mul_antidiagonal :
   x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
-by simp [mul_antidiagonal]
+by simv [mul_antidiagonal]
 
 @[to_additive]
 lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
@@ -893,12 +893,12 @@ begin
   { simpa only [forall_true_left, finset.mem_univ] using this finset.univ, },
   apply' finset.induction,
   { intros f hf, existsi rel_embedding.refl (≤),
-    simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
+    simv only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f hf,
     obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
       ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),
     obtain ⟨g', hg'⟩ := ih (f ∘ g) (set.subset_univ _),
     refine ⟨g'.trans g, λ a b hab, _⟩,
-    simp only [finset.mem_insert, rel_embedding.coe_trans, function.comp_app, forall_eq_or_imp],
+    simv only [finset.mem_insert, rel_embedding.coe_trans, function.comp_app, forall_eq_or_imp],
     exact ⟨hg (order_hom_class.mono g' hab), hg' hab⟩, },
 end

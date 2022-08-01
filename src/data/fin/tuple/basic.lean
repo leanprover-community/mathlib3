@@ -56,25 +56,25 @@ def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
 λ j, fin.cases x p j
 
 @[simp] lemma tail_cons : tail (cons x p) = p :=
-by simp [tail, cons]
+by simv [tail, cons]
 
 @[simp] lemma cons_succ : cons x p i.succ = p i :=
-by simp [cons]
+by simv [cons]
 
 @[simp] lemma cons_zero : cons x p 0 = x :=
-by simp [cons]
+by simv [cons]
 
 /-- Updating a tuple and adding an element at the beginning commute. -/
 @[simp] lemma cons_update : cons x (update p i y) = update (cons x p) i.succ y :=
 begin
   ext j,
   by_cases h : j = 0,
-  { rw h, simp [ne.symm (succ_ne_zero i)] },
+  { rw h, simv [ne.symm (succ_ne_zero i)] },
   { let j' := pred j h,
     have : j'.succ = j := succ_pred j h,
     rw [← this, cons_succ],
     by_cases h' : j' = i,
-    { rw h', simp },
+    { rw h', simv },
     { have : j'.succ ≠ i.succ, by rwa [ne.def, succ_inj],
       rw [update_noteq h', update_noteq this, cons_succ] } }
 end
@@ -99,8 +99,8 @@ lemma update_cons_zero : update (cons x p) 0 z = cons z p :=
 begin
   ext j,
   by_cases h : j = 0,
-  { rw h, simp },
-  { simp only [h, update_noteq, ne.def, not_false_iff],
+  { rw h, simv },
+  { simv only [h, update_noteq, ne.def, not_false_iff],
     let j' := pred j h,
     have : j'.succ = j := succ_pred j h,
     rw [← this, cons_succ, cons_succ] }
@@ -111,7 +111,7 @@ end
 begin
   ext j,
   by_cases h : j = 0,
-  { rw h, simp },
+  { rw h, simv },
   { let j' := pred j h,
     have : j'.succ = j := succ_pred j h,
     rw [← this, tail, cons_succ] }
@@ -150,7 +150,7 @@ lemma exists_fin_succ_pi {P : (Π i, α i) → Prop} :
 
 /-- Updating the first element of a tuple does not change the tail. -/
 @[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=
-by { ext j, simp [tail, fin.succ_ne_zero] }
+by { ext j, simv [tail, fin.succ_ne_zero] }
 
 /-- Updating a nonzero element and taking the tail commute. -/
 @[simp] lemma tail_update_succ :
@@ -158,8 +158,8 @@ by { ext j, simp [tail, fin.succ_ne_zero] }
 begin
   ext j,
   by_cases h : j = i,
-  { rw h, simp [tail] },
-  { simp [tail, (fin.succ_injective n).ne h, h] }
+  { rw h, simv [tail] },
+  { simv [tail, (fin.succ_injective n).ne h, h] }
 end
 
 lemma comp_cons {α : Type*} {β : Type*} (g : α → β) (y : α) (q : fin n → α) :
@@ -175,11 +175,11 @@ end
 
 lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
   g ∘ (tail q) = tail (g ∘ q) :=
-by { ext j, simp [tail] }
+by { ext j, simv [tail] }
 
 lemma le_cons [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
   q ≤ cons x p ↔ q 0 ≤ x ∧ tail q ≤ p :=
-forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simp [tail]
+forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simv [tail]
 
 lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
   cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
@@ -187,7 +187,7 @@ lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fi
 
 lemma cons_le_cons [Π i, preorder (α i)] {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
   cons x₀ x ≤ cons y₀ y ↔ x₀ ≤ y₀ ∧ x ≤ y :=
-forall_fin_succ.trans $ and_congr_right' $ by simp only [cons_succ, pi.le_def]
+forall_fin_succ.trans $ and_congr_right' $ by simv only [cons_succ, pi.le_def]
 
 lemma pi_lex_lt_cons_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)}
   (s : Π {i : fin n.succ}, α i → α i → Prop) :
@@ -195,7 +195,7 @@ lemma pi_lex_lt_cons_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)}
     s x₀ y₀ ∨ x₀ = y₀ ∧ pi.lex (<) (λ i : fin n, @s i.succ) x y :=
 begin
   simp_rw [pi.lex, fin.exists_fin_succ, fin.cons_succ, fin.cons_zero, fin.forall_fin_succ],
-  simp [and_assoc, exists_and_distrib_left],
+  simv [and_assoc, exists_and_distrib_left],
 end
 
 @[simp]
@@ -203,7 +203,7 @@ lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
   set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
 begin
   ext y,
-  simp only [set.mem_range, set.mem_insert_iff],
+  simv only [set.mem_range, set.mem_insert_iff],
   split,
   { rintros ⟨i, rfl⟩,
     refine cases (or.inl (cons_zero _ _)) (λ i, or.inr ⟨i, _⟩) i,
@@ -256,7 +256,7 @@ else _root_.cast (by rw eq_last_of_not_lt h) x
 begin
   ext i,
   have h' := fin.cast_lt_cast_succ i i.is_lt,
-  simp [init, snoc, i.is_lt, h'],
+  simv [init, snoc, i.is_lt, h'],
   convert cast_eq rfl (p i)
 end
 
@@ -264,7 +264,7 @@ end
 begin
   have : i.cast_succ.val < n := i.is_lt,
   have h' := fin.cast_lt_cast_succ i i.is_lt,
-  simp [snoc, this, h'],
+  simv [snoc, this, h'],
   convert cast_eq rfl (p i)
 end
 
@@ -273,16 +273,16 @@ end
 funext (λ i, by rw [function.comp_app, snoc_cast_succ])
 
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
-by { simp [snoc] }
+by { simv [snoc] }
 
 @[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} (f : fin (m + n) → α) (a : α) :
   (snoc f a : fin _ → α) ∘ (nat_add m : fin (n + 1) → fin (m + n + 1)) = snoc (f ∘ nat_add m) a :=
 begin
   ext i,
   refine fin.last_cases _ (λ i, _) i,
-  { simp only [function.comp_app],
+  { simv only [function.comp_app],
     rw [snoc_last, nat_add_last, snoc_last] },
-  { simp only [function.comp_app],
+  { simv only [function.comp_app],
     rw [snoc_cast_succ, nat_add_cast_succ, snoc_cast_succ] }
 end
 
@@ -301,11 +301,11 @@ funext (snoc_cast_add f a)
 begin
   ext j,
   by_cases h : j.val < n,
-  { simp only [snoc, h, dif_pos],
+  { simv only [snoc, h, dif_pos],
     by_cases h' : j = cast_succ i,
     { have C1 : α i.cast_succ = α j, by rw h',
       have E1 : update (snoc p x) i.cast_succ y j = _root_.cast C1 y,
-      { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
+      { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simv,
         convert this,
         { exact h'.symm },
         { exact heq_of_cast_eq (congr_arg α (eq.symm h')) rfl } },
@@ -313,17 +313,17 @@ begin
         by rw [cast_succ_cast_lt, h'],
       have E2 : update p i y (cast_lt j h) = _root_.cast C2 y,
       { have : update p (cast_lt j h) (_root_.cast C2 y) (cast_lt j h) = _root_.cast C2 y,
-          by simp,
+          by simv,
         convert this,
-        { simp [h, h'] },
+        { simv [h, h'] },
         { exact heq_of_cast_eq C2 rfl } },
       rw [E1, E2],
       exact eq_rec_compose _ _ _ },
     { have : ¬(cast_lt j h = i),
         by { assume E, apply h', rw [← E, cast_succ_cast_lt] },
-      simp [h', this, snoc, h] } },
+      simv [h', this, snoc, h] } },
   { rw eq_last_of_not_lt h,
-    simp [ne.symm (ne_of_lt (cast_succ_lt_last i))] }
+    simv [ne.symm (ne_of_lt (cast_succ_lt_last i))] }
 end
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
@@ -333,9 +333,9 @@ begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, update_noteq, this, snoc] },
+    simv [h, update_noteq, this, snoc] },
   { rw eq_last_of_not_lt h,
-    simp }
+    simv }
 end
 
 /-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
@@ -344,17 +344,17 @@ begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, update_noteq, this, snoc, init, cast_succ_cast_lt],
+    simv [h, update_noteq, this, snoc, init, cast_succ_cast_lt],
     have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
     rw ← cast_eq rfl (q j),
     congr' 1; rw A },
   { rw eq_last_of_not_lt h,
-    simp }
+    simv }
 end
 
 /-- Updating the last element of a tuple does not change the beginning. -/
 @[simp] lemma init_update_last : init (update q (last n) z) = init q :=
-by { ext j, simp [init, ne_of_lt, cast_succ_lt_last] }
+by { ext j, simv [init, ne_of_lt, cast_succ_lt_last] }
 
 /-- Updating an element and taking the beginning commute. -/
 @[simp] lemma init_update_cast_succ :
@@ -362,15 +362,15 @@ by { ext j, simp [init, ne_of_lt, cast_succ_lt_last] }
 begin
   ext j,
   by_cases h : j = i,
-  { rw h, simp [init] },
-  { simp [init, h] }
+  { rw h, simv [init] },
+  { simv [init, h] }
 end
 
 /-- `tail` and `init` commute. We state this lemma in a non-dependent setting, as otherwise it
 would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
 lemma tail_init_eq_init_tail {β : Type*} (q : fin (n+2) → β) :
   tail (init q) = init (tail q) :=
-by { ext i, simp [tail, init, cast_succ_fin_succ] }
+by { ext i, simv [tail, init, cast_succ_fin_succ] }
 
 /-- `cons` and `snoc` commute. We state this lemma in a non-dependent setting, as otherwise it
 would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
@@ -387,9 +387,9 @@ begin
   { set k := cast_lt j h' with jk,
     have : j = k.cast_succ, by rw [jk, cast_succ_cast_lt],
     rw [this, ← cast_succ_fin_succ],
-    simp },
+    simv },
   rw [eq_last_of_not_lt h', succ_last],
-  simp
+  simv
 end
 
 
@@ -399,14 +399,14 @@ begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, this, snoc, cast_succ_cast_lt] },
+    simv [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
-    simp }
+    simv }
 end
 
 lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
   g ∘ (init q) = init (g ∘ q) :=
-by { ext j, simp [init] }
+by { ext j, simv [init] }
 
 end tuple_right
 
@@ -438,13 +438,13 @@ succ_above_cases i x p j
 
 @[simp] lemma insert_nth_apply_same (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j)) :
   insert_nth i x p i = x :=
-by simp [insert_nth, succ_above_cases]
+by simv [insert_nth, succ_above_cases]
 
 @[simp] lemma insert_nth_apply_succ_above (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j))
   (j : fin n) :
   insert_nth i x p (i.succ_above j) = p j :=
 begin
-  simp only [insert_nth, succ_above_cases, dif_neg (succ_above_ne _ _)],
+  simv only [insert_nth, succ_above_cases, dif_neg (succ_above_ne _ _)],
   by_cases hlt : j.cast_succ < i,
   { rw [dif_pos ((succ_above_lt_iff _ _).2 hlt)],
     apply eq_of_heq ((eq_rec_heq _ _).trans _),
@@ -463,7 +463,7 @@ funext $ insert_nth_apply_succ_above i x p
 
 lemma insert_nth_eq_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
   i.insert_nth x p = q ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
-by simp [funext_iff, forall_iff_succ_above i, eq_comm]
+by simv [funext_iff, forall_iff_succ_above i, eq_comm]
 
 lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
   q = i.insert_nth x p ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
@@ -482,20 +482,20 @@ by rw [insert_nth, succ_above_cases, dif_neg h.ne', dif_neg h.not_lt]
 lemma insert_nth_zero (x : α 0) (p : Π j : fin n, α (succ_above 0 j)) :
   insert_nth 0 x p = cons x (λ j, _root_.cast (congr_arg α (congr_fun succ_above_zero j)) (p j)) :=
 begin
-  refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
+  refine insert_nth_eq_iff.2 ⟨by simv, _⟩,
   ext j,
   convert (cons_succ _ _ _).symm
 end
 
 @[simp] lemma insert_nth_zero' (x : β) (p : fin n → β) :
   @insert_nth _ (λ _, β) 0 x p = cons x p :=
-by simp [insert_nth_zero]
+by simv [insert_nth_zero]
 
 lemma insert_nth_last (x : α (last n)) (p : Π j : fin n, α ((last n).succ_above j)) :
   insert_nth (last n) x p =
     snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x :=
 begin
-  refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
+  refine insert_nth_eq_iff.2 ⟨by simv, _⟩,
   ext j,
   apply eq_of_heq,
   transitivity snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x j.cast_succ,
@@ -506,17 +506,17 @@ end
 
 @[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
   @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
-by simp [insert_nth_last]
+by simv [insert_nth_last]
 
 @[simp] lemma insert_nth_zero_right [Π j, has_zero (α j)] (i : fin (n + 1)) (x : α i) :
   i.insert_nth x 0 = pi.single i x :=
-insert_nth_eq_iff.2 $ by simp [succ_above_ne, pi.zero_def]
+insert_nth_eq_iff.2 $ by simv [succ_above_ne, pi.zero_def]
 
 lemma insert_nth_binop (op : Π j, α j → α j → α j) (i : fin (n + 1))
   (x y : α i) (p q : Π j, α (i.succ_above j)) :
   i.insert_nth (op i x y) (λ j, op _ (p j) (q j)) =
     λ j, op j (i.insert_nth x p j) (i.insert_nth y q j) :=
-insert_nth_eq_iff.2 $ by simp
+insert_nth_eq_iff.2 $ by simv
 
 @[simp] lemma insert_nth_mul [Π j, has_mul (α j)] (i : fin (n + 1))
   (x y : α i) (p q : Π j, α (i.succ_above j)) :
@@ -547,11 +547,11 @@ variables [Π i, preorder (α i)]
 
 lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
   i.insert_nth x p ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
-by simp [pi.le_def, forall_iff_succ_above i]
+by simv [pi.le_def, forall_iff_succ_above i]
 
 lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
   q ≤ i.insert_nth x p ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
-by simp [pi.le_def, forall_iff_succ_above i]
+by simv [pi.le_def, forall_iff_succ_above i]
 
 open set
 
@@ -559,17 +559,17 @@ lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_abov
   {q₁ q₂ : Π j, α j} :
   i.insert_nth x p ∈ Icc q₁ q₂ ↔
     x ∈ Icc (q₁ i) (q₂ i) ∧ p ∈ Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
-by simp only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
+by simv only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
 
 lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
   (hx : x ∈ Icc (q₁ i) (q₂ i)) :
   i.insert_nth x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
-set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
+set.ext $ λ p, by simv only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
 
 lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
   (hx : x ∉ Icc (q₁ i) (q₂ i)) :
   i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
-set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
+set.ext $ λ p, by simv only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
 
 end insert_nth
 
@@ -622,13 +622,13 @@ begin
         (λ h, by clear_aux_decl; cases h; exact hl hi)⟩, hi⟩,
       rw h at this,
       exact this } },
-  { simp }
+  { simv }
 end⟩
 
 /-- `find p` returns `none` if and only if `p i` never holds. -/
 lemma find_eq_none_iff {n : ℕ} {p : fin n → Prop} [decidable_pred p] :
   find p = none ↔ ∀ i, ¬ p i :=
-by rw [← not_exists, ← is_some_find_iff]; cases (find p); simp
+by rw [← not_exists, ← is_some_find_iff]; cases (find p); simv
 
 /-- If `find p` returns `some i`, then `p j` does not hold for `j < i`, i.e., `i` is minimal among
 the indices where `p` holds. -/

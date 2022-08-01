@@ -71,7 +71,7 @@ instance forget_to_Cat_full : full forget_to_Cat :=
 instance forget_to_Cat_faithful : faithful forget_to_Cat := { }
 
 /-- Convert arrows in the category of groupoids to functors,
-which sometimes helps in applying simp lemmas -/
+which sometimes helps in applying simv lemmas -/
 lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
 
 /-- Converts identity in the category of groupoids to the functor identity -/
@@ -90,7 +90,7 @@ def pi_limit_fan_is_limit ⦃J : Type u⦄ (F : J → Groupoid.{u u}) :
   limits.is_limit (pi_limit_fan F) :=
 limits.mk_fan_limit (pi_limit_fan F)
 (λ s, functor.pi' (λ j, s.proj j))
-(by { intros, dunfold pi_limit_fan, simp [hom_to_functor], })
+(by { intros, dunfold pi_limit_fan, simv [hom_to_functor], })
 begin
   intros s m w,
   apply functor.pi_ext,
@@ -111,7 +111,7 @@ limits.is_limit.cone_point_unique_up_to_iso
 @[simp]
 lemma pi_iso_pi_hom_π (J : Type u) (f : J → Groupoid.{u u}) (j : J) :
   (pi_iso_pi J f).hom ≫ (limits.pi.π f j) = category_theory.pi.eval _ j :=
-by { simp [pi_iso_pi], refl, }
+by { simv [pi_iso_pi], refl, }
 
 end products
 

@@ -39,10 +39,10 @@ namespace continuous_linear_map
 
 protected theorem has_fpower_series_on_ball (f : E →L[𝕜] F) (x : E) :
   has_fpower_series_on_ball f (f.fpower_series x) x ∞ :=
-{ r_le := by simp,
+{ r_le := by simv,
   r_pos := ennreal.coe_lt_top,
   has_sum := λ y _, (has_sum_nat_add_iff' 2).1 $
-    by simp [finset.sum_range_succ, ← sub_sub, has_sum_zero] }
+    by simv [finset.sum_range_succ, ← sub_sub, has_sum_zero] }
 
 protected theorem has_fpower_series_at (f : E →L[𝕜] F) (x : E) :
   has_fpower_series_at f (f.fpower_series x) x :=
@@ -78,13 +78,13 @@ rfl
 
 protected theorem has_fpower_series_on_ball_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
   has_fpower_series_on_ball (λ x : E × F, f x.1 x.2) (f.fpower_series_bilinear x) x ∞ :=
-{ r_le := by simp,
+{ r_le := by simv,
   r_pos := ennreal.coe_lt_top,
   has_sum := λ y _, (has_sum_nat_add_iff' 3).1 $
     begin
-      simp only [finset.sum_range_succ, finset.sum_range_one, prod.fst_add, prod.snd_add,
+      simv only [finset.sum_range_succ, finset.sum_range_one, prod.fst_add, prod.snd_add,
         f.map_add_add],
-      dsimp, simp only [add_comm, sub_self, has_sum_zero]
+      dsimp, simv only [add_comm, sub_self, has_sum_zero]
     end }
 
 protected theorem has_fpower_series_at_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :

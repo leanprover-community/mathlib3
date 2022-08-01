@@ -47,7 +47,7 @@ def types.mono_over_equivalence_set (α : Type u) : mono_over α ≌ set α :=
   inverse :=
   { obj := λ s, mono_over.mk' (subtype.val : s → α),
     map := λ s t b, mono_over.hom_mk (λ w, ⟨w.1, set.mem_of_mem_of_subset w.2 b.le⟩)
-      (by { ext, simp, }), },
+      (by { ext, simv, }), },
   unit_iso := nat_iso.of_components
     (λ f, mono_over.iso_mk
       (equiv.of_injective f.1.hom ((mono_iff_injective _).mp f.2)).to_iso (by tidy))

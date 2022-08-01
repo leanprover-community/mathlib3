@@ -22,9 +22,9 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
 { to_fun := λ f, ⟨(inl.trans f, inr.trans f),
   begin
     rintros _ ⟨⟨a, h⟩, ⟨b, rfl⟩⟩,
-    simp only [trans_apply, inl_apply, inr_apply] at h,
+    simv only [trans_apply, inl_apply, inr_apply] at h,
     have : sum.inl a = sum.inr b := f.injective h,
-    simp only at this,
+    simv only at this,
     assumption
   end⟩,
   inv_fun := λ ⟨⟨f, g⟩, disj⟩,
@@ -34,14 +34,14 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
     end,
     begin
       rintros (a₁|b₁) (a₂|b₂) f_eq;
-      simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
+      simv only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
       { rw f.injective f_eq },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩ },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩ },
+      { simv! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simv⟩, ⟨b₂, by simv [f_eq]⟩⟩ },
+      { simv! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simv⟩, ⟨b₁, by simv [f_eq]⟩⟩ },
       { rw g.injective f_eq }
     end⟩,
-  left_inv := λ f, by { dsimp only, ext, cases x; simp! },
-  right_inv := λ ⟨⟨f, g⟩, _⟩, by { simp only [prod.mk.inj_iff], split; ext; simp! } }
+  left_inv := λ f, by { dsimp only, ext, cases x; simv! },
+  right_inv := λ ⟨⟨f, g⟩, _⟩, by { simv only [prod.mk.inj_iff], split; ext; simv! } }
 
 /-- Embeddings whose range lies within a set are equivalent to embeddings to that set.
 This is `function.embedding.cod_restrict` as an equiv. -/
@@ -76,6 +76,6 @@ def unique_embedding_equiv_result {α β : Type*} [unique α] : (α ↪ β) ≃ 
 { to_fun := λ f, f default,
   inv_fun := λ x, ⟨λ _, x, λ _ _ _, subsingleton.elim _ _⟩,
   left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
-  right_inv := λ _, by simp }
+  right_inv := λ _, by simv }
 
 end equiv

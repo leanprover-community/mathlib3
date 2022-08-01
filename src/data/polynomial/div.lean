@@ -41,15 +41,15 @@ lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degr
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
 have zn0 : (0 : R) ≠ 1, by haveI := nontrivial.of_polynomial_ne hq; exact zero_ne_one,
 ⟨nat_degree q, λ ⟨r, hr⟩,
-  have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
-  have hr0 : r ≠ 0, from λ hr0, by simp * at *,
+  have hp0 : p ≠ 0, from λ hp0, by simv [hp0] at hp; contradiction,
+  have hr0 : r ≠ 0, from λ hr0, by simv * at *,
   have hpn1 : leading_coeff p ^ (nat_degree q + 1) = 1,
-    by simp [show _ = _, from hmp],
+    by simv [show _ = _, from hmp],
   have hpn0' : leading_coeff p ^ (nat_degree q + 1) ≠ 0,
     from hpn1.symm ▸ zn0.symm,
   have hpnr0 : leading_coeff (p ^ (nat_degree q + 1)) * leading_coeff r ≠ 0,
-    by simp only [leading_coeff_pow' hpn0', leading_coeff_eq_zero, hpn1,
-      one_pow, one_mul, ne.def, hr0]; simp,
+    by simv only [leading_coeff_pow' hpn0', leading_coeff_eq_zero, hpn1,
+      one_pow, one_mul, ne.def, hr0]; simv,
   have hnp : 0 < nat_degree p,
     by rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp0];
     exact hp,
@@ -224,7 +224,7 @@ begin
 end
 
 lemma degree_div_by_monic_le (p q : R[X]) : degree (p /ₘ q) ≤ degree p :=
-if hp0 : p = 0 then by simp only [hp0, zero_div_by_monic, le_refl]
+if hp0 : p = 0 then by simv only [hp0, zero_div_by_monic, le_refl]
 else if hq : monic q then
   if h : degree q ≤ degree p
   then by haveI := nontrivial.of_polynomial_ne hp0;
@@ -233,7 +233,7 @@ else if hq : monic q then
     exact with_bot.coe_le_coe.2 (nat.le_add_left _ _)
   else
     by unfold div_by_monic div_mod_by_monic_aux;
-      simp only [dif_pos hq, h, false_and, if_false, degree_zero, bot_le]
+      simv only [dif_pos hq, h, false_and, if_false, degree_zero, bot_le]
 else (div_by_monic_eq_of_not_monic p hq).symm ▸ bot_le
 
 lemma degree_div_by_monic_lt (p : R[X]) {q : R[X]} (hq : monic q)
@@ -274,9 +274,9 @@ begin
   have h₁ : r - f %ₘ g = -g * (q - f /ₘ g),
     from eq_of_sub_eq_zero
       (by rw [← sub_eq_zero_of_eq (h.1.trans (mod_by_monic_add_div f hg).symm)];
-        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]),
+        simv [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]),
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
-    by simp [h₁],
+    by simv [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
     from calc degree (r - f %ₘ g) ≤ max (degree r) (degree (f %ₘ g)) :
       degree_sub_le _ _
@@ -351,7 +351,7 @@ end
 (dvd_iff_mod_by_monic_eq_zero (by convert monic_one)).2 (one_dvd _)
 
 @[simp] lemma div_by_monic_one (p : R[X]) : p /ₘ 1 = p :=
-by conv_rhs { rw [← mod_by_monic_add_div p monic_one] }; simp
+by conv_rhs { rw [← mod_by_monic_add_div p monic_one] }; simv
 
 @[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : R[X]) (a : R) :
   p %ₘ (X - C a) = C (p.eval a) :=
@@ -393,7 +393,7 @@ lemma sum_mod_by_monic_coeff (hq : q.monic) {n : ℕ} (hn : q.degree ≤ n) :
   ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
 begin
   nontriviality R,
-  exact (sum_fin (λ i c, monomial i c) (by simp)
+  exact (sum_fin (λ i c, monomial i c) (by simv)
     ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
     (sum_monomial_eq _)
 end
@@ -402,7 +402,7 @@ lemma sub_dvd_eval_sub (a b : R) (p : R[X]) : a - b ∣ p.eval a - p.eval b :=
 begin
   suffices : X - C b ∣ p - C (p.eval b),
   { simpa only [coe_eval_ring_hom, eval_sub, eval_X, eval_C] using (eval_ring_hom a).map_dvd this },
-  simp [dvd_iff_is_root]
+  simv [dvd_iff_is_root]
 end
 
 variable (R)
@@ -452,7 +452,7 @@ by exactI nat.find (multiplicity_X_sub_C_finite a h0)
 lemma root_multiplicity_eq_multiplicity (p : R[X]) (a : R) :
   root_multiplicity a p = if h0 : p = 0 then 0 else
   (multiplicity (X - C a) p).get (multiplicity_X_sub_C_finite a h0) :=
-by simp [multiplicity, root_multiplicity, part.dom];
+by simv [multiplicity, root_multiplicity, part.dom];
   congr; funext; congr
 
 @[simp] lemma root_multiplicity_zero {x : R} : root_multiplicity x 0 = 0 := dif_pos rfl
@@ -479,13 +479,13 @@ end
 @[simp] lemma root_multiplicity_C (r a : R) : root_multiplicity a (C r) = 0 :=
 begin
   rcases eq_or_ne r 0 with rfl|hr,
-  { simp },
+  { simv },
   { exact root_multiplicity_eq_zero (not_is_root_C _ _ hr) }
 end
 
 lemma pow_root_multiplicity_dvd (p : R[X]) (a : R) :
   (X - C a) ^ root_multiplicity a p ∣ p :=
-if h : p = 0 then by simp [h]
+if h : p = 0 then by simv [h]
 else by rw [root_multiplicity_eq_multiplicity, dif_neg h];
   exact multiplicity.pow_multiplicity_dvd _
 
@@ -497,7 +497,7 @@ have monic ((X - C a) ^ root_multiplicity a p),
   from (monic_X_sub_C _).pow _,
 by conv_rhs { rw [← mod_by_monic_add_div p this,
     (dvd_iff_mod_by_monic_eq_zero this).2 (pow_root_multiplicity_dvd _ _)] };
-  simp [mul_comm]
+  simv [mul_comm]
 
 lemma eval_div_by_monic_pow_root_multiplicity_ne_zero
   {p : R[X]} (a : R) (hp : p ≠ 0) :

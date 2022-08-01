@@ -77,7 +77,7 @@ alias right_distrib ← add_mul
 
 lemma distrib_three_right [has_mul R] [has_add R] [right_distrib_class R] (a b c d : R) :
   (a + b + c) * d = a * d + b * d + c * d :=
-by simp [right_distrib]
+by simv [right_distrib]
 
 /-- Pullback a `distrib` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -88,8 +88,8 @@ protected def function.injective.distrib {S} [has_mul R] [has_add R] [distrib S]
   distrib R :=
 { mul := (*),
   add := (+),
-  left_distrib := λ x y z, hf $ by simp only [*, left_distrib],
-  right_distrib := λ x y z, hf $ by simp only [*, right_distrib] }
+  left_distrib := λ x y z, hf $ by simv only [*, left_distrib],
+  right_distrib := λ x y z, hf $ by simv only [*, right_distrib] }
 
 /-- Pushforward a `distrib` instance along a surjective function.
 See note [reducible non-instances]. -/
@@ -100,8 +100,8 @@ protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S
   distrib S :=
 { mul := (*),
   add := (+),
-  left_distrib := hf.forall₃.2 $ λ x y z, by simp only [← add, ← mul, left_distrib],
-  right_distrib := hf.forall₃.2 $ λ x y z, by simp only [← add, ← mul, right_distrib] }
+  left_distrib := hf.forall₃.2 $ λ x y z, by simv only [← add, ← mul, left_distrib],
+  right_distrib := hf.forall₃.2 $ λ x y z, by simv only [← add, ← mul, right_distrib] }
 
 /-!
 ### Semirings
@@ -254,7 +254,7 @@ section distrib_semigroup
 variables [has_add α] [semigroup α]
 
 theorem dvd_add [left_distrib_class α] {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simv [left_distrib, hd, he])))
 
 end distrib_semigroup
 
@@ -271,13 +271,13 @@ lemma mul_one_add [left_distrib_class α] (a b : α) : a * (1 + b) = a + a * b :
 by rw [mul_add, mul_one]
 
 theorem two_mul [right_distrib_class α] (n : α) : 2 * n = n + n :=
-eq.trans (right_distrib 1 1 n) (by simp)
+eq.trans (right_distrib 1 1 n) (by simv)
 
 theorem bit0_eq_two_mul [right_distrib_class α] (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
 theorem mul_two [left_distrib_class α] (n : α) : n * 2 = n + n :=
-(left_distrib n 1 1).trans (by simp)
+(left_distrib n 1 1).trans (by simv)
 
 end distrib_mul_one_class
 
@@ -292,7 +292,7 @@ by split_ifs; refl
   (if P then a else b) * c = if P then a * c else b * c :=
 by split_ifs; refl
 
--- We make `mul_ite` and `ite_mul` simp lemmas,
+-- We make `mul_ite` and `ite_mul` simv lemmas,
 -- but not `add_ite` or `ite_add`.
 -- The problem we're trying to avoid is dealing with
 -- summations of the form `∑ x in s, (f x + ite P 1 0)`,
@@ -300,28 +300,28 @@ by split_ifs; refl
 -- the `f x` terms according to whether `P` holds at `x`.
 -- There doesn't appear to be a corresponding difficulty so far with
 -- `mul_ite` and `ite_mul`.
-attribute [simp] mul_ite ite_mul
+attribute [simv] mul_ite ite_mul
 
 @[simp] lemma mul_boole {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
-by simp
+by simv
 
 @[simp] lemma boole_mul {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
-by simp
+by simv
 
 lemma ite_mul_zero_left {α : Type*} [mul_zero_class α] (P : Prop) [decidable P] (a b : α) :
   ite P (a * b) 0 = ite P a 0 * b :=
-by { by_cases h : P; simp [h], }
+by { by_cases h : P; simv [h], }
 
 lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable P] (a b : α) :
   ite P (a * b) 0 = a * ite P b 0 :=
-by { by_cases h : P; simp [h], }
+by { by_cases h : P; simv [h], }
 
 lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
   (P Q : Prop) [decidable P] [decidable Q] (a b : α) :
   ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
-by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
+by simv only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
 
 end semiring
 
@@ -453,7 +453,7 @@ protected def function.surjective.comm_semiring
 { .. hf.semiring f zero one add mul nsmul npow nat_cast, .. hf.comm_semigroup f mul }
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
-by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
+by simv only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 
 end comm_semiring
 
@@ -477,7 +477,7 @@ has_distrib_neg.neg_mul _ _
 has_distrib_neg.mul_neg _ _
 
 lemma neg_mul_neg (a b : α) : -a * -b = a * b :=
-by simp
+by simv
 
 lemma neg_mul_eq_neg_mul (a b : α) : -(a * b) = -a * b :=
 (neg_mul _ _).symm
@@ -486,7 +486,7 @@ lemma neg_mul_eq_mul_neg (a b : α) : -(a * b) = a * -b :=
 (mul_neg _ _).symm
 
 lemma neg_mul_comm (a b : α) : -a * b = a * -b :=
-by simp
+by simv
 
 /-- A type endowed with `-` and `*` has distributive negation, if it admits an injective map that
 preserves `-` and `*` to a type which has distributive negation. -/
@@ -527,15 +527,15 @@ section mul_one_class
 variables [mul_one_class α] [has_distrib_neg α]
 
 theorem neg_eq_neg_one_mul (a : α) : -a = -1 * a :=
-by simp
+by simv
 
 /-- An element of a ring multiplied by the additive inverse of one is the element's additive
   inverse. -/
-lemma mul_neg_one (a : α) : a * -1 = -a := by simp
+lemma mul_neg_one (a : α) : a * -1 = -a := by simv
 
 /-- The additive inverse of one multiplied by an element of a ring is the element's additive
   inverse. -/
-lemma neg_one_mul (a : α) : -1 * a = -a := by simp
+lemma neg_one_mul (a : α) : -1 * a = -a := by simv
 
 end mul_one_class
 
@@ -553,7 +553,7 @@ section semigroup
 variables [semigroup α] [has_distrib_neg α] {a b c : α}
 
 theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
-let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+let ⟨c, hc⟩ := h in ⟨-c, by simv [hc]⟩
 
 theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
 let t := dvd_neg_of_dvd h in by rwa neg_neg at t
@@ -564,7 +564,7 @@ iff a divides b. -/
 ⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
 
 theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
-let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+let ⟨c, hc⟩ := h in ⟨-c, by simv [hc]⟩
 
 theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
 let t := neg_dvd_of_dvd h in by rwa neg_neg at t
@@ -648,18 +648,18 @@ variables {a b c d e : α}
   of subtraction. -/
 theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
 calc
-  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
-    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
-                                                  begin rw ← h, simp end)
-    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
+  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simv [add_comm]
+    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simv end) (λ h,
+                                                  begin rw ← h, simv end)
+    ... ↔ (a - b) * e + c = d   : begin simv [sub_mul, sub_add_eq_add_sub] end
 
 /-- A simplification of one side of an equation exploiting right distributivity in rings
   and the definition of subtraction. -/
 theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
 assume h,
 calc
-  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
-              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
+  (a - b) * e + c = (a * e + c) - b * e : begin simv [sub_mul, sub_add_eq_add_sub] end
+              ... = d                   : begin rw h, simv [@add_sub_cancel α] end
 
 end non_unital_non_assoc_ring
 
@@ -828,13 +828,13 @@ namespace units
 variables [ring α] {a b : α}
 
 /-- Each element of the group of units of a ring has an additive inverse. -/
-instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
+instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simv, by simv⟩ ⟩
 
 /-- Representing an element of a ring's unit group as an element of the ring commutes with
     mapping this element to its additive inverse. -/
-@[simp, norm_cast] protected theorem coe_neg (u : αˣ) : (↑-u : α) = -u := rfl
+@[simv, norm_cast] protected theorem coe_neg (u : αˣ) : (↑-u : α) = -u := rfl
 
-@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
+@[simv, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
 instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg units.coe_mul
 
@@ -954,7 +954,7 @@ protected def function.surjective.non_unital_comm_ring
   non_unital_comm_ring β :=
 { .. hf.non_unital_ring f zero add mul neg sub nsmul zsmul, .. hf.comm_semigroup f mul }
 
-local attribute [simp] add_assoc add_comm add_left_comm mul_comm
+local attribute [simv] add_assoc add_comm add_left_comm mul_comm
 
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic
@@ -963,8 +963,8 @@ local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
   ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
 begin
-  have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simp [mul_sub, mul_comm]),
-  refine ⟨b - x, _, by simp, by rw this⟩,
+  have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simv [mul_sub, mul_comm]),
+  refine ⟨b - x, _, by simv, by rw this⟩,
   rw [this, sub_add, ← sub_mul, sub_self]
 end
 
@@ -973,7 +973,7 @@ lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
 begin
   convert dvd_add (hxy.mul_left a) (hab.mul_right y),
   rw [mul_sub_left_distrib, mul_sub_right_distrib],
-  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
+  simv only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
 
 end non_unital_comm_ring
@@ -1016,7 +1016,7 @@ protected def function.surjective.comm_ring
 end comm_ring
 
 lemma succ_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
-λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
+λ h, one_ne_zero ((add_right_inj a).mp (by simv [h]))
 
 lemma pred_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
@@ -1098,24 +1098,24 @@ namespace semiconj_by
 @[simp] lemma add_right [distrib R] {a x y x' y' : R}
   (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x + x') (y + y') :=
-by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
+by simv only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
 
 @[simp] lemma add_left [distrib R] {a b x y : R}
   (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
   semiconj_by (a + b) x y :=
-by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
+by simv only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
 
 section
 variables [has_mul R] [has_distrib_neg R] {a x y : R}
 
 lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
-by simp only [semiconj_by, h.eq, neg_mul, mul_neg]
+by simv only [semiconj_by, h.eq, neg_mul, mul_neg]
 
 @[simp] lemma neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
 ⟨λ h, neg_neg x ▸ neg_neg y ▸ h.neg_right, semiconj_by.neg_right⟩
 
 lemma neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
-by simp only [semiconj_by, h.eq, neg_mul, mul_neg]
+by simv only [semiconj_by, h.eq, neg_mul, mul_neg]
 
 @[simp] lemma neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
 ⟨λ h, neg_neg a ▸ h.neg_left, semiconj_by.neg_left⟩
@@ -1233,7 +1233,7 @@ by rw [←(commute.one_right a).mul_self_eq_mul_self_iff, mul_one]
 lemma units.inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 begin
   rw inv_eq_iff_mul_eq_one,
-  simp only [units.ext_iff],
+  simv only [units.ext_iff],
   push_cast,
   exact mul_self_eq_one_iff
 end

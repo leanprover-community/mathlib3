@@ -212,7 +212,7 @@ end
 
 lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
   μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
-by { convert measure_bUnion_finset_le finset.univ f, simp }
+by { convert measure_bUnion_finset_le finset.univ f, simv }
 
 lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : s.finite)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
@@ -262,7 +262,7 @@ lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t
 (measure_union_lt_top hs.lt_top ht.lt_top).ne
 
 @[simp] lemma measure_union_eq_top_iff : μ (s ∪ t) = ∞ ↔ μ s = ∞ ∨ μ t = ∞ :=
-not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
+not_iff_not.1 $ by simv only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
   measure_union_lt_top_iff]
 
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
@@ -289,8 +289,8 @@ measure_mono_null (inter_subset_left S T) h
 /-- The “almost everywhere” filter of co-null sets. -/
 def measure.ae {α} {m : measurable_space α} (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ = 0},
-  univ_sets := by simp,
-  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
+  univ_sets := by simv,
+  inter_sets := λ s t hs ht, by simv only [compl_inter, mem_set_of_eq];
     exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
@@ -303,7 +303,7 @@ lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
-lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simv only [mem_ae_iff, compl_compl]
 
 lemma frequently_ae_iff {p : α → Prop} : (∃ᵐ a ∂μ, p a) ↔ μ {a | p a} ≠ 0 :=
 not_congr compl_mem_ae_iff
@@ -357,24 +357,24 @@ begin
 end
 
 @[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
-eventually_eq_empty.trans $ by simp only [ae_iff, not_not, set_of_mem_eq]
+eventually_eq_empty.trans $ by simv only [ae_iff, not_not, set_of_mem_eq]
 
 @[simp] lemma ae_eq_univ : s =ᵐ[μ] (univ : set α) ↔ μ sᶜ = 0 := eventually_eq_univ
 
 lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
-           ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
+           ... ↔ μ (s \ t) = 0          : by simv [ae_iff]; refl
 
 lemma ae_le_set_inter {s' t' : set α} (h : s ≤ᵐ[μ] t) (h' : s' ≤ᵐ[μ] t') :
   (s ∩ s' : set α) ≤ᵐ[μ] (t ∩ t' : set α) :=
 h.inter h'
 
 @[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
+by simv [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
   diff_eq_empty.2 (set.subset_union_right _ _)]
 
 lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
+by simv [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
   diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
 
 lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
@@ -382,7 +382,7 @@ diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
 
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set]
+by simv [eventually_le_antisymm_iff, ae_le_set]
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=

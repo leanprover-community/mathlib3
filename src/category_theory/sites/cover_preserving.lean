@@ -120,7 +120,7 @@ begin
   unfold family_of_elements.functor_pushforward,
   rcases e₁ : get_functor_pushforward_structure (image_mem_functor_pushforward G T hf) with
     ⟨X, g, f', hg, eq⟩,
-  simpa using hG.compatible ℱ h f' (𝟙 _) hg hf (by simp[eq])
+  simpa using hG.compatible ℱ h f' (𝟙 _) hg hf (by simv[eq])
 end
 
 omit h hG
@@ -144,13 +144,13 @@ begin
   Then, it suffices to prove that it is compatible when restricted onto `u(c'.X.right)`.
   -/
   let c' := is_cofiltered.cone (structured_arrow_cone.to_diagram c ⋙ structured_arrow.pre _ _ _),
-  have eq₁ : f₁ = (c'.X.hom ≫ G.map (c'.π.app left).right) ≫ eq_to_hom (by simp),
-  { erw ← (c'.π.app left).w, dsimp, simp },
-  have eq₂ : f₂ = (c'.X.hom ≫ G.map (c'.π.app right).right) ≫ eq_to_hom (by simp),
-  { erw ← (c'.π.app right).w, dsimp, simp },
+  have eq₁ : f₁ = (c'.X.hom ≫ G.map (c'.π.app left).right) ≫ eq_to_hom (by simv),
+  { erw ← (c'.π.app left).w, dsimp, simv },
+  have eq₂ : f₂ = (c'.X.hom ≫ G.map (c'.π.app right).right) ≫ eq_to_hom (by simv),
+  { erw ← (c'.π.app right).w, dsimp, simv },
   conv_lhs { rw eq₁ },
   conv_rhs { rw eq₂ },
-  simp only [op_comp, functor.map_comp, types_comp_apply, eq_to_hom_op, eq_to_hom_map],
+  simv only [op_comp, functor.map_comp, types_comp_apply, eq_to_hom_op, eq_to_hom_map],
   congr' 1,
 
   /-
@@ -190,7 +190,7 @@ begin
     erw family_of_elements.comp_of_compatible (S.functor_pushforward G)
       hx' (image_mem_functor_pushforward G S h) g',
     dsimp,
-    simp [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
+    simv [hG₁.apply_map (sheaf_over ℱ X) hx h, ←hy f' h] }
 end
 
 /-- The pullback of a sheaf along a cover-preserving and compatible-preserving functor. -/

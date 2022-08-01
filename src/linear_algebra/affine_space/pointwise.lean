@@ -49,7 +49,7 @@ lemma vadd_mem_pointwise_vadd_iff {v : V} {s : affine_subspace k P} {p : P} :
 vadd_mem_vadd_set_iff
 
 lemma pointwise_vadd_bot (v : V) : v +ᵥ (⊥ : affine_subspace k P) = ⊥ :=
-by { ext, simp, }
+by { ext, simv, }
 
 lemma pointwise_vadd_direction (v : V) (s : affine_subspace k P) :
   (v +ᵥ s).direction = s.direction :=

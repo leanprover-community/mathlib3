@@ -73,7 +73,7 @@ end
 /-- At all points of a linearly ordered commutative group with a zero element adjoined,
 the pure filter is smaller than the filter given by nhds_fun. -/
 lemma pure_le_nhds_fun : pure ≤ nhds_fun Γ₀ :=
-λ x, by { by_cases hx : x = 0; simp [hx, nhds_fun] }
+λ x, by { by_cases hx : x = 0; simv [hx, nhds_fun] }
 
 /-- For every point Γ₀, and every “neighbourhood” s of it (described by nhds_fun), there is a
 smaller “neighbourhood” t ⊆ s, such that s is a “neighbourhood“ of all the points in t. -/
@@ -81,7 +81,7 @@ lemma nhds_fun_ok (x : Γ₀) {s} (s_in : s ∈ nhds_fun Γ₀ x) :
   (∃ t ∈ nhds_fun Γ₀ x, t ⊆ s ∧ ∀ y ∈ t, s ∈ nhds_fun Γ₀ y) :=
 begin
   by_cases hx : x = 0,
-  { simp only [hx, nhds_fun, exists_prop, if_true, eq_self_iff_true] at s_in ⊢,
+  { simv only [hx, nhds_fun, exists_prop, if_true, eq_self_iff_true] at s_in ⊢,
     cases (mem_infi_of_directed (directed_lt Γ₀) _).mp s_in with γ₀ h,
     use {γ : Γ₀ | γ < γ₀},
     rw mem_principal at h,
@@ -90,11 +90,11 @@ begin
       rw mem_principal },
     { refine ⟨h, λ y y_in, _⟩,
       by_cases hy : y = 0,
-      { simp only [hy, if_true, eq_self_iff_true],
+      { simv only [hy, if_true, eq_self_iff_true],
         apply mem_infi_of_mem γ₀,
         rwa mem_principal },
-      { simp [hy, h y_in] } } },
-  { simp only [hx, nhds_fun, exists_prop, if_false, mem_pure] at s_in ⊢,
+      { simv [hy, h y_in] } } },
+  { simv only [hx, nhds_fun, exists_prop, if_false, mem_pure] at s_in ⊢,
     refine ⟨{x}, mem_singleton _, singleton_subset_iff.2 s_in, λ y y_in, _⟩,
     simpa [mem_singleton_iff.mp y_in, hx] }
 end
@@ -117,12 +117,12 @@ nhds_coe_units (units.mk0 _ h)
 /-- If γ is an invertible element of a linearly ordered group with zero element adjoined,
 then {γ} is a neighbourhood of γ. -/
 lemma singleton_nhds_of_units (γ : Γ₀ˣ) : ({γ} : set Γ₀) ∈ 𝓝 (γ : Γ₀) :=
-by simp
+by simv
 
 /-- If γ is a nonzero element of a linearly ordered group with zero element adjoined,
 then {γ} is a neighbourhood of γ. -/
 lemma singleton_nhds_of_ne_zero (γ : Γ₀) (h : γ ≠ 0) : ({γ} : set Γ₀) ∈ 𝓝 (γ : Γ₀) :=
-by simp [h]
+by simv [h]
 
 /-- If U is a neighbourhood of 0 in a linearly ordered group with zero element adjoined,
 then there exists an invertible element γ₀ such that {γ | γ < γ₀} ⊆ U. -/
@@ -131,14 +131,14 @@ lemma has_basis_nhds_zero :
 ⟨begin
   intro U,
   rw nhds_mk_of_nhds (nhds_fun Γ₀) 0 (pure_le_nhds_fun Γ₀) (nhds_fun_ok Γ₀),
-  simp only [nhds_fun, if_true, eq_self_iff_true, exists_true_left],
+  simv only [nhds_fun, if_true, eq_self_iff_true, exists_true_left],
   simp_rw [mem_infi_of_directed (directed_lt Γ₀), mem_principal]
 end⟩
 
 /-- If γ is an invertible element of a linearly ordered group with zero element adjoined,
 then {x | x < γ} is a neighbourhood of 0. -/
 lemma nhds_zero_of_units (γ : Γ₀ˣ) : {x : Γ₀ | x < γ} ∈ 𝓝 (0 : Γ₀) :=
-by { rw has_basis_nhds_zero.mem_iff, use γ, simp }
+by { rw has_basis_nhds_zero.mem_iff, use γ, simv }
 
 lemma tendsto_zero {α : Type*} {F : filter α} {f : α → Γ₀} :
   tendsto f F (𝓝 (0 : Γ₀)) ↔ ∀ γ₀ : Γ₀ˣ, { x : α | f x < γ₀ } ∈ F :=
@@ -187,7 +187,7 @@ instance ordered_topology : order_closed_topology Γ₀ :=
   begin
     rw ← is_open_compl_iff,
     show is_open {p : Γ₀ × Γ₀ | ¬p.fst ≤ p.snd},
-    simp only [not_le],
+    simv only [not_le],
     rw is_open_iff_mem_nhds,
     rintros ⟨a,b⟩ hab,
     change b < a at hab,
@@ -225,11 +225,11 @@ begin
       simpa [hy'] },
     { erw inf_eq_bot_iff,
       use sᶜ,
-      simp only [exists_prop, mem_principal],
-      exact ⟨s_closed.compl_mem_nhds x_not_in_s, ⟨s, subset.refl s, by simp⟩⟩ } },
-  { simp only [nhds_within, inf_eq_bot_iff, exists_prop, mem_principal],
+      simv only [exists_prop, mem_principal],
+      exact ⟨s_closed.compl_mem_nhds x_not_in_s, ⟨s, subset.refl s, by simv⟩⟩ } },
+  { simv only [nhds_within, inf_eq_bot_iff, exists_prop, mem_principal],
     exact ⟨{x}ᶜ, is_open_compl_iff.mpr is_closed_singleton, by rwa subset_compl_singleton_iff,
-           {x}, singleton_nhds_of_ne_zero x hx, {x}ᶜ, by simp [subset.refl]⟩ }
+           {x}, singleton_nhds_of_ne_zero x hx, {x}ᶜ, by simv [subset.refl]⟩ }
 end
 
 /-- The topology on a linearly ordered group with zero element adjoined makes it a topological

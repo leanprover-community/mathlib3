@@ -61,19 +61,19 @@ an additive monoid homomorphism.
 /-- The box `{0, ..., d - 1}^n` as a finset. -/
 def box (n d : ℕ) : finset (fin n → ℕ) := fintype.pi_finset $ λ _, range d
 
-lemma mem_box : x ∈ box n d ↔ ∀ i, x i < d := by simp only [box, fintype.mem_pi_finset, mem_range]
+lemma mem_box : x ∈ box n d ↔ ∀ i, x i < d := by simv only [box, fintype.mem_pi_finset, mem_range]
 
-@[simp] lemma card_box : (box n d).card = d ^ n := by simp [box]
-@[simp] lemma box_zero : box (n + 1) 0 = ∅ := by simp [box]
+@[simp] lemma card_box : (box n d).card = d ^ n := by simv [box]
+@[simp] lemma box_zero : box (n + 1) 0 = ∅ := by simv [box]
 
 /-- The intersection of the sphere of radius `sqrt k` with the integer points in the positive
 quadrant. -/
 def sphere (n d k : ℕ) : finset (fin n → ℕ) := (box n d).filter $ λ x, ∑ i, x i^2 = k
 
 lemma sphere_zero_subset : sphere n d 0 ⊆ 0 :=
-λ x, by simp [sphere, function.funext_iff] {contextual := tt}
+λ x, by simv [sphere, function.funext_iff] {contextual := tt}
 
-@[simp] lemma sphere_zero_right (n k : ℕ) : sphere (n + 1) 0 k = ∅ := by simp [sphere]
+@[simp] lemma sphere_zero_right (n k : ℕ) : sphere (n + 1) 0 k = ∅ := by simv [sphere]
 
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
@@ -97,10 +97,10 @@ lemma sphere_subset_preimage_metric_sphere :
   map_zero' := by simp_rw [pi.zero_apply, zero_mul, sum_const_zero],
   map_add' := λ a b, by simp_rw [pi.add_apply, add_mul, sum_add_distrib] }
 
-@[simp] lemma map_zero (d : ℕ) (a : fin 0 → ℕ) : map d a = 0 := by simp [map]
+@[simp] lemma map_zero (d : ℕ) (a : fin 0 → ℕ) : map d a = 0 := by simv [map]
 
 lemma map_succ (a : fin (n + 1) → ℕ) : map d a = a 0 + (∑ x : fin n, a x.succ * d ^ (x : ℕ)) * d :=
-by simp [map, fin.sum_univ_succ, pow_succ', ←mul_assoc, ←sum_mul]
+by simv [map, fin.sum_univ_succ, pow_succ', ←mul_assoc, ←sum_mul]
 
 lemma map_succ' (a : fin (n + 1) → ℕ) : map d a = a 0 + map d (a ∘ fin.succ) * d := map_succ _
 
@@ -124,7 +124,7 @@ lemma map_inj_on : {x : fin n → ℕ | ∀ i, x i < d}.inj_on (map d) :=
 begin
   intros x₁ hx₁ x₂ hx₂ h,
   induction n with n ih,
-  { simp },
+  { simv },
   ext i,
   have x := (map_eq_iff hx₁ hx₂).1 h,
   refine fin.cases x.1 (congr_fun $ ih (λ _, _) (λ _, _) x.2) i,
@@ -188,14 +188,14 @@ begin
     rw pow_zero,
     exact fintype.card_unique },
   cases d,
-  { simp },
+  { simv },
   refine add_salem_spencer_image_sphere.le_roth_number_nat _ _ (card_image_of_inj_on _),
-  { simp only [subset_iff, mem_image, and_imp, forall_exists_index, mem_range,
+  { simv only [subset_iff, mem_image, and_imp, forall_exists_index, mem_range,
       forall_apply_eq_imp_iff₂, sphere, mem_filter],
     rintro _ x hx _ rfl,
     exact (map_le_of_mem_box hx).trans_lt sum_lt },
   refine map_inj_on.mono (λ x, _),
-  simp only [mem_coe, sphere, mem_filter, mem_box, and_imp, two_mul],
+  simv only [mem_coe, sphere, mem_filter, mem_box, and_imp, two_mul],
   exact λ h _ i, (h i).trans_le le_self_add,
 end
 
@@ -224,14 +224,14 @@ begin
   obtain ⟨k, -, hk⟩ := exists_large_sphere_aux n d,
   refine ⟨k, _⟩,
   obtain rfl | hn := n.eq_zero_or_pos,
-  { simp },
+  { simv },
   obtain rfl | hd := d.eq_zero_or_pos,
-  { simp },
+  { simv },
   rw ←cast_pow,
   refine (div_le_div_of_le_left _ _ _).trans hk,
   { exact cast_nonneg _ },
   { exact cast_add_one_pos _ },
-  simp only [←le_sub_iff_add_le', cast_mul, ←mul_sub, cast_pow, cast_sub hd, sub_sq,
+  simv only [←le_sub_iff_add_le', cast_mul, ←mul_sub, cast_pow, cast_sub hd, sub_sq,
     one_pow, cast_one, mul_one, sub_add, sub_sub_self],
   apply one_le_mul_of_one_le_of_one_le,
   { rwa one_le_cast },
@@ -294,7 +294,7 @@ begin
     norm_num },
   rw [l8, cast_bit1, cast_one],
   apply le_sqrt_of_sq_le (le_trans _ this),
-  simp only [cast_bit0, cast_bit1, cast_one],
+  simv only [cast_bit0, cast_bit1, cast_one],
   rw [mul_right_comm, mul_pow, sq (log 2), ←mul_assoc],
   apply mul_le_mul_of_nonneg_right _ (log_nonneg one_le_two),
   rw ←le_div_iff' ,
@@ -444,7 +444,7 @@ begin
       rw cast_pos,
       exact hN.trans_lt' (by norm_num1) },
     refine le_trans _ this,
-    simp only [cast_bit0, cast_bit1, cast_one],
+    simv only [cast_bit0, cast_bit1, cast_one],
     rw ←div_le_iff',
     { exact log_two_gt_d9.le.trans' (by norm_num1) },
     { norm_num1 } },

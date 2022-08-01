@@ -60,7 +60,7 @@ private def max_var : ℝ≥0 :=
 2 * ⟨diam (univ : set X), diam_nonneg⟩ + 1 + 2 * ⟨diam (univ : set Y), diam_nonneg⟩
 
 private lemma one_le_max_var : 1 ≤ max_var X Y := calc
-  (1 : real) = 2 * 0 + 1 + 2 * 0 : by simp
+  (1 : real) = 2 * 0 + 1 + 2 * 0 : by simv
   ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) :
   by apply_rules [add_le_add, mul_le_mul_of_nonneg_left, diam_nonneg]; norm_num
 
@@ -91,14 +91,14 @@ private lemma max_var_bound : dist x y ≤ max_var X Y := calc
   dist x y ≤ diam (univ : set (X ⊕ Y)) :
     dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
   ... = diam (inl '' (univ : set X) ∪ inr '' (univ : set Y)) :
-    by apply congr_arg; ext x y z; cases x; simp [mem_univ, mem_range_self]
+    by apply congr_arg; ext x y z; cases x; simv [mem_univ, mem_range_self]
   ... ≤ diam (inl '' (univ : set X)) + dist (inl default) (inr default) +
           diam (inr '' (univ : set Y)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set X) + (dist default default + 1 + dist default default) +
           diam (univ : set Y) :
     by { rw [isometry_inl.diam_image, isometry_inr.diam_image], refl }
-  ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simp
+  ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simv
   ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) :
   begin
     apply_rules [add_le_add, mul_le_mul_of_nonneg_right, diam_nonneg, le_refl],
@@ -139,23 +139,23 @@ private lemma candidates_dist_bound  (fA : f ∈ candidates X Y) :
 | (inl x) (inl y) := calc
     f (inl x, inl y) = dist x y : candidates_dist_inl fA x y
     ... = dist (inl x) (inl y) : by { rw @sum.dist_eq X Y, refl }
-    ... = 1 * dist (inl x) (inl y) : by simp
+    ... = 1 * dist (inl x) (inl y) : by simv
     ... ≤ max_var X Y * dist (inl x) (inl y) :
       mul_le_mul_of_nonneg_right (one_le_max_var X Y) dist_nonneg
 | (inl x) (inr y) := calc
     f (inl x, inr y) ≤ max_var X Y : candidates_le_max_var fA
-    ... = max_var X Y * 1 : by simp
+    ... = max_var X Y * 1 : by simv
     ... ≤ max_var X Y * dist (inl x) (inr y) :
       mul_le_mul_of_nonneg_left sum.one_dist_le (le_trans (zero_le_one) (one_le_max_var X Y))
 | (inr x) (inl y) := calc
     f (inr x, inl y) ≤ max_var X Y : candidates_le_max_var fA
-    ... = max_var X Y * 1 : by simp
+    ... = max_var X Y * 1 : by simv
     ... ≤ max_var X Y * dist (inl x) (inr y) :
       mul_le_mul_of_nonneg_left sum.one_dist_le (le_trans (zero_le_one) (one_le_max_var X Y))
 | (inr x) (inr y) := calc
     f (inr x, inr y) = dist x y : candidates_dist_inr fA x y
     ... = dist (inr x) (inr y) : by { rw @sum.dist_eq X Y, refl }
-    ... = 1 * dist (inr x) (inr y) : by simp
+    ... = 1 * dist (inr x) (inr y) : by simv
     ... ≤ max_var X Y * dist (inr x) (inr y) :
       mul_le_mul_of_nonneg_right (one_le_max_var X Y) dist_nonneg
 
@@ -166,7 +166,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : sub_le_sub_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     sub_le_sub_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg, add_assoc]
+  ... = f (x, z) + f (t, y) : by simv [sub_eq_add_neg, add_assoc]
   ... ≤ max_var X Y * dist x z + max_var X Y * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var X Y * max (dist x z) (dist t y) + max_var X Y * max (dist x z) (dist t y) :
@@ -178,7 +178,7 @@ calc
       (zero_le_one.trans (one_le_max_var X Y)),
   end
   ... = 2 * max_var X Y * max (dist x z) (dist y t) :
-    by { simp [dist_comm], ring }
+    by { simv [dist_comm], ring }
   ... = 2 * max_var X Y * dist (x, y) (z, t) : by refl
 
 /-- Candidates are Lipschitz -/
@@ -203,7 +203,7 @@ lemma candidates_b_of_candidates_mem (f : prod_space_fun X Y) (fA : f ∈ candid
 /-- The distance on `X ⊕ Y` is a candidate -/
 private lemma dist_mem_candidates : (λp : (X ⊕ Y) × (X ⊕ Y), dist p.1 p.2) ∈ candidates X Y :=
 begin
-  simp only [candidates, dist_comm, forall_const, and_true, add_comm, eq_self_iff_true,
+  simv only [candidates, dist_comm, forall_const, and_true, add_comm, eq_self_iff_true,
              and_self, sum.forall, set.mem_set_of_eq, dist_self],
   repeat { split
     <|> exact (λa y z, dist_triangle_left _ _ _)
@@ -244,7 +244,7 @@ begin
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
+  { ext, simv only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
@@ -263,7 +263,7 @@ begin
   refine arzela_ascoli₂ (Icc 0 (max_var X Y)) is_compact_Icc (candidates_b X Y)
   closed_candidates_b _ _,
   { rintros f ⟨x1, x2⟩ hf,
-    simp only [set.mem_Icc],
+    simv only [set.mem_Icc],
     exact ⟨candidates_nonneg hf, candidates_le_max_var hf⟩ },
   { refine equicontinuous_of_continuity_modulus (λt, 2 * max_var X Y * t) _ _ _,
     { have : tendsto (λ (t : ℝ), 2 * (max_var X Y : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var X Y * 0)) :=

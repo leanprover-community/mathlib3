@@ -84,14 +84,14 @@ def A : finset (agreed_triple C J) := finset.univ.filter (λ (a : agreed_triple 
 
 lemma A_maps_to_off_diag_judge_pair (a : agreed_triple C J) :
   a ∈ A r → a.judge_pair ∈ finset.off_diag (@finset.univ J _) :=
-by simp [A, finset.mem_off_diag]
+by simv [A, finset.mem_off_diag]
 
 lemma A_fibre_over_contestant (c : C) :
   finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct) =
   ((A r).filter (λ (a : agreed_triple C J), a.contestant = c)).image prod.snd :=
 begin
   ext p,
-  simp only [A, finset.mem_univ, finset.mem_filter, finset.mem_image, true_and, exists_prop],
+  simv only [A, finset.mem_univ, finset.mem_filter, finset.mem_image, true_and, exists_prop],
   split,
   { rintros ⟨h₁, h₂⟩, refine ⟨(c, p), _⟩, finish, },
   { intros h, finish, },
@@ -124,7 +124,7 @@ begin
   rw ← finset.off_diag_card,
   apply finset.card_le_mul_card_image_of_maps_to (A_maps_to_off_diag_judge_pair r),
   intros p hp,
-  have hp' : p.distinct, { simp [finset.mem_off_diag] at hp, exact hp, },
+  have hp' : p.distinct, { simv [finset.mem_off_diag] at hp, exact hp, },
   rw ← A_fibre_over_judge_pair_card r hp', apply hk, exact hp',
 end
 
@@ -155,10 +155,10 @@ begin
   let x := (finset.univ.filter (λ j, r c j)).card,
   let y := (finset.univ.filter (λ j, ¬ r c j)).card,
   have h : (finset.univ.filter (λ (p : judge_pair J), p.agree r c)).card = x*x + y*y,
-  { simp [← finset.filter_product_card], },
-  rw h, apply int.le_of_coe_nat_le_coe_nat, simp only [int.coe_nat_add, int.coe_nat_mul],
+  { simv [← finset.filter_product_card], },
+  rw h, apply int.le_of_coe_nat_le_coe_nat, simv only [int.coe_nat_add, int.coe_nat_mul],
   apply norm_bound_of_odd_sum,
-  suffices : x + y = 2*z + 1, { simp [← int.coe_nat_add, this], },
+  suffices : x + y = 2*z + 1, { simv [← int.coe_nat_add, this], },
   rw [finset.filter_card_add_filter_neg_card_eq_card, ← hJ], refl,
 end
 
@@ -171,7 +171,7 @@ begin
   have hst : s \ t = finset.univ.diag,
   { ext p, split; intros,
     { finish, },
-    { suffices : p.judge₁ = p.judge₂, { simp [this], }, finish, }, },
+    { suffices : p.judge₁ = p.judge₂, { simv [this], }, finish, }, },
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, ← finset.sdiff_sdiff_self_left s t, finset.card_sdiff],
   { rw hst', rw add_assoc at hs, apply le_tsub_of_add_le_right hs, },
@@ -194,7 +194,7 @@ local notation x `/` y := (x : ℚ) / y
 
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
-by rw div_le_div_iff; norm_cast; simp [ha, hb]
+by rw div_le_div_iff; norm_cast; simv [ha, hb]
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
@@ -207,10 +207,10 @@ begin
   rw [hC, hJ] at h,
   -- We are now essentially done; we just need to bash `h` into exactly the right shape.
   have hl : k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1)) = (k * (2 * (2 * z + 1))) * z,
-  { simp only [add_mul, two_mul, mul_comm, mul_assoc], finish, },
+  { simv only [add_mul, two_mul, mul_comm, mul_assoc], finish, },
   have hr : 2 * z * z * a = 2 * z * a * z, { ring, },
   rw [hl, hr] at h,
   cases z,
-  { simp, },
+  { simv, },
   { exact le_of_mul_le_mul_right h z.succ_pos, },
 end

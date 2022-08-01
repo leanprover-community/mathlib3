@@ -127,8 +127,8 @@ begin
   apply (((Z.coord_change_smooth_clm i j).continuous_on.continuous_within_at
     (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr,
   { assume y hy,
-    simp only with mfld_simps },
-  { simp only with mfld_simps },
+    simv only with mfld_simps },
+  { simv only with mfld_simps },
   { exact maps_to_image I _ },
 end
 
@@ -160,20 +160,20 @@ def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F 
   coord_change_comp := λ i j k x ⟨⟨hx1, hx2⟩, hx3⟩ v, begin
     have := Z.coord_change_comp i j k (i.1 x) _ v,
     convert this using 2,
-    { simp only [hx1] with mfld_simps },
-    { simp only [hx1, hx2, hx3] with mfld_simps }
+    { simv only [hx1] with mfld_simps },
+    { simv only [hx1, hx2, hx3] with mfld_simps }
   end,
   coord_change_continuous := λ i j, begin
     refine ((Z.coord_change_continuous i j).comp' i.1.continuous_on).mono _,
     rintros p ⟨hp₁, hp₂⟩,
     refine ⟨hp₁, i.1.maps_to hp₁, _⟩,
-    simp only [i.1.left_inv hp₁, hp₂] with mfld_simps
+    simv only [i.1.left_inv hp₁, hp₂] with mfld_simps
   end }
 
-@[simp, mfld_simps] lemma base_set (i : atlas H M) :
+@[simv, mfld_simps] lemma base_set (i : atlas H M) :
   (Z.to_topological_vector_bundle_core.local_triv i).base_set = i.1.source := rfl
 
-@[simp, mfld_simps] lemma target (i : atlas H M) :
+@[simv, mfld_simps] lemma target (i : atlas H M) :
   (Z.to_topological_vector_bundle_core.local_triv i).target = i.1.source ×ˢ (univ : set F) := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
@@ -182,13 +182,13 @@ def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
 (Z.to_topological_vector_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
 
-@[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
+@[simv, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).source = Z.to_topological_vector_bundle_core.proj ⁻¹' e.source :=
-by { simp only [chart, mem_prod], mfld_set_tac }
+by { simv only [chart, mem_prod], mfld_set_tac }
 
-@[simp, mfld_simps] lemma chart_target (e : local_homeomorph M H) (he : e ∈ atlas H M) :
+@[simv, mfld_simps] lemma chart_target (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).target = e.target ×ˢ (univ : set F) :=
-by { simp only [chart], mfld_set_tac }
+by { simv only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
@@ -197,9 +197,9 @@ instance to_charted_space :
   charted_space (model_prod H F) Z.to_topological_vector_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart he},
   chart_at := λ p, Z.chart (chart_mem_atlas H p.1),
-  mem_chart_source := λ p, by simp [mem_chart_source],
+  mem_chart_source := λ p, by simv [mem_chart_source],
   chart_mem_atlas := λ p, begin
-    simp only [mem_Union, mem_singleton_iff, chart_mem_atlas],
+    simv only [mem_Union, mem_singleton_iff, chart_mem_atlas],
     exact ⟨chart_at H p.1, chart_mem_atlas H p.1, rfl⟩
   end }
 
@@ -207,22 +207,22 @@ lemma mem_atlas_iff
   (f : local_homeomorph Z.to_topological_vector_bundle_core.total_space (model_prod H F)) :
   f ∈ atlas (model_prod H F) Z.to_topological_vector_bundle_core.total_space ↔
   ∃(e : local_homeomorph M H) (he : e ∈ atlas H M), f = Z.chart he :=
-by simp only [atlas, mem_Union, mem_singleton_iff]
+by simv only [atlas, mem_Union, mem_singleton_iff]
 
-@[simp, mfld_simps] lemma mem_chart_source_iff
+@[simv, mfld_simps] lemma mem_chart_source_iff
   (p q : Z.to_topological_vector_bundle_core.total_space) :
   p ∈ (chart_at (model_prod H F) q).source ↔ p.1 ∈ (chart_at H q.1).source :=
-by simp only [chart_at] with mfld_simps
+by simv only [chart_at] with mfld_simps
 
-@[simp, mfld_simps] lemma mem_chart_target_iff
+@[simv, mfld_simps] lemma mem_chart_target_iff
   (p : H × F) (q : Z.to_topological_vector_bundle_core.total_space) :
   p ∈ (chart_at (model_prod H F) q).target ↔ p.1 ∈ (chart_at H q.1).target :=
-by simp only [chart_at] with mfld_simps
+by simv only [chart_at] with mfld_simps
 
-@[simp, mfld_simps] lemma coe_chart_at_fst (p q : Z.to_topological_vector_bundle_core.total_space) :
+@[simv, mfld_simps] lemma coe_chart_at_fst (p q : Z.to_topological_vector_bundle_core.total_space) :
   ((chart_at (model_prod H F) q) p).1 = chart_at H q.1 p.1 := rfl
 
-@[simp, mfld_simps] lemma coe_chart_at_symm_fst
+@[simv, mfld_simps] lemma coe_chart_at_symm_fst
   (p : H × F) (q : Z.to_topological_vector_bundle_core.total_space) :
   ((chart_at (model_prod H F) q).symm p).1 = ((chart_at H q.1).symm : H → M) p.1 := rfl
 
@@ -241,7 +241,7 @@ begin
   { assume e e' he he',
     have : J.symm ⁻¹' ((chart Z he).symm.trans (chart Z he')).source ∩ range J =
       (I.symm ⁻¹' (e.symm.trans e').source ∩ range I) ×ˢ (univ : set F),
-      by { simp only [J, chart, model_with_corners.prod], mfld_set_tac },
+      by { simv only [J, chart, model_with_corners.prod], mfld_set_tac },
     rw this,
     -- check separately that the two components of the coordinate change are smooth
     apply cont_diff_on.prod,
@@ -270,10 +270,10 @@ begin
       rw I.image_eq at this,
       apply cont_diff_on.congr this,
       rintros ⟨x, v⟩ hx,
-      simp only with mfld_simps at hx,
+      simv only with mfld_simps at hx,
       let f := chart_at H (e.symm (I.symm x)),
       have A : I.symm x ∈ ((e.symm.trans f).trans (f.symm.trans e')).source,
-        by simp only [hx.1.1, hx.1.2] with mfld_simps,
+        by simv only [hx.1.1, hx.1.2] with mfld_simps,
       rw e.right_inv hx.1.1,
       have := Z.coord_change_comp ⟨e, he⟩ ⟨f, chart_mem_atlas _ _⟩ ⟨e', he'⟩ (I.symm x) A v,
       simpa only [] using this } },
@@ -327,8 +327,8 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
       exact fderiv_within_inter N (I.unique_diff _ hx.2) },
     apply (A.fderiv_within B le_top).congr,
     assume x hx,
-    simp only with mfld_simps at hx,
-    simp only [hx, D] with mfld_simps,
+    simv only with mfld_simps at hx,
+    simv only [hx, D] with mfld_simps,
   end,
   coord_change_self := λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
@@ -339,18 +339,18 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
       apply inter_mem_nhds_within,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
         (is_open.mem_nhds (local_homeomorph.open_source _) _),
-      simp only [hx, i.1.map_target] with mfld_simps },
+      simv only [hx, i.1.map_target] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
     { filter_upwards [A] with _ hy,
       rw ← I.image_eq at hy,
       rcases hy with ⟨z, hz⟩,
-      simp only with mfld_simps at hz,
-      simp only [hz.2.symm, hz.1] with mfld_simps, },
+      simv only with mfld_simps at hz,
+      simv only [hz.2.symm, hz.1] with mfld_simps, },
     have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
       filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B
-      (by simp only [hx] with mfld_simps),
+      (by simv only [hx] with mfld_simps),
     rw fderiv_within_id I.unique_diff_at_image at C,
     rw C,
     refl
@@ -400,14 +400,14 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
         (has_groupoid.compatible (cont_diff_groupoid ∞ I) j.2 u.2).1,
         apply A.differentiable_on le_top,
         rw [local_homeomorph.trans_source] at hx,
-        simp only with mfld_simps,
+        simv only with mfld_simps,
         exact hx.2 },
       show (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
         ⊆ (I ∘ j.1 ∘ i.1.symm ∘ I.symm) ⁻¹' (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I),
       { assume y hy,
-        simp only with mfld_simps at hy,
+        simv only with mfld_simps at hy,
         rw [local_homeomorph.left_inv] at hy,
-        { simp only [hy] with mfld_simps },
+        { simv only [hy] with mfld_simps },
         { exact hy.1.1.2 } } },
     have B : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm)
                           ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
@@ -421,7 +421,7 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
           ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm)) y =
             (I ∘ u.1 ∘ i.1.symm ∘ I.symm) y,
       { assume y hy,
-        simp only [function.comp_app, model_with_corners.left_inv],
+        simv only [function.comp_app, model_with_corners.left_inv],
         rw [j.1.left_inv],
         exact hy.1.1.2 },
       exact fderiv_within_congr U E (E _ M) },
@@ -443,7 +443,7 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
         (is_open.mem_nhds (local_homeomorph.open_source _) _),
       rw [local_homeomorph.trans_source] at hx,
-      simp only with mfld_simps,
+      simv only with mfld_simps,
       exact hx.2 },
     have E : fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
                (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
@@ -455,7 +455,7 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
         (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simpa only [model_with_corners.left_inv] using hx },
     rw [B, C, D, E] at A,
-    simp only [A, continuous_linear_map.coe_comp'] with mfld_simps,
+    simv only [A, continuous_linear_map.coe_comp'] with mfld_simps,
   end }
 
 variable {M}
@@ -486,7 +486,7 @@ def tangent_bundle.proj : TM → M :=
 
 variable {M}
 
-@[simp, mfld_simps] lemma tangent_bundle.proj_apply (x : M) (v : tangent_space I x) :
+@[simv, mfld_simps] lemma tangent_bundle.proj_apply (x : M) (v : tangent_space I x) :
   tangent_bundle.proj I M ⟨x, v⟩ = x :=
 rfl
 
@@ -538,42 +538,42 @@ lemma tangent_bundle_proj_open : is_open_map (tangent_bundle.proj I M) :=
 
 /-- In the tangent bundle to the model space, the charts are just the canonical identification
 between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/
-@[simp, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
+@[simv, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
   (chart_at (model_prod H E) p).to_local_equiv = (equiv.sigma_equiv_prod H E).to_local_equiv :=
 begin
   have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst) = continuous_linear_map.id 𝕜 E,
   { assume x_fst,
     have : fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
          = fderiv_within 𝕜 id (range I) (I x_fst),
-    { refine fderiv_within_congr I.unique_diff_at_image (λ y hy, _) (by simp),
+    { refine fderiv_within_congr I.unique_diff_at_image (λ y hy, _) (by simv),
       exact model_with_corners.right_inv _ hy },
     rwa fderiv_within_id I.unique_diff_at_image at this },
   ext x : 1,
   show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x =
     (equiv.sigma_equiv_prod H E) x,
   { cases x,
-    simp only [chart_at, basic_smooth_vector_bundle_core.chart, tangent_bundle_core,
+    simv only [chart_at, basic_smooth_vector_bundle_core.chart, tangent_bundle_core,
       basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, A, prod.mk.inj_iff,
       continuous_linear_map.coe_id'] with mfld_simps,
       exact (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd, },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,
-    simp only [basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
+    simv only [basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
       tangent_bundle_core, A, continuous_linear_map.coe_id', basic_smooth_vector_bundle_core.chart,
       chart_at, continuous_linear_map.coe_coe, sigma.mk.inj_iff] with mfld_simps, },
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
-    by simp only [chart_at] with mfld_simps,
+    by simv only [chart_at] with mfld_simps,
 end
 
-@[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at (p : tangent_bundle I H) :
+@[simv, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at (p : tangent_bundle I H) :
   ⇑(chart_at (model_prod H E) p) = equiv.sigma_equiv_prod H E :=
-by { unfold_coes, simp only with mfld_simps }
+by { unfold_coes, simv only with mfld_simps }
 
-@[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at_symm (p : tangent_bundle I H) :
+@[simv, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at_symm (p : tangent_bundle I H) :
   ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I H) =
   (equiv.sigma_equiv_prod H E).symm :=
-by { unfold_coes, simp only with mfld_simps }
+by { unfold_coes, simv only with mfld_simps }
 
 variable (H)
 /-- The canonical identification between the tangent bundle to the model space and the product,
@@ -585,7 +585,7 @@ def tangent_bundle_model_space_homeomorph : tangent_bundle I H ≃ₜ model_prod
     have : continuous (chart_at (model_prod H E) p),
     { rw continuous_iff_continuous_on_univ,
       convert local_homeomorph.continuous_on _,
-      simp only with mfld_simps },
+      simv only with mfld_simps },
     simpa only with mfld_simps using this,
   end,
   continuous_inv_fun :=
@@ -594,17 +594,17 @@ def tangent_bundle_model_space_homeomorph : tangent_bundle I H ≃ₜ model_prod
     have : continuous (chart_at (model_prod H E) p).symm,
     { rw continuous_iff_continuous_on_univ,
       convert local_homeomorph.continuous_on _,
-      simp only with mfld_simps },
+      simv only with mfld_simps },
     simpa only with mfld_simps using this,
   end,
   .. equiv.sigma_equiv_prod H E }
 
-@[simp, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe :
+@[simv, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe :
   (tangent_bundle_model_space_homeomorph H I : tangent_bundle I H → model_prod H E)
   = equiv.sigma_equiv_prod H E :=
 rfl
 
-@[simp, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe_symm :
+@[simv, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe_symm :
   ((tangent_bundle_model_space_homeomorph H I).symm : model_prod H E → tangent_bundle I H)
   = (equiv.sigma_equiv_prod H E).symm :=
 rfl

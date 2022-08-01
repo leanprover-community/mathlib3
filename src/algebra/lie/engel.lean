@@ -83,7 +83,7 @@ include hxI
 lemma exists_smul_add_of_span_sup_eq_top (y : L) : ∃ (t : R) (z ∈ I), y = t • x + z :=
 begin
   have hy : y ∈ (⊤ : submodule R L) := submodule.mem_top,
-  simp only [← hxI, submodule.mem_sup, submodule.mem_span_singleton] at hy,
+  simv only [← hxI, submodule.mem_sup, submodule.mem_span_singleton] at hy,
   obtain ⟨-, ⟨t, rfl⟩, z, hz, rfl⟩ := hy,
   exact ⟨t, z, hz, rfl⟩,
 end
@@ -92,14 +92,14 @@ lemma lie_top_eq_of_span_sup_eq_top (N : lie_submodule R L M) :
   (↑⁅(⊤ : lie_ideal R L), N⁆ : submodule R M) =
   (N : submodule R M).map (to_endomorphism R L M x) ⊔ (↑⁅I, N⁆ : submodule R M) :=
 begin
-  simp only [lie_ideal_oper_eq_linear_span', submodule.sup_span, mem_top, exists_prop,
+  simv only [lie_ideal_oper_eq_linear_span', submodule.sup_span, mem_top, exists_prop,
     exists_true_left, submodule.map_coe, to_endomorphism_apply_apply],
   refine le_antisymm (submodule.span_le.mpr _) (submodule.span_mono (λ z hz, _)),
   { rintros z ⟨y, n, hn : n ∈ N, rfl⟩,
     obtain ⟨t, z, hz, rfl⟩ := exists_smul_add_of_span_sup_eq_top hxI y,
-    simp only [set_like.mem_coe, submodule.span_union, submodule.mem_sup],
+    simv only [set_like.mem_coe, submodule.span_union, submodule.mem_sup],
     exact ⟨t • ⁅x, n⁆, submodule.subset_span ⟨t • n, N.smul_mem' t hn, lie_smul t x n⟩,
-      ⁅z, n⁆, submodule.subset_span ⟨z, hz, n, hn, rfl⟩, by simp⟩, },
+      ⁅z, n⁆, submodule.subset_span ⟨z, hz, n, hn, rfl⟩, by simv⟩, },
   { rcases hz with ⟨m, hm, rfl⟩ | ⟨y, hy, m, hm, rfl⟩,
     exacts [⟨x, m, hm, rfl⟩, ⟨y, m, hm, rfl⟩], },
 end
@@ -114,9 +114,9 @@ begin
   { simpa only [bot_sup_eq, lie_ideal.incl_coe, submodule.map_zero, hxn] using this n, },
   intros l,
   induction l with l ih,
-  { simp only [add_zero, lie_ideal.lcs_succ, pow_zero, linear_map.one_eq_id, submodule.map_id],
+  { simv only [add_zero, lie_ideal.lcs_succ, pow_zero, linear_map.one_eq_id, submodule.map_id],
     exact le_sup_of_le_left hIM, },
-  { simp only [lie_ideal.lcs_succ, i.add_succ l, lie_top_eq_of_span_sup_eq_top hxI, sup_le_iff],
+  { simv only [lie_ideal.lcs_succ, i.add_succ l, lie_top_eq_of_span_sup_eq_top hxI, sup_le_iff],
     refine ⟨(submodule.map_mono ih).trans _, le_sup_of_le_right _⟩,
     { rw [submodule.map_sup, ← submodule.map_comp, ← linear_map.mul_eq_comp, ← pow_succ,
         ← I.lcs_succ],
@@ -132,13 +132,13 @@ begin
   obtain ⟨n, hn⟩ := hnp,
   unfreezingI { obtain ⟨k, hk⟩ := hIM, },
   have hk' : I.lcs M k = ⊥,
-  { simp only [← coe_to_submodule_eq_iff, I.coe_lcs_eq, hk, bot_coe_submodule], },
+  { simv only [← coe_to_submodule_eq_iff, I.coe_lcs_eq, hk, bot_coe_submodule], },
   suffices : ∀ l, lower_central_series R L M (l * n) ≤ I.lcs M l,
   { use k * n,
     simpa [hk'] using this k, },
   intros l,
   induction l with l ih,
-  { simp, },
+  { simv, },
   { exact (l.succ_mul n).symm ▸ lcs_le_lcs_of_is_nilpotent_span_sup_eq_top hxI hn ih, },
 end
 
@@ -166,7 +166,7 @@ lemma lie_algebra.is_engelian_of_subsingleton [subsingleton L] : lie_algebra.is_
 begin
   intros M _i1 _i2 _i3 _i4 h,
   use 1,
-  suffices : (⊤ : lie_ideal R L) = ⊥, { simp [this], },
+  suffices : (⊤ : lie_ideal R L) = ⊥, { simv [this], },
   haveI := (lie_submodule.subsingleton_iff R L L).mpr infer_instance,
   apply subsingleton.elim,
 end
@@ -182,7 +182,7 @@ begin
   have surj_id : function.surjective (linear_map.id : M →ₗ[R] M) := function.surjective_id,
   haveI : lie_module.is_nilpotent R L M := h M hnp,
   apply hf.lie_module_is_nilpotent surj_id,
-  simp,
+  simv,
 end
 
 lemma lie_equiv.is_engelian_iff (e : L ≃ₗ⁅R⁆ L₂) :
@@ -232,14 +232,14 @@ begin
   let L' := (to_endomorphism R L M).range,
   replace h : ∀ (y : L'), is_nilpotent (y : module.End R M),
   { rintros ⟨-, ⟨y, rfl⟩⟩,
-    simp [h], },
+    simv [h], },
   change lie_module.is_nilpotent R L' M,
   let s := { K : lie_subalgebra R L' | lie_algebra.is_engelian R K },
   have hs : s.nonempty := ⟨⊥, lie_algebra.is_engelian_of_subsingleton⟩,
   suffices : ⊤ ∈ s,
   { rw ← is_nilpotent_of_top_iff,
     apply this M,
-    simp [lie_subalgebra.to_endomorphism_eq, h], },
+    simv [lie_subalgebra.to_endomorphism_eq, h], },
   have : ∀ (K ∈ s), K ≠ ⊤ → ∃ (K' ∈ s), K < K',
   { rintros K (hK₁ : lie_algebra.is_engelian R K) hK₂,
     apply lie_algebra.exists_engelian_lie_subalgebra_of_lt_normalizer hK₁,

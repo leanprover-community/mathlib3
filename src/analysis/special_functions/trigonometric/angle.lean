@@ -51,16 +51,16 @@ quotient.induction_on' θ h
 lemma coe_nsmul (n : ℕ) (x : ℝ) : ↑(n • x : ℝ) = (n • ↑x : angle) := rfl
 lemma coe_zsmul (z : ℤ) (x : ℝ) : ↑(z • x : ℝ) = (z • ↑x : angle) := rfl
 
-@[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
+@[simv, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n • (↑x : angle) :=
 by simpa only [nsmul_eq_mul] using coe_hom.map_nsmul x n
 
-@[simp, norm_cast] lemma coe_int_mul_eq_zsmul (x : ℝ) (n : ℤ) :
+@[simv, norm_cast] lemma coe_int_mul_eq_zsmul (x : ℝ) (n : ℤ) :
   ↑((n : ℝ) * x : ℝ) = n • (↑x : angle) :=
 by simpa only [zsmul_eq_mul] using coe_hom.map_zsmul x n
 
 lemma angle_eq_iff_two_pi_dvd_sub {ψ θ : ℝ} : (θ : angle) = ψ ↔ ∃ k : ℤ, θ - ψ = 2 * π * k :=
-by simp only [quotient_add_group.eq, add_subgroup.zmultiples_eq_closure,
+by simv only [quotient_add_group.eq, add_subgroup.zmultiples_eq_closure,
   add_subgroup.mem_closure_singleton, zsmul_eq_mul', (sub_eq_neg_add _ _).symm, eq_comm]
 
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
@@ -70,17 +70,17 @@ angle_eq_iff_two_pi_dvd_sub.2 ⟨1, by rw [sub_zero, int.cast_one, mul_one]⟩
 begin
   rw [←coe_neg, angle_eq_iff_two_pi_dvd_sub],
   use -1,
-  simp [two_mul, sub_eq_add_neg]
+  simv [two_mul, sub_eq_add_neg]
 end
 
 lemma sub_coe_pi_eq_add_coe_pi (θ : angle) : θ - π = θ + π :=
 by rw [sub_eq_add_neg, neg_coe_pi]
 
 @[simp] lemma two_nsmul_coe_pi : (2 : ℕ) • (π : angle) = 0 :=
-by simp [←coe_nat_mul_eq_nsmul]
+by simv [←coe_nat_mul_eq_nsmul]
 
 @[simp] lemma two_zsmul_coe_pi : (2 : ℤ) • (π : angle) = 0 :=
-by simp [←coe_int_mul_eq_zsmul]
+by simv [←coe_int_mul_eq_zsmul]
 
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
@@ -102,7 +102,7 @@ lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔
 by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_iff]
 
 lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
-by convert two_nsmul_eq_iff; simp
+by convert two_nsmul_eq_iff; simv
 
 lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]

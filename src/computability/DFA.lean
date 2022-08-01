@@ -41,7 +41,7 @@ list.foldl M.step start
 @[simp] lemma eval_from_singleton (s : σ) (a : α) : M.eval_from s [a] = M.step s a := rfl
 @[simp] lemma eval_from_append_singleton (s : σ) (x : list α) (a : α) :
   M.eval_from s (x ++ [a]) = M.step (M.eval_from s x) a :=
-by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+by simv only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
 
 /-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
 def eval : list α → σ := M.eval_from M.start
@@ -84,13 +84,13 @@ begin
 
   { rw [list.take_append_drop, list.take_append_drop] },
 
-  { simp only [list.length_drop, list.length_take],
+  { simv only [list.length_drop, list.length_take],
     rw [min_eq_left (hm.trans hlen), min_eq_left hle, add_tsub_cancel_of_le hle],
     exact hm },
 
   { intro h,
     have hlen' := congr_arg list.length h,
-    simp only [list.length_drop, list.length, list.length_take] at hlen',
+    simv only [list.length_drop, list.length, list.length_take] at hlen',
     rw [min_eq_left, tsub_eq_zero_iff_le] at hlen',
     { apply hneq,
       apply le_antisymm,

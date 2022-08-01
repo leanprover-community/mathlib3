@@ -122,7 +122,7 @@ lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
   (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
-  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_rfl },
+  { simv only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_rfl },
   { assume i s his ih,
     rw [finset.sup_insert, finset.sum_insert his],
     exact le_trans (degrees_add _ _) (sup_le_sup_left ih _) }
@@ -132,7 +132,7 @@ lemma degrees_mul (p q : mv_polynomial σ R) : (p * q).degrees ≤ p.degrees + q
 begin
   refine finset.sup_le (assume b hb, _),
   have := support_mul p q hb,
-  simp only [finset.mem_bUnion, finset.mem_singleton] at this,
+  simv only [finset.mem_bUnion, finset.mem_singleton] at this,
   rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
   rw [finsupp.to_multiset_add],
   exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂)
@@ -142,7 +142,7 @@ lemma degrees_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) 
   (∏ i in s, f i).degrees ≤ ∑ i in s, (f i).degrees :=
 begin
   refine s.induction _ _,
-  { simp only [finset.prod_empty, finset.sum_empty, degrees_one] },
+  { simv only [finset.prod_empty, finset.sum_empty, degrees_one] },
   { assume i s his ih,
     rw [finset.prod_insert his, finset.sum_insert his],
     exact le_trans (degrees_mul _ _) (add_le_add_left ih _) }
@@ -156,7 +156,7 @@ lemma degrees_pow (p : mv_polynomial σ R) :
 
 lemma mem_degrees {p : mv_polynomial σ R} {i : σ} :
   i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
-by simp only [degrees, multiset.mem_sup, ← mem_support_iff,
+by simv only [degrees, multiset.mem_sup, ← mem_support_iff,
     finsupp.mem_to_multiset, exists_prop]
 
 lemma le_degrees_add {p q : mv_polynomial σ R} (h : p.degrees.disjoint q.degrees) :
@@ -168,9 +168,9 @@ begin
   rw multiset.le_iff_count,
   intros i,
   rw [degrees, multiset.count_finset_sup],
-  simp only [finsupp.count_to_multiset],
+  simv only [finsupp.count_to_multiset],
   by_cases h0 : d = 0,
-  { simp only [h0, zero_le, finsupp.zero_apply], },
+  { simv only [h0, zero_le, finsupp.zero_apply], },
   { refine @finset.le_sup _ _ _ _ (p + q).support _ d _,
     rw [mem_support_iff, coeff_add],
     suffices : q.coeff d = 0,
@@ -210,24 +210,24 @@ begin
   rw [mem_degrees, multiset.mem_map],
   rintro ⟨d, hd, hi⟩,
   obtain ⟨x, rfl, hx⟩ := coeff_rename_ne_zero _ _ _ hd,
-  simp only [map_domain, finsupp.mem_support_iff] at hi,
+  simv only [map_domain, finsupp.mem_support_iff] at hi,
   rw [sum_apply, finsupp.sum] at hi,
   contrapose! hi,
   rw [finset.sum_eq_zero],
   intros j hj,
-  simp only [exists_prop, mem_degrees] at hi,
+  simv only [exists_prop, mem_degrees] at hi,
   specialize hi j ⟨x, hx, hj⟩,
   rw [single_apply, if_neg hi],
 end
 
 lemma degrees_map_of_injective [comm_semiring S] (p : mv_polynomial σ R)
   {f : R →+* S} (hf : injective f) : (map f p).degrees = p.degrees :=
-by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
+by simv only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
 lemma degrees_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
   degrees (rename f p) = (degrees p).map f :=
 begin
-  simp only [degrees, multiset.map_finset_sup p.support finsupp.to_multiset f h,
+  simv only [degrees, multiset.map_finset_sup p.support finsupp.to_multiset f h,
              support_rename_of_injective h, finset.sup_image],
   refine finset.sup_congr rfl (λ x hx, _),
   exact (finsupp.to_multiset_map _ _).symm,
@@ -257,7 +257,7 @@ by rw [X, vars_monomial (@one_ne_zero R _ _),
 
 lemma mem_vars (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
-by simp only [vars, multiset.mem_to_finset, mem_degrees, mem_support_iff,
+by simv only [vars, multiset.mem_to_finset, mem_degrees, mem_support_iff,
   exists_prop]
 
 lemma mem_support_not_mem_vars_zero
@@ -270,7 +270,7 @@ begin
   unfold degrees,
   rw (show f.support = insert x f.support, from eq.symm $ finset.insert_eq_of_mem H),
   rw finset.sup_insert,
-  simp only [multiset.mem_union, multiset.sup_eq_union],
+  simv only [multiset.mem_union, multiset.sup_eq_union],
   left,
   rwa [←to_finset_to_multiset, multiset.mem_to_finset] at h,
 end
@@ -279,7 +279,7 @@ lemma vars_add_subset (p q : mv_polynomial σ R) :
   (p + q).vars ⊆ p.vars ∪ q.vars :=
 begin
   intros x hx,
-  simp only [vars, finset.mem_union, multiset.mem_to_finset] at hx ⊢,
+  simv only [vars, finset.mem_union, multiset.mem_to_finset] at hx ⊢,
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
@@ -288,7 +288,7 @@ lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
 begin
   apply finset.subset.antisymm (vars_add_subset p q),
   intros x hx,
-  simp only [vars, multiset.disjoint_to_finset] at h hx ⊢,
+  simv only [vars, multiset.disjoint_to_finset] at h hx ⊢,
   rw [degrees_add_of_disjoint h, multiset.to_finset_union],
   exact hx
 end
@@ -298,7 +298,7 @@ section mul
 lemma vars_mul (φ ψ : mv_polynomial σ R) : (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
 begin
   intro i,
-  simp only [mem_vars, finset.mem_union],
+  simv only [mem_vars, finset.mem_union],
   rintro ⟨d, hd, hi⟩,
   rw [mem_support_iff, coeff_mul] at hd,
   contrapose! hd, cases hd,
@@ -308,9 +308,9 @@ begin
   subst H,
   obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
   { simpa only [finset.mem_union] using finsupp.support_add hi, },
-  { suffices : coeff d₁ φ = 0, by simp [this],
+  { suffices : coeff d₁ φ = 0, by simv [this],
     rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
-  { suffices : coeff d₂ ψ = 0, by simp [this],
+  { suffices : coeff d₂ ψ = 0, by simv [this],
     rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
 end
 
@@ -320,7 +320,7 @@ vars_C
 lemma vars_pow (φ : mv_polynomial σ R) (n : ℕ) : (φ ^ n).vars ⊆ φ.vars :=
 begin
   induction n with n ih,
-  { simp },
+  { simv },
   { rw pow_succ,
     apply finset.subset.trans (vars_mul _ _),
     exact finset.union_subset (finset.subset.refl _) ih }
@@ -334,9 +334,9 @@ lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ R) :
   (∏ i in s, f i).vars ⊆ s.bUnion (λ i, (f i).vars) :=
 begin
   apply s.induction_on,
-  { simp },
+  { simv },
   { intros a s hs hsub,
-    simp only [hs, finset.bUnion_insert, finset.prod_insert, not_false_iff],
+    simv only [hs, finset.bUnion_insert, finset.prod_insert, not_false_iff],
     apply finset.subset.trans (vars_mul _ _),
     exact finset.union_subset_union (finset.subset.refl _) hsub }
 end
@@ -347,7 +347,7 @@ variables {A : Type*} [comm_ring A] [is_domain A]
 lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) : (C a * φ).vars = φ.vars :=
 begin
   ext1 i,
-  simp only [mem_vars, exists_prop, mem_support_iff],
+  simv only [mem_vars, exists_prop, mem_support_iff],
   apply exists_congr,
   intro d,
   apply and_congr _ iff.rfl,
@@ -366,7 +366,7 @@ lemma vars_sum_subset :
   (∑ i in t, φ i).vars ⊆ finset.bUnion t (λ i, (φ i).vars) :=
 begin
   apply t.induction_on,
-  { simp },
+  { simv },
   { intros a s has hsum,
     rw [finset.bUnion_insert, finset.sum_insert has],
     refine finset.subset.trans (vars_add_subset _ _)
@@ -378,12 +378,12 @@ lemma vars_sum_of_disjoint (h : pairwise $ disjoint on (λ i, (φ i).vars)) :
   (∑ i in t, φ i).vars = finset.bUnion t (λ i, (φ i).vars) :=
 begin
   apply t.induction_on,
-  { simp },
+  { simv },
   { intros a s has hsum,
     rw [finset.bUnion_insert, finset.sum_insert has, vars_add_of_disjoint, hsum],
     unfold pairwise on_fun at h,
     rw hsum,
-    simp only [finset.disjoint_iff_ne] at h ⊢,
+    simv only [finset.disjoint_iff_ne] at h ⊢,
     intros v hv v2 hv2,
     rw finset.mem_bUnion at hv2,
     rcases hv2 with ⟨i, his, hi⟩,
@@ -400,12 +400,12 @@ variables [comm_semiring S] (f : R →+* S)
 variable (p)
 
 lemma vars_map : (map f p).vars ⊆ p.vars :=
-by simp [vars, degrees_map]
+by simv [vars, degrees_map]
 
 variable {f}
 lemma vars_map_of_injective (hf : injective f) :
   (map f p).vars = p.vars :=
-by simp [vars, degrees_map_of_injective _ hf]
+by simv [vars, degrees_map_of_injective _ hf]
 
 lemma vars_monomial_single (i : σ) {e : ℕ} {r : R} (he : e ≠ 0) (hr : r ≠ 0) :
   (monomial (finsupp.single i e) r).vars = {i} :=
@@ -431,7 +431,7 @@ begin
   rw [degree_of, degrees, multiset.count_finset_sup],
   congr,
   ext,
-  simp,
+  simv,
 end
 
 lemma degree_of_lt_iff {n : σ} {f : mv_polynomial σ R} {d : ℕ} (h : 0 < d) :
@@ -440,17 +440,17 @@ by rwa [degree_of_eq_sup n f, finset.sup_lt_iff]
 
 @[simp] lemma degree_of_zero (n : σ) :
   degree_of n (0 : mv_polynomial σ R) = 0 :=
-by simp only [degree_of, degrees_zero, multiset.count_zero]
+by simv only [degree_of, degrees_zero, multiset.count_zero]
 
 @[simp] lemma degree_of_C (a : R) (x : σ):
-  degree_of x (C a : mv_polynomial σ R) = 0 := by simp [degree_of, degrees_C]
+  degree_of x (C a : mv_polynomial σ R) = 0 := by simv [degree_of, degrees_C]
 
 lemma degree_of_X (i j : σ) [nontrivial R] :
   degree_of i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
 begin
   by_cases c : i = j,
-  { simp only [c, if_true, eq_self_iff_true, degree_of, degrees_X, multiset.count_singleton] },
-  simp [c, if_false, degree_of, degrees_X],
+  { simv only [c, if_true, eq_self_iff_true, degree_of, degrees_X, multiset.count_singleton] },
+  simv [c, if_false, degree_of, degrees_X],
 end
 
 lemma degree_of_add_le (n : σ) (f g : mv_polynomial σ R) :
@@ -483,10 +483,10 @@ lemma degree_of_mul_X_ne {i j : σ} (f : mv_polynomial σ R) (h : i ≠ j) :
 begin
   repeat {rw degree_of_eq_sup i},
   rw support_mul_X,
-  simp only [finset.sup_map],
+  simv only [finset.sup_map],
   congr,
   ext,
-  simp only [ single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
+  simv only [ single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
               pi.add_apply, comp_app, ite_eq_right_iff, coe_add ],
   cc,
 end
@@ -497,14 +497,14 @@ lemma degree_of_mul_X_eq (j : σ) (f : mv_polynomial σ R) :
 begin
   repeat {rw degree_of},
   apply (multiset.count_le_of_le j (degrees_mul f (X j))).trans,
-  simp only [multiset.count_add, add_le_add_iff_left],
+  simv only [multiset.count_add, add_le_add_iff_left],
   convert multiset.count_le_of_le j (degrees_X' j),
   rw multiset.count_singleton_self,
 end
 
 lemma degree_of_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f)
   (i : σ) : degree_of (f i) (rename f p) = degree_of i p :=
-by simp only [degree_of, degrees_rename_of_injective h,
+by simv only [degree_of, degrees_rename_of_injective h,
               multiset.count_map_eq_count' f (p.degrees) h]
 
 end degree_of
@@ -550,7 +550,7 @@ total_degree_C (1 : R)
   (X s : mv_polynomial σ R).total_degree = 1 :=
 begin
   rw [total_degree, support_X],
-  simp only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
+  simv only [finset.sup, sum_single_index, finset.fold_singleton, sup_bot_eq],
 end
 
 lemma total_degree_add (a b : mv_polynomial σ R) :
@@ -572,7 +572,7 @@ begin
   { rw ← max_eq_left_of_lt h,
     exact total_degree_add p q, },
   by_cases hp : p = 0,
-  { simp [hp], },
+  { simv [hp], },
   obtain ⟨b, hb₁, hb₂⟩ := p.support.exists_mem_eq_sup (finsupp.support_nonempty_iff.mpr hp)
     (λ (m : σ →₀ ℕ), m.to_multiset.card),
   have hb : ¬ b ∈ q.support,
@@ -596,7 +596,7 @@ lemma total_degree_mul (a b : mv_polynomial σ R) :
 finset.sup_le $ assume n hn,
   have _ := add_monoid_algebra.support_mul a b hn,
   begin
-    simp only [finset.mem_bUnion, finset.mem_singleton] at this,
+    simv only [finset.mem_bUnion, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
     rw [finsupp.sum_add_index'],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
@@ -608,7 +608,7 @@ lemma total_degree_pow (a : mv_polynomial σ R) (n : ℕ) :
   (a ^ n).total_degree ≤ n * a.total_degree :=
 begin
   induction n with n ih,
-  { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
+  { simv only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
   rw pow_succ,
   calc total_degree (a * a ^ n) ≤ a.total_degree + (a^n).total_degree : total_degree_mul _ _
     ... ≤ a.total_degree + n * a.total_degree : add_le_add_left ih _
@@ -617,11 +617,11 @@ end
 
 @[simp] lemma total_degree_monomial (s : σ →₀ ℕ) {c : R} (hc : c ≠ 0) :
   (monomial s c : mv_polynomial σ R).total_degree = s.sum (λ _ e, e) :=
-by simp [total_degree, support_monomial, if_neg hc]
+by simv [total_degree, support_monomial, if_neg hc]
 
 @[simp] lemma total_degree_X_pow [nontrivial R] (s : σ) (n : ℕ) :
   (X s ^ n : mv_polynomial σ R).total_degree = n :=
-by simp [X_pow_eq_monomial, one_ne_zero]
+by simv [X_pow_eq_monomial, one_ne_zero]
 
 lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ R)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
@@ -709,7 +709,7 @@ lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S) {g : σ → S}
   eval₂_hom f g p = f (constant_coeff p) :=
 begin
   conv_lhs { rw p.as_sum },
-  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  simv only [ring_hom.map_sum, eval₂_hom_monomial],
   by_cases h0 : constant_coeff p = 0,
   work_on_goal 1
   { rw [h0, f.map_zero, finset.sum_eq_zero],
@@ -744,11 +744,11 @@ begin
   rintro rfl h rfl,
   rename [p₁ p, f₁ f],
   rw p.as_sum,
-  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  simv only [ring_hom.map_sum, eval₂_hom_monomial],
   apply finset.sum_congr rfl,
   intros d hd,
   congr' 1,
-  simp only [finsupp.prod],
+  simv only [finsupp.prod],
   apply finset.prod_congr rfl,
   intros i hi,
   have : i ∈ p.vars, { rw mem_vars, exact ⟨d, hd, hi⟩ },
@@ -761,10 +761,10 @@ end
 lemma hom_congr_vars {f₁ f₂ : mv_polynomial σ R →+* S} {p₁ p₂ : mv_polynomial σ R}
   (hC : f₁.comp C = f₂.comp C) (hv : ∀ i, i ∈ p₁.vars → i ∈ p₂.vars → f₁ (X i) = f₂ (X i))
   (hp : p₁ = p₂) : f₁ p₁ = f₂ p₂ :=
-calc f₁ p₁ = eval₂_hom (f₁.comp C) (f₁ ∘ X) p₁ : ring_hom.congr_fun (by ext; simp) _
+calc f₁ p₁ = eval₂_hom (f₁.comp C) (f₁ ∘ X) p₁ : ring_hom.congr_fun (by ext; simv) _
 ... = eval₂_hom (f₂.comp C) (f₂ ∘ X) p₂ :
   eval₂_hom_congr' hC hv hp
-... = f₂ p₂ : ring_hom.congr_fun (by ext; simp) _
+... = f₂ p₂ : ring_hom.congr_fun (by ext; simv) _
 
 lemma exists_rename_eq_of_vars_subset_range
   (p : mv_polynomial σ R) (f : τ → σ)
@@ -775,10 +775,10 @@ lemma exists_rename_eq_of_vars_subset_range
     show (rename f).to_ring_hom.comp _ p = ring_hom.id _ p,
     refine hom_congr_vars _ _ _,
     { ext1,
-      simp [algebra_map_eq] },
+      simv [algebra_map_eq] },
     { intros i hip _,
       rcases hf hip with ⟨i, rfl⟩,
-      simp [partial_inv_left hfi] },
+      simv [partial_inv_left hfi] },
     { refl }
   end⟩
 
@@ -791,7 +791,7 @@ begin
   ... ≤ φ.support.bUnion (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) :
         vars_sum_subset _ _
   ... = φ.support.bUnion (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) :
-        by simp only [bind₁_monomial]
+        by simv only [bind₁_monomial]
   ... ≤ φ.support.bUnion (λ (d : σ →₀ ℕ), d.support.bUnion (λ i, (f i).vars)) : _ -- proof below
   ... ≤ φ.vars.bUnion (λ (i : σ), (f i).vars) : _, -- proof below
   { apply finset.bUnion_mono,
@@ -799,7 +799,7 @@ begin
     calc (C (coeff d φ) * ∏ (i : σ) in d.support, f i ^ d i).vars
         ≤ (C (coeff d φ)).vars ∪ (∏ (i : σ) in d.support, f i ^ d i).vars : vars_mul _ _
     ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars :
-      by simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl]
+      by simv only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl]
     ... ≤ d.support.bUnion (λ (i : σ), (f i ^ d i).vars) : vars_prod _
     ... ≤ d.support.bUnion (λ (i : σ), (f i).vars) : _,
     apply finset.bUnion_mono,
@@ -820,7 +820,7 @@ lemma vars_rename (f : σ → τ) (φ : mv_polynomial σ R) :
   (rename f φ).vars ⊆ (φ.vars.image f) :=
 begin
   intros i hi,
-  simp only [vars, exists_prop, multiset.mem_to_finset, finset.mem_image] at hi ⊢,
+  simv only [vars, exists_prop, multiset.mem_to_finset, finset.mem_image] at hi ⊢,
   simpa only [multiset.mem_map] using degrees_rename _ _ hi
 end
 

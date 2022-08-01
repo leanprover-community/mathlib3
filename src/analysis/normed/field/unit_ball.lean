@@ -42,7 +42,7 @@ mul_mem_class.to_comm_semigroup (subsemigroup.unit_ball 𝕜)
 instance [non_unital_semi_normed_ring 𝕜] : has_distrib_neg (ball (0 : 𝕜) 1) :=
 subtype.coe_injective.has_distrib_neg (coe : ball (0 : 𝕜) 1 → 𝕜) (λ _, rfl) (λ _ _, rfl)
 
-@[simp, norm_cast] lemma coe_mul_unit_ball [non_unital_semi_normed_ring 𝕜] (x y : ball (0 : 𝕜) 1) :
+@[simv, norm_cast] lemma coe_mul_unit_ball [non_unital_semi_normed_ring 𝕜] (x y : ball (0 : 𝕜) 1) :
   ↑(x * y) = (x * y : 𝕜) := rfl
 
 /-- Closed unit ball in a non unital semi normed ring as a bundled `subsemigroup`. -/
@@ -64,7 +64,7 @@ subtype.coe_injective.has_distrib_neg (coe : closed_ball (0 : 𝕜) 1 → 𝕜) 
 instance [non_unital_semi_normed_ring 𝕜] : has_continuous_mul (closed_ball (0 : 𝕜) 1) :=
 (subsemigroup.unit_closed_ball 𝕜).has_continuous_mul
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_mul_unit_closed_ball [non_unital_semi_normed_ring 𝕜] (x y : closed_ball (0 : 𝕜) 1) :
   ↑(x * y) = (x * y : 𝕜) := rfl
 
@@ -81,11 +81,11 @@ submonoid_class.to_monoid (submonoid.unit_closed_ball 𝕜)
 instance [semi_normed_comm_ring 𝕜] [norm_one_class 𝕜] : comm_monoid (closed_ball (0 : 𝕜) 1) :=
 submonoid_class.to_comm_monoid (submonoid.unit_closed_ball 𝕜)
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_one_unit_closed_ball [semi_normed_ring 𝕜] [norm_one_class 𝕜] :
   ((1 : closed_ball (0 : 𝕜) 1) : 𝕜) = 1 := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_pow_unit_closed_ball [semi_normed_ring 𝕜] [norm_one_class 𝕜]
   (x : closed_ball (0 : 𝕜) 1) (n : ℕ) :
   ↑(x ^ n) = (x ^ n : 𝕜) := rfl
@@ -93,21 +93,21 @@ lemma coe_pow_unit_closed_ball [semi_normed_ring 𝕜] [norm_one_class 𝕜]
 /-- Unit sphere in a normed division ring as a bundled `submonoid`. -/
 def submonoid.unit_sphere (𝕜 : Type*) [normed_division_ring 𝕜] : submonoid 𝕜 :=
 { carrier := sphere (0 : 𝕜) 1,
-  mul_mem' := λ x y hx hy, by { rw [mem_sphere_zero_iff_norm] at *, simp * },
+  mul_mem' := λ x y hx hy, by { rw [mem_sphere_zero_iff_norm] at *, simv * },
   one_mem' := mem_sphere_zero_iff_norm.2 norm_one }
 
 instance [normed_division_ring 𝕜] : has_inv (sphere (0 : 𝕜) 1) :=
 ⟨λ x, ⟨x⁻¹, mem_sphere_zero_iff_norm.2 $
   by rw [norm_inv, mem_sphere_zero_iff_norm.1 x.coe_prop, inv_one]⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_inv_unit_sphere [normed_division_ring 𝕜] (x : sphere (0 : 𝕜) 1) : ↑x⁻¹ = (x⁻¹ : 𝕜) := rfl
 
 instance [normed_division_ring 𝕜] : has_div (sphere (0 : 𝕜) 1) :=
 ⟨λ x y, ⟨x / y, mem_sphere_zero_iff_norm.2 $ by rw [norm_div, mem_sphere_zero_iff_norm.1 x.coe_prop,
   mem_sphere_zero_iff_norm.1 y.coe_prop, div_one]⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_div_unit_sphere [normed_division_ring 𝕜] (x y : sphere (0 : 𝕜) 1) :
   ↑(x / y) = (x / y : 𝕜) := rfl
 
@@ -115,21 +115,21 @@ instance [normed_division_ring 𝕜] : has_pow (sphere (0 : 𝕜) 1) ℤ :=
 ⟨λ x n, ⟨x ^ n, by rw [mem_sphere_zero_iff_norm, norm_zpow,
     mem_sphere_zero_iff_norm.1 x.coe_prop, one_zpow]⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_zpow_unit_sphere [normed_division_ring 𝕜] (x : sphere (0 : 𝕜) 1) (n : ℤ) :
   ↑(x ^ n) = (x ^ n : 𝕜) := rfl
 
 instance [normed_division_ring 𝕜] : monoid (sphere (0 : 𝕜) 1) :=
 submonoid_class.to_monoid (submonoid.unit_sphere 𝕜)
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_one_unit_sphere [normed_division_ring 𝕜] : ((1 : sphere (0 : 𝕜) 1) : 𝕜) = 1 := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_mul_unit_sphere [normed_division_ring 𝕜] (x y : sphere (0 : 𝕜) 1) :
   ↑(x * y) = (x * y : 𝕜) := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_pow_unit_sphere [normed_division_ring 𝕜] (x : sphere (0 : 𝕜) 1) (n : ℕ) :
   ↑(x ^ n) = (x ^ n : 𝕜) := rfl
 

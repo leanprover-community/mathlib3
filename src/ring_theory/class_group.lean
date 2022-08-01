@@ -43,11 +43,11 @@ def to_principal_ideal : Kˣ →* (fractional_ideal R⁰ K)ˣ :=
 { to_fun := λ x,
   ⟨span_singleton _ x,
    span_singleton _ x⁻¹,
-   by simp only [span_singleton_one, units.mul_inv', span_singleton_mul_span_singleton],
-   by simp only [span_singleton_one, units.inv_mul', span_singleton_mul_span_singleton]⟩,
+   by simv only [span_singleton_one, units.mul_inv', span_singleton_mul_span_singleton],
+   by simv only [span_singleton_one, units.inv_mul', span_singleton_mul_span_singleton]⟩,
   map_mul' := λ x y, ext
-    (by simp only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
-  map_one' := ext (by simp only [span_singleton_one, units.coe_mk, units.coe_one]) }
+    (by simv only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
+  map_one' := ext (by simv only [span_singleton_one, units.coe_mk, units.coe_one]) }
 
 local attribute [semireducible] to_principal_ideal
 
@@ -85,8 +85,8 @@ noncomputable def fractional_ideal.mk0 [is_dedekind_domain R] :
   (ideal R)⁰ →* (fractional_ideal R⁰ K)ˣ :=
 { to_fun := λ I, units.mk0 I ((fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl R⁰)).mpr
     (mem_non_zero_divisors_iff_ne_zero.mp I.2)),
-  map_one' := by simp,
-  map_mul' := λ x y, by simp }
+  map_one' := by simv,
+  map_mul' := λ x y, by simv }
 
 /-- Send a nonzero ideal to the corresponding class in the class group. -/
 @[simps]
@@ -100,7 +100,7 @@ lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I 
   class_group.mk0 K I = class_group.mk0 K J ↔
     ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
 begin
-  simp only [class_group.mk0, monoid_hom.comp_apply, quotient_group.mk'_eq_mk'],
+  simv only [class_group.mk0, monoid_hom.comp_apply, quotient_group.mk'_eq_mk'],
   split,
   { rintros ⟨_, ⟨x, rfl⟩, hx⟩,
     refine ⟨x, x.ne_zero, _⟩,
@@ -141,12 +141,12 @@ begin
   have fa_ne_zero : (algebra_map R K) a ≠ 0 :=
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors a_ne_zero',
   refine ⟨⟨{ carrier := { x | (algebra_map R K a)⁻¹ * algebra_map R K x ∈ I.1 }, .. }, _⟩, _⟩,
-  { simp only [ring_hom.map_add, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add],
+  { simv only [ring_hom.map_add, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add],
     exact λ _ _ ha hb, submodule.add_mem I ha hb },
-  { simp only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
+  { simv only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
     exact submodule.zero_mem I },
   { intros c _ hb,
-    simp only [smul_eq_mul, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add,
+    simv only [smul_eq_mul, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add,
                mul_left_comm ((algebra_map R K) a)⁻¹],
     rw ← algebra.smul_def c,
     exact submodule.smul_mem I c hb },
@@ -163,7 +163,7 @@ begin
     apply @mul_left_cancel _ _ I,
     rw [← mul_assoc, mul_right_inv, one_mul, eq_comm, mul_comm I],
     apply units.ext,
-    simp only [monoid_hom.coe_mk, subtype.coe_mk, ring_hom.map_mul, coe_coe,
+    simv only [monoid_hom.coe_mk, subtype.coe_mk, ring_hom.map_mul, coe_coe,
                units.coe_mul, coe_to_principal_ideal, coe_mk0,
                fractional_ideal.eq_span_singleton_mul],
     split,
@@ -188,7 +188,7 @@ lemma class_group.mk_eq_one_iff
     (I : submodule R K).is_principal :=
 begin
   rw [← (quotient_group.mk' _).map_one, eq_comm, quotient_group.mk'_eq_mk'],
-  simp only [exists_prop, one_mul, exists_eq_right, to_principal_ideal_eq_iff,
+  simv only [exists_prop, one_mul, exists_eq_right, to_principal_ideal_eq_iff,
              monoid_hom.mem_range, coe_coe],
   refine ⟨λ ⟨x, hx⟩, ⟨⟨x, by rw [← hx, coe_span_singleton]⟩⟩, _⟩,
   unfreezingI { intros hI },
@@ -196,8 +196,8 @@ begin
   have hx' : (I : fractional_ideal R⁰ K) = span_singleton R⁰ x,
   { apply subtype.coe_injective, rw [hx, coe_span_singleton] },
   refine ⟨units.mk0 x _, _⟩,
-  { intro x_eq, apply units.ne_zero I, simp [hx', x_eq] },
-  simp [hx']
+  { intro x_eq, apply units.ne_zero I, simv [hx', x_eq] },
+  simv [hx']
 end
 
 variables [is_domain R]

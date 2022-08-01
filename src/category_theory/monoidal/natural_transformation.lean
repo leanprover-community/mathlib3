@@ -43,9 +43,9 @@ structure monoidal_nat_trans (F G : lax_monoidal_functor C D)
 (tensor' : ∀ X Y, F.μ _ _ ≫ app (X ⊗ Y) = (app X ⊗ app Y) ≫ G.μ _ _ . obviously)
 
 restate_axiom monoidal_nat_trans.tensor'
-attribute [simp, reassoc] monoidal_nat_trans.tensor
+attribute [simv, reassoc] monoidal_nat_trans.tensor
 restate_axiom monoidal_nat_trans.unit'
-attribute [simp, reassoc] monoidal_nat_trans.unit
+attribute [simv, reassoc] monoidal_nat_trans.unit
 
 namespace monoidal_nat_trans
 
@@ -93,19 +93,19 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
   monoidal_nat_trans (F ⊗⋙ H) (G ⊗⋙ K) :=
 { unit' :=
   begin
-    dsimp, simp,
+    dsimp, simv,
     conv_lhs { rw [←K.to_functor.map_comp, α.unit], },
   end,
   tensor' := λ X Y,
   begin
-    dsimp, simp,
+    dsimp, simv,
     conv_lhs { rw [←K.to_functor.map_comp, α.tensor, K.to_functor.map_comp], },
   end,
   ..(nat_trans.hcomp α.to_nat_trans β.to_nat_trans) }
 
 section
 
-local attribute [simp] nat_trans.naturality monoidal_nat_trans.unit monoidal_nat_trans.tensor
+local attribute [simv] nat_trans.naturality monoidal_nat_trans.unit monoidal_nat_trans.tensor
 
 /-- The cartesian product of two monoidal natural transformations is monoidal. -/
 @[simps]
@@ -150,7 +150,7 @@ def of_components
 @[simp] lemma of_components.inv_app
   (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
   (of_components app naturality unit tensor).inv.app X = (app X).inv :=
-by simp [of_components]
+by simv [of_components]
 
 instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
 ⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X))
@@ -170,18 +170,18 @@ let e := F.to_functor.as_equivalence in
   tensor' := λ X Y, begin
     -- This proof is not pretty; golfing welcome!
     dsimp,
-    simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_naturality_right,
+    simv only [adjunction.hom_equiv_unit, adjunction.hom_equiv_naturality_right,
       category.id_comp, category.assoc],
-    simp only [←functor.map_comp],
+    simv only [←functor.map_comp],
     erw [e.counit_app_functor, e.counit_app_functor, F.to_lax_monoidal_functor.μ_natural,
       is_iso.inv_hom_id_assoc],
-    simp only [category_theory.is_equivalence.inv_fun_map],
+    simv only [category_theory.is_equivalence.inv_fun_map],
     slice_rhs 2 3 { erw iso.hom_inv_id_app, },
     dsimp,
-    simp only [category_theory.category.id_comp],
+    simv only [category_theory.category.id_comp],
     slice_rhs 1 2 { rw [←tensor_comp, iso.hom_inv_id_app, iso.hom_inv_id_app],
       dsimp, rw [tensor_id], },
-    simp,
+    simv,
   end }.
 
 instance (F : monoidal_functor C D) [is_equivalence F.to_functor] : is_iso (monoidal_unit F) :=
@@ -200,28 +200,28 @@ let e := F.to_functor.as_equivalence in
 { to_nat_trans := e.counit,
   unit' := begin
     dsimp,
-    simp only [category.comp_id, category.assoc, functor.map_inv, functor.map_comp,
+    simv only [category.comp_id, category.assoc, functor.map_inv, functor.map_comp,
       nat_iso.inv_inv_app, is_iso.inv_comp, is_equivalence.fun_inv_map, adjunction.hom_equiv_unit],
     erw [e.counit_app_functor, ←e.functor.map_comp_assoc, iso.hom_inv_id_app],
-    dsimp, simp,
+    dsimp, simv,
   end,
   tensor' := λ X Y, begin
     dsimp,
-    simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_naturality_right, category.assoc,
+    simv only [adjunction.hom_equiv_unit, adjunction.hom_equiv_naturality_right, category.assoc,
       category.comp_id, functor.map_comp],
-    simp only [is_equivalence.fun_inv_map],
+    simv only [is_equivalence.fun_inv_map],
     erw [e.counit_app_functor],
-    simp only [category.assoc],
+    simv only [category.assoc],
     erw [←e.functor.map_comp_assoc],
-    simp only [category_theory.iso.inv_hom_id_app,
+    simv only [category_theory.iso.inv_hom_id_app,
       category_theory.iso.inv_hom_id_app_assoc],
     erw [iso.hom_inv_id_app],
     erw [category_theory.functor.map_id],
-    simp only [category.id_comp],
-    simp only [category_theory.iso.inv_hom_id_app,
+    simv only [category.id_comp],
+    simv only [category_theory.iso.inv_hom_id_app,
       category_theory.is_iso.hom_inv_id_assoc],
     erw [iso.inv_hom_id_app],
-    dsimp, simp, refl,
+    dsimp, simv, refl,
   end }
 
 instance (F : monoidal_functor C D) [is_equivalence F.to_functor] : is_iso (monoidal_counit F) :=

@@ -12,29 +12,29 @@ import data.nat.psub
 # Properties of the binary representation of integers
 -/
 
-local attribute [simp] add_assoc
+local attribute [simv] add_assoc
 
 namespace pos_num
 variables {α : Type*}
 
-@[simp, norm_cast] theorem cast_one [has_one α] [has_add α] :
+@[simv, norm_cast] theorem cast_one [has_one α] [has_add α] :
   ((1 : pos_num) : α) = 1 := rfl
 @[simp] theorem cast_one' [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
-@[simp, norm_cast] theorem cast_bit0 [has_one α] [has_add α] (n : pos_num) :
+@[simv, norm_cast] theorem cast_bit0 [has_one α] [has_add α] (n : pos_num) :
   (n.bit0 : α) = _root_.bit0 n := rfl
-@[simp, norm_cast] theorem cast_bit1 [has_one α] [has_add α] (n : pos_num) :
+@[simv, norm_cast] theorem cast_bit1 [has_one α] [has_add α] (n : pos_num) :
   (n.bit1 : α) = _root_.bit1 n := rfl
 
-@[simp, norm_cast] theorem cast_to_nat [add_monoid_with_one α] :
+@[simv, norm_cast] theorem cast_to_nat [add_monoid_with_one α] :
   ∀ n : pos_num, ((n : ℕ) : α) = n
 | 1        := nat.cast_one
 | (bit0 p) := (nat.cast_bit0 _).trans $ congr_arg _root_.bit0 p.cast_to_nat
 | (bit1 p) := (nat.cast_bit1 _).trans $ congr_arg _root_.bit1 p.cast_to_nat
 
-@[simp, norm_cast] theorem to_nat_to_int (n : pos_num) : ((n : ℕ) : ℤ) = n :=
+@[simv, norm_cast] theorem to_nat_to_int (n : pos_num) : ((n : ℕ) : ℤ) = n :=
 cast_to_nat _
 
-@[simp, norm_cast] theorem cast_to_int [add_group_with_one α] (n : pos_num) :
+@[simv, norm_cast] theorem cast_to_int [add_group_with_one α] (n : pos_num) :
   ((n : ℤ) : α) = n :=
 by rw [← to_nat_to_int, int.cast_coe_nat, cast_to_nat]
 
@@ -42,7 +42,7 @@ theorem succ_to_nat : ∀ n, (succ n : ℕ) = n + 1
 | 1        := rfl
 | (bit0 p) := rfl
 | (bit1 p) := (congr_arg _root_.bit0 (succ_to_nat p)).trans $
-  show ↑p + 1 + ↑p + 1 = ↑p + ↑p + 1 + 1, by simp [add_left_comm]
+  show ↑p + 1 + ↑p + 1 = ↑p + ↑p + 1 + 1, by simv [add_left_comm]
 
 theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
 theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
@@ -53,15 +53,15 @@ theorem add_to_nat : ∀ m n, ((m + n : pos_num) : ℕ) = m + n
 | a        1        := by rw [add_one a, succ_to_nat]; refl
 | (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $ add_add_add_comm _ _ _ _
 | (bit0 a) (bit1 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
-  show ((a + b) + (a + b) + 1 : ℕ) = (a + a) + (b + b + 1), by simp [add_left_comm]
+  show ((a + b) + (a + b) + 1 : ℕ) = (a + a) + (b + b + 1), by simv [add_left_comm]
 | (bit1 a) (bit0 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
-  show ((a + b) + (a + b) + 1 : ℕ) = (a + a + 1) + (b + b), by simp [add_comm, add_left_comm]
+  show ((a + b) + (a + b) + 1 : ℕ) = (a + a + 1) + (b + b), by simv [add_comm, add_left_comm]
 | (bit1 a) (bit1 b) :=
   show (succ (a + b) + succ (a + b) : ℕ) = (a + a + 1) + (b + b + 1),
-  by rw [succ_to_nat, add_to_nat]; simp [add_left_comm]
+  by rw [succ_to_nat, add_to_nat]; simv [add_left_comm]
 
 theorem add_succ : ∀ (m n : pos_num), m + succ n = succ (m + n)
-| 1        b        := by simp [one_add]
+| 1        b        := by simv [one_add]
 | (bit0 a) 1        := congr_arg bit0 (add_one a)
 | (bit1 a) 1        := congr_arg bit1 (add_one a)
 | (bit0 a) (bit0 b) := rfl
@@ -132,9 +132,9 @@ theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = 
 theorem lt_to_nat {m n : pos_num} : (m:ℕ) < n ↔ m < n :=
 show (m:ℕ) < n ↔ cmp m n = ordering.lt, from
 match cmp m n, cmp_to_nat m n with
-| ordering.lt, h := by simp at h; simp [h]
-| ordering.eq, h := by simp at h; simp [h, lt_irrefl]; exact dec_trivial
-| ordering.gt, h := by simp [not_lt_of_gt h]; exact dec_trivial
+| ordering.lt, h := by simv at h; simv [h]
+| ordering.eq, h := by simv at h; simv [h, lt_irrefl]; exact dec_trivial
+| ordering.gt, h := by simv [not_lt_of_gt h]; exact dec_trivial
 end
 
 @[norm_cast]
@@ -155,7 +155,7 @@ theorem add_one : ∀ n : num, n + 1 = succ n
 | (pos p) := by cases p; refl
 
 theorem add_succ : ∀ (m n : num), m + succ n = succ (m + n)
-| 0       n       := by simp [zero_add]
+| 0       n       := by simv [zero_add]
 | (pos p) 0       := show pos (p + 1) = succ (pos p + 0),
                      by rw [pos_num.add_one, add_zero]; refl
 | (pos p) (pos q) := congr_arg pos (pos_num.add_succ _ _)
@@ -169,7 +169,7 @@ theorem bit1_of_bit1 : ∀ n : num, bit1 n = n.bit1
 | (pos p) := congr_arg pos p.bit1_of_bit1
 
 @[simp] lemma of_nat'_zero : num.of_nat' 0 = 0 :=
-by simp [num.of_nat']
+by simv [num.of_nat']
 
 lemma of_nat'_bit (b n) : of_nat' (nat.bit b n) = cond b num.bit1 num.bit0 (of_nat' n) :=
 nat.binary_rec_eq rfl _ _
@@ -182,26 +182,26 @@ lemma bit1_succ : ∀ n : num, n.bit1.succ = n.succ.bit0
 | (pos n) := rfl
 
 lemma of_nat'_succ : ∀ {n}, of_nat' (n + 1) = of_nat' n + 1 :=
-nat.binary_rec (by simp; refl) $ λ b n ih,
+nat.binary_rec (by simv; refl) $ λ b n ih,
 begin
   cases b,
   { erw [of_nat'_bit tt n, of_nat'_bit],
-    simp only [← bit1_of_bit1, ← bit0_of_bit0, cond, _root_.bit1] },
-  { erw [show n.bit tt + 1 = (n + 1).bit ff, by simp [nat.bit, _root_.bit1, _root_.bit0]; cc,
+    simv only [← bit1_of_bit1, ← bit0_of_bit0, cond, _root_.bit1] },
+  { erw [show n.bit tt + 1 = (n + 1).bit ff, by simv [nat.bit, _root_.bit1, _root_.bit0]; cc,
       of_nat'_bit, of_nat'_bit, ih],
-    simp only [cond, add_one, bit1_succ], },
+    simv only [cond, add_one, bit1_succ], },
 end
 
 @[simp] theorem add_of_nat' (m n) : num.of_nat' (m + n) = num.of_nat' m + num.of_nat' n :=
-by induction n; simp [nat.add_zero, of_nat'_succ, add_zero, nat.add_succ, add_one, add_succ, *]
+by induction n; simv [nat.add_zero, of_nat'_succ, add_zero, nat.add_succ, add_one, add_succ, *]
 
-@[simp, norm_cast] theorem cast_zero [has_zero α] [has_one α] [has_add α] :
+@[simv, norm_cast] theorem cast_zero [has_zero α] [has_one α] [has_add α] :
   ((0 : num) : α) = 0 := rfl
 
 @[simp] theorem cast_zero' [has_zero α] [has_one α] [has_add α] :
   (num.zero : α) = 0 := rfl
 
-@[simp, norm_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] :
+@[simv, norm_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] :
   ((1 : num) : α) = 1 := rfl
 
 @[simp] theorem cast_pos [has_zero α] [has_one α] [has_add α]
@@ -213,7 +213,7 @@ theorem succ'_to_nat : ∀ n, (succ' n : ℕ) = n + 1
 
 theorem succ_to_nat (n) : (succ n : ℕ) = n + 1 := succ'_to_nat n
 
-@[simp, norm_cast] theorem cast_to_nat [add_monoid_with_one α] : ∀ n : num, ((n : ℕ) : α) = n
+@[simv, norm_cast] theorem cast_to_nat [add_monoid_with_one α] : ∀ n : num, ((n : ℕ) : α) = n
 | 0       := nat.cast_zero
 | (pos p) := p.cast_to_nat
 
@@ -243,9 +243,9 @@ theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = 
 theorem lt_to_nat {m n : num} : (m:ℕ) < n ↔ m < n :=
 show (m:ℕ) < n ↔ cmp m n = ordering.lt, from
 match cmp m n, cmp_to_nat m n with
-| ordering.lt, h := by simp at h; simp [h]
-| ordering.eq, h := by simp at h; simp [h, lt_irrefl]; exact dec_trivial
-| ordering.gt, h := by simp [not_lt_of_gt h]; exact dec_trivial
+| ordering.lt, h := by simv at h; simv [h]
+| ordering.eq, h := by simv at h; simv [h, lt_irrefl]; exact dec_trivial
+| ordering.gt, h := by simv [not_lt_of_gt h]; exact dec_trivial
 end
 
 @[norm_cast]
@@ -264,7 +264,7 @@ end pos_num
 
 namespace num
 
-@[simp, norm_cast] theorem of_to_nat' : Π (n : num), num.of_nat' (n : ℕ) = n
+@[simv, norm_cast] theorem of_to_nat' : Π (n : num), num.of_nat' (n : ℕ) = n
 | 0       := of_nat'_zero
 | (pos p) := p.of_to_nat'
 
@@ -287,12 +287,12 @@ meta def transfer_rw : tactic unit :=
 
 /--
 This tactic tries to prove (in)equalities about `num`s by transfering them to the `nat` world and
-then trying to call `simp`.
+then trying to call `simv`.
 ```lean
 example (n : num) (m : num) : n ≤ n + m := by num.transfer
 ```
 -/
-meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
+meta def transfer : tactic unit := `[intros, transfer_rw, try {simv}]
 
 instance : add_monoid num :=
 { add := (+),
@@ -317,7 +317,7 @@ by refine_struct
   npow := @npow_rec num ⟨1⟩ ⟨(*)⟩,
   .. num.add_monoid, .. num.add_monoid_with_one };
 try { intros, refl }; try { transfer };
-simp [add_comm, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
+simv [add_comm, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
 
 instance : ordered_cancel_add_comm_monoid num :=
 { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
@@ -343,32 +343,32 @@ instance : linear_ordered_semiring num :=
   exists_pair_ne             := ⟨0, 1, dec_trivial⟩,
   ..num.comm_semiring, ..num.ordered_cancel_add_comm_monoid }
 
-@[simp, norm_cast] theorem add_of_nat (m n) : ((m + n : ℕ) : num) = m + n :=
+@[simv, norm_cast] theorem add_of_nat (m n) : ((m + n : ℕ) : num) = m + n :=
 add_of_nat' _ _
 
-@[simp, norm_cast] theorem to_nat_to_int (n : num) : ((n : ℕ) : ℤ) = n :=
+@[simv, norm_cast] theorem to_nat_to_int (n : num) : ((n : ℕ) : ℤ) = n :=
 cast_to_nat _
 
-@[simp, norm_cast] theorem cast_to_int {α} [add_group_with_one α] (n : num) : ((n : ℤ) : α) = n :=
+@[simv, norm_cast] theorem cast_to_int {α} [add_group_with_one α] (n : num) : ((n : ℤ) : α) = n :=
 by rw [← to_nat_to_int, int.cast_coe_nat, cast_to_nat]
 
 theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n
 | 0     := by rw [nat.cast_zero, cast_zero]
 | (n+1) := by rw [nat.cast_succ, add_one, succ_to_nat, to_of_nat]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem of_nat_cast {α} [add_monoid_with_one α] (n : ℕ) : ((n : num) : α) = n :=
 by rw [← cast_to_nat, to_of_nat]
 
-@[simp, norm_cast] theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n :=
+@[simv, norm_cast] theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n :=
 ⟨λ h, function.left_inverse.injective to_of_nat h, congr_arg _⟩
 
-@[simp, norm_cast] theorem of_to_nat : Π (n : num), ((n : ℕ) : num) = n := of_to_nat'
+@[simv, norm_cast] theorem of_to_nat : Π (n : num), ((n : ℕ) : num) = n := of_to_nat'
 
 @[norm_cast]
 theorem dvd_to_nat (m n : num) : (m : ℕ) ∣ n ↔ m ∣ n :=
-⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_nat n, e]; simp⟩,
- λ ⟨k, e⟩, ⟨k, by simp [e, mul_to_nat]⟩⟩
+⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_nat n, e]; simv⟩,
+ λ ⟨k, e⟩, ⟨k, by simv [e, mul_to_nat]⟩⟩
 
 end num
 
@@ -376,7 +376,7 @@ namespace pos_num
 variables {α : Type*}
 open num
 
-@[simp, norm_cast] theorem of_to_nat : Π (n : pos_num), ((n : ℕ) : num) = num.pos n := of_to_nat'
+@[simv, norm_cast] theorem of_to_nat : Π (n : pos_num), ((n : ℕ) : num) = num.pos n := of_to_nat'
 
 @[norm_cast] theorem to_nat_inj {m n : pos_num} : (m : ℕ) = n ↔ m = n :=
 ⟨λ h, num.pos.inj $ by rw [← pos_num.of_to_nat, ← pos_num.of_to_nat, h],
@@ -442,13 +442,13 @@ meta def transfer_rw : tactic unit :=
 
 /--
 This tactic tries to prove (in)equalities about `pos_num`s by transferring them to the `nat` world
-and then trying to call `simp`.
+and then trying to call `simv`.
 ```lean
 example (n : pos_num) (m : pos_num) : n ≤ n + m := by pos_num.transfer
 ```
 -/
 meta def transfer : tactic unit :=
-`[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
+`[intros, transfer_rw, try {simv [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
 instance : add_comm_semigroup pos_num :=
 by refine {add := (+), ..}; transfer
@@ -458,7 +458,7 @@ by refine_struct {mul := (*), one := (1 : pos_num), npow := @npow_rec pos_num �
 try { intros, refl }; transfer
 
 instance : distrib pos_num :=
-by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
+by refine {add := (+), mul := (*), ..}; {transfer, simv [mul_add, mul_comm]}
 
 instance : linear_order pos_num :=
 { lt              := (<),
@@ -475,19 +475,19 @@ instance : linear_order pos_num :=
 @[simp] theorem cast_to_num (n : pos_num) : ↑n = num.pos n :=
 by rw [← cast_to_nat, ← of_to_nat n]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem bit_to_nat (b n) : (bit b n : ℕ) = nat.bit b n :=
 by cases b; refl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_add [add_monoid_with_one α] (m n) : ((m + n : pos_num) : α) = m + n :=
 by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
 
-@[simp, norm_cast, priority 500]
+@[simv, norm_cast, priority 500]
 theorem cast_succ [add_monoid_with_one α] (n : pos_num) : (succ n : α) = n + 1 :=
 by rw [← add_one, cast_add, cast_one]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_inj [add_monoid_with_one α] [char_zero α] {m n : pos_num} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
@@ -499,7 +499,7 @@ by rw [← cast_to_nat, ← nat.cast_one, nat.cast_le]; apply to_nat_pos
 theorem cast_pos [linear_ordered_semiring α] (n : pos_num) : 0 < (n : α) :=
 lt_of_lt_of_le zero_lt_one (one_le_cast n)
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_mul [semiring α] (m n) : ((m * n : pos_num) : α) = m * n :=
 by rw [← cast_to_nat, mul_to_nat, nat.cast_mul, cast_to_nat, cast_to_nat]
 
@@ -507,15 +507,15 @@ by rw [← cast_to_nat, mul_to_nat, nat.cast_mul, cast_to_nat, cast_to_nat]
 theorem cmp_eq (m n) : cmp m n = ordering.eq ↔ m = n :=
 begin
   have := cmp_to_nat m n,
-  cases cmp m n; simp at this ⊢; try {exact this};
-  { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
+  cases cmp m n; simv at this ⊢; try {exact this};
+  { simv [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
 end
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_lt [linear_ordered_semiring α] {m n : pos_num} : (m:α) < n ↔ m < n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_lt, lt_to_nat]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_le [linear_ordered_semiring α] {m n : pos_num} : (m:α) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr cast_lt
 
@@ -533,16 +533,16 @@ by rw [← pos_num.cast_to_nat, succ'_to_nat, nat.cast_add_one, cast_to_nat]
 
 theorem cast_succ [add_monoid_with_one α] (n) : (succ n : α) = n + 1 := cast_succ' n
 
-@[simp, norm_cast] theorem cast_add [semiring α] (m n) : ((m + n : num) : α) = m + n :=
+@[simv, norm_cast] theorem cast_add [semiring α] (m n) : ((m + n : num) : α) = m + n :=
 by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
 
-@[simp, norm_cast] theorem cast_bit0 [semiring α] (n : num) : (n.bit0 : α) = _root_.bit0 n :=
+@[simv, norm_cast] theorem cast_bit0 [semiring α] (n : num) : (n.bit0 : α) = _root_.bit0 n :=
 by rw [← bit0_of_bit0, _root_.bit0, cast_add]; refl
 
-@[simp, norm_cast] theorem cast_bit1 [semiring α] (n : num) : (n.bit1 : α) = _root_.bit1 n :=
+@[simv, norm_cast] theorem cast_bit1 [semiring α] (n : num) : (n.bit1 : α) = _root_.bit1 n :=
 by rw [← bit1_of_bit1, _root_.bit1, bit0_of_bit0, cast_add, cast_bit0]; refl
 
-@[simp, norm_cast] theorem cast_mul [semiring α] : ∀ m n, ((m * n : num) : α) = m * n
+@[simv, norm_cast] theorem cast_mul [semiring α] : ∀ m n, ((m * n : num) : α) = m * n
 | 0       0       := (zero_mul _).symm
 | 0       (pos q) := (zero_mul _).symm
 | (pos p) 0       := (mul_zero _).symm
@@ -559,11 +559,11 @@ theorem size_eq_nat_size : ∀ n, (size n : ℕ) = nat_size n
 theorem nat_size_to_nat (n) : nat_size n = nat.size n :=
 by rw [← size_eq_nat_size, size_to_nat]
 
-@[simp, priority 999] theorem of_nat'_eq : ∀ n, num.of_nat' n = n :=
-nat.binary_rec (by simp) $ λ b n IH, begin
+@[simv, priority 999] theorem of_nat'_eq : ∀ n, num.of_nat' n = n :=
+nat.binary_rec (by simv) $ λ b n IH, begin
   rw of_nat' at IH ⊢,
   rw [nat.binary_rec_eq, IH],
-  { cases b; simp [nat.bit, bit0_of_bit0, bit1_of_bit1] },
+  { cases b; simv [nat.bit, bit0_of_bit0, bit1_of_bit1] },
   { refl }
 end
 
@@ -573,7 +573,7 @@ theorem zneg_to_znum_neg (n : num) : -n.to_znum_neg = n.to_znum := by cases n; r
 theorem to_znum_inj {m n : num} : m.to_znum = n.to_znum ↔ m = n :=
 ⟨λ h, by cases m; cases n; cases h; refl, congr_arg _⟩
 
-@[simp, norm_cast squash] theorem cast_to_znum [has_zero α] [has_one α] [has_add α] [has_neg α] :
+@[simv, norm_cast squash] theorem cast_to_znum [has_zero α] [has_one α] [has_add α] [has_neg α] :
   ∀ n : num, (n.to_znum : α) = n
 | 0           := rfl
 | (num.pos p) := rfl
@@ -636,19 +636,19 @@ by cases m; cases n; try {unfold cmp}; try {refl}; apply pos_num.cmp_swap
 theorem cmp_eq (m n) : cmp m n = ordering.eq ↔ m = n :=
 begin
   have := cmp_to_nat m n,
-  cases cmp m n; simp at this ⊢; try {exact this};
-  { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
+  cases cmp m n; simv at this ⊢; try {exact this};
+  { simv [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
 end
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_lt [linear_ordered_semiring α] {m n : num} : (m:α) < n ↔ m < n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_lt, lt_to_nat]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_le [linear_ordered_semiring α] {m n : num} : (m:α) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr cast_lt
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_inj [linear_ordered_semiring α] {m n : num} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
@@ -705,23 +705,23 @@ begin
       rw [← bit_to_nat, pbb] } }
 end
 
-@[simp, norm_cast] theorem lor_to_nat   : ∀ m n, (lor    m n : ℕ) = nat.lor    m n :=
+@[simv, norm_cast] theorem lor_to_nat   : ∀ m n, (lor    m n : ℕ) = nat.lor    m n :=
 by apply bitwise_to_nat (λx y, pos (pos_num.lor x y)); intros; try {cases a}; try {cases b}; refl
-@[simp, norm_cast] theorem land_to_nat  : ∀ m n, (land   m n : ℕ) = nat.land   m n :=
+@[simv, norm_cast] theorem land_to_nat  : ∀ m n, (land   m n : ℕ) = nat.land   m n :=
 by apply bitwise_to_nat pos_num.land; intros; try {cases a}; try {cases b}; refl
-@[simp, norm_cast] theorem ldiff_to_nat : ∀ m n, (ldiff  m n : ℕ) = nat.ldiff  m n :=
+@[simv, norm_cast] theorem ldiff_to_nat : ∀ m n, (ldiff  m n : ℕ) = nat.ldiff  m n :=
 by apply bitwise_to_nat pos_num.ldiff; intros; try {cases a}; try {cases b}; refl
-@[simp, norm_cast] theorem lxor_to_nat  : ∀ m n, (lxor   m n : ℕ) = nat.lxor   m n :=
+@[simv, norm_cast] theorem lxor_to_nat  : ∀ m n, (lxor   m n : ℕ) = nat.lxor   m n :=
 by apply bitwise_to_nat pos_num.lxor; intros; try {cases a}; try {cases b}; refl
 
-@[simp, norm_cast] theorem shiftl_to_nat (m n) : (shiftl m n : ℕ) = nat.shiftl m n :=
+@[simv, norm_cast] theorem shiftl_to_nat (m n) : (shiftl m n : ℕ) = nat.shiftl m n :=
 begin
   cases m; dunfold shiftl, {symmetry, apply nat.zero_shiftl},
-  simp, induction n with n IH, {refl},
-  simp [pos_num.shiftl, nat.shiftl_succ], rw ←IH
+  simv, induction n with n IH, {refl},
+  simv [pos_num.shiftl, nat.shiftl_succ], rw ←IH
 end
 
-@[simp, norm_cast] theorem shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
+@[simv, norm_cast] theorem shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
 begin
   cases m with m; dunfold shiftr, {symmetry, apply nat.zero_shiftr},
   induction n with n IH generalizing m, {cases m; refl},
@@ -767,13 +767,13 @@ namespace znum
 variables {α : Type*}
 open pos_num
 
-@[simp, norm_cast] theorem cast_zero [has_zero α] [has_one α] [has_add α] [has_neg α] :
+@[simv, norm_cast] theorem cast_zero [has_zero α] [has_one α] [has_add α] [has_neg α] :
   ((0 : znum) : α) = 0 := rfl
 
 @[simp] theorem cast_zero' [has_zero α] [has_one α] [has_add α] [has_neg α] :
   (znum.zero : α) = 0 := rfl
 
-@[simp, norm_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] [has_neg α] :
+@[simv, norm_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] [has_neg α] :
   ((1 : znum) : α) = 1 := rfl
 
 @[simp] theorem cast_pos [has_zero α] [has_one α] [has_add α] [has_neg α]
@@ -782,7 +782,7 @@ open pos_num
 @[simp] theorem cast_neg [has_zero α] [has_one α] [has_add α] [has_neg α]
   (n : pos_num) : (neg n : α) = -n := rfl
 
-@[simp, norm_cast] theorem cast_zneg [add_group α] [has_one α] : ∀ n, ((-n : znum) : α) = -n
+@[simv, norm_cast] theorem cast_zneg [add_group α] [has_one α] : ∀ n, ((-n : znum) : α) = -n
 | 0       := neg_zero.symm
 | (pos p) := rfl
 | (neg p) := (neg_neg _).symm
@@ -810,7 +810,7 @@ by rw [← zneg_zneg (succ (-n)), zneg_succ, zneg_zneg]
 | 0           := rfl
 | (num.pos p) := rfl
 
-@[simp, norm_cast] theorem cast_to_int [add_group_with_one α] : ∀ n : znum, ((n : ℤ) : α) = n
+@[simv, norm_cast] theorem cast_to_int [add_group_with_one α] : ∀ n : znum, ((n : ℤ) : α) = n
 | 0       := by rw [cast_zero, cast_zero, int.cast_zero]
 | (pos p) := by rw [cast_pos, cast_pos, pos_num.cast_to_int]
 | (neg p) := by rw [cast_neg, cast_neg, int.cast_neg, pos_num.cast_to_int]
@@ -826,16 +826,16 @@ theorem bit1_of_bit1 : ∀ n : znum, _root_.bit1 n = n.bit1
 | (neg a) := show pos_num.sub' 1 (_root_.bit0 a) = _,
   by rw [pos_num.one_sub', a.bit0_of_bit0]; refl
 
-@[simp, norm_cast] theorem cast_bit0 [add_group_with_one α] :
+@[simv, norm_cast] theorem cast_bit0 [add_group_with_one α] :
   ∀ n : znum, (n.bit0 : α) = bit0 n
 | 0       := (add_zero _).symm
 | (pos p) := by rw [znum.bit0, cast_pos, cast_pos]; refl
 | (neg p) := by rw [znum.bit0, cast_neg, cast_neg, pos_num.cast_bit0,
                     _root_.bit0, _root_.bit0, neg_add_rev]
 
-@[simp, norm_cast] theorem cast_bit1 [add_group_with_one α] :
+@[simv, norm_cast] theorem cast_bit1 [add_group_with_one α] :
   ∀ n : znum, (n.bit1 : α) = bit1 n
-| 0       := by simp [znum.bit1, _root_.bit1, _root_.bit0]
+| 0       := by simv [znum.bit1, _root_.bit1, _root_.bit0]
 | (pos p) := by rw [znum.bit1, cast_pos, cast_pos]; refl
 | (neg p) := begin
     rw [znum.bit1, cast_neg, cast_neg],
@@ -843,9 +843,9 @@ theorem bit1_of_bit1 : ∀ n : znum, _root_.bit1 n = n.bit1
     have : p = _ := (succ'_pred' p).symm.trans
       (congr_arg num.succ' e),
     { change p=1 at this, subst p,
-      simp [_root_.bit1, _root_.bit0] },
+      simv [_root_.bit1, _root_.bit0] },
     { rw [num.succ'] at this, subst p,
-      have : (↑(-↑a:ℤ) : α) = -1 + ↑(-↑a + 1 : ℤ), {simp [add_comm]},
+      have : (↑(-↑a:ℤ) : α) = -1 + ↑(-↑a + 1 : ℤ), {simv [add_comm]},
       simpa [_root_.bit1, _root_.bit0, -add_comm] },
   end
 
@@ -854,7 +854,7 @@ theorem bit1_of_bit1 : ∀ n : znum, _root_.bit1 n = n.bit1
 begin
   conv { to_lhs, rw ← zneg_zneg n },
   rw [← zneg_bit1, cast_zneg, cast_bit1],
-  have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simp [add_comm, add_left_comm]},
+  have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simv [add_comm, add_left_comm]},
   simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg, -int.add_neg_one]
 end
 
@@ -876,35 +876,35 @@ theorem cast_to_znum : ∀ n : pos_num, (n : znum) = znum.pos n
 | (bit0 p) := (znum.bit0_of_bit0 p).trans $ congr_arg _ (cast_to_znum p)
 | (bit1 p) := (znum.bit1_of_bit1 p).trans $ congr_arg _ (cast_to_znum p)
 
-local attribute [-simp] int.add_neg_one
+local attribute [-simv] int.add_neg_one
 
 theorem cast_sub' [add_group_with_one α] : ∀ m n : pos_num, (sub' m n : α) = m - n
 | a        1        := by rw [sub'_one, num.cast_to_znum,
                               ← num.cast_to_nat, pred'_to_nat, ← nat.sub_one];
-                          simp [pos_num.cast_pos]
+                          simv [pos_num.cast_pos]
 | 1        b        := by rw [one_sub', num.cast_to_znum_neg, ← neg_sub, neg_inj,
                               ← num.cast_to_nat, pred'_to_nat, ← nat.sub_one];
-                          simp [pos_num.cast_pos]
+                          simv [pos_num.cast_pos]
 | (bit0 a) (bit0 b) := begin
     rw [sub', znum.cast_bit0, cast_sub'],
-    have : ((a + -b + (a + -b) : ℤ) : α) = a + a + (-b + -b), {simp [add_left_comm]},
+    have : ((a + -b + (a + -b) : ℤ) : α) = a + a + (-b + -b), {simv [add_left_comm]},
     simpa [_root_.bit0, sub_eq_add_neg]
   end
 | (bit0 a) (bit1 b) := begin
     rw [sub', znum.cast_bitm1, cast_sub'],
     have : ((-b + (a + (-b + -1)) : ℤ) : α) = (a + -1 + (-b + -b):ℤ),
-    { simp [add_comm, add_left_comm] },
+    { simv [add_comm, add_left_comm] },
     simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
   end
 | (bit1 a) (bit0 b) := begin
     rw [sub', znum.cast_bit1, cast_sub'],
     have : ((-b + (a + (-b + 1)) : ℤ) : α) = (a + 1 + (-b + -b):ℤ),
-    { simp [add_comm, add_left_comm] },
+    { simv [add_comm, add_left_comm] },
     simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
   end
 | (bit1 a) (bit1 b) := begin
     rw [sub', znum.cast_bit0, cast_sub'],
-    have : ((-b + (a + -b) : ℤ) : α) = a + (-b + -b), {simp [add_left_comm]},
+    have : ((-b + (a + -b) : ℤ) : α) = a + (-b + -b), {simv [add_left_comm]},
     simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
   end
 
@@ -961,19 +961,19 @@ theorem of_znum'_to_nat : ∀ (n : znum), coe <$> of_znum' n = int.to_nat' n
 | 0            := rfl
 | (znum.pos p) := show _ = int.to_nat' p, by rw [← pos_num.to_nat_to_int p]; refl
 | (znum.neg p) := congr_arg (λ x, int.to_nat' (-x)) $
-  show ((p.pred' + 1 : ℕ) : ℤ) = p, by rw ← succ'_to_nat; simp
+  show ((p.pred' + 1 : ℕ) : ℤ) = p, by rw ← succ'_to_nat; simv
 
 @[simp] theorem of_znum_to_nat : ∀ (n : znum), (of_znum n : ℕ) = int.to_nat n
 | 0            := rfl
 | (znum.pos p) := show _ = int.to_nat p, by rw [← pos_num.to_nat_to_int p]; refl
 | (znum.neg p) := congr_arg (λ x, int.to_nat (-x)) $
-  show ((p.pred' + 1 : ℕ) : ℤ) = p, by rw ← succ'_to_nat; simp
+  show ((p.pred' + 1 : ℕ) : ℤ) = p, by rw ← succ'_to_nat; simv
 
 @[simp] theorem cast_of_znum [add_group_with_one α] (n : znum) :
   (of_znum n : α) = int.to_nat n :=
 by rw [← cast_to_nat, of_znum_to_nat]
 
-@[simp, norm_cast] theorem sub_to_nat (m n) : ((m - n : num) : ℕ) = m - n :=
+@[simv, norm_cast] theorem sub_to_nat (m n) : ((m - n : num) : ℕ) = m - n :=
 show (of_znum _ : ℕ) = _, by rw [of_znum_to_nat, cast_sub',
   ← to_nat_to_int, ← to_nat_to_int, int.to_nat_sub]
 
@@ -982,23 +982,23 @@ end num
 namespace znum
 variables {α : Type*}
 
-@[simp, norm_cast] theorem cast_add [add_group_with_one α] : ∀ m n, ((m + n : znum) : α) = m + n
+@[simv, norm_cast] theorem cast_add [add_group_with_one α] : ∀ m n, ((m + n : znum) : α) = m + n
 | 0       a       := by cases a; exact (_root_.zero_add _).symm
 | b       0       := by cases b; exact (_root_.add_zero _).symm
 | (pos a) (pos b) := pos_num.cast_add _ _
 | (pos a) (neg b) := by simpa only [sub_eq_add_neg] using pos_num.cast_sub' _ _
 | (neg a) (pos b) :=
 have (↑b + -↑a : α) = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
-  ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm],
+  ← int.cast_neg, ← int.cast_add (-a)]; simv [add_comm],
 (pos_num.cast_sub' _ _).trans $ (sub_eq_add_neg _ _).trans this
 | (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by rw [
   pos_num.cast_add, neg_eq_iff_neg_eq, neg_add_rev, neg_neg, neg_neg,
-  ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp [add_comm]
+  ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simv [add_comm]
 
 @[simp] theorem cast_succ [add_group_with_one α] (n) : ((succ n : znum) : α) = n + 1 :=
 by rw [← add_one, cast_add, cast_one]
 
-@[simp, norm_cast] theorem mul_to_int : ∀ m n, ((m * n : znum) : ℤ) = m * n
+@[simv, norm_cast] theorem mul_to_int : ∀ m n, ((m * n : znum) : ℤ) = m * n
 | 0       a       := by cases a; exact (_root_.zero_mul _).symm
 | b       0       := by cases b; exact (_root_.mul_zero _).symm
 | (pos a) (pos b) := pos_num.cast_mul a b
@@ -1010,7 +1010,7 @@ theorem cast_mul [ring α] (m n) : ((m * n : znum) : α) = m * n :=
 by rw [← cast_to_int, mul_to_int, int.cast_mul, cast_to_int, cast_to_int]
 
 theorem of_int'_neg : ∀ n : ℤ, of_int' (-n) = -of_int' n
-| -[1+ n] := show of_int' (n + 1 : ℕ) = _, by simp only [of_int', num.zneg_to_znum_neg]
+| -[1+ n] := show of_int' (n + 1 : ℕ) = _, by simv only [of_int', num.zneg_to_znum_neg]
 | 0 := show num.to_znum _ = -num.to_znum _, by rw [num.of_nat'_zero]; refl
 | (n+1 : ℕ) := show num.to_znum_neg _ = -num.to_znum _, by rw [num.zneg_to_znum]; refl
 
@@ -1028,12 +1028,12 @@ theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = 
 | (pos a) (pos b) := begin
     have := pos_num.cmp_to_nat a b; revert this; dsimp [cmp];
     cases pos_num.cmp a b; dsimp;
-    [simp, exact congr_arg pos, simp [gt]]
+    [simv, exact congr_arg pos, simv [gt]]
   end
 | (neg a) (neg b) := begin
     have := pos_num.cmp_to_nat b a; revert this; dsimp [cmp];
     cases pos_num.cmp b a; dsimp;
-    [simp, simp {contextual := tt}, simp [gt]]
+    [simv, simv {contextual := tt}, simv [gt]]
   end
 | (pos a) 0       := pos_num.cast_pos _
 | (pos a) (neg b) := lt_trans (neg_lt_zero.2 $ pos_num.cast_pos _) (pos_num.cast_pos _)
@@ -1046,23 +1046,23 @@ theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = 
 theorem lt_to_int {m n : znum} : (m:ℤ) < n ↔ m < n :=
 show (m:ℤ) < n ↔ cmp m n = ordering.lt, from
 match cmp m n, cmp_to_int m n with
-| ordering.lt, h := by simp at h; simp [h]
-| ordering.eq, h := by simp at h; simp [h, lt_irrefl]; exact dec_trivial
-| ordering.gt, h := by simp [not_lt_of_gt h]; exact dec_trivial
+| ordering.lt, h := by simv at h; simv [h]
+| ordering.eq, h := by simv at h; simv [h, lt_irrefl]; exact dec_trivial
+| ordering.gt, h := by simv [not_lt_of_gt h]; exact dec_trivial
 end
 
 theorem le_to_int {m n : znum} : (m:ℤ) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr lt_to_int
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_lt [linear_ordered_ring α] {m n : znum} : (m:α) < n ↔ m < n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_lt, lt_to_int]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_le [linear_ordered_ring α] {m n : znum} : (m:α) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr cast_lt
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_inj, to_int_inj]
 
@@ -1082,7 +1082,7 @@ meta def transfer_rw : tactic unit :=
 
 /--
 This tactic tries to prove (in)equalities about `znum`s by transfering them to the `int` world and
-then trying to call `simp`.
+then trying to call `simv`.
 ```lean
 example (n : znum) (m : znum) : n ≤ n + m * m :=
 begin
@@ -1092,7 +1092,7 @@ end
 ```
 -/
 meta def transfer : tactic unit :=
-`[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
+`[intros, transfer_rw, try {simv [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
 instance : linear_order znum :=
 { lt               := (<),
@@ -1130,8 +1130,8 @@ instance : linear_ordered_comm_ring znum :=
   one              := 1,
   one_mul          := by transfer,
   mul_one          := by transfer,
-  left_distrib     := by {transfer, simp [mul_add]},
-  right_distrib    := by {transfer, simp [mul_add, mul_comm]},
+  left_distrib     := by {transfer, simv [mul_add]},
+  right_distrib    := by {transfer, simv [mul_add, mul_comm]},
   mul_comm         := by transfer,
   exists_pair_ne   := ⟨0, 1, dec_trivial⟩,
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
@@ -1139,10 +1139,10 @@ instance : linear_ordered_comm_ring znum :=
   zero_le_one      := dec_trivial,
   ..znum.linear_order, ..znum.add_comm_group, ..znum.add_monoid_with_one }
 
-@[simp, norm_cast] theorem cast_sub [ring α] (m n) : ((m - n : znum) : α) = m - n :=
-by simp [sub_eq_neg_add]
+@[simv, norm_cast] theorem cast_sub [ring α] (m n) : ((m - n : znum) : α) = m - n :=
+by simv [sub_eq_neg_add]
 
-@[simp, norm_cast] theorem neg_of_int : ∀ n, ((-n : ℤ) : znum) = -n
+@[simv, norm_cast] theorem neg_of_int : ∀ n, ((-n : ℤ) : znum) = -n
 | (n+1:ℕ) := rfl
 | 0       := by rw [int.cast_neg, int.cast_zero]
 | -[1+n]  := (zneg_zneg _).symm
@@ -1158,24 +1158,24 @@ end
 
 @[simp] theorem of_nat_to_znum (n : ℕ) : num.to_znum n = n := rfl
 
-@[simp, norm_cast] theorem of_to_int (n : znum) : ((n : ℤ) : znum) = n :=
+@[simv, norm_cast] theorem of_to_int (n : znum) : ((n : ℤ) : znum) = n :=
 by rw [← of_int'_eq, of_to_int']
 
 theorem to_of_int (n : ℤ) : ((n : znum) : ℤ) = n :=
-int.induction_on' n 0 (by simp) (by simp) (by simp)
+int.induction_on' n 0 (by simv) (by simv) (by simv)
 
 @[simp] theorem of_nat_to_znum_neg (n : ℕ) : num.to_znum_neg n = -n :=
 by rw [← of_nat_to_znum, num.zneg_to_znum]
 
-@[simp, norm_cast] theorem of_int_cast [add_group_with_one α] (n : ℤ) : ((n : znum) : α) = n :=
+@[simv, norm_cast] theorem of_int_cast [add_group_with_one α] (n : ℤ) : ((n : znum) : α) = n :=
 by rw [← cast_to_int, to_of_int]
 
-@[simp, norm_cast] theorem of_nat_cast [add_group_with_one α] (n : ℕ) : ((n : znum) : α) = n :=
+@[simv, norm_cast] theorem of_nat_cast [add_group_with_one α] (n : ℕ) : ((n : znum) : α) = n :=
 by rw [← int.cast_coe_nat, of_int_cast, int.cast_coe_nat]
 
-@[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
-⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_int n, e]; simp⟩,
- λ ⟨k, e⟩, ⟨k, by simp [e]⟩⟩
+@[simv, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
+⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_int n, e]; simv⟩,
+ λ ⟨k, e⟩, ⟨k, by simv [e]⟩⟩
 
 end znum
 
@@ -1193,9 +1193,9 @@ begin
     apply num.mem_of_znum'.trans,
     rw [← znum.to_int_inj, num.cast_to_znum,
       num.cast_sub', sub_eq_iff_eq_add, ← int.coe_nat_inj'],
-    simp },
+    simv },
   cases e : num.of_znum' (num.sub' r (num.pos d)) with r₂;
-    simp [divmod_aux],
+    simv [divmod_aux],
   { refine ⟨h₁, lt_of_not_ge (λ h, _)⟩,
     cases nat.le.dest h with r₂ e',
     rw [← num.to_of_nat r₂, add_comm] at e',
@@ -1213,12 +1213,12 @@ theorem divmod_to_nat (d n : pos_num) :
 begin
   rw nat.div_mod_unique (pos_num.cast_pos _),
   induction n with n IH n IH,
-  { exact divmod_to_nat_aux (by simp; refl)
+  { exact divmod_to_nat_aux (by simv; refl)
       (nat.mul_le_mul_left 2
         (pos_num.cast_pos d : (0 : ℕ) < d)) },
   { unfold divmod,
-    cases divmod d n with q r, simp only [divmod] at IH ⊢,
-    apply divmod_to_nat_aux; simp,
+    cases divmod d n with q r, simv only [divmod] at IH ⊢,
+    apply divmod_to_nat_aux; simv,
     { rw [_root_.bit1, _root_.bit1, add_right_comm,
         bit0_eq_two_mul (n : ℕ), ← IH.1,
         mul_add, ← bit0_eq_two_mul,
@@ -1226,8 +1226,8 @@ begin
     { rw ← bit0_eq_two_mul,
       exact nat.bit1_lt_bit0 IH.2 } },
   { unfold divmod,
-    cases divmod d n with q r, simp only [divmod] at IH ⊢,
-    apply divmod_to_nat_aux; simp,
+    cases divmod d n with q r, simv only [divmod] at IH ⊢,
+    apply divmod_to_nat_aux; simv,
     { rw [bit0_eq_two_mul (n : ℕ), ← IH.1,
         mul_add, ← bit0_eq_two_mul,
         mul_left_comm, ← bit0_eq_two_mul] },
@@ -1246,19 +1246,19 @@ end pos_num
 namespace num
 
 @[simp] protected lemma div_zero (n : num) : n / 0 = 0 :=
-show n.div 0 = 0, by { cases n, refl, simp [num.div] }
+show n.div 0 = 0, by { cases n, refl, simv [num.div] }
 
-@[simp, norm_cast] theorem div_to_nat : ∀ n d, ((n / d : num) : ℕ) = n / d
-| 0       0       := by simp
+@[simv, norm_cast] theorem div_to_nat : ∀ n d, ((n / d : num) : ℕ) = n / d
+| 0       0       := by simv
 | 0       (pos d) := (nat.zero_div _).symm
 | (pos n) 0       := (nat.div_zero _).symm
 | (pos n) (pos d) := pos_num.div'_to_nat _ _
 
 @[simp] protected lemma mod_zero (n : num) : n % 0 = n :=
-show n.mod 0 = n, by { cases n, refl, simp [num.mod] }
+show n.mod 0 = n, by { cases n, refl, simv [num.mod] }
 
-@[simp, norm_cast] theorem mod_to_nat : ∀ n d, ((n % d : num) : ℕ) = n % d
-| 0       0       := by simp
+@[simv, norm_cast] theorem mod_to_nat : ∀ n d, ((n % d : num) : ℕ) = n % d
+| 0       0       := by simv
 | 0       (pos d) := (nat.zero_mod _).symm
 | (pos n) 0       := (nat.mod_zero _).symm
 | (pos n) (pos d) := pos_num.mod'_to_nat _ _
@@ -1271,7 +1271,7 @@ theorem gcd_to_nat_aux : ∀ {n} {a b : num},
   (not_lt_of_le h).elim $ pos_num.nat_size_pos _
 | (nat.succ n) 0       b       ab h := (nat.gcd_zero_left _).symm
 | (nat.succ n) (pos a) b       ab h := begin
-  simp [gcd_aux],
+  simv [gcd_aux],
   rw [nat.gcd_rec, gcd_to_nat_aux, mod_to_nat], {refl},
   { rw [← le_to_nat, mod_to_nat],
     exact le_of_lt (nat.mod_lt _ (pos_num.cast_pos _)) },
@@ -1291,7 +1291,7 @@ end
 have ∀ a b : num, (a * b).nat_size ≤ a.nat_size + b.nat_size,
 begin
   intros,
-  simp [nat_size_to_nat],
+  simv [nat_size_to_nat],
   rw [nat.size_le, pow_add],
   exact mul_lt_mul'' (nat.lt_size_self _)
     (nat.lt_size_self _) (nat.zero_le _) (nat.zero_le _)
@@ -1318,18 +1318,18 @@ instance pos_num.decidable_dvd : decidable_rel ((∣) : pos_num → pos_num → 
 namespace znum
 
 @[simp] protected lemma div_zero (n : znum) : n / 0 = 0 :=
-show n.div 0 = 0, by cases n; refl <|> simp [znum.div]
+show n.div 0 = 0, by cases n; refl <|> simv [znum.div]
 
-@[simp, norm_cast] theorem div_to_int : ∀ n d, ((n / d : znum) : ℤ) = n / d
-| 0       0       := by simp [int.div_zero]
+@[simv, norm_cast] theorem div_to_int : ∀ n d, ((n / d : znum) : ℤ) = n / d
+| 0       0       := by simv [int.div_zero]
 | 0       (pos d) := (int.zero_div _).symm
 | 0       (neg d) := (int.zero_div _).symm
 | (pos n) 0       := (int.div_zero _).symm
 | (neg n) 0       := (int.div_zero _).symm
 | (pos n) (pos d) := (num.cast_to_znum _).trans $
-  by rw ← num.to_nat_to_int; simp
+  by rw ← num.to_nat_to_int; simv
 | (pos n) (neg d) := (num.cast_to_znum_neg _).trans $
-  by rw ← num.to_nat_to_int; simp
+  by rw ← num.to_nat_to_int; simv
 | (neg n) (pos d) := show - _ = (-_/↑d), begin
     rw [n.to_int_eq_succ_pred, d.to_int_eq_succ_pred,
       ← pos_num.to_nat_to_int, num.succ'_to_nat,
@@ -1345,7 +1345,7 @@ show n.div 0 = 0, by cases n; refl <|> simp [znum.div]
     rw d.to_nat_eq_succ_pred
   end
 
-@[simp, norm_cast] theorem mod_to_int : ∀ n d, ((n % d : znum) : ℤ) = n % d
+@[simv, norm_cast] theorem mod_to_int : ∀ n d, ((n % d : znum) : ℤ) = n % d
 | 0       d := (int.zero_mod _).symm
 | (pos n) d := (num.cast_to_znum _).trans $
   by rw [← num.to_nat_to_int, cast_pos, num.mod_to_nat,

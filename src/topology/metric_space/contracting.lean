@@ -44,7 +44,7 @@ open emetric set
 
 lemma to_lipschitz_with (hf : contracting_with K f) : lipschitz_with K f := hf.2
 
-lemma one_sub_K_pos' (hf : contracting_with K f) : (0:ℝ≥0∞) < 1 - K := by simp [hf.1]
+lemma one_sub_K_pos' (hf : contracting_with K f) : (0:ℝ≥0∞) < 1 - K := by simv [hf.1]
 
 lemma one_sub_K_ne_zero (hf : contracting_with K f) : (1:ℝ≥0∞) - K ≠ 0 :=
 ne_of_gt hf.one_sub_K_pos'
@@ -126,7 +126,7 @@ lemma apriori_edist_iterate_efixed_point_le (hf : contracting_with K f)
 
 lemma edist_efixed_point_le (hf : contracting_with K f) {x : α} (hx : edist x (f x) ≠ ∞) :
   edist x (efixed_point f hf x hx) ≤ (edist x (f x)) / (1 - K) :=
-by { convert hf.apriori_edist_iterate_efixed_point_le hx 0, simp only [pow_zero, mul_one] }
+by { convert hf.apriori_edist_iterate_efixed_point_le hx 0, simv only [pow_zero, mul_one] }
 
 lemma edist_efixed_point_lt_top (hf : contracting_with K f) {x : α} (hx : edist x (f x) ≠ ∞) :
   edist x (efixed_point f hf x hx) < ∞ :=
@@ -157,7 +157,7 @@ begin
   rcases hf.exists_fixed_point ⟨x, hxs⟩ hx with ⟨y, hfy, h_tendsto, hle⟩,
   refine ⟨y, y.2, subtype.ext_iff_val.1 hfy, _, λ n, _⟩,
   { convert (continuous_subtype_coe.tendsto _).comp h_tendsto, ext n,
-    simp only [(∘), maps_to.iterate_restrict, maps_to.coe_restrict_apply, subtype.coe_mk] },
+    simv only [(∘), maps_to.iterate_restrict, maps_to.coe_restrict_apply, subtype.coe_mk] },
   { convert hle n,
     rw [maps_to.iterate_restrict, eq_comm, maps_to.coe_restrict_apply, subtype.coe_mk] }
 end

@@ -73,7 +73,7 @@ instance has_coe_to_matrix : has_coe (special_linear_group n R) (matrix n n R) :
 
 /- In this file, Lean often has a hard time working out the values of `n` and `R` for an expression
 like `det ↑A`. Rather than writing `(A : matrix n n R)` everywhere in this file which is annoyingly
-verbose, or `A.val` which is not the simp-normal form for subtypes, we create a local notation
+verbose, or `A.val` which is not the simv-normal form for subtypes, we create a local notation
 `↑ₘA`. This notation references the local `n` and `R` variables, so is not valid as a global
 notation. -/
 local prefix `↑ₘ`:1024 := @coe _ (matrix n n R) _
@@ -122,7 +122,7 @@ by { rw g.det_coe, norm_num }
 
 lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
   ↑ₘg i ≠ 0 :=
-λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
+λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simv [h]
 
 end coe_lemmas
 
@@ -130,7 +130,7 @@ instance : monoid (special_linear_group n R) :=
 function.injective.monoid coe subtype.coe_injective coe_one coe_mul coe_pow
 
 instance : group (special_linear_group n R) :=
-{ mul_left_inv := λ A, by { ext1, simp [adjugate_mul] },
+{ mul_left_inv := λ A, by { ext1, simv [adjugate_mul] },
   ..special_linear_group.monoid,
   ..special_linear_group.has_inv }
 
@@ -170,7 +170,7 @@ variables {S : Type*} [comm_ring S]
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
 @[simps] def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
-{ to_fun := λ g, ⟨f.map_matrix ↑g, by { rw ← f.map_det, simp [g.2] }⟩,
+{ to_fun := λ g, ⟨f.map_matrix ↑g, by { rw ← f.map_det, simv [g.2] }⟩,
   map_one' := subtype.ext $ f.map_matrix.map_one,
   map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul x y }
 
@@ -212,7 +212,7 @@ end has_neg
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance
 
-/-- This instance is here for convenience, but is not the simp-normal form. -/
+/-- This instance is here for convenience, but is not the simv-normal form. -/
 instance : has_coe_to_fun (special_linear_group n R) (λ _, n → n → R) :=
 { coe := λ A, A.val }
 

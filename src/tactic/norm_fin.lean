@@ -61,11 +61,11 @@ theorem normalize_fin.one (n) : normalize_fin (n+1) 1 1 := refl _
 theorem normalize_fin.add {n} {a b : fin n} {a' b' c' : ℕ}
   (ha : normalize_fin n a a') (hb : normalize_fin n b b')
   (h : a' + b' = c') : normalize_fin n (a + b) c' :=
-by simp only [normalize_fin, ← h] at *; rw [nat.add_mod, ← ha, ← hb, fin.add_def]
+by simv only [normalize_fin, ← h] at *; rw [nat.add_mod, ← ha, ← hb, fin.add_def]
 theorem normalize_fin.mul {n} {a b : fin n} {a' b' c' : ℕ}
   (ha : normalize_fin n a a') (hb : normalize_fin n b b')
   (h : a' * b' = c') : normalize_fin n (a * b) c' :=
-by simp only [normalize_fin, ← h] at *; rw [nat.mul_mod, ← ha, ← hb, fin.mul_def]
+by simv only [normalize_fin, ← h] at *; rw [nat.mul_mod, ← ha, ← hb, fin.mul_def]
 theorem normalize_fin.bit0 {n} {a : fin n} {a' : ℕ}
   (h : normalize_fin n a a') : normalize_fin n (bit0 a) (bit0 a') := h.add h rfl
 theorem normalize_fin.bit1 {n} {a : fin (n+1)} {a' : ℕ}

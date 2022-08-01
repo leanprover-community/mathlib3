@@ -22,15 +22,15 @@ open polynomial complex
 value `cos (n * θ)`. -/
 lemma T_complex_cos (θ : ℂ) :
   ∀ n, (T ℂ n).eval (cos θ) = cos (n * θ)
-| 0       := by simp only [T_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
-| 1       := by simp only [eval_X, one_mul, T_one, nat.cast_one]
+| 0       := by simv only [T_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
+| 1       := by simv only [eval_X, one_mul, T_one, nat.cast_one]
 | (n + 2) :=
 begin
-  simp only [eval_X, eval_one, T_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
+  simv only [eval_X, eval_one, T_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
   rw [T_complex_cos (n + 1), T_complex_cos n],
   have aux : sin θ * sin θ = 1 - cos θ * cos θ,
   { rw ← sin_sq_add_cos_sq θ, ring, },
-  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
+  simv only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
   ring,
 end
 
@@ -46,12 +46,12 @@ lemma U_complex_cos (θ : ℂ) (n : ℕ) :
   (U ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
 begin
   induction n with d hd,
-  { simp only [U_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
+  { simv only [U_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
   { rw U_eq_X_mul_U_add_T,
-    simp only [eval_add, eval_mul, eval_X, T_complex_cos, add_mul, mul_assoc, hd, one_mul],
+    simv only [eval_add, eval_mul, eval_X, T_complex_cos, add_mul, mul_assoc, hd, one_mul],
     conv_rhs { rw [sin_add, mul_comm] },
     push_cast,
-    simp only [add_mul, one_mul] }
+    simv only [add_mul, one_mul] }
 end
 
 /-- `sin ((n + 1) * θ)` is equal to `sin θ` multiplied with the `n`-th Chebyshev polynomial of the

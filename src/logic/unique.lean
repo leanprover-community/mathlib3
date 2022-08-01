@@ -195,7 +195,7 @@ end function
 lemma unique.bijective {A B} [unique A] [unique B] {f : A → B} : function.bijective f :=
 begin
   rw function.bijective_iff_has_inverse,
-  refine ⟨default, _, _⟩; intro x; simp
+  refine ⟨default, _, _⟩; intro x; simv
 end
 
 namespace option

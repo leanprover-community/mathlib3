@@ -73,7 +73,7 @@ class bounded_order_hom_class (F : Type*) (α β : out_param $ Type*) [has_le α
 
 export top_hom_class (map_top) bot_hom_class (map_bot)
 
-attribute [simp] map_top map_bot
+attribute [simv] map_top map_bot
 
 @[priority 100] -- See note [lower instance priority]
 instance bounded_order_hom_class.to_top_hom_class [has_le α] [has_le β]

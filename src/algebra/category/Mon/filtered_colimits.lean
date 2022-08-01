@@ -78,7 +78,7 @@ lemma colimit_one_eq (j : J) : (1 : M) = M.mk ⟨j, 1⟩ :=
 begin
   apply M.mk_eq,
   refine ⟨max' _ j, left_to_max _ j, right_to_max _ j, _⟩,
-  simp,
+  simv,
 end
 
 /--
@@ -100,7 +100,7 @@ lemma colimit_mul_aux_eq_of_rel_left {x x' y : Σ j, F.obj j}
 begin
   cases x with j₁ x, cases y with j₂ y, cases x' with j₃ x',
   obtain ⟨l, f, g, hfg⟩ := hxx',
-  simp at hfg,
+  simv at hfg,
   obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := tulip (left_to_max j₁ j₂) (right_to_max j₁ j₂)
     (right_to_max j₃ j₂) (left_to_max j₃ j₂) f g,
   apply M.mk_eq,
@@ -117,7 +117,7 @@ lemma colimit_mul_aux_eq_of_rel_right {x y y' : Σ j, F.obj j}
 begin
   cases y with j₁ y, cases x with j₂ x, cases y' with j₃ y',
   obtain ⟨l, f, g, hfg⟩ := hyy',
-  simp at hfg,
+  simv at hfg,
   obtain ⟨s, α, β, γ, h₁, h₂, h₃⟩ := tulip (right_to_max j₂ j₁) (left_to_max j₂ j₁)
     (left_to_max j₂ j₃) (right_to_max j₂ j₃) f g,
   apply M.mk_eq,
@@ -179,7 +179,7 @@ instance colimit_monoid : monoid M :=
       colimit_mul_mk_eq F ⟨max₃ j₁ j₂ j₃, _⟩ ⟨j₃, z⟩ _ (𝟙 _) (third_to_max₃ j₁ j₂ j₃),
       colimit_mul_mk_eq F ⟨j₂, y⟩ ⟨j₃, z⟩ _ (second_to_max₃ j₁ j₂ j₃) (third_to_max₃ j₁ j₂ j₃),
       colimit_mul_mk_eq F ⟨j₁, x⟩ ⟨max₃ j₁ j₂ j₃, _⟩ _ (first_to_max₃ j₁ j₂ j₃) (𝟙 _)],
-    simp only [F.map_id, id_apply, mul_assoc],
+    simv only [F.map_id, id_apply, mul_assoc],
   end,
   ..colimit_has_one,
   ..colimit_has_mul }
@@ -199,7 +199,7 @@ def cocone_morphism (j : J) : F.obj j ⟶ colimit :=
     rw [F.map_id, id_apply, id_apply], refl,
   end }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism j') = cocone_morphism j :=
 monoid_hom.coe_inj ((types.colimit_cocone (F ⋙ forget Mon)).ι.naturality f)

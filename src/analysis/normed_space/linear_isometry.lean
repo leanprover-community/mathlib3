@@ -484,9 +484,9 @@ lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := r
 
 /-! Lemmas about mixing the group structure with definitions. Because we have multiple ways to
 express `linear_isometry_equiv.refl`, `linear_isometry_equiv.symm`, and
-`linear_isometry_equiv.trans`, we want simp lemmas for every combination.
+`linear_isometry_equiv.trans`, we want simv lemmas for every combination.
 The assumption made here is that if you're using the group structure, you want to preserve it
-after simp.
+after simv.
 
 This copies the approach used by the lemmas near `equiv.perm.trans_one`. -/
 
@@ -620,12 +620,12 @@ variables (R E E₂ E₃)
 def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
 { to_fun    := equiv.prod_assoc E E₂ E₃,
   inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
-  map_add'  := by simp,
-  map_smul' := by simp,
+  map_add'  := by simv,
+  map_smul' := by simv,
   norm_map' :=
     begin
       rintros ⟨⟨e, f⟩, g⟩,
-      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.norm_def, max_assoc],
+      simv only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.norm_def, max_assoc],
     end,
   .. equiv.prod_assoc E E₂ E₃, }
 

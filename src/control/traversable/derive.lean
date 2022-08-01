@@ -319,17 +319,17 @@ do `(@is_lawful_functor %%f %%d) ← target,
      try $ dunfold [``functor.map] (loc.ns [none]),
      dunfold [with_prefix pre n <.> "map",``id] (loc.ns [none]),
      () <$ tactic.induction vs.ilast;
-       simp none none ff (rules ``(functor.map_id)) [] goal),
+       simv none none ff (rules ``(functor.map_id)) [] goal),
    focus1 (do
      vs ← tactic.intros,
      try $ dunfold [``functor.map] (loc.ns [none]),
      dunfold [with_prefix pre n <.> "map",``id] (loc.ns [none]),
      () <$ tactic.induction vs.ilast;
-       simp none none ff (rules ``(functor.map_comp_map)) [] goal),
+       simv none none ff (rules ``(functor.map_comp_map)) [] goal),
    return ()
 
 meta def simp_functor (rs : list simp_arg_type := []) : tactic unit :=
-simp none none ff rs [`functor_norm] (loc.ns [none])
+simv none none ff rs [`functor_norm] (loc.ns [none])
 
 meta def traversable_law_starter (rs : list simp_arg_type) :=
 do vs ← tactic.intros,
@@ -353,12 +353,12 @@ do `(@is_lawful_traversable %%f %%d) ← target,
    constructor;
      [ traversable_law_starter def_eqns; refl,
        traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ comp_def)),
-       traversable_law_starter def_eqns; (refl <|> simp none none tt tr_map [] goal ),
+       traversable_law_starter def_eqns; (refl <|> simv none none tt tr_map [] goal ),
        traversable_law_starter def_eqns; (refl <|> do
          η ← get_local `η <|> do
          { t ← mk_const ``is_lawful_traversable.naturality >>= infer_type >>= pp,
            fail format!"expecting an `applicative_transformation` called `η` in\nnaturality : {t}"},
-         simp none none tt (natur η) [] goal) ];
+         simv none none tt (natur η) [] goal) ];
    refl,
    return ()
 

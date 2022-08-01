@@ -263,7 +263,7 @@ lemma _root_.set.exists_is_open_le_add (A : set α) (μ : measure α) [outer_reg
 begin
   rcases le_or_lt ∞ (μ A) with H|H,
   { exact ⟨univ, subset_univ _, is_open_univ,
-      by simp only [top_le_iff.mp H, ennreal.top_add, le_top]⟩ },
+      by simv only [top_le_iff.mp H, ennreal.top_add, le_top]⟩ },
   { rcases A.exists_is_open_lt_add H.ne hε with ⟨U, AU, U_open, hU⟩,
     exact ⟨U, AU, U_open, hU.le⟩ }
 end
@@ -348,7 +348,7 @@ lemma measurable_set_of_open [outer_regular μ]
 begin
   rintros s ⟨hs, hμs⟩ r hr,
   obtain ⟨ε, hε, hεs, rfl⟩ : ∃ ε ≠ 0, ε + ε ≤ μ s ∧ r = μ s - (ε + ε),
-  { use (μ s - r) / 2, simp [*, hr.le, ennreal.add_halves, ennreal.sub_sub_cancel, le_add_right] },
+  { use (μ s - r) / 2, simv [*, hr.le, ennreal.add_halves, ennreal.sub_sub_cancel, le_add_right] },
   rcases hs.exists_is_open_diff_lt hμs hε with ⟨U, hsU, hUo, hUt, hμU⟩,
   rcases (U \ s).exists_is_open_lt_of_lt _ hμU with ⟨U', hsU', hU'o, hμU'⟩,
   replace hsU' := diff_subset_comm.1 hsU',
@@ -391,7 +391,7 @@ begin
     rcases H ε hε with ⟨F, hFs, U, hsU, hFc, hUo, hF, hU⟩,
     refine ⟨Uᶜ, compl_subset_compl.2 hsU, Fᶜ, compl_subset_compl.2 hFs,
       hUo.is_closed_compl, hFc.is_open_compl, _⟩,
-    simp only [measure_compl_le_add_iff, *, hUo.measurable_set, hFc.measurable_set, true_and] },
+    simv only [measure_compl_le_add_iff, *, hUo.measurable_set, hFc.measurable_set, true_and] },
   -- check for disjoint unions
   { intros s hsd hsm H ε ε0, have ε0' : ε / 2 ≠ 0, from (ennreal.half_pos ε0).ne',
     rcases ennreal.exists_pos_sum_of_encodable' ε0' ℕ with ⟨δ, δ0, hδε⟩,
@@ -598,7 +598,7 @@ lemma restrict_of_measurable_set [borel_space α] [weakly_regular μ] (A : set �
 begin
   haveI : fact (μ A < ∞) := ⟨h'A.lt_top⟩,
   refine inner_regular.weakly_regular_of_finite _ (λ V V_open, _),
-  simp only [restrict_apply' hA], intros r hr,
+  simv only [restrict_apply' hA], intros r hr,
   have : μ (V ∩ A) ≠ ∞, from ne_top_of_le_ne_top h'A (measure_mono $ inter_subset_right _ _),
   rcases (V_open.measurable_set.inter hA).exists_lt_is_closed_of_ne_top this hr
     with ⟨F, hFVA, hFc, hF⟩,

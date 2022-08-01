@@ -137,7 +137,7 @@ begin
   suffices : x ∉ Uᶜ, from not_not.1 this,
   intro hxV,
   specialize hs U Uᶜ (hf {f y}) (hf {f y}ᶜ) _ ⟨y, ⟨hy, rfl⟩⟩ ⟨x, ⟨hx, hxV⟩⟩,
-  { simp only [union_compl_self, subset_univ] },
+  { simv only [union_compl_self, subset_univ] },
   { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs }
 end
 
@@ -179,7 +179,7 @@ begin
   intros a,
   have : f ⁻¹' {a} = (g ∘ f) ⁻¹' { g a },
   { ext x,
-    simp only [mem_singleton_iff, function.comp_app, mem_preimage],
+    simv only [mem_singleton_iff, function.comp_app, mem_preimage],
     exact ⟨λ h, by rw h, λ h, inj h⟩ },
   rw this,
   apply h,
@@ -214,7 +214,7 @@ congr_arg (λ x : X, f x) h
 theorem coe_injective : @function.injective (locally_constant X Y) (X → Y) coe_fn
 | ⟨f, hf⟩ ⟨g, hg⟩ h := have f = g, from h, by subst f
 
-@[simp, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
+@[simv, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
 coe_injective.eq_iff
 
 @[ext] theorem ext ⦃f g : locally_constant X Y⦄ (h : ∀ x, f x = g x) : f = g :=
@@ -262,20 +262,20 @@ def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x
     fin_cases e,
     { convert hU.1 using 1,
       ext,
-      simp only [nat.one_ne_zero, mem_singleton_iff, fin.one_eq_zero_iff,
+      simv only [nat.one_ne_zero, mem_singleton_iff, fin.one_eq_zero_iff,
         mem_preimage, ite_eq_left_iff],
       tauto },
     { rw ← is_closed_compl_iff,
       convert hU.2,
       ext,
-      simp }
+      simv }
   end }
 
 @[simp] lemma of_clopen_fiber_zero {X : Type*} [topological_space X] {U : set X}
   [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({0} : set (fin 2)) = U :=
 begin
   ext,
-  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff,
+  simv only [of_clopen, nat.one_ne_zero, mem_singleton_iff,
     fin.one_eq_zero_iff, coe_mk, mem_preimage, ite_eq_left_iff],
   tauto,
 end
@@ -284,7 +284,7 @@ end
   [∀ x, decidable (x ∈ U)] (hU : is_clopen U) : of_clopen hU ⁻¹' ({1} : set (fin 2)) = Uᶜ :=
 begin
   ext,
-  simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
+  simv only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
     fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
     mem_compl_eq],
   tauto,
@@ -293,7 +293,7 @@ end
 lemma locally_constant_eq_of_fiber_zero_eq {X : Type*} [topological_space X]
   (f g : locally_constant X (fin 2)) (h : f ⁻¹' ({0} : set (fin 2)) = g ⁻¹' {0}) : f = g :=
 begin
-  simp only [set.ext_iff, mem_singleton_iff, mem_preimage] at h,
+  simv only [set.ext_iff, mem_singleton_iff, mem_preimage] at h,
   ext1 x,
   exact fin.fin_two_eq_of_eq_zero_iff (h x)
 end
@@ -391,19 +391,19 @@ end
 by { rw [comap, dif_pos hf], refl }
 
 @[simp] lemma comap_id : @comap X X Z _ _ id = id :=
-by { ext, simp only [continuous_id, id.def, function.comp.right_id, coe_comap] }
+by { ext, simv only [continuous_id, id.def, function.comp.right_id, coe_comap] }
 
 lemma comap_comp [topological_space Z]
   (f : X → Y) (g : Y → Z) (hf : continuous f) (hg : continuous g) :
   @comap _ _ α _ _ f ∘ comap g = comap (g ∘ f) :=
-by { ext, simp only [hf, hg, hg.comp hf, coe_comap] }
+by { ext, simv only [hf, hg, hg.comp hf, coe_comap] }
 
 lemma comap_const (f : X → Y) (y : Y) (h : ∀ x, f x = y) :
   (comap f : locally_constant Y Z → locally_constant X Z) =
   λ g, ⟨λ x, g y, is_locally_constant.const _⟩ :=
 begin
   ext, rw coe_comap,
-  { simp only [h, coe_mk, function.comp_app] },
+  { simv only [h, coe_mk, function.comp_app] },
   { rw show f = λ x, y, by ext; apply h,
     exact continuous_const }
 end
@@ -448,7 +448,7 @@ noncomputable def mul_indicator (hU : is_clopen U) :
         apply h' y hy.2, },
       { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
-        simp [h, hy], },
+        simv [h, hy], },
     end, }
 
 variables (a : X)

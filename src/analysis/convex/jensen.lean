@@ -44,7 +44,7 @@ begin
   have hmem' : ∀ i ∈ t, (p i, (f ∘ p) i) ∈ {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2},
     from λ i hi, ⟨hmem i hi, le_rfl⟩,
   convert (hf.convex_epigraph.center_mass_mem h₀ h₁ hmem').2;
-    simp only [center_mass, function.comp, prod.smul_fst, prod.fst_sum,
+    simv only [center_mass, function.comp, prod.smul_fst, prod.fst_sum,
       prod.smul_snd, prod.snd_sum],
 end
 

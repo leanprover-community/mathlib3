@@ -86,7 +86,7 @@ theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
 (pow_half_succ_lt_pow_half n).trans_le $ pow_half_le_one n
 
 theorem pow_half_pos (n : ℕ) : 0 < pow_half n :=
-by { rw [←lf_iff_lt numeric_zero (numeric_pow_half n), zero_lf_le], simp }
+by { rw [←lf_iff_lt numeric_zero (numeric_pow_half n), zero_lf_le], simv }
 
 theorem zero_le_pow_half (n : ℕ) : 0 ≤ pow_half n :=
 (pow_half_pos n).le
@@ -107,7 +107,7 @@ begin
       calc  pow_half n.succ + pow_half (n.succ + 1)
           ≤ pow_half n.succ + pow_half n.succ : add_le_add_left (pow_half_succ_le_pow_half _) _
       ... ≈ pow_half n                        : hn _ (nat.lt_succ_self n) },
-    { simp only [pow_half_move_left, forall_const],
+    { simv only [pow_half_move_left, forall_const],
       apply lf_of_lt,
       calc 0 ≈ 0 + 0                            : (add_zero_equiv 0).symm
         ... ≤ pow_half n.succ + 0               : add_le_add_right (zero_le_pow_half _) _
@@ -140,7 +140,7 @@ by { rw two_nsmul, exact quotient.sound (pgame.add_pow_half_succ_self_eq_pow_hal
 @[simp] lemma nsmul_pow_two_pow_half (n : ℕ) : 2 ^ n • pow_half n = 1 :=
 begin
   induction n with n hn,
-  { simp only [nsmul_one, pow_half_zero, nat.cast_one, pow_zero] },
+  { simv only [nsmul_one, pow_half_zero, nat.cast_one, pow_zero] },
   { rw [← hn, ← double_pow_half_succ_eq_pow_half n, smul_smul (2^n) 2 (pow_half n.succ),
         mul_comm, pow_succ] }
 end
@@ -148,7 +148,7 @@ end
 @[simp] lemma nsmul_pow_two_pow_half' (n k : ℕ) : 2 ^ n • pow_half (n + k) = pow_half k :=
 begin
   induction k with k hk,
-  { simp only [add_zero, surreal.nsmul_pow_two_pow_half, nat.nat_zero_eq_zero, eq_self_iff_true,
+  { simv only [add_zero, surreal.nsmul_pow_two_pow_half, nat.nat_zero_eq_zero, eq_self_iff_true,
                surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
@@ -185,9 +185,9 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
   begin
     intros m₁ m₂ n₁ n₂ h₁,
     obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
-    simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
+    simv only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
     cases h₂,
-    { simp only,
+    { simv only,
       obtain ⟨a₁, ha₁⟩ := n₁.prop,
       obtain ⟨a₂, ha₂⟩ := n₂.prop,
       have hn₁ : n₁ = submonoid.pow 2 a₁ := subtype.ext ha₁.symm,
@@ -210,8 +210,8 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
       submonoid.log_mul (int.pow_right_injective h₂), hpow₂],
     calc (2 ^ b' * c + 2 ^ d' * a) • pow_half (b' + d')
         = (c * 2 ^ b') • pow_half (b' + d') + (a * 2 ^ d') • pow_half (d' + b')
-        : by simp only [add_smul, mul_comm,add_comm]
-    ... = c • pow_half d' + a • pow_half b' : by simp only [zsmul_pow_two_pow_half]
+        : by simv only [add_smul, mul_comm,add_comm]
+    ... = c • pow_half d' + a • pow_half b' : by simv only [zsmul_pow_two_pow_half]
     ... = a • pow_half b' + c • pow_half d' : add_comm _ _,
   end }
 

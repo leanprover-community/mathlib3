@@ -84,7 +84,7 @@ def objects : Cat.{v u} ⥤ Type u :=
   map := λ C D F, F.obj }
 
 section
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 /-- Any isomorphism in `Cat` induces an equivalence of the underlying categories. -/
 def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=

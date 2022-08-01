@@ -43,7 +43,7 @@ else with_bot.coe_le_coe.1 $
       add_le_add_left (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n) _
     ... = (n * nat_degree q : ℕ) :
      by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_nsmul,
-       nsmul_eq_mul]; simp
+       nsmul_eq_mul]; simv
     ... ≤ (nat_degree p * nat_degree q : ℕ) : with_bot.coe_le_coe.2 $
       mul_le_mul_of_nonneg_right
         (le_nat_degree_of_ne_zero (mem_support_iff.1 hn))
@@ -53,7 +53,7 @@ lemma degree_pos_of_root {p : R[X]} (hp : p ≠ 0) (h : is_root p a) : 0 < degre
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
   rw [is_root, this, eval_C] at h,
-  simp only [h, ring_hom.map_zero] at this,
+  simv only [h, ring_hom.map_zero] at this,
   exact hp this,
 end
 
@@ -133,7 +133,7 @@ end
 
 lemma nat_degree_add_coeff_mul (f g : R[X]) :
   (f * g).coeff (f.nat_degree + g.nat_degree) = f.coeff f.nat_degree * g.coeff g.nat_degree :=
-by simp only [coeff_nat_degree, coeff_mul_degree_add_degree]
+by simv only [coeff_nat_degree, coeff_mul_degree_add_degree]
 
 lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
@@ -144,23 +144,23 @@ lemma degree_sum_eq_of_disjoint (f : S → R[X]) (s : finset S)
   degree (s.sum f) = s.sup (λ i, degree (f i)) :=
 begin
   induction s using finset.induction_on with x s hx IH,
-  { simp },
-  { simp only [hx, finset.sum_insert, not_false_iff, finset.sup_insert],
-    specialize IH (h.mono (λ _, by simp {contextual := tt})),
+  { simv },
+  { simv only [hx, finset.sum_insert, not_false_iff, finset.sup_insert],
+    specialize IH (h.mono (λ _, by simv {contextual := tt})),
     rcases lt_trichotomy (degree (f x)) (degree (s.sum f)) with H|H|H,
     { rw [←IH, sup_eq_right.mpr H.le, degree_add_eq_right_of_degree_lt H] },
     { rcases s.eq_empty_or_nonempty with rfl|hs,
-      { simp },
+      { simv },
       obtain ⟨y, hy, hy'⟩ := finset.exists_mem_eq_sup s hs (λ i, degree (f i)),
       rw [IH, hy'] at H,
       by_cases hx0 : f x = 0,
-      { simp [hx0, IH] },
+      { simv [hx0, IH] },
       have hy0 : f y ≠ 0,
       { contrapose! H,
         simpa [H, degree_eq_bot] using hx0 },
       refine absurd H (h _ _ (λ H, hx _)),
-      { simp [hx0] },
-      { simp [hy, hy0] },
+      { simv [hx0] },
+      { simv [hy, hy0] },
       { exact H.symm ▸ hy } },
     { rw [←IH, sup_eq_left.mpr H.le, degree_add_eq_left_of_degree_lt H] } }
 end
@@ -184,7 +184,7 @@ begin
         exact finset.le_sup' _ hb },
       { rw finset.sup'_le_iff,
         intros b hb,
-        simp only [finset.le_sup'_iff, exists_prop, function.comp_app],
+        simv only [finset.le_sup'_iff, exists_prop, function.comp_app],
         by_cases hb' : f b = 0,
         { refine ⟨x, hx, _⟩,
           contrapose! hx',
@@ -195,14 +195,14 @@ begin
     rw [finset.sum_eq_zero H, nat_degree_zero, eq_comm, show 0 = ⊥, from rfl,
         finset.sup_eq_bot_iff],
     intros x hx,
-    simp [H x hx] }
+    simv [H x hx] }
 end
 
 lemma nat_degree_bit0 (a : R[X]) : (bit0 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (max_self _).le
 
 lemma nat_degree_bit1 (a : R[X]) : (bit1 a).nat_degree ≤ a.nat_degree :=
-(nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
+(nat_degree_add_le _ _).trans (by simv [nat_degree_bit0])
 
 lemma nat_degree_sub_le_iff_left {R} [ring R] {n : ℕ} (p q : polynomial R) (qn : q.nat_degree ≤ n) :
   (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
@@ -219,7 +219,7 @@ lemma nat_degree_pos_of_eval₂_root {p : R[X]} (hp : p ≠ 0) (f : R →+* S)
 lt_of_not_ge $ λ hlt, begin
   have A : p = C (p.coeff 0) := eq_C_of_nat_degree_le_zero hlt,
   rw [A, eval₂_C] at hz,
-  simp only [inj (p.coeff 0) hz, ring_hom.map_zero] at A,
+  simv only [inj (p.coeff 0) hz, ring_hom.map_zero] at A,
   exact hp A
 end
 
@@ -232,7 +232,7 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
   ((n : with_bot ℕ) < degree p) ↔ n < nat_degree p :=
 begin
   by_cases h : p = 0,
-  { simp [h] },
+  { simv [h] },
   rw [degree_eq_nat_degree h, with_bot.coe_lt_coe],
 end
 
@@ -252,20 +252,20 @@ by rw [degree_mul, degree_C a0, zero_add]
 
 lemma nat_degree_mul_C (a0 : a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
-by simp only [nat_degree, degree_mul_C a0]
+by simv only [nat_degree, degree_mul_C a0]
 
 lemma nat_degree_C_mul (a0 : a ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=
-by simp only [nat_degree, degree_C_mul a0]
+by simv only [nat_degree, degree_C_mul a0]
 
 lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
 begin
   by_cases q0 : q.nat_degree = 0,
   { rw [degree_le_zero_iff.mp (nat_degree_eq_zero_iff_degree_le_zero.mp q0), comp_C, nat_degree_C,
       nat_degree_C, mul_zero] },
-  { by_cases p0 : p = 0, { simp only [p0, zero_comp, nat_degree_zero, zero_mul] },
+  { by_cases p0 : p = 0, { simv only [p0, zero_comp, nat_degree_zero, zero_mul] },
     refine le_antisymm nat_degree_comp_le (le_nat_degree_of_ne_zero _),
-    simp only [coeff_comp_degree_mul_degree q0, p0, mul_eq_zero, leading_coeff_eq_zero, or_self,
+    simv only [coeff_comp_degree_mul_degree q0, p0, mul_eq_zero, leading_coeff_eq_zero, or_self,
       ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero q0), pow_ne_zero, ne.def, not_false_iff] }
 end
 

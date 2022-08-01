@@ -77,15 +77,15 @@ rfl
 @[simp]
 lemma as_algebra_hom_single (g : G) (r : k) :
   (as_algebra_hom ρ (finsupp.single g r)) = r • ρ g :=
-by simp only [as_algebra_hom_def, monoid_algebra.lift_single]
+by simv only [as_algebra_hom_def, monoid_algebra.lift_single]
 
 lemma as_algebra_hom_single_one (g : G):
   (as_algebra_hom ρ (finsupp.single g 1)) = ρ g :=
-by simp
+by simv
 
 lemma as_algebra_hom_of (g : G) :
   (as_algebra_hom ρ (of k G g)) = ρ g :=
-by simp only [monoid_algebra.of_apply, as_algebra_hom_single, one_smul]
+by simv only [monoid_algebra.of_apply, as_algebra_hom_single, one_smul]
 
 /--
 If `ρ : representation k G V`, then `ρ.as_module` is a type synonym for `V`,
@@ -128,7 +128,7 @@ lemma as_module_equiv_symm_map_smul (r : k) (x : V) :
     algebra_map k (monoid_algebra k G) r • (ρ.as_module_equiv.symm x) :=
 begin
   apply_fun ρ.as_module_equiv,
-  simp,
+  simv,
 end
 
 @[simp]
@@ -136,7 +136,7 @@ lemma as_module_equiv_symm_map_rho (g : G) (x : V) :
   ρ.as_module_equiv.symm (ρ g x) = monoid_algebra.of k G g • (ρ.as_module_equiv.symm x) :=
 begin
   apply_fun ρ.as_module_equiv,
-  simp,
+  simv,
 end
 
 /--
@@ -194,13 +194,13 @@ we have `module (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) M)
 begin
   apply monoid_algebra.induction_on r,
   { intros g,
-    simp only [one_smul, monoid_algebra.lift_symm_apply, monoid_algebra.of_apply,
+    simv only [one_smul, monoid_algebra.lift_symm_apply, monoid_algebra.of_apply,
       representation.as_algebra_hom_single, representation.of_module,
       add_equiv.apply_eq_iff_eq, restrict_scalars.lsmul_apply_apply], },
   { intros f g fw gw,
-    simp only [fw, gw, map_add, add_smul, linear_map.add_apply], },
+    simv only [fw, gw, map_add, add_smul, linear_map.add_apply], },
   { intros r f w,
-    simp only [w, alg_hom.map_smul, linear_map.smul_apply,
+    simv only [w, alg_hom.map_smul, linear_map.smul_apply,
       restrict_scalars.add_equiv_symm_map_smul_smul], }
 end
 
@@ -213,14 +213,14 @@ begin
   apply_fun restrict_scalars.add_equiv _ _ ρ.as_module using
     (restrict_scalars.add_equiv _ _ _).injective,
   dsimp [of_module, restrict_scalars.lsmul_apply_apply],
-  simp,
+  simv,
 end
 
 lemma smul_of_module_as_module (r : monoid_algebra k G)
   (m : (of_module k G M).as_module) :
    (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv (r • m)) =
      r • (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv m) :=
-by { dsimp, simp only [add_equiv.apply_symm_apply, of_module_as_algebra_hom_apply_apply], }
+by { dsimp, simv only [add_equiv.apply_symm_apply, of_module_as_algebra_hom_apply_apply], }
 
 end
 
@@ -241,8 +241,8 @@ variables (k : Type*) [comm_semiring k] (G : Type*) [monoid G] (H : Type*) [mul_
 /-- A `G`-action on `H` induces a representation `G →* End(k[H])` in the natural way. -/
 noncomputable def of_mul_action : representation k G (H →₀ k) :=
 { to_fun := λ g, finsupp.lmap_domain k k ((•) g),
-  map_one' := by { ext x y, dsimp, simp },
-  map_mul' := λ x y, by { ext z w, simp [mul_smul] }}
+  map_one' := by { ext x y, dsimp, simv },
+  map_mul' := λ x y, by { ext z w, simv [mul_smul] }}
 
 variables {k G H}
 
@@ -260,8 +260,8 @@ begin
   conv_lhs { rw ← smul_inv_smul g h, },
   let h' := g⁻¹ • h,
   change of_mul_action k G H g f (g • h') = f h',
-  have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simp, },
-  simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
+  have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simv, },
+  simv only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
 end
 
 /--
@@ -272,7 +272,7 @@ def as_group_hom : G →* units (V →ₗ[k] V) :=
 monoid_hom.to_hom_units ρ
 
 lemma as_group_hom_apply (g : G) : ↑(as_group_hom ρ g) = ρ g :=
-by simp only [as_group_hom, monoid_hom.coe_to_hom_units]
+by simv only [as_group_hom, monoid_hom.coe_to_hom_units]
 
 end group
 
@@ -290,8 +290,8 @@ tensor product `V ⊗[k] W`.
 -/
 def tprod : representation k G (V ⊗[k] W) :=
 { to_fun := λ g, tensor_product.map (ρV g) (ρW g),
-  map_one' := by simp only [map_one, tensor_product.map_one],
-  map_mul' := λ g h, by simp only [map_mul, tensor_product.map_mul] }
+  map_one' := by simv only [map_one, tensor_product.map_one],
+  map_mul' := λ g h, by simv only [map_mul, tensor_product.map_mul] }
 
 local notation ρV ` ⊗ ` ρW := tprod ρV ρW
 
@@ -331,13 +331,13 @@ where `f : module.dual k V`.
 def dual : representation k G (module.dual k V) :=
 { to_fun := λ g,
   { to_fun := λ f, f ∘ₗ (ρV g⁻¹),
-    map_add' := λ f₁ f₂, by simp only [add_comp],
+    map_add' := λ f₁ f₂, by simv only [add_comp],
     map_smul' := λ r f,
-      by {ext, simp only [coe_comp, function.comp_app, smul_apply, ring_hom.id_apply]} },
+      by {ext, simv only [coe_comp, function.comp_app, smul_apply, ring_hom.id_apply]} },
   map_one' :=
-    by {ext, simp only [coe_comp, function.comp_app, map_one, inv_one, coe_mk, one_apply]},
+    by {ext, simv only [coe_comp, function.comp_app, map_one, inv_one, coe_mk, one_apply]},
   map_mul' := λ g h,
-    by {ext, simp only [coe_comp, function.comp_app, mul_inv_rev, map_mul, coe_mk, mul_apply]}}
+    by {ext, simv only [coe_comp, function.comp_app, mul_inv_rev, map_mul, coe_mk, mul_apply]}}
 
 @[simp]
 lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
@@ -346,7 +346,7 @@ lemma dual_tensor_hom_comm (g : G) :
   (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
   (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=
 begin
-  ext, simp [module.dual.transpose_apply],
+  ext, simv [module.dual.transpose_apply],
 end
 
 end linear_hom

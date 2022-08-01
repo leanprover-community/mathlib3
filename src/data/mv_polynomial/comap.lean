@@ -40,7 +40,7 @@ noncomputable def comap (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) :
   comap f x i = aeval x (f (X i)) := rfl
 
 @[simp] lemma comap_id_apply (x : σ → R) : comap (alg_hom.id R (mv_polynomial σ R)) x = x :=
-by { funext i, simp only [comap, alg_hom.id_apply, id.def, aeval_X], }
+by { funext i, simv only [comap, alg_hom.id_apply, id.def, aeval_X], }
 
 variables (σ R)
 
@@ -59,7 +59,7 @@ begin
     rw alg_hom.comp_apply,
     suffices : g = aeval (λ i, g (X i)), { rw ← this, },
     exact aeval_unique g },
-  { simp only [comap, aeval_eq_eval₂_hom, map_eval₂_hom, alg_hom.comp_apply],
+  { simv only [comap, aeval_eq_eval₂_hom, map_eval₂_hom, alg_hom.comp_apply],
     refine eval₂_hom_congr _ rfl rfl,
     ext r, apply aeval_C },
 end
@@ -75,7 +75,7 @@ lemma comap_eq_id_of_eq_id (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R)
 by { convert comap_id_apply x, ext1 φ, rw [hf, alg_hom.id_apply] }
 
 lemma comap_rename (f : σ → τ) (x : τ → R) : comap (rename f) x = x ∘ f :=
-by { ext i, simp only [rename_X, comap_apply, aeval_X] }
+by { ext i, simv only [rename_X, comap_apply, aeval_X] }
 
 /--
 If two polynomial types over the same coefficient ring `R` are equivalent,
@@ -86,9 +86,9 @@ noncomputable def comap_equiv (f : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ
 { to_fun    := comap f,
   inv_fun   := comap f.symm,
   left_inv  := by { intro x, rw [← comap_comp_apply], apply comap_eq_id_of_eq_id, intro,
-    simp only [alg_hom.id_apply, alg_equiv.comp_symm], },
+    simv only [alg_hom.id_apply, alg_equiv.comp_symm], },
   right_inv := by { intro x, rw [← comap_comp_apply], apply comap_eq_id_of_eq_id, intro,
-  simp only [alg_hom.id_apply, alg_equiv.symm_comp] }, }
+  simv only [alg_hom.id_apply, alg_equiv.symm_comp] }, }
 
 @[simp] lemma comap_equiv_coe (f : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R) :
   (comap_equiv f : (τ → R) → (σ → R)) = comap f := rfl

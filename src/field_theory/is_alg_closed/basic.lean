@@ -55,7 +55,7 @@ See also `is_alg_closed.splits_domain` for the case where `K` is algebraically c
 -/
 theorem is_alg_closed.splits_codomain {k K : Type*} [field k] [is_alg_closed k] [field K]
   {f : K →+* k} (p : K[X]) : p.splits f :=
-by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
+by { convert is_alg_closed.splits (p.map f), simv [splits_map_iff] }
 
 /-- Every polynomial splits in the field extension `f : K →+* k` if `K` is algebraically closed.
 
@@ -78,7 +78,7 @@ begin
   { rw degree_X_pow_sub_C hn x,
     exact ne_of_gt (with_bot.coe_lt_coe.2 hn) },
   use z,
-  simp only [eval_C, eval_X, eval_pow, eval_sub, is_root.def] at hz,
+  simv only [eval_C, eval_X, eval_pow, eval_sub, is_root.def] at hz,
   exact sub_eq_zero.1 hz
 end
 
@@ -207,7 +207,7 @@ by { rw le_def at h, cases h, assumption }
 
 instance : preorder (subfield_with_hom K L M hL) :=
 { le := (≤),
-  le_refl := λ E, ⟨le_rfl, by simp⟩,
+  le_refl := λ E, ⟨le_rfl, by simv⟩,
   le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃,
     ⟨le_trans h₁₂.fst h₂₃.fst,
     λ _, by erw [← inclusion_inclusion h₁₂.fst h₂₃.fst, compat, compat]⟩ }
@@ -230,17 +230,17 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
       assume i j h,
       ext x,
       cases hc.total i.prop j.prop with hij hji,
-      { simp [← hij.snd x] },
+      { simv [← hij.snd x] },
       { erw [alg_hom.comp_apply, ← hji.snd (inclusion h x),
           inclusion_inclusion, inclusion_self, alg_hom.id_apply x] }
     end _ rfl } in
 ⟨ub, λ N hN, ⟨(le_supr (λ i : c, (i : subfield_with_hom K L M hL).carrier) ⟨N, hN⟩ : _),
   begin
     intro x,
-    simp [ub],
+    simv [ub],
     refl
   end⟩⟩
-else by { rw [set.not_nonempty_iff_eq_empty] at hcn, simp [hcn], }
+else by { rw [set.not_nonempty_iff_eq_empty] at hcn, simv [hcn], }
 
 variables (hL M)
 
@@ -285,7 +285,7 @@ begin
   { refine ⟨hNO, _⟩,
     intros z,
     show O'.emb (algebra_map N O z) = algebra_map N M z,
-    simp only [O', restrict_scalars_apply, alg_hom.commutes] },
+    simv only [O', restrict_scalars_apply, alg_hom.commutes] },
   refine (maximal_subfield_with_hom_is_maximal M hL O' hO').fst _,
   exact algebra.subset_adjoin (set.mem_singleton x),
 end
@@ -352,7 +352,7 @@ begin
   introsI hfin,
   set n := fintype.card K with hn,
   set f := (X : K[X]) ^ (n + 1) - 1 with hf,
-  have hfsep : separable f := separable_X_pow_sub_C 1 (by simp) one_ne_zero,
+  have hfsep : separable f := separable_X_pow_sub_C 1 (by simv) one_ne_zero,
   apply nat.not_succ_le_self (fintype.card K),
   have hroot : n.succ = fintype.card (f.root_set K),
   { erw [card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
@@ -383,7 +383,7 @@ alg_equiv.of_bijective f
     begin
       letI : algebra L M := ring_hom.to_algebra f,
       letI : is_scalar_tower R L M :=
-        is_scalar_tower.of_algebra_map_eq (by simp [ring_hom.algebra_map_to_algebra]),
+        is_scalar_tower.of_algebra_map_eq (by simv [ring_hom.algebra_map_to_algebra]),
       show function.surjective (algebra_map L M),
       exact is_alg_closed.algebra_map_surjective_of_is_algebraic
         (algebra.is_algebraic_of_larger_base_of_injective
@@ -445,14 +445,14 @@ begin
   letI : algebra R L := ring_hom.to_algebra ((algebra_map S L).comp (algebra_map R S)),
   haveI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
   haveI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
-    (by simp [ring_hom.algebra_map_to_algebra]),
+    (by simv [ring_hom.algebra_map_to_algebra]),
   haveI : no_zero_smul_divisors R S :=
     no_zero_smul_divisors.of_algebra_map_injective hSR.symm.injective,
   refine ⟨equiv_of_algebraic' R S L M (algebra.is_algebraic_of_larger_base_of_injective
       (show function.injective (algebra_map S R), from hSR.injective)
       is_alg_closure.algebraic) , _⟩,
   ext,
-  simp only [ring_equiv.to_ring_hom_eq_coe, function.comp_app, ring_hom.coe_comp,
+  simv only [ring_equiv.to_ring_hom_eq_coe, function.comp_app, ring_hom.coe_comp,
     alg_equiv.coe_ring_equiv, ring_equiv.coe_to_ring_hom],
   conv_lhs { rw [← hSR.symm_apply_apply x] },
   show equiv_of_algebraic' R S L M _ (algebra_map R L (hSR x)) = _,
@@ -476,7 +476,7 @@ ring_hom.ext_iff.1 (equiv_of_equiv_comp_algebra_map L M hSR) s
 @[simp] lemma equiv_of_equiv_symm_algebra_map (hSR : S ≃+* R) (r : R):
   (equiv_of_equiv L M hSR).symm (algebra_map R M r) =
   algebra_map S L (hSR.symm r) :=
-(equiv_of_equiv L M hSR).injective (by simp)
+(equiv_of_equiv L M hSR).injective (by simv)
 
 @[simp] lemma equiv_of_equiv_symm_comp_algebra_map (hSR : S ≃+* R) :
   ((equiv_of_equiv L M hSR).symm : M →+* L).comp (algebra_map R M) =

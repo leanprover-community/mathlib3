@@ -52,7 +52,7 @@ lemma tensor_product.is_tensor_product : is_tensor_product (tensor_product.mk R 
 begin
   delta is_tensor_product,
   convert_to function.bijective linear_map.id using 2,
-  { apply tensor_product.ext', simp },
+  { apply tensor_product.ext', simv },
   { exact function.bijective_id }
 end
 
@@ -71,7 +71,7 @@ linear_equiv.of_bijective _ h.1 h.2
 begin
   apply h.equiv.injective,
   refine (h.equiv.apply_symm_apply _).trans _,
-  simp
+  simv
 end
 
 /-- If `M` is the tensor product of `M₁` and `M₂`, we may lift a bilinear map `M₁ →ₗ[R] M₂ →ₗ[R] M'`
@@ -84,7 +84,7 @@ lemma is_tensor_product.lift_eq (h : is_tensor_product f) (f' : M₁ →ₗ[R] M
   (x₁ : M₁) (x₂ : M₂) : h.lift f' (f x₁ x₂) = f' x₁ x₂ :=
 begin
   delta is_tensor_product.lift,
-  simp,
+  simv,
 end
 
 /-- The tensor product of a pair of linear maps between modules. -/
@@ -98,7 +98,7 @@ lemma is_tensor_product.map_eq (hf : is_tensor_product f) (hg : is_tensor_produc
     hf.map hg i₁ i₂ (f x₁ x₂) = g (i₁ x₁) (i₂ x₂) :=
 begin
   delta is_tensor_product.map,
-  simp
+  simv
 end
 
 lemma is_tensor_product.induction_on (h : is_tensor_product f) {C : M → Prop}

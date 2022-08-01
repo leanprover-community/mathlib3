@@ -115,7 +115,7 @@ begin
   { rw [map_smulₛₗ, H, smul_zero] },
   { rw [map_smulₛₗ, smul_eq_zero] at H,
     cases H,
-    { simp at H,
+    { simv at H,
       exfalso,
       exact ha H },
     { exact H }}
@@ -201,7 +201,7 @@ namespace is_symm
 
 protected lemma eq (H : B.is_symm) (x y) : I (B x y) = B y x := H x y
 
-lemma is_refl (H : B.is_symm) : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H1] }
+lemma is_refl (H : B.is_symm) : B.is_refl := λ x y H1, by { rw ←H.eq, simv [H1] }
 
 lemma ortho_comm (H : B.is_symm) {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
@@ -244,7 +244,7 @@ lemma neg (x y) : - B x y = B y x :=
 begin
   have H1 : B (y + x) (y + x) = 0,
   { exact self_eq_zero H (y + x) },
-  simp [map_add, self_eq_zero H] at H1,
+  simv [map_add, self_eq_zero H] at H1,
   rw [add_eq_zero_iff_neg_eq] at H1,
   exact H1,
 end
@@ -268,7 +268,7 @@ begin
     exact (h.neg _ _).symm },
   intros x,
   let h' := congr_fun₂ h x x,
-  simp only [neg_apply, flip_apply, ←add_eq_zero_iff_eq_neg] at h',
+  simv only [neg_apply, flip_apply, ←add_eq_zero_iff_eq_neg] at h',
   exact add_self_eq_zero.mp h',
 end
 
@@ -337,7 +337,7 @@ begin
     { rw [hμzero, zero_smul, submodule.mem_bot] },
     change B x (μ x • x) = 0 at this, rw [map_smulₛₗ, smul_eq_mul] at this,
     exact or.elim (zero_eq_mul.mp this.symm)
-    (λ y, by { simp at y, exact y })
+    (λ y, by { simv at y, exact y })
     (λ hfalse, false.elim $ hx hfalse) },
   { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
 end
@@ -407,7 +407,7 @@ begin
 end
 
 lemma is_adjoint_pair_zero : is_adjoint_pair B B' 0 0 :=
-λ _ _, by simp only [zero_apply, map_zero]
+λ _ _, by simv only [zero_apply, map_zero]
 
 lemma is_adjoint_pair_id : is_adjoint_pair B B 1 1 := λ x y, rfl
 
@@ -441,7 +441,7 @@ lemma is_adjoint_pair.sub (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B
 
 lemma is_adjoint_pair.smul (c : R) (h : is_adjoint_pair B B' f g) :
   is_adjoint_pair B B' (c • f) (c • g) :=
-λ _ _, by simp only [smul_apply, map_smul, smul_eq_mul, h _ _]
+λ _ _, by simv only [smul_apply, map_smul, smul_eq_mul, h _ _]
 
 end add_comm_group
 
@@ -507,11 +507,11 @@ lemma is_pair_self_adjoint_equiv (e : M₁ ≃ₗ[R] M) (f : module.End R M) :
 begin
   have hₗ : (F.compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M)).comp (e.symm.conj f) =
     (F.comp f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
-  by { ext, simp only [linear_equiv.symm_conj_apply, coe_comp, linear_equiv.coe_coe, compl₁₂_apply,
+  by { ext, simv only [linear_equiv.symm_conj_apply, coe_comp, linear_equiv.coe_coe, compl₁₂_apply,
     linear_equiv.apply_symm_apply], },
   have hᵣ : (B.compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M)).compl₂ (e.symm.conj f) =
     (B.compl₂ f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
-  by { ext, simp only [linear_equiv.symm_conj_apply, compl₂_apply, coe_comp, linear_equiv.coe_coe,
+  by { ext, simv only [linear_equiv.symm_conj_apply, compl₂_apply, coe_comp, linear_equiv.coe_coe,
       compl₁₂_apply, linear_equiv.apply_symm_apply] },
   have he : function.surjective (⇑(↑e : M₁ →ₗ[R] M) : M₁ → M) := e.surjective,
   simp_rw [is_pair_self_adjoint, is_adjoint_pair_iff_comp_eq_compl₂, hₗ, hᵣ,
@@ -521,7 +521,7 @@ end
 lemma is_skew_adjoint_iff_neg_self_adjoint (f : module.End R M) :
   B.is_skew_adjoint f ↔ is_adjoint_pair (-B) B f f :=
 show (∀ x y, B (f x) y = B x ((-f) y)) ↔ ∀ x y, B (f x) y = (-B) x (f y),
-by simp
+by simv
 
 @[simp] lemma mem_self_adjoint_submodule (f : module.End R M) :
   f ∈ B.self_adjoint_submodule ↔ B.is_self_adjoint f := iff.rfl
@@ -573,7 +573,7 @@ lemma separating_left_iff_linear_nontrivial {B : M₁ →ₛₗ[I₁] M₂ →�
 begin
   split; intros h x hB,
   { let h' := h x,
-    simp only [hB, zero_apply, eq_self_iff_true, forall_const] at h',
+    simv only [hB, zero_apply, eq_self_iff_true, forall_const] at h',
     exact h' },
   have h' : B x = 0 := by { ext, rw [zero_apply], exact hB _ },
   exact h x h',

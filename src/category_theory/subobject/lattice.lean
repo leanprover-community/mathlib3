@@ -42,7 +42,7 @@ hom_mk f.arrow (comp_id _)
 
 /-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
 def map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ ≅ mk' f :=
-iso_of_both_ways (hom_mk (𝟙 _) rfl) (hom_mk (𝟙 _) (by simp [id_comp f]))
+iso_of_both_ways (hom_mk (𝟙 _) rfl) (hom_mk (𝟙 _) (by simv [id_comp f]))
 
 section
 variable [has_pullbacks C]
@@ -79,11 +79,11 @@ instance {X : C} : has_bot (mono_over X) :=
 
 /-- The (unique) morphism from `⊥ : mono_over X` to any other `f : mono_over X`. -/
 def bot_le {X : C} (f : mono_over X) : ⊥ ⟶ f :=
-hom_mk (initial.to _) (by simp)
+hom_mk (initial.to _) (by simv)
 
 /-- `map f` sends `⊥ : mono_over X` to `⊥ : mono_over Y`. -/
 def map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ ≅ ⊥ :=
-iso_of_both_ways (hom_mk (initial.to _) (by simp)) (hom_mk (𝟙 _) (by simp))
+iso_of_both_ways (hom_mk (initial.to _) (by simv)) (hom_mk (𝟙 _) (by simv))
 
 end has_bot
 
@@ -182,8 +182,8 @@ begin
   apply image.lift ⟨_, h.arrow, coprod.desc k₁.left k₂.left, _⟩,
   { dsimp,
     ext1,
-    { simp [w k₁] },
-    { simp [w k₂] } },
+    { simv [w k₁] },
+    { simv [w k₂] } },
   { apply image.lift_fac }
 end
 
@@ -209,12 +209,12 @@ lemma top_eq_id (B : C) : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
 lemma underlying_iso_top_hom {B : C} :
   (underlying_iso (𝟙 B)).hom = (⊤ : subobject B).arrow :=
-by { convert underlying_iso_hom_comp_eq_mk (𝟙 B), simp only [comp_id], }
+by { convert underlying_iso_hom_comp_eq_mk (𝟙 B), simv only [comp_id], }
 
 instance top_arrow_is_iso {B : C} : is_iso ((⊤ : subobject B).arrow) :=
 by { rw ←underlying_iso_top_hom, apply_instance, }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma underlying_iso_inv_top_arrow {B : C} :
   (underlying_iso _).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _
@@ -289,18 +289,18 @@ bot_coe_iso_initial ≪≫ initial_is_initial.unique_up_to_iso has_zero_object.z
 variables [has_zero_morphisms C]
 
 lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) :=
-mk_eq_mk_of_comm _ _ (initial_is_initial.unique_up_to_iso has_zero_object.zero_is_initial) (by simp)
+mk_eq_mk_of_comm _ _ (initial_is_initial.unique_up_to_iso has_zero_object.zero_is_initial) (by simv)
 
 @[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = 0 :=
 zero_of_source_iso_zero _ bot_coe_iso_zero
 
 lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
-⟨by { rintro ⟨h, rfl⟩, simp }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
+⟨by { rintro ⟨h, rfl⟩, simv }, by { rintro rfl, exact ⟨0, by simv⟩, }⟩
 
 lemma mk_eq_bot_iff_zero {f : X ⟶ Y} [mono f] : subobject.mk f = ⊥ ↔ f = 0 :=
 ⟨λ h, by simpa [h, bot_factors_iff_zero] using mk_factors_self f,
   λ h, mk_eq_mk_of_comm _ _ ((iso_zero_of_mono_eq_zero h).trans has_zero_object.zero_iso_initial)
-    (by simp [h])⟩
+    (by simv [h])⟩
 
 end zero_order_bot
 
@@ -367,10 +367,10 @@ lemma inf_factors {A B : C} {X Y : subobject B} (f : A ⟶ B) :
   end⟩
 
 lemma inf_arrow_factors_left {B : C} (X Y : subobject B) : X.factors (X ⊓ Y).arrow :=
-(factors_iff _ _).mpr ⟨of_le (X ⊓ Y) X (inf_le_left X Y), by simp⟩
+(factors_iff _ _).mpr ⟨of_le (X ⊓ Y) X (inf_le_left X Y), by simv⟩
 
 lemma inf_arrow_factors_right {B : C} (X Y : subobject B) : Y.factors (X ⊓ Y).arrow :=
-(factors_iff _ _).mpr ⟨of_le (X ⊓ Y) Y (inf_le_right X Y), by simp⟩
+(factors_iff _ _).mpr ⟨of_le (X ⊓ Y) Y (inf_le_right X Y), by simv⟩
 
 @[simp]
 lemma finset_inf_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
@@ -379,8 +379,8 @@ lemma finset_inf_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobje
 begin
   classical,
   apply finset.induction_on s,
-  { simp [top_factors] },
-  { intros i s nm ih, simp [ih] },
+  { simv [top_factors] },
+  { intros i s nm ih, simv [ih] },
 end
 
 -- `i` is explicit here because often we'd like to defer a proof of `m`
@@ -393,7 +393,7 @@ begin
   { rintro _ ⟨⟩, },
   { intros i s nm ih j m,
     rw [finset.inf_insert],
-    simp only [finset.mem_insert] at m, rcases m with (rfl|m),
+    simv only [finset.mem_insert] at m, rcases m with (rfl|m),
     { rw ←factor_thru_arrow _ _ (inf_arrow_factors_left _ _),
       exact factors_comp_arrow _, },
     { rw ←factor_thru_arrow _ _ (inf_arrow_factors_right _ _),
@@ -484,8 +484,8 @@ begin
   apply finset.induction_on s,
   { rintro ⟨_, ⟨⟨⟩, _⟩⟩, },
   { rintros i s nm ih ⟨j, ⟨m, h⟩⟩,
-    simp only [finset.sup_insert],
-    simp at m, rcases m with (rfl|m),
+    simv only [finset.sup_insert],
+    simv at m, rcases m with (rfl|m),
     { exact sup_factors_of_factors_left h, },
     { exact sup_factors_of_factors_right (ih ⟨j, ⟨m, h⟩⟩), }, },
 end
@@ -582,7 +582,7 @@ begin
     apply (congr_arg (λ X : subobject A, (X : C))),
     exact (equiv.symm_apply_apply _ _), },
   { dsimp [Inf],
-    simp only [category.comp_id, category.assoc, ←underlying_iso_hom_comp_eq_mk,
+    simv only [category.comp_id, category.assoc, ←underlying_iso_hom_comp_eq_mk,
       subobject.arrow_congr, congr_arg_mpr_hom_left, iso.cancel_iso_hom_left],
     convert limit.w (wide_cospan s) (wide_pullback_shape.hom.term _), },
 end.
@@ -593,7 +593,7 @@ begin
   fapply le_of_comm,
   { exact limits.limit.lift _ (le_Inf_cone s f k) ≫ (underlying_iso _).inv, },
   { dsimp [Inf, wide_pullback_ι],
-    simp, },
+    simv, },
 end
 
 instance {B : C} : complete_semilattice_Inf (subobject B) :=
@@ -631,12 +631,12 @@ begin
     refine _ ≫ sigma.ι _ ⟨equiv_shrink _ f, (by simpa [set.mem_image] using H)⟩,
     exact eq_to_hom (congr_arg (λ X : subobject A, (X : C)) (equiv.symm_apply_apply _ _).symm), },
   { dsimp [Sup, small_coproduct_desc],
-    simp, dsimp, simp, },
+    simv, dsimp, simv, },
 end
 
 lemma symm_apply_mem_iff_mem_image {α β : Type*} (e : α ≃ β) (s : set α) (x : β) :
   e.symm x ∈ s ↔ x ∈ e '' s :=
-⟨λ h, ⟨e.symm x, h, by simp⟩, by { rintro ⟨a, m, rfl⟩, simpa using m, }⟩
+⟨λ h, ⟨e.symm x, h, by simv⟩, by { rintro ⟨a, m, rfl⟩, simpa using m, }⟩
 
 lemma Sup_le {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), g ≤ f) :
   Sup s ≤ f :=
@@ -648,9 +648,9 @@ begin
       rintro ⟨g, m⟩,
       refine underlying.map (hom_of_le (k _ _)),
       simpa [symm_apply_mem_iff_mem_image] using m, },
-    { ext j, rcases j with ⟨j, m⟩, dsimp [small_coproduct_desc], simp, dsimp, simp, }, },
+    { ext j, rcases j with ⟨j, m⟩, dsimp [small_coproduct_desc], simv, dsimp, simv, }, },
   { dsimp [Sup],
-    simp, },
+    simv, },
 end
 
 instance {B : C} : complete_semilattice_Sup (subobject B) :=
@@ -691,17 +691,17 @@ section subobject_subobject
 /-- The subobject lattice of a subobject `Y` is order isomorphic to the interval `set.Iic Y`. -/
 def subobject_order_iso {X : C} (Y : subobject X) : subobject (Y : C) ≃o set.Iic Y :=
 { to_fun := λ Z, ⟨subobject.mk (Z.arrow ≫ Y.arrow),
-    set.mem_Iic.mpr (le_of_comm ((underlying_iso _).hom ≫ Z.arrow) (by simp))⟩,
+    set.mem_Iic.mpr (le_of_comm ((underlying_iso _).hom ≫ Z.arrow) (by simv))⟩,
   inv_fun := λ Z, subobject.mk (of_le _ _ Z.2),
-  left_inv := λ Z, mk_eq_of_comm _ (underlying_iso _) (by { ext, simp, }),
+  left_inv := λ Z, mk_eq_of_comm _ (underlying_iso _) (by { ext, simv, }),
   right_inv := λ Z, subtype.ext (mk_eq_of_comm _ (underlying_iso _)
-    (by { dsimp, simp [←iso.eq_inv_comp], })),
+    (by { dsimp, simv [←iso.eq_inv_comp], })),
   map_rel_iff' := λ W Z,
     ⟨λ h, le_of_comm
       ((underlying_iso _).inv ≫ of_le _ _ (subtype.mk_le_mk.mp h) ≫ (underlying_iso _).hom)
-      (by { ext, simp, }),
+      (by { ext, simv, }),
      λ h, subtype.mk_le_mk.mpr
-       (le_of_comm ((underlying_iso _).hom ≫ of_le _ _ h ≫ (underlying_iso _).inv) (by simp))⟩, }
+       (le_of_comm ((underlying_iso _).hom ≫ of_le _ _ h ≫ (underlying_iso _).inv) (by simv))⟩, }
 
 end subobject_subobject
 

@@ -53,7 +53,7 @@ structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 
 restate_axiom iso.hom_inv_id'
 restate_axiom iso.inv_hom_id'
-attribute [simp, reassoc] iso.hom_inv_id iso.inv_hom_id
+attribute [simv, reassoc] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
@@ -118,7 +118,7 @@ rfl
 @[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).symm = β.symm ≪≫ α.symm := rfl
 @[simp] lemma trans_assoc {Z' : C} (α : X ≅ Y) (β : Y ≅ Z) (γ : Z ≅ Z') :
   (α ≪≫ β) ≪≫ γ = α ≪≫ β ≪≫ γ :=
-by ext; simp only [trans_hom, category.assoc]
+by ext; simv only [trans_hom, category.assoc]
 
 @[simp] lemma refl_trans (α : X ≅ Y) : (iso.refl X) ≪≫ α = α := by ext; apply category.id_comp
 @[simp] lemma trans_refl (α : X ≅ Y) : α ≪≫ (iso.refl Y) = α := by ext; apply category.comp_id
@@ -133,13 +133,13 @@ by rw [← trans_assoc, symm_self_id, refl_trans]
 by rw [← trans_assoc, self_symm_id, refl_trans]
 
 lemma inv_comp_eq (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : α.inv ≫ f = g ↔ f = α.hom ≫ g :=
-⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+⟨λ H, by simv [H.symm], λ H, by simv [H]⟩
 
 lemma eq_inv_comp (α : X ≅ Y) {f : X ⟶ Z} {g : Y ⟶ Z} : g = α.inv ≫ f ↔ α.hom ≫ g = f :=
 (inv_comp_eq α.symm).symm
 
 lemma comp_inv_eq (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ α.inv = g ↔ f = g ≫ α.hom :=
-⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+⟨λ H, by simv [H.symm], λ H, by simv [H]⟩
 
 lemma eq_comp_inv (α : X ≅ Y) {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ α.inv ↔ g ≫ α.hom = f :=
 (comp_inv_eq α.symm).symm
@@ -176,9 +176,9 @@ noncomputable def inv (f : X ⟶ Y) [I : is_iso f] := classical.some I.1
 
 namespace is_iso
 
-@[simp, reassoc] lemma hom_inv_id (f : X ⟶ Y) [I : is_iso f] : f ≫ inv f = 𝟙 X :=
+@[simv, reassoc] lemma hom_inv_id (f : X ⟶ Y) [I : is_iso f] : f ≫ inv f = 𝟙 X :=
 (classical.some_spec I.1).left
-@[simp, reassoc] lemma inv_hom_id (f : X ⟶ Y) [I : is_iso f] : inv f ≫ f = 𝟙 Y :=
+@[simv, reassoc] lemma inv_hom_id (f : X ⟶ Y) [I : is_iso f] : inv f ≫ f = 𝟙 Y :=
 (classical.some_spec I.1).right
 
 end is_iso
@@ -209,14 +209,14 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
   (hom_inv_id : f ≫ g = 𝟙 X) : inv f = g :=
 begin
   apply (cancel_epi f).mp,
-  simp [hom_inv_id],
+  simv [hom_inv_id],
 end
 
 lemma inv_eq_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
   (inv_hom_id : g ≫ f = 𝟙 Y) : inv f = g :=
 begin
   apply (cancel_mono f).mp,
-  simp [inv_hom_id],
+  simv [inv_hom_id],
 end
 
 @[ext] lemma eq_inv_of_hom_inv_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
@@ -229,10 +229,10 @@ lemma eq_inv_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
 
 
 instance id (X : C) : is_iso (𝟙 X) :=
-⟨⟨𝟙 X, by simp⟩⟩
+⟨⟨𝟙 X, by simv⟩⟩
 
 instance of_iso (f : X ≅ Y) : is_iso f.hom :=
-⟨⟨f.inv, by simp⟩⟩
+⟨⟨f.inv, by simv⟩⟩
 
 instance of_iso_inv (f : X ≅ Y) : is_iso f.inv :=
 is_iso.of_iso f.symm
@@ -250,11 +250,11 @@ because `f.hom` is defeq to `(λ x, x) ≫ f.hom`, triggering a loop. -/
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 
-@[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := by { ext, simp, }
-@[simp] lemma inv_comp [is_iso f] [is_iso h] : inv (f ≫ h) = inv h ≫ inv f := by { ext, simp, }
-@[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := by { ext, simp, }
-@[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := by { ext, simp, }
-@[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := by { ext, simp, }
+@[simp] lemma inv_id : inv (𝟙 X) = 𝟙 X := by { ext, simv, }
+@[simp] lemma inv_comp [is_iso f] [is_iso h] : inv (f ≫ h) = inv h ≫ inv f := by { ext, simv, }
+@[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := by { ext, simv, }
+@[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := by { ext, simv, }
+@[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := by { ext, simv, }
 
 @[simp]
 lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
@@ -330,12 +330,12 @@ namespace iso
 (hom_comp_eq_id f).1 hom_inv_id
 
 /-!
-All these cancellation lemmas can be solved by `simp [cancel_mono]` (or `simp [cancel_epi]`),
-but with the current design `cancel_mono` is not a good `simp` lemma,
+All these cancellation lemmas can be solved by `simv [cancel_mono]` (or `simv [cancel_epi]`),
+but with the current design `cancel_mono` is not a good `simv` lemma,
 because it generates a typeclass search.
 
 When we can see syntactically that a morphism is a `mono` or an `epi`
-because it came from an isomorphism, it's fine to do the cancellation via `simp`.
+because it came from an isomorphism, it's fine to do the cancellation via `simv`.
 
 In the longer term, it might be worth exploring making `mono` and `epi` structures,
 rather than typeclasses, with coercions back to `X ⟶ Y`.
@@ -344,19 +344,19 @@ Presumably we could write `X ↪ Y` and `X ↠ Y`.
 
 @[simp] lemma cancel_iso_hom_left {X Y Z : C} (f : X ≅ Y) (g g' : Y ⟶ Z) :
   f.hom ≫ g = f.hom ≫ g' ↔ g = g' :=
-by simp only [cancel_epi]
+by simv only [cancel_epi]
 
 @[simp] lemma cancel_iso_inv_left {X Y Z : C} (f : Y ≅ X) (g g' : Y ⟶ Z) :
   f.inv ≫ g = f.inv ≫ g' ↔ g = g' :=
-by simp only [cancel_epi]
+by simv only [cancel_epi]
 
 @[simp] lemma cancel_iso_hom_right {X Y Z : C} (f f' : X ⟶ Y) (g : Y ≅ Z) :
   f ≫ g.hom = f' ≫ g.hom ↔ f = f' :=
-by simp only [cancel_mono]
+by simv only [cancel_mono]
 
 @[simp] lemma cancel_iso_inv_right {X Y Z : C} (f f' : X ⟶ Y) (g : Z ≅ Y) :
   f ≫ g.inv = f' ≫ g.inv ↔ f = f' :=
-by simp only [cancel_mono]
+by simv only [cancel_mono]
 
 /-
 Unfortunately cancelling an isomorphism from the right of a chain of compositions is awkward.
@@ -370,13 +370,13 @@ but then stop.
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y)
   (h : Y ≅ Z) :
   f ≫ g ≫ h.hom = f' ≫ g' ≫ h.hom ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simv only [←category.assoc, cancel_mono]
 
 @[simp] lemma cancel_iso_inv_right_assoc {W X X' Y Z : C}
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y)
   (h : Z ≅ Y) :
   f ≫ g ≫ h.inv = f' ≫ g' ≫ h.inv ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simv only [←category.assoc, cancel_mono]
 
 end iso
 
@@ -411,15 +411,15 @@ is_iso.of_iso $ F.map_iso (as_iso f)
 
 @[simp] lemma map_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map (inv f) = inv (F.map f) :=
-by { ext, simp [←F.map_comp], }
+by { ext, simv [←F.map_comp], }
 
 lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map f ≫ F.map (inv f) = 𝟙 (F.obj X) :=
-by simp
+by simv
 
 lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
-by simp
+by simv
 
 end functor
 

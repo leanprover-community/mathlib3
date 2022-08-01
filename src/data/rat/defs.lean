@@ -73,7 +73,7 @@ instance : has_one ℚ := ⟨of_int 1⟩
 instance : inhabited ℚ := ⟨0⟩
 
 lemma ext_iff {p q : ℚ} : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
-by { cases p, cases q, simp }
+by { cases p, cases q, simv }
 
 @[ext] lemma ext {p q : ℚ} (hn : p.num = q.num) (hd : p.denom = q.denom) : p = q :=
 rat.ext_iff.mpr ⟨hn, hd⟩
@@ -106,7 +106,7 @@ def mk : ℤ → ℤ → ℚ
 localized "infix ` /. `:70 := rat.mk" in rat
 
 theorem mk_pnat_eq (n d h) : mk_pnat n ⟨d, h⟩ = n /. d :=
-by change n /. d with dite _ _ _; simp [ne_of_gt h]
+by change n /. d with dite _ _ _; simv [ne_of_gt h]
 
 theorem mk_nat_eq (n d) : mk_nat n d = n /. d := rfl
 
@@ -115,30 +115,30 @@ theorem mk_nat_eq (n d) : mk_nat n d = n /. d := rfl
 @[simp] theorem zero_mk_pnat (n) : mk_pnat 0 n = 0 :=
 begin
   cases n with n npos,
-  simp only [mk_pnat, int.nat_abs_zero, nat.div_self npos, nat.gcd_zero_left, int.zero_div],
+  simv only [mk_pnat, int.nat_abs_zero, nat.div_self npos, nat.gcd_zero_left, int.zero_div],
   refl
 end
 
 @[simp] theorem zero_mk_nat (n) : mk_nat 0 n = 0 :=
-by by_cases n = 0; simp [*, mk_nat]
+by by_cases n = 0; simv [*, mk_nat]
 
 @[simp] theorem zero_mk (n) : 0 /. n = 0 :=
-by cases n; simp [mk]
+by cases n; simv [mk]
 
 private lemma gcd_abs_dvd_left {a b} : (nat.gcd (int.nat_abs a) b : ℤ) ∣ a :=
 int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ nat.gcd_dvd_left (int.nat_abs a) b
 
 @[simp] theorem mk_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 :=
 begin
-  refine ⟨λ h, _, by { rintro rfl, simp }⟩,
+  refine ⟨λ h, _, by { rintro rfl, simv }⟩,
   have : ∀ {a b}, mk_pnat a b = 0 → a = 0,
   { rintro a ⟨b, h⟩ e,
     injection e with e,
     apply int.eq_mul_of_div_eq_right gcd_abs_dvd_left e },
-  cases b with b; simp only [mk, mk_nat, int.of_nat_eq_coe, dite_eq_left_iff] at h,
-  { simp only [mt (congr_arg int.of_nat) b0, not_false_iff, forall_true_left] at h,
+  cases b with b; simv only [mk, mk_nat, int.of_nat_eq_coe, dite_eq_left_iff] at h,
+  { simv only [mt (congr_arg int.of_nat) b0, not_false_iff, forall_true_left] at h,
     exact this h },
-  { apply neg_injective, simp [this h] }
+  { apply neg_injective, simv [this h] }
 end
 
 theorem mk_ne_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b ≠ 0 ↔ a ≠ 0 :=
@@ -148,11 +148,11 @@ theorem mk_eq : ∀ {a b c d : ℤ} (hb : b ≠ 0) (hd : d ≠ 0),
   a /. b = c /. d ↔ a * d = c * b :=
 suffices ∀ a b c d hb hd, mk_pnat a ⟨b, hb⟩ = mk_pnat c ⟨d, hd⟩ ↔ a * d = c * b,
 begin
-  intros, cases b with b b; simp [mk, mk_nat, nat.succ_pnat],
-  simp [mt (congr_arg int.of_nat) hb],
+  intros, cases b with b b; simv [mk, mk_nat, nat.succ_pnat],
+  simv [mt (congr_arg int.of_nat) hb],
   all_goals
-  { cases d with d d; simp [mk, mk_nat, nat.succ_pnat],
-    simp [mt (congr_arg int.of_nat) hd],
+  { cases d with d d; simv [mk, mk_nat, nat.succ_pnat],
+    simv [mt (congr_arg int.of_nat) hd],
     all_goals { rw this, try {refl} } },
   { change a * ↑(d.succ) = -c * ↑b ↔ a * -(d.succ) = c * b,
     constructor; intro h; apply neg_injective; simpa [left_distrib, neg_add_eq_iff_eq_add,
@@ -160,10 +160,10 @@ begin
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
     constructor; intro h; apply neg_injective; simpa [left_distrib, eq_comm] using h },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
-    simp [left_distrib, sub_eq_add_neg], cc }
+    simv [left_distrib, sub_eq_add_neg], cc }
 end,
 begin
-  intros, simp [mk_pnat], constructor; intro h,
+  intros, simv [mk_pnat], constructor; intro h,
   { cases h with ha hb,
     have ha,
     { have dv := @gcd_abs_dvd_left,
@@ -186,7 +186,7 @@ begin
     { cases this a.nat_abs c.nat_abs
         (by simpa [int.nat_abs_mul] using congr_arg int.nat_abs h) with h₁ h₂,
       have hs := congr_arg int.sign h,
-      simp [int.sign_eq_one_of_pos (int.coe_nat_lt.2 hb),
+      simv [int.sign_eq_one_of_pos (int.coe_nat_lt.2 hb),
             int.sign_eq_one_of_pos (int.coe_nat_lt.2 hd)] at hs,
       conv in a { rw ← int.sign_mul_nat_abs a },
       conv in c { rw ← int.sign_mul_nat_abs c },
@@ -209,7 +209,7 @@ begin
     have gd0 := nat.gcd_pos_of_pos_right c hd,
     apply nat.le_of_dvd,
     apply (nat.le_div_iff_mul_le gd0).2,
-    simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
+    simv, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
     apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
     refine ⟨c / c.gcd d, _⟩,
     rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _),
@@ -222,13 +222,13 @@ end
 @[simp] theorem div_mk_div_cancel_left {a b c : ℤ} (c0 : c ≠ 0) :
   (a * c) /. (b * c) = a /. b :=
 begin
-  by_cases b0 : b = 0, { subst b0, simp },
-  apply (mk_eq (mul_ne_zero b0 c0) b0).2, simp [mul_comm, mul_assoc]
+  by_cases b0 : b = 0, { subst b0, simv },
+  apply (mk_eq (mul_ne_zero b0 c0) b0).2, simv [mul_comm, mul_assoc]
 end
 
 @[simp] theorem num_denom : ∀ {a : ℚ}, a.num /. a.denom = a
 | ⟨n, d, h, (c:_=1)⟩ := show mk_nat n d = _,
-  by simp [mk_nat, ne_of_gt h, mk_pnat, c]
+  by simv [mk_nat, ne_of_gt h, mk_pnat, c]
 
 theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.symm
 
@@ -254,16 +254,16 @@ begin
   refine (int.nat_abs_dvd.1 $ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $
     c.dvd_of_dvd_mul_right _),
   have := congr_arg int.nat_abs e,
-  simp only [int.nat_abs_mul, int.nat_abs_of_nat] at this, simp [this]
+  simv only [int.nat_abs_mul, int.nat_abs_of_nat] at this, simv [this]
 end
 
 theorem denom_dvd (a b : ℤ) : ((a /. b).denom : ℤ) ∣ b :=
 begin
-  by_cases b0 : b = 0, {simp [b0]},
+  by_cases b0 : b = 0, {simv [b0]},
   cases e : a /. b with n d h c,
   rw [num_denom', mk_eq b0 (ne_of_gt (int.coe_nat_pos.2 h))] at e,
   refine (int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ c.symm.dvd_of_dvd_mul_left _),
-  rw [← int.nat_abs_mul, ← int.coe_nat_dvd, int.dvd_nat_abs, ← e], simp
+  rw [← int.nat_abs_mul, ← int.coe_nat_dvd, int.dvd_nat_abs, ← e], simv
 end
 
 /-- Addition of rational numbers. Use `(+)` instead. -/
@@ -296,31 +296,31 @@ begin
   { apply mk_pnat_eq },
   { apply mul_ne_zero d₁0 d₂0 },
   calc (n₁ * d₂ + n₂ * d₁) * (b * d) =
-          (n₁ * b) * d₂ * d + (n₂ * d) * (d₁ * b) : by simp [mul_add, mul_comm, mul_left_comm]
+          (n₁ * b) * d₂ * d + (n₂ * d) * (d₁ * b) : by simv [mul_add, mul_comm, mul_left_comm]
     ... = (a * d₁) * d₂ * d + (c * d₂) * (d₁ * b) : by rw [h₁, h₂]
-    ... = (a * d + c * b) * (d₁ * d₂)             : by simp [mul_add, mul_comm, mul_left_comm]
+    ... = (a * d + c * b) * (d₁ * d₂)             : by simv [mul_add, mul_comm, mul_left_comm]
 end
 
 /-- Negation of rational numbers. Use `-r` instead. -/
 protected def neg (r : ℚ) : ℚ :=
-⟨-r.num, r.denom, r.pos, by simp [r.cop]⟩
+⟨-r.num, r.denom, r.pos, by simv [r.cop]⟩
 
 instance : has_neg ℚ := ⟨rat.neg⟩
 
 @[simp] theorem neg_def {a b : ℤ} : -(a /. b) = -a /. b :=
 begin
-  by_cases b0 :  b = 0, { subst b0, simp, refl },
+  by_cases b0 :  b = 0, { subst b0, simv, refl },
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
   show rat.mk' _ _ _ _ = _, rw num_denom',
   have d0 := ne_of_gt (int.coe_nat_lt.2 h₁),
   apply (mk_eq d0 b0).2, have h₁ := (mk_eq b0 d0).1 ha,
-  simp only [neg_mul, congr_arg has_neg.neg h₁]
+  simv only [neg_mul, congr_arg has_neg.neg h₁]
 end
 
 @[simp] lemma mk_neg_denom (n d : ℤ) : n /. -d = -n /. d :=
 begin
   by_cases hd : d = 0;
-  simp [rat.mk_eq, hd]
+  simv [rat.mk_eq, hd]
 end
 
 /-- Multiplication of rational numbers. Use `(*)` instead. -/
@@ -342,15 +342,15 @@ end
 protected def inv : ℚ → ℚ
 | ⟨(n+1:ℕ), d, h, c⟩ := ⟨d, n+1, n.succ_pos, c.symm⟩
 | ⟨0, d, h, c⟩ := 0
-| ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime.symm $ by simp; exact c⟩
+| ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime.symm $ by simv; exact c⟩
 
 instance : has_inv ℚ := ⟨rat.inv⟩
 instance : has_div ℚ := ⟨λ a b, a * b⁻¹⟩
 
 @[simp] theorem inv_def {a b : ℤ} : (a /. b)⁻¹ = b /. a :=
 begin
-  by_cases a0 : a = 0, { subst a0, simp, refl },
-  by_cases b0 : b = 0, { subst b0, simp, refl },
+  by_cases a0 : a = 0, { subst a0, simv, refl },
+  by_cases b0 : b = 0, { subst b0, simv, refl },
   generalize ha : a /. b = x, cases x with n d h c, rw num_denom' at ha,
   refine eq.trans (_ : rat.inv ⟨n, d, h, c⟩ = d /. n) _,
   { cases n with n; [cases n with n, skip],
@@ -372,62 +372,62 @@ variables (a b c : ℚ)
 
 protected theorem add_zero : a + 0 = a :=
 num_denom_cases_on' a $ λ n d h,
-by rw [← zero_mk d]; simp [h, -zero_mk]
+by rw [← zero_mk d]; simv [h, -zero_mk]
 
 protected theorem zero_add : 0 + a = a :=
 num_denom_cases_on' a $ λ n d h,
-by rw [← zero_mk d]; simp [h, -zero_mk]
+by rw [← zero_mk d]; simv [h, -zero_mk]
 
 protected theorem add_comm : a + b = b + a :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
-by simp [h₁, h₂]; cc
+by simv [h₁, h₂]; cc
 
 protected theorem add_assoc : a + b + c = a + (b + c) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 num_denom_cases_on' c $ λ n₃ d₃ h₃,
-by simp [h₁, h₂, h₃, mul_ne_zero, mul_add, mul_comm, mul_left_comm, add_left_comm, add_assoc]
+by simv [h₁, h₂, h₃, mul_ne_zero, mul_add, mul_comm, mul_left_comm, add_left_comm, add_assoc]
 
 protected theorem add_left_neg : -a + a = 0 :=
 num_denom_cases_on' a $ λ n d h,
-by simp [h]
+by simv [h]
 
 @[simp] lemma mk_zero_one : 0 /. 1 = 0 :=
-show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+show mk_pnat _ _ = _, by { rw mk_pnat, simv, refl }
 
 @[simp] lemma mk_one_one : 1 /. 1 = 1 :=
-show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+show mk_pnat _ _ = _, by { rw mk_pnat, simv, refl }
 
 @[simp] lemma mk_neg_one_one : (-1) /. 1 = -1 :=
-show mk_pnat _ _ = _, by { rw mk_pnat, simp, refl }
+show mk_pnat _ _ = _, by { rw mk_pnat, simv, refl }
 
 protected theorem mul_one : a * 1 = a :=
 num_denom_cases_on' a $ λ n d h,
-by { rw ← mk_one_one, simp [h, -mk_one_one] }
+by { rw ← mk_one_one, simv [h, -mk_one_one] }
 
 protected theorem one_mul : 1 * a = a :=
 num_denom_cases_on' a $ λ n d h,
-by { rw ← mk_one_one, simp [h, -mk_one_one] }
+by { rw ← mk_one_one, simv [h, -mk_one_one] }
 
 protected theorem mul_comm : a * b = b * a :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
-by simp [h₁, h₂, mul_comm]
+by simv [h₁, h₂, mul_comm]
 
 protected theorem mul_assoc : a * b * c = a * (b * c) :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 num_denom_cases_on' c $ λ n₃ d₃ h₃,
-by simp [h₁, h₂, h₃, mul_ne_zero, mul_comm, mul_left_comm]
+by simv [h₁, h₂, h₃, mul_ne_zero, mul_comm, mul_left_comm]
 
 protected theorem add_mul : (a + b) * c = a * c + b * c :=
 num_denom_cases_on' a $ λ n₁ d₁ h₁,
 num_denom_cases_on' b $ λ n₂ d₂ h₂,
 num_denom_cases_on' c $ λ n₃ d₃ h₃,
-by simp [h₁, h₂, h₃, mul_ne_zero];
+by simv [h₁, h₂, h₃, mul_ne_zero];
    refine (div_mk_div_cancel_left (int.coe_nat_ne_zero.2 h₃)).symm.trans _;
-   simp [mul_add, mul_comm, mul_assoc, mul_left_comm]
+   simv [mul_add, mul_comm, mul_assoc, mul_left_comm]
 
 protected theorem mul_add : a * (b + c) = a * b + a * c :=
 by rw [rat.mul_comm, rat.add_mul, rat.mul_comm, rat.mul_comm c a]
@@ -437,7 +437,7 @@ by { rw [ne_comm, ← mk_one_one, mk_ne_zero one_ne_zero], exact one_ne_zero }
 
 protected theorem mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 num_denom_cases_on' a $ λ n d h a0,
-have n0 : n ≠ 0, from mt (by { rintro rfl, simp }) a0,
+have n0 : n ≠ 0, from mt (by { rintro rfl, simv }) a0,
 by simpa [h, n0, mul_comm] using @div_mk_div_cancel_left 1 1 _ n0
 
 protected theorem inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
@@ -470,7 +470,7 @@ instance : comm_ring ℚ :=
   nat_cast         := λ n, rat.of_int n,
   nat_cast_zero    := rfl,
   nat_cast_succ    := λ n, show of_int _ = of_int _ + 1,
-    by simp only [of_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp }
+    by simv only [of_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simv }
 
 instance : comm_group_with_zero ℚ :=
 { zero := 0,
@@ -510,7 +510,7 @@ instance : semigroup ℚ          := by apply_instance
 
 theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
-by simp [b0, d0, sub_eq_add_neg]
+by simv [b0, d0, sub_eq_add_neg]
 
 @[simp] lemma denom_neg_eq_denom (q : ℚ) : (-q).denom = q.denom := rfl
 
@@ -525,7 +525,7 @@ have q = q.num /. q.denom, from num_denom.symm,
 by simpa [hq]
 
 lemma zero_iff_num_zero {q : ℚ} : q = 0 ↔ q.num = 0 :=
-⟨λ _, by simp *, zero_of_num_zero⟩
+⟨λ _, by simv *, zero_of_num_zero⟩
 
 lemma num_ne_zero_of_ne_zero {q : ℚ} (h : q ≠ 0) : q.num ≠ 0 :=
 assume : q.num = 0,
@@ -560,15 +560,15 @@ have hq' : (↑q.denom : ℤ) ≠ 0, by have := denom_ne_zero q; simpa,
 have hr' : (↑r.denom : ℤ) ≠ 0, by have := denom_ne_zero r; simpa,
 suffices (q.num /. ↑q.denom) * (r.num /. ↑r.denom) = (q.num * r.num) /. ↑(q.denom * r.denom),
   by simpa using this,
-by simp [mul_def hq' hr', -num_denom]
+by simv [mul_def hq' hr', -num_denom]
 
 lemma div_num_denom (q r : ℚ) : q / r = (q.num * r.denom) /. (q.denom * r.num) :=
 if hr : r.num = 0 then
   have hr' : r = 0, from zero_of_num_zero hr,
-  by simp *
+  by simv *
 else
   calc q / r = q * r⁻¹ : div_eq_mul_inv q r
-         ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simp
+         ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simv
          ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
          ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
@@ -576,7 +576,7 @@ lemma num_denom_mk {q : ℚ} {n d : ℤ} (hd : d ≠ 0) (qdf : q = n /. d) :
   ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
 begin
   obtain rfl|hn := eq_or_ne n 0,
-  { simp [qdf] },
+  { simv [qdf] },
   have : q.num * d = n * ↑(q.denom),
   { refine (rat.mk_eq _ hd).mp _,
     { exact int.coe_nat_ne_zero.mpr (rat.denom_ne_zero _) },
@@ -602,7 +602,7 @@ lemma num_mk (n d : ℤ) :
   (n /. d).num = d.sign * n / n.gcd d :=
 begin
   rcases d with ((_ | _) | _);
-    simp [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
+    simv [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
       -nat.cast_succ, -int.coe_nat_succ, int.zero_div]
 end
 
@@ -610,7 +610,7 @@ lemma denom_mk (n d : ℤ) :
   (n /. d).denom = if d = 0 then 1 else d.nat_abs / n.gcd d :=
 begin
   rcases d with ((_ | _) | _);
-  simp [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
+  simv [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
     -nat.cast_succ, -int.coe_nat_succ]
 end
 
@@ -649,29 +649,29 @@ lemma add_num_denom (q r : ℚ) : q + r =
 have hqd : (q.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 q.3,
 have hrd : (r.denom : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 r.3,
 by conv_lhs { rw [←@num_denom q, ←@num_denom r, rat.add_def hqd hrd] };
-  simp [mul_comm]
+  simv [mul_comm]
 
 section casts
 
 protected lemma add_mk (a b c : ℤ) : (a + b) /. c = a /. c + b /. c :=
-if h : c = 0 then by simp [h] else
-by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
+if h : c = 0 then by simv [h] else
+by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simv [add_mul, mul_assoc] }
 
 theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
 | (n : ℕ) := of_int_eq_mk _
-| -[1+ n] := show -(of_int _) = _, by simp [of_int_eq_mk, neg_def, int.neg_succ_of_nat_coe]
+| -[1+ n] := show -(of_int _) = _, by simv [of_int_eq_mk, neg_def, int.neg_succ_of_nat_coe]
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin
-  by_cases d0 : d = 0, {simp [d0, div_zero]},
-  simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
+  by_cases d0 : d = 0, {simv [d0, div_zero]},
+  simv [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
 lemma mk_mul_mk_cancel {x : ℤ} (hx : x ≠ 0) (n d : ℤ) : (n /. x) * (x /. d) = n /. d :=
 begin
   by_cases hd : d = 0,
   { rw hd,
-    simp},
+    simv},
   rw [mul_def hx hd, mul_comm x, div_mk_div_cancel_left hx],
 end
 
@@ -752,10 +752,10 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, ←neg_mul, ←num_neg_eq_neg_num, ←den
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 (coe_int_eq_mk z).trans (of_int_eq_mk z).symm
 
-@[simp, norm_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
+@[simv, norm_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
 by rw coe_int_eq_of_int; refl
 
-@[simp, norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
+@[simv, norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
 by rw coe_int_eq_of_int; refl
 
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
@@ -770,10 +770,10 @@ instance : can_lift ℚ ℤ :=
 theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
 by rw [← int.cast_coe_nat, coe_int_eq_mk]
 
-@[simp, norm_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
+@[simv, norm_cast] theorem coe_nat_num (n : ℕ) : (n : ℚ).num = n :=
 by rw [← int.cast_coe_nat, coe_int_num]
 
-@[simp, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
+@[simv, norm_cast] theorem coe_nat_denom (n : ℕ) : (n : ℚ).denom = 1 :=
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
@@ -784,7 +784,7 @@ lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 end casts
 
 lemma inv_def' {q : ℚ} : q⁻¹ = (q.denom : ℚ) / q.num :=
-by { conv_lhs { rw ←(@num_denom q) }, cases q, simp [div_num_denom] }
+by { conv_lhs { rw ←(@num_denom q) }, cases q, simv [div_num_denom] }
 
 @[simp] lemma mul_denom_eq_num {q : ℚ} : q * q.denom = q.num :=
 begin
@@ -837,9 +837,9 @@ end
 @[norm_cast] lemma coe_int_div_self (n : ℤ) : ((n / n : ℤ) : ℚ) = n / n :=
 begin
   by_cases hn : n = 0,
-  { subst hn, simp only [int.cast_zero, int.zero_div, zero_div] },
+  { subst hn, simv only [int.cast_zero, int.zero_div, zero_div] },
   { have : (n : ℚ) ≠ 0, { rwa ← coe_int_inj at hn },
-    simp only [int.div_self hn, int.cast_one, ne.def, not_false_iff, div_self this] }
+    simv only [int.div_self hn, int.cast_one, ne.def, not_false_iff, div_self this] }
 end
 
 @[norm_cast] lemma coe_nat_div_self (n : ℕ) : ((n / n : ℕ) : ℚ) = n / n :=
@@ -848,14 +848,14 @@ coe_int_div_self n
 lemma coe_int_div (a b : ℤ) (h : b ∣ a) : ((a / b : ℤ) : ℚ) = a / b :=
 begin
   rcases h with ⟨c, rfl⟩,
-  simp only [mul_comm b, int.mul_div_assoc c (dvd_refl b), int.cast_mul, mul_div_assoc,
+  simv only [mul_comm b, int.mul_div_assoc c (dvd_refl b), int.cast_mul, mul_div_assoc,
     coe_int_div_self]
 end
 
 lemma coe_nat_div (a b : ℕ) (h : b ∣ a) : ((a / b : ℕ) : ℚ) = a / b :=
 begin
   rcases h with ⟨c, rfl⟩,
-  simp only [mul_comm b, nat.mul_div_assoc c (dvd_refl b), nat.cast_mul, mul_div_assoc,
+  simv only [mul_comm b, nat.mul_div_assoc c (dvd_refl b), nat.cast_mul, mul_div_assoc,
     coe_nat_div_self]
 end
 
@@ -886,7 +886,7 @@ end
 
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,
-  λ h q, (show q = q.num / q.denom, from by simp [rat.div_num_denom]).symm ▸ (h q.1 q.2)⟩
+  λ h q, (show q = q.num / q.denom, from by simv [rat.div_num_denom]).symm ▸ (h q.1 q.2)⟩
 
 protected lemma «exists» {p : ℚ → Prop} : (∃ r, p r) ↔ ∃ a b : ℤ, p (a / b) :=
 ⟨λ ⟨r, hr⟩, ⟨r.num, r.denom, by rwa [← mk_eq_div, num_denom]⟩, λ ⟨a, b, h⟩, ⟨_, h⟩⟩

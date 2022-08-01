@@ -54,12 +54,12 @@ lemma of_arrow {f g : arrow C} (h : f ⟶ g) : comm_sq f.hom h.left h.right g.ho
 
 /-- The commutative square in the opposite category associated to a commutative square. -/
 lemma op (p : comm_sq f g h i) : comm_sq i.op h.op g.op f.op :=
-⟨by simp only [← op_comp, p.w]⟩
+⟨by simv only [← op_comp, p.w]⟩
 
 /-- The commutative square associated to a commutative square in the opposite category. -/
 lemma unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
   (p : comm_sq f g h i) : comm_sq i.unop h.unop g.unop f.unop :=
-⟨by simp only [← unop_comp, p.w]⟩
+⟨by simv only [← unop_comp, p.w]⟩
 
 end comm_sq
 

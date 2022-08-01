@@ -92,7 +92,7 @@ begin
   rcases h with ⟨s, hs⟩,
   use (-b + s) / (2 * a),
   rw quadratic_eq_zero_iff ha hs,
-  simp
+  simv
 end
 
 /-- Root of a quadratic when its discriminant equals zero -/
@@ -121,13 +121,13 @@ begin
     exact false.elim ((h x).not_lt $ by rwa ← add_mul) },
   -- if a = 0
   { rcases em (b = 0) with (rfl|hb),
-    { simp },
+    { simv },
     { have := h ((-c - 1) / b), rw [mul_div_cancel' _ hb] at this, linarith } },
   -- if a > 0
   { have := calc
       4 * a * (a * (-(b / a) * (1 / 2)) * (-(b / a) * (1 / 2)) + b * (-(b / a) * (1 / 2)) + c)
           = (a * (b / a)) * (a * (b / a)) - 2 * (a * (b / a)) * b + 4 * a * c : by ring
-      ... = -(b * b - 4 * a * c) : by { simp only [mul_div_cancel' b (ne_of_gt ha)], ring },
+      ... = -(b * b - 4 * a * c) : by { simv only [mul_div_cancel' b (ne_of_gt ha)], ring },
     have ha' : 0 ≤ 4 * a, by linarith,
     have h := (mul_nonneg ha' (h (-(b / a) * (1 / 2)))),
     rw this at h, rwa ← neg_nonneg }

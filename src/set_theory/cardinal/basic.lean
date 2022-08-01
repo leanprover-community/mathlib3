@@ -129,7 +129,7 @@ protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 
 /-- The representative of the cardinal of a type is equivalent ot the original type. -/
 def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
-nonempty.some $ cardinal.eq.mp (by simp)
+nonempty.some $ cardinal.eq.mp (by simv)
 
 lemma mk_congr (e : α ≃ β) : # α = # β := quot.sound ⟨e⟩
 
@@ -318,7 +318,7 @@ begin
   { introsI α β h e hα, letI := fintype.of_equiv β e.symm,
     rwa [mk_congr e, fintype.card_congr e] at hα },
   { refl },
-  { introsI α h hα, simp [hα], refl }
+  { introsI α h hα, simv [hα], refl }
 end
 
 instance : has_mul cardinal.{u} := ⟨map₂ prod $ λ α β γ δ, equiv.prod_congr⟩
@@ -387,9 +387,9 @@ by rw [bit1, ←power_bit0, power_add, power_one]
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ λ α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
-@[simp] theorem mk_bool : #bool = 2 := by simp
+@[simp] theorem mk_bool : #bool = 2 := by simv
 
-@[simp] theorem mk_Prop : #(Prop) = 2 := by simp
+@[simp] theorem mk_Prop : #(Prop) = 2 := by simv
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
 induction_on a $ λ α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $
@@ -423,17 +423,17 @@ mk_congr $ equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).symm
 lift_add a a
 
 @[simp] theorem lift_bit1 (a : cardinal) : lift (bit1 a) = bit1 (lift a) :=
-by simp [bit1]
+by simv [bit1]
 
-theorem lift_two : lift.{u v} 2 = 2 := by simp
+theorem lift_two : lift.{u v} 2 = 2 := by simv
 
-@[simp] theorem mk_set {α : Type u} : #(set α) = 2 ^ #α := by simp [set, mk_arrow]
+@[simp] theorem mk_set {α : Type u} : #(set α) = 2 ^ #α := by simv [set, mk_arrow]
 
 /-- A variant of `cardinal.mk_set` expressed in terms of a `set` instead of a `Type`. -/
 @[simp] theorem mk_powerset {α : Type u} (s : set α) : #↥(𝒫 s) = 2 ^ #↥s :=
 (mk_congr (equiv.set.powerset s)).trans mk_set
 
-theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
+theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simv
 
 section order_properties
 open sum
@@ -510,7 +510,7 @@ by rw [← not_le, le_one_iff_subsingleton, ← not_nontrivial_iff_subsingleton,
 theorem power_le_max_power_one {a b c : cardinal} (h : b ≤ c) : a ^ b ≤ max (a ^ c) 1 :=
 begin
   by_cases ha : a = 0,
-  simp [ha, zero_power_le],
+  simv [ha, zero_power_le],
   exact (power_le_power_left ha h).trans (le_max_left _ _)
 end
 
@@ -554,7 +554,7 @@ begin
   rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
   cases le_of_lt hlt with f,
   have : ¬ surjective f := λ hn, (not_le_of_lt hlt) (mk_le_of_surjective hn),
-  simp only [surjective, not_forall] at this,
+  simv only [surjective, not_forall] at this,
   rcases this with ⟨b, hb⟩,
   calc #γ + 1 = #(option γ) : mk_option.symm
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
@@ -581,7 +581,7 @@ induction_on a $ λ α, mk_congr $
   calc (Σ i : ι, quotient.out (#α)) ≃ ι × quotient.out (#α) : equiv.sigma_equiv_prod _ _
   ... ≃ ulift ι × ulift α : equiv.ulift.symm.prod_congr (out_mk_equiv.trans equiv.ulift.symm)
 
-theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a := by simp
+theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a := by simv
 
 @[simp] theorem sum_add_distrib {ι} (f g : ι → cardinal) :
   sum (f + g) = sum f + sum g :=
@@ -664,7 +664,7 @@ theorem sum_nat_eq_add_sum_succ (f : ℕ → cardinal.{u}) :
   cardinal.sum f = f 0 + cardinal.sum (λ i, f (i + 1)) :=
 begin
   refine (equiv.sigma_nat_succ (λ i, quotient.out (f i))).cardinal_eq.trans _,
-  simp only [mk_sum, mk_out, lift_id, mk_sigma],
+  simv only [mk_sum, mk_out, lift_id, mk_sigma],
 end
 
 /-- A variant of `csupr_of_empty` but with `0` on the RHS for convenience -/
@@ -703,23 +703,23 @@ theorem prod_le_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : pro
   by have := H i; rwa [← mk_out (f i), ← mk_out (g i)] at this⟩
 
 @[simp] theorem prod_eq_zero {ι} (f : ι → cardinal.{u}) : prod f = 0 ↔ ∃ i, f i = 0 :=
-by { lift f to ι → Type u using λ _, trivial, simp only [mk_eq_zero_iff, ← mk_pi, is_empty_pi] }
+by { lift f to ι → Type u using λ _, trivial, simv only [mk_eq_zero_iff, ← mk_pi, is_empty_pi] }
 
 theorem prod_ne_zero {ι} (f : ι → cardinal) : prod f ≠ 0 ↔ ∀ i, f i ≠ 0 :=
-by simp [prod_eq_zero]
+by simv [prod_eq_zero]
 
 @[simp] theorem lift_prod {ι : Type u} (c : ι → cardinal.{v}) :
   lift.{w} (prod c) = prod (λ i, lift.{w} (c i)) :=
 begin
   lift c to ι → Type v using λ _, trivial,
-  simp only [← mk_pi, ← mk_ulift],
+  simv only [← mk_pi, ← mk_ulift],
   exact mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
 end
 
 @[simp] theorem lift_Inf (s : set cardinal) : lift (Inf s) = Inf (lift '' s) :=
 begin
   rcases eq_empty_or_nonempty s with rfl | hs,
-  { simp },
+  { simv },
   { exact lift_monotone.map_Inf hs }
 end
 
@@ -840,10 +840,10 @@ by rw [←lift_aleph_0, lift_le]
 
 /-! ### Properties about the cast from `ℕ` -/
 
-@[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
+@[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simv
 
 @[simp] theorem lift_nat_cast (n : ℕ) : lift.{u} (n : cardinal.{v}) = n :=
-by induction n; simp *
+by induction n; simv *
 
 @[simp] lemma lift_eq_nat_iff {a : cardinal.{u}} {n : ℕ} : lift.{v} a = n ↔ a = n :=
 lift_injective.eq_iff' (lift_nat_cast n)
@@ -852,11 +852,11 @@ lift_injective.eq_iff' (lift_nat_cast n)
   (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
 by rw [←lift_nat_cast.{v} n, lift_inj]
 
-theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
+theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simv
 
-lemma mk_coe_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
+lemma mk_coe_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simv
 
-lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α := by simp
+lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α := by simv
 
 @[simp] lemma mk_finsupp_lift_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
@@ -864,7 +864,7 @@ by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
 
 lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
   #(α →₀ β) = (#β) ^ℕ fintype.card α :=
-by simp
+by simv
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 begin
@@ -873,18 +873,18 @@ begin
   rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
-@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [pow_succ', power_add, *]
+@[simv, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by induction n; simv [pow_succ', power_add, *]
 
-@[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
+@[simv, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 begin
   rw [←lift_mk_fin, ←lift_mk_fin, lift_le],
   exact ⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
     λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
 end
 
-@[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
-by simp [lt_iff_le_not_le, ←not_le]
+@[simv, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
+by simv [lt_iff_le_not_le, ←not_le]
 
 instance : char_zero cardinal := ⟨strict_mono.injective $ λ m n, nat_cast_lt.2⟩
 
@@ -893,7 +893,7 @@ theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n := nat.cast_inj
 lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
 nat.cast_injective
 
-@[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
+@[simv, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 (add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast
@@ -936,7 +936,7 @@ theorem lt_aleph_0 {c : cardinal} : c < ℵ₀ ↔ ∃ n : ℕ, c = n :=
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
   suffices : S.finite,
   { lift S to finset ℕ using this,
-    simp },
+    simv },
   contrapose! h',
   haveI := infinite.to_subtype h',
   exact ⟨infinite.nat_embedding S⟩
@@ -953,7 +953,7 @@ theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
 
 theorem lt_aleph_0_iff_finite {α : Type u} : #α < ℵ₀ ↔ finite α :=
-by simp only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
+by simv only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
 
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=
 lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
@@ -979,16 +979,16 @@ lemma add_lt_aleph_0_iff {a b : cardinal} : a + b < ℵ₀ ↔ a < ℵ₀ ∧ b 
   λ ⟨h1, h2⟩, add_lt_aleph_0 h1 h2⟩
 
 lemma aleph_0_le_add_iff {a b : cardinal} : ℵ₀ ≤ a + b ↔ ℵ₀ ≤ a ∨ ℵ₀ ≤ b :=
-by simp only [←not_lt, add_lt_aleph_0_iff, not_and_distrib]
+by simv only [←not_lt, add_lt_aleph_0_iff, not_and_distrib]
 
 /-- See also `cardinal.nsmul_lt_aleph_0_iff_of_ne_zero` if you already have `n ≠ 0`. -/
 lemma nsmul_lt_aleph_0_iff {n : ℕ} {a : cardinal} : n • a < ℵ₀ ↔ n = 0 ∨ a < ℵ₀ :=
 begin
   cases n,
   { simpa using nat_lt_aleph_0 0 },
-  simp only [nat.succ_ne_zero, false_or],
+  simv only [nat.succ_ne_zero, false_or],
   induction n with n ih,
-  { simp },
+  { simv },
   rw [succ_nsmul, add_lt_aleph_0_iff, ih, and_self]
 end
 
@@ -1011,7 +1011,7 @@ begin
       refine (mul_le_mul' le_rfl hb).trans_lt h },
     { rw ←one_mul b,
       refine (mul_le_mul' ha le_rfl).trans_lt h }},
-  rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_aleph_0, aleph_0_pos, zero_mul, mul_zero]
+  rintro (rfl|rfl|⟨ha,hb⟩); simv only [*, mul_lt_aleph_0, aleph_0_pos, zero_mul, mul_zero]
 end
 
 /-- See also `cardinal.aleph_0_le_mul_iff`. -/
@@ -1023,14 +1023,14 @@ by rwa [not_lt, not_or_distrib, not_or_distrib, not_and_distrib, not_lt, not_lt]
 lemma aleph_0_le_mul_iff' {a b : cardinal.{u}} : ℵ₀ ≤ a * b ↔ a ≠ 0 ∧ ℵ₀ ≤ b ∨ ℵ₀ ≤ a ∧ b ≠ 0 :=
 begin
   have : ∀ {a : cardinal.{u}}, ℵ₀ ≤ a → a ≠ 0, from λ a, ne_bot_of_le_ne_bot aleph_0_ne_zero,
-  simp only [aleph_0_le_mul_iff, and_or_distrib_left, and_iff_right_of_imp this,
+  simv only [aleph_0_le_mul_iff, and_or_distrib_left, and_iff_right_of_imp this,
     @and.left_comm (a ≠ 0)],
-  simp only [and.comm, or.comm]
+  simv only [and.comm, or.comm]
 end
 
 lemma mul_lt_aleph_0_iff_of_ne_zero {a b : cardinal} (ha : a ≠ 0) (hb : b ≠ 0) :
   a * b < ℵ₀ ↔ a < ℵ₀ ∧ b < ℵ₀ :=
-by simp [mul_lt_aleph_0_iff, ha, hb]
+by simv [mul_lt_aleph_0_iff, ha, hb]
 
 theorem power_lt_aleph_0 {a b : cardinal} (ha : a < ℵ₀) (hb : b < ℵ₀) : a ^ b < ℵ₀ :=
 match a, b, lt_aleph_0.1 ha, lt_aleph_0.1 hb with
@@ -1133,7 +1133,7 @@ dif_neg (infinite_iff.1 h).not_lt
 @[simp] theorem aleph_0_to_nat : to_nat ℵ₀ = 0 :=
 to_nat_apply_of_aleph_0_le le_rfl
 
-lemma mk_to_nat_eq_card [fintype α] : (#α).to_nat = fintype.card α := by simp
+lemma mk_to_nat_eq_card [fintype α] : (#α).to_nat = fintype.card α := by simv
 
 @[simp] lemma zero_to_nat : to_nat 0 = 0 :=
 by rw [←to_nat_cast 0, nat.cast_zero]
@@ -1192,13 +1192,13 @@ end
   to `⊤`. -/
 def to_part_enat : cardinal →+ part_enat :=
 { to_fun := λ c, if c < ℵ₀ then c.to_nat else ⊤,
-  map_zero' := by simp [if_pos (zero_lt_one.trans one_lt_aleph_0)],
+  map_zero' := by simv [if_pos (zero_lt_one.trans one_lt_aleph_0)],
   map_add' := λ x y, begin
     by_cases hx : x < ℵ₀,
     { obtain ⟨x0, rfl⟩ := lt_aleph_0.1 hx,
       by_cases hy : y < ℵ₀,
       { obtain ⟨y0, rfl⟩ := lt_aleph_0.1 hy,
-        simp only [add_lt_aleph_0 hx hy, hx, hy, to_nat_cast, if_true],
+        simv only [add_lt_aleph_0 hx hy, hx, hy, to_nat_cast, if_true],
         rw [← nat.cast_add, to_nat_cast, nat.cast_add] },
       { rw [if_neg hy, if_neg, part_enat.add_top],
         contrapose! hy,
@@ -1228,7 +1228,7 @@ lemma to_part_enat_surjective : surjective to_part_enat :=
   λ n, ⟨n, to_part_enat_cast n⟩
 
 lemma mk_to_part_enat_eq_coe_card [fintype α] : (#α).to_part_enat = fintype.card α :=
-by simp
+by simv
 
 lemma mk_int : #ℤ = ℵ₀ := mk_denumerable ℤ
 
@@ -1245,7 +1245,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
   { intro i,
-    simp only [- not_exists, not_exists.symm, not_forall.symm],
+    simv only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, (H i).not_le _,
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective _ h⟩ },
@@ -1267,11 +1267,11 @@ mk_eq_one _
 @[simp] theorem mk_plift_false : #(plift false) = 0 := mk_eq_zero _
 
 @[simp] theorem mk_vector (α : Type u) (n : ℕ) : #(vector α n) = (#α) ^ℕ n :=
-(mk_congr (equiv.vector_equiv_fin α n)).trans $ by simp
+(mk_congr (equiv.vector_equiv_fin α n)).trans $ by simv
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α) ^ℕ n) :=
 calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_fiber_equiv list.length).symm
-... = sum (λ n : ℕ, (#α) ^ℕ n) : by simp
+... = sum (λ n : ℕ, (#α) ^ℕ n) : by simv
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=
 mk_le_of_surjective quot.exists_rep
@@ -1386,7 +1386,7 @@ lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x}
 ⟨embedding_of_subset _ _ h⟩
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=
-by simp
+by simv
 
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
   lift.{u} (#(f '' s)) = lift.{v} (#s) :=
@@ -1423,7 +1423,7 @@ begin
   rintro ⟨y, hy⟩ ⟨y', hy'⟩, dsimp,
   rcases classical.subtype_of_exists (h hy) with ⟨x, rfl⟩,
   rcases classical.subtype_of_exists (h hy') with ⟨x', rfl⟩,
-  simp, intro hxx', rw hxx'
+  simv, intro hxx', rw hxx'
 end
 
 lemma mk_preimage_of_injective_of_subset_range_lift {β : Type v} (f : α → β) (s : set β)
@@ -1513,7 +1513,7 @@ end
 lemma powerlt_le {a b c : cardinal.{u}} : a ^< b ≤ c ↔ ∀ x < b, a ^ x ≤ c :=
 begin
   rw [powerlt, csupr_le_iff'],
-  { simp },
+  { simv },
   { rw ←image_eq_range,
     exact bdd_above_image.{u u} _ bdd_above_Iio }
 end

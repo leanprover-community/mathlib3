@@ -95,7 +95,7 @@ def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
     cases f,
     { simpa },
     cases g,
-    simp
+    simv
   end }
 
 /-- Every diagram is naturally isomorphic (actually, equal) to a `wide_cospan` -/
@@ -114,17 +114,17 @@ def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
     | none := f
     | (some j) := π j
     end,
-    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simv [w], }, } }
 
 /-- Wide pullback diagrams of equivalent index types are equivlent. -/
 def equivalence_of_equiv (J' : Type w') (h : J ≃ J') :
   wide_pullback_shape J ≌ wide_pullback_shape J' :=
 { functor := wide_cospan none (λ j, some (h j)) (λ j, hom.term (h j)),
   inverse := wide_cospan none (λ j, some (h.inv_fun j)) (λ j, hom.term (h.inv_fun j)),
-  unit_iso := nat_iso.of_components (λ j, by cases j; simp)
-    (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}),
-  counit_iso := nat_iso.of_components (λ j, by cases j; simp)
-    (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}) }
+  unit_iso := nat_iso.of_components (λ j, by cases j; simv)
+    (λ j k f, by { simv only [eq_iff_true_of_subsingleton]}),
+  counit_iso := nat_iso.of_components (λ j, by cases j; simv)
+    (λ j k f, by { simv only [eq_iff_true_of_subsingleton]}) }
 
 /-- Lifting universe and morphism levels preserves wide pullback diagrams. -/
 def ulift_equivalence :
@@ -183,7 +183,7 @@ def wide_span (B : C) (objs : J → C) (arrows : Π (j : J), B ⟶ objs j) : wid
     { apply (𝟙 _) },
     { exact arrows j }
   end,
-  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_) (_|_); simpa <|> simp } }
+  map_comp' := by { rintros (_|_) (_|_) (_|_) (_|_) (_|_); simpa <|> simv } }
 
 /-- Every diagram is naturally isomorphic (actually, equal) to a `wide_span` -/
 def diagram_iso_wide_span (F : wide_pushout_shape J ⥤ C) :
@@ -201,7 +201,7 @@ def mk_cocone {F : wide_pushout_shape J ⥤ C} {X : C}
     | none := f
     | (some j) := ι j
     end,
-    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
+    naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simv [w], }, } }
 
 end wide_pushout_shape
 
@@ -256,7 +256,7 @@ noncomputable
 abbreviation base : wide_pullback _ _ arrows ⟶ B :=
 limit.π (wide_pullback_shape.wide_cospan _ _ _) option.none
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma π_arrow (j : J) : π arrows j ≫ arrows _ = base arrows :=
 by apply limit.w (wide_pullback_shape.wide_cospan _ _ _) (wide_pullback_shape.hom.term j)
 
@@ -274,13 +274,13 @@ variables (arrows)
 variables {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
   (w : ∀ j, fs j ≫ arrows j = f)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma lift_π (j : J) : lift f fs w ≫ π arrows j = fs _ :=
-by { simp, refl }
+by { simv, refl }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma lift_base : lift f fs w ≫ base arrows = f :=
-by { simp, refl }
+by { simv, refl }
 
 lemma eq_lift_of_comp_eq (g : X ⟶ wide_pullback _ _ arrows) :
   (∀ j : J, g ≫ π arrows j = fs j) → g ≫ base arrows = f → g = lift f fs w :=
@@ -329,7 +329,7 @@ noncomputable
 abbreviation head : B ⟶ wide_pushout B objs arrows :=
 colimit.ι (wide_pushout_shape.wide_span _ _ _) option.none
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma arrow_ι (j : J) : arrows j ≫ ι arrows j = head arrows :=
 by apply colimit.w (wide_pushout_shape.wide_span _ _ _) (wide_pushout_shape.hom.init j)
 
@@ -347,13 +347,13 @@ variables (arrows)
 variables {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
   (w : ∀ j, arrows j ≫ fs j = f)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_desc (j : J) : ι arrows j ≫ desc f fs w = fs _ :=
-by { simp, refl }
+by { simv, refl }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma head_desc : head arrows ≫ desc f fs w = f :=
-by { simp, refl }
+by { simv, refl }
 
 lemma eq_desc_of_comp_eq (g : wide_pushout _ _ arrows ⟶ X) :
   (∀ j : J, ι arrows j ≫ g = fs j) → head arrows ≫ g = f → g = desc f fs w :=
@@ -367,7 +367,7 @@ begin
 end
 
 lemma hom_eq_desc (g : wide_pushout _ _ arrows ⟶ X) :
-  g = desc (head arrows ≫ g) (λ j, ι arrows j ≫ g) (λ j, by { rw ← category.assoc, simp }) :=
+  g = desc (head arrows ≫ g) (λ j, ι arrows j ≫ g) (λ j, by { rw ← category.assoc, simv }) :=
 begin
   apply eq_desc_of_comp_eq,
   tidy,

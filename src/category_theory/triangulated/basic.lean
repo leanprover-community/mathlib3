@@ -101,7 +101,7 @@ structure triangle_morphism (T₁ : triangle C) (T₂ : triangle C) :=
 restate_axiom triangle_morphism.comm₁'
 restate_axiom triangle_morphism.comm₂'
 restate_axiom triangle_morphism.comm₃'
-attribute [simp, reassoc] triangle_morphism.comm₁ triangle_morphism.comm₂ triangle_morphism.comm₃
+attribute [simv, reassoc] triangle_morphism.comm₁ triangle_morphism.comm₂ triangle_morphism.comm₃
 
 /--
 The identity triangle morphism.

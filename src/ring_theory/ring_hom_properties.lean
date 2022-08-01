@@ -52,7 +52,7 @@ lemma respects_iso.cancel_right_is_iso (hP : respects_iso @P) {R S T : CommRing}
   (f : R ⟶ S) (g : S ⟶ T)
   [is_iso g] : P (f ≫ g) ↔ P f :=
 ⟨λ H, by { convert hP.1 (f ≫ g) (as_iso g).symm.CommRing_iso_to_ring_equiv H,
-  change f = f ≫ g ≫ (inv g), simp }, hP.1 f (as_iso g).CommRing_iso_to_ring_equiv⟩
+  change f = f ≫ g ≫ (inv g), simv }, hP.1 f (as_iso g).CommRing_iso_to_ring_equiv⟩
 
 lemma respects_iso.is_localization_away_iff (hP : ring_hom.respects_iso @P) {R S : Type*}
   (R' S' : Type*) [comm_ring R] [comm_ring S] [comm_ring R'] [comm_ring S'] [algebra R R']
@@ -72,7 +72,7 @@ begin
   ext1,
   revert e₁ e₂,
   dsimp [ring_equiv.to_ring_hom, is_localization.away.map],
-  simp only [category_theory.comp_apply, ring_equiv.refl_apply, is_localization.alg_equiv_apply,
+  simv only [category_theory.comp_apply, ring_equiv.refl_apply, is_localization.alg_equiv_apply,
     is_localization.ring_equiv_of_ring_equiv_apply, ring_hom.coe_mk, ring_equiv.to_fun_eq_coe,
     is_localization.ring_equiv_of_ring_equiv_eq, is_localization.map_eq],
 end

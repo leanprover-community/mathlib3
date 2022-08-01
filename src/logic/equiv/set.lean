@@ -110,12 +110,12 @@ image_swap_prod
 @[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   equiv.prod_assoc α β γ ⁻¹' s ×ˢ (t ×ˢ u) = (s ×ˢ t) ×ˢ u :=
-by { ext, simp [and_assoc] }
+by { ext, simv [and_assoc] }
 
 @[simp]
 lemma prod_assoc_symm_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   (equiv.prod_assoc α β γ).symm ⁻¹' (s ×ˢ t) ×ˢ u = s ×ˢ (t ×ˢ u) :=
-by { ext, simp [and_assoc] }
+by { ext, simv [and_assoc] }
 
 -- `@[simp]` doesn't like these lemmas, as it uses `set.image_congr'` to turn `equiv.prod_assoc`
 -- into a lambda expression and then unfold it.
@@ -131,7 +131,7 @@ by simpa only [equiv.image_eq_preimage] using prod_assoc_preimage
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
 def set_prod_equiv_sigma {α β : Type*} (s : set (α × β)) :
   s ≃ Σ x : α, {y | (x, y) ∈ s} :=
-{ to_fun := λ x, ⟨x.1.1, x.1.2, by simp⟩,
+{ to_fun := λ x, ⟨x.1.1, x.1.2, by simv⟩,
   inv_fun := λ x, ⟨(x.1, x.2.1), x.2.2⟩,
   left_inv := λ ⟨⟨x, y⟩, h⟩, rfl,
   right_inv := λ ⟨x, y, h⟩, rfl }
@@ -148,10 +148,10 @@ A set is equivalent to its image under an equivalence.
 -- but this definition provides an explicit inverse.
 @[simps]
 def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
-{ to_fun := λ x, ⟨e x.1, by simp⟩,
+{ to_fun := λ x, ⟨e x.1, by simv⟩,
   inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
-  left_inv := λ x, by simp,
-  right_inv := λ y, by simp, }.
+  left_inv := λ x, by simv,
+  right_inv := λ y, by simv, }.
 
 namespace set
 
@@ -181,11 +181,11 @@ protected def union' {α} {s t : set α}
     | (sum.inl x) := ⟨x, or.inl x.2⟩
     | (sum.inr x) := ⟨x, or.inr x.2⟩
   end,
-  left_inv := λ ⟨x, h'⟩, by by_cases p x; simp [union'._match_1, h]; congr,
+  left_inv := λ ⟨x, h'⟩, by by_cases p x; simv [union'._match_1, h]; congr,
   right_inv := λ o, begin
     rcases o with ⟨x, h⟩ | ⟨x, h⟩;
     dsimp [union'._match_1];
-    [simp [hs _ h], simp [ht _ h]]
+    [simv [hs _ h], simv [ht _ h]]
   end }
 
 /-- If sets `s` and `t` are disjoint, then `s ∪ t` is equivalent to `s ⊕ t`. -/
@@ -212,7 +212,7 @@ rfl
 /-- A singleton set is equivalent to a `punit` type. -/
 protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
 ⟨λ _, punit.star, λ _, ⟨a, mem_singleton _⟩,
- λ ⟨x, h⟩, by { simp at h, subst x },
+ λ ⟨x, h⟩, by { simv at h, subst x },
  λ ⟨⟩, rfl⟩
 
 /-- Equal sets are equivalent.
@@ -225,8 +225,8 @@ equiv.set_congr h
 /-- If `a ∉ s`, then `insert a s` is equivalent to `s ⊕ punit`. -/
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ s ⊕ punit.{u+1} :=
-calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
-... ≃ s ⊕ ({a} : set α) : equiv.set.union (λ x ⟨hx, hx'⟩, by simp [*] at *)
+calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simv)
+... ≃ s ⊕ ({a} : set α) : equiv.set.union (λ x ⟨hx, hx'⟩, by simv [*] at *)
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
 @[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)
@@ -247,8 +247,8 @@ rfl
 
 /-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
 protected def sum_compl {α} (s : set α) [decidable_pred (∈ s)] : s ⊕ (sᶜ : set α) ≃ α :=
-calc s ⊕ (sᶜ : set α) ≃ ↥(s ∪ sᶜ) : (equiv.set.union (by simp [set.ext_iff])).symm
-... ≃ @univ α : equiv.set.of_eq (by simp)
+calc s ⊕ (sᶜ : set α) ≃ ↥(s ∪ sᶜ) : (equiv.set.union (by simv [set.ext_iff])).symm
+... ≃ @univ α : equiv.set.of_eq (by simv)
 ... ≃ α : equiv.set.univ _
 
 @[simp] lemma sum_compl_apply_inl {α : Type u} (s : set α) [decidable_pred (∈ s)] (x : s) :
@@ -280,8 +280,8 @@ by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] :
   s ⊕ (t \ s : set α) ≃ t :=
 calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) :
-  (equiv.set.union (by simp [inter_diff_self])).symm
-... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
+  (equiv.set.union (by simv [inter_diff_self])).symm
+... ≃ t : equiv.set.of_eq (by { simv [union_diff_self, union_eq_self_of_subset_left h] })
 
 @[simp] lemma sum_diff_subset_apply_inl
   {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] (x : s) :
@@ -296,7 +296,7 @@ lemma sum_diff_subset_symm_apply_of_mem
   (equiv.set.sum_diff_subset h).symm x = sum.inl ⟨x, hx⟩ :=
 begin
   apply (equiv.set.sum_diff_subset h).injective,
-  simp only [apply_symm_apply, sum_diff_subset_apply_inl],
+  simv only [apply_symm_apply, sum_diff_subset_apply_inl],
   exact subtype.eq rfl,
 end
 
@@ -305,7 +305,7 @@ lemma sum_diff_subset_symm_apply_of_not_mem
   (equiv.set.sum_diff_subset h).symm x = sum.inr ⟨x, ⟨x.2, hx⟩⟩  :=
 begin
   apply (equiv.set.sum_diff_subset h).injective,
-  simp only [apply_symm_apply, sum_diff_subset_apply_inr],
+  simv only [apply_symm_apply, sum_diff_subset_apply_inr],
   exact subtype.eq rfl,
 end
 
@@ -340,20 +340,20 @@ protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decid
       (calc α ≃ s ⊕ (sᶜ : set α) : (set.sum_compl s).symm
           ... ≃ t ⊕ (tᶜ : set β) : e₀.sum_congr e₁
           ... ≃ β : set.sum_compl t)
-      (λ x, by simp only [sum.map_inl, trans_apply, sum_congr_apply,
+      (λ x, by simv only [sum.map_inl, trans_apply, sum_congr_apply,
         set.sum_compl_apply_inl, set.sum_compl_symm_apply]),
   left_inv := λ e,
     begin
       ext x,
       by_cases hx : x ∈ s,
-      { simp only [set.sum_compl_symm_apply_of_mem hx, ←e.prop ⟨x, hx⟩,
+      { simv only [set.sum_compl_symm_apply_of_mem hx, ←e.prop ⟨x, hx⟩,
           sum.map_inl, sum_congr_apply, trans_apply,
           subtype.coe_mk, set.sum_compl_apply_inl] },
-      { simp only [set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
+      { simv only [set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
           subtype_equiv_apply, set.sum_compl_apply_inr, trans_apply,
           sum_congr_apply, subtype.coe_mk] },
     end,
-  right_inv := λ e, equiv.ext $ λ x, by simp only [sum.map_inr, subtype_equiv_apply,
+  right_inv := λ e, equiv.ext $ λ x, by simv only [sum.map_inr, subtype_equiv_apply,
     set.sum_compl_apply_inr, function.comp_app, sum_congr_apply, equiv.coe_trans,
     subtype.coe_eta, subtype.coe_mk, set.sum_compl_symm_apply_compl] }
 
@@ -389,7 +389,7 @@ equiv.set.image_of_inj_on f s (H.inj_on s)
   (set.image f s H).symm ⟨f x, ⟨x, ⟨h, rfl⟩⟩⟩ = ⟨x, h⟩ :=
 begin
   apply (set.image f s H).injective,
-  simp [(set.image f s H).apply_symm_apply],
+  simv [(set.image f s H).apply_symm_apply],
 end
 
 lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set α) :
@@ -397,7 +397,7 @@ lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set 
 begin
   ext ⟨b, a, has, rfl⟩,
   have : ∀(h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a := λ h, (classical.some_spec h).2,
-  simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
+  simv [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/
@@ -415,7 +415,7 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
 { to_fun := λ x : 𝒫 S, coe ⁻¹' (x : set α),
   inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
   left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
-  right_inv := λ x, by ext; simp }
+  right_inv := λ x, by ext; simv }
 
 /--
 If `s` is a set in `range f`,
@@ -424,11 +424,11 @@ then its image under `range_splitting f` is in bijection (via `f`) with `s`.
 @[simps]
 noncomputable def range_splitting_image_equiv {α β : Type*} (f : α → β) (s : set (range f)) :
   range_splitting f '' s ≃ s :=
-{ to_fun := λ x, ⟨⟨f x, by simp⟩,
+{ to_fun := λ x, ⟨⟨f x, by simv⟩,
     (by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simpa [apply_range_splitting f] using m, })⟩,
   inv_fun := λ x, ⟨range_splitting f x, ⟨x, ⟨x.2, rfl⟩⟩⟩,
-  left_inv := λ x, by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simp [apply_range_splitting f] },
-  right_inv := λ x, by simp [apply_range_splitting f], }
+  left_inv := λ x, by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simv [apply_range_splitting f] },
+  right_inv := λ x, by simv [apply_range_splitting f], }
 
 end set
 
@@ -473,12 +473,12 @@ subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
   (of_injective f hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
 begin
   apply (of_injective f hf).injective,
-  simp [apply_of_injective_symm hf],
+  simv [apply_of_injective_symm hf],
 end
 
 lemma coe_of_injective_symm {α β} {f : α → β} (hf : injective f) :
   ((of_injective f hf).symm : range f → α) = range_splitting f :=
-by { ext ⟨y, x, rfl⟩, apply hf, simp [apply_range_splitting f] }
+by { ext ⟨y, x, rfl⟩, apply hf, simv [apply_range_splitting f] }
 
 @[simp] lemma self_comp_of_injective_symm {α β} {f : α → β} (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=
@@ -488,13 +488,13 @@ lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
   of_left_inverse f f_inv hf = of_injective f
     ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by
-    { haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
-by { ext, simp }
+    { haveI : subsingleton α := subsingleton_of_not_nonempty h, simv })) :=
+by { ext, simv }
 
 lemma of_left_inverse'_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
   of_left_inverse' f f_inv hf = of_injective f hf.injective :=
-by { ext, simp }
+by { ext, simv }
 
 protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
   (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
@@ -506,11 +506,11 @@ lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
     (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)) :=
 begin
   ext ⟨f, g⟩,
-  simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,
+  simv only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,
     ← forall_and_distrib],
   refine forall_congr (λ i, _),
   dsimp only [subtype.coe_mk],
-  by_cases hi : p i; simp [hi]
+  by_cases hi : p i; simv [hi]
 end
 
 /-- `sigma_fiber_equiv f` for `f : α → β` is the natural equivalence between
@@ -556,5 +556,5 @@ begin
     simp_rw h_coe },
   { have : i ≠ e j,
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
-    simp [h, this] }
+    simv [h, this] }
 end

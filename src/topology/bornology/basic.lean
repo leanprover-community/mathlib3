@@ -122,7 +122,7 @@ lemma is_cobounded.inter (hs : is_cobounded s) (ht : is_cobounded t) : is_coboun
 is_cobounded_inter.2 ⟨hs, ht⟩
 
 @[simp] lemma is_bounded_union : is_bounded (s ∪ t) ↔ is_bounded s ∧ is_bounded t :=
-by simp only [← is_cobounded_compl_iff, compl_union, is_cobounded_inter]
+by simv only [← is_cobounded_compl_iff, compl_union, is_cobounded_inter]
 
 lemma is_bounded.union (hs : is_bounded s) (ht : is_bounded t) : is_bounded (s ∪ t) :=
 is_bounded_union.2 ⟨hs, ht⟩
@@ -186,7 +186,7 @@ sInter_mem hs
 
 lemma is_bounded_bUnion {s : set ι} {f : ι → set α} (hs : s.finite) :
   is_bounded (⋃ i ∈ s, f i) ↔ ∀ i ∈ s, is_bounded (f i) :=
-by simp only [← is_cobounded_compl_iff, compl_Union, is_cobounded_bInter hs]
+by simv only [← is_cobounded_compl_iff, compl_Union, is_cobounded_bInter hs]
 
 lemma is_bounded_bUnion_finset (s : finset ι) {f : ι → set α} :
   is_bounded (⋃ i ∈ s, f i) ↔ ∀ i ∈ s, is_bounded (f i) :=

@@ -42,11 +42,11 @@ variables {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {h : W ⟶ X} {k : W ⟶ Y} 
 limit. This essentially lets us commute `pullback_cone.mk` with `functor.map_cone`. -/
 def is_limit_map_cone_pullback_cone_equiv :
   is_limit (G.map_cone (pullback_cone.mk h k comm)) ≃
-    is_limit (pullback_cone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
+    is_limit (pullback_cone.mk (G.map h) (G.map k) (by simv only [← G.map_comp, comm])
       : pullback_cone (G.map f) (G.map g)) :=
 (is_limit.postcompose_hom_equiv (diagram_iso_cospan.{v₂} _) _).symm.trans $
 is_limit.equiv_iso_limit $ cones.ext (iso.refl _) $
-  (by rintro (_|_|_); dsimp; simp only [comp_id, id_comp, G.map_comp])
+  (by rintro (_|_|_); dsimp; simv only [comp_id, id_comp, G.map_comp])
 
 /-- The property of preserving pullbacks expressed in terms of binary fans. -/
 def is_limit_pullback_cone_map_of_is_limit [preserves_limit (cospan f g) G]
@@ -101,19 +101,19 @@ is_limit.cone_point_unique_up_to_iso
 
 @[reassoc] lemma preserves_pullback.iso_hom_fst :
   (preserves_pullback.iso G f g).hom ≫ pullback.fst = G.map pullback.fst :=
-by simp [preserves_pullback.iso]
+by simv [preserves_pullback.iso]
 
 @[reassoc] lemma preserves_pullback.iso_hom_snd :
   (preserves_pullback.iso G f g).hom ≫ pullback.snd = G.map pullback.snd :=
-by simp [preserves_pullback.iso]
+by simv [preserves_pullback.iso]
 
-@[simp, reassoc] lemma preserves_pullback.iso_inv_fst :
+@[simv, reassoc] lemma preserves_pullback.iso_inv_fst :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.fst = pullback.fst :=
-by simp [preserves_pullback.iso, iso.inv_comp_eq]
+by simv [preserves_pullback.iso, iso.inv_comp_eq]
 
-@[simp, reassoc] lemma preserves_pullback.iso_inv_snd :
+@[simv, reassoc] lemma preserves_pullback.iso_inv_snd :
   (preserves_pullback.iso G f g).inv ≫ G.map pullback.snd = pullback.snd :=
-by simp [preserves_pullback.iso, iso.inv_comp_eq]
+by simv [preserves_pullback.iso, iso.inv_comp_eq]
 
 end pullback
 
@@ -128,11 +128,11 @@ variables {W X Y Z : C} {h : X ⟶ Z} {k : Y ⟶ Z} {f : W ⟶ X} {g : W ⟶ Y} 
 colimit. This essentially lets us commute `pushout_cocone.mk` with `functor.map_cocone`. -/
 def is_colimit_map_cocone_pushout_cocone_equiv :
   is_colimit (G.map_cocone (pushout_cocone.mk h k comm)) ≃
-    is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simp only [← G.map_comp, comm])
+    is_colimit (pushout_cocone.mk (G.map h) (G.map k) (by simv only [← G.map_comp, comm])
       : pushout_cocone (G.map f) (G.map g)) :=
 (is_colimit.precompose_hom_equiv (diagram_iso_span.{v₂} _).symm _).symm.trans $
 is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) $
-  (by rintro (_|_|_); dsimp; simp only [category.comp_id, category.id_comp, ← G.map_comp])
+  (by rintro (_|_|_); dsimp; simv only [category.comp_id, category.id_comp, ← G.map_comp])
 
 /-- The property of preserving pushouts expressed in terms of binary cofans. -/
 def is_colimit_pushout_cocone_map_of_is_colimit [preserves_colimit (span f g) G]
@@ -187,19 +187,19 @@ is_colimit.cocone_point_unique_up_to_iso
 
 @[reassoc] lemma preserves_pushout.inl_iso_hom :
   pushout.inl ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inl :=
-by { delta preserves_pushout.iso, simp }
+by { delta preserves_pushout.iso, simv }
 
 @[reassoc] lemma preserves_pushout.inr_iso_hom :
   pushout.inr ≫ (preserves_pushout.iso G f g).hom = G.map pushout.inr :=
-by { delta preserves_pushout.iso, simp }
+by { delta preserves_pushout.iso, simv }
 
-@[simp, reassoc] lemma preserves_pushout.inl_iso_inv :
+@[simv, reassoc] lemma preserves_pushout.inl_iso_inv :
   G.map pushout.inl ≫ (preserves_pushout.iso G f g).inv = pushout.inl :=
-by simp [preserves_pushout.iso, iso.comp_inv_eq]
+by simv [preserves_pushout.iso, iso.comp_inv_eq]
 
-@[simp, reassoc] lemma preserves_pushout.inr_iso_inv :
+@[simv, reassoc] lemma preserves_pushout.inr_iso_inv :
   G.map pushout.inr ≫ (preserves_pushout.iso G f g).inv = pushout.inr :=
-by simp [preserves_pushout.iso, iso.comp_inv_eq]
+by simv [preserves_pushout.iso, iso.comp_inv_eq]
 
 end pushout
 

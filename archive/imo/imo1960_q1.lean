@@ -41,7 +41,7 @@ lemma ge_100 {n : ℕ} (h1 : problem_predicate n) : 100 ≤ n :=
 have h2 : 10^3 ≤ 10 * n, begin
   rw ← h1.left,
   refine nat.base_pow_length_digits_le 10 n _ (not_zero h1),
-  simp,
+  simv,
 end,
 by linarith
 
@@ -49,7 +49,7 @@ lemma lt_1000 {n : ℕ} (h1 : problem_predicate n) : n < 1000 :=
 have h2 : n < 10^3, begin
   rw ← h1.left,
   refine nat.lt_base_pow_length_digits _,
-  simp,
+  simv,
 end,
 by linarith
 

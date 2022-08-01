@@ -166,7 +166,7 @@ def is_limit_change_empty_cone {c₁ : cone F₁} (hl : is_limit c₁)
   (c₂ : cone F₂) (hi : c₁.X ≅ c₂.X) : is_limit c₂ :=
 { lift := λ c, hl.lift ⟨c.X, by tidy⟩ ≫ hi.hom,
   fac' := λ _ j, j.as.elim,
-  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.as.elim), simp } }
+  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.as.elim), simv } }
 
 /-- Replacing an empty cone in `is_limit` by another with the same cone point
     is an equivalence. -/
@@ -190,7 +190,7 @@ def is_colimit_change_empty_cocone {c₁ : cocone F₁} (hl : is_colimit c₁)
   (c₂ : cocone F₂) (hi : c₁.X ≅ c₂.X) : is_colimit c₂ :=
 { desc := λ c, hi.inv ≫ hl.desc ⟨c.X, by tidy⟩,
   fac' := λ _ j, j.as.elim,
-  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.as.elim), simp } }
+  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.as.elim), simv } }
 
 /-- Replacing an empty cocone in `is_colimit` by another with the same cocone point
     is an equivalence. -/
@@ -321,7 +321,7 @@ def limit_const_terminal {J : Type*} [category J] {C : Type*} [category C] [has_
   inv := limit.lift ((category_theory.functor.const J).obj (⊤_ C))
     { X := ⊤_ C, π := { app := λ j, terminal.from _, }}, }
 
-@[simp, reassoc] lemma limit_const_terminal_inv_π
+@[simv, reassoc] lemma limit_const_terminal_inv_π
   {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] {j : J} :
   limit_const_terminal.inv ≫ limit.π ((category_theory.functor.const J).obj (⊤_ C)) j =
     terminal.from _ :=
@@ -344,7 +344,7 @@ def colimit_const_initial {J : Type*} [category J] {C : Type*} [category C] [has
     { X := ⊥_ C, ι := { app := λ j, initial.to _, }, },
   inv := initial.to _, }
 
-@[simp, reassoc] lemma ι_colimit_const_initial_hom
+@[simv, reassoc] lemma ι_colimit_const_initial_hom
   {J : Type*} [category J] {C : Type*} [category C] [has_initial C] {j : J} :
   colimit.ι ((category_theory.functor.const J).obj (⊥_ C)) j ≫ colimit_const_initial.hom =
     initial.to _ :=
@@ -452,7 +452,7 @@ is_limit (cone_of_diagram_initial tX F) :=
   uniq' := λ s m w,
     begin
       rw [← w X, cone_of_diagram_initial_π_app, tX.hom_ext (tX.to X) (𝟙 _)],
-      dsimp, simp -- See note [dsimp, simp]
+      dsimp, simv -- See note [dsimp, simv]
     end}
 
 -- This is reducible to allow usage of lemmas about `cone_point_unique_up_to_iso`.
@@ -478,7 +478,7 @@ def cone_of_diagram_terminal {X : J} (hX : is_terminal X)
     naturality' := begin
       intros i j f,
       dsimp,
-      simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.id_comp,
+      simv only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.id_comp,
         ← F.map_comp, hX.hom_ext (hX.from i) (f ≫ hX.from j)],
     end } }
 
@@ -521,7 +521,7 @@ def colimit_of_diagram_terminal
 is_colimit (cocone_of_diagram_terminal tX F) :=
 { desc := λ s, s.ι.app X,
   uniq' := λ s m w,
-    by { rw [← w X, cocone_of_diagram_terminal_ι_app, tX.hom_ext (tX.from X) (𝟙 _)], simp } }
+    by { rw [← w X, cocone_of_diagram_terminal_ι_app, tX.hom_ext (tX.from X) (𝟙 _)], simv } }
 
 -- This is reducible to allow usage of lemmas about `cocone_point_unique_up_to_iso`.
 /-- For a functor `F : J ⥤ C`, if `J` has a terminal object then the image of it is isomorphic
@@ -546,7 +546,7 @@ def cocone_of_diagram_initial {X : J} (hX : is_initial X) (F : J ⥤ C)
     naturality' := begin
       intros i j f,
       dsimp,
-      simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.comp_id,
+      simv only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.comp_id,
         ← F.map_comp, hX.hom_ext (hX.to i ≫ f) (hX.to j)],
     end } }
 
@@ -572,7 +572,7 @@ If `j` is initial in the index category, then the map `limit.π F j` is an isomo
 -/
 lemma is_iso_π_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C) [has_limit F] :
   is_iso (limit.π F j) :=
-⟨⟨limit.lift _ (cone_of_diagram_initial I F), ⟨by { ext, simp }, by simp⟩⟩⟩
+⟨⟨limit.lift _ (cone_of_diagram_initial I F), ⟨by { ext, simv }, by simv⟩⟩⟩
 
 instance is_iso_π_initial [has_initial J] (F : J ⥤ C) [has_limit F] :
   is_iso (limit.π F (⊥_ J)) :=
@@ -580,7 +580,7 @@ is_iso_π_of_is_initial (initial_is_initial) F
 
 lemma is_iso_π_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C)
   [has_limit F] [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (limit.π F j) :=
-⟨⟨limit.lift _ (cone_of_diagram_terminal I F), by { ext, simp }, by simp ⟩⟩
+⟨⟨limit.lift _ (cone_of_diagram_terminal I F), by { ext, simv }, by simv ⟩⟩
 
 instance is_iso_π_terminal [has_terminal J] (F : J ⥤ C) [has_limit F]
   [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (limit.π F (⊤_ J)) :=
@@ -591,7 +591,7 @@ If `j` is terminal in the index category, then the map `colimit.ι F j` is an is
 -/
 lemma is_iso_ι_of_is_terminal {j : J} (I : is_terminal j) (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F j) :=
-⟨⟨colimit.desc _ (cocone_of_diagram_terminal I F), ⟨by simp, by { ext, simp }⟩⟩⟩
+⟨⟨colimit.desc _ (cocone_of_diagram_terminal I F), ⟨by simv, by { ext, simv }⟩⟩⟩
 
 instance is_iso_ι_terminal [has_terminal J] (F : J ⥤ C) [has_colimit F] :
   is_iso (colimit.ι F (⊤_ J)) :=
@@ -599,7 +599,7 @@ is_iso_ι_of_is_terminal (terminal_is_terminal) F
 
 lemma is_iso_ι_of_is_initial {j : J} (I : is_initial j) (F : J ⥤ C)
   [has_colimit F] [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (colimit.ι F j) :=
-⟨⟨colimit.desc _ (cocone_of_diagram_initial I F), ⟨by tidy, by { ext, simp }⟩⟩⟩
+⟨⟨colimit.desc _ (cocone_of_diagram_initial I F), ⟨by tidy, by { ext, simv }⟩⟩⟩
 
 instance is_iso_ι_initial [has_initial J] (F : J ⥤ C) [has_colimit F]
   [∀ (i j : J) (f : i ⟶ j), is_iso (F.map f)] : is_iso (colimit.ι F (⊥_ J)) :=

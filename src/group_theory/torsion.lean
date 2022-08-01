@@ -54,7 +54,7 @@ variables (G) [monoid G]
 def is_torsion := ∀ g : G, is_of_fin_order g
 
 /-- A monoid is not a torsion monoid if it has an element of infinite order. -/
-@[simp, to_additive
+@[simv, to_additive
   "An additive monoid is not a torsion monoid if it has an element of infinite order."]
 lemma not_is_torsion_iff : ¬ is_torsion G ↔ ∃ g : G, ¬is_of_fin_order g :=
 by rw [is_torsion, not_forall]
@@ -152,7 +152,7 @@ namespace add_monoid
 lemma is_torsion.module_of_torsion [semiring R] [module R M] (tR : is_torsion R) :
 is_torsion M := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
   obtain ⟨n, npos, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero _).mp (tR 1),
-  exact ⟨n, npos, by simp only [nsmul_eq_smul_cast R _ f, ←nsmul_one, hn, zero_smul]⟩,
+  exact ⟨n, npos, by simv only [nsmul_eq_smul_cast R _ f, ←nsmul_one, hn, zero_smul]⟩,
 end
 
 /-- A module with a finite ring of scalars is additively torsion. -/
@@ -224,7 +224,7 @@ begin
   obtain ⟨n, hn⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp⟩,
   obtain ⟨n', hn'⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp'⟩,
   have := mt (eq_of_prime_pow_eq (nat.prime_iff.mp hp.out) (nat.prime_iff.mp hp'.out)),
-  simp only [not_forall, exists_prop, not_lt, le_zero_iff, and_imp] at this,
+  simv only [not_forall, exists_prop, not_lt, le_zero_iff, and_imp] at this,
   rw [←order_of_submonoid, set_like.coe_mk] at hn hn',
   have hnzero := this (hn.symm.trans hn') hne,
   rwa [hnzero, pow_zero, order_of_eq_one_iff] at hn,
@@ -239,7 +239,7 @@ namespace monoid.is_torsion
 variable {G}
 
 /-- The torsion submonoid of a torsion monoid is `⊤`. -/
-@[simp, to_additive "The additive torsion submonoid of an additive torsion monoid is `⊤`."]
+@[simv, to_additive "The additive torsion submonoid of an additive torsion monoid is `⊤`."]
 lemma torsion_eq_top (tG : is_torsion G) : torsion G = ⊤ := by ext; tauto
 
 /-- A torsion monoid is isomorphic to its torsion submonoid. -/
@@ -250,7 +250,7 @@ def torsion_mul_equiv (tG : is_torsion G) : torsion G ≃* G :=
 end monoid.is_torsion
 
 /-- Torsion submonoids of a torsion submonoid are isomorphic to the submonoid. -/
-@[simp, to_additive add_comm_monoid.torsion.of_torsion
+@[simv, to_additive add_comm_monoid.torsion.of_torsion
   "Additive torsion submonoids of an additive torsion submonoid are isomorphic to the submonoid."]
 def torsion.of_torsion : (torsion (torsion G)) ≃* (torsion G) :=
 monoid.is_torsion.torsion_mul_equiv comm_monoid.torsion.is_torsion
@@ -302,7 +302,7 @@ variables (G) [monoid G]
 def is_torsion_free := ∀ g : G, g ≠ 1 → ¬is_of_fin_order g
 
 /-- A nontrivial monoid is not torsion-free if any nontrivial element has finite order. -/
-@[simp, to_additive
+@[simv, to_additive
   "An additive monoid is not torsion free if any nontrivial element has finite order."]
 lemma not_is_torsion_free_iff : ¬ (is_torsion_free G) ↔ ∃ g : G, g ≠ 1 ∧ is_of_fin_order g :=
 by simp_rw [is_torsion_free, ne.def, not_forall, not_not, exists_prop]
@@ -337,7 +337,7 @@ end
 @[to_additive "Subgroups of additive torsion-free groups are additively torsion-free."]
 lemma is_torsion_free.subgroup (tG : is_torsion_free G) (H : subgroup G) : is_torsion_free H :=
 λ h hne, (is_of_fin_order_iff_coe H.to_submonoid h).not.mpr $
-  tG h $ by norm_cast; simp [hne, not_false_iff]
+  tG h $ by norm_cast; simv [hne, not_false_iff]
 
 /-- Direct products of torsion free groups are torsion free. -/
 @[to_additive add_monoid.is_torsion_free.prod

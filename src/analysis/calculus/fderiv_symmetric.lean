@@ -86,7 +86,7 @@ begin
     simpa only [zero_mul] using δpos },
   have E2 : ∀ᶠ h in 𝓝[>] (0:ℝ), (h : ℝ) < 1 :=
     mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
-      ⟨(1 : ℝ), by simp only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,
+      ⟨(1 : ℝ), by simv only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,
   filter_upwards [E1, E2, self_mem_nhds_within] with h hδ h_lt_1 hpos,
   -- we consider `h` small enough that all points under consideration belong to this ball,
   -- and also with `0 < h < 1`.
@@ -123,7 +123,7 @@ begin
     { suffices H : has_deriv_within_at (λ u, ((u * h) ^ 2 / 2) • f'' w w)
         (((((2 : ℕ) : ℝ) * (t * h) ^ (2  - 1) * (1 * h))/2) • f'' w w) (Icc 0 1) t,
       { convert H using 2,
-        simp only [one_mul, nat.cast_bit0, pow_one, nat.cast_one],
+        simv only [one_mul, nat.cast_bit0, pow_one, nat.cast_one],
         ring },
       apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
         has_deriv_at.pow, has_deriv_at.mul_const] } },
@@ -133,7 +133,7 @@ begin
     have I : ∥h • v + (t * h) • w∥ ≤ h * (∥v∥ + ∥w∥) := calc
       ∥h • v + (t * h) • w∥ ≤ ∥h • v∥ + ∥(t * h) • w∥ : norm_add_le _ _
       ... = h * ∥v∥ + t * (h * ∥w∥) :
-        by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
+        by simv only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
                       mul_assoc]
       ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
         add_le_add le_rfl (mul_le_mul_of_nonneg_right ht.2.le
@@ -143,7 +143,7 @@ begin
     begin
       rw hg',
       have : h * (t * h) = t * (h * h), by ring,
-      simp only [continuous_linear_map.coe_sub', continuous_linear_map.map_add, pow_two,
+      simv only [continuous_linear_map.coe_sub', continuous_linear_map.map_add, pow_two,
         continuous_linear_map.add_apply, pi.smul_apply, smul_sub, smul_add, smul_smul, ← sub_sub,
         continuous_linear_map.coe_smul', pi.sub_apply, continuous_linear_map.map_smul, this]
     end
@@ -164,21 +164,21 @@ begin
       apply mul_le_mul_of_nonneg_left _ (εpos.le),
       apply (norm_add_le _ _).trans,
       refine add_le_add le_rfl _,
-      simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
+      simv only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
       exact mul_le_of_le_one_left (mul_nonneg hpos.le (norm_nonneg _)) ht.2.le,
     end
     ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
-      by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
+      by { simv only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
   -- conclude using the mean value inequality
   have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa only [mul_one, sub_zero] using
     norm_image_sub_le_of_norm_deriv_le_segment' g_deriv g'_bound 1 (right_mem_Icc.2 zero_le_one),
   convert I using 1,
   { congr' 1,
     dsimp only [g],
-    simp only [nat.one_ne_zero, add_zero, one_mul, zero_div, zero_mul, sub_zero, zero_smul,
+    simv only [nat.one_ne_zero, add_zero, one_mul, zero_div, zero_mul, sub_zero, zero_smul,
       ne.def, not_false_iff, bit0_eq_zero, zero_pow'],
     abel },
-  { simp only [real.norm_eq_abs, abs_mul, add_nonneg (norm_nonneg v) (norm_nonneg w),
+  { simv only [real.norm_eq_abs, abs_mul, add_nonneg (norm_nonneg v) (norm_nonneg w),
       abs_of_nonneg, mul_assoc, pow_bit0_abs, norm_nonneg, abs_pow] }
 end
 
@@ -193,38 +193,38 @@ lemma convex.is_o_alternate_sum_square
 begin
   have A : (1 : ℝ)/2 ∈ Ioc (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩,
   have B : (1 : ℝ)/2 ∈ Icc (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩,
-  have C : ∀ (w : E), (2 : ℝ) • w = 2 • w := λ w, by simp only [two_smul],
+  have C : ∀ (w : E), (2 : ℝ) • w = 2 • w := λ w, by simv only [two_smul],
   have h2v2w : x + (2 : ℝ) • v + (2 : ℝ) • w ∈ interior s,
   { convert s_conv.interior.add_smul_sub_mem h4v h4w B using 1,
-    simp only [smul_sub, smul_smul, one_div, add_sub_add_left_eq_sub, mul_add, add_smul],
+    simv only [smul_sub, smul_smul, one_div, add_sub_add_left_eq_sub, mul_add, add_smul],
     norm_num,
-    simp only [show (4 : ℝ) = (2 : ℝ) + (2 : ℝ), by norm_num, add_smul],
+    simv only [show (4 : ℝ) = (2 : ℝ) + (2 : ℝ), by norm_num, add_smul],
     abel },
   have h2vww : x + (2 • v + w) + w ∈ interior s,
   { convert h2v2w using 1,
-    simp only [two_smul],
+    simv only [two_smul],
     abel },
   have h2v : x + (2 : ℝ) • v ∈ interior s,
   { convert s_conv.add_smul_sub_mem_interior xs h4v A using 1,
-    simp only [smul_smul, one_div, add_sub_cancel', add_right_inj],
+    simv only [smul_smul, one_div, add_sub_cancel', add_right_inj],
     norm_num },
   have h2w : x + (2 : ℝ) • w ∈ interior s,
   { convert s_conv.add_smul_sub_mem_interior xs h4w A using 1,
-    simp only [smul_smul, one_div, add_sub_cancel', add_right_inj],
+    simv only [smul_smul, one_div, add_sub_cancel', add_right_inj],
     norm_num },
   have hvw : x + (v + w) ∈ interior s,
   { convert s_conv.add_smul_sub_mem_interior xs h2v2w A using 1,
-    simp only [smul_smul, one_div, add_sub_cancel', add_right_inj, smul_add, smul_sub],
+    simv only [smul_smul, one_div, add_sub_cancel', add_right_inj, smul_add, smul_sub],
     norm_num,
     abel },
   have h2vw : x + (2 • v + w) ∈ interior s,
   { convert s_conv.interior.add_smul_sub_mem h2v h2v2w B using 1,
-    simp only [smul_add, smul_sub, smul_smul, ← C],
+    simv only [smul_add, smul_sub, smul_smul, ← C],
     norm_num,
     abel },
   have hvww : x + (v + w) + w ∈ interior s,
   { convert s_conv.interior.add_smul_sub_mem h2w h2v2w B using 1,
-    simp only [one_div, add_sub_cancel', inv_smul_smul₀, add_sub_add_right_eq_sub, ne.def,
+    simv only [one_div, add_sub_cancel', inv_smul_smul₀, add_sub_add_right_eq_sub, ne.def,
       not_false_iff, bit0_eq_zero, one_ne_zero],
     rw two_smul,
     abel },
@@ -232,7 +232,7 @@ begin
   have TA2 := s_conv.taylor_approx_two_segment hf xs hx hvw hvww,
   convert TA1.sub TA2,
   ext h,
-  simp only [two_smul, smul_add, ← add_assoc, continuous_linear_map.map_add,
+  simv only [two_smul, smul_add, ← add_assoc, continuous_linear_map.map_add,
     continuous_linear_map.add_apply, pi.smul_apply,
     continuous_linear_map.coe_smul', continuous_linear_map.map_smul],
   abel,
@@ -251,7 +251,7 @@ begin
   { convert (s_conv.is_o_alternate_sum_square hf xs hx h4v h4w).sub
             (s_conv.is_o_alternate_sum_square hf xs hx h4w h4v),
     ext h,
-    simp only [add_comm, smul_add, smul_sub],
+    simv only [add_comm, smul_add, smul_sub],
     abel },
   have B : (λ h : ℝ, f'' w v - f'' v w) =o[𝓝[>] 0] (λ h, (1 : ℝ)),
   { have : (λ h : ℝ, 1/h^2) =O[𝓝[>] 0] (λ h, 1/h^2) := is_O_refl _ _,
@@ -286,7 +286,7 @@ begin
   obtain ⟨z, hz⟩ : ∃ z, z = ((1:ℝ) / 4) • (y - x) := ⟨((1:ℝ) / 4) • (y - x), rfl⟩,
   have A : ∀ (m : E), filter.tendsto (λ (t : ℝ), x + (4 : ℝ) • (z + t • m)) (𝓝 0) (𝓝 y),
   { assume m,
-    have : x + (4 : ℝ) • (z + (0 : ℝ) • m) = y, by simp [hz],
+    have : x + (4 : ℝ) • (z + (0 : ℝ) • m) = y, by simv [hz],
     rw ← this,
     refine tendsto_const_nhds.add _,
     refine tendsto_const_nhds.smul _,
@@ -307,7 +307,7 @@ begin
   { assume m,
     have : f'' (z + t m • m) (z + t 0 • 0) = f'' (z + t 0 • 0) (z + t m • m) :=
       s_conv.second_derivative_within_at_symmetric_of_mem_interior hf xs hx (ts 0) (ts m),
-    simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, add_right_inj,
+    simv only [continuous_linear_map.map_add, continuous_linear_map.map_smul, add_right_inj,
       continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', add_zero,
       continuous_linear_map.zero_apply, smul_zero, continuous_linear_map.map_zero] at this,
     exact smul_right_injective F (tpos m).ne' this },
@@ -316,13 +316,13 @@ begin
   -- eliminated thanks to the fact proved above that `f'' m z = f'' z m`.
   have : f'' (z + t v • v) (z + t w • w) = f'' (z + t w • w) (z + t v • v) :=
     s_conv.second_derivative_within_at_symmetric_of_mem_interior hf xs hx (ts w) (ts v),
-  simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, smul_add, smul_smul,
+  simv only [continuous_linear_map.map_add, continuous_linear_map.map_smul, smul_add, smul_smul,
     continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', C] at this,
   rw ← sub_eq_zero at this,
   abel at this,
-  simp only [one_zsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
+  simv only [one_zsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
   apply smul_right_injective F _ this,
-  simp [(tpos v).ne', (tpos w).ne']
+  simv [(tpos v).ne', (tpos w).ne']
 end
 
 /-- If a function is differentiable around `x`, and has two derivatives at `x`, then the second

@@ -31,7 +31,7 @@ by cases x; refl
 lemma option.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : option α) :
   option.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (option.traverse f <$> option.traverse g x) :=
-by cases x; simp! with functor_norm; refl
+by cases x; simv! with functor_norm; refl
 
 lemma option.traverse_eq_map_id {α β} (f : α → β) (x : option α) :
   traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
@@ -41,7 +41,7 @@ variable (η : applicative_transformation F G)
 
 lemma option.naturality {α β} (f : α → F β) (x : option α) :
   η (option.traverse f x) = option.traverse (@η _ ∘ f) x :=
-by cases x with x; simp! [*] with functor_norm
+by cases x with x; simv! [*] with functor_norm
 
 end option
 
@@ -64,23 +64,23 @@ open applicative functor list
 
 protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
-by induction xs; simp! * with functor_norm; refl
+by induction xs; simv! * with functor_norm; refl
 
 @[nolint unused_arguments]
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
   list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (list.traverse f <$> list.traverse g x) :=
-by induction x; simp! * with functor_norm; refl
+by induction x; simv! * with functor_norm; refl
 
 protected lemma traverse_eq_map_id {α β} (f : α → β) (x : list α) :
   list.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
-by induction x; simp! * with functor_norm; refl
+by induction x; simv! * with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 
 protected lemma naturality {α β} (f : α → F β) (x : list α) :
   η (list.traverse f x) = list.traverse (@η _ ∘ f) x :=
-by induction x; simp! * with functor_norm
+by induction x; simv! * with functor_norm
 open nat
 
 instance : is_lawful_traversable.{u} list :=
@@ -105,15 +105,15 @@ variables [is_lawful_applicative F]
   ∀ (as bs : list α'), traverse f (as ++ bs) = (++) <$> traverse f as <*> traverse f bs
 | [] bs :=
   have has_append.append ([] : list β') = id, by funext; refl,
-  by simp [this] with functor_norm
-| (a :: as) bs := by simp [traverse_append as bs] with functor_norm; congr
+  by simv [this] with functor_norm
+| (a :: as) bs := by simv [traverse_append as bs] with functor_norm; congr
 
 lemma mem_traverse {f : α' → set β'} :
   ∀(l : list α') (n : list β'), n ∈ traverse f l ↔ forall₂ (λb a, b ∈ f a) n l
-| []      []      := by simp
-| (a::as) []      := by simp
-| []      (b::bs) := by simp
-| (a::as) (b::bs) := by simp [mem_traverse as bs]
+| []      []      := by simv
+| (a::as) []      := by simv
+| []      (b::bs) := by simv
+| (a::as) (b::bs) := by simv [mem_traverse as bs]
 
 end traverse
 
@@ -131,7 +131,7 @@ open list (cons)
 
 protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
   sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
-by cases x; simp [sum.traverse, id_map] with functor_norm; refl
+by cases x; simv [sum.traverse, id_map] with functor_norm; refl
 
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
@@ -142,21 +142,21 @@ by cases x; refl
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : σ ⊕ α) :
   sum.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (sum.traverse f <$> sum.traverse g x) :=
-by cases x; simp! [sum.traverse,map_id] with functor_norm; refl
+by cases x; simv! [sum.traverse,map_id] with functor_norm; refl
 
 protected lemma traverse_eq_map_id {α β} (f : α → β) (x : σ ⊕ α) :
   sum.traverse (id.mk ∘ f) x = id.mk (f <$> x) :=
-by induction x; simp! * with functor_norm; refl
+by induction x; simv! * with functor_norm; refl
 
 protected lemma map_traverse {α β γ} (g : α → G β) (f : β → γ) (x : σ ⊕ α) :
   (<$>) f <$> sum.traverse g x = sum.traverse ((<$>) f ∘ g) x :=
-by cases x; simp [sum.traverse, id_map] with functor_norm; congr; refl
+by cases x; simv [sum.traverse, id_map] with functor_norm; congr; refl
 
 variable (η : applicative_transformation F G)
 
 protected lemma naturality {α β} (f : α → F β) (x : σ ⊕ α) :
   η (sum.traverse f x) = sum.traverse (@η _ ∘ f) x :=
-by cases x; simp! [sum.traverse] with functor_norm
+by cases x; simv! [sum.traverse] with functor_norm
 
 end traverse
 

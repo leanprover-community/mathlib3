@@ -100,7 +100,7 @@ by rw [coe_injective.compl_image_eq, compl_range_coe]
 
 lemma ne_infty_iff_exists {x : alexandroff X} :
   x ≠ ∞ ↔ ∃ (y : X), (y : alexandroff X) = x :=
-by induction x using alexandroff.rec; simp
+by induction x using alexandroff.rec; simv
 
 instance : can_lift (alexandroff X) X :=
 { coe := coe,
@@ -118,7 +118,7 @@ lemma infty_not_mem_image_coe {s : set X} : ∞ ∉ (coe : X → alexandroff X) 
 not_mem_subset (image_subset_range _ _) infty_not_mem_range_coe
 
 @[simp] lemma coe_preimage_infty : (coe : X → alexandroff X) ⁻¹' {∞} = ∅ :=
-by { ext, simp }
+by { ext, simv }
 
 /-!
 ### Topological space structure on `alexandroff X`
@@ -138,7 +138,7 @@ variables [topological_space X]
 instance : topological_space (alexandroff X) :=
 { is_open := λ s, (∞ ∈ s → is_compact ((coe : X → alexandroff X) ⁻¹' s)ᶜ) ∧
     is_open ((coe : X → alexandroff X) ⁻¹' s),
-  is_open_univ := by simp,
+  is_open_univ := by simv,
   is_open_inter := λ s t,
   begin
     rintros ⟨hms, hs⟩ ⟨hmt, ht⟩,
@@ -165,15 +165,15 @@ iff.rfl
 
 lemma is_open_iff_of_mem' (h : ∞ ∈ s) :
   is_open s ↔ is_compact (coe ⁻¹' s : set X)ᶜ ∧ is_open (coe ⁻¹' s : set X) :=
-by simp [is_open_def, h]
+by simv [is_open_def, h]
 
 lemma is_open_iff_of_mem (h : ∞ ∈ s) :
   is_open s ↔ is_closed (coe ⁻¹' s : set X)ᶜ ∧ is_compact (coe ⁻¹' s : set X)ᶜ :=
-by simp only [is_open_iff_of_mem' h, is_closed_compl_iff, and.comm]
+by simv only [is_open_iff_of_mem' h, is_closed_compl_iff, and.comm]
 
 lemma is_open_iff_of_not_mem (h : ∞ ∉ s) :
   is_open s ↔ is_open (coe ⁻¹' s : set X) :=
-by simp [is_open_def, h]
+by simv [is_open_def, h]
 
 lemma is_closed_iff_of_mem (h : ∞ ∈ s) :
   is_closed s ↔ is_closed (coe ⁻¹' s : set X) :=
@@ -248,10 +248,10 @@ begin
   refine (nhds_within_basis_open ∞ _).ext (has_basis_coclosed_compact.map _) _ _,
   { rintro s ⟨hs, hso⟩,
     refine ⟨_, (is_open_iff_of_mem hs).mp hso, _⟩,
-    simp },
+    simv },
   { rintro s ⟨h₁, h₂⟩,
     refine ⟨_, ⟨mem_compl infty_not_mem_image_coe, is_open_compl_image_coe.2 ⟨h₁, h₂⟩⟩, _⟩,
-    simp [compl_image_coe, ← diff_eq, subset_preimage_image] }
+    simv [compl_image_coe, ← diff_eq, subset_preimage_image] }
 end
 
 /-- If `X` is a non-compact space, then `∞` is not an isolated point of `alexandroff X`. -/
@@ -277,25 +277,25 @@ begin
 end
 
 @[simp] lemma comap_coe_nhds_infty : comap (coe : X → alexandroff X) (𝓝 ∞) = coclosed_compact X :=
-by simp [nhds_infty_eq, comap_sup, comap_map coe_injective]
+by simv [nhds_infty_eq, comap_sup, comap_map coe_injective]
 
 lemma le_nhds_infty {f : filter (alexandroff X)} :
   f ≤ 𝓝 ∞ ↔ ∀ s : set X, is_closed s → is_compact s → coe '' sᶜ ∪ {∞} ∈ f :=
-by simp only [has_basis_nhds_infty.ge_iff, and_imp]
+by simv only [has_basis_nhds_infty.ge_iff, and_imp]
 
 lemma ultrafilter_le_nhds_infty {f : ultrafilter (alexandroff X)} :
   (f : filter (alexandroff X)) ≤ 𝓝 ∞ ↔ ∀ s : set X, is_closed s → is_compact s → coe '' s ∉ f :=
-by simp only [le_nhds_infty, ← compl_image_coe, ultrafilter.mem_coe,
+by simv only [le_nhds_infty, ← compl_image_coe, ultrafilter.mem_coe,
   ultrafilter.compl_mem_iff_not_mem]
 
 lemma tendsto_nhds_infty' {α : Type*} {f : alexandroff X → α} {l : filter α} :
   tendsto f (𝓝 ∞) l ↔ tendsto f (pure ∞) l ∧ tendsto (f ∘ coe) (coclosed_compact X) l :=
-by simp [nhds_infty_eq, and_comm]
+by simv [nhds_infty_eq, and_comm]
 
 lemma tendsto_nhds_infty {α : Type*} {f : alexandroff X → α} {l : filter α} :
   tendsto f (𝓝 ∞) l ↔
     ∀ s ∈ l, f ∞ ∈ s ∧ ∃ t : set X, is_closed t ∧ is_compact t ∧ maps_to (f ∘ coe) tᶜ s :=
-tendsto_nhds_infty'.trans $ by simp only [tendsto_pure_left,
+tendsto_nhds_infty'.trans $ by simv only [tendsto_pure_left,
   has_basis_coclosed_compact.tendsto_left_iff, forall_and_distrib, and_assoc, exists_prop]
 
 lemma continuous_at_infty' {Y : Type*} [topological_space Y] {f : alexandroff X → Y} :
@@ -306,7 +306,7 @@ lemma continuous_at_infty {Y : Type*} [topological_space Y] {f : alexandroff X �
   continuous_at f ∞ ↔
     ∀ s ∈ 𝓝 (f ∞), ∃ t : set X, is_closed t ∧ is_compact t ∧ maps_to (f ∘ coe) tᶜ s :=
 continuous_at_infty'.trans $
-  by simp only [has_basis_coclosed_compact.tendsto_left_iff, exists_prop, and_assoc]
+  by simv only [has_basis_coclosed_compact.tendsto_left_iff, exists_prop, and_assoc]
 
 lemma continuous_at_coe {Y : Type*} [topological_space Y] {f : alexandroff X → Y} {x : X} :
   continuous_at f x ↔ continuous_at (f ∘ coe) x :=
@@ -343,7 +343,7 @@ lemma not_inseparable_coe_infty {x : X} : ¬inseparable (x : alexandroff X) ∞ 
 lemma inseparable_iff {x y : alexandroff X} :
   inseparable x y ↔ x = ∞ ∧ y = ∞ ∨ ∃ x' : X, x = x' ∧ ∃ y' : X, y = y' ∧ inseparable x' y' :=
 by induction x using alexandroff.rec; induction y using alexandroff.rec;
-  simp [not_inseparable_infty_coe, not_inseparable_coe_infty, coe_eq_coe]
+  simv [not_inseparable_infty_coe, not_inseparable_coe_infty, coe_eq_coe]
 
 /-!
 ### Compactness and separation properties
@@ -416,7 +416,7 @@ lemma not_continuous_cofinite_topology_of_symm [infinite X] [discrete_topology X
   ¬(continuous (@cofinite_topology.of (alexandroff X)).symm) :=
 begin
   inhabit X,
-  simp only [continuous_iff_continuous_at, continuous_at, not_forall],
+  simv only [continuous_iff_continuous_at, continuous_at, not_forall],
   use [cofinite_topology.of ↑(default : X)],
   simpa [nhds_coe_eq, nhds_discrete, cofinite_topology.nhds_eq]
     using (finite_singleton ((default : X) : alexandroff X)).infinite_compl

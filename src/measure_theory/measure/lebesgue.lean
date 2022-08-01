@@ -46,23 +46,23 @@ open_locale topological_space
 theorem volume_val (s) : volume s = stieltjes_function.id.measure s := rfl
 
 @[simp] lemma volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) :=
-by simp [volume_val]
+by simv [volume_val]
 
 @[simp] lemma volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) :=
-by simp [volume_val]
+by simv [volume_val]
 
 @[simp] lemma volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) :=
-by simp [volume_val]
+by simv [volume_val]
 
 @[simp] lemma volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) :=
-by simp [volume_val]
+by simv [volume_val]
 
 @[simp] lemma volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 :=
-by simp [volume_val]
+by simv [volume_val]
 
 @[simp] lemma volume_univ : volume (univ : set ℝ) = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le $ λ r,
-  calc (r : ℝ≥0∞) = volume (Icc (0 : ℝ) r) : by simp
+  calc (r : ℝ≥0∞) = volume (Icc (0 : ℝ) r) : by simv
               ... ≤ volume univ            : measure_mono (subset_univ _)
 
 @[simp] lemma volume_ball (a r : ℝ) :
@@ -101,36 +101,36 @@ by rw [interval, volume_Icc, max_sub_min_eq_abs]
 
 @[simp] lemma volume_Ioi {a : ℝ} : volume (Ioi a) = ∞ :=
 top_unique $ le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n,
-calc (n : ℝ≥0∞) = volume (Ioo a (a + n)) : by simp
+calc (n : ℝ≥0∞) = volume (Ioo a (a + n)) : by simv
 ... ≤ volume (Ioi a) : measure_mono Ioo_subset_Ioi_self
 
 @[simp] lemma volume_Ici {a : ℝ} : volume (Ici a) = ∞ :=
-by simp [← measure_congr Ioi_ae_eq_Ici]
+by simv [← measure_congr Ioi_ae_eq_Ici]
 
 @[simp] lemma volume_Iio {a : ℝ} : volume (Iio a) = ∞ :=
 top_unique $ le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n,
-calc (n : ℝ≥0∞) = volume (Ioo (a - n) a) : by simp
+calc (n : ℝ≥0∞) = volume (Ioo (a - n) a) : by simv
 ... ≤ volume (Iio a) : measure_mono Ioo_subset_Iio_self
 
 @[simp] lemma volume_Iic {a : ℝ} : volume (Iic a) = ∞ :=
-by simp [← measure_congr Iio_ae_eq_Iic]
+by simv [← measure_congr Iio_ae_eq_Iic]
 
 instance locally_finite_volume : is_locally_finite_measure (volume : measure ℝ) :=
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
   is_open.mem_nhds is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
-  by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
+  by simv only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
 
 instance is_finite_measure_restrict_Icc (x y : ℝ) : is_finite_measure (volume.restrict (Icc x y)) :=
-⟨by simp⟩
+⟨by simv⟩
 
 instance is_finite_measure_restrict_Ico (x y : ℝ) : is_finite_measure (volume.restrict (Ico x y)) :=
-⟨by simp⟩
+⟨by simv⟩
 
 instance is_finite_measure_restrict_Ioc (x y : ℝ) : is_finite_measure (volume.restrict (Ioc x y)) :=
- ⟨by simp⟩
+ ⟨by simv⟩
 
 instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.restrict (Ioo x y)) :=
-⟨by simp⟩
+⟨by simv⟩
 
 /-!
 ### Volume of a box in `ℝⁿ`
@@ -139,12 +139,12 @@ instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.
 lemma volume_Icc_pi {a b : ι → ℝ} : volume (Icc a b) = ∏ i, ennreal.of_real (b i - a i) :=
 begin
   rw [← pi_univ_Icc, volume_pi_pi],
-  simp only [real.volume_Icc]
+  simv only [real.volume_Icc]
 end
 
 @[simp] lemma volume_Icc_pi_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (Icc a b)).to_real = ∏ i, (b i - a i) :=
-by simp only [volume_Icc_pi, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+by simv only [volume_Icc_pi, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
 
 lemma volume_pi_Ioo {a b : ι → ℝ} :
   volume (pi univ (λ i, Ioo (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
@@ -152,7 +152,7 @@ lemma volume_pi_Ioo {a b : ι → ℝ} :
 
 @[simp] lemma volume_pi_Ioo_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (pi univ (λ i, Ioo (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
-by simp only [volume_pi_Ioo, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+by simv only [volume_pi_Ioo, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
 
 lemma volume_pi_Ioc {a b : ι → ℝ} :
   volume (pi univ (λ i, Ioc (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
@@ -160,7 +160,7 @@ lemma volume_pi_Ioc {a b : ι → ℝ} :
 
 @[simp] lemma volume_pi_Ioc_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (pi univ (λ i, Ioc (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
-by simp only [volume_pi_Ioc, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+by simv only [volume_pi_Ioc, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
 
 lemma volume_pi_Ico {a b : ι → ℝ} :
   volume (pi univ (λ i, Ico (a i) (b i))) = ∏ i, ennreal.of_real (b i - a i) :=
@@ -168,19 +168,19 @@ lemma volume_pi_Ico {a b : ι → ℝ} :
 
 @[simp] lemma volume_pi_Ico_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
-by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+by simv only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
 
 @[simp] lemma volume_pi_ball (a : ι → ℝ) {r : ℝ} (hr : 0 < r) :
   volume (metric.ball a r) = ennreal.of_real ((2 * r) ^ fintype.card ι) :=
 begin
-  simp only [volume_pi_ball a hr, volume_ball, finset.prod_const],
+  simv only [volume_pi_ball a hr, volume_ball, finset.prod_const],
   exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr.le) _).symm
 end
 
 @[simp] lemma volume_pi_closed_ball (a : ι → ℝ) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball a r) = ennreal.of_real ((2 * r) ^ fintype.card ι) :=
 begin
-  simp only [volume_pi_closed_ball a hr, volume_closed_ball, finset.prod_const],
+  simv only [volume_pi_closed_ball a hr, volume_closed_ball, finset.prod_const],
   exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr) _).symm
 end
 
@@ -207,7 +207,7 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
           ... ≤ ∏ i : ι, (1 : ℝ≥0) * emetric.diam s                      :
   finset.prod_le_prod' $ λ i hi, (lipschitz_with.eval i).ediam_image_le s
           ... = emetric.diam s ^ fintype.card ι              :
-  by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
+  by simv only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
 /-!
 ### Images of the Lebesgue measure under translation/multiplication in ℝ
@@ -216,18 +216,18 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
 instance is_add_left_invariant_real_volume :
   is_add_left_invariant (volume : measure ℝ) :=
 ⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
+  by simv [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
 begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
   cases lt_or_gt_of_ne h with h h,
-  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
+  { simv only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
       neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub, smul_eq_mul,
       mul_div_cancel' _ (ne_of_lt h)] },
-  { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
+  { simv only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
       abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h), smul_eq_mul] }
 end
@@ -259,7 +259,7 @@ calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
 instance : is_neg_invariant (volume : measure ℝ) :=
-⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simp [show volume.neg (Ioo (p : ℝ) q) = _,
+⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simv [show volume.neg (Ioo (p : ℝ) q) = _,
   from measure.map_apply measurable_neg measurable_set_Ioo]⟩
 
 /-!
@@ -275,24 +275,24 @@ lemma smul_map_diagonal_volume_pi [decidable_eq ι] {D : ι → ℝ} (h : det (d
   ennreal.of_real (abs (det (diagonal D))) • measure.map ((diagonal D).to_lin') volume = volume :=
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
-  simp only [det_diagonal, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
+  simv only [det_diagonal, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
   rw [measure.map_apply _ (measurable_set.univ_pi_fintype hs)],
   swap, { exact continuous.measurable (linear_map.continuous_on_pi _) },
   have : (matrix.to_lin' (diagonal D)) ⁻¹' (set.pi set.univ (λ (i : ι), s i))
     = set.pi set.univ (λ (i : ι), ((*) (D i)) ⁻¹' (s i)),
   { ext f,
-    simp only [linear_map.coe_proj, algebra.id.smul_eq_mul, linear_map.smul_apply, mem_univ_pi,
+    simv only [linear_map.coe_proj, algebra.id.smul_eq_mul, linear_map.smul_apply, mem_univ_pi,
       mem_preimage, linear_map.pi_apply, diagonal_to_lin'] },
   have B : ∀ i, of_real (abs (D i)) * volume (has_mul.mul (D i) ⁻¹' s i) = volume (s i),
   { assume i,
     have A : D i ≠ 0,
-    { simp only [det_diagonal, ne.def] at h,
+    { simv only [det_diagonal, ne.def] at h,
       exact finset.prod_ne_zero_iff.1 h i (finset.mem_univ i) },
     rw [volume_preimage_mul_left A, ← mul_assoc, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul,
       mul_inv_cancel A, abs_one, ennreal.of_real_one, one_mul] },
   rw [this, volume_pi_pi, finset.abs_prod,
     ennreal.of_real_prod_of_nonneg (λ i hi, abs_nonneg (D i)), ← finset.prod_mul_distrib],
-  simp only [B]
+  simv only [B]
 end
 
 /-- A transvection preserves Lebesgue measure. -/
@@ -312,7 +312,7 @@ begin
   have : (t.to_matrix.to_lin' : (ι → ℝ) → (ι → ℝ)) = e.symm ∘ F ∘ e,
   { cases t,
     ext f k,
-    simp only [linear_equiv.map_smul, dite_eq_ite, linear_map.id_coe, p, ite_not,
+    simv only [linear_equiv.map_smul, dite_eq_ite, linear_map.id_coe, p, ite_not,
       algebra.id.smul_eq_mul, one_mul, dot_product, std_basis_matrix,
       measurable_equiv.pi_equiv_pi_subtype_prod_symm_apply, id.def, transvection,
       pi.add_apply, zero_mul, linear_map.smul_apply, function.comp_app,
@@ -320,9 +320,9 @@ begin
       matrix.mul_vec, linear_equiv.map_add, ite_mul, e, matrix.to_lin'_apply,
       pi.smul_apply, subtype.coe_mk, g, linear_map.add_apply, finset.sum_congr, matrix.to_lin'_one],
     by_cases h : t_i = k,
-    { simp only [h, true_and, finset.mem_univ, if_true, eq_self_iff_true, finset.sum_ite_eq,
+    { simv only [h, true_and, finset.mem_univ, if_true, eq_self_iff_true, finset.sum_ite_eq,
         one_apply, boole_mul, add_comm], },
-    { simp only [h, ne.symm h, add_zero, if_false, finset.sum_const_zero, false_and, mul_zero] } },
+    { simv only [h, ne.symm h, add_zero, if_false, finset.sum_const_zero, false_and, mul_zero] } },
   rw this,
   have A : measure_preserving e,
   { convert volume_preserving_pi_equiv_pi_subtype_prod (λ i : ι, ℝ) p },
@@ -349,7 +349,7 @@ begin
   { conv_rhs { rw [← smul_map_diagonal_volume_pi hD] },
     rw [smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel hD, abs_one,
       ennreal.of_real_one, one_smul] },
-  { simp only [matrix.transvection_struct.det, ennreal.of_real_one,
+  { simv only [matrix.transvection_struct.det, ennreal.of_real_one,
       (volume_preserving_transvection_struct _).map_eq, one_smul, _root_.inv_one, abs_one] },
   { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
       IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv],
@@ -367,8 +367,8 @@ begin
   -- this is deduced from the matrix case
   classical,
   let M := f.to_matrix',
-  have A : f.det = det M, by simp only [linear_map.det_to_matrix'],
-  have B : f = M.to_lin', by simp only [to_lin'_to_matrix'],
+  have A : f.det = det M, by simv only [linear_map.det_to_matrix'],
+  have B : f = M.to_lin', by simv only [to_lin'_to_matrix'],
   rw [A, B],
   apply map_matrix_volume_pi_eq_smul_volume_pi,
   rwa A at hf
@@ -464,13 +464,13 @@ begin
     { funext x,
       rw indicator_apply,
       split_ifs,
-      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = Ioo (f x) (g x) := by simp [h, Ioo],
-        simp only [hx, real.volume_Ioo, sub_zero] },
-      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = ∅ := by simp [h],
-        simp only [hx, measure_empty] } },
+      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = Ioo (f x) (g x) := by simv [h, Ioo],
+        simv only [hx, real.volume_Ioo, sub_zero] },
+      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = ∅ := by simv [h],
+        simv only [hx, measure_empty] } },
     dsimp only [region_between, preimage_set_of_eq],
     rw [h, lintegral_indicator];
-    simp only [hs, pi.sub_apply] },
+    simv only [hs, pi.sub_apply] },
   { exact measurable_set_region_between hf hg hs },
 end
 

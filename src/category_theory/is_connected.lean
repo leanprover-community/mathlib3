@@ -159,7 +159,7 @@ lemma is_connected.of_induct [nonempty J] {j₀ : J}
   is_connected J :=
 is_connected.of_constant_of_preserves_morphisms (λ α F a,
 begin
-  have w := h {j | F j = F j₀} rfl (λ _ _ f, by simp [a f]),
+  have w := h {j | F j = F j₀} rfl (λ _ _ f, by simv [a f]),
   dsimp at w,
   intros j j',
   rw [w j, w j'],
@@ -168,11 +168,11 @@ end)
 /-- Lifting the universe level of morphisms and objects preserves connectedness. -/
 instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
 begin
-  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] },
+  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simv [ulift_hom, hc.is_nonempty] },
   apply is_connected.of_induct,
   rintros p hj₀ h ⟨j⟩,
   let p' : set J := ((λ (j : J), p {down := j}) : set J),
-  have hj₀' : (classical.choice hc.is_nonempty) ∈ p', { simp only [p'], exact hj₀ },
+  have hj₀' : (classical.choice hc.is_nonempty) ∈ p', { simv only [p'], exact hj₀ },
   apply induct_on_objects (λ (j : J), p {down := j}) hj₀'
     (λ _ _ f, h ((ulift_hom_ulift_category.equiv J).functor.map f))
 end
@@ -201,7 +201,7 @@ lemma is_preconnected_of_equivalent {K : Type u₁} [category.{v₂} K] [is_prec
 
      ... ≅ e.inverse ⋙ (functor.const J).obj (F.obj k) :
           iso_whisker_left _ ((F ⋙ functor.const J).map_iso (e.counit_iso.app k))
-     ... ≅ (functor.const K).obj (F.obj k) : nat_iso.of_components (λ X, iso.refl _) (by simp),
+     ... ≅ (functor.const K).obj (F.obj k) : nat_iso.of_components (λ X, iso.refl _) (by simv),
   ⟩ }
 
 /-- If `J` and `K` are equivalent, then if `J` is connected then `K` is as well. -/

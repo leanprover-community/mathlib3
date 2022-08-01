@@ -63,7 +63,7 @@ lemma invariant_orthogonal_eigenspace (μ : 𝕜) (v : E) (hv : v ∈ (eigenspac
 begin
   intros w hw,
   have : T w = (μ:𝕜) • w := by rwa mem_eigenspace_iff at hw,
-  simp [← hT w, this, inner_smul_left, hv w hw]
+  simv [← hT w, this, inner_smul_left, hv w hw]
 end
 
 /-- The eigenvalues of a self-adjoint operator are real. -/
@@ -80,7 +80,7 @@ lemma orthogonal_family_eigenspaces :
 begin
   rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
-  { simp [hv'] },
+  { simv [hv'] },
   have H := hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector ⟨hv, hv'⟩),
   rw mem_eigenspace_iff at hv hw,
   refine or.resolve_left _ hμν.symm,
@@ -166,7 +166,7 @@ begin
   have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
   { intros μ,
     simpa [mem_eigenspace_iff] using (w μ).prop },
-  simp [hwT],
+  simv [hwT],
 end
 
 end version1
@@ -251,7 +251,7 @@ section nonneg
 @[simp]
 lemma inner_product_apply_eigenvector {μ : 𝕜} {v : E} {T : E →ₗ[𝕜] E}
   (h : v ∈ module.End.eigenspace T μ) : ⟪v, T v⟫ = μ * ∥v∥ ^ 2 :=
-by simp only [mem_eigenspace_iff.mp h, inner_smul_right, inner_self_eq_norm_sq_to_K]
+by simv only [mem_eigenspace_iff.mp h, inner_smul_right, inner_self_eq_norm_sq_to_K]
 
 lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
   (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪x, T x⟫) : 0 ≤ μ :=

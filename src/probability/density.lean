@@ -78,7 +78,7 @@ if hX : has_pdf X ℙ μ then classical.some hX.pdf'.2 else 0
 lemma pdf_undef {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X : α → E}
   (h : ¬ has_pdf X ℙ μ) :
   pdf X ℙ μ = 0 :=
-by simp only [pdf, dif_neg h]
+by simv only [pdf, dif_neg h]
 
 lemma has_pdf_of_pdf_ne_zero {m : measurable_space α} {ℙ : measure α} {μ : measure E} {X : α → E}
   (h : pdf X ℙ μ ≠ 0) : has_pdf X ℙ μ :=
@@ -217,7 +217,7 @@ lemma to_quasi_measure_preserving {X : α → E} [has_pdf X ℙ μ] : quasi_meas
 lemma have_lebesgue_decomposition_of_has_pdf {X : α → E} [hX' : has_pdf X ℙ μ] :
   (map X ℙ).have_lebesgue_decomposition μ :=
 ⟨⟨⟨0, pdf X ℙ μ⟩,
-  by simp only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero_left,
+  by simv only [zero_add, measurable_pdf X ℙ μ, true_and, mutually_singular.zero_left,
     map_eq_with_density_pdf X ℙ μ] ⟩⟩
 
 lemma has_pdf_iff {X : α → E} :
@@ -234,7 +234,7 @@ end
 
 lemma has_pdf_iff_of_measurable {X : α → E} (hX : measurable X) :
   has_pdf X ℙ μ ↔ (map X ℙ).have_lebesgue_decomposition μ ∧ map X ℙ ≪ μ :=
-by { rw has_pdf_iff, simp only [hX, true_and], }
+by { rw has_pdf_iff, simv only [hX, true_and], }
 
 section
 
@@ -335,7 +335,7 @@ begin
   { have heq : function.support ((μ s)⁻¹ • (1 : E → ℝ≥0∞)) = set.univ,
     { ext x,
       rw [function.mem_support],
-      simp [hnt] },
+      simv [hnt] },
     rw [heq, set.inter_univ] at this,
     exact hns this },
   exact set.indicator_ae_eq_zero hu.symm,
@@ -356,7 +356,7 @@ begin
   haveI := hu.has_pdf hns hnt,
   rw [←measure.map_apply (has_pdf.measurable X ℙ μ) hA, map_eq_set_lintegral_pdf X ℙ μ hA,
     lintegral_congr_ae hu.restrict],
-  simp only [hms, hA, lintegral_indicator, pi.smul_apply, pi.one_apply, algebra.id.smul_eq_mul,
+  simv only [hms, hA, lintegral_indicator, pi.smul_apply, pi.one_apply, algebra.id.smul_eq_mul,
     mul_one, lintegral_const, restrict_apply', set.univ_inter],
   rw ennreal.div_eq_inv_mul,
 end
@@ -366,7 +366,7 @@ lemma is_probability_measure {m : measurable_space α} {X : α → E} {ℙ : mea
   (hu : is_uniform X s ℙ μ) :
   is_probability_measure ℙ :=
 ⟨begin
-  have : X ⁻¹' set.univ = set.univ, { simp only [set.preimage_univ] },
+  have : X ⁻¹' set.univ = set.univ, { simv only [set.preimage_univ] },
   rw [←this, hu.measure_preimage hns hnt hms measurable_set.univ, set.inter_univ,
     ennreal.div_self hns hnt],
 end⟩
@@ -381,9 +381,9 @@ begin
   by_cases hsupp : volume s = ∞,
   { have : pdf X ℙ =ᵐ[volume] 0,
     { refine ae_eq_trans huX _,
-      simp [hsupp] },
+      simv [hsupp] },
     refine integrable.congr (integrable_zero _ _ _) _,
-    rw [(by simp : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
+    rw [(by simv : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
     refine filter.eventually_eq.mul (ae_eq_refl _)
       (filter.eventually_eq.fun_comp this.symm ennreal.to_real) },
   refine ⟨ae_strongly_measurable_id.mul
@@ -392,7 +392,7 @@ begin
   set ind := (volume s)⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
   have : ∀ x, ↑∥x∥₊ * s.indicator ind x = s.indicator (λ x, ∥x∥₊ * ind x) x :=
       λ x, (s.indicator_mul_right (λ x, ↑∥x∥₊) ind).symm,
-  simp only [this, lintegral_indicator _ hms, hind, mul_one,
+  simv only [this, lintegral_indicator _ hms, hind, mul_one,
              algebra.id.smul_eq_mul, pi.one_apply, pi.smul_apply],
   rw lintegral_mul_const _ measurable_nnnorm.coe_nnreal_ennreal,
   { refine (ennreal.mul_lt_top (set_lintegral_lt_top_of_is_compact
@@ -413,8 +413,8 @@ begin
     x * (s.indicator ((volume s)⁻¹.to_real • (1 : ℝ → ℝ)) x),
   { refine λ x, congr_arg ((*) x) _,
     by_cases hx : x ∈ s,
-    { simp [set.indicator_of_mem hx] },
-    { simp [set.indicator_of_not_mem hx] }},
+    { simv [set.indicator_of_mem hx] },
+    { simv [set.indicator_of_not_mem hx] }},
   simp_rw [this, ← s.indicator_mul_right (λ x, x),  integral_indicator hms],
   change ∫ x in s, x * ((volume s)⁻¹.to_real • 1) ∂(volume) = _,
   rw [integral_mul_right, mul_comm, algebra.id.smul_eq_mul, mul_one],

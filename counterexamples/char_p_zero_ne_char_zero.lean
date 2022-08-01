@@ -25,7 +25,7 @@ local attribute [semireducible] with_zero
 | 1 := rfl
 
 lemma with_zero_unit_char_p_zero : char_p (with_zero unit) 0 :=
-⟨λ x, by cases x; simp⟩
+⟨λ x, by cases x; simv⟩
 
 lemma with_zero_unit_not_char_zero : ¬ char_zero (with_zero unit) :=
-λ ⟨h⟩, h.ne (by simp : 1 + 1 ≠ 0 + 1) (by simp)
+λ ⟨h⟩, h.ne (by simv : 1 + 1 ≠ 0 + 1) (by simv)

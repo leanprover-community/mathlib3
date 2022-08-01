@@ -44,14 +44,14 @@ begin
     { apply nat.pos_of_ne_zero, rw ← @val_zero p,
       assume h, apply units.ne_zero a (val_injective p h) },
     { exact val_lt _ } },
-  { intros a ha, simp only [cast_id, nat_cast_val], },
+  { intros a ha, simv only [cast_id, nat_cast_val], },
   { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },
   { intros b hb,
     rw [mem_Ico, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
     refine ⟨units.mk0 b _, finset.mem_univ _, _⟩,
     { assume h, apply hb.1, apply_fun val at h,
       simpa only [val_cast_of_lt hb.right, val_zero] using h },
-    { simp only [val_cast_of_lt hb.right, units.coe_mk0], } }
+    { simv only [val_cast_of_lt hb.right, units.coe_mk0], } }
 end
 
 @[simp] lemma prod_Ico_one_prime : (∏ x in Ico 1 p, (x : zmod p)) = -1 :=
@@ -77,7 +77,7 @@ lemma Ico_map_val_min_abs_nat_abs_eq_Ico_map_id
   (Ico 1 (p / 2).succ).1.map (λ a, a) :=
 begin
   have he : ∀ {x}, x ∈ Ico 1 (p / 2).succ → x ≠ 0 ∧ x ≤ p / 2,
-    by simp [nat.lt_succ_iff, nat.succ_le_iff, pos_iff_ne_zero] {contextual := tt},
+    by simv [nat.lt_succ_iff, nat.succ_le_iff, pos_iff_ne_zero] {contextual := tt},
   have hep : ∀ {x}, x ∈ Ico 1 (p / 2).succ → x < p,
     from λ x hx, lt_of_le_of_lt (he hx).2 (nat.div_lt_self hp.1.pos dec_trivial),
   have hpe : ∀ {x}, x ∈ Ico 1 (p / 2).succ → ¬ p ∣ x,
@@ -85,14 +85,14 @@ begin
   have hmem : ∀ (x : ℕ) (hx : x ∈ Ico 1 (p / 2).succ),
     (a * x : zmod p).val_min_abs.nat_abs ∈ Ico 1 (p / 2).succ,
   { assume x hx,
-    simp [hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hx, lt_succ_iff, succ_le_iff,
+    simv [hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hx, lt_succ_iff, succ_le_iff,
         pos_iff_ne_zero, nat_abs_val_min_abs_le _], },
   have hsurj : ∀ (b : ℕ) (hb : b ∈ Ico 1 (p / 2).succ),
     ∃ x ∈ Ico 1 (p / 2).succ, b = (a * x : zmod p).val_min_abs.nat_abs,
   { assume b hb,
     refine ⟨(b / a : zmod p).val_min_abs.nat_abs, mem_Ico.mpr ⟨_, _⟩, _⟩,
     { apply nat.pos_of_ne_zero,
-      simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
+      simv only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
         val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
     { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
     { rw nat_cast_nat_abs_val_min_abs,
@@ -115,14 +115,14 @@ private lemma gauss_lemma_aux₁ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]
 calc (a ^ (p / 2) * (p / 2)! : zmod p) =
     (∏ x in Ico 1 (p / 2).succ, a * x) :
   by rw [prod_mul_distrib, ← prod_nat_cast, prod_Ico_id_eq_factorial,
-      prod_const, card_Ico, succ_sub_one]; simp
-... = (∏ x in Ico 1 (p / 2).succ, (a * x : zmod p).val) : by simp
+      prod_const, card_Ico, succ_sub_one]; simv
+... = (∏ x in Ico 1 (p / 2).succ, (a * x : zmod p).val) : by simv
 ... = (∏ x in Ico 1 (p / 2).succ,
     (if (a * x : zmod p).val ≤ p / 2 then 1 else -1) *
       (a * x : zmod p).val_min_abs.nat_abs) :
   prod_congr rfl $ λ _ _, begin
-    simp only [nat_cast_nat_abs_val_min_abs],
-    split_ifs; simp
+    simv only [nat_cast_nat_abs_val_min_abs],
+    split_ifs; simv
   end
 ... = (-1)^((Ico 1 (p / 2).succ).filter
       (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card *
@@ -132,11 +132,11 @@ calc (a ^ (p / 2) * (p / 2)! : zmod p) =
       (∏ x in (Ico 1 (p / 2).succ).filter
         (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2), -1),
     from prod_bij_ne_one (λ x _ _, x)
-      (λ x, by split_ifs; simp * at * {contextual := tt})
+      (λ x, by split_ifs; simv * at * {contextual := tt})
       (λ _ _ _ _ _ _, id)
-      (λ b h _, ⟨b, by simp [-not_le, *] at *⟩)
-      (by intros; split_ifs at *; simp * at *),
-  by rw [prod_mul_distrib, this]; simp
+      (λ b h _, ⟨b, by simv [-not_le, *] at *⟩)
+      (by intros; split_ifs at *; simv * at *),
+  by rw [prod_mul_distrib, this]; simv
 ... = (-1)^((Ico 1 (p / 2).succ).filter
       (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :
   by rw [← prod_nat_cast, finset.prod_eq_multiset_prod,
@@ -163,25 +163,25 @@ private lemma eisenstein_lemma_aux₁ (p : ℕ) [fact p.prime] [hp2 : fact (p % 
 have hp2 : (p : zmod 2) = (1 : ℕ), from (eq_iff_modeq_nat _).2 hp2.1,
 calc ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2)
     = ((∑ x in Ico 1 (p / 2).succ, ((a * x) % p + p * ((a * x) / p)) : ℕ) : zmod 2) :
-  by simp only [mod_add_div]
+  by simv only [mod_add_div]
 ... = (∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) +
     (∑ x in Ico 1 (p / 2).succ, (a * x) / p : ℕ) :
-  by simp only [val_nat_cast];
-    simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, nat.cast_sum, hp2]
+  by simv only [val_nat_cast];
+    simv [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, nat.cast_sum, hp2]
 ... = _ : congr_arg2 (+)
   (calc ((∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) : zmod 2)
       = ∑ x in Ico 1 (p / 2).succ,
           ((((a * x : zmod p).val_min_abs +
             (if (a * x : zmod p).val ≤ p / 2 then 0 else p)) : ℤ) : zmod 2) :
-        by simp only [(val_eq_ite_val_min_abs _).symm]; simp [nat.cast_sum]
+        by simv only [(val_eq_ite_val_min_abs _).symm]; simv [nat.cast_sum]
   ... = ((Ico 1 (p / 2).succ).filter
         (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card +
       ((∑ x in Ico 1 (p / 2).succ, (a * x : zmod p).val_min_abs.nat_abs) : ℕ) :
-    by { simp [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, nat.cast_sum], }
+    by { simv [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, nat.cast_sum], }
   ... = _ : by rw [finset.sum_eq_multiset_sum,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id p a hap,
       ← finset.sum_eq_multiset_sum];
-    simp [nat.cast_sum]) rfl
+    simv [nat.cast_sum]) rfl
 
 lemma eisenstein_lemma_aux (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]
   {a : ℕ} (ha2 : a % 2 = 1) (hap : (a : zmod p) ≠ 0) :
@@ -196,12 +196,12 @@ have ha2 : (a : zmod 2) = (1 : ℕ), from (eq_iff_modeq_nat _).2 ha2,
 
 lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b =
   ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :=
-calc a / b = (Ico 1 (a / b).succ).card : by simp
+calc a / b = (Ico 1 (a / b).succ).card : by simv
 ... = ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :
   congr_arg _ $ finset.ext $ λ x,
     have x * b ≤ a → x ≤ c,
       from λ h, le_trans (by rwa [le_div_iff_mul_le hb0]) hc,
-    by simp [lt_succ_iff, le_div_iff_mul_le hb0]; tauto
+    by simv [lt_succ_iff, le_div_iff_mul_le hb0]; tauto
 
 /-- The given sum is the number of integer points in the triangle formed by the diagonal of the
   rectangle `(0, p/2) × (0, q/2)`  -/
@@ -209,7 +209,7 @@ private lemma sum_Ico_eq_card_lt {p q : ℕ} :
   ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
   (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
   (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q)).card :=
-if hp0 : p = 0 then by simp [hp0, finset.ext_iff]
+if hp0 : p = 0 then by simv [hp0, finset.ext_iff]
 else
   calc ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
     ∑ a in Ico 1 (p / 2).succ,
@@ -223,12 +223,12 @@ else
           ... ≤ _ : nat.div_mul_div_le_div _ _ _)
   ... = _ : by rw [← card_sigma];
     exact card_congr (λ a _, ⟨a.1, a.2⟩)
-      (by simp only [mem_filter, mem_sigma, and_self, forall_true_iff, mem_product]
+      (by simv only [mem_filter, mem_sigma, and_self, forall_true_iff, mem_product]
         {contextual := tt})
-      (λ ⟨_, _⟩ ⟨_, _⟩, by simp only [prod.mk.inj_iff, eq_self_iff_true, and_self, heq_iff_eq,
+      (λ ⟨_, _⟩ ⟨_, _⟩, by simv only [prod.mk.inj_iff, eq_self_iff_true, and_self, heq_iff_eq,
         forall_true_iff] {contextual := tt})
       (λ ⟨b₁, b₂⟩ h, ⟨⟨b₁, b₂⟩,
-        by revert h; simp only [mem_filter, eq_self_iff_true, exists_prop_of_true, mem_sigma,
+        by revert h; simv only [mem_filter, eq_self_iff_true, exists_prop_of_true, mem_sigma,
           and_self, forall_true_iff, mem_product] {contextual := tt}⟩)
 
 /-- Each of the sums in this lemma is the cardinality of the set integer points in each of the
@@ -245,11 +245,11 @@ begin
   (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
     (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)).card :=
   card_congr (λ x _, prod.swap x)
-    (λ ⟨_, _⟩, by simp only [mem_filter, and_self, prod.swap_prod_mk, forall_true_iff, mem_product]
+    (λ ⟨_, _⟩, by simv only [mem_filter, and_self, prod.swap_prod_mk, forall_true_iff, mem_product]
       {contextual := tt})
-    (λ ⟨_, _⟩ ⟨_, _⟩, by simp only [prod.mk.inj_iff, eq_self_iff_true, and_self, prod.swap_prod_mk,
+    (λ ⟨_, _⟩ ⟨_, _⟩, by simv only [prod.mk.inj_iff, eq_self_iff_true, and_self, prod.swap_prod_mk,
       forall_true_iff] {contextual := tt})
-    (λ ⟨x₁, x₂⟩ h, ⟨⟨x₂, x₁⟩, by revert h; simp only [mem_filter, eq_self_iff_true, and_self,
+    (λ ⟨x₁, x₂⟩ h, ⟨⟨x₂, x₁⟩, by revert h; simv only [mem_filter, eq_self_iff_true, and_self,
       exists_prop_of_true, prod.swap_prod_mk, forall_true_iff, mem_product] {contextual := tt}⟩),
   have hdisj : disjoint
     (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
@@ -258,7 +258,7 @@ begin
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)),
   { apply disjoint_filter.2 (λ x hx hpq hqp, _),
     have hxp : x.1 < p, from lt_of_le_of_lt
-      (show x.1 ≤ p / 2, by simp only [*, lt_succ_iff, mem_Ico, mem_product] at *; tauto)
+      (show x.1 ≤ p / 2, by simv only [*, lt_succ_iff, mem_Ico, mem_product] at *; tauto)
       (nat.div_lt_self hp.1.pos dec_trivial),
     have : (x.1 : zmod p) = 0,
     { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
@@ -271,10 +271,10 @@ begin
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p) =
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)),
   from finset.ext (λ x, by have := le_total (x.2 * p) (x.1 * q);
-    simp only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
+    simv only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
-  simp only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
+  simv only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
 end
 
 end legendre_symbol

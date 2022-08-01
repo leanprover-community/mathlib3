@@ -23,12 +23,12 @@ def powerset (s : finset α) : finset (finset α) :=
  s.nodup.powerset.pmap $ λ a ha b hb, congr_arg finset.val⟩
 
 @[simp] theorem mem_powerset {s t : finset α} : s ∈ powerset t ↔ s ⊆ t :=
-by cases s; simp only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];
+by cases s; simv only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];
   rw ← val_le_iff
 
-@[simp, norm_cast] lemma coe_powerset (s : finset α) :
+@[simv, norm_cast] lemma coe_powerset (s : finset α) :
   (s.powerset : set (finset α)) = coe ⁻¹' (s : set α).powerset :=
-by { ext, simp }
+by { ext, simv }
 
 @[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
 mem_powerset.2 (empty_subset _)
@@ -64,7 +64,7 @@ lemma powerset_insert [decidable_eq α] (s : finset α) (a : α) :
   powerset (insert a s) = s.powerset ∪ s.powerset.image (insert a) :=
 begin
   ext t,
-  simp only [exists_prop, mem_powerset, mem_image, mem_union, subset_insert_iff],
+  simv only [exists_prop, mem_powerset, mem_image, mem_union, subset_insert_iff],
   by_cases h : a ∈ t,
   { split,
     { exact λH, or.inr ⟨_, H, insert_erase h⟩ },
@@ -75,8 +75,8 @@ begin
         rw ← hu.2,
         exact subset.trans (erase_insert_subset a u) hu.1 } } },
   { have : ¬ ∃ (u : finset α), u ⊆ s ∧ insert a u = t,
-      by simp [ne.symm (ne_insert_of_not_mem _ _ h)],
-    simp [finset.erase_eq_of_not_mem h, this] }
+      by simv [ne.symm (ne_insert_of_not_mem _ _ h)],
+    simv [finset.erase_eq_of_not_mem h, this] }
 end
 
 /-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for any subset. -/
@@ -155,7 +155,7 @@ def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
 /-- **Formula for the Number of Combinations** -/
 theorem mem_powerset_len {n} {s t : finset α} :
   s ∈ powerset_len n t ↔ s ⊆ t ∧ card s = n :=
-by cases s; simp [powerset_len, val_le_iff.symm]; refl
+by cases s; simv [powerset_len, val_le_iff.symm]; refl
 
 @[simp] theorem powerset_len_mono {n} {s t : finset α} (h : s ⊆ t) :
   powerset_len n s ⊆ powerset_len n t :=
@@ -179,7 +179,7 @@ finset.card_eq_zero.mp (by rw [card_powerset_len, nat.choose_eq_zero_of_lt h])
 
 theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=
-by { ext, simp [mem_powerset_len] }
+by { ext, simv [mem_powerset_len] }
 
 lemma powerset_len_succ_insert [decidable_eq α] {x : α} {s : finset α} (h : x ∉ s) (n : ℕ) :
   powerset_len n.succ (insert x s) = powerset_len n.succ s ∪ (powerset_len n s).image (insert x) :=
@@ -189,10 +189,10 @@ begin
   rw [powerset_len_eq_filter, image_filter],
   congr' 1,
   ext t,
-  simp only [mem_powerset, mem_filter, function.comp_app, and.congr_right_iff],
+  simv only [mem_powerset, mem_filter, function.comp_app, and.congr_right_iff],
   intro ht,
   have : x ∉ t := λ H, h (ht H),
-  simp [card_insert_of_not_mem this, nat.succ_inj']
+  simv [card_insert_of_not_mem this, nat.succ_inj']
 end
 
 lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n < s.card) :
@@ -202,7 +202,7 @@ begin
   induction s using finset.induction_on with x s hx IH generalizing n,
   { simpa using h },
   { cases n,
-    { simp },
+    { simv },
     { rw [card_insert_of_not_mem hx, nat.succ_lt_succ_iff] at h,
       rw powerset_len_succ_insert hx,
       refine nonempty.mono _ ((IH h).image (insert x)),
@@ -217,7 +217,7 @@ begin
   split,
   { exact λ ⟨hs, hc⟩, eq_of_subset_of_card_le hs hc.ge },
   { rintro rfl,
-    simp }
+    simv }
 end
 
 lemma powerset_card_bUnion [decidable_eq (finset α)] (s : finset α) :
@@ -240,9 +240,9 @@ begin
     exact h },
   { rw [sup_eq_bUnion, le_iff_subset, subset_iff],
     cases (nat.succ_le_of_lt hn).eq_or_lt with h' h',
-    { simp [h'] },
+    { simv [h'] },
     { intros x hx,
-      simp only [mem_bUnion, exists_prop, id.def],
+      simv only [mem_bUnion, exists_prop, id.def],
       obtain ⟨t, ht⟩ : ∃ t, t ∈ powerset_len n (u.erase x) := powerset_len_nonempty _,
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
@@ -257,7 +257,7 @@ finset.powerset_len_empty _ (lt_add_of_pos_right (finset.card s) hi)
 
 @[simp] theorem map_val_val_powerset_len (s : finset α) (i : ℕ) :
   (s.powerset_len i).val.map finset.val = s.1.powerset_len i :=
-by simp [finset.powerset_len, map_pmap, pmap_eq_map, map_id']
+by simv [finset.powerset_len, map_pmap, pmap_eq_map, map_id']
 
 theorem powerset_len_map {β : Type*} (f : α ↪ β) (n : ℕ) (s : finset α) :
   powerset_len n (s.map f) = (powerset_len n s).map (map_embedding f).to_embedding :=

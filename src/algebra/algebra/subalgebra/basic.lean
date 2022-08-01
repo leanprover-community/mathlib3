@@ -271,9 +271,9 @@ protected lemma coe_neg {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebr
   {S : subalgebra R A} (x : S) : (↑(-x) : A) = -↑x := rfl
 protected lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   {S : subalgebra R A} (x y : S) : (↑(x - y) : A) = ↑x - ↑y := rfl
-@[simp, norm_cast] lemma coe_smul [semiring R'] [has_smul R' R] [module R' A]
+@[simv, norm_cast] lemma coe_smul [semiring R'] [has_smul R' R] [module R' A]
   [is_scalar_tower R' R A] (r : R') (x : S) : (↑(r • x) : A) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_algebra_map [comm_semiring R'] [has_smul R' R] [algebra R' A]
+@[simv, norm_cast] lemma coe_algebra_map [comm_semiring R'] [has_smul R' R] [algebra R' A]
   [is_scalar_tower R' R A] (r : R') :
   ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
@@ -357,7 +357,7 @@ lemma gc_map_comap (f : A →ₐ[R] B) : galois_connection (map f) (comap f) :=
   x ∈ S.comap f ↔ f x ∈ S :=
 iff.rfl
 
-@[simp, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
+@[simv, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
   (S.comap f : set A) = f ⁻¹' (S : set B) :=
 rfl
 
@@ -520,7 +520,7 @@ of_injective f f.to_ring_hom.injective
 `subalgebra_map` is the induced equivalence between `S` and `S.map e` -/
 @[simps] def subalgebra_map (e : A ≃ₐ[R] B) (S : subalgebra R A) :
   S ≃ₐ[R] (S.map e.to_alg_hom) :=
-{ commutes' := λ r, by { ext, simp },
+{ commutes' := λ r, by { ext, simv },
   ..e.to_ring_equiv.subsemiring_map S.to_subsemiring }
 
 end alg_equiv
@@ -587,7 +587,7 @@ lemma mul_mem_sup {S T : subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y ∈ T)
 lemma map_sup (f : A →ₐ[R] B) (S T : subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (subalgebra.gc_map_comap f).l_sup
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
 
 @[simp]
@@ -599,30 +599,30 @@ lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x �
 @[simp] lemma inf_to_subsemiring (S T : subalgebra R A) :
   (S ⊓ T).to_subsemiring = S.to_subsemiring ⊓ T.to_subsemiring := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := Inf_image
 
 lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-by simp only [← set_like.mem_coe, coe_Inf, set.mem_Inter₂]
+by simv only [← set_like.mem_coe, coe_Inf, set.mem_Inter₂]
 
 @[simp] lemma Inf_to_submodule (S : set (subalgebra R A)) :
   (Inf S).to_submodule = Inf (subalgebra.to_submodule '' S) :=
-set_like.coe_injective $ by simp
+set_like.coe_injective $ by simv
 
 @[simp] lemma Inf_to_subsemiring (S : set (subalgebra R A)) :
   (Inf S).to_subsemiring = Inf (subalgebra.to_subsemiring '' S) :=
-set_like.coe_injective $ by simp
+set_like.coe_injective $ by simv
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → subalgebra R A} : (↑(⨅ i, S i) : set A) = ⋂ i, S i :=
-by simp [infi]
+by simv [infi]
 
 lemma mem_infi {ι : Sort*} {S : ι → subalgebra R A} {x : A} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
-by simp only [infi, mem_Inf, set.forall_range_iff]
+by simv only [infi, mem_Inf, set.forall_range_iff]
 
 @[simp] lemma infi_to_submodule {ι : Sort*} (S : ι → subalgebra R A) :
   (⨅ i, S i).to_submodule = ⨅ i, (S i).to_submodule :=
-set_like.coe_injective $ by simp
+set_like.coe_injective $ by simv
 
 instance : inhabited (subalgebra R A) := ⟨⊥⟩
 
@@ -632,10 +632,10 @@ by { rw [← this, ←set_like.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
 theorem to_submodule_bot : (⊥ : subalgebra R A).to_submodule = R ∙ 1 :=
-by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
+by { ext x, simv [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
 
 @[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
-by simp [set.ext_iff, algebra.mem_bot]
+by simv [set.ext_iff, algebra.mem_bot]
 
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
@@ -653,7 +653,7 @@ set_like.coe_injective set.image_univ
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : (⊥ : subalgebra R A).map f = ⊥ :=
 set_like.coe_injective $
-  by simp only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
+  by simv only [← set.range_comp, (∘), algebra.coe_bot, subalgebra.coe_map, f.commutes]
 
 @[simp] theorem comap_top (f : A →ₐ[R] B) : (⊤ : subalgebra R B).comap f = ⊤ :=
 eq_top_iff.2 $ λ x, mem_top
@@ -703,7 +703,7 @@ alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ _, subty
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
-⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem B, zero_mem C] })⟩
+⟨λ B C, ext (λ x, by { simv only [subsingleton.elim x 0, zero_mem B, zero_mem C] })⟩
 
 /--
 For performance reasons this is not an instance. If you need this instance, add
@@ -745,7 +745,7 @@ instance : unique (subalgebra R R) :=
   begin
     intro S,
     refine le_antisymm (λ r hr, _) bot_le,
-    simp only [set.mem_range, mem_bot, id.map_eq_self, exists_apply_eq_apply, default],
+    simv only [set.mem_range, mem_bot, id.map_eq_self, exists_apply_eq_apply, default],
   end
   .. algebra.subalgebra.inhabited }
 
@@ -824,7 +824,7 @@ lemma prod_to_submodule :
   x ∈ prod S S₁ ↔ x.1 ∈ S ∧ x.2 ∈ S₁ := set.mem_prod
 
 @[simp] lemma prod_top : (prod ⊤ ⊤ : subalgebra R (A × B)) = ⊤ :=
-by ext; simp
+by ext; simv
 
 lemma prod_mono {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
   S ≤ T → S₁ ≤ T₁ → prod S S₁ ≤ prod T T₁ := set.prod_mono
@@ -878,12 +878,12 @@ by subst hT; exact
         refl
       end) ↑(supr K)
     (by rw coe_supr_of_directed dir; refl),
-  map_one' := set.Union_lift_const _ (λ _, 1) (λ _, rfl) _ (by simp),
-  map_zero' := set.Union_lift_const _ (λ _, 0) (λ _, rfl) _ (by simp),
+  map_one' := set.Union_lift_const _ (λ _, 1) (λ _, rfl) _ (by simv),
+  map_zero' := set.Union_lift_const _ (λ _, 0) (λ _, rfl) _ (by simv),
   map_mul' := set.Union_lift_binary (coe_supr_of_directed dir) dir _
-    (λ _, (*)) (λ _ _ _, rfl) _ (by simp),
+    (λ _, (*)) (λ _ _ _, rfl) _ (by simv),
   map_add' := set.Union_lift_binary (coe_supr_of_directed dir) dir _
-    (λ _, (+)) (λ _ _ _, rfl) _ (by simp),
+    (λ _, (+)) (λ _ _ _, rfl) _ (by simv),
   commutes' := λ r, set.Union_lift_const _ (λ _, algebra_map _ _ r)
     (λ _, rfl) _ (λ i, by erw [alg_hom.commutes (f i)]) }
 
@@ -898,7 +898,7 @@ by subst T; exact set.Union_lift_inclusion _ _
 
 @[simp] lemma supr_lift_comp_inclusion {i : ι} (h : K i ≤ T) :
   (supr_lift K dir f hf T hT).comp (inclusion h) = f i :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma supr_lift_mk {i : ι} (x : K i) (hx : (x : A) ∈ T) :
   supr_lift K dir f hf T hT ⟨x, hx⟩ = f i x :=
@@ -1002,7 +1002,7 @@ end actions
 section center
 
 lemma _root_.set.algebra_map_mem_center (r : R) : algebra_map R A r ∈ set.center A :=
-by simp [algebra.commutes, set.mem_center_iff]
+by simv [algebra.commutes, set.mem_center_iff]
 
 variables (R A)
 
@@ -1049,7 +1049,7 @@ def centralizer (s : set A) : subalgebra R A :=
 { algebra_map_mem' := set.algebra_map_mem_centralizer,
   ..subsemiring.centralizer s, }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_centralizer (s : set A) : (centralizer R s : set A) = s.centralizer := rfl
 
 lemma mem_centralizer_iff {s : set A} {z : A} :
@@ -1094,7 +1094,7 @@ begin
   apply (algebra.of_id S' S).range.to_submodule.mem_of_span_top_of_smul_mem _ hs',
   rintro ⟨_, r, hr, rfl⟩,
   convert submodule.smul_mem _ (r ^ (N - n₁ ⟨r, hr⟩)) (this.mpr $ n₂ ⟨r, hr⟩) using 1,
-  simp only [_root_.coe_coe, subtype.coe_mk,
+  simv only [_root_.coe_coe, subtype.coe_mk,
     subalgebra.smul_def, smul_smul, ← pow_add, subalgebra.coe_pow],
   rw tsub_add_cancel_of_le (finset.le_sup (s''.mem_attach _) : n₁ ⟨r, hr⟩ ≤ N),
 end

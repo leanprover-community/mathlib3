@@ -170,7 +170,7 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_monoid_with_zero β :=
-{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
+{ zero_le_one := show f 0 ≤ f 1, by simv only [zero, one,
     linear_ordered_comm_monoid_with_zero.zero_le_one],
   ..linear_order.lift f hf hsup hinf,
   ..hf.ordered_comm_monoid f one mul npow,
@@ -217,7 +217,7 @@ le_of_le_mul_right h (by simpa [h] using hab)
 lemma mul_inv_le_of_le_mul (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
 begin
   by_cases h : c = 0,
-  { simp [h], },
+  { simv [h], },
   { exact le_of_le_mul_right h (by simpa [h] using hab), },
 end
 
@@ -229,8 +229,8 @@ lemma mul_inv_le_iff₀ (hc : c ≠ 0) : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
 
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
-if ha : a = 0 then by simp [ha] else
-if hc : c = 0 then by simp [inv_ne_zero hb, hc, hd] else
+if ha : a = 0 then by simv [ha] else
+if hc : c = 0 then by simv [inv_ne_zero hb, hc, hd] else
 show (units.mk0 a ha) * (units.mk0 b hb)⁻¹ ≤ (units.mk0 c hc) * (units.mk0 d hd)⁻¹ ↔
   (units.mk0 a ha) * (units.mk0 d hd) ≤ (units.mk0 c hc) * (units.mk0 b hb),
 from mul_inv_le_mul_inv_iff'
@@ -284,13 +284,13 @@ lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
 ⟨le_of_le_mul_right hc, λ hab, mul_le_mul_right' hab _⟩
 
 lemma mul_le_mul_left₀ (ha : a ≠ 0) : a * b ≤ a * c ↔ b ≤ c :=
-by {simp only [mul_comm a], exact mul_le_mul_right₀ ha }
+by {simv only [mul_comm a], exact mul_le_mul_right₀ ha }
 
 lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
 
 lemma div_le_div_left₀ (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) : a/b ≤ a/c ↔ c ≤ b :=
-by simp only [div_eq_mul_inv, mul_le_mul_left₀ ha, inv_le_inv₀ hb hc]
+by simv only [div_eq_mul_inv, mul_le_mul_left₀ ha, inv_le_inv₀ hb hc]
 
 lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
 by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]

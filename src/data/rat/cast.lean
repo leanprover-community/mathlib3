@@ -37,16 +37,16 @@ variable [division_ring α]
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 (cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
-@[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
+@[simv, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]
 
-@[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
+@[simv, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
 by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 
-@[simp, norm_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
+@[simv, norm_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
 (cast_of_int _).trans int.cast_zero
 
-@[simp, norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1 :=
+@[simv, norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1 :=
 (cast_of_int _).trans int.cast_one
 
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
@@ -61,7 +61,7 @@ theorem commute_cast (a : α) (r : ℚ) : commute a r :=
 @[norm_cast] theorem cast_mk_of_ne_zero (a b : ℤ)
   (b0 : (b:α) ≠ 0) : (a /. b : α) = a / b :=
 begin
-  have b0' : b ≠ 0, { refine mt _ b0, simp {contextual := tt} },
+  have b0' : b ≠ 0, { refine mt _ b0, simv {contextual := tt} },
   cases e : a /. b with n d h c,
   have d0 : (d:α) ≠ 0,
   { intro d0,
@@ -87,19 +87,19 @@ end
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
     { simpa [division_def, left_distrib, right_distrib, mul_inv_rev, d₁0, d₂0, mul_assoc] },
-    all_goals {simp [d₁0, d₂0]} },
+    all_goals {simv [d₁0, d₂0]} },
   rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
-      (nat.cast_commute _ _).eq], simp [d₁0, mul_assoc]
+      (nat.cast_commute _ _).eq], simv [d₁0, mul_assoc]
 end
 
-@[simp, norm_cast] theorem cast_neg : ∀ n, ((-n : ℚ) : α) = -n
+@[simv, norm_cast] theorem cast_neg : ∀ n, ((-n : ℚ) : α) = -n
 | ⟨n, d, h, c⟩ := by simpa only [cast_def] using show (↑-n / d : α) = -(n / d),
   by rw [div_eq_mul_inv, div_eq_mul_inv, int.cast_neg, neg_mul_eq_neg_mul]
 
 @[norm_cast] theorem cast_sub_of_ne_zero {m n : ℚ}
   (m0 : (m.denom : α) ≠ 0) (n0 : (n.denom : α) ≠ 0) : ((m - n : ℚ) : α) = m - n :=
 have ((-n).denom : α) ≠ 0, by cases n; exact n0,
-by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
+by simv [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
 
 @[norm_cast] theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
   (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m * n : ℚ) : α) = m * n
@@ -110,22 +110,22 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
     { simpa [division_def, mul_inv_rev, d₁0, d₂0, mul_assoc] },
-    all_goals {simp [d₁0, d₂0]} },
+    all_goals {simv [d₁0, d₂0]} },
   rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
 end
 
 @[simp] theorem cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 begin
-  cases n, { simp },
+  cases n, { simv },
   simp_rw [coe_nat_eq_mk, inv_def, mk, mk_nat, dif_neg n.succ_ne_zero, mk_pnat],
-  simp [cast_def]
+  simv [cast_def]
 end
 
 @[simp] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 begin
   cases n,
-  { simp [cast_inv_nat] },
-  { simp only [int.cast_neg_succ_of_nat, ← nat.cast_succ, cast_neg, inv_neg, cast_inv_nat] }
+  { simv [cast_inv_nat] },
+  { simv only [int.cast_neg_succ_of_nat, ← nat.cast_succ, cast_neg, inv_neg, cast_inv_nat] }
 end
 
 @[norm_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
@@ -135,7 +135,7 @@ end
   have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 nat.cast_zero),
   rw [num_denom', inv_def],
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, inv_div];
-  simp [n0, d0]
+  simv [n0, d0]
 end
 
 @[norm_cast] theorem cast_div_of_ne_zero {m n : ℚ} (md : (m.denom : α) ≠ 0)
@@ -149,7 +149,7 @@ have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
      rwa [int.cast_mul, int.cast_coe_nat, h, zero_mul] at this,
 by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn nd, division_def]
 
-@[simp, norm_cast] theorem cast_inj [char_zero α] : ∀ {m n : ℚ}, (m : α) = n ↔ m = n
+@[simv, norm_cast] theorem cast_inj [char_zero α] : ∀ {m n : ℚ}, (m : α) = n ↔ m = n
 | ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := begin
   refine ⟨λ h, _, congr_arg _⟩,
   have d₁0 : d₁ ≠ 0 := ne_of_gt h₁,
@@ -157,7 +157,7 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   have d₁a : (d₁:α) ≠ 0 := nat.cast_ne_zero.2 d₁0,
   have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
   rw [num_denom', num_denom'] at h ⊢,
-  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
+  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simv [d₁0, d₂0] at h ⊢,
   rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left₀.eq,
     ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq d₁a, eq_comm,
     ← int.cast_coe_nat d₁, ← int.cast_mul, ← int.cast_coe_nat d₂, ← int.cast_mul,
@@ -173,23 +173,23 @@ by rw [← cast_zero, cast_inj]
 theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
-@[simp, norm_cast] theorem cast_add [char_zero α] (m n) :
+@[simv, norm_cast] theorem cast_add [char_zero α] (m n) :
   ((m + n : ℚ) : α) = m + n :=
 cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp, norm_cast] theorem cast_sub [char_zero α] (m n) :
+@[simv, norm_cast] theorem cast_sub [char_zero α] (m n) :
   ((m - n : ℚ) : α) = m - n :=
 cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp, norm_cast] theorem cast_mul [char_zero α] (m n) :
+@[simv, norm_cast] theorem cast_mul [char_zero α] (m n) :
   ((m * n : ℚ) : α) = m * n :=
 cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp, norm_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
+@[simv, norm_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
   ((bit0 n : ℚ) : α) = bit0 n :=
 cast_add _ _
 
-@[simp, norm_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
+@[simv, norm_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
   ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
@@ -202,26 +202,26 @@ variable {α}
 
 @[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
-@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
+@[simv, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
+@[simv, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
-by simp only [mk_eq_div, cast_div, cast_coe_int]
+by simv only [mk_eq_div, cast_div, cast_coe_int]
 
-@[simp, norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
+@[simv, norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 (cast_hom α).map_pow q k
 
-@[simp, norm_cast] lemma cast_list_sum (s : list ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
+@[simv, norm_cast] lemma cast_list_sum (s : list ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
 map_list_sum (rat.cast_hom α) _
 
-@[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
+@[simv, norm_cast] lemma cast_multiset_sum (s : multiset ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
 map_multiset_sum (rat.cast_hom α) _
 
-@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ) :
+@[simv, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ) :
   (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
 map_sum (rat.cast_hom α) _ _
 
-@[simp, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
+@[simv, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
 map_list_prod (rat.cast_hom α) _
 
 end with_div_ring
@@ -229,23 +229,23 @@ end with_div_ring
 section field
 variables [field α] [char_zero α]
 
-@[simp, norm_cast] lemma cast_multiset_prod (s : multiset ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
+@[simv, norm_cast] lemma cast_multiset_prod (s : multiset ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
 map_multiset_prod (rat.cast_hom α) _
 
-@[simp, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ) :
+@[simv, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ) :
   (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
 map_prod (rat.cast_hom α) _ _
 
 end field
 
-@[simp, norm_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
+@[simv, norm_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
 | ⟨n, d, h, c⟩ :=
   by { rw [num_denom', cast_mk, mk_eq_div, div_nonneg_iff, div_nonneg_iff], norm_cast }
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
+@[simv, norm_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
 by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
+@[simv, norm_cast] theorem cast_lt [linear_ordered_field α] {m n : ℚ} : (m : α) < n ↔ m < n :=
 by simpa [-cast_le] using not_congr (@cast_le α _ n m)
 
 @[simp] theorem cast_nonpos [linear_ordered_field α] {n : ℚ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
@@ -257,23 +257,23 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [linear_ordered_field α] {n : ℚ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
+@[simv, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
 
 @[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
 ring_hom.ext cast_id
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
+@[simv, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [h, min_def]
+by by_cases a ≤ b; simv [h, min_def]
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
+@[simv, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [h, max_def]
+by by_cases b ≤ a; simv [h, max_def]
 
-@[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
+@[simv, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
   ((|q| : ℚ) : α) = |q| :=
-by simp [abs_eq_max_neg]
+by simv [abs_eq_max_neg]
 
 end rat
 
@@ -341,11 +341,11 @@ namespace mul_opposite
 
 variables [division_ring α]
 
-@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
+@[simv, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
 by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
     (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
 
-@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
+@[simv, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
 by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
     (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
 

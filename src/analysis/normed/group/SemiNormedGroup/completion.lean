@@ -54,9 +54,9 @@ completion.complete_space _
 def Completion.incl {V : SemiNormedGroup} : V ⟶ Completion.obj V :=
 { to_fun := λ v, (v : completion V),
   map_add' := completion.coe_add,
-  bound' := ⟨1, λ v, by simp⟩ }
+  bound' := ⟨1, λ v, by simv⟩ }
 
-lemma Completion.norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥Completion.incl v∥ = ∥v∥ := by simp
+lemma Completion.norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥Completion.incl v∥ = ∥v∥ := by simv
 
 lemma Completion.map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=
@@ -79,9 +79,9 @@ add_monoid_hom.mk' (category_theory.functor.map Completion) $ λ f g,
 instance : preadditive SemiNormedGroup.{u} :=
 { hom_group := λ P Q, infer_instance,
   add_comp' := by { intros, ext,
-    simp only [normed_add_group_hom.add_apply, category_theory.comp_apply, map_add] },
+    simv only [normed_add_group_hom.add_apply, category_theory.comp_apply, map_add] },
   comp_add' := by { intros, ext,
-    simp only [normed_add_group_hom.add_apply, category_theory.comp_apply, map_add] } }
+    simv only [normed_add_group_hom.add_apply, category_theory.comp_apply, map_add] } }
 
 instance : functor.additive Completion :=
 { map_add' := λ X Y, (Completion.map_hom _ _).map_add }

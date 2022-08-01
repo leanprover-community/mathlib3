@@ -56,17 +56,17 @@ open_locale matrix
 This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
 def matrix.to_bilin'_aux [fintype n] (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
 { bilin := λ v w, ∑ i j, v i * M i j * w j,
-  bilin_add_left := λ x y z, by simp only [pi.add_apply, add_mul, sum_add_distrib],
-  bilin_smul_left := λ a x y, by simp only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_sum],
-  bilin_add_right := λ x y z, by simp only [pi.add_apply, mul_add, sum_add_distrib],
+  bilin_add_left := λ x y z, by simv only [pi.add_apply, add_mul, sum_add_distrib],
+  bilin_smul_left := λ a x y, by simv only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_sum],
+  bilin_add_right := λ x y z, by simv only [pi.add_apply, mul_add, sum_add_distrib],
   bilin_smul_right := λ a x y,
-    by simp only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_left_comm, mul_sum] }
+    by simv only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_left_comm, mul_sum] }
 
 lemma matrix.to_bilin'_aux_std_basis [fintype n] [decidable_eq n] (M : matrix n n R₂)
   (i j : n) : M.to_bilin'_aux (std_basis R₂ (λ _, R₂) i 1) (std_basis R₂ (λ _, R₂) j 1) = M i j :=
 begin
   rw [matrix.to_bilin'_aux, coe_fn_mk, sum_eq_single i, sum_eq_single j],
-  { simp only [std_basis_same, std_basis_same, one_mul, mul_one] },
+  { simv only [std_basis_same, std_basis_same, one_mul, mul_one] },
   { rintros j' - hj',
     apply mul_eq_zero_of_right,
     exact std_basis_ne R₂ (λ _, R₂) _ _ hj' 1 },
@@ -118,7 +118,7 @@ def bilin_form.to_matrix' : bilin_form R₂ (n → R₂) ≃ₗ[R₂] matrix n n
 { inv_fun := matrix.to_bilin'_aux,
   left_inv := by convert to_bilin'_aux_to_matrix_aux,
   right_inv := λ M,
-    by { ext i j, simp only [to_fun_eq_coe, bilin_form.to_matrix_aux_apply,
+    by { ext i j, simv only [to_fun_eq_coe, bilin_form.to_matrix_aux_apply,
       matrix.to_bilin'_aux_std_basis] },
   ..bilin_form.to_matrix_aux (λ j, std_basis R₂ (λ _, R₂) j 1) }
 
@@ -180,7 +180,7 @@ rfl
   (B.comp l r).to_matrix' = l.to_matrix'ᵀ ⬝ B.to_matrix' ⬝ r.to_matrix' :=
 begin
   ext i j,
-  simp only [bilin_form.to_matrix'_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
+  simv only [bilin_form.to_matrix'_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
     linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
   conv_lhs { rw ← bilin_form.sum_repr_mul_repr_mul (pi.basis_fun R₂ n) (l _) (r _) },
@@ -190,38 +190,38 @@ begin
     rw finsupp.sum_fintype,
     { apply sum_congr rfl,
       rintros j' -,
-      simp only [smul_eq_mul, pi.basis_fun_repr, mul_assoc, mul_comm, mul_left_comm,
+      simv only [smul_eq_mul, pi.basis_fun_repr, mul_assoc, mul_comm, mul_left_comm,
                  pi.basis_fun_apply, of_apply] },
-    { intros, simp only [zero_smul, smul_zero] } },
-  { intros, simp only [zero_smul, finsupp.sum_zero] }
+    { intros, simv only [zero_smul, smul_zero] } },
+  { intros, simv only [zero_smul, finsupp.sum_zero] }
 end
 
 lemma bilin_form.to_matrix'_comp_left (B : bilin_form R₂ (n → R₂))
   (f : (n → R₂) →ₗ[R₂] (n → R₂)) : (B.comp_left f).to_matrix' = f.to_matrix'ᵀ ⬝ B.to_matrix' :=
-by simp only [bilin_form.comp_left, bilin_form.to_matrix'_comp, to_matrix'_id, matrix.mul_one]
+by simv only [bilin_form.comp_left, bilin_form.to_matrix'_comp, to_matrix'_id, matrix.mul_one]
 
 lemma bilin_form.to_matrix'_comp_right (B : bilin_form R₂ (n → R₂))
   (f : (n → R₂) →ₗ[R₂] (n → R₂)) : (B.comp_right f).to_matrix' = B.to_matrix' ⬝ f.to_matrix' :=
-by simp only [bilin_form.comp_right, bilin_form.to_matrix'_comp, to_matrix'_id,
+by simv only [bilin_form.comp_right, bilin_form.to_matrix'_comp, to_matrix'_id,
               transpose_one, matrix.one_mul]
 
 lemma bilin_form.mul_to_matrix'_mul (B : bilin_form R₂ (n → R₂))
   (M : matrix o n R₂) (N : matrix n o R₂) :
   M ⬝ B.to_matrix' ⬝ N = (B.comp Mᵀ.to_lin' N.to_lin').to_matrix' :=
-by simp only [B.to_matrix'_comp, transpose_transpose, to_matrix'_to_lin']
+by simv only [B.to_matrix'_comp, transpose_transpose, to_matrix'_to_lin']
 
 lemma bilin_form.mul_to_matrix' (B : bilin_form R₂ (n → R₂)) (M : matrix n n R₂) :
   M ⬝ B.to_matrix' = (B.comp_left Mᵀ.to_lin').to_matrix' :=
-by simp only [B.to_matrix'_comp_left, transpose_transpose, to_matrix'_to_lin']
+by simv only [B.to_matrix'_comp_left, transpose_transpose, to_matrix'_to_lin']
 
 lemma bilin_form.to_matrix'_mul (B : bilin_form R₂ (n → R₂)) (M : matrix n n R₂) :
   B.to_matrix' ⬝ M = (B.comp_right M.to_lin').to_matrix' :=
-by simp only [B.to_matrix'_comp_right, to_matrix'_to_lin']
+by simv only [B.to_matrix'_comp_right, to_matrix'_to_lin']
 
 lemma matrix.to_bilin'_comp (M : matrix n n R₂) (P Q : matrix n o R₂) :
   M.to_bilin'.comp P.to_lin' Q.to_lin' = (Pᵀ ⬝ M ⬝ Q).to_bilin' :=
 bilin_form.to_matrix'.injective
-  (by simp only [bilin_form.to_matrix'_comp, bilin_form.to_matrix'_to_bilin', to_matrix'_to_lin'])
+  (by simv only [bilin_form.to_matrix'_comp, bilin_form.to_matrix'_to_bilin', to_matrix'_to_lin'])
 
 end to_matrix'
 
@@ -266,11 +266,11 @@ by rw [bilin_form.to_matrix, linear_equiv.trans_apply, bilin_form.to_matrix'_app
   matrix.to_bilin b M x y = ∑ i j, b.repr x i * M i j * b.repr y j :=
 begin
   rw [matrix.to_bilin, bilin_form.to_matrix, linear_equiv.symm_trans_apply, ← matrix.to_bilin'],
-  simp only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
+  simv only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
     basis.equiv_fun_apply]
 end
 
--- Not a `simp` lemma since `bilin_form.to_matrix` needs an extra argument
+-- Not a `simv` lemma since `bilin_form.to_matrix` needs an extra argument
 lemma bilinear_form.to_matrix_aux_eq (B : bilin_form R₂ M₂) :
   bilin_form.to_matrix_aux b B = bilin_form.to_matrix b B :=
 ext (λ i j, by rw [bilin_form.to_matrix_apply, bilin_form.to_matrix_aux_apply])
@@ -285,7 +285,7 @@ rfl
 
 lemma matrix.to_bilin_basis_fun :
   matrix.to_bilin (pi.basis_fun R₂ n) = matrix.to_bilin' :=
-by { ext M, simp only [matrix.to_bilin_apply, matrix.to_bilin'_apply, pi.basis_fun_repr] }
+by { ext M, simv only [matrix.to_bilin_apply, matrix.to_bilin'_apply, pi.basis_fun_repr] }
 
 lemma bilin_form.to_matrix_basis_fun :
   bilin_form.to_matrix (pi.basis_fun R₂ n) = bilin_form.to_matrix' :=
@@ -304,14 +304,14 @@ variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
 variables (c : basis o R₂ M₂')
 variables [decidable_eq o]
 
--- Cannot be a `simp` lemma because `b` must be inferred.
+-- Cannot be a `simv` lemma because `b` must be inferred.
 lemma bilin_form.to_matrix_comp
   (B : bilin_form R₂ M₂) (l r : M₂' →ₗ[R₂] M₂) :
   bilin_form.to_matrix c (B.comp l r) =
     (to_matrix c b l)ᵀ ⬝ bilin_form.to_matrix b B ⬝ to_matrix c b r :=
 begin
   ext i j,
-  simp only [bilin_form.to_matrix_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
+  simv only [bilin_form.to_matrix_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
     linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
   conv_lhs { rw ← bilin_form.sum_repr_mul_repr_mul b },
@@ -321,19 +321,19 @@ begin
     rw finsupp.sum_fintype,
     { apply sum_congr rfl,
       rintros j' -,
-      simp only [smul_eq_mul, linear_map.to_matrix_apply,
+      simv only [smul_eq_mul, linear_map.to_matrix_apply,
         basis.equiv_fun_apply, mul_assoc, mul_comm, mul_left_comm] },
-    { intros, simp only [zero_smul, smul_zero] } },
-  { intros, simp only [zero_smul, finsupp.sum_zero] }
+    { intros, simv only [zero_smul, smul_zero] } },
+  { intros, simv only [zero_smul, finsupp.sum_zero] }
 end
 
 lemma bilin_form.to_matrix_comp_left (B : bilin_form R₂ M₂) (f : M₂ →ₗ[R₂] M₂) :
   bilin_form.to_matrix b (B.comp_left f) = (to_matrix b b f)ᵀ ⬝ bilin_form.to_matrix b B :=
-by simp only [comp_left, bilin_form.to_matrix_comp b b, to_matrix_id, matrix.mul_one]
+by simv only [comp_left, bilin_form.to_matrix_comp b b, to_matrix_id, matrix.mul_one]
 
 lemma bilin_form.to_matrix_comp_right (B : bilin_form R₂ M₂) (f : M₂ →ₗ[R₂] M₂) :
   bilin_form.to_matrix b (B.comp_right f) = bilin_form.to_matrix b B ⬝ (to_matrix b b f) :=
-by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp b b, to_matrix_id,
+by simv only [bilin_form.comp_right, bilin_form.to_matrix_comp b b, to_matrix_id,
               transpose_one, matrix.one_mul]
 
 @[simp]
@@ -346,7 +346,7 @@ lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₂ M₂)
   (M : matrix o n R₂) (N : matrix n o R₂) :
   M ⬝ bilin_form.to_matrix b B ⬝ N =
     bilin_form.to_matrix c (B.comp (to_lin c b Mᵀ) (to_lin c b N)) :=
-by simp only [B.to_matrix_comp b c, to_matrix_to_lin, transpose_transpose]
+by simv only [B.to_matrix_comp b c, to_matrix_to_lin, transpose_transpose]
 
 lemma bilin_form.mul_to_matrix (B : bilin_form R₂ M₂) (M : matrix n n R₂) :
   M ⬝ bilin_form.to_matrix b B =
@@ -361,7 +361,7 @@ by rw [B.to_matrix_comp_right b, to_matrix_to_lin]
 lemma matrix.to_bilin_comp (M : matrix n n R₂) (P Q : matrix n o R₂) :
   (matrix.to_bilin b M).comp (to_lin c b P) (to_lin c b Q) = matrix.to_bilin c (Pᵀ ⬝ M ⬝ Q) :=
 (bilin_form.to_matrix c).injective
-  (by simp only [bilin_form.to_matrix_comp b c, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
+  (by simv only [bilin_form.to_matrix_comp b c, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
 
 end to_matrix
 
@@ -433,7 +433,7 @@ begin
   suffices : x * ↑u = ↑v * y ↔ ↑v⁻¹ * x = y * ↑u⁻¹,
   { dunfold matrix.is_adjoint_pair,
     repeat { rw matrix.transpose_mul, },
-    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv],
+    simv only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv],
     conv_lhs { to_rhs, rw [mul_assoc, mul_assoc], congr, skip, rw ←mul_assoc, },
     conv_rhs { rw [mul_assoc, mul_assoc], conv { to_lhs, congr, skip, rw ←mul_assoc }, },
     exact this, },
@@ -452,7 +452,7 @@ def pair_self_adjoint_matrices_submodule : submodule R₃ (matrix n n R₃) :=
 @[simp] lemma mem_pair_self_adjoint_matrices_submodule :
   A ∈ (pair_self_adjoint_matrices_submodule J J₃) ↔ matrix.is_adjoint_pair J J₃ A A :=
 begin
-  simp only [pair_self_adjoint_matrices_submodule, linear_equiv.coe_coe,
+  simv only [pair_self_adjoint_matrices_submodule, linear_equiv.coe_coe,
     linear_map.to_matrix'_apply, submodule.mem_map, bilin_form.mem_is_pair_self_adjoint_submodule],
   split,
   { rintros ⟨f, hf, hA⟩,
@@ -481,7 +481,7 @@ def skew_adjoint_matrices_submodule : submodule R₃ (matrix n n R₃) :=
   A ∈ skew_adjoint_matrices_submodule J ↔ J.is_skew_adjoint A :=
 begin
   erw mem_pair_self_adjoint_matrices_submodule,
-  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair],
+  simv [matrix.is_skew_adjoint, matrix.is_adjoint_pair],
 end
 
 end matrix_adjoints

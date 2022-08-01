@@ -29,7 +29,7 @@ lemma filter.has_basis.cauchy_iff {ι} {p : ι → Prop} {s : ι → set (α × 
   {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
 and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
-  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
+  by simv only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
 lemma cauchy_iff' {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
@@ -37,7 +37,7 @@ lemma cauchy_iff' {f : filter α} :
 
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, t ×ˢ t ⊆ s)) :=
-cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
+cauchy_iff'.trans $ by simv only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
 lemma cauchy.ultrafilter_of {l : filter α} (h : cauchy l) :
   cauchy (@ultrafilter.of _ l h.1 : filter α) :=
@@ -76,7 +76,7 @@ lemma cauchy.prod [uniform_space β] {f : filter α} {g : filter β} (hf : cauch
   cauchy (f ×ᶠ g) :=
 begin
   refine ⟨hf.1.prod hg.1, _⟩,
-  simp only [uniformity_prod, le_inf_iff, ← map_le_iff_le_comap, ← prod_map_map_eq],
+  simv only [uniformity_prod, le_inf_iff, ← map_le_iff_le_comap, ← prod_map_map_eq],
   exact ⟨le_trans (prod_mono tendsto_fst tendsto_fst) hf.2,
     le_trans (prod_mono tendsto_snd tendsto_snd) hg.2⟩
 end
@@ -169,7 +169,7 @@ tendsto_const_nhds.cauchy_seq
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
-cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]
+cauchy_map_iff'.trans $ by simv only [prod_at_top_at_top_eq, prod.map_def]
 
 lemma cauchy_seq.comp_tendsto {γ} [semilattice_sup β] [semilattice_sup γ] [nonempty γ]
   {f : β → α} (hf : cauchy_seq f) {g : γ → β} (hg : tendsto g at_top at_top) :
@@ -204,7 +204,7 @@ by simpa only [cauchy_seq_iff_tendsto]
 
 lemma cauchy_seq_iff {u : ℕ → α} :
   cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∃ N, ∀ k ≥ N, ∀ l ≥ N, (u k, u l) ∈ V :=
-by simp [cauchy_seq_iff', filter.eventually_at_top_prod_self', prod_map]
+by simv [cauchy_seq_iff', filter.eventually_at_top_prod_self', prod_map]
 
 lemma cauchy_seq.prod_map {γ δ} [uniform_space β] [semilattice_sup γ] [semilattice_sup δ]
   {u : γ → α} {v : δ → β}
@@ -267,7 +267,7 @@ lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u
 begin
   rw [cauchy_seq_iff_tendsto, ← prod_at_top_at_top_eq],
   refine (at_top_basis.prod_self.tendsto_iff h).trans _,
-  simp only [exists_prop, true_and, maps_to, preimage, subset_def, prod.forall,
+  simv only [exists_prop, true_and, maps_to, preimage, subset_def, prod.forall,
     mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map, ge_iff_le, @forall_swap (_ ≤ _) β]
 end
 
@@ -314,12 +314,12 @@ end
 
 lemma is_complete_iff_ultrafilter' {s : set α} :
   is_complete s ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → s ∈ l → ∃ x ∈ s, ↑l ≤ 𝓝 x :=
-is_complete_iff_ultrafilter.trans $ by simp only [le_principal_iff, ultrafilter.mem_coe]
+is_complete_iff_ultrafilter.trans $ by simv only [le_principal_iff, ultrafilter.mem_coe]
 
 protected lemma is_complete.union {s t : set α} (hs : is_complete s) (ht : is_complete t) :
   is_complete (s ∪ t) :=
 begin
-  simp only [is_complete_iff_ultrafilter', ultrafilter.union_mem_iff, or_imp_distrib] at *,
+  simv only [is_complete_iff_ultrafilter', ultrafilter.union_mem_iff, or_imp_distrib] at *,
   exact λ l hl, ⟨λ hsl, (hs l hl hsl).imp $ λ x hx, ⟨or.inl hx.fst, hx.snd⟩,
     λ htl, (ht l hl htl).imp $ λ x hx, ⟨or.inr hx.fst, hx.snd⟩⟩
 end
@@ -380,7 +380,7 @@ lemma complete_space_iff_is_complete_univ :
 
 lemma complete_space_iff_ultrafilter :
   complete_space α ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → ∃ x : α, ↑l ≤ 𝓝 x :=
-by simp [complete_space_iff_is_complete_univ, is_complete_iff_ultrafilter]
+by simv [complete_space_iff_is_complete_univ, is_complete_iff_ultrafilter]
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} [ne_bot l] :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=
@@ -399,7 +399,7 @@ complete_space.complete H
 lemma cauchy_seq_tendsto_of_is_complete [semilattice_sup β] {K : set α} (h₁ : is_complete K)
   {u : β → α} (h₂ : ∀ n, u n ∈ K) (h₃ : cauchy_seq u) : ∃ v ∈ K, tendsto u at_top (𝓝 v) :=
 h₁ _ h₃ $ le_principal_iff.2 $ mem_map_iff_exists_image.2 ⟨univ, univ_mem,
-  by { simp only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
+  by { simv only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
 
 theorem cauchy.le_nhds_Lim [complete_space α] [nonempty α] {f : filter α} (hf : cauchy f) :
   f ≤ 𝓝 (Lim f) :=
@@ -477,9 +477,9 @@ have {p:α×α | (f p.1, f p.2) ∈ t} ∈ 𝓤 α,
 let ⟨c, hfc, hct⟩ := hs _ this in
 ⟨f '' c, hfc.image f,
   begin
-    simp [image_subset_iff],
-    simp [subset_def] at hct,
-    intros x hx, simp,
+    simv [image_subset_iff],
+    simv [subset_def] at hct,
+    intros x hx, simv,
     exact hct x hx
   end⟩
 
@@ -514,7 +514,7 @@ begin
         exact principal_mono.2 (diff_subset_diff_right $ bUnion_subset_bUnion_left h) },
       { intro t,
         simpa [nonempty_diff] using hd_cover t t.finite_to_set } },
-    have : f ≤ 𝓟 s, from infi_le_of_le ∅ (by simp),
+    have : f ≤ 𝓟 s, from infi_le_of_le ∅ (by simv),
     refine ⟨f, ‹_›, ‹_›, λ c hcf hc, _⟩,
     rcases mem_prod_same_iff.1 (hc.2 hd) with ⟨m, hm, hmd⟩,
     have : m ∩ s ∈ c, from inter_mem hm (le_principal_iff.mp (hcf.trans ‹_›)),
@@ -695,11 +695,11 @@ begin
   choose ht_mem hto hts using hto,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
-  { simp only [mem_Union₂, mem_range],
+  { simv only [mem_Union₂, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
     exact is_open_ball x (hto k) },
   { intros x V hxV hVo,
-    simp only [mem_Union₂, mem_range, exists_prop],
+    simv only [mem_Union₂, mem_range, exists_prop],
     rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,

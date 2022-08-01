@@ -107,7 +107,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
     { to_fun := λ a, ⟨some a, some_ne_none a⟩,
       inv_fun := λ a, get $ ne_none_iff_is_some.1 a.2,
       left_inv := λ a, get_some _ _,
-      right_inv := λ a, by simp only [subtype.val_eq_coe, some_get, subtype.coe_eta] }) $ λ X Y f,
+      right_inv := λ a, by simv only [subtype.val_eq_coe, some_get, subtype.coe_eta] }) $ λ X Y f,
       pfun.ext $ λ a b, begin
         unfold_projs,
         dsimp,
@@ -124,7 +124,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
     { to_fun := option.elim X.point subtype.val,
       inv_fun := λ a, if h : a = X.point then none else some ⟨_, h⟩,
       left_inv := λ a, option.rec_on a (dif_pos rfl) $ λ a, (dif_neg a.2).trans $
-        by simp only [option.elim, subtype.val_eq_coe, subtype.coe_eta],
+        by simv only [option.elim, subtype.val_eq_coe, subtype.coe_eta],
       right_inv := λ a, begin
         change option.elim _ _ (dite _ _ _) = _,
         split_ifs,

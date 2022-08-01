@@ -110,6 +110,6 @@ begin
 end
 
 lemma ad_ker_eq_bot_of_semisimple [is_semisimple R L] : (ad R L).ker = ⊥ :=
-by simp
+by simv
 
 end lie_algebra

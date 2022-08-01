@@ -100,7 +100,7 @@ def proj : ℝ → Icc v.t_min v.t_max := proj_Icc v.t_min v.t_max v.t_min_le_t_
 lemma proj_coe (t : Icc v.t_min v.t_max) : v.proj t = t := proj_Icc_coe _ _
 
 lemma proj_of_mem {t : ℝ} (ht : t ∈ Icc v.t_min v.t_max) : ↑(v.proj t) = t :=
-by simp only [proj, proj_Icc_of_mem _ ht, subtype.coe_mk]
+by simv only [proj, proj_Icc_of_mem _ ht, subtype.coe_mk]
 
 @[continuity] lemma continuous_proj : continuous v.proj := continuous_proj_Icc
 
@@ -158,7 +158,7 @@ function is the image of `γ` under the contracting map we are going to define b
 def v_comp (t : ℝ) : E := v (v.proj t) (f (v.proj t))
 
 lemma v_comp_apply_coe (t : Icc v.t_min v.t_max) : f.v_comp t = v t (f t) :=
-by simp only [v_comp, proj_coe]
+by simv only [v_comp, proj_coe]
 
 lemma continuous_v_comp : continuous f.v_comp :=
 begin
@@ -217,7 +217,7 @@ lemma has_deriv_within_at_next (t : Icc v.t_min v.t_max) :
   has_deriv_within_at (f.next ∘ v.proj) (v t (f t)) (Icc v.t_min v.t_max) t :=
 begin
   haveI : fact ((t : ℝ) ∈ Icc v.t_min v.t_max) := ⟨t.2⟩,
-  simp only [(∘), next_apply],
+  simv only [(∘), next_apply],
   refine has_deriv_within_at.const_add _ _,
   have : has_deriv_within_at (λ t : ℝ, ∫ τ in v.t₀..t, f.v_comp τ) (f.v_comp t)
     (Icc v.t_min v.t_max) t,
@@ -234,7 +234,7 @@ lemma dist_next_apply_le_of_le {f₁ f₂ : fun_space v} {n : ℕ} {d : ℝ}
   (h : ∀ t, dist (f₁ t) (f₂ t) ≤ (v.L * |t - v.t₀|) ^ n / n! * d) (t : Icc v.t_min v.t_max) :
   dist (next f₁ t) (next f₂ t) ≤ (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d :=
 begin
-  simp only [dist_eq_norm, next_apply, add_sub_add_left_eq_sub,
+  simv only [dist_eq_norm, next_apply, add_sub_add_left_eq_sub,
     ← interval_integral.integral_sub (interval_integrable_v_comp _ _ _)
       (interval_integrable_v_comp _ _ _), norm_integral_eq_norm_integral_Ioc] at *,
   calc ∥∫ τ in Ι (v.t₀ : ℝ) t, f₁.v_comp τ - f₂.v_comp τ∥
@@ -270,7 +270,7 @@ begin
   refine dist_le_of_forall (λ t, (dist_iterate_next_apply_le _ _ _ _).trans _),
   have : 0 ≤ dist f₁ f₂ := dist_nonneg,
   have : |(t - v.t₀ : ℝ)| ≤ v.t_dist := v.dist_t₀_le t,
-  mono*; simp only [nat.cast_nonneg, mul_nonneg, nnreal.coe_nonneg, abs_nonneg, *]
+  mono*; simv only [nat.cast_nonneg, mul_nonneg, nnreal.coe_nonneg, abs_nonneg, *]
 end
 
 end fun_space
@@ -302,8 +302,8 @@ lemma exists_solution :
 begin
   rcases v.exists_fixed with ⟨f, hf⟩,
   refine ⟨f ∘ v.proj, _, λ t ht, _⟩,
-  { simp only [(∘), proj_coe, f.map_t₀] },
-  { simp only [(∘), v.proj_of_mem ht],
+  { simv only [(∘), proj_coe, f.map_t₀] },
+  { simv only [(∘), v.proj_of_mem ht],
     lift t to Icc v.t_min v.t_max using ht,
     simpa only [hf, v.proj_coe] using f.has_deriv_within_at_next t }
 end

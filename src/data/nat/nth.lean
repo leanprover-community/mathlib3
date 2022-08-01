@@ -43,10 +43,10 @@ natural number satisfying `p`), or `0` if there is no such number. See also
 noncomputable def nth : ℕ → ℕ
 | n := Inf { i : ℕ | p i ∧ ∀ k < n, nth k < i }
 
-lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simp }
+lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } := by { rw nth, simv }
 
 @[simp] lemma nth_zero_of_zero (h : p 0) : nth p 0 = 0 :=
-by simp [nth_zero, h]
+by simv [nth_zero, h]
 
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h }
@@ -57,7 +57,7 @@ lemma nth_set_card_aux {n : ℕ} (hp : (set_of p).finite)
 begin
   unfreezingI { induction n with k hk },
   { congr,
-    simp only [is_empty.forall_iff, nat.not_lt_zero, forall_const, and_true] },
+    simv only [is_empty.forall_iff, nat.not_lt_zero, forall_const, and_true] },
   have hp'': {i : ℕ | p i ∧ ∀ t, t < k → nth p t < i}.finite,
   { refine hp.subset (λ x hx, _),
     rw set.mem_set_of_eq at hx,
@@ -68,7 +68,7 @@ begin
   convert_to (finset.erase hp''.to_finset (nth p k)).card = _,
   { congr,
     ext a,
-    simp only [set.finite.mem_to_finset, ne.def, set.mem_set_of_eq, finset.mem_erase],
+    simv only [set.finite.mem_to_finset, ne.def, set.mem_set_of_eq, finset.mem_erase],
     refine ⟨λ ⟨hp, hlt⟩,
               ⟨(hlt _ (lt_add_one k)).ne', ⟨hp, λ n hn, hlt n (hn.trans_le k.le_succ)⟩⟩, _⟩,
     rintro ⟨hak : _ ≠ _, hp, hlt⟩,
@@ -93,7 +93,7 @@ begin
   obtain hn | hn := le_or_lt n hp.to_finset.card,
   { exact nth_set_card_aux p hp _ hn },
   rw nat.sub_eq_zero_of_le hn.le,
-  simp only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
+  simv only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
   convert_to _ ⊆ {i : ℕ | p i ∧ ∀ (k : ℕ), k < hp.to_finset.card → nth p k < i},
   { symmetry,
     rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero,
@@ -135,7 +135,7 @@ begin
   let s : set ℕ := ⋃ (k < n), { i : ℕ | nth p k ≥ i },
   convert_to ((set_of p) \ s).nonempty,
   { ext i,
-    simp },
+    simv },
   refine (hp.diff $ (set.finite_lt_nat _).bUnion _).nonempty,
   exact λ k h, set.finite_le_nat _,
 end
@@ -229,7 +229,7 @@ begin
   { exact count_nth_zero _ },
   { rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_finite p hp hlt,
       finset.card_insert_of_not_mem, ←count_eq_card_filter_range, hk (lt_of_succ_lt hlt)],
-    simp, },
+    simv, },
 end
 
 lemma filter_range_nth_eq_insert_of_infinite (hp : (set_of p).infinite) (k : ℕ) :
@@ -253,7 +253,7 @@ begin
   { exact count_nth_zero _ },
   { rw [count_eq_card_filter_range, filter_range_nth_eq_insert_of_infinite p hp,
       finset.card_insert_of_not_mem, ←count_eq_card_filter_range, hk],
-    simp, },
+    simv, },
 end
 
 @[simp] lemma nth_count {n : ℕ} (hpn : p n) : nth p (count p n) = n :=
@@ -272,11 +272,11 @@ begin
   rw nth,
   congr,
   ext a,
-  simp only [set.mem_set_of_eq, and.congr_right_iff],
+  simv only [set.mem_set_of_eq, and.congr_right_iff],
   intro hpa,
   refine ⟨λ h, _, λ hn k hk, lt_of_lt_of_le _ hn⟩,
   { by_contra ha,
-    simp only [not_le] at ha,
+    simv only [not_le] at ha,
     have hn : nth p (count p a) < a := h _ (count_strict_mono hpa ha),
     rwa [nth_count p hpa, lt_self_iff_false] at hn },
   { apply (count_monotone p).reflect_lt,
@@ -362,9 +362,9 @@ begin
   classical,
   have hi := set.infinite_coe_iff.mp i,
   induction n with k hk;
-  simp only [subtype.order_iso_of_nat_apply, subtype.of_nat, nat_zero_eq_zero],
+  simv only [subtype.order_iso_of_nat_apply, subtype.of_nat, nat_zero_eq_zero],
   { rw [nat.subtype.coe_bot, nth_zero_of_exists], },
-  { simp only [nat.subtype.succ, set.mem_set_of_eq, subtype.coe_mk, subtype.val_eq_coe],
+  { simv only [nat.subtype.succ, set.mem_set_of_eq, subtype.coe_mk, subtype.val_eq_coe],
     rw [subtype.order_iso_of_nat_apply] at hk,
     set b := nth p k.succ - nth p k - 1 with hb,
     replace hb : p (↑(subtype.of_nat (set_of p) k) + b + 1),
@@ -385,8 +385,8 @@ begin
     rw [nth, Inf_def ⟨_, nth_mem_of_infinite_aux p hi k.succ⟩, nat.find_eq_iff],
     refine ⟨⟨by convert hp, λ r hr, _⟩, λ n hn, _⟩,
     { rw lt_succ_iff at ⊢ hr,
-      exact (nth_monotone p hi hr).trans (by simp) },
-    simp only [exists_prop, not_and, not_lt, set.mem_set_of_eq, not_forall],
+      exact (nth_monotone p hi hr).trans (by simv) },
+    simv only [exists_prop, not_and, not_lt, set.mem_set_of_eq, not_forall],
     refine λ hpn, ⟨k, lt_add_one k, _⟩,
     by_contra' hlt,
     replace hn : n - nth p k - 1 < t,

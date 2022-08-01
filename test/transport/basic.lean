@@ -8,8 +8,8 @@ def semiring.map {α : Type} [semiring α] {β : Type} (e : α ≃ β) : semirin
 begin
   transport using e,
   -- TODO
-  { simp *, refl }, -- nat_cast_zero
-  { intros, simp *, show _ = e _, simp, refl, }, -- nat_cast_succ
+  { simv *, refl }, -- nat_cast_zero
+  { intros, simv *, show _ = e _, simv, refl, }, -- nat_cast_succ
 end
 
 -- Indeed, it can equally well move a `semilattice_sup`.

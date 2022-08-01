@@ -27,7 +27,7 @@ Each of these has a dual.
 
 ## Implementation notes
 As with the other special shapes in the limits library, all the definitions here are given as
-`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+`abbreviation`s of the general statements for limits, so all the `simv` lemmas and theorems about
 general limits can be used.
 -/
 
@@ -85,7 +85,7 @@ abbreviation has_coproduct (f : β → C) := has_colimit (discrete.functor f)
   (uniq : ∀ (s : fan f) (m : s.X ⟶ t.X) (w : ∀ j : β, m ≫ t.proj j = s.proj j), m = lift s) :
   is_limit t :=
 { lift := lift,
-  fac' := λ s j, by convert fac s j.as; simp,
+  fac' := λ s j, by convert fac s j.as; simv,
   uniq' := λ s m w, uniq s m (λ j, w (discrete.mk j)), }
 
 
@@ -175,16 +175,16 @@ def pi_comparison [has_product f] [has_product (λ b, G.obj (f b))] :
   G.obj (∏ f) ⟶ ∏ (λ b, G.obj (f b)) :=
 pi.lift (λ b, G.map (pi.π f b))
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pi_comparison_comp_π [has_product f] [has_product (λ b, G.obj (f b))] (b : β) :
   pi_comparison G f ≫ pi.π _ b = G.map (pi.π f b) :=
 limit.lift_π _ (discrete.mk b)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma map_lift_pi_comparison [has_product f] [has_product (λ b, G.obj (f b))]
   (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ pi_comparison G f = pi.lift (λ j, G.map (g j)) :=
-by { ext, discrete_cases, simp [← G.map_comp] }
+by { ext, discrete_cases, simv [← G.map_comp] }
 
 /-- The comparison morphism for the coproduct of `f`. This is an iso iff `G` preserves the coproduct
 of `f`, see `preserves_coproduct.of_iso_comparison`. -/
@@ -192,16 +192,16 @@ def sigma_comparison [has_coproduct f] [has_coproduct (λ b, G.obj (f b))] :
   ∐ (λ b, G.obj (f b)) ⟶ G.obj (∐ f) :=
 sigma.desc (λ b, G.map (sigma.ι f b))
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_comp_sigma_comparison [has_coproduct f] [has_coproduct (λ b, G.obj (f b))] (b : β) :
   sigma.ι _ b ≫ sigma_comparison G f = G.map (sigma.ι f b) :=
 colimit.ι_desc _ (discrete.mk b)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma sigma_comparison_map_desc [has_coproduct f] [has_coproduct (λ b, G.obj (f b))]
   (P : C) (g : Π j, f j ⟶ P) :
   sigma_comparison G f ≫ G.map (sigma.desc g) = sigma.desc (λ j, G.map (g j)) :=
-by { ext, discrete_cases, simp [← G.map_comp] }
+by { ext, discrete_cases, simv [← G.map_comp] }
 
 end comparison
 
@@ -301,11 +301,11 @@ variables [has_product f] [has_product (f ∘ ε)]
 def pi.reindex : pi_obj (f ∘ ε) ≅ pi_obj f :=
 has_limit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pi.reindex_hom_π (b : β) : (pi.reindex ε f).hom ≫ pi.π f (ε b) = pi.π (f ∘ ε) b :=
 begin
   dsimp [pi.reindex],
-  simp only [has_limit.iso_of_equivalence_hom_π, discrete.nat_iso_inv_app,
+  simv only [has_limit.iso_of_equivalence_hom_π, discrete.nat_iso_inv_app,
     equivalence.equivalence_mk'_counit, discrete.equivalence_counit_iso, discrete.nat_iso_hom_app,
     eq_to_iso.hom, eq_to_hom_map],
   dsimp,
@@ -313,9 +313,9 @@ begin
     limit.w (discrete.functor (f ∘ ε)) (discrete.eq_to_hom' (ε.symm_apply_apply b)),
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma pi.reindex_inv_π (b : β) : (pi.reindex ε f).inv ≫ pi.π (f ∘ ε) b = pi.π f (ε b) :=
-by simp [iso.inv_comp_eq]
+by simv [iso.inv_comp_eq]
 
 end
 
@@ -326,21 +326,21 @@ variables [has_coproduct f] [has_coproduct (f ∘ ε)]
 def sigma.reindex : sigma_obj (f ∘ ε) ≅ sigma_obj f :=
 has_colimit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma sigma.ι_reindex_hom (b : β) : sigma.ι (f ∘ ε) b ≫ (sigma.reindex ε f).hom = sigma.ι f (ε b) :=
 begin
   dsimp [sigma.reindex],
-  simp only [has_colimit.iso_of_equivalence_hom_π, equivalence.equivalence_mk'_unit,
+  simv only [has_colimit.iso_of_equivalence_hom_π, equivalence.equivalence_mk'_unit,
     discrete.equivalence_unit_iso, discrete.nat_iso_hom_app, eq_to_iso.hom, eq_to_hom_map,
     discrete.nat_iso_inv_app],
   dsimp,
-  simp [eq_to_hom_map,
+  simv [eq_to_hom_map,
     ←colimit.w (discrete.functor f) (discrete.eq_to_hom' (ε.apply_symm_apply (ε b)))],
 end
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma sigma.ι_reindex_inv (b : β) : sigma.ι f (ε b) ≫ (sigma.reindex ε f).inv = sigma.ι (f ∘ ε) b :=
-by simp [iso.comp_inv_eq]
+by simv [iso.comp_inv_eq]
 
 end
 

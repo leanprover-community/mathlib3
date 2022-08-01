@@ -50,7 +50,7 @@ begin
   { rw [← neg_eq_zero, ← int.cast_neg, ← dvd_neg],
     lift -a to ℕ using neg_nonneg.mpr (le_of_lt h) with b,
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] },
-  { simp only [int.cast_zero, eq_self_iff_true, dvd_zero] },
+  { simv only [int.cast_zero, eq_self_iff_true, dvd_zero] },
   { lift a to ℕ using (le_of_lt h) with b,
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
@@ -73,7 +73,7 @@ theorem char_p.exists [non_assoc_semiring R] : ∃ p, char_p R p :=
 by letI := classical.dec_eq R; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:R) = 0 → p = 0, ⟨0,
-    ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; simp⟩⟩⟩)
+    ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; simv⟩⟩⟩)
   (λ H, ⟨nat.find (not_forall.1 H), ⟨λ x,
     ⟨λ H1, nat.dvd_of_mod_eq_zero (by_contradiction $ λ H2,
       nat.find_min (not_forall.1 H)
@@ -138,9 +138,9 @@ begin
   rw [commute.add_pow h, finset.sum_range_succ_comm, tsub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _,
-  { simp only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
+  { simv only [mul_one, one_mul, nat.choose_zero_right, tsub_zero, nat.cast_one, pow_zero] },
   { intros b h1 h2,
-    suffices : (p.choose b : R) = 0, { rw this, simp },
+    suffices : (p.choose b : R) = 0, { rw this, simv },
     rw char_p.cast_eq_zero_iff R p,
     refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ (fact.out _),
     rwa ← finset.mem_range },
@@ -154,7 +154,7 @@ theorem add_pow_char_pow_of_commute [semiring R] {p : ℕ} [fact p.prime]
   [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
   (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
 begin
-  induction n, { simp, },
+  induction n, { simv, },
   rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply add_pow_char_of_commute, apply commute.pow_pow h,
 end
@@ -164,14 +164,14 @@ theorem sub_pow_char_of_commute [ring R] {p : ℕ} [fact p.prime]
   (x - y)^p = x^p - y^p :=
 begin
   rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute _ _ _ (commute.sub_left h rfl)],
-  simp, repeat {apply_instance},
+  simv, repeat {apply_instance},
 end
 
 theorem sub_pow_char_pow_of_commute [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 begin
-  induction n, { simp, },
+  induction n, { simv, },
   rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply sub_pow_char_of_commute, apply commute.pow_pow h,
 end
@@ -230,7 +230,7 @@ end
 lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
   (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
-by simp only [char_p_iff, ← f.injective.eq_iff, map_nat_cast f, f.map_zero]
+by simv only [char_p_iff, ← f.injective.eq_iff, map_nat_cast f, f.map_zero]
 
 section frobenius
 
@@ -253,7 +253,7 @@ theorem frobenius_def : frobenius R p x = x ^ p := rfl
 
 theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
 begin
-  induction n, {simp},
+  induction n, {simv},
   rw [function.iterate_succ', pow_succ', pow_mul, function.comp_apply, frobenius_def, n_ih]
 end
 
@@ -346,7 +346,7 @@ char_zero_of_inj_zero $
 
 lemma cast_eq_mod (p : ℕ) [char_p R p] (k : ℕ) : (k : R) = (k % p : ℕ) :=
 calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
-         ... = ↑(k % p)               : by simp [cast_eq_zero]
+         ... = ↑(k % p)               : by simv [cast_eq_zero]
 
 /-- The characteristic of a finite ring cannot be zero. -/
 theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
@@ -547,13 +547,13 @@ variables (S : Type v) [semiring R] [semiring S] (p q : ℕ) [char_p R p]
 characteristics of the two rings. -/
 instance [char_p S q] : char_p (R × S) (nat.lcm p q) :=
 { cast_eq_zero_iff :=
-    by simp [prod.ext_iff, char_p.cast_eq_zero_iff R p,
+    by simv [prod.ext_iff, char_p.cast_eq_zero_iff R p,
       char_p.cast_eq_zero_iff S q, nat.lcm_dvd_iff] }
 
 /-- The characteristic of the product of two rings of the same characteristic
   is the same as the characteristic of the rings -/
 instance prod.char_p [char_p S p] : char_p (R × S) p :=
-by convert nat.lcm.char_p R S p p; simp
+by convert nat.lcm.char_p R S p p; simv
 
 end prod
 

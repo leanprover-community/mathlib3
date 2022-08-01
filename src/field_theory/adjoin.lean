@@ -66,7 +66,7 @@ instance : inhabited (intermediate_field F E) := ⟨⊤⟩
 lemma coe_bot : ↑(⊥ : intermediate_field F E) = set.range (algebra_map F E) :=
 begin
   change ↑(subfield.closure (set.range (algebra_map F E) ∪ ∅)) = set.range (algebra_map F E),
-  simp [←set.image_univ, ←ring_hom.map_field_closure]
+  simv [←set.image_univ, ←ring_hom.map_field_closure]
 end
 
 lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
@@ -86,7 +86,7 @@ rfl
 @[simp] lemma top_to_subfield : (⊤ : intermediate_field F E).to_subfield = ⊤ :=
 rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_inf (S T : intermediate_field F E) : (↑(S ⊓ T) : set E) = S ∩ T := rfl
 
 @[simp]
@@ -100,28 +100,28 @@ rfl
   (S ⊓ T).to_subfield = S.to_subfield ⊓ T.to_subfield :=
 rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Inf (S : set (intermediate_field F E)) : (↑(Inf S) : set E) = Inf (coe '' S) := rfl
 
 @[simp] lemma Inf_to_subalgebra (S : set (intermediate_field F E)) :
   (Inf S).to_subalgebra = Inf (to_subalgebra '' S) :=
-set_like.coe_injective $ by simp [set.sUnion_image]
+set_like.coe_injective $ by simv [set.sUnion_image]
 
 @[simp] lemma Inf_to_subfield (S : set (intermediate_field F E)) :
   (Inf S).to_subfield = Inf (to_subfield '' S) :=
-set_like.coe_injective $ by simp [set.sUnion_image]
+set_like.coe_injective $ by simv [set.sUnion_image]
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_infi {ι : Sort*} (S : ι → intermediate_field F E) : (↑(infi S) : set E) = ⋂ i, (S i) :=
-by simp [infi]
+by simv [infi]
 
 @[simp] lemma infi_to_subalgebra {ι : Sort*} (S : ι → intermediate_field F E) :
   (infi S).to_subalgebra = ⨅ i, (S i).to_subalgebra :=
-set_like.coe_injective $ by simp [infi]
+set_like.coe_injective $ by simv [infi]
 
 @[simp] lemma infi_to_subfield {ι : Sort*} (S : ι → intermediate_field F E) :
   (infi S).to_subfield = ⨅ i, (S i).to_subfield :=
-set_like.coe_injective $ by simp [infi]
+set_like.coe_injective $ by simv [infi]
 
 /--  Construct an algebra isomorphism from an equality of intermediate fields -/
 @[simps apply]
@@ -401,7 +401,7 @@ lemma adjoin_simple_is_compact_element (x : E) : is_compact_element F⟮x⟯ :=
 begin
   rw is_compact_element_iff_le_of_directed_Sup_le,
   rintros s ⟨F₀, hF₀⟩ hs hx,
-  simp only [adjoin_simple_le_iff] at hx ⊢,
+  simv only [adjoin_simple_le_iff] at hx ⊢,
   let F : intermediate_field F E :=
   { carrier := ⋃ E ∈ s, ↑E,
     add_mem' := by
@@ -451,7 +451,7 @@ lemma exists_finset_of_mem_supr {ι : Type*} {f : ι → intermediate_field F E}
   {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset ι, x ∈ ⨆ i ∈ s, f i :=
 begin
   have := (adjoin_simple_is_compact_element x).exists_finset_of_le_supr (intermediate_field F E) f,
-  simp only [adjoin_simple_le_iff] at this,
+  simv only [adjoin_simple_le_iff] at this,
   exact this hx,
 end
 
@@ -655,7 +655,7 @@ lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minpoly F α
     (minpoly F α).nat_degree :=
 begin
   rw alg_hom.card_of_power_basis;
-    simp only [adjoin.power_basis_dim, adjoin.power_basis_gen, minpoly_gen h, h_sep, h_splits],
+    simv only [adjoin.power_basis_dim, adjoin.power_basis_gen, minpoly_gen h, h_sep, h_splits],
 end
 
 end adjoin_integral_element

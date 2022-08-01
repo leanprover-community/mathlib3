@@ -137,7 +137,7 @@ lemma cos_angle_sub_add_angle_sub_rev_eq_neg_cos_angle {x y : V} (hx : x ≠ 0) 
 begin
   by_cases hxy : x = y,
   { rw [hxy, angle_self hy],
-    simp },
+    simv },
   { rw [real.cos_add, cos_angle, cos_angle, cos_angle],
     have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
     have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
@@ -174,7 +174,7 @@ lemma sin_angle_sub_add_angle_sub_rev_eq_sin_angle {x y : V} (hx : x ≠ 0) (hy 
 begin
   by_cases hxy : x = y,
   { rw [hxy, angle_self hy],
-    simp },
+    simv },
   { rw [real.sin_add, cos_angle, cos_angle],
     have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
     have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
@@ -266,12 +266,12 @@ begin
     exact h3lt },
   interval_cases n,
   { rw hn at hcos,
-    simp at hcos,
+    simv at hcos,
     norm_num at hcos },
   { rw hn,
     norm_num },
   { rw hn at hcos,
-    simp at hcos,
+    simv at hcos,
     norm_num at hcos },
 end
 
@@ -370,11 +370,11 @@ theorem dist_sq_add_dist_sq_eq_two_mul_dist_midpoint_sq_add_half_dist_sq (a b c 
   dist a b ^ 2 + dist a c ^ 2 = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :=
 begin
   by_cases hbc : b = c,
-  { simp [hbc, midpoint_self, dist_self, two_mul] },
+  { simv [hbc, midpoint_self, dist_self, two_mul] },
   { let m := midpoint ℝ b c,
     have : dist b c ≠ 0 := (dist_pos.mpr hbc).ne',
     have hm := dist_sq_mul_dist_add_dist_sq_mul_dist a b c m (angle_midpoint_eq_pi b c hbc),
-    simp only [dist_left_midpoint, dist_right_midpoint, real.norm_two] at hm,
+    simv only [dist_left_midpoint, dist_right_midpoint, real.norm_two] at hm,
     calc  dist a b ^ 2 + dist a c ^ 2
         = 2 / dist b c * (dist a b ^ 2 * (2⁻¹ * dist b c) + dist a c ^ 2 * (2⁻¹ * dist b c)) :
           by { field_simp, ring }
@@ -389,10 +389,10 @@ begin
   have h' : dist a' c' ^ 2 = (r * dist a c) ^ 2,
     calc  dist a' c' ^ 2
         = dist a' b' ^ 2 + dist c' b' ^ 2 - 2 * dist a' b' * dist c' b' * real.cos (∠ a' b' c') :
-          by { simp [pow_two, law_cos a' b' c'] }
+          by { simv [pow_two, law_cos a' b' c'] }
     ... = r ^ 2 * (dist a b ^ 2 + dist c b ^ 2 - 2 * dist a b * dist c b * real.cos (∠ a b c)) :
           by { rw [h, hab, hcb], ring }
-    ... = (r * dist a c) ^ 2 : by simp [pow_two, ← law_cos a b c, mul_pow],
+    ... = (r * dist a c) ^ 2 : by simv [pow_two, ← law_cos a b c, mul_pow],
   by_cases hab₁ : a = b,
   { have hab'₁ : a' = b', { rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r] },
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },

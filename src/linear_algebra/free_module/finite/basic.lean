@@ -67,7 +67,7 @@ lemma _root_.module.finite.of_basis {R : Type*} {M : Type*} {ι : Type*} [comm_r
 begin
   classical,
   refine ⟨⟨finset.univ.image b, _⟩⟩,
-  simp only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
+  simv only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
 end
 
 instance _root_.module.finite.matrix {ι₁ : Type*} [fintype ι₁] {ι₂ : Type*} [fintype ι₂] :

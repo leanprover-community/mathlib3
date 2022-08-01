@@ -97,7 +97,7 @@ instance : is_lawful_applicative finset :=
   seq_assoc := λ α β γ s t u, begin
     ext a,
     simp_rw [seq_def, fmap_def],
-    simp only [exists_prop, mem_sup, mem_image],
+    simv only [exists_prop, mem_sup, mem_image],
     split,
     { rintro ⟨g, hg, b, ⟨f, hf, a, ha, rfl⟩, rfl⟩,
       exact ⟨g ∘ f, ⟨comp g, ⟨g, hg, rfl⟩, f, hf, rfl⟩, a, ha, rfl⟩ },
@@ -172,7 +172,7 @@ lemma map_traverse (g : α → G β) (h : β → γ) (s : finset α) :
   functor.map h <$> traverse g s = traverse (functor.map h ∘ g) s :=
 begin
   unfold traverse,
-  simp only [map_comp_coe] with functor_norm,
+  simv only [map_comp_coe] with functor_norm,
   rw [is_lawful_functor.comp_map, multiset.map_traverse],
 end
 

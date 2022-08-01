@@ -84,9 +84,9 @@ lemma is_pi_system.insert_empty {α} {S : set (set α)} (h_pi : is_pi_system S) 
 begin
   intros s hs t ht hst,
   cases hs,
-  { simp [hs], },
+  { simv [hs], },
   { cases ht,
-    { simp [ht], },
+    { simv [ht], },
     { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
 end
 
@@ -95,9 +95,9 @@ lemma is_pi_system.insert_univ {α} {S : set (set α)} (h_pi : is_pi_system S) :
 begin
   intros s hs t ht hst,
   cases hs,
-  { cases ht; simp [hs, ht], },
+  { cases ht; simv [hs, ht], },
   { cases ht,
-    { simp [hs, ht], },
+    { simv [hs, ht], },
     { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
 end
 
@@ -138,7 +138,7 @@ lemma is_pi_system_Ixx_mem {Ixx : α → α → set α} {p : α → α → Prop}
   is_pi_system {S | ∃ (l ∈ s) (u ∈ t) (hlu : p l u), Ixx l u = S} :=
 begin
   rintro _ ⟨l₁, hls₁, u₁, hut₁, hlu₁, rfl⟩ _ ⟨l₂, hls₂, u₂, hut₂, hlu₂, rfl⟩,
-  simp only [Hi, ← sup_eq_max, ← inf_eq_min],
+  simv only [Hi, ← sup_eq_max, ← inf_eq_min],
   exact λ H, ⟨l₁ ⊔ l₂, sup_ind l₁ l₂ hls₁ hls₂, u₁ ⊓ u₂, inf_ind u₁ u₂ hut₁ hut₂, Hne H, rfl⟩
 end
 
@@ -263,7 +263,7 @@ begin
       simp_rw [set.mem_inter_iff, set.mem_Inter, finset.mem_union, or_imp_distrib],
       rw ← forall_and_distrib,
       split; intros h1 b; by_cases hbs : b ∈ T_s; by_cases hbt : b ∈ T_t'; specialize h1 b;
-        simp only [hbs, hbt, if_true, if_false, true_implies_iff, and_self, false_implies_iff,
+        simv only [hbs, hbt, if_true, if_false, true_implies_iff, and_self, false_implies_iff,
           and_true, true_and] at h1 ⊢,
       all_goals { exact h1, }, },
     intros b h_b,
@@ -286,13 +286,13 @@ begin
   have : t ∈ generate_pi_system (⋃ (b : subtype s), (g ∘ subtype.val) b),
   { suffices h1 : (⋃ (b : subtype s), (g ∘ subtype.val) b) = (⋃ b ∈ s, g b), by rwa h1,
     ext x,
-    simp only [exists_prop, set.mem_Union, function.comp_app, subtype.exists, subtype.coe_mk],
+    simv only [exists_prop, set.mem_Union, function.comp_app, subtype.exists, subtype.coe_mk],
     refl },
   rcases @mem_generate_pi_system_Union_elim α (subtype s) (g ∘ subtype.val)
     (λ b, h_pi b.val b.property) t this with ⟨T, ⟨f, ⟨rfl, h_t'⟩⟩⟩,
-  refine ⟨T.image subtype.val, function.extend subtype.val f (λ b : β, (∅ : set α)), by simp, _, _⟩,
+  refine ⟨T.image subtype.val, function.extend subtype.val f (λ b : β, (∅ : set α)), by simv, _, _⟩,
   { ext a, split;
-    { simp only [set.mem_Inter, subtype.forall, finset.set_bInter_finset_image],
+    { simv only [set.mem_Inter, subtype.forall, finset.set_bInter_finset_image],
       intros h1 b h_b h_b_in_T,
       have h2 := h1 b h_b h_b_in_T,
       revert h2,
@@ -335,7 +335,7 @@ begin
   { rw [ht1_eq, ht2_eq],
     simp_rw [← set.inf_eq_inter, g],
     ext1 x,
-    simp only [inf_eq_inter, mem_inter_eq, mem_Inter, finset.mem_union],
+    simv only [inf_eq_inter, mem_inter_eq, mem_Inter, finset.mem_union],
     refine ⟨λ h i hi_mem_union, _, λ h, ⟨λ i hi1, _, λ i hi2, _⟩⟩,
     { split_ifs,
       exacts [⟨h.1 i h_1, h.2 i h_2⟩, ⟨h.1 i h_1, set.mem_univ _⟩,
@@ -357,9 +357,9 @@ begin
     refine set.Inter_subset_of_subset hn _,
     simp_rw [g, if_pos hn1, if_pos hn2],
     exact h.subset, },
-  { simp [hf1m n hn1], },
-  { simp [hf2m n h], },
-  { exact absurd hn (by simp [hn1, h]), },
+  { simv [hf1m n hn1], },
+  { simv [hf2m n h], },
+  { exact absurd hn (by simv [hn1, h]), },
 end
 
 lemma pi_Union_Inter_mono_left {α ι} {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i)
@@ -485,7 +485,7 @@ by { rw union_eq_Union, exact
 lemma has_diff {s₁ s₂ : set α} (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₂ ⊆ s₁) : d.has (s₁ \ s₂) :=
 begin
   apply d.has_compl_iff.1,
-  simp [diff_eq, compl_inter],
+  simv [diff_eq, compl_inter],
   exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
 end
 
@@ -521,7 +521,7 @@ inductive generate_has (s : set (set α)) : set α → Prop
     (∀ i, generate_has (f i)) → generate_has (⋃ i, f i)
 
 lemma generate_has_compl {C : set (set α)} {s : set α} : generate_has C sᶜ ↔ generate_has C s :=
-by { refine ⟨_, generate_has.compl⟩, intro h, convert generate_has.compl h, simp }
+by { refine ⟨_, generate_has.compl⟩, intro h, convert generate_has.compl h, simv }
 
 /-- The least Dynkin system containing a collection of basic sets. -/
 def generate (s : set (set α)) : dynkin_system α :=
@@ -555,10 +555,10 @@ ext $ assume s, iff.rfl
 /-- If `s` is in a Dynkin system `d`, we can form the new Dynkin system `{s ∩ t | t ∈ d}`. -/
 def restrict_on {s : set α} (h : d.has s) : dynkin_system α :=
 { has       := λ t, d.has (t ∩ s),
-  has_empty := by simp [d.has_empty],
+  has_empty := by simv [d.has_empty],
   has_compl := assume t hts,
     have tᶜ ∩ s = ((t ∩ s)ᶜ) \ sᶜ,
-      from set.ext $ assume x, by { by_cases x ∈ s; simp [h] },
+      from set.ext $ assume x, by { by_cases x ∈ s; simv [h] },
     by { rw [this], exact d.has_diff (d.has_compl hts) (d.has_compl h)
       (compl_subset_compl.mpr $ inter_subset_right _ _) },
   has_Union_nat := assume f hd hf,

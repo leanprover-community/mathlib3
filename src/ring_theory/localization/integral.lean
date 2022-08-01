@@ -53,7 +53,7 @@ else 0
 
 lemma coeff_integer_normalization_of_not_mem_support (p : S[X]) (i : ℕ)
   (h : coeff p i = 0) : coeff_integer_normalization M p i = 0 :=
-by simp only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
+by simv only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
   ne.def, dif_neg, not_false_iff]
 
 lemma coeff_integer_normalization_mem_support (p : S[X]) (i : ℕ)
@@ -72,7 +72,7 @@ noncomputable def integer_normalization (p : S[X]) :
 @[simp]
 lemma integer_normalization_coeff (p : S[X]) (i : ℕ) :
   (integer_normalization M p).coeff i = coeff_integer_normalization M p i :=
-by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
+by simv [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
   {contextual := tt}
 
 lemma integer_normalization_spec (p : S[X]) :
@@ -150,7 +150,7 @@ lemma is_algebraic_iff [algebra A C] [algebra K C] [is_scalar_tower A K C] {x : 
 begin
   split; rintros ⟨p, hp, px⟩,
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
-    { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
+    { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simv [h]),
       exact to_map_eq_zero_iff.mp this },
     { rwa is_scalar_tower.aeval_apply _ K at px } },
   { exact ⟨integer_normalization _ p,
@@ -314,7 +314,7 @@ lemma is_algebraic_iff' [field K] [is_domain R] [is_domain S] [algebra R K] [alg
   [no_zero_smul_divisors R K] [is_fraction_ring S K] [is_scalar_tower R S K] :
   algebra.is_algebraic R S ↔ algebra.is_algebraic R K :=
 begin
-  simp only [algebra.is_algebraic],
+  simv only [algebra.is_algebraic],
   split,
   { intros h x,
     rw [is_fraction_ring.is_algebraic_iff R (fraction_ring R) K, is_algebraic_iff_is_integral],

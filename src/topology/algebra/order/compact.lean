@@ -52,7 +52,7 @@ instance conditionally_complete_linear_order.to_compact_Icc_space
   compact_Icc_space α :=
 begin
   refine ⟨λ a b, _⟩,
-  cases le_or_lt a b with hab hab, swap, { simp [hab] },
+  cases le_or_lt a b with hab hab, swap, { simv [hab] },
   refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
   contrapose! hf,
   rw [le_principal_iff],
@@ -61,7 +61,7 @@ begin
   set s := {x ∈ Icc a b | Icc a x ∉ f},
   have hsb : b ∈ upper_bounds s, from λ x hx, hx.1.2,
   have sbd : bdd_above s, from ⟨b, hsb⟩,
-  have ha : a ∈ s, by simp [hpt, hab],
+  have ha : a ∈ s, by simv [hpt, hab],
   rcases hab.eq_or_lt with rfl|hlt, { exact ha.2 },
   set c := Sup s,
   have hsc : is_lub s c, from is_lub_cSup ⟨a, ha⟩ sbd,
@@ -120,7 +120,7 @@ that cover these cases. -/
 instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]
   [topological_space α] [order_topology α] :
   compact_space α :=
-⟨by simp only [← Icc_bot_top, is_compact_Icc]⟩
+⟨by simv only [← Icc_bot_top, is_compact_Icc]⟩
 
 section
 

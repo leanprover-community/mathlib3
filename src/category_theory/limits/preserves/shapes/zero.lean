@@ -61,8 +61,8 @@ instance preserves_zero_morphisms_of_is_left_adjoint (F : C ⥤ D) [is_left_adjo
     ... = F.map 0 ≫ F.map ((right_adjoint F).map (0 : F.obj X ⟶ _)) ≫ adj.counit.app (F.obj Y) : _
     ... = 0 : _,
     { rw adjunction.left_triangle_components, exact (category.comp_id _).symm },
-    { simp only [← category.assoc, ← F.map_comp, zero_comp] },
-    { simp only [adjunction.counit_naturality, comp_zero] }
+    { simv only [← category.assoc, ← F.map_comp, zero_comp] },
+    { simv only [adjunction.counit_naturality, comp_zero] }
   end }
 
 @[priority 100]
@@ -74,8 +74,8 @@ instance preserves_zero_morphisms_of_is_right_adjoint (G : C ⥤ D) [is_right_ad
     ... = adj.unit.app (G.obj X) ≫ G.map ((left_adjoint G).map (0 : _ ⟶ G.obj X)) ≫ G.map 0 : _
     ... = 0 : _,
     { rw adjunction.right_triangle_components_assoc },
-    { simp only [← G.map_comp, comp_zero] },
-    { simp only [adjunction.unit_naturality_assoc, zero_comp] }
+    { simv only [← G.map_comp, comp_zero] },
+    { simv only [adjunction.unit_naturality_assoc, zero_comp] }
   end }
 
 @[priority 100]
@@ -107,7 +107,7 @@ lemma preserves_zero_morphisms_of_map_zero_object (i : F.obj 0 ≅ 0) : preserve
   F.map (0 : X ⟶ Y) = F.map (0 : X ⟶ 0) ≫ F.map 0 : by rw [← functor.map_comp, comp_zero]
                 ... = F.map 0 ≫ (i.hom ≫ i.inv) ≫ F.map 0
                         : by rw [iso.hom_inv_id, category.id_comp]
-                ... = 0 : by simp only [zero_of_to_zero i.hom, zero_comp, comp_zero] }
+                ... = 0 : by simv only [zero_of_to_zero i.hom, zero_comp, comp_zero] }
 
 @[priority 100]
 instance preserves_zero_morphisms_of_preserves_initial_object

@@ -73,7 +73,7 @@ class smul_hom_class (F : Type*) (M X Y : out_param $ Type*) [has_smul M X] [has
 attribute [nolint dangerous_instance] smul_hom_class.to_fun_like
 
 export smul_hom_class (map_smul)
-attribute [simp] map_smul
+attribute [simv] map_smul
 
 namespace mul_action_hom
 
@@ -206,7 +206,7 @@ protected def id : A →+[M] A :=
 variables {M A B C}
 
 instance : has_zero (A →+[M] B) :=
-⟨{ map_smul' := by simp,
+⟨{ map_smul' := by simv,
    .. (0 : A →+ B) }⟩
 
 instance : has_one (A →+[M] A) := ⟨distrib_mul_action_hom.id M⟩

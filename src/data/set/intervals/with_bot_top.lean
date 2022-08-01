@@ -38,25 +38,25 @@ end
 @[simp] lemma preimage_coe_Iic : (coe : α → with_top α) ⁻¹' (Iic a) = Iic a := ext $ λ x, coe_le_coe
 
 @[simp] lemma preimage_coe_Icc : (coe : α → with_top α) ⁻¹' (Icc a b) = Icc a b :=
-by simp [← Ici_inter_Iic]
+by simv [← Ici_inter_Iic]
 
 @[simp] lemma preimage_coe_Ico : (coe : α → with_top α) ⁻¹' (Ico a b) = Ico a b :=
-by simp [← Ici_inter_Iio]
+by simv [← Ici_inter_Iio]
 
 @[simp] lemma preimage_coe_Ioc : (coe : α → with_top α) ⁻¹' (Ioc a b) = Ioc a b :=
-by simp [← Ioi_inter_Iic]
+by simv [← Ioi_inter_Iic]
 
 @[simp] lemma preimage_coe_Ioo : (coe : α → with_top α) ⁻¹' (Ioo a b) = Ioo a b :=
-by simp [← Ioi_inter_Iio]
+by simv [← Ioi_inter_Iio]
 
 @[simp] lemma preimage_coe_Iio_top : (coe : α → with_top α) ⁻¹' (Iio ⊤) = univ :=
 by rw [← range_coe, preimage_range]
 
 @[simp] lemma preimage_coe_Ico_top : (coe : α → with_top α) ⁻¹' (Ico a ⊤) = Ici a :=
-by simp [← Ici_inter_Iio]
+by simv [← Ici_inter_Iio]
 
 @[simp] lemma preimage_coe_Ioo_top : (coe : α → with_top α) ⁻¹' (Ioo a ⊤) = Ioi a :=
-by simp [← Ioi_inter_Iio]
+by simv [← Ioi_inter_Iio]
 
 lemma image_coe_Ioi : (coe : α → with_top α) '' (Ioi a) = Ioo a ⊤ :=
 by rw [← preimage_coe_Ioi, image_preimage_eq_inter_range, range_coe, Ioi_inter_Iio]
@@ -107,25 +107,25 @@ lemma range_coe : range (coe : α → with_bot α) = Ioi ⊥ := @with_top.range_
 @[simp] lemma preimage_coe_Iic : (coe : α → with_bot α) ⁻¹' (Iic a) = Iic a := ext $ λ x, coe_le_coe
 
 @[simp] lemma preimage_coe_Icc : (coe : α → with_bot α) ⁻¹' (Icc a b) = Icc a b :=
-by simp [← Ici_inter_Iic]
+by simv [← Ici_inter_Iic]
 
 @[simp] lemma preimage_coe_Ico : (coe : α → with_bot α) ⁻¹' (Ico a b) = Ico a b :=
-by simp [← Ici_inter_Iio]
+by simv [← Ici_inter_Iio]
 
 @[simp] lemma preimage_coe_Ioc : (coe : α → with_bot α) ⁻¹' (Ioc a b) = Ioc a b :=
-by simp [← Ioi_inter_Iic]
+by simv [← Ioi_inter_Iic]
 
 @[simp] lemma preimage_coe_Ioo : (coe : α → with_bot α) ⁻¹' (Ioo a b) = Ioo a b :=
-by simp [← Ioi_inter_Iio]
+by simv [← Ioi_inter_Iio]
 
 @[simp] lemma preimage_coe_Ioi_bot : (coe : α → with_bot α) ⁻¹' (Ioi ⊥) = univ :=
 by rw [← range_coe, preimage_range]
 
 @[simp] lemma preimage_coe_Ioc_bot : (coe : α → with_bot α) ⁻¹' (Ioc ⊥ a) = Iic a :=
-by simp [← Ioi_inter_Iic]
+by simv [← Ioi_inter_Iic]
 
 @[simp] lemma preimage_coe_Ioo_bot : (coe : α → with_bot α) ⁻¹' (Ioo ⊥ a) = Iio a :=
-by simp [← Ioi_inter_Iio]
+by simv [← Ioi_inter_Iio]
 
 lemma image_coe_Iio : (coe : α → with_bot α) '' (Iio a) = Ioo ⊥ a :=
 by rw [← preimage_coe_Iio, image_preimage_eq_inter_range, range_coe, inter_comm, Ioi_inter_Iio]

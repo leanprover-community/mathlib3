@@ -60,11 +60,11 @@ lemma polar_mem (s : set E) (y : F) (hy : y ∈ B.polar s) :
 
 @[simp] lemma zero_mem_polar (s : set E) :
   (0 : F) ∈ B.polar s :=
-λ _ _, by simp only [map_zero, norm_zero, zero_le_one]
+λ _ _, by simv only [map_zero, norm_zero, zero_le_one]
 
 lemma polar_eq_Inter {s : set E} :
   B.polar s = ⋂ x ∈ s, {y : F | ∥B x y∥ ≤ 1} :=
-by { ext, simp only [polar_mem_iff, set.mem_Inter, set.mem_set_of_eq] }
+by { ext, simv only [polar_mem_iff, set.mem_Inter, set.mem_set_of_eq] }
 
 /-- The map `B.polar : set E → set F` forms an order-reversing Galois connection with
 `B.flip.polar : set F → set E`. We use `order_dual.to_dual` and `order_dual.of_dual` to express
@@ -121,7 +121,7 @@ lemma polar_univ (h : separating_right B) :
   B.polar set.univ = {(0 : F)} :=
 begin
   rw set.eq_singleton_iff_unique_mem,
-  refine ⟨by simp only [zero_mem_polar], λ y hy, h _ (λ x, _)⟩,
+  refine ⟨by simv only [zero_mem_polar], λ y hy, h _ (λ x, _)⟩,
   refine norm_le_zero_iff.mp (le_of_forall_le_of_dense $ λ ε hε, _),
   rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
   calc ∥B x y∥ = ∥c∥ * ∥B (c⁻¹ • x) y∥ :

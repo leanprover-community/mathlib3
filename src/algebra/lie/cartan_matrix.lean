@@ -141,11 +141,11 @@ uncurry $ λ i j, (ad (F i))^(-A i j).to_nat $ ⁅F i, F j⁆
 
 private lemma ad_E_of_eq_eq_zero (i : B) (h : A i i = 2) : ad_E R A ⟨i, i⟩ = 0 :=
 have h' : (-2 : ℤ).to_nat = 0, { refl, },
-by simp [ad_E, h, h']
+by simv [ad_E, h, h']
 
 private lemma ad_F_of_eq_eq_zero (i : B) (h : A i i = 2) : ad_F R A ⟨i, i⟩ = 0 :=
 have h' : (-2 : ℤ).to_nat = 0, { refl, },
-by simp [ad_F, h, h']
+by simv [ad_F, h, h']
 
 /-- The union of all the relations as a subset of the free Lie algebra. -/
 def to_set : set (free_lie_algebra R (generators B)) :=

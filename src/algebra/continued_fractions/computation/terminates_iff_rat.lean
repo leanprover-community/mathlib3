@@ -38,7 +38,7 @@ variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 We will have to constantly coerce along our structures in the following proofs using their provided
 map functions.
 -/
-local attribute [simp] pair.map int_fract_pair.mapFr
+local attribute [simv] pair.map int_fract_pair.mapFr
 
 section rat_of_terminates
 /-!
@@ -66,12 +66,12 @@ begin
   -- n = 0
   { suffices : ∃ (gp : pair ℚ), pair.mk (1 : K) 0 = gp.map coe, by simpa [continuants_aux],
     use (pair.mk 1 0),
-    simp },
+    simv },
   -- n = 1
   { suffices : ∃ (conts : pair ℚ), pair.mk g.h 1 = conts.map coe, by
       simpa [continuants_aux],
     use (pair.mk ⌊v⌋ 1),
-    simp },
+    simv },
   -- 2 ≤ n
   { cases (IH (n + 1) $ lt_add_one (n + 1)) with pred_conts pred_conts_eq, -- invoke the IH
     cases s_ppred_nth_eq : (g.s.nth n) with gp_n,
@@ -79,7 +79,7 @@ begin
     { use pred_conts,
       have : g.continuants_aux (n + 2) = g.continuants_aux (n + 1), from
         continuants_aux_stable_of_terminated (n + 1).le_succ s_ppred_nth_eq,
-      simp only [this, pred_conts_eq] },
+      simv only [this, pred_conts_eq] },
     -- option.some
     { -- invoke the IH a second time
       cases (IH n $ lt_of_le_of_lt (n.le_succ) $ lt_add_one $ n + 1)
@@ -87,11 +87,11 @@ begin
       obtain ⟨a_eq_one, z, b_eq_z⟩ : gp_n.a = 1 ∧ ∃ (z : ℤ), gp_n.b = (z : K), from
         of_part_num_eq_one_and_exists_int_part_denom_eq s_ppred_nth_eq,
       -- finally, unfold the recurrence to obtain the required rational value.
-      simp only [a_eq_one, b_eq_z,
+      simv only [a_eq_one, b_eq_z,
         (continuants_aux_recurrence s_ppred_nth_eq ppred_conts_eq pred_conts_eq)],
       use (next_continuants 1 (z : ℚ) ppred_conts pred_conts),
       cases ppred_conts, cases pred_conts,
-      simp [next_continuants, next_numerator, next_denominator] } }
+      simv [next_continuants, next_numerator, next_denominator] } }
 end
 
 lemma exists_gcf_pair_rat_eq_nth_conts :
@@ -102,14 +102,14 @@ lemma exists_rat_eq_nth_numerator : ∃ (q : ℚ), (of v).numerators n = (q : K)
 begin
   rcases (exists_gcf_pair_rat_eq_nth_conts v n) with ⟨⟨a, _⟩, nth_cont_eq⟩,
   use a,
-  simp [num_eq_conts_a, nth_cont_eq],
+  simv [num_eq_conts_a, nth_cont_eq],
 end
 
 lemma exists_rat_eq_nth_denominator : ∃ (q : ℚ), (of v).denominators n = (q : K) :=
 begin
   rcases (exists_gcf_pair_rat_eq_nth_conts v n) with ⟨⟨_, b⟩, nth_cont_eq⟩,
   use b,
-  simp [denom_eq_conts_b, nth_cont_eq]
+  simv [denom_eq_conts_b, nth_cont_eq]
 end
 
 /-- Every finite convergent corresponds to a rational number. -/
@@ -118,7 +118,7 @@ begin
   rcases (exists_rat_eq_nth_numerator v n) with ⟨Aₙ, nth_num_eq⟩,
   rcases (exists_rat_eq_nth_denominator v n) with ⟨Bₙ, nth_denom_eq⟩,
   use (Aₙ / Bₙ),
-  simp [nth_num_eq, nth_denom_eq, convergent_eq_num_div_denom]
+  simv [nth_num_eq, nth_denom_eq, convergent_eq_num_div_denom]
 end
 
 variable {v}
@@ -167,27 +167,27 @@ namespace int_fract_pair
 
 lemma coe_of_rat_eq :
   ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
-by simp [int_fract_pair.of, v_eq_q]
+by simv [int_fract_pair.of, v_eq_q]
 
 lemma coe_stream_nth_rat_eq :
     ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)
   = int_fract_pair.stream v n :=
 begin
   induction n with n IH,
-  case nat.zero : { simp [int_fract_pair.stream, (coe_of_rat_eq v_eq_q)] },
+  case nat.zero : { simv [int_fract_pair.stream, (coe_of_rat_eq v_eq_q)] },
   case nat.succ :
   { rw v_eq_q at IH,
     cases stream_q_nth_eq : (int_fract_pair.stream q n) with ifp_n,
-    case option.none : { simp [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq] },
+    case option.none : { simv [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq] },
     case option.some :
     { cases ifp_n with b fr,
       cases decidable.em (fr = 0) with fr_zero fr_ne_zero,
-      { simp [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_zero] },
+      { simv [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_zero] },
       { replace IH : some (int_fract_pair.mk b ↑fr) = int_fract_pair.stream ↑q n, by
           rwa [stream_q_nth_eq] at IH,
         have : (fr : K)⁻¹ = ((fr⁻¹ : ℚ) : K), by norm_cast,
         have coe_of_fr := (coe_of_rat_eq this),
-        simp [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_ne_zero],
+        simv [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_ne_zero],
         exact congr_arg some coe_of_fr } } }
 end
 
@@ -204,17 +204,17 @@ lemma coe_of_h_rat_eq : (↑((of q).h : ℚ) : K) = (of v).h :=
 begin
   unfold of int_fract_pair.seq1,
   rw ←(int_fract_pair.coe_of_rat_eq v_eq_q),
-  simp
+  simv
 end
 
 lemma coe_of_s_nth_rat_eq :
   (((of q).s.nth n).map (pair.map coe) : option $ pair K) = (of v).s.nth n :=
 begin
-  simp only [of, int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
-  simp only [seq.nth],
+  simv only [of, int_fract_pair.seq1, seq.map_nth, seq.nth_tail],
+  simv only [seq.nth],
   rw [←(int_fract_pair.coe_stream_rat_eq v_eq_q)],
   rcases succ_nth_stream_eq : (int_fract_pair.stream q (n + 1)) with _ | ⟨_, _⟩;
-  simp [stream.map, stream.nth, succ_nth_stream_eq]
+  simv [stream.map, stream.nth, succ_nth_stream_eq]
 end
 
 lemma coe_of_s_rat_eq : (((of q).s).map (pair.map coe) : seq $ pair K) = (of v).s :=
@@ -226,7 +226,7 @@ lemma coe_of_rat_eq :
 begin
   cases gcf_v_eq : (of v) with h s, subst v,
   obtain rfl : ↑⌊↑q⌋ = h, by { injection gcf_v_eq },
-  simp [coe_of_h_rat_eq rfl, coe_of_s_rat_eq rfl, gcf_v_eq]
+  simv [coe_of_h_rat_eq rfl, coe_of_s_rat_eq rfl, gcf_v_eq]
 end
 
 lemma of_terminates_iff_of_rat_terminates {v : K} {q : ℚ} (v_eq_q : v = (q : K)) :
@@ -236,7 +236,7 @@ begin
   intro h;
   cases h with n h;
   use n;
-  simp only [seq.terminated_at, (coe_of_s_nth_rat_eq v_eq_q n).symm] at h ⊢;
+  simv only [seq.terminated_at, (coe_of_s_nth_rat_eq v_eq_q n).symm] at h ⊢;
   cases ((of q).s.nth n);
   trivial
 end
@@ -293,7 +293,7 @@ begin
   case nat.zero
   { assume ifp_zero stream_zero_eq,
     have : int_fract_pair.of q = ifp_zero, by injection stream_zero_eq,
-    simp [le_refl, this.symm] },
+    simv [le_refl, this.symm] },
   case nat.succ
   { assume ifp_succ_n stream_succ_nth_eq,
     suffices : ifp_succ_n.fr.num + 1 ≤ (int_fract_pair.of q).fr.num - n, by
@@ -318,7 +318,7 @@ begin
       stream_nth_fr_num_le_fr_num_sub_n_rat stream_nth_eq,
     have : fract_q_num - n = -1, by
     { have : 0 ≤ fract_q_num, from rat.num_nonneg_iff_zero_le.elim_right (int.fract_nonneg q),
-      simp [(int.nat_abs_of_nonneg this), sub_add_eq_sub_sub_swap, sub_right_comm] },
+      simv [(int.nat_abs_of_nonneg this), sub_add_eq_sub_sub_swap, sub_right_comm] },
     have : ifp.fr.num ≤ -1, by rwa this at ifp_fr_num_le_q_fr_num_sub_n,
     have : 0 ≤ ifp.fr, from (nth_stream_fr_nonneg_lt_one stream_nth_eq).left,
     have : 0 ≤ ifp.fr.num, from rat.num_nonneg_iff_zero_le.elim_right this,

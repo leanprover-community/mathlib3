@@ -58,10 +58,10 @@ def uniform_space_of_edist
 uniform_space.of_core
 { uniformity := (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
-    by simp [set.subset_def, id_rel, edist_self, (>)] {contextual := tt},
+    by simv [set.subset_def, id_rel, edist_self, (>)] {contextual := tt},
   comp       :=
     le_infi $ assume ε, le_infi $ assume h,
-    have (2 : ℝ≥0∞) = (2 : ℕ) := by simp,
+    have (2 : ℝ≥0∞) = (2 : ℕ) := by simv,
     have A : 0 < ε / 2 := ennreal.div_pos_iff.2
       ⟨ne_of_gt h, by { convert ennreal.nat_ne_top 2 }⟩,
     lift'_le
@@ -73,7 +73,7 @@ uniform_space.of_core
         ... = ε : by rw [ennreal.add_halves],
     by simpa [comp_rel],
   symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
-    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [edist_comm] }
+    tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simv [edist_comm] }
 
 -- the uniform structure is embedded in the emetric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
@@ -107,7 +107,7 @@ variables [pseudo_emetric_space α]
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
 
-attribute [simp] edist_self
+attribute [simv] edist_self
 
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
@@ -128,14 +128,14 @@ lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
 begin
   revert n,
   refine nat.le_induction _ _,
-  { simp only [finset.sum_empty, finset.Ico_self, edist_self],
+  { simv only [finset.sum_empty, finset.Ico_self, edist_self],
     -- TODO: Why doesn't Lean close this goal automatically? `exact le_rfl` fails too.
     exact le_refl (0:ℝ≥0∞) },
   { assume n hn hrec,
     calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _
       ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec le_rfl
       ... = ∑ i in finset.Ico m (n+1), _ :
-        by rw [nat.Ico_succ_right_eq_insert_Ico hn, finset.sum_insert, add_comm]; simp }
+        by rw [nat.Ico_succ_right_eq_insert_Ico hn, finset.sum_insert, add_comm]; simv }
 end
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
@@ -345,14 +345,14 @@ lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_locally_uniformly F f p ↔
   ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
-by simp only [← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff,
+by simv only [← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff,
   mem_univ, forall_const, exists_prop, nhds_within_univ]
 
 /-- Expressing uniform convergence using `edist`. -/
 lemma tendsto_uniformly_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, edist (f x) (F n x) < ε :=
-by simp only [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff, mem_univ, forall_const]
+by simv only [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff, mem_univ, forall_const]
 
 end emetric
 
@@ -428,17 +428,17 @@ pseudometric spaces. We make sure that the uniform structure thus constructed is
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
 instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
 { edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
-  edist_self := λ x, by simp,
-  edist_comm := λ x y, by simp [edist_comm],
+  edist_self := λ x, by simv,
+  edist_comm := λ x y, by simv [edist_comm],
   edist_triangle := λ x y z, max_le
     (le_trans (edist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
     (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp only [pseudo_emetric_space.uniformity_edist, comap_infi],
+    simv only [pseudo_emetric_space.uniformity_edist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, ext_iff, max_lt_iff]
+    simv [inf_principal, ext_iff, max_lt_iff]
   end,
   to_uniform_space := prod.uniform_space }
 
@@ -458,22 +458,22 @@ spaces. -/
 instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
   pseudo_emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
-  edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
+  edist_self := assume f, bot_unique $ finset.sup_le $ by simv,
   edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
   edist_triangle := assume f g h,
     begin
-      simp only [finset.sup_le_iff],
+      simv only [finset.sup_le_iff],
       assume b hb,
       exact le_trans (edist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin
-    simp only [Pi.uniformity, pseudo_emetric_space.uniformity_edist, comap_infi, gt_iff_lt,
+    simv only [Pi.uniformity, pseudo_emetric_space.uniformity_edist, comap_infi, gt_iff_lt,
       preimage_set_of_eq, comap_principal],
     rw infi_comm, congr, funext ε,
     rw infi_comm, congr, funext εpos,
     change 0 < ε at εpos,
-    simp [set.ext_iff, εpos]
+    simv [set.ext_iff, εpos]
   end }
 
 lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
@@ -489,7 +489,7 @@ finset.le_sup (finset.mem_univ b)
 
 lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d : ℝ≥0∞} :
   edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
-finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]
+finset.sup_le_iff.trans $ by simv only [finset.mem_univ, forall_const]
 
 end pi
 
@@ -592,7 +592,7 @@ nhds_basis_eball.eq_binfi
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball.mem_iff
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
-by simp [is_open_iff_nhds, mem_nhds_iff]
+by simv [is_open_iff_nhds, mem_nhds_iff]
 
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
@@ -619,7 +619,7 @@ ext $ λ z, max_le_iff.symm
 theorem mem_closure_iff :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_eball).trans $
-  by simp only [mem_ball, edist_comm x]
+  by simv only [mem_ball, edist_comm x]
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, edist (u x) a < ε :=
@@ -628,10 +628,10 @@ nhds_basis_eball.tendsto_right_iff
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
 (at_top_basis.tendsto_iff nhds_basis_eball).trans $
-  by simp only [exists_prop, true_and, mem_Ici, mem_ball]
+  by simv only [exists_prop, true_and, mem_Ici, mem_ball]
 
 theorem inseparable_iff : inseparable x y ↔ edist x y = 0 :=
-by simp [inseparable_iff_mem_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
+by simv [inseparable_iff_mem_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
 
 /-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
 the pseudoedistance between its elements is arbitrarily small -/
@@ -675,7 +675,7 @@ lemma subset_countable_closure_of_almost_dense_set (s : set α)
 begin
   rcases s.eq_empty_or_nonempty with rfl|⟨x₀, hx₀⟩,
   { exact ⟨∅, empty_subset _, countable_empty, empty_subset _⟩ },
-  choose! T hTc hsT using (λ n : ℕ, hs n⁻¹ (by simp)),
+  choose! T hTc hsT using (λ n : ℕ, hs n⁻¹ (by simv)),
   have : ∀ r x, ∃ y ∈ s, closed_ball x r ∩ s ⊆ closed_ball y (r * 2),
   { intros r x,
     rcases (closed_ball x r ∩ s).eq_empty_or_nonempty with he|⟨y, hxy, hys⟩,
@@ -750,11 +750,11 @@ def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 
 lemma diam_le_iff {d : ℝ≥0∞} :
   diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=
-by simp only [diam, supr_le_iff]
+by simv only [diam, supr_le_iff]
 
 lemma diam_image_le_iff {d : ℝ≥0∞} {f : β → α} {s : set β} :
   diam (f '' s) ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist (f x) (f y) ≤ d :=
-by simp only [diam_le_iff, ball_image_iff]
+by simv only [diam_le_iff, ball_image_iff]
 
 lemma edist_le_of_diam_le {d} (hx : x ∈ s) (hy : y ∈ s) (hd : diam s ≤ d) : edist x y ≤ d :=
 diam_le_iff.1 hd x hx y hy
@@ -782,19 +782,19 @@ diam_subsingleton subsingleton_singleton
 
 lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
   diam (⋃ i ∈ o, s i) = ⨆ i ∈ o, diam (s i) :=
-by cases o; simp
+by cases o; simv
 
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
-eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff, ball_insert_iff,
+eq_of_forall_ge_iff $ λ d, by simv only [diam_le_iff, ball_insert_iff,
   edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,
   forall_and_distrib, and_self, ← and_assoc]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_right]
+by simv only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_right]
 
 lemma diam_triple :
   diam ({x, y, z} : set α) = max (max (edist x y) (edist x z)) (edist y z) :=
-by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
+by simv only [diam_insert, supr_insert, supr_singleton, diam_singleton,
   ennreal.max_zero_right, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/
@@ -866,7 +866,7 @@ iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
 theorem edist_le_zero {x y : γ} : (edist x y ≤ 0) ↔ x = y :=
 nonpos_iff_eq_zero.trans edist_eq_zero
 
-@[simp] theorem edist_pos {x y : γ} : 0 < edist x y ↔ x ≠ y := by simp [← not_le]
+@[simp] theorem edist_pos {x y : γ} : 0 < edist x y ↔ x ≠ y := by simv [← not_le]
 
 /-- Two points coincide if their distance is `< ε` for all positive ε -/
 theorem eq_of_forall_edist_le {x y : γ} (h : ∀ε > 0, edist x y ≤ ε) : x = y :=
@@ -985,7 +985,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
 { eq_of_edist_eq_zero := assume f g eq0,
   begin
     have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,
-    simp only [finset.sup_le_iff] at eq1,
+    simv only [finset.sup_le_iff] at eq1,
     exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
   end,
   ..pseudo_emetric_space_pi }
@@ -1010,7 +1010,7 @@ lemma diam_eq_zero_iff : diam s = 0 ↔ s.subsingleton :=
 ⟨λ h x hx y hy, edist_le_zero.1 $ h ▸ edist_le_diam_of_mem hx hy, diam_subsingleton⟩
 
 lemma diam_pos_iff : 0 < diam s ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
-by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_forall]
+by simv only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_forall]
 
 end diam
 

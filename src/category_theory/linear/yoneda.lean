@@ -39,12 +39,12 @@ def linear_yoneda : C ⥤ Cᵒᵖ ⥤ Module R :=
     map_id' := λ Y, linear_map.ext $ λ _, category.id_comp _ },
   map := λ X X' f,
   { app := λ Y, linear.right_comp R _ f,
-    naturality' := λ X Y f, linear_map.ext $ λ x, by simp only [category.assoc, Module.coe_comp,
+    naturality' := λ X Y f, linear_map.ext $ λ x, by simv only [category.assoc, Module.coe_comp,
       function.comp_app, linear.left_comp_apply, linear.right_comp_apply] },
   map_id' := λ X, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
-    by simp only [linear.right_comp_apply, category.comp_id, nat_trans.id_app, Module.id_apply],
+    by simv only [linear.right_comp_apply, category.comp_id, nat_trans.id_app, Module.id_apply],
   map_comp' := λ _ _ _ f g, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
-    by simp only [category.assoc, linear.right_comp_apply, nat_trans.comp_app, Module.coe_comp,
+    by simv only [category.assoc, linear.right_comp_apply, nat_trans.comp_app, Module.coe_comp,
       function.comp_app] }
 
 /-- The Yoneda embedding for `R`-linear categories `C`,
@@ -59,13 +59,13 @@ def linear_coyoneda : Cᵒᵖ ⥤ C ⥤ Module R :=
     map_comp' := λ _ _ _ f g, linear_map.ext $ λ _, eq.symm (category.assoc _ _ _) },
   map := λ Y Y' f,
   { app := λ X, linear.left_comp _ _ f.unop,
-    naturality' := λ X Y f, linear_map.ext $ λ x, by simp only [category.assoc, Module.coe_comp,
+    naturality' := λ X Y f, linear_map.ext $ λ x, by simv only [category.assoc, Module.coe_comp,
       function.comp_app, linear.right_comp_apply, linear.left_comp_apply] },
   map_id' := λ X, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
-    by simp only [linear.left_comp_apply, unop_id, category.id_comp, nat_trans.id_app,
+    by simv only [linear.left_comp_apply, unop_id, category.id_comp, nat_trans.id_app,
       Module.id_apply],
   map_comp' := λ _ _ _ f g, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
-    by simp only [category.assoc, Module.coe_comp, function.comp_app, linear.left_comp_apply,
+    by simv only [category.assoc, Module.coe_comp, function.comp_app, linear.left_comp_apply,
       unop_comp, nat_trans.comp_app]}
 
 instance linear_yoneda_obj_additive (X : C) : ((linear_yoneda R C).obj X).additive := {}

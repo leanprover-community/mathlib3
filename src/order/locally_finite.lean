@@ -87,11 +87,11 @@ begin -- very non golfed
   use finset.min' (finset.Ioc x ub) h,
   split,
   { have := finset.min'_mem _ h,
-    simp * at * },
+    simv * at * },
   rintro y hxy,
   obtain hy | hy := le_total y ub,
   apply finset.min'_le,
-  simp * at *,
+  simv * at *,
   exact (finset.min'_le _ _ (finset.mem_Ioc_iff.2 ⟨hx, le_rfl⟩)).trans hy,
 end
 ```
@@ -282,16 +282,16 @@ locally_finite_order.finset_mem_Ioc a b x
 @[simp] lemma mem_Ioo : x ∈ Ioo a b ↔ a < x ∧ x < b :=
 locally_finite_order.finset_mem_Ioo a b x
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Icc (a b : α) : (Icc a b : set α) = set.Icc a b := set.ext $ λ _, mem_Icc
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Ico (a b : α) : (Ico a b : set α) = set.Ico a b := set.ext $ λ _, mem_Ico
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Ioc (a b : α) : (Ioc a b : set α) = set.Ioc a b := set.ext $ λ _, mem_Ioc
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_Ioo (a b : α) : (Ioo a b : set α) = set.Ioo a b := set.ext $ λ _, mem_Ioo
 
 end locally_finite_order
@@ -308,8 +308,8 @@ def Ioi (a : α) : finset α := locally_finite_order_top.finset_Ioi a
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := locally_finite_order_top.finset_mem_Ici _ _
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := locally_finite_order_top.finset_mem_Ioi _ _
 
-@[simp, norm_cast] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a := set.ext $ λ _, mem_Ici
-@[simp, norm_cast] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a := set.ext $ λ _, mem_Ioi
+@[simv, norm_cast] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a := set.ext $ λ _, mem_Ici
+@[simv, norm_cast] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a := set.ext $ λ _, mem_Ioi
 
 end locally_finite_order_top
 
@@ -325,8 +325,8 @@ def Iio (a : α) : finset α := locally_finite_order_bot.finset_Iio a
 @[simp] lemma mem_Iic : x ∈ Iic a ↔ x ≤ a := locally_finite_order_bot.finset_mem_Iic _ _
 @[simp] lemma mem_Iio : x ∈ Iio a ↔ x < a := locally_finite_order_bot.finset_mem_Iio _ _
 
-@[simp, norm_cast] lemma coe_Iic (a : α) : (Iic a : set α) = set.Iic a := set.ext $ λ _, mem_Iic
-@[simp, norm_cast] lemma coe_Iio (a : α) : (Iio a : set α) = set.Iio a := set.ext $ λ _, mem_Iio
+@[simv, norm_cast] lemma coe_Iic (a : α) : (Iic a : set α) = set.Iic a := set.ext $ λ _, mem_Iic
+@[simv, norm_cast] lemma coe_Iio (a : α) : (Iio a : set α) = set.Iio a := set.ext $ λ _, mem_Iio
 
 end locally_finite_order_bot
 
@@ -509,10 +509,10 @@ def fintype.to_locally_finite_order [fintype α] [@decidable_rel α (<)] [@decid
   finset_Ico := λ a b, (set.Ico a b).to_finset,
   finset_Ioc := λ a b, (set.Ioc a b).to_finset,
   finset_Ioo := λ a b, (set.Ioo a b).to_finset,
-  finset_mem_Icc := λ a b x, by simp only [set.mem_to_finset, set.mem_Icc],
-  finset_mem_Ico := λ a b x, by simp only [set.mem_to_finset, set.mem_Ico],
-  finset_mem_Ioc := λ a b x, by simp only [set.mem_to_finset, set.mem_Ioc],
-  finset_mem_Ioo := λ a b x, by simp only [set.mem_to_finset, set.mem_Ioo] }
+  finset_mem_Icc := λ a b x, by simv only [set.mem_to_finset, set.mem_Icc],
+  finset_mem_Ico := λ a b x, by simv only [set.mem_to_finset, set.mem_Ico],
+  finset_mem_Ioc := λ a b x, by simv only [set.mem_to_finset, set.mem_Ioc],
+  finset_mem_Ioo := λ a b x, by simv only [set.mem_to_finset, set.mem_Ioo] }
 
 instance : subsingleton (locally_finite_order α) :=
 subsingleton.intro (λ h₀ h₁, begin
@@ -688,7 +688,7 @@ namespace with_top
 variables (α) [partial_order α] [order_top α] [locally_finite_order α]
 
 local attribute [pattern] coe
-local attribute [simp] option.mem_iff
+local attribute [simv] option.mem_iff
 
 instance : locally_finite_order (with_top α) :=
 { finset_Icc := λ a b, match a, b with
@@ -716,39 +716,39 @@ instance : locally_finite_order (with_top α) :=
     |       ⊤,       ⊤,       x := mem_singleton.trans (le_antisymm_iff.trans $ and_comm _ _)
     |       ⊤, (b : α),       x := iff_of_false (not_mem_empty _)
                                      (λ h, (h.1.trans h.2).not_lt $ coe_lt_top _)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_1]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_1, coe_eq_coe]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_1]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_1, coe_eq_coe]
+    | (a : α),       ⊤,       ⊤ := by simv [with_top.locally_finite_order._match_1]
+    | (a : α),       ⊤, (x : α) := by simv [with_top.locally_finite_order._match_1, coe_eq_coe]
+    | (a : α), (b : α),       ⊤ := by simv [with_top.locally_finite_order._match_1]
+    | (a : α), (b : α), (x : α) := by simv [with_top.locally_finite_order._match_1, coe_eq_coe]
     end,
   finset_mem_Ico := λ a b x, match a, b, x with
     |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
                                      (λ h, not_top_lt $ h.1.trans_lt h.2)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_2]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_2, coe_eq_coe,
+    | (a : α),       ⊤,       ⊤ := by simv [with_top.locally_finite_order._match_2]
+    | (a : α),       ⊤, (x : α) := by simv [with_top.locally_finite_order._match_2, coe_eq_coe,
                                         coe_lt_top]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_2]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_2, coe_eq_coe,
+    | (a : α), (b : α),       ⊤ := by simv [with_top.locally_finite_order._match_2]
+    | (a : α), (b : α), (x : α) := by simv [with_top.locally_finite_order._match_2, coe_eq_coe,
                                         coe_lt_coe]
     end,
   finset_mem_Ioc := λ a b x, match a, b, x with
     |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
                                      (λ h, not_top_lt $ h.1.trans_le h.2)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_3, coe_lt_top]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
+    | (a : α),       ⊤,       ⊤ := by simv [with_top.locally_finite_order._match_3, coe_lt_top]
+    | (a : α),       ⊤, (x : α) := by simv [with_top.locally_finite_order._match_3, coe_eq_coe,
                                         coe_lt_coe]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_3]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_3, coe_eq_coe,
+    | (a : α), (b : α),       ⊤ := by simv [with_top.locally_finite_order._match_3]
+    | (a : α), (b : α), (x : α) := by simv [with_top.locally_finite_order._match_3, coe_eq_coe,
                                         coe_lt_coe]
     end,
   finset_mem_Ioo := λ a b x, match a, b, x with
     |       ⊤,       b,       x := iff_of_false (not_mem_empty _)
                                      (λ h, not_top_lt $ h.1.trans h.2)
-    | (a : α),       ⊤,       ⊤ := by simp [with_top.locally_finite_order._match_4, coe_lt_top]
-    | (a : α),       ⊤, (x : α) := by simp [with_top.locally_finite_order._match_4, coe_eq_coe,
+    | (a : α),       ⊤,       ⊤ := by simv [with_top.locally_finite_order._match_4, coe_lt_top]
+    | (a : α),       ⊤, (x : α) := by simv [with_top.locally_finite_order._match_4, coe_eq_coe,
                                         coe_lt_coe, coe_lt_top]
-    | (a : α), (b : α),       ⊤ := by simp [with_top.locally_finite_order._match_4]
-    | (a : α), (b : α), (x : α) := by simp [with_top.locally_finite_order._match_4, coe_eq_coe,
+    | (a : α), (b : α),       ⊤ := by simv [with_top.locally_finite_order._match_4]
+    | (a : α), (b : α), (x : α) := by simv [with_top.locally_finite_order._match_4, coe_eq_coe,
                                         coe_lt_coe]
     end }
 

@@ -65,13 +65,13 @@ else
 have hia : i a ≠ 0, from mt ((injective_iff_map_eq_zero i).1 i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
-    simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
+    simv [degree_C hia, @eq_comm (with_bot ℕ) 0,
       nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tauto))
 
 lemma splits_of_degree_eq_one {f : K[X]} (hf : degree f = 1) : splits i f :=
 or.inr $ λ g hg ⟨p, hp⟩,
   by have := congr_arg degree hp;
-  simp [nat.with_bot.add_eq_one_iff, hf, @eq_comm (with_bot ℕ) 1,
+  simv [nat.with_bot.add_eq_one_iff, hf, @eq_comm (with_bot ℕ) 1,
     mt is_unit_iff_degree_eq_zero.2 hg.1] at this;
   clear _fun_match; tauto
 
@@ -95,7 +95,7 @@ lemma splits_of_nat_degree_eq_one {f : K[X]} (hf : nat_degree f = 1) : splits i 
 splits_of_nat_degree_le_one i (le_of_eq hf)
 
 lemma splits_mul {f g : K[X]} (hf : splits i f) (hg : splits i g) : splits i (f * g) :=
-if h : f * g = 0 then by simp [h]
+if h : f * g = 0 then by simv [h]
 else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.2 _ _
     (show p ∣ map i f * map i g, by convert hpf; rw polynomial.map_mul)).elim
   (hf.resolve_left (λ hf, by simpa [hf] using h) hp)
@@ -122,7 +122,7 @@ polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
 
 lemma splits_map_iff (j : L →+* F) {f : K[X]} :
   splits j (f.map i) ↔ splits (j.comp i) f :=
-by simp [splits, polynomial.map_map]
+by simv [splits, polynomial.map_map]
 
 theorem splits_one : splits i 1 :=
 splits_C i 1
@@ -173,15 +173,15 @@ lemma degree_eq_one_of_irreducible_of_splits {p : L[X]}
   p.degree = 1 :=
 begin
   by_cases h_nz : p = 0,
-  { exfalso, simp * at *, },
+  { exfalso, simv * at *, },
   rcases hp_splits,
   { contradiction },
-  { apply hp_splits hp, simp }
+  { apply hp_splits hp, simv }
 end
 
 lemma exists_root_of_splits {f : K[X]} (hs : splits i f) (hf0 : degree f ≠ 0) :
   ∃ x, eval₂ i x f = 0 :=
-if hf0 : f = 0 then by simp [hf0]
+if hf0 : f = 0 then by simv [hf0]
 else
   let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
     (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
@@ -247,7 +247,7 @@ lemma eq_prod_roots_of_monic_of_splits_id {p : K[X]}
   p = (p.roots.map (λ a, X - C a)).prod :=
 begin
   convert eq_prod_roots_of_splits_id hsplit,
-  simp [m],
+  simv [m],
 end
 
 lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : K[X]} (h_splits : splits i h)
@@ -255,7 +255,7 @@ lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : K[X]} (h_splits : splits 
 begin
   apply polynomial.map_injective _ i.injective,
   rw [eq_prod_roots_of_splits h_splits, h_roots],
-  simp,
+  simv,
 end
 
 section UFD
@@ -315,7 +315,7 @@ begin
   { intro hroots,
     rw splits_iff_exists_multiset (ring_hom.id K),
     use p.roots,
-    simp only [ring_hom.id_apply, map_id],
+    simv only [ring_hom.id_apply, map_id],
     exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 

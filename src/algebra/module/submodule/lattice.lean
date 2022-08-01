@@ -34,7 +34,7 @@ namespace submodule
 
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
-⟨{ carrier := {0}, smul_mem' := by simp { contextual := tt }, .. (⊥ : add_submonoid M)}⟩
+⟨{ carrier := {0}, smul_mem' := by simv { contextual := tt }, .. (⊥ : add_submonoid M)}⟩
 
 instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
@@ -50,14 +50,14 @@ end
 
 @[simp] lemma restrict_scalars_eq_bot_iff {p : submodule R M} :
   restrict_scalars S p = ⊥ ↔ p = ⊥ :=
-by simp [set_like.ext_iff]
+by simv [set_like.ext_iff]
 
 instance unique_bot : unique (⊥ : submodule R M) :=
 ⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
 
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
-  bot_le := λ p x, by simp [zero_mem] {contextual := tt} }
+  bot_le := λ p x, by simv [zero_mem] {contextual := tt} }
 
 protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
@@ -112,7 +112,7 @@ end
 
 @[simp] lemma restrict_scalars_eq_top_iff {p : submodule R M} :
   restrict_scalars S p = ⊤ ↔ p = ⊤ :=
-by simp [set_like.ext_iff]
+by simv [set_like.ext_iff]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -126,7 +126,7 @@ eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
 This is the module version of `add_submonoid.top_equiv`. -/
 @[simps] def top_equiv : (⊤ : submodule R M) ≃ₗ[R] M :=
 { to_fun := λ x, x,
-  inv_fun := λ x, ⟨x, by simp⟩,
+  inv_fun := λ x, ⟨x, by simv⟩,
   map_add' := by { intros, refl, },
   map_smul' := by { intros, refl, },
   left_inv := by { intro x, ext, refl, },
@@ -135,9 +135,9 @@ This is the module version of `add_submonoid.top_equiv`. -/
 instance : has_Inf (submodule R M) :=
 ⟨λ S,
 { carrier   := ⋂ s ∈ S, (s : set M),
-  zero_mem' := by simp [zero_mem],
-  add_mem'  := by simp [add_mem] {contextual := tt},
-  smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
+  zero_mem' := by simv [zero_mem],
+  add_mem'  := by simv [add_mem] {contextual := tt},
+  smul_mem' := by simv [smul_mem] {contextual := tt} }⟩
 
 private lemma Inf_le' {S : set (submodule R M)} {p} : p ∈ S → Inf S ≤ p :=
 set.bInter_subset_of_mem
@@ -148,9 +148,9 @@ set.subset_Inter₂
 instance : has_inf (submodule R M) :=
 ⟨λ p q,
 { carrier   := p ∩ q,
-  zero_mem' := by simp [zero_mem],
-  add_mem'  := by simp [add_mem] {contextual := tt},
-  smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
+  zero_mem' := by simv [zero_mem],
+  add_mem'  := by simv [add_mem] {contextual := tt},
+  smul_mem' := by simv [smul_mem] {contextual := tt} }⟩
 
 instance : complete_lattice (submodule R M) :=
 { sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
@@ -183,14 +183,14 @@ instance : complete_lattice (submodule R M) :=
 begin
   letI := classical.dec_eq ι,
   refine s.induction_on _ (λ i s hi ih, _),
-  { simp },
+  { simv },
   { rw [finset.inf_insert, inf_coe, ih],
-    simp },
+    simv },
 end
 
 @[simp] theorem infi_coe {ι} (p : ι → submodule R M) :
   (↑⨅ i, p i : set M) = ⋂ i, ↑(p i) :=
-by rw [infi, Inf_coe]; ext a; simp; exact
+by rw [infi, Inf_coe]; ext a; simv; exact
 ⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
 
 @[simp] lemma mem_Inf {S : set (submodule R M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
@@ -202,7 +202,7 @@ by rw [← set_like.mem_coe, infi_coe, set.mem_Inter]; refl
 
 @[simp] theorem mem_finset_inf {ι} {s : finset ι} {p : ι → submodule R M} {x : M} :
   x ∈ s.inf p ↔ ∀ i ∈ s, x ∈ p i :=
-by simp only [← set_like.mem_coe, finset_inf_coe, set.mem_Inter]
+by simv only [← set_like.mem_coe, finset_inf_coe, set.mem_Inter]
 
 lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
@@ -246,7 +246,7 @@ show s ≤ Sup S, from le_Sup hs
 
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
-show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
+show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simv
 
 theorem disjoint_def' {p p' : submodule R M} :
   disjoint p p' ↔ ∀ (x ∈ p) (y ∈ p'), x = y → x = (0:M) :=

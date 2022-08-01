@@ -74,7 +74,7 @@ structure EllipticCurve (R : Type*) [comm_ring R] :=
 namespace EllipticCurve
 
 instance : inhabited (EllipticCurve ℚ) := ⟨⟨0,0,1,-1,0, units.mk0 37 (by norm_num),
-  by simp only [units.coe_mk, disc_aux_def]; norm_num⟩⟩
+  by simv only [units.coe_mk, disc_aux_def]; norm_num⟩⟩
 
 variables {R : Type*} [comm_ring R] (E : EllipticCurve R)
 

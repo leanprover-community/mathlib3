@@ -46,13 +46,13 @@ begin
   -- get some basic results about the size of fin (n+1) plus or minus an element
   have h1 : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = card (fin n),
   { intro a,
-    simp only [fintype.card_fin, finset.card_fin, fintype.card_of_finset, finset.filter_ne' _ a,
+    simv only [fintype.card_fin, finset.card_fin, fintype.card_of_finset, finset.filter_ne' _ a,
       set.mem_compl_singleton_iff, finset.card_erase_of_mem (finset.mem_univ a),
       add_tsub_cancel_right] },
   have h2 : card (fin (n+2)) = card (option (fin (n+1))),
-  { simp only [card_fin, card_option] },
+  { simv only [card_fin, card_option] },
   -- rewrite the LHS and substitute in our fintype-level equivalence
-  simp only [card_derangements_invariant h2,
+  simv only [card_derangements_invariant h2,
     card_congr (@derangements_recursion_equiv (fin (n+1)) _),
   -- push the cardinality through the Σ and ⊕ so that we can use `card_n`
     card_sigma, card_sum, card_derangements_invariant (h1 _), finset.sum_const, nsmul_eq_mul,
@@ -77,7 +77,7 @@ lemma num_derangements_succ (n : ℕ) :
 begin
   induction n with n hn,
   { refl },
-  { simp only [num_derangements_add_two, hn, pow_succ,
+  { simv only [num_derangements_add_two, hn, pow_succ,
       int.coe_nat_mul, int.coe_nat_add, int.coe_nat_succ],
     ring }
 end

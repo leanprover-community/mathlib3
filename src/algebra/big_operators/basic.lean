@@ -53,11 +53,11 @@ as `x` ranges over the elements of the finite set `s`.
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
-@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs : s.nodup) (f : α → β) :
+@[simv, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs : s.nodup) (f : α → β) :
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 
-@[simp, to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
+@[simv, to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
 by rw [finset.prod, multiset.map_id]
 
 end finset
@@ -107,7 +107,7 @@ rfl
 
 @[simp] lemma sum_multiset_singleton (s : finset α) :
   s.sum (λ x, {x}) = s.val :=
-by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
+by simv only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
@@ -115,7 +115,7 @@ end finset
 lemma map_prod [comm_monoid β] [comm_monoid γ] {G : Type*} [monoid_hom_class G β γ] (g : G)
   (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-by simp only [finset.prod_eq_multiset_prod, map_multiset_prod, multiset.map_map]
+by simv only [finset.prod_eq_multiset_prod, map_multiset_prod, multiset.map_map]
 
 section deprecated
 
@@ -183,7 +183,7 @@ lemma monoid_hom.coe_finset_prod [mul_one_class β] [comm_monoid γ] (f : α →
 
 -- See also `finset.prod_apply`, with the same conclusion
 -- but with the weaker hypothesis `f : α → β → γ`.
-@[simp, to_additive]
+@[simv, to_additive]
 lemma monoid_hom.finset_prod_apply [mul_one_class β] [comm_monoid γ] (f : α → β →* γ)
   (s : finset α) (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
@@ -195,14 +195,14 @@ namespace finset
 section comm_monoid
 variables [comm_monoid β]
 
-@[simp, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
+@[simv, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
 @[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=
 fold_cons h
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_insert [decidable_eq α] : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
 fold_insert
 
@@ -210,7 +210,7 @@ fold_insert
 The product of `f` over `insert a s` is the same as
 the product over `s`, as long as `a` is in `s` or `f a = 1`.
 -/
-@[simp, to_additive "The sum of `f` over `insert a s` is the same as
+@[simv, to_additive "The sum of `f` over `insert a s` is the same as
 the sum over `s`, as long as `a` is in `s` or `f a = 0`."]
 lemma prod_insert_of_eq_one_if_not_mem [decidable_eq α] (h : a ∉ s → f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
@@ -223,13 +223,13 @@ end
 /--
 The product of `f` over `insert a s` is the same as the product over `s`, as long as `f a = 1`.
 -/
-@[simp, to_additive "The sum of `f` over `insert a s` is the same as
+@[simv, to_additive "The sum of `f` over `insert a s` is the same as
 the sum over `s`, as long as `f a = 0`."]
 lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
 prod_insert_of_eq_one_if_not_mem (λ _, h)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_singleton : (∏ x in (singleton a), f x) = f a :=
 eq.trans fold_singleton $ mul_one _
 
@@ -238,16 +238,16 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
 by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
-@[simp, priority 1100, to_additive]
+@[simv, priority 1100, to_additive]
 lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
-by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
+by simv only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
   (∀ x ∈ s, ∀ y ∈ s, g x = g y → x = y) → (∏ x in (s.image g), f x) = ∏ x in s, f (g x) :=
 fold_image
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β) :
   (∏ x in (s.map e), f x) = ∏ x in s, f (e x) :=
 by rw [finset.prod, finset.map_val, multiset.map_map]; refl
@@ -282,7 +282,7 @@ end
 
 section to_list
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_to_list (s : finset α) (f : α → β) : (s.to_list.map f).prod = s.prod f :=
 by rw [finset.prod, ← multiset.coe_prod, ← multiset.coe_map, finset.coe_to_list]
 
@@ -338,21 +338,21 @@ lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
   (∏ x in (s₂ \ s₁), f x) * (∏ x in s₁, f x) = (∏ x in s₂, f x) :=
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
   (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
   ∏ x in s.map function.embedding.inl ∪ t.map function.embedding.inr, sum.elim f g x =
     (∏ x in s, f x) * (∏ x in t, g x) :=
 begin
   rw [prod_union, prod_map, prod_map],
-  { simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
+  { simv only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
       sum.elim_inr] },
-  { simp only [disjoint_left, finset.mem_map, finset.mem_map],
+  { simv only [disjoint_left, finset.mem_map, finset.mem_map],
     rintros _ ⟨i, hi, rfl⟩ ⟨j, hj, H⟩,
     cases H }
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
   ∏ (x : α ⊕ γ), f x  =
     (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
@@ -363,13 +363,13 @@ begin
     split,
     { intro x,
       cases a,
-      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, or_false,
+      { simv only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, or_false,
           exists_true_left, exists_apply_eq_apply, function.embedding.inr_apply, exists_false], },
-      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, false_or,
+      { simv only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, false_or,
           exists_true_left, exists_false, function.embedding.inr_apply,
           exists_apply_eq_apply], }, },
-    { simp only [mem_univ, implies_true_iff], }, },
-  { simp only [sum.elim_comp_inl_inr], },
+    { simv only [mem_univ, implies_true_iff], }, },
+  { simv only [sum.elim_comp_inl_inr], },
 end
 
 @[to_additive]
@@ -398,7 +398,7 @@ calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bUnion (λ a, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bUnion $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
+    by { simv only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
@@ -543,7 +543,7 @@ begin
   classical,
   have : ∀ z : γ × α,
     z ∈ s.bUnion (λ x, (t x).map $ function.embedding.sectr x _) ↔ z.1 ∈ s ∧ z.2 ∈ t z.1,
-  { rintro ⟨x, y⟩, simp },
+  { rintro ⟨x, y⟩, simv },
   exact (prod_finset_product' _ _ _ this).symm.trans
     (prod_finset_product_right' _ _ _ $ λ ⟨x, y⟩, (this _).trans ((h x y).trans and.comm))
 end
@@ -674,7 +674,7 @@ by haveI := classical.dec_eq α; exact
   ... = _ : by rw [attach_image_val]
 
 /-- A product over `s.subtype p` equals one over `s.filter p`. -/
-@[simp, to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
+@[simv, to_additive "A sum over `s.subtype p` equals one over `s.filter p`."]
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
   ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
 begin
@@ -741,11 +741,11 @@ lemma prod_congr_set
   (w : ∀ (x : β) (h : x ∈ s), f x = g ⟨x, h⟩) (w' : ∀ (x : β), x ∉ s → f x = 1) :
   finset.univ.prod f = finset.univ.prod g :=
 begin
-  rw ←@finset.prod_subset _ _ s.to_finset finset.univ f _ (by simp),
+  rw ←@finset.prod_subset _ _ s.to_finset finset.univ f _ (by simv),
   { rw finset.prod_subtype,
     { apply finset.prod_congr rfl,
       exact λ ⟨x, h⟩ _, w x h, },
-    { simp, }, },
+    { simv, }, },
   { rintro x _ h, exact w' x (by simpa using h), },
 end
 
@@ -780,17 +780,17 @@ trans (prod_apply_dite _ _ _)
   (∏ x in s, if hx : p x then f x hx else g x hx) =
   (∏ x in (s.filter p).attach, f x.1 (mem_filter.mp x.2).2) *
     (∏ x in (s.filter (λ x, ¬ p x)).attach, g x.1 (mem_filter.mp x.2).2) :=
-by simp [prod_apply_dite _ _ (λ x, x)]
+by simv [prod_apply_dite _ _ (λ x, x)]
 
 @[to_additive] lemma prod_ite {s : finset α}
   {p : α → Prop} {hp : decidable_pred p} (f g : α → β) :
   (∏ x in s, if p x then f x else g x) =
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
-by simp [prod_apply_ite _ _ (λ x, x)]
+by simv [prod_apply_ite _ _ (λ x, x)]
 
 @[to_additive] lemma prod_ite_of_false {p : α → Prop} {hp : decidable_pred p} (f g : α → β)
   (h : ∀ x ∈ s, ¬p x) : (∏ x in s, if p x then f x else g x) = (∏ x in s, g x) :=
-by { rw prod_ite, simp [filter_false_of_mem h, filter_true_of_mem h] }
+by { rw prod_ite, simv [filter_false_of_mem h, filter_true_of_mem h] }
 
 @[to_additive] lemma prod_ite_of_true {p : α → Prop} {hp : decidable_pred p} (f g : α → β)
   (h : ∀ x ∈ s, p x) : (∏ x in s, if p x then f x else g x) = (∏ x in s, f x) :=
@@ -811,7 +811,7 @@ lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
   ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
 prod_congr rfl $ λ i hi, if_pos hi
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
   (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
 begin
@@ -823,7 +823,7 @@ begin
     intros, rw dif_neg, intro, cc }
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_dite_eq' [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, x = a → β) :
   (∏ x in s, (if h : x = a then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
 begin
@@ -835,7 +835,7 @@ begin
     intros, rw dif_neg, intro, cc }
 end
 
-@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+@[simv, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq s a (λ x _, b x)
 
@@ -843,7 +843,7 @@ prod_dite_eq s a (λ x _, b x)
 alternative is `1` has value either the term at that index or `1`.
 
 The difference with `finset.prod_ite_eq` is that the arguments to `eq` are swapped. -/
-@[simp, to_additive "A sum taken over a conditional whose condition is an equality test on the index
+@[simv, to_additive "A sum taken over a conditional whose condition is an equality test on the index
 and whose alternative is `0` has value either the term at that index or `0`.
 
 The difference with `finset.sum_ite_eq` is that the arguments to `eq` are swapped."]
@@ -856,12 +856,12 @@ lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) 
   (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
 apply_ite (λ s, ∏ x in s, f x) _ _ _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_ite_irrel (p : Prop) [decidable p] (s : finset α) (f g : α → β) :
   (∏ x in s, if p then f x else g x) = if p then ∏ x in s, f x else ∏ x in s, g x :=
 by { split_ifs with h; refl }
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α → β) (g : ¬p → α → β) :
   (∏ x in s, if h : p then f h x else g h x) = if h : p then ∏ x in s, f h x else ∏ x in s, g h x :=
 by { split_ifs with h; refl }
@@ -901,15 +901,15 @@ calc (∏ x in s, f x) = ∏ x in (s.filter $ λ x, f x ≠ 1), f x : prod_filte
   (h : ∀ x ∈ s, ¬ p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
   (∏ x in s, if hx : p x then f x hx else g x hx) =
   ∏ (x : s), g x.val (h x.val x.property) :=
-prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_neg })
-  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simv) (λ a ha, by { dsimp, rw dif_neg })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simv⟩)
 
 @[to_additive] lemma prod_dite_of_true {p : α → Prop} {hp : decidable_pred p}
   (h : ∀ x ∈ s, p x) (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
   (∏ x in s, if hx : p x then f x hx else g x hx) =
   ∏ (x : s), f x.val (h x.val x.property) :=
-prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simp) (λ a ha, by { dsimp, rw dif_pos })
-  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simp⟩)
+prod_bij (λ x hx, ⟨x,hx⟩) (λ x hx, by simv) (λ a ha, by { dsimp, rw dif_pos })
+  (λ a₁ a₂ h₁ h₂ hh, congr_arg coe hh) (λ b hb, ⟨b.1, b.2, by simv⟩)
 
 @[to_additive]
 lemma nonempty_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : s.nonempty :=
@@ -932,7 +932,7 @@ by rw [range_succ, prod_insert not_mem_range_self]
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
-by simp only [mul_comm, prod_range_succ_comm]
+by simv only [mul_comm, prod_range_succ_comm]
 
 @[to_additive]
 lemma prod_range_succ' (f : ℕ → β) :
@@ -947,9 +947,9 @@ begin
   obtain ⟨m, rfl : n = N + m⟩ := le_iff_exists_add.mp hn,
   clear hn,
   induction m with m hm,
-  { simp },
+  { simv },
   erw [prod_range_succ, hm],
-  simp [hu]
+  simv [hu]
 end
 
 @[to_additive]
@@ -958,7 +958,7 @@ lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
   (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
 begin
   induction m with m hm,
-  { simp },
+  { simv },
   { rw [nat.add_succ, prod_range_succ, hm, prod_range_succ, mul_assoc], },
 end
 
@@ -983,8 +983,8 @@ open list
   {M : Type*} [comm_monoid M] (f : α → M) :
   (l.map f).prod = ∏ m in l.to_finset, (f m) ^ (l.count m) :=
 begin
-  induction l with a s IH, { simp only [map_nil, prod_nil, count_nil, pow_zero, prod_const_one] },
-  simp only [list.map, list.prod_cons, to_finset_cons, IH],
+  induction l with a s IH, { simv only [map_nil, prod_nil, count_nil, pow_zero, prod_const_one] },
+  simv only [list.map, list.prod_cons, to_finset_cons, IH],
   by_cases has : a ∈ s.to_finset,
   { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),
       prod_insert (not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
@@ -1020,7 +1020,7 @@ open multiset
 @[to_additive] lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
-by { refine quot.induction_on s (λ l, _), simp [prod_list_map_count l f] }
+by { refine quot.induction_on s (λ l, _), simv [prod_list_map_count l f] }
 
 @[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -1034,7 +1034,7 @@ lemma prod_multiset_count_of_subset [decidable_eq α] [comm_monoid α]
 begin
   revert hs,
   refine quot.induction_on m (λ l, _),
-  simp only [quot_mk_to_coe'', coe_prod, coe_count],
+  simv only [quot_mk_to_coe'', coe_prod, coe_count],
   apply prod_list_count_of_subset l s
 end
 
@@ -1067,7 +1067,7 @@ the property is additive and holds on summands."]
 lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
   (p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
   p $ ∏ x in s, f x :=
-multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
+multiset.prod_induction_nonempty p p_mul (by simv [nonempty_iff_ne_empty.mp hs_nonempty])
   (multiset.forall_mem_map_iff.mpr p_s)
 
 /-- For any product along `{0, ..., n - 1}` of a commutative-monoid-valued function, we can verify
@@ -1082,8 +1082,8 @@ lemma prod_range_induction (f s : ℕ → β) (h0 : s 0 = 1) (h : ∀ n, s (n + 
   ∏ k in finset.range n, f k = s n :=
 begin
   induction n with k hk,
-  { simp only [h0, finset.prod_range_zero] },
-  { simp only [hk, finset.prod_range_succ, h, mul_comm] }
+  { simv only [h0, finset.prod_range_zero] },
+  { simv only [hk, finset.prod_range_succ, h, mul_comm] }
 end
 
 /-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
@@ -1092,12 +1092,12 @@ the ratio of the last and first factors. -/
 function reduces to the difference of the last and first terms."]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i + 1) / f i) = f n / f 0 :=
-by apply prod_range_induction; simp
+by apply prod_range_induction; simv
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i / f (i + 1)) = f 0 / f n :=
-by apply prod_range_induction; simp
+by apply prod_range_induction; simv
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
@@ -1114,19 +1114,19 @@ begin
   rw [tsub_add_eq_add_tsub h₂, add_tsub_cancel_of_le h₁],
 end
 
-@[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
+@[simv, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (λ a s has ih,
+finset.induction_on s (by simv) (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
 @[to_additive]
-lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
+lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simv
 
 @[to_additive]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
+finset.induction_on s (by simv) (by simv [mul_pow] {contextual := tt})
 
 @[to_additive]
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
@@ -1135,7 +1135,7 @@ begin
   induction n with n ih,
   { rw [prod_range_one, prod_range_one] },
   { rw [prod_range_succ', prod_range_succ _ (nat.succ n)],
-    simp [← ih] }
+    simv [← ih] }
 end
 
 @[to_additive]
@@ -1155,7 +1155,7 @@ finset.strong_induction_on s
       have hmem : ∀ y ∈ (s.erase x).erase (g x hx), y ∈ s,
         from λ y hy, (mem_of_mem_erase (mem_of_mem_erase hy)),
       have g_inj : ∀ {x hx y hy}, g x hx = g y hy → x = y,
-        from λ x hx y hy h, by rw [← g_inv x hx, ← g_inv y hy]; simp [h],
+        from λ x hx y hy h, by rw [← g_inv x hx, ← g_inv y hy]; simv [h],
       have ih': ∏ y in erase (erase s x) (g x hx), f y = (1 : β) :=
         ih ((s.erase x).erase (g x hx))
           ⟨subset.trans (erase_subset _ _) (erase_subset _ _),
@@ -1165,7 +1165,7 @@ finset.strong_induction_on s
           (λ y hy, g_ne y (hmem y hy))
           (λ y hy, mem_erase.2 ⟨λ (h : g y _ = g x hx), by simpa [g_inj h] using hy,
             mem_erase.2 ⟨λ (h : g y _ = x),
-              have y = g x hx, from g_inv y (hmem y hy) ▸ by simp [h],
+              have y = g x hx, from g_inv y (hmem y hy) ▸ by simv [h],
               by simpa [this] using hy, g_mem y (hmem y hy)⟩⟩)
           (λ y hy, g_inv y (hmem y hy)),
       if hx1 : f x = 1
@@ -1187,13 +1187,13 @@ lemma prod_comp [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
 calc ∏ a in s, f (g a)
     = ∏ x in (s.image g).sigma (λ b : γ, s.filter (λ a, g a = b)), f (g x.2) :
-  prod_bij (λ a ha, ⟨g a, a⟩) (by simp; tauto) (λ _ _, rfl) (by simp) -- `(by finish)` closes this
+  prod_bij (λ a ha, ⟨g a, a⟩) (by simv; tauto) (λ _ _, rfl) (by simv) -- `(by finish)` closes this
   (by { rintro ⟨b_fst, b_snd⟩ H,
-        simp only [mem_image, exists_prop, mem_filter, mem_sigma] at H,
+        simv only [mem_image, exists_prop, mem_filter, mem_sigma] at H,
         tauto })
 ... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f (g a) : prod_sigma _ _ _
 ... = ∏ b in s.image g, ∏ a in s.filter (λ a, g a = b), f b :
-  prod_congr rfl (λ b hb, prod_congr rfl (by simp {contextual := tt}))
+  prod_congr rfl (λ b hb, prod_congr rfl (by simv {contextual := tt}))
 ... = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card :
   prod_congr rfl (λ _ _, prod_const _)
 
@@ -1205,12 +1205,12 @@ by { rw [piecewise, prod_ite, filter_mem_eq_inter, ← sdiff_eq_filter], }
 @[to_additive]
 lemma prod_inter_mul_prod_diff [decidable_eq α] (s t : finset α) (f : α → β) :
   (∏ x in s ∩ t, f x) * (∏ x in s \ t, f x) = (∏ x in s, f x) :=
-by { convert (s.prod_piecewise t f f).symm, simp [finset.piecewise] }
+by { convert (s.prod_piecewise t f f).symm, simv [finset.piecewise] }
 
 @[to_additive]
 lemma prod_eq_mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
   (f : α → β) : ∏ x in s, f x = f i * ∏ x in s \ {i}, f x :=
-by { convert (s.prod_inter_mul_prod_diff {i} f).symm, simp [h] }
+by { convert (s.prod_inter_mul_prod_diff {i} f).symm, simv [h] }
 
 @[to_additive]
 lemma prod_eq_prod_diff_singleton_mul [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
@@ -1262,13 +1262,13 @@ lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α}
 begin
   apply prod_congr rfl (λ j hj, _),
   have : j ≠ i, by { assume eq, rw eq at hj, exact h hj },
-  simp [this]
+  simv [this]
 end
 
 @[to_additive]
 lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s) (f : α → β) (b : β) :
   (∏ x in s, function.update f i b x) = b * (∏ x in s \ (singleton i), f x) :=
-by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
+by { rw [update_eq_piecewise, prod_piecewise], simv [h] }
 
 /-- If a product of a `finset` of size at most 1 has a given value, so
 do the terms in that product. -/
@@ -1347,13 +1347,13 @@ end
 
 lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∏ x in s, (f x)^(ite (a = x) 1 0)) = ite (a ∈ s) (f a) 1 :=
-by simp
+by simv
 
 lemma prod_dvd_prod_of_dvd {S : finset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
   S.prod g1 ∣ S.prod g2 :=
 begin
   classical,
-  apply finset.induction_on' S, { simp },
+  apply finset.induction_on' S, { simv },
   intros a T haS _ haT IH,
   repeat {rw finset.prod_insert haT},
   exact mul_dvd_mul (h a haS) IH,
@@ -1374,7 +1374,7 @@ by { classical, simp_rw [prod_eq_mul_prod_diff_singleton hi, ← h1, right_distr
      congr' 2; apply prod_congr rfl; simpa }
 
 lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
-by simp
+by simv
 
 lemma sum_const_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀ x ∈ s, f x = m) :
   (∑ x in s, f x) = card s * m :=
@@ -1386,7 +1386,7 @@ end
 @[simp]
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
-by simp [sum_ite]
+by simv [sum_ite]
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
@@ -1396,7 +1396,7 @@ lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
 begin
   conv_lhs { rw [finset.eq_sum_range_sub f] },
-  simp [finset.sum_range_succ', add_comm]
+  simv [finset.sum_range_succ', add_comm]
 end
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
@@ -1430,10 +1430,10 @@ end opposite
 section division_comm_monoid
 variables [division_comm_monoid β]
 
-@[simp, to_additive] lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
+@[simv, to_additive] lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
 multiset.prod_map_inv
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_div_distrib : (∏ x in s, f x / g x) = (∏ x in s, f x) / ∏ x in s, g x :=
 multiset.prod_map_div
 
@@ -1446,16 +1446,16 @@ end division_comm_monoid
 section comm_group
 variables [comm_group β] [decidable_eq α]
 
-@[simp, to_additive] lemma prod_sdiff_eq_div (h : s₁ ⊆ s₂) :
+@[simv, to_additive] lemma prod_sdiff_eq_div (h : s₁ ⊆ s₂) :
  (∏ x in (s₂ \ s₁), f x) = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=
 by rw [eq_div_iff_mul_eq', prod_sdiff h]
 
 @[to_additive] lemma prod_sdiff_div_prod_sdiff :
   (∏ x in s₂ \ s₁, f x) / (∏ x in s₁ \ s₂, f x) = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=
-by simp [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
+by simv [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
   ← finset.prod_sdiff (@inf_le_right _ _ s₁ s₂)]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma prod_erase_eq_div {a : α} (h : a ∈ s) : (∏ x in s.erase a, f x) = (∏ x in s, f x) / f a :=
 by rw [eq_div_iff_mul_eq', prod_erase_mul _ _ h]
 
@@ -1468,14 +1468,14 @@ multiset.card_sigma _ _
 lemma card_bUnion [decidable_eq β] {s : finset α} {t : α → finset β}
   (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
   (s.bUnion t).card = ∑ u in s, card (t u) :=
-calc (s.bUnion t).card = ∑ i in s.bUnion t, 1 : by simp
+calc (s.bUnion t).card = ∑ i in s.bUnion t, 1 : by simv
 ... = ∑ a in s, ∑ i in t a, 1 : finset.sum_bUnion h
-... = ∑ u in s, card (t u) : by simp
+... = ∑ u in s, card (t u) : by simv
 
 lemma card_bUnion_le [decidable_eq β] {s : finset α} {t : α → finset β} :
   (s.bUnion t).card ≤ ∑ a in s, (t a).card :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp)
+finset.induction_on s (by simv)
   (λ a s has ih,
     calc ((insert a s).bUnion t).card ≤ (t a).card + (s.bUnion t).card :
     by rw bUnion_insert; exact finset.card_union_le _ _
@@ -1485,7 +1485,7 @@ finset.induction_on s (by simp)
 theorem card_eq_sum_card_fiberwise [decidable_eq β] {f : α → β} {s : finset α} {t : finset β}
   (H : ∀ x ∈ s, f x ∈ t) :
   s.card = ∑ a in t, (s.filter (λ x, f x = a)).card :=
-by simp only [card_eq_sum_ones, sum_fiberwise_of_maps_to H]
+by simv only [card_eq_sum_ones, sum_fiberwise_of_maps_to H]
 
 theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
@@ -1495,9 +1495,9 @@ lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
   b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
 begin
   classical,
-  refine s.induction_on (by simp) _,
+  refine s.induction_on (by simv) _,
   { intros a t hi ih,
-    simp [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }
+    simv [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }
 end
 
 section prod_eq_zero
@@ -1613,8 +1613,8 @@ begin
   let s := {x | p x}.to_finset,
   rw [← finset.prod_subtype s, ← finset.prod_subtype sᶜ],
   { exact finset.prod_mul_prod_compl _ _ },
-  { simp },
-  { simp }
+  { simv },
+  { simv }
 end
 
 end fintype
@@ -1623,9 +1623,9 @@ namespace list
 
 @[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
   (f : α → M) : ∀ {l : list α} (hl : l.nodup), l.to_finset.prod f = (l.map f).prod
-| [] _ := by simp
+| [] _ := by simv
 | (a :: l) hl := let ⟨not_mem, hl⟩ := list.nodup_cons.mp hl in
-  by simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
+  by simv [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
 
 end list
 
@@ -1635,9 +1635,9 @@ lemma disjoint_list_sum_left {a : multiset α} {l : list (multiset α)} :
   multiset.disjoint l.sum a ↔ ∀ b ∈ l, multiset.disjoint b a :=
 begin
   induction l with b bs ih,
-  { simp only [zero_disjoint, list.not_mem_nil, is_empty.forall_iff, forall_const, list.sum_nil], },
+  { simv only [zero_disjoint, list.not_mem_nil, is_empty.forall_iff, forall_const, list.sum_nil], },
   { simp_rw [list.sum_cons, disjoint_add_left, list.mem_cons_iff, forall_eq_or_imp],
-    simp [and.congr_left_iff, iff_self, ih], },
+    simv [and.congr_left_iff, iff_self, ih], },
 end
 
 lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)} :
@@ -1659,7 +1659,7 @@ lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset
   multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
 begin
   convert (@disjoint_sum_left _ a) (map f i.val),
-  simp [finset.mem_def, and.congr_left_iff, iff_self],
+  simv [finset.mem_def, and.congr_left_iff, iff_self],
 end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
@@ -1690,13 +1690,13 @@ lemma finset_sum_eq_sup_iff_disjoint {β : Type*} {i : finset β} {f : β → mu
   i.sum f = i.sup f ↔ ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y) :=
 begin
   induction i using finset.cons_induction_on with z i hz hr,
-  { simp only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff,
+  { simv only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff,
       finset.sum_empty, finset.sup_empty, bot_eq_zero, eq_self_iff_true], },
   { simp_rw [finset.sum_cons hz, finset.sup_cons, finset.mem_cons, multiset.sup_eq_union,
       forall_eq_or_imp, ne.def, eq_self_iff_true, not_true, is_empty.forall_iff, true_and,
       imp_and_distrib, forall_and_distrib, ←hr, @eq_comm _ z],
     have := λ x ∈ i, ne_of_mem_of_not_mem H hz,
-    simp only [this, not_false_iff, true_implies_iff] {contextual := tt},
+    simv only [this, not_false_iff, true_implies_iff] {contextual := tt},
     simp_rw [←disjoint_finset_sum_left, ←disjoint_finset_sum_right, disjoint_comm, ←and_assoc,
       and_self],
     exact add_eq_union_left_of_le (finset.sup_le (λ x hx, le_sum_of_mem (mem_map_of_mem f hx))), },
@@ -1709,7 +1709,7 @@ multiset.induction_on s rfl
     calc (∑ x in to_finset (a ::ₘ s), count x (a ::ₘ s)) =
       ∑ x in to_finset (a ::ₘ s), ((if x = a then 1 else 0) + count x s) :
         finset.sum_congr rfl $ λ _ _, by split_ifs;
-        [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
+        [simv only [h, count_cons_self, nat.one_add], simv only [count_cons_of_ne h, zero_add]]
       ... = card (a ::ₘ s) :
       begin
         by_cases a ∈ s.to_finset,
@@ -1759,7 +1759,7 @@ lemma to_finset_prod_dvd_prod [comm_monoid α] (S : multiset α) : S.to_finset.p
 begin
   rw finset.prod_eq_multiset_prod,
   refine multiset.prod_dvd_prod_of_le _,
-  simp [multiset.dedup_le S],
+  simv [multiset.dedup_le S],
 end
 
 @[to_additive]
@@ -1776,27 +1776,27 @@ end multiset
 
 namespace nat
 
-@[simp, norm_cast] lemma cast_list_sum [add_monoid_with_one β] (s : list ℕ) :
+@[simv, norm_cast] lemma cast_list_sum [add_monoid_with_one β] (s : list ℕ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_list_sum (cast_add_monoid_hom β) _
 
-@[simp, norm_cast] lemma cast_list_prod [semiring β] (s : list ℕ) :
+@[simv, norm_cast] lemma cast_list_prod [semiring β] (s : list ℕ) :
   (↑(s.prod) : β) = (s.map coe).prod :=
 map_list_prod (cast_ring_hom β) _
 
-@[simp, norm_cast] lemma cast_multiset_sum [add_comm_monoid_with_one β] (s : multiset ℕ) :
+@[simv, norm_cast] lemma cast_multiset_sum [add_comm_monoid_with_one β] (s : multiset ℕ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_multiset_sum (cast_add_monoid_hom β) _
 
-@[simp, norm_cast] lemma cast_multiset_prod [comm_semiring β] (s : multiset ℕ) :
+@[simv, norm_cast] lemma cast_multiset_prod [comm_semiring β] (s : multiset ℕ) :
   (↑(s.prod) : β) = (s.map coe).prod :=
 map_multiset_prod (cast_ring_hom β) _
 
-@[simp, norm_cast] lemma cast_sum [add_comm_monoid_with_one β] (s : finset α) (f : α → ℕ) :
+@[simv, norm_cast] lemma cast_sum [add_comm_monoid_with_one β] (s : finset α) (f : α → ℕ) :
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
 map_sum (cast_add_monoid_hom β) _ _
 
-@[simp, norm_cast] lemma cast_prod [comm_semiring β] (f : α → ℕ) (s : finset α) :
+@[simv, norm_cast] lemma cast_prod [comm_semiring β] (f : α → ℕ) (s : finset α) :
   (↑∏ i in s, f i : β) = ∏ i in s, f i :=
 map_prod (cast_ring_hom β) _ _
 
@@ -1804,48 +1804,48 @@ end nat
 
 namespace int
 
-@[simp, norm_cast] lemma cast_list_sum [add_group_with_one β] (s : list ℤ) :
+@[simv, norm_cast] lemma cast_list_sum [add_group_with_one β] (s : list ℤ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_list_sum (cast_add_hom β) _
 
-@[simp, norm_cast] lemma cast_list_prod [ring β] (s : list ℤ) :
+@[simv, norm_cast] lemma cast_list_prod [ring β] (s : list ℤ) :
   (↑(s.prod) : β) = (s.map coe).prod :=
 map_list_prod (cast_ring_hom β) _
 
-@[simp, norm_cast] lemma cast_multiset_sum [add_comm_group_with_one β] (s : multiset ℤ) :
+@[simv, norm_cast] lemma cast_multiset_sum [add_comm_group_with_one β] (s : multiset ℤ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_multiset_sum (cast_add_hom β) _
 
-@[simp, norm_cast] lemma cast_multiset_prod {R : Type*} [comm_ring R] (s : multiset ℤ) :
+@[simv, norm_cast] lemma cast_multiset_prod {R : Type*} [comm_ring R] (s : multiset ℤ) :
   (↑(s.prod) : R) = (s.map coe).prod :=
 map_multiset_prod (cast_ring_hom R) _
 
-@[simp, norm_cast] lemma cast_sum [add_comm_group_with_one β] (s : finset α) (f : α → ℤ) :
+@[simv, norm_cast] lemma cast_sum [add_comm_group_with_one β] (s : finset α) (f : α → ℤ) :
   ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
 map_sum (cast_add_hom β) _ _
 
-@[simp, norm_cast] lemma cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
+@[simv, norm_cast] lemma cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
   (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (int.cast_ring_hom R).map_prod _ _
 
 end int
 
-@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → Mˣ)
+@[simv, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → Mˣ)
   (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
 (units.coe_hom M).map_prod _ _
 
 lemma units.mk0_prod [comm_group_with_zero β] (s : finset α) (f : α → β) (h) :
   units.mk0 (∏ b in s, f b) h =
   ∏ b in s.attach, units.mk0 (f b) (λ hh, h (finset.prod_eq_zero b.2 hh)) :=
-by { classical, induction s using finset.induction_on; simp* }
+by { classical, induction s using finset.induction_on; simv* }
 
 lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :
   (∑ i in s, f i).nat_abs ≤ ∑ i in s, (f i).nat_abs :=
 begin
   classical,
   apply finset.induction_on s,
-  { simp only [finset.sum_empty, int.nat_abs_zero] },
+  { simv only [finset.sum_empty, int.nat_abs_zero] },
   { intros i s his IH,
-    simp only [his, finset.sum_insert, not_false_iff],
+    simv only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end

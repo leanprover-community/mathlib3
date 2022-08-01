@@ -93,8 +93,8 @@ protected def function.injective.module [add_comm_monoid M₂] [has_smul R M₂]
   (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
   module R M₂ :=
 { smul := (•),
-  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, f.map_add, add_smul],
-  zero_smul := λ x, hf $ by simp only [smul, zero_smul, f.map_zero],
+  add_smul := λ c₁ c₂ x, hf $ by simv only [smul, f.map_add, add_smul],
+  zero_smul := λ x, hf $ by simv only [smul, zero_smul, f.map_zero],
   .. hf.distrib_mul_action f smul }
 
 /-- Pushforward a `module` structure along a surjective additive monoid homomorphism. -/
@@ -103,8 +103,8 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_smul R M₂
   module R M₂ :=
 { smul := (•),
   add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
-    simp only [add_smul, ← smul, ← f.map_add] },
-  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
+    simv only [add_smul, ← smul, ← f.map_add] },
+  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simv only [← f.map_zero, ← smul, zero_smul] },
   .. hf.distrib_mul_action f smul }
 
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →+* S`.
@@ -118,7 +118,7 @@ def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoi
   module S M :=
 { smul := (•),
   zero_smul := λ x, by rw [← f.map_zero, hsmul, zero_smul],
-  add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
+  add_smul := hf.forall₂.mpr (λ a b x, by simv only [← f.map_add, hsmul, add_smul]),
   .. hf.distrib_mul_action_left f.to_monoid_hom hsmul }
 
 variables {R} (M)
@@ -129,7 +129,7 @@ See note [reducible non-instances]. -/
 @[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
 { smul := has_smul.comp.smul f,
-  add_smul := λ r s x, by simp [add_smul],
+  add_smul := λ r s x, by simv [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }
 
@@ -140,8 +140,8 @@ variables (R) (M)
 This is a stronger version of `distrib_mul_action.to_add_monoid_End` -/
 @[simps apply_apply]
 def module.to_add_monoid_End : R →+* add_monoid.End M :=
-{ map_zero' := add_monoid_hom.ext $ λ r, by simp,
-  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
+{ map_zero' := add_monoid_hom.ext $ λ r, by simv,
+  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simv [add_smul],
   ..distrib_mul_action.to_add_monoid_End R M }
 
 /-- A convenience alias for `module.to_add_monoid_End` as an `add_monoid_hom`, usually to allow the
@@ -243,11 +243,11 @@ by rw [neg_smul, smul_neg, neg_neg]
 by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
 
 variables (R)
-theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
+theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simv
 variables {R}
 
 theorem sub_smul (r s : R) (y : M) : (r - s) • y = r • y - s • y :=
-by simp [add_smul, sub_eq_add_neg]
+by simv [add_smul, sub_eq_add_neg]
 
 end module
 
@@ -332,8 +332,8 @@ def add_comm_monoid.nat_module.unique : unique (module ℕ M) :=
 instance add_comm_monoid.nat_is_scalar_tower :
   is_scalar_tower ℕ R M :=
 { smul_assoc := λ n x y, nat.rec_on n
-    (by simp only [zero_smul])
-    (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
+    (by simv only [zero_smul])
+    (λ n ih, by simv only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
 
 end add_comm_monoid
 
@@ -346,7 +346,7 @@ variables (R)
 /-- `zsmul` is equal to any other module structure via a cast. -/
 lemma zsmul_eq_smul_cast (n : ℤ) (b : M) : n • b = (n : R) • b :=
 have (smul_add_hom ℤ M).flip b = ((smul_add_hom R M).flip b).comp (int.cast_add_hom R),
-  by { ext, simp },
+  by { ext, simv },
 add_monoid_hom.congr_fun this n
 end
 
@@ -367,13 +367,13 @@ end add_comm_group
 lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
   (x : ℤ) (a : M) : f ((x : R) • a) = (x : S) • f a :=
-by simp only [←zsmul_eq_smul_cast, map_zsmul]
+by simv only [←zsmul_eq_smul_cast, map_zsmul]
 
 lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
   (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : S) • f a :=
-by simp only [←nsmul_eq_smul_cast, map_nsmul]
+by simv only [←nsmul_eq_smul_cast, map_nsmul]
 
 lemma map_inv_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
@@ -382,10 +382,10 @@ lemma map_inv_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
 begin
   by_cases hR : (n : R) = 0; by_cases hS : (n : S) = 0,
-  { simp [hR, hS] },
-  { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
-    rw [← inv_smul_smul₀ hS (f x), ← map_int_cast_smul f R S], simp [hR] },
-  { suffices : ∀ y, f y = 0, by simp [this], clear x, intro x,
+  { simv [hR, hS] },
+  { suffices : ∀ y, f y = 0, by simv [this], clear x, intro x,
+    rw [← inv_smul_smul₀ hS (f x), ← map_int_cast_smul f R S], simv [hR] },
+  { suffices : ∀ y, f y = 0, by simv [this], clear x, intro x,
     rw [← smul_inv_smul₀ hR x, map_int_cast_smul f R S, hS, zero_smul] },
   { rw [← inv_smul_smul₀ hS (f _), ← map_int_cast_smul f R S, smul_inv_smul₀ hR] }
 end
@@ -411,7 +411,7 @@ lemma map_rat_smul [add_comm_group M] [add_comm_group M₂] [module ℚ M] [modu
 rat.cast_id c ▸ map_rat_cast_smul f ℚ ℚ c x
 
 /-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
-an instance because `simp` becomes very slow if we have many `subsingleton` instances,
+an instance because `simv` becomes very slow if we have many `subsingleton` instances,
 see [gh-6025]. -/
 lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
 ⟨λ P Q, module.ext' P Q $ λ r x,
@@ -513,7 +513,7 @@ theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
 
 theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
   c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=
-by simp only [ne.def, smul_eq_zero, not_or_distrib]
+by simv only [ne.def, smul_eq_zero, not_or_distrib]
 
 section nat
 
@@ -521,10 +521,10 @@ variables (R) (M) [no_zero_smul_divisors R M] [char_zero R]
 include R
 
 lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
-⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
+⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simv }⟩
 
 @[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
-by { haveI := nat.no_zero_smul_divisors R M, simp [smul_eq_zero] }
+by { haveI := nat.no_zero_smul_divisors R M, simv [smul_eq_zero] }
 
 end nat
 

@@ -274,7 +274,7 @@ creates_limit_of_fully_faithful_of_lift
 ({ X := X,
   π :=
   { app := λ j, F.preimage (i.hom ≫ limit.π (K ⋙ F) j),
-    naturality' := λ Y Z f, F.map_injective (by { dsimp, simp, erw limit.w (K ⋙ F), }) }} : cone K)
+    naturality' := λ Y Z f, F.map_injective (by { dsimp, simv, erw limit.w (K ⋙ F), }) }} : cone K)
 (by { fapply cones.ext, exact i, tidy, })
 
 /-- `F` preserves the limit of `K` if it creates the limit and `K ⋙ F` has the limit. -/
@@ -356,7 +356,7 @@ creates_colimit_of_fully_faithful_of_lift
   ι :=
   { app := λ j, F.preimage (colimit.ι (K ⋙ F) j ≫ i.inv : _),
     naturality' := λ Y Z f, F.map_injective
-      (by { erw category.comp_id, simp only [functor.map_comp, functor.image_preimage],
+      (by { erw category.comp_id, simv only [functor.map_comp, functor.image_preimage],
         erw colimit.w_assoc (K ⋙ F) }) }} : cocone K)
 (by { fapply cocones.ext, exact i, tidy, })
 
@@ -393,7 +393,7 @@ def creates_limit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ �
         F.map_cone_postcompose ≪≫
         (cones.postcompose (iso_whisker_right h F).hom).map_iso
             (lifted_limit_maps_to_original t') ≪≫
-        cones.ext (iso.refl _) (λ j, by { dsimp, rw [category.assoc, ←F.map_comp], simp }) }
+        cones.ext (iso.refl _) (λ j, by { dsimp, rw [category.assoc, ←F.map_comp], simv }) }
   ..reflects_limit_of_iso_diagram F h }
 
 /-- If `F` creates the limit of `K` and `F ≅ G`, then `G` creates the limit of `K`. -/
@@ -430,7 +430,7 @@ def creates_colimit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁
         F.map_cocone_precompose ≪≫
         (cocones.precompose (iso_whisker_right h F).inv).map_iso
             (lifted_colimit_maps_to_original t') ≪≫
-        cocones.ext (iso.refl _) (λ j, by { dsimp, rw ←F.map_comp_assoc, simp }) },
+        cocones.ext (iso.refl _) (λ j, by { dsimp, rw ←F.map_comp_assoc, simv }) },
   ..reflects_colimit_of_iso_diagram F h }
 
 /-- If `F` creates the colimit of `K` and `F ≅ G`, then `G` creates the colimit of `K`. -/

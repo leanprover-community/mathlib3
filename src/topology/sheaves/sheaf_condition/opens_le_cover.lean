@@ -271,8 +271,8 @@ variables {Y : opens X} (hY : Y = supr U)
   inv :=
   { hom := F.map (eq_to_hom (congr_arg op hY)),
     w' := λ j, by { erw ← F.map_comp, congr } },
-  hom_inv_id' := by { ext, simp [eq_to_hom_map], },
-  inv_hom_id' := by { ext, simp [eq_to_hom_map], } }
+  hom_inv_id' := by { ext, simv [eq_to_hom_map], },
+  inv_hom_id' := by { ext, simv [eq_to_hom_map], } }
 
 /-- Given a presheaf `F` on the topological space `X` and a family of opens `U` of `X`,
     the natural cone associated to `F` and `U` used in the definition of

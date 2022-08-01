@@ -28,8 +28,8 @@ begin
   trivial
 end
 
--- Test `simp only [exists_prop]` gets applied after choosing.
--- Because of this simp, we need a non-rfl goal
+-- Test `simv only [exists_prop]` gets applied after choosing.
+-- Because of this simv, we need a non-rfl goal
 example (h : ∀ n, ∃ k ≥ 0, n = k) : ∀ x : ℕ, 1 = 1 :=
 begin
   choose u hu using h,

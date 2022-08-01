@@ -63,7 +63,7 @@ begin
     erw [← he, ← mul_smul, ← mul_smul],
     congr' 1,
     rw mul_comm,
-    simp only [← mul_assoc, ← units.coe_mul, mul_inv_self, one_mul] }
+    simv only [← mul_assoc, ← units.coe_mul, mul_inv_self, one_mul] }
 end
 
 instance : has_zero (value_group A K) := ⟨quotient.mk' 0⟩
@@ -76,7 +76,7 @@ begin
   apply quotient.sound',
   dsimp,
   use c * d,
-  simp only [mul_smul, algebra.smul_def, units.smul_def, ring_hom.map_mul,
+  simv only [mul_smul, algebra.smul_def, units.smul_def, ring_hom.map_mul,
     units.coe_mul],
   ring,
 end
@@ -108,12 +108,12 @@ begin
     use c,
     rw algebra.smul_def,
     field_simp,
-    simp only [← ring_hom.map_mul, ← h], congr' 1, ring },
+    simv only [← ring_hom.map_mul, ← h], congr' 1, ring },
   { left,
     use c,
     rw algebra.smul_def,
     field_simp,
-    simp only [← ring_hom.map_mul, ← h], congr' 1, ring }
+    simv only [← ring_hom.map_mul, ← h], congr' 1, ring }
 end
 
 noncomputable
@@ -122,7 +122,7 @@ instance : linear_ordered_comm_group_with_zero (value_group A K) :=
   le_trans := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨e,rfl⟩ ⟨f,rfl⟩, use (e * f), rw mul_smul },
   le_antisymm := begin
     rintros ⟨a⟩ ⟨b⟩ ⟨e,rfl⟩ ⟨f,hf⟩,
-    by_cases hb : b = 0, { simp [hb] },
+    by_cases hb : b = 0, { simv [hb] },
     have : is_unit e,
     { apply is_unit_of_dvd_one,
       use f, rw mul_comm,
@@ -142,7 +142,7 @@ instance : linear_ordered_comm_group_with_zero (value_group A K) :=
   mul_comm := by { rintros ⟨a⟩ ⟨b⟩, apply quotient.sound', rw mul_comm, apply setoid.refl' },
   mul_le_mul_left := begin
     rintros ⟨a⟩ ⟨b⟩ ⟨c,rfl⟩ ⟨d⟩,
-    use c, simp only [algebra.smul_def], ring,
+    use c, simv only [algebra.smul_def], ring,
   end,
   zero_mul := by { rintros ⟨a⟩, apply quotient.sound', rw zero_mul, apply setoid.refl' },
   mul_zero := by { rintros ⟨a⟩, apply quotient.sound', rw mul_zero, apply setoid.refl' },
@@ -158,10 +158,10 @@ instance : linear_ordered_comm_group_with_zero (value_group A K) :=
     rintros ⟨a⟩ ha,
     apply quotient.sound',
     use 1,
-    simp only [one_smul],
+    simv only [one_smul],
     apply (mul_inv_cancel _).symm,
     contrapose ha,
-    simp only [not_not] at ha ⊢,
+    simv only [not_not] at ha ⊢,
     rw ha, refl,
   end,
   ..(infer_instance : has_le (value_group A K)),
@@ -190,13 +190,13 @@ def valuation : valuation K (value_group A K) :=
       use (c + 1),
       rw algebra.smul_def,
       field_simp,
-      simp only [← ring_hom.map_mul, ← ring_hom.map_add, ← (algebra_map A K).map_one, ← h],
+      simv only [← ring_hom.map_mul, ← ring_hom.map_add, ← (algebra_map A K).map_one, ← h],
       congr' 1, ring },
     { apply le_trans _ (le_max_right _ _),
       use (c + 1),
       rw algebra.smul_def,
       field_simp,
-      simp only [← ring_hom.map_mul, ← ring_hom.map_add, ← (algebra_map A K).map_one, ← h],
+      simv only [← ring_hom.map_mul, ← ring_hom.map_add, ← (algebra_map A K).map_one, ← h],
       congr' 1, ring }
   end }
 
@@ -250,10 +250,10 @@ begin
   obtain ⟨c,(h|h)⟩ := valuation_ring.cond a (1-a),
   { left,
     apply is_unit_of_mul_eq_one _ (c+1),
-    simp [mul_add, h] },
+    simv [mul_add, h] },
   { right,
     apply is_unit_of_mul_eq_one _ (c+1),
-    simp [mul_add, h] }
+    simv [mul_add, h] }
 end
 
 instance [decidable_rel ((≤) : ideal A → ideal A → Prop)] : linear_order (ideal A) :=
@@ -286,8 +286,8 @@ lemma iff_dvd_total :
 begin
   classical,
   refine ⟨λ H, ⟨λ a b, _⟩, λ H, ⟨λ a b, _⟩⟩; resetI,
-  { obtain ⟨c,rfl|rfl⟩ := @@valuation_ring.cond _ _ H a b; simp },
-  { obtain (⟨c, rfl⟩|⟨c, rfl⟩) := @is_total.total _ _ H a b; use c; simp }
+  { obtain ⟨c,rfl|rfl⟩ := @@valuation_ring.cond _ _ H a b; simv },
+  { obtain (⟨c, rfl⟩|⟨c, rfl⟩) := @is_total.total _ _ H a b; use c; simv }
 end
 
 lemma iff_ideal_total :
@@ -373,12 +373,12 @@ begin
   refine iff_dvd_total.mpr ⟨λ a b, _⟩,
   obtain ⟨g, e : _ = ideal.span _⟩ := is_bezout.span_pair_is_principal a b,
   obtain ⟨a, rfl⟩ := ideal.mem_span_singleton'.mp
-    (show a ∈ ideal.span {g}, by { rw [← e], exact ideal.subset_span (by simp) }),
+    (show a ∈ ideal.span {g}, by { rw [← e], exact ideal.subset_span (by simv) }),
   obtain ⟨b, rfl⟩ := ideal.mem_span_singleton'.mp
-    (show b ∈ ideal.span {g}, by { rw [← e], exact ideal.subset_span (by simp) }),
+    (show b ∈ ideal.span {g}, by { rw [← e], exact ideal.subset_span (by simv) }),
   obtain ⟨x, y, e'⟩ := ideal.mem_span_pair.mp
-    (show g ∈ ideal.span {a * g, b * g}, by { rw e, exact ideal.subset_span (by simp) }),
-  cases eq_or_ne g 0 with h h, { simp [h] },
+    (show g ∈ ideal.span {a * g, b * g}, by { rw e, exact ideal.subset_span (by simv) }),
+  cases eq_or_ne g 0 with h h, { simv [h] },
   have : x * a + y * b = 1,
   { apply mul_left_injective₀ h, convert e'; ring_nf },
   cases local_ring.is_unit_or_is_unit_of_add_one this with h' h',
@@ -447,7 +447,7 @@ begin
   constructor,
   intros a b,
   by_cases b = 0,
-  { use 0, left, simp [h] },
+  { use 0, left, simv [h] },
   { use a * b⁻¹, right, field_simp, rw mul_comm }
 end
 
@@ -463,20 +463,20 @@ instance of_discrete_valuation_ring : valuation_ring A :=
 begin
   constructor,
   intros a b,
-  by_cases ha : a = 0, { use 0, right, simp [ha] },
-  by_cases hb : b = 0, { use 0, left, simp [hb] },
+  by_cases ha : a = 0, { use 0, right, simv [ha] },
+  by_cases hb : b = 0, { use 0, left, simv [hb] },
   obtain ⟨ϖ,hϖ⟩ := discrete_valuation_ring.exists_irreducible A,
   obtain ⟨m,u,rfl⟩ := discrete_valuation_ring.eq_unit_mul_pow_irreducible ha hϖ,
   obtain ⟨n,v,rfl⟩ := discrete_valuation_ring.eq_unit_mul_pow_irreducible hb hϖ,
   cases le_total m n with h h,
   { use (u⁻¹ * v : Aˣ) * ϖ^(n-m), left,
     simp_rw [mul_comm (u : A), units.coe_mul, ← mul_assoc, mul_assoc _ (u : A)],
-    simp only [units.mul_inv, mul_one, mul_comm _ (v : A), mul_assoc, ← pow_add],
+    simv only [units.mul_inv, mul_one, mul_comm _ (v : A), mul_assoc, ← pow_add],
     congr' 2,
     linarith },
   { use (v⁻¹ * u : Aˣ) * ϖ^(m-n), right,
     simp_rw [mul_comm (v : A), units.coe_mul, ← mul_assoc, mul_assoc _ (v : A)],
-    simp only [units.mul_inv, mul_one, mul_comm _ (u : A), mul_assoc, ← pow_add],
+    simv only [units.mul_inv, mul_one, mul_comm _ (u : A), mul_assoc, ← pow_add],
     congr' 2,
     linarith }
 end

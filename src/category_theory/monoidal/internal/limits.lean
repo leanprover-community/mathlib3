@@ -67,14 +67,14 @@ def limit_cone_is_limit (F : J ⥤ Mon_ C) : is_limit (limit_cone F) :=
   { hom := limit.lift (F ⋙ Mon_.forget C) ((Mon_.forget C).map_cone s),
     mul_hom' :=
     begin
-      ext, dsimp, simp, dsimp,
+      ext, dsimp, simv, dsimp,
       slice_rhs 1 2 { rw [←monoidal_category.tensor_comp, limit.lift_π], dsimp, }
     end },
-  fac' := λ s h, by { ext, simp, },
+  fac' := λ s h, by { ext, simv, },
   uniq' := λ s m w,
   begin
     ext,
-    dsimp, simp only [Mon_.forget_map, limit.lift_π, functor.map_cone_π_app],
+    dsimp, simv only [Mon_.forget_map, limit.lift_π, functor.map_cone_π_app],
     exact congr_arg Mon_.hom.hom (w j),
   end, }
 

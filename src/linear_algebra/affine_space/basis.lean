@@ -64,7 +64,7 @@ variables [ring k] [module k V] (b : affine_basis ι k P)
 instance : inhabited (affine_basis punit k punit) :=
 ⟨{ points := id,
    ind    := affine_independent_of_subsingleton k id,
-   tot    := by simp }⟩
+   tot    := by simv }⟩
 
 /-- Given an affine basis for an affine space `P`, if we single out one member of the family, we
 obtain a linear basis for the model space `V`.
@@ -81,12 +81,12 @@ begin
   rw vector_span_image_eq_span_vsub_set_right_ne k b.points (mem_univ i),
   congr,
   ext v,
-  simp,
+  simv,
 end
 
 @[simp] lemma basis_of_apply (i : ι) (j : {j : ι // j ≠ i}) :
   b.basis_of i j = b.points ↑j -ᵥ b.points i :=
-by simp [basis_of]
+by simv [basis_of]
 
 /-- The `i`th barycentric coordinate of a point. -/
 noncomputable def coord (i : ι) : P →ᵃ[k] k :=
@@ -101,7 +101,7 @@ rfl
 
 @[simp] lemma coord_apply_eq (i : ι) :
   b.coord i (b.points i) = 1 :=
-by simp only [coord, basis.coe_sum_coords, linear_equiv.map_zero, linear_equiv.coe_coe,
+by simv only [coord, basis.coe_sum_coords, linear_equiv.map_zero, linear_equiv.coe_coe,
   sub_zero, affine_map.coe_mk, finsupp.sum_zero_index, vsub_self]
 
 @[simp] lemma coord_apply_neq (i j : ι) (h : j ≠ i) :
@@ -111,14 +111,14 @@ by rw [coord, affine_map.coe_mk, ← subtype.coe_mk j h, ← b.basis_of_apply i 
 
 lemma coord_apply [decidable_eq ι] (i j : ι) :
   b.coord i (b.points j) = if i = j then 1 else 0 :=
-by { cases eq_or_ne i j; simp [h.symm], simp [h], }
+by { cases eq_or_ne i j; simv [h.symm], simv [h], }
 
 @[simp] lemma coord_apply_combination_of_mem
   {s : finset ι} {i : ι} (hi : i ∈ s) {w : ι → k} (hw : s.sum w = 1) :
   b.coord i (s.affine_combination b.points w) = w i :=
 begin
   classical,
-  simp only [coord_apply, hi, finset.affine_combination_eq_linear_combination, if_true, mul_boole,
+  simv only [coord_apply, hi, finset.affine_combination_eq_linear_combination, if_true, mul_boole,
     hw, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination b.points w hw],
 end
 
@@ -127,7 +127,7 @@ end
   b.coord i (s.affine_combination b.points w) = 0 :=
 begin
   classical,
-  simp only [coord_apply, hi, finset.affine_combination_eq_linear_combination, if_false, mul_boole,
+  simv only [coord_apply, hi, finset.affine_combination_eq_linear_combination, if_false, mul_boole,
     hw, function.comp_app, smul_eq_mul, s.sum_ite_eq, s.map_affine_combination b.points w hw],
 end
 
@@ -163,7 +163,7 @@ end
 lemma ext_elem [fintype ι] {q₁ q₂ : P} (h : ∀ i, b.coord i q₁ = b.coord i q₂) : q₁ = q₂ :=
 begin
   rw [← b.affine_combination_coord_eq_self q₁, ← b.affine_combination_coord_eq_self q₂],
-  simp only [h],
+  simv only [h],
 end
 
 @[simp] lemma coe_coord_of_subsingleton_eq_one [subsingleton ι] (i : ι) :
@@ -176,9 +176,9 @@ begin
     apply subsingleton_of_subsingleton, },
   haveI := affine_subspace.subsingleton_of_subsingleton_span_eq_top hp b.tot,
   let s : finset ι := {i},
-  have hi : i ∈ s, { simp, },
-  have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
-  have hq : q = s.affine_combination b.points (function.const ι (1 : k)), { simp, },
+  have hi : i ∈ s, { simv, },
+  have hw : s.sum (function.const ι (1 : k)) = 1, { simv, },
+  have hq : q = s.affine_combination b.points (function.const ι (1 : k)), { simv, },
   rw [pi.one_apply, hq, b.coord_apply_combination_of_mem hi hw],
 end
 
@@ -189,12 +189,12 @@ begin
   intros x,
   obtain ⟨j, hij⟩ := exists_ne i,
   let s : finset ι := {i, j},
-  have hi : i ∈ s, { simp, },
-  have hj : j ∈ s, { simp, },
+  have hi : i ∈ s, { simv, },
+  have hj : j ∈ s, { simv, },
   let w : ι → k := λ j', if j' = i then x else 1-x,
-  have hw : s.sum w = 1, { simp [hij, finset.sum_ite, finset.filter_insert, finset.filter_eq'], },
+  have hw : s.sum w = 1, { simv [hij, finset.sum_ite, finset.filter_insert, finset.filter_eq'], },
   use s.affine_combination b.points w,
-  simp [b.coord_apply_combination_of_mem hi hw],
+  simv [b.coord_apply_combination_of_mem hi hw],
 end
 
 /-- Barycentric coordinates as an affine map. -/
@@ -202,11 +202,11 @@ noncomputable def coords : P →ᵃ[k] ι → k :=
 { to_fun    := λ q i, b.coord i q,
   linear    :=
   { to_fun    := λ v i, -(b.basis_of i).sum_coords v,
-    map_add'  := λ v w, by { ext i, simp only [linear_map.map_add, pi.add_apply, neg_add], },
+    map_add'  := λ v w, by { ext i, simv only [linear_map.map_add, pi.add_apply, neg_add], },
     map_smul' := λ t v, by { ext i, simpa only [linear_map.map_smul, pi.smul_apply, smul_neg] } },
   map_vadd' := λ p v, by
     { ext i,
-      simp only [linear_eq_sum_coords, linear_map.coe_mk, linear_map.neg_apply, pi.vadd_apply',
+      simv only [linear_eq_sum_coords, linear_map.coe_mk, linear_map.neg_apply, pi.vadd_apply',
         affine_map.map_vadd], }, }
 
 @[simp] lemma coords_apply (q : P) (i : ι) :
@@ -235,7 +235,7 @@ variables {ι' : Type*} [fintype ι'] [fintype ι] (b₂ : affine_basis ι k P)
 
 lemma to_matrix_row_sum_one {ι' : Type*} (q : ι' → P) (i : ι') :
   ∑ j, b.to_matrix q i j = 1 :=
-by simp
+by simv
 
 /-- Given a family of points `p : ι' → P` and an affine basis `b`, if the matrix whose rows are the
 coordinates of `p` with respect `b` has a right inverse, then `p` is affine independent. -/
@@ -266,11 +266,11 @@ begin
     exact this i, },
   intros i,
   have hAi : ∑ j, A i j = 1,
-  { calc ∑ j, A i j = ∑ j, (A i j) * ∑ l, b.to_matrix p j l : by simp
+  { calc ∑ j, A i j = ∑ j, (A i j) * ∑ l, b.to_matrix p j l : by simv
                 ... = ∑ j, ∑ l, (A i j) * b.to_matrix p j l : by simp_rw finset.mul_sum
                 ... = ∑ l, ∑ j, (A i j) * b.to_matrix p j l : by rw finset.sum_comm
                 ... = ∑ l, (A ⬝ b.to_matrix p) i l : rfl
-                ... = 1 : by simp [hA, matrix.one_apply, finset.filter_eq], },
+                ... = 1 : by simv [hA, matrix.one_apply, finset.filter_eq], },
   have hbi : b.points i = finset.univ.affine_combination p (A i),
   { apply b.ext_elem,
     intros j,
@@ -292,7 +292,7 @@ begin
   change _ = b.coord j x,
   conv_rhs { rw ← b₂.affine_combination_coord_eq_self x, },
   rw finset.map_affine_combination _ _ _ (b₂.sum_coord_apply_eq_one x),
-  simp [matrix.vec_mul, matrix.dot_product, to_matrix_apply, coords],
+  simv [matrix.vec_mul, matrix.dot_product, to_matrix_apply, coords],
 end
 
 variables [decidable_eq ι]
@@ -384,7 +384,7 @@ begin
   rw ← affine_independent_equiv (fintype.equiv_of_card_eq hs) at h_ind,
   refine ⟨⟨_, h_ind, _⟩⟩,
   rw range_comp,
-  simp [h_tot],
+  simv [h_tot],
 end
 
 end division_ring

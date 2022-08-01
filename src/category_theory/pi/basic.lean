@@ -165,7 +165,7 @@ end eq_to_hom
 @[simp] lemma pi'_eval (f : Π i, A ⥤ C i) (i : I) : (pi' f) ⋙ (pi.eval C i) = f i :=
 begin
   apply functor.ext; intros,
-  { simp, }, { refl, }
+  { simv, }, { refl, }
 end
 
 /-- Two functors to a product category are equal iff they agree on every coordinate. -/

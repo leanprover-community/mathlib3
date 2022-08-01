@@ -127,6 +127,6 @@ lemma exists_forall_norm_le [proper_space R] (p : R[X]) :
   ∃ x, ∀ y, ∥p.eval x∥ ≤ ∥p.eval y∥ :=
 if hp0 : 0 < degree p
 then p.continuous.norm.exists_forall_le $ p.tendsto_norm_at_top hp0 tendsto_norm_cocompact_at_top
-else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
+else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simv⟩
 
 end polynomial

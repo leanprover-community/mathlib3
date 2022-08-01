@@ -33,7 +33,7 @@ variables {K V₁ V₂ ι₁ ι₂ : Type*} [field K]
     (linear_map.to_matrix B₁ B₂ u)ᵀ :=
 begin
   ext i j,
-  simp only [linear_map.to_matrix_apply, module.dual.transpose_apply, B₁.dual_basis_repr,
+  simv only [linear_map.to_matrix_apply, module.dual.transpose_apply, B₁.dual_basis_repr,
              B₂.dual_basis_apply, matrix.transpose_apply, linear_map.comp_apply]
 end
 

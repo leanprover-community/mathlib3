@@ -228,21 +228,21 @@ namespace intermediate_field
 instance to_field : field S :=
 S.to_subfield.to_field
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_sum {ι : Type*} [fintype ι] (f : ι → S) : (↑∑ i, f i : L) = ∑ i, (f i : L) :=
 begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
-  { simp },
+  { simv },
   { rw [finset.sum_insert hi, add_mem_class.coe_add, H, finset.sum_insert hi] }
 end
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_prod {ι : Type*} [fintype ι] (f : ι → S) : (↑∏ i, f i : L) = ∏ i, (f i : L) :=
 begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
-  { simp },
+  { simv },
   { rw [finset.prod_insert hi, mul_mem_class.coe_mul, H, finset.prod_insert hi] }
 end
 
@@ -307,7 +307,7 @@ def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
   E ≃ₐ[K] (E.map e.to_alg_hom) :=
 e.subalgebra_map E.to_subalgebra
 
-/- We manually add these two simp lemmas because `@[simps]` before `intermediate_field_map`
+/- We manually add these two simv lemmas because `@[simps]` before `intermediate_field_map`
   led to a timeout. -/
 @[simp] lemma intermediate_field_map_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
   (a : E) : ↑(intermediate_field_map e E a) = e a := rfl
@@ -331,7 +331,7 @@ lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
   { rw [aeval_add, aeval_add, add_mem_class.coe_add, hf, hg] },
-  { simp only [mul_mem_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
+  { simv only [mul_mem_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
                mul_eq_mul_right_iff],
     left, refl }
 end

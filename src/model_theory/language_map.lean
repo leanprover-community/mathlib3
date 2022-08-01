@@ -87,7 +87,7 @@ variables {L L'} {L'' : language}
 
 @[ext] protected lemma funext {F G : L →ᴸ L'} (h_fun : F.on_function = G.on_function )
   (h_rel : F.on_relation = G.on_relation ) : F = G :=
-by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h_rel}
+by {cases F with Ff Fr, cases G with Gf Gr, simv only *, exact and.intro h_fun h_rel}
 
 instance [L.is_algebraic] [L.is_relational] : unique (L →ᴸ L') :=
 ⟨⟨Lhom.of_is_empty L L'⟩, λ _, Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
@@ -179,7 +179,7 @@ class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
 (map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+attribute [simv] is_expansion_on.map_on_function is_expansion_on.map_on_relation
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
@@ -193,13 +193,13 @@ instance sum_elim_is_expansion_on {L'' : language} (ψ : L'' →ᴸ L') (M : Typ
   [L.Structure M] [L'.Structure M] [L''.Structure M]
   [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
   (ϕ.sum_elim ψ).is_expansion_on M :=
-⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
+⟨λ _ f _, sum.cases_on f (by simv) (by simv), λ _ R _, sum.cases_on R (by simv) (by simv)⟩
 
 instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) (M : Type*)
   [L.Structure M] [L'.Structure M] [L₁.Structure M] [L₂.Structure M]
   [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
   (ϕ.sum_map ψ).is_expansion_on M :=
-⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
+⟨λ _ f _, sum.cases_on f (by simv) (by simv), λ _ R _, sum.cases_on R (by simv) (by simv)⟩
 
 instance sum_inl_is_expansion_on (M : Type*)
   [L.Structure M] [L'.Structure M] :
@@ -277,7 +277,7 @@ instance is_empty_functions_constants_on_succ {n : ℕ} :
 nat.cases_on n pempty.is_empty (λ n, nat.cases_on n pempty.is_empty (λ _, pempty.is_empty))
 
 lemma card_constants_on : (constants_on α).card = # α :=
-by simp
+by simv
 
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
@@ -341,7 +341,7 @@ variables (L) (α)
 { to_Lhom := Lhom_with_constants L α,
   inv_Lhom := Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L),
   left_inv := by rw [Lhom_with_constants, Lhom.sum_elim_comp_inl],
-  right_inv := by { simp only [Lhom.comp_sum_elim, Lhom_with_constants, Lhom.comp_id],
+  right_inv := by { simv only [Lhom.comp_sum_elim, Lhom_with_constants, Lhom.comp_id],
     exact trans (congr rfl (subsingleton.elim _ _)) Lhom.sum_elim_inl_inr } }
 
 variables {α} {β : Type*}

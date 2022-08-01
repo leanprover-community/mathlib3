@@ -159,7 +159,7 @@ by simpa only [tendsto_neg_at_top_iff, mul_neg] using hf.at_top_mul_const' (neg_
 lemma tendsto.at_bot_mul_const' (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λx, f x * r) l at_bot :=
 begin
-  simp only [← tendsto_neg_at_top_iff, ← neg_mul] at hf ⊢,
+  simv only [← tendsto_neg_at_top_iff, ← neg_mul] at hf ⊢,
   exact hf.at_top_mul_const' hr
 end
 
@@ -209,7 +209,7 @@ by simpa using hf.at_top_zsmul_const (neg_pos.2 hr)
 lemma tendsto.at_bot_zsmul_const {f : α → ℤ} (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x • r) l at_bot :=
 begin
-  simp only [← tendsto_neg_at_top_iff, ← neg_zsmul] at hf ⊢,
+  simv only [← tendsto_neg_at_top_iff, ← neg_zsmul] at hf ⊢,
   exact hf.at_top_zsmul_const hr
 end
 

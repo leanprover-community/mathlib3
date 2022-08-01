@@ -53,7 +53,7 @@ lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] 
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
+  simv only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
   exact (tendsto_pow_at_top hm.ne').comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
@@ -149,7 +149,7 @@ begin
   { rintro ⟨a, ha, C, h₀, H⟩,
     rcases sign_cases_of_C_mul_pow_nonneg (λ n, (abs_nonneg _).trans (H n)) with rfl | ⟨hC₀, ha₀⟩,
     { obtain rfl : f = 0, by { ext n, simpa using H n },
-      simp only [lt_irrefl, false_or] at h₀,
+      simv only [lt_irrefl, false_or] at h₀,
       exact ⟨0, ⟨neg_lt_zero.2 h₀, h₀⟩, is_O_zero _ _⟩ },
     exact ⟨a, A ⟨ha₀, ha⟩,
       is_O_of_le' _ (λ n, (H n).trans $ mul_le_mul_of_nonneg_left (le_abs_self _) hC₀.le)⟩ },
@@ -198,7 +198,7 @@ lemma is_o_pow_const_mul_const_pow_const_pow_of_norm_lt {R : Type*} [normed_ring
 begin
   by_cases h0 : r₁ = 0,
   { refine (is_o_zero _ _).congr' (mem_at_top_sets.2 $ ⟨1, λ n hn, _⟩) eventually_eq.rfl,
-    simp [zero_pow (zero_lt_one.trans_le hn), h0] },
+    simv [zero_pow (zero_lt_one.trans_le hn), h0] },
   rw [← ne.def, ← norm_pos_iff] at h0,
   have A : (λ n, n ^ k : ℕ → R) =o[at_top] (λ n, (r₂ / ∥r₁∥) ^ n),
     from is_o_pow_const_const_pow_of_one_lt k ((one_lt_div h0).2 h),
@@ -217,7 +217,7 @@ lemma tendsto_pow_const_mul_const_pow_of_abs_lt_one (k : ℕ) {r : ℝ} (hr : |r
 begin
   by_cases h0 : r = 0,
   { exact tendsto_const_nhds.congr'
-      (mem_at_top_sets.2 ⟨1, λ n hn, by simp [zero_lt_one.trans_le hn, h0]⟩) },
+      (mem_at_top_sets.2 ⟨1, λ n hn, by simv [zero_lt_one.trans_le hn, h0]⟩) },
   have hr' : 1 < (|r|)⁻¹, from one_lt_inv (abs_pos.2 h0) hr,
   rw tendsto_zero_iff_norm_tendsto_zero,
   simpa [div_eq_mul_inv] using tendsto_pow_const_div_const_pow_of_one_lt k hr'
@@ -260,12 +260,12 @@ variables {K : Type*} [normed_field K] {ξ : K}
 
 lemma has_sum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : has_sum (λn:ℕ, ξ ^ n) (1 - ξ)⁻¹ :=
 begin
-  have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
+  have xi_ne_one : ξ ≠ 1, by { contrapose! h, simv [h] },
   have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
     from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
   rw [has_sum_iff_tendsto_nat_of_summable_norm],
   { simpa [geom_sum_eq, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
-  { simp [norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
+  { simv [norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 
 lemma summable_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : summable (λn:ℕ, ξ ^ n) :=
@@ -290,7 +290,7 @@ begin
   refine ⟨λ h, _, summable_geometric_of_norm_lt_1⟩,
   obtain ⟨k : ℕ, hk : dist (ξ ^ k) 0 < 1⟩ :=
     (h.tendsto_cofinite_zero.eventually (ball_mem_nhds _ zero_lt_one)).exists,
-  simp only [norm_pow, dist_zero_right] at hk,
+  simv only [norm_pow, dist_zero_right] at hk,
   rw [← one_pow k] at hk,
   exact lt_of_pow_lt_pow _ zero_le_one hk
 end
@@ -326,9 +326,9 @@ begin
   ... = ((0 : ℕ) * r ^ 0 + (∑' n : ℕ, (n + 1 : ℕ) * r ^ (n + 1)) - r * s) / (1 - r) :
     by rw ← tsum_eq_zero_add A
   ... = (r * (∑' n : ℕ, (n + 1) * r ^ n) - r * s) / (1 - r) :
-    by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
+    by simv [pow_succ, mul_left_comm _ r, tsum_mul_left]
   ... = r / (1 - r) ^ 2 :
-    by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, sq,
+    by simv [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, sq,
       div_div]
 end
 
@@ -376,15 +376,15 @@ end
 
 @[simp] lemma dist_partial_sum (u : ℕ → α) (n : ℕ) :
  dist (∑ k in range (n + 1), u k) (∑ k in range n, u k) = ∥u n∥ :=
-by simp [dist_eq_norm, sum_range_succ]
+by simv [dist_eq_norm, sum_range_succ]
 
 @[simp] lemma dist_partial_sum' (u : ℕ → α) (n : ℕ) :
  dist (∑ k in range n, u k) (∑ k in range (n+1), u k) = ∥u n∥ :=
-by simp [dist_eq_norm', sum_range_succ]
+by simv [dist_eq_norm', sum_range_succ]
 
 lemma cauchy_series_of_le_geometric {C : ℝ} {u : ℕ → α}
   {r : ℝ} (hr : r < 1) (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range n, u k) :=
-cauchy_seq_of_le_geometric r C hr (by simp [h])
+cauchy_seq_of_le_geometric r C hr (by simv [h])
 
 lemma normed_add_comm_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
   (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
@@ -399,7 +399,7 @@ begin
     from (zero_le_mul_right $ pow_pos hr₀ N).mp ((norm_nonneg _).trans $ h N $ le_refl N),
   have : ∀ n ≥ N, u n = v n,
   { intros n hn,
-    simp [v, hn, if_neg (not_lt.mpr hn)] },
+    simv [v, hn, if_neg (not_lt.mpr hn)] },
   refine cauchy_seq_sum_of_eventually_eq this (normed_add_comm_group.cauchy_series_of_le_geometric'
     hr₁ _),
   { exact C },
@@ -436,12 +436,12 @@ lemma normed_ring.tsum_geometric_of_norm_lt_1
   (x : R) (h : ∥x∥ < 1) : ∥∑' n:ℕ, x ^ n∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=
 begin
   rw tsum_eq_zero_add (normed_ring.summable_geometric_of_norm_lt_1 x h),
-  simp only [pow_zero],
+  simv only [pow_zero],
   refine le_trans (norm_add_le _ _) _,
   have : ∥∑' b : ℕ, (λ n, x ^ (n + 1)) b∥ ≤ (1 - ∥x∥)⁻¹ - 1,
   { refine tsum_of_norm_bounded _ (λ b, norm_pow_le' _ (nat.succ_pos b)),
     convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
-    simp },
+    simv },
   linarith
 end
 
@@ -521,7 +521,7 @@ begin
   { refine lt_of_le_of_ne (norm_nonneg _) _,
     intro h'',
     specialize hN₀ N hNN₀,
-    simp only [comp_app, zero_add] at h'',
+    simv only [comp_app, zero_add] at h'',
     exact hN h''.symm },
   { intro i,
     dsimp only [comp_app],
@@ -578,7 +578,7 @@ begin
   have hf0': tendsto (λ n, -f n) at_top (𝓝 0) := by { convert hf0.neg, norm_num },
   convert (hfa'.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0' hzb).neg,
   funext,
-  simp
+  simv
 end
 
 lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
@@ -630,7 +630,7 @@ lemma real.summable_pow_div_factorial (x : ℝ) :
   summable (λ n, x ^ n / n! : ℕ → ℝ) :=
 begin
   -- We start with trivial extimates
-  have A : (0 : ℝ) < ⌊∥x∥⌋₊ + 1, from zero_lt_one.trans_le (by simp),
+  have A : (0 : ℝ) < ⌊∥x∥⌋₊ + 1, from zero_lt_one.trans_le (by simv),
   have B : ∥x∥ / (⌊∥x∥⌋₊ + 1) < 1, from (div_lt_one A).2 (nat.lt_floor_add_one _),
   -- Then we apply the ratio test. The estimate works for `n ≥ ⌊∥x∥⌋₊`.
   suffices : ∀ n ≥ ⌊∥x∥⌋₊, ∥x ^ (n + 1) / (n + 1)!∥ ≤ ∥x∥ / (⌊∥x∥⌋₊ + 1) * ∥x ^ n / ↑n!∥,

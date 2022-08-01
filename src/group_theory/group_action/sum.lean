@@ -29,9 +29,9 @@ variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M
 @[to_additive sum.has_vadd] instance : has_smul M (α ⊕ β) := ⟨λ a, sum.map ((•) a) ((•) a)⟩
 
 @[to_additive] lemma smul_def : a • x = x.map ((•) a) ((•) a) := rfl
-@[simp, to_additive] lemma smul_inl : a • (inl b : α ⊕ β) = inl (a • b) := rfl
-@[simp, to_additive] lemma smul_inr : a • (inr c : α ⊕ β) = inr (a • c) := rfl
-@[simp, to_additive] lemma smul_swap : (a • x).swap = a • x.swap := by cases x; refl
+@[simv, to_additive] lemma smul_inl : a • (inl b : α ⊕ β) = inl (a • b) := rfl
+@[simv, to_additive] lemma smul_inr : a • (inr c : α ⊕ β) = inr (a • c) := rfl
+@[simv, to_additive] lemma smul_swap : (a • x).swap = a • x.swap := by cases x; refl
 
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α ⊕ β) :=

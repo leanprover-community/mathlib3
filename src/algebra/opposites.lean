@@ -56,15 +56,15 @@ def unop : αᵐᵒᵖ → α := id
 
 attribute [pp_nodot] add_opposite.op add_opposite.unop
 
-@[simp, to_additive] lemma unop_op (x : α) : unop (op x) = x := rfl
-@[simp, to_additive] lemma op_unop (x : αᵐᵒᵖ) : op (unop x) = x := rfl
-@[simp, to_additive] lemma op_comp_unop : (op : α → αᵐᵒᵖ) ∘ unop = id := rfl
-@[simp, to_additive] lemma unop_comp_op : (unop : αᵐᵒᵖ → α) ∘ op = id := rfl
+@[simv, to_additive] lemma unop_op (x : α) : unop (op x) = x := rfl
+@[simv, to_additive] lemma op_unop (x : αᵐᵒᵖ) : op (unop x) = x := rfl
+@[simv, to_additive] lemma op_comp_unop : (op : α → αᵐᵒᵖ) ∘ unop = id := rfl
+@[simv, to_additive] lemma unop_comp_op : (unop : αᵐᵒᵖ → α) ∘ op = id := rfl
 
 attribute [irreducible] mul_opposite
 
 /-- A recursor for `mul_opposite`. Use as `induction x using mul_opposite.rec`. -/
-@[simp, to_additive "A recursor for `add_opposite`. Use as `induction x using add_opposite.rec`."]
+@[simv, to_additive "A recursor for `add_opposite`. Use as `induction x using add_opposite.rec`."]
 protected def rec {F : Π (X : αᵐᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
 
@@ -80,8 +80,8 @@ def op_equiv : α ≃ αᵐᵒᵖ := ⟨op, unop, unop_op, op_unop⟩
 @[to_additive] lemma unop_injective : injective (unop : αᵐᵒᵖ → α) := unop_bijective.injective
 @[to_additive] lemma unop_surjective : surjective (unop : αᵐᵒᵖ → α) := unop_bijective.surjective
 
-@[simp, to_additive] lemma op_inj {x y : α} : op x = op y ↔ x = y := op_injective.eq_iff
-@[simp, to_additive] lemma unop_inj {x y : αᵐᵒᵖ} : unop x = unop y ↔ x = y := unop_injective.eq_iff
+@[simv, to_additive] lemma op_inj {x y : α} : op x = op y ↔ x = y := op_injective.eq_iff
+@[simv, to_additive] lemma unop_inj {x y : αᵐᵒᵖ} : unop x = unop y ↔ x = y := unop_injective.eq_iff
 
 variable (α)
 
@@ -127,8 +127,8 @@ variables (α)
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵐᵒᵖ) = 0 := rfl
 
-@[simp, to_additive] lemma op_one [has_one α] : op (1 : α) = 1 := rfl
-@[simp, to_additive] lemma unop_one [has_one α] : unop (1 : αᵐᵒᵖ) = 1 := rfl
+@[simv, to_additive] lemma op_one [has_one α] : op (1 : α) = 1 := rfl
+@[simv, to_additive] lemma unop_one [has_one α] : unop (1 : αᵐᵒᵖ) = 1 := rfl
 
 variable {α}
 
@@ -138,19 +138,19 @@ variable {α}
 @[simp] lemma op_neg [has_neg α] (x : α) : op (-x) = -op x := rfl
 @[simp] lemma unop_neg [has_neg α] (x : αᵐᵒᵖ) : unop (-x) = -unop x := rfl
 
-@[simp, to_additive] lemma op_mul [has_mul α] (x y : α) : op (x * y) = op y * op x := rfl
-@[simp, to_additive] lemma unop_mul [has_mul α] (x y : αᵐᵒᵖ) : unop (x * y) = unop y * unop x := rfl
+@[simv, to_additive] lemma op_mul [has_mul α] (x y : α) : op (x * y) = op y * op x := rfl
+@[simv, to_additive] lemma unop_mul [has_mul α] (x y : αᵐᵒᵖ) : unop (x * y) = unop y * unop x := rfl
 
-@[simp, to_additive] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
-@[simp, to_additive] lemma unop_inv [has_inv α] (x : αᵐᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
+@[simv, to_additive] lemma op_inv [has_inv α] (x : α) : op (x⁻¹) = (op x)⁻¹ := rfl
+@[simv, to_additive] lemma unop_inv [has_inv α] (x : αᵐᵒᵖ) : unop (x⁻¹) = (unop x)⁻¹ := rfl
 
 @[simp] lemma op_sub [has_sub α] (x y : α) : op (x - y) = op x - op y := rfl
 @[simp] lemma unop_sub [has_sub α] (x y : αᵐᵒᵖ) : unop (x - y) = unop x - unop y := rfl
 
-@[simp, to_additive] lemma op_smul {R : Type*} [has_smul R α] (c : R) (a : α) :
+@[simv, to_additive] lemma op_smul {R : Type*} [has_smul R α] (c : R) (a : α) :
   op (c • a) = c • op a := rfl
 
-@[simp, to_additive] lemma unop_smul {R : Type*} [has_smul R α] (c : R) (a : αᵐᵒᵖ) :
+@[simv, to_additive] lemma unop_smul {R : Type*} [has_smul R α] (c : R) (a : αᵐᵒᵖ) :
   unop (c • a) = c • unop a := rfl
 
 end
@@ -169,10 +169,10 @@ not_congr $ unop_eq_zero_iff a
 lemma op_ne_zero_iff [has_zero α] (a : α) : op a ≠ (0 : αᵐᵒᵖ) ↔ a ≠ (0 : α) :=
 not_congr $ op_eq_zero_iff a
 
-@[simp, to_additive] lemma unop_eq_one_iff [has_one α] (a : αᵐᵒᵖ) : a.unop = 1 ↔ a = 1 :=
+@[simv, to_additive] lemma unop_eq_one_iff [has_one α] (a : αᵐᵒᵖ) : a.unop = 1 ↔ a = 1 :=
 unop_injective.eq_iff' rfl
 
-@[simp, to_additive] lemma op_eq_one_iff [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
+@[simv, to_additive] lemma op_eq_one_iff [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
 op_injective.eq_iff' rfl
 
 end mul_opposite

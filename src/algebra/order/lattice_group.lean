@@ -72,17 +72,17 @@ variables {α : Type u} [lattice α] [comm_group α]
 @[to_additive]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
 begin
-  refine le_antisymm _ (by simp),
+  refine le_antisymm _ (by simv),
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  exact sup_le (by simp) (by simp),
+  exact sup_le (by simv) (by simv),
 end
 
 @[to_additive]
 lemma mul_inf [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
 begin
-  refine le_antisymm (by simp) _,
+  refine le_antisymm (by simv) _,
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  exact le_inf (by simp) (by simp),
+  exact le_inf (by simv) (by simv),
 end
 
 -- Special case of Bourbaki A.VI.9 (2)
@@ -96,8 +96,8 @@ begin
     { rw inv_le_inv_iff, exact le_sup_right, } },
   { rw [← inv_le_inv_iff, inv_inv],
     refine sup_le _ _,
-    { rw ← inv_le_inv_iff, simp, },
-    { rw ← inv_le_inv_iff, simp, } }
+    { rw ← inv_le_inv_iff, simv, },
+    { rw ← inv_le_inv_iff, simv, } }
 end
 
 -- -(a ⊓ b) = -a ⊔ -b
@@ -110,7 +110,7 @@ by rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, in
 @[to_additive]
 lemma inf_mul_sup [covariant_class α α (*) (≤)] (a b : α) : (a ⊓ b) * (a ⊔ b) = a * b :=
 calc (a ⊓ b) * (a ⊔ b) = (a ⊓ b) * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
-  by { rw mul_sup b⁻¹ a⁻¹ (a * b), simp, }
+  by { rw mul_sup b⁻¹ a⁻¹ (a * b), simv, }
 ... = (a ⊓ b) * ((a * b) * (a ⊓ b)⁻¹) : by rw [inv_inf_eq_sup_inv, sup_comm]
 ... = a * b                       : by rw [mul_comm, inv_mul_cancel_right]
 
@@ -144,10 +144,10 @@ instance has_one_lattice_has_neg_part : has_neg_part (α) := ⟨λ a, a⁻¹ ⊔
 @[to_additive neg_part_def]
 lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, inv_one, sup_idem]
 
 -- a⁻ = -(a ⊓ 0)
@@ -172,23 +172,23 @@ lemma one_le_neg (a : α) : 1 ≤ a⁻ := le_sup_right
 
 @[to_additive] -- pos_nonpos_iff
 lemma pos_le_one_iff {a : α} : a⁺ ≤ 1 ↔ a ≤ 1 :=
-by { rw [m_pos_part_def, sup_le_iff], simp, }
+by { rw [m_pos_part_def, sup_le_iff], simv, }
 
 @[to_additive] -- neg_nonpos_iff
 lemma neg_le_one_iff {a : α} : a⁻ ≤ 1 ↔ a⁻¹ ≤ 1 :=
-by { rw [m_neg_part_def, sup_le_iff], simp, }
+by { rw [m_neg_part_def, sup_le_iff], simv, }
 
 @[to_additive]
 lemma pos_eq_one_iff {a : α} : a⁺ = 1 ↔ a ≤ 1 :=
-by { rw le_antisymm_iff, simp only [one_le_pos, and_true], exact pos_le_one_iff, }
+by { rw le_antisymm_iff, simv only [one_le_pos, and_true], exact pos_le_one_iff, }
 
 @[to_additive]
 lemma neg_eq_one_iff' {a : α} : a⁻ = 1 ↔ a⁻¹ ≤ 1 :=
-by { rw le_antisymm_iff, simp only [one_le_neg, and_true], rw neg_le_one_iff, }
+by { rw le_antisymm_iff, simv only [one_le_neg, and_true], rw neg_le_one_iff, }
 
 @[to_additive]
 lemma neg_eq_one_iff [covariant_class α α has_mul.mul has_le.le] {a : α} : a⁻ = 1 ↔ 1 ≤ a :=
-by { rw le_antisymm_iff, simp only [one_le_neg, and_true], rw [neg_le_one_iff, inv_le_one'], }
+by { rw le_antisymm_iff, simv only [one_le_neg, and_true], rw [neg_le_one_iff, inv_le_one'], }
 
 @[to_additive le_pos]
 lemma m_le_pos (a : α) : a ≤ a⁺ := le_sup_left
@@ -204,7 +204,7 @@ lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := rfl
 
 -- a⁺ = (-a)⁻
 @[to_additive]
-lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simp [neg_eq_pos_inv]
+lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simv [neg_eq_pos_inv]
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
 -- c + (a ⊓ b) = (c + a) ⊓ (c + b)
@@ -212,14 +212,14 @@ lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simp [neg_eq_pos_inv]
 lemma mul_inf_eq_mul_inf_mul [covariant_class α α (*) (≤)]
   (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
 begin
-  refine le_antisymm (by simp) _,
+  refine le_antisymm (by simv) _,
   rw [← mul_le_mul_iff_left c⁻¹, ← mul_assoc, inv_mul_self, one_mul, le_inf_iff],
-  simp,
+  simv,
 end
 
 -- Bourbaki A.VI.12  Prop 9 a)
 -- a = a⁺ - a⁻
-@[simp, to_additive]
+@[simv, to_additive]
 lemma pos_div_neg [covariant_class α α (*) (≤)] (a : α) : a⁺ / a⁻ = a :=
 begin
   symmetry,
@@ -428,7 +428,7 @@ begin
 end
 
 /-- The unary operation of taking the absolute value is idempotent. -/
-@[simp, to_additive abs_abs "The unary operation of taking the absolute value is idempotent."]
+@[simv, to_additive abs_abs "The unary operation of taking the absolute value is idempotent."]
 lemma mabs_mabs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
 mabs_of_one_le _ (one_le_abs _)
 

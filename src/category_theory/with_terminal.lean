@@ -56,7 +56,7 @@ local attribute [tidy] tactic.case_bash
 variable {C}
 
 /-- Morphisms for `with_terminal C`. -/
-@[simp, nolint has_nonempty_instance]
+@[simv, nolint has_nonempty_instance]
 def hom : with_terminal C → with_terminal C → Type v
 | (of X) (of Y) := X ⟶ Y
 | star (of X) := pempty
@@ -177,7 +177,7 @@ begin
   { cases f, },
   { cases f,
     change G.map (𝟙 _) ≫ hG.hom = hG.hom ≫ 𝟙 _,
-    simp }
+    simv }
 end
 
 /-- A variant of `lift` with `Z` a terminal object. -/
@@ -213,7 +213,7 @@ local attribute [tidy] tactic.case_bash
 variable {C}
 
 /-- Morphisms for `with_initial C`. -/
-@[simp, nolint has_nonempty_instance]
+@[simv, nolint has_nonempty_instance]
 def hom : with_initial C → with_initial C → Type v
 | (of X) (of Y) := X ⟶ Y
 | (of X) _ := pempty
@@ -339,7 +339,7 @@ begin
     simpa },
   { cases f,
     change G.map (𝟙 _) ≫ hG.hom = hG.hom ≫ 𝟙 _,
-    simp }
+    simv }
 end
 
 /-- A variant of `lift` with `Z` an initial object. -/

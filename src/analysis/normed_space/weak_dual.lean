@@ -170,7 +170,7 @@ lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s
 is used. -/
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
-  simp only [polar_def, set_of_forall],
+  simv only [polar_def, set_of_forall],
   exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (weak_bilin.eval_continuous _ _).norm)
 end
 

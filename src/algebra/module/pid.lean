@@ -162,7 +162,7 @@ begin
       { intro i,
         let fi := f.symm.to_linear_map.comp (direct_sum.lof _ _ _ i),
         obtain ⟨x, h0, h1⟩ := exists_smul_eq_zero_and_mk_eq hp hN hj fi, refine ⟨x, h0, _⟩, rw h1,
-        simp only [linear_map.coe_comp, f.symm.coe_to_linear_map, f.apply_symm_apply] },
+        simv only [linear_map.coe_comp, f.symm.coe_to_linear_map, f.apply_symm_apply] },
       refine ⟨_, ⟨(((
         @lequiv_prod_of_right_split_exact _ _ _ _ _ _ _ _ _ _ _ _
           ((f.trans ulift.module_equiv.{u u v}.symm).to_linear_map.comp $ mkq _)
@@ -184,15 +184,15 @@ begin
         suffices : (f.to_linear_map.comp (R ∙ s j).mkq).comp _ = linear_map.id,
         { rw [← f.to_linear_map_eq_coe, this, linear_map.id_comp] },
         ext i : 3,
-        simp only [linear_map.coe_comp, function.comp_app, mkq_apply],
+        simv only [linear_map.coe_comp, function.comp_app, mkq_apply],
         rw [linear_equiv.coe_to_linear_map, linear_map.id_apply, direct_sum.to_module_lof,
           liftq_span_singleton_apply, linear_map.to_span_singleton_one,
           ideal.quotient.mk_eq_mk, map_one, (this i).some_spec.right] } },
     { exact (mk_surjective _).forall.mpr
       (λ x, ⟨(@hN x).some, by rw [← quotient.mk_smul, (@hN x).some_spec, quotient.mk_zero]⟩) },
     { have hs' := congr_arg (submodule.map $ mkq $ R ∙ s j) hs,
-      rw [submodule.map_span, submodule.map_top, range_mkq] at hs', simp only [mkq_apply] at hs',
-      simp only [s'], rw [set.range_comp (_ ∘ s), fin.range_succ_above],
+      rw [submodule.map_span, submodule.map_top, range_mkq] at hs', simv only [mkq_apply] at hs',
+      simv only [s'], rw [set.range_comp (_ ∘ s), fin.range_succ_above],
       rw [← set.range_comp, ← set.insert_image_compl_eq_range _ j, function.comp_apply,
         (quotient.mk_eq_zero _).mpr (mem_span_singleton_self _), span_insert_zero] at hs',
       exact hs' } }
@@ -219,7 +219,7 @@ begin
       (dfinsupp.map_range.linear_equiv $ λ i, (this i).some_spec.some_spec.some).trans $
       (direct_sum.sigma_lcurry_equiv R).symm.trans
       (dfinsupp.map_range.linear_equiv $ λ i, quot_equiv_of_eq _ _ _)⟩⟩,
-  cases i with i j, simp only
+  cases i with i j, simv only
 end
 
 /--**Structure theorem of finitely generated modules over a PID** : A finitely generated

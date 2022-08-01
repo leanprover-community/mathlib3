@@ -26,7 +26,7 @@ lemma squarefree_iff_nodup_factors {n : ℕ} (h0 : n ≠ 0) :
   squarefree n ↔ n.factors.nodup :=
 begin
   rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0, nat.factors_eq],
-  simp,
+  simv,
 end
 
 theorem squarefree_iff_prime_squarefree {n : ℕ} : squarefree n ↔ ∀ x, prime x → ¬ x * x ∣ n :=
@@ -36,11 +36,11 @@ lemma squarefree.factorization_le_one {n : ℕ} (p : ℕ) (hn : squarefree n) :
   n.factorization p ≤ 1 :=
 begin
   rcases eq_or_ne n 0 with rfl | hn',
-  { simp },
+  { simv },
   rw [multiplicity.squarefree_iff_multiplicity_le_one] at hn,
   by_cases hp : p.prime,
   { have := hn p,
-    simp only [multiplicity_eq_factorization hp hn', nat.is_unit_iff, hp.ne_one, or_false] at this,
+    simv only [multiplicity_eq_factorization hp hn', nat.is_unit_iff, hp.ne_one, or_false] at this,
     exact_mod_cast this },
   { rw factorization_eq_zero_of_non_prime _ hp,
     exact zero_le_one }
@@ -62,7 +62,7 @@ lemma squarefree_iff_factorization_le_one {n : ℕ} (hn : n ≠ 0) :
 lemma squarefree.ext_iff {n m : ℕ} (hn : squarefree n) (hm : squarefree m) :
   n = m ↔ ∀ p, prime p → (p ∣ n ↔ p ∣ m) :=
 begin
-  refine ⟨by { rintro rfl, simp }, λ h, eq_of_factorization_eq hn.ne_zero hm.ne_zero (λ p, _)⟩,
+  refine ⟨by { rintro rfl, simv }, λ h, eq_of_factorization_eq hn.ne_zero hm.ne_zero (λ p, _)⟩,
   by_cases hp : p.prime,
   { have h₁ := h _ hp,
     rw [←not_iff_not, hp.dvd_iff_one_le_factorization hn.ne_zero, not_le, lt_one_iff,
@@ -74,7 +74,7 @@ begin
     { rwa [h₂, eq_comm, ←h₁] },
     { rw [h₂, h₃.resolve_left],
       rw [←h₁, h₂],
-      simp only [nat.one_ne_zero, not_false_iff] } },
+      simv only [nat.one_ne_zero, not_false_iff] } },
   rw [factorization_eq_zero_of_non_prime _ hp, factorization_eq_zero_of_non_prime _ hp],
 end
 
@@ -143,7 +143,7 @@ begin
   { rw [min_sq_fac_prop, squarefree_iff_prime_squarefree] at H ⊢,
     exact λ p pp dp, H p pp ((dvd_div_iff dk).2 (this _ pp dp)) },
   { obtain ⟨H1, H2, H3⟩ := H,
-    simp only [dvd_div_iff dk] at H2 H3,
+    simv only [dvd_div_iff dk] at H2 H3,
     exact ⟨H1, dvd_trans (dvd_mul_left _ _) H2, λ p pp dp, H3 _ pp (this _ pp dp)⟩ }
 end
 
@@ -151,7 +151,7 @@ theorem min_sq_fac_aux_has_prop : ∀ {n : ℕ} k, 0 < n → ∀ i, k = 2*i+3 �
   (∀ m, prime m → m ∣ n → k ≤ m) → min_sq_fac_prop n (min_sq_fac_aux n k)
 | n k := λ n0 i e ih, begin
   rw min_sq_fac_aux,
-  by_cases h : n < k*k; simp [h],
+  by_cases h : n < k*k; simv [h],
   { refine squarefree_iff_prime_squarefree.2 (λ p pp d, _),
     have := ih p pp (dvd_trans ⟨_, rfl⟩ d),
     have := nat.mul_le_mul this this,
@@ -165,7 +165,7 @@ theorem min_sq_fac_aux_has_prop : ∀ {n : ℕ} k, 0 < n → ∀ i, k = 2*i+3 �
       have nat.sqrt n' - k < nat.sqrt n + 2 - k, from
         lt_of_le_of_lt (nat.sub_le_sub_right (nat.sqrt_le_sqrt hn') _) (nat.min_fac_lemma n k h),
       @min_sq_fac_aux_has_prop n' (k+2) (pos_of_dvd_of_pos nd' n0)
-        (i+1) (by simp [e, left_distrib]) (λ m m2 d, _),
+        (i+1) (by simv [e, left_distrib]) (λ m m2 d, _),
     cases nat.eq_or_lt_of_le (ih m m2 (dvd_trans d nd')) with me ml,
     { subst me, contradiction },
     apply (nat.eq_or_lt_of_le ml).resolve_left, intro me,
@@ -239,12 +239,12 @@ lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
 begin
   rw (finset.nodup _).ext ((finset.nodup _).map_on _),
   { intro a,
-    simp only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
+    simv only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
       mem_divisors],
     split,
     { rintro ⟨⟨an, h0⟩, hsq⟩,
       use (unique_factorization_monoid.normalized_factors a).to_finset,
-      simp only [id.def, finset.mem_powerset],
+      simv only [id.def, finset.mem_powerset],
       rcases an with ⟨b, rfl⟩,
       rw mul_ne_zero_iff at h0,
       rw unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0.1 at hsq,
@@ -255,7 +255,7 @@ begin
       rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hs,
       have hs0 : s.val.prod ≠ 0,
       { rw [ne.def, multiset.prod_eq_zero_iff],
-        simp only [exists_prop, id.def, exists_eq_right],
+        simv only [exists_prop, id.def, exists_eq_right],
         intro con,
         apply not_irreducible_zero (irreducible_of_normalized_factor 0
             (multiset.mem_dedup.1 (multiset.mem_of_le hs con))) },
@@ -300,7 +300,7 @@ begin
     simpa [S] },
   let s := finset.max' S hSne,
   have hs : s ∈ S := finset.max'_mem S hSne,
-  simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
+  simv only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
   obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
   rw hsa at hn,
   obtain ⟨hlts, hlta⟩ := canonically_ordered_comm_semiring.mul_pos.mp hn,
@@ -313,7 +313,7 @@ begin
   { simp_rw [S, hsa, finset.sep_def, finset.mem_filter, finset.mem_range],
     refine ⟨lt_succ_iff.mpr (le_of_dvd hn _), _, ⟨b * x, rfl⟩⟩; use y; rw hy; ring },
   { convert lt_mul_of_one_lt_right hlts
-      (one_lt_pow 2 x zero_lt_two (one_lt_iff_ne_zero_and_ne_one.mpr ⟨λ h, by simp * at *, hx⟩)),
+      (one_lt_pow 2 x zero_lt_two (one_lt_iff_ne_zero_and_ne_one.mpr ⟨λ h, by simv * at *, hx⟩)),
     rw mul_pow },
 end
 
@@ -328,7 +328,7 @@ end
 lemma sq_mul_squarefree (n : ℕ) : ∃ a b : ℕ, b ^ 2 * a = n ∧ squarefree a :=
 begin
   cases n,
-  { exact ⟨1, 0, (by simp), squarefree_one⟩ },
+  { exact ⟨1, 0, (by simv), squarefree_one⟩ },
   { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
     exact ⟨a, b, h₁, h₂⟩ },
 end
@@ -339,9 +339,9 @@ and generalizes to arbitrary commutative monoids. See `squarefree.of_mul_left` a
 lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
   squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
 begin
-  simp only [squarefree_iff_prime_squarefree, ←sq, ←forall_and_distrib],
+  simv only [squarefree_iff_prime_squarefree, ←sq, ←forall_and_distrib],
   refine ball_congr (λ p hp, _),
-  simp only [hmn.is_prime_pow_dvd_mul (hp.is_prime_pow.pow two_ne_zero), not_or_distrib],
+  simv only [hmn.is_prime_pow_dvd_mul (hp.is_prime_pow.pow two_ne_zero), not_or_distrib],
 end
 
 end nat

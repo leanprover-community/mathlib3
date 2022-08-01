@@ -45,7 +45,7 @@ begin
       have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
       { refine list.forall₂.flip _,
         replace hv := hv.flip,
-        simp only [list.forall₂_and_left, flip] at ⊢ hv,
+        simv only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
       refine mem_of_superset _ hvs,
       exact mem_traverse _ _ (this.imp $ assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) } }
@@ -73,9 +73,9 @@ lemma tendsto_cons_iff {β : Type*} {f : list α → β} {b : _root_.filter β} 
   tendsto f (𝓝 (a :: l)) b ↔ tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) b :=
 have 𝓝 (a :: l) = (𝓝 a ×ᶠ 𝓝 l).map (λp:α×list α, (p.1 :: p.2)),
 begin
-  simp only
+  simv only
     [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
-  simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm,
+  simv [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm,
 end,
 by rw [this, filter.tendsto_map'_iff]
 
@@ -93,7 +93,7 @@ lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.fil
 lemma continuous_at_length :
   ∀(l : list α), continuous_at list.length l :=
 begin
-  simp only [continuous_at, nhds_discrete],
+  simv only [continuous_at, nhds_discrete],
   refine tendsto_nhds _ _,
   { exact tendsto_pure_pure _ _ },
   { assume l a ih,
@@ -105,13 +105,13 @@ end
 lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
   tendsto (λp:α×list α, insert_nth n p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (insert_nth n a l))
 | 0     l  := tendsto_cons
-| (n+1) [] := by simp
+| (n+1) [] := by simv
 | (n+1) (a'::l) :=
   have 𝓝 a ×ᶠ 𝓝 (a' :: l) =
     (𝓝 a ×ᶠ (𝓝 a' ×ᶠ 𝓝 l)).map (λp:α×α×list α, (p.1, p.2.1 :: p.2.2)),
   begin
-    simp only [nhds_cons, filter.prod_eq, ← filter.map_def, ← filter.seq_eq_filter_seq],
-    simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm
+    simv only [nhds_cons, filter.prod_eq, ← filter.map_def, ← filter.seq_eq_filter_seq],
+    simv [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm
   end,
   begin
     rw [this, tendsto_map'_iff],
@@ -147,7 +147,7 @@ lemma tendsto_prod [monoid α] [has_continuous_mul α] {l : list α} :
   tendsto list.prod (𝓝 l) (𝓝 l.prod) :=
 begin
   induction l with x l ih,
-  { simp [nhds_nil, mem_of_mem_nhds, tendsto_pure_left] {contextual := tt} },
+  { simv [nhds_nil, mem_of_mem_nhds, tendsto_pure_left] {contextual := tt} },
   simp_rw [tendsto_cons_iff, prod_cons],
   have := continuous_iff_continuous_at.mp continuous_mul (x, l.prod),
   rw [continuous_at, nhds_prod_eq] at this,
@@ -168,7 +168,7 @@ by unfold vector; apply_instance
 
 lemma tendsto_cons {n : ℕ} {a : α} {l : vector α n}:
   tendsto (λp:α×vector α n, p.1 ::ᵥ p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a ::ᵥ l)) :=
-by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
+by { simv [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
   exact tendsto_fst.cons (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 
 lemma tendsto_insert_nth
@@ -178,7 +178,7 @@ lemma tendsto_insert_nth
 | ⟨l, hl⟩ :=
 begin
   rw [insert_nth, tendsto_subtype_rng],
-  simp [insert_nth_val],
+  simv [insert_nth_val],
   exact list.tendsto_insert_nth tendsto_fst (tendsto.comp continuous_at_subtype_coe tendsto_snd : _)
 end
 
@@ -199,7 +199,7 @@ lemma continuous_at_remove_nth {n : ℕ} {i : fin (n+1)} :
 --| ⟨l, hl⟩ :=
 begin
   rw [continuous_at, remove_nth, tendsto_subtype_rng],
-  simp only [← subtype.val_eq_coe, vector.remove_nth_val],
+  simv only [← subtype.val_eq_coe, vector.remove_nth_val],
   exact tendsto.comp list.tendsto_remove_nth continuous_at_subtype_coe,
 end
 

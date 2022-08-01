@@ -174,7 +174,7 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
         match k, hk with
         | (k : ℕ), hk := by rw [int.nat_abs_of_nat, ← zpow_coe_nat, hk]; exact hx₁
         | -[1+ k], hk := by rw [int.nat_abs_of_neg_succ_of_nat,
-          ← subgroup.inv_mem_iff H]; simp * at *
+          ← subgroup.inv_mem_iff H]; simv * at *
         end⟩,
   ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
     λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
@@ -201,7 +201,7 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
         rw [int.mul_div_cancel' (int.dvd_of_mod_eq_zero (int.eq_zero_of_nat_abs_eq_zero hk₆)), hk]
       end⟩⟩⟩
 else
-  have H = (⊥ : subgroup α), from subgroup.ext $ λ x, ⟨λ h, by simp at *; tauto,
+  have H = (⊥ : subgroup α), from subgroup.ext $ λ x, ⟨λ h, by simv at *; tauto,
     λ h, by rw [subgroup.mem_bot.1 h]; exact H.one_mem⟩,
   by clear _let_match; substI this; apply_instance
 
@@ -235,7 +235,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
   have hm0 : 0 < m, from nat.pos_of_ne_zero $
     λ hm0, by { rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm, exact hm.elim' 1 },
   begin
-    simp only [set.to_finset_card, set_like.coe_sort_coe],
+    simv only [set.to_finset_card, set_like.coe_sort_coe],
     rw [←order_eq_card_zpowers, order_of_pow g, order_of_eq_card_of_forall_mem_zpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
@@ -259,7 +259,7 @@ lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ zpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
 begin
   simp_rw [←set_like.mem_coe] at ha,
-  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha, set.to_finset_univ],
+  simv only [image_range_order_of, set.eq_univ_iff_forall.mpr ha, set.to_finset_univ],
 end
 
 @[to_additive]
@@ -306,9 +306,9 @@ begin
   have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
   { refine finset.sum_congr rfl (λ m hm, _),
-    simp only [mem_filter, mem_range, mem_proper_divisors] at hm,
+    simv only [mem_filter, mem_range, mem_proper_divisors] at hm,
     refine IH m hm.2 (hm.1.trans hd) (finset.card_pos.2 ⟨a ^ (d / m), _⟩),
-    simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
+    simv only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
       nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos] },
   have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.divisors, φ m,
@@ -324,23 +324,23 @@ begin
   have hc0 : 0 < c := fintype.card_pos_iff.2 ⟨1⟩,
   apply card_order_of_eq_totient_aux₁ hn hd,
   by_contradiction h0,
-  simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
+  simv only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
   apply lt_irrefl c,
   calc
     c = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
-  { simp only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0],
+  { simv only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0],
     apply congr_arg card,
-    simp }
+    simv }
   ... = ∑ m in c.divisors.erase d, (univ.filter (λ a : α, order_of a = m)).card : by
   { rw eq_comm,
     refine (sum_subset (erase_subset _ _) (λ m hm₁ hm₂, _)),
     have : m = d, by { contrapose! hm₂, exact mem_erase_of_ne_of_mem hm₂ hm₁ },
-    simp [this, h0] }
+    simv [this, h0] }
   ... ≤ ∑ m in c.divisors.erase d, φ m : by
   { refine sum_le_sum (λ m hm, _),
-    have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
+    have hmc : m ∣ c, { simv only [mem_erase, mem_divisors] at hm, tauto },
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
-    { simp [h1] }, { simp [card_order_of_eq_totient_aux₁ hn hmc h1] } }
+    { simv [h1] }, { simv [card_order_of_eq_totient_aux₁ hn hmc h1] } }
   ... < ∑ m in c.divisors, φ m :
   sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos (pos_of_dvd_of_pos hd hc0))
    ... = c : sum_totient _
@@ -425,9 +425,9 @@ have ha : y ^ (-m) * a ∈ center G,
   from hf (by rw [f.mem_ker, f.map_mul, f.map_zpow, hxy, zpow_neg, hm, inv_mul_self]),
 have hb : y ^ (-n) * b ∈ center G,
   from hf (by rw [f.mem_ker, f.map_mul, f.map_zpow, hxy, zpow_neg, hn, inv_mul_self]),
-calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simp [mul_assoc]
+calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simv [mul_assoc]
 ... = y ^ m * (y ^ n * (y ^ (-m) * a)) * (y ^ (-n) * b) : by rw [mem_center_iff.1 ha]
-... = y ^ m * y ^ n * y ^ (-m) * (a * (y ^ (-n) * b)) : by simp [mul_assoc]
+... = y ^ m * y ^ n * y ^ (-m) * (a * (y ^ (-n) * b)) : by simv [mul_assoc]
 ... = y ^ m * y ^ n * y ^ (-m) * ((y ^ (-n) * b) * a) : by rw [mem_center_iff.1 hb]
 ... = b * a : by group
 

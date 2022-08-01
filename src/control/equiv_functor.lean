@@ -33,7 +33,7 @@ class equiv_functor (f : Type u₀ → Type u₁) :=
 
 restate_axiom equiv_functor.map_refl'
 restate_axiom equiv_functor.map_trans'
-attribute [simp] equiv_functor.map_refl
+attribute [simv] equiv_functor.map_refl
 
 namespace equiv_functor
 
@@ -45,8 +45,8 @@ def map_equiv :
   f α ≃ f β :=
 { to_fun := equiv_functor.map e,
   inv_fun := equiv_functor.map e.symm,
-  left_inv := λ x, by { convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, },
-  right_inv := λ y, by { convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, }, }
+  left_inv := λ x, by { convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simv, },
+  right_inv := λ y, by { convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simv, }, }
 
 @[simp] lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl
@@ -69,7 +69,7 @@ or `map_comp_map` when not applied.
 -/
 @[simp] lemma map_equiv_trans {γ : Type u₀} (ab : α ≃ β) (bc : β ≃ γ) :
   (map_equiv f ab).trans (map_equiv f bc) = map_equiv f (ab.trans bc) :=
-equiv.ext $ λ x, by simp [map_equiv, map_trans']
+equiv.ext $ λ x, by simv [map_equiv, map_trans']
 
 end
 

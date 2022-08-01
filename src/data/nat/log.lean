@@ -119,18 +119,18 @@ lemma log_mul_base (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (n * b) = log b
 eq_of_forall_le_iff $ λ z,
 begin
   cases z,
-  { simp },
+  { simv },
   have : 0 < b := zero_lt_one.trans hb,
   rw [←pow_le_iff_le_log hb, pow_succ', (strict_mono_mul_right_of_pos this).le_iff_le,
       pow_le_iff_le_log hb hn, nat.succ_le_succ_iff],
-  simp [hn, this]
+  simv [hn, this]
 end
 
 lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) (x : ℕ) :
   x < b ^ (log b x).succ :=
 begin
   cases x.eq_zero_or_pos with hx hx,
-  { simp only [hx, log_zero_right, pow_one],
+  { simv only [hx, log_zero_right, pow_one],
     exact pos_of_gt hb },
   rw [←not_le, pow_le_iff_le_log hb hx, not_le],
   exact lt_succ_self _,
@@ -178,7 +178,7 @@ eq_of_forall_le_iff (λ z, ⟨λ h, h.trans (log_monotone (div_mul_le_self _ _))
     rw [←pow_le_iff_le_log, pow_succ'] at h ⊢,
     { rwa [(strict_mono_mul_right_of_pos nat.succ_pos').le_iff_le,
             nat.le_div_iff_mul_le nat.succ_pos'] },
-    all_goals { simp [hn, nat.div_pos hb nat.succ_pos'] } },
+    all_goals { simv [hn, nat.div_pos hb nat.succ_pos'] } },
   { simpa [div_eq_of_lt, hb, log_of_lt] using h }
 end⟩)
 
@@ -194,7 +194,7 @@ begin
   rw [←succ_inj', ←succ_inj'],
   simp_rw succ_eq_add_one,
   rw [nat.sub_add_cancel, ←log_mul_base];
-  { simp [succ_le_iff, log_pos, h, nat.div_pos] },
+  { simv [succ_le_iff, log_pos, h, nat.div_pos] },
 end
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1) / b < n :=

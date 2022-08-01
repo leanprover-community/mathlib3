@@ -82,7 +82,7 @@ lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt
 lemma prime_two : (2 : ℕ+).prime := nat.prime_two
 
 lemma dvd_prime {p m : ℕ+} (pp : p.prime) :
-(m ∣ p ↔ m = 1 ∨ m = p) := by { rw pnat.dvd_iff, rw nat.dvd_prime pp, simp }
+(m ∣ p ↔ m = 1 ∨ m = p) := by { rw pnat.dvd_iff, rw nat.dvd_prime pp, simv }
 
 lemma prime.ne_one {p : ℕ+} : p.prime → p ≠ 1 :=
 by { intro pp, intro contra, apply nat.prime.ne_one pp, rw pnat.coe_eq_one_iff, apply contra }
@@ -109,7 +109,7 @@ def coprime (m n : ℕ+) : Prop := m.gcd n = 1
 
 @[simp]
 lemma coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
-by { unfold coprime, unfold nat.coprime, rw ← coe_inj, simp }
+by { unfold coprime, unfold nat.coprime, rw ← coe_inj, simv }
 
 lemma coprime.mul {k m n : ℕ+} : m.coprime k → n.coprime k → (m * n).coprime k :=
 by { repeat {rw ← coprime_coe}, rw mul_coe, apply nat.coprime.mul }
@@ -118,10 +118,10 @@ lemma coprime.mul_right {k m n : ℕ+} : k.coprime m → k.coprime n → k.copri
 by { repeat {rw ← coprime_coe}, rw mul_coe, apply nat.coprime.mul_right }
 
 lemma gcd_comm {m n : ℕ+} : m.gcd n = n.gcd m :=
-by { apply eq, simp only [gcd_coe], apply nat.gcd_comm }
+by { apply eq, simv only [gcd_coe], apply nat.gcd_comm }
 
 lemma gcd_eq_left_iff_dvd {m n : ℕ+} : m ∣ n ↔ m.gcd n = m :=
-by { rw dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← coe_inj, simp }
+by { rw dvd_iff, rw nat.gcd_eq_left_iff_dvd, rw ← coe_inj, simv }
 
 lemma gcd_eq_right_iff_dvd {m n : ℕ+} : m ∣ n ↔ n.gcd m = m :=
 by { rw gcd_comm, apply gcd_eq_left_iff_dvd, }
@@ -129,7 +129,7 @@ by { rw gcd_comm, apply gcd_eq_left_iff_dvd, }
 lemma coprime.gcd_mul_left_cancel (m : ℕ+) {n k : ℕ+} :
   k.coprime n → (k * m).gcd n = m.gcd n :=
 begin
-  intro h, apply eq, simp only [gcd_coe, mul_coe],
+  intro h, apply eq, simv only [gcd_coe, mul_coe],
   apply nat.coprime.gcd_mul_left_cancel, simpa
 end
 
@@ -160,7 +160,7 @@ lemma gcd_one {n : ℕ+} : gcd n 1 = 1 := by { rw gcd_comm, apply one_gcd }
 
 @[symm]
 lemma coprime.symm {m n : ℕ+} : m.coprime n → n.coprime m :=
-by { unfold coprime, rw gcd_comm, simp }
+by { unfold coprime, rw gcd_comm, simv }
 
 @[simp]
 lemma one_coprime {n : ℕ+} : (1 : ℕ+).coprime n := one_gcd
@@ -203,15 +203,15 @@ lemma coprime.gcd_mul (k : ℕ+) {m n : ℕ+} (h: m.coprime n) :
   k.gcd (m * n) = k.gcd m * k.gcd n :=
 begin
   rw ← coprime_coe at h, apply eq,
-  simp only [gcd_coe, mul_coe], apply nat.coprime.gcd_mul k h
+  simv only [gcd_coe, mul_coe], apply nat.coprime.gcd_mul k h
 end
 
 lemma gcd_eq_left {m n : ℕ+} : m ∣ n → m.gcd n = m :=
-by { rw dvd_iff, intro h, apply eq, simp only [gcd_coe], apply nat.gcd_eq_left h }
+by { rw dvd_iff, intro h, apply eq, simv only [gcd_coe], apply nat.gcd_eq_left h }
 
 lemma coprime.pow {m n : ℕ+} (k l : ℕ) (h : m.coprime n) : (m ^ k).coprime (n ^ l) :=
 begin
-  rw ← coprime_coe at *, simp only [pow_coe], apply nat.coprime.pow, apply h
+  rw ← coprime_coe at *, simv only [pow_coe], apply nat.coprime.pow, apply h
 end
 
 end coprime

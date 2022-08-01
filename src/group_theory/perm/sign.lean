@@ -37,7 +37,7 @@ def mod_swap [decidable_eq α] (i j : α) : setoid (perm α) :=
 ⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
  λ σ, or.inl (refl σ),
  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
- λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; simp [hστ, hτυ] ⟩
+ λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; simv [hστ, hτυ] ⟩
 
 instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
 λ σ τ, or.decidable
@@ -51,7 +51,7 @@ begin
   obtain ⟨y2, hy2, heq⟩ := h0 y hy,
   convert hy2,
   rw heq,
-  simp only [inv_apply_self]
+  simv only [inv_apply_self]
 end
 
 lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]
@@ -182,7 +182,7 @@ end fintype
 def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
 | []       := λ f h, ⟨[], equiv.ext $ λ x, by { rw [list.prod_nil],
-    exact (not_not.1 (mt h (list.not_mem_nil _))).symm }, by simp⟩
+    exact (not_not.1 (mt h (list.not_mem_nil _))).symm }, by simv⟩
 | (x :: l) := λ f h,
 if hfx : x = f x
 then swap_factors_aux l f
@@ -217,9 +217,9 @@ is preserved under composition with a non-trivial swap, then `P` holds for all p
 begin
   cases (trunc_swap_factors f).out with l hl,
   induction l with g l ih generalizing f,
-  { simp only [hl.left.symm, list.prod_nil, forall_true_iff] {contextual := tt} },
+  { simv only [hl.left.symm, list.prod_nil, forall_true_iff] {contextual := tt} },
   { assume h1 hmul_swap,
-    rcases hl.2 g (by simp) with ⟨x, y, hxy⟩,
+    rcases hl.2 g (by simv) with ⟨x, y, hxy⟩,
     rw [← hl.1, list.prod_cons, hxy.2],
     exact hmul_swap _ _ _ hxy.1
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
@@ -259,7 +259,7 @@ def fin_pairs_lt (n : ℕ) : finset (Σ a : fin n, fin n) :=
 
 lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
   a ∈ fin_pairs_lt n ↔ a.2 < a.1 :=
-by simp only [fin_pairs_lt, fin.lt_iff_coe_lt_coe, true_and, mem_attach_fin, mem_range, mem_univ,
+by simv only [fin_pairs_lt, fin.lt_iff_coe_lt_coe, true_and, mem_attach_fin, mem_range, mem_univ,
   mem_sigma]
 
 /-- `sign_aux σ` is the sign of a permutation on `fin n`, defined as the parity of the number of
@@ -288,7 +288,7 @@ lemma sign_bij_aux_inj {n : ℕ} {f : perm (fin n)} : ∀ a b : Σ a : fin n, fi
   rw mem_fin_pairs_lt at *,
   have : ¬b₁ < b₂ := hb.le.not_lt,
   split_ifs at h;
-  simp only [*, (equiv.injective f).eq_iff, eq_self_iff_true, and_self, heq_iff_eq] at *,
+  simv only [*, (equiv.injective f).eq_iff, eq_self_iff_true, and_self, heq_iff_eq] at *,
 end
 
 lemma sign_bij_aux_surj {n : ℕ} {f : perm (fin n)} : ∀ a ∈ fin_pairs_lt n,
@@ -336,7 +336,7 @@ begin
   rw mem_fin_pairs_lt at hab,
   by_cases h : g b < g a,
   { rw dif_pos h,
-    simp only [not_le_of_gt hab, mul_one, perm.inv_apply_self, if_false] },
+    simv only [not_le_of_gt hab, mul_one, perm.inv_apply_self, if_false] },
   { rw [dif_neg h, inv_apply_self, inv_apply_self, if_pos hab.le],
     by_cases h₁ : f (g b) ≤ f (g a),
     { have : f (g b) ≠ f (g a),
@@ -354,20 +354,20 @@ show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n
   if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : ℤˣ) else 1,
 begin
   refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩,
-    by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
+    by simv [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
   rcases a with ⟨a₁, a₂⟩,
   replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
   dsimp only,
   rcases a₁.zero_le.eq_or_lt with rfl|H,
   { exact absurd a₂.zero_le ha₁.not_le },
   rcases a₂.zero_le.eq_or_lt with rfl|H',
-  { simp only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
+  { simv only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
     have : 1 < a₁ := lt_of_le_of_ne (nat.succ_le_of_lt ha₁) (ne.symm ha₂),
-    have h01 : equiv.swap (0 : fin (n + 2)) 1 0 = 1, by simp, -- TODO : fix properly
+    have h01 : equiv.swap (0 : fin (n + 2)) 1 0 = 1, by simv, -- TODO : fix properly
     norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le, h01] },
   { have le : 1 ≤ a₂ := nat.succ_le_of_lt H',
     have lt : 1 < a₁ := le.trans_lt ha₁,
-    have h01 : equiv.swap (0 : fin (n + 2)) 1 1 = 0, by simp, -- TODO
+    have h01 : equiv.swap (0 : fin (n + 2)) 1 1 = 0, by simv, -- TODO
     rcases le.eq_or_lt with rfl|lt',
     { norm_num [swap_apply_of_ne_of_ne H.ne' lt.ne', H.not_le, h01] },
     { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt),
@@ -416,10 +416,10 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans_self, ← one_def,
       list.mem_of_ne_of_mem this.2 (h _ this.1),
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
-      by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
+      by ext; simv [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt e.injective.eq_iff.1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
-    simp only [neg_neg, one_mul, neg_mul]}
+    simv only [neg_neg, one_mul, neg_mul]}
 end
 
 /-- When the multiset `s : multiset α` contains all nonfixed points of the permutation `f : perm α`,
@@ -428,7 +428,7 @@ def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) �
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (fintype.trunc_equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
-      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
+      (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simv only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₂ _)])))
 
@@ -443,7 +443,7 @@ begin
   show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧
     ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
   have hfg : (e.symm.trans (f * g)).trans e = (e.symm.trans f).trans e * (e.symm.trans g).trans e,
-    from equiv.ext (λ h, by simp [mul_apply]),
+    from equiv.ext (λ h, by simv [mul_apply]),
   split,
   { rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _),
       ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), hfg, sign_aux_mul] },
@@ -485,8 +485,8 @@ lemma sign_swap {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 
 @[simp] lemma sign_swap' {x y : α} :
   (swap x y).sign = if x = y then 1 else -1 :=
-if H : x = y then by simp [H, swap_self] else
-by simp [sign_swap H, H]
+if H : x = y then by simv [H, swap_self] else
+by simv [sign_swap H, H]
 
 lemma is_swap.sign_eq {f : perm α} (h : f.is_swap) : sign f = -1 :=
 let ⟨x, y, hxy⟩ := h in hxy.2.symm ▸ sign_swap hxy.1
@@ -500,7 +500,7 @@ quotient.induction_on₂ t s
     by { rw [← sign_aux_eq_sign_aux2 _ _ n (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ (e.trans n) (λ _ _, h₂ _)],
       exact congr_arg sign_aux
-        (equiv.ext (λ x, by simp only [equiv.coe_trans, apply_eq_iff_eq, symm_trans_apply])) })
+        (equiv.ext (λ x, by simv only [equiv.coe_trans, apply_eq_iff_eq, symm_trans_apply])) })
   ht hs
 
 @[simp] lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α) (e : α ≃ β) :
@@ -514,7 +514,7 @@ sign_symm_trans_trans f e.symm
 lemma sign_prod_list_swap {l : list (perm α)}
   (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=
 have h₁ : l.map sign = list.repeat (-1) l.length :=
-  list.eq_repeat.2 ⟨by simp, λ u hu,
+  list.eq_repeat.2 ⟨by simv, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
   hg.2 ▸ (hl _ hg.1).sign_eq⟩,
 by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
@@ -523,7 +523,7 @@ variable (α)
 
 lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → ℤˣ) :=
 λ a, (int.units_eq_one_or a).elim
-  (λ h, ⟨1, by simp [h]⟩)
+  (λ h, ⟨1, by simv [h]⟩)
   (λ h, let ⟨x, y, hxy⟩ := exists_pair_ne α in
     ⟨swap x y, by rw [sign_swap hxy, h]⟩ )
 
@@ -569,7 +569,7 @@ by conv {to_rhs, rw [← subtype_perm_of_subtype f, sign_subtype_perm _ _ this]}
 
 lemma sign_eq_sign_of_equiv [decidable_eq β] [fintype β] (f : perm α) (g : perm β)
   (e : α ≃ β) (h : ∀ x, e (f x) = g (e x)) : sign f = sign g :=
-have hg : g = (e.symm.trans f).trans e, from equiv.ext $ by simp [h],
+have hg : g = (e.symm.trans f).trans e, from equiv.ext $ by simv [h],
 by rw [hg, sign_symm_trans_trans]
 
 lemma sign_bij [decidable_eq β] [fintype β]
@@ -578,9 +578,9 @@ lemma sign_bij [decidable_eq β] [fintype β]
   (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
   (hg : ∀ y, g y ≠ y → ∃ x hx, i x hx = y) :
   sign f = sign g :=
-calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
+calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simv)) :
   (sign_subtype_perm _ _ (λ _, id)).symm
-... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
+... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simv)) :
   sign_eq_sign_of_equiv _ _
     (equiv.of_bijective (λ x : {x // f x ≠ x},
         (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,
@@ -628,10 +628,10 @@ variables [decidable_eq β] [fintype β]
 @[simp] lemma sign_prod_extend_right (a : α) (σ : perm β) :
   (prod_extend_right a σ).sign = σ.sign :=
 sign_bij (λ (ab : α × β) _, ab.snd)
-  (λ ⟨a', b⟩ hab hab', by simp [eq_of_prod_extend_right_ne hab])
+  (λ ⟨a', b⟩ hab hab', by simv [eq_of_prod_extend_right_ne hab])
   (λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ hab₁ hab₂ h,
     by simpa [eq_of_prod_extend_right_ne hab₁, eq_of_prod_extend_right_ne hab₂] using h)
-  (λ y hy, ⟨(a, y), by simpa, by simp⟩)
+  (λ y hy, ⟨(a, y), by simpa, by simv⟩)
 
 lemma sign_prod_congr_right (σ : α → perm β) :
   sign (prod_congr_right σ) = ∏ k, (σ k).sign :=
@@ -656,7 +656,7 @@ end
 
 @[simp] lemma sign_perm_congr (e : α ≃ β) (p : perm α) :
   (e.perm_congr p).sign = p.sign :=
-sign_eq_sign_of_equiv _ _ e.symm (by simp)
+sign_eq_sign_of_equiv _ _ e.symm (by simv)
 
 @[simp] lemma sign_sum_congr (σa : perm α) (σb : perm β) :
   (sum_congr σa σb).sign = σa.sign * σb.sign :=
@@ -666,11 +666,11 @@ begin
   { rw [←this.1, ←this.2, ←sign_mul, sum_congr_mul, one_mul, mul_one], },
   split,
   { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
-    { simp },
+    { simv },
     { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
           sign_swap ha, sign_swap (sum.inl_injective.ne_iff.mpr ha)], }, },
   { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
-    { simp },
+    { simv },
     { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
           sign_swap hb, sign_swap (sum.inr_injective.ne_iff.mpr hb)], }, }
 end
@@ -678,12 +678,12 @@ end
 @[simp] lemma sign_subtype_congr {p : α → Prop} [decidable_pred p]
   (ep : perm {a // p a}) (en : perm {a // ¬ p a}) :
   (ep.subtype_congr en).sign = ep.sign * en.sign :=
-by simp [subtype_congr]
+by simv [subtype_congr]
 
 @[simp] lemma sign_extend_domain (e : perm α)
   {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :
   equiv.perm.sign (e.extend_domain f) = equiv.perm.sign e :=
-by simp [equiv.perm.extend_domain]
+by simv [equiv.perm.extend_domain]
 
 end congr
 

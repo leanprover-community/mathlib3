@@ -96,8 +96,8 @@ by rw [interpolate, finset.sum_singleton, basis_singleton_self, mul_one]
 @[simp] theorem eval_interpolate (x) (H : x ∈ s) : eval x (interpolate s f) = f x :=
 begin
   rw [interpolate, ←coe_eval_ring_hom, ring_hom.map_sum, coe_eval_ring_hom, finset.sum_eq_single x],
-  { simp },
-  { intros y hy hxy, simp [eval_basis_ne s y x H hxy.symm] },
+  { simv },
+  { intros y hy hxy, simv [eval_basis_ne s y x H hxy.symm] },
   { intro h, exact (h H).elim }
 end
 
@@ -180,11 +180,11 @@ of degree less than `s.card`. -/
 def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] (s → F) :=
 { to_fun := λ f x, f.1.eval x,
   map_add' := λ f g, funext $ λ x, eval_add,
-  map_smul' := λ c f, funext $ by simp,
+  map_smul' := λ c f, funext $ by simv,
   inv_fun := λ f, ⟨interpolate s (λ x, if hx : x ∈ s then f ⟨x, hx⟩ else 0),
     mem_degree_lt.2 $ degree_interpolate_lt _ _⟩,
   left_inv := λ f, begin apply subtype.eq,
-    simp only [subtype.coe_mk, subtype.val_eq_coe, dite_eq_ite],
+    simv only [subtype.coe_mk, subtype.val_eq_coe, dite_eq_ite],
     convert eq_interpolate s f (mem_degree_lt.1 f.2) using 1,
     rw interpolate_eq_of_eval_eq,
     intros x hx,
@@ -203,18 +203,18 @@ begin
     { rw [degree_mul, degree_X_sub_C],
       convert (with_bot.add_lt_add_iff_left with_bot.coe_ne_bot).2
         (degree_interpolate_erase s f hx),
-      simp [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨x, hx⟩)] },
+      simv [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨x, hx⟩)] },
     { rw [degree_mul, ←neg_sub, degree_neg, degree_X_sub_C],
       convert (with_bot.add_lt_add_iff_left with_bot.coe_ne_bot).2
         (degree_interpolate_erase s f hy),
-      simp [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨y, hy⟩)] } },
+      simv [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨y, hy⟩)] } },
   { by_cases hzx : z = x,
-    { simp [hzx, eval_interpolate (s.erase y) f x (finset.mem_erase_of_ne_of_mem hxy hx),
+    { simv [hzx, eval_interpolate (s.erase y) f x (finset.mem_erase_of_ne_of_mem hxy hx),
             inv_mul_eq_iff_eq_mul₀ (sub_ne_zero_of_ne hxy.symm)] },
     { by_cases hzy : z = y,
-      { simp [hzy, eval_interpolate (s.erase x) f y (finset.mem_erase_of_ne_of_mem hxy.symm hy),
+      { simv [hzy, eval_interpolate (s.erase x) f y (finset.mem_erase_of_ne_of_mem hxy.symm hy),
               inv_mul_eq_iff_eq_mul₀ (sub_ne_zero_of_ne hxy.symm)] },
-      { simp only [eval_interpolate (s.erase x) f z (finset.mem_erase_of_ne_of_mem hzx hz),
+      { simv only [eval_interpolate (s.erase x) f z (finset.mem_erase_of_ne_of_mem hzx hz),
                    eval_interpolate (s.erase y) f z (finset.mem_erase_of_ne_of_mem hzy hz),
                    inv_mul_eq_iff_eq_mul₀ (sub_ne_zero_of_ne hxy.symm), eval_mul, eval_C, eval_add,
                    eval_sub, eval_X],

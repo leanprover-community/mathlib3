@@ -218,7 +218,7 @@ As an example, in
 example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
 begin
   interval_cases n,
-  all_goals {simp}
+  all_goals {simv}
 end
 ```
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
@@ -259,7 +259,7 @@ As an example, in
 example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
 begin
   interval_cases n,
-  all_goals {simp}
+  all_goals {simv}
 end
 ```
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.

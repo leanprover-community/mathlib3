@@ -99,20 +99,20 @@ def order_iso.mul_right₀ (a : α) (ha : 0 < a) : α ≃o α :=
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ 0 < a :=
 suffices ∀ a : α, 0 < a → 0 < a⁻¹,
 from ⟨λ h, inv_inv a ▸ this _ h, this a⟩,
-assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simp [ne_of_gt ha, zero_lt_one]
+assume a ha, flip lt_of_mul_lt_mul_left ha.le $ by simv [ne_of_gt ha, zero_lt_one]
 
 alias inv_pos ↔ _ inv_pos_of_pos
 
 @[simp] lemma inv_nonneg : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
-by simp only [le_iff_eq_or_lt, inv_pos, zero_eq_inv]
+by simv only [le_iff_eq_or_lt, inv_pos, zero_eq_inv]
 
 alias inv_nonneg ↔ _ inv_nonneg_of_nonneg
 
 @[simp] lemma inv_lt_zero : a⁻¹ < 0 ↔ a < 0 :=
-by simp only [← not_le, inv_nonneg]
+by simv only [← not_le, inv_nonneg]
 
 @[simp] lemma inv_nonpos : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
-by simp only [← not_lt, inv_pos]
+by simv only [← not_lt, inv_pos]
 
 lemma one_div_pos : 0 < 1 / a ↔ 0 < a :=
 inv_eq_one_div a ▸ inv_pos
@@ -193,7 +193,7 @@ lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
 by rw [mul_comm, inv_mul_le_iff' h]
 
 lemma div_self_le_one (a : α) : a / a ≤ 1 :=
-if h : a = 0 then by simp [h] else by simp [h]
+if h : a = 0 then by simv [h] else by simv [h]
 
 lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
 begin
@@ -224,7 +224,7 @@ by { rw [inv_eq_one_div], exact div_lt_iff' ha }
 
 /-- One direction of `div_le_iff` where `b` is allowed to be `0` (but `c` must be nonnegative) -/
 lemma div_le_of_nonneg_of_le_mul (hb : 0 ≤ b) (hc : 0 ≤ c) (h : a ≤ c * b) : a / b ≤ c :=
-by { rcases eq_or_lt_of_le hb with rfl|hb', simp [hc], rwa [div_le_iff hb'] }
+by { rcases eq_or_lt_of_le hb with rfl|hb', simv [hc], rwa [div_le_iff hb'] }
 
 lemma div_le_one_of_le (h : a ≤ b) (hb : 0 ≤ b) : a / b ≤ 1 :=
 div_le_of_nonneg_of_le_mul hb zero_le_one $ by rwa one_mul
@@ -287,8 +287,8 @@ lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
 lemma inv_lt_one_iff : a⁻¹ < 1 ↔ a ≤ 0 ∨ 1 < a :=
 begin
   cases le_or_lt a 0 with ha ha,
-  { simp [ha, (inv_nonpos.2 ha).trans_lt zero_lt_one] },
-  { simp only [ha.not_le, false_or, inv_lt_one_iff_of_pos ha] }
+  { simv [ha, (inv_nonpos.2 ha).trans_lt zero_lt_one] },
+  { simv only [ha.not_le, false_or, inv_lt_one_iff_of_pos ha] }
 end
 
 lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
@@ -297,8 +297,8 @@ lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
 lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
 begin
   rcases em (a = 1) with (rfl|ha),
-  { simp [le_rfl] },
-  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one.1 ha), inv_lt_one_iff] }
+  { simv [le_rfl] },
+  { simv only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one.1 ha), inv_lt_one_iff] }
 end
 
 lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=
@@ -337,7 +337,7 @@ lemma div_lt_div_right (hc : 0 < c) : a / c < b / c ↔ a < b :=
 lt_iff_lt_of_le_iff_le $ div_le_div_right hc
 
 lemma div_lt_div_left (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b < a / c ↔ c < b :=
-by simp only [div_eq_mul_inv, mul_lt_mul_left ha, inv_lt_inv hb hc]
+by simv only [div_eq_mul_inv, mul_lt_mul_left ha, inv_lt_inv hb hc]
 
 lemma div_le_div_left (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b ≤ a / c ↔ c ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 (div_lt_div_left ha hc hb)
@@ -458,16 +458,16 @@ lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
 begin
   by_cases h0 : a = 0,
-  { simp [h0], },
+  { simv [h0], },
   { rw ← ne.def at h0,
     exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
 end
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
-lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
+lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simv [lt_div_iff, mul_two]
 
-lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
+lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simv [div_lt_iff, mul_two]
 
 /-!
 ### Miscellaneous lemmas
@@ -541,11 +541,11 @@ lemma inv_strict_anti_on : strict_anti_on (λ x : α, x⁻¹) (set.Ioi 0) :=
 
 lemma inv_pow_le_inv_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :
   (a ^ n)⁻¹ ≤ (a ^ m)⁻¹ :=
-by convert one_div_pow_le_one_div_pow_of_le a1 mn; simp
+by convert one_div_pow_le_one_div_pow_of_le a1 mn; simv
 
 lemma inv_pow_lt_inv_pow_of_lt (a1 : 1 < a) {m n : ℕ} (mn : m < n) :
   (a ^ n)⁻¹ < (a ^ m)⁻¹ :=
-by convert one_div_pow_lt_one_div_pow_of_lt a1 mn; simp
+by convert one_div_pow_lt_one_div_pow_of_lt a1 mn; simv
 
 lemma inv_pow_anti (a1 : 1 ≤ a) : antitone (λ n : ℕ, (a ^ n)⁻¹) :=
 λ m n, inv_pow_le_inv_pow_of_le a1
@@ -576,14 +576,14 @@ variables [linear_ordered_field α] {a b c d : α}
 
 /-! ### Lemmas about pos, nonneg, nonpos, neg -/
 
-lemma div_pos_iff : 0 < a / b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 := by simp [division_def, mul_pos_iff]
-lemma div_neg_iff : a / b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b := by simp [division_def, mul_neg_iff]
+lemma div_pos_iff : 0 < a / b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 := by simv [division_def, mul_pos_iff]
+lemma div_neg_iff : a / b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b := by simv [division_def, mul_neg_iff]
 
 lemma div_nonneg_iff : 0 ≤ a / b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0 :=
-by simp [division_def, mul_nonneg_iff]
+by simv [division_def, mul_nonneg_iff]
 
 lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
-by simp [division_def, mul_nonpos_iff]
+by simv [division_def, mul_nonpos_iff]
 
 lemma div_nonneg_of_nonpos (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a / b :=
 div_nonneg_iff.2 $ or.inr ⟨ha, hb⟩
@@ -697,33 +697,33 @@ by simpa using lt_inv_of_neg ha hb
 lemma one_lt_div_iff : 1 < a / b ↔ 0 < b ∧ b < a ∨ b < 0 ∧ a < b :=
 begin
   rcases lt_trichotomy b 0 with (hb|rfl|hb),
-  { simp [hb, hb.not_lt, one_lt_div_of_neg] },
-  { simp [lt_irrefl, zero_le_one] },
-  { simp [hb, hb.not_lt, one_lt_div] }
+  { simv [hb, hb.not_lt, one_lt_div_of_neg] },
+  { simv [lt_irrefl, zero_le_one] },
+  { simv [hb, hb.not_lt, one_lt_div] }
 end
 
 lemma one_le_div_iff : 1 ≤ a / b ↔ 0 < b ∧ b ≤ a ∨ b < 0 ∧ a ≤ b :=
 begin
   rcases lt_trichotomy b 0 with (hb|rfl|hb),
-  { simp [hb, hb.not_lt, one_le_div_of_neg] },
-  { simp [lt_irrefl, zero_lt_one.not_le, zero_lt_one] },
-  { simp [hb, hb.not_lt, one_le_div] }
+  { simv [hb, hb.not_lt, one_le_div_of_neg] },
+  { simv [lt_irrefl, zero_lt_one.not_le, zero_lt_one] },
+  { simv [hb, hb.not_lt, one_le_div] }
 end
 
 lemma div_lt_one_iff : a / b < 1 ↔ 0 < b ∧ a < b ∨ b = 0 ∨ b < 0 ∧ b < a :=
 begin
   rcases lt_trichotomy b 0 with (hb|rfl|hb),
-  { simp [hb, hb.not_lt, hb.ne, div_lt_one_of_neg] },
-  { simp [zero_lt_one], },
-  { simp [hb, hb.not_lt, div_lt_one, hb.ne.symm] }
+  { simv [hb, hb.not_lt, hb.ne, div_lt_one_of_neg] },
+  { simv [zero_lt_one], },
+  { simv [hb, hb.not_lt, div_lt_one, hb.ne.symm] }
 end
 
 lemma div_le_one_iff : a / b ≤ 1 ↔ 0 < b ∧ a ≤ b ∨ b = 0 ∨ b < 0 ∧ b ≤ a :=
 begin
   rcases lt_trichotomy b 0 with (hb|rfl|hb),
-  { simp [hb, hb.not_lt, hb.ne, div_le_one_of_neg] },
-  { simp [zero_le_one], },
-  { simp [hb, hb.not_lt, div_le_one, hb.ne.symm] }
+  { simv [hb, hb.not_lt, hb.ne, div_le_one_of_neg] },
+  { simv [zero_le_one], },
+  { simv [hb, hb.not_lt, div_le_one, hb.ne.symm] }
 end
 
 /-! ### Relating two divisions, involving `1` -/
@@ -845,7 +845,7 @@ lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
 
 lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
 begin
-  simp only [inv_nonneg, zpow_neg],
+  simv only [inv_nonneg, zpow_neg],
   change 0 ≤ a ^ ((2 : ℕ) : ℤ),
   rw zpow_coe_nat,
   apply sq_nonneg,

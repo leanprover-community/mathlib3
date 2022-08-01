@@ -219,7 +219,7 @@ lemma smooth_to_partition_of_unity {E : Type uE} [normed_add_comm_group E] [norm
   (f : bump_covering ι M s) (hf : ∀ i, smooth I 𝓘(ℝ) (f i)) (i : ι) :
   smooth I 𝓘(ℝ) (f.to_partition_of_unity i) :=
 (hf i).mul $ smooth_finprod_cond (λ j _, smooth_const.sub (hf j)) $
-  by { simp only [mul_support_one_sub], exact f.locally_finite }
+  by { simv only [mul_support_one_sub], exact f.locally_finite }
 
 variables {s : set M}
 
@@ -317,7 +317,7 @@ fs.locally_finite.point_finite x
 
 lemma mem_chart_at_source_of_eq_one {i : ι} {x : M} (h : fs i x = 1) :
   x ∈ (chart_at H (fs.c i)).source :=
-(fs i).support_subset_source $ by simp [h]
+(fs i).support_subset_source $ by simv [h]
 
 lemma mem_ext_chart_at_source_of_eq_one {i : ι} {x : M} (h : fs i x = 1) :
   x ∈ (ext_chart_at I (fs.c i)).source :=
@@ -333,7 +333,7 @@ lemma apply_ind (x : M) (hx : x ∈ s) : fs (fs.ind x hx) x = 1 :=
 (fs.eventually_eq_one x hx).eq_of_nhds
 
 lemma mem_support_ind (x : M) (hx : x ∈ s) : x ∈ support (fs $ fs.ind x hx) :=
-by simp [fs.apply_ind x hx]
+by simv [fs.apply_ind x hx]
 
 lemma mem_chart_at_ind_source (x : M) (hx : x ∈ s) :
   x ∈ (chart_at H (fs.c (fs.ind x hx))).source :=
@@ -416,7 +416,7 @@ begin
   set g := f.to_smooth_partition_of_unity,
   refine ⟨⟨_, g.smooth_sum⟩, λ x hx, _, λ x, g.sum_eq_one, λ x, ⟨g.sum_nonneg x, g.sum_le_one x⟩⟩,
   suffices : ∀ i, g i x = 0,
-    by simp only [this, cont_mdiff_map.coe_fn_mk, finsum_zero, pi.zero_apply],
+    by simv only [this, cont_mdiff_map.coe_fn_mk, finsum_zero, pi.zero_apply],
   refine λ i, f.to_smooth_partition_of_unity_zero_of_zero _,
   exact nmem_support.1 (subset_compl_comm.1 (hf.support_subset i) hx)
 end
@@ -429,8 +429,8 @@ def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
 (bump_covering.single i s).to_smooth_partition_of_unity $ λ j,
   begin
     rcases eq_or_ne j i with rfl|h,
-    { simp only [smooth_one, continuous_map.coe_one, bump_covering.coe_single, pi.single_eq_same] },
-    { simp only [smooth_zero, bump_covering.coe_single, pi.single_eq_of_ne h,
+    { simv only [smooth_one, continuous_map.coe_one, bump_covering.coe_single, pi.single_eq_same] },
+    { simv only [smooth_zero, bump_covering.coe_single, pi.single_eq_of_ne h,
         continuous_map.coe_zero] }
   end
 

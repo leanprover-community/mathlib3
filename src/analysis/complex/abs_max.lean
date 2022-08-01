@@ -116,7 +116,7 @@ begin
   { refine this.ne _,
     have A : ∮ ζ in C(z, r), (ζ - z)⁻¹ • f ζ = (2 * π * I : ℂ) • f z :=
       hd.circle_integral_sub_inv_smul (mem_ball_self hr),
-    simp [A, norm_smul, real.pi_pos.le] },
+    simv [A, norm_smul, real.pi_pos.le] },
   suffices : ∥∮ ζ in C(z, r), (ζ - z)⁻¹ • f ζ∥ < 2 * π * r * (∥f z∥ / r),
     by rwa [mul_assoc, mul_div_cancel' _ hr.ne'] at this,
   /- This inequality is true because `∥(ζ - z)⁻¹ • f ζ∥ ≤ ∥f z∥ / r` for all `ζ` on the circle and
@@ -190,7 +190,7 @@ begin
   set e : ℂ → E := line_map z w,
   have hde : differentiable ℂ e := (differentiable_id.smul_const (w - z)).add_const z,
   suffices : ∥(f ∘ e) (1 : ℂ)∥ = ∥(f ∘ e) (0 : ℂ)∥, by simpa [e],
-  have hr : dist (1 : ℂ) 0 = 1, by simp,
+  have hr : dist (1 : ℂ) 0 = 1, by simv,
   have hball : maps_to e (ball 0 1) (ball z r),
   { refine ((lipschitz_with_line_map z w).maps_to_ball
       (mt nndist_eq_zero.1 hne) 0 1).mono subset.rfl _,
@@ -295,7 +295,7 @@ lemma eq_on_of_is_preconnected_of_is_max_on_norm {f : E → F} {U : set E} {c : 
 have H₁ : ∥f x∥ = ∥f c∥, from norm_eq_on_of_is_preconnected_of_is_max_on hc ho hd hcU hm hx,
 have H₂ : ∥f x + f c∥ = ∥f c + f c∥,
   from norm_eq_on_of_is_preconnected_of_is_max_on hc ho (hd.add_const _) hcU hm.norm_add_self hx,
-eq_of_norm_eq_of_norm_add_eq H₁ $ by simp only [H₂, same_ray.rfl.norm_add, H₁]
+eq_of_norm_eq_of_norm_add_eq H₁ $ by simv only [H₂, same_ray.rfl.norm_add, H₁]
 
 /-- **Maximum modulus principle** on a connected set. Let `U` be a (pre)connected open set in a
 complex normed space.  Let `f : E → F` be a function that is complex differentiable on `U` and is
@@ -319,7 +319,7 @@ lemma eq_of_is_max_on_of_ball_subset {f : E → F} {s : set E} {z w : E} (hd : d
 have H₁ : ∥f w∥ = ∥f z∥, from norm_eq_norm_of_is_max_on_of_ball_subset hd hz hsub,
 have H₂ : ∥f w + f z∥ = ∥f z + f z∥,
   from norm_eq_norm_of_is_max_on_of_ball_subset (hd.add_const _) hz.norm_add_self hsub,
-eq_of_norm_eq_of_norm_add_eq H₁ $ by simp only [H₂, same_ray.rfl.norm_add, H₁]
+eq_of_norm_eq_of_norm_add_eq H₁ $ by simv only [H₂, same_ray.rfl.norm_add, H₁]
 
 /-- **Maximum modulus principle** on a closed ball. Suppose that a function `f : E → F` from a
 normed complex space to a strictly convex normed complex space has the following properties:
@@ -399,7 +399,7 @@ begin
     from hd.comp hde.diff_cont_on_cl (maps_to_preimage _ _),
   have h₀ : (0 : ℂ) ∈ e ⁻¹' U, by simpa only [e, mem_preimage, line_map_apply_zero],
   rcases exists_mem_frontier_is_max_on_norm (hL.bounded_preimage hU) ⟨0, h₀⟩ hd with ⟨ζ, hζU, hζ⟩,
-  calc ∥f z∥ = ∥f (e 0)∥ : by simp only [e, line_map_apply_zero]
+  calc ∥f z∥ = ∥f (e 0)∥ : by simv only [e, line_map_apply_zero]
   ... ≤ ∥f (e ζ)∥ : hζ (subset_closure h₀)
   ... ≤ C : hC _ (hde.continuous.frontier_preimage_subset _ hζU)
 end
@@ -412,7 +412,7 @@ lemma eq_on_closure_of_eq_on_frontier {f g : E → F} {U : set E} (hU : bounded 
 begin
   suffices H : ∀ z ∈ closure U, ∥(f - g) z∥ ≤ 0, by simpa [sub_eq_zero] using H,
   refine λ z hz, norm_le_of_forall_mem_frontier_norm_le hU (hf.sub hg) (λ w hw, _) hz,
-  simp [hfg hw]
+  simv [hfg hw]
 end
 
 /-- If two complex differentiable functions `f g : E → F` are equal on the boundary of a bounded set

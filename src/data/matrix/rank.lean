@@ -89,7 +89,7 @@ begin
   have aux₂ := basis.equiv_apply (pi.basis_fun K n) i v₂,
   rw [to_lin_eq_to_lin'] at aux₁,
   rw [pi.basis_fun_apply, linear_map.coe_std_basis] at aux₁ aux₂,
-  simp only [linear_map.comp_apply, e₁, e₂, linear_equiv.coe_coe, equiv.refl_apply, aux₁, aux₂,
+  simv only [linear_map.comp_apply, e₁, e₂, linear_equiv.coe_coe, equiv.refl_apply, aux₁, aux₂,
     linear_map.coe_single, to_lin_self, linear_equiv.map_sum, linear_equiv.map_smul,
     basis.equiv_apply],
 end

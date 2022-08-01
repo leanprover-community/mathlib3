@@ -140,7 +140,7 @@ lemma specializes.map (h : x ⤳ y) (hf : continuous f) : f x ⤳ f y :=
 h.map_of_continuous_at hf.continuous_at
 
 lemma inducing.specializes_iff (hf : inducing f) : f x ⤳ f y ↔ x ⤳ y :=
-by simp only [specializes_iff_mem_closure, hf.closure_eq_preimage_closure_image, image_singleton,
+by simv only [specializes_iff_mem_closure, hf.closure_eq_preimage_closure_image, image_singleton,
   mem_preimage]
 
 lemma subtype_specializes_iff {p : X → Prop} (x y : subtype p) : x ⤳ y ↔ (x : X) ⤳ y :=
@@ -190,29 +190,29 @@ lemma inseparable.specializes' (h : x ~ y) : y ⤳ x := h.ge
 lemma specializes.antisymm (h₁ : x ⤳ y) (h₂ : y ⤳ x) : x ~ y := le_antisymm h₁ h₂
 
 lemma inseparable_iff_forall_open : x ~ y ↔ ∀ s : set X, is_open s → (x ∈ s ↔ y ∈ s) :=
-by simp only [inseparable_iff_specializes_and, specializes_iff_forall_open, ← forall_and_distrib,
+by simv only [inseparable_iff_specializes_and, specializes_iff_forall_open, ← forall_and_distrib,
   ← iff_def, iff.comm]
 
 lemma not_inseparable_iff_exists_open : ¬(x ~ y) ↔ ∃ s : set X, is_open s ∧ xor (x ∈ s) (y ∈ s) :=
-by simp [inseparable_iff_forall_open, ← xor_iff_not_iff]
+by simv [inseparable_iff_forall_open, ← xor_iff_not_iff]
 
 lemma inseparable_iff_forall_closed : x ~ y ↔ ∀ s : set X, is_closed s → (x ∈ s ↔ y ∈ s) :=
-by simp only [inseparable_iff_specializes_and, specializes_iff_forall_closed, ← forall_and_distrib,
+by simv only [inseparable_iff_specializes_and, specializes_iff_forall_closed, ← forall_and_distrib,
   ← iff_def]
 
 lemma inseparable_iff_mem_closure :
   x ~ y ↔ x ∈ closure ({y} : set X) ∧ y ∈ closure ({x} : set X) :=
-inseparable_iff_specializes_and.trans $ by simp only [specializes_iff_mem_closure, and_comm]
+inseparable_iff_specializes_and.trans $ by simv only [specializes_iff_mem_closure, and_comm]
 
 lemma inseparable_iff_closure_eq : x ~ y ↔ closure ({x} : set X) = closure {y} :=
-by simp only [inseparable_iff_specializes_and, specializes_iff_closure_subset,
+by simv only [inseparable_iff_specializes_and, specializes_iff_closure_subset,
   ← subset_antisymm_iff, eq_comm]
 
 lemma inseparable_of_nhds_within_eq (hx : x ∈ s) (hy : y ∈ s) (h : 𝓝[s] x = 𝓝[s] y) : x ~ y :=
 (specializes_of_nhds_within h.le hx).antisymm (specializes_of_nhds_within h.ge hy)
 
 lemma inducing.inseparable_iff (hf : inducing f) : f x ~ f y ↔ x ~ y :=
-by simp only [inseparable_iff_specializes_and, hf.specializes_iff]
+by simv only [inseparable_iff_specializes_and, hf.specializes_iff]
 
 lemma subtype_inseparable_iff {p : X → Prop} (x y : subtype p) : x ~ y ↔ (x : X) ~ y :=
 inducing_coe.inseparable_iff.symm

@@ -186,7 +186,7 @@ by rwa [neg_add, neg_add_cancel_right, zpow_neg,
 lemma exists_pow_lt_of_lt_one (hx : 0 < x) (hy : y < 1) : ∃ n : ℕ, y ^ n < x :=
 begin
   by_cases y_pos : y ≤ 0,
-  { use 1, simp only [pow_one], linarith, },
+  { use 1, simv only [pow_one], linarith, },
   rw [not_le] at y_pos,
   rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
   exact ⟨q, by rwa [inv_pow, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
@@ -249,7 +249,7 @@ begin
   use n,
   rw [div_lt_iff, ← div_lt_iff' hε],
   { apply hn.trans,
-    simp [zero_lt_one] },
+    simv [zero_lt_one] },
   { exact n.cast_add_one_pos }
 end
 

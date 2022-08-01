@@ -62,7 +62,7 @@ private lemma coeffs :
   (∀ n > 3, P.to_poly.coeff n = 0) ∧ P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b
     ∧ P.to_poly.coeff 1 = P.c ∧ P.to_poly.coeff 0 = P.d :=
 begin
-  simp only [to_poly, coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow],
+  simv only [to_poly, coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow],
   norm_num,
   intros n hn,
   repeat { rw [if_neg] },
@@ -135,10 +135,10 @@ section degree
 @[simps] def equiv : cubic R ≃ {p : R[X] // p.degree ≤ 3} :=
 { to_fun    := λ P, ⟨P.to_poly, degree_cubic_le⟩,
   inv_fun   := λ f, ⟨coeff f 3, coeff f 2, coeff f 1, coeff f 0⟩,
-  left_inv  := λ P, by ext; simp only [subtype.coe_mk, coeffs],
+  left_inv  := λ P, by ext; simv only [subtype.coe_mk, coeffs],
   right_inv := λ f,
   begin
-    ext (_ | _ | _ | _ | n); simp only [subtype.coe_mk, coeffs],
+    ext (_ | _ | _ | _ | n); simv only [subtype.coe_mk, coeffs],
     have h3 : 3 < n + 4 := by linarith only,
     rw [coeff_gt_three _ h3,
         (degree_le_iff_coeff_zero (f : R[X]) 3).mp f.2 _ $ with_bot.coe_lt_coe.mpr h3]
@@ -185,7 +185,7 @@ variables [semiring S] {φ : R →+* S}
 def map (φ : R →+* S) (P : cubic R) : cubic S := ⟨φ P.a, φ P.b, φ P.c, φ P.d⟩
 
 lemma map_to_poly : (map φ P).to_poly = polynomial.map φ P.to_poly :=
-by simp only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
+by simv only [map, to_poly, map_C, map_X, polynomial.map_add, polynomial.map_mul,
               polynomial.map_pow]
 
 end map
@@ -212,7 +212,7 @@ theorem mem_roots_iff [is_domain R] (h0 : P.to_poly ≠ 0) (x : R) :
   x ∈ P.roots ↔ P.a * x ^ 3 + P.b * x ^ 2 + P.c * x + P.d = 0 :=
 begin
   rw [roots, mem_roots h0, is_root, to_poly],
-  simp only [eval_C, eval_X, eval_add, eval_mul, eval_pow]
+  simv only [eval_C, eval_X, eval_add, eval_mul, eval_pow]
 end
 
 theorem card_roots_le [is_domain R] [decidable_eq R] : P.roots.to_finset.card ≤ 3 :=
@@ -258,7 +258,7 @@ begin
   apply_fun to_poly,
   any_goals { exact λ P Q, (to_poly_injective P Q).mp },
   rw [eq_prod_three_roots ha h3, to_poly],
-  simp only [C_neg, C_add, C_mul],
+  simv only [C_neg, C_add, C_mul],
   ring1
 end
 
@@ -288,8 +288,8 @@ P.b ^ 2 * P.c ^ 2 - 4 * P.a * P.c ^ 3 - 4 * P.b ^ 3 * P.d - 27 * P.a ^ 2 * P.d ^
 theorem disc_eq_prod_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   φ P.disc = (φ P.a * φ P.a * (x - y) * (x - z) * (y - z)) ^ 2 :=
 begin
-  simp only [disc, ring_hom.map_add, ring_hom.map_sub, ring_hom.map_mul, map_pow],
-  simp only [ring_hom.map_one, map_bit0, map_bit1],
+  simv only [disc, ring_hom.map_add, ring_hom.map_sub, ring_hom.map_mul, map_pow],
+  simv only [ring_hom.map_one, map_bit0, map_bit1],
   rw [b_eq_three_roots ha h3, c_eq_three_roots ha h3, d_eq_three_roots ha h3],
   ring1
 end
@@ -298,7 +298,7 @@ theorem disc_ne_zero_iff_roots_ne (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, 
   P.disc ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
   rw [← ring_hom.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
-  simp only [mul_ne_zero_iff, sub_ne_zero],
+  simv only [mul_ne_zero_iff, sub_ne_zero],
   rw [ring_hom.map_ne_zero],
   tautology
 end
@@ -309,7 +309,7 @@ begin
   rw [disc_ne_zero_iff_roots_ne ha h3, h3],
   change _ ↔ (x ::ₘ y ::ₘ {z}).nodup,
   rw [nodup_cons, nodup_cons, mem_cons, mem_singleton, mem_singleton],
-  simp only [nodup_singleton],
+  simv only [nodup_singleton],
   tautology
 end
 

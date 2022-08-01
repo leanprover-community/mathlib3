@@ -66,8 +66,8 @@ protected def E1 {n k : ℕ} :
   {s : sym (fin n.succ) k.succ // ↑0 ∈ s} ≃ sym (fin n.succ) k :=
 { to_fun    := λ s, s.1.erase 0 s.2,
   inv_fun   := λ s, ⟨cons 0 s, mem_cons_self 0 s⟩,
-  left_inv  := λ s, by simp,
-  right_inv := λ s, by simp }
+  left_inv  := λ s, by simv,
+  right_inv := λ s, by simv }
 
 /--
 The multisets of size `k` over `fin n+2` not containing `0`
@@ -81,12 +81,12 @@ protected def E2 {n k : ℕ} :
     (mt mem_map.1) (not_exists.2 (λ t, (not_and.2 (λ _, (fin.succ_above_ne _ t)))))⟩,
   left_inv  := λ s, by
   { obtain ⟨s, hs⟩ := s,
-    simp only [fin.zero_succ_above, map_map, comp_app],
+    simv only [fin.zero_succ_above, map_map, comp_app],
     nth_rewrite_rhs 0 ←(map_id' s),
     refine sym.map_congr (λ v hv,  _),
-    simp [fin.pred_above_zero (ne_of_mem_of_not_mem hv hs)] },
+    simv [fin.pred_above_zero (ne_of_mem_of_not_mem hv hs)] },
   right_inv := λ s, by
-  { simp only [fin.zero_succ_above, map_map, comp_app],
+  { simv only [fin.zero_succ_above, map_map, comp_app],
     nth_rewrite_rhs 0 ←(map_id' s),
     refine sym.map_congr (λ v hv,  _),
     rw [←fin.zero_succ_above v, ←fin.cast_succ_zero, fin.pred_above_succ_above 0 v] } }
@@ -94,15 +94,15 @@ protected def E2 {n k : ℕ} :
 lemma card_sym_fin_eq_multichoose (n k : ℕ) : card (sym (fin n) k) = multichoose n k :=
 begin
   apply @pincer_recursion (λ n k, card (sym (fin n) k) = multichoose n k),
-  { simp },
+  { simv },
   { intros b,
-    induction b with b IHb, { simp },
+    induction b with b IHb, { simv },
     rw [multichoose_zero_succ, card_eq_zero_iff],
     apply_instance },
   { intros x y h1 h2,
     rw [multichoose_succ_succ, ←h1, ←h2, add_comm],
     cases x,
-    { simp only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
+    { simv only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
       apply_instance },
     rw ←card_sum,
     refine fintype.card_congr (equiv.symm _),
@@ -134,7 +134,7 @@ begin
   rintro ⟨x₀, x₁⟩ hx _ _ h,
   cases quotient.eq.1 h,
   { refl },
-  { simp only [mem_coe, mem_diag] at hx,
+  { simv only [mem_coe, mem_diag] at hx,
     rw hx.2 }
 end
 
@@ -156,7 +156,7 @@ begin
       and_iff_right_iff_imp],
     rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩); rw mem_off_diag; exact ⟨‹_›, ‹_›, ‹_›⟩ }, -- hxy' is used here
   rw [this, card_insert_of_not_mem, card_singleton],
-  simp only [not_and, prod.mk.inj_iff, mem_singleton],
+  simv only [not_and, prod.mk.inj_iff, mem_singleton],
   exact λ _, hxy',
 end
 

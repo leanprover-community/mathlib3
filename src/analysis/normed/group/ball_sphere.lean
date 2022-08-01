@@ -19,7 +19,7 @@ variables {E : Type*} [seminormed_add_comm_group E] {r : ℝ}
 /-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
 antipodal map. -/
 instance : has_involutive_neg (sphere (0 : E) r) :=
-{ neg := λ w, ⟨-↑w, by simp⟩,
+{ neg := λ w, ⟨-↑w, by simv⟩,
   neg_neg := λ x, subtype.ext $ neg_neg x }
 
 @[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0 : E) r) :

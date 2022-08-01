@@ -107,7 +107,7 @@ def iso_mk {f g : mono_over X} (h : f.val.left ≅ g.val.left) (w : h.hom ≫ g.
 /-- If `f : mono_over X`, then `mk' f.arrow` is of course just `f`, but not definitionally, so we
     package it as an isomorphism. -/
 @[simp] def mk'_arrow_iso {X : C} (f : mono_over X) : (mk' f.arrow) ≅ f :=
-iso_mk (iso.refl _) (by simp)
+iso_mk (iso.refl _) (by simv)
 
 /--
 Lift a functor between over categories to a functor between `mono_over` categories,
@@ -241,8 +241,8 @@ Isomorphic objects have equivalent `mono_over` categories.
 @[simps] def map_iso {A B : C} (e : A ≅ B) : mono_over A ≌ mono_over B :=
 { functor := map e.hom,
   inverse := map e.inv,
-  unit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simp) ≪≫ map_id).symm,
-  counit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simp) ≪≫ map_id) }
+  unit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simv) ≪≫ map_id).symm,
+  counit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simv) ≪≫ map_id) }
 
 section
 variables (X)

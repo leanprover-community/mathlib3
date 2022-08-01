@@ -100,7 +100,7 @@ example : g ≫ 𝟙 Y = g := comp_id g
 example : (f ≫ g) ≫ h = f ≫ (g ≫ h) := assoc f g h
 example : (f ≫ g) ≫ h = f ≫ g ≫ h := assoc f g h -- note \gg is right associative
 
--- All four examples above can also be proved with `simp`.
+-- All four examples above can also be proved with `simv`.
 
 -- Monomorphisms and epimorphisms are predicates on morphisms and are implemented as typeclasses.
 variables (f' : W ⟶ X) (h' : Y ⟶ Z)

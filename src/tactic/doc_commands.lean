@@ -401,14 +401,14 @@ Also, as a shorthand, `conv_lhs` and `conv_rhs` are provided, so that
 ```lean
 example : 0 + 0 = 0 :=
 begin
-  conv_lhs { simp }
+  conv_lhs { simv }
 end
 ```
 just means
 ```lean
 example : 0 + 0 = 0 :=
 begin
-  conv { to_lhs, simp }
+  conv { to_lhs, simv }
 end
 ```
 and likewise for `to_rhs`.
@@ -420,9 +420,9 @@ add_tactic_doc
   tags := ["core"] }
 
 add_tactic_doc
-{ name := "simp",
+{ name := "simv",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.simp],
+  decl_names := [`tactic.interactive.simv],
   tags := ["core", "simplification"] }
 
 /--

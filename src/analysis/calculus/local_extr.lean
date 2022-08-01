@@ -99,7 +99,7 @@ begin
       inv_le_one (one_le_pow_of_one_le one_le_two _)] },
   show tendsto (λ n, c n • d n) at_top (𝓝 (y - x)),
   { convert tendsto_const_nhds, ext n,
-    simp only [d, smul_smul],
+    simv only [d, smul_smul],
     rw [mul_inv_cancel, one_smul],
     exact pow_ne_zero _ two_ne_zero }
 end
@@ -129,7 +129,7 @@ begin
   replace h : ∀ᶠ n in at_top, f (a + d n) ≤ f a, from mem_map.1 (hd h),
   replace hc : ∀ᶠ n in at_top, 0 ≤ c n, from mem_map.1 (hc (mem_at_top (0:ℝ))),
   filter_upwards [h, hc],
-  simp only [smul_eq_mul, mem_preimage, subset_def],
+  simv only [smul_eq_mul, mem_preimage, subset_def],
   assume n hnf hn,
   exact mul_nonpos_of_nonneg_of_nonpos hn (sub_nonpos.2 hnf)
 end

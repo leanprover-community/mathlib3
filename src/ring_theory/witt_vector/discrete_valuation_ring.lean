@@ -60,7 +60,7 @@ units.mk_of_mul_eq_one A (witt_vector.mk p (inverse_coeff a A))
   begin
     ext n,
     induction n with n ih,
-    { simp [witt_vector.mul_coeff_zero, inverse_coeff, hA] },
+    { simv [witt_vector.mul_coeff_zero, inverse_coeff, hA] },
     let H_coeff := A.coeff (n + 1) * ↑(a⁻¹ ^ p ^ (n + 1))
       + nth_remainder p n (truncate_fun (n + 1) A) (λ (i : fin (n + 1)), inverse_coeff a A i),
     have H := units.mul_inv (a ^ p ^ (n + 1)),
@@ -68,7 +68,7 @@ units.mk_of_mul_eq_one A (witt_vector.mk p (inverse_coeff a A))
     have ha : (a:k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1))) := by norm_cast,
     have ha_inv : (↑(a⁻¹):k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1)))⁻¹ :=
       by exact_mod_cast inv_pow _ _,
-    simp only [nth_remainder_spec, inverse_coeff, succ_nth_val_units, hA, fin.val_eq_coe,
+    simv only [nth_remainder_spec, inverse_coeff, succ_nth_val_units, hA, fin.val_eq_coe,
       one_coeff_eq_of_pos, nat.succ_pos', H_coeff, ha_inv, ha, inv_pow],
     ring!,
   end
@@ -104,7 +104,7 @@ begin
   cases n, { exact or.inr (is_unit_of_coeff_zero_ne_zero b hb) },
   rw iterate_verschiebung_mul at hab,
   apply_fun (λ x, coeff x 1) at hab,
-  simp only [coeff_p_one, nat.add_succ, add_comm _ n, function.iterate_succ', function.comp_app,
+  simv only [coeff_p_one, nat.add_succ, add_comm _ n, function.iterate_succ', function.comp_app,
     verschiebung_coeff_add_one, verschiebung_coeff_zero] at hab,
   exact (one_ne_zero hab).elim
 end
@@ -121,12 +121,12 @@ begin
   obtain ⟨b, rfl⟩ := (frobenius_bijective p k).surjective.iterate m c,
   rw witt_vector.iterate_frobenius_coeff at hc,
   have := congr_fun (witt_vector.verschiebung_frobenius_comm.comp_iterate m) b,
-  simp only [function.comp_app] at this,
+  simv only [function.comp_app] at this,
   rw ← this at hcm,
   refine ⟨m, b, _, _⟩,
   { contrapose! hc,
     have : 0 < p ^ m := pow_pos (nat.prime.pos (fact.out _)) _,
-    simp [hc, zero_pow this] },
+    simv [hc, zero_pow this] },
   { rw ← mul_left_iterate (p : 𝕎 k) m,
     convert hcm,
     ext1 x,

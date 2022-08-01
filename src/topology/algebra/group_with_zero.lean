@@ -239,7 +239,7 @@ lemma continuous_at_zpow₀ (x : G₀) (m : ℤ) (h : x ≠ 0 ∨ 0 ≤ m) : con
 begin
   cases m,
   { simpa only [zpow_of_nat] using continuous_at_pow x m },
-  { simp only [zpow_neg_succ_of_nat],
+  { simv only [zpow_neg_succ_of_nat],
     have hx : x ≠ 0, from h.resolve_right (int.neg_succ_of_nat_lt_zero m).not_le,
     exact (continuous_at_pow x (m + 1)).inv₀ (pow_ne_zero _ hx) }
 end

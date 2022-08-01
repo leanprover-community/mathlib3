@@ -90,7 +90,7 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
     refine filter.eventually.filter_mono (ultrafilter.of_le _)
       (filter.eventually_at_top.2 ⟨{⟨φ, hφ⟩},
       λ s h', Theory.realize_sentence_of_mem (s.map (function.embedding.subtype (λ x, x ∈ T))) _⟩),
-    simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
+    simv only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
       subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
     exact ⟨hφ, h' (finset.mem_singleton_self _)⟩ },
   exact ⟨Model.of T M'⟩,
@@ -136,7 +136,7 @@ begin
   { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_aleph_0.2
       ((finset_card_lt_aleph_0 _).le)).trans (aleph_0_le_lift.2 (aleph_0_le_mk M))) },
   { refine (monotone_const.union (monotone_distinct_constants_theory.comp _)).directed_le,
-    simp only [finset.coe_map, function.embedding.coe_subtype],
+    simv only [finset.coe_map, function.embedding.coe_subtype],
     exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
 end
 
@@ -149,7 +149,7 @@ begin
     is_satisfiable_union_distinct_constants_theory_of_infinite T (set.univ : set κ.out) M,
   refine ⟨(N.is_model.mono (set.subset_union_left _ _)).bundled.reduct _, _⟩,
   haveI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
-  simp only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
+  simv only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
   refine trans (lift_le.2 (le_of_eq (cardinal.mk_out κ).symm)) _,
   rw [← mk_univ],
   refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
@@ -171,14 +171,14 @@ lemma exists_elementary_embedding_card_eq_of_le (M : Type w') [L.Structure M] [n
   (h3 : lift.{w'} κ ≤ cardinal.lift.{w} (# M)) :
   ∃ (N : bundled L.Structure), nonempty (N ↪ₑ[L] M) ∧ # N = κ :=
 begin
-  obtain ⟨S, _, hS⟩ := exists_elementary_substructure_card_eq L ∅ κ h1 (by simp) h2 h3,
+  obtain ⟨S, _, hS⟩ := exists_elementary_substructure_card_eq L ∅ κ h1 (by simv) h2 h3,
   haveI : small.{w} S,
   { rw [← lift_inj.{_ (w + 1)}, lift_lift, lift_lift] at hS,
     exact small_iff_lift_mk_lt_univ.2 (lt_of_eq_of_lt hS κ.lift_lt_univ') },
   refine ⟨(equiv_shrink S).bundled_induced L,
     ⟨S.subtype.comp (equiv.bundled_induced_equiv L _).symm.to_elementary_embedding⟩,
     lift_inj.1 (trans _ hS)⟩,
-  simp only [equiv.bundled_induced_α, lift_mk_shrink'],
+  simv only [equiv.bundled_induced_α, lift_mk_shrink'],
 end
 
 /-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
@@ -199,7 +199,7 @@ begin
       (NN0.Theory_model_iff (L.elementary_diagram M)).2 infer_instance,
     refine ⟨bundled.of N, ⟨_⟩, hN⟩,
     apply elementary_embedding.of_models_elementary_diagram L M N, },
-  { simp only [card_with_constants, lift_add, lift_lift],
+  { simv only [card_with_constants, lift_add, lift_lift],
     rw [add_comm, add_eq_max (aleph_0_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
     rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
     exact ⟨h2, h1⟩, },
@@ -385,27 +385,27 @@ variables (φ ψ : L.bounded_formula α n)
 
 lemma semantically_equivalent_not_not :
   T.semantically_equivalent φ φ.not.not :=
-λ M v xs, by simp
+λ M v xs, by simv
 
 lemma imp_semantically_equivalent_not_sup :
   T.semantically_equivalent (φ.imp ψ) (φ.not ⊔ ψ) :=
-λ M v xs, by simp [imp_iff_not_or]
+λ M v xs, by simv [imp_iff_not_or]
 
 lemma sup_semantically_equivalent_not_inf_not :
   T.semantically_equivalent (φ ⊔ ψ) (φ.not ⊓ ψ.not).not :=
-λ M v xs, by simp [imp_iff_not_or]
+λ M v xs, by simv [imp_iff_not_or]
 
 lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
-λ M v xs, by simp [and_iff_not_or_not]
+λ M v xs, by simv [and_iff_not_or_not]
 
 lemma all_semantically_equivalent_not_ex_not (φ : L.bounded_formula α (n + 1)) :
   T.semantically_equivalent φ.all φ.not.ex.not :=
-λ M v xs, by simp
+λ M v xs, by simv
 
 lemma ex_semantically_equivalent_not_all_not (φ : L.bounded_formula α (n + 1)) :
   T.semantically_equivalent φ.ex φ.not.all.not :=
-λ M v xs, by simp
+λ M v xs, by simv
 
 lemma semantically_equivalent_all_lift_at :
   T.semantically_equivalent φ (φ.lift_at 1 n).all :=
@@ -536,7 +536,7 @@ theorem empty_Theory_categorical (T : language.empty.Theory) :
 
 theorem empty_infinite_Theory_is_complete :
   language.empty.infinite_theory.is_complete :=
-(empty_Theory_categorical ℵ₀ _).is_complete ℵ₀ _ le_rfl (by simp)
+(empty_Theory_categorical ℵ₀ _).is_complete ℵ₀ _ le_rfl (by simv)
   ⟨Theory.model.bundled ((model_infinite_theory_iff language.empty).2 nat.infinite)⟩
   (λ M, (model_infinite_theory_iff language.empty).1 M.is_model)
 

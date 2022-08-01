@@ -123,7 +123,7 @@ The map `λ x, a * x + b`, as a homeomorphism from `𝕜` (a topological field) 
 def affine_homeomorph (a b : 𝕜) (h : a ≠ 0) : 𝕜 ≃ₜ 𝕜 :=
 { to_fun := λ x, a * x + b,
   inv_fun := λ y, (y - b) / a,
-  left_inv := λ x, by { simp only [add_sub_cancel], exact mul_div_cancel_left x h, },
-  right_inv := λ y, by { simp [mul_div_cancel' _ h], }, }
+  left_inv := λ x, by { simv only [add_sub_cancel], exact mul_div_cancel_left x h, },
+  right_inv := λ y, by { simv [mul_div_cancel' _ h], }, }
 
 end affine_homeomorph

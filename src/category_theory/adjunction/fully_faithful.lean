@@ -48,12 +48,12 @@ instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunct
   ⟨begin
     ext x f, dsimp,
     apply L.map_injective,
-    simp,
+    simv,
   end, begin
     ext x f, dsimp,
-    simp only [adjunction.hom_equiv_counit, preimage_comp, preimage_map, category.assoc],
+    simv only [adjunction.hom_equiv_counit, preimage_comp, preimage_map, category.assoc],
     rw ←h.unit_naturality,
-    simp,
+    simv,
   end⟩⟩⟩
 
 /--
@@ -69,12 +69,12 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
   ⟨begin
     ext x f, dsimp,
     apply R.map_injective,
-    simp,
+    simv,
   end, begin
     ext x f, dsimp,
-    simp only [adjunction.hom_equiv_unit, preimage_comp, preimage_map],
+    simv only [adjunction.hom_equiv_unit, preimage_comp, preimage_map],
     rw ←h.counit_naturality,
-    simp,
+    simv,
   end⟩⟩⟩
 
 /-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
@@ -201,7 +201,7 @@ adjunction.mk_of_hom_equiv
   begin
     apply iC.map_injective,
     suffices : R'.map (iD.map g) ≫ comm2.hom.app Y = comm2.hom.app Y' ≫ iC.map (R.map g),
-      simp [this],
+      simv [this],
     apply comm2.hom.naturality g,
   end }
 

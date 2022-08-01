@@ -35,24 +35,24 @@ finsupp.equiv_fun_on_fintype.inv_fun (fin.cons y s.to_fun)
 
 lemma tail_apply : tail t i = t i.succ :=
 begin
-  simp only [tail, equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe],
+  simv only [tail, equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe],
   refl,
 end
 
 @[simp] lemma cons_zero : cons y s 0 = y :=
-by simp [cons, finsupp.equiv_fun_on_fintype]
+by simv [cons, finsupp.equiv_fun_on_fintype]
 
 @[simp] lemma cons_succ : cons y s i.succ = s i :=
 begin
-  simp only [finsupp.cons, fin.cons, finsupp.equiv_fun_on_fintype, fin.cases_succ, finsupp.coe_mk],
+  simv only [finsupp.cons, fin.cons, finsupp.equiv_fun_on_fintype, fin.cases_succ, finsupp.coe_mk],
   refl,
 end
 
 @[simp] lemma tail_cons : tail (cons y s) = s :=
 begin
-  simp only [finsupp.cons, fin.cons, finsupp.tail, fin.tail],
+  simv only [finsupp.cons, fin.cons, finsupp.tail, fin.tail],
   ext,
-  simp only [equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe,
+  simv only [equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe,
     finsupp.coe_mk, fin.cases_succ, equiv_fun_on_fintype],
   refl,
 end
@@ -69,9 +69,9 @@ end
 begin
   ext,
   by_cases c : a = 0,
-  { simp [c] },
+  { simv [c] },
   { rw [←fin.succ_pred a c, cons_succ],
-    simp },
+    simv },
 end
 
 variables {s} {y}
@@ -86,7 +86,7 @@ lemma cons_ne_zero_of_right (h : s ≠ 0) : cons y s ≠ 0 :=
 begin
   contrapose! h with c,
   ext,
-  simp [ ← cons_succ a y s, c],
+  simv [ ← cons_succ a y s, c],
 end
 
 lemma cons_ne_zero_iff : cons y s ≠ 0 ↔ y ≠ 0 ∨ s ≠ 0 :=

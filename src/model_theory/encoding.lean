@@ -78,15 +78,15 @@ begin
         ↑i = some (some (ts i)),
       { intro i,
         rw [h, nth_append, nth_map],
-        { simp only [option.map_eq_some', function.comp_app, nth_eq_some],
+        { simv only [option.map_eq_some', function.comp_app, nth_eq_some],
           refine ⟨i, ⟨lt_of_lt_of_le i.2 (ge_of_eq (length_fin_range _)), _⟩, rfl⟩,
           rw [nth_le_fin_range, fin.eta] },
         { refine lt_of_lt_of_le i.2 _,
-          simp } },
+          simv } },
       refine (dif_pos (λ i, option.is_some_iff_exists.2 ⟨ts i, _⟩)).trans _,
       { rw [option.join_eq_some, h'] },
       refine congr (congr rfl (congr rfl (congr rfl (funext (λ i, option.get_of_mem _ _))))) _,
-      { simp [h'] },
+      { simv [h'] },
       { rw [h, drop_left'],
         rw [length_map, length_fin_range] } } }
 end
@@ -99,7 +99,7 @@ end
   decode_encode := λ t, begin
     have h := list_decode_encode_list [t],
     rw [bind_singleton] at h,
-    simp only [h, option.join, head', list.map, option.some_bind, id.def],
+    simv only [h, option.join, head', list.map, option.some_bind, id.def],
   end }
 
 lemma list_encode_injective :
@@ -136,13 +136,13 @@ begin
       refine ⟨⟨sum.elim (λ i, ⟨0, var (sum.inl i)⟩)
         (λ F, ⟨1, func F.2 (λ _, var (sum.inr 0))⟩), _⟩⟩,
       { rintros (a | a) (b | b) h,
-        { simp only [sum.elim_inl, eq_self_iff_true, heq_iff_eq, true_and] at h,
+        { simv only [sum.elim_inl, eq_self_iff_true, heq_iff_eq, true_and] at h,
           rw h },
-        { simp only [sum.elim_inl, sum.elim_inr, nat.zero_ne_one, false_and] at h,
+        { simv only [sum.elim_inl, sum.elim_inr, nat.zero_ne_one, false_and] at h,
           exact h.elim },
-        { simp only [sum.elim_inr, sum.elim_inl, nat.one_ne_zero, false_and] at h,
+        { simv only [sum.elim_inr, sum.elim_inl, nat.one_ne_zero, false_and] at h,
           exact h.elim },
-        { simp only [sum.elim_inr, eq_self_iff_true, heq_iff_eq, true_and] at h,
+        { simv only [sum.elim_inr, eq_self_iff_true, heq_iff_eq, true_and] at h,
           rw sigma.ext_iff.2 ⟨h.1, h.2.1⟩, } } } }
 end
 
@@ -151,7 +151,7 @@ instance [encodable α] [encodable ((Σ i, L.functions i))] :
 encodable.of_left_injection list_encode (λ l, (list_decode l).head'.join)
   (λ t, begin
     rw [← bind_singleton list_encode, list_decode_encode_list],
-    simp only [option.join, head', list.map, option.some_bind, id.def],
+    simv only [option.join, head', list.map, option.some_bind, id.def],
   end)
 
 lemma card_le_aleph_0 [h1 : nonempty (encodable α)] [h2 : L.countable_functions] :
@@ -159,7 +159,7 @@ lemma card_le_aleph_0 [h1 : nonempty (encodable α)] [h2 : L.countable_functions
 begin
   refine (card_le.trans _),
   rw [max_le_iff],
-  simp only [le_refl, mk_sum, add_le_aleph_0, lift_le_aleph_0, true_and],
+  simv only [le_refl, mk_sum, add_le_aleph_0, lift_le_aleph_0, true_and],
   exact ⟨encodable_iff.1 h1, L.card_functions_le_aleph_0⟩,
 end
 
@@ -202,7 +202,7 @@ def sigma_imp :
 | ((sum.inr (sum.inr (n + 2))) :: l) := ⟨⟨n, falsum⟩, l, le_max_of_le_right le_add_self⟩
 | ((sum.inl ⟨n₁, t₁⟩) :: sum.inl ⟨n₂, t₂⟩ :: l) :=
     ⟨if h : n₁ = n₂ then ⟨n₁, equal t₁ (eq.mp (by rw h) t₂)⟩ else default, l, begin
-      simp only [list.sizeof, ← add_assoc],
+      simv only [list.sizeof, ← add_assoc],
       exact le_max_of_le_right le_add_self,
     end⟩
 | (sum.inr (sum.inl ⟨n, R⟩) :: (sum.inr (sum.inr k)) :: l) := ⟨
@@ -234,25 +234,25 @@ begin
     (list_decode (list_encode φ.2 ++ l)).1 = φ ∧ (list_decode (list_encode φ.2 ++ l)).2.1 = l,
   { induction l with φ l lih,
     { rw [list.nil_bind],
-      simp [list_decode], },
+      simv [list_decode], },
     { rw [cons_bind, (h φ _).1, head_cons] } },
   { rintro ⟨n, φ⟩,
     induction φ with _ _ _ _ _ _ _ ts _ _ _ ih1 ih2 _ _ ih; intro l,
     { rw [list_encode, singleton_append, list_decode],
-      simp only [eq_self_iff_true, heq_iff_eq, and_self], },
+      simv only [eq_self_iff_true, heq_iff_eq, and_self], },
     { rw [list_encode, cons_append, cons_append, list_decode, dif_pos],
-      { simp only [eq_mp_eq_cast, cast_eq, eq_self_iff_true, heq_iff_eq, and_self, nil_append], },
-      { simp only [eq_self_iff_true, heq_iff_eq, and_self], } },
+      { simv only [eq_mp_eq_cast, cast_eq, eq_self_iff_true, heq_iff_eq, and_self, nil_append], },
+      { simv only [eq_self_iff_true, heq_iff_eq, and_self], } },
     { rw [list_encode, cons_append, cons_append, singleton_append, cons_append, list_decode],
       { have h : ∀ (i : fin φ_l), ((list.map sum.get_left (list.map (λ (i : fin φ_l),
           sum.inl (⟨(⟨φ_n, rel φ_R ts⟩ : Σ n, L.bounded_formula α n).fst, ts i⟩ :
             Σ n, L.term (α ⊕ fin n))) (fin_range φ_l) ++ l)).nth ↑i).join = some ⟨_, ts i⟩,
         { intro i,
-          simp only [option.join, map_append, map_map, option.bind_eq_some, id.def, exists_eq_right,
+          simv only [option.join, map_append, map_map, option.bind_eq_some, id.def, exists_eq_right,
             nth_eq_some, length_append, length_map, length_fin_range],
           refine ⟨lt_of_lt_of_le i.2 le_self_add, _⟩,
           rw [nth_le_append, nth_le_map],
-          { simp only [sum.get_left, nth_le_fin_range, fin.eta, function.comp_app, eq_self_iff_true,
+          { simv only [sum.get_left, nth_le_fin_range, fin.eta, function.comp_app, eq_self_iff_true,
             heq_iff_eq, and_self] },
           { exact lt_of_lt_of_le i.is_lt (ge_of_eq (length_fin_range _)) },
           { rw [length_map, length_fin_range],
@@ -263,7 +263,7 @@ begin
         { intro i,
           obtain ⟨h1, h2⟩ := option.eq_some_iff_get_eq.1 (h i),
           rw h2 },
-        simp only [eq_self_iff_true, heq_iff_eq, true_and],
+        simv only [eq_self_iff_true, heq_iff_eq, true_and],
         refine ⟨funext (λ i, _), _⟩,
         { obtain ⟨h1, h2⟩ := option.eq_some_iff_get_eq.1 (h i),
           rw [eq_mp_eq_cast, cast_eq_iff_heq],
@@ -272,12 +272,12 @@ begin
           drop_eq_nil_of_le, nil_append],
         rw [length_map, length_fin_range], }, },
     { rw [list_encode, append_assoc, cons_append, list_decode],
-      simp only [subtype.val_eq_coe] at *,
+      simv only [subtype.val_eq_coe] at *,
       rw [(ih1 _).1, (ih1 _).2, (ih2 _).1, (ih2 _).2, sigma_imp, dif_pos rfl],
       exact ⟨rfl, rfl⟩, },
     { rw [list_encode, cons_append, list_decode],
-      simp only,
-      simp only [subtype.val_eq_coe] at *,
+      simv only,
+      simv only [subtype.val_eq_coe] at *,
       rw [(ih _).1, (ih _).2, sigma_all],
       exact ⟨rfl, rfl⟩ } }
 end
@@ -306,7 +306,7 @@ begin
     max_le_iff],
   refine ⟨_, le_max_left _ _⟩,
   rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],
-  simp only [lift_add, lift_lift, lift_aleph_0],
+  simv only [lift_add, lift_lift, lift_aleph_0],
   rw [← add_assoc, add_comm, ← add_assoc, ← add_assoc, aleph_0_add_aleph_0, add_assoc,
     add_eq_max le_rfl, add_assoc, card, symbols, mk_sum, lift_add, lift_lift, lift_lift],
 end

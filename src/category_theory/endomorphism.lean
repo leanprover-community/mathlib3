@@ -87,7 +87,7 @@ end End
 lemma is_unit_iff_is_iso {C : Type u} [category.{v} C] {X : C} (f : End X) :
   is_unit (f : End X) ↔ is_iso f :=
 ⟨λ h, { out := ⟨h.unit.inv, ⟨h.unit.inv_val, h.unit.val_inv⟩⟩ },
-  λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩⟩
+  λ h, by exactI ⟨⟨f, inv f, by simv, by simv⟩, rfl⟩⟩
 
 variables {C : Type u} [category.{v} C] (X : C)
 
@@ -114,7 +114,7 @@ by refine_struct
   npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
   zpow := @zpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
 intros; try { refl }; ext;
-simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
+simv [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]
 
 lemma Aut_mul_def (f g : Aut X) : f * g = g.trans f := rfl
@@ -136,7 +136,7 @@ def Aut_mul_equiv_of_iso {X Y : C} (h : X ≅ Y) : Aut X ≃* Aut Y :=
   inv_fun := λ y, ⟨h.hom ≫ y.hom ≫ h.inv, h.hom ≫ y.inv ≫ h.inv⟩,
   left_inv := by tidy,
   right_inv := by tidy,
-  map_mul' := by simp [Aut_mul_def] }
+  map_mul' := by simv [Aut_mul_def] }
 
 end Aut
 

@@ -281,7 +281,7 @@ protected def add_group_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add 
   (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   add_group_with_one M₁ :=
 { int_cast := coe,
-  int_cast_of_nat := λ n, hf (by simp only [nat_cast, int_cast, int.cast_coe_nat]),
+  int_cast_of_nat := λ n, hf (by simv only [nat_cast, int_cast, int.cast_coe_nat]),
   int_cast_neg_succ_of_nat :=
     λ n, hf (by erw [int_cast, neg, nat_cast, int.cast_neg, int.cast_coe_nat]),
   .. hf.add_group f zero add neg sub nsmul zsmul,
@@ -318,7 +318,7 @@ if it admits a surjective map that preserves `+` from an additive semigroup."]
 protected def semigroup [semigroup M₁] (f : M₁ → M₂) (hf : surjective f)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   semigroup M₂ :=
-{ mul_assoc := hf.forall₃.2 $ λ x y z, by simp only [← mul, mul_assoc],
+{ mul_assoc := hf.forall₃.2 $ λ x y z, by simv only [← mul, mul_assoc],
   ..‹has_mul M₂› }
 
 /-- A type endowed with `*` is a commutative semigroup,

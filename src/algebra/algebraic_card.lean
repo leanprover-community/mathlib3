@@ -46,7 +46,7 @@ begin
   by_cases hf : f.1 = 0,
   { convert set.fintype_empty,
     apply set.eq_empty_iff_forall_not_mem.2 (λ x hx, _),
-    simp only [set.mem_preimage, set.mem_singleton_iff] at hx,
+    simv only [set.mem_preimage, set.mem_singleton_iff] at hx,
     apply_fun ulift.down at hx,
     rw hf at hx,
     exact (classical.some_spec x.1.2).1 hx },
@@ -56,18 +56,18 @@ begin
     exact (classical.some_spec x.1.1.2).2
   end⟩,
   apply fintype.of_injective h (λ _ _ H, _),
-  simp only [subtype.val_eq_coe, subtype.mk_eq_mk] at H,
+  simv only [subtype.val_eq_coe, subtype.mk_eq_mk] at H,
   exact subtype.ext (ulift.down_injective (subtype.ext H))
 end
 
 theorem cardinal_mk_lift_le_max :
   cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ max (cardinal.lift.{v u} (#R)) ℵ₀ :=
 (cardinal_mk_lift_le_mul R A).trans $
-  (mul_le_mul_right' (lift_le.2 cardinal_mk_le_max) _).trans $ by simp [le_total]
+  (mul_le_mul_right' (lift_le.2 cardinal_mk_le_max) _).trans $ by simv [le_total]
 
 theorem cardinal_mk_lift_le_of_infinite [infinite R] :
   cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} (#R) :=
-(cardinal_mk_lift_le_max R A).trans $ by simp
+(cardinal_mk_lift_le_max R A).trans $ by simv
 
 variable [encodable R]
 
@@ -75,12 +75,12 @@ variable [encodable R]
 begin
   rw [←mk_set_le_aleph_0, ←lift_le],
   apply (cardinal_mk_lift_le_max R A).trans,
-  simp
+  simv
 end
 
 @[simp] theorem cardinal_mk_of_encodable_of_char_zero [char_zero A] [is_domain R] :
   #{x : A // is_algebraic R x} = ℵ₀ :=
-le_antisymm (by simp) (aleph_0_le_cardinal_mk_of_char_zero R A)
+le_antisymm (by simv) (aleph_0_le_cardinal_mk_of_char_zero R A)
 
 end lift
 
@@ -96,7 +96,7 @@ theorem cardinal_mk_le_max : #{x : A // is_algebraic R x} ≤ max (#R) ℵ₀ :=
 by { rw [←lift_id (#_), ←lift_id (#R)], exact cardinal_mk_lift_le_max R A }
 
 theorem cardinal_mk_le_of_infinite [infinite R] : #{x : A // is_algebraic R x} ≤ #R :=
-(cardinal_mk_le_max R A).trans $ by simp
+(cardinal_mk_le_max R A).trans $ by simv
 
 end non_lift
 

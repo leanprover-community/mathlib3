@@ -97,11 +97,11 @@ ihom.coev A
 notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
-@[simp, reassoc] lemma ev_coev :
+@[simv, reassoc] lemma ev_coev :
   limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
 ihom.ev_coev A B
 
-@[simp, reassoc] lemma coev_ev : (coev A).app (A ⟹ B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A ⟹ B) :=
+@[simv, reassoc] lemma coev_ev : (coev A).app (A ⟹ B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A ⟹ B) :=
 ihom.coev_ev A B
 
 end exp
@@ -162,7 +162,7 @@ lemma eq_curry_iff (f : A ⨯ Y ⟶ X) (g : Y ⟶ A ⟹ X) :
   g = curry f ↔ uncurry g = f :=
 adjunction.eq_hom_equiv_apply _ f g
 
--- I don't think these two should be simp.
+-- I don't think these two should be simv.
 lemma uncurry_eq (g : Y ⟶ A ⟹ X) : uncurry g = limits.prod.map (𝟙 A) g ≫ (exp.ev A).app X :=
 adjunction.hom_equiv_counit _
 
@@ -195,7 +195,7 @@ yoneda.ext (⊤_ C ⟹ X) X
   (λ Y f, (prod.left_unitor Y).inv ≫ cartesian_closed.uncurry f)
   (λ Y f, cartesian_closed.curry ((prod.left_unitor Y).hom ≫ f))
   (λ Z g, by rw [curry_eq_iff, iso.hom_inv_id_assoc] )
-  (λ Z g, by simp)
+  (λ Z g, by simv)
   (λ Z W f g, by rw [uncurry_natural_left, prod.left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
@@ -228,7 +228,7 @@ unit_transfer_nat_trans_self _ _ (prod.functor.map f) X
 
 @[simp]
 lemma pre_id (A : C) [exponentiable A] : pre (𝟙 A) = 𝟙 _ :=
-by simp [pre]
+by simv [pre]
 
 @[simp]
 lemma pre_map {A₁ A₂ A₃ : C} [exponentiable A₁] [exponentiable A₂] [exponentiable A₃]
@@ -349,9 +349,9 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
         apply prod.map_iso (iso.refl _) (e.unit_iso.app Y).symm },
       { intros Y Z g,
         dsimp [prod_comparison],
-        simp [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
-          -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
-        dsimp, simp }, -- See note [dsimp, simp]
+        simv [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
+          -- I wonder if it would be a good idea to make `map_comp` a simv lemma the other way round
+        dsimp, simv }, -- See note [dsimp, simv]
       { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
         have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=

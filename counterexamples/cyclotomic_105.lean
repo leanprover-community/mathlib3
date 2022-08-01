@@ -38,7 +38,7 @@ lemma cyclotomic_3 : cyclotomic 3 ℤ = 1 + X + X ^ 2 :=
 begin
   refine ((eq_cyclotomic_iff (show 0 < 3, by norm_num) _).2 _).symm,
   rw nat.prime.proper_divisors prime_3,
-  simp only [finset.prod_singleton, cyclotomic_one],
+  simv only [finset.prod_singleton, cyclotomic_one],
   ring
 end
 
@@ -46,7 +46,7 @@ lemma cyclotomic_5 : cyclotomic 5 ℤ = 1 + X + X ^ 2 + X ^ 3 + X ^ 4 :=
 begin
   refine ((eq_cyclotomic_iff (nat.prime.pos prime_5) _).2 _).symm,
   rw nat.prime.proper_divisors prime_5,
-  simp only [finset.prod_singleton, cyclotomic_one],
+  simv only [finset.prod_singleton, cyclotomic_one],
   ring
 end
 
@@ -54,7 +54,7 @@ lemma cyclotomic_7 : cyclotomic 7 ℤ = 1 + X + X ^ 2 + X ^ 3 + X ^ 4 + X ^ 5 + 
 begin
   refine ((eq_cyclotomic_iff (nat.prime.pos prime_7) _).2 _).symm,
   rw nat.prime.proper_divisors prime_7,
-  simp only [finset.prod_singleton, cyclotomic_one],
+  simv only [finset.prod_singleton, cyclotomic_one],
   ring
 end
 
@@ -105,7 +105,7 @@ end
 
 lemma coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2 :=
 begin
-  simp [cyclotomic_105, coeff_X_pow, coeff_one, coeff_X_of_ne_one, coeff_bit0_mul, coeff_bit1_mul]
+  simv [cyclotomic_105, coeff_X_pow, coeff_one, coeff_X_of_ne_one, coeff_bit0_mul, coeff_bit1_mul]
 end
 
 lemma not_forall_coeff_cyclotomic_neg_one_zero_one :

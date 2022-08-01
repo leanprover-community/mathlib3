@@ -74,7 +74,7 @@ and_iff_left $ top_mem_upper_bounds _
 is not greater than or equal to `y`. This version only assumes `preorder` structure and uses
 `¬(y ≤ x)`. A version for linear orders is called `not_bdd_above_iff`. -/
 lemma not_bdd_above_iff' : ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, ¬(y ≤ x) :=
-by simp [bdd_above, upper_bounds, set.nonempty]
+by simv [bdd_above, upper_bounds, set.nonempty]
 
 /-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` such that `x`
 is not less than or equal to `y`. This version only assumes `preorder` structure and uses
@@ -85,7 +85,7 @@ lemma not_bdd_below_iff' : ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, ¬ x ≤ y := @
 than `x`. A version for preorders is called `not_bdd_above_iff'`. -/
 lemma not_bdd_above_iff {α : Type*} [linear_order α] {s : set α} :
   ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, x < y :=
-by simp only [not_bdd_above_iff', not_le]
+by simv only [not_bdd_above_iff', not_le]
 
 /-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` that is less
 than `x`. A version for preorders is called `not_bdd_below_iff'`. -/
@@ -256,7 +256,7 @@ lemma union_lower_bounds_subset_lower_bounds_inter :
 
 lemma is_least_union_iff {a : α} {s t : set α} :
   is_least (s ∪ t) a ↔ (is_least s a ∧ a ∈ lower_bounds t ∨ a ∈ lower_bounds s ∧ is_least t a) :=
-by simp [is_least, lower_bounds_union, or_and_distrib_right, and_comm (a ∈ t), and_assoc]
+by simv [is_least, lower_bounds_union, or_and_distrib_right, and_comm (a ∈ t), and_assoc]
 
 lemma is_greatest_union_iff :
   is_greatest (s ∪ t) a ↔ (is_greatest s a ∧ a ∈ upper_bounds t ∨
@@ -324,14 +324,14 @@ hs.dual.union ht
 then `min a b` is the least element of `s ∪ t`. -/
 lemma is_least.union [linear_order γ] {a b : γ} {s t : set γ}
   (ha : is_least s a) (hb : is_least t b) : is_least (s ∪ t) (min a b) :=
-⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
+⟨by cases (le_total a b) with h h; simv [h, ha.1, hb.1],
   (ha.is_glb.union hb.is_glb).1⟩
 
 /-- If `a` is the greatest element of `s` and `b` is the greatest element of `t`,
 then `max a b` is the greatest element of `s ∪ t`. -/
 lemma is_greatest.union [linear_order γ] {a b : γ} {s t : set γ}
   (ha : is_greatest s a) (hb : is_greatest t b) : is_greatest (s ∪ t) (max a b) :=
-⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
+⟨by cases (le_total a b) with h h; simv [h, ha.1, hb.1],
   (ha.is_lub.union hb.is_lub).1⟩
 
 lemma is_lub.inter_Ici_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_lub s a)
@@ -560,7 +560,7 @@ lemma bdd_below_iff_subset_Ici : bdd_below s ↔ ∃ a, s ⊆ Ici a := iff.rfl
 lemma bdd_above_iff_subset_Iic : bdd_above s ↔ ∃ a, s ⊆ Iic a := iff.rfl
 
 lemma bdd_below_bdd_above_iff_subset_Icc : bdd_below s ∧ bdd_above s ↔ ∃ a b, s ⊆ Icc a b :=
-by simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
+by simv only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
   bdd_above_iff_subset_Iic, exists_and_distrib_left, exists_and_distrib_right]
 
 /-!
@@ -595,7 +595,7 @@ not_le_of_lt hx (hb trivial)
 @no_max_order.upper_bounds_univ αᵒᵈ _ _
 
 @[simp] lemma not_bdd_above_univ [no_max_order α] : ¬bdd_above (univ : set α) :=
-by simp [bdd_above]
+by simv [bdd_above]
 
 @[simp] lemma not_bdd_below_univ [no_min_order α] : ¬bdd_below (univ : set α) :=
 @not_bdd_above_univ αᵒᵈ _ _
@@ -605,24 +605,24 @@ by simp [bdd_above]
 -/
 
 @[simp] lemma upper_bounds_empty : upper_bounds (∅ : set α) = univ :=
-by simp only [upper_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
+by simv only [upper_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
 
 @[simp] lemma lower_bounds_empty : lower_bounds (∅ : set α) = univ := @upper_bounds_empty αᵒᵈ _
 
 @[simp] lemma bdd_above_empty [nonempty α] : bdd_above (∅ : set α) :=
-by simp only [bdd_above, upper_bounds_empty, univ_nonempty]
+by simv only [bdd_above, upper_bounds_empty, univ_nonempty]
 
 @[simp] lemma bdd_below_empty [nonempty α] : bdd_below (∅ : set α) :=
-by simp only [bdd_below, lower_bounds_empty, univ_nonempty]
+by simv only [bdd_below, lower_bounds_empty, univ_nonempty]
 
 lemma is_glb_empty [preorder γ] [order_top γ] : is_glb ∅ (⊤:γ) :=
-by simp only [is_glb, lower_bounds_empty, is_greatest_univ]
+by simv only [is_glb, lower_bounds_empty, is_greatest_univ]
 
 lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) := @is_glb_empty γᵒᵈ _ _
 
 lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
 let ⟨a', ha'⟩ := exists_lt a in
-ne_empty_iff_nonempty.1 $ λ h, not_le_of_lt ha' $ hs.right $ by simp only [h, upper_bounds_empty]
+ne_empty_iff_nonempty.1 $ λ h, not_le_of_lt ha' $ hs.right $ by simv only [h, upper_bounds_empty]
 
 lemma is_glb.nonempty [no_max_order α] (hs : is_glb s a) : s.nonempty := hs.dual.nonempty
 
@@ -639,7 +639,7 @@ lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonem
 /-- Adding a point to a set preserves its boundedness above. -/
 @[simp] lemma bdd_above_insert [semilattice_sup γ] (a : γ) {s : set γ} :
   bdd_above (insert a s) ↔ bdd_above s :=
-by simp only [insert_eq, bdd_above_union, bdd_above_singleton, true_and]
+by simv only [insert_eq, bdd_above_union, bdd_above_singleton, true_and]
 
 lemma bdd_above.insert [semilattice_sup γ] (a : γ) {s : set γ} (hs : bdd_above s) :
   bdd_above (insert a s) :=
@@ -648,7 +648,7 @@ lemma bdd_above.insert [semilattice_sup γ] (a : γ) {s : set γ} (hs : bdd_abov
 /--Adding a point to a set preserves its boundedness below.-/
 @[simp] lemma bdd_below_insert [semilattice_inf γ] (a : γ) {s : set γ} :
   bdd_below (insert a s) ↔ bdd_below s :=
-by simp only [insert_eq, bdd_below_union, bdd_below_singleton, true_and]
+by simv only [insert_eq, bdd_below_union, bdd_below_singleton, true_and]
 
 lemma bdd_below.insert [semilattice_inf γ] (a : γ) {s : set γ} (hs : bdd_below s) :
   bdd_below (insert a s) :=
@@ -780,7 +780,7 @@ section linear_order
 variables [linear_order α] {s : set α} {a b : α}
 
 lemma lt_is_lub_iff (h : is_lub s a) : b < a ↔ ∃ c ∈ s, b < c :=
-by simp only [← not_le, is_lub_le_iff h, mem_upper_bounds, not_forall]
+by simv only [← not_le, is_lub_le_iff h, mem_upper_bounds, not_forall]
 
 lemma is_glb_lt_iff (h : is_glb s a) : a < b ↔ ∃ c ∈ s, c < b := lt_is_lub_iff h.dual
 

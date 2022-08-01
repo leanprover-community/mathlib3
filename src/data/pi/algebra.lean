@@ -36,25 +36,25 @@ namespace pi
 @[to_additive] instance has_one [∀ i, has_one $ f i] :
   has_one (Π i : I, f i) :=
 ⟨λ _, 1⟩
-@[simp, to_additive] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
+@[simv, to_additive] lemma one_apply [∀ i, has_one $ f i] : (1 : Π i, f i) i = 1 := rfl
 
 @[to_additive] lemma one_def [Π i, has_one $ f i] : (1 : Π i, f i) = λ i, 1 := rfl
 
-@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
+@[simv, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
 
-@[simp, to_additive] lemma one_comp [has_one γ] (x : α → β) : (1 : β → γ) ∘ x = 1 := rfl
+@[simv, to_additive] lemma one_comp [has_one γ] (x : α → β) : (1 : β → γ) ∘ x = 1 := rfl
 
-@[simp, to_additive] lemma comp_one [has_one β] (x : β → γ) : x ∘ 1 = const α (x 1) := rfl
+@[simv, to_additive] lemma comp_one [has_one β] (x : β → γ) : x ∘ 1 = const α (x 1) := rfl
 
 @[to_additive]
 instance has_mul [∀ i, has_mul $ f i] :
   has_mul (Π i : I, f i) :=
 ⟨λ f g i, f i * g i⟩
-@[simp, to_additive] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
+@[simv, to_additive] lemma mul_apply [∀ i, has_mul $ f i] : (x * y) i = x i * y i := rfl
 
 @[to_additive] lemma mul_def [Π i, has_mul $ f i] : x * y = λ i, x i * y i := rfl
 
-@[simp, to_additive] lemma const_mul [has_mul β] (a b : β) :
+@[simv, to_additive] lemma const_mul [has_mul β] (a b : β) :
   const α a * const α b = const α (a * b) := rfl
 
 @[to_additive] lemma mul_comp [has_mul γ] (x y : β → γ) (z : α → β) :
@@ -63,13 +63,13 @@ instance has_mul [∀ i, has_mul $ f i] :
 @[to_additive pi.has_vadd] instance has_smul [Π i, has_smul α $ f i] : has_smul α (Π i : I, f i) :=
 ⟨λ s x, λ i, s • (x i)⟩
 
-@[simp, to_additive] lemma smul_apply [Π i, has_smul α $ f i] (s : α) (x : Π i, f i) (i : I) :
+@[simv, to_additive] lemma smul_apply [Π i, has_smul α $ f i] (s : α) (x : Π i, f i) (i : I) :
   (s • x) i = s • x i := rfl
 
 @[to_additive] lemma smul_def [Π i, has_smul α $ f i] (s : α) (x : Π i, f i) :
   s • x = λ i, s • x i := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma smul_const [has_smul α β] (a : α) (b : β) : a • const I b = const I (a • b) := rfl
 
 @[to_additive]
@@ -79,14 +79,14 @@ lemma smul_comp [has_smul α γ] (a : α) (x : β → γ) (y : I → β) : (a �
 instance has_pow [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
 ⟨λ x b i, (x i) ^ b⟩
 
-@[simp, to_additive pi.smul_apply, to_additive_reorder 5]
+@[simv, to_additive pi.smul_apply, to_additive_reorder 5]
 lemma pow_apply [Π i, has_pow (f i) β] (x : Π i, f i) (b : β) (i : I) : (x ^ b) i = (x i) ^ b := rfl
 
 @[to_additive pi.smul_def, to_additive_reorder 5]
 lemma pow_def [Π i, has_pow (f i) β] (x : Π i, f i) (b : β) : x ^ b = λ i, (x i) ^ b := rfl
 
 -- `to_additive` generates bad output if we take `has_pow α β`.
-@[simp, to_additive smul_const, to_additive_reorder 5]
+@[simv, to_additive smul_const, to_additive_reorder 5]
 lemma const_pow [has_pow β α] (b : β) (a : α) : const I b ^ a = const I (b ^ a) := rfl
 
 @[to_additive smul_comp, to_additive_reorder 6]
@@ -99,7 +99,7 @@ lemma pow_comp [has_pow γ α] (x : β → γ) (a : α) (y : I → β) : (x ^ a)
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] :
   has_inv (Π i : I, f i) :=
   ⟨λ f i, (f i)⁻¹⟩
-@[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
+@[simv, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 @[to_additive] lemma inv_def [Π i, has_inv $ f i] : x⁻¹ = λ i, (x i)⁻¹ := rfl
 
 @[to_additive] lemma const_inv [has_inv β] (a : β) : (const α a)⁻¹ = const α a⁻¹ := rfl
@@ -109,13 +109,13 @@ lemma pow_comp [has_pow γ α] (x : β → γ) (a : α) (y : I → β) : (x ^ a)
 @[to_additive] instance has_div [Π i, has_div $ f i] :
   has_div (Π i : I, f i) :=
 ⟨λ f g i, f i / g i⟩
-@[simp, to_additive] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
+@[simv, to_additive] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
 @[to_additive] lemma div_def [Π i, has_div $ f i] : x / y = λ i, x i / y i := rfl
 
 @[to_additive] lemma div_comp [has_div γ] (x y : β → γ) (z : α → β) :
   (x / y) ∘ z = x ∘ z / y ∘ z := rfl
 
-@[simp, to_additive] lemma const_div [has_div β] (a b : β) :
+@[simv, to_additive] lemma const_div [has_div β] (a b : β) :
   const α a / const α b = const α (a / b) := rfl
 
 section
@@ -128,21 +128,21 @@ variables [Π i, has_one (f i)] [Π i, has_one (g i)] [Π i, has_one (h i)]
 def mul_single (i : I) (x : f i) : Π i, f i :=
 function.update 1 i x
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_single_eq_same (i : I) (x : f i) : mul_single i x i = x :=
 function.update_same i x _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : mul_single i x i' = 1 :=
 function.update_noteq h x _
 
-/-- Abbreviation for `mul_single_eq_of_ne h.symm`, for ease of use by `simp`. -/
-@[simp, to_additive "Abbreviation for `single_eq_of_ne h.symm`, for ease of
-use by `simp`."]
+/-- Abbreviation for `mul_single_eq_of_ne h.symm`, for ease of use by `simv`. -/
+@[simv, to_additive "Abbreviation for `single_eq_of_ne h.symm`, for ease of
+use by `simv`."]
 lemma mul_single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : mul_single i x i' = 1 :=
 mul_single_eq_of_ne h.symm x
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_single_one (i : I) : mul_single i (1 : f i) = 1 :=
 function.update_eq_self _ _
 
@@ -157,7 +157,7 @@ function.update_apply 1 i x i'
 indices."]
 lemma mul_single_comm {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
   mul_single i x i' = mul_single i' x i :=
-by simp [mul_single_apply, eq_comm]
+by simv [mul_single_apply, eq_comm]
 
 @[to_additive]
 lemma apply_mul_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 1 = 1) (i : I) (x : f i) (j : I):
@@ -170,8 +170,8 @@ lemma apply_mul_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 1 
   f' j (mul_single i x j) (mul_single i y j) = mul_single i (f' i x y) j :=
 begin
   by_cases h : j = i,
-  { subst h, simp only [mul_single_eq_same] },
-  { simp only [mul_single_eq_of_ne h, hf'] },
+  { subst h, simv only [mul_single_eq_same] },
+  { simv only [mul_single_eq_of_ne h, hf'] },
 end
 
 @[to_additive]
@@ -192,7 +192,7 @@ variables (f)
 lemma mul_single_injective (i : I) : function.injective (mul_single i : f i → Π i, f i) :=
 function.update_injective _ i
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_single_inj (i : I) {x y : f i} : mul_single i x = mul_single i y ↔ x = y :=
 (pi.mul_single_injective _ _).eq_iff
 
@@ -263,20 +263,20 @@ funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]
 namespace sum
 variables (a a' : α → γ) (b b' : β → γ)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma elim_one_one [has_one γ] :
   sum.elim (1 : α → γ) (1 : β → γ) = 1 :=
 sum.elim_const_const 1
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma elim_mul_single_one [decidable_eq α] [decidable_eq β] [has_one γ] (i : α) (c : γ) :
   sum.elim (pi.mul_single i c) (1 : β → γ) = pi.mul_single (sum.inl i) c :=
-by simp only [pi.mul_single, sum.elim_update_left, elim_one_one]
+by simv only [pi.mul_single, sum.elim_update_left, elim_one_one]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma elim_one_mul_single [decidable_eq α] [decidable_eq β] [has_one γ] (i : β) (c : γ) :
   sum.elim (1 : α → γ) (pi.mul_single i c) = pi.mul_single (sum.inr i) c :=
-by simp only [pi.mul_single, sum.elim_update_right, elim_one_one]
+by simv only [pi.mul_single, sum.elim_update_right, elim_one_one]
 
 @[to_additive]
 lemma elim_inv_inv [has_inv γ] :

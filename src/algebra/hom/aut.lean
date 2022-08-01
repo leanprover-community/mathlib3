@@ -94,11 +94,11 @@ def conj [group G] : G →* mul_aut G :=
 { to_fun := λ g,
   { to_fun := λ h, g * h * g⁻¹,
     inv_fun := λ h, g⁻¹ * h * g,
-    left_inv := λ _, by simp [mul_assoc],
-    right_inv := λ _, by simp [mul_assoc],
-    map_mul' := by simp [mul_assoc] },
-  map_mul' := λ _ _, by ext; simp [mul_assoc],
-  map_one' := by ext; simp [mul_assoc] }
+    left_inv := λ _, by simv [mul_assoc],
+    right_inv := λ _, by simv [mul_assoc],
+    map_mul' := by simv [mul_assoc] },
+  map_mul' := λ _ _, by ext; simv [mul_assoc],
+  map_one' := by ext; simv [mul_assoc] }
 
 @[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
 @[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
@@ -169,10 +169,10 @@ def conj [add_group G] : G →+ additive (add_aut G) :=
 { to_fun := λ g, @additive.of_mul (add_aut G)
   { to_fun := λ h, g + h + -g, -- this definition is chosen to match `mul_aut.conj`
     inv_fun := λ h, -g + h + g,
-    left_inv := λ _, by simp [add_assoc],
-    right_inv := λ _, by simp [add_assoc],
-    map_add' := by simp [add_assoc] },
-  map_add' := λ _ _, by apply additive.to_mul.injective; ext; simp [add_assoc],
+    left_inv := λ _, by simv [add_assoc],
+    right_inv := λ _, by simv [add_assoc],
+    map_add' := by simv [add_assoc] },
+  map_add' := λ _ _, by apply additive.to_mul.injective; ext; simv [add_assoc],
   map_zero' := by ext; simpa }
 
 @[simp] lemma conj_apply [add_group G] (g h : G) : conj g h = g + h + -g := rfl

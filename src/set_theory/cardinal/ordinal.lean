@@ -32,7 +32,7 @@ using ordinals.
 * `cardinal.mul_eq_max` and `cardinal.add_eq_max` state that the product (resp. sum) of two infinite
   cardinals is just their maximum. Several variations around this fact are also given.
 * `cardinal.mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
-* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making `simp`
+* simv lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making `simv`
   able to prove inequalities about numeral cardinals.
 
 ## Tags
@@ -187,8 +187,8 @@ end
 
 @[simp] theorem aleph'_omega : aleph' ω = ℵ₀ :=
 eq_of_forall_ge_iff $ λ c, begin
-  simp only [aleph'_le_of_limit omega_is_limit, lt_omega, exists_imp_distrib, aleph_0_le],
-  exact forall_swap.trans (forall_congr $ λ n, by simp only [forall_eq, aleph'_nat]),
+  simv only [aleph'_le_of_limit omega_is_limit, lt_omega, exists_imp_distrib, aleph_0_le],
+  exact forall_swap.trans (forall_congr $ λ n, by simv only [forall_eq, aleph'_nat]),
 end
 
 /-- `aleph'` and `aleph_idx` form an equivalence between `ordinal` and `cardinal` -/
@@ -271,7 +271,7 @@ theorem exists_aleph {c : cardinal} : ℵ₀ ≤ c ↔ ∃ o, c = aleph o :=
 
 theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 ⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ lt_succ o,
- λ o l a, by simp only [ord_le, aleph'_le_of_limit l]⟩
+ λ o l a, by simv only [ord_le, aleph'_le_of_limit l]⟩
 
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ω
@@ -372,7 +372,7 @@ beth_strict_mono.le_iff_le
 theorem aleph_le_beth (o : ordinal) : aleph o ≤ beth o :=
 begin
   apply limit_rec_on o,
-  { simp },
+  { simv },
   { intros o h,
     rw [aleph_succ, beth_succ, succ_le_iff],
     exact (cantor _).trans_le (power_le_power_left two_ne_zero' h) },
@@ -426,7 +426,7 @@ begin
     (_ : _ ≤ card (succ (typein (<) (g p))) * card (succ (typein (<) (g p)))) _,
   { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
     { intros q h,
-      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
+      simv only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
         at h,
       exact max_le_iff.1 (le_iff_lt_or_eq.2 $ h.imp_right and.left) },
     suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ punit),
@@ -517,8 +517,8 @@ end
 
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ℵ₀ :=
 begin
-  rcases eq_or_ne a 0 with rfl | ha0, { simp },
-  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  rcases eq_or_ne a 0 with rfl | ha0, { simv },
+  rcases eq_or_ne b 0 with rfl | hb0, { simv },
   cases le_or_lt ℵ₀ a with ha ha,
   { rw [mul_eq_max_of_aleph_0_le_left ha hb0],
     exact le_max_left _ _ },
@@ -560,7 +560,7 @@ begin
     rwa mul_lt_mul_left, apply nat.lt_of_succ_le h2a },
   { rintro (⟨⟨ha, hab⟩, hb⟩|rfl|rfl),
     { rw [mul_eq_max_of_aleph_0_le_left ha hb, max_eq_left hab] },
-    all_goals { simp }}
+    all_goals { simv }}
 end
 
 /-! ### Properties of `add` -/
@@ -756,7 +756,7 @@ eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
 calc  #(list α)
     = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_aleph_0 n
-... = #α : by simp [H1]
+... = #α : by simv [H1]
 
 theorem mk_list_eq_aleph_0 (α : Type u) [encodable α] [nonempty α] : #(list α) = ℵ₀ :=
 mk_le_aleph_0.antisymm (aleph_0_le_mk _)
@@ -792,7 +792,7 @@ begin
   { calc #(α →₀ β) ≤ # (finset (α × β)) : mk_le_of_injective (finsupp.graph_injective α β)
     ... = #(α × β) : mk_finset_of_infinite _
     ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
-      by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
+      by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simv },
   { apply max_le;
     rw [←lift_id (# (α →₀ β)), ←lift_umax],
     { cases exists_ne (0 : β) with b hb,
@@ -803,7 +803,7 @@ end
 
 lemma mk_finsupp_of_infinite (α β : Type u) [infinite α] [has_zero β]
   [nontrivial β] : #(α →₀ β) = max (#α) (#β) :=
-by simp
+by simv
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ #α ^ c :=
@@ -872,8 +872,8 @@ begin
   classical,
   lift s to finset α using s.to_finite,
   lift t to finset β using t.to_finite,
-  simp only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
-  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
+  simv only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
+  simv only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 
@@ -895,7 +895,7 @@ begin
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
     ((sum_congr (equiv.of_injective f f.2) g).trans
     (set.sum_compl (range f))),
-  refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
+  refine ⟨h, _⟩, rintro ⟨x, hx⟩, simv [set.sum_compl_symm_apply_of_mem, hx]
 end
 
 theorem extend_function_finite {α β : Type*} [fintype α] {s : set α} (f : s ↪ β)
@@ -921,9 +921,9 @@ end
 
 section bit
 /-!
-This section proves inequalities for `bit0` and `bit1`, enabling `simp` to solve inequalities
+This section proves inequalities for `bit0` and `bit1`, enabling `simv` to solve inequalities
 for numeral cardinals. The complexity of the resulting algorithm is not good, as in some cases
-`simp` reduces an inequality to a disjunction of two situations, depending on whether a cardinal
+`simv` reduces an inequality to a disjunction of two situations, depending on whether a cardinal
 is finite or infinite. Since the evaluation of the branches is not lazy, this is bad. It is good
 enough for practical situations, though.
 
@@ -936,13 +936,13 @@ by { norm_cast, norm_num }
 -/
 
 lemma bit0_ne_zero (a : cardinal) : ¬bit0 a = 0 ↔ ¬a = 0 :=
-by simp [bit0]
+by simv [bit0]
 
 @[simp] lemma bit1_ne_zero (a : cardinal) : ¬bit1 a = 0 :=
-by simp [bit1]
+by simv [bit1]
 
 @[simp] lemma zero_lt_bit0 (a : cardinal) : 0 < bit0 a ↔ 0 < a :=
-by { rw ←not_iff_not, simp [bit0], }
+by { rw ←not_iff_not, simv [bit0], }
 
 @[simp] lemma zero_lt_bit1 (a : cardinal) : 0 < bit1 a :=
 zero_lt_one.trans_le (self_le_add_left _ _)
@@ -958,15 +958,15 @@ theorem bit0_eq_self {c : cardinal} (h : ℵ₀ ≤ c) : bit0 c = c :=
 add_eq_self h
 
 @[simp] theorem bit0_lt_aleph_0 {c : cardinal} : bit0 c < ℵ₀ ↔ c < ℵ₀ :=
-by simp [bit0, add_lt_aleph_0_iff]
+by simv [bit0, add_lt_aleph_0_iff]
 
 @[simp] theorem aleph_0_le_bit0 {c : cardinal} : ℵ₀ ≤ bit0 c ↔ ℵ₀ ≤ c :=
-by { rw ←not_iff_not, simp }
+by { rw ←not_iff_not, simv }
 
 @[simp] theorem bit1_eq_self_iff {c : cardinal} : bit1 c = c ↔ ℵ₀ ≤ c :=
 begin
   by_cases h : ℵ₀ ≤ c,
-  { simp only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_aleph_0_le] },
+  { simv only [bit1, bit0_eq_self h, h, eq_self_iff_true, add_one_of_aleph_0_le] },
   { refine iff_of_false (ne_of_gt _) h,
     rcases lt_aleph_0.1 (not_le.1 h) with ⟨n, rfl⟩,
     norm_cast,
@@ -975,10 +975,10 @@ begin
 end
 
 @[simp] theorem bit1_lt_aleph_0 {c : cardinal} : bit1 c < ℵ₀ ↔ c < ℵ₀ :=
-by simp [bit1, bit0, add_lt_aleph_0_iff, one_lt_aleph_0]
+by simv [bit1, bit0, add_lt_aleph_0_iff, one_lt_aleph_0]
 
 @[simp] theorem aleph_0_le_bit1 {c : cardinal} : ℵ₀ ≤ bit1 c ↔ ℵ₀ ≤ c :=
-by { rw ←not_iff_not, simp }
+by { rw ←not_iff_not, simv }
 
 @[simp] lemma bit0_le_bit0 {a b : cardinal} : bit0 a ≤ bit0 b ↔ a ≤ b :=
 begin
@@ -1019,7 +1019,7 @@ end
 @[simp] lemma bit1_le_bit0 {a b : cardinal} : bit1 a ≤ bit0 b ↔ (a < b ∨ (a ≤ b ∧ ℵ₀ ≤ a)) :=
 begin
   cases le_or_lt ℵ₀ a with ha ha; cases le_or_lt ℵ₀ b with hb hb,
-  { simp only [bit1_eq_self_iff.mpr ha, bit0_eq_self hb, ha, and_true],
+  { simv only [bit1_eq_self_iff.mpr ha, bit0_eq_self hb, ha, and_true],
     refine ⟨λ h, or.inr h, λ h, _⟩,
     cases h,
     { exact le_of_lt h },
@@ -1034,7 +1034,7 @@ begin
   { rcases lt_aleph_0.1 ha with ⟨m, rfl⟩,
     rcases lt_aleph_0.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp [not_le.mpr ha] }
+    simv [not_le.mpr ha] }
 end
 
 @[simp] lemma bit0_lt_bit0 {a b : cardinal} : bit0 a < bit0 b ↔ a < b :=
@@ -1088,7 +1088,7 @@ end
 @[simp] lemma bit0_lt_bit1 {a b : cardinal} : bit0 a < bit1 b ↔ (a < b ∨ (a ≤ b ∧ a < ℵ₀)) :=
 begin
   cases le_or_lt ℵ₀ a with ha ha; cases le_or_lt ℵ₀ b with hb hb,
-  { simp [bit0_eq_self ha, bit1_eq_self_iff.2 hb, not_lt.mpr ha] },
+  { simv [bit0_eq_self ha, bit1_eq_self_iff.2 hb, not_lt.mpr ha] },
   { rw bit0_eq_self ha,
     refine iff_of_false (λ h, _) (λ h, _),
     { have A : bit1 b < ℵ₀, by simpa using hb,
@@ -1099,7 +1099,7 @@ begin
   { rcases lt_aleph_0.1 ha with ⟨m, rfl⟩,
     rcases lt_aleph_0.1 hb with ⟨n, rfl⟩,
     norm_cast,
-    simp only [ha, and_true, nat.bit0_lt_bit1_iff, or_iff_right_of_imp le_of_lt] }
+    simv only [ha, and_true, nat.bit0_lt_bit1_iff, or_iff_right_of_imp le_of_lt] }
 end
 
 lemma one_lt_two : (1 : cardinal) < 2 :=
@@ -1107,10 +1107,10 @@ lemma one_lt_two : (1 : cardinal) < 2 :=
 by { norm_cast, norm_num }
 
 @[simp] lemma one_lt_bit0 {a : cardinal} : 1 < bit0 a ↔ 0 < a :=
-by simp [←bit1_zero]
+by simv [←bit1_zero]
 
 @[simp] lemma one_lt_bit1 (a : cardinal) : 1 < bit1 a ↔ 0 < a :=
-by simp [←bit1_zero]
+by simv [←bit1_zero]
 
 end bit
 

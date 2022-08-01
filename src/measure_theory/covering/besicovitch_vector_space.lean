@@ -111,11 +111,11 @@ def center_and_rescale :
 
 lemma center_and_rescale_center :
   a.center_and_rescale.c (last N) = 0 :=
-by simp [satellite_config.center_and_rescale]
+by simv [satellite_config.center_and_rescale]
 
 lemma center_and_rescale_radius {N : ℕ} {τ : ℝ} (a : satellite_config E N τ) :
   a.center_and_rescale.r (last N) = 1 :=
-by simp [satellite_config.center_and_rescale, inv_mul_cancel (a.rpos _).ne']
+by simv [satellite_config.center_and_rescale, inv_mul_cancel (a.rpos _).ne']
 
 end satellite_config
 
@@ -162,12 +162,12 @@ begin
     begin
       rw [hA, measure_bUnion_finset D (λ c hc, measurable_set_ball)],
       have I : 0 < δ, by norm_num [δ],
-      simp only [μ.add_haar_ball_of_pos _ I, one_div, one_pow, finset.sum_const,
+      simv only [μ.add_haar_ball_of_pos _ I, one_div, one_pow, finset.sum_const,
         nsmul_eq_mul, div_pow, mul_assoc]
     end
   ... ≤ μ (ball (0 : E) ρ) : measure_mono A_subset
   ... = ennreal.of_real (ρ ^ (finrank ℝ E)) * μ (ball 0 1) :
-    by simp only [μ.add_haar_ball_of_pos _ ρpos],
+    by simv only [μ.add_haar_ball_of_pos _ ρpos],
   have J : (s.card : ℝ≥0∞) * ennreal.of_real (δ ^ (finrank ℝ E))
     ≤ ennreal.of_real (ρ ^ (finrank ℝ E)) :=
       (ennreal.mul_le_mul_right (measure_ball_pos _ _ zero_lt_one).ne'
@@ -181,7 +181,7 @@ end
 lemma multiplicity_le : multiplicity E ≤ 5 ^ (finrank ℝ E) :=
 begin
   apply cSup_le,
-  { refine ⟨0, ⟨∅, by simp⟩⟩ },
+  { refine ⟨0, ⟨∅, by simv⟩⟩ },
   { rintros _ ⟨s, ⟨rfl, h⟩⟩,
     exact besicovitch.card_le_of_separated s h.1 h.2 }
 end
@@ -194,7 +194,7 @@ begin
   { refine ⟨5 ^ (finrank ℝ E), _⟩,
     rintros _ ⟨s, ⟨rfl, h⟩⟩,
     exact besicovitch.card_le_of_separated s h.1 h.2 },
-  { simp only [mem_set_of_eq, ne.def],
+  { simv only [mem_set_of_eq, ne.def],
     exact ⟨s, rfl, hs, h's⟩ }
 end
 
@@ -218,12 +218,12 @@ begin
     rcases lt_or_le δ 1 with hδ'|hδ',
     { rcases h δ hδ hδ' with ⟨s, hs, h's, s_card⟩,
       obtain ⟨f, f_inj, hfs⟩ : ∃ (f : fin N → E), function.injective f ∧ range f ⊆ ↑s,
-      { have : fintype.card (fin N) ≤ s.card, { simp only [fintype.card_fin], exact s_card },
+      { have : fintype.card (fin N) ≤ s.card, { simv only [fintype.card_fin], exact s_card },
         rcases function.embedding.exists_of_card_le_finset this with ⟨f, hf⟩,
         exact ⟨f, f.injective, hf⟩ },
-      simp only [range_subset_iff, finset.mem_coe] at hfs,
+      simv only [range_subset_iff, finset.mem_coe] at hfs,
       refine ⟨f, λ i, hs _ (hfs i), λ i j hij, h's _ (hfs i) _ (hfs j) (f_inj.ne hij)⟩ },
-    { exact ⟨λ i, 0, λ i, by simp, λ i j hij, by simpa only [norm_zero, sub_nonpos, sub_self]⟩ } },
+    { exact ⟨λ i, 0, λ i, by simv, λ i j hij, by simpa only [norm_zero, sub_nonpos, sub_self]⟩ } },
   -- For `δ > 0`, `F δ` is a function from `fin N` to the ball of radius `2` for which two points
   -- in the image are separated by `1 - δ`.
   choose! F hF using this,
@@ -234,13 +234,13 @@ begin
         exists_seq_strict_anti_tendsto (0 : ℝ),
     have A : ∀ n, F (u n) ∈ closed_ball (0 : fin N → E) 2,
     { assume n,
-      simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right,
+      simv only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right,
                  (hF (u n) (zero_lt_u n)).left, forall_const], },
     obtain ⟨f, fmem, φ, φ_mono, hf⟩ : ∃ (f ∈ closed_ball (0 : fin N → E) 2) (φ : ℕ → ℕ),
       strict_mono φ ∧ tendsto ((F ∘ u) ∘ φ) at_top (𝓝 f) :=
         is_compact.tendsto_subseq (is_compact_closed_ball _ _) A,
     refine ⟨f, λ i, _, λ i j hij, _⟩,
-    { simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right] at fmem,
+    { simv only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right] at fmem,
       exact fmem i },
     { have A : tendsto (λ n, ∥F (u (φ n)) i - F (u (φ n)) j∥) at_top (𝓝 (∥f i - f j∥)) :=
         ((hf.apply i).sub (hf.apply j)).norm,
@@ -254,16 +254,16 @@ begin
   { assume i j hij,
     by_contra,
     have : 1 ≤ ∥f i - f j∥ := h'f i j h,
-    simp only [hij, norm_zero, sub_self] at this,
+    simv only [hij, norm_zero, sub_self] at this,
     exact lt_irrefl _ (this.trans_lt zero_lt_one) },
   let s := finset.image f finset.univ,
   have s_card : s.card = N,
     by { rw finset.card_image_of_injective _ finj, exact finset.card_fin N },
   have hs : ∀ c ∈ s, ∥c∥ ≤ 2,
-    by simp only [hf, forall_apply_eq_imp_iff', forall_const, forall_exists_index, finset.mem_univ,
+    by simv only [hf, forall_apply_eq_imp_iff', forall_const, forall_exists_index, finset.mem_univ,
                   finset.mem_image],
   have h's : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 ≤ ∥c - d∥,
-  { simp only [s, forall_apply_eq_imp_iff', forall_exists_index, finset.mem_univ, finset.mem_image,
+  { simv only [s, forall_apply_eq_imp_iff', forall_exists_index, finset.mem_univ, finset.mem_image,
       ne.def, exists_true_left, forall_apply_eq_imp_iff', forall_true_left],
     assume i j hij,
     have : i ≠ j := λ h, by { rw h at hij, exact hij rfl },
@@ -303,16 +303,16 @@ begin
   { assume i j hij,
     by_contra,
     have : 1 - good_δ E ≤ ∥f i - f j∥ := h' i j h,
-    simp only [hij, norm_zero, sub_self] at this,
+    simv only [hij, norm_zero, sub_self] at this,
     linarith [good_δ_lt_one E] },
   let s := finset.image f finset.univ,
   have s_card : s.card = n,
     by { rw finset.card_image_of_injective _ finj, exact finset.card_fin n },
   have hs : ∀ c ∈ s, ∥c∥ ≤ 2,
-    by simp only [h, forall_apply_eq_imp_iff', forall_const, forall_exists_index, finset.mem_univ,
+    by simv only [h, forall_apply_eq_imp_iff', forall_const, forall_exists_index, finset.mem_univ,
                   finset.mem_image, implies_true_iff],
   have h's : ∀ (c ∈ s) (d ∈ s), c ≠ d → 1 - good_δ E ≤ ∥c - d∥,
-  { simp only [s, forall_apply_eq_imp_iff', forall_exists_index, finset.mem_univ, finset.mem_image,
+  { simv only [s, forall_apply_eq_imp_iff', forall_exists_index, finset.mem_univ, finset.mem_image,
       ne.def, exists_true_left, forall_apply_eq_imp_iff', forall_true_left],
     assume i j hij,
     have : i ≠ j := λ h, by { rw h at hij, exact hij rfl },
@@ -418,7 +418,7 @@ begin
   set d := (2 / ∥a.c j∥) • a.c j with hd,
   have : a.r j - δ ≤ ∥a.c i - d∥ + (a.r j - 1) := calc
     a.r j - δ ≤ ∥a.c i - a.c j∥ : A
-    ... ≤ ∥a.c i - d∥ + ∥d - a.c j∥ : by simp only [← dist_eq_norm, dist_triangle]
+    ... ≤ ∥a.c i - d∥ + ∥d - a.c j∥ : by simv only [← dist_eq_norm, dist_triangle]
     ... ≤ ∥a.c i - d∥ + (a.r j - 1) : begin
       apply add_le_add_left,
       have A : 0 ≤ 1 - 2 / ∥a.c j∥, by simpa [div_le_iff (zero_le_two.trans_lt hj)] using hj.le,
@@ -457,7 +457,7 @@ begin
   have spos : 0 < s := zero_lt_two.trans hi,
   set d := (s/∥a.c j∥) • a.c j with hd,
   have I : ∥a.c j - a.c i∥ ≤ ∥a.c j∥ - s + ∥d - a.c i∥ := calc
-    ∥a.c j - a.c i∥ ≤ ∥a.c j - d∥ + ∥d - a.c i∥ : by simp [← dist_eq_norm, dist_triangle]
+    ∥a.c j - a.c i∥ ≤ ∥a.c j - d∥ + ∥d - a.c i∥ : by simv [← dist_eq_norm, dist_triangle]
     ... = ∥a.c j∥ - ∥a.c i∥ + ∥d - a.c i∥ : begin
       nth_rewrite 0 ← one_smul ℝ (a.c j),
       rw [add_left_inj, hd, ← sub_smul, norm_smul, real.norm_eq_abs, abs_of_nonneg, sub_mul,
@@ -496,7 +496,7 @@ begin
   let c' : fin N.succ → E := λ i, if ∥a.c i∥ ≤ 2 then a.c i else (2 / ∥a.c i∥) • a.c i,
   have norm_c'_le : ∀ i, ∥c' i∥ ≤ 2,
   { assume i,
-    simp only [c'],
+    simv only [c'],
     split_ifs, { exact h },
     by_cases hi : ∥a.c i∥ = 0;
     field_simp [norm_smul, hi] },

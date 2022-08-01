@@ -87,17 +87,17 @@ namespace nat
 -- see note [coercion into rings]
 @[priority 900] instance cast_coe {R} [has_nat_cast R] : has_coe_t ℕ R := ⟨nat.cast⟩
 
-@[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
+@[simv, norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
 
 -- Lemmas about nat.succ need to get a low priority, so that they are tried last.
 -- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
 -- Rewriting would then produce really wrong terms.
-@[simp, norm_cast, priority 500]
+@[simv, norm_cast, priority 500]
 theorem cast_succ (n : ℕ) : ((succ n : ℕ) : R) = n + 1 := add_monoid_with_one.nat_cast_succ _
 
 theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : R) = n + 1 := cast_succ _
 
-@[simp, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
+@[simv, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
   (((ite P m n) : ℕ) : R) = ite P (m : R) (n : R) :=
 by { split_ifs; refl, }
 
@@ -108,11 +108,11 @@ end
 namespace nat
 variables {R : Type*}
 
-@[simp, norm_cast] theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
+@[simv, norm_cast] theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
 by rw [cast_succ, cast_zero, zero_add]
 
-@[simp, norm_cast] theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
-by induction n; simp [add_succ, add_assoc, nat.add_zero, *]
+@[simv, norm_cast] theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
+by induction n; simv [add_succ, add_assoc, nat.add_zero, *]
 
 /-- Computationally friendlier cast than `nat.unary_cast`, using binary representation. -/
 protected def bin_cast [has_zero R] [has_one R] [has_add R] (n : ℕ) : R :=
@@ -125,21 +125,21 @@ begin
   { rw [binary_rec_zero, cast_zero] },
   { intros b k h,
     rw [binary_rec_eq, h],
-    { cases b; simp [bit, bit0, bit1] },
-    { simp } },
+    { cases b; simv [bit, bit0, bit1] },
+    { simv } },
 end
 
-@[simp, norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
+@[simv, norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
   ((bit0 n : ℕ) : R) = bit0 n := cast_add _ _
 
-@[simp, norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
+@[simv, norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
   ((bit1 n : ℕ) : R) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two [add_monoid_with_one R] : ((2 : ℕ) : R) = 2 :=
 by rw [cast_add_one, cast_one, bit0]
 
-attribute [simp, norm_cast] int.nat_abs_of_nat
+attribute [simv, norm_cast] int.nat_abs_of_nat
 
 end nat
 
@@ -152,9 +152,9 @@ end nat
 @[reducible] protected def add_monoid_with_one.binary {R : Type*} [add_monoid R] [has_one R] :
   add_monoid_with_one R :=
 { nat_cast := nat.bin_cast,
-  nat_cast_zero := by simp [nat.bin_cast, nat.cast],
+  nat_cast_zero := by simv [nat.bin_cast, nat.cast],
   nat_cast_succ := λ n, begin
-    simp only [nat.cast],
+    simv only [nat.cast],
     letI : add_monoid_with_one R := add_monoid_with_one.unary,
     erw [nat.bin_cast_eq, nat.bin_cast_eq, nat.cast_succ],
     refl,

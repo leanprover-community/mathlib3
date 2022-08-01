@@ -67,14 +67,14 @@ lemma is_bounded_prod_of_nonempty (hne : set.nonempty (s ×ˢ t)) :
 
 lemma is_bounded_prod : is_bounded (s ×ˢ t) ↔ s = ∅ ∨ t = ∅ ∨ is_bounded s ∧ is_bounded t :=
 begin
-  rcases s.eq_empty_or_nonempty with rfl|hs, { simp },
-  rcases t.eq_empty_or_nonempty with rfl|ht, { simp },
-  simp only [hs.ne_empty, ht.ne_empty, is_bounded_prod_of_nonempty (hs.prod ht), false_or]
+  rcases s.eq_empty_or_nonempty with rfl|hs, { simv },
+  rcases t.eq_empty_or_nonempty with rfl|ht, { simv },
+  simv only [hs.ne_empty, ht.ne_empty, is_bounded_prod_of_nonempty (hs.prod ht), false_or]
 end
 
 lemma is_bounded_prod_self : is_bounded (s ×ˢ s) ↔ is_bounded s :=
 begin
-  rcases s.eq_empty_or_nonempty with rfl|hs, { simp },
+  rcases s.eq_empty_or_nonempty with rfl|hs, { simv },
   exact (is_bounded_prod_of_nonempty (hs.prod hs)).trans (and_self _)
 end
 
@@ -98,9 +98,9 @@ lemma is_bounded_pi_of_nonempty (hne : (pi univ S).nonempty) :
 lemma is_bounded_pi : is_bounded (pi univ S) ↔ (∃ i, S i = ∅) ∨ ∀ i, is_bounded (S i) :=
 begin
   by_cases hne : ∃ i, S i = ∅,
-  { simp [hne, univ_pi_eq_empty_iff.2 hne] },
-  { simp only [hne, false_or],
-    simp only [not_exists, ← ne.def, ne_empty_iff_nonempty, ← univ_pi_nonempty_iff] at hne,
+  { simv [hne, univ_pi_eq_empty_iff.2 hne] },
+  { simv only [hne, false_or],
+    simv only [not_exists, ← ne.def, ne_empty_iff_nonempty, ← univ_pi_nonempty_iff] at hne,
     exact is_bounded_pi_of_nonempty hne }
 end
 
@@ -125,10 +125,10 @@ end bornology
 open bornology
 
 instance [bounded_space α] [bounded_space β] : bounded_space (α × β) :=
-by simp [← cobounded_eq_bot_iff, cobounded_prod]
+by simv [← cobounded_eq_bot_iff, cobounded_prod]
 
 instance [∀ i, bounded_space (π i)] : bounded_space (Π i, π i) :=
-by simp [← cobounded_eq_bot_iff, cobounded_pi]
+by simv [← cobounded_eq_bot_iff, cobounded_pi]
 
 lemma bounded_space_induced_iff {α β : Type*} [bornology β] {f : α → β} :
   @bounded_space α (bornology.induced f) ↔ is_bounded (range f) :=

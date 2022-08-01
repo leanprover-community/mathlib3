@@ -62,7 +62,7 @@ instance : mul_one_class (sub_mul_action R M) :=
   one := 1,
   mul_one := λ a, begin
     ext,
-    simp only [mem_mul, mem_one, mul_smul_comm, exists_and_distrib_left, exists_exists_eq_and,
+    simv only [mem_mul, mem_one, mul_smul_comm, exists_and_distrib_left, exists_exists_eq_and,
       mul_one],
     split,
     { rintros ⟨y, hy, r, rfl⟩,
@@ -72,7 +72,7 @@ instance : mul_one_class (sub_mul_action R M) :=
   end,
   one_mul := λ a, begin
     ext,
-    simp only [mem_mul, mem_one, smul_mul_assoc, exists_and_distrib_left, exists_exists_eq_and,
+    simv only [mem_mul, mem_one, smul_mul_assoc, exists_and_distrib_left, exists_exists_eq_and,
       one_mul],
     refine ⟨_, λ hx, ⟨1, x, hx, one_smul _ _⟩⟩,
     rintro ⟨r, y, hy, rfl⟩,

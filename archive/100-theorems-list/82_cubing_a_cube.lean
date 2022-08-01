@@ -35,11 +35,11 @@ lemma Ico_lemma {α} [linear_order α] {x₁ x₂ y₁ y₂ z₁ z₂ w : α}
   (hz₁ : z₁ ≤ y₂) (hz₂ : y₁ ≤ z₂) (hw : w ∉ Ico y₁ y₂ ∧ w ∈ Ico z₁ z₂) :
   ∃w, w ∈ Ico x₁ x₂ ∧ w ∉ Ico y₁ y₂ ∧ w ∈ Ico z₁ z₂ :=
 begin
-  simp only [not_and, not_lt, mem_Ico] at hw,
+  simv only [not_and, not_lt, mem_Ico] at hw,
   refine ⟨max x₁ (min w y₂), _, _, _⟩,
-  { simp [le_refl, lt_trans h₁ (lt_trans hy h₂), h₂] },
-  { simp [hw, lt_irrefl, not_le_of_lt h₁] {contextual := tt} },
-  { simp [hw.2.1, hw.2.2, hz₁, lt_of_lt_of_le h₁ hz₂] at ⊢ }
+  { simv [le_refl, lt_trans h₁ (lt_trans hy h₂), h₂] },
+  { simv [hw, lt_irrefl, not_le_of_lt h₁] {contextual := tt} },
+  { simv [hw.2.1, hw.2.2, hz₁, lt_of_lt_of_le h₁ hz₂] at ⊢ }
 end
 
 /-- A (hyper)-cube (in standard orientation) is a vector `b` consisting of the bottom-left point
@@ -58,7 +58,7 @@ def side (c : cube n) (j : fin n) : set ℝ :=
 Ico (c.b j) (c.b j + c.w)
 
 @[simp] lemma b_mem_side (c : cube n) (j : fin n) : c.b j ∈ c.side j :=
-by simp [side, cube.hw, le_refl]
+by simv [side, cube.hw, le_refl]
 
 def to_set (c : cube n) : set (fin n → ℝ) :=
 { x | ∀j, x j ∈ side c j }
@@ -68,8 +68,8 @@ begin
   split, intros h j x hx,
   let f : fin n → ℝ := λ j', if j' = j then x else c.b j',
   have : f ∈ c.to_set,
-  { intro j', by_cases hj' : j' = j; simp [f, hj', if_pos, if_neg, hx] },
-  convert h this j, { simp [f, if_pos] },
+  { intro j', by_cases hj' : j' = j; simv [f, hj', if_pos, if_neg, hx] },
+  convert h this j, { simv [f, if_pos] },
   intros h f hf j, exact h j (hf j)
 end
 
@@ -77,7 +77,7 @@ def to_set_disjoint {c c' : cube n} : disjoint c.to_set c'.to_set ↔
   ∃j, disjoint (c.side j) (c'.side j) :=
 begin
   split, intros h, classical, by_contra h',
-  simp only [not_disjoint_iff, classical.skolem, not_exists] at h',
+  simv only [not_disjoint_iff, classical.skolem, not_exists] at h',
   cases h' with f hf,
   apply not_disjoint_iff.mpr ⟨f, _, _⟩ h; intro j, exact (hf j).1, exact (hf j).2,
   rintro ⟨j, hj⟩, rw [set.disjoint_iff], rintros f ⟨h1f, h2f⟩,
@@ -85,7 +85,7 @@ begin
 end
 
 lemma b_mem_to_set (c : cube n) : c.b ∈ c.to_set :=
-by simp [to_set]
+by simv [to_set]
 
 protected def tail (c : cube (n+1)) : cube n :=
 ⟨tail c.b, c.w, c.hw⟩
@@ -96,19 +96,19 @@ def bottom (c : cube (n+1)) : set (fin (n+1) → ℝ) :=
 { x | x 0 = c.b 0 ∧ tail x ∈ c.tail.to_set }
 
 lemma b_mem_bottom (c : cube (n+1)) : c.b ∈ c.bottom :=
-by simp [bottom, to_set, side, cube.hw, le_refl, cube.tail]
+by simv [bottom, to_set, side, cube.hw, le_refl, cube.tail]
 
 def xm (c : cube (n+1)) : ℝ :=
 c.b 0 + c.w
 
-lemma b_lt_xm (c : cube (n+1)) : c.b 0 < c.xm := by simp [xm, hw]
+lemma b_lt_xm (c : cube (n+1)) : c.b 0 < c.xm := by simv [xm, hw]
 lemma b_ne_xm (c : cube (n+1)) : c.b 0 ≠ c.xm := ne_of_lt c.b_lt_xm
 
 def shift_up (c : cube (n+1)) : cube (n+1) :=
 ⟨cons c.xm $ tail c.b, c.w, c.hw⟩
 
 @[simp] lemma tail_shift_up (c : cube (n+1)) : c.shift_up.tail = c.tail :=
-by simp [shift_up, cube.tail]
+by simv [shift_up, cube.tail]
 
 @[simp] lemma head_shift_up (c : cube (n+1)) : c.shift_up.b 0 = c.xm := rfl
 
@@ -151,7 +151,7 @@ lemma zero_le_b {i j} : 0 ≤ (cs i).b j :=
 zero_le_of_mem h (cs i).b_mem_to_set j
 
 lemma b_add_w_le_one {j} : (cs i).b j + (cs i).w ≤ 1 :=
-by { have := side_subset h, rw [side, Ico_subset_Ico_iff] at this, convert this.2, simp [hw] }
+by { have := side_subset h, rw [side, Ico_subset_Ico_iff] at this, convert this.2, simv [hw] }
 
 /-- The width of any cube in the partition cannot be 1. -/
 lemma w_ne_one (i : ι) : (cs i).w ≠ 1 :=
@@ -165,7 +165,7 @@ begin
     transitivity (0 : ℝ),
     { rw [←add_le_add_iff_right (1 : ℝ)], convert b_add_w_le_one h, rw hi, rw zero_add },
     apply zero_le_b h, apply lt_of_lt_of_le (side_subset h $ (cs i').b_mem_side j).2,
-    simp [hi, zero_le_b h] },
+    simv [hi, zero_le_b h] },
   apply not_disjoint_iff.mpr ⟨p, hp, h2p⟩,
   apply h.1, exact hi'.symm
 end
@@ -177,7 +177,7 @@ lemma shift_up_bottom_subset_bottoms (hc : (cs i).xm ≠ 1) :
 begin
   intros p hp, cases hp with hp0 hps, rw [tail_shift_up] at hps,
   have : p ∈ (unit_cube : cube (n+1)).to_set,
-  { simp only [to_set, forall_fin_succ, hp0, side_unit_cube, mem_set_of_eq, mem_Ico,
+  { simv only [to_set, forall_fin_succ, hp0, side_unit_cube, mem_set_of_eq, mem_Ico,
       head_shift_up], refine ⟨⟨_, _⟩, _⟩,
     { rw [←zero_add (0 : ℝ)], apply add_le_add, apply zero_le_b h, apply (cs i).hw' },
     { exact lt_of_le_of_ne (b_add_w_le_one h) hc },
@@ -187,7 +187,7 @@ begin
   have : i ≠ i', { rintro rfl, apply not_le_of_lt (hi' 0).2, rw [hp0], refl },
   have := h.1 i i' this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
   rcases this with h0|⟨j, hj⟩,
-  rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) _,
+  rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simv [hw]) _,
   convert hi' 0, rw [hp0], refl,
   exfalso, apply not_disjoint_iff.mpr ⟨tail p j, hps j, hi' j.succ⟩ hj
 end
@@ -215,7 +215,7 @@ lemma valley_unit_cube (h : correct cs) : valley cs unit_cube :=
 begin
   refine ⟨_, _, _⟩,
   { intro v,
-    simp only [bottom, and_imp, mem_Union, mem_set_of_eq],
+    simv only [bottom, and_imp, mem_Union, mem_set_of_eq],
     intros h0 hv,
     have : v ∈ (unit_cube : cube (n+1)).to_set,
     { dsimp only [to_set, unit_cube, mem_set_of_eq],
@@ -224,7 +224,7 @@ begin
     use i,
     split, { apply le_antisymm, rw h0, exact zero_le_b h, exact (hi 0).1 },
     intro j, exact hi _ },
-  { intros i hi h', rw to_set_subset, intro j, convert side_subset h using 1, simp [side_tail] },
+  { intros i hi h', rw to_set_subset, intro j, convert side_subset h using 1, simv [side_tail] },
   { intros i hi, exact w_ne_one h i }
 end
 
@@ -249,7 +249,7 @@ lemma t_le_t (hi : i ∈ bcubes cs c) (j : fin n) :
   (cs i).b j.succ + (cs i).w ≤ c.b j.succ + c.w  :=
 begin
   have h' := tail_sub hi j, dsimp only [side] at h', rw [Ico_subset_Ico_iff] at h',
-  exact h'.2, simp [hw]
+  exact h'.2, simv [hw]
 end
 
 include h v
@@ -271,20 +271,20 @@ begin
   have h2i : i ∈ bcubes cs c :=
     ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
   let j : fin (n+1) := ⟨2, h.2.2.2.2⟩,
-  have hj : 0 ≠ j := by { simp only [fin.ext_iff, ne.def], contradiction },
+  have hj : 0 ≠ j := by { simv only [fin.ext_iff, ne.def], contradiction },
   let p : fin (n+1) → ℝ := λ j', if j' = j then c.b j + (cs i).w else c.b j',
   have hp : p ∈ c.bottom,
-  { split, { simp only [bottom, p, if_neg hj] },
-    intro j', simp only [tail, side_tail],
+  { split, { simv only [bottom, p, if_neg hj] },
+    intro j', simv only [tail, side_tail],
     by_cases hj' : j'.succ = j,
-    { simp [p, -add_comm, if_pos, side, hj', hw', w_lt_w h v h2i] },
-    { simp [p, -add_comm, if_neg hj'] }},
+    { simv [p, -add_comm, if_pos, side, hj', hw', w_lt_w h v h2i] },
+    { simv [p, -add_comm, if_neg hj'] }},
   rcases v.1 hp with ⟨_, ⟨i', rfl⟩, hi'⟩,
   have h2i' : i' ∈ bcubes cs c := ⟨hi'.1.symm, v.2.1 i' hi'.1.symm ⟨tail p, hi'.2, hp.2⟩⟩,
   refine ⟨⟨i, h2i⟩, ⟨i', h2i'⟩, _⟩,
   intro hii', cases congr_arg subtype.val hii',
   apply not_le_of_lt (hi'.2 ⟨1, nat.le_of_succ_le_succ h.2.2.2.2⟩).2,
-  simp only [-add_comm, tail, cube.tail, p],
+  simv only [-add_comm, tail, cube.tail, p],
   rw [if_pos, add_le_add_iff_right],
   { exact (hi.2 _).1 },
   refl
@@ -340,16 +340,16 @@ begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
   cases bi,
   { refine ⟨(cs i).b j.succ + (cs i).w, ⟨_, _⟩, _⟩,
-    { simp [side, bi, hw', w_lt_w h v hi] },
+    { simv [side, bi, hw', w_lt_w h v hi] },
     { intro h', simpa [i, lt_irrefl] using h'.2 },
     intros i' hi' i'_i h2i', split,
-    apply le_trans h2i'.1, { simp [hw'] },
+    apply le_trans h2i'.1, { simv [hw'] },
     apply lt_of_lt_of_le (add_lt_add_left (mi_strict_minimal i'_i.symm hi') _),
-    simp [bi.symm, b_le_b hi'] },
+    simv [bi.symm, b_le_b hi'] },
   let s := bcubes cs c \ { i },
   have hs : s.nonempty,
   { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
-    refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
+    refine ⟨i', hi', _⟩, simv only [mem_singleton_iff], intro h, apply h2i', simv [h] },
   rcases set.exists_min_image s (w ∘ cs) (set.to_finite _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,
@@ -357,15 +357,15 @@ begin
   { dsimp only [x], rw [←bi, add_sub_assoc, add_lt_iff_neg_left, sub_lt_zero],
     apply mi_strict_minimal (ne.symm h2i') hi' },
   refine ⟨x, ⟨_, _⟩, _⟩,
-  { simp only [side, x, -add_comm, -add_assoc, neg_lt_zero, hw, add_lt_iff_neg_left, and_true,
+  { simv only [side, x, -add_comm, -add_assoc, neg_lt_zero, hw, add_lt_iff_neg_left, and_true,
       mem_Ico, sub_eq_add_neg],
     rw [add_assoc, le_add_iff_nonneg_right, ←sub_eq_add_neg, sub_nonneg],
     apply le_of_lt (w_lt_w h v hi') },
-  { simp only [side, not_and_distrib, not_lt, add_comm, not_le, mem_Ico], left, exact hx },
+  { simv only [side, not_and_distrib, not_lt, add_comm, not_le, mem_Ico], left, exact hx },
   intros i'' hi'' h2i'' h3i'', split, swap, apply lt_trans hx h3i''.2,
-  simp only [x], rw [le_sub_iff_add_le],
+  simv only [x], rw [le_sub_iff_add_le],
   refine le_trans _ (t_le_t hi'' j), rw [add_le_add_iff_left], apply h3i' i'' ⟨hi'', _⟩,
-  simp [mem_singleton, h2i'']
+  simv [mem_singleton, h2i'']
 end
 
 variables (h v)
@@ -383,8 +383,8 @@ begin
   { suffices : ∀ (j' : fin n), ite (j' = j) x ((cs i).b j'.succ) ∈ c.side j'.succ,
     { simpa [bottom, p, to_set, tail, side_tail] },
     intro j₂,
-    by_cases hj₂ : j₂ = j, { simp [hj₂, hx] },
-    simp only [hj₂, if_false], apply tail_sub hi, apply b_mem_side },
+    by_cases hj₂ : j₂ = j, { simv [hj₂, hx] },
+    simv only [hj₂, if_false], apply tail_sub hi, apply b_mem_side },
   rcases v.1 hp with ⟨_, ⟨i', rfl⟩, hi'⟩,
   have h2i' : i' ∈ bcubes cs c := ⟨hi'.1.symm, v.2.1 i' hi'.1.symm ⟨tail p, hi'.2, hp.2⟩⟩,
   have i_i' : i ≠ i', { rintro rfl, simpa [p, side_tail, i, h2x] using hi'.2 j },
@@ -397,32 +397,32 @@ begin
   { suffices : ∀ (j : fin n), ite (j = j') x' ((cs i).b j.succ) ∈ c.side j.succ,
     { simpa [bottom, p', to_set, tail, side_tail] },
     intro j₂,
-    by_cases hj₂ : j₂ = j', simp [hj₂], apply tail_sub h2i', apply hx'.1,
-    simp only [if_congr, if_false, hj₂], apply tail_sub hi, apply b_mem_side },
+    by_cases hj₂ : j₂ = j', simv [hj₂], apply tail_sub h2i', apply hx'.1,
+    simv only [if_congr, if_false, hj₂], apply tail_sub hi, apply b_mem_side },
   rcases v.1 hp' with ⟨_, ⟨i'', rfl⟩, hi''⟩,
   have h2i'' : i'' ∈ bcubes cs c := ⟨hi''.1.symm, v.2.1 i'' hi''.1.symm ⟨tail p', hi''.2, hp'.2⟩⟩,
   have i'_i'' : i' ≠ i'',
   { rintro ⟨⟩,
     have : (cs i).b ∈ (cs i').to_set,
-    { simp only [to_set, forall_fin_succ, hi.1, bottom_mem_side h2i', true_and, mem_set_of_eq],
+    { simv only [to_set, forall_fin_succ, hi.1, bottom_mem_side h2i', true_and, mem_set_of_eq],
       intro j₂, by_cases hj₂ : j₂ = j,
       { simpa [side_tail, p', hj', hj₂] using hi''.2 j },
       { simpa [hj₂] using hi'.2 j₂ } },
     apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i i' i_i') },
   have i_i'' : i ≠ i'', { intro h, induction h, simpa [hx'.2] using hi''.2 j' },
   apply not.elim _ (h.1 i' i'' i'_i''),
-  simp only [on_fun, to_set_disjoint, not_disjoint_iff, forall_fin_succ, not_exists, comp_app],
+  simv only [on_fun, to_set_disjoint, not_disjoint_iff, forall_fin_succ, not_exists, comp_app],
   refine ⟨⟨c.b 0, bottom_mem_side h2i', bottom_mem_side h2i''⟩, _⟩,
   intro j₂,
   by_cases hj₂ : j₂ = j,
   { cases hj₂, refine ⟨x, _, _⟩,
-    { convert hi'.2 j, simp [p] },
-    apply h3x h2i'' i_i''.symm, convert hi''.2 j, simp [p', hj'] },
+    { convert hi'.2 j, simv [p] },
+    apply h3x h2i'' i_i''.symm, convert hi''.2 j, simv [p', hj'] },
   by_cases h2j₂ : j₂ = j',
-  { cases h2j₂, refine ⟨x', hx'.1, _⟩, convert hi''.2 j', simp },
+  { cases h2j₂, refine ⟨x', hx'.1, _⟩, convert hi''.2 j', simv },
   refine ⟨(cs i).b j₂.succ, _, _⟩,
-  { convert hi'.2 j₂, simp [hj₂] },
-  { convert hi''.2 j₂, simp [h2j₂] }
+  { convert hi'.2 j₂, simv [hj₂] },
+  { convert hi''.2 j₂, simv [h2j₂] }
 end
 
 variables {h v}
@@ -431,12 +431,12 @@ lemma mi_not_on_boundary' (j : fin n) : c.tail.b j < (cs (mi h v)).tail.b j ∧
   (cs (mi h v)).tail.b j + (cs (mi h v)).w < c.tail.b j + c.w :=
 begin
   have := mi_not_on_boundary h v j,
-  simp only [on_boundary, not_or_distrib] at this, cases this with h1 h2,
+  simv only [on_boundary, not_or_distrib] at this, cases this with h1 h2,
   split,
   apply lt_of_le_of_ne (b_le_b mi_mem_bcubes _) h1,
   apply lt_of_le_of_ne _ h2,
   apply ((Ico_subset_Ico_iff _).mp (tail_sub mi_mem_bcubes j)).2,
-  simp [hw]
+  simv [hw]
 end
 
 /-- The top of `mi` gives rise to a new valley, since the neighbouring cubes extend further upward
@@ -446,22 +446,22 @@ begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
   refine ⟨_, _, _⟩,
   { intro p, apply shift_up_bottom_subset_bottoms h mi_xm_ne_one },
-  { rintros i' hi' ⟨p2, hp2, h2p2⟩, simp only [head_shift_up] at hi', classical, by_contra h2i',
-    rw [tail_shift_up] at h2p2, simp only [not_subset, tail_shift_up] at h2i',
+  { rintros i' hi' ⟨p2, hp2, h2p2⟩, simv only [head_shift_up] at hi', classical, by_contra h2i',
+    rw [tail_shift_up] at h2p2, simv only [not_subset, tail_shift_up] at h2i',
     rcases h2i' with ⟨p1, hp1, h2p1⟩,
     have : ∃p3, p3 ∈ (cs i').tail.to_set ∧ p3 ∉ (cs i).tail.to_set ∧ p3 ∈ c.tail.to_set,
-    { simp only [to_set, not_forall, mem_set_of_eq] at h2p1, cases h2p1 with j hj,
-      rcases Ico_lemma (mi_not_on_boundary' j).1 (by simp [hw]) (mi_not_on_boundary' j).2
+    { simv only [to_set, not_forall, mem_set_of_eq] at h2p1, cases h2p1 with j hj,
+      rcases Ico_lemma (mi_not_on_boundary' j).1 (by simv [hw]) (mi_not_on_boundary' j).2
         (le_trans (hp2 j).1 $ le_of_lt (h2p2 j).2)
         (le_trans (h2p2 j).1 $ le_of_lt (hp2 j).2) ⟨hj, hp1 j⟩ with ⟨w, hw, h2w, h3w⟩,
       refine ⟨λ j', if j' = j then w else p2 j', _, _, _⟩,
       { intro j', by_cases h : j' = j,
-        { simp only [if_pos h], convert h3w },
-        { simp only [if_neg h], exact hp2 j' } },
-      { simp only [to_set, not_forall, mem_set_of_eq], use j, rw [if_pos rfl], convert h2w },
+        { simv only [if_pos h], convert h3w },
+        { simv only [if_neg h], exact hp2 j' } },
+      { simv only [to_set, not_forall, mem_set_of_eq], use j, rw [if_pos rfl], convert h2w },
       { intro j', by_cases h : j' = j,
-        { simp only [if_pos h, side_tail], convert hw },
-        { simp only [if_neg h], apply hi.2, apply h2p2 } } },
+        { simv only [if_pos h, side_tail], convert hw },
+        { simv only [if_neg h], apply hi.2, apply h2p2 } } },
     rcases this with ⟨p3, h1p3, h2p3, h3p3⟩,
     let p := @cons n (λ_, ℝ) (c.b 0) p3,
     have hp : p ∈ c.bottom, { refine ⟨rfl, _⟩, rwa [tail_cons] },
@@ -475,10 +475,10 @@ begin
     have hp' : p' ∈ (cs i').to_set,
     { simpa [to_set, forall_fin_succ, p', hi'.symm] using h1p3 },
     have h2p' : p' ∈ (cs i'').to_set,
-    { simp only [to_set, forall_fin_succ, p', cons_succ, cons_zero, mem_set_of_eq],
+    { simv only [to_set, forall_fin_succ, p', cons_succ, cons_zero, mem_set_of_eq],
       refine ⟨_, by simpa [to_set, p] using hi''.2⟩,
       have : (cs i).b 0 = (cs i'').b 0, { rw [hi.1, h2i''.1] },
-      simp [side, hw', xm, this, h3i''] },
+      simv [side, hw', xm, this, h3i''] },
     apply not_disjoint_iff.mpr ⟨p', hp', h2p'⟩,
     apply h.1, rintro rfl, apply (cs i).b_ne_xm, rw [←hi', ←hi''.1, hi.1], refl },
   { intros i' hi' h2i',

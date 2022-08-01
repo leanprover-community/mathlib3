@@ -109,7 +109,7 @@ instance : inhabited (con M) :=
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) (λ _, M → M → Prop) := ⟨λ c, λ x y, @setoid.r _ c.to_setoid x y⟩
 
-@[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
+@[simv, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
 
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
@@ -129,7 +129,7 @@ protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
 protected lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
 λ _ _ _ _ h1 h2, c.mul' h1 h2
 
-@[simp, to_additive] lemma rel_mk {s : setoid M} {h a b} :
+@[simv, to_additive] lemma rel_mk {s : setoid M} {h a b} :
   con.mk s h a b ↔ r a b :=
 iff.rfl
 
@@ -212,7 +212,7 @@ instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
-@[simp, to_additive] lemma quot_mk_eq_coe {M : Type*} [has_mul M] (c : con M) (x : M) :
+@[simv, to_additive] lemma quot_mk_eq_coe {M : Type*} [has_mul M] (c : con M) (x : M) :
   quot.mk c x = (x : c.quotient) :=
 rfl
 
@@ -238,7 +238,7 @@ protected def hrec_on₂ {cM : con M} {cN : con N} {φ : cM.quotient → cN.quot
   φ a b :=
 quotient.hrec_on₂' a b f h
 
-@[simp, to_additive] lemma hrec_on₂_coe {cM : con M} {cN : con N}
+@[simv, to_additive] lemma hrec_on₂_coe {cM : con M} {cN : con N}
   {φ : cM.quotient → cN.quotient → Sort*} (a : M) (b : N)
   (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
   con.hrec_on₂ ↑a ↑b f h = f a b :=
@@ -264,7 +264,7 @@ variables (c)
 
 /-- Two elements are related by a congruence relation `c` iff they are represented by the same
     element of the quotient by `c`. -/
-@[simp, to_additive "Two elements are related by an additive congruence relation `c` iff they
+@[simv, to_additive "Two elements are related by an additive congruence relation `c` iff they
 are represented by the same element of the quotient by `c`."]
 protected lemma eq {a b : M} : (a : c.quotient) = b ↔ c a b :=
 quotient.eq'
@@ -277,7 +277,7 @@ instance has_mul : has_mul c.quotient :=
 ⟨quotient.map₂' (*) $ λ _ _ h1 _ _ h2, c.mul h1 h2⟩
 
 /-- The kernel of the quotient map induced by a congruence relation `c` equals `c`. -/
-@[simp, to_additive "The kernel of the quotient map induced by an additive congruence relation
+@[simv, to_additive "The kernel of the quotient map induced by an additive congruence relation
 `c` equals `c`."]
 lemma mul_ker_mk_eq : mul_ker (coe : M → c.quotient) (λ x y, rfl) = c :=
 ext $ λ x y, quotient.eq'
@@ -286,13 +286,13 @@ variables {c}
 
 /-- The coercion to the quotient of a congruence relation commutes with multiplication (by
     definition). -/
-@[simp, to_additive "The coercion to the quotient of an additive congruence relation commutes with
+@[simv, to_additive "The coercion to the quotient of an additive congruence relation commutes with
 addition (by definition)."]
 lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
 
 /-- Definition of the function on the quotient by a congruence relation `c` induced by a function
     that is constant on `c`'s equivalence classes. -/
-@[simp, to_additive "Definition of the function on the quotient by an additive congruence
+@[simv, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
 protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
@@ -340,7 +340,7 @@ setoid.ext' $ λ x y, ⟨λ h r ⟨c, hS, hr⟩, by rw ←hr; exact h c hS,
 @[to_additive "The infimum of a set of additive congruence relations is the same as the infimum
 of the set's image under the map to the underlying binary relation."]
 lemma Inf_def (S : set (con M)) : ⇑(Inf S) = Inf (@set.image (con M) (M → M → Prop) coe_fn S) :=
-by { ext, simp only [Inf_image, infi_apply, infi_Prop_eq], refl }
+by { ext, simv only [Inf_image, infi_apply, infi_Prop_eq], refl }
 
 @[to_additive]
 instance : partial_order (con M) :=
@@ -407,14 +407,14 @@ theorem con_gen_mono {r s : M → M → Prop} (h : ∀ x y, r x y → s x y) :
 con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
 
 /-- Congruence relations equal the smallest congruence relation in which they are contained. -/
-@[simp, to_additive add_con_gen_of_add_con "Additive congruence relations equal the smallest
+@[simv, to_additive add_con_gen_of_add_con "Additive congruence relations equal the smallest
 additive congruence relation in which they are contained."]
 lemma con_gen_of_con (c : con M) : con_gen c = c :=
 le_antisymm (by rw con_gen_eq; exact Inf_le (λ _ _, id)) con_gen.rel.of
 
 /-- The map sending a binary relation to the smallest congruence relation in which it is
     contained is idempotent. -/
-@[simp, to_additive add_con_gen_idem "The map sending a binary relation to the smallest additive
+@[simv, to_additive add_con_gen_idem "The map sending a binary relation to the smallest additive
 congruence relation in which it is contained is idempotent."]
 lemma con_gen_idem (r : M → M → Prop) :
   con_gen (con_gen r) = con_gen r :=
@@ -430,7 +430,7 @@ lemma sup_eq_con_gen (c d : con M) :
 begin
   rw con_gen_eq,
   apply congr_arg Inf,
-  simp only [le_def, or_imp_distrib, ← forall_and_distrib]
+  simv only [le_def, or_imp_distrib, ← forall_and_distrib]
 end
 
 /-- The supremum of two congruence relations equals the smallest congruence relation containing
@@ -466,7 +466,7 @@ lemma Sup_def {S : set (con M)} :
 begin
   rw [Sup_eq_con_gen, Sup_image],
   congr' with x y,
-  simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
+  simv only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
 variables (M)
@@ -525,7 +525,7 @@ def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M
 { mul' := λ w x y z h1 h2, show c (f (w * y)) (f (x * z)), by rw [H, H]; exact c.mul h1 h2,
   ..c.to_setoid.comap f }
 
-@[simp, to_additive] lemma comap_rel {f : M → N} (H : ∀ x y, f (x * y) = f x * f y)
+@[simv, to_additive] lemma comap_rel {f : M → N} (H : ∀ x y, f (x * y) = f x * f y)
   {c : con N} {x y : M} :
   comap f H c x y ↔ c (f x) (f y) :=
 iff.rfl
@@ -578,7 +578,7 @@ variables {c}
 
 /-- The 1 of the quotient of a monoid by a congruence relation is the equivalence class of the
     monoid's 1. -/
-@[simp, to_additive "The 0 of the quotient of an `add_monoid` by an additive congruence relation
+@[simv, to_additive "The 0 of the quotient of an `add_monoid` by an additive congruence relation
 is the equivalence class of the `add_monoid`'s 0."]
 lemma coe_one : ((1 : M) : c.quotient) = 1 := rfl
 
@@ -626,7 +626,7 @@ lemma le_iff {c d : con M} : c ≤ d ↔ (c : submonoid (M × M)) ≤ d :=
 def ker (f : M →* P) : con M := mul_ker f f.3
 
 /-- The definition of the congruence relation defined by a monoid homomorphism's kernel. -/
-@[simp, to_additive "The definition of the additive congruence relation defined by an `add_monoid`
+@[simv, to_additive "The definition of the additive congruence relation defined by an `add_monoid`
 homomorphism's kernel."]
 lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
@@ -646,7 +646,7 @@ variables (x y : M)
 
 /-- The kernel of the natural homomorphism from a monoid to its quotient by a congruence
     relation `c` equals `c`. -/
-@[simp, to_additive "The kernel of the natural homomorphism from an `add_monoid` to its quotient by
+@[simv, to_additive "The kernel of the natural homomorphism from an `add_monoid` to its quotient by
 an additive congruence relation `c` equals `c`."]
 lemma mk'_ker : ker c.mk' = c := ext $ λ _ _, c.eq
 
@@ -659,7 +659,7 @@ relation is surjective."]
 lemma mk'_surjective : surjective c.mk' :=
 quotient.surjective_quotient_mk'
 
-@[simp, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
+@[simv, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
 
 /-- The elements related to `x ∈ M`, `M` a monoid, by the kernel of a monoid homomorphism are
     those in the preimage of `f(x)` under `f`. -/
@@ -699,13 +699,13 @@ lemma lift_mk' (H : c ≤ ker f) (x) :
   c.lift f H (c.mk' x) = f x := rfl
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
-@[simp, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
+@[simv, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
 commutes."]
 lemma lift_coe (H : c ≤ ker f) (x : M) :
   c.lift f H x = f x := rfl
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
-@[simp, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
+@[simv, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
 commutes."]
 theorem lift_comp_mk' (H : c ≤ ker f) :
   (c.lift f H).comp c.mk' = f := by ext; refl
@@ -713,7 +713,7 @@ theorem lift_comp_mk' (H : c ≤ ker f) :
 /-- Given a homomorphism `f` from the quotient of a monoid by a congruence relation, `f` equals the
     homomorphism on the quotient induced by `f` composed with the natural map from the monoid to
     the quotient. -/
-@[simp, to_additive "Given a homomorphism `f` from the quotient of an `add_monoid` by an additive
+@[simv, to_additive "Given a homomorphism `f` from the quotient of an `add_monoid` by an additive
 congruence relation, `f` equals the homomorphism on the quotient induced by `f` composed with the
 natural map from the `add_monoid` to the quotient."]
 lemma lift_apply_mk' (f : c.quotient →* P) :
@@ -777,14 +777,14 @@ variables {f}
 
 /-- The diagram described by the universal property for quotients of monoids, when the congruence
     relation is the kernel of the homomorphism, commutes. -/
-@[simp, to_additive "The diagram described by the universal property for quotients
+@[simv, to_additive "The diagram described by the universal property for quotients
 of `add_monoid`s, when the additive congruence relation is the kernel of the homomorphism,
 commutes."]
 lemma ker_lift_mk (x : M) :  ker_lift f x = f x := rfl
 
 /-- Given a monoid homomorphism `f`, the induced homomorphism on the quotient by `f`'s kernel has
     the same image as `f`. -/
-@[simp, to_additive "Given an `add_monoid` homomorphism `f`, the induced homomorphism
+@[simv, to_additive "Given an `add_monoid` homomorphism `f`, the induced homomorphism
 on the quotient by `f`'s kernel has the same image as `f`."]
 lemma ker_lift_range_eq : (ker_lift f).mrange = f.mrange :=
 lift_range $ λ _ _, id
@@ -1000,7 +1000,7 @@ that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, an
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
 add_decl_doc add_con.lift_on_add_units
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx')
   (x y : M) (hxy hyx) :

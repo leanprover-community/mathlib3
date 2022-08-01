@@ -198,21 +198,21 @@ private def lift_aux (f : X → A) : (free_algebra R X →ₐ[R] A) :=
     { change _ + _ = _ + _,
       rw add_comm, },
     { change (algebra_map _ _ _) + lift_fun R X f _ = lift_fun R X f _,
-      simp, },
+      simv, },
     { change _ * _ * _ = _ * (_ * _),
       rw mul_assoc },
     { change (algebra_map _ _ _) * lift_fun R X f _ = lift_fun R X f _,
-      simp, },
+      simv, },
     { change lift_fun R X f _ * (algebra_map _ _ _) = lift_fun R X f _,
-      simp, },
+      simv, },
     { change _ * (_ + _) = _ * _ + _ * _,
       rw left_distrib, },
     { change (_ + _) * _ = _ * _ + _ * _,
       rw right_distrib, },
     { change (algebra_map _ _ _) * _ = algebra_map _ _ _,
-      simp },
+      simv },
     { change _ * (algebra_map _ _ _) = algebra_map _ _ _,
-      simp },
+      simv },
     repeat { change lift_fun R X f _ + lift_fun R X f _ = _,
       rw h_ih,
       refl, },
@@ -220,9 +220,9 @@ private def lift_aux (f : X → A) : (free_algebra R X →ₐ[R] A) :=
       rw h_ih,
       refl, },
   end,
-  map_one' := by { change algebra_map _ _ _ = _, simp },
+  map_one' := by { change algebra_map _ _ _ = _, simv },
   map_mul' := by { rintros ⟨⟩ ⟨⟩, refl },
-  map_zero' := by { change algebra_map _ _ _ = _, simp },
+  map_zero' := by { change algebra_map _ _ _ = _, simv },
   map_add' := by { rintros ⟨⟩ ⟨⟩, refl },
   commutes' := by tauto }
 
@@ -313,10 +313,10 @@ alg_equiv.of_alg_hom
 begin
   apply monoid_algebra.alg_hom_ext, intro x,
   apply free_monoid.rec_on x,
-  { simp, refl, },
-  { intros x y ih, simp at ih, simp [ih], }
+  { simv, refl, },
+  { intros x y ih, simv at ih, simv [ih], }
 end
-(by { ext, simp, })
+(by { ext, simv, })
 
 instance [nontrivial R] : nontrivial (free_algebra R X) :=
 equiv_monoid_algebra_free_monoid.surjective.nontrivial
@@ -329,7 +329,7 @@ lift R (0 : X → R)
 
 lemma algebra_map_left_inverse :
   function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
-λ x, by simp [algebra_map_inv]
+λ x, by simv [algebra_map_inv]
 
 @[simp] lemma algebra_map_inj (x y : R) :
   algebra_map R (free_algebra R X) x = algebra_map R (free_algebra R X) y ↔ x = y :=
@@ -404,10 +404,10 @@ begin
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),
   { ext,
-    simp [of, subtype.coind], },
+    simv [of, subtype.coind], },
   -- finding a proof is finding an element of the subalgebra
   convert subtype.prop (lift R of a),
-  simp [alg_hom.ext_iff] at of_id,
+  simv [alg_hom.ext_iff] at of_id,
   exact of_id a,
 end
 

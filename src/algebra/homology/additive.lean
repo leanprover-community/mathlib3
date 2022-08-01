@@ -37,10 +37,10 @@ instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
 instance has_nat_scalar : has_smul ℕ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
-    comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
+    comm' := λ i j h, by simv [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
 instance has_int_scalar : has_smul ℤ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
-    comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
+    comm' := λ i j h, by simv [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
 @[simp] lemma zero_f_apply (i : ι) : (0 : C ⟶ D).f i = 0 := rfl
 @[simp] lemma add_f_apply (f g : C ⟶ D) (i : ι) : (f + g).f i = f.f i + g.f i := rfl
@@ -79,9 +79,9 @@ instance homology_additive : (homology_functor V c i).additive :=
 { map_add' := λ C D f g, begin
     dsimp [homology_functor],
     ext,
-    simp only [homology.π_map, preadditive.comp_add, ←preadditive.add_comp],
+    simv only [homology.π_map, preadditive.comp_add, ←preadditive.add_comp],
     congr,
-    ext, simp,
+    ext, simv,
   end }
 
 
@@ -130,7 +130,7 @@ by tidy
     nat_trans.map_homological_complex α c ≫ nat_trans.map_homological_complex β c :=
 by tidy
 
-@[simp, reassoc] lemma nat_trans.map_homological_complex_naturality {c : complex_shape ι}
+@[simv, reassoc] lemma nat_trans.map_homological_complex_naturality {c : complex_shape ι}
   {F G : V ⥤ W} [F.additive] [G.additive] (α : F ⟶ G) {C D : homological_complex V c} (f : C ⟶ D) :
   (F.map_homological_complex c).map f ≫ (nat_trans.map_homological_complex α c).app D =
     (nat_trans.map_homological_complex α c).app C ≫ (G.map_homological_complex c).map f :=
@@ -151,7 +151,7 @@ lemma map_chain_complex_of (F : V ⥤ W) [F.additive] (X : α → V) (d : Π n, 
 begin
   refine homological_complex.ext rfl _,
   rintro i j (rfl : j + 1 = i),
-  simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
+  simv only [category_theory.functor.map_homological_complex_obj_d, of_d,
     eq_to_hom_refl, comp_id, id_comp],
 end
 
@@ -161,7 +161,7 @@ variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero
 
 namespace homological_complex
 
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 /--
 Turning an object into a complex supported at `j` then applying a functor is
@@ -171,18 +171,18 @@ def single_map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shape
   single V c j ⋙ F.map_homological_complex _ ≅ F ⋙ single W c j :=
 nat_iso.of_components (λ X,
 { hom := { f := λ i, if h : i = j then
-    eq_to_hom (by simp [h])
+    eq_to_hom (by simv [h])
   else
     0, },
   inv := { f := λ i, if h : i = j then
-    eq_to_hom (by simp [h])
+    eq_to_hom (by simv [h])
   else
     0, },
   hom_inv_id' := begin
     ext i,
     dsimp,
     split_ifs with h,
-    { simp [h] },
+    { simv [h] },
     { rw [zero_comp, if_neg h],
       exact (zero_of_source_iso_zero _ F.map_zero_object).symm, },
   end,
@@ -190,32 +190,32 @@ nat_iso.of_components (λ X,
     ext i,
     dsimp,
     split_ifs with h,
-    { simp [h] },
+    { simv [h] },
     { rw [zero_comp, if_neg h],
-      simp, },
+      simv, },
   end, })
   (λ X Y f, begin
     ext i,
     dsimp,
-    split_ifs with h; simp [h],
+    split_ifs with h; simv [h],
   end).
 
 variables (F : V ⥤ W) [functor.additive F] (c)
 
 @[simp] lemma single_map_homological_complex_hom_app_self (j : ι) (X : V) :
-  ((single_map_homological_complex F c j).hom.app X).f j = eq_to_hom (by simp) :=
-by simp [single_map_homological_complex]
+  ((single_map_homological_complex F c j).hom.app X).f j = eq_to_hom (by simv) :=
+by simv [single_map_homological_complex]
 @[simp] lemma single_map_homological_complex_hom_app_ne
   {i j : ι} (h : i ≠ j) (X : V) :
   ((single_map_homological_complex F c j).hom.app X).f i = 0 :=
-by simp [single_map_homological_complex, h]
+by simv [single_map_homological_complex, h]
 @[simp] lemma single_map_homological_complex_inv_app_self (j : ι) (X : V) :
-  ((single_map_homological_complex F c j).inv.app X).f j = eq_to_hom (by simp) :=
-by simp [single_map_homological_complex]
+  ((single_map_homological_complex F c j).inv.app X).f j = eq_to_hom (by simv) :=
+by simv [single_map_homological_complex]
 @[simp] lemma single_map_homological_complex_inv_app_ne
   {i j : ι} (h : i ≠ j) (X : V):
   ((single_map_homological_complex F c j).inv.app X).f i = 0 :=
-by simp [single_map_homological_complex, h]
+by simv [single_map_homological_complex, h]
 
 end homological_complex
 
@@ -238,14 +238,14 @@ nat_iso.of_components (λ X,
     end, },
   hom_inv_id' := begin
     ext (_|i),
-    { unfold_aux, simp, },
+    { unfold_aux, simv, },
     { unfold_aux,
       dsimp,
-      simp only [comp_f, id_f, zero_comp],
+      simv only [comp_f, id_f, zero_comp],
       exact (zero_of_source_iso_zero _ F.map_zero_object).symm, }
   end,
-  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simp, }, }, })
-  (λ X Y f, by { ext (_|i); { unfold_aux, dsimp, simp, }, }).
+  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simv, }, }, })
+  (λ X Y f, by { ext (_|i); { unfold_aux, dsimp, simv, }, }).
 
 @[simp] lemma single₀_map_homological_complex_hom_app_zero (F : V ⥤ W) [F.additive] (X : V) :
   ((single₀_map_homological_complex F).hom.app X).f 0 = 𝟙 _ := rfl
@@ -279,14 +279,14 @@ nat_iso.of_components (λ X,
     end, },
   hom_inv_id' := begin
     ext (_|i),
-    { unfold_aux, simp, },
+    { unfold_aux, simv, },
     { unfold_aux,
       dsimp,
-      simp only [comp_f, id_f, zero_comp],
+      simv only [comp_f, id_f, zero_comp],
       exact (zero_of_source_iso_zero _ F.map_zero_object).symm, }
   end,
-  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simp, }, }, })
-  (λ X Y f, by { ext (_|i); { unfold_aux, dsimp, simp, }, }).
+  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simv, }, }, })
+  (λ X Y f, by { ext (_|i); { unfold_aux, dsimp, simv, }, }).
 
 @[simp] lemma single₀_map_homological_complex_hom_app_zero (F : V ⥤ W) [F.additive] (X : V) :
   ((single₀_map_homological_complex F).hom.app X).f 0 = 𝟙 _ := rfl

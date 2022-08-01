@@ -47,7 +47,7 @@ begin
     refine measure_mono_null (λ y hy, _) this, clear this,
     set N : ℕ := ⌊dist y x⌋₊,
     refine mem_Union.2 ⟨N, _⟩,
-    have hN : y ∈ B N, by { simp only [B, N], simp [nat.lt_floor_add_one] },
+    have hN : y ∈ B N, by { simv only [B, N], simv [nat.lt_floor_add_one] },
     suffices : y ∈ frontier (s ∩ B N) ∩ B N, from this.1,
     rw [frontier_inter_open_inter is_open_ball],
     exact ⟨hy, hN⟩ },
@@ -72,7 +72,7 @@ begin
   refine ge_of_tendsto _ this,
   refine (((ennreal.continuous_mul_const hb).comp
     (ennreal.continuous_coe.comp (continuous_pow d))).tendsto' _ _ _).mono_left nhds_within_le_nhds,
-  simp
+  simv
 end
 
 /-- A convex set in a finite dimensional real vector space is null measurable with respect to an

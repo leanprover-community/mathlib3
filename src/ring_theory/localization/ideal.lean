@@ -32,12 +32,12 @@ This definition is only meant to be used in proving `mem_map_algebra_map_iff`,
 and any proof that needs to refer to the explicit carrier set should use that theorem. -/
 private def map_ideal (I : ideal R) : ideal S :=
 { carrier := { z : S | ∃ x : I × M, z * algebra_map R S x.2 = algebra_map R S x.1},
-  zero_mem' := ⟨⟨0, 1⟩, by simp⟩,
+  zero_mem' := ⟨⟨0, 1⟩, by simv⟩,
   add_mem' := begin
     rintros a b ⟨a', ha⟩ ⟨b', hb⟩,
     use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.mul_mem_left _ b'.1.2) (I.mul_mem_left _ a'.1.2)⟩,
     use a'.2 * b'.2,
-    simp only [ring_hom.map_add, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    simv only [ring_hom.map_add, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
     rw [add_mul, ← mul_assoc a, ha, mul_comm (algebra_map R S a'.2) (algebra_map R S b'.2),
         ← mul_assoc b, hb],
     ring
@@ -47,7 +47,7 @@ private def map_ideal (I : ideal R) : ideal S :=
     obtain ⟨c', hc⟩ := is_localization.surj M c,
     use ⟨c'.1 * x'.1, I.mul_mem_left c'.1 x'.1.2⟩,
     use c'.2 * x'.2,
-    simp only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    simv only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
     ring
   end }
 
@@ -58,7 +58,7 @@ begin
   { change _ → z ∈ map_ideal M S I,
     refine λ h, ideal.mem_Inf.1 h (λ z hz, _),
     obtain ⟨y, hy⟩ := hz,
-    use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩ },
+    use ⟨⟨⟨y, hy.left⟩, 1⟩, by simv [hy.right]⟩ },
   { rintros ⟨⟨a, s⟩, h⟩,
     rw [← ideal.unit_mul_mem_iff_mem _ (map_units S s), mul_comm],
     exact h.symm ▸ ideal.mem_map_of_mem _ a.2 }
@@ -171,7 +171,7 @@ begin
       rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_comap] at hM,
       convert I.mul_mem_right (mk' S (1 : R) ⟨m, hm⟩) hM,
       rw [← mk'_eq_mul_mk'_one, mk'_self] },
-    exact ⟨0, eq_comm.1 (by simp [ideal.quotient.eq_zero_iff_mem, this])⟩ },
+    exact ⟨0, eq_comm.1 (by simv [ideal.quotient.eq_zero_iff_mem, this])⟩ },
   { rw ideal.quotient.maximal_ideal_iff_is_field_quotient at hI,
     obtain ⟨n, hn⟩ := hI.3 hM,
     obtain ⟨rn, rfl⟩ := ideal.quotient.mk_surjective n,
@@ -179,11 +179,11 @@ begin
     -- The rest of the proof is essentially just algebraic manipulations to prove the equality
     rw ← ring_hom.map_mul at hn,
     replace hn := congr_arg (ideal.quotient_map I (algebra_map R S) le_rfl) hn,
-    simp only [ring_hom.map_one, ideal.quotient_map_mk, ring_hom.map_mul] at hn,
+    simv only [ring_hom.map_one, ideal.quotient_map_mk, ring_hom.map_mul] at hn,
     rw [ideal.quotient_map_mk, ← sub_eq_zero, ← ring_hom.map_sub,
       ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.eq_zero_iff_mem, ring_hom.map_sub,
       sub_eq_zero, mk'_eq_mul_mk'_one],
-    simp only [mul_eq_mul_left_iff, ring_hom.map_mul],
+    simv only [mul_eq_mul_left_iff, ring_hom.map_mul],
     exact or.inl (mul_left_cancel₀ (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn
       (by rw [← ring_hom.map_mul, ← mk'_eq_mul_mk'_one, mk'_self, ring_hom.map_one]))) }

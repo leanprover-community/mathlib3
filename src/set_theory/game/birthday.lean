@@ -94,13 +94,13 @@ using_well_founded { dec_tac := pgame_wf_tac }
 by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
-by simp [pempty.is_empty]
+by simv [pempty.is_empty]
 
 @[simp] theorem birthday_one : birthday 1 = 1 :=
-by { rw birthday_def, simp }
+by { rw birthday_def, simv }
 
 @[simp] theorem birthday_star : birthday star = 1 :=
-by { rw birthday_def, simp }
+by { rw birthday_def, simv }
 
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
 | ⟨xl, xr, xL, xR⟩ := begin
@@ -112,7 +112,7 @@ end
 begin
   induction o using ordinal.induction with o IH,
   rw [to_pgame_def, pgame.birthday],
-  simp only [lsub_empty, max_zero_right],
+  simv only [lsub_empty, max_zero_right],
   nth_rewrite 0 ←lsub_typein o,
   congr' with x,
   exact IH _ (typein_lt_self x)
@@ -121,7 +121,7 @@ end
 theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
 | ⟨xl, _, xL, _⟩ :=
 le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i⟩,
-  by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
+  by simv [le_birthday (xL i)]⟩, is_empty_elim⟩
 
 theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
 let h := le_birthday (-x) in by rwa [neg_birthday, neg_le_iff] at h

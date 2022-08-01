@@ -60,11 +60,11 @@ structure homological_complex (c : complex_shape ι) :=
 namespace homological_complex
 
 restate_axiom shape'
-attribute [simp] shape
+attribute [simv] shape
 
 variables {V} {c : complex_shape ι}
 
-@[simp, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
+@[simv, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
   C.d i j ≫ C.d j k = 0 :=
 begin
   by_cases hij : c.rel i j,
@@ -82,7 +82,7 @@ begin
   cases C₂,
   dsimp at h_X,
   subst h_X,
-  simp only [true_and, eq_self_iff_true, heq_iff_eq],
+  simv only [true_and, eq_self_iff_true, heq_iff_eq],
   ext i j,
   by_cases hij : c.rel i j,
   { simpa only [id_comp, eq_to_hom_refl, comp_id] using h_d i j hij, },
@@ -156,7 +156,7 @@ commuting with the differentials.
 (f : ∀ i, A.X i ⟶ B.X i)
 (comm' : ∀ i j, c.rel i j → f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma hom.comm {A B : homological_complex V c} (f : A.hom B) (i j : ι) :
   f.f i ≫ B.d i j = A.d i j ≫ f.f j :=
 begin
@@ -177,7 +177,7 @@ def comp (A B C : homological_complex V c) (φ : hom A B) (ψ : hom B C) : hom A
 { f := λ i, φ.f i ≫ ψ.f i }
 
 section
-local attribute [simp] id comp
+local attribute [simv] id comp
 
 instance : category (homological_complex V c) :=
 { hom := hom,
@@ -257,7 +257,7 @@ and so the differentials only differ by an `eq_to_hom`.
   C.d i j' ≫ eq_to_hom (congr_arg C.X (c.next_eq rij' rij)) = C.d i j :=
 begin
   have P : ∀ h : j' = j, C.d i j' ≫ eq_to_hom (congr_arg C.X h) = C.d i j,
-  { rintro rfl, simp },
+  { rintro rfl, simv },
   apply P,
 end
 
@@ -269,7 +269,7 @@ and so the differentials only differ by an `eq_to_hom`.
   eq_to_hom (congr_arg C.X (c.prev_eq rij rij')) ≫ C.d i' j = C.d i j :=
 begin
   have P : ∀ h : i = i', eq_to_hom (congr_arg C.X h) ≫ C.d i' j = C.d i j,
-  { rintro rfl, simp },
+  { rintro rfl, simv },
   apply P,
 end
 
@@ -360,21 +360,21 @@ lemma d_from_eq_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.d_from i = 0 :=
 C.shape _ _ h
 
-@[simp, reassoc] lemma X_prev_iso_comp_d_to {i j : ι} (r : c.rel i j) :
+@[simv, reassoc] lemma X_prev_iso_comp_d_to {i j : ι} (r : c.rel i j) :
   (C.X_prev_iso r).inv ≫ C.d_to j = C.d i j :=
-by simp [C.d_to_eq r]
+by simv [C.d_to_eq r]
 
-@[simp, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
+@[simv, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
   (C.X_prev_iso_zero h).inv ≫ C.d_to j = 0 :=
-by simp [h]
+by simv [h]
 
-@[simp, reassoc] lemma d_from_comp_X_next_iso {i j : ι} (r : c.rel i j) :
+@[simv, reassoc] lemma d_from_comp_X_next_iso {i j : ι} (r : c.rel i j) :
   C.d_from i ≫ (C.X_next_iso r).hom = C.d i j :=
-by simp [C.d_from_eq r]
+by simv [C.d_from_eq r]
 
-@[simp, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
+@[simv, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
   C.d_from i ≫ (C.X_next_iso_zero h).hom = 0 :=
-by simp [h]
+by simv [h]
 
 @[simp]
 lemma d_to_comp_d_from (j : ι) : C.d_to j ≫ C.d_from j = 0 :=
@@ -417,16 +417,16 @@ def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
   { f := λ i, (f i).inv,
     comm' := λ i j hij,
     calc (f i).inv ≫ C₁.d i j
-        = (f i).inv ≫ (C₁.d i j ≫ (f j).hom) ≫ (f j).inv : by simp
+        = (f i).inv ≫ (C₁.d i j ≫ (f j).hom) ≫ (f j).inv : by simv
     ... = (f i).inv ≫ ((f i).hom ≫ C₂.d i j) ≫ (f j).inv : by rw hf i j hij
-    ... =  C₂.d i j ≫ (f j).inv : by simp },
+    ... =  C₂.d i j ≫ (f j).inv : by simv },
   hom_inv_id' := by { ext i, exact (f i).hom_inv_id },
   inv_hom_id' := by { ext i, exact (f i).inv_hom_id } }
 
 @[simp] lemma iso_of_components_app (f : Π i, C₁.X i ≅ C₂.X i)
   (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) (i : ι) :
   iso_app (iso_of_components f hf) i = f i :=
-by { ext, simp, }
+by { ext, simv, }
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
@@ -437,7 +437,7 @@ lemma prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.prev j = (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv :=
 begin
   obtain rfl := c.prev_eq' w,
-  simp only [X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
+  simv only [X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
 /-- `f.next i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
@@ -447,15 +447,15 @@ lemma next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
   f.next i = (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv :=
 begin
   obtain rfl := c.next_eq' w,
-  simp only [X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
+  simv only [X_next_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
 f.comm _ _
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 f.comm _ _
@@ -507,7 +507,7 @@ def of (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n =
   d_comp_d' := λ i j k hij hjk,
   begin
     dsimp at hij hjk, substs hij hjk,
-    simp only [category.id_comp, dif_pos rfl, eq_to_hom_refl],
+    simv only [category.id_comp, dif_pos rfl, eq_to_hom_refl],
     exact sq k,
   end }
 
@@ -540,7 +540,7 @@ from a dependently typed collection of morphisms.
     by_cases h : n = m + 1,
     { subst h,
       simpa using comm m, },
-    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simp }
+    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simv }
   end }
 
 end of_hom
@@ -598,7 +598,7 @@ of (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).X₀) (λ n, (mk_aux X₀ X
 by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp] }
 @[simp] lemma mk_d_2_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 2 1 = d₁ :=
 by { change ite (2 = 1 + 1) (𝟙 X₂ ≫ d₁) 0 = d₁, rw [if_pos rfl, category.id_comp] }
--- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+-- TODO simv lemmas for the inductive steps? It's not entirely clear that they are needed.
 
 /--
 A simpler inductive constructor for `ℕ`-indexed chain complexes.
@@ -619,7 +619,7 @@ variables (succ' : Π (t : Σ (X₀ X₁ : V), X₁ ⟶ X₀), Σ' (X₂ : V) (d
 @[simp] lemma mk'_X_1 : (mk' X₀ X₁ d₀ succ').X 1 = X₁ := rfl
 @[simp] lemma mk'_d_1_0 : (mk' X₀ X₁ d₀ succ').d 1 0 = d₀ :=
 by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp] }
--- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+-- TODO simv lemmas for the inductive steps? It's not entirely clear that they are needed.
 
 end mk
 
@@ -700,8 +700,8 @@ def of (X : α → V) (d : Π n, X n ⟶ X (n+1)) (sq : ∀ n, d n ≫ d (n+1) =
   begin
     split_ifs with h h' h',
     { substs h h',
-      simp [sq] },
-    all_goals { simp },
+      simv [sq] },
+    all_goals { simv },
   end }
 
 variables (X : α → V) (d : Π n, X n ⟶ X (n+1)) (sq : ∀ n, d n ≫ d (n+1) = 0)
@@ -733,7 +733,7 @@ from a dependently typed collection of morphisms.
     by_cases h : n + 1 = m,
     { subst h,
       simpa using comm n },
-    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simp }
+    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simv }
   end }
 
 end of_hom
@@ -791,7 +791,7 @@ of (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).X₀) (λ n, (mk_aux X₀ X
 by { change ite (1 = 0 + 1) (d₀ ≫ 𝟙 X₁) 0 = d₀, rw [if_pos rfl, category.comp_id] }
 @[simp] lemma mk_d_2_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 1 2 = d₁ :=
 by { change ite (2 = 1 + 1) (d₁ ≫ 𝟙 X₂) 0 = d₁, rw [if_pos rfl, category.comp_id] }
--- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+-- TODO simv lemmas for the inductive steps? It's not entirely clear that they are needed.
 
 /--
 A simpler inductive constructor for `ℕ`-indexed cochain complexes.
@@ -812,7 +812,7 @@ variables (succ' : Π (t : Σ (X₀ X₁ : V), X₀ ⟶ X₁), Σ' (X₂ : V) (d
 @[simp] lemma mk'_X_1 : (mk' X₀ X₁ d₀ succ').X 1 = X₁ := rfl
 @[simp] lemma mk'_d_1_0 : (mk' X₀ X₁ d₀ succ').d 0 1 = d₀ :=
 by { change ite (1 = 0 + 1) (d₀ ≫ 𝟙 X₁) 0 = d₀, rw [if_pos rfl, category.comp_id] }
--- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+-- TODO simv lemmas for the inductive steps? It's not entirely clear that they are needed.
 
 end mk
 

@@ -47,13 +47,13 @@ add_decl_doc add_submonoid.fg
 `finset`."]
 lemma submonoid.fg_iff (P : submonoid M) : submonoid.fg P ↔
   ∃ S : set M, submonoid.closure S = P ∧ S.finite :=
-⟨λ ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
+⟨λ ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simv [hS]⟩⟩
 
 lemma submonoid.fg_iff_add_fg (P : submonoid M) : P.fg ↔ P.to_add_submonoid.fg :=
 ⟨λ h, let ⟨S, hS, hf⟩ := (submonoid.fg_iff _).1 h in (add_submonoid.fg_iff _).mpr
-  ⟨additive.to_mul ⁻¹' S, by simp [← submonoid.to_add_submonoid_closure, hS], hf⟩,
+  ⟨additive.to_mul ⁻¹' S, by simv [← submonoid.to_add_submonoid_closure, hS], hf⟩,
  λ h, let ⟨T, hT, hf⟩ := (add_submonoid.fg_iff _).1 h in (submonoid.fg_iff _).mpr
-  ⟨multiplicative.of_add ⁻¹' T, by simp [← add_submonoid.to_submonoid'_closure, hT], hf⟩⟩
+  ⟨multiplicative.of_add ⁻¹' T, by simv [← add_submonoid.to_submonoid'_closure, hT], hf⟩⟩
 
 lemma add_submonoid.fg_iff_mul_fg (P : add_submonoid N) : P.fg ↔ P.to_submonoid.fg :=
 begin
@@ -129,7 +129,7 @@ begin
   exact submonoid.monotone_map le_top
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma monoid.fg_iff_submonoid_fg (N : submonoid M) : monoid.fg N ↔ N.fg :=
 begin
   conv_rhs { rw [← N.range_subtype, monoid_hom.mrange_eq_map] },
@@ -179,7 +179,7 @@ add_decl_doc add_subgroup.fg
 `finset`."]
 lemma subgroup.fg_iff (P : subgroup G) : subgroup.fg P ↔
   ∃ S : set G, subgroup.closure S = P ∧ S.finite :=
-⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
+⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simv [hS]⟩⟩
 
 /-- A subgroup is finitely generated if and only if it is finitely generated as a submonoid. -/
 @[to_additive add_subgroup.fg_iff_add_submonoid.fg "An additive subgroup is finitely generated if

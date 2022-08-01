@@ -247,7 +247,7 @@ eventually_at_bot.mp h
 
 lemma frequently_at_top [semilattice_sup α] [nonempty α] {p : α → Prop} :
   (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b ≥ a, p b) :=
-by simp [at_top_basis.frequently_iff]
+by simv [at_top_basis.frequently_iff]
 
 lemma frequently_at_bot [semilattice_inf α] [nonempty α] {p : α → Prop} :
   (∃ᶠ x in at_bot, p x) ↔ (∀ a, ∃ b ≤ a, p b) :=
@@ -255,7 +255,7 @@ lemma frequently_at_bot [semilattice_inf α] [nonempty α] {p : α → Prop} :
 
 lemma frequently_at_top' [semilattice_sup α] [nonempty α] [no_max_order α] {p : α → Prop} :
   (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b > a, p b) :=
-by simp [at_top_basis_Ioi.frequently_iff]
+by simv [at_top_basis_Ioi.frequently_iff]
 
 lemma frequently_at_bot' [semilattice_inf α] [nonempty α] [no_min_order α] {p : α → Prop} :
   (∃ᶠ x in at_bot, p x) ↔ (∀ a, ∃ b < a, p b) :=
@@ -279,7 +279,7 @@ lemma map_at_bot_eq [nonempty α] [semilattice_inf α] {f : α → β} :
 
 lemma tendsto_at_top [preorder β] {m : α → β} {f : filter α} :
   tendsto m f at_top ↔ (∀b, ∀ᶠ a in f, b ≤ m a) :=
-by simp only [at_top, tendsto_infi, tendsto_principal, mem_Ici]
+by simv only [at_top, tendsto_infi, tendsto_principal, mem_Ici]
 
 lemma tendsto_at_bot [preorder β] {m : α → β} {f : filter α} :
   tendsto m f at_bot ↔ (∀b, ∀ᶠ a in f, m a ≤ b) :=
@@ -310,7 +310,7 @@ open filter
 variables [preorder α] [preorder β]
 
 @[simp] lemma comap_at_top (e : α ≃o β) : comap e at_top = at_top :=
-by simp [at_top, ← e.surjective.infi_comp]
+by simv [at_top, ← e.surjective.infi_comp]
 
 @[simp] lemma comap_at_bot (e : α ≃o β) : comap e at_bot = at_bot :=
 e.dual.comap_at_top
@@ -373,7 +373,7 @@ extraction_of_frequently_at_top h.frequently
 lemma extraction_forall_of_frequently {P : ℕ → ℕ → Prop} (h : ∀ n, ∃ᶠ k in at_top, P n k) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
 begin
-  simp only [frequently_at_top'] at h,
+  simv only [frequently_at_top'] at h,
   choose u hu hu' using h,
   use (λ n, nat.rec_on n (u 0 0) (λ n v, u (n+1) v) : ℕ → ℕ),
   split,
@@ -381,7 +381,7 @@ begin
     intro n,
     apply hu },
   { intros n,
-    cases n ; simp [hu'] },
+    cases n ; simv [hu'] },
 end
 
 lemma extraction_forall_of_eventually  {P : ℕ → ℕ → Prop} (h : ∀ n, ∀ᶠ k in at_top, P n k) :
@@ -390,7 +390,7 @@ extraction_forall_of_frequently (λ n, (h n).frequently)
 
 lemma extraction_forall_of_eventually' {P : ℕ → ℕ → Prop} (h : ∀ n, ∃ N, ∀ k ≥ N, P n k) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
-extraction_forall_of_eventually (by simp [eventually_at_top, h])
+extraction_forall_of_eventually (by simv [eventually_at_top, h])
 
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
   (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b ≤ u a' :=
@@ -634,7 +634,7 @@ lemma tendsto_at_bot_add_left_of_ge (C : β) (hf : ∀ x, f x ≤ C) (hg : tends
 lemma tendsto_at_top_add_right_of_le' (C : β) (hf : tendsto f l at_top) (hg : ∀ᶠ x in l, C ≤ g x) :
   tendsto (λ x, f x + g x) l at_top :=
 @tendsto_at_top_of_add_bdd_above_right' _ _ _ l (λ x, f x + g x) (λ x, -(g x)) (-C)
-  (by simp [hg]) (by simp [hf])
+  (by simv [hg]) (by simv [hf])
 
 lemma tendsto_at_bot_add_right_of_ge' (C : β) (hf : tendsto f l at_bot) (hg : ∀ᶠ x in l, g x ≤ C) :
   tendsto (λ x, f x + g x) l at_bot :=
@@ -877,7 +877,7 @@ tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
 lemma tendsto_const_mul_pow_at_bot_iff {c : α} {n : ℕ} :
   tendsto (λ x, c * x^n) at_top at_bot ↔ n ≠ 0 ∧ c < 0 :=
-by simp only [← tendsto_neg_at_top_iff, ← neg_mul, tendsto_const_mul_pow_at_top_iff, neg_pos]
+by simv only [← tendsto_neg_at_top_iff, ← neg_mul, tendsto_const_mul_pow_at_top_iff, neg_pos]
 
 end linear_ordered_field
 
@@ -885,7 +885,7 @@ open_locale filter
 
 lemma tendsto_at_top' [nonempty α] [semilattice_sup α] {f : α → β} {l : filter β} :
   tendsto f at_top l ↔ (∀s ∈ l, ∃a, ∀b≥a, f b ∈ s) :=
-by simp only [tendsto_def, mem_at_top_sets]; refl
+by simv only [tendsto_def, mem_at_top_sets]; refl
 
 lemma tendsto_at_bot' [nonempty α] [semilattice_inf α] {f : α → β} {l : filter β} :
   tendsto f at_bot l ↔ (∀s ∈ l, ∃a, ∀b≤a, f b ∈ s) :=
@@ -978,7 +978,7 @@ begin
   refine le_antisymm (le_infi (λ i, le_principal_iff.2 $ mem_at_top {i})) _,
   refine le_infi (λ s, le_principal_iff.2 $ mem_infi_of_Inter s.finite_to_set
                   (λ i, mem_principal_self _) _),
-  simp only [subset_def, mem_Inter, set_coe.forall, mem_Ici, finset.le_iff_subset,
+  simv only [subset_def, mem_Inter, set_coe.forall, mem_Ici, finset.le_iff_subset,
     finset.mem_singleton, finset.subset_iff, forall_eq], dsimp,
   exact λ t, id
 end
@@ -989,7 +989,7 @@ lemma tendsto_at_top_finset_of_monotone [preorder β]
   {f : β → finset α} (h : monotone f) (h' : ∀ x : α, ∃ n, x ∈ f n) :
   tendsto f at_top at_top :=
 begin
-  simp only [at_top_finset_eq_infi, tendsto_infi, tendsto_principal],
+  simv only [at_top_finset_eq_infi, tendsto_infi, tendsto_principal],
   intro a,
   rcases h' a with ⟨b, hb⟩,
   exact eventually.mono (mem_at_top b)
@@ -1001,7 +1001,7 @@ alias tendsto_at_top_finset_of_monotone ← _root_.monotone.tendsto_at_top_finse
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
   tendsto (finset.image j) at_top at_top :=
 (finset.image_mono j).tendsto_at_top_finset $ assume a,
-  ⟨{i a}, by simp only [finset.image_singleton, h a, finset.mem_singleton]⟩
+  ⟨{i a}, by simv only [finset.image_singleton, h a, finset.mem_singleton]⟩
 
 lemma tendsto_finset_preimage_at_top_at_top {f : α → β} (hf : function.injective f) :
   tendsto (λ s : finset β, s.preimage f (hf.inj_on _)) at_top at_top :=
@@ -1013,10 +1013,10 @@ lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [semilattice_sup β₁] [semil
 begin
   casesI (is_empty_or_nonempty β₁).symm,
   casesI (is_empty_or_nonempty β₂).symm,
-  { simp [at_top, prod_infi_left, prod_infi_right, infi_prod],
+  { simv [at_top, prod_infi_left, prod_infi_right, infi_prod],
     exact infi_comm, },
-  { simp only [at_top.filter_eq_bot_of_is_empty, prod_bot] },
-  { simp only [at_top.filter_eq_bot_of_is_empty, bot_prod] },
+  { simv only [at_top.filter_eq_bot_of_is_empty, prod_bot] },
+  { simv only [at_top.filter_eq_bot_of_is_empty, bot_prod] },
 end
 
 lemma prod_at_bot_at_bot_eq {β₁ β₂ : Type*} [semilattice_inf β₁] [semilattice_inf β₂] :
@@ -1065,11 +1065,11 @@ by { rw ← prod_at_top_at_top_eq, exact hf.prod_map_prod_at_top hg, }
 
 lemma eventually_at_bot_prod_self [semilattice_inf α] [nonempty α] {p : α × α → Prop} :
   (∀ᶠ x in at_bot, p x) ↔ (∃ a, ∀ k l, k ≤ a → l ≤ a → p (k, l)) :=
-by simp [← prod_at_bot_at_bot_eq, at_bot_basis.prod_self.eventually_iff]
+by simv [← prod_at_bot_at_bot_eq, at_bot_basis.prod_self.eventually_iff]
 
 lemma eventually_at_top_prod_self [semilattice_sup α] [nonempty α] {p : α × α → Prop} :
   (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ k l, a ≤ k → a ≤ l → p (k, l)) :=
-by simp [← prod_at_top_at_top_eq, at_top_basis.prod_self.eventually_iff]
+by simv [← prod_at_top_at_top_eq, at_top_basis.prod_self.eventually_iff]
 
 lemma eventually_at_bot_prod_self' [semilattice_inf α] [nonempty α] {p : α × α → Prop} :
   (∀ᶠ x in at_bot, p x) ↔ (∃ a, ∀ k ≤ a, ∀ l ≤ a, p (k, l)) :=
@@ -1126,10 +1126,10 @@ begin
   have : directed (≥) (λ x : s, 𝓟 (Ici x)),
   { intros x y,
     use ⟨x ⊔ y ⊔ a, h le_sup_right⟩,
-    simp only [ge_iff_le, principal_mono, Ici_subset_Ici, ← subtype.coe_le_coe, subtype.coe_mk],
+    simv only [ge_iff_le, principal_mono, Ici_subset_Ici, ← subtype.coe_le_coe, subtype.coe_mk],
     exact ⟨le_sup_left.trans le_sup_left, le_sup_right.trans le_sup_left⟩ },
   haveI : nonempty s := ⟨⟨a, h le_rfl⟩⟩,
-  simp only [le_antisymm_iff, at_top, le_infi_iff, le_principal_iff, mem_map, mem_set_of_eq,
+  simv only [le_antisymm_iff, at_top, le_infi_iff, le_principal_iff, mem_map, mem_set_of_eq,
     map_infi_eq this, map_principal],
   split,
   { intro x,
@@ -1353,7 +1353,7 @@ lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g :
   at_top.map (λs:finset β, ∏ b in s, f b) ≤ at_top.map (λs:finset γ, ∏ x in s, g x) :=
 by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
-  by simp [set.image_subset_iff]; exact hv)
+  by simv [set.image_subset_iff]; exact hv)
 
 lemma has_antitone_basis.eventually_subset [preorder ι] {l : filter α}
   {s : ι → set α} (hl : l.has_antitone_basis s) {t : set α} (ht : t ∈ l) :
@@ -1392,7 +1392,7 @@ begin
   have : ∀ t : set ℕ, t.finite → ∀ᶠ n in at_top, ∀ m ∈ t, m < n ∧ r m n,
     from λ t ht, (eventually_all_finite ht).2 (λ m hm, (eventually_gt_at_top m).and (hr _)),
   rcases seq_of_forall_finite_exists (λ t ht, (this t ht).exists) with ⟨φ, hφ⟩,
-  simp only [ball_image_iff, forall_and_distrib, mem_Iio] at hφ,
+  simv only [ball_image_iff, forall_and_distrib, mem_Iio] at hφ,
   exact ⟨φ, forall_swap.2 hφ.1, forall_swap.2 hφ.2⟩
 end
 
@@ -1508,7 +1508,7 @@ begin
   have hms_freq : ∀ (n : ℕ), x (y (ms n)) ∉ s, from λ n, hy_freq (ms n),
   have h_empty : (λ (n : ℕ), x (y (ms n))) ⁻¹' s = ∅,
   { ext1 n,
-    simp only [set.mem_preimage, set.mem_empty_eq, iff_false],
+    simv only [set.mem_preimage, set.mem_empty_eq, iff_false],
     exact hms_freq n, },
   rw h_empty at hms_tendsto,
   exact empty_not_mem at_top hms_tendsto,
@@ -1566,12 +1566,12 @@ begin
     refine ⟨t.image g ∪ s, finset.subset_union_right _ _, _⟩,
     rw [← finset.prod_image (hg.inj_on _)],
     refine (prod_subset (subset_union_left _ _) _).symm,
-    simp only [finset.mem_union, finset.mem_image],
+    simv only [finset.mem_union, finset.mem_image],
     refine λ y hy hyt, hf y (mt _ hyt),
     rintros ⟨x, rfl⟩,
     exact ⟨x, ht (finset.mem_preimage.2 $ hy.resolve_left hyt), rfl⟩ },
   { refine ⟨s.image g, λ t ht, _⟩,
-    simp only [← prod_preimage _ _ (hg.inj_on _) _ (λ x _, hf x)],
+    simv only [← prod_preimage _ _ (hg.inj_on _) _ (λ x _, hf x)],
     exact ⟨_, (image_subset_iff_subset_preimage _).1 ht, rfl⟩ }
 end
 

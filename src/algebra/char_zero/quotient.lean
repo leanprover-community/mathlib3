@@ -22,7 +22,7 @@ begin
   rw [add_subgroup.mem_zmultiples_iff],
   simp_rw [add_subgroup.mem_zmultiples_iff, div_eq_mul_inv, ←smul_mul_assoc, eq_sub_iff_add_eq],
   have hz' : (z : R) ≠ 0 := int.cast_ne_zero.mpr hz,
-  conv_rhs { simp only [←(mul_right_injective₀ hz').eq_iff] { single_pass := tt}, },
+  conv_rhs { simv only [←(mul_right_injective₀ hz').eq_iff] { single_pass := tt}, },
   simp_rw [←zsmul_eq_mul, smul_add, ←mul_smul_comm, zsmul_eq_mul (z : R)⁻¹, mul_inv_cancel hz',
     mul_one, ←coe_nat_zsmul, smul_smul, ←add_smul],
   split,
@@ -55,7 +55,7 @@ begin
   induction ψ using quotient.induction_on',
   induction θ using quotient.induction_on',
   have : (quotient.mk' : R → R ⧸ add_subgroup.zmultiples p) = coe := rfl,
-  simp only [this],
+  simv only [this],
   simp_rw [←coe_zsmul, ←coe_nsmul, ←coe_add, quotient_add_group.eq_iff_sub_mem, ←smul_sub,
     ←sub_sub, add_subgroup.zsmul_mem_zmultiples_iff_exists_sub_div hz],
 end

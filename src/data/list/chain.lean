@@ -57,12 +57,12 @@ theorem chain.iff_mem {a : α} {l : list α} :
  chain.imp (λ a b h, h.2.2)⟩
 
 theorem chain_singleton {a b : α} : chain R a [b] ↔ R a b :=
-by simp only [chain_cons, chain.nil, and_true]
+by simv only [chain_cons, chain.nil, and_true]
 
 theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l₂) ↔
   chain R a (l₁ ++ [b]) ∧ chain R b l₂ :=
 by induction l₁ with x l₁ IH generalizing a;
-simp only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_assoc]
+simv only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_assoc]
 
 @[simp] theorem chain_append_cons_cons {a b c : α} {l₁ l₂ : list α} :
   chain R a (l₁ ++ b :: c :: l₂) ↔ chain R a (l₁ ++ [b]) ∧ R b c ∧ chain R c l₂ :=
@@ -70,17 +70,17 @@ by rw [chain_split, chain_cons]
 
 theorem chain_iff_forall₂ :
   ∀ {a : α} {l : list α}, chain R a l ↔ l = [] ∨ forall₂ R (a :: init l) l
-| a [] := by simp
-| a [b] := by simp [init]
-| a (b :: c :: l) := by simp [@chain_iff_forall₂ b]
+| a [] := by simv
+| a [b] := by simv [init]
+| a (b :: c :: l) := by simv [@chain_iff_forall₂ b]
 
 theorem chain_append_singleton_iff_forall₂ :
   chain R a (l ++ [b]) ↔ forall₂ R (a :: l) (l ++ [b]) :=
-by simp [chain_iff_forall₂, init]
+by simv [chain_iff_forall₂, init]
 
 theorem chain_map (f : β → α) {b : β} {l : list β} :
   chain R (f b) (map f l) ↔ chain (λ a b : β, R (f a) (f b)) b l :=
-by induction l generalizing b; simp only [map, chain.nil, chain_cons, *]
+by induction l generalizing b; simv only [map, chain.nil, chain_cons, *]
 
 theorem chain_of_chain_map {S : β → β → Prop} (f : α → β)
   (H : ∀ a b : α, S (f a) (f b) → R a b) {a : α} {l : list α}
@@ -100,8 +100,8 @@ theorem chain_pmap_of_chain {S : β → β → Prop} {p : α → Prop}
   chain S (f a ha) (list.pmap f l hl₂) :=
 begin
   induction l with lh lt l_ih generalizing a,
-  { simp },
-  { simp [H _ _ _ _ (rel_of_chain_cons hl₁), l_ih _ (chain_of_chain_cons hl₁)] }
+  { simv },
+  { simv [H _ _ _ _ (rel_of_chain_cons hl₁), l_ih _ (chain_of_chain_cons hl₁)] }
 end
 
 theorem chain_of_chain_pmap {S : β → β → Prop} {p : α → Prop}
@@ -111,15 +111,15 @@ theorem chain_of_chain_pmap {S : β → β → Prop} {p : α → Prop}
   chain R a l :=
 begin
   induction l with lh lt l_ih generalizing a,
-  { simp },
-  { simp [H _ _ _ _ (rel_of_chain_cons hl₂), l_ih _ _ (chain_of_chain_cons hl₂)] }
+  { simv },
+  { simv [H _ _ _ _ (rel_of_chain_cons hl₂), l_ih _ _ (chain_of_chain_cons hl₂)] }
 end
 
 protected lemma pairwise.chain (p : pairwise R (a :: l)) : chain R a l :=
 begin
   cases pairwise_cons.1 p with r p', clear p,
   induction p' with b l r' p IH generalizing a, {exact chain.nil},
-  simp only [chain_cons, forall_mem_cons] at r,
+  simv only [chain_cons, forall_mem_cons] at r,
   exact chain_cons.2 ⟨r.1, IH r'⟩
 end
 
@@ -127,7 +127,7 @@ protected lemma chain.pairwise [is_trans α R] :
   ∀ {a : α} {l : list α}, chain R a l → pairwise R (a :: l)
 | a [] chain.nil := pairwise_singleton _ _
 | a _ (@chain.cons _ _ _ b l h hb) := hb.pairwise.cons begin
-    simp only [mem_cons_iff, forall_eq_or_imp, h, true_and],
+    simv only [mem_cons_iff, forall_eq_or_imp, h, true_and],
     exact λ c hc, trans h (rel_of_pairwise_cons hb.pairwise hc),
   end
 
@@ -144,7 +144,7 @@ by { rw chain_iff_pairwise at hl, exact rel_of_pairwise_cons hl hb }
 theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
   chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
     R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h)))
-| a []       := by simp
+| a []       := by simv
 | a (b :: t) :=
 begin
   rw [chain_cons, chain_iff_nth_le],
@@ -156,10 +156,10 @@ begin
     cases i,
     { apply h0 },
     convert h i _ using 1,
-    simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
+    simv only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
     exact lt_pred_iff.mpr w, },
   rintro ⟨h0, h⟩, split,
-  { apply h0, simp, },
+  { apply h0, simv, },
   split,
   { apply h 0, },
   intros i w, convert h (i+1) _ using 1,
@@ -258,13 +258,13 @@ theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ :
 | [a]           l₂ h₁ h₂ h := h₂.cons' $ h _ rfl
 | (a :: b :: l) l₂ h₁ h₂ h :=
   begin
-    simp only [last'] at h,
+    simv only [last'] at h,
     have : chain' R (b :: l) := h₁.tail,
     exact (this.append h₂ h).cons h₁.rel_head
   end
 
 theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
-by simp only [chain'_singleton, chain'_cons, and_true]
+by simv only [chain'_singleton, chain'_cons, and_true]
 
 theorem chain'.imp_head {x y} (h : ∀ {z}, R x z → R y z) {l} (hl : chain' R (x :: l)) :
   chain' R (y :: l) :=
@@ -272,15 +272,15 @@ hl.tail.cons' $ λ z hz, h $ hl.rel_head' hz
 
 theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 | []            := iff.rfl
-| [a]           := by simp only [chain'_singleton, reverse_singleton]
+| [a]           := by simv only [chain'_singleton, reverse_singleton]
 | (a :: b :: l) := by rw [chain'_cons, reverse_cons, reverse_cons, append_assoc, cons_append,
     nil_append, chain'_split, ← reverse_cons, @chain'_reverse (b :: l), and_comm, chain'_pair, flip]
 
 theorem chain'_iff_nth_le {R} : ∀ {l : list α},
   chain' R l ↔ ∀ i (h : i < length l - 1),
     R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h))
-| []            := by simp
-| [a]           := by simp
+| []            := by simv
+| [a]           := by simv
 | (a :: b :: t) :=
 begin
   rw [chain'_cons, chain'_iff_nth_le],
@@ -289,12 +289,12 @@ begin
     cases i,
     { exact R, },
     { convert h i _ using 1,
-      simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
+      simv only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
       simpa using w, } },
   { rintro h, split,
-    { apply h 0, simp, },
+    { apply h 0, simv, },
     { intros i w, convert h (i+1) _ using 1,
-      simp only [add_zero, length, add_succ_sub_one] at w,
+      simv only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, } },
 end
 
@@ -305,10 +305,10 @@ lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
   chain' R (l₁ ++ l₂ ++ l₃)
 | []             l₂        l₃ h₁ h₂ hn := h₂
 | l₁             []        l₃ h₁ h₂ hn := (hn rfl).elim
-| [a]            (b :: l₂) l₃ h₁ h₂ hn := by { simp at *, tauto }
+| [a]            (b :: l₂) l₃ h₁ h₂ hn := by { simv at *, tauto }
 | (a :: b :: l₁) (c :: l₂) l₃ h₁ h₂ hn := begin
-  simp only [cons_append, chain'_cons] at h₁ h₂ ⊢,
-  simp only [← cons_append] at h₁ h₂ ⊢,
+  simv only [cons_append, chain'_cons] at h₁ h₂ ⊢,
+  simv only [← cons_append] at h₁ h₂ ⊢,
   exact ⟨h₁.1, chain'.append_overlap h₁.2 h₂ (cons_ne_nil _ _)⟩
 end
 
@@ -340,7 +340,7 @@ lemma chain.induction (p : α → Prop)
 begin
   induction l generalizing a,
   { cases hb,
-    simp [final] },
+    simv [final] },
   { rw chain_cons at h,
     rintro _ (rfl | _),
     apply carries h.1 (l_ih h.2 hb _ (or.inl rfl)),

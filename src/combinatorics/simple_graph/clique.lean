@@ -47,7 +47,7 @@ begin
   split,
   { intro h,
     ext ⟨v, hv⟩ ⟨w, hw⟩,
-    simp only [comap_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk],
+    simv only [comap_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk],
     exact ⟨adj.ne, h hv hw⟩, },
   { intros h v hv w hw hne,
     have : (G.induce s).adj ⟨v, hv⟩ ⟨w, hw⟩ = _ := rfl,
@@ -107,10 +107,10 @@ variables [decidable_eq α] {a b c : α}
 
 lemma is_3_clique_triple_iff : G.is_n_clique 3 {a, b, c} ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
 begin
-  simp only [is_n_clique_iff, is_clique_iff, set.pairwise_insert_of_symmetric G.symm, coe_insert],
+  simv only [is_n_clique_iff, is_clique_iff, set.pairwise_insert_of_symmetric G.symm, coe_insert],
   have : ¬ 1 + 1 = 3 := by norm_num,
   by_cases hab : a = b; by_cases hbc : b = c; by_cases hac : a = c;
-  subst_vars; simp [G.ne_of_adj, and_rotate, *],
+  subst_vars; simv [G.ne_of_adj, and_rotate, *],
 end
 
 lemma is_3_clique_iff :
@@ -140,15 +140,15 @@ variables {G H}
 lemma not_clique_free_of_top_embedding {n : ℕ}
   (f : (⊤ : simple_graph (fin n)) ↪g G) : ¬ G.clique_free n :=
 begin
-  simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not],
+  simv only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not],
   use finset.univ.map f.to_embedding,
-  simp only [card_map, finset.card_fin, eq_self_iff_true, and_true],
+  simv only [card_map, finset.card_fin, eq_self_iff_true, and_true],
   ext ⟨v, hv⟩ ⟨w, hw⟩,
-  simp only [coe_map, rel_embedding.coe_fn_to_embedding, set.mem_image,
+  simv only [coe_map, rel_embedding.coe_fn_to_embedding, set.mem_image,
     coe_univ, set.mem_univ, true_and] at hv hw,
   obtain ⟨v', rfl⟩ := hv,
   obtain ⟨w', rfl⟩ := hw,
-  simp only [f.map_adj_iff, comap_adj, function.embedding.coe_subtype, subtype.coe_mk, top_adj,
+  simv only [f.map_adj_iff, comap_adj, function.embedding.coe_subtype, subtype.coe_mk, top_adj,
     ne.def, subtype.mk_eq_mk],
   exact (function.embedding.apply_eq_iff_eq _ _ _).symm.not,
 end
@@ -158,7 +158,7 @@ noncomputable
 def top_embedding_of_not_clique_free {n : ℕ} (h : ¬ G.clique_free n) :
   (⊤ : simple_graph (fin n)) ↪g G :=
 begin
-  simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not] at h,
+  simv only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not] at h,
   obtain ⟨ha, hb⟩ := h.some_spec,
   have : (⊤ : simple_graph (fin h.some.card)) ≃g (⊤ : simple_graph h.some),
   { apply iso.complete_graph,

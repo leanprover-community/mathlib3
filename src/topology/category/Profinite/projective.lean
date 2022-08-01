@@ -41,7 +41,7 @@ instance projective_ultrafilter (X : Type u) :
     have hh : continuous h := continuous_ultrafilter_extend _,
     use ⟨h, hh⟩,
     apply faithful.map_injective (forget Profinite),
-    simp only [forget_map_eq_coe, continuous_map.coe_mk, coe_comp],
+    simv only [forget_map_eq_coe, continuous_map.coe_mk, coe_comp],
     refine dense_range_pure.equalizer (g.continuous.comp hh) f.continuous _,
     rw [comp.assoc, ultrafilter_extend_extends, ← comp.assoc, hg'.comp_eq_id, comp.left_id],
   end }

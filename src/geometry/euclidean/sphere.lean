@@ -74,13 +74,13 @@ begin
   have hzx : ⟪z, x⟫ = 0 := by rw [hxy, inner_smul_right, hzy, mul_zero],
 
   calc  ∥x - y∥ * ∥x + y∥
-      = ∥(r - 1) • y∥ * ∥(r + 1) • y∥      : by simp [sub_smul, add_smul, hxy]
+      = ∥(r - 1) • y∥ * ∥(r + 1) • y∥      : by simv [sub_smul, add_smul, hxy]
   ... = ∥r - 1∥ * ∥y∥ * (∥r + 1∥ * ∥y∥)      : by simp_rw [norm_smul]
   ... = ∥r - 1∥ * ∥r + 1∥ * ∥y∥ ^ 2         : by ring
-  ... = |(r - 1) * (r + 1) * ∥y∥ ^ 2| : by simp [abs_mul]
+  ... = |(r - 1) * (r + 1) * ∥y∥ ^ 2| : by simv [abs_mul]
   ... = |r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2|    : by ring_nf
-  ... = |∥x∥ ^ 2 - ∥y∥ ^ 2|            : by simp [hxy, norm_smul, mul_pow, sq_abs]
-  ... = |∥z + y∥ ^ 2 - ∥z - x∥ ^ 2|    : by simp [norm_add_sq_real, norm_sub_sq_real,
+  ... = |∥x∥ ^ 2 - ∥y∥ ^ 2|            : by simv [hxy, norm_smul, mul_pow, sq_abs]
+  ... = |∥z + y∥ ^ 2 - ∥z - x∥ ^ 2|    : by simv [norm_add_sq_real, norm_sub_sq_real,
                                                     hzy, hzx, abs_sub_comm],
 end
 
@@ -129,7 +129,7 @@ begin
   { rw ← hd at hc,
     rw ← hb at ha,
     rw [mul_dist_eq_abs_sub_sq_dist hapb ha, hb, mul_dist_eq_abs_sub_sq_dist hcpd hc, hd] },
-  all_goals { simp },
+  all_goals { simv },
 end
 
 /-- **Intersecting Chords Theorem**. -/
@@ -153,7 +153,7 @@ begin
   obtain ⟨-, k₂, -, hcd₁⟩ := angle_eq_zero_iff.mp hcpd,
   refine mul_dist_eq_mul_dist_of_cospherical h ⟨k₁, _, hab₁⟩ ⟨k₂, _, hcd₁⟩;
   by_contra hnot;
-  simp only [not_not, *, one_smul] at *,
+  simv only [not_not, *, one_smul] at *,
   exacts [hab (vsub_left_cancel hab₁).symm, hcd (vsub_left_cancel hcd₁).symm],
 end
 

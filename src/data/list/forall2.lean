@@ -42,8 +42,8 @@ lemma forall₂.flip : ∀ {a b}, forall₂ (flip r) b a → forall₂ r a b
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ h₂.flip
 
 @[simp] lemma forall₂_same {r : α → α → Prop} : ∀ {l : list α}, forall₂ r l l ↔ ∀ x ∈ l, r x x
-| [] := by simp
-| (a :: l) := by simp [@forall₂_same l]
+| [] := by simv
+| (a :: l) := by simv [@forall₂_same l]
 
 lemma forall₂_refl {r} [is_refl α r] (l : list α) : forall₂ r l l :=
 forall₂_same.2 $ λ a h, refl _
@@ -52,14 +52,14 @@ forall₂_same.2 $ λ a h, refl _
 begin
   funext a b, apply propext,
   split,
-  { intro h, induction h, {refl}, simp only [*]; split; refl },
+  { intro h, induction h, {refl}, simv only [*]; split; refl },
   { rintro rfl, exact forall₂_refl _ }
 end
 
-@[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
+@[simv, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
-@[simp, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
+@[simv, priority 900] lemma forall₂_nil_right_iff {l} : forall₂ r l nil ↔ l = nil :=
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
 lemma forall₂_cons_left_iff {a l u} :
@@ -76,20 +76,20 @@ iff.intro
 
 lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
   ∀ l u, forall₂ (λa b, p a ∧ r a b) l u ↔ (∀ a∈l, p a) ∧ forall₂ r l u
-| []     u := by simp only [forall₂_nil_left_iff, forall_prop_of_false (not_mem_nil _),
+| []     u := by simv only [forall₂_nil_left_iff, forall_prop_of_false (not_mem_nil _),
     imp_true_iff, true_and]
-| (a :: l) u := by simp only [forall₂_and_left l, forall₂_cons_left_iff, forall_mem_cons,
+| (a :: l) u := by simv only [forall₂_and_left l, forall₂_cons_left_iff, forall_mem_cons,
     and_assoc, and_comm, and.left_comm, exists_and_distrib_left.symm]
 
 @[simp] lemma forall₂_map_left_iff {f : γ → α} :
   ∀ {l u}, forall₂ r (map f l) u ↔ forall₂ (λc b, r (f c) b) l u
-| []     _ := by simp only [map, forall₂_nil_left_iff]
-| (a :: l) _ := by simp only [map, forall₂_cons_left_iff, forall₂_map_left_iff]
+| []     _ := by simv only [map, forall₂_nil_left_iff]
+| (a :: l) _ := by simv only [map, forall₂_cons_left_iff, forall₂_map_left_iff]
 
 @[simp] lemma forall₂_map_right_iff {f : γ → β} :
   ∀ {l u}, forall₂ r l (map f u) ↔ forall₂ (λa c, r a (f c)) l u
-| _ []     := by simp only [map, forall₂_nil_right_iff]
-| _ (b :: u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
+| _ []     := by simv only [map, forall₂_nil_right_iff]
+| _ (b :: u) := by simv only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
 
 lemma left_unique_forall₂' (hr : left_unique r) :
   ∀ {a b c}, forall₂ r a c → forall₂ r b c → a = b
@@ -134,15 +134,15 @@ end⟩
 
 theorem forall₂_take {R : α → β → Prop} :
   ∀ n {l₁ l₂}, forall₂ R l₁ l₂ → forall₂ R (take n l₁) (take n l₂)
-| 0 _ _ _ := by simp only [forall₂.nil, take]
-| (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, take]
-| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_take n]
+| 0 _ _ _ := by simv only [forall₂.nil, take]
+| (n+1) _ _ (forall₂.nil) := by simv only [forall₂.nil, take]
+| (n+1) _ _ (forall₂.cons h₁ h₂) := by simv [and.intro h₁ h₂, forall₂_take n]
 
 theorem forall₂_drop {R : α → β → Prop} :
   ∀ n {l₁ l₂}, forall₂ R l₁ l₂ → forall₂ R (drop n l₁) (drop n l₂)
-| 0 _ _ h := by simp only [drop, h]
-| (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, drop]
-| (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_drop n]
+| 0 _ _ h := by simv only [drop, h]
+| (n+1) _ _ (forall₂.nil) := by simv only [forall₂.nil, drop]
+| (n+1) _ _ (forall₂.cons h₁ h₂) := by simv [and.intro h₁ h₂, forall₂_drop n]
 
 theorem forall₂_take_append {R : α → β → Prop} (l : list α) (l₁ : list β) (l₂ : list β)
   (h : forall₂ R l (l₁ ++ l₂)) : forall₂ R (list.take (length l₁) l) l₁ :=
@@ -157,7 +157,7 @@ from forall₂_drop (length l₁) h,
 by rwa [drop_left] at h'
 
 lemma rel_mem (hr : bi_unique r) : (r ⇒ forall₂ r ⇒ iff) (∈) (∈)
-| a b h [] [] forall₂.nil := by simp only [not_mem_nil]
+| a b h [] [] forall₂.nil := by simv only [not_mem_nil]
 | a b h (a' :: as) (b' :: bs) (forall₂.cons h₁ h₂) := rel_or (rel_eq hr h h₁) (rel_mem h h₂)
 
 lemma rel_map : ((r ⇒ p) ⇒ forall₂ r ⇒ forall₂ p) map map
@@ -171,7 +171,7 @@ lemma rel_append : (forall₂ r ⇒ forall₂ r ⇒ forall₂ r) append append
 lemma rel_reverse : (forall₂ r ⇒ forall₂ r) reverse reverse
 | [] [] forall₂.nil := forall₂.nil
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := begin
-  simp only [reverse_cons],
+  simv only [reverse_cons],
   exact rel_append (rel_reverse h₂) (forall₂.cons h₁ forall₂.nil)
 end
 
@@ -204,10 +204,10 @@ lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidab
   begin
     by_cases p a,
     { have : q b, { rwa [← hpq h₁] },
-      simp only [filter_cons_of_pos _ h, filter_cons_of_pos _ this, forall₂_cons, h₁, rel_filter h₂,
+      simv only [filter_cons_of_pos _ h, filter_cons_of_pos _ this, forall₂_cons, h₁, rel_filter h₂,
         and_true], },
     { have : ¬ q b, { rwa [← hpq h₁] },
-      simp only [filter_cons_of_neg _ h, filter_cons_of_neg _ this, rel_filter h₂], },
+      simv only [filter_cons_of_neg _ h, filter_cons_of_neg _ this, rel_filter h₂], },
   end
 
 lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map

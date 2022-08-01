@@ -196,13 +196,13 @@ variables [complete_lattice α]
 
 example {s : set β} {f : β → α} : Inf (set.image f s) = (⨅ a ∈ s, f a) :=
 begin
-  simp [Inf_eq_infi, infi_and],
+  simv [Inf_eq_infi, infi_and],
   conversion infi_eq_elim.old_conv,
 end
 
 example {s : set β} {f : β → α} : Sup (set.image f s) = (⨆ a ∈ s, f a) :=
 begin
-  simp [Sup_eq_supr, supr_and],
+  simv [Sup_eq_supr, supr_and],
   conversion supr_eq_elim.old_conv,
 end
 

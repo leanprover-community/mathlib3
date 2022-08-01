@@ -56,7 +56,7 @@ begin
         p3 hp1,
       dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
         p3 hp2],
-  simp
+  simv
 end
 
 /-- `p` is equidistant from a set of points in `s` if and only if its
@@ -101,7 +101,7 @@ lemma exists_unique_dist_eq_of_insert {s : affine_subspace ℝ P}
 begin
   haveI : nonempty s := set.nonempty.to_subtype (hnps.mono hps),
   rcases hu with ⟨⟨cc, cr⟩, ⟨hcc, hcr⟩, hcccru⟩,
-  simp only [prod.fst, prod.snd] at hcc hcr hcccru,
+  simv only [prod.fst, prod.snd] at hcc hcr hcccru,
   let x := dist cc (orthogonal_projection s p),
   let y := dist p (orthogonal_projection s p),
   have hy0 : y ≠ 0 := dist_orthogonal_projection_ne_zero_of_not_mem hp,
@@ -109,9 +109,9 @@ begin
   let cc₂ := (ycc₂ / y) • (p -ᵥ orthogonal_projection s p : V) +ᵥ cc,
   let cr₂ := real.sqrt (cr * cr + ycc₂ * ycc₂),
   use (cc₂, cr₂),
-  simp only [prod.fst, prod.snd],
+  simv only [prod.fst, prod.snd],
   have hpo : p = (1 : ℝ) • (p -ᵥ orthogonal_projection s p : V) +ᵥ orthogonal_projection s p,
-  { simp },
+  { simv },
   split,
   { split,
     { refine vadd_mem_of_mem_direction _ (mem_affine_span ℝ (set.mem_insert_of_mem _ hcc)),
@@ -138,7 +138,7 @@ begin
             real.norm_eq_abs, abs_div, abs_of_nonneg dist_nonneg, div_mul_cancel _ hy0,
             abs_mul_abs_self] } } },
   { rintros ⟨cc₃, cr₃⟩ ⟨hcc₃, hcr₃⟩,
-    simp only [prod.fst, prod.snd] at hcc₃ hcr₃,
+    simv only [prod.fst, prod.snd] at hcc₃ hcr₃,
     obtain ⟨t₃, cc₃', hcc₃', hcc₃''⟩ :
       ∃ (r : ℝ) (p0 : P) (hp0 : p0 ∈ s), cc₃ = r • (p -ᵥ ↑((orthogonal_projection s) p)) +ᵥ p0,
     { rwa mem_affine_span_insert_iff (orthogonal_projection_mem p) at hcc₃ },
@@ -148,10 +148,10 @@ begin
       orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃'] at hcr₃',
     cases hcr₃' with cr₃' hcr₃',
     have hu := hcccru (cc₃', cr₃'),
-    simp only [prod.fst, prod.snd] at hu,
+    simv only [prod.fst, prod.snd] at hu,
     replace hu := hu ⟨hcc₃', hcr₃'⟩,
     rw prod.ext_iff at hu,
-    simp only [prod.fst, prod.snd] at hu,
+    simv only [prod.fst, prod.snd] at hu,
     cases hu with hucc hucr,
     substs hucc hucr,
     have hcr₃val : cr₃ = real.sqrt (cr₃' * cr₃' + (t₃ * y) * (t₃ * y)),
@@ -206,7 +206,7 @@ begin
       cases hn with i hi,
       haveI : unique ι := ⟨⟨i⟩, hi⟩,
       use (p i, 0),
-      simp only [prod.fst, prod.snd, set.range_unique, affine_subspace.mem_affine_span_singleton],
+      simv only [prod.fst, prod.snd, set.range_unique, affine_subspace.mem_affine_span_singleton],
       split,
       { simp_rw [hi default],
         use rfl,
@@ -214,7 +214,7 @@ begin
         rw hi i1,
         exact dist_self _ },
       { rintros ⟨cc, cr⟩,
-        simp only [prod.fst, prod.snd],
+        simv only [prod.fst, prod.snd],
         rintros ⟨rfl, hdist⟩,
         rw hi default,
         congr',
@@ -229,8 +229,8 @@ begin
           rw [finset.filter_eq, if_pos (finset.mem_univ _),
               finset.card_sdiff (finset.subset_univ _), finset.card_singleton, finset.card_univ,
               hn],
-          simp },
-        { simp } },
+          simv },
+        { simv } },
       haveI : nonempty ι2 := fintype.card_pos_iff.1 (hc.symm ▸ nat.zero_lt_succ _),
       have ha2 : affine_independent ℝ (λ i2 : ι2, p i2) := ha.subtype _,
       replace hm := hm ha2 hc,
@@ -238,7 +238,7 @@ begin
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
         rw [←set.image_eq_range, ←set.image_univ, ←set.image_insert_eq],
         congr' with j,
-        simp [classical.em] },
+        simv [classical.em] },
       change ∃! (cccr : P × ℝ), (_ ∧ ∀ i2, (λ q, dist q cccr.fst = cccr.snd) (p i2)),
       conv { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
       dsimp only,
@@ -254,7 +254,7 @@ begin
       convert ha.not_mem_affine_span_diff i set.univ,
       change set.range (λ i2 : {x | x ≠ i}, p i2) = _,
       rw ←set.image_eq_range,
-      congr' with j, simp, refl } }
+      congr' with j, simv, refl } }
 end
 
 end euclidean_geometry
@@ -317,7 +317,7 @@ lemma eq_circumcenter_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
   p = s.circumcenter :=
 begin
   have h := s.circumcenter_circumradius_unique_dist_eq.2 (p, r),
-  simp only [hp, hr, forall_const, eq_self_iff_true, and_self, prod.ext_iff] at h,
+  simv only [hp, hr, forall_const, eq_self_iff_true, and_self, prod.ext_iff] at h,
   exact h.1
 end
 
@@ -328,7 +328,7 @@ lemma eq_circumradius_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
   r = s.circumradius :=
 begin
   have h := s.circumcenter_circumradius_unique_dist_eq.2 (p, r),
-  simp only [hp, hr, forall_const, eq_self_iff_true, and_self, prod.ext_iff] at h,
+  simv only [hp, hr, forall_const, eq_self_iff_true, and_self, prod.ext_iff] at h,
   exact h.2
 end
 
@@ -369,7 +369,7 @@ begin
     rw [finset.centroid_pair_fin, dist_eq_norm_vsub V (s.points i),
         dist_eq_norm_vsub V (s.points j), vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub,
         ←one_smul ℝ (s.points i -ᵥ s.points 0), ←one_smul ℝ (s.points j -ᵥ s.points 0)],
-    fin_cases i; fin_cases j; simp [-one_smul, ←sub_smul]; norm_num },
+    fin_cases i; fin_cases j; simv [-one_smul, ←sub_smul]; norm_num },
   rw set.pairwise_eq_iff_exists_eq at hr,
   cases hr with r hr,
   exact (s.eq_circumcenter_of_dist_eq
@@ -422,7 +422,7 @@ lemma dist_circumcenter_sq_eq_sq_sub_circumradius {n : ℕ} {r : ℝ} (s : simpl
 begin
   rw [dist_comm, ←h₁ 0,
     s.dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq p₁ h],
-  simp only [h₁', dist_comm p₁, add_sub_cancel', simplex.dist_circumcenter_eq_circumradius],
+  simv only [h₁', dist_comm p₁, add_sub_cancel', simplex.dist_circumcenter_eq_circumradius],
 end
 
 /-- If there exists a distance that a point has from all vertices of a
@@ -456,7 +456,7 @@ lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : f
 begin
   have hr : ∃ r, ∀ i, dist ((s.face h).points i) s.circumcenter = r,
   { use s.circumradius,
-    simp [face_points] },
+    simv [face_points] },
   exact orthogonal_projection_eq_circumcenter_of_exists_dist_eq _ hr
 end
 
@@ -548,8 +548,8 @@ def point_weights_with_circumcenter {n : ℕ} (i : fin (n + 1)) : points_with_ci
 begin
   convert sum_ite_eq' univ (point_index i) (function.const _ (1 : ℝ)),
   { ext j,
-    cases j ; simp [point_weights_with_circumcenter] },
-  { simp }
+    cases j ; simv [point_weights_with_circumcenter] },
+  { simv }
 end
 
 include V
@@ -565,12 +565,12 @@ begin
   symmetry,
   refine affine_combination_of_eq_one_of_eq_zero _ _ _
     (mem_univ _)
-    (by simp [point_weights_with_circumcenter])
+    (by simv [point_weights_with_circumcenter])
     _,
   intros i hi hn,
   cases i,
   { have h : i_1 ≠ i := λ h, hn (h ▸ rfl),
-    simp [point_weights_with_circumcenter, h] },
+    simv [point_weights_with_circumcenter, h] },
   { refl }
 end
 
@@ -631,8 +631,8 @@ def circumcenter_weights_with_circumcenter (n : ℕ) : points_with_circumcenter_
   ∑ i, circumcenter_weights_with_circumcenter n i = 1 :=
 begin
   convert sum_ite_eq' univ circumcenter_index (function.const _ (1 : ℝ)),
-  { ext ⟨j⟩ ; simp [circumcenter_weights_with_circumcenter] },
-  { simp }
+  { ext ⟨j⟩ ; simv [circumcenter_weights_with_circumcenter] },
+  { simv }
 end
 
 include V
@@ -666,7 +666,7 @@ begin
   simp_rw [sum_points_with_circumcenter, reflection_circumcenter_weights_with_circumcenter,
            sum_ite, sum_const, filter_or, filter_eq'],
   rw card_union_eq,
-  { simp },
+  { simv },
   { simpa only [if_true, mem_univ, disjoint_singleton] using h }
 end
 
@@ -681,13 +681,13 @@ lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter 
       s.points_with_circumcenter (reflection_circumcenter_weights_with_circumcenter i₁ i₂) :=
 begin
   have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
-  { simp [h] },
+  { simv [h] },
   -- Making the next line a separate definition helps the elaborator:
   set W : affine_subspace ℝ P := affine_span ℝ (s.points '' {i₁, i₂}) with W_def,
   have h_faces : ↑(orthogonal_projection W s.circumcenter)
     = ↑((s.face hc).orthogonal_projection_span s.circumcenter),
   { apply eq_orthogonal_projection_of_eq_subspace,
-    simp },
+    simv },
   rw [euclidean_geometry.reflection_apply, h_faces, s.orthogonal_projection_circumcenter hc,
       circumcenter_eq_centroid, s.face_centroid_eq_centroid hc,
       centroid_eq_affine_combination_of_points_with_circumcenter,
@@ -751,7 +751,7 @@ begin
   have hsx : affine_span ℝ (set.range sx.points) = s,
   { refine sx.independent.affine_span_eq_of_le_of_card_eq_finrank_add_one
       (span_points_subset_coe_of_subset_coe (hsxps.trans h)) _,
-    simp [hd] },
+    simv [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
   exact (sx.eq_circumradius_of_dist_eq
     hc
@@ -807,7 +807,7 @@ begin
   have hsx : affine_span ℝ (set.range sx.points) = s,
   { refine sx.independent.affine_span_eq_of_le_of_card_eq_finrank_add_one
       (span_points_subset_coe_of_subset_coe (hsxps.trans h)) _,
-    simp [hd] },
+    simv [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
   exact (sx.eq_circumcenter_of_dist_eq
     hc
@@ -887,7 +887,7 @@ begin
   by_cases hp : p = s.orthogonal_projection_span p,
   { rw simplex.orthogonal_projection_span at hp,
     rw [hp₁, hp₂, ←hp],
-    simp only [true_or, eq_self_iff_true, smul_zero, vsub_self] },
+    simv only [true_or, eq_self_iff_true, smul_zero, vsub_self] },
   { have hz : ⟪p -ᵥ orthogonal_projection span_s p, p -ᵥ orthogonal_projection span_s p⟫ ≠ 0,
       by simpa only [ne.def, vsub_eq_zero_iff_eq, inner_self_eq_zero] using hp,
     rw [mul_left_inj' hz, mul_self_eq_mul_self_iff] at hd₁,

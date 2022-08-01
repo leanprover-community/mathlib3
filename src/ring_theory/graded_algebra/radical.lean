@@ -88,7 +88,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
       ((decompose 𝒜 x).support.product (decompose 𝒜 y).support)
         .filter (λ z : ι × ι, z.1 + z.2 = max₁ + max₂) with ha,
     have mem_antidiag : (max₁, max₂) ∈ antidiag,
-    { simp only [add_sum_erase, mem_filter, mem_product],
+    { simv only [add_sum_erase, mem_filter, mem_product],
       exact ⟨⟨mem_of_mem_filter _ mem_max₁, mem_of_mem_filter _ mem_max₂⟩, rfl⟩ },
     have eq_add_sum :=
       calc  proj 𝒜 (max₁ + max₂) (x * y)
@@ -101,7 +101,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     rw eq_sub_of_add_eq eq_add_sum.symm,
     refine ideal.sub_mem _ hxy (ideal.sum_mem _ (λ z H, _)),
     rcases z with ⟨i, j⟩,
-    simp only [mem_erase, prod.mk.inj_iff, ne.def, mem_filter, mem_product] at H,
+    simv only [mem_erase, prod.mk.inj_iff, ne.def, mem_filter, mem_product] at H,
     rcases H with ⟨H₁, ⟨H₂, H₃⟩, H₄⟩,
     have max_lt : max₁ < i ∨ max₂ < j,
     { rcases lt_trichotomy max₁ i with h | rfl | h,
@@ -116,13 +116,13 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
       have not_mem : i ∉ set₁ := λ h, lt_irrefl _
         ((max'_lt_iff set₁ (nonempty x rid₁)).mp max_lt i h),
       rw set₁_eq at not_mem,
-      simp only [not_and, not_not, ne.def, mem_filter] at not_mem,
+      simv only [not_and, not_not, ne.def, mem_filter] at not_mem,
       exact ideal.mul_mem_right _ I (not_mem H₂), },
     { -- in this case  `max₂ < j`, then `yⱼ ∈ I`; for otherwise `j ∈ set₂`, then `j ≤ max₂`.
       have not_mem : j ∉ set₂ := λ h, lt_irrefl _
         ((max'_lt_iff set₂ (nonempty y rid₂)).mp max_lt j h),
       rw set₂_eq at not_mem,
-      simp only [not_and, not_not, ne.def, mem_filter] at not_mem,
+      simv only [not_and, not_not, ne.def, mem_filter] at not_mem,
       exact ideal.mul_mem_left I _ (not_mem H₃), }, },
 
   have not_mem_I : proj 𝒜 max₁ x * proj 𝒜 max₂ y ∉ I,

@@ -104,7 +104,7 @@ begin
     dsimp only,
     rw [norm_eq_abs, abs_mul, abs_of_nonneg $ le_of_lt $ exp_pos $ -x,
       abs_cpow_eq_rpow_re_of_pos hx _],
-    simp }
+    simv }
 end
 
 /-- Euler's integral for the `Γ` function (of a complex variable `s`), defined as
@@ -121,7 +121,7 @@ begin
   refine set_integral_congr measurable_set_Ioi _,
   intros x hx, dsimp only,
   rw [of_real_mul, of_real_cpow (mem_Ioi.mp hx).le],
-  simp,
+  simv,
 end
 
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
@@ -156,8 +156,8 @@ private lemma Gamma_integrand_deriv_integrable_A {s : ℂ} (hs : 0 < s.re) {X : 
  interval_integrable (λ x, -((-x).exp * x ^ s) : ℝ → ℂ) volume 0 X :=
 begin
   convert (Gamma_integrand_interval_integrable (s+1) _ hX).neg,
-  { ext1, simp only [add_sub_cancel, pi.neg_apply] },
-  { simp only [add_re, one_re], linarith,},
+  { ext1, simv only [add_sub_cancel, pi.neg_apply] },
+  { simv only [add_re, one_re], linarith,},
 end
 
 private lemma Gamma_integrand_deriv_integrable_B {s : ℂ} (hs : 0 < s.re) {Y : ℝ} (hY : 0 ≤ Y) :
@@ -181,7 +181,7 @@ begin
   rw [eventually_eq, ae_restrict_iff'],
   { apply ae_of_all, intros x hx,
     rw [abs_of_nonneg (exp_pos _).le,abs_cpow_eq_rpow_re_of_pos hx.1],
-    simp },
+    simv },
   { exact measurable_set_Ioc},
 end
 
@@ -196,10 +196,10 @@ begin
     have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
     { simpa using (has_deriv_at_neg x).exp },
     have d1b : has_deriv_at (λ y, ↑(-y).exp : ℝ → ℂ) (↑-(-x).exp) x,
-    { convert has_deriv_at.scomp x of_real_clm.has_deriv_at d1, simp, },
+    { convert has_deriv_at.scomp x of_real_clm.has_deriv_at d1, simv, },
     have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
     { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
-      simp only [id.def, of_real_re, of_real_im,
+      simv only [id.def, of_real_re, of_real_im,
         ne.def, eq_self_iff_true, not_true, or_false, mul_one] at t,
       simpa using has_deriv_at.comp x (t hx.left) of_real_clm.has_deriv_at, },
     simpa only [of_real_neg, neg_mul] using d1b.mul d2 },
@@ -215,7 +215,7 @@ begin
     at int_eval,
   replace int_eval := eq_sub_of_add_eq int_eval,
   rw [int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
-  simp only [sub_left_inj, add_left_inj],
+  simv only [sub_left_inj, add_left_inj],
   have : (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) = (λ x, s * (-x).exp * x ^ (s - 1) : ℝ → ℂ),
   { ext1, ring,},
   rw this,
@@ -264,10 +264,10 @@ lemma Gamma_aux_recurrence1 (s : ℂ) (n : ℕ) (h1 : -s.re < ↑n) :
   Gamma_aux n s = Gamma_aux n (s+1) / s :=
 begin
   induction n with n hn generalizing s,
-  { simp only [nat.cast_zero, neg_lt_zero] at h1,
+  { simv only [nat.cast_zero, neg_lt_zero] at h1,
     dsimp only [Gamma_aux], rw Gamma_integral_add_one h1,
     rw [mul_comm, mul_div_cancel], contrapose! h1, rw h1,
-    simp },
+    simv },
   { dsimp only [Gamma_aux],
     have hh1 : -(s+1).re < n,
     { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one] at h1,
@@ -279,7 +279,7 @@ lemma Gamma_aux_recurrence2 (s : ℂ) (n : ℕ) (h1 : -s.re < ↑n) :
   Gamma_aux n s = Gamma_aux (n+1) s :=
 begin
   cases n,
-  { simp only [nat.cast_zero, neg_lt_zero] at h1,
+  { simv only [nat.cast_zero, neg_lt_zero] at h1,
     dsimp only [Gamma_aux],
     rw [Gamma_integral_add_one h1, mul_div_cancel_left],
     rintro rfl,
@@ -302,12 +302,12 @@ lemma Gamma_eq_Gamma_aux (s : ℂ) (n : ℕ) (h1 : -s.re < ↑n) : Gamma s = Gam
 begin
   have u : ∀ (k : ℕ), Gamma_aux (⌊1 - s.re⌋₊ + k) s = Gamma s,
   { intro k, induction k with k hk,
-    { simp [Gamma],},
+    { simv [Gamma],},
     { rw [←hk, nat.succ_eq_add_one, ←add_assoc],
       refine (Gamma_aux_recurrence2 s (⌊1 - s.re⌋₊ + k) _).symm,
       rw nat.cast_add,
       have i0 := nat.sub_one_lt_floor (1 - s.re),
-      simp only [sub_sub_cancel_left] at i0,
+      simv only [sub_sub_cancel_left] at i0,
       refine lt_add_of_lt_of_nonneg i0 _,
       rw [←nat.cast_zero, nat.cast_le], exact nat.zero_le k, } },
   convert (u $ n - ⌊1 - s.re⌋₊).symm, rw nat.add_sub_of_le,
@@ -336,9 +336,9 @@ theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
 begin
   induction n with n hn,
   { rw [nat.cast_zero, zero_add], rw Gamma_eq_integral,
-    simpa using Gamma_integral_one, simp,},
+    simpa using Gamma_integral_one, simv,},
   rw (Gamma_add_one n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
-  { simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
+  { simv only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
 end
 
 end Gamma_def
@@ -373,7 +373,7 @@ begin
   apply tendsto.at_top_mul_at_top (tendsto_exp_mul_div_rpow_at_top s (1/2) one_half_pos),
   refine tendsto.congr' _ ((tendsto_exp_div_pow_at_top 1).comp tendsto_log_at_top),
   apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
-  intros x hx, simp [exp_log hx],
+  intros x hx, simv [exp_log hx],
 end
 
 /-- Absolute convergence of the integral which will give the derivative of the `Γ` function on
@@ -385,7 +385,7 @@ begin
   refine ⟨⟨_, _⟩, _⟩,
   { refine continuous_on.ae_strongly_measurable (continuous_on.mul _ _).norm measurable_set_Ioc,
     { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
-      simp, },
+      simv, },
     { apply continuous_on_id.rpow_const, intros x hx, right, linarith }, },
   { apply has_finite_integral_of_bounded,
     swap, { exact 1 / (s - 1), },
@@ -397,7 +397,7 @@ begin
   { have := (dGamma_integrand_is_o_at_top s).is_O.norm_left,
     refine integrable_of_is_O_exp_neg one_half_pos (continuous_on.mul _ _).norm this,
     { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
-      simp, },
+      simv, },
     { apply continuous_at.continuous_on (λ x hx, _),
       apply continuous_at_id.rpow continuous_at_const,
       dsimp, right, linarith, }, }
@@ -452,7 +452,7 @@ begin
   have hF'_meas : ae_strongly_measurable (dGamma_integrand s) μ,
   { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
     have : dGamma_integrand s = (λ x, real.exp (-x) * x ^ (s - 1) * real.log x : ℝ → ℂ),
-    { ext1, simp only [dGamma_integrand], ring },
+    { ext1, simv only [dGamma_integrand], ring },
     rw this,
     refine continuous_on.mul (cont s) (continuous_at.continuous_on _),
     exact λ x hx, continuous_of_real.continuous_at.comp (continuous_at_log (mem_Ioi.mp hx).ne'), },
@@ -463,7 +463,7 @@ begin
     replace ht := lt_of_le_of_lt (complex.abs_re_le_abs $ t - s ) ht,
     rw [complex.sub_re, @abs_sub_lt_iff ℝ _ t.re s.re ((s.re - 1) / 2) ] at ht,
     refine loc_unif_bound_dGamma_integrand _ _ hx,
-    all_goals { simp only [ε], linarith } },
+    all_goals { simv only [ε], linarith } },
   have bound_integrable : integrable bound μ,
   { apply integrable.add,
     { refine dGamma_integral_abs_convergent (s.re - ε) _,
@@ -474,7 +474,7 @@ begin
     → has_deriv_at (λ u, real.exp (-x) * x ^ (u - 1) : ℂ → ℂ) (dGamma_integrand t x) t,
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     intros t ht, rw mem_Ioi at hx,
-    simp only [dGamma_integrand],
+    simv only [dGamma_integrand],
     rw mul_assoc,
     apply has_deriv_at.const_mul,
     rw [of_real_log hx.le, mul_comm],
@@ -497,7 +497,7 @@ begin
     have b : ∀ m:ℕ, s + 1 + m ≠ 0,
     { intro m, have := h2 (1 + m), rwa [nat.cast_add, nat.cast_one, ←add_assoc] at this },
     refine differentiable_at.div (differentiable_at.comp _ (hn a b) _) _ _,
-    simp, simp, simpa using h2 0 }
+    simv, simv, simpa using h2 0 }
 end
 
 theorem differentiable_at_Gamma (s : ℂ) (hs : ∀ m:ℕ, s + m ≠ 0) : differentiable_at ℂ Gamma s :=

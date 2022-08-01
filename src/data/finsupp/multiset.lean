@@ -25,12 +25,12 @@ namespace finsupp
 `f` on the elements of `α`. We define this function as an `add_equiv`. -/
 def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
 { to_fun := λ f, f.sum (λa n, n • {a}),
-  inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
+  inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simv⟩,
   left_inv := λ f, ext $ λ a, by
-    { simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
+    { simv only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
         mem_support_iff, multiset.count_nsmul, finset.sum_ite_eq, ite_not, ite_eq_right_iff],
       exact eq.symm },
-  right_inv := λ s, by simp only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
+  right_inv := λ s, by simv only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
   map_add' := λ f g, sum_add_index' (λ a, zero_nsmul _) (λ a, add_nsmul _) }
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 := rfl
@@ -57,7 +57,7 @@ lemma to_multiset_sum_single (s : finset ι) (n : ℕ) :
 by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λ a, id) :=
-by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
+by simv [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
 
 lemma to_multiset_map (f : α →₀ ℕ) (g : α → β) :
   f.to_multiset.map g = (f.map_domain g).to_multiset :=
@@ -98,10 +98,10 @@ end
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
   (multiset.count_add_monoid_hom a).map_sum _ f.support
-  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
+  ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simv only [multiset.count_nsmul]
   ... = f a * ({a} : multiset α).count a : sum_eq_single _
-    (λ a' _ H, by simp only [multiset.count_singleton, if_false, H.symm, mul_zero])
-    (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
+    (λ a' _ H, by simv only [multiset.count_singleton, if_false, H.symm, mul_zero])
+    (λ H, by simv only [not_mem_support_iff.1 H, zero_mul])
   ... = f a : by rw [multiset.count_singleton_self, mul_one]
 
 @[simp] lemma mem_to_multiset (f : α →₀ ℕ) (i : α) : i ∈ f.to_multiset ↔ i ∈ f.support :=
@@ -129,7 +129,7 @@ lemma to_finsupp_add (s t : multiset α) : to_finsupp (s + t) = to_finsupp s + t
 to_finsupp.map_add s t
 
 @[simp] lemma to_finsupp_singleton (a : α) : to_finsupp ({a} : multiset α) = finsupp.single a 1 :=
-finsupp.to_multiset.symm_apply_eq.2 $ by simp
+finsupp.to_multiset.symm_apply_eq.2 $ by simv
 
 @[simp] lemma to_finsupp_to_multiset (s : multiset α) : s.to_finsupp.to_multiset = s :=
 finsupp.to_multiset.apply_symm_apply s
@@ -149,7 +149,7 @@ namespace finsupp
 /-- `finsupp.to_multiset` as an order isomorphism. -/
 def order_iso_multiset : (ι →₀ ℕ) ≃o multiset ι :=
 { to_equiv := to_multiset.to_equiv,
-  map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
+  map_rel_iff' := λ f g, by simv [multiset.le_iff_count, le_def] }
 
 @[simp] lemma coe_order_iso_multiset : ⇑(@order_iso_multiset ι) = to_multiset := rfl
 

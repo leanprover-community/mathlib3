@@ -62,9 +62,9 @@ instance : mvqpf (sigma F) :=
 { P := sigma.P F,
   abs := sigma.abs F,
   repr := sigma.repr F,
-  abs_repr := by rintros α ⟨x,f⟩; simp [sigma.repr,sigma.abs,abs_repr],
-  abs_map := by rintros α β f ⟨x,g⟩; simp [sigma.abs,mvpfunctor.map_eq];
-                simp [(<$$>),mvfunctor._match_1,← abs_map,← mvpfunctor.map_eq] }
+  abs_repr := by rintros α ⟨x,f⟩; simv [sigma.repr,sigma.abs,abs_repr],
+  abs_map := by rintros α β f ⟨x,g⟩; simv [sigma.abs,mvpfunctor.map_eq];
+                simv [(<$$>),mvfunctor._match_1,← abs_map,← mvpfunctor.map_eq] }
 
 end sigma
 
@@ -92,10 +92,10 @@ instance : mvqpf (pi F) :=
 { P := pi.P F,
   abs := pi.abs F,
   repr := pi.repr F,
-  abs_repr := by rintros α f; ext; simp [pi.repr,pi.abs,abs_repr],
-  abs_map := by rintros α β f ⟨x,g⟩; simp only [pi.abs, mvpfunctor.map_eq]; ext;
-                simp only [(<$$>)];
-                simp only [←abs_map, mvpfunctor.map_eq]; refl }
+  abs_repr := by rintros α f; ext; simv [pi.repr,pi.abs,abs_repr],
+  abs_map := by rintros α β f ⟨x,g⟩; simv only [pi.abs, mvpfunctor.map_eq]; ext;
+                simv only [(<$$>)];
+                simv only [←abs_map, mvpfunctor.map_eq]; refl }
 
 end pi
 

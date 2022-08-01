@@ -55,7 +55,7 @@ instance normed_field.to_normed_space : normed_space α α :=
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
   by_cases h : s = 0,
-  { simp [h] },
+  { simv [h] },
   { refine le_antisymm (normed_space.norm_smul_le s x) _,
     calc ∥s∥ * ∥x∥ = ∥s∥ * ∥s⁻¹ • s • x∥     : by rw [inv_smul_smul₀ h]
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
@@ -69,11 +69,11 @@ end
 
 lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
   ∥x∥⁻¹ • x ∈ closed_ball (0 : β) 1 :=
-by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
+by simv only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
   div_self_le_one]
 
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
-by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
+by simv only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥₊ = ∥s∥₊ * ∥x∥₊ :=
 nnreal.eq $ norm_smul s x
@@ -94,7 +94,7 @@ variables {F : Type*} [seminormed_add_comm_group F] [normed_space α F]
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
 have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
-  from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
+  from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simv),
 this.eventually (gt_mem_nhds h)
 
 lemma filter.tendsto.zero_smul_is_bounded_under_le {f : ι → α} {g : ι → E} {l : filter ι}
@@ -115,7 +115,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
+  { simv [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
@@ -146,7 +146,7 @@ begin
     have h1 : (1:ℝ) ∈ interior (Icc (-1:ℝ) 1) :=
       interior_mono this (preimage_interior_subset_interior_preimage hfc hf1),
     contrapose h1,
-    simp },
+    simv },
   intros c hc,
   rw [mem_Icc, ← abs_le, ← real.norm_eq_abs, ← mul_le_mul_right hr],
   simpa [f, dist_eq_norm, norm_smul] using hc
@@ -197,7 +197,7 @@ instance : normed_space α (ulift E) :=
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
-{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
+{ norm_smul_le := λ s x, le_of_eq $ by simv [prod.norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_add_comm_group,
   ..prod.module }
 
@@ -207,7 +207,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, seminormed_add_c
 { norm_smul_le := λ a f, le_of_eq $
     show (↑(finset.sup finset.univ (λ (b : ι), ∥a • f b∥₊)) : ℝ) =
       ∥a∥₊ * ↑(finset.sup finset.univ (λ (b : ι), ∥f b∥₊)),
-    by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
+    by simv only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
@@ -279,7 +279,7 @@ begin
   rcases exists_ne (0 : E) with ⟨x, hx⟩,
   rw ← norm_ne_zero_iff at hx,
   use c • ∥x∥⁻¹ • x,
-  simp [norm_smul, real.norm_of_nonneg hc, hx]
+  simv [norm_smul, real.norm_of_nonneg hc, hx]
 end
 
 @[simp] lemma range_norm : range (norm : E → ℝ) = Ici 0 :=
@@ -451,7 +451,7 @@ instance normed_algebra_rat {𝕜} [normed_division_ring 𝕜] [char_zero 𝕜] 
     by rw [←smul_one_smul ℝ q x, rat.smul_one_eq_coe, norm_smul, rat.norm_cast_real], }
 
 instance punit.normed_algebra : normed_algebra 𝕜 punit :=
-{ norm_smul_le := λ q x, by simp only [punit.norm_eq_zero, mul_zero] }
+{ norm_smul_le := λ q x, by simv only [punit.norm_eq_zero, mul_zero] }
 
 instance : normed_algebra 𝕜 (ulift 𝕜') :=
 { ..ulift.normed_space }

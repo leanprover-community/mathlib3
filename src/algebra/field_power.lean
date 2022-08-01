@@ -30,7 +30,7 @@ f.to_ring_hom.map_zpow
 @[simp] lemma zpow_bit1_neg (x : α) (n : ℤ) : (-x) ^ bit1 n = - x ^ bit1 n :=
 by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
 
-@[simp, norm_cast] lemma rat.cast_zpow [char_zero α] (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
+@[simv, norm_cast] lemma rat.cast_zpow [char_zero α] (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
 (rat.cast_hom α).map_zpow q n
 
 end division_ring
@@ -49,12 +49,12 @@ lemma zpow_pos_of_pos (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
 lemma zpow_le_of_le (ha : 1 ≤ a) (h : m ≤ n) : a ^ m ≤ a ^ n :=
 begin
   induction m with m m; induction n with n n,
-  { simp only [of_nat_eq_coe, zpow_coe_nat],
+  { simv only [of_nat_eq_coe, zpow_coe_nat],
     exact pow_le_pow ha (le_of_coe_nat_le_coe_nat h) },
   { cases h.not_lt ((neg_succ_lt_zero _).trans_le $ of_nat_nonneg _) },
-  { simp only [zpow_neg_succ_of_nat, one_div, of_nat_eq_coe, zpow_coe_nat],
+  { simv only [zpow_neg_succ_of_nat, one_div, of_nat_eq_coe, zpow_coe_nat],
     apply le_trans (inv_le_one _); apply one_le_pow_of_one_le ha },
-  { simp only [zpow_neg_succ_of_nat],
+  { simv only [zpow_neg_succ_of_nat],
     apply (inv_le_inv _ _).2,
     { apply pow_le_pow ha,
       have : -(↑(m+1) : ℤ) ≤ -(↑(n+1) : ℤ), from h,

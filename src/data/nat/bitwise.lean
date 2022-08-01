@@ -49,16 +49,16 @@ begin
 end
 
 @[simp] lemma zero_test_bit (i : ℕ) : test_bit 0 i = ff :=
-by simp [test_bit]
+by simv [test_bit]
 
 /-- Bitwise extensionality: Two numbers agree if they agree at every bit position. -/
 lemma eq_of_test_bit_eq {n m : ℕ} (h : ∀ i, test_bit n i = test_bit m i) : n = m :=
 begin
   induction n using nat.binary_rec with b n hn generalizing m,
-  { simp only [zero_test_bit] at h,
+  { simv only [zero_test_bit] at h,
     exact (zero_of_test_bit_eq_ff (λ i, (h i).symm)).symm },
   induction m using nat.binary_rec with b' m hm,
-  { simp only [zero_test_bit] at h,
+  { simv only [zero_test_bit] at h,
     exact zero_of_test_bit_eq_ff h },
   suffices h' : n = m,
   { rw [h', show b = b', by simpa using h 0] },
@@ -72,7 +72,7 @@ begin
   { exact false.elim (h rfl) },
   by_cases h' : n = 0,
   { subst h',
-    rw (show b = tt, by { revert h, cases b; simp }),
+    rw (show b = tt, by { revert h, cases b; simv }),
     refine ⟨0, ⟨by rw [test_bit_zero], λ j hj, _⟩⟩,
     obtain ⟨j', rfl⟩ := exists_eq_succ_of_ne_zero (ne_of_gt hj),
     rw [test_bit_succ, zero_test_bit] },
@@ -88,21 +88,21 @@ begin
   induction n using nat.binary_rec with b n hn' generalizing i m,
   { contrapose! hm,
     rw le_zero_iff at hm,
-    simp [hm] },
+    simv [hm] },
   induction m using nat.binary_rec with b' m hm' generalizing i,
   { exact false.elim (bool.ff_ne_tt ((zero_test_bit i).symm.trans hm)) },
   by_cases hi : i = 0,
   { subst hi,
-    simp only [test_bit_zero] at hn hm,
+    simv only [test_bit_zero] at hn hm,
     have : n = m,
     { exact eq_of_test_bit_eq (λ i, by convert hnm (i + 1) dec_trivial using 1; rw test_bit_succ) },
     rw [hn, hm, this, bit_ff, bit_tt, bit0_val, bit1_val],
     exact lt_add_one _ },
   { obtain ⟨i', rfl⟩ := exists_eq_succ_of_ne_zero hi,
-    simp only [test_bit_succ] at hn hm,
+    simv only [test_bit_succ] at hn hm,
     have := hn' _ hn hm (λ j hj, by convert hnm j.succ (succ_lt_succ hj) using 1; rw test_bit_succ),
     cases b; cases b';
-    simp only [bit_ff, bit_tt, bit0_val n, bit1_val n, bit0_val m, bit1_val m];
+    simv only [bit_ff, bit_tt, bit0_val n, bit1_val n, bit0_val m, bit1_val m];
     linarith }
 end
 
@@ -117,16 +117,16 @@ begin
   { rw [nat.div_eq_zero, bodd_zero],
     exact nat.pow_lt_pow_of_lt_right one_lt_two hm },
   { rw [pow_div hm.le zero_lt_two, ← tsub_add_cancel_of_le (succ_le_of_lt $ tsub_pos_of_lt hm)],
-    simp [pow_succ] }
+    simv [pow_succ] }
 end
 
 lemma test_bit_two_pow (n m : ℕ) : test_bit (2 ^ n) m = (n = m) :=
 begin
   by_cases n = m,
   { cases h,
-    simp },
+    simv },
   { rw test_bit_two_pow_of_ne h,
-    simp [h] }
+    simv [h] }
 end
 
 /-- If `f` is a commutative operation on bools such that `f ff ff = ff`, then `bitwise f` is also
@@ -141,31 +141,31 @@ lemma lor_comm (n m : ℕ) : lor n m = lor m n := bitwise_comm bool.bor_comm rfl
 lemma land_comm (n m : ℕ) : land n m = land m n := bitwise_comm bool.band_comm rfl n m
 lemma lxor_comm (n m : ℕ) : lxor n m = lxor m n := bitwise_comm bool.bxor_comm rfl n m
 
-@[simp] lemma zero_lxor (n : ℕ) : lxor 0 n = n := by simp [lxor]
-@[simp] lemma lxor_zero (n : ℕ) : lxor n 0 = n := by simp [lxor]
+@[simp] lemma zero_lxor (n : ℕ) : lxor 0 n = n := by simv [lxor]
+@[simp] lemma lxor_zero (n : ℕ) : lxor n 0 = n := by simv [lxor]
 
-@[simp] lemma zero_land (n : ℕ) : land 0 n = 0 := by simp [land]
-@[simp] lemma land_zero (n : ℕ) : land n 0 = 0 := by simp [land]
+@[simp] lemma zero_land (n : ℕ) : land 0 n = 0 := by simv [land]
+@[simp] lemma land_zero (n : ℕ) : land n 0 = 0 := by simv [land]
 
-@[simp] lemma zero_lor (n : ℕ) : lor 0 n = n := by simp [lor]
-@[simp] lemma lor_zero (n : ℕ) : lor n 0 = n := by simp [lor]
+@[simp] lemma zero_lor (n : ℕ) : lor 0 n = n := by simv [lor]
+@[simp] lemma lor_zero (n : ℕ) : lor n 0 = n := by simv [lor]
 
 /-- Proving associativity of bitwise operations in general essentially boils down to a huge case
     distinction, so it is shorter to use this tactic instead of proving it in the general case. -/
 meta def bitwise_assoc_tac : tactic unit :=
 `[induction n using nat.binary_rec with b n hn generalizing m k,
-  { simp },
+  { simv },
   induction m using nat.binary_rec with b' m hm,
-  { simp },
+  { simv },
   induction k using nat.binary_rec with b'' k hk;
-  simp [hn]]
+  simv [hn]]
 
 lemma lxor_assoc (n m k : ℕ) : lxor (lxor n m) k = lxor n (lxor m k) := by bitwise_assoc_tac
 lemma land_assoc (n m k : ℕ) : land (land n m) k = land n (land m k) := by bitwise_assoc_tac
 lemma lor_assoc (n m k : ℕ) : lor (lor n m) k = lor n (lor m k) := by bitwise_assoc_tac
 
 @[simp] lemma lxor_self (n : ℕ) : lxor n n = 0 :=
-zero_of_test_bit_eq_ff $ λ i, by simp
+zero_of_test_bit_eq_ff $ λ i, by simv
 
 -- These lemmas match `mul_inv_cancel_right` and `mul_inv_cancel_left`.
 
@@ -199,27 +199,27 @@ begin
 
   -- The xor of any two of `a`, `b`, `c` is the xor of `v` and the third.
   have hab : lxor a b = lxor c v,
-  { rw hv, conv_rhs { rw lxor_comm, simp [lxor_assoc] } },
+  { rw hv, conv_rhs { rw lxor_comm, simv [lxor_assoc] } },
   have hac : lxor a c = lxor b v,
   { rw hv,
     conv_rhs { congr, skip, rw lxor_comm },
     rw [←lxor_assoc, ←lxor_assoc, lxor_self, zero_lxor, lxor_comm] },
   have hbc : lxor b c = lxor a v,
-  { simp [hv, ←lxor_assoc] },
+  { simv [hv, ←lxor_assoc] },
 
   -- If `i` is the position of the most significant bit of `v`, then at least one of `a`, `b`, `c`
   -- has a one bit at position `i`.
   obtain ⟨i, ⟨hi, hi'⟩⟩ := exists_most_significant_bit (lxor_ne_zero.2 h),
   have : test_bit a i = tt ∨ test_bit b i = tt ∨ test_bit c i = tt,
   { contrapose! hi,
-    simp only [eq_ff_eq_not_eq_tt, ne, test_bit_lxor] at ⊢ hi,
+    simv only [eq_ff_eq_not_eq_tt, ne, test_bit_lxor] at ⊢ hi,
     rw [hi.1, hi.2.1, hi.2.2, bxor_ff, bxor_ff] },
 
   -- If, say, `a` has a one bit at position `i`, then `a xor v` has a zero bit at position `i`, but
   -- the same bits as `a` in positions greater than `j`, so `a xor v < a`.
   rcases this with h|h|h;
   [{ left, rw hbc }, { right, left, rw hac }, { right, right, rw hab }];
-  exact lt_of_test_bit i (by simp [h, hi]) h (λ j hj, by simp [hi' _ hj])
+  exact lt_of_test_bit i (by simv [h, hi]) h (λ j hj, by simv [hi' _ hj])
 end
 
 lemma lt_lxor_cases {a b c : ℕ} (h : a < lxor b c) : lxor a c < b ∨ lxor a b < c :=

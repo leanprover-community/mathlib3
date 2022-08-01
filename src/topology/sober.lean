@@ -43,7 +43,7 @@ variables {x y : α} {S U Z : set α}
 
 lemma is_generic_point_iff_specializes :
   is_generic_point x S ↔ ∀ y, x ⤳ y ↔ y ∈ S :=
-by simp only [specializes_iff_mem_closure, is_generic_point, set.ext_iff]
+by simv only [specializes_iff_mem_closure, is_generic_point, set.ext_iff]
 
 namespace is_generic_point
 
@@ -133,7 +133,7 @@ lemma generic_point_closure [quasi_sober α] [irreducible_space α] :
 variable {α}
 
 lemma generic_point_specializes [quasi_sober α] [irreducible_space α] (x : α) :
-  generic_point α ⤳ x := (is_irreducible.generic_point_spec _).specializes (by simp)
+  generic_point α ⤳ x := (is_irreducible.generic_point_spec _).specializes (by simv)
 
 local attribute [instance, priority 10] specialization_order
 
@@ -148,7 +148,7 @@ def irreducible_set_equiv_points [quasi_sober α] [t0_space α] :
   right_inv := λ x, is_irreducible_singleton.closure.generic_point_spec.eq
       (by { convert is_generic_point_closure using 1, rw closure_closure }),
   map_rel_iff' := λ s t, by { change _ ⤳ _ ↔ _, rw specializes_iff_closure_subset,
-    simp [s.prop.2.closure_eq, t.prop.2.closure_eq, ← subtype.coe_le_coe] } }
+    simv [s.prop.2.closure_eq, t.prop.2.closure_eq, ← subtype.coe_le_coe] } }
 
 lemma closed_embedding.quasi_sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
   quasi_sober α :=
@@ -186,7 +186,7 @@ begin
     set.image_singleton, (show _ = _, from hx)],
   apply set.image_injective.mpr hf.inj,
   ext z,
-  simp only [set.image_preimage_eq_inter_range, set.mem_inter_eq, and.congr_left_iff],
+  simv only [set.image_preimage_eq_inter_range, set.mem_inter_eq, and.congr_left_iff],
   exact λ hy, ⟨λ h, hT.closure_eq ▸ closure_mono (set.inter_subset_left _ _) h,
     λ h, subset_closure ⟨h, hy⟩⟩
 end

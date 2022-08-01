@@ -44,9 +44,9 @@ lemma coevaluation_apply_one :
    let bV := basis.of_vector_space K V in
    ∑ (i : basis.of_vector_space_index K V), bV i ⊗ₜ[K] bV.coord i :=
 begin
-  simp only [coevaluation, id],
+  simv only [coevaluation, id],
   rw [(basis.singleton unit K).constr_apply_fintype K],
-  simp only [fintype.univ_punit, finset.sum_const, one_smul, basis.singleton_repr,
+  simv only [fintype.univ_punit, finset.sum_const, one_smul, basis.singleton_repr,
    basis.equiv_fun_apply,basis.coe_of_vector_space, one_nsmul, finset.card_singleton],
 end
 
@@ -64,14 +64,14 @@ begin
   apply tensor_product.ext,
   apply (basis.of_vector_space K V).dual_basis.ext, intro j, apply linear_map.ext_ring,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply, tensor_product.mk_apply],
-  simp only [linear_map.coe_comp, function.comp_app, linear_equiv.coe_to_linear_map],
+  simv only [linear_map.coe_comp, function.comp_app, linear_equiv.coe_to_linear_map],
   rw [rid_tmul, one_smul, lid_symm_apply],
-  simp only [linear_equiv.coe_to_linear_map, linear_map.ltensor_tmul, coevaluation_apply_one],
-  rw [tensor_product.tmul_sum, linear_equiv.map_sum], simp only [assoc_symm_tmul],
-  rw [linear_map.map_sum], simp only [linear_map.rtensor_tmul, contract_left_apply],
-  simp only [basis.coe_dual_basis, basis.coord_apply, basis.repr_self_apply,
+  simv only [linear_equiv.coe_to_linear_map, linear_map.ltensor_tmul, coevaluation_apply_one],
+  rw [tensor_product.tmul_sum, linear_equiv.map_sum], simv only [assoc_symm_tmul],
+  rw [linear_map.map_sum], simv only [linear_map.rtensor_tmul, contract_left_apply],
+  simv only [basis.coe_dual_basis, basis.coord_apply, basis.repr_self_apply,
     tensor_product.ite_tmul],
-  rw [finset.sum_ite_eq'], simp only [finset.mem_univ, if_true]
+  rw [finset.sum_ite_eq'], simv only [finset.mem_univ, if_true]
 end
 
 /-- This lemma corresponds to one of the coherence laws for duals in rigid categories, see
@@ -86,13 +86,13 @@ begin
   apply tensor_product.ext,
   apply linear_map.ext_ring, apply (basis.of_vector_space K V).ext, intro j,
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply, tensor_product.mk_apply],
-  simp only [linear_map.coe_comp, function.comp_app, linear_equiv.coe_to_linear_map],
+  simv only [linear_map.coe_comp, function.comp_app, linear_equiv.coe_to_linear_map],
   rw [lid_tmul, one_smul, rid_symm_apply],
-  simp only [linear_equiv.coe_to_linear_map, linear_map.rtensor_tmul, coevaluation_apply_one],
-  rw [tensor_product.sum_tmul, linear_equiv.map_sum], simp only [assoc_tmul],
-  rw [linear_map.map_sum], simp only [linear_map.ltensor_tmul, contract_left_apply],
-  simp only [basis.coord_apply, basis.repr_self_apply, tensor_product.tmul_ite],
-  rw [finset.sum_ite_eq], simp only [finset.mem_univ, if_true]
+  simv only [linear_equiv.coe_to_linear_map, linear_map.rtensor_tmul, coevaluation_apply_one],
+  rw [tensor_product.sum_tmul, linear_equiv.map_sum], simv only [assoc_tmul],
+  rw [linear_map.map_sum], simv only [linear_map.ltensor_tmul, contract_left_apply],
+  simv only [basis.coord_apply, basis.repr_self_apply, tensor_product.tmul_ite],
+  rw [finset.sum_ite_eq], simv only [finset.mem_univ, if_true]
 end
 
 end coevaluation

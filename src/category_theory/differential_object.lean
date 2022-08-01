@@ -42,7 +42,7 @@ structure differential_object :=
 (d_squared' : d ≫ d⟦(1:ℤ)⟧' = 0 . obviously)
 
 restate_axiom differential_object.d_squared'
-attribute [simp] differential_object.d_squared
+attribute [simv] differential_object.d_squared
 
 variables {C}
 
@@ -57,7 +57,7 @@ structure hom (X Y : differential_object C) :=
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
 
 restate_axiom hom.comm'
-attribute [simp, reassoc] hom.comm
+attribute [simv, reassoc] hom.comm
 
 namespace hom
 
@@ -166,8 +166,8 @@ def map_differential_object (F : C ⥤ D)
       slice_lhs 1 2 { rw [functor.comp_map, ← F.map_comp, f.comm, F.map_comp] },
       rw [category.assoc]
     end },
-  map_id' := by { intros, ext, simp },
-  map_comp' := by { intros, ext, simp }, }
+  map_id' := by { intros, ext, simv },
+  map_comp' := by { intros, ext, simv }, }
 
 end functor
 
@@ -225,7 +225,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
@@ -234,11 +234,11 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    -- This is just `simp, simp [eq_to_hom_map]`.
+    -- This is just `simv, simv [eq_to_hom_map]`.
     simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
       category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
       μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
-    simp only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
+    simv only [eq_to_hom_map, eq_to_hom_app, eq_to_iso.hom, eq_to_hom_trans_assoc,
       eq_to_iso.inv], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
@@ -253,13 +253,13 @@ local attribute [instance] endofunctor_monoidal_category
 def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
 begin
   refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
-  { dsimp, simp, dsimp, simp },
-  { introv, ext, dsimp, simp }
+  { dsimp, simv, dsimp, simv },
+  { introv, ext, dsimp, simv }
 end
 
 end
 
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 instance : has_shift (differential_object C) ℤ :=
 has_shift_mk _ _

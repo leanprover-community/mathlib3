@@ -9,7 +9,7 @@ open tactic
 
 namespace tidy.test
 
-meta def interactive_simp := `[simp]
+meta def interactive_simp := `[simv]
 
 def tidy_test_1 (a : string) : ∀ x : unit, x = unit.star :=
 begin

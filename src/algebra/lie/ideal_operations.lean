@@ -64,7 +64,7 @@ begin
         refine submodule.add_mem _ _ _; apply submodule.subset_span,
         { use [⟨⁅y, ↑x⁆, I.lie_mem x.property⟩, n], refl, },
         { use [x, ⟨⁅y, ↑n⁆, N.lie_mem n.property⟩], refl, }, },
-      { simp only [lie_zero, submodule.zero_mem], },
+      { simv only [lie_zero, submodule.zero_mem], },
       { intros m₁ m₂ hm₁ hm₂, rw lie_add, exact submodule.add_mem _ hm₁ hm₂, },
       { intros t m'' hm'', rw lie_smul, exact submodule.smul_mem _ t hm'', }, },
     change _ ≤ ↑({ lie_mem := aux, ..submodule.span R s } : lie_submodule R L M),
@@ -128,7 +128,7 @@ by { rw eq_bot_iff, apply lie_le_right, }
 begin
   suffices : ⁅(⊥ : lie_ideal R L), N⁆ ≤ ⊥, { exact le_bot_iff.mp this, },
   rw [lie_ideal_oper_eq_span, lie_span_le], rintros m ⟨⟨x, hx⟩, n, hn⟩, rw ← hn,
-  change x ∈ (⊥ : lie_ideal R L) at hx, rw mem_bot at hx, simp [hx],
+  change x ∈ (⊥ : lie_ideal R L) at hx, rw mem_bot at hx, simv [hx],
 end
 
 lemma lie_eq_bot_iff : ⁅I, N⁆ = ⊥ ↔ ∀ (x ∈ I) (m ∈ N), ⁅(x : L), m⁆ = 0 :=
@@ -160,7 +160,7 @@ begin
   erw lie_submodule.mem_sup at hn, rcases hn with ⟨n₁, hn₁, n₂, hn₂, hn'⟩,
   use ⁅(x : L), (⟨n₁, hn₁⟩ : N)⁆, split, { apply lie_coe_mem_lie, },
   use ⁅(x : L), (⟨n₂, hn₂⟩ : N')⁆, split, { apply lie_coe_mem_lie, },
-  simp [← h, ← hn'],
+  simv [← h, ← hn'],
 end
 
 @[simp] lemma sup_lie : ⁅I ⊔ J, N⁆ = ⁅I, N⁆ ⊔ ⁅J, N⁆ :=
@@ -172,7 +172,7 @@ begin
   erw lie_submodule.mem_sup at hx, rcases hx with ⟨x₁, hx₁, x₂, hx₂, hx'⟩,
   use ⁅((⟨x₁, hx₁⟩ : I) : L), (n : N)⁆, split, { apply lie_coe_mem_lie, },
   use ⁅((⟨x₂, hx₂⟩ : J) : L), (n : N)⁆, split, { apply lie_coe_mem_lie, },
-  simp [← h, ← hx'],
+  simv [← h, ← hx'],
 end
 
 @[simp] lemma lie_inf : ⁅I, N ⊓ N'⁆ ≤ ⁅I, N⁆ ⊓ ⁅I, N'⁆ :=
@@ -191,11 +191,11 @@ begin
   ext m,
   split,
   { rintros ⟨-, ⟨⟨x, ⟨n, hn⟩, rfl⟩, hm⟩⟩,
-    simp only [lie_module_hom.coe_to_linear_map, lie_module_hom.map_lie] at hm,
+    simv only [lie_module_hom.coe_to_linear_map, lie_module_hom.map_lie] at hm,
     exact ⟨x, ⟨f n, (mem_map (f n)).mpr ⟨n, hn, rfl⟩⟩, hm⟩, },
   { rintros ⟨x, ⟨m₂, hm₂ : m₂ ∈ map f N⟩, rfl⟩,
     obtain ⟨n, hn, rfl⟩ := (mem_map m₂).mp hm₂,
-    exact ⟨⁅x, n⁆, ⟨x, ⟨n, hn⟩, rfl⟩, by simp⟩, },
+    exact ⟨⁅x, n⁆, ⟨x, ⟨n, hn⟩, rfl⟩, by simv⟩, },
 end
 
 lemma map_comap_le : map f (comap f N₂) ≤ N₂ :=
@@ -250,7 +250,7 @@ begin
   let fy₁ : ↥(map f I₁) := ⟨f y₁, mem_map hy₁⟩,
   let fy₂ : ↥(map f I₂) := ⟨f y₂, mem_map hy₂⟩,
   change _ ∈ comap f ⁅map f I₁, map f I₂⁆,
-  simp only [submodule.coe_mk, mem_comap, lie_hom.map_lie],
+  simv only [submodule.coe_mk, mem_comap, lie_hom.map_lie],
   exact lie_submodule.lie_coe_mem_lie _ _ fy₁ fy₂,
 end
 
@@ -287,20 +287,20 @@ begin
     lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, ← submodule.comap_map_eq,
     lie_submodule.lie_ideal_oper_eq_linear_span, lie_submodule.lie_ideal_oper_eq_linear_span,
     linear_map.map_span],
-  congr, simp only [lie_hom.coe_to_linear_map, set.mem_set_of_eq], ext y,
+  congr, simv only [lie_hom.coe_to_linear_map, set.mem_set_of_eq], ext y,
   split,
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩, hy⟩, rw ← hy,
     erw [lie_submodule.mem_inf, f.mem_ideal_range_iff h] at hx₁ hx₂,
     obtain ⟨⟨z₁, hz₁⟩, hz₁'⟩ := hx₁, rw ← hz₁ at hz₁',
     obtain ⟨⟨z₂, hz₂⟩, hz₂'⟩ := hx₂, rw ← hz₂ at hz₂',
     use [⁅z₁, z₂⁆, ⟨z₁, hz₁'⟩, ⟨z₂, hz₂'⟩, rfl],
-    simp only [hz₁, hz₂, submodule.coe_mk, lie_hom.map_lie], },
+    simv only [hz₁, hz₂, submodule.coe_mk, lie_hom.map_lie], },
   { rintros ⟨x, ⟨⟨z₁, hz₁⟩, ⟨z₂, hz₂⟩, hx⟩, hy⟩, rw [← hy, ← hx],
     have hz₁' : f z₁ ∈ f.ideal_range ⊓ J₁,
     { rw lie_submodule.mem_inf, exact ⟨f.mem_ideal_range, hz₁⟩, },
     have hz₂' : f z₂ ∈ f.ideal_range ⊓ J₂,
     { rw lie_submodule.mem_inf, exact ⟨f.mem_ideal_range, hz₂⟩, },
-    use [⟨f z₁, hz₁'⟩, ⟨f z₂, hz₂'⟩], simp only [submodule.coe_mk, lie_hom.map_lie], },
+    use [⟨f z₁, hz₁'⟩, ⟨f z₂, hz₂'⟩], simv only [submodule.coe_mk, lie_hom.map_lie], },
 end
 
 lemma map_comap_bracket_eq {J₁ J₂ : lie_ideal R L'} (h : f.is_ideal_morphism) :
@@ -312,7 +312,7 @@ lemma comap_bracket_incl {I₁ I₂ : lie_ideal R L} :
   ⁅comap I.incl I₁, comap I.incl I₂⁆ = comap I.incl ⁅I ⊓ I₁, I ⊓ I₂⁆ :=
 begin
   conv_rhs { congr, skip, rw ← I.incl_ideal_range, }, rw comap_bracket_eq,
-  simp only [ker_incl, sup_bot_eq], exact I.incl_is_ideal_morphism,
+  simv only [ker_incl, sup_bot_eq], exact I.incl_is_ideal_morphism,
 end
 
 /-- This is a very useful result; it allows us to use the fact that inclusion distributes over the

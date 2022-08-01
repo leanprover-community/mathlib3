@@ -15,7 +15,7 @@ the API documentation.
 ## TODO
 
 * Make a PR to core changing core docstrings to the docstrings below,
-and also changing the docstrings of `cc`, `simp` and `conv` to the ones
+and also changing the docstrings of `cc`, `simv` and `conv` to the ones
 already in the API docs.
 
 * SMT tactics are currently not documented.

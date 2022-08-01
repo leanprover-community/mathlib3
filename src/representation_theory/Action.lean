@@ -138,7 +138,7 @@ def mk_iso {M N : Action V G} (f : M.V ≅ N.V) (comm : ∀ g : G, M.ρ g ≫ f.
     comm' := comm, },
   inv :=
   { hom := f.inv,
-    comm' := λ g, by { have w := comm g =≫ f.inv, simp at w, simp [w], }, }}
+    comm' := λ g, by { have w := comm g =≫ f.inv, simv at w, simv [w], }, }}
 
 @[priority 100]
 instance is_iso_of_hom_is_iso {M N : Action V G} (f : M ⟶ N) [is_iso f.hom] : is_iso f :=
@@ -259,7 +259,7 @@ end forget
 
 lemma iso.conj_ρ {M N : Action V G} (f : M ≅ N) (g : G) :
    N.ρ g = (((forget V G).map_iso f).conj (M.ρ g)) :=
-by { rw [iso.conj_apply, iso.eq_inv_comp], simp [f.hom.comm'] }
+by { rw [iso.conj_apply, iso.eq_inv_comp], simv [f.hom.comm'] }
 
 section has_zero_morphisms
 variables [has_zero_morphisms V]
@@ -276,9 +276,9 @@ variables [preadditive V]
 
 instance : preadditive (Action V G) :=
 { hom_group := λ X Y,
-  { zero := ⟨0, by simp⟩,
-    add := λ f g, ⟨f.hom + g.hom, by simp [f.comm, g.comm]⟩,
-    neg := λ f, ⟨-f.hom, by simp [f.comm]⟩,
+  { zero := ⟨0, by simv⟩,
+    add := λ f g, ⟨f.hom + g.hom, by simv [f.comm, g.comm]⟩,
+    neg := λ f, ⟨-f.hom, by simv [f.comm]⟩,
     zero_add := by { intros, ext, exact zero_add _, },
     add_zero := by { intros, ext, exact add_zero _, },
     add_assoc := by { intros, ext, exact add_assoc _ _ _, },
@@ -300,7 +300,7 @@ variables [preadditive V] {R : Type*} [semiring R] [linear R V]
 
 instance : linear R (Action V G) :=
 { hom_module := λ X Y,
-  { smul := λ r f, ⟨r • f.hom, by simp [f.comm]⟩,
+  { smul := λ r f, ⟨r • f.hom, by simv [f.comm]⟩,
     one_smul := by { intros, ext, exact one_smul _ _, },
     smul_zero := by { intros, ext, exact smul_zero _, },
     zero_smul := by { intros, ext, exact zero_smul _ _, },
@@ -342,37 +342,37 @@ monoidal.transport (Action.functor_category_equivalence _ _).symm
   hom.hom (α_ X Y Z).hom = (α_ X.V Y.V Z.V).hom :=
 begin
   dsimp [monoidal.transport_associator],
-  simp,
+  simv,
 end
 @[simp] lemma associator_inv_hom {X Y Z : Action V G} :
   hom.hom (α_ X Y Z).inv = (α_ X.V Y.V Z.V).inv :=
 begin
   dsimp [monoidal.transport_associator],
-  simp,
+  simv,
 end
 @[simp] lemma left_unitor_hom_hom {X : Action V G} :
   hom.hom (λ_ X).hom = (λ_ X.V).hom :=
 begin
   dsimp [monoidal.transport_left_unitor],
-  simp,
+  simv,
 end
 @[simp] lemma left_unitor_inv_hom {X : Action V G} :
   hom.hom (λ_ X).inv = (λ_ X.V).inv :=
 begin
   dsimp [monoidal.transport_left_unitor],
-  simp,
+  simv,
 end
 @[simp] lemma right_unitor_hom_hom {X : Action V G} :
   hom.hom (ρ_ X).hom = (ρ_ X.V).hom :=
 begin
   dsimp [monoidal.transport_right_unitor],
-  simp,
+  simv,
 end
 @[simp] lemma right_unitor_inv_hom {X : Action V G} :
   hom.hom (ρ_ X).inv = (ρ_ X.V).inv :=
 begin
   dsimp [monoidal.transport_right_unitor],
-  simp,
+  simv,
 end
 
 variables (V G)
@@ -407,7 +407,7 @@ instance [symmetric_category V] : symmetric_category (Action V G) :=
 symmetric_category_of_faithful (forget_braided V G)
 
 section
-local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+local attribute [simv] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
 variables [preadditive V] [monoidal_preadditive V]
 
@@ -471,7 +471,7 @@ def Action_punit_equivalence : Action V (Mon.of punit) ≌ V :=
 { functor := forget V _,
   inverse :=
   { obj := λ X, ⟨X, 1⟩,
-    map := λ X Y f, ⟨f, λ ⟨⟩, by simp⟩, },
+    map := λ X Y f, ⟨f, λ ⟨⟩, by simv⟩, },
   unit_iso := nat_iso.of_components (λ X, mk_iso (iso.refl _) (λ ⟨⟩, by simpa using ρ_one X))
     (by tidy),
   counit_iso := nat_iso.of_components (λ X, iso.refl _) (by tidy), }
@@ -535,13 +535,13 @@ def map_Action (F : V ⥤ W) (G : Mon.{u}) : Action V G ⥤ Action W G :=
   { V := F.obj M.V,
     ρ :=
     { to_fun := λ g, F.map (M.ρ g),
-      map_one' := by simp only [End.one_def, Action.ρ_one, F.map_id],
-      map_mul' := λ g h, by simp only [End.mul_def, F.map_comp, map_mul], }, },
+      map_one' := by simv only [End.one_def, Action.ρ_one, F.map_id],
+      map_mul' := λ g h, by simv only [End.mul_def, F.map_comp, map_mul], }, },
   map := λ M N f,
   { hom := F.map f.hom,
     comm' := λ g, by { dsimp, rw [←F.map_comp, f.comm, F.map_comp], }, },
-  map_id' := λ M, by { ext, simp only [Action.id_hom, F.map_id], },
-  map_comp' := λ M N P f g, by { ext, simp only [Action.comp_hom, F.map_comp], }, }
+  map_id' := λ M, by { ext, simv only [Action.id_hom, F.map_id], },
+  map_comp' := λ M N P f g, by { ext, simv only [Action.comp_hom, F.map_comp], }, }
 
 variables (F : V ⥤ W) (G : Mon.{u}) [preadditive V] [preadditive W]
 
@@ -571,10 +571,10 @@ the categories of `G`-actions within those categories. -/
     comm' := λ g, F.to_lax_monoidal_functor.μ_natural (X.ρ g) (Y.ρ g), },
   ε_is_iso := by apply_instance,
   μ_is_iso := by apply_instance,
-  μ_natural' := by { intros, ext, dsimp, simp, },
-  associativity' := by { intros, ext, dsimp, simp, dsimp, simp, }, -- See note [dsimp, simp].
-  left_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
-  right_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
+  μ_natural' := by { intros, ext, dsimp, simv, },
+  associativity' := by { intros, ext, dsimp, simv, dsimp, simv, }, -- See note [dsimp, simv].
+  left_unitality' := by { intros, ext, dsimp, simv, dsimp, simv, },
+  right_unitality' := by { intros, ext, dsimp, simv, dsimp, simv, },
   ..F.to_functor.map_Action G, }
 
 end category_theory.monoidal_functor

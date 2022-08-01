@@ -92,7 +92,7 @@ lemma is_chain.directed_on (H : is_chain r s) : directed_on r s :=
 protected lemma is_chain.directed {f : β → α} {c : set β} (h : is_chain (f ⁻¹'o r) c) :
   directed r (λ x : {a : β // a ∈ c}, f x) :=
 λ ⟨a, ha⟩ ⟨b, hb⟩, by_cases
-  (λ hab : a = b, by simp only [hab, exists_prop, and_self, subtype.exists];
+  (λ hab : a = b, by simv only [hab, exists_prop, and_self, subtype.exists];
     exact ⟨b, hb, refl _⟩) $
   λ hab, (h ha hb hab).elim (λ h, ⟨⟨b, hb⟩, h, refl _⟩) $ λ h, ⟨⟨a, ha⟩, refl _, h⟩
 
@@ -131,23 +131,23 @@ lemma succ_chain_spec (h : ∃ t, is_chain r s ∧ super_chain r s t) :
 let ⟨t, hc'⟩ := h in
 have is_chain r s ∧ super_chain r s (some h),
   from @some_spec _ (λ t, is_chain r s ∧ super_chain r s t) _,
-by simp [succ_chain, dif_pos, h, this.right]
+by simv [succ_chain, dif_pos, h, this.right]
 
 lemma is_chain.succ (hs : is_chain r s) : is_chain r (succ_chain r s) :=
 if h : ∃ t, is_chain r s ∧ super_chain r s t then (succ_chain_spec h).1
-  else by { simp [succ_chain, dif_neg, h], exact hs }
+  else by { simv [succ_chain, dif_neg, h], exact hs }
 
 lemma is_chain.super_chain_succ_chain (hs₁ : is_chain r s) (hs₂ : ¬ is_max_chain r s) :
   super_chain r s (succ_chain r s) :=
 begin
-  simp [is_max_chain, not_and_distrib, not_forall_not] at hs₂,
+  simv [is_max_chain, not_and_distrib, not_forall_not] at hs₂,
   obtain ⟨t, ht, hst⟩ := hs₂.neg_resolve_left hs₁,
   exact succ_chain_spec ⟨t, hs₁, ht, ssubset_iff_subset_ne.2 hst⟩,
 end
 
 lemma subset_succ_chain : s ⊆ succ_chain r s :=
 if h : ∃ t, is_chain r s ∧ super_chain r s t then (succ_chain_spec h).2.1
-  else by simp [succ_chain, dif_neg, h, subset.rfl]
+  else by simv [succ_chain, dif_neg, h, subset.rfl]
 
 /-- Predicate for whether a set is reachable from `∅` using `succ_chain` and `⋃₀`. -/
 inductive chain_closure (r : α → α → Prop) : set α → Prop
@@ -192,7 +192,7 @@ begin
   case union : s hs ih
   { apply or.imp_left h.antisymm',
     apply classical.by_contradiction,
-    simp [not_or_distrib, sUnion_subset_iff, not_forall],
+    simv [not_or_distrib, sUnion_subset_iff, not_forall],
     intros c₃ hc₃ h₁ h₂,
     obtain h | h := chain_closure_succ_total_aux hc₁ (hs c₃ hc₃) (λ c₄, ih _ hc₃),
     { exact h₁ (subset_succ_chain.trans h) },

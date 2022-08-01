@@ -117,7 +117,7 @@ end
 finprod_eq_prod_plift_of_mul_support_to_finset_subset
   (s.finite_to_set.subset hs) $ λ x hx, by { rw finite.mem_to_finset at hx, exact hs hx }
 
-@[simp, to_additive] lemma finprod_one : ∏ᶠ i : α, (1 : M) = 1 :=
+@[simv, to_additive] lemma finprod_one : ∏ᶠ i : α, (1 : M) = 1 :=
 begin
   have : mul_support (λ x : plift α, (λ _, 1 : α → M) x.down) ⊆ (∅ : finset (plift α)),
     from λ x h, h rfl,
@@ -127,7 +127,7 @@ end
 @[to_additive] lemma finprod_of_is_empty [is_empty α] (f : α → M) : ∏ᶠ i, f i = 1 :=
 by { rw ← finprod_one, congr }
 
-@[simp, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
+@[simv, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
 finprod_of_is_empty _
 
 @[to_additive] lemma finprod_eq_single (f : α → M) (a : α) (ha : ∀ x ≠ a, f x = 1) :
@@ -142,7 +142,7 @@ end
 @[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f default :=
 finprod_eq_single f default $ λ x hx, (hx $ unique.eq_default _).elim
 
-@[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
+@[simv, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f
 
 @[to_additive] lemma finprod_eq_dif {p : Prop} [decidable p] (f : p → M) :
@@ -226,7 +226,7 @@ lemma finsum_smul {R M : Type*} [ring R] [add_comm_group M] [module R M] [no_zer
   (f : ι → R) (x : M) :
   (∑ᶠ i, f i) • x = ∑ᶠ i, f i • x :=
 begin
-  rcases eq_or_ne x 0 with rfl|hx, { simp },
+  rcases eq_or_ne x 0 with rfl|hx, { simv },
   exact ((smul_add_hom R M).flip x).map_finsum_of_injective (smul_left_injective R hx) _
 end
 
@@ -234,7 +234,7 @@ lemma smul_finsum {R M : Type*} [ring R] [add_comm_group M] [module R M]
   [no_zero_smul_divisors R M] (c : R) (f : ι → M) :
   c • (∑ᶠ i, f i) = (∑ᶠ i, c • f i) :=
 begin
-  rcases eq_or_ne c 0 with rfl|hc, { simp },
+  rcases eq_or_ne c 0 with rfl|hc, { simv },
   exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
 end
 
@@ -255,7 +255,7 @@ open_locale big_operators
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
 by convert finprod_eq_if
 
-@[simp, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α) :
+@[simv, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α) :
   ∏ᶠ (h : f a ≠ 1), f a = f a :=
 by rw [← mem_mul_support, finprod_eq_mul_indicator_apply, mul_indicator_mul_support]
 
@@ -273,7 +273,7 @@ begin
   have : mul_support (f ∘ plift.down) ⊆ s.map equiv.plift.symm.to_embedding,
   { rw [A, finset.coe_map], exact image_subset _ h },
   rw [finprod_eq_prod_plift_of_mul_support_subset this],
-  simp
+  simv
 end
 
 @[to_additive] lemma finprod_eq_prod_of_mul_support_to_finset_subset (f : α → M)
@@ -347,12 +347,12 @@ finprod_cond_eq_prod_of_cond_iff _ $ λ x hx, ⟨λ h, h₁ ⟨h, hx⟩, λ h, h
 @[to_additive] lemma finprod_mem_eq_prod (f : α → M) {s : set α}
   (hf : (s ∩ mul_support f).finite) :
   ∏ᶠ i ∈ s, f i = ∏ i in hf.to_finset, f i :=
-finprod_mem_eq_prod_of_inter_mul_support_eq _ $ by simp [inter_assoc]
+finprod_mem_eq_prod_of_inter_mul_support_eq _ $ by simv [inter_assoc]
 
 @[to_additive] lemma finprod_mem_eq_prod_filter (f : α → M) (s : set α) [decidable_pred (∈ s)]
   (hf : (mul_support f).finite) :
   ∏ᶠ i ∈ s, f i = ∏ i in finset.filter (∈ s) hf.to_finset, f i :=
-finprod_mem_eq_prod_of_inter_mul_support_eq _ $ by simp [inter_comm, inter_left_comm]
+finprod_mem_eq_prod_of_inter_mul_support_eq _ $ by simv [inter_comm, inter_left_comm]
 
 @[to_additive] lemma finprod_mem_eq_to_finset_prod (f : α → M) (s : set α) [fintype s] :
   ∏ᶠ i ∈ s, f i = ∏ i in s.to_finset, f i :=
@@ -381,7 +381,7 @@ end
 @[to_additive]
 lemma finprod_mem_eq_one_of_forall_eq_one {f : α → M} {s : set α} (h : ∀ x ∈ s, f x = 1) :
   ∏ᶠ i ∈ s, f i = 1 :=
-by simp [h] {contextual := tt}
+by simv [h] {contextual := tt}
 
 @[to_additive] lemma finprod_mem_inter_mul_support (f : α → M) (s : set α) :
   ∏ᶠ i ∈ (s ∩ mul_support f), f i = ∏ᶠ i ∈ s, f i :=
@@ -413,7 +413,7 @@ h₀.symm ▸ (finprod_congr $ λ i, finprod_congr_Prop rfl (h₁ i))
 @[to_additive]
 lemma finprod_eq_one_of_forall_eq_one {f : α → M} (h : ∀ x, f x = 1) :
   ∏ᶠ i, f i = 1 :=
-by simp [h] {contextual := tt}
+by simv [h] {contextual := tt}
 
 /-!
 ### Distributivity w.r.t. addition, subtraction, and (scalar) multiplication
@@ -431,7 +431,7 @@ begin
     finprod_eq_prod_of_mul_support_to_finset_subset _ hg (finset.subset_union_right _ _),
     ← finset.prod_mul_distrib],
   refine finprod_eq_prod_of_mul_support_subset _ _,
-  simp [mul_support_mul]
+  simv [mul_support_mul]
 end
 
 /-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i / g i`
@@ -441,7 +441,7 @@ equals the sum of `f i` minus the sum of `g i`."]
 lemma finprod_div_distrib [division_comm_monoid G] {f g : α → G} (hf : (mul_support f).finite)
   (hg : (mul_support g).finite) :
   ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
-by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
+by simv only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
               finprod_inv_distrib]
 
 /-- A more general version of `finprod_mem_mul_distrib` that only requires `s ∩ mul_support f` and
@@ -452,12 +452,12 @@ lemma finprod_mem_mul_distrib' (hf : (s ∩ mul_support f).finite) (hg : (s ∩ 
   ∏ᶠ i ∈ s, f i * g i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ s, g i :=
 begin
   rw [← mul_support_mul_indicator] at hf hg,
-  simp only [finprod_mem_def, mul_indicator_mul, finprod_mul_distrib hf hg]
+  simv only [finprod_mem_def, mul_indicator_mul, finprod_mul_distrib hf hg]
 end
 
 /-- The product of the constant function `1` over any set equals `1`. -/
 @[to_additive "The product of the constant function `0` over any set equals `0`."]
-lemma finprod_mem_one (s : set α) : ∏ᶠ i ∈ s, (1 : M) = 1 := by simp
+lemma finprod_mem_one (s : set α) : ∏ᶠ i ∈ s, (1 : M) = 1 := by simv
 
 /-- If a function `f` equals `1` on a set `s`, then the product of `f i` over `i ∈ s` equals `1`. -/
 @[to_additive "If a function `f` equals `0` on a set `s`, then the product of `f i` over `i ∈ s`
@@ -499,7 +499,7 @@ lemma monoid_hom.map_finprod_mem' {f : α → M} (g : M →* N) (h₀ : (s ∩ m
   g (∏ᶠ j ∈ s, f j) = ∏ᶠ i ∈ s, g (f i) :=
 begin
   rw [g.map_finprod],
-  { simp only [g.map_finprod_Prop] },
+  { simv only [g.map_finprod_Prop] },
   { simpa only [finprod_eq_mul_indicator_apply, mul_support_mul_indicator] }
 end
 
@@ -525,7 +525,7 @@ over `i ∈ s` divided by the product of `g i` over `i ∈ s`. -/
 over `i ∈ s` minus the sum of `g i` over `i ∈ s`."]
 lemma finprod_mem_div_distrib [division_comm_monoid G] (f g : α → G) (hs : s.finite) :
   ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
-by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
+by simv only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
 
 /-!
 ### `∏ᶠ x ∈ s, f x` and set operations
@@ -533,7 +533,7 @@ by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distri
 
 /-- The product of any function over an empty set is `1`. -/
 @[to_additive "The sum of any function over an empty set is `0`."]
-lemma finprod_mem_empty : ∏ᶠ i ∈ (∅ : set α), f i = 1 := by simp
+lemma finprod_mem_empty : ∏ᶠ i ∈ (∅ : set α), f i = 1 := by simv
 
 /-- A set `s` is nonempty if the product of some function over `s` is not equal to `1`. -/
 @[to_additive "A set `s` is nonempty if the sum of some function over `s` is not equal to `0`."]
@@ -551,7 +551,7 @@ begin
   lift s to finset α using hs, lift t to finset α using ht,
   classical,
   rw [← finset.coe_union, ← finset.coe_inter],
-  simp only [finprod_mem_coe_finset, finset.prod_union_inter]
+  simv only [finprod_mem_coe_finset, finset.prod_union_inter]
 end
 
 /-- A more general version of `finprod_mem_union_inter` that requires `s ∩ mul_support f` and
@@ -601,11 +601,11 @@ by rw [← finprod_mem_inter_mul_support f s, ← finprod_mem_inter_mul_support 
 lemma finprod_mem_singleton : ∏ᶠ i ∈ ({a} : set α), f i = f a :=
 by rw [← finset.coe_singleton, finprod_mem_coe_finset, finset.prod_singleton]
 
-@[simp, to_additive] lemma finprod_cond_eq_left : ∏ᶠ i = a, f i = f a :=
+@[simv, to_additive] lemma finprod_cond_eq_left : ∏ᶠ i = a, f i = f a :=
 finprod_mem_singleton
 
-@[simp, to_additive] lemma finprod_cond_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
-by simp [@eq_comm _ a]
+@[simv, to_additive] lemma finprod_cond_eq_right : ∏ᶠ i (hi : a = i), f i = f a :=
+by simv [@eq_comm _ a]
 
 /-- A more general version of `finprod_mem_insert` that requires `s ∩ mul_support f` rather than `s`
 to be finite. -/
@@ -784,7 +784,7 @@ begin
   classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
-  { simp only [finprod_mem_coe_finset, finprod_eq_prod_of_fintype] },
+  { simv only [finprod_mem_coe_finset, finprod_eq_prod_of_fintype] },
   { exact λ x _ y _ hxy, finset.disjoint_coe.1 (h x y hxy) }
 end
 
@@ -839,7 +839,7 @@ lemma finprod_mem_comm {s : set α} {t : set β} (f : α → β → M) (hs : s.f
   ∏ᶠ i ∈ s, ∏ᶠ j ∈ t, f i j = ∏ᶠ j ∈ t, ∏ᶠ i ∈ s, f i j :=
 begin
   lift s to finset α using hs, lift t to finset β using ht,
-  simp only [finprod_mem_coe_finset],
+  simv only [finprod_mem_coe_finset],
   exact finset.prod_comm
 end
 
@@ -873,7 +873,7 @@ begin
   nontriviality,
   rw [finprod_eq_prod f hf],
   refine finset.prod_eq_zero (hf.mem_to_finset.2 _) hx,
-  simp [hx]
+  simv [hx]
 end
 
 @[to_additive] lemma finprod_prod_comm (s : finset β) (f : α → β → M)
@@ -884,13 +884,13 @@ begin
     (s.finite_to_set.bUnion (λ b hb, h b (finset.mem_coe.1 hb))).to_finset,
   { rw finite.coe_to_finset,
     intros x hx,
-    simp only [exists_prop, mem_Union, ne.def, mem_mul_support, finset.mem_coe],
+    simv only [exists_prop, mem_Union, ne.def, mem_mul_support, finset.mem_coe],
     contrapose! hx,
     rw [mem_mul_support, not_not, finset.prod_congr rfl hx, finset.prod_const_one] },
   rw [finprod_eq_prod_of_mul_support_subset _ hU, finset.prod_comm],
   refine finset.prod_congr rfl (λ b hb, (finprod_eq_prod_of_mul_support_subset _ _).symm),
   intros a ha,
-  simp only [finite.coe_to_finset, mem_Union],
+  simv only [finite.coe_to_finset, mem_Union],
   exact ⟨b, hb, ha⟩
 end
 
@@ -911,7 +911,7 @@ lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R) (h : (support f
   (s : finset α) (f : α → M) (g : α → β) :
   mul_support (λ b, (s.filter (λ a, g a = b)).prod f) ⊆ s.image g :=
 begin
-  simp only [finset.coe_image, set.mem_image, finset.mem_coe, function.support_subset_iff],
+  simv only [finset.coe_image, set.mem_image, finset.mem_coe, function.support_subset_iff],
   intros b h,
   suffices : (s.filter (λ (a : α), g a = b)).nonempty,
   { simpa only [s.fiber_nonempty_iff_mem_image g b, finset.mem_image, exists_prop], },
@@ -932,7 +932,7 @@ begin
   have : ∀ a, ∏ (i : β) in (s.filter (λ ab, prod.fst ab = a)).image prod.snd, f (a, i) =
     (finset.filter (λ ab, prod.fst ab = a) s).prod f,
   { refine (λ a, finset.prod_bij (λ b _, (a, b)) _ _ _ _); -- `finish` closes these goals
-    try { simp, done },
+    try { simv, done },
     suffices : ∀ a' b, (a', b) ∈ s → a' = a → (a, b) ∈ s ∧ a' = a, by simpa,
     rintros a' b hp rfl,
     exact ⟨hp, rfl⟩ },
@@ -941,7 +941,7 @@ begin
   rw [finprod_eq_prod_of_mul_support_subset _
     (s.mul_support_of_fiberwise_prod_subset_image f prod.fst),
     ← finset.prod_fiberwise_of_maps_to _ f],  -- `finish` could close the goal here
-  simp only [finset.mem_image, prod.mk.eta],
+  simv only [finset.mem_image, prod.mk.eta],
   exact λ x hx, ⟨x, hx, rfl⟩,
 end
 
@@ -949,24 +949,24 @@ end
 @[to_additive "See also `finsum_mem_finset_product'`."]
 lemma finprod_mem_finset_product (s : finset (α × β)) (f : α × β → M) :
   ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
-by { classical, rw finprod_mem_finset_product', simp, }
+by { classical, rw finprod_mem_finset_product', simv, }
 
 @[to_additive] lemma finprod_mem_finset_product₃ {γ : Type*}
   (s : finset (α × β × γ)) (f : α × β × γ → M) :
   ∏ᶠ abc (h : abc ∈ s), f abc = ∏ᶠ a b c (h : (a, b, c) ∈ s), f (a, b, c) :=
-by { classical, rw finprod_mem_finset_product', simp_rw finprod_mem_finset_product', simp, }
+by { classical, rw finprod_mem_finset_product', simp_rw finprod_mem_finset_product', simv, }
 
 @[to_additive] lemma finprod_curry (f : α × β → M) (hf : (mul_support f).finite) :
   ∏ᶠ ab, f ab = ∏ᶠ a b, f (a, b) :=
 begin
-  have h₁ : ∀ a, ∏ᶠ (h : a ∈ hf.to_finset), f a = f a, { simp, },
-  have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simp, },
+  have h₁ : ∀ a, ∏ᶠ (h : a ∈ hf.to_finset), f a = f a, { simv, },
+  have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simv, },
   simp_rw [h₂, finprod_mem_finset_product, h₁],
 end
 
 @[to_additive] lemma finprod_curry₃ {γ : Type*} (f : α × β × γ → M) (h : (mul_support f).finite) :
   ∏ᶠ abc, f abc = ∏ᶠ a b c, f (a, b, c) :=
-by { rw finprod_curry f h, congr, ext a, rw finprod_curry, simp [h], }
+by { rw finprod_curry f h, congr, ext a, rw finprod_curry, simv [h], }
 
 @[to_additive]
 lemma finprod_dmem {s : set α} [decidable_pred (∈ s)] (f : (Π (a : α), a ∈ s → M)) :

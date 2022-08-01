@@ -37,20 +37,20 @@ abbreviation _root_.category_theory.differential_object.X_eq_to_hom
   (X : differential_object (graded_object_with_shift b V)) (i : β) :
   X.X_eq_to_hom (refl i) = 𝟙 _ := rfl
 
-@[simp, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
+@[simv, reassoc] lemma eq_to_hom_d (X : differential_object (graded_object_with_shift b V))
   {x y : β} (h : x = y) :
   X.X_eq_to_hom h ≫ X.d y = X.d x ≫ X.X_eq_to_hom (by { cases h, refl }) :=
-by { cases h, dsimp, simp }
+by { cases h, dsimp, simv }
 
-@[simp, reassoc] lemma d_eq_to_hom (X : homological_complex V (complex_shape.up' b))
+@[simv, reassoc] lemma d_eq_to_hom (X : homological_complex V (complex_shape.up' b))
   {x y z : β} (h : y = z) :
   X.d x y ≫ eq_to_hom (congr_arg X.X h) = X.d x z :=
-by { cases h, simp }
+by { cases h, simv }
 
-@[simp, reassoc] lemma eq_to_hom_f' {X Y : differential_object (graded_object_with_shift b V)}
+@[simv, reassoc] lemma eq_to_hom_f' {X Y : differential_object (graded_object_with_shift b V)}
   (f : X ⟶ Y) {x y : β} (h : x = y) :
   X.X_eq_to_hom h ≫ f.f y = f.f x ≫ Y.X_eq_to_hom h :=
-by { cases h, simp }
+by { cases h, simv }
 
 variables (b V)
 
@@ -66,13 +66,13 @@ def dgo_to_homological_complex :
 { obj := λ X,
   { X := λ i, X.X i,
     d := λ i j, if h : i + b = j then
-      X.d i ≫ X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simp [h]) else 0,
+      X.d i ≫ X.X_eq_to_hom (show i + (1 : ℤ) • b = j, by simv [h]) else 0,
     shape' := λ i j w, by { dsimp at w, convert dif_neg w },
     d_comp_d' := λ i j k hij hjk, begin
       dsimp at hij hjk, substs hij hjk,
       have : X.d i ≫ X.d _ = _ := (congr_fun X.d_squared i : _),
       reassoc! this,
-      simp [this],
+      simv [this],
     end },
   map := λ X Y f,
   { f := f.f,
@@ -81,7 +81,7 @@ def dgo_to_homological_complex :
       subst h,
       have : f.f i ≫ Y.d i = X.d i ≫ f.f (i + 1 • b) := (congr_fun f.comm i).symm,
       reassoc! this,
-      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl, this, category.assoc, eq_to_hom_f']
+      simv only [category.comp_id, eq_to_hom_refl, dif_pos rfl, this, category.assoc, eq_to_hom_f']
     end, } }
 
 /--
@@ -94,10 +94,10 @@ def homological_complex_to_dgo :
 { obj := λ X,
   { X := λ i, X.X i,
     d := λ i, X.d i (i + 1 • b),
-    d_squared' := by { ext i, dsimp, simp, } },
+    d_squared' := by { ext i, dsimp, simv, } },
   map := λ X Y f,
   { f := f.f,
-    comm' := by { ext i, dsimp, simp, }, } }
+    comm' := by { ext i, dsimp, simv, }, } }
 
 /--
 The unit isomorphism for `dgo_equiv_homological_complex`.
@@ -123,14 +123,14 @@ nat_iso.of_components (λ X,
       comm' := λ i j h, begin
         dsimp at h ⊢, subst h,
         delta homological_complex_to_dgo,
-        simp,
+        simv,
       end },
     inv :=
     { f := λ i, 𝟙 (X.X i),
       comm' := λ i j h, begin
         dsimp at h ⊢, subst h,
         delta homological_complex_to_dgo,
-        simp,
+        simv,
       end }, }) (by tidy)
 
 /--

@@ -152,7 +152,7 @@ begin
   rw differentiable_at_iff_restrict_scalars ℝ (h_diff.comp _ conj_cle.differentiable_at),
   refine exists_congr (λ g, rfl.congr _),
   have : fderiv ℝ conj (conj z) = _ := conj_cle.fderiv,
-  simp [fderiv.comp _ h_diff conj_cle.differentiable_at, this, conj_conj],
+  simv [fderiv.comp _ h_diff conj_cle.differentiable_at, this, conj_conj],
 end
 
 end conformality

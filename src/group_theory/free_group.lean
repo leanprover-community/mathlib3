@@ -48,7 +48,7 @@ universes u v w
 
 variables {α : Type u}
 
-local attribute [simp] list.append_eq_has_append
+local attribute [simv] list.append_eq_has_append
 
 namespace free_group
 variables {L L₁ L₂ L₃ L₄ : list (α × bool)}
@@ -56,7 +56,7 @@ variables {L L₁ L₂ L₃ L₄ : list (α × bool)}
 /-- Reduction step: `w * x * x⁻¹ * v ~> w * v` -/
 inductive red.step : list (α × bool) → list (α × bool) → Prop
 | bnot {L₁ L₂ x b} : red.step (L₁ ++ (x, b) :: (x, bnot b) :: L₂) (L₁ ++ L₂)
-attribute [simp] red.step.bnot
+attribute [simv] red.step.bnot
 
 /-- Reflexive-transitive closure of red.step -/
 def red : list (α × bool) → list (α × bool) → Prop := refl_trans_gen red.step
@@ -87,14 +87,14 @@ theorem step.cons {x} (H : red.step L₁ L₂) : red.step (x :: L₁) (x :: L₂
 @step.append_left _ [x] _ _ H
 
 theorem step.append_right : ∀ {L₁ L₂ L₃ : list (α × bool)}, step L₁ L₂ → step (L₁ ++ L₃) (L₂ ++ L₃)
-| _ _ _ red.step.bnot := by simp
+| _ _ _ red.step.bnot := by simv
 
 lemma not_step_nil : ¬ step [] L :=
 begin
   generalize h' : [] = L',
   assume h,
   cases h with L₁ L₂,
-  simp [list.nil_eq_append_iff] at h',
+  simv [list.nil_eq_append_iff] at h',
   contradiction
 end
 
@@ -105,11 +105,11 @@ begin
   { generalize hL : ((a, b) :: L₁ : list _) = L,
     assume h,
     rcases h with ⟨_ | ⟨p, s'⟩, e, a', b'⟩,
-    { simp at hL, simp [*] },
-    { simp at hL,
+    { simv at hL, simv [*] },
+    { simv at hL,
       rcases hL with ⟨rfl, rfl⟩,
       refine or.inl ⟨s' ++ e, step.bnot, _⟩,
-      simp } },
+      simv } },
   { assume h,
     rcases h with ⟨L, h, rfl⟩ | rfl,
     { exact step.cons h },
@@ -117,29 +117,29 @@ begin
 end
 
 lemma not_step_singleton : ∀ {p : α × bool}, ¬ step [p] L
-| (a, b) := by simp [step.cons_left_iff, not_step_nil]
+| (a, b) := by simv [step.cons_left_iff, not_step_nil]
 
 lemma step.cons_cons_iff : ∀{p : α × bool}, step (p :: L₁) (p :: L₂) ↔ step L₁ L₂ :=
-by simp [step.cons_left_iff, iff_def, or_imp_distrib] {contextual := tt}
+by simv [step.cons_left_iff, iff_def, or_imp_distrib] {contextual := tt}
 
 lemma step.append_left_iff : ∀L, step (L ++ L₁) (L ++ L₂) ↔ step L₁ L₂
-| [] := by simp
-| (p :: l) := by simp [step.append_left_iff l, step.cons_cons_iff]
+| [] := by simv
+| (p :: l) := by simv [step.append_left_iff l, step.cons_cons_iff]
 
 private theorem step.diamond_aux : ∀ {L₁ L₂ L₃ L₄ : list (α × bool)} {x1 b1 x2 b2},
   L₁ ++ (x1, b1) :: (x1, bnot b1) :: L₂ = L₃ ++ (x2, b2) :: (x2, bnot b2) :: L₄ →
   L₁ ++ L₂ = L₃ ++ L₄ ∨ ∃ L₅, red.step (L₁ ++ L₂) L₅ ∧ red.step (L₃ ++ L₄) L₅
-| []        _ []        _ _ _ _ _ H := by injections; subst_vars; simp
-| []        _ [(x3,b3)] _ _ _ _ _ H := by injections; subst_vars; simp
-| [(x3,b3)] _ []        _ _ _ _ _ H := by injections; subst_vars; simp
+| []        _ []        _ _ _ _ _ H := by injections; subst_vars; simv
+| []        _ [(x3,b3)] _ _ _ _ _ H := by injections; subst_vars; simv
+| [(x3,b3)] _ []        _ _ _ _ _ H := by injections; subst_vars; simv
 | []                     _ ((x3,b3)::(x4,b4)::tl) _ _ _ _ _ H :=
-  by injections; subst_vars; simp; right; exact ⟨_, red.step.bnot, red.step.cons_bnot⟩
+  by injections; subst_vars; simv; right; exact ⟨_, red.step.bnot, red.step.cons_bnot⟩
 | ((x3,b3)::(x4,b4)::tl) _ []                     _ _ _ _ _ H :=
-  by injections; subst_vars; simp; right; exact ⟨_, red.step.cons_bnot, red.step.bnot⟩
+  by injections; subst_vars; simv; right; exact ⟨_, red.step.cons_bnot, red.step.bnot⟩
 | ((x3,b3)::tl) _ ((x4,b4)::tl2) _ _ _ _ _ H :=
   let ⟨H1, H2⟩ := list.cons.inj H in
   match step.diamond_aux H2 with
-    | or.inl H3 := or.inl $ by simp [H1, H3]
+    | or.inl H3 := or.inl $ by simv [H1, H3]
     | or.inr ⟨L₅, H3, H4⟩ := or.inr
       ⟨_, step.cons H3, by simpa [H1] using step.cons H4⟩
   end
@@ -186,7 +186,7 @@ iff.intro
 
 lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L₂
 | []       := iff.rfl
-| (p :: L) := by simp [append_append_left_iff L, cons_cons_iff]
+| (p :: L) := by simv [append_append_left_iff L, cons_cons_iff]
 
 lemma append_append (h₁ : red L₁ L₃) (h₂ : red L₂ L₄) : red (L₁ ++ L₂) (L₃ ++ L₄) :=
 (h₁.lift (λL, L ++ L₂) (assume a b, step.append_right)).trans ((append_append_left_iff _).2 h₂)
@@ -202,12 +202,12 @@ iff.intro
       rcases list.append_eq_append_iff.1 eq with ⟨s', rfl, rfl⟩ | ⟨e', rfl, rfl⟩,
       { have : L₁ ++ (s' ++ ((a, b) :: (a, bnot b) :: e)) =
                  (L₁ ++ s') ++ ((a, b) :: (a, bnot b) :: e),
-        { simp },
+        { simv },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
         exact ⟨w₁, w₂, rfl, h₁, h₂.tail step.bnot⟩ },
       { have : (s ++ ((a, b) :: (a, bnot b) :: e')) ++ L₂ =
                  s ++ ((a, b) :: (a, bnot b) :: (e' ++ L₂)),
-        { simp },
+        { simv },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
         exact ⟨w₁, w₂, rfl, h₁.tail step.bnot, h₂⟩ }, }
   end
@@ -239,9 +239,9 @@ begin
   generalize eq : [(x1, bnot b1), (x2, b2)] = L',
   assume L h',
   cases h',
-  simp [list.cons_eq_append_iff, list.nil_eq_append_iff] at eq,
+  simv [list.cons_eq_append_iff, list.nil_eq_append_iff] at eq,
   rcases eq with ⟨rfl, ⟨rfl, rfl⟩, ⟨rfl, rfl⟩, rfl⟩, subst_vars,
-  simp at h,
+  simv at h,
   contradiction
 end
 
@@ -254,7 +254,7 @@ theorem inv_of_red_of_ne {x1 b1 x2 b2}
 begin
   have : red ((x1, b1) :: L₁) ([(x2, b2)] ++ L₂), from H2,
   rcases to_append_iff.1 this with ⟨_ | ⟨p, L₃⟩, L₄, eq, h₁, h₂⟩,
-  { simp [nil_iff] at h₁, contradiction },
+  { simv [nil_iff] at h₁, contradiction },
   { cases eq,
     show red (L₃ ++ L₄) ([(x1, bnot b1), (x2, b2)] ++ L₂),
     apply append_append _ h₂,
@@ -268,7 +268,7 @@ begin
 end
 
 theorem step.sublist (H : red.step L₁ L₂) : L₂ <+ L₁ :=
-by cases H; simp; constructor; constructor; refl
+by cases H; simv; constructor; constructor; refl
 
 /-- If `w₁ w₂` are words such that `w₁` reduces to `w₂`, then `w₂` is a sublist of `w₁`. -/
 theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
@@ -297,7 +297,7 @@ begin
   { exact ⟨0, rfl⟩ },
   { rcases ih with ⟨n, eq⟩,
     existsi (1 + n),
-    simp [mul_add, eq, (step.length h₂₃).symm, add_assoc] }
+    simv [mul_add, eq, (step.length h₂₃).symm, add_assoc] }
 end
 
 theorem antisymm (h₁₂ : red L₁ L₂) : red L₂ L₁ → L₁ = L₂ :=
@@ -371,18 +371,18 @@ instance : has_mul (free_group α) :=
 
 instance : has_inv (free_group α) :=
 ⟨λx, quot.lift_on x (λ L, mk (L.map $ λ x : α × bool, (x.1, bnot x.2)).reverse)
-  (assume a b h, quot.sound $ by cases h; simp)⟩
+  (assume a b h, quot.sound $ by cases h; simv)⟩
 @[simp] lemma inv_mk : (mk L)⁻¹ = mk (L.map $ λ x : α × bool, (x.1, bnot x.2)).reverse := rfl
 
 instance : group (free_group α) :=
 { mul := (*),
   one := 1,
   inv := has_inv.inv,
-  mul_assoc := by rintros ⟨L₁⟩ ⟨L₂⟩ ⟨L₃⟩; simp,
+  mul_assoc := by rintros ⟨L₁⟩ ⟨L₂⟩ ⟨L₃⟩; simv,
   one_mul := by rintros ⟨L⟩; refl,
-  mul_one := by rintros ⟨L⟩; simp [one_eq_mk],
+  mul_one := by rintros ⟨L⟩; simv [one_eq_mk],
   mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
-    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
+    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simv [one_eq_mk]) ih) }
 
 /-- `of` is the canonical injection from the type to the free group over that type by sending each
 element to the equivalence class of the letter that is the element. -/
@@ -396,7 +396,7 @@ calc (mk L₁ = mk L₂) ↔ eqv_gen red.step L₁ L₂ : iff.intro (quot.exact 
 /-- The canonical injection from the type to the free group is an injection. -/
 theorem of_injective : function.injective (@of α) :=
 λ _ _ H, let ⟨L₁, hx, hy⟩ := red.exact.1 H in
-  by simp [red.singleton_iff] at hx hy; cc
+  by simv [red.singleton_iff] at hx hy; cc
 
 section lift
 
@@ -408,7 +408,7 @@ def lift.aux : list (α × bool) → β :=
 
 theorem red.step.lift {f : α → β} (H : red.step L₁ L₂) :
   lift.aux f L₁ = lift.aux f L₂ :=
-by cases H with _ _ _ b; cases b; simp [lift.aux]
+by cases H with _ _ _ b; cases b; simv [lift.aux]
 
 
 /-- If `β` is a group, then any function from `α` to `β`
@@ -418,7 +418,7 @@ the free group over `α` to `β` -/
 def lift : (α → β) ≃ (free_group α →* β) :=
 { to_fun := λ f,
     monoid_hom.mk' (quot.lift (lift.aux f) $ λ L₁ L₂, red.step.lift) $ begin
-      rintros ⟨L₁⟩ ⟨L₂⟩, simp [lift.aux],
+      rintros ⟨L₁⟩ ⟨L₂⟩, simv [lift.aux],
     end,
   inv_fun := λ g, g ∘ of,
   left_inv := λ f, one_mul _,
@@ -460,9 +460,9 @@ theorem lift.range_le {s : subgroup β} (H : set.range f ⊆ s) :
   (lift f).range ≤ s :=
 by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L s.one_mem
 (λ ⟨x, b⟩ tl ih, bool.rec_on b
-    (by simp at ih ⊢; from s.mul_mem
+    (by simv at ih ⊢; from s.mul_mem
       (s.inv_mem $ H ⟨x, rfl⟩) ih)
-    (by simp at ih ⊢; from s.mul_mem (H ⟨x, rfl⟩) ih))
+    (by simv at ih ⊢; from s.mul_mem (H ⟨x, rfl⟩) ih))
 
 theorem lift.range_eq_closure :
   (lift f).range = subgroup.closure (set.range f) :=
@@ -470,7 +470,7 @@ begin
   apply le_antisymm (lift.range_le subgroup.subset_closure),
   rw subgroup.closure_le,
   rintros _ ⟨a, rfl⟩,
-  exact ⟨of a, by simp only [lift.of]⟩,
+  exact ⟨of a, by simv only [lift.of]⟩,
 end
 
 end lift
@@ -484,8 +484,8 @@ to a group homomorphism from the free group
 ver `α` to the free group over `β`. -/
 def map : free_group α →* free_group β :=
 monoid_hom.mk'
-  (quot.map (list.map $ λ x, (f x.1, x.2)) $ λ L₁ L₂ H, by cases H; simp)
-  (by { rintros ⟨L₁⟩ ⟨L₂⟩, simp })
+  (quot.map (list.map $ λ x, (f x.1, x.2)) $ λ L₁ L₂ H, by cases H; simv)
+  (by { rintros ⟨L₁⟩ ⟨L₂⟩, simv })
 
 variable {f}
 
@@ -493,13 +493,13 @@ variable {f}
 rfl
 
 @[simp] lemma map.id (x : free_group α) : map id x = x :=
-by rcases x with ⟨L⟩; simp [list.map_id']
+by rcases x with ⟨L⟩; simv [list.map_id']
 
 @[simp] lemma map.id' (x : free_group α) : map (λ z, z) x = x := map.id x
 
 theorem map.comp {γ : Type w} (f : α → β) (g : β → γ) (x) :
   map g (map f x) = map (g ∘ f) x :=
-by rcases x with ⟨L⟩; simp
+by rcases x with ⟨L⟩; simv
 
 @[simp] lemma map.of {x} : map f (of x) = of (f x) := rfl
 
@@ -508,12 +508,12 @@ theorem map.unique (g : free_group α →* free_group β)
 by rintros ⟨L⟩; exact list.rec_on L g.map_one
 (λ ⟨x, b⟩ t (ih : g (mk t) = map f (mk t)), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = map f ((of x)⁻¹ * mk t),
-     by simp [g.map_mul, g.map_inv, hg, ih])
+     by simv [g.map_mul, g.map_inv, hg, ih])
   (show g (of x * mk t) = map f (of x * mk t),
-     by simp [g.map_mul, hg, ih]))
+     by simv [g.map_mul, hg, ih]))
 
 theorem map_eq_lift : map f x = lift (of ∘ f) x :=
-eq.symm $ map.unique _ $ λ x, by simp
+eq.symm $ map.unique _ $ λ x, by simv
 
 /-- Equivalent types give rise to multiplicatively equivalent free groups.
 
@@ -523,8 +523,8 @@ as `equiv.of_free_group_equiv`
 @[simps apply]
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃* free_group β :=
 { to_fun := map e, inv_fun := map e.symm,
-  left_inv := λ x, by simp [function.comp, map.comp],
-  right_inv := λ x, by simp [function.comp, map.comp],
+  left_inv := λ x, by simv [function.comp, map.comp],
+  right_inv := λ x, by simv [function.comp, map.comp],
   map_mul' := monoid_hom.map_mul _ }
 
 @[simp] lemma free_group_congr_refl : free_group_congr (equiv.refl α) = mul_equiv.refl _ :=
@@ -571,7 +571,7 @@ theorem lift_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
 begin
   rw ←lift.unique (prod.comp (map f)),
   { refl },
-  { simp }
+  { simv }
 end
 
 section sum
@@ -625,12 +625,12 @@ def free_group_unit_equiv_int : free_group unit ≃ ℤ :=
   begin
     rintros ⟨L⟩,
     refine list.rec_on L rfl _,
-    exact (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [zpow_add] at ih ⊢; rw ih; refl),
+    exact (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simv [zpow_add] at ih ⊢; rw ih; refl),
   end,
   right_inv :=
-    λ x, int.induction_on x (by simp)
-    (λ i ih, by simp at ih; simp [zpow_add, ih])
-    (λ i ih, by simp at ih; simp [zpow_add, ih, sub_eq_add_neg, -int.add_neg_one]) }
+    λ x, int.induction_on x (by simv)
+    (λ i ih, by simv at ih; simv [zpow_add, ih])
+    (λ i ih, by simv at ih; simv [zpow_add, ih, sub_eq_add_neg, -int.add_neg_one]) }
 
 section category
 
@@ -744,15 +744,15 @@ theorem reduce.not {p : Prop} :
   cases r : reduce L1,
   { dsimp, intro h,
     have := congr_arg list.length h,
-    simp [-add_comm] at this,
+    simv [-add_comm] at this,
     exact absurd this dec_trivial },
   cases hd with y c,
-  by_cases x = y ∧ b = bnot c; simp [h]; intro H,
+  by_cases x = y ∧ b = bnot c; simv [h]; intro H,
   { rw H at r,
     exact @reduce.not L1 ((y,c)::L2) L3 x' b' r },
   rcases L2 with _|⟨a, L2⟩,
   { injections, subst_vars,
-    simp at h, cc },
+    simv at h, cc },
   { refine @reduce.not L1 L2 L3 x' b' _,
     injection H with _ H,
     rw [r, H], refl }

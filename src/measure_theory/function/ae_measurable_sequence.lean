@@ -56,18 +56,18 @@ end
 lemma ae_seq_eq_mk_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) {x : α}
   (hx : x ∈ ae_seq_set hf p) (i : ι) :
   ae_seq hf p i x = (hf i).mk (f i) x :=
-by simp only [ae_seq, hx, if_true]
+by simv only [ae_seq, hx, if_true]
 
 lemma ae_seq_eq_fun_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ) {x : α}
   (hx : x ∈ ae_seq_set hf p) (i : ι) :
   ae_seq hf p i x = f i x :=
-by simp only [ae_seq_eq_mk_of_mem_ae_seq_set hf hx i, mk_eq_fun_of_mem_ae_seq_set hf hx i]
+by simv only [ae_seq_eq_mk_of_mem_ae_seq_set hf hx i, mk_eq_fun_of_mem_ae_seq_set hf hx i]
 
 lemma prop_of_mem_ae_seq_set (hf : ∀ i, ae_measurable (f i) μ)
   {x : α} (hx : x ∈ ae_seq_set hf p) :
   p x (λ n, ae_seq hf p n x) :=
 begin
-  simp only [ae_seq, hx, if_true],
+  simv only [ae_seq, hx, if_true],
   rw funext (λ n, mk_eq_fun_of_mem_ae_seq_set hf hx n),
   have h_ss : ae_seq_set hf p ⊆ {x | p x (λ n, f n x)},
   { rw [←compl_compl {x | p x (λ n, f n x)}, ae_seq_set, set.compl_subset_compl],
@@ -114,7 +114,7 @@ lemma ae_seq_eq_mk_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), ae_seq hf p i a = (hf i).mk (f i) a :=
 begin
   have h_ss : ae_seq_set hf p ⊆ {a : α | ∀ i, ae_seq hf p i a = (hf i).mk (f i) a},
-    from λ x hx i, by simp only [ae_seq, hx, if_true],
+    from λ x hx i, by simv only [ae_seq, hx, if_true],
   exact le_antisymm (le_trans (measure_mono (set.compl_subset_compl.mpr h_ss))
     (le_of_eq (measure_compl_ae_seq_set_eq_zero hf hp))) (zero_le _),
 end

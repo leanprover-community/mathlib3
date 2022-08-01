@@ -59,8 +59,8 @@ by tidy
 def raised_cone_is_limit [is_connected J] {B : C} {F : J ⥤ over B}
   {c : cone (F ⋙ forget B)} (t : is_limit c) :
   is_limit (raise_cone c) :=
-{ lift := λ s, over.hom_mk (t.lift ((forget B).map_cone s)) (by { dsimp, simp }),
-  uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }
+{ lift := λ s, over.hom_mk (t.lift ((forget B).map_cone s)) (by { dsimp, simv }),
+  uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simv [← K j] } }
 
 end creates_connected
 

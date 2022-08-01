@@ -111,14 +111,14 @@ lemma kronecker_map_diagonal_diagonal [has_zero α] [has_zero β] [has_zero γ]
   kronecker_map f (diagonal a) (diagonal b) = diagonal (λ mn, f (a mn.1) (b mn.2)) :=
 begin
   ext ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
-  simp [diagonal, apply_ite f, ite_and, ite_apply, apply_ite (f (a i₁)), hf₁, hf₂],
+  simv [diagonal, apply_ite f, ite_and, ite_apply, apply_ite (f (a i₁)), hf₁, hf₂],
 end
 
 @[simp] lemma kronecker_map_one_one [has_zero α] [has_zero β] [has_zero γ]
   [has_one α] [has_one β] [has_one γ] [decidable_eq m] [decidable_eq n]
   (f : α → β → γ) (hf₁ : ∀ b, f 0 b = 0) (hf₂ : ∀ a, f a 0 = 0) (hf₃ : f 1 1 = 1) :
   kronecker_map f (1 : matrix m m α) (1 : matrix n n β) = 1 :=
-(kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
+(kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simv only [hf₃, diagonal_one]
 
 lemma kronecker_map_reindex (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (en : n ≃ n')
   (ep : p ≃ p') (M : matrix l m α) (N : matrix n p β) :
@@ -177,7 +177,7 @@ lemma kronecker_map_bilinear_mul_mul [comm_semiring R]
     (kronecker_map_bilinear f A A') ⬝ (kronecker_map_bilinear f B B') :=
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
-  simp only [kronecker_map_bilinear_apply_apply, mul_apply, ← finset.univ_product_univ,
+  simv only [kronecker_map_bilinear_apply_apply, mul_apply, ← finset.univ_product_univ,
     finset.sum_product, kronecker_map],
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end

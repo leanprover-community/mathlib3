@@ -50,7 +50,7 @@ def lipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ�
 
 lemma lipschitz_with_iff_dist_le_mul [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
   {f : α → β} : lipschitz_with K f ↔ ∀ x y, dist (f x) (f y) ≤ K * dist x y :=
-by { simp only [lipschitz_with, edist_nndist, dist_nndist], norm_cast }
+by { simv only [lipschitz_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_with.of_dist_le_mul
 
@@ -71,18 +71,18 @@ lemma lipschitz_on_with.mono [pseudo_emetric_space α] [pseudo_emetric_space β]
 lemma lipschitz_on_with_iff_dist_le_mul [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
   {s : set α} {f : α → β} :
   lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
-by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
+by { simv only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_on_with_iff_dist_le_mul ↔
   lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
 
 @[simp] lemma lipschitz_on_univ [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
   {f : α → β} : lipschitz_on_with K f univ ↔ lipschitz_with K f :=
-by simp [lipschitz_on_with, lipschitz_with]
+by simv [lipschitz_on_with, lipschitz_with]
 
 lemma lipschitz_on_with_iff_restrict [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
   {f : α → β} {s : set α} : lipschitz_on_with K f s ↔ lipschitz_with K (s.restrict f) :=
-by simp only [lipschitz_on_with, lipschitz_with, set_coe.forall', restrict, subtype.edist_eq]
+by simv only [lipschitz_on_with, lipschitz_with, set_coe.forall', restrict, subtype.edist_eq]
 
 alias lipschitz_on_with_iff_restrict ↔ lipschitz_on_with.to_restrict _
 
@@ -136,7 +136,7 @@ end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
   lipschitz_with 1 f :=
-λ x y, by simp only [ennreal.coe_one, one_mul, h]
+λ x y, by simv only [ennreal.coe_one, one_mul, h]
 
 protected lemma weaken (hf : lipschitz_with K f) {K' : ℝ≥0} (h : K ≤ K') :
   lipschitz_with K' f :=
@@ -170,7 +170,7 @@ protected lemma continuous (hf : lipschitz_with K f) :
 hf.uniform_continuous.continuous
 
 protected lemma const (b : β) : lipschitz_with 0 (λa:α, b) :=
-assume x y, by simp only [edist_self, zero_le]
+assume x y, by simv only [edist_self, zero_le]
 
 protected lemma id : lipschitz_with 1 (@id α) :=
 lipschitz_with.of_edist_le $ assume x y, le_rfl
@@ -231,7 +231,7 @@ protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b,
   lipschitz_with (Kα + Kβ) (function.uncurry f) :=
 begin
   rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-  simp only [function.uncurry, ennreal.coe_add, add_mul],
+  simv only [function.uncurry, ennreal.coe_add, add_mul],
   apply le_trans (edist_triangle _ (f a₂ b₁) _),
   exact add_le_add (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
     (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
@@ -260,7 +260,7 @@ protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
   (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
 | [] := by simpa using lipschitz_with.id
-| (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
+| (i :: l) := by { simv only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
 protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
@@ -431,9 +431,9 @@ lemma bounded_prod_of_nonempty (hs : s.nonempty) (ht : t.nonempty) :
 
 lemma bounded_prod : bounded (s ×ˢ t) ↔ s = ∅ ∨ t = ∅ ∨ bounded s ∧ bounded t :=
 begin
-  rcases s.eq_empty_or_nonempty with rfl|hs, { simp },
-  rcases t.eq_empty_or_nonempty with rfl|ht, { simp },
-  simp only [bounded_prod_of_nonempty hs ht, hs.ne_empty, ht.ne_empty, false_or]
+  rcases s.eq_empty_or_nonempty with rfl|hs, { simv },
+  rcases t.eq_empty_or_nonempty with rfl|ht, { simv },
+  simv only [bounded_prod_of_nonempty hs ht, hs.ne_empty, ht.ne_empty, false_or]
 end
 
 end metric
@@ -552,7 +552,7 @@ lemma continuous_prod_of_continuous_lipschitz [pseudo_emetric_space α]
   (ha : ∀ a, continuous (λ y, f (a, y))) (hb : ∀ b, lipschitz_with K (λ x, f (x, b))) :
   continuous f :=
 begin
-  simp only [continuous_iff_continuous_on_univ, ← univ_prod_univ, ← lipschitz_on_univ] at *,
+  simv only [continuous_iff_continuous_on_univ, ← univ_prod_univ, ← lipschitz_on_univ] at *,
   exact continuous_on_prod_of_continuous_on_lipschitz_on f K (λ a _, ha a) (λ b _, hb b)
 end
 
@@ -570,7 +570,7 @@ begin
     (mem_of_superset (ball_mem_nhds _ hr) h) _),
   -- Then show that `K * dist y x` tends to zero as `y → x`
   refine (continuous_const.mul (continuous_id.dist continuous_const)).tendsto' _ _ _,
-  simp
+  simv
 end
 
 /-- A function `f : α → ℝ` which is `K`-Lipschitz on a subset `s` admits a `K`-Lipschitz extension
@@ -585,7 +585,7 @@ begin
   extended function is also `K`-Lipschitz. -/
   rcases eq_empty_or_nonempty s with rfl|hs,
   { exact ⟨λ x, 0, (lipschitz_with.const _).weaken (zero_le _), eq_on_empty _ _⟩ },
-  haveI : nonempty s, by simp only [hs, nonempty_coe_sort],
+  haveI : nonempty s, by simv only [hs, nonempty_coe_sort],
   let g := λ (y : α), infi (λ (x : s), f x + K * dist y x),
   have B : ∀ (y : α), bdd_below (range (λ (x : s), f x + K * dist y x)),
   { assume y,

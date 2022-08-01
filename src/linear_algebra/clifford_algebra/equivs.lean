@@ -73,7 +73,7 @@ instance : comm_ring (clifford_algebra (0 : quadratic_form R unit)) :=
 { mul_comm := λ x y, begin
     induction x using clifford_algebra.induction,
     case h_grade0 : r { apply algebra.commutes, },
-    case h_grade1 : x { simp, },
+    case h_grade1 : x { simv, },
     case h_add : x₁ x₂ hx₁ hx₂ { rw [mul_add, add_mul, hx₁, hx₂], },
     case h_mul : x₁ x₂ hx₁ hx₂ { rw [mul_assoc, hx₂, ←mul_assoc, hx₁, ←mul_assoc], },
   end,
@@ -94,7 +94,7 @@ linear_map.ext reverse_apply
 
 @[simp] lemma involute_eq_id :
   (involute : clifford_algebra (0 : quadratic_form R unit) →ₐ[R] _) = alg_hom.id R _ :=
-by { ext, simp }
+by { ext, simv }
 
 /-- The clifford algebra over a 0-dimensional vector space is isomorphic to its scalars. -/
 protected def equiv : clifford_algebra (0 : quadratic_form R unit) ≃ₐ[R] R :=
@@ -123,7 +123,7 @@ def to_complex : clifford_algebra Q →ₐ[ℝ] ℂ :=
 clifford_algebra.lift Q ⟨linear_map.to_span_singleton _ _ complex.I, λ r, begin
   dsimp [linear_map.to_span_singleton, linear_map.id],
   rw mul_mul_mul_comm,
-  simp,
+  simv,
 end⟩
 
 @[simp]
@@ -135,7 +135,7 @@ clifford_algebra.lift_ι_apply _ _ r
   to_complex (c.involute) = conj (to_complex c) :=
 begin
   have : to_complex (involute (ι Q 1)) = conj (to_complex (ι Q 1)),
-  { simp only [involute_ι, to_complex_ι, alg_hom.map_neg, one_smul, complex.conj_I] },
+  { simv only [involute_ι, to_complex_ι, alg_hom.map_neg, one_smul, complex.conj_I] },
   suffices : to_complex.comp involute = complex.conj_ae.to_alg_hom.comp to_complex,
   { exact alg_hom.congr_fun this c },
   ext : 2,
@@ -238,16 +238,16 @@ def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂))
   k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
   i_mul_i := begin
     rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
-    simp,
+    simv,
   end,
   j_mul_j := begin
     rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
-    simp,
+    simv,
   end,
   i_mul_j := rfl,
   j_mul_i := begin
     rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap, quadratic_form.polar],
-    simp,
+    simv,
   end }
 
 variables {c₁ c₂}
@@ -257,8 +257,8 @@ variables {c₁ c₂}
 def to_quaternion : clifford_algebra (Q c₁ c₂) →ₐ[R] ℍ[R,c₁,c₂] :=
 clifford_algebra.lift (Q c₁ c₂) ⟨
   { to_fun := λ v, (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]),
-    map_add' := λ v₁ v₂, by simp,
-    map_smul' := λ r v, by ext; simp },
+    map_add' := λ v₁ v₂, by simv,
+    map_smul' := λ r v, by ext; simv },
   λ v, begin
     dsimp,
     ext,
@@ -277,15 +277,15 @@ lemma to_quaternion_involute_reverse (c : clifford_algebra (Q c₁ c₂)) :
 begin
   induction c using clifford_algebra.induction,
   case h_grade0 : r
-  { simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
+  { simv only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
       quaternion_algebra.conj_coe], },
   case h_grade1 : x
   { rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
       quaternion_algebra.neg_mk, conj_mk, neg_zero], },
   case h_mul : x₁ x₂ hx₁ hx₂
-  { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
+  { simv only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
   case h_add : x₁ x₂ hx₁ hx₂
-  { simp only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
+  { simv only [reverse.map_add, alg_hom.map_add, hx₁, hx₂, quaternion_algebra.conj_add] },
 end
 
 /-- Map a quaternion into the clifford algebra. -/
@@ -310,7 +310,7 @@ begin
   { dsimp,
     rw to_quaternion_ι,
     dsimp,
-    simp only [to_quaternion_ι, zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero], },
+    simv only [to_quaternion_ι, zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero], },
 end
 
 @[simp] lemma of_quaternion_to_quaternion (c : clifford_algebra (Q c₁ c₂)) :
@@ -323,7 +323,7 @@ lemma to_quaternion_comp_of_quaternion :
   to_quaternion.comp of_quaternion = alg_hom.id R ℍ[R,c₁,c₂] :=
 begin
   apply quaternion_algebra.lift.symm.injective,
-  ext1; dsimp [quaternion_algebra.basis.lift]; simp,
+  ext1; dsimp [quaternion_algebra.basis.lift]; simv,
 end
 
 @[simp] lemma to_quaternion_of_quaternion (q : ℍ[R,c₁,c₂]) : to_quaternion (of_quaternion q) = q :=

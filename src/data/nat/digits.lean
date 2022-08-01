@@ -72,7 +72,7 @@ def digits : ℕ → ℕ → list ℕ
 | (b+2) := digits_aux (b+2) (by norm_num)
 
 @[simp] lemma digits_zero (b : ℕ) : digits b 0 = [] :=
-by rcases b with _|⟨_|⟨_⟩⟩; simp [digits, digits_aux_0, digits_aux_1]
+by rcases b with _|⟨_|⟨_⟩⟩; simv [digits, digits_aux_0, digits_aux_1]
 
 @[simp] lemma digits_zero_zero : digits 0 0 = [] := rfl
 
@@ -117,12 +117,12 @@ begin
     { norm_num at h, },
     { cases y,
       { norm_num at w',
-        simp [w, w'], },
+        simv [w, w'], },
       dsimp [digits],
       rw digits_aux_def,
       { congr,
-        { simp [nat.add_mod, nat.mod_eq_of_lt w], },
-        { simp [mul_comm (b+2), nat.add_mul_div_right, nat.div_eq_of_lt w], } },
+        { simv [nat.add_mod, nat.mod_eq_of_lt w], },
+        { simv [mul_comm (b+2), nat.add_mul_div_right, nat.div_eq_of_lt w], } },
       { apply nat.succ_pos, }, }, },
 end
 
@@ -151,10 +151,10 @@ lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
 begin
   suffices : (list.range l.length).zip_with (((λ (i a : ℕ), a * b ^ i) ∘ succ)) l =
       (list.range l.length).zip_with (λ i a, b * (a * b ^ i)) l,
-  { simp [this] },
+  { simv [this] },
   congr,
   ext,
-  simp [pow_succ],
+  simv [pow_succ],
   ring
 end
 
@@ -164,22 +164,22 @@ begin
   rw [list.map_with_index_eq_enum_map, list.enum_eq_zip_range,
       list.map_uncurry_zip_eq_zip_with, of_digits_eq_foldr],
   induction L with hd tl hl,
-  { simp },
+  { simv },
   { simpa [list.range_succ_eq_map, list.zip_with_map_left, of_digits_eq_sum_map_with_index_aux]
       using or.inl hl }
 end
 
-@[simp] lemma of_digits_singleton {b n : ℕ} : of_digits b [n] = n := by simp [of_digits]
+@[simp] lemma of_digits_singleton {b n : ℕ} : of_digits b [n] = n := by simv [of_digits]
 
 @[simp] lemma of_digits_one_cons {α : Type*} [semiring α] (h : ℕ) (L : list ℕ) :
   of_digits (1 : α) (h :: L) = h + of_digits 1 L :=
-by simp [of_digits]
+by simv [of_digits]
 
 lemma of_digits_append {b : ℕ} {l1 l2 : list ℕ} :
   of_digits b (l1 ++ l2) = of_digits b l1 + b^(l1.length) * of_digits b l2 :=
 begin
   induction l1 with hd tl IH,
-  { simp [of_digits] },
+  { simv [of_digits] },
   { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, pow_succ'],
     ring }
 end
@@ -188,7 +188,7 @@ end
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
   induction L with d L ih,
-  { simp [of_digits], },
+  { simv [of_digits], },
   { dsimp [of_digits], push_cast, rw ih, }
 end
 
@@ -219,9 +219,9 @@ lemma digits_of_digits
   digits b (of_digits b L) = L :=
 begin
   induction L with d L ih,
-  { dsimp [of_digits], simp },
+  { dsimp [of_digits], simv },
   { dsimp [of_digits],
-    replace w₂ := w₂ (by simp),
+    replace w₂ := w₂ (by simv),
     rw digits_add b h,
     { rw ih,
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
@@ -231,7 +231,7 @@ begin
     { exact w₁ d (list.mem_cons_self _ _) },
     { by_cases h' : L = [],
       { rcases h' with rfl,
-        simp at w₂,
+        simv at w₂,
         left,
         apply nat.pos_of_ne_zero,
         exact w₂ },
@@ -251,16 +251,16 @@ begin
     { refl, },
     { change of_digits 0 [n+1] = n+1,
       dsimp [of_digits],
-      simp, } },
+      simv, } },
   { cases b with b,
     { induction n with n ih,
       { refl, },
-      { simp only [ih, add_comm 1, of_digits_one_cons, nat.cast_id, digits_one_succ], } },
+      { simv only [ih, add_comm 1, of_digits_one_cons, nat.cast_id, digits_one_succ], } },
     { apply nat.strong_induction_on n _, clear n,
       intros n h,
       cases n,
       { rw digits_zero, refl, },
-      { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
+      { simv only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
         rw [nat.mod_add_div], }, }, },
@@ -270,7 +270,7 @@ lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
 begin
   induction L with d L ih,
   { refl, },
-  { simp [of_digits, list.sum_cons, ih], }
+  { simv [of_digits, list.sum_cons, ih], }
 end
 
 /-!
@@ -287,7 +287,7 @@ begin
     convert this,
     rw of_digits_digits },
   { rintro rfl,
-    simp }
+    simv }
 end
 
 lemma digits_ne_nil_iff_ne_zero {b n : ℕ} : digits b n ≠ [] ↔ n ≠ 0 :=
@@ -301,15 +301,15 @@ begin
   { norm_num at h },
   rcases n with _|n,
   { norm_num at w },
-  simp,
+  simv,
 end
 
 lemma digits_last {b : ℕ} (m : ℕ) (h : 2 ≤ b) (p q) :
   (digits b m).last p = (digits b (m/b)).last q :=
 begin
   by_cases hm : m = 0,
-  { simp [hm], },
-  simp only [digits_eq_cons_digits_div h (nat.pos_of_ne_zero hm)],
+  { simv [hm], },
+  simv only [digits_eq_cons_digits_div h (nat.pos_of_ne_zero hm)],
   rw list.last_cons,
 end
 
@@ -327,7 +327,7 @@ begin
   rw [digits_eq_cons_digits_div hb hn, list.length],
   cases (n / b).eq_zero_or_pos with h h,
   { have posb : 0 < b := zero_lt_two.trans_le hb,
-    simp [h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
+    simv [h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
   { have hb' : 1 < b := one_lt_two.trans_le hb,
     have : n / b < n := div_lt_self hn hb',
     rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],
@@ -343,7 +343,7 @@ begin
   rcases b with _|_|b,
   { cases m,
     { cases hm rfl },
-    { simp } },
+    { simv } },
   { cases m, { cases hm rfl },
     simp_rw [digits_one, list.last_repeat_succ 1 m],
     norm_num },
@@ -385,7 +385,7 @@ lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, 
   of_digits (b+2) l < (b+2)^(l.length) :=
 begin
   induction l with hd tl IH,
-  { simp [of_digits], },
+  { simv [of_digits], },
   { rw [of_digits, list.length_cons, pow_succ],
     have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
       mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
@@ -425,11 +425,11 @@ by rw [of_digits_append, of_digits_digits, of_digits_digits]
 lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
 begin
   rcases n.eq_zero_or_pos with rfl|hn,
-  { simp },
+  { simv },
   cases lt_or_le b 2 with hb hb,
   { rcases b with _|_|b,
-    { simp [digits_zero_succ', hn] },
-    { simp, },
+    { simv [digits_zero_succ', hn] },
+    { simv, },
     { simpa [succ_lt_succ_iff] using hb } },
   simpa [digits_len, hb, hn] using log_mono_right (le_succ _)
 end
@@ -441,7 +441,7 @@ lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 
   (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
 begin
   rw [←list.init_append_last hl],
-  simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
+  simv only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
     list.length_init, of_digits_singleton, add_comm (l.length - 1), pow_add, pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
@@ -479,8 +479,8 @@ lemma dvd_of_digits_sub_of_digits {α : Type*} [comm_ring α]
   k ∣ of_digits a L - of_digits b L :=
 begin
   induction L with d L ih,
-  { change k ∣ 0 - 0, simp, },
-  { simp only [of_digits, add_sub_add_left_eq_sub],
+  { change k ∣ 0 - 0, simv, },
+  { simv only [of_digits, add_sub_add_left_eq_sub],
     exact dvd_mul_sub_mul h ih, }
 end
 
@@ -546,10 +546,10 @@ end
 lemma of_digits_neg_one : Π (L : list ℕ),
   of_digits (-1 : ℤ) L = (L.map (λ n : ℕ, (n : ℤ))).alternating_sum
 | [] := rfl
-| [n] := by simp [of_digits, list.alternating_sum]
+| [n] := by simv [of_digits, list.alternating_sum]
 | (a :: b :: t) :=
   begin
-    simp only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
+    simv only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
     ring,
   end
 

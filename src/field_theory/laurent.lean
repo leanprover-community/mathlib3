@@ -37,7 +37,7 @@ begin
   rw mem_non_zero_divisors_iff,
   intros x hx,
   have : x = taylor (r - r) x,
-  { simp },
+  { simv },
   rwa [this, sub_eq_add_neg, ←taylor_taylor, ←taylor_mul,
        linear_map.map_eq_zero_iff _ (taylor_injective _),
        mul_right_mem_non_zero_divisors_eq_zero_iff hp,
@@ -70,7 +70,7 @@ by rw [←mk_one, ←mk_one, mk_eq_div, laurent_aux_div, mk_eq_div, taylor_one, 
 /-- The Laurent expansion of rational functions about a value. -/
 def laurent : ratfunc R →ₐ[R] ratfunc R :=
 ratfunc.map_alg_hom (alg_hom.mk (taylor r) (taylor_one _) (taylor_mul _)
-  (linear_map.map_zero _) (linear_map.map_add _) (by simp [polynomial.algebra_map_apply]))
+  (linear_map.map_zero _) (linear_map.map_add _) (by simv [polynomial.algebra_map_apply]))
   (taylor_mem_non_zero_divisors _)
 
 lemma laurent_div :
@@ -89,7 +89,7 @@ by rw [←algebra_map_X, laurent_algebra_map, taylor_X, _root_.map_add, algebra_
 by rw [←algebra_map_C, laurent_algebra_map, taylor_C]
 
 @[simp] lemma laurent_at_zero : laurent 0 f = f :=
-by { induction f using ratfunc.induction_on, simp }
+by { induction f using ratfunc.induction_on, simv }
 
 lemma laurent_laurent :
   laurent r (laurent s f) = laurent (r + s) f :=

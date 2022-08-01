@@ -131,7 +131,7 @@ by simpa only [zero_mul, zero_add] using div_add_mod a 0
   rw [e, ← add_left_cancel_iff, div_add_mod, add_zero],
   haveI := classical.dec,
   by_cases b0 : b = 0,
-  { simp only [b0, zero_mul] },
+  { simv only [b0, zero_mul] },
   { rw [mul_div_cancel_left _ b0] }
  end⟩
 
@@ -154,15 +154,15 @@ mod_eq_zero.2 (one_dvd _)
 @[simp] lemma zero_mod (b : R) : 0 % b = 0 :=
 mod_eq_zero.2 (dvd_zero _)
 
-@[simp, priority 900] lemma div_zero (a : R) : a / 0 = 0 :=
+@[simv, priority 900] lemma div_zero (a : R) : a / 0 = 0 :=
 euclidean_domain.quotient_zero a
 
-@[simp, priority 900] lemma zero_div {a : R} : 0 / a = 0 :=
+@[simv, priority 900] lemma zero_div {a : R} : 0 / a = 0 :=
 classical.by_cases
   (λ a0 : a = 0, a0.symm ▸ div_zero 0)
   (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
 
-@[simp, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
+@[simv, priority 900] lemma div_self {a : R} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
 
 lemma eq_div_of_mul_eq_left {a b c : R} (hb : b ≠ 0) (h : a * b = c) : a = c / b :=
@@ -179,7 +179,7 @@ begin
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
 
-@[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
+@[simv, priority 900] -- This generalizes `int.div_one`, see note [simv-normal form]
 lemma div_one (p : R) : p / 1 = p :=
 (euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
 
@@ -198,7 +198,7 @@ end
 lemma dvd_div_of_mul_dvd {a b c : R} (h : a * b ∣ c) : b ∣ c / a :=
 begin
   rcases eq_or_ne a 0 with rfl | ha,
-  { simp only [div_zero, dvd_zero] },
+  { simv only [div_zero, dvd_zero] },
   rcases h with ⟨d, rfl⟩,
   refine ⟨d, _⟩,
   rw [mul_assoc, mul_div_cancel_left _ ha]
@@ -236,10 +236,10 @@ using_well_founded {dec_tac := tactic.assumption,
 by { rw gcd, exact if_pos rfl }
 
 @[simp] theorem gcd_zero_right (a : R) : gcd a 0 = a :=
-by { rw gcd, split_ifs; simp only [h, zero_mod, gcd_zero_left] }
+by { rw gcd, split_ifs; simv only [h, zero_mod, gcd_zero_left] }
 
 theorem gcd_val (a b : R) : gcd a b = gcd (b % a) a :=
-by { rw gcd, split_ifs; [simp only [h, mod_zero, gcd_zero_right], refl]}
+by { rw gcd, split_ifs; [simv only [h, mod_zero, gcd_zero_right], refl]}
 
 theorem gcd_dvd (a b : R) : gcd a b ∣ a ∧ gcd a b ∣ b :=
 gcd.induction a b
@@ -317,7 +317,7 @@ by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
 @[simp] theorem xgcd_aux_fst (x y : R) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
 gcd.induction x y (by { intros, rw [xgcd_zero_left, gcd_zero_left] })
-(λ x y h IH s t s' t', by { simp only [xgcd_aux_rec h, if_neg h, IH], rw ← gcd_val })
+(λ x y h IH s t s' t', by { simv only [xgcd_aux_rec h, if_neg h, IH], rw ← gcd_val })
 
 theorem xgcd_aux_val (x y : R) : xgcd_aux x 1 0 y 0 1 = (gcd x y, xgcd x y) :=
 by rw [xgcd, ← xgcd_aux_fst x y 1 0 0 1, prod.mk.eta]
@@ -381,7 +381,7 @@ begin
   { cases this with p hp, use p,
     generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
     rw [mul_left_comm, mul_div_cancel_left _ hxy, ← mul_left_inj' hxy, hp],
-    rw [← mul_assoc], simp only [mul_right_comm] },
+    rw [← mul_assoc], simv only [mul_right_comm] },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
   { rw mul_left_comm, exact mul_dvd_mul_left _ (hyz.mul_right _) },
   { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (hxz.mul_right _) }
@@ -428,7 +428,7 @@ section div
 lemma mul_div_mul_cancel {a b c : R} (ha : a ≠ 0) (hcb : c ∣ b) :
   a * b / (a * c) = b / c :=
 begin
-  by_cases hc : c = 0, { simp [hc] },
+  by_cases hc : c = 0, { simv [hc] },
   refine eq_div_of_mul_eq_right hc (mul_left_cancel₀ ha _),
   rw [← mul_assoc, ← mul_div_assoc _ (mul_dvd_mul_left a hcb),
          mul_div_cancel_left _ (mul_ne_zero ha hc)]
@@ -437,8 +437,8 @@ end
 lemma mul_div_mul_comm_of_dvd_dvd {a b c d : R} (hac : c ∣ a) (hbd : d ∣ b) :
   a * b / (c * d) = a / c * (b / d) :=
 begin
-  rcases eq_or_ne c 0 with rfl | hc0, { simp },
-  rcases eq_or_ne d 0 with rfl | hd0, { simp },
+  rcases eq_or_ne c 0 with rfl | hc0, { simv },
+  rcases eq_or_ne d 0 with rfl | hd0, { simv },
   obtain ⟨k1, rfl⟩ := hac,
   obtain ⟨k2, rfl⟩ := hbd,
   rw [mul_div_cancel_left _ hc0, mul_div_cancel_left _ hd0, mul_mul_mul_comm,
@@ -481,10 +481,10 @@ instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,
-    by { classical, by_cases b = 0; simp [h, mul_div_cancel'] },
+    by { classical, by_cases b = 0; simv [h, mul_div_cancel'] },
   r := λ a b, a = 0 ∧ b ≠ 0,
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
-  remainder_lt := λ a b hnb, by simp [hnb],
+  remainder_lt := λ a b hnb, by simv [hnb],
   mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
   .. ‹field K› }

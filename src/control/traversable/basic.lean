@@ -124,7 +124,7 @@ lemma preserves_seq :
 
 @[functor_norm]
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
-by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
+by rw [← pure_seq_eq_map, η.preserves_seq]; simv with functor_norm
 
 lemma preserves_map' {α β} (x : α → β) : @η _ ∘ functor.map x = functor.map x ∘ @η _ :=
 by { ext y, exact preserves_map η x y }
@@ -134,8 +134,8 @@ end preserves
 /-- The identity applicative transformation from an applicative functor to itself. -/
 def id_transformation : applicative_transformation F F :=
 { app := λ α, id,
-  preserves_pure' := by simp,
-  preserves_seq' := λ α β x y, by simp }
+  preserves_pure' := by simv,
+  preserves_seq' := λ α β x y, by simv }
 
 instance : inhabited (applicative_transformation F F) := ⟨id_transformation⟩
 
@@ -146,8 +146,8 @@ variables {H : Type u → Type s} [applicative H] [is_lawful_applicative H]
 def comp (η' : applicative_transformation G H) (η : applicative_transformation F G) :
   applicative_transformation F H :=
 { app := λ α x, η' (η x),
-  preserves_pure' := λ α x, by simp with functor_norm,
-  preserves_seq' := λ α β x y, by simp with functor_norm }
+  preserves_pure' := λ α x, by simv with functor_norm,
+  preserves_seq' := λ α β x y, by simv with functor_norm }
 
 @[simp]
 lemma comp_apply (η' : applicative_transformation G H) (η : applicative_transformation F G)

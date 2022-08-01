@@ -175,11 +175,11 @@ begin
   { rw [pi.sub_apply, monge_point_weights_with_circumcenter, centroid_weights_with_circumcenter,
         monge_point_vsub_face_centroid_weights_with_circumcenter],
     have hu : card ({i₁, i₂}ᶜ : finset (fin (n + 3))) = n + 1,
-    { simp [card_compl, fintype.card_fin, h] },
+    { simv [card_compl, fintype.card_fin, h] },
     rw hu,
     by_cases hi : i = i₁ ∨ i = i₂;
-      simp [compl_eq_univ_sdiff, hi] },
-  { simp [monge_point_weights_with_circumcenter, centroid_weights_with_circumcenter,
+      simv [compl_eq_univ_sdiff, hi] },
+  { simv [monge_point_weights_with_circumcenter, centroid_weights_with_circumcenter,
           monge_point_vsub_face_centroid_weights_with_circumcenter] }
 end
 
@@ -191,7 +191,7 @@ begin
   rw monge_point_vsub_face_centroid_weights_with_circumcenter_eq_sub h,
   simp_rw [pi.sub_apply, sum_sub_distrib, sum_monge_point_weights_with_circumcenter],
   rw [sum_centroid_weights_with_circumcenter, sub_self],
-  simp [←card_pos, card_compl, h]
+  simv [←card_pos, card_compl, h]
 end
 
 include V
@@ -217,15 +217,15 @@ lemma inner_monge_point_vsub_face_centroid_vsub {n : ℕ} (s : simplex ℝ P (n 
         s.points i₁ -ᵥ s.points i₂⟫ = 0 :=
 begin
   by_cases h : i₁ = i₂,
-  { simp [h], },
+  { simv [h], },
   simp_rw [monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter s h,
            point_eq_affine_combination_of_points_with_circumcenter,
            affine_combination_vsub],
   have hs : ∑ i, (point_weights_with_circumcenter i₁ - point_weights_with_circumcenter i₂) i = 0,
-  { simp },
+  { simv },
   rw [inner_weighted_vsub _ (sum_monge_point_vsub_face_centroid_weights_with_circumcenter h) _ hs,
       sum_points_with_circumcenter, points_with_circumcenter_eq_circumcenter],
-  simp only [monge_point_vsub_face_centroid_weights_with_circumcenter,
+  simv only [monge_point_vsub_face_centroid_weights_with_circumcenter,
              points_with_circumcenter_point],
   let fs : finset (fin (n + 3)) := {i₁, i₂},
   have hfs : ∀ i : fin (n + 3),
@@ -239,12 +239,12 @@ begin
     { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
       repeat { rw ←sum_subset fs.subset_univ _ },
       { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
-        simp [h, ne.symm h, dist_comm (s.points i₁)] },
-      all_goals { intros i hu hi, simp [hfs i hi] } },
+        simv [h, ne.symm h, dist_comm (s.points i₁)] },
+      all_goals { intros i hu hi, simv [hfs i hi] } },
     { intros i hu hi,
-      simp [hfs i hi, point_weights_with_circumcenter] } },
+      simv [hfs i hi, point_weights_with_circumcenter] } },
   { intros i hu hi,
-    simp [hfs i hi] }
+    simv [hfs i hi] }
 end
 
 /-- A Monge plane of an (n+2)-simplex is the (n+1)-dimensional affine
@@ -332,7 +332,7 @@ begin
   have hv : p -ᵥ s.monge_point ∈ vector_span ℝ (set.range s.points),
   { let s₁ : finset (fin (n + 3)) := univ.erase i₁,
     obtain ⟨i₂, h₂⟩ :=
-      card_pos.1 (show 0 < card s₁, by simp [card_erase_of_mem]),
+      card_pos.1 (show 0 < card s₁, by simv [card_erase_of_mem]),
     have h₁₂ : i₁ ≠ i₂ := (ne_of_mem_erase h₂).symm,
     exact (submodule.mem_inf.1 (h' i₂ h₁₂)).2 },
   exact submodule.disjoint_def.1 ((vector_span ℝ (set.range s.points)).orthogonal_disjoint)
@@ -395,7 +395,7 @@ begin
   rw direction_altitude,
   have h := submodule.finrank_add_inf_finrank_orthogonal
     (vector_span_mono ℝ (set.image_subset_range s.points ↑(univ.erase i))),
-  have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simp },
+  have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simv },
   refine add_left_cancel (trans h _),
   rw [s.independent.finrank_vector_span (fintype.card_fin _),
       ← finset.coe_image, s.independent.finrank_vector_span_image_finset hc]
@@ -433,7 +433,7 @@ begin
     { rw submodule.span_le,
       simpa using h },
     { rw [finrank_direction_altitude, finrank_span_set_eq_card],
-      { simp },
+      { simv },
       { refine linear_independent_singleton _,
         simpa using hne } } }
 end
@@ -486,7 +486,7 @@ begin
   rw [monge_plane_def, altitude_def, direction_affine_span, hs, he, centroid_singleton,
       coe_insert, coe_singleton,
       vector_span_image_eq_span_vsub_set_left_ne ℝ _ (set.mem_insert i₂ _)],
-  simp [h₂₃, submodule.span_insert_eq_span]
+  simv [h₂₃, submodule.span_insert_eq_span]
 end
 
 /-- The orthocenter lies in the altitudes. -/
@@ -535,7 +535,7 @@ begin
   obtain ⟨i₃, hi₃, hi₃₁, hi₃₂⟩ :
     ∃ i₃, univ \ ({i₁, i₂} : finset (fin 3)) = {i₃} ∧ i₃ ≠ i₁ ∧ i₃ ≠ i₂, by dec_trivial!,
   simp_rw [←sum_sdiff hu, hi₃],
-  simp [hi₃₁, hi₃₂],
+  simv [hi₃₁, hi₃₂],
   norm_num
 end
 
@@ -547,7 +547,7 @@ lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁
   dist t.orthocenter (reflection (affine_span ℝ (t.points '' ↑({i₁, i₂} : finset (fin 3))))
                                  t.circumcenter) =
     t.circumradius :=
-by { convert dist_orthocenter_reflection_circumcenter _ h, simp }
+by { convert dist_orthocenter_reflection_circumcenter _ h, simv }
 
 /-- The affine span of the orthocenter and a vertex is contained in
 the altitude. -/

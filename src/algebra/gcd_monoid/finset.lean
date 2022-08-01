@@ -49,7 +49,7 @@ fold_empty
 @[simp] lemma lcm_dvd_iff {a : α} : s.lcm f ∣ a ↔ (∀b ∈ s, f b ∣ a) :=
 begin
   apply iff.trans multiset.lcm_dvd,
-  simp only [multiset.mem_map, and_imp, exists_imp_distrib],
+  simv only [multiset.mem_map, and_imp, exists_imp_distrib],
   exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
 end
 
@@ -71,7 +71,7 @@ end
 @[simp] lemma lcm_singleton {b : β} : ({b} : finset β).lcm f = normalize (f b) :=
 multiset.lcm_singleton
 
-@[simp] lemma normalize_lcm : normalize (s.lcm f) = s.lcm f := by simp [lcm_def]
+@[simp] lemma normalize_lcm : normalize (s.lcm f) = s.lcm f := by simv [lcm_def]
 
 lemma lcm_union [decidable_eq β] : (s₁ ∪ s₂).lcm f = gcd_monoid.lcm (s₁.lcm f) (s₂.lcm f) :=
 finset.induction_on s₁ (by rw [empty_union, lcm_empty, lcm_one_left, normalize_lcm]) $ λ a s has ih,
@@ -88,7 +88,7 @@ lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
 
 theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ 0 ∈ f '' s :=
-by simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
+by simv only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
   ← finset.mem_def]
 
 end lcm
@@ -109,7 +109,7 @@ fold_empty
 lemma dvd_gcd_iff {a : α} : a ∣ s.gcd f ↔ ∀b ∈ s, a ∣ f b :=
 begin
   apply iff.trans multiset.dvd_gcd,
-  simp only [multiset.mem_map, and_imp, exists_imp_distrib],
+  simv only [multiset.mem_map, and_imp, exists_imp_distrib],
   exact ⟨λ k b hb, k _ _ hb rfl, λ k a' b hb h, h ▸ k _ hb⟩,
 end
 
@@ -131,7 +131,7 @@ end
 @[simp] lemma gcd_singleton {b : β} : ({b} : finset β).gcd f = normalize (f b) :=
 multiset.gcd_singleton
 
-@[simp] lemma normalize_gcd : normalize (s.gcd f) = s.gcd f := by simp [gcd_def]
+@[simp] lemma normalize_gcd : normalize (s.gcd f) = s.gcd f := by simv [gcd_def]
 
 lemma gcd_union [decidable_eq β] : (s₁ ∪ s₂).gcd f = gcd_monoid.gcd (s₁.gcd f) (s₂.gcd f) :=
 finset.induction_on s₁ (by rw [empty_union, gcd_empty, gcd_zero_left, normalize_gcd]) $
@@ -148,7 +148,7 @@ lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=
 dvd_gcd $ assume b hb, gcd_dvd (h hb)
 
 theorem gcd_image {g : γ → β} (s: finset γ) [decidable_eq β] [is_idempotent α gcd_monoid.gcd] :
-  (s.image g).gcd f = s.gcd (f ∘ g) := by simp [gcd, fold_image_idem]
+  (s.image g).gcd f = s.gcd (f ∘ g) := by simv [gcd, fold_image_idem]
 
 theorem gcd_eq_gcd_image [decidable_eq α] [is_idempotent α gcd_monoid.gcd] :
   s.gcd f = (s.image f).gcd id := (@gcd_image _ _ _ _ _ id _ _ _ _).symm
@@ -159,9 +159,9 @@ begin
   split; intro h,
   { intros b bs,
     apply h (f b),
-    simp only [multiset.mem_map, mem_def.1 bs],
+    simv only [multiset.mem_map, mem_def.1 bs],
     use b,
-    simp [mem_def.1 bs] },
+    simv [mem_def.1 bs] },
   { intros a as,
     rw multiset.mem_map at as,
     rcases as with ⟨b, ⟨bs, rfl⟩⟩,
@@ -177,18 +177,18 @@ begin
   rw gcd_union,
   transitivity gcd_monoid.gcd (0 : α) _,
   { refine congr (congr rfl _) rfl,
-    apply s.induction_on, { simp },
+    apply s.induction_on, { simv },
     intros a s has h,
     rw filter_insert,
-    split_ifs with h1; simp [h, h1], },
-  simp [gcd_zero_left, normalize_gcd],
+    split_ifs with h1; simv [h, h1], },
+  simv [gcd_zero_left, normalize_gcd],
 end
 
 lemma gcd_mul_left {a : α} : s.gcd (λ x, a * f x) = normalize a * s.gcd f :=
 begin
   classical,
   apply s.induction_on,
-  { simp },
+  { simv },
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_left],
   apply ((normalize_associated a).mul_right _).gcd_eq_right
@@ -198,7 +198,7 @@ lemma gcd_mul_right {a : α} : s.gcd (λ x, f x * a) = s.gcd f * normalize a :=
 begin
   classical,
   apply s.induction_on,
-  { simp },
+  { simv },
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_right],
   apply ((normalize_associated a).mul_left _).gcd_eq_right
@@ -219,7 +219,7 @@ begin
   classical,
   revert h,
   apply s.induction_on,
-  { simp },
+  { simv },
   intros b s bs hi h,
   rw [gcd_insert, gcd_insert, gcd_comm (f b), ← gcd_assoc, hi (λ x hx, h _ (mem_insert_of_mem hx)),
       gcd_comm a, gcd_assoc, gcd_comm a (gcd_monoid.gcd _ _),

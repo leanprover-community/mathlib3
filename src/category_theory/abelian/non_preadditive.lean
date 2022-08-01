@@ -109,7 +109,7 @@ begin
   have fh : f ≫ h = 0, calc
     f ≫ h = (p ≫ i) ≫ h : (abelian.image.fac f).symm ▸ rfl
        ... = ((t ≫ kernel.ι g) ≫ i) ≫ h : ht ▸ rfl
-       ... = t ≫ u ≫ h : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
+       ... = t ≫ u ≫ h : by simv only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
        ... = t ≫ 0 : hu.w ▸ rfl
        ... = 0 : has_zero_morphisms.comp_zero _ _,
   -- h factors through the cokernel of f via some l.
@@ -145,7 +145,7 @@ begin
   have hf : h ≫ f = 0, calc
     h ≫ f = h ≫ (p ≫ i) : (abelian.coimage.fac f).symm ▸ rfl
     ... = h ≫ (p ≫ (cokernel.π g ≫ t)) : ht ▸ rfl
-    ... = h ≫ u ≫ t : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
+    ... = h ≫ u ≫ t : by simv only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
     ... = 0 ≫ t : by rw [←category.assoc, hu.w]
     ... = 0 : zero_comp,
   -- h factors through the kernel of f via some l.
@@ -226,12 +226,12 @@ begin
   let hp1 : is_limit (kernel_fork.of_ι (prod.lift (𝟙 A) (0 : A ⟶ A)) hlp),
   { refine fork.is_limit.mk _ (λ s, fork.ι s ≫ limits.prod.fst) _ _,
     { intro s,
-      ext; simp, erw category.comp_id },
+      ext; simv, erw category.comp_id },
     { intros s m h,
       haveI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
       apply (cancel_mono (prod.lift (𝟙 A) (0 : A ⟶ A))).1,
       convert h,
-      ext; simp } },
+      ext; simv } },
   let hp2 : is_colimit (cokernel_cofork.of_π (limits.prod.snd : A ⨯ A ⟶ A) hlp),
   { exact epi_is_cokernel_of_kernel _ hp1 },
   apply normal_mono_category.epi_of_zero_cancel,
@@ -260,15 +260,15 @@ abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ inv (r A)
 
 end
 
-@[simp, reassoc] lemma diag_σ {X : C} : diag X ≫ σ = 0 :=
+@[simv, reassoc] lemma diag_σ {X : C} : diag X ≫ σ = 0 :=
 by rw [cokernel.condition_assoc, zero_comp]
 
-@[simp, reassoc] lemma lift_σ {X : C} : prod.lift (𝟙 X) 0 ≫ σ = 𝟙 X :=
+@[simv, reassoc] lemma lift_σ {X : C} : prod.lift (𝟙 X) 0 ≫ σ = 𝟙 X :=
 by rw [←category.assoc, is_iso.hom_inv_id]
 
 @[reassoc] lemma lift_map {X Y : C} (f : X ⟶ Y) :
   prod.lift (𝟙 X) 0 ≫ limits.prod.map f f = f ≫ prod.lift (𝟙 Y) 0 :=
-by simp
+by simv
 
 /-- σ is a cokernel of Δ X. -/
 def is_colimit_σ {X : C} : is_colimit (cokernel_cofork.of_π σ diag_σ) :=
@@ -278,7 +278,7 @@ cokernel.cokernel_iso _ σ (as_iso (r X)).symm (by rw [iso.symm_hom, as_iso_inv]
 lemma σ_comp {X Y : C} (f : X ⟶ Y) : σ ≫ f = limits.prod.map f f ≫ σ :=
 begin
   obtain ⟨g, hg⟩ :=
-    cokernel_cofork.is_colimit.desc' is_colimit_σ (limits.prod.map f f ≫ σ) (by simp),
+    cokernel_cofork.is_colimit.desc' is_colimit_σ (limits.prod.map f f ≫ σ) (by simv),
   suffices hfg : f = g,
   { rw [←hg, cofork.π_of_π, hfg] },
   calc f = f ≫ prod.lift (𝟙 Y) 0 ≫ σ : by rw [lift_σ, category.comp_id]
@@ -311,7 +311,7 @@ lemma neg_def {X Y : C} (a : X ⟶ Y) : -a = 0 - a := rfl
 lemma sub_zero {X Y : C} (a : X ⟶ Y) : a - 0 = a :=
 begin
   rw sub_def,
-  conv_lhs { congr, congr, rw ←category.comp_id a, skip, rw (show 0 = a ≫ (0 : Y ⟶ Y), by simp)},
+  conv_lhs { congr, congr, rw ←category.comp_id a, skip, rw (show 0 = a ≫ (0 : Y ⟶ Y), by simv)},
   rw [← prod.comp_lift, category.assoc, lift_σ, category.comp_id]
 end
 
@@ -321,7 +321,7 @@ by rw [sub_def, ←category.comp_id a, ← prod.comp_lift, category.assoc, diag_
 lemma lift_sub_lift {X Y : C} (a b c d : X ⟶ Y) :
   prod.lift a b - prod.lift c d = prod.lift (a - c) (b - d) :=
 begin
-  simp only [sub_def],
+  simv only [sub_def],
   ext,
   { rw [category.assoc, σ_comp, prod.lift_map_assoc, prod.lift_fst, prod.lift_fst, prod.lift_fst] },
   { rw [category.assoc, σ_comp, prod.lift_map_assoc, prod.lift_snd, prod.lift_snd, prod.lift_snd] }

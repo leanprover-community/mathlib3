@@ -139,8 +139,8 @@ def coe_neighbor_set_equiv {G' : subgraph G} (v : G'.verts) :
   G'.coe.neighbor_set v ≃ G'.neighbor_set v :=
 { to_fun := λ w, ⟨w, by { obtain ⟨w', hw'⟩ := w, simpa using hw' }⟩,
   inv_fun := λ w, ⟨⟨w, G'.edge_vert (G'.adj_symm w.2)⟩, by simpa using w.2⟩,
-  left_inv := λ w, by simp,
-  right_inv := λ w, by simp }
+  left_inv := λ w, by simv,
+  right_inv := λ w, by simv }
 
 /-- The edge set of `G'` consists of a subset of edges of `G`. -/
 def edge_set (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.symm
@@ -156,7 +156,7 @@ lemma mem_verts_if_mem_edge {G' : subgraph G} {e : sym2 V} {v : V}
 begin
   refine quotient.ind (λ e he hv, _) e he hv,
   cases e with v w,
-  simp only [mem_edge_set] at he,
+  simv only [mem_edge_set] at he,
   cases sym2.mem_iff.mp hv with h h; subst h,
   { exact G'.edge_vert he, },
   { exact G'.edge_vert (G'.symm he), },
@@ -261,7 +261,7 @@ instance : bounded_order (subgraph G) :=
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
 
--- TODO simp lemmas for the other lattice operations on subgraphs
+-- TODO simv lemmas for the other lattice operations on subgraphs
 @[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl
 
 @[simp] lemma top_adj_iff {v w : V} : (⊤ : subgraph G).adj v w ↔ G.adj v w := iff.rfl
@@ -279,13 +279,13 @@ instance : bounded_order (subgraph G) :=
 @[simp] lemma edge_set_top : (⊤ : subgraph G).edge_set = G.edge_set := rfl
 
 @[simp] lemma edge_set_bot : (⊥ : subgraph G).edge_set = ∅ :=
-set.ext $ sym2.ind (by simp)
+set.ext $ sym2.ind (by simv)
 
 @[simp] lemma edge_set_inf {H₁ H₂ : subgraph G} : (H₁ ⊓ H₂).edge_set = H₁.edge_set ∩ H₂.edge_set :=
-set.ext $ sym2.ind (by simp)
+set.ext $ sym2.ind (by simv)
 
 @[simp] lemma edge_set_sup {H₁ H₂ : subgraph G} : (H₁ ⊔ H₂).edge_set = H₁.edge_set ∪ H₂.edge_set :=
-set.ext $ sym2.ind (by simp)
+set.ext $ sym2.ind (by simv)
 
 @[simp] lemma spanning_coe_top : (⊤ : subgraph G).spanning_coe = G :=
 by { ext, refl }
@@ -347,7 +347,7 @@ begin
   intros H H' h,
   split,
   { intro,
-    simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+    simv only [map_verts, set.mem_image, forall_exists_index, and_imp],
     rintro v hv rfl,
     exact ⟨_, h.1 hv, rfl⟩ },
   { rintros _ _ ⟨u, v, ha, rfl, rfl⟩,
@@ -360,17 +360,17 @@ protected def comap {G' : simple_graph W} (f : G →g G') (H : G'.subgraph) : G.
 { verts := f ⁻¹' H.verts,
   adj := λ u v, G.adj u v ∧ H.adj (f u) (f v),
   adj_sub := by { rintros v w ⟨ga, ha⟩, exact ga },
-  edge_vert := by { rintros v w ⟨ga, ha⟩, simp [H.edge_vert ha] } }
+  edge_vert := by { rintros v w ⟨ga, ha⟩, simv [H.edge_vert ha] } }
 
 lemma comap_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.comap f) :=
 begin
   intros H H' h,
   split,
   { intro,
-    simp only [comap_verts, set.mem_preimage],
+    simv only [comap_verts, set.mem_preimage],
     apply h.1, },
   { intros v w,
-    simp only [comap_adj, and_imp, true_and] { contextual := tt },
+    simv only [comap_adj, and_imp, true_and] { contextual := tt },
     intro,
     apply h.2, }
 end
@@ -379,17 +379,17 @@ lemma map_le_iff_le_comap {G' : simple_graph W} (f : G →g G') (H : G.subgraph)
   H.map f ≤ H' ↔ H ≤ H'.comap f :=
 begin
   refine ⟨λ h, ⟨λ v hv, _, λ v w hvw, _⟩, λ h, ⟨λ v, _, λ v w, _⟩⟩,
-  { simp only [comap_verts, set.mem_preimage],
+  { simv only [comap_verts, set.mem_preimage],
     exact h.1 ⟨v, hv, rfl⟩, },
-  { simp only [H.adj_sub hvw, comap_adj, true_and],
+  { simv only [H.adj_sub hvw, comap_adj, true_and],
     exact h.2 ⟨v, w, hvw, rfl, rfl⟩, },
-  { simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+  { simv only [map_verts, set.mem_image, forall_exists_index, and_imp],
     rintro w hw rfl,
     exact h.1 hw, },
-  { simp only [relation.map, map_adj, forall_exists_index, and_imp],
+  { simv only [relation.map, map_adj, forall_exists_index, and_imp],
     rintros u u' hu rfl rfl,
     have := h.2 hu,
-    simp only [comap_adj] at this,
+    simv only [comap_adj] at this,
     exact this.2, }
 end
 
@@ -401,7 +401,7 @@ def inclusion {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
   map_rel' := λ v w hvw, h.2 hvw }
 
 lemma inclusion.injective {x y : subgraph G} (h : x ≤ y) : function.injective (inclusion h) :=
-λ v w h, by { simp only [inclusion, rel_hom.coe_fn_mk, subtype.mk_eq_mk] at h, exact subtype.ext h }
+λ v w h, by { simv only [inclusion, rel_hom.coe_fn_mk, subtype.mk_eq_mk] at h, exact subtype.ext h }
 
 /-- There is an induced injective homomorphism of a subgraph of `G` into `G`. -/
 @[simps]
@@ -490,7 +490,7 @@ lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighb
   G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=
 begin
   rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
-  simp only [set.mem_to_finset, mem_neighbor_set],
+  simv only [set.mem_to_finset, mem_neighbor_set],
 end
 
 /-! ## Subgraphs of subgraphs -/
@@ -508,8 +508,8 @@ lemma restrict_coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) :
   G''.coe_subgraph.restrict = G'' :=
 begin
   ext,
-  { simp },
-  { simp only [relation.map, comap_adj, coe_adj, subtype.coe_prop, hom_apply, map_adj,
+  { simv },
+  { simv only [relation.map, comap_adj, coe_adj, subtype.coe_prop, hom_apply, map_adj,
       set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right_right,
       subtype.coe_eta, exists_true_left, exists_eq_right, and_iff_right_iff_imp],
     apply G''.adj_sub, }
@@ -530,7 +530,7 @@ def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=
   adj := G'.adj \ sym2.to_rel s,
   adj_sub := λ a b h', G'.adj_sub h'.1,
   edge_vert := λ a b h', G'.edge_vert h'.1,
-  symm := λ a b, by simp [G'.adj_comm, sym2.eq_swap] }
+  symm := λ a b, by simv [G'.adj_comm, sym2.eq_swap] }
 
 section delete_edges
 variables {G' : G.subgraph} (s : set (sym2 V))
@@ -542,27 +542,27 @@ variables {G' : G.subgraph} (s : set (sym2 V))
 
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G'.delete_edges s).delete_edges s' = G'.delete_edges (s ∪ s') :=
-by ext; simp [and_assoc, not_or_distrib]
+by ext; simv [and_assoc, not_or_distrib]
 
 @[simp] lemma delete_edges_empty_eq : G'.delete_edges ∅ = G' :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma delete_edges_spanning_coe_eq :
   G'.spanning_coe.delete_edges s = (G'.delete_edges s).spanning_coe :=
-by { ext, simp }
+by { ext, simv }
 
 lemma delete_edges_coe_eq (s : set (sym2 G'.verts)) :
   G'.coe.delete_edges s = (G'.delete_edges (sym2.map coe '' s)).coe :=
 begin
   ext ⟨v, hv⟩ ⟨w, hw⟩,
-  simp only [simple_graph.delete_edges_adj, coe_adj, subtype.coe_mk, delete_edges_adj,
+  simv only [simple_graph.delete_edges_adj, coe_adj, subtype.coe_mk, delete_edges_adj,
     set.mem_image, not_exists, not_and, and.congr_right_iff],
   intro h,
   split,
   { intros hs,
     refine sym2.ind _,
     rintro ⟨v', hv'⟩ ⟨w', hw'⟩,
-    simp only [sym2.map_pair_eq, subtype.coe_mk, quotient.eq],
+    simv only [sym2.map_pair_eq, subtype.coe_mk, quotient.eq],
     contrapose!,
     rintro (_ | _); simpa [sym2.eq_swap], },
   { intros h' hs,
@@ -571,30 +571,30 @@ end
 
 lemma coe_delete_edges_eq (s : set (sym2 V)) :
   (G'.delete_edges s).coe = G'.coe.delete_edges (sym2.map coe ⁻¹' s) :=
-by { ext ⟨v, hv⟩ ⟨w, hw⟩, simp }
+by { ext ⟨v, hv⟩ ⟨w, hw⟩, simv }
 
 lemma delete_edges_le : G'.delete_edges s ≤ G' :=
-by split; simp { contextual := tt }
+by split; simv { contextual := tt }
 
 lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
   G'.delete_edges s' ≤ G'.delete_edges s :=
 begin
   split;
-  simp only [delete_edges_verts, delete_edges_adj, true_and, and_imp] {contextual := tt},
+  simv only [delete_edges_verts, delete_edges_adj, true_and, and_imp] {contextual := tt},
   exact λ v w hvw hs' hs, hs' (h hs),
 end
 
 @[simp] lemma delete_edges_inter_edge_set_left_eq :
   G'.delete_edges (G'.edge_set ∩ s) = G'.delete_edges s :=
-by ext; simp [imp_false] { contextual := tt }
+by ext; simv [imp_false] { contextual := tt }
 
 @[simp] lemma delete_edges_inter_edge_set_right_eq :
   G'.delete_edges (s ∩ G'.edge_set) = G'.delete_edges s :=
-by ext; simp [imp_false] { contextual := tt }
+by ext; simv [imp_false] { contextual := tt }
 
 lemma coe_delete_edges_le :
   (G'.delete_edges s).coe ≤ (G'.coe : simple_graph G'.verts) :=
-λ v w, by simp { contextual := tt }
+λ v w, by simv { contextual := tt }
 
 lemma spanning_coe_delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) :
   (G'.delete_edges s).spanning_coe ≤ G'.spanning_coe :=
@@ -620,7 +620,7 @@ def induce (G' : G.subgraph) (s : set V) : G.subgraph :=
 
 lemma _root_.simple_graph.induce_eq_coe_induce_top (s : set V) :
   G.induce s = ((⊤ : G.subgraph).induce s).coe :=
-by { ext v w, simp }
+by { ext v w, simv }
 
 section induce
 variables {G' G'' : G.subgraph} {s s' : set V}
@@ -628,8 +628,8 @@ variables {G' G'' : G.subgraph} {s s' : set V}
 lemma induce_mono (hg : G' ≤ G'') (hs : s ⊆ s') : G'.induce s ≤ G''.induce s' :=
 begin
   split,
-  { simp [hs], },
-  { simp only [induce_adj, true_and, and_imp] { contextual := tt },
+  { simv [hs], },
+  { simv only [induce_adj, true_and, and_imp] { contextual := tt },
     intros v w hv hw ha,
     exact ⟨hs hv, hs hw, hg.2 ha⟩, },
 end
@@ -641,14 +641,14 @@ lemma induce_mono_left (hg : G' ≤ G'') : G'.induce s ≤ G''.induce s := induc
 lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce_mono (by refl) hs
 
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
-by ext; simp
+by ext; simv
 
 @[simp] lemma induce_self_verts : G'.induce G'.verts = G' :=
 begin
   ext,
-  { simp },
+  { simv },
   { split;
-    simp only [induce_adj, implies_true_iff, and_true] {contextual := tt},
+    simv only [induce_adj, implies_true_iff, and_true] {contextual := tt},
     exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
 end
 
@@ -666,17 +666,17 @@ lemma delete_verts_verts : (G'.delete_verts s).verts = G'.verts \ s := rfl
 lemma delete_verts_adj {u v : V} :
   (G'.delete_verts s).adj u v ↔
   u ∈ G'.verts ∧ ¬ u ∈ s ∧ v ∈ G'.verts ∧ ¬ v ∈ s ∧ G'.adj u v :=
-by simp [and_assoc]
+by simv [and_assoc]
 
 @[simp] lemma delete_verts_delete_verts (s s' : set V) :
   (G'.delete_verts s).delete_verts s' = G'.delete_verts (s ∪ s') :=
-by ext; simp [not_or_distrib, and_assoc] { contextual := tt }
+by ext; simv [not_or_distrib, and_assoc] { contextual := tt }
 
 @[simp] lemma delete_verts_empty : G'.delete_verts ∅ = G' :=
-by simp [delete_verts]
+by simv [delete_verts]
 
 lemma delete_verts_le : G'.delete_verts s ≤ G' :=
-by split; simp [set.diff_subset]
+by split; simv [set.diff_subset]
 
 @[mono]
 lemma delete_verts_mono {G' G'' : G.subgraph} (h : G' ≤ G'') :
@@ -690,11 +690,11 @@ induce_mono (le_refl _) (set.diff_subset_diff_right h)
 
 @[simp] lemma delete_verts_inter_verts_left_eq :
   G'.delete_verts (G'.verts ∩ s) = G'.delete_verts s :=
-by ext; simp [imp_false] { contextual := tt }
+by ext; simv [imp_false] { contextual := tt }
 
 @[simp] lemma delete_verts_inter_verts_set_right_eq :
   G'.delete_verts (s ∩ G'.verts) = G'.delete_verts s :=
-by ext; simp [imp_false] { contextual := tt }
+by ext; simv [imp_false] { contextual := tt }
 
 end delete_verts
 

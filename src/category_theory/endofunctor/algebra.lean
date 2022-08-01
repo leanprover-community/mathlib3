@@ -58,7 +58,7 @@ F f |          | f
 (h' : F.map f ≫ A₁.str = A₀.str ≫ f . obviously)
 
 restate_axiom hom.h'
-attribute [simp, reassoc] hom.h
+attribute [simv, reassoc] hom.h
 namespace hom
 
 /-- The identity morphism of an algebra of endofunctor `F` -/
@@ -98,7 +98,7 @@ def iso_mk (h : A₀.1 ≅ A₁.1) (w : F.map h.hom ≫ A₁.str = A₀.str ≫ 
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
-    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←functor.map_comp_assoc], simp } } }
+    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←functor.map_comp_assoc], simv } } }
 
 /-- The forgetful functor from the category of algebras, forgetting the algebraic structure. -/
 @[simps] def forget (F : C ⥤ C) : algebra F ⥤ C :=
@@ -108,7 +108,7 @@ def iso_mk (h : A₀.1 ≅ A₁.1) (w : F.map h.hom ≫ A₁.str = A₀.str ≫ 
 /-- An algebra morphism with an underlying isomorphism hom in `C` is an algebra isomorphism. -/
 lemma iso_of_iso (f : A₀ ⟶ A₁) [is_iso f.1] : is_iso f :=
 ⟨⟨{ f := inv f.1,
-    h' := by { rw [is_iso.eq_comp_inv f.1, category.assoc, ← f.h], simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_comp_inv f.1, category.assoc, ← f.h], simv } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget F) :=
 { reflects := λ A B, iso_of_iso }
@@ -140,8 +140,8 @@ def functor_of_nat_trans {F G : C ⥤ C} (α : G ⟶ F) : algebra F ⥤ algebra 
 def functor_of_nat_trans_id :
   functor_of_nat_trans (𝟙 F) ≅ 𝟭 _ :=
 nat_iso.of_components
-  (λ X, iso_mk (iso.refl _) (by { dsimp, simp, }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, iso_mk (iso.refl _) (by { dsimp, simv, }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /-- A composition of natural transformations gives the composition of corresponding functors. -/
 @[simps {rhs_md := semireducible}]
@@ -149,8 +149,8 @@ def functor_of_nat_trans_comp {F₀ F₁ F₂ : C ⥤ C} (α : F₀ ⟶ F₁) (�
   functor_of_nat_trans (α ≫ β) ≅
     functor_of_nat_trans β ⋙ functor_of_nat_trans α :=
 nat_iso.of_components
-  (λ X, iso_mk (iso.refl _) (by { dsimp, simp }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, iso_mk (iso.refl _) (by { dsimp, simv }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 If `α` and `β` are two equal natural transformations, then the functors of algebras induced by them
@@ -162,8 +162,8 @@ lemmas about.
 def functor_of_nat_trans_eq {F G : C ⥤ C} {α β : F ⟶ G} (h : α = β) :
   functor_of_nat_trans α ≅ functor_of_nat_trans β :=
 nat_iso.of_components
-  (λ X, iso_mk (iso.refl _) (by { dsimp, simp [h] }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, iso_mk (iso.refl _) (by { dsimp, simv [h] }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 Naturally isomorphic endofunctors give equivalent categories of algebras.
@@ -177,11 +177,11 @@ def equiv_of_nat_iso {F G : C ⥤ C} (α : F ≅ G) :
   inverse := functor_of_nat_trans α.hom,
   unit_iso :=
     functor_of_nat_trans_id.symm ≪≫
-    functor_of_nat_trans_eq (by simp) ≪≫
+    functor_of_nat_trans_eq (by simv) ≪≫
     functor_of_nat_trans_comp _ _,
   counit_iso :=
     (functor_of_nat_trans_comp _ _).symm ≪≫
-    functor_of_nat_trans_eq (by simp) ≪≫
+    functor_of_nat_trans_eq (by simv) ≪≫
     functor_of_nat_trans_id }.
 
 namespace initial
@@ -238,7 +238,7 @@ variables {F : C ⥤ C} (V : coalgebra F) {V₀ V₁ V₂ : coalgebra F}
 (h' : V₀.str ≫ F.map f = f ≫ V₁.str . obviously)
 
 restate_axiom hom.h'
-attribute [simp, reassoc] hom.h
+attribute [simv, reassoc] hom.h
 namespace hom
 
 /-- The identity morphism of an algebra of endofunctor `F` -/
@@ -279,7 +279,7 @@ def iso_mk (h : V₀.1 ≅ V₁.1) (w : V₀.str ≫ F.map h.hom = h.hom ≫ V�
   inv :=
   { f := h.inv,
     h' := by { rw [h.eq_inv_comp, ← category.assoc, ←w, category.assoc, ← functor.map_comp],
-               simp only [iso.hom_inv_id, functor.map_id, category.comp_id] } } }
+               simv only [iso.hom_inv_id, functor.map_id, category.comp_id] } } }
 
 /-- The forgetful functor from the category of coalgebras, forgetting the coalgebraic structure. -/
 @[simps] def forget (F : C ⥤ C) : coalgebra F ⥤ C :=
@@ -289,7 +289,7 @@ def iso_mk (h : V₀.1 ≅ V₁.1) (w : V₀.str ≫ F.map h.hom = h.hom ≫ V�
 /-- A coalgebra morphism with an underlying isomorphism hom in `C` is a coalgebra isomorphism. -/
 lemma iso_of_iso (f : V₀ ⟶ V₁) [is_iso f.1] : is_iso f :=
 ⟨⟨{ f := inv f.1,
-    h' := by { rw [is_iso.eq_inv_comp f.1, ← category.assoc, ← f.h, category.assoc], simp } },
+    h' := by { rw [is_iso.eq_inv_comp f.1, ← category.assoc, ← f.h, category.assoc], simv } },
           by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget F) :=
@@ -322,8 +322,8 @@ def functor_of_nat_trans {F G : C ⥤ C} (α : F ⟶ G) : coalgebra F ⥤ coalge
 def functor_of_nat_trans_id :
   functor_of_nat_trans (𝟙 F) ≅ 𝟭 _ :=
 nat_iso.of_components
-  (λ X, iso_mk (iso.refl _) (by { dsimp, simp, }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, iso_mk (iso.refl _) (by { dsimp, simv, }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /-- A composition of natural transformations gives the composition of corresponding functors. -/
 @[simps {rhs_md := semireducible}]
@@ -331,8 +331,8 @@ def functor_of_nat_trans_comp {F₀ F₁ F₂ : C ⥤ C} (α : F₀ ⟶ F₁) (�
   functor_of_nat_trans (α ≫ β) ≅
     functor_of_nat_trans α ⋙ functor_of_nat_trans β :=
 nat_iso.of_components
-  (λ X, iso_mk (iso.refl _) (by { dsimp, simp }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, iso_mk (iso.refl _) (by { dsimp, simv }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 If `α` and `β` are two equal natural transformations, then the functors of coalgebras induced by
@@ -344,8 +344,8 @@ lemmas about.
 def functor_of_nat_trans_eq {F G : C ⥤ C} {α β : F ⟶ G} (h : α = β) :
   functor_of_nat_trans α ≅ functor_of_nat_trans β :=
 nat_iso.of_components
-  (λ X, iso_mk (iso.refl _) (by { dsimp, simp [h] }))
-  (λ X Y f, by { ext, dsimp, simp })
+  (λ X, iso_mk (iso.refl _) (by { dsimp, simv [h] }))
+  (λ X Y f, by { ext, dsimp, simv })
 
 /--
 Naturally isomorphic endofunctors give equivalent categories of coalgebras.
@@ -359,11 +359,11 @@ def equiv_of_nat_iso {F G : C ⥤ C} (α : F ≅ G) :
   inverse := functor_of_nat_trans α.inv,
   unit_iso :=
     functor_of_nat_trans_id.symm ≪≫
-    functor_of_nat_trans_eq (by simp) ≪≫
+    functor_of_nat_trans_eq (by simv) ≪≫
     functor_of_nat_trans_comp _ _,
   counit_iso :=
     (functor_of_nat_trans_comp _ _).symm ≪≫
-    functor_of_nat_trans_eq (by simp) ≪≫
+    functor_of_nat_trans_eq (by simv) ≪≫
     functor_of_nat_trans_id }.
 
 end coalgebra

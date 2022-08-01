@@ -127,7 +127,7 @@ theorem flip_is_special : (flip u).is_special ↔ u.is_special :=
 by { dsimp [is_special, flip], rw[mul_comm u.x, mul_comm u.zp, add_comm u.zp] }
 
 theorem flip_v : (flip u).v = (u.v).swap :=
-by { dsimp [v], ext, { simp only, ring }, { simp only, ring } }
+by { dsimp [v], ext, { simv only, ring }, { simv only, ring } }
 
 /-- Properties of division with remainder for a / b.  -/
 theorem rq_eq : u.r + (u.bp + 1) * u.q = u.ap + 1 :=
@@ -232,10 +232,10 @@ def reduce : xgcd_type → xgcd_type
      flip (reduce u.step))
 
 theorem reduce_a {u : xgcd_type} (h : u.r = 0) :
-u.reduce = u.finish := by { rw [reduce], simp only, rw [if_pos h] }
+u.reduce = u.finish := by { rw [reduce], simv only, rw [if_pos h] }
 
 theorem reduce_b {u : xgcd_type} (h : u.r ≠ 0) :
-u.reduce = u.step.reduce.flip := by { rw [reduce], simp only, rw [if_neg h, step] }
+u.reduce = u.step.reduce.flip := by { rw [reduce], simv only, rw [if_neg h, step] }
 
 theorem reduce_reduced : ∀ (u : xgcd_type), u.reduce.is_reduced
 | u := dite (u.r = 0) (λ h, by { rw [reduce_a h], exact u.finish_is_reduced })

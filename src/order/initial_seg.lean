@@ -82,7 +82,7 @@ instance (r : α → α → Prop) : inhabited (r ≼i r) := ⟨initial_seg.refl 
 /-- Composition of functions shows that `≼i` is transitive -/
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
 ⟨f.1.trans g.1, λ a c h, begin
-  simp at h ⊢,
+  simv at h ⊢,
   rcases g.2 _ _ h with ⟨b, rfl⟩, have h := g.1.map_rel_iff.1 h,
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
@@ -218,7 +218,7 @@ end
 /-- Composition of a principal segment with an initial segment, as a principal segment -/
 def lt_le (f : r ≺i s) (g : s ≼i t) : r ≺i t :=
 ⟨@rel_embedding.trans _ _ _ r s t f g, g f.top, λ a,
- by simp only [g.init_iff, f.down', exists_and_distrib_left.symm,
+ by simv only [g.init_iff, f.down', exists_and_distrib_left.symm,
    exists_swap, rel_embedding.trans_apply, exists_eq_right']; refl⟩
 
 @[simp] theorem lt_le_apply (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
@@ -241,7 +241,7 @@ lt_le_apply _ _ _
 def equiv_lt (f : r ≃r s) (g : s ≺i t) : r ≺i t :=
 ⟨@rel_embedding.trans _ _ _ r s t f g, g.top, λ c,
  suffices (∃ (a : β), g a = c) ↔ ∃ (a : α), g (f a) = c, by simpa [g.down],
- ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, rel_iso.apply_symm_apply, rel_iso.coe_coe_fn]⟩,
+ ⟨λ ⟨b, h⟩, ⟨f.symm b, by simv only [h, rel_iso.apply_symm_apply, rel_iso.coe_coe_fn]⟩,
   λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
 
 /-- Composition of a principal segment with an order isomorphism, as a principal segment -/
@@ -267,7 +267,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
     rw @subsingleton.elim _ _ (f : r ≼i s) g, refl },
   have et : f.top = g.top,
   { refine extensional_of_trichotomous_of_irrefl s (λ x, _),
-    simp only [f.down, g.down, ef, coe_fn_to_rel_embedding] },
+    simv only [f.down, g.down, ef, coe_fn_to_rel_embedding] },
   cases f, cases g,
   have := rel_embedding.coe_fn_injective ef; congr'
 end⟩
@@ -308,7 +308,7 @@ theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂)
 /-- Principal segment from an empty type into a type with a minimal element. -/
 def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) : r ≺i s :=
 { top := b,
-  down := by simp [H],
+  down := by simv [H],
   ..rel_embedding.of_is_empty r s }
 
 @[simp] theorem of_is_empty_top (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) :
@@ -353,8 +353,8 @@ end
   (f : r ≼i s) (g : s ≺i t) (a : α) : (f.le_lt g) a = g (f a) :=
 begin
   delta initial_seg.le_lt, cases h : f.lt_or_eq with f' f',
-  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left] },
-  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right] }
+  { simv only [principal_seg.trans_apply, f.lt_or_eq_apply_left] },
+  { simv only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right] }
 end
 
 namespace rel_embedding

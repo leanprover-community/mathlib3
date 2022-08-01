@@ -66,7 +66,7 @@ instance M.path.inhabited (x : P.last.M) {i} [inhabited (P.drop.B x.head i)] :
   inhabited (M.path P x i) :=
 ⟨ M.path.root _ (pfunctor.M.head x) (pfunctor.M.children x)
   (pfunctor.M.cases_on' x $
-    by intros; simp [pfunctor.M.dest_mk]; ext; rw pfunctor.M.children_mk; refl) _
+    by intros; simv [pfunctor.M.dest_mk]; ext; rw pfunctor.M.children_mk; refl) _
     default ⟩
 
 /-- Polynomial functor of the M-type of `P`. `A` is a data-less
@@ -251,15 +251,15 @@ begin
   introv Hr, specialize h _ _ Hr, clear Hr,
   rcases M.dest P x with ⟨ax,fx⟩, rcases M.dest P y with ⟨ay,fy⟩,
   intro h, rw [map_eq,map_eq] at h, injection h with h₀ h₁, subst ay,
-  simp at h₁, clear h,
+  simv at h₁, clear h,
   have Hdrop : drop_fun fx = drop_fun fy,
   { replace h₁ := congr_arg drop_fun h₁,
     simpa using h₁, },
   existsi [ax,drop_fun fx,last_fun fx,last_fun fy],
   rw [split_drop_fun_last_fun,Hdrop,split_drop_fun_last_fun],
-  simp, intro i,
+  simv, intro i,
   replace h₁ := congr_fun (congr_fun h₁ fin2.fz) i,
-  simp [(⊚),append_fun,split_fun] at h₁,
+  simv [(⊚),append_fun,split_fun] at h₁,
   replace h₁ := quot.exact _  h₁,
   rw h₀.eqv_gen_iff at h₁,
   exact h₁,
@@ -295,7 +295,7 @@ theorem M.map_dest {α β : typevec n} (g : α ::: P.M α ⟹ β ::: P.M β) (x 
   g <$$> M.dest P x = M.dest P (drop_fun g <$$> x) :=
 begin
   rw M.dest_map, congr,
-  apply eq_of_drop_last_eq; simp,
+  apply eq_of_drop_last_eq; simv,
   ext1, apply h
 end
 

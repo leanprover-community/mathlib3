@@ -16,12 +16,12 @@ This file provides some notable isomorphisms regarding the even subalgebra, `cli
 * `clifford_algebra.equiv_even`: Every Clifford algebra is isomorphic as an algebra to the even
   subalgebra of a Clifford algebra with one more dimension.
   * `clifford_algebra.even_equiv.Q'`: The quadratic form used by this "one-up" algebra.
-  * `clifford_algebra.to_even`: The simp-normal form of the forward direction of this isomorphism.
-  * `clifford_algebra.of_even`: The simp-normal form of the reverse direction of this isomorphism.
+  * `clifford_algebra.to_even`: The simv-normal form of the forward direction of this isomorphism.
+  * `clifford_algebra.of_even`: The simv-normal form of the reverse direction of this isomorphism.
 
 * `clifford_algebra.even_equiv_even_neg`: Every even subalgebra is isomorphic to the even subalgebra
   of the Clifford algebra with negated quadratic form.
-  * `clifford_algebra.even_to_neg`: The simp-normal form of each direction of this isomorphism.
+  * `clifford_algebra.even_to_neg`: The simv-normal form of each direction of this isomorphism.
 
 ## Main results
 
@@ -56,16 +56,16 @@ by rw [e0, v, linear_map.comp_apply, linear_map.inl_apply, ←linear_map.map_smu
   smul_zero, smul_eq_mul, mul_one, ←linear_map.map_add, prod.mk_add_mk, zero_add, add_zero]
 
 lemma e0_mul_e0 : e0 Q * e0 Q = -1 :=
-(ι_sq_scalar _ _).trans $ by simp
+(ι_sq_scalar _ _).trans $ by simv
 
 lemma v_sq_scalar (m : M) : v Q m * v Q m = algebra_map _ _ (Q m) :=
-(ι_sq_scalar _ _).trans $ by simp
+(ι_sq_scalar _ _).trans $ by simv
 
 lemma neg_e0_mul_v (m : M) : -(e0 Q * v Q m) = v Q m * e0 Q :=
 begin
   refine neg_eq_of_add_eq_zero_right ((ι_mul_ι_add_swap _ _).trans _),
   dsimp [quadratic_form.polar],
-  simp only [add_zero, mul_zero, mul_one, zero_add, neg_zero, quadratic_form.map_zero,
+  simv only [add_zero, mul_zero, mul_one, zero_add, neg_zero, quadratic_form.map_zero,
     add_sub_cancel, sub_self, map_zero, zero_sub],
 end
 
@@ -198,12 +198,12 @@ lemma coe_to_even_reverse_involute (x : clifford_algebra Q) :
   ↑(to_even Q (reverse (involute x))) = reverse (to_even Q x : clifford_algebra (Q' Q)) :=
 begin
   induction x using clifford_algebra.induction,
-  case h_grade0 : r { simp only [alg_hom.commutes, subalgebra.coe_algebra_map, reverse.commutes] },
+  case h_grade0 : r { simv only [alg_hom.commutes, subalgebra.coe_algebra_map, reverse.commutes] },
   case h_grade1 : m
-  { simp only [involute_ι, subalgebra.coe_neg, to_even_ι, reverse.map_mul,
+  { simv only [involute_ι, subalgebra.coe_neg, to_even_ι, reverse.map_mul,
       reverse_v, reverse_e0, reverse_ι, neg_e0_mul_v, map_neg] },
-  case h_mul : x y hx hy { simp only [map_mul, subalgebra.coe_mul, reverse.map_mul, hx, hy] },
-  case h_add : x y hx hy { simp only [map_add, subalgebra.coe_add, hx, hy] },
+  case h_mul : x y hx hy { simv only [map_mul, subalgebra.coe_mul, reverse.map_mul, hx, hy] },
+  case h_add : x y hx hy { simv only [map_add, subalgebra.coe_add, hx, hy] },
 end
 
 /-! ### Constructions needed for `clifford_algebra.even_equiv_even_neg` -/

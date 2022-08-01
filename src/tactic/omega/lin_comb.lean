@@ -24,9 +24,9 @@ namespace omega
 
 lemma lin_comb_holds {v : nat → int} :
   ∀ {ts} ns, (∀ t ∈ ts, 0 ≤ term.val v t) → (0 ≤ (lin_comb ns ts).val v)
-| [] []     h := by simp only [add_zero, term.val, lin_comb, coeffs.val_nil]
-| [] (_::_) h := by simp only [add_zero, term.val, lin_comb, coeffs.val_nil]
-| (_::_) [] h := by simp only [add_zero, term.val, lin_comb, coeffs.val_nil]
+| [] []     h := by simv only [add_zero, term.val, lin_comb, coeffs.val_nil]
+| [] (_::_) h := by simv only [add_zero, term.val, lin_comb, coeffs.val_nil]
+| (_::_) [] h := by simv only [add_zero, term.val, lin_comb, coeffs.val_nil]
 | (t::ts) (n::ns) h :=
   begin
     have : 0 ≤ ↑n * term.val v t + term.val v (lin_comb ns ts),

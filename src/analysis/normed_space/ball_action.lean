@@ -169,7 +169,7 @@ end smul_comm_class
 variables (𝕜) [char_zero 𝕜]
 
 lemma ne_neg_of_mem_sphere {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg 𝕜 _).mp (by { conv_lhs {rw h}, simp }))
+λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg 𝕜 _).mp (by { conv_lhs {rw h}, simv }))
 
 lemma ne_neg_of_mem_unit_sphere (x : sphere (0:E) 1) : x ≠ - x :=
 ne_neg_of_mem_sphere 𝕜 one_ne_zero x

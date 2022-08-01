@@ -81,8 +81,8 @@ and `F` preserves the correct limits. -/
 def adjunction (adj : G ⊣ F) : compose_and_sheafify J G ⊣ Sheaf_compose J F :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := compose_equiv J adj,
-  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext1, dsimp, simp },
-  hom_equiv_naturality_right' := λ X Y Y' f g, by { ext1, dsimp, simp } }
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext1, dsimp, simv },
+  hom_equiv_naturality_right' := λ X Y Y' f g, by { ext1, dsimp, simv } }
 
 instance [is_right_adjoint F] : is_right_adjoint (Sheaf_compose J F) :=
 ⟨_, adjunction J (adjunction.of_right_adjoint F)⟩
@@ -124,7 +124,7 @@ begin
   ext,
   dsimp [Sheaf_equiv_SheafOfTypes, equivalence.symm,
     equivalence.to_adjunction, nat_iso.of_components],
-  simp,
+  simv,
 end
 
 instance [is_right_adjoint (forget D)] : is_right_adjoint (Sheaf_forget J) :=

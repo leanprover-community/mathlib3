@@ -32,7 +32,7 @@ lemma self_adjoint.exp_i_smul_unitary {a : A} (ha : a ∈ self_adjoint A) :
   exp ℂ (I • a) ∈ unitary A :=
 begin
   rw [unitary.mem_iff, star_exp],
-  simp only [star_smul, is_R_or_C.star_def, self_adjoint.mem_iff.mp ha, conj_I, neg_smul],
+  simv only [star_smul, is_R_or_C.star_def, self_adjoint.mem_iff.mp ha, conj_I, neg_smul],
   rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_left),
   rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_right),
   simpa only [add_right_neg, add_left_neg, and_self] using (exp_zero : exp ℂ (0 : A) = 1),
@@ -51,7 +51,7 @@ lemma commute.exp_unitary_add {a b : self_adjoint A} (h : commute (a : A) (b : A
 begin
   ext,
   have hcomm : commute (I • (a : A)) (I • (b : A)),
-  calc _ = _ : by simp only [h.eq, algebra.smul_mul_assoc, algebra.mul_smul_comm],
+  calc _ = _ : by simv only [h.eq, algebra.smul_mul_assoc, algebra.mul_smul_comm],
   simpa only [exp_unitary_coe, add_subgroup.coe_add, smul_add] using exp_add_of_commute hcomm,
 end
 

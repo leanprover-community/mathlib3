@@ -41,7 +41,7 @@ namespace set
 
 section Union_lift
 
-/- The unused argument `hf` is left in the definition so that the `simp` lemmas
+/- The unused argument `hf` is left in the definition so that the `simv` lemmas
 `Union_lift_inclusion` will work without the user having to provide `hf` explicitly to
 simplify terms involving `Union_lift`. -/
 /-- Given a Union of sets `Union S`, define a function on the Union by defining
@@ -130,7 +130,7 @@ begin
   have hxy : (set.inclusion (set.subset_Union S k) (opi k ⟨x, hik hi⟩ ⟨y, hjk hj⟩) : α) ∈ S k,
     from (opi k ⟨x, hik hi⟩ ⟨y, hjk hj⟩).prop,
   conv_lhs { rw [hx, hy, ← hopi, Union_lift_of_mem _ hxy] },
-  simp only [coe_inclusion, subtype.coe_eta]
+  simv only [coe_inclusion, subtype.coe_eta]
 end
 
 end Union_lift

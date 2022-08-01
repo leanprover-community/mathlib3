@@ -35,7 +35,7 @@ open cardinal
 
 lemma cardinal_mk_eq_sum : #(W_type β) = sum (λ a : α, #(W_type β) ^ #(β a)) :=
 begin
-  simp only [cardinal.power_def, ← cardinal.mk_sigma],
+  simv only [cardinal.power_def, ← cardinal.mk_sigma],
   exact mk_congr (equiv_sigma β)
 end
 
@@ -44,7 +44,7 @@ lemma cardinal_mk_le_of_le {κ : cardinal.{u}} (hκ : sum (λ a : α, κ ^ #(β 
   #(W_type β) ≤ κ :=
 begin
   induction κ using cardinal.induction_on with γ,
-  simp only [cardinal.power_def, ← cardinal.mk_sigma, cardinal.le_def] at hκ,
+  simv only [cardinal.power_def, ← cardinal.mk_sigma, cardinal.le_def] at hκ,
   cases hκ,
   exact cardinal.mk_le_of_injective (elim_injective _ hκ.1 hκ.2)
 end

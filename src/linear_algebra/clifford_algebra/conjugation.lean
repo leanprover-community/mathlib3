@@ -40,13 +40,13 @@ section involute
 
 /-- Grade involution, inverting the sign of each basis vector. -/
 def involute : clifford_algebra Q →ₐ[R] clifford_algebra Q :=
-clifford_algebra.lift Q ⟨-(ι Q), λ m, by simp⟩
+clifford_algebra.lift Q ⟨-(ι Q), λ m, by simv⟩
 
 @[simp] lemma involute_ι (m : M) : involute (ι Q m) = -ι Q m :=
 lift_ι_apply _ _ m
 
 @[simp] lemma involute_comp_involute : involute.comp involute = alg_hom.id R (clifford_algebra Q) :=
-by { ext, simp }
+by { ext, simv }
 
 lemma involute_involutive : function.involutive (involute : _ → clifford_algebra Q) :=
 alg_hom.congr_fun involute_comp_involute
@@ -69,29 +69,29 @@ Also called *transpose* in some literature. -/
 def reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q :=
 (op_linear_equiv R).symm.to_linear_map.comp (
   clifford_algebra.lift Q ⟨(mul_opposite.op_linear_equiv R).to_linear_map.comp (ι Q),
-    λ m, unop_injective $ by simp⟩).to_linear_map
+    λ m, unop_injective $ by simv⟩).to_linear_map
 
 @[simp] lemma reverse_ι (m : M) : reverse (ι Q m) = ι Q m :=
-by simp [reverse]
+by simv [reverse]
 
 @[simp] lemma reverse.commutes (r : R) :
   reverse (algebra_map R (clifford_algebra Q) r) = algebra_map R _ r :=
-by simp [reverse]
+by simv [reverse]
 
 @[simp] lemma reverse.map_one : reverse (1 : clifford_algebra Q) = 1 :=
-by convert reverse.commutes (1 : R); simp
+by convert reverse.commutes (1 : R); simv
 
 @[simp] lemma reverse.map_mul (a b : clifford_algebra Q) :
   reverse (a * b) = reverse b * reverse a :=
-by simp [reverse]
+by simv [reverse]
 
 @[simp] lemma reverse_comp_reverse :
   reverse.comp reverse = (linear_map.id : _ →ₗ[R] clifford_algebra Q) :=
 begin
   ext m,
-  simp only [linear_map.id_apply, linear_map.comp_apply],
+  simv only [linear_map.id_apply, linear_map.comp_apply],
   induction m using clifford_algebra.induction,
-  -- simp can close these goals, but is slow
+  -- simv can close these goals, but is slow
   case h_grade0 : { rw [reverse.commutes, reverse.commutes] },
   case h_grade1 : { rw [reverse_ι, reverse_ι] },
   case h_mul : a b ha hb { rw [reverse.map_mul, reverse.map_mul, ha, hb], },
@@ -113,12 +113,12 @@ lemma reverse_comp_involute :
     (involute.to_linear_map.comp reverse : _ →ₗ[R] clifford_algebra Q) :=
 begin
   ext,
-  simp only [linear_map.comp_apply, alg_hom.to_linear_map_apply],
+  simv only [linear_map.comp_apply, alg_hom.to_linear_map_apply],
   induction x using clifford_algebra.induction,
-  case h_grade0 : { simp },
-  case h_grade1 : { simp },
-  case h_mul : a b ha hb { simp only [ha, hb, reverse.map_mul, alg_hom.map_mul], },
-  case h_add : a b ha hb { simp only [ha, hb, reverse.map_add, alg_hom.map_add], },
+  case h_grade0 : { simv },
+  case h_grade1 : { simv },
+  case h_mul : a b ha hb { simv only [ha, hb, reverse.map_mul, alg_hom.map_mul], },
+  case h_add : a b ha hb { simv only [ha, hb, reverse.map_add, alg_hom.map_add], },
 end
 
 /-- `clifford_algebra.reverse` and `clifford_algebra.inverse` commute. Note that the composition
@@ -140,15 +140,15 @@ section list
 /-- Taking the reverse of the product a list of $n$ vectors lifted via `ι` is equivalent to
 taking the product of the reverse of that list. -/
 lemma reverse_prod_map_ι : ∀ (l : list M), reverse (l.map $ ι Q).prod = (l.map $ ι Q).reverse.prod
-| [] := by simp
-| (x :: xs) := by simp [reverse_prod_map_ι xs]
+| [] := by simv
+| (x :: xs) := by simv [reverse_prod_map_ι xs]
 
 /-- Taking the involute of the product a list of $n$ vectors lifted via `ι` is equivalent to
 premultiplying by ${-1}^n$. -/
 lemma involute_prod_map_ι : ∀ l : list M,
   involute (l.map $ ι Q).prod = ((-1 : R)^l.length) • (l.map $ ι Q).prod
-| [] := by simp
-| (x :: xs) := by simp [pow_add, involute_prod_map_ι xs]
+| [] := by simv
+| (x :: xs) := by simv [pow_add, involute_prod_map_ι xs]
 
 end list
 

@@ -135,7 +135,7 @@ h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f 
 
 (the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
 has nothing to do with `push_neg`).
-Note that names are conserved by this tactic, contrary to what would happen with `simp`
+Note that names are conserved by this tactic, contrary to what would happen with `simv`
 using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
@@ -149,12 +149,12 @@ meta def tactic.interactive.push_neg : parse location → tactic unit
                                  [simp_arg_type.expr ``(push_neg.not_eq)] []
                                  (interactive.loc.ns [some h])
           | none   := do push_neg_at_goal,
-                          try `[simp only [push_neg.not_eq] { eta := ff }]
+                          try `[simv only [push_neg.not_eq] { eta := ff }]
           end)
 | loc.wildcard := do
     push_neg_at_goal,
     local_context >>= mmap' (λ h, push_neg_at_hyp (local_pp_name h)) ,
-    try `[simp only [push_neg.not_eq] at * { eta := ff }]
+    try `[simv only [push_neg.not_eq] at * { eta := ff }]
 
 add_tactic_doc
 { name       := "push_neg",

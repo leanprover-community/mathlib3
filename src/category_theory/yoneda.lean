@@ -53,7 +53,7 @@ namespace yoneda
 
 lemma obj_map_id {X Y : C} (f : op X ⟶ op Y) :
   (yoneda.obj X).map f (𝟙 X) = (yoneda.map f.unop).app (op Y) (𝟙 Y) :=
-by { dsimp, simp }
+by { dsimp, simv }
 
 @[simp] lemma naturality {X Y : C} (α : yoneda.obj X ⟶ yoneda.obj Y)
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
@@ -73,7 +73,7 @@ The Yoneda embedding is faithful.
 See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 instance yoneda_faithful : faithful (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
-{ map_injective' := λ X Y f g p, by convert (congr_fun (congr_app p (op X)) (𝟙 X)); dsimp; simp }
+{ map_injective' := λ X Y f g p, by convert (congr_fun (congr_app p (op X)) (𝟙 X)); dsimp; simv }
 
 /-- Extensionality via Yoneda. The typical usage would be
 ```
@@ -195,7 +195,7 @@ begin
   change F.repr_f.app X f = (F.repr_f.app (op F.repr_X) ≫ F.map f.op) (𝟙 F.repr_X),
   rw ←F.repr_f.naturality,
   dsimp,
-  simp
+  simv
 end
 
 end representable
@@ -235,7 +235,7 @@ begin
   change F.corepr_f.app X f = (F.corepr_f.app F.corepr_X ≫ F.map f) (𝟙 F.corepr_X),
   rw ←F.corepr_f.naturality,
   dsimp,
-  simp
+  simv
 end
 
 end corepresentable
@@ -302,7 +302,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     begin
       intros X Y f, ext, dsimp,
       erw [category.id_comp, ←functor_to_types.naturality],
-      simp only [category.comp_id, yoneda_obj_map],
+      simv only [category.comp_id, yoneda_obj_map],
     end },
   inv :=
   { app := λ F x,
@@ -322,7 +322,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     ext, dsimp,
     erw [←functor_to_types.naturality,
          obj_map_id],
-    simp only [yoneda_map_app, quiver.hom.unop_op],
+    simv only [yoneda_map_app, quiver.hom.unop_op],
     erw [category.id_comp],
   end,
   inv_hom_id' :=
@@ -366,7 +366,7 @@ begin
   change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
   rw ←f.naturality,
   dsimp,
-  simp,
+  simv,
 end
 
 /--

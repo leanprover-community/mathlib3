@@ -135,7 +135,7 @@ private lemma aux :
   ((g x * f x ^ (g x - 1)) • (1 : ℂ →L[ℂ] ℂ).smul_right f' +
     (f x ^ g x * log (f x)) • (1 : ℂ →L[ℂ] ℂ).smul_right g') 1 =
     g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g' :=
-by simp only [algebra.id.smul_eq_mul, one_mul, continuous_linear_map.one_apply,
+by simv only [algebra.id.smul_eq_mul, one_mul, continuous_linear_map.one_apply,
   continuous_linear_map.smul_right_apply, continuous_linear_map.add_apply, pi.smul_apply,
   continuous_linear_map.coe_smul']
 
@@ -247,7 +247,7 @@ lemma _root_.has_strict_deriv_at.rpow {f g : ℝ → ℝ} {f' g' : ℝ} (hf : ha
 begin
   convert (has_strict_fderiv_at_rpow_of_pos ((λ x, (f x, g x)) x) h).comp_has_strict_deriv_at _
     (hf.prod hg) using 1,
-  simp [mul_assoc, mul_comm, mul_left_comm]
+  simv [mul_assoc, mul_comm, mul_left_comm]
 end
 
 lemma has_strict_deriv_at_rpow_const_of_ne {x : ℝ} (hx : x ≠ 0) (p : ℝ) :
@@ -256,7 +256,7 @@ begin
   cases hx.lt_or_lt with hx hx,
   { have := (has_strict_fderiv_at_rpow_of_neg (x, p) hx).comp_has_strict_deriv_at x
       ((has_strict_deriv_at_id x).prod (has_strict_deriv_at_const _ _)),
-    convert this, simp },
+    convert this, simv },
   { simpa using (has_strict_deriv_at_id x).rpow (has_strict_deriv_at_const x p) hx }
 end
 
@@ -312,7 +312,7 @@ lemma cont_diff_rpow_const_of_le {p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
 begin
   induction n with n ihn generalizing p,
   { exact cont_diff_zero.2 (continuous_id.rpow_const (λ x, by exact_mod_cast or.inr h)) },
-  { have h1 : 1 ≤ p, from le_trans (by simp) h,
+  { have h1 : 1 ≤ p, from le_trans (by simv) h,
     rw [nat.cast_succ, ← le_sub_iff_add_le] at h,
     rw [cont_diff_succ_iff_deriv, deriv_rpow_const' h1],
     refine ⟨differentiable_rpow_const h1, cont_diff_const.mul (ihn h)⟩ }
@@ -538,12 +538,12 @@ begin
     by simpa using (tendsto_inv_at_top_zero.const_mul t).const_add 1,
   refine (eventually_ge_of_tendsto_gt h₁ h₂).mono (λ x hx, _),
   have hx' : 0 < 1 + t / x := by linarith,
-  simp [mul_comm x, exp_mul, exp_log hx'],
+  simv [mul_comm x, exp_mul, exp_log hx'],
 end
 
 /-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞` for naturals `x`. -/
 lemma tendsto_one_plus_div_pow_exp (t : ℝ) :
   tendsto (λ (x : ℕ), (1 + t / (x:ℝ)) ^ x) at_top (𝓝 (real.exp t)) :=
-((tendsto_one_plus_div_rpow_exp t).comp tendsto_coe_nat_at_top_at_top).congr (by simp)
+((tendsto_one_plus_div_rpow_exp t).comp tendsto_coe_nat_at_top_at_top).congr (by simv)
 
 end limits

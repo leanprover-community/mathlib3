@@ -38,7 +38,7 @@ lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 :=
 begin
   suffices : (⨅ x : ℝ × ℝ, q1 x + q2 (1 - x)) ≤ 1, by simpa,
   apply cinfi_le_of_le (bdd_below_range_add _ _ _) ((0, 1) : ℝ×ℝ), dsimp [q1, q2],
-  simp only [abs_zero, smul_zero, sub_self, add_zero, zero_le_one],
+  simv only [abs_zero, smul_zero, sub_self, add_zero, zero_le_one],
 end
 
 /-- This is a counterexample to the distributivity of the lattice `seminorm ℝ (ℝ × ℝ)`. -/

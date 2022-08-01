@@ -197,51 +197,51 @@ variables [has_no_atoms μ]
 
 lemma ae_cover_Ioc_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Icc (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Icc ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Icc ha hb]
 
 lemma ae_cover_Ioc_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ico (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ico ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ico ha hb]
 
 lemma ae_cover_Ioc_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioc (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioc ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioc ha hb]
 
 lemma ae_cover_Ioc_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioo (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioo ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioo ha hb]
 
 lemma ae_cover_Ico_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Icc (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Icc ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Icc ha hb]
 
 lemma ae_cover_Ico_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ico (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ico ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ico ha hb]
 
 lemma ae_cover_Ico_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ioc (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioc ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioc ha hb]
 
 lemma ae_cover_Ico_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ioo (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioo ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioo ha hb]
 
 lemma ae_cover_Icc_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Icc (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Icc ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Icc ha hb]
 
 lemma ae_cover_Icc_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ico (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ico ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ico ha hb]
 
 lemma ae_cover_Icc_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ioc (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioc ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioc ha hb]
 
 lemma ae_cover_Icc_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ioo (a i) (b i)) :=
-by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioo ha hb]
+by simv [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioo ha hb]
 
 end finite_intervals
 
@@ -583,9 +583,9 @@ lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
 begin
   refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
     (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),
-  intros i hi, simp only [measure.restrict_restrict measurable_set_Ioc],
+  intros i hi, simv only [measure.restrict_restrict measurable_set_Ioc],
   refine le_trans (set_integral_mono_set (hfi i).norm _ _) hi,
-  { apply ae_of_all, simp only [pi.zero_apply, norm_nonneg, forall_const] },
+  { apply ae_of_all, simv only [pi.zero_apply, norm_nonneg, forall_const] },
   { apply ae_of_all, intros c hc, exact hc.1 },
 end
 

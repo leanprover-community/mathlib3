@@ -49,7 +49,7 @@ begin
      compl_subset_compl.mpr $ image_subset _ hst },
   set s : set α := F.lfp,
   have hs : (g '' (f '' s)ᶜ)ᶜ = s, from F.map_lfp,
-  have hns : g '' (f '' s)ᶜ = sᶜ, from compl_injective (by simp [hs]),
+  have hns : g '' (f '' s)ᶜ = sᶜ, from compl_injective (by simv [hs]),
   set g' := inv_fun g,
   have g'g : left_inverse g' g, from left_inverse_inv_fun hg,
   have hg'ns : g' '' sᶜ = (f '' s)ᶜ, by rw [← hns, g'g.image_image],
@@ -99,7 +99,7 @@ let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
   let ⟨f, hf⟩ := classical.axiom_of_choice h in
   have f ∈ s, from
     have insert f s ∈ sets := λ x hx y hy, begin
-      cases hx; cases hy, {simp [hx, hy]},
+      cases hx; cases hy, {simv [hx, hy]},
       { subst x, exact λ i e, (hf i y hy e.symm).elim },
       { subst y, exact λ i e, (hf i x hx e).elim },
       { exact hs x hx y hy }

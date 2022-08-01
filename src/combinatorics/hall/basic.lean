@@ -80,7 +80,7 @@ begin
   apply (all_card_le_bUnion_card_iff_exists_injective' (λ (i : ι'), t i)).mp,
   intro s',
   convert h (s'.image coe) using 1,
-  simp only [card_image_of_injective s' subtype.coe_injective],
+  simv only [card_image_of_injective s' subtype.coe_injective],
   rw image_bUnion,
 end
 
@@ -106,7 +106,7 @@ begin
     exact ⟨i, i.property, f.property.2 i⟩ },
   apply fintype.of_injective g,
   intros f f' h,
-  simp only [g, function.funext_iff, subtype.val_eq_coe] at h,
+  simv only [g, function.funext_iff, subtype.val_eq_coe] at h,
   ext a,
   exact h a,
 end
@@ -144,11 +144,11 @@ begin
     refine ⟨_, _, _⟩,
     { /- Build the matching function from the section -/
       exact λ i, (u (opposite.op ({i} : finset ι))).val
-                 ⟨i, by simp only [opposite.unop_op, mem_singleton]⟩, },
+                 ⟨i, by simv only [opposite.unop_op, mem_singleton]⟩, },
     { /- Show that it is injective -/
       intros i i',
-      have subi : ({i} : finset ι) ⊆ {i,i'} := by simp,
-      have subi' : ({i'} : finset ι) ⊆ {i,i'} := by simp,
+      have subi : ({i} : finset ι) ⊆ {i,i'} := by simv,
+      have subi' : ({i'} : finset ι) ⊆ {i,i'} := by simv,
       have le : ∀ {s t : finset ι}, s ⊆ t → s ≤ t := λ _ _ h, h,
       rw [←hu (category_theory.hom_of_le (le subi)).op,
           ←hu (category_theory.hom_of_le (le subi')).op],
@@ -174,7 +174,7 @@ instance {α : Type u} {β : Type v} [decidable_eq β]
   (A : finset α) : fintype (rel.image r A) :=
 begin
   have h : rel.image r A = (A.bUnion (λ a, (rel.image r {a}).to_finset) : set β),
-  { ext, simp [rel.image], },
+  { ext, simv [rel.image], },
   rw [h],
   apply finset_coe.fintype,
 end
@@ -202,10 +202,10 @@ begin
     rw ←set.to_finset_card,
     apply congr_arg,
     ext b,
-    simp [rel.image], },
+    simv [rel.image], },
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
-  { simp [rel.image], },
-  simp only [h, h'],
+  { simv [rel.image], },
+  simv only [h, h'],
   apply finset.all_card_le_bUnion_card_iff_exists_injective,
 end
 
@@ -229,9 +229,9 @@ begin
   have h : ∀ (A : finset α), (univ.filter (λ (b : β), ∃ a ∈ A, r a b)) = (A.bUnion r'),
   { intro A,
     ext b,
-    simp, },
+    simv, },
   have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
-  { simp, },
+  { simv, },
   simp_rw [h, h'],
   apply finset.all_card_le_bUnion_card_iff_exists_injective,
 end

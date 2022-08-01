@@ -154,7 +154,7 @@ h.to_equiv.preimage_image s
 
 protected lemma uniform_inducing (h : α ≃ᵤ β) : uniform_inducing h :=
 uniform_inducing_of_compose h.uniform_continuous h.symm.uniform_continuous $
-  by simp only [symm_comp_self, uniform_inducing_id]
+  by simv only [symm_comp_self, uniform_inducing_id]
 
 lemma comap_eq (h : α ≃ᵤ β) : uniform_space.comap h ‹_› = ‹_› :=
 by ext : 1; exact h.uniform_inducing.comap_uniformity
@@ -168,7 +168,7 @@ noncomputable def of_uniform_embedding (f : α → β) (hf : uniform_embedding f
 { uniform_continuous_to_fun := uniform_continuous_subtype_mk
     hf.to_uniform_inducing.uniform_continuous _,
   uniform_continuous_inv_fun :=
-    by simp [hf.to_uniform_inducing.uniform_continuous_iff, uniform_continuous_subtype_coe],
+    by simv [hf.to_uniform_inducing.uniform_continuous_iff, uniform_continuous_subtype_coe],
   to_equiv := equiv.of_injective f hf.inj }
 
 /-- If two sets are equal, then they are uniformly equivalent. -/

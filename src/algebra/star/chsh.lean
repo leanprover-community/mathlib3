@@ -101,7 +101,7 @@ begin
   rw ← sub_eq_zero,
   repeat
   { ring_nf,
-    simp only [A₁_inv, B₁_inv, sub_eq_add_neg, add_mul, mul_add, sub_mul, mul_sub, add_assoc,
+    simv only [A₁_inv, B₁_inv, sub_eq_add_neg, add_mul, mul_add, sub_mul, mul_sub, add_assoc,
       neg_add, neg_sub, sub_add, sub_sub, neg_mul, ←sq, A₀_inv, B₀_inv, ←sq, ←mul_assoc, one_mul,
       mul_one, add_right_neg, add_zero, sub_eq_add_neg, A₀_inv, mul_one, add_right_neg, zero_mul] }
 end
@@ -121,17 +121,17 @@ begin
   have i₁ : 0 ≤ P,
   { have idem : P * P = 4 * P := CHSH_id T.A₀_inv T.A₁_inv T.B₀_inv T.B₁_inv,
     have idem' : P = (1 / 4 : ℝ) • (P * P),
-    { have h : 4 * P = (4 : ℝ) • P := by simp [algebra.smul_def],
+    { have h : 4 * P = (4 : ℝ) • P := by simv [algebra.smul_def],
       rw [idem, h, ←mul_smul],
       norm_num, },
     have sa : star P = P,
     { dsimp [P],
-      simp only [star_add, star_sub, star_mul, star_bit0, star_one,
+      simv only [star_add, star_sub, star_mul, star_bit0, star_one,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa, mul_comm B₀, mul_comm B₁], },
     rw idem',
     conv_rhs { congr, skip, congr, rw ←sa, },
     convert smul_le_smul_of_nonneg (star_mul_self_nonneg : 0 ≤ star P * P) _,
-    { simp, },
+    { simv, },
     { apply_instance, },
     { norm_num, } },
   apply le_of_sub_nonneg,
@@ -158,7 +158,7 @@ lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (
 begin
   ring_nf, field_simp [(@real.sqrt_pos 2).2 (by norm_num)],
   convert congr_arg (^2) (@real.sq_sqrt 2 (by norm_num)) using 1;
-    simp only [← pow_mul]; norm_num,
+    simv only [← pow_mul]; norm_num,
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) := by { rw ←mul_inv, norm_num }
@@ -182,7 +182,7 @@ lemma tsirelson_inequality
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin
-  -- abel will create `ℤ` multiplication. We will `simp` them away to `ℝ` multiplication.
+  -- abel will create `ℤ` multiplication. We will `simv` them away to `ℝ` multiplication.
   have M : ∀ (m : ℤ) (a : ℝ) (x : R), m • a • x = ((m : ℝ) * a) • x :=
     λ m a x, by rw [zsmul_eq_smul_cast ℝ, ← mul_smul],
   let P := √2⁻¹ • (A₁ + A₀) - B₀,
@@ -190,18 +190,18 @@ begin
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
   { dsimp [P, Q],
     -- distribute out all the powers and products appearing on the RHS
-    simp only [sq, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
+    simv only [sq, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
     -- pull all coefficients out to the front, and combine `√2`s where possible
-    simp only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_mul_self],
+    simv only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_mul_self],
     -- replace Aᵢ * Aᵢ = 1 and Bᵢ * Bᵢ = 1
-    simp only [←sq, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
+    simv only [←sq, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
     -- move Aᵢ to the left of Bᵢ
-    simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
+    simv only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
     -- collect terms, simplify coefficients, and collect terms again:
     abel,
     -- all terms coincide, but the last one. Simplify all other terms
-    simp only [M],
-    simp only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+    simv only [M],
+    simv only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
@@ -209,11 +209,11 @@ begin
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
   { have P_sa : star P = P,
     { dsimp [P],
-      simp only [star_smul, star_add, star_sub, star_id_of_comm,
+      simv only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },
     have Q_sa : star Q = Q,
     { dsimp [Q],
-      simp only [star_smul, star_add, star_sub, star_id_of_comm,
+      simv only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },
     have P2_nonneg : 0 ≤ P^2,
     { rw [sq],
@@ -225,7 +225,7 @@ begin
       convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
     convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg)
       (le_of_lt (show 0 < √2⁻¹, by norm_num)), -- `norm_num` can't directly show `0 ≤ √2⁻¹`
-    simp, },
+    simv, },
   apply le_of_sub_nonneg,
   simpa only [sub_add_eq_sub_sub, ←sub_add, w] using pos,
 end

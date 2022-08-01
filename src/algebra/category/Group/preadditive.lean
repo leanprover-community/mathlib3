@@ -18,8 +18,8 @@ namespace AddCommGroup
 
 instance : preadditive AddCommGroup :=
 { add_comp' := λ P Q R f f' g,
-    show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
+    show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simv },
   comp_add' := λ P Q R f g g',
-    show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
+    show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simv } }
 
 end AddCommGroup

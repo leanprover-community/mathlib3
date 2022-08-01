@@ -15,7 +15,7 @@ begin
   trunc_cases t,
   guard_hyp t : ℕ, -- verify that the new hypothesis is still called `t`.
   exact 0,
-  -- verify that we don't even need to use `simp`,
+  -- verify that we don't even need to use `simv`,
   -- because `trunc_cases` has already removed the `eq.rec`.
   refl,
 end
@@ -32,7 +32,7 @@ class has_unit (α : Type) [has_one α] :=
 (unit_eq_one : unit = 1)
 
 def u {α : Type} [has_one α] [has_unit α] : α := has_unit.unit
-attribute [simp] has_unit.unit_eq_one
+attribute [simv] has_unit.unit_eq_one
 
 example {α : Type} [has_one α] (I : trunc (has_unit α)) : α :=
 begin
@@ -40,13 +40,13 @@ begin
   exact u, -- Verify that the typeclass is immediately available
   -- Verify that there's no `eq.rec` in the goal.
   (do tgt ← tactic.target, eq_rec ← tactic.mk_const `eq.rec, guard $ ¬ eq_rec.occurs tgt),
-  simp [u],
+  simv [u],
 end
 
 universes v w z
 
 /-- Transport through a product is given by individually transporting each component. -/
--- It's a pity that this is no good as a `simp` lemma.
+-- It's a pity that this is no good as a `simv` lemma.
 -- (It seems the unification problem with `λ a, W a × Z a` is too hard.)
 -- (One could write a tactic to syntactically analyse `eq.rec` expressions
 -- and simplify more of them!)
@@ -54,7 +54,7 @@ lemma eq_rec_prod {α : Sort v} (W : α → Type w) (Z : α → Type z) {a b : �
   @eq.rec α a (λ a, W a × Z a) p b h = (@eq.rec α a W p.1 b h, @eq.rec α a Z p.2 b h) :=
 begin
   cases h,
-  simp only [prod.mk.eta],
+  simv only [prod.mk.eta],
 end
 
 -- This time, we make a goal that (quite artificially) depends on the `trunc`.
@@ -64,9 +64,9 @@ begin
   trunc_cases I,
   { exact ⟨u, plift.up rfl⟩, },
   { -- And so we get an `eq.rec` in the invariance goal.
-    -- Since `simp` can't handle it because of the unification problem,
+    -- Since `simv` can't handle it because of the unification problem,
     -- for now we have to handle it by hand.
     convert eq_rec_prod (λ I, α) (λ I, plift (I = I)) _ _,
-    { simp [u], },
+    { simv [u], },
     { ext, } }
 end

@@ -62,7 +62,7 @@ begin
       ∥deriv f y∥ ≤ C * ∥g y∥) ∧ y ∈ [a, b],
       from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).small_sets,
     rcases mem_prod_self_iff.1 h with ⟨s, hsl, hs⟩,
-    simp only [prod_subset_iff, mem_set_of_eq] at hs,
+    simv only [prod_subset_iff, mem_set_of_eq] at hs,
     exact ⟨C, C₀, s, hsl, λ x hx y hy z hz, (hs x hx y hy z hz).2,
       λ x hx y hy z hz, (hs x hx y hy z hz).1.1, λ x hx y hy z hz, (hs x hx y hy z hz).1.2⟩ },
   replace hgi : interval_integrable (λ x, C * ∥g x∥) volume a b, by convert hgi.norm.smul C,
@@ -165,4 +165,4 @@ end
 /-- The function `λ x, x⁻¹` is integrable on `a..b` if and only if `a = b` or `0 ∉ [a, b]`. -/
 @[simp] lemma interval_integrable_inv_iff {a b : ℝ} :
   interval_integrable (λ x, x⁻¹) volume a b ↔ a = b ∨ (0 : ℝ) ∉ [a, b] :=
-by simp only [← interval_integrable_sub_inv_iff, sub_zero]
+by simv only [← interval_integrable_sub_inv_iff, sub_zero]

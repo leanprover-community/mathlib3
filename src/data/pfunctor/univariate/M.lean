@@ -18,7 +18,7 @@ open nat function list (hiding head')
 
 variables (F : pfunctor.{u})
 
-local prefix `♯`:0 := cast (by simp [*] <|> cc <|> solve_by_elim)
+local prefix `♯`:0 := cast (by simv [*] <|> cc <|> solve_by_elim)
 
 namespace pfunctor
 namespace approx
@@ -95,7 +95,7 @@ begin
   { refl },
   { cases h with _ _ _ _ _ h₀ h₁,
     cases h,
-    simp only [truncate, function.comp, true_and, eq_self_iff_true, heq_iff_eq],
+    simv only [truncate, function.comp, true_and, eq_self_iff_true, heq_iff_eq],
     ext y, apply n_ih,
     apply h₁ }
 end
@@ -133,7 +133,7 @@ lemma head_succ' (n m : ℕ) (x : Π n, cofix_a F n) (Hconsistent : all_agree x)
   head' (x (succ n)) = head' (x (succ m)) :=
 begin
   suffices : ∀ n, head' (x (succ n)) = head' (x 1),
-  { simp [this] },
+  { simv [this] },
   clear m n, intro,
   cases h₀ : x (succ n) with _ i₀ f₀,
   cases h₁ : x 1 with _ i₁ f₁,
@@ -200,7 +200,7 @@ head' (x.1 1)
 /-- return all the subtrees of the root of a tree `x : M F` -/
 def children (x : M F) (i : F.B (head x)) : M F :=
    let H := λ n : ℕ, @head_succ' _ n 0 x.1 x.2 in
-   { approx := λ n, children' (x.1 _) (cast (congr_arg _ $ by simp only [head,H]; refl) i),
+   { approx := λ n, children' (x.1 _) (cast (congr_arg _ $ by simv only [head,H]; refl) i),
      consistent :=
      begin
        intro,
@@ -216,7 +216,7 @@ def children (x : M F) (i : F.B (head x)) : M F :=
 `i` designates no subtree of `x` -/
 def ichildren [inhabited (M F)] [decidable_eq F.A] (i : F.Idx) (x : M F) : M F :=
 if H' : i.1 = head x
-  then children x (cast (congr_arg _ $ by simp only [head,H']; refl) i.2)
+  then children x (cast (congr_arg _ $ by simv only [head,H']; refl) i.2)
   else default
 
 lemma head_succ (n m : ℕ) (x : M F) :
@@ -277,7 +277,7 @@ begin
   dsimp only [M.mk,dest],
   cases x with x ch, congr' with i,
   cases h : ch i,
-  simp only [children,M.approx.s_mk,children',cast_eq],
+  simv only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
   congr, rw h,
 end
@@ -339,17 +339,17 @@ begin
   { induction n generalizing x y, constructor,
     { induction x using pfunctor.M.cases_on',
       induction y using pfunctor.M.cases_on',
-      simp only [approx_mk] at h, cases h with _ _ _ _ _ _ hagree,
+      simv only [approx_mk] at h, cases h with _ _ _ _ _ _ hagree,
       constructor; try { refl },
       intro i, apply n_ih, apply hagree } },
   { induction n generalizing x y, constructor,
     { cases h,
       induction x using pfunctor.M.cases_on',
       induction y using pfunctor.M.cases_on',
-      simp only [approx_mk],
+      simv only [approx_mk],
       have h_a_1 := mk_inj ‹M.mk ⟨x_a, x_f⟩ = M.mk ⟨h_a, h_x⟩›, cases h_a_1,
       replace h_a_2 := mk_inj ‹M.mk ⟨y_a, y_f⟩ = M.mk ⟨h_a, h_y⟩›, cases h_a_2,
-      constructor, intro i, apply n_ih, simp * } },
+      constructor, intro i, apply n_ih, simv * } },
 end
 
 @[simp]
@@ -425,12 +425,12 @@ begin
   { exfalso, apply h, constructor },
   { cases ps_hd with a i,
     induction x using pfunctor.M.cases_on',
-    simp only [iselect,isubtree] at ps_ih ⊢,
+    simv only [iselect,isubtree] at ps_ih ⊢,
     by_cases h'' : a = x_a, subst x_a,
-    { simp only [dif_pos, eq_self_iff_true, cases_on_mk'],
+    { simv only [dif_pos, eq_self_iff_true, cases_on_mk'],
       rw ps_ih, intro h', apply h,
       constructor; try { refl }, apply h' },
-    { simp * } }
+    { simv * } }
 end
 
 @[simp] lemma head_mk (x : F.obj (M F)) :
@@ -456,7 +456,7 @@ by { dsimp only [ichildren,pfunctor.obj.iget],
 lemma isubtree_cons
   [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
   isubtree (⟨_,i⟩ :: ps) (M.mk ⟨a,f⟩) = isubtree ps (f i) :=
-by simp only [isubtree,ichildren_mk,pfunctor.obj.iget,dif_pos,isubtree,M.cases_on_mk']; refl
+by simv only [isubtree,ichildren_mk,pfunctor.obj.iget,dif_pos,isubtree,M.cases_on_mk']; refl
 
 @[simp]
 lemma iselect_nil [decidable_eq F.A] [inhabited (M F)] {a} (f : F.B a → M F) :
@@ -466,7 +466,7 @@ by refl
 @[simp]
 lemma iselect_cons [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i} :
   iselect (⟨a,i⟩ :: ps) (M.mk ⟨a,f⟩) = iselect ps (f i) :=
-by simp only [iselect,isubtree_cons]
+by simv only [iselect,isubtree_cons]
 
 lemma corec_def {X} (f : X → F.obj X) (x₀ : X) :
   M.corec f x₀ = M.mk (M.corec f <$> f x₀)  :=
@@ -491,19 +491,19 @@ begin
   induction n with n generalizing x y z,
   { specialize hrec [] rfl,
     induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
-    simp only [iselect_nil] at hrec, subst hrec,
-    simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
+    simv only [iselect_nil] at hrec, subst hrec,
+    simv only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
     apply subsingleton.elim },
   { cases hx, cases hy,
     induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
     subst z,
     iterate 3 { have := mk_inj ‹_›, repeat { cases this } },
-    simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
+    simv only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
     ext i, apply n_ih,
     { solve_by_elim },
     { solve_by_elim },
     introv h, specialize hrec (⟨_,i⟩ :: ps) (congr_arg _ h),
-    simp only [iselect_cons] at hrec, exact hrec }
+    simv only [iselect_cons] at hrec, exact hrec }
 end
 
 open pfunctor.approx
@@ -565,7 +565,7 @@ begin
   have h₁ := bisim.tail h₀ i,
   induction h : (f i) using pfunctor.M.cases_on' with a₀ f₀,
   induction h' : (f' i) using pfunctor.M.cases_on' with a₁ f₁,
-  simp only [h,h',isubtree_cons] at ps_ih ⊢,
+  simv only [h,h',isubtree_cons] at ps_ih ⊢,
   rw [h,h'] at h₁,
   obtain rfl : a₀ = a₁ := bisim.head h₁,
   apply (ps_ih _ _ _ h₁),
@@ -581,7 +581,7 @@ begin
   { have H := nth_of_bisim R bisim _ _ ps Hr h,
     exact H.left },
   { rw not_or_distrib at h, cases h with h₀ h₁,
-    simp only [iselect_eq_default,*,not_false_iff] }
+    simv only [iselect_eq_default,*,not_false_iff] }
 end
 
 end bisim
@@ -612,9 +612,9 @@ begin
     rcases h _ _ ih with ⟨ a'', g, g', h₀, h₁, h₂ ⟩; clear h,
   { replace h₀ := congr_arg sigma.fst h₀,
     replace h₁ := congr_arg sigma.fst h₁,
-    simp only [dest_mk] at h₀ h₁,
+    simv only [dest_mk] at h₀ h₁,
     rw [h₀,h₁], },
-  { simp only [dest_mk] at h₀ h₁,
+  { simv only [dest_mk] at h₀ h₁,
     cases h₀, cases h₁,
     apply h₂, },
 end

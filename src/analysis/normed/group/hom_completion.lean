@@ -69,7 +69,7 @@ def normed_add_group_hom.completion (f : normed_add_group_hom G H) :
     { intro x,
       change ∥f.to_add_monoid_hom.completion _ ↑x∥ ≤ ∥f∥ * ∥↑x∥,
       rw f.to_add_monoid_hom.completion_coe f.continuous,
-      simp only [completion.norm_coe],
+      simv only [completion.norm_coe],
       exact f.le_op_norm x }
   end,
   ..f.to_add_monoid_hom.completion f.continuous }
@@ -141,7 +141,7 @@ normed_add_group_hom_completion_hom.map_zero
 def normed_add_comm_group.to_compl : normed_add_group_hom G (completion G) :=
 { to_fun := coe,
   map_add' := completion.to_compl.map_add,
-  bound' := ⟨1, by simp [le_refl]⟩ }
+  bound' := ⟨1, by simv [le_refl]⟩ }
 
 open normed_add_comm_group
 
@@ -169,7 +169,7 @@ begin
     { apply is_closed_le,
       continuity },
     { intro g,
-      simp [f.le_op_norm  g] } },
+      simv [f.le_op_norm  g] } },
   { intros N N_nonneg hN,
     apply f.op_norm_le_bound N_nonneg,
     intro x,
@@ -184,7 +184,7 @@ begin
   rcases h with ⟨⟨g, g_in : g ∈ f.ker⟩, rfl⟩,
   rw f.mem_ker at g_in,
   change f.completion (g : completion G) = 0,
-  simp [normed_add_group_hom.mem_ker, f.completion_coe g, g_in, completion.coe_zero],
+  simv [normed_add_group_hom.mem_ker, f.completion_coe g, g_in, completion.coe_zero],
 end
 
 lemma normed_add_group_hom.ker_completion {f : normed_add_group_hom G H} {C : ℝ}
@@ -224,7 +224,7 @@ begin
     { norm_cast,
       rw normed_add_group_hom.comp_range,
       apply add_subgroup.mem_map_of_mem,
-      simp only [incl_range, mem_ker] },
+      simv only [incl_range, mem_ker] },
     { calc ∥hatg - (g - g')∥ = ∥hatg - g + g'∥ : by abel
       ... ≤ ∥hatg - g∥ + ∥(g' : completion G)∥ : norm_add_le _ _
       ... < δ + C'*∥f∥*∥hatg - g∥ : by linarith

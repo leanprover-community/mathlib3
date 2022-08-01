@@ -118,9 +118,9 @@ the product one, and then register an instance in which we replace the uniform s
 product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
 def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
 { edist          := λ f g, (∑ i, edist (f i) (g i) ^ p) ^ (1/p),
-  edist_self     := λ f, by simp [edist, ennreal.zero_rpow_of_pos (pos p),
+  edist_self     := λ f, by simv [edist, ennreal.zero_rpow_of_pos (pos p),
     ennreal.zero_rpow_of_pos (inv_pos.2 $ pos p)],
-  edist_comm     := λ f g, by simp [edist, edist_comm],
+  edist_comm     := λ f g, by simv [edist, edist_comm],
   edist_triangle := λ f g h, calc
     (∑ i, edist (f i) (h i) ^ p) ^ (1 / p) ≤
     (∑ i, (edist (f i) (g i) + edist (g i) (h i)) ^ p) ^ (1 / p) :
@@ -153,7 +153,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist
     have A : ∀ i, edist (f i) (g i) ^ p ≠ ⊤,
       from λ i, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _),
     have B : edist f g = (∑ i, edist (f i) (g i) ^ p) ^ (1/p), from rfl,
-    by simp only [B, dist_edist, ennreal.to_real_rpow, ← ennreal.to_real_sum (λ i _, A i)])
+    by simv only [B, dist_edist, ennreal.to_real_rpow, ← ennreal.to_real_sum (λ i _, A i)])
 
 local attribute [instance] pi_Lp.pseudo_metric_aux
 
@@ -161,12 +161,12 @@ lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (pos p).ne',
   assume x y,
-  simp only [edist, forall_prop_of_true, one_mul, finset.mem_univ, finset.sup_le_iff,
+  simv only [edist, forall_prop_of_true, one_mul, finset.mem_univ, finset.sup_le_iff,
              ennreal.coe_one],
   assume i,
   calc
   edist (x i) (y i) = (edist (x i) (y i) ^ p) ^ (1/p) :
-    by simp [← ennreal.rpow_mul, cancel, -one_div]
+    by simv [← ennreal.rpow_mul, cancel, -one_div]
   ... ≤ (∑ i, edist (x i) (y i) ^ p) ^ (1 / p) :
   begin
     apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ (pos p).le),
@@ -181,7 +181,7 @@ begin
   have nonneg : 0 ≤ 1 / p := one_div_nonneg.2 (le_of_lt pos),
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
   assume x y,
-  simp [edist, -one_div],
+  simv [edist, -one_div],
   calc (∑ i, edist (x i) (y i) ^ p) ^ (1 / p) ≤
   (∑ i, edist (pi_Lp.equiv p β x) (pi_Lp.equiv p β y) ^ p) ^ (1 / p) :
   begin
@@ -193,7 +193,7 @@ begin
   ... = (((fintype.card ι : ℝ≥0)) ^ (1/p) : ℝ≥0) *
     edist (pi_Lp.equiv p β x) (pi_Lp.equiv p β y) :
   begin
-    simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
+    simv only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
       ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],
     have : (fintype.card ι : ℝ≥0∞) = (fintype.card ι : ℝ≥0) :=
       (ennreal.coe_nat (fintype.card ι)).symm,
@@ -283,7 +283,7 @@ norm. -/
 instance seminormed_add_comm_group [Π i, seminormed_add_comm_group (β i)] :
   seminormed_add_comm_group (pi_Lp p β) :=
 { norm := λf, (∑ i, ∥f i∥ ^ p) ^ (1/p),
-  dist_eq := λ x y, by simp [pi_Lp.dist_eq, dist_eq_norm, sub_eq_add_neg],
+  dist_eq := λ x y, by simv [pi_Lp.dist_eq, dist_eq_norm, sub_eq_add_neg],
   .. pi.add_comm_group }
 
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
@@ -299,16 +299,16 @@ lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
 lemma nnnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp p β) :
   ∥f∥₊ = (∑ i, ∥f i∥₊ ^ p) ^ (1/p) :=
-by { ext, simp [nnreal.coe_sum, norm_eq] }
+by { ext, simv [nnreal.coe_sum, norm_eq] }
 
 lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, seminormed_add_comm_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ i, ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
-by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
+by simv [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 
 lemma norm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
   ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
-by { rw [norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
+by { rw [norm_eq_of_nat 2]; simv [sqrt_eq_rpow] }
 
 lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
   ∥x∥₊ = nnreal.sqrt (∑ (i : ι), ∥x i∥₊ ^ 2) :=
@@ -337,7 +337,7 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)] [Π i, normed_spa
   begin
     assume c f,
     have : p * (1 / p) = 1 := mul_div_cancel' 1 (lt_of_lt_of_le zero_lt_one fact_one_le_p.out).ne',
-    simp only [pi_Lp.norm_eq, norm_smul, mul_rpow, norm_nonneg, ←finset.mul_sum, pi.smul_apply],
+    simv only [pi_Lp.norm_eq, norm_smul, mul_rpow, norm_nonneg, ←finset.mul_sum, pi.smul_apply],
     rw [mul_rpow (rpow_nonneg_of_nonneg (norm_nonneg _) _), ← rpow_mul (norm_nonneg _),
         this, rpow_one],
     exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _)
@@ -373,7 +373,7 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   norm_map' :=
   begin
     intro x,
-    simp only [norm],
+    simv only [norm],
     simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
     congr,
     rw fintype.sum_equiv (e.symm),
@@ -397,7 +397,7 @@ linear_isometry_equiv.ext $ λ x, rfl
   linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e (pi.single i v) = pi.single (e i) v :=
 begin
   funext x,
-  simp [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
+  simv [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
     pi.single, function.update, equiv.symm_apply_eq],
 end
 
@@ -431,7 +431,7 @@ end
 
 lemma norm_equiv_symm_const {β} [seminormed_add_comm_group β] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ = fintype.card ι ^ (1 / p) * ∥b∥ :=
-(congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simp
+(congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simv
 
 lemma nnnorm_equiv_symm_one {β} [seminormed_add_comm_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥₊ :=

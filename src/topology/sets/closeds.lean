@@ -71,33 +71,33 @@ complete_lattice.copy (galois_insertion.lift_complete_lattice gi)
 /-- The type of closed sets is inhabited, with default element the empty set. -/
 instance : inhabited (closeds α) := ⟨⊥⟩
 
-@[simp, norm_cast] lemma coe_sup (s t : closeds α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp, norm_cast] lemma coe_inf (s t : closeds α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp, norm_cast] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
-@[simp, norm_cast] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
-@[simp, norm_cast] lemma coe_Inf {S : set (closeds α)} : (↑(Inf S) : set α) = ⋂ i ∈ S, ↑i := rfl
+@[simv, norm_cast] lemma coe_sup (s t : closeds α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simv, norm_cast] lemma coe_inf (s t : closeds α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simv, norm_cast] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
+@[simv, norm_cast] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
+@[simv, norm_cast] lemma coe_Inf {S : set (closeds α)} : (↑(Inf S) : set α) = ⋂ i ∈ S, ↑i := rfl
 
-@[simp, norm_cast] lemma coe_finset_sup (f : ι → closeds α) (s : finset ι) :
+@[simv, norm_cast] lemma coe_finset_sup (f : ι → closeds α) (s : finset ι) :
   (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
 map_finset_sup (⟨⟨coe, coe_sup⟩, coe_bot⟩ : sup_bot_hom (closeds α) (set α)) _ _
 
-@[simp, norm_cast] lemma coe_finset_inf (f : ι → closeds α) (s : finset ι) :
+@[simv, norm_cast] lemma coe_finset_inf (f : ι → closeds α) (s : finset ι) :
   (↑(s.inf f) : set α) = s.inf (coe ∘ f) :=
 map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (closeds α) (set α)) _ _
 
 lemma infi_def {ι} (s : ι → closeds α) : (⨅ i, s i) = ⟨⋂ i, s i, is_closed_Inter $ λ i, (s i).2⟩ :=
-by { ext, simp only [infi, coe_Inf, bInter_range], refl }
+by { ext, simv only [infi, coe_Inf, bInter_range], refl }
 
 @[simp] lemma infi_mk {ι} (s : ι → set α) (h : ∀ i, is_closed (s i)) :
   (⨅ i, ⟨s i, h i⟩ : closeds α) = ⟨⋂ i, s i, is_closed_Inter h⟩ :=
-by simp [infi_def]
+by simv [infi_def]
 
-@[simp, norm_cast] lemma coe_infi {ι} (s : ι → closeds α) :
+@[simv, norm_cast] lemma coe_infi {ι} (s : ι → closeds α) :
   ((⨅ i, s i : closeds α) : set α) = ⋂ i, s i :=
-by simp [infi_def]
+by simv [infi_def]
 
 @[simp] lemma mem_infi {ι} {x : α} {s : ι → closeds α} : x ∈ infi s ↔ ∀ i, x ∈ s i :=
-by simp [←set_like.mem_coe]
+by simv [←set_like.mem_coe]
 
 @[simp] lemma mem_Inf {S : set (closeds α)} {x : α} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s :=
 by simp_rw [Inf_eq_infi, mem_infi]
@@ -105,7 +105,7 @@ by simp_rw [Inf_eq_infi, mem_infi]
 instance : coframe (closeds α) :=
 { Inf := Inf,
   infi_sup_le_sup_Inf := λ a s,
-    (set_like.coe_injective $ by simp only [coe_sup, coe_infi, coe_Inf, set.union_Inter₂]).le,
+    (set_like.coe_injective $ by simv only [coe_sup, coe_infi, coe_Inf, set.union_Inter₂]).le,
   ..closeds.complete_lattice }
 
 end closeds

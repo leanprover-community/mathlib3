@@ -76,7 +76,7 @@ def cons : lists α → lists' α tt → lists' α tt
 
 @[simp] theorem to_list_cons (a : lists α) (l) :
   to_list (cons a l) = a :: l.to_list :=
-by cases a; simp [cons]
+by cases a; simv [cons]
 
 /-- Converts a `list` of ZFA lists to a proper ZFA prelist. -/
 @[simp] def of_list : list (lists α) → lists' α tt
@@ -84,7 +84,7 @@ by cases a; simp [cons]
 | (a :: l) := cons a (of_list l)
 
 @[simp] theorem to_of_list (l : list (lists α)) : to_list (of_list l) = l :=
-by induction l; simp *
+by induction l; simv *
 
 @[simp] theorem of_to_list : ∀ (l : lists' α tt), of_list (to_list l) = l :=
 suffices ∀ b (h : tt = b) (l : lists' α b),
@@ -129,7 +129,7 @@ theorem mem_def {b a} {l : lists' α b} :
   a ∈ l ↔ ∃ a' ∈ l.to_list, a ~ a' := iff.rfl
 
 @[simp] theorem mem_cons {a y l} : a ∈ @cons α y l ↔ a ~ y ∨ a ∈ l :=
-by simp [mem_def, or_and_distrib_right, exists_or_distrib]
+by simv [mem_def, or_and_distrib_right, exists_or_distrib]
 
 theorem cons_subset {a} {l₁ l₂ : lists' α tt} :
   lists'.cons a l₁ ⊆ l₂ ↔ a ∈ l₂ ∧ l₁ ⊆ l₂ :=
@@ -145,7 +145,7 @@ theorem of_list_subset {l₁ l₂ : list (lists α)} (h : l₁ ⊆ l₂) :
 begin
   induction l₁, {exact subset.nil},
   refine subset.cons (lists.equiv.refl _) _ (l₁_ih (list.subset_of_cons_subset h)),
-  simp at h, simp [h]
+  simv at h, simv [h]
 end
 
 @[refl] theorem subset.refl {l : lists' α tt} : l ⊆ l :=
@@ -164,7 +164,7 @@ theorem mem_of_subset' {a} {l₁ l₂ : lists' α tt}
   (s : l₁ ⊆ l₂) (h : a ∈ l₁.to_list) : a ∈ l₂ :=
 begin
   induction s with _ a a' l l' e m s IH, {cases h},
-  simp at h, rcases h with rfl|h,
+  simv at h, rcases h with rfl|h,
   exacts [⟨_, m, e⟩, IH h]
 end
 
@@ -174,7 +174,7 @@ theorem subset_def {l₁ l₂ : lists' α tt} :
   rw ← of_to_list l₁,
   revert H, induction to_list l₁; intro,
   { exact subset.nil },
-  { simp at H, exact cons_subset.2 ⟨H.1, ih H.2⟩ }
+  { simv at H, exact cons_subset.2 ⟨H.1, ih H.2⟩ }
 end⟩
 
 end lists'
@@ -201,10 +201,10 @@ theorem is_list_to_list (l : list (lists α)) : is_list (of_list l) :=
 eq.refl _
 
 theorem to_of_list (l : list (lists α)) : to_list (of_list l) = l :=
-by simp [of_list, of']
+by simv [of_list, of']
 
 theorem of_to_list : ∀ {l : lists α}, is_list l → of_list (to_list l) = l
-| ⟨tt, l⟩ _ := by simp [of_list, of']
+| ⟨tt, l⟩ _ := by simv [of_list, of']
 
 instance : inhabited (lists α) :=
 ⟨of' lists'.nil⟩
@@ -251,7 +251,7 @@ theorem equiv.antisymm_iff {l₁ l₂ : lists' α tt} :
 begin
   refine ⟨λ h, _, λ ⟨h₁, h₂⟩, equiv.antisymm h₁ h₂⟩,
   cases h with _ _ _ h₁ h₂,
-  { simp [lists'.subset.refl] }, { exact ⟨h₁, h₂⟩ }
+  { simv [lists'.subset.refl] }, { exact ⟨h₁, h₂⟩ }
 end
 
 attribute [refl] equiv.refl
@@ -313,7 +313,7 @@ by {unfold_sizeof, apply sizeof_pos}
 @[instance] mutual def equiv.decidable, subset.decidable, mem.decidable [decidable_eq α]
 with equiv.decidable : ∀ l₁ l₂ : lists α, decidable (l₁ ~ l₂)
 | ⟨ff, l₁⟩ ⟨ff, l₂⟩ := decidable_of_iff' (l₁ = l₂) $
-  by cases l₁; refine equiv_atom.trans (by simp [atom])
+  by cases l₁; refine equiv_atom.trans (by simv [atom])
 | ⟨ff, l₁⟩ ⟨tt, l₂⟩ := is_false $ by rintro ⟨⟩
 | ⟨tt, l₁⟩ ⟨ff, l₂⟩ := is_false $ by rintro ⟨⟩
 | ⟨tt, l₁⟩ ⟨tt, l₂⟩ := begin

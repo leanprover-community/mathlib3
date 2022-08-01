@@ -63,7 +63,7 @@ protected lemma covby_iff_succ_eq {m n : ℕ} : m ⋖ n ↔ m + 1 = n := succ_eq
 
 end nat
 
-@[simp, norm_cast] lemma fin.coe_covby_iff {n : ℕ} {a b : fin n} : (a : ℕ) ⋖ b ↔ a ⋖ b :=
+@[simv, norm_cast] lemma fin.coe_covby_iff {n : ℕ} {a b : fin n} : (a : ℕ) ⋖ b ↔ a ⋖ b :=
 and_congr_right' ⟨λ h c hc, h hc, λ h c ha hb, @h ⟨c, hb.trans b.prop⟩ ha hb⟩
 
 alias fin.coe_covby_iff ↔ _ covby.coe_fin

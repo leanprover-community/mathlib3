@@ -76,19 +76,19 @@ end
 ⟨λ h2, ⟨pnat.find h, h2, pnat.find_spec h⟩, λ ⟨m, hmn, hm⟩, (pnat.find_min' h hm).trans_lt hmn⟩
 
 @[simp] lemma find_le_iff (n : ℕ+) : pnat.find h ≤ n ↔ ∃ m ≤ n, p m :=
-by simp only [exists_prop, ← lt_add_one_iff, find_lt_iff]
+by simv only [exists_prop, ← lt_add_one_iff, find_lt_iff]
 
 @[simp] lemma le_find_iff (n : ℕ+) : n ≤ pnat.find h ↔ ∀ m < n, ¬ p m :=
 by simp_rw [← not_lt, find_lt_iff, not_exists]
 
 @[simp] lemma lt_find_iff (n : ℕ+) : n < pnat.find h ↔ ∀ m ≤ n, ¬ p m :=
-by simp only [← add_one_le_iff, le_find_iff, add_le_add_iff_right]
+by simv only [← add_one_le_iff, le_find_iff, add_le_add_iff_right]
 
 @[simp] lemma find_eq_one : pnat.find h = 1 ↔ p 1 :=
-by simp [find_eq_iff]
+by simv [find_eq_iff]
 
 @[simp] lemma one_le_find : 1 < pnat.find h ↔ ¬ p 1 :=
-not_iff_not.mp $ by simp
+not_iff_not.mp $ by simv
 
 theorem find_mono (h : ∀ n, q n → p n)
   {hp : ∃ n, p n} {hq : ∃ n, q n} :
@@ -102,9 +102,9 @@ lemma find_comp_succ (h : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h1 : ¬ p 1) :
   pnat.find h = pnat.find h₂ + 1 :=
 begin
   refine (find_eq_iff _).2 ⟨pnat.find_spec h₂, λ n, pnat.rec_on n _ _⟩,
-  { simp [h1] },
+  { simv [h1] },
   intros m IH hm,
-  simp only [add_lt_add_iff_right, lt_find_iff] at hm,
+  simv only [add_lt_add_iff_right, lt_find_iff] at hm,
   exact hm _ le_rfl
 end
 

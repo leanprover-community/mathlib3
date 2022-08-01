@@ -39,7 +39,7 @@ lemma ultrafilter_basis_is_basis :
 ⟨begin
    rintros _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ u ⟨ua, ub⟩,
    refine ⟨_, ⟨a ∩ b, rfl⟩, inter_mem ua ub, assume v hv, ⟨_, _⟩⟩;
-     apply mem_of_superset hv; simp [inter_subset_right a b]
+     apply mem_of_superset hv; simv [inter_subset_right a b]
  end,
  eq_univ_of_univ_subset $ subset_sUnion_of_mem $
    ⟨univ, eq_univ_of_forall (λ u, univ_mem)⟩,
@@ -67,7 +67,7 @@ lemma ultrafilter_converges_iff {u : ultrafilter (ultrafilter α)} {x : ultrafil
 begin
   rw [eq_comm, ← ultrafilter.coe_le_coe],
   change ↑u ≤ 𝓝 x ↔ ∀ s ∈ x, {v : ultrafilter α | s ∈ v} ∈ u,
-  simp only [topological_space.nhds_generate_from, le_infi_iff, ultrafilter_basis,
+  simv only [topological_space.nhds_generate_from, le_infi_iff, ultrafilter_basis,
     le_principal_iff, mem_set_of_eq],
   split,
   { intros h a ha, exact h _ ⟨ha, a, rfl⟩ },
@@ -88,7 +88,7 @@ instance : totally_disconnected_space (ultrafilter α) :=
 begin
   rw totally_disconnected_space_iff_connected_component_singleton,
   intro A,
-  simp only [set.eq_singleton_iff_unique_mem, mem_connected_component, true_and],
+  simv only [set.eq_singleton_iff_unique_mem, mem_connected_component, true_and],
   intros B hB,
   rw ← ultrafilter.coe_le_coe,
   intros s hs,
@@ -101,7 +101,7 @@ end
 lemma ultrafilter_comap_pure_nhds (b : ultrafilter α) : comap pure (𝓝 b) ≤ b :=
 begin
   rw topological_space.nhds_generate_from,
-  simp only [comap_infi, comap_principal],
+  simv only [comap_infi, comap_principal],
   intros s hs,
   rw ←le_principal_iff,
   refine infi_le_of_le {u | s ∈ u} _,
@@ -133,7 +133,7 @@ begin
   apply eq_bot_of_singletons_open,
   intros x,
   use [{u : ultrafilter α | {x} ∈ u}, ultrafilter_is_open_basic _],
-  simp,
+  simv,
 end
 
 /-- `pure : α → ultrafilter α` defines a dense inducing of `α` in `ultrafilter α`. -/

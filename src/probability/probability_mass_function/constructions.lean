@@ -38,22 +38,22 @@ variables (f : α → β) (p : pmf α) (b : β)
 
 lemma monad_map_eq_map {α β : Type*} (f : α → β) (p : pmf α) : f <$> p = p.map f := rfl
 
-@[simp] lemma map_apply : (map f p) b = ∑' a, if b = f a then p a else 0 := by simp [map]
+@[simp] lemma map_apply : (map f p) b = ∑' a, if b = f a then p a else 0 := by simv [map]
 
 @[simp] lemma support_map : (map f p).support = f '' p.support :=
-set.ext (λ b, by simp [map, @eq_comm β b])
+set.ext (λ b, by simv [map, @eq_comm β b])
 
-lemma mem_support_map_iff : b ∈ (map f p).support ↔ ∃ a ∈ p.support, f a = b := by simp
+lemma mem_support_map_iff : b ∈ (map f p).support ↔ ∃ a ∈ p.support, f a = b := by simv
 
 lemma bind_pure_comp : bind p (pure ∘ f) = map f p := rfl
 
-lemma map_id : map id p = p := by simp [map]
+lemma map_id : map id p = p := by simv [map]
 
 lemma map_comp (g : β → γ) : (p.map f).map g = p.map (g ∘ f) :=
-by simp [map]
+by simv [map]
 
 lemma pure_map (a : α) : (pure a).map f = pure (f a) :=
-by simp [map]
+by simv [map]
 
 section measure
 
@@ -61,7 +61,7 @@ variable (s : set β)
 
 @[simp] lemma to_outer_measure_map_apply :
   (p.map f).to_outer_measure s = p.to_outer_measure (f ⁻¹' s) :=
-by simp [map, set.indicator, to_outer_measure_apply p (f ⁻¹' s)]
+by simv [map, set.indicator, to_outer_measure_apply p (f ⁻¹' s)]
 
 @[simp] lemma to_measure_map_apply [measurable_space α] [measurable_space β] (hf : measurable f)
   (hs : measurable_set s) : (p.map f).to_measure s = p.to_measure (f ⁻¹' s) :=
@@ -86,16 +86,16 @@ lemma monad_seq_eq_seq {α β : Type*} (q : pmf (α → β)) (p : pmf α) : q <*
 
 @[simp] lemma seq_apply : (seq q p) b = ∑' (f : α → β) (a : α), if b = f a then q f * p a else 0 :=
 begin
-  simp only [seq, mul_boole, bind_apply, pure_apply],
+  simv only [seq, mul_boole, bind_apply, pure_apply],
   refine tsum_congr (λ f, (nnreal.tsum_mul_left (q f) _).symm.trans (tsum_congr (λ a, _))),
   simpa only [mul_zero] using mul_ite (b = f a) (q f) (p a) 0
 end
 
 @[simp] lemma support_seq : (seq q p).support = ⋃ f ∈ q.support, f '' p.support :=
-set.ext (λ b, by simp [-mem_support_iff, seq, @eq_comm β b])
+set.ext (λ b, by simv [-mem_support_iff, seq, @eq_comm β b])
 
 lemma mem_support_seq_iff : b ∈ (seq q p).support ↔ ∃ (f ∈ q.support), b ∈ f '' p.support :=
-by simp
+by simv
 
 end seq
 
@@ -126,7 +126,7 @@ variables {f : α → ℝ≥0} {s : finset α} (h : ∑ a in s, f a = 1) (h' : �
 set.ext (λ a, by simpa [mem_support_iff] using mt (h' a))
 
 lemma mem_support_of_finset_iff (a : α) : a ∈ (of_finset f s h h').support ↔ a ∈ s ∧ f a ≠ 0 :=
-by simp
+by simv
 
 lemma of_finset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_finset f s h h' a = 0 :=
 h' a ha
@@ -192,9 +192,9 @@ variables {f : α → ℝ≥0} (hf0 : tsum f ≠ 0)
 @[simp] lemma normalize_apply (a : α) : (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
 
 @[simp] lemma support_normalize : (normalize f hf0).support = function.support f :=
-set.ext (by simp [mem_support_iff, hf0])
+set.ext (by simv [mem_support_iff, hf0])
 
-lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0).support ↔ f a ≠ 0 := by simp
+lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0).support ↔ f a ≠ 0 := by simv
 
 end normalize
 
@@ -231,7 +231,7 @@ section bernoulli
 
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
-of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
+of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simv [h])
 
 variables {p : ℝ≥0} (h : p ≤ 1) (b : bool)
 
@@ -243,10 +243,10 @@ begin
   induction b,
   { simp_rw [mem_support_iff, bernoulli_apply, bool.cond_ff, ne.def, tsub_eq_zero_iff_le, not_le],
     exact ⟨ne_of_lt, lt_of_le_of_ne h⟩ },
-  { simp only [mem_support_iff, bernoulli_apply, bool.cond_tt, set.mem_set_of_eq], }
+  { simv only [mem_support_iff, bernoulli_apply, bool.cond_tt, set.mem_set_of_eq], }
 end
 
-lemma mem_support_bernoulli_iff : b ∈ (bernoulli p h).support ↔ cond b (p ≠ 0) (p ≠ 1) := by simp
+lemma mem_support_bernoulli_iff : b ∈ (bernoulli p h).support ↔ cond b (p ≠ 0) (p ≠ 1) := by simv
 
 end bernoulli
 

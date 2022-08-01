@@ -48,7 +48,7 @@ begin
   congr, ext σ, congr, ext,
   generalize hy : σ x = y,
   cases x; cases y;
-  simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
+  simv only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
     equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
     from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂,
     matrix.minor_apply],
@@ -56,11 +56,11 @@ end
 
 lemma det_to_square_block (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :
   (to_square_block M b k).det = (to_square_block_prop M (λ i, b i = k)).det :=
-by simp
+by simv
 
 lemma det_to_square_block' (M : matrix m m R) (b : m → ℕ) (k : ℕ) :
   (to_square_block' M b k).det = (to_square_block_prop M (λ i, b i = k)).det :=
-by simp
+by simv
 
 lemma two_block_triangular_det (M : matrix m m R) (p : m → Prop) [decidable_pred p]
   (h : ∀ i (h1 : ¬p i) j (h2 : p j), M i j = 0) :
@@ -98,9 +98,9 @@ lemma upper_two_block_triangular' {m n : Type*}
 begin
   intros k1 k2 hk12,
   have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 0 → ∃ i, k = sum.inl i,
-  { simp },
+  { simv },
   have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 1 → ∃ j, k = sum.inr j,
-  { simp },
+  { simv },
   set mk1 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k1 with hmk1,
   set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
   fin_cases mk1 using h; fin_cases mk2 using h_1; rw [h, h_1] at hk12,
@@ -110,7 +110,7 @@ begin
     obtain ⟨i, hi⟩ := h1 k1 h,
     rw hmk2 at h_1,
     obtain ⟨j, hj⟩ := h0 k2 h_1,
-    rw [hi, hj], simp },
+    rw [hi, hj], simv },
   { exact absurd hk12 (irrefl 1) }
 end
 
@@ -125,15 +125,15 @@ lemma upper_two_block_triangular {m n : Type*}
 begin
   intros k1 k2 hk12,
   have h01 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 ∨ sum.elim (λ i, 0) (λ j, 1) k = 1,
-  { simp },
-  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 → ∃ i, k = sum.inl i, { simp },
-  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 1 → ∃ j, k = sum.inr j, { simp },
+  { simv },
+  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 → ∃ i, k = sum.inl i, { simv },
+  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 1 → ∃ j, k = sum.inr j, { simv },
   cases (h01 k1) with hk1 hk1; cases (h01 k2) with hk2 hk2; rw [hk1, hk2] at hk12,
   { exact absurd hk12 (nat.not_lt_zero 0) },
   { exact absurd hk12 (nat.not_lt_zero 1) },
   { obtain ⟨i, hi⟩ := h1 k1 hk1,
     obtain ⟨j, hj⟩ := h0 k2 hk2,
-    rw [hi, hj], simp },
+    rw [hi, hj], simv },
   { exact absurd hk12 (irrefl 1) }
 end
 
@@ -165,7 +165,7 @@ begin
         rw ←fin.prod_univ_eq_prod_range at h1 ⊢,
         convert h1,
         ext k,
-        simp only [to_square_block_def', to_square_block_def],
+        simv only [to_square_block_def', to_square_block_def],
         let he : {a // b' a = ↑k} ≃ {a // b a = ↑k},
         { have hc : ∀ (i : m), (λ a, b a = ↑k) i → (λ a, ¬b a = n) i,
           { intros i hbi, rw hbi, exact ne_of_lt (fin.is_lt k) },
@@ -173,10 +173,10 @@ begin
         exact matrix.det_reindex_self he (λ (i j : {a // b' a = ↑k}), M ↑i ↑j) },
       { rw det_to_square_block' M b n,
         have hh : ∀ a, b a = n ↔ ¬(λ (i : m), ¬b i = n) a,
-        { intro i, simp only [not_not] },
+        { intro i, simv only [not_not] },
         exact equiv_block_det M hh }},
     { intros i hi j hj,
-      apply (h i), simp only [not_not] at hi,
+      apply (h i), simv only [not_not] at hi,
       rw hi,
       exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (hn j)) }}
 end
@@ -187,7 +187,7 @@ lemma det_of_block_triangular_matrix'' (M : matrix m m R) (b : m → ℕ)
 begin
   let n : ℕ := (Sup (finset.image b finset.univ : set ℕ)).succ,
   have hn : ∀ i, b i < n,
-  { have hbi : ∀ i, b i ∈ finset.image b finset.univ, { simp },
+  { have hbi : ∀ i, b i ∈ finset.image b finset.univ, { simv },
     intro i,
     dsimp only [n],
     apply nat.lt_succ_iff.mpr,
@@ -202,7 +202,7 @@ begin
     apply det_eq_one_of_card_eq_zero,
     apply fintype.card_eq_zero_iff.mpr,
     constructor,
-    simp only [subtype.forall],
+    simv only [subtype.forall],
     intros a hba, apply hbk,
     apply finset.mem_image.mpr,
     use a,
@@ -230,7 +230,7 @@ begin
   have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ :=
     λ (j : {a // id a = i}), subtype.ext j.property,
   haveI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
-  simp [h2 default]
+  simv [h2 default]
 end
 
 lemma det_of_lower_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)

@@ -401,7 +401,7 @@ inductive forall₂ (R : α → β → Prop) : list α → list β → Prop
 | nil : forall₂ [] []
 | cons {a b l₁ l₂} : R a b → forall₂ l₁ l₂ → forall₂ (a::l₁) (b::l₂)
 
-attribute [simp] forall₂.nil
+attribute [simv] forall₂.nil
 
 end forall₂
 
@@ -585,7 +585,7 @@ variables {R}
   pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ pairwise R l :=
 ⟨λ p, by cases p with a l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
-attribute [simp] pairwise.nil
+attribute [simv] pairwise.nil
 
 instance decidable_pairwise [decidable_rel R] (l : list α) : decidable (pairwise R l) :=
 by induction l with hd tl ih; [exact is_true pairwise.nil,
@@ -624,10 +624,10 @@ variable {R}
   chain R a (b::l) ↔ R a b ∧ chain R b l :=
 ⟨λ p, by cases p with _ a b l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
-attribute [simp] chain.nil
+attribute [simv] chain.nil
 
 instance decidable_chain [decidable_rel R] (a : α) (l : list α) : decidable (chain R a l) :=
-by induction l generalizing a; simp only [chain.nil, chain_cons]; resetI; apply_instance
+by induction l generalizing a; simv only [chain.nil, chain_cons]; resetI; apply_instance
 
 instance decidable_chain' [decidable_rel R] (l : list α) : decidable (chain' R l) :=
 by cases l; dunfold chain'; apply_instance

@@ -86,7 +86,7 @@ by { rintro ⟨s₁, h₁, h₁'⟩ ⟨s₂, h₂, h₂'⟩ (rfl : s₁ = s₂),
 
 /-- The singleton prepartition `{J}`, `J ≤ I`. -/
 @[simps] def single (I J : box ι) (h : J ≤ I) : prepartition I :=
-⟨{J}, by simpa, by simp⟩
+⟨{J}, by simpa, by simv⟩
 
 @[simp] lemma mem_single {J'} (h : J ≤ I) : J' ∈ single I J h ↔ J' = J := mem_singleton
 
@@ -111,7 +111,7 @@ instance : partial_order (prepartition I) :=
 
 instance : order_top (prepartition I) :=
 { top := single I I le_rfl,
-  le_top := λ π J hJ, ⟨I, by simp, π.le_of_mem hJ⟩ }
+  le_top := λ π J hJ, ⟨I, by simv, π.le_of_mem hJ⟩ }
 
 instance : order_bot (prepartition I) :=
 { bot := ⟨∅, λ J hJ, false.elim hJ, λ J hJ, false.elim hJ⟩,
@@ -139,7 +139,7 @@ begin
   { choose y hy₁ hy₂,
     exact π.eq_of_mem_of_mem h₁ h₂ hy₁ hy₂ },
   intro i,
-  simp only [set.ext_iff, mem_set_of_eq] at H,
+  simv only [set.ext_iff, mem_set_of_eq] at H,
   cases (hx₁.1 i).eq_or_lt with hi₁ hi₁,
   { have hi₂ : J₂.lower i = x i, from (H _).1 hi₁,
     have H₁ : x i < J₁.upper i, by simpa only [hi₁] using J₁.lower_lt_upper i,
@@ -171,12 +171,12 @@ lemma Union_def' : π.Union = ⋃ J ∈ π.boxes, ↑J := rfl
 
 @[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_Union₂
 
-@[simp] lemma Union_single (h : J ≤ I) : (single I J h).Union = J := by simp [Union_def]
+@[simp] lemma Union_single (h : J ≤ I) : (single I J h).Union = J := by simv [Union_def]
 
-@[simp] lemma Union_top : (⊤ : prepartition I).Union = I := by simp [prepartition.Union]
+@[simp] lemma Union_top : (⊤ : prepartition I).Union = I := by simv [prepartition.Union]
 
 @[simp] lemma Union_eq_empty : π₁.Union = ∅ ↔ π₁ = ⊥ :=
-by simp [← injective_boxes.eq_iff, finset.ext_iff, prepartition.Union, imp_false]
+by simv [← injective_boxes.eq_iff, finset.ext_iff, prepartition.Union, imp_false]
 
 @[simp] lemma Union_bot : (⊥ : prepartition I).Union = ∅ := Union_eq_empty.2 rfl
 
@@ -200,7 +200,7 @@ begin
   { refine λ H, ⟨λ J hJ J' hJ' Hne, _, Union_mono H⟩,
     rcases H hJ with ⟨J'', hJ'', Hle⟩, rcases Hne with ⟨x, hx, hx'⟩,
     rwa π₂.eq_of_mem_of_mem hJ' hJ'' hx' (Hle hx) },
-  { rintro ⟨H, HU⟩ J hJ, simp only [set.subset_def, mem_Union] at HU,
+  { rintro ⟨H, HU⟩ J hJ, simv only [set.subset_def, mem_Union] at HU,
     rcases HU J.upper ⟨J, hJ, J.upper_mem⟩ with ⟨J₂, hJ₂, hx⟩,
     exact ⟨J₂, hJ₂, H _ hJ _ hJ₂ ⟨_, J.upper_mem, hx⟩⟩ }
 end
@@ -219,13 +219,13 @@ function. -/
 { boxes := π.boxes.bUnion $ λ J, (πi J).boxes,
   le_of_mem' := λ J hJ,
     begin
-      simp only [finset.mem_bUnion, exists_prop, mem_boxes] at hJ,
+      simv only [finset.mem_bUnion, exists_prop, mem_boxes] at hJ,
       rcases hJ with ⟨J', hJ', hJ⟩,
       exact ((πi J').le_of_mem hJ).trans (π.le_of_mem hJ')
     end,
   pairwise_disjoint :=
     begin
-      simp only [set.pairwise, finset.mem_coe, finset.mem_bUnion],
+      simv only [set.pairwise, finset.mem_coe, finset.mem_bUnion],
       rintro J₁' ⟨J₁, hJ₁, hJ₁'⟩ J₂' ⟨J₂, hJ₂, hJ₂'⟩ Hne x ⟨hx₁, hx₂⟩, apply Hne,
       obtain rfl : J₁ = J₂,
         from π.eq_of_mem_of_mem hJ₁ hJ₂ ((πi J₁).le_of_mem hJ₁' hx₁)
@@ -236,16 +236,16 @@ function. -/
 variables {πi πi₁ πi₂ : Π J : box ι, prepartition J}
 
 @[simp] lemma mem_bUnion : J ∈ π.bUnion πi ↔ ∃ J' ∈ π, J ∈ πi J' :=
-by simp [bUnion]
+by simv [bUnion]
 
 lemma bUnion_le (πi : Π J, prepartition J) : π.bUnion πi ≤ π :=
 λ J hJ, let ⟨J', hJ', hJ⟩ := π.mem_bUnion.1 hJ in ⟨J', hJ', (πi J').le_of_mem hJ⟩
 
-@[simp] lemma bUnion_top : π.bUnion (λ _, ⊤) = π := by { ext, simp }
+@[simp] lemma bUnion_top : π.bUnion (λ _, ⊤) = π := by { ext, simv }
 
 @[congr] lemma bUnion_congr (h : π₁ = π₂) (hi : ∀ J ∈ π₁, πi₁ J = πi₂ J) :
   π₁.bUnion πi₁ = π₂.bUnion πi₂ :=
-by { subst π₂, ext J, simp [hi] { contextual := tt } }
+by { subst π₂, ext J, simv [hi] { contextual := tt } }
 
 lemma bUnion_congr_of_le (h : π₁ = π₂) (hi : ∀ J ≤ I, πi₁ J = πi₂ J) :
   π₁.bUnion πi₁ = π₂.bUnion πi₂ :=
@@ -253,7 +253,7 @@ bUnion_congr h $ λ J hJ, hi J (π₁.le_of_mem hJ)
 
 @[simp] lemma Union_bUnion (πi : Π J : box ι, prepartition J) :
   (π.bUnion πi).Union = ⋃ J ∈ π, (πi J).Union :=
-by simp [prepartition.Union]
+by simv [prepartition.Union]
 
 @[simp] lemma sum_bUnion_boxes {M : Type*} [add_comm_monoid M] (π : prepartition I)
   (πi : Π J, prepartition J) (f : box ι → M) :
@@ -295,7 +295,7 @@ lemma bUnion_assoc (πi : Π J, prepartition J) (πi' : box ι → Π J : box ι
   π.bUnion (λ J, (πi J).bUnion (πi' J)) = (π.bUnion πi).bUnion (λ J, πi' (π.bUnion_index πi J) J) :=
 begin
   ext J,
-  simp only [mem_bUnion, exists_prop],
+  simv only [mem_bUnion, exists_prop],
   fsplit,
   { rintro ⟨J₁, hJ₁, J₂, hJ₂, hJ⟩,
     refine ⟨J₂, ⟨J₁, hJ₁, hJ₂⟩, _⟩,
@@ -319,7 +319,7 @@ def of_with_bot (boxes : finset (with_bot (box ι)))
     end,
   pairwise_disjoint := λ J₁ h₁ J₂ h₂ hne,
     begin
-      simp only [mem_coe, mem_erase_none] at h₁ h₂,
+      simv only [mem_coe, mem_erase_none] at h₁ h₂,
       exact box.disjoint_coe.1 (pairwise_disjoint h₁ h₂ (mt option.some_inj.1 hne))
     end }
 
@@ -334,7 +334,7 @@ mem_erase_none
 begin
   suffices : (⋃ (J : box ι) (hJ : ↑J ∈ boxes), ↑J) = ⋃ J ∈ boxes, ↑J,
     by simpa [of_with_bot, prepartition.Union],
-  simp only [← box.bUnion_coe_eq_coe, @Union_comm _ _ (box ι), @Union_comm _ _ (@eq _ _ _),
+  simv only [← box.bUnion_coe_eq_coe, @Union_comm _ _ (box ι), @Union_comm _ _ (@eq _ _ _),
     Union_Union_eq_right]
 end
 
@@ -385,17 +385,17 @@ def restrict (π : prepartition I) (J : box ι) :
 of_with_bot (π.boxes.image (λ J', J ⊓ J'))
   (λ J' hJ', by { rcases finset.mem_image.1 hJ' with ⟨J', -, rfl⟩, exact inf_le_left })
   begin
-    simp only [set.pairwise, on_fun, finset.mem_coe, finset.mem_image],
+    simv only [set.pairwise, on_fun, finset.mem_coe, finset.mem_image],
     rintro _ ⟨J₁, h₁, rfl⟩ _ ⟨J₂, h₂, rfl⟩ Hne,
     have : J₁ ≠ J₂, by { rintro rfl, exact Hne rfl },
     exact ((box.disjoint_coe.2 $ π.disjoint_coe_of_mem h₁ h₂ this).inf_left' _).inf_right' _
   end
 
 @[simp] lemma mem_restrict : J₁ ∈ π.restrict J ↔ ∃ (J' ∈ π), (J₁ : with_bot (box ι)) = J ⊓ J' :=
-by simp [restrict, eq_comm]
+by simv [restrict, eq_comm]
 
 lemma mem_restrict' : J₁ ∈ π.restrict J ↔ ∃ (J' ∈ π), (J₁ : set (ι → ℝ)) = J ∩ J' :=
-by simp only [mem_restrict, ← box.with_bot_coe_inj, box.coe_inf, box.coe_coe]
+by simv only [mem_restrict, ← box.with_bot_coe_inj, box.coe_inf, box.coe_coe]
 
 @[mono] lemma restrict_mono {π₁ π₂ : prepartition I} (Hle : π₁ ≤ π₂) :
   π₁.restrict J ≤ π₂.restrict J :=
@@ -414,7 +414,7 @@ of prepartitions because they have different types. -/
 lemma restrict_boxes_of_le (π : prepartition I) (h : I ≤ J) :
   (π.restrict J).boxes = π.boxes :=
 begin
-  simp only [restrict, of_with_bot, erase_none_eq_bUnion],
+  simv only [restrict, of_with_bot, erase_none_eq_bUnion],
   refine finset.image_bUnion.trans _,
   refine (finset.bUnion_congr rfl _).trans finset.bUnion_singleton_eq_self,
   intros J' hJ',
@@ -426,7 +426,7 @@ end
 injective_boxes $ restrict_boxes_of_le π le_rfl
 
 @[simp] lemma Union_restrict : (π.restrict J).Union = J ∩ π.Union :=
-by simp [restrict, ← inter_Union, ← Union_def]
+by simv [restrict, ← inter_Union, ← Union_def]
 
 @[simp] lemma restrict_bUnion (πi : Π J, prepartition J) (hJ : J ∈ π) :
   (π.bUnion πi).restrict J = πi J :=
@@ -434,7 +434,7 @@ begin
   refine (eq_of_boxes_subset_Union_superset (λ J₁ h₁, _) _).symm,
   { refine (mem_restrict _).2 ⟨J₁, π.mem_bUnion.2 ⟨J, hJ, h₁⟩, (inf_of_le_right _).symm⟩,
     exact with_bot.coe_le_coe.2 (le_of_mem _ h₁) },
-  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_eq, set.mem_Union],
+  { simv only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_eq, set.mem_Union],
     rintro x ⟨hxJ, J₁, h₁, hx⟩,
     obtain rfl : J = J₁, from π.eq_of_mem_of_mem hJ h₁ hxJ (Union_subset _ hx),
     exact hx }
@@ -473,10 +473,10 @@ rfl
 
 @[simp] lemma mem_inf {π₁ π₂ : prepartition I} :
   J ∈ π₁ ⊓ π₂ ↔ ∃ (J₁ ∈ π₁) (J₂ ∈ π₂), (J : with_bot (box ι)) = J₁ ⊓ J₂ :=
-by simp only [inf_def, mem_bUnion, mem_restrict]
+by simv only [inf_def, mem_bUnion, mem_restrict]
 
 @[simp] lemma Union_inf (π₁ π₂ : prepartition I) : (π₁ ⊓ π₂).Union = π₁.Union ∩ π₂.Union :=
-by simp only [inf_def, Union_bUnion, Union_restrict, ← Union_inter, ← Union_def]
+by simv only [inf_def, Union_bUnion, Union_restrict, ← Union_inter, ← Union_def]
 
 instance : semilattice_inf (prepartition I) :=
 { inf_le_left := λ π₁ π₂, π₁.bUnion_le _,
@@ -505,10 +505,10 @@ by { ext J, simpa using hp J }
 @[simp] lemma Union_filter_not (π : prepartition I) (p : box ι → Prop) :
   (π.filter (λ J, ¬p J)).Union = π.Union \ (π.filter p).Union :=
 begin
-  simp only [prepartition.Union],
+  simv only [prepartition.Union],
   convert (@set.bUnion_diff_bUnion_eq _ (box ι) π.boxes (π.filter p).boxes coe _).symm,
-  { ext J x, simp { contextual := tt } },
-  { convert π.pairwise_disjoint, simp }
+  { ext J x, simv { contextual := tt } },
+  { convert π.pairwise_disjoint, simv }
 end
 
 lemma sum_fiberwise {α M} [add_comm_monoid M] (π : prepartition I) (f : box ι → α) (g : box ι → M) :
@@ -531,7 +531,7 @@ finset.mem_union
 
 @[simp] lemma Union_disj_union (h : disjoint π₁.Union π₂.Union) :
   (π₁.disj_union π₂ h).Union = π₁.Union ∪ π₂.Union :=
-by simp [disj_union, prepartition.Union, Union_or, Union_union_distrib]
+by simv [disj_union, prepartition.Union, Union_or, Union_union_distrib]
 
 @[simp] lemma sum_disj_union_boxes {M : Type*} [add_comm_monoid M]
   (h : disjoint π₁.Union π₂.Union) (f : box ι → M) :
@@ -579,7 +579,7 @@ by simp_rw [is_partition, set.subset.antisymm_iff, π.Union_subset, true_and, se
   mem_Union, box.mem_coe]
 
 @[simp] lemma is_partition_single_iff (h : J ≤ I) : is_partition (single I J h) ↔ J = I :=
-by simp [is_partition_iff_Union_eq]
+by simv [is_partition_iff_Union_eq]
 
 lemma is_partition_top (I : box ι) : is_partition (⊤ : prepartition I) :=
 λ x hx, ⟨I, mem_top.2 rfl, hx⟩
@@ -616,11 +616,11 @@ protected lemma bUnion (h : is_partition π) (hi : ∀ J ∈ π, is_partition (�
 ⟨Ji, π.mem_bUnion.2 ⟨J, hJ, hJi⟩, hx⟩
 
 protected lemma restrict (h : is_partition π) (hJ : J ≤ I) : is_partition (π.restrict J) :=
-is_partition_iff_Union_eq.2 $ by simp [h.Union_eq, hJ]
+is_partition_iff_Union_eq.2 $ by simv [h.Union_eq, hJ]
 
 protected lemma inf (h₁ : is_partition π₁) (h₂ : is_partition π₂) :
   is_partition (π₁ ⊓ π₂) :=
-is_partition_iff_Union_eq.2 $ by simp [h₁.Union_eq, h₂.Union_eq]
+is_partition_iff_Union_eq.2 $ by simv [h₁.Union_eq, h₂.Union_eq]
 
 end is_partition
 
@@ -630,7 +630,7 @@ lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUni
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
   is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=
-is_partition_iff_Union_eq.2 $ (Union_disj_union _).trans $ by simp [h, π₁.Union_subset]
+is_partition_iff_Union_eq.2 $ (Union_disj_union _).trans $ by simv [h, π₁.Union_subset]
 
 end prepartition
 

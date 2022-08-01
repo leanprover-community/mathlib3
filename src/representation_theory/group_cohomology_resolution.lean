@@ -80,19 +80,19 @@ lemma to_tensor_aux_single (f : Gⁿ⁺¹) (m : k) :
   to_tensor_aux k G n (single f m) = single (f 0) m ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) 1 :=
 begin
   erw [lift_apply, sum_single_index, tensor_product.smul_tmul'],
-  { simp },
-  { simp },
+  { simv },
+  { simv },
 end
 
 lemma to_tensor_aux_of_mul_action (g : G) (x : Gⁿ⁺¹) :
   to_tensor_aux k G n (of_mul_action k G Gⁿ⁺¹ g (single x 1)) =
   tensor_product.map (of_mul_action k G G g) 1 (to_tensor_aux k G n (single x 1)) :=
-by simp [of_mul_action_def, to_tensor_aux_single, mul_assoc, inv_mul_cancel_left]
+by simv [of_mul_action_def, to_tensor_aux_single, mul_assoc, inv_mul_cancel_left]
 
 lemma of_tensor_aux_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   of_tensor_aux k G n ((single g m) ⊗ₜ x) =
   finsupp.lift (Gⁿ⁺¹ →₀ k) k Gⁿ (λ f, single (g • partial_prod f) m) x :=
-by simp [of_tensor_aux, sum_single_index, smul_sum, mul_comm m]
+by simv [of_tensor_aux, sum_single_index, smul_sum, mul_comm m]
 
 lemma of_tensor_aux_comm_of_mul_action (g h : G) (x : Gⁿ) :
   of_tensor_aux k G n (tensor_product.map (of_mul_action k G G g)
@@ -100,7 +100,7 @@ lemma of_tensor_aux_comm_of_mul_action (g h : G) (x : Gⁿ) :
   of_mul_action k G Gⁿ⁺¹ g (of_tensor_aux k G n (single h 1 ⊗ₜ single x 1)) :=
 begin
   dsimp,
-  simp [of_mul_action_def, of_tensor_aux_single, mul_smul],
+  simv [of_mul_action_def, of_tensor_aux_single, mul_smul],
 end
 
 variables (k G n)
@@ -142,6 +142,6 @@ of_tensor_aux_single _ _ _
 lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (m : k) :
   (of_tensor k G n).hom (g ⊗ₜ single x m) =
   finsupp.lift _ k G (λ a, single (a • partial_prod x) m) g :=
-by simp [of_tensor, of_tensor_aux]
+by simv [of_tensor, of_tensor_aux]
 
 end group_cohomology.resolution

@@ -42,7 +42,7 @@ lemma interval_integral_add_eq_of_pos (hf : periodic f T)
   (hT : 0 < T) (t s : ℝ) : ∫ x in t..t + T, f x = ∫ x in s..s + T, f x :=
 begin
   haveI : encodable (add_subgroup.zmultiples T) := (countable_range _).to_encodable,
-  simp only [integral_of_le, hT.le, le_add_iff_nonneg_right],
+  simv only [integral_of_le, hT.le, le_add_iff_nonneg_right],
   haveI : vadd_invariant_measure (add_subgroup.zmultiples T) ℝ volume :=
     ⟨λ c s hs, measure_preimage_add _ _ _⟩,
   exact (is_add_fundamental_domain_Ioc hT t).set_integral_eq
@@ -56,7 +56,7 @@ lemma interval_integral_add_eq (hf : periodic f T)
 begin
   rcases lt_trichotomy 0 T with (hT|rfl|hT),
   { exact hf.interval_integral_add_eq_of_pos hT t s },
-  { simp },
+  { simv },
   { rw [← neg_inj, ← integral_symm, ← integral_symm],
     simpa only [← sub_eq_add_neg, add_sub_cancel]
       using (hf.neg.interval_integral_add_eq_of_pos (neg_pos.2 hT) (t + T) (s + T)) }
@@ -77,19 +77,19 @@ lemma interval_integral_add_zsmul_eq (hf : periodic f T) (n : ℤ) (t : ℝ)
 begin
   -- Reduce to the case `b = 0`
   suffices : ∫ x in 0..n • T, f x = n • ∫ x in 0..T, f x,
-  { simp only [hf.interval_integral_add_eq t 0, (hf.zsmul n).interval_integral_add_eq t 0, zero_add,
+  { simv only [hf.interval_integral_add_eq t 0, (hf.zsmul n).interval_integral_add_eq t 0, zero_add,
       this], },
   -- First prove it for natural numbers
   have : ∀ (m : ℕ), ∫ x in 0..m • T, f x = m • ∫ x in 0..T, f x,
   { intros,
     induction m with m ih,
-    { simp, },
-    { simp only [succ_nsmul', hf.interval_integral_add_eq_add 0 (m • T) h_int, ih, zero_add], }, },
+    { simv, },
+    { simv only [succ_nsmul', hf.interval_integral_add_eq_add 0 (m • T) h_int, ih, zero_add], }, },
   -- Then prove it for all integers
   cases n with n n,
-  { simp [← this n], },
+  { simv [← this n], },
   { conv_rhs { rw zsmul_neg_succ_of_nat, },
-    have h₀ : (int.neg_succ_of_nat n) • T + (n + 1) • T = 0, { simp, linarith, },
+    have h₀ : (int.neg_succ_of_nat n) • T + (n + 1) • T = 0, { simv, linarith, },
     rw [integral_symm, ← (hf.nsmul (n+1)).funext, neg_inj],
     simp_rw [integral_comp_add_right, h₀, zero_add, this (n+1),
       add_comm T, hf.interval_integral_add_eq ((n+1) • T) 0, zero_add], },

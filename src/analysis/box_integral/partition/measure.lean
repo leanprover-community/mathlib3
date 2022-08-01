@@ -107,7 +107,7 @@ by rw [measure.to_box_additive_apply, coe_eq_pi, real.volume_pi_Ioc_to_real I.lo
 lemma volume_face_mul {n} (i : fin (n + 1)) (I : box (fin (n + 1))) :
   (∏ j, ((I.face i).upper j - (I.face i).lower j)) * (I.upper i - I.lower i) =
     ∏ j, (I.upper j - I.lower j) :=
-by simp only [face_lower, face_upper, (∘), fin.prod_univ_succ_above _ i, mul_comm]
+by simv only [face_lower, face_upper, (∘), fin.prod_univ_succ_above _ i, mul_comm]
 
 end box
 

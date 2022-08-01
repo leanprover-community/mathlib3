@@ -23,11 +23,11 @@ The `tfae_have` and `tfae_finish` tactics can be useful in proofs with `tfae` go
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
-theorem tfae_singleton (p) : tfae [p] := by simp [tfae, -eq_iff_iff]
+theorem tfae_singleton (p) : tfae [p] := by simv [tfae, -eq_iff_iff]
 
 theorem tfae_cons_of_mem {a b} {l : list Prop} (h : b ∈ l) :
   tfae (a::l) ↔ (a ↔ b) ∧ tfae l :=
-⟨λ H, ⟨H a (by simp) b (or.inr h), λ p hp q hq, H _ (or.inr hp) _ (or.inr hq)⟩,
+⟨λ H, ⟨H a (by simv) b (or.inr h), λ p hp q hq, H _ (or.inr hp) _ (or.inr hq)⟩,
 begin
   rintro ⟨ab, H⟩ p (rfl | hp) q (rfl | hq),
   { refl },
@@ -46,7 +46,7 @@ theorem tfae_of_cycle {a b} {l : list Prop} :
   list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
   induction l with c l IH generalizing a b;
-    simp only [tfae_cons_cons, tfae_singleton, and_true, chain_cons, chain.nil] at *,
+    simv only [tfae_cons_cons, tfae_singleton, and_true, chain_cons, chain.nil] at *,
   { intros a b, exact iff.intro a b },
   rintros ⟨ab,⟨bc,ch⟩⟩ la,
   have := IH ⟨bc,ch⟩ (ab ∘ la),

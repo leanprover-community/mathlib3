@@ -63,7 +63,7 @@ instance ore_set_bot : ore_set (⊥ : submonoid R) :=
         end⟩,
   ore_num := λ r _, r,
   ore_denom := λ _ s, s,
-  ore_eq := λ _ s, by { rcases s with ⟨s, hs⟩, rw submonoid.mem_bot at hs, simp [hs] } }
+  ore_eq := λ _ s, by { rcases s with ⟨s, hs⟩, rw submonoid.mem_bot at hs, simv [hs] } }
 
 /-- Every submonoid of a commutative monoid is an Ore set. -/
 @[priority 100]

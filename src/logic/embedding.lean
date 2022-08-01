@@ -53,9 +53,9 @@ inferring the type of the resulting embedding. For example:
 
 ```lean
 -- Works:
-example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f.to_embedding = s.map f := by simp
+example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f.to_embedding = s.map f := by simv
 -- Error, `f` has type `fin 3 ≃ fin 3` but is expected to have type `fin 3 ↪ ?m_1 : Type ?`
-example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f = s.map f.to_embedding := by simp
+example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f = s.map f.to_embedding := by simv
 ```
 -/
 @[simps] protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
@@ -76,7 +76,7 @@ def equiv.as_embedding {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
 @[simp]
 lemma equiv.as_embedding_range {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) :
   set.range e.as_embedding = set_of p :=
-set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simp⟩⟩
+set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simv⟩⟩
 
 end equiv
 
@@ -95,7 +95,7 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g := 
   (@mk _ _ f i : α → β) = f := rfl
 
 @[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
-by { ext, simp }
+by { ext, simv }
 
 protected theorem injective {α β} (f : α ↪ β) : injective f := embedding_like.injective f
 
@@ -115,12 +115,12 @@ protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
 @[simp]
 lemma equiv_to_embedding_trans_symm_to_embedding {α β : Sort*} (e : α ≃ β) :
   e.to_embedding.trans e.symm.to_embedding = embedding.refl _ :=
-by { ext, simp, }
+by { ext, simv, }
 
 @[simp]
 lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β) :
   e.symm.to_embedding.trans e.to_embedding = embedding.refl _ :=
-by { ext, simp, }
+by { ext, simv, }
 
 /-- Transfer an embedding along a pair of equivalences. -/
 @[simps { fully_applied := ff }]
@@ -150,18 +150,18 @@ def set_value {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' =
   begin
     intros x y h,
     dsimp at h,
-    split_ifs at h; try { substI b }; try { simp only [f.injective.eq_iff] at * }; cc
+    split_ifs at h; try { substI b }; try { simv only [f.injective.eq_iff] at * }; cc
   end⟩
 
 theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
-by simp [set_value]
+by simv [set_value]
 
 /-- Embedding into `option α` using `some`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
 
-/-- Embedding into `option α` using `coe`. Usually the correct synctatical form for `simp`. -/
+/-- Embedding into `option α` using `coe`. Usually the correct synctatical form for `simv`. -/
 @[simps { fully_applied := ff }]
 def coe_option {α} : α ↪ option α := ⟨coe, option.some_injective α⟩
 
@@ -180,8 +180,8 @@ def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, ↥(set.range f)ᶜ :=
 { to_fun := λ f, ⟨coe_option.trans f, f none, λ ⟨x, hx⟩, option.some_ne_none x $ f.injective hx⟩,
   inv_fun := λ f, f.1.option_elim f.2 f.2.2,
-  left_inv := λ f, ext $ by { rintro (_|_); simp [option.coe_def] },
-  right_inv := λ ⟨f, y, hy⟩, by { ext; simp [option.coe_def] } }
+  left_inv := λ f, ext $ by { rintro (_|_); simv [option.coe_def] },
+  right_inv := λ ⟨f, y, hy⟩, by { ext; simv [option.coe_def] } }
 
 /-- A version of `option.map` for `function.embedding`s. -/
 @[simps { fully_applied := ff }]
@@ -321,7 +321,7 @@ def subtype_injective_equiv_embedding (α β : Sort*) :
   {f : α → β // function.injective f} ≃ (α ↪ β) :=
 { to_fun := λ f, ⟨f.val, f.property⟩,
   inv_fun := λ f, ⟨f, f.injective⟩,
-  left_inv := λ f, by simp,
+  left_inv := λ f, by simv,
   right_inv := λ f, by {ext, refl} }
 
 /-- If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then the type of embeddings `α₁ ↪ β₁`
@@ -330,8 +330,8 @@ is equivalent to the type of embeddings `α₂ ↪ β₂`. -/
   (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
 { to_fun := λ f, f.congr h h',
   inv_fun := λ f, f.congr h.symm h'.symm,
-  left_inv := λ x, by {ext, simp},
-  right_inv := λ x, by {ext, simp} }
+  left_inv := λ x, by {ext, simv},
+  right_inv := λ x, by {ext, simv} }
 
 @[simp] lemma embedding_congr_refl {α β : Sort*} :
   embedding_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ↪ β) :=
@@ -351,7 +351,7 @@ lemma embedding_congr_apply_trans {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
   (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ ↪ β₁) (g : β₁ ↪ γ₁) :
   equiv.embedding_congr ea ec (f.trans g) =
   (equiv.embedding_congr ea eb f).trans (equiv.embedding_congr eb ec g) :=
-by {ext, simp}
+by {ext, simv}
 
 @[simp]
 lemma refl_to_embedding {α : Type*} : (equiv.refl α).to_embedding = function.embedding.refl α := rfl
@@ -383,7 +383,7 @@ def subtype_or_left_embedding (p q : α → Prop) [decidable_pred p] :
     intros x y,
     dsimp only,
     split_ifs;
-    simp [subtype.ext_iff]
+    simv [subtype.ext_iff]
   end⟩
 
 lemma subtype_or_left_embedding_apply_left {p q : α → Prop} [decidable_pred p]
@@ -399,7 +399,7 @@ dif_neg hx
 if `p x → q x` for all `x : α`. -/
 @[simps] def subtype.imp_embedding (p q : α → Prop) (h : p ≤ q) :
   {x // p x} ↪ {x // q x} :=
-⟨λ x, ⟨x, h x x.prop⟩, λ x y, by simp [subtype.ext_iff]⟩
+⟨λ x, ⟨x, h x x.prop⟩, λ x y, by simv [subtype.ext_iff]⟩
 
 /-- A subtype `{x // p x ∨ q x}` over a disjunction of `p q : α → Prop` is equivalent to a sum of
 subtypes `{x // p x} ⊕ {x // q x}` such that `¬ p x` is sent to the right, when
@@ -415,19 +415,19 @@ See also `equiv.sum_compl`, for when `is_compl p q`.  -/
   left_inv := λ x, begin
     by_cases hx : p x,
     { rw subtype_or_left_embedding_apply_left _ hx,
-      simp [subtype.ext_iff] },
+      simv [subtype.ext_iff] },
     { rw subtype_or_left_embedding_apply_right _ hx,
-      simp [subtype.ext_iff] },
+      simv [subtype.ext_iff] },
   end,
   right_inv := λ x, begin
     cases x,
-    { simp only [sum.elim_inl],
+    { simv only [sum.elim_inl],
       rw subtype_or_left_embedding_apply_left,
-      { simp },
+      { simv },
       { simpa using x.prop } },
-    { simp only [sum.elim_inr],
+    { simv only [sum.elim_inr],
       rw subtype_or_left_embedding_apply_right,
-      { simp },
+      { simv },
       { suffices : ¬ p x,
         { simpa },
         intro hp,

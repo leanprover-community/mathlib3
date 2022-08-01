@@ -45,10 +45,10 @@ variables {E}
 
 /-- `bundle.total_space.proj` is the canonical projection `bundle.total_space E → B` from the
 total space to the base space. -/
-@[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
+@[simv, reducible] def total_space.proj : total_space E → B := sigma.fst
 
 /-- Constructor for the total space of a bundle. -/
-@[simp, reducible] def total_space_mk (b : B) (a : E b) :
+@[simv, reducible] def total_space_mk (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
 
 lemma total_space.proj_mk {x : B} {y : E x} : (total_space_mk x y).proj = x :=

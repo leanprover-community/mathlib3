@@ -23,13 +23,13 @@ section pi_preorder
 variables [Π i, preorder (α i)] (x y : Π i, α i)
 
 @[simp] lemma pi_univ_Ici : pi univ (λ i, Ici (x i)) = Ici x :=
-ext $ λ y, by simp [pi.le_def]
+ext $ λ y, by simv [pi.le_def]
 
 @[simp] lemma pi_univ_Iic : pi univ (λ i, Iic (x i)) = Iic x :=
-ext $ λ y, by simp [pi.le_def]
+ext $ λ y, by simv [pi.le_def]
 
 @[simp] lemma pi_univ_Icc : pi univ (λ i, Icc (x i) (y i)) = Icc x y :=
-ext $ λ y, by simp [pi.le_def, forall_and_distrib]
+ext $ λ y, by simv [pi.le_def, forall_and_distrib]
 
 lemma piecewise_mem_Icc {s : set ι} [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, α i}
   (h₁ : ∀ i ∈ s, f₁ i ∈ Icc (g₁ i) (g₂ i)) (h₂ : ∀ i ∉ s, f₂ i ∈ Icc (g₁ i) (g₂ i)) :

@@ -87,7 +87,7 @@ def s_mod (p : ℕ) : ℕ → ℤ
 
 lemma mersenne_int_ne_zero (p : ℕ) (w : 0 < p) : (2^p - 1 : ℤ) ≠ 0 :=
 begin
-  apply ne_of_gt, simp only [gt_iff_lt, sub_pos],
+  apply ne_of_gt, simv only [gt_iff_lt, sub_pos],
   exact_mod_cast nat.one_lt_two_pow p w,
 end
 
@@ -99,14 +99,14 @@ begin
 end
 
 lemma s_mod_mod (p i : ℕ) : s_mod p i % (2^p - 1) = s_mod p i :=
-by cases i; simp [s_mod]
+by cases i; simv [s_mod]
 
 lemma s_mod_lt (p : ℕ) (w : 0 < p) (i : ℕ) : s_mod p i < 2^p - 1 :=
 begin
   rw ←s_mod_mod,
   convert int.mod_lt _ _,
   { refine (abs_of_nonneg _).symm,
-    simp only [sub_nonneg, ge_iff_le],
+    simv only [sub_nonneg, ge_iff_le],
     exact_mod_cast nat.one_le_two_pow p, },
   { exact mersenne_int_ne_zero p w, },
 end
@@ -143,11 +143,11 @@ begin
   { -- We want to use that fact that `0 ≤ s_mod p (p-2) < 2^p - 1`
     -- and `lucas_lehmer_residue p = 0 → 2^p - 1 ∣ s_mod p (p-2)`.
     intro h,
-    simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
+    simv [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
     exact s_mod_lt _ (nat.lt_of_succ_lt w) (p-2) },
-  { intro h, rw h, simp, },
+  { intro h, rw h, simv, },
 end
 
 /--
@@ -203,22 +203,22 @@ instance : has_one (X q) :=
 @[simp] lemma bit0_fst (x : X q) : (bit0 x).1 = bit0 x.1 := rfl
 @[simp] lemma bit0_snd (x : X q) : (bit0 x).2 = bit0 x.2 := rfl
 @[simp] lemma bit1_fst (x : X q) : (bit1 x).1 = bit1 x.1 := rfl
-@[simp] lemma bit1_snd (x : X q) : (bit1 x).2 = bit0 x.2 := by { dsimp [bit1], simp, }
+@[simp] lemma bit1_snd (x : X q) : (bit1 x).2 = bit0 x.2 := by { dsimp [bit1], simv, }
 
 instance : monoid (X q) :=
 { mul_assoc := λ x y z, by { ext; { dsimp, ring }, },
   one := ⟨1,0⟩,
-  one_mul := λ x, by { ext; simp, },
-  mul_one := λ x, by { ext; simp, },
+  one_mul := λ x, by { ext; simv, },
+  mul_one := λ x, by { ext; simv, },
   ..(infer_instance : has_mul (X q)) }
 
 instance : add_group_with_one (X q) :=
 { nat_cast := λ n, ⟨n, 0⟩,
-  nat_cast_zero := by simp,
-  nat_cast_succ := by simp [nat.cast, monoid.one],
+  nat_cast_zero := by simv,
+  nat_cast_succ := by simv [nat.cast, monoid.one],
   int_cast := λ n, ⟨n, 0⟩,
-  int_cast_of_nat := λ n, by simp; refl,
-  int_cast_neg_succ_of_nat := λ n, by ext; simp; refl,
+  int_cast_of_nat := λ n, by simv; refl,
+  int_cast_neg_succ_of_nat := λ n, by ext; simv; refl,
   .. X.monoid, .. X.add_comm_group _ }
 
 lemma left_distrib (x y z : X q) : x * (y + z) = x * y + x * z :=
@@ -249,11 +249,11 @@ instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 
 @[norm_cast]
 lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
-by { ext; simp; ring }
+by { ext; simv; ring }
 
 @[norm_cast]
 lemma coe_nat (n : ℕ) : ((n : ℤ) : X q) = (n : X q) :=
-by { ext; simp, }
+by { ext; simv, }
 
 /-- The cardinality of `X` is `q^2`. -/
 lemma X_card : fintype.card (X q) = q^2 :=
@@ -279,13 +279,13 @@ def ωb : X q := (2, -1)
 lemma ω_mul_ωb (q : ℕ+) : (ω : X q) * ωb = 1 :=
 begin
   dsimp [ω, ωb],
-  ext; simp; ring,
+  ext; simv; ring,
 end
 
 lemma ωb_mul_ω (q : ℕ+) : (ωb : X q) * ω = 1 :=
 begin
   dsimp [ω, ωb],
-  ext; simp; ring,
+  ext; simv; ring,
 end
 
 /-- A closed form for the recurrence relation. -/
@@ -293,7 +293,7 @@ lemma closed_form (i : ℕ) : (s i : X q) = (ω : X q)^(2^i) + (ωb : X q)^(2^i)
 begin
   induction i with i ih,
   { dsimp [s, ω, ωb],
-    ext; { simp; refl, }, },
+    ext; { simv; refl, }, },
   { calc (s (i + 1) : X q) = ((s i)^2 - 2 : ℤ) : rfl
     ... = ((s i : X q)^2 - 2) : by push_cast
     ... = (ω^(2^i) + ωb^(2^i))^2 - 2 : by rw ih
@@ -315,11 +315,11 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 /-- If `1 < p`, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction H,
-  simp at H,
+  simv at H,
   interval_cases q (p'+2); clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
-    simp [mersenne] at h',
+    simv [mersenne] at h',
     exact lt_irrefl 2
     (calc 2 ≤ p'+2    : nat.le_add_left _ _
       ...  < 2^(p'+2) : nat.lt_two_pow _
@@ -336,7 +336,7 @@ theorem ω_pow_formula (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
 begin
   dsimp [lucas_lehmer_residue] at h,
   rw s_zmod_eq_s p' at h,
-  simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
+  simv [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
   cases h with k h,
   use k,
   replace h := congr_arg (λ (n : ℤ), (n : X (q (p'+2)))) h, -- coercion from ℤ to X q
@@ -356,7 +356,7 @@ end
 /-- `q` is the minimum factor of `mersenne p`, so `M p = 0` in `X q`. -/
 theorem mersenne_coe_X (p : ℕ) : (mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd, -pow_pos],
+  ext; simv [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd, -pow_pos],
   apply nat.min_fac_dvd,
 end
 
@@ -373,14 +373,14 @@ theorem ω_pow_eq_one (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
 calc (ω : X (q (p'+2)))^2^(p'+2)
         = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←pow_succ']
     ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
-    ... = 1                : by simp
+    ... = 1                : by simv
 
 /-- `ω` as an element of the group of units. -/
 def ω_unit (p : ℕ) : units (X (q p)) :=
 { val := ω,
   inv := ωb,
-  val_inv := by simp [ω_mul_ωb],
-  inv_val := by simp [ωb_mul_ω], }
+  val_inv := by simv [ω_mul_ωb],
+  inv_val := by simv [ωb_mul_ω], }
 
 @[simp] lemma ω_unit_coe (p : ℕ) : (ω_unit p : X (q p)) = ω := rfl
 
@@ -394,7 +394,7 @@ begin
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
     replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :
       units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
-    simp at ω_pow,
+    simv at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
     haveI : fact (2 < (q (p'+2) : ℕ)) := ⟨two_lt_q _⟩,

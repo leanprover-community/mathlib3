@@ -224,7 +224,7 @@ end
 begin
   convert finset.measurable_range_sup' hf,
   ext x,
-  simp,
+  simv,
 end
 
 end semilattice_sup

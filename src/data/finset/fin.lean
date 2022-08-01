@@ -24,7 +24,7 @@ namespace finset
 def fin_range (n : ℕ) : finset (fin n) := ⟨list.fin_range n, list.nodup_fin_range n⟩
 
 @[simp]
-lemma fin_range_card : (fin_range n).card = n := by simp [fin_range]
+lemma fin_range_card : (fin_range n).card = n := by simv [fin_range]
 
 @[simp]
 lemma mem_fin_range (m : fin n) : m ∈ fin_range n := list.mem_fin_range m

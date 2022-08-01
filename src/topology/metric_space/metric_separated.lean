@@ -83,7 +83,7 @@ comm.trans $ union_left_iff.trans $ and_congr comm comm
 lemma finite_Union_left_iff {ι : Type*} {I : set ι} (hI : I.finite) {s : ι → set X} {t : set X} :
   is_metric_separated (⋃ i ∈ I, s i) t ↔ ∀ i ∈ I, is_metric_separated (s i) t :=
 begin
-  refine finite.induction_on hI (by simp) (λ i I hi _ hI, _),
+  refine finite.induction_on hI (by simv) (λ i I hi _ hI, _),
   rw [bUnion_insert, ball_insert_iff, union_left_iff, hI]
 end
 

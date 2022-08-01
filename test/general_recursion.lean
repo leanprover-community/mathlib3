@@ -191,7 +191,7 @@ begin
     existsi n - 10, rw tsub_add_eq_add_tsub, norm_num [pure],
     apply le_of_lt, transitivity 100, norm_num, exact h' },
   { rw [part.examples.f91.equations.eqn_1,if_neg h'],
-    simp, rcases ih (n + 11) _ with ⟨n',hn₀,hn₁⟩,
+    simv, rcases ih (n + 11) _ with ⟨n',hn₀,hn₁⟩,
     rcases ih (n') _ with ⟨n'',hn'₀,hn'₁⟩,
     refine ⟨n'',_,_,hn₁,hn'₁⟩,
     { clear ih hn₁ hn'₁, omega },
@@ -200,7 +200,7 @@ begin
 end
 
 lemma f91_dom (n : ℕ) : (f91 n).dom :=
-by rw part.dom_iff_mem; apply exists_imp_exists _ (f91_spec n); simp
+by rw part.dom_iff_mem; apply exists_imp_exists _ (f91_spec n); simv
 
 def f91' (n : ℕ) : ℕ := (f91 n).get (f91_dom n)
 
@@ -215,9 +215,9 @@ begin
   clear n, dsimp [measure,inv_image], intros n ih,
   by_cases h' : n > 100,
   { rw [part.examples.f91.equations.eqn_1,if_pos h',if_pos h'],
-    simp [pure] },
+    simv [pure] },
   { rw [part.examples.f91.equations.eqn_1,if_neg h',if_neg h'],
-    simp, rcases ih (n + 11) _ with ⟨n',hn'₀,hn'₁⟩,
+    simv, rcases ih (n + 11) _ with ⟨n',hn'₀,hn'₁⟩,
     split_ifs at hn'₁,
     { subst hn'₁, norm_num at hn'₀, refine ⟨_,hn'₀,_⟩,
       rcases ih (n+1) _ with ⟨n',hn'₀,hn'₁⟩,

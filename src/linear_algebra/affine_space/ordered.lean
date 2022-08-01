@@ -47,28 +47,28 @@ variables {a a' b b' : E} {r r' : k}
 lemma line_map_mono_left (ha : a ≤ a') (hr : r ≤ 1) :
   line_map a b r ≤ line_map a' b r :=
 begin
-  simp only [line_map_apply_module],
+  simv only [line_map_apply_module],
   exact add_le_add_right (smul_le_smul_of_nonneg ha (sub_nonneg.2 hr)) _
 end
 
 lemma line_map_strict_mono_left (ha : a < a') (hr : r < 1) :
   line_map a b r < line_map a' b r :=
 begin
-  simp only [line_map_apply_module],
+  simv only [line_map_apply_module],
   exact add_lt_add_right (smul_lt_smul_of_pos ha (sub_pos.2 hr)) _
 end
 
 lemma line_map_mono_right (hb : b ≤ b') (hr : 0 ≤ r) :
   line_map a b r ≤ line_map a b' r :=
 begin
-  simp only [line_map_apply_module],
+  simv only [line_map_apply_module],
   exact add_le_add_left (smul_le_smul_of_nonneg hb hr) _
 end
 
 lemma line_map_strict_mono_right (hb : b < b') (hr : 0 < r) :
   line_map a b r < line_map a b' r :=
 begin
-  simp only [line_map_apply_module],
+  simv only [line_map_apply_module],
   exact add_lt_add_left (smul_lt_smul_of_pos hb hr) _
 end
 
@@ -86,7 +86,7 @@ end
 lemma line_map_lt_line_map_iff_of_lt (h : r < r') :
   line_map a b r < line_map a b r' ↔ a < b :=
 begin
-  simp only [line_map_apply_module],
+  simv only [line_map_apply_module],
   rw [← lt_sub_iff_add_lt, add_sub_assoc, ← sub_lt_iff_lt_add', ← sub_smul, ← sub_smul,
     sub_sub_sub_cancel_left, smul_lt_smul_iff_of_pos (sub_pos.2 h)],
   apply_instance,
@@ -130,7 +130,7 @@ variables {a b : E} {r r' : k}
 lemma line_map_le_line_map_iff_of_lt (h : r < r') :
   line_map a b r ≤ line_map a b r' ↔ a ≤ b :=
 begin
-  simp only [line_map_apply_module],
+  simv only [line_map_apply_module],
   rw [← le_sub_iff_add_le, add_sub_assoc, ← sub_le_iff_le_add', ← sub_smul, ← sub_smul,
     sub_sub_sub_cancel_left, smul_le_smul_iff_of_pos (sub_pos.2 h)],
   apply_instance,

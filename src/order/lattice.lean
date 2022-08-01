@@ -146,7 +146,7 @@ semilattice_sup.sup_le a b c
   assume ⟨h₁, h₂⟩, sup_le h₁ h₂⟩
 
 @[simp] theorem sup_eq_left : a ⊔ b = a ↔ b ≤ a :=
-le_antisymm_iff.trans $ by simp [le_refl]
+le_antisymm_iff.trans $ by simv [le_refl]
 
 theorem sup_of_le_left (h : b ≤ a) : a ⊔ b = a :=
 sup_eq_left.2 h
@@ -158,7 +158,7 @@ eq_comm.trans sup_eq_left
 le_sup_left.lt_iff_ne.trans $ not_congr left_eq_sup
 
 @[simp] theorem sup_eq_right : a ⊔ b = b ↔ a ≤ b :=
-le_antisymm_iff.trans $ by simp [le_refl]
+le_antisymm_iff.trans $ by simv [le_refl]
 
 theorem sup_of_le_right (h : a ≤ b) : a ⊔ b = b :=
 sup_eq_right.2 h
@@ -190,20 +190,20 @@ theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
 sup_le_sup h₁ le_rfl
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
-by { rw ← h, simp }
+by { rw ← h, simv }
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
-by apply le_antisymm; simp
+by apply le_antisymm; simv
 
 instance sup_is_idempotent : is_idempotent α (⊔) := ⟨@sup_idem _ _⟩
 
 theorem sup_comm : a ⊔ b = b ⊔ a :=
-by apply le_antisymm; simp
+by apply le_antisymm; simv
 
 instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
-eq_of_forall_ge_iff $ λ x, by simp only [sup_le_iff, and_assoc]
+eq_of_forall_ge_iff $ λ x, by simv only [sup_le_iff, and_assoc]
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
@@ -255,7 +255,7 @@ theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊔ y)) = x ⊔ y :=
 eq_of_forall_ge_iff $ λ c,
-by simp only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
+by simv only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
 
 theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -332,7 +332,7 @@ lt_of_le_of_lt inf_le_right h
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c := @sup_le_iff αᵒᵈ _ _ _ _
 
 @[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
-le_antisymm_iff.trans $ by simp [le_refl]
+le_antisymm_iff.trans $ by simv [le_refl]
 
 @[simp] theorem inf_lt_left : a ⊓ b < a ↔ ¬a ≤ b := @left_lt_sup αᵒᵈ _ _ _
 
@@ -343,7 +343,7 @@ inf_eq_left.2 h
 eq_comm.trans inf_eq_left
 
 @[simp] theorem inf_eq_right : a ⊓ b = b ↔ b ≤ a :=
-le_antisymm_iff.trans $ by simp [le_refl]
+le_antisymm_iff.trans $ by simv [le_refl]
 
 @[simp] theorem inf_lt_right : a ⊓ b < b ↔ ¬b ≤ a := @right_lt_sup αᵒᵈ _ _ _
 
@@ -412,7 +412,7 @@ theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊓ y)) = x ⊓ y :=
 eq_of_forall_le_iff $ λ c,
-by simp only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
+by simv only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
 
 theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -537,10 +537,10 @@ theorem le_inf_sup : (a ⊓ b) ⊔ (a ⊓ c) ≤ a ⊓ (b ⊔ c) :=
 sup_le (inf_le_inf_left _ le_sup_left) (inf_le_inf_left _ le_sup_right)
 
 theorem inf_sup_self : a ⊓ (a ⊔ b) = a :=
-by simp
+by simv
 
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
-by simp
+by simv
 
 theorem sup_eq_iff_inf_eq : a ⊔ b = b ↔ a ⊓ b = a :=
 by rw [sup_eq_right, ←inf_eq_left]
@@ -585,11 +585,11 @@ theorem sup_inf_left : x ⊔ (y ⊓ z) = (x ⊔ y) ⊓ (x ⊔ z) :=
 le_antisymm sup_inf_le le_sup_inf
 
 theorem sup_inf_right : (y ⊓ z) ⊔ x = (y ⊔ x) ⊓ (z ⊔ x) :=
-by simp only [sup_inf_left, λy:α, @sup_comm α _ y x, eq_self_iff_true]
+by simv only [sup_inf_left, λy:α, @sup_comm α _ y x, eq_self_iff_true]
 
 theorem inf_sup_left : x ⊓ (y ⊔ z) = (x ⊓ y) ⊔ (x ⊓ z) :=
 calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_self]
-             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simp only [inf_assoc, sup_inf_right,
+             ... = x ⊓ ((x ⊓ y) ⊔ z)             : by simv only [inf_assoc, sup_inf_right,
                                                                  eq_self_iff_true]
              ... = (x ⊔ (x ⊓ y)) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_inf_self]
              ... = ((x ⊓ y) ⊔ x) ⊓ ((x ⊓ y) ⊔ z) : by rw [sup_comm]
@@ -600,7 +600,7 @@ instance (α : Type*) [distrib_lattice α] : distrib_lattice αᵒᵈ :=
   .. order_dual.lattice α }
 
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
-by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
+by simv only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
 
 lemma le_of_inf_le_sup_le (h₁ : x ⊓ z ≤ y ⊓ z) (h₂ : x ⊔ z ≤ y ⊔ z) : x ≤ y :=
 calc x ≤ (y ⊓ z) ⊔ x : le_sup_right
@@ -815,8 +815,8 @@ variables [linear_order α]
 
 lemma map_sup [semilattice_sup β] {f : α → β} (hf : monotone f) (x y : α) : f (x ⊔ y) = f x ⊔ f y :=
 (is_total.total x y).elim
-  (λ h : x ≤ y, by simp only [h, hf h, sup_of_le_right])
-  (λ h, by simp only [h, hf h, sup_of_le_left])
+  (λ h : x ≤ y, by simv only [h, hf h, sup_of_le_right])
+  (λ h, by simv only [h, hf h, sup_of_le_left])
 
 lemma map_inf [semilattice_inf β] {f : α → β} (hf : monotone f) (x y : α) : f (x ⊓ y) = f x ⊓ f y :=
 hf.dual.map_sup _ _
@@ -980,11 +980,11 @@ protected def lattice [lattice α] {P : α → Prop}
   lattice {x : α // P x} :=
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
 
-@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
+@[simv, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (x y : subtype P) :
   (by {haveI := subtype.semilattice_sup Psup, exact (x ⊔ y : subtype P)} : α) = x ⊔ y := rfl
 
-@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
+@[simv, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
   (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
   (by {haveI := subtype.semilattice_inf Pinf, exact (x ⊓ y : subtype P)} : α) = x ⊓ y := rfl
 

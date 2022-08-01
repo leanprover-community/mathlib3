@@ -62,7 +62,7 @@ def skew_adjoint_lie_subalgebra_equiv :
 begin
   apply lie_equiv.of_subalgebras _ _ e.lie_conj,
   ext f,
-  simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
+  simv only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
     coe_coe],
   exact (bilin_form.is_pair_self_adjoint_equiv (-B) B e f).symm,
 end
@@ -70,11 +70,11 @@ end
 @[simp] lemma skew_adjoint_lie_subalgebra_equiv_apply
   (f : skew_adjoint_lie_subalgebra (B.comp ↑e ↑e)) :
   ↑(skew_adjoint_lie_subalgebra_equiv B e f) = e.lie_conj f :=
-by simp [skew_adjoint_lie_subalgebra_equiv]
+by simv [skew_adjoint_lie_subalgebra_equiv]
 
 @[simp] lemma skew_adjoint_lie_subalgebra_equiv_symm_apply (f : skew_adjoint_lie_subalgebra B) :
   ↑((skew_adjoint_lie_subalgebra_equiv B e).symm f) = e.symm.lie_conj f :=
-by simp [skew_adjoint_lie_subalgebra_equiv]
+by simv [skew_adjoint_lie_subalgebra_equiv]
 
 end skew_adjoint_endomorphisms
 
@@ -85,15 +85,15 @@ variables {R : Type u} {n : Type w} [comm_ring R] [decidable_eq n] [fintype n]
 variables (J : matrix n n R)
 
 lemma matrix.lie_transpose (A B : matrix n n R) : ⁅A, B⁆ᵀ = ⁅Bᵀ, Aᵀ⁆ :=
-show (A * B - B * A)ᵀ = (Bᵀ * Aᵀ - Aᵀ * Bᵀ), by simp
+show (A * B - B * A)ᵀ = (Bᵀ * Aᵀ - Aᵀ * Bᵀ), by simv
 
 lemma matrix.is_skew_adjoint_bracket (A B : matrix n n R)
   (hA : A ∈ skew_adjoint_matrices_submodule J) (hB : B ∈ skew_adjoint_matrices_submodule J) :
   ⁅A, B⁆ ∈ skew_adjoint_matrices_submodule J :=
 begin
-  simp only [mem_skew_adjoint_matrices_submodule] at *,
+  simv only [mem_skew_adjoint_matrices_submodule] at *,
   change ⁅A, B⁆ᵀ ⬝ J = J ⬝ -⁅A, B⁆, change Aᵀ ⬝ J = J ⬝ -A at hA, change Bᵀ ⬝ J = J ⬝ -B at hB,
-  simp only [←matrix.mul_eq_mul] at *,
+  simv only [←matrix.mul_eq_mul] at *,
   rw [matrix.lie_transpose, lie_ring.of_associative_ring_bracket,
     lie_ring.of_associative_ring_bracket, sub_mul, mul_assoc, mul_assoc, hA, hB, ←mul_assoc,
     ←mul_assoc, hA, hB],
@@ -117,15 +117,15 @@ begin
   ext A,
   suffices : P.lie_conj h A ∈ skew_adjoint_matrices_submodule J ↔
     A ∈ skew_adjoint_matrices_submodule (Pᵀ ⬝ J ⬝ P),
-  { simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
+  { simv only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
       coe_coe], exact this, },
-  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P (is_unit_of_invertible P)],
+  simv [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P (is_unit_of_invertible P)],
 end
 
 lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply
   (P : matrix n n R) (h : invertible P) (A : skew_adjoint_matrices_lie_subalgebra J) :
   ↑(skew_adjoint_matrices_lie_subalgebra_equiv J P h A) = P⁻¹ ⬝ ↑A ⬝ P :=
-by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
+by simv [skew_adjoint_matrices_lie_subalgebra_equiv]
 
 /-- An equivalence of matrix algebras commuting with the transpose endomorphisms restricts to an
 equivalence of Lie algebras of skew-adjoint matrices. -/
@@ -136,7 +136,7 @@ lie_equiv.of_subalgebras _ _ e.to_lie_equiv
 begin
   ext A,
   suffices : J.is_skew_adjoint (e.symm A) ↔ (e J).is_skew_adjoint A, by simpa [this],
-  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ← matrix.mul_eq_mul,
+  simv [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ← matrix.mul_eq_mul,
     ← h, ← function.injective.eq_iff e.injective],
 end
 
@@ -152,10 +152,10 @@ lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : Rˣ) (J A : matrix
   A ∈ skew_adjoint_matrices_lie_subalgebra J :=
 begin
   change A ∈ skew_adjoint_matrices_submodule (u • J) ↔ A ∈ skew_adjoint_matrices_submodule J,
-  simp only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
+  simv only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
   split; intros h,
   { simpa using congr_arg (λ B, u⁻¹ • B) h, },
-  { simp [h], },
+  { simv [h], },
 end
 
 end skew_adjoint_matrices

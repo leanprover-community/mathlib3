@@ -50,7 +50,7 @@ lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K]
   (M : matrix n n K) : trace (M ^ (fintype.card K)) = trace M ^ (fintype.card K) :=
 begin
   casesI is_empty_or_nonempty n,
-  { simp [zero_pow fintype.card_pos, matrix.trace], },
+  { simv [zero_pow fintype.card_pos, matrix.trace], },
   rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
        finite_field.matrix.charpoly_pow_card, finite_field.pow_card]
 end

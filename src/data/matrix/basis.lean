@@ -33,17 +33,17 @@ def std_basis_matrix (i : m) (j : n) (a : α) : matrix m n α :=
 
 @[simp] lemma smul_std_basis_matrix (i : m) (j : n) (a b : α) :
 b • std_basis_matrix i j a = std_basis_matrix i j (b • a) :=
-by { unfold std_basis_matrix, ext, simp }
+by { unfold std_basis_matrix, ext, simv }
 
 @[simp] lemma std_basis_matrix_zero (i : m) (j : n) :
 std_basis_matrix i j (0 : α) = 0 :=
-by { unfold std_basis_matrix, ext, simp }
+by { unfold std_basis_matrix, ext, simv }
 
 lemma std_basis_matrix_add (i : m) (j : n) (a b : α) :
 std_basis_matrix i j (a + b) = std_basis_matrix i j a + std_basis_matrix i j b :=
 begin
   unfold std_basis_matrix, ext,
-  split_ifs with h; simp [h],
+  split_ifs with h; simv [h],
 end
 
 lemma matrix_eq_sum_std_basis [fintype m] [fintype n] (x : matrix m n α) :
@@ -52,9 +52,9 @@ begin
   ext, symmetry,
   iterate 2 { rw finset.sum_apply },
   convert fintype.sum_eq_single i _,
-  { simp [std_basis_matrix] },
+  { simv [std_basis_matrix] },
   { intros j hj,
-    simp [std_basis_matrix, hj], }
+    simv [std_basis_matrix, hj], }
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra
@@ -105,15 +105,15 @@ variables (i : m) (j : n) (c : α) (i' : m) (j' : n)
 
 @[simp] lemma apply_of_ne (h : ¬((i = i') ∧ (j = j'))) :
   std_basis_matrix i j c i' j' = 0 :=
-by { simp only [std_basis_matrix, and_imp, ite_eq_right_iff], tauto }
+by { simv only [std_basis_matrix, and_imp, ite_eq_right_iff], tauto }
 
 @[simp] lemma apply_of_row_ne {i i' : m} (hi : i ≠ i') (j j' : n) (a : α) :
   std_basis_matrix i j a i' j' = 0 :=
-by simp [hi]
+by simv [hi]
 
 @[simp] lemma apply_of_col_ne (i i' : m) {j j' : n} (hj : j ≠ j') (a : α) :
   std_basis_matrix i j a i' j' = 0 :=
-by simp [hj]
+by simv [hj]
 
 end
 
@@ -125,46 +125,46 @@ variables (i j : n) (c : α) (i' j' : n)
 funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
 
 @[simp] lemma diag_same : diag (std_basis_matrix i i c) = pi.single i c :=
-by { ext j, by_cases hij : i = j; try {rw hij}; simp [hij] }
+by { ext j, by_cases hij : i = j; try {rw hij}; simv [hij] }
 
 variable [fintype n]
 
-@[simp] lemma trace_zero (h : j ≠ i) : trace (std_basis_matrix i j c) = 0 := by simp [trace, h]
+@[simp] lemma trace_zero (h : j ≠ i) : trace (std_basis_matrix i j c) = 0 := by simv [trace, h]
 
-@[simp] lemma trace_eq : trace (std_basis_matrix i i c) = c := by simp [trace]
+@[simp] lemma trace_eq : trace (std_basis_matrix i i c) = c := by simv [trace]
 
 @[simp] lemma mul_left_apply_same (b : n) (M : matrix n n α) :
   (std_basis_matrix i j c ⬝ M) i b = c * M j b :=
-by simp [mul_apply, std_basis_matrix]
+by simv [mul_apply, std_basis_matrix]
 
 @[simp] lemma mul_right_apply_same (a : n) (M : matrix n n α) :
   (M ⬝ std_basis_matrix i j c) a j = M a i * c :=
-by simp [mul_apply, std_basis_matrix, mul_comm]
+by simv [mul_apply, std_basis_matrix, mul_comm]
 
 @[simp] lemma mul_left_apply_of_ne (a b : n) (h : a ≠ i) (M : matrix n n α) :
   (std_basis_matrix i j c ⬝ M) a b = 0 :=
-by simp [mul_apply, h.symm]
+by simv [mul_apply, h.symm]
 
 @[simp] lemma mul_right_apply_of_ne (a b : n) (hbj : b ≠ j) (M : matrix n n α) :
   (M ⬝ std_basis_matrix i j c) a b = 0 :=
-by simp [mul_apply, hbj.symm]
+by simv [mul_apply, hbj.symm]
 
 @[simp] lemma mul_same (k : n) (d : α) :
   std_basis_matrix i j c ⬝ std_basis_matrix j k d = std_basis_matrix i k (c * d) :=
 begin
   ext a b,
-  simp only [mul_apply, std_basis_matrix, boole_mul],
+  simv only [mul_apply, std_basis_matrix, boole_mul],
   by_cases h₁ : i = a; by_cases h₂ : k = b;
-  simp [h₁, h₂],
+  simv [h₁, h₂],
 end
 
 @[simp] lemma mul_of_ne {k l : n} (h : j ≠ k) (d : α) :
   std_basis_matrix i j c ⬝ std_basis_matrix k l d = 0 :=
 begin
   ext a b,
-  simp only [mul_apply, boole_mul, std_basis_matrix],
+  simv only [mul_apply, boole_mul, std_basis_matrix],
   by_cases h₁ : i = a;
-  simp [h₁, h, h.symm],
+  simv [h₁, h, h.symm],
 end
 
 end

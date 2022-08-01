@@ -88,12 +88,12 @@ begin
   apply finset.sum_bij φ,
   { -- φ(S) is contained in Sᶜ
     intros ij hij,
-    simp only [finset.mem_univ, finset.compl_filter, finset.mem_filter, true_and,
+    simv only [finset.mem_univ, finset.compl_filter, finset.mem_filter, true_and,
       fin.coe_succ, fin.coe_cast_lt] at hij ⊢,
     linarith, },
   { /- identification of corresponding terms in both sums -/
     rintro ⟨i, j⟩ hij,
-    simp only [term, d_l, d_r, φ, comp_zsmul, zsmul_comp, ← neg_smul, ← mul_smul,
+    simv only [term, d_l, d_r, φ, comp_zsmul, zsmul_comp, ← neg_smul, ← mul_smul,
       pow_add, neg_mul, mul_one, fin.coe_cast_lt,
       fin.coe_succ, pow_one, mul_neg, neg_neg],
     let jj : fin (n+2) := (φ (i,j) hij).1,
@@ -107,14 +107,14 @@ begin
     simpa [fin.cast_succ_cast_lt] using h1 },
   { -- φ : S → Sᶜ is surjective
     rintro ⟨i', j'⟩ hij',
-    simp only [true_and, finset.mem_univ, finset.compl_filter, not_le,
+    simv only [true_and, finset.mem_univ, finset.compl_filter, not_le,
       finset.mem_filter] at hij',
     refine ⟨(j'.pred _, fin.cast_succ i'), _, _⟩,
     { intro H,
       simpa only [H, nat.not_lt_zero, fin.coe_zero] using hij' },
     { simpa only [true_and, finset.mem_univ, fin.coe_cast_succ, fin.coe_pred,
         finset.mem_filter] using nat.le_pred_of_lt hij', },
-    { simp only [prod.mk.inj_iff, fin.succ_pred, fin.cast_lt_cast_succ],
+    { simv only [prod.mk.inj_iff, fin.succ_pred, fin.cast_lt_cast_succ],
       split; refl }, },
 end
 
@@ -188,7 +188,7 @@ begin
   apply category_theory.functor.ext,
   { intros X Y f,
     ext n,
-    simp only [functor.comp_map, homological_complex.comp_f,
+    simv only [functor.comp_map, homological_complex.comp_f,
       alternating_face_map_complex_map_f, functor.map_homological_complex_map_f,
       homological_complex.eq_to_hom_f, eq_to_hom_refl, comp_id, id_comp,
       simplicial_object.whiskering_obj_map_app], },
@@ -220,7 +220,7 @@ chain_complex.of_hom _ _ _ _ _ _
          face map complex with those defined on the normalized Moore complex:
          we first get rid of the terms of the alternating sum that are obviously
          zero on the normalized_Moore_complex -/
-      simp only [alternating_face_map_complex.obj_d],
+      simv only [alternating_face_map_complex.obj_d],
       rw comp_sum,
       let t := λ (j : fin (n+2)), (normalized_Moore_complex.obj_X X (n+1)).arrow ≫
         ((-1 : ℤ)^(j : ℕ) • X.δ j),
@@ -233,17 +233,17 @@ chain_complex.of_hom _ _ _ _ _ _
         apply congr_arg,
         rw normalized_Moore_complex.obj_X,
         rw ← factor_thru_arrow _ _
-          (finset_inf_arrow_factors finset.univ _ j (by simp only [finset.mem_univ])),
+          (finset_inf_arrow_factors finset.univ _ j (by simv only [finset.mem_univ])),
         slice_lhs 2 3 { rw kernel_subobject_arrow_comp (X.δ j.succ), },
-        simp only [comp_zero], },
+        simv only [comp_zero], },
       rw [fintype.sum_eq_zero _ null],
-      simp only [add_zero],
+      simv only [add_zero],
       /- finally, we study the remaining term which is induced by X.δ 0 -/
       let eq := def_t 0,
       rw [show (-1 : ℤ)^((0 : fin (n+2)) : ℕ) = 1, by ring] at eq,
       rw one_smul at eq,
       rw eq,
-      cases n; dsimp; simp,
+      cases n; dsimp; simv,
     end)
 
 @[simp]
@@ -276,7 +276,7 @@ lemma d_eq_unop_d (n : ℕ) :
 by simpa only [obj_d, alternating_face_map_complex.obj_d, unop_sum, unop_zsmul]
 
 lemma d_squared (n : ℕ) : obj_d X n ≫ obj_d X (n+1) = 0 :=
-by simp only [d_eq_unop_d, ← unop_comp, alternating_face_map_complex.d_squared, unop_zero]
+by simv only [d_eq_unop_d, ← unop_comp, alternating_face_map_complex.d_squared, unop_zero]
 
 /-- The alternating coface map complex, on objects -/
 def obj : cochain_complex C ℕ := cochain_complex.of (λ n, X.obj [n]) (obj_d X) (d_squared X)

@@ -67,8 +67,8 @@ begin
   rcases e.surjective Λ' with ⟨⟨Λ, Λ₀⟩, rfl⟩,
   refine ⟨Λ, Λ₀, e.map_ne_zero_iff.1 h0, λ x, _⟩,
   convert linear_map.congr_fun (linear_map.range_le_ker_iff.1 hΛ') x using 1,
-  -- squeezed `simp [mul_comm]` to speed up elaboration
-  simp only [linear_map.coprod_equiv_apply, linear_equiv.refl_apply,
+  -- squeezed `simv [mul_comm]` to speed up elaboration
+  simv only [linear_map.coprod_equiv_apply, linear_equiv.refl_apply,
     linear_map.ring_lmap_equiv_self_symm_apply, linear_map.comp_apply,
     continuous_linear_map.coe_coe, continuous_linear_map.prod_apply,
     linear_equiv.trans_apply, linear_equiv.prod_apply, linear_map.coprod_apply,
@@ -87,7 +87,7 @@ begin
   obtain ⟨Λ, Λ₀, hΛ, hfΛ⟩ := hextr.exists_linear_map_of_has_strict_fderiv_at hf' hφ',
   refine ⟨Λ 1, Λ₀, _, _⟩,
   { contrapose! hΛ,
-    simp only [prod.mk_eq_zero] at ⊢ hΛ,
+    simv only [prod.mk_eq_zero] at ⊢ hΛ,
     refine ⟨linear_map.ext (λ x, _), hΛ.2⟩,
     simpa [hΛ.1] using Λ.map_smul x 1 },
   { ext x,

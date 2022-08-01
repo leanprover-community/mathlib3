@@ -39,9 +39,9 @@ begin
   rw lt_sub_iff_add_lt' at hn,
   suffices : ∀ y : ℝ, liouville_with p y → y ∈ Ico (0 : ℝ) 1 →
     ∃ᶠ b : ℕ in at_top, ∃ a ∈ finset.Icc (0 : ℤ) b, |y - a / b| < 1 / b ^ (2 + 1 / (n + 1 : ℕ) : ℝ),
-  { simp only [mem_Union, mem_preimage],
+  { simv only [mem_Union, mem_preimage],
     have hx : x + ↑(-⌊x⌋) ∈ Ico (0 : ℝ) 1,
-    { simp only [int.floor_le, int.lt_floor_add_one, add_neg_lt_iff_le_add', zero_add, and_self,
+    { simv only [int.floor_le, int.lt_floor_add_one, add_neg_lt_iff_le_add', zero_add, and_self,
         mem_Ico, int.cast_neg, le_add_neg_iff_add_le] },
     refine ⟨-⌊x⌋, n + 1, n.succ_pos, this _ (hxp.add_int _) hx⟩ },
   clear hxp x, intros x hxp hx01,
@@ -61,7 +61,7 @@ begin
   rw [finset.mem_Icc, ← int.lt_add_one_iff, ← int.lt_add_one_iff, ← neg_lt_iff_pos_add, add_comm,
     ← @int.cast_lt ℝ, ← @int.cast_lt ℝ], push_cast,
   refine ⟨lt_of_le_of_lt _ hlt.1, hlt.2.trans_le _⟩,
-  { simp only [mul_nonneg hx01.left b.cast_nonneg, neg_le_sub_iff_le_add, le_add_iff_nonneg_left] },
+  { simv only [mul_nonneg hx01.left b.cast_nonneg, neg_le_sub_iff_le_add, le_add_iff_nonneg_left] },
   { rw [add_le_add_iff_left],
     calc x * b ≤ 1 * b : mul_le_mul_of_nonneg_right hx01.2.le hb0.le
     ... = b : one_mul b }
@@ -72,14 +72,14 @@ measure zero. -/
 @[simp] lemma volume_Union_set_of_liouville_with :
   volume (⋃ (p : ℝ) (hp : 2 < p), {x : ℝ | liouville_with p x}) = 0 :=
 begin
-  simp only [← set_of_exists],
+  simv only [← set_of_exists],
   refine measure_mono_null set_of_liouville_with_subset_aux _,
   rw measure_Union_null_iff, intro m, rw measure_preimage_add_right, clear m,
   refine (measure_bUnion_null_iff $ to_countable _).2 (λ n (hn : 1 ≤ n), _),
   generalize hr : (2 + 1 / n : ℝ) = r,
-  replace hr : 2 < r, by simp [← hr, zero_lt_one.trans_le hn], clear hn n,
+  replace hr : 2 < r, by simv [← hr, zero_lt_one.trans_le hn], clear hn n,
   refine measure_set_of_frequently_eq_zero _,
-  simp only [set_of_exists, ← real.dist_eq, ← mem_ball, set_of_mem_eq],
+  simv only [set_of_exists, ← real.dist_eq, ← mem_ball, set_of_mem_eq],
   set B : ℤ → ℕ → set ℝ := λ a b, ball (a / b) (1 / b ^ r),
   have hB : ∀ a b, volume (B a b) = ↑(2 / b ^ r : ℝ≥0),
   { intros a b,
@@ -90,16 +90,16 @@ begin
     calc volume (⋃ a ∈ finset.Icc (0 : ℤ) b, B a b)
         ≤ ∑ a in finset.Icc (0 : ℤ) b, volume (B a b) : measure_bUnion_finset_le _ _
     ... = ((b + 1) * (2 / b ^ r) : ℝ≥0) :
-      by simp only [hB, int.card_Icc, finset.sum_const, nsmul_eq_mul, sub_zero,
+      by simv only [hB, int.card_Icc, finset.sum_const, nsmul_eq_mul, sub_zero,
         ← int.coe_nat_succ, int.to_nat_coe_nat, ← nat.cast_succ, ennreal.coe_mul, ennreal.coe_nat]
     ... = _ : _,
     have : 1 - r ≠ 0, by linarith,
     rw [ennreal.coe_eq_coe],
-    simp [add_mul, div_eq_mul_inv, nnreal.rpow_neg, nnreal.rpow_sub' _ this, mul_add,
+    simv [add_mul, div_eq_mul_inv, nnreal.rpow_neg, nnreal.rpow_sub' _ this, mul_add,
       mul_left_comm] },
   refine ne_top_of_le_ne_top (ennreal.tsum_coe_ne_top_iff_summable.2 _)
     (ennreal.tsum_le_tsum this),
-  refine (summable.add _ _).mul_left _; simp only [nnreal.summable_rpow]; linarith
+  refine (summable.add _ _).mul_left _; simv only [nnreal.summable_rpow]; linarith
 end
 
 lemma ae_not_liouville_with : ∀ᵐ x, ∀ p > (2 : ℝ), ¬liouville_with p x :=

@@ -82,9 +82,9 @@ include h
 lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
 begin
   dsimp [conjugate],
-  simp only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
+  simv only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
   change (1 : monoid_algebra k G) • v = v,
-  simp,
+  simv,
 end
 end
 
@@ -105,12 +105,12 @@ def sum_of_conjugates_equivariant : W →ₗ[monoid_algebra k G] V :=
 monoid_algebra.equivariant_of_linear_of_comm (π.sum_of_conjugates G) (λ g v,
 begin
   dsimp [sum_of_conjugates],
-  simp only [linear_map.sum_apply, finset.smul_sum],
+  simv only [linear_map.sum_apply, finset.smul_sum],
   dsimp [conjugate],
   conv_lhs
   { rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp only [mul_right_embedding], },
-  simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
+    simv only [mul_right_embedding], },
+  simv only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
     finset.sum_map, inv_inv, inv_mul_cancel_right]
 end)
 
@@ -132,7 +132,7 @@ begin
   rw [equivariant_projection, smul_apply, sum_of_conjugates_equivariant,
     equivariant_of_linear_of_comm_apply, sum_of_conjugates],
   rw [linear_map.sum_apply],
-  simp only [conjugate_i π i h],
+  simv only [conjugate_i π i h],
   rw [finset.sum_const, finset.card_univ, nsmul_eq_smul_cast k,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end
@@ -145,7 +145,7 @@ namespace char_zero
 variables {k : Type u} [field k] {G : Type u} [fintype G] [group G] [char_zero k]
 
 instance : invertible (fintype.card G : k) :=
-invertible_of_ring_char_not_dvd (by simp [fintype.card_eq_zero_iff])
+invertible_of_ring_char_not_dvd (by simv [fintype.card_eq_zero_iff])
 
 end char_zero
 
@@ -164,11 +164,11 @@ lemma exists_left_inverse_of_injective
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
-    (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
+    (by simv only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
   apply linear_map.ext,
   intro v,
-  simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
+  simv only [linear_map.id_coe, id.def, linear_map.comp_apply],
   apply linear_map.equivariant_projection_condition,
   intro v,
   have := congr_arg linear_map.to_fun hφ,

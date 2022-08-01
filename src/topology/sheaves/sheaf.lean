@@ -133,7 +133,7 @@ The forgetful functor from sheaves to presheaves.
 def forget : Top.sheaf C X ⥤ Top.presheaf C X :=
 Sheaf_to_presheaf _ _
 
--- Note: These can be proved by simp.
+-- Note: These can be proved by simv.
 lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).1.app t = 𝟙 _ := rfl
 lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
   (f ≫ g).1.app t = f.1.app t ≫ g.1.app t := rfl

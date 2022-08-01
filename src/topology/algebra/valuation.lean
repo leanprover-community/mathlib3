@@ -34,7 +34,7 @@ lemma subgroups_basis :
 { inter := begin
     rintros γ₀ γ₁,
     use min γ₀ γ₁,
-    simp [valuation.lt_add_subgroup] ; tauto
+    simv [valuation.lt_add_subgroup] ; tauto
   end,
   mul := begin
     rintros γ,
@@ -53,7 +53,7 @@ lemma subgroups_basis :
       change v (x * y) < _,
       rw [valuation.map_mul, Hx, zero_mul],
       exact units.zero_lt γ },
-    { simp only [image_subset_iff, set_of_subset_set_of, preimage_set_of_eq, valuation.map_mul],
+    { simv only [image_subset_iff, set_of_subset_set_of, preimage_set_of_eq, valuation.map_mul],
       use γx⁻¹*γ,
       rintros y (vy_lt : v y < ↑(γx⁻¹ * γ)),
       change (v (x * y) : Γ₀) < γ,
@@ -116,7 +116,7 @@ include _i
 
 lemma has_basis_nhds_zero :
   (𝓝 (0 : R)).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { x | v x < (γ : Γ₀) }) :=
-by simp [filter.has_basis_iff, is_topological_valuation]
+by simv [filter.has_basis_iff, is_topological_valuation]
 
 lemma has_basis_uniformity :
   (𝓤 R).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < (γ : Γ₀) }) :=
@@ -134,12 +134,12 @@ variables {R Γ₀}
 
 lemma mem_nhds {s : set R} {x : R} :
   (s ∈ 𝓝 x) ↔ ∃ (γ : Γ₀ˣ), {y | (v (y - x) : Γ₀) < γ } ⊆ s :=
-by simp only [← nhds_translation_add_neg x, ← sub_eq_add_neg, preimage_set_of_eq, exists_true_left,
+by simv only [← nhds_translation_add_neg x, ← sub_eq_add_neg, preimage_set_of_eq, exists_true_left,
   ((has_basis_nhds_zero R Γ₀).comap (λ y, y - x)).mem_iff]
 
 lemma mem_nhds_zero {s : set R} :
   (s ∈ 𝓝 (0 : R)) ↔ ∃ γ : Γ₀ˣ, {x | v x < (γ : Γ₀) } ⊆ s :=
-by simp only [mem_nhds, sub_zero]
+by simv only [mem_nhds, sub_zero]
 
 lemma loc_const {x : R} (h : (v x : Γ₀) ≠ 0) : {y : R | v y = v x} ∈ 𝓝 x :=
 begin

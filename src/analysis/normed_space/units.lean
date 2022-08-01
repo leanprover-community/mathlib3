@@ -56,13 +56,13 @@ units.copy  -- to make `coe_add` true definitionally, for convenience
       ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
       ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
     end))
-  (x + t) (by simp [mul_add]) _ rfl
+  (x + t) (by simv [mul_add]) _ rfl
 
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
 @[simps coe]
 def unit_of_nearby (x : Rˣ) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
-units.copy (x.add (y - x : R) h) y (by simp) _ rfl
+units.copy (x.add (y - x : R) h) y (by simv) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 protected lemma is_open : is_open {x : R | is_unit x} :=
@@ -97,7 +97,7 @@ begin
   have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
   use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
   intros t ht,
-  simp only [mem_ball, dist_zero_right] at ht,
+  simv only [mem_ball, dist_zero_right] at ht,
   have ht' : ∥-↑x⁻¹ * t∥ < 1,
   { refine lt_of_le_of_lt (norm_mul_le _ _) _,
     rw norm_neg,
@@ -105,30 +105,30 @@ begin
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
-  simp only [neg_mul, sub_neg_eq_add] at hright,
-  simp only [units.coe_add] at hleft,
-  simp [hleft, hright, units.add]
+  simv only [neg_mul, sub_neg_eq_add] at hright,
+  simv only [units.coe_add] at hleft,
+  simv [hleft, hright, units.add]
 end
 
 lemma inverse_one_sub_nth_order (n : ℕ) :
   ∀ᶠ t in (𝓝 0), inverse ((1:R) - t) = (∑ i in range n, t ^ i) + (t ^ n) * inverse (1 - t) :=
 begin
-  simp only [eventually_iff, metric.mem_nhds_iff],
+  simv only [eventually_iff, metric.mem_nhds_iff],
   use [1, by norm_num],
   intros t ht,
-  simp only [mem_ball, dist_zero_right] at ht,
-  simp only [inverse_one_sub t ht, set.mem_set_of_eq],
+  simv only [mem_ball, dist_zero_right] at ht,
+  simv only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
-  { simp only [units.coe_one_sub],
+  { simv only [units.coe_one_sub],
     rw [geom_sum_mul_neg],
-    simp },
+    simv },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
-    simp },
-  { simp only [units.coe_one_sub],
+    simv },
+  { simv only [units.coe_one_sub],
     rw [← add_mul, geom_sum_mul_neg],
-    simp }
+    simv }
 end
 
 /-- The formula
@@ -141,27 +141,27 @@ begin
   refine (inverse_add x).mp _,
   have hzero : tendsto (λ (t : R), - ↑x⁻¹ * t) (𝓝 0) (𝓝 0),
   { convert ((mul_left_continuous (- (↑x⁻¹ : R))).tendsto 0).comp tendsto_id,
-    simp },
+    simv },
   refine (hzero.eventually (inverse_one_sub_nth_order n)).mp (eventually_of_forall _),
-  simp only [neg_mul, sub_neg_eq_add],
+  simv only [neg_mul, sub_neg_eq_add],
   intros t h1 h2,
   have h := congr_arg (λ (a : R), a * ↑x⁻¹) h1,
   dsimp at h,
   convert h,
   rw [add_mul, mul_assoc],
-  simp [h2.symm]
+  simv [h2.symm]
 end
 
 lemma inverse_one_sub_norm : (λ t : R, inverse (1 - t)) =O[𝓝 0] (λ t, 1 : R → ℝ) :=
 begin
-  simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
+  simv only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
   intros t ht,
-  simp only [ball, dist_zero_right, set.mem_set_of_eq] at ht,
+  simv only [ball, dist_zero_right, set.mem_set_of_eq] at ht,
   have ht' : ∥t∥ < 1,
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
-  simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
+  simv only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
   change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
@@ -175,16 +175,16 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : Rˣ) : (λ t : R, inverse (↑x + t)) =O[𝓝 0] (λ t, (1:ℝ)) :=
 begin
-  simp only [is_O_iff, norm_one, mul_one],
+  simv only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
   use C * ∥((x⁻¹:Rˣ):R)∥,
   have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
   { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
-    simp },
+    simv },
   refine (inverse_add x).mp ((hzero.eventually hC).mp (eventually_of_forall _)),
   intros t bound iden,
   rw iden,
-  simp at bound,
+  simv at bound,
   have hmul := norm_mul_le (inverse (1 + ↑x⁻¹ * t)) ↑x⁻¹,
   nlinarith [norm_nonneg (↑x⁻¹ : R)]
 end
@@ -199,7 +199,7 @@ begin
   by_cases h : n = 0,
   { simpa [h] using inverse_add_norm x },
   have hn : 0 < n := nat.pos_of_ne_zero h,
-  simp [is_O_iff],
+  simv [is_O_iff],
   cases (is_O_iff.mp (inverse_add_norm x)) with C hC,
   use C * ∥(1:ℝ)∥ * ∥(↑x⁻¹ : R)∥ ^ n,
   have h : eventually_eq (𝓝 (0:R))
@@ -208,10 +208,10 @@ begin
   { refine (inverse_add_nth_order x n).mp (eventually_of_forall _),
     intros t ht,
     convert congr_arg (λ a, a - (range n).sum (pow (-↑x⁻¹ * t)) * ↑x⁻¹) ht,
-    simp },
+    simv },
   refine h.mp (hC.mp (eventually_of_forall _)),
   intros t _ hLHS,
-  simp only [neg_mul] at hLHS,
+  simv only [neg_mul] at hLHS,
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
@@ -239,7 +239,7 @@ lemma inverse_add_norm_diff_second_order (x : Rˣ) :
 begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
-  simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
+  simv only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
     one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul,
     sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end

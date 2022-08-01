@@ -47,15 +47,15 @@ is_image.iso_ext (image.is_image (L.map f)) aux1.to_mono_is_image
 @[reassoc] lemma factor_thru_image_comp_hom {X Y : A} (f : X ⟶ Y) :
   factor_thru_image (L.map f) ≫ (iso L f).hom =
   L.map (factor_thru_image f) :=
-by simp
+by simv
 
 @[reassoc] lemma hom_comp_map_image_ι {X Y : A} (f : X ⟶ Y) :
   (iso L f).hom ≫ L.map (image.ι f) = image.ι (L.map f) :=
-by simp
+by simv
 
 @[reassoc] lemma inv_comp_image_ι_map {X Y : A} (f : X ⟶ Y) :
   (iso L f).inv ≫ image.ι (L.map f) = L.map (image.ι f) :=
-by simp
+by simv
 
 end preserves_image
 

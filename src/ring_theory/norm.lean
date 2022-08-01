@@ -70,7 +70,7 @@ by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
 
--- Can't be a `simp` lemma because it depends on a choice of basis
+-- Can't be a `simv` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
 by rw [norm_apply, ← linear_map.det_to_matrix b, to_matrix_lmul_eq]
@@ -123,7 +123,7 @@ begin
     ← coeff_map, prod_roots_eq_coeff_zero_of_monic_of_split
       ((minpoly.monic (power_basis.is_integral_gen _)).map _)
       ((splits_id_iff_splits _).2 hf), nat_degree_map, map_pow, ← mul_assoc, ← mul_pow],
-  simp
+  simv
 end
 
 end eq_prod_roots
@@ -180,7 +180,7 @@ begin
   let pbx := intermediate_field.adjoin.power_basis (is_separable.is_integral K x),
   rw [← adjoin_simple.algebra_map_gen K x, norm_eq_matrix_det (pbx.basis.smul pbL.basis) _,
     smul_left_mul_matrix_algebra_map, det_block_diagonal, norm_eq_matrix_det pbx.basis],
-  simp only [finset.card_fin, finset.prod_const],
+  simv only [finset.card_fin, finset.prod_const],
   congr,
   rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x]
 end
@@ -207,13 +207,13 @@ lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
 begin
   have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : _root_.is_integral K x, swap,
-  { simp [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
+  { simv [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
   have hx' : _root_.is_integral K (adjoin_simple.gen K x),
   { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
     apply_instance },
   rw [← adjoin.power_basis_gen hx, power_basis.norm_gen_eq_prod_roots];
     rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
-    try { simp only [adjoin_simple.algebra_map_gen _ _] },
+    try { simv only [adjoin_simple.algebra_map_gen _ _] },
   exact hf
 end
 
@@ -261,11 +261,11 @@ begin
      ← finset.univ_sigma_univ, finset.prod_sigma, ← finset.prod_pow],
   refine finset.prod_congr rfl (λ σ _, _),
   { letI : algebra L E := σ.to_ring_hom.to_algebra,
-    simp only [finset.prod_const, finset.card_univ],
+    simv only [finset.prod_const, finset.card_univ],
     congr,
     rw alg_hom.card L F E },
   { intros σ,
-    simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
+    simv only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
          is_scalar_tower.coe_to_alg_hom'] }
 end
 
@@ -292,9 +292,9 @@ begin
   rw map_prod (algebra_map L (algebraic_closure L)),
   rw ← fintype.prod_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
   { rw ← norm_eq_prod_embeddings,
-    simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    simv only [algebra_map_eq_smul_one, smul_one_smul] },
   { intro σ,
-    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+    simv only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
                alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
                ring_hom.id_apply] },
 end

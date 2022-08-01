@@ -45,7 +45,7 @@ is_unit_one.squarefree
 lemma not_squarefree_zero [monoid_with_zero R] [nontrivial R] : ¬ squarefree (0 : R) :=
 begin
   erw [not_forall],
-  exact ⟨0, by simp⟩,
+  exact ⟨0, by simv⟩,
 end
 
 lemma squarefree.ne_zero [monoid_with_zero R] [nontrivial R] {m : R}
@@ -158,7 +158,7 @@ lemma squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   squarefree r ↔ ∀ x : R, irreducible x → ¬ x * x ∣ r :=
 begin
   rw [irreducible_sq_not_dvd_iff_eq_zero_and_no_irreducibles_or_squarefree, ←not_exists],
-  simp only [hr, not_true, false_or, and_false],
+  simv only [hr, not_true, false_or, and_false],
 end
 
 end irreducible
@@ -183,10 +183,10 @@ begin
         rw [multiplicity_eq_count_normalized_factors ha x0] at h,
         assumption_mod_cast },
       { have := ha.1, contradiction, } },
-    { simp [multiset.count_eq_zero_of_not_mem hmem] } },
+    { simv [multiset.count_eq_zero_of_not_mem hmem] } },
   { rw or_iff_not_imp_right, intro hu,
     by_cases h0 : a = 0,
-    { simp [h0, x0] },
+    { simv [h0, x0] },
     rcases wf_dvd_monoid.exists_irreducible_factor hu h0 with ⟨b, hib, hdvd⟩,
     apply le_trans (multiplicity.multiplicity_le_multiplicity_of_dvd_left hdvd),
     rw [multiplicity_eq_count_normalized_factors hib x0],
@@ -199,9 +199,9 @@ lemma dvd_pow_iff_dvd_of_squarefree {x y : R} {n : ℕ} (hsq : squarefree x) (h0
 begin
   classical,
   by_cases hx : x = 0,
-  { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
+  { simv [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
   by_cases hy : y = 0,
-  { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
+  { simv [hy, zero_pow (nat.pos_of_ne_zero h0)] },
   refine ⟨λ h, _, λ h, h.pow h0⟩,
   rw [dvd_iff_normalized_factors_le_normalized_factors hx (pow_ne_zero n hy),
     normalized_factors_pow,

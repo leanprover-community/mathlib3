@@ -52,7 +52,7 @@ noncomputable theory
 open_locale classical topological_space filter
 open topological_space set metric filter function
 
-local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
+local attribute [simv] pow_le_pow_iff one_lt_two inv_le_inv
 
 variable {E : ℕ → Type*}
 
@@ -78,7 +78,7 @@ begin
   rw first_diff at hn,
   split_ifs at hn,
   { convert nat.find_min (ne_iff.1 h) hn,
-    simp },
+    simv },
   { exact (not_lt_zero' hn).elim }
 end
 
@@ -114,10 +114,10 @@ def cylinder (x : Π n, E n) (n : ℕ) : set (Π n, E n) :=
 
 lemma cylinder_eq_pi (x : Π n, E n) (n : ℕ) :
   cylinder x n = set.pi (finset.range n : set ℕ) (λ (i : ℕ), {x i}) :=
-by { ext y, simp [cylinder] }
+by { ext y, simv [cylinder] }
 
 @[simp] lemma cylinder_zero (x : Π n, E n) : cylinder x 0 = univ :=
-by simp [cylinder_eq_pi]
+by simv [cylinder_eq_pi]
 
 lemma cylinder_anti (x : Π n, E n) {m n : ℕ} (h : m ≤ n) : cylinder x n ⊆ cylinder x m :=
 λ y hy i hi, hy i (hi.trans_le h)
@@ -128,7 +128,7 @@ iff.rfl
 
 lemma self_mem_cylinder (x : Π n, E n) (n : ℕ) :
   x ∈ cylinder x n :=
-by simp
+by simv
 
 lemma mem_cylinder_iff_eq {x y : Π n, E n} {n : ℕ} :
   y ∈ cylinder x n ↔ cylinder y n = cylinder x n :=
@@ -149,7 +149,7 @@ end
 
 lemma mem_cylinder_comm (x y : Π n, E n) (n : ℕ) :
   y ∈ cylinder x n ↔ x ∈ cylinder y n :=
-by simp [mem_cylinder_iff_eq, eq_comm]
+by simv [mem_cylinder_iff_eq, eq_comm]
 
 lemma mem_cylinder_iff_le_first_diff {x y : Π n, E n} (hne : x ≠ y) (i : ℕ) :
   x ∈ cylinder y i ↔ i ≤ first_diff x y :=
@@ -178,20 +178,20 @@ lemma Union_cylinder_update (x : Π n, E n) (n : ℕ) :
   (⋃ k, cylinder (update x n k) (n+1)) = cylinder x n :=
 begin
   ext y,
-  simp only [mem_cylinder_iff, mem_Union],
+  simv only [mem_cylinder_iff, mem_Union],
   split,
   { rintros ⟨k, hk⟩ i hi,
     simpa [hi.ne] using hk i (nat.lt_succ_of_lt hi) },
   { assume H,
     refine ⟨y n, λ i hi, _⟩,
     rcases nat.lt_succ_iff_lt_or_eq.1 hi with h'i|rfl,
-    { simp [H i h'i, h'i.ne] },
-    { simp } },
+    { simv [H i h'i, h'i.ne] },
+    { simv } },
 end
 
 lemma update_mem_cylinder (x : Π n, E n) (n : ℕ) (y : E n) :
   update x n y ∈ cylinder x n :=
-mem_cylinder_iff.2 (λ i hi, by simp [hi.ne])
+mem_cylinder_iff.2 (λ i hi, by simv [hi.ne])
 
 /-!
 ### A distance function on `Π n, E n`
@@ -212,31 +212,31 @@ local attribute [instance] pi_nat.has_dist
 
 lemma dist_eq_of_ne {x y : Π n, E n} (h : x ≠ y) :
   dist x y = (1/2 : ℝ) ^ (first_diff x y) :=
-by simp [dist, h]
+by simv [dist, h]
 
 protected lemma dist_self (x : Π n, E n) : dist x x = 0 :=
-by simp [dist]
+by simv [dist]
 
 protected lemma dist_comm (x y : Π n, E n) : dist x y = dist y x :=
-by simp [dist, @eq_comm _ x y, first_diff_comm]
+by simv [dist, @eq_comm _ x y, first_diff_comm]
 
 protected lemma dist_nonneg (x y : Π n, E n) : 0 ≤ dist x y :=
 begin
   rcases eq_or_ne x y with rfl|h,
-  { simp [dist] },
-  { simp [dist, h] }
+  { simv [dist] },
+  { simv [dist, h] }
 end
 
 lemma dist_triangle_nonarch (x y z : Π n, E n) :
   dist x z ≤ max (dist x y) (dist y z) :=
 begin
   rcases eq_or_ne x z with rfl|hxz,
-  { simp [pi_nat.dist_self x, pi_nat.dist_nonneg] },
+  { simv [pi_nat.dist_self x, pi_nat.dist_nonneg] },
   rcases eq_or_ne x y with rfl|hxy,
-  { simp },
+  { simv },
   rcases eq_or_ne y z with rfl|hyz,
-  { simp },
-  simp only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow, zero_lt_bit0,
+  { simv },
+  simv only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow, zero_lt_bit0,
     ne.def, not_false_iff, le_max_iff, zero_lt_one, pow_le_pow_iff, one_lt_two, pow_pos,
     min_le_iff.1 (min_first_diff_le x y z hxz)],
 end
@@ -251,14 +251,14 @@ calc dist x z ≤ max (dist x y) (dist y z) :
 protected lemma eq_of_dist_eq_zero (x y : Π n, E n) (hxy : dist x y = 0) : x = y :=
 begin
   rcases eq_or_ne x y with rfl|h, { refl },
-  simp [dist_eq_of_ne h] at hxy,
+  simv [dist_eq_of_ne h] at hxy,
   exact (two_ne_zero (pow_eq_zero hxy)).elim
 end
 
 lemma mem_cylinder_iff_dist_le {x y : Π n, E n} {n : ℕ} :
   y ∈ cylinder x n ↔ dist y x ≤ (1/2)^n :=
 begin
-  rcases eq_or_ne y x with rfl|hne, { simp [pi_nat.dist_self] },
+  rcases eq_or_ne y x with rfl|hne, { simv [pi_nat.dist_self] },
   suffices : (∀ (i : ℕ), i < n → y i = x i) ↔ n ≤ first_diff y x,
     by simpa [dist_eq_of_ne hne],
   split,
@@ -293,7 +293,7 @@ begin
     rw pi_nat.dist_comm,
     exact mem_cylinder_iff_dist_le.1 hxy },
   { assume H x y,
-    rcases eq_or_ne x y with rfl|hne, { simp [pi_nat.dist_nonneg] },
+    rcases eq_or_ne x y with rfl|hne, { simv [pi_nat.dist_nonneg] },
     rw dist_eq_of_ne hne,
     apply H x y (first_diff x y),
     rw first_diff_comm,
@@ -323,7 +323,7 @@ begin
     assume i hi,
     have : y i = x i := mem_cylinder_iff.1 hy i ((hn hi).trans_lt (lt_add_one n)),
     rw this,
-    simp only [set.mem_pi, finset.mem_coe] at xU,
+    simv only [set.mem_pi, finset.mem_coe] at xU,
     exact xU i hi }
 end
 
@@ -338,7 +338,7 @@ begin
       (H : v ∈ {s | ∃ (x : Π (n : ℕ), E n) (n : ℕ), s = cylinder x n}), x ∈ v ∧ v ⊆ s :=
         (is_topological_basis_cylinders E).exists_subset_of_mem_open hx hs,
     rw ← mem_cylinder_iff_eq.1 h'x at h's,
-    exact ⟨(1/2 : ℝ)^n, by simp,
+    exact ⟨(1/2 : ℝ)^n, by simv,
       λ y hy, h's (λ i hi, (apply_eq_of_dist_lt hy hi.le).symm)⟩ },
   { assume h,
     apply (is_topological_basis_cylinders E).is_open_iff.2 (λ x hx, _),
@@ -375,26 +375,26 @@ begin
     to_uniform_space := Pi.uniform_space _,
     uniformity_dist :=
     begin
-      simp [Pi.uniformity, comap_infi, gt_iff_lt, preimage_set_of_eq, comap_principal,
+      simv [Pi.uniformity, comap_infi, gt_iff_lt, preimage_set_of_eq, comap_principal,
         pseudo_metric_space.uniformity_dist, h, id_rel],
       apply le_antisymm,
-      { simp only [le_infi_iff, le_principal_iff],
+      { simv only [le_infi_iff, le_principal_iff],
         assume ε εpos,
         obtain ⟨n, hn⟩ : ∃ n, (1/2 : ℝ)^n < ε := exists_pow_lt_of_lt_one εpos (by norm_num),
         apply @mem_infi_of_Inter _ _ _ _ _ (finset.range n).finite_to_set
           (λ i, {p : (Π (n : ℕ), E n) × Π (n : ℕ), E n | p.fst i = p.snd i}),
-        { simp only [mem_principal, set_of_subset_set_of, imp_self, implies_true_iff] },
+        { simv only [mem_principal, set_of_subset_set_of, imp_self, implies_true_iff] },
         { rintros ⟨x, y⟩ hxy,
-          simp only [finset.mem_coe, finset.mem_range, Inter_coe_set, mem_Inter, mem_set_of_eq]
+          simv only [finset.mem_coe, finset.mem_range, Inter_coe_set, mem_Inter, mem_set_of_eq]
             at hxy,
           apply lt_of_le_of_lt _ hn,
           rw [← mem_cylinder_iff_dist_le, mem_cylinder_iff],
           exact hxy } },
-      { simp only [le_infi_iff, le_principal_iff],
+      { simv only [le_infi_iff, le_principal_iff],
         assume n,
         refine mem_infi_of_mem ((1/2)^n) _,
         refine mem_infi_of_mem (by norm_num) _,
-        simp only [mem_principal, set_of_subset_set_of, prod.forall],
+        simv only [mem_principal, set_of_subset_set_of, prod.forall],
         assume x y hxy,
         exact apply_eq_of_dist_lt hxy le_rfl }
     end }
@@ -410,7 +410,7 @@ local attribute [instance] pi_nat.metric_space
 
 protected lemma complete_space : complete_space (Π n, E n) :=
 begin
-  refine metric.complete_of_convergent_controlled_sequences (λ n, (1/2)^n) (by simp) _,
+  refine metric.complete_of_convergent_controlled_sequences (λ n, (1/2)^n) (by simv) _,
   assume u hu,
   refine ⟨λ n, u n n, tendsto_pi_nhds.2 (λ i, _)⟩,
   refine tendsto_const_nhds.congr' _,
@@ -432,7 +432,7 @@ lemma exists_disjoint_cylinder {s : set (Π n, E n)} (hs : is_closed s) {x : Π 
   ∃ n, disjoint s (cylinder x n) :=
 begin
   unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
-  { exact ⟨0, by simp⟩ },
+  { exact ⟨0, by simv⟩ },
   have A : 0 < inf_dist x s := (hs.not_mem_iff_inf_dist_pos hne).1 hx,
   obtain ⟨n, hn⟩ : ∃ n, (1/2 : ℝ)^n < inf_dist x s := exists_pow_lt_of_lt_one A (one_half_lt_one),
   refine ⟨n, _⟩,
@@ -510,7 +510,7 @@ lemma disjoint_cylinder_of_longest_prefix_lt
   {x : (Π n, E n)} (hx : x ∉ s) {n : ℕ} (hn : longest_prefix x s < n) :
   disjoint s (cylinder x n) :=
 begin
-  rcases eq_empty_or_nonempty s with h's|hne, { simp [h's] },
+  rcases eq_empty_or_nonempty s with h's|hne, { simv [h's] },
   contrapose! hn,
   rcases not_disjoint_iff_nonempty_inter.1 hn with ⟨y, ys, hy⟩,
   apply le_trans _ (first_diff_le_longest_prefix hs hx ys),
@@ -566,7 +566,7 @@ begin
   Otherwise, `f x` remains in the same `n`-cylinder as `x`. Similarly for `y`. Finally, `f x` and
   `f y` are again in the same `n`-cylinder, as desired. -/
   set f := λ x, if x ∈ s then x else (inter_cylinder_longest_prefix_nonempty hs hne x).some with hf,
-  have fs : ∀ x ∈ s, f x = x := λ x xs, by simp [xs],
+  have fs : ∀ x ∈ s, f x = x := λ x xs, by simv [xs],
   refine ⟨f, fs, _, _⟩,
   -- check that the range of `f` is `s`.
   { apply subset.antisymm,
@@ -579,8 +579,8 @@ begin
   -- check that `f` is `1`-Lipschitz, by a case analysis.
   { apply lipschitz_with.mk_one (λ x y, _),
     -- exclude the trivial cases where `x = y`, or `f x = f y`.
-    rcases eq_or_ne x y with rfl|hxy, { simp },
-    rcases eq_or_ne (f x) (f y) with h'|hfxfy, { simp [h', dist_nonneg] },
+    rcases eq_or_ne x y with rfl|hxy, { simv },
+    rcases eq_or_ne (f x) (f y) with h'|hfxfy, { simv [h', dist_nonneg] },
     have I2 : cylinder x (first_diff x y) = cylinder y (first_diff x y),
     { rw ← mem_cylinder_iff_eq,
       apply mem_cylinder_first_diff },
@@ -664,7 +664,7 @@ begin
   obtain ⟨f, fs, f_range, f_cont⟩ : ∃ f : (Π n, E n) → (Π n, E n),
     (∀ x ∈ s, f x = x) ∧ (range f = s) ∧ continuous f :=
       exists_retraction_of_is_closed hs hne,
-  have A : ∀ x, f x ∈ s, by simp [← f_range],
+  have A : ∀ x, f x ∈ s, by simv [← f_range],
   have B : ∀ (x : s), cod_restrict f s A x = x,
   { assume x,
     apply subtype.coe_injective.eq_iff.1,
@@ -700,7 +700,7 @@ begin
   have g_cont : continuous g,
   { apply continuous_iff_continuous_at.2 (λ y, _),
     apply continuous_at_of_locally_lipschitz zero_lt_one 4 (λ x hxy, _),
-    rcases eq_or_ne x y with rfl|hne, { simp },
+    rcases eq_or_ne x y with rfl|hne, { simv },
     have hne' : x.1 ≠ y.1 := subtype.coe_injective.ne hne,
     have dist' : dist x y = dist x.1 y.1 := rfl,
     let n := first_diff x.1 y.1 - 1,
@@ -722,7 +722,7 @@ begin
   { assume y,
     have : ∀ (n : ℕ), ∃ j, y ∈ closed_ball (u j) ((1/2)^n),
     { assume n,
-      rcases hu.exists_dist_lt y (by simp : (0 : ℝ) < (1/2)^n) with ⟨j, hj⟩,
+      rcases hu.exists_dist_lt y (by simv : (0 : ℝ) < (1/2)^n) with ⟨j, hj⟩,
       exact ⟨j, hj.le⟩ },
     choose x hx using this,
     have I : (⋂ (n : ℕ), closed_ball (u (x n)) ((1 / 2) ^ n)).nonempty := ⟨y, mem_Inter.2 hx⟩,
@@ -794,7 +794,7 @@ end
 
 lemma min_dist_le_dist_pi (x y : Π i, F i) (i : ι) :
   min ((1/2)^(encode i)) (dist (x i) (y i)) ≤ dist x y :=
-le_tsum (dist_summable x y) i (λ j hj, le_min (by simp) (dist_nonneg))
+le_tsum (dist_summable x y) i (λ j hj, le_min (by simv) (dist_nonneg))
 
 lemma dist_le_dist_pi_of_dist_lt {x y : Π i, F i} {i : ι} (h : dist x y < (1/2)^(encode i)) :
   dist (x i) (y i) ≤ dist x y :=
@@ -812,8 +812,8 @@ defining the right topology and uniform structure. It is highly non-canonical, t
 not registered as a global instance.
 The distance we use here is `dist x y = ∑' n, min (1/2)^(encode i) (dist (x n) (y n))`. -/
 protected def metric_space : metric_space (Π i, F i) :=
-{ dist_self := λ x, by simp [dist_eq_tsum],
-  dist_comm := λ x y, by simp [dist_eq_tsum, dist_comm],
+{ dist_self := λ x, by simv [dist_eq_tsum],
+  dist_comm := λ x y, by simv [dist_eq_tsum, dist_comm],
   dist_triangle := λ x y z,
   begin
     have I : ∀ i, min ((1/2)^(encode i)) (dist (x i) (z i)) ≤
@@ -827,7 +827,7 @@ protected def metric_space : metric_space (Π i, F i) :=
         begin
           convert congr_arg (coe : ℝ≥0 → ℝ)
             (min_add_distrib ((1/2 : ℝ≥0)^(encode i)) (nndist (x i) (y i)) (nndist (y i) (z i)));
-          simp
+          simv
         end
       ... ≤ min ((1/2)^(encode i)) (dist (x i) (y i)) + min ((1/2)^(encode i)) (dist (y i) (z i)) :
           min_le_right _ _,
@@ -843,17 +843,17 @@ protected def metric_space : metric_space (Π i, F i) :=
     rw [← dist_le_zero, ← hxy],
     apply dist_le_dist_pi_of_dist_lt,
     rw hxy,
-    simp
+    simv
   end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_dist :=
   begin
     have I0 : (0 : ℝ) ≤ 1/2, by norm_num,
     have I1 : (1/2 : ℝ) < 1, by norm_num,
-    simp only [Pi.uniformity, comap_infi, gt_iff_lt, preimage_set_of_eq, comap_principal,
+    simv only [Pi.uniformity, comap_infi, gt_iff_lt, preimage_set_of_eq, comap_principal,
       pseudo_metric_space.uniformity_dist],
     apply le_antisymm,
-    { simp only [le_infi_iff, le_principal_iff],
+    { simv only [le_infi_iff, le_principal_iff],
       assume ε εpos,
       obtain ⟨K, hK⟩ : ∃ (K : finset ι), ∑' (i : {j // j ∉ K}), (1/2 : ℝ)^(encode (i : ι)) < ε/2 :=
         ((tendsto_order.1 (tendsto_tsum_compl_at_top_zero (λ (i : ι), (1/2 : ℝ)^(encode i)))).2
@@ -870,9 +870,9 @@ protected def metric_space : metric_space (Π i, F i) :=
         (λ i, {p : (Π (i : ι), F i) × Π (i : ι), F i | dist (p.fst i) (p.snd i) < δ}),
       { rintros ⟨i, hi⟩,
         refine mem_infi_of_mem δ (mem_infi_of_mem δpos _),
-        simp only [prod.forall, imp_self, mem_principal] },
+        simv only [prod.forall, imp_self, mem_principal] },
       { rintros ⟨x, y⟩ hxy,
-        simp only [mem_Inter, mem_set_of_eq, set_coe.forall, finset.mem_range, finset.mem_coe]
+        simv only [mem_Inter, mem_set_of_eq, set_coe.forall, finset.mem_range, finset.mem_coe]
           at hxy,
         calc dist x y = ∑' (i : ι), min ((1/2)^(encode i)) (dist (x i) (y i)) : rfl
         ... = ∑ i in K, min ((1/2)^(encode i)) (dist (x i) (y i))
@@ -896,12 +896,12 @@ protected def metric_space : metric_space (Π i, F i) :=
         ... ≤ ε / 2 + ε / 2 :
           add_le_add_right (by simpa only [finset.sum_const, nsmul_eq_mul] using hδ) _
         ... = ε : add_halves _ } },
-    { simp only [le_infi_iff, le_principal_iff],
+    { simv only [le_infi_iff, le_principal_iff],
       assume i ε εpos,
       refine mem_infi_of_mem (min ((1/2)^(encode i)) ε) _,
-      have : 0 < min ((1/2)^(encode i)) ε := lt_min (by simp) εpos,
+      have : 0 < min ((1/2)^(encode i)) ε := lt_min (by simv) εpos,
       refine mem_infi_of_mem this _,
-      simp only [and_imp, prod.forall, set_of_subset_set_of, lt_min_iff, mem_principal],
+      simv only [and_imp, prod.forall, set_of_subset_set_of, lt_min_iff, mem_principal],
       assume x y hn hε,
       calc dist (x i) (y i) ≤ dist x y : dist_le_dist_pi_of_dist_lt hn
       ... < ε : hε }

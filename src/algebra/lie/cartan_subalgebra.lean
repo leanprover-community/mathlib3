@@ -58,8 +58,8 @@ by rw [← lie_submodule.coe_to_submodule_eq_iff, coe_centralizer_eq_normalizer,
   H.to_lie_submodule.ucs k = H.to_lie_submodule :=
 begin
   induction k with k ih,
-  { simp, },
-  { simp [ih], },
+  { simv, },
+  { simv [ih], },
 end
 
 lemma is_cartan_subalgebra_iff_is_ucs_limit :

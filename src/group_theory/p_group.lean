@@ -134,10 +134,10 @@ begin
     card_congr (equiv.sigma_fiber_equiv (@quotient.mk' _ (orbit_rel G α))).symm
   ... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
   ... ≡ ∑ a : fixed_points G α, 1 [MOD p] : _
-  ... = _ : by simp; refl,
+  ... = _ : by simv; refl,
   rw [←zmod.eq_iff_modeq_nat p, nat.cast_sum, nat.cast_sum],
   have key : ∀ x, card {y // (quotient.mk' y : quotient (orbit_rel G α)) = quotient.mk' x} =
-    card (orbit G x) := λ x, by simp only [quotient.eq']; congr,
+    card (orbit G x) := λ x, by simv only [quotient.eq']; congr,
   refine eq.symm (finset.sum_bij_ne_zero (λ a _ _, quotient.mk' a.1) (λ _ _ _, finset.mem_univ _)
     (λ a₁ a₂ _ _ _ _ h, subtype.eq ((mem_fixed_points' α).mp a₂.2 a₁.1 (quotient.exact' h)))
       (λ b, quotient.induction_on' b (λ b _ hb, _)) (λ a ha _, by

@@ -21,14 +21,14 @@ variables {X Y : Type*} [topological_space X]
 @[to_additive] instance [has_one Y] : has_one (locally_constant X Y) :=
 { one := const X 1 }
 
-@[simp, to_additive] lemma coe_one [has_one Y] : ⇑(1 : locally_constant X Y) = (1 : X → Y) := rfl
+@[simv, to_additive] lemma coe_one [has_one Y] : ⇑(1 : locally_constant X Y) = (1 : X → Y) := rfl
 
 @[to_additive] lemma one_apply [has_one Y] (x : X) : (1 : locally_constant X Y) x = 1 := rfl
 
 @[to_additive] instance [has_inv Y] : has_inv (locally_constant X Y) :=
 { inv := λ f, ⟨f⁻¹ , f.is_locally_constant.inv⟩ }
 
-@[simp, to_additive] lemma coe_inv [has_inv Y] (f : locally_constant X Y) : ⇑(f⁻¹) = f⁻¹ := rfl
+@[simv, to_additive] lemma coe_inv [has_inv Y] (f : locally_constant X Y) : ⇑(f⁻¹) = f⁻¹ := rfl
 
 @[to_additive] lemma inv_apply [has_inv Y] (f : locally_constant X Y) (x : X) :
   f⁻¹ x = (f x)⁻¹ := rfl
@@ -36,7 +36,7 @@ variables {X Y : Type*} [topological_space X]
 @[to_additive] instance [has_mul Y] : has_mul (locally_constant X Y) :=
 { mul := λ f g, ⟨f * g, f.is_locally_constant.mul g.is_locally_constant⟩ }
 
-@[simp, to_additive] lemma coe_mul [has_mul Y] (f g : locally_constant X Y) :
+@[simv, to_additive] lemma coe_mul [has_mul Y] (f g : locally_constant X Y) :
   ⇑(f * g) = f * g :=
 rfl
 
@@ -44,8 +44,8 @@ rfl
   (f * g) x = f x * g x := rfl
 
 @[to_additive] instance [mul_one_class Y] : mul_one_class (locally_constant X Y) :=
-{ one_mul := by { intros, ext, simp only [mul_apply, one_apply, one_mul] },
-  mul_one := by { intros, ext, simp only [mul_apply, one_apply, mul_one] },
+{ one_mul := by { intros, ext, simv only [mul_apply, one_apply, one_mul] },
+  mul_one := by { intros, ext, simv only [mul_apply, one_apply, mul_one] },
   .. locally_constant.has_one,
   .. locally_constant.has_mul }
 
@@ -64,8 +64,8 @@ def const_monoid_hom [mul_one_class Y] : Y →* locally_constant X Y :=
   map_mul' := λ _ _, rfl, }
 
 instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
-{ zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
-  mul_zero := by { intros, ext, simp only [mul_apply, zero_apply, mul_zero] },
+{ zero_mul := by { intros, ext, simv only [mul_apply, zero_apply, zero_mul] },
+  mul_zero := by { intros, ext, simv only [mul_apply, zero_apply, mul_zero] },
   .. locally_constant.has_zero,
   .. locally_constant.has_mul }
 
@@ -105,7 +105,7 @@ end char_fn
   (f / g) x = f x / g x := rfl
 
 @[to_additive] instance [semigroup Y] : semigroup (locally_constant X Y) :=
-{ mul_assoc := by { intros, ext, simp only [mul_apply, mul_assoc] },
+{ mul_assoc := by { intros, ext, simv only [mul_apply, mul_assoc] },
   .. locally_constant.has_mul }
 
 instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
@@ -113,7 +113,7 @@ instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
   .. locally_constant.semigroup }
 
 @[to_additive] instance [comm_semigroup Y] : comm_semigroup (locally_constant X Y) :=
-{ mul_comm := by { intros, ext, simp only [mul_apply, mul_comm] },
+{ mul_comm := by { intros, ext, simv only [mul_apply, mul_comm] },
   .. locally_constant.semigroup }
 
 @[to_additive] instance [monoid Y] : monoid (locally_constant X Y) :=
@@ -122,24 +122,24 @@ instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
 
 instance [add_monoid_with_one Y] : add_monoid_with_one (locally_constant X Y) :=
 { nat_cast := λ n, const X n,
-  nat_cast_zero := by ext; simp [nat.cast],
-  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  nat_cast_zero := by ext; simv [nat.cast],
+  nat_cast_succ := λ _, by ext; simv [nat.cast],
   .. locally_constant.add_monoid, .. locally_constant.has_one }
 
 @[to_additive] instance [comm_monoid Y] : comm_monoid (locally_constant X Y) :=
 { .. locally_constant.comm_semigroup, .. locally_constant.monoid }
 
 @[to_additive] instance [group Y] : group (locally_constant X Y) :=
-{ mul_left_inv := by { intros, ext, simp only [mul_apply, inv_apply, one_apply, mul_left_inv] },
-  div_eq_mul_inv := by { intros, ext, simp only [mul_apply, inv_apply, div_apply, div_eq_mul_inv] },
+{ mul_left_inv := by { intros, ext, simv only [mul_apply, inv_apply, one_apply, mul_left_inv] },
+  div_eq_mul_inv := by { intros, ext, simv only [mul_apply, inv_apply, div_apply, div_eq_mul_inv] },
   .. locally_constant.monoid, .. locally_constant.has_inv, .. locally_constant.has_div }
 
 @[to_additive] instance [comm_group Y] : comm_group (locally_constant X Y) :=
 { .. locally_constant.comm_monoid, .. locally_constant.group }
 
 instance [distrib Y] : distrib (locally_constant X Y) :=
-{ left_distrib := by { intros, ext, simp only [mul_apply, add_apply, mul_add] },
-  right_distrib := by { intros, ext, simp only [mul_apply, add_apply, add_mul] },
+{ left_distrib := by { intros, ext, simv only [mul_apply, add_apply, mul_add] },
+  right_distrib := by { intros, ext, simv only [mul_apply, add_apply, add_mul] },
   .. locally_constant.has_add, .. locally_constant.has_mul }
 
 instance [non_unital_non_assoc_semiring Y] : non_unital_non_assoc_semiring (locally_constant X Y) :=

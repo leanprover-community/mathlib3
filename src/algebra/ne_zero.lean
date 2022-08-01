@@ -28,7 +28,7 @@ lemma ne_zero_iff {R : Type*} [has_zero R] {n : R} : ne_zero n ↔ n ≠ 0 :=
 ⟨λ h, h.out, ne_zero.mk⟩
 
 lemma not_ne_zero {R : Type*} [has_zero R] {n : R} : ¬ ne_zero n ↔ n = 0 :=
-by simp [ne_zero_iff]
+by simv [ne_zero_iff]
 
 namespace ne_zero
 
@@ -59,7 +59,7 @@ lemma nat_of_ne_zero [semiring R] [semiring S] [ring_hom_class F R S] (f : F)
   [hn : ne_zero (n : S)] : ne_zero (n : R) :=
 begin
   apply ne_zero.of_map f,
-  simp [hn]
+  simv [hn]
 end
 
 lemma of_injective [has_zero R] [h : ne_zero r] [has_zero M] [zero_hom_class F R M]

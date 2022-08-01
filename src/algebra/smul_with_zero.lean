@@ -74,8 +74,8 @@ protected def function.injective.smul_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
 { smul := (•),
-  zero_smul := λ a, hf $ by simp [smul],
-  smul_zero := λ a, hf $ by simp [smul]}
+  zero_smul := λ a, hf $ by simv [smul],
+  smul_zero := λ a, hf $ by simv [smul]}
 
 /-- Pushforward a `smul_with_zero` structure along a surjective zero-preserving homomorphism.
 See note [reducible non-instances]. -/
@@ -84,16 +84,16 @@ protected def function.surjective.smul_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
 { smul := (•),
-  zero_smul := λ m, by { rcases hf m with ⟨x, rfl⟩, simp [←smul] },
-  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero'] }
+  zero_smul := λ m, by { rcases hf m with ⟨x, rfl⟩, simv [←smul] },
+  smul_zero := λ c, by simv only [← f.map_zero, ← smul, smul_zero'] }
 
 variables (M)
 
 /-- Compose a `smul_with_zero` with a `zero_hom`, with action `f r' • m` -/
 def smul_with_zero.comp_hom (f : zero_hom R' R) : smul_with_zero R' M :=
 { smul := (•) ∘ f,
-  smul_zero := λ m, by simp,
-  zero_smul := λ m, by simp }
+  smul_zero := λ m, by simv,
+  zero_smul := λ m, by simv }
 
 end has_zero
 
@@ -157,8 +157,8 @@ variables (M)
 /-- Compose a `mul_action_with_zero` with a `monoid_with_zero_hom`, with action `f r' • m` -/
 def mul_action_with_zero.comp_hom (f : R' →*₀ R) : mul_action_with_zero R' M :=
 { smul := (•) ∘ f,
-  mul_smul := λ r s m, by simp [mul_smul],
-  one_smul := λ m, by simp,
+  mul_smul := λ r s m, by simv [mul_smul],
+  one_smul := λ m, by simv,
   .. smul_with_zero.comp_hom M f.to_zero_hom}
 
 end monoid_with_zero
@@ -170,9 +170,9 @@ lemma smul_inv₀ [smul_comm_class α β β] [is_scalar_tower α β β] (c : α)
   (c • x)⁻¹ = c⁻¹ • x⁻¹ :=
 begin
   obtain rfl | hc := eq_or_ne c 0,
-  { simp only [inv_zero, zero_smul] },
+  { simv only [inv_zero, zero_smul] },
   obtain rfl | hx := eq_or_ne x 0,
-  { simp only [inv_zero, smul_zero'] },
+  { simv only [inv_zero, smul_zero'] },
   { refine inv_eq_of_mul_eq_one_left _,
     rw [smul_mul_smul, inv_mul_cancel hc, inv_mul_cancel hx, one_smul] }
 end

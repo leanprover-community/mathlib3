@@ -40,26 +40,26 @@ by unfold fold; rw [insert_val, ndinsert_of_not_mem h, multiset.map_cons, fold_c
 
 @[simp] theorem fold_map {g : γ ↪ α} {s : finset γ} :
   (s.map g).fold op b f = s.fold op b (f ∘ g) :=
-by simp only [fold, map, multiset.map_map]
+by simv only [fold, map, multiset.map_map]
 
 @[simp] theorem fold_image [decidable_eq α] {g : γ → α} {s : finset γ}
   (H : ∀ (x ∈ s) (y ∈ s), g x = g y → x = y) : (s.image g).fold op b f = s.fold op b (f ∘ g) :=
-by simp only [fold, image_val_of_inj_on H, multiset.map_map]
+by simv only [fold, image_val_of_inj_on H, multiset.map_map]
 
 @[congr] theorem fold_congr {g : α → β} (H : ∀ x ∈ s, f x = g x) : s.fold op b f = s.fold op b g :=
 by rw [fold, fold, map_congr rfl H]
 
 theorem fold_op_distrib {f g : α → β} {b₁ b₂ : β} :
   s.fold op (b₁ * b₂) (λx, f x * g x) = s.fold op b₁ f * s.fold op b₂ g :=
-by simp only [fold, fold_distrib]
+by simv only [fold, fold_distrib]
 
 lemma fold_const [decidable (s = ∅)] (c : β) (h : op c (op b c) = op b c) :
   finset.fold op b (λ _, c) s = if s = ∅ then b else op b c :=
 begin
   classical,
   unfreezingI { induction s using finset.induction_on with x s hx IH },
-  { simp },
-  { simp only [finset.fold_insert hx, IH, if_false, finset.insert_ne_empty],
+  { simv },
+  { simv only [finset.fold_insert hx, IH, if_false, finset.insert_ne_empty],
     split_ifs,
     { rw hc.comm },
     { exact h } }
@@ -83,7 +83,7 @@ by unfold fold; rw [← fold_add op, ← multiset.map_add, union_val,
   (insert a s).fold op b f = f a * s.fold op b f :=
 begin
   by_cases (a ∈ s),
-  { rw [← insert_erase h], simp [← ha.assoc, hi.idempotent] },
+  { rw [← insert_erase h], simv [← ha.assoc, hi.idempotent] },
   { apply fold_insert h },
 end
 
@@ -107,15 +107,15 @@ lemma fold_ite' {g : α → β} (hb : op b b = b)
 begin
   classical,
   induction s using finset.induction_on with x s hx IH,
-  { simp [hb] },
-  { simp only [finset.filter_congr_decidable, finset.fold_insert hx],
+  { simv [hb] },
+  { simv only [finset.filter_congr_decidable, finset.fold_insert hx],
     split_ifs with h h,
     { have : x ∉ finset.filter p s,
-      { simp [hx] },
-      simp [finset.filter_insert, h, finset.fold_insert this, ha.assoc, IH] },
+      { simv [hx] },
+      simv [finset.filter_insert, h, finset.fold_insert this, ha.assoc, IH] },
     { have : x ∉ finset.filter (λ i, ¬ p i) s,
-      { simp [hx] },
-      simp [finset.filter_insert, h, finset.fold_insert this, IH, ←ha.assoc, hc.comm] } }
+      { simv [hx] },
+      simv [finset.filter_insert, h, finset.fold_insert this, IH, ←ha.assoc, hc.comm] } }
 end
 
 /-- A weaker version of `finset.fold_ite'`,
@@ -133,7 +133,7 @@ lemma fold_op_rel_iff_and
   r c (s.fold op b f) ↔ (r c b ∧ ∀ x∈s, r c (f x)) :=
 begin
   classical,
-  apply finset.induction_on s, { simp },
+  apply finset.induction_on s, { simv },
   clear s, intros a s ha IH,
   rw [finset.fold_insert ha, hr, IH, ← and_assoc, and_comm (r c (f a)), and_assoc],
   apply and_congr iff.rfl,
@@ -150,14 +150,14 @@ lemma fold_op_rel_iff_or
   r c (s.fold op b f) ↔ (r c b ∨ ∃ x∈s, r c (f x)) :=
 begin
   classical,
-  apply finset.induction_on s, { simp },
+  apply finset.induction_on s, { simv },
   clear s, intros a s ha IH,
   rw [finset.fold_insert ha, hr, IH, ← or_assoc, or_comm (r c (f a)), or_assoc],
   apply or_congr iff.rfl,
   split,
   { rintro (h₁|⟨x, hx, h₂⟩),
-    { use a, simp [h₁] },
-    { refine ⟨x, by simp [hx], h₂⟩ } },
+    { use a, simv [h₁] },
+    { refine ⟨x, by simv [hx], h₂⟩ } },
   { rintro ⟨x, hx, h⟩,
     rw mem_insert at hx, cases hx,
     { left, rwa hx at h },
@@ -171,7 +171,7 @@ lemma fold_union_empty_singleton [decidable_eq α] (s : finset α) :
   finset.fold (∪) ∅ singleton s = s :=
 begin
   apply finset.induction_on s,
-  { simp only [fold_empty], },
+  { simv only [fold_empty], },
   { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
 end
 
@@ -233,7 +233,7 @@ fold_op_rel_iff_or $ λ x y z, lt_max_iff
 lemma fold_max_add [has_add β] [covariant_class β β (function.swap (+)) (≤)]
  (n : with_bot β) (s : finset α) :
   s.fold max ⊥ (λ (x : α), ↑(f x) + n) = s.fold max ⊥ (coe ∘ f) + n :=
-by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
+by { classical, apply s.induction_on; simv [max_add_add_right] {contextual := tt} }
 
 end order
 

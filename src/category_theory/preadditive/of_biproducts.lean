@@ -41,21 +41,21 @@ local infixr ` +ₗ `:65 := left_add X Y
 local infixr ` +ᵣ `:65 := right_add X Y
 
 lemma is_unital_left_add : eckmann_hilton.is_unital (+ₗ) 0 :=
-⟨⟨λ f, by simp [show biprod.lift (0 : X ⟶ Y) f = f ≫ biprod.inr, by ext; simp]⟩,
- ⟨λ f, by simp [show biprod.lift f (0 : X ⟶ Y) = f ≫ biprod.inl, by ext; simp]⟩⟩
+⟨⟨λ f, by simv [show biprod.lift (0 : X ⟶ Y) f = f ≫ biprod.inr, by ext; simv]⟩,
+ ⟨λ f, by simv [show biprod.lift f (0 : X ⟶ Y) = f ≫ biprod.inl, by ext; simv]⟩⟩
 
 lemma is_unital_right_add : eckmann_hilton.is_unital (+ᵣ) 0 :=
-⟨⟨λ f, by simp [show biprod.desc (0 : X ⟶ Y) f = biprod.snd ≫ f, by ext; simp]⟩,
- ⟨λ f, by simp [show biprod.desc f (0 : X ⟶ Y) = biprod.fst ≫ f, by ext; simp]⟩⟩
+⟨⟨λ f, by simv [show biprod.desc (0 : X ⟶ Y) f = biprod.snd ≫ f, by ext; simv]⟩,
+ ⟨λ f, by simv [show biprod.desc f (0 : X ⟶ Y) = biprod.fst ≫ f, by ext; simv]⟩⟩
 
 lemma distrib (f g h k : X ⟶ Y) : (f +ᵣ g) +ₗ (h +ᵣ k) = (f +ₗ h) +ᵣ (g +ₗ k) :=
 begin
   let diag : X ⊞ X ⟶ Y ⊞ Y := biprod.lift (biprod.desc f g) (biprod.desc h k),
-  have hd₁ : biprod.inl ≫ diag = biprod.lift f h := by { ext; simp },
-  have hd₂ : biprod.inr ≫ diag = biprod.lift g k := by { ext; simp },
-  have h₁ : biprod.lift (f +ᵣ g) (h +ᵣ k) = biprod.lift (𝟙 X) (𝟙 X) ≫ diag := by { ext; simp },
+  have hd₁ : biprod.inl ≫ diag = biprod.lift f h := by { ext; simv },
+  have hd₂ : biprod.inr ≫ diag = biprod.lift g k := by { ext; simv },
+  have h₁ : biprod.lift (f +ᵣ g) (h +ᵣ k) = biprod.lift (𝟙 X) (𝟙 X) ≫ diag := by { ext; simv },
   have h₂ : diag ≫ biprod.desc (𝟙 Y) (𝟙 Y) = biprod.desc (f +ₗ h) (g +ₗ k),
-  { ext; simp [reassoc_of hd₁, reassoc_of hd₂] },
+  { ext; simv [reassoc_of hd₁, reassoc_of hd₂] },
   rw [left_add, h₁, category.assoc, h₂, right_add]
 end
 
@@ -85,10 +85,10 @@ congr_fun₂
   (eckmann_hilton.mul (is_unital_left_add X Y) (is_unital_right_add X Y) (distrib  X Y)).symm f g
 
 lemma add_comp (f g : X ⟶ Y) (h : Y ⟶ Z) : (f + g) ≫ h = f ≫ h + g ≫ h :=
-by { simp only [add_eq_right_addition, category.assoc], congr, ext; simp }
+by { simv only [add_eq_right_addition, category.assoc], congr, ext; simv }
 
 lemma comp_add (f : X ⟶ Y) (g h : Y ⟶ Z) : f ≫ (g + h) = f ≫ g + f ≫ h :=
-by { simp only [add_eq_left_addition, ← category.assoc], congr, ext; simp }
+by { simv only [add_eq_left_addition, ← category.assoc], congr, ext; simv }
 
 end
 

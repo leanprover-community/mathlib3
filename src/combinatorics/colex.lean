@@ -106,7 +106,7 @@ lemma hom_lt_iff {β : Type*} [linear_order α] [decidable_eq β] [preorder β]
   {f : α → β} (h₁ : strict_mono f) (A B : finset α) :
   (A.image f).to_colex < (B.image f).to_colex ↔ A.to_colex < B.to_colex :=
 begin
-  simp only [colex.lt_def, not_exists, mem_image, exists_prop, not_and],
+  simv only [colex.lt_def, not_exists, mem_image, exists_prop, not_and],
   split,
   { rintro ⟨k, z, q, k', _, rfl⟩,
     exact ⟨k', λ x hx, by simpa [h₁.injective.eq_iff] using z (h₁ hx), λ t, q _ t rfl, ‹k' ∈ B›⟩ },
@@ -118,7 +118,7 @@ begin
       refine ⟨x', _, rfl⟩,
       rwa ← z _ <|> rwa z _,
       rwa strict_mono.lt_iff_lt h₁ at hx } },
-  { simp only [h₁.injective, function.injective.eq_iff],
+  { simv only [h₁.injective, function.injective.eq_iff],
     exact λ x hx, ne_of_mem_of_not_mem hx ka }
 end
 
@@ -156,26 +156,26 @@ begin
   by_cases h₁ : (A = B),
   { tauto },
   rcases (exists_max_image (A \ B ∪ B \ A) id _) with ⟨k, hk, z⟩,
-  { simp only [mem_union, mem_sdiff] at hk,
+  { simv only [mem_union, mem_sdiff] at hk,
     cases hk,
     { right,
       right,
       refine ⟨k, λ t th, _, hk.2, hk.1⟩,
       specialize z t,
       by_contra h₂,
-      simp only [mem_union, mem_sdiff, id.def] at z,
+      simv only [mem_union, mem_sdiff, id.def] at z,
       rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm] at h₂,
       apply not_le_of_lt th (z h₂) },
     { left,
       refine ⟨k, λ t th, _, hk.2, hk.1⟩,
       specialize z t,
       by_contra h₃,
-      simp only [mem_union, mem_sdiff, id.def] at z,
+      simv only [mem_union, mem_sdiff, id.def] at z,
       rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm, or_comm] at h₃,
       apply not_le_of_lt th (z h₃) }, },
   rw nonempty_iff_ne_empty,
   intro a,
-  simp only [union_eq_empty_iff, sdiff_eq_empty_iff_subset] at a,
+  simv only [union_eq_empty_iff, sdiff_eq_empty_iff_subset] at a,
   apply h₁ (subset.antisymm a.1 a.2)
 end
 
@@ -188,7 +188,7 @@ from λ A B, decidable_of_iff'
   begin
     rw colex.lt_def,
     apply exists_congr,
-    simp only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
+    simv only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
     intro k,
     refine and_congr_left' (forall_congr _),
     tauto,
@@ -254,7 +254,7 @@ end
 lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α} :
   s.to_colex < ({r} : finset α).to_colex ↔ ∀ x ∈ s, x < r :=
 begin
-  simp only [lt_def, mem_singleton, ←and_assoc, exists_eq_right],
+  simv only [lt_def, mem_singleton, ←and_assoc, exists_eq_right],
   split,
   { intros t x hx,
     rw ←not_le,
@@ -269,12 +269,12 @@ end
   then s contains an element greater than or equal to r. -/
 lemma mem_le_of_singleton_le [linear_order α] {r : α} {s : finset α}:
   ({r} : finset α).to_colex ≤ s.to_colex ↔ ∃ x ∈ s, r ≤ x :=
-by { rw ←not_lt, simp [lt_singleton_iff_mem_lt] }
+by { rw ←not_lt, simv [lt_singleton_iff_mem_lt] }
 
 /-- Colex is an extension of the base ordering on α. -/
 lemma singleton_lt_iff_lt [linear_order α] {r s : α} :
   ({r} : finset α).to_colex < ({s} : finset α).to_colex ↔ r < s :=
-by simp [lt_singleton_iff_mem_lt]
+by simv [lt_singleton_iff_mem_lt]
 
 /-- Colex is an extension of the base ordering on α. -/
 lemma singleton_le_iff_le [linear_order α] {r s : α} :
@@ -288,7 +288,7 @@ begin
   rw [colex.lt_def, colex.lt_def],
   apply exists_congr,
   intro k,
-  simp only [mem_sdiff, not_and, not_not],
+  simv only [mem_sdiff, not_and, not_not],
   split,
   { rintro ⟨z, kAB, kB, kA⟩,
     refine ⟨_, kA, kB⟩,
@@ -310,8 +310,8 @@ lemma empty_to_colex_lt [linear_order α] {A : finset α} (hA : A.nonempty) :
   (∅ : finset α).to_colex < A.to_colex :=
 begin
   rw [colex.lt_def],
-  refine ⟨max' _ hA, _, by simp, max'_mem _ _⟩,
-  simp only [false_iff, not_mem_empty],
+  refine ⟨max' _ hA, _, by simv, max'_mem _ _⟩,
+  simv only [false_iff, not_mem_empty],
   intros x hx t,
   apply not_le_of_lt hx (le_max' _ _ t),
 end
@@ -329,7 +329,7 @@ end
   (∅ : finset α).to_colex ≤ A.to_colex :=
 begin
   rcases A.eq_empty_or_nonempty with rfl | hA,
-  { simp },
+  { simv },
   { apply (empty_to_colex_lt hA).le },
 end
 

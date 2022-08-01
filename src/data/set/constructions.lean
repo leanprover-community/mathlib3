@@ -32,7 +32,7 @@ namespace has_finite_inter
 
 -- Satisfying the inhabited linter...
 instance : inhabited (has_finite_inter ({set.univ} : set (set α))) :=
-⟨⟨by tauto, λ _ h1 _ h2, by simp [set.mem_singleton_iff.1 h1, set.mem_singleton_iff.1 h2]⟩⟩
+⟨⟨by tauto, λ _ h1 _ h2, by simv [set.mem_singleton_iff.1 h1, set.mem_singleton_iff.1 h2]⟩⟩
 
 /-- The smallest set of sets containing `S` which is closed under finite intersections. -/
 inductive finite_inter_closure : set (set α)
@@ -51,7 +51,7 @@ lemma finite_inter_mem (cond : has_finite_inter S) (F : finset (set α)) :
 begin
   classical,
   refine finset.induction_on F (λ _, _) _,
-  { simp [cond.univ_mem] },
+  { simv [cond.univ_mem] },
   { intros a s h1 h2 h3,
     suffices : a ∩ ⋂₀ ↑s ∈ S, by simpa,
     exact cond.inter_mem (h3 (finset.mem_insert_self a s))
@@ -69,10 +69,10 @@ begin
   { rcases h1 with (h | ⟨Q, hQ, rfl⟩); rcases h2 with (i | ⟨R, hR, rfl⟩),
     { exact or.inl (cond.inter_mem h i) },
     { exact or.inr ⟨T1 ∩ R, cond.inter_mem h hR,
-        by simp only [ ←set.inter_assoc, set.inter_comm _ A]⟩ },
-    { exact or.inr ⟨Q ∩ T2, cond.inter_mem hQ i, by simp only [set.inter_assoc]⟩ },
+        by simv only [ ←set.inter_assoc, set.inter_comm _ A]⟩ },
+    { exact or.inr ⟨Q ∩ T2, cond.inter_mem hQ i, by simv only [set.inter_assoc]⟩ },
     { exact or.inr ⟨Q ∩ R, cond.inter_mem hQ hR,
-        by { ext x, split; simp { contextual := tt} }⟩ } }
+        by { ext x, split; simv { contextual := tt} }⟩ } }
 end
 
 end has_finite_inter

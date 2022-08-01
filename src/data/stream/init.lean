@@ -32,7 +32,7 @@ theorem head_cons (a : α) (s : stream α) : head (a :: s) = a := rfl
 theorem tail_cons (a : α) (s : stream α) : tail (a :: s) = s := rfl
 
 theorem tail_drop (n : nat) (s : stream α) : tail (drop n s) = drop n (tail s) :=
-funext (λ i, begin unfold tail drop, simp [nth, nat.add_comm, nat.add_left_comm] end)
+funext (λ i, begin unfold tail drop, simv [nth, nat.add_comm, nat.add_left_comm] end)
 
 theorem nth_drop (n m : nat) (s : stream α) : nth (drop m s) n = nth s (n + m) := rfl
 
@@ -46,7 +46,7 @@ theorem nth_succ (n : nat) (s : stream α) : nth s (succ n) = nth (tail s) n := 
 theorem drop_succ (n : nat) (s : stream α) : drop (succ n) s = drop n (tail s) := rfl
 
 @[simp] lemma head_drop {α} (a : stream α) (n : ℕ) : (a.drop n).head = a.nth n :=
-by simp only [drop, head, nat.zero_add, stream.nth]
+by simv only [drop, head, nat.zero_add, stream.nth]
 
 @[ext] protected theorem ext {s₁ s₂ : stream α} : (∀ n, nth s₁ n = nth s₂ n) → s₁ = s₂ :=
 assume h, funext h
@@ -332,7 +332,7 @@ eq_of_bisim
     begin
       rw h, constructor,
        {refl},
-       {simp [odd_eq, odd_eq, tail_interleave, tail_even]}
+       {simv [odd_eq, odd_eq, tail_interleave, tail_even]}
     end)
   rfl
 
@@ -399,7 +399,7 @@ theorem mem_append_stream_left : ∀ {a : α} {l : list α} (s : stream α), a �
   take (succ n) s = head s :: take n (tail s) := rfl
 
 @[simp] theorem length_take (n : ℕ) (s : stream α) : (take n s).length = n :=
-by induction n generalizing s; simp *
+by induction n generalizing s; simv *
 
 theorem nth_take_succ : ∀ (n : nat) (s : stream α), list.nth (take (succ n) s) n = some (nth s n)
 | 0     s := rfl
@@ -420,7 +420,7 @@ theorem take_theorem (s₁ s₂ : stream α) : (∀ (n : nat), take n s₁ = tak
 begin
   intro h, apply stream.ext, intro n,
   induction n with n ih,
-  { have aux := h 1, simp [take] at aux, exact aux },
+  { have aux := h 1, simv [take] at aux, exact aux },
   { have h₁ : some (nth s₁ (succ n)) = some (nth s₂ (succ n)),
     { rw [← nth_take_succ, ← nth_take_succ, h (succ (succ n))] },
     injection h₁ }

@@ -108,9 +108,9 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 @[simp] lemma mk_lt_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) < ⟨k, hk⟩ ↔ n < k := iff.rfl
 
-@[simp, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n : ℕ) ≤ k ↔ n ≤ k := iff.rfl
+@[simv, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n : ℕ) ≤ k ↔ n ≤ k := iff.rfl
 
-@[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n : ℕ) < k ↔ n < k := iff.rfl
+@[simv, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n : ℕ) < k ↔ n < k := iff.rfl
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
@@ -159,7 +159,7 @@ coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
 @[priority 10]
 instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
-⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩
+⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simv [←pnat.coe_le_coe] }⟩
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
@@ -198,7 +198,7 @@ instance : inhabited ℕ+ := ⟨1⟩
 
 -- Some lemmas that rewrite inequalities between explicit numerals in `ℕ+`
 -- into the corresponding inequalities in `ℕ`.
--- TODO: perhaps this should not be attempted by `simp`,
+-- TODO: perhaps this should not be attempted by `simv`,
 -- and instead we should expect `norm_num` to take care of these directly?
 -- TODO: these lemmas are perhaps incomplete:
 -- * 1 is not represented as a bit0 or bit1
@@ -276,7 +276,7 @@ using_well_founded { dec_tac := `[assumption] }
 /-- If `n : ℕ+` is different from `1`, then it is the successor of some `k : ℕ+`. -/
 lemma exists_eq_succ_of_ne_one : ∀ {n : ℕ+} (h1 : n ≠ 1), ∃ (k : ℕ+), n = k + 1
 | ⟨1, _⟩ h1 := false.elim $ h1 rfl
-| ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
+| ⟨n+2, _⟩ _ := ⟨⟨n+1, by simv⟩, rfl⟩
 
 /-- Strong induction on `ℕ+`, with `n = 1` treated separately. -/
 def case_strong_induction_on {p : ℕ+ → Sort*} (a : ℕ+) (hz : p 1)

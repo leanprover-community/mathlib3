@@ -95,7 +95,7 @@ begin
   have hc' : (s.image p).card = n + 1,
   { rwa s.card_image_of_injective hi.injective },
   have hn : (s.image p).nonempty,
-  { simp [hc', ←finset.card_pos] },
+  { simv [hc', ←finset.card_pos] },
   rcases hn with ⟨p₁, hp₁⟩,
   have hp₁' : p₁ ∈ p '' s := by simpa using hp₁,
   rw [affine_independent_set_iff_linear_independent_vsub k hp₁', ← finset.coe_singleton,
@@ -160,7 +160,7 @@ lemma affine_independent_iff_finrank_vector_span_eq [fintype ι] (p : ι → P) 
   (hc : fintype.card ι = n + 1) :
   affine_independent k p ↔ finrank k (vector_span k (set.range p)) = n :=
 begin
-  have hn : nonempty ι, by simp [←fintype.card_pos_iff, hc],
+  have hn : nonempty ι, by simv [←fintype.card_pos_iff, hc],
   cases hn with i₁,
   rw [affine_independent_iff_linear_independent_vsub _ _ i₁,
       linear_independent_iff_card_eq_finrank_span, eq_comm,
@@ -168,7 +168,7 @@ begin
   congr',
   rw ←finset.card_univ at hc,
   rw fintype.subtype_card,
-  simp [finset.filter_ne', finset.card_erase_of_mem, hc]
+  simv [finset.filter_ne', finset.card_erase_of_mem, hc]
 end
 
 /-- `n + 1` points are affinely independent if and only if their
@@ -292,7 +292,7 @@ variables (P)
 lemma collinear_empty : collinear k (∅ : set P) :=
 begin
   rw [collinear_iff_dim_le_one, vector_span_empty],
-  simp
+  simv
 end
 
 variables {P}
@@ -301,7 +301,7 @@ variables {P}
 lemma collinear_singleton (p : P) : collinear k ({p} : set P) :=
 begin
   rw [collinear_iff_dim_le_one, vector_span_singleton],
-  simp
+  simv
 end
 
 /-- Given a point `p₀` in a set of points, that set is collinear if and
@@ -330,7 +330,7 @@ begin
       rcases hx with ⟨p, hp, rfl⟩,
       rcases hp₀v p hp with ⟨r, rfl⟩,
       use r,
-      simp },
+      simv },
     have hw' := set_like.le_def.1 hs hw,
     rwa submodule.mem_span_singleton at hw' }
 end
@@ -342,7 +342,7 @@ lemma collinear_iff_exists_forall_eq_smul_vadd (s : set P) :
   collinear k s ↔ ∃ (p₀ : P) (v : V), ∀ p ∈ s, ∃ r : k, p = r • v +ᵥ p₀ :=
 begin
   rcases set.eq_empty_or_nonempty s with rfl | ⟨⟨p₁, hp₁⟩⟩,
-  { simp [collinear_empty] },
+  { simv [collinear_empty] },
   { rw collinear_iff_of_mem k hp₁,
     split,
     { exact λ h, ⟨p₁, h⟩ },
@@ -352,7 +352,7 @@ begin
       rcases hv p₂ hp₂ with ⟨r, rfl⟩,
       rcases hv p₁ hp₁ with ⟨r₁, rfl⟩,
       use r - r₁,
-      simp [vadd_vadd, ←add_smul] } }
+      simv [vadd_vadd, ←add_smul] } }
 end
 
 /-- Two points are collinear. -/
@@ -364,9 +364,9 @@ begin
   rw [set.mem_insert_iff, set.mem_singleton_iff] at hp,
   cases hp,
   { use 0,
-    simp [hp] },
+    simv [hp] },
   { use 1,
-    simp [hp] }
+    simv [hp] }
 end
 
 /-- Three points are affinely independent if and only if they are not

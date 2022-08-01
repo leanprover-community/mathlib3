@@ -177,7 +177,7 @@ lemma fac : W.Q ⋙ lift G hG = G :=
 functor.ext (λ X, rfl)
 begin
   intros X Y f,
-  simp only [functor.comp_map, eq_to_hom_refl, comp_id, id_comp],
+  simv only [functor.comp_map, eq_to_hom_refl, comp_id, id_comp],
   dsimp [lift, lift_to_path_category, morphism_property.Q],
   rw compose_path_to_path,
 end
@@ -201,7 +201,7 @@ begin
       { simpa only using functor.congr_hom h f, },
       { have hw : W.Q.map w = (Wiso W w hw).hom := rfl,
         have hw' := functor.congr_hom h w,
-        simp only [functor.comp_map, hw] at hw',
+        simv only [functor.comp_map, hw] at hw',
         refine functor.congr_inv_of_congr_hom _ _ _ _ _ hw',
         all_goals
         { apply functor.congr_obj h, }, }, }, },

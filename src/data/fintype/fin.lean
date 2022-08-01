@@ -24,7 +24,7 @@ variables {α β : Type*} {n : ℕ}
   Ioi (0 : fin n.succ) = univ.map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
-  simp only [mem_Ioi, mem_map, mem_univ, function.embedding.coe_fn_mk, exists_true_left],
+  simv only [mem_Ioi, mem_map, mem_univ, function.embedding.coe_fn_mk, exists_true_left],
   split,
   { refine cases _ _ i,
     { rintro ⟨⟨⟩⟩ },
@@ -37,7 +37,7 @@ end
   Ioi i.succ = (Ioi i).map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
-  simp only [mem_filter, mem_Ioi, mem_map, mem_univ, true_and,
+  simv only [mem_filter, mem_Ioi, mem_map, mem_univ, true_and,
   function.embedding.coe_fn_mk, exists_true_left],
   split,
   { refine cases _ _ i,
@@ -51,19 +51,19 @@ lemma card_filter_univ_succ' (p : fin (n + 1) → Prop) [decidable_pred p] :
   (univ.filter p).card = (ite (p 0) 1 0) + (univ.filter (p ∘ fin.succ)).card :=
 begin
   rw [fin.univ_succ, filter_cons, card_disj_union, map_filter, card_map],
-  split_ifs; simp,
+  split_ifs; simv,
 end
 
 lemma card_filter_univ_succ (p : fin (n + 1) → Prop) [decidable_pred p] :
   (univ.filter p).card =
     if p 0 then (univ.filter (p ∘ fin.succ)).card + 1 else (univ.filter (p ∘ fin.succ)).card :=
-(card_filter_univ_succ' p).trans (by split_ifs; simp [add_comm 1])
+(card_filter_univ_succ' p).trans (by split_ifs; simv [add_comm 1])
 
 lemma card_filter_univ_eq_vector_nth_eq_count [decidable_eq α] (a : α) (v : vector α n) :
   (univ.filter $ λ i, a = v.nth i).card = v.to_list.count a :=
 begin
   induction v using vector.induction_on with n x xs hxs,
-  { simp },
+  { simv },
   { simp_rw [card_filter_univ_succ', vector.nth_cons_zero, vector.to_list_cons,
       function.comp, vector.nth_cons_succ, hxs, list.count_cons', add_comm (ite (a = x) 1 0)] }
 end

@@ -194,7 +194,7 @@ begin
     rintros H hX s hs ⟨_, x, rfl⟩,
     unfreezingI { haveI := is_reduced_of_open_immersion f },
     specialize H (f.1.c.app _ s) _ ⟨x, by { change x ∈ (f.val.base) ⁻¹' _, rw e, trivial }⟩,
-    { rw [← Scheme.preimage_basic_open, hs], ext1, simp [opens.map] },
+    { rw [← Scheme.preimage_basic_open, hs], ext1, simv [opens.map] },
     { erw ← PresheafedSpace.stalk_map_germ_apply f.1 ⟨_,_⟩ ⟨x,_⟩ at H,
       apply_fun (inv $ PresheafedSpace.stalk_map f.val x) at H,
       erw [category_theory.is_iso.hom_inv_id_apply, map_zero] at H,
@@ -216,7 +216,7 @@ lemma basic_open_eq_bot_iff {X : Scheme} [is_reduced X] {U : opens X.carrier}
 begin
   refine ⟨eq_zero_of_basic_open_empty s, _⟩,
   rintro rfl,
-  simp,
+  simv,
 end
 
 /-- A scheme `X` is integral if its carrier is nonempty,
@@ -229,7 +229,7 @@ class is_integral : Prop :=
 attribute [instance] is_integral.component_integral is_integral.nonempty
 
 instance [h : is_integral X] : is_domain (X.presheaf.obj (op ⊤)) :=
-@@is_integral.component_integral _ _ (by simp)
+@@is_integral.component_integral _ _ (by simv)
 
 @[priority 900]
 instance is_reduced_of_is_integral [is_integral X] : is_reduced X :=

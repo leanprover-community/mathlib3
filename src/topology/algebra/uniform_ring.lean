@@ -185,7 +185,7 @@ instance topological_ring
   topological_ring (quotient (separation_setoid α)) :=
 begin
   convert topological_ring_quotient (⊥ : ideal α).closure; try {apply ring_sep_rel},
-  simp [uniform_space.comm_ring]
+  simv [uniform_space.comm_ring]
 end
 
 end uniform_space

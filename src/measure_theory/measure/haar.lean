@@ -83,8 +83,8 @@ Inf $ finset.card '' {t : finset G | K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V }
 @[to_additive add_index_empty]
 lemma index_empty {V : set G} : index ∅ V = 0 :=
 begin
-  simp only [index, nat.Inf_eq_zero], left, use ∅,
-  simp only [finset.card_empty, empty_subset, mem_set_of_eq, eq_self_iff_true, and_self],
+  simv only [index, nat.Inf_eq_zero], left, use ∅,
+  simv only [finset.card_empty, empty_subset, mem_set_of_eq, eq_self_iff_true, and_self],
 end
 
 variables [topological_space G]
@@ -112,10 +112,10 @@ by apply div_nonneg; norm_cast; apply zero_le
 def haar_product (K₀ : set G) : set (compacts G → ℝ) :=
 pi univ (λ K, Icc 0 $ index (K : set G) K₀)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mem_prehaar_empty {K₀ : set G} {f : compacts G → ℝ} :
   f ∈ haar_product K₀ ↔ ∀ K : compacts G, f K ∈ Icc (0 : ℝ) (index (K : set G) K₀) :=
-by simp only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
+by simv only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
 
 /-- The closure of the collection of elements of the form `prehaar K₀ U`,
   for `U` open neighbourhoods of `1`, contained in `V`. The closure is taken in the space
@@ -189,8 +189,8 @@ begin
   refine le_trans _ (finset.card_union_le _ _),
   apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq],
   apply union_subset; refine subset.trans (by assumption) _; apply bUnion_subset_bUnion_left;
-    intros g hg; simp only [mem_def] at hg;
-    simp only [mem_def, multiset.mem_union, finset.union_val, hg, or_true, true_or]
+    intros g hg; simv only [mem_def] at hg;
+    simv only [mem_def, multiset.mem_union, finset.union_val, hg, or_true, true_or]
 end
 
 @[to_additive add_index_union_eq]
@@ -204,10 +204,10 @@ begin
     index K V ≤ (s.filter (λ g, ((λ (h : G), g * h) ⁻¹' V ∩ K).nonempty)).card,
   { intros K hK, apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq],
     intros g hg, rcases hK hg with ⟨_, ⟨g₀, rfl⟩, _, ⟨h1g₀, rfl⟩, h2g₀⟩,
-    simp only [mem_preimage] at h2g₀,
-    simp only [mem_Union], use g₀, split,
-    { simp only [finset.mem_filter, h1g₀, true_and], use g,
-      simp only [hg, h2g₀, mem_inter_eq, mem_preimage, and_self] },
+    simv only [mem_preimage] at h2g₀,
+    simv only [mem_Union], use g₀, split,
+    { simv only [finset.mem_filter, h1g₀, true_and], use g,
+      simv only [hg, h2g₀, mem_inter_eq, mem_preimage, and_self] },
     exact h2g₀ },
   refine le_trans (add_le_add (this K₁.1 $ subset.trans (subset_union_left _ _) h1s)
     (this K₂.1 $ subset.trans (subset_union_right _ _) h1s)) _,
@@ -215,13 +215,13 @@ begin
   exact s.card_filter_le _,
   apply finset.disjoint_filter.mpr,
   rintro g₁ h1g₁ ⟨g₂, h1g₂, h2g₂⟩ ⟨g₃, h1g₃, h2g₃⟩,
-  simp only [mem_preimage] at h1g₃ h1g₂,
+  simv only [mem_preimage] at h1g₃ h1g₂,
   apply @h g₁⁻¹,
-  split; simp only [set.mem_inv, set.mem_mul, exists_exists_and_eq_and, exists_and_distrib_left],
-  { refine ⟨_, h2g₂, (g₁ * g₂)⁻¹, _, _⟩, simp only [inv_inv, h1g₂],
-    simp only [mul_inv_rev, mul_inv_cancel_left] },
-  { refine ⟨_, h2g₃, (g₁ * g₃)⁻¹, _, _⟩, simp only [inv_inv, h1g₃],
-    simp only [mul_inv_rev, mul_inv_cancel_left] }
+  split; simv only [set.mem_inv, set.mem_mul, exists_exists_and_eq_and, exists_and_distrib_left],
+  { refine ⟨_, h2g₂, (g₁ * g₂)⁻¹, _, _⟩, simv only [inv_inv, h1g₂],
+    simv only [mul_inv_rev, mul_inv_cancel_left] },
+  { refine ⟨_, h2g₃, (g₁ * g₃)⁻¹, _, _⟩, simv only [inv_inv, h1g₃],
+    simv only [mul_inv_rev, mul_inv_cancel_left] }
 end
 
 @[to_additive add_left_add_index_le]
@@ -231,11 +231,11 @@ begin
   rcases index_elim hK hV with ⟨s, h1s, h2s⟩, rw [← h2s],
   apply nat.Inf_le, rw [mem_image],
   refine ⟨s.map (equiv.mul_right g⁻¹).to_embedding, _, finset.card_map _⟩,
-  { simp only [mem_set_of_eq], refine subset.trans (image_subset _ h1s) _,
+  { simv only [mem_set_of_eq], refine subset.trans (image_subset _ h1s) _,
     rintro _ ⟨g₁, ⟨_, ⟨g₂, rfl⟩, ⟨_, ⟨hg₂, rfl⟩, hg₁⟩⟩, rfl⟩,
-    simp only [mem_preimage] at hg₁, simp only [exists_prop, mem_Union, finset.mem_map,
+    simv only [mem_preimage] at hg₁, simv only [exists_prop, mem_Union, finset.mem_map,
       equiv.coe_mul_right, exists_exists_and_eq_and, mem_preimage, equiv.to_embedding_apply],
-    refine ⟨_, hg₂, _⟩, simp only [mul_assoc, hg₁, inv_mul_cancel_left] }
+    refine ⟨_, hg₂, _⟩, simv only [mul_assoc, hg₁, inv_mul_cancel_left] }
 end
 
 @[to_additive is_left_invariant_add_index]
@@ -271,7 +271,7 @@ lemma prehaar_mono {K₀ : positive_compacts G} {U : set G} (hU : (interior U).n
   {K₁ K₂ : compacts G} (h : (K₁ : set G) ⊆ K₂.1) :
   prehaar (K₀ : set G) U K₁ ≤ prehaar (K₀ : set G) U K₂ :=
 begin
-  simp only [prehaar], rw [div_le_div_right], exact_mod_cast index_mono K₂.2 h hU,
+  simv only [prehaar], rw [div_le_div_right], exact_mod_cast index_mono K₂.2 h hU,
   exact_mod_cast index_pos K₀ hU
 end
 
@@ -285,7 +285,7 @@ lemma prehaar_sup_le {K₀ : positive_compacts G} {U : set G} (K₁ K₂ : compa
   (hU : (interior U).nonempty) :
   prehaar (K₀ : set G) U (K₁ ⊔ K₂) ≤ prehaar (K₀ : set G) U K₁ + prehaar (K₀ : set G) U K₂ :=
 begin
-  simp only [prehaar], rw [div_add_div_same, div_le_div_right],
+  simv only [prehaar], rw [div_add_div_same, div_le_div_right],
   exact_mod_cast index_union_le K₁ K₂ hU, exact_mod_cast index_pos K₀ hU
 end
 
@@ -293,13 +293,13 @@ end
 lemma prehaar_sup_eq {K₀ : positive_compacts G} {U : set G} {K₁ K₂ : compacts G}
   (hU : (interior U).nonempty) (h : disjoint (K₁.1 * U⁻¹) (K₂.1 * U⁻¹)) :
   prehaar (K₀ : set G) U (K₁ ⊔ K₂) = prehaar (K₀ : set G) U K₁ + prehaar (K₀ : set G) U K₂ :=
-by { simp only [prehaar], rw [div_add_div_same], congr', exact_mod_cast index_union_eq K₁ K₂ hU h }
+by { simv only [prehaar], rw [div_add_div_same], congr', exact_mod_cast index_union_eq K₁ K₂ hU h }
 
 @[to_additive]
 lemma is_left_invariant_prehaar {K₀ : positive_compacts G} {U : set G} (hU : (interior U).nonempty)
   (g : G) (K : compacts G) :
   prehaar (K₀ : set G) U (K.map _ $ continuous_mul_left g) = prehaar (K₀ : set G) U K :=
-by simp only [prehaar, compacts.coe_map, is_left_invariant_index K.compact _ hU]
+by simv only [prehaar, compacts.coe_map, is_left_invariant_index K.compact _ hU]
 
 /-!
 ### Lemmas about `haar_product`
@@ -320,11 +320,11 @@ begin
   let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
   have h1V₀ : is_open V₀,
   { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨V, hV⟩ h2V, exact hV.1 },
-  have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
+  have h2V₀ : (1 : G) ∈ V₀, { simv only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
   refine ⟨prehaar K₀ V₀, _⟩,
   split,
   { apply prehaar_mem_haar_product K₀, use 1, rwa h1V₀.interior_eq },
-  { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, apply subset_closure,
+  { simv only [mem_Inter], rintro ⟨V, hV⟩ h2V, apply subset_closure,
     apply mem_image_of_mem, rw [mem_set_of_eq],
     exact ⟨subset.trans (Inter_subset _ ⟨V, hV⟩) (Inter_subset _ h2V), h1V₀, h2V₀⟩ },
 end
@@ -391,7 +391,7 @@ begin
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
-  { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simp only [mem_preimage, mem_Ici, eval, sub_nonneg],
+  { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simv only [mem_preimage, mem_Ici, eval, sub_nonneg],
     apply prehaar_mono _ h, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_Ici },
 end
@@ -407,7 +407,7 @@ begin
   rw [← sub_nonneg], show chaar K₀ ∈ eval ⁻¹' (Ici (0 : ℝ)),
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
-  { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simp only [mem_preimage, mem_Ici, eval, sub_nonneg],
+  { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simv only [mem_preimage, mem_Ici, eval, sub_nonneg],
     apply prehaar_sup_le, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_Ici },
 end
@@ -431,10 +431,10 @@ begin
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
     ⟨V⁻¹, (is_open.inter h2V₁ h2V₂).preimage continuous_inv,
-    by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
+    by simv only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
-    simp only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],
+    simv only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],
     apply prehaar_sup_eq,
     { rw h2U.interior_eq, exact ⟨1, h3U⟩ },
     { refine disjoint_of_subset _ _ hU,
@@ -455,7 +455,7 @@ begin
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
-    simp only [mem_singleton_iff, mem_preimage, eval, sub_eq_zero],
+    simv only [mem_singleton_iff, mem_preimage, eval, sub_eq_zero],
     apply is_left_invariant_prehaar, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
 end
@@ -466,10 +466,10 @@ variable [t2_space G]
 @[to_additive "additive version of `measure_theory.measure.haar.haar_content`"]
 def haar_content (K₀ : positive_compacts G) : content G :=
 { to_fun        := λ K, ⟨chaar K₀ K, chaar_nonneg _ _⟩,
-  mono'         := λ K₁ K₂ h, by simp only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h],
-  sup_disjoint' := λ K₁ K₂ h, by { simp only [chaar_sup_eq h], refl },
+  mono'         := λ K₁ K₂ h, by simv only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h],
+  sup_disjoint' := λ K₁ K₂ h, by { simv only [chaar_sup_eq h], refl },
   sup_le'       := λ K₁ K₂,
-    by simp only [←nnreal.coe_le_coe, nnreal.coe_add, subtype.coe_mk, chaar_sup_le] }
+    by simv only [←nnreal.coe_le_coe, nnreal.coe_add, subtype.coe_mk, chaar_sup_le] }
 
 /-! We only prove the properties for `haar_content` that we use at least twice below. -/
 
@@ -520,7 +520,7 @@ lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : measurab
   haar_measure K₀ s = (haar_content K₀).outer_measure s / (haar_content K₀).outer_measure K₀ :=
 begin
   change (((haar_content K₀).outer_measure) K₀)⁻¹ * (haar_content K₀).measure s = _,
-  simp only [hs, div_eq_mul_inv, mul_comm, content.measure_apply],
+  simv only [hs, div_eq_mul_inv, mul_comm, content.measure_apply],
 end
 
 @[to_additive]
@@ -569,8 +569,8 @@ instance is_haar_measure_haar_measure (K₀ : positive_compacts G) :
 begin
   apply is_haar_measure_of_is_compact_nonempty_interior (haar_measure K₀) K₀ K₀.compact
     K₀.interior_nonempty,
-  { simp only [haar_measure_self], exact one_ne_zero },
-  { simp only [haar_measure_self], exact ennreal.coe_ne_top },
+  { simv only [haar_measure_self], exact one_ne_zero },
+  { simv only [haar_measure_self], exact ennreal.coe_ne_top },
 end
 
 /-- `haar` is some choice of a Haar measure, on a locally compact group. -/
@@ -614,9 +614,9 @@ begin
   have νpos : 0 < ν K := measure_pos_of_nonempty_interior _ K.interior_nonempty,
   have νne : ν K ≠ ∞ := K.compact.measure_lt_top.ne,
   refine ⟨μ K / ν K, _, _, _⟩,
-  { simp only [νne, (μ.measure_pos_of_nonempty_interior K.interior_nonempty).ne', ne.def,
+  { simv only [νne, (μ.measure_pos_of_nonempty_interior K.interior_nonempty).ne', ne.def,
       ennreal.div_zero_iff, not_false_iff, or_self] },
-  { simp only [div_eq_mul_inv, νpos.ne', (K.compact.measure_lt_top).ne, or_self,
+  { simv only [div_eq_mul_inv, νpos.ne', (K.compact.measure_lt_top).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
     μ = μ K • haar_measure K : haar_measure_unique μ K
@@ -670,12 +670,12 @@ begin
     { apply set.union_subset _ hUK,
       apply subset_trans _ hVKU,
       apply set.mul_subset_mul _ (set.subset.refl K),
-      simp only [set.singleton_subset_iff, hv] },
+      simv only [set.singleton_subset_iff, hv] },
     replace hKvsub := @measure_mono _ _ μ _ _ hKvsub,
     have hcontr := lt_of_le_of_lt hKvsub hμUK,
     rw measure_union hKv (is_compact.measurable_set hK) at hcontr,
     have hKtranslate : μ ({v} * K) = μ K,
-      by simp only [singleton_mul, image_mul_left, measure_preimage_mul],
+      by simv only [singleton_mul, image_mul_left, measure_preimage_mul],
     rw [hKtranslate, lt_self_iff_false] at hcontr,
     assumption },
   suffices : V ⊆ E / E, from filter.mem_of_superset hV1 this,
@@ -684,7 +684,7 @@ begin
   refine ⟨x, v⁻¹ * x, hLE (hKL hxvK), _, _⟩,
   { apply hKL.trans hLE,
     simpa only [singleton_mul, image_mul_left, mem_preimage] using hxK },
-  { simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] },
+  { simv only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] },
 end
 
 end second_countable
@@ -705,7 +705,7 @@ begin
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
-    by simp only [hc, smul_smul, pow_two, measure.map_smul],
+    by simv only [hc, smul_smul, pow_two, measure.map_smul],
   have μeq : μ = c^2 • μ,
   { rw [map_map continuous_inv.measurable continuous_inv.measurable] at this,
     { simpa only [inv_involutive, involutive.comp_self, map_id] },
@@ -713,7 +713,7 @@ begin
   have K : positive_compacts G := classical.arbitrary _,
   have : c^2 * μ K = 1^2 * μ K,
     by { conv_rhs { rw μeq },
-         simp, },
+         simv, },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (measure_pos_of_nonempty_interior _ K.interior_nonempty).ne'
       K.compact.measure_lt_top.ne).1 this,
@@ -721,7 +721,7 @@ begin
   rw [hc, this, one_smul]
 end
 
-@[simp, to_additive] lemma haar_preimage_inv
+@[simv, to_additive] lemma haar_preimage_inv
   {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
   (μ : measure G) [is_haar_measure μ] (s : set G) :

@@ -54,7 +54,7 @@ begin
   ... < sqrt (1 + x ^ 2) : sqrt_lt_sqrt (sq_nonneg _) (lt_one_add _)
 end
 
-@[simp] lemma arsinh_zero : arsinh 0 = 0 := by simp [arsinh]
+@[simp] lemma arsinh_zero : arsinh 0 = 0 := by simv [arsinh]
 
 @[simp] lemma arsinh_neg (x : ℝ) : arsinh (-x) = -arsinh x :=
 begin

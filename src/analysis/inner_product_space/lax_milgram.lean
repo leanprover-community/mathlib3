@@ -58,7 +58,7 @@ begin
     ... = ⟪B♯ v, v⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B v v).symm
     ... ≤ ∥B♯ v∥ * ∥v∥ : real_inner_le_norm (B♯ v) v, },
   { have : v = 0 := by simpa using h,
-    simp [this], }
+    simv [this], }
 end
 
 lemma antilipschitz (coercive : is_coercive B) :

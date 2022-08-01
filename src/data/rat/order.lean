@@ -33,7 +33,7 @@ protected def nonneg (r : ℚ) : Prop := 0 ≤ r.num
 @[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
   generalize ha : a /. b = x, cases x with n₁ d₁ h₁ c₁, rw num_denom' at ha,
-  simp [rat.nonneg],
+  simv [rat.nonneg],
   have d0 := int.coe_nat_lt.2 h₁,
   have := (mk_eq (ne_of_gt h) (ne_of_gt d0)).1 ha,
   constructor; intro h₂,
@@ -49,7 +49,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
+  simv [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   intros n₁0 n₂0,
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
@@ -60,14 +60,14 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0, mul_nonneg] { contextual := tt }
+  simv [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0, mul_nonneg] { contextual := tt }
 end
 
 protected lemma nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
 num_denom_cases_on' a $ λ n d h,
 begin
   have d0 : 0 < (d:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h),
-  simp [d0, h],
+  simv [d0, h],
   exact λ h₁ h₂, le_antisymm h₂ h₁
 end
 
@@ -92,7 +92,7 @@ protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
 begin
   show rat.nonneg _ ↔ _,
   rw ← sub_nonneg,
-  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos d0 b0]
+  simv [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos d0 b0]
 end
 
 protected theorem le_refl : a ≤ a :=
@@ -132,7 +132,7 @@ instance : preorder ℚ        := by apply_instance
 protected lemma le_def' {p q : ℚ} : p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
 begin
   rw [←(@num_denom q), ←(@num_denom p)],
-  conv_rhs { simp only [num_denom] },
+  conv_rhs { simv only [num_denom] },
   exact rat.le_def (by exact_mod_cast p.pos) (by exact_mod_cast q.pos)
 end
 
@@ -147,7 +147,7 @@ begin
 end
 
 theorem nonneg_iff_zero_le {a} : rat.nonneg a ↔ 0 ≤ a :=
-show rat.nonneg a ↔ rat.nonneg (a - 0), by simp
+show rat.nonneg a ↔ rat.nonneg (a - 0), by simv
 
 theorem num_nonneg_iff_zero_le : ∀ {a : ℚ}, 0 ≤ a.num ↔ 0 ≤ a
 | ⟨n, d, h, c⟩ := @nonneg_iff_zero_le ⟨n, d, h, c⟩
@@ -189,14 +189,14 @@ by simpa [(by cases a; refl : (-a).num = -a.num)]
 lemma div_lt_div_iff_mul_lt_mul {a b c d : ℤ} (b_pos : 0 < b) (d_pos : 0 < d) :
   (a : ℚ) / b < c / d ↔ a * d < c * b :=
 begin
-  simp only [lt_iff_le_not_le],
+  simv only [lt_iff_le_not_le],
   apply and_congr,
-  { simp [div_num_denom, (rat.le_def b_pos d_pos)] },
-  { apply not_iff_not_of_iff, simp [div_num_denom, (rat.le_def d_pos b_pos)] }
+  { simv [div_num_denom, (rat.le_def b_pos d_pos)] },
+  { apply not_iff_not_of_iff, simv [div_num_denom, (rat.le_def d_pos b_pos)] }
 end
 
 lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
-by simp [rat.lt_def]
+by simv [rat.lt_def]
 
 theorem abs_def (q : ℚ) : |q| = q.num.nat_abs /. q.denom :=
 begin

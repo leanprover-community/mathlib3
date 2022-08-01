@@ -97,13 +97,13 @@ instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
 { smul := λ r p,
   { to_fun := λ x, r • p x,
     nonneg' := λ x, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      simv only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
     end,
-    map_zero' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
+    map_zero' := by simv only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
       p.map_zero, mul_zero],
     add_le' := λ _ _, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      simv only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact (mul_le_mul_of_nonneg_left (p.add_le _ _) (nnreal.coe_nonneg _)).trans_eq
         (mul_add _ _ _),
     end,
@@ -140,11 +140,11 @@ noncomputable instance : has_sup (add_group_seminorm E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
     nonneg' := λ x, begin
-      simp only [pi.sup_apply, le_sup_iff],
+      simv only [pi.sup_apply, le_sup_iff],
       exact or.intro_left _ (p.nonneg _),
     end,
     map_zero' := begin
-      simp only [pi.sup_apply],
+      simv only [pi.sup_apply],
       rw [← p.map_zero, sup_eq_left, p.map_zero, q.map_zero],
     end,
     add_le' := λ x y, sup_le
@@ -217,7 +217,7 @@ noncomputable instance : has_inf (add_group_seminorm G) :=
       have : (⨅ (u : G), p u + q (x - u) : ℝ) = ⨅ (u : G), p (- u) + q (x + u),
       { apply function.surjective.infi_congr (λ (x : G), -x) neg_surjective,
         { intro u,
-          simp only [neg_neg, add_right_inj, sub_eq_add_neg] }},
+          simv only [neg_neg, add_right_inj, sub_eq_add_neg] }},
       rw this,
       apply congr_arg,
       ext u,
@@ -231,11 +231,11 @@ noncomputable instance : lattice (add_group_seminorm G) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, map_zero, add_zero],
+    simv only [sub_self, map_zero, add_zero],
   end,
   inf_le_right := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:G),
-    simp only [sub_self, map_zero, zero_add, sub_zero],
+    simv only [sub_self, map_zero, zero_add, sub_zero],
   end,
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
@@ -369,7 +369,7 @@ instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
 { smul := λ r p,
   { to_fun  := λ x, r • p x,
     smul' := λ _ _, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      simv only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       rw [p.smul, mul_left_comm],
     end,
     ..(r • p.to_add_group_seminorm) }}
@@ -389,7 +389,7 @@ lemma coe_smul [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 
 instance : has_add (seminorm 𝕜 E) :=
 { add := λ p q,
   { to_fun    := λ x, p x + q x,
-    smul'     := λ a x, by simp only [p.smul, q.smul, mul_add],
+    smul'     := λ a x, by simv only [p.smul, q.smul, mul_add],
     ..(p.to_add_group_seminorm + q.to_add_group_seminorm) }}
 
 lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
@@ -627,11 +627,11 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, map_zero, add_zero],
+    simv only [sub_self, map_zero, add_zero],
   end,
   inf_le_right := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-    simp only [sub_self, map_zero, zero_add, sub_zero],
+    simv only [sub_self, map_zero, zero_add, sub_zero],
   end,
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
@@ -674,7 +674,7 @@ lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } := set.ext $ λ x, p.mem_b
 @[simp] lemma ball_zero' (x : E) (hr : 0 < r) : ball (0 : seminorm 𝕜 E) x r = set.univ :=
 begin
   rw [set.eq_univ_iff_forall, ball],
-  simp [hr],
+  simv [hr],
 end
 
 lemma ball_smul (p : seminorm 𝕜 E) {c : nnreal} (hc : 0 < c) (r : ℝ) (x : E) :
@@ -690,7 +690,7 @@ lemma ball_finset_sup' (p : ι → seminorm 𝕜 E) (s : finset ι) (H : s.nonem
   ball (s.sup' H p) e r = s.inf' H (λ i, ball (p i) e r) :=
 begin
   induction H using finset.nonempty.cons_induction with a a s ha hs ih,
-  { classical, simp },
+  { classical, simv },
   { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] },
 end
 
@@ -728,7 +728,7 @@ lemma ball_zero_eq_preimage_ball {r : ℝ} :
   p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
 begin
   ext x,
-  simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff],
+  simv only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff],
   rw real.norm_of_nonneg,
   exact p.nonneg _,
 end
@@ -912,7 +912,7 @@ def norm_seminorm : seminorm 𝕜 E :=
 @[simp] lemma coe_norm_seminorm : ⇑(norm_seminorm 𝕜 E) = norm := rfl
 
 @[simp] lemma ball_norm_seminorm : (norm_seminorm 𝕜 E).ball = metric.ball :=
-by { ext x r y, simp only [seminorm.mem_ball, metric.mem_ball, coe_norm_seminorm, dist_eq_norm] }
+by { ext x r y, simv only [seminorm.mem_ball, metric.mem_ball, coe_norm_seminorm, dist_eq_norm] }
 
 variables {𝕜 E} {x : E}
 

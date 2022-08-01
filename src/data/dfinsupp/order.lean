@@ -127,14 +127,14 @@ variables (α) [Π i, canonically_ordered_add_monoid (α i)]
 
 instance : order_bot (Π₀ i, α i) :=
 { bot := 0,
-  bot_le := by simp only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le] }
+  bot_le := by simv only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le] }
 
 variables {α}
 
 protected lemma bot_eq_zero : (⊥ : Π₀ i, α i) = 0 := rfl
 
 @[simp] lemma add_eq_zero_iff (f g : Π₀ i, α i) : f + g = 0 ↔ f = 0 ∧ g = 0 :=
-by simp [ext_iff, forall_and_distrib]
+by simv [ext_iff, forall_and_distrib]
 
 section le
 variables [decidable_eq ι] [Π i (x : α i), decidable (x ≠ 0)] {f g : Π₀ i, α i} {s : finset ι}
@@ -154,7 +154,7 @@ instance decidable_le [Π i, decidable_rel (@has_le.le (α i) _)] :
 variables {α}
 
 @[simp] lemma single_le_iff {i : ι} {a : α i} : single i a ≤ f ↔ a ≤ f i :=
-(le_iff' support_single_subset).trans $ by simp
+(le_iff' support_single_subset).trans $ by simv
 
 end le
 
@@ -196,11 +196,11 @@ end
 variables [Π i (x : α i), decidable (x ≠ 0)]
 
 lemma support_tsub : (f - g).support ⊆ f.support :=
-by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
+by simv only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
     not_imp_not, zero_le, implies_true_iff] {contextual := tt}
 
 lemma subset_support_tsub : f.support \ g.support ⊆ (f - g).support :=
-by simp [subset_iff] {contextual := tt}
+by simv [subset_iff] {contextual := tt}
 
 end canonically_ordered_add_monoid
 
@@ -210,15 +210,15 @@ variables [Π i, canonically_linear_ordered_add_monoid (α i)] [decidable_eq ι]
 @[simp] lemma support_inf : (f ⊓ g).support = f.support ∩ g.support :=
 begin
   ext,
-  simp only [inf_apply, mem_support_iff,  ne.def,
+  simv only [inf_apply, mem_support_iff,  ne.def,
     finset.mem_union, finset.mem_filter, finset.mem_inter],
-  simp only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
+  simv only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
 end
 
 @[simp] lemma support_sup : (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext,
-  simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
+  simv only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
   rw [_root_.sup_eq_bot_iff, not_and_distrib],
 end
 

@@ -41,7 +41,7 @@ lemma mem_ℒp_two_iff_integrable_sq_norm {f : α → F} (hf : ae_strongly_measu
 begin
   rw ← mem_ℒp_one_iff_integrable,
   convert (mem_ℒp_norm_rpow_iff hf ennreal.two_ne_zero ennreal.two_ne_top).symm,
-  { simp },
+  { simv },
   { rw [div_eq_mul_inv, ennreal.mul_inv_cancel ennreal.two_ne_zero ennreal.two_ne_top] }
 end
 
@@ -50,7 +50,7 @@ lemma mem_ℒp_two_iff_integrable_sq {f : α → ℝ} (hf : ae_strongly_measurab
 begin
   convert mem_ℒp_two_iff_integrable_sq_norm hf,
   ext x,
-  simp,
+  simv,
 end
 
 end
@@ -65,7 +65,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
-  have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
+  have h_two : ennreal.of_real (2 : ℝ) = 2, by simv [zero_le_one],
   rw [snorm_norm_rpow f zero_lt_two, one_mul, h_two],
   exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
 end
@@ -76,7 +76,7 @@ begin
   have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ is_R_or_C.abs (∥f x∥^2 + ∥g x∥^2),
   { refine λ x, le_trans (h x) _,
     rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
-    swap, { exact add_nonneg (by simp) (by simp), },
+    swap, { exact add_nonneg (by simv) (by simv), },
     refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
     refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
     ring, },
@@ -84,7 +84,7 @@ begin
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
   { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   { exact ((Lp.ae_strongly_measurable g).norm.ae_measurable.pow_const _).ae_strongly_measurable },
-  simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
+  simv only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
   exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
 end
 
@@ -108,7 +108,7 @@ begin
   { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   congr,
   ext1 x,
-  have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simp,
+  have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simv,
   rw [← real.rpow_nat_cast _ 2, ← h_two,
     ← ennreal.of_real_rpow_of_nonneg (norm_nonneg _) zero_le_two, of_real_norm_eq_coe_nnnorm],
   norm_cast,
@@ -116,12 +116,12 @@ end
 
 private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ∥f∥ ^ 2 = is_R_or_C.re ⟪f, f⟫ :=
 begin
-  have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
+  have h_two : (2 : ℝ≥0∞).to_real = 2 := by simv,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
     ennreal.to_real_eq_to_real (ennreal.pow_ne_top (Lp.snorm_ne_top f)) _],
   { rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top, snorm',
       ← ennreal.rpow_mul, one_div, h_two],
-    simp, },
+    simv, },
   { refine (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _).ne,
     rw [← h_two, ← snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top],
     exact Lp.snorm_lt_top f, },
@@ -189,7 +189,7 @@ begin
       suffices h_int_zero : ∫ x in sᶜ, inner (indicator_const_Lp 2 hs hμs c x) (f x) ∂μ
         = ∫ x in sᶜ, (0 : 𝕜) ∂μ,
       { rw h_int_zero,
-        simp, },
+        simv, },
       exact set_integral_congr_ae hs.compl h_ae_eq, },
     have h_indicator : ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_const_Lp 2 hs hμs c x) = 0,
       from indicator_const_Lp_coe_fn_nmem,
@@ -213,7 +213,7 @@ variables {𝕜}
 a real or complex function `f` is equal to the integral of `f` over `s`. -/
 lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp 𝕜 2 μ) :
   ⟪indicator_const_Lp 2 hs hμs (1 : 𝕜), f⟫ = ∫ x in s, f x ∂μ :=
-by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral 𝕜 hs hμs (1 : 𝕜) f, simp, }
+by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral 𝕜 hs hμs (1 : 𝕜) f, simv, }
 
 end indicator_const_Lp
 
@@ -240,7 +240,7 @@ begin
   have hg_ae := g.coe_fn_to_Lp μ,
   filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
-  simp
+  simv
 end
 
 variables [compact_space α]
@@ -256,7 +256,7 @@ begin
   have hg_ae := g.coe_fn_to_Lp μ,
   filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
-  simp
+  simv
 end
 
 end inner_continuous

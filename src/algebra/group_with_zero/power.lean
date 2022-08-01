@@ -50,7 +50,7 @@ local attribute [ematch] le_of_lt
 
 lemma zero_zpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (n : ℕ) h := by { rw [zpow_coe_nat, zero_pow'], simpa using h }
-| -[1+n]  h := by simp
+| -[1+n]  h := by simv
 
 lemma zero_zpow_eq (n : ℤ) : (0 : G₀) ^ n = if n = 0 then 1 else 0 :=
 begin
@@ -60,7 +60,7 @@ begin
 end
 
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (n : ℕ)    := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| (n : ℕ)    := by simv only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
 | -[1+0]     := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, inv_mul_cancel ha]
 | -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
   ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev, mul_assoc,
@@ -73,19 +73,19 @@ calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : by rw [mul_assoc, mul_inv_cancel h
 lemma zpow_add₀ {a : G₀} (ha : a ≠ 0) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
 begin
   induction n using int.induction_on with n ihn n ihn,
-  case hz : { simp },
-  { simp only [← add_assoc, zpow_add_one₀ ha, ihn, mul_assoc] },
+  case hz : { simv },
+  { simv only [← add_assoc, zpow_add_one₀ ha, ihn, mul_assoc] },
   { rw [zpow_sub_one₀ ha, ← mul_assoc, ← ihn, ← zpow_sub_one₀ ha, add_sub_assoc] }
 end
 
 lemma zpow_add' {a : G₀} {m n : ℤ} (h : a ≠ 0 ∨ m + n ≠ 0 ∨ m = 0 ∧ n = 0) :
   a ^ (m + n) = a ^ m * a ^ n :=
 begin
-  by_cases hm : m = 0, { simp [hm] },
-  by_cases hn : n = 0, { simp [hn] },
+  by_cases hm : m = 0, { simv [hm] },
+  by_cases hn : n = 0, { simv [hn] },
   by_cases ha : a = 0,
   { subst a,
-    simp only [false_or, eq_self_iff_true, not_true, ne.def, hm, hn, false_and, or_false] at h,
+    simv only [false_or, eq_self_iff_true, not_true, ne.def, hm, hn, false_and, or_false] at h,
     rw [zero_zpow _ h, zero_zpow _ hm, zero_mul] },
   { exact zpow_add₀ ha m n }
 end
@@ -95,8 +95,8 @@ by rw [zpow_add₀ h, zpow_one]
 
 theorem semiconj_by.zpow_right₀ {a x y : G₀} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
-| (n : ℕ) := by simp [h.pow_right n]
-| -[1+n]  := by simp [(h.pow_right (n + 1)).inv_right₀]
+| (n : ℕ) := by simv [h.pow_right n]
+| -[1+n]  := by simv [(h.pow_right (n + 1)).inv_right₀]
 
 theorem commute.zpow_right₀ {a b : G₀} (h : commute a b) : ∀ m : ℤ, commute a (b^m) :=
 h.zpow_right₀
@@ -160,7 +160,7 @@ variables {G₀ : Type*} [comm_group_with_zero G₀]
 lemma div_sq_cancel (a b : G₀) : a ^ 2 * b / a = a * b :=
 begin
   by_cases ha : a = 0,
-  { simp [ha] },
+  { simv [ha] },
   rw [sq, mul_assoc, mul_div_cancel_left _ ha]
 end
 

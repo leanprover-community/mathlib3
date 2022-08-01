@@ -45,8 +45,8 @@ end
   iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
 begin
   induction n with n ih,
-  { simp only [iterated_deriv_zero_right], },
-  { simp only [iterated_deriv_succ, ih, derivative_add] }
+  { simv only [iterated_deriv_zero_right], },
+  { simv only [iterated_deriv_succ, ih, derivative_add] }
 end
 
 @[simp] lemma iterated_deriv_smul {S : Type*} [monoid S]
@@ -54,47 +54,47 @@ end
   (s : S) : iterated_deriv (s • p) n = s • iterated_deriv p n :=
 begin
   induction n with n ih,
-  { simp only [iterated_deriv_zero_right] },
-  { simp only [iterated_deriv_succ, ih, derivative_smul] }
+  { simv only [iterated_deriv_zero_right] },
+  { simv only [iterated_deriv_succ, ih, derivative_smul] }
 end
 
 @[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : R[X]) 0 = X :=
-by simp only [iterated_deriv_zero_right]
+by simv only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_X_one : iterated_deriv (X : R[X]) 1 = 1 :=
-by simp only [iterated_deriv, derivative_X, function.iterate_one]
+by simv only [iterated_deriv, derivative_X, function.iterate_one]
 
 @[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : R[X]) n = 0 :=
 begin
   induction n with n ih,
   { exfalso, exact nat.not_lt_zero 1 h },
-  { simp only [iterated_deriv_succ],
+  { simv only [iterated_deriv_succ],
     by_cases H : n = 1,
-    { rw H, simp only [iterated_deriv_X_one, derivative_one] },
+    { rw H, simv only [iterated_deriv_X_one, derivative_one] },
     { replace h : 1 < n := array.push_back_idx h (ne.symm H),
-      rw ih h, simp only [derivative_zero] } }
+      rw ih h, simv only [derivative_zero] } }
 end
 
 
 @[simp] lemma iterated_deriv_C_zero : iterated_deriv (C r) 0 = C r :=
-by simp only [iterated_deriv_zero_right]
+by simv only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_C (h : 0 < n) : iterated_deriv (C r) n = 0 :=
 begin
   induction n with n ih,
   { exfalso, exact nat.lt_asymm h h },
   { by_cases H : n = 0,
-    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C] },
+    { rw [iterated_deriv_succ, H], simv only [iterated_deriv_C_zero, derivative_C] },
     { replace h : 0 < n := nat.pos_of_ne_zero H,
-      rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
+      rw [iterated_deriv_succ, ih h], simv only [derivative_zero] } }
 end
 
 @[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : R[X]) 0 = 1 :=
-by simp only [iterated_deriv_zero_right]
+by simv only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : R[X]) n = 0 := λ h,
 begin
-  have eq1 : (1 : R[X]) = C 1 := by simp only [ring_hom.map_one],
+  have eq1 : (1 : R[X]) = C 1 := by simv only [ring_hom.map_one],
   rw eq1, exact iterated_deriv_C _ _ h,
 end
 
@@ -102,7 +102,7 @@ lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) • (f.coeff (m+k)) :=
 begin
   induction k with k ih,
-  { simp only [add_zero, forall_const, one_smul, Ico_self, eq_self_iff_true,
+  { simv only [add_zero, forall_const, one_smul, Ico_self, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
   { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), ← nat.cast_add_one,
       ← nsmul_eq_mul', smul_smul, mul_comm],
@@ -120,7 +120,7 @@ lemma coeff_iterated_deriv_as_prod_range :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in range k, (m + k - i)) • f.coeff (m + k) :=
 begin
   induction k with k ih,
-  { simp },
+  { simv },
   intro m,
   calc (f.iterated_deriv k.succ).coeff m
       = (∏ i in range k, (m + k.succ - i)) • f.coeff (m + k.succ) * (m + 1) :
@@ -144,7 +144,7 @@ lemma iterated_deriv_mul :
     n.choose k • (iterated_deriv p (n - k) * iterated_deriv q k) :=
 begin
   induction n with n IH,
-  { simp },
+  { simv },
 
   calc (p * q).iterated_deriv n.succ
       = (∑ (k : ℕ) in range n.succ,
@@ -193,8 +193,8 @@ variables [ring R] (p q : R[X]) (n : ℕ)
 @[simp] lemma iterated_deriv_neg : iterated_deriv (-p) n = - iterated_deriv p n :=
 begin
   induction n with n ih,
-  { simp only [iterated_deriv_zero_right] },
-  { simp only [iterated_deriv_succ, ih, derivative_neg] }
+  { simv only [iterated_deriv_zero_right] },
+  { simv only [iterated_deriv_succ, ih, derivative_neg] }
 end
 
 @[simp] lemma iterated_deriv_sub :

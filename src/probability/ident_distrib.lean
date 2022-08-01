@@ -203,13 +203,13 @@ lemma snorm_eq [normed_add_comm_group γ] [opens_measurable_space γ] (h : ident
   snorm f p μ = snorm g p ν :=
 begin
   by_cases h0 : p = 0,
-  { simp [h0], },
+  { simv [h0], },
   by_cases h_top : p = ∞,
-  { simp only [h_top, snorm, snorm_ess_sup, ennreal.top_ne_zero, eq_self_iff_true, if_true,
+  { simv only [h_top, snorm, snorm_ess_sup, ennreal.top_ne_zero, eq_self_iff_true, if_true,
       if_false],
     apply ess_sup_eq,
     exact h.comp (measurable_coe_nnreal_ennreal.comp measurable_nnnorm) },
-  simp only [snorm_eq_snorm' h0 h_top, snorm', one_div],
+  simv only [snorm_eq_snorm' h0 h_top, snorm', one_div],
   congr' 1,
   apply lintegral_eq,
   exact h.comp
@@ -315,7 +315,7 @@ begin
   have : {x : α | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊}.indicator (f i) =
     (λ x : E, if (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥x∥₊ then x else 0) ∘ (f i),
   { ext x,
-    simp only [set.indicator, set.mem_set_of_eq] },
+    simv only [set.indicator, set.mem_set_of_eq] },
   simp_rw [coe_nnnorm, this],
   rw [← snorm_map_measure _ (hf i).ae_measurable_fst, (hf i).map_eq,
     snorm_map_measure _ (hf j).ae_measurable_fst],

@@ -56,7 +56,7 @@ begin
   letI := quotient_group.left_rel H,
   letI := quotient_group.left_rel (H.comap f),
   have key : ∀ x y : G', setoid.r x y ↔ setoid.r (f x) (f y),
-  { simp only [quotient_group.left_rel_apply],
+  { simv only [quotient_group.left_rel_apply],
     exact λ x y, iff_of_eq (congr_arg (∈ H) (by rw [f.map_mul, f.map_inv])) },
   refine cardinal.to_nat_congr (equiv.of_bijective (quotient.map' f (λ x y, (key x y).mp)) ⟨_, _⟩),
   { simp_rw [←quotient.eq'] at key,
@@ -134,35 +134,35 @@ end
 
 variables (H K)
 
-@[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
+@[simv, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
 cardinal.to_nat_eq_one_iff_unique.mpr ⟨quotient_group.subsingleton_quotient_top, ⟨1⟩⟩
 
-@[simp, to_additive] lemma index_bot : (⊥ : subgroup G).index = nat.card G :=
+@[simv, to_additive] lemma index_bot : (⊥ : subgroup G).index = nat.card G :=
 cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
 
 @[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=
 index_bot.trans nat.card_eq_fintype_card
 
-@[simp, to_additive] lemma relindex_top_left : (⊤ : subgroup G).relindex H = 1 :=
+@[simv, to_additive] lemma relindex_top_left : (⊤ : subgroup G).relindex H = 1 :=
 index_top
 
-@[simp, to_additive] lemma relindex_top_right : H.relindex ⊤ = H.index :=
+@[simv, to_additive] lemma relindex_top_right : H.relindex ⊤ = H.index :=
 by rw [←relindex_mul_index (show H ≤ ⊤, from le_top), index_top, mul_one]
 
-@[simp, to_additive] lemma relindex_bot_left : (⊥ : subgroup G).relindex H = nat.card H :=
+@[simv, to_additive] lemma relindex_bot_left : (⊥ : subgroup G).relindex H = nat.card H :=
 by rw [relindex, bot_subgroup_of, index_bot]
 
 @[to_additive] lemma relindex_bot_left_eq_card [fintype H] :
   (⊥ : subgroup G).relindex H = fintype.card H :=
 H.relindex_bot_left.trans nat.card_eq_fintype_card
 
-@[simp, to_additive] lemma relindex_bot_right : H.relindex ⊥ = 1 :=
+@[simv, to_additive] lemma relindex_bot_right : H.relindex ⊥ = 1 :=
 by rw [relindex, subgroup_of_bot_eq_top, index_top]
 
-@[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
+@[simv, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
 
-@[simp, to_additive card_mul_index]
+@[simv, to_additive card_mul_index]
 lemma card_mul_index : nat.card H * H.index = nat.card G :=
 by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
 
@@ -255,7 +255,7 @@ end
 @[to_additive] lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
 by simp_rw [←relindex_top_right, relindex_inf_le]
 
-@[simp, to_additive index_eq_one] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
+@[simv, to_additive index_eq_one] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 

@@ -102,7 +102,7 @@ by { borelize X, rw dimH }
 
 lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0} (h : ↑d < dimH s) : μH[d] s = ∞ :=
 begin
-  simp only [dimH_def, lt_supr_iff] at h,
+  simv only [dimH_def, lt_supr_iff] at h,
   rcases h with ⟨d', hsd', hdd'⟩,
   rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hdd',
   exact top_unique (hsd' ▸ hausdorff_measure_mono hdd'.le _)
@@ -190,7 +190,7 @@ by rw [sUnion_eq_bUnion, dimH_bUnion hS]
 by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
 
 lemma dimH_countable {s : set X} (hs : s.countable) : dimH s = 0 :=
-bUnion_of_singleton s ▸ by simp only [dimH_bUnion hs, dimH_singleton, ennreal.supr_zero_eq_zero]
+bUnion_of_singleton s ▸ by simv only [dimH_bUnion hs, dimH_singleton, ennreal.supr_zero_eq_zero]
 
 alias dimH_countable ← set.countable.dimH_zero
 
@@ -299,7 +299,7 @@ begin
   choose! C t htn hC using hf,
   rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
   replace huU := inter_eq_self_of_subset_left huU, rw inter_Union₂ at huU,
-  rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
+  rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simv only [ennreal.supr_div],
   exact supr₂_mono (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
 end
 
@@ -370,7 +370,7 @@ begin
   have := hf.hausdorff_measure_preimage_le d.coe_nonneg s,
   rw [hd, top_le_iff] at this,
   contrapose! this,
-  exact ennreal.mul_ne_top (by simp) this
+  exact ennreal.mul_ne_top (by simv) this
 end
 
 lemma le_dimH_image (hf : antilipschitz_with K f) (s : set X) :
@@ -436,7 +436,7 @@ begin
     have : μH[fintype.card ι] (metric.ball x r) = ennreal.of_real ((2 * r) ^ fintype.card ι),
       by rw [hausdorff_measure_pi_real, real.volume_pi_ball _ hr],
     refine dimH_of_hausdorff_measure_ne_zero_ne_top _ _; rw [nnreal.coe_nat_cast, this],
-    { simp [pow_pos (mul_pos zero_lt_two hr)] },
+    { simv [pow_pos (mul_pos zero_lt_two hr)] },
     { exact ennreal.of_real_ne_top } }
 end
 
@@ -445,7 +445,7 @@ theorem dimH_ball_pi_fin {n : ℕ} (x : fin n → ℝ) {r : ℝ} (hr : 0 < r) :
 by rw [dimH_ball_pi x hr, fintype.card_fin]
 
 theorem dimH_univ_pi (ι : Type*) [fintype ι] : dimH (univ : set (ι → ℝ)) = fintype.card ι :=
-by simp only [← metric.Union_ball_nat_succ (0 : ι → ℝ), dimH_Union,
+by simv only [← metric.Union_ball_nat_succ (0 : ι → ℝ), dimH_Union,
   dimH_ball_pi _ (nat.cast_add_one_pos _), supr_const]
 
 theorem dimH_univ_pi_fin (n : ℕ) : dimH (univ : set (fin n → ℝ)) = n :=

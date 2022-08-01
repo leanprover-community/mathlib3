@@ -164,7 +164,7 @@ instance has_zero : has_zero (finite_measure α) :=
 
 @[simp] lemma mass_zero_iff (μ : finite_measure α) : μ.mass = 0 ↔ μ = 0 :=
 begin
-  refine ⟨λ μ_mass, _, (λ hμ, by simp only [hμ, zero.mass])⟩,
+  refine ⟨λ μ_mass, _, (λ hμ, by simv only [hμ, zero.mass])⟩,
   ext1,
   apply measure.measure_univ_eq_zero.mp,
   rwa [← ennreal_mass, ennreal.coe_eq_zero],
@@ -195,23 +195,23 @@ variables {R : Type*} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_to
 instance : has_smul R (finite_measure α) :=
 { smul := λ (c : R) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_of_nnreal_tower⟩, }
 
-@[simp, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
+@[simv, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
 
-@[simp, norm_cast] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
+@[simv, norm_cast] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
 
-@[simp, norm_cast] lemma coe_smul (c : R) (μ : finite_measure α) :
+@[simv, norm_cast] lemma coe_smul (c : R) (μ : finite_measure α) :
   ↑(c • μ) = (c • ↑μ : measure α) := rfl
 
-@[simp, norm_cast] lemma coe_fn_zero :
+@[simv, norm_cast] lemma coe_fn_zero :
   (⇑(0 : finite_measure α) : set α → ℝ≥0) = (0 : set α → ℝ≥0) := by { funext, refl, }
 
-@[simp, norm_cast] lemma coe_fn_add (μ ν : finite_measure α) :
+@[simv, norm_cast] lemma coe_fn_add (μ ν : finite_measure α) :
   (⇑(μ + ν) : set α → ℝ≥0) = (⇑μ + ⇑ν : set α → ℝ≥0) :=
-by { funext, simp [← ennreal.coe_eq_coe], }
+by { funext, simv [← ennreal.coe_eq_coe], }
 
-@[simp, norm_cast] lemma coe_fn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
+@[simv, norm_cast] lemma coe_fn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
-by { funext, simp [← ennreal.coe_eq_coe, ennreal.coe_smul], }
+by { funext, simv [← ennreal.coe_eq_coe, ennreal.coe_smul], }
 
 instance : add_comm_monoid (finite_measure α) :=
 coe_injective.add_comm_monoid coe coe_zero coe_add (λ _ _, coe_smul _ _)
@@ -227,7 +227,7 @@ function.injective.module _ coe_add_monoid_hom coe_injective coe_smul
 @[simp] lemma coe_fn_smul_apply [is_scalar_tower R ℝ≥0 ℝ≥0]
   (c : R) (μ : finite_measure α) (s : set α) :
   (c • μ) s  = c • (μ s) :=
-by { simp only [coe_fn_smul, pi.smul_apply], }
+by { simv only [coe_fn_smul, pi.smul_apply], }
 
 variables [topological_space α]
 
@@ -253,7 +253,7 @@ begin
   rw ennreal.coe_le_coe,
   have eq : nndist f 0 = ⟨dist f 0, dist_nonneg⟩,
   { ext,
-    simp only [real.coe_to_nnreal', max_eq_left_iff, subtype.coe_mk, coe_nndist], },
+    simv only [real.coe_to_nnreal', max_eq_left_iff, subtype.coe_mk, coe_nndist], },
   rwa eq at key,
 end
 
@@ -263,13 +263,13 @@ ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal _ f).ne
 
 lemma test_against_nn_const (μ : finite_measure α) (c : ℝ≥0) :
   μ.test_against_nn (bounded_continuous_function.const α c) = c * μ.mass :=
-by simp [← ennreal.coe_eq_coe]
+by simv [← ennreal.coe_eq_coe]
 
 lemma test_against_nn_mono (μ : finite_measure α)
   {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
   μ.test_against_nn f ≤ μ.test_against_nn g :=
 begin
-  simp only [←ennreal.coe_le_coe, test_against_nn_coe_eq],
+  simv only [←ennreal.coe_le_coe, test_against_nn_coe_eq],
   exact lintegral_mono (λ x, ennreal.coe_mono (f_le_g x)),
 end
 
@@ -278,20 +278,20 @@ by simpa only [zero_mul] using μ.test_against_nn_const 0
 
 @[simp] lemma test_against_nn_one (μ : finite_measure α) : μ.test_against_nn 1 = μ.mass :=
 begin
-  simp only [test_against_nn, coe_one, pi.one_apply, ennreal.coe_one, lintegral_one],
+  simv only [test_against_nn, coe_one, pi.one_apply, ennreal.coe_one, lintegral_one],
   refl,
 end
 
 @[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) :
   (0 : finite_measure α).test_against_nn f = 0 :=
-by simp only [test_against_nn, coe_zero, lintegral_zero_measure, ennreal.zero_to_nnreal]
+by simv only [test_against_nn, coe_zero, lintegral_zero_measure, ennreal.zero_to_nnreal]
 
 lemma zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
-by { funext, simp only [zero.test_against_nn_apply, pi.zero_apply], }
+by { funext, simv only [zero.test_against_nn_apply, pi.zero_apply], }
 
 @[simp] lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   (c • μ).test_against_nn f  = c • (μ.test_against_nn f) :=
-by simp only [test_against_nn, coe_smul, smul_eq_mul, ← ennreal.smul_to_nnreal,
+by simv only [test_against_nn, coe_smul, smul_eq_mul, ← ennreal.smul_to_nnreal,
   ennreal.smul_def, lintegral_smul_measure]
 
 variables [opens_measurable_space α]
@@ -299,7 +299,7 @@ variables [opens_measurable_space α]
 lemma test_against_nn_add (μ : finite_measure α) (f₁ f₂ : α →ᵇ ℝ≥0) :
   μ.test_against_nn (f₁ + f₂) = μ.test_against_nn f₁ + μ.test_against_nn f₂ :=
 begin
-  simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
+  simv only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
              pi.add_apply, test_against_nn_coe_eq],
   exact lintegral_add_left (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _) _
 end
@@ -309,7 +309,7 @@ lemma test_against_nn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] [pseudo_metric_sp
   (μ : finite_measure α) (c : R) (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn (c • f) = c • μ.test_against_nn f :=
 begin
-  simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_smul,
+  simv only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_smul,
              test_against_nn_coe_eq, ennreal.coe_smul],
   simp_rw [←smul_one_smul ℝ≥0∞ c (f _ : ℝ≥0∞), ←smul_one_smul ℝ≥0∞ c (lintegral _ _ : ℝ≥0∞),
            smul_eq_mul],
@@ -320,7 +320,7 @@ end
 lemma test_against_nn_lipschitz_estimate (μ : finite_measure α) (f g : α →ᵇ ℝ≥0) :
   μ.test_against_nn f ≤ μ.test_against_nn g + (nndist f g) * μ.mass :=
 begin
-  simp only [←μ.test_against_nn_const (nndist f g), ←test_against_nn_add, ←ennreal.coe_le_coe,
+  simv only [←μ.test_against_nn_const (nndist f g), ←test_against_nn_add, ←ennreal.coe_le_coe,
              bounded_continuous_function.coe_add, const_apply, ennreal.coe_add, pi.add_apply,
              coe_nnreal_ennreal_nndist, test_against_nn_coe_eq],
   apply lintegral_mono,
@@ -431,7 +431,7 @@ begin
   have obs := λ i, (μs i).test_against_nn_lipschitz_estimate f 0,
   simp_rw [test_against_nn_zero, zero_add] at obs,
   simp_rw (show ∀ i, dist ((μs i).test_against_nn f) 0 = (μs i).test_against_nn f,
-    by simp only [dist_nndist, nnreal.nndist_zero_eq_val', eq_self_iff_true,
+    by simv only [dist_nndist, nnreal.nndist_zero_eq_val', eq_self_iff_true,
                   implies_true_iff]),
   refine squeeze_zero (λ i, nnreal.coe_nonneg _) obs _,
   simp_rw nnreal.coe_mul,
@@ -572,7 +572,7 @@ lemma integrable_of_bounded_continuous_to_nnreal
   integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) μ :=
 begin
   refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
-  simp only [has_finite_integral, nnreal.nnnorm_eq],
+  simv only [has_finite_integral, nnreal.nnnorm_eq],
   exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
 end
 
@@ -583,7 +583,7 @@ begin
   refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
   have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ∥f x∥),
   { ext x,
-    simp only [function.comp_app, bounded_continuous_function.nnnorm_coe_fun_eq, coe_nnnorm], },
+    simv only [function.comp_app, bounded_continuous_function.nnnorm_coe_fun_eq, coe_nnnorm], },
   apply (has_finite_integral_iff_norm ⇑f).mpr,
   rw ← of_real_integral_eq_lintegral_of_real,
   { exact ennreal.of_real_lt_top, },
@@ -594,7 +594,7 @@ end
 lemma _root_.bounded_continuous_function.integral_eq_integral_nnreal_part_sub
   (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
   ∫ x, f x ∂μ = ∫ x, f.nnreal_part x ∂μ - ∫ x, (-f).nnreal_part x ∂μ :=
-by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
+by simv only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
               pi.sub_apply, integral_sub, integrable_of_bounded_continuous_to_nnreal]
 
 lemma lintegral_lt_top_of_bounded_continuous_to_real
@@ -614,19 +614,19 @@ begin
   have key := @ennreal.tendsto_to_real_iff _ F
               _ (λ i, (lintegral_lt_top_of_bounded_continuous_to_nnreal (μs i : measure α) f).ne)
               _ (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f).ne,
-  simp only [ennreal.of_real_coe_nnreal] at key,
+  simv only [ennreal.of_real_coe_nnreal] at key,
   apply key.mp,
   have lip : lipschitz_with 1 (coe : ℝ≥0 → ℝ), from isometry_subtype_coe.lipschitz,
   set f₀ := bounded_continuous_function.comp _ lip f with def_f₀,
   have f₀_eq : ⇑f₀ = (coe : ℝ≥0 → ℝ) ∘ ⇑f, by refl,
-  have f₀_nn : 0 ≤ ⇑f₀, from λ _, by simp only [f₀_eq, pi.zero_apply, nnreal.zero_le_coe],
+  have f₀_nn : 0 ≤ ⇑f₀, from λ _, by simv only [f₀_eq, pi.zero_apply, nnreal.zero_le_coe],
   have f₀_ae_nn : 0 ≤ᵐ[(μ : measure α)] ⇑f₀, from eventually_of_forall f₀_nn,
   have f₀_ae_nns : ∀ i, 0 ≤ᵐ[(μs i : measure α)] ⇑f₀, from λ i, eventually_of_forall f₀_nn,
   have aux := integral_eq_lintegral_of_nonneg_ae f₀_ae_nn
               f₀.continuous.measurable.ae_strongly_measurable,
   have auxs := λ i, integral_eq_lintegral_of_nonneg_ae (f₀_ae_nns i)
               f₀.continuous.measurable.ae_strongly_measurable,
-  simp only [f₀_eq, ennreal.of_real_coe_nnreal] at aux auxs,
+  simv only [f₀_eq, ennreal.of_real_coe_nnreal] at aux auxs,
   simpa only [←aux, ←auxs] using h f₀,
 end
 
@@ -636,9 +636,9 @@ lemma _root_.bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
 begin
   rw integral_eq_lintegral_of_nonneg_ae _
      (nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable,
-  { simp only [ennreal.of_real_coe_nnreal], },
+  { simv only [ennreal.of_real_coe_nnreal], },
   { apply eventually_of_forall,
-    simp only [pi.zero_apply, nnreal.zero_le_coe, implies_true_iff], },
+    simv only [pi.zero_apply, nnreal.zero_le_coe, implies_true_iff], },
 end
 
 /-- A characterization of weak convergence in terms of integrals of bounded continuous
@@ -821,7 +821,7 @@ theorem tendsto_iff_forall_integral_tendsto
 begin
   rw tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
   rw finite_measure.tendsto_iff_forall_integral_tendsto,
-  simp only [coe_comp_to_finite_measure_eq_coe],
+  simv only [coe_comp_to_finite_measure_eq_coe],
 end
 
 end probability_measure -- namespace
@@ -849,7 +849,7 @@ if zero : μ.mass = 0 then ⟨measure.dirac ‹nonempty α›.some, measure.dira
   else {  val := (μ.mass)⁻¹ • μ,
           property := begin
             refine ⟨_⟩,
-            simp only [mass, measure.coe_nnreal_smul_apply,
+            simv only [mass, measure.coe_nnreal_smul_apply,
                         ←ennreal_coe_fn_eq_coe_fn_to_measure μ univ],
             norm_cast,
             exact inv_mul_cancel zero,
@@ -859,12 +859,12 @@ if zero : μ.mass = 0 then ⟨measure.dirac ‹nonempty α›.some, measure.dira
 begin
   by_cases μ = 0,
   { rw h,
-    simp only [zero.mass, coe_fn_zero, pi.zero_apply, zero_mul], },
+    simv only [zero.mass, coe_fn_zero, pi.zero_apply, zero_mul], },
   have mass_nonzero : μ.mass ≠ 0, by rwa μ.mass_nonzero_iff,
-  simp only [(show μ ≠ 0, from h), mass_nonzero, normalize, not_false_iff, dif_neg],
+  simv only [(show μ ≠ 0, from h), mass_nonzero, normalize, not_false_iff, dif_neg],
   change μ s = μ.mass * ((μ.mass)⁻¹ • μ) s,
   rw coe_fn_smul_apply,
-  simp only [mass_nonzero, algebra.id.smul_eq_mul, mul_inv_cancel_left₀, ne.def, not_false_iff],
+  simv only [mass_nonzero, algebra.id.smul_eq_mul, mul_inv_cancel_left₀, ne.def, not_false_iff],
 end
 
 lemma self_eq_mass_smul_normalize : μ = μ.mass • μ.normalize.to_finite_measure :=
@@ -876,7 +876,7 @@ end
 
 lemma normalize_eq_of_nonzero (nonzero : μ ≠ 0) (s : set α) :
   μ.normalize s = (μ.mass)⁻¹ * (μ s) :=
-by simp only [μ.self_eq_mass_mul_normalize, μ.mass_nonzero_iff.mpr nonzero,
+by simv only [μ.self_eq_mass_mul_normalize, μ.mass_nonzero_iff.mpr nonzero,
               inv_mul_cancel_left₀, ne.def, not_false_iff]
 
 lemma normalize_eq_inv_mass_smul_of_nonzero (nonzero : μ ≠ 0) :
@@ -884,14 +884,14 @@ lemma normalize_eq_inv_mass_smul_of_nonzero (nonzero : μ ≠ 0) :
 begin
   nth_rewrite 2 μ.self_eq_mass_smul_normalize,
   rw ← smul_assoc,
-  simp only [μ.mass_nonzero_iff.mpr nonzero, algebra.id.smul_eq_mul,
+  simv only [μ.mass_nonzero_iff.mpr nonzero, algebra.id.smul_eq_mul,
              inv_mul_cancel, ne.def, not_false_iff, one_smul],
 end
 
 lemma coe_normalize_eq_of_nonzero (nonzero : μ ≠ 0) : (μ.normalize : measure α) = (μ.mass)⁻¹ • μ :=
 begin
   ext1 s s_mble,
-  simp only [← μ.normalize.ennreal_coe_fn_eq_coe_fn_to_measure s,
+  simv only [← μ.normalize.ennreal_coe_fn_eq_coe_fn_to_measure s,
              μ.normalize_eq_of_nonzero nonzero s, ennreal.coe_mul,
              ennreal_coe_fn_eq_coe_fn_to_measure, measure.coe_nnreal_smul_apply],
 end
@@ -902,7 +902,7 @@ end
 begin
   ext s s_mble,
   rw μ.to_finite_measure.normalize_eq_of_nonzero μ.to_finite_measure_nonzero s,
-  simp only [probability_measure.mass_to_finite_measure, inv_one, one_mul],
+  simv only [probability_measure.mass_to_finite_measure, inv_one, one_mul],
   refl,
 end
 
@@ -915,7 +915,7 @@ lemma average_eq_integral_normalize
 begin
   rw [μ.coe_normalize_eq_of_nonzero nonzero, average],
   congr,
-  simp only [ring_hom.to_fun_eq_coe, ennreal.coe_of_nnreal_hom,
+  simv only [ring_hom.to_fun_eq_coe, ennreal.coe_of_nnreal_hom,
              ennreal.coe_inv (μ.mass_nonzero_iff.mpr nonzero), ennreal_mass],
 end
 
@@ -931,7 +931,7 @@ end
 
 lemma normalize_test_against_nn (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
   μ.normalize.to_finite_measure.test_against_nn f = (μ.mass)⁻¹ * μ.test_against_nn f :=
-by simp [μ.test_against_nn_eq_mass_mul, μ.mass_nonzero_iff.mpr nonzero]
+by simv [μ.test_against_nn_eq_mass_mul, μ.mass_nonzero_iff.mpr nonzero]
 
 variables [opens_measurable_space α]
 
@@ -944,7 +944,7 @@ lemma tendsto_test_against_nn_of_tendsto_normalize_test_against_nn_of_tendsto_ma
   tendsto (λ i, (μs i).test_against_nn f) F (𝓝 (μ.test_against_nn f)) :=
 begin
   by_cases h_mass : μ.mass = 0,
-  { simp only [μ.mass_zero_iff.mp h_mass, zero.test_against_nn_apply,
+  { simv only [μ.mass_zero_iff.mp h_mass, zero.test_against_nn_apply,
                zero.mass, eq_self_iff_true] at *,
     exact tendsto_zero_test_against_nn_of_tendsto_zero_mass mass_lim f, },
   simp_rw [(λ i, (μs i).test_against_nn_eq_mass_mul f), μ.test_against_nn_eq_mass_mul f],
@@ -1056,9 +1056,9 @@ lemma measure_of_cont_bdd_of_tendsto_filter_indicator {ι : Type*} {L : filter �
 begin
   convert finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_bdd fs_lim,
   have aux : ∀ a, indicator E (λ x, (1 : ℝ≥0∞)) a = ↑(indicator E (λ x, (1 : ℝ≥0)) a),
-  from λ a, by simp only [ennreal.coe_indicator, ennreal.coe_one],
+  from λ a, by simv only [ennreal.coe_indicator, ennreal.coe_one],
   simp_rw [←aux, lintegral_indicator _ E_mble],
-  simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
+  simv only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
 end
 
 /-- If a sequence of bounded continuous functions tends to the indicator of a measurable set and
@@ -1112,7 +1112,7 @@ lemma finite_measure.limsup_measure_closed_le_of_tendsto
   L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F :=
 begin
   by_cases L = ⊥,
-  { simp only [h, limsup, filter.map_bot, Limsup_bot, ennreal.bot_eq_zero, zero_le], },
+  { simv only [h, limsup, filter.map_bot, Limsup_bot, ennreal.bot_eq_zero, zero_le], },
   apply ennreal.le_of_forall_pos_le_add,
   intros ε ε_pos μ_F_finite,
   set δs := λ (n : ℕ), (1 : ℝ) / (n+1) with def_δs,
@@ -1141,7 +1141,7 @@ begin
   haveI : ne_bot L, from ⟨h⟩,
   rw limsup_const,
   apply le_trans (add_le_add (hM M rfl.le).le (le_refl (ε/2 : ℝ≥0∞))),
-  simp only [add_assoc, ennreal.add_halves, le_refl],
+  simv only [add_assoc, ennreal.add_halves, le_refl],
 end
 
 end convergence_implies_limsup_closed_le --section

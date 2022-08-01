@@ -108,11 +108,11 @@ lemma pow (n : ℕ) : map_fun f (x^ n) = map_fun f x ^ n := by map_fun_tac
 
 lemma nat_cast (n : ℕ) : map_fun f (n : 𝕎 R) = n :=
 show map_fun f n.unary_cast = coe n,
-by induction n; simp [*, nat.unary_cast, add, one, zero]; refl
+by induction n; simv [*, nat.unary_cast, add, one, zero]; refl
 
 lemma int_cast (n : ℤ) : map_fun f (n : 𝕎 R) = n :=
 show map_fun f n.cast_def = coe n,
-by cases n; simp [*, int.cast_def, add, one, neg, zero, nat_cast]; refl
+by cases n; simv [*, int.cast_def, add, one, neg, zero, nat_cast]; refl
 
 end map_fun
 
@@ -161,7 +161,7 @@ include hp
 variables (x y : 𝕎 R)
 
 omit hp
-local attribute [simp]
+local attribute [simv]
 lemma matrix_vec_empty_coeff {R} (i j) :
   @coeff p R (matrix.vec_empty i) j = (matrix.vec_empty i : ℕ → R) j :=
 by rcases i with ⟨_ | _ | _ | _ | i_val, ⟨⟩⟩
@@ -176,7 +176,7 @@ by ghost_fun_tac (X 0 + X 1) ![x.coeff, y.coeff]
 
 private lemma ghost_fun_nat_cast (i : ℕ) : ghost_fun (i : 𝕎 R) = i :=
 show ghost_fun i.unary_cast = _,
-by induction i; simp [*, nat.unary_cast, ghost_fun_zero, ghost_fun_one, ghost_fun_add, -pi.coe_nat]
+by induction i; simv [*, nat.unary_cast, ghost_fun_zero, ghost_fun_one, ghost_fun_add, -pi.coe_nat]
 
 private lemma ghost_fun_sub : ghost_fun (x - y) = ghost_fun x - ghost_fun y :=
 by ghost_fun_tac (X 0 - X 1) ![x.coeff, y.coeff]
@@ -189,7 +189,7 @@ by ghost_fun_tac (-X 0) ![x.coeff]
 
 private lemma ghost_fun_int_cast (i : ℤ) : ghost_fun (i : 𝕎 R) = i :=
 show ghost_fun i.cast_def = _,
-by cases i; simp [*, int.cast_def, ghost_fun_nat_cast, ghost_fun_neg, -pi.coe_nat, -pi.coe_int]
+by cases i; simv [*, int.cast_def, ghost_fun_nat_cast, ghost_fun_neg, -pi.coe_nat, -pi.coe_int]
 
 private lemma ghost_fun_nsmul (m : ℕ) : ghost_fun (m • x) = m • ghost_fun x :=
 by ghost_fun_tac (m • X 0) ![x.coeff]
@@ -303,8 +303,8 @@ end invertible
 @[simps]
 noncomputable! def constant_coeff : 𝕎 R →+* R :=
 { to_fun := λ x, x.coeff 0,
-  map_zero' := by simp,
-  map_one' := by simp,
+  map_zero' := by simv,
+  map_one' := by simv,
   map_add' := add_coeff_zero,
   map_mul' := mul_coeff_zero }
 

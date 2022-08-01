@@ -52,8 +52,8 @@ instance : inhabited (nat_β nat_α.succ) := ⟨ () ⟩
 | (W_type.mk nat_α.succ f) := (to_nat (f ())).succ
 
 lemma left_inv_nat : function.left_inverse of_nat to_nat
-| (W_type.mk nat_α.zero f) := by { simp, tidy }
-| (W_type.mk nat_α.succ f) := by { simp, tidy }
+| (W_type.mk nat_α.zero f) := by { simv, tidy }
+| (W_type.mk nat_α.succ f) := by { simv, tidy }
 
 lemma right_inv_nat : function.right_inverse of_nat to_nat
 | nat.zero := rfl
@@ -119,12 +119,12 @@ instance (hd : γ) : inhabited (list_β γ (list_α.cons hd)) := ⟨ punit.star 
 | (W_type.mk (list_α.cons hd) f) := hd :: to_list (f punit.star)
 
 lemma left_inv_list : function.left_inverse (of_list γ) (to_list _)
-| (W_type.mk list_α.nil f) := by { simp, tidy }
-| (W_type.mk (list_α.cons x) f) := by { simp, tidy }
+| (W_type.mk list_α.nil f) := by { simv, tidy }
+| (W_type.mk (list_α.cons x) f) := by { simv, tidy }
 
 lemma right_inv_list : function.right_inverse (of_list γ) (to_list _)
 | list.nil := rfl
-| (list.cons hd tl) := by simp [right_inv_list tl]
+| (list.cons hd tl) := by simv [right_inv_list tl]
 
 /-- Lists are equivalent to their associated `W_type` -/
 def equiv_list : W_type (list_β γ) ≃ list γ :=

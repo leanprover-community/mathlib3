@@ -101,7 +101,7 @@ def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.
   end,
   prop' := λ t x hx, begin
     cases hx,
-    { rw hx, simp [refl_trans_symm_aux] },
+    { rw hx, simv [refl_trans_symm_aux] },
     { rw set.mem_singleton_iff at hx,
       rw hx,
       norm_num [refl_trans_symm_aux] }
@@ -150,10 +150,10 @@ lemma trans_refl_reparam (p : path x₀ x₁) : p.trans (path.refl x₁) =
 begin
   ext,
   unfold trans_refl_reparam_aux,
-  simp only [path.trans_apply, not_le, coe_to_fun, function.comp_app],
+  simv only [path.trans_apply, not_le, coe_to_fun, function.comp_app],
   split_ifs,
   { refl },
-  { simp }
+  { simv }
 end
 
 /--
@@ -168,7 +168,7 @@ def trans_refl (p : path x₀ x₁) : homotopy (p.trans (path.refl x₁)) p :=
 For any path `p` from `x₀` to `x₁`, we have a homotopy from `(path.refl x₀).trans p` to `p`.
 -/
 def refl_trans (p : path x₀ x₁) : homotopy ((path.refl x₀).trans p) p :=
-(trans_refl p.symm).symm₂.cast (by simp) (by simp)
+(trans_refl p.symm).symm₂.cast (by simv) (by simv)
 
 end trans_refl
 
@@ -214,24 +214,24 @@ lemma trans_assoc_reparam {x₀ x₁ x₂ x₃ : X} (p : path x₀ x₁) (q : pa
     (subtype.ext trans_assoc_reparam_aux_one) :=
 begin
   ext,
-  simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le,
+  simv only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le,
              function.comp_app, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite,
              subtype.coe_mk, path.coe_to_fun],
   -- TODO: why does split_ifs not reduce the ifs??????
   split_ifs with h₁ h₂ h₃ h₄ h₅,
-  { simp [h₂, h₃, -one_div] },
+  { simv [h₂, h₃, -one_div] },
   { exfalso, linarith },
   { exfalso, linarith },
   { have h : ¬ (x : ℝ) + 1/4 ≤ 1/2, by linarith,
     have h' : 2 * ((x : ℝ) + 1/4) - 1 ≤ 1/2, by linarith,
     have h'' : 2 * (2 * (x : ℝ)) - 1 = 2 * (2 * (↑x + 1/4) - 1), by linarith,
-    simp only [h₄, h₁, h, h', h'',
+    simv only [h₄, h₁, h, h', h'',
       dif_neg (show ¬ false, from id), dif_pos true.intro, if_false, if_true] },
   { exfalso,
     linarith },
   { have h : ¬ (1 / 2 : ℝ) * (x + 1) ≤ 1/2, by linarith,
     have h' : ¬ 2 * ((1 / 2 : ℝ) * (x + 1)) - 1 ≤ 1/2, by linarith,
-    simp only [h₁, h₅, h, h', if_false, dif_neg (show ¬ false, from id)],
+    simv only [h₁, h₅, h, h', if_false, dif_neg (show ¬ false, from id)],
     congr, ring }
 end
 
@@ -303,7 +303,7 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     map := λ x y p, p.map_fn f,
     map_id' := λ X, rfl,
     map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b,
-      by simp [comp_eq, ← path.homotopic.map_lift, ← path.homotopic.comp_lift] },
+      by simv [comp_eq, ← path.homotopic.map_lift, ← path.homotopic.comp_lift] },
   map_id' := begin
     intro X,
     change _ = (⟨_, _, _, _⟩ : fundamental_groupoid X ⥤ fundamental_groupoid X),
@@ -319,7 +319,7 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     congr',
     ext x y p,
     refine quotient.induction_on p (λ q, _),
-    simp only [quotient.map_mk, path.map_map, quotient.eq],
+    simv only [quotient.map_mk, path.map_map, quotient.eq],
     refl,
   end }
 

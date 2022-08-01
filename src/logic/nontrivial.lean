@@ -69,7 +69,7 @@ lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
 
 lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
-by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
+by simv only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
 instance : nontrivial Prop := ⟨⟨true, false, true_ne_false⟩⟩
 
@@ -198,7 +198,7 @@ do
   (solve1 $ do
     reset_instance_cache,
     apply_instance <|>
-      interactive.simp none none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
+      interactive.simv none none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
       fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 
@@ -233,8 +233,8 @@ The `nontriviality` tactic will first look for strict inequalities amongst the h
 and use these to derive the `nontrivial` instance directly.
 
 Otherwise, it will perform a case split on `subsingleton α ∨ nontrivial α`, and attempt to discharge
-the `subsingleton` goal using `simp [lemmas] with nontriviality`, where `[lemmas]` is a list of
-additional `simp` lemmas that can be passed to `nontriviality` using the syntax
+the `subsingleton` goal using `simv [lemmas] with nontriviality`, where `[lemmas]` is a list of
+additional `simv` lemmas that can be passed to `nontriviality` using the syntax
 `nontriviality α using [lemmas]`.
 
 ```

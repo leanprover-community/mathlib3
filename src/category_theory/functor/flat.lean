@@ -77,7 +77,7 @@ arrows over `X` with `f` as the cone point.
 def to_cone {X : D} (f : X ⟶ F.obj c.X) :
   cone (to_diagram (F.map_cone c) ⋙ map f ⋙ pre _ K F) :=
 { X := mk f, π := { app := λ j, hom_mk (c.π.app j) rfl,
-                    naturality' := λ j k g, by { ext, dsimp, simp } } }
+                    naturality' := λ j k g, by { ext, dsimp, simv } } }
 
 end structured_arrow_cone
 
@@ -112,7 +112,7 @@ begin
     use structured_arrow.mk (𝟙 _),
     use structured_arrow.hom_mk Y.hom (by erw [functor.id_map, category.id_comp]),
     ext,
-    transitivity Z.hom; simp }
+    transitivity Z.hom; simv }
 end
 
 instance representably_flat.comp (F : C ⥤ D) (G : D ⥤ E)
@@ -139,8 +139,8 @@ begin
     let Z'' : W' ⟶ _ := is_cofiltered.min_to_right _ _,
 
     use structured_arrow.mk (W.hom ≫ G.map W'.hom),
-    use structured_arrow.hom_mk Y''.right (by simp [← G.map_comp]),
-    use structured_arrow.hom_mk Z''.right (by simp [← G.map_comp]) },
+    use structured_arrow.hom_mk Y''.right (by simv [← G.map_comp]),
+    use structured_arrow.hom_mk Z''.right (by simv [← G.map_comp]) },
   { intros Y Z f g,
     let W := @is_cofiltered.eq (structured_arrow X G) _ _
         (structured_arrow.mk Y.hom) (structured_arrow.mk Z.hom)
@@ -157,7 +157,7 @@ begin
     let h'_cond : h' ≫ _ = h' ≫ _ := is_cofiltered.eq_condition _ _,
 
     use structured_arrow.mk (W.hom ≫ G.map W'.hom),
-    use structured_arrow.hom_mk h'.right (by simp [← G.map_comp]),
+    use structured_arrow.hom_mk h'.right (by simv [← G.map_comp]),
     ext,
     exact (congr_arg comma_morphism.right h'_cond : _) }
 end
@@ -201,14 +201,14 @@ Given a limit cone `c : cone K` and a cone `s : cone (K ⋙ F)` with `F` represe
 noncomputable def lift : s.X ⟶ F.obj c.X :=
 let s' := is_cofiltered.cone (to_diagram s ⋙ structured_arrow.pre _ K F) in
 s'.X.hom ≫ (F.map $ hc.lift $
-  (cones.postcompose ({ app := λ X, 𝟙 _, naturality' := by simp }
+  (cones.postcompose ({ app := λ X, 𝟙 _, naturality' := by simv }
       : (to_diagram s ⋙ pre s.X K F) ⋙ proj s.X F ⟶ K)).obj $
   (structured_arrow.proj s.X F).map_cone s')
 
 lemma fac (x : J) : lift F hc s ≫ (F.map_cone c).π.app x = s.π.app x :=
 by simpa [lift, ←functor.map_comp]
 
-local attribute [simp] eq_to_hom_map
+local attribute [simv] eq_to_hom_map
 
 lemma uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
   (s : cone (K ⋙ F)) (f₁ f₂ : s.X ⟶ F.obj c.X)
@@ -217,9 +217,9 @@ lemma uniq {K : J ⥤ C} {c : cone K} (hc : is_limit c)
 begin
   -- We can make two cones over the diagram of `s` via `f₁` and `f₂`.
   let α₁ : to_diagram (F.map_cone c) ⋙ map f₁ ⟶ to_diagram s :=
-  { app := λ X, eq_to_hom (by simp [←h₁]), naturality' := λ _ _ _, by { ext, simp } },
+  { app := λ X, eq_to_hom (by simv [←h₁]), naturality' := λ _ _ _, by { ext, simv } },
   let α₂ : to_diagram (F.map_cone c) ⋙ map f₂ ⟶ to_diagram s :=
-  { app := λ X, eq_to_hom (by simp [←h₂]), naturality' := λ _ _ _, by { ext, simp } },
+  { app := λ X, eq_to_hom (by simv [←h₂]), naturality' := λ _ _ _, by { ext, simv } },
   let c₁ : cone (to_diagram s ⋙ pre s.X K F) :=
     (cones.postcompose (whisker_right α₁ (pre s.X K F) : _)).obj (to_cone F c f₁),
   let c₂ : cone (to_diagram s ⋙ pre s.X K F) :=
@@ -247,11 +247,11 @@ begin
             ... = g₂.right                    : by { symmetry, apply hc.uniq (c.extend _), tidy },
 
   -- Finally, since `fᵢ` factors through `F(gᵢ)`, the result follows.
-  calc f₁ = 𝟙 _ ≫ f₁                  : by simp
+  calc f₁ = 𝟙 _ ≫ f₁                  : by simv
       ... = c₀.X.hom ≫ F.map g₁.right : g₁.w
       ... = c₀.X.hom ≫ F.map g₂.right : by rw this
       ... = 𝟙 _ ≫ f₂                  : g₂.w.symm
-      ... = f₂                         : by simp
+      ... = f₂                         : by simv
 end
 
 end preserves_finite_limits_of_flat
@@ -305,7 +305,7 @@ nat_iso.of_components (λ G, colim.map_iso (iso.refl _))
 begin
   intros G H i,
   ext,
-  simp only [functor.comp_map, colimit.ι_desc_assoc, functor.map_iso_refl, evaluation_obj_map,
+  simv only [functor.comp_map, colimit.ι_desc_assoc, functor.map_iso_refl, evaluation_obj_map,
     whiskering_left_obj_map, category.comp_id, Lan_map_app, category.assoc],
   erw [colimit.ι_pre_assoc (Lan.diagram F H X) (costructured_arrow.map j.hom),
     category.id_comp, category.comp_id, colimit.ι_map],

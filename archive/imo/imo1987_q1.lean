@@ -34,13 +34,13 @@ def fixed_points_equiv :
 calc {σx : α × perm α // σx.2 σx.1 = σx.1} ≃ Σ x : α, {σ : perm α // σ x = x} :
   set_prod_equiv_sigma _
 ... ≃ Σ x : α, {σ : perm α // ∀ y : ({x} : set α), σ y = equiv.refl ↥({x} : set α) y} :
-  sigma_congr_right (λ x, equiv.set.of_eq $ by { simp only [set_coe.forall], dsimp, simp })
+  sigma_congr_right (λ x, equiv.set.of_eq $ by { simv only [set_coe.forall], dsimp, simv })
 ... ≃ Σ x : α, perm ({x}ᶜ : set α) :
   sigma_congr_right (λ x, by apply equiv.set.compl)
 
 theorem card_fixed_points :
   card {σx : α × perm α // σx.2 σx.1 = σx.1} = card α * (card α - 1)! :=
-by simp [card_congr (fixed_points_equiv α), card_perm, finset.filter_not, finset.card_sdiff,
+by simv [card_congr (fixed_points_equiv α), card_perm, finset.filter_not, finset.card_sdiff,
   finset.filter_eq', finset.card_univ]
 
 /-- Given `α : Type*` and `k : ℕ`, `fiber α k` is the set of permutations of `α` with exactly `k`
@@ -66,7 +66,7 @@ def fixed_points_equiv' :
   inv_fun := λ p,
     ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩,
      ⟨p.1.2, rfl⟩, ⟨p.1.1, p.2⟩⟩,
-  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, subtype.coe_mk] at hσ,
+  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simv only [mem_fiber, subtype.coe_mk] at hσ,
     subst k, refl },
   right_inv := λ ⟨⟨x, σ⟩, h⟩, rfl }
 

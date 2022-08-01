@@ -48,7 +48,7 @@ begin
   obtain ⟨hv⟩ := contractible_space.hequiv_unit X,
   use hv.inv_fun (),
   convert hv.left_inv.symm,
-  ext, simp, congr,
+  ext, simv, congr,
 end
 
 lemma contractible_iff_id_nullhomotopic (Y : Type*) [topological_space Y] :

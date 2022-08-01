@@ -69,22 +69,22 @@ def ack : ℕ → ℕ → ℕ
 @[simp] theorem ack_one (n : ℕ) : ack 1 n = n + 2 :=
 begin
   induction n with n IH,
-  { simp },
-  { simp [IH] }
+  { simv },
+  { simv [IH] }
 end
 
 @[simp] theorem ack_two (n : ℕ) : ack 2 n = 2 * n + 3 :=
 begin
   induction n with n IH,
-  { simp },
-  { simp [IH, mul_succ] }
+  { simv },
+  { simv [IH, mul_succ] }
 end
 
 private theorem ack_three_aux (n : ℕ) : (ack 3 n : ℤ) = 2 ^ (n + 3) - 3 :=
 begin
   induction n with n IH,
-  { simp, norm_num },
-  { simp [IH, pow_succ],
+  { simv, norm_num },
+  { simv [IH, pow_succ],
     rw [mul_sub, sub_add],
     norm_num }
 end
@@ -99,17 +99,17 @@ begin
 end
 
 theorem ack_pos : ∀ m n, 0 < ack m n
-| 0       n       := by simp
+| 0       n       := by simv
 | (m + 1) 0       := by { rw ack_succ_zero, apply ack_pos }
 | (m + 1) (n + 1) := by { rw ack_succ_succ, apply ack_pos }
 
 theorem one_lt_ack_succ_left : ∀ m n, 1 < ack (m + 1) n
-| 0       n       := by simp
+| 0       n       := by simv
 | (m + 1) 0       := by { rw ack_succ_zero, apply one_lt_ack_succ_left }
 | (m + 1) (n + 1) := by { rw ack_succ_succ, apply one_lt_ack_succ_left }
 
 theorem one_lt_ack_succ_right : ∀ m n, 1 < ack m (n + 1)
-| 0       n := by simp
+| 0       n := by simv
 | (m + 1) n := begin
   rw ack_succ_succ,
   cases exists_eq_succ_of_ne_zero (ack_pos (m + 1) n).ne',
@@ -147,7 +147,7 @@ theorem max_ack_right (m n₁ n₂ : ℕ) : ack m (max n₁ n₂) = max (ack m n
 (ack_mono_right m).map_max
 
 theorem add_lt_ack : ∀ m n, m + n < ack m n
-| 0       n       := by simp
+| 0       n       := by simv
 | (m + 1) 0       := by simpa using add_lt_ack m 1
 | (m + 1) (n + 1) :=
 calc (m + 1) + n + 1
@@ -204,7 +204,7 @@ theorem ack_le_ack {m₁ m₂ n₁ n₂ : ℕ} (hm : m₁ ≤ m₂) (hn : n₁ �
 theorem ack_succ_right_le_ack_succ_left (m n : ℕ) : ack m (n + 1) ≤ ack (m + 1) n :=
 begin
   cases n,
-  { simp },
+  { simv },
   { rw [ack_succ_succ, succ_eq_add_one],
     apply ack_mono_right m (le_trans _ $ add_add_one_le_ack _ n),
     linarith }

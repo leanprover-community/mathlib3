@@ -251,12 +251,12 @@ begin
   { rintros α p ⟨a,f⟩,
     have h' := h, rw supp_preservation_iff_uniform at h',
     dsimp only [supp_preservation,supp] at h,
-    simp only [liftp_iff_of_is_uniform, supp_eq_of_is_uniform, mvpfunctor.liftp_iff', h',
+    simv only [liftp_iff_of_is_uniform, supp_eq_of_is_uniform, mvpfunctor.liftp_iff', h',
       image_univ, mem_range, exists_imp_distrib],
     split; intros; subst_vars; solve_by_elim },
   { rintros α ⟨a,f⟩,
-    simp only [liftp_preservation] at h,
-    ext, simp [supp,h] }
+    simv only [liftp_preservation] at h,
+    ext, simv [supp,h] }
 end
 
 theorem liftp_preservation_iff_uniform :

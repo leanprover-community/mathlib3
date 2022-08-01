@@ -31,14 +31,14 @@ namespace oplax_nat_trans
 def whisker_left (η : F ⟶ G) {θ ι : G ⟶ H} (Γ : θ ⟶ ι) : η ≫ θ ⟶ η ≫ ι :=
 { app := λ a, η.app a ◁ Γ.app a,
   naturality' := λ a b f, by
-  { dsimp, rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc], simp } }
+  { dsimp, rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc], simv } }
 
 /-- Right whiskering of an oplax natural transformation and a modification. -/
 @[simps]
 def whisker_right {η θ : F ⟶ G} (Γ : η ⟶ θ) (ι : G ⟶ H) : η ≫ ι ⟶ θ ≫ ι :=
 { app := λ a, Γ.app a ▷ ι.app a,
   naturality' := λ a b f, by
-  { dsimp, simp_rw [assoc, ←associator_inv_naturality_left, whisker_exchange_assoc], simp } }
+  { dsimp, simp_rw [assoc, ←associator_inv_naturality_left, whisker_exchange_assoc], simv } }
 
 /-- Associator for the vertical composition of oplax natural transformations. -/
 @[simps]

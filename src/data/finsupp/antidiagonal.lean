@@ -36,12 +36,12 @@ f.antidiagonal'.support
   p ∈ antidiagonal f ↔ p.1 + p.2 = f :=
 begin
   rcases p with ⟨p₁, p₂⟩,
-  simp [antidiagonal, antidiagonal', ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
+  simv [antidiagonal, antidiagonal', ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
 end
 
 lemma swap_mem_antidiagonal {n : α →₀ ℕ} {f : (α →₀ ℕ) × (α →₀ ℕ)} :
   f.swap ∈ antidiagonal n ↔ f ∈ antidiagonal n :=
-by simp only [mem_antidiagonal, add_comm, prod.swap]
+by simv only [mem_antidiagonal, add_comm, prod.swap]
 
 lemma antidiagonal_filter_fst_eq (f g : α →₀ ℕ)
   [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.1 = g)] :

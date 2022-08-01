@@ -113,7 +113,7 @@ instance has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
 @[simp] lemma mk_self : mk f f = 0 :=
-quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
+quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simv)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
@@ -267,18 +267,18 @@ basis.of_equiv_fun
 { to_fun := λ f i, (mod_by_monic_hom hg f).coeff i,
   inv_fun := λ c, mk g $ ∑ (i : fin g.nat_degree), monomial i (c i),
   map_add' := λ f₁ f₂, funext $ λ i,
-    by simp only [(mod_by_monic_hom hg).map_add, coeff_add, pi.add_apply],
+    by simv only [(mod_by_monic_hom hg).map_add, coeff_add, pi.add_apply],
   map_smul' := λ f₁ f₂, funext $ λ i,
-    by simp only [(mod_by_monic_hom hg).map_smul, coeff_smul, pi.smul_apply, ring_hom.id_apply],
+    by simv only [(mod_by_monic_hom hg).map_smul, coeff_smul, pi.smul_apply, ring_hom.id_apply],
   left_inv := λ f, induction_on g f (λ f, eq.symm $ mk_eq_mk.mpr $
-    by { simp only [mod_by_monic_hom_mk, sum_mod_by_monic_coeff hg degree_le_nat_degree],
+    by { simv only [mod_by_monic_hom_mk, sum_mod_by_monic_coeff hg degree_le_nat_degree],
          rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],
          exact dvd_mul_right _ _ }),
   right_inv := λ x, funext $ λ i, begin
     nontriviality R,
-    simp only [mod_by_monic_hom_mk],
+    simv only [mod_by_monic_hom_mk],
     rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff, finset.sum_eq_single i];
-      try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
+      try { simv only [coeff_monomial, eq_self_iff_true, if_true] },
     { intros j _ hj, exact if_neg (fin.coe_injective.ne hj) },
     { intros, have := finset.mem_univ i, contradiction },
     { refine (degree_sum_le _ _).trans_lt ((finset.sup_lt_iff _).mpr (λ j _, _)),
@@ -295,7 +295,7 @@ where `g` is a monic polynomial of degree `d`. -/
   dim := g.nat_degree,
   basis := power_basis_aux' hg,
   basis_eq_pow := λ i, begin
-    simp only [power_basis_aux', basis.coe_of_equiv_fun, linear_equiv.coe_symm_mk],
+    simv only [power_basis_aux', basis.coe_of_equiv_fun, linear_equiv.coe_symm_mk],
     rw finset.sum_eq_single i,
     { rw [function.update_same, monomial_one_right_eq_X_pow, (mk g).map_pow, mk_X] },
     { intros j _ hj,
@@ -317,8 +317,8 @@ begin
   intros q q_monic q_aeval,
   have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
   { ext,
-    { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
-    { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
+    { simv only [ring_hom.comp_apply, mk_C, lift_of], refl },
+    { simv only [ring_hom.comp_apply, mk_X, lift_root] } },
   rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
       with_bot.coe_le_coe, nat_degree_mul hf, nat_degree_C, add_zero],
   apply nat_degree_le_of_dvd,
@@ -380,17 +380,17 @@ If `R` is a GCD domain and `x` is integral, this is an isomorphism,
 see `adjoin_root.minpoly.equiv_adjoin`. -/
 @[simps] def minpoly.to_adjoin : adjoin_root (minpoly R x) →ₐ[R] adjoin R ({x} : set S) :=
 lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
-  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe])
+  (by simv [← subalgebra.coe_eq_zero, aeval_subalgebra_coe])
 
 variables {R x}
 
 lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : minpoly.to_adjoin R x a =
   lift_hom (minpoly R x) (⟨x, self_mem_adjoin_singleton R x⟩ : adjoin R ({x} : set S))
-  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
+  (by simv [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
 
 lemma minpoly.to_adjoin.apply_X : minpoly.to_adjoin R x (mk (minpoly R x) X) =
   ⟨x, self_mem_adjoin_singleton R x⟩ :=
-by simp
+by simv
 
 variables (R x)
 
@@ -398,7 +398,7 @@ lemma minpoly.to_adjoin.surjective : function.surjective (minpoly.to_adjoin R x)
 begin
   rw [← range_top_iff_surjective, _root_.eq_top_iff, ← adjoin_adjoin_coe_preimage],
   refine adjoin_le _,
-  simp only [alg_hom.coe_range, set.mem_range],
+  simv only [alg_hom.coe_range, set.mem_range],
   rintro ⟨y₁, y₂⟩ h,
   refine ⟨mk (minpoly R x) X, by simpa using h.symm⟩
 end
@@ -551,7 +551,7 @@ quotient_equiv (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I))))
 lemma polynomial.quot_quot_equiv_comm_mk_mk (p : R[X]) :
   (polynomial.quot_quot_equiv_comm I f).symm (ideal.quotient.mk _ (ideal.quotient.mk _ p)) =
     (ideal.quotient.mk  _ (p.map I^.quotient.mk)) :=
-by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_symm_mk,
+by simv only [polynomial.quot_quot_equiv_comm, quotient_equiv_symm_mk,
   polynomial_quotient_equiv_quotient_polynomial_symm_mk]
 
 /-- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`

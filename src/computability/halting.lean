@@ -38,17 +38,17 @@ begin
   suffices, refine ⟨this,
     ⟨λ h, (this _ ⟨h, rfl⟩).imp Exists.fst Exists.fst, _⟩⟩,
   { intro h, rw nat.rfind_opt_dom,
-    simp only [dom_iff_mem, code.evaln_complete, option.mem_def] at h,
+    simv only [dom_iff_mem, code.evaln_complete, option.mem_def] at h,
     obtain ⟨x, k, e⟩ | ⟨x, k, e⟩ := h,
-    { refine ⟨k, x, _⟩, simp only [e, option.some_orelse, option.mem_def] },
+    { refine ⟨k, x, _⟩, simv only [e, option.some_orelse, option.mem_def] },
     { refine ⟨k, _⟩,
       cases cf.evaln k n with y,
-      { exact ⟨x, by simp only [e, option.mem_def, option.none_orelse]⟩ },
-      { exact ⟨y, by simp only [option.some_orelse, option.mem_def]⟩ } } },
+      { exact ⟨x, by simv only [e, option.mem_def, option.none_orelse]⟩ },
+      { exact ⟨y, by simv only [option.some_orelse, option.mem_def]⟩ } } },
   intros x h,
   obtain ⟨k, e⟩ := nat.rfind_opt_spec h,
   revert e,
-  simp only [option.mem_def]; cases e' : cf.evaln k n with y; simp; intro,
+  simv only [option.mem_def]; cases e' : cf.evaln k n with y; simv; intro,
   { exact or.inr (code.evaln_sound e) },
   { subst y,
       exact or.inl (code.evaln_sound e') }
@@ -80,14 +80,14 @@ begin
     have hk : (k (encode a)).dom :=
       (H _).2.2 (by simpa only [encodek₂, bind_some, coe_some] using h),
     existsi hk,
-    simp only [exists_prop, mem_map_iff, mem_coe, mem_bind_iff, option.mem_def] at H,
+    simv only [exists_prop, mem_map_iff, mem_coe, mem_bind_iff, option.mem_def] at H,
     obtain ⟨a', ha', y, hy, e⟩ | ⟨a', ha', y, hy, e⟩ := (H _).1 _ ⟨hk, rfl⟩;
-    { simp only [e.symm, encodek] } },
-  intros x h', simp only [k', exists_prop, mem_coe, mem_bind_iff, option.mem_def] at h',
+    { simv only [e.symm, encodek] } },
+  intros x h', simv only [k', exists_prop, mem_coe, mem_bind_iff, option.mem_def] at h',
   obtain ⟨n, hn, hx⟩ := h',
   have := (H _).1 _ hn,
-  simp [mem_decode₂, encode_injective.eq_iff] at this,
-  obtain ⟨a', ha, rfl⟩ | ⟨a', ha, rfl⟩ := this; simp only [encodek] at hx; rw hx at ha,
+  simv [mem_decode₂, encode_injective.eq_iff] at this,
+  obtain ⟨a', ha, rfl⟩ | ⟨a', ha, rfl⟩ := this; simv only [encodek] at hx; rw hx at ha,
   { exact or.inl ha },
   exact or.inr ha
 end
@@ -115,7 +115,7 @@ let ⟨cf, ef⟩ := exists_code.1 hf,
 ((eval_part.comp
     (computable.cond hc (const cf) (const cg)) computable.id).bind
   ((@computable.decode σ _).comp snd).of_option.to₂).of_eq $
-λ a, by cases c a; simp [ef, eg, encodek]
+λ a, by cases c a; simv [ef, eg, encodek]
 
 theorem sum_cases
   {f : α → β ⊕ γ} {g : α → β →. σ} {h : α → γ →. σ}
@@ -125,7 +125,7 @@ option_some_iff.1 $ (cond
   (sum_cases hf (const tt).to₂ (const ff).to₂)
   (sum_cases_left hf (option_some_iff.2 hg).to₂ (const option.none).to₂)
   (sum_cases_right hf (const option.none).to₂ (option_some_iff.2 hh).to₂))
-.of_eq $ λ a, by cases f a; simp only [bool.cond_tt, bool.cond_ff]
+.of_eq $ λ a, by cases f a; simv only [bool.cond_tt, bool.cond_ff]
 
 end partrec
 
@@ -146,7 +146,7 @@ theorem re_pred.of_eq {α} [primcodable α]
 
 theorem partrec.dom_re {α β} [primcodable α] [primcodable β]
   {f : α →. β} (h : partrec f) : re_pred (λ a, (f a).dom) :=
-(h.map (computable.const ()).to₂).of_eq $ λ n, part.ext $ λ _, by simp [part.dom_iff_mem]
+(h.map (computable.const ()).to₂).of_eq $ λ n, part.ext $ λ _, by simv [part.dom_iff_mem]
 
 theorem computable_pred.of_eq {α} [primcodable α]
   {p q : α → Prop}
@@ -176,7 +176,7 @@ begin
   unfold re_pred,
   refine (partrec.cond hf (decidable.partrec.const' (part.some ())) partrec.none).of_eq
     (λ n, part.ext $ λ a, _),
-  cases a, cases f n; simp
+  cases a, cases f n; simv
 end
 
 theorem rice (C : set (ℕ →. ℕ))
@@ -188,10 +188,10 @@ begin
   obtain ⟨c, e⟩ := fixed_point₂ (partrec.cond (h.comp fst)
     ((partrec.nat_iff.2 hg).comp snd).to₂
     ((partrec.nat_iff.2 hf).comp snd).to₂).to₂,
-  simp at e,
+  simv at e,
   by_cases H : eval c ∈ C,
-  { simp only [H, if_true] at e, rwa ← e },
-  { simp only [H, if_false] at e,
+  { simv only [H, if_true] at e, rwa ← e },
+  { simv only [H, if_false] at e,
     rw e at H, contradiction }
 end
 
@@ -208,7 +208,7 @@ from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
     (partrec.nat_iff.1 $ eval_part.comp (const cf) computable.id)
     (partrec.nat_iff.1 $ eval_part.comp (const cg) computable.id)
     ((hC _).1 fC),
-λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_eq];
+λ h, by obtain rfl | rfl := h; simv [computable_pred, set.mem_empty_eq];
   exact ⟨by apply_instance, computable.const _⟩⟩
 
 theorem halting_problem_re (n) : re_pred (λ c, (eval c n).dom) :=
@@ -228,8 +228,8 @@ theorem computable_iff_re_compl_re {p : α → Prop} [decidable_pred p] :
     (h₁.map (computable.const tt).to₂)
     (h₂.map (computable.const ff).to₂) _,
   { refine partrec.of_eq pk (λ n, part.eq_some_iff.2 _),
-    rw hk, simp, apply decidable.em },
-  { intros a x hx y hy, simp at hx hy, cases hy.1 hx.1 }
+    rw hk, simv, apply decidable.em },
+  { intros a x hx y hy, simv at hx hy, cases hy.1 hx.1 }
 end⟩⟩
 
 theorem computable_iff_re_compl_re' {p : α → Prop} :
@@ -282,7 +282,7 @@ prim nat.primrec'.head
 
 theorem tail {n f} (hf : @partrec' n f) : @partrec' n.succ (λ v, f v.tail) :=
 (hf.comp _ (λ i, @prim _ _ $ nat.primrec'.nth i.succ)).of_eq $
-λ v, by simp; rw [← of_fn_nth v.tail]; congr; funext i; simp
+λ v, by simv; rw [← of_fn_nth v.tail]; congr; funext i; simv
 
 protected theorem bind {n f g}
   (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
@@ -290,15 +290,15 @@ protected theorem bind {n f g}
 (@comp n (n+1) g
   (λ i, fin.cases f (λ i v, some (v.nth i)) i) hg
   (λ i, begin
-    refine fin.cases _ (λ i, _) i; simp *,
+    refine fin.cases _ (λ i, _) i; simv *,
     exact prim (nat.primrec'.nth _)
   end)).of_eq $
-λ v, by simp [m_of_fn, part.bind_assoc, pure]
+λ v, by simv [m_of_fn, part.bind_assoc, pure]
 
 protected theorem map {n f} {g : vector ℕ (n+1) → ℕ}
   (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
   @partrec' n (λ v, (f v).map (λ a, g (a ::ᵥ v))) :=
-by simp [(part.bind_some_eq_map _ _).symm];
+by simv [(part.bind_some_eq_map _ _).symm];
    exact hf.bind hg
 
 local attribute [-instance] part.has_zero
@@ -316,13 +316,13 @@ protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 protected theorem cons {n m} {f : vector ℕ n → ℕ} {g}
   (hf : @partrec' n f) (hg : @vec n m g) :
   vec (λ v, f v ::ᵥ g v) :=
-λ i, fin.cases (by simp *) (λ i, by simp only [hg i, nth_cons_succ]) i
+λ i, fin.cases (by simv *) (λ i, by simv only [hg i, nth_cons_succ]) i
 
 theorem idv {n} : @vec n n id := vec.prim nat.primrec'.idv
 
 theorem comp' {n m f g} (hf : @partrec' m f) (hg : @vec n m g) :
   partrec' (λ v, f (g v)) :=
-(hf.comp _ hg).of_eq $ λ v, by simp
+(hf.comp _ hg).of_eq $ λ v, by simv
 
 theorem comp₁ {n} (f : ℕ →. ℕ) {g : vector ℕ n → ℕ}
   (hf : @partrec' 1 (λ v, f v.head)) (hg : @partrec' n g) :
@@ -336,14 +336,14 @@ theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
    .comp₁ (λ n, part.some (1 - n)) hf)
    .bind ((prim nat.primrec'.pred).comp₁ nat.pred hf)).of_eq $
 λ v, part.ext $ λ b, begin
-  simp only [nat.rfind_opt, exists_prop, tsub_eq_zero_iff_le, pfun.coe_val,
+  simv only [nat.rfind_opt, exists_prop, tsub_eq_zero_iff_le, pfun.coe_val,
     part.mem_bind_iff, part.mem_some_iff, option.mem_def, part.mem_coe],
   refine exists_congr (λ a,
     (and_congr (iff_of_eq _) iff.rfl).trans (and_congr_right (λ h, _))),
   { congr, funext n,
-    simp only [part.some_inj, pfun.coe_val], cases f (n ::ᵥ v); simp [nat.succ_le_succ]; refl },
+    simv only [part.some_inj, pfun.coe_val], cases f (n ::ᵥ v); simv [nat.succ_le_succ]; refl },
   { have := nat.rfind_spec h,
-    simp only [pfun.coe_val, part.mem_some_iff] at this,
+    simv only [pfun.coe_val, part.mem_some_iff] at this,
     cases f (a ::ᵥ v) with c, {cases this},
     rw [← option.some_inj, eq_comm], refl }
 end
@@ -354,7 +354,7 @@ suffices ∀ f, nat.partrec f → @partrec' 1 (λ v, f v.head), from
 λ n f hf, begin
   let g, swap,
   exact (comp₁ g (this g hf) (prim nat.primrec'.encode)).of_eq
-    (λ i, by dsimp only [g]; simp [encodek, part.map_id']),
+    (λ i, by dsimp only [g]; simv [encodek, part.map_id']),
 end,
 λ f hf, begin
   obtain ⟨c, rfl⟩ := exists_code.1 hf,
@@ -370,14 +370,14 @@ theorem part_iff₁ {f : ℕ →. ℕ} :
   @partrec' 1 (λ v, f v.head) ↔ partrec f :=
 part_iff.trans ⟨
   λ h, (h.comp $ (primrec.vector_of_fn $
-    λ i, primrec.id).to_comp).of_eq (λ v, by simp only [id.def, head_of_fn]),
+    λ i, primrec.id).to_comp).of_eq (λ v, by simv only [id.def, head_of_fn]),
   λ h, h.comp vector_head⟩
 
 theorem part_iff₂ {f : ℕ → ℕ →. ℕ} :
   @partrec' 2 (λ v, f v.head v.tail.head) ↔ partrec₂ f :=
 part_iff.trans ⟨
   λ h, (h.comp $ vector_cons.comp fst $
-    vector_cons.comp snd (const nil)).of_eq (λ v, by simp only [cons_head, cons_tail]),
+    vector_cons.comp snd (const nil)).of_eq (λ v, by simv only [cons_head, cons_tail]),
   λ h, h.comp vector_head (vector_head.comp vector_tail)⟩
 
 theorem vec_iff {m n f} : @vec m n f ↔ computable f :=

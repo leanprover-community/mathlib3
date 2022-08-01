@@ -75,7 +75,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     intro x,
     have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ) :=
       finset.sum_nonneg (λ j hj, rpow_nonneg_of_nonneg (norm_nonneg (x j)) 2),
-    simp only [norm, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
+    simv only [norm, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
     rw [← rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2, ← rpow_mul h₂],
     norm_num,
   end,
@@ -90,10 +90,10 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
-    by simp only [inner_add_left, finset.sum_add_distrib],
+    by simv only [inner_add_left, finset.sum_add_distrib],
   smul_left := λ x y r,
     show ∑ (i : ι), inner (r • x i) (y i) = (conj r) * ∑ i, inner (x i) (y i),
-    by simp only [finset.mul_sum, inner_smul_left] }
+    by simv only [finset.mul_sum, inner_smul_left] }
 
 @[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
   [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
@@ -135,10 +135,10 @@ instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instanc
 instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 
 @[simp] lemma finrank_euclidean_space :
-  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
+  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simv
 
 lemma finrank_euclidean_space_fin {n : ℕ} :
-  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
+  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simv
 
 lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
   ⟪x, y⟫ = matrix.dot_product (star $ pi_Lp.equiv _ _ x) (pi_Lp.equiv _ _ y) := rfl
@@ -156,11 +156,11 @@ begin
   suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
   { intros v₀ w₀,
     convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
-    simp only [linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] },
+    simv only [linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] },
   intros v w,
   transitivity ⟪(∑ i, (V i).subtypeₗᵢ (v i)), ∑ i, (V i).subtypeₗᵢ (w i)⟫,
-  { simp only [sum_inner, hV'.inner_right_fintype, pi_Lp.inner_apply] },
-  { congr; simp }
+  { simv only [sum_inner, hV'.inner_right_fintype, pi_Lp.inner_apply] },
+  { congr; simv }
 end
 
 @[simp] lemma direct_sum.is_internal.isometry_L2_of_orthogonal_family_symm_apply
@@ -175,7 +175,7 @@ begin
   suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
   { exact this (e₁.symm w) },
   intros v,
-  simp [e₂, direct_sum.coe_linear_map, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
+  simv [e₂, direct_sum.coe_linear_map, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
 end
@@ -223,12 +223,12 @@ by { rw [euclidean_space.single, pi_Lp.equiv_symm_apply, ← pi.single_apply i a
 
 lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
-by simp [apply_ite conj]
+by simv [apply_ite conj]
 
 lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
   (v : euclidean_space 𝕜 ι) :
   ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
-by simp [apply_ite conj, mul_comm]
+by simv [apply_ite conj, mul_comm]
 
 lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
   [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') :
@@ -263,12 +263,12 @@ begin
   unfold has_coe_to_fun.coe,
   funext,
   congr,
-  simp only [eq_iff_true_of_subsingleton],
+  simv only [eq_iff_true_of_subsingleton],
 end
 
 @[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=
-by { classical, congr, simp, }
+by { classical, congr, simv, }
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
@@ -279,7 +279,7 @@ protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : 
 begin
   classical,
   rw [← b.repr.inner_map_map (b i) v, b.repr_self i, euclidean_space.inner_single_left],
-  simp only [one_mul, eq_self_iff_true, map_one],
+  simv only [one_mul, eq_self_iff_true, map_one],
 end
 
 @[simp]
@@ -310,7 +310,7 @@ end
 begin
   change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
   ext x j,
-  simp only [basis.of_equiv_fun_repr_apply, linear_isometry_equiv.coe_to_linear_equiv,
+  simv only [basis.of_equiv_fun_repr_apply, linear_isometry_equiv.coe_to_linear_equiv,
     basis.equiv_fun_apply],
 end
 
@@ -358,7 +358,7 @@ begin
   let p : euclidean_space 𝕜 ι := v.equiv_fun x,
   let q : euclidean_space 𝕜 ι := v.equiv_fun y,
   have key : ⟪p, q⟫ = ⟪∑ i, p i • v i, ∑ i, q i • v i⟫,
-  { simp [sum_inner, inner_smul_left, hv.inner_right_fintype] },
+  { simv [sum_inner, inner_smul_left, hv.inner_right_fintype] },
   convert key,
   { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply] },
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
@@ -375,13 +375,13 @@ rfl
 
 @[simp] lemma _root_.basis.to_basis_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv).to_basis = v :=
-by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
+by simv [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
 
 @[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=
 calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_basis : ι → E) :
   by { classical, rw orthonormal_basis.coe_to_basis }
-... = (v : ι → E) : by simp
+... = (v : ι → E) : by simv
 
 variable {v : ι → E}
 
@@ -404,7 +404,7 @@ let
     begin
       convert orthonormal_span (h.comp (coe : s → ι') subtype.coe_injective),
       ext,
-      simp [e₀', basis.span_apply],
+      simv [e₀', basis.span_apply],
     end e₀'.span_eq.ge,
   φ : span 𝕜 (s.image v' : set E) ≃ₗᵢ[𝕜] span 𝕜 (range (v' ∘ (coe : s → ι'))) :=
     linear_isometry_equiv.of_eq _ _
@@ -417,7 +417,7 @@ e₀.map φ.symm
 
 @[simp] protected lemma span_apply {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
   (orthonormal_basis.span h s i : E) = v' i :=
-by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
+by simv only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
               linear_isometry_equiv.coe_of_eq_apply]
 
@@ -487,7 +487,7 @@ begin
   rw orthonormal_iff_ite,
   intros i, fin_cases i;
   intros j; fin_cases j;
-  simp [real_inner_eq_re_inner]
+  simv [real_inner_eq_re_inner]
 end).repr
 
 @[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
@@ -495,7 +495,7 @@ end).repr
 begin
   convert complex.basis_one_I.equiv_fun_symm_apply x,
   { simpa },
-  { simp },
+  { simv },
 end
 
 lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
@@ -505,11 +505,11 @@ by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
 
 @[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
   complex.isometry_euclidean z 0 = z.re :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simv }
 
 @[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
   complex.isometry_euclidean z 1 = z.im :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simv }
 
 /-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
 def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
@@ -519,17 +519,17 @@ complex.isometry_euclidean.trans (v.to_orthonormal_basis hv).repr.symm
   (f : F ≃ₗᵢ[ℝ] F') :
   complex.isometry_of_orthonormal (hv.map_linear_isometry_equiv f) =
     (complex.isometry_of_orthonormal hv).trans f :=
-by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
+by simv [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
 
 lemma complex.isometry_of_orthonormal_symm_apply
   {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (f : F) :
   (complex.isometry_of_orthonormal hv).symm f = (v.coord 0 f : ℂ) + (v.coord 1 f : ℂ) * I :=
-by simp [complex.isometry_of_orthonormal]
+by simv [complex.isometry_of_orthonormal]
 
 lemma complex.isometry_of_orthonormal_apply
   {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (z : ℂ) :
   complex.isometry_of_orthonormal hv z = z.re • v 0 + z.im • v 1 :=
-by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
+by simv [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
 
 open finite_dimensional
 
@@ -551,14 +551,14 @@ noncomputable def direct_sum.is_internal.collected_orthonormal_basis
   orthonormal_basis (Σ i, α i) 𝕜 E :=
 (hV_sum.collected_basis (λ i, (v_family i).to_basis)).to_orthonormal_basis $
 by simpa using hV.orthonormal_sigma_orthonormal
-  (show (∀ i, orthonormal 𝕜 (v_family i).to_basis), by simp)
+  (show (∀ i, orthonormal 𝕜 (v_family i).to_basis), by simv)
 
 lemma direct_sum.is_internal.collected_orthonormal_basis_mem [decidable_eq ι]
   (h : direct_sum.is_internal A) {α : ι → Type*}
   [Π i, fintype (α i)] (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, A i) _ (λ i, (A i).subtypeₗᵢ))
   (v : Π i, orthonormal_basis (α i) 𝕜 (A i)) (a : Σ i, α i) :
   h.collected_orthonormal_basis hV v a ∈ A a.1 :=
-by simp [direct_sum.is_internal.collected_orthonormal_basis]
+by simv [direct_sum.is_internal.collected_orthonormal_basis]
 
 variables [finite_dimensional 𝕜 E]
 
@@ -572,12 +572,12 @@ begin
   have hu₀_finite : u₀.finite := hu₀.linear_independent.finite,
   let u : finset E := hu₀_finite.to_finset,
   let fu : ↥u ≃ ↥u₀ := equiv.cast (congr_arg coe_sort hu₀_finite.coe_to_finset),
-  have hfu : (coe : u → E) = (coe : u₀ → E) ∘ fu := by { ext, simp },
+  have hfu : (coe : u → E) = (coe : u₀ → E) ∘ fu := by { ext, simv },
   have hu : orthonormal 𝕜 (coe : u → E) := by simpa [hfu] using hu₀.comp _ fu.injective,
   refine ⟨u, orthonormal_basis.mk_of_orthogonal_eq_bot hu _, _, _⟩,
   { simpa using hu₀_max },
   { simpa using hu₀s },
-  { simp },
+  { simv },
 end
 
 variables (𝕜 E)
@@ -682,11 +682,11 @@ begin
   let LS := L.to_linear_map.range,
   have E : Sᗮ ≃ₗᵢ[𝕜] LSᗮ,
   { have dim_LS_perp : finrank 𝕜 LSᗮ = d,
-    calc  finrank 𝕜 LSᗮ = finrank 𝕜 V - finrank 𝕜 LS : by simp only
+    calc  finrank 𝕜 LSᗮ = finrank 𝕜 V - finrank 𝕜 LS : by simv only
         [← LS.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-      ...               = finrank 𝕜 V - finrank 𝕜 S : by simp only
+      ...               = finrank 𝕜 V - finrank 𝕜 S : by simv only
         [linear_map.finrank_range_of_inj L.injective]
-      ...               = finrank 𝕜 Sᗮ : by simp only
+      ...               = finrank 𝕜 Sᗮ : by simv only
         [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
       ...               = d : dim_S_perp,
     let BS := (fin_std_orthonormal_basis dim_S_perp),
@@ -705,21 +705,21 @@ begin
   { intro x,
     -- Apply M to the orthogonal decomposition of x
     have Mx_decomp : M x = L (p1 x) + L3 (p2 x),
-    { simp only [linear_map.add_apply, linear_map.comp_apply, linear_map.comp_apply,
+    { simv only [linear_map.add_apply, linear_map.comp_apply, linear_map.comp_apply,
       linear_isometry.coe_to_linear_map]},
     -- Mx_decomp is the orthogonal decomposition of M x
     have Mx_orth : ⟪ L (p1 x), L3 (p2 x) ⟫ = 0,
     { have Lp1x : L (p1 x) ∈ L.to_linear_map.range := L.to_linear_map.mem_range_self (p1 x),
       have Lp2x : L3 (p2 x) ∈ (L.to_linear_map.range)ᗮ,
-      { simp only [L3, linear_isometry.coe_comp, function.comp_app, submodule.coe_subtypeₗᵢ,
+      { simv only [L3, linear_isometry.coe_comp, function.comp_app, submodule.coe_subtypeₗᵢ,
           ← submodule.range_subtype (LSᗮ)],
         apply linear_map.mem_range_self},
       apply submodule.inner_right_of_mem_orthogonal Lp1x Lp2x},
     -- Apply the Pythagorean theorem and simplify
     rw [← sq_eq_sq (norm_nonneg _) (norm_nonneg _), norm_sq_eq_add_norm_sq_projection x S],
-    simp only [sq, Mx_decomp],
+    simv only [sq, Mx_decomp],
     rw norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (L (p1 x)) (L3 (p2 x)) Mx_orth,
-    simp only [linear_isometry.norm_map, p1, p2, continuous_linear_map.to_linear_map_eq_coe,
+    simv only [linear_isometry.norm_map, p1, p2, continuous_linear_map.to_linear_map_eq_coe,
       add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
       continuous_linear_map.coe_coe, submodule.coe_norm, submodule.coe_eq_zero] },
   exact { to_linear_map := M, norm_map' := M_norm_map },
@@ -729,9 +729,9 @@ lemma linear_isometry.extend_apply (L : S →ₗᵢ[𝕜] V) (s : S):
   L.extend s = L s :=
 begin
   haveI : complete_space S := finite_dimensional.complete 𝕜 S,
-  simp only [linear_isometry.extend, continuous_linear_map.to_linear_map_eq_coe,
+  simv only [linear_isometry.extend, continuous_linear_map.to_linear_map_eq_coe,
     ←linear_isometry.coe_to_linear_map],
-  simp only [add_right_eq_self, linear_isometry.coe_to_linear_map,
+  simv only [add_right_eq_self, linear_isometry.coe_to_linear_map,
     linear_isometry_equiv.coe_to_linear_isometry, linear_isometry.coe_comp, function.comp_app,
     orthogonal_projection_mem_subspace_eq_self, linear_map.coe_comp, continuous_linear_map.coe_coe,
     submodule.coe_subtype, linear_map.add_apply, submodule.coe_eq_zero,
@@ -753,7 +753,7 @@ local notation `⟪`x`, `y`⟫ₙ` := @inner 𝕜 (euclidean_space 𝕜 (fin n))
 
 /-- The inner product of a row of A and a row of B is an entry of B ⬝ Aᴴ. -/
 lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
-  ⟪A i, B j⟫ₘ = (B ⬝ Aᴴ) j i := by {simp only [inner, matrix.mul_apply, star_ring_end_apply,
+  ⟪A i, B j⟫ₘ = (B ⬝ Aᴴ) j i := by {simv only [inner, matrix.mul_apply, star_ring_end_apply,
     matrix.conj_transpose_apply,mul_comm]}
 
 /-- The inner product of a column of A and a column of B is an entry of Aᴴ ⬝ B -/

@@ -126,7 +126,7 @@ include H
 def lift : quotient r ⥤ D :=
 { obj := λ a, F.obj a.as,
   map := λ a b hf, quot.lift_on hf (λ f, F.map f)
-    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simp [H _ _ _ _ h], }),
+    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simv [H _ _ _ _ h], }),
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
 
@@ -143,7 +143,7 @@ rfl
 
 lemma lift_map_functor_map {X Y : C} (f : X ⟶ Y) :
   (lift r F H).map ((functor r).map f) = F.map f :=
-by { rw ←(nat_iso.naturality_1 (lift.is_lift r F H)), dsimp, simp, }
+by { rw ←(nat_iso.naturality_1 (lift.is_lift r F H)), dsimp, simv, }
 
 end quotient
 

@@ -27,7 +27,7 @@ instance [group G] [mul_action G β] : has_smul G (α ↪ β) :=
 @[to_additive]
 lemma smul_def [group G] [mul_action G β] (g : G) (f : α ↪ β) :
   g • f = f.trans (mul_action.to_perm g).to_embedding := rfl
-@[simp, to_additive]
+@[simv, to_additive]
 lemma smul_apply [group G] [mul_action G β] (g : G) (f : α ↪ β) (a : α) : (g • f) a = g • f a :=
 rfl
 @[to_additive]

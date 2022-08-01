@@ -26,8 +26,8 @@ An equivalence between `bool × ℕ` and `ℕ`, by mapping `(tt, x)` to `2 * x +
 @[simps] def bool_prod_nat_equiv_nat : bool × ℕ ≃ ℕ :=
 { to_fun := uncurry bit,
   inv_fun := bodd_div2,
-  left_inv := λ ⟨b, n⟩, by simp only [bodd_bit, div2_bit, uncurry_apply_pair, bodd_div2_eq],
-  right_inv := λ n, by simp only [bit_decomp, bodd_div2_eq, uncurry_apply_pair] }
+  left_inv := λ ⟨b, n⟩, by simv only [bodd_bit, div2_bit, uncurry_apply_pair, bodd_div2_eq],
+  right_inv := λ n, by simv only [bit_decomp, bodd_div2_eq, uncurry_apply_pair] }
 
 /--
 An equivalence between `ℕ ⊕ ℕ` and `ℕ`, by mapping `(sum.inl x)` to `2 * x` and `(sum.inr x)` to

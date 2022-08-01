@@ -23,9 +23,9 @@ In later files we introduce `!![a, b; c, d]` as notation for `matrix.of ![![a, b
 
 ## Implementation notes
 
-The `simp` lemmas require that one of the arguments is of the form `vec_cons _ _`.
-This ensures `simp` works with entries only when (some) entries are already given.
-In other words, this notation will only appear in the output of `simp` if it
+The `simv` lemmas require that one of the arguments is of the form `vec_cons _ _`.
+This ensures `simv` works with entries only when (some) entries are already given.
+In other words, this notation will only appear in the output of `simv` if it
 already appears in the input.
 
 ## Notations
@@ -95,11 +95,11 @@ rfl
 
 @[simp] lemma cons_val_succ (x : α) (u : fin m → α) (i : fin m) :
   vec_cons x u i.succ = u i :=
-by simp [vec_cons]
+by simv [vec_cons]
 
 @[simp] lemma cons_val_succ' {i : ℕ} (h : i.succ < m.succ) (x : α) (u : fin m → α) :
   vec_cons x u ⟨i.succ, h⟩ = u ⟨i, nat.lt_of_succ_lt_succ h⟩ :=
-by simp only [vec_cons, fin.cons, fin.cases_succ']
+by simv only [vec_cons, fin.cons, fin.cases_succ']
 
 @[simp] lemma head_cons (x : α) (u : fin m → α) :
   vec_head (vec_cons x u) = x :=
@@ -107,7 +107,7 @@ rfl
 
 @[simp] lemma tail_cons (x : α) (u : fin m → α) :
   vec_tail (vec_cons x u) = u :=
-by { ext, simp [vec_tail] }
+by { ext, simv [vec_tail] }
 
 @[simp] lemma empty_val' {n' : Type*} (j : n') :
   (λ i, (![] : fin 0 → n' → α) i j) = ![] :=
@@ -119,7 +119,7 @@ fin.cons_self_tail _
 
 @[simp] lemma range_cons (x : α) (u : fin n → α) :
   set.range (vec_cons x u) = {x} ∪ set.range u :=
-set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
+set.ext $ λ y, by simv [fin.exists_fin_succ, eq_comm]
 
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
 set.range_eq_empty _
@@ -159,16 +159,16 @@ meta def _root_.pi_fin.to_pexpr : Π {n}, (fin n → pexpr) → pexpr
 | (n + 1) v := ``(vec_cons %%(v 0) %%(_root_.pi_fin.to_pexpr $ vec_tail v))
 
 /-! ### Numeral (`bit0` and `bit1`) indices
-The following definitions and `simp` lemmas are to allow any
+The following definitions and `simv` lemmas are to allow any
 numeral-indexed element of a vector given with matrix notation to
-be extracted by `simp` (even when the numeral is larger than the
+be extracted by `simv` (even when the numeral is larger than the
 number of elements in the vector, which is taken modulo that number
 of elements by virtue of the semantics of `bit0` and `bit1` and of
 addition on `fin n`).
 -/
 
 @[simp] lemma empty_append (v : fin n → α) : fin.append (zero_add _).symm ![] v = v :=
-by { ext, simp [fin.append] }
+by { ext, simv [fin.append] }
 
 @[simp] lemma cons_append (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
   fin.append ho (vec_cons x u) v =
@@ -179,13 +179,13 @@ begin
   simp_rw [fin.append],
   split_ifs with h,
   { rcases i with ⟨⟨⟩ | i, hi⟩,
-    { simp },
-    { simp only [nat.succ_eq_add_one, add_lt_add_iff_right, fin.coe_mk] at h,
-      simp [h] } },
+    { simv },
+    { simv only [nat.succ_eq_add_one, add_lt_add_iff_right, fin.coe_mk] at h,
+      simv [h] } },
   { rcases i with ⟨⟨⟩ | i, hi⟩,
     { simpa using h },
     { rw [not_lt, fin.coe_mk, nat.succ_eq_add_one, add_le_add_iff_right] at h,
-      simp [h] } }
+      simv [h] } }
 end
 
 /-- `vec_alt0 v` gives a vector with half the length of `v`, with
@@ -204,10 +204,10 @@ begin
   simp_rw [function.comp, bit0, vec_alt0, fin.append],
   split_ifs with h; congr,
   { rw fin.coe_mk at h,
-    simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+    simv only [fin.ext_iff, fin.coe_add, fin.coe_mk],
     exact (nat.mod_eq_of_lt h).symm },
   { rw [fin.coe_mk, not_lt] at h,
-    simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
+    simv only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
     refine (nat.mod_eq_of_lt _).symm,
     rw tsub_lt_iff_left h,
     exact add_lt_add i.property i.property }
@@ -218,15 +218,15 @@ begin
   ext i,
   simp_rw [function.comp, vec_alt1, fin.append],
   cases n,
-  { simp, congr },
+  { simv, congr },
   { split_ifs with h; simp_rw [bit1, bit0]; congr,
-    { simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+    { simv only [fin.ext_iff, fin.coe_add, fin.coe_mk],
       rw fin.coe_mk at h,
       rw fin.coe_one,
       rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),
       rw nat.mod_eq_of_lt h },
     { rw [fin.coe_mk, not_lt] at h,
-      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
+      simv only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
       refine (nat.mod_eq_of_lt _).symm,
       rw tsub_lt_iff_left h,
@@ -238,7 +238,7 @@ end
 
 @[simp] lemma vec_head_vec_alt1 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
   vec_head (vec_alt1 hm v) = v 1 :=
-by simp [vec_head, vec_alt1]
+by simv [vec_head, vec_alt1]
 
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
   vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
@@ -257,13 +257,13 @@ begin
   simp_rw [vec_alt0],
   rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
-  { simp [vec_alt0, nat.add_succ, nat.succ_add] }
+  { simv [vec_alt0, nat.add_succ, nat.succ_add] }
 end
 
--- Although proved by simp, extracting element 8 of a five-element
--- vector does not work by simp unless this lemma is present.
+-- Although proved by simv, extracting element 8 of a five-element
+-- vector does not work by simv unless this lemma is present.
 @[simp] lemma empty_vec_alt0 (α) {h} : vec_alt0 h (![] : fin 0 → α) = ![] :=
-by simp
+by simv
 
 @[simp] lemma cons_vec_alt1 (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
   vec_alt1 h (vec_cons x (vec_cons y u)) = vec_cons y (vec_alt1
@@ -274,13 +274,13 @@ begin
   simp_rw [vec_alt1],
   rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
-  { simp [vec_alt1, nat.add_succ, nat.succ_add] }
+  { simv [vec_alt1, nat.add_succ, nat.succ_add] }
 end
 
--- Although proved by simp, extracting element 9 of a five-element
--- vector does not work by simp unless this lemma is present.
+-- Although proved by simv, extracting element 9 of a five-element
+-- vector does not work by simv unless this lemma is present.
 @[simp] lemma empty_vec_alt1 (α) {h} : vec_alt1 h (![] : fin 0 → α) = ![] :=
-by simp
+by simv
 
 end val
 
@@ -292,7 +292,7 @@ variables {M : Type*} [has_smul M α]
 
 @[simp] lemma smul_cons (x : M) (y : α) (v : fin n → α) :
   x • vec_cons y v = vec_cons (x • y) (x • v) :=
-by { ext i, refine fin.cases _ _ i; simp }
+by { ext i, refine fin.cases _ _ i; simv }
 
 end smul
 
@@ -304,15 +304,15 @@ variables [has_add α]
 
 @[simp] lemma cons_add (x : α) (v : fin n → α) (w : fin n.succ → α) :
   vec_cons x v + w = vec_cons (x + vec_head w) (v + vec_tail w) :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+by { ext i, refine fin.cases _ _ i; simv [vec_head, vec_tail] }
 
 @[simp] lemma add_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+by { ext i, refine fin.cases _ _ i; simv [vec_head, vec_tail] }
 
 @[simp] lemma cons_add_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
   vec_cons x v + vec_cons y w = vec_cons (x + y) (v + w) :=
-by simp
+by simv
 
 @[simp] lemma head_add (a b : fin n.succ → α) : vec_head (a + b) = vec_head a + vec_head b := rfl
 
@@ -328,15 +328,15 @@ variables [has_sub α]
 
 @[simp] lemma cons_sub (x : α) (v : fin n → α) (w : fin n.succ → α) :
   vec_cons x v - w = vec_cons (x - vec_head w) (v - vec_tail w) :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+by { ext i, refine fin.cases _ _ i; simv [vec_head, vec_tail] }
 
 @[simp] lemma sub_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v - vec_cons y w = vec_cons (vec_head v - y) (vec_tail v - w) :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+by { ext i, refine fin.cases _ _ i; simv [vec_head, vec_tail] }
 
 @[simp] lemma cons_sub_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
   vec_cons x v - vec_cons y w = vec_cons (x - y) (v - w) :=
-by simp
+by simv
 
 @[simp] lemma head_sub (a b : fin n.succ → α) : vec_head (a - b) = vec_head a - vec_head b := rfl
 
@@ -352,7 +352,7 @@ variables [has_zero α]
 empty_eq _
 
 @[simp] lemma cons_zero_zero : vec_cons (0 : α) (0 : fin n → α) = 0 :=
-by { ext i j, refine fin.cases _ _ i, { refl }, simp }
+by { ext i j, refine fin.cases _ _ i, { refl }, simv }
 
 @[simp] lemma head_zero : vec_head (0 : fin n.succ → α) = 0 := rfl
 
@@ -360,8 +360,8 @@ by { ext i j, refine fin.cases _ _ i, { refl }, simp }
 
 @[simp] lemma cons_eq_zero_iff {v : fin n → α} {x : α} :
   vec_cons x v = 0 ↔ x = 0 ∧ v = 0 :=
-⟨ λ h, ⟨ congr_fun h 0, by { convert congr_arg vec_tail h, simp } ⟩,
-  λ ⟨hx, hv⟩, by simp [hx, hv] ⟩
+⟨ λ h, ⟨ congr_fun h 0, by { convert congr_arg vec_tail h, simv } ⟩,
+  λ ⟨hx, hv⟩, by simv [hx, hv] ⟩
 
 open_locale classical
 
@@ -380,7 +380,7 @@ variables [has_neg α]
 
 @[simp] lemma neg_cons (x : α) (v : fin n → α) :
   -(vec_cons x v) = vec_cons (-x) (-v) :=
-by { ext i, refine fin.cases _ _ i; simp }
+by { ext i, refine fin.cases _ _ i; simv }
 
 @[simp] lemma head_neg (a : fin n.succ → α) : vec_head (-a) = -vec_head a := rfl
 

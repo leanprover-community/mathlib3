@@ -103,7 +103,7 @@ lemma mul_shift_mul (ψ : add_char R R') (a b : R) :
   mul_shift ψ a * mul_shift ψ b = mul_shift ψ (a + b) :=
 begin
   ext,
-  simp only [monoid_hom.mul_apply, mul_shift_apply, add_mul, of_add_add, ψ.map_mul],
+  simv only [monoid_hom.mul_apply, mul_shift_apply, add_mul, of_add_add, ψ.map_mul],
 end
 
 /-- `mul_shift ψ 0` is the trivial character. -/
@@ -111,7 +111,7 @@ end
 lemma mul_shift_zero (ψ : add_char R R') : mul_shift ψ 0 = 1 :=
 begin
   ext,
-  simp only [mul_shift_apply, zero_mul, of_add_zero, map_one, monoid_hom.one_apply],
+  simv only [mul_shift_apply, zero_mul, of_add_zero, map_one, monoid_hom.one_apply],
 end
 
 /-- An additive character is *primitive* iff all its multiplicative shifts by nonzero
@@ -126,7 +126,7 @@ lemma to_mul_shift_inj_of_is_primitive {ψ : add_char R R'} (hψ : is_primitive 
 begin
   intros a b h,
   apply_fun (λ x, x * mul_shift ψ (-b)) at h,
-  simp only [mul_shift_mul, mul_shift_zero, add_right_neg] at h,
+  simv only [mul_shift_mul, mul_shift_zero, add_right_neg] at h,
   have h₂ := hψ (a + (- b)),
   rw [h, is_nontrivial_iff_ne_trivial, ← sub_eq_add_neg, sub_ne_zero] at h₂,
   exact not_not.mp (λ h, h₂ h rfl),
@@ -166,7 +166,7 @@ variables {C : Type v} [comm_ring C]
 /-- We can define an additive character on `zmod n` when we have an `n`th root of unity `ζ : C`. -/
 def zmod_char (n : ℕ) [fact (0 < n)] {ζ : C} (hζ : ζ ^ n = 1) : add_char (zmod n) C :=
 { to_fun := λ (a : multiplicative (zmod n)), ζ ^ a.to_add.val,
-  map_one' := by simp only [to_add_one, zmod.val_zero, pow_zero],
+  map_one' := by simv only [to_add_one, zmod.val_zero, pow_zero],
   map_mul' := λ x y, by rw [to_add_mul, ← pow_add, zmod.val_add (to_add x) (to_add y),
                             ← pow_eq_pow_mod _ hζ] }
 
@@ -204,7 +204,7 @@ begin
   refine λ a ha, (is_nontrivial_iff_ne_trivial _).mpr (λ hf, _),
   have h : mul_shift ψ a (of_add 1) = (1 : add_char (zmod n) C) (of_add (1 : zmod n)) :=
     congr_fun (congr_arg coe_fn hf) 1,
-  simp only [mul_shift, monoid_hom.coe_comp, function.comp_app,
+  simv only [mul_shift, monoid_hom.coe_comp, function.comp_app,
              add_monoid_hom.to_multiplicative_apply_apply, to_add_of_add,
              add_monoid_hom.coe_mul_left, mul_one, monoid_hom.one_apply] at h,
   exact ha (hψ a h),
@@ -218,7 +218,7 @@ lemma zmod_char_primitive_of_primitive_root (n : ℕ) [hn : fact (0 < n)]
 begin
   apply zmod_char_primitive_of_eq_one_only_at_zero,
   intros a ha,
-  simp only [zmod_char, monoid_hom.coe_mk, to_add_of_add, ← pow_zero ζ] at ha,
+  simv only [zmod_char, monoid_hom.coe_mk, to_add_of_add, ← pow_zero ζ] at ha,
   exact (zmod.val_eq_zero a).mp (is_primitive_root.pow_inj h (zmod.val_lt a) hn.1 ha),
 end
 
@@ -305,9 +305,9 @@ sum_eq_zero_of_is_nontrivial' hψ
 lemma sum_eq_card_of_is_trivial {ψ : add_char R R'} (hψ : ¬ is_nontrivial ψ) :
   ∑ a, ψ (of_add a) = fintype.card R :=
 begin
-  simp only [is_nontrivial] at hψ,
+  simv only [is_nontrivial] at hψ,
   push_neg at hψ,
-  simp only [hψ, finset.sum_const, nat.smul_one_eq_coe],
+  simv only [hψ, finset.sum_const, nat.smul_one_eq_coe],
   refl,
 end
 

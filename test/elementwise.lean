@@ -8,12 +8,12 @@ universes w v u
 @[elementwise]
 lemma foo {C : Type u} [category.{v} C]
   {M N K : C} {f : M ⟶ N} {g : N ⟶ K} {h : M ⟶ K} (w : f ≫ g = h) : f ≫ 𝟙 N ≫ g = h :=
-by simp [w]
+by simv [w]
 
 @[elementwise]
 lemma foo' {C : Type*} [category C]
   {M N K : C} {f : M ⟶ N} {g : N ⟶ K} {h : M ⟶ K} (w : f ≫ g = h) : f ≫ 𝟙 N ≫ g = h :=
-by simp [w]
+by simv [w]
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
 

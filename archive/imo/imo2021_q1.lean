@@ -47,7 +47,7 @@ lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
   n + 4 * l ≤ 2 * l * l :=
 begin
   suffices : 2 * ((n : ℝ) + 4 * l) - 8 * l + 4 ≤ 2 * (2 * l * l) - 8 * l + 4,
-  { simp only [mul_le_mul_left, sub_le_sub_iff_right, add_le_add_iff_right, zero_lt_two] at this,
+  { simv only [mul_le_mul_left, sub_le_sub_iff_right, add_le_add_iff_right, zero_lt_two] at this,
     exact_mod_cast this, },
   rw [← le_sub_iff_add_le', sqrt_le_iff, pow_two] at hl,
   convert hl.2 using 1; ring,
@@ -59,7 +59,7 @@ begin
   have h1 : ∀ n : ℕ, 0 ≤ 1 + (n : ℝ), by { intro n, exact_mod_cast nat.zero_le (1 + n) },
   rw [le_sub_iff_add_le', le_sqrt (h1 l) (h1 n), pow_two] at hl,
   rw [← add_le_add_iff_right 2, ← @nat.cast_le ℝ],
-  simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul],
+  simv only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul],
   convert (mul_le_mul_left zero_lt_two).mpr hl using 1; ring,
 end
 
@@ -69,7 +69,7 @@ begin
   have h1n : 0 ≤ 1 + (n : ℝ), by { norm_cast, exact nat.zero_le _ },
   rw sqrt_le_iff,
   split,
-  { simp only [sub_nonneg, zero_le_mul_left, zero_lt_two, le_sqrt zero_lt_three.le h1n],
+  { simv only [sub_nonneg, zero_le_mul_left, zero_lt_two, le_sqrt zero_lt_three.le h1n],
     norm_cast, linarith only [h] },
   ring_exp,
   rw [pow_two, ← sqrt_mul h1n, sqrt_mul_self h1n],
@@ -98,9 +98,9 @@ begin
   refine ⟨⌊x⌋₊, _, _⟩,
   { transitivity 2 * (x - 1),
     { dsimp only [x], linarith only [radical_inequality hn] },
-    { simp only [mul_le_mul_left, zero_lt_two], linarith only [(nat.lt_floor_add_one x).le], } },
+    { simv only [mul_le_mul_left, zero_lt_two], linarith only [(nat.lt_floor_add_one x).le], } },
   { apply nat.floor_le, rw [sub_nonneg, le_sqrt],
-    all_goals { norm_cast, simp only [one_pow, le_add_iff_nonneg_right, zero_le'], } },
+    all_goals { norm_cast, simv only [one_pow, le_add_iff_nonneg_right, zero_le'], } },
 end
 
 lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n) :
@@ -144,10 +144,10 @@ begin
       push_neg,
       exact ⟨⟨hab.ne, (hab.trans hbc).ne⟩, hbc.ne⟩ } },
   { intros x hx y hy hxy,
-    simp only [finset.mem_insert, finset.mem_singleton] at hx hy,
+    simv only [finset.mem_insert, finset.mem_singleton] at hx hy,
     rcases hx with rfl|rfl|rfl; rcases hy with rfl|rfl|rfl,
     all_goals { contradiction <|> assumption <|> simpa only [add_comm x y], } },
-  { simp only [finset.mem_insert, finset.mem_singleton],
+  { simv only [finset.mem_insert, finset.mem_singleton],
     rintros d (rfl|rfl|rfl); split; linarith only [hna, hab, hbc, hcn], },
 end
 
@@ -174,7 +174,7 @@ begin
   obtain ⟨C, hC, hCA⟩ := finset.exists_subset_or_subset_of_two_mul_lt_card hB',
   rw finset.one_lt_card at hC,
   rcases hC with ⟨a, ha, b, hb, hab⟩,
-  simp only [finset.subset_iff, finset.mem_inter] at hCA,
+  simv only [finset.subset_iff, finset.mem_inter] at hCA,
   -- Now we split into the two cases C ⊆ [n, 2n] \ A and C ⊆ A, which can be dealt with identically.
   cases hCA; [right, left];
   exact ⟨a, (hCA ha).2, b, (hCA hb).2, hab, h₁ a (hCA ha).1 b (hCA hb).1 hab⟩,

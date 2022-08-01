@@ -164,7 +164,7 @@ variables [has_measurable_mul G]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
-@[simp, to_additive "We shorten this from `measure_preimage_add_left`, since left invariant is the
+@[simv, to_additive "We shorten this from `measure_preimage_add_left`, since left invariant is the
 preferred option for measures in this formalization."]
 lemma measure_preimage_mul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
   μ ((λ h, g * h) ⁻¹' A) = μ A :=
@@ -172,7 +172,7 @@ calc μ ((λ h, g * h) ⁻¹' A) = map (λ h, g * h) μ A :
   ((measurable_equiv.mul_left g).map_apply A).symm
 ... = μ A : by rw map_mul_left_eq_self μ g
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G) (A : set G) :
   μ ((λ h, h * g) ⁻¹' A) = μ A :=
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
@@ -217,11 +217,11 @@ section inv
 
 variables [has_inv G]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_eq_self (μ : measure G) [is_inv_invariant μ] : μ.inv = μ :=
 is_inv_invariant.inv_eq_self
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma map_inv_eq_self (μ : measure G) [is_inv_invariant μ] : map has_inv.inv μ = μ :=
 is_inv_invariant.inv_eq_self
 
@@ -231,15 +231,15 @@ section has_involutive_inv
 
 variables [has_involutive_inv G] [has_measurable_inv G]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
 (measurable_equiv.inv G).map_apply s
 
-@[simp, to_additive]
+@[simv, to_additive]
 protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
 (measurable_equiv.inv G).map_symm_map
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma measure_inv (μ : measure G) [is_inv_invariant μ] (A : set G) : μ A⁻¹ = μ A :=
 by rw [← inv_apply, inv_eq_self]
 
@@ -338,7 +338,7 @@ begin
     compact_covered_by_mul_left_translates hK hne,
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
-  ... = 0 : by simp [measure_preimage_mul, h]
+  ... = 0 : by simv [measure_preimage_mul, h]
 end
 
 /-- A nonzero left-invariant regular measure gives positive mass to any open set. -/
@@ -353,9 +353,9 @@ lemma null_iff_of_is_mul_left_invariant [regular μ]
   {s : set G} (hs : is_open s) :
   μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
-  by_cases h3μ : μ = 0, { simp [h3μ] },
+  by_cases h3μ : μ = 0, { simv [h3μ] },
   { haveI := is_open_pos_measure_of_mul_left_invariant_of_regular h3μ,
-    simp only [h3μ, or_false, hs.measure_eq_zero_iff μ] },
+    simv only [h3μ, or_false, hs.measure_eq_zero_iff μ] },
 end
 
 @[to_additive]
@@ -383,7 +383,7 @@ begin
     compact_covered_by_mul_left_translates hK h'U,
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
-  ... = finset.card t * μ U : by simp only [measure_preimage_mul, finset.sum_const, nsmul_eq_mul]
+  ... = finset.card t * μ U : by simv only [measure_preimage_mul, finset.sum_const, nsmul_eq_mul]
   ... < ∞ : ennreal.mul_lt_top ennreal.coe_nat_ne_top h
 end
 
@@ -454,12 +454,12 @@ section
 
 variables [group G] [topological_space G] (μ : measure G) [is_haar_measure μ]
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma haar_singleton [topological_group G] [borel_space G] (g : G) :
   μ {g} = μ {(1 : G)} :=
 begin
   convert measure_preimage_mul μ (g⁻¹) _,
-  simp only [mul_one, preimage_mul_left_singleton, inv_inv],
+  simv only [mul_one, preimage_mul_left_singleton, inv_inv],
 end
 
 @[to_additive measure_theory.measure.is_add_haar_measure.smul]
@@ -496,7 +496,7 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
     rw map_map hf.measurable (continuous_mul_left _).measurable,
     congr' 2,
     ext y,
-    simp only [mul_equiv.apply_symm_apply, comp_app, mul_equiv.map_mul],
+    simv only [mul_equiv.apply_symm_apply, comp_app, mul_equiv.map_mul],
   end,
   lt_top_of_is_compact := begin
     assume K hK,
@@ -545,7 +545,7 @@ instance is_haar_measure.has_no_atoms [topological_group G] [borel_space G]
   (μ : measure G) [μ.is_haar_measure] :
   has_no_atoms μ :=
 begin
-  suffices H : μ {(1 : G)} ≤ 0, by { constructor, simp [le_bot_iff.1 H] },
+  suffices H : μ {(1 : G)} ≤ 0, by { constructor, simv [le_bot_iff.1 H] },
   obtain ⟨K, K_compact, K_int⟩ : ∃ (K : set G), is_compact K ∧ (1 : G) ∈ interior K,
   { rcases exists_compact_subset is_open_univ (mem_univ (1 : G)) with ⟨K, hK⟩,
     exact ⟨K, hK.1, hK.2.1⟩ },
@@ -559,9 +559,9 @@ begin
     { rw ← bUnion_of_singleton ↑t,
       change μ (⋃ (x ∈ t), {x}) = n * μ {1},
       rw @measure_bUnion_finset G G _ μ t (λ i, {i}),
-      { simp only [tn, finset.sum_const, nsmul_eq_mul, haar_singleton] },
+      { simv only [tn, finset.sum_const, nsmul_eq_mul, haar_singleton] },
       { assume x hx y hy xy,
-        simp only [on_fun, xy.symm, mem_singleton_iff, not_false_iff, disjoint_singleton_right] },
+        simv only [on_fun, xy.symm, mem_singleton_iff, not_false_iff, disjoint_singleton_right] },
       { assume b hb, exact measurable_set_singleton b } },
     rw B at A,
     rwa [ennreal.le_div_iff_mul_le _ (or.inr μKlt), mul_comm],
@@ -569,7 +569,7 @@ begin
     apply (measure_pos_of_nonempty_interior μ ⟨_, K_int⟩).ne' },
   have J : tendsto (λ (n : ℕ),  μ K / n) at_top (𝓝 (μ K / ∞)) :=
     ennreal.tendsto.const_div ennreal.tendsto_nat_nhds_top (or.inr μKlt),
-  simp only [ennreal.div_top] at J,
+  simv only [ennreal.div_top] at J,
   exact ge_of_tendsto' J I,
 end
 

@@ -98,7 +98,7 @@ lemma commutator_subset_ker : commutator G ≤ f.ker :=
 begin
   rw [commutator_eq_closure, subgroup.closure_le],
   rintros x ⟨p, q, rfl⟩,
-  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q), commutator_element_def],
+  simv [monoid_hom.mem_ker, mul_right_comm (f p) (f q), commutator_element_def],
 end
 
 /-- If `f : G → A` is a group homomorphism to an abelian group, then `lift f` is the unique map from
@@ -166,8 +166,8 @@ variables {G} {H : Type v} [group H] (e : G ≃* H)
 def mul_equiv.abelianization_congr : abelianization G ≃* abelianization H :=
 { to_fun := abelianization.map e.to_monoid_hom,
   inv_fun := abelianization.map e.symm.to_monoid_hom,
-  left_inv := by { rintros ⟨a⟩, simp },
-  right_inv := by { rintros ⟨a⟩, simp },
+  left_inv := by { rintros ⟨a⟩, simv },
+  right_inv := by { rintros ⟨a⟩, simv },
   map_mul' := monoid_hom.map_mul _ }
 
 @[simp]

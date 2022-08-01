@@ -68,14 +68,14 @@ lemma measurable_dirac :
   measurable (measure.dirac : α → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
   begin
-    simp only [dirac_apply', hs],
+    simv only [dirac_apply', hs],
     exact measurable_one.indicator hs
   end
 
 lemma measurable_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λμ : measure α, ∫⁻ x, f x ∂μ) :=
 begin
-  simp only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
+  simv only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
   refine measurable_supr (λ n, finset.measurable_sum _ (λ i _, _)),
   refine measurable.const_mul _ _,
   exact measurable_coe ((simple_func.eapprox f n).measurable_set_preimage _)
@@ -86,10 +86,10 @@ functions. -/
 def join (m : measure (measure α)) : measure α :=
 measure.of_measurable
   (λs hs, ∫⁻ μ, μ s ∂m)
-  (by simp)
+  (by simv)
   begin
     assume f hf h,
-    simp [measure_Union h hf],
+    simv [measure_Union h hf],
     apply lintegral_tsum,
     assume i, exact measurable_coe (hf i)
   end
@@ -99,11 +99,11 @@ measure.of_measurable
 measure.of_measurable_apply
 
 @[simp] lemma join_zero : (0 : measure (measure α)).join = 0 :=
-by { ext1 s hs, simp [hs] }
+by { ext1 s hs, simv [hs] }
 
 lemma measurable_join : measurable (join : measure (measure α) → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
-  by simp only [join_apply hs]; exact measurable_lintegral (measurable_coe hs)
+  by simv only [join_apply hs]; exact measurable_lintegral (measurable_coe hs)
 
 lemma lintegral_join {m : measure (measure α)} {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ x, f x ∂(join m) = ∫⁻ μ, ∫⁻ x, f x ∂μ ∂m :=
@@ -113,7 +113,7 @@ begin
     join m (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x}) =
       ∫⁻ μ, μ ((⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x})) ∂m :=
     assume n x, join_apply (simple_func.measurable_set_preimage _ _),
-  simp only [simple_func.lintegral, this],
+  simv only [simple_func.lintegral, this],
   transitivity,
   have : ∀(s : ℕ → finset ℝ≥0∞) (f : ℕ → ℝ≥0∞ → measure α → ℝ≥0∞)
     (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, ∑ r in s n, r * f n r μ)),
@@ -156,15 +156,15 @@ functions. When the function `f` is not measurable the result is not well define
 def bind (m : measure α) (f : α → measure β) : measure β := join (map f m)
 
 @[simp] lemma bind_zero_left (f : α → measure β) : bind 0 f = 0 :=
-by simp [bind]
+by simv [bind]
 
 @[simp] lemma bind_zero_right (m : measure α) :
   bind m (0 : α → measure β) = 0 :=
 begin
   ext1 s hs,
-  simp only [bind, hs, join_apply, coe_zero, pi.zero_apply],
+  simv only [bind, hs, join_apply, coe_zero, pi.zero_apply],
   rw [lintegral_map (measurable_coe hs) measurable_zero],
-  simp
+  simv
 end
 
 @[simp] lemma bind_zero_right' (m : measure α) :
@@ -200,7 +200,7 @@ measure.ext $ λ s hs, by rw [bind_apply hs hf, lintegral_dirac' a ((measurable_
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
 measure.ext $ assume s hs,
-by simp [bind_apply hs measurable_dirac, dirac_apply' _ hs, lintegral_indicator 1 hs]
+by simv [bind_apply hs measurable_dirac, dirac_apply' _ hs, lintegral_indicator 1 hs]
 
 lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
 by rw [bind, map_id]

@@ -32,13 +32,13 @@ lemma unbounded_le_of_forall_exists_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a 
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, hba.not_lt hb'⟩
 
 lemma unbounded_le_iff [linear_order α] : unbounded (≤) s ↔ ∀ a, ∃ b ∈ s, a < b :=
-by simp only [unbounded, not_le]
+by simv only [unbounded, not_le]
 
 lemma unbounded_lt_of_forall_exists_le [preorder α] (h : ∀ a, ∃ b ∈ s, a ≤ b) : unbounded (<) s :=
 λ a, let ⟨b, hb, hb'⟩ := h a in ⟨b, hb, λ hba, hba.not_le hb'⟩
 
 lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ s, a ≤ b :=
-by simp only [unbounded, not_lt]
+by simv only [unbounded, not_lt]
 
 lemma unbounded_ge_of_forall_exists_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
 @unbounded_le_of_forall_exists_lt αᵒᵈ _ _ h
@@ -127,7 +127,7 @@ theorem bounded_le_Iic [preorder α] (a : α) : bounded (≤) (set.Iic a) :=
 bounded_self a
 
 theorem bounded_lt_Iic [preorder α] [no_max_order α] (a : α) : bounded (<) (set.Iic a) :=
-by simp only [← bounded_le_iff_bounded_lt, bounded_le_Iic]
+by simv only [← bounded_le_iff_bounded_lt, bounded_le_Iic]
 
 theorem bounded_gt_Ioi [preorder α] (a : α) : bounded (>) (set.Ioi a) :=
 bounded_self a
@@ -139,7 +139,7 @@ theorem bounded_ge_Ici [preorder α] (a : α) : bounded (≥) (set.Ici a) :=
 bounded_self a
 
 theorem bounded_gt_Ici [preorder α] [no_min_order α] (a : α) : bounded (>) (set.Ici a) :=
-by simp only [← bounded_ge_iff_bounded_gt, bounded_ge_Ici]
+by simv only [← bounded_ge_iff_bounded_gt, bounded_ge_Ici]
 
 /-! #### Other bounded intervals -/
 

@@ -27,7 +27,7 @@ instance : star_semigroup (free_monoid α) :=
 @[simp]
 lemma star_of (x : α) : star (of x) = of x := rfl
 
-/-- Note that `star_one` is already a global simp lemma, but this one works with dsimp too -/
+/-- Note that `star_one` is already a global simv lemma, but this one works with dsimp too -/
 @[simp]
 lemma star_one : star (1 : free_monoid α) = 1 := rfl
 
@@ -41,22 +41,22 @@ instance : star_ring (free_algebra R X) :=
 { star := mul_opposite.unop ∘ lift R (mul_opposite.op ∘ ι R),
   star_involutive := λ x, by
   { unfold has_star.star,
-    simp only [function.comp_apply],
-    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
-  star_mul := λ a b, by simp,
-  star_add := λ a b, by simp }
+    simv only [function.comp_apply],
+    refine free_algebra.induction R X _ _ _ _ x; intros; simv [*] },
+  star_mul := λ a b, by simv,
+  star_add := λ a b, by simv }
 
 @[simp]
 lemma star_ι (x : X) : star (ι R x) = (ι R x) :=
-by simp [star, has_star.star]
+by simv [star, has_star.star]
 
 @[simp]
 lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
-by simp [star, has_star.star]
+by simv [star, has_star.star]
 
 /-- `star` as an `alg_equiv` -/
 def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵐᵒᵖ :=
-{ commutes' := λ r, by simp [star_algebra_map],
+{ commutes' := λ r, by simv [star_algebra_map],
   ..star_ring_equiv }
 
 end free_algebra

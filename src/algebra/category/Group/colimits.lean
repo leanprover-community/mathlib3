@@ -235,13 +235,13 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { simp, },
+    { simv, },
     -- zero
-    { simp, },
+    { simv, },
     -- neg
-    { simp, },
+    { simv, },
     -- add
-    { simp, },
+    { simv, },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -277,9 +277,9 @@ def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
     { have w' := congr_fun (congr_arg (λ f : F.obj x_j ⟶ s.X, (f : F.obj x_j → s.X)) (w x_j)) x_x,
       erw w',
       refl, },
-    { simp *, },
-    { simp *, },
-    { simp *, },
+    { simv *, },
+    { simv *, },
+    { simv *, },
     refl
   end }.
 
@@ -303,17 +303,17 @@ noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   cokernel f ≅ AddCommGroup.of (H ⧸ (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
     (by { ext, apply quotient.sound, apply left_rel_apply.mpr, fsplit, exact -x,
-          simp only [add_zero, add_monoid_hom.map_neg], }),
+          simv only [add_zero, add_monoid_hom.map_neg], }),
   inv := quotient_add_group.lift _ (cokernel.π f)
     (by { intros x H_1, cases H_1, induction H_1_h,
-          simp only [cokernel.condition_apply, zero_apply]}),
+          simv only [cokernel.condition_apply, zero_apply]}),
   -- obviously can take care of the next goals, but it is really slow
   hom_inv_id' := begin
-    ext1, simp only [coequalizer_as_cokernel, category.comp_id, cokernel.π_desc_assoc], ext1, refl,
+    ext1, simv only [coequalizer_as_cokernel, category.comp_id, cokernel.π_desc_assoc], ext1, refl,
   end,
   inv_hom_id' := begin
     ext x : 2,
-    simp only [colimit.ι_desc_apply, id_apply, lift_mk, mk'_apply,
+    simv only [colimit.ι_desc_apply, id_apply, lift_mk, mk'_apply,
                cofork.of_π_ι_app, comp_apply, add_monoid_hom.comp_apply],
   end, }
 

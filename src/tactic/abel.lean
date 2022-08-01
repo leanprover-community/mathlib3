@@ -122,32 +122,32 @@ meta def normal_expr.refl_conv (e : normal_expr) : tactic (normal_expr × expr) 
 do p ← mk_eq_refl e, return (e, p)
 
 theorem const_add_term {α} [add_comm_monoid α] (k n x a a') (h : k + a = a') :
-  k + @term α _ n x a = term n x a' := by simp [h.symm, term]; ac_refl
+  k + @term α _ n x a = term n x a' := by simv [h.symm, term]; ac_refl
 
 theorem const_add_termg {α} [add_comm_group α] (k n x a a') (h : k + a = a') :
-  k + @termg α _ n x a = termg n x a' := by simp [h.symm, termg]; ac_refl
+  k + @termg α _ n x a = termg n x a' := by simv [h.symm, termg]; ac_refl
 
 theorem term_add_const {α} [add_comm_monoid α] (n x a k a') (h : a + k = a') :
-  @term α _ n x a + k = term n x a' := by simp [h.symm, term, add_assoc]
+  @term α _ n x a + k = term n x a' := by simv [h.symm, term, add_assoc]
 
 theorem term_add_constg {α} [add_comm_group α] (n x a k a') (h : a + k = a') :
-  @termg α _ n x a + k = termg n x a' := by simp [h.symm, termg, add_assoc]
+  @termg α _ n x a + k = termg n x a' := by simv [h.symm, termg, add_assoc]
 
 theorem term_add_term {α} [add_comm_monoid α] (n₁ x a₁ n₂ a₂ n' a')
   (h₁ : n₁ + n₂ = n') (h₂ : a₁ + a₂ = a') :
   @term α _ n₁ x a₁ + @term α _ n₂ x a₂ = term n' x a' :=
-by simp [h₁.symm, h₂.symm, term, add_nsmul]; ac_refl
+by simv [h₁.symm, h₂.symm, term, add_nsmul]; ac_refl
 
 theorem term_add_termg {α} [add_comm_group α] (n₁ x a₁ n₂ a₂ n' a')
   (h₁ : n₁ + n₂ = n') (h₂ : a₁ + a₂ = a') :
   @termg α _ n₁ x a₁ + @termg α _ n₂ x a₂ = termg n' x a' :=
-by simp [h₁.symm, h₂.symm, termg, add_zsmul]; ac_refl
+by simv [h₁.symm, h₂.symm, termg, add_zsmul]; ac_refl
 
 theorem zero_term {α} [add_comm_monoid α] (x a) : @term α _ 0 x a = a :=
-by simp [term, zero_nsmul, one_nsmul]
+by simv [term, zero_nsmul, one_nsmul]
 
 theorem zero_termg {α} [add_comm_group α] (x a) : @termg α _ 0 x a = a :=
-by simp [termg]
+by simv [termg]
 
 meta def eval_add (c : context) : normal_expr → normal_expr → tactic (normal_expr × expr)
 | (zero _) e₂ := do
@@ -177,7 +177,7 @@ meta def eval_add (c : context) : normal_expr → normal_expr → tactic (normal
 theorem term_neg {α} [add_comm_group α] (n x a n' a')
   (h₁ : -n = n') (h₂ : -a = a') :
   -@termg α _ n x a = termg n' x a' :=
-by simp [h₂.symm, h₁.symm, termg]; ac_refl
+by simv [h₂.symm, h₁.symm, termg]; ac_refl
 
 meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
@@ -193,20 +193,20 @@ def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
 def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n • x
 
 theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
-by simp [smul, nsmul_zero]
+by simv [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
-by simp [smulg, zsmul_zero]
+by simv [smulg, zsmul_zero]
 
 theorem term_smul {α} [add_comm_monoid α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smul c a = a') :
   smul c (@term α _ n x a) = term n' x a' :=
-by simp [h₂.symm, h₁.symm, term, smul, nsmul_add, mul_nsmul]
+by simv [h₂.symm, h₁.symm, term, smul, nsmul_add, mul_nsmul]
 
 theorem term_smulg {α} [add_comm_group α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smulg c a = a') :
   smulg c (@termg α _ n x a) = termg n' x a' :=
-by simp [h₂.symm, h₁.symm, termg, smulg, zsmul_add, mul_zsmul]
+by simv [h₂.symm, h₁.symm, termg, smulg, zsmul_add, mul_zsmul]
 
 meta def eval_smul (c : context) (k : expr × ℤ) :
   normal_expr → tactic (normal_expr × expr)
@@ -218,10 +218,10 @@ meta def eval_smul (c : context) (k : expr × ℤ) :
     c.iapp ``term_smul [k.1, n.1, x, a, n', a', h₁, h₂])
 
 theorem term_atom {α} [add_comm_monoid α] (x : α) : x = term 1 x 0 :=
-by simp [term]
+by simv [term]
 
 theorem term_atomg {α} [add_comm_group α] (x : α) : x = termg 1 x 0 :=
-by simp [termg]
+by simv [termg]
 
 meta def eval_atom (c : context) (e : expr) : tactic (normal_expr × expr) :=
 do n1 ← c.int_to_expr 1,
@@ -242,17 +242,17 @@ theorem unfold_zsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
 lemma subst_into_smul {α} [add_comm_monoid α]
   (l r tl tr t) (prl : l = tl) (prr : r = tr)
   (prt : @smul α _ tl tr = t) : smul l r = t :=
-by simp [prl, prr, prt]
+by simv [prl, prr, prt]
 
 lemma subst_into_smulg {α} [add_comm_group α]
   (l r tl tr t) (prl : l = tl) (prr : r = tr)
   (prt : @smulg α _ tl tr = t) : smulg l r = t :=
-by simp [prl, prr, prt]
+by simv [prl, prr, prt]
 
 lemma subst_into_smul_upcast {α} [add_comm_group α]
   (l r tl zl tr t) (prl₁ : l = tl) (prl₂ : ↑tl = zl) (prr : r = tr)
   (prt : @smulg α _ zl tr = t) : smul l r = t :=
-by simp [← prt, prl₁, ← prl₂, prr, smul, smulg]
+by simv [← prt, prl₁, ← prl₂, prr, smul, smulg]
 
 /-- Normalize a term `orig` of the form `smul e₁ e₂` or `smulg e₁ e₂`.
   Normalized terms use `smul` for monoids and `smulg` for groups,

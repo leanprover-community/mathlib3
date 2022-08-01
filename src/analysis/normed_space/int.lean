@@ -23,7 +23,7 @@ namespace int
 lemma nnnorm_coe_units (e : ℤˣ) : ∥(e : ℤ)∥₊ = 1 :=
 begin
   obtain (rfl|rfl) := int.units_eq_one_or e;
-  simp only [units.coe_neg_one, units.coe_one, nnnorm_neg, nnnorm_one],
+  simv only [units.coe_neg_one, units.coe_one, nnnorm_neg, nnnorm_one],
 end
 
 lemma norm_coe_units (e : ℤˣ) : ∥(e : ℤ)∥ = 1 :=

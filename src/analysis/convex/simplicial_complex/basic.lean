@@ -146,7 +146,7 @@ lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K.faces) :
 begin
   refine ⟨λ h, _, λ h, subset_convex_hull _ _ h⟩,
   classical,
-  have h := K.inter_subset_convex_hull hx hs ⟨by simp, h⟩,
+  have h := K.inter_subset_convex_hull hx hs ⟨by simv, h⟩,
   by_contra H,
   rwa [←coe_inter, finset.disjoint_iff_inter_eq_empty.1
     (finset.disjoint_singleton_right.2 H).symm, coe_empty, convex_hull_empty] at h,

@@ -74,16 +74,16 @@ def comonad.δ : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ G := G.δ'
 
 /-- A custom simps projection for the functor part of a monad, as a coercion. -/
 def monad.simps.coe := (T : C ⥤ C)
-/-- A custom simps projection for the unit of a monad, in simp normal form. -/
+/-- A custom simps projection for the unit of a monad, in simv normal form. -/
 def monad.simps.η : 𝟭 _ ⟶ (T : C ⥤ C) := T.η
-/-- A custom simps projection for the multiplication of a monad, in simp normal form. -/
+/-- A custom simps projection for the multiplication of a monad, in simv normal form. -/
 def monad.simps.μ : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ (T : C ⥤ C) := T.μ
 
 /-- A custom simps projection for the functor part of a comonad, as a coercion. -/
 def comonad.simps.coe := (G : C ⥤ C)
-/-- A custom simps projection for the counit of a comonad, in simp normal form. -/
+/-- A custom simps projection for the counit of a comonad, in simv normal form. -/
 def comonad.simps.ε : (G : C ⥤ C) ⟶ 𝟭 _ := G.ε
-/-- A custom simps projection for the comultiplication of a comonad, in simp normal form. -/
+/-- A custom simps projection for the comultiplication of a comonad, in simv normal form. -/
 def comonad.simps.δ : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ (G : C ⥤ C) := G.δ
 
 initialize_simps_projections category_theory.monad (to_functor → coe, η' → η, μ' → μ)
@@ -94,11 +94,11 @@ lemma monad.assoc (T : monad C) (X : C) :
   (T : C ⥤ C).map (T.μ.app X) ≫ T.μ.app _ = T.μ.app _ ≫ T.μ.app _ :=
 T.assoc' X
 
-@[simp, reassoc] lemma monad.left_unit (T : monad C) (X : C) :
+@[simv, reassoc] lemma monad.left_unit (T : monad C) (X : C) :
   T.η.app ((T : C ⥤ C).obj X) ≫ T.μ.app X = 𝟙 ((T : C ⥤ C).obj X) :=
 T.left_unit' X
 
-@[simp, reassoc] lemma monad.right_unit (T : monad C) (X : C) :
+@[simv, reassoc] lemma monad.right_unit (T : monad C) (X : C) :
   (T : C ⥤ C).map (T.η.app X) ≫ T.μ.app X = 𝟙 ((T : C ⥤ C).obj X) :=
 T.right_unit' X
 
@@ -107,11 +107,11 @@ lemma comonad.coassoc (G : comonad C) (X : C) :
   G.δ.app _ ≫ (G : C ⥤ C).map (G.δ.app X) = G.δ.app _ ≫ G.δ.app _ :=
 G.coassoc' X
 
-@[simp, reassoc] lemma comonad.left_counit (G : comonad C) (X : C) :
+@[simv, reassoc] lemma comonad.left_counit (G : comonad C) (X : C) :
   G.δ.app X ≫ G.ε.app ((G : C ⥤ C).obj X) = 𝟙 ((G : C ⥤ C).obj X) :=
 G.left_counit' X
 
-@[simp, reassoc] lemma comonad.right_counit (G : comonad C) (X : C) :
+@[simv, reassoc] lemma comonad.right_counit (G : comonad C) (X : C) :
   G.δ.app X ≫ (G : C ⥤ C).map (G.ε.app X) = 𝟙 ((G : C ⥤ C).obj X) :=
 G.right_counit' X
 
@@ -129,11 +129,11 @@ structure comonad_hom (M N : comonad C) extends nat_trans (M : C ⥤ C) N :=
 
 restate_axiom monad_hom.app_η'
 restate_axiom monad_hom.app_μ'
-attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
+attribute [simv, reassoc] monad_hom.app_η monad_hom.app_μ
 
 restate_axiom comonad_hom.app_ε'
 restate_axiom comonad_hom.app_δ'
-attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
+attribute [simv, reassoc] comonad_hom.app_ε comonad_hom.app_δ
 
 instance : category (monad C) :=
 { hom := monad_hom,
@@ -175,13 +175,13 @@ def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N) (f_η f_μ) :
 { hom := { to_nat_trans := f.hom, app_η' := f_η, app_μ' := f_μ },
   inv :=
   { to_nat_trans := f.inv,
-    app_η' := λ X, by simp [←f_η],
+    app_η' := λ X, by simv [←f_η],
     app_μ' := λ X,
     begin
       rw ←nat_iso.cancel_nat_iso_hom_right f,
-      simp only [nat_trans.naturality, iso.inv_hom_id_app, assoc, comp_id, f_μ,
+      simv only [nat_trans.naturality, iso.inv_hom_id_app, assoc, comp_id, f_μ,
         nat_trans.naturality_assoc, iso.inv_hom_id_app_assoc, ←functor.map_comp_assoc],
-      simp,
+      simv,
     end } }
 
 /-- Construct a comonad isomorphism from a natural isomorphism of functors where the forward
@@ -192,11 +192,11 @@ def comonad_iso.mk {M N : comonad C} (f : (M : C ⥤ C) ≅ N) (f_ε f_δ) :
 { hom := { to_nat_trans := f.hom, app_ε' := f_ε, app_δ' := f_δ },
   inv :=
   { to_nat_trans := f.inv,
-    app_ε' := λ X, by simp [←f_ε],
+    app_ε' := λ X, by simv [←f_ε],
     app_δ' := λ X,
     begin
       rw ←nat_iso.cancel_nat_iso_hom_left f,
-      simp only [reassoc_of (f_δ X), iso.hom_inv_id_app_assoc, nat_trans.naturality_assoc],
+      simv only [reassoc_of (f_δ X), iso.hom_inv_id_app_assoc, nat_trans.naturality_assoc],
       rw [←functor.map_comp, iso.hom_inv_id_app, functor.map_id],
       apply (comp_id _).symm
     end } }

@@ -54,27 +54,27 @@ variables {c : ℝ} {f g : ℕ → bool} {n : ℕ}
 def cantor_function_aux (c : ℝ) (f : ℕ → bool) (n : ℕ) : ℝ := cond (f n) (c ^ n) 0
 
 @[simp] lemma cantor_function_aux_tt (h : f n = tt) : cantor_function_aux c f n = c ^ n :=
-by simp [cantor_function_aux, h]
+by simv [cantor_function_aux, h]
 
 @[simp] lemma cantor_function_aux_ff (h : f n = ff) : cantor_function_aux c f n = 0 :=
-by simp [cantor_function_aux, h]
+by simv [cantor_function_aux, h]
 
 lemma cantor_function_aux_nonneg (h : 0 ≤ c) : 0 ≤ cantor_function_aux c f n :=
-by { cases h' : f n; simp [h'], apply pow_nonneg h }
+by { cases h' : f n; simv [h'], apply pow_nonneg h }
 
 lemma cantor_function_aux_eq (h : f n = g n) :
   cantor_function_aux c f n = cantor_function_aux c g n :=
-by simp [cantor_function_aux, h]
+by simv [cantor_function_aux, h]
 
 lemma cantor_function_aux_succ (f : ℕ → bool) :
   (λ n, cantor_function_aux c f (n + 1)) = λ n, c * cantor_function_aux c (λ n, f (n + 1)) n :=
-by { ext n, cases h : f (n + 1); simp [h, pow_succ] }
+by { ext n, cases h : f (n + 1); simv [h, pow_succ] }
 
 lemma summable_cantor_function (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   summable (cantor_function_aux c f) :=
 begin
   apply (summable_geometric_of_lt_1 h1 h2).summable_of_eq_zero_or_self,
-  intro n, cases h : f n; simp [h]
+  intro n, cases h : f n; simv [h]
 end
 
 /-- `cantor_function c (f : ℕ → bool)` is `Σ n, f n * c ^ n`, where `tt` is interpreted as `1` and
@@ -85,8 +85,8 @@ lemma cantor_function_le (h1 : 0 ≤ c) (h2 : c < 1) (h3 : ∀ n, f n → g n) :
   cantor_function c f ≤ cantor_function c g :=
 begin
   apply tsum_le_tsum _ (summable_cantor_function f h1 h2) (summable_cantor_function g h1 h2),
-  intro n, cases h : f n, simp [h, cantor_function_aux_nonneg h1],
-  replace h3 : g n = tt := h3 n h, simp [h, h3]
+  intro n, cases h : f n, simv [h, cantor_function_aux_nonneg h1],
+  replace h3 : g n = tt := h3 n h, simv [h, h3]
 end
 
 lemma cantor_function_succ (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
@@ -178,7 +178,7 @@ begin
   refine lt_of_le_of_lt (mk_union_le _ _) _,
   refine lt_of_le_of_lt (add_le_add_right (mk_union_le _ _) _) _,
   have h2 : (λ x, a + a - x) '' Ioi a = Iio a,
-  { convert image_const_sub_Ioi _ _, simp },
+  { convert image_const_sub_Ioi _ _, simv },
   rw ← h2,
   refine add_lt_of_lt (cantor _).le _ h,
   refine add_lt_of_lt (cantor _).le (mk_image_le.trans_lt h) _,
@@ -195,7 +195,7 @@ lemma mk_Iio_real (a : ℝ) : #(Iio a) = 𝔠 :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
   have h2 : (λ x, a + a - x) '' Iio a = Ioi a,
-  { convert image_const_sub_Iio _ _, simp },
+  { convert image_const_sub_Iio _ _, simv },
   exact mk_Ioi_real a ▸ h2 ▸ mk_image_le
 end
 

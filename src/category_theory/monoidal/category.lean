@@ -26,7 +26,7 @@ e.g. `(λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom` in `category_theory.monoidal.un
 Dealing with unitors and associators is painful, and at this stage we do not have a useful
 implementation of coherence for monoidal categories.
 
-In an effort to lessen the pain, we put some effort into choosing the right `simp` lemmas.
+In an effort to lessen the pain, we put some effort into choosing the right `simv` lemmas.
 Generally, the rule is that the component index of a natural transformation "weighs more"
 in considering the complexity of an expression than does a structural isomorphism (associator, etc).
 
@@ -107,10 +107,10 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
   ∀ X Y : C, (α_ X 𝟙_ Y).hom ≫ ((𝟙 X) ⊗' (λ_ Y).hom) = (ρ_ X).hom ⊗' (𝟙 Y) . obviously)
 
 restate_axiom monoidal_category.tensor_id'
-attribute [simp] monoidal_category.tensor_id
+attribute [simv] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
-attribute [reassoc] monoidal_category.tensor_comp -- This would be redundant in the simp set.
-attribute [simp] monoidal_category.tensor_comp
+attribute [reassoc] monoidal_category.tensor_comp -- This would be redundant in the simv set.
+attribute [simv] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
 attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'
@@ -120,7 +120,7 @@ attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
 attribute [reassoc] monoidal_category.pentagon
-attribute [simp, reassoc] monoidal_category.triangle
+attribute [simv, reassoc] monoidal_category.triangle
 
 open monoidal_category
 
@@ -156,7 +156,7 @@ is_iso.of_iso (as_iso f ⊗ as_iso g)
 
 @[simp] lemma inv_tensor {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
   inv (f ⊗ g) = inv f ⊗ inv g :=
-by { ext, simp [←tensor_comp], }
+by { ext, simv [←tensor_comp], }
 
 variables {U V W X Y Z : C}
 
@@ -170,21 +170,21 @@ lemma dite_tensor {P : Prop} [decidable P]
   (if h : P then g h else g' h) ⊗ f  = if h : P then g h ⊗ f else g' h ⊗ f :=
 by { split_ifs; refl }
 
-@[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
+@[reassoc, simv] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
-by { rw ←tensor_comp, simp }
+by { rw ←tensor_comp, simv }
 
-@[reassoc, simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
+@[reassoc, simv] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
-by { rw ←tensor_comp, simp }
+by { rw ←tensor_comp, simv }
 
-@[simp, reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
+@[simv, reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = g ⊗ f :=
-by { rw [←tensor_comp], simp }
+by { rw [←tensor_comp], simv }
 
-@[simp, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
+@[simv, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
-by { rw [←tensor_comp], simp }
+by { rw [←tensor_comp], simv }
 
 @[simp]
 lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
@@ -199,22 +199,22 @@ by rw [←left_unitor_naturality_assoc, iso.hom_inv_id, category.comp_id]
 @[reassoc]
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
-by simp
+by simv
 
 @[reassoc]
 lemma right_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (ρ_ X').inv = (ρ_ X).inv ≫ (f ⊗ 𝟙 _) :=
-by simp
+by simv
 
 lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f = (𝟙 (𝟙_ C)) ⊗ g) ↔ (f = g) :=
-by simp
+by simv
 
 lemma tensor_right_iff
   {X Y : C} (f g : X ⟶ Y) :
   (f ⊗ (𝟙 (𝟙_ C)) = g ⊗ (𝟙 (𝟙_ C))) ↔ (f = g) :=
-by simp
+by simv
 
 /-! The lemmas in the next section are true by coherence,
 but we prove them directly as they are used in proving the coherence theorem. -/
@@ -224,9 +224,9 @@ section
 lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))
     = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
-category_theory.eq_of_inv_eq_inv (by simp [pentagon])
+category_theory.eq_of_inv_eq_inv (by simv [pentagon])
 
-@[reassoc, simp]
+@[reassoc, simv]
 lemma right_unitor_tensor (X Y : C) :
   (ρ_ (X ⊗ Y)).hom = (α_ X Y (𝟙_ C)).hom ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) :=
 by
@@ -234,20 +234,20 @@ by
       associator_naturality, ←triangle_assoc, ←triangle, id_tensor_comp, pentagon_assoc,
       ←associator_naturality, tensor_id]
 
-@[reassoc, simp]
+@[reassoc, simv]
 lemma right_unitor_tensor_inv (X Y : C) :
   ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ (α_ X Y (𝟙_ C)).inv :=
-eq_of_inv_eq_inv (by simp)
+eq_of_inv_eq_inv (by simv)
 
-@[simp, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
+@[simv, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
 by rw [←triangle, iso.inv_hom_id_assoc]
 
-@[simp, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
+@[simv, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
-  simp only [triangle_assoc_comp_right, assoc],
+  simv only [triangle_assoc_comp_right, assoc],
   rw [←id_tensor_comp, iso.inv_hom_id, ←comp_tensor_id, iso.inv_hom_id]
 end
 
@@ -256,9 +256,9 @@ end
 @[reassoc]
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
-by { rw [comp_inv_eq, assoc, associator_naturality], simp }
+by { rw [comp_inv_eq, assoc, associator_naturality], simv }
 
-@[reassoc, simp]
+@[reassoc, simv]
 lemma associator_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ g) ⊗ h = (α_ X Y Z).hom ≫ (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv :=
 by rw [associator_inv_naturality, hom_inv_id_assoc]
@@ -280,42 +280,42 @@ lemma id_tensor_associator_inv_naturality {X Y Z X' : C} (f : X ⟶ X')  :
   (f ⊗ 𝟙 (Y ⊗ Z)) ≫ (α_ X' Y Z).inv = (α_ X Y Z).inv ≫ ((f ⊗ 𝟙 Y) ⊗ 𝟙 Z) :=
 by { rw [←tensor_id, associator_inv_naturality] }
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f.hom ⊗ g) ≫ (f.inv ⊗ h) = (𝟙 V ⊗ g) ≫ (𝟙 V ⊗ h) :=
 by rw [←tensor_comp, f.hom_inv_id, id_tensor_comp]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma inv_hom_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f.inv ⊗ g) ≫ (f.hom ⊗ h) = (𝟙 W ⊗ g) ≫ (𝟙 W ⊗ h) :=
 by rw [←tensor_comp, f.inv_hom_id, id_tensor_comp]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma tensor_hom_inv_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f.hom) ≫ (h ⊗ f.inv) = (g ⊗ 𝟙 V) ≫ (h ⊗ 𝟙 V) :=
 by rw [←tensor_comp, f.hom_inv_id, comp_tensor_id]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma tensor_inv_hom_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f.inv) ≫ (h ⊗ f.hom) = (g ⊗ 𝟙 W) ≫ (h ⊗ 𝟙 W) :=
 by rw [←tensor_comp, f.inv_hom_id, comp_tensor_id]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma hom_inv_id_tensor' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (f ⊗ g) ≫ (inv f ⊗ h) = (𝟙 V ⊗ g) ≫ (𝟙 V ⊗ h) :=
 by rw [←tensor_comp, is_iso.hom_inv_id, id_tensor_comp]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma inv_hom_id_tensor' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (inv f ⊗ g) ≫ (f ⊗ h) = (𝟙 W ⊗ g) ≫ (𝟙 W ⊗ h) :=
 by rw [←tensor_comp, is_iso.inv_hom_id, id_tensor_comp]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma tensor_hom_inv_id' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f) ≫ (h ⊗ inv f) = (g ⊗ 𝟙 V) ≫ (h ⊗ 𝟙 V) :=
 by rw [←tensor_comp, is_iso.hom_inv_id, comp_tensor_id]
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma tensor_inv_hom_id' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ inv f) ≫ (h ⊗ f) = (g ⊗ 𝟙 W) ≫ (h ⊗ 𝟙 W) :=
 by rw [←tensor_comp, is_iso.inv_hom_id, comp_tensor_id]
@@ -411,7 +411,7 @@ nat_iso.of_components
 rfl
 @[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
   (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
-by { simp [tensor_left_tensor], }
+by { simv [tensor_left_tensor], }
 
 /-- Tensoring on the right with a fixed object, as a functor. -/
 @[simps]
@@ -475,7 +475,7 @@ nat_iso.of_components
 rfl
 @[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
   (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
-by simp [tensor_right_tensor]
+by simv [tensor_right_tensor]
 
 end
 
@@ -488,7 +488,7 @@ universes v₁ v₂ u₁ u₂
 variables (C₁ : Type u₁) [category.{v₁} C₁] [monoidal_category.{v₁} C₁]
 variables (C₂ : Type u₂) [category.{v₂} C₂] [monoidal_category.{v₂} C₂]
 
-local attribute [simp]
+local attribute [simv]
 associator_naturality left_unitor_naturality right_unitor_naturality pentagon
 
 @[simps tensor_obj tensor_hom tensor_unit associator]

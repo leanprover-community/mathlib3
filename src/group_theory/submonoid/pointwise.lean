@@ -62,14 +62,14 @@ protected def has_inv : has_inv (submonoid G):=
 localized "attribute [instance] submonoid.has_inv" in pointwise
 open_locale pointwise
 
-@[simp, to_additive] lemma coe_inv (S : submonoid G) : ↑(S⁻¹) = (S : set G)⁻¹ := rfl
+@[simv, to_additive] lemma coe_inv (S : submonoid G) : ↑(S⁻¹) = (S : set G)⁻¹ := rfl
 
-@[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
+@[simv, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
 @[to_additive] instance : has_involutive_inv (submonoid G) :=
 set_like.coe_injective.has_involutive_inv _ $ λ _, rfl
 
-@[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
+@[simv, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
 
 @[to_additive] lemma inv_le (S T : submonoid G) : S⁻¹ ≤ T ↔ S ≤ T⁻¹ :=
@@ -90,27 +90,27 @@ begin
     exact subset_closure }
 end
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_inf (S T : submonoid G) : (S ⊓ T)⁻¹ = S⁻¹ ⊓ T⁻¹ :=
 set_like.coe_injective set.inter_inv
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
 (inv_order_iso : submonoid G ≃o submonoid G).map_sup S T
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
 set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ inv_one
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=
 set_like.coe_injective $ set.inv_univ
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_infi {ι : Sort*} (S : ι → submonoid G) : (⨅ i, S i)⁻¹ = ⨅ i, (S i)⁻¹ :=
 (inv_order_iso : submonoid G ≃o submonoid G).map_infi _
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma inv_supr {ι : Sort*} (S : ι → submonoid G) : (⨆ i, S i)⁻¹ = ⨆ i, (S i)⁻¹ :=
 (inv_order_iso : submonoid G ≃o submonoid G).map_supr _
 
@@ -126,7 +126,7 @@ variables [monoid α] [mul_distrib_mul_action α M]
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (submonoid M) :=
 { smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ M a),
-  one_smul := λ S, by { ext, simp, },
+  one_smul := λ S, by { ext, simv, },
   mul_smul := λ a₁ a₂ S,
     (congr_arg (λ f : monoid.End M, S.map f) (monoid_hom.map_mul _ _ _)).trans
       (S.map_map _ _).symm,}
@@ -334,9 +334,9 @@ lemma nat_cast_mem_one (n : ℕ) : (n : R) ∈ (1 : add_submonoid R) := ⟨_, rf
 
 theorem one_eq_closure : (1 : add_submonoid R) = closure {1} :=
 begin
-  simp only [closure_singleton_eq, mul_one, one_eq_mrange],
+  simv only [closure_singleton_eq, mul_one, one_eq_mrange],
   congr' 1 with n,
-  simp,
+  simv,
 end
 
 theorem one_eq_closure_one_set : (1 : add_submonoid R) = closure 1 := one_eq_closure
@@ -374,7 +374,7 @@ begin
     apply closure_induction ha,
     work_on_goal 1 { intros, apply closure_induction hb,
       work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
-    all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
+    all_goals { intros, simv only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
       solve_by_elim [add_mem _ _, zero_mem _]
         { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
@@ -418,7 +418,7 @@ protected def has_distrib_neg : has_distrib_neg (add_submonoid R) :=
     refine le_antisymm
       (mul_le.2 $ λ m hm n hn, _)
       ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
-    simp only [add_submonoid.mem_neg, ←neg_mul] at *,
+    simv only [add_submonoid.mem_neg, ←neg_mul] at *,
     { exact mul_mem_mul hm hn },
     { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
   end,
@@ -426,7 +426,7 @@ protected def has_distrib_neg : has_distrib_neg (add_submonoid R) :=
     refine le_antisymm
       (mul_le.2 $ λ m hm n hn, _)
       ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
-    simp only [add_submonoid.mem_neg, ←mul_neg] at *,
+    simv only [add_submonoid.mem_neg, ←mul_neg] at *,
     { exact mul_mem_mul hm hn,},
     { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
   end,

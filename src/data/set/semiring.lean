@@ -33,7 +33,7 @@ protected def down : set_semiring α ≃ set α := equiv.refl _
 @[simp] protected lemma down_up (s : set α) : s.up.down = s := rfl
 @[simp] protected lemma up_down (s : set_semiring α) : s.down.up = s := rfl
 
--- TODO: These lemmas are not tagged `simp` because `set.le_eq_subset` simplifies the LHS
+-- TODO: These lemmas are not tagged `simv` because `set.le_eq_subset` simplifies the LHS
 lemma up_le_up {s t : set α} : s.up ≤ t.up ↔ s ⊆ t := iff.rfl
 lemma up_lt_up {s t : set α} : s.up < t.up ↔ s ⊂ t := iff.rfl
 

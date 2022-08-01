@@ -65,7 +65,7 @@ begin
   ext ⟨j⟩,
   { rw [verschiebung_coeff_zero, shift_coeff, h],
     apply nat.lt_succ_self },
-  { simp only [verschiebung_coeff_succ, shift],
+  { simv only [verschiebung_coeff_succ, shift],
     congr' 1,
     rw [nat.add_succ, add_comm, nat.add_succ, add_comm] }
 end
@@ -74,7 +74,7 @@ lemma eq_iterate_verschiebung {x : 𝕎 R} {n : ℕ} (h : ∀ i < n, x.coeff i =
   x = (verschiebung^[n] (x.shift n)) :=
 begin
   induction n with k ih,
-  { cases x; simp [shift] },
+  { cases x; simv [shift] },
   { dsimp, rw verschiebung_shift,
     { exact ih (λ i hi, h _ (hi.trans (nat.lt_succ_self _))), },
     { exact h } }
@@ -87,7 +87,7 @@ begin
   { by_contra' hall,
     apply hx,
     ext i,
-    simp only [hall, zero_coeff] },
+    simv only [hall, zero_coeff] },
   let n := nat.find hex,
   use [n, x.shift n],
   refine ⟨nat.find_spec hex, eq_iterate_verschiebung (λ i hi, not_not.mp _)⟩,

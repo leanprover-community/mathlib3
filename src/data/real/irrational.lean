@@ -25,7 +25,7 @@ open rat real multiplicity
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 
 lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x ≠ a / b :=
-by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
+by simv only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
   eq_comm]
 
 /-- A transcendental real number is irrational. -/
@@ -89,7 +89,7 @@ theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
 
 theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqrt p) :=
 @irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p ⟨hp⟩ $
-by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
+by simv [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
   refl
 
 /-- **Irrationality of the Square Root of 2** -/
@@ -448,19 +448,19 @@ by rw [← cast_coe_nat, irrational_rat_mul_iff, nat.cast_ne_zero]
 by rw [← cast_coe_nat, irrational_mul_rat_iff, nat.cast_ne_zero]
 
 @[simp] theorem irrational_rat_div_iff : irrational (q / x) ↔ q ≠ 0 ∧ irrational x :=
-by simp [div_eq_mul_inv]
+by simv [div_eq_mul_inv]
 
 @[simp] theorem irrational_div_rat_iff : irrational (x / q) ↔ q ≠ 0 ∧ irrational x :=
 by rw [div_eq_mul_inv, ← cast_inv, irrational_mul_rat_iff, ne.def, inv_eq_zero]
 
 @[simp] theorem irrational_int_div_iff : irrational (m / x) ↔ m ≠ 0 ∧ irrational x :=
-by simp [div_eq_mul_inv]
+by simv [div_eq_mul_inv]
 
 @[simp] theorem irrational_div_int_iff : irrational (x / m) ↔ m ≠ 0 ∧ irrational x :=
 by rw [← cast_coe_int, irrational_div_rat_iff, int.cast_ne_zero]
 
 @[simp] theorem irrational_nat_div_iff : irrational (n / x) ↔ n ≠ 0 ∧ irrational x :=
-by simp [div_eq_mul_inv]
+by simv [div_eq_mul_inv]
 
 @[simp] theorem irrational_div_nat_iff : irrational (x / n) ↔ n ≠ 0 ∧ irrational x :=
 by rw [← cast_coe_nat, irrational_div_rat_iff, nat.cast_ne_zero]

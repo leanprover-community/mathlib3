@@ -466,7 +466,7 @@ theorem ext {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) → x = y :
 quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧)))
 
 theorem ext_iff {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) ↔ x = y :=
-⟨ext, λ h, by simp [h]⟩
+⟨ext, λ h, by simv [h]⟩
 
 instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @hba c⟩⟩
 
@@ -559,7 +559,7 @@ resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 @[simp] theorem mem_powerset {x y : Set.{u}} : y ∈ powerset x ↔ y ⊆ x :=
 quotient.induction_on₂ x y ( λ ⟨α, A⟩ ⟨β, B⟩,
   show (⟨β, B⟩ : pSet.{u}) ∈ (pSet.powerset.{u} ⟨α, A⟩) ↔ _,
-    by simp [mem_powerset, subset_iff])
+    by simv [mem_powerset, subset_iff])
 
 theorem sUnion_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : ∀ a, ∃ b, equiv (A a) (B b)) :
   ∀ a, ∃ b, (equiv ((sUnion ⟨α, A⟩).func a) ((sUnion ⟨β, B⟩).func b))
@@ -680,8 +680,8 @@ def pair_sep (p : Set.{u} → Set.{u} → Prop) (x y : Set.{u}) : Set.{u} :=
 begin
   refine mem_sep.trans ⟨and.right, λ e, ⟨_, e⟩⟩,
   rcases e with ⟨a, ax, b, bY, rfl, pab⟩,
-  simp only [mem_powerset, subset_def, mem_union, pair, mem_pair],
-  rintros u (rfl|rfl) v; simp only [mem_singleton, mem_pair],
+  simv only [mem_powerset, subset_def, mem_union, pair, mem_pair],
+  rintros u (rfl|rfl) v; simv only [mem_singleton, mem_pair],
   { rintro rfl, exact or.inl ax },
   { rintro (rfl|rfl); [left, right]; assumption }
 end
@@ -689,25 +689,25 @@ end
 theorem pair_injective : function.injective2 pair :=
 λ x x' y y' H, begin
   have ae := ext_iff.2 H,
-  simp only [pair, mem_pair] at ae,
+  simv only [pair, mem_pair] at ae,
   obtain rfl : x = x',
-  { cases (ae {x}).1 (by simp) with h h,
+  { cases (ae {x}).1 (by simv) with h h,
     { exact singleton_injective h },
     { have m : x' ∈ ({x} : Set),
-      { simp [h] },
+      { simv [h] },
       rw mem_singleton.mp m } },
   have he : x = y → y = y',
   { rintro rfl,
-    cases (ae {x, y'}).2 (by simp only [eq_self_iff_true, or_true]) with xy'x xy'xx,
+    cases (ae {x, y'}).2 (by simv only [eq_self_iff_true, or_true]) with xy'x xy'xx,
     { rw [eq_comm, ←mem_singleton, ←xy'x, mem_pair],
       exact or.inr rfl },
-    { simpa [eq_comm] using (ext_iff.2 xy'xx y').1 (by simp) } },
-  obtain xyx | xyy' := (ae {x, y}).1 (by simp),
-  { obtain rfl := mem_singleton.mp ((ext_iff.2 xyx y).1 $ by simp),
-    simp [he rfl] },
-  { obtain rfl | yy' := mem_pair.mp ((ext_iff.2 xyy' y).1 $ by simp),
-    { simp [he rfl] },
-    { simp [yy'] } }
+    { simpa [eq_comm] using (ext_iff.2 xy'xx y').1 (by simv) } },
+  obtain xyx | xyy' := (ae {x, y}).1 (by simv),
+  { obtain rfl := mem_singleton.mp ((ext_iff.2 xyx y).1 $ by simv),
+    simv [he rfl] },
+  { obtain rfl | yy' := mem_pair.mp ((ext_iff.2 xyy' y).1 $ by simv),
+    { simv [he rfl] },
+    { simv [yy'] } }
 end
 
 @[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
@@ -717,7 +717,7 @@ pair_injective.eq_iff
 def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λ a b, true)
 
 @[simp] theorem mem_prod {x y z : Set.{u}} : z ∈ prod x y ↔ ∃ a ∈ x, ∃ b ∈ y, z = pair a b :=
-by simp [prod]
+by simv [prod]
 
 @[simp] theorem pair_mem_prod {x y a b : Set.{u}} : pair a b ∈ prod x y ↔ a ∈ x ∧ b ∈ y :=
 ⟨λ h, let ⟨a', a'x, b', b'y, e⟩ := mem_prod.1 h in
@@ -734,7 +734,7 @@ def funs (x y : Set.{u}) : Set.{u} :=
 {f ∈ powerset (prod x y) | is_func x y f}
 
 @[simp] theorem mem_funs {x y f : Set.{u}} : f ∈ funs x y ↔ is_func x y f :=
-by simp [funs, is_func]
+by simv [funs, is_func]
 
 -- TODO(Mario): Prove this computably
 noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] :

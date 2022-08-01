@@ -31,7 +31,7 @@ Odd elements are not unified with a multiplicative notion.
 * TODO: Consider moving the definition and lemmas about `odd` to a separate file.
 * TODO: The "old" definition of `even a` asked for the existence of an element `c` such that
   `a = 2 * c`.  For this reason, several fixes introduce an extra `two_mul` or `← two_mul`.
-  It might be the case that by making a careful choice of `simp` lemma, this can be avoided.
+  It might be the case that by making a careful choice of `simv` lemma, this can be avoided.
  -/
 
 open mul_opposite
@@ -47,10 +47,10 @@ for some `r : α`. -/
 for some `r : α`."]
 def is_square (a : α) : Prop := ∃ r, a = r * r
 
-@[simp, to_additive] lemma is_square_mul_self (m : α) : is_square (m * m) := ⟨m, rfl⟩
+@[simv, to_additive] lemma is_square_mul_self (m : α) : is_square (m * m) := ⟨m, rfl⟩
 
 @[to_additive] lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
-⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simp [hc]⟩
+⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simv [hc]⟩
 
 /-- Create a decidability instance for `is_square` on `fintype`s. -/
 instance is_square_decidable [fintype α] [decidable_eq α] : decidable_pred (is_square : α → Prop) :=
@@ -58,20 +58,20 @@ instance is_square_decidable [fintype α] [decidable_eq α] : decidable_pred (is
 
 end has_mul
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
 
 @[to_additive]
 lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β] {m : α} (f : F) :
   is_square m → is_square (f m) :=
-by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
+by { rintro ⟨m, rfl⟩, exact ⟨f m, by simv⟩ }
 
 section monoid
 variables [monoid α]
 
 @[to_additive even_iff_exists_two_nsmul]
 lemma is_square_iff_exists_sq (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
-by simp [is_square, pow_two]
+by simv [is_square, pow_two]
 
 alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
 
@@ -81,7 +81,7 @@ attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
 attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
 `even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
-@[simp, to_additive even_two_nsmul]
+@[simv, to_additive even_two_nsmul]
 lemma is_square_sq (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
 
 variables [has_distrib_neg α] {n : ℕ}
@@ -95,7 +95,7 @@ end monoid
 
 /-- `0` is always a square (in a monoid with zero). -/
 lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
-by { use 0, simp only [mul_zero] }
+by { use 0, simv only [mul_zero] }
 
 @[to_additive] lemma is_square.mul [comm_semigroup α] {a b : α} :
   is_square a → is_square b → is_square (a * b) :=
@@ -104,7 +104,7 @@ by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨a * b, mul_mul_mul_comm _ _ _ _�
 section division_monoid
 variables [division_monoid α] {a : α}
 
-@[simp, to_additive] lemma is_square_inv : is_square a⁻¹ ↔ is_square a :=
+@[simv, to_additive] lemma is_square_inv : is_square a⁻¹ ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],
@@ -126,7 +126,7 @@ lemma even.neg_one_zpow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_zpow, o
 end division_monoid
 
 lemma even_abs [subtraction_monoid α] [linear_order α] {a : α} : even (|a|) ↔ even a :=
-by cases abs_choice a; simp only [h, even_neg]
+by cases abs_choice a; simv only [h, even_neg]
 
 @[to_additive]
 lemma is_square.div [division_comm_monoid α] {a b : α} (ha : is_square a) (hb : is_square b) :
@@ -153,13 +153,13 @@ section semiring
 variables [semiring α] [semiring β] {m n : α}
 
 lemma even_iff_exists_two_mul (m : α) : even m ↔ ∃ c, m = 2 * c :=
-by simp [even_iff_exists_two_nsmul]
+by simv [even_iff_exists_two_nsmul]
 
-lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := by simp [even, has_dvd.dvd, two_mul]
+lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := by simv [even, has_dvd.dvd, two_mul]
 
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x) = {a | even a} :=
-by { ext x, simp [eq_comm, two_mul, even] }
+by { ext x, simv [eq_comm, two_mul, even] }
 
 @[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
 ⟨a, rfl⟩
@@ -192,7 +192,7 @@ alias odd_iff_exists_bit1 ↔ odd.exists_bit1 _
 
 @[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
-by { ext x, simp [odd, eq_comm] }
+by { ext x, simv [odd, eq_comm] }
 
 lemma even.add_odd : even m → odd n → odd (m + n) :=
 by { rintro ⟨m, rfl⟩ ⟨n, rfl⟩, exact ⟨m + n, by rw [mul_add, ← two_mul, add_assoc]⟩ }
@@ -215,7 +215,7 @@ end
 @[simp] lemma odd_two_mul_add_one (m : α) : odd (2 * m + 1) := ⟨m, rfl⟩
 
 lemma odd.map [ring_hom_class F α β] (f : F) : odd m → odd (f m) :=
-by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp [two_mul]⟩ }
+by { rintro ⟨m, rfl⟩, exact ⟨f m, by simv [two_mul]⟩ }
 
 @[simp] lemma odd.mul : odd m → odd n → odd (m * n) :=
 begin
@@ -259,7 +259,7 @@ end canonically_ordered_comm_semiring
 section ring
 variables [ring α] {a b : α} {n : ℕ}
 
-@[simp] lemma even_neg_two : even (- 2 : α) := by simp only [even_neg, even_two]
+@[simp] lemma even_neg_two : even (- 2 : α) := by simv only [even_neg, even_two]
 
 lemma odd.neg (hp : odd a) : odd (-a) :=
 begin
@@ -271,7 +271,7 @@ end
 
 @[simp] lemma odd_neg : odd (-a) ↔ odd a := ⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
 
-@[simp] lemma odd_neg_one : odd (- 1 : α) := by simp
+@[simp] lemma odd_neg_one : odd (- 1 : α) := by simv
 
 lemma odd.sub_even (ha : odd a) (hb : even b) : odd (a - b) :=
 by { rw sub_eq_add_neg, exact ha.add_even hb.neg }
@@ -283,7 +283,7 @@ lemma odd.sub_odd (ha : odd a) (hb : odd b) : even (a - b) :=
 by { rw sub_eq_add_neg, exact ha.add_odd hb.neg }
 
 lemma odd_abs [linear_order α] : odd (abs a) ↔ odd a :=
-by cases abs_choice a with h h; simp only [h, odd_neg]
+by cases abs_choice a with h h; simv only [h, odd_neg]
 
 end ring
 
@@ -375,7 +375,7 @@ by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff.mpr ha
 lemma even.zpow_abs {p : ℤ} (hp : even p) (a : K) : |a| ^ p = a ^ p :=
 begin
   cases abs_choice a with h h;
-  simp only [h, hp.neg_zpow _],
+  simv only [h, hp.neg_zpow _],
 end
 
 @[simp] lemma zpow_bit0_abs (a : K) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p :=

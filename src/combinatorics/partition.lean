@@ -84,7 +84,7 @@ def of_sums (n : ℕ) (l : multiset ℕ) (hl : l.sum = n) : partition n :=
     apply_fun multiset.sum at lt,
     have lz : (l.filter (= 0)).sum = 0,
     { rw multiset.sum_eq_zero_iff,
-      simp },
+      simv },
     simpa [lz, hl] using lt,
   end }
 

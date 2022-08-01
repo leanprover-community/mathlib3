@@ -393,7 +393,7 @@ theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 
 @[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
 ⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
 
-theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α := by simp
+theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α := by simv
 
 theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
 type_ne_zero_iff_nonempty.2 h
@@ -518,10 +518,10 @@ by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o 
 induction_on a $ λ α r _, induction_on b $ λ β s _, by { rw ← lift_umax, exactI lift_type_le }
 
 @[simp] theorem lift_inj {a b : ordinal} : lift a = lift b ↔ a = b :=
-by simp only [le_antisymm_iff, lift_le]
+by simv only [le_antisymm_iff, lift_le]
 
 @[simp] theorem lift_lt {a b : ordinal} : lift a < lift b ↔ a < b :=
-by simp only [lt_iff_le_not_le, lift_le]
+by simv only [lt_iff_le_not_le, lift_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 := type_eq_zero_of_empty _
 @[simp] theorem lift_one : lift 1 = 1 := type_eq_one_of_unique _
@@ -574,7 +574,7 @@ def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
 localized "notation `ω` := ordinal.omega" in ordinal
 
-/-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
+/-- Note that the presence of this lemma makes `simv [omega]` form a loop. -/
 @[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm
 
 @[simp] theorem card_omega : card ω = ℵ₀ := rfl
@@ -610,7 +610,7 @@ instance : add_monoid_with_one ordinal.{u} :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
     ⟨⟨sum_assoc _ _ _, λ a b,
     begin rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b;
-      simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
+      simv only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
@@ -620,7 +620,7 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
   [is_well_order α r] [is_well_order β s] : type (sum.lex r s) = type r + type s := rfl
 
 @[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
-by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
+by induction n; [refl, simv only [card_add, card_one, nat.cast_succ, *]]
 
 instance add_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
@@ -817,7 +817,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
       rw [typein_enum, typein_enum],
       exact f.map_rel_iff.2 h },
     { intro a', cases (hf _).1 (typein_lt_type _ a') with b e,
-      existsi b, simp, simp [e] } },
+      existsi b, simv, simv [e] } },
   { cases h with a e, rw [← e],
     apply induction_on a, introsI α r _,
     exact lift_type_lt.{u (u+1) (max (u+1) v)}.2
@@ -831,7 +831,7 @@ end⟩
 
 theorem lift.principal_seg_top' :
   lift.principal_seg.{u (u+1)}.top = @type ordinal (<) _ :=
-by simp only [lift.principal_seg_top, univ_id]
+by simv only [lift.principal_seg_top, univ_id]
 
 end ordinal
 
@@ -871,7 +871,7 @@ cinfi_le' _ (subtype.mk r h)
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
 induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
 let ⟨r, _, e⟩ := ord_eq α in begin
-  resetI, simp only [card_type], split; intro h,
+  resetI, simv only [card_type], split; intro h,
   { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
@@ -885,7 +885,7 @@ theorem lt_ord {c o} : o < ord c ↔ o.card < c := gc_ord_card.lt_iff_lt
 
 @[simp] theorem card_ord (c) : (ord c).card = c :=
 quotient.induction_on c $ λ α,
-let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
+let ⟨r, _, e⟩ := ord_eq α in by simv only [mk_def, e, card_type]
 
 /-- Galois coinsertion between `cardinal.ord` and `ordinal.card`. -/
 def gci_ord_card : galois_coinsertion ord card :=
@@ -920,7 +920,7 @@ begin
   { rw [ord_le, ← lift_card, card_ord] }
 end
 
-lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simv
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
   (h : ord (#α) = type r) : card (typein r x) < #α :=
@@ -967,7 +967,7 @@ le_antisymm (ord_card_le _) $ le_of_forall_lt $ λ o h,
 lt_ord.2 begin
   rcases lift.principal_seg.{u v}.down'.1
     (by simpa only [lift.principal_seg_coe] using h) with ⟨o', rfl⟩,
-  simp only [lift.principal_seg_coe], rw [← lift_card],
+  simv only [lift.principal_seg_coe], rw [← lift_card],
   apply lift_lt_univ'
 end
 
@@ -986,7 +986,7 @@ theorem lt_univ' {c} : c < univ.{u v} ↔ ∃ c', c = lift.{(max (u+1) v) u} c' 
 ⟨λ h, let ⟨a, e, h'⟩ := lt_lift_iff.1 h in begin
   rw [← univ_id] at h',
   rcases lt_univ.{u}.1 h' with ⟨c', rfl⟩,
-  exact ⟨c', by simp only [e.symm, lift_lift]⟩
+  exact ⟨c', by simv only [e.symm, lift_lift]⟩
 end, λ ⟨c', e⟩, e.symm ▸ lift_lt_univ' _⟩
 
 theorem small_iff_lift_mk_lt_univ {α : Type u} :
@@ -1019,12 +1019,12 @@ lt_iff_lt_of_le_iff_le nat_le_card
 le_iff_le_iff_lt_iff_lt.2 nat_lt_card
 
 @[simp] theorem card_eq_nat {o} {n : ℕ} : card o = n ↔ o = n :=
-by simp only [le_antisymm_iff, card_le_nat, nat_le_card]
+by simv only [le_antisymm_iff, card_le_nat, nat_le_card]
 
 @[simp] theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] :
   type r = fintype.card α :=
 by rw [←card_eq_nat, card_type, mk_fintype]
 
-theorem type_fin (n : ℕ) : @type (fin n) (<) _ = n := by simp
+theorem type_fin (n : ℕ) : @type (fin n) (<) _ = n := by simv
 
 end ordinal

@@ -42,7 +42,7 @@ noncomputable def pochhammer : ℕ → S[X]
 | (n+1) := X * (pochhammer n).comp (X + 1)
 
 @[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
-@[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]
+@[simp] lemma pochhammer_one : pochhammer S 1 = X := by simv [pochhammer]
 
 lemma pochhammer_succ_left (n : ℕ) : pochhammer S (n+1) = X * (pochhammer S n).comp (X+1) :=
 by rw pochhammer
@@ -52,13 +52,13 @@ variables {S} {T : Type v} [semiring T]
 @[simp] lemma pochhammer_map (f : S →+* T) (n : ℕ) : (pochhammer S n).map f = pochhammer T n :=
 begin
   induction n with n ih,
-  { simp, },
-  { simp [ih, pochhammer_succ_left, map_comp], },
+  { simv, },
+  { simv [ih, pochhammer_succ_left, map_comp], },
 end
 
 end
 
-@[simp, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
+@[simv, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
   ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
   rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←eq_nat_cast (algebra_map ℕ S),
@@ -68,15 +68,15 @@ end
 lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
 begin
   cases n,
-  { simp, },
-  { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], }
+  { simv, },
+  { simv [X_mul, nat.succ_ne_zero, pochhammer_succ_left], }
 end
 
 lemma pochhammer_zero_eval_zero : (pochhammer S 0).eval 0 = 1 :=
-by simp
+by simv
 
 @[simp] lemma pochhammer_ne_zero_eval_zero {n : ℕ} (h : n ≠ 0) : (pochhammer S n).eval 0 = 0 :=
-by simp [pochhammer_eval_zero, h]
+by simv [pochhammer_eval_zero, h]
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
 begin
@@ -85,7 +85,7 @@ begin
     simpa only [pochhammer_map, polynomial.map_mul, polynomial.map_add,
                 map_X, polynomial.map_nat_cast] using h },
   induction n with n ih,
-  { simp, },
+  { simv, },
   { conv_lhs
   { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
       nat_cast_comp, add_assoc, add_comm (1 : ℕ[X]), ← nat.cast_succ] } },
@@ -116,7 +116,7 @@ lemma pochhammer_mul (n m : ℕ) :
   pochhammer S n * (pochhammer S m).comp (X + n) = pochhammer S (n + m) :=
 begin
   induction m with m ih,
-  { simp, },
+  { simv, },
   { rw [pochhammer_succ_right, polynomial.mul_X_add_nat_cast_comp, ←mul_assoc, ih,
       nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
@@ -151,7 +151,7 @@ variables {S : Type*} [ordered_semiring S] [nontrivial S]
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin
   induction n with n ih,
-  { simp only [nat.nat_zero_eq_zero, pochhammer_zero, eval_one], exact zero_lt_one, },
+  { simv only [nat.nat_zero_eq_zero, pochhammer_zero, eval_one], exact zero_lt_one, },
   { rw [pochhammer_succ_right, mul_add, eval_add, ←nat.cast_comm, eval_nat_cast_mul, eval_mul_X,
       nat.cast_comm, ←mul_add],
     exact mul_pos ih
@@ -179,10 +179,10 @@ lemma pochhammer_nat_eval_succ (r : ℕ) :
   ∀ n : ℕ, n * (pochhammer ℕ r).eval (n + 1) = (n + r) * (pochhammer ℕ r).eval n
 | 0 := begin
   by_cases h : r = 0,
-  { simp only [h, zero_mul, zero_add], },
-  { simp only [pochhammer_eval_zero, zero_mul, if_neg h, mul_zero], }
+  { simv only [h, zero_mul, zero_add], },
+  { simv only [pochhammer_eval_zero, zero_mul, if_neg h, mul_zero], }
 end
-| (k + 1) := by simp only [pochhammer_nat_eq_asc_factorial, nat.succ_asc_factorial, add_right_comm]
+| (k + 1) := by simv only [pochhammer_nat_eq_asc_factorial, nat.succ_asc_factorial, add_right_comm]
 
 lemma pochhammer_eval_succ (r n : ℕ) :
   (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n :=

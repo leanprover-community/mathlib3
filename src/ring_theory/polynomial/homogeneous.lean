@@ -59,7 +59,7 @@ def homogeneous_submodule [comm_semiring R] (n : ℕ) :
   add_mem' := λ a b ha hb c hc, begin
     rw coeff_add at hc,
     obtain h|h : coeff c a ≠ 0 ∨ coeff c b ≠ 0,
-    { contrapose! hc, simp only [hc, add_zero] },
+    { contrapose! hc, simv only [hc, add_zero] },
     { exact ha h },
     { exact hb h }
   end }
@@ -77,7 +77,7 @@ lemma homogeneous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
 begin
   ext,
   rw [finsupp.mem_supported, set.subset_def],
-  simp only [finsupp.mem_support_iff, finset.mem_coe],
+  simv only [finsupp.mem_support_iff, finset.mem_coe],
   refl,
 end
 
@@ -93,7 +93,7 @@ begin
   have aux : coeff d φ ≠ 0 ∧ coeff e ψ ≠ 0,
   { contrapose! H,
     by_cases h : coeff d φ = 0;
-    simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
+    simv only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
   specialize hφ aux.1, specialize hψ aux.2,
   rw finsupp.mem_antidiagonal at hde,
   classical,
@@ -126,7 +126,7 @@ lemma is_homogeneous_of_total_degree_zero {p : mv_polynomial σ R} (hp : p.total
   is_homogeneous p 0 :=
 begin
   erw [total_degree, finset.sup_eq_bot_iff] at hp,
-  -- we have to do this in two steps to stop simp changing bot to zero
+  -- we have to do this in two steps to stop simv changing bot to zero
   simp_rw [mem_support_iff] at hp,
   exact hp,
 end
@@ -135,7 +135,7 @@ lemma is_homogeneous_C (r : R) :
   is_homogeneous (C r : mv_polynomial σ R) 0 :=
 begin
   apply is_homogeneous_monomial,
-  simp only [finsupp.zero_apply, finset.sum_const_zero],
+  simv only [finsupp.zero_apply, finset.sum_const_zero],
 end
 
 variables (σ R)
@@ -152,7 +152,7 @@ lemma is_homogeneous_X (i : σ) :
   is_homogeneous (X i : mv_polynomial σ R) 1 :=
 begin
   apply is_homogeneous_monomial,
-  simp only [finsupp.support_single_ne_zero _ one_ne_zero, finset.sum_singleton],
+  simv only [finsupp.support_single_ne_zero _ one_ne_zero, finset.sum_singleton],
   exact finsupp.single_eq_same
 end
 
@@ -192,9 +192,9 @@ begin
   classical,
   revert h,
   apply finset.induction_on s,
-  { intro, simp only [is_homogeneous_one, finset.sum_empty, finset.prod_empty] },
+  { intro, simv only [is_homogeneous_one, finset.sum_empty, finset.prod_empty] },
   { intros i s his IH h,
-    simp only [his, finset.prod_insert, finset.sum_insert, not_false_iff],
+    simv only [his, finset.prod_insert, finset.sum_insert, not_false_iff],
     apply (h i (finset.mem_insert_self _ _)).mul (IH _),
     intros j hjs,
     exact h j (finset.mem_insert_of_mem hjs) }
@@ -210,7 +210,7 @@ begin
     rw mem_support_iff at hd,
     rw [finsupp.sum, hφ hd], },
   { obtain ⟨d, hd⟩ : ∃ d, coeff d φ ≠ 0 := exists_coeff_ne_zero h,
-    simp only [← hφ hd, finsupp.sum],
+    simv only [← hφ hd, finsupp.sum],
     replace hd := finsupp.mem_support_iff.mpr hd,
     exact finset.le_sup hd, }
 end
@@ -267,17 +267,17 @@ lemma homogeneous_component_zero : homogeneous_component 0 φ = C (coeff 0 φ) :
 begin
   ext1 d,
   rcases em (d = 0) with (rfl|hd),
-  { simp only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.zero_apply, if_true, coeff_C,
+  { simv only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.zero_apply, if_true, coeff_C,
       eq_self_iff_true, forall_true_iff] },
   { rw [coeff_homogeneous_component, if_neg, coeff_C, if_neg (ne.symm hd)],
-    simp only [finsupp.ext_iff, finsupp.zero_apply] at hd,
-    simp [hd] }
+    simv only [finsupp.ext_iff, finsupp.zero_apply] at hd,
+    simv [hd] }
 end
 
 @[simp]
 lemma homogeneous_component_C_mul (n : ℕ) (r : R) :
   homogeneous_component n (C r * φ) = C r * homogeneous_component n φ :=
-by simp only [C_mul', linear_map.map_smul]
+by simv only [C_mul', linear_map.map_smul]
 
 lemma homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support → ∑ i in d.support, d i ≠ n) :
   homogeneous_component n φ = 0 :=
@@ -309,17 +309,17 @@ lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)
   (p : mv_polynomial σ R) (h : p ∈ homogeneous_submodule σ R n) :
   homogeneous_component m p = if m = n then p else 0 :=
 begin
-  simp only [mem_homogeneous_submodule] at h,
+  simv only [mem_homogeneous_submodule] at h,
   ext x,
   rw coeff_homogeneous_component,
   by_cases zero_coeff : coeff x p = 0,
   { split_ifs,
-    all_goals { simp only [zero_coeff, coeff_zero], }, },
+    all_goals { simv only [zero_coeff, coeff_zero], }, },
   { rw h zero_coeff,
-    simp only [show n = m ↔ m = n, from eq_comm],
+    simv only [show n = m ↔ m = n, from eq_comm],
     split_ifs with h1,
     { refl },
-    { simp only [coeff_zero] } }
+    { simv only [coeff_zero] } }
 end
 
 end homogeneous_component

@@ -123,14 +123,14 @@ begin
   rw is_jacobson_iff_prime_eq,
   introsI P hP,
   by_cases hP_top : comap (algebra_map R S) P = ⊤,
-  { simp [comap_eq_top_iff.1 hP_top] },
+  { simv [comap_eq_top_iff.1 hP_top] },
   { haveI : nontrivial (R ⧸ comap (algebra_map R S) P) := quotient.nontrivial hP_top,
     rw jacobson_eq_iff_jacobson_quotient_eq_bot,
     refine eq_bot_of_comap_eq_bot (is_integral_quotient_of_is_integral hRS) _,
     rw [eq_bot_iff, ← jacobson_eq_iff_jacobson_quotient_eq_bot.1 ((is_jacobson_iff_prime_eq.1 hR)
       (comap (algebra_map R S) P) (comap_is_prime _ _)), comap_jacobson],
     refine Inf_le_Inf (λ J hJ, _),
-    simp only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
+    simv only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
     haveI : J.is_maximal, { simpa using hJ },
     exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
       (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
@@ -311,7 +311,7 @@ begin
       rwa [eval₂_map, hφ', ← hom_eval₂, quotient.eq_zero_iff_mem, eval₂_C_X] },
     { rw [set.mem_set_of_eq, degree_le_zero_iff] at hy,
       refine hy.symm ▸ ⟨X - C (algebra_map _ _ ((quotient.mk P') (p.coeff 0))), monic_X_sub_C _, _⟩,
-      simp only [eval₂_sub, eval₂_C, eval₂_X],
+      simv only [eval₂_sub, eval₂_C, eval₂_X],
       rw [sub_eq_zero, ← φ'.comp_apply, is_localization.map_comp],
       refl } },
   { obtain ⟨p, rfl⟩ := quotient.mk_surjective p',
@@ -431,7 +431,7 @@ begin
   refine ⟨_, is_jacobson_polynomial_of_is_jacobson⟩,
   introI H,
   exact is_jacobson_of_surjective ⟨eval₂_ring_hom (ring_hom.id _) 1, λ x,
-    ⟨C x, by simp only [coe_eval₂_ring_hom, ring_hom.id_apply, eval₂_C]⟩⟩,
+    ⟨C x, by simv only [coe_eval₂_ring_hom, ring_hom.id_apply, eval₂_C]⟩⟩,
 end
 
 instance [is_jacobson R] : is_jacobson R[X] :=

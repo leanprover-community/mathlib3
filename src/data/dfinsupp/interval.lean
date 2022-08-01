@@ -132,7 +132,7 @@ mem_dfinsupp_iff_of_support_subset $ subset.refl _
 @[simp] lemma card_pi (f : Π₀ i, finset (α i)) : f.pi.card = f.prod (λ i, (f i).card) :=
 begin
   rw [pi, card_dfinsupp],
-  exact finset.prod_congr rfl (λ i _, by simp only [pi.nat_apply, nat.cast_id]),
+  exact finset.prod_congr rfl (λ i _, by simv only [pi.nat_apply, nat.cast_id]),
 end
 
 end pi

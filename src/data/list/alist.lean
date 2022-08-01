@@ -204,14 +204,14 @@ mem_keys_kinsert
 
 @[simp] theorem keys_insert {a} {b : β a} (s : alist β) :
   (insert a b s).keys = a :: s.keys.erase a :=
-by simp [insert, keys, keys_kerase]
+by simv [insert, keys, keys_kerase]
 
 theorem perm_insert {a} {b : β a} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   (insert a b s₁).entries ~ (insert a b s₂).entries :=
-by simp only [insert_entries]; exact p.kinsert s₁.nodupkeys
+by simv only [insert_entries]; exact p.kinsert s₁.nodupkeys
 
 @[simp] theorem lookup_insert {a} {b : β a} (s : alist β) : lookup a (insert a b s) = some b :=
-by simp only [lookup, insert, lookup_kinsert]
+by simv only [lookup, insert, lookup_kinsert]
 
 @[simp] theorem lookup_insert_ne {a a'} {b' : β a'} {s : alist β} (h : a ≠ a') :
   lookup a (insert a' b' s) = lookup a s :=
@@ -222,17 +222,17 @@ by rw [list.to_alist,lookup,lookup_dedupkeys]
 
 @[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) :
   (s.insert a b).insert a b' = s.insert a b' :=
-by ext : 1; simp only [alist.insert_entries, list.kerase_cons_eq];
+by ext : 1; simv only [alist.insert_entries, list.kerase_cons_eq];
    constructor_matching* [_ ∧ _]; refl
 
 theorem insert_insert_of_ne {a a'} {b : β a} {b' : β a'} (s : alist β) (h : a ≠ a') :
   ((s.insert a b).insert a' b').entries ~ ((s.insert a' b').insert a b).entries :=
-by simp only [insert_entries]; rw [kerase_cons_ne,kerase_cons_ne,kerase_comm];
+by simv only [insert_entries]; rw [kerase_cons_ne,kerase_cons_ne,kerase_comm];
    [apply perm.swap, exact h, exact h.symm]
 
 @[simp] lemma insert_singleton_eq {a : α} {b b' : β a} :
   insert a b (singleton a b') = singleton a b :=
-ext $ by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.singleton_entries,
+ext $ by simv only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.singleton_entries,
   heq_iff_eq, eq_self_iff_true]
 
 @[simp] theorem entries_to_alist (xs : list (sigma β)) :
@@ -253,7 +253,7 @@ end
 
 @[simp] theorem extract_eq_lookup_erase (a : α) (s : alist β) :
   extract a s = (lookup a s, erase a s) :=
-by simp [extract]; split; refl
+by simv [extract]; split; refl
 
 /-! ### union -/
 
@@ -273,7 +273,7 @@ rfl
 ext rfl
 
 @[simp] theorem union_empty {s : alist β} : s ∪ (∅ : alist β) = s :=
-ext $ by simp
+ext $ by simv
 
 @[simp] theorem mem_union {a} {s₁ s₂ : alist β} :
   a ∈ s₁ ∪ s₂ ↔ a ∈ s₁ ∨ a ∈ s₂ :=
@@ -282,7 +282,7 @@ mem_keys_kunion
 theorem perm_union {s₁ s₂ s₃ s₄ : alist β}
   (p₁₂ : s₁.entries ~ s₂.entries) (p₃₄ : s₃.entries ~ s₄.entries) :
   (s₁ ∪ s₃).entries ~ (s₂ ∪ s₄).entries :=
-by simp [p₁₂.kunion s₃.nodupkeys p₃₄]
+by simv [p₁₂.kunion s₃.nodupkeys p₃₄]
 
 theorem union_erase (a : α) (s₁ s₂ : alist β) : erase a (s₁ ∪ s₂) = erase a s₁ ∪ erase a s₂ :=
 ext kunion_kerase.symm
@@ -305,11 +305,11 @@ mem_lookup_kunion_middle
 
 theorem insert_union {a} {b : β a} {s₁ s₂ : alist β} :
   insert a b (s₁ ∪ s₂) = insert a b s₁ ∪ s₂ :=
-by ext; simp
+by ext; simv
 
 theorem union_assoc {s₁ s₂ s₃ : alist β} : ((s₁ ∪ s₂) ∪ s₃).entries ~ (s₁ ∪ (s₂ ∪ s₃)).entries :=
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
-(by simp [decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
+(by simv [decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
 
 end
 
@@ -325,7 +325,7 @@ theorem union_comm_of_disjoint {s₁ s₂ : alist β} (h : disjoint s₁ s₂) :
   (s₁ ∪ s₂).entries ~ (s₂ ∪ s₁).entries :=
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
 (begin
-   intros, simp,
+   intros, simv,
    split; intro h',
    cases h',
    { right, refine ⟨_,h'⟩,

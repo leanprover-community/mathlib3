@@ -89,12 +89,12 @@ private theorem CNF_pairwise_aux (b o : ordinal.{u}) :
   (∀ p : ordinal × ordinal, p ∈ CNF b o → p.1 ≤ log b o) ∧ (CNF b o).pairwise (λ p q, q.1 < p.1) :=
 begin
   by_cases hb : b = 0,
-  { simp only [hb, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
+  { simv only [hb, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
   cases lt_or_eq_of_le (one_le_iff_ne_zero.2 hb) with hb' hb',
   { refine CNF_rec hb _ _ o,
-    { simp only [CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
+    { simv only [CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     intros o ho IH, cases IH with IH₁ IH₂,
-    simp only [CNF_ne_zero hb ho, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
+    simv only [CNF_ne_zero hb ho, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
     refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
     { exact (IH₁ p m).trans (log_mono_right _ $ le_of_lt $ mod_opow_log_lt_self hb ho) },
     { refine (IH₁ p m).trans_lt ((lt_opow_iff_log_lt hb' _).1 _),
@@ -102,9 +102,9 @@ begin
         rw e at m, simpa only [CNF_zero] using m },
       { exact mod_lt _ (opow_ne_zero _ hb) } } },
   { by_cases ho : o = 0,
-    { simp only [ho, CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
+    { simv only [ho, CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     rw [← hb', one_CNF ho],
-    simp only [list.mem_singleton, log_one_left, forall_eq, le_refl, true_and,
+    simv only [list.mem_singleton, log_one_left, forall_eq, le_refl, true_and,
       list.pairwise_singleton] }
 end
 
@@ -129,7 +129,7 @@ private theorem CNF_snd_lt_aux {b o : ordinal.{u}} (hb' : 1 < b) :
 begin
   have hb := (zero_lt_one.trans hb').ne',
   refine CNF_rec hb (λ _, by { rw CNF_zero, exact false.elim }) (λ o ho IH, _) o,
-  simp only [CNF_ne_zero hb ho, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
+  simv only [CNF_ne_zero hb ho, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
   nth_rewrite 1 ←@succ_le_iff,
   rw [div_lt (opow_ne_zero _ hb), ←opow_succ, le_div (opow_ne_zero _ hb), succ_zero, mul_one],
   exact ⟨lt_opow_succ_log_self hb' _, opow_log_le_self _ ho⟩

@@ -133,7 +133,7 @@ begin
     simpa [set.inter_eq_left_iff_subset.mpr ht] using this },
   { intros H t,
     refine embedding_subtype_coe.is_compact_iff_is_compact_image.mpr (H (coe '' t) _),
-    simp }
+    simv }
 end
 
 @[simp] lemma noetherian_univ_iff :
@@ -184,7 +184,7 @@ begin
   cases h₂ : s.1.eq_empty_or_nonempty,
   { use ∅, refine ⟨λ k, k.2.elim, _⟩, rw finset.sup_empty, ext1, exact h },
   { use {s},
-    simp only [coe_coe, finset.sup_singleton, id.def, eq_self_iff_true, and_true],
+    simv only [coe_coe, finset.sup_singleton, id.def, eq_self_iff_true, and_true],
     rintro ⟨k, hk⟩,
     cases finset.mem_singleton.mp hk,
     exact ⟨h, h₁⟩ },
@@ -212,10 +212,10 @@ begin
   { convert is_irreducible_iff_sUnion_closed.mp
       is_irreducible_irreducible_component (S.image coe) _ _,
     { apply_instance },
-    { simp only [finset.mem_image, exists_prop, forall_exists_index, and_imp],
+    { simv only [finset.mem_image, exists_prop, forall_exists_index, and_imp],
       rintro _ z hz rfl,
       exact z.2 },
-    { exact (set.subset_univ _).trans ((congr_arg coe hS₂).trans $ by simp).subset } },
+    { exact (set.subset_univ _).trans ((congr_arg coe hS₂).trans $ by simv).subset } },
   obtain ⟨s, hs, e⟩ := finset.mem_image.mp hz,
   rw ← e at hz',
   use ⟨s, hs⟩,

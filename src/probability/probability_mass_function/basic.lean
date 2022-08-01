@@ -55,7 +55,7 @@ lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
-has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
+has_sum_le (by { intro b, split_ifs; simv only [h, zero_le'] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
 section outer_measure
@@ -73,7 +73,7 @@ lemma to_outer_measure_apply : p.to_outer_measure s = ∑' x, s.indicator (coe �
 tsum_congr (λ x, smul_dirac_apply (p x) x s)
 
 lemma to_outer_measure_apply' : p.to_outer_measure s = ↑(∑' (x : α), s.indicator p x) :=
-by simp only [ennreal.coe_tsum (nnreal.indicator_summable (summable_coe p) s),
+by simv only [ennreal.coe_tsum (nnreal.indicator_summable (summable_coe p) s),
   ennreal.coe_indicator, to_outer_measure_apply]
 
 @[simp]
@@ -108,7 +108,7 @@ end
 @[simp]
 lemma to_outer_measure_apply_inter_support :
   p.to_outer_measure (s ∩ p.support) = p.to_outer_measure s :=
-by simp only [to_outer_measure_apply', ennreal.coe_eq_coe,
+by simv only [to_outer_measure_apply', ennreal.coe_eq_coe,
   pmf.support, set.indicator_inter_support]
 
 /-- Slightly stronger than `outer_measure.mono` having an intersection with `p.support` -/
@@ -170,7 +170,7 @@ lemma to_measure_apply_eq_one_iff (hs : measurable_set s) : p.to_measure s = 1 �
 @[simp]
 lemma to_measure_apply_inter_support (hs : measurable_set s) (hp : measurable_set p.support) :
   p.to_measure (s ∩ p.support) = p.to_measure s :=
-by simp [p.to_measure_apply_eq_to_outer_measure_apply s hs,
+by simv [p.to_measure_apply_eq_to_outer_measure_apply s hs,
   p.to_measure_apply_eq_to_outer_measure_apply _ (hs.inter hp)]
 
 lemma to_measure_mono {s t : set α} (hs : measurable_set s) (ht : measurable_set t)

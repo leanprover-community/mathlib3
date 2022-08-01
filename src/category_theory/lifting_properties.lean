@@ -75,7 +75,7 @@ begin
     have comm : (is_initial.to h p.left) ≫ p.hom = i.hom ≫ e :=
       is_initial.hom_ext h _ _,
     use arrow.lift (arrow.hom_mk comm),
-    simp },
+    simv },
   { refine λ hlift, ⟨λ sq, _⟩,
     obtain ⟨l, hl⟩ : ∃ (l : i.right ⟶ p.left), l ≫ p.hom = sq.right := hlift,
     exact arrow.has_lift.mk ⟨l, is_initial.hom_ext h _ _⟩, }
@@ -90,7 +90,7 @@ lemma has_right_lifting_property_comp {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
     -- construct a square i ⟶ f
     let sq2 : i ⟶ (arrow.mk f) := ⟨sq1.left, arrow.lift (arrow.square_to_snd sq1)⟩ in
     -- show that the lift of this square is a lift of i with respect to g ∘ f
-    ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simp⟩⟩⟩ }
+    ⟨⟨⟨(arrow.lift sq2 : _ ⟶ _), by simv⟩⟩⟩ }
 
 /-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
 underlying category. -/

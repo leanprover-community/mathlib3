@@ -71,11 +71,11 @@ lemma sum_lt_half_of_not_tendsto
 begin
   have h0 : (λ n, ∑ p in {p ∈ range n | nat.prime p}, (1 / (p : ℝ)))
           = λ n, ∑ p in range n, ite (nat.prime p) (1 / (p : ℝ)) 0,
-  { simp only [sum_filter, filter_congr_decidable, sep_def] },
+  { simv only [sum_filter, filter_congr_decidable, sep_def] },
 
   have hf : ∀ n : ℕ, 0 ≤ ite (nat.prime n) (1 / (n : ℝ)) 0,
   { intro n, split_ifs,
-    { simp only [one_div, inv_nonneg, nat.cast_nonneg] },
+    { simv only [one_div, inv_nonneg, nat.cast_nonneg] },
     { exact le_rfl } },
 
   rw [h0, ← summable_iff_not_tendsto_nat_at_top_of_nonneg hf, summable_iff_vanishing] at h,
@@ -100,7 +100,7 @@ of `p`.
 lemma range_sdiff_eq_bUnion {x k : ℕ} : range x \ M x k = U x k :=
 begin
   ext e,
-  simp only [mem_bUnion, not_and, mem_sdiff, sep_def, mem_filter, mem_range, U, M, P],
+  simv only [mem_bUnion, not_and, mem_sdiff, sep_def, mem_filter, mem_range, U, M, P],
   push_neg,
   split,
   { rintros ⟨hex, hexh⟩,
@@ -126,7 +126,7 @@ begin
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
   ... ≤ ∑ p in P, x * (1 / p) : sum_le_sum (λ p hp, _)
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
-  simp only [mul_one_div, N, sep_def, filter_congr_decidable, nat.card_multiples, nat.cast_div_le],
+  simv only [mul_one_div, N, sep_def, filter_congr_decidable, nat.card_multiples, nat.cast_div_le],
 end
 
 /--
@@ -143,7 +143,7 @@ begin
   -- It follows that `e` is one less than such a product.
   have h : M₁ ⊆ image f K,
   { intros m hm,
-    simp only [M₁, M, sep_def, mem_filter, mem_range, mem_powerset, mem_image, exists_prop] at hm ⊢,
+    simv only [M₁, M, sep_def, mem_filter, mem_range, mem_powerset, mem_image, exists_prop] at hm ⊢,
     obtain ⟨⟨-, hmp⟩, hms⟩ := hm,
     use (m + 1).factors,
     { rwa [multiset.coe_nodup, ← nat.squarefree_iff_nodup_factors m.succ_ne_zero] },
@@ -152,13 +152,13 @@ begin
       simp_intros hp only [nat.mem_factors m.succ_ne_zero],
       exact ⟨p.pred, (nat.pred_lt (nat.prime.ne_zero hp.1)).trans_le ((hmp p) hp),
             nat.succ_pred_eq_of_pos (nat.prime.pos hp.1)⟩ },
-    { simp_rw f, simp [nat.prod_factors m.succ_ne_zero, m.succ_sub_one] } },
+    { simp_rw f, simv [nat.prod_factors m.succ_ne_zero, m.succ_sub_one] } },
 
   -- The number of elements of `M x k` with `e + 1` squarefree is bounded by the number of subsets
   -- of `[1, k]`.
   calc card M₁ ≤ card (image f K)                    : card_le_of_subset h
   ...          ≤ card K                              : card_image_le
-  ...          ≤ 2 ^ card (image nat.succ (range k)) : by simp only [K, card_powerset]
+  ...          ≤ 2 ^ card (image nat.succ (range k)) : by simv only [K, card_powerset]
   ...          ≤ 2 ^ card (range k)                  : pow_le_pow one_le_two card_image_le
   ...          = 2 ^ k                               : by rw card_range k,
 end
@@ -179,7 +179,7 @@ begin
   -- smaller than or equal to `k`.
   have h1 : M x k ⊆ image f K,
   { intros m hm,
-    simp only [M, M₁, M₂, mem_image, exists_prop, prod.exists, mem_product, sep_def, mem_filter,
+    simv only [M, M₁, M₂, mem_image, exists_prop, prod.exists, mem_product, sep_def, mem_filter,
                mem_range] at hm ⊢,
     have hm' := m.zero_lt_succ,
     obtain ⟨a, b, hab₁, hab₂⟩ := nat.sq_mul_squarefree_of_pos' hm',
@@ -193,7 +193,7 @@ begin
     { exact hm.2 p ⟨hp.1, hp.2.trans (nat.dvd_of_pow_dvd one_le_two hbm)⟩ } },
 
   have h2 : card M₂ ≤ nat.sqrt x,
-  { rw ← card_range (nat.sqrt x), apply card_le_of_subset, simp [M₂, M] },
+  { rw ← card_range (nat.sqrt x), apply card_le_of_subset, simv [M₂, M] },
 
   calc card (M x k) ≤ card (image f K)   : card_le_of_subset h1
   ...               ≤ card K             : card_image_le

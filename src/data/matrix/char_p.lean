@@ -17,5 +17,5 @@ instance matrix.char_p [decidable_eq n] [nonempty n] (p : ℕ) [char_p R p] :
 ⟨begin
   intro k,
   rw [← char_p.cast_eq_zero_iff R p k, ← nat.cast_zero, ← map_nat_cast $ scalar n],
-  convert scalar_inj, {simp}, {assumption}
+  convert scalar_inj, {simv}, {assumption}
  end⟩

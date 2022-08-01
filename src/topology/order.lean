@@ -275,7 +275,7 @@ by rw [nhds_discrete, mem_pure]
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₁ x ≤ @nhds α t₂ x) :
   t₁ ≤ t₂ :=
 assume s, show @is_open α t₂ s → @is_open α t₁ s,
-  by { simp only [is_open_iff_nhds, le_principal_iff],  exact assume hs a ha, h _ $ hs _ ha }
+  by { simv only [is_open_iff_nhds, le_principal_iff],  exact assume hs a ha, h _ $ hs _ ha }
 
 lemma eq_of_nhds_eq_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₁ x = @nhds α t₂ x) :
   t₁ = t₂ :=
@@ -288,7 +288,7 @@ bot_unique $ λ s hs, bUnion_of_singleton s ▸ is_open_bUnion (λ x _, h x)
 
 lemma forall_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ s : set X, is_open s) ↔ discrete_topology X :=
-⟨λ h, ⟨by { ext U , show is_open U ↔ true, simp [h U] }⟩, λ a, @is_open_discrete _ _ a⟩
+⟨λ h, ⟨by { ext U , show is_open U ↔ true, simv [h U] }⟩, λ a, @is_open_discrete _ _ a⟩
 
 lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
@@ -310,10 +310,10 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
     exact ⟨s'₁ ∩ s'₂, t.is_open_inter _ _ hs₁ hs₂, preimage_inter⟩,
   is_open_sUnion := assume s h,
   begin
-    simp only [classical.skolem] at h,
+    simv only [classical.skolem] at h,
     cases h with f hf,
     apply exists.intro (⋃(x : set α) (h : x ∈ s), f x h),
-    simp only [sUnion_eq_bUnion, preimage_Union, (λx h, (hf x h).right)], refine ⟨_, rfl⟩,
+    simv only [sUnion_eq_bUnion, preimage_Union, (λx h, (hf x h).right)], refine ⟨_, rfl⟩,
     exact (@is_open_Union β _ t _ $ assume i,
       show is_open (⋃h, f i h), from @is_open_Union β _ t _ $ assume h, (hf i h).left)
   end }
@@ -329,8 +329,8 @@ iff.rfl
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
-  simp only [← is_open_compl_iff, is_open_induced_iff],
-  exact compl_surjective.exists.trans (by simp only [preimage_compl, compl_inj_iff])
+  simv only [← is_open_compl_iff, is_open_induced_iff],
+  exact compl_surjective.exists.trans (by simv only [preimage_compl, compl_inj_iff])
 end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
@@ -501,7 +501,7 @@ lemma le_induced_generate_from {α β} [t : topological_space α] {b : set (set 
 begin
   rw induced_generate_from_eq,
   apply le_generate_from,
-  simp only [mem_image, and_imp, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+  simv only [mem_image, and_imp, forall_apply_eq_imp_iff₂, exists_imp_distrib],
   exact h,
 end
 
@@ -544,7 +544,7 @@ begin
   { intros U hU,
     rw mem_nhds_iff,
     use {b},
-    simp only [and_true, singleton_subset_iff, mem_singleton],
+    simv only [and_true, singleton_subset_iff, mem_singleton],
     refine ⟨hU, λ ha, (h.symm ha).elim⟩ },
   { exact @pure_le_nhds α (nhds_adjoint a f) b },
 end
@@ -572,7 +572,7 @@ begin
   { rintros ⟨h, h'⟩ b,
     by_cases hb : b = a,
     { rwa [hb, nhds_adjoint_nhds] },
-    { simp [nhds_adjoint_nhds_of_ne a f hb, h' b hb] } }
+    { simv [nhds_adjoint_nhds_of_ne a f hb, h' b hb] } }
 end
 
 lemma le_nhds_adjoint_iff {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
@@ -623,14 +623,14 @@ by { rw continuous_def, assume s h, exact ⟨_, h, rfl⟩ }
 
 lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ} :
   cont t₁ (induced f t₂) g ↔ cont t₁ t₂ (f ∘ g) :=
-by simp only [continuous_iff_le_induced, induced_compose]
+by simv only [continuous_iff_le_induced, induced_compose]
 
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
 by { rw continuous_def, assume s h, exact h }
 
 lemma continuous_coinduced_dom {g : β → γ} {t₁ : tspace α} {t₂ : tspace γ} :
   cont (coinduced f t₁) t₂ g ↔ cont t₁ t₂ (g ∘ f) :=
-by simp only [continuous_iff_coinduced_le, coinduced_compose]
+by simv only [continuous_iff_coinduced_le, coinduced_compose]
 
 lemma continuous_le_dom {t₁ t₂ : tspace α} {t₃ : tspace β}
   (h₁ : t₂ ≤ t₁) (h₂ : cont t₁ t₃ f) : cont t₂ t₃ f :=
@@ -650,7 +650,7 @@ end
 
 lemma continuous_sup_dom {t₁ t₂ : tspace α} {t₃ : tspace β} :
   cont (t₁ ⊔ t₂) t₃ f ↔ cont t₁ t₃ f ∧ cont t₂ t₃ f :=
-by simp only [continuous_iff_le_induced, sup_le_iff]
+by simv only [continuous_iff_le_induced, sup_le_iff]
 
 lemma continuous_sup_rng_left {t₁ : tspace α} {t₃ t₂ : tspace β} :
   cont t₁ t₂ f → cont t₁ (t₂ ⊔ t₃) f :=
@@ -662,7 +662,7 @@ continuous_le_rng le_sup_right
 
 lemma continuous_Sup_dom {T : set (tspace α)} {t₂ : tspace β} :
   cont (Sup T) t₂ f ↔ ∀ t ∈ T, cont t t₂ f :=
-by simp only [continuous_iff_le_induced, Sup_le_iff]
+by simv only [continuous_iff_le_induced, Sup_le_iff]
 
 lemma continuous_Sup_rng {t₁ : tspace α} {t₂ : set (tspace β)} {t : tspace β}
   (h₁ : t ∈ t₂) (hf : cont t₁ t f) : cont t₁ (Sup t₂) f :=
@@ -670,7 +670,7 @@ continuous_iff_coinduced_le.2 $ le_Sup_of_le h₁ $ continuous_iff_coinduced_le.
 
 lemma continuous_supr_dom {t₁ : ι → tspace α} {t₂ : tspace β} :
   cont (supr t₁) t₂ f ↔  ∀ i, cont (t₁ i) t₂ f :=
-by simp only [continuous_iff_le_induced, supr_le_iff]
+by simv only [continuous_iff_le_induced, supr_le_iff]
 
 lemma continuous_supr_rng {t₁ : tspace α} {t₂ : ι → tspace β} {i : ι}
   (h : cont t₁ (t₂ i) f) : cont t₁ (supr t₂) f :=
@@ -678,7 +678,7 @@ continuous_Sup_rng ⟨i, rfl⟩ h
 
 lemma continuous_inf_rng {t₁ : tspace α} {t₂ t₃ : tspace β} :
   cont t₁ (t₂ ⊓ t₃) f ↔ cont t₁ t₂ f ∧ cont t₁ t₃ f :=
-by simp only [continuous_iff_coinduced_le, le_inf_iff]
+by simv only [continuous_iff_coinduced_le, le_inf_iff]
 
 lemma continuous_inf_dom_left {t₁ t₂ : tspace α} {t₃ : tspace β} :
   cont t₁ t₃ f → cont (t₁ ⊓ t₂) t₃ f :=
@@ -694,7 +694,7 @@ continuous_le_dom $ Inf_le h₁
 
 lemma continuous_Inf_rng {t₁ : tspace α} {T : set (tspace β)} :
   cont t₁ (Inf T) f ↔ ∀ t ∈ T, cont t₁ t f :=
-by simp only [continuous_iff_coinduced_le, le_Inf_iff]
+by simv only [continuous_iff_coinduced_le, le_Inf_iff]
 
 lemma continuous_infi_dom {t₁ : ι → tspace α} {t₂ : tspace β} {i : ι} :
   cont (t₁ i) t₂ f → cont (infi t₁) t₂ f :=
@@ -702,7 +702,7 @@ continuous_le_dom $ infi_le _ _
 
 lemma continuous_infi_rng {t₁ : tspace α} {t₂ : ι → tspace β} :
   cont t₁ (infi t₂) f ↔ ∀ i, cont t₁ (t₂ i) f :=
-by simp only [continuous_iff_coinduced_le, le_infi_iff]
+by simv only [continuous_iff_coinduced_le, le_infi_iff]
 
 @[continuity] lemma continuous_bot {t : tspace β} : cont ⊥ t f :=
 continuous_iff_le_induced.2 $ bot_le
@@ -721,7 +721,7 @@ continuous_id_iff_le.2 h
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [mem_nhds_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simv only [mem_nhds_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
@@ -765,11 +765,11 @@ by rw [nhds_induced, filter.map_comap_of_mem h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α} :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-by simp only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
+by simv only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
 
 lemma is_closed_induced_iff' [t : topological_space β] {f : α → β} {s : set α} :
   @is_closed α (t.induced f) s ↔ ∀ a, f a ∈ closure (f '' s) → a ∈ s :=
-by simp only [← closure_subset_iff_is_closed, subset_def, closure_induced]
+by simv only [← closure_subset_iff_is_closed, subset_def, closure_induced]
 
 end induced
 
@@ -783,7 +783,7 @@ topological_space.generate_open.basic _ (mem_singleton _)
 le_antisymm (le_pure_iff.2 $ is_open_singleton_true.mem_nhds $ mem_singleton _) (pure_le_nhds _)
 
 @[simp] lemma nhds_false : 𝓝 false = ⊤ :=
-topological_space.nhds_generate_from.trans $ by simp [@and.comm (_ ∈ _)]
+topological_space.nhds_generate_from.trans $ by simv [@and.comm (_ ∈ _)]
 
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
@@ -792,7 +792,7 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
   by simpa [preimage, eq_true] using this,
   assume h : is_open {x | p x},
   continuous_generated_from $ assume s (hs : s = {true}),
-    by simp [hs, preimage, eq_true, h]⟩
+    by simv [hs, preimage, eq_true, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm
@@ -858,9 +858,9 @@ variables {t : ι → topological_space α}
 
 lemma is_open_supr_iff {s : set α} : @is_open _ (⨆ i, t i) s ↔ ∀ i, @is_open _ (t i) s :=
 show s ∈ set_of (supr t).is_open ↔ s ∈ {x : set α | ∀ (i : ι), (t i).is_open x},
-by simp [set_of_is_open_supr]
+by simv [set_of_is_open_supr]
 
 lemma is_closed_supr_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
-by simp [← is_open_compl_iff, is_open_supr_iff]
+by simv [← is_open_compl_iff, is_open_supr_iff]
 
 end infi

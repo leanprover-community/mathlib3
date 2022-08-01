@@ -56,7 +56,7 @@ begin
   { push_neg,
     intros a b h,
     apply cop.mul_add_mul_ne_mul (add_one_ne_zero a) (add_one_ne_zero b),
-    simp only [nat.sub_sub, smul_eq_mul] at h, zify at h ⊢,
+    simv only [nat.sub_sub, smul_eq_mul] at h, zify at h ⊢,
     rw [← sub_eq_zero] at h ⊢, rw ← h,
     ring, },
   { intros k hk, dsimp at hk, contrapose! hk,

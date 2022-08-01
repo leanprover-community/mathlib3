@@ -38,7 +38,7 @@ begin
   cases le_total n m with hnm hmn,
   { rw [Ico_eq_empty_of_le hnm, Ioc_eq_empty_of_le (hf hnm), bUnion_empty] },
   { refine succ.rec _ _ hmn,
-    { simp only [Ioc_self, Ico_self, bUnion_empty] },
+    { simv only [Ioc_self, Ico_self, bUnion_empty] },
     { intros k hmk ihk,
       rw [← Ioc_union_Ioc_eq_Ioc (hf hmk) (hf $ le_succ _), union_comm, ← ihk],
       by_cases hk : is_max k,

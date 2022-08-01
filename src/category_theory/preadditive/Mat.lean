@@ -86,14 +86,14 @@ def comp {M N K : Mat_ C} (f : hom M N) (g : hom N K) : hom M K :=
 end hom
 
 section
-local attribute [simp] hom.id hom.comp
+local attribute [simv] hom.id hom.comp
 
 instance : category.{v₁} (Mat_ C) :=
 { hom := hom,
   id := hom.id,
   comp := λ M N K f g, f.comp g,
-  id_comp' := λ M N f, by simp [dite_comp],
-  comp_id' := λ M N f, by simp [comp_dite],
+  id_comp' := λ M N f, by simv [dite_comp],
+  comp_id' := λ M N f, by simv [comp_dite],
   assoc' := λ M N K L f g h, begin
     ext i k,
     simp_rw [hom.comp, sum_comp, comp_sum, category.assoc],
@@ -110,11 +110,11 @@ rfl
 
 @[simp] lemma id_apply_self (M : Mat_ C) (i : M.ι) :
   (𝟙 M : hom M M) i i = 𝟙 _ :=
-by simp [id_apply]
+by simv [id_apply]
 
 @[simp] lemma id_apply_of_ne (M : Mat_ C) (i j : M.ι) (h : i ≠ j) :
   (𝟙 M : hom M M) i j = 0 :=
-by simp [id_apply, h]
+by simv [id_apply, h]
 
 lemma comp_def {M N K : Mat_ C} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g) = λ i k, ∑ j : N.ι, f i j ≫ g j k := rfl
@@ -128,8 +128,8 @@ end
 
 instance : preadditive (Mat_ C) :=
 { hom_group := λ M N, by { change add_comm_group (dmatrix M.ι N.ι _), apply_instance, },
-  add_comp' := λ M N K f f' g, by { ext, simp [finset.sum_add_distrib], },
-  comp_add' := λ M N K f g g', by { ext, simp [finset.sum_add_distrib], }, }
+  add_comp' := λ M N K f f' g, by { ext, simv [finset.sum_add_distrib], },
+  comp_add' := λ M N K f g g', by { ext, simv [finset.sum_add_distrib], }, }
 
 @[simp] lemma add_apply {M N : Mat_ C} (f g : M ⟶ N) (i j) : (f + g) i j = f i j + g i j := rfl
 
@@ -169,17 +169,17 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
         ext x y,
         dsimp,
         simp_rw [dite_comp, comp_dite],
-        simp only [if_t_t, dite_eq_ite, dif_ctx_congr, limits.comp_zero, limits.zero_comp,
+        simv only [if_t_t, dite_eq_ite, dif_ctx_congr, limits.comp_zero, limits.zero_comp,
           eq_to_hom_trans, finset.sum_congr],
         erw finset.sum_sigma,
         dsimp,
-        simp only [if_congr, if_true, dif_ctx_congr, finset.sum_dite_irrel, finset.mem_univ,
+        simv only [if_congr, if_true, dif_ctx_congr, finset.sum_dite_irrel, finset.mem_univ,
           finset.sum_const_zero, finset.sum_congr, finset.sum_dite_eq'],
         split_ifs with h h',
         { substs h h',
-          simp only [category_theory.eq_to_hom_refl, category_theory.Mat_.id_apply_self], },
+          simv only [category_theory.eq_to_hom_refl, category_theory.Mat_.id_apply_self], },
         { subst h,
-          simp only [id_apply_of_ne _ _ _ h', category_theory.eq_to_hom_refl], },
+          simv only [id_apply_of_ne _ _ _ h', category_theory.eq_to_hom_refl], },
         { refl, },
       end, }
     begin
@@ -187,21 +187,21 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
       funext i₁,
       dsimp at i₁ ⊢,
       rcases i₁ with ⟨j₁, i₁⟩,
-      -- I'm not sure why we can't just `simp` by `finset.sum_apply`: something doesn't quite match
+      -- I'm not sure why we can't just `simv` by `finset.sum_apply`: something doesn't quite match
       convert finset.sum_apply _ _ _ using 1,
       { refl, },
       { apply heq_of_eq,
         symmetry,
         funext i₂,
         rcases i₂ with ⟨j₂, i₂⟩,
-        simp only [comp_apply, dite_comp, comp_dite,
+        simv only [comp_apply, dite_comp, comp_dite,
           if_t_t, dite_eq_ite, if_congr, if_true, dif_ctx_congr,
           finset.sum_dite_irrel, finset.sum_dite_eq, finset.mem_univ, finset.sum_const_zero,
           finset.sum_congr, finset.sum_dite_eq, finset.sum_apply,
           limits.comp_zero, limits.zero_comp, eq_to_hom_trans, Mat_.id_apply],
         by_cases h : j₁ = j₂,
-        { subst h, simp, },
-        { simp [h], }, },
+        { subst h, simv, },
+        { simv [h], }, },
     end }}.
 
 end Mat_
@@ -209,7 +209,7 @@ end Mat_
 namespace functor
 variables {C} {D : Type*} [category.{v₁} D] [preadditive D]
 
-local attribute [simp] Mat_.id_apply eq_to_hom_map
+local attribute [simv] Mat_.id_apply eq_to_hom_map
 
 /--
 A functor induces a functor of matrix categories.
@@ -218,7 +218,7 @@ A functor induces a functor of matrix categories.
 def map_Mat_ (F : C ⥤ D) [functor.additive F] : Mat_ C ⥤ Mat_ D :=
 { obj := λ M, ⟨M.ι, λ i, F.obj (M.X i)⟩,
   map := λ M N f i j, F.map (f i j),
-  map_comp' := λ M N K f g, by { ext i k, simp,}, }
+  map_comp' := λ M N K f g, by { ext i k, simv,}, }
 
 /--
 The identity functor induces the identity functor on matrix categories.
@@ -229,7 +229,7 @@ nat_iso.of_components (λ M, eq_to_iso (by { cases M, refl, }))
 (λ M N f, begin
   ext i j,
   cases M, cases N,
-  simp [comp_dite, dite_comp],
+  simv [comp_dite, dite_comp],
 end)
 
 /--
@@ -243,7 +243,7 @@ nat_iso.of_components (λ M, eq_to_iso (by { cases M, refl, }))
 (λ M N f, begin
   ext i j,
   cases M, cases N,
-  simp [comp_dite, dite_comp],
+  simv [comp_dite, dite_comp],
 end)
 
 end functor
@@ -258,8 +258,8 @@ variables (C)
 def embedding : C ⥤ Mat_ C :=
 { obj := λ X, ⟨punit, λ _, X⟩,
   map := λ X Y f, λ _ _, f,
-  map_id' := λ X, by { ext ⟨⟩ ⟨⟩, simp, },
-  map_comp' := λ X Y Z f g, by { ext ⟨⟩ ⟨⟩, simp, }, }
+  map_id' := λ X, by { ext ⟨⟩ ⟨⟩, simv, },
+  map_comp' := λ X Y Z f g, by { ext ⟨⟩ ⟨⟩, simv, }, }
 
 namespace embedding
 
@@ -288,7 +288,7 @@ def iso_biproduct_embedding (M : Mat_ C) : M ≅ ⨁ (λ i, (embedding C).obj (M
   inv := biproduct.desc (λ i j k, if h : i = k then eq_to_hom (congr_arg M.X h) else 0),
   hom_inv_id' :=
   begin
-    simp only [biproduct.lift_desc],
+    simv only [biproduct.lift_desc],
     funext i,
     dsimp,
     convert finset.sum_apply _ _ _,
@@ -296,9 +296,9 @@ def iso_biproduct_embedding (M : Mat_ C) : M ≅ ⨁ (λ i, (embedding C).obj (M
     { apply heq_of_eq,
       symmetry,
       funext j,
-      simp only [finset.sum_apply],
+      simv only [finset.sum_apply],
       dsimp,
-      simp [dite_comp, comp_dite, Mat_.id_apply], }
+      simv [dite_comp, comp_dite, Mat_.id_apply], }
   end,
   inv_hom_id' :=
   begin
@@ -306,13 +306,13 @@ def iso_biproduct_embedding (M : Mat_ C) : M ≅ ⨁ (λ i, (embedding C).obj (M
     intro i,
     apply biproduct.hom_ext',
     intro j,
-    simp only [category.id_comp, category.assoc,
+    simv only [category.id_comp, category.assoc,
       biproduct.lift_π, biproduct.ι_desc_assoc, biproduct.ι_π],
     ext ⟨⟩ ⟨⟩,
-    simp [dite_comp, comp_dite],
+    simv [dite_comp, comp_dite],
     split_ifs,
-    { subst h, simp, },
-    { simp [h], },
+    { subst h, simv, },
+    { simv [h], },
   end, }.
 
 variables {D : Type u₁} [category.{v₁} D] [preadditive D]
@@ -333,20 +333,20 @@ variables [has_finite_biproducts D]
 begin
   -- This is disappointingly tedious.
   ext,
-  simp only [additive_obj_iso_biproduct_hom, category.assoc, biproduct.lift_π, functor.map_bicone_π,
+  simv only [additive_obj_iso_biproduct_hom, category.assoc, biproduct.lift_π, functor.map_bicone_π,
     biproduct.bicone_π, biproduct.lift_matrix],
   dsimp [embedding],
-  simp only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
-  simp only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],
-  simp only [comp_def, comp_dite, comp_zero, finset.sum_dite_eq', finset.mem_univ, if_true],
+  simv only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
+  simv only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],
+  simv only [comp_def, comp_dite, comp_zero, finset.sum_dite_eq', finset.mem_univ, if_true],
   dsimp,
-  simp only [finset.sum_singleton, dite_comp, zero_comp],
+  simv only [finset.sum_singleton, dite_comp, zero_comp],
   congr,
   symmetry,
-  convert finset.sum_fn _ _, -- It's hard to use this as a simp lemma!
-  simp only [finset.sum_fn, finset.sum_dite_eq],
+  convert finset.sum_fn _ _, -- It's hard to use this as a simv lemma!
+  simv only [finset.sum_fn, finset.sum_dite_eq],
   ext,
-  simp,
+  simv,
 end
 
 @[reassoc] lemma additive_obj_iso_biproduct_naturality' (F : Mat_ C ⥤ D) [functor.additive F]
@@ -365,10 +365,10 @@ def lift (F : C ⥤ D) [functor.additive F] : Mat_ C ⥤ D :=
   map_id' := λ X, begin
     ext i j,
     by_cases h : i = j,
-    { subst h, simp, },
-    { simp [h, Mat_.id_apply], },
+    { subst h, simv, },
+    { simv [h, Mat_.id_apply], },
   end,
-  map_comp' := λ X Y Z f g, by { ext i j, simp, }, }.
+  map_comp' := λ X Y Z f g, by { ext i j, simv, }, }.
 
 instance lift_additive (F : C ⥤ D) [functor.additive F] : functor.additive (lift F) := {}
 
@@ -381,9 +381,9 @@ nat_iso.of_components (λ X,
 (λ X Y f, begin
   dsimp,
   ext,
-  simp only [category.id_comp, biproduct.ι_desc_assoc],
-  erw biproduct.ι_matrix_assoc, -- Not sure why this doesn't fire via `simp`.
-  simp,
+  simv only [category.id_comp, biproduct.ι_desc_assoc],
+  erw biproduct.ι_matrix_assoc, -- Not sure why this doesn't fire via `simv`.
+  simv,
 end).
 
 /--
@@ -399,13 +399,13 @@ nat_iso.of_components
     (additive_obj_iso_biproduct (lift F) M).symm)
 (λ M N f, begin
   dsimp only [iso.trans_hom, iso.symm_hom, biproduct.map_iso_hom],
-  simp only [additive_obj_iso_biproduct_naturality_assoc],
-  simp only [biproduct.matrix_map_assoc, category.assoc],
-  simp only [additive_obj_iso_biproduct_naturality'],
-  simp only [biproduct.map_matrix_assoc, category.assoc],
+  simv only [additive_obj_iso_biproduct_naturality_assoc],
+  simv only [biproduct.matrix_map_assoc, category.assoc],
+  simv only [additive_obj_iso_biproduct_naturality'],
+  simv only [biproduct.map_matrix_assoc, category.assoc],
   congr,
   ext j k ⟨⟩,
-  dsimp, simp,
+  dsimp, simv,
   exact α.hom.naturality (f j k),
 end).
 
@@ -470,7 +470,7 @@ instance (R : Type u) [semiring R] : category (Mat R) :=
 { hom := λ X Y, matrix X Y R,
   id := λ X, 1,
   comp := λ X Y Z f g, f ⬝ g,
-  assoc' := by { intros, simp [matrix.mul_assoc], }, }
+  assoc' := by { intros, simv [matrix.mul_assoc], }, }
 
 namespace Mat
 
@@ -487,11 +487,11 @@ rfl
 
 @[simp] lemma id_apply_self (M : Mat R) (i : M) :
   (𝟙 M : matrix M M R) i i = 1 :=
-by simp [id_apply]
+by simv [id_apply]
 
 @[simp] lemma id_apply_of_ne (M : Mat R) (i j : M) (h : i ≠ j) :
   (𝟙 M : matrix M M R) i j = 0 :=
-by simp [id_apply, h]
+by simv [id_apply, h]
 
 lemma comp_def {M N K : Mat R} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g) = λ i k, ∑ j : N, f i j * g j k := rfl
@@ -512,7 +512,7 @@ open opposite
 def equivalence_single_obj_inverse : Mat_ (single_obj Rᵐᵒᵖ) ⥤ Mat R :=
 { obj := λ X, Fintype.of X.ι,
   map := λ X Y f i j, mul_opposite.unop (f i j),
-  map_id' := λ X, by { ext i j, simp [id_def, Mat_.id_def], split_ifs; refl, }, }
+  map_id' := λ X, by { ext i j, simv [id_def, Mat_.id_def], split_ifs; refl, }, }
 
 instance : faithful (equivalence_single_obj_inverse R) :=
 { map_injective' := λ X Y f g w, begin
@@ -537,8 +537,8 @@ begin
 end
 
 instance : preadditive (Mat R) :=
-{ add_comp' := by { intros, ext, simp [add_mul, finset.sum_add_distrib], },
-  comp_add' := by { intros, ext, simp [mul_add, finset.sum_add_distrib], }, }
+{ add_comp' := by { intros, ext, simv [add_mul, finset.sum_add_distrib], },
+  comp_add' := by { intros, ext, simv [mul_add, finset.sum_add_distrib], }, }
 
 -- TODO show `Mat R` has biproducts, and that `biprod.map` "is" forming a block diagonal matrix.
 

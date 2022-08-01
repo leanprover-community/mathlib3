@@ -94,7 +94,7 @@ begin
     have : ε ≤ dist x y ∨ (x, y) ∈ t,
     { apply induction_on₂ x y,
       { have : {x : completion α × completion α | ε ≤ dist (x.fst) (x.snd) ∨ (x.fst, x.snd) ∈ t}
-               = {p : completion α × completion α | ε ≤ dist p.1 p.2} ∪ t, by ext; simp,
+               = {p : completion α × completion α | ε ≤ dist p.1 p.2} ∪ t, by ext; simv,
         rw this,
         apply is_closed.union _ tclosed,
         exact is_closed_le continuous_const completion.uniform_continuous_dist.continuous },
@@ -103,9 +103,9 @@ begin
         by_cases h : ε ≤ dist x y,
         { exact or.inl h },
         { have Z := hε (not_le.1 h),
-          simp only [set.mem_set_of_eq] at Z,
+          simv only [set.mem_set_of_eq] at Z,
           exact or.inr Z }}},
-    simp only [not_le.mpr hxy, false_or, not_le] at this,
+    simv only [not_le.mpr hxy, false_or, not_le] at this,
     exact ts this },
   { /- Start from a set `s` containing an ε-neighborhood of the diagonal in `completion α`. To show
     that it is an entourage, we use the fact that `dist` is uniformly continuous on
@@ -118,7 +118,7 @@ begin
     let r : set (ℝ × ℝ) := {p | dist p.1 p.2 < ε},
     have : r ∈ uniformity ℝ := metric.dist_mem_uniformity εpos,
     have T := uniform_continuous_def.1 (@completion.uniform_continuous_dist α _) r this,
-    simp only [uniformity_prod_eq_prod, mem_prod_iff, exists_prop,
+    simv only [uniformity_prod_eq_prod, mem_prod_iff, exists_prop,
                filter.mem_map, set.mem_set_of_eq] at T,
     rcases T with ⟨t1, ht1, t2, ht2, ht⟩,
     refine mem_of_superset ht1 _,
@@ -126,7 +126,7 @@ begin
     { assume a b hab,
       have : ((a, b), (a, a)) ∈ t1 ×ˢ t2 := ⟨hab, refl_mem_uniformity ht2⟩,
       have I := ht this,
-      simp [completion.dist_self, real.dist_eq, completion.dist_comm] at I,
+      simv [completion.dist_self, real.dist_eq, completion.dist_comm] at I,
       exact lt_of_le_of_lt (le_abs_self _) I },
     show t1 ⊆ s,
     { rintros ⟨a, b⟩ hp,
@@ -152,9 +152,9 @@ protected lemma uniformity_dist' :
   𝓤 (completion α) = (⨅ε:{ε : ℝ // 0 < ε}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
 begin
   ext s, rw mem_infi_of_directed,
-  { simp [completion.mem_uniformity_dist, subset_def] },
+  { simv [completion.mem_uniformity_dist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
-    simp [lt_min_iff, (≥)] {contextual := tt} }
+    simv [lt_min_iff, (≥)] {contextual := tt} }
 end
 
 protected lemma uniformity_dist :

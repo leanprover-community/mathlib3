@@ -62,12 +62,12 @@ mk_derivation R $ pi.single i 1
 @[simp] lemma pderiv_monomial {i : σ} :
   pderiv i (monomial s a) = monomial (s - single i 1) (a * (s i)) :=
 begin
-  simp only [pderiv, mk_derivation_monomial, finsupp.smul_sum, smul_eq_mul,
+  simv only [pderiv, mk_derivation_monomial, finsupp.smul_sum, smul_eq_mul,
     ← smul_mul_assoc, ← (monomial _).map_smul],
   refine (finset.sum_eq_single i (λ j hj hne, _) (λ hi, _)).trans _,
-  { simp [pi.single_eq_of_ne hne] },
-  { rw [finsupp.not_mem_support_iff] at hi, simp [hi] },
-  { simp }
+  { simv [pi.single_eq_of_ne hne] },
+  { rw [finsupp.not_mem_support_iff] at hi, simv [hi] },
+  { simv }
 end
 
 lemma pderiv_C {i : σ} : pderiv i (C a) = 0 := derivation_C _ _
@@ -78,10 +78,10 @@ lemma pderiv_one {i : σ} : pderiv i (1 : mv_polynomial σ R) = 0 := pderiv_C
   pderiv i (X j : mv_polynomial σ R) = @pi.single σ _ d _ i 1 j :=
 (mk_derivation_X _ _ _).trans (by congr)
 
-@[simp] lemma pderiv_X_self (i : σ) : pderiv i (X i : mv_polynomial σ R) = 1 := by simp
+@[simp] lemma pderiv_X_self (i : σ) : pderiv i (X i : mv_polynomial σ R) = 1 := by simv
 
 @[simp] lemma pderiv_X_of_ne {i j : σ} (h : j ≠ i) : pderiv i (X j : mv_polynomial σ R) = 0 :=
-by simp [h]
+by simv [h]
 
 lemma pderiv_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ R} (h : i ∉ f.vars) :
   pderiv i f = 0 :=
@@ -89,11 +89,11 @@ derivation_eq_zero_of_forall_mem_vars $ λ j hj, pderiv_X_of_ne $ ne_of_mem_of_n
 
 lemma pderiv_monomial_single {i : σ} {n : ℕ} :
   pderiv i (monomial (single i n) a) = monomial (single i (n-1)) (a * n) :=
-by simp
+by simv
 
 lemma pderiv_mul {i : σ} {f g : mv_polynomial σ R} :
   pderiv i (f * g) = pderiv i f * g + f * pderiv i g :=
-by simp only [(pderiv i).leibniz f g, smul_eq_mul, mul_comm, add_comm]
+by simv only [(pderiv i).leibniz f g, smul_eq_mul, mul_comm, add_comm]
 
 @[simp] lemma pderiv_C_mul {f : mv_polynomial σ R} {i : σ} :
   pderiv i (C a * f) = C a * pderiv i f :=

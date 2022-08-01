@@ -50,28 +50,28 @@ lemma is_trail.even_countp_edges_iff {u v : V} {p : G.walk u v} (ht : p.is_trail
   even (p.edges.countp (λ e, x ∈ e)) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
 begin
   induction p with u u v w huv p ih,
-  { simp, },
+  { simv, },
   { rw [cons_is_trail_iff] at ht,
     specialize ih ht.1,
-    simp only [list.countp_cons, ne.def, edges_cons, sym2.mem_iff],
+    simv only [list.countp_cons, ne.def, edges_cons, sym2.mem_iff],
     split_ifs with h,
     { obtain (rfl | rfl) := h,
       { rw [nat.even_add_one, ih],
-        simp only [huv.ne, imp_false, ne.def, not_false_iff, true_and, not_forall, not_not,
+        simv only [huv.ne, imp_false, ne.def, not_false_iff, true_and, not_forall, not_not,
           exists_prop, eq_self_iff_true, not_true, false_and, and_iff_right_iff_imp],
         rintro rfl rfl,
         exact G.loopless _ huv, },
       { rw [nat.even_add_one, ih, ← not_iff_not],
-        simp only [huv.ne.symm, ne.def, eq_self_iff_true, not_true, false_and, not_forall,
+        simv only [huv.ne.symm, ne.def, eq_self_iff_true, not_true, false_and, not_forall,
           not_false_iff, exists_prop, and_true, not_not, true_and, iff_and_self],
         rintro rfl,
         exact huv.ne, } },
     { rw not_or_distrib at h,
-      simp only [h.1, h.2, not_false_iff, true_and, add_zero, ne.def] at ih ⊢,
+      simv only [h.1, h.2, not_false_iff, true_and, add_zero, ne.def] at ih ⊢,
       rw ih,
       split;
       { rintro h' h'' rfl,
-        simp only [imp_false, eq_self_iff_true, not_true, not_not] at h',
+        simv only [imp_false, eq_self_iff_true, not_true, not_not] at h',
         cases h',
         simpa using h } } },
 end
@@ -91,7 +91,7 @@ begin
   intro e,
   by_cases he : e ∈ p.edges,
   { exact (h e (edges_subset_edge_set _ he)).le },
-  { simp [he] },
+  { simv [he] },
 end
 
 lemma is_eulerian.mem_edges_iff {u v : V} {p : G.walk u v} (h : p.is_eulerian) {e : sym2 V} :
@@ -102,7 +102,7 @@ lemma is_eulerian.mem_edges_iff {u v : V} {p : G.walk u v} (h : p.is_eulerian) {
 def is_eulerian.fintype_edge_set {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) : fintype G.edge_set :=
 fintype.of_finset h.is_trail.edges_finset $ λ e,
-by simp only [finset.mem_mk, multiset.mem_coe, h.mem_edges_iff]
+by simv only [finset.mem_mk, multiset.mem_coe, h.mem_edges_iff]
 
 lemma is_trail.is_eulerian_of_forall_mem {u v : V} {p : G.walk u v}
   (h : p.is_trail) (hc : ∀ e, e ∈ G.edge_set → e ∈ p.edges) :
@@ -122,7 +122,7 @@ end
 lemma is_eulerian.edges_finset_eq [fintype G.edge_set]
   {u v : V} {p : G.walk u v} (h : p.is_eulerian) :
   h.is_trail.edges_finset = G.edge_finset :=
-by { ext e, simp [h.mem_edges_iff] }
+by { ext e, simv [h.mem_edges_iff] }
 
 lemma is_eulerian.even_degree_iff {x u v : V} {p : G.walk u v} (ht : p.is_eulerian)
   [fintype V] [decidable_rel G.adj] :
@@ -142,17 +142,17 @@ lemma is_eulerian.card_filter_odd_degree [fintype V] [decidable_rel G.adj]
   s.card = 0 ∨ s.card = 2 :=
 begin
   subst s,
-  simp only [nat.odd_iff_not_even, finset.card_eq_zero],
-  simp only [ht.even_degree_iff, ne.def, not_forall, not_and, not_not, exists_prop],
+  simv only [nat.odd_iff_not_even, finset.card_eq_zero],
+  simv only [ht.even_degree_iff, ne.def, not_forall, not_and, not_not, exists_prop],
   obtain (rfl | hn) := eq_or_ne u v,
   { left,
-    simp, },
+    simv, },
   { right,
     convert_to _ = ({u, v} : finset V).card,
-    { simp [hn], },
+    { simv [hn], },
     { congr',
       ext x,
-      simp [hn, imp_iff_not_or], } },
+      simv [hn, imp_iff_not_or], } },
 end
 
 lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
@@ -162,7 +162,7 @@ begin
   rw ← set.to_finset_card,
   apply is_eulerian.card_filter_odd_degree ht,
   ext v,
-  simp,
+  simv,
 end
 
 end walk

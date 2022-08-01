@@ -61,7 +61,7 @@ instance : add_monoid_hom_class (derivation R A M) A M :=
 directly. -/
 instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
--- Not a simp lemma because it can be proved via `coe_fn_coe` + `to_linear_map_eq_coe`
+-- Not a simv lemma because it can be proved via `coe_fn_coe` + `to_linear_map_eq_coe`
 lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
@@ -72,7 +72,7 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 @[simp] lemma mk_coe (f : A →ₗ[R] M) (h₁ h₂) :
   ((⟨f, h₁, h₂⟩ : derivation R A M) : A → M) = f := rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_fn_coe (f : derivation R A M) : ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
@@ -91,7 +91,7 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 lemma map_sum {ι : Type*} (s : finset ι) (f : ι → A) : D (∑ i in s, f i) = ∑ i in s, D (f i) :=
 D.to_linear_map.map_sum
 
-@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_smul S A] [has_smul S M]
+@[simv, priority 900] lemma map_smul_of_tower {S : Type*} [has_smul S A] [has_smul S M]
   [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
   D (r • a) = r • D a :=
 D.to_linear_map.map_smul_of_tower r a
@@ -112,15 +112,15 @@ begin
   { rcases (zero_le n).eq_or_lt with (rfl|hpos),
     { rw [pow_one, one_smul, pow_zero, one_smul] },
     { have : a * a ^ (n - 1) = a ^ n, by rw [← pow_succ, nat.sub_add_cancel hpos],
-      simp only [pow_succ, leibniz, ihn, smul_comm a n, smul_smul a, add_smul, this,
+      simv only [pow_succ, leibniz, ihn, smul_comm a n, smul_smul a, add_smul, this,
         nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, one_nsmul] } }
 end
 
 lemma eq_on_adjoin {s : set A} (h : set.eq_on D1 D2 s) : set.eq_on D1 D2 (adjoin R s) :=
 λ x hx, algebra.adjoin_induction hx h
   (λ r, (D1.map_algebra_map r).trans (D2.map_algebra_map r).symm)
-  (λ x y hx hy, by simp only [map_add, *])
-  (λ x y hx hy, by simp only [leibniz, *])
+  (λ x y hx hy, by simv only [map_add, *])
+  (λ x y hx hy, by simv only [leibniz, *])
 
 /-- If adjoin of a set is the whole algebra, then any two derivations equal on this set are equal
 on the whole algebra. -/
@@ -132,7 +132,7 @@ ext $ λ a, eq_on_adjoin h $ hs.symm ▸ trivial
 instance : has_zero (derivation R A M) :=
 ⟨{ to_linear_map := 0,
    map_one_eq_zero' := rfl,
-   leibniz' := λ a b, by simp only [add_zero, linear_map.zero_apply, smul_zero] }⟩
+   leibniz' := λ a b, by simv only [add_zero, linear_map.zero_apply, smul_zero] }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : derivation R A M) = 0 := rfl
 @[simp] lemma coe_zero_linear_map : ↑(0 : derivation R A M) = (0 : A →ₗ[R] M) := rfl
@@ -141,8 +141,8 @@ lemma zero_apply (a : A) : (0 : derivation R A M) a = 0 := rfl
 instance : has_add (derivation R A M) :=
 ⟨λ D1 D2,
   { to_linear_map := D1 + D2,
-    map_one_eq_zero' := by simp,
-    leibniz' := λ a b, by simp only [leibniz, linear_map.add_apply,
+    map_one_eq_zero' := by simv,
+    leibniz' := λ a b, by simv only [leibniz, linear_map.add_apply,
       coe_fn_coe, smul_add, add_add_add_comm] }⟩
 
 @[simp] lemma coe_add (D1 D2 : derivation R A M) : ⇑(D1 + D2) = D1 + D2 := rfl
@@ -162,7 +162,7 @@ instance : has_smul S (derivation R A M) :=
 ⟨λ r D,
   { to_linear_map := r • D,
     map_one_eq_zero' := by rw [linear_map.smul_apply, coe_fn_coe, D.map_one_eq_zero, smul_zero],
-    leibniz' := λ a b, by simp only [linear_map.smul_apply, coe_fn_coe, leibniz, smul_add,
+    leibniz' := λ a b, by simv only [linear_map.smul_apply, coe_fn_coe, leibniz, smul_add,
       smul_comm r] }⟩
 
 @[simp] lemma coe_smul (r : S) (D : derivation R A M) : ⇑(r • D) = r • D := rfl
@@ -206,8 +206,8 @@ linear map is a derivation. Furthermore, this operation is linear on the spaces 
 def _root_.linear_map.comp_der : derivation R A M →ₗ[R] derivation R A N :=
 { to_fun    := λ D,
   { to_linear_map := (f : M →ₗ[R] N).comp (D : A →ₗ[R] M),
-    map_one_eq_zero' := by simp only [linear_map.comp_apply, coe_fn_coe, map_one_eq_zero, map_zero],
-    leibniz'  := λ a b, by simp only [coe_fn_coe, linear_map.comp_apply, linear_map.map_add,
+    map_one_eq_zero' := by simv only [linear_map.comp_apply, coe_fn_coe, map_one_eq_zero, map_zero],
+    leibniz'  := λ a b, by simv only [coe_fn_coe, linear_map.comp_apply, linear_map.map_add,
       leibniz, linear_map.coe_coe_is_scalar_tower, linear_map.map_smul] },
   map_add'  := λ D₁ D₂, by { ext, exact linear_map.map_add _ _ _, },
   map_smul' := λ r D, by { ext, exact linear_map.map_smul _ _ _, }, }
@@ -261,7 +261,7 @@ lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin
   rw neg_smul,
   refine eq_neg_of_add_eq_zero_left _,
-  calc D a + a ^ 2 • D b = a • b • D a + a • a • D b : by simp only [smul_smul, h, one_smul, sq]
+  calc D a + a ^ 2 • D b = a • b • D a + a • a • D b : by simv only [smul_smul, h, one_smul, sq]
                      ... = a • D (a * b)             : by rw [leibniz, smul_add, add_comm]
                      ... = 0                         : by rw [h, map_one_eq_zero, smul_zero]
 end
@@ -273,13 +273,13 @@ lemma leibniz_inv {K : Type*} [field K] [module K M] [algebra R K] (D : derivati
   D (a⁻¹) = -a⁻¹ ^ 2 • D a :=
 begin
   rcases eq_or_ne a 0 with (rfl|ha),
-  { simp },
+  { simv },
   { exact D.leibniz_of_mul_eq_one (inv_mul_cancel ha) }
 end
 
 instance : has_neg (derivation R A M) :=
 ⟨λ D, mk' (-D) $  λ a b,
-  by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz, coe_fn_coe, add_comm]⟩
+  by simv only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz, coe_fn_coe, add_comm]⟩
 
 @[simp] lemma coe_neg (D : derivation R A M) : ⇑(-D) = -D := rfl
 @[simp] lemma coe_neg_linear_map (D : derivation R A M) : ↑(-D) = (-D : A →ₗ[R] M) :=
@@ -288,7 +288,7 @@ lemma neg_apply : (-D) a = -D a := rfl
 
 instance : has_sub (derivation R A M) :=
 ⟨λ D1 D2, mk' (D1 - D2 : A →ₗ[R] M) $ λ a b,
-  by simp only [linear_map.sub_apply, leibniz, coe_fn_coe, smul_sub, add_sub_add_comm]⟩
+  by simv only [linear_map.sub_apply, leibniz, coe_fn_coe, smul_sub, add_sub_add_comm]⟩
 
 @[simp] lemma coe_sub (D1 D2 : derivation R A M) : ⇑(D1 - D2) = D1 - D2 := rfl
 @[simp] lemma coe_sub_linear_map (D1 D2 : derivation R A M) : ↑(D1 - D2) = (D1 - D2 : A →ₗ[R] M) :=
@@ -309,7 +309,7 @@ variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 /-- The commutator of derivations is again a derivation. -/
 instance : has_bracket (derivation R A A) (derivation R A A) :=
 ⟨λ D1 D2, mk' (⁅(D1 : module.End R A), (D2 : module.End R A)⁆) $ λ a b,
-  by { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz, coe_fn_coe,
+  by { simv only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_apply, leibniz, coe_fn_coe,
     linear_map.sub_apply], ring, }⟩
 
 @[simp] lemma commutator_coe_linear_map :
@@ -318,14 +318,14 @@ instance : has_bracket (derivation R A A) (derivation R A A) :=
 lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
+{ add_lie     := λ d e f, by { ext a, simv only [commutator_apply, add_apply, map_add], ring, },
+  lie_add     := λ d e f, by { ext a, simv only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simv only [commutator_apply, add_apply, map_add], ring_nf, },
   leibniz_lie := λ d e f,
-    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
+    by { ext a, simv only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 
 instance : lie_algebra R (derivation R A A) :=
-{ lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, smul_apply]},
+{ lie_smul := λ r d e, by { ext a, simv only [commutator_apply, map_smul, smul_sub, smul_apply]},
   ..derivation.module }
 
 end lie_structures
@@ -386,7 +386,7 @@ begin
     dsimp only [submodule.coe_add, submodule.coe_mk, linear_map.coe_mk,
       diff_to_ideal_of_quotient_comp_eq_apply, submodule.coe_smul_of_tower,
       is_scalar_tower.coe_to_alg_hom', linear_map.to_fun_eq_coe],
-    simp only [map_mul, sub_mul, mul_sub, algebra.smul_def] at ⊢ this,
+    simv only [map_mul, sub_mul, mul_sub, algebra.smul_def] at ⊢ this,
     rw [sub_eq_iff_eq_add, sub_eq_iff_eq_add] at this,
     rw this,
     ring }
@@ -406,11 +406,11 @@ def lift_of_derivation_to_square_zero (f : derivation R A I) :
     have : (f x : B) * (f y) = 0,
     { rw [← ideal.mem_bot, ← hI, pow_two], convert (ideal.mul_mem_mul (f x).2 (f y).2) using 1 },
     dsimp,
-    simp only [map_mul, f.leibniz, add_mul, mul_add, submodule.coe_add,
+    simv only [map_mul, f.leibniz, add_mul, mul_add, submodule.coe_add,
       submodule.coe_smul_of_tower, algebra.smul_def, this],
     ring
   end,
-  commutes' := λ r, by { dsimp, simp [← is_scalar_tower.algebra_map_apply R A B r] },
+  commutes' := λ r, by { dsimp, simv [← is_scalar_tower.algebra_map_apply R A B r] },
   map_zero' := ((I.restrict_scalars R).subtype.comp f.to_linear_map +
     (is_scalar_tower.to_alg_hom R A B).to_linear_map).map_zero,
   ..((I.restrict_scalars R).subtype.comp f.to_linear_map +

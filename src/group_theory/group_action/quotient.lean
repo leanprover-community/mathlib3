@@ -61,17 +61,17 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 variables {β}
 
-@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (b : β) (a : α) :
+@[simv, to_additive] lemma quotient.smul_mk [quotient_action β H] (b : β) (a : α) :
   (b • quotient_group.mk a : α ⧸ H) = quotient_group.mk (b • a) := rfl
 
-@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (b : β) (a : α) :
+@[simv, to_additive] lemma quotient.smul_coe [quotient_action β H] (b : β) (a : α) :
   (b • a : α ⧸ H) = ↑(b • a) := rfl
 
-@[simp, to_additive] lemma quotient.mk_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+@[simv, to_additive] lemma quotient.mk_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
   quotient_group.mk (b • q.out') = b • q :=
 by rw [←quotient.smul_mk, quotient_group.out_eq']
 
-@[simp, to_additive] lemma quotient.coe_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+@[simv, to_additive] lemma quotient.coe_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
   ↑(b • q.out') = b • q :=
 quotient.mk_smul_out' H b q
 
@@ -100,7 +100,7 @@ calc  g1 • x
     = g1 • (g1⁻¹ * g2) • x : congr_arg _ ((left_rel_apply.mp H).symm)
 ... = g2 • x : by rw [smul_smul, mul_inv_cancel_left]
 
-@[simp, to_additive] theorem of_quotient_stabilizer_mk (g : α) :
+@[simv, to_additive] theorem of_quotient_stabilizer_mk (g : α) :
   of_quotient_stabilizer α x (quotient_group.mk g) = g • x :=
 rfl
 
@@ -141,13 +141,13 @@ lemma card_orbit_mul_card_stabilizer_eq_card_group (b : β) [fintype α] [fintyp
   fintype.card (orbit α b) * fintype.card (stabilizer α b) = fintype.card α :=
 by rw [← fintype.card_prod, fintype.card_congr (orbit_prod_stabilizer_equiv_group α b)]
 
-@[simp, to_additive] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
+@[simv, to_additive] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
 
-@[simp, to_additive] lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
+@[simv, to_additive] lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
   mul_action.stabilizer G ((1 : G) : G ⧸ H) = H :=
-by { ext, simp [quotient_group.eq] }
+by { ext, simv [quotient_group.eq] }
 
 variable (β)
 
@@ -253,7 +253,7 @@ by rw [← fintype.card_prod, ← fintype.card_sigma,
 { exists_smul_eq := begin
     rintros ⟨x⟩ ⟨y⟩,
     refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
-    simp only [smul_eq_mul, H.one_mem, mul_left_inv, inv_mul_cancel_right],
+    simv only [smul_eq_mul, H.one_mem, mul_left_inv, inv_mul_cancel_right],
   end }
 
 end mul_action

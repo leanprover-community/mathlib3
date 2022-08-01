@@ -53,7 +53,7 @@ instance fun_like : fun_like (M ↪ₑ[L] N) M (λ _, N) :=
   coe_injective' := λ f g h, begin
     cases f,
     cases g,
-    simp only,
+    simv only,
     ext x,
     exact function.funext_iff.1 h x end }
 
@@ -68,7 +68,7 @@ begin
   swap, { apply_instance },
   have h := f.map_formula' ((φ.restrict_free_var id).to_formula.relabel (fintype.equiv_fin _))
     ((sum.elim (v ∘ coe) xs) ∘ (fintype.equiv_fin _).symm),
-  simp only [formula.realize_relabel, bounded_formula.realize_to_formula, iff_eq_eq] at h,
+  simv only [formula.realize_relabel, bounded_formula.realize_to_formula, iff_eq_eq] at h,
   rw [← function.comp.assoc _ _ ((fintype.equiv_fin _).symm),
     function.comp.assoc _ ((fintype.equiv_fin _).symm) (fintype.equiv_fin _),
     equiv.symm_comp_self, function.comp.right_id, function.comp.assoc, sum.elim_comp_inl,
@@ -90,7 +90,7 @@ by rw [sentence.realize, sentence.realize, ← f.map_formula, unique.eq_default 
 
 lemma Theory_model_iff (f : M ↪ₑ[L] N) (T : L.Theory) :
   M ⊨ T ↔ N ⊨ T :=
-by simp only [Theory.model_iff, f.map_sentence]
+by simv only [Theory.model_iff, f.map_sentence]
 
 lemma elementarily_equivalent (f : M ↪ₑ[L] N) : M ≅[L] N :=
 elementarily_equivalent_iff.2 f.map_sentence
@@ -101,7 +101,7 @@ begin
   intros x y,
   have h := φ.map_formula ((var 0).equal (var 1) : L.formula (fin 2)) (λ i, if i = 0 then x else y),
   rw [formula.realize_equal, formula.realize_equal] at h,
-  simp only [nat.one_ne_zero, term.realize, fin.one_eq_zero_iff, if_true, eq_self_iff_true,
+  simv only [nat.one_ne_zero, term.realize, fin.one_eq_zero_iff, if_true, eq_self_iff_true,
     function.comp_app, if_false] at h,
   exact h.1,
 end
@@ -222,13 +222,13 @@ begin
   refine λ n φ, φ.rec_on _ _ _ _ _,
   { exact λ _ _, iff.rfl },
   { intros,
-    simp [bounded_formula.realize, ← sum.comp_elim, embedding.realize_term] },
+    simv [bounded_formula.realize, ← sum.comp_elim, embedding.realize_term] },
   { intros,
-    simp [bounded_formula.realize, ← sum.comp_elim, embedding.realize_term] },
+    simv [bounded_formula.realize, ← sum.comp_elim, embedding.realize_term] },
   { intros _ _ _ ih1 ih2 _,
-    simp [ih1, ih2] },
+    simv [ih1, ih2] },
   { intros n φ ih xs,
-    simp only [bounded_formula.realize_all],
+    simv only [bounded_formula.realize_all],
     refine ⟨λ h a, _, _⟩,
     { rw [← ih, fin.comp_snoc],
       exact h (f a) },
@@ -277,14 +277,14 @@ namespace substructure
   φ.realize v xs ↔ φ.realize ((coe : _ → M) ∘ v) (coe ∘ xs) :=
 begin
   rw ← substructure.top_equiv.realize_bounded_formula φ,
-  simp,
+  simv,
 end
 
 @[simp] lemma realize_formula_top {α : Type*} {φ : L.formula α} {v : α → (⊤ : L.substructure M)} :
   φ.realize v ↔ φ.realize ((coe : (⊤ : L.substructure M) → M) ∘ v) :=
 begin
   rw ← substructure.top_equiv.realize_formula φ,
-  simp,
+  simv,
 end
 
 /-- A substructure is elementary when every formula applied to a tuple in the subtructure
@@ -343,7 +343,7 @@ S.subtype.map_sentence φ
 
 @[simp] lemma Theory_model_iff (S : L.elementary_substructure M) (T : L.Theory) :
   S ⊨ T ↔ M ⊨ T :=
-by simp only [Theory.model_iff, realize_sentence]
+by simv only [Theory.model_iff, realize_sentence]
 
 instance Theory_model {T : L.Theory} [h : M ⊨ T] {S : L.elementary_substructure M} : S ⊨ T :=
 (Theory_model_iff S T).2 h

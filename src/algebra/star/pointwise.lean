@@ -52,14 +52,14 @@ nonempty_star.2 h
 lemma mem_star [has_star α] : a ∈ s⋆ ↔ a⋆ ∈ s := iff.rfl
 
 lemma star_mem_star [has_involutive_star α] : a⋆ ∈ s⋆ ↔ a ∈ s :=
-by simp only [mem_star, star_star]
+by simv only [mem_star, star_star]
 
 @[simp]
 lemma star_preimage [has_star α] : has_star.star ⁻¹' s = s⋆ := rfl
 
 @[simp]
 lemma image_star [has_involutive_star α] : has_star.star '' s = s⋆ :=
-by { simp only [← star_preimage], rw [image_eq_preimage_of_inverse]; intro; simp only [star_star] }
+by { simv only [← star_preimage], rw [image_eq_preimage_of_inverse]; intro; simv only [star_star] }
 
 @[simp]
 lemma inter_star [has_star α] : (s ∩ t)⋆ = s⋆ ∩ t⋆ := preimage_inter
@@ -82,7 +82,7 @@ lemma compl_star [has_star α] : (sᶜ)⋆ = (s⋆)ᶜ := preimage_compl
 instance [has_involutive_star α] : has_involutive_star (set α) :=
 { star := has_star.star,
   star_involutive :=
-    λ s, by { simp only [← star_preimage, preimage_preimage, star_star, preimage_id'] } }
+    λ s, by { simv only [← star_preimage, preimage_preimage, star_star, preimage_id'] } }
 
 @[simp]
 lemma star_subset_star [has_involutive_star α] {s t : set α} : s⋆ ⊆ t⋆ ↔ s ⊆ t :=
@@ -108,12 +108,12 @@ by simp_rw [←image_star, ←image2_add, image_image2, image2_image_left, image
 
 @[simp]
 instance [has_star α] [has_trivial_star α] : has_trivial_star (set α) :=
-{ star_trivial := λ s, by { rw [←star_preimage], ext1, simp [star_trivial] } }
+{ star_trivial := λ s, by { rw [←star_preimage], ext1, simv [star_trivial] } }
 
 protected lemma star_inv [group α] [star_semigroup α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
-by { ext, simp only [mem_star, mem_inv, star_inv] }
+by { ext, simv only [mem_star, mem_inv, star_inv] }
 
 protected lemma star_inv' [division_ring α] [star_ring α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
-by { ext, simp only [mem_star, mem_inv, star_inv'] }
+by { ext, simv only [mem_star, mem_inv, star_inv'] }
 
 end set

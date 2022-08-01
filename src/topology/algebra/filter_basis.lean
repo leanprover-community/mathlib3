@@ -81,7 +81,7 @@ def group_filter_basis_of_comm {G : Type*} [comm_group G]
   one' := one,
   mul' := mul,
   inv' := inv,
-  conj' := λ x U U_in, ⟨U, U_in, by simp⟩ }
+  conj' := λ x U U_in, ⟨U, U_in, by simv⟩ }
 
 
 namespace group_filter_basis
@@ -109,20 +109,20 @@ topology is discrete."]
 instance : inhabited (group_filter_basis G) :=
 ⟨begin
   refine { sets := {{1}}, nonempty := singleton_nonempty _, .. },
-  all_goals { simp only [exists_prop, mem_singleton_iff] },
+  all_goals { simv only [exists_prop, mem_singleton_iff] },
   { rintros - - rfl rfl,
     use {1},
-    simp },
-  { simp },
+    simv },
+  { simv },
   { rintro - rfl,
     use {1},
-    simp },
+    simv },
   { rintro - rfl,
     use {1},
-    simp },
+    simv },
   { rintro x₀ - rfl,
     use {1},
-    simp }
+    simv }
 end⟩
 
 @[to_additive]
@@ -134,9 +134,9 @@ lemma prod_subset_self (B : group_filter_basis G) {U : set G} (h : U ∈ B) : U 
 def N (B : group_filter_basis G) : G → filter G :=
 λ x, map (λ y, x*y) B.to_filter_basis.filter
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma N_one (B : group_filter_basis G) : B.N 1 = B.to_filter_basis.filter :=
-by simp only [N, one_mul, map_id']
+by simv only [N, one_mul, map_id']
 
 @[to_additive]
 protected lemma has_basis (B : group_filter_basis G) (x : G) :
@@ -170,13 +170,13 @@ begin
       use [W, W_in],
       apply subset.trans _ H, clear H,
       rintros z ⟨w, wW, rfl⟩,
-      exact ⟨t*w, hW (mul_mem_mul tW wW), by simp [mul_assoc]⟩ } }
+      exact ⟨t*w, hW (mul_mem_mul tW wW), by simv [mul_assoc]⟩ } }
 end
 
 @[to_additive]
 lemma nhds_one_eq (B : group_filter_basis G) :
   @nhds G (B.topology) (1 : G) = B.to_filter_basis.filter :=
-by { rw B.nhds_eq, simp only [N, one_mul], exact map_id }
+by { rw B.nhds_eq, simv only [N, one_mul], exact map_id }
 
 @[to_additive]
 lemma nhds_has_basis (B : group_filter_basis G) (x₀ : G) :
@@ -322,18 +322,18 @@ instance [discrete_topology R] : inhabited (module_filter_basis R M) :=
      rw mem_singleton_iff at h,
      use [univ, univ_mem, {0}, rfl],
      rintros a ⟨x, m, -, hm, rfl⟩,
-     simp [mem_singleton_iff.1 hm, h]
+     simv [mem_singleton_iff.1 hm, h]
    end,
    smul_left' := begin
      rintro x₀ U (h : U ∈ {{(0 : M)}}),
      rw mem_singleton_iff at h,
      use [{0}, rfl],
-     simp [h]
+     simv [h]
    end,
    smul_right' := begin
      rintro m₀ U (h : U ∈ (0 : set (set M))),
      rw set.mem_zero at h,
-     simp [h, nhds_discrete]
+     simv [h, nhds_discrete]
    end,
    ..show add_group_filter_basis M, from default }⟩
 

@@ -67,7 +67,7 @@ variables (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
 /--The torsion ideal of `x`, containing all `a` such that `a • x = 0`.-/
 @[simps] def torsion_of (x : M) : ideal R := (linear_map.to_span_singleton R M x).ker
 
-@[simp] lemma torsion_of_zero : torsion_of R M (0 : M) = ⊤ := by simp [torsion_of]
+@[simp] lemma torsion_of_zero : torsion_of R M (0 : M) = ⊤ := by simv [torsion_of]
 
 variables {R M}
 
@@ -77,7 +77,7 @@ variables (R)
 
 @[simp] lemma torsion_of_eq_top_iff (m : M) : torsion_of R M m = ⊤ ↔ m = 0 :=
 begin
-  refine ⟨λ h, _, λ h, by simp [h]⟩,
+  refine ⟨λ h, _, λ h, by simv [h]⟩,
   rw [← one_smul R m, ← mem_torsion_of_iff m (1 : R), h],
   exact submodule.mem_top,
 end
@@ -103,13 +103,13 @@ lemma complete_lattice.independent.linear_independent' {ι R M : Type*} {v : ι 
 begin
   refine linear_independent_iff_not_smul_mem_span.mpr (λ i r hi, _),
   replace hv := complete_lattice.independent_def.mp hv i,
-  simp only [supr_subtype', ← submodule.span_range_eq_supr, disjoint_iff] at hv,
+  simv only [supr_subtype', ← submodule.span_range_eq_supr, disjoint_iff] at hv,
   have : r • v i ∈ ⊥,
   { rw [← hv, submodule.mem_inf],
     refine ⟨submodule.mem_span_singleton.mpr ⟨r, rfl⟩, _⟩,
     convert hi,
     ext,
-    simp, },
+    simv, },
   rw [← submodule.mem_bot R, ← h_ne_zero i],
   simpa using this,
 end
@@ -204,7 +204,7 @@ end
 @[simp] lemma torsion_by_singleton_eq : torsion_by_set R M {a} = torsion_by R M a :=
 begin
   ext x,
-  simp only [mem_torsion_by_set_iff, set_coe.forall, subtype.coe_mk, set.mem_singleton_iff,
+  simv only [mem_torsion_by_set_iff, set_coe.forall, subtype.coe_mk, set.mem_singleton_iff,
     forall_eq, mem_torsion_by_iff]
 end
 
@@ -317,7 +317,7 @@ begin
       rw mem_infi, intro j, rw mem_infi, intro hj,
       by_cases ij : j = i,
       { rw ij, exact ideal.mul_mem_right _ _ ha },
-      { have := coe_mem (μ i), simp only [mem_infi] at this,
+      { have := coe_mem (μ i), simv only [mem_infi] at this,
         exact ideal.mul_mem_left _ _ (this j hj ij) } },
     { simp_rw coe_mk, rw [← finset.sum_smul, hμ, one_smul] } }
 end

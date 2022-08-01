@@ -139,7 +139,7 @@ quotient.lift_on' f F hF
   map' F hF f = F f :=
 rfl
 
-@[simp, norm_cast] lemma coe_eq : (f : germ l β) = g ↔ (f =ᶠ[l] g) := quotient.eq'
+@[simv, norm_cast] lemma coe_eq : (f : germ l β) = g ↔ (f =ᶠ[l] g) := quotient.eq'
 
 alias coe_eq ↔ _ _root_.filter.eventually_eq.germ_eq
 
@@ -158,7 +158,7 @@ induction_on f $ λ f, rfl
 /-- Lift a binary function `β → γ → δ` to a function `germ l β → germ l γ → germ l δ`. -/
 def map₂ (op : β → γ → δ) : germ l β → germ l γ → germ l δ :=
 quotient.map₂' (λ f g x, op (f x) (g x)) $ λ f f' Hf g g' Hg,
-Hg.mp $ Hf.mono $ λ x Hf Hg, by simp only [Hf, Hg]
+Hg.mp $ Hf.mono $ λ x Hf Hg, by simv only [Hf, Hg]
 
 @[simp] lemma map₂_coe (op : β → γ → δ) (f : α → β) (g : α → γ) :
   map₂ op (f : germ l β) g = λ x, op (f x) (g x) :=
@@ -169,7 +169,7 @@ which tends to `lb` along `l`. -/
 protected def tendsto (f : germ l β) (lb : filter β) : Prop :=
 lift_on f (λ f, tendsto f l lb) $ λ f g H, propext (tendsto_congr' H)
 
-@[simp, norm_cast] lemma coe_tendsto {f : α → β} {lb : filter β} :
+@[simv, norm_cast] lemma coe_tendsto {f : α → β} {lb : filter β} :
   (f : germ l β).tendsto lb ↔ tendsto f l lb :=
 iff.rfl
 
@@ -199,7 +199,7 @@ rfl
   f.comp_tendsto' _ hg.germ_tendsto = f.comp_tendsto g hg :=
 rfl
 
-@[simp, norm_cast] lemma const_inj [ne_bot l] {a b : β} : (↑a : germ l β) = ↑b ↔ a = b :=
+@[simv, norm_cast] lemma const_inj [ne_bot l] {a b : β} : (↑a : germ l β) = ↑b ↔ a = b :=
 coe_eq.trans $ const_eventually_eq
 
 @[simp] lemma map_const (l : filter α) (a : β) (f : β → γ) :
@@ -263,13 +263,13 @@ variables {M : Type*} {G : Type*}
 @[to_additive]
 instance [has_mul M] : has_mul (germ l M) := ⟨map₂ (*)⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_mul [has_mul M] (f g : α → M) : ↑(f * g) = (f * g : germ l M) := rfl
 
 @[to_additive]
 instance [has_one M] : has_one (germ l M) := ⟨↑(1:M)⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_one [has_one M] : ↑(1 : α → M) = (1 : germ l M) := rfl
 
 @[to_additive]
@@ -306,7 +306,7 @@ rfl
 instance [has_smul M β] : has_smul M (germ l β) :=
 ⟨λ c, map ((•) c)⟩
 
-@[simp, norm_cast] lemma coe_smul [has_smul M β] (c : M) (f : α → β) :
+@[simv, norm_cast] lemma coe_smul [has_smul M β] (c : M) (f : α → β) :
   ↑(c • f) = (c • f : germ l β) :=
 rfl
 
@@ -324,7 +324,7 @@ def coe_mul_hom [monoid M] (l : filter α) : (α → M) →* germ l M := ⟨coe,
 /-- coercion from functions to germs as an additive monoid homomorphism. -/
 add_decl_doc coe_add_hom
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma coe_coe_mul_hom [monoid M] : (coe_mul_hom l : (α → M) → germ l M) = coe := rfl
 
 @[to_additive]
@@ -342,13 +342,13 @@ instance [add_monoid_with_one M] : add_monoid_with_one (germ l M) :=
 @[to_additive]
 instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rfl
 
 @[to_additive]
 instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
 
-@[simp, norm_cast, to_additive]
+@[simv, norm_cast, to_additive]
 lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
 
 instance [sub_neg_monoid G] : sub_neg_monoid (germ l G) :=
@@ -423,37 +423,37 @@ variables {M N R : Type*}
 instance has_smul' [has_smul M β] : has_smul (germ l M) (germ l β) :=
 ⟨map₂ (•)⟩
 
-@[simp, norm_cast] lemma coe_smul' [has_smul M β] (c : α → M) (f : α → β) :
+@[simv, norm_cast] lemma coe_smul' [has_smul M β] (c : α → M) (f : α → β) :
   ↑(c • f) = (c : germ l M) • (f : germ l β) :=
 rfl
 
 instance [monoid M] [mul_action M β]  : mul_action M (germ l β) :=
-{ one_smul := λ f, induction_on f $ λ f, by { norm_cast, simp only [one_smul] },
-  mul_smul := λ c₁ c₂ f, induction_on f $ λ f, by { norm_cast, simp only [mul_smul] } }
+{ one_smul := λ f, induction_on f $ λ f, by { norm_cast, simv only [one_smul] },
+  mul_smul := λ c₁ c₂ f, induction_on f $ λ f, by { norm_cast, simv only [mul_smul] } }
 
 instance mul_action' [monoid M] [mul_action M β]  : mul_action (germ l M) (germ l β) :=
-{ one_smul := λ f, induction_on f $ λ f, by simp only [← coe_one, ← coe_smul', one_smul],
-  mul_smul := λ c₁ c₂ f, induction_on₃ c₁ c₂ f $ λ c₁ c₂ f, by { norm_cast, simp only [mul_smul] } }
+{ one_smul := λ f, induction_on f $ λ f, by simv only [← coe_one, ← coe_smul', one_smul],
+  mul_smul := λ c₁ c₂ f, induction_on₃ c₁ c₂ f $ λ c₁ c₂ f, by { norm_cast, simv only [mul_smul] } }
 
 instance [monoid M] [add_monoid N] [distrib_mul_action M N] :
   distrib_mul_action M (germ l N) :=
-{ smul_add := λ c f g, induction_on₂ f g $ λ f g, by { norm_cast, simp only [smul_add] },
-  smul_zero := λ c, by simp only [← coe_zero, ← coe_smul, smul_zero] }
+{ smul_add := λ c f g, induction_on₂ f g $ λ f g, by { norm_cast, simv only [smul_add] },
+  smul_zero := λ c, by simv only [← coe_zero, ← coe_smul, smul_zero] }
 
 instance distrib_mul_action' [monoid M] [add_monoid N] [distrib_mul_action M N] :
   distrib_mul_action (germ l M) (germ l N) :=
-{ smul_add := λ c f g, induction_on₃ c f g $ λ c f g, by { norm_cast, simp only [smul_add] },
-  smul_zero := λ c, induction_on c $ λ c, by simp only [← coe_zero, ← coe_smul', smul_zero] }
+{ smul_add := λ c f g, induction_on₃ c f g $ λ c f g, by { norm_cast, simv only [smul_add] },
+  smul_zero := λ c, induction_on c $ λ c, by simv only [← coe_zero, ← coe_smul', smul_zero] }
 
 instance [semiring R] [add_comm_monoid M] [module R M] :
   module R (germ l M) :=
-{ add_smul := λ c₁ c₂ f, induction_on f $ λ f, by { norm_cast, simp only [add_smul] },
-  zero_smul := λ f, induction_on f $ λ f, by { norm_cast, simp only [zero_smul, coe_zero] } }
+{ add_smul := λ c₁ c₂ f, induction_on f $ λ f, by { norm_cast, simv only [add_smul] },
+  zero_smul := λ f, induction_on f $ λ f, by { norm_cast, simv only [zero_smul, coe_zero] } }
 
 instance module' [semiring R] [add_comm_monoid M] [module R M] :
   module (germ l R) (germ l M) :=
-{ add_smul := λ c₁ c₂ f, induction_on₃ c₁ c₂ f $ λ c₁ c₂ f, by { norm_cast, simp only [add_smul] },
-  zero_smul := λ f, induction_on f $ λ f, by simp only [← coe_zero, ← coe_smul', zero_smul] }
+{ add_smul := λ c₁ c₂ f, induction_on₃ c₁ c₂ f $ λ c₁ c₂ f, by { norm_cast, simv only [add_smul] },
+  zero_smul := λ f, induction_on f $ λ f, by simv only [← coe_zero, ← coe_smul', zero_smul] }
 
 end module
 
@@ -467,7 +467,7 @@ lemma le_def [has_le β] : ((≤) : germ l β → germ l β → Prop) = lift_rel
 lemma const_le [has_le β] {x y : β} (h : x ≤ y) : (↑x : germ l β) ≤ ↑y :=
 lift_rel_const h
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma const_le_iff [has_le β] [ne_bot l] {x y : β} : (↑x : germ l β) ≤ ↑y ↔ x ≤ y :=
 lift_rel_const_iff
 
@@ -483,7 +483,7 @@ instance [partial_order β] : partial_order (germ l β) :=
 
 instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩
 
-@[simp, norm_cast] lemma const_bot [has_bot β] : (↑(⊥:β) : germ l β) = ⊥ := rfl
+@[simv, norm_cast] lemma const_bot [has_bot β] : (↑(⊥:β) : germ l β) = ⊥ := rfl
 
 instance [has_le β] [order_bot β] : order_bot (germ l β) :=
 { bot := ⊥,
@@ -491,7 +491,7 @@ instance [has_le β] [order_bot β] : order_bot (germ l β) :=
 
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤:β)⟩
 
-@[simp, norm_cast] lemma const_top [has_top β] : (↑(⊤:β) : germ l β) = ⊤ := rfl
+@[simv, norm_cast] lemma const_top [has_top β] : (↑(⊤:β) : germ l β) = ⊤ := rfl
 
 instance [has_le β] [order_top β] : order_top (germ l β) :=
 { top := ⊤,
@@ -499,11 +499,11 @@ instance [has_le β] [order_top β] : order_top (germ l β) :=
 
 instance [has_sup β] : has_sup (germ l β) := ⟨map₂ (⊔)⟩
 
-@[simp, norm_cast] lemma const_sup [has_sup β] (a b : β) : ↑(a ⊔ b) = (↑a ⊔ ↑b : germ l β) := rfl
+@[simv, norm_cast] lemma const_sup [has_sup β] (a b : β) : ↑(a ⊔ b) = (↑a ⊔ ↑b : germ l β) := rfl
 
 instance [has_inf β] : has_inf (germ l β) := ⟨map₂ (⊓)⟩
 
-@[simp, norm_cast] lemma const_inf [has_inf β] (a b : β) : ↑(a ⊓ b) = (↑a ⊓ ↑b : germ l β) := rfl
+@[simv, norm_cast] lemma const_inf [has_inf β] (a b : β) : ↑(a ⊓ b) = (↑a ⊓ ↑b : germ l β) := rfl
 
 instance [semilattice_sup β] : semilattice_sup (germ l β) :=
 { sup := (⊔),

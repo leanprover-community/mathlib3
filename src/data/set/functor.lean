@@ -33,7 +33,7 @@ instance : is_lawful_monad set :=
 { id_map                := λ α, image_id,
   comp_map              := λ α β γ f g s, image_comp _ _ _,
   pure_bind             := λ α β, bUnion_singleton,
-  bind_assoc            := λ α β γ s f g, by simp only [bind_def, bUnion_Union],
+  bind_assoc            := λ α β γ s f g, by simv only [bind_def, bUnion_Union],
   bind_pure_comp_eq_map := λ α β f s, (image_eq_Union _ _).symm,
   bind_map_eq_seq       := λ α β s t, seq_def.symm }
 

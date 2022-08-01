@@ -269,12 +269,12 @@ lemma eq_of_le_of_is_detecting {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C
   (h₁ : P ≤ Q) (h₂ : ∀ (G ∈ 𝒢) {f : G ⟶ X}, Q.factors f → P.factors f) : P = Q :=
 begin
   suffices : is_iso (of_le _ _ h₁),
-  { exactI le_antisymm h₁ (le_of_comm (inv (of_le _ _ h₁)) (by simp)) },
+  { exactI le_antisymm h₁ (le_of_comm (inv (of_le _ _ h₁)) (by simv)) },
   refine h𝒢 _ (λ G hG f, _),
   have : P.factors (f ≫ Q.arrow) := h₂ _ hG ((factors_iff _ _).2 ⟨_, rfl⟩),
   refine ⟨factor_thru _ _ this, _, λ g (hg : g ≫ _ = f), _⟩,
-  { simp only [← cancel_mono Q.arrow, category.assoc, of_le_arrow, factor_thru_arrow] },
-  { simp only [← cancel_mono (subobject.of_le _ _ h₁), ← cancel_mono Q.arrow, hg,
+  { simv only [← cancel_mono Q.arrow, category.assoc, of_le_arrow, factor_thru_arrow] },
+  { simv only [← cancel_mono (subobject.of_le _ _ h₁), ← cancel_mono Q.arrow, hg,
       category.assoc, of_le_arrow, factor_thru_arrow] }
 end
 
@@ -433,9 +433,9 @@ lemma is_separator_coprod (G H : C) [has_binary_coproduct G H] :
 begin
   refine ⟨λ h X Y u v huv, _, λ h, (is_separator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
   { refine h.def _ _ (λ g, coprod.hom_ext _ _),
-    { simpa using huv G (by simp) (coprod.inl ≫ g) },
-    { simpa using huv H (by simp) (coprod.inr ≫ g) } },
-  { simp only [set.mem_insert_iff, set.mem_singleton_iff] at hZ,
+    { simpa using huv G (by simv) (coprod.inl ≫ g) },
+    { simpa using huv H (by simv) (coprod.inr ≫ g) } },
+  { simv only [set.mem_insert_iff, set.mem_singleton_iff] at hZ,
     unfreezingI { rcases hZ with rfl|rfl },
     { simpa using coprod.inl ≫= huv (coprod.desc g 0) },
     { simpa using coprod.inr ≫= huv (coprod.desc 0 g) } }
@@ -443,18 +443,18 @@ end
 
 lemma is_separator_coprod_of_is_separator_left (G H : C) [has_binary_coproduct G H]
   (hG : is_separator G) : is_separator (G ⨿ H) :=
-(is_separator_coprod _ _).2 $ is_separating.mono hG $ by simp
+(is_separator_coprod _ _).2 $ is_separating.mono hG $ by simv
 
 lemma is_separator_coprod_of_is_separator_right (G H : C) [has_binary_coproduct G H]
   (hH : is_separator H) : is_separator (G ⨿ H) :=
-(is_separator_coprod _ _).2 $ is_separating.mono hH $ by simp
+(is_separator_coprod _ _).2 $ is_separating.mono hH $ by simv
 
 lemma is_separator_sigma {β : Type w} (f : β → C) [has_coproduct f] :
   is_separator (∐ f) ↔ is_separating (set.range f) :=
 begin
   refine ⟨λ h X Y u v huv, _, λ h, (is_separator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
   { refine h.def _ _ (λ g, colimit.hom_ext (λ b, _)),
-    simpa using huv (f b.as) (by simp) (colimit.ι (discrete.functor f) _ ≫ g) },
+    simpa using huv (f b.as) (by simv) (colimit.ι (discrete.functor f) _ ≫ g) },
   { obtain ⟨b, rfl⟩ := set.mem_range.1 hZ,
     classical,
     simpa using sigma.ι f b ≫= huv (sigma.desc (pi.single b g)) }
@@ -462,16 +462,16 @@ end
 
 lemma is_separator_sigma_of_is_separator {β : Type w} (f : β → C) [has_coproduct f]
   (b : β) (hb : is_separator (f b)) : is_separator (∐ f) :=
-(is_separator_sigma _).2 $ is_separating.mono hb $ by simp
+(is_separator_sigma _).2 $ is_separating.mono hb $ by simv
 
 lemma is_coseparator_prod (G H : C) [has_binary_product G H] :
   is_coseparator (G ⨯ H) ↔ is_coseparating ({G, H} : set C) :=
 begin
   refine ⟨λ h X Y u v huv, _, λ h, (is_coseparator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
   { refine h.def _ _ (λ g, prod.hom_ext _ _),
-    { simpa using huv G (by simp) (g ≫ limits.prod.fst) },
-    { simpa using huv H (by simp) (g ≫ limits.prod.snd) } },
-  { simp only [set.mem_insert_iff, set.mem_singleton_iff] at hZ,
+    { simpa using huv G (by simv) (g ≫ limits.prod.fst) },
+    { simpa using huv H (by simv) (g ≫ limits.prod.snd) } },
+  { simv only [set.mem_insert_iff, set.mem_singleton_iff] at hZ,
     unfreezingI { rcases hZ with rfl|rfl },
     { simpa using huv (prod.lift g 0) =≫ limits.prod.fst },
     { simpa using huv (prod.lift 0 g) =≫ limits.prod.snd } }
@@ -479,18 +479,18 @@ end
 
 lemma is_coseparator_prod_of_is_coseparator_left (G H : C) [has_binary_product G H]
   (hG : is_coseparator G) : is_coseparator (G ⨯ H) :=
-(is_coseparator_prod _ _).2 $ is_coseparating.mono hG $ by simp
+(is_coseparator_prod _ _).2 $ is_coseparating.mono hG $ by simv
 
 lemma is_coseparator_prod_of_is_coseparator_right (G H : C) [has_binary_product G H]
   (hH : is_coseparator H) : is_coseparator (G ⨯ H) :=
-(is_coseparator_prod _ _).2 $ is_coseparating.mono hH $ by simp
+(is_coseparator_prod _ _).2 $ is_coseparating.mono hH $ by simv
 
 lemma is_coseparator_pi {β : Type w} (f : β → C) [has_product f] :
   is_coseparator (∏ f) ↔ is_coseparating (set.range f) :=
 begin
   refine ⟨λ h X Y u v huv, _, λ h, (is_coseparator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
   { refine h.def _ _ (λ g, limit.hom_ext (λ b, _)),
-    simpa using huv (f b.as) (by simp) (g ≫ limit.π (discrete.functor f) _ ) },
+    simpa using huv (f b.as) (by simv) (g ≫ limit.π (discrete.functor f) _ ) },
   { obtain ⟨b, rfl⟩ := set.mem_range.1 hZ,
     classical,
     simpa using huv (pi.lift (pi.single b g)) =≫ pi.π f b }
@@ -498,7 +498,7 @@ end
 
 lemma is_coseparator_pi_of_is_coseparator {β : Type w} (f : β → C) [has_product f]
   (b : β) (hb : is_coseparator (f b)) : is_coseparator (∏ f) :=
-(is_coseparator_pi _).2 $ is_coseparating.mono hb $ by simp
+(is_coseparator_pi _).2 $ is_coseparating.mono hb $ by simv
 
 end zero_morphisms
 

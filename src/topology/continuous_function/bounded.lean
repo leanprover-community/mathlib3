@@ -172,8 +172,8 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 
 /-- The type of bounded continuous functions, with the uniform distance, is a pseudometric space. -/
 instance : pseudo_metric_space (α →ᵇ β) :=
-{ dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
-  dist_comm := λ f g, by simp [dist_eq, dist_comm],
+{ dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simv) dist_nonneg',
+  dist_comm := λ f g, by simv [dist_eq, dist_comm],
   dist_triangle := λ f g h,
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
@@ -224,7 +224,7 @@ variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
 @[simps {fully_applied := ff}] def const (b : β) : α →ᵇ β :=
-⟨continuous_map.const α b, 0, by simp [le_rfl]⟩
+⟨continuous_map.const α b, 0, by simv [le_rfl]⟩
 
 variable {α}
 
@@ -374,9 +374,9 @@ fun_like.coe_injective $ function.extend_of_empty f g h
 begin
   refine le_antisymm ((dist_le $ le_max_iff.2 $ or.inl dist_nonneg).2 $ λ x, _) (max_le _ _),
   { rcases em (∃ y, f y = x) with (⟨x, rfl⟩|hx),
-    { simp only [extend_apply],
+    { simv only [extend_apply],
       exact (dist_coe_le_dist x).trans (le_max_left _ _) },
-    { simp only [extend_apply' hx],
+    { simv only [extend_apply' hx],
       lift x to ((range f)ᶜ : set δ) using hx,
       calc dist (h₁ x) (h₂ x) = dist (h₁.restrict (range f)ᶜ x) (h₂.restrict (range f)ᶜ x) : rfl
       ... ≤ dist (h₁.restrict (range f)ᶜ) (h₂.restrict (range f)ᶜ) : dist_coe_le_dist x
@@ -392,7 +392,7 @@ end
 
 lemma isometry_extend (f : α ↪ δ) (h : δ →ᵇ β) :
   isometry (λ g : α →ᵇ β, extend f g h) :=
-isometry.of_dist_eq $ λ g₁ g₂, by simp [dist_nonneg]
+isometry.of_dist_eq $ λ g₁ g₂, by simv [dist_nonneg]
 
 end extend
 
@@ -543,7 +543,7 @@ begin
   calc
     dist (f y) (f z) ≤ b (dist y z) : H y z f hf
     ... ≤ |b (dist y z)| : le_abs_self _
-    ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
+    ... = dist (b (dist y z)) 0 : by simv [real.dist_eq]
     ... < ε : hδ (by simpa [real.dist_eq] using this),
 end
 
@@ -555,15 +555,15 @@ variables [topological_space α] [pseudo_metric_space β] [has_one β]
 
 @[to_additive] instance : has_one (α →ᵇ β) := ⟨const α 1⟩
 
-@[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
+@[simv, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
 
 @[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀ x, f x = 1) ↔ f = 1 :=
 (@fun_like.ext_iff _ _ _ _ f 1).symm
 
-@[simp, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
+@[simv, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
   (1 : α →ᵇ β).comp_continuous f = 1 := rfl
 
 end has_one
@@ -646,8 +646,8 @@ variables (α β)
 -/
 @[simps] def to_continuous_map_add_hom : (α →ᵇ β) →+ C(α, β) :=
 { to_fun := to_continuous_map,
-  map_zero' := by { ext, simp, },
-  map_add' := by { intros, ext, simp, }, }
+  map_zero' := by { ext, simv, },
+  map_add' := by { intros, ext, simv, }, }
 
 end has_lipschitz_add
 
@@ -656,7 +656,7 @@ section comm_has_lipschitz_add
 variables [topological_space α] [pseudo_metric_space β] [add_comm_monoid β] [has_lipschitz_add β]
 
 @[to_additive] instance : add_comm_monoid (α →ᵇ β) :=
-{ add_comm      := assume f g, by ext; simp [add_comm],
+{ add_comm      := assume f g, by ext; simv [add_comm],
   .. bounded_continuous_function.add_monoid }
 
 open_locale big_operators
@@ -667,7 +667,7 @@ open_locale big_operators
 
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
   (∑ i in s, f i) a = (∑ i in s, f i a) :=
-by simp
+by simv
 
 end comm_has_lipschitz_add
 
@@ -687,7 +687,7 @@ lemma norm_def : ∥f∥ = dist f 0 := rfl
 We use `Inf` to ensure that the definition works if `α` has no elements. -/
 lemma norm_eq (f : α →ᵇ β) :
   ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
-by simp [norm_def, bounded_continuous_function.dist_eq]
+by simv [norm_def, bounded_continuous_function.dist_eq]
 
 /-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
 `Inf`. -/
@@ -697,7 +697,7 @@ begin
   rw norm_eq,
   congr,
   ext,
-  simp only [and_iff_right_iff_imp],
+  simv only [and_iff_right_iff_imp],
   exact λ h', le_trans (norm_nonneg (f a)) (h' a),
 end
 
@@ -705,7 +705,7 @@ end
 dist_zero_of_empty
 
 lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
-  ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
+  ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simv [dist_zero_right]
   ... ≤ ∥f∥ : dist_coe_le_dist _
 
 lemma dist_le_two_norm' {f : γ → β} {C : ℝ} (hC : ∀ x, ∥f x∥ ≤ C) (x y : γ) :
@@ -790,7 +790,7 @@ f.comp norm lipschitz_with_one_norm
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
 @[simp] lemma norm_norm_comp : ∥f.norm_comp∥ = ∥f∥ :=
-by simp only [norm_eq, coe_norm_comp, norm_norm]
+by simv only [norm_eq, coe_norm_comp, norm_norm]
 
 lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 (real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
@@ -806,7 +806,7 @@ instance : has_neg (α →ᵇ β) :=
 /-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
 instance : has_sub (α →ᵇ β) :=
 ⟨λf g, of_normed_add_comm_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
-  by { simp only [sub_eq_add_neg],
+  by { simv only [sub_eq_add_neg],
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
 
@@ -839,7 +839,7 @@ fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _
   (λ _ _, coe_zsmul _ _)
 
 instance : seminormed_add_comm_group (α →ᵇ β) :=
-{ dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
+{ dist_eq := λ f g, by simv only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 
 instance {α β} [topological_space α] [normed_add_comm_group β] : normed_add_comm_group (α →ᵇ β) :=
 { ..bounded_continuous_function.seminormed_add_comm_group }
@@ -918,7 +918,7 @@ instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
     intros x,
     refine (dist_pair_smul c₁ c₂ (f x)).trans _,
     convert mul_le_mul_of_nonneg_left (dist_coe_le_dist x) dist_nonneg,
-    simp
+    simv
   end }
 
 end has_smul
@@ -1006,8 +1006,8 @@ linear_map.mk_continuous
       (g.continuous.comp f.continuous)
       (∥g∥ * ∥f∥)
       (λ x, (g.le_op_norm_of_le (f.norm_coe_le_norm x))),
-    map_add' := λ f g, by ext; simp,
-    map_smul' := λ c f, by ext; simp }
+    map_add' := λ f g, by ext; simv,
+    map_smul' := λ c f, by ext; simv }
   ∥g∥
   (λ f, norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
 
@@ -1077,12 +1077,12 @@ instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
 instance : has_nat_cast (α →ᵇ R) :=
 ⟨λ n, bounded_continuous_function.const _ n⟩
 
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : α →ᵇ R) : α → R) = n := rfl
+@[simv, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : α →ᵇ R) : α → R) = n := rfl
 
 instance : has_int_cast (α →ᵇ R) :=
 ⟨λ n, bounded_continuous_function.const _ n⟩
 
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
+@[simv, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
 
 instance : ring (α →ᵇ R) :=
 fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
@@ -1195,7 +1195,7 @@ lemma nnreal.upper_bound {α : Type*} [topological_space α]
 begin
   have key : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
   { exact @dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
-  simp only [coe_zero, pi.zero_apply] at key,
+  simv only [coe_zero, pi.zero_apply] at key,
   rwa nnreal.nndist_zero_eq_val' (f x) at key,
 end
 
@@ -1234,7 +1234,7 @@ instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = st
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
 instance : normed_star_group (α →ᵇ β) :=
-{ norm_star := λ f, by simp only [norm_eq, star_apply, norm_star] }
+{ norm_star := λ f, by simv only [norm_eq, star_apply, norm_star] }
 
 instance : star_module 𝕜 (α →ᵇ β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
@@ -1325,7 +1325,7 @@ instance  : lattice (α →ᵇ β) :=
 instance : normed_lattice_add_comm_group (α →ᵇ β) :=
 { add_le_add_left := begin
     intros f g h₁ h t,
-    simp only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left, coe_add,
+    simv only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left, coe_add,
       continuous_map.to_fun_eq_coe],
     exact h₁ _,
   end,
@@ -1363,13 +1363,13 @@ bounded_continuous_function.comp _
 /-- Decompose a bounded continuous function to its positive and negative parts. -/
 lemma self_eq_nnreal_part_sub_nnreal_part_neg (f : α →ᵇ ℝ) :
   ⇑f = coe ∘ f.nnreal_part - coe ∘ (-f).nnreal_part :=
-by { funext x, dsimp, simp only [max_zero_sub_max_neg_zero_eq_self], }
+by { funext x, dsimp, simv only [max_zero_sub_max_neg_zero_eq_self], }
 
 /-- Express the absolute value of a bounded continuous function in terms of its
 positive and negative parts. -/
 lemma abs_self_eq_nnreal_part_add_nnreal_part_neg (f : α →ᵇ ℝ) :
   abs ∘ ⇑f = coe ∘ f.nnreal_part + coe ∘ (-f).nnreal_part :=
-by { funext x, dsimp, simp only [max_zero_add_max_neg_zero_eq_abs_self], }
+by { funext x, dsimp, simv only [max_zero_add_max_neg_zero_eq_abs_self], }
 
 end nonnegative_part
 

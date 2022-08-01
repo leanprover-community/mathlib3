@@ -67,7 +67,7 @@ lemma term.realize_quotient_mk {β : Type*} (t : L.term β) (x : β → M)  :
 begin
   induction t with _ _ _ _ ih,
   { refl },
-  { simp only [ih, fun_map_quotient_mk, term.realize] },
+  { simv only [ih, fun_map_quotient_mk, term.realize] },
 end
 
 end language

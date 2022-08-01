@@ -276,7 +276,7 @@ library_note "addition on function coercions"
 /-! ### The zero normed group hom -/
 
 instance : has_zero (normed_add_group_hom V₁ V₂) :=
-⟨(0 : V₁ →+ V₂).mk_normed_add_group_hom 0 (by simp)⟩
+⟨(0 : V₁ →+ V₂).mk_normed_add_group_hom 0 (by simv)⟩
 
 instance : inhabited (normed_add_group_hom V₁ V₂) := ⟨0⟩
 
@@ -308,13 +308,13 @@ variable (V)
 /-- The identity as a continuous normed group hom. -/
 @[simps]
 def id : normed_add_group_hom V V :=
-(add_monoid_hom.id V).mk_normed_add_group_hom 1 (by simp [le_refl])
+(add_monoid_hom.id V).mk_normed_add_group_hom 1 (by simv [le_refl])
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the norm of every
 element vanishes, where it is `0`. (Since we are working with seminorms this can happen even if the
 space is non-trivial.) It means that one can not do better than an inequality in general. -/
 lemma norm_id_le : ∥(id V : normed_add_group_hom V V)∥ ≤ 1 :=
-op_norm_le_bound _ zero_le_one (λx, by simp)
+op_norm_le_bound _ zero_le_one (λx, by simv)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
@@ -338,7 +338,7 @@ lemma coe_id : ((normed_add_group_hom.id V) : V → V) = (_root_.id : V → V) :
 
 /-- Opposite of a normed group hom. -/
 instance : has_neg (normed_add_group_hom V₁ V₂) :=
-⟨λ f, (-f.to_add_monoid_hom).mk_normed_add_group_hom (∥f∥) (λ v, by simp [le_op_norm f v])⟩
+⟨λ f, (-f.to_add_monoid_hom).mk_normed_add_group_hom (∥f∥) (λ v, by simv [le_op_norm f v])⟩
 
 -- see Note [addition on function coercions]
 @[simp] lemma coe_neg (f : normed_add_group_hom V₁ V₂) : ⇑(-f) = (-f : V₁ → V₂) := rfl
@@ -346,7 +346,7 @@ instance : has_neg (normed_add_group_hom V₁ V₂) :=
   (-f : normed_add_group_hom V₁ V₂) v = - (f v) := rfl
 
 lemma op_norm_neg (f : normed_add_group_hom V₁ V₂) : ∥-f∥ = ∥f∥ :=
-by simp only [norm_def, coe_neg, norm_neg, pi.neg_apply]
+by simv only [norm_def, coe_neg, norm_neg, pi.neg_apply]
 
 /-! ### Subtraction of normed group homs -/
 
@@ -355,7 +355,7 @@ instance : has_sub (normed_add_group_hom V₁ V₂) :=
 ⟨λ f g,
 { bound' :=
   begin
-    simp only [add_monoid_hom.sub_apply, add_monoid_hom.to_fun_eq_coe, sub_eq_add_neg],
+    simv only [add_monoid_hom.sub_apply, add_monoid_hom.to_fun_eq_coe, sub_eq_add_neg],
     exact (f + -g).bound'
   end,
   .. (f.to_add_monoid_hom - g.to_add_monoid_hom) }⟩
@@ -459,7 +459,7 @@ def coe_fn_add_hom : normed_add_group_hom V₁ V₂ →+ (V₁ → V₂) :=
 
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_add_group_hom V₁ V₂) (v : V₁) :
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
-by simp only [coe_sum, finset.sum_apply]
+by simv only [coe_sum, finset.sum_apply]
 
 /-! ### Module structure on normed group homs -/
 
@@ -502,7 +502,7 @@ def comp_hom :
   normed_add_group_hom V₂ V₃ →+ normed_add_group_hom V₁ V₂ →+ normed_add_group_hom V₁ V₃ :=
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
   (by { intros, ext, exact map_add g _ _ }))
-  (by { intros, ext, simp only [comp_apply, pi.add_apply, function.comp_app,
+  (by { intros, ext, simv only [comp_apply, pi.add_apply, function.comp_app,
                                 add_monoid_hom.add_apply, add_monoid_hom.mk'_apply, coe_add] })
 
 @[simp] lemma comp_zero (f : normed_add_group_hom V₂ V₃) :
@@ -553,7 +553,7 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
 @[simps] def ker.lift (h : g.comp f = 0) :
   normed_add_group_hom V₁ g.ker :=
 { to_fun := λ v, ⟨f v, by { erw g.mem_ker, show (g.comp f) v = 0, rw h, refl }⟩,
-  map_add' := λ v w, by { simp only [map_add], refl },
+  map_add' := λ v w, by { simv only [map_add], refl },
   bound' := f.bound' }
 
 @[simp] lemma ker.incl_comp_lift (h : g.comp f = 0) :
@@ -562,7 +562,7 @@ by { ext, refl }
 
 @[simp]
 lemma ker_zero : (0 : normed_add_group_hom V₁ V₂).ker = ⊤ :=
-by { ext, simp [mem_ker] }
+by { ext, simv [mem_ker] }
 
 lemma coe_ker : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} := rfl
 
@@ -592,7 +592,7 @@ lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.ran
 by { erw add_monoid_hom.map_range, refl }
 
 lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
-by { ext x, exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩ }
+by { ext x, exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simv }, λ hx, ⟨⟨x, hx⟩, by simv⟩⟩ }
 
 @[simp]
 lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
@@ -617,7 +617,7 @@ begin
 end
 
 lemma zero : (0 : normed_add_group_hom V₁ V₂).norm_noninc :=
-λ v, by simp
+λ v, by simv
 
 lemma id : (id V).norm_noninc :=
 λ v, le_rfl
@@ -678,7 +678,7 @@ def lift (φ : normed_add_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
   normed_add_group_hom V₁ (f.equalizer g) :=
 { to_fun := λ v, ⟨φ v, show (f - g) (φ v) = 0,
     by rw [normed_add_group_hom.sub_apply, sub_eq_zero, ← comp_apply, h, comp_apply]⟩,
-  map_add' := λ v₁ v₂, by { ext, simp only [map_add, add_subgroup.coe_add, subtype.coe_mk] },
+  map_add' := λ v₁ v₂, by { ext, simv only [map_add, add_subgroup.coe_add, subtype.coe_mk] },
   bound' := by { obtain ⟨C, C_pos, hC⟩ := φ.bound, exact ⟨C, hC⟩ } }
 
 @[simp] lemma ι_comp_lift (φ : normed_add_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
@@ -691,7 +691,7 @@ def lift_equiv : {φ : normed_add_group_hom V₁ V // f.comp φ = g.comp φ} ≃
   normed_add_group_hom V₁ (f.equalizer g) :=
 { to_fun := λ φ, lift φ φ.prop,
   inv_fun := λ ψ, ⟨(ι f g).comp ψ, by { rw [← comp_assoc, ← comp_assoc, comp_ι_eq] }⟩,
-  left_inv := λ φ, by simp,
+  left_inv := λ φ, by simv,
   right_inv := λ ψ, by { ext, refl } }
 
 /-- Given `φ : normed_add_group_hom V₁ V₂` and `ψ : normed_add_group_hom W₁ W₂` such that
@@ -701,7 +701,7 @@ def map (φ : normed_add_group_hom V₁ V₂) (ψ : normed_add_group_hom W₁ W�
   (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ) :
   normed_add_group_hom (f₁.equalizer g₁) (f₂.equalizer g₂) :=
 lift (φ.comp $ ι _ _) $
-by { simp only [← comp_assoc, ← hf, ← hg], simp only [comp_assoc, comp_ι_eq] }
+by { simv only [← comp_assoc, ← hf, ← hg], simv only [comp_assoc, comp_ι_eq] }
 
 variables {φ : normed_add_group_hom V₁ V₂} {ψ : normed_add_group_hom W₁ W₂}
 variables {φ' : normed_add_group_hom V₂ V₃} {ψ' : normed_add_group_hom W₂ W₃}
@@ -767,7 +767,7 @@ begin
   by_cases hyp_h : h = 0,
   { rw hyp_h,
     use 0,
-    simp },
+    simv },
   /- The desired preimage will be constructed as the sum of a series. Convergence of
   the series will be guaranteed by completeness of `G`. We first write `h` as the sum
   of a sequence `v` of elements of `K` which starts close to `h` and then quickly goes to zero.
@@ -793,7 +793,7 @@ begin
     rintro n (hn : n ≥ 1),
     calc ∥u n∥ ≤ C*∥v n∥ : hnorm_u n
     ... ≤ C * b n : mul_le_mul_of_nonneg_left (hv _ $ nat.succ_le_iff.mp hn).le hC.le
-    ... = (1/2)^n * (ε * ∥h∥/2) : by simp [b, mul_div_cancel' _ hC.ne.symm]
+    ... = (1/2)^n * (ε * ∥h∥/2) : by simv [b, mul_div_cancel' _ hC.ne.symm]
     ... = (ε * ∥h∥/2) * (1/2)^n : mul_comm _ _ },
   /- We now show that the limit `g` of `s` is the desired preimage. -/
   obtain ⟨g : G, hg⟩ := cauchy_seq_tendsto_of_complete this,
@@ -801,7 +801,7 @@ begin
   { /- We indeed get a preimage. First note: -/
     have : f ∘ s = λ n, ∑ k in range (n + 1), v k,
     { ext n,
-      simp [map_sum, hu] },
+      simv [map_sum, hu] },
     /- In the above equality, the left-hand-side converges to `f g` by continuity of `f` and
        definition of `g` while the right-hand-side converges to `h` by construction of `v` so
        `g` is indeed a preimage of `h`. -/
@@ -820,7 +820,7 @@ begin
       ... = C * b 0 + C * ∥h∥ : by rw [add_comm, mul_add] },
     have : ∑ k in range (n + 1), C * b k ≤ ε * ∥h∥ := calc
       ∑ k in range (n + 1), C * b k = (∑ k in range (n + 1), (1 / 2) ^ k) * (ε * ∥h∥ / 2) :
-                     by simp only [b, mul_div_cancel' _ hC.ne.symm, ← sum_mul]
+                     by simv only [b, mul_div_cancel' _ hC.ne.symm, ← sum_mul]
       ... ≤  2 * (ε * ∥h∥ / 2) : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
                                                             (by nlinarith [hε, norm_nonneg h])
       ... = ε * ∥h∥ : mul_div_cancel' _ two_ne_zero,

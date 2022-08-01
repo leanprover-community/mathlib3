@@ -41,8 +41,8 @@ def dom_coprod
   (a : multilinear_map R (λ _ : ι₁, N) N₁) (b : multilinear_map R (λ _ : ι₂, N) N₂) :
   multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
 { to_fun := λ v, a (λ i, v (sum.inl i)) ⊗ₜ b (λ i, v (sum.inr i)),
-  map_add' := λ v i p q, by cases i; simp [tensor_product.add_tmul, tensor_product.tmul_add],
-  map_smul' := λ v i c p, by cases i; simp [tensor_product.smul_tmul', tensor_product.tmul_smul] }
+  map_add' := λ v i p q, by cases i; simv [tensor_product.add_tmul, tensor_product.tmul_add],
+  map_smul' := λ v i c p, by cases i; simv [tensor_product.smul_tmul', tensor_product.tmul_smul] }
 
 /-- A more bundled version of `multilinear_map.dom_coprod` that maps
 `((ι₁ → N) → N₁) ⊗ ((ι₂ → N) → N₂)` to `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂`. -/
@@ -50,10 +50,10 @@ def dom_coprod' :
   multilinear_map R (λ _ : ι₁, N) N₁ ⊗[R] multilinear_map R (λ _ : ι₂, N) N₂ →ₗ[R]
   multilinear_map R (λ _ : ι₁ ⊕ ι₂, N) (N₁ ⊗[R] N₂) :=
 tensor_product.lift $ linear_map.mk₂ R (dom_coprod)
-  (λ m₁ m₂ n, by { ext, simp only [dom_coprod_apply, tensor_product.add_tmul, add_apply] })
-  (λ c m n,   by { ext, simp only [dom_coprod_apply, tensor_product.smul_tmul', smul_apply] })
-  (λ m n₁ n₂, by { ext, simp only [dom_coprod_apply, tensor_product.tmul_add, add_apply] })
-  (λ c m n,   by { ext, simp only [dom_coprod_apply, tensor_product.tmul_smul, smul_apply] })
+  (λ m₁ m₂ n, by { ext, simv only [dom_coprod_apply, tensor_product.add_tmul, add_apply] })
+  (λ c m n,   by { ext, simv only [dom_coprod_apply, tensor_product.smul_tmul', smul_apply] })
+  (λ m n₁ n₂, by { ext, simv only [dom_coprod_apply, tensor_product.tmul_add, add_apply] })
+  (λ c m n,   by { ext, simv only [dom_coprod_apply, tensor_product.tmul_smul, smul_apply] })
 
 @[simp]
 lemma dom_coprod'_apply

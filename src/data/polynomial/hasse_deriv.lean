@@ -61,18 +61,18 @@ lemma hasse_deriv_coeff (n : ℕ) :
   (hasse_deriv k f).coeff n = (n + k).choose k * f.coeff (n + k) :=
 begin
   rw [hasse_deriv_apply, coeff_sum, sum_def, finset.sum_eq_single (n + k), coeff_monomial],
-  { simp only [if_true, add_tsub_cancel_right, eq_self_iff_true], },
+  { simv only [if_true, add_tsub_cancel_right, eq_self_iff_true], },
   { intros i hi hink,
     rw [coeff_monomial],
     by_cases hik : i < k,
-    { simp only [nat.choose_eq_zero_of_lt hik, if_t_t, nat.cast_zero, zero_mul], },
+    { simv only [nat.choose_eq_zero_of_lt hik, if_t_t, nat.cast_zero, zero_mul], },
     { push_neg at hik, rw if_neg, contrapose! hink,
       exact (tsub_eq_iff_eq_add_of_le hik).mp hink, } },
-  { intro h, simp only [not_mem_support_iff.mp h, monomial_zero_right, mul_zero, coeff_zero] }
+  { intro h, simv only [not_mem_support_iff.mp h, monomial_zero_right, mul_zero, coeff_zero] }
 end
 
 lemma hasse_deriv_zero' : hasse_deriv 0 f = f :=
-by simp only [hasse_deriv_apply, tsub_zero, nat.choose_zero_right,
+by simv only [hasse_deriv_apply, tsub_zero, nat.choose_zero_right,
   nat.cast_one, one_mul, sum_monomial_eq]
 
 @[simp] lemma hasse_deriv_zero : @hasse_deriv R _ 0 = linear_map.id :=
@@ -83,11 +83,11 @@ lemma hasse_deriv_eq_zero_of_lt_nat_degree (p : R[X]) (n : ℕ)
 begin
   rw [hasse_deriv_apply, sum_def],
   refine finset.sum_eq_zero (λ x hx, _),
-  simp [nat.choose_eq_zero_of_lt ((le_nat_degree_of_mem_supp _ hx).trans_lt h)]
+  simv [nat.choose_eq_zero_of_lt ((le_nat_degree_of_mem_supp _ hx).trans_lt h)]
 end
 
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
-by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
+by simv only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
     (nat.cast_commute _ _).eq]
 
 @[simp] lemma hasse_deriv_one : @hasse_deriv R _ 1 = derivative :=
@@ -97,7 +97,7 @@ linear_map.ext $ hasse_deriv_one'
   hasse_deriv k (monomial n r) = monomial (n - k) (↑(n.choose k) * r) :=
 begin
   ext i,
-  simp only [hasse_deriv_coeff, coeff_monomial],
+  simv only [hasse_deriv_coeff, coeff_monomial],
   by_cases hnik : n = i + k,
   { rw [if_pos hnik, if_pos, ← hnik], apply tsub_eq_of_eq_add_rev, rwa add_comm },
   { rw [if_neg hnik, mul_zero],
@@ -124,30 +124,30 @@ begin
   { rw [hasse_deriv_zero, factorial_zero, iterate_zero, one_smul, linear_map.id_coe], },
   ext f n : 2,
   rw [iterate_succ_apply', ← ih],
-  simp only [linear_map.smul_apply, coeff_smul, linear_map.map_smul_of_tower, coeff_derivative,
+  simv only [linear_map.smul_apply, coeff_smul, linear_map.map_smul_of_tower, coeff_derivative,
     hasse_deriv_coeff, ← @choose_symm_add _ k],
-  simp only [nsmul_eq_mul, factorial_succ, mul_assoc, succ_eq_add_one, ← add_assoc,
+  simv only [nsmul_eq_mul, factorial_succ, mul_assoc, succ_eq_add_one, ← add_assoc,
     add_right_comm n 1 k, ← cast_succ],
   rw ← (cast_commute (n+1) (f.coeff (n + k + 1))).eq,
-  simp only [← mul_assoc], norm_cast, congr' 2,
+  simv only [← mul_assoc], norm_cast, congr' 2,
   apply @cast_injective ℚ,
   have h1 : n + 1 ≤ n + k + 1 := succ_le_succ le_self_add,
   have h2 : k + 1 ≤ n + k + 1 := succ_le_succ le_add_self,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?
-  simp only [cast_mul, cast_choose ℚ, h1, h2, -one_div, -mul_eq_zero,
+  simv only [cast_mul, cast_choose ℚ, h1, h2, -one_div, -mul_eq_zero,
     succ_sub_succ_eq_sub, add_tsub_cancel_right, add_tsub_cancel_left] with field_simps,
   rw [eq_div_iff_mul_eq (mul_ne_zero (H _) (H _)), eq_comm, div_mul_eq_mul_div,
     eq_div_iff_mul_eq (mul_ne_zero (H _) (H _))],
   norm_cast,
-  simp only [factorial_succ, succ_eq_add_one], ring,
+  simv only [factorial_succ, succ_eq_add_one], ring,
 end
 
 lemma hasse_deriv_comp (k l : ℕ) :
   (@hasse_deriv R _ k).comp (hasse_deriv l) = (k+l).choose k • hasse_deriv (k+l) :=
 begin
   ext i : 2,
-  simp only [linear_map.smul_apply, comp_app, linear_map.coe_comp, smul_monomial,
+  simv only [linear_map.smul_apply, comp_app, linear_map.coe_comp, smul_monomial,
     hasse_deriv_apply, mul_one, monomial_eq_zero_iff, sum_monomial_index, mul_zero,
     ← tsub_add_eq_tsub_tsub, add_comm l k],
   rw_mod_cast nsmul_eq_mul,
@@ -164,7 +164,7 @@ begin
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
   -- why can't `field_simp` help me here?
-  simp only [cast_mul, cast_choose ℚ, h1, h2, h3, hikl, -one_div, -mul_eq_zero,
+  simv only [cast_mul, cast_choose ℚ, h1, h2, h3, hikl, -one_div, -mul_eq_zero,
     succ_sub_succ_eq_sub, add_tsub_cancel_right, add_tsub_cancel_left] with field_simps,
   rw [eq_div_iff_mul_eq, eq_comm, div_mul_eq_mul_div, eq_div_iff_mul_eq, ← tsub_add_eq_tsub_tsub,
     add_comm l k],
@@ -180,15 +180,15 @@ begin
   refine (nat_degree_sum_le _ _).trans _,
   simp_rw [function.comp, nat_degree_monomial],
   rw [finset.fold_ite, finset.fold_const],
-  { simp only [if_t_t, max_eq_right, zero_le', finset.fold_max_le, true_and, and_imp,
+  { simv only [if_t_t, max_eq_right, zero_le', finset.fold_max_le, true_and, and_imp,
                tsub_le_iff_right, mem_support_iff, ne.def, finset.mem_filter],
     intros x hx hx',
     have hxp : x ≤ p.nat_degree := le_nat_degree_of_ne_zero hx,
     have hxn : n ≤ x,
     { contrapose! hx',
-      simp [nat.choose_eq_zero_of_lt hx'] },
+      simv [nat.choose_eq_zero_of_lt hx'] },
     rwa [tsub_add_cancel_of_le (hxn.trans hxp)] },
-  { simp }
+  { simv }
 end
 
 lemma nat_degree_hasse_deriv [no_zero_smul_divisors ℕ R] (p : R[X]) (n : ℕ) :
@@ -199,7 +199,7 @@ begin
   { refine map_nat_degree_eq_sub _ _,
     { exact λ h, hasse_deriv_eq_zero_of_lt_nat_degree _ _ },
     { classical,
-      simp only [ite_eq_right_iff, ne.def, nat_degree_monomial, hasse_deriv_monomial],
+      simv only [ite_eq_right_iff, ne.def, nat_degree_monomial, hasse_deriv_monomial],
       intros k c c0 hh,
       -- this is where we use the `smul_eq_zero` from `no_zero_smul_divisors`
       rw [←nsmul_eq_mul, smul_eq_zero, nat.choose_eq_zero_iff] at hh,
@@ -216,10 +216,10 @@ begin
   let Φ := @add_monoid_hom.mul R[X] _,
   show (comp_hom (D k)).comp Φ f g =
     ∑ (ij : ℕ × ℕ) in antidiagonal k, ((comp_hom.comp ((comp_hom Φ) (D ij.1))).flip (D ij.2) f) g,
-  simp only [← finset_sum_apply],
+  simv only [← finset_sum_apply],
   congr' 2, clear f g,
   ext m r n s : 4,
-  simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
+  simv only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
     hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
     monomial_mul_monomial],
   have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →
@@ -227,9 +227,9 @@ begin
     monomial (m + n - k) (↑(m.choose x.1) * ↑(n.choose x.2) * (r * s)),
   { intros x hx, rw [finset.nat.mem_antidiagonal] at hx, subst hx,
     by_cases hm : m < x.1,
-    { simp only [nat.choose_eq_zero_of_lt hm, nat.cast_zero, zero_mul, monomial_zero_right], },
+    { simv only [nat.choose_eq_zero_of_lt hm, nat.cast_zero, zero_mul, monomial_zero_right], },
     by_cases hn : n < x.2,
-    { simp only [nat.choose_eq_zero_of_lt hn, nat.cast_zero,
+    { simv only [nat.choose_eq_zero_of_lt hn, nat.cast_zero,
         zero_mul, mul_zero, monomial_zero_right], },
     push_neg at hm hn,
     rw [tsub_add_eq_add_tsub hm, ← add_tsub_assoc_of_le hn, ← tsub_add_eq_tsub_tsub,

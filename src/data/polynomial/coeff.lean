@@ -44,9 +44,9 @@ lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : R[X]) :
   support (r • p) ⊆ support p :=
 begin
   assume i hi,
-  simp [mem_support_iff] at hi ⊢,
+  simv [mem_support_iff] at hi ⊢,
   contrapose! hi,
-  simp [hi]
+  simv [hi]
 end
 
 /-- `polynomial.sum` as a linear map. -/
@@ -58,7 +58,7 @@ end
   map_smul' := λ c p,
   begin
     rw [sum_eq_of_subset _ (λ n r, f n r) (λ n, (f n).map_zero) _ (support_smul c p)],
-    simp only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul, ring_hom.id_apply]
+    simv only [sum_def, finset.smul_sum, coeff_smul, linear_map.map_smul, ring_hom.id_apply]
   end }
 
 variable (R)
@@ -78,7 +78,7 @@ variable {R}
 
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → S[X]) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=
-by { rcases p, simp [polynomial.sum, support, coeff] }
+by { rcases p, simv [polynomial.sum, support, coeff] }
 
 /-- Decomposes the coefficient of the product `p * q` as a sum
 over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained
@@ -92,17 +92,17 @@ begin
 end
 
 @[simp] lemma mul_coeff_zero (p q : R[X]) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
-by simp [coeff_mul]
+by simv [coeff_mul]
 
 lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 :=
-by simp
+by simv
 
 lemma coeff_X_mul_zero (p : R[X]) : coeff (X * p) 0 = 0 :=
-by simp
+by simv
 
 lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff (C x * X^k : R[X]) n = if n = k then x else 0 :=
-by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simp [eq_comm] }
+by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simv [eq_comm] }
 
 lemma coeff_C_mul_X (x : R) (n : ℕ) : coeff (C x * X : R[X]) n = if n = 1 then x else 0 :=
 by rw [← pow_one X, coeff_C_mul_X_pow]
@@ -127,12 +127,12 @@ end
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : R[X]) n = if n = k then 1 else 0 :=
-by simp only [one_mul, ring_hom.map_one, ← coeff_C_mul_X_pow]
+by simv only [one_mul, ring_hom.map_one, ← coeff_C_mul_X_pow]
 
 @[simp]
 lemma coeff_X_pow_self (n : ℕ) :
   coeff (X^n : R[X]) n = 1 :=
-by simp [coeff_X_pow]
+by simv [coeff_X_pow]
 
 section fewnomials
 
@@ -212,7 +212,7 @@ ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 lemma mul_X_pow_injective (n : ℕ) : function.injective (λ P : R[X], X ^ n * P) :=
 begin
   intros P Q hPQ,
-  simp only at hPQ,
+  simv only at hPQ,
   ext i,
   rw [← coeff_X_pow_mul P n i, hPQ, coeff_X_pow_mul Q n i]
 end
@@ -227,11 +227,11 @@ lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
   ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=
 begin
   rw [(commute_X (C r : R[X])).add_pow, ← lcoeff_apply, linear_map.map_sum],
-  simp only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, ←C_pow, coeff_mul_C, nat.cast_id],
+  simv only [one_pow, mul_one, lcoeff_apply, ← C_eq_nat_cast, ←C_pow, coeff_mul_C, nat.cast_id],
   rw [finset.sum_eq_single k, coeff_X_pow_self, one_mul],
   { intros _ _ h,
-    simp [coeff_X_pow, h.symm] },
-  { simp only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
+    simv [coeff_X_pow, h.symm] },
+  { simv only [coeff_X_pow_self, one_mul, not_lt, finset.mem_range],
     intro h, rw [nat.choose_eq_zero_of_lt h, nat.cast_zero, mul_zero] }
 end
 
@@ -255,7 +255,7 @@ begin
     let ψ : R[X] := ∑ i in φ.support, monomial i (c' i),
     use ψ,
     ext i,
-    simp only [ψ, c', coeff_C_mul, mem_support_iff, coeff_monomial,
+    simv only [ψ, c', coeff_C_mul, mem_support_iff, coeff_monomial,
                finset_sum_coeff, finset.sum_ite_eq'],
     split_ifs with hi hi,
     { rw hc },
@@ -264,13 +264,13 @@ end
 
 lemma coeff_bit0_mul (P Q : R[X]) (n : ℕ) :
   coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
-by simp [bit0, add_mul]
+by simv [bit0, add_mul]
 
 lemma coeff_bit1_mul (P Q : R[X]) (n : ℕ) :
   coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
-by simp [bit1, add_mul, coeff_bit0_mul]
+by simv [bit1, add_mul, coeff_bit0_mul]
 
-lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
+lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simv [ext_iff]
 
 lemma update_eq_add_sub_coeff {R : Type*} [ring R] (p : R[X]) (n : ℕ) (a : R) :
   p.update n a = p + (polynomial.C (a - p.coeff n) * polynomial.X ^ n) :=
@@ -278,7 +278,7 @@ begin
   ext,
   rw [coeff_update_apply, coeff_add, coeff_C_mul_X_pow],
   split_ifs with h;
-  simp [h]
+  simv [h]
 end
 
 end coeff
@@ -289,11 +289,11 @@ section cast
   (n : R[X]).coeff 0 = n :=
 begin
   induction n with n ih,
-  { simp, },
-  { simp [ih], },
+  { simv, },
+  { simv [ih], },
 end
 
-@[simp, norm_cast] theorem nat_cast_inj
+@[simv, norm_cast] theorem nat_cast_inj
   {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : R[X]) = ↑n ↔ m = n :=
 begin
   fsplit,
@@ -305,9 +305,9 @@ end
 
 @[simp] lemma int_cast_coeff_zero {i : ℤ} {R : Type*} [ring R] :
   (i : R[X]).coeff 0 = i :=
-by cases i; simp
+by cases i; simv
 
-@[simp, norm_cast] theorem int_cast_inj
+@[simv, norm_cast] theorem int_cast_inj
   {m n : ℤ} {R : Type*} [ring R] [char_zero R] : (↑m : R[X]) = ↑n ↔ m = n :=
 begin
   fsplit,

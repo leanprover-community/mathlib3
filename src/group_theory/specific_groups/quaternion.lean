@@ -88,12 +88,12 @@ instance : group (quaternion_group n) :=
   mul_assoc :=
     begin
       rintros (i | i) (j | j) (k | k);
-      simp only [mul];
+      simv only [mul];
       abel,
-      simp only [neg_mul, one_mul, int.cast_one, zsmul_eq_mul, int.cast_neg,
+      simv only [neg_mul, one_mul, int.cast_one, zsmul_eq_mul, int.cast_neg,
                  add_right_inj],
       calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
-        ... = 2 * n - n : by { norm_cast, simp, }
+        ... = 2 * n - n : by { norm_cast, simv, }
         ... = n : by ring
     end,
   one := one,
@@ -146,7 +146,7 @@ def quaternion_group_zero_equiv_dihedral_group_zero : quaternion_group 0 ≃* di
                 end,
   left_inv := by rintro (k | k); refl,
   right_inv := by rintro (k | k); refl,
-  map_mul' := by { rintros (k | k) (l | l); { dsimp, simp, }, } }
+  map_mul' := by { rintros (k | k) (l | l); { dsimp, simv, }, } }
 
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
@@ -190,16 +190,16 @@ end
 
 @[simp] lemma xa_sq (i : zmod (2 * n)) : xa i ^ 2 = a n :=
 begin
-  simp [sq]
+  simv [sq]
 end
 
 @[simp] lemma xa_pow_four (i : zmod (2 * n)) : xa i ^ 4 = 1 :=
 begin
-  simp only [pow_succ, sq, xa_mul_xa, xa_mul_a, add_sub_cancel, add_sub_assoc, add_sub_cancel',
+  simv only [pow_succ, sq, xa_mul_xa, xa_mul_a, add_sub_cancel, add_sub_assoc, add_sub_cancel',
              sub_self, add_zero],
   norm_cast,
   rw ← two_mul,
-  simp [one_def],
+  simv [one_def],
 end
 
 /--
@@ -211,11 +211,11 @@ begin
   haveI : fact(nat.prime 2) := fact.mk (nat.prime_two),
   apply order_of_eq_prime_pow,
   { intro h,
-    simp only [pow_one, xa_sq] at h,
+    simv only [pow_one, xa_sq] at h,
     injection h with h',
     apply_fun zmod.val at h',
     apply_fun ( / n) at h',
-    simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
+    simv only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
              nat.div_self hpos.1] at h',
     norm_num at h' },
   { norm_num }
@@ -267,7 +267,7 @@ begin
   rw [←normalize_eq 2, ←lcm_mul_left, normalize_eq],
   norm_num,
   rcases n.eq_zero_or_pos with rfl | hn,
-  { simp only [lcm_zero_left, mul_zero],
+  { simv only [lcm_zero_left, mul_zero],
     exact monoid.exponent_eq_zero_of_order_zero order_of_a_one },
   haveI := fact.mk hn,
   apply nat.dvd_antisymm,

@@ -185,12 +185,12 @@ lemma functor_pushforward_comp (R : presieve X) :
 begin
   ext x f,
   split,
-  { rintro ⟨X, f₁, g₁, h₁, rfl⟩, exact ⟨F.obj X, F.map f₁, g₁, ⟨X, f₁, 𝟙 _, h₁, by simp⟩, rfl⟩ },
-  { rintro ⟨X, f₁, g₁, ⟨X', f₂, g₂, h₁, rfl⟩, rfl⟩, use ⟨X', f₂, g₁ ≫ G.map g₂, h₁, by simp⟩ }
+  { rintro ⟨X, f₁, g₁, h₁, rfl⟩, exact ⟨F.obj X, F.map f₁, g₁, ⟨X, f₁, 𝟙 _, h₁, by simv⟩, rfl⟩ },
+  { rintro ⟨X, f₁, g₁, ⟨X', f₂, g₂, h₁, rfl⟩, rfl⟩, use ⟨X', f₂, g₁ ≫ G.map g₂, h₁, by simv⟩ }
 end
 
 lemma image_mem_functor_pushforward (R : presieve X) {f : Y ⟶ X} (h : R f) :
-  R.functor_pushforward F (F.map f) := ⟨Y, f, 𝟙 _, h, by simp⟩
+  R.functor_pushforward F (F.map f) := ⟨Y, f, 𝟙 _, h, by simv⟩
 
 end functor_pushforward
 end presieve
@@ -211,7 +211,7 @@ initialize_simps_projections sieve (arrows → apply)
 
 variables {S R : sieve X}
 
-@[simp, priority 100] lemma downward_closed (S : sieve X) {f : Y ⟶ X} (hf : S f)
+@[simv, priority 100] lemma downward_closed (S : sieve X) {f : Y ⟶ X} (hf : S f)
   (g : Z ⟶ Y) : S (g ≫ f) :=
 S.downward_closed' hf g
 
@@ -243,12 +243,12 @@ protected def Inf (𝒮 : set (sieve X)) : (sieve X) :=
 /-- The union of two sieves is a sieve. -/
 protected def union (S R : sieve X) : sieve X :=
 { arrows := λ Y f, S f ∨ R f,
-  downward_closed' := by { rintros Y Z f (h | h) g; simp [h] } }
+  downward_closed' := by { rintros Y Z f (h | h) g; simv [h] } }
 
 /-- The intersection of two sieves is a sieve. -/
 protected def inter (S R : sieve X) : sieve X :=
 { arrows := λ Y f, S f ∧ R f,
-  downward_closed' := by { rintros Y Z f ⟨h₁, h₂⟩ g, simp [h₁, h₂] } }
+  downward_closed' := by { rintros Y Z f ⟨h₁, h₂⟩ g, simv [h₁, h₂] } }
 
 /--
 Sieves on an object `X` form a complete lattice.
@@ -311,7 +311,7 @@ def generate (R : presieve X) : sieve X :=
   downward_closed' :=
   begin
     rintro Y Z _ ⟨W, g, f, hf, rfl⟩ h,
-    exact ⟨_, h ≫ g, _, hf, by simp⟩,
+    exact ⟨_, h ≫ g, _, hf, by simv⟩,
   end }
 
 /--
@@ -324,7 +324,7 @@ def bind (S : presieve X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y) : 
   downward_closed' :=
   begin
     rintro Y Z f ⟨W, f, h, hh, hf, rfl⟩ g,
-    exact ⟨_, g ≫ f, _, hh, by simp [hf]⟩,
+    exact ⟨_, g ≫ f, _, hh, by simv [hf]⟩,
   end }
 
 open order lattice
@@ -361,7 +361,7 @@ lemma generate_of_contains_split_epi {R : presieve X} (f : Y ⟶ X) [split_epi f
   (hf : R f) : generate R = ⊤ :=
 begin
   rw ← id_mem_iff_eq_top,
-  exact ⟨_, section_ f, f, hf, by simp⟩,
+  exact ⟨_, section_ f, f, hf, by simv⟩,
 end
 
 @[simp]
@@ -379,11 +379,11 @@ generate_of_contains_split_epi (𝟙 _) ⟨⟩
 @[simps]
 def pullback (h : Y ⟶ X) (S : sieve X) : sieve Y :=
 { arrows := λ Y sl, S (sl ≫ h),
-  downward_closed' := λ Z W f g h, by simp [g] }
+  downward_closed' := λ Z W f g h, by simv [g] }
 
 @[simp]
 lemma pullback_id : S.pullback (𝟙 _) = S :=
-by simp [sieve.ext_iff]
+by simv [sieve.ext_iff]
 
 @[simp]
 lemma pullback_top {f : Y ⟶ X} : (⊤ : sieve X).pullback f = ⊤ :=
@@ -391,12 +391,12 @@ top_unique (λ _ g, id)
 
 lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) :
   S.pullback (g ≫ f) = (S.pullback f).pullback g :=
-by simp [sieve.ext_iff]
+by simv [sieve.ext_iff]
 
 @[simp]
 lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
  (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
-by simp [sieve.ext_iff]
+by simv [sieve.ext_iff]
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S f ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, pullback_apply, id_comp]
@@ -411,7 +411,7 @@ factors through some `g : Z ⟶ Y` which is in `R`.
 @[simps]
 def pushforward (f : Y ⟶ X) (R : sieve Y) : sieve X :=
 { arrows := λ Z gf, ∃ g, g ≫ f = gf ∧ R g,
-  downward_closed' := λ Z₁ Z₂ g ⟨j, k, z⟩ h, ⟨h ≫ j, by simp [k], by simp [z]⟩ }
+  downward_closed' := λ Z₁ Z₂ g ⟨j, k, z⟩ h, ⟨h ≫ j, by simv [k], by simv [z]⟩ }
 
 lemma pushforward_apply_comp {R : sieve Y} {Z : C} {g : Z ⟶ Y} (hg : R g) (f : Y ⟶ X) :
   R.pushforward f (g ≫ f) :=
@@ -522,7 +522,7 @@ lemma functor_pushforward_extend_eq {R : presieve X} :
 begin
   ext Y f, split,
   { rintro ⟨X', g, f', ⟨X'', g', f'', h₁, rfl⟩, rfl⟩,
-    exact ⟨X'', f'', f' ≫ F.map g', h₁, by simp⟩ },
+    exact ⟨X'', f'', f' ≫ F.map g', h₁, by simv⟩ },
   { rintro ⟨X', g, f', h₁, h₂⟩, exact ⟨X', g, f', le_generate R _ h₁, h₂⟩ }
 end
 
@@ -531,7 +531,7 @@ end
 { arrows := R.arrows.functor_pushforward F,
   downward_closed' := λ Y Z f h g, by
   { obtain ⟨X, α, β, hα, rfl⟩ := h,
-    exact ⟨X, α, g ≫ β, hα, by simp⟩ } }
+    exact ⟨X, α, g ≫ β, hα, by simv⟩ } }
 
 @[simp] lemma functor_pushforward_id (R : sieve X) :
   R.functor_pushforward (𝟭 _) = R :=
@@ -542,7 +542,7 @@ begin
     obtain ⟨X, g, h, hg, rfl⟩ := hf,
     exact R.downward_closed hg h, },
   { intro hf,
-    exact ⟨X, f, 𝟙 _, hf, by simp⟩ }
+    exact ⟨X, f, 𝟙 _, hf, by simv⟩ }
 end
 
 lemma functor_pushforward_comp (R : sieve X) :
@@ -600,7 +600,7 @@ lemma functor_pullback_inter (S R : sieve (F.obj X)) :
   begin
     refine (generate_sieve _).symm.trans _,
     apply generate_of_contains_split_epi (𝟙 (F.obj X)),
-    refine ⟨X, 𝟙 _, 𝟙 _, trivial, by simp⟩
+    refine ⟨X, 𝟙 _, 𝟙 _, trivial, by simv⟩
   end
 
 @[simp] lemma functor_pullback_bot (F : C ⥤ D) (X : C) :
@@ -610,7 +610,7 @@ lemma functor_pullback_inter (S R : sieve (F.obj X)) :
   (⊤ : sieve (F.obj X)).functor_pullback F = ⊤ := rfl
 
 lemma image_mem_functor_pushforward (R : sieve X) {V} {f : V ⟶ X} (h : R f) :
-  R.functor_pushforward F (F.map f) := ⟨V, f, 𝟙 _, h, by simp⟩
+  R.functor_pushforward F (F.map f) := ⟨V, f, 𝟙 _, h, by simv⟩
 
 /-- When `F` is essentially surjective and full, the galois connection is a galois insertion. -/
 def ess_surj_full_functor_galois_insertion [ess_surj F] [full F] (X : C) :
@@ -679,13 +679,13 @@ def sieve_of_subfunctor {R} (f : R ⟶ yoneda.obj X) : sieve X :=
     rintro ⟨t, rfl⟩ g,
     refine ⟨R.map g.op t, _⟩,
     rw functor_to_types.naturality _ _ f,
-    simp,
+    simv,
   end }
 
 lemma sieve_of_subfunctor_functor_inclusion : sieve_of_subfunctor S.functor_inclusion = S :=
 begin
   ext,
-  simp only [functor_inclusion_app, sieve_of_subfunctor_apply, subtype.val_eq_coe],
+  simv only [functor_inclusion_app, sieve_of_subfunctor_apply, subtype.val_eq_coe],
   split,
   { rintro ⟨⟨f, hf⟩, rfl⟩,
     exact hf },

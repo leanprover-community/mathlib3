@@ -96,19 +96,19 @@ namespace fin_meas_additive
 
 variables {β : Type*} [add_comm_monoid β] {T T' : set α → β}
 
-lemma zero : fin_meas_additive μ (0 : set α → β) := λ s t hs ht hμs hμt hst, by simp
+lemma zero : fin_meas_additive μ (0 : set α → β) := λ s t hs ht hμs hμt hst, by simv
 
 lemma add (hT : fin_meas_additive μ T) (hT' : fin_meas_additive μ T') :
   fin_meas_additive μ (T + T') :=
 begin
   intros s t hs ht hμs hμt hst,
-  simp only [hT s t hs ht hμs hμt hst, hT' s t hs ht hμs hμt hst, pi.add_apply],
+  simv only [hT s t hs ht hμs hμt hst, hT' s t hs ht hμs hμt hst, pi.add_apply],
   abel,
 end
 
 lemma smul [monoid 𝕜] [distrib_mul_action 𝕜 β] (hT : fin_meas_additive μ T) (c : 𝕜) :
   fin_meas_additive μ (λ s, c • (T s)) :=
-λ s t hs ht hμs hμt hst, by simp [hT s t hs ht hμs hμt hst]
+λ s t hs ht hμs hμt hst, by simv [hT s t hs ht hμs hμt hst]
 
 lemma of_eq_top_imp_eq_top {μ' : measure α}
   (h : ∀ s, measurable_set s → μ s = ∞ → μ' s = ∞) (hT : fin_meas_additive μ T) :
@@ -120,7 +120,7 @@ lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞) (hT : fin_meas_ad
 begin
   refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
   rw [measure.smul_apply, smul_eq_mul, with_top.mul_eq_top_iff] at hμs,
-  simp only [hc_ne_top, or_false, ne.def, false_and] at hμs,
+  simv only [hc_ne_top, or_false, ne.def, false_and] at hμs,
   exact hμs.2,
 end
 
@@ -129,7 +129,7 @@ lemma smul_measure (c : ℝ≥0∞) (hc_ne_zero : c ≠ 0) (hT : fin_meas_additi
 begin
   refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
   rw [measure.smul_apply, smul_eq_mul, with_top.mul_eq_top_iff],
-  simp only [hc_ne_zero, true_and, ne.def, not_false_iff],
+  simv only [hc_ne_zero, true_and, ne.def, not_false_iff],
   exact or.inl hμs,
 end
 
@@ -156,7 +156,7 @@ lemma map_Union_fin_meas_set_eq_sum (T : set α → β) (T_empty : T ∅ = 0)
 begin
   revert hSp h_disj,
   refine finset.induction_on sι _ _,
-  { simp only [finset.not_mem_empty, is_empty.forall_iff, Union_false, Union_empty, sum_empty,
+  { simv only [finset.not_mem_empty, is_empty.forall_iff, Union_false, Union_empty, sum_empty,
     forall_2_true_iff, implies_true_iff, forall_true_left, not_false_iff, T_empty], },
   intros a s has h hps h_disj,
   rw [finset.sum_insert has, ← h],
@@ -202,7 +202,7 @@ lemma eq_zero_of_measure_zero {β : Type*} [normed_add_comm_group β] {T : set �
   T s = 0 :=
 begin
   refine norm_eq_zero.mp _,
-  refine ((hT.2 s hs (by simp [hs_zero])).trans (le_of_eq _)).antisymm (norm_nonneg _),
+  refine ((hT.2 s hs (by simv [hs_zero])).trans (le_of_eq _)).antisymm (norm_nonneg _),
   rw [hs_zero, ennreal.zero_to_real, mul_zero],
 end
 
@@ -210,7 +210,7 @@ lemma eq_zero {β : Type*} [normed_add_comm_group β] {T : set α → β} {C : �
   {m : measurable_space α} (hT : dominated_fin_meas_additive (0 : measure α) T C)
   {s : set α} (hs : measurable_set s) :
   T s = 0 :=
-eq_zero_of_measure_zero hT hs (by simp only [measure.coe_zero, pi.zero_apply])
+eq_zero_of_measure_zero hT hs (by simv only [measure.coe_zero, pi.zero_apply])
 
 lemma add (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ T' C') :
   dominated_fin_meas_additive μ (T + T') (C + C') :=
@@ -259,7 +259,7 @@ lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
 begin
   have h : ∀ s, measurable_set s → c • μ s = ∞ → μ s = ∞,
   { intros s hs hcμs,
-    simp only [hc_ne_top, algebra.id.smul_eq_mul, with_top.mul_eq_top_iff, or_false, ne.def,
+    simv only [hc_ne_top, algebra.id.smul_eq_mul, with_top.mul_eq_top_iff, or_false, ne.def,
       false_and] at hcμs,
     exact hcμs.2, },
   refine ⟨hT.1.of_eq_top_imp_eq_top h, λ s hs hμs, _⟩,
@@ -287,7 +287,7 @@ def set_to_simple_func {m : measurable_space α} (T : set α → F →L[ℝ] F')
 
 @[simp] lemma set_to_simple_func_zero {m : measurable_space α} (f : α →ₛ F) :
   set_to_simple_func (0 : set α → F →L[ℝ] F') f = 0 :=
-by simp [set_to_simple_func]
+by simv [set_to_simple_func]
 
 lemma set_to_simple_func_zero' {T : set α → E →L[ℝ] F'}
   (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) (f : α →ₛ E) (hf : integrable f μ) :
@@ -296,7 +296,7 @@ begin
   simp_rw set_to_simple_func,
   refine sum_eq_zero (λ x hx, _),
   by_cases hx0 : x = 0,
-  { simp [hx0], },
+  { simv [hx0], },
   rw [h_zero (f ⁻¹' ({x} : set E)) (measurable_set_fiber _ _)
       (measure_preimage_lt_top_of_integrable f hf hx0),
     continuous_linear_map.zero_apply],
@@ -304,7 +304,7 @@ end
 
 @[simp] lemma set_to_simple_func_zero_apply {m : measurable_space α} (T : set α → F →L[ℝ] F') :
   set_to_simple_func T (0 : α →ₛ F) = 0 :=
-by casesI is_empty_or_nonempty α; simp [set_to_simple_func]
+by casesI is_empty_or_nonempty α; simv [set_to_simple_func]
 
 lemma set_to_simple_func_eq_sum_filter {m : measurable_space α}
   (T : set α → F →L[ℝ] F') (f : α →ₛ F) :
@@ -323,7 +323,7 @@ begin
   have T_empty : T ∅ = 0, from h_add.map_empty_eq_zero,
   have hfp : ∀ x ∈ f.range, x ≠ 0 → μ (f ⁻¹' {x}) ≠ ∞,
     from λ x hx hx0, (measure_preimage_lt_top_of_integrable f hf hx0).ne,
-  simp only [set_to_simple_func, range_map],
+  simv only [set_to_simple_func, range_map],
   refine finset.sum_image' _ (assume b hb, _),
   rcases mem_range.1 hb with ⟨a, rfl⟩,
   by_cases h0 : g (f a) = 0,
@@ -340,7 +340,7 @@ begin
   { congr, rw ← finset.set_bUnion_preimage_singleton, },
   rw h_left_eq',
   rw h_add.map_Union_fin_meas_set_eq_sum T T_empty,
-  { simp only [filter_congr_decidable, sum_apply, continuous_linear_map.coe_sum'],
+  { simv only [filter_congr_decidable, sum_apply, continuous_linear_map.coe_sum'],
     refine finset.sum_congr rfl (λ x hx, _),
     rw mem_filter at hx,
     rw hx.2, },
@@ -378,7 +378,7 @@ begin
       { congr, rw pair_preimage_singleton f g, },
       rw h_eq,
       exact h (f a) (g a) eq, },
-    simp only [this, continuous_linear_map.zero_apply, pair_apply], },
+    simv only [this, continuous_linear_map.zero_apply, pair_apply], },
 end
 
 lemma set_to_simple_func_congr (T : set α → (E →L[ℝ] F))
@@ -402,7 +402,7 @@ begin
   simp_rw set_to_simple_func,
   refine sum_congr rfl (λ x hx, _),
   by_cases hx0 : x = 0,
-  { simp [hx0], },
+  { simv [hx0], },
   { rw h (f ⁻¹' {x}) (simple_func.measurable_set_fiber _ _)
       (simple_func.measure_preimage_lt_top_of_integrable _ hf hx0), },
 end
@@ -465,7 +465,7 @@ lemma set_to_simple_func_add (T : set α → E →L[ℝ] F) (h_add : fin_meas_ad
 have hp_pair : integrable (f.pair g) μ, from integrable_pair hf hg,
 calc set_to_simple_func T (f + g) = ∑ x in (pair f g).range,
        T ((pair f g) ⁻¹' {x}) (x.fst + x.snd) :
-  by { rw [add_eq_map₂, map_set_to_simple_func T h_add hp_pair], simp, }
+  by { rw [add_eq_map₂, map_set_to_simple_func T h_add hp_pair], simv, }
 ... = ∑ x in (pair f g).range, (T ((pair f g) ⁻¹' {x}) x.fst + T ((pair f g) ⁻¹' {x}) x.snd) :
   finset.sum_congr rfl $ assume a ha, continuous_linear_map.map_add _ _ _
 ... = ∑ x in (pair f g).range, T ((pair f g) ⁻¹' {x}) x.fst +
@@ -498,7 +498,7 @@ begin
   change μ ((has_neg.neg ∘ g) ⁻¹' {x}) < ∞,
   rw [preimage_comp, neg_preimage, set.neg_singleton],
   refine hg (-x) _,
-  simp [hx_ne],
+  simv [hx_ne],
 end
 
 lemma set_to_simple_func_smul_real (T : set α → E →L[ℝ] F) (h_add : fin_meas_additive μ T)
@@ -509,7 +509,7 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = ∑ x in f.range, c • (T (f ⁻¹' {x}) x) :
   finset.sum_congr rfl $ λ b hb, by { rw continuous_linear_map.map_smul (T (f ⁻¹' {b})) c b, }
 ... = c • set_to_simple_func T f :
-by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
+by simv only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
 lemma set_to_simple_func_smul {E} [normed_add_comm_group E] [normed_field 𝕜]
   [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
@@ -520,7 +520,7 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
   by { rw [smul_eq_map c f, map_set_to_simple_func T h_add hf],
     rw smul_zero, }
 ... = ∑ x in f.range, c • (T (f ⁻¹' {x}) x) : finset.sum_congr rfl $ λ b hb, by { rw h_smul, }
-... = c • set_to_simple_func T f : by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
+... = c • set_to_simple_func T f : by simv only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
 section order
 
@@ -539,7 +539,7 @@ lemma set_to_simple_func_mono_left'
 begin
   refine sum_le_sum (λ i hi, _),
   by_cases h0 : i = 0,
-  { simp [h0], },
+  { simv [h0], },
   { exact hTT' _ (measurable_set_fiber _ _) (measure_preimage_lt_top_of_integrable _ hf h0) i, }
 end
 
@@ -552,7 +552,7 @@ begin
   obtain ⟨y, hy⟩ := set.mem_range.mp hi,
   rw ← hy,
   refine le_trans _ (hf y),
-  simp,
+  simv,
 end
 
 lemma set_to_simple_func_nonneg' (T : set α → G' →L[ℝ] G'')
@@ -562,7 +562,7 @@ lemma set_to_simple_func_nonneg' (T : set α → G' →L[ℝ] G'')
 begin
   refine sum_nonneg (λ i hi, _),
   by_cases h0 : i = 0,
-  { simp [h0], },
+  { simv [h0], },
   refine hT_nonneg _ (measurable_set_fiber _ _)
     (measure_preimage_lt_top_of_integrable _ hfi h0) i _,
   rw mem_range at hi,
@@ -580,7 +580,7 @@ begin
   rw [← sub_nonneg, ← set_to_simple_func_sub T h_add hgi hfi],
   refine set_to_simple_func_nonneg' T hT_nonneg _ _ (hgi.sub hfi),
   intro x,
-  simp only [coe_sub, sub_nonneg, coe_zero, pi.zero_apply, pi.sub_apply],
+  simv only [coe_sub, sub_nonneg, coe_zero, pi.zero_apply, pi.sub_apply],
   exact hfg x,
 end
 
@@ -603,7 +603,7 @@ calc ∥f.set_to_simple_func T∥
   begin
     refine finset.sum_le_sum (λ b hb, _),
     by_cases hb : ∥b∥ = 0,
-    { rw hb, simp, },
+    { rw hb, simv, },
     rw _root_.mul_le_mul_right _,
     { exact hT_norm _ (simple_func.measurable_set_fiber _ _), },
     { exact lt_of_le_of_ne (norm_nonneg _) (ne.symm hb), },
@@ -620,7 +620,7 @@ calc ∥f.set_to_simple_func T∥
   begin
     refine finset.sum_le_sum (λ b hb, _),
     by_cases hb : ∥b∥ = 0,
-    { rw hb, simp, },
+    { rw hb, simv, },
     rw _root_.mul_le_mul_right _,
     { refine hT_norm _ (simple_func.measurable_set_fiber _ _)
         (simple_func.measure_preimage_lt_top_of_integrable _ hf _),
@@ -636,36 +636,36 @@ lemma set_to_simple_func_indicator (T : set α → F →L[ℝ] F') (hT_empty : T
   = T s x :=
 begin
   by_cases hs_empty : s = ∅,
-  { simp only [hs_empty, hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
+  { simv only [hs_empty, hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
     set_to_simple_func_zero_apply], },
   by_cases hs_univ : s = univ,
   { casesI hα : is_empty_or_nonempty α,
     { refine absurd _ hs_empty,
       haveI : subsingleton (set α), by { unfold set, apply_instance, },
       exact subsingleton.elim s ∅, },
-    simp [hs_univ, set_to_simple_func], },
+    simv [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
   rw [← ne.def, set.ne_empty_iff_nonempty] at hs_empty,
   rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
-  { simp_rw hx0, simp, },
+  { simp_rw hx0, simv, },
   rw sum_insert,
   swap, { rw finset.mem_singleton, exact hx0, },
   rw [sum_singleton, (T _).map_zero, add_zero],
   congr,
-  simp only [coe_piecewise, piecewise_eq_indicator, coe_const, pi.const_zero,
+  simv only [coe_piecewise, piecewise_eq_indicator, coe_const, pi.const_zero,
     piecewise_eq_indicator],
   rw [indicator_preimage, preimage_const_of_mem],
   swap, { exact set.mem_singleton x, },
   rw [← pi.const_zero, preimage_const_of_not_mem],
   swap, { rw set.mem_singleton_iff, exact ne.symm hx0, },
-  simp,
+  simv,
 end
 
 lemma set_to_simple_func_const' [nonempty α] (T : set α → F →L[ℝ] F') (x : F)
   {m : measurable_space α} :
   simple_func.set_to_simple_func T (simple_func.const α x) = T univ x :=
-by simp only [set_to_simple_func, range_const, set.mem_singleton, preimage_const_of_mem,
+by simv only [set_to_simple_func, range_const, set.mem_singleton, preimage_const_of_mem,
   sum_singleton, coe_const]
 
 lemma set_to_simple_func_const (T : set α → F →L[ℝ] F') (hT_empty : T ∅ = 0) (x : F)
@@ -675,7 +675,7 @@ begin
   casesI hα : is_empty_or_nonempty α,
   { have h_univ_empty : (univ : set α) = ∅, from subsingleton.elim _ _,
     rw [h_univ_empty, hT_empty],
-    simp only [set_to_simple_func, continuous_linear_map.zero_apply, sum_empty,
+    simv only [set_to_simple_func, continuous_linear_map.zero_apply, sum_empty,
       range_eq_empty_of_is_empty], },
   { exact set_to_simple_func_const' T x, },
 end
@@ -704,7 +704,7 @@ begin
       ennreal.to_real_of_real (norm_nonneg _)], },
   { intros x hx,
     by_cases hx0 : x = 0,
-    { rw hx0, simp, },
+    { rw hx0, simv, },
     { exact ennreal.mul_ne_top ennreal.coe_ne_top
         (simple_func.measure_preimage_lt_top_of_integrable _ (simple_func.integrable f) hx0).ne } }
 end
@@ -1064,7 +1064,7 @@ rfl
   (hT : dominated_fin_meas_additive μ (0 : set α → E →L[ℝ] F) C) (f : α →₁[μ] E) :
   set_to_L1 hT f = 0 :=
 begin
-  suffices : set_to_L1 hT = 0, by { rw this, simp, },
+  suffices : set_to_L1 hT = 0, by { rw this, simv, },
   refine continuous_linear_map.extend_unique (set_to_L1s_clm α E μ hT) _ _ _ _ _,
   ext1 f,
   rw [set_to_L1s_clm_zero_left hT f, continuous_linear_map.zero_comp,
@@ -1075,7 +1075,7 @@ lemma set_to_L1_zero_left' (hT : dominated_fin_meas_additive μ T C)
   (h_zero : ∀ s, measurable_set s → μ s < ∞ → T s = 0) (f : α →₁[μ] E) :
   set_to_L1 hT f = 0 :=
 begin
-  suffices : set_to_L1 hT = 0, by { rw this, simp, },
+  suffices : set_to_L1 hT = 0, by { rw this, simv, },
   refine continuous_linear_map.extend_unique (set_to_L1s_clm α E μ hT) _ _ _ _ _,
   ext1 f,
   rw [set_to_L1s_clm_zero_left' hT h_zero f, continuous_linear_map.zero_comp,
@@ -1118,7 +1118,7 @@ begin
     by { rw [this, continuous_linear_map.add_apply], },
   refine continuous_linear_map.extend_unique (set_to_L1s_clm α E μ (hT.add hT')) _ _ _ _ _,
   ext1 f,
-  simp only [continuous_linear_map.add_comp, continuous_linear_map.coe_comp', function.comp_app,
+  simv only [continuous_linear_map.add_comp, continuous_linear_map.coe_comp', function.comp_app,
     continuous_linear_map.add_apply],
   suffices : set_to_L1 hT f + set_to_L1 hT' f = set_to_L1s_clm α E μ (hT.add hT') f,
     by { rw ← this, congr, },
@@ -1134,7 +1134,7 @@ begin
     by { rw [this, continuous_linear_map.add_apply], },
   refine continuous_linear_map.extend_unique (set_to_L1s_clm α E μ hT'') _ _ _ _ _,
   ext1 f,
-  simp only [continuous_linear_map.add_comp, continuous_linear_map.coe_comp', function.comp_app,
+  simv only [continuous_linear_map.add_comp, continuous_linear_map.coe_comp', function.comp_app,
     continuous_linear_map.add_apply],
   suffices : set_to_L1 hT f + set_to_L1 hT' f = set_to_L1s_clm α E μ hT'' f,
     by { rw ← this, congr, },
@@ -1149,7 +1149,7 @@ begin
     by { rw [this, continuous_linear_map.smul_apply], },
   refine continuous_linear_map.extend_unique (set_to_L1s_clm α E μ (hT.smul c)) _ _ _ _ _,
   ext1 f,
-  simp only [continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.smul_comp,
+  simv only [continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.smul_comp,
     pi.smul_apply, continuous_linear_map.coe_smul'],
   suffices : c • set_to_L1 hT f = set_to_L1s_clm α E μ (hT.smul c) f, by { rw ← this, congr, },
   rw [set_to_L1_eq_set_to_L1s_clm, set_to_L1s_clm_smul_left c hT],
@@ -1164,7 +1164,7 @@ begin
     by { rw [this, continuous_linear_map.smul_apply], },
   refine continuous_linear_map.extend_unique (set_to_L1s_clm α E μ hT') _ _ _ _ _,
   ext1 f,
-  simp only [continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.smul_comp,
+  simv only [continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.smul_comp,
     pi.smul_apply, continuous_linear_map.coe_smul'],
   suffices : c • set_to_L1 hT f = set_to_L1s_clm α E μ hT' f, by { rw ← this, congr, },
   rw [set_to_L1_eq_set_to_L1s_clm, set_to_L1s_clm_smul_left' c hT hT' h_smul],
@@ -1393,7 +1393,7 @@ end
   set_to_fun μ T hT (0 : α → E) = 0 :=
 begin
   rw set_to_fun_eq hT,
-  { simp only [integrable.to_L1_zero, continuous_linear_map.map_zero], },
+  { simv only [integrable.to_L1_zero, continuous_linear_map.map_zero], },
   { exact integrable_zero _ _ _, },
 end
 
@@ -1427,20 +1427,20 @@ begin
   revert hf,
   refine finset.induction_on s _ _,
   { intro h,
-    simp only [set_to_fun_zero, finset.sum_empty] },
+    simv only [set_to_fun_zero, finset.sum_empty] },
   { assume i s his ih hf,
-    simp only [his, finset.sum_insert, not_false_iff],
+    simv only [his, finset.sum_insert, not_false_iff],
     rw set_to_fun_add hT (hf i (finset.mem_insert_self i s)) _,
     { rw ih (λ i hi, hf i (finset.mem_insert_of_mem hi)), },
     { convert (integrable_finset_sum s (λ i hi, hf i (finset.mem_insert_of_mem hi))),
       ext1 x,
-      simp, }, }
+      simv, }, }
 end
 
 lemma set_to_fun_finset_sum (hT : dominated_fin_meas_additive μ T C) {ι} (s : finset ι)
   {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
   set_to_fun μ T hT (λ a, ∑ i in s, f i a) = ∑ i in s, set_to_fun μ T hT (f i) :=
-by { convert set_to_fun_finset_sum' hT s hf, ext1 a, simp, }
+by { convert set_to_fun_finset_sum' hT s hf, ext1 a, simv, }
 
 lemma set_to_fun_neg (hT : dominated_fin_meas_additive μ T C) (f : α → E) :
   set_to_fun μ T hT (-f) = - set_to_fun μ T hT f :=
@@ -1466,7 +1466,7 @@ begin
   { rw [set_to_fun_eq hT hf, set_to_fun_eq hT, integrable.to_L1_smul',
       L1.set_to_L1_smul hT h_smul c _], },
   { by_cases hr : c = 0,
-    { rw hr, simp, },
+    { rw hr, simv, },
     { have hf' : ¬ integrable (c • f) μ, by rwa [integrable_smul_iff hr f],
       rw [set_to_fun_undef hT hf, set_to_fun_undef hT hf',
         smul_zero], }, },
@@ -1485,7 +1485,7 @@ end
 
 lemma set_to_fun_measure_zero (hT : dominated_fin_meas_additive μ T C) (h : μ = 0) :
   set_to_fun μ T hT f = 0 :=
-by { have : f =ᵐ[μ] 0, by simp [h], rw [set_to_fun_congr_ae hT this, set_to_fun_zero], }
+by { have : f =ᵐ[μ] 0, by simv [h], rw [set_to_fun_congr_ae hT this, set_to_fun_zero], }
 
 lemma set_to_fun_measure_zero' (hT : dominated_fin_meas_additive μ T C)
   (h : ∀ s, measurable_set s → μ s < ∞ → μ s = 0) :
@@ -1614,7 +1614,7 @@ lemma tendsto_set_to_fun_approx_on_of_measurable_of_range_subset
   [measurable_space E] [borel_space E] {f : α → E}
   (fmeas : measurable f) (hf : integrable f μ) (s : set E) [separable_space s]
   (hs : range f ∪ {0} ⊆ s) :
-  tendsto (λ n, set_to_fun μ T hT (simple_func.approx_on f fmeas s 0 (hs $ by simp) n)) at_top
+  tendsto (λ n, set_to_fun μ T hT (simple_func.approx_on f fmeas s 0 (hs $ by simv) n)) at_top
     (𝓝 $ set_to_fun μ T hT f) :=
 begin
   refine tendsto_set_to_fun_approx_on_of_measurable hT hf fmeas _ _ (integrable_zero _ _ _),
@@ -1630,10 +1630,10 @@ lemma continuous_L1_to_L1
 begin
   by_cases hc'0 : c' = 0,
   { have hμ'0 : μ' = 0,
-    { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hc'0], },
+    { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simv [hc'0], },
     have h_im_zero : (λ f : α →₁[μ] G,
         (integrable.of_measure_le_smul c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
-      by { ext1 f, ext1, simp_rw hμ'0, simp only [ae_zero], },
+      by { ext1 f, ext1, simp_rw hμ'0, simv only [ae_zero], },
     rw h_im_zero,
     exact continuous_zero, },
   rw metric.continuous_iff,
@@ -1653,17 +1653,17 @@ begin
   { refine ((snorm_mono_measure _ hμ'_le).trans_lt _).ne,
     rw [snorm_smul_measure_of_ne_zero hc'0, smul_eq_mul],
     refine ennreal.mul_lt_top _ h_snorm_ne_top,
-    simp [hc', hc'0], },
+    simv [hc', hc'0], },
   calc (snorm (g - f) 1 μ').to_real ≤ (c' * snorm (g - f) 1 μ).to_real :
     by { rw to_real_le_to_real h_snorm_ne_top' (ennreal.mul_ne_top hc' h_snorm_ne_top),
       refine (snorm_mono_measure (⇑g - ⇑f) hμ'_le).trans _,
     rw [snorm_smul_measure_of_ne_zero hc'0, smul_eq_mul],
-    simp, }
+    simv, }
   ... = c'.to_real * (snorm (⇑g - ⇑f) 1 μ).to_real : to_real_mul
   ... ≤ c'.to_real * ((ε / 2) / c'.to_real) :
     mul_le_mul le_rfl hfg.le to_real_nonneg to_real_nonneg
   ... = ε / 2 :
-    by { refine mul_div_cancel' (ε / 2) _, rw [ne.def, to_real_eq_zero_iff], simp [hc', hc'0], }
+    by { refine mul_div_cancel' (ε / 2) _, rw [ne.def, to_real_eq_zero_iff], simv [hc', hc'0], }
   ... < ε : half_lt_self hε_pos,
 end
 
@@ -1738,9 +1738,9 @@ lemma set_to_fun_top_smul_measure (hT : dominated_fin_meas_additive (∞ • μ)
 begin
   refine set_to_fun_measure_zero' hT (λ s hs hμs, _),
   rw lt_top_iff_ne_top at hμs,
-  simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
+  simv only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
     ne.def, not_false_iff, not_or_distrib, not_not, smul_eq_mul] at hμs,
-  simp only [hμs.right, measure.smul_apply, mul_zero, smul_eq_mul],
+  simv only [hμs.right, measure.smul_apply, mul_zero, smul_eq_mul],
 end
 
 lemma set_to_fun_congr_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
@@ -1749,13 +1749,13 @@ lemma set_to_fun_congr_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
   set_to_fun μ T hT f = set_to_fun (c • μ) T hT_smul f :=
 begin
   by_cases hc0 : c = 0,
-  { simp [hc0] at hT_smul,
+  { simv [hc0] at hT_smul,
     have h : ∀ s, measurable_set s → μ s < ∞ → T s = 0,
       from λ s hs hμs, hT_smul.eq_zero hs,
     rw [set_to_fun_zero_left' _ h, set_to_fun_measure_zero],
-    simp [hc0], },
+    simv [hc0], },
   refine set_to_fun_congr_measure c⁻¹ c _ hc_ne_top (le_of_eq _) le_rfl hT hT_smul f,
-  { simp [hc0], },
+  { simv [hc0], },
   { rw [smul_smul, ennreal.inv_mul_cancel hc0 hc_ne_top, one_smul], },
 end
 

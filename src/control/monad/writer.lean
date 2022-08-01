@@ -52,9 +52,9 @@ section
   { pure := λ α, writer_t.pure, bind := λ α β, writer_t.bind }
 
   instance [monoid ω] [is_lawful_monad m] : is_lawful_monad (writer_t ω m) :=
-  { id_map := by { intros, cases x, simp [(<$>),writer_t.bind,writer_t.pure] },
-    pure_bind := by { intros, simp [has_pure.pure,writer_t.pure,(>>=),writer_t.bind], ext; refl },
-    bind_assoc := by { intros, simp [(>>=),writer_t.bind,mul_assoc] with functor_norm } }
+  { id_map := by { intros, cases x, simv [(<$>),writer_t.bind,writer_t.pure] },
+    pure_bind := by { intros, simv [has_pure.pure,writer_t.pure,(>>=),writer_t.bind], ext; refl },
+    bind_assoc := by { intros, simv [(>>=),writer_t.bind,mul_assoc] with functor_norm } }
 
   @[inline] protected def lift [has_one ω] (a : m α) : writer_t ω m α :=
   ⟨ flip prod.mk 1 <$> a ⟩

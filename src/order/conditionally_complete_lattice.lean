@@ -142,18 +142,18 @@ open_locale classical
     simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s s_ne has),
   end,
   le_cInf := λ s a hs has, begin
-    simp only [hs, dif_pos],
+    simv only [hs, dif_pos],
     exact has (h.wf.min_mem s hs),
   end,
   Sup := λ s, if hs : (upper_bounds s).nonempty then h.wf.min _ hs else ⊥,
   le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
-    simp only [h's, dif_pos],
+    simv only [h's, dif_pos],
     exact h.wf.min_mem _ h's has,
   end,
   cSup_le := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
-    simp only [h's, dif_pos],
+    simv only [h's, dif_pos],
     simpa using h.wf.not_lt_min _ h's has,
   end,
   cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min _ _ $ mem_univ ⊥),
@@ -489,7 +489,7 @@ by rw [supr, range_const, cSup_singleton]
 
 @[simp] theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s default :=
 have ∀ i, s i = s default := λ i, congr_arg s (unique.eq_default i),
-by simp only [this, csupr_const]
+by simv only [this, csupr_const]
 
 @[simp] theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s default :=
 @supr_unique αᵒᵈ _ _ _ _
@@ -549,7 +549,7 @@ monotone.csupr_mem_Inter_Icc_of_antitone (λ m n hmn, ((Icc_subset_Icc_iff (h' n
 lemma finset.nonempty.sup'_eq_cSup_image {s : finset β} (hs : s.nonempty) (f : β → α) :
   s.sup' hs f = Sup (f '' s) :=
 eq_of_forall_ge_iff $ λ a,
-  by simp [cSup_le_iff (s.finite_to_set.image f).bdd_above (hs.to_set.image f)]
+  by simv [cSup_le_iff (s.finite_to_set.image f).bdd_above (hs.to_set.image f)]
 
 lemma finset.nonempty.sup'_id_eq_cSup {s : finset α} (hs : s.nonempty) :
   s.sup' hs id = Sup s :=
@@ -677,7 +677,7 @@ by rw [supr_of_empty', cSup_empty]
 lemma is_lub_cSup' {s : set α} (hs : bdd_above s) : is_lub s (Sup s) :=
 begin
   rcases eq_empty_or_nonempty s with (rfl|hne),
-  { simp only [cSup_empty, is_lub_empty] },
+  { simv only [cSup_empty, is_lub_empty] },
   { exact is_lub_cSup hne hs }
 end
 
@@ -693,7 +693,7 @@ theorem le_cSup_iff' {s : set α} {a : α} (h : bdd_above s) :
 
 lemma le_csupr_iff' {s : ι → α} {a : α} (h : bdd_above (range s)) :
   a ≤ supr s ↔ ∀ b, (∀ i, s i ≤ b) → a ≤ b :=
-by simp [supr, h, le_cSup_iff', upper_bounds]
+by simv [supr, h, le_cSup_iff', upper_bounds]
 
 theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
@@ -830,7 +830,7 @@ noncomputable instance : complete_linear_order (with_top α) :=
 lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, ↑a :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
-  { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
+  { rw [hs, cSup_empty], simv only [set.mem_empty_eq, supr_bot, supr_false], refl },
   apply le_antisymm,
   { refine (coe_le_iff.2 $ λ b hb, cSup_le hs $ λ a has, coe_le_coe.1 $ hb ▸ _),
     exact le_supr₂_of_le a has le_rfl },

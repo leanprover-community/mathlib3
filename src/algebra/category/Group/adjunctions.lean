@@ -106,10 +106,10 @@ section abelianization
 def abelianize : Group.{u} ⥤ CommGroup.{u} :=
 { obj := λ G, { α := abelianization G, str := by apply_instance },
   map := λ G H f, abelianization.lift ( { to_fun := λ x, abelianization.of (f x),
-  map_one' := by simp,
-  map_mul' := by simp } ),
-  map_id' := by { intros, simp only [monoid_hom.mk_coe, coe_id], ext1, refl },
-  map_comp' := by { intros, simp only [coe_comp], ext1, refl } }
+  map_one' := by simv,
+  map_mul' := by simv } ),
+  map_id' := by { intros, simv only [monoid_hom.mk_coe, coe_id], ext1, refl },
+  map_comp' := by { intros, simv only [coe_comp], ext1, refl } }
 
 /-- The abelianization-forgetful adjuction from `Group` to `CommGroup`.-/
 def abelianize_adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=

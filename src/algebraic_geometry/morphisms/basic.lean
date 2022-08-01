@@ -43,6 +43,6 @@ def affine_target_morphism_property.to_property (P : affine_target_morphism_prop
 
 lemma affine_target_morphism_property.to_property_apply (P : affine_target_morphism_property)
   {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] :
-  P.to_property f ↔ P f := by { delta affine_target_morphism_property.to_property, simp [*] }
+  P.to_property f ↔ P f := by { delta affine_target_morphism_property.to_property, simv [*] }
 
 end algebraic_geometry

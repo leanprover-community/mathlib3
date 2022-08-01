@@ -175,7 +175,7 @@ def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
       apply is_closed.is_compact,
       have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
         ⋂ (i j : J) (f : i ⟶ j), {u | F.map f (u i) = u j},
-      { ext1, simp only [set.mem_Inter, set.mem_set_of_eq], },
+      { ext1, simv only [set.mem_Inter, set.mem_set_of_eq], },
       rw this,
       apply is_closed_Inter, intros i,
       apply is_closed_Inter, intros j,
@@ -190,7 +190,7 @@ def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   π :=
   { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
     naturality' := by { intros _ _ _, ext ⟨x, hx⟩,
-      simp only [comp_apply, functor.const_obj_map, id_apply], exact (hx f).symm, } } }
+      simv only [comp_apply, functor.const_obj_map, id_apply], exact (hx f).symm, } } }
 
 /-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
 def limit_cone_is_limit {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
@@ -221,11 +221,11 @@ begin
     have H : h = g,
     { rw ← cancel_epi f,
       ext x, dsimp,
-      simp only [comp_apply, continuous_map.coe_mk, subtype.coe_mk, hφ0 (set.mem_range_self x),
+      simv only [comp_apply, continuous_map.coe_mk, subtype.coe_mk, hφ0 (set.mem_range_self x),
         pi.zero_apply], },
     apply_fun (λ e, (e y).down) at H,
     dsimp at H,
-    simp only [subtype.mk_eq_mk, hφ1 (set.mem_singleton y), pi.one_apply] at H,
+    simv only [subtype.mk_eq_mk, hφ1 (set.mem_singleton y), pi.one_apply] at H,
     exact zero_ne_one H, },
   { rw ← category_theory.epi_iff_surjective,
     apply (forget CompHaus).epi_of_epi_map }

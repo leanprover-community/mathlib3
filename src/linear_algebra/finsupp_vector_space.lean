@@ -49,7 +49,7 @@ begin
   { intros i t ht hit,
     refine (disjoint_lsingle_lsingle {i} t (disjoint_singleton_left.2 hit)).mono _ _,
     { rw span_le,
-      simp only [supr_singleton],
+      simv only [supr_singleton],
       rw range_coe,
       apply range_comp_subset_range },
     { refine supr₂_mono (λ i hi, _),
@@ -67,7 +67,7 @@ basis.of_repr
       { to_fun := λ ix, (b ix.1).repr (g ix.1) ix.2,
         support := g.support.sigma (λ i, ((b i).repr (g i)).support),
         mem_support_to_fun := λ ix,
-          by { simp only [finset.mem_sigma, mem_support_iff, and_iff_right_iff_imp, ne.def],
+          by { simv only [finset.mem_sigma, mem_support_iff, and_iff_right_iff_imp, ne.def],
                intros b hg,
                simpa [hg] using b } },
     inv_fun := λ g,
@@ -76,17 +76,17 @@ basis.of_repr
         support := g.support.image sigma.fst,
         mem_support_to_fun := λ i,
           by { rw [ne.def, ← (b i).repr.injective.eq_iff, (b i).repr.apply_symm_apply, ext_iff],
-               simp only [exists_prop, linear_equiv.map_zero, comap_domain_apply, zero_apply,
+               simv only [exists_prop, linear_equiv.map_zero, comap_domain_apply, zero_apply,
                   exists_and_distrib_right, mem_support_iff, exists_eq_right, sigma.exists,
                   finset.mem_image, not_forall] } },
     left_inv := λ g,
       by { ext i, rw ← (b i).repr.injective.eq_iff, ext x,
-           simp only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
+           simv only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
     right_inv := λ g,
       by { ext ⟨i, x⟩,
-           simp only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
-    map_add' := λ g h, by { ext ⟨i, x⟩, simp only [coe_mk, add_apply, linear_equiv.map_add] },
-    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul,
+           simv only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
+    map_add' := λ g h, by { ext ⟨i, x⟩, simv only [coe_mk, add_apply, linear_equiv.map_add] },
+    map_smul' := λ c h, by { ext ⟨i, x⟩, simv only [coe_mk, smul_apply, linear_equiv.map_smul,
                                                     ring_hom.id_apply] } }
 
 @[simp] lemma basis_repr {φ : ι → Type*} (b : ∀ i, basis (φ i) R M)
@@ -101,9 +101,9 @@ begin
   ext ⟨j, y⟩,
   by_cases h : i = j,
   { cases h,
-    simp only [basis_repr, single_eq_same, basis.repr_self,
+    simv only [basis_repr, single_eq_same, basis.repr_self,
                basis.finsupp.single_apply_left sigma_mk_injective] },
-  simp only [basis_repr, single_apply, h, false_and, if_false, linear_equiv.map_zero, zero_apply]
+  simv only [basis_repr, single_apply, h, false_and, if_false, linear_equiv.map_zero, zero_apply]
 end
 
 /-- The basis on `ι →₀ M` with basis vectors `λ i, single i 1`. -/
@@ -169,7 +169,7 @@ def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
   have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
-    by simp,
+    by simv,
   have hn := cardinal.lift_inj.{v u}.2 hn,
   rw this at hn,
   rw ←@dim_fin_fun K _ n at hn,

@@ -28,7 +28,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
+  simv [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
 lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (∥c∥) :=
@@ -40,13 +40,13 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
+  simv only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
 theorem smul_closed_ball' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
-by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
+by simv only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
 
 lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
@@ -71,7 +71,7 @@ begin
   have : metric.closed_ball (0 : 𝕜) (ε / R) ∈ 𝓝 (0 : 𝕜) :=
     closed_ball_mem_nhds _ (div_pos εpos Rpos),
   filter_upwards [this] with r hr,
-  simp only [image_add_left, singleton_add],
+  simv only [image_add_left, singleton_add],
   assume y hy,
   obtain ⟨z, zs, hz⟩ : ∃ (z : E), z ∈ s ∧ r • z = -x + y, by simpa [mem_smul_set] using hy,
   have I : ∥r • z∥ ≤ ε := calc
@@ -80,7 +80,7 @@ begin
       mul_le_mul (mem_closed_ball_zero_iff.1 hr)
         (mem_closed_ball_zero_iff.1 (hR zs)) (norm_nonneg _) (div_pos εpos Rpos).le
     ... = ε : by field_simp [Rpos.ne'],
-  have : y = x + r • z, by simp only [hz, add_neg_cancel_left],
+  have : y = x + r • z, by simv only [hz, add_neg_cancel_left],
   apply hε,
   simpa only [this, dist_eq_norm, add_sub_cancel', mem_closed_ball] using I,
 end
@@ -99,7 +99,7 @@ begin
   use a • x + b • z,
   nth_rewrite 0 [←one_smul ℝ x],
   nth_rewrite 3 [←one_smul ℝ z],
-  simp [dist_eq_norm, ←hab, add_smul, ←smul_sub, norm_smul_of_nonneg, ha, hb],
+  simv [dist_eq_norm, ←hab, add_smul, ←smul_sub, norm_smul_of_nonneg, ha, hb],
 end
 
 lemma exists_dist_le_le (hδ : 0 ≤ δ) (hε : 0 ≤ ε) (h : dist x z ≤ ε + δ) :
@@ -132,7 +132,7 @@ lemma exists_dist_lt_le (hδ : 0 < δ) (hε : 0 ≤ ε) (h : dist x z < ε + δ)
 begin
   obtain ⟨y, yz, xy⟩ := exists_dist_le_lt hε hδ
     (show dist z x < δ + ε, by simpa only [dist_comm, add_comm] using h),
-  exact ⟨y, by simp [dist_comm x y, dist_comm y z, *]⟩,
+  exact ⟨y, by simv [dist_comm x y, dist_comm y z, *]⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -315,7 +315,7 @@ theorem smul_closed_ball (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
-  { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
+  { simv [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
   { exact smul_closed_ball' hc x r }
 end
 
@@ -339,14 +339,14 @@ begin
   refine ⟨λ h, nonempty_closed_ball.1 (h.mono sphere_subset_closed_ball), λ hr,
     ⟨r • ∥y - x∥⁻¹ • (y - x) + x, _⟩⟩,
   have : ∥y - x∥ ≠ 0, by simpa [sub_eq_zero],
-  simp [norm_smul, this, real.norm_of_nonneg hr],
+  simv [norm_smul, this, real.norm_of_nonneg hr],
 end
 
 lemma smul_sphere [nontrivial E] (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
-  { simp [zero_smul_set, set.singleton_zero, hr] },
+  { simv [zero_smul_set, set.singleton_zero, hr] },
   { exact smul_sphere' hc x r }
 end
 

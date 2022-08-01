@@ -135,7 +135,7 @@ lemma pairwise_iff_exists_forall [nonempty ι] (s : set α) (f : α → ι) {r :
   (s.pairwise (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|hne,
-  { simp },
+  { simv },
   { exact hne.pairwise_iff_exists_forall }
 end
 
@@ -151,7 +151,7 @@ lemma pairwise_union :
   (s ∪ t).pairwise r ↔
     s.pairwise r ∧ t.pairwise r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b ∧ r b a :=
 begin
-  simp only [set.pairwise, mem_union_eq, or_imp_distrib, forall_and_distrib],
+  simv only [set.pairwise, mem_union_eq, or_imp_distrib, forall_and_distrib],
   exact ⟨λ H, ⟨H.1.1, H.2.2, H.2.1, λ x hx y hy hne, H.1.2 y hy x hx hne.symm⟩,
     λ H, ⟨⟨H.1, λ x hx y hy hne, H.2.2.2 y hy x hx hne.symm⟩, H.2.2.1, H.2.1⟩⟩
 end
@@ -159,11 +159,11 @@ end
 lemma pairwise_union_of_symmetric (hr : symmetric r) :
   (s ∪ t).pairwise r ↔
     s.pairwise r ∧ t.pairwise r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b :=
-pairwise_union.trans $ by simp only [hr.iff, and_self]
+pairwise_union.trans $ by simv only [hr.iff, and_self]
 
 lemma pairwise_insert :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b ∧ r b a :=
-by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
+by simv only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
 lemma pairwise.insert (hs : s.pairwise r) (h : ∀ b ∈ s, a ≠ b → r a b ∧ r b a) :
@@ -172,7 +172,7 @@ pairwise_insert.2 ⟨hs, h⟩
 
 lemma pairwise_insert_of_symmetric (hr : symmetric r) :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
-by simp only [pairwise_insert, hr.iff a, and_self]
+by simv only [pairwise_insert, hr.iff a, and_self]
 
 lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
   (h : ∀ b ∈ s, a ≠ b → r a b) :
@@ -180,13 +180,13 @@ lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
 (pairwise_insert_of_symmetric hr).2 ⟨hs, h⟩
 
 lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
-by simp [pairwise_insert]
+by simv [pairwise_insert]
 
 lemma pairwise_pair_of_symmetric (hr : symmetric r) : set.pairwise {a, b} r ↔ (a ≠ b → r a b) :=
-by simp [pairwise_insert_of_symmetric hr]
+by simv [pairwise_insert_of_symmetric hr]
 
 lemma pairwise_univ : (univ : set α).pairwise r ↔ pairwise r :=
-by simp only [set.pairwise, pairwise, mem_univ, forall_const]
+by simv only [set.pairwise, pairwise, mem_univ, forall_const]
 
 @[simp] lemma pairwise_bot_iff : s.pairwise (⊥ : α → α → Prop) ↔ (s : set α).subsingleton :=
 ⟨λ h a ha b hb, h.eq ha hb id, λ h, h.pairwise _⟩
@@ -200,7 +200,7 @@ lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
 
 lemma inj_on.pairwise_image {s : set ι} (h : s.inj_on f) :
   (f '' s).pairwise r ↔ s.pairwise (r on f) :=
-by simp [h.eq_iff, set.pairwise] {contextual := tt}
+by simv [h.eq_iff, set.pairwise] {contextual := tt}
 
 lemma pairwise_Union {f : ι → set α} (h : directed (⊆) f) :
   (⋃ n, f n).pairwise r ↔ ∀ n, (f n).pairwise r :=
@@ -232,7 +232,7 @@ begin
   { assume h x hx y hy hxy,
     exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
   { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-    simp only [subtype.mk_eq_mk, ne.def] at hxy,
+    simv only [subtype.mk_eq_mk, ne.def] at hxy,
     exact h hx hy hxy }
 end
 

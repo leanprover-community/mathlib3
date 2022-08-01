@@ -81,7 +81,7 @@ lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
 
 @[simp] lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
-⟨λ h, h.pairwise_disjoint (by simp) (by simp) hij, λ h, begin
+⟨λ h, h.pairwise_disjoint (by simv) (by simv) hij, λ h, begin
   rw sup_indep_iff_disjoint_erase,
   intros k hk,
   rw [finset.mem_insert, finset.mem_singleton] at hk,
@@ -102,14 +102,14 @@ end⟩
 lemma sup_indep_univ_bool (f : bool → α) :
   (finset.univ : finset bool).sup_indep f ↔ disjoint (f ff) (f tt) :=
 begin
-  have : tt ≠ ff := by simp only [ne.def, not_false_iff],
+  have : tt ≠ ff := by simv only [ne.def, not_false_iff],
   exact (sup_indep_pair this).trans disjoint.comm,
 end
 
 @[simp] lemma sup_indep_univ_fin_two (f : fin 2 → α) :
   (finset.univ : finset (fin 2)).sup_indep f ↔ disjoint (f 0) (f 1) :=
 begin
-  have : (0 : fin 2) ≠ 1 := by simp,
+  have : (0 : fin 2) ≠ 1 := by simv,
   exact sup_indep_pair this,
 end
 
@@ -189,9 +189,9 @@ begin
     exact h.pairwise_disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
   { rintros h c ((rfl : c = a) | (rfl : c = b)),
     { convert h using 1,
-      simp [hab, Sup_singleton] },
+      simv [hab, Sup_singleton] },
     { convert h.symm using 1,
-      simp [hab, Sup_singleton] }, },
+      simv [hab, Sup_singleton] }, },
 end
 
 include hs
@@ -227,7 +227,7 @@ begin
   refine forall₂_congr (λ a ha, _),
   congr' 2,
   convert supr_subtype.symm,
-  simp [supr_and],
+  simv [supr_and],
 end
 
 variables {t : ι → α} (ht : independent t)
@@ -345,7 +345,7 @@ begin
   congr' 2,
   refine supr_subtype.trans _,
   congr' 1 with x,
-  simp [supr_and, @supr_comm _ (x ∈ s)],
+  simv [supr_and, @supr_comm _ (x ∈ s)],
 end
 
 alias complete_lattice.independent_iff_sup_indep ↔ complete_lattice.independent.sup_indep
@@ -356,7 +356,7 @@ lemma complete_lattice.independent_iff_sup_indep_univ [complete_lattice α] [fin
   complete_lattice.independent f ↔ finset.univ.sup_indep f :=
 begin
   classical,
-  simp [finset.sup_indep_iff_disjoint_erase, complete_lattice.independent, finset.sup_eq_supr],
+  simv [finset.sup_indep_iff_disjoint_erase, complete_lattice.independent, finset.sup_eq_supr],
 end
 
 alias complete_lattice.independent_iff_sup_indep_univ ↔ complete_lattice.independent.sup_indep_univ

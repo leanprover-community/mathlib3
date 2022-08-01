@@ -58,8 +58,8 @@ variables {I A : Type*} {X : I → Type*} [Π i, topological_space (X i)] [topol
 @[simps]
 def homotopy.pi (homotopies : Π i, homotopy (f i) (g i)) : homotopy (pi f) (pi g) :=
 { to_fun := λ t i, homotopies i t,
-  map_zero_left' := λ t, by { ext i, simp only [pi_eval, homotopy.apply_zero] },
-  map_one_left' := λ t, by { ext i, simp only [pi_eval, homotopy.apply_one] } }
+  map_zero_left' := λ t, by { ext i, simv only [pi_eval, homotopy.apply_zero] },
+  map_one_left' := λ t, by { ext i, simv only [pi_eval, homotopy.apply_one] } }
 
 /-- The relative product homotopy of `homotopies` between functions `f` and `g` -/
 @[simps]
@@ -69,7 +69,7 @@ def homotopy_rel.pi (homotopies : Π i : I, homotopy_rel (f i) (g i) S) :
   begin
     intros t x hx,
     dsimp only [coe_mk, pi_eval, to_fun_eq_coe, homotopy_with.coe_to_continuous_map],
-    simp only [function.funext_iff, ← forall_and_distrib],
+    simv only [function.funext_iff, ← forall_and_distrib],
     intro i,
     exact (homotopies i).prop' t x hx,
   end,
@@ -89,8 +89,8 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 def homotopy.prod (F : homotopy f₀ f₁) (G : homotopy g₀ g₁) :
   homotopy (prod_mk f₀ g₀) (prod_mk f₁ g₁) :=
 { to_fun := λ t, (F t, G t),
-  map_zero_left' := λ x, by simp only [prod_eval, homotopy.apply_zero],
-  map_one_left' := λ x, by simp only [prod_eval, homotopy.apply_one] }
+  map_zero_left' := λ x, by simv only [prod_eval, homotopy.apply_zero],
+  map_one_left' := λ x, by simv only [prod_eval, homotopy.apply_one] }
 
 /-- The relative product of homotopies `F` and `G`,
   where `F` takes `f₀` to `f₁`  and `G` takes `g₀` to `g₁` -/
@@ -102,7 +102,7 @@ def homotopy_rel.prod (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel g₀ g₁
     intros t x hx,
     have hF := F.prop' t x hx,
     have hG := G.prop' t x hx,
-    simp only [coe_mk, prod_eval, prod.mk.inj_iff, homotopy.prod] at hF hG ⊢,
+    simv only [coe_mk, prod_eval, prod.mk.inj_iff, homotopy.prod] at hF hG ⊢,
     exact ⟨⟨hF.1, hG.1⟩, ⟨hF.2, hG.2⟩⟩,
   end,
   ..(homotopy.prod F.to_homotopy G.to_homotopy) }
@@ -131,7 +131,7 @@ def pi (γ : Π i, path.homotopic.quotient (as i) (bs i)) : path.homotopic.quoti
   (quotient.choice γ)
 
 lemma pi_lift (γ : Π i, path (as i) (bs i)) : path.homotopic.pi (λ i, ⟦γ i⟧) = ⟦path.pi γ⟧ :=
-by { unfold pi, simp, }
+by { unfold pi, simv, }
 
 /-- Composition and products commute.
   This is `path.trans_pi_eq_pi_trans` descended to path homotopy classes -/
@@ -143,7 +143,7 @@ begin
   apply quotient.induction_on_pi γ₁,
   apply quotient.induction_on_pi γ₀,
   intros,
-  simp only [pi_lift],
+  simv only [pi_lift],
   rw [← path.homotopic.comp_lift,
       path.trans_pi_eq_pi_trans,
       ← pi_lift],
@@ -204,7 +204,7 @@ begin
   apply quotient.induction_on₂ q₁ q₂,
   apply quotient.induction_on₂ r₁ r₂,
   intros,
-  simp only [prod_lift, ← path.homotopic.comp_lift, path.trans_prod_eq_prod_trans],
+  simv only [prod_lift, ← path.homotopic.comp_lift, path.trans_prod_eq_prod_trans],
 end
 
 variables {c₁ c₂ : α × β}
@@ -244,7 +244,7 @@ begin
   apply quotient.induction_on p,
   intro p',
   unfold proj_left, unfold proj_right,
-  simp only [← path.homotopic.map_lift, prod_lift],
+  simv only [← path.homotopic.map_lift, prod_lift],
   congr, ext; refl,
 end
 

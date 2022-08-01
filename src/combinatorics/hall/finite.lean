@@ -52,7 +52,7 @@ begin
   { have ha' : s'.card < (s'.bUnion (λ x, t x)).card,
     { convert ha he (λ h, by simpa [←h] using mem_univ x) using 2,
       ext x,
-      simp only [mem_image, mem_bUnion, exists_prop, set_coe.exists,
+      simv only [mem_image, mem_bUnion, exists_prop, set_coe.exists,
                  exists_and_distrib_right, exists_eq_right, subtype.coe_mk], },
     rw ←erase_bUnion,
     by_cases hb : a ∈ s'.bUnion (λ x, t x),
@@ -62,7 +62,7 @@ begin
       exact nat.le_of_lt ha' }, },
   { rw [nonempty_iff_ne_empty, not_not] at he,
     subst s',
-    simp },
+    simv },
 end
 
 /--
@@ -103,7 +103,7 @@ begin
     have key : ∀ {x}, y ≠ f' x,
     { intros x h,
       simpa [←h] using hfr x, },
-    by_cases h₁ : z₁ = x; by_cases h₂ : z₂ = x; simp [h₁, h₂, hfinj.eq_iff, key, key.symm], },
+    by_cases h₁ : z₁ = x; by_cases h₂ : z₂ = x; simv [h₁, h₂, hfinj.eq_iff, key, key.symm], },
   { intro z,
     split_ifs with hz,
     { rwa hz },
@@ -122,7 +122,7 @@ begin
   convert ht (s'.image coe) using 1,
   apply congr_arg,
   ext y,
-  simp,
+  simv,
 end
 
 lemma hall_cond_of_compl {ι : Type u} {t : ι → finset α} {s : finset ι}
@@ -133,18 +133,18 @@ lemma hall_cond_of_compl {ι : Type u} {t : ι → finset α} {s : finset ι}
 begin
   haveI := classical.dec_eq ι,
   have disj : disjoint s (s'.image coe),
-  { simp only [disjoint_left, not_exists, mem_image, exists_prop, set_coe.exists,
+  { simv only [disjoint_left, not_exists, mem_image, exists_prop, set_coe.exists,
                exists_and_distrib_right, exists_eq_right, subtype.coe_mk],
     intros x hx hc h,
     exact absurd hx hc, },
   have : s'.card = (s ∪ s'.image coe).card - s.card,
-  { simp [disj, card_image_of_injective _ subtype.coe_injective], },
+  { simv [disj, card_image_of_injective _ subtype.coe_injective], },
   rw [this, hus],
   refine (tsub_le_tsub_right (ht _) _).trans _,
   rw ← card_sdiff,
   { refine (card_le_of_subset _).trans le_rfl,
     intros t,
-    simp only [mem_bUnion, mem_sdiff, not_exists, mem_image, and_imp, mem_union,
+    simv only [mem_bUnion, mem_sdiff, not_exists, mem_image, and_imp, mem_union,
                exists_and_distrib_right, exists_imp_distrib],
     rintro x (hx | ⟨x', hx', rfl⟩) rat hs,
     { exact (hs x hx rat).elim },

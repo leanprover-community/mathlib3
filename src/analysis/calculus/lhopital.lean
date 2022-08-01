@@ -72,13 +72,13 @@ begin
   { intros x hx,
     rcases hc x hx with ⟨h₁, h₂⟩,
     field_simp [hg x hx, hg' (c x) ((sub x hx) h₁)],
-    simp only [h₂],
+    simv only [h₂],
     rwa mul_comm },
   have cmp : ∀ x ∈ Ioo a b, a < c x ∧ c x < x,
     from λ x hx, (hc x hx).1,
   rw ← nhds_within_Ioo_eq_nhds_within_Ioi hab,
   apply tendsto_nhds_within_congr this,
-  simp only,
+  simv only,
   apply hdiv.comp,
   refine tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
     (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
@@ -87,7 +87,7 @@ begin
   { apply eventually_nhds_within_of_forall,
     intros x hx,
     have := cmp x hx,
-    try {simp},
+    try {simv},
     linarith [this] }
 end
 
@@ -126,7 +126,7 @@ begin
           rwa [mul_comm, ← neg_eq_neg_one_mul, neg_eq_zero] at h })
     (hfb.comp tendsto_neg_nhds_within_Ioi_neg)
     (hgb.comp tendsto_neg_nhds_within_Ioi_neg)
-    (by { simp only [neg_div_neg_eq, mul_one, mul_neg],
+    (by { simv only [neg_div_neg_eq, mul_one, mul_neg],
           exact (tendsto_congr $ λ x, rfl).mp (hdiv.comp tendsto_neg_nhds_within_Ioi_neg) }),
   have := this.comp tendsto_neg_nhds_within_Iio,
   unfold function.comp at this,
@@ -205,7 +205,7 @@ begin
           rwa [mul_comm, ← neg_eq_neg_one_mul, neg_eq_zero] at h })
     (hfbot.comp tendsto_neg_at_top_at_bot)
     (hgbot.comp tendsto_neg_at_top_at_bot)
-    (by { simp only [mul_one, mul_neg, neg_div_neg_eq],
+    (by { simv only [mul_one, mul_neg, neg_div_neg_eq],
           exact (tendsto_congr $ λ x, rfl).mp (hdiv.comp tendsto_neg_at_top_at_bot) }),
   have := this.comp tendsto_neg_at_bot_at_top,
   unfold function.comp at this,
@@ -363,7 +363,7 @@ theorem lhopital_zero_nhds'
 begin
   have : univ \ {a} = Iio a ∪ Ioi a,
   { ext, rw [mem_diff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
-  simp only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
+  simv only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
   exact ⟨lhopital_zero_nhds_left hff'.1 hgg'.1 hg'.1 hfa.1 hga.1 hdiv.1,
           lhopital_zero_nhds_right hff'.2 hgg'.2 hg'.2 hfa.2 hga.2 hdiv.2⟩
 end
@@ -481,7 +481,7 @@ theorem lhopital_zero_nhds'
 begin
   have : univ \ {a} = Iio a ∪ Ioi a,
   { ext, rw [mem_diff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
-  simp only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
+  simv only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
   exact ⟨lhopital_zero_nhds_left hdf.1 hg'.1 hfa.1 hga.1 hdiv.1,
           lhopital_zero_nhds_right hdf.2 hg'.2 hfa.2 hga.2 hdiv.2⟩,
 end

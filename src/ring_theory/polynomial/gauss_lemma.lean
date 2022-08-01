@@ -82,7 +82,7 @@ begin
   rw [← hc, (integer_normalization R⁰ p).eq_C_content_mul_prim_part, ← hu,
     ← ring_hom.map_mul, is_unit_iff],
   refine ⟨algebra_map R K ((integer_normalization R⁰ p).content * ↑u),
-    is_unit_iff_ne_zero.2 (λ con, _), by simp⟩,
+    is_unit_iff_ne_zero.2 (λ con, _), by simv⟩,
   replace con := (injective_iff_map_eq_zero (algebra_map R K)).1
     (is_fraction_ring.injective _ _) _ con,
   rw [mul_eq_zero, content_eq_zero_iff, is_fraction_ring.integer_normalization_eq_zero_iff] at con,
@@ -125,7 +125,7 @@ begin
     rw [ne.def, ne.def, ← decidable.not_or_iff_and_not, ← mul_eq_zero, ← hab],
     intro con,
     apply hp.ne_zero (map_injective (algebra_map R K) (is_fraction_ring.injective _ _) _),
-    simp [con] },
+    simv [con] },
   rcases hi.is_unit_or_is_unit (mul_left_cancel₀ hcd0 h1).symm with h | h,
   { right,
     apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part h0.2
@@ -145,7 +145,7 @@ begin
   { use (integer_normalization R⁰ r),
     apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _),
     rw [polynomial.map_mul, polynomial.map_mul, hs, hr, mul_assoc, mul_comm r],
-    simp },
+    simv },
   rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq,
       associated.dvd_iff_dvd_right] at h,
   { exact h },
@@ -156,7 +156,7 @@ begin
   iterate 2 { apply mul_ne_zero hq.ne_zero,
     rw [ne.def, C_eq_zero],
     contrapose! s0,
-    simp [s0, mem_non_zero_divisors_iff_ne_zero] }
+    simv [s0, mem_non_zero_divisors_iff_ne_zero] }
 end
 
 variables (K)

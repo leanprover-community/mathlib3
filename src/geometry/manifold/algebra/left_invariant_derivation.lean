@@ -89,27 +89,27 @@ left_invariant'' X g
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 
 instance : has_zero (left_invariant_derivation I G) :=
-⟨⟨0, λ g, by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
+⟨⟨0, λ g, by simv only [linear_map.map_zero, derivation.coe_zero]⟩⟩
 
 instance : inhabited (left_invariant_derivation I G) := ⟨0⟩
 
 instance : has_add (left_invariant_derivation I G) :=
-{ add := λ X Y, ⟨X + Y, λ g, by simp only [linear_map.map_add, derivation.coe_add,
+{ add := λ X Y, ⟨X + Y, λ g, by simv only [linear_map.map_add, derivation.coe_add,
     left_invariant', pi.add_apply]⟩ }
 
 instance : has_neg (left_invariant_derivation I G) :=
-{ neg := λ X, ⟨-X, λ g, by simp [left_invariant']⟩ }
+{ neg := λ X, ⟨-X, λ g, by simv [left_invariant']⟩ }
 
 instance : has_sub (left_invariant_derivation I G) :=
-{ sub := λ X Y, ⟨X - Y, λ g, by simp [left_invariant']⟩ }
+{ sub := λ X Y, ⟨X - Y, λ g, by simv [left_invariant']⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
 @[simp] lemma coe_neg : ⇑(-X) = -X := rfl
 @[simp] lemma coe_sub : ⇑(X - Y) = X - Y := rfl
-@[simp, norm_cast] lemma lift_add :
+@[simv, norm_cast] lemma lift_add :
   (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
-@[simp, norm_cast] lemma lift_zero :
+@[simv, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
 instance has_nat_scalar : has_smul ℕ (left_invariant_derivation I G) :=
@@ -184,16 +184,16 @@ instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivatio
 lemma commutator_apply : ⁅X, Y⁆ f = X (Y f) - Y (X f) := rfl
 
 instance : lie_ring (left_invariant_derivation I G) :=
-{ add_lie := λ X Y Z, by { ext1, simp only [commutator_apply, coe_add, pi.add_apply,
+{ add_lie := λ X Y Z, by { ext1, simv only [commutator_apply, coe_add, pi.add_apply,
               linear_map.map_add, left_invariant_derivation.map_add], ring },
-  lie_add := λ X Y Z, by { ext1, simp only [commutator_apply, coe_add, pi.add_apply,
+  lie_add := λ X Y Z, by { ext1, simv only [commutator_apply, coe_add, pi.add_apply,
               linear_map.map_add, left_invariant_derivation.map_add], ring },
-  lie_self := λ X, by { ext1, simp only [commutator_apply, sub_self], refl },
-  leibniz_lie := λ X Y Z, by { ext1, simp only [commutator_apply, coe_add, coe_sub, map_sub,
+  lie_self := λ X, by { ext1, simv only [commutator_apply, sub_self], refl },
+  leibniz_lie := λ X Y Z, by { ext1, simv only [commutator_apply, coe_add, coe_sub, map_sub,
               pi.add_apply], ring, } }
 
 instance : lie_algebra 𝕜 (left_invariant_derivation I G) :=
-{ lie_smul := λ r Y Z, by { ext1, simp only [commutator_apply, map_smul, smul_sub, coe_smul,
+{ lie_smul := λ r Y Z, by { ext1, simv only [commutator_apply, map_smul, smul_sub, coe_smul,
               pi.smul_apply] } }
 
 end left_invariant_derivation

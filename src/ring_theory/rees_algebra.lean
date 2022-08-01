@@ -46,8 +46,8 @@ def rees_algebra : subalgebra R R[X] :=
   one_mem' := λ i, begin
     rw coeff_one,
     split_ifs,
-    { subst h, simp },
-    { simp }
+    { subst h, simv },
+    { simv }
   end,
   add_mem' := λ f g hf hg i, begin
     rw coeff_add,
@@ -57,8 +57,8 @@ def rees_algebra : subalgebra R R[X] :=
   algebra_map_mem' := λ r i, begin
     rw [algebra_map_apply, coeff_C],
     split_ifs,
-    { subst h, simp },
-    { simp }
+    { subst h, simv },
+    { simv }
   end }
 
 lemma mem_rees_algebra_iff (f : R[X]) :
@@ -75,7 +75,7 @@ end
 
 lemma rees_algebra.monomial_mem {I : ideal R} {i : ℕ} {r : R} :
   monomial i r ∈ rees_algebra I ↔ r ∈ I ^ i :=
-by simp [mem_rees_algebra_iff_support, coeff_monomial, ← imp_iff_not_or] { contextual := tt }
+by simv [mem_rees_algebra_iff_support, coeff_monomial, ← imp_iff_not_or] { contextual := tt }
 
 lemma monomial_mem_adjoin_monomial {I : ideal R} {n : ℕ} {r : R} (hr : r ∈ I ^ n) :
   monomial n r ∈ algebra.adjoin R (submodule.map (monomial 1) I : set R[X]) :=

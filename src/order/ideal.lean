@@ -159,7 +159,7 @@ lemma is_maximal.is_coatom (h : is_maximal I) : is_coatom I :=
 lemma is_maximal.is_coatom' [is_maximal I] : is_coatom I := is_maximal.is_coatom ‹_›
 
 lemma _root_.is_coatom.is_maximal (hI : is_coatom I) : is_maximal I :=
-{ maximal_proper := λ _ _, by simp [hI.2 _ ‹_›],
+{ maximal_proper := λ _ _, by simv [hI.2 _ ‹_›],
   ..is_coatom.is_proper ‹_› }
 
 lemma is_maximal_iff_is_coatom : is_maximal I ↔ is_coatom I := ⟨λ h, h.is_coatom, λ h, h.is_maximal⟩
@@ -210,7 +210,7 @@ variables [order_bot P]
 /-- There is a bottom ideal when `P` has a bottom element. -/
 instance : order_bot (ideal P) :=
 { bot := principal ⊥,
-  bot_le := by simp }
+  bot_le := by simv }
 
 @[simp] lemma principal_bot : principal (⊥ : P) = ⊥ := rfl
 
@@ -243,7 +243,7 @@ variables [semilattice_sup P] [is_directed P (≥)] {x : P} {I J K s t : ideal P
 instance : has_inf (ideal P) :=
 ⟨λ I J, { to_lower_set := I.to_lower_set ⊓ J.to_lower_set,
   nonempty' := inter_nonempty I J,
-  directed' := λ x hx y hy, ⟨x ⊔ y, ⟨sup_mem hx.1 hy.1, sup_mem hx.2 hy.2⟩, by simp⟩ }⟩
+  directed' := λ x hx y hy, ⟨x ⊔ y, ⟨sup_mem hx.1 hy.1, sup_mem hx.2 hy.2⟩, by simv⟩ }⟩
 
 /-- The supremum of two ideals of a co-directed order is the union of the down sets of the pointwise
 supremum of `I` and `J`. -/

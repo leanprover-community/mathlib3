@@ -49,9 +49,9 @@ begin
   specialize hv (M.cramer (pi.single i 1)),
   refine (mul_eq_zero.mp _).resolve_right hM,
   convert hv,
-  simp only [mul_vec_cramer M (pi.single i 1), dot_product, pi.smul_apply, smul_eq_mul],
+  simv only [mul_vec_cramer M (pi.single i 1), dot_product, pi.smul_apply, smul_eq_mul],
   rw [finset.sum_eq_single i, pi.single_eq_same, mul_one],
-  { intros j _ hj, simp [hj] },
+  { intros j _ hj, simv [hj] },
   { intros, have := finset.mem_univ i, contradiction }
 end
 

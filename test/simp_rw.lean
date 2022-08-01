@@ -17,7 +17,7 @@ example : (λ (x y : ℕ), x + y) = (λ x y, y + x) := by simp_rw [add_comm]
 -- `simp_rw` can apply reverse rules:
 example (f : ℕ → ℕ) {a b c : ℕ} (ha : f b = a) (hc : f b = c) : a = c := by simp_rw [← ha, hc]
 
--- `simp_rw` performs rewrites in the given order (`simp` fails on this example):
+-- `simp_rw` performs rewrites in the given order (`simv` fails on this example):
 example {α β : Type} {f : α → β} {t : set β} :
   (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
 by simp_rw [set.image_subset_iff, set.subset_def]

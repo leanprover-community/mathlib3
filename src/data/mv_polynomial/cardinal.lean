@@ -72,19 +72,19 @@ begin
   { rcases ih₁ with ⟨w₁, rfl⟩,
     rcases ih₂ with ⟨w₂, rfl⟩,
     exact ⟨W_type.mk (sum.inr (sum.inr ⟨tt⟩)) (λ x, cond x.down w₁ w₂),
-      by simp [to_mv_polynomial]⟩ },
+      by simv [to_mv_polynomial]⟩ },
   { rcases ih with ⟨w, rfl⟩,
     exact ⟨W_type.mk (sum.inr (sum.inr ⟨ff⟩)) (λ x, cond x.down w (W_type.mk
-      (sum.inr (sum.inl i)) pempty.elim)), by simp [to_mv_polynomial]⟩ }
+      (sum.inr (sum.inl i)) pempty.elim)), by simv [to_mv_polynomial]⟩ }
 end
 
 private lemma cardinal_mv_polynomial_fun_le : #(mv_polynomial_fun σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
 calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
-  by dsimp [mv_polynomial_fun]; simp only [← add_def, add_assoc, cardinal.mk_ulift]
+  by dsimp [mv_polynomial_fun]; simv only [← add_def, add_assoc, cardinal.mk_ulift]
 ... ≤ max (max (#R + #σ) (#(ulift bool))) ℵ₀ : add_le_max _ _
 ... ≤ max (max (max (max (#R) (#σ)) ℵ₀) (#(ulift bool))) ℵ₀ :
   max_le_max (max_le_max (add_le_max _ _) le_rfl) le_rfl
-... ≤ _ : by simp only [max_comm ℵ₀, max_assoc, max_left_comm ℵ₀, max_self,
+... ≤ _ : by simv only [max_comm ℵ₀, max_assoc, max_left_comm ℵ₀, max_self,
             max_eq_left (lt_aleph_0_of_finite (ulift.{u} bool)).le]
 
 namespace mv_polynomial
@@ -97,6 +97,6 @@ calc #(mv_polynomial σ R) ≤ #(W_type (arity σ R)) :
   cardinal.mk_le_of_surjective to_mv_polynomial_surjective
 ... ≤ max (#(mv_polynomial_fun σ R)) ℵ₀ : W_type.cardinal_mk_le_max_aleph_0_of_finite
 ... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le le_rfl
-... ≤ _ : by simp only [max_assoc, max_self]
+... ≤ _ : by simv only [max_assoc, max_self]
 
 end mv_polynomial

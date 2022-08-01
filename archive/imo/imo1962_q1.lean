@@ -117,7 +117,7 @@ lemma case_more_digits {c n : ℕ} (h1 : (digits 10 c).length ≥ 6) (h2 : probl
 begin
   have h3 : c ≠ 0,
   { intro h4,
-    have h5 : (digits 10 c).length = 0, by simp [h4],
+    have h5 : (digits 10 c).length = 0, by simv [h4],
     exact case_0_digit h5 h2 },
   have h6 : 2 ≤ 10, from dec_trivial,
   calc

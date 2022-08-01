@@ -424,7 +424,7 @@ variables [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
 
 /-- `equiv.sum_assoc` promoted to an order isomorphism. -/
 def sum_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α ⊕ β) ⊕ γ ≃o α ⊕ β ⊕ γ :=
-{ map_rel_iff' := by { rintro ((a | a) | a) ((b | b) | b); simp },
+{ map_rel_iff' := by { rintro ((a | a) | a) ((b | b) | b); simv },
   ..equiv.sum_assoc α β γ }
 
 @[simp] lemma sum_assoc_apply_inl_inl : sum_assoc α β γ (inl (inl a)) = inl a := rfl
@@ -440,11 +440,11 @@ def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ β)ᵒᵈ
 { map_rel_iff' := begin
   rintro (a | a) (b | b),
   { change inl (to_dual a) ≤ inl (to_dual b) ↔ to_dual (inl a) ≤ to_dual (inl b),
-    simp only [to_dual_le_to_dual, inl_le_inl_iff] },
+    simv only [to_dual_le_to_dual, inl_le_inl_iff] },
   { exact iff_of_false not_inl_le_inr not_inr_le_inl },
   { exact iff_of_false not_inr_le_inl not_inl_le_inr },
   { change inr (to_dual a) ≤ inr (to_dual b) ↔ to_dual (inr a) ≤ to_dual (inr b),
-    simp only [to_dual_le_to_dual, inr_le_inr_iff] }
+    simv only [to_dual_le_to_dual, inr_le_inr_iff] }
 end,
   ..equiv.refl _ }
 
@@ -500,15 +500,15 @@ def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α �
 /-- `order_dual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
 def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ₗ β)ᵒᵈ ≃o βᵒᵈ ⊕ₗ αᵒᵈ :=
 { map_rel_iff' := begin
-  rintro (a | a) (b | b), simp,
+  rintro (a | a) (b | b), simv,
   { change to_lex (inr $ to_dual a) ≤ to_lex (inr $ to_dual b) ↔
       to_dual (to_lex $ inl a) ≤ to_dual (to_lex $ inl b),
-    simp only [to_dual_le_to_dual, lex.inl_le_inl_iff, lex.inr_le_inr_iff] },
+    simv only [to_dual_le_to_dual, lex.inl_le_inl_iff, lex.inr_le_inr_iff] },
   { exact iff_of_false lex.not_inr_le_inl lex.not_inr_le_inl },
   { exact iff_of_true (lex.inl_le_inr _ _) (lex.inl_le_inr _ _) },
   { change to_lex (inl $ to_dual a) ≤ to_lex (inl $ to_dual b) ↔
       to_dual (to_lex $ inr a) ≤ to_dual (to_lex $ inr b),
-    simp only [to_dual_le_to_dual, lex.inl_le_inl_iff, lex.inr_le_inr_iff] }
+    simv only [to_dual_le_to_dual, lex.inl_le_inl_iff, lex.inr_le_inr_iff] }
 end,
   ..equiv.sum_comm α β }
 
@@ -534,7 +534,7 @@ namespace with_bot
 `a`. -/
 def order_iso_punit_sum_lex : with_bot α ≃o punit ⊕ₗ α :=
 ⟨(equiv.option_equiv_sum_punit α).trans $ (equiv.sum_comm _ _).trans to_lex,
-  by rintro (a | _) (b | _); simp; exact not_coe_le_bot _⟩
+  by rintro (a | _) (b | _); simv; exact not_coe_le_bot _⟩
 
 @[simp] lemma order_iso_punit_sum_lex_bot :
   @order_iso_punit_sum_lex α _ ⊥ = to_lex (inl punit.star) := rfl
@@ -556,7 +556,7 @@ namespace with_top
 `a`. -/
 def order_iso_sum_lex_punit : with_top α ≃o α ⊕ₗ punit :=
 ⟨(equiv.option_equiv_sum_punit α).trans to_lex,
-  by rintro (a | _) (b | _); simp; exact not_top_le_coe _⟩
+  by rintro (a | _) (b | _); simv; exact not_top_le_coe _⟩
 
 @[simp] lemma order_iso_sum_lex_punit_top :
   @order_iso_sum_lex_punit α _ ⊤ = to_lex (inr punit.star) := rfl

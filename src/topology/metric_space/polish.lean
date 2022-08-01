@@ -209,7 +209,7 @@ begin
       rw mem_singleton_iff.1 ha,
       exact hs },
     { ext x,
-      simp only [singleton_pi, mem_preimage] } },
+      simv only [singleton_pi, mem_preimage] } },
   refine ⟨T.induced f, λ n, T_le_m n, (T_le_m default).trans (hm default), _⟩,
   -- show that the new topology is Polish, as the pullback of a Polish topology under a closed
   -- embedding.
@@ -217,7 +217,7 @@ begin
   { ext x,
     split,
     { rintros ⟨y, rfl⟩,
-      exact mem_Inter.2 (λ n, by simp only [mem_set_of_eq]) },
+      exact mem_Inter.2 (λ n, by simv only [mem_set_of_eq]) },
     { assume hx,
       refine ⟨x default, _⟩,
       ext1 n,
@@ -283,8 +283,8 @@ if `s` is open. It is given by `dist' x y = dist x y + |1 / dist x sᶜ - 1 / di
 second term blows up close to the boundary to ensure that Cauchy sequences for `dist'` remain well
 inside `s`. -/
 def complete_copy_metric_space (s : set α) : metric_space (complete_copy s) :=
-{ dist_self := λ x, by simp [dist_complete_copy_eq],
-  dist_comm := λ x y, by simp [dist_complete_copy_eq, dist_comm, abs_sub_comm],
+{ dist_self := λ x, by simv [dist_complete_copy_eq],
+  dist_comm := λ x y, by simv [dist_complete_copy_eq, dist_comm, abs_sub_comm],
   dist_triangle := λ x y z, calc
     dist x z = dist x.1 z.1 + abs (1 / inf_dist x.1 sᶜ - 1 / inf_dist z.1 sᶜ) : rfl
     ... ≤ (dist x.1 y.1 + dist y.1 z.1) +
@@ -330,7 +330,7 @@ def complete_copy_id_homeo (hs : is_open s) (h's : sᶜ.nonempty) : complete_cop
       simpa only [sub_self, abs_zero, add_zero, dist_self] using H },
     have I : 0 < inf_dist x.val sᶜ,
     { rw ← hs.is_closed_compl.not_mem_iff_inf_dist_pos h's,
-      simp },
+      simv },
     apply tendsto.add,
     { apply continuous.tendsto, exact continuous_subtype_coe.dist continuous_const },
     { refine (tendsto.sub_const _ _).abs,
@@ -341,7 +341,7 @@ def complete_copy_id_homeo (hs : is_open s) (h's : sᶜ.nonempty) : complete_cop
 lemma complete_space_complete_copy [complete_space α] (hs : is_open s) (h's : sᶜ.nonempty) :
   complete_space (complete_copy s) :=
 begin
-  refine metric.complete_of_convergent_controlled_sequences (λ n, (1/2)^n) (by simp) _,
+  refine metric.complete_of_convergent_controlled_sequences (λ n, (1/2)^n) (by simv) _,
   assume u hu,
   have A : cauchy_seq (λ n, (u n).1),
   { apply cauchy_seq_of_le_tendsto_0 (λ (n : ℕ), (1/2)^n) (λ n m N hNn hNm, _) _,
@@ -356,7 +356,7 @@ begin
     { apply embedding_subtype_coe.tendsto_nhds_iff.2, exact xlim },
     convert ((complete_copy_id_homeo hs h's).symm.continuous.tendsto _).comp L,
     ext1 n,
-    simp [complete_copy_id_homeo] },
+    simv [complete_copy_id_homeo] },
   obtain ⟨C, hC⟩ : ∃ C, ∀ n, 1 / inf_dist (u n).1 sᶜ < C,
   { refine ⟨(1/2)^0 + dist (1 / inf_dist (u 0).1 sᶜ) 0, λ n, _⟩,
     calc 1 / inf_dist (u n).val sᶜ ≤ dist (1 / inf_dist (u n).val sᶜ) 0 :
@@ -371,11 +371,11 @@ begin
       add_lt_add_right (hu 0 n 0 (zero_le _) le_rfl) _ },
   have Cpos : 0 < C,
   { apply lt_of_le_of_lt _ (hC 0),
-    simp [inf_dist_nonneg] },
+    simv [inf_dist_nonneg] },
   have I : ∀ n, 1/C ≤ inf_dist (u n).1 sᶜ,
   { assume n,
     have : 0 < inf_dist (u n).val sᶜ,
-    { apply (hs.is_closed_compl.not_mem_iff_inf_dist_pos h's).1, simp },
+    { apply (hs.is_closed_compl.not_mem_iff_inf_dist_pos h's).1, simv },
     rw div_le_iff' Cpos,
     exact (div_le_iff this).1 (hC n).le },
   have I' : 1/C ≤ inf_dist x sᶜ,
@@ -384,7 +384,7 @@ begin
     exact ge_of_tendsto' this I },
   suffices : x ∉ sᶜ, by simpa,
   apply (hs.is_closed_compl.not_mem_iff_inf_dist_pos h's).2 (lt_of_lt_of_le _ I'),
-  simp [Cpos],
+  simv [Cpos],
 end
 
 /-- An open subset of a Polish space is also Polish. -/
@@ -393,7 +393,7 @@ lemma _root_.is_open.polish_space {α : Type*} [topological_space α] [polish_sp
   polish_space s :=
 begin
   rcases eq_empty_or_nonempty sᶜ with h's|h's,
-  { simp at h's,
+  { simv at h's,
     apply is_closed.polish_space,
     rw h's,
     exact is_closed_univ },
@@ -432,22 +432,22 @@ begin
   have A : g ⁻¹' (range (sum.inl : s → s ⊕ t)) = s,
   { ext x,
     by_cases h : x ∈ s,
-    { simp only [equiv.set.sum_compl_symm_apply_of_mem, h, mem_preimage, equiv.to_fun_as_coe,
+    { simv only [equiv.set.sum_compl_symm_apply_of_mem, h, mem_preimage, equiv.to_fun_as_coe,
         mem_range_self, equiv.to_homeomorph_of_inducing_apply]},
-    { simp only [equiv.set.sum_compl_symm_apply_of_not_mem, h, not_false_iff, mem_preimage,
+    { simv only [equiv.set.sum_compl_symm_apply_of_not_mem, h, not_false_iff, mem_preimage,
         equiv.to_homeomorph_of_inducing_apply, equiv.to_fun_as_coe, mem_range, exists_false]} },
   refine ⟨t', _, f.polish_space_induced, _, _⟩,
   { assume u hu,
     change ∃ (s' : set (↥s ⊕ ↥t)), T.is_open s' ∧ f ⁻¹' s' = u,
-    refine ⟨f.symm ⁻¹' u, _, by simp only [equiv.symm_symm, equiv.symm_preimage_preimage]⟩,
+    refine ⟨f.symm ⁻¹' u, _, by simv only [equiv.symm_symm, equiv.symm_preimage_preimage]⟩,
     refine is_open_sum_iff.2 ⟨_, _⟩,
     { have : is_open ((coe : s → α) ⁻¹' u) := is_open.preimage continuous_subtype_coe hu,
       have : sum.inl ⁻¹' (⇑(f.symm) ⁻¹' u) = (coe : s → α) ⁻¹' u,
-        by { ext x, simp only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inl] },
+        by { ext x, simv only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inl] },
       rwa this },
     { have : is_open ((coe : t → α) ⁻¹' u) := is_open.preimage continuous_subtype_coe hu,
       have : sum.inr ⁻¹' (⇑(f.symm) ⁻¹' u) = (coe : t → α) ⁻¹' u,
-        by { ext x, simp only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inr] },
+        by { ext x, simv only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inr] },
       rwa this } },
   { have : @is_closed α t' (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
     { apply is_closed.preimage,

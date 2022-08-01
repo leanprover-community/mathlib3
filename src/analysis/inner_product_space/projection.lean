@@ -78,7 +78,7 @@ begin
   have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (nhds δ),
   { have h : tendsto (λ n:ℕ, δ) at_top (nhds δ) := tendsto_const_nhds,
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (nhds δ),
-    { convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero] },
+    { convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simv only [add_zero] },
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
       (λ x, δ_le _) (λ x, le_of_lt (hw _)) },
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
@@ -105,12 +105,12 @@ begin
       by { rw _root_.abs_of_nonneg, exact zero_le_two }
       ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ +
             ∥wp-wq∥ * ∥wp-wq∥ :
-      by simp [norm_smul]
+      by simv [norm_smul]
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
         rw [smul_sub, smul_smul, mul_one_div_cancel (_root_.two_ne_zero : (2 : ℝ) ≠ 0),
             ← one_add_one_eq_two, add_smul],
-        simp only [one_smul],
+        simv only [one_smul],
         have eq₁ : wp - wq = a - b, from (sub_sub_sub_cancel_left _ _ _).symm,
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
@@ -135,7 +135,7 @@ begin
     rw mul_self_sqrt,
     calc
       ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
-        4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simp }
+        4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simv }
       ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
       ... ≤ 2 * ((δ + div) * (δ + div) + (δ + div) * (δ + div)) - 4 * δ * δ :
         sub_le_sub_right (mul_le_mul_of_nonneg_left (add_le_add eq₂ eq₂') (by norm_num)) _
@@ -148,14 +148,14 @@ begin
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
     have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (nhds (0:ℝ)),
     { convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero] },
+      simv only [mul_zero] },
     have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
     { convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero] },
+      simv only [mul_zero] },
     have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
     { convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
-      simp only [mul_zero] },
-    convert eq₁.add eq₂, simp only [add_zero] },
+      simv only [mul_zero] },
+    convert eq₁.add eq₂, simv only [add_zero] },
   -- Step 3: By completeness of `K`, let `w : ℕ → K` converge to some `v : K`.
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
@@ -188,7 +188,7 @@ begin
     calc
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
-        simp only [sq], apply mul_self_le_mul_self (norm_nonneg _),
+        simv only [sq], apply mul_self_le_mul_self (norm_nonneg _),
         rw [eq], apply δ_le',
         apply h hw hv,
         exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
@@ -197,13 +197,13 @@ begin
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
         { rw [smul_sub, sub_smul, one_smul],
-          simp only [sub_eq_add_neg, add_comm, add_left_comm, add_assoc, neg_add_rev] },
+          simv only [sub_eq_add_neg, add_comm, add_left_comm, add_assoc, neg_add_rev] },
         rw this
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
       begin
         rw [norm_sub_sq, inner_smul_right, norm_smul],
-        simp only [sq],
+        simv only [sq],
         show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+absR (θ)*∥w-v∥*(absR (θ)*∥w-v∥)=
                 ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
         rw abs_of_pos hθ₁, ring
@@ -288,13 +288,13 @@ begin
     let w' := w + v,
     have : w' ∈ K := submodule.add_mem _ hw hv,
     have h₁ := h w' this,
-    have h₂ : w' - v = w, simp only [add_neg_cancel_right, sub_eq_add_neg],
+    have h₂ : w' - v = w, simv only [add_neg_cancel_right, sub_eq_add_neg],
     rw h₂ at h₁, exact h₁,
   have ge : ⟪u - v, w⟫_ℝ ≥ 0,
     let w'' := -w + v,
     have : w'' ∈ K := submodule.add_mem _ (submodule.neg_mem _ hw) hv,
     have h₁ := h w'' this,
-    have h₂ : w'' - v = -w, simp only [neg_inj, add_neg_cancel_right, sub_eq_add_neg],
+    have h₂ : w'' - v = -w, simv only [neg_inj, add_neg_cancel_right, sub_eq_add_neg],
     rw [h₂, inner_neg_right] at h₁,
     linarith,
     exact le_antisymm le ge
@@ -328,12 +328,12 @@ begin
     have A : ∀ w ∈ K, re ⟪u - v, w⟫ = 0 := (norm_eq_infi_iff_real_inner_eq_zero K' hv).1 H,
     assume w hw,
     apply ext,
-    { simp [A w hw] },
+    { simv [A w hw] },
     { symmetry, calc
       im (0 : 𝕜) = 0 : im.map_zero
       ... = re ⟪u - v, (-I) • w⟫ : (A _ (K.smul_mem (-I) hw)).symm
       ... = re ((-I) * ⟪u - v, w⟫) : by rw inner_smul_right
-      ... = im ⟪u - v, w⟫ : by simp } },
+      ... = im ⟪u - v, w⟫ : by simv } },
   { assume H,
     have : ∀ w ∈ K', ⟪u - v, w⟫_ℝ = 0,
     { assume w hw,
@@ -401,7 +401,7 @@ begin
   have h' : ⟪v - p, p⟫ = 0,
   { exact orthogonal_projection_fn_inner_eq_zero _ _ (orthogonal_projection_fn_mem v) },
   convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (v - p) p h' using 2;
-  simp,
+  simv,
 end
 
 /-- The orthogonal projection onto a complete subspace. -/
@@ -417,7 +417,7 @@ linear_map.mk_continuous
         rw [add_sub_add_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
             orthogonal_projection_fn_inner_eq_zero _ w hw, add_zero] },
       ext,
-      simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
+      simv [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
     end,
     map_smul' := λ c x, begin
       have hm : c • orthogonal_projection_fn K x ∈ K :=
@@ -426,11 +426,11 @@ linear_map.mk_continuous
       { intros w hw,
         rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_inner_eq_zero _ w hw, mul_zero] },
       ext,
-      simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
+      simv [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
     end }
   1
   (λ x, begin
-    simp only [one_mul, linear_map.coe_mk],
+    simv only [one_mul, linear_map.coe_mk],
     refine le_of_pow_le_pow 2 (norm_nonneg _) (by norm_num) _,
     change ∥orthogonal_projection_fn K x∥ ^ 2 ≤ ∥x∥ ^ 2,
     nlinarith [orthogonal_projection_fn_norm_sq K x]
@@ -477,7 +477,7 @@ end
 
 /-- The orthogonal projection sends elements of `K` to themselves. -/
 @[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
-by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
+by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simv }
 
 /-- A point equals its orthogonal projection if and only if it lies in the subspace. -/
 lemma orthogonal_projection_eq_self_iff {v : E} :
@@ -485,8 +485,8 @@ lemma orthogonal_projection_eq_self_iff {v : E} :
 begin
   refine ⟨λ h, _, λ h, eq_orthogonal_projection_of_mem_of_inner_eq_zero h _⟩,
   { rw ← h,
-    simp },
-  { simp }
+    simv },
+  { simv }
 end
 
 lemma linear_isometry.map_orthogonal_projection {E E' : Type*} [inner_product_space 𝕜 E]
@@ -532,8 +532,8 @@ begin
     use ⟪v, w⟫ },
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
-    have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
-    simp [inner_sub_left, inner_smul_left, inner_smul_right, ring_equiv.map_div, mul_comm, hv,
+    have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simv [norm_sq_eq_inner] },
+    simv [inner_sub_left, inner_smul_left, inner_smul_right, ring_equiv.map_div, mul_comm, hv,
       inner_product_space.conj_sym, hv] }
 end
 
@@ -543,12 +543,12 @@ lemma orthogonal_projection_singleton {v : E} (w : E) :
 begin
   by_cases hv : v = 0,
   { rw [hv, eq_orthogonal_projection_of_eq_submodule (submodule.span_zero_singleton 𝕜)],
-    { simp },
+    { simv },
     { apply_instance } },
   have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
   have key : ((∥v∥ ^ 2 : 𝕜)⁻¹ * ∥v∥ ^ 2) • ↑(orthogonal_projection (𝕜 ∙ v) w)
               = ((∥v∥ ^ 2 : 𝕜)⁻¹ * ⟪v, w⟫) • v,
-  { simp [mul_smul, smul_orthogonal_projection_singleton 𝕜 w] },
+  { simv [mul_smul, smul_orthogonal_projection_singleton 𝕜 w] },
   convert key;
   field_simp [hv']
 end
@@ -556,7 +556,7 @@ end
 /-- Formula for orthogonal projection onto a single unit vector. -/
 lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
-by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
+by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simv [hv] }
 
 end orthogonal_projection
 
@@ -567,7 +567,7 @@ variables {𝕜} (K) [complete_space K]
 def reflection_linear_equiv : E ≃ₗ[𝕜] E :=
 linear_equiv.of_involutive
   (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
-  (λ x, by simp [bit0])
+  (λ x, by simv [bit0])
 
 /-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
 sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
@@ -588,7 +588,7 @@ def reflection : E ≃ₗᵢ[𝕜] E :=
         continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_coe],
       dsimp [w, v],
       abel, },
-    { simp only [add_sub_cancel'_right, eq_self_iff_true], }
+    { simv only [add_sub_cancel'_right, eq_self_iff_true], }
   end,
   ..reflection_linear_equiv K }
 
@@ -639,7 +639,7 @@ lemma reflection_mem_subspace_eq_self {x : E} (hx : x ∈ K) : reflection K x = 
 lemma reflection_map_apply {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
   (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [complete_space K] (x : E') :
   reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x = f (reflection K (f.symm x)) :=
-by simp [bit0, reflection_apply, orthogonal_projection_map_apply f K x]
+by simv [bit0, reflection_apply, orthogonal_projection_map_apply f K x]
 
 /-- Reflection in the `submodule.map` of a subspace. -/
 lemma reflection_map {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
@@ -649,7 +649,7 @@ linear_isometry_equiv.ext $ reflection_map_apply f K
 
 /-- Reflection through the trivial subspace {0} is just negation. -/
 @[simp] lemma reflection_bot : reflection (⊥ : submodule 𝕜 E) = linear_isometry_equiv.neg 𝕜 :=
-by ext; simp [reflection_apply]
+by ext; simv [reflection_apply]
 
 end reflection
 
@@ -675,7 +675,7 @@ variables {K}
 lemma submodule.sup_orthogonal_of_complete_space [complete_space K] : K ⊔ Kᗮ = ⊤ :=
 begin
   convert submodule.sup_orthogonal_inf_of_complete_space (le_top : K ≤ ⊤),
-  simp
+  simv
 end
 
 variables (K)
@@ -684,7 +684,7 @@ variables (K)
 lemma submodule.exists_sum_mem_mem_orthogonal [complete_space K] (v : E) :
   ∃ (y ∈ K) (z ∈ Kᗮ), v = y + z :=
 begin
-  have h_mem : v ∈ K ⊔ Kᗮ := by simp [submodule.sup_orthogonal_of_complete_space],
+  have h_mem : v ∈ K ⊔ Kᗮ := by simv [submodule.sup_orthogonal_of_complete_space],
   obtain ⟨y, hy, z, hz, hyz⟩ := submodule.mem_sup.mp h_mem,
   exact ⟨y, hy, z, hz, hyz.symm⟩
 end
@@ -697,9 +697,9 @@ begin
   { obtain ⟨y, hy, z, hz, rfl⟩ := K.exists_sum_mem_mem_orthogonal v,
     intros hv,
     have hz' : z = 0,
-    { have hyz : ⟪z, y⟫ = 0 := by simp [hz y hy, inner_eq_zero_sym],
+    { have hyz : ⟪z, y⟫ = 0 := by simv [hz y hy, inner_eq_zero_sym],
       simpa [inner_add_right, hyz] using hv z hz },
-    simp [hy, hz'] },
+    simv [hy, hz'] },
   { intros hv w hw,
     rw inner_eq_zero_sym,
     exact hw v hv }
@@ -749,13 +749,13 @@ eq_orthogonal_projection_of_mem_orthogonal hv (by simpa [hu])
 lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
   orthogonal_projection K v = 0 :=
-by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
+by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simv [hv] }
 
 /-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_complement_eq_neg
   [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
   reflection K v = - v :=
-by simp [reflection_apply, orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv]
+by simv [reflection_apply, orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv]
 
 /-- The orthogonal projection onto `Kᗮ` of an element of `K` is zero. -/
 lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
@@ -811,7 +811,7 @@ begin
     rw real_inner_add_sub_eq_zero_iff,
     exact h },
   convert congr_arg2 (+) h₂ h₁ using 1,
-  { simp },
+  { simv },
   { abel }
 end
 
@@ -828,7 +828,7 @@ begin
   { exact eq_orthogonal_projection_of_mem_orthogonal' hy hz hwyz },
   { rw add_comm at hwyz,
     refine eq_orthogonal_projection_of_mem_orthogonal' hz _ hwyz,
-    simp [hy] }
+    simv [hy] }
 end
 
 /-- The Pythagorean theorem, for an orthogonal projection.-/
@@ -843,7 +843,7 @@ begin
   have x_orth : ⟪ p1 x, p2 x ⟫ = 0 :=
     submodule.inner_right_of_mem_orthogonal (set_like.coe_mem (p1 x)) (set_like.coe_mem (p2 x)),
   nth_rewrite 0 [x_decomp],
-  simp only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
+  simv only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
              add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
              submodule.coe_norm, submodule.coe_eq_zero]
 end
@@ -896,7 +896,7 @@ lemma submodule.finrank_add_inf_finrank_orthogonal' {K₁ K₂ : submodule 𝕜 
   [finite_dimensional 𝕜 K₂] (h : K₁ ≤ K₂) {n : ℕ} (h_dim : finrank 𝕜 K₁ + n = finrank 𝕜 K₂) :
   finrank 𝕜 (K₁ᗮ ⊓ K₂ : submodule 𝕜 E) = n :=
 by { rw ← add_right_inj (finrank 𝕜 K₁),
-     simp [submodule.finrank_add_inf_finrank_orthogonal h, h_dim] }
+     simv [submodule.finrank_add_inf_finrank_orthogonal h, h_dim] }
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
 that of `E`. -/
@@ -905,7 +905,7 @@ lemma submodule.finrank_add_finrank_orthogonal [finite_dimensional 𝕜 E] (K : 
 begin
   convert submodule.finrank_add_inf_finrank_orthogonal (le_top : K ≤ ⊤) using 1,
   { rw inf_top_eq },
-  { simp }
+  { simv }
 end
 
 /-- Given a finite-dimensional space `E` and subspace `K`, the dimensions of `K` and `Kᗮ` add to
@@ -913,7 +913,7 @@ that of `E`. -/
 lemma submodule.finrank_add_finrank_orthogonal' [finite_dimensional 𝕜 E] {K : submodule 𝕜 E} {n : ℕ}
   (h_dim : finrank 𝕜 K + n = finrank 𝕜 E) :
   finrank 𝕜 Kᗮ = n :=
-by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_dim] }
+by { rw ← add_right_inj (finrank 𝕜 K), simv [submodule.finrank_add_finrank_orthogonal, h_dim] }
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
@@ -922,7 +922,7 @@ span of a nonzero vector is one less than the dimension of the space. -/
 lemma finrank_orthogonal_span_singleton {n : ℕ} [_i : fact (finrank 𝕜 E = n + 1)]
   {v : E} (hv : v ≠ 0) :
   finrank 𝕜 (𝕜 ∙ v)ᗮ = n :=
-submodule.finrank_add_finrank_orthogonal' $ by simp [finrank_span_singleton hv, _i.elim, add_comm]
+submodule.finrank_add_finrank_orthogonal' $ by simv [finrank_span_singleton hv, _i.elim, add_comm]
 
 /-- An element `φ` of the orthogonal group of `F` can be factored as a product of reflections, and
 specifically at most as many reflections as the dimension of the complement of the fixed subspace
@@ -1039,7 +1039,7 @@ lemma orthogonal_family.is_internal_iff_of_is_complete [decidable_eq ι]
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI : complete_space ↥(supr V) := hc.complete_space_coe,
-  simp only [direct_sum.is_internal_submodule_iff_independent_and_supr_eq_top, hV.independent,
+  simv only [direct_sum.is_internal_submodule_iff_independent_and_supr_eq_top, hV.independent,
     true_and, submodule.orthogonal_eq_bot_iff]
 end
 
@@ -1075,7 +1075,7 @@ begin
     rintros ⟨x, hx', hx⟩,
     -- take a nonzero vector and normalize it
     let e := (∥x∥⁻¹ : 𝕜) • x,
-    have he : ∥e∥ = 1 := by simp [e, norm_smul_inv_norm hx],
+    have he : ∥e∥ = 1 := by simv [e, norm_smul_inv_norm hx],
     have he' : e ∈ (span 𝕜 v)ᗮ := smul_mem' _ _ hx',
     have he'' : e ∉ v,
     { intros hev,
@@ -1089,7 +1089,7 @@ begin
     { -- show that the elements of `insert e v` have unit length
       rintros ⟨a, ha'⟩,
       cases eq_or_mem_of_mem_insert ha' with ha ha,
-      { simp [ha, he] },
+      { simv [ha, he] },
       { exact hv.1 ⟨a, ha⟩ } },
     { -- show that the elements of `insert e v` are orthogonal
       have h_end : ∀ a ∈ v, ⟪a, e⟫ = 0,
@@ -1102,7 +1102,7 @@ begin
         { refine mem_of_mem_insert_of_ne hb' _,
           intros hbe',
           apply hab',
-          simp [ha, hbe'] },
+          simv [ha, hbe'] },
         rw inner_eq_zero_sym,
         simpa [ha] using h_end b hb },
       rintros ⟨b, hb'⟩ hab',
@@ -1114,17 +1114,17 @@ begin
         simpa using hab'' },
       exact hv.2 this } },
     { -- ** direction 2: empty orthogonal complement implies maximal
-      simp only [subset.antisymm_iff],
+      simv only [subset.antisymm_iff],
       rintros h u (huv : v ⊆ u) hu,
       refine ⟨_, huv⟩,
       intros x hxu,
       refine ((mt (h x)) (hu.ne_zero ⟨x, hxu⟩)).imp_symm _,
       intros hxv y hy,
-      have hxv' : (⟨x, hxu⟩ : u) ∉ (coe ⁻¹' v : set u) := by simp [huv, hxv],
+      have hxv' : (⟨x, hxu⟩ : u) ∉ (coe ⁻¹' v : set u) := by simv [huv, hxv],
       obtain ⟨l, hl, rfl⟩ :
         ∃ l ∈ finsupp.supported 𝕜 𝕜 (coe ⁻¹' v : set u), (finsupp.total ↥u E 𝕜 coe) l = y,
       { rw ← finsupp.mem_span_image_iff_total,
-        simp [huv, inter_eq_self_of_subset_left, hy] },
+        simv [huv, inter_eq_self_of_subset_left, hy] },
       exact hu.inner_finsupp_eq_zero hxv' hl }
 end
 
@@ -1140,7 +1140,7 @@ begin
   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
   have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
   rw submodule.orthogonal_eq_bot_iff,
-  have hv_coe : range (coe : v → E) = v := by simp,
+  have hv_coe : range (coe : v → E) = v := by simv,
   split,
   { refine λ h, ⟨basis.mk hv.linear_independent _, basis.coe_mk _ _⟩,
     convert h.ge },

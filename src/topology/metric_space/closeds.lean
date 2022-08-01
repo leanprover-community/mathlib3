@@ -46,7 +46,7 @@ instance closeds.emetric_space : emetric_space (closeds α) :=
 lemma continuous_inf_edist_Hausdorff_edist :
   continuous (λ p : α × (closeds α), inf_edist p.1 p.2) :=
 begin
-  refine continuous_of_le_add_edist 2 (by simp) _,
+  refine continuous_of_le_add_edist 2 (by simv) _,
   rintros ⟨x, s⟩ ⟨y, t⟩,
   calc inf_edist x s ≤ inf_edist x t + Hausdorff_edist (t : set α) s :
     inf_edist_le_inf_edist_add_Hausdorff_edist
@@ -91,9 +91,9 @@ begin
   We use the shorthand `B n = 2^{-n}` in ennreal. -/
   let B : ℕ → ℝ≥0∞ := λ n, (2⁻¹)^n,
   have B_pos : ∀ n, (0:ℝ≥0∞) < B n,
-    by simp [B, ennreal.pow_pos],
+    by simv [B, ennreal.pow_pos],
   have B_ne_top : ∀ n, B n ≠ ⊤,
-    by simp [B, ennreal.pow_ne_top],
+    by simv [B, ennreal.pow_ne_top],
   /- Consider a sequence of closed sets `s n` with `edist (s n) (s (n+1)) < B n`.
   We will show that it converges. The limit set is t0 = ⋂n, closure (⋃m≥n, s m).
   We will have to show that a point in `s n` is close to a point in `t0`, and a point
@@ -121,9 +121,9 @@ begin
         { refine exists_edist_lt_of_Hausdorff_edist_lt _ _,
           { exact s (n + l) },
           { exact z.2 },
-          simp only [B, ennreal.inv_pow, div_eq_mul_inv],
+          simv only [B, ennreal.inv_pow, div_eq_mul_inv],
           rw [← pow_add],
-          apply hs; simp },
+          apply hs; simv },
         exact ⟨⟨z', z'_mem⟩, le_of_lt hz'⟩ },
       use [λ k, nat.rec_on k ⟨x, hx⟩ (λl z, some (this l z)), rfl],
       exact λ k, some_spec (this k _) },
@@ -137,7 +137,7 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage,
+      simv only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage,
         set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩
     end),
@@ -157,7 +157,7 @@ begin
     have : x ∈ closure (⋃ m ≥ n, s m : set α), by apply mem_Inter.1 xt0 n,
     rcases mem_closure_iff.1 this (B n) (B_pos n) with ⟨z, hz, Dxz⟩,
     -- z : α,  Dxz : edist x z < B n,
-    simp only [exists_prop, set.mem_Union] at hz,
+    simv only [exists_prop, set.mem_Union] at hz,
     rcases hz with ⟨m, ⟨m_ge_n, hm⟩⟩,
     -- m : ℕ, m_ge_n : m ≥ n, hm : z ∈ s m
     have : Hausdorff_edist (s m : set α) (s n) < B n := hs n m n m_ge_n (le_refl n),
@@ -173,8 +173,8 @@ begin
   refine tendsto_at_top.2 (λε εpos, _),
   have : tendsto (λn, 2 * B n) at_top (𝓝 (2 * 0)),
     from ennreal.tendsto.const_mul
-      (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
-      (or.inr $ by simp),
+      (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simv [ennreal.one_lt_two])
+      (or.inr $ by simv),
   rw mul_zero at this,
   obtain ⟨N, hN⟩ : ∃ N, ∀ b ≥ N, ε > 2 * B b,
     from ((tendsto_order.1 this).2 ε εpos).exists_forall_of_at_top,
@@ -201,9 +201,9 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     existsi [v, ((λx hx, hx.1) : v ⊆ s)],
     refine Hausdorff_edist_le_of_mem_edist _ _,
     { assume x hx,
-      have : x ∈ ⋃y ∈ s, ball y δ := hs (by simp),
+      have : x ∈ ⋃y ∈ s, ball y δ := hs (by simv),
       rcases mem_Union₂.1 this with ⟨y, ys, dy⟩,
-      have : edist y x < δ := by simp at dy; rwa [edist_comm] at dy,
+      have : edist y x < δ := by simv at dy; rwa [edist_comm] at dy,
       exact ⟨y, ⟨ys, ⟨x, hx, this⟩⟩, le_of_lt dy⟩ },
     { rintros x ⟨hx1, ⟨y, yu, hy⟩⟩,
       exact ⟨y, yu, le_of_lt hy⟩ }},
@@ -213,7 +213,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is finite
   { apply @finite.of_finite_image _ _ F coe,
     { apply fs.finite_subsets.subset (λb, _),
-      simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
+      simv only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
       rwa hx' at hx },
     { exact set_like.coe_injective.inj_on F } },
@@ -350,7 +350,7 @@ begin
       have tc : ∀ x ∈ t, ∃ y ∈ c, edist x y ≤ δ,
       { assume x hx,
         rcases tb x hx with ⟨y, yv, Dxy⟩,
-        have : y ∈ c := by simp [c, -mem_image]; exact ⟨yv, ⟨x, hx, Dxy⟩⟩,
+        have : y ∈ c := by simv [c, -mem_image]; exact ⟨yv, ⟨x, hx, Dxy⟩⟩,
         exact ⟨y, this, le_of_lt Dxy⟩ },
       -- points in `c` are well approximated by points in `t`
       have ct : ∀ y ∈ c, ∃ x ∈ t, edist y x ≤ δ,

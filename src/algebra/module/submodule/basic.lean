@@ -178,14 +178,14 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 variables {p}
-@[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
+@[simv, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-@[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
+@[simv, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
+@[simv, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
 @[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
+@[simv, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
+@[simv, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
 
 variables (p)
@@ -195,7 +195,7 @@ instance : add_comm_monoid p :=
 
 instance module' [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] : module S p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
-   { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
+   { intros, apply set_coe.ext, simv [smul_add, add_smul, mul_smul] }
 instance : module R p := p.module'
 
 instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
@@ -206,7 +206,7 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
-by refine {to_fun := coe, ..}; simp [coe_smul]
+by refine {to_fun := coe, ..}; simv [coe_smul]
 
 theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
@@ -267,7 +267,7 @@ the lattice of `S`-submodules. -/
 def restrict_scalars_embedding : submodule R M ↪o submodule S M :=
 { to_fun := restrict_scalars S,
   inj' := restrict_scalars_injective S R M,
-  map_rel_iff' := λ p q, by simp [set_like.le_def] }
+  map_rel_iff' := λ p q, by simv [set_like.le_def] }
 
 /-- Turning `p : submodule R M` into an `S`-submodule gives the same module structure
 as turning it into a type and adding a module structure. -/

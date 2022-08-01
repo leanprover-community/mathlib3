@@ -48,7 +48,7 @@ begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
   exact (show orthonormal ℝ (fin_std_orthonormal_basis h).to_basis, -- Note sure how to format this
-    by simp only [orthonormal_basis.coe_to_basis, orthonormal_basis.orthonormal]
+    by simv only [orthonormal_basis.coe_to_basis, orthonormal_basis.orthonormal]
     ).orthonormal_adjust_to_orientation _
 end
 

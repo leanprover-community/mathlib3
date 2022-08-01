@@ -189,7 +189,7 @@ instance {ι : Type*} {α : ι → Type*} [Π i, preorder (α i)] [Π i, topolog
   [Π i, Sup_convergence_class (α i)] : Sup_convergence_class (Π i, α i) :=
 begin
   refine ⟨λ f s h, _⟩,
-  simp only [is_lub_pi, ← range_restrict] at h,
+  simv only [is_lub_pi, ← range_restrict] at h,
   exact tendsto_pi_nhds.2 (λ i, tendsto_at_top_is_lub ((monotone_eval _).restrict _) (h i))
 end
 

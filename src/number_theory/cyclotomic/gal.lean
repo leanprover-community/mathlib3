@@ -54,7 +54,7 @@ lemma aut_to_pow_injective : function.injective $ hμ.aut_to_pow K :=
 begin
   intros f g hfg,
   apply_fun units.val at hfg,
-  simp only [is_primitive_root.coe_aut_to_pow_apply, units.val_eq_coe] at hfg,
+  simv only [is_primitive_root.coe_aut_to_pow_apply, units.val_eq_coe] at hfg,
   generalize_proofs hf' hg' at hfg,
   have hf := hf'.some_spec,
   have hg := hg'.some_spec,
@@ -95,21 +95,21 @@ let hζ := zeta_spec n K L,
 { inv_fun := λ t, (hζ.power_basis K).equiv_of_minpoly ((hμ t).power_basis K)
   begin
     haveI := is_cyclotomic_extension.ne_zero' n K L,
-    simp only [is_primitive_root.power_basis_gen],
+    simv only [is_primitive_root.power_basis_gen],
     have hr := is_primitive_root.minpoly_eq_cyclotomic_of_irreducible
                ((zeta_spec n K L).pow_of_coprime _ (zmod.val_coe_unit_coprime t)) h,
     exact ((zeta_spec n K L).minpoly_eq_cyclotomic_of_irreducible h).symm.trans hr
   end,
   left_inv := λ f, begin
-    simp only [monoid_hom.to_fun_eq_coe],
+    simv only [monoid_hom.to_fun_eq_coe],
     apply alg_equiv.coe_alg_hom_injective,
     apply (hζ.power_basis K).alg_hom_ext,
-    simp only [alg_equiv.coe_alg_hom, alg_equiv.map_pow],
+    simv only [alg_equiv.coe_alg_hom, alg_equiv.map_pow],
     rw power_basis.equiv_of_minpoly_gen,
-    simp only [is_primitive_root.power_basis_gen, is_primitive_root.aut_to_pow_spec],
+    simv only [is_primitive_root.power_basis_gen, is_primitive_root.aut_to_pow_spec],
   end,
   right_inv := λ x, begin
-    simp only [monoid_hom.to_fun_eq_coe],
+    simv only [monoid_hom.to_fun_eq_coe],
     generalize_proofs _ _ _ h,
     have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly
                                       ((hμ x).power_basis K) h),
@@ -117,11 +117,11 @@ let hζ := zeta_spec n K L,
     rw hζ.power_basis_gen K at this,
     rw [this, is_primitive_root.power_basis_gen] at key,
     rw ← hζ.coe_to_roots_of_unity_coe at key {occs := occurrences.pos [1, 5]},
-    simp only [←coe_coe, ←roots_of_unity.coe_pow] at key,
+    simv only [←coe_coe, ←roots_of_unity.coe_pow] at key,
     replace key := roots_of_unity.coe_injective key,
     rw [pow_eq_pow_iff_modeq, ←order_of_subgroup, ←order_of_units, hζ.coe_to_roots_of_unity_coe,
         ←(zeta_spec n K L).eq_order_of, ←zmod.eq_iff_modeq_nat] at key,
-    simp only [zmod.nat_cast_val, zmod.cast_id', id.def] at key,
+    simv only [zmod.nat_cast_val, zmod.cast_id', id.def] at key,
     exact units.ext key
   end,
   .. (zeta_spec n K L).aut_to_pow K }

@@ -16,7 +16,7 @@ import order.complete_lattice_intervals
 This file defines instances and prove some properties about the nonnegative elements
 `{x : α // 0 ≤ x}` of an arbitrary type `α`.
 
-Currently we only state instances and states some `simp`/`norm_cast` lemmas.
+Currently we only state instances and states some `simv`/`norm_cast` lemmas.
 
 When `α` is `ℝ`, this will give us some properties about `ℝ≥0`.
 
@@ -78,7 +78,7 @@ protected noncomputable def conditionally_complete_linear_order_bot
   conditionally_complete_linear_order_bot {x : α // a ≤ x} :=
 { cSup_empty := (function.funext_iff.1
     (@subset_Sup_def α (set.Ici a) _ ⟨⟨a, le_rfl⟩⟩) ∅).trans $ subtype.eq $
-      by { rw bot_eq, cases h.lt_or_eq with h2 h2, { simp [h2.not_le] }, simp [h2] },
+      by { rw bot_eq, cases h.lt_or_eq with h2 h2, { simv [h2.not_le] }, simv [h2] },
   ..nonneg.order_bot,
   ..nonneg.conditionally_complete_linear_order }
 
@@ -88,7 +88,7 @@ instance inhabited [preorder α] {a : α} : inhabited {x : α // a ≤ x} :=
 instance has_zero [has_zero α] [preorder α] : has_zero {x : α // 0 ≤ x} :=
 ⟨⟨0, le_rfl⟩⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_zero [has_zero α] [preorder α] : ((0 : {x : α // 0 ≤ x}) : α) = 0 := rfl
 
 @[simp] lemma mk_eq_zero [has_zero α] [preorder α] {x : α} (hx : 0 ≤ x) :
@@ -103,7 +103,7 @@ instance has_add [add_zero_class α] [preorder α] [covariant_class α α (+) (�
   (hx : 0 ≤ x) (hy : 0 ≤ y) : (⟨x, hx⟩ : {x : α // 0 ≤ x}) + ⟨y, hy⟩ = ⟨x + y, add_nonneg hx hy⟩ :=
 rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_add [add_zero_class α] [preorder α] [covariant_class α α (+) (≤)]
   (a b : {x : α // 0 ≤ x}) : ((a + b : {x : α // 0 ≤ x}) : α) = a + b := rfl
 
@@ -115,7 +115,7 @@ instance has_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤
   {x : α} (hx : 0 ≤ x) : (n • ⟨x, hx⟩ : {x : α // 0 ≤ x}) = ⟨n • x, nsmul_nonneg hx n⟩ :=
 rfl
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
   (n : ℕ) (a : {x : α // 0 ≤ x}) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
 
@@ -149,12 +149,12 @@ nonneg.coe_add_monoid_hom.map_nsmul _ _
 instance archimedean [ordered_add_comm_monoid α] [archimedean α] : archimedean {x : α // 0 ≤ x} :=
 ⟨ assume x y pos_y,
   let ⟨n, hr⟩ := archimedean.arch (x : α) (pos_y : (0 : α) < y) in
-  ⟨n, show (x : α) ≤ (n • y : {x : α // 0 ≤ x}), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
+  ⟨n, show (x : α) ≤ (n • y : {x : α // 0 ≤ x}), by simv [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
 instance has_one [ordered_semiring α] : has_one {x : α // 0 ≤ x} :=
 { one := ⟨1, zero_le_one⟩ }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_one [ordered_semiring α] : ((1 : {x : α // 0 ≤ x}) : α) = 1 := rfl
 
 @[simp] lemma mk_eq_one [ordered_semiring α] {x : α} (hx : 0 ≤ x) :
@@ -164,7 +164,7 @@ subtype.ext_iff
 instance has_mul [ordered_semiring α] : has_mul {x : α // 0 ≤ x} :=
 { mul := λ x y, ⟨x * y, mul_nonneg x.2 y.2⟩ }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_mul [ordered_semiring α] (a b : {x : α // 0 ≤ x}) :
   ((a * b : {x : α // 0 ≤ x}) : α) = a * b := rfl
 
@@ -174,14 +174,14 @@ rfl
 
 instance add_monoid_with_one [ordered_semiring α] : add_monoid_with_one {x : α // 0 ≤ x} :=
 { nat_cast := λ n, ⟨n, nat.cast_nonneg n⟩,
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := λ _, by simp [nat.cast]; refl,
+  nat_cast_zero := by simv [nat.cast],
+  nat_cast_succ := λ _, by simv [nat.cast]; refl,
   .. nonneg.has_one, .. nonneg.ordered_cancel_add_comm_monoid }
 
 instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
   ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
 
@@ -223,14 +223,14 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
 map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_inv [linear_ordered_field α] (a : {x : α // 0 ≤ x}) :
   ((a⁻¹ : {x : α // 0 ≤ x}) : α) = a⁻¹ := rfl
 
@@ -249,7 +249,7 @@ instance linear_ordered_comm_group_with_zero [linear_ordered_field α] :
 instance has_div [linear_ordered_field α] : has_div {x : α // 0 ≤ x} :=
 { div := λ x y, ⟨x / y, div_nonneg x.2 y.2⟩ }
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
   ((a / b : {x : α // 0 ≤ x}) : α) = a / b := rfl
 
@@ -267,7 +267,7 @@ instance canonically_ordered_add_monoid [ordered_ring α] :
 
 instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divisors α] :
   canonically_ordered_comm_semiring {x : α // 0 ≤ x} :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := by { rintro ⟨a, ha⟩ ⟨b, hb⟩, simp },
+{ eq_zero_or_eq_zero_of_mul_eq_zero := by { rintro ⟨a, ha⟩ ⟨b, hb⟩, simv },
   ..nonneg.canonically_ordered_add_monoid,
   ..nonneg.ordered_comm_semiring }
 
@@ -307,7 +307,7 @@ lemma coe_to_nonneg {a : α} : (to_nonneg a : α) = max a 0 := rfl
 
 @[simp]
 lemma to_nonneg_of_nonneg {a : α} (h : 0 ≤ a) : to_nonneg a = ⟨a, h⟩ :=
-by simp [to_nonneg, h]
+by simv [to_nonneg, h]
 
 @[simp]
 lemma to_nonneg_coe {a : {x : α // 0 ≤ x}} : to_nonneg (a : α) = a :=
@@ -315,11 +315,11 @@ by { cases a with a ha, exact to_nonneg_of_nonneg ha }
 
 @[simp]
 lemma to_nonneg_le {a : α} {b : {x : α // 0 ≤ x}} : to_nonneg a ≤ b ↔ a ≤ b :=
-by { cases b with b hb, simp [to_nonneg, hb] }
+by { cases b with b hb, simv [to_nonneg, hb] }
 
 @[simp]
 lemma to_nonneg_lt {a : {x : α // 0 ≤ x}} {b : α} : a < to_nonneg b ↔ ↑a < b :=
-by { cases a with a ha, simp [to_nonneg, ha.not_lt] }
+by { cases a with a ha, simv [to_nonneg, ha.not_lt] }
 
 instance has_sub [has_sub α] : has_sub {x : α // 0 ≤ x} :=
 ⟨λ x y, to_nonneg (x - y)⟩
@@ -331,7 +331,7 @@ rfl
 end linear_order
 
 instance has_ordered_sub [linear_ordered_ring α] : has_ordered_sub {x : α // 0 ≤ x} :=
-⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp only [sub_le_iff_le_add, subtype.mk_le_mk, mk_sub_mk,
+⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simv only [sub_le_iff_le_add, subtype.mk_le_mk, mk_sub_mk,
   mk_add_mk, to_nonneg_le, subtype.coe_mk]}⟩
 
 end nonneg

@@ -168,11 +168,11 @@ open_locale lie_group
 
 @[simp] lemma L_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑳 I (g * h) = (𝑳 I g).comp (𝑳 I h) :=
-by { ext, simp only [cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
+by { ext, simv only [cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
 
 @[simp] lemma R_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
-by { ext, simp only [cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
+by { ext, simv only [cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
 
 section
 
@@ -213,7 +213,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {G' : Type*} [monoid G'] [topological_space G'] [charted_space H' G'] [has_smooth_mul I' G']
 
 lemma smooth_pow : ∀ n : ℕ, smooth I I (λ a : G, a ^ n)
-| 0 := by { simp only [pow_zero], exact smooth_const }
+| 0 := by { simv only [pow_zero], exact smooth_const }
 | (k+1) := by simpa [pow_succ] using smooth_id.mul (smooth_pow _)
 
 /-- Morphism of additive smooth monoids. -/
@@ -281,7 +281,7 @@ lemma cont_mdiff_finset_prod' (h : ∀ i ∈ t, cont_mdiff I' I n (f i)) :
 @[to_additive]
 lemma cont_mdiff_within_at_finset_prod (h : ∀ i ∈ t, cont_mdiff_within_at I' I n (f i) s x) :
   cont_mdiff_within_at I' I n (λ x, ∏ i in t, f i x) s x :=
-by { simp only [← finset.prod_apply], exact cont_mdiff_within_at_finset_prod' h }
+by { simv only [← finset.prod_apply], exact cont_mdiff_within_at_finset_prod' h }
 
 @[to_additive]
 lemma cont_mdiff_at_finset_prod (h : ∀ i ∈ t, cont_mdiff_at I' I n (f i) x) :
@@ -354,7 +354,7 @@ lemma cont_mdiff_finprod_cond (hc : ∀ i, p i → cont_mdiff I' I n (f i))
   (hf : locally_finite (λ i, mul_support (f i))) :
   cont_mdiff I' I n (λ x, ∏ᶠ i (hi : p i), f i x) :=
 begin
-  simp only [← finprod_subtype_eq_finprod_cond],
+  simv only [← finprod_subtype_eq_finprod_cond],
   exact cont_mdiff_finprod (λ i, hc i i.2) (hf.comp_injective subtype.coe_injective)
 end
 

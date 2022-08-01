@@ -37,7 +37,7 @@ begin
     exact ⟨embedding.of_is_empty, λ x, fun_like.ext _ _ is_empty_elim⟩ },
   { rw [card_option, nat.desc_factorial_succ, card_congr (embedding.option_embedding_equiv α β),
       card_sigma, ← ih],
-    simp only [fintype.card_compl_set, fintype.card_range, finset.sum_const, finset.card_univ,
+    simv only [fintype.card_compl_set, fintype.card_range, finset.sum_const, finset.card_univ,
       smul_eq_mul, mul_comm] },
 end
 

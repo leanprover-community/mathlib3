@@ -69,7 +69,7 @@ variables {L}
 def ι : L →ₗ⁅R⁆ universal_enveloping_algebra R L :=
 { map_lie'   := λ x y, by
   { suffices : mk_alg_hom R L (ιₜ ⁅x, y⁆ + (ιₜ y) * (ιₜ x)) = mk_alg_hom R L ((ιₜ x) * (ιₜ y)),
-    { rw alg_hom.map_mul at this, simp [lie_ring.of_associative_ring_bracket, ← this], },
+    { rw alg_hom.map_mul at this, simv [lie_ring.of_associative_ring_bracket, ← this], },
     exact ring_quot.mk_alg_hom_rel _ (rel.lie_compat x y), },
   ..(mk_alg_hom R L).to_linear_map.comp ιₜ }
 
@@ -82,16 +82,16 @@ def lift : (L →ₗ⁅R⁆ A) ≃ (universal_enveloping_algebra R L →ₐ[R] A
     ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : L →ₗ[R] A),
     begin
       intros a b h, induction h with x y,
-      simp only [lie_ring.of_associative_ring_bracket,
+      simv only [lie_ring.of_associative_ring_bracket,
         map_add, tensor_algebra.lift_ι_apply, lie_hom.coe_to_linear_map, lie_hom.map_lie,
         map_mul, sub_add_cancel],
     end⟩,
   inv_fun := λ F, (F : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R),
-  left_inv := λ f, by { ext, simp only [ι, mk_alg_hom,
+  left_inv := λ f, by { ext, simv only [ι, mk_alg_hom,
     tensor_algebra.lift_ι_apply, lie_hom.coe_to_linear_map, linear_map.to_fun_eq_coe,
     linear_map.coe_comp, lie_hom.coe_comp, alg_hom.coe_to_lie_hom, lie_hom.coe_mk,
     function.comp_app, alg_hom.to_linear_map_apply, ring_quot.lift_alg_hom_mk_alg_hom_apply], },
-  right_inv := λ F, by { ext, simp only [ι, mk_alg_hom,
+  right_inv := λ F, by { ext, simv only [ι, mk_alg_hom,
     tensor_algebra.lift_ι_apply, lie_hom.coe_to_linear_map, linear_map.to_fun_eq_coe,
     linear_map.coe_comp, lie_hom.coe_linear_map_comp, alg_hom.comp_to_linear_map,
     function.comp_app, alg_hom.to_linear_map_apply, ring_quot.lift_alg_hom_mk_alg_hom_apply,
@@ -111,7 +111,7 @@ lemma lift_unique (g : universal_enveloping_algebra R L →ₐ[R] A) :
   g ∘ (ι R) = f ↔ g = lift R f :=
 begin
   refine iff.trans _ (lift R).symm_apply_eq,
-  split; {intro h, ext, simp [←h] },
+  split; {intro h, ext, simv [←h] },
 end
 
 /-- See note [partially-applied ext lemmas]. -/
@@ -119,7 +119,7 @@ end
   (h : (g₁ : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R) =
        (g₂ : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R)) :
   g₁ = g₂ :=
-have h' : (lift R).symm g₁ = (lift R).symm g₂, { ext, simp [h], },
+have h' : (lift R).symm g₁ = (lift R).symm g₂, { ext, simv [h], },
 (lift R).symm.injective h'
 
 end universal_enveloping_algebra

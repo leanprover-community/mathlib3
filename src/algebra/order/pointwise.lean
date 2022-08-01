@@ -27,8 +27,8 @@ variables [conditionally_complete_lattice α]
 section has_one
 variables [has_one α]
 
-@[simp, to_additive] lemma cSup_one : Sup (1 : set α) = 1 := cSup_singleton _
-@[simp, to_additive] lemma cInf_one : Inf (1 : set α) = 1 := cInf_singleton _
+@[simv, to_additive] lemma cSup_one : Sup (1 : set α) = 1 := cSup_singleton _
+@[simv, to_additive] lemma cInf_one : Inf (1 : set α) = 1 := cInf_singleton _
 
 end has_one
 
@@ -72,8 +72,8 @@ variables [complete_lattice α]
 section has_one
 variables [has_one α]
 
-@[simp, to_additive] lemma Sup_one : Sup (1 : set α) = 1 := Sup_singleton
-@[simp, to_additive] lemma Inf_one : Inf (1 : set α) = 1 := Inf_singleton
+@[simv, to_additive] lemma Sup_one : Sup (1 : set α) = 1 := Sup_singleton
+@[simv, to_additive] lemma Inf_one : Inf (1 : set α) = 1 := Inf_singleton
 
 end has_one
 
@@ -113,7 +113,7 @@ include hr
 lemma smul_Ioo : r • Ioo a b = Ioo (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Ioo],
+  simv only [mem_smul_set, smul_eq_mul, mem_Ioo],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_lt_mul_left hr).mpr a_h_left_left,
@@ -127,7 +127,7 @@ end
 lemma smul_Icc : r • Icc a b = Icc (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Icc],
+  simv only [mem_smul_set, smul_eq_mul, mem_Icc],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_le_mul_left hr).mpr a_h_left_left,
@@ -141,7 +141,7 @@ end
 lemma smul_Ico : r • Ico a b = Ico (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Ico],
+  simv only [mem_smul_set, smul_eq_mul, mem_Ico],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_le_mul_left hr).mpr a_h_left_left,
@@ -155,7 +155,7 @@ end
 lemma smul_Ioc : r • Ioc a b = Ioc (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Ioc],
+  simv only [mem_smul_set, smul_eq_mul, mem_Ioc],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_lt_mul_left hr).mpr a_h_left_left,
@@ -169,7 +169,7 @@ end
 lemma smul_Ioi : r • Ioi a = Ioi (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Ioi],
+  simv only [mem_smul_set, smul_eq_mul, mem_Ioi],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_lt_mul_left hr).mpr a_h_left, },
@@ -183,7 +183,7 @@ end
 lemma smul_Iio : r • Iio a = Iio (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Iio],
+  simv only [mem_smul_set, smul_eq_mul, mem_Iio],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_lt_mul_left hr).mpr a_h_left, },
@@ -197,7 +197,7 @@ end
 lemma smul_Ici : r • Ici a = Ici (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Ioi],
+  simv only [mem_smul_set, smul_eq_mul, mem_Ioi],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_le_mul_left hr).mpr a_h_left, },
@@ -211,7 +211,7 @@ end
 lemma smul_Iic : r • Iic a = Iic (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, smul_eq_mul, mem_Iio],
+  simv only [mem_smul_set, smul_eq_mul, mem_Iio],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_le_mul_left hr).mpr a_h_left, },

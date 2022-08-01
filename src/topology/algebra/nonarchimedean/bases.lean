@@ -84,7 +84,7 @@ def to_ring_filter_basis [nonempty ι] {B : ι → add_subgroup A}
   conj' := begin
     rintros x₀ _ ⟨i, rfl⟩,
     use [B i, i, rfl],
-    simp
+    simv
   end,
   mul' := begin
     rintros _ ⟨i, rfl⟩,
@@ -133,7 +133,7 @@ lemma has_basis_nhds (a : A) :
 ⟨begin
   intros s,
   rw (hB.to_ring_filter_basis.to_add_group_filter_basis.nhds_has_basis a).mem_iff,
-  simp only [exists_prop, exists_true_left],
+  simv only [exists_prop, exists_true_left],
   split,
   { rintro ⟨-, ⟨i, rfl⟩, hi⟩,
     use i,
@@ -252,7 +252,7 @@ def to_module_filter_basis : module_filter_basis R M :=
   conj' := begin
     rintros x₀ _ ⟨i, rfl⟩,
     use [B i, i, rfl],
-    simp
+    simv
   end,
   smul' := begin
     rintros _ ⟨i, rfl⟩,

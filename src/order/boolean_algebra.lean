@@ -693,7 +693,7 @@ theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
 is_compl_compl.antitone is_compl_compl h
 
 @[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
-⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
+⟨assume h, by have h := compl_le_compl h; simv at h; assumption,
   compl_le_compl⟩
 
 theorem le_compl_of_le_compl (h : y ≤ xᶜ) : x ≤ yᶜ :=

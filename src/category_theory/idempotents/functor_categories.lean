@@ -42,10 +42,10 @@ begin
   { obj := λ j, limits.equalizer (𝟙 _) (p.app j),
     map := λ j j' φ, equalizer.lift (limits.equalizer.ι (𝟙 _) (p.app j) ≫ F.map φ)
       (by rw [comp_id, assoc, p.naturality φ, ← assoc, ← limits.equalizer.condition, comp_id]),
-    map_id' := λ j, by { ext, simp only [comp_id, functor.map_id, equalizer.lift_ι, id_comp], },
+    map_id' := λ j, by { ext, simv only [comp_id, functor.map_id, equalizer.lift_ι, id_comp], },
     map_comp' := λ j j' j'' φ φ', begin
       ext,
-      simp only [assoc, functor.map_comp, equalizer.lift_ι, equalizer.lift_ι_assoc],
+      simv only [assoc, functor.map_comp, equalizer.lift_ι, equalizer.lift_ι_assoc],
     end },
   let i : Y ⟶ F :=
   { app := λ j, equalizer.ι _ _,
@@ -55,13 +55,13 @@ begin
       (by { rw comp_id, exact (congr_app hp j).symm, }),
     naturality' := λ j j' φ, begin
       ext,
-      simp only [assoc, equalizer.lift_ι, nat_trans.naturality, equalizer.lift_ι_assoc],
+      simv only [assoc, equalizer.lift_ι, nat_trans.naturality, equalizer.lift_ι_assoc],
     end },
   use [Y, i, e],
   split; ext j,
-  { simp only [nat_trans.comp_app, assoc, equalizer.lift_ι, nat_trans.id_app, id_comp,
+  { simv only [nat_trans.comp_app, assoc, equalizer.lift_ι, nat_trans.id_app, id_comp,
       ← equalizer.condition, comp_id], },
-  { simp only [nat_trans.comp_app, equalizer.lift_ι], },
+  { simv only [nat_trans.comp_app, equalizer.lift_ι], },
 end
 
 namespace karoubi_functor_category_embedding
@@ -77,17 +77,17 @@ def obj (P : karoubi (J ⥤ C)) : J ⥤ karoubi C :=
   map := λ j j' φ,
   { f := P.p.app j ≫ P.X.map φ,
     comm := begin
-      simp only [nat_trans.naturality, assoc],
+      simv only [nat_trans.naturality, assoc],
       have h := congr_app P.idem j,
       rw [nat_trans.comp_app] at h,
       slice_rhs 1 3 { erw [h, h], },
     end },
-  map_id' := λ j, by { ext, simp only [functor.map_id, comp_id, id_eq], },
+  map_id' := λ j, by { ext, simv only [functor.map_id, comp_id, id_eq], },
   map_comp' := λ j j' j'' φ φ', begin
     ext,
     have h := congr_app P.idem j,
     rw [nat_trans.comp_app] at h,
-    simp only [assoc, nat_trans.naturality_assoc, functor.map_comp, comp],
+    simv only [assoc, nat_trans.naturality_assoc, functor.map_comp, comp],
     slice_rhs 1 2 { rw h, },
     rw [assoc],
   end }
@@ -98,7 +98,7 @@ def map {P Q : karoubi (J ⥤ C)} (f : P ⟶ Q) : obj P ⟶ obj Q :=
 { app := λ j, ⟨f.f.app j, congr_app f.comm j⟩,
   naturality' := λ j j' φ, begin
     ext,
-    simp only [comp],
+    simv only [comp],
     have h := congr_app (comp_p f) j,
     have h' := congr_app (p_comp f) j',
     dsimp at h h' ⊢,
@@ -128,7 +128,7 @@ instance : full (karoubi_functor_category_embedding J C) :=
       naturality' := λ j j' φ, begin
         slice_rhs 1 1 { rw ← karoubi.comp_p, },
         have h := hom_ext.mp (f.naturality φ),
-        simp only [comp] at h,
+        simv only [comp] at h,
         dsimp [karoubi_functor_category_embedding] at h ⊢,
         erw [assoc, ← h, ← P.p.naturality φ, assoc, p_comp (f.app j')],
       end },
@@ -149,7 +149,7 @@ begin
   { intros X Y f,
     ext j,
     dsimp [to_karoubi],
-    simp only [eq_to_hom_app, eq_to_hom_refl, id_comp],
+    simv only [eq_to_hom_app, eq_to_hom_refl, id_comp],
     erw [comp_id], },
   { intro X,
     apply functor.ext,

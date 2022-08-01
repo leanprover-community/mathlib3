@@ -47,7 +47,7 @@ end
 @[simp] theorem direct_sum_lof_tmul_lof (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂) (m₂ : M₂ i₂) :
   direct_sum R ι₁ ι₂ M₁ M₂ (direct_sum.lof R ι₁ M₁ i₁ m₁ ⊗ₜ direct_sum.lof R ι₂ M₂ i₂ m₂) =
   direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂) (m₁ ⊗ₜ m₂) :=
-by simp [direct_sum]
+by simv [direct_sum]
 
 end tensor_product
 

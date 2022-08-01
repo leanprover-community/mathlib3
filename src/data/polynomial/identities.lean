@@ -33,8 +33,8 @@ Maybe use data.nat.choose to prove it.
 -/
 def pow_add_expansion {R : Type*} [comm_semiring R] (x y : R) : ∀ (n : ℕ),
   {k // (x + y)^n = x^n + n*x^(n-1)*y + k * y^2}
-| 0 := ⟨0, by simp⟩
-| 1 := ⟨0, by simp⟩
+| 0 := ⟨0, by simv⟩
+| 1 := ⟨0, by simv⟩
 | (n+2) :=
   begin
     cases pow_add_expansion (n+1) with z hz,
@@ -66,7 +66,7 @@ private lemma poly_binom_aux3 (f : R[X]) (x y : R) : f.eval (x + y) =
   f.sum (λ e a, a * x^e) +
   f.sum (λ e a, (a * e * x^(e-1)) * y) +
   f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
-by { rw poly_binom_aux2, simp [left_distrib, sum_add, mul_assoc] }
+by { rw poly_binom_aux2, simv [left_distrib, sum_add, mul_assoc] }
 
 /--
 A polynomial `f` evaluated at `x + y` can be expressed as
@@ -88,8 +88,8 @@ end
 `x^n - y^n` can be expressed as `z * (x - y)` for some `z` in the ring.
 -/
 def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - y)}
-| 0 := ⟨0, by simp⟩
-| 1 := ⟨1, by simp⟩
+| 0 := ⟨0, by simv⟩
+| 1 := ⟨1, by simv⟩
 | (k+2) :=
   begin
     cases @pow_sub_pow_factor (k+1) with z hz,
@@ -106,7 +106,7 @@ def eval_sub_factor (f : R[X]) (x y : R) :
 begin
   refine ⟨f.sum (λ i r, r * (pow_sub_pow_factor x y i).val), _⟩,
   delta eval eval₂,
-  simp only [sum, ← finset.sum_sub_distrib, finset.sum_mul],
+  simv only [sum, ← finset.sum_sub_distrib, finset.sum_mul],
   dsimp,
   congr' with i r,
   rw [mul_assoc, ←(pow_sub_pow_factor x y _).prop, mul_sub],

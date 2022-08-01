@@ -33,7 +33,7 @@ variable {α}
 
 lemma uniform_continuous_pi {β : Type*} [uniform_space β] {f : β → Π i, α i} :
   uniform_continuous f ↔ ∀ i, uniform_continuous (λ x, f x i) :=
-by simp only [uniform_continuous, Pi.uniformity, tendsto_infi, tendsto_comap_iff]
+by simv only [uniform_continuous, Pi.uniformity, tendsto_infi, tendsto_comap_iff]
 
 variable (α)
 

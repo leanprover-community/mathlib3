@@ -135,17 +135,17 @@ lemma swap_bijective : function.bijective (@swap α β) :=
 @[simp] lemma swap_inj {p q : α × β} : swap p = swap q ↔ p = q := swap_injective.eq_iff
 
 lemma eq_iff_fst_eq_snd_eq : ∀{p q : α × β}, p = q ↔ (p.1 = q.1 ∧ p.2 = q.2)
-| ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simp
+| ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simv
 
 lemma fst_eq_iff : ∀ {p : α × β} {x : α}, p.1 = x ↔ p = (x, p.2)
-| ⟨a, b⟩ x := by simp
+| ⟨a, b⟩ x := by simv
 
 lemma snd_eq_iff : ∀ {p : α × β} {x : β}, p.2 = x ↔ p = (p.1, x)
-| ⟨a, b⟩ x := by simp
+| ⟨a, b⟩ x := by simv
 
 theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
   {p q : α × β} : prod.lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
-⟨λ h, by cases h; simp *,
+⟨λ h, by cases h; simv *,
  λ h, match p, q, h with
  | (a, b), (c, d), or.inl h := lex.left _ _ h
  | (a, b), (c, d), or.inr ⟨e, h⟩ :=

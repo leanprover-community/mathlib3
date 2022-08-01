@@ -69,17 +69,17 @@ The composition `V`-morphism for a `V`-enriched category.
 def e_comp (X Y Z : C) : (X ⟶[V] Y) ⊗ (Y ⟶[V] Z) ⟶ (X ⟶[V] Z) := enriched_category.comp X Y Z
 
 -- We don't just use `restate_axiom` here; that would leave `V` as an implicit argument.
-@[simp, reassoc]
+@[simv, reassoc]
 lemma e_id_comp (X Y : C) :
   (λ_ (X ⟶[V] Y)).inv ≫ (e_id V X ⊗ 𝟙 _) ≫ e_comp V X X Y = 𝟙 (X ⟶[V] Y) :=
 enriched_category.id_comp X Y
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma e_comp_id (X Y : C) :
   (ρ_ (X ⟶[V] Y)).inv ≫ (𝟙 _ ⊗ e_id V Y) ≫ e_comp V X Y Y = 𝟙 (X ⟶[V] Y) :=
 enriched_category.comp_id X Y
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma e_assoc (W X Y Z : C) :
   (α_ _ _ _).inv ≫ (e_comp V W X Y ⊗ 𝟙 _) ≫ e_comp V W Y Z =
     (𝟙 _ ⊗ e_comp V X Y Z) ≫ e_comp V W X Z :=
@@ -140,9 +140,9 @@ def enriched_category_Type_of_category (C : Type u₁) [𝒞 : category.{v} C] :
 { hom := 𝒞.hom,
   id := λ X p, 𝟙 X,
   comp := λ X Y Z p, p.1 ≫ p.2,
-  id_comp := λ X Y, by { ext, simp, },
-  comp_id := λ X Y, by { ext, simp, },
-  assoc := λ W X Y Z, by { ext ⟨f, g, h⟩, simp, }, }
+  id_comp := λ X Y, by { ext, simv, },
+  comp_id := λ X Y, by { ext, simv, },
+  assoc := λ W X Y Z, by { ext ⟨f, g, h⟩, simv, }, }
 
 /--
 We verify that an enriched category in `Type u` is just the same thing as an honest category.
@@ -258,8 +258,8 @@ structure enriched_functor
 
 restate_axiom enriched_functor.map_id'
 restate_axiom enriched_functor.map_comp'
-attribute [simp, reassoc] enriched_functor.map_id
-attribute [simp, reassoc] enriched_functor.map_comp
+attribute [simv, reassoc] enriched_functor.map_id
+attribute [simv, reassoc] enriched_functor.map_comp
 
 /-- The identity enriched functor. -/
 @[simps]
@@ -294,7 +294,7 @@ def enriched_functor.forget {C : Type u₁} {D : Type u₂}
   map_comp' := λ X Y Z f g, begin
     dsimp,
     apply_fun forget_enrichment.hom_to W,
-    { simp only [iso.cancel_iso_inv_left, category.assoc, tensor_comp,
+    { simv only [iso.cancel_iso_inv_left, category.assoc, tensor_comp,
         forget_enrichment.hom_to_hom_of, enriched_functor.map_comp, forget_enrichment_comp],
       refl, },
     { intros f g w, apply_fun forget_enrichment.hom_of W at w, simpa using w, },
@@ -408,8 +408,8 @@ def enriched_functor_Type_equiv_functor
     map := λ X Y f, F.map f,
     map_id' := λ X, by { ext ⟨⟩, exact F.map_id X, },
     map_comp' := λ X Y Z, by { ext ⟨f, g⟩, exact F.map_comp f g, }, },
-  left_inv := λ F, by { cases F, simp, },
-  right_inv := λ F, by { cases F, simp, }, }
+  left_inv := λ F, by { cases F, simv, },
+  right_inv := λ F, by { cases F, simv, }, }
 
 /--
 We verify that the presheaf representing natural transformations

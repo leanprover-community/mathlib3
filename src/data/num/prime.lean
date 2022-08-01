@@ -43,10 +43,10 @@ theorem min_fac_aux_to_nat {fuel:ℕ} {n k : pos_num} (h : nat.sqrt n < fuel + k
 begin
   induction fuel with fuel ih generalizing k; rw [min_fac_aux, nat.min_fac_aux],
   { rw if_pos, rwa [zero_add, nat.sqrt_lt] at h },
-  rw [← mul_to_nat], simp only [cast_lt, dvd_to_nat, ite_cast],
+  rw [← mul_to_nat], simv only [cast_lt, dvd_to_nat, ite_cast],
   congr' 2,
   rw ih; [congr, convert nat.lt_succ_of_lt h using 1];
-  simp only [_root_.bit1, _root_.bit0, cast_bit1, cast_succ,
+  simv only [_root_.bit1, _root_.bit0, cast_bit1, cast_succ,
     nat.succ_eq_add_one, add_assoc, add_left_comm]
 end
 
@@ -59,14 +59,14 @@ def min_fac : pos_num → pos_num
 @[simp] theorem min_fac_to_nat (n : pos_num) : (min_fac n : ℕ) = nat.min_fac n :=
 begin
   cases n, {refl},
-  { rw [min_fac, nat.min_fac_eq, if_neg], swap, {simp},
+  { rw [min_fac, nat.min_fac_eq, if_neg], swap, {simv},
     rw [min_fac_aux_to_nat], {refl},
-    simp only [cast_one, cast_bit1],
+    simv only [cast_one, cast_bit1],
     rw [nat.sqrt_lt],
     convert lt_add_of_pos_right _ (dec_trivial : (0:ℕ) < (n+4)*n + 8),
     unfold _root_.bit1 _root_.bit0, ring },
   { rw [min_fac, nat.min_fac_eq, if_pos], {refl},
-    simp },
+    simv },
 end
 
 /-- Primality predicate for a `pos_num`. -/

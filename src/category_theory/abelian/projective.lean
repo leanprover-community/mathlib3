@@ -35,7 +35,7 @@ When `C` is abelian, `projective.d f` and `f` are exact.
 -/
 lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
-  ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
+  ⟨by simv, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
 
 end
 
@@ -66,11 +66,11 @@ In any abelian category with enough projectives,
 @[irreducible] def of (Z : C) : ProjectiveResolution Z :=
 { complex := of_complex Z,
   π := chain_complex.mk_hom _ _ (projective.π Z) 0
-    (by { simp, exact (exact_d_f (projective.π Z)).w.symm, })
+    (by { simv, exact (exact_d_f (projective.π Z)).w.symm, })
     (λ n _, ⟨0, by ext⟩),
   projective := by { rintros (_|_|_|n); apply projective.projective_over, },
   exact₀ := by simpa using exact_d_f (projective.π Z),
-  exact := by { rintros (_|n); { simp, apply exact_d_f, }, },
+  exact := by { rintros (_|n); { simv, apply exact_d_f, }, },
   epi := projective.π_epi Z, }
 
 @[priority 100]

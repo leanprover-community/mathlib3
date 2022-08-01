@@ -44,7 +44,7 @@ A morphism of presheafed spaces induces a morphism of stalks.
 def stalk_map {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
 (stalk_functor C (α.base x)).map (α.c) ≫ X.presheaf.stalk_pushforward C α.base x
 
-@[simp, elementwise, reassoc]
+@[simv, elementwise, reassoc]
 lemma stalk_map_germ {X Y : PresheafedSpace.{v} C} (α : X ⟶ Y) (U : opens Y.carrier)
   (x : (opens.map α.base).obj U) :
   Y.presheaf.germ ⟨α.base x, x.2⟩ ≫ stalk_map α ↑x = α.c.app (op U) ≫ X.presheaf.germ x :=
@@ -68,7 +68,7 @@ begin
     ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
 end
 
-@[simp, elementwise, reassoc]
+@[simv, elementwise, reassoc]
 lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace.{v} C) {f : U ⟶ (X : Top.{v})}
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   (X.restrict h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X h x).hom =
@@ -76,7 +76,7 @@ lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace.{v} C) {f : 
 colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
   (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
 
-@[simp, elementwise, reassoc]
+@[simv, elementwise, reassoc]
 lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace.{v} C) {f : U ⟶ (X : Top.{v})}
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
@@ -111,7 +111,7 @@ namespace stalk_map
 @[simp] lemma id (X : PresheafedSpace.{v} C) (x : X) : stalk_map (𝟙 X) x = 𝟙 (X.stalk x) :=
 begin
   dsimp [stalk_map],
-  simp only [stalk_pushforward.id],
+  simv only [stalk_pushforward.id],
   rw [←map_comp],
   convert (stalk_functor C x).map_id X.presheaf,
   tidy,
@@ -127,12 +127,12 @@ begin
   ext U,
   induction U using opposite.rec,
   cases U,
-  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
+  simv only [colimit.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
     whisker_left_app, whisker_right_app,
     assoc, id_comp, map_id, map_comp],
   dsimp,
-  simp only [map_id, assoc, pushforward.comp_inv_app],
-  -- FIXME Why doesn't simp do this:
+  simv only [map_id, assoc, pushforward.comp_inv_app],
+  -- FIXME Why doesn't simv do this:
   erw [category_theory.functor.map_id],
   erw [category_theory.functor.map_id],
   erw [id_comp, id_comp],
@@ -147,7 +147,7 @@ either side of the equality.
 lemma congr {X Y : PresheafedSpace.{v} C} (α β : X ⟶ Y) (h₁ : α = β) (x x': X) (h₂ : x = x') :
   stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
   eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
-stalk_hom_ext _ $ λ U hx, by { subst h₁, subst h₂, simp }
+stalk_hom_ext _ $ λ U hx, by { subst h₁, subst h₂, simv }
 
 lemma congr_hom {X Y : PresheafedSpace.{v} C} (α β : X ⟶ Y) (h : α = β) (x : X) :
   stalk_map α x =
@@ -188,11 +188,11 @@ def stalk_iso {X Y : PresheafedSpace.{v} C} (α : X ≅ Y) (x : X) :
   Y.stalk (α.hom.base x) ≅ X.stalk x :=
 as_iso (stalk_map α.hom x)
 
-@[simp, reassoc, elementwise]
+@[simv, reassoc, elementwise]
 lemma stalk_specializes_stalk_map {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) {x y : X} (h : x ⤳ y) :
   Y.presheaf.stalk_specializes (f.base.map_specializes h) ≫ stalk_map f x =
     stalk_map f y ≫ X.presheaf.stalk_specializes h :=
-by { delta PresheafedSpace.stalk_map, simp [stalk_map] }
+by { delta PresheafedSpace.stalk_map, simv [stalk_map] }
 
 end stalk_map
 

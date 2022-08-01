@@ -179,7 +179,7 @@ lemma tendsto_iff_forall_compact_tendsto_uniformly_on'
   filter.tendsto F p (@nhds _ compact_convergence_topology f) ↔
   ∀ K, is_compact K → tendsto_uniformly_on (λ i a, F i a) f p K :=
 begin
-  simp only [(has_basis_nhds_compact_convergence f).tendsto_right_iff, tendsto_uniformly_on,
+  simv only [(has_basis_nhds_compact_convergence f).tendsto_right_iff, tendsto_uniformly_on,
     and_imp, prod.forall],
   refine forall_congr (λ K, _),
   rw forall_swap,
@@ -218,17 +218,17 @@ begin
   have hU : ∀ x, is_open (U x) := λ x, f.continuous.is_open_preimage _ (is_open_ball _ hZ₄),
   have hUK : K ⊆ ⋃ (x : K), U (x : K),
   { intros x hx,
-    simp only [exists_prop, mem_Union, Union_coe_set, mem_preimage],
-    exact ⟨(⟨x, hx⟩ : K), by simp [hx, mem_ball_self (f x) hZ₁]⟩, },
+    simv only [exists_prop, mem_Union, Union_coe_set, mem_preimage],
+    exact ⟨(⟨x, hx⟩ : K), by simv [hx, mem_ball_self (f x) hZ₁]⟩, },
   obtain ⟨t, ht⟩ := hK.elim_finite_subcover _ (λ (x : K), hU x.val) hUK,
   let C : t → set α := λ i, K ∩ closure (U ((i : K) : α)),
   have hC : K ⊆ ⋃ i, C i,
   { rw [← K.inter_Union, subset_inter_iff],
     refine ⟨subset.rfl, ht.trans _⟩,
-    simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
-    exact λ x hx₁ hx₂, subset_Union_of_subset (⟨_, hx₂⟩ : t) (by simp [subset_closure]) },
+    simv only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
+    exact λ x hx₁ hx₂, subset_Union_of_subset (⟨_, hx₂⟩ : t) (by simv [subset_closure]) },
   have hfC : ∀ (i : t), C i ⊆ f ⁻¹' ball (f ((i : K) : α)) W,
-  { simp only [← image_subset_iff, ← mem_preimage],
+  { simv only [← image_subset_iff, ← mem_preimage],
     rintros ⟨⟨x, hx₁⟩, hx₂⟩,
     have hZW : closure (ball (f x) Z) ⊆ ball (f x) W,
     { intros y hy,
@@ -236,15 +236,15 @@ begin
       exact ball_mono hZ₃ _ (mem_ball_comp hz₂ ((mem_ball_symmetry hZ₂).mp hz₁)), },
     calc f '' (K ∩ closure (U x)) ⊆ f '' (closure (U x)) : image_subset _ (inter_subset_right _ _)
                               ... ⊆ closure (f '' (U x)) : f.continuous.continuous_on.image_closure
-                              ... ⊆ closure (ball (f x) Z) : by { apply closure_mono, simp, }
+                              ... ⊆ closure (ball (f x) Z) : by { apply closure_mono, simv, }
                               ... ⊆ ball (f x) W : hZW, },
   refine ⟨t, t.fintype_coe_sort, C,
           λ i, hK.inter_right is_closed_closure,
           λ i, ball (f ((i : K) : α)) W,
           λ i, is_open_ball _ hW₄,
-          by simp [compact_open.gen, hfC],
+          by simv [compact_open.gen, hfC],
           λ g hg x hx, hW₃ (mem_comp_rel.mpr _)⟩,
-  simp only [mem_Inter, compact_open.gen, mem_set_of_eq, image_subset_iff] at hg,
+  simv only [mem_Inter, compact_open.gen, mem_set_of_eq, image_subset_iff] at hg,
   obtain ⟨y, hy⟩ := mem_Union.mp (hC hx),
   exact ⟨f y, (mem_ball_symmetry hW₂).mp (hfC y hy), mem_preimage.mp (hg y hy)⟩,
 end
@@ -264,7 +264,7 @@ begin
     haveI := hι,
     exact ⟨⋂ i, compact_open.gen (C i) (U i), h₂.trans hXf,
       is_open_Inter (λ i, continuous_map.is_open_gen (hC i) (hU i)), h₁⟩, },
-  { simp only [le_generate_from_iff_subset_is_open, and_imp, exists_prop, forall_exists_index,
+  { simv only [le_generate_from_iff_subset_is_open, and_imp, exists_prop, forall_exists_index,
       set_of_subset_set_of],
     rintros - K hK U hU rfl f hf,
     obtain ⟨V, hV, hV', hVf⟩ := compact_conv_nhd_subset_compact_open f hK hU hf,
@@ -284,7 +284,7 @@ begin
   refine filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty,
   rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
   refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
-  simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
+  simv only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
       ← forall_and_distrib, mem_inter_eq, mem_union_eq],
   exact λ f g, forall_imp (λ x, by tauto!),
 end
@@ -294,7 +294,7 @@ lemma mem_compact_convergence_uniformity (X : set (C(α, β) × C(α, β))) :
   X ∈ @compact_convergence_uniformity α β _ _ ↔
   ∃ (K : set α) (V : set (β × β)) (hK : is_compact K) (hV : V ∈ 𝓤 β),
     { fg : C(α, β) × C(α, β) | ∀ x ∈ K, (fg.1 x, fg.2 x) ∈ V } ⊆ X :=
-by simp only [has_basis_compact_convergence_uniformity_aux.mem_iff, exists_prop, prod.exists,
+by simv only [has_basis_compact_convergence_uniformity_aux.mem_iff, exists_prop, prod.exists,
   and_assoc]
 
 /-- Note that we ensure the induced topology is definitionally the compact-open topology. -/
@@ -302,19 +302,19 @@ instance compact_convergence_uniform_space : uniform_space C(α, β) :=
 { uniformity := compact_convergence_uniformity,
   refl :=
     begin
-      simp only [compact_convergence_uniformity, and_imp, filter.le_principal_iff, prod.forall,
+      simv only [compact_convergence_uniformity, and_imp, filter.le_principal_iff, prod.forall,
         filter.mem_principal, mem_set_of_eq, le_infi_iff, id_rel_subset],
       exact λ K V hK hV f x hx, refl_mem_uniformity hV,
     end,
   symm :=
     begin
-      simp only [compact_convergence_uniformity, and_imp, prod.forall, mem_set_of_eq, prod.fst_swap,
+      simv only [compact_convergence_uniformity, and_imp, prod.forall, mem_set_of_eq, prod.fst_swap,
         filter.tendsto_principal, prod.snd_swap, filter.tendsto_infi],
       intros K V hK hV,
       obtain ⟨V', hV', hsymm, hsub⟩ := symm_of_uniformity hV,
       let X := { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ K → (fg.1 x, fg.2 x) ∈ V' },
       have hX : X ∈ compact_convergence_uniformity :=
-        (mem_compact_convergence_uniformity X).mpr ⟨K, V', hK, hV', by simp⟩,
+        (mem_compact_convergence_uniformity X).mpr ⟨K, V', hK, hV', by simv⟩,
       exact filter.eventually_of_mem hX (λ fg hfg x hx, hsub (hsymm _ _ (hfg x hx))),
     end,
   comp := λ X hX,
@@ -335,7 +335,7 @@ instance compact_convergence_uniform_space : uniform_space C(α, β) :=
     begin
       rw compact_open_eq_compact_convergence,
       refine λ Y, forall₂_congr (λ f hf, _),
-      simp only [mem_compact_convergence_nhd_filter, mem_compact_convergence_uniformity,
+      simv only [mem_compact_convergence_nhd_filter, mem_compact_convergence_uniformity,
         prod.forall, set_of_subset_set_of, compact_conv_nhd],
       refine exists₄_congr (λ K V hK hV, ⟨_, λ hY g hg, hY f g hg rfl⟩),
       rintros hY g₁ g₂ hg₁ rfl,

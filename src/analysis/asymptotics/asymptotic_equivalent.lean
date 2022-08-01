@@ -80,7 +80,7 @@ lemma is_equivalent.is_O_symm (h : u ~[l] v) : v =O[l] u :=
 begin
   convert h.is_o.right_is_O_add,
   ext,
-  simp
+  simv
 end
 
 @[refl] lemma is_equivalent.refl : u ~[l] u :=
@@ -123,7 +123,7 @@ begin
   split; intro h;
   [ { have := h.sub tendsto_const_nhds, rw zero_sub (-c) at this },
     { have := h.sub tendsto_const_nhds, rw ← sub_self c} ];
-  convert this; try { ext }; simp
+  convert this; try { ext }; simv
 end
 
 lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] const _ c) : tendsto u l (𝓝 c) :=
@@ -159,7 +159,7 @@ begin
   rw is_equivalent,
   convert huv.is_o.neg_left.neg_right,
   ext,
-  simp,
+  simv,
 end
 
 end normed_add_comm_group
@@ -177,10 +177,10 @@ begin
   split; rintros ⟨φ, hφ, h⟩; [use (φ + 1), use (φ - 1)]; split,
   { conv in (𝓝 _) { rw ← zero_add (1 : β) },
     exact hφ.add (tendsto_const_nhds) },
-  { convert h.add (eventually_eq.refl l v); ext; simp [add_mul] },
+  { convert h.add (eventually_eq.refl l v); ext; simv [add_mul] },
   { conv in (𝓝 _) { rw ← sub_self (1 : β) },
     exact hφ.sub (tendsto_const_nhds) },
-  { convert h.sub (eventually_eq.refl l v); ext; simp [sub_mul] }
+  { convert h.sub (eventually_eq.refl l v); ext; simv [sub_mul] }
 end
 
 lemma is_equivalent.exists_eq_mul (huv : u ~[l] v) :
@@ -204,11 +204,11 @@ begin
   split,
   { intro hequiv,
     have := hequiv.is_o.tendsto_div_nhds_zero,
-    simp only [pi.sub_apply, sub_div] at this,
+    simv only [pi.sub_apply, sub_div] at this,
     have key : tendsto (λ x, v x / v x) l (𝓝 1),
     { exact (tendsto_congr' $ hz.mono $ λ x hnz, @div_self _ _ (v x) hnz).mpr tendsto_const_nhds },
     convert this.add key,
-    { ext, simp },
+    { ext, simv },
     { norm_num } },
   { exact is_equivalent_of_tendsto_one (hz.mono $ λ x hnvz hz, (hnvz hz).elim) }
 end
@@ -232,7 +232,7 @@ begin
   rw is_equivalent at *,
   rw is_o_iff at *,
   rw is_O_with at hCuv,
-  simp only [metric.tendsto_nhds, dist_eq_norm] at hφ,
+  simv only [metric.tendsto_nhds, dist_eq_norm] at hφ,
   intros c hc,
   specialize hφ ((c/2)/C) (div_pos (by linarith) hC),
   specialize huv (show 0 < c/2, by linarith),
@@ -245,7 +245,7 @@ begin
         ... = c/2 * ∥v x∥ : by {field_simp [hC.ne.symm], ring},
 
   calc ∥((λ (x : α), φ x • u x) - v) x∥
-          = ∥(φ x - 1) • u x + (u x - v x)∥ : by simp [sub_smul, sub_add]
+          = ∥(φ x - 1) • u x + (u x - v x)∥ : by simv [sub_smul, sub_add]
       ... ≤ ∥(φ x - 1) • u x∥ + ∥u x - v x∥ : norm_add_le _ _
       ... = ∥φ x - 1∥ * ∥u x∥ + ∥u x - v x∥ : by rw norm_smul
       ... ≤ c / 2 * ∥v x∥ + ∥u x - v x∥ : add_le_add_right key _
@@ -270,7 +270,7 @@ begin
   refine ⟨λ x, (φ x)⁻¹, tendsto.inv₀ hφ (by norm_num) , _⟩,
   convert h.inv,
   ext,
-  simp [mul_inv]
+  simv [mul_inv]
 end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :
@@ -297,7 +297,7 @@ begin
   convert tendsto_neg_at_top_at_bot.comp
     (huv.neg.tendsto_at_top $ tendsto_neg_at_bot_at_top.comp hu),
   ext,
-  simp
+  simv
 end
 
 lemma is_equivalent.tendsto_at_bot_iff [order_topology β] (huv : u ~[l] v) :

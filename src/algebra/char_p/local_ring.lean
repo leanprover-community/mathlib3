@@ -57,14 +57,14 @@ begin
       rw [nat.cast_pow, ←@mul_one R _ (r ^ n), mul_comm,
         ←(classical.some_spec a_unit.exists_left_inv), mul_assoc, ←nat.cast_pow, ←nat.cast_mul,
         ←q_eq_a_mul_rn, char_p.cast_eq_zero R q],
-      simp,
+      simv,
     end,
     have q_eq_rn := nat.dvd_antisymm ((char_p.cast_eq_zero_iff R q (r ^ n)).mp rn_cast_zero)
       rn_dvd_q,
     have n_pos : n ≠ 0 :=
     begin
       by_contradiction n_zero,
-      simp [n_zero] at q_eq_rn,
+      simv [n_zero] at q_eq_rn,
       exact absurd q_eq_rn (char_p.char_ne_one R q),
     end,
 

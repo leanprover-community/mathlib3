@@ -64,11 +64,11 @@ hs.induction_on (holder_on_with_empty C r f) (holder_on_with_singleton C r f)
 
 lemma holder_on_with_univ {C r : ℝ≥0} {f : X → Y} :
   holder_on_with C r f univ ↔ holder_with C r f :=
-by simp only [holder_on_with, holder_with, mem_univ, true_implies_iff]
+by simv only [holder_on_with, holder_with, mem_univ, true_implies_iff]
 
 @[simp] lemma holder_on_with_one {C : ℝ≥0} {f : X → Y} {s : set X} :
   holder_on_with C 1 f s ↔ lipschitz_on_with C f s :=
-by simp only [holder_on_with, lipschitz_on_with, nnreal.coe_one, ennreal.rpow_one]
+by simv only [holder_on_with, lipschitz_on_with, nnreal.coe_one, ennreal.rpow_one]
 
 alias holder_on_with_one ↔ _ lipschitz_on_with.holder_on_with
 

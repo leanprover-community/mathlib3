@@ -42,11 +42,11 @@ lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
 instance : inner_product_space ℝ ℍ :=
 inner_product_space.of_core
 { inner := has_inner.inner,
-  conj_sym := λ x y, by simp [inner_def, mul_comm],
+  conj_sym := λ x y, by simv [inner_def, mul_comm],
   nonneg_re := λ x, norm_sq_nonneg,
   definite := λ x, norm_sq_eq_zero.1,
-  add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
-  smul_left := λ x y r, by simp [inner_def] }
+  add_left := λ x y z, by simv only [inner_def, add_mul, add_re],
+  smul_left := λ x y r, by simv [inner_def] }
 
 lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
 by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
@@ -54,15 +54,15 @@ by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
 
-@[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
+@[simv, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
 by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
-@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
+@[simv, norm_cast] lemma nnnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
 subtype.ext $ norm_coe a
 
 noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
-  norm_mul' := λ a b, by { simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
+  norm_mul' := λ a b, by { simv only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 noncomputable instance : normed_algebra ℝ ℍ :=
@@ -71,18 +71,18 @@ noncomputable instance : normed_algebra ℝ ℍ :=
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 
-@[simp, norm_cast] lemma coe_complex_re (z : ℂ) : (z : ℍ).re = z.re := rfl
-@[simp, norm_cast] lemma coe_complex_im_i (z : ℂ) : (z : ℍ).im_i = z.im := rfl
-@[simp, norm_cast] lemma coe_complex_im_j (z : ℂ) : (z : ℍ).im_j = 0 := rfl
-@[simp, norm_cast] lemma coe_complex_im_k (z : ℂ) : (z : ℍ).im_k = 0 := rfl
+@[simv, norm_cast] lemma coe_complex_re (z : ℂ) : (z : ℍ).re = z.re := rfl
+@[simv, norm_cast] lemma coe_complex_im_i (z : ℂ) : (z : ℍ).im_i = z.im := rfl
+@[simv, norm_cast] lemma coe_complex_im_j (z : ℂ) : (z : ℍ).im_j = 0 := rfl
+@[simv, norm_cast] lemma coe_complex_im_k (z : ℂ) : (z : ℍ).im_k = 0 := rfl
 
-@[simp, norm_cast] lemma coe_complex_add (z w : ℂ) : ↑(z + w) = (z + w : ℍ) := by ext; simp
-@[simp, norm_cast] lemma coe_complex_mul (z w : ℂ) : ↑(z * w) = (z * w : ℍ) := by ext; simp
-@[simp, norm_cast] lemma coe_complex_zero : ((0 : ℂ) : ℍ) = 0 := rfl
-@[simp, norm_cast] lemma coe_complex_one : ((1 : ℂ) : ℍ) = 1 := rfl
-@[simp, norm_cast] lemma coe_real_complex_mul (r : ℝ) (z : ℂ) : (r • z : ℍ) = ↑r * ↑z :=
-by ext; simp
-@[simp, norm_cast] lemma coe_complex_coe (r : ℝ) : ((r : ℂ) : ℍ) = r := rfl
+@[simv, norm_cast] lemma coe_complex_add (z w : ℂ) : ↑(z + w) = (z + w : ℍ) := by ext; simv
+@[simv, norm_cast] lemma coe_complex_mul (z w : ℂ) : ↑(z * w) = (z * w : ℍ) := by ext; simv
+@[simv, norm_cast] lemma coe_complex_zero : ((0 : ℂ) : ℍ) = 0 := rfl
+@[simv, norm_cast] lemma coe_complex_one : ((1 : ℂ) : ℍ) = 1 := rfl
+@[simv, norm_cast] lemma coe_real_complex_mul (r : ℝ) (z : ℂ) : (r • z : ℍ) = ↑r * ↑z :=
+by ext; simv
+@[simv, norm_cast] lemma coe_complex_coe (r : ℝ) : ((r : ℂ) : ℍ) = r := rfl
 
 /-- Coercion `ℂ →ₐ[ℝ] ℍ` as an algebra homomorphism. -/
 def of_complex : ℂ →ₐ[ℝ] ℍ :=

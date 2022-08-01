@@ -35,7 +35,7 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 
 See <https://stacks.math.columbia.edu/tag/001K>.
 -/
-@[simps {not_recursive := []}] -- the generates simp lemmas like `id_fst` and `comp_snd`
+@[simps {not_recursive := []}] -- the generates simv lemmas like `id_fst` and `comp_snd`
 instance prod : category.{max v₁ v₂} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
   id      := λ X, ⟨ 𝟙 (X.1), 𝟙 (X.2) ⟩,
@@ -51,13 +51,13 @@ lemma is_iso_prod_iff {P Q : C} {S T : D} {f : (P, S) ⟶ (Q, T)} :
 begin
   split,
   { rintros ⟨g, hfg, hgf⟩,
-    simp at hfg hgf,
+    simv at hfg hgf,
     rcases hfg with ⟨hfg₁, hfg₂⟩,
     rcases hgf with ⟨hgf₁, hgf₂⟩,
     exact ⟨⟨⟨g.1, hfg₁, hgf₁⟩⟩, ⟨⟨g.2, hfg₂, hgf₂⟩⟩⟩ },
   { rintros ⟨⟨g₁, hfg₁, hgf₁⟩, ⟨g₂, hfg₂, hgf₂⟩⟩,
     dsimp at hfg₁ hgf₁ hfg₂ hgf₂,
-    refine ⟨⟨(g₁, g₂), _, _⟩⟩; { simp; split; assumption } }
+    refine ⟨⟨(g₁, g₂), _, _⟩⟩; { simv; split; assumption } }
 end
 
 section
@@ -129,8 +129,8 @@ The equivalence, given by swapping factors, between `C × D` and `D × C`.
 @[simps]
 def braiding : C × D ≌ D × C :=
 equivalence.mk (swap C D) (swap D C)
-  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
-  (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by simv)) (by tidy))
+  (nat_iso.of_components (λ X, eq_to_iso (by simv)) (by tidy))
 
 instance swap_is_equivalence : is_equivalence (swap C D) :=
 (by apply_instance : is_equivalence (braiding C D).functor)
@@ -163,7 +163,7 @@ as a functor `C × (C ⥤ D) ⥤ D`.
   map_comp' := λ X Y Z f g,
   begin
     cases g, cases f, cases Z, cases Y, cases X,
-    simp only [prod_comp, nat_trans.comp_app, functor.map_comp, category.assoc],
+    simv only [prod_comp, nat_trans.comp_app, functor.map_comp, category.assoc],
     rw [←nat_trans.comp_app, nat_trans.naturality, nat_trans.comp_app,
         category.assoc, nat_trans.naturality],
   end }
@@ -212,7 +212,7 @@ namespace nat_trans
   naturality' := λ X Y f,
   begin
     cases X, cases Y,
-    simp only [functor.prod_map, prod.mk.inj_iff, prod_comp],
+    simv only [functor.prod_map, prod.mk.inj_iff, prod_comp],
     split; rw naturality
   end }
 

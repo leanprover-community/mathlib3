@@ -141,7 +141,7 @@ def to_Γ_Spec_c_basic_opens :
 { app := λ r, X.to_Γ_Spec_c_app r.unop,
   naturality' := λ r s f, begin
     apply (structure_sheaf.to_basic_open_epi (Γ.obj (op X)) r.unop).1,
-    simp only [← category.assoc],
+    simv only [← category.assoc],
     erw X.to_Γ_Spec_c_app_spec r.unop,
     convert X.to_Γ_Spec_c_app_spec s.unop,
     symmetry,
@@ -303,7 +303,7 @@ lemma adjunction_hom_equiv_apply {X : Scheme} {R : CommRingᵒᵖ}
   (f : (op $ Scheme.Γ.obj $ op X) ⟶ R) :
   Γ_Spec.adjunction.hom_equiv X R f =
     LocallyRingedSpace_adjunction.hom_equiv X.1 R f :=
-by { dsimp [adjunction, adjunction.restrict_fully_faithful], simp }
+by { dsimp [adjunction, adjunction.restrict_fully_faithful], simv }
 
 local attribute [irreducible] LocallyRingedSpace_adjunction Γ_Spec.adjunction
 
@@ -352,7 +352,7 @@ begin
   have := congr_app Γ_Spec.adjunction.left_triangle X,
   dsimp at this,
   rw ← is_iso.eq_comp_inv at this,
-  simp only [Γ_Spec.LocallyRingedSpace_adjunction_counit, nat_trans.op_app, category.id_comp,
+  simv only [Γ_Spec.LocallyRingedSpace_adjunction_counit, nat_trans.op_app, category.id_comp,
     Γ_Spec.adjunction_counit_app] at this,
   rw [← op_inv, nat_iso.inv_inv_app, quiver.hom.op_inj.eq_iff] at this,
   exact this

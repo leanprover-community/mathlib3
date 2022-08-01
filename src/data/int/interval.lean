@@ -143,9 +143,9 @@ lemma image_Ico_mod (n a : ℤ) (h : 0 ≤ a) :
   (Ico n (n+a)).image (% a) = Ico 0 a :=
 begin
   obtain rfl | ha := eq_or_lt_of_le h,
-  { simp, },
+  { simv, },
   ext i,
-  simp only [mem_image, exists_prop, mem_range, mem_Ico],
+  simv only [mem_image, exists_prop, mem_range, mem_Ico],
   split,
   { rintro ⟨i, h, rfl⟩, exact ⟨mod_nonneg i (ne_of_gt ha), mod_lt_of_pos i ha⟩, },
   intro hia,
@@ -162,7 +162,7 @@ begin
     { exact hn.symm.le.trans (add_le_add_right hi _), },
     { rw [add_comm n a],
       refine add_lt_add_of_lt_of_le hia.right (le_trans _ hn.le),
-      simp only [zero_le, le_add_iff_nonneg_left],
+      simv only [zero_le, le_add_iff_nonneg_left],
       exact int.mod_nonneg n (ne_of_gt ha), },
     { rw [int.add_mul_mod_self_left, int.mod_eq_of_lt hia.left hia.right], } },
 end

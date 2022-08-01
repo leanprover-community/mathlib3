@@ -84,11 +84,11 @@ inverse in `S`. This is an `add_monoid_hom` when `M` is commutative."]
 noncomputable
 def from_left_inv : S.left_inv → S := λ x, x.prop.some
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma mul_from_left_inv (x : S.left_inv) : (x : M) * S.from_left_inv x = 1 :=
 x.prop.some_spec
 
-@[simp, to_additive] lemma from_left_inv_one : S.from_left_inv 1 = 1 :=
+@[simv, to_additive] lemma from_left_inv_one : S.from_left_inv 1 = 1 :=
 (one_mul _).symm.trans (subtype.eq $ S.mul_from_left_inv 1)
 
 end monoid
@@ -97,7 +97,7 @@ section comm_monoid
 
 variables [comm_monoid M] (S : submonoid M)
 
-@[simp, to_additive]
+@[simv, to_additive]
 lemma from_left_inv_mul (x : S.left_inv) : (S.from_left_inv x : M) * x = 1 :=
 by rw [mul_comm, mul_from_left_inv]
 
@@ -139,25 +139,25 @@ def left_inv_equiv : S.left_inv ≃* S :=
     exact (hS x.prop).some_spec.symm },
   ..S.from_comm_left_inv }
 
-@[simp, to_additive] lemma from_left_inv_left_inv_equiv_symm (x : S) :
+@[simv, to_additive] lemma from_left_inv_left_inv_equiv_symm (x : S) :
   S.from_left_inv ((S.left_inv_equiv hS).symm x) = x := (S.left_inv_equiv hS).right_inv x
 
-@[simp, to_additive] lemma left_inv_equiv_symm_from_left_inv (x : S.left_inv) :
+@[simv, to_additive] lemma left_inv_equiv_symm_from_left_inv (x : S.left_inv) :
   (S.left_inv_equiv hS).symm (S.from_left_inv x) = x := (S.left_inv_equiv hS).left_inv x
 
 @[to_additive]
-lemma left_inv_equiv_mul (x : S.left_inv) : (S.left_inv_equiv hS x : M) * x = 1 := by simp
+lemma left_inv_equiv_mul (x : S.left_inv) : (S.left_inv_equiv hS x : M) * x = 1 := by simv
 
 @[to_additive]
-lemma mul_left_inv_equiv (x : S.left_inv) : (x : M) * S.left_inv_equiv hS x = 1 := by simp
+lemma mul_left_inv_equiv (x : S.left_inv) : (x : M) * S.left_inv_equiv hS x = 1 := by simv
 
-@[simp, to_additive] lemma left_inv_equiv_symm_mul (x : S) :
+@[simv, to_additive] lemma left_inv_equiv_symm_mul (x : S) :
   ((S.left_inv_equiv hS).symm x : M) * x = 1 :=
-by { convert S.mul_left_inv_equiv hS ((S.left_inv_equiv hS).symm x), simp }
+by { convert S.mul_left_inv_equiv hS ((S.left_inv_equiv hS).symm x), simv }
 
-@[simp, to_additive] lemma mul_left_inv_equiv_symm (x : S) :
+@[simv, to_additive] lemma mul_left_inv_equiv_symm (x : S) :
   (x : M) * (S.left_inv_equiv hS).symm x = 1 :=
-by { convert S.left_inv_equiv_mul hS ((S.left_inv_equiv hS).symm x), simp }
+by { convert S.left_inv_equiv_mul hS ((S.left_inv_equiv hS).symm x), simv }
 
 end comm_monoid
 
@@ -172,7 +172,7 @@ submonoid.ext $ λ x,
   ⟨λ h, submonoid.mem_inv.mpr ((inv_eq_of_mul_eq_one_right h.some_spec).symm ▸ h.some.prop),
     λ h, ⟨⟨_, h⟩, mul_right_inv _⟩⟩
 
-@[simp, to_additive] lemma from_left_inv_eq_inv (x : S.left_inv) :
+@[simv, to_additive] lemma from_left_inv_eq_inv (x : S.left_inv) :
   (S.from_left_inv x : M) = x⁻¹ :=
 by rw [← mul_right_inj (x : M), mul_right_inv, mul_from_left_inv]
 
@@ -182,7 +182,7 @@ section comm_group
 
 variables [comm_group M] (S : submonoid M) (hS : S ≤ is_unit.submonoid M)
 
-@[simp, to_additive] lemma left_inv_equiv_symm_eq_inv (x : S) :
+@[simv, to_additive] lemma left_inv_equiv_symm_eq_inv (x : S) :
   ((S.left_inv_equiv hS).symm x : M) = x⁻¹ :=
 by rw [← mul_right_inj (x : M), mul_right_inv, mul_left_inv_equiv_symm]
 

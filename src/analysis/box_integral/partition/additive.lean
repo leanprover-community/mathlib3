@@ -81,11 +81,11 @@ instance : inhabited (ι →ᵇᵃ[I₀] M) := ⟨0⟩
 
 instance : has_add (ι →ᵇᵃ[I₀] M) :=
 ⟨λ f g, ⟨f + g, λ I hI π hπ,
-  by simp only [pi.add_apply, sum_add_distrib, sum_partition_boxes _ hI hπ]⟩⟩
+  by simv only [pi.add_apply, sum_add_distrib, sum_partition_boxes _ hI hπ]⟩⟩
 
 instance {R} [monoid R] [distrib_mul_action R M] : has_smul R (ι →ᵇᵃ[I₀] M) :=
 ⟨λ r f, ⟨r • f, λ I hI π hπ,
-  by simp only [pi.smul_apply, ←smul_sum, sum_partition_boxes _ hI hπ]⟩⟩
+  by simv only [pi.smul_apply, ←smul_sum, sum_partition_boxes _ hI hπ]⟩⟩
 
 instance : add_comm_monoid (ι →ᵇᵃ[I₀] M) :=
 function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl) (λ _ _, rfl)
@@ -109,7 +109,7 @@ begin
   refine ⟨f, _⟩,
   replace hf : ∀ I : box ι, ↑I ≤ I₀ → ∀ s, ∑ J in (split_many I s).boxes, f J = f I,
   { intros I hI s,
-    induction s using finset.induction_on with a s ha ihs, { simp },
+    induction s using finset.induction_on with a s ha ihs, { simv },
     rw [split_many_insert, inf_split, ← ihs, bUnion_boxes, sum_bUnion_boxes],
     refine finset.sum_congr rfl (λ J' hJ', _),
     by_cases h : a.2 ∈ Ioo (J'.lower a.1) (J'.upper a.1),
@@ -137,7 +137,7 @@ lemma sum_boxes_congr [fintype ι] (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I�
   ∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J :=
 begin
   rcases exists_split_many_inf_eq_filter_of_finite {π₁, π₂} ((finite_singleton _).insert _)
-    with ⟨s, hs⟩, simp only [inf_split_many] at hs,
+    with ⟨s, hs⟩, simv only [inf_split_many] at hs,
   rcases ⟨hs _ (or.inl rfl), hs _ (or.inr rfl)⟩ with ⟨h₁, h₂⟩, clear hs,
   rw h at h₁,
   calc ∑ J in π₁.boxes, f J = ∑ J in π₁.boxes, ∑ J' in (split_many J s).boxes, f J' :
@@ -180,7 +180,7 @@ of_map_split_add
     rw with_top.coe_le_coe at hJ,
     refine i.succ_above_cases _ _ j,
     { intros x hx,
-      simp only [box.split_lower_def hx, box.split_upper_def hx, update_same,
+      simv only [box.split_lower_def hx, box.split_upper_def hx, update_same,
         ← with_bot.some_eq_coe, option.elim, box.face, (∘), update_noteq (fin.succ_above_ne _ _)],
       abel },
     { clear j, intros j x hx,
@@ -190,12 +190,12 @@ of_map_split_add
       rw [hf _ (hJ J.upper_mem_Icc _ trivial), hf _ (hJ J.lower_mem_Icc _ trivial),
         ← (fb _).map_split_add this j x, ← (fb _).map_split_add this j x],
       have hx' : x ∈ Ioo ((J.face i).lower j) ((J.face i).upper j) := hx,
-      simp only [box.split_lower_def hx, box.split_upper_def hx,
+      simv only [box.split_lower_def hx, box.split_upper_def hx,
         box.split_lower_def hx', box.split_upper_def hx',
         ← with_bot.some_eq_coe, option.elim, box.face_mk,
         update_noteq (fin.succ_above_ne _ _).symm, sub_add_sub_comm,
         update_comp_eq_of_injective _ i.succ_above.injective j x, ← hf],
-      simp only [box.face] }
+      simv only [box.face] }
   end
 
 end box_additive_map

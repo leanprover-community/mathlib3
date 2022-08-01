@@ -54,7 +54,7 @@ lemma is_iso_iff_nonzero [has_kernels C] {X Y : C} [simple X] [simple Y] (f : X 
   begin
     introI h,
     apply id_nonzero X,
-    simp only [←is_iso.hom_inv_id f, h, zero_comp],
+    simv only [←is_iso.hom_inv_id f, h, zero_comp],
   end,
   λ w, is_iso_of_hom_simple w⟩
 
@@ -91,7 +91,7 @@ lemma finrank_hom_simple_simple_eq_zero_of_not_iso
 begin
   haveI := subsingleton_of_forall_eq (0 : X ⟶ Y) (λ f, begin
     have p := not_congr (is_iso_iff_nonzero f),
-    simp only [not_not, ne.def] at p,
+    simv only [not_not, ne.def] at p,
     refine p.mp (λ _, by exactI h (as_iso f)),
   end),
   exact finrank_zero_of_subsingleton,
@@ -161,7 +161,7 @@ by classical; exact
 { mul_comm := λ f g, begin
     obtain ⟨c, rfl⟩ := endomorphism_simple_eq_smul_id 𝕜 f,
     obtain ⟨d, rfl⟩ := endomorphism_simple_eq_smul_id 𝕜 g,
-    simp [←mul_smul, mul_comm c d],
+    simv [←mul_smul, mul_comm c d],
   end,
   ..(infer_instance : division_ring (End X)) }
 
@@ -212,7 +212,7 @@ lemma finrank_hom_simple_simple_eq_zero_iff
   finrank 𝕜 (X ⟶ Y) = 0 ↔ is_empty (X ≅ Y) :=
 begin
   rw [← not_nonempty_iff, ← not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y)],
-  refine ⟨λ h, by { rw h, simp, }, λ h, _⟩,
+  refine ⟨λ h, by { rw h, simv, }, λ h, _⟩,
   have := finrank_hom_simple_simple_le_one 𝕜 X Y,
   interval_cases finrank 𝕜 (X ⟶ Y) with h',
   { exact h', },

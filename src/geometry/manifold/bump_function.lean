@@ -95,7 +95,7 @@ f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at H c).open_sourc
 lemma one_of_dist_le (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) ≤ f.r) :
   f x = 1 :=
-by simp only [f.eq_on_source hs, (∘), f.to_cont_diff_bump.one_of_mem_closed_ball hd]
+by simv only [f.eq_on_source hs, (∘), f.to_cont_diff_bump.one_of_mem_closed_ball hd]
 
 lemma support_eq_inter_preimage :
   support f =
@@ -226,7 +226,7 @@ def update_r (r : ℝ) (hr : r ∈ Ioo 0 f.R) : smooth_bump_function I c :=
 
 @[simp] lemma support_update_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) :
   support (f.update_r r hr) = support f :=
-by simp only [support_eq_inter_preimage, update_r_R]
+by simv only [support_eq_inter_preimage, update_r_R]
 
 instance : inhabited (smooth_bump_function I c) :=
 classical.inhabited_of_nonempty nhds_within_range_basis.nonempty

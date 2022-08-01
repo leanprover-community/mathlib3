@@ -91,9 +91,9 @@ open finset (range)
 open finsupp (single)
 
 -- This lemma reduces a bundled morphism to a "mere" function,
--- and consequently the simplifier cannot use a lot of powerful simp-lemmas.
+-- and consequently the simplifier cannot use a lot of powerful simv-lemmas.
 -- We disable this locally, and probably it should be disabled globally in mathlib.
-local attribute [-simp] coe_eval₂_hom
+local attribute [-simv] coe_eval₂_hom
 
 variables {p : ℕ} {R : Type*} {idx : Type*} [comm_ring R]
 
@@ -160,9 +160,9 @@ begin
   replace := congr_arg (bind₁ (λ k : ℕ, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ)) this,
   rw [alg_hom.map_mul, bind₁_C_right] at this,
   rw [witt_structure_rat, this], clear this,
-  conv_lhs { simp only [alg_hom.map_sub, bind₁_X_right] },
+  conv_lhs { simv only [alg_hom.map_sub, bind₁_X_right] },
   rw sub_right_inj,
-  simp only [alg_hom.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
+  simv only [alg_hom.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
   refl
 end
 
@@ -206,15 +206,15 @@ lemma bind₁_rename_expand_witt_polynomial (Φ : mv_polynomial idx ℤ) (n : �
     bind₁ (λ i, expand p (witt_structure_int p Φ i)) (W_ ℤ n) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_bind₁, map_rename, map_expand, rename_expand, map_witt_polynomial],
+  simv only [map_bind₁, map_rename, map_expand, rename_expand, map_witt_polynomial],
   have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
   apply_fun expand p at key,
-  simp only [expand_bind₁] at key,
+  simv only [expand_bind₁] at key,
   rw key, clear key,
   apply eval₂_hom_congr' rfl _ rfl,
   rintro i hi -,
   rw [witt_polynomial_vars, finset.mem_range] at hi,
-  simp only [IH i hi],
+  simv only [IH i hi],
 end
 
 lemma C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum (Φ : mv_polynomial idx ℤ) (n : ℕ)
@@ -226,22 +226,22 @@ lemma C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum (Φ : mv_polynomial idx
       ∑ i in range n, C (↑p ^ i) * witt_structure_int p Φ i ^ p ^ (n - i)) :=
 begin
   cases n,
-  { simp only [is_unit_one, int.coe_nat_zero, int.coe_nat_succ,
+  { simv only [is_unit_one, int.coe_nat_zero, int.coe_nat_succ,
       zero_add, pow_zero, C_1, is_unit.dvd] },
 
   -- prepare a useful equation for rewriting
   have key := bind₁_rename_expand_witt_polynomial Φ n IH,
   apply_fun (map (int.cast_ring_hom (zmod (p ^ (n + 1))))) at key,
-  conv_lhs at key { simp only [map_bind₁, map_rename, map_expand, map_witt_polynomial] },
+  conv_lhs at key { simv only [map_bind₁, map_rename, map_expand, map_witt_polynomial] },
 
   -- clean up and massage
   rw [nat.succ_eq_add_one, C_dvd_iff_zmod, ring_hom.map_sub, sub_eq_zero, map_bind₁],
-  simp only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
+  simv only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
   rw key, clear key IH,
   rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum, finset.sum_congr rfl],
   intros k hk,
   rw [finset.mem_range, nat.lt_succ_iff] at hk,
-  simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
+  simv only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
     ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
   { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←tsub_eq_iff_eq_add_of_le hk] },
@@ -276,9 +276,9 @@ begin
     apply finset.sum_congr rfl,
     intros i hi,
     rw finset.mem_range at hi,
-    simp only [IH i hi, ring_hom.map_mul, ring_hom.map_pow, map_C],
+    simv only [IH i hi, ring_hom.map_mul, ring_hom.map_pow, map_C],
     refl },
-  simp only [← sum_induction_steps, ← map_witt_polynomial p (int.cast_ring_hom ℚ),
+  simv only [← sum_induction_steps, ← map_witt_polynomial p (int.cast_ring_hom ℚ),
     ← map_rename, ← map_bind₁, ← ring_hom.map_sub, coeff_map],
   rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
   rw [← rat.denom_eq_one_iff, ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
@@ -328,14 +328,14 @@ begin
   convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n) using 1;
     rw hom_bind₁; apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   { refl },
-  { simp only [map_rename, map_witt_polynomial] }
+  { simv only [map_rename, map_witt_polynomial] }
 end
 
 lemma witt_structure_int_rename {σ : Type*} (Φ : mv_polynomial idx ℤ) (f : idx → σ) (n : ℕ) :
   witt_structure_int p (rename f Φ) n = rename (prod.map f id) (witt_structure_int p Φ n) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_rename, map_witt_structure_int, witt_structure_rat, rename_bind₁, rename_rename,
+  simv only [map_rename, map_witt_structure_int, witt_structure_rat, rename_bind₁, rename_rename,
     bind₁_rename],
   refl
 end
@@ -343,14 +343,14 @@ end
 @[simp]
 lemma constant_coeff_witt_structure_rat_zero (Φ : mv_polynomial idx ℚ) :
   constant_coeff (witt_structure_rat p Φ 0) = constant_coeff Φ :=
-by simp only [witt_structure_rat, bind₁, map_aeval, X_in_terms_of_W_zero, constant_coeff_rename,
+by simv only [witt_structure_rat, bind₁, map_aeval, X_in_terms_of_W_zero, constant_coeff_rename,
   constant_coeff_witt_polynomial, aeval_X, constant_coeff_comp_algebra_map,
   eval₂_hom_zero', ring_hom.id_apply]
 
 lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ)
   (h : constant_coeff Φ = 0) (n : ℕ) :
   constant_coeff (witt_structure_rat p Φ n) = 0 :=
-by simp only [witt_structure_rat, eval₂_hom_zero', h, bind₁, map_aeval, constant_coeff_rename,
+by simv only [witt_structure_rat, eval₂_hom_zero', h, bind₁, map_aeval, constant_coeff_rename,
   constant_coeff_witt_polynomial, constant_coeff_comp_algebra_map, ring_hom.id_apply,
   constant_coeff_X_in_terms_of_W]
 
@@ -386,7 +386,7 @@ lemma witt_structure_rat_vars [fintype idx] (Φ : mv_polynomial idx ℚ) (n : �
 begin
   rw witt_structure_rat,
   intros x hx,
-  simp only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
+  simv only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
   obtain ⟨k, hk, hx'⟩ := mem_vars_bind₁ _ _ hx,
   obtain ⟨i, -, hx''⟩ := mem_vars_bind₁ _ _ hx',
   obtain ⟨j, hj, rfl⟩ := mem_vars_rename _ _ hx'',

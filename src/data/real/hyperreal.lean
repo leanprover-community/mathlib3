@@ -23,35 +23,35 @@ notation `ℝ*` := hyperreal
 
 noncomputable instance : has_coe_t ℝ ℝ* := ⟨λ x, (↑x : germ _ _)⟩
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y :=
 germ.const_inj
 
-@[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
-@[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
+@[simv, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
+@[simv, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
 
-@[simp, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_inv (x : ℝ) : ↑(x⁻¹) = (x⁻¹ : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_neg (x : ℝ) : ↑(-x) = (-x : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_add (x y : ℝ) : ↑(x + y) = (x + y : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_bit0 (x : ℝ) : ↑(bit0 x) = (bit0 x : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_bit1 (x : ℝ) : ↑(bit1 x) = (bit1 x : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_mul (x y : ℝ) : ↑(x * y) = (x * y : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_div (x y : ℝ) : ↑(x / y) = (x / y : ℝ*) := rfl
-@[simp, norm_cast] lemma coe_sub (x y : ℝ) : ↑(x - y) = (x - y : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_inv (x : ℝ) : ↑(x⁻¹) = (x⁻¹ : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_neg (x : ℝ) : ↑(-x) = (-x : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_add (x y : ℝ) : ↑(x + y) = (x + y : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_bit0 (x : ℝ) : ↑(bit0 x) = (bit0 x : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_bit1 (x : ℝ) : ↑(bit1 x) = (bit1 x : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_mul (x y : ℝ) : ↑(x * y) = (x * y : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_div (x y : ℝ) : ↑(x / y) = (x / y : ℝ*) := rfl
+@[simv, norm_cast] lemma coe_sub (x y : ℝ) : ↑(x - y) = (x - y : ℝ*) := rfl
 
-@[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt
-@[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
+@[simv, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt
+@[simv, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
-@[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
+@[simv, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
+@[simv, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
 begin
   convert const_abs x,
   apply linear_order.to_lattice_eq_filter_germ_lattice,
 end
-@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
-@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
+@[simv, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
+@[simv, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
 
 /-- Construct a hyperreal number from a sequence of real numbers. -/
 noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (hyperfilter ℕ : filter ℕ) ℝ)
@@ -72,9 +72,9 @@ lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
 lemma epsilon_pos : 0 < ε :=
 suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
 have h0' : {n : ℕ | ¬ 0 < n} = {0} :=
-by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
+by simv only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
 begin
-  simp only [inv_pos, nat.cast_pos],
+  simv only [inv_pos, nat.cast_pos],
   exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
 end
 
@@ -89,10 +89,10 @@ theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, 0 < r → of_seq f < (r : ℝ*) :=
 begin
-  simp only [metric.tendsto_at_top, real.dist_eq, sub_zero, lt_def] at hf ⊢,
+  simv only [metric.tendsto_at_top, real.dist_eq, sub_zero, lt_def] at hf ⊢,
   intros r hr, cases hf r hr with N hf',
   have hs : {i : ℕ | f i < r}ᶜ ⊆ {i : ℕ | i ≤ N} :=
-    λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
+    λ i hi1, le_of_lt (by simv only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
   exact mem_hyperfilter_of_finite_compl
     ((set.finite_le_nat N).subset hs)
@@ -250,7 +250,7 @@ eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 
 lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} :
   is_st x r ↔ ∀ (δ : ℝ), 0 < δ → |x - r| < δ :=
-by simp only [abs_sub_lt_iff, sub_lt_iff_lt_add, is_st, and_comm, add_comm]
+by simv only [abs_sub_lt_iff, sub_lt_iff_lt_add, is_st, and_comm, add_comm]
 
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) :=
 λ hxr hys d hd,
@@ -398,7 +398,7 @@ begin
   intros hip hnin r,
   cases not_forall.mp hnin with r₂ hr₂,
   convert add_lt_add_of_lt_of_le (hip (r + -r₂)) (not_lt.mp hr₂) using 1,
-  simp
+  simv
 end
 
 lemma not_infinite_neg_add_infinite_pos {x y : ℝ*} :
@@ -438,7 +438,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
   have hS : {a : ℕ | r < f a}ᶜ ⊆ {a : ℕ | a ≤ i} :=
-    by simp only [set.compl_set_of, not_lt];
+    by simv only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
   germ.coe_lt.2 $ mem_hyperfilter_of_finite_compl $
   (set.finite_le_nat _).subset hS
@@ -450,7 +450,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), r - 1 < f a → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
   have hS : {a : ℕ | f a < r}ᶜ ⊆ {a : ℕ | a ≤ i} :=
-    by simp only [set.compl_set_of, not_lt];
+    by simv only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
   germ.coe_lt.2 $ mem_hyperfilter_of_finite_compl $
   (set.finite_le_nat _).subset hS
@@ -496,7 +496,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
       = |x * (y - s) + (x - r) * s| :
         by rw [mul_sub, sub_mul, add_sub, sub_add_cancel]
   ... ≤ |x * (y - s)| + |(x - r) * s| : abs_add _ _
-  ... ≤ |x| * |y - s| + |x - r| * |s| : by simp only [abs_mul]
+  ... ≤ |x| * |y - s| + |x - r| * |s| : by simv only [abs_mul]
   ... ≤ |x| * ((d / t) / 2 : ℝ) + ((d / |s|) / 2 : ℝ) * |s| : add_le_add
         (mul_le_mul_of_nonneg_left (le_of_lt $ hys' _ $ half_pos $ div_pos hd $
           coe_pos.1 $ lt_of_le_of_lt (abs_nonneg x) ht) $ abs_nonneg _)
@@ -564,8 +564,8 @@ is_st_unique hxy hxy'
 
 theorem infinitesimal_def {x : ℝ*} :
   infinitesimal x ↔ (∀ r : ℝ, 0 < r → -(r : ℝ*) < x ∧ x < r) :=
-⟨ λ hi r hr, by { convert (hi r hr); simp },
-  λ hi d hd, by { convert (hi d hd); simp } ⟩
+⟨ λ hi r hr, by { convert (hi r hr); simv },
+  λ hi d hd, by { convert (hi d hd); simv } ⟩
 
 theorem lt_of_pos_of_infinitesimal {x : ℝ*} : infinitesimal x → ∀ r : ℝ, 0 < r → x < r :=
 λ hi r hr, ((infinitesimal_def.mp hi) r hr).2
@@ -662,14 +662,14 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ 0 < x) :=
-by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv]
+by convert infinite_pos_iff_infinitesimal_inv_pos; simv only [inv_inv]
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv]
+by convert infinite_neg_iff_infinitesimal_inv_neg; simv only [inv_inv]
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv]
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simv only [inv_inv]
 
 /-!
 ### `st` stuff that requires infinitesimal machinery

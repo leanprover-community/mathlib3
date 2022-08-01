@@ -76,13 +76,13 @@ lemma continuous_of_linear_of_bound {f : E → G} (h_add : ∀ x y, f (x + y) = 
 let φ : E →ₗ[𝕜] G := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
 add_monoid_hom_class.continuous_of_bound φ C h_bound
 
-@[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simv, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₛₗ[σ] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
+@[simv, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
   (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₛₗ[σ] F) = f := rfl
 
@@ -141,7 +141,7 @@ lemma semilinear_map_class.bound_of_continuous [semilinear_map_class 𝓕 σ₁�
   (hf : continuous f) : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 begin
   rcases normed_add_comm_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
-  simp only [sub_zero, map_zero] at hε,
+  simv only [sub_zero, map_zero] at hε,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
   refine ⟨∥c∥ / ε, this, λ x, _⟩,
@@ -184,11 +184,11 @@ def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
 of_homothety (linear_map.to_span_singleton 𝕜 E x) ∥x∥ (to_span_singleton_homothety 𝕜 x)
 
 lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
-by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+by simv [to_span_singleton, of_homothety, linear_map.to_span_singleton]
 
 lemma to_span_singleton_add (x y : E) :
   to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
-by { ext1, simp [to_span_singleton_apply], }
+by { ext1, simv [to_span_singleton_apply], }
 
 lemma to_span_singleton_smul' (𝕜') [normed_field 𝕜'] [normed_space 𝕜' E]
   [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
@@ -203,7 +203,7 @@ variables (𝕜 E)
 /-- Given a unit-length element `x` of a normed space `E` over a field `𝕜`, the natural linear
     isometry map from `𝕜` to `E` by taking multiples of `x`.-/
 def _root_.linear_isometry.to_span_singleton {v : E} (hv : ∥v∥ = 1) : 𝕜 →ₗᵢ[𝕜] E :=
-{ norm_map' := λ x, by simp [norm_smul, hv],
+{ norm_map' := λ x, by simv [norm_smul, hv],
   .. linear_map.to_span_singleton 𝕜 E v }
 variables {𝕜 E}
 
@@ -246,7 +246,7 @@ lemma op_norm_le_bound' (f : E →SL[σ₁₂] F) {M : ℝ} (hMp: 0 ≤ M)
   (hM : ∀ x, ∥x∥ ≠ 0 → ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
 op_norm_le_bound f hMp $ λ x, (ne_or_eq (∥x∥) 0).elim (hM x) $
-  λ h, by simp only [h, mul_zero, norm_image_of_norm_zero f f.2 h]
+  λ h, by simv only [h, mul_zero, norm_image_of_norm_zero f f.2 h]
 
 theorem op_norm_le_of_lipschitz {f : E →SL[σ₁₂] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
@@ -259,7 +259,7 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
   ((le_cInf_iff continuous_linear_map.bounds_bdd_below ⟨M, M_nonneg, h_above⟩).mpr $
    λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
 
-lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, norm_neg]
+lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simv only [norm_def, neg_apply, norm_neg]
 
 theorem antilipschitz_of_bound (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
@@ -328,7 +328,7 @@ lemma op_norm_le_of_shell' {f : E →SL[σ₁₂] F} {ε C : ℝ} (ε_pos : 0 < 
 begin
   by_cases h0 : c = 0,
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
-    { simp [h0] },
+    { simv [h0] },
     { rwa ball_zero_eq at hx } },
   { rw [← inv_inv c, norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
@@ -362,7 +362,7 @@ le_antisymm (cInf_le bounds_bdd_below
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
 lemma norm_id_le : ∥id 𝕜 E∥ ≤ 1 :=
-op_norm_le_bound _ zero_le_one (λx, by simp)
+op_norm_le_bound _ zero_le_one (λx, by simv)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
@@ -501,12 +501,12 @@ def prodₗᵢ (R : Type*) [semiring R] [module R Fₗ] [module R Gₗ]
 
 variables [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F)
 
-@[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
+@[simv, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
 begin
   refine le_antisymm _ (norm_nonneg _),
   apply op_norm_le_bound _ rfl.ge,
   intros x,
-  simp [subsingleton.elim x 0]
+  simv [subsingleton.elim x 0]
 end
 
 end op_norm
@@ -550,7 +550,7 @@ namespace linear_isometry
 
 lemma norm_to_continuous_linear_map_le (f : E →ₛₗᵢ[σ₁₂] F) :
   ∥f.to_continuous_linear_map∥ ≤ 1 :=
-f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simp
+f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simv
 
 end linear_isometry
 
@@ -579,8 +579,8 @@ def mk_continuous₂ (f : E →ₛₗ[σ₁₃] F →ₛₗ[σ₂₃] G) (C : �
   E →SL[σ₁₃] F →SL[σ₂₃] G :=
 linear_map.mk_continuous
   { to_fun := λ x, (f x).mk_continuous (C * ∥x∥) (hC x),
-    map_add' := λ x y, by { ext z, simp },
-    map_smul' := λ c x, by { ext z, simp } }
+    map_add' := λ x y, by { ext z, simv },
+    map_smul' := λ c x, by { ext z, simv } }
   (max C 0) $ λ x, (mk_continuous_norm_le' _ _).trans_eq $
     by rw [max_mul_of_nonneg _ _ (norm_nonneg x), zero_mul]
 
@@ -710,7 +710,7 @@ variables (σ₁₂ σ₂₃ E F G)
 def compSL : (F →SL[σ₂₃] G) →L[𝕜₃] (E →SL[σ₁₂] F) →SL[σ₂₃] (E →SL[σ₁₃] G) :=
 linear_map.mk_continuous₂
   (linear_map.mk₂'ₛₗ (ring_hom.id 𝕜₃) σ₂₃ comp add_comp smul_comp comp_add
-    (λ c f g, by { ext, simp only [continuous_linear_map.map_smulₛₗ, coe_smul', coe_comp',
+    (λ c f g, by { ext, simv only [continuous_linear_map.map_smulₛₗ, coe_smul', coe_comp',
                                    function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
@@ -780,7 +780,7 @@ have Ψ₂ : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] (M₃
   apply funext,
   rintros ⟨φ, ψ⟩,
   apply continuous_linear_map.ext (λ x, _),
-  simp only [add_apply, coe_comp', coe_fst', function.comp_app,
+  simv only [add_apply, coe_comp', coe_fst', function.comp_app,
              compL_apply, flip_apply, coe_snd', inl_apply, inr_apply, prod.mk_add_mk, add_zero,
              zero_add, coe_prod_map', prod_map, prod.mk.inj_iff, eq_self_iff_true, and_self],
   refl
@@ -836,7 +836,7 @@ continuous linear maps. -/
 def lmulₗᵢ [norm_one_class 𝕜'] : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 { to_linear_map := lmul 𝕜 𝕜',
   norm_map' := λ x, le_antisymm (op_norm_lmul_apply_le _ _ _)
-    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
+    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simv [norm_one],
           apply_instance }) }
 
 @[simp] lemma coe_lmulₗᵢ [norm_one_class 𝕜'] : ⇑(lmulₗᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
@@ -855,7 +855,7 @@ op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _
 @[simp] lemma op_norm_lmul_right_apply [norm_one_class 𝕜'] (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
 le_antisymm
   (op_norm_lmul_right_apply_le _ _ _)
-  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simv [norm_one],
         apply_instance })
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
@@ -910,7 +910,7 @@ begin
   { rw [to_span_singleton_apply, norm_smul, mul_comm], },
   { specialize h 1,
     rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
-    exact (mul_le_mul_right (by simp)).mp h, },
+    exact (mul_le_mul_right (by simv)).mp h, },
 end
 
 variables {𝕜}
@@ -1035,7 +1035,7 @@ begin
       λ h, (e.has_sum.mpr (hf.has_sum_iff.mpr h)).tsum_eq⟩ },
   { have hf' : ¬summable (λ z, e (f z)) := λ h, hf (e.summable.mp h),
     rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hf'],
-    exact ⟨by { rintro rfl, simp }, λ H, by simpa using (congr_arg (λ z, e z) H)⟩ }
+    exact ⟨by { rintro rfl, simv }, λ H, by simpa using (congr_arg (λ z, e z) H)⟩ }
 end
 
 protected lemma continuous_linear_equiv.map_tsum [t2_space M] [t2_space M₂] {f : ι → M}
@@ -1073,7 +1073,7 @@ begin
   intros hf y,
   calc ∥(f.symm) y∥ = a⁻¹ * (a * ∥ (f.symm) y∥) : _
   ... =  a⁻¹ * ∥f ((f.symm) y)∥ : by rw hf
-  ... = a⁻¹ * ∥y∥ : by simp,
+  ... = a⁻¹ * ∥y∥ : by simv,
   rw [← mul_assoc, inv_mul_cancel (ne_of_lt ha).symm, one_mul],
 end
 
@@ -1151,7 +1151,7 @@ f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst 
 
 lemma map_add_add (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
   f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
-by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
+by simv only [map_add, add_apply, coe_deriv₂, add_assoc]
 
 end continuous_linear_map
 
@@ -1176,7 +1176,7 @@ lemma linear_map.bound_of_shell [ring_hom_isometric σ₁₂] (f : E →ₛₗ[�
   (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
   ∥f x∥ ≤ C * ∥x∥ :=
 begin
-  by_cases hx : x = 0, { simp [hx] },
+  by_cases hx : x = 0, { simv [hx] },
   exact semilinear_map_class.bound_of_shell_semi_normed f ε_pos hc hf
     (ne_of_lt (norm_pos_iff.2 hx)).symm
 end
@@ -1196,7 +1196,7 @@ begin
   calc ∥f x∥ ≤ c : h _ (mem_ball_zero_iff.mpr hxo)
          ... ≤ c * ((∥x∥ * ∥k∥) / r) : le_mul_of_one_le_right _ _
          ... = _ : by ring,
-  { exact le_trans (norm_nonneg _) (h 0 (by simp [r_pos])) },
+  { exact le_trans (norm_nonneg _) (h 0 (by simv [r_pos])) },
   { rw [div_le_iff (zero_lt_one.trans hk)] at hko,
     exact (one_le_div r_pos).mpr hko }
 end
@@ -1277,9 +1277,9 @@ begin
   refine ⟨⟨δ⁻¹, _⟩ * ∥c∥₊, add_monoid_hom_class.antilipschitz_of_bound f $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
-  { have : f x = f 0, by { simp [hx] },
+  { have : f x = f 0, by { simv [hx] },
     have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
-    simp [this] },
+    simv [this] },
   { rcases rescale_to_shell hc δ_pos hx with ⟨d, hd, dxlt, ledx, dinv⟩,
     rw [← f.map_smul d] at dxlt,
     have : ∥d • x∥ ≤ 1 := H dxlt.le,
@@ -1470,14 +1470,14 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
     refine h_dense.induction_on₂ _ _,
     { exact is_closed_eq (cont.comp continuous_add)
         ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
-    { assume x y, simp only [eq, ← e.map_add], exact f.map_add _ _ },
+    { assume x y, simv only [eq, ← e.map_add], exact f.map_add _ _ },
   end,
   map_smul' := λk,
   begin
     refine (λ b, h_dense.induction_on b _ _),
     { exact is_closed_eq (cont.comp (continuous_const_smul _))
         ((continuous_const_smul _).comp cont) },
-    { assume x, rw ← map_smul, simp only [eq], exact continuous_linear_map.map_smulₛₗ _ _ _ },
+    { assume x, rw ← map_smul, simv only [eq], exact continuous_linear_map.map_smulₛₗ _ _ _ },
   end,
   cont := cont }
 
@@ -1516,7 +1516,7 @@ begin
       have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
       rw ← norm_le_zero_iff,
       exact le_trans (h_e x) (mul_nonpos_of_nonpos_of_nonneg N0 (norm_nonneg _)) },
-    have hf : f = 0, { ext, simp only [he x, zero_apply, map_zero] },
+    have hf : f = 0, { ext, simv only [he x, zero_apply, map_zero] },
     have hψ : ψ = 0, { rw hf, apply extend_zero },
     rw [hψ, hf, norm_zero, norm_zero, mul_zero] }
 end
@@ -1534,7 +1534,7 @@ namespace linear_isometry
 @[simp] lemma norm_to_continuous_linear_map [nontrivial E] [ring_hom_isometric σ₁₂]
   (f : E →ₛₗᵢ[σ₁₂] F) :
   ∥f.to_continuous_linear_map∥ = 1 :=
-f.to_continuous_linear_map.homothety_norm $ by simp
+f.to_continuous_linear_map.homothety_norm $ by simv
 
 variables {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
@@ -1545,7 +1545,7 @@ lemma norm_to_continuous_linear_map_comp [ring_hom_isometric σ₁₂] (f : F �
   {g : E →SL[σ₁₂] F} :
   ∥f.to_continuous_linear_map.comp g∥ = ∥g∥ :=
 op_norm_ext (f.to_continuous_linear_map.comp g) g
-  (λ x, by simp only [norm_map, coe_to_continuous_linear_map, coe_comp'])
+  (λ x, by simv only [norm_map, coe_to_continuous_linear_map, coe_comp'])
 omit σ₁₃
 
 end linear_isometry
@@ -1574,16 +1574,16 @@ lemma op_norm_comp_linear_isometry_equiv (f : F →SL[σ₂₃] G) (g : F' ≃�
 begin
   casesI subsingleton_or_nontrivial F',
   { haveI := g.symm.to_linear_equiv.to_equiv.subsingleton,
-    simp },
+    simv },
   refine le_antisymm _ _,
   { convert f.op_norm_comp_le g.to_linear_isometry.to_continuous_linear_map,
-    simp [g.to_linear_isometry.norm_to_continuous_linear_map] },
+    simv [g.to_linear_isometry.norm_to_continuous_linear_map] },
   { convert (f.comp g.to_linear_isometry.to_continuous_linear_map).op_norm_comp_le
       g.symm.to_linear_isometry.to_continuous_linear_map,
     { ext,
-      simp },
+      simv },
     haveI := g.symm.surjective.nontrivial,
-    simp [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
+    simv [g.symm.to_linear_isometry.norm_to_continuous_linear_map] },
 end
 omit σ₂'' σ₂₃'
 
@@ -1600,7 +1600,7 @@ begin
        mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
      ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring },
   { by_cases h : f = 0,
-    { simp [h] },
+    { simv [h] },
     { have : 0 < ∥f∥ := norm_pos_iff.2 h,
       rw ← le_div_iff this,
       apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
@@ -1623,12 +1623,12 @@ variables (𝕜 E Fₗ)
 def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] Fₗ →L[𝕜] E →L[𝕜] Fₗ :=
 linear_map.mk_continuous₂
   { to_fun := smul_rightₗ,
-    map_add' := λ c₁ c₂, by { ext x, simp only [add_smul, coe_smul_rightₗ, add_apply,
+    map_add' := λ c₁ c₂, by { ext x, simv only [add_smul, coe_smul_rightₗ, add_apply,
                                                smul_right_apply, linear_map.add_apply] },
-    map_smul' := λ m c, by { ext x, simp only [smul_smul, coe_smul_rightₗ, algebra.id.smul_eq_mul,
+    map_smul' := λ m c, by { ext x, simv only [smul_smul, coe_smul_rightₗ, algebra.id.smul_eq_mul,
                                                coe_smul', smul_right_apply, linear_map.smul_apply,
                                                ring_hom.id_apply, pi.smul_apply] } }
-  1 $ λ c x, by simp only [coe_smul_rightₗ, one_mul, norm_smul_right_apply, linear_map.coe_mk]
+  1 $ λ c x, by simv only [coe_smul_rightₗ, one_mul, norm_smul_right_apply, linear_map.coe_mk]
 
 variables {𝕜 E Fₗ}
 

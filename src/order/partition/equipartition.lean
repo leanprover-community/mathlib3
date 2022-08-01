@@ -52,7 +52,7 @@ by { rw ←P.sum_card_parts, exact equitable_on.le_add_one hP ht }
 variables (s)
 
 lemma bot_is_equipartition : (⊥ : finpartition s).is_equipartition :=
-set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
+set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simv⟩
 
 lemma top_is_equipartition : (⊤ : finpartition s).is_equipartition :=
 (parts_top_subsingleton _).is_equipartition

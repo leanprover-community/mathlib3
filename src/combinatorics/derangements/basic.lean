@@ -37,7 +37,7 @@ set.eq_empty_iff_forall_not_mem.symm
 
 /-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
 def equiv.derangements_congr (e : α ≃ β) : (derangements α ≃ derangements β) :=
-e.perm_congr.subtype_equiv $ λ f, e.forall_congr $ by simp
+e.perm_congr.subtype_equiv $ λ f, e.forall_congr $ by simv
 
 namespace derangements
 
@@ -108,7 +108,7 @@ def remove_none.fiber (a : option α) : set (perm α) :=
 lemma remove_none.mem_fiber (a : option α) (f : perm α) :
   f ∈ remove_none.fiber a ↔
   ∃ F : perm (option α), F ∈ derangements (option α) ∧ F none = a ∧ remove_none F = f :=
-by simp [remove_none.fiber, derangements]
+by simv [remove_none.fiber, derangements]
 
 lemma remove_none.fiber_none : remove_none.fiber (@none α) = ∅ :=
 begin
@@ -138,10 +138,10 @@ begin
     split,
     { intro x,
       apply_fun (swap none (some a)),
-      simp only [perm.decompose_option_symm_apply, swap_apply_self, perm.coe_mul],
+      simv only [perm.decompose_option_symm_apply, swap_apply_self, perm.coe_mul],
       cases x,
-      { simp },
-      simp only [equiv.option_congr_apply, option.map_some'],
+      { simv },
+      simv only [equiv.option_congr_apply, option.map_some'],
       by_cases x_vs_a : x = a,
       { rw [x_vs_a, swap_apply_right], apply option.some_ne_none },
       have ne_1 : some x ≠ none := option.some_ne_none _,

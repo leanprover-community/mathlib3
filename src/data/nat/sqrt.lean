@@ -22,7 +22,7 @@ namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
-  simp only [shiftr_eq_div_pow],
+  simv only [shiftr_eq_div_pow],
   apply (nat.div_lt_iff_lt_mul' (dec_trivial : 0 < 4)).2,
   have := nat.mul_lt_mul_of_pos_left
     (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
@@ -49,18 +49,18 @@ match size n with
 end
 
 theorem sqrt_aux_0 (r n) : sqrt_aux 0 r n = r :=
-by rw sqrt_aux; simp
-local attribute [simp] sqrt_aux_0
+by rw sqrt_aux; simv
+local attribute [simv] sqrt_aux_0
 
 theorem sqrt_aux_1 {r n b} (h : b ≠ 0) {n'} (h₂ : r + b + n' = n) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r + b) n' :=
-by rw sqrt_aux; simp only [h, h₂.symm, int.coe_nat_add, if_false];
+by rw sqrt_aux; simv only [h, h₂.symm, int.coe_nat_add, if_false];
    rw [add_comm _ (n':ℤ), add_sub_cancel, sqrt_aux._match_1]
 
 theorem sqrt_aux_2 {r n b} (h : b ≠ 0) (h₂ : n < r + b) :
   sqrt_aux b r n = sqrt_aux (shiftr b 2) (div2 r) n :=
 begin
-  rw sqrt_aux; simp only [h, h₂, if_false],
+  rw sqrt_aux; simv only [h, h₂, if_false],
   cases int.eq_neg_succ_of_lt_zero
     (sub_lt_zero.2 (int.coe_nat_lt_coe_nat_of_lt h₂)) with k e,
   rw [e, sqrt_aux._match_1]
@@ -68,7 +68,7 @@ end
 
 private def is_sqrt (n q : ℕ) : Prop := q*q ≤ n ∧ n < (q+1)*(q+1)
 
-local attribute [-simp] mul_eq_mul_left_iff mul_eq_mul_right_iff
+local attribute [-simv] mul_eq_mul_left_iff mul_eq_mul_right_iff
 
 private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   (h₁ : r*r ≤ n)
@@ -84,7 +84,7 @@ begin
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m),
   { rw [tsub_lt_iff_right h₁],
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
+    simv [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
       add_comm, add_assoc, add_left_comm] },
   have re : div2 (2 * r * 2^m) = r * 2^m,
   { rw [div2_val, mul_assoc,
@@ -98,18 +98,18 @@ begin
     apply eq.symm, apply tsub_eq_of_eq_add_rev,
     rw [← add_assoc, (_ : r*r + _ = _)],
     exact (add_tsub_cancel_of_le hl).symm,
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_assoc] },
+    simv [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_assoc] },
 end
 
 private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
   r*r ≤ n → n < (r + 2^(m+1)) * (r + 2^(m+1)) →
   is_sqrt n (sqrt_aux (2^m * 2^m) (2*r*2^m) (n - r*r))
 | 0 r h₁ h₂ := by apply sqrt_aux_is_sqrt_lemma 0 r n h₁ 0 rfl;
-  intro h; simp; [exact ⟨h₁, h⟩, exact ⟨h, h₂⟩]
+  intro h; simv; [exact ⟨h₁, h⟩, exact ⟨h, h₂⟩]
 | (m+1) r h₁ h₂ := begin
     apply sqrt_aux_is_sqrt_lemma
       (m+1) r n h₁ (2^m * 2^m)
-      (by simp [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
+      (by simv [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
       intro h,
     { have := sqrt_aux_is_sqrt m r h₁ h,
@@ -117,15 +117,15 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
     { rw [pow_succ', mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) h h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
-          by simp [pow_succ, mul_comm, mul_left_comm] }
+          by simv [pow_succ, mul_comm, mul_left_comm] }
   end
 
 private lemma sqrt_is_sqrt (n : ℕ) : is_sqrt n (sqrt n) :=
 begin
-  generalize e : size n = s, cases s with s; simp [e, sqrt],
+  generalize e : size n = s, cases s with s; simv [e, sqrt],
   { rw [size_eq_zero.1 e, is_sqrt], exact dec_trivial },
   { have := sqrt_aux_is_sqrt n (div2 s) 0 (zero_le _),
-    simp [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by
+    simv [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by
     { generalize: div2 s = x,
       change bit0 x with x+x,
       rw [one_shiftl, pow_add] }] at this,
@@ -176,7 +176,7 @@ by rw [sqrt, size_zero, sqrt._match_1]
 theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
 ⟨λ h, nat.eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
   by rw [h]; exact dec_trivial,
- by { rintro rfl, simp }⟩
+ by { rintro rfl, simv }⟩
 
 theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
 ⟨λ e, e.symm ▸ sqrt_is_sqrt n,

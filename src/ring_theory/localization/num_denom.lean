@@ -42,7 +42,7 @@ begin
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
   refine mul_left_cancel₀
     (is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors b_nonzero) _,
-  simp only [subtype.coe_mk, ring_hom.map_mul, algebra.smul_def] at *,
+  simv only [subtype.coe_mk, ring_hom.map_mul, algebra.smul_def] at *,
   erw [←hab, mul_assoc, mk'_spec' _ a' ⟨b', b'_nonzero⟩],
 end
 

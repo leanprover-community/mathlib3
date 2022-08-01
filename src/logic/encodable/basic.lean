@@ -42,7 +42,7 @@ class encodable (α : Type*) :=
 (decode [] : ℕ → option α)
 (encodek : ∀ a, decode (encode a) = some a)
 
-attribute [simp] encodable.encodek
+attribute [simv] encodable.encodek
 
 namespace encodable
 variables {α : Type*} {β : Type*}
@@ -72,7 +72,7 @@ def of_left_injection [encodable α]
   (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : encodable β :=
 ⟨λ b, encode (f b),
  λ n, (decode α n).bind finv,
- λ b, by simp [encodable.encodek, linv]⟩
+ λ b, by simv [encodable.encodek, linv]⟩
 
 /-- If `α` is encodable and `f : β → α` is invertible, then `β` is encodable as well. -/
 def of_left_inverse [encodable α]
@@ -99,7 +99,7 @@ instance _root_.nat.encodable : encodable ℕ :=
 ⟨is_empty_elim, λ n, none, is_empty_elim⟩
 
 instance _root_.punit.encodable : encodable punit :=
-⟨λ_, 0, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simp⟩
+⟨λ_, 0, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simv⟩
 
 @[simp] theorem encode_star : encode punit.star = 0 := rfl
 
@@ -110,7 +110,7 @@ instance _root_.punit.encodable : encodable punit :=
 instance _root_.option.encodable {α : Type*} [h : encodable α] : encodable (option α) :=
 ⟨λ o, option.cases_on o nat.zero (λ a, succ (encode a)),
  λ n, nat.cases_on n (some none) (λ m, (decode α m).map some),
- λ o, by cases o; dsimp; simp [encodek, nat.succ_ne_zero]⟩
+ λ o, by cases o; dsimp; simv [encodek, nat.succ_ne_zero]⟩
 
 @[simp] theorem encode_none [encodable α] : encode (@none α) = 0 := rfl
 @[simp] theorem encode_some [encodable α] (a : α) :
@@ -128,7 +128,7 @@ def decode₂ (α) [encodable α] (n : ℕ) : option α :=
 
 theorem mem_decode₂' [encodable α] {n : ℕ} {a : α} :
   a ∈ decode₂ α n ↔ a ∈ decode α n ∧ encode a = n :=
-by simp [decode₂]; exact
+by simv [decode₂]; exact
 ⟨λ ⟨_, h₁, rfl, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨_, h₁, rfl, h₂⟩⟩
 
 theorem mem_decode₂ [encodable α] {n : ℕ} {a : α} :
@@ -141,7 +141,7 @@ mem_decode₂
 
 @[simp] lemma decode₂_encode [encodable α] (a : α) :
   decode₂ α (encode a) = some a :=
-by { ext, simp [mem_decode₂, eq_comm] }
+by { ext, simv [mem_decode₂, eq_comm] }
 
 theorem decode₂_ne_none_iff [encodable α] {n : ℕ} :
   decode₂ α n ≠ none ↔ n ∈ set.range (encode : α → ℕ) :=
@@ -200,7 +200,7 @@ end
 /-- If `α` and `β` are encodable, then so is their sum. -/
 instance _root_.sum.encodable : encodable (α ⊕ β) :=
 ⟨encode_sum, decode_sum, λ s,
-  by cases s; simp [encode_sum, decode_sum, encodek]; refl⟩
+  by cases s; simv [encode_sum, decode_sum, encodek]; refl⟩
 
 @[simp] theorem encode_inl (a : α) :
   @encode (α ⊕ β) _ (sum.inl a) = bit0 (encode a) := rfl
@@ -228,7 +228,7 @@ begin
   { rw [div2_val, nat.le_div_iff_mul_le],
     exacts [h, dec_trivial] },
   cases exists_eq_succ_of_ne_zero (ne_of_gt this) with m e,
-  simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
+  simv [decode_sum]; cases bodd n; simv [decode_sum]; rw e; refl
 end
 
 noncomputable instance _root_.Prop.encodable : encodable Prop :=
@@ -248,7 +248,7 @@ let (n₁, n₂) := unpair n in
 
 instance _root_.sigma.encodable : encodable (sigma γ) :=
 ⟨encode_sigma, decode_sigma, λ ⟨a, b⟩,
-  by simp [encode_sigma, decode_sigma, unpair_mkpair, encodek]⟩
+  by simv [encode_sigma, decode_sigma, unpair_mkpair, encodek]⟩
 
 @[simp] theorem decode_sigma_val (n : ℕ) : decode (sigma γ) n =
   (decode α n.unpair.1).bind (λ a, (decode (γ a) n.unpair.2).map $ sigma.mk a) :=
@@ -269,7 +269,7 @@ of_equiv _ (equiv.sigma_equiv_prod α β).symm
 @[simp] theorem decode_prod_val (n : ℕ) : decode (α × β) n =
   (decode α n.unpair.1).bind (λ a, (decode β n.unpair.2).map $ prod.mk a) :=
 show (decode (sigma (λ _, β)) n).map (equiv.sigma_equiv_prod α β) = _,
-by simp; cases decode α n.unpair.1; simp;
+by simv; cases decode α n.unpair.1; simv;
    cases decode β n.unpair.2; refl
 
 @[simp] theorem encode_prod_val (a b) : @encode (α × β) _ (a, b) =
@@ -296,7 +296,7 @@ if h : P a then some ⟨a, h⟩ else none
 /-- A decidable subtype of an encodable type is encodable. -/
 instance _root_.subtype.encodable : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
- λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
+ λ ⟨v, h⟩, by simv [encode_subtype, decode_subtype, encodek, h]⟩
 
 lemma subtype.encode_eq (a : subtype P) : encode a = encode a.val :=
 by cases a; refl
@@ -403,7 +403,7 @@ variable {p}
 /-- Constructive choice function for a decidable subtype of an encodable type. -/
 def choose_x (h : ∃ x, p x) : {a : α // p a} :=
 have ∃ n, good p (decode α n), from
-let ⟨w, pw⟩ := h in ⟨encode w, by simp [good, encodek, pw]⟩,
+let ⟨w, pw⟩ := h in ⟨encode w, by simv [good, encodek, pw]⟩,
 match _, nat.find_spec this : ∀ o, good p o → {a // p a} with
 | some a, h := ⟨a, h⟩
 end
@@ -475,7 +475,7 @@ end
 lemma rel_sequence {r : β → β → Prop} {f : α → β} (hf : directed r f) (a : α) :
   r (f a) (f (hf.sequence f (encode a + 1))) :=
 begin
-  simp only [directed.sequence, encodek],
+  simv only [directed.sequence, encodek],
   exact (classical.some_spec (hf _ a)).2
 end
 

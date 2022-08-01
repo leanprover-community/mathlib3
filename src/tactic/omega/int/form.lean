@@ -115,7 +115,7 @@ lemma univ_close_of_valid {p : preform} :
 
 lemma valid_of_unsat_not {p : preform} : (¬*p).unsat → p.valid :=
 begin
-  simp only [preform.sat, preform.unsat, preform.valid, preform.holds],
+  simv only [preform.sat, preform.unsat, preform.valid, preform.holds],
   rw not_exists_not, intro h, assumption
 end
 

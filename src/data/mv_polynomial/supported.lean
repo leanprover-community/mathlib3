@@ -53,12 +53,12 @@ noncomputable def supported_equiv_mv_polynomial (s : set σ) :
   (supported_equiv_mv_polynomial s).symm (C x) = algebra_map R (supported R s) x :=
 begin
   ext1,
-  simp [supported_equiv_mv_polynomial, mv_polynomial.algebra_map_eq],
+  simv [supported_equiv_mv_polynomial, mv_polynomial.algebra_map_eq],
 end
 
 @[simp] lemma supported_equiv_mv_polynomial_symm_X (s : set σ) (i : s) :
   (↑((supported_equiv_mv_polynomial s).symm (X i : mv_polynomial s R)) : mv_polynomial σ R) = X i :=
-by simp [supported_equiv_mv_polynomial]
+by simv [supported_equiv_mv_polynomial]
 
 variables {s t : set σ}
 
@@ -68,7 +68,7 @@ begin
   split,
   { rintros ⟨p, rfl⟩,
     refine trans (finset.coe_subset.2 (vars_rename _ _)) _,
-    simp },
+    simv },
   { intros hs,
     exact exists_rename_eq_of_vars_subset_range p (coe : s → σ) subtype.val_injective (by simpa) }
 end
@@ -84,10 +84,10 @@ variable (s)
 lemma supported_eq_adjoin_X : supported R s = algebra.adjoin R (X '' s) := rfl
 
 @[simp] lemma supported_univ : supported R (set.univ : set σ) = ⊤ :=
-by simp [algebra.eq_top_iff, mem_supported]
+by simv [algebra.eq_top_iff, mem_supported]
 
 @[simp] lemma supported_empty : supported R (∅ : set σ) = ⊥ :=
-by simp [supported_eq_adjoin_X]
+by simv [supported_eq_adjoin_X]
 
 variables {s}
 
@@ -95,7 +95,7 @@ lemma supported_mono (st : s ⊆ t) : supported R s ≤ supported R t :=
 algebra.adjoin_mono (set.image_subset _ st)
 
 @[simp] lemma X_mem_supported [nontrivial R] {i : σ} : (X i) ∈ supported R s ↔ i ∈ s :=
-by simp [mem_supported]
+by simv [mem_supported]
 
 @[simp] lemma supported_le_supported_iff [nontrivial R] :
   supported R s ≤ supported R t ↔ s ⊆ t :=
@@ -118,7 +118,7 @@ begin
   cases hF with F' hF',
   use λ z, aeval z F',
   intro x,
-  simp only [←hF', aeval_rename],
+  simv only [←hF', aeval_rename],
 end
 
 end comm_semiring

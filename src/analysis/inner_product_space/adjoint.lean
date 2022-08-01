@@ -64,7 +64,7 @@ variables {E' : Type*} [inner_product_space ℝ E']
 `bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
 lemma is_self_adjoint_iff_bilin_form (T : E' →ₗ[ℝ] E') :
   is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+by simv [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
 
 end real
 
@@ -131,7 +131,7 @@ lemma is_self_adjoint.clm_apply [complete_space E] {T : E →ₗ[𝕜] E}
 begin
   suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
   { obtain ⟨r, hr⟩ := this,
-    simp [hr, T.re_apply_inner_self_apply] },
+    simv [hr, T.re_apply_inner_self_apply] },
   rw ← eq_conj_iff_real,
   exact hT.conj_inner_sym x x
 end
@@ -159,10 +159,10 @@ begin
   { intros h x y,
     nth_rewrite 1 ← inner_conj_sym,
     nth_rewrite 1 inner_map_polarization,
-    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
-    simp only [← star_ring_end_apply],
+    simv only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
+    simv only [← star_ring_end_apply],
     rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
-    simp only [complex.conj_I],
+    simv only [complex.conj_I],
     rw inner_map_polarization',
     norm_num,
     ring },
@@ -191,7 +191,7 @@ def adjoint_aux : (E →L[𝕜] F) →L⋆[𝕜] (F →L[𝕜] E) :=
   adjoint_aux A x = ((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) → E) ((to_sesq_form A) x) := rfl
 
 lemma adjoint_aux_inner_left (A : E →L[𝕜] F) (x : E) (y : F) : ⟪adjoint_aux A y, x⟫ = ⟪y, A x⟫ :=
-by { simp only [adjoint_aux_apply, to_dual_symm_apply, to_sesq_form_apply_coe, coe_comp',
+by { simv only [adjoint_aux_apply, to_dual_symm_apply, to_sesq_form_apply_coe, coe_comp',
                 innerSL_apply_coe]}
 
 lemma adjoint_aux_inner_right (A : E →L[𝕜] F) (x : E) (y : F) : ⟪x, adjoint_aux A y⟫ = ⟪A x, y⟫ :=
@@ -245,7 +245,7 @@ in reverse order. -/
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),
-  simp only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
+  simv only [adjoint_inner_right, continuous_linear_map.coe_comp', function.comp_app],
 end
 
 lemma apply_norm_sq_eq_inner_adjoint_left (A : E →L[𝕜] E) (x : E) : ∥A x∥^2 = re ⟪(A† * A) x, x⟫ :=
@@ -271,7 +271,7 @@ lemma eq_adjoint_iff (A : E →L[𝕜] F) (B : F →L[𝕜] E) :
 begin
   refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
   ext x,
-  exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
+  exact ext_inner_right 𝕜 (λ y, by simv only [adjoint_inner_left, h x y])
 end
 
 @[simp] lemma is_self_adjoint_iff_adjoint_eq (A : E →L[𝕜] E) :
@@ -363,7 +363,7 @@ variables [complete_space E'] [complete_space F']
 lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
   linear_map.is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
   (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A (A†) :=
-λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left, to_linear_map_eq_coe,
+λ x y, by simv only [sesq_form_of_inner_apply_apply, adjoint_inner_left, to_linear_map_eq_coe,
   coe_coe]
 
 end real
@@ -416,7 +416,7 @@ in reverse order. -/
 begin
   ext v,
   refine ext_inner_left 𝕜 (λ w, _),
-  simp only [adjoint_inner_right, linear_map.coe_comp, function.comp_app],
+  simv only [adjoint_inner_right, linear_map.coe_comp, function.comp_app],
 end
 
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
@@ -426,7 +426,7 @@ lemma eq_adjoint_iff (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
 begin
   refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
   ext x,
-  exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
+  exact ext_inner_right 𝕜 (λ y, by simv only [adjoint_inner_left, h x y])
 end
 
 /-- The adjoint is unique: a map `A` is the adjoint of `B` iff it satisfies `⟪A x, y⟫ = ⟪x, B y⟫`
@@ -437,14 +437,14 @@ lemma eq_adjoint_iff_basis {ι₁ : Type*} {ι₂ : Type*} (b₁ : basis ι₁ �
 begin
   refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
   refine basis.ext b₁ (λ i₁, _),
-  exact ext_inner_right_basis b₂ (λ i₂, by simp only [adjoint_inner_left, h i₁ i₂]),
+  exact ext_inner_right_basis b₂ (λ i₂, by simv only [adjoint_inner_left, h i₁ i₂]),
 end
 
 lemma eq_adjoint_iff_basis_left {ι : Type*} (b : basis ι 𝕜 E) (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
   A = B.adjoint ↔ (∀ i y, ⟪A (b i), y⟫ = ⟪b i, B y⟫) :=
 begin
   refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, basis.ext b (λ i, _)⟩,
-  exact ext_inner_right 𝕜 (λ y, by simp only [h i, adjoint_inner_left]),
+  exact ext_inner_right 𝕜 (λ y, by simv only [h i, adjoint_inner_left]),
 end
 
 lemma eq_adjoint_iff_basis_right {ι : Type*} (b : basis ι 𝕜 F) (A : E →ₗ[𝕜] F) (B : F →ₗ[𝕜] E) :
@@ -452,7 +452,7 @@ lemma eq_adjoint_iff_basis_right {ι : Type*} (b : basis ι 𝕜 F) (A : E →�
 begin
   refine ⟨λ h x y, by rw [h, adjoint_inner_left], λ h, _⟩,
   ext x,
-  refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
+  refine ext_inner_right_basis b (λ i, by simv only [h i, adjoint_inner_left]),
 end
 
 lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
@@ -477,22 +477,22 @@ variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
 lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
   is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
   (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A A.adjoint :=
-λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left]
+λ x y, by simv only [sesq_form_of_inner_apply_apply, adjoint_inner_left]
 
 end real
 
 /-- The Gram operator T†T is self-adjoint. -/
 lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
-λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
+λ x y, by simv only [linear_map.mul_apply, linear_map.adjoint_inner_left,
   linear_map.adjoint_inner_right]
 
 /-- The Gram operator T†T is a positive operator. -/
 lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
-  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
+  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simv only [linear_map.mul_apply,
   linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
 
 @[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
-  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
+  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simv only [linear_map.mul_apply,
     linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 
 end linear_map
@@ -510,7 +510,7 @@ begin
   rw @linear_map.eq_adjoint_iff _ (euclidean_space 𝕜 m) (euclidean_space 𝕜 n),
   intros x y,
   convert dot_product_assoc (conj ∘ (id x : m → 𝕜)) y A using 1,
-  simp [dot_product, mul_vec, ring_hom.map_sum,  ← star_ring_end_apply, mul_comm],
+  simv [dot_product, mul_vec, ring_hom.map_sum,  ← star_ring_end_apply, mul_comm],
 end
 
 end matrix

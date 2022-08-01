@@ -111,7 +111,7 @@ lemma commutes_symm' {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zm
 begin
   apply (zmod_equiv_trunc p n).injective,
   rw ← commutes',
-  simp
+  simv
 end
 
 /--
@@ -186,9 +186,9 @@ begin
   rw ← padic_int.to_zmod_pow_eq_iff_ext,
   intro n,
   rw [← ring_hom.comp_assoc, to_padic_int, padic_int.lift_spec],
-  simp only [from_padic_int, to_zmod_pow, ring_hom.comp_id],
+  simv only [from_padic_int, to_zmod_pow, ring_hom.comp_id],
   rw [ring_hom.comp_assoc, truncate_comp_lift, ← ring_hom.comp_assoc],
-  simp only [ring_equiv.symm_to_ring_hom_comp_to_ring_hom, ring_hom.id_comp]
+  simv only [ring_equiv.symm_to_ring_hom_comp_to_ring_hom, ring_hom.id_comp]
 end
 
 lemma to_padic_int_comp_from_padic_int_ext (x) :
@@ -201,7 +201,7 @@ begin
   apply witt_vector.hom_ext,
   intro n,
   rw [from_padic_int, ← ring_hom.comp_assoc, truncate_comp_lift, ring_hom.comp_assoc],
-  simp only [to_padic_int, to_zmod_pow, ring_hom.comp_id, padic_int.lift_spec, ring_hom.id_comp,
+  simv only [to_padic_int, to_zmod_pow, ring_hom.comp_id, padic_int.lift_spec, ring_hom.id_comp,
     ← ring_hom.comp_assoc, ring_equiv.to_ring_hom_comp_symm_to_ring_hom]
 end
 

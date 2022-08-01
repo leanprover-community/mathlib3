@@ -24,7 +24,7 @@ lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := 
 ```
 
 The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
-`simp` is added first, the generated lemma will also have the `simp` attribute.
+`simv` is added first, the generated lemma will also have the `simv` attribute.
 
 ## The `reassoc_axiom` command
 
@@ -40,10 +40,10 @@ reassoc_axiom some_class.bar
 ```
 
 Here too, the `reassoc` attribute can be used instead. It works well when combined with
-`simp`:
+`simv`:
 
 ```lean
-attribute [simp, reassoc] some_class.bar
+attribute [simv, reassoc] some_class.bar
 ```
 -/
 
@@ -95,7 +95,7 @@ do d ← get_decl n,
    let c := @expr.const tt n ls,
    (t'',pr') ← prove_reassoc c,
    add_decl $ declaration.thm n' d.univ_params t'' (pure pr'),
-   copy_attribute `simp n n'
+   copy_attribute `simv n n'
 
 setup_tactic_parser
 
@@ -114,7 +114,7 @@ lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := 
 ```
 
 The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
-`simp` is added first, the generated lemma will also have the `simp` attribute.
+`simv` is added first, the generated lemma will also have the `simv` attribute.
 -/
 @[user_attribute]
 meta def reassoc_attr : user_attribute unit (option name) :=
@@ -151,10 +151,10 @@ lemma some_class.bar_assoc {Z : C} (g : Y ⟶ Z) :
 ```
 
 Here too, the `reassoc` attribute can be used instead. It works well when combined with
-`simp`:
+`simv`:
 
 ```lean
-attribute [simp, reassoc] some_class.bar
+attribute [simv, reassoc] some_class.bar
 ```
 -/
 @[user_command]

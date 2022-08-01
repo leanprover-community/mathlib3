@@ -54,7 +54,7 @@ lemma mem_doset_of_not_disjoint {H K : subgroup G} {a b : G}
   (h : ¬ disjoint (doset a H K) (doset b H K)) : b ∈ doset a H K :=
 begin
   rw set.not_disjoint_iff at h,
-  simp only [mem_doset] at *,
+  simv only [mem_doset] at *,
   obtain ⟨x, ⟨l, hl, r, hr, hrx⟩, y, hy, ⟨r', hr', rfl⟩⟩ := h,
   refine ⟨y⁻¹ * l, H.mul_mem (H.inv_mem hy) (hl), r * r'⁻¹, K.mul_mem hr (K.inv_mem hr'), _⟩,
   rwa [mul_assoc, mul_assoc, eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_assoc, eq_mul_inv_iff_mul_eq],
@@ -150,41 +150,41 @@ end
 lemma union_quot_to_doset (H K : subgroup G) : (⋃ q, quot_to_doset H K q) = set.univ :=
 begin
   ext x,
-  simp only [set.mem_Union, quot_to_doset, mem_doset, set_like.mem_coe, exists_prop,
+  simv only [set.mem_Union, quot_to_doset, mem_doset, set_like.mem_coe, exists_prop,
     set.mem_univ, iff_true],
   use mk H K x,
   obtain ⟨h, k, h3, h4, h5⟩ := mk_out'_eq_mul H K x,
   refine ⟨h⁻¹, H.inv_mem h3, k⁻¹, K.inv_mem h4, _⟩,
-  simp only [h5, subgroup.coe_mk, ←mul_assoc, one_mul, mul_left_inv, mul_inv_cancel_right],
+  simv only [h5, subgroup.coe_mk, ←mul_assoc, one_mul, mul_left_inv, mul_inv_cancel_right],
 end
 
 lemma doset_union_right_coset (H K : subgroup G) (a : G) :
   (⋃ (k : K), right_coset ↑H (a * k)) = doset a H K :=
 begin
   ext x,
-  simp only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, mem_doset,
+  simv only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, mem_doset,
   subgroup.mem_carrier, set_like.mem_coe],
   split,
   {rintro ⟨y, h_h⟩,
     refine ⟨x * (y⁻¹ * a⁻¹), h_h, y, y.2, _⟩,
-    simp only [← mul_assoc, subgroup.coe_mk, inv_mul_cancel_right]},
+    simv only [← mul_assoc, subgroup.coe_mk, inv_mul_cancel_right]},
   {rintros ⟨x, hx, y, hy, hxy⟩,
     refine ⟨⟨y,hy⟩,_⟩,
-    simp only [hxy, ←mul_assoc, hx, mul_inv_cancel_right, subgroup.coe_mk]},
+    simv only [hxy, ←mul_assoc, hx, mul_inv_cancel_right, subgroup.coe_mk]},
 end
 
 lemma doset_union_left_coset (H K : subgroup G) (a : G) :
   (⋃ (h : H), left_coset (h * a : G) K) = doset a H K :=
 begin
   ext x,
-  simp only [mem_left_coset_iff, mul_inv_rev, set.mem_Union, mem_doset],
+  simv only [mem_left_coset_iff, mul_inv_rev, set.mem_Union, mem_doset],
   split,
   { rintro ⟨y, h_h⟩,
     refine ⟨y, y.2, a⁻¹ * y⁻¹ * x, h_h, _⟩,
-    simp only [←mul_assoc, one_mul, mul_right_inv, mul_inv_cancel_right]},
+    simv only [←mul_assoc, one_mul, mul_right_inv, mul_inv_cancel_right]},
   { rintros ⟨x, hx, y, hy, hxy⟩,
     refine ⟨⟨x, hx⟩, _⟩,
-    simp only [hxy, ←mul_assoc, hy, one_mul, mul_left_inv, subgroup.coe_mk, inv_mul_cancel_right]},
+    simv only [hxy, ←mul_assoc, hy, one_mul, mul_left_inv, subgroup.coe_mk, inv_mul_cancel_right]},
   end
 
 lemma left_bot_eq_left_quot (H : subgroup G) :

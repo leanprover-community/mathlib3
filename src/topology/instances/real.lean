@@ -52,17 +52,17 @@ instance : second_countable_topology ℝ := second_countable_of_proper
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
-  (by simp [is_open_Ioo] {contextual:=tt})
+  (by simv [is_open_Ioo] {contextual:=tt})
   (assume a v hav hv,
     let ⟨l, u, ⟨hl, hu⟩, h⟩ := mem_nhds_iff_exists_Ioo_subset.mp (is_open.mem_nhds hv hav),
         ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
         ⟨p, hap, hpu⟩ := exists_rat_btwn hu in
     ⟨Ioo q p,
-      by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
+      by { simv only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
 
 @[simp] lemma real.cocompact_eq : cocompact ℝ = at_bot ⊔ at_top :=
-by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℝ), real.dist_eq, sub_zero,
+by simv only [← comap_dist_right_at_top_eq_cocompact (0 : ℝ), real.dist_eq, sub_zero,
   comap_abs_at_top]
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
@@ -74,7 +74,7 @@ _ -/
 
 lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, |y - x| < ε :=
-by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
+by simv [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ |x|) :
   uniform_continuous (λp:s, p.1⁻¹) :=
@@ -140,7 +140,7 @@ begin
   refine ⟨c.lim, λ s h, _⟩,
   rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
   have := c.equiv_lim ε ε0,
-  simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
+  simv only [mem_map, mem_at_top_sets, mem_set_of_eq],
   refine this.imp (λ N hN n hn, hε (hN n hn))
 end
 

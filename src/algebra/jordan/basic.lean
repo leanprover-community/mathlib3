@@ -153,7 +153,7 @@ begin
   suffices : 2 • ⁅L a, L (a * b)⁆ + 2 • ⁅L b, L (b * a)⁆ + ⁅L b, L (a * a)⁆ + ⁅L a, L (b * b)⁆ = 0,
   { rwa [← sub_eq_zero, ← sub_sub, sub_eq_add_neg, sub_eq_add_neg, lie_skew, lie_skew, nsmul_add] },
   convert (commute_lmul_lmul_sq (a + b)).lie_eq,
-  simp only [add_mul, mul_add, map_add, lie_add, add_lie, is_comm_jordan.mul_comm b a,
+  simv only [add_mul, mul_add, map_add, lie_add, add_lie, is_comm_jordan.mul_comm b a,
     (commute_lmul_lmul_sq a).lie_eq, (commute_lmul_lmul_sq b).lie_eq],
   abel,
 end
@@ -176,7 +176,7 @@ begin
   ... = ⁅L a + L b + L c, L (a * a) + L (b * b) + L (c * c) + 2•L (a * b) + 2•L (c * a)
     + 2•L (b * c) ⁆ :
     by {rw [two_smul, two_smul, two_smul],
-      simp only [lie_add, add_lie, commute_lmul_lmul_sq, zero_add, add_zero], abel}
+      simv only [lie_add, add_lie, commute_lmul_lmul_sq, zero_add, add_zero], abel}
   ... = ⁅L a, L (a * a)⁆ + ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + ⁅L a, 2•L (a * b)⁆
         + ⁅L a, 2•L(c * a)⁆ + ⁅L a, 2•L (b * c)⁆
         + (⁅L b, L (a * a)⁆ + ⁅L b, L (b * b)⁆ + ⁅L b, L (c * c)⁆ + ⁅L b, 2•L (a * b)⁆
@@ -199,7 +199,7 @@ begin
           + 2•⁅L b, L (b * c)⁆)
         + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + 2•⁅L c, L (a * b)⁆ + 2•⁅L c, L (c * a)⁆
           + 2•⁅L c, L (b * c)⁆) :
-    by simp only [lie_nsmul]
+    by simv only [lie_nsmul]
   ... = (⁅L a, L (b * b)⁆+ ⁅L b, L (a * a)⁆ + 2•(⁅L a, L (a * b)⁆ + ⁅L b, L (a * b)⁆))
         + (⁅L a, L (c * c)⁆ + ⁅L c, L (a * a)⁆ + 2•(⁅L a, L (c * a)⁆ + ⁅L c, L (c * a)⁆))
         + (⁅L b, L (c * c)⁆ + ⁅L c, L (b * b)⁆ + 2•(⁅L b, L (b * c)⁆ + ⁅L c, L (b * c)⁆))

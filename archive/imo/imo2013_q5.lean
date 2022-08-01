@@ -47,7 +47,7 @@ begin
     calc (x - y) * (n : ℝ)
             = (n : ℝ) * (x - y) : mul_comm _ _
         ... = (∑ (i : ℕ) in finset.range n, (1 : ℝ)) * (x - y) :
-                                  by simp only [mul_one, finset.sum_const, nsmul_eq_mul,
+                                  by simv only [mul_one, finset.sum_const, nsmul_eq_mul,
                                     finset.card_range]
         ... ≤ (∑ (i : ℕ) in finset.range n, x ^ i * y ^ (n - 1 - i)) * (x-y) :
                                   (mul_le_mul_right hxmy).mpr (finset.sum_le_sum hterm)
@@ -139,7 +139,7 @@ begin
   induction n with pn hpn,
   { exfalso, exact nat.lt_asymm hn hn },
   cases pn,
-  { simp only [pow_one] },
+  { simv only [pow_one] },
   have hpn' := hpn pn.succ_pos,
   rw [pow_succ' x (pn + 1), pow_succ' (f x) (pn + 1)],
   have hxp : 0 < x := zero_lt_one.trans hx,
@@ -208,7 +208,7 @@ begin
     cases n,
     { exact (lt_irrefl 0 hn).elim },
     induction n with pn hpn,
-    { simp only [one_mul, nat.cast_one] },
+    { simv only [one_mul, nat.cast_one] },
     calc    ↑(pn + 2) * f x
           = (↑pn + 1 + 1) * f x            : by norm_cast
       ... = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
@@ -253,7 +253,7 @@ begin
     { cases n,
       { exfalso, exact nat.lt_asymm hn hn },
       cases n,
-      { simp only [one_mul, nat.cast_one] },
+      { simv only [one_mul, nat.cast_one] },
       have hfneq : f (n.succ.succ) = n.succ.succ,
       { have := fixed_point_of_gt_1
                   (nat.one_lt_cast.mpr (nat.succ_lt_succ n.succ_pos)) H1 H2 H4 H5 ha1 hae,

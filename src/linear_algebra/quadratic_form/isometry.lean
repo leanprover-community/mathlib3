@@ -97,7 +97,7 @@ def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M
 { map_app' :=
   begin
     intro,
-    simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.to_fun_eq_coe,
+    simv only [comp_apply, linear_equiv.coe_coe, linear_equiv.to_fun_eq_coe,
                linear_equiv.apply_symm_apply, f.apply_symm_apply],
   end,
   .. f.symm }

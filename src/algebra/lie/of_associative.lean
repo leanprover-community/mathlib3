@@ -58,11 +58,11 @@ namespace lie_ring
 /-- An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator. -/
 @[priority 100]
 instance of_associative_ring : lie_ring A :=
-{ add_lie      := by simp only [ring.lie_def, right_distrib, left_distrib,
+{ add_lie      := by simv only [ring.lie_def, right_distrib, left_distrib,
     sub_eq_add_neg, add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
-  lie_add      := by simp only [ring.lie_def, right_distrib, left_distrib,
+  lie_add      := by simv only [ring.lie_def, right_distrib, left_distrib,
     sub_eq_add_neg, add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
-  lie_self     := by simp only [ring.lie_def, forall_const, sub_self],
+  lie_self     := by simv only [ring.lie_def, forall_const, sub_self],
   leibniz_lie  := λ x y z, by { repeat { rw ring.lie_def, }, noncomm_ring, } }
 
 lemma of_associative_ring_bracket (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
@@ -91,7 +91,7 @@ def lie_ring_module.of_associative_module : lie_ring_module A M :=
   add_lie     := add_smul,
   lie_add     := smul_add,
   leibniz_lie :=
-    by simp [lie_ring.of_associative_ring_bracket, sub_smul, mul_smul, sub_add_cancel], }
+    by simv [lie_ring.of_associative_ring_bracket, sub_smul, mul_smul, sub_add_cancel], }
 
 local attribute [instance] lie_ring_module.of_associative_module
 
@@ -143,7 +143,7 @@ variables (f : A →ₐ[R] B) (g : B →ₐ[R] C)
 functorial. -/
 def to_lie_hom : A →ₗ⁅R⁆ B :=
  { map_lie' := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
-     by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
+     by simv only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
 instance : has_coe (A →ₐ[R] B) (A →ₗ⁅R⁆ B) := ⟨to_lie_hom⟩
@@ -193,7 +193,7 @@ def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphis
 
 @[simp] lemma lie_module.to_endomorphism_module_End :
   lie_module.to_endomorphism R (module.End R M) M = lie_hom.id :=
-by { ext g m, simp [lie_eq_smul], }
+by { ext g m, simv [lie_eq_smul], }
 
 lemma lie_subalgebra.to_endomorphism_eq (K : lie_subalgebra R L) {x : K} :
   lie_module.to_endomorphism R K M x = lie_module.to_endomorphism R L M x :=
@@ -227,7 +227,7 @@ by simpa using N.lie_mem hm
 @[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
   (h := N.to_endomorphism_comp_subtype_mem x) :
   ((to_endomorphism R L M x).restrict h : (N : submodule R M) →ₗ[R] N) = to_endomorphism R L N x :=
-by { ext, simp [linear_map.restrict_apply], }
+by { ext, simv [linear_map.restrict_apply], }
 
 end lie_submodule
 
@@ -235,13 +235,13 @@ open lie_algebra
 
 lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
   (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
-by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
+by { ext a b, simv [lie_ring.of_associative_ring_bracket], }
 
 lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :
   (ad R L ↑x).comp (K.incl : K →ₗ[R] L) = (K.incl : K →ₗ[R] L).comp (ad R K x) :=
 begin
   ext y,
-  simp only [ad_apply, lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, linear_map.coe_comp,
+  simv only [ad_apply, lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, linear_map.coe_comp,
     lie_subalgebra.coe_bracket, function.comp_app],
 end
 
@@ -267,7 +267,7 @@ variables (e : M₁ ≃ₗ[R] M₂)
 /-- A linear equivalence of two modules induces a Lie algebra equivalence of their endomorphisms. -/
 def lie_conj : module.End R M₁ ≃ₗ⁅R⁆ module.End R M₂ :=
 { map_lie' := λ f g, show e.conj ⁅f, g⁆ = ⁅e.conj f, e.conj g⁆,
-    by simp only [lie_ring.of_associative_ring_bracket, linear_map.mul_eq_comp, e.conj_comp,
+    by simv only [lie_ring.of_associative_ring_bracket, linear_map.mul_eq_comp, e.conj_comp,
                   linear_equiv.map_sub],
   ..e.conj }
 
@@ -286,7 +286,7 @@ variables (e : A₁ ≃ₐ[R] A₂)
 /-- An equivalence of associative algebras is an equivalence of associated Lie algebras. -/
 def to_lie_equiv : A₁ ≃ₗ⁅R⁆ A₂ :=
 { to_fun   := e.to_fun,
-  map_lie' := λ x y, by simp [lie_ring.of_associative_ring_bracket],
+  map_lie' := λ x y, by simv [lie_ring.of_associative_ring_bracket],
   ..e.to_linear_equiv }
 
 @[simp] lemma to_lie_equiv_apply (x : A₁) : e.to_lie_equiv x = e x := rfl

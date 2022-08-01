@@ -57,11 +57,11 @@ begin
   { intro h, contradiction },
   { intros p a coeff_eq_zero a_ne_zero ih p_ne_zero hp,
     refine ⟨0, _, coeff_zero_mem_comap_of_root_mem hr hp⟩,
-    simp [coeff_eq_zero, a_ne_zero] },
+    simv [coeff_eq_zero, a_ne_zero] },
   { intros p p_nonzero ih mul_nonzero hp,
     rw [eval₂_mul, eval₂_X] at hp,
     obtain ⟨i, hi, mem⟩ := ih p_nonzero (r_non_zero_divisor hp),
-    refine ⟨i + 1, _, _⟩; simp [hi, mem] }
+    refine ⟨i + 1, _, _⟩; simv [hi, mem] }
 end
 
 /-- Let `P` be an ideal in `R[x]`.  The map
@@ -196,7 +196,7 @@ begin
   have rbar_ne_zero : quotient.mk I r ≠ 0 := mt (quotient.mk_eq_zero I).mp hrI,
   have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem _ hrJ,
   have quotient_f : ∀ x ∈ I.comap f, (quotient.mk I).comp f x = 0,
-  { simp [quotient.eq_zero_iff_mem] },
+  { simv [quotient.eq_zero_iff_mem] },
   have rbar_root : (p.map (quotient.mk (I.comap f))).eval₂
     (quotient.lift (I.comap f) _ quotient_f)
     (quotient.mk I r) = 0,
@@ -207,7 +207,7 @@ begin
   rw coeff_map at ne_zero mem,
   refine ⟨i, (mem_quotient_iff_mem hIJ).mp _, mt _ ne_zero⟩,
   { simpa using mem },
-  simp [quotient.eq_zero_iff_mem],
+  simv [quotient.eq_zero_iff_mem],
 end
 
 lemma comap_lt_comap_of_root_mem_sdiff [I.is_prime] (hIJ : I ≤ J)
@@ -377,7 +377,7 @@ begin
       _
       (is_integral_quotient_of_is_integral H)
       (map (quotient.mk (I.comap (algebra_map R S))) P)
-      (map_is_prime_of_surjective quotient.mk_surjective (by simp [hIP]))
+      (map_is_prime_of_surjective quotient.mk_surjective (by simv [hIP]))
       (le_trans
         (le_of_eq ((ring_hom.injective_iff_ker_eq_bot _).1 algebra_map_quotient_injective))
         bot_le),

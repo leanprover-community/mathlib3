@@ -299,7 +299,7 @@ def to_filter_Union (l : integration_params) (I : box ι) (π₀ : prepartition 
 lemma r_cond_of_bRiemann_eq_ff {ι} (l : integration_params) (hl : l.bRiemann = ff)
   {r : (ι → ℝ) → Ioi (0 : ℝ)} :
   l.r_cond r :=
-by simp [r_cond, hl]
+by simv [r_cond, hl]
 
 lemma to_filter_inf_Union_eq (l : integration_params) (I : box ι) (π₀ : prepartition I) :
   l.to_filter I ⊓ 𝓟 {π | π.Union = π₀.Union} = l.to_filter_Union I π₀ :=
@@ -339,7 +339,7 @@ protected lemma mem_base_set.union_compl_to_subordinate (hπ₁ : l.mem_base_set
 ⟨hπ₁.1.disj_union ((π₂.is_subordinate_to_subordinate r₂).mono hle) _,
   λ h, ((hπ₁.2 h).disj_union (π₂.is_Henstock_to_subordinate _) _),
   λ h, (distortion_union_compl_to_subordinate _ _ _ _).trans_le (max_le (hπ₁.3 h) (hc h)),
-  λ _, ⟨⊥, by simp⟩⟩
+  λ _, ⟨⊥, by simv⟩⟩
 
 protected lemma mem_base_set.filter (hπ : l.mem_base_set I c r π) (p : box ι → Prop) :
   l.mem_base_set I c r (π.filter p) :=
@@ -400,7 +400,7 @@ supr_mono $ λ c, inf_le_inf_right _ $ to_filter_distortion_mono _ h le_rfl
 
 lemma to_filter_Union_congr (I : box ι) (l : integration_params) {π₁ π₂ : prepartition I}
   (h : π₁.Union = π₂.Union) : l.to_filter_Union I π₁ = l.to_filter_Union I π₂ :=
-by simp only [to_filter_Union, to_filter_distortion_Union, h]
+by simv only [to_filter_Union, to_filter_distortion_Union, h]
 
 lemma has_basis_to_filter_distortion (l : integration_params) (I : box ι) (c : ℝ≥0) :
   (l.to_filter_distortion I c).has_basis l.r_cond (λ r, {π | l.mem_base_set I c r π}) :=
@@ -437,7 +437,7 @@ lemma tendsto_embed_box_to_filter_Union_top (l : integration_params) (h : I ≤ 
   tendsto (tagged_prepartition.embed_box I J h) (l.to_filter_Union I ⊤)
     (l.to_filter_Union J (prepartition.single J I h)) :=
 begin
-  simp only [to_filter_Union, tendsto_supr], intro c,
+  simv only [to_filter_Union, tendsto_supr], intro c,
   set π₀ := (prepartition.single J I h),
   refine le_supr_of_le (max c π₀.compl.distortion) _,
   refine ((l.has_basis_to_filter_distortion_Union I c ⊤).tendsto_iff
@@ -465,7 +465,7 @@ lemma exists_mem_base_set_is_partition (l : integration_params) (I : box ι)
   ∃ π, l.mem_base_set I c r π ∧ π.is_partition :=
 begin
   rw ← prepartition.distortion_top at hc,
-  have hc' : (⊤ : prepartition I).compl.distortion ≤ c, by simp,
+  have hc' : (⊤ : prepartition I).compl.distortion ≤ c, by simv,
   simpa [is_partition_iff_Union_eq] using l.exists_mem_base_set_le_Union_eq ⊤ hc hc' r
 end
 

@@ -20,7 +20,7 @@ begin
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
     apply_congr,
     skip,
-    simp [h, H], }
+    simv [h, H], }
 end
 
 -- Again, with some `guard` statements.
@@ -34,10 +34,10 @@ begin
     guard_target S,
     skip,
     guard_target f x,
-    simp [h, H] }
+    simv [h, H] }
 end
 
--- Verify we can `rw` as well as `simp`.
+-- Verify we can `rw` as well as `simv`.
 example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
   finset.sum S f = finset.sum S g :=
 by conv_lhs { apply_congr, skip, rw h x H, }
@@ -45,7 +45,7 @@ by conv_lhs { apply_congr, skip, rw h x H, }
 -- Check that the appropriate `@[congr]` lemma is automatically selected.
 example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
   finset.prod S f = finset.prod S g :=
-by conv_lhs { apply_congr, skip, simp [h, H], }
+by conv_lhs { apply_congr, skip, simv [h, H], }
 
 example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
   finset.fold (+) 0 f S = finset.fold (+) 0 g S :=
@@ -53,7 +53,7 @@ begin
   -- This time, the automatically selected congruence lemma is "too good"!
   -- `finset.sum_congr` matches, and so the `conv` block actually
   -- rewrites the left hand side into a `finset.sum`.
-  conv_lhs { apply_congr, skip, simp [h, H], },
+  conv_lhs { apply_congr, skip, simv [h, H], },
   -- So we need a `refl` to identify that we're done.
   refl,
 end
@@ -62,14 +62,14 @@ end
 example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
   finset.fold (+) 0 f S = finset.fold (+) 0 g S :=
 begin
-  conv_lhs { apply_congr finset.fold_congr, simp [h, H], },
+  conv_lhs { apply_congr finset.fold_congr, simv [h, H], },
 end
 
 example (f : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = 0) :
   finset.sum S f = 0 :=
 begin
-  conv_lhs { apply_congr, skip, simp [h, H], },
-  simp,
+  conv_lhs { apply_congr, skip, simv [h, H], },
+  simv,
 end
 
 -- An example using `finsupp.sum`
@@ -82,10 +82,10 @@ example {k G : Type} [semiring k] [group G]
 begin
   -- In fact, `congr` works fine here, because our rewrite works globally.
   conv_lhs { apply_congr, skip, dsimp, rw t, },
-  rw finset.sum_ite_eq g.support, -- it's a pity we can't just use `simp` here.
+  rw finset.sum_ite_eq g.support, -- it's a pity we can't just use `simv` here.
   split_ifs,
   { refl, },
-  { simp [finsupp.not_mem_support_iff.1 h], },
+  { simv [finsupp.not_mem_support_iff.1 h], },
 end
 
 example : true :=

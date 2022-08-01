@@ -201,7 +201,7 @@ lemma topological_ring.of_add_group_of_nhds_zero [topological_add_group R]
   (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0) : topological_ring R :=
 begin
   refine {..‹topological_add_group R›, ..},
-  have hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0), by simp,
+  have hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0), by simv,
   have hadd : tendsto (uncurry ((+) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) (𝓝 0),
   { rw ← nhds_prod_eq,
     convert continuous_add.tendsto ((0 : R), (0 : R)),
@@ -215,8 +215,8 @@ begin
               (λ (p : R × R), (p.1*y₀ + x₀*p.2, p.1*p.2)))
             ((𝓝 0) ×ᶠ (𝓝 0)) (map (λ (x : R), x + x₀ * y₀) $ 𝓝 0),
   { convert this using 1,
-    { ext, simp only [comp_app, mul_add, add_mul], abel },
-    { simp only [add_comm] } },
+    { ext, simv only [comp_app, mul_add, add_mul], abel },
+    { simv only [add_comm] } },
   refine tendsto_map.comp (hadd.comp (tendsto.prod_mk _ hmul)),
   exact hadd.comp (((hmul_right y₀).comp tendsto_fst).prod_mk ((hmul_left  x₀).comp tendsto_snd))
 end

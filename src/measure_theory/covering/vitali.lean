@@ -74,7 +74,7 @@ begin
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
   { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
-    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index, mem_sUnion,
+    simv only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index, mem_sUnion,
                 set.mem_set_of_eq],
     refine ⟨λ u hu, (UT hu).1, (pairwise_disjoint_sUnion hU.directed_on).2 (λ u hu, (UT hu).2.1),
       λ a hat b u uU hbu hab, _⟩,
@@ -136,7 +136,7 @@ begin
     -- moreover, `δ c` is smaller than the maximum `m` of `δ` over `A`, which is `≤ δ a' / τ`
     -- thanks to the good choice of `a'`. This is the desired inequality.
     { push_neg at H,
-      simp only [← not_disjoint_iff_nonempty_inter, not_not] at H,
+      simv only [← not_disjoint_iff_nonempty_inter, not_not] at H,
       rcases mem_insert_iff.1 ba'u with rfl|H',
       { refine ⟨b, mem_insert _ _, hcb, _⟩,
         calc δ c ≤ m : le_cSup bddA (mem_image_of_mem _ ⟨ct, H⟩)
@@ -155,7 +155,7 @@ theorem exists_disjoint_subfamily_covering_enlargment_closed_ball [metric_space 
     ∀ a ∈ t, ∃ x r, closed_ball x r ∈ u ∧ a ⊆ closed_ball x (5 * r) :=
 begin
   rcases eq_empty_or_nonempty t with rfl|tnonempty,
-  { exact ⟨∅, subset.refl _, pairwise_disjoint_empty, by simp⟩ },
+  { exact ⟨∅, subset.refl _, pairwise_disjoint_empty, by simv⟩ },
   haveI : inhabited α,
   { choose s hst using tnonempty,
     choose x r hxr using ht s hst,
@@ -163,9 +163,9 @@ begin
   -- Exclude the trivial case where `t` is reduced to the empty set.
   rcases eq_or_ne t {∅} with rfl|t_ne_empty,
   { refine ⟨{∅}, subset.refl _, _⟩,
-    simp only [true_and, closed_ball_eq_empty, mem_singleton_iff, and_true, empty_subset, forall_eq,
+    simv only [true_and, closed_ball_eq_empty, mem_singleton_iff, and_true, empty_subset, forall_eq,
       pairwise_disjoint_singleton, exists_const],
-    exact ⟨-1, by simp only [right.neg_neg_iff, zero_lt_one]⟩ },
+    exact ⟨-1, by simv only [right.neg_neg_iff, zero_lt_one]⟩ },
   -- The real proof starts now. Since the center or the radius of a ball is not uniquely defined
   -- in a general metric space, we just choose one for definiteness.
   choose! x r hxr using ht,
@@ -183,7 +183,7 @@ begin
   { refine exists_disjoint_subfamily_covering_enlargment t' r 2 one_lt_two
       (λ a ha, ha.2) R (λ a ha, (hxr a ha.1).2) (λ a ha, _),
     rw [(hxr a ha.1).1],
-    simp only [ha.2, nonempty_closed_ball] },
+    simv only [ha.2, nonempty_closed_ball] },
   -- this subfamily is nonempty, as we have excluded the situation `t = {∅}`.
   have u'_nonempty : u'.nonempty,
   { have : ∃ a ∈ t, a ≠ ∅,
@@ -257,7 +257,7 @@ begin
   -/
   rcases eq_empty_or_nonempty s with rfl|nonempty,
   { refine ⟨∅, empty_subset _, countable_empty, pairwise_disjoint_empty,
-      by simp only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
+      by simv only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
   haveI : inhabited α,
   { choose x hx using nonempty,
     exact ⟨x⟩ },
@@ -267,7 +267,7 @@ begin
     obtain ⟨R, Rpos, μR⟩ : ∃ (R : ℝ) (hR : 0 < R), μ (closed_ball x R) < ∞ :=
       (μ.finite_at_nhds x).exists_mem_basis nhds_basis_closed_ball,
     refine ⟨min 1 (R/20), _, min_le_left _ _, _⟩,
-    { simp only [true_and, lt_min_iff, zero_lt_one],
+    { simv only [true_and, lt_min_iff, zero_lt_one],
       linarith },
     { apply lt_of_le_of_lt (measure_mono _) μR,
       apply closed_ball_subset_closed_ball,
@@ -326,7 +326,7 @@ begin
       have vnonempty : v.nonempty,
       { by_contra,
         rw [← ne_empty_iff_nonempty, not_not] at h,
-        simp only [h, real.Sup_empty, image_empty] at hR0,
+        simv only [h, real.Sup_empty, image_empty] at hR0,
         exact lt_irrefl _ (R0pos.trans_le (le_of_eq hR0)) },
       obtain ⟨a, hav, R0a⟩ : ∃ a ∈ v, R0/2 < r (y a),
       { obtain ⟨r', r'mem, hr'⟩ : ∃ r' ∈ ((λ a, r (y a)) '' v), R0 / 2 < r' :=
@@ -359,7 +359,7 @@ begin
   -- add up to an arbitrarily small number, say `ε / C`.
   obtain ⟨w, hw⟩ : ∃ (w : finset ↥v), ∑' (a : {a // a ∉ w}), μ a < ε / C,
   { haveI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
-    have : 0 < ε / C, by simp only [ennreal.div_pos_iff, εpos.ne', ennreal.coe_ne_top, ne.def,
+    have : 0 < ε / C, by simv only [ennreal.div_pos_iff, εpos.ne', ennreal.coe_ne_top, ne.def,
                                     not_false_iff, and_self],
     exact ((tendsto_order.1 (ennreal.tendsto_tsum_compl_at_top_zero I.ne)).2 _ this).exists },
   choose! y hy using h,
@@ -372,7 +372,7 @@ begin
     have k_closed : is_closed k :=
       is_closed_bUnion w.finite_to_set (λ i hi, h't _ (ut (vu i.2))),
     have z_notmem_k : z ∉ k,
-    { simp only [not_exists, exists_prop, mem_Union, mem_sep_eq, forall_exists_index,
+    { simv only [not_exists, exists_prop, mem_Union, mem_sep_eq, forall_exists_index,
         set_coe.exists, not_and, exists_and_distrib_right, subtype.coe_mk],
       assume b hbv h'b h'z,
       have : z ∈ (s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ (⋃ (a : set α) (H : a ∈ u), a) :=
@@ -413,7 +413,7 @@ begin
       have B : dist e (y b) ≤ diam b,
       { rcases (ut' bu).2 with ⟨c, hc⟩,
         apply dist_le_diam_of_mem (bounded_closed_ball.mono hc) eb (hy b (ut bu)).1 },
-      simp only [mem_closed_ball],
+      simv only [mem_closed_ball],
       linarith [dist_triangle z e (y b)] },
     suffices H : closed_ball (y (b'' : set α)) (3 * diam (b'' : set α))
       ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y (a : set α)) (3 * diam (a : set α)), from H zb,
@@ -446,7 +446,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
     obtain ⟨r, ⟨rpos, rε⟩, μr⟩ : ∃ r ∈ Ioc (0 : ℝ) ε,
       μ (closed_ball x (6 * r)) ≤ C * μ (closed_ball x r) := h x ε εpos,
     refine ⟨closed_ball x r, ⟨_, is_closed_ball, _, _⟩, closed_ball_subset_closed_ball rε⟩,
-    { simp only [rpos.le, mem_closed_ball, dist_self] },
+    { simv only [rpos.le, mem_closed_ball, dist_self] },
     { exact (nonempty_ball.2 rpos).mono (ball_subset_interior_closed_ball) },
     { apply le_trans (measure_mono (closed_ball_subset_closed_ball _)) μr,
       have : diam (closed_ball x r) ≤ 2 * r := diam_closed_ball rpos.le,
@@ -455,7 +455,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
   covering := begin
     assume s f fsubset ffine,
     rcases eq_empty_or_nonempty s with rfl|H,
-    { exact ⟨∅, λ _, ∅, by simp, by simp⟩ },
+    { exact ⟨∅, λ _, ∅, by simv, by simv⟩ },
     haveI : inhabited α, { choose x hx using H, exact ⟨x⟩ },
     let t := ⋃ (x ∈ s), f x,
     have A₁ : ∀ x ∈ s, ∀ (ε : ℝ), 0 < ε → (∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε),
@@ -494,7 +494,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a au).1 },
     { rw [inj_on_x.pairwise_disjoint_image],
       assume a ha b hb hab,
-      simp only [function.on_fun, inj_on_x.left_inv_on_inv_fun_on ha,
+      simv only [function.on_fun, inj_on_x.left_inv_on_inv_fun_on ha,
                  inj_on_x.left_inv_on_inv_fun_on hb, (∘)],
       exact u_disj ha hb hab },
     { assume y hy,

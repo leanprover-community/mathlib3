@@ -78,7 +78,7 @@ variables (g' : alternating_map R M' N' ι)
 variables (v : ι → M) (v' : ι → M')
 open function
 
-/-! Basic coercion simp lemmas, largely copied from `ring_hom` and `multilinear_map` -/
+/-! Basic coercion simv lemmas, largely copied from `ring_hom` and `multilinear_map` -/
 section coercions
 
 instance : has_coe_to_fun (alternating_map R M N ι) (λ _, (ι → M) → N) := ⟨λ x, x.to_fun⟩
@@ -99,7 +99,7 @@ congr_arg (λ x : ι → M, f x) h
 theorem coe_injective : injective (coe_fn : alternating_map R M N ι → ((ι → M) → N)) :=
 λ f g h, by { cases f, cases g, cases h, refl }
 
-@[simp, norm_cast] theorem coe_inj {f g : alternating_map R M N ι} :
+@[simv, norm_cast] theorem coe_inj {f g : alternating_map R M N ι} :
   (f : (ι → M) → N) = g ↔ f = g :=
 coe_injective.eq_iff
 
@@ -112,7 +112,7 @@ theorem ext_iff {f g : alternating_map R M N ι} : f = g ↔ ∀ x, f x = g x :=
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
 ⟨λ x, x.to_multilinear_map⟩
 
-@[simp, norm_cast] lemma coe_multilinear_map : ⇑(f : multilinear_map R (λ i : ι, M) N) = f := rfl
+@[simv, norm_cast] lemma coe_multilinear_map : ⇑(f : multilinear_map R (λ i : ι, M) N) = f := rfl
 
 lemma coe_multilinear_map_injective :
   function.injective (coe : alternating_map R M N ι → multilinear_map R (λ i : ι, M) N) :=
@@ -181,7 +181,7 @@ variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N
 
 instance : has_smul S (alternating_map R M N ι) :=
 ⟨λ c f,
-  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  { map_eq_zero_of_eq' := λ v i j h hij, by simv [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
 
 @[simp] lemma smul_apply (c : S) (m : ι → M) :
@@ -202,7 +202,7 @@ end has_smul
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
   { map_eq_zero_of_eq' :=
-      λ v i j h hij, by simp [a.map_eq_zero_of_eq v h hij, b.map_eq_zero_of_eq v h hij],
+      λ v i j h hij, by simv [a.map_eq_zero_of_eq v h hij, b.map_eq_zero_of_eq v h hij],
     ..(a + b : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma add_apply : (f + f') v = f v + f' v := rfl
@@ -210,7 +210,7 @@ instance : has_add (alternating_map R M N ι) :=
 @[norm_cast] lemma coe_add : (↑(f  + f') : multilinear_map R (λ i : ι, M) N) = f + f' := rfl
 
 instance : has_zero (alternating_map R M N ι) :=
-⟨{map_eq_zero_of_eq' := λ v i j h hij, by simp,
+⟨{map_eq_zero_of_eq' := λ v i j h hij, by simv,
   ..(0 : multilinear_map R (λ i : ι, M) N)}⟩
 
 @[simp] lemma zero_apply : (0 : alternating_map R M N ι) v = 0 := rfl
@@ -225,7 +225,7 @@ coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, coe_fn_smul _ _)
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
-  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  { map_eq_zero_of_eq' := λ v i j h hij, by simv [f.map_eq_zero_of_eq v h hij],
     ..(-(f : multilinear_map R (λ i : ι, M) N')) }⟩
 
 @[simp] lemma neg_apply (m : ι → M) : (-g) m = -(g m) := rfl
@@ -236,7 +236,7 @@ instance : has_neg (alternating_map R M N' ι) :=
 instance : has_sub (alternating_map R M N' ι) :=
 ⟨λ f g,
   { map_eq_zero_of_eq' :=
-      λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij, g.map_eq_zero_of_eq v h hij],
+      λ v i j h hij, by simv [f.map_eq_zero_of_eq v h hij, g.map_eq_zero_of_eq v h hij],
     ..(f - g : multilinear_map R (λ i : ι, M) N') }⟩
 
 @[simp] lemma sub_apply (m : ι → M) : (g - g₂) m = g m - g₂ m := rfl
@@ -315,10 +315,10 @@ variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
 /-- Composing a alternating map with a linear map on the left gives again an alternating map. -/
 def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ alternating_map R M N₂ ι :=
 { to_fun := λ f,
-  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+  { map_eq_zero_of_eq' := λ v i j h hij, by simv [f.map_eq_zero_of_eq v h hij],
               ..(g.comp_multilinear_map (f : multilinear_map R (λ _ : ι, M) N)) },
-  map_zero' := by { ext, simp },
-  map_add' := λ a b, by { ext, simp } }
+  map_zero' := by { ext, simv },
+  map_add' := λ a b, by { ext, simv } }
 
 @[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
   ⇑(g.comp_alternating_map f) = g ∘ f := rfl
@@ -367,11 +367,11 @@ rfl
 
 @[simp] lemma zero_comp_linear_map (g : M₂ →ₗ[R] M) :
   (0 : alternating_map R M N ι).comp_linear_map g = 0 :=
-by { ext, simp only [comp_linear_map_apply, zero_apply] }
+by { ext, simv only [comp_linear_map_apply, zero_apply] }
 
 @[simp] lemma add_comp_linear_map (f₁ f₂ : alternating_map R M N ι) (g : M₂ →ₗ[R] M) :
   (f₁ + f₂).comp_linear_map g = f₁.comp_linear_map g + f₂.comp_linear_map g :=
-by { ext, simp only [comp_linear_map_apply, add_apply] }
+by { ext, simv only [comp_linear_map_apply, add_apply] }
 
 @[simp] lemma comp_linear_map_zero [nonempty ι] (f : alternating_map R M N ι) :
   f.comp_linear_map (0 : M₂ →ₗ[R] M) = 0 :=
@@ -469,7 +469,7 @@ lemma map_swap_add {i j : ι} (hij : i ≠ j) :
 begin
   rw equiv.comp_swap_eq_update,
   convert f.map_update_update v hij (v i + v j),
-  simp [f.map_update_self _ hij,
+  simv [f.map_update_self _ hij,
         f.map_update_self _ hij.symm,
         function.update_comm hij (v i + v j) (v _) v,
         function.update_comm hij.symm (v i) (v i) v],
@@ -486,14 +486,14 @@ lemma map_perm [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
   g (v ∘ σ) = σ.sign • g v :=
 begin
   apply equiv.perm.swap_induction_on' σ,
-  { simp },
+  { simv },
   { intros s x y hxy hI,
     simpa [g.map_swap (v ∘ s) hxy, equiv.perm.sign_swap hxy] using hI, }
 end
 
 lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = σ.sign • g (v ∘ σ) :=
-by { rw [g.map_perm, smul_smul], simp }
+by { rw [g.map_perm, smul_smul], simv }
 
 section dom_dom_congr
 
@@ -529,8 +529,8 @@ def dom_dom_congr_equiv (σ : ι ≃ ι') :
   alternating_map R M N ι ≃+ alternating_map R M N ι' :=
 { to_fun := dom_dom_congr σ,
   inv_fun := dom_dom_congr σ.symm,
-  left_inv := λ f, by { ext, simp [function.comp] },
-  right_inv := λ m, by { ext, simp [function.comp] },
+  left_inv := λ f, by { ext, simv [function.comp] },
+  right_inv := λ m, by { ext, simv [function.comp] },
   map_add' := dom_dom_congr_add σ }
 
 /-- The results of applying `dom_dom_congr` to two maps are equal if and only if those maps are. -/
@@ -608,7 +608,7 @@ begin
   rw sum_apply,
   exact finset.sum_involution
     (λ σ _, swap i j * σ)
-    (λ σ _, by simp [perm.sign_swap i_ne_j, apply_swap_eq_self hv])
+    (λ σ _, by simv [perm.sign_swap i_ne_j, apply_swap_eq_self hv])
     (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
     (λ σ _, finset.mem_univ _)
     (λ σ _, swap_mul_involutive i j σ)
@@ -623,13 +623,13 @@ def alternatization : multilinear_map R (λ i : ι, M) N' →+ alternating_map R
     .. (∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ)},
   map_add' := λ a b, begin
     ext,
-    simp only [
+    simv only [
       finset.sum_add_distrib, smul_add, add_apply, dom_dom_congr_apply, alternating_map.add_apply,
       alternating_map.coe_mk, smul_apply, sum_apply],
   end,
   map_zero' := begin
     ext,
-    simp only [
+    simv only [
       finset.sum_const_zero, smul_zero, zero_apply, dom_dom_congr_apply, alternating_map.zero_apply,
       alternating_map.coe_mk, smul_apply, sum_apply],
   end }
@@ -644,7 +644,7 @@ coe_injective rfl
 
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), σ.sign • m.dom_dom_congr σ v :=
-by simp only [alternatization_def, smul_apply, sum_apply]
+by simv only [alternatization_def, smul_apply, sum_apply]
 
 end multilinear_map
 
@@ -671,7 +671,7 @@ variables {N'₂ : Type*} [add_comm_group N'₂] [module R N'₂] [fintype ι]
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
   (f : multilinear_map R (λ _ : ι, M) N') :
   (g.comp_multilinear_map f).alternatization = g.comp_alternating_map (f.alternatization) :=
-by { ext, simp [multilinear_map.alternatization_def] }
+by { ext, simv [multilinear_map.alternatization_def] }
 
 end linear_map
 
@@ -720,14 +720,14 @@ quotient.lift_on' σ
     rw quotient_group.left_rel_apply at H,
     obtain ⟨⟨sl, sr⟩, h⟩ := H,
     ext v,
-    simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
+    simv only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
       coe_multilinear_map, multilinear_map.smul_apply],
     replace h := inv_mul_eq_iff_eq_mul.mp (h.symm),
     have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
-      by simp,
+      by simv,
     rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
       ←tensor_product.tmul_smul, tensor_product.smul_tmul'],
-    simp only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
+    simv only [sum.map_inr, perm.sum_congr_hom_apply, perm.sum_congr_apply, sum.map_inl,
               function.comp_app, perm.coe_mul],
     rw [←a.map_congr_perm (λ i, v (σ₁ _)), ←b.map_congr_perm (λ i, v (σ₁ _))],
   end)
@@ -750,7 +750,7 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', mul_action.quotient.smul_mk,
     dom_coprod.summand],
   rw [smul_eq_mul, perm.sign_mul, perm.sign_swap hij],
-  simp only [one_mul, neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
+  simv only [one_mul, neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
     units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
   convert add_right_neg _;
@@ -844,14 +844,14 @@ tensor_product.lift $ by
     (λ m n₁ n₂, _)
     (λ c m n, _);
   { ext,
-    simp only [dom_coprod_apply, add_apply, smul_apply, ←finset.sum_add_distrib,
+    simv only [dom_coprod_apply, add_apply, smul_apply, ←finset.sum_add_distrib,
       finset.smul_sum, multilinear_map.sum_apply, dom_coprod.summand],
     congr,
     ext σ,
     apply σ.induction_on' (λ σ, _),
-    simp only [quotient.lift_on'_mk', coe_add, coe_smul, multilinear_map.smul_apply,
+    simv only [quotient.lift_on'_mk', coe_add, coe_smul, multilinear_map.smul_apply,
       ←multilinear_map.dom_coprod'_apply],
-    simp only [tensor_product.add_tmul, ←tensor_product.smul_tmul',
+    simv only [tensor_product.add_tmul, ←tensor_product.smul_tmul',
       tensor_product.tmul_add, tensor_product.tmul_smul, linear_map.map_add, linear_map.map_smul],
     rw ←smul_add <|> rw smul_comm,
     congr }
@@ -860,7 +860,7 @@ tensor_product.lift $ by
 lemma dom_coprod'_apply
   (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
   dom_coprod' (a ⊗ₜ[R'] b) = dom_coprod a b :=
-by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+by simv only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
 
 end alternating_map
 
@@ -905,8 +905,8 @@ begin
     (finset.eq_univ_iff_forall.mpr $ λ a, let ⟨a', ha'⟩ := mul_left_surjective σ a in
       finset.mem_image.mpr ⟨a', finset.mem_univ _, ha'⟩).symm,
   rw [this, finset.image_filter],
-  simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
-  simp only [monoid_hom.mem_range], -- needs to be separate from the above `simp only`
+  simv only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
+  simv only [monoid_hom.mem_range], -- needs to be separate from the above `simv only`
   rw [finset.filter_congr_decidable,
     finset.univ_filter_exists (perm.sum_congr_hom ιa ιb),
     finset.sum_image (λ x _ y _ (h : _ = _), mul_right_injective _ h),
@@ -1025,7 +1025,7 @@ def curry_left_linear_map {n : ℕ} :
 /-- Currying with the same element twice gives the zero map. -/
 @[simp] lemma curry_left_same {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ.succ)) (m : M'') :
   (f.curry_left m).curry_left m = 0 :=
-ext $ λ x, f.map_eq_zero_of_eq _ (by simp) fin.zero_ne_one
+ext $ λ x, f.map_eq_zero_of_eq _ (by simv) fin.zero_ne_one
 
 @[simp] lemma curry_left_comp_alternating_map {n : ℕ} (g : N'' →ₗ[R'] N₂'')
   (f : alternating_map R' M'' N'' (fin n.succ)) (m : M'') :
@@ -1038,7 +1038,7 @@ rfl
 ext $ λ v, congr_arg f $ funext $ begin
   refine fin.cases _ _,
   { refl },
-  { simp }
+  { simv }
 end
 
 /-- The space of constant maps is equivalent to the space of maps that are alternating with respect

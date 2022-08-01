@@ -66,7 +66,7 @@ begin
   refine (is_coprime.prod_right $ λ i hir, Hs aux1 (finset.mem_insert_of_mem hir)
     $ by { rintro rfl, exact har hir }).mul_dvd
     (Hs1 a aux1) (ih (Hs.mono _) $ λ i hi, Hs1 i $ finset.mem_insert_of_mem hi),
-  simp only [finset.coe_insert, set.subset_insert],
+  simv only [finset.coe_insert, set.subset_insert],
 end
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
@@ -81,7 +81,7 @@ lemma exists_sum_eq_one_iff_pairwise_coprime [decidable_eq I] (h : t.nonempty) :
   (∃ μ : I → R, ∑ i in t, μ i * ∏ j in t \ {i}, s j = 1) ↔ pairwise (is_coprime on λ i : t, s i) :=
 begin
   refine h.cons_induction _ _; clear' t h,
-  { simp only [pairwise, sum_singleton, finset.sdiff_self, prod_empty, mul_one,
+  { simv only [pairwise, sum_singleton, finset.sdiff_self, prod_empty, mul_one,
       exists_apply_eq_apply, ne.def, true_iff],
     rintro a ⟨i, hi⟩ ⟨j, hj⟩ h,
     rw finset.mem_singleton at hi hj,
@@ -126,7 +126,7 @@ lemma exists_sum_eq_one_iff_pairwise_coprime' [fintype I] [nonempty I] [decidabl
   (∃ μ : I → R, ∑ (i : I), μ i * ∏ j in {i}ᶜ, s j = 1) ↔ pairwise (is_coprime on s) :=
 begin
   convert exists_sum_eq_one_iff_pairwise_coprime finset.univ_nonempty using 1,
-  simp only [function.on_fun, pairwise_subtype_iff_pairwise_finset', coe_univ, set.pairwise_univ],
+  simv only [function.on_fun, pairwise_subtype_iff_pairwise_finset', coe_univ, set.pairwise_univ],
   assumption
 end
 

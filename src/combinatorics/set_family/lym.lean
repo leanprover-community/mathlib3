@@ -94,9 +94,9 @@ begin
     rw [tsub_add_eq_add_tsub hr', add_tsub_add_eq_tsub_right] at h𝒜,
     apply le_of_mul_le_mul_right _ (pos_iff_ne_zero.2 hr),
     convert nat.mul_le_mul_right ((fintype.card α).choose r) h𝒜 using 1,
-    { simp [mul_assoc, nat.choose_succ_right_eq],
+    { simv [mul_assoc, nat.choose_succ_right_eq],
       exact or.inl (mul_comm _ _) },
-    { simp only [mul_assoc, choose_succ_right_eq, mul_eq_mul_left_iff],
+    { simv only [mul_assoc, choose_succ_right_eq, mul_eq_mul_left_iff],
       exact or.inl (mul_comm _ _) } },
   { exact nat.choose_pos hr' },
   { exact nat.choose_pos (r.pred_le.trans hr') }
@@ -171,7 +171,7 @@ lemma le_card_falling_div_choose [fintype α] (hk : k ≤ fintype.card α)
       ≤ (falling (fintype.card α - k) 𝒜).card / (fintype.card α).choose (fintype.card α - k) :=
 begin
   induction k with k ih,
-  { simp only [tsub_zero, cast_one, cast_le, sum_singleton, div_one, choose_self, range_one],
+  { simv only [tsub_zero, cast_one, cast_le, sum_singleton, div_one, choose_self, range_one],
     exact card_le_of_subset (slice_subset_falling _ _) },
   rw succ_eq_add_one at *,
   rw [sum_range_succ, ←slice_union_shadow_falling_succ,

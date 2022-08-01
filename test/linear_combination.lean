@@ -157,7 +157,7 @@ by linear_combination 1/6*ha + 1/3*hab with {normalization_tactic := `[ring_nf]}
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by linear_combination h1 with {normalization_tactic := `[simp]}
+by linear_combination h1 with {normalization_tactic := `[simv]}
 
 
 /-! ### Cases that have linear_combination skip normalization -/
@@ -174,7 +174,7 @@ example (x y : ℤ) (h1 : x = -3) (h2 : y = 10) :
   2*x = -6 :=
 begin
   linear_combination 2*h1 with {normalize := ff},
-  simp,
+  simv,
   norm_cast
 end
 
@@ -193,11 +193,11 @@ example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = 
 begin
   linear_combination with {normalize := ff},
   guard_target' z + w - (w + z) - (0 - 0) = 0,
-  simp [add_comm]
+  simv [add_comm]
 end
 
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
-by linear_combination with {normalization_tactic := `[simp [add_comm]]}
+by linear_combination with {normalization_tactic := `[simv [add_comm]]}
 
 /-! ### Cases where the goal is not closed -/
 

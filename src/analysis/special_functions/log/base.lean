@@ -36,9 +36,9 @@ be `logb b |x|` for `x < 0`, and `0` for `x = 0`.-/
 
 lemma log_div_log : log x / log b = logb b x := rfl
 
-@[simp] lemma logb_zero : logb b 0 = 0 := by simp [logb]
+@[simp] lemma logb_zero : logb b 0 = 0 := by simv [logb]
 
-@[simp] lemma logb_one : logb b 1 = 0 := by simp [logb]
+@[simp] lemma logb_one : logb b 1 = 0 := by simv [logb]
 
 @[simp] lemma logb_abs (x : ℝ) : logb b (|x|) = logb b x := by rw [logb, logb, log_abs]
 
@@ -51,7 +51,7 @@ by simp_rw [logb, log_mul hx hy, add_div]
 lemma logb_div (hx : x ≠ 0) (hy : y ≠ 0) : logb b (x / y) = logb b x - logb b y :=
 by simp_rw [logb, log_div hx hy, sub_div]
 
-@[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simp [logb, neg_div]
+@[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simv [logb, neg_div]
 
 section b_pos_and_ne_one
 
@@ -63,7 +63,7 @@ private lemma log_b_ne_zero : log b ≠ 0 :=
 begin
   have b_ne_zero : b ≠ 0, linarith,
   have b_ne_minus_one : b ≠ -1, linarith,
-  simp [b_ne_one, b_ne_zero, b_ne_minus_one],
+  simv [b_ne_one, b_ne_zero, b_ne_minus_one],
 end
 
 @[simp] lemma logb_rpow :
@@ -76,9 +76,9 @@ end
 lemma rpow_logb_eq_abs (hx : x ≠ 0) : b ^ (logb b x) = |x| :=
 begin
   apply log_inj_on_pos,
-  simp only [set.mem_Ioi],
+  simv only [set.mem_Ioi],
   apply rpow_pos_of_pos b_pos,
-  simp only [abs_pos, mem_Ioi, ne.def, hx, not_false_iff],
+  simv only [abs_pos, mem_Ioi, ne.def, hx, not_false_iff],
   rw [log_rpow b_pos, logb, log_abs],
   field_simp [log_b_ne_zero b_pos b_ne_one],
 end
@@ -103,7 +103,7 @@ begin
   intros x x_in_univ,
   use -b ^ x,
   split,
-  { simp only [right.neg_neg_iff, set.mem_Iio], apply rpow_pos_of_pos b_pos, },
+  { simv only [right.neg_neg_iff, set.mem_Iio], apply rpow_pos_of_pos b_pos, },
   { rw [logb_neg_eq_logb, logb_rpow b_pos b_ne_one], },
 end
 
@@ -165,7 +165,7 @@ by rw [← not_lt, logb_pos_iff hb hx, not_lt]
 lemma logb_nonpos_iff' (hx : 0 ≤ x) : logb b x ≤ 0 ↔ x ≤ 1 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { simp [le_refl, zero_le_one] },
+  { simv [le_refl, zero_le_one] },
   exact logb_nonpos_iff hb hx,
 end
 
@@ -283,7 +283,7 @@ begin
   intro e,
   use 1 ⊔ b ^ e,
   intro a,
-  simp only [and_imp, sup_le_iff],
+  simv only [and_imp, sup_le_iff],
   intro ha,
   rw logb_le_iff_le_rpow_of_base_lt_one b_pos b_lt_one,
   tauto,
@@ -334,9 +334,9 @@ lemma logb_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s,
 begin
   classical,
   induction s using finset.induction_on with a s ha ih,
-  { simp },
-  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
-  simp [ha, ih hf.2, logb_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+  { simv },
+  simv only [finset.mem_insert, forall_eq_or_imp] at hf,
+  simv [ha, ih hf.2, logb_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
 end
 
 end real

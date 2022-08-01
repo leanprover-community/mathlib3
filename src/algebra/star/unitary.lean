@@ -26,11 +26,11 @@ In a *-monoid, `unitary R` is the submonoid consisting of all the elements `U` o
 -/
 def unitary (R : Type*) [monoid R] [star_semigroup R] : submonoid R :=
 { carrier := {U | star U * U = 1 ∧ U * star U = 1},
-  one_mem' := by simp only [mul_one, and_self, set.mem_set_of_eq, star_one],
+  one_mem' := by simv only [mul_one, and_self, set.mem_set_of_eq, star_one],
   mul_mem' := λ U B ⟨hA₁, hA₂⟩ ⟨hB₁, hB₂⟩,
   begin
     refine ⟨_, _⟩,
-    { calc star (U * B) * (U * B) = star B * star U * U * B     : by simp only [mul_assoc, star_mul]
+    { calc star (U * B) * (U * B) = star B * star U * U * B     : by simv only [mul_assoc, star_mul]
                             ...   = star B * (star U * U) * B   : by rw [←mul_assoc]
                             ...   = 1                           : by rw [hA₁, mul_one, hB₁] },
     { calc U * B * star (U * B) = U * B * (star B * star U)     : by rw [star_mul]
@@ -57,7 +57,7 @@ lemma star_mem {U : R} (hU : U ∈ unitary R) : star U ∈ unitary R :=
 
 instance : has_star (unitary R) := ⟨λ U, ⟨star U, star_mem U.prop⟩⟩
 
-@[simp, norm_cast] lemma coe_star {U : unitary R} : ↑(star U) = (star U : R) := rfl
+@[simv, norm_cast] lemma coe_star {U : unitary R} : ↑(star U) = (star U : R) := rfl
 
 lemma coe_star_mul_self (U : unitary R) : (star U : R) * U = 1 := star_mul_self_of_mem U.prop
 lemma coe_mul_star_self (U : unitary R) :  (U : R) * star U = 1 := mul_star_self_of_mem U.prop
@@ -71,10 +71,10 @@ instance : group (unitary R) :=
   ..submonoid.to_monoid _ }
 
 instance : has_involutive_star (unitary R) :=
-⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
+⟨λ _, by { ext, simv only [coe_star, star_star] }⟩
 
 instance : star_semigroup (unitary R) :=
-⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩
+⟨λ _ _, by { ext, simv only [coe_star, submonoid.coe_mul, star_mul] }⟩
 
 instance : inhabited (unitary R) := ⟨1⟩
 
@@ -116,13 +116,13 @@ variables [group_with_zero R] [star_semigroup R]
 eq_inv_of_mul_eq_one_right $ coe_mul_star_self _
 
 @[norm_cast] lemma coe_div (U₁ U₂ : unitary R) : ↑(U₁ / U₂) = (U₁ / U₂ : R) :=
-by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
+by simv only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
 
 @[norm_cast] lemma coe_zpow (U : unitary R) (z : ℤ) : ↑(U ^ z) = (U ^ z : R) :=
 begin
   induction z,
-  { simp [submonoid_class.coe_pow], },
-  { simp [coe_inv] },
+  { simv [submonoid_class.coe_pow], },
+  { simv [coe_inv] },
 end
 
 end group_with_zero

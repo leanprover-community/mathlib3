@@ -55,19 +55,19 @@ end
 @[to_additive]
 lemma coe_supr_of_directed {S : ι → subsemigroup M} (hS : directed (≤) S) :
   ((⨆ i, S i : subsemigroup M) : set M) = ⋃ i, ↑(S i) :=
-set.ext $ λ x, by simp [mem_supr_of_directed hS]
+set.ext $ λ x, by simv [mem_supr_of_directed hS]
 
 @[to_additive]
 lemma mem_Sup_of_directed_on {S : set (subsemigroup M)}
   (hS : directed_on (≤) S) {x : M} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
-by simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
+by simv only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 
 @[to_additive]
 lemma coe_Sup_of_directed_on {S : set (subsemigroup M)}
   (hS : directed_on (≤) S) :
   (↑(Sup S) : set M) = ⋃ s ∈ S, ↑s :=
-set.ext $ λ x, by simp [mem_Sup_of_directed_on hS]
+set.ext $ λ x, by simv [mem_Sup_of_directed_on hS]
 
 @[to_additive]
 lemma mem_sup_left {S T : subsemigroup M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=

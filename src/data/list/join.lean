@@ -16,35 +16,35 @@ variables {α β : Type*}
 
 namespace list
 
-attribute [simp] join
+attribute [simv] join
 
 @[simp] lemma join_nil : [([] : list α)].join = [] := rfl
 
 @[simp] lemma join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []       := iff_of_true rfl (forall_mem_nil _)
-| (l :: L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
+| (l :: L) := by simv only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
 
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
-by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+by induction L₁; [refl, simv only [*, join, cons_append, append_assoc]]
 
 lemma join_concat (L : list (list α)) (l : list α) : join (L.concat l) = join L ++ l :=
-by simp
+by simv
 
 @[simp] lemma join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
   ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
 | []              := rfl
-| ([] :: L)       := by simp [@join_filter_empty_eq_ff L]
-| ((a :: l) :: L) := by simp [@join_filter_empty_eq_ff L]
+| ([] :: L)       := by simv [@join_filter_empty_eq_ff L]
+| ((a :: l) :: L) := by simv [@join_filter_empty_eq_ff L]
 
 @[simp] lemma join_filter_ne_nil [decidable_pred (λ l : list α, l ≠ [])] {L : list (list α)} :
   join (L.filter (λ l, l ≠ [])) = L.join :=
-by simp [join_filter_empty_eq_ff, ← empty_iff_eq_nil]
+by simv [join_filter_empty_eq_ff, ← empty_iff_eq_nil]
 
 lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
-by { induction l, simp, simp [l_ih] }
+by { induction l, simv, simv [l_ih] }
 
 @[simp] lemma length_join (L : list (list α)) : length (join L) = sum (map length L) :=
-by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
+by induction L; [refl, simv only [*, join, map, sum_cons, length_append]]
 
 @[simp] lemma length_bind (l : list α) (f : α → list β) :
   length (list.bind l f) = sum (map (length ∘ f) l) :=
@@ -52,16 +52,16 @@ by rw [list.bind, length_join, map_map]
 
 @[simp] lemma bind_eq_nil {l : list α} {f : α → list β} :
   list.bind l f = [] ↔ ∀ x ∈ l, f x = [] :=
-join_eq_nil.trans $ by simp only [mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
+join_eq_nil.trans $ by simv only [mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
 
 /-- In a join, taking the first elements up to an index which is the sum of the lengths of the
 first `i` sublists, is the same as taking the join of the first `i` sublists. -/
 lemma take_sum_join (L : list (list α)) (i : ℕ) :
   L.join.take ((L.map length).take i).sum = (L.take i).join :=
 begin
-  induction L generalizing i, { simp },
-  cases i, { simp },
-  simp [take_append, L_ih]
+  induction L generalizing i, { simv },
+  cases i, { simv },
+  simv [take_append, L_ih]
 end
 
 /-- In a join, dropping all the elements up to an index which is the sum of the lengths of the
@@ -69,9 +69,9 @@ first `i` sublists, is the same as taking the join after dropping the first `i` 
 lemma drop_sum_join (L : list (list α)) (i : ℕ) :
   L.join.drop ((L.map length).take i).sum = (L.drop i).join :=
 begin
-  induction L generalizing i, { simp },
-  cases i, { simp },
-  simp [drop_append, L_ih],
+  induction L generalizing i, { simv },
+  cases i, { simv },
+  simv [drop_append, L_ih],
 end
 
 /-- Taking only the first `i+1` elements in a list, and then dropping the first `i` ones, one is
@@ -80,12 +80,12 @@ lemma drop_take_succ_eq_cons_nth_le (L : list α) {i : ℕ} (hi : i < L.length) 
   (L.take (i+1)).drop i = [nth_le L i hi] :=
 begin
   induction L generalizing i,
-  { simp only [length] at hi, exact (nat.not_succ_le_zero i hi).elim },
-  cases i, { simp },
+  { simv only [length] at hi, exact (nat.not_succ_le_zero i hi).elim },
+  cases i, { simv },
   have : i < L_tl.length,
-  { simp at hi,
+  { simv at hi,
     exact nat.lt_of_succ_lt_succ hi },
-  simp [L_ih this],
+  simv [L_ih this],
   refl
 end
 
@@ -95,15 +95,15 @@ original sublist of index `i` if `A` is the sum of the lenghts of sublists of in
 lemma drop_take_succ_join_eq_nth_le (L : list (list α)) {i : ℕ} (hi : i < L.length) :
   (L.join.take ((L.map length).take (i+1)).sum).drop ((L.map length).take i).sum = nth_le L i hi :=
 begin
-  have : (L.map length).take i = ((L.take (i+1)).map length).take i, by simp [map_take, take_take],
-  simp [take_sum_join, this, drop_sum_join, drop_take_succ_eq_cons_nth_le _ hi]
+  have : (L.map length).take i = ((L.take (i+1)).map length).take i, by simv [map_take, take_take],
+  simv [take_sum_join, this, drop_sum_join, drop_take_succ_eq_cons_nth_le _ hi]
 end
 
 /-- Auxiliary lemma to control elements in a join. -/
 lemma sum_take_map_length_lt1 (L : list (list α)) {i j : ℕ}
   (hi : i < L.length) (hj : j < (nth_le L i hi).length) :
   ((L.map length).take i).sum + j < ((L.map length).take (i+1)).sum :=
-by simp [hi, sum_take_succ, hj]
+by simv [hi, sum_take_succ, hj]
 
 /-- Auxiliary lemma to control elements in a join. -/
 lemma sum_take_map_length_lt2 (L : list (list α)) {i j : ℕ}
@@ -111,8 +111,8 @@ lemma sum_take_map_length_lt2 (L : list (list α)) {i j : ℕ}
   ((L.map length).take i).sum + j < L.join.length :=
 begin
   convert lt_of_lt_of_le (sum_take_map_length_lt1 L hi hj) (monotone_sum_take _ hi),
-  have : L.length = (L.map length).length, by simp,
-  simp [this, -length_map]
+  have : L.length = (L.map length).length, by simv,
+  simv [this, -length_map]
 end
 
 /-- The `n`-th element in a join of sublists is the `j`-th element of the `i`th sublist,
@@ -130,7 +130,7 @@ sublists. -/
 theorem eq_iff_join_eq (L L' : list (list α)) :
   L = L' ↔ L.join = L'.join ∧ map length L = map length L' :=
 begin
-  refine ⟨λ H, by simp [H], _⟩,
+  refine ⟨λ H, by simv [H], _⟩,
   rintros ⟨join_eq, length_eq⟩,
   apply ext_le,
   { have : length (map length L) = length (map length L'), by rw length_eq,

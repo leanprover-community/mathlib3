@@ -65,10 +65,10 @@ card_of_subsingleton default
 lemma card_eq_one_iff_unique : nat.card α = 1 ↔ subsingleton α ∧ nonempty α :=
 cardinal.to_nat_eq_one_iff_unique
 
-theorem card_of_is_empty [is_empty α] : nat.card α = 0 := by simp
+theorem card_of_is_empty [is_empty α] : nat.card α = 0 := by simv
 
 @[simp] lemma card_prod (α β : Type*) : nat.card (α × β) = nat.card α * nat.card β :=
-by simp only [nat.card, mk_prod, to_nat_mul, to_nat_lift]
+by simv only [nat.card, mk_prod, to_nat_mul, to_nat_lift]
 
 @[simp] lemma card_ulift (α : Type*) : nat.card (ulift α) = nat.card α :=
 card_congr equiv.ulift

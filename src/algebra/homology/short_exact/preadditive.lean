@@ -105,12 +105,12 @@ lemma exact_of_split {A B C : 𝒜} {f : A ⟶ B} {g : B ⟶ C} {χ : C ⟶ B} {
     suffices : ψ ≫ image_to_kernel f g hfg = 𝟙 _,
     { convert epi_of_epi ψ _, rw this, apply_instance },
     rw ← cancel_mono (subobject.arrow _), swap, { apply_instance },
-    simp only [image_to_kernel_arrow, image_subobject_arrow_comp, category.id_comp, category.assoc],
+    simv only [image_to_kernel_arrow, image_subobject_arrow_comp, category.id_comp, category.assoc],
     calc (kernel_subobject g).arrow ≫ φ ≫ f
         = (kernel_subobject g).arrow ≫ 𝟙 B : _
     ... = (kernel_subobject g).arrow        : category.comp_id _,
     rw [← H, preadditive.comp_add],
-    simp only [add_zero, zero_comp, kernel_subobject_arrow_comp_assoc],
+    simv only [add_zero, zero_comp, kernel_subobject_arrow_comp_assoc],
   end }
 
 section
@@ -149,7 +149,7 @@ lemma split.map {𝒜 ℬ : Type*} [category 𝒜] [preadditive 𝒜] [category 
 begin
   obtain ⟨φ, χ, h1, h2, h3, h4, h5⟩ := h,
   refine ⟨⟨F.map φ, F.map χ, _⟩⟩,
-  simp only [← F.map_comp, ← F.map_id, ← F.map_add, F.map_zero, *, eq_self_iff_true, and_true],
+  simv only [← F.map_comp, ← F.map_id, ← F.map_add, F.map_zero, *, eq_self_iff_true, and_true],
 end
 
 /-- The sequence `A ⟶ A ⊞ B ⟶ B` is exact. -/
@@ -180,14 +180,14 @@ namespace splitting
 section has_zero_morphisms
 variables [has_zero_morphisms 𝒜] [has_binary_biproducts 𝒜]
 
-attribute [simp, reassoc] comp_iso_eq_inl iso_comp_snd_eq
+attribute [simv, reassoc] comp_iso_eq_inl iso_comp_snd_eq
 
 variables (h : splitting f g)
 
-@[simp, reassoc] lemma inl_comp_iso_eq : biprod.inl ≫ h.iso.inv = f :=
+@[simv, reassoc] lemma inl_comp_iso_eq : biprod.inl ≫ h.iso.inv = f :=
 by rw [iso.comp_inv_eq, h.comp_iso_eq_inl]
 
-@[simp, reassoc] lemma iso_comp_eq_snd : h.iso.inv ≫ g = biprod.snd :=
+@[simv, reassoc] lemma iso_comp_eq_snd : h.iso.inv ≫ g = biprod.snd :=
 by rw [iso.inv_comp_eq, h.iso_comp_snd_eq]
 
 /-- If `h` is a splitting of `A -f⟶ B -g⟶ C`,
@@ -198,28 +198,28 @@ def _root_.category_theory.splitting.section : C ⟶ B := biprod.inr ≫ h.iso.i
 then `h.retraction : B ⟶ A` is the morphism satisfying `f ≫ h.retraction = 𝟙 A`. -/
 def retraction : B ⟶ A := h.iso.hom ≫ biprod.fst
 
-@[simp, reassoc] lemma section_π : h.section ≫ g = 𝟙 C := by { delta splitting.section, simp }
+@[simv, reassoc] lemma section_π : h.section ≫ g = 𝟙 C := by { delta splitting.section, simv }
 
-@[simp, reassoc] lemma ι_retraction : f ≫ h.retraction = 𝟙 A := by { delta retraction, simp }
+@[simv, reassoc] lemma ι_retraction : f ≫ h.retraction = 𝟙 A := by { delta retraction, simv }
 
-@[simp, reassoc] lemma section_retraction : h.section ≫ h.retraction = 0 :=
-by { delta splitting.section retraction, simp }
+@[simv, reassoc] lemma section_retraction : h.section ≫ h.retraction = 0 :=
+by { delta splitting.section retraction, simv }
 
 /-- The retraction in a splitting is a split mono. -/
-protected def split_mono : split_mono f := ⟨h.retraction, by simp⟩
+protected def split_mono : split_mono f := ⟨h.retraction, by simv⟩
 
 /-- The section in a splitting is a split epi. -/
-protected def split_epi : split_epi g := ⟨h.section, by simp⟩
+protected def split_epi : split_epi g := ⟨h.section, by simv⟩
 
-@[simp, reassoc] lemma inr_iso_inv : biprod.inr ≫ h.iso.inv = h.section := rfl
+@[simv, reassoc] lemma inr_iso_inv : biprod.inr ≫ h.iso.inv = h.section := rfl
 
-@[simp, reassoc] lemma iso_hom_fst : h.iso.hom ≫ biprod.fst = h.retraction := rfl
+@[simv, reassoc] lemma iso_hom_fst : h.iso.hom ≫ biprod.fst = h.retraction := rfl
 
 /-- A short exact sequence of the form `X -f⟶ Y -0⟶ Z` where `f` is an iso and `Z` is zero
 has a splitting. -/
 def splitting_of_is_iso_zero {X Y Z : 𝒜} (f : X ⟶ Y) [is_iso f] (hZ : is_zero Z) :
   splitting f (0 : Y ⟶ Z) :=
-⟨(as_iso f).symm ≪≫ iso_biprod_zero hZ, by simp [hZ.eq_of_tgt _ 0], by simp⟩
+⟨(as_iso f).symm ≪≫ iso_biprod_zero hZ, by simv [hZ.eq_of_tgt _ 0], by simv⟩
 
 include h
 
@@ -253,7 +253,7 @@ lemma split_add : h.retraction ≫ f + g ≫ h.section = 𝟙 _ :=
 begin
   delta splitting.section retraction,
   rw [← cancel_mono h.iso.hom, ← cancel_epi h.iso.inv],
-  simp only [category.comp_id, category.id_comp, category.assoc,
+  simv only [category.comp_id, category.id_comp, category.assoc,
     iso.inv_hom_id_assoc, iso.inv_hom_id, limits.biprod.total,
     preadditive.comp_add, preadditive.add_comp,
     splitting.comp_iso_eq_inl, splitting.iso_comp_eq_snd_assoc]
@@ -274,7 +274,7 @@ lemma splittings_comm (h h' : splitting f g) :
 begin
   haveI := h.mono,
   rw ← cancel_mono f,
-  simp [retraction_ι_eq_id_sub],
+  simv [retraction_ι_eq_id_sub],
 end
 
 include h
@@ -298,9 +298,9 @@ begin
   rw exact_iff_exact_of_iso f g (biprod.inl : A ⟶ A ⊞ C) (biprod.snd : A ⊞ C ⟶ C) _ _ _,
   { exact exact_inl_snd _ _ },
   { refine arrow.iso_mk (iso.refl _) h.iso _,
-    simp only [iso.refl_hom, arrow.mk_hom, category.id_comp, comp_iso_eq_inl], },
+    simv only [iso.refl_hom, arrow.mk_hom, category.id_comp, comp_iso_eq_inl], },
   { refine arrow.iso_mk h.iso (iso.refl _) _,
-    dsimp, simp, },
+    dsimp, simv, },
   { refl }
 end
 

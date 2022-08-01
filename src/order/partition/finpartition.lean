@@ -210,7 +210,7 @@ begin
   intros b hb,
   change b ∈ finpartition.parts (dite _ _ _) at hb,
   split_ifs at hb,
-  { simp only [copy_parts, empty_parts, not_mem_empty] at hb,
+  { simv only [copy_parts, empty_parts, not_mem_empty] at hb,
     exact hb.elim },
   { exact hb }
 end
@@ -232,7 +232,7 @@ instance : has_inf (finpartition a) :=
 ⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
   begin
     rw sup_indep_iff_disjoint_erase,
-    simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
+    simv only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
       mem_product, finset.disjoint_sup_right, mem_erase, ne.def],
     rintro _ x₁ y₁ hx₁ hy₁ rfl _ h x₂ y₂ hx₂ hy₂ rfl,
     rcases eq_or_ne x₁ x₂ with rfl | xdiff,
@@ -383,7 +383,7 @@ of_erase
 
 @[simp] lemma mem_avoid : c ∈ (P.avoid b).parts ↔ ∃ d ∈ P.parts, ¬ d ≤ b ∧ d \ b = c :=
 begin
-  simp only [avoid, of_erase_parts, mem_erase, ne.def, mem_image, exists_prop,
+  simv only [avoid, of_erase_parts, mem_erase, ne.def, mem_image, exists_prop,
     ←exists_and_distrib_left, @and.left_comm (c ≠ ⊥)],
   refine exists_congr (λ d, and_congr_right' $ and_congr_left _),
   rintro rfl,
@@ -421,7 +421,7 @@ instance (s : finset α) : has_bot (finpartition s) :=
       exact finset.pairwise_disjoint_range_singleton.subset (set.image_subset_range _ _),
     end,
   sup_parts := by rw [sup_map, comp.left_id, embedding.coe_fn_mk, finset.sup_singleton'],
-  not_bot_mem := by simp }⟩
+  not_bot_mem := by simv }⟩
 
 @[simp] lemma parts_bot (s : finset α) :
   (⊥ : finpartition s).parts = s.map ⟨singleton, singleton_injective⟩ := rfl
@@ -477,12 +477,12 @@ variables {F : finset (finset α)}
 
 lemma mem_atomise :
   t ∈ (atomise s F).parts ↔ t.nonempty ∧ ∃ (Q ⊆ F), s.filter (λ i, ∀ u ∈ F, u ∈ Q ↔ i ∈ u) = t :=
-by simp only [atomise, of_erase, bot_eq_empty, mem_erase, mem_image, nonempty_iff_ne_empty,
+by simv only [atomise, of_erase, bot_eq_empty, mem_erase, mem_image, nonempty_iff_ne_empty,
   mem_singleton, and_comm, mem_powerset, exists_prop]
 
 lemma atomise_empty (hs : s.nonempty) : (atomise s ∅).parts = {s} :=
 begin
-  simp only [atomise, powerset_empty, image_singleton, not_mem_empty, is_empty.forall_iff,
+  simv only [atomise, powerset_empty, image_singleton, not_mem_empty, is_empty.forall_iff,
     implies_true_iff, filter_true],
   exact erase_eq_of_not_mem (not_mem_singleton.2 hs.ne_empty.symm),
 end
@@ -510,11 +510,11 @@ begin
   { refine (card_le_of_subset h).trans (card_image_le.trans _),
     rw [card_powerset, card_erase_of_mem ht] },
   rw subset_iff,
-  simp only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
+  simv only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
     finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
   rintro P' i hi P PQ rfl hy₂ j hj,
   refine ⟨P.erase t, erase_subset_erase _ PQ, _⟩,
-  simp only [insert_erase (((mem_filter.1 hi).2 _ ht).2 $ hy₂ hi), filter_congr_decidable],
+  simv only [insert_erase (((mem_filter.1 hi).2 _ ht).2 $ hy₂ hi), filter_congr_decidable],
 end
 
 end atomise

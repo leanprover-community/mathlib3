@@ -234,7 +234,7 @@ by rw [trop_add_def, trop_eq_iff_eq_untrop, ←untrop_le_iff, min_eq_right_iff]
 
 lemma add_eq_iff {x y z : tropical R} :
   x + y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
-by { rw [trop_add_def, trop_eq_iff_eq_untrop], simp [min_eq_iff] }
+by { rw [trop_add_def, trop_eq_iff_eq_untrop], simv [min_eq_iff] }
 
 @[simp] lemma add_eq_zero_iff {a b : tropical (with_top R)} :
   a + b = 0 ↔ a = 0 ∧ b = 0 :=
@@ -245,7 +245,7 @@ begin
     { exact ⟨rfl, le_antisymm (le_zero _) h⟩ },
     { exact ⟨le_antisymm (le_zero _) h, rfl⟩ } },
   { rintro ⟨rfl, rfl⟩,
-    simp }
+    simv }
 end
 
 instance [order_top R] : add_comm_monoid (tropical R) :=
@@ -278,7 +278,7 @@ instance [has_zero R] : has_one (tropical R) := ⟨trop 0⟩
 instance [linear_order R] [order_top R] [has_zero R] : add_monoid_with_one (tropical R) :=
 { nat_cast := λ n, if n = 0 then 0 else 1,
   nat_cast_zero := rfl,
-  nat_cast_succ := λ n, (untrop_inj_iff _ _).1 (by cases n; simp [nat.cast]),
+  nat_cast_succ := λ n, (untrop_inj_iff _ _).1 (by cases n; simv [nat.cast]),
   .. tropical.has_one, .. tropical.add_comm_monoid }
 
 instance [has_zero R] : nontrivial (tropical (with_top R)) :=
@@ -415,7 +415,7 @@ instance : comm_semiring (tropical R) :=
   (n + 1) • x = x :=
 begin
   induction n with n IH,
-  { simp },
+  { simv },
   { rw [add_nsmul, IH, one_nsmul, add_self] }
 end
 
@@ -427,7 +427,7 @@ end
 @[simp] lemma mul_eq_zero_iff {R : Type*} [linear_ordered_add_comm_monoid R]
   {a b : tropical (with_top R)} :
   a * b = 0 ↔ a = 0 ∨ b = 0 :=
-by simp [←untrop_inj_iff, with_top.add_eq_top]
+by simv [←untrop_inj_iff, with_top.add_eq_top]
 
 instance {R : Type*} [linear_ordered_add_comm_monoid R] :
   no_zero_divisors (tropical (with_top R)) :=

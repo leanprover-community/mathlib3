@@ -62,12 +62,12 @@ lemma form_perm_apply_of_not_mem (x : α) (l : list α) (h : x ∉ l) :
   form_perm l x = x :=
 begin
   cases l with y l,
-  { simp },
+  { simv },
   induction l with z l IH generalizing x y,
-  { simp },
+  { simv },
   { specialize IH x z (mt (mem_cons_of_mem y) h),
-    simp only [not_or_distrib, mem_cons_iff] at h,
-    simp [IH, swap_apply_of_ne_of_ne, h] }
+    simv only [not_or_distrib, mem_cons_iff] at h,
+    simv [IH, swap_apply_of_ne_of_ne, h] }
 end
 
 lemma mem_of_form_perm_apply_ne (x : α) (l : list α) : l.form_perm x ≠ x → x ∈ l :=
@@ -83,9 +83,9 @@ begin
   { by_cases hx : x ∈ z :: l,
     { rw [form_perm_cons_cons, mul_apply, swap_apply_def],
       split_ifs;
-      simp [IH _ _ hx] },
+      simv [IH _ _ hx] },
     { replace h : x = y := or.resolve_right h hx,
-      simp [form_perm_apply_of_not_mem _ _ hx, ←h] } }
+      simv [form_perm_apply_of_not_mem _ _ hx, ←h] } }
 end
 
 lemma mem_of_form_perm_apply_mem (x : α) (l : list α) (h : l.form_perm x ∈ l) : x ∈ l :=
@@ -97,12 +97,12 @@ begin
   { by_cases hx : (z :: l).form_perm x ∈ z :: l,
     { rw [list.form_perm_cons_cons, mul_apply, swap_apply_def] at h,
       split_ifs at h;
-      simp [IH _ _ hx] },
+      simv [IH _ _ hx] },
     { replace hx := (function.injective.eq_iff (equiv.injective _)).mp
         (list.form_perm_apply_of_not_mem _ _ hx),
-      simp only [list.form_perm_cons_cons, hx, equiv.perm.coe_mul, function.comp_app,
+      simv only [list.form_perm_cons_cons, hx, equiv.perm.coe_mul, function.comp_app,
         list.mem_cons_iff, swap_apply_def, ite_eq_left_iff] at h,
-      simp only [list.mem_cons_iff],
+      simv only [list.mem_cons_iff],
       obtain h | h | h := h;
       { split_ifs at h;
         cc }}}
@@ -115,31 +115,31 @@ lemma form_perm_mem_iff_mem : l.form_perm x ∈ l ↔ x ∈ l :=
   form_perm (x :: (xs ++ [y])) y = x :=
 begin
   induction xs with z xs IH generalizing x y,
-  { simp },
-  { simp [IH] }
+  { simv },
+  { simv [IH] }
 end
 
 @[simp] lemma form_perm_apply_last (x : α) (xs : list α) :
   form_perm (x :: xs) ((x :: xs).last (cons_ne_nil x xs)) = x :=
 begin
   induction xs using list.reverse_rec_on with xs y IH generalizing x;
-  simp
+  simv
 end
 
 @[simp] lemma form_perm_apply_nth_le_length (x : α) (xs : list α) :
-  form_perm (x :: xs) ((x :: xs).nth_le xs.length (by simp)) = x :=
+  form_perm (x :: xs) ((x :: xs).nth_le xs.length (by simv)) = x :=
 by rw [nth_le_cons_length, form_perm_apply_last]
 
 lemma form_perm_apply_head (x y : α) (xs : list α) (h : nodup (x :: y :: xs)) :
   form_perm (x :: y :: xs) x = y :=
-by simp [form_perm_apply_of_not_mem _ _ h.not_mem]
+by simv [form_perm_apply_of_not_mem _ _ h.not_mem]
 
 lemma form_perm_apply_nth_le_zero (l : list α) (h : nodup l) (hl : 1 < l.length) :
   form_perm l (l.nth_le 0 (zero_lt_one.trans hl)) = l.nth_le 1 hl :=
 begin
   rcases l with (_|⟨x, _|⟨y, tl⟩⟩),
-  { simp },
-  { simp },
+  { simv },
+  { simv },
   { simpa using form_perm_apply_head _ _ _ h }
 end
 
@@ -152,26 +152,26 @@ iff.trans (by rw form_perm_apply_last) (form_perm (y :: l)).injective.eq_iff
 lemma zip_with_swap_prod_support' (l l' : list α) :
   {x | (zip_with swap l l').prod x ≠ x} ≤ l.to_finset ⊔ l'.to_finset :=
 begin
-  simp only [set.sup_eq_union, set.le_eq_subset],
+  simv only [set.sup_eq_union, set.le_eq_subset],
   induction l with y l hl generalizing l',
-  { simp },
+  { simv },
   { cases l' with z l',
-    { simp },
+    { simv },
     { intro x,
-      simp only [set.union_subset_iff, mem_cons_iff, zip_with_cons_cons, foldr, prod_cons,
+      simv only [set.union_subset_iff, mem_cons_iff, zip_with_cons_cons, foldr, prod_cons,
                  mul_apply],
       intro hx,
       by_cases h : x ∈ {x | (zip_with swap l l').prod x ≠ x},
       { specialize hl l' h,
         refine set.mem_union.elim hl (λ hm, _) (λ hm, _);
-        { simp only [finset.coe_insert, set.mem_insert_iff, finset.mem_coe, to_finset_cons,
+        { simv only [finset.coe_insert, set.mem_insert_iff, finset.mem_coe, to_finset_cons,
                      mem_to_finset] at hm ⊢,
-          simp [hm] } },
-      { simp only [not_not, set.mem_set_of_eq] at h,
-        simp only [h, set.mem_set_of_eq] at hx,
+          simv [hm] } },
+      { simv only [not_not, set.mem_set_of_eq] at h,
+        simv only [h, set.mem_set_of_eq] at hx,
         rw swap_apply_ne_self_iff at hx,
         rcases hx with ⟨hyz, rfl|rfl⟩;
-        simp } } }
+        simv } } }
 end
 
 lemma zip_with_swap_prod_support [fintype α] (l l' : list α) :
@@ -201,11 +201,11 @@ begin
   induction n with n IH generalizing xs,
   { simpa using form_perm_apply_nth_le_zero _ h _ },
   { rcases xs with (_|⟨x, _|⟨y, l⟩⟩),
-    { simp },
-    { simp },
+    { simv },
+    { simv },
     { specialize IH (y :: l) h.of_cons _,
       { simpa [nat.succ_lt_succ_iff] using hn },
-      simp only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
+      simv only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
       generalize_proofs at IH,
       rw [IH, swap_apply_of_ne_of_ne, nth_le];
       { rintro rfl,
@@ -217,13 +217,13 @@ lemma form_perm_apply_nth_le (xs : list α) (h : nodup xs) (n : ℕ) (hn : n < x
     (nat.mod_lt _ (n.zero_le.trans_lt hn)) :=
 begin
   cases xs with x xs,
-  { simp },
+  { simv },
   { have : n ≤ xs.length,
     { refine nat.le_of_lt_succ _,
       simpa using hn },
     rcases this.eq_or_lt with rfl|hn',
-    { simp },
-    { simp [form_perm_apply_lt, h, nat.mod_eq_of_lt, nat.succ_lt_succ hn'] } }
+    { simv },
+    { simv [form_perm_apply_lt, h, nat.mod_eq_of_lt, nat.succ_lt_succ hn'] } }
 end
 
 lemma support_form_perm_of_nodup' (l : list α) (h : nodup l) (h' : ∀ (x : α), l ≠ [x]) :
@@ -232,14 +232,14 @@ begin
   apply le_antisymm,
   { exact support_form_perm_le' l },
   { intros x hx,
-    simp only [finset.mem_coe, mem_to_finset] at hx,
+    simv only [finset.mem_coe, mem_to_finset] at hx,
     obtain ⟨n, hn, rfl⟩ := nth_le_of_mem hx,
     rw [set.mem_set_of_eq, form_perm_apply_nth_le _ h],
     intro H,
     rw nodup_iff_nth_le_inj at h,
     specialize h _ _ _ _ H,
     cases (nat.succ_le_of_lt hn).eq_or_lt with hn' hn',
-    { simp only [←hn', nat.mod_self] at h,
+    { simv only [←hn', nat.mod_self] at h,
       refine not_exists.mpr h' _,
       simpa [←h, eq_comm, length_eq_one] using hn' },
     { simpa [nat.mod_eq_of_lt hn'] using h } }
@@ -250,7 +250,7 @@ lemma support_form_perm_of_nodup [fintype α] (l : list α) (h : nodup l) (h' : 
 begin
   rw ←finset.coe_inj,
   convert support_form_perm_of_nodup' _ h h',
-  simp [set.ext_iff]
+  simv [set.ext_iff]
 end
 
 lemma form_perm_rotate_one (l : list α) (h : nodup l) :
@@ -263,7 +263,7 @@ begin
   { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
     rw [form_perm_apply_nth_le _ h', nth_le_rotate l, nth_le_rotate l,
       form_perm_apply_nth_le _ h],
-    simp },
+    simv },
   { rw [form_perm_apply_of_not_mem _ _ hx, form_perm_apply_of_not_mem],
     simpa using hx }
 end
@@ -272,7 +272,7 @@ lemma form_perm_rotate (l : list α) (h : nodup l) (n : ℕ) :
   form_perm (l.rotate n) = form_perm l :=
 begin
   induction n with n hn,
-  { simp },
+  { simv },
   { rw [nat.succ_eq_add_one, ←rotate_rotate, form_perm_rotate_one, hn],
     rwa is_rotated.nodup_iff,
     exact is_rotated.forall l n }
@@ -303,10 +303,10 @@ begin
     { congr,
       rw [length_reverse, ←nat.succ_le_iff, nat.succ_eq_add_one] at hk,
       cases hk.eq_or_lt with hk' hk',
-      { simp [←hk'] },
+      { simv [←hk'] },
       { rw [length_reverse, nat.mod_eq_of_lt hk', tsub_add_eq_add_tsub (nat.le_pred_of_lt hk'),
             nat.mod_eq_of_lt],
-        { simp },
+        { simv },
         { rw tsub_add_cancel_of_le,
           refine tsub_lt_self _ (nat.zero_lt_succ _),
           all_goals { simpa using (nat.zero_le _).trans_lt hk' } } } },
@@ -320,15 +320,15 @@ lemma form_perm_pow_apply_nth_le (l : list α) (h : nodup l) (n k : ℕ) (hk : k
     (nat.mod_lt _ (k.zero_le.trans_lt hk)) :=
 begin
   induction n with n hn,
-  { simp [nat.mod_eq_of_lt hk] },
-  { simp [pow_succ, mul_apply, hn, form_perm_apply_nth_le _ h, nat.succ_eq_add_one,
+  { simv [nat.mod_eq_of_lt hk] },
+  { simv [pow_succ, mul_apply, hn, form_perm_apply_nth_le _ h, nat.succ_eq_add_one,
           ←nat.add_assoc] }
 end
 
 lemma form_perm_pow_apply_head (x : α) (l : list α) (h : nodup (x :: l)) (n : ℕ) :
   (form_perm (x :: l) ^ n) x =
     (x :: l).nth_le (n % (x :: l).length) (nat.mod_lt _ (nat.zero_lt_succ _)) :=
-by { convert form_perm_pow_apply_nth_le _ h n 0 _; simp }
+by { convert form_perm_pow_apply_nth_le _ h n 0 _; simv }
 
 lemma form_perm_ext_iff {x y x' y' : α} {l l' : list α}
   (hd : nodup (x :: y :: l)) (hd' : nodup (x' :: y' :: l')) :
@@ -339,7 +339,7 @@ begin
   have hx : x' ∈ (x :: y :: l),
   { have : x' ∈ {z | form_perm (x :: y :: l) z ≠ z},
     { rw [set.mem_set_of_eq, h x', form_perm_apply_head _ _ _ hd'],
-      simp only [mem_cons_iff, nodup_cons] at hd',
+      simv only [mem_cons_iff, nodup_cons] at hd',
       push_neg at hd',
       exact hd'.left.left.symm },
     simpa using support_form_perm_le' _ this },
@@ -348,9 +348,9 @@ begin
   { rw [←dedup_eq_self.mpr hd, ←dedup_eq_self.mpr hd',
         ←card_to_finset, ←card_to_finset],
     refine congr_arg finset.card _,
-    rw [←finset.coe_inj, ←support_form_perm_of_nodup' _ hd (by simp),
-        ←support_form_perm_of_nodup' _ hd' (by simp)],
-    simp only [h] },
+    rw [←finset.coe_inj, ←support_form_perm_of_nodup' _ hd (by simv),
+        ←support_form_perm_of_nodup' _ hd' (by simv)],
+    simv only [h] },
   use n,
   apply list.ext_le,
   { rw [length_rotate, hl] },
@@ -365,7 +365,7 @@ begin
       rw [←form_perm_apply_nth_le _ hd' k (k.lt_succ_self.trans hk'),
           ←IH (k.lt_succ_self.trans hk), ←h, form_perm_apply_nth_le _ hd],
       congr' 1,
-      have h1 : 1 = 1 % (x' :: y' :: l').length := by simp,
+      have h1 : 1 = 1 % (x' :: y' :: l').length := by simv,
       rw [hl, nat.mod_eq_of_lt hk', h1, ←nat.add_mod, nat.succ_add] } }
 end
 
@@ -378,7 +378,7 @@ begin
   { exact absurd k.zero_le (hk.trans_le hn.le).not_le },
   { rw hn at hk,
     cases (nat.le_of_lt_succ hk).eq_or_lt with hk' hk',
-    { simp [←hk', nat.succ_le_succ_iff, eq_comm] },
+    { simv [←hk', nat.succ_le_succ_iff, eq_comm] },
     { simpa [nat.mod_eq_of_lt (nat.succ_lt_succ hk'), nat.succ_lt_succ_iff]
         using k.zero_le.trans_lt hk' } }
 end
@@ -407,14 +407,14 @@ lemma form_perm_eq_one_iff (hl : nodup l) :
   form_perm l = 1 ↔ l.length ≤ 1 :=
 begin
   cases l with hd tl,
-  { simp },
+  { simv },
   { rw ←form_perm_apply_mem_eq_self_iff _ hl hd (mem_cons_self _ _),
     split,
-    { simp {contextual := tt} },
+    { simv {contextual := tt} },
     { intro h,
-      simp only [(hd :: tl).form_perm_apply_mem_eq_self_iff hl hd (mem_cons_self hd tl),
+      simv only [(hd :: tl).form_perm_apply_mem_eq_self_iff hl hd (mem_cons_self hd tl),
                  add_le_iff_nonpos_left, length, nonpos_iff_eq_zero, length_eq_zero] at h,
-      simp [h] } }
+      simv [h] } }
 end
 
 lemma form_perm_eq_form_perm_iff {l l' : list α} (hl : l.nodup) (hl' : l'.nodup) :
@@ -425,21 +425,21 @@ begin
     { simpa [eq_comm, form_perm_eq_one_iff, hl, hl', length_eq_zero] },
     refine ⟨λ h, or.inr h, _⟩,
     rintro (rfl | h),
-    { simp },
+    { simv },
     { exact h } },
   { suffices : l'.length ≤ 1 ↔ [x] ~r l' ∨ l'.length ≤ 1,
     { simpa [eq_comm, form_perm_eq_one_iff, hl, hl', length_eq_zero, le_rfl] },
     refine ⟨λ h, or.inr h, _⟩,
     rintro (h | h),
-    { simp [←h.perm.length_eq] },
+    { simv [←h.perm.length_eq] },
     { exact h } },
   { rcases l' with (_ | ⟨x', _ | ⟨y', l'⟩⟩),
-    { simp [form_perm_eq_one_iff, hl, -form_perm_cons_cons] },
+    { simv [form_perm_eq_one_iff, hl, -form_perm_cons_cons] },
     { suffices : ¬ (x :: y :: l) ~r [x'],
-      { simp [form_perm_eq_one_iff, hl, -form_perm_cons_cons] },
+      { simv [form_perm_eq_one_iff, hl, -form_perm_cons_cons] },
       intro h,
       simpa using h.perm.length_eq },
-    { simp [-form_perm_cons_cons, form_perm_ext_iff hl hl'] } }
+    { simv [-form_perm_cons_cons, form_perm_ext_iff hl hl'] } }
 end
 
 lemma form_perm_zpow_apply_mem_imp_mem (l : list α) (x : α) (hx : x ∈ l) (n : ℤ) :
@@ -459,7 +459,7 @@ begin
   ext x,
   by_cases hx : x ∈ l,
   { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
-    simp [form_perm_pow_apply_nth_le _ hl, nat.mod_eq_of_lt hk] },
+    simv [form_perm_pow_apply_nth_le _ hl, nat.mod_eq_of_lt hk] },
   { have : x ∉ {x | (l.form_perm ^ l.length) x ≠ x},
     { intros H,
       refine hx _,

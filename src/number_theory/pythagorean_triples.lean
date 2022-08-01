@@ -52,7 +52,7 @@ by { delta pythagorean_triple, rw add_comm }
 
 /-- The zeroth Pythagorean triple is all zeros. -/
 lemma pythagorean_triple.zero : pythagorean_triple 0 0 0 :=
-by simp only [pythagorean_triple, zero_mul, zero_add]
+by simv only [pythagorean_triple, zero_mul, zero_add]
 
 namespace pythagorean_triple
 
@@ -83,7 +83,7 @@ lemma mul_iff (k : ℤ) (hk : k ≠ 0) :
   pythagorean_triple (k * x) (k * y) (k * z) ↔ pythagorean_triple x y z :=
 begin
   refine ⟨_, λ h, h.mul k⟩,
-  simp only [pythagorean_triple],
+  simv only [pythagorean_triple],
   intro h,
   rw ← mul_left_inj' (mul_ne_zero hk hk),
   convert h using 1; ring,
@@ -148,7 +148,7 @@ begin
     have hy : y = 0, { apply int.nat_abs_eq_zero.mp, apply nat.eq_zero_of_gcd_eq_zero_right h0 },
     have hz : z = 0,
     { simpa only [pythagorean_triple, hx, hy, add_zero, zero_eq_mul, mul_zero, or_self] using h },
-    simp only [hz, dvd_zero], },
+    simv only [hz, dvd_zero], },
   obtain ⟨k, x0, y0, k0, h2, rfl, rfl⟩ :
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
@@ -165,7 +165,7 @@ begin
     have hy : y = 0, { apply int.nat_abs_eq_zero.mp, apply nat.eq_zero_of_gcd_eq_zero_right h0 },
     have hz : z = 0,
     { simpa only [pythagorean_triple, hx, hy, add_zero, zero_eq_mul, mul_zero, or_self] using h },
-    simp only [hx, hy, hz, int.zero_div], exact zero },
+    simv only [hx, hy, hz, int.zero_div], exact zero },
   rcases h.gcd_dvd with ⟨z0, rfl⟩,
   obtain ⟨k, x0, y0, k0, h2, rfl, rfl⟩ :
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
@@ -248,7 +248,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
 { to_fun := λ x, ⟨⟨2 * x / (1 + x^2), (1 - x^2) / (1 + x^2)⟩,
     by { field_simp [hk x, div_pow], ring },
     begin
-      simp only [ne.def, div_eq_iff (hk x), neg_mul, one_mul, neg_add,
+      simv only [ne.def, div_eq_iff (hk x), neg_mul, one_mul, neg_add,
         sub_eq_add_neg, add_left_inj],
       simpa only [eq_neg_iff_add_eq_zero, one_pow] using hk 1,
     end⟩,
@@ -266,7 +266,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
     have h3 : (y + 1) ^ 2 + x ^ 2 = 2 * (y + 1),
     { rw [(add_neg_eq_iff_eq_add.mpr hxy.symm).symm], ring },
     have h4 : (2 : K) ≠ 0, { convert hk 1, rw one_pow 2, refl },
-    simp only [prod.mk.inj_iff, subtype.mk_eq_mk],
+    simv only [prod.mk.inj_iff, subtype.mk_eq_mk],
     split,
     { field_simp [h3], ring },
     { field_simp [h3], rw [← add_neg_eq_iff_eq_add.mpr hxy.symm], ring }

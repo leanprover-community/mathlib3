@@ -81,7 +81,7 @@ lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h
   comap_eq C (k.trans l) = comap_eq C k ≪≫ comap_eq C l :=
 begin
   ext X b,
-  simp,
+  simv,
 end
 
 @[simp] lemma eq_to_hom_apply {β : Type w} {X Y : Π b : β, C} (h : X = Y) (b : β) :
@@ -97,9 +97,9 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
   (graded_object β C) ≌ (graded_object γ C) :=
 { functor := comap (λ _, C) (e.symm : γ → β),
   inverse := comap (λ _, C) (e : β → γ),
-  counit_iso := (comap_comp (λ _, C) _ _).trans (comap_eq C (by { ext, simp } )),
-  unit_iso := (comap_eq C (by { ext, simp } )).trans (comap_comp _ _ _).symm,
-  functor_unit_iso_comp' := λ X, by { ext b, dsimp, simp, }, }  -- See note [dsimp, simp].
+  counit_iso := (comap_comp (λ _, C) _ _).trans (comap_eq C (by { ext, simv } )),
+  unit_iso := (comap_eq C (by { ext, simv } )).trans (comap_comp _ _ _).symm,
+  functor_unit_iso_comp' := λ X, by { ext b, dsimp, simv, }, }  -- See note [dsimp, simv].
 
 end
 
@@ -107,11 +107,11 @@ instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) ℤ :=
 has_shift_mk _ _
 { F := λ n, comap (λ _, C) $ λ (b : β), b + n • s,
-  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp })),
-  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simp [add_zsmul, add_comm] }),
+  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simv })),
+  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simv [add_zsmul, add_comm] }),
   left_unitality := by { introv, ext, dsimp, simpa },
   right_unitality := by { introv, ext, dsimp, simpa },
-  associativity := by { introv, ext, dsimp, simp } }
+  associativity := by { introv, ext, dsimp, simv } }
 
 @[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
   (s : β) (X : β → C) (t : β) (n : ℤ) :
@@ -176,7 +176,7 @@ instance : faithful (total β C) :=
     ext i,
     replace w := sigma.ι (λ i : β, X i) i ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
-    simp at *,
+    simv at *,
     exact mono.right_cancellation _ _ w,
   end }
 

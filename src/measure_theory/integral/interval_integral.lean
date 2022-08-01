@@ -208,14 +208,14 @@ begin
   cases le_or_lt a b with hab hab,
   { have : Icc a b = Icc a a ∪ Ioc a b := (Icc_union_Ioc_eq_Icc le_rfl hab).symm,
     rw [this, integrable_on_union],
-    simp [ha.lt_top] },
-  { simp [hab, hab.le] },
+    simv [ha.lt_top] },
+  { simv [hab, hab.le] },
 end
 
 lemma integrable_on_Icc_iff_integrable_on_Ioc
   {E : Type*}[normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
-integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
+integrable_on_Icc_iff_integrable_on_Ioc' (by simv)
 
 lemma integrable_on_Ioc_iff_integrable_on_Ioo'
   {E : Type*} [normed_add_comm_group E]
@@ -225,14 +225,14 @@ begin
   cases lt_or_le a b with hab hab,
   { have : Ioc a b = Ioo a b ∪ Icc b b := (Ioo_union_Icc_eq_Ioc hab le_rfl).symm,
     rw [this, integrable_on_union],
-    simp [hb.lt_top] },
-  { simp [hab] },
+    simv [hb.lt_top] },
+  { simv [hab] },
 end
 
 lemma integrable_on_Ioc_iff_integrable_on_Ioo
   {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
+integrable_on_Ioc_iff_integrable_on_Ioo' (by simv)
 
 lemma integrable_on_Icc_iff_integrable_on_Ioo
   {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
@@ -254,13 +254,13 @@ lemma integrable_on_Ici_iff_integrable_on_Ioi'
 begin
   have : Ici a = Icc a a ∪ Ioi a := (Icc_union_Ioi_eq_Ici le_rfl).symm,
   rw [this, integrable_on_union],
-  simp [ha.lt_top]
+  simv [ha.lt_top]
 end
 
 lemma integrable_on_Ici_iff_integrable_on_Ioi
   {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} :
   integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
-integrable_on_Ici_iff_integrable_on_Ioi' (by simp)
+integrable_on_Ici_iff_integrable_on_Ioi' (by simv)
 
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
@@ -275,7 +275,7 @@ lemma measure_theory.integrable_on.interval_integrable (hf : integrable_on f [a,
 
 lemma interval_integrable_const_iff {c : E} :
   interval_integrable (λ _, c) μ a b ↔ c = 0 ∨ μ (Ι a b) < ∞ :=
-by simp only [interval_integrable_iff, integrable_on_const]
+by simv only [interval_integrable_iff, integrable_on_const]
 
 @[simp] lemma interval_integrable_const [is_locally_finite_measure μ] {c : E} :
   interval_integrable (λ _, c) μ a b :=
@@ -293,7 +293,7 @@ variables {f : ℝ → E} {a b c d : ℝ} {μ ν : measure ℝ}
 h.symm
 
 @[refl] lemma refl : interval_integrable f μ a a :=
-by split; simp
+by split; simv
 
 @[trans] lemma trans {a b c : ℝ} (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) : interval_integrable f μ a c :=
@@ -306,9 +306,9 @@ lemma trans_iterate_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
 begin
   revert hint,
   refine nat.le_induction _ _ n hmn,
-  { simp },
+  { simv },
   { assume p hp IH h,
-    exact (IH (λ k hk, h k (Ico_subset_Ico_right p.le_succ hk))).trans (h p (by simp [hp])) }
+    exact (IH (λ k hk, h k (Ico_subset_Ico_right p.le_succ hk))).trans (h p (by simv [hp])) }
 end
 
 lemma trans_iterate {a : ℕ → ℝ} {n : ℕ} (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
@@ -398,7 +398,7 @@ by simpa [mul_comm] using hf.mul_continuous_on hg
 lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
   interval_integrable (λ x, f (c * x)) volume (a / c) (b / c) :=
 begin
-  rcases eq_or_ne c 0 with hc|hc, { rw hc, simp },
+  rcases eq_or_ne c 0 with hc|hc, { rw hc, simv },
   rw interval_integrable_iff' at hf ⊢,
   have A : measurable_embedding (λ x, x * c⁻¹) :=
     (homeomorph.mul_right₀ _ (inv_ne_zero hc)).closed_embedding.measurable_embedding,
@@ -406,14 +406,14 @@ begin
     integrable_smul_measure (by simpa : ennreal.of_real (|c⁻¹|) ≠ 0) ennreal.of_real_ne_top,
     ←integrable_on, measurable_embedding.integrable_on_map_iff A],
   convert hf using 1,
-  { ext, simp only [comp_app], congr' 1, field_simp, ring },
+  { ext, simv only [comp_app], congr' 1, field_simp, ring },
   { rw preimage_mul_const_interval (inv_ne_zero hc), field_simp [hc] },
 end
 
 lemma iff_comp_neg  :
   interval_integrable f volume a b ↔ interval_integrable (λ x, f (-x)) volume (-a) (-b) :=
 begin
-  split, all_goals { intro hf, convert comp_mul_left hf (-1), simp, field_simp, field_simp },
+  split, all_goals { intro hf, convert comp_mul_left hf (-1), simv, field_simp, field_simp },
 end
 
 end interval_integrable
@@ -524,36 +524,36 @@ section basic
 variables {a b : ℝ} {f g : ℝ → E} {μ : measure ℝ}
 
 @[simp] lemma integral_zero : ∫ x in a..b, (0 : E) ∂μ = 0 :=
-by simp [interval_integral]
+by simv [interval_integral]
 
 lemma integral_of_le (h : a ≤ b) : ∫ x in a..b, f x ∂μ = ∫ x in Ioc a b, f x ∂μ :=
-by simp [interval_integral, h]
+by simv [interval_integral, h]
 
 @[simp] lemma integral_same : ∫ x in a..a, f x ∂μ = 0 :=
 sub_self _
 
 lemma integral_symm (a b) : ∫ x in b..a, f x ∂μ = -∫ x in a..b, f x ∂μ :=
-by simp only [interval_integral, neg_sub]
+by simv only [interval_integral, neg_sub]
 
 lemma integral_of_ge (h : b ≤ a) : ∫ x in a..b, f x ∂μ = -∫ x in Ioc b a, f x ∂μ :=
-by simp only [integral_symm b, integral_of_le h]
+by simv only [integral_symm b, integral_of_le h]
 
 lemma interval_integral_eq_integral_interval_oc (f : ℝ → E) (a b : ℝ) (μ : measure ℝ) :
   ∫ x in a..b, f x ∂μ = (if a ≤ b then 1 else -1 : ℝ) • ∫ x in Ι a b, f x ∂μ :=
 begin
   split_ifs with h,
-  { simp only [integral_of_le h, interval_oc_of_le h, one_smul] },
-  { simp only [integral_of_ge (not_le.1 h).le, interval_oc_of_lt (not_le.1 h), neg_one_smul] }
+  { simv only [integral_of_le h, interval_oc_of_le h, one_smul] },
+  { simv only [integral_of_ge (not_le.1 h).le, interval_oc_of_lt (not_le.1 h), neg_one_smul] }
 end
 
 lemma integral_cases (f : ℝ → E) (a b) :
   ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ι a b, f x ∂μ, -∫ x in Ι a b, f x ∂μ} : set E) :=
-by { rw interval_integral_eq_integral_interval_oc, split_ifs; simp }
+by { rw interval_integral_eq_integral_interval_oc, split_ifs; simv }
 
 lemma integral_undef (h : ¬ interval_integrable f μ a b) :
   ∫ x in a..b, f x ∂μ = 0 :=
 by cases le_total a b with hab hab;
-  simp only [integral_of_le, integral_of_ge, hab, neg_eq_zero];
+  simv only [integral_of_le, integral_of_ge, hab, neg_eq_zero];
     refine integral_undef (not_imp_not.mpr integrable.integrable_on' _);
       simpa [hab] using not_and_distrib.mp h
 
@@ -569,7 +569,7 @@ integral_non_ae_strongly_measurable $ by rwa [interval_oc_of_le h]
 
 lemma norm_integral_min_max (f : ℝ → E) :
   ∥∫ x in min a b..max a b, f x ∂μ∥ = ∥∫ x in a..b, f x ∂μ∥ :=
-by cases le_total a b; simp [*, integral_symm a b]
+by cases le_total a b; simv [*, integral_symm a b]
 
 lemma norm_integral_eq_norm_integral_Ioc (f : ℝ → E) :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ι a b, f x ∂μ∥ :=
@@ -588,7 +588,7 @@ calc ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ι a b, f x ∂μ∥ :
 
 lemma norm_integral_le_abs_integral_norm : ∥∫ x in a..b, f x ∂μ∥ ≤ |∫ x in a..b, ∥f x∥ ∂μ| :=
 begin
-  simp only [← real.norm_eq_abs, norm_integral_eq_norm_integral_Ioc],
+  simv only [← real.norm_eq_abs, norm_integral_eq_norm_integral_Ioc],
   exact le_trans (norm_integral_le_integral_norm _) (le_abs_self _)
 end
 
@@ -603,7 +603,7 @@ begin
   rw [norm_integral_eq_norm_integral_Ioc],
   convert norm_set_integral_le_of_norm_le_const_ae'' _ measurable_set_Ioc h,
   { rw [real.volume_Ioc, max_sub_min_eq_abs, ennreal.to_real_of_real (abs_nonneg _)] },
-  { simp only [real.volume_Ioc, ennreal.of_real_lt_top] },
+  { simv only [real.volume_Ioc, ennreal.of_real_lt_top] },
 end
 
 lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
@@ -613,16 +613,16 @@ norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
 @[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
-by simp only [interval_integral_eq_integral_interval_oc, integral_add hf.def hg.def, smul_add]
+by simv only [interval_integral_eq_integral_interval_oc, integral_add hf.def hg.def, smul_add]
 
 lemma integral_finset_sum {ι} {s : finset ι} {f : ι → ℝ → E}
   (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
   ∫ x in a..b, ∑ i in s, f i x ∂μ = ∑ i in s, ∫ x in a..b, f i x ∂μ :=
-by simp only [interval_integral_eq_integral_interval_oc,
+by simv only [interval_integral_eq_integral_interval_oc,
   integral_finset_sum s (λ i hi, (h i hi).def), finset.smul_sum]
 
 @[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
-by { simp only [interval_integral, integral_neg], abel }
+by { simv only [interval_integral, integral_neg], abel }
 
 @[simp] lemma integral_sub (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
@@ -631,11 +631,11 @@ by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _
 @[simp] lemma integral_smul {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) (f : ℝ → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
-by simp only [interval_integral, integral_smul, smul_sub]
+by simv only [interval_integral, integral_smul, smul_sub]
 
 @[simp] lemma integral_smul_const {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] (f : ℝ → 𝕜) (c : E) :
   ∫ x in a..b, f x • c ∂μ = (∫ x in a..b, f x ∂μ) • c :=
-by simp only [interval_integral_eq_integral_interval_oc, integral_smul_const, smul_assoc]
+by simv only [interval_integral_eq_integral_interval_oc, integral_smul_const, smul_assoc]
 
 @[simp] lemma integral_const_mul {𝕜 : Type*} [is_R_or_C 𝕜] (r : 𝕜) (f : ℝ → 𝕜) :
   ∫ x in a..b, r * f x ∂μ = r * ∫ x in a..b, f x ∂μ :=
@@ -651,15 +651,15 @@ by simpa only [div_eq_mul_inv] using integral_mul_const r⁻¹ f
 
 lemma integral_const' (c : E) :
   ∫ x in a..b, c ∂μ = ((μ $ Ioc a b).to_real - (μ $ Ioc b a).to_real) • c :=
-by simp only [interval_integral, set_integral_const, sub_smul]
+by simv only [interval_integral, set_integral_const, sub_smul]
 
 @[simp] lemma integral_const (c : E) : ∫ x in a..b, c = (b - a) • c :=
-by simp only [integral_const', real.volume_Ioc, ennreal.to_real_of_real', ← neg_sub b,
+by simv only [integral_const', real.volume_Ioc, ennreal.to_real_of_real', ← neg_sub b,
   max_zero_sub_eq_self]
 
 lemma integral_smul_measure (c : ℝ≥0∞) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
-by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
+by simv only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
 variables [normed_add_comm_group F] [complete_space F] [normed_space ℝ F]
 
@@ -686,13 +686,13 @@ begin
   simp_rw [integral_smul_measure, interval_integral, A.set_integral_map,
           ennreal.to_real_of_real (abs_nonneg c)],
   cases hc.lt_or_lt,
-  { simp [h, mul_div_cancel, hc, abs_of_neg, measure.restrict_congr_set Ico_ae_eq_Ioc] },
-  { simp [h, mul_div_cancel, hc, abs_of_pos] }
+  { simv [h, mul_div_cancel, hc, abs_of_neg, measure.restrict_congr_set Ico_ae_eq_Ioc] },
+  { simv [h, mul_div_cancel, hc, abs_of_pos] }
 end
 
 @[simp] lemma smul_integral_comp_mul_right (c) :
   c • ∫ x in a..b, f (x * c) = ∫ x in a*c..b*c, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_mul_left (hc : c ≠ 0) :
   ∫ x in a..b, f (c * x) = c⁻¹ • ∫ x in c*a..c*b, f x :=
@@ -700,7 +700,7 @@ by simpa only [mul_comm c] using integral_comp_mul_right f hc
 
 @[simp] lemma smul_integral_comp_mul_left (c) :
   c • ∫ x in a..b, f (c * x) = ∫ x in c*a..c*b, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
@@ -708,7 +708,7 @@ by simpa only [inv_inv] using integral_comp_mul_right f (inv_ne_zero hc)
 
 @[simp] lemma inv_smul_integral_comp_div (c) :
   c⁻¹ • ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_add_right (d) :
   ∫ x in a..b, f (x + d) = ∫ x in a+d..b+d, f x :=
@@ -716,7 +716,7 @@ have A : measurable_embedding (λ x, x + d) :=
   (homeomorph.add_right d).closed_embedding.measurable_embedding,
 calc  ∫ x in a..b, f (x + d)
     = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x + d) volume)
-                           : by simp [interval_integral, A.set_integral_map]
+                           : by simv [interval_integral, A.set_integral_map]
 ... = ∫ x in a+d..b+d, f x : by rw [map_add_right_eq_self]
 
 @[simp] lemma integral_comp_add_left (d) :
@@ -729,7 +729,7 @@ by rw [← integral_comp_add_right, ← integral_comp_mul_left _ hc]
 
 @[simp] lemma smul_integral_comp_mul_add (c d) :
   c • ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + c * x) = c⁻¹ • ∫ x in d+c*a..d+c*b, f x :=
@@ -737,7 +737,7 @@ by rw [← integral_comp_add_left, ← integral_comp_mul_left _ hc]
 
 @[simp] lemma smul_integral_comp_add_mul (c d) :
   c • ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
@@ -745,7 +745,7 @@ by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_mul_add f (inv_ne_ze
 
 @[simp] lemma inv_smul_integral_comp_div_add (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
@@ -753,7 +753,7 @@ by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_add_mul f (inv_ne_ze
 
 @[simp] lemma inv_smul_integral_comp_add_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_mul_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x - d) = c⁻¹ • ∫ x in c*a-d..c*b-d, f x :=
@@ -761,19 +761,19 @@ by simpa only [sub_eq_add_neg] using integral_comp_mul_add f hc (-d)
 
 @[simp] lemma smul_integral_comp_mul_sub (c d) :
   c • ∫ x in a..b, f (c * x - d) = ∫ x in c*a-d..c*b-d, f x  :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_sub_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - c * x) = c⁻¹ • ∫ x in d-c*b..d-c*a, f x :=
 begin
-  simp only [sub_eq_add_neg, neg_mul_eq_neg_mul],
+  simv only [sub_eq_add_neg, neg_mul_eq_neg_mul],
   rw [integral_comp_add_mul f (neg_ne_zero.mpr hc) d, integral_symm],
-  simp only [inv_neg, smul_neg, neg_neg, neg_smul],
+  simv only [inv_neg, smul_neg, neg_neg, neg_smul],
 end
 
 @[simp] lemma smul_integral_comp_sub_mul (c d) :
   c • ∫ x in a..b, f (d - c * x) = ∫ x in d-c*b..d-c*a, f x  :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
@@ -781,7 +781,7 @@ by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_mul_sub f (inv_ne_ze
 
 @[simp] lemma inv_smul_integral_comp_div_sub (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x  :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
@@ -789,7 +789,7 @@ by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_sub_mul f (inv_ne_ze
 
 @[simp] lemma inv_smul_integral_comp_sub_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
-by by_cases hc : c = 0; simp [hc]
+by by_cases hc : c = 0; simv [hc]
 
 @[simp] lemma integral_comp_sub_right (d) :
   ∫ x in a..b, f (x - d) = ∫ x in a-d..b-d, f x :=
@@ -827,12 +827,12 @@ lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
 begin
   have hac := hab.trans hbc,
-  simp only [interval_integral, sub_add_sub_comm, sub_eq_zero],
+  simv only [interval_integral, sub_add_sub_comm, sub_eq_zero],
   iterate 4 { rw ← integral_union },
   { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
     rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,
       min_left_comm, max_left_comm] },
-  all_goals { simp [*, measurable_set.union, measurable_set_Ioc, Ioc_disjoint_Ioc_same,
+  all_goals { simv [*, measurable_set.union, measurable_set_Ioc, Ioc_disjoint_Ioc_same,
     Ioc_disjoint_Ioc_same.symm, hab.1, hab.2, hbc.1, hbc.2, hac.1, hac.2] }
 end
 
@@ -847,13 +847,13 @@ lemma sum_integral_adjacent_intervals_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m
 begin
   revert hint,
   refine nat.le_induction _ _ n hmn,
-  { simp },
+  { simv },
   { assume p hmp IH h,
     rw [finset.sum_Ico_succ_top hmp, IH, integral_add_adjacent_intervals],
     { apply interval_integrable.trans_iterate_Ico hmp (λ k hk, h k _),
       exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk },
     { apply h,
-      simp [hmp] },
+      simv [hmp] },
     { assume k hk,
       exact h _ (Ico_subset_Ico_right p.le_succ hk) } }
 end
@@ -880,7 +880,7 @@ by rw [← integral_add_adjacent_intervals hac hcd, add_assoc, add_left_comm,
 lemma integral_interval_sub_interval_comm (hab : interval_integrable f μ a b)
   (hcd : interval_integrable f μ c d) (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in c..d, f x ∂μ = ∫ x in a..c, f x ∂μ - ∫ x in b..d, f x ∂μ :=
-by simp only [sub_eq_add_neg, ← integral_symm,
+by simv only [sub_eq_add_neg, ← integral_symm,
   integral_interval_add_interval_comm hab hcd.symm (hac.trans hcd)]
 
 lemma integral_interval_sub_interval_comm' (hab : interval_integrable f μ a b)
@@ -904,9 +904,9 @@ end
 lemma integral_const_of_cdf [is_finite_measure μ] (c : E) :
   ∫ x in a..b, c ∂μ = ((μ (Iic b)).to_real - (μ (Iic a)).to_real) • c :=
 begin
-  simp only [sub_smul, ← set_integral_const],
+  simv only [sub_smul, ← set_integral_const],
   refine (integral_Iic_sub_Iic _ _).symm;
-    simp only [integrable_on_const, measure_lt_top, or_true]
+    simv only [integrable_on_const, measure_lt_top, or_true]
 end
 
 lemma integral_eq_integral_of_support_subset {a b} (h : support f ⊆ Ioc a b) :
@@ -916,13 +916,13 @@ begin
   { rw [integral_of_le hab, ← integral_indicator measurable_set_Ioc, indicator_eq_self.2 h];
     apply_instance },
   { rw [Ioc_eq_empty hab.not_lt, subset_empty_iff, support_eq_empty_iff] at h,
-    simp [h] }
+    simv [h] }
 end
 
 lemma integral_congr_ae' (h : ∀ᵐ x ∂μ, x ∈ Ioc a b → f x = g x)
   (h' : ∀ᵐ x ∂μ, x ∈ Ioc b a → f x = g x) :
   ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
-by simp only [interval_integral, set_integral_congr_ae (measurable_set_Ioc) h,
+by simv only [interval_integral, set_integral_congr_ae (measurable_set_Ioc) h,
               set_integral_congr_ae (measurable_set_Ioc) h']
 
 lemma integral_congr_ae (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = g x) :
@@ -953,7 +953,7 @@ lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   (h_lim : ∀ᵐ x ∂μ, x ∈ Ι a b → tendsto (λ n, F n x) l (𝓝 (f x))) :
   tendsto (λn, ∫ x in a..b, F n x ∂μ) l (𝓝 $ ∫ x in a..b, f x ∂μ) :=
 begin
-  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
+  simv only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
     ← ae_restrict_iff' measurable_set_interval_oc] at *,
   exact tendsto_const_nhds.smul
     (tendsto_integral_filter_of_dominated_convergence bound hF_meas h_bound bound_integrable h_lim)
@@ -969,7 +969,7 @@ lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
   (h_lim : ∀ᵐ t ∂μ, t ∈ Ι a b → has_sum (λ n, F n t) (f t)) :
   has_sum (λn, ∫ t in a..b, F n t ∂μ) (∫ t in a..b, f t ∂μ) :=
 begin
-  simp only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
+  simv only [interval_integrable_iff, interval_integral_eq_integral_interval_oc,
     ← ae_restrict_iff' measurable_set_interval_oc] at *,
   exact (has_sum_integral_of_dominated_convergence bound hF_meas h_bound bound_summable
     bound_integrable h_lim).const_smul
@@ -1073,7 +1073,7 @@ begin
       exacts [measurable_set_Iic, measurable_set_Iic] },
     { refine eventually_of_forall (λ x, eventually_of_forall (λ t, _)),
       dsimp [indicator],
-      split_ifs ; simp },
+      split_ifs ; simv },
     { have : ∀ᵐ t ∂μ, t < b₀ ∨ b₀ < t,
       { apply eventually.mono (compl_mem_ae_iff.mpr hb₀),
         intros x hx,
@@ -1084,16 +1084,16 @@ begin
         { apply mem_nhds_within_of_mem_nhds,
           apply eventually.mono (Ioi_mem_nhds hx₀),
           intros x hx,
-          simp [hx.le] },
+          simv [hx.le] },
         apply continuous_within_at_const.congr_of_eventually_eq  this,
-        simp [hx₀.le] },
+        simv [hx₀.le] },
       { have : ∀ᶠ x in 𝓝[Icc b₁ b₂] b₀, {t : ℝ | t ≤ x}.indicator f x₀ = 0,
         { apply mem_nhds_within_of_mem_nhds,
           apply eventually.mono (Iio_mem_nhds hx₀),
           intros x hx,
-          simp [hx] },
+          simv [hx] },
         apply continuous_within_at_const.congr_of_eventually_eq this,
-        simp [hx₀] } } },
+        simv [hx₀] } } },
   { apply continuous_within_at_of_not_mem_closure,
     rwa [closure_Icc] }
 end
@@ -1108,7 +1108,7 @@ begin
     rw continuous_on_congr this,
     intros x₀ hx₀,
     refine continuous_within_at_primitive (measure_singleton x₀) _,
-    simp only [interval_integrable_iff_integrable_Ioc_of_le, min_eq_left, max_eq_right, h],
+    simv only [interval_integrable_iff_integrable_Ioc_of_le, min_eq_left, max_eq_right, h],
     exact h_int.mono Ioc_subset_Icc_self le_rfl },
   { rw Icc_eq_empty h,
     exact continuous_on_empty _ },
@@ -1143,7 +1143,7 @@ lemma continuous_on_primitive_interval_left [has_no_atoms μ]
   continuous_on (λ x, ∫ t in x..b, f t ∂ μ) (interval a b) :=
 begin
   rw interval_swap a b at h_int ⊢,
-  simp only [integral_symm b],
+  simv only [integral_symm b],
   exact (continuous_on_primitive_interval h_int).neg,
 end
 
@@ -1180,7 +1180,7 @@ lemma integral_eq_zero_iff_of_nonneg_ae
   ∫ x in a..b, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] 0 :=
 begin
   cases le_total a b with hab hab;
-    simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
+    simv only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
   { exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi },
   { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
 end
@@ -1194,9 +1194,9 @@ lemma integral_pos_iff_support_of_nonneg_ae'
 begin
   cases lt_or_le a b with hab hba,
   { rw interval_oc_of_le hab.le at hf,
-    simp only [hab, true_and, integral_of_le hab.le,
+    simv only [hab, true_and, integral_of_le hab.le,
       set_integral_pos_iff_support_of_nonneg_ae hf hfi.1] },
-  { suffices : ∫ x in a..b, f x ∂μ ≤ 0, by simp only [this.not_lt, hba.not_lt, false_and],
+  { suffices : ∫ x in a..b, f x ∂μ ≤ 0, by simv only [this.not_lt, hba.not_lt, false_and],
     rw [integral_of_ge hba, neg_nonpos],
     rw [interval_oc_swap, interval_oc_of_le hba] at hf,
     exact integral_nonneg_of_ae hf }
@@ -1218,7 +1218,7 @@ begin
   have hsupp : support f = univ := eq_univ_iff_forall.mpr (λ t, (h t).ne.symm),
   replace h₀ : 0 ≤ᵐ[volume] f := eventually_of_forall (λ x, (h x).le),
   rw integral_pos_iff_support_of_nonneg_ae h₀ hfi,
-  exact ⟨hab, by simp [hsupp, hab]⟩,
+  exact ⟨hab, by simv [hsupp, hab]⟩,
 end
 
 /-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
@@ -1248,10 +1248,10 @@ begin
     ((ae_restrict_mem measurable_set_Ioc).mono hle) _,
   contrapose! hlt,
   have h_eq : f =ᵐ[volume.restrict (Ioc a b)] g,
-  { simp only [← not_le, ← ae_iff] at hlt,
+  { simv only [← not_le, ← ae_iff] at hlt,
     exact eventually_le.antisymm ((ae_restrict_iff' measurable_set_Ioc).2 $
       eventually_of_forall hle) hlt },
-  simp only [measure.restrict_congr_set Ioc_ae_eq_Icc] at h_eq,
+  simv only [measure.restrict_congr_set Ioc_ae_eq_Icc] at h_eq,
   exact λ c hc, (measure.eq_on_Icc_of_ae_eq volume hab.ne h_eq hfc hgc hc).ge
 end
 
@@ -1352,7 +1352,7 @@ as `ua` and `va` tend to `la` while `ub` and `vb` tend to `lb`.
 
 This theorem is formulated with integral of constants instead of measures in the right hand sides
 for two reasons: first, this way we avoid `min`/`max` in the statements; second, often it is
-possible to write better `simp` lemmas for these integrals, see `integral_const` and
+possible to write better `simv` lemmas for these integrals, see `integral_const` and
 `integral_const_of_cdf`.
 
 In the next subsection we apply this theorem to prove various theorems about differentiability
@@ -1440,12 +1440,12 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae'
 begin
   have A := hf.integral_sub_linear_is_o_ae hfm hl (hu.Ioc hv),
   have B := hf.integral_sub_linear_is_o_ae hfm hl (hv.Ioc hu),
-  simp only [integral_const'],
+  simv only [integral_const'],
   convert (A.trans_le _).sub (B.trans_le _),
   { ext t,
     simp_rw [interval_integral, sub_smul],
     abel },
-  all_goals { intro t, cases le_total (u t) (v t) with huv huv; simp [huv] }
+  all_goals { intro t, cases le_total (u t) (v t) with huv huv; simv [huv] }
 end
 
 /-- Fundamental theorem of calculus-1, local version for any measure.
@@ -1465,8 +1465,8 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
   (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c) =o[lt]
     (λ t, (μ $ Ioc (u t) (v t)).to_real) :=
 (measure_integral_sub_linear_is_o_of_tendsto_ae' hfm hf hl hu hv).congr'
-  (huv.mono $ λ x hx, by simp [integral_const', hx])
-  (huv.mono $ λ x hx, by simp [integral_const', hx])
+  (huv.mono $ λ x hx, by simv [integral_const', hx])
+  (huv.mono $ λ x hx, by simv [integral_const', hx])
 
 /-- Fundamental theorem of calculus-1, local version for any measure.
 Let filters `l` and `l'` be related by `tendsto_Ixx_class Ioc`.
@@ -1485,7 +1485,7 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
   (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c) =o[lt]
     (λ t, (μ $ Ioc (v t) (u t)).to_real) :=
 (measure_integral_sub_linear_is_o_of_tendsto_ae_of_le' hfm hf hl hv hu huv).neg_left.congr_left $
-  λ t, by simp [integral_symm (u t), add_comm]
+  λ t, by simv [integral_symm (u t), add_comm]
 
 section
 
@@ -1750,7 +1750,7 @@ begin
     ((continuous_snd.comp continuous_snd).tendsto ((a, b), (a, b)))
     ((continuous_snd.comp continuous_fst).tendsto ((a, b), (a, b))),
   refine (this.congr_left _).trans_is_O _,
-  { intro x, simp [sub_smul] },
+  { intro x, simv [sub_smul] },
   { exact is_O_fst_prod.norm_left.add is_O_snd_prod.norm_left }
 end
 
@@ -1953,7 +1953,7 @@ begin
     (tendsto_const_pure.mono_right FTC_filter.pure_le : tendsto _ _ (𝓝[s] a)) tendsto_fst
     (tendsto_const_pure.mono_right FTC_filter.pure_le : tendsto _ _ (𝓝[t] b)) tendsto_snd,
   refine (this.congr_left _).trans_is_O _,
-  { intro x, simp [sub_smul] },
+  { intro x, simv [sub_smul] },
   { exact is_O_fst_prod.norm_left.add is_O_snd_prod.norm_left }
 end
 
@@ -2056,7 +2056,7 @@ lemma integral_has_deriv_within_at_of_tendsto_ae_left
   (hmeas : strongly_measurable_at_filter f (𝓝[t] a))
   (ha : tendsto f (𝓝[t] a ⊓ volume.ae) (𝓝 c)) :
   has_deriv_within_at (λ u, ∫ x in u..b, f x) (-c) s a :=
-by { simp only [integral_symm b],
+by { simv only [integral_symm b],
   exact (integral_has_deriv_within_at_of_tendsto_ae_right hf.symm hmeas ha).neg }
 
 /-- Fundamental theorem of calculus: if `f : ℝ → E` is integrable on `a..b` and `f x` is continuous
@@ -2141,14 +2141,14 @@ begin
   { have : continuous_on (λ t, (g t - g a, ∫ u in a..t, (G' u).to_real)) (Icc a b),
     { rw ← interval_of_le hab at G'int ⊢ hcont,
       exact (hcont.sub continuous_on_const).prod (continuous_on_primitive_interval G'int) },
-    simp only [s, inter_comm],
+    simv only [s, inter_comm],
     exact this.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
   have main : Icc a b ⊆ {t | g t - g a ≤ ∫ u in a..t, (G' u).to_real },
   { -- to show that the set `s` is all `[a, b]`, it suffices to show that any point `t` in `s`
     -- with `t < b` admits another point in `s` slightly to its right
     -- (this is a sort of real induction).
     apply s_closed.Icc_subset_of_forall_exists_gt
-      (by simp only [integral_same, mem_set_of_eq, sub_self]) (λ t ht v t_lt_v, _),
+      (by simv only [integral_same, mem_set_of_eq, sub_self]) (λ t ht v t_lt_v, _),
     obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
       ereal.lt_iff_exists_real_btwn.1 ((ereal.coe_le_coe_iff.2 (hφg t ht.2)).trans_lt (f_lt_G' t)),
     -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower
@@ -2158,18 +2158,18 @@ begin
         G'cont.lower_semicontinuous_at _ _ y_lt_G',
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
       have : Ioo t (min M b) ∈ 𝓝[>] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
-        ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
+        ⟨min M b, by simv only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
       filter_upwards [this] with u hu,
       have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
       calc (u - t) * y = ∫ v in Icc t u, y :
-        by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
+        by simv only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
                       measurable_set.univ, real.volume_Icc, measure.restrict_apply, univ_inter,
                       ennreal.to_real_of_real]
       ... ≤ ∫ w in t..u, (G' w).to_real :
       begin
         rw [interval_integral.integral_of_le hu.1.le, ← integral_Icc_eq_integral_Ioc],
         apply set_integral_mono_ae_restrict,
-        { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
+        { simv only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
         { exact integrable_on.mono_set G'int I },
         { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ∞ :=
             ae_mono (measure.restrict_mono I le_rfl) G'lt_top,
@@ -2177,7 +2177,7 @@ begin
             ae_restrict_mem measurable_set_Icc,
           filter_upwards [C1, C2] with x G'x hx,
           apply ereal.coe_le_coe_iff.1,
-          have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
+          have : x ∈ Ioo m M, by simv only [hm.trans_le hx.left,
             (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
           convert le_of_lt (H this),
           exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (f_lt_G' x)) }
@@ -2195,7 +2195,7 @@ begin
     { filter_upwards [I1, I2] with u hu1 hu2 using hu2.trans hu1, },
     have I4 : ∀ᶠ u in 𝓝[>] t, u ∈ Ioc t (min v b),
     { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
-      simp only [lt_min_iff, mem_Ioi],
+      simv only [lt_min_iff, mem_Ioi],
       exact ⟨t_lt_v, ht.2.2⟩ },
     -- choose a point `x` slightly to the right of `t` which satisfies the above bound
     rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
@@ -2219,7 +2219,7 @@ begin
     begin
       convert hG'.le;
       { rw interval_integral.integral_of_le hab,
-        simp only [integral_Icc_eq_integral_Ioc', real.volume_singleton] },
+        simv only [integral_Icc_eq_integral_Ioc', real.volume_singleton] },
     end
 end
 
@@ -2237,13 +2237,13 @@ lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
 begin
   -- This follows from the version on a closed-open interval (applied to `[t, b)` for `t` close to
   -- `a`) and a continuity argument.
-  obtain rfl|a_lt_b := hab.eq_or_lt, { simp },
+  obtain rfl|a_lt_b := hab.eq_or_lt, { simv },
   set s := {t | g b - g t ≤ ∫ u in t..b, φ u} ∩ Icc a b,
   have s_closed : is_closed s,
   { have : continuous_on (λ t, (g b - g t, ∫ u in t..b, φ u)) (Icc a b),
     { rw ← interval_of_le hab at ⊢ hcont φint,
       exact (continuous_on_const.sub hcont).prod (continuous_on_primitive_interval_left φint) },
-    simp only [s, inter_comm],
+    simv only [s, inter_comm],
     exact this.preimage_closed_of_closed is_closed_Icc is_closed_le_prod, },
   have A : closure (Ioc a b) ⊆ s,
   { apply s_closed.closure_subset_iff.2,
@@ -2269,7 +2269,7 @@ begin
   convert sub_le_integral_of_has_deriv_right_of_le hab hcont.neg (λ x hx, (hderiv x hx).neg)
     φint.neg (λ x hx, neg_le_neg (hφg x hx)),
   { abel },
-  { simp only [← integral_neg], refl },
+  { simv only [← integral_neg], refl },
 end
 
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version -/
@@ -2308,9 +2308,9 @@ theorem integral_eq_sub_of_has_deriv_right (hcont : continuous_on f (interval a 
   ∫ y in a..b, f' y = f b - f a :=
 begin
   cases le_total a b with hab hab,
-  { simp only [interval_of_le, min_eq_left, max_eq_right, hab] at hcont hderiv hint,
+  { simv only [interval_of_le, min_eq_left, max_eq_right, hab] at hcont hderiv hint,
     apply integral_eq_sub_of_has_deriv_right_of_le hab hcont hderiv hint },
-  { simp only [interval_of_ge, min_eq_right, max_eq_left, hab] at hcont hderiv,
+  { simv only [interval_of_ge, min_eq_right, max_eq_left, hab] at hcont hderiv,
     rw [integral_symm, integral_eq_sub_of_has_deriv_right_of_le hab hcont hderiv hint.symm,
         neg_sub] }
 end
@@ -2341,7 +2341,7 @@ begin
   set F : ℝ → E := update (update f a fa) b fb,
   have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
   { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
-    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with _ hy, simp only [F],
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with _ hy, simv only [F],
     rw [update_noteq hy.2.ne, update_noteq hy.1.ne'], },
   have hcont : continuous_on F (Icc a b),
   { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
@@ -2405,7 +2405,7 @@ begin
     apply integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv _ (λ x hx, _),
     { rwa integrable_on_Icc_iff_integrable_on_Ioo },
     { convert nnreal.coe_le_coe.2 (fle x),
-      simp only [real.norm_of_nonneg (g'pos x hx), coe_nnnorm] } },
+      simv only [real.norm_of_nonneg (g'pos x hx), coe_nnnorm] } },
   exact lt_irrefl _ (hf.trans_le (ennreal.of_real_le_of_real B)),
 end
 
@@ -2425,10 +2425,10 @@ theorem interval_integrable_deriv_of_nonneg (hcont : continuous_on g (interval a
   interval_integrable g' volume a b :=
 begin
   cases le_total a b with hab hab,
-  { simp only [interval_of_le, min_eq_left, max_eq_right, hab, interval_integrable,
+  { simv only [interval_of_le, min_eq_left, max_eq_right, hab, interval_integrable,
       hab, Ioc_eq_empty_of_le, integrable_on_empty, and_true] at hcont hderiv hpos ⊢,
     exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos, },
-  { simp only [interval_of_ge, min_eq_right, max_eq_left, hab, interval_integrable,
+  { simv only [interval_of_ge, min_eq_right, max_eq_left, hab, interval_integrable,
       Ioc_eq_empty_of_le, integrable_on_empty, true_and] at hcont hderiv hpos ⊢,
     exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos }
 end
@@ -2453,7 +2453,7 @@ theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
 begin
   rw [← integral_deriv_mul_eq_sub hu hv hu' hv', ← integral_sub],
-  { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
+  { exact integral_congr (λ x hx, by simv only [mul_comm, add_sub_cancel']) },
   { exact ((hu'.mul_continuous_on (has_deriv_at.continuous_on hv)).add
       (hv'.continuous_on_mul (has_deriv_at.continuous_on hu))) },
   { exact hu'.continuous_on_mul (has_deriv_at.continuous_on hv) },

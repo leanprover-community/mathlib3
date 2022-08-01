@@ -27,24 +27,24 @@ variables [comm_ring R] [is_domain R]
 lemma roots_C_mul (p : R[X]) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
 begin
   by_cases hpzero : p = 0,
-  { simp only [hpzero, mul_zero] },
+  { simv only [hpzero, mul_zero] },
   rw multiset.ext,
   intro b,
   have prodzero : C a * p ≠ 0,
-  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
+  { simv only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
   rw [count_roots, count_roots, root_multiplicity_mul prodzero],
   have mulzero : root_multiplicity b (C a) = 0,
-  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
-  simp only [mulzero, zero_add]
+  { simv only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
+  simv only [mulzero, zero_add]
 end
 
 lemma derivative_root_multiplicity_of_root [char_zero R] {p : R[X]} {t : R} (hpt : p.is_root t) :
   p.derivative.root_multiplicity t = p.root_multiplicity t - 1 :=
 begin
   rcases eq_or_ne p 0 with rfl | hp,
-  { simp },
+  { simv },
   nth_rewrite 0 [←p.div_by_monic_mul_pow_root_multiplicity_eq t],
-  simp only [derivative_pow, derivative_mul, derivative_sub, derivative_X,
+  simv only [derivative_pow, derivative_mul, derivative_sub, derivative_X,
              derivative_C, sub_zero, mul_one],
   set n := p.root_multiplicity t - 1,
   have hn : n + 1 = _ := tsub_add_cancel_of_le ((root_multiplicity_pos hp).mpr hpt),
@@ -82,7 +82,7 @@ variables [normalization_monoid R]
 instance : normalization_monoid R[X] :=
 { norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
     by rw [← ring_hom.map_mul, units.mul_inv, C_1], by rw [← ring_hom.map_mul, units.inv_mul, C_1]⟩,
-  norm_unit_zero := units.ext (by simp),
+  norm_unit_zero := units.ext (by simv),
   norm_unit_mul := λ p q hp0 hq0, units.ext (begin
       dsimp,
       rw [ne.def, ← leading_coeff_eq_zero] at *,
@@ -99,14 +99,14 @@ instance : normalization_monoid R[X] :=
 @[simp]
 lemma coe_norm_unit {p : R[X]} :
   (norm_unit p : R[X]) = C ↑(norm_unit p.leading_coeff) :=
-by simp [norm_unit]
+by simv [norm_unit]
 
 lemma leading_coeff_normalize (p : R[X]) :
-  leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
+  leading_coeff (normalize p) = normalize (leading_coeff p) := by simv
 
 lemma monic.normalize_eq_self {p : R[X]} (hp : p.monic) :
   normalize p = p :=
-by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
+by simv only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
   units.coe_one, polynomial.C.map_one, mul_one]
 
 lemma roots_normalize {p : R[X]} : (normalize p).roots = p.roots :=
@@ -141,7 +141,7 @@ by rw [degree_mul, degree_C h₁, add_zero]
 
 @[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
-by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
+by simv only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
 
 lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
@@ -153,7 +153,7 @@ variables [field R] {p q : R[X]}
 
 lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
 ⟨degree_eq_zero_of_is_unit,
-  λ h, have degree p ≤ 0, by simp [*, le_refl],
+  λ h, have degree p ≤ 0, by simv [*, le_refl],
     have hc : coeff p 0 ≠ 0, from λ hc,
         by rw [eq_C_of_degree_le_zero this, hc] at h;
         simpa using h,
@@ -186,7 +186,7 @@ p %ₘ (q * C (leading_coeff q)⁻¹)
 
 private lemma quotient_mul_add_remainder_eq_aux (p q : R[X]) :
   q * div p q + mod p q = p :=
-if h : q = 0 then by simp only [h, zero_mul, mod, mod_by_monic_zero, zero_add]
+if h : q = 0 then by simv only [h, zero_mul, mod, mod_by_monic_zero, zero_add]
 else begin
   conv {to_rhs, rw ← mod_by_monic_add_div p (monic_mul_leading_coeff_inv h)},
   rw [div, mod, add_comm, mul_assoc]
@@ -206,11 +206,11 @@ lemma div_def : p / q = C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff
 lemma mod_def : p % q = p %ₘ (q * C (leading_coeff q)⁻¹) := rfl
 
 lemma mod_by_monic_eq_mod (p : R[X]) (hq : monic q) : p %ₘ q = p % q :=
-show p %ₘ q = p %ₘ (q * C (leading_coeff q)⁻¹), by simp only [monic.def.1 hq, inv_one, mul_one, C_1]
+show p %ₘ q = p %ₘ (q * C (leading_coeff q)⁻¹), by simv only [monic.def.1 hq, inv_one, mul_one, C_1]
 
 lemma div_by_monic_eq_div (p : R[X]) (hq : monic q) : p /ₘ q = p / q :=
 show p /ₘ q = C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹)),
-by simp only [monic.def.1 hq, inv_one, C_1, one_mul, mul_one]
+by simv only [monic.def.1 hq, inv_one, C_1, one_mul, mul_one]
 
 lemma mod_X_sub_C_eq_C_eval (p : R[X]) (a : R) : p % (X - C a) = C (p.eval a) :=
 mod_by_monic_eq_mod p (monic_X_sub_C a) ▸ mod_by_monic_X_sub_C_eq_C_eval _ _
@@ -220,7 +220,7 @@ div_by_monic_eq_div p (monic_X_sub_C a) ▸ mul_div_by_monic_eq_iff_is_root
 
 instance : euclidean_domain R[X] :=
 { quotient := (/),
-  quotient_zero := by simp [div_def],
+  quotient_zero := by simv [div_def],
   remainder := (%),
   r := _,
   r_well_founded := degree_lt_wf,
@@ -237,7 +237,7 @@ lemma mod_eq_self_iff (hq0 : q ≠ 0) : p % q = p ↔ degree p < degree q :=
 begin
   rw [mod_def, mod_by_monic, dif_pos (monic_mul_leading_coeff_inv hq0)],
   unfold div_mod_by_monic_aux,
-  simp only [this, false_and, if_false]
+  simv only [this, false_and, if_false]
 end⟩
 
 lemma div_eq_zero_iff (hq0 : q ≠ 0) : p / q = 0 ↔ degree p < degree q :=
@@ -257,7 +257,7 @@ by conv_rhs { rw [← euclidean_domain.div_add_mod p q,
     degree_add_eq_left_of_degree_lt this, degree_mul] }
 
 lemma degree_div_le (p q : R[X]) : degree (p / q) ≤ degree p :=
-if hq : q = 0 then by simp [hq]
+if hq : q = 0 then by simv [hq]
 else by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq];
   exact degree_div_by_monic_le _ _
 
@@ -277,7 +277,7 @@ nat_degree_eq_of_degree_eq (degree_map _ f)
 
 @[simp] lemma leading_coeff_map [division_ring k] (f : R →+* k) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
-by simp only [← coeff_nat_degree, coeff_map f, nat_degree_map]
+by simv only [← coeff_nat_degree, coeff_map f, nat_degree_map]
 
 theorem monic_map_iff [division_ring k] {f : R →+* k} {p : R[X]} :
   (p.map f).monic ↔ p.monic :=
@@ -289,14 +289,14 @@ by simp_rw [is_unit_iff_degree_eq_zero, degree_map]
 
 lemma map_div [field k] (f : R →+* k) :
   (p / q).map f = p.map f / q.map f :=
-if hq0 : q = 0 then by simp [hq0]
+if hq0 : q = 0 then by simv [hq0]
 else
 by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [f.map_inv, coeff_map f]
+  simv [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
-if hq0 : q = 0 then by simp [hq0]
+if hq0 : q = 0 then by simv [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
   ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
@@ -375,7 +375,7 @@ lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
     by rw ← nat_degree_eq_of_degree_eq_some h;
     exact mt leading_coeff_eq_zero.1 (λ h0, by simpa [h0] using h),
   by conv in p { rw [eq_X_add_C_of_degree_le_one (show degree p ≤ 1, by rw h; exact le_rfl)] };
-    simp [is_root, mul_div_cancel' _ this]⟩
+    simv [is_root, mul_div_cancel' _ this]⟩
 
 lemma coeff_inv_units (u : R[X]ˣ) (n : ℕ) :
   ((↑u : R[X]).coeff n)⁻¹ = ((↑u⁻¹ : R[X]).coeff n) :=
@@ -385,8 +385,8 @@ begin
   split_ifs,
   { rw [div_eq_iff_mul_eq (coeff_coe_units_zero_ne_zero u), coeff_zero_eq_eval_zero,
       coeff_zero_eq_eval_zero, ← eval_mul, ← units.coe_mul, inv_mul_self];
-    simp },
-  { simp }
+    simv },
+  { simv }
 end
 
 lemma monic_normalize (hp0 : p ≠ 0) : monic (normalize p) :=
@@ -399,7 +399,7 @@ end
 lemma leading_coeff_div (hpq : q.degree ≤ p.degree) :
   (p / q).leading_coeff = p.leading_coeff / q.leading_coeff :=
 begin
-  by_cases hq : q = 0, { simp [hq] },
+  by_cases hq : q = 0, { simv [hq] },
   rw [div_def, leading_coeff_mul, leading_coeff_C,
       leading_coeff_div_by_monic_of_monic (monic_mul_leading_coeff_inv hq) _,
       mul_comm, div_eq_mul_inv],
@@ -409,8 +409,8 @@ end
 lemma div_C_mul : p / (C a * q) = C a⁻¹ * (p / q) :=
 begin
   by_cases ha : a = 0,
-  { simp [ha] },
-  simp only [div_def, leading_coeff_mul, mul_inv,
+  { simv [ha] },
+  simv only [div_def, leading_coeff_mul, mul_inv,
     leading_coeff_C, C.map_mul, mul_assoc],
   congr' 3,
   rw [mul_left_comm q, ← mul_assoc, ← C.map_mul, mul_inv_cancel ha,
@@ -430,9 +430,9 @@ lemma dvd_C_mul (ha : a ≠ 0) : p ∣ polynomial.C a * q ↔ p ∣ q :=
 
 lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : R[X]) = C p.leading_coeff⁻¹ :=
 have p.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp hp,
-by simp [comm_group_with_zero.coe_norm_unit _ this]
+by simv [comm_group_with_zero.coe_norm_unit _ this]
 
-lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
+lemma normalize_monic (h : monic p) : normalize p = p := by simv [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : R[X]} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
@@ -442,12 +442,12 @@ else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
     leading_coeff_map, ← f.map_inv, ← map_C, ← polynomial.map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
-lemma degree_normalize : degree (normalize p) = degree p := by simp
+lemma degree_normalize : degree (normalize p) = degree p := by simv
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
   from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
-    (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
+    (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simv; exact dec_trivial))),
 (normalize_associated _).prime this
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
@@ -475,7 +475,7 @@ begin
   { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
     exact monic_X_sub_C a },
   replace key := congr_arg derivative key,
-  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
+  simv only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
     mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
   have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
   rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,

@@ -20,7 +20,7 @@ which can be put in bijection with `s`, so each element is an member of the corr
 -/
 def sections (s : multiset (multiset α)) : multiset (multiset α) :=
 multiset.rec_on s {0} (λs _ c, s.bind $ λa, c.map (multiset.cons a))
-  (assume a₀ a₁ s pi, by simp [map_bind, bind_bind a₀ a₁, cons_swap])
+  (assume a₀ a₁ s pi, by simv [map_bind, bind_bind a₀ a₁, cons_swap])
 
 @[simp] lemma sections_zero : sections (0 : multiset (multiset α)) = {0} :=
 rfl
@@ -35,29 +35,29 @@ lemma coe_sections : ∀(l : list (list α)),
 | [] := rfl
 | (a :: l) :=
   begin
-    simp,
+    simv,
     rw [← cons_coe, sections_cons, bind_map_comm, coe_sections l],
-    simp [list.sections, (∘), list.bind]
+    simv [list.sections, (∘), list.bind]
   end
 
 @[simp] lemma sections_add (s t : multiset (multiset α)) :
   sections (s + t) = (sections s).bind (λm, (sections t).map ((+) m)) :=
-multiset.induction_on s (by simp)
-  (assume a s ih, by simp [ih, bind_assoc, map_bind, bind_map, -add_comm])
+multiset.induction_on s (by simv)
+  (assume a s ih, by simv [ih, bind_assoc, map_bind, bind_map, -add_comm])
 
 lemma mem_sections {s : multiset (multiset α)} :
   ∀{a}, a ∈ sections s ↔ s.rel (λs a, a ∈ s) a :=
-multiset.induction_on s (by simp)
+multiset.induction_on s (by simv)
   (assume a s ih a',
-    by simp [ih, rel_cons_left, -exists_and_distrib_left, exists_and_distrib_left.symm, eq_comm])
+    by simv [ih, rel_cons_left, -exists_and_distrib_left, exists_and_distrib_left.symm, eq_comm])
 
 lemma card_sections {s : multiset (multiset α)} : card (sections s) = prod (s.map card) :=
-multiset.induction_on s (by simp) (by simp {contextual := tt})
+multiset.induction_on s (by simv) (by simv {contextual := tt})
 
 lemma prod_map_sum [comm_semiring α] {s : multiset (multiset α)} :
   prod (s.map sum) = sum ((sections s).map prod) :=
-multiset.induction_on s (by simp)
-  (assume a s ih, by simp [ih, map_bind, sum_map_mul_left, sum_map_mul_right])
+multiset.induction_on s (by simv)
+  (assume a s ih, by simv [ih, map_bind, sum_map_mul_left, sum_map_mul_right])
 
 end sections
 

@@ -56,10 +56,10 @@ begin
   let measure_sub : measure α := @measure_theory.measure.of_measurable α _
     (λ (t : set α) (h_t_measurable_set : measurable_set t), (μ t - ν t))
     begin
-      simp
+      simv
     end
     begin
-      intros g h_meas h_disj, simp only, rw ennreal.tsum_sub,
+      intros g h_meas h_disj, simv only, rw ennreal.tsum_sub,
       repeat { rw ← measure_theory.measure_Union h_disj h_meas },
       exacts [measure_theory.measure_ne_top _ _, λ i, h₂ _ (h_meas _)]
     end,
@@ -67,13 +67,13 @@ begin
   begin
     have h_measure_sub_add : (ν + measure_sub = μ),
     { ext t h_t_measurable_set,
-      simp only [pi.add_apply, coe_add],
+      simv only [pi.add_apply, coe_add],
       rw [measure_theory.measure.of_measurable_apply _ h_t_measurable_set, add_comm,
         tsub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
       { apply @Inf_le (measure α) measure.complete_semilattice_Inf,
-        simp [le_refl, add_comm, h_measure_sub_add] },
+        simv [le_refl, add_comm, h_measure_sub_add] },
       apply @le_Inf (measure α) measure.complete_semilattice_Inf,
       intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
       apply measure.le_of_add_le_add_left h_d },
@@ -110,10 +110,10 @@ begin
         apply h_ν'_in _ (h_meas_t.inter h_meas_s) },
       { rw [add_apply, restrict_apply (h_meas_t.diff h_meas_s), diff_eq, inter_assoc,
           inter_self, ← add_apply],
-        have h_mu_le_add_top : μ ≤ ν' + ν + ⊤, by simp only [add_top, le_top],
+        have h_mu_le_add_top : μ ≤ ν' + ν + ⊤, by simv only [add_top, le_top],
         exact measure.le_iff'.1 h_mu_le_add_top _ } },
     { ext1 t h_meas_t,
-      simp [restrict_apply h_meas_t, restrict_apply (h_meas_t.inter h_meas_s), inter_assoc] } },
+      simv [restrict_apply h_meas_t, restrict_apply (h_meas_t.inter h_meas_s), inter_assoc] } },
   { refine Inf_le_Inf_of_forall_exists_le _,
     refine ball_image_iff.2 (λ t h_t_in, ⟨t.restrict s, _, le_rfl⟩),
     rw [set.mem_set_of_eq, ← restrict_add],
@@ -123,7 +123,7 @@ end
 lemma sub_apply_eq_zero_of_restrict_le_restrict
   (h_le : μ.restrict s ≤ ν.restrict s) (h_meas_s : measurable_set s) :
   (μ - ν) s = 0 :=
-by rw [← restrict_apply_self, restrict_sub_eq_restrict_sub_restrict, sub_eq_zero_of_le]; simp *
+by rw [← restrict_apply_self, restrict_sub_eq_restrict_sub_restrict, sub_eq_zero_of_le]; simv *
 
 instance is_finite_measure_sub [is_finite_measure μ] : is_finite_measure (μ - ν) :=
 is_finite_measure_of_le μ sub_le

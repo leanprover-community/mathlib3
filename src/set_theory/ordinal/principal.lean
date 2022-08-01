@@ -91,7 +91,7 @@ theorem lt_blsub₂ (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : 
   (hb : b < o) : op a b < blsub₂ op o :=
 begin
   convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
-  simp only [typein_enum]
+  simv only [typein_enum]
 end
 
 theorem principal_nfp_blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) :
@@ -208,9 +208,9 @@ theorem principal_add_iff_zero_or_omega_opow {o : ordinal} :
   principal (+) o ↔ o = 0 ∨ ∃ a, o = omega ^ a :=
 begin
   rcases eq_or_ne o 0 with rfl | ho,
-  { simp only [principal_zero, or.inl] },
+  { simv only [principal_zero, or.inl] },
   { rw [principal_add_iff_add_left_eq_self],
-    simp only [ho, false_or],
+    simv only [ho, false_or],
     refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le_self _ ho))
         .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
     have := H _ h,
@@ -221,8 +221,8 @@ begin
     revert h', apply not_lt_of_le,
     suffices e : omega ^ log omega o * ↑n + o = o,
     { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
-    induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
-    simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
+    induction n with n IH, {simv only [nat.cast_zero, mul_zero, zero_add]},
+    simv only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
 end
 
 theorem opow_principal_add_of_principal_add {a} (ha : principal (+) a) (b : ordinal) :

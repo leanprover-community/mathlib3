@@ -86,7 +86,7 @@ lemma holds_constant {v w : nat → nat} :
     (p.holds v ↔ p.holds w) )
 | (t =* s) h1 :=
   begin
-    simp only [holds],
+    simv only [holds],
     apply pred_mono_2;
     apply preterm.val_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
@@ -94,7 +94,7 @@ lemma holds_constant {v w : nat → nat} :
   end
 | (t ≤* s) h1 :=
   begin
-    simp only [holds],
+    simv only [holds],
     apply pred_mono_2;
     apply preterm.val_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
@@ -107,7 +107,7 @@ lemma holds_constant {v w : nat → nat} :
   end
 | (p ∨* q) h1 :=
   begin
-    simp only [holds],
+    simv only [holds],
     apply pred_mono_2';
     apply holds_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
@@ -115,7 +115,7 @@ lemma holds_constant {v w : nat → nat} :
   end
 | (p ∧* q) h1 :=
   begin
-    simp only [holds],
+    simv only [holds],
     apply pred_mono_2';
     apply holds_constant;
     intros x h2; apply h1 _ (lt_of_lt_of_le h2 _),
@@ -174,7 +174,7 @@ lemma univ_close_of_valid {p : preform} :
 
 lemma valid_of_unsat_not {p : preform} : (¬*p).unsat → p.valid :=
 begin
-  simp only [preform.sat, preform.unsat, preform.valid, preform.holds],
+  simv only [preform.sat, preform.unsat, preform.valid, preform.holds],
   rw not_exists_not, intro h, assumption
 end
 

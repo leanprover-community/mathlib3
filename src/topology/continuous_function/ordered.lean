@@ -52,7 +52,7 @@ pi.lt_def
 instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
 { sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
 
-@[simp, norm_cast] lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+@[simv, norm_cast] lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
   ((f ⊔ g : C(α, β)) : α → β) = (f ⊔ g : α → β) :=
 rfl
 
@@ -61,16 +61,16 @@ rfl
 rfl
 
 instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
-{ le_sup_left := λ f g, le_def.mpr (by simp [le_refl]),
-  le_sup_right := λ f g, le_def.mpr (by simp [le_refl]),
-  sup_le := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
+{ le_sup_left := λ f g, le_def.mpr (by simv [le_refl]),
+  le_sup_right := λ f g, le_def.mpr (by simv [le_refl]),
+  sup_le := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simv [le_def.mp w₁ a, le_def.mp w₂ a]),
   ..continuous_map.partial_order,
   ..continuous_map.has_sup, }
 
 instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
 { inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
 
-@[simp, norm_cast] lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
+@[simv, norm_cast] lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
   ((f ⊓ g : C(α, β)) : α → β) = (f ⊓ g : α → β) :=
 rfl
 
@@ -79,9 +79,9 @@ rfl
 rfl
 
 instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
-{ inf_le_left := λ f g, le_def.mpr (by simp [le_refl]),
-  inf_le_right := λ f g, le_def.mpr (by simp [le_refl]),
-  le_inf := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
+{ inf_le_left := λ f g, le_def.mpr (by simv [le_refl]),
+  inf_le_right := λ f g, le_def.mpr (by simv [le_refl]),
+  le_inf := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simv [le_def.mp w₁ a, le_def.mp w₂ a]),
   ..continuous_map.partial_order,
   ..continuous_map.has_inf, }
 
@@ -98,10 +98,10 @@ lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β,
   s.sup' H f b = s.sup' H (λ a, f a b) :=
 finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
   ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
-by { ext, simp [sup'_apply], }
+by { ext, simv [sup'_apply], }
 
 end sup'
 
@@ -112,7 +112,7 @@ lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β,
   s.inf' H f b = s.inf' H (λ a, f a b) :=
 @sup'_apply _ γᵒᵈ _ _ _ _ _ _ H f b
 
-@[simp, norm_cast]
+@[simv, norm_cast]
 lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
   ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
 @sup'_coe _ γᵒᵈ _ _ _ _ _ _ H f

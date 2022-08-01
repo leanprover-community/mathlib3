@@ -153,12 +153,12 @@ lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f �
       (preinclusion B).map₂ (eq_to_hom (discrete.ext _ _ (normalize_aux_congr p η))) :=
 begin
   rcases η, induction η,
-  case id : { simp },
+  case id : { simv },
   case vcomp : _ _ _ _ _ _ _ ihf ihg
   { rw [mk_vcomp, bicategory.whisker_left_comp],
     slice_lhs 2 3 { rw ihg },
     slice_lhs 1 2 { rw ihf },
-    simp },
+    simv },
   case whisker_left : _ _ _ _ _ _ _ ih
   /- p ≠ nil required! See the docstring of `normalize_aux`. -/
   { dsimp, simp_rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc, ih, assoc] },
@@ -166,8 +166,8 @@ begin
   { dsimp,
     rw [associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc, ih, comp_whisker_right],
     have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_aux_congr p (quot.mk _ η)),
-    dsimp at this, simp [this] },
-  all_goals { dsimp, dsimp [id_def, comp_def], simp }
+    dsimp at this, simv [this] },
+  all_goals { dsimp, dsimp [id_def, comp_def], simv }
 end
 
 @[simp]

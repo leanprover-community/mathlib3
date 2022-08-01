@@ -199,11 +199,11 @@ lemma antitone.map_Limsup_of_continuous_at {F : filter R} [ne_bot F]
   f (F.Limsup) = F.liminf f :=
 begin
   apply le_antisymm,
-  { have A : {a : R | ∀ᶠ (n : R) in F, n ≤ a}.nonempty, from ⟨⊤, by simp⟩,
+  { have A : {a : R | ∀ᶠ (n : R) in F, n ≤ a}.nonempty, from ⟨⊤, by simv⟩,
     rw [Limsup, (f_decr.map_Inf_of_continuous_at' f_cont A)],
     apply le_of_forall_lt,
     assume c hc,
-    simp only [liminf, Liminf, lt_Sup_iff, eventually_map, set.mem_set_of_eq, exists_prop,
+    simv only [liminf, Liminf, lt_Sup_iff, eventually_map, set.mem_set_of_eq, exists_prop,
       set.mem_image, exists_exists_and_eq_and] at hc ⊢,
     rcases hc with ⟨d, hd, h'd⟩,
     refine ⟨f d, _, h'd⟩,

@@ -96,7 +96,7 @@ theorem is_closed_iff [topological_space α] (F : realizer α) {s : set α} :
 is_open_compl_iff.symm.trans $ F.is_open_iff.trans $ forall_congr $ λ a,
 show (a ∉ s → (∃ (b : F.σ), a ∈ F.F b ∧ ∀ z ∈ F.F b, z ∉ s)) ↔ _,
 by haveI := classical.prop_decidable; rw [not_imp_comm];
-   simp [not_exists, not_and, not_forall, and_comm]
+   simv [not_exists, not_and, not_forall, and_comm]
 
 theorem mem_interior_iff [topological_space α] (F : realizer α) {s : set α} {a : α} :
   a ∈ interior s ↔ ∃ b, a ∈ F.F b ∧ F.F b ⊆ s :=
@@ -138,7 +138,7 @@ def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 
 @[simp] theorem of_equiv_σ (F : realizer α) (E : F.σ ≃ τ) : (F.of_equiv E).σ = τ := rfl
 @[simp] theorem of_equiv_F (F : realizer α) (E : F.σ ≃ τ) (s : τ) :
-  (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simp
+  (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simv
 
 protected def nhds (F : realizer α) (a : α) : (𝓝 a).realizer :=
 ⟨{s : F.σ // a ∈ F.F s},

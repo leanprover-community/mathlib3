@@ -52,14 +52,14 @@ attribute [functor_norm] seq_assoc pure_seq_eq_map
 @[functor_norm] theorem seq_map_assoc (x : F (α → β)) (f : γ → α) (y : F γ) :
   (x <*> (f <$> y)) = (λ(m:α→β), m ∘ f) <$> x <*> y :=
 begin
-  simp [(pure_seq_eq_map _ _).symm],
-  simp [seq_assoc, (comp_map _ _ _).symm, (∘)],
-  simp [pure_seq_eq_map]
+  simv [(pure_seq_eq_map _ _).symm],
+  simv [seq_assoc, (comp_map _ _ _).symm, (∘)],
+  simv [pure_seq_eq_map]
 end
 
 @[functor_norm] theorem map_seq (f : β → γ) (x : F (α → β)) (y : F α) :
   (f <$> (x <*> y)) = ((∘) f) <$> x <*> y :=
-by simp [(pure_seq_eq_map _ _).symm]; simp [seq_assoc]
+by simv [(pure_seq_eq_map _ _).symm]; simv [seq_assoc]
 
 end applicative
 
@@ -79,11 +79,11 @@ mcond (p x) (prod.map (cons x) id <$> list.mpartition xs)
             (prod.map id (cons x) <$> list.mpartition xs)
 
 lemma map_bind (x : m α) {g : α → m β} {f : β → γ} : f <$> (x >>= g) = (x >>= λa, f <$> g a) :=
-by rw [← bind_pure_comp_eq_map,bind_assoc]; simp [bind_pure_comp_eq_map]
+by rw [← bind_pure_comp_eq_map,bind_assoc]; simv [bind_pure_comp_eq_map]
 
 lemma seq_bind_eq (x : m α) {g : β → m γ} {f : α → β} : (f <$> x) >>= g = (x >>= g ∘ f) :=
 show bind (f <$> x) g = bind x (g ∘ f),
-by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
+by rw [← bind_pure_comp_eq_map, bind_assoc]; simv [pure_bind]
 
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
 (bind_map_eq_seq f x).symm
@@ -99,16 +99,16 @@ infix ` >=> `:55 := fish
 
 @[functor_norm]
 lemma fish_pure {α β} (f : α → m β) : f >=> pure = f :=
-by simp only [(>=>)] with functor_norm
+by simv only [(>=>)] with functor_norm
 
 @[functor_norm]
 lemma fish_pipe {α β} (f : α → m β) : pure >=> f = f :=
-by simp only [(>=>)] with functor_norm
+by simv only [(>=>)] with functor_norm
 
 @[functor_norm]
 lemma fish_assoc {α β γ φ} (f : α → m β) (g : β → m γ) (h : γ → m φ) :
   (f >=> g) >=> h = f >=> (g >=> h) :=
-by simp only [(>=>)] with functor_norm
+by simv only [(>=>)] with functor_norm
 
 variables {β' γ' : Type v}
 variables {m' : Type v → Type w} [monad m']
@@ -134,17 +134,17 @@ variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 
 lemma mjoin_map_map {α β : Type u} (f : α → β) (a : m (m α)) :
   mjoin (functor.map f <$> a) = f <$> (mjoin a) :=
-by simp only [mjoin, (∘), id.def,
+by simv only [mjoin, (∘), id.def,
   (bind_pure_comp_eq_map _ _).symm, bind_assoc, map_bind, pure_bind]
 
 lemma mjoin_map_mjoin {α : Type u} (a : m (m (m α))) :
   mjoin (mjoin <$> a) = mjoin (mjoin a) :=
-by simp only [mjoin, (∘), id.def,
+by simv only [mjoin, (∘), id.def,
   map_bind, (bind_pure_comp_eq_map _ _).symm, bind_assoc, pure_bind]
 
 @[simp] lemma mjoin_map_pure {α : Type u} (a : m α) :
   mjoin (pure <$> a) = a :=
-by simp only [mjoin, (∘), id.def,
+by simv only [mjoin, (∘), id.def,
   map_bind, (bind_pure_comp_eq_map _ _).symm, bind_assoc, pure_bind, bind_pure]
 
 @[simp] lemma mjoin_pure {α : Type u} (a : m α) : mjoin (pure a) = a :=
@@ -160,10 +160,10 @@ def succeeds {α} (x : F α) : F bool := (x $> tt) <|> pure ff
 def mtry {α} (x : F α) : F unit := (x $> ()) <|> pure ()
 
 @[simp] theorem guard_true {h : decidable true} :
-  @guard F _ true h = pure () := by simp [guard]
+  @guard F _ true h = pure () := by simv [guard]
 
 @[simp] theorem guard_false {h : decidable false} :
-  @guard F _ false h = failure := by simp [guard]
+  @guard F _ false h = failure := by simv [guard]
 
 end alternative
 
@@ -201,7 +201,7 @@ lemma is_comm_applicative.commutative_map
   {α β γ} (a : m α) (b : m β) {f : α → β → γ} :
   f <$> a <*> b = flip f <$> b <*> a :=
 calc f <$> a <*> b = (λp:α×β, f p.1 p.2) <$> (prod.mk <$> a <*> b) :
-    by simp [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]
+    by simv [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]
   ... = (λb a, f a b) <$> b <*> a :
     by rw [is_comm_applicative.commutative_prod];
-        simp [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]
+        simv [seq_map_assoc, map_seq, seq_assoc, seq_pure, map_map]

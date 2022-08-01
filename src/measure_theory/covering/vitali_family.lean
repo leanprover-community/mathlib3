@@ -145,7 +145,7 @@ lemma measure_le_tsum_of_absolutely_continuous [second_countable_topology α]
   {ρ : measure α} (hρ : ρ ≪ μ) :
   ρ s ≤ ∑' (x : h.index), ρ (h.covering x) :=
 calc ρ s ≤ ρ ((s \ ⋃ (x ∈ h.index), h.covering x) ∪ (⋃ (x ∈ h.index), h.covering x)) :
-    measure_mono (by simp only [subset_union_left, diff_union_self])
+    measure_mono (by simv only [subset_union_left, diff_union_self])
   ... ≤ ρ (s \ ⋃ (x ∈ h.index), h.covering x) + ρ (⋃ (x ∈ h.index), h.covering x) :
     measure_union_le _ _
   ... = ∑' (x : h.index), ρ (h.covering x) : by rw [hρ h.measure_diff_bUnion,
@@ -170,10 +170,10 @@ def filter_at (x : α) : filter (set α) :=
 lemma mem_filter_at_iff {x : α} {s : set (set α)} :
   (s ∈ v.filter_at x) ↔ ∃ (ε > (0 : ℝ)), ∀ a ∈ v.sets_at x, a ⊆ closed_ball x ε → a ∈ s :=
 begin
-  simp only [filter_at, exists_prop, gt_iff_lt],
+  simv only [filter_at, exists_prop, gt_iff_lt],
   rw mem_binfi_of_directed,
-  { simp only [subset_def, and_imp, exists_prop, mem_sep_eq, mem_Ioi, mem_principal] },
-  { simp only [directed_on, exists_prop, ge_iff_le, le_principal_iff, mem_Ioi, order.preimage,
+  { simv only [subset_def, and_imp, exists_prop, mem_sep_eq, mem_Ioi, mem_principal] },
+  { simv only [directed_on, exists_prop, ge_iff_le, le_principal_iff, mem_Ioi, order.preimage,
       mem_principal],
     assume x hx y hy,
     refine ⟨min x y, lt_min hx hy,
@@ -184,7 +184,7 @@ end
 
 instance filter_at_ne_bot (x : α) : (v.filter_at x).ne_bot :=
 begin
-  simp only [ne_bot_iff, ←empty_mem_iff_bot, mem_filter_at_iff, not_exists, exists_prop,
+  simv only [ne_bot_iff, ←empty_mem_iff_bot, mem_filter_at_iff, not_exists, exists_prop,
     mem_empty_eq, and_true, gt_iff_lt, not_and, ne.def, not_false_iff, not_forall],
   assume ε εpos,
   obtain ⟨w, w_sets, hw⟩ : ∃ (w ∈ v.sets_at x), w ⊆ closed_ball x ε := v.nontrivial x ε εpos,
@@ -198,7 +198,7 @@ v.mem_filter_at_iff
 lemma eventually_filter_at_mem_sets (x : α) :
   ∀ᶠ a in v.filter_at x, a ∈ v.sets_at x :=
 begin
-  simp only [eventually_filter_at_iff, exists_prop, and_true, gt_iff_lt,
+  simv only [eventually_filter_at_iff, exists_prop, and_true, gt_iff_lt,
              implies_true_iff] {contextual := tt},
   exact ⟨1, zero_lt_one⟩
 end
@@ -209,7 +209,7 @@ by { filter_upwards [v.eventually_filter_at_mem_sets x] with _ ha using v.measur
 
 lemma frequently_filter_at_iff {x : α} {P : set α → Prop} :
   (∃ᶠ a in v.filter_at x, P a) ↔ ∀ (ε > (0 : ℝ)), ∃ a ∈ v.sets_at x, a ⊆ closed_ball x ε ∧ P a :=
-by simp only [filter.frequently, eventually_filter_at_iff, not_exists, exists_prop, not_and,
+by simv only [filter.frequently, eventually_filter_at_iff, not_exists, exists_prop, not_and,
   not_not, not_forall]
 
 lemma eventually_filter_at_subset_of_nhds {x : α} {o : set α} (hx : o ∈ 𝓝 x) :

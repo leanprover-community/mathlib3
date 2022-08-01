@@ -29,12 +29,12 @@ lemma is_primitive_root_exp_of_coprime (i n : ℕ) (h0 : n ≠ 0) (hi : i.coprim
   is_primitive_root (exp (2 * π * I * (i / n))) n :=
 begin
   rw is_primitive_root.iff_def,
-  simp only [← exp_nat_mul, exp_eq_one_iff],
+  simv only [← exp_nat_mul, exp_eq_one_iff],
   have hn0 : (n : ℂ) ≠ 0, by exact_mod_cast h0,
   split,
   { use i,
     field_simp [hn0, mul_comm (i : ℂ), mul_comm (n : ℂ)] },
-  { simp only [hn0, mul_right_comm _ _ ↑n, mul_left_inj' two_pi_I_ne_zero, ne.def, not_false_iff,
+  { simv only [hn0, mul_right_comm _ _ ↑n, mul_left_inj' two_pi_I_ne_zero, ne.def, not_false_iff,
       mul_comm _ (i : ℂ), ← mul_assoc _ (i : ℂ), exists_imp_distrib] with field_simps,
     norm_cast,
     rintro l k hk,
@@ -89,7 +89,7 @@ lemma card_roots_of_unity (n : ℕ+) : fintype.card (roots_of_unity n ℂ) = n :
 lemma card_primitive_roots (k : ℕ) : (primitive_roots k ℂ).card = φ k :=
 begin
   by_cases h : k = 0,
-  { simp [h] },
+  { simv [h] },
   exact (is_primitive_root_exp k h).card_primitive_roots,
 end
 
@@ -146,7 +146,7 @@ begin
     field_simp [hn],
     refine ⟨(neg_lt_neg real.pi_pos).trans_le _, _⟩,
     { rw neg_zero,
-      exact mul_nonneg (mul_nonneg i.cast_nonneg $ by simp [real.pi_pos.le]) (by simp) },
+      exact mul_nonneg (mul_nonneg i.cast_nonneg $ by simv [real.pi_pos.le]) (by simv) },
     rw [←mul_rotate', mul_div_assoc],
     rw ←mul_one n at h₂,
     exact mul_le_of_le_one_right real.pi_pos.le
@@ -164,7 +164,7 @@ begin
   work_on_goal 2
   { rw [mul_div_assoc],
     exact mul_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr $ by exact_mod_cast h.le)
-      (div_nonneg (by simp [real.pi_pos.le]) $ by simp) },
+      (div_nonneg (by simv [real.pi_pos.le]) $ by simv) },
   rw [←mul_rotate', mul_div_assoc, neg_lt, ←mul_neg, mul_lt_iff_lt_one_right real.pi_pos,
       ←neg_div, ←neg_mul, neg_sub, div_lt_iff, one_mul, sub_mul, sub_lt, ←mul_sub_one],
   norm_num,

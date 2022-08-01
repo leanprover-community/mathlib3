@@ -65,7 +65,7 @@ adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ 
 variables (E)
 lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=
-⟨adapted_zero E ℱ, λ i j hij, by { rw [pi.zero_apply, condexp_zero], simp, }⟩
+⟨adapted_zero E ℱ, λ i j hij, by { rw [pi.zero_apply, condexp_zero], simv, }⟩
 variables {E}
 
 namespace martingale
@@ -334,7 +334,7 @@ begin
   refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
   refine (condexp_smul c (f j)).le.trans _,
   filter_upwards [hf.2.1 i j hij] with _ hle,
-  simp,
+  simv,
   exact smul_le_smul_of_nonneg hle hc,
 end
 
@@ -342,7 +342,7 @@ lemma smul_nonpos {f : ι → α → F}
   {c : ℝ} (hc : c ≤ 0) (hf : supermartingale f ℱ μ) :
   submartingale (c • f) ℱ μ :=
 begin
-  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(-c • f))],
+  rw [← neg_neg c, (by { ext i x, simv } : - -c • f = -(-c • f))],
   exact (hf.smul_nonneg $ neg_nonneg.2 hc).neg,
 end
 
@@ -361,7 +361,7 @@ lemma smul_nonneg {f : ι → α → F}
   {c : ℝ} (hc : 0 ≤ c) (hf : submartingale f ℱ μ) :
   submartingale (c • f) ℱ μ :=
 begin
-  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(c • -f))],
+  rw [← neg_neg c, (by { ext i x, simv } : - -c • f = -(c • -f))],
   exact supermartingale.neg (hf.neg.smul_nonneg hc),
 end
 
@@ -369,7 +369,7 @@ lemma smul_nonpos {f : ι → α → F}
   {c : ℝ} (hc : c ≤ 0) (hf : submartingale f ℱ μ) :
   supermartingale (c • f) ℱ μ :=
 begin
-  rw [← neg_neg c, (by { ext i x, simp } : - -c • f = -(-c • f))],
+  rw [← neg_neg c, (by { ext i x, simv } : - -c • f = -(-c • f))],
   exact (hf.smul_nonneg $ neg_nonneg.2 hc).neg,
 end
 
@@ -435,7 +435,7 @@ lemma expected_stopped_value_mono [sigma_finite_filtration μ 𝒢]
   μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
 begin
   rw [← sub_nonneg, ← integral_sub', stopped_value_sub_eq_sum' hle hbdd],
-  { simp only [finset.sum_apply],
+  { simv only [finset.sum_apply],
     have : ∀ i, measurable_set[𝒢 i] {x : α | τ x ≤ i ∧ i < π x},
     { intro i,
       refine (hτ i).inter _,
@@ -499,13 +499,13 @@ lemma smul_le_stopped_value_hitting [is_finite_measure μ]
     stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :=
 begin
   have hn : set.Icc 0 n = {k | k ≤ n},
-  { ext x, simp },
+  { ext x, simv },
   have : ∀ x, ((ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) →
     (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x,
   { intros x hx,
     simp_rw [le_sup'_iff, mem_range, nat.lt_succ_iff] at hx,
     refine stopped_value_hitting_mem _,
-    simp only [set.mem_set_of_eq, exists_prop, hn],
+    simv only [set.mem_set_of_eq, exists_prop, hn],
     exact let ⟨j, hj₁, hj₂⟩ := hx in ⟨j, hj₁, hj₂⟩ },
   have h := set_integral_ge_of_const_le (measurable_set_le measurable_const
     (finset.measurable_range_sup'' (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))))
@@ -514,7 +514,7 @@ begin
      hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { exact h },
-  { exact ennreal.mul_ne_top (by simp) (measure_ne_top _ _) },
+  { exact ennreal.mul_ne_top (by simv) (measure_ne_top _ _) },
   { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) h }
 end
 
@@ -542,7 +542,7 @@ begin
         convert rfl,
         ext x,
         change (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ) ↔ _,
-        simp only [le_or_lt, true_iff] },
+        simv only [le_or_lt, true_iff] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
       { exact (measurable_set_lt (finset.measurable_range_sup''
@@ -567,7 +567,7 @@ begin
       intros x hx,
       rw set.mem_set_of_eq at hx,
       have : hitting f {y : ℝ | ↑ε ≤ y} 0 n x = n,
-      { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
+      { simv only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
           ite_eq_right_iff, forall_exists_index, and_imp],
         intros m hm hεm,
         exact false.elim ((not_le.2 hx)
@@ -581,7 +581,7 @@ begin
         convert rfl,
         ext x,
         change _ ↔ (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ),
-        simp only [le_or_lt, iff_true] },
+        simv only [le_or_lt, iff_true] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
       { exact (measurable_set_lt (finset.measurable_range_sup''
@@ -623,7 +623,7 @@ begin
       ((hf.adapted.strongly_measurable_le (nat.succ_le_of_lt hi)).sub
       (hf.adapted.strongly_measurable_le hi.le)) },
   refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
-  simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
+  simv only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
     pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
   exact eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
     (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_strongly_measurable_mul (hξ _)

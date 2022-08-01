@@ -31,13 +31,13 @@ mk_of_unit_counit
 { unit :=
   { app := λ X, (functor.right_unitor _).inv ≫
       whisker_left X adj.unit ≫ (functor.associator _ _ _).inv,
-    naturality' := by { intros, ext, dsimp, simp } },
+    naturality' := by { intros, ext, dsimp, simv } },
   counit :=
   { app := λ X, (functor.associator _ _ _).hom ≫
       whisker_left X adj.counit ≫ (functor.right_unitor _).hom,
-    naturality' := by { intros, ext, dsimp, simp } },
-  left_triangle' := by { ext, dsimp, simp },
-  right_triangle' := by { ext, dsimp, simp } }
+    naturality' := by { intros, ext, dsimp, simv } },
+  left_triangle' := by { ext, dsimp, simv },
+  right_triangle' := by { ext, dsimp, simv } }
 
 -- `tidy` gets stuck for `left_triangle'` and `right_triangle'`.
 /-- Given an adjunction `F ⊣ G`, this provides the natural adjunction
@@ -49,14 +49,14 @@ mk_of_unit_counit
 { unit :=
   { app := λ X, (functor.left_unitor _).inv ≫
       whisker_right adj.unit X ≫ (functor.associator _ _ _).hom,
-    naturality' := by { intros, ext, dsimp, simp } },
+    naturality' := by { intros, ext, dsimp, simv } },
   counit :=
   { app := λ X, (functor.associator _ _ _).inv ≫
       whisker_right adj.counit X ≫ (functor.left_unitor _).hom,
-    naturality' := by { intros, ext, dsimp, simp } },
+    naturality' := by { intros, ext, dsimp, simv } },
   left_triangle' := by { ext x, dsimp,
-    simp only [category.id_comp, category.comp_id, ← x.map_comp], simp },
+    simv only [category.id_comp, category.comp_id, ← x.map_comp], simv },
   right_triangle' :=  by { ext x, dsimp,
-    simp only [category.id_comp, category.comp_id, ← x.map_comp], simp } }
+    simv only [category.id_comp, category.comp_id, ← x.map_comp], simv } }
 
 end category_theory.adjunction

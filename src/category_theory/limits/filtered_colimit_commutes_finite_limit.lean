@@ -69,7 +69,7 @@ begin
   replace h := λ j, congr_arg (limit.π ((curry.obj F) ⋙ colim) j) h,
   -- and they are equations in a filtered colimit,
   -- so for each `j` we have some place `k j` to the right of both `kx` and `ky`
-  simp [colimit_eq_iff.{v v}] at h,
+  simv [colimit_eq_iff.{v v}] at h,
   let k := λ j, (h j).some,
   let f : Π j, kx ⟶ k j := λ j, (h j).some_spec.some,
   let g : Π j, ky ⟶ k j := λ j, (h j).some_spec.some_spec.some,
@@ -82,16 +82,16 @@ begin
   -- We now use that `K` is filtered, picking some point to the right of all these
   -- morphisms `f j` and `g j`.
   let O : finset K := (finset.univ).image k ∪ {kx, ky},
-  have kxO : kx ∈ O := finset.mem_union.mpr (or.inr (by simp)),
-  have kyO : ky ∈ O := finset.mem_union.mpr (or.inr (by simp)),
-  have kjO : ∀ j, k j ∈ O := λ j, finset.mem_union.mpr (or.inl (by simp)),
+  have kxO : kx ∈ O := finset.mem_union.mpr (or.inr (by simv)),
+  have kyO : ky ∈ O := finset.mem_union.mpr (or.inr (by simv)),
+  have kjO : ∀ j, k j ∈ O := λ j, finset.mem_union.mpr (or.inl (by simv)),
 
   let H : finset (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
     (finset.univ).image (λ j : J, ⟨kx, k j, kxO,
-      finset.mem_union.mpr (or.inl (by simp)),
+      finset.mem_union.mpr (or.inl (by simv)),
       f j⟩) ∪
     (finset.univ).image (λ j : J, ⟨ky, k j, kyO,
-      finset.mem_union.mpr (or.inl (by simp)),
+      finset.mem_union.mpr (or.inl (by simv)),
       g j⟩),
   obtain ⟨S, T, W⟩ := is_filtered.sup_exists O H,
 
@@ -99,20 +99,20 @@ begin
     ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inl
     begin
-      simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
+      simv only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
         finset.mem_image, heq_iff_eq],
       refine ⟨j, rfl, _⟩,
-      simp only [heq_iff_eq],
+      simv only [heq_iff_eq],
       exact ⟨rfl, rfl, rfl⟩,
     end)),
   have gH :
     ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inr
     begin
-      simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
+      simv only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
         finset.mem_image, heq_iff_eq],
       refine ⟨j, rfl, _⟩,
-      simp only [heq_iff_eq],
+      simv only [heq_iff_eq],
       exact ⟨rfl, rfl, rfl⟩,
     end)),
 
@@ -124,10 +124,10 @@ begin
   ext,
 
   -- Now it's just a calculation using `W` and `w`.
-  simp only [functor.comp_map, limit.map_π_apply, curry_obj_map_app, swap_map],
+  simv only [functor.comp_map, limit.map_π_apply, curry_obj_map_app, swap_map],
   rw ←W _ _ (fH j),
   rw ←W _ _ (gH j),
-  simp [w],
+  simv [w],
 end
 
 end
@@ -163,7 +163,7 @@ begin
   -- As a first step, we use that `K` is filtered to pick some point `k' : K` above all the `k j`
   let k' : K := is_filtered.sup (finset.univ.image k) ∅,
   -- and name the morphisms as `g j : k j ⟶ k'`.
-  have g : Π j, k j ⟶ k' := λ j, is_filtered.to_sup (finset.univ.image k) ∅ (by simp),
+  have g : Π j, k j ⟶ k' := λ j, is_filtered.to_sup (finset.univ.image k) ∅ (by simv),
   clear_value k',
 
   -- Recalling that the components of `x`, which are indexed by `j : J`, are "coherent",
@@ -176,10 +176,10 @@ begin
     colimit.ι ((curry.obj F).obj j') k' (F.map ((f, g j) : (j, k j) ⟶ (j', k')) (y j)),
   { intros j j' f,
     have t : (f, g j) = (((f, 𝟙 (k j)) : (j, k j) ⟶ (j', k j)) ≫ (𝟙 j', g j) : (j, k j) ⟶ (j', k')),
-    { simp only [id_comp, comp_id, prod_comp], },
+    { simv only [id_comp, comp_id, prod_comp], },
     erw [colimit.w_apply', t, functor_to_types.map_comp_apply, colimit.w_apply', e,
       ←limit.w_apply' f, ←e],
-    simp, },
+    simv, },
 
   -- Because `K` is filtered, we can restate this as saying that
   -- for each such `f`, there is some place to the right of `k'`
@@ -200,7 +200,7 @@ begin
       (w f).some_spec.some_spec.some_spec,
     dsimp at q,
     simp_rw ←functor_to_types.map_comp_apply at q,
-    convert q; simp only [comp_id],
+    convert q; simv only [comp_id],
   end,
   clear_value kf gf hf, -- and clean up some things that are no longer needed.
   clear w,
@@ -242,14 +242,14 @@ begin
       refine ⟨j₂, finset.mem_univ _, _⟩,
       rw [finset.mem_bUnion],
       refine ⟨f, finset.mem_univ _, _⟩,
-      simp only [true_or, eq_self_iff_true, and_self, finset.mem_insert, heq_iff_eq], },
+      simv only [true_or, eq_self_iff_true, and_self, finset.mem_insert, heq_iff_eq], },
     { rw [finset.mem_bUnion],
       refine ⟨j₃, finset.mem_univ _, _⟩,
       rw [finset.mem_bUnion],
       refine ⟨j₄, finset.mem_univ _, _⟩,
       rw [finset.mem_bUnion],
       refine ⟨f', finset.mem_univ _, _⟩,
-      simp only [eq_self_iff_true, or_true, and_self, finset.mem_insert, finset.mem_singleton,
+      simv only [eq_self_iff_true, or_true, and_self, finset.mem_insert, finset.mem_singleton,
         heq_iff_eq], }
   end,
   clear_value i,
@@ -271,7 +271,7 @@ begin
     { -- After which it's just a calculation, using `s` and `wf`, to see they are coherent.
       dsimp,
       intros j j' f,
-      simp only [←functor_to_types.map_comp_apply, prod_comp, id_comp, comp_id],
+      simv only [←functor_to_types.map_comp_apply, prod_comp, id_comp, comp_id],
       calc F.map ((f, g j ≫ gf (𝟙 j) ≫ i (𝟙 j)) : (j, k j) ⟶ (j', k'')) (y j)
           = F.map ((f, g j ≫ hf f ≫ i f) : (j, k j) ⟶ (j', k'')) (y j)
                 : by rw s (𝟙 j) f
@@ -293,11 +293,11 @@ begin
 
     -- and as each component is an equation in a colimit, we can verify it by
     -- pointing out the morphism which carries one representative to the other:
-    simp only [←e, colimit_eq_iff.{v v}, curry_obj_obj_map, limit.π_mk',
+    simv only [←e, colimit_eq_iff.{v v}, curry_obj_obj_map, limit.π_mk',
       bifunctor.map_id_comp, id.def, types_comp_apply,
       limits.ι_colimit_limit_to_limit_colimit_π_apply],
     refine ⟨k'', 𝟙 k'', g j ≫ gf (𝟙 j) ≫ i (𝟙 j), _⟩,
-    simp only [bifunctor.map_id_comp, types_comp_apply, bifunctor.map_id, types_id_apply], },
+    simv only [bifunctor.map_id_comp, types_comp_apply, bifunctor.map_id, types_id_apply], },
 end
 
 instance colimit_limit_to_limit_colimit_is_iso :
@@ -365,22 +365,22 @@ noncomputable def colimit_limit_iso (F : J ⥤ K ⥤ C) :
 (is_limit_of_preserves colim (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _) ≪≫
   (has_limit.iso_of_nat_iso (colimit_flip_iso_comp_colim _).symm)
 
-@[simp, reassoc]
+@[simv, reassoc]
 lemma ι_colimit_limit_iso_limit_π (F : J ⥤ K ⥤ C) (a) (b) :
   colimit.ι (limit F) a ≫ (colimit_limit_iso F).hom ≫ limit.π (colimit F.flip) b =
   (limit.π F b).app a ≫ (colimit.ι F.flip a).app b :=
 begin
   dsimp [colimit_limit_iso],
-  simp only [functor.map_cone_π_app, iso.symm_hom,
+  simv only [functor.map_cone_π_app, iso.symm_hom,
     limits.limit.cone_point_unique_up_to_iso_hom_comp_assoc, limits.limit.cone_π,
     limits.colimit.ι_map_assoc, limits.colimit_flip_iso_comp_colim_inv_app, assoc,
     limits.has_limit.iso_of_nat_iso_hom_π],
   congr' 1,
-  simp only [← category.assoc, iso.comp_inv_eq,
+  simv only [← category.assoc, iso.comp_inv_eq,
     limits.colimit_obj_iso_colimit_comp_evaluation_ι_app_hom,
     limits.has_colimit.iso_of_nat_iso_ι_hom, nat_iso.of_components_hom_app],
   dsimp,
-  simp,
+  simv,
 end
 
 end

@@ -111,11 +111,11 @@ begin
   refine ⟨r.denom ^ p * (|r| * C), (tendsto_id.nsmul_at_top r.pos).frequently (hC.mono _)⟩,
   rintro n ⟨hn, m, hne, hlt⟩,
   have A : (↑(r.num * m) : ℝ) / ↑(r.denom • id n) = (m / n) * r,
-    by simp [← div_mul_div_comm, ← r.cast_def, mul_comm],
+    by simv [← div_mul_div_comm, ← r.cast_def, mul_comm],
   refine ⟨r.num * m, _, _⟩,
-  { rw A, simp [hne, hr] },
+  { rw A, simv [hne, hr] },
   { rw [A, ← sub_mul, abs_mul],
-    simp only [smul_eq_mul, id.def, nat.cast_mul],
+    simv only [smul_eq_mul, id.def, nat.cast_mul],
     refine (mul_lt_mul_of_pos_right hlt $ abs_pos.2 $ rat.cast_ne_zero.2 hr).trans_le _,
     rw [mul_rpow, mul_div_mul_left, mul_comm, mul_div_assoc],
     exacts [(rpow_pos_of_pos (nat.cast_pos.2 r.pos) _).ne', nat.cast_nonneg _, nat.cast_nonneg _] }
@@ -167,11 +167,11 @@ begin
   have hr : (0 : ℝ) < r.denom, from nat.cast_pos.2 r.pos,
   have hn' : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 (zero_lt_one.trans_le hn).ne',
   have : (↑(r.denom * m + r.num * n : ℤ) / ↑(r.denom • id n) : ℝ) = m / n + r,
-    by simp [add_div, hr.ne', mul_div_mul_left, mul_div_mul_right, hn', ← rat.cast_def],
+    by simv [add_div, hr.ne', mul_div_mul_left, mul_div_mul_right, hn', ← rat.cast_def],
   refine ⟨r.denom * m + r.num * n, _⟩, rw [this, add_sub_add_right_eq_sub],
   refine ⟨by simpa, hlt.trans_le (le_of_eq _)⟩,
   have : (r.denom ^ p : ℝ) ≠ 0, from (rpow_pos_of_pos hr _).ne',
-  simp [mul_rpow, nat.cast_nonneg, mul_div_mul_left, this]
+  simv [mul_rpow, nat.cast_nonneg, mul_div_mul_left, this]
 end
 
 @[simp] lemma add_rat_iff : liouville_with p (x + r) ↔ liouville_with p x :=
@@ -208,7 +208,7 @@ begin
   rcases h with ⟨C, hC⟩,
   refine ⟨C, hC.mono _⟩,
   rintro n ⟨m, hne, hlt⟩,
-  use (-m), simp [neg_div, abs_sub_comm _ x, *]
+  use (-m), simv [neg_div, abs_sub_comm _ x, *]
 end
 
 @[simp] lemma neg_iff : liouville_with p (-x) ↔ liouville_with p x :=
@@ -231,17 +231,17 @@ by rw [← rat.cast_coe_nat, sub_rat_iff]
 lemma sub_nat (h : liouville_with p x) (n : ℕ) : liouville_with p (x - n) := sub_nat_iff.2 h
 
 @[simp] lemma rat_sub_iff : liouville_with p (r - x) ↔ liouville_with p x :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma rat_sub (h : liouville_with p x) (r : ℚ) : liouville_with p (r - x) := rat_sub_iff.2 h
 
 @[simp] lemma int_sub_iff : liouville_with p (m - x) ↔ liouville_with p x :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma int_sub (h : liouville_with p x) (m : ℤ) : liouville_with p (m - x) := int_sub_iff.2 h
 
 @[simp] lemma nat_sub_iff : liouville_with p (n - x) ↔ liouville_with p x :=
-by simp [sub_eq_add_neg]
+by simv [sub_eq_add_neg]
 
 lemma nat_sub (h : liouville_with p x) (n : ℕ) : liouville_with p (n - x) := nat_sub_iff.2 h
 
@@ -266,7 +266,7 @@ begin
   rcases eq_or_ne r 0 with (rfl|h0),
   { refine h.ne_cast_int hp 0 _, rw [rat.cast_zero, int.cast_zero] },
   { refine (h.mul_rat (inv_ne_zero h0)).ne_cast_int hp 1 _,
-    simp [rat.cast_ne_zero.2 h0] }
+    simv [rat.cast_ne_zero.2 h0] }
 end
 
 end liouville_with
@@ -281,7 +281,7 @@ lemma frequently_exists_num (hx : liouville x) (n : ℕ) :
   ∃ᶠ b : ℕ in at_top, ∃ a : ℤ, x ≠ a / b ∧ |x - a / b| < 1 / b ^ n :=
 begin
   refine not_not.1 (λ H, _),
-  simp only [liouville, not_forall, not_exists, not_frequently, not_and, not_lt,
+  simv only [liouville, not_forall, not_exists, not_frequently, not_and, not_lt,
     eventually_at_top] at H,
   rcases H with ⟨N, hN⟩,
   have : ∀ b > (1 : ℕ), ∀ᶠ m : ℕ in at_top, ∀ a : ℤ, (1 / b ^ m : ℝ) ≤ |x - a / b|,
@@ -290,7 +290,7 @@ begin
     replace hb : (1 : ℝ) < b := nat.one_lt_cast.2 hb,
     have hb0 : (0 : ℝ) < b := zero_lt_one.trans hb,
     have H : tendsto (λ m, 1 / b ^ m : ℕ → ℝ) at_top (𝓝 0),
-    { simp only [one_div],
+    { simv only [one_div],
       exact tendsto_inv_at_top_zero.comp (tendsto_pow_at_top_at_top_of_one_lt hb) },
     refine (H.eventually (hx.irrational.eventually_forall_le_dist_cast_div b)).mono _,
     exact λ m hm a, hm a },

@@ -49,7 +49,7 @@ begin
 end
 
 @[simp] theorem mk_out {α} : ∀ (a : erased α), mk (out a) = a
-| ⟨s, h⟩ := by simp [mk]; congr; exact classical.some_spec h
+| ⟨s, h⟩ := by simv [mk]; congr; exact classical.some_spec h
 
 @[ext] lemma out_inj {α} (a b : erased α) (h : a.out = b.out) : a = b :=
 by simpa using congr_arg mk h
@@ -100,7 +100,7 @@ def map {α β} (f : α → β) (a : erased α) : erased β :=
 bind a (mk ∘ f)
 
 @[simp] theorem map_out {α β} {f : α → β} (a : erased α) : (a.map f).out = f a.out :=
-by simp [map]
+by simv [map]
 
 instance : monad erased := { pure := @mk, bind := @bind, map := @map }
 
@@ -108,6 +108,6 @@ instance : monad erased := { pure := @mk, bind := @bind, map := @map }
 @[simp] lemma bind_def {α β} : ((>>=) : erased α → (α → erased β) → erased β) = @bind _ _ := rfl
 @[simp] lemma map_def {α β} : ((<$>) : (α → β) → erased α → erased β) = @map _ _ := rfl
 
-instance : is_lawful_monad erased := by refine {..}; intros; ext; simp
+instance : is_lawful_monad erased := by refine {..}; intros; ext; simv
 
 end erased

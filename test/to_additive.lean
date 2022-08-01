@@ -83,8 +83,8 @@ attribute [to_additive add_some_def] some_def
 
 run_cmd success_if_fail (get_decl `add_some_def.in_namespace)
 
-example : (add_units.mk_of_add_eq_zero 0 0 (by simp) : ℕ)
-        = (add_units.mk_of_add_eq_zero 0 0 (by simp) : ℕ) :=
+example : (add_units.mk_of_add_eq_zero 0 0 (by simv) : ℕ)
+        = (add_units.mk_of_add_eq_zero 0 0 (by simv) : ℕ) :=
 by norm_cast
 
 -- TODO test alias

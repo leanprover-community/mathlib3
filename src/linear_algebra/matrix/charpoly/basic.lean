@@ -51,25 +51,25 @@ lemma charmatrix_apply (M : matrix n n R) (i j : n) :
 
 @[simp] lemma charmatrix_apply_eq (M : matrix n n R) (i : n) :
   charmatrix M i i = (X : R[X]) - C (M i i) :=
-by simp only [charmatrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
+by simv only [charmatrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
   ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
 @[simp] lemma charmatrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
   charmatrix M i j = - C (M i j) :=
-by simp only [charmatrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
+by simv only [charmatrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
   ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
 lemma mat_poly_equiv_charmatrix (M : matrix n n R) :
   mat_poly_equiv (charmatrix M) = X - C M :=
 begin
   ext k i j,
-  simp only [mat_poly_equiv_coeff_apply, coeff_sub, pi.sub_apply],
+  simv only [mat_poly_equiv_coeff_apply, coeff_sub, pi.sub_apply],
   by_cases h : i = j,
   { subst h, rw [charmatrix_apply_eq, coeff_sub],
-    simp only [coeff_X, coeff_C],
-    split_ifs; simp, },
+    simv only [coeff_X, coeff_C],
+    split_ifs; simv, },
   { rw [charmatrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
-    split_ifs; simp [h], }
+    split_ifs; simv [h], }
 end
 
 lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
@@ -77,7 +77,7 @@ lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
 begin
   ext i j x,
   by_cases h : i = j,
-  all_goals { simp [h] }
+  all_goals { simv [h] }
 end
 
 /--
@@ -113,7 +113,7 @@ begin
   -- Using the algebra isomorphism `matrix n n R[X] ≃ₐ[R] polynomial (matrix n n R)`,
   -- we have the same identity in `polynomial (matrix n n R)`.
   apply_fun mat_poly_equiv at h,
-  simp only [mat_poly_equiv.map_mul,
+  simv only [mat_poly_equiv.map_mul,
     mat_poly_equiv_charmatrix] at h,
   -- Because the coefficient ring `matrix n n R` is non-commutative,
   -- evaluation at `M` is not multiplicative.

@@ -6,12 +6,12 @@ def d : ℕ := default
 
 @[simp] lemma c_eq_d : c = d := rfl
 
--- The following lemma never applies when using simp, because c is first rewritten to d
+-- The following lemma never applies when using simv, because c is first rewritten to d
 @[simp] lemma f_c : f c = 0 := rfl
 
 example : f c = 0 :=
 begin
-  simp,
+  simv,
   guard_target f d = 0, -- does not apply f_c
   refl
 end
@@ -39,7 +39,7 @@ def h : morphism := ⟨default⟩
 
 example : h c = 0 :=
 begin
-  simp,
+  simv,
   guard_target h d = 0, -- does not apply h_c
   refl
 end

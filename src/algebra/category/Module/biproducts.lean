@@ -46,7 +46,7 @@ def binary_product_limit_cone (M N : Module.{v} R) : limits.limit_cone (pair M N
       naturality' := by rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟨⟩⟩⟩; refl,  }},
   is_limit :=
   { lift := λ s, linear_map.prod (s.π.app ⟨walking_pair.left⟩) (s.π.app ⟨walking_pair.right⟩),
-    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp, }, },
+    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simv, }, },
     uniq' := λ s m w,
     begin
       ext; [rw ← w ⟨walking_pair.left⟩, rw ← w ⟨walking_pair.right⟩]; refl,
@@ -68,11 +68,11 @@ is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit M N)
   (binary_product_limit_cone M N).is_limit
 
-@[simp, elementwise] lemma biprod_iso_prod_inv_comp_fst (M N : Module.{v} R) :
+@[simv, elementwise] lemma biprod_iso_prod_inv_comp_fst (M N : Module.{v} R) :
   (biprod_iso_prod M N).inv ≫ biprod.fst = linear_map.fst R M N :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.left)
 
-@[simp, elementwise] lemma biprod_iso_prod_inv_comp_snd (M N : Module.{v} R) :
+@[simv, elementwise] lemma biprod_iso_prod_inv_comp_snd (M N : Module.{v} R) :
   (biprod_iso_prod M N).inv ≫ biprod.snd = linear_map.snd R M N :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.right)
 
@@ -88,8 +88,8 @@ to the cartesian product of those groups.
 def lift (s : fan f) :
   s.X ⟶ Module.of R (Π j, f j) :=
 { to_fun := λ x j, s.π.app ⟨j⟩ x,
-  map_add' := λ x y, by { ext, simp, },
-  map_smul' := λ r x, by { ext, simp, }, }
+  map_add' := λ x y, by { ext, simv, },
+  map_smul' := λ r x, by { ext, simv, }, }
 
 /--
 Construct limit data for a product in `Module R`, using `Module.of R (Π j, F.obj j)`.
@@ -100,12 +100,12 @@ Construct limit data for a product in `Module R`, using `Module.of R (Π j, F.ob
     π := discrete.nat_trans (λ j, (linear_map.proj j.as : (Π j, f j) →ₗ[R] f j.as)), },
   is_limit :=
   { lift := lift f,
-    fac' := λ s j, by { cases j, ext, simp, },
+    fac' := λ s j, by { cases j, ext, simv, },
     uniq' := λ s m w,
     begin
       ext x j,
       dsimp only [has_limit.lift],
-      simp only [linear_map.coe_mk],
+      simv only [linear_map.coe_mk],
       exact congr_arg (λ g : s.X ⟶ f j, (g : s.X → f j) x) (w ⟨j⟩),
     end, }, }
 
@@ -126,7 +126,7 @@ is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
+@[simv, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
   (f : J → Module.{v} R) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = (linear_map.proj j : (Π j, f j) →ₗ[R] f j) :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)

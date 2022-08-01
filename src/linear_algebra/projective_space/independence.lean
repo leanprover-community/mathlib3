@@ -50,7 +50,7 @@ begin
     convert hh.units_smul a,
     ext i, exact (ha i).symm },
   { convert independent.mk _ _ h,
-    { ext, simp only [mk_rep] },
+    { ext, simv only [mk_rep] },
     { intro i, apply rep_nonzero } }
 end
 
@@ -84,9 +84,9 @@ begin
     choose a ha using λ (i : ι), exists_smul_eq_mk_rep K (ff i) (hff i),
     convert hh1.units_smul a⁻¹,
     ext i,
-    simp only [← ha, inv_smul_smul, pi.smul_apply', pi.inv_apply, function.comp_app] },
+    simv only [← ha, inv_smul_smul, pi.smul_apply', pi.inv_apply, function.comp_app] },
   { convert dependent.mk _ _ h,
-    { ext i, simp only [mk_rep] },
+    { ext i, simv only [mk_rep] },
     { exact λ i, rep_nonzero (f i) } }
 end
 

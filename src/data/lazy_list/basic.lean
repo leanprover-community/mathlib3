@@ -36,9 +36,9 @@ open function
 def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
 { to_fun := lazy_list.of_list,
   inv_fun := lazy_list.to_list,
-  right_inv := by { intro, induction x, refl, simp! [*],
+  right_inv := by { intro, induction x, refl, simv! [*],
                     ext, cases x, refl },
-  left_inv := by { intro, induction x, refl, simp! [*] } }
+  left_inv := by { intro, induction x, refl, simv! [*] } }
 
 instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil nil := is_true rfl
@@ -70,16 +70,16 @@ begin
   apply equiv.is_lawful_traversable' list_equiv_lazy_list;
   intros ; resetI; ext,
   { induction x, refl,
-    simp! [equiv.map,functor.map] at *,
-    simp [*], refl, },
+    simv! [equiv.map,functor.map] at *,
+    simv [*], refl, },
   { induction x, refl,
-    simp! [equiv.map,functor.map_const] at *,
-    simp [*], refl, },
+    simv! [equiv.map,functor.map_const] at *,
+    simv [*], refl, },
   { induction x,
-    { simp! [traversable.traverse,equiv.traverse] with functor_norm, refl },
-    simp! [equiv.map,functor.map_const,traversable.traverse] at *, rw x_ih,
+    { simv! [traversable.traverse,equiv.traverse] with functor_norm, refl },
+    simv! [equiv.map,functor.map_const,traversable.traverse] at *, rw x_ih,
     dsimp [list_equiv_lazy_list,equiv.traverse,to_list,traversable.traverse,list.traverse],
-    simp! with functor_norm, refl },
+    simv! with functor_norm, refl },
 end
 
 /-- `init xs`, if `xs` non-empty, drops the last element of the list.
@@ -132,26 +132,26 @@ instance : monad lazy_list :=
 lemma append_nil {α} (xs : lazy_list α) : xs.append lazy_list.nil = xs :=
 begin
   induction xs, refl,
-  simp [lazy_list.append, xs_ih],
+  simv [lazy_list.append, xs_ih],
   ext, congr,
 end
 
 lemma append_assoc {α} (xs ys zs : lazy_list α) :
   (xs.append ys).append zs = xs.append (ys.append zs) :=
-by induction xs; simp [append, *]
+by induction xs; simv [append, *]
 
 lemma append_bind {α β} (xs : lazy_list α) (ys : thunk (lazy_list α)) (f : α → lazy_list β) :
   (@lazy_list.append _ xs ys).bind f = (xs.bind f).append ((ys ()).bind f) :=
-by induction xs; simp [lazy_list.bind, append, *, append_assoc, append, lazy_list.bind]
+by induction xs; simv [lazy_list.bind, append, *, append_assoc, append, lazy_list.bind]
 
 instance : is_lawful_monad lazy_list :=
 { pure_bind := by { intros, apply append_nil },
-  bind_assoc := by { intros, dsimp [(>>=)], induction x; simp [lazy_list.bind, append_bind, *], },
+  bind_assoc := by { intros, dsimp [(>>=)], induction x; simv [lazy_list.bind, append_bind, *], },
   id_map :=
   begin
     intros,
-    simp [(<$>)],
-    induction x; simp [lazy_list.bind, *, singleton, append],
+    simv [(<$>)],
+    induction x; simv [lazy_list.bind, *, singleton, append],
     ext ⟨ ⟩, refl,
   end }
 
@@ -175,7 +175,7 @@ instance mem.decidable {α} [decidable_eq α] (x : α) : Π xs : lazy_list α, d
 | (lazy_list.cons y ys) :=
   if h : x = y
     then decidable.is_true (or.inl h)
-    else decidable_of_decidable_of_iff (mem.decidable (ys ())) (by simp [*, (∈), lazy_list.mem])
+    else decidable_of_decidable_of_iff (mem.decidable (ys ())) (by simv [*, (∈), lazy_list.mem])
 
 @[simp]
 lemma mem_nil {α} (x : α) : x ∈ @lazy_list.nil α ↔ false := iff.rfl
@@ -186,7 +186,7 @@ lemma mem_cons {α} (x y : α) (ys : thunk (lazy_list α)) :
 
 theorem forall_mem_cons {α} {p : α → Prop} {a : α} {l : thunk (lazy_list α)} :
   (∀ x ∈ @lazy_list.cons _ a l, p x) ↔ p a ∧ ∀ x ∈ l (), p x :=
-by simp only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, forall_eq]
+by simv only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, forall_eq]
 
 /-! ### map for partial functions -/
 

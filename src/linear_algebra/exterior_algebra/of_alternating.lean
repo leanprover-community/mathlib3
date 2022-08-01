@@ -51,7 +51,7 @@ begin
       (λ m f i, (f i.succ).curry_left m) (λ m₁ m₂ f, _) (λ c m f, _) (λ m f₁ f₂, _) (λ c m f, _),
     all_goals {
       ext i : 1,
-      simp only [map_smul, map_add, pi.add_apply, pi.smul_apply, alternating_map.curry_left_add,
+      simv only [map_smul, map_add, pi.add_apply, pi.smul_apply, alternating_map.curry_left_add,
         alternating_map.curry_left_smul, map_add, map_smul, linear_map.add_apply,
         linear_map.smul_apply] } },
   { -- when applied twice with the same `m`, this recursive step produces 0

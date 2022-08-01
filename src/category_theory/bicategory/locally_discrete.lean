@@ -66,9 +66,9 @@ equalities between 1-morphisms.
 instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
 { whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (locally_discrete.eq_of_hom η)),
   whisker_right := λ X Y Z f g η h, eq_to_hom (congr_arg2 (≫) (locally_discrete.eq_of_hom η) rfl),
-  associator := λ W X Y Z f g h, eq_to_iso $ by { unfold_projs, simp only [category.assoc] },
-  left_unitor  := λ X Y f, eq_to_iso $ by { unfold_projs, simp only [category.id_comp, mk_as] },
-  right_unitor := λ X Y f, eq_to_iso $ by { unfold_projs, simp only [category.comp_id, mk_as] } }
+  associator := λ W X Y Z f g h, eq_to_iso $ by { unfold_projs, simv only [category.assoc] },
+  left_unitor  := λ X Y f, eq_to_iso $ by { unfold_projs, simv only [category.id_comp, mk_as] },
+  right_unitor := λ X Y f, eq_to_iso $ by { unfold_projs, simv only [category.comp_id, mk_as] } }
 
 /-- A locally discrete bicategory is strict. -/
 instance locally_discrete_bicategory.strict : strict (locally_discrete C) :=

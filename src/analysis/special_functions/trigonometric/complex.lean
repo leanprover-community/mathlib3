@@ -79,21 +79,21 @@ lemma cos_eq_cos_iff {x y : ℂ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
 calc cos x = cos y ↔ cos x - cos y = 0 : sub_eq_zero.symm
 ... ↔ -2 * sin((x + y)/2) * sin((x - y)/2) = 0 : by rw cos_sub_cos
-... ↔ sin((x + y)/2) = 0 ∨ sin((x - y)/2) = 0 : by simp [(by norm_num : (2:ℂ) ≠ 0)]
+... ↔ sin((x + y)/2) = 0 ∨ sin((x - y)/2) = 0 : by simv [(by norm_num : (2:ℂ) ≠ 0)]
 ... ↔ sin((x - y)/2) = 0 ∨ sin((x + y)/2) = 0 : or.comm
 ... ↔ (∃ k : ℤ, y = 2 * k * π + x) ∨ (∃ k :ℤ, y = 2 * k * π - x) :
 begin
   apply or_congr;
     field_simp [sin_eq_zero_iff, (by norm_num : -(2:ℂ) ≠ 0), eq_sub_iff_add_eq',
       sub_eq_iff_eq_add, mul_comm (2:ℂ), mul_right_comm _ (2:ℂ)],
-  split; { rintros ⟨k, rfl⟩, use -k, simp, },
+  split; { rintros ⟨k, rfl⟩, use -k, simv, },
 end
 ... ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x : exists_or_distrib.symm
 
 lemma sin_eq_sin_iff {x y : ℂ} :
   sin x = sin y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = (2 * k + 1) * π - x :=
 begin
-  simp only [← complex.cos_sub_pi_div_two, cos_eq_cos_iff, sub_eq_iff_eq_add],
+  simv only [← complex.cos_sub_pi_div_two, cos_eq_cos_iff, sub_eq_iff_eq_add],
   refine exists_congr (λ k, or_congr _ _); refine eq.congr rfl _; field_simp; ring
 end
 
@@ -107,10 +107,10 @@ begin
         ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
             (mul_ne_zero (cos_ne_zero_iff.mpr h1) (cos_ne_zero_iff.mpr h2)),
         add_div, sub_div],
-    simp only [←div_mul_div_comm, ←tan, mul_one, one_mul,
+    simv only [←div_mul_div_comm, ←tan, mul_one, one_mul,
               div_self (cos_ne_zero_iff.mpr h1), div_self (cos_ne_zero_iff.mpr h2)] },
   { obtain ⟨t, hx, hy, hxy⟩ := ⟨tan_int_mul_pi_div_two, t (2*k+1), t (2*l+1), t (2*k+1+(2*l+1))⟩,
-    simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,
+    simv only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,
     rw [hx, hy, add_zero, zero_div,
         mul_div_assoc, mul_div_assoc, ← add_mul (2*(k:ℂ)+1) (2*l+1) (π/2), ← mul_div_assoc, hxy] },
 end

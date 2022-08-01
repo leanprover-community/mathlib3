@@ -293,7 +293,7 @@ end
 
 end comm_ring
 
-/-- `simp` normal form version of `total_dual_basis` -/
+/-- `simv` normal form version of `total_dual_basis` -/
 @[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [fintype ι]
   (b : basis ι R M) (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.coord f (b i) = f i :=
@@ -305,7 +305,7 @@ theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : 
 begin
   classical,
   have := linear_equiv.lift_dim_eq b.to_dual_equiv,
-  simp only [cardinal.lift_umax] at this,
+  simv only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
 end
@@ -391,13 +391,13 @@ include h
 lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_pair.lc e l) = l i :=
 begin
   erw linear_map.map_sum,
-  simp only [h.eval, map_smul, smul_eq_mul],
+  simv only [h.eval, map_smul, smul_eq_mul],
   rw finset.sum_eq_single i,
-  { simp },
+  { simv },
   { intros q q_in q_ne,
-    simp [q_ne.symm] },
+    simv [q_ne.symm] },
   { intro p_not_in,
-    simp [finsupp.not_mem_support_iff.1 p_not_in] },
+    simv [finsupp.not_mem_support_iff.1 p_not_in] },
 end
 
 @[simp]
@@ -410,7 +410,7 @@ lemma lc_coeffs (m : M) : dual_pair.lc e (h.coeffs m) = m :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
-  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
+  simv [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
 /-- `(h : dual_pair e ε).basis` shows the family of vectors `e` forms a basis. -/
@@ -534,7 +534,7 @@ by convert dual_lift_of_subtype ⟨w, hw⟩
 
 @[simp] lemma dual_restrict_comp_dual_lift (W : subspace K V) :
   W.dual_restrict.comp W.dual_lift = 1 :=
-by { ext φ x, simp }
+by { ext φ x, simv }
 
 lemma dual_restrict_left_inverse (W : subspace K V) :
   function.left_inverse W.dual_restrict W.dual_lift :=
@@ -654,13 +654,13 @@ def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual
   left_inv :=
     begin
       intro φ, ext x,
-      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+      simv only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
                  linear_map.to_fun_eq_coe, linear_equiv.apply_symm_apply]
     end,
   right_inv :=
     begin
       intro φ, ext x,
-      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+      simv only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
                  linear_map.to_fun_eq_coe, linear_equiv.symm_apply_apply]
     end,
   .. f.to_linear_map.dual_map }
@@ -803,7 +803,7 @@ variables {R M N}
 @[simp]
 lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
   dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
-by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
+by simv only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
   comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
 
 end
@@ -825,7 +825,7 @@ def dual_distrib_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
 lemma dual_distrib_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)
   (f : dual R (M ⊗[R] N)) : dual_distrib_inv_of_basis b c f =
   ∑ i j, (f (b i ⊗ₜ c j)) • (b.dual_basis i ⊗ₜ c.dual_basis j) :=
-by simp [dual_distrib_inv_of_basis]
+by simv [dual_distrib_inv_of_basis]
 
 /--
 A linear equivalence between `dual M ⊗ dual N` and `dual (M ⊗ N)` given bases for `M` and `N`.
@@ -840,12 +840,12 @@ begin
     (dual_distrib R M N) (dual_distrib_inv_of_basis b c) _ _,
   { ext f m n,
     have h : ∀ (r s : R), r • s = s • r := is_commutative.comm,
-    simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
+    simv only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
       linear_map.map_sum, map_smul, sum_apply, smul_apply, dual_distrib_apply, h (f _) _,
       ← f.map_smul, ←f.map_sum, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
       basis.coord_apply, basis.sum_repr] },
   { ext f g,
-    simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
+    simv only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
       dual_distrib_apply, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
       basis.sum_dual_apply_smul_coord] }
 end

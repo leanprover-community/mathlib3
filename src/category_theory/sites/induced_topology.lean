@@ -94,7 +94,7 @@ def induced_topology :
     apply K.pullback_stable i,
     refine K.superset_covering _ (H' hg),
     rintros W _ ⟨Z', g', i', hg, rfl⟩,
-    use ⟨Z', g' ≫ g, i', hg, by simp⟩
+    use ⟨Z', g' ≫ g, i', hg, by simv⟩
   end }
 
 /-- `G` is cover-lifting wrt the induced topology. -/
@@ -115,7 +115,7 @@ begin
   use W, use G.preimage (f' ≫ f), use g,
   split,
   simpa using T.val.downward_closed hf f',
-  simp,
+  simv,
 end
 
 /--

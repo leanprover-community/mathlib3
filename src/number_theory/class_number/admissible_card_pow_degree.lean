@@ -116,13 +116,13 @@ begin
   { obtain ⟨i₀, i₁, i_ne, mod_eq⟩ := exists_eq_polynomial le_rfl b le_b (λ i, A i % b)
       (λ i, euclidean_domain.mod_lt (A i) hb),
     refine ⟨i₀, i₁, i_ne, _⟩,
-    simp only at mod_eq,
+    simv only at mod_eq,
     rwa [mod_eq, sub_self, absolute_value.map_zero, int.cast_zero] },
   -- Otherwise, it suffices to choose two elements whose difference is of small enough degree.
   rw not_le at le_b,
   obtain ⟨i₀, i₁, i_ne, deg_lt⟩ := exists_approx_polynomial_aux le_rfl b (λ i, A i % b)
     (λ i, euclidean_domain.mod_lt (A i) hb),
-  simp only at deg_lt,
+  simv only at deg_lt,
   use [i₀, i₁, i_ne],
   -- Again, if the remainders are equal we are done.
   by_cases h : A i₁ % b = A i₀ % b,
@@ -166,7 +166,7 @@ begin
   rw [card_pow_degree_nonzero _ hxz', card_pow_degree_nonzero _ hxy',
       card_pow_degree_nonzero _ hyz'],
   have : (1 : ℤ) ≤ fintype.card Fq, { exact_mod_cast (@fintype.one_lt_card Fq _ _).le },
-  simp only [int.cast_pow, int.cast_coe_nat, le_max_iff],
+  simv only [int.cast_pow, int.cast_coe_nat, le_max_iff],
   refine or.imp (pow_le_pow this) (pow_le_pow this) _,
   rw [nat_degree_le_iff_degree_le, nat_degree_le_iff_degree_le, ← le_max_iff,
       ← degree_eq_nat_degree hxy', ← degree_eq_nat_degree hyz'],

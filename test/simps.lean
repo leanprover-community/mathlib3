@@ -40,16 +40,16 @@ run_cmd do
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
 
-/- the declarations are `simp` lemmas -/
+/- the declarations are `simv` lemmas -/
 @[simps] def foo : ℕ × ℤ := (1, 2)
 
-example : foo.1 = 1 := by simp
-example : foo.2 = 2 := by simp
+example : foo.1 = 1 := by simv
+example : foo.2 = 2 := by simv
 example : foo.1 = 1 := by { dsimp, refl } -- check that dsimp also unfolds
 example : foo.2 = 2 := by { dsimp, refl }
-example {α} (x : α) : foo.rfl.to_fun x = x := by simp
-example {α} (x : α) : foo.rfl.inv_fun x = x := by simp
-example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simp}, refl }
+example {α} (x : α) : foo.rfl.to_fun x = x := by simv
+example {α} (x : α) : foo.rfl.inv_fun x = x := by simv
+example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simv}, refl }
 
 /- check some failures -/
 def bar1 : ℕ := 1 -- type is not a structure
@@ -104,7 +104,7 @@ run_cmd do
 /- check projections for nested structures -/
 
 namespace count_nested
-@[simps {attrs := [`simp, `norm]}] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
+@[simps {attrs := [`simv, `norm]}] def nested1 : my_prod ℕ $ my_prod ℤ ℕ :=
 ⟨2, -1, 1⟩
 
 @[simps {attrs := []}] def nested2 : ℕ × my_prod ℕ ℕ :=
@@ -119,8 +119,8 @@ run_cmd do
   e.get `count_nested.nested1_snd_snd,
   e.get `count_nested.nested2_fst,
   e.get `count_nested.nested2_snd,
-  is_simp_lemma `count_nested.nested1_fst >>= λ b, guard b, -- simp attribute is global
-  is_simp_lemma `count_nested.nested2_fst >>= λ b, guard $ ¬b, --lemmas_only doesn't add simp lemma
+  is_simp_lemma `count_nested.nested1_fst >>= λ b, guard b, -- simv attribute is global
+  is_simp_lemma `count_nested.nested2_fst >>= λ b, guard $ ¬b, --lemmas_only doesn't add simv lemma
   guard $ 7 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `count_nested then 1 else 0)
 
@@ -238,24 +238,24 @@ run_cmd do
   guard $ 12 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["fst_fst"])
-    "Invalid simp lemma specify.specify1_fst_fst.
+    "Invalid simv lemma specify.specify1_fst_fst.
 Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
-    "Invalid simp lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
+    "Invalid simv lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
 Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
-    "Invalid simp lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
+    "Invalid simv lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
 Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
-    "Invalid simp lemma specify.specify5_snd_snd.
+    "Invalid simv lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
   classical.choice specify.specify5._proof_1"
 
@@ -272,7 +272,7 @@ run_cmd do
 /- check simp_rhs option -/
 @[simps {simp_rhs := tt}] def equiv.trans {α β γ} (f : α ≃ β) (g : β ≃ γ) : α ≃ γ :=
 ⟨g.to_fun ∘ f.to_fun, f.inv_fun ∘ g.inv_fun,
-  by { intro x, simp [equiv.left_inv _ _] }, by { intro x, simp [equiv.right_inv _ _] }⟩
+  by { intro x, simv [equiv.left_inv _ _] }, by { intro x, simv [equiv.right_inv _ _] }⟩
 
 
 example {α β γ : Type} (f : α ≃ β) (g : β ≃ γ) (x : α) :
@@ -283,15 +283,15 @@ begin
   refl,
 end
 
-local attribute [simp] nat.zero_add nat.one_mul nat.mul_one
+local attribute [simv] nat.zero_add nat.one_mul nat.mul_one
 @[simps {simp_rhs := tt}] def my_nat_equiv : ℕ ≃ ℕ :=
-⟨λ n, 0 + n, λ n, 1 * n * 1, by { intro n, simp }, by { intro n, simp }⟩
+⟨λ n, 0 + n, λ n, 1 * n * 1, by { intro n, simv }, by { intro n, simv }⟩
 
 run_cmd success_if_fail (has_attribute `_refl_lemma `my_nat_equiv_to_fun) >>
   has_attribute `_refl_lemma `equiv.trans_to_fun
 
 example (n : ℕ) : my_nat_equiv.to_fun (my_nat_equiv.to_fun $ my_nat_equiv.inv_fun n) = n :=
-by { success_if_fail { refl }, simp only [my_nat_equiv_to_fun, my_nat_equiv_inv_fun] }
+by { success_if_fail { refl }, simv only [my_nat_equiv_to_fun, my_nat_equiv_inv_fun] }
 
 @[simps {simp_rhs := tt}] def succeed_without_simplification_possible : ℕ ≃ ℕ :=
 ⟨λ n, n, λ n, n, by { intro n, refl }, by { intro n, refl }⟩
@@ -345,9 +345,9 @@ infixr ` ≫ `:80 := category_struct.comp -- type as \gg
   id      := λ a, id,
   comp    := λ _ _ _ f g, g ∘ f }
 
-example (X : Type u) : (X ⟶ X) = (X → X) := by simp
-example (X : Type u) : 𝟙 X = (λ x, x) := by { funext, simp }
-example (X Y Z : Type u) (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := by { funext, simp }
+example (X : Type u) : (X ⟶ X) = (X → X) := by simv
+example (X : Type u) : 𝟙 X = (λ x, x) := by { funext, simv }
+example (X Y Z : Type u) (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ g = g ∘ f := by { funext, simv }
 
 namespace coercing
 
@@ -360,8 +360,8 @@ instance : has_coe_to_sort foo_str Type := ⟨foo_str.c⟩
 @[simps] def foo : foo_str := ⟨ℕ, 3⟩
 @[simps] def foo2 : foo_str := ⟨ℕ, 34⟩
 
-example : ↥foo = ℕ := by simp only [foo_c]
-example : foo.x = (3 : ℕ) := by simp only [foo_x]
+example : ↥foo = ℕ := by simv only [foo_c]
+example : foo.x = (3 : ℕ) := by simv only [foo_x]
 
 structure voo_str (n : ℕ) :=
  (c : Type)
@@ -372,8 +372,8 @@ instance has_coe_voo_str (n : ℕ) : has_coe_to_sort (voo_str n) Type := ⟨voo_
 @[simps] def voo : voo_str 7 := ⟨ℕ, 3⟩
 @[simps] def voo2 : voo_str 4 := ⟨ℕ, 34⟩
 
-example : ↥voo = ℕ := by simp only [voo_c]
-example : voo.x = (3 : ℕ) := by simp only [voo_x]
+example : ↥voo = ℕ := by simv only [voo_c]
+example : voo.x = (3 : ℕ) := by simv only [voo_x]
 
 structure equiv2 (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
@@ -387,8 +387,8 @@ instance {α β} : has_coe_to_fun (equiv2 α β) (λ _, α → β) := ⟨equiv2.
 ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
 example {α} (x : α) : coercing.rfl2 x = x := by rw [coercing.rfl2_to_fun]
-example {α} (x : α) : coercing.rfl2 x = x := by simp
-example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
+example {α} (x : α) : coercing.rfl2 x = x := by simv
+example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simv
 
 @[simps] protected def equiv2.symm {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
@@ -399,11 +399,11 @@ example {α} (x : α) : coercing.rfl2.inv_fun x = x := by simp
 @[simps {fully_applied := ff}] protected def equiv2.symm3 {α β} (f : equiv2 α β) : equiv2 β α :=
 ⟨f.inv_fun, f, f.right_inv, f.left_inv⟩
 
-example {α β} (f : equiv2 α β) (y : β) : f.symm y = f.inv_fun y := by simp
-example {α β} (f : equiv2 α β) (x : α) : f.symm.inv_fun x = f x := by simp
+example {α β} (f : equiv2 α β) (y : β) : f.symm y = f.inv_fun y := by simv
+example {α β} (f : equiv2 α β) (x : α) : f.symm.inv_fun x = f x := by simv
 
-example {α β} (f : equiv2 α β) : f.symm.inv_fun = f := by { success_if_fail {simp}, refl }
-example {α β} (f : equiv2 α β) : f.symm3.inv_fun = f := by simp
+example {α β} (f : equiv2 α β) : f.symm.inv_fun = f := by { success_if_fail {simv}, refl }
+example {α β} (f : equiv2 α β) : f.symm3.inv_fun = f := by simv
 
 section
 set_option old_structure_cmd true
@@ -413,11 +413,11 @@ end
 
 @[simps] instance {α β} [semigroup α] [semigroup β] : semigroup (α × β) :=
 { mul := λ x y, (x.1 * y.1, x.2 * y.2),
-  mul_assoc := by { intros, simp only [semigroup.mul_assoc], refl } }
+  mul_assoc := by { intros, simv only [semigroup.mul_assoc], refl } }
 
 example {α β} [semigroup α] [semigroup β] (x y : α × β) : x * y = (x.1 * y.1, x.2 * y.2) :=
-by simp
-example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1 * y.1 := by simp
+by simv
+example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1 * y.1 := by simv
 
 structure Semigroup :=
   (G : Type*)
@@ -435,7 +435,7 @@ instance (G : Semigroup) : has_mul G := ⟨G.op⟩
 @[simps] def prod_Semigroup (G H : Semigroup) : Semigroup :=
 { G := G × H,
   op := λ x y, (x.1 * y.1, x.2 * y.2),
-  op_assoc := by { intros, dsimp [Group.has_mul], simp [Semigroup.op_assoc] }}
+  op_assoc := by { intros, dsimp [Group.has_mul], simv [Semigroup.op_assoc] }}
 
 
 end Group
@@ -455,7 +455,7 @@ end
 
 section
 local attribute [instance] bar
-example (x : ℕ) : x * - 0 ⊆ - x := by simp
+example (x : ℕ) : x * - 0 ⊆ - x := by simv
 end
 
 class new_extending_stuff (G : Type u) extends has_mul G, has_zero G, has_neg G, has_subset G :=
@@ -470,7 +470,7 @@ class new_extending_stuff (G : Type u) extends has_mul G, has_zero G, has_neg G,
 
 section
 local attribute [instance] new_bar
-example (x : ℕ) : x * - 0 ⊆ - x := by simp
+example (x : ℕ) : x * - 0 ⊆ - x := by simv
 end
 
 
@@ -498,7 +498,7 @@ def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
-by simp only [equiv.trans_inv_fun]
+by simv only [equiv.trans_inv_fun]
 
 end manual_coercion
 
@@ -632,10 +632,10 @@ run_cmd do
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e₂ (e₁ x) :=
-by simp only [equiv.trans_apply]
+by simv only [equiv.trans_apply]
 
 example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
-by simp only [equiv.trans_symm_apply]
+by simv only [equiv.trans_symm_apply]
 
 -- the new projection names are parsed correctly (the old projection names won't work anymore)
 @[simps apply symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
@@ -672,7 +672,7 @@ run_cmd do
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e₂ (e₁ x) :=
-by simp only [equiv.coe_trans]
+by simv only [equiv.coe_trans]
 
 -- the new projection names are parsed correctly
 @[simps coe symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
@@ -685,7 +685,7 @@ by simp only [equiv.coe_trans]
 
 example {α β γ δ : Type*} (x : α) (e₁ : α ≃ β) (e₂ : γ ≃ δ) (z : α × γ) :
   ((foo x e₁ e₂).2 z).1 = e₁ z.1 :=
-by simp only [coe_foo_snd_fst]
+by simv only [coe_foo_snd_fst]
 
 end prefix_projection_names
 
@@ -778,7 +778,7 @@ instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) (λ _, A → B) := ⟨
 @[simps] def my_alg_hom : alg_hom unit bool bool :=
 { to_fun := id }
 
-example (x : bool) : my_alg_hom x = id x := by simp only [my_alg_hom_to_fun]
+example (x : bool) : my_alg_hom x = id x := by simv only [my_alg_hom_to_fun]
 
 structure ring_hom (A B : Type*) :=
 (to_fun : A → B)
@@ -788,7 +788,7 @@ instance (A B : Type*) : has_coe_to_fun (ring_hom A B) (λ _, A → B) := ⟨λ 
 @[simps] def my_ring_hom : ring_hom bool bool :=
 { to_fun := id }
 
-example (x : bool) : my_ring_hom x = id x := by simp only [my_ring_hom_to_fun]
+example (x : bool) : my_ring_hom x = id x := by simv only [my_ring_hom_to_fun]
 
 /- check interaction with the `@[to_additive]` attribute -/
 
@@ -800,13 +800,13 @@ run_cmd do
   get_decl `prod.has_add_add,
   has_attribute `to_additive `prod.has_mul,
   has_attribute `to_additive `prod.has_mul_mul,
-  has_attribute `simp `prod.has_mul_mul,
-  has_attribute `simp `prod.has_add_add
+  has_attribute `simv `prod.has_mul_mul,
+  has_attribute `simv `prod.has_add_add
 
-example {M N} [has_mul M] [has_mul N] (p q : M × N) : p * q = ⟨p.1 * q.1, p.2 * q.2⟩ := by simp
-example {M N} [has_add M] [has_add N] (p q : M × N) : p + q = ⟨p.1 + q.1, p.2 + q.2⟩ := by simp
+example {M N} [has_mul M] [has_mul N] (p q : M × N) : p * q = ⟨p.1 * q.1, p.2 * q.2⟩ := by simv
+example {M N} [has_add M] [has_add N] (p q : M × N) : p + q = ⟨p.1 + q.1, p.2 + q.2⟩ := by simv
 
-/- The names of the generated simp lemmas for the additive version are not great if the definition
+/- The names of the generated simv lemmas for the additive version are not great if the definition
   had a custom additive name -/
 @[to_additive my_add_instance, simps]
 instance my_instance {M N} [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
@@ -816,16 +816,16 @@ run_cmd do
   get_decl `my_add_instance_zero,
   has_attribute `to_additive `my_instance,
   has_attribute `to_additive `my_instance_one,
-  has_attribute `simp `my_instance_one,
-  has_attribute `simp `my_add_instance_zero
+  has_attribute `simv `my_instance_one,
+  has_attribute `simv `my_add_instance_zero
 
-example {M N} [has_one M] [has_one N] : (1 : M × N) = ⟨1, 1⟩ := by simp
-example {M N} [has_zero M] [has_zero N] : (0 : M × N) = ⟨0, 0⟩ := by simp
+example {M N} [has_one M] [has_one N] : (1 : M × N) = ⟨1, 1⟩ := by simv
+example {M N} [has_zero M] [has_zero N] : (0 : M × N) = ⟨0, 0⟩ := by simv
 
 section
-/-! Test `dsimp, simp` with the option `simp_rhs` -/
+/-! Test `dsimp, simv` with the option `simp_rhs` -/
 
-local attribute [simp] nat.add
+local attribute [simv] nat.add
 
 structure my_type :=
 (A : Type)
@@ -834,16 +834,16 @@ structure my_type :=
 
 example (h : false) (x y : { x : fin (nat.add 3 0) // 1 + 1 = 2 }) : my_type_def.A = unit :=
 begin
-  simp only [my_type_def_A],
+  simv only [my_type_def_A],
   guard_target ({ x : fin 3 // true } = unit),
-  /- note: calling only one of `simp` or `dsimp` does not produce the current target,
+  /- note: calling only one of `simv` or `dsimp` does not produce the current target,
   as the following tests show. -/
   success_if_fail { guard_hyp x : { x : fin 3 // true } },
   dsimp at x,
   success_if_fail { guard_hyp x : { x : fin 3 // true } },
-  simp at y,
+  simv at y,
   success_if_fail { guard_hyp y : { x : fin 3 // true } },
-  simp at x, dsimp at y,
+  simv at x, dsimp at y,
   guard_hyp x : { x : fin 3 // true },
   guard_hyp y : { x : fin 3 // true },
   contradiction
@@ -853,7 +853,7 @@ end
 @[to_additive, simps]
 def monoid_hom.my_comp {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P]
   (hnp : N →* P) (hmn : M →* N) : M →* P :=
-{ to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
+{ to_fun := hnp ∘ hmn, map_one' := by simv, map_mul' := by simv, }
 
 -- `simps` adds the `_refl_lemma` attribute to `monoid_hom.my_comp_apply`
 example {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P]
@@ -1030,7 +1030,7 @@ def thing (h : bool ≃ (bool ≃ bool)) : something2 (λ x : ℕ, bool) :=
 
 example (h : bool ≃ (bool ≃ bool)) (i j : ℕ) (b1 b2 : bool) :
   @something2.mul _ _ _ _ (thing h) i j b1 b2 = h b1 b2 :=
-by simp only [thing_mul]
+by simv only [thing_mul]
 
 end comp_projs
 

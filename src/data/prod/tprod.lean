@@ -73,11 +73,11 @@ protected def elim : ∀ {l : list ι} (v : tprod α l) {i : ι} (hi : i ∈ l),
   if hji : j = i then by { subst hji, exact v.1 } else elim v.2 (hj.resolve_left hji)
 
 @[simp] lemma elim_self (v : tprod α (i :: l)) : v.elim (l.mem_cons_self i) = v.1 :=
-by simp [tprod.elim]
+by simv [tprod.elim]
 
 @[simp] lemma elim_of_ne (hj : j ∈ i :: l) (hji : j ≠ i) (v : tprod α (i :: l)) :
   v.elim hj = tprod.elim v.2 (hj.resolve_left hji) :=
-by simp [tprod.elim, hji]
+by simv [tprod.elim, hji]
 
 @[simp] lemma elim_of_mem (hl : (i :: l).nodup) (hj : j ∈ l) (v : tprod α (i :: l)) :
   v.elim (mem_cons_of_mem _ hj) = tprod.elim v.2 hj :=
@@ -87,7 +87,7 @@ lemma elim_mk : ∀ (l : list ι) (f : Π i, α i) {i : ι} (hi : i ∈ l),
   (tprod.mk l f).elim hi = f i
 | (i :: is) f j hj := begin
       by_cases hji : j = i,
-      { subst hji, simp },
+      { subst hji, simv },
       { rw [elim_of_ne _ hji, snd_mk, elim_mk] }
   end
 
@@ -106,7 +106,7 @@ lemma elim_mk : ∀ (l : list ι) (f : Π i, α i) {i : ι} (hi : i ∈ l),
 v.elim (h i)
 
 lemma mk_elim (hnd : l.nodup) (h : ∀ i, i ∈ l) (v : tprod α l) : tprod.mk l (v.elim' h) = v :=
-tprod.ext hnd (λ i hi, by simp [elim_mk])
+tprod.ext hnd (λ i hi, by simv [elim_mk])
 
 /-- Pi-types are equivalent to iterated products. -/
 def pi_equiv_tprod (hnd : l.nodup) (h : ∀ i, i ∈ l) : (Π i, α i) ≃ tprod α l :=
@@ -126,12 +126,12 @@ open list
 
 lemma mk_preimage_tprod : ∀ (l : list ι) (t : Π i, set (α i)),
   tprod.mk l ⁻¹' set.tprod l t = {i | i ∈ l}.pi t
-| []        t := by simp [set.tprod]
+| []        t := by simv [set.tprod]
 | (i :: l) t := begin
   ext f,
   have : f ∈ tprod.mk l ⁻¹' set.tprod l t ↔ f ∈ {x | x ∈ l}.pi t, { rw [mk_preimage_tprod l t] },
   change tprod.mk l f ∈ set.tprod l t ↔ ∀ (i : ι), i ∈ l → f i ∈ t i at this,
-  /- `simp [set.tprod, tprod.mk, this]` can close this goal but is slow. -/
+  /- `simv [set.tprod, tprod.mk, this]` can close this goal but is slow. -/
   rw [set.tprod, tprod.mk, mem_preimage, mem_pi, prod_mk_mem_set_prod_eq],
   simp_rw [mem_set_of_eq, mem_cons_iff],
   rw [forall_eq_or_imp, and.congr_right_iff],
@@ -141,9 +141,9 @@ end
 lemma elim_preimage_pi [decidable_eq ι] {l : list ι} (hnd : l.nodup) (h : ∀ i, i ∈ l)
   (t : Π i, set (α i)) : tprod.elim' h ⁻¹' pi univ t = set.tprod l t :=
 begin
-  have : { i | i ∈ l} = univ, { ext i, simp [h] },
+  have : { i | i ∈ l} = univ, { ext i, simv [h] },
   rw [← this, ← mk_preimage_tprod, preimage_preimage],
-  convert preimage_id, simp [tprod.mk_elim hnd h, id_def]
+  convert preimage_id, simv [tprod.mk_elim hnd h, id_def]
 end
 
 end set

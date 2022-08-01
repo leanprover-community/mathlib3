@@ -27,14 +27,14 @@ structure Mod (A : Mon_ C) :=
 
 restate_axiom Mod.one_act'
 restate_axiom Mod.assoc'
-attribute [simp, reassoc] Mod.one_act Mod.assoc
+attribute [simv, reassoc] Mod.one_act Mod.assoc
 
 namespace Mod
 
 variables {A : Mon_ C} (M : Mod A)
 
 lemma assoc_flip : (𝟙 A.X ⊗ M.act) ≫ M.act = (α_ A.X A.X M.X).inv ≫ (A.mul ⊗ 𝟙 M.X) ≫ M.act :=
-by simp
+by simv
 
 /-- A morphism of module objects. -/
 @[ext]
@@ -43,7 +43,7 @@ structure hom (M N : Mod A) :=
 (act_hom' : M.act ≫ hom = (𝟙 A.X ⊗ hom) ≫ N.act . obviously)
 
 restate_axiom hom.act_hom'
-attribute [simp, reassoc] hom.act_hom
+attribute [simv, reassoc] hom.act_hom
 
 /-- The identity morphism on a module object. -/
 @[simps]

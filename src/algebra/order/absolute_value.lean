@@ -124,7 +124,7 @@ variables {R S : Type*} [ring R] [linear_ordered_comm_ring S] (abv : absolute_va
 
 @[simp] protected theorem map_neg (a : R) : abv (-a) = abv a :=
 begin
-  by_cases ha : a = 0, { simp [ha] },
+  by_cases ha : a = 0, { simv [ha] },
   refine (mul_self_eq_mul_self_iff.mp
     (by rw [← abv.map_mul, neg_mul_neg, abv.map_mul])).resolve_right _,
   exact ((neg_lt_zero.mpr (abv.pos ha)).trans (abv.pos (neg_ne_zero.mpr ha))).ne'
@@ -200,7 +200,7 @@ def to_absolute_value : absolute_value R S :=
 theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 
 theorem abv_pos {a : R} : 0 < abv a ↔ a ≠ 0 :=
-by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
+by rw [lt_iff_le_and_ne, ne, eq_comm]; simv [abv_eq_zero abv, abv_nonneg abv]
 
 
 end ordered_semiring
@@ -249,7 +249,7 @@ variables {R : Type*} [ring R] (abv : R → S) [is_absolute_value abv]
 
 theorem abv_neg (a : R) : abv (-a) = abv a :=
 by rw [← mul_self_inj_of_nonneg (abv_nonneg abv _) (abv_nonneg abv _),
-← abv_mul abv, ← abv_mul abv]; simp
+← abv_mul abv, ← abv_mul abv]; simv
 
 theorem abv_sub (a b : R) : abv (a - b) = abv (b - a) :=
 by rw [← neg_sub, abv_neg abv]

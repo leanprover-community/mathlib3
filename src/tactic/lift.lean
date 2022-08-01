@@ -84,7 +84,7 @@ namespace tactic
 Construct the proof of `cond x` in the lift tactic.
 *  `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
 *  `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
-*  `s` and `to_unfold` contain the information of the simp set used to simplify.
+*  `s` and `to_unfold` contain the information of the simv set used to simplify.
 
 If the proof was specified, we check whether it has the correct type.
 If it doesn't have the correct type, we display an error message
@@ -120,7 +120,7 @@ do
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"
     >>= fail,
-  /- make the simp set to get rid of `can_lift` projections -/
+  /- make the simv set to get rid of `can_lift` projections -/
   can_lift_instances ← can_lift_attr.get_cache >>= λ l, l.mmap resolve_name,
   (s, to_unfold) ← mk_simp_set tt [] $ can_lift_instances.map simp_arg_type.expr,
   prf_cond ← get_lift_prf h old_tp new_tp inst e s to_unfold,

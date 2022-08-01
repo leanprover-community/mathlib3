@@ -27,8 +27,6 @@ universes u v w
 variables {R : Type u} {S : Type v} {T : Type w} [non_unital_non_assoc_semiring R]
   (M : subsemigroup R)
 
-section non_unital_subsemiring_class
-
 /-- `non_unital_subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both an additive submonoid and also a multiplicative subsemigroup. -/
 class non_unital_subsemiring_class (S : Type*) (R : out_param $ Type u)
@@ -41,12 +39,12 @@ instance non_unital_subsemiring_class.mul_mem_class (S : Type*) (R : out_param $
   mul_mem_class S R :=
 { .. h }
 
-variables [set_like S R] [hSR : non_unital_subsemiring_class S R] (s : S)
-include hSR
+namespace non_unital_subsemiring_class
+
+variables [set_like S R] [non_unital_subsemiring_class S R] (s : S)
+include R S
 
 open add_submonoid_class
-
-namespace non_unital_subsemiring_class
 
 /-- A non-unital subsemiring of a `non_unital_non_assoc_semiring` inherits a
 `non_unital_non_assoc_semiring` structure -/
@@ -67,7 +65,7 @@ def subtype : s →ₙ+* R :=
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 
-omit hSR
+omit R S
 
 /-- A non-unital subsemiring of a `non_unital_semiring` is a `non_unital_semiring`. -/
 instance to_non_unital_semiring {R} [non_unital_semiring R] [set_like S R]
@@ -80,8 +78,6 @@ instance to_non_unital_comm_semiring {R} [non_unital_comm_semiring R] [set_like 
 subtype.coe_injective.non_unital_comm_semiring coe rfl (by simp) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there are no ordered versions of non-unital rings. -/
-
-end non_unital_subsemiring_class
 
 end non_unital_subsemiring_class
 

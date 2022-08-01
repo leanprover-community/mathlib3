@@ -372,6 +372,21 @@ lemma sum_eq_card_of_is_trivial' {ψ : add_char R R'} (hψ : ¬ is_nontrivial ψ
   ∑ a, ψ a = fintype.card R :=
 sum_eq_card_of_is_trivial hψ
 
+/-- The sum over the values of `mul_shift ψ b` for `ψ` primitive is zero when `b ≠ 0`
+and `#R` otherwise. -/
+lemma sum_mul_shift [decidable_eq R] [is_domain R'] (ψ : add_char R R') (b : R)
+  (hψ : is_primitive ψ) :
+  ∑ (x : R), ψ (of_add (x * b)) = if b = 0 then fintype.card R else 0 :=
+begin
+  split_ifs with h,
+  { -- case `b = 0`
+    simp only [h, sub_self, mul_zero, of_add_zero, map_one, finset.sum_const, nat.smul_one_eq_coe],
+    refl, },
+  { -- case `b ≠ 0`
+    simp_rw mul_comm,
+    exact sum_eq_zero_of_is_nontrivial (hψ b h), },
+end
+
 end add_char
 
 end additive

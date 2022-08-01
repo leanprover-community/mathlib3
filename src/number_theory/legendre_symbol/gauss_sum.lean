@@ -89,7 +89,7 @@ variables {R : Type u} [field R] [fintype R] {R' : Type v} [comm_ring R'] [is_do
 
 -- Two helper lemmas for `gauss_sum_mul_gauss_sum_eq_card` below
 private
-lemma gauss_sum_mul_aux₁ {χ : mul_char R R'} (hχ : is_nontrivial χ) (ψ : add_char R R') (b : R) :
+lemma gauss_sum_mul_aux {χ : mul_char R R'} (hχ : is_nontrivial χ) (ψ : add_char R R') (b : R) :
   ∑ a, χ (a * b⁻¹) * ψ (of_add (a - b)) = ∑ c, χ c * ψ (of_add $ b * (c - 1)) :=
 begin
   cases eq_or_ne b 0 with hb hb,
@@ -100,19 +100,6 @@ begin
   { -- case `b ≠ 0`
     refine (fintype.sum_bijective _ (mul_left_bijective₀ b hb) _ _ $ λ x, _).symm,
     rw [mul_assoc, mul_comm x, ← mul_assoc, mul_inv_cancel hb, one_mul, mul_sub, mul_one] },
-end
-
-private
-lemma gauss_sum_mul_aux₂ [decidable_eq R] (ψ : add_char R R') (b : R) (hψ : is_primitive ψ) :
-  ∑ (x : R), ψ (of_add (x * b)) = if b = 0 then fintype.card R else 0 :=
-begin
-  split_ifs with h,
-  { -- case `b = 0`
-    simp only [h, sub_self, mul_zero, of_add_zero, map_one, finset.sum_const, nat.smul_one_eq_coe],
-    refl, },
-  { -- case `b ≠ 0`
-    simp_rw mul_comm,
-    exact sum_eq_zero_of_is_nontrivial (hψ b h), },
 end
 
 /-- We have `gauss_sum χ ψ * gauss_sum χ⁻¹ ψ⁻¹ = fintype.card R`
@@ -127,10 +114,10 @@ begin
   simp_rw [finset.sum_mul, mul_mul_mul_comm, inv_apply' χ, ← map_mul χ, ← map_mul ψ],
   convert_to ∑ y x, χ (x * y⁻¹) * ψ (of_add (x - y)) = _,
   { simp_rw sub_eq_add_neg, refl },
-  simp_rw gauss_sum_mul_aux₁ hχ ψ,
+  simp_rw gauss_sum_mul_aux hχ ψ,
   rw [finset.sum_comm],
   classical, -- to get `[decidable_eq R]` for `gauss_sum_mul_aux₂`
-  simp_rw [← finset.mul_sum, gauss_sum_mul_aux₂ _ _ hψ, sub_eq_zero, mul_ite, mul_zero],
+  simp_rw [← finset.mul_sum, sum_mul_shift _ _ hψ, sub_eq_zero, mul_ite, mul_zero],
   rw [finset.sum_ite_eq' finset.univ (1 : R)],
   simp only [finset.mem_univ, map_one, one_mul, if_true],
 end
@@ -231,8 +218,7 @@ begin
   obtain ⟨n', hp', hc'⟩ := finite_field.card F' (ring_char F'),
   let ψ := primitive_char_finite_field F F' hch₁,
   let FF' := cyclotomic_field ψ.n F',
-  have hchar := -- `ring_char FF' = ring_char F'` -- use `algebra..ring_char_eq F' FF'`
-    (ring_char.eq_iff.mpr ((algebra.char_p_iff F' FF' (ring_char F')).mp (ring_char.char_p F'))).symm,
+  have hchar := algebra.ring_char_eq F' FF',
   apply (algebra_map F' FF').injective,
   rw [map_pow, map_mul, map_nat_cast, hc', hchar, nat.cast_pow],
   simp only [← mul_char.ring_hom_comp_apply],
@@ -274,8 +260,7 @@ begin
   haveI : finite_dimensional F FF :=
     polynomial.is_splitting_field.finite_dimensional FF (polynomial.cyclotomic 8 F),
   haveI : fintype FF := finite_dimensional.fintype_of_fintype F FF,
-  have hchar := -- `ring_char FF = ring_char F` -- use `algebra.ring_char_eq F FF`
-    (ring_char.eq_iff.mpr ((algebra.char_p_iff F FF (ring_char F)).mp (ring_char.char_p F))).symm,
+  have hchar := algebra.ring_char_eq F FF,
   have FFp := hchar.subst hp,
   haveI := fact.mk FFp,
   have hFF := ne_of_eq_of_ne hchar.symm hF, -- `ring_char FF ≠ 2`

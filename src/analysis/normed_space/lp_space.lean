@@ -1261,15 +1261,10 @@ variables (E) (F : α → Type*) (p' : ℝ≥0∞) [Π i, normed_add_comm_group 
 /-- A family of linear isometric equivalences `Π i, E i ≃ₛₗᵢ[σ] F i` induces a linear isometric
 equivalence of `lp` spaces. -/
 def congr_right [fact $ 1 ≤ p'] : lp E p' ≃ₛₗᵢ[σ₁₂] lp F p' :=
-linear_isometry_equiv.of_surjective (map_lp E F p' (λ i, (Φ i).to_linear_isometry))
-begin
-  have : left_inverse (map_lp E F p' (λ i, (Φ i).to_linear_isometry))
-    (map_lp F E p' (λ i, (Φ i).symm.to_linear_isometry)),
-  { intro f,
-    ext i,
-    exact (Φ i).apply_symm_apply _ },
-  exact this.surjective
-end
+{ inv_fun := map_lp F E p' (λ i, (Φ i).symm.to_linear_isometry),
+  left_inv := λ f, by ext i; exact (Φ i).symm_apply_apply _,
+  right_inv := λ f, by ext i; exact (Φ i).apply_symm_apply _,
+  ..map_lp E F p' (λ i, (Φ i).to_linear_isometry) }
 
 @[simp] lemma congr_right_to_linear_isometry [fact $ 1 ≤ p'] :
   (congr_right E F p' Φ).to_linear_isometry =
@@ -1282,6 +1277,10 @@ lemma congr_right_apply [fact $ 1 ≤ p'] (f : lp E p') (x : α) :
 lemma congr_right_refl [fact $ 1 ≤ p'] :
   congr_right E E p' (λ i, linear_isometry_equiv.refl 𝕜₁ _) = linear_isometry_equiv.refl 𝕜₁ _ :=
 by ext; refl
+
+lemma congr_right_symm [fact $ 1 ≤ p'] :
+  (congr_right E F p' Φ).symm = congr_right F E p' (λ i, (Φ i).symm) :=
+rfl
 
 lemma congr_right_trans [fact $ 1 ≤ p'] (G : α → Type*) [Π i, normed_add_comm_group (G i)]
   {𝕜₃ : Type*} [normed_field 𝕜₃] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₃₂ : 𝕜₃ →+* 𝕜₂} {σ₁₃ : 𝕜₁ →+* 𝕜₃}

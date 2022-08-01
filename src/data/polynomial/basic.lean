@@ -775,9 +775,9 @@ variables [ring R]
 instance : has_int_cast R[X] := ⟨λ n, of_finsupp n⟩
 
 instance : ring R[X] :=
-to_finsupp_injective.ring to_finsupp to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
-  to_finsupp_neg to_finsupp_sub (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _)
-  to_finsupp_pow (λ _, rfl) (λ _, rfl)
+function.injective.ring to_finsupp to_finsupp_injective
+  to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul to_finsupp_neg to_finsupp_sub
+  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl) (λ _, rfl)
 
 @[simp] lemma coeff_neg (p : R[X]) (n : ℕ) : coeff (-p) n = -coeff p n :=
 by { rcases p, rw [←of_finsupp_neg, coeff, coeff, finsupp.neg_apply] }

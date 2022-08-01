@@ -597,5 +597,3 @@ lemma coe_collected_hilbert_basis {α : ι → Type*}
 let ⟨i, a⟩ := ia in coe_collected_hilbert_basis_mk _ _ i a
 
 end is_hilbert_sum
-
-#lint

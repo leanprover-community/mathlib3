@@ -262,7 +262,7 @@ space `E` and an orthogonal family `V : Π i, G i →ₗᵢ[𝕜] E` such that t
 
 Keeping in mind that `lp G 2` is "the" external Hilbert sum of `G : ι → Type*`, this is analogous
 to `direct_sum.is_internal`, except that we don't express it in terms of actual submodules. -/
-structure is_hilbert_sum : Prop :=
+@[protect_proj] structure is_hilbert_sum : Prop :=
 (orthogonal_family : orthogonal_family 𝕜 V)
 (surjective_isometry : function.surjective (orthogonal_family.linear_isometry))
 

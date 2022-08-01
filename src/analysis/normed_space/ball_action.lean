@@ -17,7 +17,7 @@ multiplicative actions.
 -/
 open metric set
 variables {𝕜 𝕜' E : Type*} [normed_field 𝕜] [normed_field 𝕜']
-  [semi_normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E] {r : ℝ}
+  [seminormed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E] {r : ℝ}
 
 section closed_ball
 

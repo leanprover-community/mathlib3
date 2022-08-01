@@ -34,7 +34,7 @@ local attribute [instance]
   concrete_category.has_coe_to_fun
 
 /-- A concrete version of the multiequalizer, to be used below. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def meq {X : C} (P : Cᵒᵖ ⥤ D) (S : J.cover X) :=
 { x : Π (I : S.arrow), P.obj (op I.Y) //
   ∀ (I : S.relation), P.map I.g₁.op (x I.fst) = P.map I.g₂.op (x I.snd) }

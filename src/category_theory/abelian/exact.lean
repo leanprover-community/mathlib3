@@ -372,6 +372,15 @@ lemma preserves_monomorphisms_of_map_exact : L.preserves_monomorphisms :=
     exact h (((tfae_mono 0 f).out 2 0).mpr hf)
   end }
 
+lemma preserves_epimorphisms_of_map_exact : L.preserves_epimorphisms :=
+{ preserves := λ X Y f hf,
+  begin
+    letI := preserves_zero_morphisms_of_map_exact L @h,
+    apply ((tfae_epi (L.obj 0) (L.map f)).out 2 0).mp,
+    rw ←L.map_zero,
+    exact h (((tfae_epi 0 f).out 2 0).mpr hf)
+  end }
+
 end
 
 end functor

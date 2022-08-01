@@ -119,8 +119,6 @@ begin
   rw lol at lol2,
   sorry,
   -- It's too painful!
-
-
 end
 
 end nat

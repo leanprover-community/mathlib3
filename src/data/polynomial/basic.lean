@@ -253,6 +253,12 @@ by { rcases p, simp [support] }
 lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
 by simp
 
+/-- `monomial s a` is the monomial `a * X^s` -/
+def monomial (n : ℕ) : R →ₗ[R] R[X] :=
+{ to_fun := λ t, ⟨finsupp.single n t⟩,
+  map_add' := by simp,
+  map_smul' := by simp [←of_finsupp_smul] }
+
 @[simp] lemma to_finsupp_monomial (n : ℕ) (r : R) :
   (monomial n r).to_finsupp = finsupp.single n r :=
 by simp [monomial]

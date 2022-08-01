@@ -655,7 +655,7 @@ begin
 
   -- the preimage is closed as `inner x` is continuous and `[0, ∞)` is closed
   rw h,
-  exact is_closed_Ici.preimage (continuous.inner continuous_const continuous_id),
+  exact is_closed_Ici.preimage (by continuity),
 end
 
 end dual

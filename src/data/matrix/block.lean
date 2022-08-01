@@ -142,7 +142,7 @@ def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
 def to_square_block_prop (M : matrix m m α) (p : m → Prop) : matrix {a // p a} {a // p a} α :=
 to_block M _ _
 
-@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
+lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
   to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
 /-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
@@ -150,7 +150,7 @@ to_block M _ _
 def to_square_block (M : matrix m m α) (b : m → β) (k : β) :
   matrix {a // b a = k} {a // b a = k} α := to_square_block_prop M _
 
-@[simp] lemma to_square_block_def (M : matrix m m α) (b : m → β) (k : β) :
+lemma to_square_block_def (M : matrix m m α) (b : m → β) (k : β) :
   to_square_block M b k = λ i j, M ↑i ↑j := rfl
 
 lemma from_blocks_smul [has_scalar R α]

@@ -47,11 +47,11 @@ variables [has_lt α]
 `block_triangular M n b` says the matrix is block triangular. -/
 def block_triangular (M : matrix m m R) (b : m → α) : Prop := ∀ ⦃i j⦄, b j < b i → M i j = 0
 
-protected lemma block_triangular.minor {f : n → m} (h : M.block_triangular b) :
+@[simp] protected lemma block_triangular.minor {f : n → m} (h : M.block_triangular b) :
   (M.minor f f).block_triangular (b ∘ f) :=
 λ i j hij, h hij
 
-@[simp] lemma block_triangular_reindex_iff {b : n → α} {e : m ≃ n} :
+lemma block_triangular_reindex_iff {b : n → α} {e : m ≃ n} :
   (reindex e e M).block_triangular b ↔ M.block_triangular (b ∘ e) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -115,7 +115,7 @@ lemma equiv_block_det (M : matrix m m R) {p q : m → Prop} [decidable_pred p] [
   (e : ∀ x, q x ↔ p x) : (to_square_block_prop M p).det = (to_square_block_prop M q).det :=
 by convert matrix.det_reindex_self (equiv.subtype_equiv_right e) (to_square_block_prop M q)
 
-@[simp] lemma det_to_square_block_id [decidable_eq R] (M : matrix m m R) (i : m) :
+@[simp] lemma det_to_square_block_id (M : matrix m m R) (i : m) :
   (M.to_square_block id i).det = M i i :=
 begin
   letI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, λ j, subtype.ext j.property⟩,

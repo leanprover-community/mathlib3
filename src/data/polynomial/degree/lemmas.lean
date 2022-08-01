@@ -268,12 +268,19 @@ section ring
 
 variables [ring R] {p q : R[X]}
 
+lemma nat_degree_sub : (p - q).nat_degree = (q - p).nat_degree  :=
+by rw [← nat_degree_neg, neg_sub]
+
 lemma nat_degree_sub_le_iff_left (qn : q.nat_degree ≤ n) :
   (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
 begin
   rw ← nat_degree_neg at qn,
   rw [sub_eq_add_neg, nat_degree_add_le_iff_left _ _ qn],
 end
+
+lemma nat_degree_sub_le_iff_right (pn : p.nat_degree ≤ n) :
+  (p - q).nat_degree ≤ n ↔ q.nat_degree ≤ n :=
+by rwa [nat_degree_sub, nat_degree_sub_le_iff_left]
 
 lemma coeff_sub_succ_eq_left_of_le (dg : q.nat_degree < n) :
   (p - q).coeff n = p.coeff n :=

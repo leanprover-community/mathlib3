@@ -586,6 +586,17 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
 
+/-- Fractional ideals have cancellative multiplication in a Dedekind domain.
+
+Although this instance is a direct consequence of the instance
+`fractional_ideal.comm_group_with_zero`, we define this instance to provide
+a computable alternative.
+-/
+instance fractional_ideal.cancel_comm_monoid_with_zero :
+  cancel_comm_monoid_with_zero (fractional_ideal A⁰ K) :=
+{ .. fractional_ideal.comm_semiring, -- Project out the computable fields first.
+  .. (by apply_instance : cancel_comm_monoid_with_zero (fractional_ideal A⁰ K)) }
+
 instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
 { .. ideal.comm_semiring,

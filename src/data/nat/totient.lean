@@ -347,6 +347,7 @@ begin
   rw [totient_eq_prod_factorization ha0, totient_eq_prod_factorization hb0],
   refine finsupp.prod_dvd_prod_of_subset_of_dvd hab' (λ p hp, mul_dvd_mul _ dvd_rfl),
   exact pow_dvd_pow p (tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1),
+end
 
 lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
   (p * n).totient = p * n.totient :=

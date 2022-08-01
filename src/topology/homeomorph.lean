@@ -442,6 +442,15 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
   continuous_to_fun := continuous_subtype_coe,
   continuous_inv_fun := continuous_subtype_mk _ continuous_id }
 
+/-- `s ×ˢ t` is homeomorphic to `s × t`. -/
+@[simps] def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ₜ s × t :=
+{ to_equiv := equiv.set.prod s t,
+  continuous_to_fun := continuous.prod_mk
+    (continuous_subtype_mk _ (continuous_fst.comp continuous_induced_dom))
+    (continuous_subtype_mk _ (continuous_snd.comp continuous_induced_dom)),
+  continuous_inv_fun := continuous_subtype_mk _ (continuous.prod_mk
+    (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd)) }
+
 end homeomorph
 
 /-- An inducing equiv between topological spaces is a homeomorphism. -/

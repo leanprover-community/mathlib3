@@ -274,7 +274,7 @@ variables {F G : Type*} [non_unital_ring_hom_class F R S] [non_unital_ring_hom_c
   (f : F) (g : G)
 
 /-- The range of a non-unital ring homomorphism is a non-unital subsemiring.
-See Note [range copy pattern]. -/
+See note [range copy pattern]. -/
 def srange : non_unital_subsemiring S :=
 ((⊤ : non_unital_subsemiring R).map (f : R →ₙ+* S)).copy (set.range f) set.image_univ.symm
 

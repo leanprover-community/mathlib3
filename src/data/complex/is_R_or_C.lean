@@ -745,7 +745,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
     abs_mul_abs_self, ←div_eq_mul_inv, algebra.id.map_eq_id, id.def, ring_hom.id_apply,
     div_self_mul_self'],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero],
-  .. real.nontrivially_normed_field, .. real.metric_space }
+  .. real.densely_normed_field, .. real.metric_space }
 
 end instances
 

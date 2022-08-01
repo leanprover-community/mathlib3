@@ -572,8 +572,9 @@ rfl
 
 attribute [irreducible] collected_hilbert_basis
 
-lemma collected_hilbert_basis_repr_symm_apply [complete_space E] {α : ι → Type*} [∀ i, complete_space (G i)]
-  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (f : lp (λ ia : Σ i, α i, 𝕜) 2):
+lemma collected_hilbert_basis_repr_symm_apply [complete_space E] {α : ι → Type*}
+  [∀ i, complete_space (G i)] (v : Π i, hilbert_basis (α i) 𝕜 (G i))
+  (f : lp (λ ia : Σ i, α i, 𝕜) 2) :
   (hV.collected_hilbert_basis v).repr.symm f =
   hV.linear_isometry_equiv.symm
     ((lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 2 (λ i, (v i).repr.symm) : _ ≃ₗᵢ[𝕜] _)

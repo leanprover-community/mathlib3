@@ -228,12 +228,6 @@ lemma to_finsupp_sum {ι : Type*} (s : finset ι) (f : ι → R[X]) :
   (∑ i in s, f i : R[X]).to_finsupp = ∑ i in s, (f i).to_finsupp :=
 map_sum (to_finsupp_iso R) f s
 
-/-- `monomial s a` is the monomial `a * X^s` -/
-def monomial (n : ℕ) : R →ₗ[R] R[X] :=
-{ to_fun := λ t, ⟨finsupp.single n t⟩,
-  map_add' := by simp,
-  map_smul' := by simp [←of_finsupp_smul] }
-
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.
 -/
@@ -252,6 +246,12 @@ by { rcases p, simp [support] }
 
 lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
 by simp
+
+/-- `monomial s a` is the monomial `a * X^s` -/
+def monomial (n : ℕ) : R →ₗ[R] R[X] :=
+{ to_fun := λ t, ⟨finsupp.single n t⟩,
+  map_add' := by simp,
+  map_smul' := by simp [←of_finsupp_smul] }
 
 @[simp] lemma to_finsupp_monomial (n : ℕ) (r : R) :
   (monomial n r).to_finsupp = finsupp.single n r :=

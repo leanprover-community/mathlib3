@@ -137,7 +137,7 @@ def root : adjoin_root f := mk f X
 
 variables {f}
 
-instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
+instance has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton

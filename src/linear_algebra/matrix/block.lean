@@ -43,7 +43,7 @@ namespace matrix
 section has_lt
 variables [has_lt α]
 
-/-- Let `b` map rows and columns of a square matrix `M` to blocks indexed by `ℕ`s. Then
+/-- Let `b` map rows and columns of a square matrix `M` to blocks indexed by `α`s. Then
 `block_triangular M n b` says the matrix is block triangular. -/
 def block_triangular (M : matrix m m R) (b : m → α) : Prop := ∀ ⦃i j⦄, b j < b i → M i j = 0
 
@@ -159,46 +159,6 @@ begin
   simpa only [not_not] using h,
 end
 
-lemma to_square_block_det'' (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :
-  (M.to_square_block b k).det = (M.to_square_block (λ i, (b i : ℕ)) k).det :=
-equiv_block_det _ $ λ _, (fin.ext_iff _ _).symm
-
-lemma det_of_block_triangular (M : matrix m m R) (b : m → ℕ) (h : M.block_triangular b) :
-  ∀ (n : ℕ) (hn : ∀ i, b i < n), M.det = ∏ k in range n, (M.to_square_block b k).det :=
-begin
-  intros n hn,
-  unfreezingI { induction n with n hi generalizing m M b },
-  { haveI : is_empty m := ⟨λ i, not_lt_bot $ hn i⟩,
-    exact det_is_empty },
-  rw [prod_range_succ_comm],
-  have h2 : (M.to_square_block_prop (λ (i : m), b i = n.succ)).det =
-    (M.to_square_block b n.succ).det,
-  { refl },
-  rw two_block_triangular_det' M (λ i, b i = n),
-  { refine congr_arg _ _,
-    let b' := λ i : {a // b a ≠ n}, b ↑i,
-    have h' :  block_triangular (M.to_square_block_prop (λ (i : m), b i ≠ n)) b',
-    { intros i j, apply h },
-    have hni : ∀ (i : {a // b a ≠ n}), b' i < n,
-    { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
-    have h1 := hi (M.to_square_block_prop (λ (i : m), b i ≠ n)) b' h' hni,
-    rw ←fin.prod_univ_eq_prod_range at h1 ⊢,
-    convert h1,
-    ext k,
-    simp only [to_square_block_def],
-    let he : {a // b' a = ↑k} ≃ {a // b a = ↑k},
-    { have hc : ∀ (i : m), (λ a, b a = ↑k) i → (λ a, b a ≠ n) i,
-      { intros i hbi, rw hbi, exact ne_of_lt (fin.is_lt k) },
-      exact equiv.subtype_subtype_equiv_subtype hc },
-    exact matrix.det_reindex_self he (λ (i j : {a // b' a = ↑k}), M ↑i ↑j) },
-  { rintro i rfl j hj,
-    exact h ((nat.lt_succ_iff.mp $ hn _).lt_of_ne hj) }
-end
-
-lemma _root_.function.surjective.image_univ {β} [fintype α] [fintype β] [decidable_eq β] {f : α → β}
-  (hf : function.surjective f) : univ.image f = univ :=
-eq_univ_iff_forall.mpr $ λ x, mem_image.mpr $ (exists_congr $ by simp).mp $ hf x
-
 protected lemma block_triangular.det [decidable_eq α] [linear_order α] (hM : block_triangular M b) :
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
@@ -246,7 +206,7 @@ begin
     exact finset.le_max' (univ.image b) _ (mem_image_of_mem _ (mem_univ _)) } }
 end
 
-lemma block_triangular.det_fintype [decidable_eq α] [fintype α] [preorder α]
+lemma block_triangular.det_fintype [decidable_eq α] [fintype α] [linear_order α]
   (h : block_triangular M b) :
   M.det = ∏ k : α, (M.to_square_block b k).det :=
 begin
@@ -255,13 +215,14 @@ begin
   exactI det_is_empty,
 end
 
-lemma det_of_upper_triangular [preorder m] (h : M.block_triangular id) : M.det = ∏ i : m, M i i :=
+lemma det_of_upper_triangular [linear_order m] (h : M.block_triangular id) :
+  M.det = ∏ i : m, M i i :=
 begin
   haveI : decidable_eq R := classical.dec_eq _,
   simp_rw [h.det, image_id, det_to_square_block_id],
 end
 
-lemma det_of_lower_triangular [preorder m] (M : matrix m m R) (h : M.block_triangular to_dual) :
+lemma det_of_lower_triangular [linear_order m] (M : matrix m m R) (h : M.block_triangular to_dual) :
   M.det = ∏ i : m, M i i :=
 by { rw ←det_transpose, exact det_of_upper_triangular h.transpose }
 

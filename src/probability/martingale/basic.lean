@@ -66,6 +66,16 @@ lemma martingale_const (ℱ : filtration ι m0) (μ : measure α) [is_finite_mea
   martingale (λ _ _, x) ℱ μ :=
 ⟨adapted_const ℱ _, λ i j hij, by rw condexp_const (ℱ.le _)⟩
 
+lemma martingale_const_fun [order_bot ι]
+  (ℱ : filtration ι m0) (μ : measure α) [is_finite_measure μ]
+  {f : α → E} (hf : strongly_measurable[ℱ ⊥] f) (hfint : integrable f μ) :
+  martingale (λ _, f) ℱ μ :=
+begin
+  refine ⟨λ i, hf.mono $ ℱ.mono bot_le, λ i j hij, _⟩,
+  rw condexp_of_strongly_measurable (ℱ.le _) (hf.mono $ ℱ.mono bot_le) hfint,
+  apply_instance,
+end
+
 variables (E)
 lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=

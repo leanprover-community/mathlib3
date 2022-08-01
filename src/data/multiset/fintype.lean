@@ -37,7 +37,7 @@ variables {α : Type*} [decidable_eq α] {m : multiset α}
 /-- Auxiliary definition for the `has_coe_to_sort` instance. This prevents the `has_coe m α`
 instance from inadverently applying to other sigma types. One should not use this definition
 directly. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def multiset.to_type (m : multiset α) : Type* := Σ (x : α), fin (m.count x)
 
 /-- Create a type that has the same number of elements as the multiset.

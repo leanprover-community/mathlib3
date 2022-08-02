@@ -1108,17 +1108,17 @@ section PID
 
 open multiplicity unique_factorization_monoid ideal
 
-variables {R} [is_domain R]
+variables {R} [is_domain R] [is_principal_ideal_ring R]
 
-lemma span_singleton_dvd_span_singleton_iff_dvd
-  [is_principal_ideal_ring R] {a b : R} : (ideal.span {a}) ∣ (ideal.span ({b} : set R)) ↔ a ∣ b :=
+lemma span_singleton_dvd_span_singleton_iff_dvd {a b : R} :
+  (ideal.span {a}) ∣ (ideal.span ({b} : set R)) ↔ a ∣ b :=
 ⟨λ h, mem_span_singleton.mp (dvd_iff_le.mp h (mem_span_singleton.mpr (dvd_refl b))),
   λ h, dvd_iff_le.mpr (λ d hd, mem_span_singleton.mpr (dvd_trans h (mem_span_singleton.mp hd)))⟩
 
-variables [decidable_eq (ideal R)]
+variables [decidable_eq R] [normalization_monoid R] [decidable_eq (ideal R)]
 
-lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors [decidable_eq R]
-  [normalization_monoid R] [is_principal_ideal_ring R] {a b : R} (ha : a ∈ normalized_factors b) :
+lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors {a b : R}
+  (ha : a ∈ normalized_factors b) :
   ideal.span ({a} : set R) ∈ normalized_factors (ideal.span ({b} : set R)) :=
 begin
   by_cases hb : b = 0,
@@ -1139,8 +1139,7 @@ begin
 end
 
 @[simps]
-noncomputable def normalized_factors_equiv_span_normalized_factors
-  [is_principal_ideal_ring R] [normalization_monoid R] (r : R) (hr : r ≠ 0) :
+noncomputable def normalized_factors_equiv_span_normalized_factors {r : R} (hr : r ≠ 0) :
   {d : R | d ∈ normalized_factors r} ≃
   {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
 equiv.of_bijective
@@ -1178,7 +1177,7 @@ begin
           (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
     { suffices : ¬ (finite (ideal.span {a}) (ideal.span {b})),
       { rw [finite_iff_dom, part_enat.not_dom_iff_eq_top] at h,
-        rw [@finite_iff_dom _ _ _inst_14 (span {a}) (span {b}),
+        rw [@finite_iff_dom  _ _ _inst_11 (span {a}) (span {b}),
           part_enat.not_dom_iff_eq_top] at this,
         rw [h, this] },
       refine not_finite_iff_forall.mpr (λ n, by {rw [ideal.span_singleton_pow,

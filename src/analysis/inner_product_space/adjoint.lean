@@ -356,18 +356,6 @@ by { rw is_self_adjoint_iff, simp }
 
 namespace is_self_adjoint
 
-@[protected] lemma add {A B : E →L[𝕜] E} (hA : A.is_self_adjoint) (hB : B.is_self_adjoint) :
-  (A + B).is_self_adjoint :=
-by { rw is_self_adjoint_iff at ⊢ hA hB, simp [hA, hB] }
-
-@[protected] lemma sub {A B : E →L[𝕜] E} (hA : A.is_self_adjoint) (hB : B.is_self_adjoint) :
-  (A - B).is_self_adjoint :=
-by { rw is_self_adjoint_iff at ⊢ hA hB, simp [hA, hB] }
-
-@[protected] lemma neg {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
-  (-A).is_self_adjoint :=
-by { rw is_self_adjoint_iff at ⊢ hA, simp [hA] }
-
 lemma adjoint_eq {A : E →L[𝕜] E} (hA : A.is_self_adjoint) : A.adjoint = A := hA
 
 /-- Every self-adjoint operator on an inner product space is symmetric. -/

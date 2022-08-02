@@ -54,6 +54,8 @@ is_star_normal.star_comm_self
 
 namespace is_self_adjoint
 
+lemma adjoint_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
+
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
 
 section add_group
@@ -169,8 +171,6 @@ by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
 instance : inhabited (self_adjoint R) := ⟨0⟩
 
-lemma bit0_mem {x : R} (hx : x ∈ self_adjoint R) : bit0 x ∈ self_adjoint R := hx.bit0
-
 end add_group
 
 section ring
@@ -182,26 +182,21 @@ instance : has_one (self_adjoint R) := ⟨⟨1, is_self_adjoint_one R⟩⟩
 
 instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
-lemma one_mem : (1 : R) ∈ self_adjoint R := is_self_adjoint_one R
-
 instance : has_nat_cast (self_adjoint R) :=
-⟨λ n, ⟨n, by induction n; simp [zero_mem, add_mem, one_mem, *]⟩⟩
+⟨λ n, ⟨n,
+  begin
+    induction n with k hk;
+    simp only [zero_mem, nat.cast_zero, nat.cast_succ],
+    exact add_mem hk (is_self_adjoint_one R),
+  end ⟩ ⟩
 
 instance : has_int_cast (self_adjoint R) :=
-⟨λ n, ⟨n, by cases n; simp [add_mem, one_mem,
-  show ↑n ∈ self_adjoint R, from (n : self_adjoint R).2]⟩⟩
-
-lemma bit1_mem {x : R} (hx : x ∈ self_adjoint R) : bit1 x ∈ self_adjoint R :=
-by simp only [mem_iff, star_bit1, mem_iff.mp hx]
-
-lemma conjugate {x : R} (hx : x ∈ self_adjoint R) (z : R) : z * x * star z ∈ self_adjoint R :=
-by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
-
-lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z ∈ self_adjoint R :=
-by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
-
-lemma is_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : is_star_normal x :=
-⟨by { simp only [mem_iff] at hx, simp only [hx] }⟩
+⟨λ n, ⟨n,
+  begin
+    cases n;
+    simp [show ↑n ∈ self_adjoint R, from (n : self_adjoint R).2],
+    refine add_mem (is_self_adjoint_one R).neg (n : self_adjoint R).2.neg,
+  end ⟩ ⟩
 
 instance (x : self_adjoint R) : is_star_normal (x : R) := x.prop.is_star_normal
 
@@ -214,13 +209,6 @@ end ring
 
 section comm_ring
 variables [comm_ring R] [star_ring R]
-
-lemma mul_mem {x y : R} (hx : x ∈ self_adjoint R) (hy : y ∈ self_adjoint R) :
-  x * y ∈ self_adjoint R :=
-begin
-  rw mem_iff at ⊢ hx hy,
-  rw [star_mul', hx, hy]
-end
 
 instance : has_mul (self_adjoint R) :=
 ⟨λ x y, ⟨(x : R) * y, x.prop.mul y.prop⟩⟩
@@ -280,10 +268,6 @@ end field
 
 section has_smul
 variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
-
-lemma smul_mem [has_smul R A] [star_module R A] (r : R) {x : A}
-  (h : x ∈ self_adjoint A) : r • x ∈ self_adjoint A :=
-by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h]
 
 instance [has_smul R A] [star_module R A] : has_smul R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, x.prop.smul r⟩⟩

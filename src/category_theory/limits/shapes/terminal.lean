@@ -235,10 +235,17 @@ and showing there is a unique morphism to it from any other object. -/
 lemma has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
 { has_limit := λ F, has_limit.mk ⟨_, (is_terminal_equiv_unique F X).inv_fun h⟩ }
 
+lemma has_terminal_of_is_terminal {X : C} (h : is_terminal X) : has_terminal C :=
+{ has_limit := λ F, has_limit.mk ⟨⟨X, by tidy⟩, is_limit_change_empty_cone _ h _ (iso.refl _)⟩ }
+
 /-- We can more explicitly show that a category has an initial object by specifying the object,
 and showing there is a unique morphism from it to any other object. -/
 lemma has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
 { has_colimit := λ F, has_colimit.mk ⟨_, (is_initial_equiv_unique F X).inv_fun h⟩ }
+
+lemma has_initial_of_is_initial {X : C} (h : is_initial X) : has_initial C :=
+{ has_colimit := λ F, has_colimit.mk
+    ⟨⟨X, by tidy⟩, is_colimit_change_empty_cocone _ h _ (iso.refl _)⟩ }
 
 /-- The map from an object to the terminal object. -/
 abbreviation terminal.from [has_terminal C] (P : C) : P ⟶ ⊤_ C :=

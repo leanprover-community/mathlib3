@@ -640,6 +640,14 @@ lemma monic.ne_zero_of_ne (h : (0:R) ≠ 1) {p : R[X]} (hp : p.monic) :
   p ≠ 0 :=
 by { nontriviality R, exact hp.ne_zero }
 
+lemma monic_of_nat_degree_le_of_coeff_eq_one (pn : p.nat_degree ≤ n) (p1 : p.coeff n = 1) :
+  monic p :=
+begin
+  nontriviality,
+  refine (congr_arg _ $ pn.antisymm $ le_nat_degree_of_ne_zero _).trans p1,
+  exact ne_of_eq_of_ne p1 one_ne_zero,
+end
+
 lemma monic.ne_zero_of_polynomial_ne {r} (hp : monic p) (hne : q ≠ r) : p ≠ 0 :=
 by { haveI := nontrivial.of_polynomial_ne hne, exact hp.ne_zero }
 

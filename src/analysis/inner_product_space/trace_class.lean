@@ -230,15 +230,13 @@ lemma is_positive.has_sum_trace {ι : Type*} [complete_space E] (e : hilbert_bas
 begin
   have fact : ∀ J : finset ι, ∀ i ∈ J, 0 ≤ re ⟪e i, T (e i)⟫ :=
     λ J i _, hT.inner_nonneg_right (e i),
-  let U : finset ι → submodule 𝕜 E := λ J, span 𝕜 (J.image e),
-  haveI : ∀ J, finite_dimensional 𝕜 (U J) := λ J, infer_instance,
-  rw [ennreal.summable.has_sum_iff, ennreal.tsum_eq_supr_sum, hT.trace_eq_supr_of_monotone U],
-  { congrm ⨆ J, _,
-    rw [is_positive.trace_along_ennreal, ← ennreal.of_real_eq_coe_nnreal,
-        T.trace_along_span_eq_of_orthonormal e.orthonormal J,
-        _root_.map_sum, ennreal.of_real_sum_of_nonneg (fact J)] },
-  { exact λ J₁ J₂ h, span_mono (finset.coe_subset.mpr $ finset.image_mono _ h) },
-  { sorry },
+  rw [ennreal.summable.has_sum_iff, ennreal.tsum_eq_supr_sum,
+      hT.trace_eq_supr_of_monotone _ e.partial_span_mono e.partial_span_dense.ge],
+  congrm ⨆ J, _,
+  unfold hilbert_basis.partial_span,
+  rw [is_positive.trace_along_ennreal, ← ennreal.of_real_eq_coe_nnreal,
+      T.trace_along_span_eq_of_orthonormal e.orthonormal J,
+      _root_.map_sum, ennreal.of_real_sum_of_nonneg (fact J)]
 end
 
 end positive

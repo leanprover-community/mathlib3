@@ -21,7 +21,7 @@ variables [add_comm_group M] [module R M] [module Sᵐᵒᵖ M] [smul_comm_class
 ```
 The key fact is:
 ```lean
-example : module (R ⊗[ℕ] Sᵐᵒᵖ) M := by apply_instance -- Mathlib knows this
+example : module (R ⊗[ℕ] Sᵐᵒᵖ) M := tensor_product.algebra.module
 ```
 Note that the corresponding result holds for the canonically isomorphic ring `R ⊗[ℤ] Sᵐᵒᵖ` but it is
 preferable to use the `R ⊗[ℕ] Sᵐᵒᵖ` instance since it works without additive inverses.

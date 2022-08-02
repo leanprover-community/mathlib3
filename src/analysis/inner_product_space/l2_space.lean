@@ -425,19 +425,33 @@ protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E}
 by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
   using b.has_sum_repr (orthogonal_projection U x)
 
-protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
-  (b : hilbert_basis ι 𝕜 E) (x : E) :
-  tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
-    at_top (𝓝 x) :=
+/-- For `e : hilbert_basis ι 𝕜 E` and `J : finset ι`, `e.partial_span J` is the span of
+the `e j`s for `j ∈ J`. -/
+def partial_span (b : hilbert_basis ι 𝕜 E) (J : finset ι) : submodule 𝕜 E :=
+span 𝕜 (J.image b)
+
+instance {b : hilbert_basis ι 𝕜 E} {J : finset ι} : finite_dimensional 𝕜 (b.partial_span J) :=
+show finite_dimensional 𝕜 (span 𝕜 (J.image b : set E)), from infer_instance
+
+lemma partial_span_mono (b : hilbert_basis ι 𝕜 E) : monotone b.partial_span :=
+λ _ _ h, span_mono $ finset.coe_subset.mpr $ finset.image_mono _ h
+
+lemma partial_span_dense (b : hilbert_basis ι 𝕜 E) :
+  (⨆ J, b.partial_span J).topological_closure = ⊤ :=
+eq_top_iff.mpr $ b.dense_span.ge.trans
 begin
-  haveI : ∀ J : finset ι, complete_space (span 𝕜 (J.image b : set E)) := λ j, infer_instance,
-  refine orthogonal_projection_tendsto_self 𝕜 _
-    (λ J₁ J₂ h, span_mono $ finset.coe_subset.mpr $ finset.image_mono _ h) x
-    (b.dense_span.ge.trans _),
-  rw ← submodule.span_Union,
+  simp_rw [partial_span, ← submodule.span_Union],
   exact topological_closure_mono (span_mono $ set.range_subset_iff.mpr $
     λ i, set.mem_Union_of_mem {i} $ finset.mem_coe.mpr $ finset.mem_image_of_mem _ $
     finset.mem_singleton_self i)
+end
+
+protected lemma partial_span.tendsto_orthogonal_projection_at_top [complete_space E]
+  (b : hilbert_basis ι 𝕜 E) (x : E) :
+  tendsto (λ J : finset ι, (orthogonal_projection (b.partial_span J) x : E))
+    at_top (𝓝 x) :=
+begin
+  sorry
 end
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)

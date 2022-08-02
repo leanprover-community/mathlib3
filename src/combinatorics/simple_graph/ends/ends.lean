@@ -477,11 +477,20 @@ begin
 end
 
 private def finbwd (K : finset V) (C : inf_ro_components G K) (L : finset C.val) : finset V :=
-  K ∪ (finset.map (function.embedding.subtype (λ x, x ∈ C.val)) L)
+  K ∪ (finset.map (function.embedding.subtype C.val) L)
+
+private def as_set {V : Type*} {C D : set V} (h : C ⊆ D) : set D := {d : D | d.val ∈ C}
+private def set_as {V : Type*} {D : set V} (C : set D) : set V := {v : V | ∃ (h : v ∈ D),  C ⟨v,h⟩}
+
 
 private def inf_ro_comp_sub_iff  (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) (L : finset C.val)
   (D : set V) (DC : D ⊆ C) :
-  D ∈ inf_ro_components G (finbwd G K C L) ↔  ((sorry /-D as a subset of C.val-/) : set C.val) \ L ∈ inf_ro_components (G.induce C.val) L := sorry
+  D ∈ inf_ro_components G (finbwd G K C L)  ↔  {d : C.val | d.val ∈ D ∧ d ∉ L} ∈ inf_ro_components (G.induce C.val) L :=
+begin
+  split,
+  { sorry },
+  { sorry },
+end
 
 lemma ends_decomposition [locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) :
   {e : ends_for G Gpc (fin_fam_up K) | eval_for G Gpc (fin_fam_up K)  ⟨K,in_up K⟩ e = C}
@@ -492,14 +501,24 @@ begin
 
   let φ : {e : ends_for G Gpc (fin_fam_up K) | eval_for G Gpc (fin_fam_up K)  ⟨K,in_up K⟩ e = C} →  (ends GC GCpc ), by {
     rintro ⟨e,eKC⟩,
-    let f : Π (L : finset C.val), inf_ro_components GC L, by {
-      rintro L,
+    let f : Π (L : finset C.val), inf_ro_components GC L, by
+    { rintro L,
       let L' : finset V := finbwd G K C L, --K ∪ L,
       have : K ⊆ L', from subset_union_left K _,
-      let D' := e.val ⟨L',‹K⊆L'›⟩,
-      sorry,
+      obtain ⟨D',D'comp⟩ := e.val ⟨L',‹K⊆L'›⟩,
+      refine ⟨{d : C.val | d.val ∈ D' ∧ d ∉ L},_⟩,
+      refine (inf_ro_comp_sub_iff G Gpc K _ L _ _).mp D'comp,
+      have : bwd_map G Gpc ‹K⊆L'› ⟨D',D'comp⟩ = C, by {
+        --simp [e.prop], --or something
+        sorry
+      }, -- because eval commutes with bwd by def
+      rw ←this,
+      exact bwd_map_sub G Gpc ‹K⊆L'› ⟨D',D'comp⟩,
     },
     sorry,
+  },
+  let ψ : (ends GC GCpc ) → {e : ends_for G Gpc (fin_fam_up K) | eval_for G Gpc (fin_fam_up K)  ⟨K,in_up K⟩ e = C} , by {
+
   },
   sorry,
 

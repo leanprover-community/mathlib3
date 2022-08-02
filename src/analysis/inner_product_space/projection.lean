@@ -586,11 +586,14 @@ by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 the orthogonal projection of `x` on `U i` tends to the orthogonal projection of `x` on
 `(⨆ i, U i).topological_closure` along `at_top`. -/
 lemma orthogonal_projection_tendsto_closure_supr [complete_space E] {ι : Type*}
-  [semilattice_sup ι] [nonempty ι] (U : ι → submodule 𝕜 E) [∀ i, complete_space (U i)]
+  [semilattice_sup ι] (U : ι → submodule 𝕜 E) [∀ i, complete_space (U i)]
   (hU : monotone U) (x : E) :
   filter.tendsto (λ i, (orthogonal_projection (U i) x : E)) at_top
     (𝓝 (orthogonal_projection (⨆ i, U i).topological_closure x : E)) :=
 begin
+  casesI is_empty_or_nonempty ι,
+  { rw filter_eq_bot_of_is_empty (at_top : filter ι),
+    exact tendsto_bot },
   let y := (orthogonal_projection (⨆ i, U i).topological_closure x : E),
   have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y :=
     λ i, (orthogonal_projection_orthogonal_projection_of_le
@@ -615,8 +618,8 @@ end
 
 /-- Given a monotone family `U` of complete submodules of `E` with dense span supremum,
 and a fixed `x : E`, the orthogonal projection of `x` on `U i` tends to `x` along `at_top`. -/
-lemma orthogonal_projection_tendsto_self [complete_space E] {τ : Type*} [semilattice_sup τ] [nonempty τ]
-  (U : τ → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
+lemma orthogonal_projection_tendsto_self [complete_space E] {ι : Type*} [semilattice_sup ι]
+  (U : ι → submodule 𝕜 E) [∀ t, complete_space (U t)] (hU : monotone U)
   (x : E) (hU' : ⊤ ≤ (⨆ t, U t).topological_closure) :
   filter.tendsto (λ t, (orthogonal_projection (U t) x : E)) at_top
     (𝓝 x) :=

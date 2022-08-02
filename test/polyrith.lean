@@ -98,10 +98,13 @@ end tactic
 ## SageCell communcation tests
 -/
 
+-- set_option trace.polyrith true
+
 example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 begin
-  test_sage_output "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}",
+  polyrith,
+  -- test_sage_output "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}",
   linear_combination h1 - 2 * h2
 end
 
@@ -436,10 +439,39 @@ by test_polyrith
   "linear_combination h1 - h2"
 
 
+/- ### Cases with powers -/
+
+example (x y z : ℚ) (h : x = y) (h2 : x * y = 0) : x + y*z = 0 :=
+by test_polyrith
+  "{\"data\":{\"coeffs\":[\"(poly.add (poly.neg (poly.mul (poly.var 1) (poly.pow (poly.var 2) 2))) (poly.var 0))\",\"(poly.add (poly.add (poly.pow (poly.var 2) 2) (poly.mul (poly.const 2/1) (poly.var 2))) (poly.const 1/1))\"],\"power\":2},\"success\":true}"
+  ["ff",
+  "rat",
+  "3",
+  "[(var0 - var1), ((var0 * var1) - 0)]",
+  "((var0 + (var1 * var2)) - 0)"]
+  "linear_combination (-(y * z ^ 2) + x) * h + (z ^ 2 + 2 * z + 1) * h2 with exponent 2"
+
+.
+example (K : Type) (h_this : 3 - 1 = 2)
+  [field K]
+  [char_zero K]
+  {x y z : K}
+  (h₂ : y ^ 3 + x * (3 * z ^ 2) = 0)
+  (h₁ : x ^ 3 + z * (3 * y ^ 2) = 0)
+  (h₀ : y * (3 * x ^ 2) + z ^ 3 = 0)
+  (h : x ^ 3 * y + y ^ 3 * z + z ^ 3 * x = 0) :
+  x = 0 :=
+by test_polyrith
+  "{\"data\":{\"coeffs\":[\"(poly.mul (poly.mul (poly.const 2/7) (poly.var 1)) (poly.pow (poly.var 2) 2))\",\"(poly.sub (poly.pow (poly.var 0) 3) (poly.mul (poly.mul (poly.const 1/7) (poly.pow (poly.var 1) 2)) (poly.var 2)))\",\"(poly.neg (poly.mul (poly.mul (poly.var 0) (poly.var 1)) (poly.var 2)))\",\"(poly.mul (poly.mul (poly.const 1/7) (poly.var 1)) (poly.var 2))\"],\"power\":6},\"success\":true}"
+  ["ff",
+  "K",
+  "3",
+  "[(((var1 ^ 3) + (var0 * (3 * (var2 ^ 2)))) - 0), (((var0 ^ 3) + (var2 * (3 * (var1 ^ 2)))) - 0), (((var1 * (3 * (var0 ^ 2))) + (var2 ^ 3)) - 0), (((((var0 ^ 3) * var1) + ((var1 ^ 3) * var2)) + ((var2 ^ 3) * var0)) - 0)]",
+  "(var0 - 0)"]
+  "linear_combination 2 / 7 * y * z ^ 2 * h₂ + (x ^ 3 - 1 / 7 * y ^ 2 * z) * h₁ - x * y * z * h₀ + 1 / 7 * y *
+    z * h with exponent 6"
+
 -- We comment the following tests so that we don't overwhelm the SageCell API.
-
-
-
 
 
 /-

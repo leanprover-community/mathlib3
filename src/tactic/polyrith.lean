@@ -300,12 +300,18 @@ meta instance : non_null_json_serializable poly :=
     | sum.inr p := pure p
     end}
 
+/-- A schema for the data reported by the Sage calculation -/
+@[derive [non_null_json_serializable, inhabited]]
+structure sage_json_coeffs_and_power :=
+(coeffs : list poly)
+(power  : ℕ)
+
 /-- A schema for success messages from the python script -/
 @[derive [non_null_json_serializable, inhabited]]
 structure sage_json_success :=
 (success : {b : bool // b = tt})
 (trace : option string := none)
-(data : option (list poly) := none)
+(data : option sage_json_coeffs_and_power := none)
 
 /-- A schema for failure messages from the python script -/
 @[derive [non_null_json_serializable, inhabited]]
@@ -316,7 +322,7 @@ structure sage_json_failure :=
 
 /-- Parse the json output from `scripts/polyrith.py` into either an error message, a list of `poly`
 objects, or `none` if only trace output was requested. -/
-meta def convert_sage_output (j : json) : tactic (option (list poly)) :=
+meta def convert_sage_output (j : json) : tactic (option (ℕ × list poly)) :=
 do
   r : sage_json_success ⊕ sage_json_failure ← decorate_ex "internal json error: "
     -- try the error format first, so that if both fail we get the message from the success parser
@@ -326,7 +332,7 @@ do
       fail!"polyrith failed to retrieve a solution from Sage! {f.error_name}: {f.error_value}"
   | sum.inl s := do
       s.trace.mmap trace,
-      pure s.data
+      pure $ s.data.map $ λ sd, (sd.power, sd.coeffs)
   end
 
 /-!
@@ -484,18 +490,19 @@ a call to `linear_combination`.
 -/
 meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : json) :
   tactic format := focus1 $ do
-  some coeffs_as_poly ← convert_sage_output sage_out | fail!"internal error: No output available",
+  some (power, coeffs_as_poly) ← convert_sage_output sage_out | fail!"internal error: No output available",
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
   let eq_names_pexpr := eq_names.map to_pexpr,
   coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
-  linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr,
+  linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr (some power),
   let components := (eq_names.zip coeffs_as_expr).filter
     $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
-  let lc_fmt : format := "linear_combination " ++ format.nest 2 (format.group expr_string),
+  let lc_exp : format := if power = 1 then "" else format!" with exponent {power}",
+  let lc_fmt : format := "linear_combination " ++ format.nest 2 (format.group expr_string ++ lc_exp),
   done <|>
     fail!"polyrith found the following certificate, but it failed to close the goal:\n{lc_fmt}",
-  return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
+  return lc_fmt
 
 /-- Tactic for the special case when no hypotheses are available. -/
 meta def no_hypotheses_case : tactic (option format) :=

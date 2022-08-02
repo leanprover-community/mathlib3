@@ -575,8 +575,8 @@ variables {R A} [is_dedekind_domain A] [algebra A K] [is_fraction_ring A K]
 open fractional_ideal
 open ideal
 
-noncomputable instance fractional_ideal.comm_group_with_zero :
-  comm_group_with_zero (fractional_ideal A⁰ K) :=
+noncomputable instance fractional_ideal.semifield :
+  semifield (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
   div := (/),
@@ -831,7 +831,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)

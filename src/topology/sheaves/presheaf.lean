@@ -37,7 +37,7 @@ variables (C : Type u) [category.{v} C]
 namespace Top
 
 /-- The category of `C`-valued presheaves on a (bundled) topological space `X`. -/
-@[derive category, nolint has_inhabited_instance]
+@[derive category, nolint has_nonempty_instance]
 def presheaf (X : Top.{w}) := (opens X)ᵒᵖ ⥤ C
 
 variables {C}

@@ -394,7 +394,6 @@ end submartingale
 section nat
 
 variables {𝒢 : filtration ℕ m0}
-
 lemma submartingale_of_set_integral_le_succ [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
   (hf : ∀ i, ∀ s : set α, measurable_set[𝒢 i] s → ∫ x in s, f i x ∂μ ≤ ∫ x in s, f (i + 1) x ∂μ) :
@@ -405,6 +404,24 @@ begin
   { exact le_rfl },
   { exact le_trans hk₂ (hf k s (𝒢.mono hk₁ _ hs)) }
 end
+
+lemma supermartingale_of_set_integral_succ_le [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, ∀ s : set α, measurable_set[𝒢 i] s → ∫ x in s, f (i + 1) x ∂μ ≤ ∫ x in s, f i x ∂μ) :
+  supermartingale f 𝒢 μ :=
+begin
+  rw ← neg_neg f,
+  refine (submartingale_of_set_integral_le_succ hadp.neg (λ i, (hint i).neg) _).neg,
+  simpa only [integral_neg, pi.neg_apply, neg_le_neg_iff],
+end
+
+lemma martingale_of_set_integral_eq_succ [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, ∀ s : set α, measurable_set[𝒢 i] s → ∫ x in s, f i x ∂μ = ∫ x in s, f (i + 1) x ∂μ) :
+  martingale f 𝒢 μ :=
+martingale_iff.2
+  ⟨supermartingale_of_set_integral_succ_le hadp hint $ λ i s hs, (hf i s hs).ge,
+   submartingale_of_set_integral_le_succ hadp hint $ λ i s hs, (hf i s hs).le⟩
 
 lemma submartingale_nat [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
@@ -418,6 +435,24 @@ begin
   exact set_integral_mono_ae (hint i).integrable_on integrable_condexp.integrable_on (hf i),
 end
 
+lemma supermartingale_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, μ[f (i + 1) | 𝒢 i] ≤ᵐ[μ] f i) :
+  supermartingale f 𝒢 μ :=
+begin
+  rw ← neg_neg f,
+  refine (submartingale_nat hadp.neg (λ i, (hint i).neg) $ λ i,
+    eventually_le.trans _ (condexp_neg _).symm.le).neg,
+  filter_upwards [hf i] with x hx using neg_le_neg hx,
+end
+
+lemma martingale_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, f i =ᵐ[μ] μ[f (i + 1) | 𝒢 i]) :
+  martingale f 𝒢 μ :=
+martingale_iff.2 ⟨supermartingale_nat hadp hint $ λ i, (hf i).symm.le,
+  submartingale_nat hadp hint $ λ i, (hf i).le⟩
+
 lemma submartingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
   (hf : ∀ i, 0 ≤ᵐ[μ] μ[f (i + 1) - f i | 𝒢 i]) :
@@ -427,6 +462,29 @@ begin
   rw [← condexp_of_strongly_measurable (𝒢.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
   exact eventually_le.trans (hf i) (condexp_sub (hint _) (hint _)).le,
   apply_instance
+end
+
+lemma supermartingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, 0 ≤ᵐ[μ] μ[f i - f (i + 1) | 𝒢 i]) :
+  supermartingale f 𝒢 μ :=
+begin
+  rw ← neg_neg f,
+  refine (submartingale_of_condexp_sub_nonneg_nat hadp.neg (λ i, (hint i).neg) _).neg,
+  simpa only [pi.zero_apply, pi.neg_apply, neg_sub_neg]
+end
+
+lemma martingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, μ[f (i + 1) - f i | 𝒢 i] =ᵐ[μ] 0) :
+  martingale f 𝒢 μ :=
+begin
+  refine martingale_iff.2 ⟨supermartingale_of_condexp_sub_nonneg_nat hadp hint $ λ i, _,
+    submartingale_of_condexp_sub_nonneg_nat hadp hint $ λ i, (hf i).symm.le⟩,
+  rw ← neg_sub,
+  refine (eventually_eq.trans _ (condexp_neg _).symm).le,
+  filter_upwards [hf i] with x hx,
+  simpa only [pi.zero_apply, pi.neg_apply, zero_eq_neg],
 end
 
 namespace submartingale

@@ -188,7 +188,7 @@ instance : has_coe_to_fun (r ≺i s) (λ _, α → β) := ⟨λ f, f⟩
 
 @[simp] theorem coe_coe_fn (f : r ≺i s) : ((f : r ↪r s) : α → β) = f := rfl
 
-theorem down (f : r ≺i s)  : ∀ {b : β}, s b f.top ↔ ∃ a, f a = b := f.down'
+theorem down (f : r ≺i s) : ∀ {b : β}, s b f.top ↔ ∃ a, f a = b := f.down'
 
 theorem lt_top (f : r ≺i s) (a : α) : s (f a) f.top := f.down.2 ⟨_, rfl⟩
 

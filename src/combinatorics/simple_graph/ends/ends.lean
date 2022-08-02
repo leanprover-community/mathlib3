@@ -450,77 +450,7 @@ begin
   exact eval_bijective G Gpc K inj_from_K,
 end
 
-/-
-  The goal now would be to be able to bound the number of ends from below.
-  The number of ends is at least the number of infinite ro_components outside of K, for any given K,
-  i.e. it cannot decrease.
-  The construction to show this needs to extend each infinite ro_component outside of K into an end.
-  This is done by takinG Gpc a family indexed over ℕ and by iteratively extending.
--/
 
--- We try to follow: https://stacks.math.columbia.edu/tag/002Z
--- We only look at "surjective" systems.
-
-
-section subsystem
-
-
-def subsystem [locally_finite G] (Gpc : G.preconnected) :=
-  {f : (Π L : finset V, set (inf_ro_components G L))
-  | (∀ (L L' : finset V) (sub : L ⊆ L'), set.image (bwd_map G Gpc sub) (f L') ⊆ f L)
-  ∧ (∀ (L L' : finset V) (sub : L ⊆ L'), set.surj_on (bwd_map G Gpc sub) (f L') (f L))
-  ∧ (∀ L : finset V, (f L).nonempty)
-  }
-
-def singletonify[locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K)
-  (F : subsystem G Gpc) (FC : C ∈ F.val K) : subsystem G Gpc :=
-⟨ λ L, if h : K ⊆ L then set.preimage (bwd_map G Gpc h) {C} else (F.val L)
-, sorry
-, sorry
-, sorry ⟩
-
-def bwd_subsystem[locally_finite G] (Gpc : G.preconnected) : subsystem G Gpc :=
-⟨ λ L, univ
-, sorry
-, sorry
-, sorry ⟩
-
-def subsystem_le {G : simple_graph V} {Gpc : G.preconnected} [locally_finite G]
-  (S T : subsystem G Gpc) := ∀ L, S.val L ⊆ T.val L
-
-infix ` ss≤ ` : 50 := subsystem_le
-
-lemma subsystem_le_refl  {Gpc : G.preconnected} [locally_finite G]
-  (S: subsystem G Gpc) : S ss≤ S := by {rintros L,simp,}
-
-lemma subsystem_le_trans  {Gpc : G.preconnected} [locally_finite G]
-  {R S T : subsystem G Gpc} : R ss≤ S → S ss≤ T → R ss≤ T := by {rintros hRS hST L, exact (hRS L).trans (hST L),}
-
-lemma subsystem_le_antisymm  {Gpc : G.preconnected} [locally_finite G]
-  {S T : subsystem G Gpc} : S ss≤ T → T ss≤ S → S = T := by {rintros hST hTS,rcases S with ⟨SS,hS⟩, rcases T with ⟨TT,hT⟩, simp, apply funext,rintro L, specialize hST L, specialize hTS L,simp at hST, simp at hTS,exact set.eq_of_subset_of_subset hST hTS,}
-
-
-lemma bwd_subsystem_top {Gpc : G.preconnected} [locally_finite G]
-  (S: subsystem G Gpc) : S ss≤ (bwd_subsystem G Gpc) := by {rintros L, unfold bwd_subsystem,simp,}
-
-/-
-  To show that for a given C : inf_ro_components G K, there exists an end mappinG Gpc K to C:
-  The goal is to use `zorn_partial_order₀` on the set of all subsystems below `singletonify (bwd_subsystem G) k C`.
-  We need to show plenty of things:
-
-  * singletonify preservers beinG Gpc a subsystem
-  * singletonify S ss≤ S for all S
-  * A descendinG Gpc chain has a lower bound (its intersection)
-
-  Then we apply Zorn to get a minimal element which:
-
-  * is below `singletonify (bwd_subsystem G) k C` by construction
-  * has all values singletons, since otherwise its singletonification would be strictly smaller
-
-  and from this we get a unique section of this subsystem, and that's an end.
--/
-
-end subsystem
 
 
 lemma end_from_component[locally_finite G] (Gpc : G.preconnected) (K : finset V) (C : inf_ro_components G K) :

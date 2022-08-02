@@ -9,9 +9,13 @@ import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
 import category_theory.limits.final
+import category_theory.adjunction.evaluation
 import topology.sober
 import tactic.elementwise
 import algebra.category.Ring
+import algebra.category.Group.colimits
+import algebra.category.Group.limits
+import algebra.category.Group.filtered_colimits
 
 /-!
 # Stalks
@@ -421,6 +425,26 @@ lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
   (∀ U : opens X, function.injective (f.app (op U))) :=
 ⟨λ h U, app_injective_of_stalk_functor_map_injective f U (λ x, h x.1),
   stalk_functor_map_injective_of_app_injective f⟩
+
+/--
+This works for any concrete category where monomorphism = injective functions.
+-/
+instance (x : X) : functor.preserves_monomorphisms (sheaf.forget Ab.{v} X ⋙ stalk_functor Ab.{v} x) :=
+begin
+  refine ⟨λ 𝓐 𝓑 f im, _⟩,
+  apply concrete_category.mono_of_injective,
+  dsimp,
+  haveI : preserves_limits (forget Ab.{v}) := AddCommGroup.forget_preserves_limits.{v v},
+  haveI : mono f.1 := @sheaf.presheaf_mono_of_mono X Ab.{v} _ _ _ _ _ _ _ _ _ f im,
+  -- this is in another branch
+  have miffi : ∀ {X Y : Ab.{v}} (f : X ⟶ Y), mono f ↔ function.injective f := sorry,
+  have := (nat_trans.mono_iff_app_mono _ f.1).mp _,
+  simp_rw [miffi] at this,
+  refine (app_injective_iff_stalk_functor_map_injective f.1).mpr _ x,
+  rintros U,
+  apply this,
+  apply_instance,
+end
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
 We claim that it suffices to find preimages *locally*. That is, for each `x : U` we construct

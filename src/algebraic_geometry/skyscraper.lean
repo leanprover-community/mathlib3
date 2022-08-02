@@ -7,6 +7,7 @@ import algebraic_geometry.sheafed_space
 import topology.sheaves.sheaf_condition.unique_gluing
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
+import algebra.category.Group.abelian
 
 /-!
 # Skyscraper (pre)sheaves
@@ -565,7 +566,6 @@ end
 
 section adjoints
 
-
 open topological_space
 open category_theory category_theory.limits
 open Top
@@ -800,18 +800,50 @@ noncomputable def stalk_skyscraper_presheaf_adj : presheaf.stalk_functor C p₀ 
 
 example : true := trivial
 
-example : sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ ts :=
-{ hom_equiv := λ 𝓕, _,
-  unit := _,
-  counit := _,
-  hom_equiv_unit' := _,
-  hom_equiv_counit' := _ }
-
-section
-
--- lemma skyscraper_presheaf_injective (S : C) [injective S] : injective (skyscraper_presheaf p₀ S ts) :=
--- injective.injective_of_adjoint (stalk_skyscraper_presheaf_adj p₀ ts)
-
-end
+noncomputable def stalk_skyscraper_sheaf_adj : sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ ts :=
+{ hom_equiv := λ 𝓕 c,
+  ⟨λ f, ⟨from_stalk_to_to_skyscraper_presheaf p₀ ts f⟩,
+   λ g, to_skyscraper_presheaf_to_from_stalk p₀ ts g.1,
+   λ f, from_stalk_to_to_skyscraper_presheaf_to_skyscraper_presheaf_to_from_stalk
+     p₀ ts f,
+   begin
+     intros g,
+     ext1,
+     exact to_skyscraper_presheaf_to_from_stalk_from_stalk_to_to_skyscraper_presheaf p₀ ts g.1,
+   end⟩,
+  unit :=
+  { app := λ 𝓕, ⟨(stalk_skyscraper_presheaf_adj_unit p₀ ts).app 𝓕.1⟩,
+    naturality' := λ 𝓐 𝓑 ⟨f⟩,
+    begin
+      ext1,
+      dsimp,
+      exact (stalk_skyscraper_presheaf_adj_unit p₀ ts).naturality f,
+    end },
+  counit := stalk_skyscraper_presheaf_adj_counit p₀ ts,
+  hom_equiv_unit' :=
+  begin
+    intros 𝓐 c f,
+    ext1,
+    exact (stalk_skyscraper_presheaf_adj p₀ ts).hom_equiv_unit,
+  end,
+  hom_equiv_counit' := λ 𝓐 c f, (stalk_skyscraper_presheaf_adj p₀ ts).hom_equiv_counit }
 
 end adjoints
+
+section injective
+
+open_locale zero_object
+open topological_space
+open category_theory category_theory.limits
+open Top
+open opposite
+
+universe u
+variables {X : Top.{u}} (p₀ : X) [Π (U : opens X), decidable (p₀ ∈ U)]
+
+lemma skyscraper_presheaf_in_Ab_injective (S : Ab.{u}) [injective S] :
+  injective (skyscraper_sheaf p₀ S (is_zero.is_terminal (is_zero_zero _) : is_terminal (0 : Ab))) :=
+injective.injective_of_adjoint
+    (stalk_skyscraper_sheaf_adj p₀ (is_zero.is_terminal (is_zero_zero _) : is_terminal (0 : Ab)))
+
+end injective

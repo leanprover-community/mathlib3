@@ -83,9 +83,9 @@ lemma monic_scale_roots_iff {p : R[X]} (s : R) :
   monic (scale_roots p s) ↔ monic p :=
 by simp only [monic, leading_coeff, nat_degree_scale_roots, coeff_scale_roots_nat_degree]
 
-lemma scale_roots_eval₂_mul {p : S[X]} (f : S →+* R)
-  (r : R) (s : S) :
-  eval₂ f (f s * r) (scale_roots p s) = f s ^ p.nat_degree * eval₂ f r p :=
+lemma scale_roots_eval₂_eq_zero {p : S[X]} (f : S →+* R)
+  {r : R} {s : S} (hr : eval₂ f r p = 0) :
+  eval₂ f (f s * r) (scale_roots p s) = 0 :=
 calc eval₂ f (f s * r) (scale_roots p s) =
   (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
   by simp [eval₂_eq_sum, sum_def]
@@ -102,11 +102,7 @@ calc eval₂ f (f s * r) (scale_roots p s) =
                 exact le_nat_degree_of_ne_zero (polynomial.mem_support_iff.mp hi) })
 ... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
 ... = f s ^ p.nat_degree * eval₂ f r p : by { simp [eval₂_eq_sum, sum_def] }
-
-lemma scale_roots_eval₂_eq_zero {p : S[X]} (f : S →+* R)
-  {r : R} {s : S} (hr : eval₂ f r p = 0) :
-  eval₂ f (f s * r) (scale_roots p s) = 0 :=
-by rw [scale_roots_eval₂_mul, hr, _root_.mul_zero]
+... = 0 : by rw [hr, _root_.mul_zero]
 
 lemma scale_roots_aeval_eq_zero [algebra S R] {p : S[X]}
   {r : R} {s : S} (hr : aeval r p = 0) :
@@ -128,12 +124,5 @@ lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]
   (hr : aeval (algebra_map A K r / algebra_map A K s) p = 0) (hs : s ∈ non_zero_divisors A) :
   aeval (algebra_map A K r) (scale_roots p s) = 0 :=
 scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero inj hr hs
-
-lemma map_scale_roots (p : R[X]) (x : R) (f : R →+* S) (h : f p.leading_coeff ≠ 0) :
-    (p.scale_roots x).map f = (p.map f).scale_roots (f x) :=
-begin
-  ext,
-  simp [polynomial.nat_degree_map_of_leading_coeff_ne_zero _ h],
-end
 
 end polynomial

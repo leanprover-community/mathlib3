@@ -450,9 +450,7 @@ protected lemma partial_span.tendsto_orthogonal_projection_at_top [complete_spac
   (b : hilbert_basis ι 𝕜 E) (x : E) :
   tendsto (λ J : finset ι, (orthogonal_projection (b.partial_span J) x : E))
     at_top (𝓝 x) :=
-begin
-  sorry
-end
+orthogonal_projection_tendsto_self 𝕜 b.partial_span b.partial_span_mono _ b.partial_span_dense.ge
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt

@@ -551,10 +551,8 @@ lemma extend_to_fin_ro_components.ro  [locally_finite G] (Gpc : G.preconnected) 
 begin
   let L := extend_to_fin_ro_components G Gpc K,
   let KsubL := extend_to_fin_ro_components.sub G Gpc K,
-  apply set.ext,
-  rintros C,
-  split,
-  { rintro CL,
+  apply set.eq_of_subset_of_subset,
+  { rintro C CL,
     obtain ⟨D,DcompK,CsubD⟩ := of_subconnected_disjoint G K C
       ( nempty G _ C CL )
       ( disjoint.mono_right KsubL (to_disjoint G L C CL) )
@@ -612,25 +610,24 @@ begin
     w is therefore outside of K', which by definition means that `co_o c d`, and thus d lies in C.
     -/
   },
-  { rintro ⟨CK,Cinf⟩,
+  { rintro C ⟨CK,Cinf⟩,
     have Cconn : subconnected G C, from to_subconnected G K C CK,
     have CdisK : disjoint C K, from to_disjoint G K C CK,
     have Cdisall: ∀ C' ∈ ro_components G K, C' ≠ C → disjoint C C', by {
       rintros C' C'comp C'neC,
       exact disjoint_of_neq G K C C' CK C'comp C'neC.symm,
     },
-    have : disjoint C L, by {
-      simp *,
+    have CdisL : disjoint C L, by {
+      simp only [*],
       unfold extend_to_fin_ro_components,
-      simp,
-      split,
-      {exact CdisK},
-      { rintro C' ⟨C'comp,C'fin⟩,
-        have : C' ≠ C, by { rintros rfl, exact Cinf C'fin, },
-        exact Cdisall C' C'comp this,
-      },
+      simp only [coe_union, finite.coe_to_finset, set.disjoint_union_right, disjoint_sUnion_right],
+      refine ⟨CdisK,_⟩,
+      rintro C' ⟨C'comp,C'fin⟩,
+      have : C' ≠ C, by { rintros rfl, exact Cinf C'fin, },
+      exact Cdisall C' C'comp this,
+    
     },
-    obtain ⟨D,Dcomp,CsubD⟩ := of_subconnected_disjoint G L C (Cinf.nonempty) this Cconn,
+    obtain ⟨D,Dcomp,CsubD⟩ := of_subconnected_disjoint G L C (Cinf.nonempty) CdisL Cconn,
     suffices : D ⊆ C,
     { rw set.eq_of_subset_of_subset CsubD this,
       exact Dcomp,},

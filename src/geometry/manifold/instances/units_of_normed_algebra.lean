@@ -49,6 +49,89 @@ noncomputable theory
 
 open_locale manifold
 
+/-- Continuous differentiability of a function between manifolds can be stated in terms of the
+continuous differentiability of the corresponding function on the model vector space. This requires
+that the extended charts on the manifolds coincide with an open embedding of the manifold into the
+model vector space.
+
+TODO: Restructure proof and rearrange variables -/
+lemma open_embedding_cont_diff_on_cont_mdiff'
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
+  {M : Type*} [topological_space M] [charted_space H M]
+  [smooth_manifold_with_corners I M]
+  (e : M → E) {he : open_embedding e} (hce : ∀ x y, (ext_chart_at I x) y = e y)
+  (htarg : ∀ x : M, (ext_chart_at I x).target = set.range e)
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+  {M' : Type*} [topological_space M'] [charted_space H' M']
+  [smooth_manifold_with_corners I' M']
+  (e' : M' → E') {he' : open_embedding e'} (hce' : ∀ x y, (ext_chart_at I' x) y = e' y)
+  {n : with_top ℕ} {f : E → E'} (H : cont_diff_on 𝕜 n f (set.range e))
+  {g : M → M'} (hfg : e' ∘ g = f ∘ e) :
+  cont_mdiff I I' n g :=
+begin
+  rw cont_mdiff_iff,
+  split,
+  { rw continuous_def,
+    intros s hs,
+    rw ←set.preimage_image_eq s he'.inj,
+    rw ←set.preimage_comp,
+    rw hfg,
+    have hcont : continuous (f ∘ e),
+    { apply continuous_on.comp_continuous
+        (cont_diff_on.continuous_on H)
+        (open_embedding.continuous he),
+      exact λ y, ⟨y, rfl⟩ },
+    apply continuous.is_open_preimage hcont,
+    exact he'.open_iff_image_open.mp hs },
+    { intros,
+      apply cont_diff_on.congr_mono,
+      swap 4,
+      exact set.range e,
+      swap 4,
+      exact f,
+      swap 3,
+      rw set.subset_def,
+      intros a ha,
+      cases ha with ha ha',
+      rw htarg at ha,
+      exact ha,
+
+      exact H,
+
+      intros a ha,
+      rw [function.comp_app, hce', ←function.comp_app e' g, hfg, function.comp_app, ←hce x,
+        local_equiv.right_inv],
+      exact ha.1 }
+end
+
+/-- A weaker version of `units.open_embedding_cont_diff_on_cont_mdiff` in which the model space H
+coincides with the model vector space E via `model_with_corners_self` and the chart is given by the
+open embedding itself. -/
+lemma open_embedding_cont_diff_on_cont_mdiff
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {M : Type*} [topological_space M] [nonempty M]
+  (e : M → E) {he : open_embedding e}
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {M' : Type*} [topological_space M'] [nonempty M']
+  (e' : M' → E') {he' : open_embedding e'}
+  {n : with_top ℕ} {f : E → E'} (H : cont_diff_on 𝕜 n f (set.range e))
+  {g : M → M'} (hfg : e' ∘ g = f ∘ e) :
+  @cont_mdiff _ _ _ _ _ _ _ 𝓘(𝕜, E) _ _ he.singleton_charted_space
+    _ _ _ _ _ 𝓘(𝕜, E') _ _ he'.singleton_charted_space n g :=
+begin
+  apply @open_embedding_cont_diff_on_cont_mdiff' 𝕜 _
+    E _ _ E _ 𝓘(𝕜, E) M _ he.singleton_charted_space
+    (he.singleton_smooth_manifold_with_corners 𝓘(𝕜, E)) e he (_) (_)
+    E' _ _ E' _ 𝓘(𝕜, E') M' _ he'.singleton_charted_space
+    (he'.singleton_smooth_manifold_with_corners 𝓘(𝕜, E')) e' he' (_)
+    n f H _ hfg;
+  simp
+end
+
 namespace units
 
 variables {R : Type*} [normed_ring R] [complete_space R]
@@ -66,69 +149,39 @@ open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)
 lemma smooth_mul :
   smooth (𝓘(𝕜, R).prod 𝓘(𝕜, R)) 𝓘(𝕜, R) (λ (p : Rˣ × Rˣ), p.fst * p.snd) :=
 begin
-  apply cont_mdiff.smooth,
-  rw cont_mdiff_iff,
-  split,
-  { continuity },
-  { intros x' y',
-    simp,
-    have : ∀ x : R × R, x ∈ set.range (coe : Rˣ → R) ×ˢ set.range (coe : Rˣ → R) → (coe ∘
-      (λ (p : Rˣ × Rˣ), p.1 * p.2) ∘ λ (p : R × R),
-        ((open_embedding.to_local_homeomorph coe open_embedding_coe).symm p.1,
-          (open_embedding.to_local_homeomorph coe open_embedding_coe).symm p.2)) x =
-      (λ (p : R × R), p.1 * p.2) x,
-    { rintro x hx,
-      rw [function.comp_app, function.comp_app, coe_mul],
-      dsimp,
-      rw set.mem_prod at hx,
-      cases hx with hx1 hx2,
-      cases hx1 with y1 hy1,
-      cases hx2 with y2 hy2,
-      rw [←hy1, ←hy2],
-      unfold open_embedding.to_local_homeomorph
-        local_homeomorph.of_continuous_open
-        local_homeomorph.of_continuous_open_restrict,
-      rw local_homeomorph.mk_coe_symm,
-      simp,
-      have : ∀ y : Rˣ, ∃ (a : Rˣ) (H : a ∈ (set.univ : set Rˣ)), (a : R) = (y : R) :=
-        λ y : Rˣ, ⟨y, ⟨set.mem_univ y, rfl⟩⟩,
-      rw @function.inv_fun_on_eq Rˣ R _ set.univ coe y1 (this y1),
-      rw @function.inv_fun_on_eq Rˣ R _ set.univ coe y2 (this y2) },
-    apply cont_diff_on.congr _ this,
-    exact cont_diff.cont_diff_on (@cont_diff_mul 𝕜 _ ⊤ R _ _) }
+  apply @open_embedding_cont_diff_on_cont_mdiff' 𝕜 _
+    (R × R) _ _ (model_prod R R) _ _ (Rˣ × Rˣ) _ _ _ (λ x, (x.1, x.2))
+    (by {apply open_embedding.prod open_embedding_coe open_embedding_coe; apply_instance}) _ _
+    R _ _ R _ _ Rˣ _ _ _ coe open_embedding_coe _ _ ⊤ (λ x, x.1 * x.2),
+  { exact cont_diff.cont_diff_on cont_diff_mul },
+  { ext, simp },
+  { apply_instance },
+  { simp },
+  { intro,
+    ext x',
+    cases x' with x1 x2,
+    split;
+    { simp,
+      intros y1 hy1 y2 hy2,
+      exact ⟨⟨y1, hy1⟩, ⟨y2, hy2⟩⟩ } },
+  { apply_instance },
+  { intros, simp },
+  { intro, simp }
 end
 
 lemma smooth_inv :
   smooth 𝓘(𝕜, R) 𝓘(𝕜, R) (λ (a : Rˣ), a⁻¹) :=
 begin
-  apply cont_mdiff.smooth,
-  rw cont_mdiff_iff,
-  split,
-  { continuity },
-  { intros x' y',
-    simp,
-    have : ∀ x : R, x ∈ set.range (coe : Rˣ → R) →
-      (coe ∘ has_inv.inv ∘
-        (open_embedding.to_local_homeomorph coe open_embedding_coe).symm) x =
-        ring.inverse x,
-    { intros x hx,
-      cases hx with y hy,
-      rw ←hy,
-      simp,
-      unfold open_embedding.to_local_homeomorph
-        local_homeomorph.of_continuous_open
-        local_homeomorph.of_continuous_open_restrict,
-      rw local_homeomorph.mk_coe_symm,
-      simp,
-      have : ∃ (a : Rˣ) (H : a ∈ (set.univ : set Rˣ)), (a : R) = (y : R) :=
-        ⟨y, ⟨set.mem_univ y, rfl⟩⟩,
-      rw inv_unique,
-      rw @function.inv_fun_on_eq Rˣ R _ set.univ coe y this },
-    apply cont_diff_on.congr _ this,
-    intros x hx,
-    cases hx with y hy,
-    rw ←hy,
-    exact cont_diff_at.cont_diff_within_at (@cont_diff_at_ring_inverse 𝕜 _ ⊤ R _ _ _ y) }
+  apply open_embedding_cont_diff_on_cont_mdiff,
+  intros x hx,
+  apply cont_diff_at.cont_diff_within_at,
+  rw set.mem_range at hx,
+  cases hx with y hy,
+  rw ←hy,
+  apply cont_diff_at_ring_inverse,
+
+  ext,
+  simp
 end
 
 instance : lie_group 𝓘(𝕜, R) Rˣ :=
